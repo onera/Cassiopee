@@ -1,0 +1,155 @@
+C ============================================================================
+C Solution of a system of simultaneous equations
+C ==========================================================================
+      SUBROUTINE k6GELG(R,A,M,N,EPS,IER)
+C
+      IMPLICIT NONE
+C
+C
+C.......................................................................
+C        PURPOSE
+C           TO SOLVE A GENERAL SYSTEM OF SIMULTANEOUS LINEAR EQUATIONS.
+C        USAGE
+C           CALL GELG(R,A,M,N,EPS,IER)
+C        DESCRIPTION OF PARAMETERS
+C           R      - THE M BY N MATRIX OF RIGHT HAND SIDES.  (DESTROYED)
+C                    ON RETURN R CONTAINS THE SOLUTION OF THE EQUATIONS.
+C           A      - THE M BY M COEFFICIENT MATRIX.  (DESTROYED)
+C           M      - THE NUMBER OF EQUATIONS IN THE SYSTEM.
+C           N      - THE NUMBER OF RIGHT HAND SIDE VECTORS.
+C           EPS    - AN INPUT CONSTANT WHICH IS USED AS RELATIVE
+C                    TOLERANCE FOR TEST ON LOSS OF SIGNIFICANCE.
+C           IER    - RESULTING ERROR PARAMETER CODED AS FOLLOWS
+C                    IER=0  - NO ERROR,
+C                    IER=-1 - NO RESULT BECAUSE OF M LESS THAN 1 OR
+C                             PIVOT ELEMENT AT ANY ELIMINATION STEP
+C                             EQUAL TO 0,
+C                    IER=K  - WARNING DUE TO POSSIBLE LOSS OF SIGNIFI-
+C                             CANCE INDICATED AT ELIMINATION STEP K+1,
+C                             WHERE PIVOT ELEMENT WAS LESS THAN OR
+C                             EQUAL TO THE INTERNAL TOLERANCE EPS TIMES
+C                             ABSOLUTELY GREATEST ELEMENT OF MATRIX A.
+C           INPUT MATRICES R AND A ARE ASSUMED TO BE STORED COLUMNWISE
+C           IN M*N RESP. M*M SUCCESSIVE STORAGE LOCATIONS. ON RETURN
+C           SOLUTION MATRIX R IS STORED COLUMNWISE TOO.
+C           THE PROCEDURE GIVES RESULTS IF THE NUMBER OF EQUATIONS M IS
+C           GREATER THAN 0 AND PIVOT ELEMENTS AT ALL ELIMINATION STEPS
+C           ARE DIFFERENT FROM 0. HOWEVER WARNING IER=K - IF GIVEN -
+C           INDICATES POSSIBLE LOSS OF SIGNIFICANCE. IN CASE OF A WELL
+C           SCALED MATRIX A AND APPROPRIATE TOLERANCE EPS, IER=K MAY BE
+C           INTERPRETED THAT MATRIX A HAS THE RANK K. NO WARNING IS
+C           GIVEN IN CASE M=1.
+C        SUBROUTINES AND FUNCTION SUBPROGRAMS REQUIRED
+C           NONE
+C        METHOD
+C           SOLUTION IS DONE BY MEANS OF GAUSS-ELIMINATION WITH
+C           COMPLETE PIVOTING.
+C
+C******************************************************************************
+C
+      INTEGER_E M,N,IER
+      REAL_E EPS
+      REAL_E R(1), A(1)
+
+      INTEGER_E MM, NM, I,J,K,L,LST,LEND,II,LL,IST
+      REAL_E TB, PIV, TOL, PIVI
+C	
+      I = 0
+
+      IF (M.LE.0) GOTO 23
+C  SEARCH FOR GREATEST ELEMENT IN MATRIX A
+    1 IER = 0
+      PIV = 0.
+      MM = M*M
+      NM = N*M
+      DO 3 L=1,MM
+      TB = ABS(A(L))
+      IF (TB-PIV.LE.0) GOTO 3
+    2 PIV = TB
+      I=L
+    3 CONTINUE
+      TOL=EPS*PIV
+C  A(I) IS PIVOT ELEMENT. PIV CONTAINS THE ABSOLUTE VALUE OF A(I).
+C  START ELIMINATION LOOP
+      LST=1
+      DO 17 K=1,M
+C  TEST ON SINGULARITY
+      IF (PIV.LE.0) GOTO 23
+    4 IF (IER.NE.0) GOTO 7
+    5 IF (PIV-TOL.GT.0) GOTO 7
+    6 IER=K-1
+    7 PIVI=1.D0/A(I)
+      J=(I-1)/M
+      I=I-J*M-K
+      J=J+1-K
+C  I+K IS ROW-INDEX, J+K COLUMN-INDEX OF PIVOT ELEMENT
+C  PIVOT ROW REDUCTION AND ROW INTERCHANGE IN RIGHT HAND SIDE R
+      DO 8 L=K,NM,M
+      LL=L+I
+      TB=PIVI*R(LL)
+      R(LL)=R(L)
+    8 R(L)=TB
+C  IS ELIMINATION TERMINATED
+      IF (K-M.GE.0) GOTO 18
+C  COLUMN INTERCHANGE IN MATRIX A
+    9 LEND=LST+M-K
+      IF(J.LE.0) GOTO 12
+   10 II=J*M
+      DO 11 L=LST,LEND
+      TB=A(L)
+      LL=L+II
+      A(L)=A(LL)
+   11 A(LL)=TB
+C  ROW INTERCHANGE AND PIVOT ROW REDUCTION IN MATRIX A
+   12 DO 13 L=LST,MM,M
+      LL=L+I
+      TB=PIVI*A(LL)
+      A(LL)=A(L)
+   13 A(L)=TB
+C  SAVE COLUMN INTERCHANGE INFORMATION
+      A(LST)=J
+C  ELEMENT REDUCTION AND NEXT PIVOT SEARCH
+      PIV=0.
+      LST=LST+1
+      J=0
+      DO 16 II=LST,LEND
+      PIVI=-A(II)
+      IST=II+M
+      J=J+1
+      DO 15 L=IST,MM,M
+      LL=L-J
+      A(L)=A(L)+PIVI*A(LL)
+      TB=ABS(A(L))
+      IF (TB-PIV.LE.0) GOTO 15
+   14 PIV=TB
+      I=L
+   15 CONTINUE
+      DO 16 L=K,NM,M
+      LL=L+J
+   16 R(LL)=R(LL)+PIVI*R(L)
+   17 LST=LST+M
+C  END OF ELIMINATION LOOP
+C  BACK SUBSTITUTION AND BACK INTERCHANGE
+   18 IF (M-1.LT.0) GOTO 23
+      IF (M-1.EQ.0) GOTO 22
+   19 IST=MM+M
+      LST=M+1
+      DO 21 I=2,M
+      II=LST-I
+      IST=IST-LST
+      L=IST-M
+      L=A(L)+0.5D0
+      DO 21 J=II,NM,M
+      TB=R(J)
+      LL=J
+      DO 20 K=IST,MM,M
+      LL=LL+1
+   20 TB=TB-A(K)*R(LL)
+      K=J+L
+      R(J)=R(K)
+   21 R(K)=TB
+   22 RETURN
+C  ERROR RETURN
+   23 IER=-1
+      RETURN
+      END

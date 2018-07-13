@@ -1,0 +1,20 @@
+#! /bin/sh
+# *Cassiopee* Compilation Environment
+
+#---------------------------- User Data --------------------------------------
+# Using MPI?
+export MPI=false
+# Using debug mode?
+export DBG=false
+#-----------------------------------------------------------------------------
+if [ "$CASSIOPEE" = "" ]; then
+    echo 'You must specify a CASSIOPEE variable in your environment.'
+    echo 'This variable specifies the installation path of *Cassiopee*.'
+else
+    if test -e $CASSIOPEE/Apps/Modules/Envs/sh_Cassiopee_local 
+    then
+        . $CASSIOPEE/Apps/Modules/Envs/sh_Cassiopee_local
+    else
+        . $CASSIOPEE/Dist/sh_Cassiopee_local
+    fi
+fi

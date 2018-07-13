@@ -1,0 +1,57 @@
+#! /bin/sh
+# valid     : valid tous les modules
+# valid -f  : efface au prealable la reference
+. ./MODULES
+
+# Create local directory for local products
+export VALIDLOCAL=`pwd`/ValidData
+if test ! -d "ValidData"
+then
+    mkdir ValidData
+fi
+
+# Reference
+DATABASE='/home/benoit/Cassiopee'
+echo 'Reference data is'$DATABASE
+
+# Run unitary tests
+cd $DATABASE/Apps/Modules
+
+for mod in $FULLMODULES
+do
+  if test -e $mod
+  then
+      if [ "$mod" != "CPlot" -a "$mod" != "Distributor" ]
+      then
+          cd $mod/test
+          time ./valid $1
+          cd ../..
+      fi
+  else
+      echo 'Directory ',$mod, 'not found.'
+  fi
+done
+
+# Test CFD Base
+SEQ='NACA NACA_IBC DAUPHIN FLATPLATE RAE2822 CUBE_IBC'
+PARA='RAE2822_IBC'
+cd $DATABASE/Validation/Cases
+for case in $SEQ
+do
+    echo ''
+    echo '================ RUNNING '$case
+    echo ''
+    cd $case
+    ./valid check
+    cd ..
+done
+
+for case in $PARA
+do
+    echo ''
+    echo '================ RUNNING '$case
+    echo ''
+    cd $case
+    ./valid check 0 0 0 2 4
+    cd ..
+done

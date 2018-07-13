@@ -1,0 +1,20 @@
+#! /bin/sh
+echo '======================================================================='
+echo '> Testing RigidMotion '
+echo '> date: '`date`
+if [ "$OMP_NUM_THREADS" = "" ]; then
+    echo '> threads: 1'
+else
+    echo '> threads: '$OMP_NUM_THREADS
+fi
+echo '======================================================================='
+rm -f *~
+for i in *_t*
+do
+  if [ "$1" == "-f" ] ; then
+    v=${i/%py/ref}
+    rm -f Data/$v*
+  fi
+  echo '=======================' $i '======================'
+  python $i
+done

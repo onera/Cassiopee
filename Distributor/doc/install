@@ -1,0 +1,40 @@
+#!/bin/sh
+echo 'Installing Distributor tests and doc'
+# Destination des tests pour la doc
+DEST=$CASSIOPEE/UserGuides/Examples/Distributor/
+# Nom du fichier doc
+DOC=Distributor
+# Destination des release Notes (download)
+DEST2=$CASSIOPEE/WWW/Main/Download
+
+# Copie des tests de doc
+if test ! -e $DEST
+then 
+    mkdir $DEST
+fi
+
+# copie de la doc html
+cp $DOC.html $CASSIOPEE/UserGuides/
+
+# Genere la doc pdf
+DEST=$CASSIOPEE/UserGuides
+LOCAL=`pwd`
+cd $DEST
+if test ! -e Latex
+then
+    mkdir Latex
+fi
+python parseDoc.py $DOC.html Latex/$DOC.tex
+
+cd Latex ; compile $DOC > out ; cd $LOCAL
+cp $DEST/Latex/$DOC.pdf .
+
+# Copie des release Notes
+if test -e $DEST2
+then
+    version=`grep -e __version__ ../Distributor/__init__.py`
+    version1=${version:15:10}
+    version1=${version1/"'"/""}
+    v='Distributor-'$version1'.txt'
+    cp Distributor.txt $DEST2/$v
+fi

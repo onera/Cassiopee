@@ -1,0 +1,1060 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>Internal: CGNS/python tree management</title>
+    <link href="Cassiopee.css" rel="stylesheet" type="text/css">
+    <link rel="icon" type="image/png" href="iconc.png"> </link>
+    <script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','//www.google-analytics.com/analytics.js','ga');ga('create', 'UA-31301505-1', 'auto');ga('send', 'pageview');</script>
+  </head>
+
+  <body>
+    <h1>Internal: CGNS/python tree management</h1>
+    <h2>Version: 2.4 (29/03/2017)</h2>
+    <h2>Author: Onera</h2>
+    <h2><a href="Latex/Internal.pdf" target="_self"><img src="pdf_logo.gif" alt="Download pdf version."></a></h2>
+<HR>
+
+    <!-- <input type=search id="mySearch" placeholder="Search Cassiopee doc.."> -->
+    <!-- <button onclick="myFunction()">Search</button> -->
+    <!-- <p id="demo"></p> -->
+    <!-- <script> -->
+    <!--   function myFunction() { -->
+    <!--   var x = document.getElementById("mySearch").placeholder; -->
+    <!--   document.getElementById("demo").innerHTML = x; -->
+    <!--   } -->
+    <!-- </script> -->
+
+
+    <h3>Preamble</h3>
+
+    This module provides simple and efficient functions for
+    creating/traversing/manipulating CGNS/Python data tree (pyTree).<br><br>
+
+    This module is part of Cassiopee, a free open-source
+    pre- and post-processor for CFD simulations.<br><br>
+
+    To use the module:
+    <div class="code">
+      import Converter.Internal as Internal
+    </div>
+
+    All functions of Cassiopee modules (Converter.PyTree, Transform.PyTree, ...)
+    work on 3 types of containers: a container for grid coordinates
+    named __GridCoordinates__, a container for node solution named
+    __FlowSolutionNodes__ and a container for center solution named
+    __FlowSolutionCenters__. By default:
+     <div class="code">
+    Internal.__GridCoordinates__ = 'GridCoordinates' <br>
+    Internal.__FlowSolutionNodes__ = 'FlowSolution' <br>
+    Internal.__FlowSolutionCenters__ = 'FlowSolution#Centers'
+    </div>
+
+    To make the functions operate on
+    another named container for example 'FlowSolution#Init',
+    start your script with:
+    <div class="code">
+    Internal.__FlowSolutionNodes__ = 'FlowSolution#Init'
+    </div><br>
+
+    <strong>Internal.autoSetContainers</strong>:
+    adapt automatically the containers name (__FlowSolutionNode__, __FlowSolutionCenters__) to match the containers of a zone or a pyTree:
+    <div class="code">
+    Internal.autoSetContainers(t)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/autoSetContainersPT.py"> automatically adapt the container names (pyTree).</a> <br><br>
+
+    <h3>Node tests</h3>
+    <strong>Internal.isTopTree</strong>:
+    return True if node is a top tree:
+    <div class="code">
+    <abbr title="Bool">res</abbr> = Internal.isTopTree(<abbr title="Node of tree">node</abbr>)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/isTopTreePT.py"> tell if a node is a top tree (pyTree).</a> <br><br>
+
+    <strong>Internal.isStdNode</strong>:
+    return 0 if node is a list of standard nodes, -1 if node is a standard node,
+    -2 otherwise:
+    <div class="code">
+    res = Internal.isStdNode(node)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/isStdNodePT.py"> tell if a node is a standard one (pyTree).</a> <br><br>
+
+    <strong>Internal.typeOfNode</strong>:
+    return 1 if node is a zone node, 2 if node is a list of zones,
+    3 if node is a tree, 4 if node is a base, 5 if node is a list
+    of bases, -1 otherwise:
+    <div class="code">
+    res = Internal.typeOfNode(node)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/typeOfNodePT.py"> tell what kind of node is my node (pyTree).</a> <br><br>
+
+    <strong>Internal.isType</strong>:
+    compare given type and node type. Wildcards are accepted:
+    <div class="code">
+    res = Internal.isType(node, 'Zone_t')
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/isTypePT.py"> has my node this type? (pyTree).</a> <br><br>
+
+    <strong>Internal.isName</strong>:
+    compare given name and node name. Wildcards are accepted:
+    <div class="code">
+    res = Internal.isName(node, 'Zone*')
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/isNamePT.py"> has my node this name? (pyTree).</a> <br><br>
+
+    <strong>Internal.isValue</strong>:
+    compare given value and node value. If value is a string, accepts wildcards.
+    Accepts also numpy arrays as value:
+    <div class="code">
+    res = Internal.isValue(node, 1.)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/isValuePT.py"> has my node this value? (pyTree).</a> <br><br>
+
+    <h3>Set/create generic nodes</h3>
+    <strong>Internal.setValue</strong>:
+    set the given value in node (node is modified):
+    <div class="code">
+    Internal.setValue(node, 1.)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/setValueIPT.py"> set value in node (pyTree).</a> <br><br>
+
+    <strong>Internal.setName</strong>:
+    set the given name to node (node is modified):
+    <div class="code">
+    Internal.setName(node, 'myNode')
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/setNamePT.py"> set name in node (pyTree).</a> <br><br>
+
+    <strong>Internal.setType</strong>:
+    set the given type to node (node is modified):
+    <div class="code">
+    Internal.setType(node, 'Zone_t')
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/setTypePT.py"> set type in node (pyTree).</a> <br><br>
+
+    <strong>Internal.createNode</strong>:
+    create a node with a given name and type and optional value and children:
+    <div class="code">
+    node = Internal.createNode('myNode', 'DataArray_t', value=1., children=[])
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/createNodePT.py"> create a node (pyTree).</a> <br><br>
+
+    <strong>Internal.addChild</strong>:
+    add a child node to a given node. Position in children list can be
+    specified (node is modified):
+    <div class="code">
+    child = Internal.addChild(node, child, pos=-1)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/addChildPT.py"> add a child node to a node (pyTree).</a> <br><br>
+
+    <strong>Internal.createChild</strong>:
+    create a child node and attach it to a given node.
+    Child's node name, type, value and children can be specified.
+    Position in children list can also be specified (node is modified) and
+    newly created child node is returned:
+    <div class="code">
+    child = Internal.createChild(node, 'myNode', 'DataArray_t', value=None, children=[], pos=-1)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/createChildPT.py"> create a child node (pyTree).</a> <br><br>
+
+    <strong>Internal.createUniqueChild</strong>:
+    same as createChild except that, if a node with the same name already exists
+    in the children list, it is replaced by the new values (node is modified)
+    and newly created or modified child node is returned:
+    <div class="code">
+    child = Internal.createUniqueChild(node, 'myNode', 'DataArray_t', value=None, pos=-1)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/createUniqueChildPT.py"> create a unique child node (pyTree).</a> <br><br>
+
+    <h3>Create CGNS specific nodes</h3>
+
+    <strong>Internal.newCGNSTree</strong>:
+    create a tree node with the CGNS version node:
+    <div class="code">
+    node = Internal.newCGNSTree()
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newCGNSTreePT.py"> create a new tree node (pyTree).</a> <br><br>
+
+    <strong>Internal.newCGNSBase</strong>:
+    create a base node. cellDim is the dimension of zone cells of this
+    base, physDim is the
+    dimension of physical space. For example, triangle zones in 3D space will
+    correspond to cellDim=2 and physDim=3. If parent is not None, attach
+    it to parent node:
+    <div class="code">
+    node = Internal.newCGNBase(name='Base', cellDim=3, physDim=3, parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newCGNSBasePT.py"> create a new base node (pyTree).</a> <br><br>
+
+    <strong>Internal.newZone</strong>:
+    create a zone node. zsize is the dimension of zone, ztype is the type of
+    zone ('Structured' or 'Unstructured'). If family is not None, attach a
+    zone family node. If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newZone(name='Zone', zsize=None, ztype='Structured', family=None, parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newZonePT.py"> create a new zone node (pyTree).</a> <br><br>
+
+    <strong>Internal.newGridCoordinates</strong>:
+    create a GridCoordinates node.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newGridCoordinates(name=__GridCoordinates__, parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newGridCoordinatesPT.py"> create a new GridCoordinates node (pyTree).</a> <br><br>
+
+    <strong>Internal.newDataArray</strong>:
+    create a DataArray node. value can be a string, an int, a float,
+    a numpy of ints, a numpy of floats.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newDataArray(name='Data', value=None, parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newDataArrayPT.py"> create a new DataArray node (pyTree).</a> <br><br>
+
+    <strong>Internal.newDataClass</strong>:
+    create a DataClass node.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newDataClass(value='UserDefined', parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newDataClassPT.py"> create a new DataClass node (pyTree).</a> <br><br>
+
+    <strong>Internal.newDimensionalUnits</strong>:
+    create a DimensionalUnits node. Arguments describe the units of the
+    problem. If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newDimensionalUnits(massUnit='Kilogram', lengthUnit='Meter', timeUnit='Second', temperatureUnit='Kelvin', angleUnit='Radian', parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newDimensionalUnitsPT.py"> create a new DimensionalUnits node (pyTree).</a> <br><br>
+
+    <strong>Internal.newDimensionalExponents</strong>:
+    create a DimensionalExponents node. Arguments describe the unit
+    exponent of the problem. If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newDimensionalExponents(massExponent='Kilogram', lengthExponent='Meter', timeExponent='Second', temperatureExponent='Kelvin', angleExponent='Radian', parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newDimensionalExponentsPT.py"> create a new DimensionalExponents node (pyTree).</a> <br><br>
+
+    <strong>Internal.newDataConversion</strong>:
+    create a DataConversion node. Arguments describe the conversion factors.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newDataConversion(conversionScale=1., conversionOffset=0., parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newDataConversionPT.py"> create a new DataConversion node (pyTree).</a> <br><br>
+
+    <strong>Internal.newDescriptor</strong>:
+    create a Descriptor node.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newDescriptor(name='Descriptor', value='', parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newDescriptorPT.py"> create a new Descriptor node (pyTree).</a> <br><br>
+
+    <strong>Internal.newGridLocation</strong>:
+    create a GridLocation node.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newGridLocation(value='CellCenter', parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newGridLocationPT.py"> create a new GridLocation node (pyTree).</a> <br><br>
+
+    <strong>Internal.newIndexArray</strong>:
+    create a indexArray node.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newIndexArray(name='Index', value=None, parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newIndexArrayPT.py"> create a new IndexArray node (pyTree).</a> <br><br>
+
+    <strong>Internal.newPointList</strong>:
+    create a PointList node.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newPointList(name='PointList', value=None, parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newPointListPT.py"> create a new PointList node (pyTree).</a> <br><br>
+
+    <strong>Internal.newPointRange</strong>:
+    create a PointRange node.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newPointRange(name='PointRange', value=None, parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newPointRangePT.py"> create a new PointRange node (pyTree).</a> <br><br>
+
+    <strong>Internal.newRind</strong>:
+    create a Rind node.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newRind(value=None, parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newRindPT.py"> create a new Rind node (pyTree).</a> <br><br>
+
+    <strong>Internal.newSimulationType</strong>:
+    create a SimulationType node.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newSimulationType(value='TimeAccurate', parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newSimulationTypePT.py"> create a new SimulationType node (pyTree).</a> <br><br>
+
+    <strong>Internal.newOrdinal</strong>:
+    create a Ordinal node.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newOrdinal(value=0, parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newOrdinalPT.py"> create a new Ordinal node (pyTree).</a> <br><br>
+
+    <strong>Internal.newDiscreteData</strong>:
+    create a DiscreteData node.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newDiscreteData(name='DiscreteData', parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newDiscreteDataPT.py"> create a new DiscreteData node (pyTree).</a> <br><br>
+
+    <strong>Internal.newIntegralData</strong>:
+    create a IntegralData node.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newIntegralData(name='IntegralData', parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newIntegralDataPT.py"> create a new IntegralData node (pyTree).</a> <br><br>
+
+    <strong>Internal.newElements</strong>:
+    create a Elements node. etype is the element type
+    ('BAR', 'TRI', 'QUAD', ...), econnectivity is the connectivity numpy
+    array and eboundary ...
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newElements(name='Elements',
+    etype='UserDefined', econnectivity=None, eboundary=0, parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newElementsPT.py"> create a new Elements node (pyTree).</a> <br><br>
+
+    <strong>Internal.newParentElements</strong>:
+    create a ParentElements node. value is a numpy array.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newParentElements(value=None, parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newParentElementsPT.py"> create a new ParentElements node (pyTree).</a> <br><br>
+
+    <strong>Internal.newParentElementsPosition</strong>:
+    create a ParentElementsPosition node. value is a numpy array.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newParentElementsPosition(value=None, parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newParentElementsPositionPT.py"> create a new ParentElementsPosition node (pyTree).</a> <br><br>
+
+    <strong>Internal.newZoneBC</strong>:
+    create a ZoneBC node.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newZoneBC(parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newZoneBCPT.py"> create a new ZoneBC node (pyTree).</a> <br><br>
+
+    <strong>Internal.newBC</strong>:
+    create a BC node. It can be defined by a pointRange for structured
+    zones or a pointList of faces for unstructured zones. btype
+    specifies the BC type. A BC familyName can also be defined.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newBC(name='BC', pointRange=None,
+    pointList=None, btype='Null', family=None, parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newBCPT.py"> create a new ZoneBC node (pyTree).</a> <br><br>
+
+    <strong>Internal.newBCDataSet</strong>:
+    create a BCDataSet node. value must be a BCType. GridLocation ('FaceCenter', 'Vertex') can be specified.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newBCDataSet(name='BCDataSet', value='Null', gridLocation=None, parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newBCPT.py"> create a new BCDataSet node (pyTree).</a> <br><br>
+
+    <strong>Internal.newBCData</strong>:
+    create a BCData node.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newBCData(name='BCData', parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newBCDataPT.py"> create a new BCData node (pyTree).</a> <br><br>
+
+    <strong>Internal.newBCProperty</strong>:
+    create a BCProperty node.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newBCProperty(wallFunction='Null', area='Null', parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newBCPropertyPT.py"> create a new BCProperty node (pyTree).</a> <br><br>
+
+    <strong>Internal.newAxiSymmetry</strong>:
+    create a AxiSymmetry node.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newAxiSymmetry(referencePoint=[0.,0.,0.],
+    axisVector=[0.,0.,0.], parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newAxiSymmetryPT.py"> create a new AxiSymmetry node (pyTree).</a> <br><br>
+
+    <strong>Internal.newRotatingCoordinates</strong>:
+    create a RotatingCoordinates node.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newRotatingCoordinates(rotationCenter=[0.,0.,0.], rotationRateVector=[0.,0.,0.], parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newRotatingCoordinatesPT.py"> create a new RotatingCoordinates node (pyTree).</a> <br><br>
+
+    <strong>Internal.newFlowSolution</strong>:
+    create a newFlowSolution node.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newFlowSolution(name=__FlowSolutionNodes__,
+    gridLocation='Vertex', parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newFlowSolutionPT.py"> create a new FlowSolution node (pyTree).</a> <br><br>
+
+    <strong>Internal.newZoneGridConnectivity</strong>:
+    create a newZoneGridConnectivity node.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newZoneGridConnectivity(name='ZoneGridConnectivity', parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newZoneGridConnectivityPT.py"> create a new newZoneGridConnectivity node (pyTree).</a> <br><br>
+
+    <strong>Internal.newGridConnectivity1to1</strong>:
+    create a newGridConnectivity1to1 node.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newGridConnectivity1to1(name='Match',
+    donorName=None, pointRange=None, pointList=None,
+    pointRangeDonor=None, pointListDonor=None, transform=None, parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newGridConnectivityPT.py"> create a new newGridConnectivity node (pyTree).</a> <br><br>
+
+    <strong>Internal.newGridConnectivity</strong>:
+    create a newGridConnectivity node.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newGridConnectivity(name='Overlap',
+    donorName=None, ctype='Overset', parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newGridConnectivityPT.py"> create a new newGridConnectivity node (pyTree).</a> <br><br>
+
+    <strong>Internal.newGridConnectivityType</strong>:
+    create a newGridConnectivityType node.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newGridConnectivityType(ctype='Overset',parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newGridConnectivityTypePT.py"> create a new newGridConnectivityType node (pyTree).</a> <br><br>
+
+    <strong>Internal.newGridConnectivityProperty</strong>:
+    create a newGridConnectivityProperty node.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newGridConnectivityProperty(parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newGridConnectivityPropertyPT.py"> create a new newGridConnectivityProperty node (pyTree).</a> <br><br>
+
+    <strong>Internal.newPeriodic</strong>:
+    create a Periodic node.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newPeriodic(rotationCenter=[0.,0.,0.],
+    rotationAngle=[0.,0.,0.], translation=[0.,0.,0.], parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newPeriodicPT.py"> create a new Periodic node (pyTree).</a> <br><br>
+
+    <strong>Internal.newOversetHoles</strong>:
+    create a OversetHoles node.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newOversetHoles(name='OversetHoles', pointRange=None, pointList=None, parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newOversetHolesPT.py"> create a new OversetHoles node (pyTree).</a> <br><br>
+
+    <strong>Internal.newFlowEquationSet</strong>:
+    create a FlowEquationSet node.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newFlowEquationSet(parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newFlowEquationSetPT.py"> create a new FlowEquationSet node (pyTree).</a> <br><br>
+
+    <strong>Internal.newGoverningEquations</strong>:
+    create a GoverningEquations node. value is the equation type in 'FullPotential', 'Euler', 'NSLaminar','NSTurbulent', 'NSLaminarIncompressible', 'NSTurbulentIncompressible'.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newGoverningEquations(value='Euler', parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newGoverningEquationsPT.py"> create a new GoverningEquations node (pyTree).</a> <br><br>
+
+    <strong>Internal.newGasModel</strong>:
+    create a GasModel node. value is the model type in 'Ideal', 'VanderWaals', 'CaloricallyPerfect', 'ThermallyPerfect', 'ConstantDensity', 'RedlichKwong'.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newGasModel(value='Ideal', parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newGasModelPT.py"> create a new GasModel node (pyTree).</a> <br><br>
+
+    <strong>Internal.newThermalConductivityModel</strong>:
+    create a ThermalConductivityModel node. value is the model type in 'ConstantPrandtl', 'PowerLaw', 'SutherlandLaw'.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newThermalConductivityModel(value='Null', parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newThermalConductivityModelPT.py"> create a new ThermalConductivityModel node (pyTree).</a> <br><br>
+
+    <strong>Internal.newViscosityModel</strong>:
+    create a ViscosityModel node. value is the model type in 'Constant', 'PowerLaw', 'SutherlandLaw'.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newViscosityModel(value='Null', parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newViscosityModelPT.py"> create a new ViscosityModel node (pyTree).</a> <br><br>
+
+    <strong>Internal.newTurbulenceClosure</strong>:
+    create a TurbulenceClosure node. value is the closure type in 'EddyViscosity', 'ReynoldStress', 'ReynoldsStressAlgebraic'.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newTurbulenceClosure(value='Null', parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newTurbulenceClosurePT.py"> create a new TurbulenceClosure node (pyTree).</a> <br><br>
+
+    <strong>Internal.newTurbulenceModel</strong>:
+    create a TurbulenceModel node. value is the model type in 'Algebraic_BaldwinLomax', 'Algebraic_CebeciSmith', 'HalfEquation_JohnsonKing', 'OneEquation_BaldwinBarth', 'OneEquation_SpalartAllmaras', 'TwoEquation_JonesLaunder', 'TwoEquation_MenterSST', 'TwoEquation_Wilcox'.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newTurbulenceModel(value='Null', parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newTurbulenceModelPT.py"> create a new TurbulenceModel node (pyTree).</a> <br><br>
+
+    <strong>Internal.newThermalRelaxationModel</strong>:
+    create a ThermalRelaxtionModel node. value is the model type in 'Frozen', 'ThermalEquilib', 'ThermalNonequilb'.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newThermalRelaxationModel(value='Null', parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newThermalRelaxationModelPT.py"> create a new ThermalRelaxationModel node (pyTree).</a> <br><br>
+
+    <strong>Internal.newChemicalKineticsModel</strong>:
+    create a ChemicalKineticsModel node. value is the model type in 'Frozen', 'ChemicalEquilibCurveFit', 'ChemicalEquilibMinimization', 'ChemicalNonequilib'.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newChemicalKineticsModel(value='Null', parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newChemicalKineticsModelPT.py"> create a new ChemicalKineticsModel node (pyTree).</a> <br><br>
+
+    <strong>Internal.newEMElectricFieldModel</strong>:
+    create a EMElectricFieldModel node. value is the model type in 'Constant', 'Frozen', 'Interpolated', 'Voltage'.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newEMElectricFieldModel(value='Null', parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newEMElectricFieldModelPT.py"> create a new EMElectricFieldModel node (pyTree).</a> <br><br>
+
+    <strong>Internal.newEMMagneticFieldModel</strong>:
+    create a EMMagneticFieldModel node. value is the model type in 'Constant', 'Frozen', 'Interpolated'.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newEMMagneticFieldModel(value='Null', parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newEMMagneticFieldModelPT.py"> create a new EMMagneticFieldModel node (pyTree).</a> <br><br>
+
+    <strong>Internal.newEMConductivityModel</strong>:
+    create a EMConductivityModel node. value is the model type in 'Constant', 'Frozen', 'Equilibrium_LinRessler', 'Chemistry_LinRessler'.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newEMConductivityModel(value='Null', parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newEMConductivityModelPT.py"> create a new EMConductivityModel node (pyTree).</a> <br><br>
+
+    <strong>Internal.newBaseIterativeData</strong>:
+    create a BaseIterativeData node.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newBaseIterativeData(name='BaseIterativeData', parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newBaseIterativeDataPT.py"> create a new BaseIterativeData node (pyTree).</a> <br><br>
+
+    <strong>Internal.newZoneIterativeData</strong>:
+    create a ZoneIterativeData node.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newZoneIterativeData(name='ZoneIterativeData', parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newZoneIterativeDataPT.py"> create a new ZoneIterativeData node (pyTree).</a> <br><br>
+
+    <strong>Internal.newRigidGridMotion</strong>:
+    create a RigidGridMotion node. mtype is the motion type ('ConstantRate', 'VariableRate').
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newRigidGridMotion(name='Motion', origin=[0.,0.,0.], mtype='Null', parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newRigidGridMotionPT.py"> create a new RigidGridMotion node (pyTree).</a> <br><br>
+
+    <strong>Internal.newRigidGridMotionType</strong>:
+    create a RigidGridMotionType node. value is the motion type ('ConstantRate', 'VariableRate').
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newRigidGridMotionType(value='ConstantRate', parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newRigidGridMotionTypePT.py"> create a new RigidGridMotionType node (pyTree).</a> <br><br>
+
+    <strong>Internal.newReferenceState</strong>:
+    create a ReferenceState node.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newReferenceState(name='ReferenceState', parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newReferenceStatePT.py"> create a new ReferenceState node (pyTree).</a> <br><br>
+
+    <strong>Internal.newConvergenceHistory</strong>:
+    create a ConvergenceHistory node. value is an iteration number.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newConvergenceHistory(name='GlobalConvergenceHistory', value=0, parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newConvergenceHistoryPT.py"> create a new ConvergenceHistory node (pyTree).</a> <br><br>
+
+    <strong>Internal.newFamily</strong>:
+    create a zone Family node.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newFamily(name='Family', parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newFamilyPT.py"> create a new Family node (pyTree).</a> <br><br>
+
+    <strong>Internal.newFamilyBC</strong>:
+    create a FamilyBC node. value is a BC type string.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newFamilyBC(value='UserDefined', parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newFamilyBCPT.py"> create a new FamilyBC node (pyTree).</a> <br><br>
+
+    <strong>Internal.newGeometryReference</strong>:
+    create a GeometryReference node. value is a type of CAD
+    ('NASA-IGES', 'SDRC', 'Unigraphics', 'ProEngineer', 'ICEM-CFD').
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newGeometryReference(value='Null', file='MyCAD.iges', parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newGeometryReferencePT.py"> create a new GeometryReference node (pyTree).</a> <br><br>
+
+    <strong>Internal.newArbitraryGridMotion</strong>:
+    create a ArbitraryGridMotion node. value is the type of motion
+    ('NonDeformingGrid', 'DeformingGrid').
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newArbitraryGridMotion(name='Motion',
+    value='Null', parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newArbitraryGridMotionPT.py"> create a new ArbitraryGridMotion node (pyTree).</a> <br><br>
+
+    <strong>Internal.newUserDefinedData</strong>:
+    create a UserDefinedData node to store user specific data.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newUserDefinedData(name='UserDefined', value=None, parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newUserDefinedDataPT.py"> create a new UserDefined node (pyTree).</a> <br><br>
+
+    <strong>Internal.newGravity</strong>:
+    create a Gravity node. value is the gravity vector.
+    If parent is not None, attach it to parent node:
+    <div class="code">
+    node = Internal.newGravity(value=[0.,0.,9.81], parent=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/newGravityPT.py"> create a new Gravity node (pyTree).</a> <br><br>
+
+    <h3>Access nodes</h3>
+
+    <strong>Internal.getNodeFromPath</strong>:
+    return a node from its path string. Note that node path is
+    relative to input node A. If not found, it returns None:
+    <div class="code">
+    node = Internal.getNodeFromPath(A, 'Base/Zone')
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/getNodeFromPathPT.py"> return a node specified by its path (pyTree).</a> <br><br>
+
+    <strong>Internal.getPathsFromType</strong>:
+    return a list of paths of nodes of A from their type. A can be
+    a standard node or a list of standard nodes:
+    <div class="code">
+    paths = Internal.getPathsFromType(A, 'Zone_t')
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/getPathsFromTypePT.py"> return paths of nodes specified by their type (pyTree).</a> <br><br>
+
+    <strong>Internal.getNodesFromType</strong>:
+    return a list of nodes of A from their type. A can be
+    a standard node or a list of standard nodes:
+    <div class="code">
+    nodes = Internal.getNodesFromType(A, 'Zone_t')
+    </div>
+    This function can be limited to 1, 2 or 3 levels from the starting node A
+    by using Internal.getNodesFromType1,2,3. <br>
+    <em>Example of use: </em><a href="Examples/Converter/getNodesFromTypePT.py"> return nodes specified by their type (pyTree).</a> <br><br>
+
+    <strong>Internal.getNodeFromType</strong>:
+    return the first node of A of given type.
+    A must be a standard node. Wildcards are NOT accepted. This is
+    a fast routine:
+    <div class="code">
+    node = Internal.getNodeFromType(A, 'Zone_t')
+    </div>
+    This function can be limited to 1, 2 or 3 levels from the starting node A
+    by using Internal.getNodeFromType1,2,3. <br>
+    <em>Example of use: </em><a href="Examples/Converter/getNodeFromTypePT.py"> return first node specified by its type (pyTree).</a> <br><br>
+
+    <strong>Internal.getByType</strong>:
+    return a standard node containing the matching type nodes of A.
+    A can be a standard node or a list of standard nodes:
+    <div class="code">
+    nodes = Internal.getByType(A, 'Zone_t', recursive=-1)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/getByTypePT.py"> return nodes specified by their type (pyTree).</a> <br><br>
+
+    <strong>Internal.getNodesFromName</strong>:
+    return a list of nodes of a pyTree from their name (wildcards allowed):
+    <div class="code">
+    nodes = Internal.getNodesFromName(A, 'cart')
+    </div>
+    This function can be limited to 1, 2 or 3 levels from the starting node A
+    by using Internal.getNodesFromName1,2,3. <br>
+    <em>Example of use: </em><a href="Examples/Converter/getNodesFromNamePT.py"> return nodes specified by their name (pyTree).</a> <br><br>
+
+    <strong>Internal.getNodeFromName</strong>:
+    return the first node of A of given name.
+    A must be a standard node. Wildcards are NOT accepted. If not found,
+    it returns None. This is a fast routine:
+    <div class="code">
+    node = Internal.getNodeFromName(A, 'cart')
+    </div>
+    This function can be limited to 1, 2 or 3 levels from the starting node A
+    by using Internal.getNodeFromName1,2,3. <br>
+    <em>Example of use: </em><a href="Examples/Converter/getNodeFromNamePT.py"> return one node specified by its name (pyTree).</a> <br><br>
+
+    <strong>Internal.getByName</strong>:
+    return a standard node containing the matching name nodes of A.
+    A can be a standard node or a list of standard nodes. Wildcards are
+    accepted:
+    <div class="code">
+    nodes = Internal.getByName(A, 'cart', recursive=-1)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/getByNamePT.py"> return nodes specified by their name (pyTree).</a> <br><br>
+
+    <strong>Internal.getNodesFromValue</strong>:
+    return a list of nodes of a pyTree from their value. Value can be
+    a string, a numpy, a float or an int:
+    <div class="code">
+    nodes = Internal.getNodesFromValue(A, 'Structured')
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/getNodesFromValuePT.py"> return nodes specified by their value (pyTree).</a> <br><br>
+
+    <strong>Internal.getZones</strong>:
+    return the list of zone nodes:
+    <div class="code">
+    nodes = Internal.getZones(A)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/getZonesPT.py"> return zone nodes (pyTree).</a> <br><br>
+
+    <strong>Internal.getBases</strong>:
+    return the list of base nodes:
+    <div class="code">
+    nodes = Internal.getBases(A)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/getBasesPT.py"> return base nodes (pyTree).</a> <br><br>
+
+    <strong>Internal.getParentOfNode</strong>:
+    return the parent node of given node. start must be a higher node in the
+    tree. It returns p (the parent node) and c (the position number of node
+    in the parent's children list).
+    If start is a node of a pyTree, then p[2][c] = node.
+    If starts is a list of standard nodes, then p == start and p[c] = node.
+    If node is not found, then p is None:
+    <div class="code">
+    (p, c) = Internal.getParentOfNode(start, node)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/getParentOfNodePT.py"> return the parent of a given node (pyTree).</a> <br><br>
+
+     <strong>Internal.getPath</strong>:
+     return the path of a node in A:
+     <div class="code">
+     path = Internal.getPath(A, node)
+     </div>
+     <em>Example of use: </em><a href="Examples/Converter/getPathPT.py"> return the path of a node (pyTree).</a> <br><br>
+
+     <strong>Internal.getName</strong>:
+     return the name of a node:
+     <div class="code">
+     name = Internal.getName(node)
+     </div>
+      <em>Example of use: </em><a href="Examples/Converter/getNamePT.py"> return the name of a node (pyTree).</a> <br><br>
+
+     <strong>Internal.getType</strong>:
+     return the CGNS type of a node:
+     <div class="code">
+     type = Internal.getType(node)
+     </div>
+      <em>Example of use: </em><a href="Examples/Converter/getTypePT.py"> return the type of a node (pyTree).</a> <br><br>
+
+     <strong>Internal.getChildren</strong>:
+     return the children of a node. Children is a node list:
+     <div class="code">
+     children = Internal.getChildren(node)
+     </div>
+      <em>Example of use: </em><a href="Examples/Converter/getChildrenPT.py"> return the list children nodes of a node (pyTree).</a> <br><br>
+
+     <strong>Internal.getValue</strong>:
+     return the value of a node, if the node contains a string, a float or
+     an integer. If the node contains an array, return the numpy array:
+     <div class="code">
+     val = Internal.getValue(node)
+     </div>
+     <em>Example of use: </em><a href="Examples/Converter/getValueIPT.py"> return the value of a node (pyTree).</a> <br><br>
+
+    <strong>Internal.getZoneDim</strong>:
+    return the dimension of a zone node. Return
+    ['Structured', ni, nj, nk, celldim] for structured grids, return
+    ['Unstructured', np, ne, eltsName, celldim] for unstructured grids.
+    np is the number of points, ne the number of elements, celldim is
+    0, 1, 2, 3 depending on element dimension, eltsName is one of NODE,
+    BAR, TRI, QUAD, TETRA, PYRA, PENTA, NGON, MULTIPLE:
+    <div class="code">
+    dims = Internal.getZoneDim(node)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/getZoneDimPT.py"> return the dim of a zone node (pyTree).</a> <br><br>
+
+     <strong>Internal.getElementRange</strong>:
+     return the range of an element connectivity. node must be a zone node.
+     In case of multiple connectivity, the name of the connectivity,
+     its number or its type can be specified:
+     <div class="code">
+     range = Internal.getElementRange(node, name=None, number=None, type=None)
+     </div>
+     <em>Example of use: </em><a href="Examples/Converter/getElementRangePT.py"> return the range of an Element connectivity of a zone (pyTree).</a> <br><br>
+
+    <h3>Check nodes</h3>
+
+    <strong>Internal.printTree</strong>:
+    pretty print a pyTree or a pyTree node to screen or in a file:
+    <div class="code">
+    Internal.printTree(A, file=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/printTreePT.py"> print a pyTree to screen (pyTree).</a> <br><br>
+
+    <strong>Internal.checkPyTree</strong>:
+    check pyTree A following level (0: valid version node,
+    1: node conformity, 2: unique base name,
+    3: unique zone name, 4: unique BC name, 5: valid BC range, 6: valid
+    opposite BC range for match and nearmatch, 7: referenced familyZone and
+    familyBCs must be defined in bases, 8: valid CGNS types, 9: valid connectivity,
+    10: valid CGNS flowfield name).
+    Return a list of pairs of invalid nodes and error message:
+    <div class="code">
+    errors = Internal.checkPyTree(A, level=-20)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/checkPyTreePT.py"> check a pyTree (pyTree).</a> <br><br>
+
+    <strong>Internal.correctPyTree</strong>:
+    correct pyTree A following level (0: valid version node,
+    1:node conformity, 2: unique base name,
+    3: unique zone name, 4: unique BC names, 5: valid BC range, 6: valid
+    opposite BC range for match and nearMatch, 7: referenced familyZone and
+    familyBCs must be defined in bases, 8: valid CGNS types,
+    9: valid connectivity, 10: valid CGNS flowfield name).
+    Non unique names are made unique.
+    Missing families are added. Invalid nodes are removed. Return a new tree:
+    <div class="code">
+    B = Internal.correctPyTree(A, level=-20)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/correctPyTreePT.py"> correct a pyTree (pyTree).</a> <br><br>
+
+    <strong>Internal.checkMultigrid</strong>:
+    check if pyTree is compatible with multigrid of given level (only
+    for structured zones).
+    Zone dimensions, but also BCs and grid connectivities are checked.
+    Check if coarse grids contain at least nbMinCoarseB points per
+    direction.
+    Check if coarse boundary and connectivity point ranges
+    contain at least nbMinCoarseW points.
+    Return a list of pairs of invalid nodes and error messages:
+    <div class="code">
+    errors = Internal.checkMultigrid(A, level=1,
+    nbMinCoarseB=5, nbMinCoarseW=3)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/checkMultigridPT.py"> check multigrid level for a pyTree (pyTree).</a> <br><br>
+
+    <strong>Internal.checkSize</strong>:
+    check if the number of points of some zones in pyTree exceed sizeMax points:
+    <div class="code">
+    errors = Internal.checkSize(A, sizeMax=100000000)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/checkSizePT.py"> check size of zones for a pyTree (pyTree).</a> <br><br>
+
+    <h3>Copy nodes</h3>
+    <strong>Internal.copyRef</strong>:
+    copy a tree sharing node values (in particular data numpys are shared):
+    <div class="code">
+    B = Internal.copyRef(A)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/copyRefPT.py"> copy a tree keeping references on values (pyTree).</a> <br><br>
+
+    <strong>Internal.copyTree</strong>:
+    fully copy a tree. Node values (in particular data numpys) are copied:
+    <div class="code">
+    B = Internal.copyTree(A)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/copyTreePT.py"> full copy of a tree (pyTree).</a> <br><br>
+
+    <strong>Internal.copyValue</strong>:
+    copy the value of nodes specified by byName or byType string. Wildcards are accepted:
+    <div class="code">
+    B = Internal.copyValue(A, byName=None, byType=None)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/copyValuePT.py"> full copy of node values by names or types (pyTree).</a> <br><br>
+
+    <strong>Internal.copyNode</strong>:
+    copy only this node (no recursion). Node value (in particular data numpys) is copied:
+    <div class="code">
+    B = Internal.copyNode(A)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/copyNodePT.py"> full copy of a single node (pyTree).</a> <br><br>
+
+    <h3>Add/Remove nodes</h3>
+    <strong>Internal.append</strong>:
+    append a node a to A by its path. Note that the path is relative to A:
+    <div class="code">
+    B = Internal.append(A, a, 'Base')
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/appendPT.py"> append a node by its path (pyTree).</a> <br><br>
+
+    <strong>Internal.rmNode</strong>:
+    remove a given node b in a (node a is modified):
+    <div class="code">
+    Internal.rmNode(a, b)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/rmNodePT.py"> rm a node (pyTree).</a> <br><br>
+
+    <strong>Internal.rmNodeByPath</strong>:
+    remove a node by its path:
+    <div class="code">
+    a = Internal.rmNodeByPath(a, 'Base/cart') <em>.or.</em> B = Internal.rmNodeByPath(A, 'zone0')
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/rmNodeByPathPT.py"> rm a node by its name (pyTree).</a> <br><br>
+
+    <strong>Internal.rmNodesByName</strong>:
+    remove nodes by their name. Wildcards are accepted:
+    <div class="code">
+    b = Internal.rmNodesByName(a, 'zone0') <em>.or.</em> B = Internal.rmNodesByName(A, 'zone0')
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/rmNodesByNamePT.py"> rm nodes by their name (pyTree).</a> <br><br>
+
+    <strong>Internal.rmNodesByType</strong>:
+    remove nodes by their type:
+    <div class="code">
+    b = Internal.rmNodesByType(a, 'Zone_t') <em>.or.</em> B = Internal.rmNodesByType(A, 'Zone_t')
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/rmNodesByTypePT.py"> rm nodes by their type (pyTree).</a> <br><br>
+
+    <strong>Internal.rmNodesByNameAndType</strong>:
+    remove nodes verifying name and type at the same time. Wildcards accepted
+    for name:
+    <div class="code">
+    b = Internal.rmNodesByNameAndType(a, 'cart', 'Zone_t') <em>.or.</em> B = Internal.rmNodesByNameAndType(A, 'cart', 'Zone_t')
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/rmNodesByNameAndTypePT.py"> rm nodes by name and type (pyTree).</a> <br><br>
+
+    <strong>Internal.rmNodesByValue</strong>:
+    remove nodes by their value:
+    <div class="code">
+    b = Internal.rmNodesByValue(a, value) <em>.or.</em> B = Internal.rmNodesByType(A, value)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/rmNodesByValuePT.py"> rm nodes by their value (pyTree).</a> <br><br>
+
+    <h3>Modify nodes</h3>
+
+    <strong>Internal.sortByName</strong>:
+    sort nodes by their name (alphabetical order). If recursive=True,
+    sort also chidren nodes:
+    <div class="code">
+    B = Internal.sortByName(A, recursive=True)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/sortByNamePT.py"> sort nodes by their name (pyTree).</a> <br><br>
+
+    <strong>Internal.appendBaseName2ZoneName</strong>:
+    add base name to zone name (resulting name is baseName_zoneName for each
+    zone). If updateRef=True, reference to zone names in BC,... are replaced.
+    Separator between base and zone name can be set with separator, a trailing
+    string can also be added:
+    <div class="code">
+    B = Internal.appendBaseName2ZoneName(A, updateRef=True, separator='_', trailing='')
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/appendBaseName2ZoneNamePT.py"> append base name to zone names (pyTree).</a> <br><br>
+
+    <strong>Internal.renameNode</strong>:
+    rename node 'name' with 'newName'. Occurances of name elsewhere
+    in the tree is replaced with 'newName':
+    <div class="code">
+    B = Internal.renameNode(A, name, newName)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/renameNodePT.py"> rename a zone and propagate the change (pyTree).</a> <br><br>
+
+    <strong>Internal.merge</strong>:
+    merge a list of trees defined in [A1,A2,...]. Return a merged tree B.
+    If a node appears more than once in different trees of the list,
+    the first found node is kept:
+    <div class="code">
+    B = Internal.merge([A1, A2, ...])
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/mergePT.py"> merge trees (pyTree).</a> <br><br>
+
+    <strong>Internal.groupBCByBCType</strong>:
+    for each base, group all BCs of same BCType in a family named FamilyName:
+    <div class="code">
+    b = Internal.groupBCByBCType(a, type='BCWall', name='FamWall')
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/groupBCByBCTypePT.py"> group BCs in a family (pyTree).</a> <br><br>
+
+    <strong>Internal.adaptNFace2PE</strong>:
+    add the ParentElements node to a NGON/NFace zone:
+    <div class="code">
+    b = Internal.adaptNFace2PE(a, remove=True)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/adaptNFace2PEPT.py"> add ParentElements node (pyTree).</a> <br><br>
+
+    <strong>Internal.adaptPE2NFace</strong>:
+    add the NFace node to a NGON zone with ParentElements:
+    <div class="code">
+    b = Internal.adaptPE2NFace(a, remove=True)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/adaptPE2NFacePT.py"> add NFace node (pyTree).</a> <br><br>
+
+    <strong>Internal.adaptBCFace2BCC</strong>:
+    add boundary connectivities for boundaries defined by BCFace:
+    <div class="code">
+    b = Internal.adaptBCFace2BCC(a, remove=True)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/adaptBCFace2BCCPT.py"> add boundary connectivities for boundaries defined by BCFace (pyTree).</a> <br><br>
+
+    <strong>Internal.adaptZoneBCEltRange2EltList</strong>:
+    For unstructured zones, when the boundary conditions in ZoneBC
+    are defined with IndexRange. Change this to IndexArray. Usefull for
+    fetch users:
+    <div class="code">
+    b = Internal.adaptZoneBCEltRange2EltList(a)
+    </div>
+    <em>Example of use: </em><a href="Examples/Converter/adaptZoneBCEltRange2EltListPT.py"> change IndexRange to IndexArray (pyTree).</a> <br><br>
+
+   <hr>
+    <a href="Userguide.html">Return to main userguide</a>
+  </body>
+</html>

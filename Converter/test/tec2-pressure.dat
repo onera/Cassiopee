@@ -1,0 +1,7 @@
+TITLE = "Example Solution File"
+FILETYPE = SOLUTION
+VARIABLES = "Pressure"
+ZONE
+I = 3, J = 3, K = 1
+ZONETYPE = Ordered, DATAPACKING = BLOCK
+2.0 2.0 2.0 0.0 0.0 0.0 2.0 2.0 2.0

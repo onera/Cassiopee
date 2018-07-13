@@ -1,0 +1,48 @@
+! ----------------------------------------------------------------
+!
+! USURP: Unique Surfaces Using Ranked Polygons
+! Copyright 2005-2007 The Pennsylvania State University
+! Author: David Boger
+!
+! ----------------------------------------------------------------
+!
+! David Boger
+! Applied Research Laboratory
+! Penn State University
+! phone:  (215) 682-4044 (Warminster, PA)
+!         (814) 863-3055 (State College, PA)
+! e-mail: dab143@only.arl.psu.edu (work)
+!         dab143@psu.edu (personal)
+!
+! Integration of hydrodynamic forces and moments on overset surfaces.
+! USURP was inspired by Larry Wigton's presentation of "Polymixsur" 
+! at the 7th Overset Symposium in Huntingdon Beach, CA in 2004.
+! USURP also relies on the General Polygon Clipping library (Version 2.32)
+! by Alan Murta for polygon Boolean operations and triangulation and
+! "Triangle" (Version 1.6) by Jonathan Shewchuk for triangulation.
+! Note that Triangle is freely available but copyrighted by its author,
+! Jonathan Shewchuk, and may not be sold or included in commercial products
+! without a license.  Similarly, the GPC library is free for non-commerical
+! use.  Anyone wishing to use the GPC library in support of a commercial
+! product should email gpc@cs.man.ac.uk.
+!
+! USURP calls the gpc and Triangle libraries via "translator" routines, one in
+! Fortran that wraps the subject and clipping polygon structures into
+! an integer array and float array of fixed length, and a second in
+! c that takes these arrays, converts them back into polygon structures,
+! and calls the c libraries.  These routines also handle the information
+! moving in the other direction.  The calls could be made from 
+! Fortran to the c libraries directly, but this would involve Fortran 
+! descriptors, and the resulting code would not be portable.
+!
+! Reference:
+! Boger, D.A., and Dreyer, J.J., "Prediction of Hydrodynamic Forces and 
+! Moments for Underwater Vehicles Using Overset Grids," AIAA-2006-1148, 
+! 44th AIAA Aerospace Sciences Meeting and Exhibit, Reno, Nevada, 
+! Jan. 9-12, 2006.
+!
+! compile with "make"  
+! usage: usurp --help (see user's guide for details)
+! the input path should be the CFD main working directory; 
+! the input path is the current directory by default.
+!

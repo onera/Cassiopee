@@ -1,0 +1,290 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>tkCassiopee: a graphical user interface for Cassiopee modules</title>
+    <link href="Cassiopee.css" rel="stylesheet" type="text/css">
+    <link rel="icon" type="image/png" href="iconc.png"> </link>
+    <script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','//www.google-analytics.com/analytics.js','ga');ga('create', 'UA-31301505-1', 'auto');ga('send', 'pageview');</script>
+  </head>
+
+  <body>
+    <h1>tkCassiopee: a graphical user interface for Cassiopee modules</h1>
+    <h2>Version: 2.4 (29/03/2017)</h2>
+    <h2>Author: Onera</h2>
+    <h2><a href="Latex/tkCassiopee.pdf" target="_self"><img src="pdf_logo.gif" alt="Download pdf version."></a></h2> 
+  <HR>
+
+    <h3>Preamble</h3>
+    
+    tkCassiopee is the graphical user interface to Cassiopee modules. <br><br>
+
+    The application
+    is made from different applets. Applets are stored in tabs (Tree, 
+    State, Edge, Surf, ...). <br>
+    <br>
+
+    To call the application from shell:
+    <div class="code">
+      cassiopee file
+    </div>
+
+    <p></p>
+    <h3>General guidelines</h3>
+    <p></p>
+    Each applet can be triggered from top menu <b>Apps</b> or
+    by right clicking on a tab. It can be
+    discarded by left clicking on its name at top of frame or by pressing
+    CTRL+c.<br>
+    The default settings of an applet can be modified in the preference file
+    by right clicking on the applet name and chosing 'save'.
+    Settings can be reset by chosing 'reset' in the menu.
+    An applet can be pinned, meaning that it will automatically
+    be opened at next restart.
+    <br>
+    The graphical window is called the CPlot window. You can rotate
+    your model using left mouse button. You can move your model
+    using left mouse button. You can tilt the model by pressing
+    CTRL+right mouse button. You can move the way your looking without
+    modifying your position by pressing CTRL+left mouse button.
+    View can be quickly centered by left double clicking.
+    <br>
+
+    A zone can be selected by using 
+    SHIFT + left mouse button, can be deactivated using 
+    SHIFT + right mouse button. Multiple selection is available
+    by pressing SHIFT + CTRL + left mouse button or by draging
+    mouse with SHIFT pressed. <br>
+
+    Some CPlot functions are available through the <b>CPlot</b>
+    top menu. Other functions are described in the CPlot module
+    documentation.<br>
+
+    Generally, functions of the applet work on selected zones.<br>
+
+    One level-undo is available in the <b>CPlot</b> top menu or by pressing 
+    CTRL+z or by pressing the back arrow in the tool bar.<br>
+    You can chose the location of displayed data (node/center) for
+    structured zones by clicking on 'change displayed location'
+    in the <b>CPlot</b> top menu. <br>
+    Selecting 'Quit' in <b>File</b> top menu exits cassiopee. You can
+    also exits by pressing 'q' when in CPlot window. <br>
+
+    <p></p>
+    <h3>Cassiopee:ToolBar</h3>
+    <p></p>
+    The tool bar is situated just under the menu bar. It contains: <br>
+    - The save icon: click for quick save,<br>
+    - The undo icon: click for undo (only one level), <br>
+    - The delete block icon: click will delete selected blocks, <br>
+    - The copy block icon: click will copy selected blocks, <br>
+    - The fit view icon: click to fit view to selection, <br>
+    - The select all blocks icon: select all zones, <br>
+    - The view deactivated zones icon: enables to view deactivated zones as ghost grids, <br>
+    - The main tree icon: force view on main tree.    
+
+    <p></p>
+    <h3>Cassiopee:Tree</h3>
+    <p></p>
+    This tab gathers applets related to pyTree management.<br>
+    - <b>tkTree</b>: enables the visualization of pyTrees as text trees.
+    In tkTree window, left mouse button
+    selects zone, right mouse button deactivates/activates zone,
+    double clicking on a node name enables to change its name,
+    'Suppr' key deletes selected node, CTRL+e extend the window size,
+    CTRL+r shrink the window.<br>
+    - <b>tkTreeOps</b>: enables to move selection to another base, 
+    reorder tree nodes and edit node values.<br>
+    - <b>tkCheckPyTree</b>: enables to check your pyTree with different level
+    of checking (node conformity, zone names, boundary condition 
+    consistency...).<br>
+    - <b>tkFilter</b>: enables to select/activate zones that match the 
+    filter rule. For filtering by name, you can use standard python regexp. 
+    For instance, Zone.[5-12] will filter zones between Zone.5 and Zone.12.
+    You can also filter zones by size (number of points), by multigrid level,
+    by affected processor, by Chimera priority, or by formula. With this,
+    you can specify a rule like '{Density}>0.1': zones that match the rule
+    for at least one grid point will be selected.<br>
+    - <b>tkFamily</b>: enables to create zone families or BC families.<br> 
+
+    <p></p>
+    <h3>Cassiopee:State</h3>
+    <p></p>
+    This menu gathers applets related to state modification.<br>
+    - <b>tkState</b>: modify the global state of your pyTree (dimension, 
+    equations,...). Pressing 'Set state' save state in your pyTree. <br>
+    - <b>tkPrefs</b>: enables to change the mesh display style, the 
+    solid display style, ... You can add applets that open automatically
+    each time cassiopee starts in the 'Auto open field'. For instance:
+    'tkTree; tkBlock' will automatically open those two applets at next start.
+    Save your preferences. <br>
+    - <b>tkPerfo</b>: settings to simplify the display and set the
+    number of threads.<br>
+    - <b>tkContainers</b>: by default, all functions work on 'GridCoordinates',
+    'FlowSolution' and 'FlowSolution#Centers' containers. If you want
+    functions to operate on other containers, change their name here.<br>
+    - <b>tkRuler</b>: measure your distance on your model using this applet. 
+    First click on model set first point, second click indicates the distance.
+    Click again on 'Measure mode' to end.<br>
+    - <b>tkFind</b>: find a given index in mesh.<br>
+
+    <p></p>
+    <h3>Cassiopee:Edge</h3>
+    <p></p>
+    - <b>tkCanvas</b>: enables to create a canvas for mesh positioning or 
+    drawing. The position and size of the canvas can be modified.<br>
+    - <b>tkPoint</b>: enables to draw points.<br>
+    - <b>tkDraw</b>: enables to draw basic shapes.<br>
+    - <b>tkExtractEdges</b>: enables to extract edges generally from surfaces.<br>
+    - <b>tkMapEdge</b>: enables points redistribution (remap) on edges.<br>
+
+    <p></p>
+    <h3>Cassiopee:Surf</h3>
+    <p></p>
+    This menu gathers applets related to surface creation/modification.<br>
+    - <b>tkBasicSurfs</b>: create basic surfaces (sphere, tetra, ...)<br>
+    - <b>tkText</b>: create a text. <br>
+    - <b>tkFixer2</b>: fix gaps in surfaces. This applet enables manual closure
+    of holes in surfaces. Select the contour of your hole, then
+    click on 'Fix gap in contour'. You can bump the generated
+    surface using the slider. This applet enables also
+    automatic closure of all holes in a model. You must set surfaces
+    defining a component into one zone, then click on 'Fix gap in patches'.<br>
+    - <b>tkBoolean</b>: perform boolean operation between surfaces.<br>
+    - <b>tkSculpt</b>: very basic sculpting tool.<br>
+    - <b>tkPaint</b>: change field values by painting.<br>
+    - <b>tkMapSurf</b>: perform surface remeshing by projecting an octree on surface.<br>
+    - <b>tkFilterSurfs</b>: enables to filter or inflate a surface.<br>
+    - <b>tkSurfaceWalk</b>: create meshes by walking on surfaces.<br>
+    - <b>tkProjection</b>: project a surface on another surface.<br>
+ 
+    <p></p>
+    <h3>Cassiopee:Mesh</h3>
+    <p></p>
+    This menu gathers applets related to mesh creation/modification.<br>
+    - <b>tkCells</b>: enables mesh cell modification (suppress/refine cells).
+    Click on a mode, then click on your mesh. Click again on the mode
+    button when done. <br>
+    - <b>tkStretch</b>: for structured grids, stretch, refine or uniformize 
+    the grid in given direction. For stretching, you must specify a grid step. 
+    This step is enforced where you have last clicked. <br>
+    - <b>tkExtrusion</b>: create meshes by extrusion. <br>
+    - <b>tkTetraMesher</b>: create tetra meshes. <br>
+    - <b>tkTFI</b>: create meshes by transfinite interpolation.<br>
+    - <b>tkSmooth</b>: provides mesh smoothing.<br>
+    - <b>tkOctree</b>: enables octree mesh generation.<br>
+    - <b>tkCollarMesh</b>: create collar mesh (for junction bteween two solid
+    bodies).<br>
+    - <b>tkBlader</b>: a blade dedicated mesher.<br>
+    - <b>tkMeshQual</b>: enables to compute various grid quality map and 
+    check for negative volume cells. <br>
+    - <b>tkMeshInfo</b>: enables to get various informations from your 
+    model (number of points, min/max of values...). <br>
+
+    <p></p>
+    <h3>Cassiopee:Block</h3>
+    <p></p>
+    This menu gathers applets related to block creation/modification.<br>
+    - <b>tkBlock</b>: enables basic block operations (remove, copy...).
+    Exterior faces returns the exterior faces of a zone as an unstructured
+    zone. Close merge points in a mesh that are closer than epsilon, the
+    resulting mesh connectivity is cleaned.<br>
+    - <b>tkTransform</b>: enables basic transformation of blocks (rotation, 
+    translation, ...). When clicking on 'Translate by clicking', you
+    must then click on a point of the zone to translate, then on 
+    the destination point.<br>
+    - <b>tkNGon</b>: preforms NGon (polyedral) operations.<br>
+    - <b>tkSplit</b>: enables splitting or join operations on a block. 
+    'Splitsize' splits each zone in order to get the required number of points.
+    'SplitMP' eliminates multiple point junction in a structured mesh.
+    'SplitConnexity' identifies connex parts in an unstructured block.<br>
+    - <b>tkReorder</b>: enables to reorder a zone. unstructured zones are 
+    reordered in order to have normals with the same orientation on each zone. 
+    Structured zones are reordered by exchanging i- and j- numerotation.<br>
+
+    <p></p>
+    <h3>Cassiopee:BC</h3>
+    <p></p>
+    This menu gathers applets related to boundary conditions 
+    creation/modification.<br>
+    - <b>tkBC</b>: enables to set interactively the boundary conditions.
+    'View Mesh/BC' enables to visualize the boundary conditions
+    of a certain type. 'View undefined BC' shows boundary conditions
+    that are lacking. By clicking on BC, you can then set a
+    boundary to a certain type using the 'setBCWith' button.
+    'ConnectMatch' automatically computes the matching boundary condition
+    in your model.
+    - <b>tkChimera</b>: perform hole cutting, overlap optimization between
+    overset grids.<br>
+    - <b>tkIBC</b>: create data for immersed boundary conditions.<br>
+    - <b>tkExtractBC</b>: extract a certain type of BC to a zone.<br>
+  
+    <p></p>
+    <h3>Cassiopee:Motion</h3>
+    <p></p>
+    - <b>tkRigidMotion</b>: enables definition of rigid motions.<br>
+    - <b>tkTime</b>: manage time for motion visualization.<br>
+
+    <p></p>
+    <h3>Cassiopee:Solver</h3>
+    <p></p>
+    This menu gathers applets related to solvers.<br>
+    - <b>tkInit</b>: initialize solutions or wall distance. <br>
+    - <b>tkDistributor</b>: distributes blocks over processors. Enter the 
+    number of processors and the weight of communication cost relative to
+    solver cost per iteration. Click on 'Distribute tree'. Distribution stats
+    are available when clicking on stats. 'Set Proc Field' creates a field
+    in zones containing the attributed processor number for each zone.<br>
+    - <b>tkDist2Walls</b>: computes wall distance.<br>
+    - <b>tkCassiopeeSolver</b>: export CGNS files suitable for Cartesian solver.<br>
+    - <b>tkElsaSolver</b>: export CGNS files suitable for elsAxdt.<br>
+
+    <p></p>
+    <h3>Cassiopee:Post</h3>
+    <p></p>
+    This menu gathers applets related to post-processing.<br>
+    - <b>tkVariables</b>: add/rm variables in your solution pyTree.<br>
+    - <b>tkExtractMesh</b>: interpolate solution from one mesh to another.<br> 
+    - <b>tkStream</b>: extract streamlines. <br>
+    - <b>tkIsoLine</b>: extract an iso-line or a set of isolines to a zone.<br>
+    - <b>tkIsoSurf</b>: extract an iso-surface to a zone.<br>
+    - <b>tkInteg</b>: perform field integration on surfaces.<br>
+
+    <p></p>
+    <h3>Cassiopee:Visu</h3>
+    <p></p>
+    This menu gathers applets related to pyTree visualization.<br>
+    - <b>tkView</b>: perform view settings.<br>
+    - <b>tkPlot</b>: perform 1D plot of data.<br>
+    - <b>tkSlice</b>: extract/view slices in mesh.<br>
+    - <b>tkCelln</b>: enables to display the location of interpolated, 
+    blanked points described by a 'cellN' or 'cellNF' field.<br>
+    - <b>tkBackground</b>: add a background.<br>
+
+    <p></p>
+    <h3>Cassiopee:Render</h3>
+    <p></p>
+    - <b>tkRenderSet</b>: enables to chose the color and material of 
+    each zone. <br>
+    - <b>tkStereo</b>: enable the stereo anaglyph mode.<br>
+    - <b>tkEffects</b>: enable special effects for view such as shadow, DOF. <br>
+    - <b>tkDemo</b>: rotate or move around your model automatically. Chose
+    speed in slider.<br>
+    - <b>tkPovRay</b>: if povray is installed on your computer, you can use
+    this applet to raytrace your scene using povray. Chose the name of
+    your output (used for image and pov output), chose your background
+    and the size of output image, then click on 'Render scene'.<br>
+    - <b>tkLuxRender</b>: exports file for LuxRender.<br>
+
+    <p></p>
+    <h3>For gurus</h3>
+    <p></p>
+    tkCassiopee is a fully modular GUI. You can add your own 
+    applet easily. First copy the file CPlot/apps/tkPersonalSample.py
+    to tkMyApplet.py. Then add your own buttons and functions in this file.
+    Finally, in cassiopee, go to top menu <b>Tools</b> and
+    <b>Add a personal app</b>. Enter the file name. Your applet
+    will appear in this menu.
+    <hr>
+    <a href="Userguide.html">Return to main userguide</a><p>
+  </body>
+</html>

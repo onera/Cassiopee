@@ -1,0 +1,20 @@
+Module Post:
+
+=================================== A faire ===================================
+
+[MISSING] computeVariables ne lit pas les donnees de reference (gamma,...) 
+dans l'arbre.
+[MISSING] computeGrad : n'utilise pas encore les CLs, ne fonctionne que si 
+la variable est un champ en noeuds.
+[MISSING] computeCurl : n'utilise pas encore les CLs, ne fonctionne que si 
+la variable est un champ en noeuds.
+[MISSING] reorderAll : ne modifie pas les CLs
+[MISSING] selectCells : les CL ne sont pas modifiees
+[MISSING] interiorFaces : les CL ne sont pas modifiees
+[MISSING] exteriorFaces : les CL ne sont pas modifiees
+[MISSING] streamLine : la vitesse doit etre definie dans les champs aux noeuds.
+[MISSING] streamRibbon : la vitesse doit etre definie dans les champs aux 
+noeuds.
+[EXPERIMENTAL] ordre superieur dans extractMesh, extractPlane et extractPoint
+[BAD FEATURE] extractPlane pour les maillages surfaciques engendrent parfois
+des trous dans la surface.

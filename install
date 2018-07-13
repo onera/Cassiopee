@@ -1,0 +1,70 @@
+#! /bin/sh
+# install     : installe tous les modules
+# install doc : installe les docs
+# install all : installe les modules + docs
+if ([ $# -eq 0 ])
+then
+    if [ "$CASSIOPEE" = "" ]; then
+        echo "You must specify a CASSIOPEE variable in your environment."
+        echo "This variable specifies the installation path of *Cassiopee*."
+        exit
+    fi
+    if [ "$ELSAPROD" = "" ]; then
+        echo "You must specify a ELSAPROD in your environment."
+        echo "This variable identifies the processor type."
+        exit
+    fi
+    INSTALLPATH="$CASSIOPEE/Dist/bin/$ELSAPROD"
+
+elif ([ $# -eq 1 ])
+then
+    if [ "$ELSAPROD" = "" ]; then
+        echo "You must specify a ELSAPROD in your environment."
+        echo "This variable identifies the processor type."
+        exit
+    fi
+    INSTALLPATH="$1"
+else
+    echo 'install: install in $CASSIOPEE/Dist/bin/$ELSAPROD'
+    echo 'install <dir>: install in directory <dir>.'
+    exit
+fi
+
+. ./MODULES
+
+for mod in $FULLMODULES
+do
+  if test -e $mod
+  then
+      cd $mod
+      if [ "$1" = "" -o "$1" = "all" ]; then
+          ./install
+      fi
+      if [ "$1" = "doc" -o "$1" = "all" ]; then
+          if [ "$mod" = "Converter" -o "$mod" = "Geom" -o "$mod" = "Transform" -o "$mod" = "Generator" -o "$mod" = "Intersector" -o "$mod" = "Initiator" -o "$mod" == "CPlot" ]; then
+              cd doc2
+              ./install 1 2
+              cd ..
+          else
+              cd doc
+              ./install 1 2
+              cd ..
+          fi
+      fi
+      cd ..
+  else
+      echo 'Directory ',$mod, 'not found.'
+  fi
+done
+
+# Fini avec la doc KCore pour genindex...
+if [ "$1" = "doc" -o "$1" = "all" ]; then
+    cd KCore/doc2
+    ./install 1 2
+    cd ../..
+fi
+
+# Installation des fichiers d'environnement
+cp Envs/env_Cassiopee* "$CASSIOPEE"/Dist
+cp Envs/sh_Cassiopee*  "$CASSIOPEE"/Dist
+cp ../util/kpython "$CASSIOPEE"/Dist/bin/"$ELSAPROD"

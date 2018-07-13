@@ -1,0 +1,5 @@
+create build/ELSAPROD/libkcore.a
+addlib build/ELSAPROD/libkcore1.a
+addlib build/ELSAPROD/libkcore2.a
+save
+end

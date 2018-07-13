@@ -1,0 +1,7 @@
+#! /bin/sh
+if test -e "$CASSIOPEE/Dist/bin/$ELSAPROD/validCassiopee.py"
+then
+    python "$CASSIOPEE/Dist/bin/$ELSAPROD/validCassiopee.py" $1
+else
+    python "$CASSIOPEE/Dist/bin/$ELSAPROD/validCassiopee.pyc" $1
+fi

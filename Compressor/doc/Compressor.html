@@ -1,0 +1,83 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>Compressor: field compression module</title>
+    <link href="Cassiopee.css" rel="stylesheet" type="text/css">
+    <link rel="icon" type="image/png" href="iconc.png"> </link>
+    <script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','//www.google-analytics.com/analytics.js','ga');ga('create', 'UA-31301505-1', 'auto');ga('send', 'pageview');</script>
+  </head>
+
+  <body>
+    <h1>Compressor: field compression module</h1>
+    <h2>Version: 2.6 (03/2018)</h2>
+    <h2>Author: Onera</h2>
+    <h2><a href="Latex/Compressor.pdf" target="_self"><img src="pdf_logo.gif" alt="Download pdf version."></a></h2> 
+  <HR>
+
+    <h3>Preamble</h3>
+    
+    Compressor enables fields compression for arrays/pyTrees.<br><br>
+
+    To use it with the Converter array interface, you must import the 
+    Compressor module:
+    <div class="code">
+      import Compressor
+    </div>
+    Then, in the following, a is an array, and A a list of arrays.<br>
+    To use it with the pyTree interface, you must import the module:
+    <div class="code">
+      import Compressor.PyTree as Compressor
+    </div>
+    Then, in the following, a is a zone node and A is a list of zone nodes 
+    or a complete pyTree.<br>
+
+    <p></p>
+    <h3>Index field compression</h3>
+    <p></p>
+    <strong>Compressor.deltaIndex</strong>:
+    compress a list of indices using delta algorithm. Delta contains
+    the number of added indices in a when compared to ref, 
+    the list of added indices, the
+    number of suppressed indices, the list of suppressed indices: 
+    <div class="code">
+      delta = Compressor.deltaIndex(a, ref)
+    </div>
+    <em>Example of use: </em><a href="Examples/Compressor/deltaIndex.py"> compress a list of indices</a>.<br>
+
+    <p></p>
+    <h3>Object serializer/compressor</h3>
+    <p></p>
+    <strong>Compressor.pack</strong>:
+    serialize/compress a python object a. This is a general interface
+    to msgpack/pickle module: 
+    <div class="code">
+      b = Compressor.pack(a)
+    </div>
+    <em>Example of use: </em><a href="Examples/Compressor/pack.py"> serialize a python object</a>.<br>
+
+     <strong>Compressor.unpack</strong>:
+    deserialize/decompress a serialized stream b. This is a general interface
+    to msgpack/pickle module: 
+    <div class="code">
+      a = Compressor.unpack(b)
+    </div>
+    <em>Example of use: </em><a href="Examples/Compressor/unpack.py"> deserialize a stream</a>.<br>
+
+    <HR>
+    <a href="Userguide.html">Return to main userguide</a><p>
+
+    <p></p>
+    <h3>Index field compression</h3>
+    <p></p>
+    <strong>Compressor.deltaInterpolations</strong>:
+    compress a list of interpolation data (interpolated and donor points, periodicity, interpolation coefficients) for a donor block, using delta algorithm. Delta contains
+    the Id of interpolated blocks, the number of modified interpolations data by interpolated blocks in a when compared to ref, 
+    the list of modified interpolation data. The function is called for a given location (cell center or face center): 
+    <div class="code">
+      delta = Compressor.deltaInterpolations(a, ref, loc)
+    </div>
+    <em>Example of use: </em><a href="Examples/Compressor/deltaInterpolationsPT.py"> compress a list of interpolation data</a>.<br>
+
+    <HR>
+   </body>
+</html>

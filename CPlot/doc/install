@@ -1,0 +1,99 @@
+#!/bin/sh
+echo 'Installing CPlot tests and doc'
+
+if ([ $# -eq 0 ])
+then
+    if [ "$CASSIOPEE" = "" ]; then
+        echo "You must specify a CASSIOPEE variable in your environment."
+        echo "This variable specifies the installation path of *Cassiopee*."
+        exit
+    fi
+    PRODUCTION=0
+    # Destination docs
+    DEST="$CASSIOPEE/Dist/doc"
+    # Destination tests unitaires
+    DEST2="$DEST/Examples/CPlot"
+    # Destination des release notes
+    DEST3="$DEST"
+elif ([ $# -eq 1 ])
+then
+    PRODUCTION=0
+    # Destination docs
+    DEST="$1/doc"
+    # Destination tests unitaires
+    DEST2="$DEST/Examples/CPlot"
+    # Destination des release notes
+    DEST3="$DEST"
+elif ([ $# -eq 2 ])
+then
+    PRODUCTION=1
+    # Destination docs
+    DEST="$CASSIOPEE/UserGuides"
+    # Destination tests unitaires
+    DEST2="$DEST/Examples/CPlot"
+    # Destination des release notes
+    DEST3="$CASSIOPEE/WWW/Main/Download"
+else
+    echo 'install: install in $CASSIOPEE/Dist/doc'
+    echo 'install <dir>: install in directory <dir/doc>.'
+    exit
+fi
+
+# Nom du fichier doc
+DOC=CPlot
+
+# Creation des repertoires de destination
+if test ! -e $DEST
+then 
+    mkdir $DEST
+fi
+if test ! -e "$DEST/Examples"
+then 
+    mkdir "$DEST/Examples"
+fi
+if test ! -e $DEST2
+then 
+    mkdir $DEST2
+fi
+if test ! -e $DEST3
+then 
+    mkdir $DEST3
+fi
+
+# copie de la doc html
+cp $DOC.html $DEST
+cp tkCassiopee.html $DEST
+
+# Production + copie des tests unitaires
+if ([ $PRODUCTION -eq 1 ])
+then
+    LOCAL=`pwd`
+    cd $DEST
+    if test ! -e Latex
+    then
+        mkdir Latex
+    fi
+    python parseDoc.py $DOC.html Latex/$DOC.tex
+    cd Latex ; compile $DOC > out ; cd $LOCAL
+    cp $DEST/Latex/$DOC.pdf .
+
+    # Genere la doc de Internal
+    cd $DEST
+    python parseDoc.py tkCassiopee.html Latex/tkCassiopee.tex
+    cd Latex ; compile tkCassiopee > out ; cd $LOCAL
+    cp $DEST/Latex/tkCassiopee.pdf .
+else
+    cp ../test/*.py $DEST2
+    if test -f $DOC.pdf
+    then
+        cp *.pdf $DEST
+    fi
+fi
+
+# Copie des release Notes
+version=`grep -e __version__ ../CPlot/CPlot.py`
+version1=${version:15:10}
+version1=${version1/"'"/""}
+v='CPlot-'$version1'.txt'
+cp CPlot.txt $DEST3/$v
+

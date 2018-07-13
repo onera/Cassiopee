@@ -1,0 +1,9 @@
+#"Grid" files look like standard Tecplot data files with no solution variables.
+TITLE = "Example Grid File"
+FILETYPE = GRID
+VARIABLES = "X" "Y"
+ZONE
+I = 3, J = 3, K = 1
+ZONETYPE = Ordered, DATAPACKING = BLOCK
+0.0          0.5            1.0    0.0 0.5 1.0 0.0 0.5 1.0
+0.0          0.0            0.0    0.5 0.5 0.5 1.0 1.0 1.0

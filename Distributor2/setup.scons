@@ -1,0 +1,56 @@
+import distutils.sysconfig, os
+import KCore.Dist as Dist
+#==============================================================================
+# Distributor2 requires:
+# C++ compiler
+# Numpy
+# KCore
+#==============================================================================
+
+# Get prefix from command line
+prefix = ARGUMENTS.get('prefix', '')
+installPath = Dist.getInstallPath(prefix)
+
+# Get compilers from Distutils ================================================
+(cc, cxx, opt, basecflags, ccshared, ldshared, so_ext) = Dist.getDistUtilsCompilers()
+
+# Python ======================================================================
+(pythonVersion, pythonIncDir, pythonLibDir, pythonLibs) = Dist.checkPython()
+
+# Test if numpy exists =======================================================
+(numpyVersion, numpyIncDir, numpyLibDir) = Dist.checkNumpy()
+
+# Test if kcore exists =======================================================
+(kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
+
+# Setting libraryDirs and libraries ===========================================
+libraryDirs = [pythonLibDir, kcoreLibDir]
+libraries = ["kcore"]
+from KCore.config import *
+(ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
+libraryDirs += paths; libraries += libs
+
+# Env =========================================================================
+import srcs
+if Dist.getSystem()[0] == 'mingw': tools = ['mingw']
+else: tools = None
+AR = Dist.getAR()
+env = Environment(tools=tools, CC=cc, CXX=cxx, AR=AR, CPPFLAGS=[],
+                  LIBPATH=additionalLibPaths+libraryDirs,
+                  LIBS=libraries+additionalLibs,
+                  CPPPATH=["Distributor2"]+additionalIncludePaths+[pythonIncDir, numpyIncDir, kcoreIncDir],
+                  SHLIBSUFFIX=so_ext, SHLIBPREFIX='',
+                  LINKFLAGS=Dist.getLinkArgs(),
+                  ENV=Dist.getEnvForScons())
+env.Replace(CXXFLAGS=Dist.getCppArgs())
+env.Replace(CFLAGS=Dist.getCArgs())
+
+#==============================================================================
+
+myMod = env.StaticLibrary('distributor2',
+                          srcs.cpp_srcs)
+modDir = installPath+'/Distributor2/'
+dp1 = env.Install(modDir, myMod)
+dp2 = env.Install(modDir, Glob('Distributor2/*.py'))
+
+env.Alias(target="install", source=[dp1,dp2])

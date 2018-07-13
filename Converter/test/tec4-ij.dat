@@ -1,0 +1,6 @@
+VARIABLES = "X", "Y", "Temperature", "Pressure"
+ZONE I=2, J=3, DATAPACKING=BLOCK
+3 7 2 6 1 5
+0 2 4 6 8 9
+0 0 1 0 1 1
+50 43 42 37 30 21

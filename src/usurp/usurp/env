@@ -1,0 +1,2 @@
+#! /bin/csh
+setenv TECIO_HOME "./tecio.a -lstdc++ -lsupc++"

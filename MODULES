@@ -1,0 +1,4 @@
+FREEMODULES='KCore Converter Geom Transform Generator Post Initiator Connector Distributor2 CPlot Dist2Walls RigidMotion Compressor Modeler Intersector Apps'
+export FREEMODULES
+FULLMODULES=$FREEMODULES''
+export FULLMODULES

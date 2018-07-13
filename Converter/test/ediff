@@ -1,0 +1,2 @@
+#! /bin/sh
+python $CASSIOPEE/Dist/bin/$ELSAPROD/ediff.py $1 $2

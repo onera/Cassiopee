@@ -1,0 +1,243 @@
+# - NGon operations in a pyTree -
+import Tkinter as TK
+import CPlot.Ttk as TTK
+import Converter.PyTree as C
+import Transform.PyTree as T
+import CPlot.PyTree as CPlot
+import CPlot.Tk as CTK
+import CPlot.Panels as Panels
+
+# local widgets list
+WIDGETS = {}; VARS = []
+
+#==============================================================================
+# Converti des zones en NGon
+# IN: t, cplot.selectedZones
+# OUT: t avec zones remplacees et affiche
+#==============================================================================
+def convert2NGon():
+    if CTK.t == []: return
+    if CTK.__MAINTREE__ <= 0:
+        CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+    
+    nzs = CPlot.getSelectedZones()
+    if nzs == []:
+        CTK.TXT.insert('START', 'Selection is empty.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+    CTK.saveTree()
+    
+    fail = False; errors = []
+    for nz in nzs:
+        nob = CTK.Nb[nz]+1
+        noz = CTK.Nz[nz]
+        z = CTK.t[2][nob][2][noz]
+        try:
+            a = C.convertArray2NGon(z)
+            CTK.replace(CTK.t, nob, noz, a)
+        except Exception, e:
+            fail = False; errors += [0,str(e)]
+            
+    if not fail:
+        CTK.TXT.insert('START', 'Zones converted to NGon.\n')
+    else:
+        Panels.displayErrors(errors, header='Error: convert2NGon')
+        CTK.TXT.insert('START', 'NGon conversion fails for at least one zone.\n')
+        CTK.TXT.insert('START', 'Warning: ', 'Warning')
+    CTK.t = C.fillMissingVariables(CTK.t)
+    (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+    CTK.TKTREE.updateApp()
+    CPlot.render()
+
+#==============================================================================
+# Break elements
+# IN: t, cplot.selectedZones
+# OUT: t avec zones remplacees et affiche
+#==============================================================================
+def breakElts():
+    if CTK.t == []: return
+    if CTK.__MAINTREE__ <= 0:
+        CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+    
+    nzs = CPlot.getSelectedZones()
+    if nzs == []:
+        CTK.TXT.insert('START', 'Selection is empty.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+    CTK.saveTree()
+
+    fail = False; errors = []
+    for nz in nzs:
+        nob = CTK.Nb[nz]+1
+        noz = CTK.Nz[nz]
+        z = CTK.t[2][nob][2][noz]
+        try:
+            zones = T.breakElements(z)
+            if (len(zones) > 0): CTK.replace(CTK.t, nob, noz, zones[0])
+            for zz in zones[1:]: CTK.add(CTK.t, nob, -1, zz)
+        except Exception, e:
+            fail = True; errors += [0,str(e)]
+
+    if not fail:
+        CTK.TXT.insert('START', 'Zones converted to basic elements.\n')
+    else:
+        Panels.displayErrors(errors, header='Error: breakElts')
+        CTK.TXT.insert('START', 'Break elts fails for at least one zone.\n')
+        CTK.TXT.insert('START', 'Warning: ', 'Warning')
+    CTK.t = C.fillMissingVariables(CTK.t)   
+    (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+    CTK.TKTREE.updateApp()
+    CPlot.render()
+
+#==============================================================================
+# Calcul le dual des zones 
+# IN: t, cplot.selectedZones
+# OUT: t avec zones remplacees et affiche
+#==============================================================================
+def dual():
+    if CTK.t == []: return
+    if CTK.__MAINTREE__ <= 0:
+        CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+    
+    nzs = CPlot.getSelectedZones()
+    if (nzs == []):
+        CTK.TXT.insert('START', 'Selection is empty.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+    CTK.saveTree()
+    
+    fail = False; errors = []
+    for nz in nzs:
+        nob = CTK.Nb[nz]+1
+        noz = CTK.Nz[nz]
+        z = CTK.t[2][nob][2][noz]
+        try:
+            a = T.dual(z)
+            CTK.replace(CTK.t, nob, noz, a)
+        except Exception, e:
+            fail = True; errors += [0,str(e)]
+
+    if not fail:
+        CTK.TXT.insert('START', 'Dual of zones computed.\n')
+    else:
+        Panels.displayErrors(errors, header='Error: dual')
+        CTK.TXT.insert('START', 'Dual fails for at least one zone.\n')
+        CTK.TXT.insert('START', 'Warning: ', 'Warning')
+    CTK.t = C.fillMissingVariables(CTK.t)   
+    (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+    CTK.TKTREE.updateApp()
+    CPlot.render()
+
+#==============================================================================
+# Conformise un NGON topologique (hanging nodes) 
+# IN: t, cplot.selectedZones
+# OUT: t avec zones remplacees et affiche
+#==============================================================================
+def conformize():
+    if CTK.t == []: return
+    if CTK.__MAINTREE__ <= 0:
+        CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+    
+    nzs = CPlot.getSelectedZones()
+    if (nzs == []):
+        CTK.TXT.insert('START', 'Selection is empty.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+    CTK.saveTree()
+    
+    fail = False; errors = []
+    for nz in nzs:
+        nob = CTK.Nb[nz]+1
+        noz = CTK.Nz[nz]
+        z = CTK.t[2][nob][2][noz]
+        try:
+            zp = C.conformizeNGon(z)
+            CTK.replace(CTK.t, nob, noz, zp)
+        except Exception, e:
+            fail = True; errors += [0,str(e)]
+
+    if (fail == False):
+        CTK.TXT.insert('START', 'Zones conformized.\n')
+    else:
+        Panels.displayErrors(errors, header='Error: conformize')
+        CTK.TXT.insert('START', 'Conformize fails for at least one zone.\n')
+        CTK.TXT.insert('START', 'Warning: ', 'Warning')
+    CTK.t = C.fillMissingVariables(CTK.t)   
+    (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+    CTK.TKTREE.updateApp()
+    CPlot.render()
+    
+#==============================================================================
+def createApp(win):
+    # - Frame -
+    Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE, 
+                           text='tkNGon', font=CTK.FRAMEFONT, takefocus=1)
+    #BB = CTK.infoBulle(parent=Frame, text='Manage Polyhedral (NGON) meshes.\nCtrl+c to close applet.', temps=0, btype=1)
+    Frame.bind('<Control-c>', hideApp)
+    Frame.bind('<ButtonRelease-3>', displayFrameMenu)
+    Frame.bind('<Enter>', lambda event : Frame.focus_set())
+    Frame.columnconfigure(0, weight=1)
+    Frame.columnconfigure(1, weight=1)
+    WIDGETS['frame'] = Frame
+
+    # - Frame menu -
+    FrameMenu = TK.Menu(Frame, tearoff=0)
+    FrameMenu.add_command(label='Close', accelerator='Ctrl+c', command=hideApp)
+    CTK.addPinMenu(FrameMenu, 'tkNGon')
+    WIDGETS['frameMenu'] = FrameMenu
+
+    # - VARS -
+    
+    # - Convert2NGon -
+    B = TTK.Button(Frame, text="Convert2NGon", command=convert2NGon)
+    B.grid(row=0, column=0, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Convert selection to NGon.')
+
+    # - Break Elements -
+    B = TTK.Button(Frame, text="BreakElts", command=breakElts)
+    B.grid(row=0, column=1, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Convert a NGon zone to basic elements.')
+
+    # - Dual -
+    B = TTK.Button(Frame, text="Dual", command=dual)
+    B.grid(row=1, column=0, columnspan=1, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Compute the dual mesh of a NGon.')
+
+    # - Conformize -
+    B = TTK.Button(Frame, text="Conformize", command=conformize)
+    B.grid(row=1, column=1, columnspan=1, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Conformize a NGon (split faces to match hanging nodes).')
+    
+#==============================================================================
+def showApp():
+    WIDGETS['frame'].grid(sticky=TK.EW)
+
+#==============================================================================
+def hideApp(event=None):
+    WIDGETS['frame'].grid_forget()
+
+#==============================================================================
+def updateApp(): return
+
+#==============================================================================
+def displayFrameMenu(event=None):
+    WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
+
+#==============================================================================
+if (__name__ == "__main__"):
+    import sys
+    if (len(sys.argv) == 2):
+        CTK.FILE = sys.argv[1]
+        try:
+            CTK.t = C.convertFile2PyTree(CTK.FILE)
+            (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+            CTK.display(CTK.t)
+        except: pass
+
+    # Main window
+    (win, menu, file, tools) = CTK.minimal('tkNGon '+C.__version__)
+
+    createApp(win); showApp()
+
+    # - Main loop -
+    win.mainloop()

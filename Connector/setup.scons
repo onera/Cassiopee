@@ -1,0 +1,76 @@
+import distutils.sysconfig, os
+import KCore.Dist as Dist
+from KCore.config import *
+#==============================================================================
+# Connector requires :
+# C++ compiler
+# Fortran compiler
+# Numpy
+# KCore
+#==============================================================================
+
+# Get prefix from command line
+prefix = ARGUMENTS.get('prefix', '')
+installPath = Dist.getInstallPath(prefix)
+
+# Get compilers from Distutils ================================================
+(cc, cxx, opt, basecflags, ccshared, ldshared, so_ext) = Dist.getDistUtilsCompilers()
+
+# Python ======================================================================
+(pythonVersion, pythonIncDir, pythonLibDir, pythonLibs) = Dist.checkPython()
+
+# Test if numpy exists =======================================================
+(numpyVersion, numpyIncDir, numpyLibDir) = Dist.checkNumpy()
+
+# Test if libmpi exists ======================================================
+(mpi, mpiIncDir, mpiLibDir) = Dist.checkMpi(additionalLibPaths, additionalIncludePaths)
+
+# Test if kcore exists =======================================================
+(kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
+
+# Setting libraryDirs and libraries ===========================================
+libraryDirs = ['..', '.', pythonLibDir, kcoreLibDir]
+includeDirs = ["Connector","Connector/CMP/include"]+additionalIncludePaths+[pythonIncDir, numpyIncDir, kcoreIncDir]
+libraries = ["kcore"]
+(ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
+libraryDirs += paths; libraries += libs
+(ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
+libraryDirs += paths; libraries += libs
+if mpi:
+    libraryDirs.append(mpiLibDir)
+    includeDirs.append(mpiIncDir)
+    ADDITIONALCPPFLAGS = ['-D_MPI']
+else:	       
+    ADDITIONALCPPFLAGS = []
+
+if mpi: libraries.append('mpi')
+
+# Env =========================================================================
+import srcs
+if Dist.getSystem()[0] == 'mingw': tools = ['mingw']
+else: tools = None
+AR = Dist.getAR()
+env = Environment(tools=tools, CC=cc, CXX=cxx, AR=AR, CPPFLAGS=[],
+                  FORTRAN=f77compiler,
+                  LIBPATH=additionalLibPaths+libraryDirs,
+                  LIBS=libraries+additionalLibs,
+                  CPPPATH=includeDirs,
+                  CFLAGS=Dist.getCArgs()+ADDITIONALCPPFLAGS,
+                  CXXFLAGS=Dist.getCppArgs()+ADDITIONALCPPFLAGS,
+                  SHLIBSUFFIX=so_ext, SHLIBPREFIX='',
+                  LINKFLAGS=Dist.getLinkArgs(),
+                  ENV=Dist.getEnvForScons())
+
+env = Dist.createFortranBuilder(env, [kcoreIncDir, './Connector/Fortran'])
+ppf = Dist.createFortranFiles(env, srcs)
+
+#==============================================================================
+
+myMod = env.StaticLibrary('connector',
+                          srcs.cpp_srcs+ppf)
+modDir = installPath+'//Connector/'
+dp1 = env.Install(modDir, myMod)
+dp2 = env.Install(modDir, Glob('Connector/*.py'))
+
+env.Alias(target="install", source=[dp1,dp2])
+

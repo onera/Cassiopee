@@ -1,0 +1,13 @@
+#! /bin/sh
+# cleanAll: enleve tous les .o, ...
+. ./MODULES
+
+for mod in $FULLMODULES
+do
+  if test -e $mod
+  then
+      cd $mod
+      rm -fr build
+      cd ..
+  fi
+done

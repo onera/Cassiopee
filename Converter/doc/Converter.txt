@@ -1,0 +1,221 @@
+==============================================================================
+Converter 2.4 [29/03/2017]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.4
+Optional: libhdf5 > 1.8.6 (hdf file format)
+Optional: extractBCOfType, extractBCOfName requires Transform 2.4
+Optional: Mpi requires mpi4py
+- listen/send
+- convert2SkeletonTree
+- Internal: getZones, getBases
+==============================================================================
+Converter 2.3 [28/11/2016]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.3
+Optional: libhdf5 > 1.8.6 (hdf file format)
+Optional: extractBCOfType, extractBCOfName requires Transform 2.3
+Optional: Mpi requires mpi4py
+- Internal : autoSetContainers
+===============================================================================
+Converter 2.2 [29/06/2016]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.2
+Optional: libhdf5 > 1.8.6 (hdf file format)
+Optional: extractBCOfType, extractBCOfName requires Transform 2.2
+Optional: Mpi requires mpi4py
+- addGhostCells+nearMatch
+- conformUnstr
+- Internal : addChild/createChild now return Child
+- Internal : harmonization with pyCGNS/PAT
+===============================================================================
+Converter 2.1 [15/01/2016]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.1
+Optional: libhdf5 > 1.8.6 (hdf file format)
+Optional: extractBCOfType, extractBCOfName requires Transform 2.1
+Optional: Mpi requires mpi4py
+- Internal : merge
+- Internal : adaptNFace2PE, adaptPE2NFace
+===============================================================================
+Converter 2.0 [26/06/2015]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.0
+Optional: libhdf5 > 1.8.6 (hdf file format)
+Optional: extractBCOfType, extractBCOfName requires Transform 2.0
+Optional: Mpi requires mpi4py
+- elsAProfile.addReferenceState
+- elsAProfile.addGlobalConvergenceHistory
+- elsAProfile.addFlowSolution
+- elsAProfile.addOutputForces
+- elsAProfile.addOutputFriction
+- getMeanRangeValue
+- Internal : checkMultigrid
+- Internal : checkPyTree + check CGNS types
+- isNamePresent
+- mergeConnectivity
+- addBC2Zone + subzone
+- formatted GMSH format
+- binary GMSH format
+===============================================================================
+Converter R.4 [16/01/2015]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore R.4
+Optional: libhdf5 > 1.8.6 (hdf file format)
+Optional: extractBCOfType, extractBCOfName requires Transform R.4
+Optional: Mpi requires mpi4py
+- copyRef/copyTree
+- createUniqueChild
+- printTree
+- identifySolutions
+- breakConnectivity
+===============================================================================
+Converter R.3 [12/05/2014]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore R.3
+Optional: libhdf5 > 1.8.6 (hdf file format)
+Optional: extractBCOfType, extractBCOfName requires Transform R.3
+Optional: Mpi requires mpi4py
+- Internal extended with XTree functions
+- formatted plot3d
+- fillMissingVariables reorder variables
+- fmt_su2 (without BCs)
+- addState2Base -> addState
+- createBBoxTree, computeGraph, addXZones, rmXZones
+- Internal.getValue
+- getNCells, getNPts
+===============================================================================
+Converter R.2 [15/11/2013]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore R.2
+Optional: libhdf5 > 1.8.6 (hdf file format)
+Otional: libcgns is no longer required for adf format.
+Optional: extractBCOfType, extractBCOfName requires Transform R.2
+- ghostcell speed improved
+- center2Node+cellNType for unstructured grids
+- node2ExtCenters + center field
+===============================================================================
+Converter R.1 [22/05/2013]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore R.1
+Optional: libcgns > 2.4 (adf file format), libhdf5 > 1.8.6 (hdf file format)
+Optional: extractBCOfType, extractBCOfName requires Transform R.1
+- fmt_tp read/write polyhedrons
+- fmt_tp fix for PENTA and PYRA
+- bin_tp fix for PYRA
+- extractBCOfName + BCFamily
+- Internal : checkPyTree, correctPyTree
+- variable varString
+- convertArray2Tetra + split
+- hooks
+- bin_tp exports v112 instead of 75
+- geometrical identification
+- getEmptyBC for NGONs
+- nearestNodes, nearestElts, nearestFaces
+===============================================================================
+Converter 1.10 [07/11/2012]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 1.10
+Optional: libcgns > 2.4 (adf file format), libhdf5 > 1.8.6 (hdf file format)
+Optional: extractBCOfType, extractBCOfName requires Transform 1.10
+- removal of elsA DesObjects conversions
+- ply format.
+- getConnectedZones.
+- getNobNozOfZone.
+- fmt_cedre.
+- convertArray2NGon.
+- zoneNames arg (read/write).
+===============================================================================
+Converter 1.9 [05/04/2012]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 1.9
+Optional: libcgns > 2.4 (adf file format), libhdf5 > 1.8.6 (hdf file format)
+Optional: extractBCOfType, extractBCOfName requires Transform 1.9
+- convertTri2Quad.
+- fmt stl.
+- getFamilyZoneNames.
+- Container names are now in Internal.
+- initVars from a formula string.
+- convertArray2Tetra/Hexa+centers.
+- png reader.
+- convert2elsAxdt.
+===============================================================================
+Converter 1.8 [22/09/2011]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 1.8
+Optional: libcgns > 2.4 (adf file format), libhdf5 > 1.8.6 (hdf file format)
+Optional: extractBCOfType, extractBCOfName requires Transform 1.8
+- options par keywords dans convertArrays2File/convertFile2Arrays/convertPyTree2File/convertFile2PyTree.
+- convertArrays2File : option zoneNames.
+- magnitude var name changed.
+- getFamilyZones, getFamilyBCs.
+- HDF5 file support.
+===============================================================================
+Converter 1.7 [17/03/2011]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 1.7
+Optional: libcgns > 2.4 (adf file format), libhdf5 (hdf file format)
+Optional: extractBCOfType requires Transform 1.7
+- tagWithFamily
+- amelioration de la detection du format des fichiers
+- noeud CGNSTree dans les pyTree
+- access naturel des numpy dans les pyTree
+- extractBCOfName
+- noeud version en numpy, noeud chaine en numpy strings
+===============================================================================
+Converter 1.6 [27/10/2010]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 1.6
+Optional: libcgns > 2.4 (adf file format), libhdf5 (hdf file format)
+Optional: extractBCOfType requires Transform 1.6
+- rmVars : for arrays.
+- elargissement de la taille de la chaine de variables.
+- node2ExtCenter.
+- magnitude.
+===============================================================================
+Converter 1.5 [22/03/2010]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 1.5
+Optional: libcgns > 2.4 (adf file format), libhdf5 (hdf file format)
+Optional: extractBCOfType requires Transform 1.5
+- ne depend plus de elsAxdt.
+- convertArray2Node.
+- lecture formattee tecplot multiblocs.
+- checkBC->getEmptyBC.
+- addState2Base.
+- mergeTrees.
+- fillMissingVariables.
+- addChimera2State.
+- fmt_tp non-structure.
+- optimisation de addvars.
+- optimisation de fillEmptyBC.
+===============================================================================
+Converter 1.4 [24/09/2009]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 1.4
+Optional: convertPyTree2File requires elsAxdt 1.4 or other
+Optional: extractBCOfType requires Transform 1.4
+- ecriture bin_stl
+- rmBCOfType
+- sortie formatee tecplot non-structuree
+- center2Node et node2Center sont maintenant dans Converter
+- rmVars, addVars avec une liste de variables
+- rmNodes
+- center2node : prend en compte les raccords match
+- format obj
+===============================================================================
+Converter 1.3 [19/05/2009]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 1.3
+Optional: convertPyTree2File requires elsAxdt 1.3
+- lecture/ecriture multiblocs bin_v3d
+- pyTree module etendu
+- cpVars, rmVars
+- portage Linux/Ubuntu
+===============================================================================
+Converter 1.2 [27/11/2008]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 1.2
+- read geometries in bin_tp
+- XFig format
+- setValue
+- format fmt_svg
+- changement de l'interface des options pour convertArrays2File 
+et convertFile2Arrays
+- conversion en DesObjects elsA
+- lecture tecplot 360-2008
+- options de lecture des formats vectoriels
+===============================================================================
+Converter 1.1 [24/06/2008]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 1.1
+Optional: Cassiopee Cartesian Kernel 0.0
+- interface change : addVars(a,b)->addVars([a,b]).
+- generic function to transform array into tetra or hexa.
+- fmt_pov, fmt_mesh. 
+===============================================================================
+Converter 1.0 [03/04/2008]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 1.0
+Optional: Cassiopee Cartesian Kernel 0.0
+- First release
+===============================================================================

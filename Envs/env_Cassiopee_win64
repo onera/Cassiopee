@@ -1,0 +1,14 @@
+# Ceci est l'environement pour compiler Cassiopee sous mingw64
+# Pour bien installer
+# - Installer Python, numpy, scons (Windows version)
+# - Faire une commande scons : python /c/Python27/Scripts/scons.py
+export CASSIOPEE="c:\Users/Administrateur/Cassiopee"
+export PATH=$PATH:/c/Python27:/c/Python27/Scripts
+export PATH=$PATH:"/c/emacs-23.1/bin"
+export PATH=$PATH:"/c/TDM-GCC-64/bin"
+export PATH=$PATH:"$CASSIOPEE/Dist/bin/win64":"$CASSIOPEE/Dist/bin/win64/lib":"$CASSIOPEE/Dist/bin/win64/lib/site-packages"
+export ELSAPROD=win64
+export LIBRARY_PATH=/c/Python27
+export PYTHONPATH=$PYTHONPATH:/c/Python27/Scripts:"$CASSIOPEE/Dist/bin/$ELSAPROD/lib/site-packages"
+# python /c/Python27/Scripts/scons.py
+# python setupScons.py install --prefix="$CASSIOPEE/Dist/bin"

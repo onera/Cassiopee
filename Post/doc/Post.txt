@@ -1,0 +1,171 @@
+===============================================================================
+Post 2.6 [03/2018]
+Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.6
+Optional: usurp function requires f90 compiler
+Optional: PyTree interface requires Converter 2.6
+Optional: extraction functions features require Generator, Transform 2.6
+===============================================================================
+Post 2.5 [20/09/2017]
+Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.5
+Optional: usurp function requires f90 compiler
+Optional: PyTree interface requires Converter 2.5
+Optional: extraction functions features require Generator, Transform 2.5
+- Post : computeVariables work with primary variables
+- Post : faster isoSurf and isoSurfMC
+===============================================================================
+Post 2.4 [29/03/2017]
+Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.4
+Optional: usurp function requires f90 compiler
+Optional: PyTree interface requires Converter 2.4
+Optional: extraction functions features require Generator, Transform 2.4
+===============================================================================
+Post 2.3 [28/11/2016]
+Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.3
+Optional: usurp function requires f90 compiler
+Optional: PyTree interface requires Converter 2.3
+Optional: extraction functions features require Generator, Transform 2.3
+===============================================================================
+Post 2.3 [28/11/2016]
+Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.3
+Optional: usurp function requires f90 compiler
+Optional: PyTree interface requires Converter 2.3
+Optional: extraction functions features require Generator, Transform 2.3
+===============================================================================
+Post 2.2 [29/06/2016]
+Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.2
+Optional: usurp function requires f90 compiler
+Optional: PyTree interface requires Converter 2.2
+Optional: extraction functions features require Generator, Transform 2.2
+===============================================================================
+Post 2.1 [15/01/2016]
+Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.1
+Optional: usurp function requires f90 compiler
+Optional: PyTree interface requires Converter 2.1
+Optional: extraction functions features require Generator, Transform 2.1
+- Post : opt. exteriorElements+basic
+===============================================================================
+Post 2.0 [26/06/2015]
+Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.0
+Optional: usurp function requires f90 compiler
+Optional: PyTree interface requires Converter 2.0
+Optional: extraction functions features require Generator, Transform 2.0 
+===============================================================================
+Post R.4 [16/01/2015]
+Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore R.4
+Optional: usurp function requires f90 compiler
+Optional: PyTree interface requires Converter R.4
+Optional: extraction functions features require Generator, Transform R.4
+- computeNormGrad, computeNormCurl
+- renameVars
+===============================================================================
+Post R.3 [12/05/2014]
+Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore R.3
+Optional: usurp function requires f90 compiler
+Optional: PyTree interface requires Converter R.3
+Optional: extraction functions features require Generator, Transform R.3
+===============================================================================
+Post R.2 [15/11/2013]
+Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore R.2
+Optional: usurp function requires f90 compiler
+Optional: PyTree interface requires Converter R.2
+Optional: extraction functions features require Generator, Transform R.2
+===============================================================================
+Post R.1 [22/05/2013]
+Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore R.1
+Optional: usurp function requires f90 compiler
+Optional: PyTree interface requires Converter R.1
+Optional: extraction functions features require Generator, Transform R.1
+- exteriorElts + NGON
+- extrapolation in extractMesh
+- silhouette
+- selectCells NGon
+- hook pour extract point
+===============================================================================
+Post 1.10 [07/11/2012]
+Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 1.10
+Optional: usurp function requires f90 compiler
+Optional: PyTree interface requires Converter 1.10
+Optional: extraction functions features require Generator, Transform 1.10
+- isoSurfMC generates QUAD dominant meshes.
+- exteriorElts.
+===============================================================================
+Post 1.9 [05/04/2012]
+Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 1.9
+Optional: usurp function requires f90 compiler
+Optional: PyTree interface requires Converter 1.9
+Optional: extraction functions features require Generator, Transform 1.9
+- selectCells+formula. 
+===============================================================================
+Post 1.8 [22/09/2011]
+Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 1.8
+Optional: usurp function requires f90 compiler
+Optional: PyTree interface requires Converter 1.8
+Optional: extraction functions features require Generator, Transform 1.8
+- computeExtraVariables : SkinFriction, skinFrictionTangential.
+- iso surf by marching cubes.
+- isoSurf returns a list of two zones by elt type [TRI, BAR].
+===============================================================================
+Post 1.7 [17/03/2011]
+Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 1.7
+Optional: usurp function requires f90 compiler
+Optional: PyTree interface requires Converter 1.7
+Optional: extraction functions features require Generator, Transform 1.7
+- optimisation exteriorFaces
+===============================================================================
+Post 1.6 [27/10/2010]
+Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 1.6
+Optional: usurp function requires f90 compiler
+Optional: PyTree interface requires Converter 1.6
+Optional: extraction functions features require Generator, Transform 1.6
+- importVariables: import aussi les grilles supplementaires.
+- isoSurf.
+- frontFaces.
+===============================================================================
+Post 1.5 [22/03/2010]
+Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 1.5
+Optional: usurp function requires f90 compiler
+Optional: PyTree interface requires Converter 1.5
+Optional: extraction functions features require Generator, Transform 1.5
+- mergeElts->coarsen.
+- refine.
+- selectCells2.
+- strict option in selectCells.
+===============================================================================
+Post 1.4 [24/09/2009]
+Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 1.4
+Optional: usurp function requires f90 compiler
+Optional: PyTree interface requires Converter 1.4
+Optional: extraction functions features require Generator, Transform 1.4
+- reorderAll passe dans Transform
+===============================================================================
+Post 1.3 [19/05/2009]
+Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 1.3
+Optional: PyTree interface requires Converter 1.3
+Optional: extraction functions features require Generator 1.3, Transform 1.3
+Optional: usurp function requires f90 compiler
+- mergeElts
+- Post : modification de l'interface de computeGrad et computeCurl
+- portage Linux/Ubuntu
+===============================================================================
+Post 1.2 [27/11/2008]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 1.2
+Optional: f90 compiler
+- extractPoint, extractMesh for unstructured meshes
+- streamLines, streamRibbons for unstructured meshes
+- extractPlane for unstructured meshes
+- exteriorFaces
+===============================================================================
+Post 1.1 [24/06/2008]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 1.1
+Optional: f90 compiler
+- computeCurl, computeGrad.
+- extractPoint, extractMesh, extractPlane from surface meshes. 
+- node2Center and center2Node for an array, any more for an array list. 
+- streams.
+- select cells in solution.
+===============================================================================
+Post 1.0 [03/04/2008]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 1.0
+Optional: f90 compiler
+- First release
+===============================================================================

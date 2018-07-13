@@ -1,0 +1,468 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>Transform: mesh transformation module</title>
+    <link href="Cassiopee.css" rel="stylesheet" type="text/css">
+    <link rel="icon" type="image/png" href="iconc.png"> </link>
+    <script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','//www.google-analytics.com/analytics.js','ga');ga('create', 'UA-31301505-1', 'auto');ga('send', 'pageview');</script>
+  </head>
+
+  <body>
+    <h1>Transform: mesh Transformations</h1>
+    <h2>Version: 2.4 (29/03/2017)</h2>
+    <h2>Author: Onera</h2>
+    <h2><a href="Latex/Transform.pdf" target="_self"><img src="pdf_logo.gif" alt="Download pdf version."></a></h2> 
+<HR>
+
+    <h3>Preamble</h3>
+    
+    Transform module performs simple transformations of meshes. It 
+    works on arrays (as defined in Converter documentation) 
+    or on CGNS/Python trees (pyTrees) containing grid coordinates 
+    information.<br><br>
+
+    This module is part of Cassiopee, a free open-source 
+    pre- and post-processor for CFD simulations.<br><br>
+
+    To use it with the array interface,
+    you have to import Transform module:
+    <div class="code">
+      import Transform as T
+    </div>
+    Then, a defines an array, and A defines a list of arrays.<br>
+
+    To use it with the pyTree interface:
+    <div class="code">
+    import Transform.PyTree as T
+    </div>
+    Then, a defines a zone node, A defines a list of zone nodes or a pyTree.
+
+    <p></p>
+    <h3>Simple operations</h3>
+    <p></p>
+    <strong> Warning: the pyTree functions <em>subzone, oneovern, join, reorder</em> 
+    destroy the 'BCMatch' and 'BCNearMatch' boundary conditions. 
+    They can be rebuilt by connectMatch and connectNearMatch functions of Connector module.</strong><br>
+    <br>
+    <strong>T.subzone</strong>: extract a subzone.<br> 
+    For a structured array, you must specify the min and max indices in i,j,k directions of the subzone:
+    <div class="code">
+      b = T.subzone(a, (imin,jmin,kmin), (imax,jmax,kmax))
+    </div>
+    For an unstructured array, you must specify the vertices belonging to subzone (index starts from 1):
+    <div class="code">
+    b = T.subzone(a, [1,2,...])
+    </div>
+    Extract a subzone of an unstructured array providing the indices of elements (index starts from 0):
+    <div class="code">
+     b = T.subzone(a, [0,1,...], type='elements')
+    </div>
+    Extract a subzone of an unstructured array providing the indices of faces 
+    (for unstructured zones with basic elements: indFace=indElt*numberOfFaces+noFace, for NGON zones: use the natural face indexing, starting from 1):
+    <div class="code">
+      b = T.subzone(a, [1,2,...], type='faces')
+    </div>
+     <em>Example of use: </em><a href="Examples/Transform/subzone.py"> subzone extraction (array)</a>,
+     <a href="Examples/Transform/subzonePT.py"> subzone extraction (pyTree)</a>.<br><br>
+
+    <strong>T.join</strong>: join two arrays in one (if possible) or join a list of arrays in one 
+    (if possible).
+    <em> Warning:</em> for the pyTree version, join does not take into account 
+    modifications of boundary conditions:
+    <div class="code">
+     c = T.join(a, b, tol=1.e-10) <em>.or.</em> c = T.join(A, tol=1.e-10)
+    </div>
+    <em>Example of use: </em><a href="Examples/Transform/join.py"> 2 arrays join (array)</a>,
+    <a href="Examples/Transform/joinPT.py"> 2 zones join (pyTree)</a>.<br><br>
+
+     <strong>T.merge</strong>: merge a set of curvilinear grids (surface grids must be k=1) if possible. 
+    Parameter sizeMax defines the maximum size of merged grids.
+    dir is the constraint direction along which the merging is prefered. 
+    Default value is 0 (no prefered direction), 1 for i, 2 for j, 3 for k. 
+    alphaRef can be used for surface grids and avoids merging adjacent zones
+    sharing an angle deviating of alphaRef to 180:
+    <div class="code">
+    B = T.merge(A, sizeMax=1000000000, dir=0, tol=1.e-10, alphaRef=180.)
+    </div>
+    <em>Example of use: </em><a href="Examples/Transform/merge.py"> grid merging (array)</a>,
+    <a href="Examples/Transform/mergePT.py"> grid merging (pyTree)</a>.<br><br>
+
+     <strong>T.mergeCart</strong>: merge a set of Cartesian grids (patch grids) if possible.
+    Parameter sizeMax defines the maximum size of merged grids:
+    <div class="code">
+    B = T.mergeCart(A, sizeMax=1000000000, tol=1.e-10)
+    </div>
+    <em>Example of use: </em><a href="Examples/Transform/mergeCart.py"> Cartesian grid merging (array)</a>,
+    <a href="Examples/Transform/mergeCartPT.py"> Cartesian grid merging (pyTree)</a>.<br><br>
+
+     <strong>T.patch</strong>: patch (replace) an array b into an array a, from position (i,j,k) when 
+     dealing with structured arrays, and at given nodes (specified as a list or a numpy array of indices starting from 1)
+     when dealing with structured or unstructured arrays:
+    <div class="code">
+      c = T.patch(a, b, position=(i,j,k)) <em>.or.</em> c = T.patch(a, b, nodes=[1,2,3])
+    </div>
+     <em>Example of use: </em><a href="Examples/Transform/patch.py"> array patching (array)</a>,
+     <a href="Examples/Transform/patchPT.py"> zone patching (pyTree)</a>.<br><br>
+     
+     <strong>T.oneovern</strong>: extract one point over N points from a:
+    <div class="code">
+      b = T.oneovern(a, (Ni,Nj,Nk)) <em>.or.</em> B = T.oneovern(A, (Ni,Nj,Nk))
+    </div>
+     <em>Example of use: </em><a href="Examples/Transform/oneovern.py"> point extraction (array)</a>,
+    <a href="Examples/Transform/oneovernPT.py"> point extraction (pyTree)</a>.<br><br>
+    
+     <strong>T.collapse</strong>: for a TRI zone a, collapse smallest edges of each triangle. 
+    Return a BAR array:
+    <div class="code">
+    b = T.collapse(a) <em>.or.</em> B = T.collapse(A)
+    </div>  
+    <em>Example of use: </em><a href="Examples/Transform/collapse.py"> collapse a tri mesh (array)</a>, 
+    <a href="Examples/Transform/collapsePT.py"> collapse a tri mesh (pyTree).</a><br><br>
+
+     <strong>T.reorder</strong>: change the (i,j,k) ordering of structured array a. 
+    In the following example, i1 becomes k2, j1 becomes -j2, k1 becomes -i2:
+    <div class="code">
+      b = T.reorder(a, (3,-2,-1)) <em>.or.</em> B = T.reorder(A, (3,-2,-1))
+    </div>
+    Change the ordering of a TRI- or QUAD-array or a 2D NGON array. All elements are
+    numbered in the same way:
+    <div class="code">
+      b = T.reorder(a, (-1,)) <em>.or.</em> B = T.reorder(A, (-1,))
+    </div>
+    For pyTree version, the global top tree a belongs to can be specified 
+    to update its matching boundaries impacted by the reordering of 
+    a (toptree is modified): 
+    <div class="code">
+    a = T.reorder(a, (3,-2,-1), toptree=[])
+    </div>
+   <em>Example of use: </em><a href="Examples/Transform/reorder.py"> i, j, k reordering (array)</a>, 
+   <a href="Examples/Transform/reorderPT.py"> i, j, k reordering (pyTree).</a><br><br>
+   
+<!--     <strong> Functions such as Post.usurp and Post.integ require that the  -->
+<!--     orientation of block normals must be the same for all blocks. </strong> -->
+    <strong>T.reorderAll</strong>: reorient surfaces zones consistently between them. All zones must have the same type, either structured or unstructured (TRI currently).
+    The zones must be abutting or overlapping and the reorientation of the first zone is used to reorient the other ones.
+    For the unstructured case, if the zones represent a piecewise closed volume, reorientation is guaranteed to be outward (by default).
+    Parameter 'dir' allows the user to change ordering (default value is 1). If dir=-1, the reordering is performed
+    in the opposite direction:
+    <div class="code">
+    B = T.reorderAll(A, dir)
+    </div>     
+    NB: if reorder fails, A is returned.<br>
+    <em>Example of use: </em><a href="Examples/Transform/reorderAll.py"> surface block reordering (array)</a>,
+    <a href="Examples/Transform/reorderAllPT.py"> surface block reordering (pyTree)</a>.<br><br>
+
+    <strong>T.makeDirect</strong>: make a structured zone direct (change eventually k ordering):
+    <div class="code">
+      b = T.makeDirect(a) <em>.or.</em>  B = T.makeDirect(A)
+    </div>    
+     <em>Example of use: </em><a href="Examples/Transform/makeDirect.py"> make array direct (array)</a>,
+     <a href="Examples/Transform/makeDirectPT.py"> make zone direct (pyTree)</a>. <br><br>
+
+    <strong>T.makeCartesianXYZ</strong>: align a Cartesian mesh such that i,j, k are aligned with x,y,z respectively:
+    <div class="code">
+      b = T.makeDirect(a) <em>.or.</em>  B = T.makeCartesianXYZ(A)
+    </div>    
+     <em>Example of use: </em><a href="Examples/Transform/makeCartesianXYZ.py"> align i,j,k, with X,Y,Z (array)</a>,
+     <a href="Examples/Transform/makeCartesianXYZPT.py"> align i,j,k with X,Y,Z (pyTree)</a>. <br><br>
+
+    <strong>T.addkplane</strong>: add one or more (z+1) plane:
+    <div class="code">
+      b = T.addkplane(a, N=1) <em>.or.</em>  B = T.addkplane(A, N=1)
+    </div>    
+     <em>Example of use: </em><a href="Examples/Transform/addkplane.py"> k plane addition (array)</a>,
+     <a href="Examples/Transform/addkplanePT.py"> k plane addition (pyTree)</a>. <br>
+
+    <p></p>
+    <h3>Mesh positioning</h3>
+    <p></p>
+    <em> The following functions are applicable to both structured and unstructured grids. </em><br><br>
+    <strong>T.translate</strong>: translate of a vector (0.,1.,0.):
+    <div class="code">
+      b = T.translate(a, (0.,1.,0.)) <em>.or.</em> B = T.translate(A, (0.,1.,0.))
+    </div>
+     <em>Example of use: </em><a href="Examples/Transform/translate.py"> translation (array)</a>,  
+     <a href="Examples/Transform/translatePT.py"> translation (pyTree).</a><br><br>
+
+    <strong>T.rotate</strong>: make a rotation of center (0.2,0.2,0.) around z-axis of angle of 18 degrees:
+    <div class="code">
+    b = T.rotate(a, (0.2,0.2,0.), (0.,0.,1.), 18.,vectors=None) <em>.or.</em> B = T.rotate(A, (0.2,0.2,0.), (0.,0.,1.), 18.,vectors=[])
+    </div>
+    Make a rotation of center (0.2,0.2,0.) around z-axis of angle of 18 degrees. 
+    The velocity vector is also rotated:
+    <div class="code">
+    b = T.rotate(a, (0.2,0.2,0.), (0.,0.,1.), 18.,vectors=[['VelocityX','VelocityY','VelocityZ']]) <em>.or.</em> B = T.rotate(A, (0.2,0.2,0.), (0.,0.,1.), 18.,vectors=[['VelocityX','VelocityY','VelocityZ']])
+    </div>   
+    Make a rotation of center (0.2,0.2,0.) transforming frame vector (e1,e2,e3) in frame vector (f1,f2,f3):
+    <div class="code">
+      b = T.rotate(a, (0.2,0.2,0.), (e1,e2,e3), (f1,f2,f3)) <em>.or.</em> B = T.rotate(A, (0.2,0.2,0.), (e1,e2,e3), (f1,f2,f3))
+    </div>
+    Make a rotation of center (0.2,0.2,0.) wrt three angles (alpha, beta, gamma). 
+    alpha is a rotation along X (Ox->Ox, Oy->Oy1, Oz->Oz1), 
+    beta along y (Ox1->Ox2, Oy1->Oy1, Oz1->Oz2), 
+    gamma along z (Ox2->Ox3, Oy2->Oy3, Oz2->Oz2):
+    <div class="code">
+    b = T.rotate(a, (0.2,0.2,0.), (alpha,beta,gamma)) <em>.or.</em> B = T.rotate(A, (0.2,0.2,0.), (alpha,beta,gamma))
+    </div>
+
+     <em>Example of use: </em><a href="Examples/Transform/rotate.py"> rotation (array)</a>, 
+     <a href="Examples/Transform/rotatePT.py"> rotation (pyTree).</a> 
+
+    <p></p>
+    <h3>Mesh transformation</h3>
+    <p></p>
+    <em>The following functions, except "perturbate", are applicable to both structured and unstructured grids.  </em><br><br>
+    <strong>T.cart2Cyl</strong>: transform a mesh in Cartesian coordinates into cylindrical coordinates,
+    such that the origin of the frame is (x0,y0,z0) and (0,0,1) means the cylindrical axis is (0z).
+    <div class="code">
+      b = T.cart2Cyl(a, (x0,y0,z0), (0,0,1)) <em>.or.</em> B = T.cart2Cyl(A, (x0,y0,z0), (0,0,1))
+     </div>
+     <em>Example of use: </em><a href="Examples/Transform/cart2Cyl.py"> cart2Cyl (array)</a>, 
+     <a href="Examples/Transform/cart2CylPT.py"> cart2Cyl(pyTree).</a> <br><br>
+
+    <strong>T.homothety</strong>: make an homothety of center C (0.,0.,0.) and of multiplication factor alpha=0.1
+    (CM' = alpha * CM):
+    <div class="code">
+      b = T.homothety(a, (0.,0.,0.), 0.1) <em>.or.</em> B = T.homothety(A, (0.,0.,0.), 0.1)
+    </div>
+     <em>Example of use: </em><a href="Examples/Transform/homothety.py"> homothety (array)</a>, 
+     <a href="Examples/Transform/homothetyPT.py"> homothety (pyTree).</a> <br><br>
+
+    <strong>T.contract</strong>: make a contraction of a, regarding a plane defined by point 
+    (0.,0.,0.) and by dir1 (1,0,0) and dir2 (0,1,0) and of multiplication factor alpha=0.1:
+    <div class="code">
+      b = T.contract(a, (0.,0.,0.), (1,0,0), (0,1,0), 0.1) <em>.or.</em> B = T.contract(A, (0.,0.,0.), (1,0,0), (0,1,0), 0.1)
+    </div>
+     <em>Example of use: </em><a href="Examples/Transform/contract.py"> array contraction (array)</a>, 
+     <a href="Examples/Transform/contractPT.py"> array contraction (pyTree)</a>. <br><br>
+
+    <strong>T.scale</strong>: scale a mesh with a given constant factor or per direction:
+    <div class="code">
+      b = T.scale(a, factor=0.1) <em>.or.</em> B = T.scale(A, factor=(0.1,0.2,0.3))
+    </div>
+     <em>Example of use: </em><a href="Examples/Transform/scale.py"> array scaling (array)</a>, 
+     <a href="Examples/Transform/scalePT.py"> array scaling (pyTree)</a>. <br><br>
+
+
+    <strong>T.symetrize</strong>: make a symmetry of a, considering the plane passing by a point 
+    (1.,2.,3.) and defined by two vectors (1,0,0) and (0,1,0). Beware the 
+    (i,j,k) trihedra may be modified. Use
+    reorder to avoid this:
+    <div class="code">
+      b = T.symetrize(a, (1.,2.,3.), (1,0,0), (0,1,0)) <em>.or.</em> B = T.symetrize(A, (1.,2.,3.), (1,0,0), (0,1,0))
+    </div>
+     <em>Example of use: </em><a href="Examples/Transform/symetrize.py"> symmetry (array)</a>, 
+     <a href="Examples/Transform/symetrizePT.py"> symmetry (pyTree)</a>.<br><br>
+    <strong>T.perturbate</strong>: perturbate randomly a mesh with a given radius. If dim=2, z coordinates are fixed, if dim=1, y and z coordinates are fixed:
+    <div class="code">
+     b = T.perturbate(a, 0.1, dim=3)
+    </div>
+    <em>Example of use: </em><a href="Examples/Transform/perturbate.py"> random perturbation (array)</a>,
+     <a href="Examples/Transform/perturbatePT.py"> random perturbation (pyTree)</a>.<br><br>
+
+    <strong>T.smooth</strong>: perform a Laplacian smoothing on a 'QUAD', 'TRI' array or a list of structured arrays with a weight eps, and niter smoothing iterations. Type=0 means isotropic Laplacian, type=1 means scaled Laplacian, type=2 
+means taubin smoothing.
+    Constraints can be defined in order to avoid smoothing some points (for instance the exterior faces of a): 
+    <div class="code">
+      b = T.smooth(a, eps=0.5, niter=4, type=0, fixedConstraints=[], projConstraints=[])
+    </div>
+     <em>Example of use: </em><a href="Examples/Transform/smooth.py"> Laplacian smoothing (array)</a>, 
+     <a href="Examples/Transform/smoothPT.py"> Laplacian smoothing (pyTree)</a>.<br><br>
+
+    <strong>T.splitCurvatureAngle</strong>: split a i-array following curvature angle. If angle is lower than 180-45 degrees or greater than 180+45 degrees, curve is split:
+    <div class="code">
+      A = T.splitCurvatureAngle(a, 45.)
+    </div>
+    <em>Example of use: </em><a href="Examples/Transform/splitCurvatureAngle.py"> line splitting (array)</a>,
+    <a href="Examples/Transform/splitCurvatureAnglePT.py"> line splitting (pyTree)</a>.<br><br>
+
+    <strong>T.splitCurvatureRadius</strong>: split a i-array following curvature radius, using B-splines approximation. 
+    The curve can be closed or not. Parameter Rs is a 
+    threshold curvature radius, so that the initial curve is split
+    at points of curvature radius lower than than Rs:
+    <div class="code">
+      B = T.splitCurvatureRadius(a, cs)
+    </div> 
+    <em>Example of use: </em><a href="Examples/Transform/splitCurvatureRadius.py"> curve splitting (array)</a>,
+    <a href="Examples/Transform/splitCurvatureRadiusPT.py"> curve splitting (pyTree)</a>.<br><br>
+
+    <strong>T.splitConnexity</strong>: split an unstructured array into connex parts:
+    <div class="code">
+      B = T.splitConnexity(a)
+    </div>
+    <em>Example of use: </em><a href="Examples/Transform/splitConnexity.py"> identify connex parts (array)</a>, 
+    <a href="Examples/Transform/splitConnexityPT.py"> Identify connex parts (pyTree)</a>.<br><br>
+
+    <strong>T.splitSharpEdges</strong>: split an array into smooth parts. AlphaRef specifies the split angle 
+    between neighbouring elements:
+    <div class="code">
+      B = T.splitSharpEdges(a, alphaRef=30.)
+    </div>
+    <em>Example of use: </em><a href="Examples/Transform/splitSharpEdges.py"> identify smooth parts (array)</a>, 
+    <a href="Examples/Transform/splitSharpEdgesPT.py"> Identify smooth parts (pyTree)</a>.<br><br>
+
+     <strong>T.splitBAR</strong>: split a 'BAR' array into 2 BAR arrays delimited by the node N (start 0):
+    <div class="code">
+      B = T.splitBAR(a, N)
+    </div>
+    <em>Example of use: </em><a href="Examples/Transform/splitBAR.py"> BAR splitting (array)</a>, 
+    <a href="Examples/Transform/splitBARPT.py"> BAR splitting (pyTree)</a>.<br><br>
+
+    <strong>T.splitTBranches</strong>: split a 'BAR' array into several BAR arrays, at vertices where T-branches exist:
+    <div class="code">
+      B = T.splitTBranches(a, tol=1.e-13) <em> .or. </em> B = T.splitTBranches(A, tol=1.e-13)
+    </div>
+    <em>Example of use: </em><a href="Examples/Transform/splitTBranches.py"> T-Branch BAR splitting (array)</a>,
+    <a href="Examples/Transform/splitTBranchesPT.py"> T-Branch BAR splitting (pyTree)</a>.<br><br>
+
+     <strong>T.splitTRI</strong>: split an unstructured TRI array into several TRI arrays delimited by the 
+     input poly lines which are a lists of index list.
+     2 consecutives indices in a list  must define an existing edge in 
+     the mesh:
+    <div class="code">
+      B = T.splitTRI(a, polyLines)
+    </div>
+    <em>Example of use: </em><a href="Examples/Transform/splitTRI.py"> TRI splitting (array)</a>.<br><br>
+    
+    <strong>T.splitManifold</strong>: 
+     split an unstructured mesh (only TRI or BAR currently) into several manifold pieces:
+    <div class="code">
+      B = T.splitManifold(a)
+    </div>
+    <em>Example of use: </em><a href="Examples/Transform/splitManifold.py"> Manifold splitting (array)</a>.<br><br>
+
+    <strong>T.splitSize</strong>: split structured blocks when their number of points is greater than N. Argument 'multigrid' ensures the given multigrid level when splitting, if input grids respect this multigrid level:
+    <div class="code">
+    B = T.splitSize(a, N, multigrid=0, dirs=[1,2,3]) <em>.or.</em> B = T.splitSize(A, N, multigrid=0, dirs=[1,2,3])
+    </div>
+    SplitSize can also be used to split blocks in order to best fit on a number
+    of R=12 processors. MinPtsPerDir specifies the minimum number of points
+    per direction the splitter must respect:
+    <div class="code">
+    B = T.splitSize(a, R=12, multigrid=0, dirs=[1,2,3], type=2, minPtsPerDir=5) <em>.or.</em> B = T.splitSize(A, R=12, multigrid=0, dirs=[1,2,3], minPtsPerDir=5)
+    </div>
+    <em>Example of use: </em><a href="Examples/Transform/splitSize.py"> size splitting (array)</a>,
+    <a href="Examples/Transform/splitSizePT.py"> size splitting (pyTree)</a>.<br><br>
+
+   <strong>T.splitNParts</strong>: split structured blocks in N parts. Argument 'multigrid' ensures the given multigrid level when 
+   splitting, if input grids respect this multigrid level. Parameter dirs enable to enforce splitting in one direction, i.e. dirs=[1] 
+   force splitting only in the first mesh direction.<br>
+   Boundary conditions are split, but grid connectivity is removed: 
+    <div class="code">
+    B = T.splitNParts(a, N, multigrid=0, dirs=[1,2,3]) <em>.or.</em> B = T.splitNParts(A, N, multigrid=0, dirs=[1,2,3])
+    </div>
+    <em>Example of use: </em><a href="Examples/Transform/splitNParts.py"> N-part splitting (array)</a>,
+    <a href="Examples/Transform/splitNPartsPT.py"> N-part splitting (pyTree)</a>.<br><br>
+
+    <strong>T.splitMultiplePts</strong>: split structured blocks at border points where they are connected to an even number of blocks. Parameter dim is the dimension of the problem:
+    <div class="code">
+    B = T.splitMultiplePts(A, dim=3)
+    </div>
+    <em>Example of use: </em><a href="Examples/Transform/splitMultiplePts.py"> multiple point splitting (array)</a>,
+    <a href="Examples/Transform/splitMultiplePtsPT.py"> multiple point splitting (pyTree)</a>.<br><br>
+    
+    <strong>T.breakElements</strong>: break a NGON zone into a list of unstructured zones, as BAR, TRI, QUAD, TETRA, PENTA, PYRA, HEXA or NGON zones:
+    <div class="code">
+    B = T.breakElements(a) <em>.or.</em> B = T.breakElements(A)
+    </div>
+    <em> Example of use: </em><a href="Examples/Transform/breakElements.py"> break a NGON zone into a set of unstructured zones (array)</a>,
+    <a href="Examples/Transform/breakElementsPT.py"> break a NGON zone into a set of unstructured zones (pyTree)</a>.<br><br>
+
+    <strong>T.dual</strong>: returns the dual of a mesh. If extraPoints=1, 
+    points in the center of external faces are added:
+    <div class="code">
+    b = T.dual(a, extraPoints=1)
+    </div>
+    <em> Example of use: </em><a href="Examples/Transform/dual.py"> create the dual of a NGON mesh (array)</a>,
+    <a href="Examples/Transform/dualPT.py"> create the dual of a NGON mesh (pyTree)</a>.<br><br>
+
+
+    <strong>T.deformPoint</strong>: deform a, by moving point (x,y,z) of vector (dx,dy,dz). Fourth argument
+    controls the depth of deformation. Last argument controls the width
+    of deformation: 
+    <div class="code">
+      b = T.deformPoint(a, (x,y,z), (dx,dy,dz), 0.5, 0.4)
+    </div>
+     <em>Example of use: </em><a href="Examples/Transform/deformPoint.py"> point deformation (array)</a>,
+     <a href="Examples/Transform/deformPointPT.py"> point deformation (pyTree)</a>.<br><br>
+
+    <strong>T.deform</strong>: deform a, by moving each point of a given vector array (array):
+    <div class="code">
+      b = T.deform(a, vector)
+    </div>
+    Deform a, by moving each point of a given vector defined by
+    variables 'dx','dy','dz', defined in a (pyTree):
+    <div class="code">
+      b = T.deform(a, ['dx','dy','dz'])
+    </div>
+    <em>Example of use: </em><a href="Examples/Transform/deform.py"> surface deformation (array)</a>,
+    <a href="Examples/Transform/deformPT.py"> mesh deformation (pyTree)</a>.<br><br>
+
+    <strong>T.deformNormals</strong>: deform a surface a, by moving each point of the surface by a scalar field alpha times the surface normals in niter steps (array)</a>:
+    <div class="code">
+     b = T.deformNormals(a, alpha., niter=1)
+    </div>
+
+    Deform a surface a, by moving each point of the surface by a variable named alpha times the surface normals in niter steps (pyTree)</a>:
+    <div class="code">
+     b = T.deformNormals(a, alpha, niter=1)
+    </div>
+    <em>Example of use: </em><a href="Examples/Transform/deformNormals.py"> deformation a mesh of alpha times the normals (array)</a>,
+    <a href="Examples/Transform/deformNormalsPT.py"> deformation a mesh of alpha times the normals (pyTree)</a>.<br><br>
+
+    <strong>T.deformMesh</strong>: deform a mesh defined by a, given surface or
+    a set of surfaces for which a deformation is defined at nodes as 'dx,dy,dz'.
+    Beta defined the deformation zone as multiplication factor of local 
+    deformation:
+    <div class="code">
+    b = T.deformMesh(a, surfaces, beta=4.)
+    </div>
+    <em>Example of use: </em><a href="Examples/Transform/deformMesh.py"> mesh deformation (array)</a>,
+    <a href="Examples/Transform/deformMeshPT.py"> mesh deformation (pyTree)</a>.<br><br>
+
+    <strong>T.projectAllDirs</strong>: project a (A) onto a list of surfaces S following a vector defined for each point of a (A).
+    The three components of the vector are defined by the list of strings vect.
+    If oriented=0, use both direction for projection else use vector direction 
+    only:
+    <div class="code">
+      b = T.projectAllDir(a, S, vect=['nx','ny','nz'], oriented=0) <em>.or.</em>  B = T.projectAllDirs(A, S, vect=['nx','ny','nz'], oriented=0)
+    </div>
+    <em>Example of use: </em><a href="Examples/Transform/projectAllDirs.py"> surface mesh projection (array)</a>, 
+    </em><a href="Examples/Transform/projectAllDirsPT.py"> surface mesh projection (pyTree)</a>.<br><br>
+
+    <strong>T.projectDir</strong>: project a (A) onto a list of surfaces S following a
+    given direction. 
+    If smooth=1, unprojected points are smoothed (available only for structured arrays).
+    If oriented=0, use both direction for projection else use vector direction 
+    only:
+    <div class="code">
+      b = T.projectDir(a, S, (1.,0,0), smooth=0, oriented=0) <em>.or.</em>  B = T.projectDir(A, S, (1.,0,0), smooth=0, oriented=0)
+    </div>
+    <em>Example of use: </em><a href="Examples/Transform/projectDir.py"> surface mesh projection (array)</a>, 
+    </em><a href="Examples/Transform/projectDirPT.py"> surface mesh projection (pyTree)</a>.<br><br>
+
+    <strong>T.projectOrtho</strong>: project a (A) onto a list of surfaces S following normals:
+    <div class="code">
+      b = T.projectOrtho(a, S) <em>.or.</em> B = T.projectOrtho(A, S)
+    </div>
+    <em>Example of use: </em><a href="Examples/Transform/projectOrtho.py"> surface mesh projection (array)</a>, 
+    </em><a href="Examples/Transform/projectOrthoPT.py"> surface mesh projection (pyTree)</a>.<br><br>
+
+   <strong>T.projectOrthoSmooth</strong>: project a (A) onto a list of surfaces S following smoothed normals. niter is the number of smoothing iterations:
+    <div class="code">
+      b = T.projectOrthoSmooth(a, S, niter=1) <em>.or.</em> B = T.projectOrthoSmooth(A, S, niter=1)
+    </div>
+    <em>Example of use: </em><a href="Examples/Transform/projectOrthoSmooth.py"> surface mesh projection (array)</a>, 
+    </em><a href="Examples/Transform/projectOrthoSmoothPT.py"> surface mesh projection (pyTree)</a>.<br><br>
+
+    <strong>T.projectRay</strong>: project a (A) onto a list of surfaces S following rays issued from P:
+    <div class="code">
+      b = T.projectRay(a, S, P) <em>.or.</em> B = T.projectRay(A, S, P)
+    </div>
+    <em>Example of use: </em><a href="Examples/Transform/projectRay.py"> surface mesh projection (array)</a>, 
+    <a href="Examples/Transform/projectRayPT.py"> surface mesh projection (pyTree)</a>.<br><br>
+
+    <hr>
+    <a href="Userguide.html">Return to main userguide</a><p>
+  </body>
+</html>

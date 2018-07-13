@@ -1,0 +1,86 @@
+import distutils.sysconfig, os
+import KCore.Dist as Dist
+from KCore.config import *
+#==============================================================================
+# Generator requires :
+# ELSAPROD variable defined in environment
+# C++ compiler
+# Fortran compiler
+# Numpy
+# KCore
+#==============================================================================
+
+# Get prefix from command line
+prefix = ARGUMENTS.get('prefix', '')
+installPath = Dist.getInstallPath(prefix)
+
+# Get compilers from Distutils ================================================
+(cc, cxx, opt, basecflags, ccshared, ldshared, so_ext) = Dist.getDistUtilsCompilers()
+
+# Python ======================================================================
+(pythonVersion, pythonIncDir, pythonLibDir, pythonLibs) = Dist.checkPython()
+
+# Test if numpy exists =======================================================
+(numpyVersion, numpyIncDir, numpyLibDir) = Dist.checkNumpy()
+
+# Test if kcore exists =======================================================
+(kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
+
+# Setting libraryDirs and libraries ===========================================
+libraryDirs = ['..', '.', pythonLibDir, kcoreLibDir]
+libraries = ["kcore"]
+(ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
+libraryDirs += paths; libraries += libs
+(ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
+libraryDirs += paths; libraries += libs
+
+# Env =========================================================================
+import srcs
+if Dist.getSystem()[0] == 'mingw': tools = ['mingw']
+else: tools = None
+AR = Dist.getAR()
+env = Environment(tools=tools, CC=cc, CXX=cxx, AR=AR, CPPFLAGS=[],
+                  FORTRAN=f77compiler,
+                  LIBPATH=additionalLibPaths+libraryDirs,
+                  LIBS=libraries+additionalLibs,
+                  CPPPATH=["Generator", "Generator/Netgen/include"]+additionalIncludePaths+[pythonIncDir, numpyIncDir, kcoreIncDir],
+                  SHLIBSUFFIX=so_ext, SHLIBPREFIX='',
+                  LINKFLAGS=Dist.getLinkArgs(),
+                  ENV=Dist.getEnvForScons())
+env.Replace(CXXFLAGS=Dist.getCppArgs())
+env.Replace(CFLAGS=Dist.getCArgs())
+
+env = Dist.createFortranBuilder(env, [kcoreIncDir])
+ppf = Dist.createFortranFiles(env, srcs)
+
+#==============================================================================
+# Modification pour compiler certains fichiers specifiquement
+cppOpts = Dist.getCppArgs()
+if Cppcompiler.find('icc') == 0 or Cppcompiler.find('icpc') == 0:
+    flags = ''
+    for i in cppOpts:
+        if i[0:2] != '-O' and i[0:9] != '-fp-model': flags += i+' '
+    flags += '-fp-model=strict -O2'
+    for i in xrange(len(srcs.cpp_srcs2)):
+        if srcs.cpp_srcs2[i] == "Generator/Tetgen/predicates.cxx":
+            srcs.cpp_srcs2[i] = env.Object("Generator/Tetgen/predicates.cxx", CXXFLAGS=flags)
+        if srcs.cpp_srcs2[i] == "Generator/Tetgen/tetgen.cxx": 
+            srcs.cpp_srcs2[i] = env.Object("Generator/Tetgen/tetgen.cxx", CXXFLAGS=flags)
+if Cppcompiler.find('gcc') == 0 or Cppcompiler.find('g++') == 0 or Cppcompiler == 'x86_64-w64-mingw32-gcc':
+    flags = ''
+    for i in cppOpts: 
+        if i[0:2] != '-O': flags += i+' '
+    for i in xrange(len(srcs.cpp_srcs2)):
+        if srcs.cpp_srcs2[i] == "Generator/Tetgen/predicates.cxx":
+            srcs.cpp_srcs2[i] = env.Object("Generator/Tetgen/predicates.cxx", CXXFLAGS=flags+'-O0')
+        if srcs.cpp_srcs2[i] == "Generator/Tetgen/tetgen.cxx": 
+            srcs.cpp_srcs2[i] = env.Object("Generator/Tetgen/tetgen.cxx", CXXFLAGS=flags+'-O2')
+
+myMod = env.StaticLibrary('generator', srcs.cpp_srcs)
+myMod2 = env.StaticLibrary('generator2', srcs.cpp_srcs2+ppf)
+modDir = installPath+'/Generator/'
+dp1 = env.Install(modDir, myMod)
+dp2 = env.Install(modDir, myMod2)
+dp3 = env.Install(modDir, Glob('Generator/*.py'))
+
+env.Alias(target="install", source=[dp1,dp2,dp3])

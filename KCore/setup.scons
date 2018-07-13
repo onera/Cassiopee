@@ -1,0 +1,68 @@
+import os
+import Dist
+from config import *
+#==============================================================================
+# KCore requires:
+# C++ compiler
+# Fortran compiler: defined in config.py
+# Numpy
+#==============================================================================
+
+# Get prefix from command line
+prefix = ARGUMENTS.get('prefix', '')
+installPath = Dist.getInstallPath(prefix)
+
+# Get compilers from Distutils ================================================
+(cc, cxx, opt, basecflags, ccshared, ldshared, so_ext) = Dist.getDistUtilsCompilers()
+
+# Python ======================================================================
+(pythonVersion, pythonIncDir, pythonLibDir, pythonLibs) = Dist.checkPython()
+
+# Test if numpy exists =======================================================
+(numpyVersion, numpyIncDir, numpyLibDir) = Dist.checkNumpy()
+
+# Setting libraryDirs and libraries ===========================================
+libraryDirs = ['..', '.', pythonLibDir]
+libraries = []
+(ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
+libraryDirs += paths; libraries += libs
+(ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
+libraryDirs += paths; libraries += libs
+
+# Env =========================================================================
+import srcs
+cpp_srcs1 = srcs.cpp_srcs[0:100]
+cpp_srcs2 = srcs.cpp_srcs[100:]
+
+if Dist.getSystem()[0] == 'mingw': tools = ['mingw']
+else: tools = None
+AR = Dist.getAR()
+env = Environment(tools=tools, CC=cc, CXX=cxx, AR=AR, CPPFLAGS=[],
+                  FORTRAN=f77compiler,
+                  LIBPATH=additionalLibPaths+libraryDirs,
+                  LIBS=libraries+additionalLibs,
+                  CPPPATH=["KCore", "KCore/Metis"]+additionalIncludePaths+[pythonIncDir, numpyIncDir],
+                  CCFLAGS=Dist.getCArgs(),
+                  CXXFLAGS=Dist.getCppArgs(),
+                  SHLIBSUFFIX=so_ext, SHLIBPREFIX='',
+                  LINKFLAGS=Dist.getLinkArgs(),
+                  ENV=Dist.getEnvForScons())
+
+env = Dist.createFortranBuilder(env, ['./KCore'])
+ppf = Dist.createFortranFiles(env, srcs)
+
+import os
+ELSAPROD = os.environ.get('ELSAPROD', 'x86_r8')
+env.Command('merge.l', 'merge.ar', "sed -e s/ELSAPROD/%s/g merge.ar > merge.l"%ELSAPROD)
+env.Command('libkcore.a', ['libkcore1.a', 'libkcore2.a', 'merge.l'], "ar -M < merge.l")
+
+#==============================================================================
+
+myMod1 = env.StaticLibrary('kcore1', source=cpp_srcs1)
+myMod2 = env.StaticLibrary('kcore2', source=cpp_srcs2+ppf)
+myMod = 'libkcore.a'
+modDir = installPath+'/KCore/'
+dp1 = env.Install(modDir, myMod)
+dp2 = env.Install(modDir, Glob('KCore/*.py'))
+
+env.Alias(target="install", source=[dp1,dp2])

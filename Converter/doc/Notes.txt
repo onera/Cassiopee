@@ -1,0 +1,145 @@
+#==============================================================================
+# Module Internal
+#==============================================================================
+[??] getNodeFromName[123] ne fonctionne pas sur une liste de noeuds
+
+[MISSING] addOneLayer2BC pour les zones non structures
+
+#==============================================================================
+# Module Converter
+#==============================================================================
+
+[BAD FEATURE] La lecture png est limite a des color depth de 8.
+
+[BAD FEATURE] getArgMin, getArgMax ont un mauvais comportement si applique 
+sur une liste d'arrays n'ayant pas les memes variables.
+
+[BAD FEATURE] Dans convertArrays2File, on ecrit d'abord les blocs structures 
+puis non structures. Les blocs ne sont donc plus dans le meme ordre que 
+specifie dans la liste.
+
+[BAD FEATURE] cpVars : mauvais comportement quand on precise 'centers' pour 
+la variable en argument de la fonction
+
+[BAD FEATURE] cpVars : mauvais comportement pour les variables 'centers' quand on copie dans la meme zone.
+
+[BAD FEATURE] cpVars : mauvais comportement si on appelle deux fois la fonction avec la meme zone en retour.
+
+[BAD FEATURE] convertArray2File : la lecture / ecriture au format bin_v3d
+n'utilise pas le fortran. Ce type d'ecriture est compatible avec ifort, mais
+pas avec gfortran. 
+
+[MISSING] node2Center en pyTree : prend en compte les raccords match mais pas
+les autres BCs.
+
+[MISSING] diffArrays pour les arrays non structures (diff2)
+
+[BETA+doc] diff3 dans diffArrays (cf cdiff dans doc).
+
+======================== Description des IO Fichiers ==========================
+Lecture tecplot binaire :
+-------------------------
+- Supporte le format 75.
+- Supporte le format 108 jusqu'a 112.
+
+- v75 : 
+pour le structure : supporte la lecture des champs au format point et block, 
+r4 et r8 (complet).
+pour le non structure : supporte la lecture des champs au format point 
+et block, r4 et r8 (complet).
+
+- v108 a v112 : 
+pour le structure : supporte les formats point et block, r4 et r8.
+poour le non structure : supporte la lecture des champs au format point 
+et block, r4 et r8 (complet).
+
+Ecriture tecplot binaire :
+--------------------------
+- Ecriture au format v75 : 
+pour le structure : format point double.
+pour le non-structure : format point double. 
+- les blocs doivent tous avoir le meme nombre de variables (restriction de 
+tecplot)
+
+Lecture tecplot formate : 
+-------------------------
+- Supporte le format 75 et 108.
+- Nous conseillons fortement l'utilisation du format binaire.
+
+Ecriture tecplot formatee :
+---------------------------
+- format block, plusieurs domaines par fichier.
+- Nous conseillons fortement l'utilisation du format binaire.
+
+Lecture v3d binaire :
+---------------------
+- Plusieurs domaines par fichier.
+- Uniquement champ en double (facile a ameliorer).
+- Pas de support non-structure.
+
+Ecriture v3d binaire :
+----------------------
+- Plusieurs domaines par fichier.
+
+Lecture v3d formatee :
+----------------------
+- 1 domaine par fichier.
+
+Ecriture v3d formatee :
+-----------------------
+- 1 domaine par fichier.
+
+Lecture plot3d binaire :
+------------------------
+- Pas de ffile (facile a ameliorer).
+- Pas support non structure.
+
+Ecriture plot3d binaire :
+-------------------------
+- Pas de ffile (facile a ameliorer).
+
+Lecture mesh formate :
+----------------------
+- Les commentaires ne doivent pas contenir les mots cles : Vertices, Triangles,
+  Tetrahedra, Hexahedra.
+
+Ecriture mesh formate : 
+-----------------------
+- Les zones sont concatenees.
+
+Lecture au format SVG :
+-----------------------
+- Le format SVG etant un format vectoriel, converter discretise les courbes
+pour en faire des i-arrays. Le nombre de points de discretisation est
+reglable par des options.
+
+Ecriture au format SVG :
+------------------------
+- Les arrays sont ecrits sous forme de polyline.
+
+Lecture au format ADF:
+----------------------
+- Le lecteur ADF transforme toutes les donnees R4 en R8 et les donnees
+I8 en I4, de facon a etre coherent avec le standard python CGNS.
+
+Ecriture au format ADF:
+-----------------------
+- L'ecriture suit le type des donnees pythons a l'exception des noeuds 
+CGNSLibraryVersion et Periodic/RotationCenter, Periodic/RotationAngle
+et Periodic/Translation qui sont ecrit en R4.
+
+Lecture au format SU2:
+----------------------
+La zone stocke en multi-elements est relue en plusieurs zones mono-elements.
+Les BCs sont relues sous forme BCFace.
+
+Ecriture au format SU2:
+-----------------------
+Les zones sont concatenees en une seule multi-elements.
+Les BCs sont ecrites sous formes BCC.
+
+===============================================================================
+Idees pour le futur
+===============================================================================
+- Options de lecture : variables + domaines (load partiel)
+- Compression dans le format

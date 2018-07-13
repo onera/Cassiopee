@@ -1,0 +1,108 @@
+import distutils.sysconfig, os
+import KCore.Dist as Dist
+#==============================================================================
+# CPlot requires:
+# C++ compiler
+# Numpy
+# KCore
+# GL
+# optional: PNG, OSMesa
+#==============================================================================
+from KCore.config import *
+
+# If you want to use CPlot as a offscreen plotter (as on clusters)
+# set UseOSMesa to True (requires mesa)
+UseOSMesa = CPlotOffScreen
+
+# Get prefix from command line
+prefix = ARGUMENTS.get('prefix', '')
+installPath = Dist.getInstallPath(prefix)
+
+# Get compilers from Distutils ================================================
+(cc, cxx, opt, basecflags, ccshared, ldshared, so_ext) = Dist.getDistUtilsCompilers()
+
+# Python ======================================================================
+(pythonVersion, pythonIncDir, pythonLibDir, pythonLibs) = Dist.checkPython()
+
+# Test if numpy exists =======================================================
+(numpyVersion, numpyIncDir, numpyLibDir) = Dist.checkNumpy()
+
+# Test if kcore exists =======================================================
+(kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
+
+libraries = ["GLU", "kcore", "Xi", "Xmu"]
+if not UseOSMesa: libraries += ["GL"]
+
+# Setting libraryDirs and libraries ===========================================
+libraryDirs = ['..', '.', pythonLibDir, kcoreLibDir, '/usr/X11R6/lib64']
+includeDirs = [pythonIncDir, numpyIncDir, kcoreIncDir]
+(ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
+libraryDirs += paths; libraries += libs
+
+# Test if PNG exists =========================================================
+(png, pngIncDir, pngLib) = Dist.checkPng(additionalLibPaths, 
+                                         additionalIncludePaths)
+if png:
+    libraries += ["png"]
+    libraryDirs += [pngLib]
+    includeDirs += [pngIncDir]
+
+# Test if MPEG exists =========================================================
+(mpeg, mpegIncDir, mpegLib) = Dist.checkMpeg(additionalLibPaths,
+                                             additionalIncludePaths)
+if mpeg:
+    libraries += ["avcodec"]
+    libraryDirs += [mpegLib]
+    includeDirs += [mpegIncDir]
+
+# Test if OSMesa exists =======================================================
+# Put this to True for using CPlot in batch mode
+if UseOSMesa:
+    (OSMesa, OSMesaIncDir, OSMesaLib) = Dist.checkOSMesa(additionalLibPaths,
+                                                         additionalIncludePaths)
+    if OSMesa:
+        libraries += ["OSMesa"]
+        libraryDirs += [OSMesaLib]
+        includeDirs += [OSMesaIncDir]
+else: OSMesa = False
+
+# Env =========================================================================
+import srcs
+mySystem = Dist.getSystem()[0]
+if mySystem == 'mingw': tools = ['mingw']
+else: tools = None
+AR = Dist.getAR()
+env = Environment(tools=tools, CC=cc, CXX=cxx, AR=AR, CPPFLAGS=[],
+                  LIBPATH=additionalLibPaths+libraryDirs,
+                  LIBS=libraries+additionalLibs,
+                  CPPPATH=["CPlot"]+additionalIncludePaths+includeDirs,
+                  SHLIBSUFFIX=so_ext, SHLIBPREFIX='',
+                  LINKFLAGS=Dist.getLinkArgs(),
+                  ENV=Dist.getEnvForScons())
+env.Replace(CXXFLAGS=Dist.getCppArgs())
+env.Replace(CFLAGS=Dist.getCArgs())
+
+#==============================================================================
+import KCore.installPath
+EXTRA = ['-D__SHADERS__']
+
+if OSMesa: EXTRA += ['-D__MESA__']
+
+if mySystem == 'Darwin':
+    EXTRA += ['-framework OpenGL']
+
+cppargs = Dist.getCppArgs()
+EXTRA += cppargs
+env.Append(CPPFLAGS=EXTRA)
+
+myMod = env.StaticLibrary('cplot', srcs.cpp_srcs)
+modDir = installPath+'/CPlot/'
+dp1 = env.Install(modDir, myMod)
+dp2 = env.Install(modDir, Glob('CPlot/*.py'))
+dp3 = env.Install(modDir, Glob('CPlot/Shaders/*.frag'))
+dp4 = env.Install(modDir, Glob('CPlot/Shaders/*.vert'))
+dp5 = env.Install(modDir, Glob('CPlot/Shaders/*.geom'))
+dp6 = env.Install(modDir, Glob('CPlot/Textures/*.png'))
+dp7 = env.Install(modDir, Glob('CPlot/Textures/*.ico'))
+dp8 = env.Install(modDir, 'ttk-themes/themes.tar')
+env.Alias(target="install", source=[dp1,dp2,dp3,dp4,dp5,dp6,dp7,dp8])

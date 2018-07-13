@@ -1,0 +1,11 @@
+#==============================================================================
+# Module Transform:
+#==============================================================================
+
+[MISSING] addkplane pyTree : pas encore sur les champs en centres
+[MISSING] join pyTree : ne joint pas encore les CL ni les champs en centres
+[MISSING] splitConnexity pyTree : pas encore sur les centres
+[MISSING] splitSpline : pas encore sur les centres
+[MISSING] splitCurvature : pas encore sur les centres
+[MISSING] rotate pyTree : ne tourne pas les champs vecteurs
+[MISSING] symetrize pyTree : n'effectue pas la symetrie sur les champs vecteurs

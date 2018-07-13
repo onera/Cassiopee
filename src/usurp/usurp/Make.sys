@@ -1,0 +1,444 @@
+#   Tell USURP to use Tecplot binary commands only if the environment
+#   variable TECIO_HOME has been set
+ifdef TECIO_HOME
+  TS = -DUSE_TECPLOT
+else
+  TS = 
+endif
+
+#   Tell USURP to use FXDR binary commands only if the enviroment
+#   variable FXDR_HOME has been set
+ifdef FXDR_HOME
+  XS = -DUSE_FXDR
+else
+  XS =
+endif
+
+#
+#   System-dependent parameters.
+#
+#   For creation of new blocks, also add a line to the "help:" usage
+#   definition, and add a rule for make with the new flags
+#   (e.g., "alpha:" defined as "$(MAKE) $(ALPHA_FLAGS) $(CMD)").
+#
+#
+#   DEC Alpha OSF/1
+#   -convert big_endian for compatibility with IEEE format
+#
+ALPHA_FLAGS= \
+	F90="/usr/bin/f90" \
+	F90FLAGS="-O5 -fast -assume accuracy_sensitive -convert big_endian" \
+	CC="/usr/bin/cc" CFLAGS="-std1" \
+	SYSFLAGS="-DDEC_ALPHA"
+
+#
+#   Alpha with Tru64.
+#   -convert big_endian for compatibility with IEEE format
+#
+#   For Compaq with Tru64, in double precision, may have to change to
+#   F90FLAGS="-O4 -align dcommons". (5/22/03)
+#
+TRU64_FLAGS= \
+	F90="/usr/bin/f90" \
+	F90FLAGS="-O5 -fast -assume accuracy_sensitive -convert big_endian" \
+	CC="/usr/bin/cc" CFLAGS="-std1" LINK="sgi_link" \
+	SYSFLAGS="-DDEC_ALPHA" PWD="`pwd`"
+
+#
+#   Compaq Linux Alpha PC
+#   -convert big_endian for compatibility with IEEE format
+#
+COMPAQ_FLAGS= \
+	F90="/usr/bin/fort" \
+	F90FLAGS="-O5 -fast -assume accuracy_sensitive -convert big_endian" \
+	CC="/usr/bin/ccc" CFLAGS="-std1" \
+	SYSFLAGS="-traditional -DDEC_ALPHA"
+
+#
+#   Convex
+#
+CONVEX_FLAGS= \
+	F90="fc" F90FLAGS="-O2 -rl -or none -na -nw" \
+	CPP="/usr/lib/cc/cpp"
+
+#
+#   Cray X1 ftn
+#   Added by SBC, 8/3/04
+#
+CRAY_X1_FLAGS= \
+	F90="ftn" F90FLAGS="-Oscalar3,vector3,aggress -Ossp" \
+	MODULELIST="-p`pwd`/modules" \
+	F90_MP="ftn -Otask1" MPI_F90="ftn" \
+	CFLAGS="-O -h calchars -hssp" \
+	CPP="cpp" \
+        SYSFLAGS="-DCRAY_X1"
+
+#
+#   Cray Unicos f90 with multitasking
+#
+CRAY_FLAGS= \
+	F90="f90 -Otask0" \
+	F90FLAGS="-Oscalar3,vector3,aggress -x conditional_omp" \
+	F90_MP="f90 -Otask3" \
+	CFLAGS="-O -h calchars" \
+	CPP="cpp -N" \
+	MMAKE="$(MAKE) NPROC=4"
+
+#
+#   Cray Unicos f90 with PERFTRACE (no multitasking)
+#
+CRAY_PERF_FLAGS= \
+	F90="f90 -Otask0" \
+	F90FLAGS="-Oscalar3,vector3,aggress -x conditional_omp -ef" \
+	CFLAGS="-O -h calchars" \
+	CPP="cpp -N" \
+	LIBS="-lperf" \
+	MMAKE="$(MAKE) NPROC=4"
+
+#
+#   Cray Unicos f90 with multitasking, SSD configured as SDS
+#
+CRAY_SDS_FLAGS= \
+	F90="f90 -Otask0" \
+	F90FLAGS="-Oscalar3,vector3,aggress -x conditional_omp" \
+	F90_MP="f90 -Otask3" \
+	CFLAGS="-O -h calchars" \
+	CPP="cpp -N" \
+	SYSFLAGS="-DCRAY_SDS" \
+	MMAKE="$(MAKE) NPROC=4"
+
+#
+#   Generic machine (no special optimizations or features)
+#
+GENERIC_FLAGS=
+
+#
+#   GNU g77/gcc compilers
+#
+GNU_FLAGS= \
+	F90="g77" F90FLAGS="-O3 -ffast-math -malign-double" \
+	CC="gcc" CFLAGS="-O3 -ffast-math -malign-double" \
+	CPP="gcc -E" PWD="$(shell pwd)"
+
+G95_FLAGS= \
+	F90="g95" \
+        F90FLAGS="-c -O2 -std=f95 -DCPU_TIME -fno-second-underscore -fendian=big" \
+        CC="gcc" \
+	CFLAGS="-O2 -c -DTRILIBRARY -DREDUCED -DCDT_ONLY -DSELF_CHECK" \
+        LDFLAGS="-O2"
+
+#
+#   Hewlett Packard HP 9000
+#
+HP_FLAGS= \
+	F90="f90" \
+	F90FLAGS="+O3 +Onolimit +Odataprefetch +Ovectorize -Wl,FPZOD" \
+	MPI_F90="mpif90" \
+	CFLAGS="-O" \
+	SYSFLAGS="-Dhppa" \
+	LIBS="-lnsl"
+
+#
+#   IBM RS-6000 with POWER2 architecture
+#
+#IBM_FLAGS= \
+#	F90="xlf" F90FLAGS="-O3 -qarch=auto" \
+#	CFLAGS="-O" \
+#	SYSFLAGS="-Drios"
+#
+#
+#   IBM POWER4
+#
+IBM_FLAGS= \
+	F90="xlf90" \
+	F90FLAGS="-c -q64 -O2 -qlanglvl=90std -qsuffix=f=f90:cpp=F90 \
+	          -qarch=auto -qhot -qcache=auto -qtune=auto \
+	          -qextname -WF,-DUSE_TECPLOT,-DMCLOCK" \
+	CC="xlc" \
+	CFLAGS="-c -q64 -O2 -DTRILIBRARY -DREDUCED -DCDT_ONLY -DSELF_CHECK" \
+	LDFLAGS="-q64 -O2 -bmaxdata:0x80000000"
+
+#
+#   Intel ifc/icc compilers
+#   use "setenv F_UFMTENDIAN big" for compatibility with IEEE format
+#
+#   Added "-openmp -fpp" to F90FLAGS for OpenMP parallelism.
+#   If needed, use "setenv OMP_NUM_THREADS n" to set number of processes.
+#
+INTEL_FLAGS= \
+	F90="ifc" F90FLAGS="-openmp -fpp -O3 -ip -pad -tpp7 -xW -Vaxlib -w" \
+	CC="icc" CFLAGS="-O3 -ip -tpp7 -xW -w" \
+	CPP="/lib/cpp -traditional" SYSFLAGS="-Difc"
+
+#
+#   Intel ifort/icc 8.0 compilers
+#   use "setenv F_UFMTENDIAN big" for compatibility with IEEE format
+#
+#   This should work for 64-bit (e.g., Itanium) machines as well, since
+#   the type __POINTER defined in over2.0/include/forttype.h is not used.
+#
+#   Note that you may need to add the following lines to your .cshrc file:
+#     limit stacksize 200000 kbytes
+#     setenv KMP_STACKSIZE 100000000
+#   The latter is for OpenMP runs; the number should be less than or equal
+#   to the stacksize/#cpus.
+#
+INTEL8_FLAGS= \
+	F90="ifort" \
+	F90FLAGS="-c -O2 -stand=f95 -noD -convert big_endian \
+	          $(TS) $(XS) -DCPU_TIME -fPIC" \
+	CC="icc" \
+	CFLAGS="-c -O2 -DLINUX -DTRILIBRARY -DREDUCED -DCDT_ONLY -DSELF_CHECK -fPIC" \
+	LDFLAGS="-O2"
+
+INTEL8_DEBUG_FLAGS= \
+	F90="ifort" \
+	F90FLAGS="-c -g -stand=f95 -noD -convert big_endian \
+	          $(TS) $(XS) -DCPU_TIME -warn all -check all -warn uncalled -warn usage -warn unused" \
+	CC="gcc" \
+	CFLAGS="-c -g -DLINUX -DTRILIBRARY -DREDUCED -DCDT_ONLY -DSELF_CHECK" \
+	LDFLAGS="-g"
+
+INTEL8_LITTLE_FLAGS= \
+	F90="ifort" \
+	F90FLAGS="-c -O2 -stand=f95 -noD \
+	          $(TS) $(XS) -DCPU_TIME" \
+	CC="gcc" \
+	CFLAGS="-c -O2 -DLINUX -DTRILIBRARY -DREDUCED -DCDT_ONLY -DSELF_CHECK" \
+	LDFLAGS="-O2"
+
+
+#
+#   Lahey lf95 and gcc compilers
+#
+LAHEY_FLAGS= \
+	F90="lf95" \
+	F90FLAGS="-c -O --f95 --wo \
+	          $(TS) $(XS) -DCPU_TIME -DCONVERT_BIG_ENDIAN" \
+	CC="gcc" \
+	CFLAGS="-c -O2 -DLINUX -DTRILIBRARY -DREDUCED -DCDT_ONLY -DSELF_CHECK" \
+	LDFLAGS="-O"
+
+#
+#   Linux Mandrake 2.4.19-16mdk, i686, with NAGWare f95 compiler
+#   Release 4.1.  From CFDRC; compiler flags are not optimized.
+#   Use "gcc -E" for cpp.
+#
+NAGWARE_FLAGS= \
+	F90="/usr/local/bin/f95" F90FLAGS="-g -nan -thread_safe \
+         -w=uda -w=uei -w=ulv -w=usy -w=obs -maxcontin=26" \
+	CC="gcc" CFLAGS="-O3 -malign-double" \
+	CPP="gcc -E" PWD="$(shell pwd)"
+
+#
+#   PC with Portland Group Fortran
+#   -byteswapio for compatibility with IEEE format
+#
+PGF_LITTLE_FLAGS= \
+	F90="pgf90" \
+	F90FLAGS="-c -O2 -Mstandard $(TS) $(XS) -DMCLOCK" \
+	CC="gcc" \
+	CFLAGS="-O2 -c -DLINUX -DTRILIBRARY -DREDUCED -DCDT_ONLY -DSELF_CHECK" \
+	LDFLAGS="-O2"
+
+PGF_FLAGS= \
+	F90="pgf90" \
+	F90FLAGS="-c -O2 -Mstandard -Mbyteswapio $(TS) $(XS) -DMCLOCK" \
+	CC="gcc" \
+	CFLAGS="-O2 -c -DLINUX -DTRILIBRARY -DREDUCED -DCDT_ONLY -DSELF_CHECK" \
+	LDFLAGS="-O2"
+
+PGF_DBG_FLAGS= \
+	F90="pgf90" \
+	F90FLAGS="-c -g -Mchkfpstk -Mchkptr -Mchkstk -Mstandard -Mbyteswapio \
+                  -Mbounds $(TS) $(XS) -DMCLOCK" \
+	CC="gcc" \
+	CFLAGS="-g -c -DLINUX -DTRILIBRARY -DREDUCED -DCDT_ONLY -DSELF_CHECK" \
+	LDFLAGS="-g"
+
+#
+#   PC with Portland Group Fortran
+#   -byteswapio for compatibility with IEEE format
+#
+OLD_PGF_FLAGS= \
+	F90="pgf90" F90FLAGS="-fast -tp piv -Mvect=sse -byteswapio -Mbounds" \
+	MODULELIST="-module `pwd`/modules" \
+	CC="pgcc" CFLAGS="-fast -tp piv -Mvect=sse -byteswapio" \
+	CPP="/lib/cpp -traditional" SYSFLAGS="-DNOCPU_TIME"
+
+#
+#   Default SGI (-mips4, -64)
+#
+SGI_FLAGS= \
+	F90="f90" \
+	F90FLAGS="-mips4 -64 -O3 -c -DMCLOCK -ansi" \
+	CC="cc" \
+	CFLAGS="-mips4 -64 -O3 -c -DTRILIBRARY -DREDUCED -DCDT_ONLY -DSELF_CHECK" \
+	LDFLAGS="-mips4 -64" \
+	LIBS=" "
+
+#
+#   SGI Origin with modules
+#
+#   Added "-mp" to F90FLAGS for OpenMP parallelism.
+#   If needed, use "setenv MP_SET_NUMTHREADS n" to set number of processes.
+#
+ORIGIN_FLAGS= \
+	F90FLAGS="-mp -mips4 -64 -O3 \
+	 -OPT:Olimit=0:IEEE_arithmetic=3:roundoff=3 \
+	 -INLINE:must=mpsrus,setnwt,cnvgnc,ldcell,newton,stncil,limits,dcheck" \
+	MPI_F90="$(F90)" \
+	CFLAGS="-mips4 -64 -O3" LDFLAGS="-mips4 -64" \
+	SYSFLAGS="-DMIPS4" \
+	LIBS="-lfpe -lmpi" LINK="sgi_link" \
+	MMAKE="pmake -e -f $(MAKEFILE)"
+
+#
+#   SGI debug
+#
+SGI_DBG_FLAGS= \
+	F90FLAGS="-g -64 -DEBUG:trap_uninitialized" \
+	CFLAGS="-g -64 -DEBUG:trap_uninitialized" LDFLAGS="-64" \
+	SYSFLAGS="-DMIPS4" \
+	LIBS="-lfpe" LINK="sgi_link" \
+	MMAKE="pmake -e -f $(MAKEFILE)"
+
+#
+#   Sun Ultra with multitasking
+#
+SUN_FLAGS= \
+	F90="f90" \
+	F90FLAGS="-c -O -DCPU_TIME" \
+	CC="cc" \
+	CFLAGS="-c -O -DTRILIBRARY -DREDUCED -DCDT_ONLY -DSELF_CHECK" \
+	LIBS="" \
+	LDFLAGS=""
+
+
+#
+#   Default target if no machine is specified.
+#
+help:
+	@echo
+	@echo "Usage:"
+	@echo "  type 'make <MACHINE> [CMD=<command>]'"
+	@echo
+	@echo "   where <MACHINE> (required) is one of the following:"
+#@echo "	alpha		DEC Alpha"
+#@echo "	tru64		DEC Alpha with Tru64"
+#@echo "	compaq		Compaq Linux Alpha PC"
+#@echo "	convex		Convex"
+#@echo "	cray_x1		Cray X1 (ftn)"
+#@echo "	cray		Cray (f90)"
+#@echo "	cray_perf	Cray with PERFTRACE"
+#@echo "	cray_sds	Cray with SSD configured as SDS"
+#@echo "	generic		Generic (no special optimizations)"
+#@echo "	gnu		GNU g77/gcc"
+	@echo "	g95		g95"
+#@echo "	hp		Hewlett Packard HP 9000"
+	@echo "	ibm		IBM RS-6000"
+	@echo "	intel8		Intel ifort/icc 8.0 (big endian)"
+	@echo "	intel8_debug	Intel ifort/icc 8.0 (big endian, debug)"
+	@echo "	intel8_little	Intel ifort/icc 8.0 (little endian)"
+#@echo "	intel		Intel ifc/icc"
+	@echo "	lahey		Lahey lf95/GNU gcc"
+#@echo "	nagware		Linux Mandrake OS, with NAGWare f95/gcc"
+	@echo "	pgf		Portland Group compilers"
+	@echo "	pgf_dbg		Portland Group (-g)"
+	@echo "	pgf_little	Portland Group (no -byteswapio)"
+	@echo "	sgi		SGI (-mips4, -64)"
+#@echo "	origin		SGI Origin with modules"
+#@echo "	sgi_dbg		SGI (-g)"
+	@echo "	sun		Sun Ultra with multitasking"
+	@echo
+	@echo "   and <command> (optional) is one of:"
+	@echo "	all (default)	compile and link"
+#@echo " update          compile only"
+#@echo " install         compile, link, move executable to "$(INSTALLDIR)
+	@echo "	clean		remove all intermediate files"
+	@echo "	deinstall	clean, also remove executable"
+	@echo
+#
+#   Remake with system parameters.
+#
+# alpha:
+# $(MAKE) $(ALPHA_FLAGS) BASEDIR=`pwd` $(CMD)
+
+# tru64:
+# $(MAKE) $(TRU64_FLAGS) BASEDIR=`pwd` $(CMD)
+
+# compaq:
+# $(MAKE) $(COMPAQ_FLAGS) BASEDIR=`pwd` $(CMD)
+
+# convex:
+# $(MAKE) $(CONVEX_FLAGS) BASEDIR=`pwd` $(CMD)
+
+# cray_x1:
+# $(MAKE) $(CRAY_X1_FLAGS) BASEDIR=`pwd` $(CMD)
+
+# cray:
+# $(MAKE) $(CRAY_FLAGS) BASEDIR=`pwd` $(CMD)
+
+# cray_perf:
+# $(MAKE) $(CRAY_PERF_FLAGS) BASEDIR=`pwd` $(CMD)
+
+# cray_sds:
+# $(MAKE) $(CRAY_SDS_FLAGS) BASEDIR=`pwd` $(CMD)
+
+# generic:
+# $(MAKE) $(GENERIC_FLAGS) BASEDIR=`pwd` $(CMD)
+
+# gnu:
+# $(MAKE) $(GNU_FLAGS) BASEDIR=`pwd` $(CMD)
+
+g95:
+	$(MAKE) $(G95_FLAGS) BASEDIR=`pwd` $(CMD) 
+
+# hp:
+# $(MAKE) $(HP_FLAGS) BASEDIR=`pwd` $(CMD)
+
+ibm:
+	$(MAKE) $(IBM_FLAGS) BASEDIR=`pwd` $(CMD)
+
+# intel:
+# $(MAKE) $(INTEL_FLAGS) BASEDIR=`pwd` $(CMD)
+
+intel8:
+	$(MAKE) $(INTEL8_FLAGS) BASEDIR=`pwd` $(CMD)
+
+intel8_debug:
+	$(MAKE) $(INTEL8_DEBUG_FLAGS) BASEDIR=`pwd` $(CMD)
+
+intel8_little:
+	$(MAKE) $(INTEL8_LITTLE_FLAGS) BASEDIR=`pwd` $(CMD)
+
+lahey:
+	$(MAKE) $(LAHEY_FLAGS) BASEDIR=`pwd` $(CMD)
+
+# nagware:
+# $(MAKE) $(NAGWARE_FLAGS) BASEDIR=`pwd` $(CMD)
+
+pgf:
+	$(MAKE) $(PGF_FLAGS) BASEDIR=`pwd` $(CMD)
+
+pgf_dbg:
+	$(MAKE) $(PGF_DBG_FLAGS) BASEDIR=`pwd` $(CMD)
+
+pgf_little:
+	$(MAKE) $(PGF_LITTLE_FLAGS) BASEDIR=`pwd` $(CMD)
+
+# old_pgf:
+# $(MAKE) $(OLD_PGF_FLAGS) BASEDIR=`pwd` $(CMD)
+
+sgi:
+	$(MAKE) $(SGI_FLAGS) BASEDIR=`pwd` $(CMD)
+
+# origin:
+# $(MAKE) $(ORIGIN_FLAGS) BASEDIR=`pwd` $(CMD)
+
+# sgi_dbg:
+# $(MAKE) $(SGI_DBG_FLAGS) BASEDIR=`pwd` $(CMD)
+
+sun:
+	$(MAKE) $(SUN_FLAGS) BASEDIR=`pwd` $(CMD)
+

@@ -1,0 +1,16 @@
+# - spirograph (array) -
+import Modeler.Models as Models
+import Converter as C
+import Transform as T
+import CPlot
+
+# k dans [0,1]: grandeur du cercle interieur
+# l dans [0,1] : grandeur du pt A
+# Ns: nbre de courbes
+# N: nbre de pts sur chaque courbe
+for i in xrange(100):
+    for j in xrange(100):
+        k = 0.01+i*0.01; l = j*0.01
+        a = Models.spirograph(k, l, Ns=10, N=100)
+        CPlot.display(a)
+        CPlot.setState(message='k=%g, l=%g'%(k,l))

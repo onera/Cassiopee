@@ -1,0 +1,15 @@
+TITLE="Simple Data File"
+VARIABLES="X" "Y"
+ZONE I=4 DATAPACKING=POINT
+1 1
+2 1
+2 2
+1 2
+TEXT X=10 Y=90 T="Simple Text"
+ZONE I=4 DATAPACKING=POINT
+1 1
+2 1
+2 2
+1 2
+TEXT X=10 Y=90 T="Simple Text"
+

@@ -1,0 +1,13 @@
+#!/bin/sh
+# Destination des release Notes (download)
+DEST2=$CASSIOPEE/WWW/Main/Download
+
+# Copie des release Notes
+if test -e $DEST2
+then
+    version=`grep -e __version__ ../KCore/__init__.py`
+    version1=${version:15:10}
+    version1=${version1/"'"/""}
+    v='KCore-'$version1'.txt'
+    cp KCore.txt $DEST2/$v
+fi

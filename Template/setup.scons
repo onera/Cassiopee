@@ -1,0 +1,62 @@
+import os
+import KCore.Dist as Dist
+from KCore.config import *
+
+#==============================================================================
+# Template requires:
+# C++ compiler
+# Fortran compiler
+# Numpy
+# KCore
+#==============================================================================
+
+# Get prefix from command line
+prefix = ARGUMENTS.get('prefix', '')
+installPath = Dist.getInstallPath(prefix)
+
+# Get compilers from Distutils ================================================
+(cc, cxx, opt, basecflags, ccshared, ldshared, so_ext) = Dist.getDistUtilsCompilers()
+
+# Python ======================================================================
+(pythonVersion, pythonIncDir, pythonLibDir, pythonLibs) = Dist.checkPython()
+
+# Test if numpy exists =======================================================
+(numpyVersion, numpyIncDir, numpyLibDir) = Dist.checkNumpy()
+
+# Test if kcore exists =======================================================
+(kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
+
+# Setting libraryDirs and libraries ===========================================
+libraryDirs = ['..', '.', pythonLibDir, kcoreLibDir]
+libraries = ["kcore"]
+(ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
+libraryDirs += paths; libraries += libs
+(ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
+libraryDirs += paths; libraries += libs
+
+# Env =========================================================================
+import srcs
+if (Dist.getSystem()[0] == 'mingw'): tools = ['mingw']
+else: tools = None
+AR = Dist.getAR()
+env = Environment(tools=tools, CC=cc, CXX=cxx, AR=AR, CPPFLAGS=[],
+                  FORTRAN=f77compiler,
+                  LIBPATH=additionalLibPaths+libraryDirs,
+                  LIBS=libraries+additionalLibs,
+                  CPPPATH=["Template"]+additionalIncludePaths+[pythonIncDir, numpyIncDir, kcoreIncDir],
+                  SHLIBSUFFIX=so_ext, SHLIBPREFIX='',
+                  LINKFLAGS=Dist.getLinkArgs(),
+                  ENV=Dist.getEnvForScons())
+env.Replace(CXXFLAGS=Dist.getCppArgs())
+env.Replace(CFLAGS=Dist.getCArgs())
+
+env = Dist.createFortranBuilder(env, [kcoreIncDir])
+ppf = Dist.createFortranFiles(env, srcs)
+
+#==============================================================================
+
+myMod = env.StaticLibrary('template', srcs.cpp_srcs+ppf)
+modDir = installPath+'/Template/'
+dp1 = env.Install(modDir, myMod)
+dp2 = env.Install(modDir, Glob('Template/*.py'))
+env.Alias(target="install", source=[dp1,dp2])

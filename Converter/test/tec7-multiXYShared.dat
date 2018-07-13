@@ -1,0 +1,15 @@
+TITLE = "Example: Multi-Zone XY Line Plot with Variable Sharing"
+VARIABLES = "Position", "Temperature", "Pressure"
+ZONE T="0.0 seconds", I=4
+71.30 563.7 101362.5
+86.70 556.7 101349.6
+103.1 540.8 101345.4
+124.4 449.2 101345.2
+ZONE T="0.1 seconds", I=4
+#share variable 1 from zone 1
+VARSHARELIST=([1]=1)
+564.9 101362.1
+553.1 101348.9
+540.5 101344.0
+458.5 101342.2
+TEXT CS=FRAME, HU=POINT, X=16, Y=90, H=28, T="SAMPLE VARIABLE SHARING CASE"

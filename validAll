@@ -1,0 +1,9 @@
+#! /bin/sh
+# Create local directory for local products
+if test ! -d "ValidData"
+then
+    mkdir ValidData
+fi
+
+DATE=`date +%Y-%m-%d`
+time ./valid >& ValidData/log.$DATE

@@ -1,0 +1,24 @@
+propre
+rm new*.plt
+rm center*.plt
+rm out.plt
+rm outs.plt
+rm outu.plt
+rm out0.plt
+rm out1.plt 
+rm out2.plt
+rm out3.plt
+rm out4.plt
+rm out5.plt
+rm tecplot.phy
+rm cart2.plt 
+rm cart3.plt
+rm *.tp
+rm unstr.plt
+rm outc.plt 
+rm ref.plt
+rm meshCenter.plt meshNode.plt node.plt outs2.plt
+rm naca.plt outs1.plt outs3.plt
+rm out.cgns*
+rm out1.cgns*
+rm out2.cgns*

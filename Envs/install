@@ -1,0 +1,2 @@
+cp *_Cassiopee_* $CASSIOPEE/Dist
+cp *_Cassiopee_* $CASSIOPEE/Dist/bin

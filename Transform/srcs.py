@@ -1,0 +1,58 @@
+#==============================================================================
+# Fichiers C++
+#==============================================================================
+cpp_srcs = ["Transform/coordTransform.cpp",
+            "Transform/symetrize.cpp",
+            "Transform/deform.cpp",
+            "Transform/deform2.cpp",
+            "Transform/deformMeshStruct.cpp",
+            "Transform/rotate.cpp",
+            "Transform/translate.cpp",
+            "Transform/perturbate.cpp",
+            "Transform/patch.cpp",
+            "Transform/oneovern.cpp",
+            "Transform/reorder.cpp",
+            "Transform/subzone.cpp",
+            "Transform/subzoneInt.cpp",
+            "Transform/join.cpp",
+            "Transform/joinBoth.cpp",
+            "Transform/joinAll.cpp",
+            "Transform/splitCurvatureAngle.cpp",
+            "Transform/splitCurvatureRadius.cpp",
+            "Transform/splitConnexity.cpp",
+            "Transform/splitBAR.cpp",
+            "Transform/splitTBranches.cpp",
+            "Transform/splitTRI.cpp",
+            "Transform/splitSharpEdges.cpp",
+            "Transform/addkplane.cpp",
+            "Transform/reorderAll.cpp",
+            "Transform/reorderAllUnstr.cpp",
+            "Transform/projectDir.cpp",
+            "Transform/projectOrtho.cpp",
+            "Transform/projectOrthoSmooth.cpp",
+            "Transform/projectRay.cpp",
+            "Transform/projectSmoothDir.cpp",
+            "Transform/smooth.cpp",
+            "Transform/collapse.cpp",
+            "Transform/mergeCartGrids.cpp",
+            "Transform/mergeStructGrids.cpp",
+            "Transform/computeDeformationVector.cpp",
+            "Transform/breakNGonElements.cpp",
+            "Transform/splitNGon.cpp",
+            "Transform/splitElement.cpp",
+            "Transform/dual.cpp",
+            "Transform/projectAllDirs.cpp",
+            "Transform/splitManifold.cpp",
+            "Transform/cart2Cyl.cpp",
+            "Transform/cyl2Cart.cpp",
+            "Transform/flipEdges.cpp",
+            "Transform/contractEdges.cpp",
+            "Transform/checkTriMesh.cpp"
+            ]
+
+#==============================================================================
+# Fichiers fortran
+#==============================================================================
+for_srcs = ['Transform/Fortran/RotateF.for',
+            'Transform/Fortran/HomothetyF.for',
+            'Transform/Fortran/DeformF.for' ]

@@ -1,0 +1,14 @@
+#==============================================================================
+# Module Generator
+#==============================================================================
+
+[MISSING] gencartmb en PyTree : ne marche pas en 2D, manque les CL.
+[MISSING] grow : ne duplique pas les champs (FlowSolution sur 2 layers)
+[MISSING] selectInsideElts : enleve la solution aux centres
+[MISSINg] pointedHat, stitchedHat : enleve both
+[MISSING] close : sur une liste de maillages non-structures. 
+          Ne fonctionne que pour chaque maillage separement.
+[MISSING] checkPointInCEBB en non structure
+[BADFEATURE] close : rend les maillages structures en premier et les maillages
+non structures ensuite (pas dans le meme ordre qu'en entree).
+Est un vrai pb en pyTree.
