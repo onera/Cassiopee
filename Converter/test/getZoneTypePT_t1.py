@@ -1,5 +1,4 @@
 # - getZoneType (pyTree) -
-import Converter.PyTree as C
 import Generator.PyTree as G
 import Converter.Internal as Internal
 import KCore.test as test

@@ -242,7 +242,6 @@
     If unitAngle='Radian': parameter rotationAngle is assumed in radians. <br>
 
     <em> Since Cassiopee2.6: 'RotationAngle' node in 'Periodic' node is always defined in Radians. A DimensionalUnits child node is also defined.</em>
-
     <div class="code">
      t = X.connectMatchPeriodic(t, rotationCenter=[0.,0.,0.], rotationAngle=[0.,0.,0.], translation=[0.,0.,0.], tol=1.e-6, dim=3, unitAngle=None)
     </div>
@@ -450,7 +449,6 @@
     If type='extrapolated', extrapolated points are extracted.
     If type='orphan', orphan points are extracted. 
     If type='cf>value',  extrapolated points where the sum of absolute coefficients is greater than value are extracted.
-
     <div class="code"> t = X.extractChimeraInfo(t, type='interpolated',loc='centers')</div>
     <em> Example of use: </em> <a href="Examples/Connector/extractChimeraInfoPT.py"> Extract Chimera points (pyTree).</a><br><br>
 

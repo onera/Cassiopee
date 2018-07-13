@@ -3,7 +3,6 @@
 import Converter as C
 import Transform as T
 import CPlot
-import time
 
 def rotate(a):
     for i in xrange(90*2):

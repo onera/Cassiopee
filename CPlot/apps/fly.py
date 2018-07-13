@@ -1,11 +1,7 @@
 # - fly mode autour d'un objet -
-
 import Converter as C
-import Transform as T
 import Generator as G
 import CPlot
-import time
-import random
 
 sigma = 10; beta = 8/3; ro = 28
 

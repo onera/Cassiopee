@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import os, sys
+import os
 from distutils.core import setup, Extension
 import KCore.config
 
@@ -27,13 +27,13 @@ Dist.writeSetupCfg()
 (kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
 
 mySystem = Dist.getSystem()
-if (mySystem[0] == 'mingw' and mySystem[1] == '32'):
+if mySystem[0] == 'mingw' and mySystem[1] == '32':
     libraries = ["cplot", "kcore", "wsock32", "winmm", "gdi32"]
     libGL = ['opengl32', 'glu32']
-elif (mySystem[0] == 'mingw' and mySystem[1] == '64'):
+elif mySystem[0] == 'mingw' and mySystem[1] == '64':
     libraries = ["cplot", "kcore", "wsock32", "winmm", "gdi32"]
     libGL = ['opengl32', 'glu32']
-elif (mySystem[0] == 'Darwin'):
+elif mySystem[0] == 'Darwin':
     libraries = ["kcore", "X11", "Xmu", "cplot"]
     libGL = ['GL', 'GLU'] 
 else:

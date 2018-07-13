@@ -1,4 +1,4 @@
-import os, sys
+import os
 from distutils.core import setup, Extension
 import KCore.config
 

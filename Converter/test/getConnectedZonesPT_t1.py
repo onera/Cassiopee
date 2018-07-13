@@ -1,7 +1,6 @@
 # - getConnectedZones (pyTree) -
 import Generator.PyTree as G
 import Converter.PyTree as C
-import Transform.PyTree as T
 import Connector.PyTree as X
 import KCore.test as test
 

@@ -5,7 +5,6 @@ import Converter.PyTree as C
 import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
 import Converter.Internal as Internal
-import FastS.PyTree as FastS
 import Fast.PyTree as Fast
 import CPlot.iconics as iconics
 import os, math, os.path

@@ -2,8 +2,8 @@
 # doit etre exact
 import Converter as C
 import Generator as G
-import Transform as T
 import numpy as np
+
 eps = 1.e-30
 N = 10
 # structure
