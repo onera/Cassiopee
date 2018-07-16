@@ -29,6 +29,8 @@ applet = {
     # tkContainers
     'tkContainers':'tkContainers', 'My fields dont display!':'tkContainers',
     'Change FlowSolution': 'tkContainers',
+    # tkCamera
+    'tkCamera':'tkCamera', 'Camera position':'tkCamera', 'View position':'tkCamera',
     # tkRuler
     'tkRuler':'tkRuler', 'Measure distance': 'tkRuler',
     # tkFind

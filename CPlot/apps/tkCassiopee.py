@@ -243,6 +243,9 @@ def run(t=None):
     # Place win devant les autres fenetres
     win.deiconify(); win.focus_set()
 
+    # - partial load -
+    #Panels.openLoadPanel()
+
     # - Erreur dans l'arbre -
     if errors != []:
         Panels.displayErrors(errors, header='Checking pyTree')
@@ -266,4 +269,3 @@ if __name__ == "__main__":
             CTK.t = C.convertFile2PyTree(CTK.FILE, density=1.)
         except: print 'Error: convertFile2PyTree: fail to read file %s.'%CTK.FILE
     run()
-

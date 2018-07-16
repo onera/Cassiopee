@@ -100,16 +100,16 @@ def createGeo(rep):
     for z in zones:
         material = 'Solid'; color = 'White'
         ri = Internal.getNodesFromName1(z, '.RenderInfo')
-        if (ri != []):
+        if ri != []:
             # Material
             mt = Internal.getNodesFromName1(ri[0], 'Material')
-            if (mt != []): material = Internal.getValue(mt[0])
+            if mt != []: material = Internal.getValue(mt[0])
             # Shader parameters
             sp = Internal.getNodesFromName1(ri[0], 'ShaderParameters')
-            if (sp != []): intensity = 50.*sp[0][1][0]
+            if sp != []: intensity = 50.*sp[0][1][0]
             else: intensity = 50.
             
-        if (material == 'Light'):
+        if material == 'Light':
             file.write('AttributeBegin # light_'+str(c)+'\n')
             file.write('NamedMaterial "material'+str(c)+'"\n')
             file.write('LightGroup "'+str(c)+'"\n')
@@ -375,7 +375,7 @@ def writeCassiopeeLamps(file):
     n = Vector.mul(0.4*norm, n)
     pos = Vector.sub(eye, n)
 
-    if (type == 'Interior'): pass        
+    if type == 'Interior': pass        
 ##         # distant light
 ##         file.write('AttributeBegin\n')
 ##         file.write('LightGroup "default"\n')
@@ -442,7 +442,7 @@ def createMat(rep):
     for z in zones:
         material = 'Solid'; color = 'White'; mode = 0; blending = 1 # default
         ri = Internal.getNodesFromName1(z, '.RenderInfo')
-        if (ri != []):
+        if ri != []:
             # Material
             mt = Internal.getNodesFromName1(ri[0], 'Material')
             if (mt != []): material = Internal.getValue(mt[0])
@@ -459,24 +459,24 @@ def createMat(rep):
             for pos in xrange(len(vref)):
                 if (vref[pos] == s[1]): break
             
-            if (pos == len(vref)): color = 'White'; mode = 0
+            if pos == len(vref): color = 'White'; mode = 0
             else: color = 'Iso'; mode = pos+1; material = 'Iso'
         # traduction color
-        if (color[0] == '#'):
+        if color[0] == '#':
             colorR = color[1:3]; colorG = color[3:5]; colorB = color[5:]
             colorR = int(colorR, 16); colorR = colorR / 255.
             colorG = int(colorG, 16); colorG = colorG / 255.
             colorB = int(colorB, 16); colorB = colorB / 255.
-        elif (color == 'White'): colorR = 1; colorG = 1; colorB = 1
-        elif (color == 'Black'): colorR = 0; colorG = 0; colorB = 0
-        elif (color == 'Grey'): colorR = 0.69; colorG = 0.69; colorB = 0.69
-        elif (color == 'Blue'): colorR = 0; colorG = 0; colorB = 1
-        elif (color == 'Red'): colorR = 1; colorG = 0; colorB = 0
-        elif (color == 'Green'): colorR = 0; colorG = 1; colorB = 0
-        elif (color == 'Yellow'): colorR = 1; colorG = 1; colorB = 0
-        elif (color == 'Orange'): colorR = 0.94; colorG = 0.737; colorB = 0.06
-        elif (color == 'Magenta'): colorR = 1; colorG = 0; colorB = 1
-        elif (color == 'Brown'): colorR = 0.588; colorG = 0.294; colorB = 0
+        elif color == 'White': colorR = 1; colorG = 1; colorB = 1
+        elif color == 'Black': colorR = 0; colorG = 0; colorB = 0
+        elif color == 'Grey': colorR = 0.69; colorG = 0.69; colorB = 0.69
+        elif color == 'Blue': colorR = 0; colorG = 0; colorB = 1
+        elif color == 'Red': colorR = 1; colorG = 0; colorB = 0
+        elif color == 'Green': colorR = 0; colorG = 1; colorB = 0
+        elif color == 'Yellow': colorR = 1; colorG = 1; colorB = 0
+        elif color == 'Orange': colorR = 0.94; colorG = 0.737; colorB = 0.06
+        elif color == 'Magenta': colorR = 1; colorG = 0; colorB = 1
+        elif color == 'Brown': colorR = 0.588; colorG = 0.294; colorB = 0
         else: coloR = 1; colorG = 1; colorB = 1
 
         # Scale (utlise pour scaler les textures)
@@ -484,27 +484,27 @@ def createMat(rep):
         rx = bb[3]-bb[0]; ry = bb[4]-bb[1]; rz = bb[5]-bb[2]
         scale = 0.5 * min(rx, ry, rz)
             
-        if (material == 'Solid'):
+        if material == 'Solid':
             writeMatte0(file, dict, c, colorR, colorG, colorB, scale)
-        elif (material == 'Glass'):
+        elif material == 'Glass':
             writeGlass0(file, dict, c, colorR, colorG, colorB, scale)
-        elif (material == 'Chrome'):
+        elif material == 'Chrome':
             writeChrome0(file, dict, c, colorR, colorG, colorB, scale)
-        elif (material == 'Metal'):
+        elif material == 'Metal':
             writeMetal0(file, dict, c, colorR, colorG, colorB, scale)
-        elif (material == 'XRay'):
+        elif material == 'XRay':
             writeMatte0(file, dict, c, colorR, colorG, colorB, scale)
-        elif (material == 'Wood'):
+        elif material == 'Wood':
             writeWood0(file, dict, c, colorR, colorG, colorB, scale)
-        elif (material == 'Marble'):
+        elif material == 'Marble':
             writeMarble0(file, dict, c, colorR, colorG, colorB, scale)
-        elif (material == 'Granite'):
+        elif material == 'Granite':
             writeMatte0(file, dict, c, colorR, colorG, colorB, scale)
-        elif (material == 'Smoke'):
+        elif material == 'Smoke':
             writeMatte0(file, dict, c, colorR, colorG, colorB, scale)
-        elif (material == 'Brick'):
+        elif material == 'Brick':
             writeMatte0(file, dict, c, colorR, colorG, colorB, scale)
-        elif (material == 'Light'):
+        elif material == 'Light':
             writeGlass0(file, dict, c, colorR, colorG, colorB, scale)
         else:
             writeMatte0(file, dict, c, colorR, colorG, colorB, scale)

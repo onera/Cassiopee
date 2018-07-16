@@ -9,6 +9,8 @@ import time
 import PyTree as CPlot
 
 #==============================================================================
+# LoadPanel
+LOADPANEL = None
 # RenderPanel
 RENDERPANEL = None
 # ErrorWindow
@@ -1044,3 +1046,56 @@ def openRenderPanel():
         # trick pour avoir la fenetre au premier plan
         RENDERPANEL.withdraw(); RENDERPANEL.deiconify(); RENDERPANEL.focus_setPREF()
     updateRenderPanel()
+
+#====================================================================================
+# Load panel: panel for partial load of files
+#====================================================================================
+def _deleteLoadPanel():
+    try: LOADPANEL.destroy()
+    except: pass
+
+def _destroyLoadPanel(event):
+    global LOADPANEL
+    LOADPANEL = None
+
+def updateLoadPanel():
+    print 'populate list'
+    # Get vars from file
+    
+
+#def updateFileHandle():
+#    if CTK.FILEHANDLE is None:
+
+def openLoadPanel():
+    global LOADPANEL
+    if LOADPANEL is None:
+        LOADPANEL = TK.Toplevel()
+        LOADPANEL.columnconfigure(0, weight=1)
+        LOADPANEL.rowconfigure(0, weight=1)
+        LOADPANEL.title("File load panel")
+        # position de la fenetre parent
+        #xpos = LOADPANEL.master.winfo_rootx()+45
+        #ypos = LOADPANEL.master.winfo_rooty()+45
+        #LOADPANEL.geometry("%+d%+d" % (xpos, ypos))
+        LOADPANEL.protocol("WM_DELETE_WINDOW", _deleteLoadPanel)
+        LOADPANEL.bind("<Destroy>", _destroyLoadPanel)
+        F = TK.Frame(LOADPANEL, border=0)
+        F.grid(row=0, column=0, columnspan=2, sticky=TK.W)
+        B = TTK.Entry(F, textvariable=VARS[1], background='White')
+        B.grid(row=0, column=0, columnspan=2, sticky=TK.EW)
+        BB = CTK.infoBulle(parent=B, text='File for reading.')
+
+        #scrollbar = TK.Scrollbar(LOADPANEL, orient=TK.VERTICAL, width=10)
+        #scrollbar.grid(sticky=TK.NSEW, row=1, column=1)
+        #myList = TK.Listbox(LOADPANEL, selectmode=TK.EXTENDED,
+        #                    yscrollcommand=scrollbar.set,
+        #                    width=80, height=20, background='white')
+        #myList.grid(sticky=TK.NSEW, row=1, column=0)
+        #myList.bind('<<ListboxSelect>>', loadPanelSelect)
+        #scrollbar.config(command=myList.yview)
+
+
+    else:
+        # trick pour avoir la fenetre au premier plan
+        LOADPANEL.withdraw(); LOADPANEL.deiconify(); LOADPANEL.focus_setPREF()
+    #updateLoadPanel()
