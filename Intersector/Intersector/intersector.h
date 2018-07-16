@@ -51,6 +51,7 @@ namespace K_INTERSECTOR
   //PyObject* agglomerateUncomputableCells(PyObject* self, PyObject* args);
 
   PyObject* adaptCells(PyObject* self, PyObject* args);
+  PyObject* adaptBox(PyObject* self, PyObject* args);
   
   PyObject* extractUncomputables(PyObject* self, PyObject* args);
   PyObject* extractPathologicalCells(PyObject* self, PyObject* args);

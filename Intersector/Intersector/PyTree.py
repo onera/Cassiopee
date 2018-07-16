@@ -458,6 +458,16 @@ def adaptCells(t1, t2):
     m2 = C.getFields(Internal.__GridCoordinates__, t2)[0]
     m = intersector.adaptCells(m1, m2)
     return C.convertArrays2ZoneNode('adapted', [m])
+
+#==============================================================================
+# adaptBox : Adapts a bounding box to a cloud of interior points
+#==============================================================================
+def adaptBox(t, box_ratio = 10.):
+    """Adapts a bounding box to a cloud of interior points.
+    Usage: adaptBox(t, box_ratio)"""
+    m = C.getFields(Internal.__GridCoordinates__, t)[0]
+    m = intersector.adaptBox(m, box_ratio)
+    return C.convertArrays2ZoneNode('adapted', [m])
  
 #==============================================================================
 # extractUncomputables :XXX

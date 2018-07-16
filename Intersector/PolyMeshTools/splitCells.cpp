@@ -32,6 +32,8 @@
 #include "Nuga/include/adaptor.hxx"
 #include "Nuga/include/hierarchical_mesh.hxx"
 
+#include "Search/BbTree.h"
+
 //#include <iostream>
 
 using namespace std;
@@ -131,6 +133,89 @@ PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
 
   delete f; delete cn;
   delete fS; delete cnS;
+  return tpl;
+}
+
+//=============================================================================
+/* todo */
+//=============================================================================
+PyObject* K_INTERSECTOR::adaptBox(PyObject* self, PyObject* args)
+{
+  PyObject *arrS(nullptr);
+  E_Float bratio(10.);
+  
+
+  if (!PYPARSETUPLEF(args, "Od", "Of", &arrS, &bratio)) return NULL;
+
+  if (bratio < 1.)bratio = 1.;
+
+  //std::cout << "in K_INTERSECTOR::adaptBox" << std::endl;
+
+
+  K_FLD::FloatArray* f(nullptr);
+  K_FLD::IntArray* cn(nullptr);
+  char* varString, *eltType;
+
+  E_Int ni, nj, nk;
+  E_Int res2 = K_ARRAY::getFromArray(arrS, varString, f, ni, nj, nk,
+                                     cn, eltType);
+
+  K_FLD::FloatArray & crdS = *f;
+  //std::cout << "crd : " << crdS.cols() << "/" << crdS.rows() << std::endl;
+
+  //std::cout << "compute box..." << std::endl;
+
+  
+  // Create the box
+  K_SEARCH::BBox3D box;
+  K_FLD::ArrayAccessor<K_FLD::FloatArray> acrd(crdS);
+  box.compute(acrd);
+
+  // Box center and deltas
+  E_Float C[3], Delta[3], DeltaMax=0.;
+  for (int i=0; i < 3; ++i){
+  	C[i] = 0.5*(box.minB[i] + box.maxB[i]);
+  	Delta[i] = box.maxB[i] - box.minB[i];
+  	DeltaMax = std::max(DeltaMax, Delta[i]);
+  }
+  // Enlarge it 
+  for (int i=0; i < 3; ++i)
+  {
+  	box.minB[i] = C[i] - (bratio*DeltaMax/*Delta[i]*/);
+  	box.maxB[i] = C[i] + (bratio*DeltaMax/*Delta[i]*/);
+  }
+
+  //std::cout << "convert box..." << std::endl;
+
+  typedef ngon_t<K_FLD::IntArray> ngon_type;
+  ngon_type ngi;
+  K_FLD::FloatArray crd;
+  K_FLD::IntArray cnt;
+  box.convert2NG<ngon_type>(crd, ngi);
+
+  //std::cout << "adapt box..." << std::endl;
+
+  using mesh_type = NUGA::hierarchical_mesh<K_MESH::Hexahedron>;
+  using sensor_type = NUGA::geom_sensor/*geom_static_sensor*/<mesh_type>;
+  
+  mesh_type hmesh(crd, ngi);
+  sensor_type sensor(hmesh);
+  
+  NUGA::adaptor<mesh_type, sensor_type>::run(hmesh, sensor, crdS);
+
+  std::cout << "output leaves..." << std::endl;
+  
+  ngon_type ngo;
+  hmesh.filter_ngon(ngo);
+
+  K_FLD::IntArray cnto;
+  ngo.export_to_array(cnto);
+
+  //std::cout << "output ..." << std::endl;
+  
+  PyObject* tpl = K_ARRAY::buildArray(hmesh._crd, varString, cnto, -1, "NGON", false);
+
+  delete f; delete cn;
   return tpl;
 }
 

@@ -236,6 +236,13 @@ def adaptCells(a1, a2):
     Usage: adaptCells(a1, a2)"""
     return intersector.adaptCells(a1, a2)
 
+#==============================================================================
+# adaptBox : Adapts a bounding box to a cloud of interior points.
+#==============================================================================
+def adaptBox(a, box_ratio=10.):
+    """Adapts a bounding box to a cloud of interior points"""
+    return intersector.adaptBox(a, box_ratio)
+
     
 #==============================================================================
 # extractUncomputables : Extracts any entity that will probably cause trouble to a CFD solver

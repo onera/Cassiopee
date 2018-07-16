@@ -48,6 +48,7 @@ static PyMethodDef Pyintersector [] =
   {"agglomerateNonStarCells", K_INTERSECTOR::agglomerateNonStarCells, METH_VARARGS},
   //{"agglomerateUncomputableCells", K_INTERSECTOR::agglomerateUncomputableCells, METH_VARARGS},
   {"adaptCells", K_INTERSECTOR::adaptCells, METH_VARARGS},
+  {"adaptBox", K_INTERSECTOR::adaptBox, METH_VARARGS},
   {"closeOctalCells", K_INTERSECTOR::closeOctalCells, METH_VARARGS},
   {"extractUncomputables", K_INTERSECTOR::extractUncomputables, METH_VARARGS},
   {"extractPathologicalCells", K_INTERSECTOR::extractPathologicalCells, METH_VARARGS},

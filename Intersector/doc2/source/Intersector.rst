@@ -58,6 +58,7 @@ List of functions
    Intersector.agglomerateNonStarCells
    Intersector.closeOctalCells
    Intersector.adaptCells
+   Intersector.adaptBox
 
 **-- Extraction Functions**
 
@@ -589,7 +590,7 @@ Transformation Functions
     Adapts a1 cells with respect to a2 points.Adaptation is a per-cell octal 2:1 decomposition.
 
     :param           a1:  Input mesh (NGON format)
-    :type            a:  [array] or [ single zone pyTree (currently)]
+    :type            a1:  [array] or [ single zone pyTree (currently)]
     :param           a2:  Source points
     :type            a2:  [array, list of arrays] or [pyTree, base, zone, list of zones]
 
@@ -607,6 +608,27 @@ Transformation Functions
 
     * Do this transformation before calling any Volume-Volume boolean operations in order to improve the mesh quality of the result.
 
+---------------------------------------
+
+
+.. py:function:: Intersector.adaptBox(a, box_ratio)
+
+    Adapts the bounding box of a cloud of points. Adaptation is an octal 2:1 decomposition.
+
+    :param           a:  Input points cloud
+    :type            a:  [array, list of arrays] or [pyTree, base, zone, list of zones]
+    :param           box_ratio:  ratio to scale the box
+    :type            a2:  float
+
+    *Example of use:*
+
+    * `adaptBox (array) <Examples/Intersector/adaptBox.py>`_:
+
+    .. literalinclude:: ../build/Examples/Intersector/adaptBox.py
+
+    * `adaptBox (pyTree) <Examples/Intersector/adaptBoxPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Intersector/adaptBoxPT.py
 
 
 ---------------------------------------
