@@ -98,7 +98,7 @@ fi
 if ([ $PRODUCTION -eq 1 ])
 then
     version=`grep -e __version__ ../Generator/Generator.py`
-    version1=${version:15:10}
+    version1=${version:15:4}
     version1=${version1/"'"/""}
     v='Generator-'$version1'.txt'
     cp Generator.txt $DEST3/$v

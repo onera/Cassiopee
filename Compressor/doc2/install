@@ -96,7 +96,7 @@ fi
 if ([ $PRODUCTION -eq 1 ])
 then
     version=`grep -e __version__ ../Compressor/Compressor.py`
-    version1=${version:15:10}
+    version1=${version:15:4}
     version1=${version1/"'"/""}
     v='Compressor-'$version1'.txt'
     cp Compressor.txt $DEST3/$v

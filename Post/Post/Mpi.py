@@ -22,6 +22,6 @@ def extractMesh(t, extractionMesh, order=2, extrapOrder=1,
     # print info
     zones = Internal.getZones(tl)
     print 'Rank %d has %d source zones.'%(Cmpi.rank, len(zones))
-    ext = P.extractMesh(tl, ext, order=order, extrapOrder=extrapOrder, constraint=constraint,tol=tol, mode=mode,
+    ext = P.extractMesh(tl, ext, order=order, extrapOrder=extrapOrder, constraint=constraint, tol=tol, mode=mode,
                         hook=hook)
     return ext

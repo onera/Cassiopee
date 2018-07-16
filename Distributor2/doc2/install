@@ -96,7 +96,7 @@ fi
 if ([ $PRODUCTION -eq 1 ])
 then
     version=`grep -e __version__ ../Distributor2/Distributor2.py`
-    version1=${version:15:10}
+    version1=${version:15:4}
     version1=${version1/"'"/""}
     v='Distributor2-'$version1'.txt'
     cp Distributor2.txt $DEST3/$v

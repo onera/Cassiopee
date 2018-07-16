@@ -12,7 +12,6 @@ import shlex
 from collections import OrderedDict
 import imp
 
-
 # Import Tkinter
 IMPORTOK = True
 try:
@@ -1991,6 +1990,7 @@ class editLegendWindow(TK.Toplevel):
             self.input_dialog.initialize(self,B)
         else:
             return
+            
 # ==============================================================================
 # ==============================================================================
 class editGraphWindow(TK.Toplevel):

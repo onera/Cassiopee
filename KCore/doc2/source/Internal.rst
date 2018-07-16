@@ -67,6 +67,7 @@ List of functions
    Converter.Internal.isType
    Converter.Internal.isName
    Converter.Internal.isValue
+   Converter.Internal.isChild
 
 **-- Set/create generic nodes**
 
@@ -96,8 +97,12 @@ List of functions
     Converter.Internal.getNodesFromType
     Converter.Internal.getNodeFromType
     Converter.Internal.getByType
+    Converter.Internal.getNodesFromNameAndType
+    Converter.Internal.getNodeFromNameAndType
     Converter.Internal.getNodesFromValue
     Converter.Internal.getParentOfNode
+    Converter.Internal.getParentFromType
+    Converter.Internal.getParentsFromType
 
     Converter.Internal.getNodeFromPath
     Converter.Internal.getPathsFromName
@@ -233,7 +238,7 @@ Node tests
 
     *Example of use:*
 
-    * `Tell if a node is a top tree (pyTree) <Examples/Initiator/isTopTreePT.py>`_:
+    * `Tell if a node is a top tree (pyTree) <Examples/Converter/isTopTreePT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/isTopTreePT.py
 
@@ -327,6 +332,27 @@ Node tests
 
     .. literalinclude:: ../build/Examples/Converter/isValuePT.py
 
+---------------------------------------------------------------------------
+
+.. py:function:: Converter.Internal.isChild(start, node)
+
+    Return true if node is a child of start, even at deep levels.
+    Exists also as isChild1 and isChild2, limited to 1 or 2 recursivity level.
+
+    :param start:  Input node
+    :type  start:  a pyTree node
+    :param node:  node to be checked as a child of start
+    :type node:  pyTree node
+    :rtype: Boolean: True or False
+
+    *Example of use:*
+
+    * `Tell if a node is in the children of another one (pyTree) <Examples/Converter/isChildPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/isChildPT.py
+
+    .. note:: new in version 2.7.
+    
 Set/create generic nodes
 --------------------------
 
@@ -672,7 +698,7 @@ Acess nodes
 
     :param t:  starting node
     :type  t:  pyTree node or list of pyTree nodes
-    :param ntype:  node name we are looking for
+    :param ntype:  node type we are looking for
     :type  ntype:  string
     :return: list of nodes that matches given type (shared with t)
     :rtype: list of pyTree nodes
@@ -728,6 +754,56 @@ Acess nodes
 
     .. literalinclude:: ../build/Examples/Converter/getByTypePT.py
 
+
+-----------------------------------------------------------------------------
+
+.. py:function:: Converter.Internal.getNodesFromNameAndType(t, name, ntype)
+
+    Return a list of nodes matching given name and type.
+    Wildcards are accepted for name and type.
+    
+    :param t:  starting node
+    :type  t:  pyTree node or list of pyTree nodes
+    :param name: node name we are looking for
+    :type name: string
+    :param ntype: node type we are looking for
+    :type  ntype: string
+    :return: list of nodes that matches given name and type (shared with t)
+    :rtype: list of pyTree nodes
+
+    *Example of use:*
+
+    * `Return list of nodes specified by a name and type (pyTree) <Examples/Converter/getNodesFromNameAndTypePT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/getNodesFromNameAndTypePT.py
+ 
+    .. note:: new in version 2.7.
+
+-----------------------------------------------------------------------------------------------
+
+.. py:function:: Converter.Internal.getNodeFromNameAndType(t, name, ntype)
+
+    Return the first node found of given name and type.
+    Starting node must be a standard pyTree node. 
+    If not found, it returns None.
+
+    :param t:  starting node
+    :type  t:  pyTree node
+    :param name: node name we are looking for
+    :type name: string
+    :param ntype: node type we are looking for
+    :type  ntype: string
+    :return: node that matches name and type (shared with t)
+    :rtype: pyTree node
+
+    *Example of use:*
+
+    * `Return node specified by a name and type (pyTree) <Examples/Converter/getNodeFromNameAndTypePT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/getNodeFromNameAndTypePT.py
+    
+    .. note:: new in version 2.7.
+
 -----------------------------------------------------------------------------------------------
 
 .. py:function:: Converter.Internal.getNodesFromValue(t, value)
@@ -774,6 +850,57 @@ Acess nodes
     * `Return parent node (pyTree) <Examples/Converter/getParentOfNodePT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/getParentOfNodePT.py
+
+-----------------------------------------------------------------------------------------------
+
+.. py:function:: Converter.Internal.getParentFromType(t, node, parentType)
+
+    Return the parent node of given node in t. The parent can be any level upper.
+    t must be a higher node in the tree. 
+    It returns the first parent node matching that type.
+   
+    :param t:  higher node
+    :type  t:  pyTree node
+    :param node:  node the parent of which is looked for
+    :type  node:  pyTree node
+    :param parentType: type of parent
+    :type parentType: string
+
+    :return: parent node 
+    :rtype: pyTree node
+
+    *Example of use:*
+
+    * `Return parent node of given type (pyTree) <Examples/Converter/getParentFromTypePT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/getParentFromTypePT.py
+
+    .. note:: new in version 2.7.
+
+-----------------------------------------------------------------------------------------------
+
+.. py:function:: Converter.Internal.getParentsFromType(t, node, parentType)
+
+    Return a list of parent nodes of given node in t of given type. The parent can be any level upper.
+    t must be a higher node in the tree. 
+   
+    :param t:  higher node
+    :type  t:  pyTree node
+    :param node:  node the parent of which is looked for
+    :type  node:  pyTree node
+    :param parentType: type of parent
+    :type parentType: string
+
+    :return: parent node list 
+    :rtype: list of pyTree nodes
+
+    *Example of use:*
+
+    * `Return parent nodes of given type (pyTree) <Examples/Converter/getParentsFromTypePT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/getParentsFromTypePT.py
+
+    .. note:: new in version 2.7.
 
 -----------------------------------------------------------------------------------------------
 
@@ -1451,7 +1578,7 @@ Create specific CGNS nodes
 
     *Example of use:*
 
-    * `Create a new base node (pyTree) <Examples/Converter/newCGNBasePT.py>`_:
+    * `Create a new base node (pyTree) <Examples/Converter/newCGNSBasePT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/newCGNSBasePT.py
 

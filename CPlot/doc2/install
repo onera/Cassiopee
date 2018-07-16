@@ -110,7 +110,7 @@ fi
 if ([ $PRODUCTION -eq 1 ])
 then
     version=`grep -e __version__ ../CPlot/CPlot.py`
-    version1=${version:15:10}
+    version1=${version:15:4}
     version1=${version1/"'"/""}
     v='CPlot-'$version1'.txt'
     cp CPlot.txt $DEST3/$v

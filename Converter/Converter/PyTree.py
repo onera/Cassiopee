@@ -1143,7 +1143,7 @@ def convertPyTree2FilePartial(t, fileName, comm, Filter, ParallelHDF=False,
     # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
     # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-    if (comm.Get_rank() == 0):
+    if comm.Get_rank() == 0:
       convertPyTree2File(SkeletonTree, fileName, format)
     # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 

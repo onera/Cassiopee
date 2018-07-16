@@ -85,7 +85,7 @@ fi
 
 # Copie des release Notes
 version=`grep -e __version__ ../Modeler/Modeler.py`
-version1=${version:15:10}
+version1=${version:15:4}
 version1=${version1/"'"/""}
 v='Fast-'$version1'.txt'
 cp Modeler.txt $DEST3/$v

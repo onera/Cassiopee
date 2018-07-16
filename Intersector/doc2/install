@@ -98,7 +98,7 @@ fi
 if ([ $PRODUCTION -eq 1 ])
 then
     version=`grep -e __version__ ../Intersector/Intersector.py`
-    version1=${version:15:10}
+    version1=${version:15:4}
     version1=${version1/"'"/""}
     v='Intersector-'$version1'.txt'
     cp Intersector.txt $DEST3/$v

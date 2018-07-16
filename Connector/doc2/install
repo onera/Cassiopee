@@ -115,7 +115,7 @@ fi
 if ([ $PRODUCTION -eq 1 ])
 then
     version=`grep -e __version__ ../Connector/Connector.py`
-    version1=${version:15:10}
+    version1=${version:15:4}
     version1=${version1/"'"/""}
     v='Connector-'$version1'.txt'
     cp Connector.txt $DEST3/$v

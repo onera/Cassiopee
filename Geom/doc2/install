@@ -97,7 +97,7 @@ fi
 if ([ $PRODUCTION -eq 1 ])
 then
     version=`grep -e __version__ ../Geom/Geom.py`
-    version1=${version:15:10}
+    version1=${version:15:4}
     version1=${version1/"'"/""}
     v='Geom-'$version1'.txt'
     cp Geom.txt $DEST3/$v

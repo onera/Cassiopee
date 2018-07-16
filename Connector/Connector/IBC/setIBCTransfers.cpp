@@ -22,7 +22,7 @@ using namespace std;
 using namespace K_FLD;
 
 # include "IBC/commonLaws.h"
-# define NUTILDE_FERRARI 0
+# define NUTILDE_FERRARI 1
 
 //=============================================================================
 //Retourne -2: incoherence entre meshtype et le type d interpolation

@@ -92,7 +92,7 @@ fi
 
 # Copie des release Notes
 version=`grep -e __version__ ../OCC/OCC.py`
-version1=${version:15:10}
+version1=${version:15:4}
 version1=${version1/"'"/""}
 v='OCC-'$version1'.txt'
 cp OCC.txt $DEST3/$v
