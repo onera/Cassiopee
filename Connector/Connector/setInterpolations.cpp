@@ -27,7 +27,8 @@ extern "C"
 {
   void 
   k6compvolofstructcell_(
-    const E_Int& ni, const E_Int& nj, const E_Int& nk, const E_Int& ind0, 
+    const E_Int& ni, const E_Int& nj, const E_Int& nk, 
+    const E_Int& indcell, const E_Int& indnode, 
     const E_Float* xt, const E_Float* yt, const E_Float* zc, E_Float& vol);
 }
 # include "stub.h"
@@ -699,7 +700,8 @@ void K_CONNECTOR::compAndStoreEXInterpCoefs(
         ind0 = indi[1] + indi[3] * ni1 + indi[5] * ni1nj1;
         ind0ext = icv[indg]-1+(jcv[indg]-1)*(ni1+2)+(kcv[indg]-1)*(ni1+2)*(nj1+2);
                
-        k6compvolofstructcell_(nit[blocNb], njt[blocNb], nkt[blocNb], ind0, xni, yni, zni, vol);
+        k6compvolofstructcell_(nit[blocNb], njt[blocNb], nkt[blocNb], ind0, -1,
+                               xni, yni, zni, vol);
         ret = extrapv[indg]; if ( ret == 0 ) vol = vol + 500;
 
         if (vol < volSav)
@@ -794,7 +796,7 @@ void K_CONNECTOR::compAndStoreEXInterpCoefs(
             E_Float* yni = coords[blocNb]->begin(2);
             E_Float* zni = coords[blocNb]->begin(3);
             k6compvolofstructcell_(nit[blocNb], njt[blocNb], nkt[blocNb], 
-                                   ind0, xni, yni, zni, vol);
+                                   ind0, -1, xni, yni, zni, vol);
             ret = extrapv[indg]; 
             if ( ret == 0 ) vol = vol + 1000;
 
@@ -890,7 +892,8 @@ void K_CONNECTOR::compAndStoreEXInterpCoefs(
         ind0 = indi[1] + indi[3]*ni1 + indi[5]*ni1nj1;
         ind0ext = ic-1+(jc-1)*(ni1+2)+(kc-1)*(ni1+2)*(nj1+2);
 
-        k6compvolofstructcell_(nit[blocNb], njt[blocNb], nkt[blocNb], ind0, xni, yni, zni, vol);
+        k6compvolofstructcell_(nit[blocNb], njt[blocNb], nkt[blocNb], ind0, -1,
+                               xni, yni, zni, vol);
         if ( ret == 0 ) vol = vol + 1000*test;
 
         if (vol < volSavExtrap)
@@ -1154,7 +1157,8 @@ void K_CONNECTOR::compAndStoreInterpCoefs(
         //interpType = indi[0];
         ind0 = indi[1] + indi[3] * ni1 + indi[5] * ni1nj1;
         ind0ext = icv[indg]-1+(jcv[indg]-1)*(ni1+2)+(kcv[indg]-1)*(ni1+2)*(nj1+2);       
-        k6compvolofstructcell_(nit[blocNb], njt[blocNb], nkt[blocNb], ind0, xni, yni, zni, vol);
+        k6compvolofstructcell_(nit[blocNb], njt[blocNb], nkt[blocNb], ind0, -1,
+                               xni, yni, zni, vol);
         ret = extrapv[indg]; if (ret == 0) vol += 500.;
 
         if (vol < volSavExplicit)
@@ -1244,7 +1248,8 @@ void K_CONNECTOR::compAndStoreInterpCoefs(
             E_Float* xni = coords[blocNb]->begin(1);
             E_Float* yni = coords[blocNb]->begin(2);
             E_Float* zni = coords[blocNb]->begin(3);
-            k6compvolofstructcell_(nit[blocNb], njt[blocNb], nkt[blocNb], ind0, xni, yni, zni, vol);
+            k6compvolofstructcell_(nit[blocNb], njt[blocNb], nkt[blocNb], ind0, -1,
+                                   xni, yni, zni, vol);
             ret = extrapv[indg]; if (ret == 0) vol += 1000.;
             if (vol < volSavExtrap)
             {
@@ -1337,7 +1342,8 @@ void K_CONNECTOR::compAndStoreInterpCoefs(
             ind0 = indi[1] + indi[3]*ni1 + indi[5]*ni1nj1;
             ind0ext = ic-1+(jc-1)*(ni1+2)+(kc-1)*(ni1+2)*(nj1+2);
           
-            k6compvolofstructcell_(nit[blocNb], njt[blocNb], nkt[blocNb], ind0, xni, yni, zni, vol);
+            k6compvolofstructcell_(nit[blocNb], njt[blocNb], nkt[blocNb], ind0, -1,
+                                   xni, yni, zni, vol);
             if (ret == 0) vol = vol + 1000*test;
 
             if (vol < volSavExtrap)

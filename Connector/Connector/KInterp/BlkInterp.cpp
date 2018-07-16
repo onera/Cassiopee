@@ -33,9 +33,9 @@ using namespace K_ARRAY;
 
 extern "C"
 {
-  void k6compvolofstructcell_(E_Int& ni, E_Int& nj, E_Int& nk, 
-                              E_Int& indcell, E_Float* x, 
-                              E_Float* y, E_Float* z, 
+  void k6compvolofstructcell_(const E_Int& ni, const E_Int& nj, const E_Int& nk, 
+                              const E_Int& indcell, const E_Int& indnode,
+                              const E_Float* x, const E_Float* y, const E_Float* z, 
                               E_Float& vol);
   void k6compvoloftetracell_(const E_Int& npts, 
                              const E_Int& ind1, const E_Int& ind2, 
@@ -493,9 +493,9 @@ E_Float K_KINTERP::selectBestStructuredInterpolationCell(
       
       if (isvalid == 1) // pas de pt masque ou interpole dans la cellule donneuse
       {
-        E_Int indcell = tmpIndi[1]+tmpIndi[order+1]*ni+tmpIndi[order*2+1]*ninj;
+        E_Int indnode = tmpIndi[1]+tmpIndi[order+1]*ni+tmpIndi[order*2+1]*ninj;
         // calcul de cellvol
-        k6compvolofstructcell_(ni, nj, nk, indcell, oneField.begin(posx0),
+        k6compvolofstructcell_(ni, nj, nk, -1, indnode, oneField.begin(posx0),
                                oneField.begin(posy0), oneField.begin(posz0),vol);
         if (penalty == 1 && extrapB == 1 ) vol += 1.e3;
         if ( vol < best ) 
@@ -631,7 +631,7 @@ E_Float K_KINTERP::selectBestStructuredExtrapolationCell(
   FldArrayF tmpCf(cf.getSize());
   E_Int ni, nj, nk, ninj;
   E_Int posx0, posy0, posz0, posc0;
-  E_Int order, indcell;
+  E_Int order, indnode;
 
   for (E_Int i = 0; i < s; i++)
   {
@@ -660,12 +660,12 @@ E_Float K_KINTERP::selectBestStructuredExtrapolationCell(
     if (found > 0)
     {
       order = tmpIndi[0];
-      indcell = tmpIndi[1] + tmpIndi[order+1] * ni + 
-        tmpIndi[order*2+1] * ninj;
+      indnode = tmpIndi[1] + tmpIndi[order+1]*ni + tmpIndi[order*2+1]*ninj;
       // calcul de cellvol
-      k6compvolofstructcell_(ni, nj, nk, indcell, oneField.begin(posx0),
+      k6compvolofstructcell_(ni, nj, nk, -1, indnode, 
+                             oneField.begin(posx0),
                              oneField.begin(posy0),
-                             oneField.begin(posz0),vol);
+                             oneField.begin(posz0), vol);
       
       if (vol < best) 
       {

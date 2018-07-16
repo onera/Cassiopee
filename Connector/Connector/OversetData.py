@@ -1316,6 +1316,17 @@ def _createInterpRegion__(z, zname, pointlist, pointlistdonor, interpCoef, inter
 # 3. TRANSFERTS
 #=============================================================================
 #=============================================================================
+def transferFields(z, interpXN, interpYN, interpZN, order=2, penalty=1, nature=0,
+                   constraint=30., hook=None, variables=[]):
+    if (hook is None):
+        raise ValueError("transferFields: a hook on an ADT must be declared.")
+
+    return connector.transferFields(z, interpXN, interpYN, interpZN, 
+                                    order, nature, penalty, constraint,
+                                    hook, variables,
+                                    Internal.__GridCoordinates__,
+                                    Internal.__FlowSolutionNodes__,
+                                    Internal.__FlowSolutionCenters__)                                      
 
 #===============================================================================
 # General transfers: Match + Chimera + IBC

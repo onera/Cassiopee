@@ -171,7 +171,6 @@ List of functions
     Converter.PyTree.getValue
     Converter.PyTree.setValue
     Converter.PyTree.setPartialFields
-    Converter.PyTree.filterPartialFields
     Converter.PyTree.addVars
     Converter.PyTree.fillMissingVariables
     Converter.PyTree.cpVars
@@ -1180,36 +1179,6 @@ pyTree creation and manipulation
 
 ---------------------------------------------------------------------------
 
-.. py:function:: Converter.PyTree.filterPartialFields(a, F, I, loc='nodes',startFrom=0, filterName='')
-
-    Set values of variables 'var1', 'var2',... defined in the list of arrays F in zone a at indices listed in I with a selection according to a field of name filterName. 
-    F is a list of arrays with variables 'var1','var2',...,filterName. The value of 'var1' at a point of index ind in I is chosen in first array of F and set in a if
-    the value for this point is the one that satisfies the minimum value of filterName. 
-    Only common fields in F and a are considered.
-
-    Exists also as in place version (_filterPartialFields) that modifies a 
-    and returns None.
-    
-    :param a: input data
-    :type a: zone
-    :param F: list of arrays of fields values, containing variable filterName too.
-    :type F: list of arrays 
-    :param I: list of indices of points of a to be modified
-    :type I: a numpy of integers
-    :param loc: location of fields in zone
-    :type loc: 'centers' or 'nodes'
-    :param startFrom : starting indice of I 
-    :type startFrom: 0 or 1
-    :rtype: reference copy of input
-    
-
-    *Example of use:*
-
-    * `Filter values for a list of indices (pyTree) <Examples/Converter/filterPartialFieldsPT.py>`_:
-
-    .. literalinclude:: ../build/Examples/Converter/filterPartialFieldsPT.py
-
----------------------------------------------------------------------------
 
 .. py:function:: Converter.PyTree.addVars(a, vars)
 

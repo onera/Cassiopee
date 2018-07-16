@@ -34,6 +34,10 @@ using namespace std;
 //=============================================================================
 PyObject* K_CONVERTER::filterPartialFields(PyObject* self, PyObject* args)
 {
+  E_Float penaltyExtrap = 1e6;
+  E_Float penaltyOrphan = 1e12;
+  E_Int countExtrap= 0; E_Int countOrphan = 0;
+
   char *GridCoordinates, *FlowSolutionNodes, *FlowSolutionCenters;
   PyObject* zone;
   PyObject* fArrays; // list of arrays to be filtered 
@@ -51,6 +55,7 @@ PyObject* K_CONVERTER::filterPartialFields(PyObject* self, PyObject* args)
   char* varStringZ; char* eltTypeZ;
   vector<E_Float*> fieldsZ; vector<E_Int> locsZ;
   vector<E_Int*> cnZ;
+
   K_PYTREE::getFromZone(zone, 0, loc, varStringZ,
                         fieldsZ, locsZ, imZ, jmZ, kmZ,
                         cnZ, cnZSize, cnZNfld, eltTypeZ, hook,
@@ -77,7 +82,6 @@ PyObject* K_CONVERTER::filterPartialFields(PyObject* self, PyObject* args)
   E_Int isOk = K_ARRAY::getFromArrays(fArrays, resD, varStringD, fieldsD, a2, a3, a4, objsD,  
                                       skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
   E_Int nzonesD = objsD.size();
-
   if (isOk == -1)
   {
     RELEASESHAREDZ(hook, varStringZ, eltTypeZ);
@@ -139,7 +143,7 @@ PyObject* K_CONVERTER::filterPartialFields(PyObject* self, PyObject* args)
   }
 
 #pragma omp parallel default(shared)
-    {
+  {
   for (E_Int eq = 0; eq < ncommonfields; eq++)
   {
     E_Int posZ = posvZ[eq]; 
@@ -163,16 +167,30 @@ PyObject* K_CONVERTER::filterPartialFields(PyObject* self, PyObject* args)
         }
       }
       E_Int ind = indices[i]-startFrom;
-      fZ[ind] = fVal;
+      if ( filterMax >= penaltyOrphan )
+      {
+        countOrphan++;
+      }
+      else
+      {
+        if ( filterMax >= penaltyExtrap) countExtrap++;
+        fZ[ind] = fVal;
+      }
     }
   }
-}
+  }
+  E_Int countInterp = nPts-countOrphan-countExtrap;
+  PyObject* v = PyList_GetItem(zone, 0);
+  char* zname =  PyString_AsString(v);
+  printf("Zone %s : interpolated=%d; extrapolated=%d; orphans=%d.\n",zname, countInterp, countExtrap, countOrphan);
+
+  if ( countOrphan>0)
+    printf("WARNING: Zone %s has %d orphan points.\n",zname,countOrphan);
+
   for (E_Int no = 0; no < nzonesD; no++)
     RELEASESHAREDA(resD[no],objsD[no],fieldsD[no],a2[no],a3[no],a4[no]); 
   RELEASESHAREDN(listIndicesO, listIndices);
   RELEASESHAREDZ(hook, varStringZ, eltTypeZ);
   Py_INCREF(Py_None);
- 
-
   return Py_None;
 }

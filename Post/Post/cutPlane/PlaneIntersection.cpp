@@ -30,7 +30,7 @@ extern "C"
 {
   void k6compvolofstructcell_(
     const E_Int& ni, const E_Int& nj, const E_Int& nk, 
-    const E_Int& indA,
+    const E_Int& indcell, const E_Int& indnode,
     const E_Float* x, const E_Float* y, 
     const E_Float* z, E_Float& vol);
 
@@ -600,6 +600,7 @@ void K_POST::searchStructIntersectForSegment(
   FldArrayF& intersectPts,
   FldArrayF& volOfIntersectPts)
 {
+  E_Int inddummy = -1;//doit rester a -1 pour k6compvolofstructcell
   FldArrayI connect(0);
   E_Float eps = 1.e-12;
   E_Int nfld = field.getNfld();
@@ -658,10 +659,10 @@ void K_POST::searchStructIntersectForSegment(
         intersectPts(cnt,   eq) = field(indA, eq);
         intersectPts(cnt+1, eq) = field(indB, eq);
       }
-      k6compvolofstructcell_( ni, nj, nk, indA, field.begin(posx), 
+      k6compvolofstructcell_( ni, nj, nk, inddummy, indA, field.begin(posx), 
                               field.begin(posy), field.begin(posz),
                               volOfIntersectPts[cnt]);
-      k6compvolofstructcell_( ni, nj, nk, indB, field.begin(posx), 
+      k6compvolofstructcell_( ni, nj, nk, inddummy, indB, field.begin(posx), 
                               field.begin(posy), field.begin(posz),
                               volOfIntersectPts[cnt+1]);
       cnt = cnt+2;
@@ -684,7 +685,7 @@ void K_POST::searchStructIntersectForSegment(
         //if (posc != 0)
         //  intersectPts(cnt, posc) = field(indA, posc);
         
-        k6compvolofstructcell_(ni, nj, nk, indA, 
+        k6compvolofstructcell_(ni, nj, nk, inddummy, indA, 
                                field.begin(posx), 
                                field.begin(posy),
                                field.begin(posz), 
@@ -700,7 +701,7 @@ void K_POST::searchStructIntersectForSegment(
         //if (posc != 0)
         //  intersectPts(cnt, posc) = field(indB, posc);
         
-        k6compvolofstructcell_(ni, nj, nk, indB, 
+        k6compvolofstructcell_(ni, nj, nk, inddummy, indB, 
                                field.begin(posx), 
                                field.begin(posy),
                                field.begin(posz), 
@@ -738,7 +739,7 @@ void K_POST::searchStructIntersectForSegment(
 //               intersectPts(cnt, posc) = E_max(cellNA, cellNB);
           }
           
-          k6compvolofstructcell_(ni, nj, nk, indA, 
+          k6compvolofstructcell_(ni, nj, nk, inddummy, indA, 
                                  field.begin(posx), 
                                  field.begin(posy),
                                  field.begin(posz), 
@@ -749,7 +750,7 @@ void K_POST::searchStructIntersectForSegment(
         {
           for (E_Int v = 1; v <= nfld; v++)
             intersectPts(cnt,v) = k1*field(indA,v)+k*field(indB,v);
-          k6compvolofstructcell_(ni, nj, nk, indA, 
+          k6compvolofstructcell_(ni, nj, nk, inddummy, indA, 
                                  field.begin(posx), 
                                  field.begin(posy),
                                  field.begin(posz), 

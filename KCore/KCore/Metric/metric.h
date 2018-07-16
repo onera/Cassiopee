@@ -55,7 +55,11 @@ namespace K_METRIC
     E_Float* sxp, E_Float* syp,  E_Float* szp, E_Float* snp, 
     K_FLD::FldArrayI* cFE=NULL);  
 
-  /* Calcule l aire d'une cellule d un maillage surfacique nk=1. N'est pas nécessairement dans le plan */
-  E_Float compVolOfStructCell2D(E_Int ni, E_Int nj, E_Int indcell, E_Float* xt, E_Float* yt, E_Float* zt);
+  /* Calcule l aire d'une cellule d un maillage surfacique nk=1. N'est pas nécessairement dans le plan 
+  On rentre soit l indice de la cellule indcell, soit indnode l indice du premier point
+  d indices i et j min de la cellule. Si indnode est different de -1, c'est lui qui prime
+  */
+  E_Float compVolOfStructCell2D(E_Int ni, E_Int nj, E_Float* xt, E_Float* yt, E_Float* zt,
+                                E_Int indcell=-1, E_Int indnode=-1);
 }
 #endif

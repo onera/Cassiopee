@@ -18,22 +18,24 @@ C    along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 
 C =============================================================================
 C Compute the volume of a 3D structured cell
+c On rentre soit l indice de la cellule indcell, soit indnode l indice du premier point
+c  d indices i et j min de la cellule. Si indnode est different de -1, c'est lui qui prime
 C =============================================================================
-      SUBROUTINE k6compvolofstructcell(ni, nj, nk, indcell,
+      SUBROUTINE k6compvolofstructcell(ni, nj, nk, indcell, indnode,
      &                                 xt, yt, zt, vol)
 C
       IMPLICIT NONE
 C==============================================================================
 C_IN
       INTEGER_E ni, nj, nk
-      INTEGER_E indcell
+      INTEGER_E indcell, indnode
       REAL_E xt(0:ni*nj*nk-1)
       REAL_E yt(0:ni*nj*nk-1)
       REAL_E zt(0:ni*nj*nk-1)
 C_OUT
       REAL_E vol
 C_LOCAL
-      INTEGER_E ninj, i, j ,k
+      INTEGER_E ninj, i, j ,k, nicnjc, nic, njc
       INTEGER_E indA, indB, indC, indD, indE, indF, indG, indH
       REAL_E xA, xB, xC, xD, xE, xF, xG, xH
       REAL_E yA, yB, yC, yD, yE, yF, yG, yH
@@ -47,24 +49,42 @@ C     1./24.
       const = 0.041666666667D0
 C
       ninj = ni*nj
-        
+      nic = max(1,ni-1)
+      njc = max(1,nj-1)
+      nicnjc = nic*njc
+
 C     Warning : here i,j,k start from 0
-      k = indcell/ninj
-      j = indcell/ni - k*nj
-      i = indcell - k*ninj - j*ni
-      
-C     Increments
-      if (i .eq. ni-1) then 
-         i = i-1
-      endif
-      if (j .eq. nj-1) then
-         j = j-1
-      endif
-      if (k .eq. nk-1) then 
-         k = k-1
+      if ( indcell > -1 ) then
+            if ( indnode < 0 ) then
+                  k = indcell/nicnjc
+                  j = (indcell-k*nicnjc)/nic
+                  i = indcell -j*nic -k*nicnjc
+                  indnode = i+j*ni+k*ninj
+            endif
+      else
+            if ( indnode < 0 ) then 
+                  WRITE(*,*) 'ERROR: compvolofstructcell: '
+                  WRITE(*,*) 'one of indcell or indnode must be > -1.'
+                  STOP
+            endif
       endif
 
-      indA = i + j * ni + k * ninj
+C       k = ind/ninj
+C       j = ind/ni - k*nj
+C       i = ind - k*ninj - j*ni
+      
+C C     Decalages a gauche
+C       if (i .eq. nic) then 
+C          i = i-1
+C       endif
+C       if (j .eq. njc) then
+C          j = j-1
+C       endif
+C       if (k .eq. nkc) then 
+C          k = k-1
+C       endif
+
+      indA = indnode
       indB = indA + 1           !(i+1,j,k)
       indC = indB + ni          !(i+1,j+1,k)
       indD = indA + ni          !(i,j+1,k)

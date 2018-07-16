@@ -30,7 +30,7 @@ using namespace K_ARRAY;
 extern "C"
 {
   void k6compvolofstructcell_(E_Int& ni, E_Int& nj, E_Int& nk, 
-                              E_Int& indcell, E_Float* x, 
+                              E_Int& indcell, E_Int& indnode, E_Float* x, 
                               E_Float* y, E_Float* z, 
                               E_Float& vol);
 
@@ -845,6 +845,221 @@ short K_INTERP::compInterpolatedValues(
       {
         E_Float* fp = f.begin(eq);
         E_Float* fp0 = f0.begin(eq);
+        fp[ind] = 0.;
+        for (E_Int k0 = 0; k0 < 5; k0++)
+          for (E_Int j0 = 0; j0 < 5; j0++)
+            for (E_Int i0 = 0; i0 < 5; i0++)
+            {
+              ind0 = (i+i0) + (j+j0)*ni + (k+k0)*ninj;
+              fp[ind] += cfp[i0]*cfp[j0+5]*cfp[k0+10]* fp0[ind0];  
+            }
+      }      
+      break;
+      
+    default:
+      printf("compInterpolatedValues: unknown interpolation type.");
+      return -1;
+  }
+  return 1;
+}
+/*---------------------------------------------------------------*/
+/* Meme fonction que precedemment mais avec posvars              */
+/*---------------------------------------------------------------*/
+short K_INTERP::compInterpolatedValues(
+  E_Int* indi, FldArrayF& cf,
+  FldArrayF& f0,  void* a2, void* a3, void* a4, 
+  E_Int ind, E_Int type, FldArrayF& f, vector<E_Int>& posvars)
+{
+  E_Int nfld = posvars.size();
+  E_Int ind0, ind1, ind2, ind3, ind4, ind5, ind6, ind7, indcell; 
+  E_Int ni, nj, ninj, nvert, noet, i, j, k, nocf;
+  E_Float* cfp = cf.begin();
+  E_Int posv;
+
+  switch (type) 
+  {
+    case 0: 
+      nocf = indi[0];// nb de pts pour la formule
+      for (E_Int noeq = 0; noeq < nfld; noeq++)
+      {
+        posv = posvars[noeq];
+        E_Float* fp = f.begin(noeq+1);
+        E_Float* fp0 = f0.begin(posv);
+        fp[ind] = 0.; 
+        for (E_Int no = 1; no <= nocf; no++)
+        {
+          ind0 = indi[no];
+          fp[ind] += cfp[no-1]*fp0[ind0];
+        }
+      }      
+      break;
+      
+    case 1:
+      ind0 = indi[0];
+      for (E_Int noeq = 0; noeq < nfld; noeq++)
+      {
+        posv = posvars[noeq];
+        E_Float* fp = f.begin(noeq+1);
+        E_Float* fp0 = f0.begin(posv);
+        fp[ind] = cfp[0] * fp0[ind0];
+      }      
+      break;
+
+    case 2:// les indices et f sont localises de maniere identique, ex O2CF
+      if (a4 == NULL)// NS : indices des nvert sommets de la molecule d interpolation
+      {
+        printf("Error: compOneInterpolatedValue: type 2 not valid for unstructured interpolations.\n");
+        return -1;
+      }
+      else //STRUCT: indice du premier sommet en bas a gauche stockee      
+      {
+        ni = *(E_Int*)a2;
+        nj = *(E_Int*)a3;
+        //nk = *(E_Int*)a4;      
+        ninj = ni*nj;  
+        ind0 = indi[0]; nocf = 0; 
+        k = ind0/ninj;  j = (ind0-k*ninj)/ni; i = (ind0-j*ni-k*ninj);
+        for (E_Int noeq = 0; noeq < nfld; noeq++)
+        {
+          posv = posvars[noeq];
+          E_Float* fp = f.begin(noeq+1);
+          E_Float* fp0 = f0.begin(posv);
+          fp[ind] = 0.; nocf = 0;
+          for (E_Int k0 = 0; k0 < 2; k0++)
+            for (E_Int j0 = 0; j0 < 2; j0++)
+              for (E_Int i0 = 0; i0 < 2; i0++)
+              {
+                ind0 = (i+i0) + (j+j0)*ni + (k+k0)*ninj;
+                fp[ind] += cfp[nocf]*fp0[ind0];
+                nocf += 1;
+              }
+        }
+      }
+      break;
+  
+
+    case 22:// les indices et f sont localises de maniere identique, ex O2CF
+      //STRUCT : indice de la premiere cellule en bas a gauche stockee      
+      ni = *(E_Int*)a2;
+      nj = *(E_Int*)a3;
+      ind0 = indi[0]; nocf = 0;
+      j = ind0/ni; i = ind0-j*ni;
+     
+      for (E_Int noeq = 0; noeq < nfld; noeq++)
+      {
+        posv = posvars[noeq];
+        E_Float* fp = f.begin(noeq+1);
+        E_Float* fp0 = f0.begin(posv);
+        fp[ind] = 0.; nocf = 0;
+        for (E_Int j0 = 0; j0 < 2; j0++)
+          for (E_Int i0 = 0; i0 < 2; i0++)
+          {
+            ind0 = (i+i0)+(j+j0)*ni;
+            fp[ind] += cfp[nocf]*fp0[ind0];
+            nocf += 1;
+          }
+      }      
+      break;
+
+    case 3://formule directionnelle (ex O3ABC): on stocke les indices i,j,k des sommets 
+      if (a4 == NULL)// NS: indices des nvert sommets de la molecule d interpolation
+      {
+        printf("Error: compInterpolatedValues: type 3 not valid for unstructured interpolations.\n");
+        return -1;
+      }
+      else // STRUCTURE: indice de la premiere cellule en bas a gauche stockee      
+      {
+        ni = *(E_Int*)a2;
+        nj = *(E_Int*)a3;
+        //nk = *(E_Int*)a4;  
+        ninj = ni*nj;  
+        ind0 = indi[0]; nocf = 0;
+        k = ind0/ninj;  j = (ind0-k*ninj)/ni; i = (ind0-j*ni-k*ninj);
+        for (E_Int noeq = 0; noeq < nfld; noeq++)
+        {
+          posv = posvars[noeq];
+          E_Float* fp = f.begin(noeq+1);
+          E_Float* fp0 = f0.begin(posv);          
+          fp[ind] = 0.;
+          for (E_Int i0 = 0; i0 < 3; i0++)
+            for (E_Int j0 = 0; j0 < 3; j0++)
+              for (E_Int k0 = 0; k0 < 3; k0++)
+              {
+                ind0 = (i+i0) + (j+j0)*ni + (k+k0)*ninj;
+                fp[ind] += cfp[i0]*cfp[j0+3]*cfp[k0+6]* fp0[ind0];  
+              }
+        }
+      }
+      break;
+
+    case  4:// on stocke le centre de la cellule et on interpole des sommets 
+      if (a4 != NULL)// Structure
+      {
+        indcell = indi[0];
+        ni = *(E_Int*)a2; E_Int nic = K_FUNC::E_max(1,ni-1);
+        nj = *(E_Int*)a3; E_Int njc = K_FUNC::E_max(1,nj-1);
+        //nk = *(E_Int*)a4; //E_Int nkc = K_FUNC::E_max(1,nk-1);
+        E_Int nicnjc = nic*njc; ninj = ni*nj;
+        k = indcell/nicnjc; j = (indcell-k*nicnjc)/nic; i = indcell-j*nic-k*nicnjc;
+        ind0 = i+j*ni+k*ninj;
+        ind1 = ind0+1;
+        ind2 = ind0+ni;
+        ind3 = ind2+1;
+        ind4 = ind0+ninj;
+        ind5 = ind1+ninj;
+        ind6 = ind2+ninj;
+        ind7 = ind3+ninj;
+
+        for (E_Int noeq = 0; noeq < nfld; noeq++)
+        {
+          posv = posvars[noeq];
+          E_Float* fp = f.begin(noeq+1);
+          E_Float* fp0 = f0.begin(posv);          
+          fp[ind] = 
+          cfp[0]*fp0[ind0] + cfp[1]*fp0[ind1] + 
+          cfp[2]*fp0[ind2] + cfp[3]*fp0[ind3] +
+          cfp[4]*fp0[ind4] + cfp[5]*fp0[ind5] + 
+          cfp[6]*fp0[ind6] + cfp[7]*fp0[ind7]; 
+        }       
+      }
+      else //cas non structure
+      {
+        noet = indi[0];
+        FldArrayI& cn0 = *(FldArrayI*)a2;
+        nvert = cn0.getNfld();
+        for (E_Int noeq = 0; noeq < nfld; noeq++)
+        {
+          posv = posvars[noeq];
+          E_Float* fp = f.begin(noeq+1);
+          E_Float* fp0 = f0.begin(posv);           
+          fp[ind] = 0.;
+          for (E_Int nov = 1; nov <= nvert; nov++)
+          {
+            ind0 = cn0(noet,nov)-1;
+            fp[ind] += cfp[nov-1]*fp0[ind0];
+          }
+        }
+      }
+      break;
+
+    case  5://formule directionnelle (ex O5ABC) 
+      if (a4 == NULL)// NS: indices des nvert sommets de la molecule d'interpolation
+      {
+        printf("Error: compInterpolatedValues: type 3 not valid for unstructured interpolations.\n");
+        return -1;
+      }
+      //STRUCT : indice de la premiere cellule en bas a gauche stockee      
+      ni = *(E_Int*)a2;
+      nj = *(E_Int*)a3;
+      //nk = *(E_Int*)a4;      
+      ninj = ni*nj;
+      ind0 = indi[0]; nocf = 0;
+      k = ind0/(ninj); j = (ind0-k*ninj)/ni; i = (ind0-j*ni-k*ninj);     
+      for (E_Int noeq = 0; noeq < nfld; noeq++)
+      {
+        posv = posvars[noeq];
+        E_Float* fp = f.begin(noeq+1);
+        E_Float* fp0 = f0.begin(posv); 
         fp[ind] = 0.;
         for (E_Int k0 = 0; k0 < 5; k0++)
           for (E_Int j0 = 0; j0 < 5; j0++)

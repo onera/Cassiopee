@@ -29,13 +29,36 @@ using namespace std;
 //=============================================================================
 // IN: (xt, yt, zt): pointeurs sur les coordonnees du maillage
 //=============================================================================
-E_Float K_METRIC::compVolOfStructCell2D(E_Int ni, E_Int nj, E_Int indcell, 
-                                        E_Float* xt, E_Float* yt, E_Float* zt)
+E_Float K_METRIC::compVolOfStructCell2D(E_Int ni, E_Int nj, 
+                                        E_Float* xt, E_Float* yt, E_Float* zt,
+                                        E_Int indcell, E_Int indnode)
 {
-  E_Int j = indcell/ni; E_Int i = indcell-j*ni;
-  if (i==ni-1) i=i-1;
-  if (j==nj-1) j=j-1;
-  E_Int ind1 = i+j*ni;
+  E_Int i, j;
+  E_Int nic = max(1,ni-1);
+  E_Int njc = max(1,nj-1);
+
+  if ( indcell >  -1)
+  {
+    if ( indnode < 0 )
+    {
+      j = indcell/nic;
+      i = indcell -j*nic;
+      indnode = i+j*ni;
+    }
+  }
+  else
+  {
+    if ( indnode < 0)
+    {
+      printf("INTERNAL ERROR: compVolOfStructCell2D: one of indcell or indnode must be a positive value.");
+      exit(0);
+    }
+  }
+  // E_Int j = ind/ni; E_Int i = ind-j*ni;
+  // if (i==ni-1) i=i-1;
+  // if (j==nj-1) j=j-1;
+  // E_Int ind1 = i+j*ni;
+  E_Int ind1 = indnode;
   E_Int ind2 = ind1+ni;
   E_Int ind3 = ind1+1;
   E_Int ind4 = ind2+1;

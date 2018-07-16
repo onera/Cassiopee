@@ -709,11 +709,11 @@ PyObject* K_POST::computeGrad2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
         gpz[indcelld] -= ff*szint[indint];
       }
     }
-    for (E_Int i = 0; i < ncells; i++)
+    for (E_Int iicell = 0; iicell < ncells; iicell++)
     {
-      voli =  K_METRIC::compVolOfStructCell2D(ni, nj, i, xt, yt, zt);
+      voli =  K_METRIC::compVolOfStructCell2D(ni, nj, xt, yt, zt, iicell, -1);
       voli = 1./K_FUNC::E_max(voli, 1.e-12);
-      gpx[i] *= voli; gpy[i] *= voli; gpz[i] *= voli;
+      gpx[iicell] *= voli; gpy[iicell] *= voli; gpz[iicell] *= voli;
     }
   }
   return tpl;

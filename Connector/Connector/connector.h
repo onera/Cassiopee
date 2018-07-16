@@ -660,6 +660,7 @@ namespace K_CONNECTOR
   PyObject* setInterpDataCons(PyObject* self, PyObject* args);
   PyObject* writeCoefs(PyObject* self, PyObject* args);
   PyObject* chimeraTransfer(PyObject* self, PyObject* args);
+  PyObject* transferFields(PyObject* self, PyObject* args);
   PyObject* initNuma(PyObject* self, PyObject* args);
   PyObject* setInterpTransfers(PyObject* self, PyObject* args);// en pratique non appelee de PyTree
   PyObject* _setInterpTransfers(PyObject* self, PyObject* args);

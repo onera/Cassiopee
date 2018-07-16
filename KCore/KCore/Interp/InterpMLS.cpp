@@ -27,7 +27,7 @@ using namespace K_ARRAY;
 extern "C"
 {
   void k6compvolofstructcell_(E_Int& ni, E_Int& nj, E_Int& nk,
-                              E_Int& indcell, E_Float* x,
+                              E_Int& indcell, E_Int& indnode, E_Float* x,
                               E_Float* y, E_Float* z,
                               E_Float& vol);
 
@@ -1055,6 +1055,9 @@ void K_INTERP::getBestDonor(
   vector<E_Int> blkCandidates;
   vector<E_Float> volCandidates;
   E_Int pen;
+  E_Int inddummy=-1;// a laisser absolument a -1 pour k6compvolofstructcell
+
+
   for (E_Int no = 0; no < nDnrZones; no++)
   {
     // donnees du donneur
@@ -1081,13 +1084,12 @@ void K_INTERP::getBestDonor(
       E_Int ni = *(E_Int*)a2[no];
       E_Int nj = *(E_Int*)a3[no];
       E_Int nk = *(E_Int*)a4[no];
-
       // Calcul du volume de la cellule donneuse
       if ((ni==1)||(nj==1)||(nk==1))   // 2D
         k6compsurfofstructcell_(ni, nj, nk, temp,
                                 xtDnr, ytDnr, ztDnr, vol);
       else if ((ni>1)&&(nj>1)&&(nk>1)) //3D
-        k6compvolofstructcell_(ni, nj, nk, temp,
+        k6compvolofstructcell_(ni, nj, nk, inddummy, temp,
                                xtDnr, ytDnr, ztDnr, vol);
       realVol = vol;
       // On penalise la cellule si elle a des voisins de cellN != 1 et si elle est sur le bord

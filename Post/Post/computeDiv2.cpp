@@ -790,11 +790,11 @@ PyObject* K_POST::computeDiv2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
   for (E_Int n = 0; n < nfld; n++)
   {
     E_Float* gpdv = gp.begin(n+1);
-    for (E_Int i = 0; i < ncells; i++)
+    for (E_Int indcell = 0; indcell < ncells; indcell++)
     {
-      voli =  K_METRIC::compVolOfStructCell2D(ni, nj, i, xt, yt, zt);
+      voli =  K_METRIC::compVolOfStructCell2D(ni, nj, xt, yt, zt, indcell, -1);
       voli = 1./K_FUNC::E_max(voli, 1.e-12);
-      gpdv[i] *= voli;
+      gpdv[indcell] *= voli;
     }
   }
   return tpl;

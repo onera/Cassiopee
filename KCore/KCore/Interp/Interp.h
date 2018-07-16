@@ -148,6 +148,12 @@ namespace K_INTERP
   short compInterpolatedValues(E_Int* indi, FldArrayF& cf,
                                FldArrayF& f0,  void* a2, void* a3, void* a4, 
                                E_Int ind, E_Int type, FldArrayF& f);
+  /* meme fonction que precedente mais interpolation sur les variables de numero posvars0
+  posvars0 demarre a 1.  */
+  short compInterpolatedValues(E_Int* indi, FldArrayF& cf,
+                               FldArrayF& f0,  void* a2, void* a3, void* a4, 
+                               E_Int ind, E_Int type, FldArrayF& f, std::vector<E_Int>& posvars0);
+
   short compInterpolatedField(E_Int* indi, FldArrayF& cf,
                               FldArrayF& f0,  void* a2, void* a3, void* a4, 
                               E_Int type, FldArrayF& f);

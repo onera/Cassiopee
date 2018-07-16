@@ -1,4 +1,5 @@
 E_Int bestFound = 1;
+E_Int inddummy = -1;//a laisser a -1 absolument...pour k6compvolofstructcell
 if (found > 0)
 {      
   foundSav = 1;
@@ -6,10 +7,8 @@ if (found > 0)
   if (tmpType == 2 || tmpType == 3 || tmpType == 5)
   {
     firstCorner = tmpIndi[0]; 
-    k = firstCorner/ninj; j = (firstCorner-k*ninj)/ni; i = (firstCorner-j*ni-k*ninj);
-    indcell = i+j*nic+k*nic*njc;
     // calcul de cellvol
-    k6compvolofstructcell_(ni, nj, nk, indcell, oneField.begin(posx0),
+    k6compvolofstructcell_(ni, nj, nk, inddummy, firstCorner, oneField.begin(posx0),
                            oneField.begin(posy0), oneField.begin(posz0),vol);
     if (penalty == 1 && isBorder == 1) vol += 1.e3;
     if (vol < best+K_CONST::E_GEOM_CUTOFF) 
@@ -71,12 +70,9 @@ if (found > 0)
   else if (tmpType == 22) // type 2 en 2D
   {
     firstCorner = tmpIndi[0]; 
-    j = firstCorner/ni; i = firstCorner-j*ni;
-
-    indcell = i+j*nic;
     // calcul de cellvol
-    vol = K_METRIC::compVolOfStructCell2D(ni,nj,indcell,
-                                          oneField.begin(posx0),oneField.begin(posy0), oneField.begin(posz0));
+    vol = K_METRIC::compVolOfStructCell2D(ni,nj, oneField.begin(posx0),oneField.begin(posy0), oneField.begin(posz0),
+                                          -1, firstCorner);
     if (penalty == 1 && isBorder == 1) vol += 1.e3;
     if (vol < best+K_CONST::E_GEOM_CUTOFF) 
     {

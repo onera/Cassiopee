@@ -63,6 +63,7 @@ static PyMethodDef Pyconnector [] =
   {"__setInterpTransfersD", K_CONNECTOR::__setInterpTransfersD, METH_VARARGS},
   {"writeCoefs", K_CONNECTOR::writeCoefs, METH_VARARGS},
   {"chimeraTransfer", K_CONNECTOR::chimeraTransfer, METH_VARARGS},
+  {"transferFields", K_CONNECTOR::transferFields, METH_VARARGS},
   {"changeWall", K_CONNECTOR::changeWall, METH_VARARGS},
   {"changeWallEX", K_CONNECTOR::changeWallEX, METH_VARARGS},
   {"blankIntersectingCells", K_CONNECTOR::blankIntersectingCells, METH_VARARGS},
