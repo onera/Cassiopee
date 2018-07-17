@@ -954,7 +954,7 @@ def setShaderParameter2(event=None):
 def openRenderPanel():
     global RENDERPANEL
     if RENDERPANEL is None:
-        RENDERPANEL = TK.Toplevel()
+        RENDERPANEL = TK.Toplevel(CTK.WIDGETS['masterWin'])
         RENDERPANEL.option_add('*Font', CTK.FIXEDFONT)
         RENDERPANEL.columnconfigure(0, weight=1)
         RENDERPANEL.rowconfigure(0, weight=1)
@@ -1044,7 +1044,7 @@ def openRenderPanel():
 
     else:
         # trick pour avoir la fenetre au premier plan
-        RENDERPANEL.withdraw(); RENDERPANEL.deiconify(); RENDERPANEL.focus_setPREF()
+        RENDERPANEL.withdraw(); RENDERPANEL.deiconify(); RENDERPANEL.focus_set()
     updateRenderPanel()
 
 #====================================================================================

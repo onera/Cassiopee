@@ -42,7 +42,7 @@ def getSurfaces():
         v = v.lstrip(); v = v.rstrip()
         sname = v.split('/')
         bases = Internal.getNodesFromName1(CTK.t, sname[0])
-        if (bases != []):
+        if bases != []:
             zones = Internal.getNodesFromType1(bases[0], 'Zone_t')
             for z in zones:
                 if (z[0] == sname[1]): surfaces.append(z)
@@ -50,12 +50,12 @@ def getSurfaces():
 
 #==============================================================================
 def TFI():
-    if (CTK.t == []): return
-    if (CTK.__MAINTREE__ <= 0):
+    if CTK.t == []: return
+    if CTK.__MAINTREE__ <= 0:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     nzs = CPlot.getSelectedZones()
-    if (len(nzs) == 0):
+    if len(nzs) == 0:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     surf = getSurfaces()
@@ -73,7 +73,7 @@ def TFI():
     try:
         CTK.saveTree()
         mesh = G.TFI(zones)
-        if (surf != []): mesh = T.projectOrthoSmooth(mesh, surf)
+        if surf != []: mesh = T.projectOrthoSmooth(mesh, surf)
         CTK.t = C.addBase2PyTree(CTK.t, 'MESHES')
         bases = Internal.getNodesFromName1(CTK.t, 'MESHES')
         nob = C.getNobOfBase(bases[0], CTK.t)

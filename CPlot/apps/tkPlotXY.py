@@ -3694,7 +3694,7 @@ class list_dialogWindow(TK.Toplevel):
         TK.Toplevel.__init__(self)
         (x,y) = self.winfo_pointerxy()
         self.geometry('+%s+%s'%(x,y))
-        self.protocol("WM_DELETE_WINDOW",self.cmd_close)
+        self.protocol("WM_DELETE_WINDOW", self.cmd_close)
     # --------------------------------------------------------------- initialize
     def initialize(self,parent,B):
         self.optionList = B.list

@@ -886,8 +886,11 @@ def saveTree():
 
 #==============================================================================
 def Quit():
+    #WIDGETS['masterWin'].destroy()
+    #WIDGETS['masterWin'].quit()
+    #import time
+    #time.sleep(2.)
     os._exit(0)
-    #import sys; sys.exit()
 
 #==============================================================================
 def setCPlotMode0(): # mode mesh

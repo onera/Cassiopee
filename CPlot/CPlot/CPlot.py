@@ -521,6 +521,7 @@ def displayNew__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
                           shadow, dof, stereo, stereoDist,
                           export, exportResolution,
                           zoneNames, renderTags, offscreen), {})
+    #a.setDaemon(True)
     a.start()
     __slot__ = a
 
