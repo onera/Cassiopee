@@ -1,8 +1,6 @@
 # - smooth (array) -
 import Transform as T
 import Generator as G
-import Geom as D
-import Converter as C
 import Post as P
 import KCore.test as test
 

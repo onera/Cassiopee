@@ -1,6 +1,5 @@
 # - text3D (array) -
 import Geom as D
-import Converter as C
 import KCore.test as test
 
 # deja teste dans text2D

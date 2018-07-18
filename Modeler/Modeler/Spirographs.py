@@ -1,9 +1,5 @@
 # - spirograph shapes -
-import Converter as C
 import Geom as D
-import Transform as T
-import numpy
-from math import pi
 
 #=============================================================================
 # Courbes spirographes

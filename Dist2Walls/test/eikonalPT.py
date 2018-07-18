@@ -9,7 +9,7 @@ import numpy
 # Bloc cartesien
 N = 128; h = 0.1
 a = G.cart((0.,0.,0.),(h,h,h),(N,N,1))
-C._initVars(a,'cellN', 1')
+C._initVars(a,'cellN', 1.)
 
 # Init wall
 sphere = D.sphere((6.4,6.4,0), 1., 100)

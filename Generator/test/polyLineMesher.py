@@ -2,8 +2,6 @@
 import Converter as C
 import Generator.PolyLine as GP
 import Generator as G
-import Post as P
-import Geom as D
 import Transform as T
 
 # Read a 2D geometry created with tecplot

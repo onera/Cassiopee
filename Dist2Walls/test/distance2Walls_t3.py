@@ -2,10 +2,8 @@
 # test : 2D
 import Dist2Walls
 import Generator as G
-import Transform as T
 import KCore.test as test
 import Geom as D
-import Converter as C
 
 a = G.cart((0.,0.,0.),(0.1,0.1,0.1),(21,21,1))
 cyl = D.circle((0.5,0.5,0),1.,N=10)

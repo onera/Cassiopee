@@ -4,7 +4,6 @@ try:
     import Transform as T
     import Converter as C
     import Geom as D
-    import geom
     import KCore
     import numpy
     importOK = True

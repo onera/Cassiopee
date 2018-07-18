@@ -2,7 +2,6 @@
 import Generator as G
 import Converter as C
 import Geom as D
-import numpy as np
 import KCore.test as test
 
 a = D.circle( (0,0,0), 1, N=100 )

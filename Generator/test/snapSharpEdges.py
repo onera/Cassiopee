@@ -3,7 +3,6 @@ import Generator as G
 import Converter as C
 import Post as P
 import Geom as D
-import Transform as T
 
 # Enforce polyline define by s in b
 s = D.polyline([(0.2,0,0),(1,1,0),(2.5,1,0),(0.2,0,0)])

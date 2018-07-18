@@ -1,9 +1,7 @@
 import CPlot
 import Modeler.WorldZ as World
 import Modeler.Models as Models
-import Transform as T
 import Converter as C
-import Generator as G
 import time
 
 # Objects

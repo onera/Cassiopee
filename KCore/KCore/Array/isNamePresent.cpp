@@ -221,6 +221,7 @@ E_Int K_ARRAY::isVelocityXPresent(char* myString)
   E_Int r = K_ARRAY::isNamePresent("VelocityX", myString);
   if (r == -1) r = K_ARRAY::isNamePresent("vx", myString);
   if (r == -1) r = K_ARRAY::isNamePresent("u", myString);
+  if (r == -1) r = K_ARRAY::isNamePresent("U", myString);
   return r;
 }
 //=============================================================================
@@ -235,6 +236,7 @@ E_Int K_ARRAY::isVelocityYPresent(char* myString)
   E_Int r = K_ARRAY::isNamePresent("VelocityY", myString);
   if (r == -1) r = K_ARRAY::isNamePresent("vy", myString);
   if (r == -1) r = K_ARRAY::isNamePresent("v", myString);
+  if (r == -1) r = K_ARRAY::isNamePresent("V", myString);
   return r;
 }
 //=============================================================================
@@ -249,6 +251,7 @@ E_Int K_ARRAY::isVelocityZPresent(char* myString)
   E_Int r = K_ARRAY::isNamePresent("VelocityZ", myString);
   if (r == -1) r = K_ARRAY::isNamePresent("vz", myString);
   if (r == -1) r = K_ARRAY::isNamePresent("w", myString);
+  if (r == -1) r = K_ARRAY::isNamePresent("W", myString);
   return r;
 }
 //=============================================================================

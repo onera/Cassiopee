@@ -3,7 +3,6 @@ import Converter.PyTree as C
 import Connector.PyTree as X
 import Generator.PyTree as G
 import Geom.PyTree as D
-import Transform.PyTree as T
 
 surf = D.sphere((0,0,0), 0.5, 20)
 

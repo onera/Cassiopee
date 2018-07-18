@@ -1,7 +1,6 @@
 # - display (array) -
 import Geom      as D
 import Generator as G
-import Converter as C
 import CPlot
 import os
 

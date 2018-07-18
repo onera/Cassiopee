@@ -9,16 +9,15 @@ import cplot
 import time
 __timeStep__ = 0.02
 __slot__ = None
-__displayNewIsLaunched = False
 
 #==============================================================================
-def configure(use_render):
+def configure(useRender):
     """
     Configure CPlot for direct rendering (cplot.useDirect),
     display Lists (cplot.useDL)
-    or VBO (cplt.useVBO)
+    or VBO (cplot.useVBO)
     """
-    cplot.configure(use_render)
+    cplot.configure(useRender)
 
 #==============================================================================
 # -- display --
@@ -109,7 +108,7 @@ def add(arrays, no, array, zoneName=None, renderTag=None):
         else: nzu += 1
     arrays.insert(no, array)
     if __slot__ is None:
-        if (no == -1): no = len(arrays)
+        if no == -1: no = len(arrays)
         arrays.insert(no, array)
         if len(arrays) == 1:
             display(arrays, zoneNames=[zoneName], renderTags=[renderTag])
@@ -521,7 +520,6 @@ def displayNew__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
                           shadow, dof, stereo, stereoDist,
                           export, exportResolution,
                           zoneNames, renderTags, offscreen), {})
-    #a.setDaemon(True)
     a.start()
     __slot__ = a
 

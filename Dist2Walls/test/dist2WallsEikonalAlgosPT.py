@@ -1,7 +1,6 @@
 # - dist2WallsEikonal (pyTree) -
 import Converter.PyTree as C
 import Connector.PyTree as X
-import Converter.Internal as Internal
 import Dist2Walls.PyTree as DTW
 import Geom.PyTree as D
 import Generator.PyTree as G

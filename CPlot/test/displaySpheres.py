@@ -1,6 +1,5 @@
 # - display (pyTree) -
 # Affichage du shader spheres (mode solid)
-import Generator.PyTree as G
 import Geom.PyTree as D
 import CPlot.PyTree as CPlot
 import Converter.PyTree as C

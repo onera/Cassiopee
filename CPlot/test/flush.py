@@ -2,7 +2,6 @@
 import Generator as G
 import CPlot
 import Transform as T
-import Converter as C
 import time
 
 a = G.cart((0,0,0),(1,1,1),(180,280,300))

@@ -3,7 +3,6 @@ import Geom as D
 import Transform as T
 import Generator as G
 import Converter as C
-import math
 
 #==============================================================================
 # Cylindre

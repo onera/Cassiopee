@@ -1,8 +1,6 @@
 # - snapSharpEdges (array) -
 import Generator as G
-import Converter as C
 import Geom as D
-import Connector as X
 import Transform as T
 import KCore.test as test
 

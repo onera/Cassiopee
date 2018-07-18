@@ -1,6 +1,5 @@
 # - display (pyTree) -
 # Affichage des shaders (mode solid)
-import Generator.PyTree as G
 import Geom.PyTree as D
 import CPlot.PyTree as CPlot
 import Transform.PyTree as T

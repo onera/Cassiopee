@@ -240,7 +240,7 @@ E_Int K_IO::GenIO::cedreread(
     // Lit les frontieres
     //printf("Lecture frontieres %d\n", nboundaryfaces);
     skipLine(ptrFile);
-#define BCSTRINGMAXSIZE 40
+#define BCSTRINGMAXSIZE 50
     FldArrayI* faces = new FldArrayI(nboundaryfaces);
     char* names = new char [nboundaryfaces * BCSTRINGMAXSIZE]; // taille max des etiquettes de BC
     E_Int* facesp = faces->begin();

@@ -29,8 +29,8 @@ ni = 101; nj = 101; nk = 11
 m = G.cylinder((0,0,0), 1., 10.,45., 145., 1., (ni,nj,nk))
 m = T.reorder(m, (-1,2,3))
 #
-as=[]
-as.append(m)
+ars=[]
+ars.append(m)
 # init by function
 m = C.addVars(m, 'F')
 m = C.initVars(m, 'F', F, ['x','y','z'])
@@ -38,8 +38,8 @@ m = C.initVars(m, 'F', F, ['x','y','z'])
 # Cree un maillage d'extraction
 ni2 = 30; nj2 = 30
 a = G.cart( (-1.,2.,0.4), (1./(ni2-1),1./(nj2-1),0.1), (ni2,nj2,2))
-as.append(a)
-C.convertArrays2File(as,"out.plt","bin_tp")
+ars.append(a)
+C.convertArrays2File(ars, "out.plt")
 #
 # Extrait la solution sur le maillage d'extraction
 ordret = [2,3,5]
@@ -55,4 +55,4 @@ for ordre in ordret :
 
 # ordre  2  =  2.6645352591e-15
 # ordre  3  =  5.09975549789e-06
-# ordre 5   =   
+# ordre 5   =  5.88661031031e-09

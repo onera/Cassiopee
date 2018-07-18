@@ -1,24 +1,13 @@
 """Toolbox for IBM preprocessing
 """
-import numpy
 import PyTree as X
-import OversetData as XOD
-import Connector
-import connector
 
 try:
     import Converter.PyTree as C
     import Generator.PyTree as G
     import Transform.PyTree as T
     import Converter.Internal as Internal
-    import Dist2Walls.PyTree as DTW
     import Post.PyTree as P
-    import Converter
-    import Generator
-    import Converter.GhostCells as CGC
-    import KCore
-    import numpy
-    import ToolboxIBM
     from ToolboxIBM import *
 except:
     raise ImportError("Connector.ToolboxIBM requires Converter, Generator, Transform, Dist2Walls and Post modules.")
@@ -26,7 +15,7 @@ except:
 varsn = ['gradxTurbulentDistance','gradyTurbulentDistance','gradzTurbulentDistance']
 TOLDIST = 1.e-14
 SHIFTF = 1.e-10
-OPTFRONT=False
+OPTFRONT = False
 EPSCART = 1.e-6
 
 #======================================================

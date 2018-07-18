@@ -2,8 +2,6 @@
 import Converter as C
 import Generator.PolyC1 as GP
 import Generator as G
-import Post as P
-import Geom as D
 import Transform as T
 
 # Read geometry from svg file
@@ -17,7 +15,7 @@ m = GP.polyC1Mesher(a, h, hp, density, splitCrit)
 for i in m[0]:
     v = G.getVolumeMap(i)
     min = C.getMinValue(v, 'vol')
-    if (min <= 0):
+    if min <= 0:
         print 'negative volume detected.'
         
 C.convertArrays2File(m[0], 'out.plt')

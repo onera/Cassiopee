@@ -2,10 +2,8 @@
 # test des types d array
 import Dist2Walls
 import Generator as G
-import Transform as T
 import KCore.test as test
 import Geom as D
-import Converter as C
 
 sphere = D.sphere((0.5,0.5,0.5),0.2,20)
 # sur une liste de zones

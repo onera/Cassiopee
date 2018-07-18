@@ -243,9 +243,6 @@ def run(t=None):
     # Place win devant les autres fenetres
     win.deiconify(); win.focus_set()
 
-    # - partial load -
-    #Panels.openLoadPanel()
-
     # - Erreur dans l'arbre -
     if errors != []:
         Panels.displayErrors(errors, header='Checking pyTree')

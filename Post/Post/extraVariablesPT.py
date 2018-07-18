@@ -217,7 +217,7 @@ def _computeWallShearStress(t):
 # Skin friction: input t must be a 2D mesh (skin)
 #==============================================================================
 def computeSkinFriction(t, centers=0, tangent=0):
-    try: import Generator.PyTree as G ; import KCore
+    try: import Generator.PyTree as G
     except: raise ImportError("computeExtraVariable: skinFriction requires Generator module.")
     t2 = Internal.copyRef(t)
     dimPb = Internal.getNodeFromName(t,'EquationDimension')

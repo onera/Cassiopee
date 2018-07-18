@@ -1,6 +1,5 @@
 # - getNearestPointIndex (array) -
 import Generator as G
-import Converter as C
 import Geom as D
 
 a = G.cart((0.,0.,0.), (0.1,0.1,0.2),(10,10,1))

@@ -13,15 +13,14 @@ def polyQuadMesher(polyQuad, h, hf, density, next):
     Usage:
     polyQuadMesher( polyQuad, h, hf, density, next)"""
     import Converter as C
-    import Transform as T
     
     polyQuad = G.close(polyQuad)
     
     addFactor = 0.2
-    if (len(polyQuad) != 4):
+    if len(polyQuad) != 4:
         raise TypeError("polyQuadMesher: requires a QUAD array.")
     else:
-        if (polyQuad[3] != 'QUAD'):
+        if polyQuad[3] != 'QUAD':
             raise TypeError("polyQuadMesher: requires a QUAD array.")
     
     f = polyQuad[1]; c = polyQuad[2]; ne = c.shape[1]
@@ -65,11 +64,11 @@ def polyQuadMesher(polyQuad, h, hf, density, next):
 
     # Detection de la densite minimum
     nk = int(h*density)+1
-    if (nk < 4):
+    if nk < 4:
         density = 4./h
         print "Warning: density changed to", density, "to have 4 points in height."
     n = int(lmax*density)+1
-    if (n < 4):
+    if n < 4:
         density = 4./lmax
         print "Warning: density changed to", density, "to have 4 points per segment",i
 

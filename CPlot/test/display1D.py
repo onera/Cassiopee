@@ -1,7 +1,6 @@
 # - display1D (array) -
 import Generator as G
 import CPlot
-import Transform as T
 import Converter as C
 import numpy
 
@@ -20,4 +19,3 @@ for i in xrange(100):
 x = numpy.linspace(0, 2*numpy.pi)
 y = numpy.sin(x)
 CPlot.display1D([x,y], slot=1, var1='x', var2='y', gridPos=(0,1), bgBlend=0.)
-

@@ -2,7 +2,6 @@
 import Converter as C
 import Generator as G
 import Transform as T
-import Post as P
 import time
 
 # Cas 1

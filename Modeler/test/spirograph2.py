@@ -1,7 +1,5 @@
 # - spirograph (array) -
 import Modeler.Models as Models
-import Converter as C
-import Transform as T
 import CPlot
 
 # k dans [0,1]: grandeur du cercle interieur

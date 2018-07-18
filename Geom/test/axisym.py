@@ -2,7 +2,6 @@
 import Generator as G
 import Converter as C
 import Geom as D
-import Transform as T
 
 # Axisym a curve
 a0 = D.line((0.5,0,0), (0.6,0,1))

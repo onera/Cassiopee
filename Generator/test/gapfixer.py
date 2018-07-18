@@ -2,10 +2,9 @@
 import Generator as G
 import Converter as C
 import Geom as D
-import numpy as np
 
 # Fix the gap inside a circle drawn on a plane
-a = D.circle( (0,0,0), 1, N=100)
+a = D.circle((0,0,0), 1, N=100)
 a = C.convertArray2Tetra(a); a = G.close(a)
 b = G.cart((-2.,-2.,0.), (0.1,0.1,1.), (50,50,1))
 a1 = G.gapfixer(a, b)

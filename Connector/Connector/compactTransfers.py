@@ -7,8 +7,6 @@ __version__ = Connector.__version__
 try:
     import Converter.Internal as Internal
     import Converter.PyTree as C
-    import Converter
-    import KCore
 except:
     raise ImportError("Connector.OversetData requires Converter module.")
 

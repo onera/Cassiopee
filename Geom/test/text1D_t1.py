@@ -1,6 +1,5 @@
 # - text1D (array) -
 import Geom as D
-import Converter as C
 import KCore.test as test
 
 # font text1

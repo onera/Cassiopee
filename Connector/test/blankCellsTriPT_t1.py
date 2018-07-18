@@ -6,10 +6,6 @@ import Geom.PyTree as D
 import Post.PyTree as P
 import KCore.test as test
 import Transform.PyTree as T
-import sys
-
-import time, datetime
-tdebut = time.time()
 
 # Test 1
 # Tet mask
@@ -109,6 +105,3 @@ C._initVars(t, 'centers:cellN', 1.)
 t = X.blankCellsTri(t, [[m]], [], blankingType="cell_intersect", tol=1.e-12)
 #C.convertPyTree2File(t, 'out6t.cgns')
 test.testT(t,6)
-
-tfin = time.time()
-print "duree : ", tfin-tdebut, "s"

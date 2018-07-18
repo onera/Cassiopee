@@ -1,6 +1,5 @@
 # - getNearestPointIndex (pyTree) -
 import Generator.PyTree as G
-import Converter.PyTree as C
 import Geom.PyTree as D
 
 a = G.cart((0.,0.,0.), (0.1,0.1,0.2),(10,10,1))
