@@ -25,5 +25,6 @@
 namespace K_RIGIDMOTION
 { 
   PyObject* move(PyObject* self, PyObject* args);
+  PyObject* moveN(PyObject* self, PyObject* args);
 }
 #endif

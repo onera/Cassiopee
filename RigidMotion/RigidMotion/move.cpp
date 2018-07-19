@@ -20,7 +20,7 @@
 # include "rigidMotion.h"
 
 using namespace K_FLD;
-
+using namespace std;
 //=============================================================================
 // Move a mesh with a defined motion
 //=============================================================================
@@ -110,4 +110,66 @@ PyObject* K_RIGIDMOTION::move(PyObject* self, PyObject* args)
                     "move: not a valid array.");
     return NULL;
   }             
+}
+//=============================================================================
+// Move coordinates defined by 3 numpys 
+//=============================================================================
+PyObject* K_RIGIDMOTION::moveN(PyObject* self, PyObject* args)
+{
+  PyObject *pyCoordsN;
+  E_Float dx, dy, dz;
+  E_Float cx, cy, cz;
+  E_Float r11, r12, r13, r21, r22, r23, r31, r32, r33;
+
+  if (!PYPARSETUPLEF(args, 
+                     "O(ddd)(ddd)ddddddddd", 
+                     "O(fff)(fff)fffffffff",
+                     &pyCoordsN,
+                     &dx, &dy, &dz,
+                     &cx, &cy, &cz,
+                     &r11, &r12, &r13,
+                     &r21, &r22, &r23,
+                     &r31, &r32, &r33)) return NULL;
+  if (PyList_Check(pyCoordsN) == 0)
+  {
+    PyErr_SetString(PyExc_TypeError,"moveN: 1st arg must be a list.");
+    return NULL;
+  }
+  int size=PyList_Size(pyCoordsN);
+  if ( size != 3)
+  {
+    PyErr_SetString(PyExc_TypeError,"moveN: 1st arg must be a list of 3 elements.");    
+    return NULL;
+  }
+  vector<FldArrayF*> coords(size);
+  vector<PyObject*> l(size);
+  for (int i = 0; i < size; i++)
+  {
+    PyObject* tpl = PyList_GetItem(pyCoordsN,i);
+    K_NUMPY::getFromNumpyArray(tpl, coords[i], true);
+    l[i]=tpl;
+  }
+  E_Float* xt = coords[0]->begin();
+  E_Float* yt = coords[1]->begin();
+  E_Float* zt = coords[2]->begin();
+
+  E_Int npts = coords[0]->getSize();
+
+#pragma omp parallel default(shared) 
+  {
+    E_Float x, y, z;
+  #pragma omp for 
+    for (E_Int ind = 0; ind < npts; ind++)
+    {
+      x = xt[ind]; y = yt[ind]; z = zt[ind];
+      xt[ind] = r11*(x-cx) + r12*(y-cy) + r13*(z-cz) + dx;
+      yt[ind] = r21*(x-cx) + r22*(y-cy) + r23*(z-cz) + dy;
+      zt[ind] = r31*(x-cx) + r32*(y-cy) + r33*(z-cz) + dz;
+    }
+  }
+
+  for (int i = 0; i < 3; i++)
+    RELEASESHAREDN(l[i], coords[i]);
+  Py_INCREF(Py_None);
+  return Py_None;
 }

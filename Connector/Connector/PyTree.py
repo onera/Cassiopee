@@ -919,7 +919,7 @@ def blankIntersectingCells(t, tol=1.e-10, depth=2):
     to the wall.
     Usage: blankIntersectingCells(t, tol, depth)"""
     a = Internal.copyRef(t)
-    a = addCellN__(a, loc='centers')
+    _addCellN__(a, loc='centers')
     coords = C.getFields(Internal.__GridCoordinates__, a)
     cellN = C.getField('centers:cellN', a)
     res = Connector.blankIntersectingCells(coords, cellN, tol)
@@ -963,7 +963,7 @@ def blankCells(t, bodies, blankingMatrix=[], depth=2,
     # ajout du celln aux centres si n'existe pas pour une zone
     loc = 'centers'
     if blankType == 0: loc = 'nodes'
-    a = addCellN__(a, loc=loc)
+    _addCellN__(a, loc=loc)
     bases = Internal.getBases(a)
     if bases == []: raise ValueError("blankCells: no basis found in input tree.")
 
@@ -1019,7 +1019,7 @@ def blankCellsTetra(t, mT4, blankingMatrix=[], blankingType='node_in',
     # ajout du celln aux centres si n'existe pas pour une zone
     loc = 'centers'
     if blankType == 0: loc = 'nodes'
-    a = addCellN__(a, loc=loc)
+    _addCellN__(a, loc=loc)
     bases = Internal.getBases(a)
     if bases == []: raise ValueError("blankCellsTetra: no basis found in input tree.")
 
@@ -1083,7 +1083,7 @@ def blankCellsTri(t, mT3, blankingMatrix=[], blankingType='node_in',
     # ajout du celln aux centres si n'existe pas pour une zone
     loc = 'centers'
     if blankType == 0: loc = 'nodes'
-    a = addCellN__(a, loc=loc)
+    _addCellN__(a, loc=loc)
     bases = Internal.getBases(a)
     if bases == []: raise ValueError("blankCellsTri: no basis found in input tree.")
 
@@ -1150,8 +1150,8 @@ def optimizeOverlap(t, double_wall=0, priorities=[], intersectionsDict=None):
     #=====================================================
     # 1-ajout du celln si n'existe pas pour une zone
     #=====================================================
-    a = addCellN__(a, loc='centers')
-    a = G.getVolumeMap(a)
+    _addCellN__(a, loc='centers')
+    G._getVolumeMap(a)
     bases = Internal.getBases(a)
     nbases = len(bases)
 
@@ -1473,7 +1473,7 @@ def _applyBCOverlapsUnstructured(z, depth, loc, val=2):
 def applyBCOverlaps(t, depth=2, loc='centers', val=2):
   a = Internal.copyRef(t)
   # ajout du celln si n'existe pas pour une zone
-  a = addCellN__(a, loc=loc)
+  _addCellN__(a, loc=loc)
   zones = Internal.getZones(a)
   for z in zones:
       dimZ = Internal.getZoneDim(z)
@@ -1578,7 +1578,7 @@ def getDoublyDefinedDonorZones__(oversetgcnode,topTreeD):
 #=============================================================================
 def setDoublyDefinedBC(t, depth=2):
     a = Internal.copyRef(t)
-    a = addCellN__(a, loc='centers')
+    _addCellN__(a, loc='centers')
     C._initVars(a,'centers:cellN_dd',1.)
     #=======================================================================
     # 2 - Recherche des periodicites :

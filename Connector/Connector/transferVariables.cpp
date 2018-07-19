@@ -27,7 +27,7 @@ using namespace K_FLD;
   RELEASESHAREDN(interpPtsCoordZ, coordZ);\
   RELEASESHAREDZ(hook, varStringD, eltTypeD);\
 
-  //=============================================================================
+//=============================================================================
 /* Recherche les donnees d interpolation et calcule les formules d interpolation
    directement pour une liste de points a partir d une zone donnee 
    Similaire a un extractMesh
@@ -168,9 +168,9 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
   E_Int typeHook = typeHookp[0];
   if  ( typeHook != 1 ) 
   {
-    RELEASEDATA;
     PyErr_SetString(PyExc_TypeError, 
                     "transferFields: 5th arg must be a hook on an ADT.");
+    RELEASEDATA;
     return NULL;
   }
   E_Int s1 = typeHookp[1];
@@ -184,14 +184,14 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
   E_Int poscd = K_ARRAY::isCellNatureField2Present(varStringD);
   if ( posxd == -1 || posyd == -1 || poszd==-1)
   {
-    RELEASEDATA;
     PyErr_SetString(PyExc_TypeError, "transferFields: no coordinates found for donor zone.");
+    RELEASEDATA;
     return NULL;
   }
   if ( poscd == -1)
   {
-    RELEASEDATA;
     PyErr_SetString(PyExc_TypeError, "transferFields: no cellN found in donor zone.");
+    RELEASEDATA;
     return NULL;
   }
   posxd++; posyd++; poszd++; poscd++;
@@ -200,7 +200,7 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
   /*---------------------------------------------------*/
   vector<E_Int> posvars0;
   vector<char*> listOfVars;
-  E_Int sizeVarString = -1;
+  E_Int lenVarString = 0;
   if (PyList_Check(pyVariables) != 0)
   {
     int nvariables = PyList_Size(pyVariables);
@@ -218,48 +218,29 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
           if (posvd != -1) 
           {
             posvars0.push_back(posvd+1);            
-            sizeVarString += strlen(varname)+1;//avec la virgule
             listOfVars.push_back(varname);
+            lenVarString += strlen(varname);
           }
         }
       }
     }
-    else//ttes les variables sont transferees sauf coords+ celln
+    else
     {
-      int nvariables = PyList_Size(pyVariables);
-      if ( nvariables > 0 )
-      {
-        for (int i = 0; i < nvariables; i++)
-        {
-          PyObject* tpl0 = PyList_GetItem(pyVariables, i);
-          if (PyString_Check(tpl0) == 0)
-            PyErr_Warn(PyExc_Warning, "transferFields: variable must be a string. Skipped.");
-          else 
-          {
-            char* varname = PyString_AsString(tpl0);        
-            E_Int posvd = K_ARRAY::isNamePresent(varname, varStringD);      
-            if (posvd != -1)
-            {
-              posvd+=1;
-              if ( posvd != posxd && posvd != posyd && posvd != poszd && posvd != poscd)
-              {
-                posvars0.push_back(posvd);            
-                sizeVarString += strlen(varname)+1;//avec la virgule
-                listOfVars.push_back(varname);
-              }
-            }
-          }
-        }
-      }    
+      PyErr_SetString(PyExc_TypeError, "transferFields: variables to be transfered is an empty list.");
+      RELEASEDATA;
+      return NULL;
     }
   }
   else
   {
-    RELEASEDATA;
     PyErr_SetString(PyExc_TypeError, "transferFields: variables to be transfered must be defined by a list.");
+    RELEASEDATA;
     return NULL;
   }
-  char* varStringOut = new char[K_ARRAY::VARNAMELENGTH];
+  E_Int nvars = listOfVars.size();
+  lenVarString += nvars+strlen("donorVol");// les virgules
+  char* varStringOut = new char[lenVarString];
+
   for (E_Int nov = 0; nov < listOfVars.size(); nov++)
   {
     char*& varname = listOfVars[nov];

@@ -735,7 +735,6 @@ PyObject* K_CONNECTOR::getInterpolatedPointsZ(PyObject* self, PyObject* args)
   E_Float* yp = fields[posy];
   E_Float* zp = fields[posz];
 
-
   for (E_Int i = 0; i < nptsTot; i++)
   {
     if ( cellNp[i]==2. )
@@ -750,6 +749,7 @@ PyObject* K_CONNECTOR::getInterpolatedPointsZ(PyObject* self, PyObject* args)
   if ( noi == 0) 
   {
     RELEASESHAREDZ(hook, varString, eltType);
+    Py_INCREF(Py_None);
     return Py_None;
   }
   indicesInterp.resize(noi);

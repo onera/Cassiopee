@@ -34,6 +34,7 @@ using namespace std;
 //=============================================================================
 PyObject* K_CONVERTER::filterPartialFields(PyObject* self, PyObject* args)
 {
+  E_Float ZEROVOL=1.e-16;
   E_Float penaltyExtrap = 1e6;
   E_Float penaltyOrphan = 1e12;
   E_Int countExtrap= 0; E_Int countOrphan = 0;
@@ -141,52 +142,52 @@ PyObject* K_CONVERTER::filterPartialFields(PyObject* self, PyObject* args)
     }
     posfD.push_back(posf+1);
   }
-
-#pragma omp parallel default(shared)
-  {
-  for (E_Int eq = 0; eq < ncommonfields; eq++)
-  {
-    E_Int posZ = posvZ[eq]; 
-    E_Float* fZ = fieldsZ[posZ-1];
-    E_Int posD = posvD[eq];
 #pragma omp for
-    for (E_Int i = 0; i < nPts; i++)
+  for (E_Int i = 0; i < nPts; i++)
+  {
+    E_Float filterMax = K_CONST::E_MAX_FLOAT;
+    E_Int bestDnr=-1;
+    for (E_Int nozD=0; nozD < nzonesD; nozD++)
     {
-      E_Float filterMax = K_CONST::E_MAX_FLOAT;
-      E_Float fVal = 0.;
-      for (E_Int nozD=0; nozD < nzonesD; nozD++)
+      E_Int posf = posfD[nozD];//demarre a 1
+      E_Float* ptrFilter = fieldsD[nozD]->begin(posf);
+      E_Float filterVal = ptrFilter[i];
+      if (filterVal < filterMax && filterVal> ZEROVOL)
       {
-        E_Int posf = posfD[nozD];//demarre a 1
-        E_Float* ptrFilter = fieldsD[nozD]->begin(posf);
-        E_Float filterVal = ptrFilter[i];
-        E_Float* ptrFieldD = fieldsD[nozD]->begin(posD);
-        if (filterVal < filterMax)
+        filterMax = filterVal;
+        bestDnr=nozD;
+      }
+    }
+    if ( filterMax >= penaltyOrphan ) countOrphan++;
+    else
+    {
+      if ( filterMax >= penaltyExtrap) {
+        countExtrap++;}
+      if ( bestDnr>-1)
+      {
+        E_Int ind = indices[i]-startFrom;
+
+        for (E_Int eq = 0; eq < ncommonfields; eq++)
         {
-          filterMax = filterVal;
-          fVal = ptrFieldD[i];
+          E_Int posZ = posvZ[eq]; 
+          E_Float* fZ = fieldsZ[posZ-1];
+          E_Int posD = posvD[eq]; 
+          E_Float* ptrFieldD = fieldsD[bestDnr]->begin(posD);          
+          fZ[ind] = ptrFieldD[i];
         }
-      }
-      E_Int ind = indices[i]-startFrom;
-      if ( filterMax >= penaltyOrphan )
-      {
-        countOrphan++;
-      }
-      else
-      {
-        if ( filterMax >= penaltyExtrap) countExtrap++;
-        fZ[ind] = fVal;
       }
     }
   }
+
+  if (countExtrap>0 || countOrphan>0)
+  {
+    E_Int countInterp = nPts-countOrphan-countExtrap;
+    PyObject* v = PyList_GetItem(zone, 0);
+    char* zname =  PyString_AsString(v);
+    printf("Zone %s : interpolated=%d; extrapolated=%d; orphans=%d.\n",zname, countInterp, countExtrap, countOrphan);
+    if ( countOrphan>0)
+      printf("WARNING: Zone %s has %d orphan points.\n",zname,countOrphan);
   }
-  E_Int countInterp = nPts-countOrphan-countExtrap;
-  PyObject* v = PyList_GetItem(zone, 0);
-  char* zname =  PyString_AsString(v);
-  printf("Zone %s : interpolated=%d; extrapolated=%d; orphans=%d.\n",zname, countInterp, countExtrap, countOrphan);
-
-  if ( countOrphan>0)
-    printf("WARNING: Zone %s has %d orphan points.\n",zname,countOrphan);
-
   for (E_Int no = 0; no < nzonesD; no++)
     RELEASESHAREDA(resD[no],objsD[no],fieldsD[no],a2[no],a3[no],a4[no]); 
   RELEASESHAREDN(listIndicesO, listIndices);
