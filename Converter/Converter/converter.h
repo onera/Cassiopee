@@ -145,6 +145,7 @@ namespace K_CONVERTER
   // Extraction d'infos pour les raccords match 
   PyObject* extractBCMatch(PyObject* self, PyObject* args);
   PyObject* extractBCFields(PyObject* self, PyObject* args);
+  PyObject* buildBCMatchField(PyObject* self, PyObject* args);
   PyObject* range2PointList(PyObject* self, PyObject* args);
 
   // addGhostCells NGON
@@ -211,5 +212,9 @@ namespace K_CONVERTER
   void splitElementConnectivity(PyObject* zone, E_Int* npoint,E_Int* nodmtch,E_Int* kpoinmtch);
   void getVarBC(PyObject* zone, E_Float* Var_l, E_Int *ielmtmtch2, E_Int* nlimt);
   void scanBC(PyObject* zone, E_Int *nlimt);
+
+  // Find cell index from a boundary face index (valid only for domain boundaries)
+  void indface2index(E_Int indface, E_Int ni, E_Int nj, E_Int nk, E_Int& ind);
+
 }
 #endif

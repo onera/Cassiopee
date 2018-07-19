@@ -141,6 +141,27 @@ def testF(infile, number=1):
             return False
         else: return True
 
+def checkObject_(a, b, reference):
+    if type(a) != type(b):
+        print "DIFF: object type differs from "+reference+'.'
+        return False
+    if isinstance(a, numpy.ndarray): # array
+        if a.shape != b.shape:
+            print "DIFF: object shape differs from "+reference+'.'
+            return False
+        diff = numpy.abs(a-b)
+        diff = (diff < 1.e-11)
+        if diff.all() != True:
+            print "DIFF: object value differs from "+reference+'.'
+            return False
+    elif isinstance(a, list):
+        for i, v in enumerate(a):
+            checkObject_(v, b[i], reference)
+    else:
+        if a != b:
+            print "DIFF: object value differs from "+reference+'.'
+    return True
+
 #=============================================================================
 # Verifie que l'objet python est identique a celui stocke dans le
 # fichier de reference
@@ -243,19 +264,13 @@ def testO(objet, number=1):
         elif isinstance(a, dict):
             for k in a.keys():
                 v1 = a[k]
-                try:
-                    v2 = objet[k]
-                    if isinstance(v2, numpy.ndarray):
-                        if v1.all() != v2.all():
-                            print "DIFF: object value differs from %s (%g)."%(v1, v2)
-                            return False
-                    else:
-                        if v1 != v2:
-                            print "DIFF: object value differs from %s (%s)."%(v1, v2)
-                            return False
-                except:
-                    print "DIFF: no key %s in dictionary."%k
-                    return False
+                # try:
+                v2 = objet[k]
+                ret = checkObject_(v1, v2, reference)
+                if ret == False: return False
+                # except:
+                    # print "DIFF: no key %s in dictionary."%k
+                    # return False
         elif a != objet:                    # autre objet
             print "DIFF: object differs from "+reference+'.'
             return False

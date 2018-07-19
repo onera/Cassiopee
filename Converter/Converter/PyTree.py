@@ -4888,15 +4888,107 @@ def getBCs(t):
 
   return (BCs, BCNames, BCTypes)
 
+
+
+def extractAllBCMatch(t,varList):
+# Extract fields on all match connectivities 
+  zones    = Internal.getZones(t)
+  allMatch = {}
+
+  for z in zones:
+      dim = Internal.getZoneDim(z)
+      gcs = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
+
+      for gc in gcs:
+          zname  = Internal.getValue(gc)
+          zdonor = Internal.getNodeFromName(t,zname)
+
+          # Extraction BCMatch pour la zone donneuse
+          [indR,fldD]  = extractBCMatch(zdonor,gc,dim,varList)
+
+          key           = z[0]+"/"+gc[0]
+          allMatch[key] = [indR,fldD]
+
+  return allMatch
+
+
+
+def computeBCMatchField(z,allMatch,variables=None):
+
+  # Fields array in receiver zone (z)
+  # =================================
+  fields = []
+  dim    = Internal.getZoneDim(z)
+
+  if variables is not None:
+
+      if not isinstance(variables, list):
+          varList = [variables]
+      else:
+          varList = variables 
+
+      for var in varList:
+
+          # on verifie qu'on cherche des variables aux centres
+          spl = var.split(':') 
+          if len(spl) != 1: 
+              if spl[0] != 'centers':
+                  raise TypeError("computeBCMatchField: expected variables at centers location.")
+          else:
+              var = 'centers:'+var 
+
+          fld = getField(var,z)[0]
+          if fld != []:
+              fields.append(fld)
+
+      if fields != [] :
+          fields = Internal.convertDataNodes2Array2(fields, dim, connects=[], loc=1)
+  else:
+      fields = getAllFields(z, 'centers')[0]
+
+  if fields == []:
+    raise ValueError("computeBCMatchField: Variable not found.", varList)
+
+  # Fields array in zdonor (stored in allMatch)
+  # ===========================================
+  dim  = Internal.getZoneDim(z)
+  ni   = dim[1]-1
+  nj   = dim[2]-1
+  nk   = dim[3]-1
+
+  fld  = None
+
+  for key in allMatch.keys():
+    if ( key.split("/")[0] == z[0] ):
+      [indR1,fldD] = allMatch[key] 
+      
+      fld1 = Converter.converter.buildBCMatchField(fields,indR1,fldD)
+
+      if fld is not None:
+        fld.append(fld1)
+        indR = numpy.concatenate((indR,indR1)) 
+      else:
+        fld  = [fld1]
+        indR = indR1
+
+  return indR, fld 
+
 # ===================================================================================
 # Extraction des champs sur les raccords de type match 
 # Le champs en centre est extrapole sur les centres des faces 
+# IN
+# ===
 # zdonor  : zone donneuse 
 # gc      : GridConnectivity_t de la zone receveuse > indique le raccord  extraire
 # dimzR   : dimensions de la zone receveuse (pour construire le tab d'indirection)
 # varList : liste des variables a extraire (champs en centres)
+# OUT 
+# ===
+# indFaceD : indices des faces de la frontiere dans la zone donneuse
+# indFaceR : indices des faces de la frontiere dans la zone receveuse 
+# fldFace  : champ de la zone donneuse extrapole sur les faces frontieres 
 
-def extractBCMatch(zdonor,gc,dimzR,varList=None):
+def extractBCMatch(zdonor,gc,dimzR,variables=None):
 
     # On verifie que gc donne le raccord dans zdonor 
     # ==============================================
@@ -4907,8 +4999,15 @@ def extractBCMatch(zdonor,gc,dimzR,varList=None):
 
     # Tableau des champs a extraire
     # =============================
-    fields = []
-    if varList is not None:
+    fields = []  
+
+    if variables is not None:
+
+        if not isinstance(variables, list):
+             varList = [variables]
+        else:
+             varList = variables
+
         for var in varList:
 
             # on verifie qu'on cherche des variables aux centres
@@ -4918,12 +5017,18 @@ def extractBCMatch(zdonor,gc,dimzR,varList=None):
                     raise TypeError("extractBCMatch: expected variables at centers location.")
             else:
                 var = 'centers:'+var 
-            fields.append(getField(var,zdonor)[0])
+
+            fld = getField(var,zdonor)[0]
+            if fld != []:
+                fields.append(fld)
 
         if fields != [] :
             fields = Internal.convertDataNodes2Array2(fields, dim, connects=[], loc=1)
     else:
         fields = getAllFields(zdonor, 'centers')[0]
+
+    if fields == []:
+        raise ValueError("extractBCMatch: Variable not found.", varList)
 
     # Infos raccord 
     # =============
@@ -4955,10 +5060,10 @@ def extractBCMatch(zdonor,gc,dimzR,varList=None):
     else:
         t3 = 0 
 
-    [indFace,fldFace]  = Converter.converter.extractBCMatch(fields,(iminD,jminD,kminD,imaxD,jmaxD,kmaxD),
-                                                                   (iminR,jminR,kminR,imaxR,jmaxR,kmaxR),
-                                                                   (niR,njR,nkR),(t1,t2,t3)) 
-    return [indFace,fldFace]
+    [indR,fldD]  = Converter.converter.extractBCMatch(fields,(iminD,jminD,kminD,imaxD,jmaxD,kmaxD),
+                                                             (iminR,jminR,kminR,imaxR,jmaxR,kmaxR),
+                                                             (niR,njR,nkR),(t1,t2,t3)) 
+    return [indR,fldD]
 
 # ===================================================================================
 
