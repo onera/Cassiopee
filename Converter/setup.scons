@@ -51,7 +51,7 @@ if hdf:
 if png:
     libraryDirs.append(pngLibDir)
     includeDirs.append(pngIncDir)
-ADDITIONALCPPFLAGS = ['-g', '-O0']
+ADDITIONALCPPFLAGS = []
 if mpi and mpi4py:
     libraryDirs.append(mpiLibDir)
     includeDirs.append(mpiIncDir)

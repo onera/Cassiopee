@@ -155,12 +155,15 @@ def convertPyTree2ZoneNames(t):
 # -- getStdNodesFromName. Applique uniquement sur une zone.
 # Retourne les noeuds des champs de nom 'name' dans les conteneurs standards
 # Accepte les variables 'centers:var', les noms de containers (GridCoordinates)
+# ou les noms Container/name
 # Si pas trouve, retourne []
 def getStdNodesFromName(z, name):
   loc = '*'
   v = name.split(':')
   if len(v) > 1: var = v[1]; loc = v[0]
   else: var = v[0]
+  v = name.split('/')
+  if len(v) > 1: var = v[1]; loc = v[0]
   result = []
   if loc == 'nodes' or loc == '*':
     node = Internal.getNodeFromName1(z, Internal.__GridCoordinates__)
@@ -177,6 +180,11 @@ def getStdNodesFromName(z, name):
     node = Internal.getNodeFromName1(z, Internal.__FlowSolutionCenters__)
     if node is not None:
       if name == Internal.__FlowSolutionCenters__: result.append(node)
+      for j in node[2]:
+        if j[0] == var: result.append(j); break
+  if loc != 'nodes' and loc != 'centers': # given container name
+    node = Internal.getNodeFromName1(z, loc)
+    if node is not None:
       for j in node[2]:
         if j[0] == var: result.append(j); break
   return result

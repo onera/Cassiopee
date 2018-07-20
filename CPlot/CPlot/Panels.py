@@ -1111,5 +1111,5 @@ def openLoadPanel():
 
     else:
         # trick pour avoir la fenetre au premier plan
-        LOADPANEL.withdraw(); LOADPANEL.deiconify(); LOADPANEL.focus_setPREF()
+        LOADPANEL.withdraw(); LOADPANEL.deiconify(); LOADPANEL.focus_set()
     #updateLoadPanel()

@@ -218,7 +218,7 @@ def testO(objet, number=1):
             else: return True
         elif isinstance(a, list):        # liste
             for i in xrange(len(a)):
-                if (type(a[i]) != type(objet[i])):
+                if type(a[i]) != type(objet[i]):
                     print "DIFF: object type differs from "+reference+'.'
                     return False
                 if isinstance(a[i], numpy.ndarray):   # liste d'array

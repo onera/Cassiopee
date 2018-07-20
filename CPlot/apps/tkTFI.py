@@ -66,7 +66,7 @@ def TFI():
         noz = CTK.Nz[nz]
         z = CTK.t[2][nob][2][noz]
         dim = Internal.getZoneDim(z)
-        if (dim[3] == 'BAR'):
+        if dim[3] == 'BAR':
             zp = C.convertBAR2Struct(z); zones.append(zp)
         else: zones.append(z)
 
@@ -113,7 +113,7 @@ def trimesh(a1, a2, a3):
 def mono2mesh(a1, a2):
     N1 = a1[2]; N2 = a2[2]
     diff = N2-N1
-    if (diff/2 != diff*0.5): return ['N1-N2 must be even.']
+    if diff/2 != diff*0.5: return ['N1-N2 must be even.']
     return TFIs.TFIMono(a1, a2)
 
 #==============================================================================
@@ -146,12 +146,12 @@ def quality(meshes):
 
 #==============================================================================
 def OTFI():
-    if (CTK.t == []): return
-    if (CTK.__MAINTREE__ <= 0):
+    if CTK.t == []: return
+    if CTK.__MAINTREE__ <= 0:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     nzs = CPlot.getSelectedZones()
-    if (len(nzs) == 0):
+    if len(nzs) == 0:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     surf = getSurfaces()
@@ -170,7 +170,7 @@ def OTFI():
 
     # Nombre de pts
     Nt = Internal.getZoneDim(a)[1]
-    if (Nt/2 - Nt*0.5 == 0):
+    if Nt/2 - Nt*0.5 == 0:
         CTK.TXT.insert('START', 'Number of points of countour must be odd.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
@@ -196,7 +196,7 @@ def OTFI():
     m3 = C.convertArrays2ZoneNode('TFI4', [m3])
     m4 = C.convertArrays2ZoneNode('TFI5', [m4])
 
-    if (surf != []):
+    if surf != []:
         m = T.projectOrtho(m, surf)
         m1 = T.projectOrthoSmooth(m1, surf)
         m2 = T.projectOrthoSmooth(m2, surf)
@@ -217,12 +217,12 @@ def OTFI():
 
 #==============================================================================
 def HOTFI():
-    if (CTK.t == []): return
-    if (CTK.__MAINTREE__ <= 0):
+    if CTK.t == []: return
+    if CTK.__MAINTREE__ <= 0:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     nzs = CPlot.getSelectedZones()
-    if (len(nzs) == 0):
+    if len(nzs) == 0:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     surf = getSurfaces()
@@ -235,7 +235,7 @@ def HOTFI():
         z = C.convertBAR2Struct(z)
         zones.append(z)
 
-    if (len(zones) != 2):
+    if len(zones) != 2:
         CTK.TXT.insert('START', 'HO TFI takes 2 contours.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
@@ -244,10 +244,10 @@ def HOTFI():
     # Nombre de pts (tous les 2 pairs ou tous les 2 impairs)
     Nt1 = Internal.getZoneDim(zones[0])[1]  
     Nt2 = Internal.getZoneDim(zones[1])[1]
-    if (Nt1/2 - Nt1*0.5 == 0 and Nt2/2 - Nt2*0.5 != 0):
+    if Nt1/2 - Nt1*0.5 == 0 and Nt2/2 - Nt2*0.5 != 0:
         CTK.TXT.insert('START', 'Number of points of countours must be all odd or all even.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-    if (Nt1/2 - Nt1*0.5 != 0 and Nt2/2 - Nt2*0.5 == 0):
+    if Nt1/2 - Nt1*0.5 != 0 and Nt2/2 - Nt2*0.5 == 0:
         CTK.TXT.insert('START', 'Number of points of countours must be all odd or all even.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
@@ -272,7 +272,7 @@ def HOTFI():
     m2 = C.convertArrays2ZoneNode('TFI3', [m2])
     m3 = C.convertArrays2ZoneNode('TFI4', [m3])
 
-    if (surf != []):
+    if surf != []:
         m = T.projectOrthoSmooth(m, surf)
         m1 = T.projectOrthoSmooth(m1, surf)
         m2 = T.projectOrthoSmooth(m2, surf)
@@ -292,12 +292,12 @@ def HOTFI():
     
 #==============================================================================
 def TRITFI():
-    if (CTK.t == []): return
-    if (CTK.__MAINTREE__ <= 0):
+    if CTK.t == []: return
+    if CTK.__MAINTREE__ <= 0:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     nzs = CPlot.getSelectedZones()
-    if (len(nzs) == 0):
+    if len(nzs) == 0:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     surf = getSurfaces()
@@ -310,7 +310,7 @@ def TRITFI():
         z = C.convertBAR2Struct(z)
         zones.append(z)
 
-    if (len(zones) != 3):
+    if len(zones) != 3:
         CTK.TXT.insert('START', 'TRI TFI takes 3 contours.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
@@ -327,7 +327,7 @@ def TRITFI():
     m2 = C.convertArrays2ZoneNode('TFI2', [m2])
     m3 = C.convertArrays2ZoneNode('TFI3', [m3])
 
-    if (surf != []):
+    if surf != []:
         m1 = T.projectOrthoSmooth(m1, surf)
         m2 = T.projectOrthoSmooth(m2, surf)
         m3 = T.projectOrthoSmooth(m3, surf)
@@ -346,12 +346,12 @@ def TRITFI():
 
 #==============================================================================
 def MONO2TFI():
-    if (CTK.t == []): return
-    if (CTK.__MAINTREE__ <= 0):
+    if CTK.t == []: return
+    if CTK.__MAINTREE__ <= 0:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     nzs = CPlot.getSelectedZones()
-    if (len(nzs) == 0):
+    if len(nzs) == 0:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     surf = getSurfaces()
@@ -364,7 +364,7 @@ def MONO2TFI():
         z = C.convertBAR2Struct(z)
         zones.append(z)
 
-    if (len(zones) != 2):
+    if len(zones) != 2:
         CTK.TXT.insert('START', 'MONO2 TFI takes 2 contours.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
@@ -377,7 +377,7 @@ def MONO2TFI():
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
         
     m = C.convertArrays2ZoneNode('TFI', [m])
-    if (surf != []): m = T.projectOrthoSmooth(m, surf)
+    if surf != []: m = T.projectOrthoSmooth(m, surf)
 
     CTK.saveTree()
     CTK.t = C.addBase2PyTree(CTK.t, 'MESHES')
@@ -478,7 +478,7 @@ def displayFrameMenu(event=None):
 #==============================================================================
 if (__name__ == "__main__"):
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

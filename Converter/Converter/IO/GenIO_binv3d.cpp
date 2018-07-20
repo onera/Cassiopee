@@ -408,7 +408,8 @@ E_Int K_IO::GenIO::v3dwrite(
   E_Int nvar = field[0]->getNfld();
 
   // Construction de la liste des variables
-  typedef char fixStr[21];
+#define VARLENGTH 20
+  typedef char fixStr[VARLENGTH+1];
   fixStr* vars = new fixStr[nvar];
   fixStr temp;
 
@@ -416,7 +417,7 @@ E_Int K_IO::GenIO::v3dwrite(
 
   // Analyse la varString pour construire une chaine par variable.
   c = 0; n = 0; l = 0;
-  while (varString[c] != '\0')
+  while (varString[c] != '\0' && c < VARLENGTH)
   {
     if (varString[c] == ',')
     {
@@ -463,7 +464,7 @@ E_Int K_IO::GenIO::v3dwrite(
       vars[i][4] = '\0'; strcat(vars[i], temp);
     }
     l = strlen(vars[i]);
-    for (c = l; c < 20; c++) vars[i][c] = ' ';
+    for (c = l; c < VARLENGTH; c++) vars[i][c] = ' ';
     vars[i][20] = '\0';
   }
 
