@@ -942,7 +942,7 @@ class color_dialogWindow(TK.Toplevel):
         self.geometry('%dx%d%+d%+d'%(375,375,x,y))
         self.parent = parent
         self.title('Select color')
-        self.protocol("WM_DELETE_WINDOW",self.cmd_close)
+        #self.protocol("WM_DELETE_WINDOW",self.cmd_close)
         self.extra_data = extra_data
         #
         self.parent = parent
@@ -1005,7 +1005,6 @@ class editAxisWindow(TK.Toplevel):
         #
         self.grid_columnconfigure(0,weight=1)
         self.grid_rowconfigure(0,weight=1)
-
         #
         self.createFrame()
     # -------------------------------------------------------------- createFrame
@@ -3221,7 +3220,7 @@ class input_dialogSelectZoneWindow(TK.Toplevel):
         TK.Toplevel.__init__(self)
         (x,y) = self.winfo_pointerxy()
         self.geometry('+%s+%s'%(x,y))
-        self.protocol("WM_DELETE_WINDOW",self.cmd_close)
+        #self.protocol("WM_DELETE_WINDOW",self.cmd_close)
     # --------------------------------------------------------------- initialize
     def initialize(self,parent,B):
         self.B = B
@@ -3467,7 +3466,7 @@ class inputPattern_dialogWindow(TK.Toplevel):
         (x,y) = self.winfo_pointerxy()
         self.pattern = pattern
         self.geometry('+%s+%s'%(x,y))
-        self.protocol("WM_DELETE_WINDOW",self.cmd_close)
+        #self.protocol("WM_DELETE_WINDOW",self.cmd_close)
     # --------------------------------------------------------------- initialize
     def initialize(self,parent,B):
         self.B = B
@@ -3524,7 +3523,7 @@ class inputFloat_dialogWindow(TK.Toplevel):
         TK.Toplevel.__init__(self)
         (x,y) = self.winfo_pointerxy()
         self.geometry('+%s+%s'%(x,y))
-        self.protocol("WM_DELETE_WINDOW",self.cmd_close)
+        #self.protocol("WM_DELETE_WINDOW",self.cmd_close)
     # --------------------------------------------------------------- initialize
     def initialize(self,parent,B):
         self.B = B
@@ -3582,7 +3581,7 @@ class input_dialogStringWindow(TK.Toplevel):
         TK.Toplevel.__init__(self)
         (x,y) = self.winfo_pointerxy()
         self.geometry('+%s+%s'%(x,y))
-        self.protocol("WM_DELETE_WINDOW",self.cmd_close)
+        #self.protocol("WM_DELETE_WINDOW",self.cmd_close)
     # --------------------------------------------------------------- initialize
     def initialize(self,parent,B):
         self.B = B
@@ -3638,7 +3637,7 @@ class input_dialogWindow(TK.Toplevel):
         TK.Toplevel.__init__(self)
         (x,y) = self.winfo_pointerxy()
         self.geometry('+%s+%s'%(x,y))
-        self.protocol("WM_DELETE_WINDOW",self.cmd_close)
+        #self.protocol("WM_DELETE_WINDOW",self.cmd_close)
     # --------------------------------------------------------------- initialize
     def initialize(self,parent,B):
         self.B = B
@@ -3694,7 +3693,7 @@ class list_dialogWindow(TK.Toplevel):
         TK.Toplevel.__init__(self)
         (x,y) = self.winfo_pointerxy()
         self.geometry('+%s+%s'%(x,y))
-        self.protocol("WM_DELETE_WINDOW", self.cmd_close)
+        #self.protocol("WM_DELETE_WINDOW", self.cmd_close)
     # --------------------------------------------------------------- initialize
     def initialize(self,parent,B):
         self.optionList = B.list

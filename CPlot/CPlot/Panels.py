@@ -323,6 +323,10 @@ def _destroyErrorWindow(event):
 def displayErrors(errors, header=''):
     if len(errors) == 0: return
     global ERRORWINDOW
+    if ERRORWINDOW is not None:
+        try: ERRORWINDOW.withdraw()
+        except: ERRORWINDOW = None
+
     if ERRORWINDOW is None:
         ERRORWINDOW = TK.Toplevel()
         ERRORWINDOW.columnconfigure(0, weight=1)
@@ -332,8 +336,8 @@ def displayErrors(errors, header=''):
         xpos = ERRORWINDOW.master.winfo_rootx()+45
         ypos = ERRORWINDOW.master.winfo_rooty()+45
         ERRORWINDOW.geometry("%+d%+d" % (xpos, ypos))
-        ERRORWINDOW.protocol("WM_DELETE_WINDOW", _deleteErrorWindow)
-        ERRORWINDOW.bind("<Destroy>", _destroyErrorWindow)
+        #ERRORWINDOW.protocol("WM_DELETE_WINDOW", _deleteErrorWindow)
+        #ERRORWINDOW.bind("<Destroy>", _destroyErrorWindow)
         scrollbar = TK.Scrollbar(ERRORWINDOW, orient=TK.VERTICAL, width=10)
         scrollbar.grid(sticky=TK.NSEW, row=0, column=1)
         myText = TK.Text(ERRORWINDOW, yscrollcommand=scrollbar.set,
@@ -481,6 +485,10 @@ def sendBug(event=None):
 
 def openMailWindow():
     global mailData
+    if mailData.has_key('mailWindow'):
+        try: mailData['mailWindow'].withdraw()
+        except: mailData.pop('mailWindow')
+    
     if not mailData.has_key('mailWindow'):
         MAILWINDOW = TK.Toplevel()
         mailData['mailWindow'] = MAILWINDOW
@@ -497,8 +505,8 @@ def openMailWindow():
         xpos = MAILWINDOW.master.winfo_rootx()+45
         ypos = MAILWINDOW.master.winfo_rooty()+45
         MAILWINDOW.geometry("%+d%+d" % (xpos, ypos))
-        MAILWINDOW.protocol("WM_DELETE_WINDOW", cancelMail)
-        MAILWINDOW.bind("<Destroy>", destroyMailWindow)
+        #MAILWINDOW.protocol("WM_DELETE_WINDOW", cancelMail)
+        #MAILWINDOW.bind("<Destroy>", destroyMailWindow)
         B = TK.Label(MAILWINDOW, text="From:")
         B.grid(row=0, column=0, sticky=TK.EW)
         B = TK.Text(MAILWINDOW, width=40, height=1, background='White')
@@ -673,6 +681,9 @@ def openDocFile(event=None):
 
 def openDocWindow():
     global docData
+    if docData.has_key('docWindow'):
+        try: docData['docWindow'].withdraw()
+        except: docData.pop('docWindow')
     if not docData.has_key('docWindow'):
         DOCWINDOW = TK.Toplevel()
         docData['docWindow'] = DOCWINDOW
@@ -687,8 +698,8 @@ def openDocWindow():
         xpos = DOCWINDOW.master.winfo_rootx()+45
         ypos = DOCWINDOW.master.winfo_rooty()+45
         DOCWINDOW.geometry("%+d%+d" % (xpos, ypos))
-        DOCWINDOW.protocol("WM_DELETE_WINDOW", cancelDocument)
-        DOCWINDOW.bind("<Destroy>", destroyDocumentWindow)
+        #DOCWINDOW.protocol("WM_DELETE_WINDOW", cancelDocument)
+        #DOCWINDOW.bind("<Destroy>", destroyDocumentWindow)
         B = TK.Button(DOCWINDOW, text="File:", command=openDocFile)
         B.grid(row=0, column=0, sticky=TK.EW)
         B = TK.Text(DOCWINDOW, width=40, height=1, background='White')
@@ -832,7 +843,7 @@ def getSelection(event=None):
 def updateVarNameList(event=None):
     if CTK.t == []: return
     nzs = CPlot.getSelectedZones()
-    if (CTK.__MAINTREE__ == 0 or nzs == []):
+    if CTK.__MAINTREE__ == 0 or nzs == []:
         vars = C.getVarNames(CTK.t, excludeXYZ=True)
     else:
         nob = CTK.Nb[0]+1
@@ -953,6 +964,9 @@ def setShaderParameter2(event=None):
 
 def openRenderPanel():
     global RENDERPANEL
+    if RENDERPANEL is not None:
+        try: RENDERPANEL.withdraw()
+        except: RENDERPANEL = None
     if RENDERPANEL is None:
         RENDERPANEL = TK.Toplevel(CTK.WIDGETS['masterWin'])
         RENDERPANEL.option_add('*Font', CTK.FIXEDFONT)
@@ -963,8 +977,8 @@ def openRenderPanel():
         xpos = RENDERPANEL.master.winfo_rootx()+45
         ypos = RENDERPANEL.master.winfo_rooty()+45
         RENDERPANEL.geometry("%+d%+d" % (xpos, ypos))
-        RENDERPANEL.protocol("WM_DELETE_WINDOW", _deleteRenderWindow)
-        RENDERPANEL.bind("<Destroy>", _destroyRenderWindow)
+        #RENDERPANEL.protocol("WM_DELETE_WINDOW", _deleteRenderWindow)
+        #RENDERPANEL.bind("<Destroy>", _destroyRenderWindow)
         scrollbar = TK.Scrollbar(RENDERPANEL, orient=TK.VERTICAL, width=10)
         scrollbar.grid(sticky=TK.NSEW, row=1, column=1)
         myList = TK.Listbox(RENDERPANEL, selectmode=TK.EXTENDED,
