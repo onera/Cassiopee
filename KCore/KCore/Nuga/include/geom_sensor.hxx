@@ -18,7 +18,7 @@
 using ngon_type = ngon_t<K_FLD::IntArray>; 
 
 //#define NB_PTS_TO_INCR(nb_pts) (nb_pts/4)
-#define NB_PTS_TO_INCR(nb_pts) ((nb_pts > 0 ) ? nb_pts -1 : 0)
+//#define NB_PTS_TO_INCR(nb_pts) ((nb_pts > 0 ) ? nb_pts -1 : 0) // static_sensor : n-1 subdivision where n is the number of source pts in a cell
 
 namespace NUGA
 {
@@ -26,20 +26,22 @@ namespace NUGA
 /// Octal geometric sensor
 template <typename mesh_t, typename crd_t = K_FLD::FloatArray> //ngu for surfacic (PGs) or ngon_t for volumic
 class geom_sensor
-{      
+{
   public:
     
     using data_type = crd_t; //point cloud
     
-    geom_sensor(mesh_t& mesh):_hmesh(mesh), _is_init(false), _continue(true){}
+    geom_sensor(mesh_t& mesh, E_Int max_pts_per_cell = 1):_hmesh(mesh), _is_init(false), _refine(true), _agglo(true), _has_agglo(false), _max_pts_per_cell(max_pts_per_cell){}
     
     E_Int init(data_type& data);
     
-    bool compute(data_type& data, Vector_t<E_Int>& adap_incr);
+    bool compute(data_type& data, Vector_t<E_Int>& adap_incr, bool do_agglo);
+
+    void fill_adap_incr(Vector_t<E_Int>& adap_incr, bool do_agglo);
     
     void locate_points(K_SEARCH::BbTree3D& tree, data_type& data);
     
-    E_Int get_highest_lvl_cell(E_Float* p, E_Int& PHi, E_Bool exit);
+    E_Int get_highest_lvl_cell(E_Float* p, E_Int& PHi);
     
     E_Int get_higher_lvl_cell(E_Float* p, E_Int PHi);
     
@@ -49,27 +51,88 @@ class geom_sensor
     mesh_t& _hmesh;
     bool _is_init;
     Vector_t<E_Int> _points_to_cell;
-    bool _continue;
+    bool _refine; // continue the adaptation
+    bool _has_agglo; // one cell might be able to be agglomerated
+    bool _agglo; // we have at least 1 agglomeration
+    E_Int _max_pts_per_cell;
 };
 
 /// 
 template <typename mesh_t, typename crd_t>
 E_Int geom_sensor<mesh_t, crd_t>::init(data_type& data)
 { 
+  _points_to_cell.clear();
   
-  {// brackets to kill the tree asap
-    K_SEARCH::BbTree3D tree(_hmesh._crd, _hmesh._ng);
+  K_SEARCH::BbTree3D tree(_hmesh._crd, _hmesh._ng);
   
-    // Count the number of points per cell
-    locate_points(tree, data);
-  }
+  // Count the number of data per cell
+  locate_points(tree, data);
   
   return 0;
 }
 
 ///
 template <typename mesh_t, typename crd_t>
-bool geom_sensor<mesh_t, crd_t>::compute(data_type& data, Vector_t<E_Int>& adap_incr)
+void geom_sensor<mesh_t, crd_t>::fill_adap_incr(std::vector<E_Int>& adap_incr, bool do_agglo)
+{
+    E_Int nb_elts = _hmesh._ng.PHs.size();
+    E_Int nb_pts = _points_to_cell.size();
+    //points_to_cell gives the number of points per cell
+    Vector_t<E_Int> nb_pts_per_cell(nb_elts,0);
+    
+    for (int i = 0; i < nb_pts; ++i)
+    {
+        E_Int PHi = _points_to_cell[i];
+        if (PHi != E_IDX_NONE)
+            nb_pts_per_cell[PHi] += 1;
+    }
+    
+    //adap_incr
+    adap_incr.clear();
+    adap_incr.resize(nb_elts, 0);
+    
+    for (int i = 0; i < nb_elts; ++i)
+    {
+      if ( (nb_pts_per_cell[i] >= _max_pts_per_cell + 1) && (_hmesh._tree._PHtree.is_enabled(i)))
+      {
+        adap_incr[i] = 1;
+        _refine = true;
+      }
+    }
+    
+    if (do_agglo)
+    {
+        for (int i = 0; i < nb_elts; ++i)
+        {
+            if ( (_hmesh._tree._PHtree.get_level(i) > 0) && (_hmesh._tree._PHtree.is_enabled(i)) )
+            {
+                if (adap_incr[i] == -1) continue;
+                
+                E_Int father = _hmesh._tree._PHtree.parent(i);
+                E_Int* p = _hmesh._tree._PHtree.children(father);
+                E_Int nb_children = _hmesh._tree._PHtree.nb_children(father);
+                E_Int sum = 0;
+                
+                for (int k = 0; k < nb_children; ++k)
+                {
+                    sum += nb_pts_per_cell[p[k]];
+                    if (!_hmesh._tree._PHtree.is_enabled(p[k])) sum = _max_pts_per_cell + 1;
+                    if (sum > _max_pts_per_cell) break;
+                }
+                if (sum <= _max_pts_per_cell)
+                {
+                    for (int k = 0; k < nb_children; ++k)
+                        adap_incr[p[k]] = -1;
+                    _has_agglo = true;
+                }
+            }
+        }
+    }
+}
+
+/// 
+template <typename mesh_t, typename crd_t>
+bool geom_sensor<mesh_t, crd_t>::compute(data_type& data, Vector_t<E_Int>& adap_incr, bool do_agglo)
 {
   using ELT_t = typename mesh_t::elt_type;
 
@@ -78,11 +141,14 @@ bool geom_sensor<mesh_t, crd_t>::compute(data_type& data, Vector_t<E_Int>& adap_
 #endif
   
   E_Int nb_elts = _hmesh._ng.PHs.size();
-  E_Int nb_pts = _points_to_cell.size();  
+  E_Int nb_pts = _points_to_cell.size();
+  _refine=false;
+  _agglo = false;
+  _has_agglo = false;
+  
   if (_is_init) // first iteration : init is done instead
   {
-    _continue=false;
-
+    //update points_to_cell
     for (int i = 0; i < nb_pts; ++i)
     {
       E_Int PHi = _points_to_cell[i];
@@ -96,35 +162,31 @@ bool geom_sensor<mesh_t, crd_t>::compute(data_type& data, Vector_t<E_Int>& adap_
       }
     }
   }
-      
-  _is_init = true; 
+
+  _is_init = true;
+
+  //fill in adap incr thanks to points to cell
+  fill_adap_incr(adap_incr, do_agglo);
   
-  //points_to_cell gives the number of points per cell
+  //apply the 2:1 rule
+  _hmesh.smooth(adap_incr);
+  
+  //detect if at least one agglomeration can be done
+  if (_has_agglo)
   {
-    Vector_t<E_Int> nb_pts_per_cell(nb_elts,0);
-    for (int i = 0; i < nb_pts; ++i)
-    {
-        if (_points_to_cell[i] != E_IDX_NONE) 
-        {
-            if (nb_pts_per_cell[_points_to_cell[i]] == 1) _continue = true;
-            nb_pts_per_cell[_points_to_cell[i]] += 1;
-        }
-    }
-    
-    //adap_incr
-    adap_incr.clear();
-    adap_incr.resize(nb_elts, 0);
-    
     for (int i = 0; i < nb_elts; ++i)
     {
-        if (nb_pts_per_cell[i] >= 2)
-            adap_incr[i] = 1;
+      if (adap_incr[i] == -1)
+      {
+        _agglo = true;
+        break;
+      }
     }
   }
-  if (_continue == false ) return false;
-
-  K_CONNECT::EltAlgo<typename mesh_t::elt_type>::smoothd1(_hmesh._ng.PHs, _hmesh._F2E, _hmesh._tree._PHtree.level(), adap_incr); // 2-1 smoothing
-
+  //check if both subdivisions and agglomerations are done
+  if (_refine == false && _agglo == false)
+    return false;
+  
   return true;
 }
 
@@ -153,18 +215,20 @@ void geom_sensor<mesh_t, crd_t>::locate_points(K_SEARCH::BbTree3D& tree, data_ty
     }  
     ids.clear();
     tree.getOverlappingBoxes(minB,maxB,ids);
+
+    if (ids.empty()) continue;
     
     for (size_t j = 0; j < ids.size(); j++)
     {
       E_Int PHi_orient[6];
       ELT_t::get_orient(_hmesh._ng, _hmesh._F2E, ids[j], PHi_orient);
-      if (ELT_t::pt_is_inside(_hmesh._ng, _hmesh._crd, ids[j], PHi_orient, p))
+      if (ELT_t::pt_is_inside(_hmesh._ng, _hmesh._crd, ids[j], PHi_orient, p, 1.e-15))
       {
         if (_hmesh._tree._PHtree.children(ids[j]) == nullptr)
           _points_to_cell[i] = ids[j];
         else
-        {   
-          E_Int cell = get_highest_lvl_cell(p, ids[j], false);
+        {
+          E_Int cell = get_highest_lvl_cell(p, ids[j]);
           _points_to_cell[i] = cell;
         }
 
@@ -176,32 +240,34 @@ void geom_sensor<mesh_t, crd_t>::locate_points(K_SEARCH::BbTree3D& tree, data_ty
 
 ///
 template <typename mesh_t, typename crd_t>
-E_Int geom_sensor<mesh_t, crd_t>::get_highest_lvl_cell(E_Float* p, E_Int& PHi, E_Bool exit)
+E_Int geom_sensor<mesh_t, crd_t>::get_highest_lvl_cell(E_Float* p, E_Int& PHi)
 {
-    if (exit) return PHi;
-    
     using ELT_t = typename mesh_t::elt_type;
     
-    E_Int* q = _hmesh._tree._PHtree.children(PHi); // the children of PHi
     E_Int nb_children = _hmesh._tree._PHtree.nb_children(PHi);
-    E_Bool found = false;
+    
+    if (nb_children == 0) return PHi;
+    
+    E_Int* q = _hmesh._tree._PHtree.children(PHi); // the children of PHi
+    
+    bool found = false;
     for (int j = 0; j < nb_children; ++j)
     {
         E_Int PHi_orient[6];
         ELT_t::get_orient(_hmesh._ng, _hmesh._F2E, q[j], PHi_orient);
-        if (ELT_t::pt_is_inside(_hmesh._ng, _hmesh._crd, q[j], PHi_orient, p)) // true when the point is located in a child
+        if (ELT_t::pt_is_inside(_hmesh._ng, _hmesh._crd, q[j], PHi_orient, p, 0.)) // true when the point is located in a child
         {
             found = true;
             if (_hmesh._tree._PHtree.children(q[j]) != nullptr)
-                get_highest_lvl_cell(p, q[j], false);
+                return get_highest_lvl_cell(p, q[j]);
             else
-                get_highest_lvl_cell(p, q[j], true);
+                return q[j];
         }
     }
     if (!found)
     {
-        E_Int id = detect_child(p, PHi, q); // should be the most subdivised one, because we move the source point when it happens in order to iterate more
-        get_highest_lvl_cell(p, id, true);
+        E_Int id = detect_child(p, PHi, q);
+        return id;
     }
 }
 
@@ -213,12 +279,12 @@ E_Int geom_sensor<mesh_t, crd_t>::get_higher_lvl_cell(E_Float* p, E_Int PHi)
     
     E_Int* q = _hmesh._tree._PHtree.children(PHi); // the children of PHi
     E_Int nb_children = _hmesh._tree._PHtree.nb_children(PHi);
-    E_Bool found = false;
+    bool found = false;
     for (int j = 0; j < nb_children; ++j)
     {
         E_Int PHi_orient[6];
         ELT_t::get_orient(_hmesh._ng, _hmesh._F2E, q[j], PHi_orient);
-        if (ELT_t::pt_is_inside(_hmesh._ng, _hmesh._crd, q[j], PHi_orient, p)) // true when the point is located in a child
+        if (ELT_t::pt_is_inside(_hmesh._ng, _hmesh._crd, q[j], PHi_orient, p, 1.e-15)) // true when the point is located in a child
         {
             found = true;
             return q[j];
@@ -246,7 +312,8 @@ E_Int geom_sensor<mesh_t, crd_t>::detect_child(E_Float* p, E_Int PHi, E_Int* chi
         E_Float tmp[3];
         _hmesh.get_cell_center(children[i], tmp);
         E_Float d = K_FUNC::sqrDistance(p,tmp,3);
-        if (d < min) 
+
+        if (d < min)
         {
             min = d;
             closest_child = i;
@@ -255,7 +322,7 @@ E_Int geom_sensor<mesh_t, crd_t>::detect_child(E_Float* p, E_Int PHi, E_Int* chi
         }
     }
     // move the source point into the closest child
-    
+
     //vector
     E_Float u0 = p[0] - center[0];
     E_Float u1 = p[1] - center[1];
@@ -273,7 +340,7 @@ E_Int geom_sensor<mesh_t, crd_t>::detect_child(E_Float* p, E_Int PHi, E_Int* chi
 
 
 
-///////////////////// COARSE SENSOR //////////////////////////////////////////////
+/*************************** COARSE SENSOR ****************************************/
 //
 /////
 //template <typename mesh_t, typename crd_t = K_FLD::FloatArray> //ngu for surfacic (PGs) or ngon_t for volumic
@@ -287,18 +354,18 @@ E_Int geom_sensor<mesh_t, crd_t>::detect_child(E_Float* p, E_Int PHi, E_Int* chi
 //    
 //    E_Int init(const data_type& data, Vector_t<E_Int>& adap_incr) { return 0; } //nothing to do
 //
-//    E_Bool compute(const data_type& data, Vector_t<E_Int>& adap_incr);
+//    bool compute(const data_type& data, Vector_t<E_Int>& adap_incr);
 //    
 //    void locate_points(K_SEARCH::BbTree3D& tree, const data_type& data, Vector_t<E_Int>& pts_per_cell);
 //    
 //  private :
 //      const mesh_t& _hmesh;
-//      E_Bool _is_done;
+//      bool _is_done;
 //};
 //
 /////
 //template <typename mesh_t, typename crd_t>
-//E_Bool geom_static_sensor<mesh_t, crd_t>::compute(const data_type& data, Vector_t<E_Int>& adap_incr)
+//bool geom_static_sensor<mesh_t, crd_t>::compute(const data_type& data, Vector_t<E_Int>& adap_incr)
 //{  
 //  
 //  if (_is_done) return false; // to compute once only

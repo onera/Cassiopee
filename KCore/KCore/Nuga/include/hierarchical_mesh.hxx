@@ -12,7 +12,7 @@
 #ifndef NUGA_HIERACHICAL_MESH_HXX
 #define NUGA_HIERACHICAL_MESH_HXX
 
-#if defined (DEBUG_HIERARCHICAL_MESH) || (OUTPUT_ITER_MESH)
+#if defined (DEBUG_HIERARCHICAL_MESH) || defined (OUTPUT_ITER_MESH)
 #include "IO/io.h"
 #include "Nuga/Boolean/NGON_debug.h"
 using NGDBG = NGON_debug<K_FLD::FloatArray,K_FLD::IntArray>;
@@ -46,7 +46,7 @@ class hierarchical_mesh
 
   E_Int init();
   
-  E_Int adapt(Vector_t<E_Int>& adap_incr);
+  E_Int adapt(Vector_t<E_Int>& adap_incr, bool do_agglo);
   
   void refine_PGs(const Vector_t<E_Int> &PHadap);
   
@@ -66,7 +66,15 @@ class hierarchical_mesh
   
   void update_children_F2E(E_Int PGi, E_Int side);
   
-  void get_cell_center(E_Int PGi, E_Float* center);
+  void get_cell_center(E_Int PHi, E_Float* center);
+  
+  void get_enabled_neighbours(E_Int PHi, E_Int* neighbours, E_Int& nb_neighbours);
+  
+  void get_higher_level_neighbours(E_Int PHi, E_Int PGi, E_Int* neighbours, E_Int& nb_neighbours);
+  
+  bool enabled_neighbours(E_Int PHi); // return true if the PHi-th PH only has enabled neighbours
+  
+  void smooth(Vector_t<E_Int>& adap_incr);
   
   private:
     std::map<K_MESH::NO_Edge,E_Int> _ecenter;
@@ -75,7 +83,7 @@ class hierarchical_mesh
     void __compute_edge_center(const Vector_t<E_Int> &PGlist, K_FLD::FloatArray& crd, std::map<K_MESH::NO_Edge,E_Int> & ecenter);
     void __compute_face_centers(K_FLD::FloatArray& crd, const typename ngo_t::unit_type& pgs, const Vector_t<E_Int> &PGlist, Vector_t<E_Int>& fcenter);
     inline void __compute_face_center(const crd_t& crd, const E_Int* nodes, E_Int nb_nodes, E_Float* C);
-    void __compute_cell_center(const E_Int* nodes27, E_Float* C);
+    void __compute_cell_center(const crd_t& crd, const E_Int* nodes27, E_Float* C);
   
 };
 
@@ -111,11 +119,11 @@ E_Int hierarchical_mesh<ELT_t, ngo_t, crd_t>::init()
 }
 
 template <typename ELT_t, typename ngo_t, typename crd_t>
-E_Int hierarchical_mesh<ELT_t, ngo_t, crd_t>::adapt(Vector_t<E_Int>& adap_incr)
+E_Int hierarchical_mesh<ELT_t, ngo_t, crd_t>::adapt(Vector_t<E_Int>& adap_incr, bool do_agglo)
 {
   E_Int err(0);
 
-  Vector_t<E_Int> PHadap, PHref, PGref;
+  Vector_t<E_Int> PHadap, PHagglo, PHref, PGref;
 
 #ifdef OUTPUT_ITER_MESH
   E_Int iter = 1;
@@ -123,8 +131,12 @@ E_Int hierarchical_mesh<ELT_t, ngo_t, crd_t>::adapt(Vector_t<E_Int>& adap_incr)
   
   // identify the sensor
   E_Int max = *std::max_element(ALL(adap_incr));
-  E_Int min = *std::min_element(ALL(adap_incr));
-  E_Bool loop = true;
+  E_Int min;
+  
+  if (!do_agglo) min = 0;
+  else min = *std::min_element(ALL(adap_incr));
+  
+  bool loop = true;
   
   if ( (abs(min) <= 1) && (abs(max) <= 1) )
       loop = false;
@@ -132,12 +144,22 @@ E_Int hierarchical_mesh<ELT_t, ngo_t, crd_t>::adapt(Vector_t<E_Int>& adap_incr)
   while (!err)
   {
     PHadap.clear();
-    
-    // PHadap : Get the list of enabled PHs for which adap_incr[PHi] != 0
-    for (size_t i = 0; i < _ng.PHs.size(); ++i)
-      if (adap_incr[i] != 0 && _tree._PHtree.is_enabled(i)) PHadap.push_back(i);
+    PHagglo.clear();
 
-    if (PHadap.empty()) break; // adapted
+    // PHadap : Get the list of enabled PHs for which adap_incr[PHi] != 0
+    if (max > 0)
+    {
+      for (size_t i = 0; i < _ng.PHs.size(); ++i)
+        if (adap_incr[i] > 0 && _tree._PHtree.is_enabled(i)) PHadap.push_back(i);
+    }
+    
+    if (min < 0)
+    {
+      for (size_t i = 0; i < _ng.PHs.size(); ++i)
+        if (adap_incr[i] == -1) PHagglo.push_back(i);
+    }
+    
+    if (PHadap.empty() && PHagglo.empty()) break; // adapted
 
     // sort the PHadap list in order to solve starting by lower level of refinement
     std::sort(PHadap.begin(),PHadap.end(),[this](int a, int b){
@@ -149,7 +171,6 @@ E_Int hierarchical_mesh<ELT_t, ngo_t, crd_t>::adapt(Vector_t<E_Int>& adap_incr)
 
     // refine PHs with missing children (those PHi with _tree._PHtree.nb_children(PHi) == 0)
     refine_PHs(PHadap);
-
 
     // fixme : enabling the appropriate PHs
     adap_incr.resize(_ng.PHs.size(),0);
@@ -165,12 +186,28 @@ E_Int hierarchical_mesh<ELT_t, ngo_t, crd_t>::adapt(Vector_t<E_Int>& adap_incr)
         for (E_Int j = 0; j < nb_child; ++j)
         {
             _tree._PHtree.enable(*(children+j));
-            adap_incr[*(children+j)] = adap_incr[PHi]-1;
+            //adap_incr[*(children+j)] = adap_incr[PHi] - 1;
             _tree._PHtree.set_level(*(children+j), lvl_p1);
         }
       }
       adap_incr[PHi] = 0;
     }
+
+    for (size_t i = 0; i < PHagglo.size(); ++i)
+    {
+      E_Int father = _tree._PHtree.parent(PHagglo[i]);
+      _tree._PHtree.agglomerate(father);
+    }
+    
+    for (size_t i = 0; i < PHagglo.size(); ++i) // reset the agglomerated sons' adap_incr
+    {
+      E_Int father = _tree._PHtree.parent(PHagglo[i]);
+      E_Int* p = _tree._PHtree.children(father);
+      E_Int nb_children = _tree._PHtree.nb_children(father);
+      for (int j = 0; j < nb_children; ++j)
+          adap_incr[p[j]] = 0;
+    }
+    
     _ng.PGs.updateFacets();
     _ng.PHs.updateFacets();
 
@@ -180,14 +217,14 @@ E_Int hierarchical_mesh<ELT_t, ngo_t, crd_t>::adapt(Vector_t<E_Int>& adap_incr)
     
 #ifdef OUTPUT_ITER_MESH
     ngon_type filtered_ng;
-    filter_ngon(filtered_ng); 
-    
+    filter_ngon(filtered_ng);
+
     std::ostringstream o;
     o << "NGON_it_" << iter << ".plt"; // we create a file at each iteration
     K_FLD::IntArray cnto;
     filtered_ng.export_to_array(cnto);
     MIO::write(o.str().c_str(), _crd, cnto, "NGON");     
-    
+    std::cout << filtered_ng.PHs.size() << std::endl;
     ++iter;
 #endif
     
@@ -200,7 +237,7 @@ E_Int hierarchical_mesh<ELT_t, ngo_t, crd_t>::adapt(Vector_t<E_Int>& adap_incr)
 ///
 template <>
 void hierarchical_mesh<K_MESH::Hexahedron, ngon_type, K_FLD::FloatArray>::__compute_cell_center
-(const E_Int* nodes27, E_Float* centroid)
+(const K_FLD::FloatArray& crd, const E_Int* nodes27, E_Float* centroid)
 {
   E_Int new_bary[8];
   new_bary[0] = nodes27[0];
@@ -212,14 +249,7 @@ void hierarchical_mesh<K_MESH::Hexahedron, ngon_type, K_FLD::FloatArray>::__comp
   new_bary[6] = nodes27[6];
   new_bary[7] = nodes27[7];
 
-  K_MESH::Polyhedron<STAR_SHAPED>::iso_barycenter(_crd, new_bary, 8, 1,centroid);
-
-  //  E_Int new_pg[4];
-  //  new_pg[0] = nodes27[0];
-  //  new_pg[1] = nodes27[1];
-  //  new_pg[2] = nodes27[6];
-  //  new_pg[3] = nodes27[7];
-  //  K_MESH::Polygon::iso_barycenter<acrd_t,3>(acrd,new_pg,4,1,centroid);
+  K_MESH::Polyhedron<STAR_SHAPED>::iso_barycenter(crd, new_bary, 8, 1,centroid);
 }
 
 ///
@@ -593,7 +623,7 @@ void hierarchical_mesh<K_MESH::Hexahedron, ngon_type, K_FLD::FloatArray>::get_no
   // Calcul du centroid 
 
  E_Float centroid[3];
- __compute_cell_center(nodes, centroid);
+ __compute_cell_center(_crd, nodes, centroid);
 
   E_Int nb_cols = _crd.cols();
 
@@ -775,7 +805,7 @@ void hierarchical_mesh<K_MESH::Hexahedron, ngon_type, K_FLD::FloatArray>::refine
 
     for (int j = 0; j < 8; ++j)
         PHichildr[j] = nb_phs0 + 8*i + j;
-
+    
     E_Int* h271 = _ng.PHs.get_facets_ptr(PHichildr[0]);
     E_Int* h272 = _ng.PHs.get_facets_ptr(PHichildr[1]);
     E_Int* h273 = _ng.PHs.get_facets_ptr(PHichildr[2]);
@@ -860,11 +890,11 @@ void hierarchical_mesh<ELT_t, ngo_t, crd_t>::__compute_face_center
 
 ///
 template <>
-void hierarchical_mesh<K_MESH::Hexahedron, ngon_type, K_FLD::FloatArray>::get_cell_center(E_Int PGi, E_Float* center)
+void hierarchical_mesh<K_MESH::Hexahedron, ngon_type, K_FLD::FloatArray>::get_cell_center(E_Int PHi, E_Float* center)
 {
     E_Int new_bary[8];
     
-    const E_Int* p = _ng.PHs.get_facets_ptr(PGi);
+    const E_Int* p = _ng.PHs.get_facets_ptr(PHi);
     
     for (int i = 0; i < 2; ++i) // 8 points : bot and top
     {
@@ -879,8 +909,140 @@ void hierarchical_mesh<K_MESH::Hexahedron, ngon_type, K_FLD::FloatArray>::get_ce
     K_MESH::Polyhedron<STAR_SHAPED>::iso_barycenter(_crd, new_bary, 8, 1, center);
 }
 
+///
+template <>
+void hierarchical_mesh<K_MESH::Hexahedron, ngon_type, K_FLD::FloatArray>::get_higher_level_neighbours(E_Int PHi, E_Int PGi, E_Int* neighbours, E_Int& nb_neighbours)
+{
+  // Warning : assume same orientation for all the descendant of a given PG
+
+  E_Int* children = _tree._PGtree.children(PGi);
+  E_Int nb_children = _tree._PGtree.nb_children(PGi);
+  
+  for (int i = 0; i < nb_children; ++i)
+  {
+    E_Int PH = (_F2E(0,PGi) == PHi) ? _F2E(1,children[i]) : _F2E(0,children[i]);
+    neighbours[nb_neighbours++] = PH;
+  }
+}
+
+///
+template <>
+void hierarchical_mesh<K_MESH::Hexahedron, ngon_type, K_FLD::FloatArray>::get_enabled_neighbours(E_Int PHi, E_Int* neighbours, E_Int& nb_neighbours)
+{
+    E_Int* p = _ng.PHs.get_facets_ptr(PHi);
+    E_Int nb_edges = _ng.PHs.stride(PHi);
+    
+#ifdef DEBUG_HIERARCHICAL_MESH
+    assert (nb_neighbours == 0);
+#endif
+    for (int i = 0; i < nb_edges; ++i)
+    {
+        E_Int PGi = p[i] - 1;
+        
+        E_Int PH = (_F2E(0,PGi) == PHi) ? _F2E(1,PGi) : _F2E(0,PGi);
+
+        if (PH == E_IDX_NONE)
+        { 
+            neighbours[nb_neighbours++] = PH;
+            continue;
+        }
+        
+        if ( (_tree._PHtree.is_enabled(PH)) || ((_tree._PHtree.get_level(PH) > 0) && (_tree._PHtree.is_enabled(_tree._PHtree.parent(PH)))) )
+            neighbours[nb_neighbours++] = PH; // no children or E_IDX_NONE
+        else
+            get_higher_level_neighbours(PHi, PGi, neighbours, nb_neighbours);
+    }
+}
+
+///
+/*template <>
+bool hierarchical_mesh<K_MESH::Hexahedron, ngon_type, K_FLD::FloatArray>::enabled_neighbours(E_Int PHi)
+{
+    bool enabled = true;
+    E_Int* p = _ng.PHs.get_facets_ptr(PHi);
+    E_Int nb_edges = _ng.PHs.stride(PHi);
+    
+    for (int i = 0; i < nb_edges; ++i)
+    {
+        E_Int PGi = p[i] - 1;
+        E_Int PH = _F2E(0,PGi);
+        
+        if (PH == E_IDX_NONE) continue;
+        
+        if (PH != PHi && !_tree._PHtree.is_enabled(PH))
+            enabled = false;
+        else
+        {
+            PH = _F2E(1,PGi);
+            
+            if (PH == E_IDX_NONE) continue;
+            
+            if (!_tree._PHtree.is_enabled(PH))
+                enabled = false;            
+        }
+
+    }
+    
+    return enabled;
+}*/
+
+///
+template <typename ELT_t, typename ngo_t, typename crd_t>
+void hierarchical_mesh<ELT_t, ngo_t, crd_t>::smooth(std::vector<E_Int>& adap_incr)
+{
+  std::stack<E_Int> stck;
+
+  for (size_t i = 0; i < _ng.PHs.size();  i++){
+    if (adap_incr[i] != 0){
+      stck.push(i);
+    }
+  }
+  
+  while (!stck.empty()){
+
+    E_Int ind_PHi = stck.top(); // index of ith PH
+    stck.pop();
+
+    E_Int nb_edges = _ng.PHs.stride(ind_PHi); // number of edges of ith PH
+    const E_Int* pPHi = _ng.PHs.get_facets_ptr(ind_PHi); // find the PG of the ith PH
+
+    E_Int neighbours[24];
+    E_Int nb_neighbours = 0;
+    get_enabled_neighbours(ind_PHi, neighbours, nb_neighbours);
 
 
+    for (int i = 0; i < nb_neighbours; ++i)
+    {
+        if (neighbours[i] == E_IDX_NONE) continue;
+
+        E_Int incr = adap_incr[ind_PHi] + _tree._PHtree.get_level(ind_PHi);
+        E_Int incr_neigh = adap_incr[neighbours[i]] + _tree._PHtree.get_level(neighbours[i]);
+
+
+        if (abs(incr-incr_neigh) <= 1) // 2:1 rule
+            continue;
+
+        E_Int PH_to_mod = (incr > incr_neigh) ? neighbours[i] : ind_PHi;
+
+        if (adap_incr[PH_to_mod] >=0)
+        {
+          adap_incr[PH_to_mod] += 1;
+          stck.push(PH_to_mod);
+        }
+        else
+        {
+          E_Int father = _tree._PHtree.parent(PH_to_mod);
+          E_Int* p = _tree._PHtree.children(father);
+          E_Int nb_children = _tree._PHtree.nb_children(father);
+          for (int j = 0; j < nb_children; ++j)
+          {
+            adap_incr[p[j]] += 1;
+            stck.push(p[j]);
+          }
+        }
+      }
+    }   
+  }
 
 
 }

@@ -65,7 +65,7 @@ void Hexahedron::reorder_pgs(ngon_type& ng, const K_FLD::IntArray& F2E, E_Int i)
     for (int k = 1; k < 6; ++k)
     {
         int count = 0;
-        Vector_t<E_Boolean> commonNodes(4,false);
+        Vector_t<bool> commonNodes(4,false);
         E_Int testedPG = faces[k]-1;
         E_Int* pNode = ng.PGs.get_facets_ptr(testedPG);
 
@@ -122,17 +122,17 @@ void Hexahedron::get_orient(const ngon_type& ng, const K_FLD::IntArray& F2E, E_I
       PHi_orient[i] = (F2E(1,p[i]-1) == PHi) ? -1 : 1;
 }
 
-bool Hexahedron::pt_is_inside(const ngon_type& ng, const K_FLD::FloatArray& crd1, E_Int PHi, const E_Int* PHi_orient, const E_Float* pt)
+bool Hexahedron::pt_is_inside(const ngon_type& ng, const K_FLD::FloatArray& crd, E_Int PHi, const E_Int* PHi_orient, const E_Float* pt, E_Float tolerance)
 {
     const E_Int* p = ng.PHs.get_facets_ptr(PHi);
     
     for (int i = 0; i < 6; i++)
     {
         const E_Int* pN = ng.PGs.get_facets_ptr(p[i]-1);
-        E_Float det = K_FUNC::zzdet4(crd1.col(pN[0]-1), crd1.col(pN[1]-1), crd1.col(pN[2]-1), pt);
+        E_Float det = K_FUNC::zzdet4(crd.col(pN[0]-1), crd.col(pN[1]-1), crd.col(pN[2]-1), pt);
 
-        if ((PHi_orient[i] == 1) && (det > E_EPSILON) ) return false;
-        else if ((PHi_orient[i] == -1) && (det < E_EPSILON) ) return false;
+        if ((PHi_orient[i] == 1) && (det > tolerance) ) return false;
+        else if ((PHi_orient[i] == -1) && (det < - tolerance) ) return false;
     }
     return true;
 }

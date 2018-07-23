@@ -59,7 +59,7 @@ public:
   
   static void get_orient(const ngon_type& ng, const K_FLD::IntArray& F2E, E_Int PHi, E_Int* PHi_orient);
   
-  static bool pt_is_inside(const ngon_type& ng, const K_FLD::FloatArray& crd, E_Int PHi, const E_Int* PHi_orient, const E_Float* pt);
+  static bool pt_is_inside(const ngon_type& ng, const K_FLD::FloatArray& crd, E_Int PHi, const E_Int* PHi_orient, const E_Float* pt, E_Float tolerance);
   
   inline void getBoundary(E_Int n, boundary_type& b) const {
     

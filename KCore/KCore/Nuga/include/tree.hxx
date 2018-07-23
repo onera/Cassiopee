@@ -52,7 +52,7 @@ class ent_tree
     void resize_hierarchy(size_t nb_ent)
     {
       _parent.resize(nb_ent, E_IDX_NONE);
-      _indir.resize(nb_ent, E_IDX_NONE); 
+      _indir.resize(nb_ent, E_IDX_NONE);
       _level.resize(nb_ent, 0);
       _enabled.resize(nb_ent, true);
     }
@@ -73,7 +73,7 @@ class ent_tree
 
       children_trait<children_array>::add_children(_children, children, n);
       
-      for (size_t c=0; c<n; ++c) _parent[children[c]] = i + 1;
+      for (size_t c=0; c<n; ++c) _parent[children[c]] = i;
       
       _level.resize(_level.size()+n, _level[i]+1);
       // enable the children, disable himself
@@ -88,7 +88,7 @@ class ent_tree
       
       std::copy(childr, childr+n, there);
       
-      for (size_t c=0; c<n; ++c) _parent[childr[c]] = i + 1;
+      for (size_t c=0; c<n; ++c) _parent[childr[c]] = i;
       
     }
 
@@ -110,16 +110,21 @@ class ent_tree
     
     void enable(E_Int i /*zero based*/)
     {
+       agglomerate(i);
+       
+       // disable its parent
+       _enabled[parent(i)] = false;
+    }
+    
+    inline void agglomerate(E_Int i /*zero based*/)
+    {
        _enabled[i] = true;
        
        // disable its children
        E_Int nbc = nb_children(i);
        const E_Int* childr = children(i);
        for (size_t n = 0; n < nbc; ++n) 
-         _enabled[*(childr+n)-1] = false;
-       
-       // disable its parent
-       _enabled[parent(i)-1] = false;
+         _enabled[*(childr+n)] = false;
     }
     
     inline bool is_enabled(E_Int i /*zero based*/){ return _enabled[i];}

@@ -22,14 +22,14 @@ class adaptor
     
     using elt_type = typename mesh_t::elt_type;
     
-    static E_Int run(mesh_t& hmesh, sensor_t& sensor, typename sensor_t::data_type& data);
+    static E_Int run(mesh_t& hmesh, sensor_t& sensor, typename sensor_t::data_type& data, bool do_agglo = false);
 };
 
 }
 
 
 template <typename mesh_t, typename sensor_t>
-E_Int NUGA::adaptor<mesh_t, sensor_t>::run(mesh_t& hmesh, sensor_t& sensor, typename sensor_t::data_type & data)
+E_Int NUGA::adaptor<mesh_t, sensor_t>::run(mesh_t& hmesh, sensor_t& sensor, typename sensor_t::data_type & data, bool do_agglo)
 {
   E_Int err(0);
   
@@ -41,8 +41,8 @@ E_Int NUGA::adaptor<mesh_t, sensor_t>::run(mesh_t& hmesh, sensor_t& sensor, type
   err = sensor.init(data);
   if (err) return err;
 
-  while (!err && sensor.compute(data, adap_incr))
-    err = hmesh.adapt(adap_incr);
+  while (!err && sensor.compute(data, adap_incr, do_agglo))
+    err = hmesh.adapt(adap_incr, do_agglo);
 
   return err;
 }
