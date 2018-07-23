@@ -1333,49 +1333,6 @@ def mapSplit(z, d, split_crit, dens_max=1000):
         zones.append(zone); c += 1
     return zones
 
-def intersection(surface1, surface2, tol=0.):
-    """Compute the intersection between two input closed surfaces.
-    Usage: intersection(s1, s2, tol)"""
-    s1 = C.getFields(Internal.__GridCoordinates__, surface1)[0]
-    s2 = C.getFields(Internal.__GridCoordinates__, surface2)[0]
-    s = Generator.intersection(s1, s2, tol)
-    return C.convertArrays2ZoneNode('inter', [s])
-
-def booleanIntersection(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
-    """Compute the intersection between two input closed entities.
-    Usage for surfaces or bars: booleanIntersection(a1, a2, tol)
-    Usage for volumes: booleanIntersection(a1, a2, tol, preserve_right, solid_right)"""
-    s1 = C.getFields(Internal.__GridCoordinates__, a1)[0]
-    s2 = C.getFields(Internal.__GridCoordinates__, a2)[0]
-    s = Generator.booleanIntersection(s1, s2, tol, preserve_right, solid_right, agg_mode)
-    return C.convertArrays2ZoneNode('inter', [s])
-
-def booleanUnion(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
-    """Compute the union between two input closed entities.
-    Usage for surfaces or bars: booleanUnion(a1, a2, tol)
-    Usage for volumes: booleanUnion(a1, a2, tol, preserve_right, solid_right)"""
-    s1 = C.getFields(Internal.__GridCoordinates__, a1)[0]
-    s2 = C.getFields(Internal.__GridCoordinates__, a2)[0]
-    s = Generator.booleanUnion(s1, s2, tol, preserve_right, solid_right, agg_mode)
-    return C.convertArrays2ZoneNode('union', [s])
-
-def booleanMinus(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
-    """Compute the difference between the two input closed surfaces.
-    Usage for surfaces or bars: booleanMinus(a1, a2, tol)
-    Usage for volumes: booleanMinus(a1, a2, tol, preserve_right, solid_right)"""
-    s1 = C.getFields(Internal.__GridCoordinates__, a1)[0]
-    s2 = C.getFields(Internal.__GridCoordinates__, a2)[0]
-    s = Generator.booleanMinus(s1, s2, tol, preserve_right, solid_right, agg_mode)
-    return C.convertArrays2ZoneNode('minus', [s])
-    
-def booleanModifiedSolid(solid, a2, tol=0., preserve_solid=1, agg_mode=1): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
-    """Compute the transformed input solid after solving the intersection of its skin with a2.
-    Usage: booleanMinus(a1, a2, tol, preserve_right, solid_right)"""
-    sld = C.getFields(Internal.__GridCoordinates__, solid)[0]
-    operand = C.getFields(Internal.__GridCoordinates__, a2)[0]
-    s = Generator.booleanModifiedSolid(operand, sld, tol, preserve_solid, agg_mode)
-    return C.convertArrays2ZoneNode('modified_solid', [s])
-
 #------------------------------------------------------------------------------
 # Calcul la carte d'orhogonalite d'une grille
 # 1D: retourne un tableau d'angles alpha constants egaux a 90 degres
@@ -1414,3 +1371,9 @@ def getTriQualityMap(t):
 
 def _getTriQualityMap(t):
     return C._TZGC(t, 'centers', Generator.getTriQualityMap)
+
+def quad2Pyra(t, hratio = 1.):
+     """Creates a set of pyramids from a set of quads.
+     Usage : quad2Pyra(array, hratio)"""
+     a = C.getFields(Internal.__GridCoordinates__,t)[0]
+     return C.convertArrays2ZoneNode('pyra', [Generator.quad2Pyra(a, hratio)])

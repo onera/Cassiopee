@@ -1815,3 +1815,9 @@ def getTriQualityStat(array):
     meanv90 = C.getMeanRangeValue(card, 'quality', 0.9, 1.)
     meanv = C.getMeanValue(card, 'quality')
     return (meanv10, meanv, meanv90)
+
+
+def quad2Pyra(array, hratio = 1.):
+     """Creates a set of pyramids from a set of quads.
+     Usage : quad2Pyra(array, hratio)"""
+     return generator.quad2Pyra(array, hratio)
