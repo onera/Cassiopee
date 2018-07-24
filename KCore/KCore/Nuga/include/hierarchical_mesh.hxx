@@ -24,7 +24,7 @@ using NGDBG = NGON_debug<K_FLD::FloatArray,K_FLD::IntArray>;
 #include "Connect/IdTool.h"
 #include "Nuga/Delaunay/Triangulator.h"
 
-
+#define NEIGHBOR(PHi, _F2E, PGi) ( (_F2E(0,PGi) == PHi) ? _F2E(1,PGi) : _F2E(0,PGi) )
 
 namespace NUGA
 {
@@ -48,6 +48,11 @@ class hierarchical_mesh
   
   E_Int adapt(Vector_t<E_Int>& adap_incr, bool do_agglo);
   
+  /// face-conformity
+  void conformize();
+  /// Keep only enabled PHs
+  void filter_ngon(ngon_type& filtered_ng);
+  
   void refine_PGs(const Vector_t<E_Int> &PHadap);
   
   void refine_PHs(const Vector_t<E_Int> &PHadap);
@@ -60,7 +65,7 @@ class hierarchical_mesh
   
   E_Int get_i0(E_Int* pFace, E_Int common_node, E_Int* nodes, E_Int nb_edges_face);
   
-  void filter_ngon(ngon_type& filtered_ng);
+  
   
   void update_F2E(E_Int PHi, E_Int PHchildr0, E_Int* INT, E_Int* BOT, E_Int* TOP, E_Int* LEFT, E_Int* RIGHT, E_Int* FRONT, E_Int* BACK);
   
@@ -233,6 +238,80 @@ E_Int hierarchical_mesh<ELT_t, ngo_t, crd_t>::adapt(Vector_t<E_Int>& adap_incr, 
 
   return err;
 }
+
+template <typename ELT_t, typename ngo_t, typename crd_t>
+void hierarchical_mesh<ELT_t, ngo_t, crd_t>::conformize()
+{
+  ngon_unit new_phs;
+  Vector_t<E_Int> molec;
+
+  E_Int nb_phs = _ng.PHs.size();
+  for (E_Int i = 0; i < nb_phs; ++i)
+  {
+    if (!_tree._PHtree.is_enabled(i)) continue;
+    
+    molec.clear();
+    
+    E_Int* pPGi = _ng.PHs.get_facets_ptr(i);
+    
+    for (E_Int j = 0; j < 6; ++j)
+    {
+      E_Int PGi = *(pPGi +j) - 1;
+      E_Int PHn = NEIGHBOR(i, _F2E, PGi);
+      
+      if(PHn == E_IDX_NONE)
+        molec.push_back(PGi+1);
+      else if (_tree._PHtree.is_enabled(PHn))
+        molec.push_back(PGi+1);
+      else // father or chuildren ?
+      {
+        E_Int PHf = _tree._PHtree.parent(i);
+        if ((PHf != E_IDX_NONE) && _tree._PHtree.is_enabled(PHf))
+          molec.push_back(PGi+1);
+        else // append the 4 children
+        {
+          for (E_Int c=0; c < 4; ++c)
+            molec.push_back(*(_tree._PGtree.children(PGi)+c) + 1);
+        }
+      }
+    }
+    
+    new_phs.add(molec.size(), &molec[0]);  
+  }
+
+  _ng.PHs = new_phs;
+  _ng.PHs.updateFacets();
+  
+  std::vector<E_Int> pgnids, phnids;
+  _ng.remove_unreferenced_pgs(pgnids, phnids);
+}
+
+///
+template <typename ELT_t, typename ngo_t, typename crd_t>
+void hierarchical_mesh<ELT_t, ngo_t, crd_t>::filter_ngon(ngon_type& filtered_ng)
+{
+    filtered_ng.PGs = _ng.PGs;
+        
+    //E_Int sz = _tree._PGtree.get_parent_size();
+    E_Int sz = _ng.PHs.size();
+        
+    for (int i = 0; i < sz; i++)
+    {
+      if (_tree._PHtree.is_enabled(i) == true)
+      {
+        E_Int* p = _ng.PHs.get_facets_ptr(i);
+        filtered_ng.PHs.add(6,p);
+      }
+    }
+    
+    filtered_ng.PGs.updateFacets();
+    filtered_ng.PHs.updateFacets();
+    
+    
+    //Vector_t<E_Int> pgnids, phnids;
+    // fixme filtered_ng.remove_unreferenced_pgs(pgnids, phnids);
+}
+
 
 ///
 template <>
@@ -450,32 +529,6 @@ E_Int hierarchical_mesh<ELT_t, ngo_t, crd_t>::get_i0(E_Int* pFace, E_Int common_
     for (int i = 0; i < nb_edges_face; i++)
        if (pFace[i] == nodes[common_node]) return i; 
     return -1;
-}
-
-///
-template <typename ELT_t, typename ngo_t, typename crd_t>
-void hierarchical_mesh<ELT_t, ngo_t, crd_t>::filter_ngon(ngon_type& filtered_ng)
-{
-    filtered_ng.PGs = _ng.PGs;
-        
-    //E_Int sz = _tree._PGtree.get_parent_size();
-    E_Int sz = _ng.PHs.size();
-        
-    for (int i = 0; i < sz; i++)
-    {
-      if (_tree._PHtree.is_enabled(i) == true)
-      {
-        E_Int* p = _ng.PHs.get_facets_ptr(i);
-        filtered_ng.PHs.add(6,p);
-      }
-    }
-    
-    filtered_ng.PGs.updateFacets();
-    filtered_ng.PHs.updateFacets();
-    
-    
-    //Vector_t<E_Int> pgnids, phnids;
-    // fixme filtered_ng.remove_unreferenced_pgs(pgnids, phnids);
 }
 
 ///
@@ -939,7 +992,7 @@ void hierarchical_mesh<K_MESH::Hexahedron, ngon_type, K_FLD::FloatArray>::get_en
     {
         E_Int PGi = p[i] - 1;
         
-        E_Int PH = (_F2E(0,PGi) == PHi) ? _F2E(1,PGi) : _F2E(0,PGi);
+        E_Int PH = NEIGHBOR(PHi, _F2E, PGi);
 
         if (PH == E_IDX_NONE)
         { 
@@ -1003,13 +1056,9 @@ void hierarchical_mesh<ELT_t, ngo_t, crd_t>::smooth(std::vector<E_Int>& adap_inc
     E_Int ind_PHi = stck.top(); // index of ith PH
     stck.pop();
 
-    E_Int nb_edges = _ng.PHs.stride(ind_PHi); // number of edges of ith PH
-    const E_Int* pPHi = _ng.PHs.get_facets_ptr(ind_PHi); // find the PG of the ith PH
-
     E_Int neighbours[24];
     E_Int nb_neighbours = 0;
     get_enabled_neighbours(ind_PHi, neighbours, nb_neighbours);
-
 
     for (int i = 0; i < nb_neighbours; ++i)
     {
@@ -1017,7 +1066,6 @@ void hierarchical_mesh<ELT_t, ngo_t, crd_t>::smooth(std::vector<E_Int>& adap_inc
 
         E_Int incr = adap_incr[ind_PHi] + _tree._PHtree.get_level(ind_PHi);
         E_Int incr_neigh = adap_incr[neighbours[i]] + _tree._PHtree.get_level(neighbours[i]);
-
 
         if (abs(incr-incr_neigh) <= 1) // 2:1 rule
             continue;

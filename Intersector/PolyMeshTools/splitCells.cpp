@@ -123,11 +123,10 @@ PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
   
   NUGA::adaptor<mesh_type, sensor_type>::run(hmesh, sensor, crdS);
   
-  ngon_type ngo;
-  hmesh.filter_ngon(ngo);
+  hmesh.conformize();
 
   K_FLD::IntArray cnto;
-  ngo.export_to_array(cnto);
+  hmesh._ng.export_to_array(cnto);
   
   PyObject* tpl = K_ARRAY::buildArray(hmesh._crd, varString, cnto, -1, "NGON", false);;
 
@@ -203,13 +202,12 @@ PyObject* K_INTERSECTOR::adaptBox(PyObject* self, PyObject* args)
   
   NUGA::adaptor<mesh_type, sensor_type>::run(hmesh, sensor, crdS);
 
-  std::cout << "output leaves..." << std::endl;
+  //std::cout << "output leaves..." << std::endl;
   
-  ngon_type ngo;
-  hmesh.filter_ngon(ngo);
+  hmesh.conformize();
 
   K_FLD::IntArray cnto;
-  ngo.export_to_array(cnto);
+  hmesh._ng.export_to_array(cnto);
 
   //std::cout << "output ..." << std::endl;
   

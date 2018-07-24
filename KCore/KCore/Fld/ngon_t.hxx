@@ -3936,7 +3936,9 @@ E_Int reorient_PGs(const Vector_t<E_Int>& PGs_toreverse)
   }
   
 //
-static E_Int append_with_ghost_cells(K_FLD::FloatArray& coord, ngon_t& wNG, const Vector_t<E_Int>& PGlist, E_Float height_factor, eExtrudeStrategy strategy = CST_ABS, E_Int smooth_iters = 0, Vector_t<E_Int>* topPGlist = 0)
+static E_Int extrude_faces
+(K_FLD::FloatArray& coord, ngon_t& wNG, const Vector_t<E_Int>& PGlist, E_Float height_factor, bool build_cells, 
+ eExtrudeStrategy strategy = CST_ABS, E_Int smooth_iters = 0, Vector_t<E_Int>* topPGlist = 0)
 {
   
   if (PGlist.empty()) return 0;
@@ -3998,7 +4000,24 @@ static E_Int append_with_ghost_cells(K_FLD::FloatArray& coord, ngon_t& wNG, cons
 
   }
   
-  // 2. create and append smoothly the ghost cell without requiring a clean_conenctivity
+  E_Int nb_points = coord.cols();
+  E_Int nb_normals(normals.cols());
+  assert (nb_normals <= nb_points);
+  
+  // 2. extrude or create and append smoothly the ghost cell without requiring a clean_conenctivity
+  
+  if (!build_cells)
+  {
+    for (E_Int i = 0; i < nb_normals; ++i)
+    {
+      const E_Float* norm = normals.col(i);
+      if (norm[0] == K_CONST::E_MAX_FLOAT) continue;
+      E_Float* p = coord.col(i);
+      K_FUNC::sum<3>(1., p, heightv[i], norm, p); // move point
+    }
+    return 0;
+  }
+  
 
   // a. conversion NGON3D -> NGON2D
   ngon_t ng2D;
@@ -4007,12 +4026,10 @@ static E_Int append_with_ghost_cells(K_FLD::FloatArray& coord, ngon_t& wNG, cons
   E_Int shft = wNG.PGs.size();
   ng2D.PHs.shift(shft);
   // b. image points
-  E_Int nb_points = coord.cols();
   coord.resize(3, nb_points + nb_new_points);
   Vector_t<E_Int> img(coord.cols(), E_IDX_NONE);
   E_Int nid(nb_points);
-  E_Int nb_normals(normals.cols());
-  assert (nb_normals <= nb_points);
+  
   for (E_Int i = 0; i < nb_normals; ++i)
   {
     const E_Float* norm = normals.col(i);

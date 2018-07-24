@@ -354,8 +354,8 @@ def computeAspectRatio(a, vmin=0.):
 #==============================================================================
 # extrudeUserDefinedBC : XXX
 #==============================================================================
-def extrudeUserDefinedBC(a, extrude_pgs=[], height = 0.25, mean_or_min = 1):
-    return intersector.extrudeUserDefinedBC(a, extrude_pgs, height, mean_or_min)
+def extrudeUserDefinedBC(a, extrude_pgs=[], height = 0.25, mean_or_min = 1, create_ghost=1):
+    return intersector.extrudeUserDefinedBC(a, extrude_pgs, height, mean_or_min, create_ghost)
 
 #==============================================================================
 # statsUncomputableFaces : XXX

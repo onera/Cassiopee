@@ -2089,7 +2089,7 @@ NGON_BOOLEAN_CLASS::__get_working_PGs
     std::cout << "ghost list has been passed. Minimum ghost cell id : " << _nb_cells2 << std::endl;
 #endif
 
-    E_Int err = ngon_type::append_with_ghost_cells(_crd2, wNG2, _pglist2[1], 0.4, ngon_type::eExtrudeStrategy::VAR_REL_MIN, 0, &_pglist2[0]);
+    E_Int err = ngon_type::extrude_faces(_crd2, wNG2, _pglist2[1], 0.4, true/*create_ghost_cells*/, ngon_type::eExtrudeStrategy::VAR_REL_MIN, 0, &_pglist2[0]);
     
     // Reset any histo info for ghosts
     wNG2.PHs._ancEs.resize(2, _nb_cells2);

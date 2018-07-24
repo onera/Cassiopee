@@ -11,7 +11,6 @@ b = G.cartHexa((0.,0.,0.), (0.005,0.005,0.005), (5,5,5))
 #C.convertArrays2File([b], 'b.plt')
 
 m = XOR.adaptCells(a,b)
-m = C.conformizeNGon(m)
 m = XOR.closeOctalCells(m)
 #C.convertArrays2File([m], 'out.plt')
 test.testA(m,1)

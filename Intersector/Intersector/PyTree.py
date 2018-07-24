@@ -668,7 +668,7 @@ def computeAspectRatio(t, vmin=0.):
 #==============================================================================
 # extrudeUserDefinedBC : XXX
 #==============================================================================
-def extrudeUserDefinedBC(t, height = 0.25, mean_or_min = 1):
+def extrudeUserDefinedBC(t, height = 0.25, mean_or_min = 1, create_ghost = 1):
     m = C.getFields(Internal.__GridCoordinates__, t)[0]
     cur_shift=0
     extrudepgs=[]
@@ -678,7 +678,7 @@ def extrudeUserDefinedBC(t, height = 0.25, mean_or_min = 1):
     if (extrudepgs != []) : extrudepgs = numpy.concatenate(extrudepgs) # create a single list
     print "nb of pgs to pass : %s" %(len(extrudepgs))
 
-    mo = XOR.extrudeUserDefinedBC(m, extrudepgs, height, mean_or_min)
+    mo = XOR.extrudeUserDefinedBC(m, extrudepgs, height, mean_or_min, create_ghost)
 
     return C.convertArrays2ZoneNode('union', [mo])
 

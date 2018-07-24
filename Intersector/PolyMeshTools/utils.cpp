@@ -812,8 +812,9 @@ PyObject* K_INTERSECTOR::extrudeUserDefinedBC(PyObject* self, PyObject* args)
   PyObject *arr, *pgs;
   E_Float height(0.25);
   E_Int   strategy(0);   // 0 : CST_ABS , 1 : CST_REL_MEAN, 2 : CST_REL_MIN, 3 : VAR_REL_MEAN, 4 : VAR_REL_MIN
-
-  if (!PYPARSETUPLE(args, "OOdl", "OOdi", "OOfl", "OOfi", &arr, &pgs, &height, &strategy)) return NULL;
+  E_Int create_ghost(true);
+ 
+  if (!PYPARSETUPLE(args, "OOdll", "OOdii", "OOfll", "OOfii", &arr, &pgs, &height, &strategy, &create_ghost)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -868,8 +869,8 @@ PyObject* K_INTERSECTOR::extrudeUserDefinedBC(PyObject* self, PyObject* args)
   if (!err)
   {
     ngon_type::eExtrudeStrategy strat = (ngon_type::eExtrudeStrategy)strategy;
-    err = ngon_type::append_with_ghost_cells(crd, ngi, PGlist, height, strat);
-    //std::cout << "append_with_ghost_cells status : " << err << std::endl;
+    err = ngon_type::extrude_faces(crd, ngi, PGlist, height, bool(create_ghost), strat);
+    //std::cout << "extrude_faces status : " << err << std::endl;
   }
 
   PyObject* tpl = NULL;

@@ -31,7 +31,7 @@ class geom_sensor
     
     using data_type = crd_t; //point cloud
     
-    geom_sensor(mesh_t& mesh, E_Int max_pts_per_cell = 1):_hmesh(mesh), _is_init(false), _refine(true), _agglo(true), _has_agglo(false), _max_pts_per_cell(max_pts_per_cell){}
+    geom_sensor(mesh_t& mesh, E_Int max_pts_per_cell = 1):_hmesh(mesh), _is_init(false), _refine(true), _has_agglo(false), _agglo(true), _max_pts_per_cell(max_pts_per_cell){}
     
     E_Int init(data_type& data);
     
@@ -134,7 +134,6 @@ void geom_sensor<mesh_t, crd_t>::fill_adap_incr(std::vector<E_Int>& adap_incr, b
 template <typename mesh_t, typename crd_t>
 bool geom_sensor<mesh_t, crd_t>::compute(data_type& data, Vector_t<E_Int>& adap_incr, bool do_agglo)
 {
-  using ELT_t = typename mesh_t::elt_type;
 
 #ifdef FLAG_STEP
   std::cout << _hmesh._ng.PHs.size() << std::endl;
@@ -242,33 +241,33 @@ void geom_sensor<mesh_t, crd_t>::locate_points(K_SEARCH::BbTree3D& tree, data_ty
 template <typename mesh_t, typename crd_t>
 E_Int geom_sensor<mesh_t, crd_t>::get_highest_lvl_cell(E_Float* p, E_Int& PHi)
 {
-    using ELT_t = typename mesh_t::elt_type;
-    
-    E_Int nb_children = _hmesh._tree._PHtree.nb_children(PHi);
-    
-    if (nb_children == 0) return PHi;
-    
-    E_Int* q = _hmesh._tree._PHtree.children(PHi); // the children of PHi
-    
-    bool found = false;
-    for (int j = 0; j < nb_children; ++j)
+  using ELT_t = typename mesh_t::elt_type;
+
+  E_Int nb_children = _hmesh._tree._PHtree.nb_children(PHi);
+  
+  if (nb_children == 0) return PHi;
+  
+  E_Int* q = _hmesh._tree._PHtree.children(PHi); // the children of PHi
+  
+  bool found = false;
+  for (int j = 0; j < nb_children; ++j)
+  {
+    E_Int PHi_orient[6];
+    ELT_t::get_orient(_hmesh._ng, _hmesh._F2E, q[j], PHi_orient);
+    if (ELT_t::pt_is_inside(_hmesh._ng, _hmesh._crd, q[j], PHi_orient, p, 0.)) // true when the point is located in a child
     {
-        E_Int PHi_orient[6];
-        ELT_t::get_orient(_hmesh._ng, _hmesh._F2E, q[j], PHi_orient);
-        if (ELT_t::pt_is_inside(_hmesh._ng, _hmesh._crd, q[j], PHi_orient, p, 0.)) // true when the point is located in a child
-        {
-            found = true;
-            if (_hmesh._tree._PHtree.children(q[j]) != nullptr)
-                return get_highest_lvl_cell(p, q[j]);
-            else
-                return q[j];
-        }
+      found = true;
+      if (_hmesh._tree._PHtree.children(q[j]) != nullptr)
+        return get_highest_lvl_cell(p, q[j]);
+      else
+        return q[j];
     }
-    if (!found)
-    {
-        E_Int id = detect_child(p, PHi, q);
-        return id;
-    }
+  }
+  if (!found)
+  {
+    E_Int id = detect_child(p, PHi, q);
+    return id;
+  }
 }
 
 ///
@@ -298,7 +297,6 @@ E_Int geom_sensor<mesh_t, crd_t>::get_higher_lvl_cell(E_Float* p, E_Int PHi)
 template <typename mesh_t, typename crd_t>
 E_Int geom_sensor<mesh_t, crd_t>::detect_child(E_Float* p, E_Int PHi, E_Int* children)
 {
-    using ELT_t = typename mesh_t::elt_type;
     E_Int nb_children = _hmesh._tree._PHtree.nb_children(PHi);
     
     // find the closest child
