@@ -18,6 +18,7 @@
 */
 
 #include "Hexahedron.h"
+#include "Nuga/include/macros.h"
 
 namespace K_MESH
 {
@@ -38,7 +39,7 @@ void Hexahedron::triangulate(E_Int* target)
   }
 }
 
-void Hexahedron::reorder_pgs(ngon_type& ng, const K_FLD::IntArray& F2E, E_Int i)
+void Hexahedron::reorder_pgs(ngon_type& ng, const K_FLD::IntArray& F2E, E_Int i) // bot, top, left, right, front, back
 {
     std::map<E_Int,E_Int> glmap; // crd1 to 0-26 indexes
     E_Int nb_faces = ng.PHs.stride(i); 
@@ -128,11 +129,30 @@ bool Hexahedron::pt_is_inside(const ngon_type& ng, const K_FLD::FloatArray& crd,
     
     for (int i = 0; i < 6; i++)
     {
-        const E_Int* pN = ng.PGs.get_facets_ptr(p[i]-1);
-        E_Float det = K_FUNC::zzdet4(crd.col(pN[0]-1), crd.col(pN[1]-1), crd.col(pN[2]-1), pt);
+      const E_Int* pN = ng.PGs.get_facets_ptr(p[i]-1);
+      E_Float det = K_FUNC::zzdet4(crd.col(pN[0]-1), crd.col(pN[1]-1), crd.col(pN[2]-1), pt);
+        
+      E_Int s = zSIGN(det,ZERO_M);
+        
+      if ( s == 0 ) // if det is in the random area, calculate the distance h
+      {
+        E_Float u[3];
+        E_Float v[3];
+        for (int j = 0; j < 3; ++j)
+        {
+          u[j] = crd.col(pN[1]-1)[j] - crd.col(pN[0]-1)[j];
+          v[j] = crd.col(pN[2]-1)[j] - crd.col(pN[0]-1)[j];
+        }
+        
+        E_Float norm = std::sqrt(K_FUNC::sqrCross<3>(u,v));
+        E_Float h = det / norm;
+        
+        s = zSIGN(h,tolerance);
+      }
+      
+      if ((PHi_orient[i] == 1) && (s == 1) ) return false;
+      else if ((PHi_orient[i] == -1) && (s == - 1) ) return false;      
 
-        if ((PHi_orient[i] == 1) && (det > tolerance) ) return false;
-        else if ((PHi_orient[i] == -1) && (det < - tolerance) ) return false;
     }
     return true;
 }

@@ -43,6 +43,27 @@ using namespace NUGA;
 E_Int chrono::verbose = 0;
 #endif
 
+typedef ngon_t<K_FLD::IntArray> ngon_type;
+
+E_Int check_is_NGON_HEXA(ngon_type& ng)
+{
+  E_Int err = 0;
+  for (E_Int i = 0; (i < ng.PGs.size()) && !err; ++i)
+    if (ng.PGs.stride(i) != 4) err = 1;;
+  for (E_Int i = 0; (i < ng.PHs.size()) && !err; ++i)
+    if (ng.PHs.stride(i) != 6) err = 1;
+
+  if (err)
+  {
+    //std::cout << "input error : err => " << err << std::endl;
+    //std::cout << "input error : eltType => " << eltType << std::endl;
+    PyErr_SetString(PyExc_TypeError, "input error : invalid array, must be a HEXAmesh in NGON format.");//fixme triangulateExteriorFaces : PASS A STRING AS INPUT
+    return 1;
+  }
+
+  return 0;
+}
+
 
 //=============================================================================
 /* Agglomerate superfuous faces (overdefined polyhedra) */
@@ -69,7 +90,7 @@ PyObject* K_INTERSECTOR::splitNonStarCells(PyObject* self, PyObject* args)
   //~ std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
   //~ std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
   
-  typedef ngon_t<K_FLD::IntArray> ngon_type;
+  
   ngon_type ngi(cnt), ngo;
   
   NUGA::Splitter::split_non_star_phs<DELAUNAY::Triangulator>(crd, ngi, PH_conc_threshold, PH_cvx_threshold, PG_cvx_threshold, ngo);
@@ -99,6 +120,7 @@ PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
   // Check the mesh (NGON)
   E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
   if (err) return NULL;
+
     
   K_FLD::FloatArray & crd = *f;
   K_FLD::IntArray & cnt = *cn;
@@ -114,6 +136,9 @@ PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
   
   typedef ngon_t<K_FLD::IntArray> ngon_type;
   ngon_type ngi(cnt);
+
+  err = check_is_NGON_HEXA(ngi);
+  if (err) return NULL;
 
   using mesh_type = NUGA::hierarchical_mesh<K_MESH::Hexahedron>;
   using sensor_type = NUGA::geom_sensor/*geom_static_sensor*/<mesh_type>;

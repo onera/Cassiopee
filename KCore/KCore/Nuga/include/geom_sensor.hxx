@@ -71,65 +71,6 @@ E_Int geom_sensor<mesh_t, crd_t>::init(data_type& data)
   return 0;
 }
 
-///
-template <typename mesh_t, typename crd_t>
-void geom_sensor<mesh_t, crd_t>::fill_adap_incr(std::vector<E_Int>& adap_incr, bool do_agglo)
-{
-    E_Int nb_elts = _hmesh._ng.PHs.size();
-    E_Int nb_pts = _points_to_cell.size();
-    //points_to_cell gives the number of points per cell
-    Vector_t<E_Int> nb_pts_per_cell(nb_elts,0);
-    
-    for (int i = 0; i < nb_pts; ++i)
-    {
-        E_Int PHi = _points_to_cell[i];
-        if (PHi != E_IDX_NONE)
-            nb_pts_per_cell[PHi] += 1;
-    }
-    
-    //adap_incr
-    adap_incr.clear();
-    adap_incr.resize(nb_elts, 0);
-    
-    for (int i = 0; i < nb_elts; ++i)
-    {
-      if ( (nb_pts_per_cell[i] >= _max_pts_per_cell + 1) && (_hmesh._tree._PHtree.is_enabled(i)))
-      {
-        adap_incr[i] = 1;
-        _refine = true;
-      }
-    }
-    
-    if (do_agglo)
-    {
-        for (int i = 0; i < nb_elts; ++i)
-        {
-            if ( (_hmesh._tree._PHtree.get_level(i) > 0) && (_hmesh._tree._PHtree.is_enabled(i)) )
-            {
-                if (adap_incr[i] == -1) continue;
-                
-                E_Int father = _hmesh._tree._PHtree.parent(i);
-                E_Int* p = _hmesh._tree._PHtree.children(father);
-                E_Int nb_children = _hmesh._tree._PHtree.nb_children(father);
-                E_Int sum = 0;
-                
-                for (int k = 0; k < nb_children; ++k)
-                {
-                    sum += nb_pts_per_cell[p[k]];
-                    if (!_hmesh._tree._PHtree.is_enabled(p[k])) sum = _max_pts_per_cell + 1;
-                    if (sum > _max_pts_per_cell) break;
-                }
-                if (sum <= _max_pts_per_cell)
-                {
-                    for (int k = 0; k < nb_children; ++k)
-                        adap_incr[p[k]] = -1;
-                    _has_agglo = true;
-                }
-            }
-        }
-    }
-}
-
 /// 
 template <typename mesh_t, typename crd_t>
 bool geom_sensor<mesh_t, crd_t>::compute(data_type& data, Vector_t<E_Int>& adap_incr, bool do_agglo)
@@ -191,9 +132,70 @@ bool geom_sensor<mesh_t, crd_t>::compute(data_type& data, Vector_t<E_Int>& adap_
 
 ///
 template <typename mesh_t, typename crd_t>
+void geom_sensor<mesh_t, crd_t>::fill_adap_incr(std::vector<E_Int>& adap_incr, bool do_agglo)
+{
+  E_Int nb_elts = _hmesh._ng.PHs.size();
+  E_Int nb_pts = _points_to_cell.size();
+  //points_to_cell gives the number of points per cell
+  Vector_t<E_Int> nb_pts_per_cell(nb_elts,0);
+  
+  for (int i = 0; i < nb_pts; ++i)
+  {
+    E_Int PHi = _points_to_cell[i];
+    if (PHi != E_IDX_NONE)
+      nb_pts_per_cell[PHi] += 1;
+  }
+    
+  //adap_incr
+  adap_incr.clear();
+  adap_incr.resize(nb_elts, 0);
+
+  for (int i = 0; i < nb_elts; ++i)
+  {
+    if ( (nb_pts_per_cell[i] >= _max_pts_per_cell + 1) && (_hmesh._tree._PHtree.is_enabled(i)))
+    {
+      adap_incr[i] = 1;
+      _refine = true;
+    }
+  }
+    
+  if (do_agglo)
+  {
+    for (int i = 0; i < nb_elts; ++i)
+    {
+      if ( (_hmesh._tree._PHtree.get_level(i) > 0) && (_hmesh._tree._PHtree.is_enabled(i)) )
+      {
+        if (adap_incr[i] == -1) continue;
+                
+        E_Int father = _hmesh._tree._PHtree.parent(i);
+        E_Int* p = _hmesh._tree._PHtree.children(father);
+        E_Int nb_children = _hmesh._tree._PHtree.nb_children(father);
+        E_Int sum = 0;
+                
+        for (int k = 0; k < nb_children; ++k)
+        {
+          sum += nb_pts_per_cell[p[k]];
+          if (!_hmesh._tree._PHtree.is_enabled(p[k])) sum = _max_pts_per_cell + 1;
+          if (sum > _max_pts_per_cell) break;
+        }
+        if (sum <= _max_pts_per_cell)
+        {
+          for (int k = 0; k < nb_children; ++k)
+            adap_incr[p[k]] = -1;
+          _has_agglo = true;
+        }
+      }
+    }
+  }
+}
+
+///
+template <typename mesh_t, typename crd_t>
 void geom_sensor<mesh_t, crd_t>::locate_points(K_SEARCH::BbTree3D& tree, data_type& data)
 {
   using ELT_t = typename mesh_t::elt_type;
+
+  E_Float tol = 10. * ZERO_M;
   
   E_Int nb_src_pts = data.cols();
   
@@ -221,7 +223,7 @@ void geom_sensor<mesh_t, crd_t>::locate_points(K_SEARCH::BbTree3D& tree, data_ty
     {
       E_Int PHi_orient[6];
       ELT_t::get_orient(_hmesh._ng, _hmesh._F2E, ids[j], PHi_orient);
-      if (ELT_t::pt_is_inside(_hmesh._ng, _hmesh._crd, ids[j], PHi_orient, p, 1.e-15))
+      if (ELT_t::pt_is_inside(_hmesh._ng, _hmesh._crd, ids[j], PHi_orient, p, tol))
       {
         if (_hmesh._tree._PHtree.children(ids[j]) == nullptr)
           _points_to_cell[i] = ids[j];
@@ -239,6 +241,30 @@ void geom_sensor<mesh_t, crd_t>::locate_points(K_SEARCH::BbTree3D& tree, data_ty
 
 ///
 template <typename mesh_t, typename crd_t>
+E_Int geom_sensor<mesh_t, crd_t>::get_higher_lvl_cell(E_Float* p, E_Int PHi)
+{
+    using ELT_t = typename mesh_t::elt_type;
+    
+    E_Int* q = _hmesh._tree._PHtree.children(PHi); // the children of PHi
+    E_Int nb_children = _hmesh._tree._PHtree.nb_children(PHi);
+    bool found = false;
+    
+    for (int j = 0; j < nb_children; ++j)
+    {
+        E_Int PHi_orient[6];
+        ELT_t::get_orient(_hmesh._ng, _hmesh._F2E, q[j], PHi_orient);
+        if (ELT_t::pt_is_inside(_hmesh._ng, _hmesh._crd, q[j], PHi_orient, p, 1.e-14)) // true when the point is located in a child
+        {
+            found = true;
+            return q[j];
+        }
+    }
+    if (!found) return detect_child(p,PHi,q); // we have to locate the closest child
+    
+}
+
+///
+template <typename mesh_t, typename crd_t>
 E_Int geom_sensor<mesh_t, crd_t>::get_highest_lvl_cell(E_Float* p, E_Int& PHi)
 {
   using ELT_t = typename mesh_t::elt_type;
@@ -249,12 +275,12 @@ E_Int geom_sensor<mesh_t, crd_t>::get_highest_lvl_cell(E_Float* p, E_Int& PHi)
   
   E_Int* q = _hmesh._tree._PHtree.children(PHi); // the children of PHi
   
+  E_Int PHi_orient[6];
   bool found = false;
   for (int j = 0; j < nb_children; ++j)
   {
-    E_Int PHi_orient[6];
     ELT_t::get_orient(_hmesh._ng, _hmesh._F2E, q[j], PHi_orient);
-    if (ELT_t::pt_is_inside(_hmesh._ng, _hmesh._crd, q[j], PHi_orient, p, 0.)) // true when the point is located in a child
+    if (ELT_t::pt_is_inside(_hmesh._ng, _hmesh._crd, q[j], PHi_orient, p, 1.e-14)) // true when the point is located in a child
     {
       found = true;
       if (_hmesh._tree._PHtree.children(q[j]) != nullptr)
@@ -263,33 +289,7 @@ E_Int geom_sensor<mesh_t, crd_t>::get_highest_lvl_cell(E_Float* p, E_Int& PHi)
         return q[j];
     }
   }
-  if (!found)
-  {
-    E_Int id = detect_child(p, PHi, q);
-    return id;
-  }
-}
-
-///
-template <typename mesh_t, typename crd_t>
-E_Int geom_sensor<mesh_t, crd_t>::get_higher_lvl_cell(E_Float* p, E_Int PHi)
-{
-    using ELT_t = typename mesh_t::elt_type;
-    
-    E_Int* q = _hmesh._tree._PHtree.children(PHi); // the children of PHi
-    E_Int nb_children = _hmesh._tree._PHtree.nb_children(PHi);
-    bool found = false;
-    for (int j = 0; j < nb_children; ++j)
-    {
-        E_Int PHi_orient[6];
-        ELT_t::get_orient(_hmesh._ng, _hmesh._F2E, q[j], PHi_orient);
-        if (ELT_t::pt_is_inside(_hmesh._ng, _hmesh._crd, q[j], PHi_orient, p, 1.e-15)) // true when the point is located in a child
-        {
-            found = true;
-            return q[j];
-        }
-    }
-    if (!found) return detect_child(p,PHi,q); // we have to allocate the closest child, and move the source point (be careful it's still const atm)
+  if (!found) return detect_child(p, PHi, q);
     
 }
 
@@ -319,17 +319,17 @@ E_Int geom_sensor<mesh_t, crd_t>::detect_child(E_Float* p, E_Int PHi, E_Int* chi
                 center[i] = tmp[i];
         }
     }
-    // move the source point into the closest child
-
-    //vector
-    E_Float u0 = p[0] - center[0];
-    E_Float u1 = p[1] - center[1];
-    E_Float u2 = p[2] - center[2];
-    E_Float coef = 1;
-    
-    p[0] = center[0] + coef*u0;
-    p[1] = center[1] + coef*u1;
-    p[2] = center[2] + coef*u2;
+//    // move the source point into the closest child ( coef ]0,1] : 1 = doesn't move the source point
+//
+//    //vector
+//    E_Float u0 = p[0] - center[0];
+//    E_Float u1 = p[1] - center[1];
+//    E_Float u2 = p[2] - center[2];
+//    E_Float coef = 1;
+//    
+//    p[0] = center[0] + coef*u0;
+//    p[1] = center[1] + coef*u1;
+//    p[2] = center[2] + coef*u2;
     
     return children[closest_child];
     

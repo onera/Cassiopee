@@ -65,8 +65,6 @@ class hierarchical_mesh
   
   E_Int get_i0(E_Int* pFace, E_Int common_node, E_Int* nodes, E_Int nb_edges_face);
   
-  
-  
   void update_F2E(E_Int PHi, E_Int PHchildr0, E_Int* INT, E_Int* BOT, E_Int* TOP, E_Int* LEFT, E_Int* RIGHT, E_Int* FRONT, E_Int* BACK);
   
   void update_children_F2E(E_Int PGi, E_Int side);
@@ -144,7 +142,7 @@ E_Int hierarchical_mesh<ELT_t, ngo_t, crd_t>::adapt(Vector_t<E_Int>& adap_incr, 
   bool loop = true;
   
   if ( (abs(min) <= 1) && (abs(max) <= 1) )
-      loop = false;
+      loop = false;// geom sensor has only one iteration in the while => break at the end if false
   
   while (!err)
   {
@@ -152,13 +150,13 @@ E_Int hierarchical_mesh<ELT_t, ngo_t, crd_t>::adapt(Vector_t<E_Int>& adap_incr, 
     PHagglo.clear();
 
     // PHadap : Get the list of enabled PHs for which adap_incr[PHi] != 0
-    if (max > 0)
+    if (max > 0) // there is a need to refine
     {
       for (size_t i = 0; i < _ng.PHs.size(); ++i)
         if (adap_incr[i] > 0 && _tree._PHtree.is_enabled(i)) PHadap.push_back(i);
     }
     
-    if (min < 0)
+    if (min < 0) // there is a need to agglomerate
     {
       for (size_t i = 0; i < _ng.PHs.size(); ++i)
         if (adap_incr[i] == -1) PHagglo.push_back(i);
@@ -982,26 +980,24 @@ void hierarchical_mesh<K_MESH::Hexahedron, ngon_type, K_FLD::FloatArray>::get_hi
 template <>
 void hierarchical_mesh<K_MESH::Hexahedron, ngon_type, K_FLD::FloatArray>::get_enabled_neighbours(E_Int PHi, E_Int* neighbours, E_Int& nb_neighbours)
 {
+    // fill in up to 24 enabled neighbours and gives the number of enabled neighbours
     E_Int* p = _ng.PHs.get_facets_ptr(PHi);
-    E_Int nb_edges = _ng.PHs.stride(PHi);
+    E_Int nb_faces = _ng.PHs.stride(PHi);
     
 #ifdef DEBUG_HIERARCHICAL_MESH
     assert (nb_neighbours == 0);
 #endif
-    for (int i = 0; i < nb_edges; ++i)
+    for (int i = 0; i < nb_faces; ++i)
     {
         E_Int PGi = p[i] - 1;
         
         E_Int PH = NEIGHBOR(PHi, _F2E, PGi);
 
-        if (PH == E_IDX_NONE)
-        { 
-            neighbours[nb_neighbours++] = PH;
+        if (PH == E_IDX_NONE) // returns only the enabled neighbours
             continue;
-        }
         
         if ( (_tree._PHtree.is_enabled(PH)) || ((_tree._PHtree.get_level(PH) > 0) && (_tree._PHtree.is_enabled(_tree._PHtree.parent(PH)))) )
-            neighbours[nb_neighbours++] = PH; // no children or E_IDX_NONE
+            neighbours[nb_neighbours++] = PH; // no children
         else
             get_higher_level_neighbours(PHi, PGi, neighbours, nb_neighbours);
     }
@@ -1011,11 +1007,12 @@ void hierarchical_mesh<K_MESH::Hexahedron, ngon_type, K_FLD::FloatArray>::get_en
 /*template <>
 bool hierarchical_mesh<K_MESH::Hexahedron, ngon_type, K_FLD::FloatArray>::enabled_neighbours(E_Int PHi)
 {
+    // if at least 1 neighbour is diabled, it returns false, otherwise it returns true
     bool enabled = true;
     E_Int* p = _ng.PHs.get_facets_ptr(PHi);
-    E_Int nb_edges = _ng.PHs.stride(PHi);
+    E_Int nb_faces = _ng.PHs.stride(PHi);
     
-    for (int i = 0; i < nb_edges; ++i)
+    for (int i = 0; i < nb_faces; ++i)
     {
         E_Int PGi = p[i] - 1;
         E_Int PH = _F2E(0,PGi);
@@ -1058,12 +1055,11 @@ void hierarchical_mesh<ELT_t, ngo_t, crd_t>::smooth(std::vector<E_Int>& adap_inc
 
     E_Int neighbours[24];
     E_Int nb_neighbours = 0;
-    get_enabled_neighbours(ind_PHi, neighbours, nb_neighbours);
+    get_enabled_neighbours(ind_PHi, neighbours, nb_neighbours); // get the effective neighbours (enabled ones) to check rightfully the respect of the 2:1 rule
+
 
     for (int i = 0; i < nb_neighbours; ++i)
     {
-        if (neighbours[i] == E_IDX_NONE) continue;
-
         E_Int incr = adap_incr[ind_PHi] + _tree._PHtree.get_level(ind_PHi);
         E_Int incr_neigh = adap_incr[neighbours[i]] + _tree._PHtree.get_level(neighbours[i]);
 
@@ -1072,12 +1068,12 @@ void hierarchical_mesh<ELT_t, ngo_t, crd_t>::smooth(std::vector<E_Int>& adap_inc
 
         E_Int PH_to_mod = (incr > incr_neigh) ? neighbours[i] : ind_PHi;
 
-        if (adap_incr[PH_to_mod] >=0)
+        if (adap_incr[PH_to_mod] >=0) // increase by 1 to refine : +=1 the adap incr and add the cell in the stack
         {
           adap_incr[PH_to_mod] += 1;
           stck.push(PH_to_mod);
         }
-        else
+        else // increase by 1 an agglomeration : +=1 the adap incr for the cell and its siblings, and add all of them in the stack
         {
           E_Int father = _tree._PHtree.parent(PH_to_mod);
           E_Int* p = _tree._PHtree.children(father);

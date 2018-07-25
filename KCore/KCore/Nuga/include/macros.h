@@ -17,4 +17,6 @@
 
 #define zSIGN(a, TOL) ( (a < -TOL)? -1 : (a > TOL) ? 1 : 0 )
 
+#define ZERO_M 1.e-15
+
 #endif

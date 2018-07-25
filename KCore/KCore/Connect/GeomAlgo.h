@@ -23,10 +23,9 @@
 
 #include "Fld/DynArray.h"
 #include "MeshElement/Edge.h"
+#include "Nuga/include/macros.h"
 
 #define Vector_t std::vector
-
-#define ZERO_M 1.e-15
 
 
 namespace K_CONNECT {
