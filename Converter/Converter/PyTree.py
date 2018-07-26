@@ -5045,16 +5045,17 @@ def extractBCMatch(zdonor,gc,dimzR,variables=None):
     tri   = Internal.getNodeFromName1(gc,'Transform')
     tri   = Internal.getValue(tri)
 
-    wr    = Internal.getValue(prr)
-    wd    = Internal.getValue(prd)
+    wr    = Internal.range2Window(prr[1])
+    wd    = Internal.range2Window(prd[1])
 
-    iminR = wr[0,0] ; imaxR = wr[0,1] ; 
-    jminR = wr[1,0] ; jmaxR = wr[1,1] ;
-    kminR = wr[2,0] ; kmaxR = wr[2,1] ;
+    iminR = wr[0] ; imaxR = wr[1] ; 
+    jminR = wr[2] ; jmaxR = wr[3] ;
+    kminR = wr[4] ; kmaxR = wr[5] ;
 
-    iminD = wd[0,0] ; imaxD = wd[0,1] ;
-    jminD = wd[1,0] ; jmaxD = wd[1,1] ;
-    kminD = wd[2,0] ; kmaxD = wd[2,1] ;
+
+    iminD = wd[0] ; imaxD = wd[1] ;
+    jminD = wd[2] ; jmaxD = wd[3] ;
+    kminD = wd[4] ; kmaxD = wd[5] ;
 
     niR   = dimzR[1]-1 
     njR   = dimzR[2]-1

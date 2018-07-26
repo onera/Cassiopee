@@ -1158,6 +1158,7 @@ def _computeGrad2(t, var):
 
     # Compute fields on BCMatch (for all match connectivities) 
     allMatch = C.extractAllBCMatch(t,vare) 
+    # print 'allMatch : ', allMatch
 
     zones = Internal.getZones(t)
     for z in zones:
