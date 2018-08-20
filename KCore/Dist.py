@@ -465,7 +465,7 @@ def getNbSocket():
                val = int(i[12:]); return val
      return 1
 
-#=============================================================================
+#==============================================================================
 # Retourne le nbre de coeur physique par socket
 # Se base sur l'option du compilateur C si elle contient -DCORE_PER_SOCK=XX
 #==============================================================================
@@ -475,6 +475,30 @@ def getCorePerSocket():
           if i[0:15] == '-DCORE_PER_SOCK':
                val = int(i[16:]); return val
      return 1
+
+#==============================================================================
+# Parcours un repertoire a la recherche des fichiers d'une certaine extension
+# Ex: getFilesOfExt('Converter', ['.cpp'])
+#==============================================================================
+def scanext(args, dir, file):
+    givenExts = args[0]
+    ret = args[1]
+    for f in file:
+        (root,ext) = OP.splitext(f)
+        tot = '%s/%s'%(dir,f)
+        t = os.path.islink(tot)
+        m = True
+        if f[len(f)-1] == '~' : m = False
+        if 'build' in tot: m = False
+        if '.svn' in tot: m = False
+        if 'Stubs' in tot: m = False
+        if ext in givenExts and not t and m:
+            ret.append(tot)
+
+def getFilesOfExt(rootdir, givenExts):
+  ret = []
+  os.path.walk(rootdir, scanext, [givenExts, ret])
+  return ret
 
 #==============================================================================
 # Retourne les options additionelles des compilos definies dans config

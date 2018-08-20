@@ -5,8 +5,9 @@ import Tk as CTK
 import Converter
 import Converter.Internal as Internal
 import Converter.PyTree as C
-import time
+import time, re
 import PyTree as CPlot
+import Ttk as TTK
 
 #==============================================================================
 # LoadPanel
@@ -23,10 +24,14 @@ MATERIALS = ['Solid', 'Flat', 'Glass', 'Chrome',
 VARS = []
 # global VARS for ACTIVATION panel
 AVARS = []
+# global VARS for OPEN panel
+OVARS = []
 # data for  panel
 mailData = {}
 # data for Document panel
 docData = {}
+# Widgets dict
+WIDGETS = {}
 
 #==============================================================================
 # Affiche le about et les informations d'install
@@ -170,7 +175,7 @@ ClbQghfEYAY1uEEOdtCDHwRhCEUIloAAADs=
     xpos = winl.master.winfo_rootx()+45
     ypos = winl.master.winfo_rooty()+45
     winl.geometry("%+d%+d" % (xpos, ypos)) 
-    scrollbar = TK.Scrollbar(winl, orient=TK.VERTICAL, width=12)
+    scrollbar = TTK.Scrollbar(winl, orient=TK.VERTICAL, width=10)
     scrollbar.grid(sticky=TK.NSEW, row=0, column=1)
     
     textWidget = TK.Text(winl, yscrollcommand=scrollbar.set,
@@ -182,22 +187,25 @@ ClbQghfEYAY1uEEOdtCDHwRhCEUIloAAADs=
     textWidget.insert(TK.END, myText, 'title')
     myText = "A CFD pre- and post-processing tool"
     textWidget.insert(TK.END, myText, 'title')
+    textWidget.insert(TK.END, '\n\n')
+    
+    textWidget.image_create(TK.INSERT, image=logoImg)
+    textWidget.image = logoImg
+
     myText = "\n\n Parts licensed under GPL3.\n Parts licensed by Onera.\n\n"
     textWidget.insert(TK.END, myText)
     authors = KCore.__allAuthors__
     authors = authors.split(',')
-    myText = " Authors: \n "
+    myText = " -- Authors: --\n "
     col = 0; naut = len(authors)
     for i in authors:
         col += 1
-        if col > 2: myText += '\n'; col = 0
+        if col > 0: myText += '\n'; col = 0
         if naut > 1: myText += i+','
         else: myText += i+'.\n\n'
         naut -= 1
 
     textWidget.insert(TK.END, myText)
-    textWidget.image_create(TK.INSERT, image=logoImg)
-    textWidget.image = logoImg
     textWidget.insert(TK.END, "\n")
     buildInfo = KCore.buildInfo.buildDict
     myText = " Built on %s.\n"%buildInfo['date']
@@ -256,7 +264,7 @@ def activation():
         version = 'full (until %2d/%4d)'%(month,year)
     myText = 'You are using the %s version of Cassiopee.\n\n'%version
     myText += 'To switch to full version, you must request an activation key.\n'
-    myText += 'Please mail to cassiopee.onera.fr or enter\n'
+    myText += 'Please mail to cassiopee@onera.fr or enter\n'
     myText += 'an activation key below:'
     textWidget.insert(TK.END, myText)
     textWidget.grid(sticky=TK.NSEW, row=0, column=0, columnspan=2)
@@ -264,9 +272,10 @@ def activation():
     AVARS.append(V)
     entry = TK.Entry(winl, textvariable=V, background='White')
     entry.grid(row=1, column=0, columnspan=2, sticky=TK.EW)
-    B = TK.Button(winl, text="Submit", command=submitKey)
+    B = TTK.Button(winl, text="Submit", command=submitKey)
+    BB = CTK.infoBulle(parent=B, text='Submit key.')
     B.grid(row=2, column=0, columnspan=1, sticky=TK.EW)
-    B = TK.Button(winl, text="Cancel", command=cancelKey)
+    B = TTK.Button(winl, text="Cancel", command=cancelKey)
     B.grid(row=2, column=1, columnspan=1, sticky=TK.EW)
 
 def checkKey():
@@ -338,7 +347,7 @@ def displayErrors(errors, header=''):
         ERRORWINDOW.geometry("%+d%+d" % (xpos, ypos))
         #ERRORWINDOW.protocol("WM_DELETE_WINDOW", _deleteErrorWindow)
         #ERRORWINDOW.bind("<Destroy>", _destroyErrorWindow)
-        scrollbar = TK.Scrollbar(ERRORWINDOW, orient=TK.VERTICAL, width=10)
+        scrollbar = TTK.Scrollbar(ERRORWINDOW, orient=TK.VERTICAL, width=10)
         scrollbar.grid(sticky=TK.NSEW, row=0, column=1)
         myText = TK.Text(ERRORWINDOW, yscrollcommand=scrollbar.set,
                          width=40, height=20, background='white')
@@ -403,6 +412,7 @@ def createMail():
     if bugReport: friends = ['cassiopee@onera.fr']
     else: friends = friendText.split(';')
     titleText = mailData['titleText']
+    if bugReport: titleText = '[BUG]'+titleText
     messageText = mailData['messageText']
     # ajoute la location si possible
     if CTK.FILE != '':
@@ -453,9 +463,9 @@ def sendMail(event=None):
     mailData['mailMe'] = mailData['meWidget'].get("1.0", TK.END)
     mailData['mailFriends'] = mailData['friendWidget'].get("1.0", TK.END)
     txt = mailData['titleWidget'].get("1.0", TK.END)
-    mailData['titleText'] = txt.encode('utf8')
+    mailData['titleText'] = txt.encode('utf-8')
     txt = mailData['messageWidget'].get("1.0", TK.END)
-    mailData['messageText'] = txt.encode('utf8')
+    mailData['messageText'] = txt.encode('utf-8')
     mailData['bugReport'] = False
     CTK.PREFS['mailMe'] = mailData['mailMe']
     if CTK.PREFS.has_key('mailFriends'):
@@ -472,9 +482,9 @@ def sendBug(event=None):
     mailData['mailMe'] = mailData['meWidget'].get("1.0", TK.END)
     mailData['mailFriends'] = mailData['friendWidget'].get("1.0", TK.END)
     txt = mailData['titleWidget'].get("1.0", TK.END)
-    mailData['titleText'] = txt.encode('utf8')
+    mailData['titleText'] = txt.encode('utf-8')
     txt = mailData['messageWidget'].get("1.0", TK.END)
-    mailData['messageText'] = txt.encode('utf8')
+    mailData['messageText'] = txt.encode('utf-8')
     mailData['bugReport'] = True
     CTK.PREFS['mailMe'] = mailData['mailMe']
     CTK.PREFS['mailFriends'] = mailData['mailFriends']
@@ -532,11 +542,13 @@ def openMailWindow():
         B = TK.Text(MAILWINDOW, width=40, height=5, background='White')
         B.grid(row=3, column=1, columnspan=2, sticky=TK.EW)
         mailData['messageWidget'] = B
-        B = TK.Button(MAILWINDOW, text="Cancel", command=cancelMail)
+        B = TTK.Button(MAILWINDOW, text="Cancel", command=cancelMail)
         B.grid(row=4, column=0, sticky=TK.EW)
-        B = TK.Button(MAILWINDOW, text="E-mail image", command=sendMail)
+        B = TTK.Button(MAILWINDOW, text="E-mail image", command=sendMail)
+        BB = CTK.infoBulle(parent=B, text='Send an e-mail with your current screenshot.')
         B.grid(row=4, column=1, sticky=TK.EW)
-        B = TK.Button(MAILWINDOW, text="Report bug", command=sendBug)
+        B = TTK.Button(MAILWINDOW, text="Report bug", command=sendBug)
+        BB = CTK.infoBulle(parent=B, text='Send an e-mail to cassiopee team with \ninformations on the software state.')
         B.grid(row=4, column=2, sticky=TK.EW)
     else:
         MAILWINDOW = mailData['mailWindow']
@@ -700,11 +712,12 @@ def openDocWindow():
         DOCWINDOW.geometry("%+d%+d" % (xpos, ypos))
         #DOCWINDOW.protocol("WM_DELETE_WINDOW", cancelDocument)
         #DOCWINDOW.bind("<Destroy>", destroyDocumentWindow)
-        B = TK.Button(DOCWINDOW, text="File:", command=openDocFile)
+        B = TTK.Button(DOCWINDOW, text="File:", command=openDocFile)
+        BB = CTK.infoBulle(parent=B, text='Open an existing document file.')
         B.grid(row=0, column=0, sticky=TK.EW)
         B = TK.Text(DOCWINDOW, width=40, height=1, background='White')
         B.grid(row=0, column=1, columnspan=2, sticky=TK.EW)
-        BB = CTK.infoBulle(parent=B, text='Document name: mydoc.odt')
+        BB = CTK.infoBulle(parent=B, text='Put here your document name (mydoc.odt).')
         if CTK.PREFS.has_key('docName'): B.insert(TK.END, CTK.PREFS['docName'])
         docData['docWidget'] = B
         B = TK.Label(DOCWINDOW, text="Text:")
@@ -715,11 +728,13 @@ def openDocWindow():
         if CTK.PREFS.has_key('docText'):
             s = CTK.PREFS['docText'].decode('base64', 'strict')
             B.insert(TK.END, s)
-        B = TK.Button(DOCWINDOW, text="Cancel", command=cancelDocument)
+        B = TTK.Button(DOCWINDOW, text="Cancel", command=cancelDocument)
         B.grid(row=2, column=0, sticky=TK.EW)    
-        B = TK.Button(DOCWINDOW, text="Add image", command=writeDocument)
+        B = TTK.Button(DOCWINDOW, text="Add image", command=writeDocument)
+        BB = CTK.infoBulle(parent=B, text='Add current screenshot and text to \nyour document.')
         B.grid(row=2, column=1, sticky=TK.EW)
-        B = TK.Button(DOCWINDOW, text="Blog it", command=writeBlog)
+        B = TTK.Button(DOCWINDOW, text="Blog it", command=writeBlog)
+        BB = CTK.infoBulle(parent=B, text='Add current screenshot and text to \nyour document with date and time.')
         B.grid(row=2, column=2, sticky=TK.EW)
     else:
         DOCWINDOW = docData['docWindow']
@@ -807,7 +822,7 @@ def renderSelect(event=None):
     for i in sel:
         b = myList.get(i) ; b = b.split('|')
         name = b[0] ; name = name.strip(); name = name.split('/')
-        baseName = name[0] ; zoneName = name[1]
+        baseName = name[0]; zoneName = name[1]
         noz = CPlot.getCPlotNumber(CTK.t, baseName, zoneName)
         selected.append( (noz, 1) )
     CPlot.setSelectedZones(selected)
@@ -817,7 +832,7 @@ def setColorVar(l):
         import tkColorChooser
         ret = tkColorChooser.askcolor()
         l = ret[1]
-    VARS[1].set(l) ; setColor()
+    VARS[1].set(l); setColor()
 
 def selectAll(event=None):
     myList = RENDERPANEL.winfo_children()[1]
@@ -979,7 +994,7 @@ def openRenderPanel():
         RENDERPANEL.geometry("%+d%+d" % (xpos, ypos))
         #RENDERPANEL.protocol("WM_DELETE_WINDOW", _deleteRenderWindow)
         #RENDERPANEL.bind("<Destroy>", _destroyRenderWindow)
-        scrollbar = TK.Scrollbar(RENDERPANEL, orient=TK.VERTICAL, width=10)
+        scrollbar = TTK.Scrollbar(RENDERPANEL, orient=TK.VERTICAL, width=10)
         scrollbar.grid(sticky=TK.NSEW, row=1, column=1)
         myList = TK.Listbox(RENDERPANEL, selectmode=TK.EXTENDED,
                             yscrollcommand=scrollbar.set,
@@ -1064,52 +1079,264 @@ def openRenderPanel():
 #====================================================================================
 # Load panel: panel for partial load of files
 #====================================================================================
-def _deleteLoadPanel():
-    try: LOADPANEL.destroy()
-    except: pass
 
-def _destroyLoadPanel(event):
-    global LOADPANEL
-    LOADPANEL = None
-
-def updateLoadPanel():
-    print 'populate list'
-    # Get vars from file
+def openLoadFileDialog(event=None):
+    import tkFileDialog
+    files = tkFileDialog.askopenfilenames(
+        filetypes=[('CGNS files', '*.cgns'), ('CGNS files', '*.adf'), ('CGNS files', '*.hdf'), ('CGNS/ADF files', '*.adf'), ('CGNS/HDF files', '*.hdf'), ('All files', '*.*')], initialfile=CTK.FILE, multiple=0)
+    if files == '' or files is None or files == (): # user cancel
+        return
+    files = CTK.fixFileString__(files, CTK.FILE)
+    CTK.tkLoadFile(files, mode='partial')
+    updateLoadPanel()
     
+# Si name fini par [X], renvoie le nom et le nom tagge
+def ripTag(name):
+    l = len(name)
+    if name[l-4:l] == ' [X]': 
+        pname = name[0:l-4]
+        tname = name
+    else:
+        pname = name
+        tname = name+ ' [X]'
+    return pname, tname
 
-#def updateFileHandle():
-#    if CTK.FILEHANDLE is None:
+# Get the number of the element in list equal to e or et
+def getNumber(l, e, et):
+    #e = e.encode('utf-8')
+    #et = et.encode('utf-8')
+    for i in xrange(len(l)):
+        li = l[i]
+        if li == e: return i
+        if li == et: return i
+    return -1
+
+# Met a jour les listes en fonction du handle et de CTK.t (si deja loade)
+def updateLoadPanel():
+    if CTK.HANDLE is None: return
+    OVARS[0].set(CTK.HANDLE._fileName)
+    vars = CTK.HANDLE._fileVars
+    znp = CTK.HANDLE._znp
+        
+    # VARS
+    lb = WIDGETS['LBVARS']
+    values = lb.get(0, lb.size())
+    lb.delete(0, TK.END)
+    for i, value in enumerate(vars):
+        lb.insert(i, value)
+        OVARS[3].append(value)
+
+    # ZONES
+    lb = WIDGETS['LBZONES']
+    values = lb.get(0, lb.size())
+    lb.delete(0, TK.END)
+    for i, value in enumerate(znp):
+        lb.insert(i, value)
+        OVARS[4].append(value)
+
+def loadVars(event=None):
+    if CTK.HANDLE is None: return
+    # Recupere les variables selectionnees
+    selection = WIDGETS['LBVARS'].curselection()
+    varList = []
+    for s in selection:
+        v = WIDGETS['LBVARS'].get(s)
+        v, tname = ripTag(v)
+        WIDGETS['LBVARS'].delete(s)
+        WIDGETS['LBVARS'].insert(s, tname)
+        i = getNumber(OVARS[3], v, tname)
+        OVARS[3][i] = tname
+        varList.append(v)
+    # Load les variables donnees pour toutes zones existants dans t
+    CTK.HANDLE._loadVariables(CTK.t, varList)
+
+    CTK.t = CTK.upgradeTree(CTK.t)
+    (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+    CTK.TKTREE.updateApp()
+    if CTK.TKMODULES.has_key('tkContainers'): CTK.TKMODULES['tkContainers'].updateApp()
+    if CTK.TKPLOTXY is not None: CTK.TKPLOTXY.updateApp()
+    CTK.display(CTK.t)
+
+def unloadVars(event=None):
+    if CTK.HANDLE is None: return
+    # Recupere les variables selectionnees
+    selection = WIDGETS['LBVARS'].curselection()
+    varList = []
+    for s in selection:
+        v = WIDGETS['LBVARS'].get(s)
+        v, tname = ripTag(v)
+        WIDGETS['LBVARS'].delete(s)
+        WIDGETS['LBVARS'].insert(s, v)
+        i = getNumber(OVARS[3], v, tname)
+        OVARS[3][i] = v
+        varList.append(v)
+    # Enleve les variables selectionnees pour toutes les zones existants dans t
+    C._rmVars(CTK.t, varList)
+    (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+    CTK.TKTREE.updateApp()
+    if CTK.TKPLOTXY is not None: CTK.TKPLOTXY.updateApp()
+    CTK.display(CTK.t)
+
+def filterVarList(event=None):
+    filter = OVARS[1].get()
+    listbox = WIDGETS['LBVARS']
+    listbox.delete(0, TK.END)
+    for s in OVARS[3]:
+        if re.search(filter, s, re.IGNORECASE) is not None:
+            listbox.insert(TK.END, s)
+    listbox.config(yscrollcommand=WIDGETS['SCROLLVARS'].set)
+    WIDGETS['SCROLLVARS'].config(command=listbox.yview)
+    return True
+
+def loadZones(event=None):
+    if CTK.HANDLE is None: return
+    import Converter.Filter as Filter
+    # Recupere les zones selectionnees
+    selection = WIDGETS['LBZONES'].curselection()
+    zList = []
+    for s in selection:
+        v = WIDGETS['LBZONES'].get(s)
+        v, tname = ripTag(v)
+        WIDGETS['LBZONES'].delete(s)
+        WIDGETS['LBZONES'].insert(s, tname)
+        i = getNumber(OVARS[4], v, tname)
+        v = v.encode('utf-8') # Cedre!!
+        OVARS[4][i] = tname
+        zList.append(v)
+    # Charge les GC+GC+BC pour les zones selectionnees + variables deja dans t
+    CTK.HANDLE._loadZonesWoVars(CTK.t, zList)
+    vars = C.getVarNames(CTK.t, excludeXYZ=True)
+    if len(vars)>1:
+        vars = vars[0]
+        if len(vars)>0:
+            Filter._loadVariables(CTK.t, CTK.HANDLE._fileName, zList, vars, CTK.HANDLE._format)
+    
+    CTK.t = CTK.upgradeTree(CTK.t)
+    (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+    CTK.TKTREE.updateApp()
+    if CTK.TKPLOTXY is not None: CTK.TKPLOTXY.updateApp()
+    CTK.display(CTK.t)
+    # auto-fit view? if first zone?
+
+def unloadZones(event=None):
+    if CTK.HANDLE is None: return
+    # Decharge les zones selectionnees
+    selection = WIDGETS['LBZONES'].curselection()
+    zList = []
+    for s in selection:
+        v = WIDGETS['LBZONES'].get(s)
+        v, tname = ripTag(v)
+        WIDGETS['LBZONES'].delete(s)
+        WIDGETS['LBZONES'].insert(s, v)
+        i = getNumber(OVARS[4], v, tname)
+        v = v.encode('utf-8') # Cedre!!
+        OVARS[4][i] = v
+        zList.append(v)
+    for p in zList:
+        Internal._rmNodeByPath(CTK.t, p)
+    (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+    CTK.TKTREE.updateApp()
+    if CTK.TKPLOTXY is not None: CTK.TKPLOTXY.updateApp()
+    CTK.display(CTK.t)
+
+def filterZoneList(event=None):
+    filter = OVARS[2].get()
+    listbox = WIDGETS['LBZONES']
+    listbox.delete(0, TK.END)
+    for s in OVARS[4]:
+        if re.search(filter, s, re.IGNORECASE) is not None:
+            listbox.insert(TK.END, s)
+    listbox.config(yscrollcommand=WIDGETS['SCROLLZONES'].set)
+    WIDGETS['SCROLLZONES'].config(command=listbox.yview)
+    return True
 
 def openLoadPanel():
     global LOADPANEL
+    if LOADPANEL is not None:
+        try: LOADPANEL.withdraw()
+        except: LOADPANEL = None
     if LOADPANEL is None:
         LOADPANEL = TK.Toplevel()
         LOADPANEL.columnconfigure(0, weight=1)
+        LOADPANEL.columnconfigure(1, weight=0)
+        LOADPANEL.columnconfigure(2, weight=1)
+        LOADPANEL.columnconfigure(3, weight=0)
         LOADPANEL.rowconfigure(0, weight=1)
         LOADPANEL.title("File load panel")
         # position de la fenetre parent
-        #xpos = LOADPANEL.master.winfo_rootx()+45
-        #ypos = LOADPANEL.master.winfo_rooty()+45
-        #LOADPANEL.geometry("%+d%+d" % (xpos, ypos))
-        LOADPANEL.protocol("WM_DELETE_WINDOW", _deleteLoadPanel)
-        LOADPANEL.bind("<Destroy>", _destroyLoadPanel)
+        xpos = LOADPANEL.master.winfo_rootx()+45
+        ypos = LOADPANEL.master.winfo_rooty()+45
+        LOADPANEL.geometry("%+d%+d" % (xpos, ypos))
         F = TK.Frame(LOADPANEL, border=0)
         F.grid(row=0, column=0, columnspan=2, sticky=TK.W)
-        B = TTK.Entry(F, textvariable=VARS[1], background='White')
-        B.grid(row=0, column=0, columnspan=2, sticky=TK.EW)
+
+        # -0- filename
+        V = TK.StringVar(F); V.set(CTK.FILE); OVARS.append(V)
+        # -1- Vars filter
+        V = TK.StringVar(F); V.set(''); OVARS.append(V)
+        # -2- Zone filter
+        V = TK.StringVar(F); V.set(''); OVARS.append(V)
+        # -3- Store Vars list
+        OVARS.append([])
+        # -4- Store Zone list
+        OVARS.append([])
+        
+        B = TTK.Entry(F, textvariable=OVARS[0], background='White')
         BB = CTK.infoBulle(parent=B, text='File for reading.')
+        B.grid(row=0, column=0, columnspan=5, sticky=TK.EW)
+        B = TTK.Button(F, text='...', command=openLoadFileDialog)
+        BB = CTK.infoBulle(parent=B, text='Select file.')
+        B.grid(row=0, column=4, columnspan=1, sticky=TK.EW)
 
-        #scrollbar = TK.Scrollbar(LOADPANEL, orient=TK.VERTICAL, width=10)
-        #scrollbar.grid(sticky=TK.NSEW, row=1, column=1)
-        #myList = TK.Listbox(LOADPANEL, selectmode=TK.EXTENDED,
-        #                    yscrollcommand=scrollbar.set,
-        #                    width=80, height=20, background='white')
-        #myList.grid(sticky=TK.NSEW, row=1, column=0)
-        #myList.bind('<<ListboxSelect>>', loadPanelSelect)
-        #scrollbar.config(command=myList.yview)
+        # Vars
+        scrollbar = TTK.Scrollbar(F, orient=TK.VERTICAL, width=10)
+        scrollbar.grid(sticky=TK.NSEW, row=1, column=2)
+        myList = TK.Listbox(F, selectmode=TK.EXTENDED,
+                            yscrollcommand=scrollbar.set,
+                            width=40, height=20, background='white')
+        myList.grid(sticky=TK.NSEW, row=1, column=0, columnspan=2)
+        scrollbar.config(command=myList.yview)
+        WIDGETS['LBVARS'] = myList
+        WIDGETS['SCROLLVARS'] = scrollbar
+        
+        B = TTK.Button(F, text="Load", command=loadVars)
+        B.grid(row=2, column=0, sticky=TK.EW)
+        BB = CTK.infoBulle(parent=B, text='Load vars.')
+        
+        B = TTK.Button(F, text="Unload", command=unloadVars)
+        B.grid(row=2, column=1, sticky=TK.EW)
+        BB = CTK.infoBulle(parent=B, text='Unload vars.')
+        
+        B = TK.Entry(F, textvariable=OVARS[1], background='White', width=40)
+        B.bind('<KeyRelease>', filterVarList)
+        B.grid(row=3, column=0, columnspan=2, sticky=TK.EW)
+        BB = CTK.infoBulle(parent=B, text='Filter vars by this regexp.')
 
+        # Zones
+        scrollbar = TTK.Scrollbar(F, orient=TK.VERTICAL, width=10)
+        scrollbar.grid(sticky=TK.NSEW, row=1, column=5)
+        myList = TK.Listbox(F, selectmode=TK.EXTENDED,
+                            yscrollcommand=scrollbar.set,
+                            width=40, height=20, background='white')
+        myList.grid(sticky=TK.NSEW, row=1, column=3, columnspan=2)
+        scrollbar.config(command=myList.yview)
+        WIDGETS['LBZONES'] = myList
+        WIDGETS['SCROLLZONES'] = scrollbar
+        
+        B = TTK.Button(F, text="Load", command=loadZones)
+        B.grid(row=2, column=3, sticky=TK.EW)
+        BB = CTK.infoBulle(parent=B, text='Load zones.')
+        
+        B = TTK.Button(F, text="Unload", command=unloadZones)
+        B.grid(row=2, column=4, sticky=TK.EW)
+        BB = CTK.infoBulle(parent=B, text='Unload zones.')
+
+        B = TK.Entry(F, textvariable=OVARS[2], background='White', width=40)
+        B.bind('<KeyRelease>', filterZoneList)
+        B.grid(row=3, column=3, columnspan=2, sticky=TK.EW)
+        BB = CTK.infoBulle(parent=B, text='Filter zones by this regexp.')
 
     else:
         # trick pour avoir la fenetre au premier plan
         LOADPANEL.withdraw(); LOADPANEL.deiconify(); LOADPANEL.focus_set()
-    #updateLoadPanel()
+    updateLoadPanel()

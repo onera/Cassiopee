@@ -17,7 +17,8 @@ __all__ = ['array', 'addVars', '_addVars', 'addVars2', 'center2ExtCenter', 'cent
     'getNCells', 'getNPts', 'getValue', 'getVarNames', 'identifyElements', 'identifyFaces', 'identifyNodes', 
     'identifySolutions', 'initVars', '_initVars', 'isNamePresent', 'listen', 'magnitude', 
     'nearestElements', 'nearestFaces', 'nearestNodes', 'node2Center', 'node2ExtCenter', 'normL0', 'normL2', 
-    'normalize', '_normalize', 'randomizeVar', 'rmVars', 'send', 'setPartialFields', 'setValue', 'addGhostCellsNGon']
+    'normalize', '_normalize', 'randomizeVar', 'rmVars', 'send', 'setPartialFields', 'setValue', 'addGhostCellsNGon',
+    'checkFileType']
 
 # -- Create an array -- 
 # Les champs sont mis a zero, sauf si pour les champs cellN et cellNF
@@ -1451,7 +1452,7 @@ def checkFileType(fileName):
   except: raise IOError("checkFileType: file %s not found."%fileName)
 
   fileSize = os.path.getsize(fileName)
-  header = file.read(512)  #lecture des 512 premiers octets
+  header = file.read(512)  # lecture des 512 premiers octets
   file.seek(0)
   beader = b.b2a_hex(header)
   eolx1 = beader.find(eol, 0)

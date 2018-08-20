@@ -6,8 +6,10 @@ import Transform
 import Converter
 import KCore.Vector as Vector
 
+#==================================================================
 # IN: les profiles doivent etre dans le plan x,y et centres en 0
 # IN: line est une ligne structuree
+#==================================================================
 def drive(line, profiles):
     n = line[2]
     for i in xrange(n):

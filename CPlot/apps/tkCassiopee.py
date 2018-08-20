@@ -260,9 +260,11 @@ def run(t=None):
 if __name__ == "__main__":
     # Ouverture du fichier de la ligne de commande
     import sys
-    if len(sys.argv) == 2:
-        CTK.FILE = sys.argv[1]
-        try:
-            CTK.t = C.convertFile2PyTree(CTK.FILE, density=1.)
-        except: print 'Error: convertFile2PyTree: fail to read file %s.'%CTK.FILE
+    if len(sys.argv) >= 2:
+        files = sys.argv[1:]
+        CTK.tkLoadFile(files, mode='full')
+        #CTK.FILE = sys.argv[1]
+        #try:
+        #    CTK.t = C.convertFile2PyTree(CTK.FILE, density=1.)
+        #except: print 'Error: convertFile2PyTree: fail to read file %s.'%CTK.FILE
     run()

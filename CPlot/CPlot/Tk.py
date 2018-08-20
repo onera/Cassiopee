@@ -16,8 +16,9 @@ import os, os.path
 
 #==============================================================================
 # Variables globales partagees entre toutes les apps tk
-# Fichier de donnees lu (en cours)
+# Fichier de donnees lu (en cours), nom du fichier et/ou handle
 FILE = ''
+HANDLE = None
 # Fichier pour les exports
 EXPORTFILE = ''
 # pyTree contenant les donnees affichee
@@ -888,8 +889,6 @@ def saveTree():
 def Quit():
     #WIDGETS['masterWin'].destroy()
     #WIDGETS['masterWin'].quit()
-    #import time
-    #time.sleep(2.)
     os._exit(0)
 
 #==============================================================================
@@ -1326,6 +1325,8 @@ def minimal(title, show=True):
     menu.add_cascade(label='File', menu=file)
     file.add_command(label='Open', accelerator='Ctrl+o', command=loadFile)
     file.add_command(label='Add', command=addFile)
+    file.add_command(label='Open load panel', command=Panels.openLoadPanel)
+    file.add_separator()
     file.add_command(label='Save', accelerator='Ctrl+s', command=quickSaveFile)
     file.add_command(label='Save as...', command=saveFile)
     file.add_command(label='Save sel. zones', command=saveSelFile)
@@ -1720,3 +1721,50 @@ def changeWindowTitle(fileName):
   CPlot.CPlot.cplot.setWindowTitle(fileName)
   win = WIDGETS['masterWin']
   win.title('Cassiopee'+C.__version__+' - '+fileName)
+
+#==============================================================================
+# Meta load function of multiple files
+# Si partial: load un CTK.t squelette + HANDLE
+# Si full: CTK.t full
+# mode = full, partial, auto
+# Cette fonction en fait pas upgrade et updateApps
+#==============================================================================
+def tkLoadFile(files, mode='full'):
+  global FILE; global HANDLE; global t
+  if mode == 'auto':
+    size = 0
+    for f in files:
+      size += os.path.getsize(f) # en octets
+    maxSize = PREFS.get('maxFileSizeForLoad', 8.) # en Gb
+    maxSize = maxSize * 100000000
+    if size > maxSize: mode = 'partial'
+    else: mode = 'full' 
+
+  if mode == 'partial':
+    fileName = files[0]
+    try:
+      format = Converter.checkFileType(fileName)
+    except:
+      print 'Error: convertFile2PyTree: fail to read file %s.'%fileName
+      return
+    if format != 'bin_adf' and format != 'bin_hdf': mode = 'full' 
+
+  if mode == 'partial': # partial load
+    import Converter.Filter as Filter
+    HANDLE = Filter.Handle(files[0])
+    t = HANDLE.loadSkeleton()
+    Filter._convert2PartialTree(t)
+    HANDLE.getVariables()
+    
+  if mode == 'full': # full load of multiple files
+    t = []
+    for file in files:
+      try:
+        t2 = C.convertFile2PyTree(file, density=1.)
+        if t == []: t = t2
+        else: t = C.mergeTrees(t, t2)
+      except:
+        print 'Error: convertFile2PyTree: fail to read file %s.'%file
+
+  # common part
+  FILE = files[0]

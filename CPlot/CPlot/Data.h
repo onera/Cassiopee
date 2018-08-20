@@ -142,7 +142,16 @@ class Data
   char** _billBoardFiles;
   int* _billBoardNis;
   int* _billBoardNjs;
+  int* _billBoardWidths;
+  int* _billBoardHeights;
   GLuint* _billBoardTexs;
+
+  // Material image files and texture storage
+  int _nMaterials; 
+  char** _materialFiles;
+  int* _materialWidths;
+  int* _materialHeights;
+  GLuint* _materialTexs;
 
 #ifdef __SHADERS__
   CPlot::ShaderManager _shaders; // Shaders
@@ -225,7 +234,9 @@ public:
     int createColormapTexture();
     void fillColormapTexture(int type);
     int createFrameBufferTexture();
-    int createPngTexture(const char* filename, GLuint &tex, bool mipmap=true);
+    int createPngTexture(const char* filename, GLuint &tex,
+                         int& width, int& height, 
+                         bool mipmap=true);
     int createVoxelTexture();
     void voxelize(UnstructZone& zn, UnstructZone& z);
     void voxelize(StructZone& zn, StructZone& z);

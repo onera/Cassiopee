@@ -179,23 +179,25 @@ void gdisplay()
     // Update des textures eventuellement
     if (d->ptrState->updateEnvmap == 1)
     { 
-      d->createPngTexture(d->ptrState->envmapFile, d->_texEnviron1, true);
+      int width, height;
+      d->createPngTexture(d->ptrState->envmapFile, d->_texEnviron1, width, height, true);
       d->ptrState->updateEnvmap = 0; 
     }
     if (d->ptrState->updateBackground == 1)
     { 
+      int width, height;
       if (d->ptrState->bgColor == 6)
-       d->createPngTexture("paperBackground1.png", d->_texBackground, false);
+       d->createPngTexture("paperBackground1.png", d->_texBackground, width, height, false);
       else if (d->ptrState->bgColor == 7)
-       d->createPngTexture("paperBackground2.png", d->_texBackground, false);
+       d->createPngTexture("paperBackground2.png", d->_texBackground, width, height, false);
       else if (d->ptrState->bgColor == 8)
-       d->createPngTexture("paperBackground3.png", d->_texBackground, false);
+       d->createPngTexture("paperBackground3.png", d->_texBackground, width, height, false);
       else if (d->ptrState->bgColor == 9)
-       d->createPngTexture("paperBackground4.png", d->_texBackground, false);
+       d->createPngTexture("paperBackground4.png", d->_texBackground, width, height, false);
       else if (d->ptrState->bgColor == 10)
-       d->createPngTexture("paperBackground5.png", d->_texBackground, false);
+       d->createPngTexture("paperBackground5.png", d->_texBackground, width, height, false);
       else
-       d->createPngTexture("paperBackground1.png", d->_texBackground, false);
+       d->createPngTexture("paperBackground1.png", d->_texBackground, width, height, false);
       d->ptrState->updateBackground = 0;
     }
 

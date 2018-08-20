@@ -133,21 +133,24 @@ def fixPaths__(paths, nodes=None):
 
 #==============================================================================
 # Determine si une zone est une zone squelette
+# if ntype=0, se base sur les coord + FlowSolution
+# if ntype=1, se base sur les coord uniquement
 #==============================================================================
-def isZoneSkeleton__(z):
+def isZoneSkeleton__(z, ntype=0):
     if len(z[2]) == 0: return True
     cx = Internal.getNodeFromType1(z, 'GridCoordinates_t')
     if cx is not None:
-        t1 = Internal.getNodesFromType1(cx, 'DataArray_t')
-        for d in t1:
-            if d[1] is None: return True
-        if len(cx[2]) == 0: return True
-        return False
-    cx = Internal.getNodesFromType1(z, 'FlowSolution_t')
-    for x in cx:
+      t1 = Internal.getNodesFromType1(cx, 'DataArray_t')
+      for d in t1:
+        if d[1] is None: return True
+      if len(cx[2]) == 0: return True
+      return False
+    if ntype == 0:
+      cx = Internal.getNodesFromType1(z, 'FlowSolution_t')
+      for x in cx:
         t1 = Internal.getNodesFromType1(x, 'DataArray_t')
         for d in t1:
-            if d[1] is None: return True
+          if d[1] is None: return True
     return False
 
 #==============================================================================
@@ -169,8 +172,9 @@ def _convert2SkeletonTree(t):
 
 #==============================================================================
 # Converti un arbre squelette charge en arbre partiel
-# rank=-1: enleve les zones squelettes
+# rank=-1: enleve les zones squelettes (coord=None)
 # rank>=0: enleve les zones de proc != rank
+# Supprime aussi les champs squelettes
 #==============================================================================
 def convert2PartialTree(t, rank=-1):
     """Convert a tree to a partial tree."""
@@ -182,16 +186,25 @@ def _convert2PartialTree(t, rank=-1):
     zones = Internal.getZones(t)
     for z in zones:
         crit = False
-        if rank == -1: crit = isZoneSkeleton__(z)
+        if rank == -1: crit = isZoneSkeleton__(z, ntype=1)
         else:
             proc = Internal.getNodeFromName2(z, 'proc')
             if proc is not None: 
                 proc = Internal.getValue(proc) 
                 crit = (rank != proc)
         if crit:
+            # Supprime entierement la zone
             (p, c) = Internal.getParentOfNode(t, z)
-            if (Internal.isStdNode(t) == 0 and id(p) == id(t)): del p[c]
+            if Internal.isStdNode(t) == 0 and id(p) == id(t): del p[c]
             else: del p[2][c]
+        else: # enleve les champs squelettes
+          cx = Internal.getNodesFromType1(z, 'FlowSolution_t')
+          for x in cx:
+            t1 = Internal.getNodesFromType1(x, 'DataArray_t')
+            for d in t1:
+              if d[1] is None:
+                p = Internal.getPath(x, d)
+                Internal._rmNodeByPath(z, p)
     return None
 
 #==============================================================================

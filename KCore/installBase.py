@@ -18,7 +18,7 @@ False, # static
 False, # CPlotOffScreen
 ['c:/MinGW/include'], # additionalIncludePaths
 ['gfortran', 'gomp', 'pthread'], # additionalLibs
-['c:/MinGW/lib', 'c:/Python27/libs'] # additionalLibPaths
+['c:/MinGW/lib', 'c:/Python27/libs', 'c:/MinGW/bin'] # additionalLibPaths
 ],
 ###############################################################################
 'node6.cluster': [ 'MacOSX (generic)',

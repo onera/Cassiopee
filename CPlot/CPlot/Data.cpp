@@ -85,6 +85,8 @@ Data::Data(CPlotState* ptState)
   _billBoardFiles = new char* [nb];
   _billBoardNis = new int [nb];
   _billBoardNjs = new int [nb];
+  _billBoardWidths = new int [nb]; // init from files
+  _billBoardHeights = new int [nb];
   _billBoardTexs = new GLuint [nb];
   _billBoardFiles[c] = new char [128];
   strcpy(_billBoardFiles[c], "smoke1.png");

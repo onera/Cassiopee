@@ -52,9 +52,10 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
   E_Float lightOffsetX, lightOffsetY; E_Float dofPower;
   int timer; int selectionStyle;
   int continuousExport; int activateShortCuts;
+  E_Float billBoardSize;
   if (!PyArg_ParseTuple(
         args, 
-	"iOOiiiiiiiiiiddiiiidO(ii)(ddd)(ddd)(ddd)d(dd)iiidiiississidi(ii)iiiO",
+	"iOOiiiiiiiiiiddiiiidO(ii)(ddd)(ddd)(ddd)d(dd)iiidiiississidi(ii)iiiOd",
         &dim, &modeObject, &scalarFieldObject,
         &vectorField1, &vectorField2, &vectorField3,
         &displayBB, &displayInfo, &displayIsoLegend,
@@ -73,7 +74,7 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
         &envmap, &message,
         &stereo, &stereoDist, &cursor,
         &gridSizeI, &gridSizeJ, &timer, &selectionStyle,
-        &activateShortCuts, &billBoards))
+        &activateShortCuts, &billBoards, &billBoardSize))
   {
     return NULL;
   }
@@ -166,6 +167,10 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
       d->_billBoardTexs[i] = 0;
       d->_billBoardNis[i] = ni; d->_billBoardNjs[i] = nj;
     }
+  }
+  if (billBoardSize != -1)
+  {
+    d->ptrState->billBoardSize = billBoardSize;
   }
 
   d->ptrState->render = 1;

@@ -99,7 +99,7 @@ def rotate(event=None):
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
         
     CTK.saveTree()
-    if X == None:
+    if X is None:
         sel = []
         for nz in nzs:
             nob = CTK.Nb[nz]+1

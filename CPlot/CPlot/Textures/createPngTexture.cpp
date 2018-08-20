@@ -26,9 +26,11 @@
   IN: filename: fichier png
   IN: mipmap: si true, cree une texture avec mipmaps
   OUT: tex: texture.
+  OUT: width, height: nbre de pixels de la texture
 */
 //=============================================================================
-int Data::createPngTexture(const char* filename, GLuint &tex, bool mipmap)
+int Data::createPngTexture(const char* filename, GLuint &tex, 
+                           int &width, int &height, bool mipmap)
 {
   Data* d = Data::getInstance();
 
@@ -51,7 +53,6 @@ int Data::createPngTexture(const char* filename, GLuint &tex, bool mipmap)
   { printf("Warning: CPlot: can't open texture file %s.\n", path); 
     return 0; }
   
-  int width, height;
   png_structp png_ptr;
   int number_of_passes;
   png_byte color_type;

@@ -78,7 +78,7 @@ def updateVarNameList2(event=None):
 #==============================================================================
 def setMaterial():
     if CTK.t == []: return
-    if (CTK.__MAINTREE__ <= 0):
+    if CTK.__MAINTREE__ <= 0:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     material = VARS[0].get()

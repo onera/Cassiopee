@@ -114,6 +114,9 @@ struct CPlotState {
     int billBoardNj;    // nbre de samples en j
     int billBoardD;     // no du champ a utiliser pour la taille des billboards
     int billBoardT;     // no du champ a utiliser pour le choix du billboard
+    int billBoardWidth; // nbre de pixel de l'image
+    int billBoardHeight; // idem
+    double billBoardSize; // Reference size for billboards. If = 0., automatic from cam
 
     // Autres
     char winTitle[120];        // titre de la fenetre

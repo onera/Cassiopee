@@ -1,4 +1,4 @@
-# coding: utf8
+# coding: utf-8
 #from __future__ import unicode_literals
 
 # --- Import Section
@@ -6958,7 +6958,7 @@ class DesktopFrameTK(TK.Frame):
         ## 2/- Create the dictionary to save
         #
         instance = open(filename,'w')
-        lines  = '''# coding: utf8\n'''
+        lines  = '''# coding: utf-8\n'''
         lines += '''from __future__ import unicode_literals\n'''
         lines += '''from tkPlotXY import *\n'''
         lines += '''def loadVisu(obj):\n'''
@@ -7822,7 +7822,7 @@ class Desktop():
         ## 2/- Create the dictionary to save
         #
         instance = open(filename,'w')
-        lines  = '''# coding: utf8\n'''
+        lines  = '''# coding: utf-8\n'''
         lines += '''from __future__ import unicode_literals\n'''
         lines += '''from tkPlotXY import *\n'''
         lines += '''def loadVisu(obj):\n'''

@@ -97,7 +97,7 @@ def box(Pmin, Pmax, chamfer=-1.):
         return a
 
 #==========================================================================
-# IN: Pmin, Pmax : pts min et max
+# IN: Pmin, Pmax: pts min et max
 # IN: r: % de round (entre 0 et 1)
 #==========================================================================
 def box2D(Pmin, Pmax, r=0.):

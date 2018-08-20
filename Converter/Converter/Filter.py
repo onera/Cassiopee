@@ -2,7 +2,7 @@
 import Internal
 import PyTree
 import Converter
-from Distributed import convert2PartialTree, _convert2PartialTree, convertFile2SkeletonTree, _readPyTreeFromPaths, _readZones, \
+from Distributed import convert2PartialTree, _convert2PartialTree, convert2SkeletonTree, _convert2SkeletonTree, convertFile2SkeletonTree, _readPyTreeFromPaths, _readZones, \
 _convert2SkeletonTree, readNodesFromPaths, writeNodesFromPaths, writePyTreeFromPaths, deletePaths
 
 # Prend un fileName, si c'est toto/*, rend la liste des fichiers
@@ -360,9 +360,13 @@ class Handle:
   # pour les zones specifiees
   def _loadZonesWoVars(self, a, znp=None):
     if znp is None: znp = self._znp
+    # Read paths as skeletons
+    _readPyTreeFromPaths(a, self._fileName, znp, self._format, maxFloatSize=0)
     _loadContainers(a, self._fileName, znp, 'GridCoordinates', self._format)
     _loadConnectivity(a, self._fileName, znp, self._format)
     _loadZoneBCs(a, self._fileName, znp, self._format)
+    for zp in znp: 
+      _convert2PartialTree(Internal.getNodeFromPath(a, zp))
     Internal._fixNGon(a)
     return None
 

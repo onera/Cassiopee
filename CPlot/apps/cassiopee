@@ -1,7 +1,7 @@
 #! /bin/sh
 if test -e "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.py"
 then
-    python "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.py" $1
+    python "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.py" "$@"
 else
-    python "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.pyc" $1
+    python "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.pyc" "$@"
 fi

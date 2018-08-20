@@ -79,10 +79,10 @@ void DataDL::displaySIsoSolid()
   else
   { // shader pour les isos vectoriels
     int s = 27;
-    if ( ptrState->vectorStyle == 2) s = 33;
-    if ( ptrState->vectorStyle == 1) s = 34;
-    if ( ptrState->vectorStyle == 3) s = 35;
-    if ( ptrState->vectorStyle == 4) s = 36;
+    if (ptrState->vectorStyle == 2) s = 33;
+    if (ptrState->vectorStyle == 1) s = 34;
+    if (ptrState->vectorStyle == 3) s = 35;
+    if (ptrState->vectorStyle == 4) s = 36;
     if (_shaders.currentShader() != s)
       _shaders.activate((short unsigned int)s);
     if ( s == 27 ) {

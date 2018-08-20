@@ -184,21 +184,28 @@ void Data::triggerShader(Zone& z, int material, float scale, float* color)
       if (z.shaderParam2 < 0.1) // Sphere billboard
       {
         shader = 12;
+        ptrState->billBoardNi = 1;
+        ptrState->billBoardNj = 1;
+        ptrState->billBoardWidth = 1;
+        ptrState->billBoardHeight = 1;
+        
         if (_shaders.currentShader() != shader) _shaders.activate(shader);
       }
       else if (z.shaderParam2 >= 0.1) // texture billboards
       {
-        int type = (int)(z.shaderParam2*3.);
+        int type = (int)( (z.shaderParam2)*(_nBillBoards*0.5) );
         int t = type-1;
         t = std::max(t, 0);
         t = std::min(t, _nBillBoards-1);
         if (_billBoardTexs[t] == 0) 
         {
-            createPngTexture(_billBoardFiles[t], _billBoardTexs[t], true);
-            //printf("loading %d %s\n", type, _billBoardFiles[t]);
+          createPngTexture(_billBoardFiles[t], _billBoardTexs[t], _billBoardWidths[t], _billBoardHeights[t], true);
+          //printf("loading %d %s\n", type, _billBoardFiles[t]);
         }
         ptrState->billBoardNi = _billBoardNis[t];
         ptrState->billBoardNj = _billBoardNjs[t];
+        ptrState->billBoardWidth = _billBoardWidths[t];
+        ptrState->billBoardHeight = _billBoardHeights[t];
         _texBillBoard = _billBoardTexs[t];
 
         shader = 23;

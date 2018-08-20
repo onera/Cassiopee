@@ -100,19 +100,31 @@ void Data::displayBillBoards(Zone* zonep, int zone)
   dist = dx*dx + dy*dy + dz*dz;
   dx = xmax - xcam; dy = ymax - ycam; dz = zmax - zcam;
   dist = K_FUNC::E_max(dist, dx*dx + dy*dy + dz*dz);
-  d = sqrt(dist)*dref;
+  if (ptrState->billBoardSize == 0.)
+    d = sqrt(dist)*dref;
+  else d = ptrState->billBoardSize*dref;
+  //printf("%g %g\n", dref, ptrState->billBoardSize);
+
+  // Billboard size
+  int bw = (int)(ptrState->billBoardWidth);
+  int bh = (int)(ptrState->billBoardHeight);
+  int Ni = (int)(ptrState->billBoardNi);
+  int Nj = (int)(ptrState->billBoardNj);
+  float rt = (bh*Ni*1./(bw*Nj));
+  //printf("Width=%d %d - %g\n",bw,bh,rt);
+  //rt = 1.; // DBX
 
   glBegin(GL_QUADS);  
   double *x = zonep->x;
   double *y = zonep->y;
   double *z = zonep->z;
 
-  pru0 = d*(right[0] + up[0]);
-  pru1 = d*(right[1] + up[1]);
-  pru2 = d*(right[2] + up[2]);
-  mru0 = d*(right[0] - up[0]);
-  mru1 = d*(right[1] - up[1]);
-  mru2 = d*(right[2] - up[2]);
+  pru0 = d*(right[0] + rt*up[0]);
+  pru1 = d*(right[1] + rt*up[1]);
+  pru2 = d*(right[2] + rt*up[2]);
+  mru0 = d*(right[0] - rt*up[0]);
+  mru1 = d*(right[1] - rt*up[1]);
+  mru2 = d*(right[2] - rt*up[2]);
   int npts = zonep->npts;
 
   // compute cam distance
@@ -120,18 +132,31 @@ void Data::displayBillBoards(Zone* zonep, int zone)
   double* ran = new double [npts];
   double dmin, dmax;
   double randConst = 1./99.;
+
+  // look for billBoard field (if any)
+  char** v = zonep->varnames;
+  int nf = zonep->nfield;
+  for (int i = 0; i < nf; i++)
+  {
+    if (strcmp(v[i], "TBB__") == 0) ptrState->billBoardT = i;
+  }
+  //ptrState->billBoardT = -1;
+
+  // Compute ran field (choose in billboard)
   for (int i = 0; i < npts; i++)
   {
     xi = x[i]; yi = y[i]; zi = z[i];
     di[i] = sqrt((xcam-xi)*(xcam-xi)+(ycam-yi)*(ycam-yi)+(zcam-zi)*(zcam-zi));
     dmin = std::min(di[i], dmin);
     dmax = std::max(di[i], dmax);
-    ran[i] = rand()%100*randConst;
+    if (ptrState->billBoardT == -1) ran[i] = rand()%100*randConst; // entre 0 et 1
+    else ran[i] = zonep->f[ptrState->billBoardT][i]; // doit etre entre 0 et 1
   }
   int NSplit = 25;
   double delta = (dmax-dmin)/(NSplit-1.);
   double range, ranged;
   int e1,e2;
+  dmin = dmin-1.e-10;
 
   // render
   for (int n = NSplit-1; n >= 0; n--)
@@ -195,8 +220,8 @@ void Data::displayBillBoards(Zone* zonep, int zone)
           pt4[2] = zi - mru2;
           
           // Le champ T est transmis dans r avec la couleur encodee
-          e1 = int(ran[i]*255.); // encode
-          e2 = int(color1[0]*255.); // encode
+          e1 = int(ran[i]*255.); // encode entre 0 et 255
+          e2 = int(color1[0]*255.); // encode entre 0 et 255
           //printf("encode %d %d %f\n", e1,e2,(e1+2*e2)/768.);
           glColor4f((e1+255*e2)/65280., color1[1], color1[2], ptrState->alpha);
         

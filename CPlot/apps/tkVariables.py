@@ -19,7 +19,7 @@ WIDGETS = {}; VARS = []
 def updateVarNameList1(event=None):
     if CTK.t == []: return
     nzs = CPlot.getSelectedZones()
-    if (CTK.__MAINTREE__ <= 0 or nzs == []):
+    if CTK.__MAINTREE__ <= 0 or nzs == []:
         varsl = C.getVarNames(CTK.t, excludeXYZ=True)
     else:
         nob = CTK.Nb[0]+1
@@ -156,7 +156,7 @@ def updateVarNameList4_2(event=None):
 def updateVarNameList5(event=None):
     if CTK.t == []: return
     nzs = CPlot.getSelectedZones()
-    if (CTK.__MAINTREE__ <= 0 or nzs == []):
+    if CTK.__MAINTREE__ <= 0 or nzs == []:
         varsl = C.getVarNames(CTK.t, excludeXYZ=True)
     else:
         nob = CTK.Nb[0]+1
@@ -257,15 +257,15 @@ def importFile(event=None):
     try:
         t1 = []
         for filename in s:
-            if (filename != ''):
+            if filename != '':
                 t2 = C.convertFile2PyTree(filename)
                 # Fusion des bases de t et t2
-                if (t1 == []): t1 = t2
+                if t1 == []: t1 = t2
                 else: t1 = C.mergeTrees(t1, t2)
     except:
         CTK.TXT.insert('START', 'Import failed.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-    if (t1 == []):
+    if t1 == []:
         CTK.TXT.insert('START', 'Import failed.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
@@ -282,7 +282,7 @@ def importFile(event=None):
     comp = min(len(zoneNames), len(zoneNames1))*1.
     if (linter / comp > 0.9): method = 0 # try match by name (safer)
 
-    if (CTK.__MAINTREE__ <= 0 or nzs == []):
+    if CTK.__MAINTREE__ <= 0 or nzs == []:
         CTK.t = P.importVariables(t1, CTK.t, method=method)
     else:
         zones = C.newPyTree(['Base'])
@@ -334,9 +334,9 @@ def computeVariables():
         else: ReInf = nodes[0][1]
     else: ReInf = 1.
 
-    if (adim == 'Adim1 (ro,a,T)'):
+    if adim == 'Adim1 (ro,a,T)':
         adim = Adim.adim1(MInf, 0., 0., ReInf)
-    elif (adim == 'Adim2 (ro,u,T)'):
+    elif adim == 'Adim2 (ro,u,T)':
         adim = Adim.adim2(MInf, 0., 0., ReInf)
     else:
         CTK.TXT.insert('START', 'Unknown adim type.\n')
@@ -388,7 +388,7 @@ def computeVariables():
 
     else: # std variables 
         varloc = loc+':'+varname
-        if (CTK.__MAINTREE__ <= 0 or nzs == []):
+        if CTK.__MAINTREE__ <= 0 or nzs == []:
             try:
                 CTK.t = P.computeVariables(CTK.t, [varloc],
                                            gamma=gamma, rgp=rgp, Cs=Cs,
@@ -591,6 +591,7 @@ def createApp(win):
     B.bind('<Return>', importFile)
     B.grid(row=norow, column=0, sticky=TK.EW)
     B = TTK.Button(F, text="...", padx=0, command=chooseImportFile)
+    BB = CTK.infoBulle(parent=B, text='Select solution file.')
     B.grid(row=norow, column=1, sticky=TK.EW)
     F.grid(row=norow, column=1, sticky=TK.EW)
 

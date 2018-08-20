@@ -49,10 +49,11 @@ void Data::init(void)
 #endif
   
   // Cree les textures
+  int width, height;
   createNodeTexture();
   createNoise3DTexture();
   createFrameBufferTexture();
-  createPngTexture("windtunnel.png", _texEnviron1);
+  createPngTexture("windtunnel.png", _texEnviron1, width, height);
   createVoxelTexture();
 
   // Set bg color

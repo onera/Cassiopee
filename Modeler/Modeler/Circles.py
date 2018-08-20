@@ -33,7 +33,7 @@ def circle1(R=1., Rd=0.8, Nd=10, fracD=0.5, N=180):
 #=============================================================================
 # Cercle avec bumps
 #=============================================================================
-def circle2(R=1.,  Rd=0.8, Nd=10, fracD=0.5, N=180):
+def circle2(R=1., Rd=0.8, Nd=10, fracD=0.5, N=180):
     """Circle"""
     c1 = D.circle((0,0,0), R, N=N)
     c2 = D.circle((0,0,0), Rd, N=N)
@@ -57,5 +57,4 @@ def circle2(R=1.,  Rd=0.8, Nd=10, fracD=0.5, N=180):
     out = T.join(out)
     out = G.close(out)
     return out    
-
 

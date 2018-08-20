@@ -51,8 +51,8 @@ def initCanvas(event=None):
         LX = posEye[0]-posCam[0]
         LY = posEye[1]-posCam[1]
         LZ = posEye[2]-posCam[2]
-        if (LX*LX + LY*LY + LZ*LZ < 1.e-10): LX = -1
-        if (dirCam[0]*dirCam[0] + dirCam[1]*dirCam[1] + dirCam[2]*dirCam[2] == 0.):
+        if LX*LX + LY*LY + LZ*LZ < 1.e-10: LX = -1
+        if dirCam[0]*dirCam[0] + dirCam[1]*dirCam[1] + dirCam[2]*dirCam[2] == 0.:
             dirCam = (0,0,1)
         DIRX = dirCam[0]; DIRY = dirCam[1]; DIRZ = dirCam[2]
     
