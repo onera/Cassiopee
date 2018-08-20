@@ -63,7 +63,7 @@ class World:
         f = open(file, 'r')
         data = f.read()
         f.close()
-        lines = data.split('\n')
+        lines = data.splitlines()
         self.title = lines[0]
         self.author = lines[1]
         self.music = lines[2]

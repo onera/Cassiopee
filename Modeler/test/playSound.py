@@ -2,7 +2,7 @@
 import Modeler.Sound as Sound
 import time
 
-sound = Sound.registerSound("380.wav")
+sound = Sound.registerSound("Images/380.wav")
 
 c = 0
 while c < 5:
