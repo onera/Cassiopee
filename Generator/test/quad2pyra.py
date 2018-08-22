@@ -1,4 +1,4 @@
-# - T3mesher2D (array) -
+# - quad2Pyra (array) -
 import Generator as G
 import Converter as C
 import Geom as D
@@ -9,4 +9,4 @@ a = C.convertArray2Hexa(a)
 a = T.join(a)
 a = G.close(a)
 b = G.quad2Pyra(a, hratio=1.)
-C.convertArrays2File([b], 'out.plt')
+C.convertArrays2File(b, 'out.plt')

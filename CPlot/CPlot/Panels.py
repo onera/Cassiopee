@@ -1211,6 +1211,7 @@ def loadZones(event=None):
         if len(vars)>0:
             Filter._loadVariables(CTK.t, CTK.HANDLE._fileName, zList, vars, CTK.HANDLE._format)
     
+    Filter._convert2PartialTree(CTK.t)
     CTK.t = CTK.upgradeTree(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()

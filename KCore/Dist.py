@@ -477,14 +477,13 @@ def getCorePerSocket():
      return 1
 
 #==============================================================================
-# Parcours un repertoire a la recherche des fichiers d'une certaine extension
-# Ex: getFilesOfExt('Converter', ['.cpp'])
+# Fonction interne a getFilesOfExt
 #==============================================================================
 def scanext(args, dir, file):
     givenExts = args[0]
     ret = args[1]
     for f in file:
-        (root,ext) = OP.splitext(f)
+        (root,ext) = os.path.splitext(f)
         tot = '%s/%s'%(dir,f)
         t = os.path.islink(tot)
         m = True
@@ -492,13 +491,102 @@ def scanext(args, dir, file):
         if 'build' in tot: m = False
         if '.svn' in tot: m = False
         if 'Stubs' in tot: m = False
+        if 'test' in tot: m = False
+        if 'EXEMPLES' in tot: m = False
         if ext in givenExts and not t and m:
             ret.append(tot)
 
+#==============================================================================
+# Parcours un repertoire a la recherche des fichiers d'une certaine extension
+# Ex: getFilesOfExt('Converter', ['.cpp'])
+#==============================================================================
 def getFilesOfExt(rootdir, givenExts):
   ret = []
   os.path.walk(rootdir, scanext, [givenExts, ret])
   return ret
+
+#==============================================================================
+# Sort a file list to solve the dependance to "use module" for fortran90
+#==============================================================================
+def sortFileListByUse(files):
+    # Calcul du nombre de USE et le nom des modules utilises
+    nbs = {}; mods = {}; defmods = {}
+    for f in files:
+        nb = 0
+        fh = open(f, 'r')
+        d = fh.read()
+        fh.close()
+        d = d.splitlines()
+        mod = []; defmod = []
+        for j in d:
+            tr = j[0:]; tr = tr.lstrip(); tr1 = tr[0:3]
+            if tr1 == 'use' or tr1 == 'USE':
+                tr2 = tr[3:]; tr2 = tr2.lstrip()
+                tr2 = tr2.split(' ')
+                tr2 = tr2[0]
+                tr2 = tr2.split(',')
+                tr2 = tr2[0]
+                tr2 = tr2.split('!')
+                tr2 = tr2[0]
+                if tr2 not in mod:
+                    mod.append(tr2)
+                    nb += 1
+            tr3 = tr[0:6]
+            if tr3 == 'module' or tr3 == 'MODULE':
+                tr2 = tr[6:]; tr2 = tr2.lstrip()
+                tr2 = tr2.split(' ')
+                tr2 = tr2[0]
+                tr2 = tr2.split(',')
+                tr2 = tr2[0]
+                tr2 = tr2.split('!')
+                tr2 = tr2[0]
+                defmod.append(tr2)
+        nbs[f] = nb
+        mods[f] = mod
+        defmods[f] = defmod
+        #print f, nb, mod, defmod
+
+    # tri
+    files = sorted(files, key=lambda x: nbs[x])
+
+    #for f in files:
+    #    print f, nbs[f], mods[f], defmods[f]
+
+    out = []
+    lf0 = 0
+    lf = len(files)
+
+    while lf-lf0 != 0:
+        lf0 = lf
+        # selectionne les fichiers a 0 dependance
+        c = 0
+        for f in files:
+            if nbs[f] > 0: break
+            c += 1
+
+        l0 = files[0:c]
+        out += l0
+        files = files[c:]
+        lf = len(files)
+
+        # remplace les 0 use
+        for f in files:
+            for l in l0:
+                for j in defmods[l]:
+                    if j in mods[f]:
+                        nbs[f] -= 1; mods[f].remove(j)
+        # tri
+        files = sorted(files, key=lambda x: nbs[x])
+    if lf > 0: out += files
+
+    #print len(out)
+    #for f in out:
+    #    print f, nbs[f], mods[f]
+
+    #print 'MODULES'
+    #for f in out:
+    #    if len(defmods[f])>0: print f, defmods[f], nbs[f], '->', mods[f]
+    return out
 
 #==============================================================================
 # Retourne les options additionelles des compilos definies dans config

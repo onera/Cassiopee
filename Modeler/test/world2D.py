@@ -6,6 +6,7 @@ import time
 
 w = World2D.World('Images/level.txt')
 w.render()
+time.sleep(1.)
 
 p = Perso2D.perso('hero', 'Images/serge2.png')
 m = Perso2D.perso('serge', 'Images/serge.png')

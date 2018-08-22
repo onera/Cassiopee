@@ -4,6 +4,7 @@ import PyTree
 import Converter
 from Distributed import convert2PartialTree, _convert2PartialTree, convert2SkeletonTree, _convert2SkeletonTree, convertFile2SkeletonTree, _readPyTreeFromPaths, _readZones, \
 _convert2SkeletonTree, readNodesFromPaths, writeNodesFromPaths, writePyTreeFromPaths, deletePaths
+import numpy
 
 # Prend un fileName, si c'est toto/*, rend la liste des fichiers
 def expand(fileName):
@@ -159,7 +160,7 @@ def _loadZoneBCs(a, fileName, znp, format=None):
       children = n[2]
       for i in children:
         if i[3] == 'ZoneBC_t': paths.append(p+'/'+i[0])
-        if i[3] == 'GridConnectivity_t': paths.append(p+'/'+i[0])
+        if i[3] == 'ZoneGridConnectivity_t': paths.append(p+'/'+i[0])
   if paths != []: _readPyTreeFromPaths(a, fileName, paths, format)
   return None
 
@@ -210,7 +211,7 @@ def getVariables(fileName, znp, cont=None, format=None):
   else: znps = [znp]
   if cont is None: # check containers in files
     conts = set()
-    nodes = readNodesFromPaths(fileName, znp, format, maxDepth=1)
+    nodes = readNodesFromPaths(fileName, znp, format, maxDepth=1, maxFloatSize=0)
     for n in nodes:
       for j in n[2]:
         if j[3] == 'FlowSolution_t': conts.add(j[0])
@@ -223,7 +224,7 @@ def getVariables(fileName, znp, cont=None, format=None):
     for p in znps:
       paths.append(p+'/'+c)
   vars = set()
-  nodes = readNodesFromPaths(fileName, paths, format, maxDepth=1)
+  nodes = readNodesFromPaths(fileName, paths, format, maxDepth=1, maxFloatSize=0)
   for n in nodes:
     for j in n[2]:
       if j[3] == 'DataArray_t': vars.add(n[0]+'/'+j[0])
@@ -255,39 +256,38 @@ def bboxTree(fileName):
     return None
 
 # Load only zones that match a bbox
-def filterBBox(a, fileName, znp, bbox, F):
-    xmin = bb[0]; ymin = bb[1]; zmin = bb[2]
-    xmax = bb[3]; ymax = bb[4]; zmax = bb[5]
+def isInBBox(a, fileName, bbox, znp):
+    xmin = bbox[0]; ymin = bbox[1]; zmin = bbox[2]
+    xmax = bbox[3]; ymax = bbox[4]; zmax = bbox[5]
     if isinstance(znp, list): znps = znp
     else: znps = [znp]
     out = []
     for p in znps:
        z = Internal.getNodeFromPath(a, p)
-       path = ['%s/CoordinateX']
+       path = ['%s/GridCoordinates/CoordinateX'%p]
        _readPyTreeFromPaths(a, fileName, path)
-       vmin = C.getMinValue(z, 'CoordinateX')
-       vmax = C.getMaxValue(z, 'CoordinateX')
-       if vmax < xmin or vmin > xmax: continue
-       path = ['%s/CoordinateY']
+       pt = Internal.getNodeFromName2(z, 'CoordinateX')
+       vmin = numpy.min(pt[1])
+       vmax = numpy.max(pt[1])
+       pt[1] = None
+       if vmax < xmin or vmin > xmax: out.append(False); continue
+       path = ['%s/GridCoordinates/CoordinateY'%p]
        _readPyTreeFromPaths(a, fileName, path)
-       vmin = C.getMinValue(z, 'CoordinateY')
-       vmax = C.getMaxValue(z, 'CoordinateY') 
-       if vmax < ymin or vmin > ymax: continue
-       path = ['%s/CoordinateZ']
+       pt = Internal.getNodeFromName2(z, 'CoordinateY')
+       vmin = numpy.min(pt[1])
+       vmax = numpy.max(pt[1])
+       pt[1] = None
+       if vmax < ymin or vmin > ymax: out.append(False); continue
+       path = ['%s/GridCoordinates/CoordinateZ'%p]
        _readPyTreeFromPaths(a, fileName, path)
-       vmin = C.getMinValue(z, 'CoordinateZ')
-       vmax = C.getMaxValue(z, 'CoordinateZ') 
-       if vmax < zmin or zmin > ymax: continue
-       # Perform the action, finish loading
-       # ...
-       # slice, selectCells, isoSurfMC
-       ztype = Internal.getZoneType(z)
-       if ztype == 2: _loadConnectivity(a, fileName, p)
-       out = F(z)
-       # Release eventuellement
-       _convert2SkeletonTree(z)
+       pt = Internal.getNodeFromName2(z, 'CoordinateZ')
+       vmin = numpy.min(pt[1])
+       vmax = numpy.max(pt[1])
+       pt[1] = None
+       if vmax < zmin or vmin > zmax: out.append(False); continue
+       out.append(True)
+    if len(out) == 1: out = out[0]
     return out
-
 
 #==========================================================
 class Handle:
@@ -318,7 +318,7 @@ class Handle:
   # Retourne les variables du fichier
   def getVariables(self, a=None, cont=None):
     if a is not None: p = self.getZonePaths(a)
-    else: p = self._znp
+    else: p = [self._znp[0]] # only first zone
     vars = getVariables(self._fileName, p, cont, self._format)
     self._fileVars = vars
     return vars
@@ -365,9 +365,8 @@ class Handle:
     _loadContainers(a, self._fileName, znp, 'GridCoordinates', self._format)
     _loadConnectivity(a, self._fileName, znp, self._format)
     _loadZoneBCs(a, self._fileName, znp, self._format)
-    for zp in znp: 
+    for zp in znp:
       _convert2PartialTree(Internal.getNodeFromPath(a, zp))
-    Internal._fixNGon(a)
     return None
 
   # Charge toutes les BCs (avec BCDataSet) des zones de a  
@@ -399,3 +398,7 @@ class Handle:
     p = self.getZonePaths(a)
     _loadVariables(a, self._fileName, p, var, self._format)
     return None
+  
+  def isInBBox(self, a, bbox, znp=None):
+    if znp is None: znp = self._znp
+    return isInBBox(a, self._fileName, bbox, znp)
