@@ -481,9 +481,10 @@ def fixFileString__(files, initFile=None):
         # unix retourne aussi initFile en premier
         if initFile != '' and initFile is not None:
           if len(files) == 0: out = [initFile]
-          else:
-            out = files[1:]
+          else: out = files[1:]
         else: out = files
+    # Force utf-8
+    out = [o.encode('utf-8') for o in out]
     return out
 
 #==============================================================================
@@ -491,12 +492,14 @@ def fixFileString__(files, initFile=None):
 # necessaire
 #==============================================================================
 def fixFileString2__(file):
-    if isinstance(file, unicode):
-        import sys
-        encoding = sys.getfilesystemencoding()
-        s = file.encode(encoding)
-        return s
-    else: return file
+    #if isinstance(file, unicode):
+    #    import sys
+    #    encoding = sys.getfilesystemencoding()
+    #    s = file.encode(encoding)
+    #    return s
+    #else: return file
+    # Force utf-8
+    return file.encode('utf-8')
 
 #==============================================================================
 # Load a file par un dialog
@@ -1304,6 +1307,7 @@ def minimal(title, show=True):
     win.protocol("WM_DELETE_WINDOW", Quit)
     win.bind('<Control-Key-s>', quickSaveFile)
     win.bind('<Control-Key-o>', loadFile)
+    win.bind('<Control-Key-p>', Panels.openLoadPanel)
     win.bind('<Control-Key-z>', undo)
     win.option_add('*Font', GENERALFONT)
     win.option_add('*Label.font', LABELFONT)
@@ -1325,7 +1329,7 @@ def minimal(title, show=True):
     menu.add_cascade(label='File', menu=file)
     file.add_command(label='Open', accelerator='Ctrl+o', command=loadFile)
     file.add_command(label='Add', command=addFile)
-    file.add_command(label='Open load panel', command=Panels.openLoadPanel)
+    file.add_command(label='Open load panel', accelerator='Ctrl+p', command=Panels.openLoadPanel)
     file.add_separator()
     file.add_command(label='Save', accelerator='Ctrl+s', command=quickSaveFile)
     file.add_command(label='Save as...', command=saveFile)

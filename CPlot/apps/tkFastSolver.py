@@ -101,9 +101,9 @@ def writeSetupFile():
     nodes = Internal.getNodesFromName(CTK.t, 'GoverningEquations')
     if nodes != []:
         equations = Internal.getValue(nodes[0])
-        if (equations == 'Euler'): model = 'euler'
-        if (equations == 'NSLaminar'): model = 'nslam'
-        if (equations == 'NSTurbulent'): model = 'nstur'
+        if equations == 'Euler': model = 'euler'
+        if equations == 'NSLaminar': model = 'nslam'
+        if equations == 'NSTurbulent': model = 'nstur'
     else:
         CTK.TXT.insert('START', 'GoverningEquations is missing (tkState).\n')
         CTK.TXT.insert('START', 'Error: ', 'Error')
@@ -112,11 +112,11 @@ def writeSetupFile():
     # Turbulence model
     if model == 'nstur':
         nodes = Internal.getNodesFromName(CTK.t, 'TurbulenceModel')
-        if (nodes != []):
+        if nodes != []:
             tm = Internal.getValue(nodes[0])
-            if (tm == 'OneEquation_SpalartAllmaras'): model += '_sa'
-            elif (tm == 'TwoEquation_Wilcox'): model += '_kw'
-            elif (tm == 'TwoEquation_MenterSST'): model += '_kw'
+            if tm == 'OneEquation_SpalartAllmaras': model += '_sa'
+            elif tm == 'TwoEquation_Wilcox': model += '_kw'
+            elif tm == 'TwoEquation_MenterSST': model += '_kw'
             else:
                 CTK.TXT.insert('START', 'This turbulence model is not accepted by Cassiopee solver.\n')
                 CTK.TXT.insert('START', 'Error: ', 'Error')
@@ -124,7 +124,7 @@ def writeSetupFile():
     
     # ReferenceState
     nodes = Internal.getNodesFromName(CTK.t, 'ReferenceState')
-    if (nodes == []):
+    if nodes == []:
         CTK.TXT.insert('START', 'Reference state is missing (tkState).\n')
         CTK.TXT.insert('START', 'Error: ', 'Error')
         return
@@ -141,12 +141,12 @@ def writeSetupFile():
     # Reynolds
     nodes = Internal.getNodesFromName(state, 'Reynolds')
     if nodes != []: Reynolds = Internal.getValue(nodes[0])
-    elif (equations == 'NSLaminar' or equations == 'NSTurbulent'):
+    elif equations == 'NSLaminar' or equations == 'NSTurbulent':
         CTK.TXT.insert('START', 'Reynolds is missing (tkState).\n')
         CTK.TXT.insert('START', 'Error: ', 'Error')
         return
     else: Reynolds = 1.
-    if (Reynolds <= 0.): Reynolds = 1.
+    if Reynolds <= 0.: Reynolds = 1.
     
     # Incidences
     node = Internal.getNodeFromName(state, 'VelocityX')
@@ -282,8 +282,8 @@ def createApp(win):
     B = TTK.Button(Frame, text="Set data", command=setData)
     BB = CTK.infoBulle(parent=B, text='Set data into selected zone.')
     B.grid(row=6, column=0, columnspan=2, sticky=TK.EW)
-    B = TK.Button(Frame, command=getData,
-                  image=iconics.PHOTO[8], padx=0, pady=0, compound=TK.RIGHT)
+    B = TTK.Button(Frame, command=getData,
+                   image=iconics.PHOTO[8], padx=0, pady=0, compound=TK.RIGHT)
     BB = CTK.infoBulle(parent=B, text='Get data from selected zone.')
     B.grid(row=6, column=2, sticky=TK.EW)
 

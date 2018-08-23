@@ -1591,8 +1591,6 @@ def _splitHybridBCMatch(t):
                     Internal.createChild(n, 'PointList', 'IndexArray_t', value=SPL[i+6].reshape(1,SPL[i+6].size))
                     Internal.createChild(n, 'PointListDonor', 'IndexArray_t', value=SPL[i].reshape(1,SPL[i].size))
                     Internal.createChild(n, 'GridConnectivityType', 'GridConnectivityType_t', value='Abutting1to1')
-
-
   return None
 
 

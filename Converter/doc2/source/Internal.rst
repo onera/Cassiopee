@@ -113,6 +113,7 @@ List of functions
     Converter.Internal.getZonePaths
 
     Converter.Internal.getZones
+    Converter.Internal.getZonesPerIteration
     Converter.Internal.getBases
     Converter.Internal.getZoneDim
 
@@ -1071,6 +1072,31 @@ Acess nodes
     * `Return zone nodes of tree (pyTree) <Examples/Converter/getZonesPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/getZonesPT.py
+
+-----------------------------------------------------------------------------------------------
+
+.. py:function:: Converter.Internal.getZonesPerIteration(t, iteration=None, time=None)
+
+    Return the list of Zone_t nodes matching a given iteration.
+    A BaseIterativeData node must exist in input pyTree.
+    If iteration is provided, return a list of zones matching iteration.
+    If time is provided, return a list of zones mathcing time
+    If none is set, return a list of list of zones for each iterations.
+
+    :param t:  starting node
+    :type  t:  pyTree node or list of pyTree nodes
+    :param iteration: iteration number
+    :type  iteration: int
+    :param time: desired time
+    :type  time: float
+    :return: list of Zone_t nodes (shared with t) or list of list of zones
+    :rtype: list of pyTree nodes
+
+    *Example of use:*
+
+    * `Return zone nodes of tree of given iteration (pyTree) <Examples/Converter/getZonesPerIterationPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/getZonesPerIterationPT.py
 
 -----------------------------------------------------------------------------------------------
 

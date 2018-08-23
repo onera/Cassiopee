@@ -238,10 +238,15 @@ def setValue(node, value=None):
             elif isinstance(testValue, int) or isinstance(testValue, numpy.int32) or isinstance(testValue, numpy.int64):
                 node[1] = numpy.array(value, dtype=numpy.int32, order='F')
             elif isinstance(testValue, str):
-                v = numpy.empty( (32,len(value) ), dtype='c', order='F')
-                c = 0
-                for i in value: v[:,c] = i[:]; c += 1
-                node[1] = v
+                if isinstance(value[0], str):
+                    v = numpy.empty( (32,len(value) ), dtype='c', order='F')
+                    for c, i in enumerate(value): v[:,c] = i[:]
+                    node[1] = v
+                else:
+                    v = numpy.empty( (32,len(value[0]),len(value) ), dtype='c', order='F')
+                    for c in xrange(len(value)):
+                        for d in xrange(len(value[c])): v[:,d, c] = value[c][d][:]
+                    node[1] = v
         elif isinstance(value, tuple):
             testValue = value
             while isinstance(testValue, tuple): testValue = testValue[0]
@@ -250,10 +255,15 @@ def setValue(node, value=None):
             elif isinstance(testValue, int) or isinstance(testValue, numpy.int32) or isinstance(testValue, numpy.int64):
                 node[1] = numpy.array(value, dtype=numpy.int32, order='F')
             elif isinstance(testValue, str):
-                v = numpy.empty( (32,len(value) ), dtype='c', order='F')
-                c = 0
-                for i in value: v[:,c] = i[:]; c += 1
-                node[1] = v
+                if isinstance(value[0], str):
+                    v = numpy.empty( (32,len(value) ), dtype='c', order='F')
+                    for c, i in enumerate(value): v[:,c] = i[:]
+                    node[1] = v
+                else:
+                    v = numpy.empty( (32,len(value[0]),len(value) ), dtype='c', order='F')
+                    for c in xrange(len(value)):
+                        for d in xrange(len(value[c])): v[:,d, c] = value[c][d][:]
+                    node[1] = v
         else: node[1] = numpy.array([value])
     return None
 
@@ -990,7 +1000,7 @@ def newBaseIterativeData(name='BaseIterativeData', nsteps=0,
     """Create a new BaseIterativeData node."""
     if parent is None:
         node = createNode(name, 'BaseIterativeData_t', value=nsteps)
-    else: node = createUniqueChild(parent, name, 'BaseIterative_t',
+    else: node = createUniqueChild(parent, name, 'BaseIterativeData_t',
                                    value=nsteps)
     newDataArray(itype, value=numpy.arange(1,nsteps+1,dtype='int32'), parent=node)
     return node
@@ -1518,6 +1528,51 @@ def getZones(t):
         for c in t[isStd:]: getNodesFromType2__(c, ntype, result)
     else: getNodesFromType2__(t, ntype, result)
     return result
+
+# -- getZonesPerIteration --
+# Si pas d'argument iteration ou time, retourne une liste de zones pour chaque iteration (a plat?)
+# Si argument time ou iteration, retourne la liste de zones correspondantes
+def getZonesPerIteration(t, iteration=None, time=None):
+    bid = getNodeFromType2(t, 'BaseIterativeData_t')
+    if bid is None:
+        raise ValueError, 'getZonesPerIteration: no BaseIterativeData.'
+
+    nbOfZones = getNodeFromName1(bid, 'NumberOfZones')
+    zonePtrs = getNodeFromName1(bid, 'ZonePointers')
+    if nbOfZones is None:
+        raise ValueError, 'getZonesPerIteration: no NumberOfZones node in BaseIterativedata.'
+    if zonePtrs is None:
+        raise ValueError, 'getZonesPerIteration: no ZonePointers node in BaseIterativeData.'
+
+
+    nbOfZones = nbOfZones[1]
+    zonePtrs = zonePtrs[1]
+    
+    if iteration is not None:
+        zoneNames = []
+        for nbz in xrange(nbOfZones[iteration]):
+            zoneName = zonePtrs[:, nbz, iteration].tostring().strip()
+            zoneNames.append(zoneName)
+        return [getNodeFromName2(t,z) for z in zoneNames]
+
+    if time is not None:
+        timeValues = getNodeFromName1(bid, 'TimeValues')[1]
+        zoneNames = []
+        for i in xrange(nbOfZones.shape[0]):
+            if time == timeValues[i]:
+                for nbz in xrange(nbOfZones[i]):
+                    zoneName = zonePtrs[:, nbz, i].tostring().strip()
+                    zoneNames.append(zoneName)
+        return [getNodeFromName2(t,z) for z in zoneNames]
+
+    zonesPerIteration = []
+    for i in xrange(nbOfZones.shape[0]):
+        zones = []
+        for nbz in xrange(nbOfZones[i]):
+            zoneName = zonePtrs[:, nbz, i].tostring().strip()
+            zones.append(getNodeFromName2(t,zoneName))
+        zonesPerIteration.append(zones)
+    return zonesPerIteration
 
 # -- Retourne les noeuds CGNSBase_t --
 def getBases(t):
@@ -2867,21 +2922,21 @@ def _groupByFamily(t, familyChilds=None,unique=False):
         # Name of Nodes Family_t
         familiesNodeNames=[fam[0] for fam in getNodesFromType(b,'Family_t')]
         # All node BC_t not family specified
-        BCNotSpec=[]
-        for bc in getNodesFromType3(b,'BC_t'):
+        BCNotSpec = []
+        for bc in getNodesFromType3(b, 'BC_t'):
             if not isValue(bc, 'FamilySpecified'):
-                childname = getNodesFromName(bc,'FamilyName')                
+                childname = getNodesFromName(bc, 'FamilyName')                
                 if childname != []: BCNotSpec.append(bc)
         for bc in BCNotSpec:
-            FamNameNode = getNodeFromType(bc,'FamilyName_t')
+            FamNameNode = getNodeFromType(bc, 'FamilyName_t')
             FamilyName= getValue(FamNameNode)
-            solverBC = getNodeFromName(bc,'.Solver#BC')
+            solverBC = getNodeFromName(bc, '.Solver#BC')
             if not solverBC: solverBCChilds = []
             else: solverBCChilds = solverBC[2]
 
             # if a family node already exist
             if FamilyName in FamiliesNodeNames:
-                setValue(bc,'FamilySpecified')
+                setValue(bc, 'FamilySpecified')
             else:
                 FamiliesNodeNames.append(FamilyName)
                 FamBC=createNode('FamilyBC','FamilyBC_t',Internal.getValue(bc))                

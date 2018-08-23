@@ -293,13 +293,17 @@ def isInBBox(a, fileName, bbox, znp):
 class Handle:
   """Handle for filter."""
   def __init__(self, fileName, where=None):
-    self._fileName = fileName
-    self._fileVars = None # vars existing in file
-    self._fileBCVars = None # BCDataSet vars existing in file
-    self._znp = None # zone paths existing in file
-    self._format = Converter.checkFileType(fileName) # Real format of file
-
-  # Retourne les zones de a
+    self.fileName = fileName
+    self.fileVars = None # vars existing in file
+    self.fileBCVars = None # BCDataSet vars existing in file
+    self.znp = None # zone paths existing in file
+    self.size = None # size des zones du fichier
+    self.bary = None # Barycentres zones du fichier
+    self.bbox = None # BBox zones du fichier
+    self.hmoy = None # pas moyen des zones du fichier
+    self.format = Converter.checkFileType(fileName) # Real format of file
+    
+  # Retourne les chemins des zones de a
   def getZonePaths(self, a):
     out = []
     bases = Internal.getBases(a)
@@ -309,34 +313,87 @@ class Handle:
     return out
 
   def setZnp(a):
-    self._znp = []
+    self.znp = []
     bases = Internal.getBase()
     for b in bases:
       zones = Internal.getZones(b)
-      for z in zones: self._znp.append('/'+b[0]+'/'+z[0])
+      for z in zones: self.znp.append('/'+b[0]+'/'+z[0])
 
   # Retourne les variables du fichier
   def getVariables(self, a=None, cont=None):
     if a is not None: p = self.getZonePaths(a)
-    else: p = [self._znp[0]] # only first zone
-    vars = getVariables(self._fileName, p, cont, self._format)
-    self._fileVars = vars
+    else: p = [self.znp[0]] # only first zone
+    vars = getVariables(self.fileName, p, cont, self.format)
+    self.fileVars = vars
     return vars
 
   # Retourne les variables de BCDatSet du fichier
   def getBCVariables(self, a):
     if a is not None: p = self.getZonePaths(a)
-    else: p = self._znp
-    vars = getBCVariables(a, self._fileName, p, None, self._format)
-    self._fileBCVars = vars
+    else: p = self.znp
+    vars = getBCVariables(a, self.fileName, p, None, self.format)
+    self.fileBCVars = vars
     return vars
 
   # Charge un squelette, stocke les chemins des zones du fichier (znp)
+  # Stocke le nombre de pts de chaque zone
   def loadSkeleton(self):
-    a, self._znp = readZoneHeaders(self._fileName, self._format)
+    # lecture squelette
+    a, self.znp = readZoneHeaders(self.fileName, self.format)
+    # evaluation taille des zones
+    self.size = {}
+    for zn in self.znp:
+      z = Internal.getNodeFromPath(a, zn)
+      if z[1] is not None:
+        pt = z[1].ravel('k')
+        if pt[2] == 0: s = pt[0]
+        else: s = pt[0]*pt[1]*pt[2]
+      else: s = 0
+      self.size[zn] = s
     return a
 
-  # Charge les grid coordinates + grid connectivity + BC
+  # Calcul et stocke des infos geometriques sur les zones
+  def geomProp(self, znp=None):
+    if znp is None: znp = self.znp
+
+    if self.bbox is None: self.bbox = {}
+    if self.bary is None: self.bary = {}
+    if self.hmoy is None: self.hmoy = {}
+    for p in znp:
+       if self.bbox.has_key(p): continue
+       xc = 0.; yc = 0.; zc = 0.
+       bbox = [0.,0.,0.,0.,0.,0.]
+       hmoy = 0.; hmax = 0.; hmin = 0.
+       # Coordinate X
+       path = '%s/GridCoordinates/CoordinateX'%p
+       n = readNodesFromPaths(self.fileName, path, maxDepth=0)
+       vmin = numpy.min(n[1])
+       vmax = numpy.max(n[1])
+       bbox[0] = vmin; bbox[3] = vmax
+       xc = 0.5*(vmin+vmax)
+       # Coordinate Y
+       path = '%s/GridCoordinates/CoordinateY'%p
+       n = readNodesFromPaths(self.fileName, path, maxDepth=0)
+       vmin = numpy.min(n[1])
+       vmax = numpy.max(n[1])
+       bbox[1] = vmin; bbox[4] = vmax
+       yc = 0.5*(vmin+vmax)
+       # Coordinate Z
+       path = '%s/GridCoordinates/CoordinateZ'%p
+       n = readNodesFromPaths(self.fileName, path, maxDepth=0)
+       vmin = numpy.min(n[1])
+       vmax = numpy.max(n[1])
+       bbox[2] = vmin; bbox[5] = vmax
+       zc = 0.5*(vmin+vmax)
+       self.bary[p] = (xc,yc,zc)
+       self.bbox[p] = bbox
+       dhx = bbox[3]-bbox[0]
+       dhy = bbox[4]-bbox[1]
+       dhz = bbox[5]-bbox[2]
+       npts = self.size[p]**0.33
+       self.hmoy[p] = (dhx+dhy+dhz)*0.33*npts
+
+  # Charge les Grid coordinates + grid connectivity + BC
   # pour toutes les zones de a
   def _loadGCBC(self, a):
     self._loadContainer(a, 'GridCoordinates')
@@ -347,24 +404,24 @@ class Handle:
 
   # Charge tous les noeuds extra de a
   def _loadExtras(self, a):
-    _loadExtras(a, self._fileName, self._format)
+    _loadExtras(a, self.fileName, self.format)
     return None
 
   # Charge completement toutes les zones de a ou de chemin fourni
   def _loadZones(self, a, znp=None):
     if znp is None: znp = self.getZonePaths(a)
-    _loadZones(a, self._fileName, znp, self._format)
+    _loadZones(a, self.fileName, znp, self.format)
     return None
 
   # Charge les grid coordinates + grid connectivity + BC
   # pour les zones specifiees
   def _loadZonesWoVars(self, a, znp=None):
-    if znp is None: znp = self._znp
+    if znp is None: znp = self.getZonePaths(a)
     # Read paths as skeletons
-    _readPyTreeFromPaths(a, self._fileName, znp, self._format, maxFloatSize=0)
-    _loadContainers(a, self._fileName, znp, 'GridCoordinates', self._format)
-    _loadConnectivity(a, self._fileName, znp, self._format)
-    _loadZoneBCs(a, self._fileName, znp, self._format)
+    _readPyTreeFromPaths(a, self.fileName, znp, self.format, maxFloatSize=0)
+    _loadContainers(a, self.fileName, znp, 'GridCoordinates', self.format)
+    _loadConnectivity(a, self.fileName, znp, self.format)
+    _loadZoneBCs(a, self.fileName, znp, self.format)
     for zp in znp:
       _convert2PartialTree(Internal.getNodeFromPath(a, zp))
     return None
@@ -372,33 +429,33 @@ class Handle:
   # Charge toutes les BCs (avec BCDataSet) des zones de a  
   def _loadZoneBCs(self, a):
     p = self.getZonePaths(a)
-    _loadZoneBCs(a, self._fileName, self._znp, self._format)
+    _loadZoneBCs(a, self.fileName, self.znp, self.format)
     return None
 
   # Charge toutes les BCs (sans BCDataSet) des zones de a
   def _loadZoneBCsWoData(self, a):
     p = self.getZonePaths(a)
-    _loadZoneBCsWoData(a, self._fileName, p, self._format)
+    _loadZoneBCsWoData(a, self.fileName, p, self.format)
     return None
 
   # Charge la connectivite pour toutes les zones de a
   def _loadConnectivity(self, a):
     p = self.getZonePaths(a)
-    _loadConnectivity(a, self._fileName, p, self._format)
+    _loadConnectivity(a, self.fileName, p, self.format)
     return None
 
   # Charge le container "cont" pour toutes les zones de a
   def _loadContainer(self, a, cont):
     p = self.getZonePaths(a)
-    _loadContainers(a, self._fileName, p, cont, self._format)
+    _loadContainers(a, self.fileName, p, cont, self.format)
     return None
 
   # Charge la ou les variables "var" pour toutes les zones de a
   def _loadVariables(self, a, var):
     p = self.getZonePaths(a)
-    _loadVariables(a, self._fileName, p, var, self._format)
+    _loadVariables(a, self.fileName, p, var, self.format)
     return None
   
   def isInBBox(self, a, bbox, znp=None):
-    if znp is None: znp = self._znp
-    return isInBBox(a, self._fileName, bbox, znp)
+    if znp is None: znp = self.znp
+    return isInBBox(a, self.fileName, bbox, znp)

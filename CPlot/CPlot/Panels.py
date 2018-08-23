@@ -1089,16 +1089,17 @@ def openLoadFileDialog(event=None):
     files = CTK.fixFileString__(files, CTK.FILE)
     CTK.tkLoadFile(files, mode='partial')
     updateLoadPanel()
-    
-# Si name fini par [X], renvoie le nom et le nom tagge
-def ripTag(name):
-    l = len(name)
-    if name[l-4:l] == ' [X]': 
-        pname = name[0:l-4]
-        tname = name
+
+# IN: wname: string dans le widget
+# OUT: retourne: le nom (/Base/Zone) et le nom tagge (/Base/Zone [X])
+def ripTag(wname):
+    l = len(wname)
+    if wname[l-4:l] == ' [X]': 
+        pname = wname[0:l-4]
+        tname = wname
     else:
-        pname = name
-        tname = name+ ' [X]'
+        pname = wname
+        tname = wname+ ' [X]'
     return pname, tname
 
 # Get the number of the element in list equal to e or et
@@ -1114,9 +1115,9 @@ def getNumber(l, e, et):
 # Met a jour les listes en fonction du handle et de CTK.t (si deja loade)
 def updateLoadPanel():
     if CTK.HANDLE is None: return
-    OVARS[0].set(CTK.HANDLE._fileName)
-    vars = CTK.HANDLE._fileVars
-    znp = CTK.HANDLE._znp
+    OVARS[0].set(CTK.HANDLE.fileName)
+    vars = CTK.HANDLE.fileVars
+    znp = CTK.HANDLE.znp
         
     # VARS
     lb = WIDGETS['LBVARS']
@@ -1209,7 +1210,7 @@ def loadZones(event=None):
     if len(vars)>1:
         vars = vars[0]
         if len(vars)>0:
-            Filter._loadVariables(CTK.t, CTK.HANDLE._fileName, zList, vars, CTK.HANDLE._format)
+            Filter._loadVariables(CTK.t, CTK.HANDLE.fileName, zList, vars, CTK.HANDLE.format)
     
     Filter._convert2PartialTree(CTK.t)
     CTK.t = CTK.upgradeTree(CTK.t)
@@ -1251,7 +1252,7 @@ def filterZoneList(event=None):
     WIDGETS['SCROLLZONES'].config(command=listbox.yview)
     return True
 
-def openLoadPanel():
+def openLoadPanel(event=None):
     global LOADPANEL
     if LOADPANEL is not None:
         try: LOADPANEL.withdraw()
@@ -1264,6 +1265,8 @@ def openLoadPanel():
         LOADPANEL.columnconfigure(3, weight=0)
         LOADPANEL.rowconfigure(0, weight=1)
         LOADPANEL.title("File load panel")
+        LOADPANEL.bind_all("<Control-o>", openLoadFileDialog)
+
         # position de la fenetre parent
         xpos = LOADPANEL.master.winfo_rootx()+45
         ypos = LOADPANEL.master.winfo_rooty()+45
@@ -1282,6 +1285,7 @@ def openLoadPanel():
         # -4- Store Zone list
         OVARS.append([])
         
+        # Entete
         B = TTK.Entry(F, textvariable=OVARS[0], background='White')
         BB = CTK.infoBulle(parent=B, text='File for reading.')
         B.grid(row=0, column=0, columnspan=5, sticky=TK.EW)
