@@ -100,7 +100,7 @@ void Data::displayBillBoards(Zone* zonep, int zone)
   dist = dx*dx + dy*dy + dz*dz;
   dx = xmax - xcam; dy = ymax - ycam; dz = zmax - zcam;
   dist = K_FUNC::E_max(dist, dx*dx + dy*dy + dz*dz);
-  if (ptrState->billBoardSize == 0.)
+  if (ptrState->billBoardSize <= 1.e-6)
     d = sqrt(dist)*dref;
   else d = ptrState->billBoardSize*dref;
   //printf("%g %g\n", dref, ptrState->billBoardSize);

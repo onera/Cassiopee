@@ -109,6 +109,13 @@ Data::Data(CPlotState* ptState)
   _billBoardTexs[c] = 0;
   _billBoardNis[c] = 4; _billBoardNjs[c] = 4; c++;
   
+  // material settings
+  _nMaterials = 0;
+  _materialFiles = NULL;
+  _materialWidths = NULL;
+  _materialHeights = NULL;
+  _materialTexs = NULL;
+
   // Init cam
   initCam();
   _CDisplayIsLaunched = 0;
@@ -293,6 +300,7 @@ void Data::initState()
   ptrState->billBoardNj = 1;
   ptrState->billBoardD = -1; // taille constante
   ptrState->billBoardT = -1; // pas de champ ref pour la turbulence
+  ptrState->billBoardSize = -0.5; // size calculee par la distance
 
   // 1D overlay display
   ptrState->gridSizeI = 1;

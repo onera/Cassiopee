@@ -47,7 +47,7 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
   int cursor;
   char* exportFile; char* exportResolution;
   char* envmap; char* message;
-  PyObject* isoScales; PyObject* billBoards;
+  PyObject* isoScales; PyObject* billBoards; PyObject* materials;
   int gridSizeI, gridSizeJ;
   E_Float lightOffsetX, lightOffsetY; E_Float dofPower;
   int timer; int selectionStyle;
@@ -55,7 +55,7 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
   E_Float billBoardSize;
   if (!PyArg_ParseTuple(
         args, 
-	"iOOiiiiiiiiiiddiiiidO(ii)(ddd)(ddd)(ddd)d(dd)iiidiiississidi(ii)iiiOd",
+	"iOOiiiiiiiiiiddiiiidO(ii)(ddd)(ddd)(ddd)d(dd)iiidiiississidi(ii)iiiOdO",
         &dim, &modeObject, &scalarFieldObject,
         &vectorField1, &vectorField2, &vectorField3,
         &displayBB, &displayInfo, &displayIsoLegend,
@@ -74,7 +74,7 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
         &envmap, &message,
         &stereo, &stereoDist, &cursor,
         &gridSizeI, &gridSizeJ, &timer, &selectionStyle,
-        &activateShortCuts, &billBoards, &billBoardSize))
+        &activateShortCuts, &billBoards, &billBoardSize, &materials))
   {
     return NULL;
   }
@@ -146,12 +146,15 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
     }
     delete [] d->_billBoardTexs;
     delete [] d->_billBoardNis; delete [] d->_billBoardNjs;
+    delete [] d->_billBoardWidths; delete [] d->_billBoardHeights;
     delete [] d->_billBoardFiles;
     int nb = PyList_Size(billBoards)/3;
     d->_nBillBoards = nb;
     d->_billBoardFiles = new char* [nb];
     d->_billBoardNis = new int [nb];
     d->_billBoardNjs = new int [nb];
+    d->_billBoardWidths = new int [nb];
+    d->_billBoardHeights = new int [nb];
     d->_billBoardTexs = new GLuint [nb];
     for (int i = 0; i < nb; i++)
     {
@@ -171,6 +174,33 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
   if (billBoardSize != -1)
   {
     d->ptrState->billBoardSize = billBoardSize;
+  }
+
+  if (materials != Py_None)
+  {
+    for (int i = 0; i < d->_nMaterials; i++)
+    {
+      delete [] d->_materialFiles[i];
+      if (d->_materialTexs[i] != 0) glDeleteTextures(1, &d->_materialTexs[i]);
+    }
+    delete [] d->_materialTexs;
+    delete [] d->_materialFiles;
+    delete [] d->_materialWidths;
+    delete [] d->_materialHeights;
+    int nb = PyList_Size(materials);
+    d->_nMaterials = nb;
+    d->_materialFiles = new char* [nb];
+    d->_materialWidths = new int [nb];
+    d->_materialHeights = new int [nb];
+    d->_materialTexs = new GLuint [nb];
+    for (int i = 0; i < nb; i++)
+    {
+      PyObject* o = PyList_GetItem(materials, i);
+      char* file = PyString_AsString(o);
+      d->_materialFiles[i] = new char [128];  
+      strcpy(d->_materialFiles[i], file);
+      d->_materialTexs[i] = 0;
+    }
   }
 
   d->ptrState->render = 1;

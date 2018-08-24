@@ -8,10 +8,10 @@ import time
 a = D.sphere((0,0,0),1.,N=5)
 a = C.convertArray2Hexa(a)
 
-for i in xrange(21):
-    print i*1./10.
+for i in xrange(10):
+    print i*2./5.
     CPlot._addRender2Zone(a, material='Sphere', color='White',
-                          shaderParameters=[1.5,i*1./10.])
+                          shaderParameters=[1.5,i*2./5.])
 
     CPlot.display(a, displayBB=0, mode='render', bgColor=1)
     time.sleep(1.)

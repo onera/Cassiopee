@@ -72,10 +72,6 @@
   deltai = MAX(deltai, deltai3);
   deltai = 0.5/deltai;
   
-  // Colormap
-  void (*getrgb)(Data* data, double, float*, float*, float*);
-  getrgb = _pref.colorMap->f;
-
   // Grid dimensions
   int ni = zonep->ni;
   int nj = zonep->nj;

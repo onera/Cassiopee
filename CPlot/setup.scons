@@ -72,7 +72,7 @@ mySystem = Dist.getSystem()[0]
 if mySystem == 'mingw': tools = ['mingw']
 else: tools = None
 AR = Dist.getAR()
-env = Environment(tools=tools, CC=cc, CXX=cxx, AR=AR, CPPFLAGS=[],
+env = Environment(tools=tools, CC=cc, CXX=cxx, AR=AR, CPPFLAGS=[], CCFLAGS=[],
                   LIBPATH=additionalLibPaths+libraryDirs,
                   LIBS=libraries+additionalLibs,
                   CPPPATH=["CPlot"]+additionalIncludePaths+includeDirs,
@@ -91,8 +91,6 @@ if OSMesa: EXTRA += ['-D__MESA__']
 if mySystem == 'Darwin':
     EXTRA += ['-framework OpenGL']
 
-cppargs = Dist.getCppArgs()
-EXTRA += cppargs
 env.Append(CPPFLAGS=EXTRA)
 
 myMod = env.StaticLibrary('cplot', srcs.cpp_srcs)

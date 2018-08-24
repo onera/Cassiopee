@@ -55,6 +55,24 @@ void DataDL::renderGPUUSolidZone(UnstructZone* zonep, int zone, int zonet)
   s = MAX(s, zonep->zmax-zonep->zmin);
   s = 100./(s+1.e-12);
 
+  // Only for textured rendering, we use vect display =======================
+  if (ptrState->mode == RENDER && zonep->material == 14 && zonep->nfield >= 3) // Textured rendering
+  {
+#ifdef __SHADERS__
+        triggerShader(*zonep, zonep->material, s, color1);
+#endif
+      int nofield1 = 0; 
+      int nofield2 = 1; 
+      int nofield3 = 2;
+      int ff; double offb = 0.;
+      int ret1, ret2, ret3, ret4, i, n1, n2, n3, n4;
+      #undef PLOT
+      #include "displayUVectSolidZone.h"
+      glLineWidth(1.);
+      return;
+  }
+  // END Textured rendering ============================================
+
 #ifdef __SHADERS__
   if (ptrState->mode == RENDER)
   {

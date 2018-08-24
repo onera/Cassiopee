@@ -144,7 +144,7 @@ bool Hexahedron::pt_is_inside(const ngon_type& ng, const K_FLD::FloatArray& crd,
           v[j] = crd.col(pN[2]-1)[j] - crd.col(pN[0]-1)[j];
         }
         
-        E_Float norm = std::sqrt(K_FUNC::sqrCross<3>(u,v));
+        E_Float norm = ::sqrt(K_FUNC::sqrCross<3>(u,v));
         E_Float h = det / norm;
         
         s = zSIGN(h,tolerance);

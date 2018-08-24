@@ -554,6 +554,10 @@ Set / Get functions
     + **lightOffset**: offset to default light position (default: (0,0)).
     + **dofPower**: power of depth of field effect (default: 6.).
     + **selectionStyle**: style for selection (default: 0).
+    + **activateShortCut**: if False, deactivate shortCut keys (def: True).
+    + **billBoards**: list of billboard image files ['file.png',1,1] (default: None).
+    + **billBoardSize**: size of billboard. If -1, use distance to fit billboards (default: -1).
+    + **materials**: list of material image files used in textured rendering ['mat.png'] (default: None).
 
     *Example of use:*
     

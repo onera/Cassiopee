@@ -265,6 +265,23 @@ void Data::triggerShader(Zone& z, int material, float scale, float* color)
       _shaders[shader]->setUniform("ShadowMap", (int)0);
       break;
 
+    case 14: // textured
+      shader = 37;
+      SHADOWTEXTURE;
+      if (_materialTexs[0] == 0) 
+      {
+         createPngTexture(_materialFiles[0], _materialTexs[0], _materialWidths[0], _materialHeights[0], true);
+         //printf("loading %d %s\n", 0, _materialFiles[0]);
+      }
+      glActiveTexture(GL_TEXTURE1);
+      glBindTexture(GL_TEXTURE_2D, _materialTexs[0]);
+      
+      if (_shaders.currentShader() != shader) _shaders.activate(shader);
+      _shaders[shader]->setUniform("shadow", (int)ptrState->shadow);
+      _shaders[shader]->setUniform("ShadowMap", (int)0);
+      _shaders[shader]->setUniform("Texmat0", (int)1);
+      break;
+
     default: // phong
       if (ptrState->dim == 3)
       {

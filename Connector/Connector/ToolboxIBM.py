@@ -423,9 +423,9 @@ def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., DEPTH=2, NP=0, tbox=None
         raise ValueError, 'Number of bodies is not equal to the size of snears.'
     dxmin0 = 1.e10
     for s in bodies:
-        sdd = Internal.getNodeFromName1(s,".Solver#define")
+        sdd = Internal.getNodeFromName1(s, ".Solver#define")
         if sdd is not None:
-            snearl = Internal.getNodeFromName1(sdd,"snear")
+            snearl = Internal.getNodeFromName1(sdd, "snear")
             if snearl is not None: 
                 snearl = Internal.getValue(snearl)
                 snears[i] = snearl

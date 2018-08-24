@@ -198,4 +198,5 @@ void Data::codeFromRenderTag(Zone& z, char* tag,
   else if (K_STRING::cmp(mat, "Cloud") == 0) material = 11;
   else if (K_STRING::cmp(mat, "Gooch") == 0) material = 12;
   else if (K_STRING::cmp(mat, "Flat") == 0) material = 13;
+  else if (K_STRING::cmp(mat, "Texmat") == 0) material = 14;  
 }
