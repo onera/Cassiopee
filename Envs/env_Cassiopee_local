@@ -317,7 +317,6 @@ else if ($%MAC14 != 0 || $%MAC18 != 0 || $%MAC19 != 0 || $%MAC20 != 0 || $%MAC21
         foreach x (`(echo "" ; module -t list) | & grep intel`)
             module unload $x
         end
-        #module load gcc/4.9
         module load intel/15.0.6
         #module load impi/15
         # Nombre de threads

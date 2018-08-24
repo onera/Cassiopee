@@ -19,7 +19,7 @@ setup(
     description="Application module (layer1).",
     author="C. Benoit",
     package_dir={"":"."},
-    packages=['Apps', 'Apps.Chimera']
+    packages=['Apps', 'Apps.Chimera', 'Apps.Fast']
     )
 
 # Check PYTHONPATH ===========================================================

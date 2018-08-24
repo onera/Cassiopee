@@ -1,2 +1,1 @@
-#__version__ = Apps.__version__
-#import App
+from App import __version__

@@ -1,4 +1,4 @@
-# - ExtractDoublyDefined -
+# - Chimera.ExtractDoublyDefined -
 import Apps.Chimera.ExtractDoublyDefined as App
 
 myApp = App.ExtractDoublyDefined()
