@@ -96,6 +96,7 @@ List of functions
    fittingPlaster
    gapfixer
    gapsmanager
+   quad2Pyra
 
 **-- Information on generated meshes**
 
@@ -1403,6 +1404,30 @@ Operation on surface meshes
     * `Surface gaps filling (pyTree) <Examples/Generator/gapsmanagerPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Generator/gapsmanagerPT.py
+
+
+.. py:function:: Generator.quad2Pyra(A, hratio=1.)
+
+    Creates a set of pyramids based on a set of input quads. The height of each pyramid is equal to the product of a reference length (per element) times the input hratio.
+
+    The reference length is the half length of the first diagonal : Let (Q1, Q2, Q3, Q4) be a quad, Lref = 0.5 * dist(Q1,Q3)
+
+    :param A:  QUAD surface mesh
+    :type  A:  array or pyTree
+    :param hratio:  height ratio (between 0. and 1.) based on the reference  
+    :type  hratio:  float
+    :return: new PYRA volume mesh
+    :rtype: array or pyTree
+
+    *Example of use:*
+
+    * `Pyramids creation (array) <Examples/Generator/quad2pyra.py>`_:
+
+    .. literalinclude:: ../build/Examples/Generator/quad2pyra.py
+
+    * `Pyramids creation (pyTree) <Examples/Generator/quad2pyraPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Generator/quad2pyraPT.py
 
 
 Information on generated meshes

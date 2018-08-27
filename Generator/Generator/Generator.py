@@ -1817,6 +1817,9 @@ def getTriQualityStat(array):
     return (meanv10, meanv, meanv90)
 
 
+#------------------------------------------------------------------------------
+# Genere des pyramides ayant pour base les QUAD d'une surface donnée
+#------------------------------------------------------------------------------
 def quad2Pyra(array, hratio = 1.):
      """Creates a set of pyramids from a set of quads.
      Usage : quad2Pyra(array, hratio)"""
