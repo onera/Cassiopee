@@ -22,6 +22,7 @@ List of functions
 
    Converter.Filter.convertFile2SkeletonTree
    Converter.Filter.readNodesFromPaths
+   Converter.Filter.readNodesFromFilter
    Converter.Filter.writeNodesFromPaths
    Converter.Filter.deletePaths
 
@@ -85,6 +86,33 @@ Per node reading/writing
     * `Read nodes from file (pyTree) <Examples/Converter/readNodesFromPathsPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/readNodesFromPathsPT.py
+
+---------------------------------------------------------------------------
+
+.. py:function:: Converter.Filter.readNodesFromFilter(fileName, filter, format='bin_hdf', com=None)
+
+    Partially read nodes specified by a filter.
+    Filter is a dictionary for each path to be read.
+    For structured grids: [[imin,jmin,kmin], [1,1,1], [imax,jmax,kmax], [1,1,1]]
+    For unstructured grids: [[istart], [1], [iend], [1]].
+    Only for HDF.
+
+    :param fileName: file name to read from
+    :type fileName: string
+    :param filter: paths and indices to be read 
+    :type filter: dictionary of lists
+    :param format: bin_hdf
+    :type format: string
+    :param com: communicator if run with mpi
+    :type com: int
+    :return: dictionary of read nodes
+    :rtype: dictionary of numpys
+
+     *Example of use:*
+
+    * `Partially read nodes from file (pyTree) <Examples/Converter/readNodesFromFilterPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/readNodesFromFilterPT.py
 
 
 ---------------------------------------------------------------------------

@@ -132,7 +132,7 @@ PyObject* K_CONVERTER::convertPyTree2File(PyObject* self, PyObject* args)
 }
 
 // ============================================================================
-/* Convert file to pyTree - hdf only */
+/* Lit des noeuds definis dans Filter (partiellement) - hdf only */
 // ============================================================================
 PyObject* K_CONVERTER::convertFile2PartialPyTree(PyObject* self, PyObject* args)
 {
@@ -156,21 +156,23 @@ PyObject* K_CONVERTER::convertFile2PartialPyTree(PyObject* self, PyObject* args)
   E_Int l = strlen(format);
   char* myFormat = new char [l+1]; strcpy(myFormat, format);
   if (strcmp(myFormat, "bin_cgns") == 0) strcpy(myFormat, "bin_hdf");
+  if (strcmp(myFormat, "bin_hdf") != 0)
+  { printf("convertFile2PartialPyTree: only for HDF.\n"); return NULL; }
 
-  if (skeletonData == Py_None) printf("Reading %s (%s)...", fileName, myFormat);
-  else printf("Reading %s (%s, skeleton)...", fileName, myFormat);
-  fflush(stdout);
+  //if (skeletonData == Py_None) printf("Reading %s (%s)...", fileName, myFormat);
+  //else printf("Reading %s (%s, skeleton)...", fileName, myFormat);
+  //fflush(stdout);
+  printf("Reading %s (%s, partial)...", fileName, myFormat);
 
-  PyObject* tree;
-  tree = K_IO::GenIO::getInstance()->hdfcgnsReadFromPathsPartial(fileName, filter, &comm);
+  PyObject* ret;
+  ret = K_IO::GenIO::getInstance()->hdfcgnsReadFromPathsPartial(fileName, filter, &comm);
   printf("done.\n");
   delete [] myFormat;
-  
-  return tree;
+  return ret;
 }
 
 // ============================================================================
-/* Convert file to PartialpyTree - hdf only */
+/* Convert file to partial pyTree - hdf only */
 // ============================================================================
 PyObject* K_CONVERTER::convertPyTree2FilePartial(PyObject* self, PyObject* args)
 {

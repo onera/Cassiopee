@@ -12,7 +12,10 @@ import Converter.Internal as Internal
 import Connector.PyTree as X
 from Apps.App import App
 
+#================================================================================
 # Redistribue un fichier in place sans com pour l'instant
+# Change les noeuds procs seulement
+#================================================================================
 def distribute(t_in, NP):
     import Filter
     t  = Filter.convertFile2SkeletonTree(t_in, maxDepth=2,maxSize=6)
@@ -24,20 +27,21 @@ def distribute(t_in, NP):
     return t
 
 #================================================================================
-# Multibloc prepare
+# Multibloc prepare (avec split)
 # NP is the target number of processors
 #================================================================================ 
 def prepare(t_case, t_out, tc_out, NP=0, format='single'):
     import Converter.Mpi as Cmpi
     rank = Cmpi.rank; size = Cmpi.size
     ret = None
+    # sequential prep
     if rank == 0: ret = prepare0(t_case, t_out, tc_out, NP, format)
+    # parallel prep
     #prepare1(t_case, t_out, tc_out, NP, format)
     return ret
 
 #================================================================================
 # Multibloc prepare - seq
-# NP is the target number of processors
 #================================================================================
 def prepare0(t_case, t_out, tc_out, NP=0, format='single'):
 
@@ -56,6 +60,8 @@ def prepare0(t_case, t_out, tc_out, NP=0, format='single'):
         t = T.splitSize(t, R=NP, type=2, minPtsPerDir=9)
         t = X.connectMatch(t, dim=dim)
         t, stats = D2.distribute(t, NP, useCom='match')
+    else: 
+        Internal._rmNodesByName(t, 'proc')
 
     # Solution initiale
     eqs = Internal.getNodeFromType(t, 'GoverningEquations_t')
@@ -114,7 +120,7 @@ def prepare0(t_case, t_out, tc_out, NP=0, format='single'):
     return t, tc
 
 #================================================================================
-# Multibloc prepare - parallel
+# Multibloc prepare - parallel - en cours
 # NP is the target number of processors
 #================================================================================
 def prepare1(t_case, t_out, tc_out, NP=0, format='single'):
@@ -124,7 +130,6 @@ def prepare1(t_case, t_out, tc_out, NP=0, format='single'):
     t = Cmpi.convertFile2SkeletonTree(t_case)
     allCells = C.getNCells(t)
     graph = Cmpi.computeGraph(t, type='match')
-    #t, stats = D2.distribute(t, Cmpi.size, useCom='match')
     t, stats = D2.distribute(t, Cmpi.size, useCom=None, algorithm='graph')
     t = Cmpi.readZones(t, t_case, rank=Cmpi.rank)
     Cmpi._convert2PartialTree(t)
@@ -204,6 +209,40 @@ def prepare1(t_case, t_out, tc_out, NP=0, format='single'):
         Fast.save(t, t_out, split=format, NP=-NP)
     return t, tc
 
+# en gros, warmup
+def setup(t_in, tc_in, numb, numz, NP=0, format='single'):
+    if NP > 0:
+        import Converter.Mpi as Cmpi
+        import FastS.Mpi as FastS
+        rank = Cmpi.rank; size = Cmpi.size
+    else:
+        import FastS.PyTree as FastS
+        rank = 0; size = 1
+
+    if NP != 0 and NP != size:
+        raise ValueError, 'setup: you are running not on the prepared number of processors %d != %d'%(NP, size)
+
+    t,tc,ts,graph = Fast.load(t_in, tc_in, split=format, NP=NP)
+
+    # Numerics
+    Fast._setNum2Zones(t, numz); Fast._setNum2Base(t, numb)
+    (t, tc, metrics) = FastS.warmup(t, tc, graph)
+    return t, tc, ts, metrics, graph
+
+#============================================================================
+# Ecrit le resultat
+# t: arbre
+# t_out: fichier de sortie
+# it0: iteration correspondant a la fin du cacul
+# time0: temps correspondant a la fin du calcul
+# ===========================================================================
+def finalize(t, t_out, it0=None, time0=None, NP=0, format='single'):
+    if it0 is not None:
+        Internal.createUniqueChild(t, 'Iteration', 'DataArray_t', value=it0)
+    if time0 is not None:
+        Internal.createUniqueChild(t, 'Time', 'DataArray_t', value=time0)
+    Fast.save(t, t_out, split=format, NP=NP)
+
 #=====================================================================================
 # NP is the currently running number of processors
 # IN: file names
@@ -222,23 +261,23 @@ def compute(t_in, tc_in, t_out,
         rank = 0; size = 1
 
     if NP != 0 and NP != size:
-        print 'Warning: you are running not on the prepared number of processors %d != %d', NP, size
+        raise ValueError, 'compute: you are running not on the prepared number of processors %d != %d'%(NP, size)
 
     t,tc,ts,graph = Fast.load(t_in, tc_in, split=format, NP=NP)
-
-    it0 = 0; time0 = 0.
-    first = Internal.getNodeFromName1(t, 'Iteration')
-    if first is not None: it0 = Internal.getValue(first)
-    first = Internal.getNodeFromName1(t, 'Time')
-    if first is not None: time0 = Internal.getValue(first)
 
     # Numerics
     Fast._setNum2Zones(t, numz); Fast._setNum2Base(t, numb)
 
     (t, tc, metrics) = FastS.warmup(t, tc, graph)
 
+    it0 = 0; time0 = 0.
+    first = Internal.getNodeFromName1(t, 'Iteration')
+    if first is not None: it0 = Internal.getValue(first)
+    first = Internal.getNodeFromName1(t, 'Time')
+    if first is not None: time0 = Internal.getValue(first)
     time_step = Internal.getNodeFromName(t, 'time_step')
     time_step = Internal.getValue(time_step)
+
     for it in xrange(NIT):
         FastS._compute(t, metrics, it, tc, graph)
         if it%100 == 0:
@@ -250,10 +289,19 @@ def compute(t_in, tc_in, t_out,
     Internal.createUniqueChild(t, 'Iteration', 'DataArray_t', value=it0+NIT)
     Internal.createUniqueChild(t, 'Time', 'DataArray_t', value=time0)
     Fast.save(t, t_out, split=format, NP=NP)
+    if NP > 0: Cmpi.barrier()
     return t
 
+def post(t_in, t_out, surf_out, NP=0, format='single'):
+    import Converter.Mpi as Cmpi
+    rank = Cmpi.rank; size = Cmpi.size
+    # sequential post
+    ret = None
+    if rank == 0: ret = post0(t_in, t_out, surf_out, NP, format)
+    return ret
+
 #====================================================================================
-def Post(t_in, t_out, surf_out):
+def post0(t_in, t_out, surf_out, NP=0, format='single'):
     import Transform.PyTree as T
     import Converter.Internal as Internal
     import Post.PyTree as P
@@ -261,7 +309,7 @@ def Post(t_in, t_out, surf_out):
     from math import sqrt
 
     # Use filter load here!
-    a = C.convertFile2PyTree(t_in)
+    a = Fast.loadFile(t_in)
 
     #=============================
     # Supprime les champs inutiles
@@ -312,20 +360,25 @@ def Post(t_in, t_out, surf_out):
     Internal._rmNodesByName(w, '.Solver#Param')
     Internal._rmNodesByName(w, '.Solver#ownData')
     C.convertPyTree2File(w, surf_out)
+    return a, w
 
 #====================================================================================
 class MB(App):
-    """Prepation et caculs avec le module FastS."""
-    def __init__(self):
+    """Preparation et caculs avec le module FastS."""
+    def __init__(self, NP=None, format=None, numb=None, numz=None):
         App.__init__(self)
         self.__version__ = "0.0"
         self.authors = ["ash@onera.fr"]
         self.requires(['NP', 'format', 'numb', 'numz'])
         # default values
-        self.set(NP=0)
-        self.set(format='single')
+        if NP is not None: self.set(NP=NP)
+        else: self.set(NP=0)
+        if format is not None: self.set(format=format)
+        else: self.set(format='single')
+        if numb is not None: self.set(numb=numb)
+        if numz is not None: self.set(numz=numz) 
         
-    # Prepare n'utilise qu'un proc pour l'instant
+    # Prepare : n'utilise qu'un proc pour l'instant
     def prepare(self, t_case, t_out, tc_out):
         NP = self.data['NP']
         if NP == 0: print 'Preparing for a sequential computation.'
@@ -333,12 +386,27 @@ class MB(App):
         ret = prepare(t_case, t_out, tc_out, NP, self.data['format'])
         return ret
 
-    # Compute peut etre lance en sequentiel ou en parallele
+    # Compute nit iterations
+    # peut etre lance en sequentiel ou en parallele
     def compute(self, t_in, tc_in, t_out, nit):
         numb = self.data['numb']
         numz = self.data['numz']
-        compute(t_in, tc_in, t_out,
-                numb, numz,
-                nit, 
-                NP=self.data['NP'], 
-                format=self.data['format'])
+        return compute(t_in, tc_in, t_out,
+                       numb, numz,
+                       nit, 
+                       NP=self.data['NP'], 
+                       format=self.data['format'])
+
+    # warm up et all
+    def setup(self, t_in, tc_in):
+        numb = self.data['numb']
+        numz = self.data['numz']
+        return setup(t_in, tc_in, numb, numz, self.data['NP'], self.data['format'])
+
+    # Ecrit le fichier de sortie
+    def finalize(self, t_out, it0=None, time0=None):
+        finalize(t_out, it0, time0, self.data['NP'], self.data['format'])
+
+    # post-processing: extrait la solution aux neouds + le champs sur les surfaces
+    def post(self, t_in, t_out, surf_out):
+        return post(t_in, t_out, surf_out, self.data['NP'], self.data['format'])

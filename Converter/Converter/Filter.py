@@ -15,6 +15,19 @@ def expand(fileName):
     else: files = glob.glob(fileName)
   return files
 
+#==============================================================================
+# Lit seulement une partie des noeuds a partir de la definition d'un filtre.
+# filter est un dictionnaire pour chaque path
+# pour les grilles structurees : [[imin,jmin,kmin], [1,1,1], [imax,jmax,kmax], [1,1,1]]
+# pour les grilles non structurees : [[istart], [1], [iend], [1]]
+# Uniquement HDF
+# Retourne un dictionnaire du numpy loade pour chaque path
+#==============================================================================
+def readNodesFromFilter(fileName, filter, format='bin_hdf', com=None):
+  """Read nodes from file given a filter."""
+  ret = Converter.converter.convertFile2PartialPyTree(fileName, format, None, com, filter)
+  return ret
+
 #============================================================================
 # Lecture des noms Base/Zones + dims
 # Retourne un squelette (depth=3) + la liste des zones path names (znp)

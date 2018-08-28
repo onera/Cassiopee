@@ -429,18 +429,17 @@ PyObject* K_IO::GenIOHdf::getArrayI4(hid_t node, hid_t tid,
   yid = H5Tget_native_type(tid, H5T_DIR_ASCEND);
   
 #if defined(_MPI) && defined(H5_HAVE_PARALLEL)
-  if (_ismpi == 1)    /** HDF is execute in parallel context and compile in MPI **/
+  if (_ismpi == 1)    /** HDF is executed in parallel context and compiled in MPI **/
   {
-    // printf("getArrayI4 parallel : \n ");
     hid_t xfer_plist = H5Pcreate(H5P_DATASET_XFER);
     hid_t ret        = H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_COLLECTIVE);
     H5Dread(did, yid, mid, sid, xfer_plist, PyArray_DATA(r));
   }
-  else /** HDF is execute in sequential context and compile in MPI **/
+  else /** HDF is executed in sequential context and compiled in MPI **/
   {
     H5Dread(did, yid, mid, sid, H5P_DEFAULT, PyArray_DATA(r));
   }
-#else  /** HDF is execute in sequential context and compile in sequential **/
+#else  /** HDF is executed in sequential context and compiled in sequential **/
   H5Dread(did, yid, mid, sid, H5P_DEFAULT, PyArray_DATA(r));
 #endif
   H5Tclose(yid); H5Dclose(did);
@@ -467,17 +466,17 @@ PyObject* K_IO::GenIOHdf::getArrayI8(hid_t node, hid_t tid,
   yid = H5Tget_native_type(tid, H5T_DIR_ASCEND);
   
 #if defined(_MPI) && defined(H5_HAVE_PARALLEL)  
-  if (_ismpi == 1)    /** HDF is execute in parallel context and compile in MPI **/
+  if (_ismpi == 1)    /** HDF is executed in parallel context and compiled in MPI **/
   {
     hid_t xfer_plist = H5Pcreate(H5P_DATASET_XFER);
     hid_t ret        = H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_COLLECTIVE);
     H5Dread(did, yid, mid, sid, xfer_plist, ptr);
   }
-  else /** HDF is execute in sequential context and compile in MPI **/
+  else /** HDF is executed in sequential context and compiled in MPI **/
   {
     H5Dread(did, yid, mid, sid, H5P_DEFAULT, ptr);
   }
-#else /** HDF is execute in sequential context and compile in sequential **/
+#else /** HDF is executed in sequential context and compiled in sequential **/
   H5Dread(did, yid, mid, sid, H5P_DEFAULT, ptr);
 #endif
   
@@ -535,17 +534,17 @@ PyObject* K_IO::GenIOHdf::getArrayR4(hid_t node, hid_t tid,
   yid = H5Tget_native_type(tid, H5T_DIR_ASCEND);
   
 #if defined(_MPI) && defined(H5_HAVE_PARALLEL)  
-  if (_ismpi == 1)    /** HDF is execute in parallel context and compile in MPI **/
+  if (_ismpi == 1)    /** HDF is executed in parallel context and compiled in MPI **/
   {
     hid_t xfer_plist = H5Pcreate(H5P_DATASET_XFER);
     hid_t ret        = H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_COLLECTIVE);
     H5Dread(did, yid, mid, sid, xfer_plist, ptr);
   }
-  else /** HDF is execute in sequential context and compile in MPI **/
+  else /** HDF is executed in sequential context and compiled in MPI **/
   {
     H5Dread(did, yid, mid, sid, H5P_DEFAULT, ptr);
   }
-#else  /** HDF is execute in sequential context and compile in sequential **/
+#else  /** HDF is executed in sequential context and compiled in sequential **/
   H5Dread(did, yid, mid, sid, H5P_DEFAULT, ptr);
 #endif
   H5Tclose(yid); H5Dclose(did);
@@ -625,23 +624,22 @@ PyObject* K_IO::GenIOHdf::getArrayR8(hid_t node, hid_t tid, int dim, int* dims,
   yid = H5Tget_native_type(tid, H5T_DIR_ASCEND);
 
 #if defined(_MPI) && defined(H5_HAVE_PARALLEL)
-  if (_ismpi == 1)    /** HDF is execute in parallel context and compile in MPI **/
+  if (_ismpi == 1)    /** HDF is executed in parallel context and compiled in MPI **/
   {
     hid_t xfer_plist = H5Pcreate(H5P_DATASET_XFER);
     // hid_t ret        = H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_COLLECTIVE);
     hid_t ret        = H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_INDEPENDENT);
     H5Dread(did, yid, mid, sid, xfer_plist, PyArray_DATA(r));
   }     
-  else  /** HDF is execute in sequential context and compile in MPI **/
+  else  /** HDF is executed in sequential context and compiled in MPI **/
   {
     H5Dread(did, yid, mid, sid, H5P_DEFAULT, PyArray_DATA(r));
   }
-#else /** HDF is execute in sequential context and compile in sequential **/
+#else /** HDF is executed in sequential context and compiled in sequential **/
   H5Dread(did, yid, mid, sid, H5P_DEFAULT, PyArray_DATA(r));
 #endif
   H5Tclose(yid); H5Dclose(did);
-  // printf("K_IO::GenIOHdf::getArrayR8 end \n ");
-
+  
   return (PyObject*)r;
 }
 
@@ -660,17 +658,17 @@ char* K_IO::GenIOHdf::getArrayC1(hid_t node, hid_t tid, int dim, int* dims)
   yid = H5Tget_native_type(tid, H5T_DIR_ASCEND);
 
 #if defined(_MPI) && defined(H5_HAVE_PARALLEL)
-  if (_ismpi == 1)    /** HDF is execute in parallel context and compile in MPI **/
+  if (_ismpi == 1)    /** HDF is executed in parallel context and compiled in MPI **/
   {
     hid_t xfer_plist = H5Pcreate(H5P_DATASET_XFER);
     hid_t ret        = H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_COLLECTIVE);
     H5Dread(did, yid, H5S_ALL, H5S_ALL, xfer_plist, ptr);
-  }     /** HDF is execute in sequential context and compile in MPI **/
+  }     /** HDF is executed in sequential context and compiled in MPI **/
   else
   {
     H5Dread(did, yid, H5S_ALL, H5S_ALL, H5P_DEFAULT, ptr);
   }
-#else /** HDF is execute in sequential context and compile in sequential **/
+#else /** HDF is executed in sequential context and compiled in sequential **/
    H5Dread(did, yid, H5S_ALL, H5S_ALL, H5P_DEFAULT, ptr);
 #endif
   H5Tclose(yid); H5Dclose(did);
@@ -708,7 +706,7 @@ PyObject* K_IO::GenIOHdf::getArrayContigous(hid_t     node,
 
   // printf("K_IO::GenIOHdf::getArrayContigous \n ");
 #if defined(_MPI) && defined(H5_HAVE_PARALLEL)
-  if(_ismpi == 1)    /** HDF is execute in parallel context and compile in MPI **/
+  if(_ismpi == 1)    /** HDF is executed in parallel context and compiled in MPI **/
   {
    // printf("getArrayContigous H5_HAVE_PARALLEL / _ismpi ON \n ");
    hid_t xfer_plist = H5Pcreate(H5P_DATASET_XFER);
@@ -1190,12 +1188,11 @@ E_Int K_IO::GenIO::hdfcgnswrite(char* file, PyObject* tree, PyObject* links)
   //H5Gclose(gid);
   // END DBX to test
 
-  /** Manage links */
+  /** Manage links (a l'ecriture) */
   /* List of ['targetdirectory', 'targetfilename', 'targetpath', 'currentpath'] */
   E_Int size;
   if (links == NULL) size = 0;
   else size = PyList_Size(links);
-  //printf("size = %d \n", size );
   
   for (E_Int i = 0; i < size; i++)
   {
@@ -1223,9 +1220,9 @@ E_Int K_IO::GenIO::hdfcgnswrite(char* file, PyObject* tree, PyObject* links)
     hid_t nid = H5Gcreate2(gidp, Name, H5P_DEFAULT, HDF._group, H5P_DEFAULT);
     if (nid < 0) {printf("Error: nid is invalid.\n");}
     
-    if (HDF_Add_Attribute_As_String(nid,L3S_NAME, Name)          < 0){printf("Error in link 1 \n");}
-    if (HDF_Add_Attribute_As_String(nid,L3S_DTYPE, L3T_LK)       < 0){printf("Error in link 2 \n");}
-    if (HDF_Add_Attribute_As_String(nid,L3S_LABEL,"")            < 0){printf("Error in link 3 \n");}
+    if (HDF_Add_Attribute_As_String(nid,L3S_NAME, Name)    < 0) {printf("Error in link 1 \n");}
+    if (HDF_Add_Attribute_As_String(nid,L3S_DTYPE, L3T_LK) < 0) {printf("Error in link 2 \n");}
+    if (HDF_Add_Attribute_As_String(nid,L3S_LABEL,"")      < 0) {printf("Error in link 3 \n");}
   
     delete [] Name;
   
@@ -1254,7 +1251,6 @@ void K_IO::GenIO::ripEndOfPath(char* path, char*& startPath)
   { if (path[i] == '/') break; }
   for (j = 0; j < i; j++) startPath[j] = path[j];
   startPath[i] = '\0';
-  // printf("%s\n", startPath);
 }
 
 //=============================================================================
@@ -1267,11 +1263,8 @@ void K_IO::GenIO::getEndOfPath(char* path, char*& EndPath)
   EndPath = new char [l+1];
   for (i = l-1; i >= 0; i--)
   { if (path[i] == '/') break; }
-  // printf("i : %d\n", i);
-  // printf("l : %d\n", l);
   for (j = 0; j < l-i; j++) EndPath[j] = path[j+i+1];
   EndPath[l-i] = '\0';
-  // printf("%s\n", EndPath);
 }
 
 //=============================================================================

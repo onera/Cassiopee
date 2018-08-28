@@ -16,23 +16,20 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
+
+// Lecture partielle des noeuds decrits dans Filter (chemins et filtre)
 PyObject* K_IO::GenIO::hdfcgnsReadFromPathsPartial(char* file,
                                                    PyObject* Filter,
                                                    void* comm)
 {
-  /* ***************************************************** */
-  /* Declaration */
-  hid_t   fapl, fid, ret;
+  hid_t fapl, fid, ret;
 
-  PyObject   *key, *DataSpaceDIM;
-  Py_ssize_t  pos = 0;
+  PyObject *key, *DataSpaceDIM;
+  Py_ssize_t pos = 0;
 
   // > Out
   PyObject* NodesList;
-  /* ***************************************************** */
-  /* Verbose */
-  // printf("K_IO::GenIO::hdfcgnsReadFromPathsPartial \n");
-
+  
   /* Check */
   if (PyDict_Check(Filter) == false)
   {
@@ -382,7 +379,7 @@ PyObject* K_IO::GenIOHdf::createNodePartial(hid_t& node)
                                          DataSpace.Dst_Count ,
                                          DataSpace.Dst_Block);
 
-  /* Il faut creer un dim out je pense ? -> Watch out _dims is overwrite here ... */
+  /* Prepare output DataSpace */
   hid_t mid = createDataSpaceOutput(node, _dims2, DataSpace.Src_Offset,
                                                   DataSpace.Src_Stride,
                                                   DataSpace.Src_Count ,
@@ -997,8 +994,6 @@ hid_t K_IO::GenIOHdf::writeNodePartial(hid_t     node,
 hid_t K_IO::GenIOHdf::setArrayPartial(hid_t node, void* data, int idim, int* idims,
                                       hid_t DataType, char *CGNSType)
 {
-  /* ***************************************************** */
-  /* Declaration */
   //hid_t    acc_tpl1;              /* File access templates */
   hid_t    xfer_plist;            /* Dataset transfer properties list */
   hid_t    sid;                   /* Dataspace ID */
@@ -1024,7 +1019,7 @@ hid_t K_IO::GenIOHdf::setArrayPartial(hid_t node, void* data, int idim, int* idi
   /* -------------------------------------------------------------- */
   /* Creation du dataset FICHIER collectif */
   sid = H5Screate_simple(dim, DataSpace.GlobDataSetDim, NULL);
-  if(sid < 0){printf("Fail in setArrayPartial::H5Screate_simple\n");}
+  if (sid < 0) {printf("Fail in setArrayPartial::H5Screate_simple\n");}
 
 #if defined(_MPI) && defined(H5_HAVE_PARALLEL)
   /* Create a dataset collectively */
@@ -1037,7 +1032,7 @@ hid_t K_IO::GenIOHdf::setArrayPartial(hid_t node, void* data, int idim, int* idi
   {
     // printf("setArrayPartial Sequential Skeleton \n");
     dataset   = H5Dcreate2(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-    if(dataset < 0){printf("Fail in setArrayPartial::H5Dcreate2\n");}
+    if (dataset < 0) {printf("Fail in setArrayPartial::H5Dcreate2\n");}
     ret = H5Dclose(dataset);
     H5Sclose(sid);
     return node;
@@ -1056,7 +1051,7 @@ hid_t K_IO::GenIOHdf::setArrayPartial(hid_t node, void* data, int idim, int* idi
   /* -------------------------------------------------------------- */
   /* Create a file dataspace independently */
   file_dataspace = H5Dget_space(dataset);
-  if(file_dataspace < 0){printf("Fail in setArrayPartial::H5Dget_space\n");}
+  if (file_dataspace < 0) {printf("Fail in setArrayPartial::H5Dget_space\n");}
 
   ret = H5Sselect_hyperslab(file_dataspace, H5S_SELECT_SET,
                             DataSpace.Dst_Offset, DataSpace.Dst_Stride,
@@ -1066,7 +1061,7 @@ hid_t K_IO::GenIOHdf::setArrayPartial(hid_t node, void* data, int idim, int* idi
   /* -------------------------------------------------------------- */
   /* create a memory dataspace independently */
   mem_dataspace = H5Screate_simple(dim, dims, NULL);
-  if(mem_dataspace < 0){printf("Fail in setArrayPartial::H5Screate_simple\n");}
+  if (mem_dataspace < 0) {printf("Fail in setArrayPartial::H5Screate_simple\n");}
 
   ret = H5Sselect_hyperslab(mem_dataspace, H5S_SELECT_SET,
                             DataSpace.Src_Offset, DataSpace.Src_Stride,
@@ -1076,21 +1071,19 @@ hid_t K_IO::GenIOHdf::setArrayPartial(hid_t node, void* data, int idim, int* idi
   /* -------------------------------------------------------------- */
   /* Set up the collective transfer properties list */
   xfer_plist = H5Pcreate (H5P_DATASET_XFER);
-  if(xfer_plist < 0){printf("Fail in setArrayPartial::H5Pcreate\n");}
+  if (xfer_plist < 0) {printf("Fail in setArrayPartial::H5Pcreate\n");}
 
 #if defined(_MPI) && defined(H5_HAVE_PARALLEL)
   ret = H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_COLLECTIVE);
   // ret = H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_INDEPENDENT);
-  if(ret < 0){printf("Fail in setArrayPartial::H5Pset_dxpl_mpio\n");}
+  if (ret < 0) {printf("Fail in setArrayPartial::H5Pset_dxpl_mpio\n");}
 #endif
   /* -------------------------------------------------------------- */
 
   /* -------------------------------------------------------------- */
   /* Write data collectively */
-  // printf("Write \n");
   ret = H5Dwrite(dataset, mid, mem_dataspace, file_dataspace, xfer_plist, data);
-  // printf("Write end \n");
-  if(ret < 0){printf("Fail in setArrayPartial::H5Dwrite\n");}
+  if (ret < 0) {printf("Fail in setArrayPartial::H5Dwrite\n");}
   /* -------------------------------------------------------------- */
 
   /* -------------------------------------------------------------- */
@@ -1114,11 +1107,10 @@ hid_t K_IO::GenIOHdf::setArrayPartial(hid_t node, void* data, int idim, int* idi
 }
 
 /* ------------------------------------------------------------------------- */
+// Recopie le filtre (python) en HDF (DataSpace)
 void K_IO::GenIOHdf::fillDataSpaceWithFilter(PyObject* Filter)
 {
   /* ***************************************************** */
-  /* Declaration */
-  int i=0;
   // C'est une copie ici ou pas ?
   /* ***************************************************** */
   /* Fill Source DataSpace */
@@ -1151,7 +1143,7 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilter(PyObject* Filter)
   /** Better make reverse that in interface **/
   DataSpace_t DataSpaceSave = DataSpace;
 
-  i=0;
+  int i=0;
   for (int n=0; n<L3C_MAX_DIMS; n++)
   {
     DataSpace.Src_Offset[n] = -1;
@@ -1202,81 +1194,61 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilter(PyObject* Filter)
   // }
 }
 
-/* ------------------------------------------------------------------------- */
-/*                      EXTERNAL FUNCTION                                    */
-/* ------------------------------------------------------------------------- */
+// IN: obj: liste de listes python
+// OUT: recopie le no item dans val
 void fillArrayLongWithList(PyObject* obj, int item, hsize_t *val)
 {
-  /* ***************************************************** */
-  /* Declaration */
   PyObject* SubList;
   int       n;
   int       s;
-
-  /* ***************************************************** */
-  // printf("fillArrayLongWithList:: %i \n", item);
 
   SubList = PyList_GetItem(obj, item);
   for (n = 0; n < PyList_Size(SubList); n++)
   {
     val[n] = PyInt_AsLong(PyList_GetItem(SubList,n));
-    // printf("val[n] : %d , %d\n", n, val[n]);
   }
   s = n;
   for (n = s; n < L3C_MAX_DIMS; n++)
   {
     val[n] = -1;
   }
-  // printf("fillArrayLongWithList:: end \n");
   // Py_DECREF(SubList); // Variable local donc pas besoin ? -> Surtout pas je Plante ...
 }
 
 /* ------------------------------------------------------------------------- */
+// Retourne la dimension du tableau partiel dans dims
 int HDF_Get_DataDimensionsPartial(hid_t nid, int *dims,
                                   hsize_t *dst_offset,
                                   hsize_t *dst_stride,
                                   hsize_t *dst_count,
                                   hsize_t *dst_block)
 {
-  /* ***************************************************** */
-  /* Declaration */
   int   n;
   int   ndims;
-  /* ***************************************************** */
-  /* Verbose */
-  // printf("HDF_Get_DataDimensionsPartial \n ");
   L3M_CLEARDIMS(dims);
   ndims = 0;
   for (n = 0; dst_count[n] != -1; n++)
   {
     ndims += 1;
     dims[n] = dst_count[n]*dst_block[n];
-    // printf("HDF_Get_DataDimensionsPartial %d \n", dims[n]);
   }
-  dims[ndims] = -1;
-
-  // printf("HDF_Get_DataDimensionsPartial end \n ");
+  dims[ndims] = -1; // sentinelle
   return 1;
 }
 
 //=============================================================================
-// Cree un dataspace - Entry
+// Cree un dataspace HDF - Entry
 //=============================================================================
 hid_t createDataSpaceEntry(hid_t nid, hsize_t *src_offset,
                                       hsize_t *src_stride,
                                       hsize_t *src_count,
                                       hsize_t *src_block)
 {
-  /* ***************************************************** */
-  /* Declaration */
   int       /*n, dst_ndims,*/src_ndims;
   hsize_t   src_dim_vals[L3C_MAX_DIMS];
   hid_t     did,sid;
   herr_t    stat;
-  /* ***************************************************** */
-  /* > Begin */
-  // printf("createDataSpaceEntry \n");
-
+  
   did = H5Dopen2(nid,L3S_DATA,H5P_DEFAULT);
   sid = H5Dget_space(did);
 
@@ -1292,12 +1264,11 @@ hid_t createDataSpaceEntry(hid_t nid, hsize_t *src_offset,
   H5Dclose(did);
 
   /* CAUTION - sid need to be close after */
-  // printf("createDataSpaceEntry... End \n");
   return sid;
 }
 
 //=============================================================================
-// Cree un dataspace - Output
+// Cree un dataspace HDF - Output
 //=============================================================================
 hid_t createDataSpaceOutput(hid_t nid, int     *dst_dims,
                                        hsize_t *dst_offset,
@@ -1309,15 +1280,10 @@ hid_t createDataSpaceOutput(hid_t nid, int     *dst_dims,
   /* Declaration */
   int       n, dst_ndims;
   hsize_t   dst_dim_vals[L3C_MAX_DIMS];
-  //hsize_t   dst_start[L3C_MAX_DIMS];
-  //hsize_t   dst_end[L3C_MAX_DIMS];
   hid_t     /*yid,tid,*/mid;
   hssize_t  dst_size;
   herr_t    stat;
-  /* ***************************************************** */
-  /* > Begin */
-  // printf("createDataSpaceOutput \n");
-
+  
   dst_size  = 1;
   dst_ndims = 0;
 
@@ -1327,7 +1293,6 @@ hid_t createDataSpaceOutput(hid_t nid, int     *dst_dims,
     dst_size *= dst_block[n];
     dst_ndims += 1;
     dst_dim_vals[n] = dst_dims[n];
-    // printf("dst_dim_vals[%d] : %d \n", n, dst_dim_vals[n]);
   }
   dst_dim_vals[dst_ndims]=-1;
 
@@ -1337,6 +1302,5 @@ hid_t createDataSpaceOutput(hid_t nid, int     *dst_dims,
                              dst_offset, dst_stride, dst_count, dst_block);
 
   /* CAUTION - mid need to be closed after */
-  // printf("createDataSpaceOutput... End \n");
   return mid;
 }

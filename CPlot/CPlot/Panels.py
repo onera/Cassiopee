@@ -1293,7 +1293,7 @@ def openLoadPanel(event=None):
         BB = CTK.infoBulle(parent=B, text='Select file.')
         B.grid(row=0, column=4, columnspan=1, sticky=TK.EW)
 
-        # Vars
+        # Zones
         scrollbar = TTK.Scrollbar(F, orient=TK.VERTICAL, width=10)
         scrollbar.grid(sticky=TK.NSEW, row=1, column=2)
         myList = TK.Listbox(F, selectmode=TK.EXTENDED,
@@ -1301,23 +1301,23 @@ def openLoadPanel(event=None):
                             width=40, height=20, background='white')
         myList.grid(sticky=TK.NSEW, row=1, column=0, columnspan=2)
         scrollbar.config(command=myList.yview)
-        WIDGETS['LBVARS'] = myList
-        WIDGETS['SCROLLVARS'] = scrollbar
+        WIDGETS['LBZONES'] = myList
+        WIDGETS['SCROLLZONES'] = scrollbar
         
-        B = TTK.Button(F, text="Load", command=loadVars)
+        B = TTK.Button(F, text="Load", command=loadZones)
         B.grid(row=2, column=0, sticky=TK.EW)
-        BB = CTK.infoBulle(parent=B, text='Load vars.')
+        BB = CTK.infoBulle(parent=B, text='Load zones.')
         
-        B = TTK.Button(F, text="Unload", command=unloadVars)
+        B = TTK.Button(F, text="Unload", command=unloadZones)
         B.grid(row=2, column=1, sticky=TK.EW)
-        BB = CTK.infoBulle(parent=B, text='Unload vars.')
-        
-        B = TK.Entry(F, textvariable=OVARS[1], background='White', width=40)
-        B.bind('<KeyRelease>', filterVarList)
-        B.grid(row=3, column=0, columnspan=2, sticky=TK.EW)
-        BB = CTK.infoBulle(parent=B, text='Filter vars by this regexp.')
+        BB = CTK.infoBulle(parent=B, text='Unload zones.')
 
-        # Zones
+        B = TK.Entry(F, textvariable=OVARS[2], background='White', width=40)
+        B.bind('<KeyRelease>', filterZoneList)
+        B.grid(row=3, column=0, columnspan=2, sticky=TK.EW)
+        BB = CTK.infoBulle(parent=B, text='Filter zones by this regexp.')
+
+        # Vars
         scrollbar = TTK.Scrollbar(F, orient=TK.VERTICAL, width=10)
         scrollbar.grid(sticky=TK.NSEW, row=1, column=5)
         myList = TK.Listbox(F, selectmode=TK.EXTENDED,
@@ -1325,21 +1325,21 @@ def openLoadPanel(event=None):
                             width=40, height=20, background='white')
         myList.grid(sticky=TK.NSEW, row=1, column=3, columnspan=2)
         scrollbar.config(command=myList.yview)
-        WIDGETS['LBZONES'] = myList
-        WIDGETS['SCROLLZONES'] = scrollbar
+        WIDGETS['LBVARS'] = myList
+        WIDGETS['SCROLLVARS'] = scrollbar
         
-        B = TTK.Button(F, text="Load", command=loadZones)
+        B = TTK.Button(F, text="Load", command=loadVars)
         B.grid(row=2, column=3, sticky=TK.EW)
-        BB = CTK.infoBulle(parent=B, text='Load zones.')
+        BB = CTK.infoBulle(parent=B, text='Load vars.')
         
-        B = TTK.Button(F, text="Unload", command=unloadZones)
+        B = TTK.Button(F, text="Unload", command=unloadVars)
         B.grid(row=2, column=4, sticky=TK.EW)
-        BB = CTK.infoBulle(parent=B, text='Unload zones.')
-
-        B = TK.Entry(F, textvariable=OVARS[2], background='White', width=40)
-        B.bind('<KeyRelease>', filterZoneList)
+        BB = CTK.infoBulle(parent=B, text='Unload vars.')
+        
+        B = TK.Entry(F, textvariable=OVARS[1], background='White', width=40)
+        B.bind('<KeyRelease>', filterVarList)
         B.grid(row=3, column=3, columnspan=2, sticky=TK.EW)
-        BB = CTK.infoBulle(parent=B, text='Filter zones by this regexp.')
+        BB = CTK.infoBulle(parent=B, text='Filter vars by this regexp.')
 
     else:
         # trick pour avoir la fenetre au premier plan

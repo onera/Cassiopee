@@ -11,5 +11,20 @@ myApp.set(numz={"time_step": 0.0007,
                 "cfl":4.})
 
 myApp.prepare('naca.cgns', t_out='t.cgns', tc_out='tc.cgns')
-myApp.compute('t.cgns', 'tc.cgns', t_out='restart.cgns', nit=1000)
 
+
+# closed version
+#myApp.compute('t.cgns', 'tc.cgns', t_out='restart.cgns', nit=1000)
+
+# open version
+t, tc, ts, metrics, graph = myApp.setup('t.cgns', 'tc.cgns')
+
+import FastS.PyTree as FastS
+import Converter.Mpi as Cmpi
+
+for it in xrange(1000):
+    FastS._compute(t, metrics, it, tc, graph)
+    if it%100 == 0:
+        if Cmpi.rank == 0: print '- %d / %d'%(it,1000)
+
+myApp.finalize(t, 'out.cgns')
