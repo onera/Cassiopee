@@ -63,7 +63,8 @@ if mpi is True:
 #==============================================================================
 # Fichiers fortran
 #==============================================================================
-for_srcs = ['Connector/Fortran/CompMotionCentersF.for',
+for_srcs = ['Connector/Fortran/spalart_1d.for',
+            'Connector/Fortran/CompMotionCentersF.for',
             'Connector/Fortran/CompMotionCentersEXF.for',
             'Connector/Fortran/BlkAdjustCellNatureFieldF.for',
             'Connector/Fortran/MaskSearchBlankedNodesXF.for',

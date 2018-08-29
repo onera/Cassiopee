@@ -24,6 +24,7 @@ using namespace K_FLD;
 # include "IBC/commonLaws.h"
 # define NUTILDE_FERRARI 1
 
+#include <iostream>
 //=============================================================================
 //Retourne -2: incoherence entre meshtype et le type d interpolation
 //         -1: type invalide
@@ -52,6 +53,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar1(
   E_Float ucible0, ucible, vcible, wcible, nutilde, signibc,twall;
   //Lois de paroi : criteres d arret pour estimer le frottement par Newton
   E_Float newtoneps = 1.e-7; // critere d arret pour u+
+  E_Float newtonepsnutilde = 1.e-10; // critere d arret pour nutilde
   E_Float newtonepsprime = 1.e-12;// critere d arret pour la derivee  
   E_Float cvgaminv = 1./(cv*gam1);
   E_Float coefSuth = muS * (1.+Cs/Ts);
@@ -441,7 +443,8 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
   E_Float* d1, E_Float* d2, E_Float* d3, E_Float* d4, E_Float* d5,
   E_Float* tmp, E_Int& size,
   E_Float gamma, E_Float cv, E_Float muS, E_Float Cs, E_Float Ts, E_Float Pr,
-  vector<E_Float*>& vectOfDnrFields, vector<E_Float*>& vectOfRcvFields)
+  vector<E_Float*>& vectOfDnrFields, vector<E_Float*>& vectOfRcvFields,
+  E_Int nbptslinelets, E_Float* linelets, E_Int* indexlinelets)
 {
   /* lois de paroi */
   E_Float roext, uext, pext, text, muext, yext, yplus, yibc;
@@ -452,6 +455,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
   E_Int npass;
   // Lois de paroi: criteres d'arret pour estimer le frottement par Newton
   E_Float newtoneps = 1.e-7; // critere d'arret pour u+
+  E_Float newtonepsnutilde = 1.e-10; // critere d arret pour nutilde
   E_Float newtonepsprime = 1.e-12;// critere d'arret pour la derivee  
   E_Float cvgam = cv*(gamma-1.);
   E_Float cvgaminv = 1./(cvgam);
@@ -474,6 +478,44 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
   E_Float* wOut  = vectOfRcvFields[3];// w
   E_Float* tOut  = vectOfRcvFields[4];// temperature
   E_Float* varSAOut = NULL;
+
+  // ODE-based wall model
+
+  E_Float Cv1cube = pow(7.1,3);
+  E_Int nmax = 20;
+
+  E_Float L2norm ; 
+  E_Float L2norm0;  
+  
+  E_Float ynm,ynp,dy,dym,dyp,nutm,nutp;
+  E_Float xim,xi,xip,m;
+  E_Float nutrm,nutrp,nutr;
+
+  E_Float* ipt_u1dold = NULL;
+  E_Float* yline        = NULL;
+  E_Float* u_line       = NULL;
+  E_Float* nutilde_line = NULL;
+  E_Float* matm_line    = NULL;
+  E_Float* mat_line     = NULL;
+  E_Float* matp_line    = NULL;
+  E_Float* alphasbeta_line = NULL;
+
+  FldArrayF u1dold(nbptslinelets);
+  ipt_u1dold = u1dold.begin();
+
+  if (nbptslinelets != 0)
+  {
+
+    yline           = linelets;
+    u_line          = linelets + nbRcvPts*nbptslinelets;
+    nutilde_line    = linelets + nbRcvPts*nbptslinelets*2;
+    matm_line       = linelets + nbRcvPts*nbptslinelets*3;
+    mat_line        = linelets + nbRcvPts*nbptslinelets*4;
+    matp_line       = linelets + nbRcvPts*nbptslinelets*5;
+    alphasbeta_line = linelets + nbRcvPts*nbptslinelets*6;
+    
+  }
+
   if (nvars == 6) varSAOut = vectOfRcvFields[5]; // nutildeSA
 
   if (bctype == 0) // wallslip
@@ -668,6 +710,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
           wOut[indR]     = wcible_vec[noind];
           tOut[indR]     = tcible_vec[noind];
           varSAOut[indR] = aa_vec[noind]*sign_vec[noind]*uext_vec[noind];  //nutilde*signibc
+
           // printf("OUT WALL LAW: %f %f %f %f\n",uOut[indR],vOut[indR],wOut[indR],varSAOut[indR]);
         }
       }
@@ -846,8 +889,276 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
       //printf("roOut  %f %f %f %f %f\n", roOut[indR], uOut[indR], vOut[indR], wOut[indR], tOut[indR]);
     }
   }
-   else if (bctype == 6) // TBLE
-   {
+  else if (bctype == 6) // TBLE
+  {
+    if (nbptslinelets != 0)
+    {
+
+#   include "IBC/pointer.h" 
+
+    E_Int err  = 0;
+    E_Int skip = 0; 
+    E_Int init = 1;
+
+    if( (alphasbeta_line[ ideb ] != 0.0) || ideb == ifin)   {init=0;} 
+
+    if(init)
+    {      
+
+       for (E_Int noind = 0; noind < ifin-ideb; noind++)
+        {
+          
+         E_Float* yline1d   = yline + (noind + ideb)*nbptslinelets;
+
+         a0 = xPC[noind+ideb]-xPW[noind+ideb];
+         a1 = yPC[noind+ideb]-yPW[noind+ideb];
+         a2 = zPC[noind+ideb]-zPW[noind+ideb];
+
+         E_Float dist = sqrt(a0*a0 + a1*a1 + a2*a2);
+
+         E_Int imin  = 0;
+         E_Int imax  = nbptslinelets;         
+         E_Int isearch    = nbptslinelets/2;
+
+         while ( (imax - imin) > 1  )
+            {
+              if ( dist <= yline1d[isearch])
+              {
+               imax = isearch;             
+               isearch = imin + (imax-imin)/2;
+              }
+              else
+              {
+               imin = isearch;
+               isearch = imin + (imax-imin)/2;
+              }
+            }
+                 
+   
+         alphasbeta_line[noind + ideb] = (dist-yline1d[imin] )/(yline1d[imax] -yline1d[imin]);         
+         indexlinelets[ noind + ideb ] = imax;
+        }
+
+    
+    // }
+     // Fill nutilde in linelets
+
+        // std::cout << "Init Nutilde" << ithread << "ideb" << ideb << "ifin" << ifin << std::endl;
+    // Test Mixing-length  
+    for ( E_Int iline = 0 ; iline < nbptslinelets; iline++)
+      {      
+
+       for (E_Int noind = 0; noind < ifin-ideb; noind++)
+        {
+       
+  
+        E_Int   indl   = (noind + ideb)*nbptslinelets   + iline;   
+        E_Int   indR   = rcvPts[noind+ideb];
+ 
+        roext = roOut[indR]; // densite du point interpole
+        text  = tOut[indR];  // pression du point interpole
+        pext  = text*roext*cvgam;
+
+         // vitesse du pt ext
+        u = uOut[indR];
+        v = vOut[indR]; 
+        w = wOut[indR];
+
+#       include "IBC/commonMuskerLaw_init_tble.h"      
+        }
+
+        // Newton pour utau
+#       include "IBC/commonMuskerLaw_Newton.h"       
+
+     // //initialisation Newton SA  + vitesse cible
+#       include "IBC/commonMuskerLaw_cible_tble.h"
+
+        for (E_Int noind = 0; noind < ifin-ideb; noind++)
+        {
+        
+          E_Int   indl   = (noind + ideb)*nbptslinelets   + iline;//*nbptslinelets;
+          E_Int   indR   = rcvPts[noind+ideb];         
+
+
+
+          // Initialisation linelets    
+          // u_line[indl]     =  uOut[indR]*abs(yline[indl]/yline[nbptslinelets-1]);
+
+          u_line[indl]     =  sqrt(ucible_vec[noind]*ucible_vec[noind] + 
+                                   vcible_vec[noind]*vcible_vec[noind] +
+                                   wcible_vec[noind]*wcible_vec[noind] );//(uOut[indR] )*abs(alphasbeta) ;//ucible_vec[noind];
+
+          // nutilde_line[indl] = 0.0;//aa_vec[noind]*sign_vec[noind]*uext_vec[noind];  //nu
+          nutilde_line[indl] = (varSAOut[indR] )*K_FUNC::E_abs(yline[indl]/yline[nbptslinelets-1]) ;
+        }        
+  
+      }
+    } // END INIT
+
+
+    // 1D TBLE for u (no grad p nor convective terms... for now)  NEED TO CORRECT V and W 
+
+    for (E_Int noind = 0; noind < ifin-ideb; noind++)
+        {
+     
+
+         // for (E_Int loop = 0; loop < 400; ++loop)
+         // {
+   
+         E_Int indR = rcvPts[noind+ideb];         
+
+         E_Float* yline1d   = yline        + (noind + ideb)*nbptslinelets;
+         E_Float* nutilde1d = nutilde_line + (noind + ideb)*nbptslinelets;
+         E_Float* u1d       = u_line       + (noind + ideb)*nbptslinelets;
+         E_Float* mat       = mat_line     + (noind + ideb)*nbptslinelets;
+         E_Float* matm      = matm_line    + (noind + ideb)*nbptslinelets;
+         E_Float* matp      = matp_line    + (noind + ideb)*nbptslinelets;
+
+#        include "IBC/commonGeom.h"
+
+         ro_vec[noind] = roOut[indR]; // densite du point interpole
+         text  = tOut[indR];  // pression du point interpole
+         pext  = text*ro_vec[noind]*cvgam;
+
+         // vitesse du pt ext
+         u = uOut[indR];
+         v = vOut[indR]; 
+         w = wOut[indR];
+
+//          // Loi de Sutherland -> viscosite au point interpole
+         mu_vec[noind] = coefSuth * sqrt(K_FUNC::E_abs(text)*Tsinv) / (1.+Cs/text);
+         
+//          // uscaln: u au point interpole scalaire la normale au pt interpole
+         uscaln = u*n0 + v*n1 + w*n2;
+           
+         //composante normale de la vitesse
+         un = uscaln*n0;
+         vn = uscaln*n1;
+         wn = uscaln*n2;
+         
+         //composante tangentielle de la vitesse au pt interpole
+         ut = u-un;
+         vt = v-vn;
+         wt = w-wn;
+         // uext: norme de la composante tangentielle de la vitesse externe
+         uext = sqrt(ut*ut+vt*vt+wt*wt);
+         uext_vec[noind] = std::max(uext, 1.e-12);
+
+
+         E_Float nu = mu_vec[noind]/roOut[indR];     
+
+         u1d[0] = 0.0;
+         u1d[nbptslinelets-1] = uext_vec[noind];  
+
+         npass = 0;
+         L2norm = 1.0;
+         L2norm0= 1.0;
+
+         nmax = 30;
+
+
+         for (E_Int j = 0; j < nbptslinelets; ++j)
+         {
+           ipt_u1dold[j] = 0.0;//u1d[j];
+         }      
+
+
+         // while ( (L2norm/L2norm0 >= 0.01) && (npass < nmax))
+         while ( (L2norm >= 1.0e-1) && (npass < nmax)) 
+         {     
+         
+#        include "IBC/tble_1d.h"
+
+         // if ((npass == nmax) && (ithread==1))
+         // {
+         //   std::cout << "TBLE doesn't converge !  " << L2norm << std::endl;
+         //   std::cout << "Residual Delta(utble)/utble :" << L2norm << " utble :" << u1d[j_cvg] << " j_cvg :" << j_cvg <<  std::endl;
+         // }
+
+         // if (ithread==1)
+         // {
+         //   std::cout << "Residual utble = " << L2norm << " utble :" << u1d[j_cvg] << " j_cvg :" << j_cvg <<  std::endl;
+         // }
+         utau_vec[noind ] = sqrt(K_FUNC::E_abs(nu*u1d[1])/yline1d[1]);        
+
+        // ODE 1D SA for nutilde    
+
+         spalart_1d_(ithread,yline1d, matm,mat,matp, nutilde1d ,u1d,kappa,
+                     nu,varSAOut[indR],nbptslinelets,kappa);
+         
+
+         }
+
+         if ((npass == nmax) && (ithread==1))
+         {
+           std::cout << "TBLE doesn't converge !  " << L2norm << std::endl;
+           // std::cout << "Residual Delta(utble)/utble :" << L2norm << " utble :" << u1d[j_cvg] << " j_cvg :" << j_cvg <<  std::endl;
+         }
+
+
+        }
+
+
+              // mise a jour des variable
+#ifdef _OPENMP4
+       #pragma omp simd
+#endif 
+        for (E_Int noind = 0; noind < ifin-ideb; noind++)
+        {
+
+          E_Int indR = rcvPts[noind+ideb];
+
+          E_Float* nutilde1d = nutilde_line + (noind + ideb)*nbptslinelets;
+          E_Float* u1d       = u_line + (noind + ideb)*nbptslinelets;
+
+
+          // vitesse du pt ext
+          u = uOut[indR];
+          v = vOut[indR]; 
+          w = wOut[indR];
+         
+       
+          pext  = tOut[indR]*roOut[indR]*cvgam;
+
+# include "IBC/commonLaws1.h"
+
+          ucible_vec[noind]   = alphasbeta*un; // init : normal component of velocity is linearly reconstructed
+          vcible_vec[noind]   = alphasbeta*vn;
+          wcible_vec[noind]   = alphasbeta*wn;
+
+          umod = (u1d[indexlinelets[noind + ideb]] - u1d[indexlinelets[noind + ideb]-1])*alphasbeta_line[noind + ideb] + u1d[indexlinelets[noind + ideb]-1];
+
+          ucible0 = signibc/uext * umod;
+          ucible_vec[noind] += ucible0 * ut; // vitesse tangentielle pour le pt IBC
+          vcible_vec[noind] += ucible0 * vt;
+          wcible_vec[noind] += ucible0 * wt;
+
+          // For Post (tOut temperature du point image en entree, pt corrige en sortie)
+
+          twall = tOut[indR]  + 0.5*pow(Pr,one_third)/(cv*gamma)*(uext*uext); // Crocco-Busemann()
+          densPtr[noind+ideb] = pext/twall*cvgaminv;
+          pressPtr[noind+ideb]= pext;
+      
+          tcible_vec[noind] = tOut[indR] + 0.5*pow(Pr,one_third)/(cv*gamma)*(uext*uext - umod*umod); // Crocco-Busemann
+
+          // Mise a jour pt corrige
+          roOut[indR]    = pext/tcible_vec[noind]*cvgaminv;       
+          uOut[indR]     = ucible_vec[noind];
+          vOut[indR]     = vcible_vec[noind];
+          wOut[indR]     = wcible_vec[noind];
+          tOut[indR]     = tcible_vec[noind];
+          varSAOut[indR] = (nutilde1d[indexlinelets[noind + ideb]] - nutilde1d[indexlinelets[noind + ideb]-1])*alphasbeta_line[noind + ideb] + nutilde1d[indexlinelets[noind + ideb]-1]; //aa_vec[noind]*sign_vec[noind]*uext_vec[noind];  //nutilde*signibc
+                   
+
+        }
+
+        
+    } // nbptslinelets 
+
+    else  // premier call effectué par fillGhostCell (pas de TBLE +SA ) --> on renseigne les PC par du Musker + Mix Length
+
+    {
+
 #   include "IBC/pointer.h" 
 
     E_Int err  = 0;
@@ -877,9 +1188,71 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
      // Newton pour utau
 #    include "IBC/commonMuskerLaw_Newton.h" 
 
-   }
+     //initialisation Newton SA  + vitesse cible
+#if NUTILDE_FERRARI == 0
+#    include "IBC/commonMuskerLaw_cible.h"
+#else
+#    include "IBC/nutilde_Ferrari.h"
+#endif
+    if (nvars == 6)
+      {
+        // Newton pour mut
+#if NUTILDE_FERRARI == 0
+#       include "IBC/nutildeSA_Newton.h" 
+#endif
+        // mise a jour des variable
+#ifdef _OPENMP4
+       #pragma omp simd
+#endif 
+        for (E_Int noind = 0; noind < ifin-ideb; noind++)
+        {
+          E_Int indR = rcvPts[noind+ideb];
+
+          // For Post (tOut temperature du point image en entree, pt corrige en sortie)
+
+          twall = tOut[indR] + 0.5*pow(Pr,one_third)/(cv*gamma)*(uext_vec[noind]*uext_vec[noind]); // Crocco-Busemann
+          densPtr[noind+ideb] = press_vec[noind ]/twall*cvgaminv;
+          pressPtr[noind+ideb]= press_vec[noind ];
+
+          // Mise a jour pt corrige
+          roOut[indR]    = press_vec[noind ]/tcible_vec[noind]*cvgaminv;       
+          uOut[indR]     = ucible_vec[noind];
+          vOut[indR]     = vcible_vec[noind];
+          wOut[indR]     = wcible_vec[noind];
+          tOut[indR]     = tcible_vec[noind];
+          varSAOut[indR] = aa_vec[noind]*sign_vec[noind]*uext_vec[noind];  //nutilde*signibc
+
+          // printf("OUT WALL LAW: %f %f %f %f\n",uOut[indR],vOut[indR],wOut[indR],varSAOut[indR]);
+        }
+      }
+    else //5eq 
+      {
+        // mise a jour des variable
+#ifdef _OPENMP4
+       #pragma omp simd
+#endif 
+        for (E_Int noind = 0; noind < ifin-ideb; noind++)
+        {
+         E_Int indR = rcvPts[noind+ideb];
+
+         // For Post (tOut temperature du point image)
+         twall = tOut[indR]  + 0.5*pow(Pr,one_third)/(cv*gamma)*(uext_vec[noind]*uext_vec[noind]); // Crocco-Busemann
+         densPtr[noind+ideb] = press_vec[noind ]/twall*cvgaminv;
+         pressPtr[noind+ideb]= press_vec[noind ];
+
+         roOut[indR]    = press_vec[noind ]/tcible_vec[noind]*cvgaminv;   
+         uOut[indR]     = ucible_vec[noind];
+         vOut[indR]     = vcible_vec[noind];
+         wOut[indR]     = wcible_vec[noind];
+         tOut[indR]     = tcible_vec[noind];
+        }
+      }
+
+    } 
+  }     
   return 1;
 }
+
 //=============================================================================
 //Retourne -2 : incoherence entre meshtype et le type d interpolation
 //         -1 : type invalide
@@ -907,6 +1280,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar3(
   E_Float ucible0, ucible, vcible, wcible, nutcible, nutilde, signibc, twall;
   //Lois de paroi : criteres d arret pour estimer le frottement par Newton
   E_Float newtoneps = 1.e-7; // critere d arret pour u+
+  E_Float newtonepsnutilde = 1.e-10; // critere d arret pour nutilde
   E_Float newtonepsprime = 1.e-12;// critere d arret pour la derivee  
   E_Float cvgaminv = 1./(cv*(gamma-1.));
   E_Float coefSuth = muS * (1.+Cs/Ts);

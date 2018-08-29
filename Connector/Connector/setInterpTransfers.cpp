@@ -568,7 +568,7 @@ PyObject* K_CONNECTOR::__setInterpTransfers(PyObject* self, PyObject* args)
       //printf("pos_rac %d %d %d %d \n", pos_rac, no_zR, shift_rac+irac, irac); 
       PyObject* zoneR = PyList_GetItem(zonesR, no_zR); // domaine i
 #     include "getfromzoneRcompact.h"
-      ipt_ndimdxR[irac] = ndimdxR;
+      ipt_ndimdxR[irac] = ndimdxR;      
       ipt_roR[irac]     = iptroR;
     }
  
@@ -742,31 +742,36 @@ PyObject* K_CONNECTOR::__setInterpTransfers(PyObject* self, PyObject* args)
 PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
 {
   PyObject *zonesR, *zonesD;
+
   PyObject *pyVariables;
   PyObject *pyParam_int, *pyParam_real;
   E_Int vartype, bctype, type_transfert, no_transfert, It_target;
   E_Float gamma, cv, muS, Cs, Ts;
-#ifdef TimeShowsetinterp  
-  PyObject *timecount;
 
-  if (!PYPARSETUPLE(args,
-                    "OOOOOllllldddddO", "OOOOOiiiiidddddO",
-                    "OOOOOlllllfffffO", "OOOOOiiiiifffffO",
-                    &zonesR, &zonesD, &pyVariables, &pyParam_int,  &pyParam_real, &It_target, &vartype,
-                    &bctype, &type_transfert, &no_transfert, &gamma, &cv, &muS, &Cs, &Ts, &timecount))
-  {
-      return NULL;
-  }
+#ifdef TimeShowsetinterp  
+PyObject *timecount;
+      if (!PYPARSETUPLE(args,
+                        "OOOOOllllldddddO", "OOOOOiiiiidddddO",
+                        "OOOOOlllllfffffO", "OOOOOiiiiifffffO",
+                        &zonesR, &zonesD, &pyVariables, &pyParam_int,  &pyParam_real, &It_target, &vartype,
+                        &bctype, &type_transfert, &no_transfert, &gamma, &cv, &muS, &Cs, &Ts, &timecount))
+      {
+          return NULL;
+      }
+
 #else
-  if (!PYPARSETUPLE(args,
-                    "OOOOOlllllddddd", "OOOOOiiiiiddddd",
-                    "OOOOOlllllfffff", "OOOOOiiiiifffff",
-                    &zonesR, &zonesD, &pyVariables, &pyParam_int,  &pyParam_real, &It_target, &vartype,
-                    &bctype, &type_transfert, &no_transfert, &gamma, &cv, &muS, &Cs, &Ts))
-  {
-      return NULL;
-  }
+
+      if (!PYPARSETUPLE(args,
+                        "OOOOOlllllddddd", "OOOOOiiiiiddddd",
+                        "OOOOOlllllfffff", "OOOOOiiiiifffff",
+                        &zonesR, &zonesD, &pyVariables, &pyParam_int,  &pyParam_real, &It_target, &vartype,
+                        &bctype, &type_transfert, &no_transfert, &gamma, &cv, &muS, &Cs, &Ts))
+      {
+          return NULL;
+      }
 #endif
+
+  
 
   //E_Int init=0;
 
@@ -815,7 +820,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
 
   E_Int NoTransfert  = E_Int(no_transfert);
 
-  vector<PyArrayObject*> hook;
+  
   E_Int kmd, cnNfldD, nvars, meshtype;
 
   if( vartype <= 3 &&  vartype >= 1) nvars =5;
@@ -837,6 +842,9 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
   ipt_roD          = new E_Float*[nidomD*2];
   ipt_roD_vert     = ipt_roD + nidomD;
 
+
+  vector<PyArrayObject*> hook ;
+
   E_Float Pr = 0.71;
   PyObject* zone0 = PyList_GetItem(zonesR, 0);  
   PyObject* own   = K_PYTREE::getNodeFromName1(zone0 , ".Solver#ownData");
@@ -849,6 +857,37 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
       Pr = paramreal0val[10];
     }
   }
+
+  /*----------------------------------*/
+  /* Get the Shift values for Padding */
+  /*----------------------------------*/
+
+  E_Int** ipt_param_int_Shift;
+
+  ipt_param_int_Shift = new E_Int*[nidomR];
+
+  for (E_Int nd = 0; nd < nidomR; nd++)
+  {
+    
+  PyObject* zone = PyList_GetItem(zonesR, nd);  
+  PyObject* own   = K_PYTREE::getNodeFromName1(zone , ".Solver#ownData");
+  if (own != NULL)
+  {
+    PyObject* paramint = K_PYTREE::getNodeFromName1(own, "Parameter_int");
+    if (paramint != NULL)
+    {
+      ipt_param_int_Shift[nd] = K_PYTREE::getValueAI(paramint, hook);      
+    } 
+    else
+    {
+      ipt_param_int_Shift[nd] = 0;    
+    }       
+  }  
+  else
+   {
+      ipt_param_int_Shift[nd] = 0;    
+   }  
+  } 
 
   /*-------------------------------------*/
   /* Extraction tableau int et real      */
@@ -988,13 +1027,20 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
       {
         for (E_Int eq = 0; eq < nvars_loc; eq++)
         {
-         vectOfRcvFields[eq] = ipt_roR[ NoR] + eq*ipt_ndimdxR[ NoR ];
-         vectOfDnrFields[eq] = ipt_roD[ NoD] + eq*ipt_ndimdxD[ NoD ];
+         vectOfRcvFields[eq] = ipt_roR[ NoR] + eq*(ipt_ndimdxR[ NoR ] + ipt_param_int_Shift[NoR][66] );
+         vectOfDnrFields[eq] = ipt_roD[ NoD] + eq*(ipt_ndimdxD[ NoD ] + ipt_param_int_Shift[NoD][66] );
         }
          imd= ipt_ndimdxD[ NoD+ nidomD  ]; jmd= ipt_ndimdxD[ NoD+ nidomD*2];
       }
 
       imdjmd = imd*jmd;
+
+          // std::cout << "loc" << loc << std::endl;
+          // std::cout << "Dim trans Py " << " dim  R " << ipt_ndimdxR[NoR] << std::endl;
+          // std::cout << "Dim trans Py " << " dim  D " << ipt_ndimdxD[NoD] << std::endl;
+          // std::cout << "Dim trans Py " << " dim  imd " << ipt_ndimdxD[NoD + nidomD] << std::endl;
+          // std::cout << "Dim trans Py " << " dim  jmd " << ipt_ndimdxD[NoD + nidomD*2] << std::endl;
+
 
       ////
       //  Interpolation parallele
@@ -1156,6 +1202,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
 
 
   delete [] ipt_ndimdxR; delete [] ipt_roR; delete [] ipt_ndimdxD; delete [] ipt_roD; delete [] ipt_cnd;
+  delete [] ipt_param_int_Shift;
 
   RELEASESHAREDZ(hook, (char*)NULL, (char*)NULL); 
   RELEASESHAREDN(pyParam_int    , param_int    );

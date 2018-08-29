@@ -98,6 +98,12 @@
   if ( pyArrayYplus != Py_None)                         \
     RELEASESHAREDN(pyArrayYplus, yplusF);
 
+
+extern "C"
+{
+  void spalart_1d_(E_Int& ithread, E_Float* y, E_Float* matm,E_Float* mat,E_Float* matp,E_Float* nutilde, E_Float* utble, E_Float& pdtc, E_Float& nu, E_Float& nutildeext, E_Int& jmax, E_Float& kappa);
+}  
+
 namespace K_CONNECTOR 
 {
 /* Interpolation datas.*/
@@ -589,8 +595,9 @@ namespace K_CONNECTOR
                                   E_Float* d1, E_Float* d2, E_Float* d3, E_Float* d4, E_Float* d5,
                                   E_Float* tmp, E_Int&  size,
                                   E_Float gamma, E_Float cv, E_Float muS, E_Float Cs, E_Float Ts, E_Float Pr,
-                                  std::vector<E_Float*>& WIn, std::vector<E_Float*>& WOut);
-
+                                  std::vector<E_Float*>& WIn, std::vector<E_Float*>& WOut, 
+                                  E_Int nbptslinelets=0, E_Float* linelets=NULL, E_Int* indexlinelets=NULL);
+  
   /* Transferts IBC avec variables (ro,u,v,w,p) en entree/sortie */
   E_Int setIBCTransfersCommonVar3(E_Int bctype,
                                   E_Int* rcvPtsI, E_Int& nbRcvPts, E_Int& ideb, E_Int& ifin, E_Int& ithread,

@@ -378,6 +378,42 @@ PyObject* K_CONNECTOR::__setInterpTransfersD( PyObject* self, PyObject* args ) {
     ipt_roD      = new E_Float*[nidomD * 2];
     ipt_roD_vert = ipt_roD + nidomD;
 
+
+  
+  /*----------------------------------*/
+  /* Get the Shift values for Padding */
+  /*----------------------------------*/
+  
+  E_Int nidomR = PyList_Size( zonesR );
+  
+  E_Int** ipt_param_int_Shift;
+
+  ipt_param_int_Shift = new E_Int*[nidomR];
+
+  for (E_Int nd = 0; nd < nidomR; nd++)
+  {
+    
+  PyObject* zone = PyList_GetItem(zonesR, nd);  
+  PyObject* own   = K_PYTREE::getNodeFromName1(zone , ".Solver#ownData");
+  if (own != NULL)
+  {
+    PyObject* paramint = K_PYTREE::getNodeFromName1(own, "Parameter_int");
+    if (paramint != NULL)
+    {
+      ipt_param_int_Shift[nd] = K_PYTREE::getValueAI(paramint, hook);      
+    }
+    else
+    {
+      ipt_param_int_Shift[nd] = 0;    
+    }    
+  }
+  else
+   {
+      ipt_param_int_Shift[nd] = 0;    
+   }  
+  } 
+
+
     //------------------------------------/
     // Extraction tableau int et real     /
     //------------------------------------/
@@ -563,7 +599,7 @@ PyObject* K_CONNECTOR::__setInterpTransfersD( PyObject* self, PyObject* args ) {
 
                         for ( E_Int eq = 0; eq < nvars_loc; eq++ ) {
                             vectOfRcvFields[eq] = frp[count_rac] + eq * nbRcvPts;
-                            vectOfDnrFields[eq] = ipt_roD[NoD] + eq * ipt_ndimdxD[NoD];
+                            vectOfDnrFields[eq] = ipt_roD[NoD] + eq * ( ipt_ndimdxD[NoD] + ipt_param_int_Shift[NoD][66]);
                         }
                         imd = ipt_ndimdxD[NoD + nidomD];
                         jmd = ipt_ndimdxD[NoD + nidomD * 2];
