@@ -1,0 +1,12 @@
+# CB
+# sur Linux, ALSA est needed (oss est trop vieux)
+
+./configure
+make
+cd lib
+cp .libs/* .
+
+cp libportaudio-2.dll $CASSIOPEE/Dist/bin/win64/lib
+
+aller dans pyaudio
+./install 

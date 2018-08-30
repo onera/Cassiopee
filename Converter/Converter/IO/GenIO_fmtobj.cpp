@@ -45,12 +45,12 @@ E_Int K_IO::GenIO::objread(
 {
   E_Int res;
   E_Float t;
-  E_Int ti, i, j, nv, nf, nt, nq, k;
+  E_Int ti, ti1, ti2, i, j, nv, nf, nt, nq, k, nfield;
   char buf[256];
   FldArrayF* f;
-  FldArrayI* cnq;
-  FldArrayI* cnt;
-
+  FldArrayI* cn_q;
+  FldArrayI* cn_t;
+  
   /* File Opening */
   FILE* ptrFile;
   ptrFile = fopen(file, "r");
@@ -61,32 +61,37 @@ E_Int K_IO::GenIO::objread(
     return 1;
   }
 
-  // Lecture de tous les vertex
+  // Recherche du nombre de V
   nv = 0; res = 1;
   while (res == 1)
   {
     res = readGivenKeyword(ptrFile, "V "); nv++;
   }
   nv = nv-1;
-  //printf("I found %d vertices\n", nv);
+  printf("I found %d vertices\n", nv);
 
-  f = new FldArrayF(nv, 3);
-  E_Float* fx = f->begin(1);
-  E_Float* fy = f->begin(2);
-  E_Float* fz = f->begin(3);
+  // Recherche si normales
   KFSEEK(ptrFile, 0, SEEK_SET);
-  i = 0; res = 1;
+  res = readGivenKeyword(ptrFile, "VN ");
+  bool normalPresent = false;
+  if (res == 1) normalPresent = true;
+  if (normalPresent) printf("I found normals\n");
+  else printf("I found no normal\n");
+
+  // Recherche du nombre de VT
+  KFSEEK(ptrFile, 0, SEEK_SET);
+  E_Int nvt = 0; res = 1;
   while (res == 1)
   {
-    res = readGivenKeyword(ptrFile, "V ");
-    if (res == 1)
-    {
-      res = readDouble(ptrFile, t, -1); fx[i] = t; //printf("%f ", t);
-      res = readDouble(ptrFile, t, -1); fy[i] = t; //printf("%f ", t);
-      res = readDouble(ptrFile, t, -1); fz[i] = t; i++; //printf("%f\n", t);
-      if (res == 0) res = 1; else res = 0;
-    }
+    res = readGivenKeyword(ptrFile, "VT "); nvt++;
   }
+  nvt = nvt-1;
+  bool uvPresent = false;
+  if (nvt > 0) { uvPresent = true; }
+  printf("I found %d texcoord VT\n", nvt);
+
+  // DBX -> force no uv
+  //uvPresent = false;
 
   // Lecture des faces
   KFSEEK(ptrFile, 0, SEEK_SET);
@@ -96,7 +101,7 @@ E_Int K_IO::GenIO::objread(
     res = readGivenKeyword(ptrFile, "F "); nf++;
   }
   nf = nf-1;
-  //printf("I found %d faces\n", nf);
+  printf("I found %d faces\n", nf);
 
   // Type des faces
   KFSEEK(ptrFile, 0, SEEK_SET);
@@ -122,12 +127,18 @@ E_Int K_IO::GenIO::objread(
     i++;
   }
   
-  //printf("I found %d tri %d quads\n", nt, nq);
+  printf("I found %d tri %d quads\n", nt, nq);
+  
+  FldArrayI fv_q; FldArrayI fv_t;
+  FldArrayI fvt_q; FldArrayI fvt_t;
 
   // Look for quads
   if (nq > 0)
   {
-    cnq = new FldArrayI(nq, 4);
+    cn_q = new FldArrayI(nq, 4);
+    fv_q.malloc(nq, 4); // vertices
+    fvt_q.malloc(nq, 4); // vt
+
     KFSEEK(ptrFile, 0, SEEK_SET);
     res = 1; i = 0; k = 0;
     res = readGivenKeyword(ptrFile, "F ");
@@ -137,7 +148,8 @@ E_Int K_IO::GenIO::objread(
       {
         for (j = 1; j <= 4; j++)
         {
-          res = readIntTuple(ptrFile, ti); (*cnq)(i,j) = ti;
+          res = readIntTuple3(ptrFile, ti, ti1, ti2);
+          fv_q(i,j) = ti; fvt_q(i,j) = ti1;
         }
         i++;
       }
@@ -149,7 +161,10 @@ E_Int K_IO::GenIO::objread(
   // Look for tri
   if (nt > 0)
   {
-    cnt = new FldArrayI(nt, 3);
+    cn_t = new FldArrayI(nt, 3);
+    fv_t.malloc(nt, 3);
+    fvt_t.malloc(nt, 3);
+
     KFSEEK(ptrFile, 0, SEEK_SET);
     res = 1; i = 0; k = 0;
     res = readGivenKeyword(ptrFile, "F ");
@@ -159,7 +174,8 @@ E_Int K_IO::GenIO::objread(
       {
         for (j = 1; j <= 3; j++)
         {
-          res = readIntTuple(ptrFile, ti); (*cnt)(i,j) = ti;
+          res = readIntTuple3(ptrFile, ti, ti1, ti2);
+          fv_t(i,j) = ti; fvt_t(i,j) = ti1;
         }
         //printf("%d %d %d\n", (*cnt)(i,1), (*cnt)(i,2), (*cnt)(i,3));
         i++;
@@ -169,11 +185,181 @@ E_Int K_IO::GenIO::objread(
     }
   }
 
+  // map v -> vt
+  FldArrayI map(nv*20);
+  map.setAllValuesAtNull();
+  FldArrayI nmap(nv);
+  nmap.setAllValuesAtNull();
+
+  E_Int v, vt;
+  bool exist;
+
+  printf("Computing maps\n");
+  for (E_Int i = 0; i < nq; i++)
+  {
+    for (E_Int j = 1; j <= 4; j++)
+    {
+      v = fv_q(i,j)-1; vt = fvt_q(i,j);
+      
+      if (vt > 0)
+      {
+        // existe deja dans la map?
+        exist = false;
+        for (E_Int k = 0; k < nmap[v]; k++)
+        {
+          if (map[v + k*nv] == vt) { exist=true; break; }
+        }
+        if (exist == false && nmap[v] < 19) { map[v + nmap[v]*nv] = vt; nmap[v]++; } 
+      }
+    }
+  }
+
+  for (E_Int i = 0; i < nt; i++)
+  {
+    for (E_Int j = 1; j <= 3; j++)
+    {
+      v = fv_t(i,j)-1; vt = fvt_t(i,j);
+      
+      if (vt > 0)
+      {
+        // existe deja dans la map?
+        exist = false;
+        for (E_Int k = 0; k < nmap[v]; k++)
+        {
+          if (map[v + k*nv] == vt) { exist=true; break; }
+        }
+        if (exist == false && nmap[v] < 19) { map[v + nmap[v]*nv] = vt; nmap[v]++; } 
+      }
+    }
+  }
+
+  // indir v -> vnew
+  printf("Computing indir\n");
+  FldArrayF indir(nv);
+  indir[0] = 0;
+  for (E_Int i = 1; i < nv; i++)
+    indir[i] = indir[i-1]+max(nmap[i-1],1);
+
+  // mise a plat et dimensionnement de f
+  E_Int size = 0;
+  for (E_Int i = 0; i < nv; i++) size += max(nmap[i],1);
+  printf("full size=%d\n", size);
+
+  if (uvPresent) f = new FldArrayF(size, 5);
+  else f = new FldArrayF(nv, 3);
+
+  E_Float* fx = f->begin(1);
+  E_Float* fy = f->begin(2);
+  E_Float* fz = f->begin(3);
+
+  // Lecture vertices
+  FldArrayF* coord = NULL;
+  E_Float* px = NULL;
+  E_Float* py = NULL;
+  E_Float* pz = NULL;
+  if (uvPresent)
+  {
+    coord = new FldArrayF(nv, 3);
+    px = coord->begin(1);
+    py = coord->begin(2);
+    pz = coord->begin(3);
+  }
+  else
+  {
+    px = fx; py = fy; pz = fz;
+  }
+
+  KFSEEK(ptrFile, 0, SEEK_SET);
+  i = 0; res = 1;
+  res = readGivenKeyword(ptrFile, "V ");
+  while (res == 1)
+  {
+    res = readDouble(ptrFile, t, -1); px[i] = t; //printf("%f ", t);
+    res = readDouble(ptrFile, t, -1); py[i] = t; //printf("%f ", t);
+    res = readDouble(ptrFile, t, -1); pz[i] = t; i++; //printf("%f\n", t);
+    //if (res == 0) res = 1; else res = 0;
+    res = readGivenKeyword(ptrFile, "V ");
+  }
+
+  // Lecture VT -> used as Vertices u,v
+  FldArrayF texcoord;
+  if (uvPresent)
+  {
+    texcoord.malloc(nvt,2);
+    E_Float* tu = texcoord.begin(1);
+    E_Float* tv = texcoord.begin(2);
+
+    KFSEEK(ptrFile, 0, SEEK_SET);
+    i = 0;
+    res = readGivenKeyword(ptrFile, "VT ");
+    while (res == 1)
+    {
+      res = readDouble(ptrFile, t, -1); tu[i] = t; //printf("%d %d: %f ", i, nv, t);
+      res = readDouble(ptrFile, t, -1); tv[i] = t; i++; //printf("%f\n", t);
+      res = readGivenKeyword(ptrFile, "VT ");
+    }
+  }
+
+  // mise a plat de f
+  if (uvPresent)
+  {
+    E_Float* tu = f->begin(4);
+    E_Float* tv = f->begin(5);
+    E_Int ind;
+    E_Int pt = 0;
+    E_Float* pu = texcoord.begin(1);
+    E_Float* pv = texcoord.begin(2); 
+    for (E_Int i = 0; i < nv; i++)
+    {
+      if (nmap[i] == 0) { fx[pt] = px[i]; fy[pt] = py[i]; fz[pt] = pz[i]; tu[pt] = 0.; tv[pt] = 0.; pt++; }
+      for (E_Int j = 0; j < nmap[i]; j++)
+      {
+        ind = map[i+j*nv]-1;
+        fx[pt] = px[i]; fy[pt] = py[i]; fz[pt] = pz[i]; tu[pt] = pu[ind]; tv[pt] = pv[ind]; pt++;
+      }
+    } 
+  }
+
+  // nouvelles connectivites
+  for (E_Int i = 0; i < nq; i++)
+  {
+    for (E_Int j = 1; j <= 4; j++)
+    {
+      v = fv_q(i,j)-1;
+      vt = fvt_q(i,j);
+      E_Int k = 0;
+      for (k = 0; k < nmap[v]; k++)
+      {
+        if (map[v + k*nv] == vt) break;
+      }
+      if (k == nmap[v]) k = 0; // not found
+      (*cn_q)(i,j) = indir[v]+k+1;
+    }
+  }
+
+  for (E_Int i = 0; i < nt; i++)
+  {
+    for (E_Int j = 1; j <= 3; j++)
+    {
+      v = fv_t(i,j)-1;
+      vt = fvt_t(i,j);
+      E_Int k = 0;
+      for (k = 0; k < nmap[v]; k++)
+      {
+        if (map[v + k*nv] == vt) break;
+      }
+      if (k == nmap[v]) k = 0; // not found
+      (*cn_t)(i,j) = indir[v]+k+1;
+    }
+  }
+
+  // END
+
   if (nt > 0)
   {
     unstructField.push_back(f);
     eltType.push_back(2);
-    connect.push_back(cnt);
+    connect.push_back(cn_t);
   }
   if (nq > 0)
   {
@@ -184,7 +370,7 @@ E_Int K_IO::GenIO::objread(
     }
     else unstructField.push_back(f);
     eltType.push_back(3);
-    connect.push_back(cnq);
+    connect.push_back(cn_q);
   }
   // Cree les noms des zones
   for (unsigned int i=0; i < unstructField.size(); i++)
@@ -194,8 +380,10 @@ E_Int K_IO::GenIO::objread(
     zoneNames.push_back(zoneName);
   }
 
-  varString = new char [8];
-  strcpy(varString, "x,y,z");
+  varString = new char [16];
+  if (uvPresent == false)
+  { strcpy(varString, "x,y,z"); }
+  else { strcpy(varString, "x,y,z,u,v"); }
   fclose(ptrFile);
   
   return 0;

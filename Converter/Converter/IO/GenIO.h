@@ -746,6 +746,8 @@ class GenIO
                   E_Boolean convertEndian,
                   E_Int sizeInt, E_Int sizeLong);
     E_Int readIntTuple(FILE* ptrFile, E_Int& value);
+    E_Int readIntTuple2(FILE* ptrFile, E_Int& value1, E_Int& value2);
+    E_Int readIntTuple3(FILE* ptrFile, E_Int& value1, E_Int& value2, E_Int& value3);
 
     E_Int convertString2Int(char* str);
 

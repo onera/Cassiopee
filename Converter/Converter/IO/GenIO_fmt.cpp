@@ -537,6 +537,125 @@ E_Int K_IO::GenIO::readIntTuple(FILE* ptrFile, E_Int& value)
 }
 
 //=============================================================================
+/* 
+   Lit un tuple 12/13/24 ou 12/13.
+   Retourne les deux premieres valeurs.
+   Retourne 2 si eof, 1 si arret sur un blanc et 0 sinon. 
+ */
+//=============================================================================
+E_Int K_IO::GenIO::readIntTuple2(FILE* ptrFile, E_Int& value1, E_Int& value2)
+{
+  E_Int i = 0;
+  char c;
+  char number[256];
+  
+  c = fgetc(ptrFile);
+  // Avance jusqu'a un tuple lisible
+  while (c != EOF && (c == ' ' || c == '\n' || c == '\r'))
+  {
+    c = fgetc(ptrFile);
+  }
+
+  // Lit la premiere valeur du tuple
+  while (c != EOF && c != ' ' && c != '/' && c != '\n' && c != '\r')
+  {
+    {number[i] = c; if (c == 'D') number[i] = 'E'; i++;}
+    c = fgetc(ptrFile);
+  }
+  number[i] = '\0';
+
+  value1 = strtol(number, NULL, 0);
+
+  c = fgetc(ptrFile); // passe /
+  i = 0;
+  while (c != EOF && c != ' ' && c != '/' && c != '\n' && c != '\r')
+  {
+    {number[i] = c; if (c == 'D') number[i] = 'E'; i++;}
+    c = fgetc(ptrFile);
+  }
+  number[i] = '\0';
+
+  value2 = strtol(number, NULL, 0);
+
+  // Lit les autres valeurs (si il y en a)
+  while (c != EOF && c != ' ' && c != '\n' && c != '\r')
+  {
+    c = fgetc(ptrFile);
+  }
+  
+  if (c == EOF) return 2;
+  else if (c == ' ') return 1;
+  else if (c == '\t') return 1;
+  else return 0;
+}
+
+//=============================================================================
+/* 
+   Lit un tuple 12/13/24.
+   Retourne les trois valeurs.
+   Retourne 2 si eof, 1 si arret sur un blanc et 0 sinon. 
+ */
+//=============================================================================
+E_Int K_IO::GenIO::readIntTuple3(FILE* ptrFile, E_Int& value1, E_Int& value2, E_Int& value3)
+{
+  E_Int i = 0;
+  char c;
+  char number[256];
+  
+  value1 = -1; value2 = -1; value3 = -1;
+
+  c = fgetc(ptrFile);
+  // Avance jusqu'a un tuple lisible
+  while (c != EOF && (c == ' ' || c == '\n' || c == '\r'))
+  {
+    c = fgetc(ptrFile);
+  }
+
+  // Lit la premiere valeur du tuple
+  while (c != EOF && c != ' ' && c != '/' && c != '\n' && c != '\r')
+  {
+    {number[i] = c; if (c == 'D') number[i] = 'E'; i++;}
+    c = fgetc(ptrFile);
+  }
+  number[i] = '\0';
+
+  value1 = strtol(number, NULL, 0);
+
+  if (c == '/')
+  { // essai pour lire la deuxieme valeur
+    c = fgetc(ptrFile); // passe /
+    i = 0;
+    while (c != EOF && c != ' ' && c != '/' && c != '\n' && c != '\r')
+    {
+      {number[i] = c; if (c == 'D') number[i] = 'E'; i++;}
+      c = fgetc(ptrFile);
+    }
+    number[i] = '\0';
+
+    value2 = strtol(number, NULL, 0);
+
+    if (c == '/')
+    {
+      c = fgetc(ptrFile); // passe /
+      i = 0;
+      while (c != EOF && c != ' ' && c != '/' && c != '\n' && c != '\r')
+      {
+        {number[i] = c; if (c == 'D') number[i] = 'E'; i++;}
+        c = fgetc(ptrFile);
+      }
+      number[i] = '\0';
+
+      value3 = strtol(number, NULL, 0);
+    }
+  }
+  
+  if (c == EOF) return 2;
+  else if (c == ' ') return 1;
+  else if (c == '\t') return 1;
+  else return 0;
+}
+
+//=============================================================================
 /* Skip comment.
    Skip a comment line in a file.
    Don't move ptrFile if the current line is not a comment.
