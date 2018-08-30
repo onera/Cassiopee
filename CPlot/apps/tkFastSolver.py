@@ -275,7 +275,7 @@ def createApp(win):
     B = TTK.Label(Frame, text="IBC type")
     B.grid(row=5, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Type of IBC.')
-    B = TTK.OptionMenu(Frame, VARS[7], 'slip', 'noslip', 'Log', 'Musker', 'outpress', 'inj')
+    B = TTK.OptionMenu(Frame, VARS[7], 'slip', 'noslip', 'Log', 'Musker', 'outpress', 'inj', 'TBLE')
     B.grid(row=5, column=1, columnspan=2, sticky=TK.EW)
 
     # - Set data -

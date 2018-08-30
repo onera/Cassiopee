@@ -20,6 +20,7 @@ TypesOfIBC["Log"]=2
 TypesOfIBC["Musker"]=3
 TypesOfIBC["outpress"]=4
 TypesOfIBC["inj"]=5
+TypesOfIBC["TBLE"]=6
 
 # Revert dict
 IBCTypes = {}

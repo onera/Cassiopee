@@ -81,7 +81,7 @@ Per node reading/writing
     :return: read nodes
     :rtype: pyTree node list
 
-     *Example of use:*
+    *Example of use:*
 
     * `Read nodes from file (pyTree) <Examples/Converter/readNodesFromPathsPT.py>`_:
 
@@ -95,7 +95,7 @@ Per node reading/writing
     Filter is a dictionary for each path to be read.
     For structured grids: [[imin,jmin,kmin], [1,1,1], [imax,jmax,kmax], [1,1,1]]
     For unstructured grids: [[istart], [1], [iend], [1]].
-    Only for HDF.
+    Only for HDFfile format.
 
     :param fileName: file name to read from
     :type fileName: string
@@ -108,7 +108,7 @@ Per node reading/writing
     :return: dictionary of read nodes
     :rtype: dictionary of numpys
 
-     *Example of use:*
+    *Example of use:*
 
     * `Partially read nodes from file (pyTree) <Examples/Converter/readNodesFromFilterPT.py>`_:
 
@@ -136,9 +136,9 @@ Per node reading/writing
     :param maxDepth: max depth to write
     :type maxDepth: int
     :param mode: writing mode (0: append, 1: replace)
-    :type: int
+    :type mode: int
 
-     *Example of use:*
+    *Example of use:*
 
     * `Write nodes from file (pyTree) <Examples/Converter/writeNodesFromPathsPT.py>`_:
 
@@ -199,5 +199,3 @@ Index
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
-

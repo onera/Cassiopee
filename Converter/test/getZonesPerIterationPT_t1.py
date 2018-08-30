@@ -14,10 +14,10 @@ Internal.newDataArray('ZonePointers', value=[['cart']], parent=n)
 
 # List of zones of it=0
 zones = Internal.getZonesPerIteration(t, iteration=0)
-test.testT(zones,1)
+test.testT(C.newPyTree(['Base',zones]),1)
 # List of zones of time 0.
 zones = Internal.getZonesPerIteration(t, time=0.)
-test.testT(zones,2)
+test.testT(C.newPyTree(['Base',zones]),2)
 # All zones of all iterations
 zones = Internal.getZonesPerIteration(t)
-test.testT(zones,3)
+test.testT(C.newPyTree(['Base',zones]),3)

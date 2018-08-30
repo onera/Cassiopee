@@ -185,6 +185,24 @@ E_Int K_IO::GenIO::objread(
     }
   }
 
+  // Traitement specifique pour les indices negatifs (ne marche pas si par bloc)
+  for (E_Int i = 0; i < nq; i++)
+  {
+    for (E_Int j = 1; j <= 4; j++)
+    {
+      if (fv_q(i,j) < 0) fv_q(i,j) = nv+fv_q(i,j);
+      if (fvt_q(i,j) < 0) fvt_q(i,j) = nvt+fvt_q(i,j);
+    }
+  }
+  for (E_Int i = 0; i < nt; i++)
+  {
+    for (E_Int j = 1; j <= 3; j++)
+    {
+      if (fv_t(i,j) < 0) fv_t(i,j) = nv+fv_t(i,j);
+      if (fvt_t(i,j) < 0) fvt_t(i,j) = nvt+fvt_t(i,j);
+    }
+  }
+
   // map v -> vt
   FldArrayI map(nv*20);
   map.setAllValuesAtNull();
@@ -298,6 +316,15 @@ E_Int K_IO::GenIO::objread(
       res = readDouble(ptrFile, t, -1); tv[i] = t; i++; //printf("%f\n", t);
       res = readGivenKeyword(ptrFile, "VT ");
     }
+    // Traitement specifique vt (tiles)
+    E_Int ip;
+    for (E_Int i = 0; i < nvt; i++)
+    {
+      if (tu[i] > 1) { ip = E_Int(tu[i]); tu[i] = tu[i]-ip; }
+      else if (tu[i] < 0) { ip = E_Int(tu[i]); tu[i] = tu[i]-ip+1; }
+      if (tv[i] > 1) { ip = E_Int(tv[i]); tv[i] = tv[i]-ip; }
+      else if (tv[i] < 0) { ip = E_Int(tv[i]); tv[i] = tv[i]-ip+1; }
+    }  
   }
 
   // mise a plat de f
