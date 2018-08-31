@@ -325,7 +325,9 @@ def saveSlot():
 def loadSlot():
     if CTK.t == []: return
     slot = VARS[0].get()
-    slot = Internal.getNodeFromName2(CTK.t, 'Slot'+slot)
+    renderInfo = Internal.getNodeFromName1(CTK.t, '.RenderInfo')
+    if renderInfo is None: return
+    slot = Internal.getNodeFromName1(renderInfo, 'Slot'+slot)
     if slot is None: return
     pos = Internal.getNodeFromName(slot, 'posCam')
     if pos is not None:
@@ -369,6 +371,17 @@ def loadSlot():
     pos = Internal.getNodeFromName(slot, 'isoScales')
     if pos is not None:
         updateIsoWidgets(); updateIsoPyTree()
+    pos = Internal.getNodeFromName1(renderInfo, 'materialFiles')
+    if pos is not None:
+        out = []
+        for i in pos[2]: out.append(Internal.getValue(i))
+        CPlot.setState(materials=out)
+    pos = Internal.getNodeFromName1(renderInfo, 'billBoardFiles')
+    if pos is not None:
+        out = []
+        for i in pos[2]: out.append(Internal.getValue(i))
+        CPlot.setState(billBoards=out)
+        
     CTK.TXT.insert('START', 'Slot loaded.\n')
 
 #==============================================================================

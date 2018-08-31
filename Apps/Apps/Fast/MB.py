@@ -196,23 +196,26 @@ def prepare1(t_case, t_out, tc_out, NP=0, format='single'):
         Fast.save(t, t_out, split=format, NP=-NP)
     return t, tc
 
+#==========================================================================
 # Post
-def post(t_in, t_out, surf_out, NP=0, format='single'):
+#===========================================================================
+def post(t_in, t_out, wall_out, NP=0, format='single'):
     import Converter.Mpi as Cmpi
     rank = Cmpi.rank; size = Cmpi.size
     # sequential post
     ret = None
-    if rank == 0: ret = post0(t_in, t_out, surf_out, NP, format)
+    if rank == 0: ret = post0(t_in, t_out, wall_out, NP, format)
     return ret
 
 #====================================================================================
-def post0(t_in, t_out, surf_out, NP=0, format='single'):
+def post0(t_in, t_out, wall_out, NP=0, format='single'):
     import Transform.PyTree as T
     import Post.PyTree as P
     from math import sqrt
 
     # Use filter load here!
-    a = Fast.loadFile(t_in)
+    if isinstance(t_in, str): a = Fast.loadFile(t_in)
+    else: a = t_in 
 
     #=============================
     # Supprime les champs inutiles
@@ -241,7 +244,7 @@ def post0(t_in, t_out, surf_out, NP=0, format='single'):
 
     # Supprime les ghost cells
     a = Internal.rmGhostCells(a, a, 2, adaptBCs=1)
-    C.convertPyTree2File(a, t_out)
+    if isinstance(t_out, str): C.convertPyTree2File(a, t_out)
 
     #=================================
     # Extraction Kp sur les surfaces
@@ -262,14 +265,14 @@ def post0(t_in, t_out, surf_out, NP=0, format='single'):
     w = C.extractBCOfType(a,'BCWall')
     Internal._rmNodesByName(w, '.Solver#Param')
     Internal._rmNodesByName(w, '.Solver#ownData')
-    C.convertPyTree2File(w, surf_out)
+    if isinstance(wall_out, str): C.convertPyTree2File(w, wall_out)
     return a, w
 
 #====================================================================================
 class MB(Common):
     """Preparation et calculs avec le module FastS."""
     def __init__(self, NP=None, format=None, numb=None, numz=None):
-        Common.__init__(self)
+        Common.__init__(self, NP, format, numb, numz)
         self.__version__ = "0.0"
         self.authors = ["ash@onera.fr"]
         
@@ -282,5 +285,5 @@ class MB(Common):
         return ret
 
     # post-processing: extrait la solution aux neouds + le champs sur les surfaces
-    def post(self, t_in, t_out, surf_out):
-        return post(t_in, t_out, surf_out, self.data['NP'], self.data['format'])
+    def post(self, t_in, t_out, wall_out):
+        return post(t_in, t_out, wall_out, self.data['NP'], self.data['format'])

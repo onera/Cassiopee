@@ -48,8 +48,8 @@ E_Int K_IO::GenIO::objread(
   E_Int ti, ti1, ti2, i, j, nv, nf, nt, nq, k, nfield;
   char buf[256];
   FldArrayF* f;
-  FldArrayI* cn_q;
-  FldArrayI* cn_t;
+  FldArrayI* cn_q=NULL;
+  FldArrayI* cn_t=NULL;
   
   /* File Opening */
   FILE* ptrFile;
@@ -61,7 +61,21 @@ E_Int K_IO::GenIO::objread(
     return 1;
   }
 
+  // Recherche du nombre de materiaux differents
+  E_Int nm = 0; res = 1;
+  E_LONG* matpos = new E_LONG [200];
+  while (res == 1)
+  {
+    res = readGivenKeyword(ptrFile, "USEMTL ");
+    matpos[nm] = ftell(ptrFile); nm++;
+  }
+  KFSEEK(ptrFile, 0, SEEK_END);
+  matpos[nm] = ftell(ptrFile);
+  nm = nm-1;
+  printf("I found %d materials\n", nm);
+
   // Recherche du nombre de V
+  KFSEEK(ptrFile, 0, SEEK_SET);
   nv = 0; res = 1;
   while (res == 1)
   {
@@ -131,6 +145,7 @@ E_Int K_IO::GenIO::objread(
   
   FldArrayI fv_q; FldArrayI fv_t;
   FldArrayI fvt_q; FldArrayI fvt_t;
+  FldArray<E_LONG> fp_q; FldArray<E_LONG> fp_t;
 
   // Look for quads
   if (nq > 0)
@@ -138,14 +153,17 @@ E_Int K_IO::GenIO::objread(
     cn_q = new FldArrayI(nq, 4);
     fv_q.malloc(nq, 4); // vertices
     fvt_q.malloc(nq, 4); // vt
+    fp_q.malloc(nq); // file position
 
     KFSEEK(ptrFile, 0, SEEK_SET);
     res = 1; i = 0; k = 0;
     res = readGivenKeyword(ptrFile, "F ");
+
     while (res >= 1)
     {
       if (elts[k] == 4)
       {
+        fp_q[i] = ftell(ptrFile);
         for (j = 1; j <= 4; j++)
         {
           res = readIntTuple3(ptrFile, ti, ti1, ti2);
@@ -164,6 +182,7 @@ E_Int K_IO::GenIO::objread(
     cn_t = new FldArrayI(nt, 3);
     fv_t.malloc(nt, 3);
     fvt_t.malloc(nt, 3);
+    fp_t.malloc(nt);
 
     KFSEEK(ptrFile, 0, SEEK_SET);
     res = 1; i = 0; k = 0;
@@ -172,12 +191,13 @@ E_Int K_IO::GenIO::objread(
     {
       if (elts[k] == 3)
       {
+        fp_t[i] = ftell(ptrFile);
         for (j = 1; j <= 3; j++)
         {
           res = readIntTuple3(ptrFile, ti, ti1, ti2);
           fv_t(i,j) = ti; fvt_t(i,j) = ti1;
         }
-        //printf("%d %d %d\n", (*cnt)(i,1), (*cnt)(i,2), (*cnt)(i,3));
+        //printf("%d %d %d\n", (*cn_t)(i,1), (*cn_t)(i,2), (*cn_t)(i,3));
         i++;
       }
       k++;
@@ -261,7 +281,7 @@ E_Int K_IO::GenIO::objread(
   // mise a plat et dimensionnement de f
   E_Int size = 0;
   for (E_Int i = 0; i < nv; i++) size += max(nmap[i],1);
-  printf("full size=%d\n", size);
+  //printf("full size=%d\n", size);
 
   if (uvPresent) f = new FldArrayF(size, 5);
   else f = new FldArrayF(nv, 3);
@@ -380,32 +400,85 @@ E_Int K_IO::GenIO::objread(
     }
   }
 
-  // END
-
+  // sortie une zone par materiau (TRI)
   if (nt > 0)
   {
-    unstructField.push_back(f);
-    eltType.push_back(2);
-    connect.push_back(cn_t);
+    for (E_Int m = 0; m < nm; m++)
+    {
+      // Compte les faces
+      E_Int nf = 0;
+      for (E_Int i = 0; i < nt; i++)
+      {
+        if (fp_t[i] > matpos[m] && fp_t[i] < matpos[m+1]) nf++; 
+      }
+      //printf("mat=%d, TRI nf=%d\n", m, nf);
+      if (nf > 0)
+      {
+        // Dimensionne
+        FldArrayF* f2 = new FldArrayF(*f);
+        FldArrayI* cn = new FldArrayI(nf, 3);
+        // Rempli
+        E_Int f = 0;
+        for (E_Int i = 0; i < nt; i++)
+        {
+          if (fp_t[i] > matpos[m] && fp_t[i] < matpos[m+1]) 
+          {
+            for (E_Int j = 1; j <= 3; j++) (*cn)(f,j) = (*cn_t)(i,j);
+            //printf("%d %d %d\n", (*cn)(f,1), (*cn)(f,2), (*cn)(f,3));
+            f++;
+          }
+        }
+        // push back
+        unstructField.push_back(f2);
+        eltType.push_back(2);
+        connect.push_back(cn);
+        char* zoneName = new char [128];
+        sprintf(zoneName, "ZoneTRI%d", m);
+        zoneNames.push_back(zoneName);
+      }
+    }
+    delete cn_t;
   }
+
   if (nq > 0)
   {
-    if (nt > 0)
+    for (E_Int m = 0; m < nm; m++)
     {
-      FldArrayF* f2 = new FldArrayF(*f);
-      unstructField.push_back(f2);
+      // Compte les faces
+      E_Int nf = 0;
+      for (E_Int i = 0; i < nq; i++)
+      {
+        if (fp_q[i] > matpos[m] && fp_q[i] < matpos[m+1]) nf++; 
+      }
+      //printf("mat=%d, QUAD nf=%d\n", m, nf);
+      if (nf > 0)
+      {
+        // Dimensionne
+        FldArrayF* f2 = new FldArrayF(*f);
+        FldArrayI* cn = new FldArrayI(nf, 4);
+        // Rempli
+        E_Int f = 0;
+        for (E_Int i = 0; i < nq; i++)
+        {
+          if (fp_q[i] > matpos[m] && fp_q[i] < matpos[m+1]) 
+          {
+            for (E_Int j = 1; j <= 4; j++) (*cn)(f,j) = (*cn_q)(i,j);
+            f++;
+          } 
+        }
+        // push back
+        unstructField.push_back(f2);
+        eltType.push_back(3);
+        connect.push_back(cn);
+        char* zoneName = new char [128];
+        sprintf(zoneName, "ZoneQUAD%d",m);
+        zoneNames.push_back(zoneName);
+      }
     }
-    else unstructField.push_back(f);
-    eltType.push_back(3);
-    connect.push_back(cn_q);
+    delete cn_q;
   }
-  // Cree les noms des zones
-  for (unsigned int i=0; i < unstructField.size(); i++)
-  {
-    char* zoneName = new char [128];
-    sprintf(zoneName, "Zone%d",i);
-    zoneNames.push_back(zoneName);
-  }
+
+  delete f; delete matpos;
 
   varString = new char [16];
   if (uvPresent == false)

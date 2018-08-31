@@ -7,6 +7,9 @@ import Transform.PyTree as T
 import Converter.Internal as Internal
 import Connector.PyTree as X
 import Connector.ToolboxIBM as TIBM
+import Dist2Walls.PyTree as DTW
+import Distributor2.PyTree as D2
+import Initiator.PyTree as I
 from Apps.Fast.Common import Common
 
 # IN: maillage surfacique + reference State + snears
@@ -15,36 +18,34 @@ from Apps.Fast.Common import Common
 # IBM prepare
 # NP is the target number of processors
 #================================================================================ 
-def prepare(t_case, t_out, tc_out, NP=0, format='single'):
+def prepare(t_case, t_out, tc_out, dfar=10., vmin=21, check=False, NP=0, format='single'):
     import Converter.Mpi as Cmpi
     rank = Cmpi.rank; size = Cmpi.size
     ret = None
     # sequential prep
-    if rank == 0: ret = prepare0(t_case, t_out, tc_out, NP, format)
-    # parallel prep
-    #prepare1(t_case, t_out, tc_out, NP, format)
+    if rank == 0: ret = prepare0(t_case, t_out, tc_out, dfar, vmin, check, NP, format)
     return ret
 
 #================================================================================
 # IBM prepare - seq
 #================================================================================
-def prepare0(t_case, t_out, tc_out, vmin, dfar, NP=0, format='single'):
+def prepare0(t_case, t_out, tc_out, dfar=10., vmin=21, check=False, NP=0, format='single'):
 
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
     else: tb = t_case 
 
+    snears = 5.e-3
+
     #-------------------------------------------------------
     # Refinement surfaces in the fluid
     #-------------------------------------------------------
-    # snearsf: list of spacing required in the surfaces
-    snearsf = []
+    # snearsf: list of spacing required in the refinement surfaces
+    snearsf = None    
+    tbox = None
     # refinementSurfFile: surface meshes describing refinement zones
-    refinementSurfFile = 'refinementBody.cgns' 
-    try: tbox = C.convertFile2PyTree(refinementSurfFile)
-    except: tbox=None # no refinement surface
-
-    # if check=True: extract some files for checks
-    check = False
+    #refinementSurfFile = 'refinementBody.cgns'
+    #try: tbox = C.convertFile2PyTree(refinementSurfFile)
+    #except: tbox=None # no refinement surface
 
     #--------------------------------------------------------
     # Get Reference State and model from body pyTree
@@ -99,7 +100,7 @@ def prepare0(t_case, t_out, tc_out, vmin, dfar, NP=0, format='single'):
 
     # arbre donneur
     D2._copyDistribution(tc,t)
-    Fast.save(tc, tc_out, split='single', NP=-NP)
+    Fast.save(tc, tc_out, split=format, NP=-NP)
 
     #----------------------------------------
     # Extraction des coordonnees des pts IBM
@@ -112,15 +113,20 @@ def prepare0(t_case, t_out, tc_out, vmin, dfar, NP=0, format='single'):
     # arbre de calcul
     del tc
     I._initConst(t, loc='centers')
-    Fast.save(t, t_out, split='single', NP=-NP)
+    Fast.save(t, t_out, split=format, NP=-NP)
+    return t
 
+#=============================================================================
 # Post
-def post():
+#==============================================================================
+def post(t_case, t_in, tc_in, t_out, wall_out, NP=0, format='single'):
     import Post.PyTree as P
     from math import *
 
-    t = C.convertFile2PyTree('restart.cgns')
-    tb = C.convertFile2PyTree("case.cgns")
+    if isinstance(t_in, str): t = C.convertFile2PyTree(t_in)
+    else: t = t_in
+    if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
+    else: tb = t_case
 
     #=============================
     # Supprime les champs inutiles
@@ -131,7 +137,9 @@ def post():
     #=============================
     # Arbre de connectivite
     #=============================
-    tc = C.convertFile2PyTree('tc.cgns')
+    if isinstance(tc_in, str): tc = C.convertFile2PyTree(tc_in)
+    else: tc = tc_in
+    
     Internal._rmNodesByName(tc, 'GridCoordinates')
 
     #==========================================================
@@ -185,7 +193,7 @@ def post():
     Internal._rmNodesByName(zw, '.Solver#Param')
     Internal._rmNodesByName(zw, '.Solver#ownData')
 
-    C.convertPyTree2File(zw, 'wall.cgns')
+    if isinstance(wall_out, str): C.convertPyTree2File(zw, wall_out)
 
     #===============================
     # En 2D, extrait un seul plan k
@@ -209,24 +217,26 @@ def post():
     'centers:TurbulentSANuTilde','centers:ViscosityMolecular', 'centers:mutsmu', 'centers:cellN']
     for v in vars: t = C.center2Node(t, v)
     Internal._rmNodesByName(t, 'FlowSolution#Centers')
-    C.convertPyTree2File(t, 'out.cgns')
+    if isinstance(t_out, str): C.convertPyTree2File(t, t_out)
+
+    return t, zw
 
 #====================================================================================
 class IBM(Common):
     """Preparation et caculs avec le module FastS."""
     def __init__(self, NP=None, format=None, numb=None, numz=None):
-        Common.__init__(self)
+        Common.__init__(self, NP, format, numb, numz)
         self.__version__ = "0.0"
         self.authors = ["ash@onera.fr"]
         
     # Prepare : n'utilise qu'un proc pour l'instant
-    def prepare(self, t_case, t_out, tc_out):
+    def prepare(self, t_case, t_out, tc_out, dfar=10., vmin=21, check=False):
         NP = self.data['NP']
         if NP == 0: print 'Preparing for a sequential computation.'
         else: print 'Preparing for a computation on %d processors.'%NP
-        ret = prepare(t_case, t_out, tc_out, NP, self.data['format'])
+        ret = prepare(t_case, t_out, tc_out, dfar, vmin, check, NP, self.data['format'])
         return ret
 
     # post-processing: extrait la solution aux noeuds + le champs sur les surfaces
-    def post(self, t_in, t_out, surf_out):
-        return post(t_in, t_out, surf_out, self.data['NP'], self.data['format'])
+    def post(self, t_case, t_in, tc_in, t_out, wall_out):
+        return post(t_case, t_in, tc_in, t_out, wall_out, self.data['NP'], self.data['format'])

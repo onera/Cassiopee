@@ -61,7 +61,8 @@ def finalize(t, t_out, it0=None, time0=None, NP=0, format='single'):
 # NP is the currently running number of processors
 # IN: file names
 #======================================================================================
-def compute(t_in, tc_in, t_out,
+def compute(t_in, tc_in, 
+            t_out, tc_out,
             numb, numz,
             NIT, 
             NP=0, format='single'):
@@ -102,8 +103,9 @@ def compute(t_in, tc_in, t_out,
     Internal.createUniqueChild(t, 'Iteration', 'DataArray_t', value=it0+NIT)
     Internal.createUniqueChild(t, 'Time', 'DataArray_t', value=time0)
     Fast.save(t, t_out, split=format, NP=NP)
+    if tc_out is not None: Fast.save(tc, tc_out, split=format, NP=NP)
     if NP > 0: Cmpi.barrier()
-    return t
+    return t, tc
 
 #===============================================================================
 class Common(App):
@@ -123,10 +125,10 @@ class Common(App):
 
     # Compute nit iterations
     # peut etre lance en sequentiel ou en parallele
-    def compute(self, t_in, tc_in, t_out, nit):
+    def compute(self, t_in, tc_in, t_out, nit, tc_out=None):
         numb = self.data['numb']
         numz = self.data['numz']
-        return compute(t_in, tc_in, t_out,
+        return compute(t_in, tc_in, t_out, tc_out,
                        numb, numz,
                        nit, 
                        NP=self.data['NP'], 

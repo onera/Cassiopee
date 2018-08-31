@@ -12,7 +12,8 @@ import CPlot.iconics as iconics
 WIDGETS = {}; VARS = []
 MATERIALS = ['Solid', 'Flat', 'Glass', 'Chrome',
              'Metal', 'Wood', 'Marble', 'Granite', 'Brick', 'XRay',
-             'Cloud', 'Gooch', 'Smoke', 'Sphere', 'Light']
+             'Cloud', 'Gooch', 'Smoke', 'Sphere', 'Light', 'Texmat']
+             
 #==============================================================================
 # Appele quand une couleur est selectionnee (optionMenu)
 def setColorVar(l):

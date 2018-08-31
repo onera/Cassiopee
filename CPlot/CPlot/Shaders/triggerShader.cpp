@@ -267,14 +267,18 @@ void Data::triggerShader(Zone& z, int material, float scale, float* color)
 
     case 14: // textured
       shader = 37;
+      if (_nMaterials == 0) break;
       SHADOWTEXTURE;
-      if (_materialTexs[0] == 0) 
+      int t = (int)( (z.shaderParam2)*((_nMaterials-1)*0.5) );
+      t = std::max(t, 0);
+      t = std::min(t, _nMaterials-1);
+      if (_materialTexs[t] == 0) 
       {
-         createPngTexture(_materialFiles[0], _materialTexs[0], _materialWidths[0], _materialHeights[0], true);
+         createPngTexture(_materialFiles[t], _materialTexs[t], _materialWidths[t], _materialHeights[t], true);
          //printf("loading %d %s\n", 0, _materialFiles[0]);
       }
       glActiveTexture(GL_TEXTURE1);
-      glBindTexture(GL_TEXTURE_2D, _materialTexs[0]);
+      glBindTexture(GL_TEXTURE_2D, _materialTexs[t]);
       
       if (_shaders.currentShader() != shader) _shaders.activate(shader);
       _shaders[shader]->setUniform("specularFactor", (float)z.shaderParam1); 

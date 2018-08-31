@@ -634,19 +634,20 @@ def _addRender2Zone(a, material=None, color=None, blending=None,
 def addRender2PyTree(t, slot=0, posCam=None, posEye=None, dirCam=None,
                      mode=None, scalarField=None, niso=None, isoScales=None,
                      isoEdges=None, isoLight=None,
-                     colormap=None):
+                     colormap=None, materialFiles=None, billBoardFiles=None):
   """Add a renderInfo node to a tree.
-  Usage: addRender2PyTree(t, renderInfo)"""
+  Usage: addRender2PyTree(t, slot, renderInfo)"""
   a = Internal.copyRef(t)
   _addRender2PyTree(a, slot, posCam, posEye, dirCam,
                     mode, scalarField, niso, isoScales,
-                    isoEdges, isoLight, colormap)
+                    isoEdges, isoLight, colormap, 
+                    materialFiles, billBoardFiles)
   return a
 
 def _addRender2PyTree(a, slot=0, posCam=None, posEye=None, dirCam=None,
                      mode=None, scalarField=None, niso=None, isoScales=None,
                      isoEdges=None, isoLight=None,
-                     colormap=None):
+                     colormap=None, materialFiles=None, billBoardFiles=None):
   """Add a renderInfo node to a tree.
   Usage: addRender2PyTree(t, renderInfo)"""
   if a[3] != 'CGNSTree_t': return None
@@ -711,6 +712,17 @@ def _addRender2PyTree(a, slot=0, posCam=None, posEye=None, dirCam=None,
 
   if colormap is not None:
     rt = Internal.createUniqueChild(sl, 'colormap', 'DataArray_t', value=colormap)
+
+  # Under .RenderInfo
+  if materialFiles is not None:
+    ri = Internal.createUniqueChild(ri, 'materialFiles', 'UserDefinedData_t')
+    for c, f in enumerate(materialFiles):
+        rt = Internal.createUniqueChild(ri, 'tex%d'%c, 'DataArray_t', value=f)
+
+  if billBoardFiles is not None:
+    ri = Internal.createUniqueChild(ri, 'billBoardFiles', 'UserDefinedData_t')
+    for c, f in enumerate(billBoardFiles):
+        rt = Internal.createUniqueChild(ri, 'tex%d'%c, 'DataArray_t', value=f)
 
   return None
 
@@ -777,4 +789,15 @@ def loadView(t, slot=0):
     pos = Internal.getNodeFromName1(slot, 'isoScales')
     if pos is not None:
         CPlot.setState(isoScales=pos[1].tolist())
-    return
+    # RenderInfo
+    pos = Internal.getNodeFromName1(renderInfo, 'materialFiles')
+    if pos is not None:
+        out = []
+        for i in pos[2]: out.append(Internal.getValue(i))
+        CPlot.setState(materials=out)
+    pos = Internal.getNodeFromName1(renderInfo, 'billBoardFiles')
+    if pos is not None:
+        out = []
+        for i in pos[2]: out.append(Internal.getValue(i))
+        CPlot.setState(billBoards=out)
+
