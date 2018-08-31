@@ -44,7 +44,7 @@ namespace DELAUNAY
 
     E_Float length (size_type Ni, size_type Nj);
 
-    inline T computeMetric(size_type N, size_type Ni, size_type Nj, E_Float r);
+    inline void computeMetric(size_type N, size_type Ni, size_type Nj, E_Float r);
 
     inline void setMetric(E_Int N, const T& m);
 

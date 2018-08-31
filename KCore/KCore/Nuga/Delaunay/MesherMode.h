@@ -27,9 +27,11 @@ namespace DELAUNAY
   struct MesherMode
   {
     enum eMeshMode {TRIANGULATION_MODE, REFINE_MODE};
+    enum eInterpolType {LINEAR = 0, GEOMETRIC};
 
     MesherMode():mesh_mode(REFINE_MODE), hmin(K_CONST::E_MAX_FLOAT), hmax(-K_CONST::E_MAX_FLOAT),
-                 do_not_shuffle(false), remove_holes(true), silent_errors(false), ignore_coincident_nodes(false){}
+                 do_not_shuffle(false), remove_holes(true), silent_errors(false), ignore_coincident_nodes(false), 
+                 metric_interpol_type(LINEAR){}
 
     eMeshMode     mesh_mode;
     E_Float       hmin;
@@ -39,6 +41,9 @@ namespace DELAUNAY
     E_Bool        remove_holes;
     E_Bool        silent_errors;
     E_Bool        ignore_coincident_nodes;
+    
+    eInterpolType metric_interpol_type;
+    
 
   };
 

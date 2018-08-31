@@ -54,4 +54,37 @@ public:
 
 };
 
+template <typename T>
+class GeometricInterpolator : public Interpolator<T>
+{
+public:
+  GeometricInterpolator(void)
+  {
+  }
+
+  ~GeometricInterpolator(void)
+  {
+  }
+
+  inline T interpolate(const T& H0, const T& H1, E_Float u) const;
+
+};
+
+//iso
+template<>
+E_Float
+GeometricInterpolator<E_Float>::interpolate
+(const E_Float& H0, const E_Float& H1, E_Float u) const
+{return H0 * ::pow(H1/H0, u);}
+
+//aniso
+template<>
+DELAUNAY::Aniso2D
+GeometricInterpolator<DELAUNAY::Aniso2D>::interpolate
+(const DELAUNAY::Aniso2D& H0, const DELAUNAY::Aniso2D& H1, E_Float u) const
+{
+  //fixme : in fact Linear currently
+  return H0*(1-u) + H1*u;
+}
+
 #endif

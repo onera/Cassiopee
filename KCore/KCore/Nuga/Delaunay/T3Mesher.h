@@ -56,8 +56,11 @@ T3Mesher<T>::run (MeshData& data)
 {
   typedef VarMetric<T>          MetricType;
   typedef Mesher<T, MetricType> MesherType;
+    
+  typename MetricType::eInterpType interpol = (_mode.metric_interpol_type == _mode.LINEAR) ?
+                                              MetricType::eInterpType::LINEAR : MetricType::eInterpType::GEOMETRIC;
 
-  MetricType metric(*data.pos, _mode.hmin, _mode.hmax);
+  MetricType metric(*data.pos, _mode.hmin, _mode.hmax, interpol);
 
   //std::cout << data.metrics << std::endl;
   metric.init_metric(data.metrics, *data.pos, *data.connectB, data.hardNodes);

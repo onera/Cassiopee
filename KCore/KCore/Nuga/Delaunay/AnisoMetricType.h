@@ -37,6 +37,7 @@ public:
 
   explicit AnisoMetricType(void)               {for (E_Int k = 0; k < DIMANISO; ++k)_mij[k] = 0.;}
   explicit AnisoMetricType(E_Float h){ _mij[0] = _mij[2] = 1./(h*h);_mij[1] = 0.;} // fixme : 2D only
+  explicit AnisoMetricType(const E_Float* m) { _mij[0] = m[0]; _mij[1] = m[1]; _mij[2] = m[2];} // fixme : 2D only
 
   ~AnisoMetricType(void){}
 
@@ -51,9 +52,13 @@ public:
 
   AnisoMetricType operator+(const AnisoMetricType&) const;
 
-  E_Float maxEigenValue() const {return 1.;/*fixme*/}
+ void eigen_values(E_Float &lmax, E_Float & lmin) const;
 
-private:
+#ifndef DEBUG_METRIC
+  private:
+#else
+  public:
+#endif
   E_Float                 _mij[DIM*(DIM+1) / 2]; // 2D -> 3, 3D -> 6
 
 };
@@ -85,14 +90,25 @@ AnisoMetricType<DIM>::operator+(const AnisoMetricType& rhs) const
 }
 
 template <> inline
-E_Float AnisoMetricType<2>::maxEigenValue() const
+void AnisoMetricType<2>::eigen_values(E_Float &lmax, E_Float & lmin) const
 {
-  E_Float a = _mij[0] + _mij[2];
-  E_Float b = _mij[0]*_mij[2] - _mij[1]*_mij[1];
+  E_Float a = _mij[0] + _mij[2];                 //trace
+  E_Float b = _mij[0]*_mij[2] - _mij[1]*_mij[1]; //det
   E_Float d = a*a - 4.*b;
 
-  return 0.5*(a+::sqrt(d));
+  d = (d > 0.) ? ::sqrt(d) : 0.;
+  lmin = 0.5*(a - d);
+  lmax = lmin+d;
 }
+
+#ifdef DEBUG_METRIC
+inline std::ostream&
+ operator<<(std::ostream& os, const DELAUNAY::AnisoMetricType<2>& m)  
+{  
+  os << m._mij[0] << '/' << m._mij[1] << '/' << m._mij[2];  
+  return os;  
+}  
+#endif
 
 }
 

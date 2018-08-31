@@ -26,6 +26,13 @@
 #include "MeshData.h"
 #include "macros.h"
 
+#ifdef DEBUG_METRIC
+#include "Linear/DelaunayMath.h"
+#include "iodata.h"
+#include "IO/io.h"
+#endif
+#include "GeomMetric.h"
+
 namespace DELAUNAY
 {
 
@@ -53,10 +60,6 @@ namespace DELAUNAY
     void filterRefinePoints(MeshData& data, const int_set_type& box_nodes,
                             int_vector_type& refine_nodes,
                             tree_type& filter_tree);
-
-  private:
-    void __compute_refine_points(K_FLD::FloatArray& pos, size_type Ni, size_type Nj,
-                                 std::vector<std::pair<E_Int, size_type> >& length_to_points);
 
   private:
     MetricType&             _metric;
@@ -116,12 +119,12 @@ namespace DELAUNAY
     _metric.smooth(Ni, Nj, eps);
     }*/
 
-    std::vector<std::pair<E_Int, size_type> > length_to_points;
+    std::vector<std::pair<E_Float, size_type> > length_to_points;
 
     for (std::set<K_MESH::NO_Edge>::const_iterator i = all_edges.begin(); i != all_edges.end(); ++i)
     {
       const K_MESH::NO_Edge& Ei = *i;
-      __compute_refine_points(*data.pos, Ei.node(0), Ei.node(1), length_to_points);
+      _metric.__compute_refine_points(*data.pos, Ei.node(0), Ei.node(1), _threshold, length_to_points, _tmpNodes);
     }
 
     std::sort(ALL(length_to_points));
@@ -180,81 +183,6 @@ namespace DELAUNAY
         refine_nodes.push_back(Ni);
         filter_tree.insert(Ni);
       }
-    }
-  }
-
-  ///
-  template <typename MetricType>
-  void
-    Refiner<MetricType>::__compute_refine_points
-    (K_FLD::FloatArray& pos, size_type Ni, size_type Nj,
-    std::vector<std::pair<E_Int, size_type> >& length_to_points)
-  {
-    _tmpNodes.clear();
-    E_Float   d = _metric.length(Ni, Nj, _threshold, _tmpNodes);
-    size_type n = std::max(size_type(d), 1);
-
-    if ((n * (n + 1)) < (d * d))
-      ++n;
-
-    if (n == 1) // Saturated
-      return;
-
-    size_type ni = 0, ii = 0, dim(pos.rows()), nb_nodes;
-    E_Float l = 0.;
-    size_type Nstart = Ni, Nk = Ni, Nl = Ni;
-    E_Float x = 1.;//fixme
-    std::vector<std::pair<E_Float, size_type> > length_to_point;
-    length_to_point.push_back(std::make_pair(0., Ni));
-    E_Float* pNi = pos.col(Ni);
-
-    nb_nodes = (size_type)_tmpNodes.size();
-    for (size_type i = 0; i < nb_nodes; ++i)
-    {
-      Nk = _tmpNodes[i];
-      x = K_FUNC::sqrDistance(pNi, pos.col(Nk), dim);
-      length_to_point.push_back(std::make_pair(x, Nk));
-    }
-    length_to_point.push_back(std::make_pair(K_CONST::E_MAX_FLOAT, Nj));
-
-    std::sort(length_to_point.begin(), length_to_point.end());
-
-    E_Float newP[2], r, xx;
-    while (ni++ < n)
-    {
-      l = 0.;
-      while (l < 1.)
-      {
-        Nk = (l == 0.) ? Nstart : length_to_point[ii].second;
-        Nl = length_to_point[++ii].second;
-        if (Nl == Nj)
-          break;
-        x = _metric.lengthEval(Nk, _metric[Nk], Nl, _metric[Nl]);
-        if ((l+x) < 1.)
-          l += x;
-        else
-          break;
-      }
-
-      if (Nl == Nj)
-        break;
-
-      r = ((1 - l)/x);
-      
-      K_FUNC::diff<2>(pos.col(Nl), pos.col(Nk), newP);
-
-      for (size_type j = 0; j < 2; ++j)
-      {
-        xx = pos(j, Nk);
-        newP[j] = xx + r * newP[j];
-      }
-
-      pos.pushBack(newP, newP+2);
-      Nstart = pos.cols()-1;
-
-      _metric.setMetric(Nstart, _metric.computeMetric(Nstart, Nk, Nl, r));
-
-      length_to_points.push_back(std::make_pair(-n, Nstart));
     }
   }
 

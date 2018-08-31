@@ -37,7 +37,7 @@
 #include <list>
 #include <deque>
 
-#ifdef DEBUG_MESHER
+#if defined(DEBUG_MESHER) || defined(DEBUG_METRIC)
 #include "iodata.h"
 #include <sstream>
 #include "IO/io.h"
@@ -136,6 +136,9 @@ namespace DELAUNAY
   template <typename T, typename MetricType>
   Mesher<T, MetricType>::Mesher(MetricType& metric, const MesherMode& mode)
     :_data(0), _mode(mode), _metric(metric),_tool(0), _posAcc(0), _tree(0)
+#ifdef DEBUG_MESHER
+  , dbg_flag(false)
+#endif
   {
     std::srand(1);//to initialize std::rand and ensure repeatability
   }
@@ -636,6 +639,15 @@ namespace DELAUNAY
   E_Int
     Mesher<T, MetricType>::refine()
   {
+    
+#ifdef DEBUG_METRIC
+    /*{
+      std::ostringstream o;
+      o << "ellipse_begin_refine.mesh";
+      _metric.draw_ellipse_field(o.str().c_str(), *_data->pos, _data->connectM);
+    }*/
+#endif
+    
     K_FLD::FloatArray& pos = *_data->pos;
 
     _kernel->setConstraint(_data->hardEdges);
@@ -661,6 +673,15 @@ namespace DELAUNAY
 #ifdef E_TIME
       c.start();
 #endif
+
+#ifdef DEBUG_METRIC
+    {
+      std::ostringstream o;
+      o << "ellipse_refine_iter_" << iter << ".mesh";
+      _metric.draw_ellipse_field(o.str().c_str(), *_data->pos, _data->connectM);
+    }
+#endif
+
       saturator.computeRefinePoints(*_data, _box_nodes, _data->hardEdges, refine_nodes);
 
 #ifdef E_TIME
@@ -698,6 +719,14 @@ namespace DELAUNAY
 #endif
 
       this->clean_data(*_data, _data->mask);// Clean the current mesh by removing invalidated elements.
+      
+#ifdef DEBUG_MESHER
+      {
+        std::ostringstream o;
+        o << "mesh_iter_" << iter << ".mesh";
+        MIO::write(o.str().c_str(), *_data->pos, _data->connectM, "TRI");
+      }
+#endif
 
 #ifdef E_TIME
       std::cout << "compacting : " << c.elapsed() << std::endl;

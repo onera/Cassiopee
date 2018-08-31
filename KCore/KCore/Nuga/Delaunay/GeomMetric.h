@@ -20,6 +20,9 @@
 #ifndef __GENERATOR_GEOM_METRIC_H__
 #define __GENERATOR_GEOM_METRIC_H__
 
+#include "Metric.h"
+
+
 namespace DELAUNAY
 {
 
@@ -57,7 +60,7 @@ namespace DELAUNAY
 
     ~GeomMetric(void){}
 
-    inline virtual T computeMetric(size_type N, size_type /*dummy*/, size_type /*dummy*/, E_Float /*dummy*/);
+    inline virtual void computeMetric(size_type N, size_type Ni, size_type Nj, E_Float /*dummy*/);
 
     inline virtual void setMetric(E_Int N, const T& m);
 
@@ -137,6 +140,12 @@ namespace DELAUNAY
     // Set _metric by converting m_iso to an aniso type metric.
     // Only relevant in aniso case (in iso just assign it) //fixme
     this->convertIsoToAniso(m_iso, parent_type::_field);
+    
+#ifdef DEBUG_METRIC
+      {
+        parent_type::draw_ellipse_field("ellipse_init_metric.mesh", pos, connectB);
+      }
+#endif
 
     // Transform the metric in the parameter space.
     E_Float E,F,G;
@@ -149,9 +158,19 @@ namespace DELAUNAY
 
       //Do the transform.
       parent_type::_field[Ni][0] *= E;
-      //parent_type::_field[Ni][1] *= F;
+      //parent_type::_field[Ni][1] *= F; //here m12 is 0
       parent_type::_field[Ni][2] *= G;
+
+#ifdef DEBUG_METRIC
+      assert (isValidMetric(parent_type::_field[Ni]));
+#endif
     }
+    
+#ifdef DEBUG_METRIC
+      {
+        parent_type::draw_ellipse_field("ellipse_param_space.mesh", pos, connectB);
+      }
+#endif
 
     // Now take the user metric into account at each node when it's valid.
     // Only the first row of the input matrix is taken into account.
@@ -185,23 +204,28 @@ namespace DELAUNAY
     _surface.DUV(u,v, dUV);
 
     K_FUNC::crossProduct<3> (dU1, dV1, n); // Normal to the tangential plane.
-    K_FUNC::normalize<3>(n);
+    E_Float l = K_FUNC::normalize<3>(n);
+    
+    bool singular = (::fabs(l) < E_EPSILON); //undefined plane : dU1 and dV2 are colinear !
 
-    // First form.
-    E = K_FUNC::sqrNorm<3> (dU1);
-    F = K_FUNC::dot<3> (dU1, dV1);
-    G = K_FUNC::sqrNorm<3> (dV1);
-
-    bool singular = ((E < E_EPSILON || G < E_EPSILON));
-
-    if ((_mode == ISO_CST) || singular)
+    if (!singular)
     {
-      if (!singular)
-      {
-        Mout(0,0) *= E;
-        Mout(1,1) *= G;
-        Mout(1,0) = Mout(0,1) *= F;
-      }
+      // First form.
+      E = K_FUNC::sqrNorm<3> (dU1);
+      F = K_FUNC::dot<3> (dU1, dV1);
+      G = K_FUNC::sqrNorm<3> (dV1);
+      
+      singular = ((E < E_EPSILON || G < E_EPSILON));
+    }
+    
+    if (singular) return;
+
+    if (_mode == ISO_CST) // but not singular
+    {
+      Mout(0,0) *= E;
+      Mout(1,1) *= G;
+      Mout(1,0) = Mout(0,1) *= F;
+      
       return;
     }
 
@@ -269,6 +293,19 @@ namespace DELAUNAY
       Mout(0,0) = E*h2;
       Mout(1,1) = G*h2;
       Mout(1,0) = Mout(0,1) = F*h2;
+      
+#ifdef DEBUG_METRIC
+      {
+      //assert (parent_type::isValidMetric(Mout));
+      
+      const E_Float& a11 = Mout(0,0);
+      const E_Float& a12 = Mout(0,1);
+      const E_Float& a22 = Mout(1,1);
+      E_Float det = (a11*a22) - (a12*a12);  
+      
+      assert ((a11 > 0.) && (a22 > 0.) && (det > 0.)); //i.e. isValidMetric
+      }
+#endif
 
       return;
     }
@@ -326,25 +363,26 @@ namespace DELAUNAY
   }
 
   template <typename T, typename SurfaceType>
-  T
+  void
     GeomMetric<T, SurfaceType>::computeMetric
     (size_type N0, size_type /*dummy*/Ni, size_type /*dummy*/Nj, E_Float /*dummy*/r)
   {
-    T m;
-
+    
     if ((E_Int)parent_type::_field.size() > N0)//fixme : work around to avoid to set more than once
-      return m;
+      return;
 
     K_FLD::FloatArray M(2,2);
     __computeMetric(N0, M, _hmax2);
 
+    T m;
     m[0] = M(0,0);
     m[1] = M(1,0);
     m[2] = M(1,1);
 
-    return m;
+    parent_type::setMetric(N0, m);
   }
 
+  //fixme : implementation required ?
    template <typename T, typename SurfaceType>
   inline 
   void GeomMetric<T, SurfaceType>::setMetric(E_Int N, const T& m)
