@@ -22,6 +22,9 @@
 
 #include "Def/DefTypes.h"
 
+namespace DELAUNAY
+{
+
 template <typename T>
 class Interpolator
 {
@@ -66,21 +69,16 @@ public:
   {
   }
 
-  inline T interpolate(const T& H0, const T& H1, E_Float u) const;
+  inline T interpolate(const T& H0, const T& H1, E_Float u) const {return H0 * ::pow(H1/H0, u);} //iso
 
 };
 
-//iso
-template<>
-E_Float
-GeometricInterpolator<E_Float>::interpolate
-(const E_Float& H0, const E_Float& H1, E_Float u) const
-{return H0 * ::pow(H1/H0, u);}
+}
 
 //aniso
-template<>
+template<> inline
 DELAUNAY::Aniso2D
-GeometricInterpolator<DELAUNAY::Aniso2D>::interpolate
+DELAUNAY::GeometricInterpolator<DELAUNAY::Aniso2D>::interpolate
 (const DELAUNAY::Aniso2D& H0, const DELAUNAY::Aniso2D& H1, E_Float u) const
 {
   //fixme : in fact Linear currently

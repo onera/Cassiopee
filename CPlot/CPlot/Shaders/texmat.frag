@@ -22,7 +22,8 @@ void main (void)
   if (hasBump == 1) 
   {
       vec4 D = texture2D(Texbump0, vec2((color.r-0.5)*2., (color.g-0.5)*2.));
-      N += 0.5*vec3( (D.r-0.5)*2., (D.g-0.5)*2., (D.b-0.5)*2. );
+      N += 2.5*vec3( (D.r-0.5)*2., (D.g-0.5)*2., (D.b-0.5)*2. );
+      N = normalize(N);
   }
   vec3 E = normalize(-P);
   vec3 L = normalize(gl_LightSource[0].position.xyz-P);
