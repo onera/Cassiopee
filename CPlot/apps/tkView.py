@@ -371,12 +371,18 @@ def loadSlot():
     pos = Internal.getNodeFromName(slot, 'isoScales')
     if pos is not None:
         updateIsoWidgets(); updateIsoPyTree()
-    pos = Internal.getNodeFromName1(renderInfo, 'materialFiles')
+
+    pos = Internal.getNodeFromName1(renderInfo, 'materials')
     if pos is not None:
         out = []
         for i in pos[2]: out.append(Internal.getValue(i))
         CPlot.setState(materials=out)
-    pos = Internal.getNodeFromName1(renderInfo, 'billBoardFiles')
+    pos = Internal.getNodeFromName1(renderInfo, 'bumpMaps')
+    if pos is not None:
+        out = []
+        for i in pos[2]: out.append(Internal.getValue(i))
+        CPlot.setState(materials=out)    
+    pos = Internal.getNodeFromName1(renderInfo, 'billBoards')
     if pos is not None:
         out = []
         for i in pos[2]: out.append(Internal.getValue(i))

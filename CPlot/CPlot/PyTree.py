@@ -261,7 +261,7 @@ def setState(dim=-1,
              activateShortCuts=-1,
              billBoards=None,
              billBoardSize=-1,
-             materials=None):
+             materials=None, bumpMaps=None):
     """Set CPlot state.
     Usage: setState(posCam=(12,0,0))"""
     CPlot.setState(dim, mode, scalarField, vectorField1, vectorField2,
@@ -277,7 +277,8 @@ def setState(dim=-1,
                    export, exportResolution, continuousExport,
                    envmap, message,
                    stereo, stereoDist, cursor, gridSize, timer, selectionStyle,
-                   activateShortCuts, billBoards, billBoardSize, materials)
+                   activateShortCuts, billBoards, billBoardSize, 
+                   materials, bumpMaps)
     
 def setMode(mode):
     """Set CPlot display mode.
@@ -634,20 +635,20 @@ def _addRender2Zone(a, material=None, color=None, blending=None,
 def addRender2PyTree(t, slot=0, posCam=None, posEye=None, dirCam=None,
                      mode=None, scalarField=None, niso=None, isoScales=None,
                      isoEdges=None, isoLight=None,
-                     colormap=None, materialFiles=None, billBoardFiles=None):
+                     colormap=None, materials=None, bumpMaps=None, billBoards=None):
   """Add a renderInfo node to a tree.
   Usage: addRender2PyTree(t, slot, renderInfo)"""
   a = Internal.copyRef(t)
   _addRender2PyTree(a, slot, posCam, posEye, dirCam,
                     mode, scalarField, niso, isoScales,
                     isoEdges, isoLight, colormap, 
-                    materialFiles, billBoardFiles)
+                    materials, bumpMaps, billBoards)
   return a
 
 def _addRender2PyTree(a, slot=0, posCam=None, posEye=None, dirCam=None,
                      mode=None, scalarField=None, niso=None, isoScales=None,
                      isoEdges=None, isoLight=None,
-                     colormap=None, materialFiles=None, billBoardFiles=None):
+                     colormap=None, materials=None, bumpMaps=None, billBoards=None):
   """Add a renderInfo node to a tree.
   Usage: addRender2PyTree(t, renderInfo)"""
   if a[3] != 'CGNSTree_t': return None
@@ -714,15 +715,20 @@ def _addRender2PyTree(a, slot=0, posCam=None, posEye=None, dirCam=None,
     rt = Internal.createUniqueChild(sl, 'colormap', 'DataArray_t', value=colormap)
 
   # Under .RenderInfo
-  if materialFiles is not None:
-    ri = Internal.createUniqueChild(ri, 'materialFiles', 'UserDefinedData_t')
-    for c, f in enumerate(materialFiles):
-        rt = Internal.createUniqueChild(ri, 'tex%d'%c, 'DataArray_t', value=f)
+  if materials is not None:
+    ri = Internal.createUniqueChild(ri, 'materials', 'UserDefinedData_t')
+    for c, f in enumerate(materials):
+        rt = Internal.createUniqueChild(ri, 'file%d'%c, 'DataArray_t', value=f)
 
-  if billBoardFiles is not None:
-    ri = Internal.createUniqueChild(ri, 'billBoardFiles', 'UserDefinedData_t')
-    for c, f in enumerate(billBoardFiles):
-        rt = Internal.createUniqueChild(ri, 'tex%d'%c, 'DataArray_t', value=f)
+  if bumpMaps is not None:
+    ri = Internal.createUniqueChild(ri, 'bumpMaps', 'UserDefinedData_t')
+    for c, f in enumerate(materials):
+        rt = Internal.createUniqueChild(ri, 'file%d'%c, 'DataArray_t', value=f)
+
+  if billBoards is not None:
+    ri = Internal.createUniqueChild(ri, 'billBoards', 'UserDefinedData_t')
+    for c, f in enumerate(billBoards):
+        rt = Internal.createUniqueChild(ri, 'file%d'%c, 'DataArray_t', value=f)
 
   return None
 
@@ -790,14 +796,18 @@ def loadView(t, slot=0):
     if pos is not None:
         CPlot.setState(isoScales=pos[1].tolist())
     # RenderInfo
-    pos = Internal.getNodeFromName1(renderInfo, 'materialFiles')
+    pos = Internal.getNodeFromName1(renderInfo, 'materials')
     if pos is not None:
         out = []
         for i in pos[2]: out.append(Internal.getValue(i))
         CPlot.setState(materials=out)
-    pos = Internal.getNodeFromName1(renderInfo, 'billBoardFiles')
+    pos = Internal.getNodeFromName1(renderInfo, 'bumpMaps')
+    if pos is not None:
+        out = []
+        for i in pos[2]: out.append(Internal.getValue(i))
+        CPlot.setState(bumpMaps=out)
+    pos = Internal.getNodeFromName1(renderInfo, 'billBoards')
     if pos is not None:
         out = []
         for i in pos[2]: out.append(Internal.getValue(i))
         CPlot.setState(billBoards=out)
-

@@ -786,6 +786,7 @@ class GenIO
       E_Boolean convertEndian, E_Boolean writeConservative);
     E_Int readWord(FILE* ptrFile, char* buf);
     E_Int readGivenKeyword(FILE* ptrFile, const char* keyword);
+    E_Int readGivenKeyword(FILE* ptrFile, const char* keyword1, const char* keyword2);
     E_Int readKeyword(FILE* ptrFile, char* buf);
     E_Int readDataAndKeyword(
       FILE* ptrFile, char* buf,

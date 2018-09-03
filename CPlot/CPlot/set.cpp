@@ -47,7 +47,8 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
   int cursor;
   char* exportFile; char* exportResolution;
   char* envmap; char* message;
-  PyObject* isoScales; PyObject* billBoards; PyObject* materials;
+  PyObject* isoScales; PyObject* billBoards; 
+  PyObject* materials; PyObject* bumpMaps;
   int gridSizeI, gridSizeJ;
   E_Float lightOffsetX, lightOffsetY; E_Float dofPower;
   int timer; int selectionStyle;
@@ -55,7 +56,7 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
   E_Float billBoardSize;
   if (!PyArg_ParseTuple(
         args, 
-	"iOOiiiiiiiiiiddiiiidO(ii)(ddd)(ddd)(ddd)d(dd)iiidiiississidi(ii)iiiOdO",
+	"iOOiiiiiiiiiiddiiiidO(ii)(ddd)(ddd)(ddd)d(dd)iiidiiississidi(ii)iiiOdOO",
         &dim, &modeObject, &scalarFieldObject,
         &vectorField1, &vectorField2, &vectorField3,
         &displayBB, &displayInfo, &displayIsoLegend,
@@ -74,7 +75,8 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
         &envmap, &message,
         &stereo, &stereoDist, &cursor,
         &gridSizeI, &gridSizeJ, &timer, &selectionStyle,
-        &activateShortCuts, &billBoards, &billBoardSize, &materials))
+        &activateShortCuts, &billBoards, &billBoardSize, 
+        &materials, &bumpMaps))
   {
     return NULL;
   }
@@ -203,6 +205,41 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
     }
   }
 
+  if (bumpMaps != Py_None)
+  {
+    for (int i = 0; i < d->_nBumpMaps; i++)
+    {
+      delete [] d->_bumpMapFiles[i];
+      if (d->_bumpMapTexs[i] != 0) glDeleteTextures(1, &d->_bumpMapTexs[i]);
+    }
+    delete [] d->_bumpMapTexs;
+    delete [] d->_bumpMapFiles;
+    delete [] d->_bumpMapWidths;
+    delete [] d->_bumpMapHeights;
+    int nb = PyList_Size(bumpMaps);
+    d->_nBumpMaps = nb;
+    d->_bumpMapFiles = new char* [nb];
+    d->_bumpMapWidths = new int [nb];
+    d->_bumpMapHeights = new int [nb];
+    d->_bumpMapTexs = new GLuint [nb];
+    for (int i = 0; i < nb; i++)
+    {
+      PyObject* o = PyList_GetItem(bumpMaps, i);
+      if (o == Py_None)
+      {
+        d->_bumpMapFiles[i] = NULL;
+      }
+      else
+      {
+        char* file = PyString_AsString(o);
+        d->_bumpMapFiles[i] = new char [128];  
+        strcpy(d->_bumpMapFiles[i], file);
+      }
+      d->_bumpMapTexs[i] = 0;
+    }
+  }
+
+  // force render
   d->ptrState->render = 1;
   return Py_BuildValue("i", KSUCCESS);
 }

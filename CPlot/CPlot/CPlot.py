@@ -279,7 +279,7 @@ def setState(dim=-1,
              activateShortCuts=-1,
              billBoards=None,
              billBoardSize=-1,
-             materials=None):
+             materials=None, bumpMaps=None):
     """Set CPlot state.
     Usage: setState(posCam=(12,0,0))"""
     cplot.setState(dim, mode, scalarField, vectorField1, vectorField2,
@@ -295,7 +295,8 @@ def setState(dim=-1,
                    export, exportResolution, continuousExport,
                    envmap, message,
                    stereo, stereoDist, cursor, gridSize, timer, selectionStyle,
-                   activateShortCuts, billBoards, billBoardSize, materials)
+                   activateShortCuts, billBoards, billBoardSize, 
+                   materials, bumpMaps)
 
 def setMode(mode):
     """Set CPlot display mode.

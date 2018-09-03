@@ -244,11 +244,16 @@ namespace K_CONNECT
 
 
   /*
-     Version openmp corse grain de  cleanConnectivityBasic
+     Version openmp corse grain de cleanConnectivityBasic
   */
   void cleanConnectivityBasic_opt(E_Int posx, E_Int posy, E_Int posz, 
-                              E_Float eps, const char* eltType, 
-                              K_FLD::FldArrayF& f, K_FLD::FldArrayI& cEV);
+                                  E_Float eps, const char* eltType, 
+                                  K_FLD::FldArrayF& f, K_FLD::FldArrayI& cEV);
+
+  /* Elimine les vertex non references dans une connectivite basique */
+  void cleanUnreferencedVertexBasic(K_FLD::FldArrayF& f, K_FLD::FldArrayI& cn,
+                                    K_FLD::FldArrayF& fout, K_FLD::FldArrayI& cnout);
+
   /*-----------------------*/
   /* - Connectivite NGon - */
   /*-----------------------*/

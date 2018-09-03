@@ -374,6 +374,77 @@ void K_CONNECT::cleanConnectivityBasic_opt(E_Int posx, E_Int posy, E_Int posz,
   }
 }
 
+//=======================================================================
+// Elimination des vertex non utilise par une connectivite basique
+// Retourne un nouvel fout, un nouvel cnout
+//=======================================================================
+void K_CONNECT::cleanUnreferencedVertexBasic(FldArrayF& f, FldArrayI& cn,
+                                             FldArrayF& fout, FldArrayI& cnout)
+{
+  E_Int nelts = cn.getSize(); E_Int nvert = cn.getNfld();
+  E_Int npts = f.getSize(); E_Int nfld = f.getNfld();
+  E_Int et1, ind1, np, indp;
+  FldArrayI indir(npts); //indir.setAllValuesAt(-1);
+  E_Int* indirp = indir.begin();
+  FldArrayI* indir2 = new FldArrayI(npts);
+  E_Int* indir2p = indir2->begin();
+
+  // Recherche des vertex non utilises dans la connectivite
+  // Construit fout a partir de f, cn est modifie en cnout
+  FldArrayI* used = new FldArrayI(npts);
+  if (nelts == 0) used->setAllValuesAt(1); // cas NODE
+  else used->setAllValuesAtNull(); // autres cas
+  E_Int* usedp = used->begin();
+  for (E_Int n1 = 1; n1 <= nvert; n1++)
+  {
+    E_Int* cnp = cn.begin(n1);
+    for (et1 = 0; et1 < nelts; et1++)
+    {
+      ind1 = cnp[et1]-1; usedp[ind1]++;
+    }
+  }
+
+  np = 0;
+  for (E_Int i = 0; i < npts; i++)
+  {
+    if (usedp[i] > 0) // used
+    {
+      indirp[i] = np; indir2p[np] = i; np++;
+    }
+  }
+  delete used;
+
+  // Copie de la solution
+  fout.malloc(np, nfld);
+#pragma omp parallel default(shared)
+  {
+    for (E_Int n1 = 1; n1 <= nfld; n1++)
+    {
+      E_Float* fp = f.begin(n1);
+      E_Float* f2p = fout.begin(n1);
+#pragma omp for nowait
+      for (E_Int i = 0; i < np; i++) { f2p[i] = fp[indir2p[i]]; }
+    }
+  }
+
+  cnout.malloc(nelts, nvert);
+#pragma omp parallel default(shared) private(et1, indp)
+  {
+    for (E_Int n1 = 1; n1 <= nvert; n1++)
+    {
+      E_Int* cnp = cn.begin(n1);
+      E_Int* cn2p = cnout.begin(n1);
+#pragma omp for nowait
+      for (et1 = 0; et1 < nelts; et1++)
+      {
+        indp = cnp[et1]-1;
+        cn2p[et1] = indirp[indp]+1;
+      }
+    }
+  }
+  delete indir2;
+}
+
 //=============================================================================
 // create de la connection Elements -> Noeuds
 // ------------------------------------------
@@ -509,7 +580,7 @@ void K_CONNECT::cleanConnectivityNGon(E_Int posx, E_Int posy, E_Int posz,
   // 7- Compression du ngon aux seuls noeuds utilises
   FldArrayF fcopy = f;
   ngon_type::compact_to_used_nodes(NG.PGs, fcopy);
-  f = fcopy;//fixme: FldArrayF not ready for dynamic
+  f = fcopy; //fixme: FldArrayF not ready for dynamic
   
   // 8- Mise a disposition de la cn de sortie au format FldArrayI
   NG.export_to_array(cn);

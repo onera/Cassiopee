@@ -27,7 +27,8 @@ void Data::triggerShader(Zone& z, int material, float scale, float* color)
   float dx = K_FUNC::E_max(1.e-6, 1./(z.xmax-z.xmin));
   float dy = K_FUNC::E_max(1.e-6, 1./(z.ymax-z.ymin));
   float dz = K_FUNC::E_max(1.e-6, 1./(z.zmax-z.zmin));
-
+  int t;
+  
   switch (material)
   {
     case 1: // Glass
@@ -266,25 +267,53 @@ void Data::triggerShader(Zone& z, int material, float scale, float* color)
       break;
 
     case 14: // textured
-      shader = 37;
-      if (_nMaterials == 0) break;
-      SHADOWTEXTURE;
-      int t = (int)( (z.shaderParam2)*((_nMaterials-1)*0.5) );
-      t = std::max(t, 0);
-      t = std::min(t, _nMaterials-1);
-      if (_materialTexs[t] == 0) 
+      if (_nMaterials > 0)
       {
-         createPngTexture(_materialFiles[t], _materialTexs[t], _materialWidths[t], _materialHeights[t], true);
-         //printf("loading %d %s\n", 0, _materialFiles[0]);
+        shader = 37;
+        SHADOWTEXTURE;
+        // choix de la texture
+        t = (int)( (z.shaderParam2)*((_nMaterials-1)*0.5) );
+        t = std::max(t, 0);
+        t = std::min(t, _nMaterials-1);
+        if (_materialTexs[t] == 0) 
+        {
+           createPngTexture(_materialFiles[t], _materialTexs[t], _materialWidths[t], _materialHeights[t], true);
+          //printf("loading %d %s\n", 0, _materialFiles[0]);
+        }
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, _materialTexs[t]);
+        
+        // choix de la bump map (if any)
+        bool hasBump = false;
+        if (_nMaterials == _nBumpMaps)
+        {
+          if (_bumpMapFiles[t] != NULL)
+          {
+            hasBump = true;
+            if (_bumpMapTexs[t] == 0) 
+            {
+              createPngTexture(_bumpMapFiles[t], _bumpMapTexs[t], _bumpMapWidths[t], _bumpMapHeights[t], true);
+            }   
+          }
+        }
+        if (hasBump)
+        {
+          glActiveTexture(GL_TEXTURE2);
+          glBindTexture(GL_TEXTURE_2D, _bumpMapTexs[t]);
+        }
+        
+        if (_shaders.currentShader() != shader) _shaders.activate(shader);
+        _shaders[shader]->setUniform("specularFactor", (float)z.shaderParam1); 
+        _shaders[shader]->setUniform("shadow", (int)ptrState->shadow);
+        if (hasBump) _shaders[shader]->setUniform("hasBump", (int)hasBump);
+        _shaders[shader]->setUniform("ShadowMap", (int)0);
+        _shaders[shader]->setUniform("Texmat0", (int)1);
+        if (hasBump) _shaders[shader]->setUniform("Texbump0", (int)2);
       }
-      glActiveTexture(GL_TEXTURE1);
-      glBindTexture(GL_TEXTURE_2D, _materialTexs[t]);
-      
-      if (_shaders.currentShader() != shader) _shaders.activate(shader);
-      _shaders[shader]->setUniform("specularFactor", (float)z.shaderParam1); 
-      _shaders[shader]->setUniform("shadow", (int)ptrState->shadow);
-      _shaders[shader]->setUniform("ShadowMap", (int)0);
-      _shaders[shader]->setUniform("Texmat0", (int)1);
+      else
+      {
+        _shaders.activate((short unsigned int)0); // no shader
+      }
       break;
 
     default: // phong

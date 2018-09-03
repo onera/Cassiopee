@@ -119,6 +119,14 @@ Data::Data(CPlotState* ptState)
   _materialTexs = new GLuint [1];
   _materialTexs[0] = 0;
 
+  _nBumpMaps = 1; // must be equal to nMaterials
+  _bumpMapFiles = new char* [1];
+  _bumpMapFiles[0] = NULL; // means no bump map for this material
+  _bumpMapWidths = new int [1];
+  _bumpMapHeights = new int[1];
+  _bumpMapTexs = new GLuint [1];
+  _bumpMapTexs[0] = 0;
+
   // Init cam
   initCam();
   _CDisplayIsLaunched = 0;
@@ -147,6 +155,23 @@ Data::~Data()
   delete [] _billBoardTexs;
   delete [] _billBoardNis; delete [] _billBoardNjs;
   delete [] _billBoardFiles;
+
+  // delete material storage
+  for (int i = 0; i < _nMaterials; i++)
+  {
+    delete [] _materialFiles[i];
+    if (_materialTexs[i] != 0) glDeleteTextures(1, &_materialTexs[i]);
+  }
+  delete [] _materialTexs;
+  delete [] _materialFiles;
+
+  for (int i = 0; i < _nBumpMaps; i++)
+  {
+    delete [] _bumpMapFiles[i];
+    if (_bumpMapTexs[i] != 0) glDeleteTextures(1, &_bumpMapTexs[i]);
+  }
+  delete [] _bumpMapTexs;
+  delete [] _bumpMapFiles;
 } 
 
 //=============================================================================

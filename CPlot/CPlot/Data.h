@@ -153,6 +153,13 @@ class Data
   int* _materialHeights;
   GLuint* _materialTexs;
 
+  // BumpMaps image files and texture storage
+  int _nBumpMaps; // must be equal to nMaterials, but accepts NULL
+  char** _bumpMapFiles;
+  int* _bumpMapWidths;
+  int* _bumpMapHeights;
+  GLuint* _bumpMapTexs;
+
 #ifdef __SHADERS__
   CPlot::ShaderManager _shaders; // Shaders
   void triggerShader(Zone& z, int material, float scale, float* color);

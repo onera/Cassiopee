@@ -45,7 +45,7 @@ E_Int K_IO::GenIO::objread(
 {
   E_Int res;
   E_Float t;
-  E_Int ti, ti1, ti2, i, j, nv, nf, nt, nq, k, nfield;
+  E_Int ti, ti1, ti2, i, j, nv, nf, nt, nq, k;
   char buf[256];
   FldArrayF* f;
   FldArrayI* cn_q=NULL;
@@ -62,17 +62,36 @@ E_Int K_IO::GenIO::objread(
   }
 
   // Recherche du nombre de materiaux differents
-  E_Int nm = 0; res = 1;
-  E_LONG* matpos = new E_LONG [200];
+  vector<char*> matnames;
+  E_Int nm = 0; E_Int nom = 0; res = 1;
+  vector<E_Int> matindir; matindir.reserve(200);
+  char buffer[256];
   while (res == 1)
   {
     res = readGivenKeyword(ptrFile, "USEMTL ");
-    matpos[nm] = ftell(ptrFile); nm++;
+    if (res == 1) 
+    { 
+      readWord(ptrFile, buffer);
+      // exist?
+      bool exist = false;
+      for (size_t i = 0; i < matnames.size(); i++)
+      {
+        if (strcmp(buffer, matnames[i]) == 0) { exist=true; matindir.push_back(i); break; }
+      }
+      if (exist == false)
+      {
+        char* name = new char [256];
+        strcpy(name, buffer);
+        matnames.push_back(name);
+        matindir.push_back(nm);
+        nm++;
+      }
+      nom++;
+    }
   }
-  KFSEEK(ptrFile, 0, SEEK_END);
-  matpos[nm] = ftell(ptrFile);
-  nm = nm-1;
-  printf("I found %d materials\n", nm);
+  printf("I found %d materials (occurences=%d)\n", nm, nom);
+  for (E_Int i = 0; i < nm; i++) printf("material %d: %s\n", i, matnames[i]);
+  //for (E_Int i = 0; i < nom; i++) printf("occurence %d: %I64d\n", i, matpos[i]); 
 
   // Recherche du nombre de V
   KFSEEK(ptrFile, 0, SEEK_SET);
@@ -145,7 +164,7 @@ E_Int K_IO::GenIO::objread(
   
   FldArrayI fv_q; FldArrayI fv_t;
   FldArrayI fvt_q; FldArrayI fvt_t;
-  FldArray<E_LONG> fp_q; FldArray<E_LONG> fp_t;
+  FldArrayI fom_q; FldArrayI fom_t; // occurence materiau
 
   // Look for quads
   if (nq > 0)
@@ -153,26 +172,31 @@ E_Int K_IO::GenIO::objread(
     cn_q = new FldArrayI(nq, 4);
     fv_q.malloc(nq, 4); // vertices
     fvt_q.malloc(nq, 4); // vt
-    fp_q.malloc(nq); // file position
+    fom_q.malloc(nq); // occurence materiau
 
     KFSEEK(ptrFile, 0, SEEK_SET);
+    E_Int nom = -1;
     res = 1; i = 0; k = 0;
-    res = readGivenKeyword(ptrFile, "F ");
-
+    res = readGivenKeyword(ptrFile, "F ", "USEMTL ");
+    
     while (res >= 1)
     {
-      if (elts[k] == 4)
+      if (res == 2) { nom++;}
+      else if (res == 1)
       {
-        fp_q[i] = ftell(ptrFile);
-        for (j = 1; j <= 4; j++)
+        if (elts[k] == 4)
         {
-          res = readIntTuple3(ptrFile, ti, ti1, ti2);
-          fv_q(i,j) = ti; fvt_q(i,j) = ti1;
+          fom_q[i] = nom;
+          for (j = 1; j <= 4; j++)
+          {
+            res = readIntTuple3(ptrFile, ti, ti1, ti2);
+            fv_q(i,j) = ti; fvt_q(i,j) = ti1;
+          }
+          i++;
         }
-        i++;
+        k++;
       }
-      k++;
-      res = readGivenKeyword(ptrFile, "F ");
+      res = readGivenKeyword(ptrFile, "F ", "USEMTL ");
     }
   }
 
@@ -182,26 +206,31 @@ E_Int K_IO::GenIO::objread(
     cn_t = new FldArrayI(nt, 3);
     fv_t.malloc(nt, 3);
     fvt_t.malloc(nt, 3);
-    fp_t.malloc(nt);
+    fom_t.malloc(nt);
 
     KFSEEK(ptrFile, 0, SEEK_SET);
+    E_Int nom = -1;
     res = 1; i = 0; k = 0;
-    res = readGivenKeyword(ptrFile, "F ");
+    res = readGivenKeyword(ptrFile, "F ", "USEMTL ");
     while (res >= 1)
     {
-      if (elts[k] == 3)
+      if (res == 2) { nom++;}
+      else if (res == 1)
       {
-        fp_t[i] = ftell(ptrFile);
-        for (j = 1; j <= 3; j++)
+        if (elts[k] == 3)
         {
-          res = readIntTuple3(ptrFile, ti, ti1, ti2);
-          fv_t(i,j) = ti; fvt_t(i,j) = ti1;
+          fom_t[i] = nom;
+          for (j = 1; j <= 3; j++)
+          {
+            res = readIntTuple3(ptrFile, ti, ti1, ti2);
+            fv_t(i,j) = ti; fvt_t(i,j) = ti1;
+          }
+          //printf("%d %d %d\n", (*cn_t)(i,1), (*cn_t)(i,2), (*cn_t)(i,3));
+          i++;
         }
-        //printf("%d %d %d\n", (*cn_t)(i,1), (*cn_t)(i,2), (*cn_t)(i,3));
-        i++;
+        k++;
       }
-      k++;
-      res = readGivenKeyword(ptrFile, "F ");
+      res = readGivenKeyword(ptrFile, "F ", "USEMTL ");
     }
   }
 
@@ -210,16 +239,16 @@ E_Int K_IO::GenIO::objread(
   {
     for (E_Int j = 1; j <= 4; j++)
     {
-      if (fv_q(i,j) < 0) fv_q(i,j) = nv+fv_q(i,j);
-      if (fvt_q(i,j) < 0) fvt_q(i,j) = nvt+fvt_q(i,j);
+      if (fv_q(i,j) < 1) fv_q(i,j) = nv+fv_q(i,j);
+      if (fvt_q(i,j) < 1) fvt_q(i,j) = nvt+fvt_q(i,j);
     }
   }
   for (E_Int i = 0; i < nt; i++)
   {
     for (E_Int j = 1; j <= 3; j++)
     {
-      if (fv_t(i,j) < 0) fv_t(i,j) = nv+fv_t(i,j);
-      if (fvt_t(i,j) < 0) fvt_t(i,j) = nvt+fvt_t(i,j);
+      if (fv_t(i,j) < 1) fv_t(i,j) = nv+fv_t(i,j);
+      if (fvt_t(i,j) < 1) fvt_t(i,j) = nvt+fvt_t(i,j);
     }
   }
 
@@ -257,7 +286,6 @@ E_Int K_IO::GenIO::objread(
     for (E_Int j = 1; j <= 3; j++)
     {
       v = fv_t(i,j)-1; vt = fvt_t(i,j);
-      
       if (vt > 0)
       {
         // existe deja dans la map?
@@ -400,40 +428,59 @@ E_Int K_IO::GenIO::objread(
     }
   }
 
+  nmap.malloc(0);
+  map.malloc(0);
+
   // sortie une zone par materiau (TRI)
   if (nt > 0)
   {
-    for (E_Int m = 0; m < nm; m++)
+    // attribue chaque face a un materiau
+    FldArrayI matface(nt);
+    matface.setAllValuesAt(-1);
+
+    for (E_Int i = 0; i < nt; i++)
+    {
+      if (fom_t[i] == -1) matface[i] = -1;
+      else matface[i] = matindir[fom_t[i]];
+    }
+
+    for (E_Int m = -1; m < nm; m++)
     {
       // Compte les faces
       E_Int nf = 0;
       for (E_Int i = 0; i < nt; i++)
       {
-        if (fp_t[i] > matpos[m] && fp_t[i] < matpos[m+1]) nf++; 
+        if (matface[i] == m) nf++; 
       }
-      //printf("mat=%d, TRI nf=%d\n", m, nf);
+      printf("mat=%d, TRI nf=%d\n", m, nf);
       if (nf > 0)
       {
         // Dimensionne
-        FldArrayF* f2 = new FldArrayF(*f);
         FldArrayI* cn = new FldArrayI(nf, 3);
         // Rempli
-        E_Int f = 0;
+        E_Int ff = 0;
         for (E_Int i = 0; i < nt; i++)
         {
-          if (fp_t[i] > matpos[m] && fp_t[i] < matpos[m+1]) 
+          if (matface[i] == m) 
           {
-            for (E_Int j = 1; j <= 3; j++) (*cn)(f,j) = (*cn_t)(i,j);
-            //printf("%d %d %d\n", (*cn)(f,1), (*cn)(f,2), (*cn)(f,3));
-            f++;
+            for (E_Int j = 1; j <= 3; j++) (*cn)(ff,j) = (*cn_t)(i,j);
+            //printf("%d %d %d\n", (*cn)(f,1), (*cn)(ff,2), (*cn)(ff,3));
+            ff++;
           }
         }
-        // push back
+      
+        // clean unreferenced vertices in f
+        FldArrayF* f2 = new FldArrayF();
+        FldArrayI* cn2 = new FldArrayI();
+        K_CONNECT::cleanUnreferencedVertexBasic(*f, *cn, *f2, *cn2);
+        delete cn;
+
         unstructField.push_back(f2);
         eltType.push_back(2);
-        connect.push_back(cn);
+        connect.push_back(cn2);
         char* zoneName = new char [128];
-        sprintf(zoneName, "ZoneTRI%d", m);
+        if (m == -1) strcpy(zoneName, "NoMatTRI");
+        else sprintf(zoneName, "%sTRI", matnames[m]);
         zoneNames.push_back(zoneName);
       }
     }
@@ -442,43 +489,60 @@ E_Int K_IO::GenIO::objread(
 
   if (nq > 0)
   {
-    for (E_Int m = 0; m < nm; m++)
+    // attribue chaque face a un materiau
+    FldArrayI matface(nq);
+    matface.setAllValuesAt(-1);
+
+    for (E_Int i = 0; i < nq; i++)
+    {
+      if (fom_q[i] == -1) matface[i] = -1;
+      else matface[i] = matindir[fom_q[i]];
+    }
+    
+    for (E_Int m = -1; m < nm; m++)
     {
       // Compte les faces
       E_Int nf = 0;
       for (E_Int i = 0; i < nq; i++)
       {
-        if (fp_q[i] > matpos[m] && fp_q[i] < matpos[m+1]) nf++; 
+        if (matface[i] == m) nf++; 
       }
-      //printf("mat=%d, QUAD nf=%d\n", m, nf);
+      printf("mat=%d, QUAD nf=%d\n", m, nf);
       if (nf > 0)
       {
         // Dimensionne
-        FldArrayF* f2 = new FldArrayF(*f);
         FldArrayI* cn = new FldArrayI(nf, 4);
         // Rempli
-        E_Int f = 0;
+        E_Int ff = 0;
         for (E_Int i = 0; i < nq; i++)
         {
-          if (fp_q[i] > matpos[m] && fp_q[i] < matpos[m+1]) 
+          if (matface[i] == m) 
           {
-            for (E_Int j = 1; j <= 4; j++) (*cn)(f,j) = (*cn_q)(i,j);
-            f++;
+            for (E_Int j = 1; j <= 4; j++) (*cn)(ff,j) = (*cn_q)(i,j);
+            ff++;
           } 
         }
         // push back
+        // clean unreferenced vertices
+        FldArrayF* f2 = new FldArrayF();
+        FldArrayI* cn2 = new FldArrayI();
+        K_CONNECT::cleanUnreferencedVertexBasic(*f, *cn, *f2, *cn2);
+        delete cn;
+
         unstructField.push_back(f2);
         eltType.push_back(3);
-        connect.push_back(cn);
+        connect.push_back(cn2);
         char* zoneName = new char [128];
-        sprintf(zoneName, "ZoneQUAD%d",m);
+        if (m == -1) strcpy(zoneName, "NoMatQUAD");
+        else sprintf(zoneName, "%sQUAD", matnames[m]);
         zoneNames.push_back(zoneName);
       }
     }
     delete cn_q;
   }
 
-  delete f; delete matpos;
+  delete f;
+  for (size_t i = 0; i < matnames.size(); i++) delete [] matnames[i];
 
   varString = new char [16];
   if (uvPresent == false)

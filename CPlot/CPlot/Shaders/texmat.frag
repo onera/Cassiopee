@@ -8,8 +8,10 @@ varying vec4 color;
 varying vec4 vertex;
 uniform float specularFactor;
 uniform int shadow;
+uniform int hasBump;
 uniform sampler2D ShadowMap;
 uniform sampler2D Texmat0;
+uniform sampler2D Texbump0;
 
 void main (void)
 {
@@ -17,6 +19,11 @@ void main (void)
   vec4 col2 = texture2D(Texmat0, vec2((color.r-0.5)*2., (color.g-0.5)*2.));
   
   vec3 N = normalize(Nv);
+  if (hasBump == 1) 
+  {
+      vec4 D = texture2D(Texbump0, vec2((color.r-0.5)*2., (color.g-0.5)*2.));
+      N += 0.5*vec3( (D.r-0.5)*2., (D.g-0.5)*2., (D.b-0.5)*2. );
+  }
   vec3 E = normalize(-P);
   vec3 L = normalize(gl_LightSource[0].position.xyz-P);
   float dotNL = dot(N, L);
