@@ -43,7 +43,7 @@ begin
   lines[2] := 'path = %CASSIOPEE%\Dist\bin\x86;%CASSIOPEE%\Dist\bin\x86\Lib;%CASSIOPEE%\Dist\bin\x86\Lib\site-packages;%PATH%';
   lines[3] := 'set PYTHONHOME=%CASSIOPEE%\Dist\bin\x86\Python27';
   lines[4] := 'set ELSAPROD=x86';
-  lines[5] := 'set PYTHONPATH=%CASSIOPEE%\Dist\bin\x86\Python27\Scripts;%CASSIOPEE%\Dist\bin\x86\Lib\site-packages';
+  lines[5] := 'set PYTHONPATH=%CASSIOPEE%\Dist\bin\x86;%CASSIOPEE%\Dist\bin\x86\Python27\Scripts;%CASSIOPEE%\Dist\bin\x86\Lib\site-packages';
   SaveStringsToFile(filename,lines,false);
 
   fileName := ExpandConstant('{app}\Dist\bin\x86\cassiopeeRunWin32.bat');
@@ -54,7 +54,7 @@ begin
   lines[2] := 'path = %CASSIOPEE%\Dist\bin\x86;%CASSIOPEE%\Dist\bin\x86\Lib;%CASSIOPEE%\Dist\bin\x86\Lib\site-packages;%PATH%';
   lines[3] := 'set PYTHONHOME=%CASSIOPEE%\Dist\bin\x86\Python27';
   lines[4] := 'set ELSAPROD=x86';
-  lines[5] := 'set PYTHONPATH=%CASSIOPEE%\Dist\bin\x86\Python27\Scripts;%CASSIOPEE%\Dist\bin\x86\Lib\site-packages'
+  lines[5] := 'set PYTHONPATH=%CASSIOPEE%\Dist\bin\x86;%CASSIOPEE%\Dist\bin\x86\Python27\Scripts;%CASSIOPEE%\Dist\bin\x86\Lib\site-packages'
   lines[6] := 'python "%CASSIOPEE%\Dist\bin\x86\tkCassiopee.pyc" %1'
   Result := SaveStringsToFile(filename,lines,false);
   exit;

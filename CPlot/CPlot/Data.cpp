@@ -247,9 +247,11 @@ void Data::initState()
   ptrState->shadow = 0;
   ptrState->dofPower = 6.;
 
-  strcpy(ptrState->file, "tmp");
   strcpy(ptrState->winTitle, "CPlot - array/pyTree display");
-
+  strcpy(ptrState->file, "tmp");
+  strcpy(ptrState->filePath, ".");
+  strcpy(ptrState->localPathName, ".");
+  
   // Local directory path name
 #if defined(_WIN32) ||defined(_WIN64)
   _getcwd(ptrState->localPathName, 120);

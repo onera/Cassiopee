@@ -73,16 +73,16 @@ public:
 
 };
 
-}
-
 //aniso
 template<> inline
 DELAUNAY::Aniso2D
-DELAUNAY::GeometricInterpolator<DELAUNAY::Aniso2D>::interpolate
+GeometricInterpolator<DELAUNAY::Aniso2D>::interpolate
 (const DELAUNAY::Aniso2D& H0, const DELAUNAY::Aniso2D& H1, E_Float u) const
 {
   //fixme : in fact Linear currently
   return H0*(1-u) + H1*u;
 }
+
+} // namespace DELAUNAY
 
 #endif

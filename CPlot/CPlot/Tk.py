@@ -529,8 +529,9 @@ def loadFile(event=None):
         if TKPLOTXY is not None: TKPLOTXY.updateApp()
         Panels.updateRenderPanel()
         fileName = os.path.split(FILE)[1]
+        filePath = os.path.split(FILE)[0]
         TXT.insert('START', 'File %s read.\n'%fileName)
-        changeWindowTitle(fileName)
+        changeWindowTitle(fileName, filePath)
         errors = Internal.checkPyTree(t, level=5)
         if errors == []: display(t)
         else:
@@ -590,7 +591,8 @@ def saveFile():
         FILE = fixFileString2__(ret)
         C.convertPyTree2File(t, FILE)
         fileName = os.path.split(FILE)[1]
-        changeWindowTitle(fileName)
+        filePath = os.path.split(FILE)[0]
+        changeWindowTitle(fileName, filePath)
         TXT.insert('START', 'File '+fileName+' saved.\n')
     except:
         TXT.insert('START', 'Can not save file '+os.path.split(ret)[1]+'.\n')
@@ -624,8 +626,9 @@ def quickReloadFile(event=None):
     if TKMODULES.has_key('tkContainers'): TKMODULES['tkContainers'].updateApp()
     Panels.updateRenderPanel()
     fileName = os.path.split(FILE)[1]
+    filePath = os.path.split(FILE)[0]
     TXT.insert('START', 'File %s reloaded.\n'%fileName)
-    changeWindowTitle(fileName)
+    changeWindowTitle(fileName, filePath)
     errors = Internal.checkPyTree(t, level=5)
     if errors == []: display(t)
     else:
@@ -1720,9 +1723,9 @@ def save2Doc():
 #==============================================================================
 # Change title : change le titre dans la fenetre CPlot + Tk
 #==============================================================================
-def changeWindowTitle(fileName):
+def changeWindowTitle(fileName, filePath="."):
   if fileName == '': return
-  CPlot.CPlot.cplot.setWindowTitle(fileName)
+  CPlot.CPlot.cplot.setWindowTitle(fileName, filePath)
   win = WIDGETS['masterWin']
   win.title('Cassiopee'+C.__version__+' - '+fileName)
 

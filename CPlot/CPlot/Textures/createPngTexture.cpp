@@ -37,20 +37,32 @@ int Data::createPngTexture(const char* filename, GLuint &tex,
   GLint mipMap = GL_FALSE;
   if (mipmap == true) mipMap = GL_TRUE;
 
+  // Shader path
   char path[256*8];
   strcpy(path, d->ptrState->shaderPath);
-
 #ifdef __SHADERS__
   strcat(path, filename);
 #else
   strcpy(path, filename);
 #endif
 
-  FILE* ptrFile = fopen(path, "rb");
+  // local path name
+  char path2[256*8];
+  char* file = ptrState->file;
+  char* lpn = ptrState->filePath;
+  printf("file=%s\n", file);
+  printf("lpn=%s\n", lpn);
+  strcpy(path2, lpn);
+  strcat(path2, "/");
+  strcat(path2, filename);
+
+  FILE* ptrFile = fopen(path, "rb"); // shader path
   if (!ptrFile) 
-  { ptrFile = fopen(filename, "rb"); }
+  { ptrFile = fopen(filename, "rb"); } // local cassiopee path
   if (!ptrFile)
-  { printf("Warning: CPlot: can't open texture file %s.\n", path); 
+  { ptrFile = fopen(path2, "rb"); } // loaded file path
+  if (!ptrFile)
+  { printf("Warning: CPlot: can't open texture file %s.\n", path2); 
     return 0; }
   
   png_structp png_ptr;

@@ -43,7 +43,7 @@ begin
   lines[2] := 'path = %CASSIOPEE%\Dist\bin\win64;%CASSIOPEE%\Dist\bin\win64\Lib;%CASSIOPEE%\Dist\bin\win64\Lib\site-packages;%PATH%';
   lines[3] := 'set PYTHONHOME=%CASSIOPEE%\Dist\bin\win64\Python27';
   lines[4] := 'set ELSAPROD=win64';
-  lines[5] := 'set PYTHONPATH=%CASSIOPEE%\Dist\bin\win64\Python27\Scripts;%CASSIOPEE%\Dist\bin\win64\Lib\site-packages'
+  lines[5] := 'set PYTHONPATH=%CASSIOPEE%\Dist\bin\win64;%CASSIOPEE%\Dist\bin\win64\Python27\Scripts;%CASSIOPEE%\Dist\bin\win64\Lib\site-packages'
   lines[6] := 'set OMP_NUM_THREADS=%NUMBER_OF_PROCESSORS%'
   SaveStringsToFile(filename,lines,false);
 
@@ -55,7 +55,7 @@ begin
   lines[2] := 'path = %CASSIOPEE%\Dist\bin\win64;%CASSIOPEE%\Dist\bin\win64\Lib;%CASSIOPEE%\Dist\bin\win64\Lib\site-packages;%PATH%';
   lines[3] := 'set PYTHONHOME=%CASSIOPEE%\Dist\bin\win64\Python27';
   lines[4] := 'set ELSAPROD=win64';
-  lines[5] := 'set PYTHONPATH=%CASSIOPEE%\Dist\bin\win64\Python27\Scripts;%CASSIOPEE%\Dist\bin\win64\Lib\site-packages'
+  lines[5] := 'set PYTHONPATH=%CASSIOPEE%\Dist\bin\win64;%CASSIOPEE%\Dist\bin\win64\Python27\Scripts;%CASSIOPEE%\Dist\bin\win64\Lib\site-packages'
   lines[6] := 'python "%CASSIOPEE%\Dist\bin\win64\tkCassiopee.pyc" %1'
   lines[7] := 'set OMP_NUM_THREADS=%NUMBER_OF_PROCESSORS%'
   Result := SaveStringsToFile(filename,lines,false);

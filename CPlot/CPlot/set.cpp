@@ -866,15 +866,17 @@ PyObject* K_CPLOT::setShaderPath(PyObject* self, PyObject* args)
 }
 
 //=============================================================================
-// Set window title
+// Set window title (file name + file path)
 //=============================================================================
 PyObject* K_CPLOT::setWindowTitle(PyObject* self, PyObject* args)
 {
-  char* file;
-  if (!PyArg_ParseTuple(args, "s", &file)) return NULL;
+  char* file; char* path;
+  if (!PyArg_ParseTuple(args, "ss", &file, &path)) return NULL;
   Data* d = Data::getInstance();
   strcpy(d->ptrState->winTitle, "CPlot - ");
   strcat(d->ptrState->winTitle, file);
+  strcpy(d->ptrState->file, file);
+  strcpy(d->ptrState->filePath, path);
   if (d->_winId != 0)
   {
     glutSetWindowTitle(d->ptrState->winTitle);

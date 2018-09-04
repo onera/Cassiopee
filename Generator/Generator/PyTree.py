@@ -1373,7 +1373,7 @@ def _getTriQualityMap(t):
     return C._TZGC(t, 'centers', Generator.getTriQualityMap)
 
 #------------------------------------------------------------------------------
-# Genere des pyramides ayant pour base les QUAD d'une surface donnée
+# Genere des pyramides ayant pour base les QUAD d'une surface donnee
 #------------------------------------------------------------------------------
 def quad2Pyra(t, hratio = 1.):
      """Creates a set of pyramids from a set of quads.

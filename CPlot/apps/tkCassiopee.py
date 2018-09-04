@@ -150,9 +150,6 @@ def run(t=None):
         CTK.t = CTK.upgradeTree(CTK.t)
         (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     
-    fileName = os.path.split(CTK.FILE)[1]
-    CPlot.CPlot.cplot.setWindowTitle(fileName)
-    
     # - Verifie l'arbre -
     errors = []
     if CTK.t != []:
@@ -178,7 +175,8 @@ def run(t=None):
     # Main window
     (win, frames, menu, menus, file, tools) = CTK.minimal2('Cassiopee '+C.__version__,
                                                            show=False)
-    CTK.changeWindowTitle(fileName)
+    fileName = os.path.split(CTK.FILE)
+    CTK.changeWindowTitle(fileName[1], fileName[0])
 
     # - Apps -
     submenus = {}

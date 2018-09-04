@@ -121,7 +121,8 @@ struct CPlotState {
     // Autres
     char winTitle[120];        // titre de la fenetre
     char file[120];            // fichier en cours de display (si il y en a)
-    char localPathName[1028];  // local directory name
+    char filePath[1028];       // local directory of current file
+    char localPathName[1028];  // local directory name (where cassiopee is launched)
 
     // cursor
     int cursorType;    // current cursor type
