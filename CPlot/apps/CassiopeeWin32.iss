@@ -3,12 +3,12 @@
 
 [Setup]
 AppName=Cassiopee
-AppVersion=2.7
+AppVersion=2.8
 DefaultDirName={code:DefDirRoot}\Cassiopee
 DefaultGroupName=Cassiopee
 Compression=lzma2
 SolidCompression=yes
-OutputBaseFilename=Cassiopee-2.7-win32
+OutputBaseFilename=Cassiopee-2.8-win32
 PrivilegesRequired=none
 AppPublisher=ONERA
 

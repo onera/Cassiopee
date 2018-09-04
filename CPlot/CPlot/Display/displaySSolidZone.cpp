@@ -59,14 +59,14 @@ void Data::displaySSolidZone(StructZone* zonep, int zone)
   s = 100./(s+1.e-12);
 
   // Only for textured rendering, we use vect display =======================
-  if (ptrState->mode == RENDER && zonep->material == 14 && zonep->nfield >= 3) // Textured rendering
+  if (ptrState->mode == RENDER && zonep->material == 14 && zonep->nfield >= 2) // Textured rendering
   {
 #ifdef __SHADERS__
         triggerShader(*zonep, zonep->material, s, color1);
 #endif
       int nofield1 = 0; 
       int nofield2 = 1; 
-      int nofield3 = 2;
+      int nofield3 = 0;
       computeSteps(zonep, stepi, stepj, stepk);
       #undef PLOT
       #include "displaySVectSolidZone.h"

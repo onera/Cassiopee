@@ -1,6 +1,6 @@
 """Find connectivity in grids.
 """
-__version__ = '2.7'
+__version__ = '2.8'
 __author__ = "Stephanie Peron, Christophe Benoit, Gaelle Jeanfaivre, Pascal Raud, Luis Bernardos"
 #
 # Interface for connectivity checking

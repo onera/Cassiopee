@@ -41,7 +41,7 @@ libraryDirs += paths; libraries += libs
 libraryDirs += paths; libraries += libs
 
 # Hack: compilation of predicate
-#os.system(Cppcompiler+" -c -O0 -fPIC Generator/Tetgen/predicates.cxx -o build/temp.linux-x86_64-2.7/Generator/Tetgen/predicates.o")
+#os.system(Cppcompiler+" -c -O0 -fPIC Generator/Tetgen/predicates.cxx -o build/temp.linux-x86_64-2.8/Generator/Tetgen/predicates.o")
 
 # Extensions =================================================================
 import srcs
@@ -59,7 +59,7 @@ listExtensions.append(
 # setup =======================================================================
 setup(
     name="Generator",
-    version="2.7",
+    version="2.8",
     description="*Cassiopee* module of mesh generation.",
     author="Onera",
     package_dir={"":"."},

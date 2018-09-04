@@ -58,7 +58,7 @@ void Data::displayUSolidZone(UnstructZone* zonep, int zone, int zonet)
   s = 100./(s+1.e-12);
 
   // Only for textured rendering, we use vect display =======================
-  if (ptrState->mode == RENDER && zonep->material == 14 && zonep->nfield >= 3) // Textured rendering
+  if (ptrState->mode == RENDER && zonep->material == 14 && zonep->nfield >= 2) // Textured rendering
   {
 
 #ifdef __SHADERS__
@@ -67,7 +67,7 @@ void Data::displayUSolidZone(UnstructZone* zonep, int zone, int zonet)
 
       int nofield1 = 0; 
       int nofield2 = 1; 
-      int nofield3 = 2;
+      int nofield3 = 0; // not needed for now
       int ff; double offb = 0.;
       #undef PLOT
       #include "displayUVectSolidZone.h"

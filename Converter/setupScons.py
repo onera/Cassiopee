@@ -97,7 +97,7 @@ if srcs.EXPRESSION:
 # setup ======================================================================
 setup(
     name="Converter",
-    version="2.7",
+    version="2.8",
     description="Converter for *Cassiopee* modules.",
     author="Onera",
     package_dir={"":"."},

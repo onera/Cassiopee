@@ -452,7 +452,7 @@ E_Int K_IO::GenIO::objread(
       {
         if (matface[i] == m) nf++; 
       }
-      printf("mat=%d, TRI nf=%d\n", m, nf);
+      //printf("mat=%d, TRI nf=%d\n", m, nf);
       if (nf > 0)
       {
         // Dimensionne
@@ -507,7 +507,7 @@ E_Int K_IO::GenIO::objread(
       {
         if (matface[i] == m) nf++; 
       }
-      printf("mat=%d, QUAD nf=%d\n", m, nf);
+      //printf("mat=%d, QUAD nf=%d\n", m, nf);
       if (nf > 0)
       {
         // Dimensionne

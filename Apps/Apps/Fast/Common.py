@@ -21,6 +21,56 @@ def distribute(t_in, NP):
         Filter.writeNodesFromPaths(t_in, p, n)
     return t
 
+# distirbution + choix du nombre de coeurs optimum
+def distributeOpt(t_in, tc_in, t_out, tc_out):
+
+    if instance(t_in, str): t = C.convertFile2PyTree(t_in)
+    else: t = t_in
+    nptMaxPerCore = 4000000.
+
+    nbpts=0.; maxipts=0.
+    for zone in Internal.getZones(t):
+        ncells=C.getNCells(zone)
+        nbpts += ncells
+        maxipts=max(maxipts, ncells)
+
+    print nbpts, maxipts
+    MaxNbProcs=int(nbpts/maxipts)+1
+
+    MinNbProcs=MaxNbProcs
+    for nbproc in xrange(2,MaxNbProcs+1):
+        if nbpts/nbproc < nptMaxPerCore: MinNbProcs=min(nbproc,MinNbProcs)
+
+    print 'La distribution sera testee entre',MinNbProcs,'procs et',MaxNbProcs,'procs'
+
+    #MinNbProcs = 140
+    #MaxNbProcs = 140
+    listequ=[]
+    varmax = 99.
+    for nbproc in xrange(MinNbProcs,MaxNbProcs+1):
+        if nbproc%28==0:
+         print 'Distribution sur',nbproc,'procs'
+         stats=D2._distribute(t,nbproc,algorithm='fast')
+         listequ.append([nbproc,stats['varMax']])
+         if stats['varMax']<varmax: varmax = stats['varMax'];NP=nbproc
+
+    import pprint;print pprint.pformat(listequ)
+
+    #import sys;sys.exit()
+    #NP = 532
+    stats=D2._distribute(t, NP)
+    print stats
+    print NP
+    #D2._printProcStats(t,stats,NP)
+
+    C.convertPyTree2File(t, t_out)
+    if instance(tc_in, str): tc = C.convertFile2PyTree(tc_in)
+    else: tc = tc_in
+    
+    D2._copyDistribution(tc, t)
+    C.convertPyTree2File(tc, tc_out)
+    return t, tc, NP
+
 #================================================================================
 # en gros, warmup
 #================================================================================

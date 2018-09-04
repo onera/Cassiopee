@@ -105,7 +105,7 @@ extensions = [
 # Setup ======================================================================
 setup(
     name="CPlot",
-    version="2.7",
+    version="2.8",
     description="A plotter for *Cassiopee* Modules.",
     author="Onera",
     package_dir={"":"."},

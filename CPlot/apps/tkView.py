@@ -377,11 +377,12 @@ def loadSlot():
         out = []
         for i in pos[2]: out.append(Internal.getValue(i))
         CPlot.setState(materials=out)
+
     pos = Internal.getNodeFromName1(renderInfo, 'bumpMaps')
     if pos is not None:
         out = []
         for i in pos[2]: out.append(Internal.getValue(i))
-        CPlot.setState(materials=out)    
+        CPlot.setState(bumpMaps=out)  
     pos = Internal.getNodeFromName1(renderInfo, 'billBoards')
     if pos is not None:
         out = []

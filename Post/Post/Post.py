@@ -1,6 +1,6 @@
 """Post-processing of solutions.
 """
-__version__ = '2.7'
+__version__ = '2.8'
 __author__ = "Stephanie Peron, Christophe Benoit, Gaelle Jeanfaivre, Pascal Raud, Christelle Wervaecke"
 #
 # Python Interface for post-processing tools

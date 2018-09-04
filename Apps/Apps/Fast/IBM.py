@@ -34,7 +34,7 @@ def prepare0(t_case, t_out, tc_out, dfar=10., vmin=21, check=False, NP=0, format
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
     else: tb = t_case 
 
-    snears = 5.e-3
+    snears = 99.
 
     #-------------------------------------------------------
     # Refinement surfaces in the fluid
@@ -64,7 +64,8 @@ def prepare0(t_case, t_out, tc_out, dfar=10., vmin=21, check=False, NP=0, format
     #--------------------------------------------------------
     # Generates the full Cartesian mesh
     t = TIBM.generateIBMMesh(tb, vmin, snears, dfar, DEPTH=2, NP=NP,
-                             tbox=tbox, snearsf=snearsf, check=check)
+                             tbox=tbox, snearsf=snearsf, check=check,
+                             sizeMax=4000000)
 
     #------------------------------------------------------
     # distribute the mesh over NP processors
