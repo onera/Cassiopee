@@ -80,8 +80,11 @@ namespace DELAUNAY{
        const std::vector<E_Int>& hard_nodes);
 
     inline const value_type& operator[](size_type i) const { assert (i < (size_type)_field.size()); return _field[i];}
-
-
+    
+    virtual void __init_refine_points
+    (K_FLD::FloatArray& pos, size_type Ni, size_type Nj, E_Float threshold,
+     std::vector<std::pair<E_Float, size_type> >& length_to_points, std::vector<size_type>& tmpNodes);
+    
     void __compute_refine_points
     (K_FLD::FloatArray& pos, size_type Ni, size_type Nj, E_Float threshold, std::vector<std::pair<E_Float, size_type> >& length_to_points, std::vector<size_type>& tmpNodes);
     
@@ -237,8 +240,14 @@ namespace DELAUNAY{
       r1 += vi[i]*v[i];
       r2 += vj[i]*v[i];
     }
+    
+    E_Float res = 0.5 * (::sqrt(r1) + ::sqrt(r2)); //integral approx.
 
-    return 0.5 * (::sqrt(r1) + ::sqrt(r2)); //integral approx.
+#ifdef DEBUG_METRIC
+    assert (res > E_EPSILON);
+#endif
+
+    return res; 
   }
 
   /** Isotropic variable field. */
@@ -488,6 +497,35 @@ namespace DELAUNAY{
     }
   }
 
+  ///
+  template <typename T>
+  void
+    VarMetric<T>::__init_refine_points
+    (K_FLD::FloatArray& pos, size_type Ni, size_type Nj, E_Float threshold, 
+    std::vector<std::pair<E_Float, size_type> >& length_to_points, std::vector<size_type>& tmpNodes)
+  {
+    size_type dim(pos.rows());
+    
+    E_Float newP[3];
+    
+    K_FLD::FloatArray::const_iterator it1(pos.col(Ni)), it2(pos.col(Nj));
+    for (size_type i = 0; i < dim; ++i) // middle point.
+      newP[i] = 0.5 * (*(it1++) + *(it2++));
+
+    pos.pushBack(newP, newP+dim);
+    size_type N = pos.cols()-1;
+    
+    E_Float   d = ::sqrt(K_FUNC::sqrDistance(pos.col(Ni), pos.col(Nj), pos.rows()));
+    
+    // set the metric as a large valid value : half of the initial edge length
+    E_Float factor = 0.5;
+    T m(factor*d);
+    setMetric(N, m);
+           
+    length_to_points.push_back(std::make_pair(-d, N));
+ 
+  }
+  
   ///
   template <typename T>
   void

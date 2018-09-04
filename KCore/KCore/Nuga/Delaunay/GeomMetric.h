@@ -67,6 +67,10 @@ namespace DELAUNAY
     void init_metric
       (const K_FLD::FloatArray& metric, K_FLD::FloatArray& pos, const K_FLD::IntArray& connectB,
        const std::vector<E_Int>& hard_nodes);
+    
+    void __init_refine_points
+    (K_FLD::FloatArray& pos, size_type Ni, size_type Nj, E_Float threshold,
+    std::vector<std::pair<E_Float, size_type> >& length_to_points, std::vector<size_type>& tmpNodes);
 
   private:
     void __update_boundary_metric_with_surface(const K_FLD::IntArray& connectB);
@@ -126,16 +130,19 @@ namespace DELAUNAY
     if ((parent_type::_hmax <= 0.) || (parent_type::_hmax == K_CONST::E_MAX_FLOAT)) // If not (or wrongly) set by the user.
       parent_type::_hmax = hmax1;
     
-    if (parent_type::_hmax != hmax1 || parent_type::_hmin != hmin1) //i.e. user-defined
+    if (parent_type::_hmax != hmax1) //i.e. user-defined
     {
       for (size_t i=0; i < m_iso.size(); ++i)
-      {
-        m_iso[i] = std::max(m_iso[i], parent_type::_hmin);
         m_iso[i] = std::min(m_iso[i], parent_type::_hmax);
-      }
+    }
+
+    if (parent_type::_hmin > hmin1)
+    {
+      for (size_t i=0; i < m_iso.size(); ++i)
+        m_iso[i] = std::max(m_iso[i], parent_type::_hmin);
     }
       
-    _hmax2 = parent_type::_hmax * parent_type::_hmax; //fixme : important to be done before __update_boundary_metric_with_surface
+    _hmax2 = (parent_type::_hmax != K_CONST::E_MAX_FLOAT) ? parent_type::_hmax * parent_type::_hmax : K_CONST::E_MAX_FLOAT; //fixme : important to be done before __update_boundary_metric_with_surface
 
     // Set _metric by converting m_iso to an aniso type metric.
     // Only relevant in aniso case (in iso just assign it) //fixme
@@ -156,11 +163,16 @@ namespace DELAUNAY
       if ((E < E_EPSILON) || (G < E_EPSILON)) //singular point.
         continue;
 
-      //Do the transform.
-      parent_type::_field[Ni][0] *= E;
+      // Do the transform if and only if the ellispse is contained in the initial iso circle
+      if (E > (1. / (parent_type::_field[Ni][0] * hmax1 * hmax1) ) )
+        parent_type::_field[Ni][0] *= E;
+      
       //parent_type::_field[Ni][1] *= F; //here m12 is 0
-      parent_type::_field[Ni][2] *= G;
-
+      
+      // Do the transform if and only if the ellispse is contained in the initial iso circle
+      if (G > (1. / (parent_type::_field[Ni][2] * hmax1 * hmax1) ) )
+        parent_type::_field[Ni][2] *= G;
+      
 #ifdef DEBUG_METRIC
       assert (isValidMetric(parent_type::_field[Ni]));
 #endif
@@ -448,6 +460,18 @@ namespace DELAUNAY
       parent_type::_metric[i] = Aniso2D(&s[0]);
     }
   }
+
+  template <typename T, typename SurfaceType>
+  void
+  GeomMetric<T, SurfaceType>::__init_refine_points
+  (K_FLD::FloatArray& pos, size_type Ni, size_type Nj, E_Float threshold,
+   std::vector<std::pair<E_Float, size_type> >& length_to_points, std::vector<size_type>& tmpNodes)
+  {
+    // For a Geom Mesh, it doesn't make sense to symetrize the param mesh, so
+   // do regular refinement
+    parent_type::__compute_refine_points(pos, Ni, Nj, threshold, length_to_points, tmpNodes);
+  }
+
 }
 
 #endif

@@ -174,8 +174,30 @@ namespace DELAUNAY
 
         const typename MetricType::value_type& Mn = _metric[nodes[n]];
 
-        discard = (_metric.lengthEval(Ni, Mi, nodes[n], Mi) < coeff) // Regarding Mi metric
-          || (_metric.lengthEval(Ni, Mn, nodes[n], Mn) < coeff);     // Regarding Mn metric
+        E_Float dmi = _metric.lengthEval(Ni, Mi, nodes[n], Mi);
+        E_Float dmn = _metric.lengthEval(Ni, Mn, nodes[n], Mn);
+        discard = (dmi < coeff) || (dmn < coeff); // Regarding Mi or Mn metric
+
+        
+#ifdef DEBUG_METRIC
+        if (discard && Ni == 19551)
+        {
+          K_FLD::FloatArray crdo;
+          K_FLD::IntArray cnto;
+          
+          E_Int E[] = {0,1};
+          crdo.pushBack(data.pos->col(Ni), data.pos->col(Ni) + 2);
+          crdo.pushBack(data.pos->col(nodes[n]), data.pos->col(nodes[n]) + 2);
+          
+          if (dmi < coeff)
+            _metric.append_unity_ellipse(*data.pos, Ni, crdo, cnto);
+          if (dmn < coeff)
+            _metric.append_unity_ellipse(*data.pos, nodes[n], crdo, cnto);
+          
+          cnto.pushBack(E, E+2);
+          MIO::write("discard.mesh", crdo, cnto, "BAR");     
+        }
+#endif
       }
 
       if (!discard)
