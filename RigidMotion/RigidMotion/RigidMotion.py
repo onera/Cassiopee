@@ -16,6 +16,11 @@ except:
 # si time est different de None, sinon des scalaires.
 #==============================================================================
 def evalPosition(array, time, F):
+    b = C.copy(array)
+    _evalPosition(b, time, F)
+    return b
+
+def _evalPosition(array, time, F):
     """Move the mesh with defined motion function to time t.
     Return an array with moved mesh coordinates.
     Usage: evalPosition(array, time, F)"""
@@ -41,12 +46,13 @@ def evalPosition(array, time, F):
     if isinstance(array[0], list): 
         b = []
         for i in array:
-            b.append(rigidMotion.move(i, d[0], d[1], d[2], \
-                                      c[0], c[1], c[2], \
-                                      r[0][0], r[0][1], r[0][2], \
-                                      r[1][0], r[1][1], r[1][2], \
-                                      r[2][0], r[2][1], r[2][2]))
-        return b
+            print i            
+            rigidMotion.move(i, d[0], d[1], d[2], \
+                             c[0], c[1], c[2], \
+                             r[0][0], r[0][1], r[0][2], \
+                             r[1][0], r[1][1], r[1][2], \
+                             r[2][0], r[2][1], r[2][2])
+        return None
     else:
         return rigidMotion.move(array, d[0], d[1], d[2], \
                                 c[0], c[1], c[2], \

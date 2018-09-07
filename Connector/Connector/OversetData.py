@@ -31,14 +31,14 @@ for ibctypename in TypesOfIBC.keys():
 #=============================================================================
 # Ajout du cellN pour une zone qui ne le contient pas. celln=1
 #=============================================================================
-def addCellN__(t, loc='centers'):
+def addCellN__(t, loc='centers', cellNName='cellN'):
     tp = Internal.copyRef(t)
-    _addCellN__(tp, loc)
+    _addCellN__(tp, loc=loc, cellNName=cellNName)
     return tp
 
-def _addCellN__(t, loc='centers'):
-    if loc == 'centers': var = loc+':cellN'
-    else: var = 'cellN'
+def _addCellN__(t, loc='centers', cellNName='cellN'):
+    if loc == 'centers': var = loc+':'+cellNName
+    else: var = cellNName
     C._addVars(t, var)
     return None
 

@@ -645,6 +645,7 @@ namespace K_CONNECTOR
   PyObject* optimizeOverlap(PyObject* self, PyObject* args);
   PyObject* maximizeBlankedCells( PyObject* self, PyObject* args );
   PyObject* blankCells( PyObject* self, PyObject* args);
+  PyObject* _blankCells( PyObject* self, PyObject* args);
   PyObject* blankCellsTetra( PyObject* self, PyObject* args);
   PyObject* createTetraMask( PyObject* self, PyObject* args);
   PyObject* deleteTetraMask( PyObject* self, PyObject* args); 
@@ -655,9 +656,10 @@ namespace K_CONNECTOR
   PyObject* applyBCOverlapStruct(PyObject* self, PyObject* args);
   PyObject* applyBCOverlapsNG(PyObject* self, PyObject* args);
   PyObject* setDoublyDefinedBC(PyObject* self, PyObject* args);
-  PyObject* getBCOverlapInterpCellCenters(PyObject* self, PyObject* args);
   PyObject* getOversetHolesInterpCellCenters(PyObject* self, PyObject* args);
   PyObject* getOversetHolesInterpNodes(PyObject* self, PyObject* args);
+  PyObject* _getOversetHolesInterpCellCenters(PyObject* self, PyObject* args);
+  PyObject* _getOversetHolesInterpNodes(PyObject* self, PyObject* args);
   PyObject* getEXPoints(PyObject* self, PyObject* args);
   PyObject* setInterpolations(PyObject* self, PyObject* args);
   PyObject* setInterpData(PyObject* self, PyObject* args);

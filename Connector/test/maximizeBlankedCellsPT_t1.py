@@ -11,12 +11,12 @@ def F(x,y):
 # CAS 2D 
 Ni = 50; Nj = 50
 a = G.cart((0,0,0),(1./(Ni-1),1./(Nj-1),1),(Ni,Nj,1))
-a = C.initVars(a,'cellN', F,['CoordinateX','CoordinateY'])
+C._initVars(a,'cellN', F,['CoordinateX','CoordinateY'])
 a = C.node2Center(a, 'cellN')
-a = C.rmVars(a, 'cellN')
+C._rmVars(a, 'cellN')
 t = C.newPyTree(['Base',2]); t[2][1][2].append(a)
 t[2][1] = C.addState(t[2][1], 'EquationDimension',2)
-t = C.addVars(t,'Density')
+C._addVars(t,'Density')
 t2 = X.maximizeBlankedCells(t, depth=1,dir=0)
 test.testT(t2,1)
 t2 = X.maximizeBlankedCells(t, depth=2,dir=0)

@@ -7,6 +7,9 @@ __author__ = "Stephanie Peron, Christophe Benoit, Gaelle Jeanfaivre, Pascal Raud
 #
 import connector
 
+__all__ = ['blankCells', '_blankCells', 'blankCellsTetra', 'blankCellsTri', 'blankIntersectingCells', 'chimeraTransfer', 'connectMatch', 'getIntersectingDomainsAABB', 'maximizeBlankedCells', 'optimizeOverlap', 'setDoublyDefinedBC', 'setHoleInterpolatedPoints', 'setIBCTransfers', 'setIBCTransfersD', 'setInterpTransfers', 'setInterpTransfersD', 'writeCoefs','maskXRay__','_applyBCOverlapsStruct__','applyBCOverlapsStruct__']
+
+
 #===============================================================================
 def connectMatch(a1, a2, sameZone=0, tol=1.e-6, dim=3):
     """Detect (sub-)windows of a1 that match with (sub)-windows of a2.
@@ -163,6 +166,32 @@ def maximizeBlankedCells(a, depth=2, dir=1, cellNName='cellN'):
         return connector.maximizeBlankedCells(a, depth, dir, cellNName)
 
 #-----------------------------------------------------------------------------
+def _setHoleInterpolatedPoints(cellN,depth=2, dir=0, cellNName='cellN'):
+    """Set interpolated points cellN=2 around cellN=0 points."""
+    if depth == 0: return None
+    try: import Converter
+    except: raise ImportError("_setHoleInterpolatedPoints: requires Converter module.")
+    loc = 'nodes'
+    if len(cellN) == 4:
+        if cellN[1].shape[1] == cellN[2].shape[1]: loc = 'centers'
+
+    if loc == 'nodes':
+        if depth < 0:
+            Converter._initVars(cellN,'{%s} = 1-{cellN}+({cellN}>1.5)*3'%cellNName)
+            _getOversetHolesInterpNodes__(cellN, -depth, dir, cellNName)
+            Converter._initVars(cellN,'{%s} = 1-{cellN}+({cellN}>1.5)*3'%cellNName)
+        else: 
+            _getOversetHolesInterpNodes__(cellN, depth, dir, cellNName)
+    else: # non structure avec champ celln en centres
+        if depth < 0:
+            Converter._initVars(cellN,'{%s} = 1-{cellN}+({cellN}>1.5)*3'%cellNName)
+            _getOversetHolesInterpCellCenters__(cellN, -depth, dir, cellNName)
+            Converter._initVars(cellN,'{%s} = 1-{cellN}+({cellN}>1.5)*3'%cellNName)
+        else: 
+            _getOversetHolesInterpCellCenters__(cellN, depth, dir, cellNName)
+    
+    return None
+
 def setHoleInterpolatedPoints(celln, depth=2, dir=0, cellNName='cellN'):
     """Set interpolated points cellN=2 around cellN=0 points."""
     if depth == 0: return celln
@@ -192,7 +221,7 @@ def setHoleInterpolatedPoints(celln, depth=2, dir=0, cellNName='cellN'):
 #------------------------------------------------------------------------------
 def blankCells(coords, cellnfields, body, blankingType=1, \
                delta=1.e-10, dim=3, masknot=0, tol=1.e-8, \
-               XRaydim1=1000, XRaydim2=1000):
+               XRaydim1=1000, XRaydim2=1000, cellNName='cellN'):
     """Blank cells in coords by a X-Ray mask defined by the body,
     within a distance delta.
     Usage: blankCells(coords, cellnfields, body, blankingType, delta, dim, maskNot, tol)"""
@@ -212,8 +241,33 @@ def blankCells(coords, cellnfields, body, blankingType=1, \
     if blankingType == 2: # center_in: simplement un node_in sur les centres
         coords = C.node2Center(coords); blankingType = 0 
     return connector.blankCells(coords, cellnfields, bodyt, blankingType, \
-                                delta, dim, masknot, tol, XRaydim1, XRaydim2)
+                                delta, dim, masknot, tol, XRaydim1, XRaydim2, cellNName)
+#------------------------------------------------------------------------------
+# in place version: modifies cellnfields 
+def _blankCells(coords, cellnfields, body, blankingType=1, \
+                delta=1.e-10, dim=3, masknot=0, tol=1.e-8, \
+                XRaydim1=1000, XRaydim2=1000, cellNName='cellN'):
+    """Blank cells in coords by a X-Ray mask defined by the body,
+    within a distance delta. cellnfields is modified in place without copy.
+    Usage: blankCells(coords, cellnfields, body, blankingType, delta, dim, maskNot, tol)"""
+    try: import Converter as C
+    except: raise ImportError("blankCells: requires Converter module.")
+    # passe body en centres etendus si structure et pas node_in
+    if blankingType != 0:
+        # verif que ts les body sont structures
+        struct = 1
+        for z in body:
+            if len(z) != 5: struct = 0; break
+        if struct == 1: body = C.node2ExtCenter(body)
+    bodyt = []
+    for z in body:
+        z = C.convertArray2Tetra(z)
+        bodyt.append(z)
+    if blankingType == 2: # center_in: simplement un node_in sur les centres
+        coords = C.node2Center(coords); blankingType = 0 
 
+    return connector._blankCells(coords, cellnfields, bodyt, blankingType, \
+                                 delta, dim, masknot, tol, XRaydim1, XRaydim2, cellNName)
 #==============================================================================
 # blankIntersectingCells
 # IN: a: 3D structured mesh with wall orthogonal to k direction
@@ -301,21 +355,28 @@ def getIntersectingDomainsAABB(arrays, tol=1.e-10):
 # set cellN to 2 for nodes/cells in a neighborhood of depth nodes/cells
 # for NGON arrays
 #=============================================================================
-def applyBCOverlapsNG__(a, faceList, depth, loc, val=2):
+def applyBCOverlapsNG__(a, faceList, depth, loc, val=2, cellNName='cellN'):
     if loc == 'nodes': locI = 0
     elif loc == 'centers': locI = 1
     else: raise ValueError("applyBCOverlapsUnstr: invalid location.")
-    return connector.applyBCOverlapsNG(a, faceList, depth, locI, val)
+    return connector.applyBCOverlapsNG(a, faceList, depth, locI, val, cellNName)
 
 #=============================================================================
 # set cellN to 2 for nodes/cells in a neighborhood of depth nodes/cells
 # for structured arrays. 
+# in place
 #=============================================================================
-def applyBCOverlapsStruct__(a, minIndex, maxIndex, depth, loc, val=2):
+def _applyBCOverlapsStruct__(a, minIndex, maxIndex, depth, loc, val=2, cellNName='cellN'):
     if loc == 'nodes': locI = 0
     elif loc == 'centers': locI = 1
     else: raise ValueError("applyBCOverlapsStruct: invalid location.")
-    return connector.applyBCOverlapStruct(a, minIndex, maxIndex, depth, locI, val)
+    return connector.applyBCOverlapStruct(a, minIndex, maxIndex, depth, locI, val, cellNName)
+
+def applyBCOverlapsStruct__(a, minIndex, maxIndex, depth, loc, val=2, cellNName='cellN'):
+    import Converter as C
+    b = C.copy(a)
+    _applyBCOverlapsStruct__(b, minIndex, maxIndex, depth, loc, val=val, cellNName=cellNName)
+    return b
 
 #=============================================================================
 # Application des conditions aux limites doublement definies pour une zone z
@@ -448,17 +509,6 @@ def writeCoefs(ntotZones,listRcvId,listCellIndicesRcv,listOfDirectionEX,listCell
     connector.writeCoefs(ntotZones,listRcvId,listCellIndicesRcv,listOfDirectionEX,listCellIndicesDonor,listInterpolantsDonor, listInterpTypes, listCellN, listDonorDim, nbInterpCellsForDonor, PrefixFile, isEX, solver, nGhostCells)
 
 #-----------------------------------------------------------------------------
-# Retourne le celln modifie des cellules interpolees
-# a partir de la fenetre [i1,i2,j1,j2,k1,k2] de la BCOverlap
-# IN: zc: contient le cellnaturefield aux centres
-# IN: bcrange: range de la BCOverlap associee - localisee en centres
-# IN: depth: nb de rangees de cellules a interpoler
-#-----------------------------------------------------------------------------
-def getBCOverlapInterpCellCenters__(zc, bcrange, depth=2):
-    """Set cellN to 2 for interpolated cell centers from a BCOverlap window."""
-    return connector.getBCOverlapInterpCellCenters(zc, bcrange, depth)
-
-#-----------------------------------------------------------------------------
 # Retourne le celln modifie des cellules interpolees au voisinage des pts masques
 # IN: zc: contient au moins le celln (celln=0 pour les pts interpoles)
 # IN: depth: nb de rangees de cellules interpolees
@@ -467,7 +517,12 @@ def getOversetHolesInterpCellCenters__(zc, depth=2, dir=0, cellNName='cellN'):
     """Set cellN=2 for the fringe of interpolated cells around cells of celln
     equal to 0."""
     return connector.getOversetHolesInterpCellCenters(zc, depth, dir, cellNName)
-    
+
+# version getFromArray2: ne marche qu en structure
+def _getOversetHolesInterpCellCenters__(zc, depth=2, dir=0, cellNName='cellN'):
+    """Set cellN=2 for the fringe of interpolated cells around cells of celln
+    equal to 0."""
+    return connector._getOversetHolesInterpCellCenters(zc, depth, dir, cellNName)
 #-----------------------------------------------------------------------------
 # Retourne le celln modifie des noeuds interpoles au voisinage des pts masques
 # IN: zc: contient au moins le celln (celln=0 pour les pts interpoles)
@@ -477,6 +532,12 @@ def getOversetHolesInterpNodes__(z, depth=2, dir=0, cellNName='cellN'):
     """Set cellN=2 for the fringe of interpolated nodes around nodes of celln
     equal to 0."""
     return connector.getOversetHolesInterpNodes(z, depth, dir, cellNName)
+
+# version getFromArray2: ne marche qu en structure
+def _getOversetHolesInterpNodes__(z, depth=2, dir=0, cellNName='cellN'):
+    """Set cellN=2 for the fringe of interpolated nodes around nodes of celln
+    equal to 0."""
+    return connector._getOversetHolesInterpNodes(z, depth, dir, cellNName)
 
 #------------------------------------------------------------------------------
 # Retourne les coordonnees des pts EX et les indices dans le maillage initial

@@ -8,7 +8,7 @@ try:
     import Converter.Internal as Internal
     import Converter.PyTree as C
 except:
-    raise ImportError("Connector.OversetData requires Converter module.")
+    raise ImportError("Connector.compactTransfers requires Converter module.")
 
 try:
     import Converter.Mpi as Cmpi
@@ -136,7 +136,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None):
          else: 
             count_ID  += 1
 
-         # periodicite azymuthal
+         # periodicite azimutale
          rotation = 0
          if RotationAngle is not None: rotation +=3 
          if RotationCenter is not None: rotation +=3 

@@ -1158,7 +1158,8 @@ PyObject *timecount;
                                         xPI, xPI+nbRcvPts, xPI+nbRcvPts*2, 
                                         densPtr, densPtr+nbRcvPts,
                                         densPtr+nbRcvPts*2, densPtr+nbRcvPts*3,
-                                        densPtr+nbRcvPts*4, densPtr+nbRcvPts*5, densPtr+nbRcvPts*6, densPtr+nbRcvPts*7, densPtr+nbRcvPts*8,  
+                                        densPtr+nbRcvPts*4, densPtr+nbRcvPts*5, 
+                                        densPtr+nbRcvPts*6, densPtr+nbRcvPts*7, densPtr+nbRcvPts*8,  
                                         ipt_tmp, size,
                                         gamma, cv, muS, Cs, Ts, Pr,
                                         vectOfDnrFields, vectOfRcvFields);
@@ -1170,7 +1171,8 @@ PyObject *timecount;
                                         xPI    , xPI     +nbRcvPts, xPI     +nbRcvPts*2, 
                                         densPtr, densPtr+nbRcvPts, 
                                         densPtr+nbRcvPts*2, densPtr+nbRcvPts*3,
-                                        densPtr+nbRcvPts*4, densPtr+nbRcvPts*5, densPtr+nbRcvPts*6, densPtr+nbRcvPts*7, densPtr+nbRcvPts*8,
+                                        densPtr+nbRcvPts*4, densPtr+nbRcvPts*5, 
+                                        densPtr+nbRcvPts*6, densPtr+nbRcvPts*7, densPtr+nbRcvPts*8,
                                         ipt_tmp, size,
                                         gamma, cv, muS, Cs, Ts, Pr,
                                         vectOfDnrFields, vectOfRcvFields);
@@ -1182,14 +1184,15 @@ PyObject *timecount;
                                         xPI    , xPI     +nbRcvPts, xPI     +nbRcvPts*2, 
                                         densPtr, densPtr +nbRcvPts, 
                                         densPtr+nbRcvPts*2, densPtr+nbRcvPts*3,
-                                        densPtr+nbRcvPts*4, densPtr+nbRcvPts*5, densPtr+nbRcvPts*6, densPtr+nbRcvPts*7, densPtr+nbRcvPts*8,
+                                        densPtr+nbRcvPts*4, densPtr+nbRcvPts*5, 
+                                        densPtr+nbRcvPts*6, densPtr+nbRcvPts*7, densPtr+nbRcvPts*8,
                                         ipt_tmp, size,
                                         gamma, cv, muS, Cs, Ts, Pr,
                                         vectOfDnrFields, vectOfRcvFields);
           }//ibc          
-  //*
-  //        } //chunk
-  //*/
+          //*
+          //        } //chunk
+          //*/
           ideb       = ideb + ifin;
           shiftCoef  = shiftCoef   +  ntype[1+ndtyp]*sizecoefs; //shift coef   entre 2 types successif
           shiftDonor = shiftDonor +  ntype[1+ndtyp];           //shift donor entre 2 types successif

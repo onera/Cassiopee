@@ -697,57 +697,60 @@ PyObject* K_CONNECTOR::__setInterpTransfersD( PyObject* self, PyObject* args ) {
                         }
 
                         // ibc
-                        if (ibc == 1) {
-                            // tableau temporaire pour utiliser la routine commune setIBCTransfersCommon
-                            for ( E_Int noind = pt_deb; noind < pt_fin; noind++ ) rcvPts[noind] = noind;
+                        if (ibc == 1) 
+                        {
+                          // tableau temporaire pour utiliser la routine commune setIBCTransfersCommon
+                          for ( E_Int noind = pt_deb; noind < pt_fin; noind++ ) rcvPts[noind] = noind;
 
-                            if ( varType == 1 || varType == 11 )
-                                setIBCTransfersCommonVar1( bcType, rcvPts, nbRcvPts, pt_deb, pt_fin, ithread, xPC,
-                                                           xPC + nbRcvPts, xPC + nbRcvPts * 2, xPW, xPW + nbRcvPts,
-                                                           xPW + nbRcvPts * 2, xPI, xPI + nbRcvPts, xPI + nbRcvPts * 2,
-                                                           densPtr, densPtr+nbRcvPts, 
-                                                           densPtr+nbRcvPts*2, densPtr+nbRcvPts*3, 
-                                                           densPtr+nbRcvPts*4, densPtr+nbRcvPts*5, densPtr+nbRcvPts*6, densPtr+nbRcvPts*7, densPtr+nbRcvPts*8,
-                                                           ipt_tmp, size, gamma, cv, muS, Cs,
-                                                           Ts, Pr, vectOfDnrFields, vectOfRcvFields );
-                            else if ( varType == 2 || varType == 21 )
-                                setIBCTransfersCommonVar2( bcType, rcvPts, nbRcvPts, pt_deb, pt_fin, ithread, xPC,
-                                                           xPC + nbRcvPts, xPC + nbRcvPts * 2, xPW, xPW + nbRcvPts,
-                                                           xPW + nbRcvPts * 2, xPI, xPI + nbRcvPts, xPI + nbRcvPts * 2,
-                                                           densPtr, densPtr+nbRcvPts, 
-                                                           densPtr+nbRcvPts*2, densPtr+nbRcvPts*3, 
-                                                           densPtr+nbRcvPts*4, densPtr+nbRcvPts*5, densPtr+nbRcvPts*6, densPtr+nbRcvPts*7, densPtr+nbRcvPts*8,  
-                                                           ipt_tmp, size, gamma, cv, muS, Cs,
-                                                           Ts, Pr, vectOfDnrFields, vectOfRcvFields );
-                            else if ( varType == 3 || varType == 31 )
-                                setIBCTransfersCommonVar3( bcType, rcvPts, nbRcvPts, pt_deb, pt_fin, ithread, xPC,
-                                                           xPC + nbRcvPts, xPC + nbRcvPts * 2, xPW, xPW + nbRcvPts,
-                                                           xPW + nbRcvPts * 2, xPI, xPI + nbRcvPts, xPI + nbRcvPts * 2,
-                                                           densPtr, densPtr+nbRcvPts, 
-                                                           densPtr+nbRcvPts*2, densPtr+nbRcvPts*3, 
-                                                           densPtr+nbRcvPts*4, densPtr+nbRcvPts*5, densPtr+nbRcvPts*6, densPtr+nbRcvPts*7, densPtr+nbRcvPts*8,  
-                                                           ipt_tmp, size, gamma, cv, muS, Cs,
-                                                           Ts, Pr, vectOfDnrFields, vectOfRcvFields );
+                          if ( varType == 1 || varType == 11 )
+                            setIBCTransfersCommonVar1( ibcType, rcvPts, nbRcvPts, pt_deb, pt_fin, ithread, xPC,
+                                                       xPC + nbRcvPts, xPC + nbRcvPts * 2, xPW, xPW + nbRcvPts,
+                                                       xPW + nbRcvPts * 2, xPI, xPI + nbRcvPts, xPI + nbRcvPts * 2,
+                                                       densPtr, densPtr+nbRcvPts, 
+                                                       densPtr+nbRcvPts*2, densPtr+nbRcvPts*3, 
+                                                       densPtr+nbRcvPts*4, densPtr+nbRcvPts*5, 
+                                                       densPtr+nbRcvPts*6, densPtr+nbRcvPts*7, densPtr+nbRcvPts*8,
+                                                       ipt_tmp, size, gamma, cv, muS, Cs,
+                                                       Ts, Pr, vectOfDnrFields, vectOfRcvFields );
+                          else if ( varType == 2 || varType == 21 )
+                            setIBCTransfersCommonVar2( ibcType, rcvPts, nbRcvPts, pt_deb, pt_fin, ithread, xPC,
+                                                       xPC + nbRcvPts, xPC + nbRcvPts * 2, xPW, xPW + nbRcvPts,
+                                                       xPW + nbRcvPts * 2, xPI, xPI + nbRcvPts, xPI + nbRcvPts * 2,
+                                                       densPtr, densPtr+nbRcvPts, 
+                                                       densPtr+nbRcvPts*2, densPtr+nbRcvPts*3, 
+                                                       densPtr+nbRcvPts*4, densPtr+nbRcvPts*5, densPtr+nbRcvPts*6, 
+                                                       densPtr+nbRcvPts*7, densPtr+nbRcvPts*8,  
+                                                       ipt_tmp, size, gamma, cv, muS, Cs,
+                                                       Ts, Pr, vectOfDnrFields, vectOfRcvFields );
+                          else if ( varType == 3 || varType == 31 )
+                            setIBCTransfersCommonVar3( ibcType, rcvPts, nbRcvPts, pt_deb, pt_fin, ithread, xPC,
+                                                       xPC + nbRcvPts, xPC + nbRcvPts * 2, xPW, xPW + nbRcvPts,
+                                                       xPW + nbRcvPts * 2, xPI, xPI + nbRcvPts, xPI + nbRcvPts * 2,
+                                                       densPtr, densPtr+nbRcvPts, 
+                                                       densPtr+nbRcvPts*2, densPtr+nbRcvPts*3, 
+                                                       densPtr+nbRcvPts*4, densPtr+nbRcvPts*5, densPtr+nbRcvPts*6, 
+                                                       densPtr+nbRcvPts*7, densPtr+nbRcvPts*8,  
+                                                       ipt_tmp, size, gamma, cv, muS, Cs,
+                                                       Ts, Pr, vectOfDnrFields, vectOfRcvFields );
                         }  // ibc
-
+                        
                         //        } //chunk
 
                         ideb        = ideb + ifin;
                         shiftCoef   = shiftCoef + ntype[1 + ndtyp] * sizecoefs;  // shift coef   entre 2 types successif
                         shiftDonor = shiftDonor + ntype[1 + ndtyp];            // shift donor entre 2 types successif
                     }                                                            // type
-
+                    
                     count_rac += 1;
                 }  // irac
             }      // pass_inst
 #pragma omp barrier
         }  // pass
     }      // omp
-
+    
 #ifdef TimeShow
-if ( rank == 0 )
+    if ( rank == 0 )
     {
-      
       time_out_D = omp_get_wtime();
       ipt_timecount[1]  = ipt_timecount[1] + time_out_D - time_in_D;
       time_in_D = omp_get_wtime();
@@ -815,12 +818,12 @@ if ( rank == 0 )
 
 #ifdef TimeShow
 
-if ( rank == 0 )
-  {
-    time_out_D = omp_get_wtime();
-    ipt_timecount[0]    =  ipt_timecount[0] + time_out_D - time_in_D ;
-  }
+    if ( rank == 0 )
+    {
+      time_out_D = omp_get_wtime();
+      ipt_timecount[0]    =  ipt_timecount[0] + time_out_D - time_in_D ;
+    }
 #endif
-  
+    
     return infos;
 }

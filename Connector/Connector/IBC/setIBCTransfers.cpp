@@ -424,6 +424,11 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar1(
           roEOut[indR] = pext/gam1+0.5*roOut[indR]*(u*u+v*v+w*w);
         }
   }
+  else 
+  {
+    printf("Warning !!! setIBCTransfersCommonVar1: bcType %d not implemented.\n", bctype);
+    return 0;
+  }
   return 1;
 }
 //=============================================================================
@@ -748,6 +753,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
          E_Int indR = rcvPts[noind+ideb];
          tOut[indR] = pressPtr[noind+ideb]/(roOut[indR]*cvgam);//pext/(roext*cvgam)
          densPtr[noind+ideb] = roOut[indR];
+         // printf(" press = %g \n", pressPtr[noind+ideb]);
         }
   }
   else if (bctype == 5) // inj
@@ -1249,7 +1255,13 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
       }
 
     } 
-  }     
+  }       
+  else 
+  {
+    printf("Warning !!! setIBCTransfersCommonVar2: bcType %d not implemented.\n", bctype);
+    return 0;
+  }
+
   return 1;
 }
 
@@ -1520,6 +1532,11 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar3(
           E_Int indR = rcvPts[noind+ideb];
           densPtr[noind+ideb] = roOut[indR];
         }
+  }
+  else 
+  {
+    printf("Warning !!! setIBCTransfersCommonVar3: bcType %d not implemented.\n", bctype);
+    return 0;
   }
   return 1;
 }

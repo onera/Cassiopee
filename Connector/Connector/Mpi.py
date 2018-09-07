@@ -136,13 +136,14 @@ def __setInterpTransfers(zones, zonesD, vars, param_int, param_real, type_transf
 
         no_transfert = comm_P2P
         if dest == Cmpi.rank: #transfert intra_processus
-            # print 'transfert local', no_transfert
+            #print 'transfert local', type_transfert
             connector.___setInterpTransfers(zones, zonesD, vars, param_int, param_real, nitrun, varType, bcType, 
                                             type_transfert, no_transfert, Gamma,Cv,MuS,Cs,Ts)
 
         else:
-            # print 'transfert global'
-            infos = connector.__setInterpTransfersD(zones, zonesD, vars, param_int, param_real, nitrun, varType, bcType, 
+            #print 'transfert global', type_transfert
+            infos = connector.__setInterpTransfersD(zones, zonesD, vars, param_int, param_real, nitrun, varType, 
+                                                    bcType, 
                                                     type_transfert, no_transfert,Gamma,Cv,MuS,Cs,Ts) 
  
             for n in infos:
@@ -171,11 +172,12 @@ def __setInterpTransfers(zones, zonesD, vars, param_int, param_real, type_transf
 #---------------------------------------------------------------------------------------------------------
 # Transferts instationnaires en parallele
 # avec prise en compte du mouvement
+# absFrame = True : les coordonnees de t sont deja dans le repere absolu en entree
 #---------------------------------------------------------------------------------------------------------
 def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT, 
               dictOfNobOfRcvZones, dictOfNozOfRcvZones,
               dictOfNobOfDnrZones, dictOfNozOfDnrZones, 
-              time=0., motionFast=True, procDict=None):
+              time=0., absFrame=True, procDict=None, cellNName='cellN'):
     if procDict is None: procDict = Cmpi.getProcDict(tc)
     
     # dictionnaire des matrices de mouvement pour passer du repere relatif d une zone au repere absolu
@@ -185,61 +187,71 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
 
     dictOfFields={}; dictOfIndices={}
 
+    print dictOfNobOfDnrZones
     
     datas={}
     for z in Internal.getZones(t):
         zname = Internal.getName(z)
+        if zname not in dictOfNobOfDnrZones.keys(): continue
+
         # coordonnees dans le repere absolu de la zone receptrice
-        indicesI, XI, YI, ZI = X.getInterpolatedPoints(z,loc='centers') 
-        if indicesI is None: continue
-            
-        # passage des coordonnees dans le repere absolu
-        # si mouvement gere par FastS -> les coordonnees dans z sont deja les coordonnees en absolu
-        if not motionFast: 
-            if dictOfMotionMatR2A.has_key(zname):
-                MatRel2AbsR=RM.getMotionMatrixForZone(z, time=time, F=None)
-                dictOfMotionMatR2A[zname]=MatRel2AbsR
-            else:
-                MatRel2AbsR = dictOfMotionMatR2A[zname]
-            RM._moveN([XI,YI,ZI],coordsD,coordsC,MatRel2AbsR)
+        nobc = dictOfNobOfDnrZones[zname]
+        nozc = dictOfNozOfDnrZones[zname]
+        zc = tc[2][nobc][2][nozc]
+        C._cpVars(z,'centers:'+cellNName, zc, cellNName)
+        res = X.getInterpolatedPoints(zc,loc='nodes', cellNName=cellNName) 
 
-        procR = procDict[zname]
-        for znamed in intersectionDict[zname]:
-            procD = procDict[znamed]
-            if procD == Cmpi.rank:
-                nobc = dictOfNobOfDnrZones[znamed]
-                nozc = dictOfNozOfDnrZones[znamed]
-                zdnr = tc[2][nobc][2][nozc]
-                adt = dictOfADT[znamed]
-                if dictOfMotionMatA2R.has_key(znamed):
-                    MatAbs2RelD=dictOfMotionMatA2R[znamed]
+        if res is not None: 
+            indicesI, XI, YI, ZI = res
+            # passage des coordonnees dans le repere absolu
+            # si mouvement gere par FastS -> les coordonnees dans z sont deja les coordonnees en absolu
+            if not absFrame: 
+                if dictOfMotionMatR2A.has_key(zname):
+                    MatRel2AbsR=RM.getMotionMatrixForZone(z, time=time, F=None)
+                    dictOfMotionMatR2A[zname]=MatRel2AbsR
                 else:
-                    if dictOfMotionMatR2A.has_key(znamed):
-                        MatRel2AbsD = dictOfMotionMatR2A[znamed]
-                        MatAbs2RelD = numpy.transpose(MatRel2AbsD)
-                        dictOfMotionMatA2R[znamed] = MatAbs2RelD
+                    MatRel2AbsR = dictOfMotionMatR2A[zname]
+                RM._moveN([XI,YI,ZI],coordsD,coordsC,MatRel2AbsR)
+
+            procR = procDict[zname]
+            for znamed in intersectionDict[zname]:
+                procD = procDict[znamed]
+                if procD == Cmpi.rank:
+                    nobc = dictOfNobOfDnrZones[znamed]
+                    nozc = dictOfNozOfDnrZones[znamed]
+                    zdnr = tc[2][nobc][2][nozc]
+                    adt = dictOfADT[znamed]
+
+                    if dictOfMotionMatA2R.has_key(znamed):
+                        MatAbs2RelD=dictOfMotionMatA2R[znamed]
+                    else:                        
+                        if dictOfMotionMatR2A.has_key(znamed):
+                            MatRel2AbsD = dictOfMotionMatR2A[znamed]
+                            MatAbs2RelD = numpy.transpose(MatRel2AbsD)
+                            dictOfMotionMatA2R[znamed] = MatAbs2RelD
+                        else:
+                            MatRel2AbsD=RM.getMotionMatrixForZone(zdnr, time=time, F=None)
+                            dictOfMotionMatR2A[znamed]=MatRel2AbsD
+                            MatAbs2RelD = numpy.transpose(MatRel2AbsD)
+                            dictOfMotionMatA2R[znamed] = MatAbs2RelD
+                
+                    [XIRel, YIRel, ZIRel] = RM.moveN([XI,YI,ZI],coordsC,coordsD,MatAbs2RelD)
+
+                    # transfers avec coordonnees dans le repere relatif 
+                    fields = X.transferFields(zdnr, XIRel, YIRel, ZIRel, hook=adt, variables=variables)
+                    if not dictOfFields.has_key(zname):
+                        dictOfFields[zname]=[fields]
+                        dictOfIndices[zname]=indicesI
                     else:
-                        MatRel2AbsD=RM.getMotionMatrixForZone(zdnr, time=time, F=None)
-                        dictOfMotionMatR2A[znamed]=MatRel2AbsD
-                        MatAbs2RelD = numpy.transpose(MatRel2AbsD)
-                        dictOfMotionMatA2R[znamed] = MatAbs2RelD
-            
-                [XIRel, YIRel, ZIRel] = RM.moveN([XI,YI,ZI],coordsC,coordsD,MatAbs2RelD)
+                        dictOfFields[zname].append(fields)
 
-                # transfers avec coordonnees dans le repere relatif 
-                fields = X.transferFields(zdnr, XIRel, YIRel, ZIRel, hook=adt, variables=variables)
-                if not dictOfFields.has_key(zname):
-                    dictOfFields[zname]=[fields]
-                    dictOfIndices[zname]=indicesI
                 else:
-                    dictOfFields[zname].append(fields)
+                    if not datas.has_key(procD):
+                        datas[procD] = [[zname, znamed, indicesI, XI, YI, ZI]]
+                    else: datas[procD].append([zname, znamed, indicesI, XI, YI, ZI])
 
-            else:
-                #print 'transfert des donnees d interpolation du proc %d vers le proc %d'%(procR,procD) 
-                if not datas.has_key(procD):
-                    datas[procD] = [[zname, znamed, indicesI, XI, YI, ZI]]
-                else: datas[procD].append([zname, znamed, indicesI, XI, YI, ZI])
-    #print 'Proc  : ', Cmpi.rank, ' envoie les donnees : ' ,datas
+    #print 'Proc  : ', Cmpi.rank, ' envoie les donnees : ' ,datas.keys()
+ 
     # 1er envoi : envoi des numpys des donnees a interpoler suivant le graphe
     interpDatas = Cmpi.sendRecv(datas,graph)
 
@@ -270,7 +282,6 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
                     dictOfMotionMatA2R[zdnrname] = MatAbs2RelD
             
             [XIRel, YIRel, ZIRel] = RM.moveN([XI,YI,ZI],coordsC,coordsD,MatAbs2RelD)
-            
             # transferts avec coordonnees dans le repere relatif 
             fields = X.transferFields(zdnr, XIRel, YIRel, ZIRel, hook=adt, variables=variables)
             procR = procDict[zrcvname]

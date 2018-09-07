@@ -66,6 +66,25 @@ def sendRecv(datas, graph):
     MPI.Request.Waitall(reqs)
     return rcvDatas
 
+def sendRecv2(datas, graph):
+    if graph == {}: return {}
+    reqs = []
+    if graph.has_key(rank):
+        g = graph[rank] # graph du proc courant
+        for oppNode in g.keys():
+            # Envoie les datas necessaires au noeud oppose
+            print '%d: On envoie a %d: %s'%(rank,oppNode,g[oppNode])
+            s = KCOMM.isend(datas[oppNode], dest=oppNode)
+            reqs.append(s)
+    rcvDatas={}
+    for node in graph.keys():
+        #print rank, graph[node].keys()
+        if rank in graph[node].keys():
+            print '%d: On doit recevoir de %d: %s'%(rank,node,graph[node][rank])
+            rcvDatas[node] = KCOMM.recv(source=node)
+    MPI.Request.Waitall(reqs)
+    return rcvDatas
+
 #==============================================================================
 # allgather
 #==============================================================================

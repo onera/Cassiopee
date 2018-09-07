@@ -307,8 +307,10 @@
     <strong>X.applyBCOverlaps</strong>:
     set the cellN to 2 for the fringe nodes or cells (depending on parameter 'loc'='nodes' or 'centers') near the overlap borders defined in the pyTree t.
     Parameter 'depth' defines the number of layers of interpolated points.
+    Parameter val enables to set a value for the cellN variable near overlap borders, instead of 2.
+    Variable 'cellN' is the default name of the cellN variable and can be specified using parameter cellNName. 
     <div class="code">
-    t = X.applyBCOverlaps(t, depth=2, loc='centers')
+    t = X.applyBCOverlaps(t, depth=2, loc='centers', val=2., cellNName='cellN')
     </div>
      <em> Example of use: </em><a href="Examples/Connector/applyBCOverlapsPT.py"> set cellN to 2 near overlap BCs in a pyTree (pyTree).</a> <br><br>
 
@@ -328,9 +330,10 @@
     blankingType can be 'cell_intersect', 'cell_intersect_opt', 'center_in' or 'node_in'. Parameter depth is only meaningfull for 'cell_intersect_opt'.<br>
     XRaydim1 and XRaydim2 are the dimensions of the X-Ray hole-cutting in the x and y directions in 3D.<br>
     If the variable 'cellN' does not exist in the input pyTree, it is initialized to 1, located at 'nodes' if 'node_in' is set, and at centers in other cases.<br>
+    cellN variable can be specified by argument cellNName (default is 'cellN').
     Warning: 'cell_intersect_opt' can be CPU time-consuming when delta>0.
     <div class="code">
-    B = X.blankCells(t, bodies, BM, depth=2, blankingType='cell_intersect', delta=1.e-10, dim=3, tol=1.e-8, XRaydim1=1000, XRaydim2=1000)
+    B = X.blankCells(t, bodies, blankingMatrix= [], depth=2, blankingType='cell_intersect', delta=1.e-10, dim=3, tol=1.e-8, XRaydim1=1000, XRaydim2=1000, cellNName='cellN')
     </div>
     <em> Example of use: </em><a href="Examples/Connector/blankCellsPT.py"> blank cells (pyTree).</a><br><br>
 
@@ -372,7 +375,8 @@
     compute the fringe of interpolated points around a set of blanked points in a pyTree t.
     Parameter depth is the number of layers of interpolated points that are built; if depth > 0 the fringe of interpolated points is outside the blanked zones, and if depth < 0,
     it is built towards the inside.
-    Blanked points are identified by the variable 'cellN' located at mesh nodes or centers. 'cellN' is set to 2 for the fringe of interpolated points.
+    Blanked points are identified by the variable cellN located at mesh nodes or centers. 
+    Field 'cellN' is set to 2 for the fringe of interpolated points.
     <div class="code">
     t = X.setHoleInterpolatedPoints(t, depth=2, dir=0, loc='centers', cellNName='cellN')
     </div>
@@ -391,14 +395,14 @@
 
     <strong>X.maximizeBlankedCells</strong>:
     change useless interpolated cells (cellN=2) status to blanked points (cellN=0). Parameter depth specifies the number of layers of interpolated cells to be kept:
-    <div class="code">t = X.maximizeBlankedCells(t, depth=2, dir=1) </div>
+    <div class="code">t = X.maximizeBlankedCells(t, depth=2, dir=1, loc='centers', cellNName='cellN') </div>
     <em>Example of use: </em><a href="Examples/Connector/maximizeBlankedCellsPT.py"> maximize blanked cells (pyTree).</a><br><br>
 
     <strong>X.cellN2OversetHoles</strong>:
     compute the OversetHoles node into a pyTree from the cellN field, located at nodes or centers. For structured zones, defines it as a list of ijk indices, located at nodes or centers.
     For unstructured zones, defines the OversetHoles node as a list of indices ind, defining the cell vertices that are of cellN=0 if the cellN is located at nodes, and defining the cell centers that are of cellN=0 if the cellN is located at centers.
-    The OversetHoles nodes can be then dumped to files, defined by the indices of blanked nodes or cells:
-    <div class="code"> t = X.cellN2OversetHoles(t)</div>
+    If append = True, then OversetHoles are appended to the existing ones.
+    <div class="code"> t = X.cellN2OversetHoles(t, append=False)</div>
     <em>Example of use: </em><a href="Examples/Connector/cellN2OversetHolesPT.py"> create OversetHoles node</a>,
     </em><a href="Examples/Connector/oversetHoles2File.py"> dump OversetHoles node to a file (pyTree).</a><br><br>
 
@@ -454,9 +458,9 @@
 
     <strong>X.getInterpolatedPoints</strong>:
     Return a set of 4 numpys corresponding to the indices (starting at 0) of interpolated points and corresponding coordinate components.
-    Interpolated points are marked with value cellN=2, located at cell centers or nodes. Parameter loc='centers' or 'nodes' is used to 
-    search for interpolated points at cell centers or nodes:
-    <div class="code"> t = X.getInterpolatedPoints(t, loc='centers')</div>
+    Interpolated points are marked with a value 2 for field of name cellNName (default is 'cellN'), 
+    located at cell centers or nodes. Parameter loc='centers' or 'nodes' is used to search for interpolated points at cell centers or nodes:
+    <div class="code"> t = X.getInterpolatedPoints(t, loc='centers', cellNName='cellN')</div>
     <em> Example of use: </em> <a href="Examples/Connector/getInterpolatedPointsPT.py"> Return the indices of interpolated points and their coordinates (pyTree).</a><br><br>
 
     <p></p>

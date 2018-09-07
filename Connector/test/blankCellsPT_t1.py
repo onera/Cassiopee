@@ -5,6 +5,7 @@ import Generator.PyTree as G
 import Geom.PyTree as D
 import Transform.PyTree as T
 import KCore.test as test
+import numpy
 
 surf = D.sphere((0,0,0), 0.5, 20)
 surf = T.rotate(surf,(0.,0.,0.),(0.,1.,0.), 90.)
@@ -16,13 +17,16 @@ t = C.fillEmptyBCWith(t, 'wall', 'BCWall')
 C._addVars(t, 'Density')
 bodies = [[surf]]
 C._initVars(t, 'centers:cellN', 1.)
-criterions = ['cell_intersect', 'cell_intersect_opt', 'center_in']
 
 # Matrice de masquage (arbre d'assemblage)
-import numpy
 BM = numpy.array([[1]])
 t2 = X.blankCells(t, bodies, BM)            
 test.testT(t2, 1)
+
+# in place
+C._initVars(t2, 'centers:cellN', 1.)
+X._blankCells(t2, bodies, BM)            
+test.testT(t2,1)
 
 # masque inverse
 BM = numpy.array([[-1]])

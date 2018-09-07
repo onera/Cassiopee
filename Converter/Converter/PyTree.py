@@ -4792,7 +4792,6 @@ def extractBCMatch(zdonor,gc,dimzR,variables=None):
     return [indR,fldD]
 
 # ===================================================================================
-
 # Extract fields at face centers defining a BC
 # If varList is None -> variables defined at cell centers are extracted
 # If a variable is defined in a BCDataSet, it is used, else Oth order extrapolation elsewhere
@@ -4832,7 +4831,7 @@ def extractBCFields(z, varList=None):
     #1. extract face indices
     if zoneType==2: 
       indicesL=Internal.getNodeFromName1(bc,'PointList')
-      indicesL=Internal.getValue(indicesL)
+      indicesL=Internal.getValue(indicesL)[0]
     else:
       PR=Internal.getNodeFromName1(bc,'PointRange')
       win=Internal.range2Window(PR[1])
@@ -4852,7 +4851,6 @@ def extractBCFields(z, varList=None):
           fieldsL.append(Internal.getValue(datanode))
           varsL.append(dataname)
 
-
     #3. no BCDataSet or variable not in BCDataSet -> Oth order extrapolation
     if len(varsL) < len(varList):
       varsE=[];
@@ -4864,11 +4862,10 @@ def extractBCFields(z, varList=None):
         if eltName =='NGON':
           PE = Internal.getNodeFromName2(zp, 'ParentElements')
           if PE is None: Internal._adaptNFace2PE(zp, remove=False)
-
         else:
           raise TypeError('extractBCFields: basic elements not yet implemented.')          
 
-      locI = 1# volume fields located centers
+      locI = 1# volume fields located at centers
       fieldsL += Converter.converter.extractBCFields(zp, indicesL, varsE, locI,
                                                      Internal.__GridCoordinates__, 
                                                      Internal.__FlowSolutionNodes__,

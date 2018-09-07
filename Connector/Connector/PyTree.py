@@ -931,7 +931,7 @@ def blankIntersectingCells(t, tol=1.e-10, depth=2):
 #==============================================================================
 def blankCells(t, bodies, blankingMatrix=[], depth=2,
                blankingType='cell_intersect', delta=1.e-10, dim=3,
-               tol=1.e-8, XRaydim1=1000, XRaydim2=1000):
+               tol=1.e-8, XRaydim1=1000, XRaydim2=1000, cellNName='cellN'):
     try: import Transform as T
     except: raise ImportError("blankCells: requires Transform module.")
     if (depth != 1 and depth != 2):
@@ -963,16 +963,16 @@ def blankCells(t, bodies, blankingMatrix=[], depth=2,
     # ajout du celln aux centres si n'existe pas pour une zone
     loc = 'centers'
     if blankType == 0: loc = 'nodes'
-    _addCellN__(a, loc=loc)
+    _addCellN__(a, loc=loc, cellNName=cellNName)
     bases = Internal.getBases(a)
-    if bases == []: raise ValueError("blankCells: no basis found in input tree.")
+    if bases == []: raise ValueError("blankCells: no CGNS base found in input tree.")
 
     if blankingMatrix == []: blankingMatrix = numpy.ones((len(bases), len(bodies)), numpy.int32)
     for b in bases:
         coords = C.getFields(Internal.__GridCoordinates__, b)
         if coords != []:
-            if loc == 'centers': cellN = C.getField('centers:cellN', b)
-            else: cellN = C.getField('cellN', b)
+            if loc == 'centers': cellN = C.getField('centers:'+cellNName, b)
+            else: cellN = C.getField(cellNName, b)
             for nb2 in xrange(len(bodies)):
                 blanking = blankingMatrix[nb, nb2]
                 if (bodies[nb2] != [] and \
@@ -992,10 +992,78 @@ def blankCells(t, bodies, blankingMatrix=[], depth=2,
                     cellN = Connector.blankCells(
                         coords, cellN, bc, blankingType=blankType, \
                         delta=delta, dim=dim, masknot=masknot, tol=tol, \
-                        XRaydim1=XRaydim1, XRaydim2=XRaydim2)
+                        XRaydim1=XRaydim1, XRaydim2=XRaydim2, cellNName=cellNName)
             C.setFields(cellN, b, loc, False)
         nb += 1
     return a
+#==============================================================================
+# Masquage
+#==============================================================================
+def _blankCells(a, bodies, blankingMatrix=[], depth=2,
+                blankingType='cell_intersect', delta=1.e-10, dim=3,
+                tol=1.e-8, XRaydim1=1000, XRaydim2=1000, cellNName='cellN'):
+    try: import Transform as T
+    except: raise ImportError("_blankCells: requires Transform module.")
+    if (depth != 1 and depth != 2):
+        print 'Warning: blankCells: depth must be equal to 1 or 2. Set to default value (2).'
+        depth = 2
+
+    if (blankingType != 'cell_intersect' and \
+        blankingType != 'cell_intersect_opt' and \
+        blankingType != 'center_in' and \
+        blankingType != 'node_in'):
+        print 'Warning: blankCells: blankingType must be cell_intersect, cell_intersect_opt, center_in or node_in.'
+        print 'Set to default (cell_intersect).'
+        blankingType = 'cell_intersect'
+
+    blankType = 1 # par defaut: cell_intersect
+    if blankingType == 'node_in': blankType = 0
+    elif blankingType == 'cell_intersect': blankType = 1
+    elif blankingType == 'center_in': blankType = 2
+    elif blankingType == 'cell_intersect_opt':
+        if depth == 2: blankType = -2
+        else: blankType = -1
+    else:
+        print 'Warning: blankCells: blankingType must be cell_intersect, cell_intersect_opt, center_in or node_in.'
+        print 'Set to default (cell_intersect).'
+        blankType = 1
+
+    nb = 0
+   
+    # ajout du celln aux centres si n'existe pas pour une zone
+    loc = 'centers'
+    if blankType == 0: loc = 'nodes'
+    _addCellN__(a, loc=loc, cellNName=cellNName)
+    bases = Internal.getBases(a)
+    if bases == []: raise ValueError("_blankCells: no CGNS base found in input tree.")
+
+    if blankingMatrix == []: blankingMatrix = numpy.ones((len(bases), len(bodies)), numpy.int32)
+    for b in bases:
+        coords = C.getFields(Internal.__GridCoordinates__, b, api=2)
+        if coords != []:
+            if loc == 'centers': cellN = C.getField('centers:'+cellNName, b,api=2)
+            else: cellN = C.getField(cellNName, b,api=2)
+            for nb2 in xrange(len(bodies)):
+                blanking = blankingMatrix[nb, nb2]
+                if (bodies[nb2] != [] and \
+                    (blanking == 1 or blanking == -1)):
+                    bc = []
+                    for z in bodies[nb2]:
+                        c = C.getFields(Internal.__GridCoordinates__, z)
+                        if c != []:
+                            c = c[0]
+                            if len(c) == 5: # structure
+                                # pour le 2D
+                                if c[2] == 2: c = T.reorder(c, (-3,1,2))
+                                elif c[3] == 2: c = T.reorder(c, (1,-3,2))
+                            bc.append(c)
+                    masknot = 0
+                    if blanking == -1: masknot = 1
+                    Connector._blankCells(coords, cellN, bc, blankingType=blankType, \
+                                          delta=delta, dim=dim, masknot=masknot, tol=tol,\
+                                          XRaydim1=XRaydim1, XRaydim2=XRaydim2, cellNName=cellNName)
+        nb += 1
+    return None
 
 #==============================================================================
 # Masquage par Tetra
@@ -1128,12 +1196,12 @@ def blankCellsTri(t, mT3, blankingMatrix=[], blankingType='node_in',
 #=====================================================================================
 # returns the numpys of indices of cellN=2 cell centers and corresponding coordinates
 #=====================================================================================
-def getInterpolatedPoints(z,loc='centers'):
+def getInterpolatedPoints(z,loc='centers', cellNName='cellN'):
     if loc=='centers':
         zc = C.node2Center(z)
-        return connector.getInterpolatedPointsZ(zc, Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__,Internal.__FlowSolutionCenters__)
+        return connector.getInterpolatedPointsZ(zc, cellNName, Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__,Internal.__FlowSolutionCenters__)
     else: 
-        return connector.getInterpolatedPointsZ(z, Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__,Internal.__FlowSolutionCenters__)
+        return connector.getInterpolatedPointsZ(z, cellNName, Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__,Internal.__FlowSolutionCenters__)
 
 #==============================================================================
 # optimisation du recouvrement
@@ -1398,33 +1466,66 @@ def optimizeOverlap(t, double_wall=0, priorities=[], intersectionsDict=None):
     return a
 
 #==============================================================================
-def maximizeBlankedCells(t, depth=2, dir=1, cellNName='centers:cellN'):
-    var = cellNName.split(':')
-    if len(var)==2 :
-        if var[0] == 'centers': loc = 'centers'
-        varC = var[1]
-    else:
-        loc = 'nodes'; varC = var[0]
+def maximizeBlankedCells(t, depth=2, dir=1, loc='centers', cellNName='cellN'):
+    a = Internal.copyRef(t)
+    _maximizeBlankedCells(a,depth=depth, dir=dir, loc=loc, cellNName=cellNName)
+    return a
+
+def _maximizeBlankedCells(t, depth=2, dir=1, loc='centers', cellNName='cellN'):
+    var = cellNName
+    if loc =='centers': var = 'centers:'+cellNName
 
     ghost = Internal.getNodeFromName3(t, 'ZoneRind')
-    if ghost is None:
-        a = Internal.addGhostCells(t, t, depth, modified=[cellNName])
-    else: a = Internal.copyRef(t)
-    cellN = C.getField(cellNName, a)
-    cellN = Connector.maximizeBlankedCells(cellN, depth, dir, cellNName=varC)
-    C.setFields(cellN, a, loc, False)
-    if ghost is None:
-        a = Internal.rmGhostCells(a, a, depth, modified=[cellNName])
-    return a
+    if ghost is None: Internal._addGhostCells(t, t, depth, modified=[var])
+    cellN = C.getField(var, t)
+    cellN = Connector.maximizeBlankedCells(cellN, depth, dir, cellNName=cellNName)
+    C.setFields(cellN, t, loc, False)
+    if ghost is None: Internal._rmGhostCells(t, t, depth, modified=[var])
+    return None
 
 #==============================================================================
 # Apply overlap BCs on cell nature field inside zone
 # compatible avec une rangee de cellules d'interpolation
 # Seulement pour les grilles structurees (no check)
 #==============================================================================
-def _applyBCOverlapsStructured(z, depth, loc, val=2):
-    varc = 'cellN'
-    if loc == 'centers': varc = 'centers:cellN'; shift = 0
+# version in place (getFromArray2)
+def _applyBCOverlapsStructured(z, depth, loc, val=2, cellNName='cellN'):
+    varc = cellNName
+    if loc == 'centers': varc = 'centers:'+varc; shift = 0
+    else: shift = 1
+    cellN = C.getField(varc, z, api=2)[0]
+    ni = cellN[2]; nj = cellN[3]; nk = cellN[4]
+
+    overlaps = Internal.getNodesFromType2(z, 'GridConnectivity_t')
+    for o in overlaps:
+        n = Internal.getNodeFromType(o, 'GridConnectivityType_t')
+        if n is not None:
+            v = Internal.getValue(n)
+            if v == 'Overset':
+                isDD = 0
+                userDef = Internal.getNodesFromName(o, 'UserDefinedData')
+                if userDef != []:
+                    if len(userDef[0]) == 4:
+                        info = userDef[0][2][0]
+                        if info[0] == 'doubly_defined': isDD = 1
+                if isDD == 0:
+                    r = Internal.getNodesFromType(o, 'IndexRange_t')
+                    l = Internal.getNodesFromType(o, 'IndexArray_t')
+                    if r == [] and l == []:
+                        print "Warning: applyBCOverlaps: BCOverlap is ill-defined."
+                    elif r != []:
+                        rangew = r[0][1]
+                        w = Internal.range2Window(rangew)
+                        imin = w[0]; jmin = w[2]; kmin = w[4]
+                        imax = w[1]; jmax = w[3]; kmax = w[5]
+                        Connector._applyBCOverlapsStruct__(cellN,(imin,jmin,kmin),(imax,jmax,kmax),depth,loc,
+                                                           val=val, cellNName=cellNName)
+    return None
+
+# Version avec getField/setField - avec copie du tableau
+def applyBCOverlapsStructured(z, depth, loc, val=2, cellNName='cellN'):
+    varc = cellNName
+    if loc == 'centers': varc = 'centers:'+cellNName; shift = 0
     else: shift = 1
     cellN = C.getField(varc, z)[0]
     ni = cellN[2]; nj = cellN[3]; nk = cellN[4]
@@ -1451,13 +1552,15 @@ def _applyBCOverlapsStructured(z, depth, loc, val=2):
                         w = Internal.range2Window(rangew)
                         imin = w[0]; jmin = w[2]; kmin = w[4]
                         imax = w[1]; jmax = w[3]; kmax = w[5]
-                        cellN = Connector.applyBCOverlapsStruct__(cellN,(imin,jmin,kmin),(imax,jmax,kmax),depth,loc,val)
+                        cellN = Connector.applyBCOverlapsStruct__(cellN,(imin,jmin,kmin),(imax,jmax,kmax),depth,loc,
+                                                                  val=val, cellNName=cellNName)
                         C.setFields([cellN], z, loc, False)
+
     return None
 
-def _applyBCOverlapsUnstructured(z, depth, loc, val=2):
-    varc = 'cellN'
-    if loc == 'centers': varc = 'centers:cellN'
+def applyBCOverlapsUnstructured(z, depth, loc, val=2, cellNName='cellN'):
+    varc = cellNName
+    if loc == 'centers': varc = 'centers:'+cellNName
     cellN = C.getField(varc, z)[0]
     zoneBC = Internal.getNodesFromType2(z, 'BC_t')
     for bc in zoneBC:
@@ -1466,23 +1569,38 @@ def _applyBCOverlapsUnstructured(z, depth, loc, val=2):
             faceListN = Internal.getNodesFromName(bc, Internal.__FACELIST__)
             if faceListN != []:
                 faceList = Internal.getValue(faceListN[0])
-                cellN = Connector.applyBCOverlapsNG__(cellN, faceList, depth, loc, val)
+                cellN = Connector.applyBCOverlapsNG__(cellN, faceList, depth, loc, val=val, cellNName=cellNName)
                 C.setFields([cellN], z, loc, False)
     return None
 
-def applyBCOverlaps(t, depth=2, loc='centers', val=2):
+def applyBCOverlaps(t, depth=2, loc='centers', val=2, cellNName='cellN'):
   a = Internal.copyRef(t)
   # ajout du celln si n'existe pas pour une zone
-  _addCellN__(a, loc=loc)
+  _addCellN__(a, loc=loc, cellNName=cellNName)
   zones = Internal.getZones(a)
   for z in zones:
       dimZ = Internal.getZoneDim(z)
-      if dimZ[0] == 'Structured': _applyBCOverlapsStructured(z, depth, loc, val)
+      if dimZ[0] == 'Structured': applyBCOverlapsStructured(z, depth, loc, val=val, cellNName=cellNName)
       else:
-          if dimZ[3] == 'NGON': _applyBCOverlapsUnstructured(z, depth, loc, val)
+          if dimZ[3] == 'NGON': applyBCOverlapsUnstructured(z, depth, loc, val=val, cellNName=cellNName)
           else:
               print 'Warning: applyBCOverlaps: only for NGON unstructured zones.'
   return a
+
+# VERSION getFromArray2 en structure
+def _applyBCOverlaps(a, depth=2, loc='centers', val=2, cellNName='cellN', checkCellN=True):
+  # ajout du celln si n'existe pas pour une zone
+  if checkCellN: _addCellN__(a, loc=loc, cellNName=cellNName)
+
+  zones = Internal.getZones(a)
+  for z in zones:
+      dimZ = Internal.getZoneDim(z)
+      if dimZ[0] == 'Structured': _applyBCOverlapsStructured(z, depth, loc, val, cellNName=cellNName)
+      else:
+          if dimZ[3] == 'NGON': applyBCOverlapsUnstructured(z, depth, loc, val, cellNName=cellNName)
+          else:
+              print 'Warning: _applyBCOverlaps: only for NGON unstructured zones.'
+  return None
 
 #==============================================================================
 # IN: a: contains the cellN located at nodes or centers
@@ -1514,20 +1632,41 @@ def setHoleInterpolatedPoints__(a, depth, dir, count, loc, cellNName='cellN'):
         else: # passage ghost cells
             cellN = C.getField(varcelln, z)[0]
             if cellN != []:# cellN existe
-                if depth < 0:
-                    cellN = Converter.initVars(cellN,'{%s} = 1-{cellN}+({cellN}>1.5)*3'%cellNName)
-                    if loc == 'centers':
-                        cellN = Connector.getOversetHolesInterpCellCenters__(cellN, -depth, dir, cellNName)
-                    else:
-                        cellN = Connector.getOversetHolesInterpNodes__(cellN,-depth, dir, cellNName)
-                    cellN = Converter.initVars(cellN, '{%s} = 1-{cellN}+({cellN}>1.5)*3'%cellNName)
-
-                else: # depth > 0
-                    if loc =='centers': cellN = Connector.getOversetHolesInterpCellCenters__(cellN, depth, dir, cellNName)
-                    else: cellN = Connector.getOversetHolesInterpNodes__(cellN, depth, dir, cellNName)
+                cellN = Connector.setHoleInterpolatedPoints(cellN,depth=depth, dir=dir, cellNName=cellNName)
                 C.setFields([cellN], z, loc, False)
     return a
 
+
+def _setHoleInterpolatedPoints__(a, depth, dir, count, loc, cellNName='cellN'):
+    if depth == 0: return None
+    if loc == 'centers': varcelln = 'centers:'+cellNName
+    else: varcelln = cellNName
+    count = 0
+    for z in Internal.getZones(a):
+        dims = Internal.getZoneDim(z)        
+        if dims[0] == 'Unstructured' and count == 1: pass
+        else: # passage ghost cells
+            cellN = C.getField(varcelln, z, api=2)[0]
+            if cellN !=[]:
+                Connector._setHoleInterpolatedPoints(cellN,depth=depth, dir=dir, cellNName=cellNName)
+    return None
+
+def _setHoleInterpolatedPoints(a, depth=2, dir=0, loc='centers',
+                               cellNName='cellN', addGC=True):
+    count = 0
+    _setHoleInterpolatedPoints__(a, depth, dir, count, loc, cellNName)
+
+    if addGC:
+        count +=1    
+        ghost = Internal.getNodeFromName(a, 'ZoneRind')
+        if ghost is None:
+            if loc == 'centers': varcelln = 'centers:'+cellNName
+            else: varcelln = cellNName
+            Internal._addGhostCells(a, a, 2, modified=[varcelln])
+            _setHoleInterpolatedPoints__(a, depth, dir, count, loc, cellNName)
+            Internal._rmGhostCells(a,a,2, modified=[varcelln])
+
+    return None
 #=============================================================================
 # Retourne la liste des zones donneuses definies dans la CL doubly defined
 # ainsi que le cellN associe. Prend en compte les zones donneuses periodisees

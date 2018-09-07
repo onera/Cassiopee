@@ -361,127 +361,6 @@ void K_CONNECTOR::searchMaskInterpolatedCellsStruct(E_Int imc, E_Int jmc, E_Int 
 }
 
 //=============================================================================
-/* Modifie le celln des centres des cellules interpolees
-   a partir de la fenetre [i1,i2,j1,j2,k1,k2] de la BCOverlap */
-//=============================================================================
-PyObject* K_CONNECTOR::getBCOverlapInterpCellCenters(PyObject* self, PyObject* args)
-{
-  PyObject *coordArray, *range1;
-  E_Int depth;
-  if (!PYPARSETUPLEI(args,
-                    "OOl", "OOi",
-                    &coordArray, &range1, &depth))
-  {
-      return NULL;
-  }
-  if (PyList_Check(range1) == 0)
-  {
-    PyErr_SetString(PyExc_TypeError, 
-                    "getBCOverlapInterpCellCenters: 2nd argument must be a list.");
-    return NULL;
-  }
-  if (depth != 1 && depth != 2) 
-  {
-     PyErr_SetString(PyExc_TypeError, 
-                    "getBCOverlapInterpCellCenters: depth must be equal to 1 or 2.");
-    return NULL;  
-  }
-  // Check: range de la BC
-  FldArrayI range(6);
-  E_Int sizeRange = PyList_Size(range1);
-  for (int i = 0; i <  sizeRange; i++)
-  {
-    PyObject* tpl = PyList_GetItem(range1, i);
-    if ( PyLong_Check(tpl) == 0 &&
-         PyInt_Check(tpl) == 0 )
-    {
-      PyErr_SetString(PyExc_TypeError,
-                      "getBCOverlapInterpCellCenters: range value must be an integer.");
-      return NULL;
-    }
-    range[i] = PyLong_AsLong(tpl);
-    if ( range[i] < 1 ) 
-    {
-      PyErr_SetString(PyExc_TypeError,
-                      "getBCOverlapInterpCellCenters: range value must be positive.");
-      return NULL;
-    }    
-  }
-  // Check: coordonnees en centres de z1
-  E_Int im, jm, km;
-  FldArrayF* f;
-  FldArrayI* cn;
-  char* varString;
-  char* eltType;
-  E_Int res = 
-    K_ARRAY::getFromArray(coordArray, varString, f, im, jm, km, cn, eltType); 
-  if ( res != 1 ) 
-  {
-    if ( res == 2 ) {delete f; delete cn;}
-    PyErr_SetString(PyExc_TypeError, 
-                    "getBCOverlapInterpCellCenters: array must be structured.");
-    return NULL;   
-  }
-  // verification de la coherence entre le range de la paroi en centres et 
-  // des dimensions de la zone
-  if ( range[1] > im || range[3] > jm || range[5] > km ) 
-  {
-    delete f;
-    PyErr_SetString(PyExc_TypeError,
-                    "getBCOverlapInterpCellCenters: wrong range max.");
-    return NULL; 
-  }
-  E_Int i1 = range[0]; E_Int j1 = range[2]; E_Int k1 = range[4];
-  E_Int i2 = range[1]; E_Int j2 = range[3]; E_Int k2 = range[5];
-
-  E_Int posc = K_ARRAY::isCellNatureField2Present(varString);
-  if ( posc == -1 )
-  {
-    PyErr_SetString(PyExc_TypeError,
-                    "getBCOverlapInterpCellCenters: array must contain cellN variable.");
-    delete f; return NULL;
-  }
-  posc++;
-  /* fin verifs*/
-  E_Float* cellN = f->begin(posc);
-
-  E_Int imjm = im*jm;
-  E_Int inc = 0;
-  switch ( depth ) 
-  {
-    case 1:
-      for (E_Int k = k1; k <= k2; k++)
-        for (E_Int j = j1; j <= j2; j++)
-          for (E_Int i = i1; i <= i2; i++)
-          {
-            E_Int ind = (i-1) + (j-1)* im + (k-1)*imjm;
-            cellN[ind] = 2.;
-          }
-      break;
-  
-    case 2:
-      if ( i1 == i2 && i1 == 1 ) inc = 1;
-      else if ( j1 == j2 && j1 == 1 ) inc = im;
-      else if ( k1 == k2 && k1 == 1 ) inc = imjm;
-      else if ( i1 == i2 && i1 > 1 ) inc = -1;
-      else if ( j1 == j2 && j1  > 1 ) inc =-im;
-      else if ( k1 == k2 && k2  > 1 ) inc =-imjm;
-      else {printf("Fatal: getBCOverlapInterpCellCenters: invalid increment.\n"); exit(0);}  
-      for (E_Int k = k1; k <= k2; k++)
-        for (E_Int j = j1; j <= j2; j++)
-          for (E_Int i = i1; i <= i2; i++)
-          {
-            E_Int ind = (i-1) + (j-1)* im + (k-1)*imjm;
-            cellN[ind] = 2.; cellN[ind+inc] = 2.;
-          }    
-      break;
-  }
-
-  PyObject* tpl =  K_ARRAY::buildArray(*f, varString, im, jm, km);
-  delete f;
-  return tpl;
-}
-//=============================================================================
 /* Determine les noeuds interpoles a partir du cellN en noeuds
    Si le celln contient des pts masques, alors les points interpoles autour 
    sont construits */
@@ -491,9 +370,7 @@ PyObject* K_CONNECTOR::getOversetHolesInterpNodes(PyObject* self, PyObject* args
   PyObject *array;
   E_Int depth; E_Int dir;
   char* cellNName;
-  if (!PYPARSETUPLEI(args,
-                    "Olls", "Oiis",
-                    &array, &depth, &dir, &cellNName))
+  if (!PYPARSETUPLEI(args,"Olls", "Oiis", &array, &depth, &dir, &cellNName))
   {
       return NULL;
   }
@@ -510,7 +387,7 @@ PyObject* K_CONNECTOR::getOversetHolesInterpNodes(PyObject* self, PyObject* args
   FldArrayF* field; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int res = K_ARRAY::getFromArray(array, varString, 
-                                    field, im, jm, km, cn, eltType); 
+                                     field, im, jm, km, cn, eltType); 
   if (res != 1 && res != 2)
   {    
     PyErr_SetString(PyExc_TypeError,
@@ -571,6 +448,168 @@ PyObject* K_CONNECTOR::getOversetHolesInterpNodes(PyObject* self, PyObject* args
     PyObject* tpl =  K_ARRAY::buildArray(*field, varString, *cn, -1, eltType);
     delete field; delete cn; return tpl;
   }
+}
+//=============================================================================
+/* Determine les noeuds interpoles a partir du cellN en noeuds
+   Si le celln contient des pts masques, alors les points interpoles autour 
+   sont construits */
+//=============================================================================
+PyObject* K_CONNECTOR::_getOversetHolesInterpNodes(PyObject* self, PyObject* args)
+{
+  PyObject *array;
+  E_Int depth; E_Int dir;
+  char* cellNName;
+  if (!PYPARSETUPLEI(args,"Olls", "Oiis", &array, &depth, &dir, &cellNName))
+  {
+      return NULL;
+  }
+  if (dir != 0 && dir != 1) 
+  {
+    PyErr_SetString(PyExc_TypeError,
+                    "_getOversetHolesInterpNodes: dir must be 0 or 1.");
+    return NULL;
+  }
+  /*--------------------------------------------------*/
+  /* Extraction des infos sur le domaine a interpoler */
+  /*--------------------------------------------------*/
+  E_Int im, jm, km;
+  FldArrayF* field; FldArrayI* cn;
+  char* varString; char* eltType;
+  E_Int res = K_ARRAY::getFromArray2(array, varString, 
+                                     field, im, jm, km, cn, eltType); 
+  if (res != 1)
+  {    
+    if ( res == 2)
+    {
+      PyErr_SetString(PyExc_TypeError,
+                      "_getOversetHolesInterpNodes: not yet implemented for unstructured zones.");
+      RELEASESHAREDU(array, field, cn);
+    }
+    else
+      PyErr_SetString(PyExc_TypeError,
+                      "getOversetHolesInterpNodes: first argument is not recognized");
+    return NULL;
+  }
+
+  E_Int posc;
+  if (strcmp(cellNName, "cellN") == 0)
+    posc = K_ARRAY::isCellNatureField2Present(varString);
+  else posc = K_ARRAY::isNamePresent(cellNName, varString);
+
+  if (posc == -1)
+  {
+    PyErr_SetString(PyExc_TypeError,
+                    "_getOversetHolesInterpNodes: array must contain cellN variable.");
+    RELEASESHAREDS(array, field);return NULL;
+  }
+  posc++;
+
+  E_Float* cellNp = field->begin(posc);
+  /* Fin des verifs */
+  E_Int npts = field->getSize();
+  FldArrayI blankedCells(npts); blankedCells.setAllValuesAt(1);
+  FldArrayI cellNatFld(npts); cellNatFld.setAllValuesAt(1);
+  for (E_Int ind = 0; ind < npts; ind++)
+  {
+    if (cellNp[ind] == 2.){ blankedCells[ind] = 0; cellNatFld[ind] = 0;}
+    else if (cellNp[ind] == 0.){ blankedCells[ind] = -1; cellNatFld[ind] = -1;}
+  }
+
+  searchMaskInterpolatedCellsStruct(im, jm, km, depth, dir, blankedCells, cellNatFld);
+
+#pragma omp parallel shared(cellNp, cellNatFld)
+  {
+# pragma omp for
+  for (E_Int ind = 0; ind < npts; ind++)
+  {
+    if (cellNatFld[ind] == 0) cellNp[ind] = 2.; 
+    else if (cellNatFld[ind] == -1) cellNp[ind] = 0.; 
+  }
+  }
+  RELEASESHAREDS(array, field);
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+//=============================================================================
+/* Determine les centres interpoles a partir du cellN 
+   Si le celln contient des pts masques, alors les points interpoles autour 
+   sont construits */
+//=============================================================================
+PyObject* K_CONNECTOR::_getOversetHolesInterpCellCenters(PyObject* self, PyObject* args)
+{
+  PyObject *centersArray;
+  E_Int depth; E_Int dir;
+  char* cellNName;
+  if (!PYPARSETUPLEI(args,"Olls", "Oiis",
+                     &centersArray, &depth, &dir, &cellNName))
+  {
+      return NULL;
+  }
+
+  if (dir != 0 && dir != 1) 
+  {
+    PyErr_SetString(PyExc_TypeError,
+                    "getOversetHolesInterpNodes: dir must be 0 or 1.");
+    return NULL;
+  }
+  /*--------------------------------------------------*/
+  /* Extraction des infos sur le domaine a interpoler */
+  /*--------------------------------------------------*/
+  E_Int im, jm, km;
+  FldArrayF* field; FldArrayI* cn;
+  char* varString; char* eltType;
+  E_Int res = K_ARRAY::getFromArray2(centersArray, varString, 
+                                     field, im, jm, km, cn, eltType); 
+  if (res != 1)
+  {    
+    if ( res == 2 )
+    {
+      PyErr_SetString(PyExc_TypeError,
+                      "_getOversetHolesInterpNodes: not yet implemented for unstructured zones.");
+      RELEASESHAREDU(centersArray, field, cn);
+    }
+    else 
+      PyErr_SetString(PyExc_TypeError,
+                      "_getOversetHolesInterpCellCenters: first argument is not recognized");
+    return NULL;
+  }
+
+  E_Int posc;
+  if (strcmp(cellNName, "cellN") == 0)
+    posc = K_ARRAY::isCellNatureField2Present(varString);
+  else posc = K_ARRAY::isNamePresent(cellNName, varString);
+  if (posc == -1)
+  {
+    PyErr_SetString(PyExc_TypeError,
+                    "_getOversetHolesInterpCellCenters: array must contain cellN variable.");
+    RELEASESHAREDS(centersArray, field);return NULL;
+  }
+  posc++;
+  E_Float* cellNp = field->begin(posc);
+  /* Fin des verifs */
+  E_Int ncells = field->getSize();
+  FldArrayI blankedCells(ncells); blankedCells.setAllValuesAt(1);
+  FldArrayI cellNatFld(ncells); cellNatFld.setAllValuesAt(1);
+  for (E_Int ind = 0; ind < ncells; ind++)
+  {
+    if (cellNp[ind] == 2.){ blankedCells[ind] = 0; cellNatFld[ind] = 0;}
+    else if (cellNp[ind] == 0.){ blankedCells[ind] = -1; cellNatFld[ind] = -1;}
+  }
+
+  searchMaskInterpolatedCellsStruct(im, jm, km, depth, dir, blankedCells, cellNatFld);
+
+#pragma omp parallel shared(cellNp, cellNatFld, ncells)
+  {
+# pragma omp for
+  for (E_Int ind = 0; ind < ncells; ind++)
+  {
+    if (cellNatFld[ind] == 0) cellNp[ind] = 2.; 
+    else if (cellNatFld[ind] == -1) cellNp[ind] = 0.; 
+  }
+  }
+  RELEASESHAREDS(centersArray, field);
+  Py_INCREF(Py_None);
+  return Py_None;
 }
 //=============================================================================
 /* Determine les centres interpoles a partir du cellN 
@@ -669,7 +708,8 @@ PyObject* K_CONNECTOR::getInterpolatedPointsZ(PyObject* self, PyObject* args)
 {
   PyObject* zone;
   char *GridCoordinates, *FlowSolutionNodes, *FlowSolutionCenters;
-  if (!PyArg_ParseTuple(args, "Osss", &zone, &GridCoordinates, &FlowSolutionNodes, &FlowSolutionCenters))
+  char* cellNName;
+  if (!PyArg_ParseTuple(args, "Ossss", &zone, &cellNName, &GridCoordinates, &FlowSolutionNodes, &FlowSolutionCenters))
   {
     PyErr_SetString(PyExc_TypeError,
                     "getInterpolatedPointsZ: wrong arguments.");
@@ -708,7 +748,7 @@ PyObject* K_CONNECTOR::getInterpolatedPointsZ(PyObject* self, PyObject* args)
     RELEASESHAREDZ(hook, varString, eltType);
     return NULL;
   }
-  E_Int posc = K_ARRAY::isCellNatureField2Present(varString);
+  E_Int posc = K_ARRAY::isNamePresent(cellNName, varString);
   if ( posc == -1) 
   {
     PyErr_SetString(PyExc_TypeError,
@@ -827,19 +867,3 @@ PyObject* K_CONNECTOR::getInterpolatedPoints(PyObject* self, PyObject* args)
   delete fout; delete cnl;
   return tpl;
 }
-
-//==============================================================================
-/*
-PyObject* K_CONNECTOR::getInterpolatedPoints(PyObject* self, PyObject* args)
-{
-  // input numpy
-  PyObject* nx; PyObject* ny, PyObject* nz; PyObject* cellN;
-  if (!PyArg_ParseTuple(args, "OOOO", &nx, &ny, &nz, &cellN))
-  {
-    PyErr_SetString(PyExc_TypeError,
-                    "getInterpolatedPoints: wrong arguments.");
-    return NULL;
-  }
-
-}
-*/

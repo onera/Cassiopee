@@ -66,11 +66,10 @@ def _modifPhysicalBCs__(zp, depth=2, dimPb=3):
 #----------------------------------------------------------------------------------
 def adaptIBMMesh(t, tb, vmin, sensor, factor=1.2, DEPTH=2, NP=0, merged=1, sizeMax=4000000,
                  variables=None, refineFinestLevel=False, refineNearBodies=False, 
-                 check=True, symmetry=0, externalBCType='BCFarfield'):
+                 check=True, symmetry=0, externalBCType='BCFarfield', fileo='octree.cgns'):
 
-    try: to = C.convertFile2PyTree("octree.cgns")
-    except: raise(ValueError, "octree.cgns file not found.")
-    C.convertPyTree2File(to, "octreep.cgns")
+    try: to = C.convertFile2PyTree(fileo)
+    except: raise(ValueError, "%s file not found."%fileo)
 
     dimPb = Internal.getNodeFromName(tb, 'EquationDimension')
     if dimPb is None: raise ValueError, 'EquationDimension is missing in input body tree.'
@@ -402,7 +401,7 @@ def generateCartMesh__(o, dimPb=3, vmin=11, DEPTH=2, NP=0, merged=1, sizeMax=400
 def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., DEPTH=2, NP=0, tbox=None, 
                     snearsf=None, check=True, merged=1, sizeMax=4000000, 
                     symmetry=0, externalBCType='BCFarfield', to=None, 
-                    composite=0, mergeByParents=True):
+                    composite=0, mergeByParents=True, fileo='octree.cgns'):
     dimPb = Internal.getNodeFromName(tb, 'EquationDimension')
     if dimPb is None: raise ValueError, 'EquationDimension is missing in input body tree.'
     dimPb = Internal.getValue(dimPb)
@@ -526,11 +525,13 @@ def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., DEPTH=2, NP=0, tbox=None
         if nelts > 20000 and merged == 1: 
             print 'Warning: number of zones (%d) might be too big (block merging might last a long time). Try to increase vmin or deactivate merging.'%nelts
 
-        C.convertPyTree2File(o, "octree.cgns")
     else:
         o = Internal.getZones(to)[0]
-    return generateCartMesh__(o, dimPb=dimPb, vmin=vmin, DEPTH=DEPTH, NP=NP, merged=merged, sizeMax=sizeMax, 
-                              check=check, symmetry=symmetry, externalBCType=externalBCType, mergeByParents=mergeByParents)
+
+    C.convertPyTree2File(o,fileo)
+    res = generateCartMesh__(o, dimPb=dimPb, vmin=vmin, DEPTH=DEPTH, NP=NP, merged=merged, sizeMax=sizeMax, 
+                             check=check, symmetry=symmetry, externalBCType=externalBCType, mergeByParents=mergeByParents)
+    return res
 
 def _removeBlankedGrids(t,loc='centers'):
     vari = 'cellNIBC'
@@ -782,7 +783,7 @@ def getIBMFrontType1(tc,frontvar, dim):
     front = []
     for z in Internal.getZones(tc):
         if C.getMinValue(z,frontvar)==0. and C.getMaxValue(z,frontvar)==1.:
-            z = X.maximizeBlankedCells(z,depth=1,dir=1,cellNName='cellNChim')
+            z = X.maximizeBlankedCells(z,depth=1,dir=1,loc='nodes', cellNName='cellNChim')
             C._initVars(z,'{cellNChim}=minimum(1.,{cellNChim})')
             f = P.frontFaces(z, frontvar)
             front.append(f)
