@@ -2,7 +2,7 @@
 import Internal
 import PyTree
 import Converter
-from Distributed import convert2PartialTree, _convert2PartialTree, convert2SkeletonTree, _convert2SkeletonTree, convertFile2SkeletonTree, _readPyTreeFromPaths, _readZones, \
+from Distributed import convert2PartialTree, _convert2PartialTree, convert2SkeletonTree, _convert2SkeletonTree, convertFile2SkeletonTree, _readPyTreeFromPaths, readPyTreeFromPaths, _readZones, \
 _convert2SkeletonTree, readNodesFromPaths, writeNodesFromPaths, writePyTreeFromPaths, deletePaths
 import numpy
 
@@ -88,7 +88,7 @@ def readZoneHeaders(fileName, format=None, baseNames=None, familyZoneNames=None,
 # Load les containeurs "cont" dans a pour les znp donnes
 # cont='GridCoordinates', 'FlowSolution'
 #========================================================================
-def _loadContainers(a, fileName, znp, cont, format=None):
+def _loadContainer(a, fileName, znp, cont, format=None):
     if isinstance(cont, list): conts = cont
     else: conts = [cont]
     if isinstance(znp, list): znps = znp
@@ -98,6 +98,39 @@ def _loadContainers(a, fileName, znp, cont, format=None):
         for c in conts: paths.append('%s/%s'%(p,c))
         _readPyTreeFromPaths(a, fileName, paths, format)
     return None
+
+def _loadContainerPartial(a, fileName, znp, cont, format=None):
+    if isinstance(cont, list): conts = cont
+    else: conts = [cont]
+    if isinstance(znp, list): znps = znp
+    else: znps = [znp]
+    for p in znps:
+      paths = []
+      zname = p.rsplit('/',1)[0]
+      j = self.splitDict[zname]
+      pname = j[0] 
+      path = ['/%s/%s/GridCoordinates/CoordinateX'%(bname, pname),
+      '/%s/%s/GridCoordinates/CoordinateY'%(bname, pname),
+      '/%s/%s/GridCoordinates/CoordinateZ'%(bname, pname)]
+    
+      DataSpaceMMRY = [[0,0,0], [1,1,1], [j[2]-j[1]+1,j[4]-j[3]+1,j[6]-j[5]+1], [1,1,1]]
+      DataSpaceFILE = [[j[1]-1,j[3]-1,j[5]-1], [1,1,1], [j[2]-j[1]+1,j[4]-j[3]+1,j[6]-j[5]+1], [1,1,1]]
+      DataSpaceGLOB = [[0]]
+    
+      f = {}
+      for p in path:
+        f[p] = DataSpaceMMRY+DataSpaceFILE+DataSpaceGLOB
+
+    r = readNodesFromFilter(fileName, f)
+
+    # Repositionne les chemins
+    keys = r.keys()
+    for k in keys:
+      k2 = k.replace(pname, zname)
+      n = Internal.getNodeFromPath(b, k2)
+      n[1] = r[k]
+    return None
+
 
 #=========================================================================
 # Load connectivity
@@ -302,10 +335,68 @@ def isInBBox(a, fileName, bbox, znp):
     if len(out) == 1: out = out[0]
     return out
 
+# Load only a split of zones of file
+def loadAndSplit(fileName, NParts=None, noz=None, NProc=None, rank=None):
+  if NParts is None: NParts = NProc
+  if NProc is None: NProc = NParts
+  import Transform.PyTree as T
+  a = convertFile2SkeletonTree(fileName)
+  # split on skeleton
+  splitDict={}
+  b = T.splitNParts(a, N=NParts, splitDict=splitDict)
+
+  zones = Internal.getZones(b)
+  if rank is not None:
+    import Distributor2.PyTree as D2   
+    D2._distribute(b, NProc)
+    noz = []
+    for i, z in enumerate(zones):
+      p = D2.getProc(z)
+      if p == rank: noz.append(i)
+
+  for i in noz:
+    z = zones[i]
+    j = splitDict[z[0]]
+    # Correction de dimension en attendant que subzone fonctionne sur un skel
+    ni = j[2]-j[1]+1; nj = j[4]-j[3]+1; nk = j[6]-j[5]+1
+    d = numpy.empty((3,3), numpy.int32, order='Fortran')
+    d[0,0] = ni;   d[1,0] = nj;   d[2,0] = nk
+    d[0,1] = ni-1; d[1,1] = nj-1; d[2,1] = nk-1
+    d[0,2] = 0;    d[1,2] = 0;    d[2,2] = 0
+    z[1] = d
+    # END correction
+    
+    zname = z[0] # zone name in b
+    pname = zname.rsplit('.',1)[0] # parent name (guessed)
+    (base, c) = Internal.getParentOfNode(b, z)
+    bname = base[0]
+    path = ['/%s/%s/GridCoordinates/CoordinateX'%(bname, pname),
+            '/%s/%s/GridCoordinates/CoordinateY'%(bname, pname),
+            '/%s/%s/GridCoordinates/CoordinateZ'%(bname, pname)]
+    
+    DataSpaceMMRY = [[0,0,0], [1,1,1], [j[2]-j[1]+1,j[4]-j[3]+1,j[6]-j[5]+1], [1,1,1]]
+    DataSpaceFILE = [[j[1]-1,j[3]-1,j[5]-1], [1,1,1], [j[2]-j[1]+1,j[4]-j[3]+1,j[6]-j[5]+1], [1,1,1]]
+    DataSpaceGLOB = [[0]]
+    
+    f = {}
+    for p in path:
+      f[p] = DataSpaceMMRY+DataSpaceFILE+DataSpaceGLOB
+    r = readNodesFromFilter(fileName, f)
+
+    # Repositionne les chemins
+    keys = r.keys()
+    for k in keys:
+      k2 = k.replace(pname, zname)
+      n = Internal.getNodeFromPath(b, k2)
+      n[1] = r[k]
+
+  b = convert2PartialTree(b)
+  return b
+
 #==========================================================
 class Handle:
   """Handle for filter."""
-  def __init__(self, fileName, where=None):
+  def __init__(self, fileName):
     self.fileName = fileName
     self.fileVars = None # vars existing in file
     self.fileBCVars = None # BCDataSet vars existing in file
@@ -314,6 +405,7 @@ class Handle:
     self.bary = None # Barycentres zones du fichier
     self.bbox = None # BBox zones du fichier
     self.hmoy = None # pas moyen des zones du fichier
+    self.splitDict = None # dictionnaire de split si on a load le squelette avec loadAndSplit
     self.format = Converter.checkFileType(fileName) # Real format of file
     
   # Retourne les chemins des zones de a
@@ -363,6 +455,35 @@ class Handle:
         else: s = pt[0]*pt[1]*pt[2]
       else: s = 0
       self.size[zn] = s
+    return a
+
+  # Charge le squelette, le split et conserve les infos de split
+  def loadAndSplitSkeleton(self, NParts=None, NProc=None):
+    a = self.loadSkeleton()    
+    import Transform.PyTree as T
+    # split on skeleton
+    splitDict={}
+    if NParts is not None:
+      b = T.splitNParts(a, N=NParts, splitDict=splitDict)
+    else:
+      b = T.splitNParts(a, N=NProc, splitDict=splitDict)
+    self.splitDict = splitDict
+
+    zones = Internal.getZones(b)
+    if NProc is not None:
+      import Distributor2.PyTree as D2   
+      D2._distribute(b, NProc)
+
+    # Correction dims en attendant que subzone fonctionne sur un skel
+    for z in zones:
+      j = splitDict[z[0]]
+      ni = j[2]-j[1]+1; nj = j[4]-j[3]+1; nk = j[6]-j[5]+1
+      d = numpy.empty((3,3), numpy.int32, order='Fortran')
+      d[0,0] = ni;   d[1,0] = nj;   d[2,0] = nk
+      d[0,1] = ni-1; d[1,1] = nj-1; d[2,1] = nk-1
+      d[0,2] = 0;    d[1,2] = 0;    d[2,2] = 0
+      z[1] = d
+      # END correction      
     return a
 
   # Calcul et stocke des infos geometriques sur les zones
@@ -432,7 +553,7 @@ class Handle:
     if znp is None: znp = self.getZonePaths(a)
     # Read paths as skeletons
     _readPyTreeFromPaths(a, self.fileName, znp, self.format, maxFloatSize=0)
-    _loadContainers(a, self.fileName, znp, 'GridCoordinates', self.format)
+    _loadContainer(a, self.fileName, znp, 'GridCoordinates', self.format)
     _loadConnectivity(a, self.fileName, znp, self.format)
     _loadZoneBCs(a, self.fileName, znp, self.format)
     for zp in znp:
@@ -460,7 +581,7 @@ class Handle:
   # Charge le container "cont" pour toutes les zones de a
   def _loadContainer(self, a, cont):
     p = self.getZonePaths(a)
-    _loadContainers(a, self.fileName, p, cont, self.format)
+    _loadContainer(a, self.fileName, p, cont, self.format)
     return None
 
   # Charge la ou les variables "var" pour toutes les zones de a

@@ -1024,8 +1024,8 @@ def findMGSplit__(n, level):
 # Fait un split nv et le reste en respectant le multigrille
 def findMGSplitUp__(n, nv, level):
     ns = nv
-    if (ns < 4): ns = 4
-    if (level == 0): return ns
+    if ns < 4: ns = 4
+    if level == 0: return ns
     pow = 2**level
     if ((ns-1)%pow == 0 and (n-ns)%pow == 0): return ns
     if ((ns-2)%pow == 0 and (n-ns+1)%pow == 0): return ns-1
@@ -1036,36 +1036,36 @@ def findMGSplitUp__(n, nv, level):
 # Get split dir
 def getSplitDir__(ni, nj, nk, dirs):
     dirl = 1
-    if (ni >= nj and ni >= nk):
+    if ni >= nj and ni >= nk:
         dirl = 1
-        if (1 in dirs): dirl = 1
+        if 1 in dirs: dirl = 1
         else:
-            if (nj >= nk):
-                if (2 in dirs): dirl = 2
-                elif (3 in dirs): dirl = 3
+            if nj >= nk:
+                if 2 in dirs: dirl = 2
+                elif 3 in dirs: dirl = 3
             else:
-                if (3 in dirs): dirl = 3
-                elif (2 in dirs): dirl = 2
-    elif (nj >= ni and nj >= nk):
+                if 3 in dirs: dirl = 3
+                elif 2 in dirs: dirl = 2
+    elif nj >= ni and nj >= nk:
         dirl = 2
-        if (2 in dirs): dirl = 2
+        if 2 in dirs: dirl = 2
         else:
-            if (ni >= nk):
-                if (1 in dirs): dirl = 1
-                elif (3 in dirs): dirl = 3
+            if ni >= nk:
+                if 1 in dirs: dirl = 1
+                elif 3 in dirs: dirl = 3
             else:
-                if (3 in dirs): dirl = 3
-                elif (1 in dirs): dirl = 1
+                if 3 in dirs: dirl = 3
+                elif 1 in dirs: dirl = 1
     elif (nk >= ni and nk >= nj):
         dirl = 3
-        if (3 in dirs): dirl = 3
+        if 3 in dirs: dirl = 3
         else:
-            if (ni >= nj):
-                if (1 in dirs): dirl = 1
-                elif (2 in dirs): dirl = 2
+            if ni >= nj:
+                if 1 in dirs: dirl = 1
+                elif 2 in dirs: dirl = 2
             else:
-                if (2 in dirs): dirl = 2
-                elif (1 in dirs): dirl = 1
+                if 2 in dirs: dirl = 2
+                elif 1 in dirs: dirl = 1
     return dirl
 
 # Split size au milieu
@@ -1203,24 +1203,24 @@ def splitSizeUpR__(A, N, R, multigrid, dirs, minPtsPerDir):
             delta3 = abs(ni1*nj1*(ns-1) - Nr)/nij
             deltak = delta3-delta1-delta2
             dirl = 1
-            if (deltai <= deltaj  and deltai <= deltak):
-                if (1 in dirs): dirl = 1
-                elif (deltaj <= deltak and 2 in dirs): dirl = 2
-                elif (3 in dirs): dirl = 3
-            elif (deltaj <= deltai and deltaj <= deltak):
-                if (2 in dirs): dirl = 2
-                elif (deltai <= deltak and 1 in dirs): dirl = 1
-                elif (3 in dirs): dirl = 3
-            elif (deltak <= deltai and deltak <= deltaj):
-                if (3 in dirs): dirl = 3
-                elif (deltai <= deltaj and 1 in dirs): dirl = 1
-                elif (2 in dirs): dirl = 2
+            if deltai <= deltaj  and deltai <= deltak:
+                if 1 in dirs: dirl = 1
+                elif deltaj <= deltak and 2 in dirs: dirl = 2
+                elif 3 in dirs: dirl = 3
+            elif deltaj <= deltai and deltaj <= deltak:
+                if 2 in dirs: dirl = 2
+                elif deltai <= deltak and 1 in dirs: dirl = 1
+                elif 3 in dirs: dirl = 3
+            elif deltak <= deltai and deltak <= deltaj:
+                if 3 in dirs: dirl = 3
+                elif deltai <= deltaj and 1 in dirs: dirl = 1
+                elif 2 in dirs: dirl = 2
 
             trynext = 1
             if dirl == 1:
                 nc = int(round(Nr*1./njk,0))+1
                 ns = findMGSplitUp__(ni, nc, level=multigrid)
-                if (ns-1 >= mins and ni-ns >= mins):
+                if ns-1 >= mins and ni-ns >= mins:
                     a1 = subzone(a, (1,1,1), (ns,nj,nk))
                     a2 = subzone(a, (ns,1,1), (ni,nj,nk))
                     SP[0] = (Converter.getNCells(a2), a2)
@@ -1229,7 +1229,7 @@ def splitSizeUpR__(A, N, R, multigrid, dirs, minPtsPerDir):
             elif dirl == 2:
                 nc = int(round(Nr*1./nik,0))+1
                 ns = findMGSplitUp__(nj, nc, level=multigrid)
-                if (ns-1 >= mins and nj-ns >= mins):
+                if ns-1 >= mins and nj-ns >= mins:
                     a1 = subzone(a, (1,1,1), (ni,ns,nk))
                     a2 = subzone(a, (1,ns,1), (ni,nj,nk))
                     SP[0] = ( Converter.getNCells(a2), a2 )
@@ -1238,7 +1238,7 @@ def splitSizeUpR__(A, N, R, multigrid, dirs, minPtsPerDir):
             elif dirl == 3:
                 nc = int(round(Nr*1./nij,0))+1
                 ns = findMGSplitUp__(nk, nc, level=multigrid)
-                if (ns-1 >= mins and nk-ns >= mins):
+                if ns-1 >= mins and nk-ns >= mins:
                     a1 = subzone(a, (1,1,1), (ni,nj,ns))
                     a2 = subzone(a, (1,1,ns), (ni,nj,nk))
                     SP[0] = ( Converter.getNCells(a2), a2 )

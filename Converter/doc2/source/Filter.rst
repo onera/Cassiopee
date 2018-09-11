@@ -23,12 +23,14 @@ List of functions
    Converter.Filter.convertFile2SkeletonTree
    Converter.Filter.readNodesFromPaths
    Converter.Filter.readNodesFromFilter
+   Converter.Filter.readPyTreeFromPaths
    Converter.Filter.writeNodesFromPaths
    Converter.Filter.deletePaths
 
 
 **-- High layer**
 
+    
 
 
 Contents
@@ -113,6 +115,35 @@ Per node reading/writing
     * `Partially read nodes from file (pyTree) <Examples/Converter/readNodesFromFilterPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/readNodesFromFilterPT.py
+
+
+---------------------------------------------------------------------------
+
+.. py:function:: Converter.Filter.readPyTreeFromPaths(t, fileName, paths, format=None, maxFloatSize=-1, maxDepth=-1)
+
+    Read nodes of t specified by their paths.
+    Exists also as in place function (_readPyTreeFromPaths) that modifies t
+    and returns None.
+
+    :param t: input tree
+    :type t: pyTree
+    :param fileName: file name to read from
+    :type fileName: string
+    :param paths: paths to read
+    :type paths: list of strings
+    :param format: bin_cgns, bin_adf, bin_hdf (optional)
+    :type format: string
+    :param maxFloatSize: the maxSize of float array to load
+    :type maxFloatSize: int
+    :param maxDepth: max depth of load
+    :type maxDepth: int
+    :rtype: modified tree
+
+    *Example of use:*
+
+    * `Read nodes from file and modify tree (pyTree) <Examples/Converter/readPyTreeFromPathsPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/readPyTreeFromPathsPT.py
 
 
 ---------------------------------------------------------------------------

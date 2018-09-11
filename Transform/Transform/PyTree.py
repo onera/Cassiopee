@@ -1446,8 +1446,7 @@ def splitSizeUpR_OMP__(t, N, R, multigrid, dirs, minPtsPerDir):
                 SP.append((ni1*nj1*nk1,[z[0],[ni,nj,nk]])); Nl += ni1*nj1*nk1               
                 zsplit.append(([1,ni1,1,nj1,1,nk1],(ni,nj,nk),z[0],"master",z[0]))                
                  
-
-    if (N == 0): N = Nl*1. / R
+    if N == 0: N = Nl*1. / R
     #print 'average cells ', N
     from operator import itemgetter
 
@@ -1458,8 +1457,8 @@ def splitSizeUpR_OMP__(t, N, R, multigrid, dirs, minPtsPerDir):
     
     mins = minPtsPerDir-1 # nbre de cellules mini des blocs par direction
 
-    out    = []
-    nbl=0
+    out = []
+    nbl = 0
     while len(SP) > 0:
         SP = sorted(SP, key=itemgetter(0), reverse=True)
         Rs = sorted(Rs)
@@ -1529,7 +1528,7 @@ def splitSizeUpR_OMP__(t, N, R, multigrid, dirs, minPtsPerDir):
 
             trynext = 1
                         
-            if (dirl == 3):
+            if dirl == 3:
                 nc = int(round(Nr*1./nij,0))+1
                 ns = Transform.findMGSplitUp__(nk, nc, level=multigrid)
                 if (ns-1 >= mins and nk-ns >= mins):                    
@@ -1543,7 +1542,7 @@ def splitSizeUpR_OMP__(t, N, R, multigrid, dirs, minPtsPerDir):
                     Thread_z[0][0][0] += (ni-1)*(nj-1)*(ns-1)
                     Thread_z[0][2].append(a1[0])
                     trynext = 0
-            elif (dirl == 2):
+            elif dirl == 2:
                 nc = int(round(Nr*1./nik,0))+1
                 ns = Transform.findMGSplitUp__(nj, nc, level=multigrid)
                 if (ns-1 >= mins and nj-ns >= mins):                    
@@ -1558,7 +1557,7 @@ def splitSizeUpR_OMP__(t, N, R, multigrid, dirs, minPtsPerDir):
                     Thread_z[0][0][0] += (ni-1)*(ns-1)*(nk-1)
                     Thread_z[0][2].append(a1[0])
                     trynext = 0
-            elif (dirl == 1):
+            elif dirl == 1:
                 nc = int(round(Nr*1./njk,0))+1
                 ns = Transform.findMGSplitUp__(ni, nc, level=multigrid)
                 if (ns-1 >= mins and ni-ns >= mins):                    
@@ -1574,7 +1573,7 @@ def splitSizeUpR_OMP__(t, N, R, multigrid, dirs, minPtsPerDir):
                     Thread_z[0][2].append(a1[0])
                     trynext = 0
 
-            if((dirl>=1)&(trynext==0)):
+            if ((dirl>=1)&(trynext==0)):
                 test=[s for s in zsplit if a[0] in s]            
                 
                 dima1=a1[1]
@@ -1609,12 +1608,10 @@ def splitSizeUpR_OMP__(t, N, R, multigrid, dirs, minPtsPerDir):
                     zsplit.append(([ indexleft[0] ,indexleft[1] ,indexleft[2] ,indexleft[3], indexleft[4], indexleft[5]],(dima1[0]-2*ific,dima1[1]-2*ific,dima1[2]-2*ific),a1[0],a[0],test[0][4]))                    
                     zsplit.append(([indexright[0],indexright[1],indexright[2],indexright[3],indexright[4],indexright[5]],(dima2[0]-2*ific,dima2[1]-2*ific,dima2[2]-2*ific),a2[0],a[0],test[0][4]))
 
-            
-            if (trynext == 1):
+            if trynext == 1:
                 Thread_z[0][0][0] += (a[1][0]-1)*(a[1][1]-1)*(a[1][2]-1)
                 Thread_z[0][2].append(a[0])
                 Rs[0] += (a[1][0]-1)*(a[1][1]-1)*(a[1][2]-1); del SP[0]            
-                                   
 
         else:
             Rs[0] += (a[1][0]-1)*(a[1][1]-1)*(a[1][2]-1); del SP[0]
@@ -1670,7 +1667,7 @@ def splitSizeUpR_OMP__(t, N, R, multigrid, dirs, minPtsPerDir):
     return t
 
 
-def splitNParts__(zones, N, multigrid, dirs, recoverBC):
+def splitNParts__(zones, N, multigrid, dirs, recoverBC, splitDict={}):
     # Fait des paquets de zones structurees et NGON
     zonesS = []; zonesN = []
     NpS = []; NpN = [] # nbre de points
@@ -1716,6 +1713,7 @@ def splitNParts__(zones, N, multigrid, dirs, recoverBC):
         else: outL.append(z)
         outN.append(outL)
 
+    # Blocs structures
     l = len(zonesS)
     if l == 0: return outN+outO
     NPa = NPart[NbN]
@@ -1730,11 +1728,12 @@ def splitNParts__(zones, N, multigrid, dirs, recoverBC):
         splits = Transform.findSplits__(ni, nj, nk, Ns[i], dirs, multigrid)
         for j in splits:
             a1 = subzone(a, (j[0],j[2],j[4]), (j[1],j[3],j[5]))
+            splitDict[a1[0]] = [a[0], j[0], j[1], j[2], j[3], j[4], j[5]]
             outL.append(a1)
         outS.append(outL)
     return outS+outN+outO
 
-def splitNParts(t, N, multigrid=0, dirs=[1,2,3], recoverBC=True):
+def splitNParts(t, N, multigrid=0, dirs=[1,2,3], recoverBC=True, splitDict={}):
     """Split zones in t in N parts.
     Usage: splitNParts(t, N, multigrid, dirs)"""
     tp = Internal.copyRef(t)
@@ -1744,11 +1743,11 @@ def splitNParts(t, N, multigrid=0, dirs=[1,2,3], recoverBC=True):
         C._deleteGridConnectivity__(tp, type='BCOverlap', kind='other') # enleve BCOverlap non autoattach
     else:
         C._deleteZoneBC__(tp)
-        C._deleteGridConnectivity__(tp,kind='all')
+        C._deleteGridConnectivity__(tp, kind='all')
 
     tpp, typen = Internal.node2PyTree(tp)
     zones = Internal.getZones(tpp)
-    allZones = splitNParts__(zones, N, multigrid, dirs, recoverBC)
+    allZones = splitNParts__(zones, N, multigrid, dirs, recoverBC, splitDict)
     bases = Internal.getBases(tpp)
     noc = 0
     for b in bases:

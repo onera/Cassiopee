@@ -42,6 +42,7 @@ MAC25=$(echo $KC | grep 'westri')
 MAC26=$(echo $KC | grep 'sator')
 MAC27=$(echo $KC | grep 'n')
 MAC28=$(echo $KC | grep 'xdaap')
+MAC29=$(echo $KC | grep 'spiro')
 
 # ----------------------------- Common ----------------------------------------
 #export ELSADIST=$CASSIOPEE  # production (cfg)
@@ -522,9 +523,70 @@ elif [ "$MAC1" != "" ]; then
     export LD_LIBRARY_PATHL=/home/benoit/lib:$CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/x86_r8/lib:/usr/local/python/lib:/usr/lib64/openmpi/lib
     export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/x86_r8:$CASSIOPEE/Dist/bin/x86_r8/lib/python2.7/site-packages
 
+elif [ "$MAC28" != "" ] ; then
+#----------------------------- xdaap -----------------------------------------
+    if [ "$MPI" = "true" ]; then
+        if [ "$DBG" = "true" ]; then
+            export ELSAPROD=xdaap_mpi_dbg_r8
+        else
+            export ELSAPROD=xdaap_mpi_r8
+        fi
+    else
+        if [ "$DBG" = "true" ]; then
+            export ELSAPROD=xdaap_dbg_r8
+        else
+            export ELSAPROD=xdaap_r8
+        fi
+    fi
+    . /etc/profile.d/modules-dri.sh
+    module unload $(module -t list 2>&1 | grep -i intel)
+    #module load gcc/4.8.1
+    module load intel/15.0.6
+    # Nombre de threads
+    export OMP_NUM_THREADS=16
+    #export KMP_AFFINITY="verbose,granularity=fine,proclist=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],explicit"
+    # Chemin de l'executable python
+    export PATH=/usr/local/python/bin:$PATH
+    # Chemin de go
+    export PATH=$PATH:$CASSIOPEE/Dist/bin
+    # Chemin de elsA.x
+    export PATH=$PATH:$CASSIOPEE/Dist/bin/$ELSAPROD
+    export LD_LIBRARY_PATHL=/usr/lib64/:$CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/xdaap_r8/lib:/usr/local/hdf5-intel-1.8.8/lib:/usr/local/lib64
+    export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/xdaap_r8:$CASSIOPEE/Dist/bin/xdaap_r8/lib/python2.7/site-packages
+
+elif [ "$MAC29" != "" ]; then
+#----------------------------- spiro -----------------------------------------
+    if [ "$MPI" = "true" ]; then
+        if [ "$DBG" = "true" ]; then
+            export ELSAPROD=spiro_mpi_dbg_r8
+        else
+            export ELSAPROD=spiro_mpi_r8
+        fi
+    else
+        if [ "$DBG" = "true" ]; then
+            export ELSAPROD=spiro_dbg_r8
+        else
+            export ELSAPROD=spiro_r8
+        fi
+    fi
+    # Nbre de threads
+    export OMP_NUM_THREADS=8
+
+    # modules 
+    module unload $(module -t list 2>&1 | grep -i intel)
+    module load CFD/4.0-intel-17.impi
+
+    # Chemin de l'executable python
+    export PATH=$PATH
+    # Chemin de go
+    export PATH=$PATH:$CASSIOPEE/Dist/bin
+    # Chemin de elsA.x
+    export PATH=$PATH:$CASSIOPEE/Dist/bin/$ELSAPROD
+    export LD_LIBRARY_PATHL=$CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/spiro_r8/lib
+    export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/sat_r8:$CASSIOPEE/Dist/bin/spiro_r8/lib/python2.7/site-packages
+
 elif [ "$MAC26" != "" ]|| [ "$MAC27" != "" ]; then
 #----------------------------- sator -----------------------------------------
-    echo "In Sator configue part"
     if [ "$MPI" = "true" ]; then
         if [ "$DBG" = "true" ]; then
             export ELSAPROD=sat_mpi_dbg_r8
@@ -560,40 +622,6 @@ elif [ "$MAC26" != "" ]|| [ "$MAC27" != "" ]; then
     export PATH=$PATH:$CASSIOPEE/Dist/bin/$ELSAPROD
     export LD_LIBRARY_PATHL=$CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/sat_r8/lib
     export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/sat_r8:$CASSIOPEE/Dist/bin/sat_r8/lib/python2.7/site-packages
-
-
-
-
-elif [ "$MAC28" != "" ] ; then
-#----------------------------- xdaap -----------------------------------------
-    if [ "$MPI" = "true" ]; then
-        if [ "$DBG" = "true" ]; then
-            export ELSAPROD=xdaap_mpi_dbg_r8
-        else
-            export ELSAPROD=xdaap_mpi_r8
-        fi
-    else
-        if [ "$DBG" = "true" ]; then
-            export ELSAPROD=xdaap_dbg_r8
-        else
-            export ELSAPROD=xdaap_r8
-        fi
-    fi
-    . /etc/profile.d/modules-dri.sh
-    module unload $(module -t list 2>&1 | grep -i intel)
-    #module load gcc/4.8.1
-    module load intel/15.0.6
-    # Nombre de threads
-    export OMP_NUM_THREADS=16
-    #export KMP_AFFINITY="verbose,granularity=fine,proclist=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],explicit"
-    # Chemin de l'executable python
-    export PATH=/usr/local/python/bin:$PATH
-    # Chemin de go
-    export PATH=$PATH:$CASSIOPEE/Dist/bin
-    # Chemin de elsA.x
-    export PATH=$PATH:$CASSIOPEE/Dist/bin/$ELSAPROD
-    export LD_LIBRARY_PATHL=/usr/lib64/:$CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/xdaap_r8/lib:/usr/local/hdf5-intel-1.8.8/lib:/usr/local/lib64
-    export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/xdaap_r8:$CASSIOPEE/Dist/bin/xdaap_r8/lib/python2.7/site-packages
 
 elif [ "$MAC9" != "" ] || [ "$MAC10" != "" ]; then
 #----------------------------- stelvio ----------------------------------------

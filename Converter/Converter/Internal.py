@@ -1533,6 +1533,7 @@ def getZones(t):
 # Si pas d'argument iteration ou time, retourne une liste de zones pour chaque iteration (a plat?)
 # Si argument time ou iteration, retourne la liste de zones correspondantes
 def getZonesPerIteration(t, iteration=None, time=None):
+    """Return zones for given iteration of time."""
     bid = getNodeFromType2(t, 'BaseIterativeData_t')
     if bid is None:
         raise ValueError, 'getZonesPerIteration: no BaseIterativeData.'
@@ -1825,8 +1826,7 @@ def getParentOfNode__(start, idNode):
     return (r, d)
 
 def getParentFromType(start, node, parentType, prev=None):
-    #if prev is not None: print start[0], prev[0]
-    #else: print start[0], None
+    """Return thee first parent node matching type."""
     if id(start) == id(node): return prev
     if start[3] == parentType: prev = start
     for n in start[2]:
@@ -1835,6 +1835,7 @@ def getParentFromType(start, node, parentType, prev=None):
     return None
 
 def getParentsFromType(start, node, parentType, l=[]):
+    """Return all parent nodes matching type."""
     l = l[:]
     if id(start) == id(node): return l
     if start[3] == parentType: l.append(start)#; l = l[:]

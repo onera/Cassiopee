@@ -82,12 +82,12 @@ void K_CONNECT::connectMix2EV(FldArrayI& cMIX,
         nHEXA++; ls = 8; break;
 
       default: ; // probleme
-        printf("Warning: Mix2Ev: Unknow element type.\n"); ls = 0; break;
+        printf("Warning: Mix2Ev: Unknow element type (%d).\n", ntype); ls = 0; break;
     }
     c += ls+1;
   }
 
-  printf("found %d HEXAS %d PENTAS\n", nHEXA, nPENTA);
+  printf("Info: found %d HEXAS %d PENTAS\n", nHEXA, nPENTA);
 
   // Dimensionne
   cBAR.malloc(nBAR*2);

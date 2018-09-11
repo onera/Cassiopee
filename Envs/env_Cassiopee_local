@@ -586,37 +586,6 @@ else if ($%MAC1 != 0) then
             setenv PYTHONPATHL $CASSIOPEE/Dist/bin/x86_r8/lib/python2.7/site-packages:$ELSA/Dist/lib/py:$ELSA/Dist/bin/eos-intel
         endif
 
-else if ($%MAC26 != 0 || $%MAC27 != 0) then
-#------------------------------- sator --------------------------------------
-        if ($MPI == true) then
-                if ($DBG == true) then
-                        setenv ELSAPROD sat_mpi_dbg_r8
-                else
-                        setenv ELSAPROD sat_mpi_r8
-                endif
-        else
-                if ($DBG == true) then
-                        setenv ELSAPROD sat_dbg_r8
-                else
-                        setenv ELSAPROD sat_r8
-                endif
-        endif
-        module unload intel/11.1.073
-        module load CFD/4.0-intel-17.impi
-        #module load intel/17.0.4 impi/17 python/2.7.8-intel-17.impi
-
-        # HDF para (deja dans le socle)
-        # module load hdf5/1.8.17-intel-17.impi
-        
-        # Number of threads
-        setenv OMP_NUM_THREADS 28
-        # Chemin de go
-        set path=($path $CASSIOPEE/Dist/bin)
-        # Chemin de elsA.x
-        set path=($path $CASSIOPEE/Dist/bin/$ELSAPROD)
-        setenv LD_LIBRARY_PATHL $CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/stv_r8/lib:/tmp_user/stelvio/benoit/sator/lib
-        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/sat_r8:$CASSIOPEE/Dist/bin/sat_r8/lib/python2.7/site-packages
-
 else if ($%MAC28 != 0) then
 #------------------------------- xdaap --------------------------------------
         if ($MPI == true) then
@@ -665,13 +634,45 @@ else if ($%MAC29 != 0) then
         module load CFD/4.0-intel-17.impi
         
         # Number of threads
-        setenv OMP_NUM_THREADS 4
+        setenv OMP_NUM_THREADS 8
         # Chemin de go
         set path=($path $CASSIOPEE/Dist/bin)
         # Chemin de elsA.x
         set path=($path $CASSIOPEE/Dist/bin/$ELSAPROD)
         setenv LD_LIBRARY_PATHL /usr/lib64/:$CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/spiro_r8/lib:/usr/local/hdf5-intel-1.8.8/lib:/usr/local/lib64
         setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/spiro_r8:$CASSIOPEE/Dist/bin/spiro_r8/lib/python2.7/site-packages
+
+else if ($%MAC26 != 0 || $%MAC27 != 0) then
+#------------------------------- sator --------------------------------------
+# En dernier a cause de 'n'
+        if ($MPI == true) then
+                if ($DBG == true) then
+                        setenv ELSAPROD sat_mpi_dbg_r8
+                else
+                        setenv ELSAPROD sat_mpi_r8
+                endif
+        else
+                if ($DBG == true) then
+                        setenv ELSAPROD sat_dbg_r8
+                else
+                        setenv ELSAPROD sat_r8
+                endif
+        endif
+        module unload intel/11.1.073
+        module load CFD/4.0-intel-17.impi
+        #module load intel/17.0.4 impi/17 python/2.7.8-intel-17.impi
+
+        # HDF para (deja dans le socle)
+        # module load hdf5/1.8.17-intel-17.impi
+        
+        # Number of threads
+        setenv OMP_NUM_THREADS 28
+        # Chemin de go
+        set path=($path $CASSIOPEE/Dist/bin)
+        # Chemin de elsA.x
+        set path=($path $CASSIOPEE/Dist/bin/$ELSAPROD)
+        setenv LD_LIBRARY_PATHL $CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/stv_r8/lib:/tmp_user/stelvio/benoit/sator/lib
+        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/sat_r8:$CASSIOPEE/Dist/bin/sat_r8/lib/python2.7/site-packages
 
 else if ($%MAC9 != 0 || $%MAC10 != 0) then
 #------------------------------- stelvio --------------------------------------

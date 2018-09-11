@@ -50,8 +50,6 @@ int Data::createPngTexture(const char* filename, GLuint &tex,
   char path2[256*8];
   char* file = ptrState->file;
   char* lpn = ptrState->filePath;
-  printf("file=%s\n", file);
-  printf("lpn=%s\n", lpn);
   strcpy(path2, lpn);
   strcat(path2, "/");
   strcat(path2, filename);

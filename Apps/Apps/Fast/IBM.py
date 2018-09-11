@@ -122,8 +122,7 @@ def prepare0(t_case, t_out, tc_out, dfar=10., vmin=21, check=False, NP=0, format
 #==============================================================================
 def post(t_case, t_in, tc_in, t_out, wall_out, NP=0, format='single'):
     import Post.PyTree as P
-    from math import *
-
+    
     if isinstance(t_in, str): t = C.convertFile2PyTree(t_in)
     else: t = t_in
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
