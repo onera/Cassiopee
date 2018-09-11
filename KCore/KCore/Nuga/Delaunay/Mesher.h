@@ -198,7 +198,7 @@ namespace DELAUNAY
 
     // Triangulate.
     _err = triangulate();
-    
+
     if (_err)
     {
       if (!_mode.silent_errors) std::cout << "error triangulating" << std::endl;
@@ -222,7 +222,7 @@ namespace DELAUNAY
       if (!_mode.silent_errors) std::cout << "error restoring boundaries" << std::endl;
       return _err;
     }
-      
+    
 
 #ifdef E_TIME
     std::cout << c.elapsed() << std::endl;
@@ -643,8 +643,9 @@ namespace DELAUNAY
 #ifdef DEBUG_METRIC
     /*{
       std::ostringstream o;
-      o << "ellipse_begin_refine.mesh";
-      _metric.draw_ellipse_field(o.str().c_str(), *_data->pos, _data->connectM);
+      o << "ellipse_triangulation.mesh";
+      _metric.draw_ellipse_field(o.str().c_str(), *_data->pos, _data->connectM, &_data->mask);
+      MIO::write("triangulation.mesh", *_data->pos, _data->connectM, "TRI", &_data->mask);
     }*/
 #endif
     
@@ -659,13 +660,14 @@ namespace DELAUNAY
 
     size_type Ni, nb_refine_nodes;
 
-    Refiner<MetricType> saturator(_metric);
+    Refiner<MetricType> saturator(_metric, _mode.growth_ratio, _mode.nb_smooth_iter);
 
 #ifdef E_TIME
     chrono c;
 #endif
 
     float contrained;
+    E_Int iter(0);
     bool carry_on = false;
     do
     {
@@ -674,19 +676,26 @@ namespace DELAUNAY
       c.start();
 #endif
 
-#ifdef DEBUG_METRIC
-    {
-      std::ostringstream o;
-      o << "ellipse_refine_iter_" << iter << ".mesh";
-      _metric.draw_ellipse_field(o.str().c_str(), *_data->pos, _data->connectM);
-    }
-#endif
+//#ifdef DEBUG_METRIC
+//    {
+//      std::ostringstream o;
+//      o << "ellipse_refine_iter_" << iter << ".mesh";
+//      _metric.draw_ellipse_field(o.str().c_str(), *_data->pos, _data->connectM, &_data->mask);
+//    }
+//#endif
 
-      saturator.computeRefinePoints(*_data, _box_nodes, _data->hardEdges, refine_nodes);
+      saturator.computeRefinePoints(iter++, *_data, _box_nodes, _data->hardEdges, refine_nodes, _N0);
 
 #ifdef E_TIME
       std::cout << "__compute_refine_points : " << c.elapsed() << std::endl;
       c.start();
+#endif
+#ifdef DEBUG_METRIC
+    {
+      std::ostringstream o;
+      o << "ellipse_refine_points_iter_" << iter << ".mesh";
+      _metric.draw_ellipse_field(o.str().c_str(), *_data->pos, refine_nodes);
+    }
 #endif
 
       saturator.filterRefinePoints(*_data, _box_nodes, refine_nodes, filter_tree);
@@ -726,6 +735,13 @@ namespace DELAUNAY
         o << "mesh_iter_" << iter << ".mesh";
         MIO::write(o.str().c_str(), *_data->pos, _data->connectM, "TRI");
       }
+#endif
+#ifdef DEBUG_METRIC
+    {
+      std::ostringstream o;
+      o << "ellipse_mesh_iter_" << iter << ".mesh";
+      _metric.draw_ellipse_field(o.str().c_str(), *_data->pos, _data->connectM);
+    }
 #endif
 
 #ifdef E_TIME

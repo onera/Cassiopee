@@ -29,12 +29,13 @@ using namespace std;
 PyObject* K_GENERATOR::T3mesher2D(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  E_Int triangulateOnly=0;
-#ifdef E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "Ol", &array, &triangulateOnly)) return NULL;
-#else
-  if (!PyArg_ParseTuple(args, "Oi", &array, &triangulateOnly)) return NULL;
-#endif
+  E_Int triangulateOnly(0), metric_interp_type(0);
+  E_Float grading(1.2);
+
+  if (!PYPARSETUPLE(args, 
+                    "Odll", "Odii", "Ofll", "Ofii", 
+                    &array, &grading, &triangulateOnly, &metric_interp_type)) { return NULL; }
+
   // Check array
   E_Int ni, nj, nk;
   K_FLD::FloatArray* f;
@@ -125,6 +126,13 @@ PyObject* K_GENERATOR::T3mesher2D(PyObject* self, PyObject* args)
   DELAUNAY::MesherMode mode;
   if (triangulateOnly)
     mode.mesh_mode = DELAUNAY::MesherMode::TRIANGULATION_MODE;
+  
+  mode.growth_ratio = grading; // Growth ratio
+  //std::cout << "gr : " << mode.growth_ratio << std::endl;
+
+  if (metric_interp_type != 0)
+    mode.metric_interpol_type = mode.GEOMETRIC;
+
   
   E_Int err = 0;
   if (dT3.metrics.rows() < 3) // Isotropic

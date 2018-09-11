@@ -247,11 +247,14 @@ def fittingPlaster(contour, bumpFactor=0.):
     pa = Generator.fittingPlaster(c, bumpFactor)
     return C.convertArrays2ZoneNode('plaster', [pa])
 
-def T3mesher2D(a, triangulateOnly=0):
+#---------------------------------------------------------------------------------------------------
+# Creates a Delaunay mesh or (only a triangulation) given a set of edges defined by a and a grading.
+#---------------------------------------------------------------------------------------------------
+def T3mesher2D(a, grading=1.2, triangulateOnly=0, metric_interp_type=0):
     """Create a delaunay mesh given a set of points defined by a.
-    Usage: T3mesher2D(a, triangulateOnly) """
+    Usage: T3mesher2D(a, grading, triangulateOnly) """
     c = C.getAllFields(a, 'nodes')[0]
-    c = Generator.T3mesher2D(c, triangulateOnly)
+    c = Generator.T3mesher2D(c, grading, triangulateOnly, metric_interp_type)
     return C.convertArrays2ZoneNode('tri', [c]) 
 
 def tetraMesher(a, maxh=-1., grading=0.4, triangulateOnly=0, 

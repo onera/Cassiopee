@@ -49,13 +49,14 @@ namespace DELAUNAY
 
   public:
 
-    Refiner(MetricType& metric):_metric(metric), _threshold(0.5){}
+    Refiner(MetricType& metric, E_Float growth_ratio, E_Int nb_smooth_iter):_metric(metric), _threshold(0.5), 
+            _gr(growth_ratio), _nb_smooth_iter(nb_smooth_iter){}
 
     ~Refiner(void){}
 
-    void computeRefinePoints(MeshData& data, const int_set_type& box_nodes,
+    void computeRefinePoints(E_Int iter, MeshData& data, const int_set_type& box_nodes,
                              const non_oriented_edge_set_type& hard_edges,
-                             int_vector_type& refine_nodes);
+                             int_vector_type& refine_nodes, E_Int N0/*for metrics changes when smoothing*/);
 
     void filterRefinePoints(MeshData& data, const int_set_type& box_nodes,
                             int_vector_type& refine_nodes,
@@ -65,15 +66,17 @@ namespace DELAUNAY
     MetricType&             _metric;
     std::vector<size_type>  _tmpNodes;
     E_Float                 _threshold;
+    E_Float                 _gr;
+    E_Int                   _nb_smooth_iter;
   };
 
   ///
   template <typename MetricType>
   void
     Refiner<MetricType>::computeRefinePoints
-    (MeshData& data, const int_set_type& box_nodes,
+    (E_Int iter, MeshData& data, const int_set_type& box_nodes,
      const non_oriented_edge_set_type& hard_edges,
-     int_vector_type& refine_nodes)
+     int_vector_type& refine_nodes, E_Int N0/*for metrics changes when smoothing*/)
   {
     refine_nodes.clear();
 
@@ -106,27 +109,43 @@ namespace DELAUNAY
       }
     }
 
-    //size_type Ni, Nj;
-
     //smooth the metric at each nodes.
-    //fixme : a tuner/ voir si ameliore la qualite...
-    /*E_Float eps = 0.5;
-    for (non_oriented_edge_set_type::const_iterator i = all_edges.begin(); i != all_edges.end(); ++i)
+    // so do it at leat once whatever the user ask for to impovre the overall
+    // mesh quality by setting the right metrics at bone nodes (__init_refine_points)
+    _metric._N0 = N0;
+    if (iter == 1 || ( (iter > 1) && (_nb_smooth_iter > 0)) )
     {
-    const int_pair_type& Ei = *i;
-    Ni = Ei.first;
-    Nj = Ei.second;
-    _metric.smooth(Ni, Nj, eps);
-    }*/
+    
+#ifdef DEBUG_METRIC
+      {
+        std::ostringstream o;
+        o << "ellipse_beforesmooth_iter_" << iter << ".mesh";
+        _metric.draw_ellipse_field(o.str().c_str(), *data.pos, data.connectM, &data.mask);
+      }
+#endif
+      
+      _metric.smoothing_loop(all_edges, _gr, _nb_smooth_iter, N0);
+
+#ifdef DEBUG_METRIC
+      {
+        std::ostringstream o;
+        o << "ellipse_aftersmooth_iter_" << iter << ".mesh";
+        _metric.draw_ellipse_field(o.str().c_str(), *data.pos, data.connectM, &data.mask);
+      }
+#endif
+    
+    }
 
     std::vector<std::pair<E_Float, size_type> > length_to_points;
 
-    for (std::set<K_MESH::NO_Edge>::const_iterator i = all_edges.begin(); i != all_edges.end(); ++i)
-    {
-      const K_MESH::NO_Edge& Ei = *i;
-      _metric.__compute_refine_points(*data.pos, Ei.node(0), Ei.node(1), _threshold, length_to_points, _tmpNodes);
-    }
-
+    if (iter== 0)
+      // Compute the bone mesh (for a 2D mesh, not a Geom Mesh)
+      for (const auto& Ei : all_edges)
+        _metric.__init_refine_points(*data.pos, Ei.node(0), Ei.node(1), _threshold, length_to_points, _tmpNodes);
+    else
+      for (const auto& Ei : all_edges)
+        _metric.__compute_refine_points(*data.pos, Ei.node(0), Ei.node(1), _threshold, length_to_points, _tmpNodes);
+    
     std::sort(ALL(length_to_points));
 
     size_type sz = (size_type)length_to_points.size();
@@ -180,7 +199,7 @@ namespace DELAUNAY
 
         
 #ifdef DEBUG_METRIC
-        if (discard && Ni == 19551)
+        /*if (discard && Ni == 19551)
         {
           K_FLD::FloatArray crdo;
           K_FLD::IntArray cnto;
@@ -196,7 +215,7 @@ namespace DELAUNAY
           
           cnto.pushBack(E, E+2);
           MIO::write("discard.mesh", crdo, cnto, "BAR");     
-        }
+        }*/
 #endif
       }
 

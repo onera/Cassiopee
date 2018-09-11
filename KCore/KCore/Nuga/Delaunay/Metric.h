@@ -81,18 +81,22 @@ namespace DELAUNAY{
 
     inline const value_type& operator[](size_type i) const { assert (i < (size_type)_field.size()); return _field[i];}
     
-    virtual void __init_refine_points
+    void __init_refine_points
     (K_FLD::FloatArray& pos, size_type Ni, size_type Nj, E_Float threshold,
      std::vector<std::pair<E_Float, size_type> >& length_to_points, std::vector<size_type>& tmpNodes);
     
     void __compute_refine_points
     (K_FLD::FloatArray& pos, size_type Ni, size_type Nj, E_Float threshold, std::vector<std::pair<E_Float, size_type> >& length_to_points, std::vector<size_type>& tmpNodes);
     
-    ///inline void smooth(size_type Ni, size_type Nj, E_Float eps);
+    void smoothing_loop(const std::set<K_MESH::NO_Edge>& edges, E_Float eps, E_Int itermax, E_Int N0 /* threshold for metric changes*/);
+
+    inline bool smooth(size_type Ni, size_type Nj, E_Float gr, E_Int N0 /* threshold for metric changes*/);
+
 
 #ifdef DEBUG_METRIC
   void append_unity_ellipse(const K_FLD::FloatArray& c, E_Int i, K_FLD::FloatArray& crd, K_FLD::IntArray& cnt, E_Int Nc = -1);
-  void draw_ellipse_field(const char* fname, const K_FLD::FloatArray& crd, const K_FLD::IntArray& cnt);
+  void draw_ellipse_field(const char* fname, const K_FLD::FloatArray& crd, const K_FLD::IntArray& cnt, const std::vector<bool>* mask = 0);
+  void draw_ellipse_field(const char* fname, const K_FLD::FloatArray& crd, const std::vector<size_type>& indices);
 #endif
     
   protected:
@@ -119,6 +123,10 @@ namespace DELAUNAY{
     K_FLD::FloatArray&        _pos;
     ///
     Interpolator<T>*          _interpol;
+  public:
+    E_Int _N0;
+    
+    
 
   };
 
@@ -147,18 +155,20 @@ namespace DELAUNAY{
      MeshUtils1D::compute_iso_metric(pos, connectB, hard_nodes, m_iso, hmin1, hmax1);
      
      // Set _hmin and _hmax if not done nor correct.
-     if ((_hmin <= 0.) || (_hmin == K_CONST::E_MAX_FLOAT)) // If not (or wrongly) set by the user.
+     if (_hmax <= 0.)
+       _hmax = K_CONST::E_MAX_FLOAT;
+     if ((_hmin <= 0.) || (_hmin > _hmax) || (_hmin == K_CONST::E_MAX_FLOAT) )
        _hmin = hmin1;
-     if ((_hmax <= 0.) || (_hmax == K_CONST::E_MAX_FLOAT)) // If not (or wrongly) set by the user.
-       _hmax = hmax1;
      
-     if (_hmax != hmax1 || _hmin != hmin1)
+     if (_hmax != K_CONST::E_MAX_FLOAT)
      {
        for (size_t i=0; i < m_iso.size(); ++i)
-       {
          m_iso[i] = std::min(m_iso[i], _hmax);
+     }
+     if (_hmin != hmin1)
+     {
+       for (size_t i=0; i < m_iso.size(); ++i)
          m_iso[i] = std::max(m_iso[i], _hmin);
-       }
      }
 
      // Set _metric by converting m_iso to an aniso type metric.
@@ -313,65 +323,40 @@ namespace DELAUNAY{
       _field.resize(N+1);
     _field[N] = m;
   }
-
-/*
-  ///
-  template<> inline
-    void VarMetric<E_Float>::smooth(size_type Ni, size_type Nj, E_Float eps)
+  
+  template <typename T> inline
+  void
+  VarMetric<T>::smoothing_loop
+  (const std::set<K_MESH::NO_Edge>& edges, E_Float gr, E_Int itermax, E_Int N0 /* threshold for metric changes*/)
   {
-    E_Float mi = _field[Ni];
-    E_Float mj = _field[Nj];
-    E_Float d = ::sqrt(K_FUNC::sqrDistance(_pos.col(Ni), _pos.col(Nj), _pos.rows()));
-    _field[Ni] = std::min (mi, mj + eps*d);
-    _field[Nj] = std::min (mj, mi + eps*d);
+    E_Int iter(0);
+    bool has_changed = false;
+    //
+    do
+    {
+      has_changed = false;
+      for (const auto& Ei : edges)
+        has_changed |= this->smooth(Ei.node(0), Ei.node(1), gr, N0);
+    }
+    while ( has_changed && (++iter < itermax) );
   }
-
-  ///
-  template<> inline
-    void VarMetric<Aniso2D>::smooth(size_type Ni, size_type Nj, E_Float eps)
+  
+  /// 
+  template <> inline
+  bool
+  VarMetric<Aniso2D>::isValidMetric(const E_Float* mi)
   {
-
-    K_FLD::FloatArray M1(2,2),M2(2,2), M1e(2,2), M2e(2,2);
-    E_Float d = ::sqrt(K_FUNC::sqrDistance(_pos.col(Ni), _pos.col(Nj), _pos.rows()));
-
-    M1(0,0) = _field[Ni][0];
-    M1(1,1) = _field[Ni][2];
-    M1(1,0) = M1(0,1) = _field[Ni][1];
-
-    //  std::cout << M1 << std::endl;
-
-    M1e(0,0) = M1(0,0) + eps * d;
-    M1e(1,1) = M1(1,1) + eps * d;
-    M1e(1,0) = M1e(0,1) = M1(1,0);
-
-    M2(0,0) = _field[Nj][0];
-    M2(1,1) = _field[Nj][2];
-    M2(1,0) = M2(0,1) = _field[Nj][1];
-
-    M2e(0,0) = M2(0,0) + eps * d;
-    M2e(1,1) = M2(1,1) + eps * d;
-    M2e(1,0) = M2e(0,1) = M2(1,0);
-
-    //  std::cout << M2 << std::endl;
-
-    K_FLD::FloatArray I;
-    K_LINEAR::DelaunayMath::intersect(M1, M2e, I);
-
-    //  std::cout << I << std::endl;
-
-    _field[Ni][0] = I(0,0);
-    _field[Ni][1] = I(1,0);
-    _field[Ni][2] = I(1,1);
-
-    K_LINEAR::DelaunayMath::intersect(M2, M1e, I);
-
-    //  std::cout << I << std::endl;
-
-    _field[Nj][0] = I(0,0);
-    _field[Nj][1] = I(1,0);
-    _field[Nj][2] = I(1,1); 
+    const E_Float& a11 = mi[0];
+    const E_Float& a12 = mi[1];
+    const E_Float& a22 = mi[2];
+    E_Float det = (a11*a22) - (a12*a12);    
+    
+    return ((a11 > 0.) && (a22 > 0.) && (det > 0.));
   }
-*/
+  
+
+  
+
 
   template<> inline
     void VarMetric<E_Float>::compute_intersection(std::vector<E_Float>& metric1,
@@ -496,6 +481,110 @@ namespace DELAUNAY{
         metric[i] = m;
     }
   }
+  
+  ///
+  template<> inline
+    bool VarMetric<E_Float>::smooth(size_type Ni, size_type Nj, E_Float gr, E_Int N0 /* threshold for metric changes*/)
+  {
+    //WARNING : assume growth ratio gr > 1.
+    
+    // The smaller might smooth the bigger
+    
+    E_Float hi0 = _field[Ni];
+    E_Float hj0 = _field[Nj];
+
+    if (::fabs(hj0 - hi0) < E_EPSILON) return false; //same metric so nothing to smooth
+    if (hj0 < hi0)
+    {
+      std::swap(Ni,Nj);
+      std::swap(hi0, hj0);
+    }
+    
+    // (Ni,mi) is the finer now, Nj is the one to smooth
+    
+    if (Nj <= N0) return false; //do not touch the hard nodes
+
+    E_Float dij = lengthEval(Ni, hi0, Nj, hi0);
+    
+    if (hi0 >= dij && hj0 >= dij) return false; //fixme : ??
+
+    E_Float hs = hi0 *(1. + (gr-1.) * dij); // extrapolated h at Nj with respect to growth ratio
+
+    hs = std::max(_hmin, hs);
+    hs = std::min(_hmax, hs);
+    
+    if (hj0 <= hs) return false; //false if metric at Nj is smaller than the replacement one.
+    
+    _field[Nj] = hs;
+            
+    return true;
+    
+  }
+  
+  ///
+  template<> inline
+    bool VarMetric<Aniso2D>::smooth(size_type Ni, size_type Nj, E_Float gr, E_Int N0 /* threshold for metric changes*/)
+  {
+    //WARNING : assume growth ratio gr > 1.
+    
+    // The smaller might smooth the bigger. Discuss on the spectral radius
+    
+    const Aniso2D& mi0 = _field[Ni];
+    const Aniso2D& mj0 = _field[Nj];
+    
+    E_Float hi0 = getRadius(Ni);
+    E_Float hj0 = getRadius(Nj);
+    
+    const Aniso2D* pmi0 = &mi0;
+    
+    if (::fabs(hj0 - hi0) < E_EPSILON) return false; //same metric so nothing to smooth
+    if (hj0 < hi0)
+    {
+      std::swap(Ni,Nj);
+      std::swap(hi0, hj0);
+      pmi0 = &mj0;
+    }
+    
+    // (Ni,mi) is the finer now, Nj is the one to smooth
+    
+    if (Nj <= N0) return false; //do not touch the hard nodes
+
+    E_Float dij = lengthEval(Ni, *pmi0, Nj, *pmi0);
+
+    if (hi0 >= dij && hj0 >= dij) return false; //fixme : ??
+
+    E_Float hs = hi0 *(1. + (gr-1.) * dij); // extrapolated h at Nj with respect to growth ratio
+    
+    hs = std::max(_hmin, hs);
+    hs = std::min(_hmax, hs);
+
+    if (hj0 <= hs) return false; //false if metric at Nj is smaller than the replacement one.
+
+    if (isValidMetric(_field[Nj])) //previously set
+    {
+      K_FLD::FloatArray Ms(2,2, 0.);
+      Ms(0,0) = Ms(1,1) = 1./(hs*hs);
+    
+      K_FLD::FloatArray Mj0(2,2);
+      Mj0(0,0) = _field[Nj][0];
+      Mj0(1,1) = _field[Nj][2];
+      Mj0(1,0) = Mj0(0,1) = _field[Nj][1];
+    
+      K_FLD::FloatArray I;
+      K_LINEAR::DelaunayMath::intersect(Mj0, Ms, I);
+    
+      _field[Nj][0] = I(0,0);
+      _field[Nj][1] = I(1,0);
+      _field[Nj][2] = I(1,1);
+    }
+    else
+    {
+      _field[Nj][2] = _field[Nj][0] = 1./(hs*hs);
+      _field[Nj][1] = 0.;
+    }
+
+    return true;
+  }
 
   ///
   template <typename T>
@@ -606,13 +695,41 @@ namespace DELAUNAY{
   
   template <typename T> inline
   void VarMetric<T>::draw_ellipse_field
-  (const char* fname, const K_FLD::FloatArray& crd, const K_FLD::IntArray& cnt)
+  (const char* fname, const K_FLD::FloatArray& crd, const K_FLD::IntArray& cnt, const std::vector<bool>* mask)
   {
     K_FLD::IntArray cnto;
     K_FLD::FloatArray crdo;
     
     std::vector<E_Int> indices;
-    cnt.uniqueVals(indices);
+    
+    if (mask)
+    {
+      std::set<E_Int> unodes;
+      for (size_t i=0; i < cnt.cols(); ++i)
+      {
+        if (!(*mask)[i]) continue;
+        unodes.insert(cnt(0,i));
+        unodes.insert(cnt(1,i));
+        unodes.insert(cnt(2,i));
+      }
+      
+      indices.insert(indices.end(), unodes.begin(), unodes.end());
+    }
+    else
+      cnt.uniqueVals(indices);
+    
+    for (size_t i = 0; i < indices.size(); ++i)
+      append_unity_ellipse(crd, indices[i], crdo, cnto);
+    
+    MIO::write(fname, crdo, cnto, "BAR");
+  }
+  
+  template <typename T> inline
+  void VarMetric<T>::draw_ellipse_field
+  (const char* fname, const K_FLD::FloatArray& crd, const std::vector<size_type>& indices)
+  {
+    K_FLD::IntArray cnto;
+    K_FLD::FloatArray crdo;
     
     for (size_t i = 0; i < indices.size(); ++i)
       append_unity_ellipse(crd, indices[i], crdo, cnto);
@@ -682,12 +799,18 @@ namespace DELAUNAY{
     
     E_Int pos0 = crd.cols();
     
+    if (Nc == -1) Nc = i;
+    
     for (size_t n=0; n < SAMPLE; ++n)
     {
       E_Float a = alpha * n;
-      E_Float V[] = {::cos(a)*h, ::sin(a)*h};
+      E_Float V[] = {::cos(a), ::sin(a)};
       
-      crd.pushBack(V, V+2);
+      E_Float Pt[] = {h*V[0] , h*V[1]};
+      
+      K_FUNC::sum<2>(Pt, c.col(Nc), Pt); //center it at node Nc
+      
+      crd.pushBack(Pt, Pt+2);
       
     }
     

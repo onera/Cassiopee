@@ -31,7 +31,7 @@ namespace DELAUNAY
 
     MesherMode():mesh_mode(REFINE_MODE), hmin(K_CONST::E_MAX_FLOAT), hmax(-K_CONST::E_MAX_FLOAT),
                  do_not_shuffle(false), remove_holes(true), silent_errors(false), ignore_coincident_nodes(false), 
-                 metric_interpol_type(LINEAR){}
+                 metric_interpol_type(LINEAR), growth_ratio(1.2), nb_smooth_iter(0){}
 
     eMeshMode     mesh_mode;
     E_Float       hmin;
@@ -43,6 +43,8 @@ namespace DELAUNAY
     E_Bool        ignore_coincident_nodes;
     
     eInterpolType metric_interpol_type;
+    E_Float       growth_ratio;
+    E_Int         nb_smooth_iter;
     
 
   };

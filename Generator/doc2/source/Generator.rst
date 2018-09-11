@@ -464,14 +464,22 @@ General purpose grid generator
 
 ---------------------------------------
 
-.. py:function:: Generator.T3mesher2D(a, triangulateOnly=0) 
+.. py:function:: Generator.T3mesher2D(a, triangulateOnly=0, grading=1.2, metric_interp_type=0) 
 
-    Create a 2D Delaunay mesh given a BAR defined in a. If triangulateOnly=1 then only points of a are triangulated, if triangulateOnly=0, then interior points are inserted.
+    Creates a 2D Delaunay mesh given a BAR defined in a. If triangulateOnly=1 then only points of a are triangulated, if triangulateOnly=0, then interior points are inserted.
+    
+    The grading parameter allows to control the growth ratio of the mesh metric : a value greater(lesser) than 1. tends to produce a coarser (finer) mesh in the region far from the boundaries. A value equal to 1. provides a uniform mesh over the domain. This grading is related to the metric field, it is not the size ratio between two adjacent edges or triangles.
+    
+    The metric_interp_type parameter controls the metrics interpolation type : either linear or geometric. A geometric metric interpolation tends to promote smaller sizes.
 
-    :param c:  BAR-contour
+    :param c:  BAR-contour (soup of conformal edges defining an enclosed 2D-domain, can be non-manifold, i.e. having inner edges or subdomains)
     :type  c:  [array, list of arrays] or [pyTree, base, zone, list of zones]
     :param triangulateOnly:  insertion or not of interior points for the triangulation
     :type  triangulateOnly:  integer (0 or 1)
+    :param grading:  metric growth ratio
+    :type  grading:  float (strictly positive value)
+    :param metric_interp_type:  metric interpolation type, linear(0) or geometric(1)
+    :type  metric_interp_type:  integer (0 or 1)
     :return: 2D mesh
     :rtype: Identical to input
 
@@ -1406,28 +1414,6 @@ Operation on surface meshes
     .. literalinclude:: ../build/Examples/Generator/gapsmanagerPT.py
 
 
-.. py:function:: Generator.quad2Pyra(A, hratio=1.)
-
-    Creates a set of pyramids based on a set of input quads. The height of each pyramid is equal to the product of a reference length (per element) times the input hratio.
-
-    The reference length is the half length of the first diagonal : Let (Q1, Q2, Q3, Q4) be a quad, Lref = 0.5 * dist(Q1,Q3)
-
-    :param A:  QUAD surface mesh
-    :type  A:  array or pyTree
-    :param hratio:  height ratio (between 0. and 1.) based on the reference  
-    :type  hratio:  float
-    :return: new PYRA volume mesh
-    :rtype: array or pyTree
-
-    *Example of use:*
-
-    * `Pyramids creation (array) <Examples/Generator/quad2pyra.py>`_:
-
-    .. literalinclude:: ../build/Examples/Generator/quad2pyra.py
-
-    * `Pyramids creation (pyTree) <Examples/Generator/quad2pyraPT.py>`_:
-
-    .. literalinclude:: ../build/Examples/Generator/quad2pyraPT.py
 
 
 Information on generated meshes

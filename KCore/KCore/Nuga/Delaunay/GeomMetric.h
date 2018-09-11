@@ -67,10 +67,6 @@ namespace DELAUNAY
     void init_metric
       (const K_FLD::FloatArray& metric, K_FLD::FloatArray& pos, const K_FLD::IntArray& connectB,
        const std::vector<E_Int>& hard_nodes);
-    
-    void __init_refine_points
-    (K_FLD::FloatArray& pos, size_type Ni, size_type Nj, E_Float threshold,
-    std::vector<std::pair<E_Float, size_type> >& length_to_points, std::vector<size_type>& tmpNodes);
 
   private:
     void __update_boundary_metric_with_surface(const K_FLD::IntArray& connectB);
@@ -123,24 +119,23 @@ namespace DELAUNAY
     std::vector<E_Float> m_iso;
     E_Float hmin1, hmax1;
     MeshUtils1D::compute_iso_metric(pos, connectB, hard_nodes, m_iso, hmin1, hmax1);
-    
-    // Set _hmin and _hmax if not done nor correct.
-    if ((parent_type::_hmin <= 0.) || (parent_type::_hmin == K_CONST::E_MAX_FLOAT)) // If not (or wrongly) set by the user.
-      parent_type::_hmin = /*0.25 **/ hmin1;
-    if ((parent_type::_hmax <= 0.) || (parent_type::_hmax == K_CONST::E_MAX_FLOAT)) // If not (or wrongly) set by the user.
-      parent_type::_hmax = hmax1;
-    
-    if (parent_type::_hmax != hmax1) //i.e. user-defined
-    {
-      for (size_t i=0; i < m_iso.size(); ++i)
-        m_iso[i] = std::min(m_iso[i], parent_type::_hmax);
-    }
 
-    if (parent_type::_hmin > hmin1)
-    {
-      for (size_t i=0; i < m_iso.size(); ++i)
-        m_iso[i] = std::max(m_iso[i], parent_type::_hmin);
-    }
+    // Set _hmin and _hmax if not done nor correct.
+     if (parent_type::_hmax <= 0.)
+       parent_type::_hmax = hmax1;
+     if ((parent_type::_hmin <= 0.) || (parent_type::_hmin > parent_type::_hmax) || (parent_type::_hmin == K_CONST::E_MAX_FLOAT) )
+       parent_type::_hmin = std::min(hmin1, parent_type::_hmax);
+ 
+     if (parent_type::_hmax < hmax1)
+     {
+       for (size_t i=0; i < m_iso.size(); ++i)
+         m_iso[i] = std::min(m_iso[i], parent_type::_hmax);
+     }
+     if (parent_type::_hmin > hmin1)
+     {
+       for (size_t i=0; i < m_iso.size(); ++i)
+         m_iso[i] = std::max(m_iso[i], parent_type::_hmin);
+     }
       
     _hmax2 = (parent_type::_hmax != K_CONST::E_MAX_FLOAT) ? parent_type::_hmax * parent_type::_hmax : K_CONST::E_MAX_FLOAT; //fixme : important to be done before __update_boundary_metric_with_surface
 
@@ -164,23 +159,23 @@ namespace DELAUNAY
         continue;
 
       // Do the transform if and only if the ellispse is contained in the initial iso circle
-      if (E > (1. / (parent_type::_field[Ni][0] * hmax1 * hmax1) ) )
+      //if (E > (1. / (parent_type::_field[Ni][0] * hmax1 * hmax1) ) )
         parent_type::_field[Ni][0] *= E;
       
       //parent_type::_field[Ni][1] *= F; //here m12 is 0
       
       // Do the transform if and only if the ellispse is contained in the initial iso circle
-      if (G > (1. / (parent_type::_field[Ni][2] * hmax1 * hmax1) ) )
+      //if (G > (1. / (parent_type::_field[Ni][2] * hmax1 * hmax1) ) )
         parent_type::_field[Ni][2] *= G;
       
 #ifdef DEBUG_METRIC
       assert (isValidMetric(parent_type::_field[Ni]));
 #endif
     }
-    
+
 #ifdef DEBUG_METRIC
       {
-        parent_type::draw_ellipse_field("ellipse_param_space.mesh", pos, connectB);
+        //parent_type::draw_ellipse_field("ellipse_param_space.mesh", pos, connectB); //fixme : wrong pos, shoule be pos2D
       }
 #endif
 
@@ -390,8 +385,33 @@ namespace DELAUNAY
     m[0] = M(0,0);
     m[1] = M(1,0);
     m[2] = M(1,1);
-
     parent_type::setMetric(N0, m);
+    
+    if (!parent_type::isValidMetric(parent_type::_field[Ni]) || !parent_type::isValidMetric(parent_type::_field[Nj]))
+      return;
+    
+    // LIMITER PROCESSING
+    // both Ni and Nj metrics are valid here so check if straight interpolation (approximated by iso metric : max lambda radius) between these nodes
+    // is not smaller than the one computed at N0
+    
+    T m1 = parent_type::_interpol->interpolate(parent_type::_field[Ni], parent_type::_field[Nj], r);
+    E_Float lmax, lmin;
+    m1.eigen_values(lmax, lmin);
+    K_FLD::FloatArray Ms(2,2,0.);
+    Ms(0,0) = Ms(1,1) = lmax; // max-radius iso approximation
+    
+    if (parent_type::isValidMetric(m)) // N0 computed metrics is OK
+    {
+      K_FLD::FloatArray I(2,2);
+      K_LINEAR::DelaunayMath::intersect(M, Ms, I);
+      T m;
+      m[0] = I(0,0);
+      m[1] = I(1,0);
+      m[2] = I(1,1);
+      parent_type::setMetric(N0, m);
+    }
+    else // invalid metrics so simply pass the interpolated value.
+      parent_type::setMetric(N0, m1);
   }
 
   //fixme : implementation required ?
@@ -460,18 +480,6 @@ namespace DELAUNAY
       parent_type::_metric[i] = Aniso2D(&s[0]);
     }
   }
-
-  template <typename T, typename SurfaceType>
-  void
-  GeomMetric<T, SurfaceType>::__init_refine_points
-  (K_FLD::FloatArray& pos, size_type Ni, size_type Nj, E_Float threshold,
-   std::vector<std::pair<E_Float, size_type> >& length_to_points, std::vector<size_type>& tmpNodes)
-  {
-    // For a Geom Mesh, it doesn't make sense to symetrize the param mesh, so
-   // do regular refinement
-    parent_type::__compute_refine_points(pos, Ni, Nj, threshold, length_to_points, tmpNodes);
-  }
-
 }
 
 #endif

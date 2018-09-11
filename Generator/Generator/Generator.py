@@ -1198,15 +1198,15 @@ def mapSplitStruct__(array, dist, splitCrit, densMax):
             indsplit_previous = indsplit
     return a
 
-def T3mesher2D(a, triangulateOnly=0):
+def T3mesher2D(a, grading=1.2, triangulateOnly=0, metric_interp_type=0):
     """Create a delaunay mesh given a set of points defined by a.
-    Usage: T3mesher2D(a, triangulateOnly)"""
+    Usage: T3mesher2D(a, grading, triangulateOnly)"""
     try:
         import Converter as C
         b = C.convertArray2Tetra(a); b = close(b)
-        return generator.T3mesher2D(b, triangulateOnly)
+        return generator.T3mesher2D(b, grading, triangulateOnly, metric_interp_type)
     except:
-        return generator.T3mesher2D(a, triangulateOnly)
+        return generator.T3mesher2D(a, grading, triangulateOnly, metric_interp_type)
 
 def tetraMesher(a, maxh=-1., grading=0.4, triangulateOnly=0, 
                 remeshBoundaries=0, algo=1):
@@ -1818,7 +1818,7 @@ def getTriQualityStat(array):
 
 
 #------------------------------------------------------------------------------
-# Genere des pyramides ayant pour base les QUAD d'une surface donnée
+# Genere des pyramides ayant pour base les QUAD d'une surface donnee
 #------------------------------------------------------------------------------
 def quad2Pyra(array, hratio = 1.):
      """Creates a set of pyramids from a set of quads.
