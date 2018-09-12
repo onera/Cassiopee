@@ -27,12 +27,142 @@ using namespace K_FLD;
 
 //=============================================================================
 //=============================================================================
-PyObject* K_CONVERTER::extractBCMatch(PyObject* self, PyObject* args )
+PyObject* K_CONVERTER::extractBCMatchNG(PyObject* self, PyObject* args )
 {
   // Return index of boundary faces in receiver zone and associated fields 
-  // (extracted from donor zone)
+  // extracted from donor zone
 
-  PyObject *fields, *indBC, *fldBC;
+  PyObject *zone, *pyIndices, *pyVariables ; 
+  char *GridCoordinates, *FlowSolutionNodes, *FlowSolutionCenters;
+
+  if (!PYPARSETUPLEI(args, "OOOsss", "OOOsss", &zone, &pyIndices, &pyVariables, 
+               &GridCoordinates, &FlowSolutionNodes, &FlowSolutionCenters )) 
+     return NULL;
+
+  // Zone 
+  // ~~~~
+  E_Int ni, nj, nk, cnSize, cnNfld ; 
+  char* varString; char* eltType;
+  vector<E_Float*> fields; vector<E_Int> locs;
+  vector<E_Int*> cn;
+  vector<PyArrayObject*> hook;
+
+  E_Int zoneType = K_PYTREE::getFromZone(zone, 0, 1, varString, fields, locs, ni, nj, nk, 
+                                         cn, cnSize, cnNfld, eltType, hook, GridCoordinates, 
+                                         FlowSolutionNodes, FlowSolutionCenters);
+
+  if ( zoneType == 0) 
+  {
+    PyErr_SetString(PyExc_TypeError, "extractBCMatchNG: not a valid zone.");
+    RELEASESHAREDZ(hook, varString, eltType);
+    return NULL;
+  }
+
+  // Parent Elements 
+  // ~~~~~~~~~~~~~~~
+  E_Int* PE = NULL;
+  if ( zoneType == 2)
+  {
+    if ( cn.size() < 3)//PE does not exist
+    {
+      PyErr_SetString(PyExc_TypeError, "extractBCMatchNG: ParentElements node must be defined in zone.");
+      RELEASESHAREDZ(hook, varString, eltType);
+      return NULL;  
+    }
+    else PE = cn[2];
+  }
+
+  // Positions des variables a extraire 
+  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  vector<E_Int> posvars;
+  E_Int posvar;   
+  char* varStringOut = new char[K_ARRAY::VARSTRINGLENGTH];
+  varStringOut[0] = '\0';
+
+  if (PyList_Check(pyVariables) != 0)
+  {
+    int nvariables = PyList_Size(pyVariables);
+    if (nvariables > 0)
+    {
+      for (int i = 0; i < nvariables; i++)
+      {
+        PyObject* tpl0 = PyList_GetItem(pyVariables, i);
+        if (PyString_Check(tpl0) == 0) 
+	{
+          PyErr_Warn(PyExc_Warning, "extractBCMatchNG: variable must be a string. Skipped.");
+	}
+        else 
+        {
+          char* varname    = PyString_AsString(tpl0); 
+	  if ( varStringOut[0] == '\0' )
+	    strcpy( varStringOut, varname );
+	  else 
+	  {
+	    strcat( varStringOut, "," );
+	    strcat( varStringOut, varname );
+	  }
+	    
+          posvar = K_ARRAY::isNamePresent(varname, varString);  
+          if (posvar != -1 ) posvars.push_back(posvar);
+        }
+      }
+    }
+  }
+
+  // Indices des faces 
+  // ~~~~~~~~~~~~~~~~~
+  FldArrayI* ind;
+  E_Int res = K_NUMPY::getFromNumpyArray(pyIndices, ind, true);
+
+  if ( res == 0)
+  {
+    PyErr_SetString(PyExc_TypeError, "extractBCMatchNG: not a valid numpy for indices.");
+    RELEASESHAREDZ(hook, varString, eltType);
+    return NULL;   
+  }
+
+  E_Int* ptrInd = ind->begin();
+
+  // Tableau des champs 
+  // ~~~~~~~~~~~~~~~~~~
+  int nfld = PyList_Size(pyVariables);
+  int nint = ind->getSize();
+  PyObject* pyFldD = K_ARRAY::buildArray2(nfld,varStringOut,nint,1,1,2); 
+
+  FldArrayF*  fldD; 
+  FldArrayI* cn2;
+  E_Int ni2, nj2, nk2;
+  K_ARRAY::getFromArray2(pyFldD, varStringOut, fldD, ni2, nj2, nk2, cn2, eltType);
+
+
+  // Extrapolation
+  // ~~~~~~~~~~~~~
+
+  for (E_Int novar = 0; novar < nfld; novar++)     
+  {
+      E_Int posv       = posvars[novar];
+      E_Float* fieldV  = fields[posv];
+      E_Float* ptrFldD = fldD->begin(novar+1); 
+
+      for (E_Int noint = 0; noint < nint; noint++)
+      {
+	E_Int indint   = ptrInd[noint]-1;        
+        E_Int indcell  = PE[indint]-1;
+	ptrFldD[noint] = fieldV[indcell];
+      }
+  }
+
+  return pyFldD; 
+}
+
+
+//=============================================================================
+PyObject* K_CONVERTER::extractBCMatchStruct(PyObject* self, PyObject* args )
+{
+  // Return index of boundary faces in receiver zone and associated fields 
+  // extracted from donor zone
+
+  PyObject *fields;
 
   E_Int niD, njD, nkD;       // dim zone donneuse
   E_Int niR, njR, nkR;       // dim zone receveuse 
@@ -59,7 +189,7 @@ PyObject* K_CONVERTER::extractBCMatch(PyObject* self, PyObject* args )
 
   if (res != 1)
   {
-    PyErr_SetString(PyExc_TypeError, "extractBCMatch: array must be structured."); 
+    PyErr_SetString(PyExc_TypeError, "extractBCMatchStruct: array must be structured."); 
     if (res == 2) RELEASESHAREDS(fields, FCenter);
     return NULL; 
   }
@@ -123,13 +253,13 @@ PyObject* K_CONVERTER::extractBCMatch(PyObject* self, PyObject* args )
       // 1. tableau des indices
       // ----------------------
 
-        for (E_Int jface = jminD-1 ; jface < jmaxD-1 ; jface ++) // A supprimer
-        {
-          ptrIndFaceD[noindint]  = iminD - 1 + jface*(niD+1) ; // A supprimer
+        // for (E_Int jface = jminD-1 ; jface < jmaxD-1 ; jface ++) // A supprimer
+        // {
+        //   ptrIndFaceD[noindint]  = iminD - 1 + jface*(niD+1) ; // A supprimer
  
-          // printf("indD : %d \n", ptrIndFaceD[noindint]);// A supprimer
-          noindint++;// A supprimer
-        }// A supprimer
+        //   // printf("indD : %d \n", ptrIndFaceD[noindint]);// A supprimer
+        //   noindint++;// A supprimer
+        // }// A supprimer
 
       // 1.a. face receveuse en i
       if (iminR == imaxR) 
@@ -201,14 +331,14 @@ PyObject* K_CONVERTER::extractBCMatch(PyObject* self, PyObject* args )
     {      
       // printf("Frontiere en j \n");
       // 1. tableau des indices 
-      E_Int shift = (jminD-1)*niD + nbIntID ;
+      // E_Int shift = (jminD-1)*niD + nbIntID ;
 
-      for (E_Int iface = iminD - 1 ; iface < imaxD-1 ; iface ++)  // A supprimer
-      {
-        ptrIndFaceD[noindint] = shift + iface ; // A supprimer
-        // printf("indD : %d \n", ptrIndFaceD[noindint]);// A supprimer
-        noindint++; // A supprimer
-      }   // A supprimer
+      // for (E_Int iface = iminD - 1 ; iface < imaxD-1 ; iface ++)  // A supprimer
+      // {
+      //   ptrIndFaceD[noindint] = shift + iface ; // A supprimer
+      //   // printf("indD : %d \n", ptrIndFaceD[noindint]);// A supprimer
+      //   noindint++; // A supprimer
+      // }   // A supprimer
 
       // printf("indR : ");
       // 1.a. face receveuse en i
@@ -291,20 +421,20 @@ PyObject* K_CONVERTER::extractBCMatch(PyObject* self, PyObject* args )
     if (iminD == imaxD)
     {
       // printf("Frontiere donneuse en i \n");
-      noindint = 0 ;
+      // noindint = 0 ;
       // printf("indD : ");// A supprimer
 
       // 1. tableau des indices  // A supprimer 
-      for (E_Int kface = kminD-1 ; kface < kmaxD-1 ; kface ++)  // A supprimer 
-      {
-        for (E_Int jface = jminD-1 ; jface < jmaxD-1 ; jface ++)  // A supprimer 
-        {
-          ptrIndFaceD[noindint] = iminD - 1 + jface*(niD+1) + kface*(niD+1)*njD ; // A supprimer 
-          // printf("%d ", ptrIndFaceD[noindint]);// A supprimer
-          noindint++; // A supprimer 
-        } 
-      } 
-      // printf("\n ");// A supprimer
+      // for (E_Int kface = kminD-1 ; kface < kmaxD-1 ; kface ++)  // A supprimer 
+      // {
+      //   for (E_Int jface = jminD-1 ; jface < jmaxD-1 ; jface ++)  // A supprimer 
+      //   {
+      //     ptrIndFaceD[noindint] = iminD - 1 + jface*(niD+1) + kface*(niD+1)*njD ; // A supprimer 
+      //     // printf("%d ", ptrIndFaceD[noindint]);// A supprimer
+      //     noindint++; // A supprimer 
+      //   } 
+      // } 
+      // // printf("\n ");// A supprimer
  
     // ~~~~~~~~~~~~~~~~~~~~~~~~
     // Frontiere receveuse en i 
@@ -502,21 +632,21 @@ PyObject* K_CONVERTER::extractBCMatch(PyObject* self, PyObject* args )
     if (jminD == jmaxD)
     {
       // printf("Frontiere donneuse en j \n");
-      noindint = 0 ;
-      // printf("indD : ");// A supprimer
+      // noindint = 0 ;
+      // // printf("indD : ");// A supprimer
 
-      // 1. tableau des indices 
-      E_Int shift = (jminD-1)*niD + nbIntID ;
+      // // 1. tableau des indices 
+      // E_Int shift = (jminD-1)*niD + nbIntID ;
 
-      for (E_Int kface = kminD-1 ; kface < kmaxD-1 ; kface ++) // A supprimer
-      {
-        for (E_Int iface = iminD-1 ; iface < imaxD-1 ; iface ++) // A supprimer
-        {
-          ptrIndFaceD[noindint]  = shift + iface + kface*niD*(njD+1) ;// A supprimer
-          // printf("%d ", ptrIndFaceD[noindint]);// A supprimer
-          noindint++;// A supprimer
-        }// A supprimer
-      }
+      // for (E_Int kface = kminD-1 ; kface < kmaxD-1 ; kface ++) // A supprimer
+      // {
+      //   for (E_Int iface = iminD-1 ; iface < imaxD-1 ; iface ++) // A supprimer
+      //   {
+      //     ptrIndFaceD[noindint]  = shift + iface + kface*niD*(njD+1) ;// A supprimer
+      //     // printf("%d ", ptrIndFaceD[noindint]);// A supprimer
+      //     noindint++;// A supprimer
+      //   }// A supprimer
+      // }
       // printf("\n ");// A supprimer
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1095,10 +1225,153 @@ void K_CONVERTER::indface2index(E_Int indface, E_Int ni, E_Int nj, E_Int nk, E_I
 
   return;
 }
+//=============================================================================
+//=============================================================================
+PyObject* K_CONVERTER::buildBCMatchFieldNG(PyObject* self, PyObject* args )
+{
+// compute fld = 0.5(fldD+flR)
+
+  PyObject *zone, *pyIndR, *pyFldD, *pyVariables ; 
+  char *GridCoordinates, *FlowSolutionNodes, *FlowSolutionCenters;
+  
+  if (!PYPARSETUPLEI(args, "OOOOsss", "OOOOsss", &zone, &pyIndR, &pyFldD, 
+                     &pyVariables, &GridCoordinates, &FlowSolutionNodes, 
+                     &FlowSolutionCenters )) return NULL;
+
+  // Zone 
+  // ~~~~
+  E_Int ni, nj, nk, cnSize, cnNfld ; 
+  char* varString; char* eltType;
+  vector<E_Float*> fields; vector<E_Int> locs;
+  vector<E_Int*> cn;
+  vector<PyArrayObject*> hook;
+
+  E_Int zoneType = K_PYTREE::getFromZone(zone, 0, 1, varString, fields, locs, ni, nj, nk, 
+                                         cn, cnSize, cnNfld, eltType, hook, GridCoordinates, 
+                                         FlowSolutionNodes, FlowSolutionCenters);
+
+  if ( zoneType == 0) 
+  {
+    PyErr_SetString(PyExc_TypeError, "buildBCMatchFieldNG: not a valid zone.");
+    RELEASESHAREDZ(hook, varString, eltType);
+    return NULL;
+  }
+
+  // Parent Elements 
+  // ~~~~~~~~~~~~~~~
+  E_Int* PE = NULL;
+  if ( zoneType == 2)
+  {
+    if ( cn.size() < 3)//PE does not exist
+    {
+      PyErr_SetString(PyExc_TypeError, "buildBCMatchFieldNG: ParentElements node must be defined in zone.");
+      RELEASESHAREDZ(hook, varString, eltType);
+      return NULL;  
+    }
+    else PE = cn[2];
+  }
+
+  // Champs de la zone donneuse
+  // ~~~~~~~~~~~~~~~~~~~~~~~~~~
+  E_Int ni2, nj2, nk2 ;
+  FldArrayF* fldD;
+  FldArrayI* cn2;
+  char* varStringOut;
+  E_Int res2 = K_ARRAY::getFromArray2(pyFldD, varStringOut, fldD, ni2, nj2, nk2, 
+                                    cn2, eltType); 
+
+  if (res2 != 1)
+  {
+    PyErr_SetString(PyExc_TypeError, "buildBCMatchFieldNG: wrong array."); 
+    RELEASESHAREDS(pyFldD, fldD);
+    return NULL; 
+  }
+
+  // Positions des variables a extraire 
+  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  vector<E_Int> posvars;
+  E_Int posvar;   
+
+  if (PyList_Check(pyVariables) != 0)
+  {
+    int nvariables = PyList_Size(pyVariables);
+    if (nvariables > 0)
+    {
+      for (int i = 0; i < nvariables; i++)
+      {
+        PyObject* tpl0 = PyList_GetItem(pyVariables, i);
+        if (PyString_Check(tpl0) == 0) 
+	{
+          PyErr_Warn(PyExc_Warning, "buildBCMatchFieldNG: variable must be a string. Skipped.");
+	}
+        else 
+        {
+          char* varname    = PyString_AsString(tpl0); 
+
+	  // Verif. presence variables a extraire dans le dict.
+	  E_Int verif = K_ARRAY::isNamePresent(varname, varStringOut);  
+	  if (verif == -1) 
+	  {
+	    PyErr_SetString(PyExc_TypeError, "buildBCMatchFieldNG: Variable not found in dictionary allMatch.");
+	  }
+
+          posvar = K_ARRAY::isNamePresent(varname, varString);  
+          if (posvar != -1 ) posvars.push_back(posvar);
+        }
+      }
+    }
+  }
+
+  // Indices des faces 
+  // ~~~~~~~~~~~~~~~~~
+  FldArrayI* indR;
+  E_Int res = K_NUMPY::getFromNumpyArray(pyIndR, indR, true);
+
+  if ( res == 0)
+  {
+    PyErr_SetString(PyExc_TypeError, "buildBCMatchFieldNG: not a valid numpy for indR.");
+    RELEASESHAREDZ(hook, varString, eltType);
+    return NULL;   
+  }
+
+ // Tableau des champs (output)
+  // ~~~~~~~~~~~~~~~~~~
+  int nfld = fldD->getNfld();
+  int nind = indR->getSize();
+  PyObject* pyFld = K_ARRAY::buildArray2(nfld,varStringOut,nind,1,1,2); 
+
+  FldArrayF*  fld; 
+  FldArrayI* cn3;
+  K_ARRAY::getFromArray2(pyFld, varStringOut, fld, ni2, nj2, nk2, cn3, eltType);
+
+
+  // Build 0.5(fldD+fldR) array on boundary faces
+  // ============================================
+  E_Int  ind;
+  E_Int* ptrIndR = indR->begin();
+
+  for (E_Int var = 1; var <= nfld; var++)
+  {
+    E_Int posv          = posvars[var-1];
+    E_Float* fieldV     = fields[posv];
+    E_Float* ptrFldD    = fldD->begin(var);
+    E_Float* ptrFld     = fld->begin(var);
+
+    for (E_Int noindint = 0 ; noindint < nind ; noindint++)
+    {
+      E_Int indFace    = ptrIndR[noindint]-1;
+      E_Int indcell    = PE[indFace]-1;
+      ptrFld[noindint] = 0.5*( fieldV[indcell]+ptrFldD[noindint] );    
+    }
+  }
+
+  return pyFld; 
+}
+
 
 //=============================================================================
 //=============================================================================
-PyObject* K_CONVERTER::buildBCMatchField(PyObject* self, PyObject* args )
+PyObject* K_CONVERTER::buildBCMatchFieldStruct(PyObject* self, PyObject* args )
 {
 //   // indR fldD fldR >> fld = 0.5(fldD+flR)
 
@@ -1116,7 +1389,7 @@ PyObject* K_CONVERTER::buildBCMatchField(PyObject* self, PyObject* args )
 
   if (res != 1)
   {
-    PyErr_SetString(PyExc_TypeError, "buildBCMatchField: array must be structured."); 
+    PyErr_SetString(PyExc_TypeError, "buildBCMatchFieldStruct: array must be structured."); 
     if (res == 2) RELEASESHAREDS(pyFieldsR, fieldsR);
     return NULL; 
   }
@@ -1132,7 +1405,7 @@ PyObject* K_CONVERTER::buildBCMatchField(PyObject* self, PyObject* args )
 
   if (res2 != 1)
   {
-    PyErr_SetString(PyExc_TypeError, "buildBCMatchField: array must be structured."); 
+    PyErr_SetString(PyExc_TypeError, "buildBCMatchFieldStruct: array must be structured."); 
     if (res2 == 2) RELEASESHAREDS(pyFldD, fldD);
     return NULL; 
   }
@@ -1146,7 +1419,7 @@ PyObject* K_CONVERTER::buildBCMatchField(PyObject* self, PyObject* args )
   E_Int resi = K_NUMPY::getFromNumpyArray(pyIndR, indR, true);
   if ( resi == 0)
   {
-     PyErr_SetString(PyExc_TypeError, "buildBCMatchField: not a valid numpy for indices of BC (indR).");
+     PyErr_SetString(PyExc_TypeError, "buildBCMatchFieldStruct: not a valid numpy for indices of BC (indR).");
      RELEASESHAREDN(pyIndR, indR);
      return NULL;   
   }
@@ -1178,23 +1451,9 @@ PyObject* K_CONVERTER::buildBCMatchField(PyObject* self, PyObject* args )
       E_Float* ptrFieldsR = fieldsR->begin(var);
       E_Float* ptrFldD    = fldD->begin(var);
       E_Float* ptrFld     = fld->begin(var);
-      ptrFld[noindint]    = 0.5*( ptrFieldsR[ind]+ptrFldD[noindint] );
-      // printf("noindint : %d, ind : %d, fldR : %g, fldD : %g \n",noindint,ind,ptrFieldsR[ind],ptrFldD[noindint]);
-      
+      ptrFld[noindint]    = 0.5*( ptrFieldsR[ind]+ptrFldD[noindint] );    
     }
   }
-
-  
-
-  for (E_Int var = 1; var <= nfld; var++)
-  {
-    E_Float* ptrFieldsR = fieldsR->begin(var);
-    for ( E_Int ind = 0; ind < fieldsR->getSize() ; ind++)
-    {
-      // printf("dbg fields : %f \n", ptrFieldsR[ind]);
-    }
-  }
-
 
   RELEASESHAREDN(pyIndR, indR);
   RELEASESHAREDS(pyFldD, fldD);

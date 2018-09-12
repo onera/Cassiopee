@@ -130,8 +130,10 @@ static PyMethodDef Pyconverter [] =
   {"pointList2SPL", K_CONVERTER::pointList2SPL, METH_VARARGS},
   {"range2PointList", K_CONVERTER::range2PointList, METH_VARARGS},
   {"addGhostCellsNG", K_CONVERTER::addGhostCellsNG, METH_VARARGS},
-  {"extractBCMatch", K_CONVERTER::extractBCMatch, METH_VARARGS},
-  {"buildBCMatchField", K_CONVERTER::buildBCMatchField, METH_VARARGS},
+  {"extractBCMatchStruct", K_CONVERTER::extractBCMatchStruct, METH_VARARGS},
+  {"extractBCMatchNG", K_CONVERTER::extractBCMatchNG, METH_VARARGS},
+  {"buildBCMatchFieldStruct", K_CONVERTER::buildBCMatchFieldStruct, METH_VARARGS},
+  {"buildBCMatchFieldNG", K_CONVERTER::buildBCMatchFieldNG, METH_VARARGS},
   {"extractBCFields", K_CONVERTER::extractBCFields, METH_VARARGS},
   {NULL, NULL}
 };

@@ -6,10 +6,9 @@ import Transform.PyTree as T
 import Connector.PyTree as X
 import KCore.test as test
 
-a = G.cart((1,1,1), (1.,1.,1.), (4,10,3)); a[0]='cart1'
-b = G.cart((4,2,0), (1.,1.,1.), (5, 8,5)); b[0]='cart2'
-
-a = T.reorder(a,(-3,1,-2))
+# NGON 
+a = G.cartNGon((1,1,1), (1.,1.,1.), (4,10,3)); a[0]='cart1'
+b = G.cartNGon((4,2,0), (1.,1.,1.), (5, 8,5)); b[0]='cart2'
 
 t = CP.newPyTree(['Base',a,b])
 
@@ -20,10 +19,9 @@ t = CP.initVars(t, '{centers:M}={centers:CoordinateX}')
 t = X.connectMatch(t,dim=3)
 t = CP.fillEmptyBCWith(t,"wall",'BCWall')
 
-dico = CP.extractAllBCMatch(t,['centers:G','centers:M']) 
+dico = CP.extractAllBCMatch(t,['centers:H','centers:M']) 
 test.testO(dico, 1)
 
-dico = CP.extractAllBCMatch(t)
+dico = CP.extractAllBCMatch(t) 
 test.testO(dico, 2)
-
 

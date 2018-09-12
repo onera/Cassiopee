@@ -143,9 +143,11 @@ namespace K_CONVERTER
   PyObject* pointList2Ranges(PyObject* self, PyObject* args);
   PyObject* pointList2SPL(PyObject* self, PyObject* args);
   // Extraction d'infos pour les raccords match 
-  PyObject* extractBCMatch(PyObject* self, PyObject* args);
+  PyObject* extractBCMatchStruct(PyObject* self, PyObject* args);
+  PyObject* extractBCMatchNG(PyObject* self, PyObject* args);
   PyObject* extractBCFields(PyObject* self, PyObject* args);
-  PyObject* buildBCMatchField(PyObject* self, PyObject* args);
+  PyObject* buildBCMatchFieldStruct(PyObject* self, PyObject* args);
+  PyObject* buildBCMatchFieldNG(PyObject* self, PyObject* args);
   PyObject* range2PointList(PyObject* self, PyObject* args);
 
   // addGhostCells NGON

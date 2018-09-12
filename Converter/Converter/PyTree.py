@@ -4686,19 +4686,21 @@ def getBCs(t):
 
 
 
-def extractAllBCMatch(t,varList):
+def extractAllBCMatch(t,varList=None):
 # Extract fields on all match connectivities 
   zones    = Internal.getZones(t)
   allMatch = {}
 
   for z in zones:
       dim = Internal.getZoneDim(z)
-      gcs = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
+      if dim[0]=='Structured':
+          gcs = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
+      else:
+          gcs = Internal.getNodesFromType2(z, 'GridConnectivity_t')
 
       for gc in gcs:
           zname  = Internal.getValue(gc)
           zdonor = Internal.getNodeFromName(t,zname)
-
           # Extraction BCMatch pour la zone donneuse
           [indR,fldD]  = extractBCMatch(zdonor,gc,dim,varList)
 
@@ -4716,15 +4718,36 @@ def computeBCMatchField(z,allMatch,variables=None):
   fields = []
   dim    = Internal.getZoneDim(z)
 
-  if variables is not None:
+  # Type de la zone
+  # ================
+  if dim[0]=='Structured': zoneType=1
+  else: 
+    zoneType = 2; eltName = dim[3]
+    if eltName=='NGON': 
+      pass
+    else:
+      raise ValueError("computeBCMatchField: not yet implement for basic elements.")
 
+
+  # Liste des variables 
+  # ====================
+  if variables is not None:
       if not isinstance(variables, list):
           varList = [variables]
       else:
           varList = variables 
+  else:
+      varList=[]
+      FS = Internal.getNodeFromName1(z,Internal.__FlowSolutionCenters__)
+      for fs in FS[2]:
+        if Internal.getType(fs)=='DataArray_t': 
+          varList.append(Internal.getName(fs))
 
+  # Traitement pour maillage struture 
+  # =================================
+  if zoneType == 1: # Structured mesh
+      # Tableau des champs a extraire 
       for var in varList:
-
           # on verifie qu'on cherche des variables aux centres
           spl = var.split(':') 
           if len(spl) != 1: 
@@ -4739,33 +4762,58 @@ def computeBCMatchField(z,allMatch,variables=None):
 
       if fields != [] :
           fields = Internal.convertDataNodes2Array2(fields, dim, connects=[], loc=1)
-  else:
-      fields = getAllFields(z, 'centers')[0]
 
-  if fields == []:
-    raise ValueError("computeBCMatchField: Variable not found.", varList)
+      # Fields array in zdonor (stored in allMatch)
+      # ===========================================
+      dim  = Internal.getZoneDim(z)
+      ni   = dim[1]-1
+      nj   = dim[2]-1
+      nk   = dim[3]-1
 
-  # Fields array in zdonor (stored in allMatch)
-  # ===========================================
-  dim  = Internal.getZoneDim(z)
-  ni   = dim[1]-1
-  nj   = dim[2]-1
-  nk   = dim[3]-1
+      fld  = None
 
-  fld  = None
+      for key in allMatch.keys():
+        if ( key.split("/")[0] == z[0] ):
+          [indR1,fldD] = allMatch[key] 
+          
+          fld1 = Converter.converter.buildBCMatchFieldStruct(fields,indR1,fldD)
 
-  for key in allMatch.keys():
-    if ( key.split("/")[0] == z[0] ):
-      [indR1,fldD] = allMatch[key] 
-      
-      fld1 = Converter.converter.buildBCMatchField(fields,indR1,fldD)
+          if fld is not None:
+            fld.append(fld1)
+            indR = numpy.concatenate((indR,indR1)) 
+          else:
+            fld  = [fld1]
+            indR = indR1
 
-      if fld is not None:
-        fld.append(fld1)
-        indR = numpy.concatenate((indR,indR1)) 
-      else:
-        fld  = [fld1]
-        indR = indR1
+
+  # Traitement pour maillage NGON 
+  # ==============================
+  else: # NGON 
+    varL = []
+    for var in varList:
+        spl = var.split(':') 
+        if len(spl) !=1: 
+          varL.append(spl[1]) 
+        else: 
+          varL.append(spl[0]) 
+
+    fld  = None
+
+    for key in allMatch.keys():
+      if ( key.split("/")[0] == z[0] ):
+        [indR1,fldD] = allMatch[key] 
+          
+        fld1 = Converter.converter.buildBCMatchFieldNG(z,indR1,fldD, varL, 
+                                                       Internal.__GridCoordinates__, 
+                                                       Internal.__FlowSolutionNodes__,
+                                                       Internal.__FlowSolutionCenters__)
+
+        if fld is not None:
+          fld.append(fld1)
+          indR = numpy.concatenate((indR,indR1)) 
+        else:
+          fld  = [fld1]
+          indR = indR1
 
   return indR, fld 
 
@@ -4793,19 +4841,37 @@ def extractBCMatch(zdonor,gc,dimzR,variables=None):
 
     dim = Internal.getZoneDim(zdonor)
 
-    # Tableau des champs a extraire
-    # =============================
+    # Type de la zone
+    # ================
+    if dim[0]=='Structured': zoneType=1
+    else: 
+      zoneType = 2; eltName = dim[3]
+      if eltName=='NGON': 
+        pass
+      else:
+        raise ValueError("extractBCMatch: not yet implement for basic elements.")
+
     fields = []  
 
+    # Liste des variables 
+    # ====================
     if variables is not None:
-
         if not isinstance(variables, list):
              varList = [variables]
         else:
              varList = variables
+    else:
+        varList=[]
+        FS = Internal.getNodeFromName1(zdonor,Internal.__FlowSolutionCenters__)
+        for fs in FS[2]:
+          if Internal.getType(fs)=='DataArray_t': 
+            varList.append(Internal.getName(fs))
 
+    # Traitement pour maillage struture 
+    # =================================
+    if zoneType == 1: # Structured mesh
+        # Tableau des champs a extraire 
         for var in varList:
-
             # on verifie qu'on cherche des variables aux centres
             spl = var.split(':') 
             if len(spl) != 1: 
@@ -4819,47 +4885,83 @@ def extractBCMatch(zdonor,gc,dimzR,variables=None):
                 fields.append(fld)
 
         if fields != [] :
-            fields = Internal.convertDataNodes2Array2(fields, dim, connects=[], loc=1)
-    else:
-        fields = getAllFields(zdonor, 'centers')[0]
+            if zoneType==1: connects = []
+            else: connects = Internal.getElementNodes(zdonor)
 
-    if fields == []:
-        raise ValueError("extractBCMatch: Variable not found.", varList)
+            fields = Internal.convertDataNodes2Array2(fields, dim, connects, loc=1)
 
-    # Infos raccord 
-    # =============
-    prr   = Internal.getNodeFromName1(gc,'PointRange')  
-    prd   = Internal.getNodeFromName1(gc,'PointRangeDonor')  
-    tri   = Internal.getNodeFromName1(gc,'Transform')
-    tri   = Internal.getValue(tri)
+    # else:
+    #   if zoneType == 1: # Structured mesh
 
-    wr    = Internal.range2Window(prr[1])
-    wd    = Internal.range2Window(prd[1])
+    #     fields = getAllFields(zdonor, 'centers')[0]
 
-    iminR = wr[0] ; imaxR = wr[1] ; 
-    jminR = wr[2] ; jmaxR = wr[3] ;
-    kminR = wr[4] ; kmaxR = wr[5] ;
+    # if fields == []:
+        # raise ValueError("extractBCMatch: Variable not found.", variables)
+
+        # Infos raccord 
+        # =============
+        prr   = Internal.getNodeFromName1(gc,'PointRange')  
+        prd   = Internal.getNodeFromName1(gc,'PointRangeDonor')  
+        tri   = Internal.getNodeFromName1(gc,'Transform')
+        tri   = Internal.getValue(tri)
+
+        wr    = Internal.range2Window(prr[1])
+        wd    = Internal.range2Window(prd[1])
+
+        iminR = wr[0] ; imaxR = wr[1] ; 
+        jminR = wr[2] ; jmaxR = wr[3] ;
+        kminR = wr[4] ; kmaxR = wr[5] ;
 
 
-    iminD = wd[0] ; imaxD = wd[1] ;
-    jminD = wd[2] ; jmaxD = wd[3] ;
-    kminD = wd[4] ; kmaxD = wd[5] ;
+        iminD = wd[0] ; imaxD = wd[1] ;
+        jminD = wd[2] ; jmaxD = wd[3] ;
+        kminD = wd[4] ; kmaxD = wd[5] ;
 
-    niR   = dimzR[1]-1 
-    njR   = dimzR[2]-1
-    nkR   = dimzR[3]-1 
+        niR   = dimzR[1]-1 
+        njR   = dimzR[2]-1
+        nkR   = dimzR[3]-1 
 
-    t1    = tri[0]
-    t2    = tri[1]
+        t1    = tri[0]
+        t2    = tri[1]
 
-    if (len(tri) == 3):
-        t3 = tri[2]
-    else:
-        t3 = 0 
+        if (len(tri) == 3):
+            t3 = tri[2]
+        else:
+            t3 = 0 
 
-    [indR,fldD]  = Converter.converter.extractBCMatch(fields,(iminD,jminD,kminD,imaxD,jmaxD,kmaxD),
-                                                             (iminR,jminR,kminR,imaxR,jmaxR,kmaxR),
-                                                             (niR,njR,nkR),(t1,t2,t3)) 
+        [indR,fldD]  = Converter.converter.extractBCMatchStruct(fields,(iminD,jminD,kminD,imaxD,jmaxD,kmaxD),
+                                                                       (iminR,jminR,kminR,imaxR,jmaxR,kmaxR),
+                                                                       (niR,njR,nkR),(t1,t2,t3)) 
+
+    # Traitement pour maillage NGON 
+    # ==============================
+    else: # NGON 
+
+        varL = []
+        for var in varList:
+            spl = var.split(':') 
+            if len(spl) !=1: 
+              varL.append(spl[1]) 
+            else: 
+              varL.append(spl[0]) 
+
+        indR = Internal.getNodeFromName1(gc,'PointList')  
+        indD = Internal.getNodeFromName1(gc,'PointListDonor')  
+
+        # indR = Internal.getValue(indR)
+        # indD = Internal.getValue(indD)
+        
+        indR = indR[1]
+        indD = indD[1]
+
+        PE = Internal.getNodeFromName2(zdonor, 'ParentElements')
+        if PE is None: Internal._adaptNFace2PE(zdonor, remove=False)
+
+        fldD  = Converter.converter.extractBCMatchNG(zdonor, indD, varL,
+                                                     Internal.__GridCoordinates__, 
+                                                     Internal.__FlowSolutionNodes__,
+                                                     Internal.__FlowSolutionCenters__)
+
     return [indR,fldD]
 
 # ===================================================================================
