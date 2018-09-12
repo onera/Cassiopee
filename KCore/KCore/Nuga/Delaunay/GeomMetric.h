@@ -122,7 +122,7 @@ namespace DELAUNAY
 
     // Set _hmin and _hmax if not done nor correct.
      if (parent_type::_hmax <= 0.)
-       parent_type::_hmax = hmax1;
+       parent_type::_hmax = K_CONST::E_MAX_FLOAT;
      if ((parent_type::_hmin <= 0.) || (parent_type::_hmin > parent_type::_hmax) || (parent_type::_hmin == K_CONST::E_MAX_FLOAT) )
        parent_type::_hmin = std::min(hmin1, parent_type::_hmax);
  

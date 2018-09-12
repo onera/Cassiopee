@@ -261,6 +261,8 @@ E_Int geom_sensor<mesh_t, crd_t>::get_higher_lvl_cell(E_Float* p, E_Int PHi)
     }
     if (!found) return detect_child(p,PHi,q); // we have to locate the closest child
     
+    return E_IDX_NONE; // never reached : to silent compilers
+    
 }
 
 ///
@@ -290,6 +292,8 @@ E_Int geom_sensor<mesh_t, crd_t>::get_highest_lvl_cell(E_Float* p, E_Int& PHi)
     }
   }
   if (!found) return detect_child(p, PHi, q);
+  
+  return E_IDX_NONE; // never reached : to silent compilers
     
 }
 
