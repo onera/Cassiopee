@@ -1062,6 +1062,77 @@ def convertFile2PartialPyTreeFromPath(fileName, Filter, comm=None,
   t = Converter.converter.convertFile2PartialPyTree(fileName, format, skeletonData, comm, Filter)
   return t
 
+# Fonction utilisee dans PPart
+def convertPyTree2FilePartial(t, fileName, comm, Filter, ParallelHDF=False,
+                              format=None, isize=4, rsize=8,
+                              endian='big', colormap=0, dataFormat='%.9e '):
+    """Convert a pyTree to a file.
+    Usage: convertPyTree2File(t, fileName, format, options)"""
+  
+    # > GardeFou
+    if t == []: print 'Warning: convertPyTree2File: nothing to write.'; return
+    format = 'bin_hdf'
+  
+    if not ParallelHDF:
+      # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+      # > Write Tree Data execpt Data in Filter
+      SkeletonTree = Internal.copyRef(t)
+      for path in Filter.keys():
+        print path
+        Node = Internal.getNodeFromPath(SkeletonTree, path)
+        Node[1] = None
+      # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+  
+      # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+      # > Si MPI Mode Off (HDF Not Parralel)
+      if comm.Get_rank() == 0:
+        convertPyTree2File(SkeletonTree, fileName, format)
+        # > Fill up Dimension
+        skeletonData = None
+        Converter.converter.convertPyTree2FilePartial(t, fileName, format, skeletonData, comm, Filter)
+      # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+  
+      # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+      # > Wait for Skeleton write
+      comm.barrier()
+  
+      # > Set skeletonData to Not None
+      skeletonData = []
+  
+      # > Cette maniere de faire provoque de la non reproductibilite ...
+      # Converter.converter.convertPyTree2FilePartial(t, fileName, format, skeletonData, comm, Filter)
+  
+      # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+      # > On serialize
+      for lock in xrange(comm.Get_size()):
+        if lock == comm.Get_rank():
+          Converter.converter.convertPyTree2FilePartial(t, fileName, format, skeletonData, comm, Filter)
+        comm.barrier()
+      # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+  
+    else:  # > Si MPI Mode Off (HDF Not Parallel)
+      # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+      # > Write Tree Data execpt Data in Filter
+      SkeletonTree = Internal.copyRef(t)
+      for path in Filter.keys():
+        Node = Internal.getNodeFromPath(SkeletonTree, path)
+        Node[1] = None
+      # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+  
+      # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+      if comm.Get_rank() == 0:
+        convertPyTree2File(SkeletonTree, fileName, format)
+      # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+  
+      # > On wait l'ecriture Skelette ...
+      comm.barrier()
+  
+      # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+      # > Write data in filter in file (With creation of DataSpace )
+      skeletonData = None  # Skeleton Data is inecfective (Normaly)
+      Converter.converter.convertPyTree2FilePartial(t, fileName, format, skeletonData, comm, Filter)
+      # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
 #==============================================================================
 # -- Array / PyTree conversions --
 #==============================================================================

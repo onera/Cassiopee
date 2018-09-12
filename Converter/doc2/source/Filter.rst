@@ -30,6 +30,10 @@ List of functions
 
 **-- High layer**
 
+    Converter.Filter.Handle
+    Converter.Filter.loadSkeleton
+    Converter.Filter._loadZonesWoVars
+    Converter.Filter._loadVariables
     
 
 

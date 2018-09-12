@@ -336,7 +336,7 @@ def isInBBox(a, fileName, bbox, znp):
     return out
 
 # Load only a split of zones of file
-def loadAndSplit(fileName, NParts=None, noz=None, NProc=None, rank=None):
+def loadAndSplit(fileName, NParts=None, noz=None, NProc=None, rank=None, variables=[]):
   if NParts is None: NParts = NProc
   if NProc is None: NProc = NParts
   import Transform.PyTree as T
@@ -354,15 +354,17 @@ def loadAndSplit(fileName, NParts=None, noz=None, NProc=None, rank=None):
       p = D2.getProc(z)
       if p == rank: noz.append(i)
 
+  f = {}
   for i in noz:
     z = zones[i]
     j = splitDict[z[0]]
     # Correction de dimension en attendant que subzone fonctionne sur un skel
     ni = j[2]-j[1]+1; nj = j[4]-j[3]+1; nk = j[6]-j[5]+1
+    ni1 = max(ni-1,1); nj1 = max(nj-1,1); nk1 = max(nk-1,1)
     d = numpy.empty((3,3), numpy.int32, order='Fortran')
-    d[0,0] = ni;   d[1,0] = nj;   d[2,0] = nk
-    d[0,1] = ni-1; d[1,1] = nj-1; d[2,1] = nk-1
-    d[0,2] = 0;    d[1,2] = 0;    d[2,2] = 0
+    d[0,0] = ni;  d[1,0] = nj;  d[2,0] = nk
+    d[0,1] = ni1; d[1,1] = nj1; d[2,1] = nk1
+    d[0,2] = 0;   d[1,2] = 0;   d[2,2] = 0
     z[1] = d
     # END correction
     
@@ -370,17 +372,43 @@ def loadAndSplit(fileName, NParts=None, noz=None, NProc=None, rank=None):
     pname = zname.rsplit('.',1)[0] # parent name (guessed)
     (base, c) = Internal.getParentOfNode(b, z)
     bname = base[0]
-    path = ['/%s/%s/GridCoordinates/CoordinateX'%(bname, pname),
-            '/%s/%s/GridCoordinates/CoordinateY'%(bname, pname),
-            '/%s/%s/GridCoordinates/CoordinateZ'%(bname, pname)]
-    
-    DataSpaceMMRY = [[0,0,0], [1,1,1], [j[2]-j[1]+1,j[4]-j[3]+1,j[6]-j[5]+1], [1,1,1]]
-    DataSpaceFILE = [[j[1]-1,j[3]-1,j[5]-1], [1,1,1], [j[2]-j[1]+1,j[4]-j[3]+1,j[6]-j[5]+1], [1,1,1]]
-    DataSpaceGLOB = [[0]]
     
     f = {}
+    # Node fields
+    path = []
+    cont = Internal.getNodeFromName2(z, Internal.__GridCoordinates__)
+    if cont is not None:
+      for c in cont[2]:
+        if c[3] == 'DataArray_t':
+          path += ['/%s/%s/%s/%s'%(bname, pname,cont[0],c[0])]
+    cont = Internal.getNodeFromName2(z, Internal.__FlowSolutionNodes__)
+    if cont is not None:
+      for c in cont[2]:
+        if c[3] == 'DataArray_t' and c[0] in variables:
+          path += ['/%s/%s/%s/%s'%(bname, pname,cont[0],c[0])]
+    
+    DataSpaceMMRY = [[0,0,0], [1,1,1], [ni,nj,nk], [1,1,1]]
+    DataSpaceFILE = [[j[1]-1,j[3]-1,j[5]-1], [1,1,1], [ni,nj,nk], [1,1,1]]
+    DataSpaceGLOB = [[0]]
+    
     for p in path:
       f[p] = DataSpaceMMRY+DataSpaceFILE+DataSpaceGLOB
+
+    # Center fields
+    path = []
+    cont = Internal.getNodeFromName2(z, Internal.__FlowSolutionCenters__)
+    if cont is not None:
+      for c in cont[2]:
+        if c[3] == 'DataArray_t' and 'centers:'+c[0] in variables:
+          path += ['/%s/%s/%s/%s'%(bname, pname,cont[0],c[0])]
+    
+    DataSpaceMMRY = [[0,0,0], [1,1,1], [ni1,nj1,nk1], [1,1,1]]
+    DataSpaceFILE = [[j[1]-1,j[3]-1,j[5]-1], [1,1,1], [ni1,nj1,nk1], [1,1,1]]
+    DataSpaceGLOB = [[0]]
+
+    for p in path:
+      f[p] = DataSpaceMMRY+DataSpaceFILE+DataSpaceGLOB
+
     r = readNodesFromFilter(fileName, f)
 
     # Repositionne les chemins
@@ -412,9 +440,16 @@ class Handle:
   def getZonePaths(self, a):
     out = []
     bases = Internal.getBases(a)
-    for b in bases:
-      zones = Internal.getZones(b)
-      for z in zones: out.append('/'+b[0]+'/'+z[0])
+    if len(bases) > 0:
+      for b in bases:
+        zones = Internal.getZones(b)
+        for z in zones: out.append('/'+b[0]+'/'+z[0])
+    else:
+      zones = Internal.getZones(a)
+      for z in zones: 
+        for p in self.znp:
+          r = p.rsplit('/',1)[1]
+          if r == z[0]: out.append(p); break
     return out
 
   def setZnp(a):
@@ -561,35 +596,35 @@ class Handle:
     return None
 
   # Charge toutes les BCs (avec BCDataSet) des zones de a  
-  def _loadZoneBCs(self, a):
-    p = self.getZonePaths(a)
-    _loadZoneBCs(a, self.fileName, self.znp, self.format)
+  def _loadZoneBCs(self, a, znp=None):
+    if znp is None: znp = self.getZonePaths(a)
+    _loadZoneBCs(a, self.fileName, znp, self.format)
     return None
 
   # Charge toutes les BCs (sans BCDataSet) des zones de a
-  def _loadZoneBCsWoData(self, a):
-    p = self.getZonePaths(a)
-    _loadZoneBCsWoData(a, self.fileName, p, self.format)
+  def _loadZoneBCsWoData(self, a, znp=None):
+    if znp is None: znp = self.getZonePaths(a)
+    _loadZoneBCsWoData(a, self.fileName, znp, self.format)
     return None
 
   # Charge la connectivite pour toutes les zones de a
-  def _loadConnectivity(self, a):
-    p = self.getZonePaths(a)
-    _loadConnectivity(a, self.fileName, p, self.format)
+  def _loadConnectivity(self, a, znp=None):
+    if znp is None: znp = self.getZonePaths(a)
+    _loadConnectivity(a, self.fileName, znp, self.format)
     return None
 
   # Charge le container "cont" pour toutes les zones de a
-  def _loadContainer(self, a, cont):
-    p = self.getZonePaths(a)
-    _loadContainer(a, self.fileName, p, cont, self.format)
+  def _loadContainer(self, a, cont, znp=None):
+    if znp is None: znp = self.getZonePaths(a)
+    _loadContainer(a, self.fileName, znp, cont, self.format)
     return None
 
   # Charge la ou les variables "var" pour toutes les zones de a
-  def _loadVariables(self, a, var):
-    p = self.getZonePaths(a)
-    _loadVariables(a, self.fileName, p, var, self.format)
+  def _loadVariables(self, a, var, znp=None):
+    if znp is None: znp = self.getZonePaths(a)
+    _loadVariables(a, self.fileName, znp, var, self.format)
     return None
   
   def isInBBox(self, a, bbox, znp=None):
-    if znp is None: znp = self.znp
+    if znp is None: znp = self.getZonePaths(a)
     return isInBBox(a, self.fileName, bbox, znp)

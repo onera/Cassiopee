@@ -1816,11 +1816,10 @@ def getTriQualityStat(array):
     meanv = C.getMeanValue(card, 'quality')
     return (meanv10, meanv, meanv90)
 
-
 #------------------------------------------------------------------------------
 # Genere des pyramides ayant pour base les QUAD d'une surface donnee
 #------------------------------------------------------------------------------
 def quad2Pyra(array, hratio = 1.):
-     """Creates a set of pyramids from a set of quads.
-     Usage : quad2Pyra(array, hratio)"""
+     """Create a set of pyramids from a set of quads.
+     Usage: quad2Pyra(array, hratio)"""
      return generator.quad2Pyra(array, hratio)
