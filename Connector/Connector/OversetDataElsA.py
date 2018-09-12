@@ -2,7 +2,6 @@
 # Module for internal functions used for overset info
 import Connector
 import numpy
-__version__ = Connector.__version__
 
 try:
     import Converter.Internal as Internal

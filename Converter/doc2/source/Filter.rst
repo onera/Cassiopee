@@ -16,7 +16,7 @@ To use the module::
 List of functions
 ##################
 
-**-- Low layer**
+**-- Low level layer**
 
 .. autosummary::
 
@@ -27,21 +27,22 @@ List of functions
    Converter.Filter.writeNodesFromPaths
    Converter.Filter.deletePaths
 
+**-- High level layer**
 
-**-- High layer**
+.. autosummary::
 
     Converter.Filter.Handle
-    Converter.Filter.loadSkeleton
-    Converter.Filter._loadZonesWoVars
-    Converter.Filter._loadVariables
-    
+    Converter.Filter.Handle.loadSkeleton
+    Converter.Filter.Handle.getVariables
+    Converter.Filter.Handle.loadZonesWoVars
+    Converter.Filter.Handle.loadVariables
 
 
 Contents
 #########
 
-Per node reading/writing
-------------------------
+Low level layer
+----------------
 
 .. py:function:: Converter.Filter.convertFile2SkeletonTree(fileName, format=None, maxFloatSize=5, maxDepth=-1)
 
@@ -224,6 +225,96 @@ Per node reading/writing
     * `Delete some nodes in file from paths (pyTree) <Examples/Converter/deletePathsPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/deletePathsPT.py
+
+
+High level layer
+----------------
+
+.. py:function:: Converter.Filter.Handle(fileName)
+
+    Create a handle on a file to enable partial reading.
+    The file must be a CGNS/ADF or CGNS/HDF file.
+
+    :param fileName: file name to read from
+    :type fileName: string
+    :rtype: handle class 
+    
+    *Example of use:*
+
+    * `Create a handle on a file (pyTree) <Examples/Converter/handlePT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/handlePT.py
+
+---------------------------------------------------------------------------
+
+.. py:function:: Converter.Filter.Handle.loadSkeleton()
+
+    Load a skeleton tree from file (a tree where no data are loaded).
+
+    :rtype: a skeleton pyTree     
+
+    *Example of use:*
+
+    * `Load a skeleton tree from file (pyTree) <Examples/Converter/loadSkeletonPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/loadSkeletonPT.py
+
+
+---------------------------------------------------------------------------
+
+.. py:function:: Converter.Filter.Handle.getVariables()
+
+    Get the variables contained in file. This function minimal reads from file
+    and store variable names in handle. This function must be called after loadSkeleton.
+
+    :return: list of variables contained in file
+    :rtype: list of strings
+
+    *Example of use:*
+
+    * `Read variable list from file (pyTree) <Examples/Converter/getVariablesPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/getVariablesPT.py
+
+---------------------------------------------------------------------------
+
+.. py:function:: Converter.Filter.Handle.loadZonesWoVars(a, znp=None)
+
+    Load specified zone (coordinates, grid connectivity).
+    This function must be called after loadSkeleton.
+
+    :param a: modified pyTree 
+    :type a: pyTree
+    :param znp: path of zones to load from (starting from top)
+    :type znp: list of strings
+
+    *Example of use:*
+
+    * `Load zones without variable (pyTree) <Examples/Converter/loadZonesWoVarsPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/loadZonesWoVarPT.py
+
+---------------------------------------------------------------------------
+        
+.. py:function:: Converter.Filter.Handle.loadVariables(a, var, znp=None)
+
+    Load specified variables.
+    This function must be called after loadSkeleton.
+
+
+    :param a: modified pyTree 
+    :type a: pyTree
+    :param var: variables to load
+    :type var: string or list of strings
+    :param znp: path of zones to load from (starting from top)
+    :type znp: list of strings
+
+    *Example of use:*
+
+    * `Load certain variables (pyTree) <Examples/Converter/loadVariablesPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/loadVariablesPT.py
+
 
 .. toctree::
    :maxdepth: 2   

@@ -128,7 +128,7 @@ PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
   E_Int ni, nj, nk;
   E_Int res2 = K_ARRAY::getFromArray(arrS, varString2, fS, ni, nj, nk,
                                      cnS, eltType2);
-
+  
   K_FLD::FloatArray & crdS = *fS;
   
   //~ std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;

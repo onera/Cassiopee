@@ -1,6 +1,5 @@
 # - CEBBIntersection (array) -
 import Generator as G
-import Converter as C
 import Transform as T
 ni = 11; nj = 3; nk = 11
 a1 = G.cart((0.,0.,0.), (0.1,0.1,0.2),(ni, nj,nk))

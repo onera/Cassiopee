@@ -1,7 +1,6 @@
 # - checkPointInCEBB (pyTree) -
 import Generator.PyTree as G
 import Transform.PyTree as T
-import Converter.PyTree as C
 
 Ni = 20; Nj = 20
 a2 = G.cart((-0.1,0,0),(0.5/Ni, 0.5/Nj, 1), (Ni,Nj,2))

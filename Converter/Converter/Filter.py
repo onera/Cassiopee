@@ -423,7 +423,7 @@ def loadAndSplit(fileName, NParts=None, noz=None, NProc=None, rank=None, variabl
 
 #==========================================================
 class Handle:
-  """Handle for filter."""
+  """Handle for partial reading."""
   def __init__(self, fileName):
     self.fileName = fileName
     self.fileVars = None # vars existing in file
@@ -461,6 +461,7 @@ class Handle:
 
   # Retourne les variables du fichier
   def getVariables(self, a=None, cont=None):
+    """Return the variables contained in file."""
     if a is not None: p = self.getZonePaths(a)
     else: p = [self.znp[0]] # only first zone
     vars = getVariables(self.fileName, p, cont, self.format)
@@ -478,7 +479,7 @@ class Handle:
   # Charge un squelette, stocke les chemins des zones du fichier (znp)
   # Stocke le nombre de pts de chaque zone
   def loadSkeleton(self):
-    # lecture squelette
+    """Load a skeleton tree."""
     a, self.znp = readZoneHeaders(self.fileName, self.format)
     # evaluation taille des zones
     self.size = {}
@@ -494,6 +495,7 @@ class Handle:
 
   # Charge le squelette, le split et conserve les infos de split
   def loadAndSplitSkeleton(self, NParts=None, NProc=None):
+    """Load and split skeleton."""
     a = self.loadSkeleton()    
     import Transform.PyTree as T
     # split on skeleton
@@ -523,6 +525,7 @@ class Handle:
 
   # Calcul et stocke des infos geometriques sur les zones
   def geomProp(self, znp=None):
+    """Store some zone properties."""
     if znp is None: znp = self.znp
 
     if self.bbox is None: self.bbox = {}
@@ -584,6 +587,12 @@ class Handle:
 
   # Charge les grid coordinates + grid connectivity + BC
   # pour les zones specifiees
+  def loadZonesWoVars(self, a, znp=None):
+    """Load zones without loading variables."""
+    b = Internal.copyRef(a)
+    self._loadZonesWoVars(b, znp)
+    return b
+
   def _loadZonesWoVars(self, a, znp=None):
     if znp is None: znp = self.getZonePaths(a)
     # Read paths as skeletons
@@ -621,6 +630,7 @@ class Handle:
 
   # Charge la ou les variables "var" pour toutes les zones de a
   def _loadVariables(self, a, var, znp=None):
+    """Load specified variables."""
     if znp is None: znp = self.getZonePaths(a)
     _loadVariables(a, self.fileName, znp, var, self.format)
     return None

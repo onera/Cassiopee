@@ -2,7 +2,6 @@
 import Converter.PyTree as C
 import Generator.PyTree as G
 import Geom.PyTree as D
-import numpy as N
 
 # Geometry
 P0 = (0,0,0); P1 = (5,0,0); P2 = (0,7,0); P3 = (5,7,0)    

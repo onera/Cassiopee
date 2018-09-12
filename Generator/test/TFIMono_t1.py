@@ -1,5 +1,4 @@
 # - TFIMono (array) -
-import Converter as C
 import Generator as G
 import Geom as D
 import KCore.test as test 

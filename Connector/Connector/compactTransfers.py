@@ -1,20 +1,11 @@
 # - gestion du compactage et des transferts compacts - 
-import Connector
 import connector
 import numpy
-__version__ = Connector.__version__
 
 try:
     import Converter.Internal as Internal
-    import Converter.PyTree as C
 except:
     raise ImportError("Connector.compactTransfers requires Converter module.")
-
-try:
-    import Converter.Mpi as Cmpi
-    rank = Cmpi.rank
-except:
-    rank = 0
 
 #==============================================================================
 # Mise a plat (compactage) arbre donneur au niveau de la base
@@ -23,12 +14,15 @@ except:
 def miseAPlatDonorTree__(zones, tc, graph=None):
 
     if graph is not None:
+        # Suppose mpirun
         procDict  = graph['procDict']
         procList  = graph['procList']
         graphID   = graph['graphID']
         graphIBCD = graph['graphIBCD']
+        import Converter.Mpi as Cmpi
+        rank = Cmpi.rank
     else: 
-        procDict=None; procList=None; graphID=None; graphIBCD=None
+        procDict=None; procList=None; graphID=None; graphIBCD=None; rank = 0
 
     # if Cmpi is not None and rank == 0: 
     #    print "GRAPH IBC IS : ",graph['graphIBCD']
@@ -193,15 +187,13 @@ def miseAPlatDonorTree__(zones, tc, graph=None):
     # print "graphIBCD is",graphIBCD,graphIBCrcv
     # print "graphID is",graphID,graphIDrcv
     
-
-
     param_int  = numpy.empty(size_int + len(graphIDrcv) + len(graphIBCrcv) + 2, dtype=numpy.int32  )
     param_real = numpy.empty(size_real, dtype=numpy.float64)
     Internal.createUniqueChild(tc, 'Parameter_int' , 'DataArray_t', param_int)
     if size_real !=0 : 
         Internal.createUniqueChild(tc, 'Parameter_real', 'DataArray_t', param_real)
 
-    if(len(graphIBCrcv) == 0):
+    if len(graphIBCrcv) == 0:
         _graphIBC = numpy.zeros(1,dtype=numpy.int32)
     else:
         _graphIBC  = numpy.asarray([len(graphIBCrcv)]+graphIBCrcv,dtype=numpy.int32)    

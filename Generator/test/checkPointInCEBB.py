@@ -1,7 +1,6 @@
 # - checkPointInCEBB (array) -
 import Generator as G
 import Transform as T
-import Converter as C
 
 Ni = 20; Nj = 20
 a1 = G.cart((0,0,0),(1./Ni,0.5/Nj,1),(Ni,Nj,2))

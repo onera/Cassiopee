@@ -1,6 +1,5 @@
 # - TFI 3D structure -
 import Generator as G
-import Converter as C
 import Transform as T
 import KCore.test as test
 

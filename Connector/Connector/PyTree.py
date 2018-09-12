@@ -8,13 +8,9 @@ import connector
 import numpy
 
 from OversetData import *
-# assumed as private functions
-from OversetData import _setInterpTransfers,__setInterpTransfers,_addCellN__
-from OversetDataElsA import *
-from OversetDataElsA import _chimeraInfo
-
-from compactTransfers import *
-from compactTransfers import ___setInterpTransfers
+from OversetData import _setInterpTransfers, __setInterpTransfers, _addCellN__
+from OversetDataElsA import _chimeraInfo, setInterpolations, chimeraInfo, chimeraTransfer
+from compactTransfers import ___setInterpTransfers, miseAPlatDonorTree__
 
 __version__ = Connector.__version__
 try:
@@ -25,10 +21,10 @@ try:
 except: raise ImportError("Connector.PyTree: requires Converter module.")
 
 # Variables IBM pour le post traitement
-__PRESSURE__='Pressure'
-__UTAU__    ='utau'
-__YPLUS__   ='yplus'
-__DENSITY__ ='Density'
+__PRESSURE__= 'Pressure'
+__UTAU__    = 'utau'
+__YPLUS__   = 'yplus'
+__DENSITY__ = 'Density'
 
 __DEG2RAD__ = Internal.__DEG2RAD__
 __RAD2DEG__ = Internal.__RAD2DEG__
