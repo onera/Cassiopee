@@ -280,7 +280,7 @@ High level layer
 
 .. py:function:: Converter.Filter.Handle.loadZonesWoVars(a, znp=None)
 
-    Load specified zone (coordinates, grid connectivity).
+    Load specified zone (coordinates, grid connectivity, boundary conditions).
     This function must be called after loadSkeleton.
 
     :param a: modified pyTree 
@@ -292,7 +292,7 @@ High level layer
 
     * `Load zones without variable (pyTree) <Examples/Converter/loadZonesWoVarsPT.py>`_:
 
-    .. literalinclude:: ../build/Examples/Converter/loadZonesWoVarPT.py
+    .. literalinclude:: ../build/Examples/Converter/loadZonesWoVarsPT.py
 
 ---------------------------------------------------------------------------
         
@@ -311,7 +311,7 @@ High level layer
 
     *Example of use:*
 
-    * `Load certain variables (pyTree) <Examples/Converter/loadVariablesPT.py>`_:
+    * `Load given variables (pyTree) <Examples/Converter/loadVariablesPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/loadVariablesPT.py
 

@@ -1,8 +1,20 @@
 # Interface pour MPI
-try: 
-    from Mpi4py import *
-    from Distributed import _readZones, _convert2PartialTree, _convert2SkeletonTree, _readPyTreeFromPaths
-except: raise ImportError("Converter:Mpi: requires mpi4py module.") 
+
+import os
+if os.environ.has_key('MPIRUN'): # securise import mpi4py.MPI
+    if os.environ['MPIRUN']>0:
+        try:
+            from Mpi4py import *
+            from Distributed import _readZones, _convert2PartialTree, _convert2SkeletonTree, _readPyTreeFromPaths
+        except: raise ImportError("Converter:Mpi: requires mpi4py module.")
+    else:
+       rank = 0; size = 1
+else: # try import (may fail - core or hang)
+    try:
+        from Mpi4py import *
+        from Distributed import _readZones, _convert2PartialTree, _convert2SkeletonTree, _readPyTreeFromPaths
+    except: raise ImportError("Converter:Mpi: requires mpi4py module.")
+
 import PyTree
 
 #==============================================================================

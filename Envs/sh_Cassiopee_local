@@ -570,7 +570,7 @@ elif [ "$MAC29" != "" ]; then
         fi
     fi
     # Nbre de threads
-    export OMP_NUM_THREADS=8
+    export OMP_NUM_THREADS=24
 
     # modules 
     module unload $(module -t list 2>&1 | grep -i intel)

@@ -634,7 +634,7 @@ else if ($%MAC29 != 0) then
         module load CFD/4.0-intel-17.impi
         
         # Number of threads
-        setenv OMP_NUM_THREADS 8
+        setenv OMP_NUM_THREADS 24
         # Chemin de go
         set path=($path $CASSIOPEE/Dist/bin)
         # Chemin de elsA.x

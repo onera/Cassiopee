@@ -210,9 +210,6 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, reduction=True,
         items = []
         for i in g: items += i.items()
         graph = dict(items)
-        # a tester
-        #d = {}
-        #for i in g: d.update(i)
 
     return graph
 

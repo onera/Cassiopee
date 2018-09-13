@@ -628,6 +628,12 @@ class Handle:
     _loadContainer(a, self.fileName, znp, cont, self.format)
     return None
 
+  def loadVariables(self, a, var, znp=None):
+    """Load specified variables."""
+    b = Internal.copyRef(a)
+    self._loadVariables(b, var, znp)
+    return b
+
   # Charge la ou les variables "var" pour toutes les zones de a
   def _loadVariables(self, a, var, znp=None):
     """Load specified variables."""

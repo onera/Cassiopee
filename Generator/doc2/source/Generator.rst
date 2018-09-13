@@ -470,7 +470,7 @@ General purpose grid generator
     
     The grading parameter allows to control the growth ratio of the mesh metric : a value greater(lesser) than 1. tends to produce a coarser (finer) mesh in the region far from the boundaries. A value equal to 1. provides a uniform mesh over the domain. This grading is related to the metric field, it is not the size ratio between two adjacent edges or triangles.
     
-    The metricInterpType parameter controls the metrics interpolation type : either linear or geometric. A geometric metric interpolation tends to promote smaller sizes.
+    The metricInterpType parameter controls the metrics interpolation type: either linear or geometric. A geometric metric interpolation tends to promote smaller sizes.
 
     :param c:  BAR-contour (soup of conformal edges defining an enclosed 2D-domain, can be non-manifold, i.e. having inner edges or subdomains)
     :type  c:  [array, list of arrays] or [pyTree, base, zone, list of zones]
