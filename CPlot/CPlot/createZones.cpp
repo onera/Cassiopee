@@ -32,25 +32,26 @@ using namespace std;
    IN: ni,nj,nk: nbre de noeuds
    IN: zoneName: nom de la zone
    IN: zoneTags: tags de la zone (peut etre NULL)
-   IN: referenceZone: sert de reference pour les variables
+   IN: referenceXX: sert de reference pour les variables
+   IN: mustComplete: dit qu'il faut completer les variables (si appeler de add ou replace)
 */
 //=============================================================================
 StructZone* Data::createStructZone(FldArrayF* structF, char* varString,
                                    E_Int posx, E_Int posy, E_Int posz,
                                    E_Int ni, E_Int nj, E_Int nk,
                                    char* zoneName, char* zoneTags,
-                                   Zone* referenceZone)
+                                   E_Int referenceNfield, char** referenceVarNames,
+                                   E_Int mustComplete)
 {
-  StructZone* sz = new StructZone( ptrState, createZoneImpl() );
+  StructZone* sz = new StructZone(ptrState, createZoneImpl());
   StructZone& z = *sz;
   strcpy(z.zoneName, zoneName);
- 
-  z.ni = ni;
-  z.nj = nj;
-  z.nk = nk;
+
+  z.ni = ni; z.nj = nj; z.nk = nk;
   z.npts = z.ni * z.nj * z.nk;
-  if (referenceZone != NULL) z.nfield = referenceZone->nfield;
+  if (referenceNfield != -1) z.nfield = referenceNfield;
   else z.nfield = structF->getNfld()-3;
+
   if (z.nk != 1) z.dim = 3;
   else if (z.nj != 1) z.dim = 2;
   else z.dim = 1;
@@ -61,8 +62,18 @@ StructZone* Data::createStructZone(FldArrayF* structF, char* varString,
   z.z = new E_Float[z.npts];
   memcpy(z.z, structF->begin(posz), z.npts*sizeof(E_Float));
 
+  vector<char*> varsT;
+  K_ARRAY::extractVars(varString, varsT);
   vector<char*> vars;
-  K_ARRAY::extractVars(varString, vars);
+  for (size_t i = 0; i < varsT.size(); i++)
+  {
+    char* v = varsT[i];
+    if (K_STRING::cmp(v, "x") != 0 && K_STRING::cmp(v, "y") != 0 && K_STRING::cmp(v, "z") != 0 &&
+        K_STRING::cmp(v, "CoordinateX") != 0 && K_STRING::cmp(v, "CoordinatY") != 0 && K_STRING::cmp(v, "CoordinateZ") != 0)
+    {
+      vars.push_back(v);
+    }
+  }
   E_Int varsSize = vars.size();
 
   // Allocation of var fields
@@ -75,29 +86,113 @@ StructZone* Data::createStructZone(FldArrayF* structF, char* varString,
   z.minf = new double [z.nfield];
   z.maxf = new double [z.nfield];
 
-  if (referenceZone != NULL)
+  if (referenceNfield != -1)
   {
-    for (E_Int n = 0; n < referenceZone->nfield; n++)
+    E_Int nall = 0;
+    for (E_Int n = 0; n < referenceNfield; n++)
     {
       for (E_Int p = 0; p < varsSize; p++)
       {
-        if (K_STRING::cmp(vars[p], referenceZone->varnames[n]) == 0)
+        if (K_STRING::cmp(vars[p], referenceVarNames[n]) == 0)
         {
+          nall++;
           z.f[n] = new E_Float[z.npts];
           memcpy(z.f[n], structF->begin(p+1), z.npts*sizeof(E_Float));
           strcpy(z.varnames[n], vars[p]); break;
         }
       }
     }
-    for (E_Int n = 0; n < referenceZone->nfield; n++)
+    nall = varsSize+referenceNfield-nall;
+    for (E_Int n = 0; n < referenceNfield; n++)
     {
       if (z.f[n] == NULL)
       {
         z.f[n] = new E_Float[z.npts];
-        if (K_STRING::cmp(referenceZone->varnames[n], "cellN") == 0)
+        if (K_STRING::cmp(referenceVarNames[n], "cellN") == 0)
         { for (int i = 0; i < z.npts; i++) z.f[n][i] = 1.; }
         else { for (int i = 0; i < z.npts; i++) z.f[n][i] = 0.; }
-        strcpy(z.varnames[n], referenceZone->varnames[n]);
+        strcpy(z.varnames[n], referenceVarNames[n]);
+      }
+    }
+    // Complete all zones
+    //printf("nall %d %d\n", nall, referenceNfield);
+    if (nall > referenceNfield && mustComplete == 1)
+    {
+      // reallocate (previous zones)
+      reallocNFieldArrays(nall);
+      for (E_Int nz = 0; nz < _numberOfZones; nz++)
+      {
+        Zone* zp = _zones[nz];
+        double** t = new double* [nall];
+        for (E_Int i = 0; i < zp->nfield; i++) t[i] = zp->f[i];
+        delete [] zp->f; zp->f = t;
+
+        char** t1 = new char* [nall];
+        for (E_Int i = 0; i < zp->nfield; i++) t1[i] = zp->varnames[i];
+        for (E_Int i = zp->nfield; i < nall; i++) t1[i] = new char [MAXSTRINGLENGTH];
+        delete [] zp->varnames; zp->varnames = t1;
+
+        double* t2 = new double [nall];
+        for (E_Int i = 0; i < zp->nfield; i++) t2[i] = zp->minf[i];
+        delete [] zp->minf; zp->minf = t2;
+        
+        double* t3 = new double [nall];
+        for (E_Int i = 0; i < zp->nfield; i++) t3[i] = zp->maxf[i];
+        delete [] zp->maxf; zp->maxf = t3;
+        
+        zp->nfield = nall;
+      }
+      // reallocate current zone
+      {
+        double** t = new double* [nall];
+        for (E_Int i = 0; i < z.nfield; i++) t[i] = z.f[i];
+        delete [] z.f; z.f = t;
+
+        char** t1 = new char* [nall];
+        for (E_Int i = 0; i < z.nfield; i++) t1[i] = z.varnames[i];
+        for (E_Int i = z.nfield; i < nall; i++) t1[i] = new char [MAXSTRINGLENGTH];
+        delete [] z.varnames; z.varnames = t1;
+
+        double* t2 = new double [nall];
+        for (E_Int i = 0; i < z.nfield; i++) t2[i] = z.minf[i];
+        delete [] z.minf; z.minf = t2;
+        
+        double* t3 = new double [nall];
+        for (E_Int i = 0; i < z.nfield; i++) t3[i] = z.maxf[i];
+        delete [] z.maxf; z.maxf = t3;
+
+        z.nfield = nall;
+      }
+      
+      nall = referenceNfield;
+      for (E_Int p = 0; p < varsSize; p++)
+      {
+        E_Boolean found = false; 
+        for (E_Int n = 0; n < referenceNfield; n++)
+        {
+          if (K_STRING::cmp(vars[p], referenceVarNames[n]) == 0)
+          {
+            found = true; break;
+          }
+        }
+        if (found == false)
+        {
+          // ajoute vars[p] a la fin pour toutes les zones
+          for (E_Int nz = 0; nz < _numberOfZones; nz++)
+          {
+            //printf("adding var %s (%d) in zone %d\n", vars[p], nall, nz);
+            Zone* zp = _zones[nz];
+            zp->f[nall] = new E_Float[zp->npts];
+            if (K_STRING::cmp(vars[p], "cellN") == 0)
+            { for (int i = 0; i < zp->npts; i++) zp->f[nall][i] = 1.; }
+            else { for (int i = 0; i < zp->npts; i++) zp->f[nall][i] = 0.; }
+            strcpy(zp->varnames[nall], vars[p]);
+          }
+          z.f[nall] = new E_Float[z.npts];
+          memcpy(z.f[nall], structF->begin(p+1), z.npts*sizeof(E_Float));
+          strcpy(z.varnames[nall], vars[p]);
+          nall++;
+        }
       }
     }
   }
@@ -115,7 +210,7 @@ StructZone* Data::createStructZone(FldArrayF* structF, char* varString,
     }
   }
 
-  for (E_Int n = 0; n < varsSize; n++) delete [] vars[n];
+  for (size_t n = 0; n < varsT.size(); n++) delete [] varsT[n];
 
   if (zoneTags != NULL)
   {
@@ -164,7 +259,8 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
                                     E_Int posx, E_Int posy, E_Int posz,
                                     FldArrayI* cn, char* eltType,
                                     char* zoneName, char* zoneTags,
-                                    Zone* referenceZone)
+                                    E_Int referenceNfield, char** referenceVarNames,
+                                    E_Int mustComplete)
 {
   E_Int api = unstrF->getApi();
   UnstructZone* uz = new UnstructZone( ptrState, createZoneImpl() );
@@ -172,9 +268,9 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
   strcpy(z.zoneName, zoneName);
   z.npts = unstrF->getSize();
   z.np = z.npts;
-  if (referenceZone != NULL) z.nfield = referenceZone->nfield;
+  if (referenceNfield != -1) z.nfield = referenceNfield;
   else z.nfield = unstrF->getNfld()-3;
-  
+
   z.x = new E_Float[z.npts];
   memcpy(z.x, unstrF->begin(posx), z.npts*sizeof(E_Float));
   z.y = new E_Float[z.npts];
@@ -182,8 +278,19 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
   z.z = new E_Float[z.npts];
   memcpy(z.z, unstrF->begin(posz), z.npts*sizeof(E_Float));
   z.ne = cn->getSize();
+
+  vector<char*> varsT;
+  K_ARRAY::extractVars(varString, varsT);
   vector<char*> vars;
-  K_ARRAY::extractVars(varString, vars);
+  for (size_t i = 0; i < varsT.size(); i++)
+  {
+    char* v = varsT[i];
+    if (K_STRING::cmp(v, "x") != 0 && K_STRING::cmp(v, "y") != 0 && K_STRING::cmp(v, "z") != 0 &&
+        K_STRING::cmp(v, "CoordinateX") != 0 && K_STRING::cmp(v, "CoordinatY") != 0 && K_STRING::cmp(v, "CoordinateZ") != 0)
+    {
+      vars.push_back(v);
+    }
+  }
   E_Int varsSize = vars.size();
 
   // Allocation of var fields
@@ -196,29 +303,113 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
   z.minf = new double [z.nfield];
   z.maxf = new double [z.nfield];
 
-  if (referenceZone != NULL)
+  if (referenceNfield != -1)
   {
-    for (E_Int n = 0; n < referenceZone->nfield; n++)
+    E_Int nall = 0;
+    for (E_Int n = 0; n < referenceNfield; n++)
     {
       for (E_Int p = 0; p < varsSize; p++)
       {
-        if (K_STRING::cmp(vars[p], referenceZone->varnames[n]) == 0)
+        if (K_STRING::cmp(vars[p], referenceVarNames[n]) == 0)
         {
+          nall++;
           z.f[n] = new E_Float[z.npts];
           memcpy(z.f[n], unstrF->begin(p+1), z.npts*sizeof(E_Float));
           strcpy(z.varnames[n], vars[p]); break;
         }
       }
     }
-    for (E_Int n = 0; n < referenceZone->nfield; n++)
+    nall = varsSize+referenceNfield-nall;
+    for (E_Int n = 0; n < referenceNfield; n++)
     {
       if (z.f[n] == NULL)
       {
         z.f[n] = new E_Float[z.npts];
-        if (K_STRING::cmp(referenceZone->varnames[n], "cellN") == 0)
+        if (K_STRING::cmp(referenceVarNames[n], "cellN") == 0)
         { for (int i = 0; i < z.npts; i++) z.f[n][i] = 1.; }
         else { for (int i = 0; i < z.npts; i++) z.f[n][i] = 0.; }
-        strcpy(z.varnames[n], referenceZone->varnames[n]);
+        strcpy(z.varnames[n], referenceVarNames[n]);
+      }
+    }
+    // Complete all zones
+    //printf("nall %d %d\n", nall, referenceNfield);
+    if (nall > referenceNfield && mustComplete == 1)
+    {
+      // reallocate (previous zones)
+      reallocNFieldArrays(nall);
+      for (E_Int nz = 0; nz < _numberOfZones; nz++)
+      {
+        Zone* zp = _zones[nz];
+        double** t = new double* [nall];
+        for (E_Int i = 0; i < zp->nfield; i++) t[i] = zp->f[i];
+        delete [] zp->f; zp->f = t;
+
+        char** t1 = new char* [nall];
+        for (E_Int i = 0; i < zp->nfield; i++) t1[i] = zp->varnames[i];
+        for (E_Int i = zp->nfield; i < nall; i++) t1[i] = new char [MAXSTRINGLENGTH];
+        delete [] zp->varnames; zp->varnames = t1;
+
+        double* t2 = new double [nall];
+        for (E_Int i = 0; i < zp->nfield; i++) t2[i] = zp->minf[i];
+        delete [] zp->minf; zp->minf = t2;
+        
+        double* t3 = new double [nall];
+        for (E_Int i = 0; i < zp->nfield; i++) t3[i] = zp->maxf[i];
+        delete [] zp->maxf; zp->maxf = t3;
+        
+        zp->nfield = nall;
+      }
+      // reallocate current zone
+      {
+        double** t = new double* [nall];
+        for (E_Int i = 0; i < z.nfield; i++) t[i] = z.f[i];
+        delete [] z.f; z.f = t;
+
+        char** t1 = new char* [nall];
+        for (E_Int i = 0; i < z.nfield; i++) t1[i] = z.varnames[i];
+        for (E_Int i = z.nfield; i < nall; i++) t1[i] = new char [MAXSTRINGLENGTH];
+        delete [] z.varnames; z.varnames = t1;
+
+        double* t2 = new double [nall];
+        for (E_Int i = 0; i < z.nfield; i++) t2[i] = z.minf[i];
+        delete [] z.minf; z.minf = t2;
+        
+        double* t3 = new double [nall];
+        for (E_Int i = 0; i < z.nfield; i++) t3[i] = z.maxf[i];
+        delete [] z.maxf; z.maxf = t3;
+
+        z.nfield = nall;
+      }
+      
+      nall = referenceNfield;
+      for (E_Int p = 0; p < varsSize; p++)
+      {
+        E_Boolean found = false; 
+        for (E_Int n = 0; n < referenceNfield; n++)
+        {
+          if (K_STRING::cmp(vars[p], referenceVarNames[n]) == 0)
+          {
+            found = true; break;
+          }
+        }
+        if (found == false)
+        {
+          // ajoute vars[p] a la fin pour toutes les zones
+          for (E_Int nz = 0; nz < _numberOfZones; nz++)
+          {
+            //printf("adding var %s (%d) in zone %d\n", vars[p], nall, nz);
+            Zone* zp = _zones[nz];
+            zp->f[nall] = new E_Float[zp->npts];
+            if (K_STRING::cmp(vars[p], "cellN") == 0)
+            { for (int i = 0; i < zp->npts; i++) zp->f[nall][i] = 1.; }
+            else { for (int i = 0; i < zp->npts; i++) zp->f[nall][i] = 0.; }
+            strcpy(zp->varnames[nall], vars[p]);
+          }
+          z.f[nall] = new E_Float[z.npts];
+          memcpy(z.f[nall], unstrF->begin(p+1), z.npts*sizeof(E_Float));
+          strcpy(z.varnames[nall], vars[p]);
+          nall++;
+        }
       }
     }
   }
@@ -236,7 +427,7 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
     }
   }
 
-  for (E_Int n = 0; n < varsSize; n++) delete [] vars[n];
+  for (E_Int n = 0; n < varsSize; n++) delete [] varsT[n];
   
   if (zoneTags != NULL)
   {

@@ -184,16 +184,21 @@ public:
 			    std::vector<K_FLD::FldArrayI*>& cnt,
 			    std::vector<char*>& eltType,
 			    std::vector<char*>& zoneNames,
-			    std::vector<char*>& zoneTags);
+			    std::vector<char*>& zoneTags,
+          E_Int referenceNfield=-1,
+          char** referenceVarNames=NULL);
   StructZone* createStructZone(K_FLD::FldArrayF* structF, char* varString,
 			       E_Int posx, E_Int posy, E_Int posz,
 			       E_Int ni, E_Int nj, E_Int nk,
 			       char* zoneName, char* zoneTags,
-			       Zone* referenceZone=NULL);
+             E_Int referenceNfield=-1, char** referenceVarNames=NULL,
+             E_Int mustComplete=0);
   UnstructZone* createUnstrZone(K_FLD::FldArrayF* unstrF, char* varString,
 				E_Int posx, E_Int posy, E_Int posz,
 				K_FLD::FldArrayI* cn, char* eltType,
-				char* zoneName, char* zoneTags, Zone* referenceZone=NULL);
+				char* zoneName, char* zoneTags, 
+        E_Int referenceNfield=-1, char** referenceVarNames=NULL,
+        E_Int mustComplete=0);
   void reallocNFieldArrays(int nfield);
   // Init _state
   virtual void initState();
@@ -225,6 +230,10 @@ public:
 			 double& colorR, double& colorG, double& colorB,
 			 int& material, double& blending, int& meshOverlay,
 			 float& shaderParam1, float& shaderParam2);
+  void getAllVars(std::vector<char*>& structVarString,
+                  std::vector<char*>& unstrVarString,
+                  E_Int& referenceNfield,
+                  char**& referenceVarNames);
   void replaceVolumetricZones();
   
     // openGfx

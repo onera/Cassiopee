@@ -105,8 +105,7 @@ PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
   E_Boolean skipNoCoord = true;
   E_Boolean skipStructured = false;
   E_Boolean skipUnstructured = false;
-  E_Boolean skipDiffVars = true;
-
+  E_Boolean skipDiffVars = false;
   E_Int isOk = K_ARRAY::getFromArrays(arrays, res, structVarString, unstrVarString,
                                       structF, unstrF, nit, njt, nkt, cnt,
                                       eltType, objs, obju, 
@@ -127,16 +126,25 @@ PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
     return NULL;
   }
 
-  // Creation du container de donnees
   Data* d = Data::getInstance();
+
+  // Construction de la chaine de toutes les variables
+  E_Int referenceNfield;
+  char** referenceVarNames;
+  d->getAllVars(structVarString, unstrVarString,
+                referenceNfield, referenceVarNames);
+
   d->_CDisplayIsLaunched = 1;
 
   d->initZoneData(structF, structVarString, nit, njt, nkt,
 		  unstrF, unstrVarString, cnt, eltType, 
-		  zoneNames, renderTags);
-  for (unsigned int i = 0; i < zoneNames.size(); i++)
-    delete [] zoneNames[i];
+		  zoneNames, renderTags,
+      referenceNfield, referenceVarNames);
 
+  for (size_t i = 0; i < zoneNames.size(); i++) delete [] zoneNames[i];
+
+  for (E_Int i = 0; i < referenceNfield; i++) delete [] referenceVarNames[i];
+  delete [] referenceVarNames;
 
   // Initialisation des Data restantes
   E_Int mode = getMode(modeObject);

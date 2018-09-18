@@ -35,7 +35,7 @@ using namespace std;
 // si retourne 1: OK
 //=============================================================================
 int
-DataDL::initZoneData(   vector<FldArrayF*>& structF,
+DataDL::initZoneData(vector<FldArrayF*>& structF,
 			vector<char*>& structVarString,
 			vector<E_Int>& nit,
 			vector<E_Int>& njt,
@@ -45,7 +45,9 @@ DataDL::initZoneData(   vector<FldArrayF*>& structF,
 			vector<FldArrayI*>& cnt,
 			vector<char*>& eltType,
 			vector<char*>& zoneNames,
-			vector<char*>& zoneTags)
+			vector<char*>& zoneTags,
+      E_Int referenceNfield,
+      char** referenceVarNames)
 {
   // Dit a display de liberer les DL des zones
   ptrState->syncGPURes();
@@ -55,6 +57,7 @@ DataDL::initZoneData(   vector<FldArrayF*>& structF,
     z->freeGPURes(ptrState); z->_GPUResUse = 0; 
   }
 
-  return Data::initZoneData( structF, structVarString, nit, njt, nkt,
-			     unstrF, unstrVarString, cnt, eltType, zoneNames, zoneTags);
+  return Data::initZoneData(structF, structVarString, nit, njt, nkt,
+			     unstrF, unstrVarString, cnt, eltType, zoneNames, zoneTags,
+           referenceNfield, referenceVarNames);
 }

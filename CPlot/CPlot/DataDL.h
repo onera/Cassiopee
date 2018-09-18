@@ -79,7 +79,9 @@ public:
 			    std::vector<K_FLD::FldArrayI*>& cnt,
 			    std::vector<char*>& eltType,
 			    std::vector<char*>& zoneNames,
-			    std::vector<char*>& zoneTags);
+			    std::vector<char*>& zoneTags,
+          E_Int referenceNfield=-1,
+          char** referenceVarNames=NULL);
   virtual void initState();
 
 protected:

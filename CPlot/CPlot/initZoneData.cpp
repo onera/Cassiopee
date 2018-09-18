@@ -44,7 +44,9 @@ int Data::initZoneData(
   vector<FldArrayI*>& cnt,
   vector<char*>& eltType,
   vector<char*>& zoneNames,
-  vector<char*>& zoneTags)
+  vector<char*>& zoneTags,
+  E_Int referenceNfield,
+  char** referenceVarNames)
 {
   // Calcul de la position des coords dans chaque arrays
   E_Int posx, posy, posz;
@@ -127,7 +129,8 @@ int Data::initZoneData(
     szones[i] = createStructZone(structF[i], structVarString[i],
                                  sposx[i], sposy[i], sposz[i],
                                  nit[i], njt[i], nkt[i],
-                                 zoneName, zTags);
+                                 zoneName, zTags,
+                                 referenceNfield, referenceVarNames);
     StructZone& z = *(szones[i]);
  
     // Essai de retrouver les reglages dans la previous zonesp
@@ -189,7 +192,8 @@ int Data::initZoneData(
       unstrF[i], unstrVarString[i],
       uposx[i], uposy[i], uposz[i],
       cnt[i], eltType[i],
-      zoneName, zTags);
+      zoneName, zTags,
+      referenceNfield, referenceVarNames);
     UnstructZone& z = *(uzones[i]);
 
     // Essai de retrouver les reglages dans la previous zonesp
@@ -276,8 +280,7 @@ int Data::initZoneData(
   }
 
   // Switch - Dangerous zone protegee par state.lock
-  if (state.selectedZone >= numberOfZones)
-    state.selectedZone = 0; // RAZ selected zone
+  if (state.selectedZone >= numberOfZones) state.selectedZone = 0; // RAZ selected zone
   state.kcursor = 0; // RAZ clavier
   state.syncDisplay();
   _zones = zones;

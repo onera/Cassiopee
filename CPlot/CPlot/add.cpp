@@ -103,7 +103,17 @@ PyObject* K_CPLOT::add(PyObject* self, PyObject* args)
   UnstructZone** uzonesp = d->_uzones;
 
   Zone* referenceZone = NULL;
-  if (numberOfZones > 0) referenceZone = zonesp[0];
+  E_Int referenceNfield = -1;
+  char** referenceVarNames = NULL;
+  if (numberOfZones > 0)
+  {
+    referenceZone = zonesp[0];
+    referenceNfield = referenceZone->nfield;
+    referenceVarNames = referenceZone->varnames;
+  }
+  //printf("referenceNfield=%d\n", referenceNfield);
+  //printf("numberOfZones=%d\n", numberOfZones);
+  //printf("numberOfStructZones=%d\n", numberOfStructZones);
 
   // malloc nouveaux pointeurs (copie)
   Zone** zones = (Zone**)malloc(numberOfZones*sizeof(Zone*));
@@ -124,7 +134,8 @@ PyObject* K_CPLOT::add(PyObject* self, PyObject* args)
       d->createStructZone(f, varString,
                           posx+1, posy+1, posz+1,
                           ni, nj, nk,
-                          zoneName, zoneTagI, referenceZone);
+                          zoneName, zoneTagI, 
+                          referenceNfield, referenceVarNames, 1);
     insertAfterNz(zonesp, numberOfZones, zones, nzs, zz);
   }
   else // res=2
@@ -140,7 +151,8 @@ PyObject* K_CPLOT::add(PyObject* self, PyObject* args)
       d->createUnstrZone(f, varString,
                          posx+1, posy+1, posz+1,
                          cn, eltType,
-                         zoneName, zoneTagI, referenceZone);
+                         zoneName, zoneTagI, 
+                         referenceNfield, referenceVarNames, 1);
     insertAfterNz(zonesp, numberOfZones, zones, numberOfStructZones+nzu, zz);
   }
 
