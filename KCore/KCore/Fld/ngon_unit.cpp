@@ -38,6 +38,17 @@ ngon_unit::ngon_unit(const E_Int* begin):_dirty(true)
 }
 
 ///
+ngon_unit::ngon_unit(const E_Int* begin, E_Int sz, E_Int nbe):_dirty(true)
+{
+  const E_Int* end = begin+sz;
+  _NGON.clear();
+  _NGON.resize(2, 0);
+  _NGON.insert(_NGON.end(), begin, end);
+  _NGON[0]=nbe;
+  _NGON[1]=sz;         
+}
+
+///
 void ngon_unit::updateFacets() const
 {
   if (_dirty && !_NGON.empty())

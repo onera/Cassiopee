@@ -47,9 +47,11 @@ class ngon_unit
     ///
     ngon_unit():_dirty(true){};
     ///
-    ngon_unit (const E_Int* begin);
+    explicit ngon_unit (const E_Int* begin);//Cassiopee format
     ///
     ngon_unit(const ngon_unit& ngin);
+    /// 
+    ngon_unit(const E_Int* begin, E_Int sz, E_Int nbe);
         
     /// ngon_unit& operator=(const Vector_t<E_Int>& vNGON);
     ngon_unit& operator=(const ngon_unit& ngin);

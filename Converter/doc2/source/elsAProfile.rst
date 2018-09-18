@@ -563,11 +563,12 @@ Addition of elsA nodes
 
 ---------------------------------------------------------------------------
 
-.. py:function:: Converter.elsAProfile.createElsaHybrid(t, method=0, axe2D=0) 
+.. py:function:: Converter.elsAProfile.createElsaHybrid(t, method=0, axe2D=0, methodPE=0) 
 
     Add nodes required by elsA Hybrid solver for NGON zones.
     For elsA < 3.8.01, use method=0, for newer versions use method=1.
     If the mesh is 2D, use axe2D to precise 2D plane (0: (x,y), 1: (x,z), 2: (y,z)).
+    If the mesh has poor quality cells (concave...) use methodPE=1 to build the ParentElement node in a topological manner.
     Exists also as in place version (_createElsaHybrid) that modifies t and returns None.
 
     :param t: input data
@@ -576,6 +577,8 @@ Addition of elsA nodes
     :type  method: 0 or 1
     :param axe2D: 1 if (y,z), 2 if (x,z), 3 if (x,y)
     :type axe2D: int
+    :param methodPE: 0 (for regular mesh), 1 otherwise
+    :type  methodPE: 0 or 1
     :return: modified reference copy of t
     :rtype: identical to t
 

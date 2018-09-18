@@ -66,6 +66,8 @@ struct ngon_t
   ngon_t(const Connectivity_t& cNGON) :PGs(cNGON.begin() + STARTFACE), PHs(cNGON.begin() + STARTELTS(cNGON)){ PGs.updateFacets(); PHs.updateFacets(); }
   ///
   ngon_t(const ngon_t& ngt) :PGs(ngt.PGs), PHs(ngt.PHs){ PGs.updateFacets(); PHs.updateFacets(); }
+  /// 
+  ngon_t(const E_Int* cNGon, E_Int sz1, E_Int nb_pgs, const E_Int* cNFace, E_Int sz2, E_Int nb_phs) :PGs(cNGon, sz1, nb_pgs), PHs(cNFace, sz2, nb_phs){ PGs.updateFacets(); PHs.updateFacets(); }
   ///
   ngon_t& operator=(const Connectivity_t& cNGON)
   {

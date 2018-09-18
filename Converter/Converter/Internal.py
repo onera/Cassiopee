@@ -3591,12 +3591,14 @@ def _adaptPE2NFace(t, remove=True):
 
 # -- Adapte une connectivite NFACE en connectivite ParentElement
 # remove = True: detruit la connectivite NFace
-def adaptNFace2PE(t, remove=True):
+# methodPE = 0 : methode geometrique pour generer le ParentElement (pour un maillage relativement regulier, sans cellules concaves).
+# methodPE = 1 : methode topologique (pour un maillage quelconque).
+def adaptNFace2PE(t, remove=True, methodPE=0):
     tp = copyRef(t)
-    _adaptNFace2PE(tp, remove)
+    _adaptNFace2PE(tp, remove, methodPE)
     return tp
 
-def _adaptNFace2PE(t, remove=True):
+def _adaptNFace2PE(t, remove=True, methodPE=0):
     zones = getZones(t)
     for z in zones:
         npts = 0; nelts = 0; cNFace = None; NGON = None; noNFace = 0
@@ -3624,7 +3626,7 @@ def _adaptNFace2PE(t, remove=True):
             c += 1
 
         if (cNFace is not None and NGON is not None and cNGon is not None):
-            cFE = converter.adaptNFace2PE(cNFace, cNGon, XN, YN, ZN, nelts, nfaces)
+            cFE = converter.adaptNFace2PE(cNFace, cNGon, XN, YN, ZN, nelts, nfaces, methodPE)
             createUniqueChild(NGON, 'ParentElements', 'DataArray_t', value=cFE)
         if remove: del z[2][noNFace]
     return None
@@ -3976,11 +3978,13 @@ def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
 #==============================================================================
 # Remet des elements a un NGon
 #==============================================================================
-def _unfixNGon(t):
+# methodPE = 0 : methode geometrique pour generer le ParentElement (pour un maillage relativement regulier, sans cellules concaves).
+# methodPE = 1 : methode topologique (pour un maillage quelconque).
+def _unfixNGon(t, methodPE=0):
     import PyTree; import Transform.PyTree as T
     zones = getZones(t)
     for z in zones:
-        _adaptNFace2PE(z, remove=False)
+        _adaptNFace2PE(z, remove=False, methodPE=0)
         B = T.breakElements(z)
         for b in B:
             PyTree._mergeConnectivity(z, b, boundary=0)
@@ -3991,14 +3995,14 @@ def _unfixNGon(t):
 # method=0: avec tri TRI,QUAD+interior, exterior
 # method=1: avec tri interior, exterior
 #==============================================================================
-def createElsaHybrid(t, method=0, axe2D=0):
+def createElsaHybrid(t, method=0, axe2D=0, methodPE=0):
     import elsAProfile
-    tp = elsAProfile.createElsaHybrid(t, method, axe2D)
+    tp = elsAProfile.createElsaHybrid(t, method, axe2D, methodPE)
     return tp
 
-def _createElsaHybrid(t, method=0, axe2D=0):
+def _createElsaHybrid(t, method=0, axe2D=0, methodPE=0):
     import elsAProfile
-    elsAProfile._createElsaHybrid(t, method, axe2D)
+    elsAProfile._createElsaHybrid(t, method, axe2D, methodPE)
     return None
 
 #==============================================================================
