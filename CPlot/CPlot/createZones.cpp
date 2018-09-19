@@ -62,9 +62,11 @@ StructZone* Data::createStructZone(FldArrayF* structF, char* varString,
   z.z = new E_Float[z.npts];
   memcpy(z.z, structF->begin(posz), z.npts*sizeof(E_Float));
 
-  vector<char*> varsT;
-  K_ARRAY::extractVars(varString, varsT);
   vector<char*> vars;
+  K_ARRAY::extractVars(varString, vars);
+  //vector<char*> varsT;
+  //K_ARRAY::extractVars(varString, varsT);
+  /*
   for (size_t i = 0; i < varsT.size(); i++)
   {
     char* v = varsT[i];
@@ -73,7 +75,7 @@ StructZone* Data::createStructZone(FldArrayF* structF, char* varString,
     {
       vars.push_back(v);
     }
-  }
+  }*/
   E_Int varsSize = vars.size();
 
   // Allocation of var fields
@@ -102,7 +104,7 @@ StructZone* Data::createStructZone(FldArrayF* structF, char* varString,
         }
       }
     }
-    nall = varsSize+referenceNfield-nall;
+    nall = varsSize+referenceNfield-nall-3;
     for (E_Int n = 0; n < referenceNfield; n++)
     {
       if (z.f[n] == NULL)
@@ -175,6 +177,11 @@ StructZone* Data::createStructZone(FldArrayF* structF, char* varString,
             found = true; break;
           }
         }
+        if (K_STRING::cmp(vars[p], "x") == 0 || K_STRING::cmp(vars[p], "y") == 0 ||
+            K_STRING::cmp(vars[p], "z") == 0 || K_STRING::cmp(vars[p], "CoordinateX") == 0 ||
+            K_STRING::cmp(vars[p], "CoordinateY") == 0 || K_STRING::cmp(vars[p], "CoordinateZ") == 0)
+          found = true;
+        
         if (found == false)
         {
           // ajoute vars[p] a la fin pour toutes les zones
@@ -210,7 +217,7 @@ StructZone* Data::createStructZone(FldArrayF* structF, char* varString,
     }
   }
 
-  for (size_t n = 0; n < varsT.size(); n++) delete [] varsT[n];
+  for (size_t n = 0; n < vars.size(); n++) delete [] vars[n];
 
   if (zoneTags != NULL)
   {
@@ -279,9 +286,11 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
   memcpy(z.z, unstrF->begin(posz), z.npts*sizeof(E_Float));
   z.ne = cn->getSize();
 
+  /*
   vector<char*> varsT;
   K_ARRAY::extractVars(varString, varsT);
   vector<char*> vars;
+  K_ARRAY::extractVars(varString, vars);
   for (size_t i = 0; i < varsT.size(); i++)
   {
     char* v = varsT[i];
@@ -290,7 +299,9 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
     {
       vars.push_back(v);
     }
-  }
+  } */
+  vector<char*> vars;
+  K_ARRAY::extractVars(varString, vars);
   E_Int varsSize = vars.size();
 
   // Allocation of var fields
@@ -319,7 +330,7 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
         }
       }
     }
-    nall = varsSize+referenceNfield-nall;
+    nall = varsSize+referenceNfield-nall-3;
     for (E_Int n = 0; n < referenceNfield; n++)
     {
       if (z.f[n] == NULL)
@@ -392,6 +403,11 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
             found = true; break;
           }
         }
+        if (K_STRING::cmp(vars[p], "x") == 0 || K_STRING::cmp(vars[p], "y") == 0 ||
+            K_STRING::cmp(vars[p], "z") == 0 || K_STRING::cmp(vars[p], "CoordinateX") == 0 ||
+            K_STRING::cmp(vars[p], "CoordinateY") == 0 || K_STRING::cmp(vars[p], "CoordinateZ") == 0)
+          found = true;
+            
         if (found == false)
         {
           // ajoute vars[p] a la fin pour toutes les zones
@@ -427,7 +443,7 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
     }
   }
 
-  for (E_Int n = 0; n < varsSize; n++) delete [] varsT[n];
+  for (E_Int n = 0; n < varsSize; n++) delete [] vars[n];
   
   if (zoneTags != NULL)
   {

@@ -423,7 +423,7 @@ def showSelectionInTkTree(event=None):
 #==============================================================================
 def upgradeTree(t):
     Internal.autoSetContainers(t)
-    t = C.fillMissingVariables(t)
+    C._fillMissingVariables(t)
     Internal._correctPyTree(t, level=0) # version node
     #t = Internal.correctPyTree(t, level=9) # connectivity
     Internal._fixNGon(t)

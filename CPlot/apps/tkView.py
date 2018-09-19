@@ -15,6 +15,7 @@ WIDGETS = {}; VARS = []
 
 # No de la variable courante
 VARNO = -3
+
 # Min/Max de cette variable pour tout l'arbre
 VARMIN = 0.; VARMAX = 1.
 

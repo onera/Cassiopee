@@ -191,14 +191,16 @@ def getStdNodesFromName(z, name):
 
 # -- getVarNames
 # Retourne une liste des noms de variables presents pour chaque zone
-# avec leur localisation
+# avec leur localisation (mode 0)
 # localisation=centers: ou nom du container:
 # Ex: pour t contenant 2 zones:
 # [ ['CoordinateX','CoordinateY'], ['centers:F'] ]
 # Si excludeXYZ=True, les coordonnees ne font pas partie des champs retournes
 # Si loc='both', retourne les variables en centres et en noeuds
 # Sinon loc='centers' ou loc='nodes'
-def getVarNames(t, excludeXYZ=False, loc='both'):
+# Si mode=1: retourne l'union des variables de toutes les zones
+# Si mode=2: retourne les variables communes a toutes les zones
+def getVarNames(t, excludeXYZ=False, loc='both', mode=0):
   allvars = []
   nodes = Internal.getZones(t)
   for z in nodes:
@@ -223,6 +225,28 @@ def getVarNames(t, excludeXYZ=False, loc='both'):
         nodesVar = Internal.getNodesFromType1(i, 'DataArray_t')
         for j in nodesVar: varlist.append(location+j[0])
     allvars.append(varlist)
+
+    if mode == 1: # all vars everywhere
+      out = []
+      for vars in allvars:
+        if out == []: out = vars
+        else:
+          for v in vars:
+            if v not in out: out.append(v)
+      allvars = [out]
+
+    if mode == 2: # common vars only
+      out = []
+      d = {}
+      for vars in allvars:
+        for v in vars:
+          if d.has_key(v): d[v] += 1
+          else: d[v] = 1
+      out = []
+      for k in d.keys():
+        if d[k] == len(allvars):
+          out.append(k)        
+      allvars = [out]
   return allvars
 
 # -- isNamePresent
@@ -2918,7 +2942,11 @@ def getMinValue(t, varName):
     A = getField(v, t, api=2)
     va = v.split(':')
     if len(va) > 1: v = va[1]
-    out.append(Converter.getMinValue(A, v))
+    minValue = 1.e9
+    for i in A:
+      if i != []:
+        minValue = min(minValue, Converter.getMinValue(i, v))
+    out.append(minValue)
   if len(out) == 1: return out[0]
   else: return out
 
@@ -2934,7 +2962,11 @@ def getMaxValue(t, varName):
     A = getField(v, t, api=2)
     va = v.split(':')
     if len(va) > 1: v = va[1]
-    out.append(Converter.getMaxValue(A, v))
+    maxValue = -1.e9
+    for i in A:
+      if i != []:
+        maxValue = max(maxValue, Converter.getMaxValue(i, v))
+    out.append(maxValue)
   if len(out) == 1: return out[0]
   else: return out
 
