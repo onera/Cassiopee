@@ -29,6 +29,8 @@ namespace K_MESH
   class Quadrangle
   {
   public:
+    static const E_Int NB_NODES;
+  public:
     void setNodes(E_Int n0, E_Int n1, E_Int n2, E_Int n3){_nodes[0]=n0;_nodes[1]=n1;_nodes[2]=n2;_nodes[3]=n3;}
     //void setNodes(E_Int* nodes){for (size_t i = 0; i< 4; ++i)_nodes[i]=*(nodes++);}
     inline E_Int nnodes() { return 4;}

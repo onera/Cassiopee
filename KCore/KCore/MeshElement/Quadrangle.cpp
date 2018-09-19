@@ -20,6 +20,7 @@
 #include "Quadrangle.h"
 #include "Triangle.h"
 
+const E_Int K_MESH::Quadrangle::NB_NODES = 4;
 
 namespace K_MESH
 {

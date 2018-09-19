@@ -25,6 +25,8 @@
 #include <vector>
 #define Vector_t std::vector
 
+const E_Int K_MESH::Polygon::NB_NODES = -1;
+
 #ifdef DEBUG_POLYGON
 #include "IO/DynArrayIO.h"
 #include <iostream>
@@ -57,10 +59,10 @@ void Polygon::getBoundary
 (const Polygon&  T1, const Polygon&  T2, E_Int& i1, E_Int& i2)
 {
   K_MESH::NO_Edge Ei, Ej;
-  for (i1=0; i1 < T1.NB_NODES; ++i1)
+  for (i1=0; i1 < T1._nb_nodes; ++i1)
   {
     T1.getBoundary(i1, Ei);
-    for (i2=0; i2 < T2.NB_NODES; ++i2)
+    for (i2=0; i2 < T2._nb_nodes; ++i2)
     {
       T2.getBoundary(i2, Ej);
       if (Ei == Ej)
@@ -75,14 +77,14 @@ E_Int Polygon::getOrientation
 {
   same_orient = false;
  
-  for (E_Int n = 0; n < PG.NB_NODES; ++n)
+  for (E_Int n = 0; n < PG._nb_nodes; ++n)
   {
-    if ((PG._nodes[n] == Ni) && (PG._nodes[(n+1)%PG.NB_NODES] == Nj))
+    if ((PG._nodes[n] == Ni) && (PG._nodes[(n+1)%PG._nb_nodes] == Nj))
     {
       same_orient = true;
       return 0;
     }
-    if ((PG._nodes[n] == Nj) && (PG._nodes[(n+1)%PG.NB_NODES] == Ni))
+    if ((PG._nodes[n] == Nj) && (PG._nodes[(n+1)%PG._nb_nodes] == Ni))
       return 0;
   }
 

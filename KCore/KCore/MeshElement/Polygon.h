@@ -35,7 +35,8 @@ namespace K_MESH
 class Polygon {
   
 public:
-  E_Int NB_NODES;
+  static const E_Int NB_NODES;
+public:
   typedef K_MESH::NO_Edge boundary_type;
   typedef K_FLD::ArrayAccessor<K_FLD::FloatArray> aDynCrd_t;
     
@@ -43,14 +44,14 @@ public:
   ///
   //Polygon(E_Int shift=0):_shift(shift),_nodes(0){}
   ///
-  Polygon(const E_Int* nodes, E_Int nb_nodes, E_Int shift=0):NB_NODES(nb_nodes), _nodes(new E_Int[nb_nodes]), _shift(shift){for (E_Int i=0; i < nb_nodes; ++i)_nodes[i]=nodes[i];}
+  Polygon(const E_Int* nodes, E_Int nb_nodes, E_Int shift=0):_nb_nodes(nb_nodes), _nodes(new E_Int[nb_nodes]), _shift(shift){for (E_Int i=0; i < nb_nodes; ++i)_nodes[i]=nodes[i];}
   ///
   ~Polygon(){delete _nodes;}
   ///
   //void setNodes(const E_Int* nodes, E_Int nb_nodes){NB_NODES=nb_nodes; for (size_t i=0; i < nb_nodes; ++i)_nodes[i]=nodes[i];}
   inline E_Int node(E_Int i){return _nodes[i]+_shift;}
   ///
-  inline E_Int nbounds() { return NB_NODES;}
+  inline E_Int nbounds() { return _nb_nodes;}
   ///
   const E_Int* begin() { return &_nodes[0];}
   ///
@@ -112,9 +113,9 @@ public:
   //template <E_Int DIM>
   //static inline void center_of_mass(const K_FLD::FloatArray& crd, const E_Int* nodes, E_Int nb_nodes, E_Int index_start, E_Float* G);
   
-  inline void reverse() {std::reverse(&_nodes[0], &_nodes[0]+NB_NODES);}
+  inline void reverse() {std::reverse(&_nodes[0], &_nodes[0]+_nb_nodes);}
   
-  inline void getBoundary(E_Int n, boundary_type& b) const {b.setNodes(_nodes[n], _nodes[(n+1)%NB_NODES]);}
+  inline void getBoundary(E_Int n, boundary_type& b) const {b.setNodes(_nodes[n], _nodes[(n+1)%_nb_nodes]);}
   static void getBoundary(const Polygon&  T1, const Polygon&  T2, E_Int& i1, E_Int& i2) ;
   
   static E_Int get_boundary
@@ -172,7 +173,7 @@ private:
   Polygon(const Polygon& orig);
  
 private:
-    E_Int* _nodes;
+    E_Int _nb_nodes, *_nodes;
     E_Int _shift;
 
 };
@@ -305,7 +306,7 @@ void Polygon::iso_barycenter<K_FLD::FloatArray, 3>(const K_FLD::FloatArray& coor
   //
   for (size_t d=0; d < 3; ++d) G[d]=0.;
   
-  for (E_Int i=0; i < NB_NODES; ++i)
+  for (E_Int i=0; i < _nb_nodes; ++i)
   {
     for (size_t d=0; d < 3; ++d)
     {
@@ -314,7 +315,7 @@ void Polygon::iso_barycenter<K_FLD::FloatArray, 3>(const K_FLD::FloatArray& coor
     }
   }
   
-  E_Float k = 1./(E_Float)NB_NODES;
+  E_Float k = 1./(E_Float)_nb_nodes;
   
   for (size_t i = 0; i < 3; ++i) G[i] *= k;
   //std::cout << "G : " << G[0] << "/" << G[1] << "/" << G[2] << std::endl;
@@ -327,7 +328,7 @@ void Polygon::iso_barycenter(const CoordAcc& coord, E_Float* G)
   //
   for (size_t d=0; d < DIM; ++d) G[d]=0.;
   
-  for (E_Int i=0; i < NB_NODES; ++i)
+  for (E_Int i=0; i < _nb_nodes; ++i)
   {
     for (size_t d=0; d < DIM; ++d)
     {
@@ -336,7 +337,7 @@ void Polygon::iso_barycenter(const CoordAcc& coord, E_Float* G)
     }
   }
   
-  E_Float k = 1./(E_Float)NB_NODES;
+  E_Float k = 1./(E_Float)_nb_nodes;
   
   for (size_t i = 0; i < DIM; ++i) G[i] *= k;
   //std::cout << "G : " << G[0] << "/" << G[1] << "/" << G[2] << std::endl;
