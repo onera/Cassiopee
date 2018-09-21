@@ -36,7 +36,7 @@ def createPoint(event=None):
     a = D.point((point[0], point[1], point[2]))
     CTK.add(CTK.t, nob, -1, a)
     CTK.TXT.insert('START', 'Point '+VARS[0].get()+' created.\n')
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()

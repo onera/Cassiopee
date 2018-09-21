@@ -61,7 +61,7 @@ def expandLayer():
         except Exception, e:
             fail = True; errors += [0,str(e)]
 
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     if not fail:
         CTK.TXT.insert('START', 'Level %d expanded.\n'%level)
     else:
@@ -115,8 +115,8 @@ def octree2Struct():
     nob = C.getNobOfBase(bases[0], CTK.t)
     for i in zlist: CTK.add(CTK.t, nob, -1, i)
 
-    CTK.t = C.fillMissingVariables(CTK.t)
-    if (fail == False):
+    #C._fillMissingVariables(CTK.t)
+    if fail == False:
         CTK.TXT.insert('START', 'Structured octree generated.\n')
     else:
         Panels.displayErrors(errors, header='Error: octree2Struct')
@@ -129,7 +129,7 @@ def octree2Struct():
 #==============================================================================
 def bodyFit():
     if CTK.t == []: return
-    if (CTK.__MAINTREE__ <= 0):
+    if CTK.__MAINTREE__ <= 0:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
@@ -197,8 +197,8 @@ def bodyFit():
         except Exception, e:
             fail = True; errors += [0,str(e)]
             
-    CTK.t = C.fillMissingVariables(CTK.t)
-    if (fail == False):
+    #C._fillMissingVariables(CTK.t)
+    if fail == False:
         CTK.TXT.insert('START', 'Snapped to body.\n')
     else:
         Panels.displayErrors(errors, header='Error: snapFront')
@@ -285,8 +285,8 @@ def adaptInsideOctree():
         CTK.t[2][nob][2][noz] = z
         c += 1
     fail = False
-    CTK.t = C.fillMissingVariables(CTK.t)
-    if (fail == False):
+    #C._fillMissingVariables(CTK.t)
+    if fail == False:
         CTK.TXT.insert('START', 'Adapt octree computed.\n')
     else: 
         CTK.TXT.insert('START', 'Adapt octree failed.\n')
@@ -348,8 +348,8 @@ def hexaOctree():
         CTK.add(CTK.t, nob, -1, o)
     except Exception, e:
         fail = True; print 'Error: octree: %s.'%str(e)
-    CTK.t = C.fillMissingVariables(CTK.t)
-    if (fail == False):
+    #C._fillMissingVariables(CTK.t)
+    if fail == False:
         CTK.TXT.insert('START', 'Hexa octree computed.\n')
     else: 
         CTK.TXT.insert('START', 'Hexa octree failed.\n')

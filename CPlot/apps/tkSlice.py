@@ -234,7 +234,7 @@ def extract(event=None):
             p = C.deleteEmptyZones(p)
             for i in p[2][1][2]: i[0] = C.getZoneName(i[0])
             base[2] += p[2][1][2]
-        CTK.t = C.fillMissingVariables(CTK.t)
+        #C._fillMissingVariables(CTK.t)
         CTK.TXT.insert('START', 'Slice extracted.\n')
         (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
         CTK.TKTREE.updateApp()

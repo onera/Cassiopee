@@ -156,7 +156,7 @@ def remap():
         nob = CTK.Nb[nzs[0]]+1
         for i in iso: CTK.add(CTK.t, nob, -1, i)
     
-        CTK.t = C.fillMissingVariables(CTK.t)
+        #C._fillMissingVariables(CTK.t)
         CTK.TXT.insert('START', 'Surface filtered and offset (offset=%g).\n'%offset)
         (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
         CTK.TKTREE.updateApp()

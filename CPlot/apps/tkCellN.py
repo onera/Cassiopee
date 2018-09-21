@@ -204,7 +204,7 @@ def extract():
         base = b[0]
         base[2] += Z
         (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
-        C._fillMissingVariables(CTK.t)
+        #C._fillMissingVariables(CTK.t)
         CTK.TKTREE.updateApp()
         CTK.display(CTK.t)
     else:

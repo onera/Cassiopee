@@ -57,7 +57,7 @@ def union():
     CTK.add(CTK.t, CTK.Nb[0]+1, -1, j)
     
     CTK.TXT.insert('START', 'Union performed.\n')
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
@@ -102,7 +102,7 @@ def difference():
     except Exception, e:
         Panels.displayErrors([0,str(e)], header='Error: difference')
         CTK.TXT.insert('START', 'Difference failed.\n')
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
@@ -148,7 +148,7 @@ def difference2():
         Panels.displayErrors([0,str(e)], header='Error: difference')
         CTK.TXT.insert('START', 'Difference failed.\n')
 
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
@@ -196,7 +196,7 @@ def intersection():
     CPlot.delete(deletedZoneNames)
     CTK.add(CTK.t, CTK.Nb[0]+1, -1, j)
     CTK.TXT.insert('START', 'Intersection performed.\n')
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()

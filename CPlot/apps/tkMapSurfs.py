@@ -194,7 +194,7 @@ def remap(event=None):
         CTK.replace(CTK.t, nob, noz, zp[0])
         for i in zp[1:]: CTK.add(CTK.t, nob, -1, i)
 
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     CTK.TXT.insert('START', 'Surface remapped.\n')
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()

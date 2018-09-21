@@ -157,8 +157,8 @@ def setSurface():
 # blanking de la selection avec la surface fournie 
 #==============================================================================
 def blank():
-    if (CTK.t == []): return
-    if (CTK.__MAINTREE__ <= 0):
+    if CTK.t == []: return
+    if CTK.__MAINTREE__ <= 0:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     # type de blanking
@@ -195,7 +195,7 @@ def blank():
 
     # Creation de l'arbre temporaire
     nzs = CPlot.getSelectedZones()
-    if (nzs == []):
+    if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     t = C.newPyTree(['Base'])
@@ -237,15 +237,15 @@ def blank():
         CTK.t[2][nob][2][noz] = z
         c += 1
 
-    CTK.t = C.fillMissingVariables(CTK.t)
+    C._fillMissingVariables(CTK.t)
     CTK.TXT.insert('START', 'Blanking done.\n')
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)    
 
 #==============================================================================
 def getIBCFront():
-    if (CTK.t == []): return
-    if (CTK.__MAINTREE__ <= 0):
+    if CTK.t == []: return
+    if CTK.__MAINTREE__ <= 0:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     nzs = CPlot.getSelectedZones()
@@ -303,7 +303,7 @@ def getIBCFront():
     nob = C.getNobOfBase(bases[0], CTK.t)
     for i in front2: CTK.add(CTK.t, nob, -1, i)
 
-    CTK.t = C.fillMissingVariables(CTK.t)
+    C._fillMissingVariables(CTK.t)
     CTK.t = C.rmVars(CTK.t,'centers:cellN')
     CTK.TXT.insert('START', 'IBC front zones added.\n')    
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)

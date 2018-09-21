@@ -79,7 +79,7 @@ def TFI():
         nob = C.getNobOfBase(bases[0], CTK.t)
         CTK.add(CTK.t, nob, -1, mesh)
         CTK.TXT.insert('START', 'TFI mesh created.\n')
-        CTK.t = C.fillMissingVariables(CTK.t)
+        #C._fillMissingVariables(CTK.t)
         (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
         CTK.TKTREE.updateApp()
         CPlot.render()
@@ -210,7 +210,7 @@ def OTFI():
     for i in [m,m1,m2,m3,m4]: CTK.add(CTK.t, nob, -1, i)
     CTK.TXT.insert('START', 'O-TFI mesh created.\n')
             
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
@@ -285,7 +285,7 @@ def HOTFI():
     for i in [m,m1,m2,m3]: CTK.add(CTK.t, nob, -1, i)
     CTK.TXT.insert('START', 'HO-TFI mesh created.\n')
             
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
@@ -339,7 +339,7 @@ def TRITFI():
     for i in [m1,m2,m3]: CTK.add(CTK.t, nob, -1, i)
     CTK.TXT.insert('START', 'TRI-TFI mesh created.\n')
             
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
@@ -386,7 +386,7 @@ def MONO2TFI():
     CTK.add(CTK.t, nob, -1, m)
     CTK.TXT.insert('START', 'HO-TFI mesh created.\n')
             
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()

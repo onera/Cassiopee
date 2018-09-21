@@ -22,7 +22,7 @@ DIRX = 0; DIRY = 0; DIRZ = 0
 #==============================================================================
 def initCanvas(event=None):
     dir = VARS[0].get()
-    if (dir == 'None' and CTK.t == []): return
+    if dir == 'None' and CTK.t == []: return
 
     global CANVASSIZE, XC, YC, ZC, UX, UY, UZ, LX, LY, LZ, DIRX, DIRY, DIRZ
     if CANVASSIZE == -1:
@@ -120,7 +120,7 @@ def setCanvas(event=None):
     nob = C.getNobOfBase(base, CTK.t)
     CTK.add(CTK.t, nob, -1, a)
     
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()

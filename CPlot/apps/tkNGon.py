@@ -44,7 +44,7 @@ def convert2NGon():
         Panels.displayErrors(errors, header='Error: convert2NGon')
         CTK.TXT.insert('START', 'NGon conversion fails for at least one zone.\n')
         CTK.TXT.insert('START', 'Warning: ', 'Warning')
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
@@ -84,7 +84,7 @@ def breakElts():
         Panels.displayErrors(errors, header='Error: breakElts')
         CTK.TXT.insert('START', 'Break elts fails for at least one zone.\n')
         CTK.TXT.insert('START', 'Warning: ', 'Warning')
-    CTK.t = C.fillMissingVariables(CTK.t)   
+    #C._fillMissingVariables(CTK.t)   
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
@@ -123,7 +123,7 @@ def dual():
         Panels.displayErrors(errors, header='Error: dual')
         CTK.TXT.insert('START', 'Dual fails for at least one zone.\n')
         CTK.TXT.insert('START', 'Warning: ', 'Warning')
-    CTK.t = C.fillMissingVariables(CTK.t)   
+    #C._fillMissingVariables(CTK.t)   
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
@@ -156,13 +156,13 @@ def conformize():
         except Exception, e:
             fail = True; errors += [0,str(e)]
 
-    if (fail == False):
+    if not fail:
         CTK.TXT.insert('START', 'Zones conformized.\n')
     else:
         Panels.displayErrors(errors, header='Error: conformize')
         CTK.TXT.insert('START', 'Conformize fails for at least one zone.\n')
         CTK.TXT.insert('START', 'Warning: ', 'Warning')
-    CTK.t = C.fillMissingVariables(CTK.t)   
+    #C._fillMissingVariables(CTK.t)   
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()

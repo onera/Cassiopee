@@ -40,7 +40,7 @@ def tetraMesher():
         nob = C.getNobOfBase(bases[0], CTK.t)
         CTK.add(CTK.t, nob, -1, mesh)
         CTK.TXT.insert('START', 'Tetra mesh created.\n')
-        CTK.t = C.fillMissingVariables(CTK.t)
+        #C._fillMissingVariables(CTK.t)
         (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
         CTK.TKTREE.updateApp()
         CPlot.render()

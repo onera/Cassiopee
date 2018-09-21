@@ -423,7 +423,7 @@ def showSelectionInTkTree(event=None):
 #==============================================================================
 def upgradeTree(t):
     Internal.autoSetContainers(t)
-    C._fillMissingVariables(t)
+    #C._fillMissingVariables(t)
     Internal._correctPyTree(t, level=0) # version node
     #t = Internal.correctPyTree(t, level=9) # connectivity
     Internal._fixNGon(t)
@@ -1691,7 +1691,7 @@ def GIF(Function, functionName='myFunction', *args):
         Panels.displayErrors(errors, header='Error: '+functionName)
         TXT.insert('START', functionName+' fails for at least one zone.\n')
         TXT.insert('START', 'Warning: ', 'Warning')
-    C._fillMissingVariables(t)
+    #C._fillMissingVariables(t)
     (Nb, Nz) = CPlot.updateCPlotNumbering(t)
     TKTREE.updateApp()
     CPlot.render()

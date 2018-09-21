@@ -172,7 +172,7 @@ def smooth():
         CTK.TXT.insert('START', 'Smooth fails.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error')
 
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()

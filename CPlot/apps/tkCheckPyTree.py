@@ -82,7 +82,7 @@ def correctPyTree():
         Internal._correctPyTree(CTK.t, level=9)
     if v == 'All conformity' or v == ' > Valid CGNS flowfield name':
         Internal.correctPyTree(CTK.t, level=10)
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)

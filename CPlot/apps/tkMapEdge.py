@@ -677,7 +677,7 @@ def uniformize(event=None):
     else:
         CTK.TXT.insert('START', 'Uniformize edge fails for at least one zone.\n')
         CTK.TXT.insert('START', 'Warning: ', 'Warning')
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
@@ -720,7 +720,7 @@ def enforce(event=None):
     else:
         CTK.TXT.insert('START', 'stretch failed.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error')
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C.fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
@@ -772,7 +772,7 @@ def refine(event=None):
     else:
         CTK.TXT.insert('START', 'Refine fails for at least one zone.\n')
         CTK.TXT.insert('START', 'Warning: ', 'Warning')
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
@@ -820,7 +820,7 @@ def smooth(event=None):
     else:
         CTK.TXT.insert('START', 'Smooth fails for at least one zone.\n')
         CTK.TXT.insert('START', 'Warning: ', 'Warning')
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
@@ -931,9 +931,9 @@ def copyDistrib():
     if not fail:
         CTK.TXT.insert('START', 'Distribution copy done.\n')
     else:
-        CTK.TXT.insert('START', 'Distirbution copy fails for at least one zone.\n')
+        CTK.TXT.insert('START', 'Distribution copy fails for at least one zone.\n')
         CTK.TXT.insert('START', 'Warning: ', 'Warning')
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()

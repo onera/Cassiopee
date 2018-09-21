@@ -12,12 +12,12 @@ WIDGETS = {}; VARS = []
 
 #==============================================================================
 def setContour():
-    if (CTK.t == []): return
-    if (CTK.__MAINTREE__ <= 0):
+    if CTK.t == []: return
+    if CTK.__MAINTREE__ <= 0:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     nzs = CPlot.getSelectedZones()
-    if (nzs == []):
+    if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     selected = ''
@@ -31,12 +31,12 @@ def setContour():
     
 #==============================================================================
 def setSurface():
-    if (CTK.t == []): return
-    if (CTK.__MAINTREE__ <= 0):
+    if CTK.t == []: return
+    if CTK.__MAINTREE__ <= 0:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     nzs = CPlot.getSelectedZones()
-    if (nzs == []):
+    if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     selected = ''
@@ -50,8 +50,8 @@ def setSurface():
     
 #==============================================================================
 def fixGap():
-    if (CTK.t == []): return
-    if (CTK.__MAINTREE__ <= 0):
+    if CTK.t == []: return
+    if CTK.__MAINTREE__ <= 0:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     
@@ -87,8 +87,7 @@ def fixGap():
     b = G.gapfixer(contours, p)
     CTK.saveTree()
     CTK.t[2][1][2].append(b)
-    #CTK.t[2][1][2].append(p)
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     CTK.TXT.insert('START', 'Gap fixed.\n')    
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()

@@ -85,7 +85,7 @@ def extract(event=None):
     for i in Z:
         i[0] = C.getZoneName(i[0])
         CTK.add(CTK.t, nob, -1, i)
-    CTK.t = C.fillMissingVariables(CTK.t) # a cause du BC data set
+    #C._fillMissingVariables(CTK.t) # a cause du BC data set
     CTK.TXT.insert('START', 'BCs of type %s extracted.\n'%BCtype)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()

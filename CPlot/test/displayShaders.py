@@ -40,7 +40,6 @@ h = T.translate(h, (0,2.5,0))
 h = CPlot.addRender2Zone(h, material='Solid', color='Iso:centers:F')
 
 t = C.newPyTree(['Base',a,b,c,d,e,f,g,h,i])
-t = C.fillMissingVariables(t)
 
 # Tests des shaders
 CPlot.display(t, displayBB=0, mode=2)

@@ -62,7 +62,7 @@ def mapCurvature():
             if dims[3] > 1:
                 zp = G.mapCurvature(zp, int(power*dims[3]), power2, 3)
         CTK.replace(CTK.t, nob, noz, zp)
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     CTK.TXT.insert('START', 'MapCurvature done.\n')
     CTK.TKTREE.updateApp()
     CPlot.render()
@@ -117,7 +117,7 @@ def uniformize():
             if dims[3] > 1:
                 zp = uniformizeMesh(zp, power*dims[3], 3)
         CTK.replace(CTK.t, nob, noz, zp)
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     CTK.TXT.insert('START', 'Uniformize done.\n')
     CTK.TKTREE.updateApp()
     CPlot.render()
@@ -163,7 +163,7 @@ def refine():
             z = G.refine(z, power, dir)
             CTK.replace(CTK.t, nob, noz, z)
 
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     CTK.TXT.insert('START', 'Refine done.\n')
     CTK.TKTREE.updateApp()
     CPlot.render()
@@ -298,7 +298,7 @@ def enforce():
         CTK.TXT.insert('START', 'Stretch failed.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     else: CTK.TXT.insert('START', 'Stretch done.\n')
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
 

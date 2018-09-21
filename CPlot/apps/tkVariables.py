@@ -298,7 +298,7 @@ def importFile(event=None):
             noz = CTK.Nz[nz]
             CTK.t[2][nob][2][noz] = zones[2][1][2][c]; c += 1
     CTK.TXT.insert('START', 'Variable file %s imported.\n'%filename)
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
@@ -417,7 +417,7 @@ def computeVariables():
                 Panels.displayErrors(errors, header='Error: computeVariables')
                 CTK.TXT.insert('START', 'Computation of variable %s failed.\n'%varloc)
                 CTK.TXT.insert('START', 'Error: ', 'Error')
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
     if CTK.TKPLOTXY is not None: CTK.TKPLOTXY.updateApp()
@@ -510,7 +510,7 @@ def computeCurl():
 def fillMissingVariables():
     if CTK.t == []: return
     CTK.saveTree()
-    CTK.t = C.fillMissingVariables(CTK.t)
+    C._fillMissingVariables(CTK.t)
     CTK.TXT.insert('START', 'Missing variables filled.\n')
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)

@@ -120,14 +120,10 @@ def convert2Tetra():
         Panels.displayErrors(errors, header='Error: convert2Tetra')
         CTK.TXT.insert('START', 'Tetra conversion fails for at least one zone.\n')
         CTK.TXT.insert('START', 'Warning: ', 'Warning')
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
-
-# Completely equivalent code
-#def convert2Tetra():
-#    CTK.GIF(C.convertArray2Tetra, 'convert2Tetra')
 
 #==============================================================================
 # Converti un bloc ou tous les blocs en hexa
@@ -140,7 +136,7 @@ def convert2Hexa():
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     nzs = CPlot.getSelectedZones()
-    if (nzs == []):
+    if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     CTK.saveTree()
@@ -167,7 +163,7 @@ def convert2Hexa():
         Panels.displayErrors(errors, header='Error: convert2Hexa')
         CTK.TXT.insert('START', 'Hexa conversion fails for at least one zone.\n')
         CTK.TXT.insert('START', 'Warning: ', 'Warning')
-    CTK.t = C.fillMissingVariables(CTK.t)   
+    #C._fillMissingVariables(CTK.t)   
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
@@ -195,7 +191,7 @@ def convert2Node():
         CTK.replace(CTK.t, nob, noz, a)
         
     CTK.TXT.insert('START', 'Zones converted to node.\n')
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
@@ -233,7 +229,7 @@ def exteriorFaces():
             fail = True; errors += [0,str(e)]
         except ValueError: # empty set
             pass
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     if not fail: CTK.TXT.insert('START', 'Exterior faces done.\n')

@@ -60,7 +60,7 @@ def fixGap():
        CTK.add(CTK.t, nob, -1, b)
        #CTK.add(CTK.t, nob, -1, p)
     if not fail:
-       CTK.t = C.fillMissingVariables(CTK.t)
+       #C._fillMissingVariables(CTK.t)
        CTK.TXT.insert('START', 'Gap fixed.\n')
     else:
       CTK.TXT.insert('START', 'Gap fixing fails.\n')
@@ -104,7 +104,7 @@ def fixGaps():
     CTK.t = CPlot.deleteSelection(CTK.t, CTK.Nb, CTK.Nz, nzs)
     CTK.t[2][nob0][2] += b
     
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     CTK.TXT.insert('START', 'Gaps fixed.\n')    
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
@@ -152,7 +152,7 @@ def conformUnstr():
             z = XOR.conformUnstr(z, tol=tol, itermax=1)
             CTK.replace(CTK.t, nob, noz, z)
     
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     CTK.TXT.insert('START', 'Surface conformized.\n')
     CTK.TKTREE.updateApp()
     CPlot.render()

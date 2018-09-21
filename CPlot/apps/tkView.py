@@ -37,14 +37,14 @@ def setMode(event=None):
     elif mode == 'Scalar':
         imode = 3
         if VARS[18].get() == 'None':
-            vars = C.getVarNames(CTK.t, excludeXYZ=True)
+            vars = C.getVarNames(CTK.t, excludeXYZ=True, mode=1)
             if len(vars)>0 and len(vars[0])>0: VARS[18].set(vars[0][0])
             displayField()
         WIDGETS['scalar'].grid(row=2, column=0, columnspan=3, sticky=TK.EW)
     elif mode == 'Vector':
         imode = 4; WIDGETS['vector'].grid(row=2, column=0, columnspan=3, sticky=TK.EW)
         if VARS[20].get() == 'None' or VARS[21].get() == 'None' or VARS[22].get() == 'None':
-            vars = C.getVarNames(CTK.t, excludeXYZ=True)
+            vars = C.getVarNames(CTK.t, excludeXYZ=True, mode=1)
             if len(vars) > 0:
                 vars0 = vars[0]
                 lg = len(vars0)
@@ -99,13 +99,9 @@ def updateVarNameList(event=None):
     if CTK.t == []: return
     nzs = CPlot.getSelectedZones()
     if CTK.__MAINTREE__ <= 0:
-        vars = C.getVarNames(CTK.t, excludeXYZ=True)
-    elif CTK.__MAINTREE__ == 1 and nzs != []:
-        nob = CTK.Nb[0]+1
-        noz = CTK.Nz[0]
-        vars = C.getVarNames(CTK.t[2][nob][2][noz], excludeXYZ=True)
+        vars = C.getVarNames(CTK.dt, excludeXYZ=True, mode=1)
     else:
-        vars = C.getVarNames(CTK.t, excludeXYZ=True)
+        vars = C.getVarNames(CTK.t, excludeXYZ=True, mode=1)
     m = WIDGETS['scalarField'].children['menu']
     m.delete(0, TK.END)
     allvars = []
@@ -119,13 +115,9 @@ def updateVarNameList_2(event=None):
     if CTK.t == []: return
     nzs = CPlot.getSelectedZones()
     if CTK.__MAINTREE__ <= 0:
-        vars = C.getVarNames(CTK.dt, excludeXYZ=True)
-    elif CTK.__MAINTREE__ == 1 and nzs != []:
-        nob = CTK.Nb[0]+1
-        noz = CTK.Nz[0]
-        vars = C.getVarNames(CTK.t[2][nob][2][noz], excludeXYZ=True)
+        vars = C.getVarNames(CTK.dt, excludeXYZ=True, mode=1)
     else:
-        vars = C.getVarNames(CTK.t, excludeXYZ=True)
+        vars = C.getVarNames(CTK.t, excludeXYZ=True, mode=1)
     allvars = []
     if len(vars) > 0:
         for v in vars[0]: allvars.append(v)
@@ -138,13 +130,9 @@ def updateVarNameList__(no):
     if CTK.t == []: return
     nzs = CPlot.getSelectedZones()
     if CTK.__MAINTREE__ <= 0:
-        vars = C.getVarNames(CTK.dt, excludeXYZ=True)
-    elif CTK.__MAINTREE__ == 1 and nzs != []:
-        nob = CTK.Nb[0]+1
-        noz = CTK.Nz[0]
-        vars = C.getVarNames(CTK.t[2][nob][2][noz], excludeXYZ=True)
+        vars = C.getVarNames(CTK.dt, excludeXYZ=True, mode=1)
     else:
-        vars = C.getVarNames(CTK.t, excludeXYZ=True)
+        vars = C.getVarNames(CTK.t, excludeXYZ=True, mode=1)
     m = WIDGETS['vectorField'+str(no)].children['menu']
     m.delete(0, TK.END)
     allvars = []
@@ -158,13 +146,9 @@ def updateVarNameList2__(no):
     if CTK.t == []: return
     nzs = CPlot.getSelectedZones()
     if CTK.__MAINTREE__ <= 0:
-        vars = C.getVarNames(CTK.dt, excludeXYZ=True)
-    elif CTK.__MAINTREE__ == 1 and nzs != []:
-        nob = CTK.Nb[0]+1
-        noz = CTK.Nz[0]
-        vars = C.getVarNames(CTK.t[2][nob][2][noz], excludeXYZ=True)
+        vars = C.getVarNames(CTK.dt, excludeXYZ=True, mode=1)
     else:
-        vars = C.getVarNames(CTK.t, excludeXYZ=True)
+        vars = C.getVarNames(CTK.t, excludeXYZ=True, mode=1)
     allvars = []
     if len(vars) > 0:
         for v in vars[0]: allvars.append(v)
@@ -201,8 +185,8 @@ def displayField(event=None):
     if CTK.t == []: return
     global VARNO
     field = VARS[18].get()
-    if CTK.__MAINTREE__ == 1: vars = C.getVarNames(CTK.t)[0]
-    else: vars = C.getVarNames(CTK.dt)[0]
+    if CTK.__MAINTREE__ == 1: vars = C.getVarNames(CTK.t, mode=1)[0]
+    else: vars = C.getVarNames(CTK.dt, mode=1)[0]
     ifield = 0; lenvars = 0
     for i in vars:
         if i != 'CoordinateX' and i != 'CoordinateY' and i != 'CoordinateZ':
@@ -226,21 +210,20 @@ def displayField(event=None):
 #==============================================================================
 def displayVector(event=None):
     if CTK.t == []: return
-    global VARNO
     field1 = VARS[20].get()
     field2 = VARS[21].get()
     field3 = VARS[22].get()
-    if CTK.__MAINTREE__ == 1: vars = C.getVarNames(CTK.t)[0]
-    else: vars = C.getVarNames(CTK.dt)[0]
+    if CTK.__MAINTREE__ == 1: vars = C.getVarNames(CTK.t, mode=1)[0]
+    else: vars = C.getVarNames(CTK.dt, mode=1)[0]
     ifield1 = 0; ifield2 = 0; ifield3 = 0
     lenvars = 0
     for i in vars:
-        if (i != 'CoordinateX' and i != 'CoordinateY' and i != 'CoordinateZ'):
+        if i != 'CoordinateX' and i != 'CoordinateY' and i != 'CoordinateZ':
             lenvars += 1
             
     for i in vars:
         if i == field1: break
-        if (i != 'CoordinateX' and i != 'CoordinateY' and i != 'CoordinateZ'):
+        if i != 'CoordinateX' and i != 'CoordinateY' and i != 'CoordinateZ':
             ifield1 += 1
         
     if ifield1 == lenvars:
@@ -249,7 +232,7 @@ def displayVector(event=None):
 
     for i in vars:
         if i == field2: break
-        if (i != 'CoordinateX' and i != 'CoordinateY' and i != 'CoordinateZ'):
+        if i != 'CoordinateX' and i != 'CoordinateY' and i != 'CoordinateZ':
             ifield2 += 1
         
     if ifield2 == lenvars:
@@ -258,7 +241,7 @@ def displayVector(event=None):
 
     for i in vars:
         if i == field3: break
-        if (i != 'CoordinateX' and i != 'CoordinateY' and i != 'CoordinateZ'):
+        if i != 'CoordinateX' and i != 'CoordinateY' and i != 'CoordinateZ':
             ifield3 += 1
         
     if ifield3 == lenvars:
@@ -276,7 +259,7 @@ def displayVector1(event=None):
     field1 = VARS[20].get()
     field2 = VARS[21].get()
     field3 = VARS[22].get()
-    vars = C.getVarNames(CTK.t)[0]
+    vars = C.getVarNames(CTK.t, mode=1)[0]
     ifield1 = 0; ifield2 = 0; ifield3 = 0
     lenvars = 0
     index1 = -1

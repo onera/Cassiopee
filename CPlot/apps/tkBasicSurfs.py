@@ -198,7 +198,7 @@ def generate(event=None):
         else:
             for i in s: CTK.add(CTK.t, nob, -1, i)
         
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     CTK.TXT.insert('START', 'Surface created.\n')
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()

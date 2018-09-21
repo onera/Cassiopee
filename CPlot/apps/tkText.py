@@ -60,7 +60,7 @@ def createText(event=None):
 
     nob = C.getNobOfBase(base, CTK.t)
     CTK.add(CTK.t, nob, -1, a)
-    C._fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     CTK.TXT.insert('START', 'Text created.\n')
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
@@ -190,7 +190,7 @@ def replaceText(event=None):
     CTK.t = CPlot.deleteSelection(CTK.t, CTK.Nb, CTK.Nz, nzs)
     CPlot.delete(dels)
     CTK.add(CTK.t, nob0, -1, a)
-    C._fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     CTK.TXT.insert('START', 'Text replaced.\n')
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()

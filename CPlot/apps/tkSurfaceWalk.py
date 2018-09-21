@@ -81,7 +81,7 @@ def walkIn():
     bases = Internal.getNodesFromName1(CTK.t, 'SURFACES')
     nob = C.getNobOfBase(bases[0], CTK.t)
     for i in zlist: CTK.add(CTK.t, nob, -1, i)
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     if not fail: CTK.TXT.insert('START', 'Surface walk done.\n')
     else:
         Panels.displayErrors(errors, header='Error: surfaceWalk')
@@ -93,8 +93,8 @@ def walkIn():
     
 #==============================================================================
 def walkOut():
-    if (CTK.t == []): return
-    if (CTK.__MAINTREE__ <= 0):
+    if CTK.t == []: return
+    if CTK.__MAINTREE__ <= 0:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     # Constraints
@@ -160,7 +160,7 @@ def walkOut():
     bases = Internal.getNodesFromName1(CTK.t, 'SURFACES')
     nob = C.getNobOfBase(bases[0], CTK.t)
     for i in zlist: CTK.add(CTK.t, nob, -1, i)
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     if not fail: CTK.TXT.insert('START', 'Surface walk done.\n')
     else:
         Panels.displayErrors(errors, header='Error: surfaceWalk')

@@ -76,7 +76,7 @@ def compute():
             noz = CTK.Nz[nz]
             CTK.t[2][nob][2][noz] = tp[2][1][2][c]
             c += 1
-        CTK.t = C.fillMissingVariables(CTK.t)
+        #C._fillMissingVariables(CTK.t)
         CTK.TKTREE.updateApp()
         CTK.display(CTK.t)
         CTK.TXT.insert('START', 'Distance to walls computed.\n')

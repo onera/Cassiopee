@@ -263,7 +263,7 @@ def setBackground(event=None):
         base = Internal.getNodesFromName1(CTK.t, 'BACKGROUND')[0]
         nob = C.getNobOfBase(base, CTK.t)
         for b in B: CTK.add(CTK.t, nob, -1, b)
-        CTK.t = C.fillMissingVariables(CTK.t)
+        #C._fillMissingVariables(CTK.t)
         
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()

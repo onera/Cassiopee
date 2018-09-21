@@ -78,17 +78,17 @@ def draw():
     if CTK.t == []: return
     type = VARS[0].get()
     npts = CTK.varsFromWidget(VARS[1].get(), 2)
-    if (len(npts) != 1):
+    if len(npts) != 1:
         CTK.TXT.insert('START', 'Invalid number of points.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error')
     npts = npts[0]
-    if (type == 'Polyline'): drawPolyline()
-    elif (type == 'Line'): drawLine(npts)
-    elif (type == 'Circle'): drawCircle(npts)
-    elif (type == 'Circular arc'): drawArc(npts)
-    elif (type == 'Rectangle'): drawRectangle(npts)
-    elif (type == 'Cubic'): drawCubic(npts)
-    elif (type == 'Free hand'): drawFreeHand()
+    if type == 'Polyline': drawPolyline()
+    elif type == 'Line': drawLine(npts)
+    elif type == 'Circle': drawCircle(npts)
+    elif type == 'Circular arc': drawArc(npts)
+    elif type == 'Rectangle': drawRectangle(npts)
+    elif type == 'Cubic': drawCubic(npts)
+    elif type == 'Free hand': drawFreeHand()
 
 #==============================================================================
 def drawLine(npts):
@@ -122,7 +122,7 @@ def drawLine(npts):
                     CTK.TXT.insert('START', 'Line created.\n')
                     CTK.__BUSY__ = False
                     TTK.raiseButton(WIDGETS['draw'])
-                    CTK.t = C.fillMissingVariables(CTK.t)
+                    #C._fillMissingVariables(CTK.t)
                     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
                     CTK.TKTREE.updateApp()
                     CPlot.render()
@@ -221,7 +221,7 @@ def drawCircle(npts):
                     CTK.__BUSY__ = False
                     TTK.raiseButton(w)
                     CPlot.setState(cursor=0)
-                    CTK.t = C.fillMissingVariables(CTK.t)
+                    #C._fillMissingVariables(CTK.t)
                     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
                     CTK.TKTREE.updateApp()
                     CPlot.render()
@@ -375,7 +375,7 @@ def drawArc(npts):
                     CTK.__BUSY__ = False
                     TTK.raiseButton(w)
                     CPlot.setState(cursor=0)
-                    CTK.t = C.fillMissingVariables(CTK.t)
+                    #C._fillMissingVariables(CTK.t)
                     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
                     CTK.TKTREE.updateApp()
                     CPlot.render()
@@ -443,7 +443,7 @@ def drawRectangle(npts):
                     CTK.__BUSY__ = False
                     TTK.raiseButton(w)
                     CPlot.setState(cursor=0)
-                    CTK.t = C.fillMissingVariables(CTK.t)
+                    #C._fillMissingVariables(CTK.t)
                     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
                     CTK.TKTREE.updateApp()
                     CPlot.render()
@@ -508,7 +508,7 @@ def drawPolyline():
            a = T.projectOrthoSmooth(CURRENTZONE, surfaces)
            noz = ret[1]
            CTK.replace(CTK.t, nob, noz, a)
-       CTK.t = C.fillMissingVariables(CTK.t)
+       #C._fillMissingVariables(CTK.t)
        (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
        CTK.TKTREE.updateApp()
        CPlot.render()
@@ -567,7 +567,7 @@ def drawCubic(npts):
        if (surfaces != []): a = T.projectOrthoSmooth(a, surfaces)
        nob = C.getNobOfBase(ret[0], CTK.t)
        CTK.replace(CTK.t, nob, ret[1], a)
-       CTK.t = C.fillMissingVariables(CTK.t)
+       #C._fillMissingVariables(CTK.t)
        (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
        CTK.TKTREE.updateApp()
        CPlot.render()
@@ -581,22 +581,22 @@ def drawFreeHand():
     global CURRENTZONE; global CURRENTPOLYLINE; global ALLZONES
     w = WIDGETS['draw']
     prev = []; first = []
-    if (CTK.__BUSY__ == False):
+    if CTK.__BUSY__ == False:
         CPlot.unselectAllZones()
         CTK.saveTree()
         CTK.__BUSY__ = True
         TTK.sunkButton(w)
         CPlot.setState(cursor=1)
         buttonState = 0
-        while (CTK.__BUSY__ == True):
-            if (prev == []): # first point
+        while CTK.__BUSY__ == True:
+            if prev == []: # first point
                 l = []
-                while (l == []):
+                while l == []:
                     l = CPlot.getActivePoint()
-                    if (l != []): prev = l; first = l
+                    if l != []: prev = l; first = l
                     time.sleep(CPlot.__timeStep__)
                     w.update()
-                    if (CTK.__BUSY__ == False): break
+                    if CTK.__BUSY__ == False: break
             else: # next points
                 diff = -1.
                 while (diff < 1.e-10):
@@ -650,7 +650,7 @@ def drawFreeHand():
                a = T.projectOrthoSmooth(s, surfaces)
                noz = ret[1]
                CTK.replace(CTK.t, nob, noz, a)
-       CTK.t = C.fillMissingVariables(CTK.t)
+       #C._fillMissingVariables(CTK.t)
        (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
        CTK.TKTREE.updateApp()
        CPlot.render()

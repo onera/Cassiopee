@@ -71,7 +71,7 @@ def initCellN():
                 C._initVars(CTK.t[2][nob][2][noz], 'cellN', 1)
             else:
                 C._initVars(CTK.t[2][nob][2][noz], 'centers:cellN', 1.)
-        C._fillMissingVariables(CTK.t)
+        #C._fillMissingVariables(CTK.t)
     CTK.TXT.insert('START', 'cellN variable init to 1.\n')
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
@@ -167,7 +167,7 @@ def blank():
         CTK.t[2][nob][2][noz] = z
         c += 1
 
-    C._fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     CTK.TXT.insert('START', 'Blanking done.\n')
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)

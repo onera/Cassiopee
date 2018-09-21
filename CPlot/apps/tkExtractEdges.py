@@ -272,25 +272,25 @@ def splitTBranches():
     except Exception, e:
         fail = True; errors += [0,str(e)]
 
-    if (fail == False):
+    if not fail:
         CTK.TXT.insert('START', 'splitTBranches done.\n')
     else:
         Panels.displayErrors(errors, header='Error: splitTBranches')
         CTK.TXT.insert('START', 'Split T branch fails for at least one zone.\n')
         CTK.TXT.insert('START', 'Warning: ', 'Warning')
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
 
 #==============================================================================
 def convertBAR2Struct():
-    if (CTK.t == []): return
-    if (CTK.__MAINTREE__ <= 0):
+    if CTK.t == []: return
+    if CTK.__MAINTREE__ <= 0:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     nzs = CPlot.getSelectedZones()
-    if (nzs == []):
+    if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     
@@ -307,13 +307,13 @@ def convertBAR2Struct():
         except Exception, e:
             fail = True; errors += [0,str(e)]
 
-    if (fail == False):
+    if not fail:
         CTK.TXT.insert('START', 'BARS converted to STRUCT.\n')
     else:
         Panels.displayErrors(errors, header='Error: convertBAR2Struct')
         CTK.TXT.insert('START', 'SRUCT conversion fails for at least one zone.\n')
         CTK.TXT.insert('START', 'Warning: ', 'Warning')
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()

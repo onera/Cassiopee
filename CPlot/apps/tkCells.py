@@ -32,7 +32,7 @@ def selectCells(event=None):
         z = P.selectCells(z, formula, strict=strict)
         CTK.replace(CTK.t, nob, noz, z)
 
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TXT.insert('START', 'Cells selected.\n')
     CTK.TKTREE.updateApp()
