@@ -79,7 +79,7 @@ class hierarchical_mesh
   
   void refine_PHs(const Vector_t<E_Int> &PHadap);
   
-  void get_nodes_PHi(E_Int* nodes, E_Int PHi, E_Int* BOT, E_Int* TOP, E_Int* LEFT, E_Int* RIGHT, E_Int* FRONT, E_Int* BACK);
+  void get_nodes_PHi(E_Int* nodes, E_Int PHi, E_Int centroid_id, E_Int* BOT, E_Int* TOP, E_Int* LEFT, E_Int* RIGHT, E_Int* FRONT, E_Int* BACK);
   
   void retrieve_ordered_data(E_Int PGi, E_Int i0, bool reorient, E_Int* four_childrenPG, E_Int* LNODES);
   
@@ -185,11 +185,6 @@ E_Int hierarchical_mesh<ELT_t, ngo_t, crd_t>::adapt(Vector_t<E_Int>& adap_incr, 
     }
     
     if (PHadap.empty() && PHagglo.empty()) break; // adapted
-
-    // sort the PHadap list in order to solve starting by lower level of refinement
-    std::sort(PHadap.begin(),PHadap.end(),[this](int a, int b){
-        return _PHtree.get_level(a) < _PHtree.get_level(b);
-    });
 
     // refine PGs : create missing children (those PGi with _PGtree.nb_children(PGi) == 0)
     refine_PGs(PHadap);
@@ -399,7 +394,7 @@ void hierarchical_mesh<K_MESH::Hexahedron, ngon_type, K_FLD::FloatArray>::refine
   
   // Compute Faces centroids
   _fcenter.clear();
-  __compute_face_centers(_crd, _ng.PGs, PGref, _fcenter);
+  //__compute_face_centers(_crd, _ng.PGs, PGref, _fcenter);
   
   // Reserve space for children in the tree
   _PGtree.resize(PGref);
@@ -412,9 +407,15 @@ void hierarchical_mesh<K_MESH::Hexahedron, ngon_type, K_FLD::FloatArray>::refine
   Vector_t<E_Int> ids;
 #endif
   
+  // face centers  
+  _fcenter.resize(nb_pgs_ref, E_IDX_NONE);  
+  E_Int pos = _crd.cols();
+  _crd.resize(3, pos + nb_pgs_ref);  
+  
   K_MESH::NO_Edge noE;  
   
   // Refine them
+#pragma omp parallel for private(noE)
   for (E_Int i = 0; i < nb_pgs_ref; ++i)
   {
     E_Int PGi = PGref[i];
@@ -422,6 +423,10 @@ void hierarchical_mesh<K_MESH::Hexahedron, ngon_type, K_FLD::FloatArray>::refine
     E_Int q9[9];
    
     E_Int* nodes = _ng.PGs.get_facets_ptr(PGi);
+    
+    // Centroid calculation
+    __compute_face_center(_crd, _ng.PGs.get_facets_ptr(PGi), _ng.PGs.stride(PGi), _crd.col(pos+i));
+    _fcenter[i] = pos+i;
     
 #ifdef DEBUG_HIERARCHICAL_MESH
     assert (_ng.PGs.stride(PGi) == 4);
@@ -552,7 +557,7 @@ E_Int hierarchical_mesh<ELT_t, ngo_t, crd_t>::get_i0(E_Int* pFace, E_Int common_
 
 ///
 template <>
-void hierarchical_mesh<K_MESH::Hexahedron, ngon_type, K_FLD::FloatArray>::get_nodes_PHi(E_Int* nodes, E_Int PHi, E_Int* BOT, E_Int* TOP, E_Int* LEFT, E_Int* RIGHT, E_Int* FRONT, E_Int* BACK)
+void hierarchical_mesh<K_MESH::Hexahedron, ngon_type, K_FLD::FloatArray>::get_nodes_PHi(E_Int* nodes, E_Int PHi, E_Int centroidId, E_Int* BOT, E_Int* TOP, E_Int* LEFT, E_Int* RIGHT, E_Int* FRONT, E_Int* BACK)
 {
   E_Int* pPGi = _ng.PHs.get_facets_ptr(PHi);
   E_Int PGi = pPGi[0] - 1;
@@ -693,15 +698,9 @@ void hierarchical_mesh<K_MESH::Hexahedron, ngon_type, K_FLD::FloatArray>::get_no
 #endif
 
   // Centroid calculation
-
-  E_Float centroid[3];
-  __compute_cell_center(_crd, nodes, centroid);
-
-  E_Int nb_cols = _crd.cols();
-
-  _crd.pushBack(centroid, centroid+3);
-
-  nodes[26] = nb_cols+1;
+  __compute_cell_center(_crd, nodes, _crd.col(centroidId));
+  
+  nodes[26] = centroidId+1;
 
 #ifdef DEBUG_HIERARCHICAL_MESH
 //        for (int i = 0 ; i < 27; i++){
@@ -837,14 +836,19 @@ void hierarchical_mesh<K_MESH::Hexahedron, ngon_type, K_FLD::FloatArray>::refine
   // And in the mesh : each H27 is split into 8 H27
   E_Int nb_phs0 = _ng.PHs.size();
   _ng.PHs.expand_n_fixed_stride(8*nb_phs, 6/*H27 stride*/);
-    
+  
+  E_Int pos = _crd.cols();
+  _crd.resize(3, pos + nb_phs);
+  
+  int j;
+#pragma omp parallel for private (j)
   for (E_Int i = 0; i < nb_phs; ++i)
   {
     E_Int PHi = PHadap[i];
     E_Int nodes[27]; // 0-26 to crd1 indexes
     E_Int BOT[4],TOP[4],LEFT[4],RIGHT[4],FRONT[4],BACK[4];// children lists
 
-    get_nodes_PHi(nodes,PHi,BOT,TOP,LEFT,RIGHT,FRONT,BACK);
+    get_nodes_PHi(nodes, PHi, pos+i, BOT,TOP,LEFT,RIGHT,FRONT,BACK);
 
     E_Int points[27];
     K_MESH::Hexahedron::get_internal(nodes,points);
@@ -852,7 +856,7 @@ void hierarchical_mesh<K_MESH::Hexahedron, ngon_type, K_FLD::FloatArray>::refine
     E_Int PGichildr[4];
     E_Int INT[12];
     // INTERNAL faces
-    for (int j = 0; j < 3; ++j)
+    for ( j = 0; j < 3; ++j)
     {
       PGichildr[0] = nb_pgs0 + 12*i + 4*j;
       PGichildr[1] = nb_pgs0 + 12*i + 4*j + 1;
