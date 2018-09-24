@@ -49,7 +49,7 @@ False, # CPlotOffScreen
 ['/opt/soft/cdtng/tools/intelcompiler/16.0/compiler/lib/intel64', '/opt/soft/cdtng/tools/portage/1.11/usr/lib', '/opt/hpmpi/lib/linux_amd64'] # additionalLibPaths
 ],
 ###############################################################################
-'caefr0p045': [ 'Cluster GISEH (Airbus)',
+'caefr0p...': [ 'Cluster GISEH (Airbus)',
 'ifort', # f77compiler
 'ifort', # f90compiler
 'icpc', # Cppcompiler
