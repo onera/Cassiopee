@@ -174,7 +174,7 @@ char* Data::export2Image(int exportWidth, int exportHeight)
         double zNear = _view.nearD; 
         double zFar  = _view.farD;
         //printf("Znear : %e, zFar : %e\n",zNear, zFar);
-        for ( size_t i = 0; i < exportHeight*exportWidth; ++i )
+        for (int i = 0; i < exportHeight*exportWidth; i++)
         {
           double z_n = 2.*double(depth[i])-1.0;
           double z_e = 2.0*zNear*zFar/(zFar+zNear-z_n*(zFar-zNear));
@@ -205,7 +205,7 @@ char* Data::export2Image(int exportWidth, int exportHeight)
         double zNear = _view.nearD; 
         double zFar  = _view.farD;
         //printf("Znear : %e, ZFar : %e\n",zNear, zFar);
-        for ( size_t i = 0; i < exportHeight*exportWidth; ++i )
+        for (int i = 0; i < exportHeight*exportWidth; i++)
         {
           double z_n = 2.*double(depth[i])-1.0;
           double z_e = 2.0*zNear*zFar/(zFar+zNear-z_n*(zFar-zNear));

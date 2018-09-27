@@ -92,6 +92,11 @@ void Data::displayUSolidZone(UnstructZone* zonep, int zone, int zonet)
   }
 #endif
 
+#undef PLOT
+#undef PLOTTRI
+#undef PLOTTRI2
+#undef PLOTQUAD
+#undef PLOTQUAD2
 #include "displayUSolidZone.h"
 glLineWidth(1.);
 }

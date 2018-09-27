@@ -130,7 +130,7 @@ E_Int testIfPointsAreMatching(E_Float matchTol, E_Int i1,
 //==========================================================================
 void writeSingleSegments(vector<SingleSegment*>& singleSegments)
 {
-  E_Boolean add = false;
+  //E_Boolean add = false;
   E_Int ssSize = singleSegments.size();
   for (E_Int v = 0; v < ssSize; v++)
   {
@@ -150,7 +150,7 @@ void writeSingleSegments(vector<SingleSegment*>& singleSegments)
     {
       //K_IO::GenIO::getInstance()->tpwriteTriangles("strings2.tp", field, 
       //                                             connect, add);
-      add = true;
+      //add = true;
     }
   }
 }

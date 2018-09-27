@@ -407,7 +407,7 @@ E_Int zone_t<crd_t, ngo_t>::reduce_to_positive_types()
     K_CONNECT::keep<E_Int> pred1(keepPG); 
     K_CONNECT::IdTool::compress(_F2Es, pred1);
     
-    E_Int nb_pgs = _F2Es.size() / 2;
+    //E_Int nb_pgs = _F2Es.size() / 2;
     
     for (size_t i=0; i < _F2Es.size(); ++i) 
     {
@@ -509,7 +509,7 @@ void zone_t<crd_t, ngo_t>::set_pg_colors()
   }
 #endif
   E_Int nb_pgs = _ng.PGs.size();
-  for (size_t i = 0; i < nb_pgs; ++i)
+  for (E_Int i = 0; i < nb_pgs; ++i)
   {
     E_Int eL    = _F2Es[i];
     E_Int eR    = _F2Es[i+nb_pgs];

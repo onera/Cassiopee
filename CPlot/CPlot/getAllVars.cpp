@@ -52,7 +52,7 @@ void Data::getAllVars(std::vector<char*>& structVarString,
         }
       }
     }
-    for (E_Int j = 0; j < vars.size(); j++) delete [] vars[j];
+    for (size_t j = 0; j < vars.size(); j++) delete [] vars[j];
   }
   for (size_t i = 0; i < unstrVarString.size(); i++)
   {
@@ -79,7 +79,7 @@ void Data::getAllVars(std::vector<char*>& structVarString,
         }
       }
     }
-    for (E_Int j = 0; j < vars.size(); j++) delete [] vars[j];
+    for (size_t j = 0; j < vars.size(); j++) delete [] vars[j];
   }
   referenceNfield = allvars.size();
   referenceVarNames = new char* [referenceNfield];

@@ -241,10 +241,10 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
   lenVarString += nvars+strlen("donorVol");// les virgules
   char* varStringOut = new char[lenVarString];
 
-  for (E_Int nov = 0; nov < listOfVars.size(); nov++)
+  for (size_t nov = 0; nov < listOfVars.size(); nov++)
   {
     char*& varname = listOfVars[nov];
-    if ( nov >0) 
+    if (nov > 0) 
     {
       strcat(varStringOut,",");      
       strcat(varStringOut,varname);

@@ -84,7 +84,7 @@ short K_INTERP::getInterpolationCell(
   E_Int nzones = interpDatas.size();
   short found = 0;
   E_Float vol;
-  E_Int indcell, firstCorner, i, j, k, noei, ni, nj, nk, ninj, nic, njc;
+  E_Int indcell, firstCorner, noei, ni, nj, nk, ninj;
   E_Int isBorder, tmpType, meshtype;// 1: structure , 2: non structure
   E_Int d = 0; E_Int nbNonZeroCf = 0; E_Int indNonZero=-1; E_Int indLoc; 
   E_Float coefLoc = 0.; E_Float coefNonZero=0.;
@@ -113,7 +113,7 @@ short K_INTERP::getInterpolationCell(
       cnloc = (FldArrayI*)a1[noz]; // non structure      
       ni = -1; nj = -1; nk = -1; ninj = -1;      
     }
-    nic = K_FUNC::E_max(1,ni-1);  njc = K_FUNC::E_max(1,nj-1);  
+    //nic = K_FUNC::E_max(1,ni-1);  njc = K_FUNC::E_max(1,nj-1);  
     FldArrayF& oneField = *fields[noz]; E_Float* cellNp = NULL;
     if (posc0 > 0) cellNp = oneField.begin(posc0);
     else cellNp = NULL;
@@ -174,7 +174,7 @@ short K_INTERP::getInterpolationCellDW(
   E_Int nzones = interpDatas.size();
   short found = 0;
   E_Float vol;
-  E_Int indcell, firstCorner, i, j, k, noei, ni, nj, nk, ninj, nic, njc;
+  E_Int indcell, firstCorner, noei, ni, nj, nk, ninj;
   E_Int isBorder, tmpType, meshtype;// 1: structure , 2: non structure
   E_Int d = 0; E_Int nbNonZeroCf = 0; E_Int indNonZero=-1; E_Int indLoc;
   E_Float coefLoc = 0.; E_Float coefNonZero = 0.;
@@ -203,7 +203,7 @@ short K_INTERP::getInterpolationCellDW(
       cnloc = (FldArrayI*)a1[noz]; // non structure      
       ni = -1; nj = -1; nk = -1; ninj = -1;      
     }
-    nic = K_FUNC::E_max(1,ni-1);  njc = K_FUNC::E_max(1,nj-1);  
+    //nic = K_FUNC::E_max(1,ni-1);  njc = K_FUNC::E_max(1,nj-1);  
     FldArrayF& oneField = *fields[noz]; E_Float* cellNp = NULL;
     if (posc0 > 0) cellNp = oneField.begin(posc0);
     else cellNp = NULL;
@@ -282,7 +282,7 @@ short K_INTERP::getExtrapolationCell(
   E_Int nzones = interpDatas.size();
   short found=0;
   E_Float vol;
-  E_Int indcell, firstCorner, i, j, k, noei, ni, nj, nk, ninj, nic, njc;
+  E_Int indcell, firstCorner, noei, ni, nj, nk, ninj;
   E_Int isBorder, meshtype, tmpType; // 1: structure , 2: non structure
   E_Int d = 0; E_Int nbNonZeroCf = 0; E_Int indNonZero=-1; E_Int indLoc;
   E_Float coefLoc = 0.; E_Float coefNonZero = 0.;
@@ -309,7 +309,7 @@ short K_INTERP::getExtrapolationCell(
       if (a1[noz] != NULL) cnloc = (FldArrayI*)a1[noz];// non structure      
       ni = -1; nj = -1; nk = -1; ninj = -1;  
     }
-    nic = K_FUNC::E_max(1,ni-1);  njc = K_FUNC::E_max(1,nj-1); 
+    //nic = K_FUNC::E_max(1,ni-1);  njc = K_FUNC::E_max(1,nj-1); 
     FldArrayF& oneField = *fields[noz]; E_Float* cellNp = NULL;
     if (posc0 > 0) cellNp = oneField.begin(posc0);
     else cellNp = NULL;
@@ -373,7 +373,7 @@ short K_INTERP::getExtrapolationCellDW(
   E_Int nzones = interpDatas.size();
   short found=0;
   E_Float vol;
-  E_Int indcell, firstCorner, i, j, k, noei, ni, nj, nk, ninj, nic, njc;
+  E_Int indcell, firstCorner, noei, ni, nj, nk, ninj;
   E_Int isBorder, meshtype, tmpType;// 1 : structure , 2 non structure
   E_Int d = 0; E_Int nbNonZeroCf = 0; E_Int indNonZero=-1; E_Int indLoc;
   E_Float coefLoc = 0.; E_Float coefNonZero = 0.;
@@ -402,7 +402,7 @@ short K_INTERP::getExtrapolationCellDW(
       ni = -1; nj = -1; nk = -1; ninj = -1;
       
     }
-    nic = K_FUNC::E_max(1,ni-1);  njc = K_FUNC::E_max(1,nj-1); 
+    //nic = K_FUNC::E_max(1,ni-1);  njc = K_FUNC::E_max(1,nj-1); 
     FldArrayF& oneField = *fields[noz]; E_Float* cellNp = NULL;
     if (posc0 > 0) cellNp = oneField.begin(posc0);
     else cellNp = NULL;

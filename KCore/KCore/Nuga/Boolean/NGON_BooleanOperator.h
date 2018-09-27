@@ -5313,7 +5313,6 @@ E_Int NGON_BOOLEAN_CLASS::__check_PHT3s_closure
         const E_Int & n1=connectT3o(1,Tj);
         const E_Int & n2=connectT3o(2,Tj);*/
         
-        E_Float h;
         for (size_t n=0; n < 3; ++n)
         {
           noE.setNodes(*(pS+n), *(pS+(n+1)%3));

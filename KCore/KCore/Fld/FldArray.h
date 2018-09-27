@@ -564,6 +564,7 @@ E_Int* FldArray<T>::getIndPG()
   {
     if (_rake[2] == NULL)
     {
+      _ngon = 1;
       E_Int nfaces = _rake[0][0];
       E_Int* ptrf = _rake[0]+2;
       E_Int c = 0;
@@ -587,6 +588,7 @@ E_Int* FldArray<T>::getIndPH()
   {
     if (_rake[3] == NULL)
     {
+      _ngon = 1;
       E_Int sizeNGon = _rake[0][1];
       E_Int nelts = _rake[0][2+sizeNGon];
       E_Int* ptre = _rake[0]+4+sizeNGon;
@@ -636,7 +638,7 @@ FldArray<T>::FldArray()
     _nelts(0), _sizeNGon(0),
     _sizeNFace(0), _data(NULL)
 {
-  //_rake = NULL;
+  _rake[2] = NULL; _rake[3] = NULL;
 }
 
 //OK-----------------------------------------------------------------------------
@@ -649,6 +651,7 @@ FldArray<T>::FldArray(E_Int size, E_Int nfld, E_Boolean compact,
     _stride(1), _ngon(0), _nfaces(0), _nelts(0), 
     _sizeNGon(0), _sizeNFace(0), _data(NULL)
 {
+  _rake[2] = NULL; _rake[3] = NULL;
   if (fortranOrdered == false) _stride = _nfldLoc;
   acquireMemory();
 }
@@ -703,6 +706,7 @@ FldArray<T>::FldArray(const FldArray& rhs)
    _nelts(rhs._nelts),
    _data(NULL)
 {
+  _rake[2] = NULL; _rake[3] = NULL;
   acquireMemory();
   copy(rhs, 1, _nfldLoc);
 }
@@ -723,6 +727,7 @@ FldArray<T>::FldArray(const FldArray& rhs, E_Int begin, E_Int end)
    _nelts(rhs._nelts),
    _data(NULL)
 {
+  _rake[2] = NULL; _rake[3] = NULL;
   assert (rhs._nfldLoc >= (end-begin+1));
   acquireMemory();
   copy(rhs, begin, end);
@@ -746,6 +751,7 @@ FldArray<T>::FldArray(E_Int size, E_Int nfld,
    _nelts(0),
    _data(NULL)
 {
+  _rake[2] = NULL; _rake[3] = NULL;
   if (fortranOrdered == false) _stride = _nfldLoc;
 
   if (shared == false)
@@ -783,6 +789,7 @@ FldArray<T>::FldArray(E_Int size, E_Int nfld,
    _nelts(0),
    _data(NULL)
 {
+  _rake[2] = NULL; _rake[3] = NULL;
   if (fortranOrdered == false) _stride = _nfldLoc;
 
   if (shared == false)

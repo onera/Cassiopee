@@ -126,7 +126,6 @@ PyObject* K_CONVERTER::filterPartialFields(PyObject* self, PyObject* args)
   E_Int ncommonfields = posvZ.size(); // nb de variables communes
 
   vector<E_Int> posfD;
-  E_Int err = 0;
   for (E_Int i = 0; i < nzonesD; i++)
   {
     E_Int posf = K_ARRAY::isNamePresent(filterName, varStringD[i]);

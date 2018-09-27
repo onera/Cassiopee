@@ -157,10 +157,10 @@ namespace NUGA
     //NGON_debug<K_FLD::FloatArray, K_FLD::IntArray>::draw_PH("ph220.plt", crd, ngi, 220);
 
     // sync PHs
-    E_Int nb_phs; // = ngo.PHs.size();
+    //E_Int nb_phs; // = ngo.PHs.size();
     std::vector<E_Int> dummy;
     ngo.PHs.remove_facets(nids, dummy);
-    nb_phs = ngo.PHs.size();
+    //nb_phs = ngo.PHs.size();
     
     Vector_t<E_Int> pgnids, phnids;
     ngo.remove_unreferenced_pgs(pgnids, phnids);

@@ -30,94 +30,155 @@ With the pyTree interface::
 List of functions
 ##################
 
-**-- Connectivity with arrays**
+**-- Multiblock connectivity **
 
 .. autosummary::
 
-   Converter.connectMatch
-   Converter.blankCells
-   Converter.blankCellsTetra
-   Converter.blankCellsTri
-   
+   Connector.connectMatch
+   Connector.PyTree.connectMatchPeriodic   
+   Connector.PyTree.connectNearMatch
+   Connector.PyTree.setDegeneratedBC
 
-**-- Conversion**
-
-.. autosummary::
-
-    Converter.Mpi.convert2PartialTree
-    Converter.Mpi.convert2SkeletonTree
-    Converter.Mpi.createBBoxTree
-
-**-- Communication Graphs**
+**-- Overset connectivity**
 
 .. autosummary::
 
-    Converter.Mpi.getProc
-    Converter.Mpi.setProc
-    Converter.Mpi.getProcDict
-    Converter.Mpi.computeGraph
+   Connector.blankCells
+   Connector.blankCellsTetra
+   Connector.blankCellsTri
+   Connector.setHoleInterpolatedPoints
+   Connector.optimizeOverlap    
+   Connector.maximizeBlankedCells
 
-**-- Exchanges**
-
-.. autosummary::
-
-    Converter.Mpi.setCommunicator
-    Converter.Mpi.addXZones
-    Converter.Mpi.rmXZones
-    Converter.Mpi.allgatherTree
-
-**-- Actions**
+**-- Overset connectivity for elsA**
 
 .. autosummary::
 
-    Converter.Mpi.center2Node
+
+**-- Immersed boundary connectivity**
+
+.. autosummary::
+
+    
 
 
 Contents
 #########
 
-Connectivity
---------------
+Multiblock connectivity
+-------------------------
 
 .. py:function:: Connector.connectMatch()
 
-    
-    
-    :param fileName: file name to read from
-    :type fileName: string
-    :param format: bin_cgns, bin_adf, bin_hdf (optional)
-    :type format: string
-    :param maxFloatSize: the maxSize of float array to load
-    :type maxFloatSize: int
-    :param maxDepth: max depth of load
-    :type maxDepth: int
-    :return: Skeleton tree
-    :rtype: pyTree node
 
-    *Example of use:*
+    Using the array interface: 
+    ::
 
-    * `Read skeleton tree (pyTree) <Examples/Converter/convertFile2SkeletonTreePT.py>`_:
+    res = X.connectMatch(a1, a2, sameZone=0, tol=1.e-6, dim=3)
 
-    .. literalinclude:: ../build/Examples/Converter/convertFile2SkeletonTreePT.py
-
----------------------------------------------------------------------------
-
-
-     <strong>X.connectMatch</strong>:
     detect and set all matching windows, even partially between two structured arrays a1 and a2.
     Returns the subrange of indices of abutting windows and an index transformation from a1 to a2.
     If the CFD problem is 2D, then dim must be set to 2.
-    Parameter sameZone must be set to 1 if a1 and a2 define the same zone:
-    <div class="code">
-     res = X.connectMatch(a1, a2, sameZone=0, tol=1.e-6, dim=3)
-    </div>
-    <em>Example of use: </em><a href="Examples/Connector/connectMatch.py"> detect matching windows of a C-type mesh (array).</a><br><br>
+    Parameter sameZone must be set to 1 if a1 and a2 define the same zone.
 
-    <strong>X.blankCells</strong>:
+    :param fileName: file name to read from
+    :type fileName: string
+    
+    Using the PyTree interface:
+    ::
+
+    t = X.connectMatch(t, tol=1.e-6, dim=3)
+    
+    detect and set all matching windows, even partially, in a zone node, a list of zone nodes or a complete pyTree.
+    Set automatically the Transform node corresponding to the transformation from matching block 1 to block 2.
+    If the CFD problem is 2D, then dim must be set to 2.
+    
+    :param fileName: file name to read from
+    :type fileName: string
+    
+
+    *Example of use:*
+
+    * `Detect matching boundaries of a mesh (array) <Examples/Connector/connectMatch.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/connectMatch.py
+
+    * `Add 1-to-1 abutting connectivity in a pyTree (pyTree) <Examples/Connector/connectMatchPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Connector/connectMatchPT.py
+
+---------------------------------------------------------------------------
+
+.. py:function:: Connector.PyTree.connectMatchPeriodic(t, rotationCenter=[0.,0.,0.], rotationAngle=[0.,0.,0.], translation=[0.,0.,0.], tol=1.e-6, dim=3, unitAngle=None)
+
+    detect and set all periodic matching borders, even partially, in a zone node, a list of zone nodes, a base, or a full pyTree.
+    Periodicity can be defined either by rotation or translation or by a composition of rotation and translation.
+    Warning: if the mesh is periodic in rotation and in translation separately (i.e. connecting with some blocks in rotation, and some other blocks in translation), 
+    the function must be applied twice.
+    Set automatically the Transform node corresponding to the transformation from matching block 1 to block 2, and the 'GridConnectivityProperty/Periodic' for periodic matching BCs.
+    If the CFD problem is 2D, then dim must be set to 2.
+    For periodicity by rotation, the rotation angle units can be specified by argument unitAngle, which can be 'Degree','Radian',None.
+    If unitAngle=None or 'Degree': parameter rotationAngle is assumed to be defined in degrees.
+    If unitAngle='Radian': parameter rotationAngle is assumed in radians.
+
+    <em> Since Cassiopee2.6: 'RotationAngle' node in 'Periodic' node is always defined in Radians. A DimensionalUnits child node is also defined.</em>
+
+    *Example of use:*
+
+    * `Add periodic  1-to-1 abutting grid connectivity in a pyTree (pyTree) <Examples/Connector/connectMatchPeriodicPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Connector/connectMatchPeriodicPT.py
+
+
+---------------------------------------------------------------------------
+
+.. py:function:: Connector.PyTree.connectNearMatch(t, ratio=2, tol=1.e-6, dim=3)
+
+    detect and set all near-matching windows, even partially in a zone node, a list of zone nodes or a complete pyTree.
+    A 'UserDefinedData' node is set, with the PointRangeDonor, the Transform and NMRatio nodes providing information for the opposite zone.
+    Warning: connectMatch must be applied first if matching windows exist.
+    Parameter ratio defines the ratio between near-matching windows and can be an integer (e.g. 2) or a list of 3 integers (e.g. [1,2,1]), specifying
+    the nearmatching direction to test (less CPU-consuming).
+    If the CFD problem is 2D, then dim must be set to 2.
+    
+    *Example of use:*
+
+    * `Add n-to-m abutting grid connectivity in a pyTree (pyTree) <Examples/Connector/connectNearMatchPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Connector/connectNearMatchPT.py
+
+---------------------------------------------------------------------------
+
+.. py:function:: Connector.PyTree.setDegeneratedBC(t, dim=3, tol=1.e-10)
+
+    detect all degenerate lines in 3D zones and define a BC as a 'BCDegenerateLine' BC type. For 2D zones, 'BCDegeneratePoint'
+    type is defined.
+    If the problem is 2D according to (i,j), then parameter 'dim' must be set to 2.
+    Parameter 'tol' defines a distance below which a window is assumed degenerated.
+    
+    *Example of use:*
+
+    * `Add degenerated line as BCs in a pyTree (pyTree) <Examples/Connector/setDegeneratedBCPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Connector/setDegeneratedBCPT.py
+
+
+---------------------------------------------------------------------------
+
+Overset connectivity
+-------------------------
+
+.. py:function:: Connector.blankCells()
+    
+    Using the array interface:
+    ::
+    cellns = X.blankCells(coords, cellns, body, blankingType=2, delta=1.e-10,
+    dim=3, masknot=0, tol=1.e-8)
+
     blank the cells of a list of grids defined by coords (located at nodes).
     The X-Ray mask is defined by bodies, which is a list of arrays.
     Cellnaturefield defined in cellns is modified (0: blanked points, 1: otherwise).<br>
-    Some parameters can be specified: blankingType, delta, masknot, tol. Their meanings are described in the table below:<br>
+    Some parameters can be specified: blankingType, delta, masknot, tol. Their meanings are described in the table below:
 
     <table border="2" align="center" cellpadding="3" cellspacing="1" style="font-size:90%">
     <tr>
@@ -151,13 +212,47 @@ Connectivity
     </table>
     <br>
     Warning: in case of blankingType=0, location of cellns and coords must be identical.
-    <div class="code">
-    cellns = X.blankCells(coords, cellns, body, blankingType=2, delta=1.e-10,
-    dim=3, masknot=0, tol=1.e-8)
-    </div>
-    <em> Example of use: </em><a href="Examples/Connector/blankCells.py"> blank cells (array)</a>.<br><br>
+    
+    Using the pyTree interface:
+    ::
 
-    <strong>X.blankCellsTetra</strong>:
+    B = X.blankCells(t, bodies, BM, depth=2, blankingType='cell_intersect', delta=1.e-10, dim=3, tol=1.e-8, XRaydim1=1000, XRaydim2=1000)
+
+
+    blankCells function sets the cellN to 0 to blanked nodes or cell centers of both structured and unstructured grids.
+    The location of the cellN field depends on the blankingType parameter: if 'node_in' is used, nodes are blanked, else centers are blanked.
+    The mesh to be blanked is defined by a pyTree t, where each basis defines a Chimera component. The list of bodies blanking the grids is defined in bodies.
+    Each element of the list bodies is a set of CGNS/Python zones defining a closed and watertight surface. <br>
+    The blanking matrix BM is a numpy array of size nbases x nbodies. <br>
+    BM(i,j)=1 means that ith basis is blanked by jth body.<br>
+    BM(i,j)=0 means no blanking, and BM(i,j)=-1 means that inverted hole-cutting is performed.<br>
+    blankingType can be 'cell_intersect', 'cell_intersect_opt', 'center_in' or 'node_in'. Parameter depth is only meaningfull for 'cell_intersect_opt'.<br>
+    XRaydim1 and XRaydim2 are the dimensions of the X-Ray hole-cutting in the x and y directions in 3D.<br>
+    If the variable 'cellN' does not exist in the input pyTree, it is initialized to 1, located at 'nodes' if 'node_in' is set, and at centers in other cases.<br>
+    Warning: 'cell_intersect_opt' can be CPU time-consuming when delta>0.
+    
+
+    *Example of use:*
+
+    * `Blank cells (array) <Examples/Connector/blankCells.py>`_:
+
+    .. literalinclude:: ../build/Examples/Connector/blankCells.py
+
+    * `Blank cells (pyTree) <Examples/Connector/blankCellsPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Connector/blankCellsPT.py
+
+
+---------------------------------------------------------------------------------------------------------------
+
+.. py:function:: Connector.blankCellsTetra()
+
+    Using the array interface:
+    ::
+
+    cellns = X.blankCellsTetra(coords, cellns, body, blankingType=2, tol=1.e-12)
+    
+
     Blanks the input grids nodes or cells (depending on the <em>blankingType</em> value) that fall inside a volume body mask.<br>
     The blanking is achieved by setting the Cellnaturefield to <em>cellnval</em> (0 by default) in <em>cellns</em>.<br>
     The input grids are defined by coords located at nodes as a list of arrays. The body mask is defined by sets of tetrahedra in any orientation, as a list of arrays.<br><br>
@@ -190,12 +285,45 @@ Connectivity
     </table>
     <br>
     Warning: in case of blankingType=0, location of cellns and coords must be identical.
-    <div class="code">
-    cellns = X.blankCellsTetra(coords, cellns, body, blankingType=2, tol=1.e-12)
-    </div>
-    <em> Example of use: </em><a href="Examples/Connector/blankCellsTetra.py"> blank cells with tetra rep of the masks (array)</a>.<br><br>
+    
 
-    <strong>X.blankCellsTri</strong>:
+    Using the pyTree interface:
+    ::
+
+    B = X.blankCellsTetra(t, bodies, BM, blankingType='node_in', tol=1.e-12, cellnval=0, overwrite=0)
+    
+    Blanks the input grids nodes or cells (depending on the <em>blankingType</em> value) that fall inside a volume body mask.<br>
+    The blanking is achieved by setting the Cellnaturefield to <em>cellnval</em> (0 by default) in <em>cellns</em>.<br>
+    The mesh to be blanked is defined by a pyTree t, where each basis defines a Chimera component. The list of bodies blanking the grids is defined in bodies.
+    Each element of the list bodies is a set of CGNS/Python zones defining a tetrahedra mesh. <br>
+    The blanking matrix BM is a numpy array of size nbases x nbodies. <br>
+    BM(i,j)=1 means that ith basis is blanked by jth body.<br>
+    BM(i,j)=0 means no blanking, and BM(i,j)=-1 means that inverted hole-cutting is performed.<br>
+    blankingType can be 'cell_intersect', 'center_in' or 'node_in'.<br>
+    If the variable 'cellN' does not exist in the input pyTree, it is initialized to 1, located at 'nodes' if 'node_in' is set, and at centers in other cases.<br>
+    If the <em>overwrite</em> is set to 1 (overwrite mode), Cellnaturefield is reset to 1 for any node/cell outside the body mask.
+    Hence the value of 1 is forbidden for cellnval upon entry (it will be replaced by 0). 
+
+    *Example of use:*
+
+    * `Blank cells with a tetra mesh (array) <Examples/Connector/blankCellsTetra.py>`_:
+
+    .. literalinclude:: ../build/Examples/Connector/blankCellsTetra.py
+
+    * `Blank cells with a tetra mesh (pyTree) <Examples/Connector/blankCellsTetraPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Connector/blankCellsTetraPT.py
+
+
+-----------------------------------------------------------------------------------------------------------
+
+.. py:function:: Connector.blankCellsTri()
+
+    Using the array interface:
+    ::
+
+    cellns = X.blankCellsTri(coords, cellns, body, blankingType=2, tol=1.e-12, cellnval=0, blankingMode=0)
+    
     Blanks the input grids nodes or cells (depending on the <em>blankingType</em> value) that fall inside a surfacic body mask.<br>
     The blanking is achieved by setting the Cellnaturefield to <em>cellnval</em> (0 by default) in <em>cellns</em>.<br>
     The input grids are defined by coords located at nodes as a list of arrays. The body mask is defined by triangular surface meshes in any orientation, as a list of arrays.<br><br>
@@ -227,12 +355,46 @@ Connectivity
     </table>
     <br>
     Warning: in case of blankingType=0, location of cellns and coords must be identical.<br><br>
-    <div class="code">
-    cellns = X.blankCellsTri(coords, cellns, body, blankingType=2, tol=1.e-12, cellnval=0, blankingMode=0)
-    </div>
-    <em> Example of use: </em><a href="Examples/Connector/blankCellsTri.py"> blank cells with triangular surface masks (array)</a>.<br><br>
+    
 
-    <strong>X.setHoleInterpolatedPoints</strong>:
+    Using the pyTree interface:
+    ::
+
+    B = X.blankCellsTri(t, bodies, BM, blankingType='node_in', tol=1.e-12, cellnval=0, overwrite=0)
+    
+    Blanks the input grids nodes or cells (depending on the <em>blankingType</em> value) that fall inside a volume body mask.<br>
+    The blanking is achieved by setting the Cellnaturefield to <em>cellnval</em> (0 by default) in <em>cellns</em>.<br>
+    The mesh to be blanked is defined by a pyTree t, where each basis defines a Chimera component. The list of bodies blanking the grids is defined in bodies.
+    Each element of the list bodies is a set of CGNS/Python zones defining a triangular watertight closed surface. <br>
+    The blanking matrix BM is a numpy array of size nbases x nbodies. <br>
+    BM(i,j)=1 means that ith basis is blanked by jth body.<br>
+    BM(i,j)=0 means no blanking, and BM(i,j)=-1 means that inverted hole-cutting is performed.<br>
+    blankingType can be 'cell_intersect', 'center_in' or 'node_in'.<br>
+    If the variable 'cellN' does not exist in the input pyTree, it is initialized to 1, located at 'nodes' if 'node_in' is set, and at centers in other cases.<br>
+    If the <em>overwrite</em> is set to 1 (overwrite mode), Cellnaturefield is reset to 1 for any node/cell outside the body mask.
+    Hence the value of 1 is forbidden for cellnval upon entry (it will be replaced by 0).<br><br>
+    
+
+    *Example of use:*
+
+    * `Blank cells with a triangular surface mask (array) <Examples/Connector/blankCellsTri.py>`_:
+
+    .. literalinclude:: ../build/Examples/Connector/blankCellsTri.py
+
+    * `Blank cells with a triangular surface mask (pyTree) <Examples/Connector/blankCellsTriPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Connector/blankCellsTriPT.py
+
+
+--------------------------------------------------------------------------------------------------------------------------
+
+.. py:function:: Connector.setHoleInterpolatedPoints()
+
+    Using the array interface:
+    ::
+
+    a = X.setHoleInterpolatedPoints(a, depth=2, dir=0, loc='centers', cellNName='cellN')
+    
     compute the fringe of interpolated points around a set of blanked points in a mesh a.
     Parameter depth is the number of layers of interpolated points to be set.
     If depth > 0 the fringe of interpolated points is set outside the blanked zones,
@@ -240,21 +402,70 @@ Connectivity
     If dir=0, uses a directional stencil of depth points, if dir=1, uses a full depth x depth x depth stencil:
     Blanked points are identified by the variable 'cellN'; 'cellN' is set to 2 for the fringe of interpolated points.
     If cellN is located at cell centers, set loc parameter to 'centers', else loc='nodes'.
-    <div class="code">
-    a = X.setHoleInterpolatedPoints(a, depth=2, dir=0, loc='centers', cellNName='cellN')
-    </div>
-     <em> Example of use: </em><a href="Examples/Connector/setHoleInterpolatedPts.py"> set the fringe of interpolated points near blanked points (array).</a> <br><br>
+    
 
-    <strong>X.optimizeOverlap*</strong>:
+    Using the pyTree interface:
+    ::
+
+    t = X.setHoleInterpolatedPoints(t, depth=2, dir=0, loc='centers', cellNName='cellN')
+    
+    compute the fringe of interpolated points around a set of blanked points in a pyTree t.
+    Parameter depth is the number of layers of interpolated points that are built; if depth > 0 the fringe of interpolated points is outside the blanked zones, and if depth < 0,
+    it is built towards the inside.
+    Blanked points are identified by the variable 'cellN' located at mesh nodes or centers. 'cellN' is set to 2 for the fringe of interpolated points.
+    
+
+    *Example of use:*
+
+    * `Set the fringe of interpolated points near blanked points (array) <Examples/Connector/setHoleInterpolatedPoints.py>`_:
+
+    .. literalinclude:: ../build/Examples/Connector/setHoleInterpolatedPoints.py
+
+    * `Set the fringe of interpolated points near the blanked points (pyTree) <Examples/Connector/setHoleInterpolatedPointsPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Connector/setHoleInterpolatedPointsPT.py
+
+
+-------------------------------------------------------------------------------------------------------------
+
+.. py:function:: Connector.optimizeOverlap()
+
+    Using the array interface:
+    ::
+    cellns = X.optimizeOverlap(nodes1, centers1, nodes2, centers2, prio1=0, prio2=0)
+
     Optimize the overlap between two zones defined by nodes1 and nodes2, centers1 and centers2 correspond to the mesh located at centers and the field 'cellN'.
     The field 'cellN' located at centers is set to 2 for interpolable points. <br>
     Priorities can be defined for zones: prio1=0 means that the priority of zone 1 is high.
     If two zones have the same priority, then the cell volume criterion is used to set the cellN to 2 for one of the overlapping cells, the other not being modified.<br>
     If the priorities are not specified, the cell volume criterion is applied also:
-    <div class="code">
-    cellns = X.optimizeOverlap(nodes1, centers1, nodes2, centers2, prio1=0, prio2=0)
-    </div>
-    <em> Example of use: </em><a href="Examples/Connector/optimizeOverlap.py"> optimize the overlap (array)</a>.<br><br>
+
+    Using the pyTree interface:
+    ::
+    t = X.optimizeOverlap(t, double_wall=0, priorities=[])
+
+    Optimize the overlapping between all structured zones defined in a pyTree t.
+    The 'cellN' variable located at cell centers is modified, such that cellN=2 for a cell interpolable from another zone. <br>
+    Double wall projection technique is activated if 'double_wall'=1.
+    The overlapping is optimized between zones from separated bases, and is based on a priority to the cell of smallest size.
+    One can impose a priority to a base over another base, using the list priorities.
+    For instance, priorities = ['baseName1',0, 'baseName2',1] means that zones from base of name 'baseName1' are preferred over
+    zones from base of name 'baseName2':
+    
+    *Example of use:*
+
+    * `Optimize overlapping (array) <Examples/Connector/optimizeOverlap.py>`_:
+
+    .. literalinclude:: ../build/Examples/Connector/optimizeOverlap.py
+
+    * `Optimize overlapping (pyTree) <Examples/Connector/optmimizeOverlapPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Connector/optimizeOverlapPT.py
+
+-----------------------------------------------------------------------------------------------------------------------
+
+.. py:function:: Connector.maximiezBlankedCells()
+
 
     <strong>X.maximizeBlankedCells</strong>:
     change useless interpolated points status (2) to blanked points (0).
@@ -264,6 +475,10 @@ Connectivity
     b = X.maximizeBlankedCells(a, depth=2, dir=1) <em>.or.</em> B = X.maximizeBlankedCells(A, depth=2)
     </div>
     <em>Example of use: </em><a href="Examples/Connector/maximizeBlankedCells.py"> maximize blanked cells (array)</a>.<br><br>
+
+
+
+-----------------------------------------------------------------------------------------------------------------------------
 
     <strong>X.setDoublyDefinedBC</strong>:
     when a border of zone z is defined by doubly defined BC in range=[i1,i2,j1,j2,k1,k2],
@@ -285,58 +500,10 @@ Connectivity
     </div>
     <em>Example of use: </em><a href="Examples/Connector/blankIntersectingCells.py"> intersecting cells blanking (array)</a>.<br><br>
 
-    <p></p>
-    <h3>Multiblock connectivities with pyTrees</h3>
-    <p></p>
  
-    <strong>X.connectMatch</strong>:
-    detect and set all matching windows, even partially, in a zone node, a list of zone nodes or a complete pyTree.
-    Set automatically the Transform node corresponding to the transformation from matching block 1 to block 2.
-    If the CFD problem is 2D, then dim must be set to 2:
-    <div class="code">
-     t = X.connectMatch(t, tol=1.e-6, dim=3)
-    </div>
-    <em>Example of use: </em><a href="Examples/Connector/connectMatchPT.py"> add 1-to-1 abutting grid connectivity in a pyTree (pyTree)</a>.<br><br>
+    
+    
 
-    <strong>X.connectMatchPeriodic</strong>:
-    detect and set all periodic matching borders, even partially, in a zone node, a list of zone nodes, a base, or a full pyTree.
-    Periodicity can be defined either by rotation or translation or by a composition of rotation and translation.
-    Warning: if the mesh is periodic in rotation and in translation separately (i.e. connecting with some blocks in rotation, and some other blocks in translation), 
-    the function must be applied twice.
-    Set automatically the Transform node corresponding to the transformation from matching block 1 to block 2, and the 'GridConnectivityProperty/Periodic' for periodic matching BCs.
-    If the CFD problem is 2D, then dim must be set to 2.
-    For periodicity by rotation, the rotation angle units can be specified by argument unitAngle, which can be 'Degree','Radian',None.
-    If unitAngle=None or 'Degree': parameter rotationAngle is assumed to be defined in degrees.
-    If unitAngle='Radian': parameter rotationAngle is assumed in radians. <br>
-
-    <em> Since Cassiopee2.6: 'RotationAngle' node in 'Periodic' node is always defined in Radians. A DimensionalUnits child node is also defined.</em>
-
-    <div class="code">
-     t = X.connectMatchPeriodic(t, rotationCenter=[0.,0.,0.], rotationAngle=[0.,0.,0.], translation=[0.,0.,0.], tol=1.e-6, dim=3, unitAngle=None)
-    </div>
-    <em>Example of use: </em><a href="Examples/Connector/connectMatchPeriodicPT.py"> add periodic  1-to-1 abutting grid connectivity in a pyTree (pyTree)</a>.<br><br>
-
-    <strong>X.connectNearMatch</strong>:
-    detect and set all near-matching windows, even partially in a zone node, a list of zone nodes or a complete pyTree.
-    A 'UserDefinedData' node is set, with the PointRangeDonor, the Transform and NMRatio nodes providing information for the opposite zone.
-    Warning: connectMatch must be applied first if matching windows exist.
-    Parameter ratio defines the ratio between near-matching windows and can be an integer (e.g. 2) or a list of 3 integers (e.g. [1,2,1]), specifying
-    the nearmatching direction to test (less CPU-consuming).
-    If the CFD problem is 2D, then dim must be set to 2:
-    <div class="code">
-     t = X.connectNearMatch(t, ratio=2, tol=1.e-6, dim=3)
-    </div>
-    <em>Example of use: </em><a href="Examples/Connector/connectNearMatchPT.py"> add  n-to-m abutting grid connectivity in a pyTree (pyTree)</a>.<br><br>
-
-   <strong>X.setDegeneratedBC</strong>:
-    detect all degenerate lines in 3D zones and define a BC as a 'BCDegenerateLine' BC type. For 2D zones, 'BCDegeneratePoint'
-    type is defined.
-    If the problem is 2D according to (i,j), then parameter 'dim' must be set to 2.
-    Parameter 'tol' defines a distance below which a window is assumed degenerated.
-    <div class="code">
-    t = X.setDegeneratedBC(t,dim=3,tol=1.e-10)
-    </div>
-    <em> Example of use: </em><a href="Examples/Connector/setDegeneratedBCPT.py"> add degenerated line as BCs in a pyTree (pyTree) </a>.<br><br>
 
     <p></p>
     <h3>Overset connectivities with pyTrees</h3>
@@ -386,78 +553,11 @@ Connectivity
     <div class="code"> t = X.setDoublyDefinedBC(t, depth=2) </div>
     <em> Example of use: </em> <a href="Examples/Connector/setDoublyDefinedBCPT.py"> set interpolated/BC points on doubly defined BCs (pyTree).</a> <br><br>
 
-    <strong>X.blankCells</strong>:
-    blankCells function sets the cellN to 0 to blanked nodes or cell centers of both structured and unstructured grids.
-    The location of the cellN field depends on the blankingType parameter: if 'node_in' is used, nodes are blanked, else centers are blanked.
-    The mesh to be blanked is defined by a pyTree t, where each basis defines a Chimera component. The list of bodies blanking the grids is defined in bodies.
-    Each element of the list bodies is a set of CGNS/Python zones defining a closed and watertight surface. <br>
-    The blanking matrix BM is a numpy array of size nbases x nbodies. <br>
-    BM(i,j)=1 means that ith basis is blanked by jth body.<br>
-    BM(i,j)=0 means no blanking, and BM(i,j)=-1 means that inverted hole-cutting is performed.<br>
-    blankingType can be 'cell_intersect', 'cell_intersect_opt', 'center_in' or 'node_in'. Parameter depth is only meaningfull for 'cell_intersect_opt'.<br>
-    XRaydim1 and XRaydim2 are the dimensions of the X-Ray hole-cutting in the x and y directions in 3D.<br>
-    If the variable 'cellN' does not exist in the input pyTree, it is initialized to 1, located at 'nodes' if 'node_in' is set, and at centers in other cases.<br>
-    Warning: 'cell_intersect_opt' can be CPU time-consuming when delta>0.
-    <div class="code">
-    B = X.blankCells(t, bodies, BM, depth=2, blankingType='cell_intersect', delta=1.e-10, dim=3, tol=1.e-8, XRaydim1=1000, XRaydim2=1000)
-    </div>
-    <em> Example of use: </em><a href="Examples/Connector/blankCellsPT.py"> blank cells (pyTree).</a><br><br>
-
-    <strong>X.blankCellsTetra</strong>:
-    Blanks the input grids nodes or cells (depending on the <em>blankingType</em> value) that fall inside a volume body mask.<br>
-    The blanking is achieved by setting the Cellnaturefield to <em>cellnval</em> (0 by default) in <em>cellns</em>.<br>
-    The mesh to be blanked is defined by a pyTree t, where each basis defines a Chimera component. The list of bodies blanking the grids is defined in bodies.
-    Each element of the list bodies is a set of CGNS/Python zones defining a tetrahedra mesh. <br>
-    The blanking matrix BM is a numpy array of size nbases x nbodies. <br>
-    BM(i,j)=1 means that ith basis is blanked by jth body.<br>
-    BM(i,j)=0 means no blanking, and BM(i,j)=-1 means that inverted hole-cutting is performed.<br>
-    blankingType can be 'cell_intersect', 'center_in' or 'node_in'.<br>
-    If the variable 'cellN' does not exist in the input pyTree, it is initialized to 1, located at 'nodes' if 'node_in' is set, and at centers in other cases.<br>
-    If the <em>overwrite</em> is set to 1 (overwrite mode), Cellnaturefield is reset to 1 for any node/cell outside the body mask.
-    Hence the value of 1 is forbidden for cellnval upon entry (it will be replaced by 0).<br><br>
-    <div class="code">
-    B = X.blankCellsTetra(t, bodies, BM, blankingType='node_in', tol=1.e-12, cellnval=0, overwrite=0)
-    </div>
-    <em> Example of use: </em><a href="Examples/Connector/blankCellsTetraPT.py"> blank cells with tetrahedra meshes masks (pyTree).</a><br><br>
-
-    <strong>X.blankCellsTri</strong>:
-    Blanks the input grids nodes or cells (depending on the <em>blankingType</em> value) that fall inside a volume body mask.<br>
-    The blanking is achieved by setting the Cellnaturefield to <em>cellnval</em> (0 by default) in <em>cellns</em>.<br>
-    The mesh to be blanked is defined by a pyTree t, where each basis defines a Chimera component. The list of bodies blanking the grids is defined in bodies.
-    Each element of the list bodies is a set of CGNS/Python zones defining a triangular watertight closed surface. <br>
-    The blanking matrix BM is a numpy array of size nbases x nbodies. <br>
-    BM(i,j)=1 means that ith basis is blanked by jth body.<br>
-    BM(i,j)=0 means no blanking, and BM(i,j)=-1 means that inverted hole-cutting is performed.<br>
-    blankingType can be 'cell_intersect', 'center_in' or 'node_in'.<br>
-    If the variable 'cellN' does not exist in the input pyTree, it is initialized to 1, located at 'nodes' if 'node_in' is set, and at centers in other cases.<br>
-    If the <em>overwrite</em> is set to 1 (overwrite mode), Cellnaturefield is reset to 1 for any node/cell outside the body mask.
-    Hence the value of 1 is forbidden for cellnval upon entry (it will be replaced by 0).<br><br>
-    <div class="code">
-    B = X.blankCellsTri(t, bodies, BM, blankingType='node_in', tol=1.e-12, cellnval=0, overwrite=0)
-    </div>
-    <em> Example of use: </em><a href="Examples/Connector/blankCellsTriPT.py"> blank cells with triangular surface masks (pyTree).</a><br><br>
-
-    <strong>X.setHoleInterpolatedPoints</strong>:
-    compute the fringe of interpolated points around a set of blanked points in a pyTree t.
-    Parameter depth is the number of layers of interpolated points that are built; if depth > 0 the fringe of interpolated points is outside the blanked zones, and if depth < 0,
-    it is built towards the inside.
-    Blanked points are identified by the variable 'cellN' located at mesh nodes or centers. 'cellN' is set to 2 for the fringe of interpolated points.
-    <div class="code">
-    t = X.setHoleInterpolatedPoints(t, depth=2, dir=0, loc='centers', cellNName='cellN')
-    </div>
-     <em> Example of use: </em><a href="Examples/Connector/setHoleInterpolatedPtsPT.py"> set the fringe of interpolated points near the blanked points (pyTree).</a> <br><br>
-
-    <strong>X.optimizeOverlap</strong>:
-    optimize the overlapping between all structured zones defined in a pyTree t.
-    The 'cellN' variable located at cell centers is modified, such that cellN=2 for a cell interpolable from another zone. <br>
-    Double wall projection technique is activated if 'double_wall'=1.
-    The overlapping is optimized between zones from separated bases, and is based on a priority to the cell of smallest size.
-    One can impose a priority to a base over another base, using the list priorities.
-    For instance, priorities = ['baseName1',0, 'baseName2',1] means that zones from base of name 'baseName1' are preferred over
-    zones from base of name 'baseName2':
-    <div class="code">t = X.optimizeOverlap(t, double_wall=0, priorities=[])</div>
-    <em> Example of use: </em><a href="Examples/Connector/optimizeOverlapPT.py"> optimize the overlapping (pyTree).</a><br><br>
-
+    
+    
+    
+    
+    
     <strong>X.maximizeBlankedCells</strong>:
     change useless interpolated cells (cellN=2) status to blanked points (cellN=0). Parameter depth specifies the number of layers of interpolated cells to be kept:
     <div class="code">t = X.maximizeBlankedCells(t, depth=2) </div>

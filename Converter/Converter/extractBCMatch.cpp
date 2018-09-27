@@ -26,7 +26,6 @@ using namespace K_FLD;
 #include <map>
 
 //=============================================================================
-//=============================================================================
 PyObject* K_CONVERTER::extractBCMatchNG(PyObject* self, PyObject* args )
 {
   // Return index of boundary faces in receiver zone and associated fields 
@@ -1347,7 +1346,6 @@ PyObject* K_CONVERTER::buildBCMatchFieldNG(PyObject* self, PyObject* args )
 
   // Build 0.5(fldD+fldR) array on boundary faces
   // ============================================
-  E_Int  ind;
   E_Int* ptrIndR = indR->begin();
 
   for (E_Int var = 1; var <= nfld; var++)

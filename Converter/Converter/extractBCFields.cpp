@@ -46,16 +46,16 @@ PyObject* K_CONVERTER::extractBCFields(PyObject* self, PyObject* args)
   E_Int zoneType = K_PYTREE::getFromZone(zone, 0, locI, varString, fields, locs, ni, nj, nk, 
                                          cn, cnSize, cnNfld, eltType, hook, GridCoordinates, 
                                          FlowSolutionNodes, FlowSolutionCenters);
-  if ( zoneType == 0) 
+  if (zoneType == 0) 
   {
     PyErr_SetString(PyExc_TypeError, "extractBCFields: not a valid zone.");
     RELEASESHAREDZ(hook, varString, eltType);
     return NULL;
   }
   E_Int* PE = NULL;
-  if ( zoneType == 2)
+  if (zoneType == 2)
   {
-    if ( cn.size() < 3)//PE does not exist
+    if (cn.size() < 3) //PE does not exist
     {
       PyErr_SetString(PyExc_TypeError, "extractBCFields: ParentElements node must be defined in zone.");
       RELEASESHAREDZ(hook, varString, eltType);
@@ -66,7 +66,7 @@ PyObject* K_CONVERTER::extractBCFields(PyObject* self, PyObject* args)
   FldArrayI* indicesBC;
   E_Int res = K_NUMPY::getFromNumpyArray(pyIndices, indicesBC, true);
 
-  if ( res == 0)
+  if (res == 0)
   {
     PyErr_SetString(PyExc_TypeError, "extractBCFields: not a valid numpy for indices of BC.");
     RELEASESHAREDZ(hook, varString, eltType);

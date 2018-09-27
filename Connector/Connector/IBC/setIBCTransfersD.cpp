@@ -394,7 +394,6 @@ PyObject* K_CONNECTOR::_setIBCTransfersD(PyObject* self, PyObject* args)
   //
   fieldROut.setAllValuesAtNull();
 
-
   vector<E_Float*> vectOfRcvFields(nvars);
   vector<E_Float*> vectOfDnrFields(nvars);
 

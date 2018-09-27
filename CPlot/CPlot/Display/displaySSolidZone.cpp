@@ -93,6 +93,7 @@ void Data::displaySSolidZone(StructZone* zonep, int zone)
   // Step setting
   computeSteps(zonep, stepi, stepj, stepk);
 
+#undef PLOT
 #include "displaySSolidZone.h"
   glLineWidth(1.);
 }

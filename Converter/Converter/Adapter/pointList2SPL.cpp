@@ -62,7 +62,6 @@ PyObject* K_CONVERTER::pointList2SPL(PyObject* self, PyObject* args)
   
   E_Int ninti = ni*nj1*nk1;
   E_Int nintj = ni1*nj*nk1;
-  E_Int nintk = ni1*nj1*nk;
   E_Int i,j,k,ind;
 
   E_Int nimin = 0; // nbre d'interfaces imin
@@ -115,12 +114,12 @@ PyObject* K_CONVERTER::pointList2SPL(PyObject* self, PyObject* args)
   PyObject* pdkmin = NULL;
   PyObject* pdkmax = NULL;
 
-  E_Int* imin; E_Int* imax;
-  E_Int* jmin; E_Int* jmax;
-  E_Int* kmin; E_Int* kmax;
-  E_Int* dimin; E_Int* dimax;
-  E_Int* djmin; E_Int* djmax;
-  E_Int* dkmin; E_Int* dkmax;
+  E_Int* imin=NULL; E_Int* imax=NULL;
+  E_Int* jmin=NULL; E_Int* jmax=NULL;
+  E_Int* kmin=NULL; E_Int* kmax=NULL;
+  E_Int* dimin=NULL; E_Int* dimax=NULL;
+  E_Int* djmin=NULL; E_Int* djmax=NULL;
+  E_Int* dkmin=NULL; E_Int* dkmax=NULL;
   
   if (nimin > 0) 
   {

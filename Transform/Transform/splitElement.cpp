@@ -76,7 +76,6 @@ PyObject* K_TRANSFORM::splitElement(PyObject* self, PyObject* args)
   }
   //printf("size = %d\n", size);
 
-  E_Int e1, e2, indf;
   idx_t* adj1 = new idx_t [size];
   idx_t* adj = adj1;
   idx_t* xadj = new idx_t [ne+1];
@@ -86,7 +85,7 @@ PyObject* K_TRANSFORM::splitElement(PyObject* self, PyObject* args)
     vector<E_Int>& voisins = cEEN[i]; 
     xadj[i] = size;
     
-    for (E_Int n = 0; n < voisins.size(); n++)
+    for (size_t n = 0; n < voisins.size(); n++)
     {
       adj[size+n] = voisins[n];
     }

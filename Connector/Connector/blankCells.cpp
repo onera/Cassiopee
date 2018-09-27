@@ -369,15 +369,15 @@ extern "C"
 }
 
 # define RELEASEDATA1\
-  for (E_Int i = 0; i < rest1.size(); i++) \
+  for (size_t i = 0; i < rest1.size(); i++) \
     RELEASESHAREDB(rest1[i], vectOfObjs1[i], vectOfCoords[i], vectOfConnect1[i]);
 
 # define RELEASEDATA2\
-  for (E_Int i = 0; i < rest2.size(); i++) \
+  for (size_t i = 0; i < rest2.size(); i++) \
     RELEASESHAREDB(rest2[i], vectOfObjs2[i], vectOfCellNs[i], vectOfConnect2[i]);
 
 # define RELEASEDATA3\
-  for (E_Int i = 0; i < rest3.size(); i++) \
+  for (size_t i = 0; i < rest3.size(); i++) \
     RELEASESHAREDB(rest3[i], vectOfObjs3[i], vectOfBodies[i], vectOfConnect3[i]);
 
 //============================================================================

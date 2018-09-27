@@ -203,7 +203,7 @@ PyObject* K_IO::GenIOAdf::createNode(double node)
 
   // Valeur du noeud
   ADF_Get_Data_Type(node, _dtype, &_errorFlag);
-  npy_intp npy_dim_vals2[1]; npy_dim_vals2[0] = 0;
+  //npy_intp npy_dim_vals2[1]; npy_dim_vals2[0] = 0;
 
   PyObject* v = NULL; // set everything in numpys
   if (strcmp(_dtype, "I4") == 0)
@@ -907,7 +907,6 @@ void K_IO::GenIO::getABFromPath(char* path, vector<char*>& pelts)
   if (strcmp(path, "/") == 0) return;
   E_Int i, j;
   E_Int l = strlen(path);
-  E_Int cur = 0;
   i = 0; // parcours global
   while (i < l)
   {
@@ -1062,6 +1061,7 @@ E_Int K_IO::GenIO::adfcgnsWritePaths(char* file, PyObject* treeList,
 
   for (E_Int i = 0; i < size; i++)
   {
+    found = 0;
     char* path = PyString_AsString(PyList_GetItem(paths, i));
     vector<char*> pelts;
     getABFromPath(path, pelts);
@@ -1191,6 +1191,7 @@ E_Int K_IO::GenIO::adfcgnsDeletePaths(char* file,
 
   for (E_Int i = 0; i < size; i++)
   {
+    found = 0;
     char* path = PyString_AsString(PyList_GetItem(paths, i));
     vector<char*> pelts;
     getABFromPath(path, pelts);
