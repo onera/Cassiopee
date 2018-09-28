@@ -26,7 +26,7 @@ using namespace K_FLD;
 using namespace std;
 
 // ============================================================================
-/* Convert  non-polyhedral 3D array to a tetraedrical mesh with addition of 
+/* Convert non-polyhedral 3D array to a tetraedrical mesh with addition of 
    points (barycenter of elements and faces) 
    The method deals only with fields located at nodes */
 // ============================================================================

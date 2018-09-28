@@ -73,6 +73,7 @@ namespace K_POST
   PyObject* isoSurf(PyObject* self, PyObject* args);
   PyObject* isoSurfMC(PyObject* self, PyObject* args);
   PyObject* isoSurfMC_opt(PyObject* self, PyObject* args);
+  PyObject* isoSurfNGon(PyObject* self, PyObject* args);
   PyObject* computeIndicatorValue(PyObject* self, PyObject* args);
   PyObject* enforceIndicatorNearBodies(PyObject* self, PyObject* args);
   PyObject* enforceIndicatorForFinestLevel(PyObject* self, PyObject* args);
@@ -601,6 +602,9 @@ namespace K_POST
   /* Isosurface dans un maillage tetra (sortie TRI) */
   void doIsoSurf(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float value,
                  E_Int poscellN, FldArrayF& fiso, FldArrayI& ciso);
+  /* Isosurface dans un maillage NGON (sortie TRI) */
+  void doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float value,
+                     E_Int poscellN, FldArrayF& fiso, FldArrayI& ciso);
   /* Isosurface dans un maillage hexa (sortie TRI) */
   void doIsoSurfMC(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float value,
                    E_Int poscellN, FldArrayF& fiso, FldArrayI& ciso);

@@ -101,7 +101,7 @@ PyObject* K_CONVERTER::convertNGon2TetraBary(PyObject* self, PyObject* args)
   K_CONNECT::getDimElts(*cn, posFace, dimElts);
   // dimension des elements (dimension unique dans l'array)
   E_Int dim = dimElts[0];
-  // Type d element de la nouvelle connectivite
+  // Type d'element de la nouvelle connectivite
   char newEltType[256];
   E_Int nconnect; // nb de points par element
   if (dim == 1) {nconnect = 2; strcpy(newEltType,"BAR");}
@@ -169,15 +169,15 @@ PyObject* K_CONVERTER::convertNGon2TetraBary(PyObject* self, PyObject* args)
   FldArrayI newcn(sizeConnect,nconnect); // tetraedre
   // Pointeurs sur la nouvelle connectivite
   vector<E_Int*> newcnp(nconnect);
-  for (E_Int p=0; p<nconnect; p++) {newcnp[p] = newcn.begin(p+1);}
+  for (E_Int p = 0; p < nconnect; p++) {newcnp[p] = newcn.begin(p+1);}
   // Nouveau champ
   FldArrayF fnew(sizeFields, nfld);
   // Pointeurs sur les nouveaux champs
   vector<E_Float*> fnewp(nfld);
   for (E_Int p=0; p<nfld; p++) {fnewp[p] = fnew.begin(p+1);}
-  // pointeurs sur l ancien champ
+  // pointeurs sur l'ancien champ
   vector<E_Float*> fp(nfld);
-  for (E_Int p=0;p<nfld;p++) {fp[p] = f->begin(p+1);}  
+  for (E_Int p=0; p < nfld; p++) {fp[p] = f->begin(p+1);}  
   
   // Calcul de la nouvelle connectivite et des nouveaux champs
   vector<E_Float> fbe(nfld); // champs du barycentre de l element
@@ -267,7 +267,7 @@ PyObject* K_CONVERTER::convertNGon2TetraBary(PyObject* self, PyObject* args)
     {
       for (E_Int elt = 0; elt < nelts; elt++)
       {
-        vector<E_Int>& vertices = cnEV[elt];// sommets associes a l elt
+        vector<E_Int>& vertices = cnEV[elt];// sommets associes a l'elt
         npoints = vertices.size();
         for (E_Int p=0;p<nfld;p++) 
         {
@@ -280,7 +280,7 @@ PyObject* K_CONVERTER::convertNGon2TetraBary(PyObject* self, PyObject* args)
           fbe[p] = fbe[p]/npoints;
           fnewp[p][indpt] = fbe[p];
         }
-        indNewElt = indpt; indpt ++; 
+        indNewElt = indpt; indpt++; 
         nbFaces = cn2[0];
         for (E_Int fa = 0; fa < nbFaces; fa++)
         {
@@ -300,7 +300,7 @@ PyObject* K_CONVERTER::convertNGon2TetraBary(PyObject* self, PyObject* args)
  
             fnewp[p][indpt] = fbf[p];
           }
-          indNewFace = indpt; indpt ++;
+          indNewFace = indpt; indpt++;
           // construction des nouveaux elements tetraedriques
           for (E_Int n=0; n < npoints; n++)
           {

@@ -562,6 +562,7 @@ E_Int* FldArray<T>::getIndPG()
   }
   else // Array1
   {
+    // if _ngon == 0; -> ngon=1 et cree le rake
     if (_rake[2] == NULL)
     {
       _ngon = 1;
@@ -570,7 +571,7 @@ E_Int* FldArray<T>::getIndPG()
       E_Int c = 0;
       _rake[2] = new E_Int [nfaces];
       E_Int* indPG = _rake[2];
-      for (E_Int i = 0; i < nfaces; i++) { indPG[i] = c; c += ptrf[c]; }
+      for (E_Int i = 0; i < nfaces; i++) { indPG[i] = c; c += ptrf[c]+1; }
     }
     return _rake[2];
   }
@@ -595,7 +596,7 @@ E_Int* FldArray<T>::getIndPH()
       E_Int c = 0;
       _rake[3] = new E_Int [nelts];
       E_Int* indPH = _rake[3];
-      for (E_Int i = 0; i < nelts; i++) { indPH[i] = c; c += ptre[c]; }
+      for (E_Int i = 0; i < nelts; i++) { indPH[i] = c; c += ptre[c]+1; }
     }
     return _rake[3];
   }

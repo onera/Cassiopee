@@ -57,6 +57,7 @@ cpp_srcs = ["Post/coarsen.cpp",
             "Post/isoLine.cpp",
             "Post/isoSurf.cpp",
             "Post/isoSurfMC.cpp",
+            "Post/isoSurfNGon.cpp",
             "Post/computeDiff.cpp",
             "Post/computeIndicatorValue.cpp",
             "Post/enforceIndicatorNearBodies.cpp",
@@ -65,7 +66,7 @@ cpp_srcs = ["Post/coarsen.cpp",
             "Post/sharpEdges.cpp",
             "Post/silhouette.cpp"]
 
-if (USURP == True and f90compiler != "None" and os.access(dirName+'/usurp', os.F_OK) == True):
+if USURP == True and f90compiler != "None" and os.access(dirName+'/usurp', os.F_OK) == True:
     cpp_srcs.append("Post/usurp.cpp")
     cpp_srcs += ["Post/usurp/Ctype.cpp",
                  "Post/usurp/Gpc.cpp",

@@ -393,6 +393,8 @@ namespace K_CONNECT
   */
   void getDimElts(K_FLD::FldArrayI& cNG, K_FLD::FldArrayI& posFaces, 
                   K_FLD::FldArrayI& dimElts);
+  void getDimElts(K_FLD::FldArrayI& cNG, E_Int* indPG, E_Int* indPH, 
+                  K_FLD::FldArrayI& dimElts);
 
   /* Pour un element 2D repere par eltPos dans cNG, retourne les indices 
      des vertex de l'element dans l'ordre tournant. 

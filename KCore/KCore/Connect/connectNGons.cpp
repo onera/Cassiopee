@@ -75,7 +75,7 @@ E_Int K_CONNECT::getIndex(const E_Int* data, E_Int facetsStart,
 //=============================================================================
 E_Int K_CONNECT::getPosElts(FldArrayI& cn, FldArrayI& posElts)
 {
-  if (cn.isNGon() == 2) // aray2
+  if (cn.isNGon() == 2) // array2
     return getPosFacets(cn.getNFace(), 0, cn.getNElts(), posElts);
   else // array1
     return getPosFacets(cn.begin(), BEGINELTSARR+2, cn[BEGINELTSARR], posElts);
@@ -89,38 +89,74 @@ E_Int K_CONNECT::getPosElts(FldArrayI& cn, FldArrayI& posElts)
 //=============================================================================
 void K_CONNECT::getDimElts(FldArrayI& cNG, FldArrayI& posFaces,
                            FldArrayI& dimElts)
+{
+  E_Int* cnp = cNG.begin();
+  E_Int sizeFN = cnp[1];      // taille de la connectivite face/noeuds
+  E_Int* cEFp = cnp+sizeFN+4; // debut connectivite EF
+  E_Int nelts = cnp[sizeFN+2];// nombre d elements
+  E_Int dim;                  // dimension de l element
+  E_Int nbFaces;              // nombre de faces pour un element donne
+  E_Int nbNodes;              // nombre de noeuds pour une face donnee
+  E_Int pos;                  // position de la face dans la connectivite
+  E_Int* posFacesp = posFaces.begin();
+
+  // dimensionnement du tableau dimElts
+  dimElts.malloc(nelts);
+  E_Int* dimEltsp = dimElts.begin();
+
+  for (E_Int i = 0; i < nelts; i++)
   {
-    E_Int* cnp = cNG.begin();
-    E_Int sizeFN = cnp[1];      // taille de la connectivite face/noeuds
-    E_Int* cEFp = cnp+sizeFN+4; // debut connectivite EF
-    E_Int nelts = cnp[sizeFN+2];// nombre d elements
-    E_Int dim;                  // dimension de l element
-    E_Int nbFaces;              // nombre de faces pour un element donne
-    E_Int nbNodes;              // nombre de noeuds pour une face donnee
-    E_Int pos;                  // position de la face dans la connectivite
-    E_Int* posFacesp = posFaces.begin();
-
-    // dimensionnement du tableau dimElts
-    dimElts.malloc(nelts);
-    E_Int* dimEltsp = dimElts.begin();
-
-    for (E_Int i = 0; i < nelts; i++)
+    nbFaces = cEFp[0]; // nbre de faces pour l'element i
+    dim = 0;
+    for (E_Int f = 1; f <= nbFaces; f++)
     {
-      nbFaces = cEFp[0]; // nbre de faces pour l'element i
-      dim = 0;
-      for (E_Int f = 1; f <= nbFaces; f++)
-      {
-        pos = posFacesp[cEFp[f]-1];
-        nbNodes = cnp[pos];
-        dim = max(nbNodes, dim);
-      }
-      dim = min(dim, 3);
-      cEFp += nbFaces+1;
-      dimEltsp[i] = dim;
+      pos = posFacesp[cEFp[f]-1];
+      nbNodes = cnp[pos];
+      dim = max(nbNodes, dim);
     }
-
-    return;
+    dim = min(dim, 3);
+    cEFp += nbFaces+1;
+    dimEltsp[i] = dim;
   }
+}
+
+// valid pour array et array2 + openMP
+void K_CONNECT::getDimElts(FldArrayI& cNG, E_Int* indPG,
+                           E_Int* indPH, FldArrayI& dimElts)
+{
+  E_Int nelts = cNG.getNElts();
+  E_Int* ptrf = cNG.getNGon();
+  E_Int* ptre = cNG.getNFace();
+
+  E_Int dim;                  // dimension de l'element
+  E_Int nbFaces;              // nombre de faces pour un element donne
+  E_Int nbNodes;              // nombre de noeuds pour une face donnee
+  E_Int pos;                  // position de la face dans la connectivite
+  E_Int p;
+
+  // dimensionnement du tableau dimElts
+  dimElts.malloc(nelts);
+  E_Int* dimEltsp = dimElts.begin();
+
+#pragma omp parallel default(shared)
+{
+#pragma omp for
+  for (E_Int i = 0; i < nelts; i++)
+  {
+    p = indPH[i];
+    nbFaces = ptre[p]; // nbre de faces pour l'element i
+    dim = 0;
+    for (E_Int f = 1; f <= nbFaces; f++)
+    {
+      pos = indPG[ptre[p+f]-1];
+      nbNodes = ptrf[pos];
+      dim = max(nbNodes, dim);
+    }
+    dim = min(dim, 3);
+    dimEltsp[i] = dim;
+  }
+}
+}
 
 //=============================================================================
 /* Prend un element NGON, rend la liste des vertex dans l'ordre rotatif
