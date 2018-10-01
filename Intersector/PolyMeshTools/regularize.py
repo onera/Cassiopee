@@ -113,6 +113,7 @@ print " 3. agglomerate"
 vratio = VRATIO*VRATIO*VRATIO
 print " 3.1 : aglomerate cells vr %s"%(vratio)
 t=aglomerate(t, vr=vratio, vm=VMIN)
+vratio = VRATIO*VRATIO
 print " 3.2 : aglomerate cells vr %s"%(vratio)
 t=aglomerate(t, vr=vratio, vm=VMIN)
 print " 3.3 : aglomerate cells vr %s"%(VRATIO)

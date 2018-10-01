@@ -10,8 +10,11 @@ a = C.convertArray2NGon(a); a = G.close(a)
 b = G.cartHexa((0.,0.,0.), (0.005,0.005,0.005), (5,5,5))
 #C.convertArrays2File([b], 'b.plt')
 
-m = XOR.adaptCells(a,b)
+m = XOR.adaptCells(a,b, sensor_type=0)
 m = XOR.closeOctalCells(m)
-#C.convertPyTree2File(m, 'out.cgns')
 test.testT(m,1)
+
+m = XOR.adaptCells(a,b, sensor_type=1)
+m = XOR.closeOctalCells(m)
+test.testT(m,2)
 

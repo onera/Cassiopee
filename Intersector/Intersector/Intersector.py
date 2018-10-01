@@ -231,10 +231,10 @@ def closeOctalCells(a):
 # IN: a2 : source points (any kind of mesh)
 # OUT: returns a 3D NGON Mesh with adapted cells
 #==============================================================================
-def adaptCells(a1, a2):
+def adaptCells(a1, a2, sensor_type=0):
     """Adapts a polyhedral mesh a1 with repsect to a2 points.
     Usage: adaptCells(a1, a2)"""
-    return intersector.adaptCells(a1, a2)
+    return intersector.adaptCells(a1, a2, sensor_type)
 
 #==============================================================================
 # adaptBox : Adapts a bounding box to a cloud of interior points.

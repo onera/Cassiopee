@@ -29,6 +29,7 @@
 
 #include "Nuga/include/tree.hxx"
 #include "Nuga/include/geom_sensor.hxx"
+#include "Nuga/include/xsensor.hxx"
 #include "Nuga/include/adaptor.hxx"
 #include "Nuga/include/hierarchical_mesh.hxx"
 
@@ -110,16 +111,21 @@ PyObject* K_INTERSECTOR::splitNonStarCells(PyObject* self, PyObject* args)
 PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
 {
   PyObject *arr(nullptr), *arrS(nullptr);
+  E_Int sensor_type(0);
   
 
-  if (!PyArg_ParseTuple(args, "OO", &arr, &arrS)) return NULL;
+  if (!PYPARSETUPLEI(args, "OOl", "OOi", &arr, &arrS, &sensor_type)) return NULL;
 
   K_FLD::FloatArray* f(nullptr), *fS(nullptr);
   K_FLD::IntArray* cn(nullptr), *cnS(nullptr);
   char* varString, *eltType, *varString2, *eltType2;
   // Check the mesh (NGON)
   E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
-  if (err) return NULL;
+  if (err)
+  {
+    delete f; delete cn;
+    return NULL;
+  }
 
     
   K_FLD::FloatArray & crd = *f;
@@ -130,6 +136,19 @@ PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
                                      cnS, eltType2);
   
   K_FLD::FloatArray & crdS = *fS;
+  const K_FLD::IntArray & cntS = *cnS;
+
+  if (sensor_type == 1 /*xensor*/)
+  {
+    if ( (res2 != 2) || ((res2 == 2) && (strcmp(eltType2, "HEXA") != 0) ) )
+    {
+     PyErr_SetString(PyExc_ValueError,
+       "adaptCells: xsensor currently support only HEXA mesh as source mesh.");
+     delete f; delete cn;
+     delete fS; delete cnS;
+     return NULL;
+    }
+  }
   
   //~ std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
   //~ std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
@@ -138,15 +157,32 @@ PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
   ngon_type ngi(cnt);
 
   err = check_is_NGON_HEXA(ngi);
-  if (err) return NULL;
+  if (err)
+  {
+    PyErr_SetString(PyExc_ValueError,
+       "adaptCells: input mesh to adapt must currently be an hexahedral mesh in NGON format.");
+    delete f; delete cn;
+    delete fS; delete cnS;
+    return NULL;
+  }
 
   using mesh_type = NUGA::hierarchical_mesh<K_MESH::Hexahedron>;
-  using sensor_type = NUGA::geom_sensor/*geom_static_sensor*/<mesh_type>;
-  
+
   mesh_type hmesh(crd, ngi);
-  sensor_type sensor(hmesh);
   
-  NUGA::adaptor<mesh_type, sensor_type>::run(hmesh, sensor, crdS);
+  if (sensor_type == 1) //xsensor
+  {
+  	using sensor_t = NUGA::xsensor<K_MESH::Hexahedron, mesh_type>;
+  	sensor_t sensor(hmesh, cntS);
+    NUGA::adaptor<mesh_type, sensor_t>::run(hmesh, sensor, crdS);
+
+  }
+  else
+  {
+  	using sensor_t = NUGA::geom_sensor<mesh_type>;
+  	sensor_t sensor(hmesh);
+    NUGA::adaptor<mesh_type, sensor_t>::run(hmesh, sensor, crdS);
+  }
   
   hmesh.conformize();
 

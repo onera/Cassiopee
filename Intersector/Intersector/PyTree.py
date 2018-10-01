@@ -447,16 +447,17 @@ def closeOctalCells(t):
 
 #==============================================================================
 # adaptCells : Adapts a polyhedral mesh a1 with repsect to a2 points
-# IN: a1 : 3D NGON mesh
-# IN: a2 : source points (any kind of mesh)
+# IN: t1 : 3D NGON mesh
+# IN: t2 : source points (any kind of mesh)
+# IN: sensor_type : basic (0) or xsensor (1)
 # OUT: returns a 3D NGON Mesh with adapted cells
 #==============================================================================
-def adaptCells(t1, t2):
+def adaptCells(t1, t2, sensor_type = 0):
     """Adapts a polyhedral mesh t1 with repsect to t2 points.
     Usage: adaptCells(t1, t2)"""
     m1 = C.getFields(Internal.__GridCoordinates__, t1)[0]
     m2 = C.getFields(Internal.__GridCoordinates__, t2)[0]
-    m = intersector.adaptCells(m1, m2)
+    m = intersector.adaptCells(m1, m2, sensor_type)
     return C.convertArrays2ZoneNode('adapted', [m])
 
 #==============================================================================

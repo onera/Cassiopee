@@ -585,14 +585,18 @@ Transformation Functions
 ---------------------------------------
 
 
-.. py:function:: Intersector.adaptCells(a1, a2)
+.. py:function:: Intersector.adaptCells(a1, a2, sensor_type=0)
 
-    Adapts a1 cells with respect to a2 points.Adaptation is a per-cell octal 2:1 decomposition.
+    Adapts a1 cells with respect to a2.Adaptation is a per-cell octal 2:1 decomposition.
+    With a sensor_type equal to 0, a2 points are only considered : a1 will be refined such any a1 cell contains at most 1 a2's point.
+    With a sensor_type equal to 1, a2's connectivity is also taken into account by adding refinement wherever a1 cells are crossed by a2 edges.
 
     :param           a1:  Input mesh (NGON format)
     :type            a1:  [array] or [ single zone pyTree (currently)]
-    :param           a2:  Source points
+    :param           a2:  Source points or source mesh
     :type            a2:  [array, list of arrays] or [pyTree, base, zone, list of zones]
+    :param           sensor_type:  type of sensor. Using only the point cloud (0) or both points and connectivity via instersections (1)
+    :type            sensor_type:  int
 
     *Example of use:*
 
