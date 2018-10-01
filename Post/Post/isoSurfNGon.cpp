@@ -198,10 +198,54 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
   }
   else if (dim == 3)
   {
-    for (E_Int i = 0; i < nelts; i++)
+    E_Int pe, pf, indFace, nbFaces, nbPts, ind;
+    E_Int* ptf; E_Int* pte;
+    FldArrayF fco(nfld); E_Float* fc = fco.begin();
+    FldArrayF ffo(nfld); E_Float* ff = ffo.begin();
+    for (E_Int elt = 0; elt < nelts; elt++)
     {
-       // Construit les tetra on the fly
+      // Construit centre de l'elements + centres des faces
+      pe = indPH[elt]; pte = ptre+pe;
+      nbFaces = pte[0];
+      for (E_Int p = 0; p < nfld; p++) fc[p] = 0.;
+      for (E_Int fa = 0; fa < nbFaces; fa++)
+      {
+        indFace = pte[fa+1]-1;
+        pf = indPG[indFace]; ptf = ptrf+pf;
+        nbPts = ptf[0];
+        for (E_Int p = 0; p < nfld; p++) ff[p] = 0.;
+        for (E_Int pt = 0; pt < nbPts; pt++)
+        {
+          ind = ptf[1+pt];
+          for (E_Int p = 0; p < nfld; p++) ff[p] += f(ind,p+1);
+        }
+        for (E_Int p = 0; p < nfld; p++) ff[p] = ff[p]/nbPts;
 
+        for (E_Int p = 0; p < nfld; p++) fc[p] += ff[p];
+      }
+      for (E_Int p = 0; p < nfld; p++) fc[p] = fc[p]/nbFaces;
+
+      for (E_Int fa = 0; fa < nbFaces; fa++)
+      {
+        indFace = pte[fa+1]-1;
+        pf = indPG[indFace]; ptf = ptrf+pf;
+        nbPts = ptf[0];
+        for (E_Int p = 0; p < nfld; p++) ff[p] = 0.;
+        for (E_Int pt = 0; pt < nbPts; pt++)
+        {
+          ind = ptf[1+pt];
+          for (E_Int p = 0; p < nfld; p++) ff[p] += f(ind,p+1);
+        }
+        for (E_Int p = 0; p < nfld; p++) ff[p] = ff[p]/nbPts;
+
+        for (E_Int pt = 0; pt < nbPts-1; pt++)
+        {
+          ind = ptf[1+pt]; ind2 = ptrf[2+pt];
+          // tetra = centre, face, pts de la face
+          f0 = fc[posf-1]; f1 = ff[posf-1]; f2 = f(ind,posf); f3 = f(ind,posf);
+          
+        } 
+      }
     }
   }
   return;

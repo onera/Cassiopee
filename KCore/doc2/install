@@ -55,6 +55,7 @@ cp $CASSIOPEE/Apps/Modules/RigidMotion/doc2/source/RigidMotion.rst source/
 
 cp $CASSIOPEE/Apps/Modules/CPlot/doc2/source/CPlot.rst source/
 cp $CASSIOPEE/Apps/Modules/CPlot/doc2/source/tkCassiopee.rst source/
+
 cp $CASSIOPEE/Apps/Modules/Intersector/doc2/source/Intersector.rst source/
 
 sphinx-build -b html ./source ./build

@@ -30,14 +30,14 @@ List of functions
 
 .. autosummary::
 
-   deltaIndex
+   Compressor.deltaIndex
 
 **-- Object serializer/compression**
 
 .. autosummary::
 
-   pack
-   unpack
+   Compressor.pack
+   Compressor.unpack
 
 
 Contents

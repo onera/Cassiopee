@@ -33,75 +33,75 @@ List of functions
 
 .. autosummary::
 
-    oneovern
-    reorder
-    reorderAll 
-    makeCartesianXYZ
-    makeDirect
-    addkplane
-    collapse
-    patch
+    Transform.oneovern
+    Transform.reorder
+    Transform.reorderAll 
+    Transform.makeCartesianXYZ
+    Transform.makeDirect
+    Transform.addkplane
+    Transform.collapse
+    Transform.patch
 
 
 **-- Mesh positioning**
 
 .. autosummary::
    
-   rotate
-   translate
+   Transform.rotate
+   Transform.translate
 
 **-- Mesh transformation**
 
 .. autosummary::
     
-    cart2Cyl
-    homothety
-    contract
-    scale
-    symetrize
-    perturbate
-    smooth
-    dual
-    breakElements
+    Transform.cart2Cyl
+    Transform.homothety
+    Transform.contract
+    Transform.scale
+    Transform.symetrize
+    Transform.perturbate
+    Transform.smooth
+    Transform.dual
+    Transform.breakElements
 
 **-- Mesh splitting and merging**
 
 .. autosummary::
 
-    subzone
-    join
-    merge
-    mergeCart
-    splitNParts
-    splitSize
-    splitCurvatureAngle
-    splitCurvatureRadius
-    splitConnexity
-    splitMultiplePts
-    splitSharpEdges
-    splitTBranches
-    splitManifold
-    splitBAR
-    splitTRI
+    Transform.subzone
+    Transform.join
+    Transform.merge
+    Transform.mergeCart
+    Transform.splitNParts
+    Transform.splitSize
+    Transform.splitCurvatureAngle
+    Transform.splitCurvatureRadius
+    Transform.splitConnexity
+    Transform.splitMultiplePts
+    Transform.splitSharpEdges
+    Transform.splitTBranches
+    Transform.splitManifold
+    Transform.splitBAR
+    Transform.splitTRI
 
 **-- Mesh deformation**
 
 .. autosummary::
 
-    deform
-    deformNormals
-    deformPoint
-    deformMesh
+    Transform.deform
+    Transform.deformNormals
+    Transform.deformPoint
+    Transform.deformMesh
 
 **-- Mesh projections**
 
 .. autosummary::
     
-    projectAllDirs
-    projectDir
-    projectOrtho
-    projectOrthoSmooth
-    projectRay
+    Transform.projectAllDirs
+    Transform.projectDir
+    Transform.projectOrtho
+    Transform.projectOrthoSmooth
+    Transform.projectRay
 
 
 Contents

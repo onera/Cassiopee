@@ -29,110 +29,109 @@ List of functions
 
 .. autosummary::
 
-   cart
-   cartHexa
-   cartTetra
-   cartPenta
-   cartPyra
-   cartNGon
-   cylinder
-   cylinder2
-   cylinder3
+   Generator.cart
+   Generator.cartHexa
+   Generator.cartTetra
+   Generator.cartPenta
+   Generator.cartPyra
+   Generator.cartNGon
+   Generator.cylinder
+   Generator.cylinder2
+   Generator.cylinder3
 
 **-- General purpose grid generators**
 
 .. autosummary::
 
-   delaunay
-   constrainedDelaunay
-   checkDelaunay
-   T3mesher2D
-   tetraMesher
-   TFI
-   TFITri
-   TFIO
-   TFIHalfO
-   TFIMono
-   hyper2D
-   PolyLine.polyLineMesher
-   PolyC1.polyC1Mesher
-   pointedHat
-   stitchedHat
-   surfaceWalk
-   collarMesh
+   Generator.delaunay
+   Generator.constrainedDelaunay
+   Generator.checkDelaunay
+   Generator.T3mesher2D
+   Generator.tetraMesher
+   Generator.TFI
+   Generator.TFITri
+   Generator.TFIO
+   Generator.TFIHalfO
+   Generator.TFIMono
+   Generator.hyper2D
+   Generator.PolyLine.polyLineMesher
+   Generator.PolyC1.polyC1Mesher
+   Generator.pointedHat
+   Generator.stitchedHat
+   Generator.surfaceWalk
+   Generator.collarMesh
 
 **-- Cartesian grid generators**
 
 .. autosummary::
 
-   gencartmb
-   octree
-   octree2Struct
-   adaptOctree
-   expandLayer
+   Generator.gencartmb
+   Generator.octree
+   Generator.octree2Struct
+   Generator.adaptOctree
+   Generator.expandLayer
 
 **-- Operations on meshes**
 
 .. autosummary::
 
-   close
-   selectInsideElts
-   map
-   mapSplit
-   refine
-   mapCurvature
-   densify
-   grow
-   stack
-   addNormalLayers
-   TTM
-   snapFront
-   snapSharpEdges
+   Generator.close
+   Generator.selectInsideElts
+   Generator.map
+   Generator.mapSplit
+   Generator.refine
+   Generator.mapCurvature
+   Generator.densify
+   Generator.grow
+   Generator.stack
+   Generator.addNormalLayers
+   Generator.TTM
+   Generator.snapFront
+   Generator.snapSharpEdges
 
 **-- Operations on surface meshes**
 
 .. autosummary::
 
-   fittingPlaster
-   gapfixer
-   gapsmanager
-   quad2Pyra
+   Generator.fittingPlaster
+   Generator.gapfixer
+   Generator.gapsmanager
+   Generator.quad2Pyra
 
 **-- Information on generated meshes**
 
 .. autosummary::
 
-   barycenter
-   bbox
-   bboxOfCells
-   BB
-   CEBBIntersection
-   bboxIntersection
-   checkPointInCEBB
-   getVolumeMap
-   getNormalMap
-   getSmoothNormalMap
-   getOrthogonalityMap
-   getRegularityMap
-   getTriQualityMap
-   getCellPlanarity
-   getCircumCircleMap
-   getInCircleMap
-   getEdgeRatio
-   getMaxLength
+   Generator.barycenter
+   Generator.bbox
+   Generator.bboxOfCells
+   Generator.BB
+   Generator.CEBBIntersection
+   Generator.bboxIntersection
+   Generator.checkPointInCEBB
+   Generator.getVolumeMap
+   Generator.getNormalMap
+   Generator.getSmoothNormalMap
+   Generator.getOrthogonalityMap
+   Generator.getRegularityMap
+   Generator.getTriQualityMap
+   Generator.getCellPlanarity
+   Generator.getCircumCircleMap
+   Generator.getInCircleMap
+   Generator.getEdgeRatio
+   Generator.getMaxLength
 
 **-- Operations on distributions**
 
 .. autosummary::
 
-   enforceX
-   enforceMoinsX
-   enforcePlusX
-   enforceLine
-   enforcePoint
-   enforceCurvature
-   addPointInDistribution
-
+   Generator.enforceX
+   Generator.enforceMoinsX
+   Generator.enforcePlusX
+   Generator.enforceLine
+   Generator.enforcePoint
+   Generator.enforceCurvature
+   Generator.addPointInDistribution
 
 
 
