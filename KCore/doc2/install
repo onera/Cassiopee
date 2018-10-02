@@ -41,6 +41,7 @@ fi
 cp $CASSIOPEE/Apps/Modules/Converter/doc2/source/Internal.rst source/
 cp $CASSIOPEE/Apps/Modules/Converter/doc2/source/ConverterMpi.rst source/
 cp $CASSIOPEE/Apps/Modules/Converter/doc2/source/elsAProfile.rst source/
+cp $CASSIOPEE/Apps/Modules/Converter/doc2/source/Filter.rst source/
 cp $CASSIOPEE/Apps/Modules/Converter/doc2/source/Converter.rst source/
 
 cp $CASSIOPEE/Apps/Modules/Geom/doc2/source/Geom.rst source/
@@ -59,24 +60,48 @@ cp $CASSIOPEE/Apps/Modules/CPlot/doc2/source/tkCassiopee.rst source/
 cp $CASSIOPEE/Apps/Modules/Intersector/doc2/source/Intersector.rst source/
 
 sphinx-build -b html ./source ./build
-# recopie global search index, global index
-sed -i 's/Internal.Converter/Converter/g' build/searchindex.js
-sed -i 's/Converter.Mpi.Converter.Mpi/Converter.Mpi/g' build/searchindex.js
-sed -i 's/elsAProfile.Converter/Converter/g' build/searchindex.js
-sed -i 's/Converter.Converter/Converter/g' build/searchindex.js
 
-sed -i 's/Geom.Geom/Geom/g' build/searchindex.js
-sed -i 's/Compressor.Compressor/Compressor/g' build/searchindex.js
-sed -i 's/Initiator.Initiator/Initiator/g' build/searchindex.js
-sed -i 's/Generator.Generator/Generator/g' build/searchindex.js
-sed -i 's/Transform.Transform/Transform/g' build/searchindex.js
-sed -i 's/Dist2Walls.Dist2Walls/Dist2Walls/g' build/searchindex.js
-sed -i 's/Distributor2.Distributor2/Distributor2/g' build/searchindex.js
-sed -i 's/Post.Post/Post/g' build/searchindex.js
-sed -i 's/RigidMotion.RigidMotion/RigidMotion/g' build/searchindex.js
+# modif de search index
+FILE=build/searchindex.js
+sed -i 's/Converter\.Internal\.Converter\.Internal/Converter\.Internal/g' $FILE
+sed -i 's/Converter\.Mpi.Converter\.Mpi/Converter\.Mpi/g' $FILE
+sed -i 's/Converter\.elsAProfile\.Converter\.elsAProfile/Converter\.elsAProfile/g' $FILE
+sed -i 's/Converter\.Filter\.Converter\.Filter/Converter\.Filter/g' $FILE
+sed -i 's/Converter\.Converter\.PyTree/Converter\.PyTree/g' $FILE
+sed -i 's/Converter\.Converter\.Array3D/Converter\.Array3D/g' $FILE
+#sed -i 's/Converter\.Converter/Converter/g' $FILE
+sed -i 's/Geom\.Geom/Geom/g' $FILE
+sed -i 's/Compressor\.Compressor/Compressor/g' $FILE
+sed -i 's/Initiator\.Initiator/Initiator/g' $FILE
+sed -i 's/Generator\.Generator/Generator/g' $FILE
+sed -i 's/Transform\.Transform/Transform/g' $FILE
+sed -i 's/Dist2Walls\.Dist2Walls/Dist2Walls/g' $FILE
+sed -i 's/Distributor2\.Distributor2/Distributor2/g' $FILE
+sed -i 's/Post\.Post/Post/g' $FILE
+sed -i 's/RigidMotion\.RigidMotion/RigidMotion/g' $FILE
+sed -i 's/CPlot\.CPlot/CPlot/g' $FILE
+sed -i 's/Intersector\.Intersector/Intersector/g' $FILE
 
-sed -i 's/CPlot.CPlot/CPlot/g' build/searchindex.js
-sed -i 's/Intersector.Intersector/Intersector/g' build/searchindex.js
+# meme modif de genindex
+FILE=build/genindex.html
+sed -i 's/Converter\.Internal\.Converter\.Internal/Converter\.Internal/g' $FILE
+sed -i 's/Converter\.Mpi.Converter\.Mpi/Converter\.Mpi/g' $FILE
+sed -i 's/Converter\.elsAProfile\.Converter\.elsAProfile/Converter\.elsAProfile/g' $FILE
+sed -i 's/Converter\.Filter\.Converter\.Filter/Converter\.Filter/g' $FILE
+sed -i 's/Converter\.Converter\.PyTree/Converter\.PyTree/g' $FILE
+sed -i 's/Converter\.Converter\.Array3D/Converter\.Array3D/g' $FILE
+#sed -i 's/Converter\.Converter/Converter/g' $FILE
+sed -i 's/Geom\.Geom/Geom/g' $FILE
+sed -i 's/Compressor\.Compressor/Compressor/g' $FILE
+sed -i 's/Initiator\.Initiator/Initiator/g' $FILE
+sed -i 's/Generator\.Generator/Generator/g' $FILE
+sed -i 's/Transform\.Transform/Transform/g' $FILE
+sed -i 's/Dist2Walls\.Dist2Walls/Dist2Walls/g' $FILE
+sed -i 's/Distributor2\.Distributor2/Distributor2/g' $FILE
+sed -i 's/Post\.Post/Post/g' $FILE
+sed -i 's/RigidMotion\.RigidMotion/RigidMotion/g' $FILE
+sed -i 's/CPlot\.CPlot/CPlot/g' $FILE
+sed -i 's/Intersector\.Intersector/Intersector/g' $FILE
 
 cp build/searchindex.js $DEST
 cp build/genindex.html $DEST

@@ -94,24 +94,25 @@ fi
 if ([ $PRODUCTION -eq 1 ])
 then
     taghtml build/Internal.html
-    sed -i 's/Internal.Converter/Converter/g' build/Internal.html
-    sed -i 's/Converter.pdf/Internal.pdf/g' build/Internal.html
+    sed -i 's/Converter\.Internal\.Converter\.Internal/Converter\.Internal/g' build/Internal.html
+    sed -i 's/Converter\.pdf/Internal\.pdf/g' build/Internal.html
     cp build/Internal.html $DEST
     taghtml build/Filter.html
-    sed -i 's/Filter.Converter/Converter/g' build/Filter.html
-    sed -i 's/Converter.pdf/Filter.pdf/g' build/Filter.html
+    sed -i 's/Converter\.Filter\.Converter\.Filter/Converter\.Filter/g' build/Filter.html
+    sed -i 's/Converter\.pdf/Filter\.pdf/g' build/Filter.html
     cp build/Filter.html $DEST
     taghtml build/ConverterMpi.html
-    sed -i 's/Converter.Mpi.Converter.Mpi/Converter.Mpi/g' build/ConverterMpi.html
-    sed -i 's/Converter.pdf/ConverterMpi.pdf/g' build/ConverterMpi.html
+    sed -i 's/Converter\.Mpi\.Converter\.Mpi/Converter\.Mpi/g' build/ConverterMpi.html
+    sed -i 's/Converter\.pdf/ConverterMpi\.pdf/g' build/ConverterMpi.html
     cp build/ConverterMpi.html $DEST
     taghtml build/elsAProfile.html
-    sed -i 's/elsAProfile.Converter/Converter/g' build/elsAProfile.html
-    sed -i 's/Converter.pdf/elsAProfile.pdf/g' build/elsAProfile.html
+    sed -i 's/Converter\.elsAProfile\.Converter\.elsAProfile/Converter\.elsAProfile/g' build/elsAProfile.html
+    sed -i 's/Converter\.pdf/elsAProfile\.pdf/g' build/elsAProfile.html
     cp build/elsAProfile.html $DEST
     taghtml build/Converter.html
-    sed -i 's/Converter.Converter/Converter/g' build/Converter.html
+    sed -i 's/Converter\.Converter/Converter/g' build/Converter.html
     cp build/Converter.html $DEST
+
     cp build/Internal.pdf $DEST
     cp build/Filter.pdf $DEST
     cp build/ConverterMpi.pdf $DEST

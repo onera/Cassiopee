@@ -198,538 +198,546 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
   }
   else if (dim == 3)
   {
-    E_Int pe, pf, indFace, nbFaces, nbPts, ind;
-    E_Int* ptf; E_Int* pte;
-    FldArrayF fco(nfld); E_Float* fc = fco.begin();
-    FldArrayF ffo(nfld); E_Float* ff = ffo.begin();
-    for (E_Int elt = 0; elt < nelts; elt++)
-    {
-      // Construit centre de l'elements + centres des faces
-      pe = indPH[elt]; pte = ptre+pe;
-      nbFaces = pte[0];
-      for (E_Int p = 0; p < nfld; p++) fc[p] = 0.;
-      for (E_Int fa = 0; fa < nbFaces; fa++)
-      {
-        indFace = pte[fa+1]-1;
-        pf = indPG[indFace]; ptf = ptrf+pf;
-        nbPts = ptf[0];
-        for (E_Int p = 0; p < nfld; p++) ff[p] = 0.;
-        for (E_Int pt = 0; pt < nbPts; pt++)
-        {
-          ind = ptf[1+pt];
-          for (E_Int p = 0; p < nfld; p++) ff[p] += f(ind,p+1);
-        }
-        for (E_Int p = 0; p < nfld; p++) ff[p] = ff[p]/nbPts;
+#define COMPUTEFF(fa) \
+    indFace = pte[fa+1]-1; \
+    pf = indPG[indFace]; ptf = ptrf+pf; \
+    nbPts = ptf[0]; \
+    for (E_Int p = 0; p < nfld; p++) ff[p] = 0.; \
+      for (E_Int pt = 0; pt < nbPts; pt++) \
+      { ind = ptf[1+pt]; \
+        for (E_Int p = 0; p < nfld; p++) ff[p] += f(ind,p+1); } \
+    for (E_Int p = 0; p < nfld; p++) ff[p] = ff[p]/nbPts;
 
-        for (E_Int p = 0; p < nfld; p++) fc[p] += ff[p];
-      }
-      for (E_Int p = 0; p < nfld; p++) fc[p] = fc[p]/nbFaces;
-
-      for (E_Int fa = 0; fa < nbFaces; fa++)
-      {
-        indFace = pte[fa+1]-1;
-        pf = indPG[indFace]; ptf = ptrf+pf;
-        nbPts = ptf[0];
-        for (E_Int p = 0; p < nfld; p++) ff[p] = 0.;
-        for (E_Int pt = 0; pt < nbPts; pt++)
-        {
-          ind = ptf[1+pt];
-          for (E_Int p = 0; p < nfld; p++) ff[p] += f(ind,p+1);
-        }
-        for (E_Int p = 0; p < nfld; p++) ff[p] = ff[p]/nbPts;
-
-        for (E_Int pt = 0; pt < nbPts-1; pt++)
-        {
-          ind = ptf[1+pt]; ind2 = ptrf[2+pt];
-          // tetra = centre, face, pts de la face
-          f0 = fc[posf-1]; f1 = ff[posf-1]; f2 = f(ind,posf); f3 = f(ind,posf);
-          
-        } 
-      }
-    }
-  }
-  return;
-
-
-
-  E_Int* cn1 = cn.begin(1); E_Int* cn2 = cn.begin(2);
-  E_Int* cn3 = cn.begin(3); E_Int* cn4 = cn.begin(4);
-
-  
-  // Dimensionnement: npts et ntri (par thread)
-  E_Int* ntris = new E_Int [nthreads];
-  E_Int* npts = new E_Int [nthreads];
+    // Dimensionnement: npts et ntri (par thread)
+    E_Int* ntris = new E_Int [nthreads];
+    E_Int* npts = new E_Int [nthreads];
 #pragma omp parallel default(shared)
-  {
-  E_Int  ithread = __CURRENT_THREAD__;
-  int triindex;
-  E_Float f0, f1, f2, f3;
-  E_Int ind0, ind1, ind2, ind3;
-  E_Int np = 0; E_Int ntri = 0;
+    {
+      E_Int  ithread = __CURRENT_THREAD__;
+      int triindex;
+      E_Int np = 0; E_Int ntri = 0;
+
+      E_Int pe, pf, indFace, nbFaces, nbPts, ind, ind2;
+      E_Int* ptf; E_Int* pte;
+      E_Float f0, f1, f2, f3;
+      FldArrayF fco(nfld); E_Float* fc = fco.begin();
+      FldArrayF ffo(nfld); E_Float* ff = ffo.begin();
 
 #pragma omp for
-  for (E_Int i = 0; i < nelts; i++)
-  {
-    ind0 = cn1[i]-1; ind1 = cn2[i]-1; ind2 = cn3[i]-1; ind3 = cn4[i]-1;
-    f0 = fp[ind0]; f1 = fp[ind1]; f2 = fp[ind2]; f3 = fp[ind3];
-    triindex = 0;
-    if (f0 < value) triindex |= 1;
-    if (f1 < value) triindex |= 2;
-    if (f2 < value) triindex |= 4;
-    if (f3 < value) triindex |= 8;
-    switch (triindex)
-    {
-      case 0x00:
-      case 0x0F:
-        break;
+      for (E_Int elt = 0; elt < nelts; elt++)
+      {
+        // Construit centre de l'element
+        pe = indPH[elt]; pte = ptre+pe;
+        nbFaces = pte[0];
+        for (E_Int p = 0; p < nfld; p++) fc[p] = 0.;
+        for (E_Int fa = 0; fa < nbFaces; fa++)
+        {
+          COMPUTEFF(fa);
+          for (E_Int p = 0; p < nfld; p++) fc[p] += ff[p];
+        }
+        for (E_Int p = 0; p < nfld; p++) fc[p] = fc[p]/nbFaces;
 
-      case 0x0E: // OK
-        np += 3; ntri++;
-        break;
+        // construit les tetras
+        for (E_Int fa = 0; fa < nbFaces; fa++)
+        {
+          COMPUTEFF(fa);
+          for (E_Int pt = 0; pt < nbPts-1; pt++)
+          {
+            ind = ptf[1+pt]; ind2 = ptrf[2+pt];
+            // tetra = centre, face, pts de la face
+            f0 = fc[posf-1]; f1 = ff[posf-1]; f2 = f(ind,posf); f3 = f(ind,posf);
+            triindex = 0;
+            if (f0 < value) triindex |= 1;
+            if (f1 < value) triindex |= 2;
+            if (f2 < value) triindex |= 4;
+            if (f3 < value) triindex |= 8;
+            switch (triindex)
+            {
+              case 0x00:
+              case 0x0F:
+              break;
 
-      case 0x01: // OK
-        np += 3; ntri++;
-        break;
+              case 0x0E: // OK
+              np += 3; ntri++;
+              break;
 
-      case 0x0D: // OK
-        np += 3; ntri++;
-      break;
+              case 0x01: // OK
+              np += 3; ntri++;
+              break;
 
-      case 0x02: // OK
-        np += 3; ntri++;
-      break;
+              case 0x0D: // OK
+              np += 3; ntri++;
+              break;
 
-      case 0x0C: // OK
-        np += 6; ntri += 2;
-        break;
+              case 0x02: // OK
+              np += 3; ntri++;
+              break;
 
-      case 0x03:
-        np += 6; ntri += 2;
-        break;
+              case 0x0C: // OK
+              np += 6; ntri += 2;
+              break;
 
-      case 0x0B: // OK
-        np += 3; ntri++;
-        break;
+              case 0x03:
+              np += 6; ntri += 2;
+              break;
 
-      case 0x04: // OK
-        np += 3; ntri++;
-        break;
+              case 0x0B: // OK
+              np += 3; ntri++;
+              break;
 
-      case 0x0A:
-        np += 6; ntri += 2;
-        break;
+              case 0x04: // OK
+              np += 3; ntri++;
+              break;
 
-      case 0x05:
-        np += 6; ntri += 2;
-        break;
+              case 0x0A:
+              np += 6; ntri += 2;
+              break;
 
-      case 0x09: // OK
-        np += 6; ntri += 2;        
-        break;
+              case 0x05:
+              np += 6; ntri += 2;
+              break;
 
-      case 0x06:
-        np += 6; ntri += 2;        
-        break;
+              case 0x09: // OK
+              np += 6; ntri += 2;        
+              break;
 
-      case 0x07:
-        np += 3; ntri++;
-        break;
+              case 0x06:
+              np += 6; ntri += 2;        
+              break;
 
-      case 0x08: // OK
-        np += 3; ntri++;
-        break;
+              case 0x07:
+              np += 3; ntri++;
+              break;
+
+              case 0x08: // OK
+              np += 3; ntri++;
+              break;
+            }
+          }
+          npts[ithread] = np;
+          ntris[ithread] = ntri;
+        }
+      }
     }
-  }
-  npts[ithread] = np;
-  ntris[ithread] = ntri;
-  }
 
-  FldArrayI** cisos = new FldArrayI* [nthreads];
-  for (E_Int i = 0; i < nthreads; i++) cisos[i] = new FldArrayI(ntris[i], 3);
-  FldArrayF** fisos = new FldArrayF* [nthreads];
-  for (E_Int i = 0; i < nthreads; i++) fisos[i] = new FldArrayF(npts[i],nfld);
-  E_Int* prevT = new E_Int [nthreads];
-  E_Int* prevF = new E_Int [nthreads];
-  
+    FldArrayI** cisos = new FldArrayI* [nthreads];
+    for (E_Int i = 0; i < nthreads; i++) cisos[i] = new FldArrayI(ntris[i], 3);
+    FldArrayF** fisos = new FldArrayF* [nthreads];
+    for (E_Int i = 0; i < nthreads; i++) fisos[i] = new FldArrayF(npts[i],nfld);
+    E_Int* prevT = new E_Int [nthreads];
+    E_Int* prevF = new E_Int [nthreads];
+
 #pragma omp parallel default(shared)
-  {
-  E_Int  ithread = __CURRENT_THREAD__;
-  E_Float f0, f1, f2, f3;
-  E_Int ind0, ind1, ind2, ind3;
-  int triindex;
+    {
+      E_Int  ithread = __CURRENT_THREAD__;
+      E_Int pe, pf, indFace, nbFaces, nbPts, ind, ind2;
+      E_Int ind0, ind1, ind3;
+      E_Int* ptf; E_Int* pte;
+      FldArrayF fco(nfld); E_Float* fc = fco.begin();
+      FldArrayF ffo(nfld); E_Float* ff = ffo.begin();
+      FldArrayF ffp(4,nfld);
+      E_Float f0, f1, f2, f3;
+      int triindex;
 
-  E_Int ntri = 0; // nombre de tri dans l'iso
-  E_Int npt = 0; // nombre de pts dans l'iso
-  
-  FldArrayI& cisop = *cisos[ithread];
-  E_Int* ciso1 = cisop.begin(1);
-  E_Int* ciso2 = cisop.begin(2);
-  E_Int* ciso3 = cisop.begin(3);
-  FldArrayF& fisop = *fisos[ithread];
+      E_Int ntri = 0; // nombre de tri dans l'iso
+      E_Int npt = 0; // nombre de pts dans l'iso
+
+      FldArrayI& cisop = *cisos[ithread];
+      E_Int* ciso1 = cisop.begin(1);
+      E_Int* ciso2 = cisop.begin(2);
+      E_Int* ciso3 = cisop.begin(3);
+      FldArrayF& fisop = *fisos[ithread];
 
 #pragma omp for
-  for (E_Int i = 0; i < nelts; i++)
-  {
-    ind0 = cn1[i]-1; ind1 = cn2[i]-1; ind2 = cn3[i]-1; ind3 = cn4[i]-1;
-    f0 = fp[ind0]; f1 = fp[ind1]; f2 = fp[ind2]; f3 = fp[ind3];
+      for (E_Int elt = 0; elt < nelts; elt++)
+      {
+        // Construit centre de l'element
+        pe = indPH[elt]; pte = ptre+pe;
+        nbFaces = pte[0];
+        for (E_Int p = 0; p < nfld; p++) fc[p] = 0.;
+        for (E_Int fa = 0; fa < nbFaces; fa++)
+        {
+          COMPUTEFF(fa);
+          for (E_Int p = 0; p < nfld; p++) fc[p] += ff[p];
+        }
+        for (E_Int p = 0; p < nfld; p++) fc[p] = fc[p]/nbFaces;
 
-    triindex = 0;
-    if (f0 < value) triindex |= 1;
-    if (f1 < value) triindex |= 2;
-    if (f2 < value) triindex |= 4;
-    if (f3 < value) triindex |= 8;
+        // construit les tetras
+        for (E_Int fa = 0; fa < nbFaces; fa++)
+        {
+          COMPUTEFF(fa);
+          for (E_Int pt = 0; pt < nbPts-1; pt++)
+          {
+            ind = ptf[1+pt]; ind2 = ptrf[2+pt];
+            // tetra = centre, face, pts de la face
+            f0 = fc[posf-1]; f1 = ff[posf-1]; f2 = f(ind,posf); f3 = f(ind2,posf);
+            for (E_Int n = 0; n < nfld; n++) ffp(0,n+1) = fc[n];
+            for (E_Int n = 0; n < nfld; n++) ffp(1,n+1) = ff[n];
+            for (E_Int n = 0; n < nfld; n++) ffp(2,n+1) = f(ind,n+1);
+            for (E_Int n = 0; n < nfld; n++) ffp(3,n+1) = f(ind2,n+1);
+            ind0 = 0; ind1 = 1; ind2 = 2; ind3 = 3;
+              
+            triindex = 0;
+            if (f0 < value) triindex |= 1;
+            if (f1 < value) triindex |= 2;
+            if (f2 < value) triindex |= 4;
+            if (f3 < value) triindex |= 8;
 
-    /* Form the vertices of the triangles for each case */
-    switch (triindex)
-    {
-      case 0x00:
-      case 0x0F:
-        break;
+            switch (triindex)
+            {
+              case 0x00:
+              case 0x0F:
+              break;
 
-      case 0x0E: // OK
-        vertexInterp(nfld, value, f, poscellN,
-                     f0, f1, ind0, ind1,
-                     fisop, npt);
-        vertexInterp(nfld, value, f, poscellN,
-                     f0, f2, ind0, ind2,
-                     fisop, npt);
-        vertexInterp(nfld, value, f, poscellN,
-                     f0, f3, ind0, ind3,
-                     fisop, npt);
-        ciso1[ntri] = npt;
-        ciso2[ntri] = npt-1;
-        ciso3[ntri] = npt-2;
-        ntri++;
-        break;
+              case 0x0E: // OK
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f0, f1, ind0, ind1,
+                           fisop, npt);
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f0, f2, ind0, ind2,
+                           fisop, npt);
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f0, f3, ind0, ind3,
+                           fisop, npt);
+              ciso1[ntri] = npt;
+              ciso2[ntri] = npt-1;
+              ciso3[ntri] = npt-2;
+              ntri++;
+              break;
 
-      case 0x01: // OK
-        vertexInterp(nfld, value, f, poscellN,
-                     f0, f1, ind0, ind1,
-                     fisop, npt);
-        vertexInterp(nfld, value, f, poscellN,
-                     f0, f2, ind0, ind2,
-                     fisop, npt);
-        vertexInterp(nfld, value, f, poscellN,
-                     f0, f3, ind0, ind3,
-                     fisop, npt);
-        ciso1[ntri] = npt-2;
-        ciso2[ntri] = npt-1;
-        ciso3[ntri] = npt;
-        ntri++;
-        break;
+              case 0x01: // OK
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f0, f1, ind0, ind1,
+                           fisop, npt);
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f0, f2, ind0, ind2,
+                           fisop, npt);
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f0, f3, ind0, ind3,
+                           fisop, npt);
+              ciso1[ntri] = npt-2;
+              ciso2[ntri] = npt-1;
+              ciso3[ntri] = npt;
+              ntri++;
+              break;
 
-      case 0x0D: // OK
-        vertexInterp(nfld, value, f, poscellN,
-                     f1, f0, ind1, ind0,
-                     fisop, npt);
-        vertexInterp(nfld, value, f, poscellN,
-                     f1, f3, ind1, ind3,
-                     fisop, npt);
-        vertexInterp(nfld, value, f, poscellN,
-                     f1, f2, ind1, ind2,
-                     fisop, npt);
-        ciso1[ntri] = npt;
-        ciso2[ntri] = npt-1;
-        ciso3[ntri] = npt-2;
-        ntri++;
-      break;
+              case 0x0D: // OK
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f1, f0, ind1, ind0,
+                           fisop, npt);
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f1, f3, ind1, ind3,
+                           fisop, npt);
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f1, f2, ind1, ind2,
+                           fisop, npt);
+              ciso1[ntri] = npt;
+              ciso2[ntri] = npt-1;
+              ciso3[ntri] = npt-2;
+              ntri++;
+              break;
 
-      case 0x02: // OK
-        vertexInterp(nfld, value, f, poscellN,
-                     f1, f0, ind1, ind0,
-                     fisop, npt);
-        vertexInterp(nfld, value, f, poscellN,
-                     f1, f3, ind1, ind3,
-                     fisop, npt);
-        vertexInterp(nfld, value, f, poscellN,
-                     f1, f2, ind1, ind2,
-                     fisop, npt);
-        ciso1[ntri] = npt-2;
-        ciso2[ntri] = npt-1;
-        ciso3[ntri] = npt;
-        ntri++;
-      break;
+              case 0x02: // OK
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f1, f0, ind1, ind0,
+                           fisop, npt);
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f1, f3, ind1, ind3,
+                           fisop, npt);
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f1, f2, ind1, ind2,
+                           fisop, npt);
+              ciso1[ntri] = npt-2;
+              ciso2[ntri] = npt-1;
+              ciso3[ntri] = npt;
+              ntri++;
+              break;
 
-      case 0x0C: // OK
-        vertexInterp(nfld, value, f, poscellN,
-                     f0, f3, ind0, ind3,
-                     fisop, npt);
-        vertexInterp(nfld, value, f, poscellN,
-                     f0, f2, ind0, ind2,
-                     fisop, npt);
-        vertexInterp(nfld, value, f, poscellN,
-                     f1, f3, ind1, ind3,
-                     fisop, npt);
-        ciso1[ntri] = npt-2;
-        ciso2[ntri] = npt-1;
-        ciso3[ntri] = npt;
-        ntri++;
-        
-        vertexInterp(nfld, value, f, poscellN,
-                     f1, f3, ind1, ind3,
-                     fisop, npt);
-        vertexInterp(nfld, value, f, poscellN,
-                     f1, f2, ind1, ind2,
-                     fisop, npt);
-        vertexInterp(nfld, value, f, poscellN,
-                     f0, f2, ind0, ind2,
-                     fisop, npt);
-        ciso1[ntri] = npt;
-        ciso2[ntri] = npt-1;
-        ciso3[ntri] = npt-2;
-        ntri++;
-        break;
+              case 0x0C: // OK
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f0, f3, ind0, ind3,
+                           fisop, npt);
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f0, f2, ind0, ind2,
+                           fisop, npt);
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f1, f3, ind1, ind3,
+                           fisop, npt);
+              ciso1[ntri] = npt-2;
+              ciso2[ntri] = npt-1;
+              ciso3[ntri] = npt;
+              ntri++;
 
-      case 0x03:
-        vertexInterp(nfld, value, f, poscellN,
-                     f0, f3, ind0, ind3,
-                     fisop, npt);
-        vertexInterp(nfld, value, f, poscellN,
-                     f0, f2, ind0, ind2,
-                     fisop, npt);
-        vertexInterp(nfld, value, f, poscellN,
-                     f1, f3, ind1, ind3,
-                     fisop, npt);
-        ciso1[ntri] = npt-2;
-        ciso2[ntri] = npt-1;
-        ciso3[ntri] = npt;
-        ntri++;
-        
-        vertexInterp(nfld, value, f, poscellN,
-                     f1, f3, ind1, ind3,
-                     fisop, npt);
-        vertexInterp(nfld, value, f, poscellN,
-                     f1, f2, ind1, ind2,
-                     fisop, npt);
-        vertexInterp(nfld, value, f, poscellN,
-                     f0, f2, ind0, ind2,
-                     fisop, npt);
-        ciso1[ntri] = npt-2;
-        ciso2[ntri] = npt-1;
-        ciso3[ntri] = npt;
-        ntri++;
-        break;
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f1, f3, ind1, ind3,
+                           fisop, npt);
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f1, f2, ind1, ind2,
+                           fisop, npt);
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f0, f2, ind0, ind2,
+                           fisop, npt);
+              ciso1[ntri] = npt;
+              ciso2[ntri] = npt-1;
+              ciso3[ntri] = npt-2;
+              ntri++;
+              break;
 
-      case 0x0B: // OK
-        vertexInterp(nfld, value, f, poscellN,
-                     f2, f0, ind2, ind0,
-                     fisop, npt);
-        vertexInterp(nfld, value, f, poscellN,
-                     f2, f1, ind2, ind1,
-                     fisop, npt);
-        vertexInterp(nfld, value, f, poscellN,
-                     f2, f3, ind2, ind3,
-                     fisop, npt);
-        ciso1[ntri] = npt;
-        ciso2[ntri] = npt-1;
-        ciso3[ntri] = npt-2;
-        ntri++;
-        break;
+              case 0x03:
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f0, f3, ind0, ind3,
+                           fisop, npt);
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f0, f2, ind0, ind2,
+                           fisop, npt);
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f1, f3, ind1, ind3,
+                           fisop, npt);
+              ciso1[ntri] = npt-2;
+              ciso2[ntri] = npt-1;
+              ciso3[ntri] = npt;
+              ntri++;
 
-      case 0x04: // OK
-        vertexInterp(nfld, value, f, poscellN,
-                     f2, f0, ind2, ind0,
-                     fisop, npt);
-        vertexInterp(nfld, value, f, poscellN,
-                     f2, f1, ind2, ind1,
-                     fisop, npt);
-        vertexInterp(nfld, value, f, poscellN,
-                     f2, f3, ind2, ind3,
-                     fisop, npt);
-        ciso1[ntri] = npt-2;
-        ciso2[ntri] = npt-1;
-        ciso3[ntri] = npt;
-        ntri++;
-        break;
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f1, f3, ind1, ind3,
+                           fisop, npt);
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f1, f2, ind1, ind2,
+                           fisop, npt);
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f0, f2, ind0, ind2,
+                           fisop, npt);
+              ciso1[ntri] = npt-2;
+              ciso2[ntri] = npt-1;
+              ciso3[ntri] = npt;
+              ntri++;
+              break;
 
-      case 0x0A:
-        vertexInterp(nfld, value, f, poscellN,
-                     f0, f1, ind0, ind1,
-                     fisop, npt);
-        vertexInterp(nfld, value, f, poscellN,
-                     f2, f3, ind2, ind3,
-                     fisop, npt);
-        vertexInterp(nfld, value, f, poscellN,
-                     f0, f3, ind0, ind3,
-                     fisop, npt);
-        ciso1[ntri] = npt;
-        ciso2[ntri] = npt-1;
-        ciso3[ntri] = npt-2;
-        ntri++;
+              case 0x0B: // OK
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f2, f0, ind2, ind0,
+                           fisop, npt);
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f2, f1, ind2, ind1,
+                           fisop, npt);
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f2, f3, ind2, ind3,
+                           fisop, npt);
+              ciso1[ntri] = npt;
+              ciso2[ntri] = npt-1;
+              ciso3[ntri] = npt-2;
+              ntri++;
+              break;
 
-        vertexInterp(nfld, value, f, poscellN,
-                     f0, f1, ind0, ind1,
-                     fisop, npt);
-        vertexInterp(nfld, value, f, poscellN,
-                     f1, f2, ind1, ind2,
-                     fisop, npt);
-        vertexInterp(nfld, value, f, poscellN,
-                     f2, f3, ind2, ind3,
-                     fisop, npt);
-        ciso1[ntri] = npt;
-        ciso2[ntri] = npt-1;
-        ciso3[ntri] = npt-2;
-        ntri++;
-        break;
+              case 0x04: // OK
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f2, f0, ind2, ind0,
+                           fisop, npt);
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f2, f1, ind2, ind1,
+                           fisop, npt);
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f2, f3, ind2, ind3,
+                           fisop, npt);
+              ciso1[ntri] = npt-2;
+              ciso2[ntri] = npt-1;
+              ciso3[ntri] = npt;
+              ntri++;
+              break;
 
-      case 0x05:
-        vertexInterp(nfld, value, f, poscellN,
-                     f0, f1, ind0, ind1,
-                     fisop, npt);
-        vertexInterp(nfld, value, f, poscellN,
-                     f2, f3, ind2, ind3,
-                     fisop, npt);
-        vertexInterp(nfld, value, f, poscellN,
-                     f0, f3, ind0, ind3,
-                     fisop, npt);
-        ciso1[ntri] = npt-2;
-        ciso2[ntri] = npt-1;
-        ciso3[ntri] = npt;
-        ntri++;
+              case 0x0A:
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f0, f1, ind0, ind1,
+                           fisop, npt);
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f2, f3, ind2, ind3,
+                           fisop, npt);
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f0, f3, ind0, ind3,
+                           fisop, npt);
+              ciso1[ntri] = npt;
+              ciso2[ntri] = npt-1;
+              ciso3[ntri] = npt-2;
+              ntri++;
 
-        vertexInterp(nfld, value, f, poscellN,
-                     f0, f1, ind0, ind1,
-                     fisop, npt);
-        vertexInterp(nfld, value, f, poscellN,
-                     f1, f2, ind1, ind2,
-                     fisop, npt);
-        vertexInterp(nfld, value, f, poscellN,
-                     f2, f3, ind2, ind3,
-                     fisop, npt);
-        ciso1[ntri] = npt-2;
-        ciso2[ntri] = npt-1;
-        ciso3[ntri] = npt;
-        ntri++;
-        break;
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f0, f1, ind0, ind1,
+                           fisop, npt);
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f1, f2, ind1, ind2,
+                           fisop, npt);
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f2, f3, ind2, ind3,
+                           fisop, npt);
+              ciso1[ntri] = npt;
+              ciso2[ntri] = npt-1;
+              ciso3[ntri] = npt-2;
+              ntri++;
+              break;
 
-      case 0x09: // OK
-        vertexInterp(nfld, value, f, poscellN,
-                     f0, f1, ind0, ind1,
-                     fisop, npt);
-        vertexInterp(nfld, value, f, poscellN,
-                     f1, f3, ind1, ind3,
-                     fisop, npt);
-        vertexInterp(nfld, value, f, poscellN,
-                     f2, f3, ind2, ind3,
-                     fisop, npt);
-        ciso1[ntri] = npt; // OK
-        ciso2[ntri] = npt-1;
-        ciso3[ntri] = npt-2;
-        ntri++;
+              case 0x05:
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f0, f1, ind0, ind1,
+                           fisop, npt);
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f2, f3, ind2, ind3,
+                           fisop, npt);
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f0, f3, ind0, ind3,
+                           fisop, npt);
+              ciso1[ntri] = npt-2;
+              ciso2[ntri] = npt-1;
+              ciso3[ntri] = npt;
+              ntri++;
 
-        vertexInterp(nfld, value, f, poscellN,
-                     f0, f1, ind0, ind1,
-                     fisop, npt);
-        vertexInterp(nfld, value, f, poscellN,
-                     f0, f2, ind0, ind2,
-                     fisop, npt);
-        vertexInterp(nfld, value, f, poscellN,
-                     f2, f3, ind2, ind3,
-                     fisop, npt);
-        ciso1[ntri] = npt-2; // OK
-        ciso2[ntri] = npt-1;
-        ciso3[ntri] = npt;
-        ntri++;
-      break;
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f0, f1, ind0, ind1,
+                           fisop, npt);
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f1, f2, ind1, ind2,
+                           fisop, npt);
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f2, f3, ind2, ind3,
+                           fisop, npt);
+              ciso1[ntri] = npt-2;
+              ciso2[ntri] = npt-1;
+              ciso3[ntri] = npt;
+              ntri++;
+              break;
 
-      case 0x06:
-        vertexInterp(nfld, value, f, poscellN,
-                     f0, f1, ind0, ind1,
-                     fisop, npt);
-        vertexInterp(nfld, value, f, poscellN,
-                     f1, f3, ind1, ind3,
-                     fisop, npt);
-        vertexInterp(nfld, value, f, poscellN,
-                     f2, f3, ind2, ind3,
-                     fisop, npt);
-        ciso1[ntri] = npt-2; // OK
-        ciso2[ntri] = npt-1;
-        ciso3[ntri] = npt;
-        ntri++;
+              case 0x09: // OK
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f0, f1, ind0, ind1,
+                           fisop, npt);
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f1, f3, ind1, ind3,
+                           fisop, npt);
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f2, f3, ind2, ind3,
+                           fisop, npt);
+              ciso1[ntri] = npt; // OK
+              ciso2[ntri] = npt-1;
+              ciso3[ntri] = npt-2;
+              ntri++;
 
-        vertexInterp(nfld, value, f, poscellN,
-                     f0, f1, ind0, ind1,
-                     fisop, npt);
-        vertexInterp(nfld, value, f, poscellN,
-                     f0, f2, ind0, ind2,
-                     fisop, npt);
-        vertexInterp(nfld, value, f, poscellN,
-                     f2, f3, ind2, ind3,
-                     fisop, npt);
-        ciso1[ntri] = npt;
-        ciso2[ntri] = npt-1;
-        ciso3[ntri] = npt-2;
-        ntri++;
-      break;
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f0, f1, ind0, ind1,
+                           fisop, npt);
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f0, f2, ind0, ind2,
+                           fisop, npt);
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f2, f3, ind2, ind3,
+                           fisop, npt);
+              ciso1[ntri] = npt-2; // OK
+              ciso2[ntri] = npt-1;
+              ciso3[ntri] = npt;
+              ntri++;
+              break;
 
-      case 0x07:
-        vertexInterp(nfld, value, f, poscellN,
-                     f3, f0, ind3, ind0,
-                     fisop, npt);
-        vertexInterp(nfld, value, f, poscellN,
-                     f3, f2, ind3, ind2,
-                     fisop, npt);
-        vertexInterp(nfld, value, f, poscellN,
-                     f3, f1, ind3, ind1,
-                     fisop, npt);
-        ciso1[ntri] = npt-2;
-        ciso2[ntri] = npt-1;
-        ciso3[ntri] = npt;
-        ntri++;
-        break;
+              case 0x06:
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f0, f1, ind0, ind1,
+                           fisop, npt);
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f1, f3, ind1, ind3,
+                           fisop, npt);
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f2, f3, ind2, ind3,
+                           fisop, npt);
+              ciso1[ntri] = npt-2; // OK
+              ciso2[ntri] = npt-1;
+              ciso3[ntri] = npt;
+              ntri++;
 
-      case 0x08: // OK
-        vertexInterp(nfld, value, f, poscellN,
-                     f3, f0, ind3, ind0,
-                     fisop, npt);
-        vertexInterp(nfld, value, f, poscellN,
-                     f3, f2, ind3, ind2,
-                     fisop, npt);
-        vertexInterp(nfld, value, f, poscellN,
-                     f3, f1, ind3, ind1,
-                     fisop, npt);
-        ciso1[ntri] = npt-2;
-        ciso2[ntri] = npt-1;
-        ciso3[ntri] = npt;
-        ntri++;
-        break;
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f0, f1, ind0, ind1,
+                           fisop, npt);
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f0, f2, ind0, ind2,
+                           fisop, npt);
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f2, f3, ind2, ind3,
+                           fisop, npt);
+              ciso1[ntri] = npt;
+              ciso2[ntri] = npt-1;
+              ciso3[ntri] = npt-2;
+              ntri++;
+              break;
+
+              case 0x07:
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f3, f0, ind3, ind0,
+                           fisop, npt);
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f3, f2, ind3, ind2,
+                           fisop, npt);
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f3, f1, ind3, ind1,
+                           fisop, npt);
+              ciso1[ntri] = npt-2;
+              ciso2[ntri] = npt-1;
+              ciso3[ntri] = npt;
+              ntri++;
+              break;
+
+              case 0x08: // OK
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f3, f0, ind3, ind0,
+                           fisop, npt);
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f3, f2, ind3, ind2,
+                           fisop, npt);
+              vertexInterp(nfld, value, ffp, poscellN,
+                           f3, f1, ind3, ind1,
+                           fisop, npt);
+              ciso1[ntri] = npt-2;
+              ciso2[ntri] = npt-1;
+              ciso3[ntri] = npt;
+              ntri++;
+              break;
+            }
+          }
+        }
+      }
     }
-  }
-  }
 
-  // rebuild
-  E_Int ntri = 0; E_Int npt = 0;
-  for (E_Int i = 0; i < nthreads; i++) 
-  { prevT[i] = ntri; ntri += ntris[i]; 
-    prevF[i] = npt; npt += npts[i]; }
-  //printf("%d %d\n", npt, ntri);
+    // rebuild
+    E_Int ntri = 0; E_Int npt = 0;
+    for (E_Int i = 0; i < nthreads; i++) 
+      { prevT[i] = ntri; ntri += ntris[i]; 
+        prevF[i] = npt; npt += npts[i]; }
+    //printf("%d %d\n", npt, ntri);
 
-  fiso.malloc(npt, nfld);
-  ciso.malloc(ntri, 3);
+    fiso.malloc(npt, nfld); // a mettre en array2
+    ciso.malloc(ntri, 3);
   
 #pragma omp parallel default(shared)
-  {
-  E_Int ithread = __CURRENT_THREAD__;
-  E_Int nq = ntris[ithread];
-  E_Int p = prevT[ithread];
-  E_Int f = prevF[ithread];
-  for (E_Int n = 1; n <= 3; n++)
-  {
-    E_Int* cisop = ciso.begin(n);
-    E_Int* cisol = cisos[ithread]->begin(n);
-    for (E_Int e = 0; e < nq; e++) cisop[e+p] = cisol[e]+f;
-  }
-  E_Int np = npts[ithread];
-  for (E_Int n = 1; n <= nfld; n++)
-  {
-    E_Float* fisop = fiso.begin(n);
-    E_Float* fisol = fisos[ithread]->begin(n);
-    for (E_Int e = 0; e < np; e++) fisop[e+f] = fisol[e];
-  }
+    {
+    E_Int ithread = __CURRENT_THREAD__;
+    E_Int nq = ntris[ithread];
+    E_Int p = prevT[ithread];
+    E_Int f = prevF[ithread];
+    for (E_Int n = 1; n <= 3; n++)
+    {
+      E_Int* cisop = ciso.begin(n);
+      E_Int* cisol = cisos[ithread]->begin(n);
+      for (E_Int e = 0; e < nq; e++) cisop[e+p] = cisol[e]+f;
+    }
+    E_Int np = npts[ithread];
+    for (E_Int n = 1; n <= nfld; n++)
+    {
+      E_Float* fisop = fiso.begin(n);
+      E_Float* fisol = fisos[ithread]->begin(n);
+      for (E_Int e = 0; e < np; e++) fisop[e+f] = fisol[e];
+    }
   }
   delete [] prevT; delete [] prevF;
   delete [] npts; delete [] ntris;
   for (E_Int i = 0; i < nthreads; i++) delete fisos[i];
   for (E_Int i = 0; i < nthreads; i++) delete cisos[i];
   delete [] fisos; delete [] cisos;
+
+  } // dim=3
+
 }

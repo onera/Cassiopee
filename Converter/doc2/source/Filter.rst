@@ -13,6 +13,8 @@ To use the module::
 
     import Converter.Filter as Filter
 
+.. py:module:: Converter.Filter
+
 List of functions
 ##################
 

@@ -32,63 +32,63 @@ List of functions
 
 .. autosummary::
 
-   point
-   line
-   polyline
-   circle
-   naca
-   spline
-   nurbs
-   bezier
-   curve
-   surface
-   cone
-   torus
-   sphere
-   sphere6
-   sphereYinYang
-   disc
-   triangle
-   quadrangle
-   box
-   cylinder
+   Geom.point
+   Geom.line
+   Geom.polyline
+   Geom.circle
+   Geom.naca
+   Geom.spline
+   Geom.nurbs
+   Geom.bezier
+   Geom.curve
+   Geom.surface
+   Geom.cone
+   Geom.torus
+   Geom.sphere
+   Geom.sphere6
+   Geom.sphereYinYang
+   Geom.disc
+   Geom.triangle
+   Geom.quadrangle
+   Geom.box
+   Geom.cylinder
 
 **-- Typing text using meshes**
 
 .. autosummary::
 
-   text1D
-   text2D
-   text3D
+   Geom.text1D
+   Geom.text2D
+   Geom.text3D
 
 **-- Geometry modification**
 
 .. autosummary::
 
-   uniformize
-   refine
-   enforceh 
-   lineGenerate
-   axisym
-   connect1D
+   Geom.uniformize
+   Geom.refine
+   Geom.enforceh 
+   Geom.lineGenerate
+   Geom.axisym
+   Geom.connect1D
 
-   .. volumeFromCrossSections
-   .. addSeparationLine
+   .. Geom.volumeFromCrossSections
+   .. Geom.addSeparationLine
 
 **-- Information about geometries**
 
 .. autosummary::
 
-   getLength
-   getDistantIndex
-   getNearestPointIndex
-   getCurvatureRadius
-   getCurvatureAngle
-   getCurvatureHeight
-   getSharpestAngle
-   getCurvilinearAbscissa
-   getDistribution
-   getTangent
+   Geom.getLength
+   Geom.getDistantIndex
+   Geom.getNearestPointIndex
+   Geom.getCurvatureRadius
+   Geom.getCurvatureAngle
+   Geom.getCurvatureHeight
+   Geom.getSharpestAngle
+   Geom.getCurvilinearAbscissa
+   Geom.getDistribution
+   Geom.getTangent
 
 
 Contents

@@ -51,7 +51,7 @@ numpy array corresponding to the **value** stored in node;
 *'Type_t'* is a string describing the node **type**; *node children list* is a
 list of pyTree nodes that are the children of this node.
 
-.. py:module:: Internal
+.. py:module:: Converter.Internal
 
 
 List of functions
