@@ -800,7 +800,7 @@ pyTree creation and manipulation
 
 ---------------------------------------------------------------------------
 
-.. py:function:: Converter.PyTree.extractBCOfType(a, bndType)
+.. py:function:: Converter.PyTree.extractBCOfType(a, bndType,topTree=None,reorder=True)
 
     Extract all boundaries of a given type. Returns a list of zones.
     Each zone corresponds to one boundary condition. 
@@ -816,6 +816,10 @@ pyTree creation and manipulation
     :type a: [pyTree, base, zone, list of zones]
     :param bndType: type of BC to extract (accepts wildcards)
     :type bndType: string
+    :param topTree: top tree if a is a zone and contains families of BCs.
+    :type topTree: pyTree
+    :param reorder: if True, extracted zones are reordered such that normals are oriented towards the interior of a.
+    :type reorder: Boolean
     :rtype: list of zones
 
     *Example of use:*
@@ -826,7 +830,7 @@ pyTree creation and manipulation
 
 ---------------------------------------------------------------------------
 
-.. py:function:: Converter.PyTree.extractBCOfName(a, bndName)
+.. py:function:: Converter.PyTree.extractBCOfName(a, bndName, reorder=True)
 
     Extract all boundaries of a given name. Returns a list of zones.
     Each zone corresponds to one boundary condition. 
@@ -842,6 +846,8 @@ pyTree creation and manipulation
     :type a: [pyTree, base, zone, list of zones]
     :param bndName: name of BC to extract (accepts wildcards)
     :type bndName: string
+    :param reorder: if True, extracted zones are reordered such that normals are oriented towards the interior of a.
+    :type reorder: Boolean
     :rtype: list of zones
 
     *Example of use:*

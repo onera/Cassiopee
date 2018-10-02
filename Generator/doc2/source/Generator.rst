@@ -890,6 +890,8 @@ Cartesian grid generators
 .. py:function:: Generator.octree(surfs, snears, dfar=5., balancing=0, levelMax=1000, ratio=2, octant=None)
 
     Create a QUAD quadtree mesh in 2D or an HEXA octree mesh in 3D starting from a list of bodies and snears. Each parameter snear is the required spatial step of the octree near the corresponding body; dfar is the extension of the octree mesh in all the directions; balancing=1 means that the octree is balanced, i.e. adjacent elements are at worst twice as big/small; levelMax is the maximum number of levels required. If ratio=2, then a classical octree mesh is built. If ratio=3, a 27-tree mesh is built, in which case the spacing ratio is 3 (and not 2) between two adjacent elements. 
+    Parameter balancing enables to balance the octree; balancing=0 means no balancing; balancing=1 means a classical balancing, whereas
+    balancing=2 takes also into account elements sharing a common vertex.
 
     :param surfs:  body grids
     :type  surfs:  list of arrays/pyTrees
@@ -897,7 +899,7 @@ Cartesian grid generators
     :type  snears:  list of floats
     :param dfar:  maximal distance to the body grids
     :type  dfar:  float
-    :param balancing:  activation key for balanced octree (0 or 1)
+    :param balancing:  activation key for balanced octree (0, 1 or 2)
     :type  balancing:  integer
     :param levelMax:  maximum number of levels
     :type  levelMax:  integer
@@ -961,7 +963,7 @@ Cartesian grid generators
     :type  octree:  array or pyTree
     :param indicator:  field of values to indicate where to refine, coarsen or maintain the octree grid
     :type  indicator:  array or variable name in the pyTree
-    :param balancing:  activation key for balanced octree (0 or 1)
+    :param balancing:  activation key for balanced octree (0, 1 or 2, see the definition of octree function for the meaning)
     :type  balancing:  integer
     :param ratio:  spacing ratio between two adjacent elements
     :type  ratio:  integer
@@ -991,7 +993,7 @@ Cartesian grid generators
     :type  level:  integer
     :param corners:  activation key for expansion in corners (0 or 1)
     :type  corners:  integer
-    :param balancing:  activation key for balanced octree (0 or 1)
+    :param balancing:  activation key for balanced octree (0, 1 or 2, see the definition of octree function for the meaning)
     :type  balancing:  integer
     :return: modified reference copy of t
     :rtype: same as input

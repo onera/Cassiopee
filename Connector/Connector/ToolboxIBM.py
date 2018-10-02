@@ -67,7 +67,8 @@ def _modifPhysicalBCs__(zp, depth=2, dimPb=3):
 def adaptIBMMesh(t, tb, vmin, sensor, factor=1.2, DEPTH=2, NP=0, merged=1, sizeMax=4000000,
                  variables=None, refineFinestLevel=False, refineNearBodies=False, 
                  check=True, symmetry=0, externalBCType='BCFarfield', fileo='octree.cgns'):
-
+    
+    if fileo is None: raise(ValueError, "Octree mesh must be specified by a file.")
     try: to = C.convertFile2PyTree(fileo)
     except: raise(ValueError, "%s file not found."%fileo)
 
@@ -102,8 +103,8 @@ def adaptIBMMesh(t, tb, vmin, sensor, factor=1.2, DEPTH=2, NP=0, merged=1, sizeM
     # adaptation
     if len(res)==3: to = res[0]
     o = Internal.getZones(to)[0]
-    o = G.adaptOctree(o)
-    C.convertPyTree2File(o,"octree.cgns")
+    o = G.adaptOctree(o, balancing=2)
+    C.convertPyTree2File(o,fileo)
 
     t2 = generateCartMesh__(o, dimPb=dimPb, vmin=vmin, DEPTH=DEPTH, NP=NP, merged=merged, 
                             sizeMax=sizeMax, check=check, symmetry=symmetry, 
@@ -434,12 +435,12 @@ def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., DEPTH=2, NP=0, tbox=None
         i += 1
 
     if to is None:
-        o = G.octree(surfaces, snearso, dfar=dfar, balancing=1)
+        o = G.octree(surfaces, snearso, dfar=dfar, balancing=2)
         o = G.getVolumeMap(o); volmin = C.getMinValue(o, 'centers:vol')
         dxmin = (volmin)**(1./dimPb)
         if dxmin < 0.65*dxmin0: 
             snearso = [2.*i for i in snearso]
-            o = G.octree(surfaces, snearso, dfar=dfar, balancing=1)
+            o = G.octree(surfaces, snearso, dfar=dfar, balancing=2)
 
         if composite: # maillages proche corps -> maillage cubique initial decoupe
             tb_bbox = G.bbox(tb)
@@ -503,7 +504,7 @@ def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., DEPTH=2, NP=0, tbox=None
                                                                                       
             indic = Converter.addVars([indic,cellN])
             indic = Converter.initVars(indic,"{indicator}={indicator}*({cellN}>0.)")
-            octreeA = Generator.adaptOctree(octreeA, indic, balancing=1)
+            octreeA = Generator.adaptOctree(octreeA, indic, balancing=2)
             o = C.convertArrays2ZoneNode(o[0],[octreeA])
 
         to = C.newPyTree(['Base', o])
@@ -528,7 +529,7 @@ def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., DEPTH=2, NP=0, tbox=None
     else:
         o = Internal.getZones(to)[0]
 
-    C.convertPyTree2File(o,fileo)
+    if fileo is not None: C.convertPyTree2File(o,fileo)
     res = generateCartMesh__(o, dimPb=dimPb, vmin=vmin, DEPTH=DEPTH, NP=NP, merged=merged, sizeMax=sizeMax, 
                              check=check, symmetry=symmetry, externalBCType=externalBCType, mergeByParents=mergeByParents)
     return res
@@ -592,7 +593,7 @@ def addRefinementZones(o, tb, tbox, snearsf, vmin, dim):
             end = 0
             # Maintien du niveau de raffinement le plus fin
             o = Internal.getZones(to)[0]
-            o = G.adaptOctree(o, 'centers:indicator', balancing=1)
+            o = G.adaptOctree(o, 'centers:indicator', balancing=2)
             to[2][1][2] = [o]
             to = G.getVolumeMap(to)
             volminloc = C.getMinValue(to,'centers:vol')

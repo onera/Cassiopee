@@ -20,11 +20,13 @@ DEFINEDMOTIONS = {}
 
 __DEG2RAD__= pi/180.
 __RAD2DEG__= 180./pi
+
 #=============================================================================
 # Permet de definir un mouvement solide par des chaines (dependant de {t})
 # definissant:
 # la translation (tx,ty,tz), le centre de rotation (cx,cy,cz),
 # et l'axe de rotation (ex,ey,ez)
+# l angle correspond toujours a des degres
 #=============================================================================
 def setPrescribedMotion1(t, name, tx="0", ty="0", tz="0",
                          cx="0", cy="0", cz="0",
@@ -448,6 +450,7 @@ def _moveZone__(z, time):
                 angle = evalTimeString__(m, 'angle', time)
                 T._translate(z, (tx,ty,tz))
                 if (angle != 0):
+                    angle = angle#*__RAD2DEG__
                     #print 'moveZone : rotation d angle %g degres'%angle
                     T._rotate(z, (cx,cy,cz), (ex-cx,ey-cy,ez-cz), angle)
             elif dtype == 2: # type 2: rotation motion CassiopeeSolver
@@ -590,6 +593,7 @@ def _moveZone__(z, time):
                 ey = axis_vct[1]
                 ez = axis_vct[2]
                 angle = omega[0]*time*__RAD2DEG__
+                #print 'moveZone : rotation uniforme d angle %g degres'%angle
                 T._rotate(z, (cx,cy,cz), (ex-cx,ey-cy,ez-cz), angle)
     return None
     
@@ -643,8 +647,8 @@ def evalPosition(a, time, F=None):
         return evalPosition___(a, time, F)
 
 def _evalPosition(a, time, F=None):
-    if F is None: return _evalPosition__(a, time)
-    else: return _evalPosition___(a, time, F)
+  if F is None: return _evalPosition__(a, time)
+  else: return _evalPosition___(a, time, F)
 
 #=========================================================
 # Matrice de rotation  a partir des donnees de l arbre
@@ -662,8 +666,9 @@ def getMotionMatrixForZone(z, time, F=None):
       if cont is not None:
         motions = Internal.getNodesFromType1(cont, 'TimeRigidMotion_t')
         for m in motions:
-            type = Internal.getNodeFromName1(m, 'MotionType')
-            dtype = type[1][0]
+            mtype = Internal.getNodeFromName1(m, 'MotionType')
+            dtype = mtype[1][0]
+            #print 'motion type = ', dtype
             if dtype == 1: # type 1: time string
                 cx = evalTimeString__(m, 'cx', time)
                 cy = evalTimeString__(m, 'cy', time)
@@ -672,7 +677,7 @@ def getMotionMatrixForZone(z, time, F=None):
                 ey = evalTimeString__(m, 'ey', time)
                 ez = evalTimeString__(m, 'ez', time)
                 theta = evalTimeString__(m, 'angle', time)
-                #print 'theta = %g radians'%theta
+                #print 'theta = %g degres.'%theta
                 # theta doit etre en radians
                 theta = theta*__DEG2RAD__
                 return getRotationMatrix__(cx,cy,cz,ex,ey,ez,theta)
@@ -692,6 +697,7 @@ def getMotionMatrixForZone(z, time, F=None):
                 ey = axis_vct[1]
                 ez = axis_vct[2]
                 theta = omega[0]*time
+                print 'theta = ', theta
                 # getRotationMatrix : theta en radians
                 return getRotationMatrix__(cx,cy,cz,ex,ey,ez,theta)
             else:
@@ -705,37 +711,43 @@ def getMotionMatrixForZone(z, time, F=None):
 
 #getRotationMatrix : l angle theta doit etre en radians
 def getRotationMatrix__(cx,cy,cz,ex,ey,ez,theta):
-    Rot = numpy.zeros((3,3), numpy.float64)
 
-    vnorm = sqrt(ex*ex+ey*ey+ez*ez)
-    if ( vnorm < 1.e-12): return Rot
+  #print 'theta = %g degres'%(theta*__RAD2DEG__)
+  Rot = numpy.zeros((3,3), numpy.float64)
 
-    vnorm = 1./vnorm
-    v1 = ex*vnorm; v2 = ey*vnorm; v3 = ez*vnorm
+  vnorm = sqrt(ex*ex+ey*ey+ez*ez)
+  if ( vnorm < 1.e-12): return Rot
 
-    t1 =  cos(theta)
-    t2 =  1.-t1
-    t3 =  v1*v1
-    t6 =  t2*v1
-    t7 =  t6*v2
-    t8 =  sin(theta)
-    t9 =  t8*v3
-    t11 = t6*v3
-    t12 = t8*v2
-    t15 = v2*v2
-    t19 = t2*v2*v3
-    t20 = t8*v1
-    t24 = v3*v3
-    Rot[0,0] = t1 + t2*t3
-    Rot[0,1] = t7 - t9
-    Rot[0,2] = t11 + t12
-    Rot[1,0] = t7 + t9
-    Rot[1,1] = t1 + t2*t15
-    Rot[1,2] = t19 - t20
-    Rot[2,0] = t11 - t12
-    Rot[2,1] = t19 + t20
-    Rot[2,2] = t1 + t2*t24
-    return Rot
+  vnorm = 1./vnorm
+  v1 = ex*vnorm; v2 = ey*vnorm; v3 = ez*vnorm
+
+  t1 =  cos(theta)
+  t2 =  1.-t1
+  t3 =  v1*v1
+  t6 =  t2*v1
+  t7 =  t6*v2
+  t8 =  sin(theta)
+  t9 =  t8*v3
+  t11 = t6*v3
+  t12 = t8*v2
+  t15 = v2*v2
+  t19 = t2*v2*v3
+  t20 = t8*v1
+  t24 = v3*v3
+  Rot[0,0] = t1 + t2*t3
+  Rot[0,1] = t7 - t9
+  Rot[0,2] = t11 + t12
+  Rot[1,0] = t7 + t9
+  Rot[1,1] = t1 + t2*t15
+  Rot[1,2] = t19 - t20
+  Rot[2,0] = t11 - t12
+  Rot[2,1] = t19 + t20
+  Rot[2,2] = t1 + t2*t24
+  print 'Matrice de rotation de RigidMotion en x : ', Rot[0,:]
+  print 'Matrice de rotation de RigidMotion en y : ', Rot[1,:]
+  print 'Matrice de rotation de RigidMotion en z : ', Rot[2,:]
+
+  return Rot
 
 
 # Applique la formule XP=d+r*(XN-c) sur des numpys de coordonnees

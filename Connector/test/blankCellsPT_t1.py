@@ -8,12 +8,12 @@ import KCore.test as test
 import numpy
 
 surf = D.sphere((0,0,0), 0.5, 20)
-surf = T.rotate(surf,(0.,0.,0.),(0.,1.,0.), 90.)
+T._rotate(surf,(0.,0.,0.),(0.,1.,0.), 90.)
 a = G.cart((-1.,-1.,-1.),(0.1,0.1,0.1), (20,20,20))
-a = C.addBC2Zone(a, 'ov', 'BCOverlap', 'jmin')
+C._addBC2Zone(a, 'ov', 'BCOverlap', 'jmin')
 t = C.newPyTree(['Cart',a])
 t[2][1] = C.addState(t[2][1], 'EquationDimension', 3)
-t = C.fillEmptyBCWith(t, 'wall', 'BCWall')
+C._fillEmptyBCWith(t, 'wall', 'BCWall')
 C._addVars(t, 'Density')
 bodies = [[surf]]
 C._initVars(t, 'centers:cellN', 1.)

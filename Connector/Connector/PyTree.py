@@ -993,8 +993,81 @@ def blankCells(t, bodies, blankingMatrix=[], depth=2,
         nb += 1
     return a
 #==============================================================================
-# Masquage
+# Masquage de t par tb (arbre de bodies)
+# arbres des BB de t et tb
 #==============================================================================
+def _blankCellsOpt(t, tb, blankingMatrix, depth=2, blankingType='cell_intersect', delta=1.e-10,
+                   dim=3, tol = 1.e-8, XRaydim1=1000, XRaydim2=1000, cellNName='cellN',
+                   tBB = None, tbBB = None):
+    try: import Generator.PyTree as G
+    except: raise ImportError("_blankCellsOpt: requires Generator.PyTree module.")
+    if (depth != 1 and depth != 2):
+        print 'Warning: blankCellsOpt: depth must be equal to 1 or 2. Set to default value (2).'
+        depth = 2
+    if blankingType== 'center_in':
+        print 'WARNING: _blankCellsOpt: cannot be applied yet with center_in.'
+        #raise ValueError("_blankCells : cannot be applied yet with center_in.")
+        blankingType='cell_intersect'
+
+    if (blankingType != 'cell_intersect' and \
+        blankingType != 'cell_intersect_opt' and \
+        blankingType != 'center_in' and \
+        blankingType != 'node_in'):
+        print 'Warning: blankCellsOpt: blankingType must be cell_intersect, cell_intersect_opt, center_in or node_in.'
+        print 'Set to default (cell_intersect).'
+        blankingType = 'cell_intersect'
+
+    blankType = 1 # par defaut: cell_intersect
+    if blankingType == 'node_in': blankType = 0
+    elif blankingType == 'cell_intersect': blankType = 1
+    elif blankingType == 'center_in': blankType = 2
+    elif blankingType == 'cell_intersect_opt':
+        if depth == 2: blankType = -2
+        else: blankType = -1
+    else:
+        print 'Warning: blankCellsOpt: blankingType must be cell_intersect, cell_intersect_opt, center_in or node_in.'
+        print 'Set to default (cell_intersect).'
+        blankType = 1
+    loc = 'centers'
+    if blankType == 0: loc = 'nodes' 
+
+    varCellN = cellNName
+    if loc == 'centers': varCellN='centers:'+varCellN
+
+    nobody=0
+    for nos in xrange(len(tb[2])):
+        if tb[2][nos][3]=='CGNSBase_t':
+            bodyZones = Internal.getZones(tb[2][nos])
+            if len(bodyZones)>0: 
+                bodies = C.getFields(Internal.__GridCoordinates__,bodyZones)# pas d api=2 car peut etre non structure
+
+                nobase=0
+                for nob in xrange(len(t[2])):
+                    if t[2][nob][3]=='CGNSBase_t':
+                        blanking = blankingMatrix[nobase,nobody]
+                        if blanking == 1 or blanking==-1:
+                            masknot = 0
+                            if blanking == -1: masknot = 1
+
+                            allcoords=[]; allCellN = []
+                            for noz in xrange(len(t[2][nob][2])):
+                                z = t[2][nob][2][noz]
+                                if z[3]=='Zone_t':
+                                    for zb in Internal.getZones(tbBB[2][nos]):
+                                        if G.bboxIntersection(tBB[2][nob][2][noz], zb,isBB=True)==1:
+                                            coordsZ = C.getFields(Internal.__GridCoordinates__, z, api=2)[0]
+                                            cellN = C.getField(varCellN,z,api=2)[0]
+                                            allcoords.append(coordsZ)
+                                            allCellN.append(cellN)
+                            if allcoords != [] and len(allcoords)==len(allCellN):
+                                Connector._blankCells(allcoords, allCellN, bodies, blankingType=blankType, \
+                                                      delta=delta, dim=dim, masknot=masknot, tol=tol,\
+                                                      XRaydim1=XRaydim1, XRaydim2=XRaydim2, cellNName=cellNName)
+                        nobase+=1
+
+            nobody+=1
+    return None
+
 def _blankCells(a, bodies, blankingMatrix=[], depth=2,
                 blankingType='cell_intersect', delta=1.e-10, dim=3,
                 tol=1.e-8, XRaydim1=1000, XRaydim2=1000, cellNName='cellN'):
@@ -1003,6 +1076,10 @@ def _blankCells(a, bodies, blankingMatrix=[], depth=2,
     if (depth != 1 and depth != 2):
         print 'Warning: blankCells: depth must be equal to 1 or 2. Set to default value (2).'
         depth = 2
+    if blankingType== 'center_in':
+        print 'WARNING: _blankCells : cannot be applied yet with center_in.'
+        #raise ValueError("_blankCells : cannot be applied yet with center_in.")
+        blankingType='cell_intersect'
 
     if (blankingType != 'cell_intersect' and \
         blankingType != 'cell_intersect_opt' and \
@@ -1035,7 +1112,7 @@ def _blankCells(a, bodies, blankingMatrix=[], depth=2,
 
     if blankingMatrix == []: blankingMatrix = numpy.ones((len(bases), len(bodies)), numpy.int32)
     for b in bases:
-        coords = C.getFields(Internal.__GridCoordinates__, b, api=2)
+        coords = C.getFields(Internal.__GridCoordinates__, b, api=2) # api=1 a cause de node2Center en center_in dans le Connector.py
         if coords != []:
             if loc == 'centers': cellN = C.getField('centers:'+cellNName, b,api=2)
             else: cellN = C.getField(cellNName, b,api=2)

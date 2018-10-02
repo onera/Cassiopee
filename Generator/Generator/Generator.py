@@ -6,7 +6,7 @@ __author__ = "Stephanie Peron, Sam Landier, Christophe Benoit, Gaelle Jeanfaivre
 # Python Interface to create arrays defining meshes
 #
 import generator
-
+import numpy
 def cart(Xo, H, N, api=1):
     """Create a cartesian mesh defined by a structured array.
     Usage: cart((xo,yo,zo), (hi,hj,hk), (ni,nj,nk))"""
@@ -1117,7 +1117,7 @@ def mapSplit(array, dist, splitCrit=100., densMax=1000):
 def mapSplitStruct__(array, dist, splitCrit, densMax):
     import KCore
     try: 
-        import numpy; import math
+        import math
         import Converter as C; import Transform as T
         import Geom as D
     except:
@@ -1524,19 +1524,20 @@ def octree(stlArrays, snearList, dfar=5., balancing=0, levelMax=1000, ratio=2, o
     if ratio == 2:
         o = generator.octree(s, snearList, dfar, levelMax, octant)
         if balancing == 0: return o
-        else: return balanceOctree__(o,2)
+        elif balancing==1: return balanceOctree__(o, 2, corners=0)
+        elif balancing==2: return balanceOctree__(o, 2, corners=1)
     else: #27-tree
         o = generator.octree3(s, snearList, dfar, levelMax, octant)
         if balancing == 0: return o
-        else: return balanceOctree__(o,3)
+        else: return balanceOctree__(o,3, corners=0)
 
 def conformOctree3(octree):
     """Conformize an octree3.
     Usage: conformOctree3(octree)"""
     return generator.conformOctree3(octree)
     
-def balanceOctree__(octree, ratio=2):
-    return generator.balanceOctree(octree, ratio)
+def balanceOctree__(octree, ratio=2, corners=0):
+    return generator.balanceOctree(octree, ratio, corners)
 
 def extendOctreeGrids__(A, ext, optimized):
     """Extend grids with ext cells. If optimized is ext, the minimum overlapping is ensured.
@@ -1546,7 +1547,6 @@ def extendOctreeGrids__(A, ext, optimized):
 def adaptOctree(octreeHexa, indicField, balancing=1, ratio=2):
     """Adapt an unstructured octree w.r.t. the indicatorField -n,0,n defined for each element.
     Usage: adaptOctree(o, indicField, balancing)"""
-    import numpy
     ok = 1
     hexa = octreeHexa; indic = indicField
     while ok != 0:
@@ -1558,7 +1558,9 @@ def adaptOctree(octreeHexa, indicField, balancing=1, ratio=2):
         ret = numpy.count_nonzero(indic2)
         if ret > 0: ok = 1
     if balancing == 0: return hexa
-    else: return balanceOctree__(hexa, ratio)
+    elif balancing==1: return balanceOctree__(hexa, ratio, corners=0)
+    elif balancing==2: return balanceOctree__(hexa, ratio, corners=1)
+    else: raise ValueError("adaptOctree: bad value for balancing argument.")
 
 def expandLayer(octreeHexa, level=0, corners=0, balancing=0):
     """Expand the layer of octree elements of level l of one additional layer.
@@ -1575,7 +1577,7 @@ def expandLayer(octreeHexa, level=0, corners=0, balancing=0):
 
 # addnormallayers pour une liste d'arrays structures
 def addNormalLayersStruct__(surfaces, distrib, check=0, niter=0, eps=0.4):
-    import KCore; import numpy
+    import KCore
     try: import Converter as C; import Transform as T
     except: raise ImportError("addNormalLayers: requires Converter, Transform modules.")   
     kmax = distrib[1].shape[1] # nb of layers in the normal direction

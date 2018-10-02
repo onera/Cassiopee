@@ -119,7 +119,8 @@ Contents
 
 .. py:function:: RigidMotion.setPrescribedMotion3(a, motionName, transl_speed, axis_pnt, axis_vct, omega)
 
-    Set a precribed motion defined by a constant speed rotation and translation. omega is in rad/time unit.
+    Set a precribed motion defined by a constant speed rotation and translation. 
+    omega is in rad/time unit.
 
     :param a: Input data
     :type  a: [array, list of arrays] or [pyTree, base, zone, list of zones]

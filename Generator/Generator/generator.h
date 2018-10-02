@@ -363,8 +363,10 @@ namespace K_GENERATOR
                            FldArrayF& fo, FldArrayI& cno, FldArrayI& levelso, 
                            E_Int& no, E_Int& eto);
   /* Balancing of an octree or an octree3 */
+
   void checkBalancing2(FldArrayI& cn, FldArrayF& coords);
   void checkBalancing3(FldArrayI& cn, FldArrayF& coords);
+  void balanceOctree2(FldArrayF& f, FldArrayI& cn, E_Int corners);
 
   void getValidNgbrsForMerge(E_Int et, E_Float* indict, E_Float* dht, 
                              E_Float xs, E_Float ys, E_Float zs,

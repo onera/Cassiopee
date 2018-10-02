@@ -4499,7 +4499,7 @@ def _reorderSubzone__(z, w, T):
   imin = w[0]; imax = w[1]; jmin = w[2]; jmax = w[3]; kmin = w[4]; kmax = w[5]
   if imin == imax and imin == ni: T._reorder(z, (1,-2,3)) 
   elif jmin == jmax and jmin == 1: T._reorder(z, (-1,2,3))
-  elif kmin == kmax and kmin == nk: T.reorder(z, (-1,2,3))
+  elif kmin == kmax and kmin > 1: T._reorder(z, (-1,2,3))
   return None
 
 #==============================================================================
@@ -4510,7 +4510,7 @@ def _reorderSubzone__(z, w, T):
 # IN: i: BC_t node or GridConnectivity_t node
 # IN: z: zone owning BC
 # IN: T: transform module
-def getBC__(i, z, T, res):
+def getBC__(i, z, T, res, reorder=True):
   # IndexRange
   r = Internal.getNodeFromType1(i, 'IndexRange_t')
   if r is not None and r[1].shape[0] > 1: # structure - suppose range in nodes
@@ -4527,7 +4527,7 @@ def getBC__(i, z, T, res):
                                      'FlowSolution_t')
       Internal.newGridLocation(value='CellCenter', parent=f)
       for d in datas: Internal.createUniqueChild(f, d[0], d[3], value=d[1])
-    _reorderSubzone__(zp, w, T) # normales ext
+    if reorder: _reorderSubzone__(zp, w, T) # normales ext
     _deleteZoneBC__(zp)
     _deleteGridConnectivity__(zp)
     res.append(zp)
@@ -4543,6 +4543,7 @@ def getBC__(i, z, T, res):
   # IndexArray
   if r is None: r = Internal.getNodeFromName(i, Internal.__FACELIST__)
   else: r = None
+
   if r is not None:
     loc = Internal.getNodeFromName1(i, 'GridLocation')
     if loc is not None:
@@ -4600,7 +4601,7 @@ def getBC__(i, z, T, res):
 # Extract all BC of a given type
 # Recognised bndType: classic CGNS + BCMatch + BCNearMatch + BCOverlap
 # topTree: utile si t n'est pas un topTree, permet de trouver les familyBCs
-def extractBCOfType(t, bndType, topTree=None):
+def extractBCOfType(t, bndType, topTree=None, reorder=True):
     """Extract the grid coordinates of given BC type as zones."""
     try: import Transform.PyTree as T
     except:
@@ -4616,14 +4617,14 @@ def extractBCOfType(t, bndType, topTree=None):
         for z in zones:
             # Cherche GridConnectivity1to1_t
             nodes = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
-            for i in nodes: getBC__(i, z, T, res)
+            for i in nodes: getBC__(i, z, T, res, reorder=reorder)
             # Cherche GridConnectivity_t + Abutting1to1
             nodes = Internal.getNodesFromType2(z, 'GridConnectivity_t')
             for i in nodes:
               type = Internal.getNodeFromName1(i, 'GridConnectivityType')
               if type is not None:
                 val = Internal.getValue(type)
-                if val == 'Abutting1to1': getBC__(i, z, T, res)
+                if val == 'Abutting1to1': getBC__(i, z, T, res, reorder=reorder)
     elif bndType == 'BCNearMatch' or bndType == 'BCStage':
         for z in zones:
             nodes = Internal.getNodesFromType2(z, 'GridConnectivity_t')
@@ -4631,7 +4632,7 @@ def extractBCOfType(t, bndType, topTree=None):
               type = Internal.getNodeFromName1(i, 'GridConnectivityType')
               if type is not None:
                 val = Internal.getValue(type)
-                if val == 'Abutting': getBC__(i, z, T, res)
+                if val == 'Abutting': getBC__(i, z, T, res, reorder=reorder)
     elif bndType == 'BCOverlap':
         for z in zones:
             nodes = Internal.getNodesFromType2(z, 'GridConnectivity_t')
@@ -4639,7 +4640,7 @@ def extractBCOfType(t, bndType, topTree=None):
                 r = Internal.getNodeFromName1(i, 'GridConnectivityType')
                 if r is not None:
                   val = Internal.getValue(r)
-                  if val == 'Overset': getBC__(i, z, T, res)
+                  if val == 'Overset': getBC__(i, z, T, res, reorder=reorder)
     else: # BC physiques
         if topTree is None: topTree = t
         families = getFamilyBCNamesOfType(topTree, bndType)
@@ -4654,11 +4655,11 @@ def extractBCOfType(t, bndType, topTree=None):
               nodes += Internal.getNodesFromValue(z, 'BCWallViscous*')
               nodes += getFamilyBCs(z, families1)
               nodes += getFamilyBCs(z, families2)
-            for i in nodes: getBC__(i, z, T, res)
+            for i in nodes: getBC__(i, z, T, res, reorder=reorder)
     return res
 
 # -- extractBCOfName
-def extractBCOfName(t, bndName):
+def extractBCOfName(t, bndName, reorder=True):
   """Extract the grid coordinates of given BC name as zones.
   Usage: extractBCOfName(t, bndName)"""
   try: import Transform.PyTree as T
@@ -4672,11 +4673,11 @@ def extractBCOfName(t, bndName):
       nodes = Internal.getNodesFromName(z, bndName)
       for i in nodes:
         if Internal.getType(i) in ['BC_t', 'GridConnectivity1to1_t', 'GridConnectivity_t']:
-          getBC__(i, z, T, res)
+          getBC__(i, z, T, res, reorder=reorder)
   else: # family specified BC
     for z in Internal.getZones(t):
       nodes = getFamilyBCs(z, names[1])
-      for i in nodes: getBC__(i, z, T, res)
+      for i in nodes: getBC__(i, z, T, res, reorder=reorder)
   return res
 
 # -- getBCs
