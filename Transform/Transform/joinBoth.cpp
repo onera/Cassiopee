@@ -31,12 +31,9 @@ PyObject* K_TRANSFORM::joinBoth(PyObject* self, PyObject* args)
 {
   PyObject *array1, *array2, *arrayc1, *arrayc2;
   E_Float tol;
-  if (!PYPARSETUPLEF(args,
-                    "OOOOd", "OOOOf",
+  if (!PYPARSETUPLEF(args, "OOOOd", "OOOOf",
                     &array1, &array2, &arrayc1, &arrayc2, &tol))
-  {
-      return NULL;
-  }
+    return NULL;
 
   // Check array: coordinates and fields of zone 1 and 2 at nodes
   E_Int im1, jm1, km1, im2, jm2, km2;
@@ -69,169 +66,18 @@ PyObject* K_TRANSFORM::joinBoth(PyObject* self, PyObject* args)
   FldArrayF& fieldc = *ac;
   PyObject* l = PyList_New(0);
   E_Int res = 0;
-  if (res1 == 1 && res2 == 1 && resc1 == 1 && resc2 == 1)
+  E_Int resprod = res1*res2*resc1*resc2;
+  if (resprod <=0)
   {
-    char* varString = new char [strlen(varString1)+strlen(varString2)+4];
-    E_Int res0 = K_ARRAY::getPosition(varString1, varString2, pos1, pos2, 
-                                      varString);
-    if (res0 == -1)
-    {
-      RELEASESHAREDS(array1, f1); RELEASESHAREDS(arrayc1, fc1);
-      RELEASESHAREDS(array2, f2); RELEASESHAREDS(arrayc2, fc2);
-      PyErr_SetString(PyExc_ValueError,
-                      "joinBoth: one array is empty.");
-      return NULL;
-    }
-    else if (res0 == 0) 
-      printf("Warning: joinBoth: some variables are different. Only common variables are kept.\n");
-    
-    E_Int posx1 = K_ARRAY::isCoordinateXPresent(varString1);
-    E_Int posy1 = K_ARRAY::isCoordinateYPresent(varString1);
-    E_Int posz1 = K_ARRAY::isCoordinateZPresent(varString1);
-    E_Int posx2 = K_ARRAY::isCoordinateXPresent(varString2);
-    E_Int posy2 = K_ARRAY::isCoordinateYPresent(varString2);
-    E_Int posz2 = K_ARRAY::isCoordinateZPresent(varString2);
-    if (posx1 == -1 || posy1 == -1 || posz1 == -1 ||
-        posx2 == -1 || posy2 == -1 || posz2 == -1)
-    {
-      RELEASESHAREDS(array1, f1); RELEASESHAREDS(arrayc1, fc1);
-      RELEASESHAREDS(array2, f2); RELEASESHAREDS(arrayc2, fc2);
-      PyErr_SetString(PyExc_ValueError,
-                      "joinBoth: coordinates not found in arrays.");
-      return NULL;
-    }
-    
-    char* varStringc = new char[strlen(varStringc1)+strlen(varStringc2)+4];
-    res0 = K_ARRAY::getPosition(varStringc1, varStringc2, posc1, posc2, 
-                                varStringc);
-    if (res0 == -1)
-    {
-      RELEASESHAREDS(array1, f1); RELEASESHAREDS(arrayc1, fc1);
-      RELEASESHAREDS(array2, f2); RELEASESHAREDS(arrayc2, fc2);
-      PyErr_SetString(PyExc_ValueError,
-                      "joinBoth: one array is empty.");
-      return NULL;
-    }
-    else if (res0 == 0) 
-      printf("Warning: joinBoth: some variables are different. Only common variables are kept.\n");
-    posx1++; posy1++; posz1++; posx2++; posy2++; posz2++; 
-    
-    res = joinBothStructured(*f1, im1, jm1, km1, posx1, posy1, posz1,
-                             *f2, im2, jm2, km2, posx2, posy2, posz2,
-                             *fc1, imc1, jmc1, kmc1, *fc2, imc2, jmc2, kmc2, 
-                             pos1, pos2, posc1, posc2, field, im, jm, km, fieldc, imc, jmc, kmc, tol);
-    
-    if (res == 0) 
-    {
-      RELEASESHAREDS(array1, f1); RELEASESHAREDS(arrayc1, fc1);
-      RELEASESHAREDS(array2, f2); RELEASESHAREDS(arrayc2, fc2);
-      PyErr_SetString(PyExc_TypeError,
-                      "joinBoth: cannot join!");
-      return NULL;
-    }
-    RELEASESHAREDS(array1, f1); RELEASESHAREDS(arrayc1, fc1);
-    RELEASESHAREDS(array2, f2); RELEASESHAREDS(arrayc2, fc2);
-    PyObject* tpl1 = K_ARRAY::buildArray(*an, varString, im, jm, km);
-    PyList_Append(l, tpl1); Py_DECREF(tpl1); delete an;
-    PyObject* tpl2 = K_ARRAY::buildArray(*ac, varStringc,imc, jmc, kmc);
-    PyList_Append(l, tpl2); Py_DECREF(tpl2); delete ac;
-    delete [] varString; delete [] varStringc;
-    return l;
+    if ( res1 > 0 ) RELEASESHAREDB(res1,  array1,   f1, cn1); 
+    if (resc1 > 0 ) RELEASESHAREDB(resc1, arrayc1, fc1, cnc1); 
+    if ( res2 > 0 ) RELEASESHAREDB(res2,  array2,   f2, cn2); 
+    if (resc2 > 0 ) RELEASESHAREDB(resc2, arrayc2, fc2, cnc2);
+    PyErr_SetString(PyExc_TypeError,
+                    "joinBoth: one array is invalid.");
+    return NULL;
   }
-  else if (res1 == 2 && res2 == 2 && resc1 == 2 && resc2 == 2)
-  {
-    if (strcmp(eltType1,eltType2) != 0 || strcmp(eltTypec1,eltTypec2) != 0)
-    {
-      RELEASESHAREDU(array1, f1, cn1); RELEASESHAREDU(arrayc1, fc1, cnc1);
-      RELEASESHAREDU(array2, f2, cn2); RELEASESHAREDU(arrayc2, fc2, cnc2);
-      printf("Error: joinBoth: %s %s and %s %s.\n", eltType1,eltType2,eltTypec1,eltTypec2);
-      PyErr_SetString(PyExc_ValueError,
-                      "joinBoth: unstructured arrays must be of same element type.");
-      return NULL;
-    }
-    char* varString = new char [strlen(varString1)+strlen(varString2)+4];
-    E_Int res0 = K_ARRAY::getPosition(varString1, varString2, pos1, pos2, 
-                                      varString);
-    if (res0 == -1)
-    {
-      RELEASESHAREDU(array1,f1, cn1); RELEASESHAREDU(arrayc1,fc1, cnc1);
-      RELEASESHAREDU(array2,f2, cn2); RELEASESHAREDU(arrayc2,fc2, cnc2);
-      PyErr_SetString(PyExc_ValueError,
-                      "joinBoth: one array is empty.");
-      return NULL;
-    }
-    else if ( res0 == 0 ) 
-      printf("Warning: joinBoth: some variables are different. Only common variables are kept.\n");
-
-    if (strcmp(eltType1, eltType2) != 0)
-    {
-      RELEASESHAREDU(array1,f1, cn1); RELEASESHAREDU(arrayc1,fc1, cnc1);
-      RELEASESHAREDU(array2,f2, cn2); RELEASESHAREDU(arrayc2,fc2, cnc2);
-      PyErr_SetString(PyExc_TypeError,
-                      "joinBoth: can only join arrays with the same element type.");
-      return NULL;
-    }
-
-    E_Int posx1 = K_ARRAY::isCoordinateXPresent(varString1);
-    E_Int posy1 = K_ARRAY::isCoordinateYPresent(varString1);
-    E_Int posz1 = K_ARRAY::isCoordinateZPresent(varString1);
-    E_Int posx2 = K_ARRAY::isCoordinateXPresent(varString2);
-    E_Int posy2 = K_ARRAY::isCoordinateYPresent(varString2);
-    E_Int posz2 = K_ARRAY::isCoordinateZPresent(varString2);
-    if (posx1 == -1 || posy1 == -1 || posz1 == -1 ||
-        posx2 == -1 || posy2 == -1 || posz2 == -1)
-    {
-      RELEASESHAREDU(array1,f1, cn1); RELEASESHAREDU(arrayc1,fc1, cnc1);
-      RELEASESHAREDU(array2,f2, cn2); RELEASESHAREDU(arrayc2,fc2, cnc2);
-      PyErr_SetString(PyExc_ValueError,
-                      "joinBoth: coordinates not found in arrays.");
-      return NULL;
-    }
-    char* varStringc = new char [strlen(varStringc1)+strlen(varStringc2)+4];
-    res0 = K_ARRAY::getPosition(varStringc1, varStringc2, posc1, posc2, varStringc);
-    if (res0 == -1)
-    {
-      RELEASESHAREDS(array1,f1); RELEASESHAREDS(arrayc1,fc1);
-      RELEASESHAREDS(array2,f2); RELEASESHAREDS(arrayc2,fc2);
-      PyErr_SetString(PyExc_ValueError,
-                      "joinBoth: one array is empty.");
-      return NULL;
-    }
-    else if ( res0 == 0 ) 
-      printf("Warning: joinBoth: some variables are different. Only common variables are kept.\n");
-    posx1++; posy1++; posz1++; posx2++; posy2++; posz2++;
-
-    FldArrayI* cn = new FldArrayI(); FldArrayI* cnc = new FldArrayI();
-    if ( strcmp(eltType1,"NGON") == 0 &&  strcmp(eltType2,"NGON") == 0 )
-      res =  joinBothNGON(*f1, *cn1, *fc1, *cnc1, posx1, posy1, posz1,
-                          *f2, *cn2, *fc2, *cnc2, posx2, posy2, posz2,
-                          pos1, pos2, posc1, posc2, field, *cn, fieldc, *cnc, tol);
-
-    else if ( strcmp(eltType1,"NGON") != 0 &&  strcmp(eltType2,"NGON") != 0 )
-      res = joinBothUnstructured(*f1, *cn1, *fc1, *cnc1, posx1, posy1, posz1,
-                                 *f2, *cn2, *fc2, *cnc2, posx2, posy2, posz2,
-                                 pos1, pos2, posc1, posc2, eltType1,
-                                 field, *cn, fieldc, *cnc, tol);
-    else res = 0;
-    if (res == 0) 
-    {
-      RELEASESHAREDU(array1, f1, cn1); RELEASESHAREDU(arrayc1, fc1, cnc1);
-      RELEASESHAREDU(array2, f2, cn2); RELEASESHAREDU(arrayc2, fc2, cnc2);
-      PyErr_SetString(PyExc_TypeError,
-                      "joinBoth: cannot join!");
-      return NULL;
-    }
-    RELEASESHAREDU(array1, f1, cn1); RELEASESHAREDU(arrayc1, fc1, cnc1);
-    RELEASESHAREDU(array2, f2, cn2); RELEASESHAREDU(arrayc2, fc2, cnc2);
-    PyObject* tpl1 = K_ARRAY::buildArray(*an, varString, *cn, -1, eltType1);
-    PyList_Append(l, tpl1); Py_DECREF(tpl1); delete an; delete cn;
-    PyObject* tpl2 = K_ARRAY::buildArray(*ac, varStringc, *cnc, -1, eltType1,
-                                         true);
-    PyList_Append(l, tpl2); Py_DECREF(tpl2); delete ac; delete cnc;
-    delete [] varString; delete [] varStringc;
-    return l;
-  }
-  else if ((res1 == 1 && res2 == 2) || (resc1 == 1 && resc2 == 2))
+  else if (resprod != 1 && resprod != 16)
   {
     RELEASESHAREDB(res1, array1, f1, cn1); 
     RELEASESHAREDB(resc1, arrayc1, fc1, cnc1); 
@@ -241,19 +87,129 @@ PyObject* K_TRANSFORM::joinBoth(PyObject* self, PyObject* args)
                     "joinBoth: cannot be used with one structured and one unstructured array.");
     return NULL;
   }
-  else if ((res1 == 2 && res2 == 1) || (resc1 == 2 && resc2 == 1))
+  else 
   {
-    RELEASESHAREDB(res1,array1,f1,cn1); RELEASESHAREDB(resc1,arrayc1,fc1,cnc1); 
-    RELEASESHAREDB(res2,array2,f2,cn2); RELEASESHAREDB(resc2,arrayc2,fc2,cnc2);
-    PyErr_SetString(PyExc_TypeError,
-                    "joinBoth: cannot be used with one structured and one unstructured array.");
-    return NULL;
-  }
-  else
-  {
-    PyErr_SetString(PyExc_TypeError,
-                    "joinBoth: one array is invalid.");
-    return NULL;
+    char* varString = new char [strlen(varString1)+strlen(varString2)+4];
+    E_Int res0 = K_ARRAY::getPosition(varString1, varString2, pos1, pos2, 
+                                      varString);
+    if (res0 == -1)
+    {
+      RELEASESHAREDB(res1, array1, f1, cn1); 
+      RELEASESHAREDB(resc1, arrayc1, fc1, cnc1); 
+      RELEASESHAREDB(res2, array2, f2, cn2); 
+      RELEASESHAREDB(resc2, arrayc2, fc2, cnc2);
+      PyErr_SetString(PyExc_TypeError,
+                      "joinBoth:  one array is empty.");
+      return NULL;
+    }
+    if ( pos1.size() != f1->getNfld() || pos2.size() != f2->getNfld())
+      printf("Warning: joinBoth: some variables located at nodes are different. Only variables %s are kept.\n",varString);
+
+    char* varStringc = new char[strlen(varStringc1)+strlen(varStringc2)+4];
+    res0 = K_ARRAY::getPosition(varStringc1, varStringc2, posc1, posc2, 
+                                varStringc);
+    if (res0 == -1)
+    {
+      RELEASESHAREDB(res1, array1, f1, cn1); 
+      RELEASESHAREDB(resc1, arrayc1, fc1, cnc1); 
+      RELEASESHAREDB(res2, array2, f2, cn2); 
+      RELEASESHAREDB(resc2, arrayc2, fc2, cnc2);
+      PyErr_SetString(PyExc_TypeError,
+                      "joinBoth: one array is empty.");
+      delete [] varString;
+      return NULL;
+    }
+    if ( posc1.size() != fc1->getNfld() || posc2.size() != fc2->getNfld())
+      printf("Warning: joinBoth: some variables located at centers are different. Only variables %s are kept.\n",varStringc);
+
+    E_Int posx1 = K_ARRAY::isCoordinateXPresent(varString1);
+    E_Int posy1 = K_ARRAY::isCoordinateYPresent(varString1);
+    E_Int posz1 = K_ARRAY::isCoordinateZPresent(varString1);
+    E_Int posx2 = K_ARRAY::isCoordinateXPresent(varString2);
+    E_Int posy2 = K_ARRAY::isCoordinateYPresent(varString2);
+    E_Int posz2 = K_ARRAY::isCoordinateZPresent(varString2);
+    if (posx1 == -1 || posy1 == -1 || posz1 == -1 ||
+        posx2 == -1 || posy2 == -1 || posz2 == -1)
+    {
+      RELEASESHAREDB(res1, array1, f1, cn1); 
+      RELEASESHAREDB(resc1, arrayc1, fc1, cnc1); 
+      RELEASESHAREDB(res2, array2, f2, cn2); 
+      RELEASESHAREDB(resc2, arrayc2, fc2, cnc2);
+      PyErr_SetString(PyExc_ValueError,
+                      "joinBoth: coordinates not found in arrays.");
+      delete [] varString; delete [] varStringc;
+      return NULL;
+    }
+    posx1++; posy1++; posz1++; posx2++; posy2++; posz2++; 
+
+    if (resprod==1)//structure
+    {
+      res = joinBothStructured(*f1, im1, jm1, km1, posx1, posy1, posz1,
+                               *f2, im2, jm2, km2, posx2, posy2, posz2,
+                               *fc1, imc1, jmc1, kmc1, *fc2, imc2, jmc2, kmc2, 
+                               pos1, pos2, posc1, posc2, field, im, jm, km, 
+                               fieldc, imc, jmc, kmc, tol);
+      if (res == 0) 
+      {
+        RELEASESHAREDS(array1, f1); RELEASESHAREDS(arrayc1, fc1);
+        RELEASESHAREDS(array2, f2); RELEASESHAREDS(arrayc2, fc2);
+        PyErr_SetString(PyExc_TypeError,
+                        "joinBoth: cannot join!");
+        delete [] varString; delete [] varStringc;
+        return NULL;
+      }
+      RELEASESHAREDS(array1, f1); RELEASESHAREDS(arrayc1, fc1);
+      RELEASESHAREDS(array2, f2); RELEASESHAREDS(arrayc2, fc2);
+      PyObject* tpl1 = K_ARRAY::buildArray(*an, varString, im, jm, km);
+      PyList_Append(l, tpl1); Py_DECREF(tpl1); delete an;
+      PyObject* tpl2 = K_ARRAY::buildArray(*ac, varStringc,imc, jmc, kmc);
+      PyList_Append(l, tpl2); Py_DECREF(tpl2); delete ac;
+      delete [] varString; delete [] varStringc;
+      return l;
+    }
+    else// if (resprod==16)
+    {
+      if (strcmp(eltType1,eltType2) != 0 || strcmp(eltTypec1,eltTypec2) != 0)
+      {
+        RELEASESHAREDU(array1, f1, cn1); RELEASESHAREDU(arrayc1, fc1, cnc1);
+        RELEASESHAREDU(array2, f2, cn2); RELEASESHAREDU(arrayc2, fc2, cnc2);
+        printf("Error: joinBoth: %s %s and %s %s.\n", eltType1,eltType2,eltTypec1,eltTypec2);
+        PyErr_SetString(PyExc_ValueError,
+                        "joinBoth: unstructured arrays must be of same element type.");
+        delete [] varString; delete [] varStringc;
+        return NULL;
+      }
+
+      FldArrayI* cn = new FldArrayI(); FldArrayI* cnc = new FldArrayI();
+      if ( strcmp(eltType1,"NGON") == 0 &&  strcmp(eltType2,"NGON") == 0 )
+        res =  joinBothNGON(*f1, *cn1, *fc1, *cnc1, posx1, posy1, posz1,
+                            *f2, *cn2, *fc2, *cnc2, posx2, posy2, posz2,
+                            pos1, pos2, posc1, posc2, field, *cn, fieldc, *cnc, tol);
+
+      else if ( strcmp(eltType1,"NGON") != 0 &&  strcmp(eltType2,"NGON") != 0 )
+        res = joinBothUnstructured(*f1, *cn1, *fc1, *cnc1, posx1, posy1, posz1,
+                                   *f2, *cn2, *fc2, *cnc2, posx2, posy2, posz2,
+                                   pos1, pos2, posc1, posc2, eltType1,
+                                   field, *cn, fieldc, *cnc, tol);
+      else //res==0
+      {
+        RELEASESHAREDU(array1, f1, cn1); RELEASESHAREDU(arrayc1, fc1, cnc1);
+        RELEASESHAREDU(array2, f2, cn2); RELEASESHAREDU(arrayc2, fc2, cnc2);
+        PyErr_SetString(PyExc_TypeError,
+                        "joinBoth: cannot join!");
+        delete [] varString; delete [] varStringc;
+        return NULL;
+      }
+      RELEASESHAREDU(array1, f1, cn1); RELEASESHAREDU(arrayc1, fc1, cnc1);
+      RELEASESHAREDU(array2, f2, cn2); RELEASESHAREDU(arrayc2, fc2, cnc2);
+      PyObject* tpl1 = K_ARRAY::buildArray(*an, varString, *cn, -1, eltType1);
+      PyList_Append(l, tpl1); Py_DECREF(tpl1); delete an; delete cn;
+      PyObject* tpl2 = K_ARRAY::buildArray(*ac, varStringc, *cnc, -1, eltType1,
+                                           true);
+      PyList_Append(l, tpl2); Py_DECREF(tpl2); delete ac; delete cnc;
+      delete [] varString; delete [] varStringc;
+      return l;
+    }
   }
 }
 //=============================================================================
@@ -278,7 +234,8 @@ E_Int K_TRANSFORM::joinBothStructured(
       return joinbothstructured3d(f1, im1, jm1, km1, posx1, posy1, posz1,
                                   f2, im2, jm2, km2, posx2, posy2, posz2,
                                   fc1, imc1, jmc1, kmc1, fc2, imc2, jmc2, kmc2, 
-                                  pos1, pos2, posc1, posc2, field, im, jm, km, fieldc, imc, jmc, kmc, tol);
+                                  pos1, pos2, posc1, posc2, field, im, jm, km, 
+                                  fieldc, imc, jmc, kmc, tol);
     }
     else 
     {
@@ -494,109 +451,76 @@ E_Int K_TRANSFORM::joinbothstructured3d(
   else return 0;
 
   // assemblage des arrays
-  E_Float* xt1 = f1.begin(posx1);
-  E_Float* yt1 = f1.begin(posy1);
-  E_Float* zt1 = f1.begin(posz1);
-  E_Float* xt2 = f2.begin(posx2);
-  E_Float* yt2 = f2.begin(posy2);
-  E_Float* zt2 = f2.begin(posz2);
-  E_Int ind, ind1, ind2;
-
   im = im1+im2-1; jm = jm2; km = km2;
   imc = imc1+imc2; jmc = jmc2; kmc = kmc2; 
-  ind = 0;
-  E_Int nfld = pos1.size(); field.malloc(im*jm*km, nfld);
-  E_Int nfldc = posc1.size(); fieldc.malloc(imc*jmc*kmc, nfldc);
+  E_Int imjm = im*jm; E_Int imcjmc = imc*jmc;
+  E_Int nfld = pos1.size(); field.malloc(imjm*km, nfld);
+  E_Int nfldc = posc1.size(); fieldc.malloc(imcjmc*kmc, nfldc);
   E_Int im1jm1 = im1*jm1; E_Int imc1jmc1 = imc1*jmc1;
   E_Int im2jm2 = im2*jm2; E_Int imc2jmc2 = imc2*jmc2;
-  E_Int eq1, eq2, cnt;
 
-  //coordonnees
-  E_Float* fx = field.begin(1);
-  E_Float* fy = field.begin(2);
-  E_Float* fz = field.begin(3);
-  for (E_Int k = 0; k < km; k++)
-    for (E_Int j = 0; j < jm; j++)
-    {
-      for (E_Int i = 0; i < im1-1; i++)
-      {
-        ind1 = i + j * im1 + k * im1jm1;
-        fx[ind] = xt1[ind1];
-        fy[ind] = yt1[ind1];
-        fz[ind] = zt1[ind1];
-        ind++;
-      }
-      for (E_Int i = 0; i < im2; i++)
-      {
-        ind2 = i + j * im2 + k * im2jm2;
-        fx[ind] = xt2[ind2];
-        fy[ind] = yt2[ind2];
-        fz[ind] = zt2[ind2];
-        ind++;
-      }
-    }
-  // autres champs en noeuds
-  if (nfld > 3)
+  //coordonnees + champs en noeuds
+#pragma omp parallel
   {
-    cnt = 4;
+    E_Int ind, ind1, ind2;
     for (E_Int eq = 0 ; eq < nfld; eq++)
     {
-      eq1 = pos1[eq]; eq2 = pos2[eq];
-      if (eq1 != posx1 && eq1 != posy1 && eq1 != posz1 &&
-	  eq2 != posx2 && eq2 != posy2 && eq2 != posz2)
-      {
-        E_Float* floc1 = f1.begin(eq1);
-        E_Float* floc2 = f2.begin(eq2);
-        E_Float* fcnt = field.begin(cnt);
-        ind = 0;
-        for (E_Int k = 0; k < km; k++)
-          for (E_Int j = 0; j < jm; j++)
+      E_Int eq1 = pos1[eq];
+      E_Int eq2 = pos2[eq];
+      E_Float* floc1 = f1.begin(eq1);
+      E_Float* floc2 = f2.begin(eq2);
+      E_Float* fcnt = field.begin(eq+1);
+      for (E_Int k = 0; k < km; k++)
+        for (E_Int j = 0; j < jm; j++)
+        {
+  #pragma omp for
+          for (E_Int i = 0; i < im1; i++)
           {
-            for (E_Int i = 0; i < im1-1; i++)
-            {
-              ind1 = i + j * im1 + k * im1jm1;
-              fcnt[ind] = floc1[ind1];
-              ind++;              
-            }
-            for (E_Int i = 0; i < im2; i++)
-            {
-              ind2 = i + j * im2 + k * im2jm2;
-              fcnt[ind] = floc2[ind2];
-              ind++;
-            }
+            ind1 = i + j*im1 + k*im1jm1;
+            ind  = i + j*im  + k*imjm;
+            fcnt[ind] = floc1[ind1];
           }
-        cnt++;
-      }
+#pragma omp for
+          for (E_Int i = 0; i < im2; i++)
+          {
+            ind2 = i + j*im2 + k*im2jm2;
+            ind  = i + j*im  + k*imjm + im1-1;
+            fcnt[ind] = floc2[ind2];
+          }
+        }
     }
   }
+
   // champs en centres
-  cnt = 1;
-  for (E_Int eq = 0 ; eq < nfldc; eq++)
+#pragma omp parallel
   {
-    eq1 = posc1[eq]; eq2 = posc2[eq];
-    E_Float* floc1 = fc1.begin(eq1);
-    E_Float* floc2 = fc2.begin(eq2);
-    E_Float* fcnt = fieldc.begin(cnt);
-    ind = 0;
-    for (E_Int k = 0; k < kmc; k++)
-      for (E_Int j = 0; j < jmc; j++)
-      {
-        for (E_Int i = 0; i < imc1; i++)
+    E_Int ind, ind1, ind2;
+    for (E_Int eq = 0 ; eq < nfldc; eq++)
+    {
+      E_Int eq1 = posc1[eq]; 
+      E_Int eq2 = posc2[eq];
+      E_Float* floc1 = fc1.begin(eq1);
+      E_Float* floc2 = fc2.begin(eq2);
+      E_Float* fcnt = fieldc.begin(eq+1);
+      for (E_Int k = 0; k < kmc; k++)
+        for (E_Int j = 0; j < jmc; j++)
         {
-          ind1 = i + j * imc1 + k * imc1jmc1;
-          fcnt[ind] = floc1[ind1];
-          ind++;              
+  #pragma omp for
+          for (E_Int i = 0; i < imc1; i++)
+          {
+            ind1 = i + j*imc1 + k*imc1jmc1;
+            ind  = i + j*imc  + k*imcjmc;
+            fcnt[ind] = floc1[ind1];                       
+          }
+          for (E_Int i = 0; i < imc2; i++)
+          {
+            ind2 = i + j*imc2 + k*imc2jmc2;
+            ind  = i + j*imc  + k*imcjmc + imc1;
+            fcnt[ind] = floc2[ind2];
+          }
         }
-        for (E_Int i = 0; i < imc2; i++)
-        {
-          ind2 = i + j * imc2 + k * imc2jmc2;
-          fcnt[ind] = floc2[ind2];
-          ind++;
-        }
-      }
-    cnt++;
-  }
-  
+      }//eq for centers
+    }//omp
   return 1; 
 }
 //=============================================================================
@@ -751,101 +675,68 @@ E_Int K_TRANSFORM::joinbothstructured2d(
   /*-----------------------*/
   /* assemblage des arrays */
   /*-----------------------*/
-
-  E_Float* xt1 = f1.begin(posx1);
-  E_Float* yt1 = f1.begin(posy1);
-  E_Float* zt1 = f1.begin(posz1);
-  E_Float* xt2 = f2.begin(posx2);
-  E_Float* yt2 = f2.begin(posy2);
-  E_Float* zt2 = f2.begin(posz2);
-  E_Int ind, ind1, ind2;
-  E_Int eq1, eq2, cnt;
-
   im = im1+im2-1; jm = jm1; km = 1; field.malloc(im*jm, nfld);
   imc = imc1+imc2; jmc = jmc1; kmc = 1; fieldc.malloc(imc*jmc, nfldc);
 
-  // coordonnees
-  E_Float* fx = field.begin(1);
-  E_Float* fy = field.begin(2);
-  E_Float* fz = field.begin(3);
-  ind = 0;
-  for (E_Int j = 0; j < jm1; j++)
+#pragma omp parallel
   {
-    for (E_Int i = 0; i < im1-1; i++)
-    {
-      ind1 = i + j * im1;
-      fx[ind] = xt1[ind1];
-      fy[ind] = yt1[ind1];
-      fz[ind] = zt1[ind1];
-      ind++;
-    }
-    for (E_Int i = 0; i < im2; i++)
-    {
-      ind2 = i + j * im2;
-      fx[ind] = xt2[ind2];
-      fy[ind] = yt2[ind2];
-      fz[ind] = zt2[ind2];
-      ind++;
-    }
-  }
-  //autres champs
-  if (nfld > 3)
-  {
-    cnt = 4;
+    E_Int ind, ind1, ind2;
     for (E_Int eq = 0 ; eq < nfld; eq++)
     {
-      eq1 = pos1[eq]; eq2 = pos2[eq];
-      if (eq1 != posx1 && eq1 != posy1 && eq1 != posz1 &&
-          eq2 != posx2 && eq2 != posy2 && eq2 != posz2)
+      E_Int eq1 = pos1[eq]; 
+      E_Int eq2 = pos2[eq];
+      E_Float* floc1 = f1.begin(eq1);
+      E_Float* floc2 = f2.begin(eq2);
+      E_Float* fcnt = field.begin(eq+1);
+      for (E_Int j = 0; j < jm; j++)
       {
-        E_Float* floc1 = f1.begin(eq1);
-        E_Float* floc2 = f2.begin(eq2);
-        E_Float* fcnt = field.begin(cnt);
-        ind = 0;
-        for (E_Int j = 0; j < jm; j++)
+  #pragma omp for
+        for (E_Int i = 0; i < im1; i++)
         {
-          for (E_Int i = 0; i < im1-1; i++)
-          {
-            ind1 = i + j * im1;
-            fcnt[ind] = floc1[ind1];
-            ind++;  
-          }
-          for (E_Int i = 0; i < im2; i++)
-          {
-            ind2 = i + j * im2;
-            fcnt[ind] = floc2[ind2];
-            ind++;
-          }
+          ind1 = i + j*im1;
+          ind  = i + j*im;
+          fcnt[ind] = floc1[ind1];          
         }
-        cnt++;
-      }
-    } 
-  }
-  //champs en centres
-  cnt = 1;
-  for (E_Int eq = 0 ; eq < nfldc; eq++)
-  {
-    eq1 = posc1[eq]; eq2 = posc2[eq];
-    E_Float* floc1 = fc1.begin(eq1);
-    E_Float* floc2 = fc2.begin(eq2);
-    E_Float* fcnt = fieldc.begin(cnt);
-    ind = 0;
-    for (E_Int j = 0; j < jmc; j++)
-    {
-      for (E_Int i = 0; i < imc1; i++)
-      {
-        ind1 = i+j*imc1;
-        fcnt[ind] = floc1[ind1];
-        ind++;  
-      }
-      for (E_Int i = 0; i < imc2; i++)
-      {
-        ind2 = i+j*imc2;
-        fcnt[ind] = floc2[ind2];
-        ind++;
+  #pragma omp for
+        for (E_Int i = 0; i < im2; i++)
+        {
+          ind2 = i + j*im2;
+          ind  = i + j*im + im1-1;
+          fcnt[ind] = floc2[ind2];
+        }
       }
     }
-    cnt++;  
+  } //omp
+
+  //champs en centres
+#pragma omp parallel
+  {
+    E_Int ind, ind1, ind2;
+    for (E_Int eq = 0 ; eq < nfldc; eq++)
+    {
+      E_Int eq1 = posc1[eq]; 
+      E_Int eq2 = posc2[eq];
+      E_Float* floc1 = fc1.begin(eq1);
+      E_Float* floc2 = fc2.begin(eq2);
+      E_Float* fcnt = fieldc.begin(eq+1);    
+      for (E_Int j = 0; j < jmc; j++)
+      {
+  #pragma omp for
+        for (E_Int i = 0; i < imc1; i++)
+        {
+          ind1 = i+j*imc1;
+          ind =  i +j*imc;
+          fcnt[ind] = floc1[ind1];
+        }
+  #pragma omp for
+        for (E_Int i = 0; i < imc2; i++)
+        {
+          ind2 = i + j*imc2;
+          ind  = i + j*imc + imc1;
+          fcnt[ind] = floc2[ind2];
+        }
+      }
+    }
   } 
   return 1;
 }
@@ -919,60 +810,26 @@ E_Int K_TRANSFORM::joinbothstructured1d(
   imc = imc1+imc2; jmc = 1; kmc = 1;
   E_Int nfld = pos1.size(); field.malloc(im, nfld);
   E_Int nfldc = posc1.size(); fieldc.malloc(imc, nfldc);
-  E_Float* xt1 = f1.begin(posx1);
-  E_Float* yt1 = f1.begin(posy1);
-  E_Float* zt1 = f1.begin(posz1);
-  E_Float* xt2 = f2.begin(posx2);
-  E_Float* yt2 = f2.begin(posy2);
-  E_Float* zt2 = f2.begin(posz2);
-  E_Int inc = im1-1;
-  E_Int ii;
-  E_Float* fx = field.begin(1);
-  E_Float* fy = field.begin(2);
-  E_Float* fz = field.begin(3);
-  for (E_Int i = 0; i < im1; i++)
+
+  for (E_Int eq = 0 ; eq < nfld; eq++)
   {
-    fx[i] = xt1[i];
-    fy[i] = yt1[i];
-    fz[i] = zt1[i];
+    E_Int eq1 = pos1[eq];
+    E_Int eq2 = pos2[eq];
+    E_Float* floc1 = f1.begin(eq1);
+    E_Float* floc2 = f2.begin(eq2);
+    E_Float* fcnt = field.begin(eq+1);
+    for (E_Int i = 0; i < im1; i++) fcnt[i] = floc1[i];
+    for (E_Int i = 1; i < im2; i++) fcnt[i+im1-1] = floc2[i];
   }
-  for (E_Int i = 1; i < im2; i++)
+  for (E_Int eq = 0 ; eq < nfldc; eq++)
   {
-    ii = i + inc;
-    fx[ii] = xt2[i];
-    fy[ii] = yt2[i];
-    fz[ii] = zt2[i];
-  }
-  E_Int cnt, eq1, eq2;
-  if (nfld > 3) // champs en noeuds
-  {
-    cnt = 4;
-    for (E_Int eq = 0; eq < nfld; eq++)
-    {
-      eq1 = pos1[eq]; eq2 = pos2[eq];
-      if (eq1 != posx1 && eq1 != posy1 && eq1 != posz1 &&
-	  eq2 != posx2 && eq2 != posy2 && eq2 != posz2)
-      {
-        E_Float* floc1 = f1.begin(eq1);
-        E_Float* floc2 = f2.begin(eq2);
-        E_Float* fcnt = field.begin(cnt);
-        for (E_Int i = 0; i < im1; i++) fcnt[i] = floc1[i];
-        for (E_Int i = 1; i < im2; i++) fcnt[i+inc] = floc2[i];
-        cnt++;
-      }
-    }
-  }
-  // champs en centres
-  cnt = 1;
-  for (E_Int eq = 0; eq < nfldc; eq++)
-  {
-    eq1 = posc1[eq]; eq2 = posc2[eq];
+    E_Int eq1 = posc1[eq];
+    E_Int eq2 = posc2[eq];
     E_Float* floc1 = fc1.begin(eq1);
     E_Float* floc2 = fc2.begin(eq2);
-    E_Float* fcnt = fieldc.begin(cnt);
+    E_Float* fcnt  = fieldc.begin(eq+1);
     for (E_Int i = 0; i < imc1; i++) fcnt[i] = floc1[i];
     for (E_Int i = 0; i < imc2; i++) fcnt[i+imc1] = floc2[i];
-    cnt++;  
   }
   return 1;
 }

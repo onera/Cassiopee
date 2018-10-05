@@ -26,10 +26,9 @@ X._setHoleInterpolatedPoints(t,depth=1,loc='nodes')
 C._initVars(t,'{flag}=({cellN}>1.)')
 t = DTW.distance2WallsEikonal(t,body,tc=tc,DEPTH=DEPTH,nitmax=10)
 test.testT(t,1)
-
 # aux centres
 t = C.newPyTree(['Base']); t[2][1][2] = res
-
+Internal._rmNodesFromName(t,"FlowSolution")
 # Mark solid and fluid points
 X._applyBCOverlaps(t,depth=DEPTH,loc='centers')
 tc = C.node2Center(t)
