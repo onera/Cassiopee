@@ -664,14 +664,16 @@ namespace K_POST
                                 E_Float* xt, E_Float* yt, E_Float* zt,
                                 FldArrayF& fc, FldArrayF& faceField,
                                 E_Int* cellG, E_Int* cellD,
-                                PyObject* indices, PyObject* field);
+                                PyObject* indices, PyObject* fieldX, 
+                                PyObject* fieldY, PyObject* fieldZ);
   PyObject* computeDiv2Struct3D(E_Int ni, E_Int nj, E_Int nk,
                                 E_Int nic, E_Int njc, E_Int nkc,
                                 const char* varStringOut,
                                 E_Float* xt, E_Float* yt, E_Float* zt,
                                 FldArrayF& fc, FldArrayF& faceField,
                                 E_Int* cellG, E_Int* cellD,
-                                PyObject* indices, PyObject* field);
+                                PyObject* indices, PyObject* fieldX, 
+                                PyObject* fieldY, PyObject* fieldZ);
 }
 #undef FldArrayF
 #undef FldArrayI

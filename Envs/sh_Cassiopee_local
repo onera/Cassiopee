@@ -282,7 +282,7 @@ elif [ "$MAC14" != "" ] || [ "$MAC18" != "" ] || [ "$MAC19" != "" ] || [ "$MAC20
     export PATH=$PATH:$CASSIOPEE/Dist/bin
     # Chemin de elsA.x
     export PATH=$PATH:$CASSIOPEE/Dist/bin/$ELSAPROD
-    export LD_LIBRARY_PATHL=$CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/vis_r8/lib:/usr/local/hdf5-intel-1.8.8/lib:/usr/local/lib64
+    export LD_LIBRARY_PATHL=$CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/vis_r8/lib:/usr/local/hdf5-intel-1.8.8/lib:/usr/local/lib64:/usr/lib64
     export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/vis_r8:$CASSIOPEE/Dist/bin/vis_r8/lib/python2.7/site-packages
 
 elif [ "$MAC15" != "" ]; then

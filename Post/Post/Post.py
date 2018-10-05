@@ -394,19 +394,19 @@ def computeNormGrad(array, varname):
     else:
         return post.computeNormGrad(array, varname)
 
-def computeDiv2(array, arrayc, indices=None, BCField=None):
+def computeDiv2(array, arrayc, indices=None, BCFieldX=None, BCFieldY=None, BCFieldZ=None):
     """Compute the divergence of the field varname, whose components are defined in array
     using the computeGrad2 method for gradients.
-    Usage: computeDiv2(array, arrayc, indices, BCField) """
+    Usage: computeDiv2(array, arrayc, indices, BCFieldX, BCFieldY, BCFieldZ) """
     if isinstance(array[0], list):
         raise ValueError("computeDiv2: input must be a single zone.")
     if len(array) == 4:
         if array[3] == 'NGON' and arrayc[3] == 'NGON*':
-            return post.computeDiv2NGon(array, arrayc, indices, BCField)
+            return post.computeDiv2NGon(array, arrayc, indices, BCFieldX,BCFieldY,BCFieldZ)
         else:
             raise ValueError("computeDiv2: only valid for NGon unstructured zones.")
     else:
-        return post.computeDiv2Struct(array, arrayc, indices, BCField)
+        return post.computeDiv2Struct(array, arrayc, indices, BCFieldX, BCFieldY, BCFieldZ)
 
 def computeCurl(array, vector):
     """Compute the curl of the 3D-field defined in array.

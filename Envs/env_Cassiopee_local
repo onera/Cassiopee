@@ -328,7 +328,7 @@ else if ($%MAC14 != 0 || $%MAC18 != 0 || $%MAC19 != 0 || $%MAC20 != 0 || $%MAC21
         set path=($path $CASSIOPEE/Dist/bin)
         # Chemin de elsA.x
         set path=($path $CASSIOPEE/Dist/bin/$ELSAPROD)
-        setenv LD_LIBRARY_PATHL $CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/vis_r8/lib:/usr/local/hdf5-intel-1.8.8/lib:/usr/local/lib64
+        setenv LD_LIBRARY_PATHL $CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/vis_r8/lib:/usr/local/hdf5-intel-1.8.8/lib:/usr/local/lib64:/usr/lib64
         setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/vis_r8:$CASSIOPEE/Dist/bin/vis_r8/lib/python2.7/site-packages
 
 else if ($%MAC15 != 0) then

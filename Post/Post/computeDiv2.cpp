@@ -40,9 +40,9 @@ extern "C"
 PyObject* K_POST::computeDiv2NGon(PyObject* self, PyObject* args)
 {
   PyObject* array; PyObject* arrayc;
-  PyObject* indices; PyObject* field;
-  if (!PyArg_ParseTuple(args, "OOOO", &array, &arrayc,
-                        &indices, &field)) return NULL;
+  PyObject* indices; PyObject* fieldX; PyObject* fieldY; PyObject* fieldZ;
+  if (!PyArg_ParseTuple(args, "OOOOOO", &array, &arrayc,
+                        &indices, &fieldX, &fieldY, &fieldZ)) return NULL;
 
   // Check array
   char* varString; char* eltType;
@@ -158,8 +158,9 @@ PyObject* K_POST::computeDiv2NGon(PyObject* self, PyObject* args)
   E_Int* cnp = cn->begin();
   E_Int nfaces = cnp[0];
   E_Int nelts = cnp[cnp[1]+2];
-  //printf("nfaces=%d\n", nfaces);
+  // printf("nfaces=%d\n", nfaces);
   //printf("nelts=%d\n", nelts);
+
   FldArrayF faceField(nfaces, dimPb*nfld);
   E_Int i1, i2;
   for (E_Int n = 1; n <= dimPb*nfld; n++)
@@ -177,27 +178,37 @@ PyObject* K_POST::computeDiv2NGon(PyObject* self, PyObject* args)
   }
 
   // Replace DataSet
-  FldArrayI* inds=NULL; FldArrayF* bfield=NULL;
-  if (indices != Py_None && field != Py_None)
+  FldArrayI* inds=NULL; FldArrayF* bfieldX=NULL;
+    FldArrayF* bfieldY=NULL; FldArrayF* bfieldZ=NULL; 
+  if (indices != Py_None && fieldX != Py_None && fieldY != Py_None 
+                                              && fieldZ != Py_None )
   {
     K_NUMPY::getFromNumpyArray(indices, inds, true);
-    K_NUMPY::getFromNumpyArray(field, bfield, true);
+    K_NUMPY::getFromNumpyArray(fieldX, bfieldX, true);
+    K_NUMPY::getFromNumpyArray(fieldY, bfieldY, true);
+    K_NUMPY::getFromNumpyArray(fieldZ, bfieldZ, true);
 
-    E_Int n = inds->getSize()*inds->getNfld();
+    E_Int ninterfaces = inds->getSize()*inds->getNfld();
     E_Int* pind = inds->begin();
-    E_Float* pf = bfield->begin();
-    E_Float* fp = faceField.begin(1);
-    E_Int ind;
-    //printf("in: %d %d\n", n, bfield->getSize());
 
-    for (E_Int i = 0; i < n; i++)
+    E_Float* pf[3];
+    pf[0] = bfieldX->begin();
+    pf[1] = bfieldY->begin();
+    pf[2] = bfieldZ->begin();
+
+    for (E_Int n = 1; n <= dimPb*nfld; n++)
     {
-      ind = pind[i]-1;
-      fp[ind] = pf[i];
-      //if (ind < 0 || ind > nfaces-1) printf("%d %f\n", ind, fp[ind]);
+      // printf("n : %d \n",n);
+      E_Float* fp = faceField.begin(n);
+      E_Int ind;
+
+      for (E_Int i = 0; i < ninterfaces; i++)
+      {
+        ind = pind[i]-1;
+        fp[ind] = pf[n-1][i];
+      }
     }
   }
-
   // Build empty unstructured array
   PyObject* tpl = K_ARRAY::buildArray(nfld, varStringOut, npts,
                                       nelts, -1, eltType, true,
@@ -260,10 +271,12 @@ PyObject* K_POST::computeDiv2NGon(PyObject* self, PyObject* args)
     }
   }
 
-  if (indices != Py_None && field != Py_None)
+  if (indices != Py_None && fieldX != Py_None )
   {
     RELEASESHAREDN(indices, inds);
-    RELEASESHAREDN(field, bfield);
+    RELEASESHAREDN(fieldX, bfieldX);
+    RELEASESHAREDN(fieldY, bfieldY);
+    RELEASESHAREDN(fieldZ, bfieldZ);
   }
 
   RELEASESHAREDB(res,array,f,cn);
@@ -279,9 +292,9 @@ PyObject* K_POST::computeDiv2NGon(PyObject* self, PyObject* args)
 PyObject* K_POST::computeDiv2Struct(PyObject* self, PyObject* args)
 {
   PyObject* array; PyObject* arrayc;
-  PyObject* indices; PyObject* field;
-  if (!PyArg_ParseTuple(args, "OOOO", &array, &arrayc,
-                        &indices, &field)) return NULL;
+  PyObject* indices; PyObject* fieldX; PyObject* fieldY; PyObject* fieldZ;
+  if (!PyArg_ParseTuple(args, "OOOOOO", &array, &arrayc,
+                        &indices, &fieldX, &fieldY, &fieldZ)) return NULL;
 
   // Check array
   char* varString; char* eltType;
@@ -425,10 +438,10 @@ PyObject* K_POST::computeDiv2Struct(PyObject* self, PyObject* args)
   PyObject* tpl;
   if ( dimPb == 2)
     tpl = computeDiv2Struct2D(ni, nj, nic, njc, ixyz, varStringOut, f->begin(posx),  f->begin(posy), f->begin(posz),
-                              *fc, faceField, cellG, cellD, indices, field);
+                              *fc, faceField, cellG, cellD, indices, fieldX, fieldY, fieldZ); // ATTENTION !!!!! 
   else if (dimPb == 3)
     tpl = computeDiv2Struct3D(ni, nj, nk, nic, njc, nkc, varStringOut, f->begin(posx), f->begin(posy), f->begin(posz),
-                              *fc, faceField, cellG, cellD, indices, field);
+                              *fc, faceField, cellG, cellD, indices, fieldX, fieldY, fieldZ);
   delete [] varStringOut;
   RELEASESHAREDS(array,f);
   RELEASESHAREDS(arrayc,fc);
@@ -442,7 +455,8 @@ PyObject* K_POST::computeDiv2Struct3D(E_Int ni, E_Int nj, E_Int nk,
                                       E_Float* xt, E_Float* yt, E_Float* zt,
                                       FldArrayF& fc, FldArrayF& faceField,
                                       E_Int* cellG, E_Int* cellD,
-                                      PyObject* indices, PyObject* field)
+                                      PyObject* indices, PyObject* fieldX, 
+                                      PyObject* fieldY, PyObject* fieldZ )
 {
   E_Int indint, indcellg, indcelld;
   E_Int nicnjc = nic*njc;
@@ -543,15 +557,25 @@ PyObject* K_POST::computeDiv2Struct3D(E_Int ni, E_Int nj, E_Int nk,
       }
   }
   // Replace DataSet
-  if (indices != Py_None && field != Py_None)
+  if (indices != Py_None && fieldX != Py_None && fieldY != Py_None 
+                                              && fieldZ != Py_None )
   {
-    FldArrayI* inds=NULL; FldArrayF* bfield=NULL;
+    FldArrayI* inds=NULL; FldArrayF* bfieldX=NULL;
+    FldArrayF* bfieldY=NULL; FldArrayF* bfieldZ=NULL; 
     K_NUMPY::getFromNumpyArray(indices, inds, true);
-    K_NUMPY::getFromNumpyArray(field, bfield, true);
+    K_NUMPY::getFromNumpyArray(fieldX, bfieldX, true);
+    K_NUMPY::getFromNumpyArray(fieldY, bfieldY, true);
+    K_NUMPY::getFromNumpyArray(fieldZ, bfieldZ, true);
+
 
     E_Int ninterfaces = inds->getSize()*inds->getNfld();
     E_Int* pindint = inds->begin();
-    E_Float* pf = bfield->begin();
+
+    E_Float* pf[3];
+    pf[0] = bfieldX->begin();
+    pf[1] = bfieldY->begin();
+    pf[2] = bfieldZ->begin();
+
     E_Int indint;
     for (E_Int eq = 0; eq < nfldg; eq++)
     {
@@ -559,11 +583,13 @@ PyObject* K_POST::computeDiv2Struct3D(E_Int ni, E_Int nj, E_Int nk,
       for (E_Int noint = 0; noint < ninterfaces; noint++)
       {
         indint = pindint[noint];
-        fintp[indint] = pf[noint];
+        fintp[indint] = pf[eq][noint];
       }
     }
     RELEASESHAREDN(indices, inds);
-    RELEASESHAREDN(field, bfield);
+    RELEASESHAREDN(fieldX, bfieldX);
+    RELEASESHAREDN(fieldY, bfieldY);
+    RELEASESHAREDN(fieldZ, bfieldZ);
   }
 
   // Build empty array
@@ -630,7 +656,8 @@ PyObject* K_POST::computeDiv2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
                                       E_Float* xt, E_Float* yt, E_Float* zt,
                                       FldArrayF& fc, FldArrayF& faceField,
                                       E_Int* cellG, E_Int* cellD,
-                                      PyObject* indices, PyObject* field)
+                                      PyObject* indices, PyObject* fieldX, 
+                                      PyObject* fieldY, PyObject* fieldZ)
 {
   E_Int nkc = 1;
   E_Int indint, indcellg, indcelld, indm, indp;
@@ -649,31 +676,49 @@ PyObject* K_POST::computeDiv2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
   E_Float* sxint = sint.begin(1);
   E_Float* syint = sint.begin(2);
   E_Float* szint = sint.begin(3);
-  // Compute length of faces
+
+ // Compute length of faces
+  E_Float d13x, d13y, d13z, d24x, d24y, d24z;
+
   indint = 0;
   for (E_Int j = 0; j < njc; j++)
     for (E_Int i = 0; i < ni; i++)
     {
-      indm = (i-1)+j*ni; indp = indm+ni;
-      sxint[indint] = xt[indp]-xt[indm];
-      syint[indint] = yt[indp]-yt[indm];
-      szint[indint] = zt[indp]-zt[indm];
+      indm = i+j*ni; indp = indm+ni;
+      d13x = xt[indp]-xt[indm];
+      d13y = yt[indp]-yt[indm];
+      d13z = 1;
+      d24x = xt[indm]-xt[indp];
+      d24y = yt[indm]-yt[indp];
+      d24z = 1;
+
+      sxint[indint] = 0.5*(d13y*d24z-d13z*d24y);
+      syint[indint] = 0.5*(d13z*d24x-d13x*d24z);
+      szint[indint] = 0.5*(d13x*d24y-d13y*d24x);
       indint+=1;
     }
   for (E_Int j = 0; j < nj; j++)
     for (E_Int i = 0; i < nic; i++)
     {
-      indm = (i-1)+j*ni; indp = indm+1;
-      sxint[indint] = xt[indp]-xt[indm];
-      syint[indint] = yt[indp]-yt[indm];
-      szint[indint] = zt[indp]-zt[indm];
+      indm = i+j*ni; indp = indm+1;
+      d13x = xt[indp]-xt[indm];
+      d13y = yt[indp]-yt[indm];
+      d13z = 1;
+      d24x = xt[indp]-xt[indm];
+      d24y = yt[indp]-yt[indm];
+      d24z = -1;
+
+      sxint[indint] = 0.5*(d13y*d24z-d13z*d24y);
+      syint[indint] = 0.5*(d13z*d24x-d13x*d24z);
+      szint[indint] = 0.5*(d13x*d24y-d13y*d24x);
       indint+=1;
     }
+
   for (E_Int eq = 0; eq < nfldg; eq++)
   {
     E_Float* fcn = fc.begin(eq+1);
     E_Float* fintp = faceField.begin(eq+1);
-    //faces en i
+    //faces en i internes
     for (E_Int j = 0; j < njc; j++)
       for (E_Int i = 1; i < nic; i++)
       {
@@ -686,18 +731,20 @@ PyObject* K_POST::computeDiv2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
     //bords des faces en i
     for (E_Int j = 0; j < njc; j++)
     {
-      E_Int i = 0;
-      indint = i+j*ni;
-      indcelld = i + j*nic;
+      //faces i = 0
+      indint = j*ni;
+      indcelld = j*nic;
       fintp[indint] = fcn[indcelld];//extrapolation de l interieur
       cellG[indint] = -1; cellD[indint] = indcelld;
-      i = nic;
-      indint = i+j*ni;
-      indcellg = (i-1) + j*nic;
+
+      //faces i=ni
+      indint = (ni-1)+j*ni;
+      indcellg = (nic-1) + j*nic;
       fintp[indint] = fcn[indcellg];//extrapolation de l interieur
       cellG[indint] = indcellg; cellD[indint] = -1;
     }
-    //faces en j
+
+    //faces en j interieures
     for (E_Int j = 1; j < njc; j++)
       for (E_Int i = 0; i < nic; i++)
       {
@@ -710,31 +757,119 @@ PyObject* K_POST::computeDiv2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
     //bords des faces en j
     for (E_Int i = 0; i < nic; i++)
     {
-      E_Int j = 0;
-      indint = i+j*nic+nbIntI;
-      indcellg = i+(j-1)*nic;
-      indcelld = indcellg+nic;
+      //faces j=0
+      indint = i+nbIntI;
+      indcelld = i;
       cellG[indint] = -1; cellD[indint] = indcelld;
       fintp[indint] = fcn[indcelld];//extrapolation de l interieur
 
-      j = njc;
-      indint = i+j*nic+nbIntI;
-      indcellg = i+(j-1)*nic;
-      indcelld = indcellg+nic;
+      //faces j=jmax
+      indint = i+njc*nic+nbIntI;
+      indcellg = i+(njc-1)*nic;
       cellG[indint] = indcellg; cellD[indint] = -1;
       fintp[indint] = fcn[indcellg];//extrapolation de l interieur
     }
   }
+
+  // // Compute length of faces
+  // indint = 0;
+  // for (E_Int j = 0; j < njc; j++)
+  //   for (E_Int i = 0; i < ni; i++)
+  //   {
+  //     indm = (i-1)+j*ni; indp = indm+ni;
+  //     sxint[indint] = xt[indp]-xt[indm];
+  //     syint[indint] = yt[indp]-yt[indm];
+  //     szint[indint] = zt[indp]-zt[indm];
+  //     indint+=1;
+  //   }
+  // for (E_Int j = 0; j < nj; j++)
+  //   for (E_Int i = 0; i < nic; i++)
+  //   {
+  //     indm = (i-1)+j*ni; indp = indm+1;
+  //     sxint[indint] = xt[indp]-xt[indm];
+  //     syint[indint] = yt[indp]-yt[indm];
+  //     szint[indint] = zt[indp]-zt[indm];
+  //     indint+=1;
+  //   }
+  // for (E_Int eq = 0; eq < nfldg; eq++)
+  // {
+  //   E_Float* fcn = fc.begin(eq+1);
+  //   E_Float* fintp = faceField.begin(eq+1);
+  //   //faces en i
+  //   for (E_Int j = 0; j < njc; j++)
+  //     for (E_Int i = 1; i < nic; i++)
+  //     {
+  //       indint = i+j*ni;
+  //       indcellg = (i-1)+j*nic;
+  //       indcelld = indcellg+1;
+  //       cellG[indint] = indcellg; cellD[indint] = indcelld;
+  //       fintp[indint] = 0.5*(fcn[indcellg]+fcn[indcelld]);
+  //     }
+  //   //bords des faces en i
+  //   for (E_Int j = 0; j < njc; j++)
+  //   {
+  //     E_Int i = 0;
+  //     indint = i+j*ni;
+  //     indcelld = i + j*nic;
+  //     fintp[indint] = fcn[indcelld];//extrapolation de l interieur
+  //     cellG[indint] = -1; cellD[indint] = indcelld;
+  //     i = nic;
+  //     indint = i+j*ni;
+  //     indcellg = (i-1) + j*nic;
+  //     fintp[indint] = fcn[indcellg];//extrapolation de l interieur
+  //     cellG[indint] = indcellg; cellD[indint] = -1;
+  //   }
+  //   //faces en j
+  //   for (E_Int j = 1; j < njc; j++)
+  //     for (E_Int i = 0; i < nic; i++)
+  //     {
+  //       indint = i+j*nic+nbIntI;
+  //       indcellg = i+(j-1)*nic;
+  //       indcelld = indcellg+nic;
+  //       cellG[indint] = indcellg; cellD[indint] = indcelld;
+  //       fintp[indint] = 0.5*(fcn[indcellg]+fcn[indcelld]);
+  //     }
+  //   //bords des faces en j
+  //   for (E_Int i = 0; i < nic; i++)
+  //   {
+  //     E_Int j = 0;
+  //     indint = i+j*nic+nbIntI;
+  //     indcellg = i+(j-1)*nic;
+  //     indcelld = indcellg+nic;
+  //     cellG[indint] = -1; cellD[indint] = indcelld;
+  //     fintp[indint] = fcn[indcelld];//extrapolation de l interieur
+
+  //     j = njc;
+  //     indint = i+j*nic+nbIntI;
+  //     indcellg = i+(j-1)*nic;
+  //     indcelld = indcellg+nic;
+  //     cellG[indint] = indcellg; cellD[indint] = -1;
+  //     fintp[indint] = fcn[indcellg];//extrapolation de l interieur
+  //   }
+  // }
+
+
+
   // Replace DataSet
-  if (indices != Py_None && field != Py_None)
+  if (indices != Py_None && (fieldX != Py_None | fieldY != Py_None 
+			     | fieldZ != Py_None) )
   {
-    FldArrayI* inds=NULL; FldArrayF* bfield=NULL;
+    FldArrayI* inds=NULL; FldArrayF* bfieldX=NULL;
+    FldArrayF* bfieldY=NULL; FldArrayF* bfieldZ=NULL; 
     K_NUMPY::getFromNumpyArray(indices, inds, true);
-    K_NUMPY::getFromNumpyArray(field, bfield, true);
+    K_NUMPY::getFromNumpyArray(fieldX, bfieldX, true);
+    K_NUMPY::getFromNumpyArray(fieldY, bfieldY, true);
+    K_NUMPY::getFromNumpyArray(fieldZ, bfieldZ, true);
 
     E_Int ninterfaces = inds->getSize()*inds->getNfld();
     E_Int* pindint = inds->begin();
-    E_Float* pf = bfield->begin();
+
+    E_Float* pf[2];
+
+    if (ixyz == 0) { pf[0] =  bfieldX->begin(); pf[1] = bfieldY->begin(); }
+    if (ixyz == 1) { pf[0] =  bfieldX->begin(); pf[1] = bfieldZ->begin(); }
+    if (ixyz == 2) { pf[0] =  bfieldY->begin(); pf[1] = bfieldZ->begin(); }
+
     E_Int indint;
     for (E_Int eq = 0; eq < nfldg; eq++)
     {
@@ -742,11 +877,13 @@ PyObject* K_POST::computeDiv2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
       for (E_Int noint = 0; noint < ninterfaces; noint++)
       {
         indint = pindint[noint];
-        fintp[indint] = pf[noint];
+        fintp[indint] = pf[eq][noint];
       }
     }
     RELEASESHAREDN(indices, inds);
-    RELEASESHAREDN(field, bfield);
+    RELEASESHAREDN(fieldX, bfieldX);
+    RELEASESHAREDN(fieldY, bfieldY);
+    RELEASESHAREDN(fieldZ, bfieldZ);
   }
 
   // Build empty array

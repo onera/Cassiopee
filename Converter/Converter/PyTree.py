@@ -4497,6 +4497,7 @@ def _reorderSubzone__(z, w, T):
   dim = Internal.getZoneDim(z)
   ni = dim[1]; nj = dim[2]; nk = dim[3]
   imin = w[0]; imax = w[1]; jmin = w[2]; jmax = w[3]; kmin = w[4]; kmax = w[5]
+ 
   if imin == imax and imin == ni: T._reorder(z, (1,-2,3)) 
   elif jmin == jmax and jmin == 1: T._reorder(z, (-1,2,3))
   elif kmin == kmax and kmin > 1: T._reorder(z, (-1,2,3))
@@ -4804,6 +4805,7 @@ def computeBCMatchField(z,allMatch,variables=None):
       nk   = dim[3]-1
 
       fld  = None
+      indR = None 
 
       for key in allMatch.keys():
         if ( key.split("/")[0] == z[0] ):

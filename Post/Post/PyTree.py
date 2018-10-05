@@ -1245,6 +1245,12 @@ def _computeDiv2(t, var):
         raise ValueError("Post.PyTree.computeDiv2: not available for lists of variables.")
     vare = var.split(':')
     if len(vare) > 1: vare = vare[1]
+
+    # Compute fields on BCMatch (for all match connectivities) 
+    varList  = [vare+'X',vare+'Y',vare+'Z']
+    allMatch = C.extractAllBCMatch(t,varList) 
+    # allMatch = {}
+
     zones = Internal.getZones(t)
     for z in zones:
         dims = Internal.getZoneDim(z)
@@ -1262,7 +1268,10 @@ def _computeDiv2(t, var):
             f = []
         x = C.getFields(Internal.__GridCoordinates__, z)[0]
         # Get BCDataSet if any
-        indices=None; BCField=None
+        indices  = None
+        BCFieldX = None
+        BCFieldY = None
+        BCFieldZ = None
 
         isghost = Internal.getNodeFromType1(z,'Rind_t')
         if isghost is None: # not a ghost cells zone : add BCDataSet
@@ -1274,17 +1283,158 @@ def _computeDiv2(t, var):
                     inds = Internal.getBCFaceNode(z, b)
                     if datas != [] and inds != []:
                         bcf = None
+
+                        # BCFieldX
                         for i in datas:
-                            if i[0] == vare: bcf = i; break
+                            if i[0] == vare+'X': bcf = i; break
                         if bcf is not None:
                             indsp = inds[1].ravel(order='K')
                             bcfp = bcf[1].ravel(order='K')
                             if indices is None: indices = indsp
                             else: indices = numpy.concatenate((indices, indsp))
-                            if BCField is None: BCField = bcfp
-                            else: BCField = numpy.concatenate((BCField, bcfp))
+                            if BCFieldX is None: BCFieldX = bcfp
+                            else: BCFieldX = numpy.concatenate((BCFieldX, bcfp))
+
+                        # BCFieldY
+                        for i in datas:
+                            if i[0] == vare+'Y': bcf = i; break
+                        if bcf is not None:
+                            bcfp = bcf[1].ravel(order='K')
+                            if BCFieldY is None: BCFieldY = bcfp
+                            else: BCFieldY = numpy.concatenate((BCFieldY, bcfp))
+
+                        # BCFieldZ
+                        for i in datas:
+                            if i[0] == vare+'Z': bcf = i; break
+                        if bcf is not None:
+                            bcfp = bcf[1].ravel(order='K')
+                            if BCFieldZ is None: BCFieldZ = bcfp
+                            else: BCFieldZ = numpy.concatenate((BCFieldZ, bcfp))
+
+
+         # compute field on BCMatch for current zone
+        if allMatch != {}:
+            indFace, fldFace = C.computeBCMatchField(z,allMatch,varList)
+
+            if fldFace is not None:
+
+                fldX = None
+                fldY = None
+                fldZ = None
+
+                foundVar = fldFace[0][0].split(',')
+
+                if len(foundVar)==3: # 3D
+                    for fgc in fldFace:
+                        fgcX = fgc[1][0]
+                        fgcY = fgc[1][1]
+                        fgcZ = fgc[1][2]
+                        
+                        if fldX is None: fldX = fgcX
+                        else: fldX = numpy.concatenate((fldX,fgcX))
+
+                        if fldY is None: fldY = fgcY
+                        else: fldY = numpy.concatenate((fldY,fgcY))
+
+                        if fldZ is None: fldZ = fgcZ
+                        else: fldZ = numpy.concatenate((fldZ,fgcZ))
+
+                    indp    = indFace.ravel(order='K')
+                    fldX    = fldX.ravel(order='K')
+                    fldY    = fldY.ravel(order='K')
+                    fldZ    = fldZ.ravel(order='K')
+
+                    if indices is None: indices = indp
+                    else: indices = numpy.concatenate((indices, indp))
+                    
+                    if BCFieldX is None: BCFieldX = fldX
+                    else: BCFieldX = numpy.concatenate((BCFieldX, fldX))  
+                    
+                    if BCFieldY is None: BCFieldY = fldY
+                    else: BCFieldY = numpy.concatenate((BCFieldY, fldY)) 
+
+                    if BCFieldZ is None: BCFieldZ = fldZ
+                    else: BCFieldZ = numpy.concatenate((BCFieldZ, fldZ))   
+
+                elif len(foundVar)==2: # 2D
+                    # Config (XY)
+                    if (foundVar[0][-1] == 'X' and foundVar[1][-1] == 'Y'):
+                        for fgc in fldFace:
+                            fgcX = fgc[1][0]
+                            fgcY = fgc[1][1]
+                            
+                            if fldX is None: fldX = fgcX
+                            else: fldX = numpy.concatenate((fldX,fgcX))
+
+                            if fldY is None: fldY = fgcY
+                            else: fldY = numpy.concatenate((fldY,fgcY))
+
+                        indp    = indFace.ravel(order='K')
+                        fldX    = fldX.ravel(order='K')
+                        fldY    = fldY.ravel(order='K')
+
+                        if indices is None: indices = indp
+                        else: indices = numpy.concatenate((indices, indp))
+                        
+                        if BCFieldX is None: BCFieldX = fldX
+                        else: BCFieldX = numpy.concatenate((BCFieldX, fldX))  
+                        
+                        if BCFieldY is None: BCFieldY = fldY
+                        else: BCFieldY = numpy.concatenate((BCFieldY, fldY))  
+
+                    # Config (XZ)
+                    if (foundVar[0][-1] == 'X' and foundVar[1][-1] == 'Z'):
+                        for fgc in fldFace:
+                            fgcX = fgc[1][0]
+                            fgcZ = fgc[1][1]
+                            
+                            if fldX is None: fldX = fgcX
+                            else: fldX = numpy.concatenate((fldX,fgcX))
+
+                            if fldZ is None: fldZ = fgcZ
+                            else: fldZ = numpy.concatenate((fldZ,fgcZ))
+
+                        indp    = indFace.ravel(order='K')
+                        fldX    = fldX.ravel(order='K')
+                        fldZ    = fldZ.ravel(order='K')
+
+                        if indices is None: indices = indp
+                        else: indices = numpy.concatenate((indices, indp))
+                        
+                        if BCFieldX is None: BCFieldX = fldX
+                        else: BCFieldX = numpy.concatenate((BCFieldX, fldX))  
+                        
+                        if BCFieldZ is None: BCFieldZ = fldZ
+                        else: BCFieldZ = numpy.concatenate((BCFieldZ, fldZ))  
+
+                    # Config (YZ)
+                    if (foundVar[0][-1] == 'Y' and foundVar[1][-1] == 'Z'):
+                        for fgc in fldFace:
+                            fgcY = fgc[1][0]
+                            fgcZ = fgc[1][1]
+                            
+                            if fldY is None: fldY = fgcY 
+                            else: fldY = numpy.concatenate((fldY,fgcY))
+
+                            if fldZ is None: fldZ = fgcZ
+                            else: fldZ = numpy.concatenate((fldZ,fgcZ))
+
+                        indp    = indFace.ravel(order='K')
+                        fldY    = fldY.ravel(order='K')
+                        fldZ    = fldZ.ravel(order='K')
+
+                        if indices is None: indices = indp
+                        else: indices = numpy.concatenate((indices, indp))
+                        
+                        if BCFieldY is None: BCFieldY = fldY
+                        else: BCFieldY = numpy.concatenate((BCFieldY, fldY))  
+                        
+                        if BCFieldZ is None: BCFieldZ = fldZ
+                        else: BCFieldZ = numpy.concatenate((BCFieldZ, fldZ))  
+ 
         if f != []:
-            centers = Post.computeDiv2(x, f, indices=indices, BCField=BCField)
+            centers = Post.computeDiv2(x, f, indices=indices, BCFieldX=BCFieldX, 
+                                             BCFieldY=BCFieldY, BCFieldZ=BCFieldZ)
             C.setFields([centers], z, 'centers')
     return None
 
