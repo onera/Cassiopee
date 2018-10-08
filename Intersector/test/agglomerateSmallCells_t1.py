@@ -1,4 +1,4 @@
-# - boolean diffSurf (array) -
+# - agglomerateSmallCells (array) -
 import Generator as G
 import Geom as D
 import Converter as C
@@ -7,7 +7,7 @@ import KCore.test as test
 
 # octree
 s = D.sphere((0,0,0), 1., 100); snear = 0.1
-t = G.octree([s],[snear], dfar=5., balancing=1,ratio=2)
+t = G.octree([s],[snear], dfar=5., balancing=1, ratio=2)
 
 print "ngon converion..."
 t = C.convertArray2NGon(t)

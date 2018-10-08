@@ -82,14 +82,14 @@ def rotate(event=None):
     else: 
         CTK.TXT.insert('START', 'Invalid angle or angle+rotation center.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-    if axis == 'around X': axe = (1,0,0)
-    elif axis == 'around Y': axe = (0,1,0)
-    elif axis == 'around Z': axe = (0,0,1)
+    if axis == 'around X': axe = (1.,0.,0.)
+    elif axis == 'around Y': axe = (0.,1.,0.)
+    elif axis == 'around Z': axe = (0.,0.,1.)
     elif axis == 'around view':
         pos = CPlot.getState('posCam')
         eye = CPlot.getState('posEye')
         axe = (eye[0]-pos[0], eye[1]-pos[1], eye[2]-pos[2])
-    else: axe = (0,0,1)
+    else: axe = (0.,0.,1.)
     try: angle = float(angle)
     except: angle = 0.
     
@@ -399,7 +399,7 @@ def createApp(win):
     B.grid(row=3, column=1, sticky=TK.EW)
     B = TTK.Entry(Frame, textvariable=VARS[3], background='White', width=5)
     B.grid(row=3, column=2, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='angle (degrees) or \nangle; Xc;Yc;Zc (angle+rotation center)')
+    BB = CTK.infoBulle(parent=B, text='angle (degrees) or \nangle; Xc;Yc;Zc (angle+rotation center)\nIf center is not specified, rotate around barycenter of zones.')
 
     # - Symetrize -
     B = TTK.Button(Frame, text="Mirror", command=symetrize)

@@ -1188,7 +1188,7 @@ PyObject* K_POST::isoSurfMC_opt(PyObject* self, PyObject* args)
 
   FldArrayI tab_nquad1   ( __NUMTHREADS__); E_Int* nquad1    = tab_nquad1.begin();
   FldArrayI tab_npt1     ( __NUMTHREADS__); E_Int* npt1      = tab_npt1.begin();
-  FldArrayI tab_nbloc    ( __NUMTHREADS__); E_Int*  nbloc    = tab_nbloc.begin();
+  FldArrayI tab_nbloc    ( __NUMTHREADS__); E_Int* nbloc     = tab_nbloc.begin();
   FldArrayI tab_npt      ( Thread_max    ); E_Int* npt       = tab_npt.begin();
 
   FldArrayI tab_shift_npt( Thread_max, __NUMTHREADS__  );
@@ -1229,7 +1229,7 @@ PyObject* K_POST::isoSurfMC_opt(PyObject* self, PyObject* args)
         //printf("npts %d %d \n", npts, nquads);
         //#pragma omp barrier
 
-      if( npts!= 0 && nquads != 0)
+      if (npts!= 0 && nquads != 0)
       {
 
          #pragma omp single
@@ -1238,7 +1238,7 @@ PyObject* K_POST::isoSurfMC_opt(PyObject* self, PyObject* args)
           
            E_Int ipart     = 0;
            E_Int ideb_ipart= 0; 
-           E_Int shift2    = 0; 
+           E_Int shift2    = 0;
 
 
            for (E_Int ithread = 0; ithread <  __NUMTHREADS__; ithread++)
@@ -1266,11 +1266,11 @@ PyObject* K_POST::isoSurfMC_opt(PyObject* self, PyObject* args)
 
                       //printf("IPART= %d, lg0= %d, ith= %d \n", ipart, lgo, ithread);
 
-                      if(npt[ipart]==0) ipart = ipart +1;
+                      if (npt[ipart]==0) ipart = ipart +1;
                       else
                       {
                          // Size Part restant >  Size vide de thread
-                         if( l1 > l2 ) 
+                         if (l1 > l2) 
                               { 
                                 E_Int l = ideb_ipart + l2;
                                 while( l > ideb_ipart && map_cifi[ l ] == 0 ) l =l-1;
@@ -1422,9 +1422,6 @@ PyObject* K_POST::isoSurfMC_opt(PyObject* self, PyObject* args)
   }
 
   delete [] fiso; delete [] ciso;
-
-           //printf("routine OK:  \n");
-
   return out;
 }
 

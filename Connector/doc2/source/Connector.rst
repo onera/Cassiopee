@@ -30,7 +30,8 @@ With the pyTree interface::
 List of functions
 ##################
 
-**-- Multiblock connectivity **
+
+**-- Multiblock connectivity**
 
 .. autosummary::
 
@@ -39,7 +40,7 @@ List of functions
    Connector.PyTree.connectNearMatch
    Connector.PyTree.setDegeneratedBC
 
-**-- Overset connectivity**
+**-- Overset grid connectivity**
 
 .. autosummary::
 
@@ -50,7 +51,7 @@ List of functions
    Connector.optimizeOverlap    
    Connector.maximizeBlankedCells
 
-**-- Overset connectivity for elsA**
+**-- Overset grid connectivity for elsA solver**
 
 .. autosummary::
 
@@ -464,40 +465,55 @@ Overset connectivity
 
 -----------------------------------------------------------------------------------------------------------------------
 
-.. py:function:: Connector.maximiezBlankedCells()
+.. py:function:: Connector.maximizeBlankedCells(a, depth=2, dir=1)
 
 
-    <strong>X.maximizeBlankedCells</strong>:
-    change useless interpolated points status (2) to blanked points (0).
+    Change useless interpolated points status (2) to blanked points (0).
     If dir=0, uses a directional stencil of depth points, if dir=1,
-    uses a full depth x depth x depth stencil:
-    <div class="code">
-    b = X.maximizeBlankedCells(a, depth=2, dir=1) <em>.or.</em> B = X.maximizeBlankedCells(A, depth=2)
-    </div>
-    <em>Example of use: </em><a href="Examples/Connector/maximizeBlankedCells.py"> maximize blanked cells (array)</a>.<br><br>
+    uses a full depth x depth x depth stencil.
+    
+    *Example of use:*
+
+    * `Maximize blanked cells (array) <Examples/Connector/maximizeBlankedCells.py>`_:
+
+    .. literalinclude:: ../build/Examples/Connector/maximizeBlankedCells.py
+
+    * `Optimize overlapping (pyTree) <Examples/Connector/maximizeBlankedCellsPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Connector/maximizeBlankedCellsPT.py
 
 
 
 -----------------------------------------------------------------------------------------------------------------------------
 
-    <strong>X.setDoublyDefinedBC</strong>:
+.. py:function:: Connector.setDoublyDefinedBC(a, cellN, listOfInterpZones, listOfCelln, range, depth=2)
+
+    
     when a border of zone z is defined by doubly defined BC in range=[i1,i2,j1,j2,k1,k2],
     one can determine whether a point is interpolated or defined by the physical BC. The array cellN defines the cell nature field at centers for zone z.
     If a cell is interpolable from a donor zone, then the cellN is set to 2 for this cell.
     The lists listOfInterpZones and listOfCelln are the list of arrays defining the interpolation domains, and corresponding cell nature fields. depth can be 1 or 2. If case of depth=2,
     if one point of the two layers is not interpolable, then celln is set to 1 for both points:
-    <div class="code">
-    t = X.setDoublyDefinedBC(z, cellN, listOfInterpZones, listOfCelln, range, depth=2)
-    </div>
-    <em>Example of use: </em> <a href="Examples/Connector/setDoublyDefinedBC.py"> set interpolated/BC points on doubly defined BCs (array)</a>.<br><br>
+   
+    * `Set interpolated/BC points on doubly defined BCs (array) <Examples/Connector/setDoublyDefinedBC.py>`_:
 
-    <strong>X.blankIntersectingCells</strong>:
-    blank intersecting cells of a 3D mesh. Only faces normal to k-planes for structured meshes and faces normal to triangular faces for prismatic meshes, and faces normal to 1234 and 5678 faces for hexahedral meshes are tested.
+    .. literalinclude:: ../build/Examples/Connector/setDoublyDefinedBC.py
+
+    * `Set interpolated/BC points on doubly defined BCs (pyTree) <Examples/Connector/setDoublyDefinedBCPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Connector/setDoublyDefinedBCPT.py
+
+
+-----------------------------------------------------------------------------------------------------------------------------
+
+.. py:function:: Connector.setDoublyDefinedBC(a, cellN, tol=1.e-10)
+
+
+    Blank intersecting cells of a 3D mesh. Only faces normal to k-planes for structured meshes and faces normal to triangular faces for prismatic meshes, and faces normal to 1234 and 5678 faces for hexahedral meshes are tested.
     The cellN is set to 0 for intersecting cells/elements. Input data are A the list of meshes, cellN the list of cellNatureField located at cell centers.
     Array version: the cellN must be an array located at centers, defined separately:
-   <div class="code">
-    cellN = X.blankIntersectingCells(A, cellN, tol=1.e-10)
-    </div>
+   
+    
     <em>Example of use: </em><a href="Examples/Connector/blankIntersectingCells.py"> intersecting cells blanking (array)</a>.<br><br>
 
  
