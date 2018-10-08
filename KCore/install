@@ -35,6 +35,7 @@ which scons &>/dev/null
 if [ $? -eq 0 ]; then
     if [ "$OMP_NUM_THREADS" != "" ]; then
         export SCONSOPT="-j $OMP_NUM_THREADS"
+        echo "Parallel compilation on "$OMP_NUM_THREADS" cores"
     else
         export SCONSOPT=""
     fi

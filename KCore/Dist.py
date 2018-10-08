@@ -3,12 +3,12 @@ import os, sys, distutils.sysconfig, platform, glob, subprocess
 
 # Toggle to True for compiling for debug (valgrind, inspector)
 DEBUG = False
-    
+
 #==============================================================================
 # Check module import
 # Write SUCCESS or FAILED (with colored output)
 #==============================================================================
-def checkModuleImport(moduleName):
+def checkModuleImport(moduleName, raiseOnError=True):
     # Remove . from PYTHONPATH
     try:
         del sys.path[sys.path.index('')]
@@ -36,6 +36,7 @@ def checkModuleImport(moduleName):
         else:
             print "FAILED: %s"%inst
             print "FAILED: %s badly installed."%moduleName
+        if raiseOnError: raise ImportError
 
 #==============================================================================
 # Return informations on the current operating system
@@ -100,13 +101,13 @@ def checkAll():
 def checkPython():
     pythonVersion = distutils.sysconfig.get_python_version()
     vars = distutils.sysconfig.get_config_vars()
-    
+
     pythonIncDir = distutils.sysconfig.get_python_inc()
     if not os.path.exists(pythonIncDir):
          raise SystemError("Error: Python includes are required for the compilation of Cassiopee modules.")
-        
+
     pythonLibDir = distutils.sysconfig.get_python_lib()
-    try: 
+    try:
          a = distutils.sysconfig.get_config_var('LDLIBRARY')
          a = a.replace('lib', '')
          a = a.replace('.a', '')
@@ -127,10 +128,10 @@ def checkNumpy():
           numpyVersion = numpy.__version__
      except ImportError:
           raise SystemError("Error: numpy is required for the compilation of Cassiopee modules.")
-     
+
      if not os.path.exists(numpyIncDir):
           raise SystemError("Error: numpy includes are required for the compilation of Cassiopee modules.")
-        
+
      return (numpyVersion, numpyIncDir, '')
 
 #=============================================================================
@@ -240,7 +241,7 @@ def writeEnvs():
           p.write("      export LD_LIBRARY_PATH=%s:%s:$LD_LIBRARY_PATH\n"%(libPath,installLD))
           p.write("fi\n")
      p.close()
-     
+
      # csh
      p = open(envPath+"env_Cassiopee.csh", 'w')
      if cassiopee != '': p.write("setenv CASSIOPEE %s\n"%cassiopee)
@@ -265,14 +266,14 @@ def writeEnvs():
           p.write("     setenv LD_LIBRARY_PATH %s:%s:$LD_LIBRARY_PATH\n"%(libPath,installLD))
           p.write("endif\n")
      p.close()
-     
+
      # bat
      p = open(envPath+"env_Cassiopee.bat", 'w')
      p.write("path = "+libPath+";"+cmdPath+"%PATH%\n")
      p.write("set PYTHONPATH="+installPathLocal+";%PYTHONPATH%\n")
      p.write("set OMP_NUM_THREADS=%NUMBER_OF_PROCESSORS%\n")
      p.close()
-     
+
 #==============================================================================
 # Write setup.cfg en fonction du compilateur C++ (si different de None)
 # setup.cfg est utilise par setup de python pour choisir le compilo.
@@ -281,7 +282,7 @@ def writeSetupCfg():
     try: from config import Cppcompiler
     except: from KCore.config import Cppcompiler
     mySystem = getSystem()
-    
+
     # Windows + mingw
     if mySystem[0] == 'mingw' and mySystem[1] == '32':
         p = open("./setup.cfg", 'w')
@@ -291,7 +292,7 @@ def writeSetupCfg():
         p = open("./setup.cfg", 'w')
         p.write('[build_ext]\ncompiler=mingw32\n')
         p.close(); return
-    
+
     # Unix
     if Cppcompiler == "None" or Cppcompiler == "":
         a = os.access("./setup.cfg", os.F_OK)
@@ -312,7 +313,7 @@ def writeSetupCfg():
         p = open("./setup.cfg", 'w')
         p.write('[build_ext]\ncompiler=%s\n'%Cppcompiler)
         p.close()
-        
+
     if Cppcompiler.find('icc') == 0 or Cppcompiler.find('icpc') == 0:
          import numpy.distutils
          numpy.distutils.ccompiler.new_compiler(compiler='intel')
@@ -433,7 +434,7 @@ def getVersion(compiler):
      for i in out:
           isVersion = i.split('.')
           if len(isVersion)>1: # maybe
-               try: 
+               try:
                     major = int(isVersion[0])
                     minor = int(isVersion[1])
                     break
@@ -610,7 +611,7 @@ def getf77AdditionalOptions():
 
 #==============================================================================
 # Retourne les arguments pour le compilateur C (utilise aussi pour Cpp)
-# IN: config.Cppcompiler, config.useStatic, config.useOMP, 
+# IN: config.Cppcompiler, config.useStatic, config.useOMP,
 # config.CppAdditionalOptions
 #==============================================================================
 def getCArgs():
@@ -622,13 +623,13 @@ def getCArgs():
     Cppcompiler = compiler[l]
     if Cppcompiler == "None": return []
     options = getCppAdditionalOptions()[:]
-    if Cppcompiler.find("icpc") == 0 or Cppcompiler.find("icc") == 0: 
+    if Cppcompiler.find("icpc") == 0 or Cppcompiler.find("icc") == 0:
          if DEBUG: options += ['-g', '-O0', '-wd47', '-wd1224']
          else: options += ['-DNDEBUG', '-O2', '-wd47', '-wd1224']
          v = getCppVersion()
          if v[0] < 15:
             options += ['-fp-speculation=strict']
-         else: 
+         else:
             options += ['-fp-model=precise'] # modif 2.6
          if useOMP() == 1:
             if v[0] < 15: options += ['-openmp']
@@ -656,7 +657,7 @@ def getCArgs():
          if useOMP() == 1: options += []
          if useStatic() == 1: options += []
          else: options += []
-         return options    
+         return options
     elif Cppcompiler == "x86_64-w64-mingw32-gcc" or Cppcompiler == "x86_64-w64-mingw32-g++":
          options += ['-DMS_WIN64', '-fpermissive', '-D__USE_MINGW_ANSI_STDIO=1']
          if DEBUG: options += ['-g', 'O0']
@@ -716,9 +717,9 @@ def getForArgs():
          v = getForVersion()
          if v[0] < 15:
             options += ['-fp-speculation=strict']
-         else: 
+         else:
             options += ['-fp-model=precise']
-         if useOMP() == 1: 
+         if useOMP() == 1:
             v = getForVersion()
             if v[0] < 15: options += ['-openmp']
             else: options += ['-qopenmp']
@@ -753,7 +754,7 @@ def getLinkArgs():
           if useStatic() == 1: out += ['--static']
      mySystem = getSystem()[0]
      if mySystem == 'Darwin':
-	  if useStatic() == 0: out += ['-dynamiclib'] 
+	  if useStatic() == 0: out += ['-dynamiclib']
      return out
 
 #=============================================================================
@@ -806,7 +807,7 @@ def checkKCore():
 
     except ImportError:
         raise SystemError("Error: kcore library is required for the compilation of this module.")
-        
+
 #=============================================================================
 # Check for Generator
 #=============================================================================
@@ -944,7 +945,7 @@ def checkElsa():
         elsA = True
         elsAIncDir = kvar + "/Dist/include"
         elsALibDir = kvar + "/Dist/bin/" + pvar
-    
+
     if not elsA: # essai avec une production mpi
          pvar = pvar.split('_')
          if len(pvar) >= 2:
@@ -1000,7 +1001,7 @@ def checkGlew(additionalLibPaths=[], additionalIncludePaths=[]):
         if l is None:
              l = checkLibFile__('libglew32.a', additionalLibPaths)
     i = checkIncFile__('GL/glew.h', additionalIncludePaths)
-    
+
     if i is not None and l is not None:
         print 'Info: glew detected at '+l+'.'
         return (True, i, l)
@@ -1056,17 +1057,17 @@ def checkMpeg(additionalLibPaths=[], additionalIncludePaths=[]):
         if l is None:
              l = checkLibFile__('libavcodec.dll.a', additionalLibPaths)
     i = checkIncFile__('libavcodec/avcodec.h', additionalIncludePaths)
-    if i is not None: 
+    if i is not None:
          i = checkIncFile__('libavutil/mem.h', additionalIncludePaths)
-    if i is not None: 
-         i = checkIncFile__('libavutil/imgutils.h', additionalIncludePaths)     
+    if i is not None:
+         i = checkIncFile__('libavutil/imgutils.h', additionalIncludePaths)
     if i is not None and l is not None:
         print 'Info: mpeg detected at %s.'%l
         return (True, i, l)
     else:
         print 'Info: libavcodec or libavcodec/avcodec.h,  libavutil/mem.h or libavutil/imgutils.h was not found on your system. No mpeg support.'
         return (False, '', '')
-    
+
 #=============================================================================
 # Check for Adf
 # additionalPaths: chemins d'installation non standards: ['/home/toto',...]
@@ -1082,7 +1083,7 @@ def checkAdf(additionalLibPaths=[], additionalIncludePaths=[]):
         return (True, i, l)
     else:
         print 'Info: libadf or adf/ADF.h was not found on your system. No adf support.'
-        return (False, '', '')  
+        return (False, '', '')
 
 #=============================================================================
 # Check for Hdf
@@ -1175,7 +1176,7 @@ def checkLapack(additionalLibPaths=[], additionalIncludePaths=[]):
     try: from config import Cppcompiler
     except: from KCore.config import Cppcompiler
     if Cppcompiler == 'icc' or Cppcompiler == 'icpc': # intel - cherche dans MKL
-        libPrefix = 'libmkl_'; includePrefix = 'mkl_'; compOpt = '-mkl'          
+        libPrefix = 'libmkl_'; includePrefix = 'mkl_'; compOpt = '-mkl'
     else: # cherche std
         libPrefix = 'lib'; includePrefix = ''; compOpt = ''
     l = checkLibFile__(libPrefix+'lapack*.so', additionalLibPaths)
@@ -1194,9 +1195,9 @@ def checkLapack(additionalLibPaths=[], additionalIncludePaths=[]):
 # Retourne: (True/False, chemin des includes, chemin de la librairie)
 #=============================================================================
 def checkCython(additionalLibPaths=[], additionalIncludePaths=[]):
-   try: 
+   try:
       import Cython.Compiler.Main as cython_compiler
-      try: 
+      try:
         import Cython
         cythonVersion = Cython.__version__
       except: cythonVersion = True
@@ -1220,26 +1221,26 @@ def checkFortranLibs(additionalLibs=[], additionalLibPaths=[],
                      f77compiler=None, useOMP=None):
      if f77compiler is None:
           try: from config import f77compiler
-          except: 
+          except:
             try: from KCore.config import f77compiler
             except: f77compiler = 'gfortran'
      if useOMP is None:
           try: from config import useOMP
-          except: 
+          except:
             try: from KCore.config import useOMP
             except: useOMP = True
      ret = True; libs = []; paths = []
-     
+
      # librairies speciales (forcees sans check)
      libs += additionalLibs
      paths += additionalLibPaths
-               
+
      # gfortran (gfortran, gomp)
      if f77compiler.find('gfortran') == 0:
           l = checkLibFile__('libgfortran.so*', additionalLibPaths)
           if l is None:
                l = checkLibFile__('libgfortran.a', additionalLibPaths)
-               
+
           if l is not None:
                libs += ['gfortran']; paths += [l]
 
@@ -1251,12 +1252,12 @@ def checkFortranLibs(additionalLibs=[], additionalLibPaths=[],
                     libs += ['gomp']; paths += [l]
                else: ret = False
 
-     # ifort (ifcore, svml, irc, guide, iomp5) 
+     # ifort (ifcore, svml, irc, guide, iomp5)
      if f77compiler.find('ifort') == 0:
           l = checkLibFile__('libifcore.so*', additionalLibPaths)
           if l is None:
                l = checkLibFile__('libifcore.a', additionalLibPaths)
-               
+
           if l is not None:
                libs += ['ifcore']; paths += [l]
 
@@ -1300,21 +1301,21 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
 
      if Cppcompiler is None:
           try: from config import Cppcompiler
-          except: 
+          except:
             try: from KCore.config import Cppcompiler
             except: Cppcompiler = 'gcc'
      if useOMP is None:
           try: from config import useOMP
-          except: 
+          except:
             try: from KCore.config import useOMP
             except: useOMP = True
 
      ret = True; libs = []; paths = []
-     
+
      # librairies additionales (forcees sans check)
      libs += additionalLibs
      paths += additionalLibPaths
-               
+
      # gcc (stdc++, gomp)
      if Cppcompiler.find('gcc') == 0 or Cppcompiler.find('g++') == 0:
           os.environ['CC'] = 'gcc' # forced in 2.6 to overide setup.cfg
@@ -1322,7 +1323,7 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
           l = checkLibFile__('libstdc++.so*', additionalLibPaths)
           if l is None:
                l = checkLibFile__('libstdc++.a', additionalLibPaths)
-               
+
           if l is not None:
                libs += ['stdc++']; paths += [l]
 
@@ -1333,13 +1334,13 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
                if l is not None:
                     libs += ['gomp']; paths += [l]
                else: ret = False
-               
+
      # icc (stdc++, guide ou iomp5)
      if Cppcompiler.find('icc') == 0:
           l = checkLibFile__('libstdc++.so*', additionalLibPaths)
           if l is None:
                l = checkLibFile__('libstdc++.a', additionalLibPaths)
-               
+
           if l is not None:
                libs += ['stdc++']; paths += [l]
 
@@ -1400,7 +1401,7 @@ def checkIncFile__(file, additionalIncludePaths):
         p1 = env.get('LD_LIBRARY_PATH', None)
         if p1 is not None: pp += p1.split(':')
         p1 = env.get('PATH', None)
-        if p1 is not None: pp += p1.split(':') 
+        if p1 is not None: pp += p1.split(':')
     #p += ['/usr/local/include', '/opt/include', '/usr/include', '/opt/local/include']
     for i in xrange(len(pp)):
         s = pp[i].split('/'); ls = len(s)
@@ -1442,7 +1443,7 @@ def writeBuildInfo():
      (numpyVersion, numpyIncDir, numpyLibDir) = checkNumpy()
      if (numpyVersion != False): dict['numpy'] = numpyVersion
      else: dict['numpy'] = "None"
-     
+
      # Check png
      (png, pngIncDir, pngLib) = checkPng(config.additionalLibPaths,
                                          config.additionalIncludePaths)
@@ -1454,7 +1455,7 @@ def writeBuildInfo():
                                              config.additionalIncludePaths)
      if mpeg: dict['mpeg'] = mpegLib
      else: dict['mpeg'] = "None"
-     
+
      # Check hdf5
      (hdf, hdfIncDir, hdfLib) = checkHdf(config.additionalLibPaths,
                                          config.additionalIncludePaths)
@@ -1464,7 +1465,7 @@ def writeBuildInfo():
      # Write dictionnary
      p.write("buildDict = "+str(dict))
      p.close()
-     
+
 #==============================================================================
 # Ecrit la base d'installation (ancien config.py) dans le fichier
 # installBase.py
@@ -1477,7 +1478,7 @@ def writeInstallBase(dict):
 
      # Write doc
      p.write("# This is the dictionary keeping track of installation.\n# The key is the machine name or ELSAPROD name. For each key a list is stored.\n# [description, \n# f77compiler, libfortdir, libfort, f90compiler, libf90dir, libf90, \n# Cppcompiler, libCpp, useOMP, \n# CPlotOffScreen \n# pngPath, mpegPath, adfPath, hdfPath].\n# Path are list of strings. useOMP, CPlotOffScreen are booleans. \n# Others are strings.\n")
-    
+
      # Write dictionary
      #p.write("installDict = "+str(dict))
 
@@ -1517,11 +1518,11 @@ def writeInstallBase(dict):
 #==============================================================================
 # Sur certains unix, le chemin d'installation contient un lib64
 # Cree le symlink pour que lib et lib64 soit equivalent
-#============================================================================== 
+#==============================================================================
 def symLinks():
      system = getSystem()[0]
      bits = getSystem()[1]
-     if bits == '64': 
+     if bits == '64':
           try: import KCore.installPath as K
           except: import installPath as K
           libPath1 = K.libPath
@@ -1547,7 +1548,7 @@ def symLinks():
 # IN: module: module name ('Converter')
 # IN: srcs: le module des sources
 #==============================================================================
-def createExtensions(module, srcs, includeDirs, libraryDirs, libraries, 
+def createExtensions(module, srcs, includeDirs, libraryDirs, libraries,
                      extraCompileArgs=[], extraLinkArgs=[]):
      from distutils.core import Extension
      listExtensions = []
@@ -1571,7 +1572,7 @@ def createExtensions(module, srcs, includeDirs, libraryDirs, libraries,
                     library_dirs=libraryDirs,
                     libraries=libraries,
                     extra_compile_args=extraCompileArgs,
-                    extra_link_args=extraLinkArgs)    
+                    extra_link_args=extraLinkArgs)
      return listExtensions
 
 #==============================================================================
@@ -1597,7 +1598,7 @@ def createFortranBuilder(env, dirs=[]):
      path = ''
      for i in dirs: path += '"%s" -I'%i
      if path != '': path = path[:-3]
-     bld = Builder(action=getPP()+'%s $SOURCES $TARGETS'%path, suffix='.f', 
+     bld = Builder(action=getPP()+'%s $SOURCES $TARGETS'%path, suffix='.f',
                    src_suffix='.for')
      env.Append(BUILDERS={'FPROC': bld})
      # Fortran compiler
@@ -1645,7 +1646,7 @@ def fortranScan(node, env, path, arg=None):
      names = reg.findall(contents)
      names = [name.strip() for name in names]
      names = [name.replace('"', '') for name in names]
-     
+
      # remove duplications
      names = set(names)
      # remove false dep (+in KCore?)
