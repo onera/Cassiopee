@@ -139,7 +139,14 @@ def checkNumpy():
 def getInstallPath(prefix):
     mySystem = getSystem()[0]; bits = getSystem()[1]
     # Based on spec
-    if mySystem == 'Windows' or mySystem == 'mingw':
+    if os.environ['ELSAPROD'] == 'msys64':
+	pythonLib = distutils.sysconfig.get_python_lib()
+        pythonLib = pythonLib.split('/')
+        pythonVersion = pythonLib[-2]
+        Site = pythonLib[-1]
+        Lib = pythonLib[-3]
+        installPath = '%s/%s/%s/site-packages'%(prefix, Lib, pythonVersion) 
+    elif mySystem == 'Windows' or mySystem == 'mingw':
          installPath = prefix + "/Lib/site-packages"
     elif mySystem == 'Darwin':
          pythonLib = distutils.sysconfig.get_python_lib()
@@ -1575,7 +1582,9 @@ def getEnvForScons():
     return {'PATH': getenv('PATH'),
             'LD_LIBRARY_PATH': getenv('LD_LIBRARY_PATH'),
             'LM_LICENSE_FILE': getenv('LM_LICENSE_FILE'),
-            'INTEL_LICENSE_FILE': getenv('INTEL_LICENSE_FILE')}
+            'INTEL_LICENSE_FILE': getenv('INTEL_LICENSE_FILE'),
+	    'TMP':getenv('TMP'),
+	    'TEMP':getenv('TEMP')}
 
 #==============================================================================
 # Fortran builder

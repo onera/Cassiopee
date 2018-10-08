@@ -66,7 +66,7 @@ if png:
 (mpeg, mpegIncDir, mpegLib) = Dist.checkMpeg(additionalLibPaths,
                                              additionalIncludePaths)
 if mpeg:
-    libraries += ["avcodec"]
+    libraries += ["avcodec", "avutil"]
     libraryDirs += [mpegLib]
     includeDirs += [mpegIncDir]
 

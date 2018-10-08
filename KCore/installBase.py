@@ -21,6 +21,21 @@ False, # CPlotOffScreen
 ['c:/MinGW/lib', 'c:/Python27/libs', 'c:/MinGW/bin'] # additionalLibPaths
 ],
 ###############################################################################
+'WDAAA859Z': [ 'Windows win64+msys2 (Onera)',
+'gfortran', # f77compiler
+'gfortran', # f90compiler
+'gcc', # Cppcompiler
+[], # CppAdditionalOptions
+[], # f77AdditionalOptions
+True, # useOMP
+False, # static
+False, # CPlotOffScreen
+['c:/msys64/mingw64/include'], # additionalIncludePaths
+['gomp', 'gfortran'], # additionalLibs
+['c:/msys64/mingw64/lib'] # additionalLibPaths
+],
+
+###############################################################################
 'node6.cluster': [ 'MacOSX (generic)',
 'ifort', # f77compiler
 'ifort', # f90compiler

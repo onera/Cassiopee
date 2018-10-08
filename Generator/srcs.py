@@ -1,4 +1,4 @@
-NETGEN = True; TETGEN = True; MMG = False
+NETGEN = False; TETGEN = True; MMG = False
 
 #==============================================================================
 # Fichiers C++
