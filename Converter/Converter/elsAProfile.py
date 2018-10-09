@@ -7,7 +7,7 @@ import string
 import math
 
 __CONSERVATIVE__=["Density", "MomentumX", "MomentumY", "MomentumZ", "EnergyStagnationDensity"]
-__TURBULENT__=["TurbulentEnergyKineticDensity", "TurbulentDissipationDensity"]
+__TURBULENT__=["TurbulentEnergyKineticDensity", "TurbulentDissipationDensity", "TurbulentSANuTildeDensity"]
 __COMMONS__=["Pressure", "Mach", "Temperature"]
 __COMMONSNS__=["Viscosity_EddyMolecularRatio"]
 __WALLDISTANCE__= ["TurbulentDistance","TurbulentDistanceIndex"]
@@ -70,6 +70,7 @@ keyselsA2CGNS = {\
 'roE'            :'EnergyStagnationDensity'       , \
 'rok'            :'TurbulentEnergyKineticDensity' , \
 'roeps'          :'TurbulentDissipationDensity'   , \
+'ronutilde'      :'TurbulentSANuTildeDensity'     , \
 'mach'           :'Mach'                          , \
 'psta'           :'Pressure'                      , \
 'tsta'           :'Temperature'                   , \
@@ -105,7 +106,7 @@ keysCGNS2elsA={
 'UserDefined'                   :'komega_kok'   , \
 'UserDefined'                   :'smith'        , \
 'ViscosityModel'                :'visclaw'      , \
-'Sutherland'                    :'sutherland'   ,\
+'Sutherland'                    :'sutherland'   , \
 'SutherlandLawConstant'         :'suth_const'   , \
 'ViscosityMolecularReference'   :'suth_muref'   , \
 'TemperatureReference'          :'suth_tref'    , \
@@ -123,6 +124,7 @@ keysCGNS2elsA={
 'EnergyStagnationDensity'       :'roe'          , \
 "TurbulentEnergyKineticDensity" :'rok'          , \
 "TurbulentDissipationDensity"   :'roeps'        , \
+"TurbulentSANuTildeDensity"     :'ronutilde'    , \
 'Mach'                          :'mach'         , \
 'Pressure'                      :'psta'         , \
 'Temperature'                   :'tsta'         , \
@@ -583,7 +585,7 @@ def _addFlowSolution(t, name='', loc='CellCenter', variables=None,
         variables= list(set(variables))
 
       for varname in variables:
-        childrenNodes.append(Internal.createNode(varname,'UserDefinedData_t',value=None))
+        childrenNodes.append(Internal.createNode(varname,'DataArray_t',value=None))
 
       if addBCExtract:
         subChildren1 = []

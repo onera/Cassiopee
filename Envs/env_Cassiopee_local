@@ -46,6 +46,7 @@ set MAC26=`echo $KC | grep 'sator'`
 set MAC27=`echo $KC | grep 'n'`
 set MAC28=`echo $KC | grep 'xdaap'`
 set MAC29=`echo $KC | grep 'spiro'`
+set MAC30=`echo $KC | grep 'eos'`
 
 unset KC
 
@@ -97,6 +98,51 @@ if ($%MAC0 != 0) then
         else # elsA public
             set path=($ELSA/Dist/bin/eos-intel $path)
             setenv LD_LIBRARY_PATHL /usr/lib64:/home/benoit/lib:$ELSA/Dist/bin/eos-intel:$ELSA/Dist/bin/eos-intel/lib:/usr/local/python/lib
+            setenv PYTHONPATHL $CASSIOPEE/Dist/bin/x86_r8/lib/python2.7/site-packages:$ELSA/Dist/lib/py:$ELSA/Dist/bin/eos-intel
+        endif
+        # Pour utilisation MKL+numpy
+        setenv LD_PRELOAD /opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_avx2.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_def.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_core.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_intel_lp64.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_intel_thread.so:/opt/tools/intel/studio/2017/lib/intel64/libiomp5.so
+
+else if ($%MAC30 != 0) then
+#----------------------------- eos -------------------------------------
+        if ($MPI == true) then
+                if ($DBG == true) then
+                        setenv ELSAPROD x86_mpi_dbg_r8
+                else
+                        setenv ELSAPROD x86_mpi_r8
+                endif
+        else
+                if ($DBG == true) then
+                        setenv ELSAPROD x86_dbg_r8
+                else
+                        setenv ELSAPROD x86_r8
+                endif
+        endif
+        # Modules
+        foreach x (`(echo "" ; module -t list) | & grep intel`)
+            module unload $x
+        end
+        module load python/2.7.8
+        module load intel/17.0.4
+        module unload impi/17
+        module load hdf5/1.8.8
+        # Number of threads
+        set ncpu=`cat /proc/cpuinfo |grep processor |cut -f2 -d: |tail -1`
+        @ ncpu++
+        setenv OMP_NUM_THREADS $ncpu
+        #setenv KMP_AFFINITY "verbose,granularity=fine,proclist=[0,1,2,3,4,5,6,7],explicit"
+        # chemin de mpirun (forced)
+        set path=(/usr/lib64/openmpi/bin $path)
+        # Chemin de go
+        set path=($path $CASSIOPEE/Dist/bin)
+        if ($?ELSA == 0) then # Cassiopee Kernel
+            # Chemin de elsA.x
+            set path=($CASSIOPEE/Dist/bin/$ELSAPROD $path)
+            setenv LD_LIBRARY_PATHL /usr/lib64:/stck/benoit/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/x86_r8/lib:/usr/lib64/openmpi/lib
+            setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/x86_r8:$CASSIOPEE/Dist/bin/x86_r8/lib/python2.7/site-packages
+        else # elsA public
+            set path=($ELSA/Dist/bin/eos-intel $path)
+            setenv LD_LIBRARY_PATHL /usr/lib64:/stck/benoit/lib:$ELSA/Dist/bin/eos-intel:$ELSA/Dist/bin/eos-intel/lib:/usr/local/python/lib
             setenv PYTHONPATHL $CASSIOPEE/Dist/bin/x86_r8/lib/python2.7/site-packages:$ELSA/Dist/lib/py:$ELSA/Dist/bin/eos-intel
         endif
         # Pour utilisation MKL+numpy

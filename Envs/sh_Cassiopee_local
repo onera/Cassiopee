@@ -43,6 +43,7 @@ MAC26=$(echo $KC | grep 'sator')
 MAC27=$(echo $KC | grep 'n')
 MAC28=$(echo $KC | grep 'xdaap')
 MAC29=$(echo $KC | grep 'spiro')
+MAC30=$(echo $KC | grep 'eos')
 
 # ----------------------------- Common ----------------------------------------
 #export ELSADIST=$CASSIOPEE  # production (cfg)
@@ -81,6 +82,42 @@ if [ "$MAC0" != "" ]; then
     # Chemin de elsA.x
     export PATH=$PATH:$CASSIOPEE/Dist/bin/$ELSAPROD
     export LD_LIBRARY_PATHL=/usr/lib64:/home/benoit/lib:$CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/x86_r8/lib:/usr/lib64/openmpi/lib
+    export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/x86_r8:$CASSIOPEE/Dist/bin/x86_r8/lib/python2.7/site-packages
+    # Pour utilisation MKL+numpy
+    export LD_PRELOAD=/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_avx2.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_def.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_core.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_intel_lp64.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_intel_thread.so:/opt/tools/intel/studio/2017/lib/intel64/libiomp5.so
+
+elif [ "$MAC30" != "" ]; then
+#------------------------------- eos -----------------------------------
+    if [ "$MPI" = "true" ]; then
+        if [ "$DBG" = "true" ]; then
+            export ELSAPROD=x86_mpi_dbg_r8
+        else
+            export ELSAPROD=x86_mpi_r8
+        fi
+    else
+        if [ "$DBG" = "true" ]; then
+            export ELSAPROD=x86_dbg_r8
+        else
+            export ELSAPROD=x86_r8
+        fi
+    fi
+    module unload $(module -t list 2>&1 | grep -i intel)
+    module load python/2.7.8
+    module load intel/17.0.4
+    module unload impi/17
+    module load hdf5/1.8.8
+    # Nbre de threads
+    ncpu=$(grep processor /proc/cpuinfo |tail -1 |cut -f2 -d: )
+    ncpu=$((ncpu + 1 ))
+    export OMP_NUM_THREADS=$ncpu
+    #export KMP_AFFINITY="verbose,granularity=fine,proclist=[0,1,2,3],explicit"
+    # chemin de mpirun (forced)
+    export PATH=/usr/lib64/openmpi/bin:$PATH
+    # Chemin de go
+    export PATH=$PATH:$CASSIOPEE/Dist/bin
+    # Chemin de elsA.x
+    export PATH=$PATH:$CASSIOPEE/Dist/bin/$ELSAPROD
+    export LD_LIBRARY_PATHL=/usr/lib64:/stck/benoit/lib:$CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/x86_r8/lib:/usr/lib64/openmpi/lib
     export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/x86_r8:$CASSIOPEE/Dist/bin/x86_r8/lib/python2.7/site-packages
     # Pour utilisation MKL+numpy
     export LD_PRELOAD=/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_avx2.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_def.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_core.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_intel_lp64.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_intel_thread.so:/opt/tools/intel/studio/2017/lib/intel64/libiomp5.so
@@ -440,6 +477,11 @@ elif [ "$MAC24" != "" ]; then
     module unload hdf5/1.8.8
     module load hdf5/1.8.8-intel-16.impi
     module load impi/16
+    #module purge
+    #module load   python/2.7.8
+    #source /stck/nalferez/intel/parallel_studio_xe_2018/psxevars.sh
+    #export PATH=/stck5/nalferez/intel/2018update2/PythonIntel/intelpython2/bin/:/usr/local/python-gnu-2.7.8/bin/:$PATH
+
     # Chemin de l'executable python
     export PATH=$PATH
     # Chemin de go
@@ -448,6 +490,8 @@ elif [ "$MAC24" != "" ]; then
     export PATH=$PATH:$CASSIOPEE/Dist/bin/$ELSAPROD
     export LD_LIBRARY_PATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/giu_r8/lib64
     export PYTHONPATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/giu_r8:$CASSIOPEE/Dist/bin/giu_r8/lib/python2.7/site-packages
+    # LD_PRELOAD libirc for Intel Python
+    #export LD_PRELOAD=/stck5/nalferez/intel/2018update2/PythonIntel/intelpython2/lib/libirc.so:$LD_PRELOAD
 
 elif [ "$MAC25" != "" ]; then
 #----------------------------- westri (KNL) -----------------------------------------
@@ -611,6 +655,8 @@ elif [ "$MAC26" != "" ]|| [ "$MAC27" != "" ]; then
     module unload $(module -t list 2>&1 | grep -i intel)
     module load CFD/4.0-intel-17.impi
     #module load intel/17.0.4 impi/17 python/2.7.8-intel-17.impi
+    #module load gcc/5.2 intel/17.0.4 impi/17 python/2.7.8-intel-17.impi
+    #module load gcc/5.2 intel/17.0.4 impi/17 python/2.7.13-intel-17
     # HDF para (deja dans le socle)
     #module load hdf5/1.8.17-intel-17.impi
 
