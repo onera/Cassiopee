@@ -2471,21 +2471,23 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
   
     // 2- Elimination des faces degenerees
     Vector_t<E_Int> pgnids, phnids; // required to update the history (PG/PH)
-    E_Int nb_degen_faces(0), nb_consec_changes(0);
     if (ngon_dim != 1)
     {
-      nb_degen_faces = NG.remove_degenerated_pgs(pgnids, phnids);
-      nb_consec_changes = NG.PGs.remove_consecutive_duplicated(); //removing duplicated nodes : compact representation
+      //E_Int nb_degen_faces = 
+      NG.remove_degenerated_pgs(pgnids, phnids);
+      //E_Int nb_consec_changes = 
+      NG.PGs.remove_consecutive_duplicated(); //removing duplicated nodes : compact representation
     }
 
     // 3- Faces confondues : identification et suppression des références.
     bool has_dups = false;
-    if (ngon_dim ==3) //volumic
+    if (ngon_dim == 3) //volumic
       has_dups = NG.remove_duplicated_pgs(fcA);
     else if (ngon_dim == 2) //surfacic
       has_dups = NG.remove_duplicated_edges();
     else // lineic
       has_dups = NG.remove_duplicated_nodes();
+    (void)has_dups;
 
     // remove duplicated references to PGs within each elements
     /*E_Int nb_phs_dups = */NG.PHs.remove_duplicated();
@@ -2758,11 +2760,12 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
       //std::cout << "manifold ? : " << man_nodes[i] << " . so new va lis : " << node_ids[i] << std::endl;
     }
 
-    E_Int nb_remove = ng.PGs.remove_facets(node_ids, pgnids, 2);//a surface must have ate least 3 nodes
+    E_Int nb_remove = ng.PGs.remove_facets(node_ids, pgnids, 2);//a surface must have at least 3 nodes
     if (nb_remove) //update PHs accordingly
     {
       Vector_t<E_Int> phnids;
-      E_Int nb_remove = ng.PHs.remove_facets(pgnids, phnids);
+      //E_Int nb_remove = 
+      ng.PHs.remove_facets(pgnids, phnids);
       //std::cout << "nb PH removed : " << nb_remove << std::endl;
     }
   }

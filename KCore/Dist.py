@@ -638,7 +638,7 @@ def getCArgs():
          else: options += ['-fPIC']
          return options
     elif Cppcompiler.find("gcc") == 0 or Cppcompiler.find("g++") == 0:
-         if DEBUG: options += ['-g', '-O0', '-Wall']
+         if DEBUG: options += ['-g', '-O0', '-Wall', '-D_GLIBCXX_DEBUG_PEDANTIC']
          else: options += ['-DNDEBUG', '-O3', '-Wall']
          if useOMP() == 1: options += ['-fopenmp']
          if useStatic() == 1: options += ['--static', '-static-libstdc++', '-static-libgcc']
@@ -660,14 +660,14 @@ def getCArgs():
          return options
     elif Cppcompiler == "x86_64-w64-mingw32-gcc" or Cppcompiler == "x86_64-w64-mingw32-g++":
          options += ['-DMS_WIN64', '-fpermissive', '-D__USE_MINGW_ANSI_STDIO=1']
-         if DEBUG: options += ['-g', 'O0']
+         if DEBUG: options += ['-g', 'O0', '-D_GLIBCXX_DEBUG_PEDANTIC']
          else: options += ['-DNDEBUG', '-O3']
          if useOMP() == 1: options += ['-fopenmp']
          if useStatic() == 1: options += ['--static', '-static-libstdc++', '-static-libgcc']
          else: options += ['-fPIC']
          return options
     elif Cppcompiler.find("clang") == 0 or Cppcompiler.find("clang++") == 0:
-         if DEBUG: options += ['-g', '-O0', '-Wall']
+         if DEBUG: options += ['-g', '-O0', '-Wall', '-D_GLIBCXX_DEBUG_PEDANTIC']
          else: options += ['-DNDEBUG', '-O3', '-Wall']
          if useOMP() == 1: options += ['-fopenmp']
          if useStatic() == 1: options += ['--static', '-static-libstdc++', '-static-libgcc']
@@ -1183,11 +1183,13 @@ def checkLapack(additionalLibPaths=[], additionalIncludePaths=[]):
     if l is None:
         l = checkLibFile__(libPrefix+'lapack*.a', additionalLibPaths)
     i = checkIncFile__(includePrefix+'lapack.h', additionalIncludePaths)
+    if i is None:
+        i = checkIncFile__(includePrefix+'lapacke.h', additionalIncludePaths)
     if i is not None and l is not None:
         print 'Info: Lapack detected at %s.'%l
         return (True, i, l, compOpt)
     else:
-        print 'Info: liblapack or lapack.h was not found on your system. No Lapack support.'
+        print 'Info: liblapack or lapack.h or lapacke.h was not found on your system. No Lapack support.'
         return (False, '', '', compOpt)
 
 #=============================================================================

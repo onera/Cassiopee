@@ -2089,7 +2089,7 @@ NGON_BOOLEAN_CLASS::__get_working_PGs
     std::cout << "ghost list has been passed. Minimum ghost cell id : " << _nb_cells2 << std::endl;
 #endif
 
-    E_Int err = ngon_type::extrude_faces(_crd2, wNG2, _pglist2[1], 0.4, true/*create_ghost_cells*/, ngon_type::eExtrudeStrategy::VAR_REL_MIN, 0, &_pglist2[0]);
+    ngon_type::extrude_faces(_crd2, wNG2, _pglist2[1], 0.4, true/*create_ghost_cells*/, ngon_type::eExtrudeStrategy::VAR_REL_MIN, 0, &_pglist2[0]);
     
     // Reset any histo info for ghosts
     wNG2.PHs._ancEs.resize(2, _nb_cells2);
@@ -3166,7 +3166,8 @@ E_Int NGON_BOOLEAN_CLASS::__build_connect_hard
 
   E_Int max_id_new_pgs = 1 + *std::max_element(soft_colors.begin(), soft_colors.end());
   E_Int old_sz = _anc_PG.cols();
-  assert(max_id_new_pgs >= old_sz);//ensure not reducing _anc_PG
+  assert(max_id_new_pgs >= old_sz); //ensure not reducing _anc_PG
+  (void)old_sz;
   
   _anc_PG.resize(2, max_id_new_pgs, E_IDX_NONE);
   for (size_t i = 0; i < nT3_to_PG.size(); ++i)
@@ -4713,13 +4714,13 @@ E_Int NGON_BOOLEAN_CLASS::__discard_PHT3s(std::map<E_Int, Vector_t<E_Int> >& PHT
 {  
   if (ids.empty()) return 0;
   
-  E_Int sz0 = PHT3s.size();
+  size_t sz0 = PHT3s.size();
   
   for (size_t i=0; i < ids.size(); ++i)
         PHT3s.erase(ids[i]);
 
-  bool sync_anc = (_anc_PH_for_PHT3s[mesh_oper].cols() == sz0); // has somtehing and was sync
-  bool sync_zone = (_zones.size() == sz0 && mesh_oper == 0); // has somtehing and was sync (SOFT ONLY)
+  bool sync_anc = (_anc_PH_for_PHT3s[mesh_oper].cols() == (E_Int)sz0); // has something and was sync
+  bool sync_zone = (_zones.size() == sz0 && mesh_oper == 0); // has something and was sync (SOFT ONLY)
 
   if (sync_anc && sync_zone)
   {
@@ -5338,14 +5339,13 @@ E_Int NGON_BOOLEAN_CLASS::__check_PHT3s_closure
 #endif
 
   sz = unclosed_PHT3s.size();
-  for (size_t i=0; i < sz; ++i)
+  for (E_Int i=0; i < sz; ++i)
   {
-    E_Int PHi = unclosed_PHT3s[i];
-     
 #ifdef DEBUG_BOOLEAN
     //NGON_DBG::draw_PHT3(_coord, connectT3o, PHT3s, PHi);
 #endif
 #ifdef DEBUG_W_PYTHON_LAYER
+    E_Int PHi = unclosed_PHT3s[i];  
     PHT3s_unclosed[mesh_oper].append_PHT3(PHT3s, connectT3o, PHi);
 #endif
   }
@@ -6358,14 +6358,13 @@ bool NGON_BOOLEAN_CLASS::__is_untouched_PH
   //
   typedef std::map<E_Int, Vector_t<E_Int> > map_t;
   typedef Vector_t<E_Int> vec_t;
-  typedef std::set<E_Int> set_t;
   
   map_t::const_iterator it = PHT3s.find(PHi);  
   if (it == PHT3s.end()) return false;
   
   const vec_t& T3s = it->second;
   
-  E_Int nb_t3s = T3s.size();
+  size_t nb_t3s = T3s.size();
   bool untouched = true;
   E_Int PH = E_IDX_NONE;
   
@@ -6375,7 +6374,7 @@ bool NGON_BOOLEAN_CLASS::__is_untouched_PH
     E_Int T = (t<shift) ? t : t - shift;
     E_Int I = (t<shift) ? 1 : 0;
     
-    if (T >= nT3_to_oPG.size()) continue;
+    if (T >= (E_Int)nT3_to_oPG.size()) continue;
     
     E_Int wPG = nT3_to_oPG[T];
     if (wPG >= F2E.cols()) continue;

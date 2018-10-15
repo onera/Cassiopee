@@ -13,9 +13,7 @@ __all__ = ['blankCells', '_blankCells', 'blankCellsTetra', 'blankCellsTri', 'bla
 
 #===============================================================================
 def connectMatch(a1, a2, sameZone=0, tol=1.e-6, dim=3):
-    """Detect (sub-)windows of a1 that match with (sub)-windows of a2.
-    Return a list of matching windows  and trirac.
-    If a1 and a2 represent the same zone, sameZone=1.
+    """Find matching boundaries.
     Usage: connectMatch(a1, a2, sameZone, tol, dim)"""
     try: import Converter as C; import Transform as T
     except: raise ImportError("connectMatch requires Converter and Transform modules.")

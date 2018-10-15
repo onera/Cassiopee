@@ -26,7 +26,7 @@
         d  =  K_PYTREE::getValueAI(zoneD, s0, s1, hook);
         if (K_STRING::cmp(type, s, "Structured") == 0)
         { 
-          meshtype = 1; E_Int shift = 0;// if(loc == 0) shift =1;
+          meshtype = 1; //E_Int shift = 0; if(loc == 0) shift =1;
           ipt_ndimdxD[nd+ nidomD*6] = meshtype;
           
           if  (s0 == 1){ ipt_ndimdxD[nd+ nidomD  ]= d[0]; ipt_ndimdxD[nd+ nidomD*2]=  1 ; kmd=1   ; ipt_ndimdxD[nd          ]= d[0];  

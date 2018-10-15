@@ -81,7 +81,7 @@ PyObject* K_TRANSFORM::_cyl2CartA(PyObject* self, PyObject* args)
     }
     E_Float* xt = f->begin(posxc);
     E_Float* yt = f->begin(posyc);
-    E_Float* zt = f->begin(poszc);
+    //E_Float* zt = f->begin(poszc);
 
 #pragma omp parallel default(shared)
     {
@@ -163,7 +163,7 @@ PyObject* K_TRANSFORM::_cyl2CartZ(PyObject* self, PyObject* args)
     }
     E_Float* xt = fields[posR];
     E_Float* yt = fields[posTHETA];
-    E_Float* zt = fields[posZ];
+    //E_Float* zt = fields[posZ];
 #pragma omp parallel default(shared)
     {
 #pragma omp for

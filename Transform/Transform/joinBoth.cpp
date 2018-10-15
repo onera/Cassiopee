@@ -102,7 +102,7 @@ PyObject* K_TRANSFORM::joinBoth(PyObject* self, PyObject* args)
                       "joinBoth:  one array is empty.");
       return NULL;
     }
-    if ( pos1.size() != f1->getNfld() || pos2.size() != f2->getNfld())
+    if (pos1.size() != (size_t)f1->getNfld() || pos2.size() != (size_t)f2->getNfld())
       printf("Warning: joinBoth: some variables located at nodes are different. Only variables %s are kept.\n",varString);
 
     char* varStringc = new char[strlen(varStringc1)+strlen(varStringc2)+4];
@@ -119,7 +119,7 @@ PyObject* K_TRANSFORM::joinBoth(PyObject* self, PyObject* args)
       delete [] varString;
       return NULL;
     }
-    if ( posc1.size() != fc1->getNfld() || posc2.size() != fc2->getNfld())
+    if (posc1.size() != (size_t)fc1->getNfld() || posc2.size() != (size_t)fc2->getNfld())
       printf("Warning: joinBoth: some variables located at centers are different. Only variables %s are kept.\n",varStringc);
 
     E_Int posx1 = K_ARRAY::isCoordinateXPresent(varString1);

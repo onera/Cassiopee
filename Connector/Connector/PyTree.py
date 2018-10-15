@@ -453,6 +453,7 @@ def connectMatchPeriodic(t, rotationCenter=[0.,0.,0.],
                          rotationAngle=[0.,0.,0.],
                          translation=[0.,0.,0.], tol=1.e-6, dim=3,
                          unitAngle=None):
+    """Find periodic matching boundaries."""
     a = Internal.copyRef(t)
     removeFSN=[]
     zones = Internal.getZones(a)
@@ -700,7 +701,8 @@ def duplicatePeriodicZones__(t, rotationCenter=[0.,0.,0.], rotationAngle=[0.,0.,
 #==============================================================================
 # Set degenerated BC
 #==============================================================================
-def setDegeneratedBC(t,dim=3, tol=1.e-10):
+def setDegeneratedBC(t, dim=3, tol=1.e-10):
+    """Find degenerated boundaries (lines)."""
     try: import Generator
     except: raise ImportError("setDegeneratedBC: requires Generator module.")
 
@@ -748,7 +750,8 @@ def setDegeneratedBC(t,dim=3, tol=1.e-10):
 #=============================================================================
 # Computes the n to p grid connectivity between zones defined in t
 #=============================================================================
-def connectNearMatch(t, ratio=2,tol=1.e-6, dim=3):
+def connectNearMatch(t, ratio=2, tol=1.e-6, dim=3):
+    """Find boundaries that matches with a given ratio."""
     try: import Generator.PyTree as G; import Transform.PyTree as T
     except: raise ImportError("connectNearMatch: requires Generator and Transform modules.")
     a,typen = Internal.node2PyTree(t)

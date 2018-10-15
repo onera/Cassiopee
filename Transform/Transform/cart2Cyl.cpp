@@ -72,7 +72,12 @@ PyObject* K_TRANSFORM::_cart2CylA(PyObject* self, PyObject* args)
     {
       rt = f->begin(posx); thetat = f->begin(posy);
     }
-
+    else
+    {
+      PyErr_SetString(PyExc_TypeError,
+                      "cart2Cyl: axis must be canonical.");
+      RELEASESHAREDB(res, array, f, cn); return NULL;
+    }
     E_Int ret = K_LOC::cart2Cyl(npts, f->begin(posx), f->begin(posy), f->begin(posz),
                                 X0, Y0, Z0, ex, ey, ez, rt, thetat);
     if (ret == 1)

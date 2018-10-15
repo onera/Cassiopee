@@ -654,7 +654,7 @@ namespace NUGA
     //E_Float G[3];
     std::vector<E_Int> nids(crd.cols());
     for (size_t i=0; i < nids.size(); ++i) nids[i]=i;
-    E_Int ng_pgs = pgids.size();
+    //E_Int ng_pgs = pgids.size();
   
     typedef K_FLD::ArrayAccessor<K_FLD::FloatArray > acrd_t;
     acrd_t acrd(crd);
@@ -731,7 +731,7 @@ namespace NUGA
 
     for (it = wneigh_to_faces.begin(); it != wneigh_to_faces.end(); ++it)
     {
-      const E_Int& PHn = it->first;
+      //const E_Int& PHn = it->first;
       const std::vector<E_Int>& common_pg_pos = it->second;
       size_t sz = common_pg_pos.size();
       if (sz == 1)

@@ -108,7 +108,7 @@ void K_GENERATOR::balanceOctree2(FldArrayF& coords, FldArrayI& cn, E_Int corners
     //determination des elts voisins
     // c est ce qui prend la majeure partie du temps CPU
     vector< vector<E_Int> > cEEN(nelts);
-    E_Int ok = getNeighbourElts(npts, xt, yt, zt, cn, cEEN, corners); 
+    getNeighbourElts(npts, xt, yt, zt, cn, cEEN, corners); 
 
     FldArrayI indic(nelts); indic.setAllValuesAt(-1);
     E_Int elts2Raff = 0;
@@ -119,7 +119,7 @@ void K_GENERATOR::balanceOctree2(FldArrayF& coords, FldArrayI& cn, E_Int corners
       E_Float dx = xt[indB]-xt[indA];      
 
       vector<E_Int>& voisins = cEEN[et];
-      for (E_Int noetv = 0; noetv < voisins.size(); noetv++)
+      for (size_t noetv = 0; noetv < voisins.size(); noetv++)
       {
         E_Int etv = voisins[noetv];
         indA = cn1[etv]-1;
@@ -162,9 +162,9 @@ void K_GENERATOR::balanceOctree2(FldArrayF& coords, FldArrayI& cn, E_Int corners
             E_Int indC = cn3[et]-1;
             E_Int indD = cn4[et]-1;
             E_Float xA = xt[indA]; E_Float yA = yt[indA];
-            E_Float xB = xt[indB]; E_Float yB = yt[indB];
-            E_Float xC = xt[indC]; E_Float yC = yt[indC];
-            E_Float xD = xt[indD]; E_Float yD = yt[indD];
+            E_Float xB = xt[indB];
+            E_Float yC = yt[indC];
+            E_Float yD = yt[indD];
             E_Float xmean = (xB + xA)*0.5;
             E_Float ymean = (yD + yA)*0.5;
             E_Float z = zt[indA];
@@ -249,13 +249,9 @@ void K_GENERATOR::balanceOctree2(FldArrayF& coords, FldArrayI& cn, E_Int corners
             E_Int indE = cn5[et]-1; E_Int indF = cn6[et]-1; 
             E_Int indG = cn7[et]-1; E_Int indH = cn8[et]-1;
             E_Float xA = xt[indA]; E_Float yA = yt[indA]; E_Float zA = zt[indA];
-            E_Float xB = xt[indB]; E_Float yB = yt[indB]; E_Float zB = zt[indB];
-            E_Float xC = xt[indC]; E_Float yC = yt[indC]; E_Float zC = zt[indC];
-            E_Float xD = xt[indD]; E_Float yD = yt[indD]; E_Float zD = zt[indD];
-            E_Float xE = xt[indE]; E_Float yE = yt[indE]; E_Float zE = zt[indE];
-            E_Float xF = xt[indF]; E_Float yF = yt[indF]; E_Float zF = zt[indF];
-            E_Float xG = xt[indG]; E_Float yG = yt[indG]; E_Float zG = zt[indG];
-            E_Float xH = xt[indH]; E_Float yH = yt[indH]; E_Float zH = zt[indH];
+            E_Float xB = xt[indB]; 
+            E_Float yC = yt[indC];
+            E_Float zE = zt[indE];
             E_Float xmean = (xt[indB] + xt[indA])*0.5;
             E_Float ymean = (yt[indD] + yt[indA])*0.5;
             E_Float zmean = (zt[indE] + zt[indA])*0.5;

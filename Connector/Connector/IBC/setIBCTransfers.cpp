@@ -49,8 +49,8 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar1(
   E_Float roext, uext, pext, text, muext, yext, yplus, yibc;
   E_Float uscaln, un, vn, wn, ut, vt, wt, utau0, umod;
   E_Float expy, denoml10, ax, l1, l2, l3;
-  E_Float fp, tp, f1p;
-  E_Float ucible0, ucible, vcible, wcible, nutilde, signibc,twall;
+  E_Float fp, tp;
+  E_Float ucible0, ucible, vcible, wcible, signibc,twall;
   //Lois de paroi : criteres d arret pour estimer le frottement par Newton
   E_Float newtoneps = 1.e-7; // critere d arret pour u+
   E_Float newtonepsnutilde = 1.e-10; // critere d arret pour nutilde
@@ -454,9 +454,9 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
   /* lois de paroi */
   E_Float roext, uext, pext, text, muext, yext, yplus, yibc;
   E_Float uscaln, un, vn, wn, ut, vt, wt, utau, utauv, utau0, umod;
-  E_Float aa, bb, dd, fp, tp, f1v, f1p;
+  E_Float aa, bb, dd, fp, tp, f1v;
   E_Float expy, denoml10,ax,l1,l2, l3;
-  E_Float ucible0, ucible, vcible, wcible, nutcible, nutilde, signibc,twall;
+  E_Float ucible0, ucible, vcible, wcible, nutilde, signibc,twall;
   E_Int npass;
   // Lois de paroi: criteres d'arret pour estimer le frottement par Newton
   E_Float newtoneps = 1.e-7; // critere d'arret pour u+
@@ -1287,9 +1287,9 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar3(
   /* lois de paroi */
   E_Float roext, uext, pext, text, muext, yext, yplus, yibc;
   E_Float uscaln, un, vn, wn, ut, vt, wt, utau, utauv, utau0, umod;
-  E_Float aa, bb, dd, fp, tp, f1v, f1p;
+  E_Float aa, bb, dd, fp, tp, f1v;
   E_Float expy, denoml10,ax,l1,l2, l3;
-  E_Float ucible0, ucible, vcible, wcible, nutcible, nutilde, signibc, twall;
+  E_Float ucible0, ucible, vcible, wcible, nutilde, signibc, twall;
   //Lois de paroi : criteres d arret pour estimer le frottement par Newton
   E_Float newtoneps = 1.e-7; // critere d arret pour u+
   E_Float newtonepsnutilde = 1.e-10; // critere d arret pour nutilde

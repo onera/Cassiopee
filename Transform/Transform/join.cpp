@@ -79,7 +79,7 @@ PyObject* K_TRANSFORM::join(PyObject* self, PyObject* args)
                       "join: one array is empty.");
       delete [] varString; return NULL;
     }
-    if (pos1.size() != f1->getNfld() || pos2.size() != f2->getNfld()) 
+    if (pos1.size() != (size_t)f1->getNfld() || pos2.size() != (size_t)f2->getNfld()) 
       printf("Warning: join: some variables are different. Only variables %s are kept.\n", varString);
     
     E_Int posx1 = K_ARRAY::isCoordinateXPresent(varString1);
@@ -160,7 +160,8 @@ PyObject* K_TRANSFORM::join(PyObject* self, PyObject* args)
       delete [] varString;    
       return tpl;
     }
-  }    
+  }
+  return NULL;
 }
 //=============================================================================
 /* field est alloue ici */
@@ -364,13 +365,6 @@ K_TRANSFORM::joinstructured3d(FldArrayF& f1, E_Int im1, E_Int jm1, E_Int km1,
   else return 0;
 
   // assemblage des arrays
-  E_Float* xt1 = f1.begin(posx1);
-  E_Float* yt1 = f1.begin(posy1);
-  E_Float* zt1 = f1.begin(posz1);
-  E_Float* xt2 = f2.begin(posx2);
-  E_Float* yt2 = f2.begin(posy2);
-  E_Float* zt2 = f2.begin(posz2);
-
   im = im1+im2-1;
   jm = jm2;
   km = km2;
@@ -565,13 +559,6 @@ K_TRANSFORM::joinstructured2d(FldArrayF& f1, E_Int im1, E_Int jm1, E_Int km1,
   /*-----------------------*/
   /* assemblage des arrays */
   /*-----------------------*/
-
-  E_Float* xt1 = f1.begin(posx1);
-  E_Float* yt1 = f1.begin(posy1);
-  E_Float* zt1 = f1.begin(posz1);
-  E_Float* xt2 = f2.begin(posx2);
-  E_Float* yt2 = f2.begin(posy2);
-  E_Float* zt2 = f2.begin(posz2);
   E_Int ind, ind1, ind2;
  
   im = im1+im2-1;
@@ -654,12 +641,6 @@ K_TRANSFORM::joinstructured1d(FldArrayF& f1, E_Int im1, E_Int jm1, E_Int km1,
   // assemblage des arrays
   E_Int nfld = pos1.size();
   field.malloc(im1+im2-1, nfld);
-  E_Float* xt1 = f1.begin(posx1);
-  E_Float* yt1 = f1.begin(posy1);
-  E_Float* zt1 = f1.begin(posz1);
-  E_Float* xt2 = f2.begin(posx2);
-  E_Float* yt2 = f2.begin(posy2);
-  E_Float* zt2 = f2.begin(posz2);
   E_Int inc = im1-1;
  
   E_Int pos1Size = pos1.size();
