@@ -14,7 +14,7 @@ snear = 0.4; vmin = 21
 body = D.circle((0,0,0),1.,N=60)
 res = G.octree([body],[snear], dfar=5., balancing=1)
 res = G.octree2Struct(res, vmin=vmin, ext=DEPTH+1,merged=1)
-t = C.newPyTree(['Base']); t[2][1][2] = res
+t = C.newPyTree(['Base', res])
 
 # Mark solid and fluid points
 X._applyBCOverlaps(t,depth=DEPTH,loc='nodes')

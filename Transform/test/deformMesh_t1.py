@@ -2,7 +2,6 @@
 import Transform as T
 import Converter as C
 import Geom as D
-import Generator as G
 import KCore.test as test
 
 a1 = D.sphere6((0,0,0), 1, 18)

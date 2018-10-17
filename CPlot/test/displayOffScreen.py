@@ -1,6 +1,5 @@
 # - display (array) -
 # Offscreen using mesa
-import Generator as G
 import CPlot
 import Transform as T
 import Converter as C

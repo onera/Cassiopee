@@ -281,7 +281,7 @@ dict = installBase.installDict
 
 #==============================================================================
 # Get machine
-import platform, sys, re, os
+import platform, re, os
 a = platform.uname()
 system = a[0] # Linux, Windows
 host = a[1]   # host name

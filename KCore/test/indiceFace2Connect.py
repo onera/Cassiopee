@@ -1,10 +1,7 @@
 # - indiceFace2Connect (array) -
 import KCore
-import Geom as D
 import Converter as C
-import Transform as T
 import Generator as G
-import numpy
 
 # Maillage non structure
 a = G.cartTetra((0,0,0), (1.,1,1), (10,10,1) )

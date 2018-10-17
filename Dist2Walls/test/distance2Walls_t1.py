@@ -2,7 +2,6 @@
 # test : array structure, bodies structures, celln avec des 0 et des 2
 import Dist2Walls
 import Generator as G
-import Transform as T
 import KCore.test as test
 import Geom as D
 import Converter as C

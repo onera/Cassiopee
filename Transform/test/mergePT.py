@@ -1,6 +1,5 @@
 # - merge (pyTree) -
 import Converter.PyTree as C
-import Generator.PyTree as G
 import Transform.PyTree as T
 import Connector.PyTree as X
 import Geom.PyTree as D

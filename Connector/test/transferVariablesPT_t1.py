@@ -20,7 +20,6 @@ fields = X.transferFields(zdnrc, XI, YI, ZI, hook=adt, variables=['Density'])
 C.freeHook(adt)
 test.testA(fields,1)
 
-
 # transfers at nodes
 a = D.sphere((5.,5.,5.),1)
 C._initVars(a,"cellN=2.")

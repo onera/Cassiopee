@@ -1,5 +1,4 @@
 # - join (pyTree) -
-import Geom.PyTree as D
 import Transform.PyTree as T
 import Converter.PyTree as C
 import Generator.PyTree as G

@@ -2,7 +2,6 @@
 import KCore.test as test
 import Dist2Walls.PyTree as DW
 import Generator.PyTree as G
-import Transform.PyTree as T
 import Converter.PyTree as C
 import Geom.PyTree as D
 
@@ -16,7 +15,7 @@ a = G.cart((0.,0.,0.),(0.1,0.1,0.1),(11,11,11))
 a = C.initVars(a, 'Density', 0.5)
 # --- champ aux centres
 a = C.initVars(a, 'Pressure', 0.7)
-t = C.newPyTree(['Base']); t[2][1][2].append(a)
+t = C.newPyTree(['Base', a])
 # --- Equation state
 t[2][1] = C.addState(t[2][1], 'EquationDimension', 3)
 t2 = DW.distance2Walls(t, bodies, type='mininterf', loc='centers')

@@ -1432,7 +1432,7 @@ def writeBuildInfo():
 
      dict = {}
      # Date
-     import time, pickle
+     import time
      execTime = time.strftime('%d/%m/%y %Hh%M', time.localtime())
      dict['date'] = execTime
 

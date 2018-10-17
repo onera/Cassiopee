@@ -1,7 +1,6 @@
 # - axisym (pyTree) -
 import Generator.PyTree as G
 import Converter.PyTree as C
-import Transform.PyTree as T
 import Geom.PyTree as D
 import KCore.test as test
 

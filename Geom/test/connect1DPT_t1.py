@@ -1,6 +1,5 @@
 # - connect1D (pyTree) -
 import Geom.PyTree as D
-import Converter.PyTree as C
 import KCore.test as test
 P1 = [-0.5,0,0]; P1b = [0.5,0,0]
 P2 = [1,-1.5,0]; P2b = [1,-0.5,0]

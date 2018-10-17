@@ -1,10 +1,7 @@
 # - display (array) -
-import Geom      as D
 import Generator as G
-import Converter as C
 import CPlot
 import os
-import math
 
 cube   = G.cart((-0.25,0.,-0.25),(1.,1.,1.),(2,2,2))
 cube2  = G.cart((0.25,0.,0.25),(0.75,0.75,0.75),(2,2,2))
@@ -65,10 +62,7 @@ CPlot.finalizeExport(4)
 
 try:
 	import matplotlib.pyplot as plt
-	import matplotlib.cbook as cbook
 	import matplotlib.image as mimage
-	import scipy.misc as misc
-	import itertools as IT
 
 	filenames = [ ('ref_y.png', 'composite_y.png'), ('ref_z.png','composite_z.png'), ('ref_diag.png', 'composite_diag.png') ]
 	nrows, ncols = 3, 2
