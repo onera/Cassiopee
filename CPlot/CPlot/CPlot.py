@@ -145,7 +145,7 @@ def display1D(arrays, slot=0, gridPos=(0,0), gridSize=(-1,-1),
     if len(arrays) > 0:
         if isinstance(arrays[0], numpy.ndarray): # numpy [x,y]
             if len(arrays) < 2:
-                raise ValueError, 'display1D: requires at least two numpys [x,y]'
+                raise ValueError('display1D: requires at least two numpys [x,y]')
             x = arrays[0]; y = arrays[1]
             n = x.size
             array = Converter.array(var1+','+var2,n,1,1)

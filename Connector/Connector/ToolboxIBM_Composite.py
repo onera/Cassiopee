@@ -25,7 +25,7 @@ EPSCART = 1.e-6
 def generateCompositeIBMMesh(tb, vmin, snears, dfar, dfarloc=0., DEPTH=2, NP=0, check=True, merged=1, sizeMax=4000000, symmetry=0, externalBCType='BCFarfield'):
     tbox = None; snearsf = None
     dimPb = Internal.getNodeFromName(tb, 'EquationDimension')
-    if dimPb is None: raise ValueError, 'EquationDimension is missing in input body tree.'
+    if dimPb is None: raise ValueError('EquationDimension is missing in input body tree.')
     dimPb = Internal.getValue(dimPb)
     model = Internal.getNodeFromName(tb, 'GoverningEquations')
     refstate = C.getState(tb)
@@ -93,7 +93,7 @@ def generateCompositeIBMMesh(tb, vmin, snears, dfar, dfarloc=0., DEPTH=2, NP=0, 
 #-----------------------------------------------------------
 def prepareCompositeIBMData(t,tb, DEPTH=2, loc='centers', frontType=1):
     dimPb = Internal.getNodeFromName(tb, 'EquationDimension')
-    if dimPb is None: raise ValueError, 'EquationDimension is missing in input body tree.'
+    if dimPb is None: raise ValueError('EquationDimension is missing in input body tree.')
     dimPb = Internal.getValue(dimPb)
     tc = C.newPyTree()
     for nob in xrange(len(t[2])):
@@ -250,7 +250,7 @@ def prepareMotionChimeraData(t,tc,tblank,noBaseOff, tBB=None,DEPTH=2,loc='center
         listOfSteadyOffBodyZones=getListOfSteadyOffBodyZones(tBB,noBaseOff,listOfOffBodyIntersectingNBZones)
 
     dimPb = Internal.getNodeFromName(t, 'EquationDimension')
-    if dimPb is None: raise ValueError, 'EquationDimension is missing in input body tree.'
+    if dimPb is None: raise ValueError('EquationDimension is missing in input body tree.')
     dimPb = Internal.getValue(dimPb)
     if dimPb == 2:
         z0 = Internal.getNodeFromType2(t, 'Zone_t')

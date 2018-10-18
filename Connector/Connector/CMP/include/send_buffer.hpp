@@ -1,8 +1,8 @@
 // SendBuffer.hpp
 #ifndef _CMP_SENDBUFFER_HPP_
 #define _CMP_SENDBUFFER_HPP_
-#include <iostream>
 #include <mpi.h>
+#include <iostream>
 #include <string>
 #include <memory>
 using std::shared_ptr;

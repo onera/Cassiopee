@@ -41,13 +41,13 @@ if key == '':
             key = i; break
 
 if key == '': # not found in install base
-    print "Warning: %s was not found in KCore/installBase.py."%host
-    print "Warning: using default compilers and options."
-    print "Warning: to change that, add a block in KCore/installBase.py."
+    print("Warning: %s was not found in KCore/installBase.py."%host)
+    print("Warning: using default compilers and options.")
+    print("Warning: to change that, add a block in KCore/installBase.py.")
     key = 'default'
 
 v = dict[key]
-#print '%s was found in install base.'%host
+#print('%s was found in install base.'%host)
 description = v[0]
 f77compiler = v[1]
 f90compiler = v[2]

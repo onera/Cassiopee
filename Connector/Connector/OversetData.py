@@ -312,7 +312,7 @@ def setIBCData(tR, tD, order=2, penalty=0, nature=0,
                method='lagrangian', loc='nodes', storage='direct',
                hook=None, sameName=0, he=0., hi=0., dim=3, image=0):
     try: import ToolboxIBM as IBM
-    except: raise ImportError, "setIBCData requires ToolboxIBM module."
+    except: raise ImportError("setIBCData: requires ToolboxIBM module.")
 
     locR = loc
     aR = Internal.copyRef(tR)
@@ -1044,7 +1044,7 @@ def setInterpDataForGhostCells__(tR, tD, storage='direct', loc='nodes'):
                     if zdonorp == []:
                         raise ValueError("setInterpDataForGhostCells: donor zone not found in donor pyTree.")
                     if len(zdonorp)  > 1 :
-                        print 'Warning: setInterpDataForGhostCells: zone name %s defined several times in donor pyTree.'%zdonorname
+                        print('Warning: setInterpDataForGhostCells: zone name %s defined several times in donor pyTree.'%zdonorname)
                     zdonorp = zdonorp[0]
                     # donor zone dimensions
                     zoneDimD = Internal.getZoneDim(zdonor)
@@ -1319,7 +1319,7 @@ def _createInterpRegion__(z, zname, pointlist, pointlistdonor, interpCoef, inter
 #=============================================================================
 def transferFields(z, interpXN, interpYN, interpZN, order=2, penalty=1, nature=0,
                    constraint=30., hook=None, variables=[]):
-    if (hook is None):
+    if hook is None:
         raise ValueError("transferFields: a hook on an ADT must be declared.")
 
     return connector.transferFields(z, interpXN, interpYN, interpZN, 

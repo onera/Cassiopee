@@ -68,12 +68,12 @@ def adaptIBMMesh(t, tb, vmin, sensor, factor=1.2, DEPTH=2, NP=0, merged=1, sizeM
                  variables=None, refineFinestLevel=False, refineNearBodies=False, 
                  check=True, symmetry=0, externalBCType='BCFarfield', fileo='octree.cgns'):
     
-    if fileo is None: raise(ValueError, "Octree mesh must be specified by a file.")
+    if fileo is None: raise ValueError("adaptIBMMesh: Octree mesh must be specified by a file.")
     try: to = C.convertFile2PyTree(fileo)
-    except: raise(ValueError, "%s file not found."%fileo)
+    except: raise ValueError("adaptIBMMesh: %s file not found."%fileo)
 
     dimPb = Internal.getNodeFromName(tb, 'EquationDimension')
-    if dimPb is None: raise ValueError, 'EquationDimension is missing in input body tree.'
+    if dimPb is None: raise ValueError('adaptIBMMesh: EquationDimension is missing in input body tree.')
     dimPb = Internal.getValue(dimPb)
     #
     refstate = Internal.getNodeFromName(tb,'ReferenceState')
@@ -404,12 +404,12 @@ def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., DEPTH=2, NP=0, tbox=None
                     symmetry=0, externalBCType='BCFarfield', to=None, 
                     composite=0, mergeByParents=True, fileo='octree.cgns'):
     dimPb = Internal.getNodeFromName(tb, 'EquationDimension')
-    if dimPb is None: raise ValueError, 'EquationDimension is missing in input body tree.'
+    if dimPb is None: raise ValueError('generateIBMMesh: EquationDimension is missing in input body tree.')
     dimPb = Internal.getValue(dimPb)
     
     # type de traitement paroi: pts interieurs ou externes
     model = Internal.getNodeFromName(tb, 'GoverningEquations')
-    if model is None: raise ValueError, 'GoverningEquations is missing in input body tree.'
+    if model is None: raise ValueError('generateIBMMesh: GoverningEquations is missing in input body tree.')
     # model: Euler, NSLaminar, NSTurbulent
     model = Internal.getValue(model)
     if model == 'Euler': IBCType =-1
@@ -420,7 +420,7 @@ def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., DEPTH=2, NP=0, tbox=None
     bodies = Internal.getZones(tb)
     if not isinstance(snears, list): snears = len(bodies)*[snears]
     if len(bodies) != len(snears):
-        raise ValueError, 'Number of bodies is not equal to the size of snears.'
+        raise ValueError('generateIBMMesh: Number of bodies is not equal to the size of snears.')
     dxmin0 = 1.e10
     for s in bodies:
         sdd = Internal.getNodeFromName1(s, ".Solver#define")
@@ -564,7 +564,7 @@ def addRefinementZones(o, tb, tbox, snearsf, vmin, dim):
         
     if not isinstance(snearsf, list): snearsf = len(boxes)*[snearsf]
     if len(boxes) != len(snearsf):
-        raise ValueError, 'Number of refinement bodies is not equal to the length of snearsf list.'
+        raise ValueError('addRefinementZones: Number of refinement bodies is not equal to the length of snearsf list.')
     to = C.newPyTree(['Base', o])
     BM = numpy.ones((1,1),numpy.int32)
     end = 0
@@ -1012,19 +1012,19 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=0, interp='all', 
     
     # tb: fournit model et dimension
     dimPb = Internal.getNodeFromName(tb,'EquationDimension')
-    if dimPb is None: raise ValueError, 'EquationDimension is missing in input body tree.'
+    if dimPb is None: raise ValueError('prepareIBMData: EquationDimension is missing in input body tree.')
     dimPb = Internal.getValue(dimPb)
     
     # type de traitement paroi: pts interieurs ou externes
     model = Internal.getNodeFromName(tb, 'GoverningEquations')
-    if model is None: raise ValueError, 'GoverningEquations is missing in input body tree.'
+    if model is None: raise ValueError('prepareIBMData: GoverningEquations is missing in input body tree.')
     # model: Euler, NSLaminar, NSTurbulent
     model = Internal.getValue(model)
 
     if model == 'Euler': IBCType =-1
     else: IBCType = 1 # Points cibles externes
     if loc == 'nodes':
-        raise NotImplemented("prepareIBMData at nodes not yet implemented.")
+        raise NotImplemented("prepareIBMData: prepareIBMData at nodes not yet implemented.")
 
     #------------------------
     # Ghost cells (overlaps)

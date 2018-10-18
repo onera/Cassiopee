@@ -16,13 +16,13 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-# include "connector.h"
-using namespace std;
-using namespace K_FLD;
-
 #ifdef _MPI
 #include <mpi.h>
 #endif
+
+# include "connector.h"
+using namespace std;
+using namespace K_FLD;
 
 #undef TimeShowsetinterp
 

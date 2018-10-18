@@ -122,7 +122,7 @@ def OptionMenu(*args, **kwargs):
 
 def ComboBox(*args, **kwargs):
     if ttk is None: # process args here
-        raise ValueError, 'No comboxbox'
+        raise ValueError('No comboxbox.')
     else: return ttk.Combobox(*args, **kwargs)
 
 def superOptionMenu(F, var, itemList, command, 

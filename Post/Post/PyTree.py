@@ -145,7 +145,7 @@ def _extractMesh(t, extractionMesh, order=2, extrapOrder=1,
             for i in xrange(len(fc)):
                 if len(fc[i]) == 4:
                     try: import Transform
-                    except: raise ImportError, 'Transform module required.'
+                    except: raise ImportError('extractMesh: Transform module is required.')
                     fc[i] = Transform.dual(fc[i], extraPoints=0)
                 else: fc[i] = Converter.node2Center(fc[i])
             fa = C.getFields(Internal.__FlowSolutionCenters__, tp)
@@ -325,7 +325,7 @@ def selectCells2(t, tagName, strict=0):
 
 def selectCells3(t, tagName):
     try: import Transform.PyTree as T
-    except: raise ImportError, 'Transform module required.'
+    except: raise ImportError('selectCells: Transform module is required.')
     tp = Internal.copyRef(t)
     C._deleteZoneBC__(tp)
     C._deleteGridConnectivity__(tp)
@@ -512,9 +512,9 @@ def _computeVariables(t, varList,
     presn = C.isNamePresent(t, 'Density')
     presc = C.isNamePresent(t, 'centers:Density')
     if presc == -1 and varnamesc != []:
-        raise ValueError("Not implemented.")
+        raise ValueError("computeVariables: Not implemented.")
     if presn == -1 and varnamesn != []:
-        raise ValueError("Not implemented.")
+        raise ValueError("computeVariables: Not implemented.")
 
     C._TZAGC(t, 'both', 'both',
              Post.computeVariables, Post.computeVariables,
@@ -704,7 +704,7 @@ def computeExtraVariable(t, varname, gamma=-1, rgp=-1.,
     elif varname == 'centers:SkinFrictionTangential':
         return extraVariablesPT.computeSkinFriction(t, centers=1, tangent=1)
     else:
-        print 'Warning: computeExtraVariable: unknown variable: %s.'%varname
+        print('Warning: computeExtraVariable: unknown variable: %s.'%varname)
 
 #==============================================================================
 # Importe les variables de t1 dans t2, retourne t2 modifie
@@ -810,7 +810,7 @@ def importVariables(t1, t2, method=0, eps=1.e-6, addExtra=1):
         if tag[noz1] == 0: extra = True; break
 
     if extra == True and addExtra == 1:
-        print 'Warning: importVariables: extra grid(s) in t2 detected, added to EXTRA base.'
+        print('Warning: importVariables: extra grid(s) in t2 detected, added to EXTRA base.')
         a2 = C.addBase2PyTree(a2, 'EXTRA', 3)
         base = Internal.getNodesFromName1(a2, 'EXTRA')
         if loc == 1: # ajout direct
@@ -1152,7 +1152,7 @@ def _computeGrad2(t, var):
     """Compute the gradient of a variable defined in array.
     Usage: computeGrad2(t,var)"""
     if type(var) == list:
-        raise ValueError("Post.PyTree.computeGrad2: not available for lists of variables.")
+        raise ValueError("computeGrad2: not available for lists of variables.")
     vare = var.split(':')
     if len(vare) > 1: vare = vare[1]
 
@@ -1242,7 +1242,7 @@ def _computeDiv2(t, var):
     """Compute the divergence of a variable defined in array.
     Usage: computeDiv2(t, var)"""
     if type(var) == list:
-        raise ValueError("Post.PyTree.computeDiv2: not available for lists of variables.")
+        raise ValueError("computeDiv2: not available for lists of variables.")
     vare = var.split(':')
     if len(vare) > 1: vare = vare[1]
 

@@ -7,7 +7,7 @@ try:
     import Converter
     import Converter.PyTree as C
     import Converter.Internal as Internal
-except: raise ImportError, "Connector.PyTree: requires Converter module."
+except: raise ImportError("Connector.PyTree: requires Converter module.")
 
 __version__ = O.__version__
 

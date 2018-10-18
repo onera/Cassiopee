@@ -203,7 +203,7 @@ def getModule(app):
         TKMODULES[app] = module
         frame = TKMODULEFRAMES[app]
         module.createApp(frame)
-      except: print 'Warning: module %s can not be loaded.'%app
+      except: print('Warning: module %s can not be loaded.'%app)
   return TKMODULES[app]
 
 def openApp(app):
@@ -1752,7 +1752,7 @@ def tkLoadFile(files, mode='full'):
     try:
       format = Converter.checkFileType(fileName)
     except:
-      print 'Error: convertFile2PyTree: fail to read file %s.'%fileName
+      print('Error: convertFile2PyTree: fail to read file %s.'%fileName)
       return
     if format != 'bin_adf' and format != 'bin_hdf': mode = 'full' 
 
@@ -1771,7 +1771,7 @@ def tkLoadFile(files, mode='full'):
         if t == []: t = t2
         else: t = C.mergeTrees(t, t2)
       except:
-        print 'Error: convertFile2PyTree: fail to read file %s.'%file
+        print('Error: convertFile2PyTree: fail to read file %s.'%file)
 
   # common part
   FILE = files[0]

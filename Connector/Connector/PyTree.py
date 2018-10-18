@@ -1284,9 +1284,9 @@ def getInterpolatedPoints(z,loc='centers', cellNName='cellN'):
 #==============================================================================
 def optimizeOverlap(t, double_wall=0, priorities=[], intersectionsDict=None):
     try: import Generator.PyTree as G
-    except: raise ImportError, 'optimizeOverlap requires Generator module.'
+    except: raise ImportError('optimizeOverlap requires Generator module.')
     try: import Post.PyTree as P
-    except: raise ImportError, 'optimizeOverlap requires Post module.'
+    except: raise ImportError('optimizeOverlap requires Post module.')
     if double_wall == 1: import DoubleWall
     tol = 1.e-10
     a = Internal.copyRef(t)

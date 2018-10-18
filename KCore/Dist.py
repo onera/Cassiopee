@@ -27,15 +27,15 @@ def checkModuleImport(moduleName, raiseOnError=True):
     try:
         __import__(moduleName)
         if color:
-            print "\033[32m%s correctly installed.\033[0m"%moduleName
-        else: print "%s correctly installed."%moduleName
+            print("\033[32m%s correctly installed.\033[0m"%moduleName)
+        else: print("%s correctly installed."%moduleName)
     except Exception, inst:
         if color:
-            print "\033[31mFAILED: %s\033[0m"%inst
-            print "\033[31mFAILED: %s badly installed.\033[0m"%moduleName
+            print("\033[31mFAILED: %s\033[0m"%inst)
+            print("\033[31mFAILED: %s badly installed.\033[0m"%moduleName)
         else:
-            print "FAILED: %s"%inst
-            print "FAILED: %s badly installed."%moduleName
+            print("FAILED: %s"%inst)
+            print("FAILED: %s badly installed."%moduleName)
         if raiseOnError: raise ImportError
 
 #==============================================================================
@@ -93,7 +93,7 @@ def checkAll():
     (ok, hdfIncDir, hdfLib) = checkHdf()
     if ok: out += ['hdf: OK, %s %s'%(hdfIncDir, hdfLib)]
     else: out += ['hdf: missing']
-    for i in out: print i
+    for i in out: print(i)
 
 #==============================================================================
 # Check python includes / libs
@@ -552,7 +552,6 @@ def sortFileListByUse(files):
         nbs[f] = nb
         mods[f] = mod
         defmods[f] = defmod
-        #print f, nb, mod, defmod
 
     # tri
     files = sorted(files, key=lambda x: nbs[x])
@@ -768,12 +767,10 @@ def checkPythonPath():
     installPathLocal = K.installPath
     a = os.getenv("PYTHONPATH")
     if a is None:
-        print 'Warning: to use the module, please add: '\
-        + installPathLocal + ' to your PYTHONPATH.'
+        print('Warning: to use the module, please add: %s to your PYTHONPATH.'%installPathLocal)
     else:
         if re.compile(installPathLocal).search(a) is None:
-            print 'Warning: to use the module, please add: '\
-            + installPathLocal + ' to your PYTHONPATH.'
+            print('Warning: to use the module, please add: %s to your PYTHONPATH.'%installPathLocal)
 
 #=============================================================================
 # Check LD_LIBRARY_PATH
@@ -786,12 +783,12 @@ def checkLdLibraryPath():
     a = os.getenv("LD_LIBRARY_PATH")
     b = os.getenv("LIBRARY_PATH")
     if a is None and b is None:
-        print "Warning: to use the module, please add: %s to your LD_LIBRARY_PATH (unix) or PATH (windows)."%libPath
+        print("Warning: to use the module, please add: %s to your LD_LIBRARY_PATH (unix) or PATH (windows)."%libPath)
     else:
          if a is not None: ret = a
          else: ret = b
          if re.compile(libPath).search(ret) is None:
-              print "Warning: to use the module, please add: %s to your LD_LIBRARY_PATH (unix) or PATH (windows)."%libPath
+              print("Warning: to use the module, please add: %s to your LD_LIBRARY_PATH (unix) or PATH (windows)."%libPath)
 
 #=============================================================================
 # Check for KCore
@@ -913,8 +910,8 @@ def checkCassiopee():
                    CassiopeeLibDir = kvar + "/Dist/bin/" + pvar
 
     if Cassiopee:
-        print 'Info: Cassiopee Kernel detected at '+CassiopeeLibDir+'.'
-        print 'Info: .Cassiopee extension will be built.'
+        print('Info: Cassiopee Kernel detected at '+CassiopeeLibDir+'.')
+        print('Info: .Cassiopee extension will be built.')
 
     return (Cassiopee, CassiopeeIncDir, CassiopeeLibDir, CassiopeeUseMpi)
 
@@ -967,8 +964,8 @@ def checkElsa():
                    elsALibDir = kvar + "/Dist/bin/" + pvar
 
     if elsA:
-        print 'Info: elsA Kernel detected at '+elsALibDir+'.'
-        print 'Info: .Elsa extension will be built.'
+        print('Info: elsA Kernel detected at '+elsALibDir+'.')
+        print('Info: .Elsa extension will be built.')
     return (elsA, elsAIncDir, elsALibDir, elsAUseMpi)
 
 #=============================================================================
@@ -983,10 +980,10 @@ def checkGlut(additionalLibPaths=[], additionalIncludePaths=[]):
              l = checkLibFile__('libfreeglut.a', additionalLibPaths)
     i = checkIncFile__('GL/glut.h', additionalIncludePaths)
     if i is not None and l is not None:
-        print 'Info: glut detected at '+l+'.'
+        print('Info: glut detected at '+l+'.')
         return (True, i, l)
     else:
-        print 'Info: libglut or GL/glut.h was not found on your system.'
+        print('Info: libglut or GL/glut.h was not found on your system.')
         return (False, '', '')
 
 #=============================================================================
@@ -1003,10 +1000,10 @@ def checkGlew(additionalLibPaths=[], additionalIncludePaths=[]):
     i = checkIncFile__('GL/glew.h', additionalIncludePaths)
 
     if i is not None and l is not None:
-        print 'Info: glew detected at '+l+'.'
+        print('Info: glew detected at '+l+'.')
         return (True, i, l)
     else:
-        print 'Info: libglew or GL/glew.h was not found on your system. No shader support for CPlot.'
+        print('Info: libglew or GL/glew.h was not found on your system. No shader support for CPlot.')
         return (False, '', '')
 
 #=============================================================================
@@ -1020,10 +1017,10 @@ def checkOSMesa(additionalLibPaths=[], additionalIncludePaths=[]):
         l = checkLibFile__('libOSMesa.a', additionalLibPaths)
     i = checkIncFile__('GL/osmesa.h', additionalIncludePaths)
     if i is not None and l is not None:
-        print 'Info: libOSmesa detected at %s.'%l
+        print('Info: libOSmesa detected at %s.'%l)
         return (True, i, l)
     else:
-        print 'Info: libOSMesa or GL/osmesa.h was not found on your system. No offscreen support for CPlot.'
+        print('Info: libOSMesa or GL/osmesa.h was not found on your system. No offscreen support for CPlot.')
         return (False, '', '')
 
 #=============================================================================
@@ -1039,10 +1036,10 @@ def checkPng(additionalLibPaths=[], additionalIncludePaths=[]):
              l = checkLibFile__('libpng.dll.a', additionalLibPaths)
     i = checkIncFile__('png.h', additionalIncludePaths)
     if i is not None and l is not None:
-        print 'Info: png detected at %s.'%l
+        print('Info: png detected at %s.'%l)
         return (True, i, l)
     else:
-        print 'Info: libpng or png.h was not found on your system. No png support.'
+        print('Info: libpng or png.h was not found on your system. No png support.')
         return (False, '', '')
 
 #=============================================================================
@@ -1062,10 +1059,10 @@ def checkMpeg(additionalLibPaths=[], additionalIncludePaths=[]):
     if i is not None:
          i = checkIncFile__('libavutil/imgutils.h', additionalIncludePaths)
     if i is not None and l is not None:
-        print 'Info: mpeg detected at %s.'%l
+        print('Info: mpeg detected at %s.'%l)
         return (True, i, l)
     else:
-        print 'Info: libavcodec or libavcodec/avcodec.h,  libavutil/mem.h or libavutil/imgutils.h was not found on your system. No mpeg support.'
+        print('Info: libavcodec or libavcodec/avcodec.h,  libavutil/mem.h or libavutil/imgutils.h was not found on your system. No mpeg support.')
         return (False, '', '')
 
 #=============================================================================
@@ -1079,10 +1076,10 @@ def checkAdf(additionalLibPaths=[], additionalIncludePaths=[]):
         l = checkLibFile__('libcgns.a', additionalLibPaths)
     i = checkIncFile__('adf/ADF.h', additionalIncludePaths)
     if i is not None and l is not None:
-        print 'Info: Adf detected at %s.'%l
+        print('Info: Adf detected at %s.'%l)
         return (True, i, l)
     else:
-        print 'Info: libadf or adf/ADF.h was not found on your system. No adf support.'
+        print('Info: libadf or adf/ADF.h was not found on your system. No adf support.')
         return (False, '', '')
 
 #=============================================================================
@@ -1096,10 +1093,10 @@ def checkHdf(additionalLibPaths=[], additionalIncludePaths=[]):
         l = checkLibFile__('libhdf5.a', additionalLibPaths)
     i = checkIncFile__('hdf5.h', additionalIncludePaths)
     if i is not None and l is not None:
-        print 'Info: Hdf5 detected at %s.'%l
+        print('Info: Hdf5 detected at %s.'%l)
         return (True, i, l)
     else:
-        print 'Info: libhdf5 or hdf5.h was not found on your system. No hdf5 support.'
+        print('Info: libhdf5 or hdf5.h was not found on your system. No hdf5 support.')
         return (False, '', '')
 
 #=============================================================================
@@ -1113,10 +1110,10 @@ def checkMpi(additionalLibPaths=[], additionalIncludePaths=[]):
         l = checkLibFile__('libmpi.a', additionalLibPaths)
     i = checkIncFile__('mpi.h', additionalIncludePaths)
     if i is not None and l is not None:
-        print 'Info: Mpi detected at %s.'%l
+        print('Info: Mpi detected at %s.'%l)
         return (True, i, l)
     else:
-        print 'Info: libmpi or mpi.h was not found on your system. No Mpi support.'
+        print('Info: libmpi or mpi.h was not found on your system. No Mpi support.')
         return (False, '', '')
 
 #=============================================================================
@@ -1138,10 +1135,10 @@ def checkMpi4py(additionalLibPaths=[], additionalIncludePaths=[]):
     i = checkIncFile__('mpi4py/mpi4py.MPI.h', additionalIncludePaths+incPaths)
 
     if i is not None:
-        print 'Info: Mpi4py detected at %s.'%i
+        print('Info: Mpi4py detected at %s.'%i)
         return (True, i, '')
     else:
-        print 'Info: mpi4py or mpi4py.MPI.h was not found on your system. No Mpi support.'
+        print('Info: mpi4py or mpi4py.MPI.h was not found on your system. No Mpi support.')
         return (False, '', '')
 
 #=============================================================================

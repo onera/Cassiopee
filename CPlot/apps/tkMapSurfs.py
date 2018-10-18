@@ -111,10 +111,10 @@ def mapSurf(z, density, smoothIter, eltType, constraints, strength):
         r = G.fillWithStruct(f, Vmin=10)
 
         for smooth in xrange(smoothIter):
-            print 'Smoothing iteration...', smooth
+            print('Smoothing iteration %d...'%smooth)
             r = T.smooth(r, eps=0.5, niter=2, fixedConstraints=constraints,
                          delta=strength)
-            print 'Projection iteration...', smooth
+            print('Projection iteration %d...'%smooth)
             r = T.projectOrtho(r, [a])
         
         ret = []

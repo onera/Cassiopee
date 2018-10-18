@@ -165,6 +165,8 @@ PyObject* K_POST::computeGrad2NGon(PyObject* self, PyObject* args)
       fp[ind] = pf[i];
       //if (ind < 0 || ind > nfaces-1) printf("%d %f\n", ind, fp[ind]);
     }
+    RELEASESHAREDN(indices, inds);
+    RELEASESHAREDN(field, bfield);
   }
 
   // Build

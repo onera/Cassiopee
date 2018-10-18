@@ -261,7 +261,7 @@ def distance2WallsEikonal(t, body, tc=None, DEPTH=2, loc='nodes', err=0.01, nitm
     for z in Internal.getZones(t):
         dims = Internal.getZoneDim(z)
         if dims[0] != 'Structured':
-            raise('ValueError: dist2WallsEikonal works only on structured grids currently.')
+            raise ValueError('dist2WallsEikonal works only on structured grids currently.')
         #beg4 = time.time()
         C._initVars(t,distName,PHIMAX)
         #end4 = time.time()

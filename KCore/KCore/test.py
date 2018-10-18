@@ -24,7 +24,7 @@ def testA(arrays, number=1):
     # Check Data directory
     a = os.access('Data', os.F_OK)
     if not a:
-         print "Data directory doesn't exist. Created."
+         print("Data directory doesn't exist. Created.")
          os.mkdir('Data')
          
     # Construit le nom du fichier de reference
@@ -36,7 +36,7 @@ def testA(arrays, number=1):
     else: reference = '%s/Data/%s.ref%d'%(dirName, fileName, number)
     a = os.access(reference, os.R_OK)
     if not a:
-        print "Warning: reference file %s has been created."%reference
+        print("Warning: reference file %s has been created."%reference)
         C.convertArrays2File(arrays, reference, 'bin_pickle')
         return True
     else:
@@ -51,7 +51,7 @@ def testA(arrays, number=1):
                 l0 = max(l0, C.normL0(i, v))
                 l2 = max(l2, C.normL2(i, v))
                 if l0 > 1.e-11:
-                    print 'DIFF: Variable=%s, L0=%.12f, L2=%.12f'%(v,l0,l2)
+                    print('DIFF: Variable=%s, L0=%.12f, L2=%.12f'%(v,l0,l2))
                     retour = False
         return retour
 
@@ -75,7 +75,7 @@ def testT(t, number=1):
     # Check Data directory
     a = os.access('Data', os.F_OK)
     if not a:
-         print "Data directory doesn't exist. Created."
+         print("Data directory doesn't exist. Created.")
          os.mkdir('Data')
 
     # Construit le nom du fichier de reference
@@ -88,7 +88,7 @@ def testT(t, number=1):
     a = os.access(reference, os.R_OK)
     
     if not a:
-        print "Warning: reference file %s has been created."%reference
+        print("Warning: reference file %s has been created."%reference)
         C.convertPyTree2File(t, reference, 'bin_pickle')
         return True
     else:
@@ -105,7 +105,7 @@ def testT(t, number=1):
             l0 = C.normL0(ret, v)
             l2 = C.normL2(ret, v)
             if l0 > 1.e-11:
-                print 'DIFF: Variable=%s, L0=%.12f, L2=%.12f'%(v,l0,l2)
+                print('DIFF: Variable=%s, L0=%.12f, L2=%.12f'%(v,l0,l2))
                 retour = False
         return retour
 
@@ -118,7 +118,7 @@ def testF(infile, number=1):
     # Check Data directory
     a = os.access('Data', os.F_OK)
     if not a:
-         print "Data directory doesn't exist. Created."
+         print("Data directory doesn't exist. Created.")
          os.mkdir('Data')
 
     fileName = sys.argv[0]
@@ -129,25 +129,25 @@ def testF(infile, number=1):
     else: reference = '%s/Data/%s.ref%d'%(dirName, fileName, number)
     a = os.access(reference, os.R_OK)
     if not a:
-        print "Can not open file %s for reading."%reference
-        print "Reference file %s has been created."%reference
+        print("Can not open file %s for reading."%reference)
+        print("Reference file %s has been created."%reference)
         os.system("cp "+infile+" "+reference)
         return True
     else:
-        print "Diffing with '"+reference+"'... done."
+        print("Diffing with '"+reference+"'... done.")
         ret = os.system("diff "+reference+" "+infile+" > /dev/null")
         if ret != 0:
-            print "DIFF: with file "+reference+'.'
+            print("DIFF: with file "+reference+'.')
             return False
         else: return True
 
 def checkObject_(a, b, reference):
     if type(a) != type(b):
-        print "DIFF: object type differs from "+reference+'.'
+        print("DIFF: object type differs from "+reference+'.')
         return False
     if isinstance(a, numpy.ndarray): # array
         if a.shape != b.shape:
-            print "DIFF: object shape differs from "+reference+'.'
+            print("DIFF: object shape differs from "+reference+'.')
             return False
         diff = numpy.abs(a-b)
         diff = (diff < 1.e-11)
@@ -472,7 +472,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         coverage += 1
     except TypeError:
         if output == 1: print 'STRUCT1D: uncovered.'
-    except: print '%s: Structure 1D: fails.'%testName; raise
+    except: print('%s: Structure 1D: fails.'%testName); raise
 
     # 2- Structure 2D
     try:
@@ -494,7 +494,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         coverage += 1
     except TypeError:
         if output == 1: print 'SRUCT2D: uncovered.'
-    except: print '%s: Structure 2D: fails.'%testName; raise
+    except: print('%s: Structure 2D: fails.'%testName); raise
 
     # 3- Structure 3D
     try:
@@ -516,7 +516,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         coverage += 1
     except TypeError:
         if output == 1: print 'STRUCT3D: uncovered.'
-    except: print '%s: Structure 3D: fails.'%testName; raise        
+    except: print('%s: Structure 3D: fails.'%testName); raise        
 
     # 4- BAR
     try:
@@ -538,7 +538,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         coverage += 1
     except TypeError:
         if output == 1: print 'BAR: uncovered.'
-    except: print '%s: BAR: fails.'%testName; raise
+    except: print('%s: BAR: fails.'%testName); raise
 
     # 5- TRI
     try:
@@ -560,7 +560,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         coverage += 1
     except TypeError:
         if output == 1: print 'TRI: uncovered.'
-    except: print '%s: TRI: fails.'%testName; raise
+    except: print('%s: TRI: fails.'%testName); raise
 
     # 6- QUAD
     try:
@@ -582,7 +582,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         coverage += 1
     except TypeError:
         if output == 1: print 'QUAD: uncovered.'
-    except: print '%s: QUAD: fails.'%testName; raise
+    except: print('%s: QUAD: fails.'%testName); raise
     
     # 7- TETRA
     try:
@@ -604,7 +604,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         coverage += 1
     except TypeError:
         if output == 1: print 'TETRA: uncovered.'
-    except: print '%s: TETRA: fails.'%testName; raise
+    except: print('%s: TETRA: fails.'%testName); raise
     
     # 8- HEXA
     try:
@@ -626,7 +626,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         coverage += 1
     except TypeError:
         if output == 1: print 'HEXA: uncovered.'
-    except: print '%s: HEXA: fails.'%testName; raise
+    except: print('%s: HEXA: fails.'%testName); raise
     
     # 9- PENTA
     try:
@@ -648,7 +648,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         coverage += 1
     except TypeError:
         if output == 1: print 'PENTA: uncovered.'
-    except: print '%s: PENTA: fails.'%testName; raise
+    except: print('%s: PENTA: fails.'%testName); raise
     
     # 10- PYRA
     try:
@@ -670,7 +670,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         coverage += 1
     except TypeError:
         if output == 1: print 'PYRA: uncovered.'
-    except: print '%s: PYRA: fails.'%testName; raise        
+    except: print('%s: PYRA: fails.'%testName); raise        
     
     # 11- NGON 1D
     try:
@@ -692,7 +692,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         coverage += 1
     except TypeError:
         if (output == 1): print 'NGON1D: uncovered.'
-    except: print '%s: NGON 1D: fails.'%testName; raise        
+    except: print('%s: NGON 1D: fails.'%testName); raise        
 
     # 12- NGON 2D
     try:
@@ -714,7 +714,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         coverage += 1
     except TypeError:
         if output == 1: print 'NGON2D: uncovered.'
-    except: print '%s: NGON 2D: fails.'%testName; raise                
+    except: print('%s: NGON 2D: fails.'%testName); raise                
     
     # 13- NGON 3D
     try:
@@ -736,7 +736,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         coverage += 1
     except TypeError:
         if output == 1: print 'NGON3D: uncovered.'
-    except: print '%s: NGON 3D: fails.'%testName; raise              
+    except: print('%s: NGON 3D: fails.'%testName); raise              
 
     # 14- liste d'arrays
     try:
@@ -755,7 +755,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         coverage += 1
     except TypeError:
         if output == 1: print 'Array list: uncovered.'
-    except: print '%s: Array list: fails.'%testName; raise 
+    except: print('%s: Array list: fails.'%testName); raise 
 
     # Write coverage
     writeCoverage(coverage/14.*100)
@@ -795,7 +795,7 @@ def stdTestT__(output, F, *keywords):
         else: testO(b, 1)
         coverage += 1
     except TypeError: pass # 
-    except: print '%s: One zone: fails.'%testName; raise 
+    except: print('%s: One zone: fails.'%testName); raise 
 
     # 2- Une liste de zones
     try:
@@ -810,7 +810,7 @@ def stdTestT__(output, F, *keywords):
         else: testO(B, 2)
         coverage += 1
     except TypeError: pass # 
-    except: print '%s: Zone list: fails.'%testName; raise 
+    except: print('%s: Zone list: fails.'%testName); raise 
 
     # 3- Un arbre
     try:
@@ -825,7 +825,7 @@ def stdTestT__(output, F, *keywords):
         else: testO(t, 3)
         coverage += 1
     except TypeError: pass # 
-    except: print '%s: Full tree: fails.'%testName; raise
+    except: print('%s: Full tree: fails.'%testName); raise
 
     # 4- Une base
     try:
@@ -842,7 +842,7 @@ def stdTestT__(output, F, *keywords):
         else: testO(b, 4)
         coverage += 1
     except TypeError: pass # 
-    except: print '%s: base: fails.'%testName; raise
+    except: print('%s: base: fails.'%testName); raise
 
 ##     # 5- Une liste de bases
 ##     try:
@@ -858,7 +858,7 @@ def stdTestT__(output, F, *keywords):
 ##         testT(bases, 5)
 ##         coverage += 1
 ##     except TypeError: pass # 
-##     except: print '%s: list of bases: fails.'%testName; raise
+##     except: print('%s: list of bases: fails.'%testName); raise
     
     # Write coverage
     writeCoverage(coverage/4.*100)

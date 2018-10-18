@@ -441,7 +441,7 @@ def newZone(name='Zone', zsize=None, ztype='Structured',
     """Create a new Zone node."""
     ZoneType_l = ['Null', 'UserDefined', 'Structured', 'Unstructured']
     if ztype not in ZoneType_l:
-        raise ValueError, 'ztype must be in '+str(ZoneType_l)
+        raise ValueError('newZone: ztype must be in %s.'%str(ZoneType_l))
     if parent is None:
         node = createNode(name, 'Zone_t', value=zsize)
     else:
@@ -530,7 +530,7 @@ def newGridLocation(value='CellCenter', parent=None):
                       'FaceCenter', 'IFaceCenter', 'JFaceCenter',
                       'KFaceCenter', 'EdgeCenter']
     if value not in GridLocation_l:
-        raise ValueError, 'value must be in '+str(GridLocation_l)
+        raise ValueError('newGridLocation: value must be in %s.'%str(GridLocation_l))
     if parent is None:
         node = createNode('GridLocation', 'GridLocation_t', value=value)
     else: node = createUniqueChild(parent, 'GridLocation', 'GridLocation_t',
@@ -577,7 +577,7 @@ def newSimulationType(value='TimeAccurate', parent=None):
     """Create a new SimulationType node."""
     SimulationType_l = ['Null', 'UserDefined', 'TimeAccurate', 'NonTimeAccurate']
     if value not in SimulationType_l:
-        raise ValueError, 'value must be in '+str(SimulationType_l)
+        raise ValueError('newSimulationType: value must be in %s.'%str(SimulationType_l))
     if parent is None:
         node = createNode('SimulationType', 'SimulationType_t', value=value)
     else: node = createUniqueChild(parent, 'SimulationType',
@@ -649,7 +649,7 @@ def newBC(name='BC', pointRange=None, pointList=None,
                 'BCAxisymmetricWedge', 'FamilySpecified',
                 'BCFarfield', 'BCInflow', 'BCOutflow']
     if btype not in BCType_l:
-        raise ValueError, 'btype must be in '+str(BCType_l)
+        raise ValueError('newBC: btype must be in %s.'%str(BCType_l))
     if parent is None:
         node = createNode(name, 'BC_t', value=btype)
     else: node = createUniqueChild(parent, name, 'BC_t', value=btype)
@@ -674,7 +674,7 @@ def newBCDataSet(name='BCDataSet', value='Null', gridLocation=None, parent=None)
                 'BCAxisymmetricWedge', 'FamilySpecified',
                 'BCFarfield', 'BCInflow', 'BCOutflow']
     if value not in BCType_l:
-        raise ValueError, 'value must be in '+str(BCType_l)
+        raise ValueError('newBCDataSet: value must be in %s.'%str(BCType_l))
     if parent is None:
         node = createNode(name, 'BCDataSet_t', value=value)
     else: node = createUniqueChild(parent, name, 'BCDataSet_t', value=value)
@@ -805,7 +805,7 @@ def newPeriodic(rotationCenter=[0.,0.,0.],
 def newAverageInterface(value='Null', parent=None):
     """Create a new AverageInterface node."""
     #if value not in AverageInterface_l:
-    #    raise ValueError, 'value must be in '+str(AverageInterface_l)
+    #    raise ValueError('newAverageInterface: value must be in %s.'%str(AverageInterface_l))
     if parent is None:
         node = createNode('AverageInterface', 'AverageInterface_t', value=value)
     else: node = createUniqueChild(parent, 'AverageInterface',
@@ -840,7 +840,7 @@ def newGoverningEquations(value='Euler', parent=None):
                             'NSLaminarIncompressible',
                             'NSTurbulentIncompressible']
     if value not in GoverningEquations_l:
-        raise ValueError, 'value must be in '+str(GoverningEquations_l)
+        raise ValueError('newGoverningEquation: value must be in %s.'%str(GoverningEquations_l))
     if parent is None:
         node = createNode('GoverningEquations', 'GoverningEquations_t',
                           value=value)
@@ -855,7 +855,7 @@ def newGasModel(value='Ideal', parent=None):
                   'CaloricallyPerfect', 'ThermallyPerfect',
                   'ConstantDensity', 'RedlichKwong']
     if value not in GasModel_l:
-        raise ValueError, 'value must be in '+str(GasModel_l)
+        raise ValueError('newGasModel: value must be in %s.'%str(GasModel_l))
     if parent is None:
         node = createNode('GasModel', 'GasModel_t', value=value)
     else: node = createUniqueChild(parent, 'GasModel',
@@ -868,7 +868,7 @@ def newThermalConductivityModel(value='SutherlandLaw', parent=None):
     ThermalConductivityModel_l = ['Null', 'UserDefined', 'ConstantPrandtl',
                                   'PowerLaw', 'SutherlandLaw']
     if value not in ThermalConductivityModel_l:
-        raise ValueError, 'value must be in '+str(ThermalConductivityModel_l)
+        raise ValueError('newThermalConductivityModel: value must be in %s'%str(ThermalConductivityModel_l))
     if parent is None:
         node = createNode('ThermalConductivityModel',
                           'ThermalConductivityModel_t', value=value)
@@ -882,7 +882,7 @@ def newViscosityModel(value='SutherlandLaw', parent=None):
     ViscosityModel_l = ['Null', 'UserDefined', 'Constant', 'PowerLaw',
                         'SutherlandLaw']
     if value not in ViscosityModel_l:
-        raise ValueError, 'value must be in '+str(ViscosityModel_l)
+        raise ValueError('newViscosityModel: value must be in %s.'%str(ViscosityModel_l))
     if parent is None:
         node = createNode('ViscosityModel', 'ViscosityModel_t',
                           value=value)
@@ -896,7 +896,7 @@ def newTurbulenceClosure(value='Null', parent=None):
     TurbulenceClosure_l = ['Null', 'UserDefined', 'EddyViscosity',
                            'ReynoldsStress', 'ReynoldsStressAlgebraic']
     if value not in TurbulenceClosure_l:
-        raise ValueError, 'value must be in '+str(TurbulenceClosure_l)
+        raise ValueError('newTurbulenceColsure: value must be in %s.'%str(TurbulenceClosure_l))
     if parent is None:
         node = createNode('TurbulenceClosure', 'TurbulenceClosure_t',
                           value=value)
@@ -914,7 +914,7 @@ def newTurbulenceModel(value='OneEquation_SpalartAllmaras', parent=None):
                          'TwoEquation_JonesLaunder',
                          'TwoEquation_MenterSST', 'TwoEquation_Wilcox']
     if value not in TurbulenceModel_l:
-        raise ValueError, 'value must be in '+str(TurbulenceModel_l)
+        raise ValueError('newTurbulenceModle: value must be in %s.'%str(TurbulenceModel_l))
     if parent is None:
         node = createNode('TurbulenceModel', 'TurbulenceModel_t',
                           value=value)
@@ -928,7 +928,7 @@ def newThermalRelaxationModel(value='Null', parent=None):
     ThermalRelaxationModel_l = ['Null', 'UserDefined', 'Frozen',
                                 'ThermalEquilib', 'ThermalNonequilib']
     if value not in ThermalRelaxationModel_l:
-        raise ValueError, 'value must be in '+str(ThermalRelaxationModel_l)
+        raise ValueError('newThermalRelaxationModel: value must be in %s.'%str(ThermalRelaxationModel_l))
     if parent is None:
         node = createNode('ThermalRelaxationModel', 'ThermalRelaxationModel_t',
                           value=value)
@@ -944,7 +944,7 @@ def newChemicalKineticsModel(value='Null', parent=None):
                                 'ChemicalEquilibMinimization',
                                 'ChemicalNonequilib']
     if value not in ChemicalKineticsModel_l:
-        raise ValueError, 'value must be in '+str(ChemicalKineticsModel_l)
+        raise ValueError('newChemicalFineticsModel: value must be in %s.'%str(ChemicalKineticsModel_l))
     if parent is None:
         node = createNode('ChemicalKineticsModel', 'ChemicalKineticsModel_t',
                           value=value)
@@ -958,7 +958,7 @@ def newEMElectricFieldModel(value='Null', parent=None):
     EMElectricFieldModel_l = ['Null', 'UserDefined', 'Constant', 'Frozen',
                               'Interpolated', 'Voltage']
     if value not in EMElectricFieldModel_l:
-        raise ValueError, 'value must be in '+str(EMElectricFieldModel_l)
+        raise ValueError('newEMElectricFieldModel: value must be in %s.'%str(EMElectricFieldModel_l))
     if parent is None:
         node = createNode('EMElectricFieldModel', 'EMElectricFieldModel_t',
                           value=value)
@@ -972,7 +972,7 @@ def newEMMagneticFieldModel(value='Null', parent=None):
     EMMagneticFieldModel_l = ['Null', 'UserDefined',
                               'Constant', 'Frozen', 'Interpolated']
     if value not in EMMagneticFieldModel_l:
-        raise ValueError, 'value must be in '+str(EMMagneticFieldModel_l)
+        raise ValueError('newEMMagneticFieldModel: value must be in %s.'%str(EMMagneticFieldModel_l))
     if parent is None:
         node = createNode('EMMagneticFieldModel', 'EMMagneticFieldModel_t',
                           value=value)
@@ -986,7 +986,7 @@ def newEMConductivityModel(value='Null', parent=None):
     EMConductivityModel_l = ['Null', 'UserDefined', 'Constant', 'Frozen',
                              'Equilibrium_LinRessler', 'Chemistry_LinRessler']
     if value not in EMConductivityModel_l:
-        raise ValueError, 'value must be in '+str(EMConductivityModel_l)
+        raise ValueError('newEMConductivityModel: value must be in %s.'%str(EMConductivityModel_l))
     if parent is None:
         node = createNode('EMConductivityModel', 'EMConductivityModel_t',
                           value=value)
@@ -1029,7 +1029,7 @@ def newRigidGridMotionType(value='Null', parent=None):
     """Create a new RigidGridMotionType node."""
     RigidGridMotionType_l = ['Null', 'UserDefined', 'ConstantRate', 'VariableRate']
     if value not in RigidGridMotionType_l:
-        raise ValueError, 'value must be in '+str(RigidGridMotionType_l)
+        raise ValueError('newRigidGridMotionType: value must be in %s.'%str(RigidGridMotionType_l))
     if parent is None:
         node = createNode('RigidGridMotionType', 'RigidGridMotionType_t', value=value)
     else: node = createUniqueChild(parent, 'RigidGridMotionType', 'RigidGridMotionType_t', value=value)
@@ -1050,7 +1050,7 @@ def newConvergenceHistory(name='GlobalConvergenceHistory',
     ConvergenceHistory_l = ['ZoneConvergenceHistory',
                             'GlobalConvergenceHistory']
     if name not in ConvergenceHistory_l:
-        raise ValueError, 'name must be in '+str(ConvergenceHistory_l)
+        raise ValueError('newConvergenceHistory: name must be in %s.'%str(ConvergenceHistory_l))
     if parent is None:
         node = createNode(name, 'ConvergenceHistory_t', value=value)
     else: node = createUniqueChild(parent, name, 'ConvergenceHistory_t',
@@ -1080,7 +1080,7 @@ def newFamilyBC(value='UserDefined', parent=None):
                 'BCAxisymmetricWedge', 'FamilySpecified',
                 'BCFarfield', 'BCInflow', 'BCOutflow']
     if value not in BCType_l:
-        raise ValueError, 'value must be in '+str(BCType_l)
+        raise ValueError('newFamilyBC: value must be in %s.'%str(BCType_l))
     if parent is None:
         node = createNode('FamilyBC', 'FamilyBC_t', value=value)
     else: node = createUniqueChild(parent, 'FamilyBC',
@@ -1093,7 +1093,7 @@ def newGeometryReference(value='UserDefined', file='MyCAD.iges', parent=None):
     GeometryFormat_l = ['Null', 'NASA-IGES', 'SDRC', 'Unigraphics',
                         'ProEngineer', 'ICEM-CFD', 'UserDefined']
     if value not in GeometryFormat_l:
-        raise ValueError, 'value must be in '+str(GeometryFormat_l)
+        raise ValueError('newGeometryReference: value must be in %s.'%str(GeometryFormat_l))
     if parent is None:
         node = createNode('GeometryReference', 'GeometryReference_t')
     else: node = createUniqueChild(parent, 'GeometryReference',
@@ -1110,7 +1110,7 @@ def newArbitraryGridMotion(name='Motion', value='Null', parent=None):
     ArbitraryGridMotion_l = ['Null', 'UserDefined',
                              'NonDeformingGrid', 'DeformingGrid']
     if value not in ArbitraryGridMotion_l:
-        raise ValueError, 'value must be in '+str(ArbitraryGridMotion_l)
+        raise ValueError('newArbitraryGridMotion: value must be in %s.'%str(ArbitraryGridMotion_l))
     if parent is None:
         node = createNode(name, 'ArbitraryGridMotion_t')
     else: node = createUniqueChild(parent, name, 'ArbitraryGridMotion_t')
@@ -1536,15 +1536,14 @@ def getZonesPerIteration(t, iteration=None, time=None):
     """Return zones for given iteration of time."""
     bid = getNodeFromType2(t, 'BaseIterativeData_t')
     if bid is None:
-        raise ValueError, 'getZonesPerIteration: no BaseIterativeData.'
+        raise ValueError('getZonesPerIteration: no BaseIterativeData.')
 
     nbOfZones = getNodeFromName1(bid, 'NumberOfZones')
     zonePtrs = getNodeFromName1(bid, 'ZonePointers')
     if nbOfZones is None:
-        raise ValueError, 'getZonesPerIteration: no NumberOfZones node in BaseIterativedata.'
+        raise ValueError('getZonesPerIteration: no NumberOfZones node in BaseIterativedata.')
     if zonePtrs is None:
-        raise ValueError, 'getZonesPerIteration: no ZonePointers node in BaseIterativeData.'
-
+        raise ValueError('getZonesPerIteration: no ZonePointers node in BaseIterativeData.')
 
     nbOfZones = nbOfZones[1]
     zonePtrs = zonePtrs[1]
@@ -4102,13 +4101,16 @@ def getRotationAngleValueInDegrees(RotationAngleNode):
     if RotationAngleNode is None: return None
     angleUnitNode = getNodeFromType1(RotationAngleNode, 'DimensionalUnits_t')
     if angleUnitNode is not None:
-        angleunit = getValue(angleUnitNode)[4]
-        if angleunit == 'Radian': alpha = __RAD2DEG__
-        elif angleunit == 'Degree': alpha = 1.
-        else: raise ValueError("Internal.getRotationAngleInDegrees: AngleUnits must be Radian or Degree.")
+        angleUnit = getValue(angleUnitNode)[4]
+        if angleUnit == 'Radian': alpha = __RAD2DEG__
+        elif angleUnit == 'Degree': alpha = 1.
+        else:
+            print 'Warning: getRotationAngleValueInDegrees: unknown angle unit=%s.'%angleUnit
+            print 'Warning: getRotationAngleInDegrees: AngleUnits must be Radian or Degree. Assuming Degree'
+            alpha = 1.
     else: 
         alpha=1.#__RAD2DEG__
-        print 'WARNING: getRotationAngleInDegrees: no angle units defined in RotationAngle node: assuming angle unit is degree.'
+        print 'WARNING: getRotationAngleInDegrees: no angle units defined in RotationAngle node: assuming angle unit is Degree.'
 
     anglev = getValue(RotationAngleNode)
     if anglev.shape[0] != 3: raise ValueError("getRotationAngleInDegrees: RotationAngle value must be a numpy of size 3.")

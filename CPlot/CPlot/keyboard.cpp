@@ -84,7 +84,7 @@ void Data::keyboard(unsigned char key, int x, int y)
     glutHideWindow();
   freeGPUResources(-1, 0, _numberOfZones-1, 1);
   ptrState->freeGPURes = 1;
-  exit(0);
+  _exit(0);
   break;
 
   // Menu - display state information

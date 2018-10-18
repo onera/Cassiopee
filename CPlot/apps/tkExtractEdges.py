@@ -99,7 +99,7 @@ def exteriorFaces():
         if not fail:
             CTK.TXT.insert('START', 'External edges extracted.\n')
         else:
-            print 'Error: externalEdges: %s.'%str(e)
+            print('Error: externalEdges: %s.'%str(e))
             CTK.TXT.insert('START', 'External edges fails for at least one zone.\n')
             CTK.TXT.insert('START', 'Warning: ', 'Warning')
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)

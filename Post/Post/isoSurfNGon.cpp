@@ -161,53 +161,15 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
   */
 
   // Dimension du NGON
-  FldArrayI dimElts;
-  K_CONNECT::getDimElts(cn, indPG, indPH, dimElts);
+  //FldArrayI dimElts;
+  //K_CONNECT::getDimElts(cn, indPG, indPH, dimElts);
   /*
   printf("dimElts\n");
   for (E_Int i = 0; i < dimElts.getSize(); i++) printf("%d ", dimElts[i]);
   printf("\n");
   */
-  E_Int dim = dimElts[0];
+  //E_Int dim = dimElts[0];
 
-  if (dim == 1)
-  {
-    for (E_Int elt = 0; elt < nelts; elt++)
-    {
-      E_Int pe = indPH[elt];
-      E_Int* pte = ptre+pe;
-      E_Int nbFaces = pte[0];
-      /*
-      for (E_Int fa = 0; fa < nbFaces; fa++)
-      {
-        numface = pte[fa+1]-1;
-        pf = indPH[numface];
-        ptf = ptrf[pf];
-        npoints = ptf[pos]; pos++;
-        ind = cn1[pos]-1;
-
-        // connectivite du nouvel element BAR
-        newcnp[fa][indelt] = ind+1;
-        // champs du nouvel element BAR
-        for (E_Int p=0;p<nfld;p++) 
-        {
-            fnewp[p][ind] = fp[p][ind]; // premier point de l'arete de l ancien element
-          }
-        }
-        indelt++;
-        cn2 += nbFaces+1;
-        
-      }
-      */
-    }
-
-  }
-  else if (dim == 2)
-  {
-
-  }
-  else if (dim == 3)
-  {
 #define COMPUTEFF(fa) \
     indFace = pte[fa+1]-1; \
     pf = indPG[indFace]; ptf = ptrf+pf; \
@@ -228,10 +190,10 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
       ffs += fp[ind]; } \
     ffs = ffs/nbPts;
 
-    // Dimensionnement: npts et ntri (par thread)
-    E_Int* ntris = new E_Int [nthreads];
-    E_Int* npts = new E_Int [nthreads];
-
+    // Dimensionnement: npts et ntri (par thread*10)
+    E_Int* ntris2 = new E_Int [nthreads*10];
+    E_Int* npts2 = new E_Int [nthreads*10];
+    
 #pragma omp parallel default(shared)
     {
       E_Int  ithread = __CURRENT_THREAD__;
@@ -244,110 +206,146 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
       FldArrayF fco(nfld); E_Float* fc = fco.begin();
       FldArrayF ffo(nfld); E_Float* ff = ffo.begin();
       E_Float ffs, fcs;
+      E_Float delta = (nelts*1.)/(nthreads*1.);
+      E_Int ieltstart = int(ithread*delta);
+      E_Int ieltend = int((ithread+1)*delta);
+      //printf("ieltstart = %d , %d chekc=%d\n",ieltstart, ieltend, nelts);
+      E_Float deltap = (ieltend-ieltstart)/(10.);
+      E_Int elt;
 
-#pragma omp for
-      for (E_Int elt = 0; elt < nelts; elt++)
+      elt = ieltstart;
+      //printf("borne start=%d\n", elt);
+      for (E_Int j = 0; j < 10; j++)
       {
-        // Construit centre de l'element
-        pe = indPH[elt]; pte = ptre+pe;
-        nbFaces = pte[0];
-        fcs = 0.;
-        for (E_Int fa = 0; fa < nbFaces; fa++)
+        np = 0; ntri = 0;
+        //printf("%d %d\n", int((j)*deltap), int((j+1)*deltap));
+        for (E_Int k = 0; k < int((j+1)*deltap)-int(j*deltap); k++)
         {
-          COMPUTEFFS(fa);
-          fcs += ffs;
-        }
-        fcs = fcs/nbFaces;
-
-        // construit les tetras
-        for (E_Int fa = 0; fa < nbFaces; fa++)
-        {
-          COMPUTEFFS(fa);
-          for (E_Int pt = 0; pt < nbPts; pt++)
+          //printf("%d %d\n", elt, nelts);
+          // Construit centre de l'element
+          pe = indPH[elt]; pte = ptre+pe;
+          nbFaces = pte[0];
+          fcs = 0.;
+          for (E_Int fa = 0; fa < nbFaces; fa++)
           {
-            ind = ptf[1+pt]-1;
-            if (pt == nbPts-1) ind2 = ptf[1]-1;
-            else ind2 = ptf[2+pt]-1;
-            // tetra = centre, face, pts de la face
-            f0 = fcs; f1 = ffs; f2 = fp[ind]; f3 = fp[ind2];
-            triindex = 0;
-            if (f0 < value) triindex |= 1;
-            if (f1 < value) triindex |= 2;
-            if (f2 < value) triindex |= 4;
-            if (f3 < value) triindex |= 8;
-            switch (triindex)
+            COMPUTEFFS(fa);
+            fcs += ffs;
+          }
+          fcs = fcs/nbFaces;
+
+          // construit les tetras
+          for (E_Int fa = 0; fa < nbFaces; fa++)
+          {
+            COMPUTEFFS(fa);
+            for (E_Int pt = 0; pt < nbPts; pt++)
             {
-              case 0x00:
-              case 0x0F:
-              break;
+              ind = ptf[1+pt]-1;
+              if (pt == nbPts-1) ind2 = ptf[1]-1;
+              else ind2 = ptf[2+pt]-1;
+              // tetra = centre, face, pts de la face
+              f0 = fcs; f1 = ffs; f2 = fp[ind]; f3 = fp[ind2];
+              triindex = 0;
+              if (f0 < value) triindex |= 1;
+              if (f1 < value) triindex |= 2;
+              if (f2 < value) triindex |= 4;
+              if (f3 < value) triindex |= 8;
+              switch (triindex)
+              {
+                case 0x00:
+                case 0x0F:
+                break;
 
-              case 0x0E: // OK
-              np += 3; ntri++;
-              break;
+                case 0x0E: // OK
+                np += 3; ntri++;
+                break;
 
-              case 0x01: // OK
-              np += 3; ntri++;
-              break;
+                case 0x01: // OK
+                np += 3; ntri++;
+                break;
 
-              case 0x0D: // OK
-              np += 3; ntri++;
-              break;
+                case 0x0D: // OK
+                np += 3; ntri++;
+                break;
 
-              case 0x02: // OK
-              np += 3; ntri++;
-              break;
+                case 0x02: // OK
+                np += 3; ntri++;
+                break;
 
-              case 0x0C: // OK
-              np += 6; ntri += 2;
-              break;
+                case 0x0C: // OK
+                np += 6; ntri += 2;
+                break;
 
-              case 0x03:
-              np += 6; ntri += 2;
-              break;
+                case 0x03:
+                np += 6; ntri += 2;
+                break;
 
-              case 0x0B: // OK
-              np += 3; ntri++;
-              break;
+                case 0x0B: // OK
+                np += 3; ntri++;
+                break;
 
-              case 0x04: // OK
-              np += 3; ntri++;
-              break;
+                case 0x04: // OK
+                np += 3; ntri++;
+                break;
 
-              case 0x0A:
-              np += 6; ntri += 2;
-              break;
+                case 0x0A:
+                np += 6; ntri += 2;
+                break;
 
-              case 0x05:
-              np += 6; ntri += 2;
-              break;
+                case 0x05:
+                np += 6; ntri += 2;
+                break;
 
-              case 0x09: // OK
-              np += 6; ntri += 2;        
-              break;
+                case 0x09: // OK
+                np += 6; ntri += 2;        
+                break;
 
-              case 0x06:
-              np += 6; ntri += 2;        
-              break;
+                case 0x06:
+                np += 6; ntri += 2;        
+                break;
 
-              case 0x07:
-              np += 3; ntri++;
-              break;
+                case 0x07:
+                np += 3; ntri++;
+                break;
 
-              case 0x08: // OK
-              np += 3; ntri++;
-              break;
+                case 0x08: // OK
+                np += 3; ntri++;
+                break;
+              }
             }
           }
-          npts[ithread] = np;
-          ntris[ithread] = ntri;
+          elt++;
         }
+        npts2[j+ithread*10] = np;
+        ntris2[j+ithread*10] = ntri;
       }
+      //printf("borne end=%d\n", elt);
     }
-    printf("dimensionnement...\n");
 
+    /*
+    for (E_Int i = 0; i < nthreads; i++)
+    {
+      for (E_Int j = 0; j < 10; j++) printf("thread=%d, j=%d -> %d,%d\n", i,j,npts2[j+i*10],ntris2[j+i*10]);
+    }
+    */
+    //printf("dimensionnement...\n");
 
     // equilibrage dynamique
-    /*
+    FldArrayI iestart(10*nthreads);
+    FldArrayI ieend(10*nthreads);
+    E_Float delta = (nelts*1.)/(nthreads*1.);
+    for (E_Int i = 0; i < nthreads; i++)
+    {
+      E_Int ieltstart = int(i*delta);
+      E_Int ieltend = int((i+1)*delta);
+      E_Float deltap = (ieltend-ieltstart)/(10.);
+      for (E_Int j = 0; j < 10; j++)
+      {
+        iestart[j+10*i] = ieltstart+int(deltap*j);
+        ieend[j+10*i] = ieltstart+int(deltap*(j+1));
+        //printf("%d %d: %d %d\n",i,j,iestart[j+10*i],ieend[j+10*i]);
+      }
+    }
+
     E_Int* istart = new E_Int [nthreads];
     E_Int* iend = new E_Int [nthreads];
     E_Int* ntris = new E_Int [nthreads];
@@ -355,25 +353,43 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
     E_Float alpha = 0.;
     for (E_Int i = 0; i < 10*nthreads; i++) alpha += ntris2[i];
     alpha = alpha/nthreads;
+    //printf("ntr equil=%d\n", int(alpha));
 
-    istart[0] = 0; ib = 0;
-    for (E_Int i = 1; i < nthreads; i++)
+    istart[0] = 0; E_Int ibold = 0; E_Int ib = 0;
+    E_Float plus = 0.;
+    for (E_Int i = 0; i < nthreads; i++)
     {
       E_Int nc = 0; E_Int np = 0;
-      while (nc < alpha)
+      if (i == nthreads-1)
       {
-        nc += ntris[ib];
-        np += npts[ib]; ib++;
+        while (ib < nthreads*10)
+        {
+          nc += ntris2[ib];
+          np += npts2[ib]; ib++;
+        }
+      }
+      else
+      {
+        while (nc+plus*ntris2[ib] < int(alpha))
+        {
+          nc += ntris2[ib];
+          np += npts2[ib]; ib++;
+        }
+        if (plus == 0.) plus = 1.;
+        else {plus = 0.; }
       }
       ntris[i] = nc; npts[i] = np;
-      istart[i] = istart[i-1]+nc;
-      iend[i-1] = istart[i];
+      istart[i] = iestart[ibold];
+      //printf("thread=%d, ib=%d\n", i, ib);
+      iend[i] = ieend[ib-1];
+      ibold = ib;
     }
-    iend[nthreads-1] = nelts;
+    //iend[nthreads-1] = nelts;
     printf("nthreads=%d\n", nthreads);
-    for (E_Int i = 0; i < nthreads; i++) printf("%d %d %d\n", ntris2[i], istart[i],iend[i]);
-    */
+    for (E_Int i = 0; i < nthreads; i++) printf("thread=%d: %d / %d %d\n", i, ntris[i], istart[i], iend[i]);
     // fin equilibrage dynamique
+    delete [] npts2;
+    delete [] ntris2;
 
     FldArrayI** cisos = new FldArrayI* [nthreads];
     for (E_Int i = 0; i < nthreads; i++) cisos[i] = new FldArrayI(ntris[i], 3);
@@ -404,8 +420,7 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
       E_Int* ciso3 = cisop.begin(3);
       FldArrayF& fisop = *fisos[ithread];
 
-#pragma omp for
-      for (E_Int elt = 0; elt < nelts; elt++)
+      for (E_Int elt = istart[ithread]; elt < iend[ithread]; elt++)
       {
         // Construit centre de l'element
         pe = indPH[elt]; pte = ptre+pe;
@@ -795,7 +810,5 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
   for (E_Int i = 0; i < nthreads; i++) delete fisos[i];
   for (E_Int i = 0; i < nthreads; i++) delete cisos[i];
   delete [] fisos; delete [] cisos;
-
-  } // dim=3
 
 }

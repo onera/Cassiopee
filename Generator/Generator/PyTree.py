@@ -100,9 +100,9 @@ def octree2Struct(o, vmin=15, ext=0, optimized=1, merged=1, AMR=0,
     Usage: octree2Struct(a, vmin, ext, optimized, merged, AMR)"""
     if ext == 1: ext = 2
     dim = Internal.getZoneDim(o)
-    if (dim[0] != 'Unstructured'): raise ValueError("octree2Struct: zone must be unstructured.")
-    if (dim[3] == 'QUAD'): dimPb = 2
-    elif (dim[3] == 'HEXA'): dimPb = 3
+    if dim[0] != 'Unstructured': raise ValueError("octree2Struct: zone must be unstructured.")
+    if dim[3] == 'QUAD': dimPb = 2
+    elif dim[3] == 'HEXA': dimPb = 3
     else: raise ValueError("octree2Struct: zone must be QUAD or HEXA.")
 
     eps = 1.e-6

@@ -133,13 +133,13 @@ def slice(a, type=None, eq=None):
         eq = '{eslice}='+eq
 
     if type == 'cone':
-        if eq is None: raise ValueError, 'equation is needed.'
+        if eq is None: raise ValueError('slice: equation is needed.')
         a = Converter.initVars(a, '{r}=sqrt({z}*{z}+{y}*{y})')
         a = Converter.initVars(a, eq)
         p = isoSurfMC(a, 'eslice', 0.)
         return p
     elif type == 'cone_struct':
-        raise ValueError, 'Structured slices not already implemented.'
+        raise ValueError('slice: Structured slices not already implemented.')
     elif type == 'plane':
         a = Converter.initVars(a, eq)
         p = isoSurfMC(a, 'eslice', 0.)
@@ -296,7 +296,7 @@ def computeVariables(array, varname,
     """Compute the variables defined in varname for array.
     Usage: computeVariables(array, varname, gamma=1.4, rgp=287.053, s0=0., betas=1.458e-6, Cs=110.4, mus=0., Ts=0.)"""
     if varname == []:
-        #print 'Warning: computeVariables: varname list is empty.'
+        #print('Warning: computeVariables: varname list is empty.')
         return array
     if isinstance(varname, str): varname = [varname]
     if isinstance(array[0], list):
@@ -320,7 +320,7 @@ def _computeVariables2(array, varname,
                      gamma=1.4, rgp=287.053, s0=0., betas=1.458e-6,
                      Cs=110.4, mus=1.76e-5, Ts=273.15):
     if varname == []:
-        #print 'Warning: computeVariables: varname list is empty.'
+        #print('Warning: computeVariables: varname list is empty.')
         return array
     if isinstance(varname, str): varname = [varname]
     if isinstance(array[0], list):
@@ -348,7 +348,7 @@ def computeExtraVariable(array, varname, gamma=1.4, rgp=287.53,
     elif varname == 'SkinFrictionTangential':
         return extraVariables.computeSkinFriction(array, tangent=1)
     else:
-        print 'Warning: computeExtraVariable: unknown variable: %s.'%varname
+        print('Warning: computeExtraVariable: unknown variable: %s.'%varname)
 
 def perlinNoise(array, alpha=2., beta=2., n=8):
     """Compute perlin noise for array.
@@ -645,7 +645,7 @@ def selectCells2(a, tag, strict=0, loc=-1):
 #==============================================================================
 def selectCells3(a, tag):
     try: import Transform as T
-    except: raise ImportError, 'Transform module required.'
+    except: raise ImportError('selectCells: Transform module is required.')
     if isinstance(a[0], list):
         b = []
         lena = len(a)
@@ -905,7 +905,7 @@ def computeIndicatorField(octreeHexa, indicVal, nbTargetPts=-1, bodies=[],
                                                 epsInf/4., 4.*epsInf)
     res = G.adaptOctree(octreeHexa, indicator1)
     nptsfin = len(res[1][0])
-    print 'Number of points for low bound value %g is %d (targetPts=%d)'%(epsInf, nptsfin, nbTargetPts)
+    print('Number of points for low bound value %g is %d (targetPts=%d)'%(epsInf, nptsfin, nbTargetPts))
     if (nptsfin < nbTargetPts): return indicator1, epsInf/4., epsInf*4.
 
     # calcul de l'indicateur : ts les pts sont deraffines
@@ -913,9 +913,9 @@ def computeIndicatorField(octreeHexa, indicVal, nbTargetPts=-1, bodies=[],
                                                 epsSup/4., epsSup*4.)
     res = G.adaptOctree(octreeHexa, indicator1)
     nptsfin = len(res[1][0])
-    print 'Number of points for high bound value %g is %d (targetPts=%d)'%(epsSup, nptsfin, nbTargetPts)
+    print('Number of points for high bound value %g is %d (targetPts=%d)'%(epsSup, nptsfin, nbTargetPts))
     if nptsfin > nbTargetPts:
-        #print 'Warning: computeIndicator: the number of final points cannot be lower than the target.'
+        #print('Warning: computeIndicator: the number of final points cannot be lower than the target.')
         return indicator1, epsSup/4., epsSup*4.
 
     # dichotomie
@@ -933,7 +933,7 @@ def computeIndicatorField(octreeHexa, indicVal, nbTargetPts=-1, bodies=[],
         diffmax = 1.e-8*nbTargetPts/max(Delta, 1e-6)
         diff = abs(epsSup-epsInf)
         count += 1
-        print 'Number of points for bound value %g is %d (targetPts=%d)'%(eps, nptsfin, nbTargetPts)
+        print('Number of points for bound value %g is %d (targetPts=%d)'%(eps, nptsfin, nbTargetPts))
     return indicator1, eps/4., eps*4.
 
 #==============================================================================

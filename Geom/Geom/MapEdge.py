@@ -11,7 +11,7 @@ except: importOK = False
 
 def checkImport():
     if not importOK: 
-        raise ImportError, "mapEdge requires Converter, Generator, Transform."
+        raise ImportError("mapEdge requires Converter, Generator, Transform.")
         return None
 
 # uniformize a 1D mesh (regular step) - OK
@@ -205,7 +205,7 @@ def enforceh__(a, N, h):
     if pos == -1:
         pos = KCore.isNamePresent(a, 'f')
         if pos == -1:
-            raise ValueError, "h or f is not present."
+            raise ValueError("h or f is not present.")
         else: 
             hl = numpy.copy(a[1][pos])
             factorMoy = moyenne(a, hl)

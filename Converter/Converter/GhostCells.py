@@ -1,5 +1,5 @@
 # - ghostcells -
-# Un module d ajout/suppression de cellules fictives dans les arbres python
+# Un module d'ajout/suppression de cellules fictives dans les arbres python
 
 import Internal
 import Converter
@@ -266,7 +266,7 @@ def _rmGhostCells(t, b, d, adaptBCs=0, modified=[]):
 # IN: zp: zone for which fields are extracted
 # IN: modified: list of names of the container 
 #               __GridCoordinates__, __FlowSolution__ and list of variables
-# IN: coords =True: return the coordinates array if modified=Internal.__FlowSolutionCenters__
+# IN: coords=True: return the coordinates array if modified=Internal.__FlowSolutionCenters__
 # OUT: return the list of arrays corresponding to fields at nodes and at centers
 #===============================================================================
 def getFieldsInContainer__(zp, modified, coords=True):

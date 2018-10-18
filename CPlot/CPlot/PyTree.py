@@ -138,7 +138,7 @@ def display1D(t, slot=0, gridPos=(0,0), gridSize=(-1,-1),
     import Converter
     if len(t) > 0 and isinstance(t[0], numpy.ndarray): # as numpys
         if len(t) < 2:
-            raise ValueError, 'display1D: requires at least two numpys [x,y]'
+            raise ValueError('display1D: requires at least two numpys [x,y]')
         x = t[0]; y = t[1]
         n = x.size
         array = Converter.array(var1+','+var2,n,1,1)
