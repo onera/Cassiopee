@@ -1143,12 +1143,12 @@ def computeGrad(t, var):
     C.setFields(centers, tp, 'centers')
     return tp
 
-def computeGrad2(t,var):
+def computeGrad2(t,var,ghostCells=False):
     tp = Internal.copyRef(t)
-    _computeGrad2(tp, var)
+    _computeGrad2(tp,var,ghostCells=False)
     return tp
 
-def _computeGrad2(t, var):
+def _computeGrad2(t,var,ghostCells=False):
     """Compute the gradient of a variable defined in array.
     Usage: computeGrad2(t,var)"""
     if type(var) == list:
@@ -1157,8 +1157,10 @@ def _computeGrad2(t, var):
     if len(vare) > 1: vare = vare[1]
 
     # Compute fields on BCMatch (for all match connectivities) 
-    allMatch = C.extractAllBCMatch(t,vare) 
-    # print 'allMatch : ', allMatch
+    if not ghostCells:
+        allMatch = C.extractAllBCMatch(t,vare) 
+    else:
+        allMatch = {} 
 
     zones = Internal.getZones(t)
     for z in zones:

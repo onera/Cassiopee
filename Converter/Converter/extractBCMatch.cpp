@@ -133,7 +133,6 @@ PyObject* K_CONVERTER::extractBCMatchNG(PyObject* self, PyObject* args )
   E_Int ni2, nj2, nk2;
   K_ARRAY::getFromArray2(pyFldD, varStringOut, fldD, ni2, nj2, nk2, cn2, eltType);
 
-
   // Extrapolation
   // ~~~~~~~~~~~~~
 
@@ -151,6 +150,9 @@ PyObject* K_CONVERTER::extractBCMatchNG(PyObject* self, PyObject* args )
       }
   }
 
+  RELEASESHAREDZ(hook, varString, eltType);
+  RELEASESHAREDS(pyFldD, fldD);
+  RELEASESHAREDN(pyIndices, ind);
   return pyFldD; 
 }
 
@@ -193,6 +195,7 @@ PyObject* K_CONVERTER::extractBCMatchStruct(PyObject* self, PyObject* args )
     return NULL; 
   }
 
+
   // 
   E_Int dim       = 3;
   E_Int noindint  = 0;
@@ -224,10 +227,7 @@ PyObject* K_CONVERTER::extractBCMatchStruct(PyObject* self, PyObject* args )
   // -------------------------------------------
   PyObject* indFaceR = K_NUMPY::buildNumpyArray(nint,1,1);
   E_Int* ptrIndFaceR = K_NUMPY::getNumpyPtrI(indFaceR);
-  // 1. b Indices des faces de la zone donneuse
-  // ------------------------------------------
-  PyObject* indFaceD = K_NUMPY::buildNumpyArray(nint,1,1);
-  E_Int* ptrIndFaceD = K_NUMPY::getNumpyPtrI(indFaceD);
+
 
   // 2. tableau des champs 
   // ~~~~~~~~~~~~~~~~~~~~~
@@ -237,7 +237,7 @@ PyObject* K_CONVERTER::extractBCMatchStruct(PyObject* self, PyObject* args )
   FldArrayI* cnBC;
   E_Int ni2, nj2, nk2;
   K_ARRAY::getFromArray2(pyFldD, varString, fBC, ni2, nj2, nk2, cnBC, eltType);
-
+  
   // Cas 2D
   // ======
   if (dim == 2)
@@ -253,42 +253,42 @@ PyObject* K_CONVERTER::extractBCMatchStruct(PyObject* self, PyObject* args )
       // 1.a. face receveuse en i
       if (iminR == imaxR) 
       {
-	noindint = 0;
+  	noindint = 0;
 
         for (E_Int jface = jminD-1 ; jface < jmaxD-1 ; jface ++) 
         { 
           if (triJ > 0)
-	  {
-	    jfaceR =  jface + jminR - jminD ;
-	  }
-	  else
-	  {
-	    jfaceR = (jmaxR-2) - (jface-jminD+1); 
-	  }
+  	  {
+  	    jfaceR =  jface + jminR - jminD ;
+  	  }
+  	  else
+  	  {
+  	    jfaceR = (jmaxR-2) - (jface-jminD+1); 
+  	  }
 
           ptrIndFaceR[noindint] = iminR - 1 + jfaceR*(niR+1) ;          noindint++;
-	}
+  	}
       }
       // 1.b. face receveuse en j
       else if (jminR == jmaxR) 
       {
-	noindint = 0;
+  	noindint = 0;
 
         for (E_Int jface = jminD-1 ; jface < jmaxD-1 ; jface ++) 
         { 
           if (triI > 0)
-	  {
-	    ifaceR = jface + iminR - jminD ;
-	  }
-	  else
-	  {
-	    ifaceR = (imaxR-2) - (jface-jminD+1)  ; 
-	  }
+  	  {
+  	    ifaceR = jface + iminR - jminD ;
+  	  }
+  	  else
+  	  {
+  	    ifaceR = (imaxR-2) - (jface-jminD+1)  ; 
+  	  }
 
           shift  = (jminR-1)*niR + nbIntIR ; 
           ptrIndFaceR[noindint] = shift + ifaceR ;
           noindint++;
-	}
+  	}
       } // jminR=jmaxR
 
       // 2. tableau des champs 
@@ -316,47 +316,47 @@ PyObject* K_CONVERTER::extractBCMatchStruct(PyObject* self, PyObject* args )
       // 1.a. face receveuse en i
       if (iminR == imaxR) 
       {
-	noindint = 0;
+  	noindint = 0;
 
-	for (E_Int iface = iminD - 1 ; iface < imaxD-1 ; iface ++)
+  	for (E_Int iface = iminD - 1 ; iface < imaxD-1 ; iface ++)
         { 
           if (triJ > 0)
-	  {
-	    jfaceR =  iface + jminR - iminD ; 
-	  }
-	  else
-	  {
-	    jfaceR = (jmaxR-2) - (iface-iminD+1);
-	  }
+  	  {
+  	    jfaceR =  iface + jminR - iminD ; 
+  	  }
+  	  else
+  	  {
+  	    jfaceR = (jmaxR-2) - (iface-iminD+1);
+  	  }
 
           ptrIndFaceR[noindint] = iminR - 1 + jfaceR*(niR+1) ;
           noindint++;
-	}
+  	}
       } // iminR==imaxR 
 
       // 1.b. face receveuse en j
       else if (jminR == jmaxR) 
       {
         // printf("Frontiere receveuse en j \n");
-	noindint = 0;
+  	noindint = 0;
 
-	for (E_Int iface = iminD - 1 ; iface < imaxD-1 ; iface ++)
+  	for (E_Int iface = iminD - 1 ; iface < imaxD-1 ; iface ++)
         { 
           E_Int shift  = (jminR-1)*niR + nbIntIR ;
 
           if (triI > 0)
-	  {
-	    ifaceR = iface + iminR - iminD ;
-	  }
-	  else
-	  {
-	    ifaceR = (imaxR-2) - (iface-iminD+1) ;
-	  }
+  	  {
+  	    ifaceR = iface + iminR - iminD ;
+  	  }
+  	  else
+  	  {
+  	    ifaceR = (imaxR-2) - (iface-iminD+1) ;
+  	  }
 
           ptrIndFaceR[noindint] = shift + ifaceR ;
           // printf(" %d ", ptrIndFaceR[noindint]);
           noindint++;
-	}
+  	}
       }
   
       // 2. tableau des champs 
@@ -398,26 +398,26 @@ PyObject* K_CONVERTER::extractBCMatchStruct(PyObject* self, PyObject* args )
         noindint = 0 ;
 
         if (abs(triJ)==2) // kD <-> kR et  jD <-> jR
-	{
+  	{
           for (E_Int kface = kminD-1 ; kface < kmaxD-1 ; kface ++) 
           {
             if (triK > 0) { kfaceR = kface + kminR - kminD ;     }
-	    else          { kfaceR = (kmaxR-2)-(kface-kminD+1) ; }
+  	    else          { kfaceR = (kmaxR-2)-(kface-kminD+1) ; }
 
             for (E_Int jface = jminD-1 ; jface < jmaxD-1 ; jface ++) 
             {
               if (triJ > 0){ jfaceR = jface + jminR - jminD ;    }
-	      else         { jfaceR = (jmaxR-2)-(jface-jminD+1); }
+  	      else         { jfaceR = (jmaxR-2)-(jface-jminD+1); }
 
               ptrIndFaceR[noindint] = iminR - 1 + jfaceR*(niR+1) + kfaceR*(niR+1)*njR ;
               // printf("%d ", ptrIndFaceR[noindint]);
               noindint++;
-	    }
+  	    }
           } 
         } // triJ=2
 
         else if (abs(triJ)==3) // kD <-> jR et  jD <-> kR
-	{
+  	{
           // printf("Face receveuse jD=kR, kD=jR) \n");
           // printf("indR : ");
 
@@ -426,14 +426,14 @@ PyObject* K_CONVERTER::extractBCMatchStruct(PyObject* self, PyObject* args )
             for (E_Int jface = jminD-1 ; jface < jmaxD-1 ; jface ++)  
             { 
               if (triK > 0) { kfaceR = jface + kminR - jminD ;     }
-	      else          { kfaceR = (kmaxR-2)-(jface-jminD+1) ; }
+  	      else          { kfaceR = (kmaxR-2)-(jface-jminD+1) ; }
 
               if (triJ > 0) { jfaceR = kface + jminR - kminD ;     }
-	      else          { jfaceR = (jmaxR-2)-(kface-kminD+1);  }
+  	      else          { jfaceR = (jmaxR-2)-(kface-kminD+1);  }
 	    
             ptrIndFaceR[noindint] = iminR - 1 + jfaceR*(niR+1) + kfaceR*(niR+1)*njR ;
             noindint++;
-	    }
+  	    }
           } 
         } // triJ=3
  
@@ -447,27 +447,27 @@ PyObject* K_CONVERTER::extractBCMatchStruct(PyObject* self, PyObject* args )
         noindint = 0 ;
 
         if (abs(triI)==2) // jD <-> iR et  kD <-> kR
-	{
+  	{
           E_Int shift = (jminR-1)*niR + nbIntIR ;
 
           for (E_Int kface = kminD-1 ; kface < kmaxD-1 ; kface ++) 
           {
             if (triK > 0) { kfaceR = kface + kminR - kminD ;     }
-	    else          { kfaceR = (kmaxR-2)-(kface-kminD+1) ; }
+  	    else          { kfaceR = (kmaxR-2)-(kface-kminD+1) ; }
 
             for (E_Int jface = jminD-1 ; jface < jmaxD-1 ; jface ++) 
             {
               if (triI > 0){ ifaceR = jface + iminR - jminD ;    }
-	      else         { ifaceR = (imaxR-2)-(jface-jminD+1); }
+  	      else         { ifaceR = (imaxR-2)-(jface-jminD+1); }
 
               ptrIndFaceR[noindint] = shift + ifaceR + kfaceR*niR*(njR+1) ;
               noindint++;
-	    }
+  	    }
           } 
         } // triI=1
 
         if (abs(triI)==3) // jD <-> kR et  kD <-> iR
-	{
+  	{
           E_Int shift = (jminR-1)*niR + nbIntIR ;
 
           for (E_Int kface = kminD-1 ; kface < kmaxD-1 ; kface ++)
@@ -475,14 +475,14 @@ PyObject* K_CONVERTER::extractBCMatchStruct(PyObject* self, PyObject* args )
             for (E_Int jface = jminD-1 ; jface < jmaxD-1 ; jface ++)  
             { 
               if (triK > 0) { kfaceR = jface + kminR - jminD ;     }
-	      else          { kfaceR = (kmaxR-2)-(jface-jminD+1) ; }
+  	      else          { kfaceR = (kmaxR-2)-(jface-jminD+1) ; }
 
               if (triI > 0) { ifaceR = kface + iminR - kminD ;     }
-	      else          { ifaceR = (imaxR-2)-(kface-kminD+1);  }
+  	      else          { ifaceR = (imaxR-2)-(kface-kminD+1);  }
 	    
             ptrIndFaceR[noindint] = shift + ifaceR + kfaceR*niR*(njR+1) ;
             noindint++;
-	    }
+  	    }
           } 
         } // triJ=3
  
@@ -555,7 +555,7 @@ PyObject* K_CONVERTER::extractBCMatchStruct(PyObject* self, PyObject* args )
             fld[noindint] = fce[ind] ; 
             noindint++;
           }
-	}
+  	}
 
       } // var loop 
     }
@@ -572,38 +572,38 @@ PyObject* K_CONVERTER::extractBCMatchStruct(PyObject* self, PyObject* args )
         noindint = 0 ;
 
         if (abs(triJ)==1) // kD <-> kR et  iD <-> jR
-	{
+  	{
           for (E_Int kface = kminD-1 ; kface < kmaxD-1 ; kface ++) 
           {
             if (triK > 0) { kfaceR = kface + kminR - kminD ;     }
-	    else          { kfaceR = (kmaxR-2)-(kface-kminD+1) ; }
+  	    else          { kfaceR = (kmaxR-2)-(kface-kminD+1) ; }
 
             for (E_Int iface = iminD-1 ; iface < imaxD-1 ; iface ++) 
             {
               if (triJ > 0){ jfaceR = iface + jminR - iminD ;    }
-	      else         { jfaceR = (jmaxR-2)-(iface-iminD+1); }
+  	      else         { jfaceR = (jmaxR-2)-(iface-iminD+1); }
 
               ptrIndFaceR[noindint] = iminR - 1 + jfaceR*(niR+1) + kfaceR*(niR+1)*njR ;
               noindint++;
-	    }
+  	    }
           } 
         } 
 
         else if (abs(triJ)==3) // kD <-> jR et  iD <-> kR
-	{
+  	{
           for (E_Int kface = kminD-1 ; kface < kmaxD-1 ; kface ++)
           {
             for (E_Int iface = iminD-1 ; iface < imaxD-1 ; iface ++)  
             { 
               if (triK > 0) { kfaceR = iface + kminR - iminD ;     }
-	      else          { kfaceR = (kmaxR-2)-(iface-iminD+1) ; }
+  	      else          { kfaceR = (kmaxR-2)-(iface-iminD+1) ; }
 
               if (triJ > 0) { jfaceR = kface + jminR - kminD ;     }
-	      else          { jfaceR = (jmaxR-2)-(kface-kminD+1);  }
+  	      else          { jfaceR = (jmaxR-2)-(kface-kminD+1);  }
 	    
             ptrIndFaceR[noindint] = iminR - 1 + jfaceR*(niR+1) + kfaceR*(niR+1)*njR ;
             noindint++;
-	    }
+  	    }
           } 
         } // triJ=3
       }
@@ -616,28 +616,28 @@ PyObject* K_CONVERTER::extractBCMatchStruct(PyObject* self, PyObject* args )
         noindint = 0 ;
 
         if (abs(triI)==1) // iD <-> iR et  kD <-> kR
-	{
+  	{
           E_Int shift = (jminR-1)*niR + nbIntIR ;
 
           for (E_Int kface = kminD-1 ; kface < kmaxD-1 ; kface ++) 
           {
             if (triK > 0) { kfaceR = kface + kminR - kminD ;     }
-	    else          { kfaceR = (kmaxR-2)-(kface-kminD+1) ; }
+  	    else          { kfaceR = (kmaxR-2)-(kface-kminD+1) ; }
 
             for (E_Int iface = iminD-1 ; iface < imaxD-1 ; iface ++) 
             {
               if (triI > 0){ ifaceR = iface + iminR - iminD ;    }
-	      else         { ifaceR = (imaxR-2)-(iface-iminD+1); }
+  	      else         { ifaceR = (imaxR-2)-(iface-iminD+1); }
 
               ptrIndFaceR[noindint] = shift + ifaceR + kfaceR*niR*(njR+1) ;
               // printf("%d ", ptrIndFaceR[noindint]);
               noindint++;
-	    }
+  	    }
           } 
         } // triI=1
 
         else if (abs(triI)==3) // iD <-> kR et  kD <-> iR
-	{
+  	{
           E_Int shift = (jminR-1)*niR + nbIntIR ;
 
           for (E_Int kface = kminD-1 ; kface < kmaxD-1 ; kface ++)
@@ -645,14 +645,14 @@ PyObject* K_CONVERTER::extractBCMatchStruct(PyObject* self, PyObject* args )
             for (E_Int iface = iminD-1 ; iface < imaxD-1 ; iface ++)  
             { 
               if (triK > 0) { kfaceR = iface + kminR - iminD ;     }
-	      else          { kfaceR = (kmaxR-2)-(iface-iminD+1) ; }
+  	      else          { kfaceR = (kmaxR-2)-(iface-iminD+1) ; }
 
               if (triI > 0) { ifaceR = kface + iminR - kminD ;     }
-	      else          { ifaceR = (imaxR-2)-(kface-kminD+1);  }
+  	      else          { ifaceR = (imaxR-2)-(kface-kminD+1);  }
 	    
             ptrIndFaceR[noindint] = shift + ifaceR + kfaceR*niR*(njR+1) ;
             noindint++;
-	    }
+  	    }
           } 
         } // triJ=3
  
@@ -667,28 +667,28 @@ PyObject* K_CONVERTER::extractBCMatchStruct(PyObject* self, PyObject* args )
         noindint = 0 ;
 
         if (abs(triI)==1) // iD <-> iR et  kD <-> jR
-	{
+  	{
           E_Int shift = (kminR-1)*niR*njR + nbIntIR + nbIntJR ;
 
           for (E_Int kface = kminD-1 ; kface < kmaxD-1 ; kface ++) 
           {
             if (triJ > 0) { jfaceR = kface + jminR - kminD ;     }
-	    else          { jfaceR = (jmaxR-2)-(kface-kminD+1) ; }
+  	    else          { jfaceR = (jmaxR-2)-(kface-kminD+1) ; }
 
             for (E_Int iface = iminD-1 ; iface < imaxD-1 ; iface ++) 
             {
               if (triI > 0){ ifaceR = iface + iminR - iminD ;    }
-	      else         { ifaceR = (imaxR-2)-(iface-iminD+1); }
+  	      else         { ifaceR = (imaxR-2)-(iface-iminD+1); }
 
               ptrIndFaceR[noindint] = shift + ifaceR + jfaceR*niR ;
               // printf("%d ", ptrIndFaceR[noindint]);
               noindint++;
-	    }
+  	    }
           } 
         } // triI=1
 
         else if (abs(triI)==3) // iD <-> jR et  kD <-> iR
-	{
+  	{
           // printf("Face receveuse iD=jR, kD=iR) \n");
           // printf("indR : ");
           E_Int shift = (kminR-1)*niR*njR + nbIntIR + nbIntJR ;
@@ -696,17 +696,17 @@ PyObject* K_CONVERTER::extractBCMatchStruct(PyObject* self, PyObject* args )
           for (E_Int kface = kminD-1 ; kface < kmaxD-1 ; kface ++)
           {
             if (triI > 0) { ifaceR = kface + iminR - kminD ;     }
-	    else          { ifaceR = (imaxR-2)-(kface-kminD+1);  }
+  	    else          { ifaceR = (imaxR-2)-(kface-kminD+1);  }
 
             for (E_Int iface = iminD-1 ; iface < imaxD-1 ; iface ++)  
             { 
               if (triJ > 0) { jfaceR = iface + jminR - iminD ;     }
-	      else          { jfaceR = (jmaxR-2)-(iface-iminD+1) ; }
+  	      else          { jfaceR = (jmaxR-2)-(iface-iminD+1) ; }
 	    
               ptrIndFaceR[noindint] = shift + ifaceR + jfaceR*niR ;
               // printf("%d ", ptrIndFaceR[noindint]);
               noindint++;
-	    }
+  	    }
           } 
         } // triJ=3
       }
@@ -729,7 +729,7 @@ PyObject* K_CONVERTER::extractBCMatchStruct(PyObject* self, PyObject* args )
             fld[noindint] = fce[ind] ; 
             noindint++;
           }
-	}
+  	}
 
       } // var loop
     }
@@ -737,16 +737,6 @@ PyObject* K_CONVERTER::extractBCMatchStruct(PyObject* self, PyObject* args )
     // *****************
     else if (kminD == kmaxD)
     {
-      E_Int shift = (kminD-1)*niD*njD + nbIntID + nbIntJD ;
-
-      for (E_Int jface = jminD-1 ; jface < jmaxD-1 ; jface ++) 
-      {
-        for (E_Int iface = iminD-1 ; iface < imaxD-1 ; iface ++) 
-        {
-          ptrIndFaceD[noindint] = shift + iface + jface*niD ;
-          noindint++;
-        }
-      }
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~
     // Frontiere receveuse en i 
@@ -756,38 +746,38 @@ PyObject* K_CONVERTER::extractBCMatchStruct(PyObject* self, PyObject* args )
         noindint = 0 ;
 
         if (abs(triJ)==2) // iD <-> kR et  jD <-> jR
-	{
+  	{
           for (E_Int jface = jminD-1 ; jface < jmaxD-1 ; jface ++) 
           {
             if (triJ > 0){ jfaceR = jface + jminR - jminD ;    }
-	    else         { jfaceR = (jmaxR-2)-(jface-jminD+1); }
+  	    else         { jfaceR = (jmaxR-2)-(jface-jminD+1); }
 
             for (E_Int iface = iminD-1 ; iface < imaxD-1 ; iface ++) 
             {
               if (triK > 0) { kfaceR = iface + kminR - iminD ;     }
-	      else          { kfaceR = (kmaxR-2)-(iface-iminD+1) ; }
+  	      else          { kfaceR = (kmaxR-2)-(iface-iminD+1) ; }
 
               ptrIndFaceR[noindint] = iminR - 1 + jfaceR*(niR+1) + kfaceR*(niR+1)*njR ;
               noindint++;
-	    }
+  	    }
           } 
         } // triJ=2
 
         else if (abs(triJ)==1) // iD <-> jR et  jD <-> kR
-	{
+  	{
           for (E_Int jface = jminD-1 ; jface < jmaxD-1 ; jface ++)
           {
             if (triK > 0) { kfaceR = jface + kminR - jminD ;     }
-	    else          { kfaceR = (kmaxR-2)-(jface-jminD+1) ; }
+  	    else          { kfaceR = (kmaxR-2)-(jface-jminD+1) ; }
 
             for (E_Int iface = iminD-1 ; iface < imaxD-1 ; iface ++)  
             { 
               if (triJ > 0) { jfaceR = iface + jminR - iminD ;     }
-	      else          { jfaceR = (jmaxR-2)-(iface-iminD+1);  }
+  	      else          { jfaceR = (jmaxR-2)-(iface-iminD+1);  }
 
               ptrIndFaceR[noindint] = iminR - 1 + jfaceR*(niR+1) + kfaceR*(niR+1)*njR ;
               noindint++;
-	    }
+  	    }
           } 
         } // triJ=3
  
@@ -801,42 +791,42 @@ PyObject* K_CONVERTER::extractBCMatchStruct(PyObject* self, PyObject* args )
         noindint = 0 ;
 
         if (abs(triI)==2) // iD <-> kR et  jD <-> iR
-	{
+  	{
           E_Int shift = (jminR-1)*niR + nbIntIR ;
 
           for (E_Int jface = jminD-1 ; jface < jmaxD-1 ; jface ++) 
           {
             if (triI > 0){ ifaceR = jface + iminR - jminD ;    }
-	    else         { ifaceR = (imaxR-2)-(jface-jminD+1); }
+  	    else         { ifaceR = (imaxR-2)-(jface-jminD+1); }
 
             for (E_Int iface = iminD-1 ; iface < imaxD-1 ; iface ++) 
             {
               if (triK > 0) { kfaceR = iface + kminR - iminD ;     }
-	      else          { kfaceR = (kmaxR-2)-(iface-iminD+1) ; }
+  	      else          { kfaceR = (kmaxR-2)-(iface-iminD+1) ; }
 
               ptrIndFaceR[noindint] = shift + ifaceR + kfaceR*niR*(njR+1) ;
               noindint++;
-	    }
+  	    }
           } 
         } // triJ=2
 
         else if (abs(triI)==1) // iD <-> iR et  jD <-> kR
-	{
+  	{
           E_Int shift = (jminR-1)*niR + nbIntIR ;
 
           for (E_Int jface = jminD-1 ; jface < jmaxD-1 ; jface ++)
           {
             if (triK > 0) { kfaceR = jface + kminR - jminD ;     }
-	    else          { kfaceR = (kmaxR-2)-(jface-jminD+1) ; }
+  	    else          { kfaceR = (kmaxR-2)-(jface-jminD+1) ; }
 
             for (E_Int iface = iminD-1 ; iface < imaxD-1 ; iface ++)  
             { 
               if (triI > 0) { ifaceR = iface + iminR - iminD ;     }
-	      else          { ifaceR = (imaxR-2)-(iface-iminD+1);  }
+  	      else          { ifaceR = (imaxR-2)-(iface-iminD+1);  }
 
               ptrIndFaceR[noindint] = shift + ifaceR + kfaceR*niR*(njR+1) ;
               noindint++;
-	    }
+  	    }
           } 
         } // triJ=3
       }
@@ -849,42 +839,42 @@ PyObject* K_CONVERTER::extractBCMatchStruct(PyObject* self, PyObject* args )
         noindint = 0 ;
 
         if (abs(triI)==1) // iD <-> iR et  jD <-> jR
-	{
+  	{
           E_Int shift = (kminR-1)*niR*njR + nbIntIR + nbIntJR ;
 
           for (E_Int jface = jminD-1 ; jface < jmaxD-1 ; jface ++) 
           {
             if (triJ > 0){ jfaceR = jface + jminR - jminD ;    }
-	    else         { jfaceR = (jmaxR-2)-(jface-jminD+1); }
+  	    else         { jfaceR = (jmaxR-2)-(jface-jminD+1); }
 
             for (E_Int iface = iminD-1 ; iface < imaxD-1 ; iface ++) 
             {
               if (triI > 0) { ifaceR = iface + iminR - iminD ;     }
-	      else          { ifaceR = (imaxR-2)-(iface-iminD+1) ; }
+  	      else          { ifaceR = (imaxR-2)-(iface-iminD+1) ; }
 
               ptrIndFaceR[noindint] = shift + ifaceR + jfaceR*niR ;
               noindint++;
-	    }
+  	    }
           } 
         } // triI=1
 
         else if (abs(triI)==2) // iD <-> jR et  jD <-> iR
-	{
+  	{
           E_Int shift = (kminR-1)*niR*njR + nbIntIR + nbIntJR ;
 
           for (E_Int jface = jminD-1 ; jface < jmaxD-1 ; jface ++)
           {
             if (triI > 0) { ifaceR = jface + iminR - jminD ;     }
-	    else          { ifaceR = (imaxR-2)-(jface-jminD+1) ; }
+  	    else          { ifaceR = (imaxR-2)-(jface-jminD+1) ; }
 
             for (E_Int iface = iminD-1 ; iface < imaxD-1 ; iface ++)  
             { 
               if (triJ > 0) { jfaceR = iface + jminR - iminD ;     }
-	      else          { jfaceR = (jmaxR-2)-(iface-iminD+1);  }
+  	      else          { jfaceR = (jmaxR-2)-(iface-iminD+1);  }
 
               ptrIndFaceR[noindint] = shift + ifaceR + jfaceR*niR ;
               noindint++;
-	    }
+  	    }
           } 
         } // triJ=3
       }
@@ -907,17 +897,20 @@ PyObject* K_CONVERTER::extractBCMatchStruct(PyObject* self, PyObject* args )
             fld[noindint] = fce[ind] ; 
             noindint++;
           }
-	}
+  	}
 
       } // var loop
     }
   }
 
-  RELEASESHAREDS(fields, FCenter);
-
-
   PyObject* tplOut ;
   tplOut = Py_BuildValue("[OO]",indFaceR,pyFldD);
+
+  RELEASESHAREDS(fields, FCenter);
+  RELEASESHAREDS(pyFldD, fBC);
+
+  Py_DECREF(indFaceR);
+  Py_DECREF(pyFldD);
 
   return tplOut; 
 }
@@ -1120,6 +1113,10 @@ PyObject* K_CONVERTER::buildBCMatchFieldNG(PyObject* self, PyObject* args )
     }
   }
 
+  RELEASESHAREDN(pyFldD, fldD);
+  RELEASESHAREDN(pyIndR, indR);
+  RELEASESHAREDZ(hook, varString, eltType)
+
   return pyFld; 
 }
 
@@ -1212,6 +1209,7 @@ PyObject* K_CONVERTER::buildBCMatchFieldStruct(PyObject* self, PyObject* args )
 
   RELEASESHAREDN(pyIndR, indR);
   RELEASESHAREDS(pyFldD, fldD);
+  RELEASESHAREDS(pyFld , fld );
   RELEASESHAREDS(pyFieldsR, fieldsR);
 
   return pyFld; 

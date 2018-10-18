@@ -4914,10 +4914,11 @@ def extractBCMatch(zdonor,gc,dimzR,variables=None):
                     raise TypeError("extractBCMatch: expected variables at centers location.")
             else:
                 var = 'centers:'+var 
-
+              
             fld = getField(var,zdonor)[0]
+
             if fld != []:
-                fields.append(fld)
+              fields.append(fld)
 
         if fields != [] :
             if zoneType==1: connects = []
@@ -4964,9 +4965,12 @@ def extractBCMatch(zdonor,gc,dimzR,variables=None):
         else:
             t3 = 0 
 
+        # Tester fields vide ?
+
         [indR,fldD]  = Converter.converter.extractBCMatchStruct(fields,(iminD,jminD,kminD,imaxD,jmaxD,kmaxD),
                                                                        (iminR,jminR,kminR,imaxR,jmaxR,kmaxR),
                                                                        (niR,njR,nkR),(t1,t2,t3)) 
+
 
     # Traitement pour maillage NGON 
     # ==============================
