@@ -662,7 +662,7 @@ Camera setting and motion
 
 -----------------------------------------------
 
-.. py:function:: CPlot.moveCamera(list, moveEye=False, N=100, speed=50.)
+.. py:function:: CPlot.moveCamera(listOfPts, moveEye=False, N=100, speed=1., pos=-1)
 
     Move camera along check points.
 
@@ -672,12 +672,19 @@ Camera setting and motion
     :type moveEye: Boolean
     :param speed: speed of camera motion
     :type speed: float
+    :param pos: position in listOfPoints (in 0,N)
+    :param pos: int
 
     *Example of use:*
 
     * `Move camera along check points (array) <Examples/CPlot/moveCamera.py>`_:
 
     .. literalinclude:: ../build/Examples/CPlot/moveCamera.py
+
+    * `Move camera along check points (pyTree) <Examples/CPlot/moveCameraPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/CPlot/moveCameraPT.py
+
 
 -----------------------------------------------
 
@@ -694,6 +701,9 @@ Camera setting and motion
 
     .. literalinclude:: ../build/Examples/CPlot/travel.py
 
+    * `Travel camera (pyTree) <Examples/CPlot/travel.py>`_:
+
+    .. literalinclude:: ../build/Examples/CPlot/travel.py
 
 
 Set rendering informations in pyTree

@@ -593,18 +593,18 @@ namespace K_MESH
   inline E_Int get_region (const E_Float* M, const E_Float* p, const E_Float* q, const E_Float* r)
   {
     /*
-                         \ R3(16)/
-                          \    /
-                           \ /
-                           /\ r
-                         /   \
-             R13(32)   /      \
-                     /         \  R23(8)
-                   /       0    \
-                 /               \
-  - - - - - - -/------------------\ - - - - -
-     R1(1)   / p      R12(2)      q\  R2(4)
-           /                        \
+                         X R3(16)X
+                          X    X
+                           X X
+                           XX r
+                         X   X
+             R13(32)   X      X
+                     X         X  R23(8)
+                   X       0    X
+                 X               X
+  - - - - - - -X------------------X - - - - -
+     R1(1)   X p      R12(2)      qX  R2(4)
+           X                        X
     */
 #define CROSS_PRD(a,b,c) ( (b[0]-a[0])*(c[1]-a[1]) - (b[1]-a[1])*(c[0]-a[0]) )
 #define POTENTIAL_X(a) ((a == 9)||(a==10)||(a==18)||(a==34)||(a==36)||(a==40)) //sum of the edge ends' region value
@@ -643,20 +643,20 @@ namespace K_MESH
   inline void solid_angle(E_Int reg, const E_Float* p, const E_Float* q, const E_Float* r, const E_Float*& s, const E_Float*&t)
   {
     /*
-                           /\ 
-                         / r \
-                       /      \
-                     /         \ 
-           \       /       0    \    /
-             \   /p             q\  /
-               /-------------------/ 
-               t\      R12(2)     /s
-                  \              /   
-                    \           /
-                      \        /
-                        \     /
-                          \  /
-                            \ P
+                           XX 
+                         X r X
+                       X      X
+                     X         X 
+           X       X       0    X    X
+             X   Xp             qX  X
+               X-------------------X 
+               tX      R12(2)     Xs
+                  X              X   
+                    X           X
+                      X        X
+                        X     X
+                          X  X
+                            X P
     */
     switch (reg)
     {

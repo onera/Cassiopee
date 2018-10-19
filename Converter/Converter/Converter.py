@@ -430,9 +430,9 @@ def _initVarByEq__(a, eq):
     for eq0 in eq:
         #ast_eq = expr.ast(eq0)
         # Extrait la variable a initialiser de eq
-        s = eq0.split('=')
-        if len(s) != 2:
-            print 'Error: initVars: equation is incorrect.'; return None
+        s = eq0.split('=', 1)
+        #if len(s) != 2:
+        #    print 'Error: initVars: equation is incorrect.'; return None
 
         var = s[0]; var = var.replace('{', ''); var = var.replace('}', '')
         var = var.lstrip(); var = var.rstrip()

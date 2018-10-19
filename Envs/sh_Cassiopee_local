@@ -44,6 +44,7 @@ MAC27=$(echo $KC | grep 'n')
 MAC28=$(echo $KC | grep 'xdaap')
 MAC29=$(echo $KC | grep 'spiro')
 MAC30=$(echo $KC | grep 'eos')
+MAC31=$(echo $KC | grep 'cobalt')
 
 # ----------------------------- Common ----------------------------------------
 #export ELSADIST=$CASSIOPEE  # production (cfg)
@@ -529,6 +530,40 @@ elif [ "$MAC25" != "" ]; then
     export PATH=$PATH:$CASSIOPEE/Dist/bin/$ELSAPROD
     export LD_LIBRARY_PATHL=/home/benoit/aus/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/wes_r8/lib64
     export PYTHONPATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/wes_r8:$CASSIOPEE/Dist/bin/wes_r8/lib/python2.7/site-packages
+
+elif [ "$MAC31" != "" ]; then 
+#-------------------------------- cobalt -----------------------------------------
+    if [ "$MPI" = "true" ]; then
+        if [ "$DBG" = "true" ]; then
+            export ELSAPROD=cob_mpi_dbg_r8
+        else
+            export ELSAPROD=cob_mpi_r8
+        fi
+    else
+        if [ "$DBG" = "true" ]; then
+            export ELSAPROD=cob_dbg_r8
+        else
+            export ELSAPROD=cob_r8
+        fi
+    fi
+    # Nbre de threads
+    export OMP_NUM_THREADS=28
+    export OMP_PROC_BIND=False
+    export KMP_AFFINITY="verbose,granularity=fine,proclist=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27],explicit"
+    export PROC_NAME="BDW"
+
+    # modules 
+    module purge
+    module load intel/17.0.4.196 mpi/intelmpi/2017.0.4.196 python/2.7.14 hdf5/1.8.16
+
+    # Chemin de l'executable python
+    export PATH=$PATH
+    # Chemin de go
+    export PATH=$PATH:$CASSIOPEE/Dist/bin
+    # Chemin de elsA.x
+    export PATH=$PATH:$CASSIOPEE/Dist/bin/$ELSAPROD
+    export LD_LIBRARY_PATHL=$CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/cob_r8/lib
+    export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/cob_r8:$CASSIOPEE/Dist/bin/cob_r8/lib/python2.7/site-packages   
 
 elif [ "$MAC1" != "" ]; then 
 #-------------------------------- ld -----------------------------------------

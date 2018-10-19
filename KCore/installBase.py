@@ -401,6 +401,20 @@ False, # CPlotOffScreen
 [] # additionalLibPaths
 ],
 ###############################################################################
+'pgi': [ 'Machine visio avec PGI',
+'pgf90', # f77compiler
+'pgf90', # f90compiler
+'pgcc', # Cppcompiler
+[], # CppAdditionalOptions
+[], # f77AdditionalOptions
+True, # useOMP
+False, # static
+False, # CPlotOffScreen
+[], # additionalIncludePaths
+["pgf90","pgf902","pgc","pgmath","pgkomp",'omp',"pgf90_rpm1","rt","pgf90rtl"], # additionalLibs
+["/opt/pgi/linuxpower/18.4/lib/"] # additionalLibPaths
+],
+##############################################################################
 'visio': [ 'Machine de post gfx (Onera)',
 'ifort', # f77compiler
 'ifort', # f90compiler
@@ -456,6 +470,20 @@ False, # CPlotOffScreen
 ['/usr/local/hdf5-intel-1.8.8/include'], # additionalIncludePaths
 [], # additionalLibs
 ['/usr/local/hdf5-intel-1.8.8/lib'] # additionalLibPaths
+],
+###############################################################################
+'cobalt': [ 'CCRT machine Cobalt',
+'ifort', # f77compiler
+'ifort', # f90compiler
+'icc', # Cppcompiler
+['-DCACHELINE=32'], # CppAdditionalOptions
+[], # f77AdditionalOptions
+True, # useOMP
+False, # static
+True, # CPlotOffScreen
+[], # additionalIncludePaths
+[], # additionalLibs
+[] # additionalLibPaths
 ],
 ###############################################################################
 'ouessant': [ 'Machine IDRIS IBM  POWER + NVIDIA P100)',

@@ -218,6 +218,7 @@ def writeEnvs():
      except: mt = 1
 
      # sh
+     # usage: source $CASSIOPEE/Dist/env_Cassiopee.sh
      p = open(envPath+"env_Cassiopee.sh", 'w')
      if cassiopee != '': p.write("export CASSIOPEE=%s\n"%cassiopee)
      if elsaprod != '': p.write("export ELSAPROD=%s\n"%elsaprod)
@@ -243,6 +244,7 @@ def writeEnvs():
      p.close()
 
      # csh
+     # usage: source $CASSIOPEE/Dist/env_Cassiopee.csh
      p = open(envPath+"env_Cassiopee.csh", 'w')
      if cassiopee != '': p.write("setenv CASSIOPEE %s\n"%cassiopee)
      if elsaprod != '': p.write("setenv ELSAPROD %s\n"%elsaprod)
@@ -274,6 +276,24 @@ def writeEnvs():
      p.write("set OMP_NUM_THREADS=%NUMBER_OF_PROCESSORS%\n")
      p.close()
 
+     # module
+     # usage: module use $CASSIOPEE/Dist
+     # module load cassiopee
+     p = open(envPath+"cassiopee", 'w')
+     p.write("#%Module1.0#####################################################################\n")
+     p.write("##\n")
+     p.write("## CASSIOPEE\n")
+     p.write("##\n")
+     p.write("module-whatis   \"Set the environment for using Cassiopee\"\n")
+     if cassiopee != '': p.write("setenv CASSIOPEE %s\n"%cassiopee)
+     if elsaprod != '': p.write("setenv ELSAPROD %s\n"%elsaprod)
+     p.write("setenv OMP_NUM_THREADS %d\n"%mt)
+     p.write("prepend-path PATH %s\n"%cmdPath)
+     p.write("prepend-path PYTHONPATH %s\n"%installPathLocal)
+     if installLD is not None:
+        p.write("prepend-path LD_LIBRARY_PATH %s\n"%installLD)
+    p.write("prepend-path LD_LIBRARY_PATH %s\n"%libPath)
+    
 #==============================================================================
 # Write setup.cfg en fonction du compilateur C++ (si different de None)
 # setup.cfg est utilise par setup de python pour choisir le compilo.
@@ -681,6 +701,8 @@ def getCppArgs():
     except: from KCore.config import Cppcompiler
     if (Cppcompiler == 'g++' or Cppcompiler == 'gcc') and getSystem()[0] == 'mingw':
         opt += ["-std=gnu++11"]
+    elif Cppcompiler == 'pgcc' or Cppcompiler == 'pg++':
+        opt += ["--c++11"]
     elif Cppcompiler == "icl.exe":
         opt += ["/std=c++11"]
     else:

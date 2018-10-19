@@ -381,24 +381,34 @@ def show():
 #==============================================================================
 # camera
 #==============================================================================
-def moveCamera(checkPoints, moveEye=False, N=100, speed=1.):
+def moveCamera(checkPoints, moveEye=False, N=100, speed=1., pos=-1):
     """Move posCam and posEye following check points."""
     import Geom
     N = max(N, 3)
     p = Geom.polyline(checkPoints)
     if len(checkPoints) == 2: d = Geom.spline(p, 2, N)
     else: d = Geom.spline(p, 3, N)
-    i = 0
-    while i < N-1:
+    if pos == -1:
+      i = 0
+      while i < N-1:
         time.sleep(__timeStep__*speed*0.06)
         if i > N-11: inc = N-i-1
         else: inc = 10
         posCam = (d[1][0,i],d[1][1,i],d[1][2,i])
-        if moveEye: 
-            posEye = (d[1][0,i+inc],d[1][1,i+inc],d[1][2,i+inc])
-            setState(posCam=posCam, posEye=posEye)
+        if moveEye:
+          posEye = (d[1][0,i+inc],d[1][1,i+inc],d[1][2,i+inc])
+          setState(posCam=posCam, posEye=posEye)
         else: setState(posCam=posCam)
         i += 1
+    else:
+      i = pos
+      if i > N-11: inc = N-i-1
+      else: inc = 10
+      posCam = (d[1][0,i],d[1][1,i],d[1][2,i])
+      if moveEye:
+        posEye = (d[1][0,i+inc],d[1][1,i+inc],d[1][2,i+inc])
+        setState(posCam=posCam, posEye=posEye)
+      else: setState(posCam=posCam)
 
 def travelRight(xr=0.1, N=100):
     import KCore.Vector as Vector

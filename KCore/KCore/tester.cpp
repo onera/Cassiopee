@@ -22,9 +22,9 @@
 #include <iostream>
 #include <stdlib.h>
 
-# define EXTARITH
-# define TESTMEMORY
-# define TESTLOGGER
+//# define EXTARITH
+//# define TESTMEMORY
+//# define TESTLOGGER
 #ifdef EXTARITH
 #include "ExtArith/quad_double.hpp"
 #endif
