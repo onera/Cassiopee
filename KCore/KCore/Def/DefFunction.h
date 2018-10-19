@@ -290,7 +290,7 @@ E_Float sqrNorm(InputIterator it)
   E_Float result = 0.;
 
   for (E_Int i = 0; i < dim; ++i)
-    result += (*(it+i))*(*(it+i));
+    result += (*(it+i)) * (*(it+i));
 
   return result;
 }

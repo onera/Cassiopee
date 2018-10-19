@@ -294,7 +294,7 @@ E_Int K_IO::GenIO::cedrewrite(
   }
   posx++; posy++; posz++;
 
- char format1[40]; char fmtcrd[40]; char dataFmtl[40];
+ char format1[40]; char fmtcrd[121]; char dataFmtl[40];
  strcpy(dataFmtl, dataFmt);
  int l = strlen(dataFmt); 
  if (dataFmt[l-1] == ' ') dataFmtl[l-1] = '\0';

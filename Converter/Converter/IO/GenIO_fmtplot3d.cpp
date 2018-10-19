@@ -225,7 +225,7 @@ E_Int K_IO::GenIO::fp3dwrite(
   fprintf(ptrFile, "\n");
 
   // Build writing data format
-  char format1[20], format2[40], format3[60];
+  char format1[41], format2[82], format3[122];
   
   char dataFmtl[40];
   strcpy(dataFmtl, dataFmt);

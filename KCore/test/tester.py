@@ -8,7 +8,7 @@ import KCore
 #import Converter.PyTree as C
 #a = G.cart((0,0,0), (1,1,1), (10,10,10))
 #p = KCore.tester(a, 'GridCoordinates/CoordinateX')
-#print p
+#print(p)
 
 import Generator as G
 import Converter as C
@@ -33,5 +33,5 @@ ns = 500
 #a = ['x,y,z', [numpy.zeros(ns*ns*ns),numpy.zeros(ns*ns*ns),numpy.zeros(ns*ns*ns)], ns,ns,ns]
 #for i in xrange(ntry): KCore.tester(a)
 a = KCore.tester()
-print a
+print(a)
 # a est directement transformable en zones

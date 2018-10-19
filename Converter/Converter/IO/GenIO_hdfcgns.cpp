@@ -1197,7 +1197,7 @@ E_Int K_IO::GenIO::hdfcgnswrite(char* file, PyObject* tree, PyObject* links)
   for (E_Int i = 0; i < size; i++)
   {
     PyObject* llink  = PyList_GetItem(links, i);
-    char* tgt_dire = PyString_AsString(PyList_GetItem(llink, 0));
+    //char* tgt_dire = PyString_AsString(PyList_GetItem(llink, 0));
     char* tgt_file = PyString_AsString(PyList_GetItem(llink, 1));
     char* tgt_path = PyString_AsString(PyList_GetItem(llink, 2));
     char* cur_path = PyString_AsString(PyList_GetItem(llink, 3));

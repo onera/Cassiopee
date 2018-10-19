@@ -751,7 +751,7 @@ E_Int K_IO::GenIO::su2write(
   }
   posx++; posy++; posz++;
 
-  char format1[40]; char format2[40]; char format3[40]; 
+  char format1[43]; char format2[85]; char format3[127]; 
   char dataFmtl[40];
   strcpy(dataFmtl, dataFmt);
   int l = strlen(dataFmt); 

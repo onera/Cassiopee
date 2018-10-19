@@ -255,11 +255,10 @@ TRI_BooleanOperator::check_sanity()
 E_Int
 TRI_BooleanOperator::compute_zones()
 {
-  E_Int                            ret(0), S0, i;
-  std::set<K_MESH::NO_Edge>         hXC;
+  E_Int                      ret(0), S0, i=0;
+  std::set<K_MESH::NO_Edge>  hXC;
   
   _hXCO.clear();
-
 
   // Computes the common boundary (intersection edges and overlap zones boundaries).
   ret = __compute_x_contour(hXC);

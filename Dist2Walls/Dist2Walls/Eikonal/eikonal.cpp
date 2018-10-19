@@ -117,12 +117,11 @@ PyObject* K_DIST2WALLS::eikonal(PyObject* self, PyObject* args)
   E_Float dh = x[1]-x[0];
   //E_Int nbSubIter = 5;
 
-
   //clock_gettime(CLOCK_REALTIME, &end);
   //double seconds = (double)((end.tv_sec+end.tv_nsec*1.E-9) - (beg.tv_sec+beg.tv_nsec*1.E-9));
   //std::cout << "Temps passé en C avant appel Eikonal solver : " << seconds << "secondes" << std::endl;  
-  E_Int nt =  __NUMTHREADS__;  
-  nt = 0; // pas de multithread pour l instant
+  //E_Int nt = __NUMTHREADS__;  
+  //nt = 0; // pas de multithread pour l'instant
   //clock_gettime(CLOCK_REALTIME, &beg);
   if (algo == 0 ) // Algorithme d'origine FMM
 {

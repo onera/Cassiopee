@@ -292,7 +292,7 @@ def writeEnvs():
      p.write("prepend-path PYTHONPATH %s\n"%installPathLocal)
      if installLD is not None:
         p.write("prepend-path LD_LIBRARY_PATH %s\n"%installLD)
-    p.write("prepend-path LD_LIBRARY_PATH %s\n"%libPath)
+     p.write("prepend-path LD_LIBRARY_PATH %s\n"%libPath)
     
 #==============================================================================
 # Write setup.cfg en fonction du compilateur C++ (si different de None)

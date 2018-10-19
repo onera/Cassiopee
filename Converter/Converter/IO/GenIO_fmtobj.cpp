@@ -600,7 +600,7 @@ E_Int K_IO::GenIO::objwrite(
   }
 
   // Build writing data format
-  char format1[40]; char dataFmtl[40];
+  char format1[124]; char dataFmtl[40];
   strcpy(dataFmtl, dataFmt);
   int l = strlen(dataFmt);
   if (dataFmt[l-1] == ' ') dataFmtl[l-1] = '\0';

@@ -176,7 +176,7 @@ E_Int DynArrayIO::read
   else
   {
     //const char* -> char*
-    fname = new char[l+rdir.size() +1]();
+    fname = new char[l+rdir.size()+1]();
     strncpy(fname, rdir.c_str(), rdir.size()); 
     strncat(fname, fileName, l); 
   }

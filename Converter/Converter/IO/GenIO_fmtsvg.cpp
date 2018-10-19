@@ -395,7 +395,7 @@ E_Int K_IO::GenIO::svgwrite(
   posx++; posy++; posz++;
 
   // Build writing data format
-  char format1[20], format2[20], format3[20], format4[20];
+  char format1[82], format2[85], format3[84], format4[85];
   char dataFmtl[40];
   strcpy(dataFmtl, dataFmt);
   int l = strlen(dataFmt); 
