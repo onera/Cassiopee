@@ -1235,12 +1235,12 @@ def computeNormGrad(t, var):
     C.setFields(centers, tp, 'centers')
     return tp
 
-def computeDiv2(t,var):
+def computeDiv2(t,var,ghostCells=False):
     tp = Internal.copyRef(t)
-    _computeDiv2(tp, var)
+    _computeDiv2(tp, var,ghostCells=False)
     return tp
 
-def _computeDiv2(t, var):
+def _computeDiv2(t, var,ghostCells=False):
     """Compute the divergence of a variable defined in array.
     Usage: computeDiv2(t, var)"""
     if type(var) == list:
@@ -1250,8 +1250,10 @@ def _computeDiv2(t, var):
 
     # Compute fields on BCMatch (for all match connectivities) 
     varList  = [vare+'X',vare+'Y',vare+'Z']
-    allMatch = C.extractAllBCMatch(t,varList) 
-    # allMatch = {}
+    if not ghostCells:
+        allMatch = C.extractAllBCMatch(t,varList) 
+    else:
+        allMatch = {}
 
     zones = Internal.getZones(t)
     for z in zones:
