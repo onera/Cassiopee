@@ -103,7 +103,7 @@ C attention: surf n est pas oriente: tjs positif
 !$OMP PARALLEL PRIVATE(indcell,i,j,k,indint1,indint2,indint3)
 !$OMP& PRIVATE(indint4,indint5,indint6,sx1,sx2,sx3,sx4,sx5,sx6)
 !$OMP& PRIVATE(sy1,sy2,sy3,sy4,sy5,sy6,sz1,sz2,sz3,sz4,sz5,sz6)
-!$OMP& PRIVATE(vinv)
+!$OMP& PRIVATE(vinv,gradxx,gradyy,gradzz)
 
 !$OMP DO
       DO indcell = 0, nbcell-1
