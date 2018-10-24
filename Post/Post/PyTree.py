@@ -1126,9 +1126,9 @@ def _usurp(t):
 
 def computeGrad(t, var):
     """Compute the gradient of a variable defined in array.
-    Usage: computeGrad(t) """
+    Usage: computeGrad(t,var) """
     tp = Internal.copyRef(t)
-    gradVar = var             # variable on which gradient is computed
+    gradVar = var # variable on which gradient is computed
     v = var.split(':')
     posv = 0
     if len(v) > 1:
@@ -1156,11 +1156,11 @@ def _computeGrad2(t,var,ghostCells=False):
     vare = var.split(':')
     if len(vare) > 1: vare = vare[1]
 
-    # Compute fields on BCMatch (for all match connectivities) 
+    # Compute fields on BCMatch (for all match connectivities)
     if not ghostCells:
-        allMatch = C.extractAllBCMatch(t,vare) 
+        allMatch = C.extractAllBCMatch(t,vare)
     else:
-        allMatch = {} 
+        allMatch = {}
 
     zones = Internal.getZones(t)
     for z in zones:
@@ -1174,7 +1174,7 @@ def _computeGrad2(t,var,ghostCells=False):
             zoneBC = Internal.getNodesFromType1(z, 'ZoneBC_t')
             if zoneBC is not None:
                 BCs = Internal.getNodesFromType1(zoneBC, 'BC_t')
-                for b in BCs: 
+                for b in BCs:
                     datas = Internal.getBCDataSet(z, b)
                     inds = Internal.getBCFaceNode(z, b)
                     if datas != [] and inds != []:
@@ -1207,7 +1207,7 @@ def _computeGrad2(t,var,ghostCells=False):
 
             if indices is None: indices = indp
             else: indices = numpy.concatenate((indices, indp))
-            
+
             if BCField is None: BCField = fldp
             else: BCField = numpy.concatenate((BCField, fldp))
 
@@ -1230,9 +1230,36 @@ def computeNormGrad(t, var):
             tp = C.center2Node(tp, var)
             gradVar = v[1]
     nodes = C.getAllFields(tp, 'nodes')
-    if posv == -1: tp = C.rmVars(tp, gradVar)
+    if posv == -1: C._rmVars(tp, gradVar)
     centers = Post.computeNormGrad(nodes, gradVar)
     C.setFields(centers, tp, 'centers')
+    return tp
+
+def computeDiv(t,var):
+    """Compute the divergence of a variable defined in array.
+    Usage: computeDiv(t, var) """
+    if isinstance(var, list):
+        raise ValueError("computeDiv: not available for lists of variables.")
+    tp = Internal.copyRef(t)
+    sdirlist = ['X', 'Y', 'Z'] # The order is important!
+    dim = 3
+    posv = [0]*dim
+    divVector = list()
+    for i in xrange(dim):
+        name = var+sdirlist[i]
+        v = name.split(':')
+        if len(v) > 1:
+            if v[0] == 'centers':
+                posv[i] = C.isNamePresent(tp, v[1])
+                tp = C.center2Node(tp, name)
+                name = v[1]
+        divVector.append(name)
+
+    tn = C.getAllFields(tp, 'nodes') # < get all fields (?) We only need a few...
+    for i in xrange(dim):
+        if posv[i] == -1: C._rmVars(tp, divVector[i])
+    tc = Post.computeDiv(tn, divVector)
+    C.setFields(tc, tp, 'centers')
     return tp
 
 def computeDiv2(t,var,ghostCells=False):
@@ -1243,15 +1270,15 @@ def computeDiv2(t,var,ghostCells=False):
 def _computeDiv2(t, var,ghostCells=False):
     """Compute the divergence of a variable defined in array.
     Usage: computeDiv2(t, var)"""
-    if type(var) == list:
+    if isinstance(var, list):
         raise ValueError("computeDiv2: not available for lists of variables.")
     vare = var.split(':')
     if len(vare) > 1: vare = vare[1]
 
-    # Compute fields on BCMatch (for all match connectivities) 
+    # Compute fields on BCMatch (for all match connectivities)
     varList  = [vare+'X',vare+'Y',vare+'Z']
     if not ghostCells:
-        allMatch = C.extractAllBCMatch(t,varList) 
+        allMatch = C.extractAllBCMatch(t,varList)
     else:
         allMatch = {}
 
@@ -1333,7 +1360,7 @@ def _computeDiv2(t, var,ghostCells=False):
                         fgcX = fgc[1][0]
                         fgcY = fgc[1][1]
                         fgcZ = fgc[1][2]
-                        
+
                         if fldX is None: fldX = fgcX
                         else: fldX = numpy.concatenate((fldX,fgcX))
 
@@ -1350,15 +1377,15 @@ def _computeDiv2(t, var,ghostCells=False):
 
                     if indices is None: indices = indp
                     else: indices = numpy.concatenate((indices, indp))
-                    
+
                     if BCFieldX is None: BCFieldX = fldX
-                    else: BCFieldX = numpy.concatenate((BCFieldX, fldX))  
-                    
+                    else: BCFieldX = numpy.concatenate((BCFieldX, fldX))
+
                     if BCFieldY is None: BCFieldY = fldY
-                    else: BCFieldY = numpy.concatenate((BCFieldY, fldY)) 
+                    else: BCFieldY = numpy.concatenate((BCFieldY, fldY))
 
                     if BCFieldZ is None: BCFieldZ = fldZ
-                    else: BCFieldZ = numpy.concatenate((BCFieldZ, fldZ))   
+                    else: BCFieldZ = numpy.concatenate((BCFieldZ, fldZ))
 
                 elif len(foundVar)==2: # 2D
                     # Config (XY)
@@ -1366,7 +1393,7 @@ def _computeDiv2(t, var,ghostCells=False):
                         for fgc in fldFace:
                             fgcX = fgc[1][0]
                             fgcY = fgc[1][1]
-                            
+
                             if fldX is None: fldX = fgcX
                             else: fldX = numpy.concatenate((fldX,fgcX))
 
@@ -1379,19 +1406,19 @@ def _computeDiv2(t, var,ghostCells=False):
 
                         if indices is None: indices = indp
                         else: indices = numpy.concatenate((indices, indp))
-                        
+
                         if BCFieldX is None: BCFieldX = fldX
-                        else: BCFieldX = numpy.concatenate((BCFieldX, fldX))  
-                        
+                        else: BCFieldX = numpy.concatenate((BCFieldX, fldX))
+
                         if BCFieldY is None: BCFieldY = fldY
-                        else: BCFieldY = numpy.concatenate((BCFieldY, fldY))  
+                        else: BCFieldY = numpy.concatenate((BCFieldY, fldY))
 
                     # Config (XZ)
                     if (foundVar[0][-1] == 'X' and foundVar[1][-1] == 'Z'):
                         for fgc in fldFace:
                             fgcX = fgc[1][0]
                             fgcZ = fgc[1][1]
-                            
+
                             if fldX is None: fldX = fgcX
                             else: fldX = numpy.concatenate((fldX,fgcX))
 
@@ -1404,20 +1431,20 @@ def _computeDiv2(t, var,ghostCells=False):
 
                         if indices is None: indices = indp
                         else: indices = numpy.concatenate((indices, indp))
-                        
+
                         if BCFieldX is None: BCFieldX = fldX
-                        else: BCFieldX = numpy.concatenate((BCFieldX, fldX))  
-                        
+                        else: BCFieldX = numpy.concatenate((BCFieldX, fldX))
+
                         if BCFieldZ is None: BCFieldZ = fldZ
-                        else: BCFieldZ = numpy.concatenate((BCFieldZ, fldZ))  
+                        else: BCFieldZ = numpy.concatenate((BCFieldZ, fldZ))
 
                     # Config (YZ)
                     if (foundVar[0][-1] == 'Y' and foundVar[1][-1] == 'Z'):
                         for fgc in fldFace:
                             fgcY = fgc[1][0]
                             fgcZ = fgc[1][1]
-                            
-                            if fldY is None: fldY = fgcY 
+
+                            if fldY is None: fldY = fgcY
                             else: fldY = numpy.concatenate((fldY,fgcY))
 
                             if fldZ is None: fldZ = fgcZ
@@ -1429,15 +1456,15 @@ def _computeDiv2(t, var,ghostCells=False):
 
                         if indices is None: indices = indp
                         else: indices = numpy.concatenate((indices, indp))
-                        
+
                         if BCFieldY is None: BCFieldY = fldY
-                        else: BCFieldY = numpy.concatenate((BCFieldY, fldY))  
-                        
+                        else: BCFieldY = numpy.concatenate((BCFieldY, fldY))
+
                         if BCFieldZ is None: BCFieldZ = fldZ
-                        else: BCFieldZ = numpy.concatenate((BCFieldZ, fldZ))  
- 
+                        else: BCFieldZ = numpy.concatenate((BCFieldZ, fldZ))
+
         if f != []:
-            centers = Post.computeDiv2(x, f, indices=indices, BCFieldX=BCFieldX, 
+            centers = Post.computeDiv2(x, f, indices=indices, BCFieldX=BCFieldX,
                                              BCFieldY=BCFieldY, BCFieldZ=BCFieldZ)
             C.setFields([centers], z, 'centers')
     return None

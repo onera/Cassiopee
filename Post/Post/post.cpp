@@ -56,6 +56,7 @@ static PyMethodDef Pypost [] =
   {"computeGrad2NGon", K_POST::computeGrad2NGon, METH_VARARGS},
   {"computeGrad2Struct", K_POST::computeGrad2Struct, METH_VARARGS},
   {"computeNormGrad", K_POST::computeNormGrad, METH_VARARGS},
+  {"computeDiv", K_POST::computeDiv, METH_VARARGS},
   {"computeDiv2NGon", K_POST::computeDiv2NGon, METH_VARARGS},
   {"computeDiv2Struct", K_POST::computeDiv2Struct, METH_VARARGS},
   {"computeCurl", K_POST::computeCurl, METH_VARARGS},

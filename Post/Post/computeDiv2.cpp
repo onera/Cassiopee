@@ -1,5 +1,5 @@
 /*
-    Copyrindcellght 2013-2018 Onera.
+    Copyright 2013-2018 Onera.
 
     This file is part of Cassiopee.
 
@@ -55,7 +55,7 @@ PyObject* K_POST::computeDiv2NGon(PyObject* self, PyObject* args)
   if (res != 1 && res != 2)
   {
     PyErr_SetString(PyExc_TypeError,
-                    "computeDiv2: invalindcelld array.");
+                    "computeDiv2: invalid array.");
     return NULL;
   }
   if (res == 1 || strcmp(eltType, "NGON") != 0)
@@ -179,8 +179,8 @@ PyObject* K_POST::computeDiv2NGon(PyObject* self, PyObject* args)
 
   // Replace DataSet
   FldArrayI* inds=NULL; FldArrayF* bfieldX=NULL;
-    FldArrayF* bfieldY=NULL; FldArrayF* bfieldZ=NULL; 
-  if (indices != Py_None && fieldX != Py_None && fieldY != Py_None 
+  FldArrayF* bfieldY=NULL; FldArrayF* bfieldZ=NULL;
+  if (indices != Py_None && fieldX != Py_None && fieldY != Py_None
                                               && fieldZ != Py_None )
   {
     K_NUMPY::getFromNumpyArray(indices, inds, true);
@@ -307,7 +307,7 @@ PyObject* K_POST::computeDiv2Struct(PyObject* self, PyObject* args)
   {
     if ( res == 2) RELEASESHAREDB(res,array,f,cn);
     PyErr_SetString(PyExc_TypeError,
-                    "computeDiv2: invalindcelld array.");
+                    "computeDiv2: invalid array.");
     return NULL;
   }
   E_Int dimPb = 3;
@@ -438,7 +438,7 @@ PyObject* K_POST::computeDiv2Struct(PyObject* self, PyObject* args)
   PyObject* tpl;
   if ( dimPb == 2)
     tpl = computeDiv2Struct2D(ni, nj, nic, njc, ixyz, varStringOut, f->begin(posx),  f->begin(posy), f->begin(posz),
-                              *fc, faceField, cellG, cellD, indices, fieldX, fieldY, fieldZ); // ATTENTION !!!!! 
+                              *fc, faceField, cellG, cellD, indices, fieldX, fieldY, fieldZ); // ATTENTION !!!!!
   else if (dimPb == 3)
     tpl = computeDiv2Struct3D(ni, nj, nk, nic, njc, nkc, varStringOut, f->begin(posx), f->begin(posy), f->begin(posz),
                               *fc, faceField, cellG, cellD, indices, fieldX, fieldY, fieldZ);
@@ -455,7 +455,7 @@ PyObject* K_POST::computeDiv2Struct3D(E_Int ni, E_Int nj, E_Int nk,
                                       E_Float* xt, E_Float* yt, E_Float* zt,
                                       FldArrayF& fc, FldArrayF& faceField,
                                       E_Int* cellG, E_Int* cellD,
-                                      PyObject* indices, PyObject* fieldX, 
+                                      PyObject* indices, PyObject* fieldX,
                                       PyObject* fieldY, PyObject* fieldZ )
 {
   E_Int indint, indcellg, indcelld;
@@ -557,11 +557,11 @@ PyObject* K_POST::computeDiv2Struct3D(E_Int ni, E_Int nj, E_Int nk,
       }
   }
   // Replace DataSet
-  if (indices != Py_None && fieldX != Py_None && fieldY != Py_None 
+  if (indices != Py_None && fieldX != Py_None && fieldY != Py_None
                                               && fieldZ != Py_None )
   {
     FldArrayI* inds=NULL; FldArrayF* bfieldX=NULL;
-    FldArrayF* bfieldY=NULL; FldArrayF* bfieldZ=NULL; 
+    FldArrayF* bfieldY=NULL; FldArrayF* bfieldZ=NULL;
     K_NUMPY::getFromNumpyArray(indices, inds, true);
     K_NUMPY::getFromNumpyArray(fieldX, bfieldX, true);
     K_NUMPY::getFromNumpyArray(fieldY, bfieldY, true);
@@ -656,7 +656,7 @@ PyObject* K_POST::computeDiv2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
                                       E_Float* xt, E_Float* yt, E_Float* zt,
                                       FldArrayF& fc, FldArrayF& faceField,
                                       E_Int* cellG, E_Int* cellD,
-                                      PyObject* indices, PyObject* fieldX, 
+                                      PyObject* indices, PyObject* fieldX,
                                       PyObject* fieldY, PyObject* fieldZ)
 {
   E_Int nkc = 1;
@@ -851,11 +851,11 @@ PyObject* K_POST::computeDiv2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
 
 
   // Replace DataSet
-  if (indices != Py_None && (fieldX != Py_None | fieldY != Py_None 
+  if (indices != Py_None && (fieldX != Py_None | fieldY != Py_None
 			     | fieldZ != Py_None) )
   {
     FldArrayI* inds=NULL; FldArrayF* bfieldX=NULL;
-    FldArrayF* bfieldY=NULL; FldArrayF* bfieldZ=NULL; 
+    FldArrayF* bfieldY=NULL; FldArrayF* bfieldZ=NULL;
     K_NUMPY::getFromNumpyArray(indices, inds, true);
     K_NUMPY::getFromNumpyArray(fieldX, bfieldX, true);
     K_NUMPY::getFromNumpyArray(fieldY, bfieldY, true);

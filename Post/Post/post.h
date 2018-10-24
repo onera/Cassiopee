@@ -60,6 +60,7 @@ namespace K_POST
   PyObject* computeGrad2NGon(PyObject* self,PyObject* args);
   PyObject* computeGrad2Struct(PyObject* self,PyObject* args);
   PyObject* computeNormGrad(PyObject* self,PyObject* args);
+  PyObject* computeDiv(PyObject* self,PyObject* args);
   PyObject* computeDiv2NGon(PyObject* self,PyObject* args);
   PyObject* computeDiv2Struct(PyObject* self,PyObject* args);
   PyObject* computeCurl(PyObject* self,PyObject* args);
@@ -423,7 +424,7 @@ namespace K_POST
    OUT: varStringOut "gradxvar1, gradyvar1, gradzvar1...." */
   void computeGradVarsString(char* varString, char*& varStringOut);
 
-/* Creation de la chaine de caracteres pour la fonction computeDiv2
+/* Creation de la chaine de caracteres pour les fonctions computeDiv/computeDiv2
    IN: varString: "x,y,z, var1..." avec var1... variables calculees
    OUT: varStringOut "divvar1, ...." */
   void computeDivVarsString(char* varString, char*& varStringOut);
@@ -438,6 +439,18 @@ namespace K_POST
   E_Int computeGradNGon(E_Float* xt, E_Float* yt, E_Float* zt,
                         E_Float* fp, FldArrayI& cn,
                         E_Float* gradx, E_Float* grady, E_Float* gradz);
+  /* Idem for div */
+  E_Int computeDivStruct(E_Int ni, E_Int nj, E_Int nk,
+                         E_Float* xt, E_Float* yt, E_Float* zt,
+                         E_Float* fieldX, E_Float* fieldY, E_Float* fieldZ,
+                         E_Float* div);
+  E_Int computeDivNS(char* eltType, E_Int npts, FldArrayI& cn,
+                     E_Float* xt, E_Float* yt, E_Float* zt,
+                     E_Float* fieldX, E_Float* fieldY, E_Float* fieldZ,
+                     E_Float* div);
+  E_Int computeDivNGon(E_Float* xt, E_Float* yt, E_Float* zt,
+                       E_Float* fpx, E_Float* fpy, E_Float* fpz, FldArrayI& cn,
+                       E_Float* div);
   /* Idem for curl */
   E_Int computeCurlStruct(E_Int ni, E_Int nj, E_Int nk,
                           E_Float* xt, E_Float* yt, E_Float* zt,
@@ -664,7 +677,7 @@ namespace K_POST
                                 E_Float* xt, E_Float* yt, E_Float* zt,
                                 FldArrayF& fc, FldArrayF& faceField,
                                 E_Int* cellG, E_Int* cellD,
-                                PyObject* indices, PyObject* fieldX, 
+                                PyObject* indices, PyObject* fieldX,
                                 PyObject* fieldY, PyObject* fieldZ);
   PyObject* computeDiv2Struct3D(E_Int ni, E_Int nj, E_Int nk,
                                 E_Int nic, E_Int njc, E_Int nkc,
@@ -672,7 +685,7 @@ namespace K_POST
                                 E_Float* xt, E_Float* yt, E_Float* zt,
                                 FldArrayF& fc, FldArrayF& faceField,
                                 E_Int* cellG, E_Int* cellD,
-                                PyObject* indices, PyObject* fieldX, 
+                                PyObject* indices, PyObject* fieldX,
                                 PyObject* fieldY, PyObject* fieldZ);
 }
 #undef FldArrayF

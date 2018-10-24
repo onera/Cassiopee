@@ -21,5 +21,5 @@ p2 = P.computeGrad(m2, 'ro') # p is defined on centers
 T.testA([p2], 2)
 
 # test sur une liste
-P = P.computeGrad([m,m2], 'ro') # p is defined on centers
-T.testA(P, 3)
+p3 = P.computeGrad([m,m2], 'ro') # p is defined on centers
+T.testA(p3, 3)

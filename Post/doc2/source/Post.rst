@@ -9,7 +9,7 @@ Preamble
 
 This module provides post-processing tools for  CFD simulations.
 It manipulates arrays (as defined in Converter documentation)
-or CGNS/Python trees (or pyTree, as defined in Converter/Internal documentation) 
+or CGNS/Python trees (or pyTree, as defined in Converter/Internal documentation)
 as data structures.
 
 This module is part of Cassiopee, a free open-source
@@ -41,6 +41,7 @@ List of functions
     Post.computeGrad
     Post.computeGrad2
     Post.computeNormGrad
+    Post.computeDiv
     Post.computeDiv2
     Post.computeCurl
     Post.computeNormCurl
@@ -65,7 +66,7 @@ List of functions
     Post.computeIndicatorValue
     Post.computeIndicatorField
 
-   
+
 **-- Solution extraction**
 
 .. autosummary::
@@ -108,7 +109,7 @@ Modifying/creating variables
 
 
 .. py:function:: Post.renameVars(t, oldVarNameList, newVarNameList)
-    
+
     Rename a list of variables with new variable names.
     Exists also as in place function (_renameVars) that modifies t and returns None.
 
@@ -144,7 +145,7 @@ Modifying/creating variables
     matched from coordinates with a tolerance eps, if method=2, zones
     are taken in the given order of t1 and t2 (must match one by one).
     If addExtra=1, unmatched zones are added to a base named 'EXTRA'.
-    
+
     :param t1:  Input data
     :type  t1:  pyTree
     :param t2:  Input data
@@ -172,7 +173,7 @@ Modifying/creating variables
     :param a:  Input data
     :type  a:  [array, list of arrays] or [pyTree, base, zone, list of zones]
     :param varList: list of variable names (can be preceded by 'nodes:' or 'centers:')
-    :type varList: list of strings 
+    :type varList: list of strings
     :rtype:  identical to input
 
     The constants are:
@@ -216,11 +217,11 @@ Modifying/creating variables
     Compute more advanced variables from conservative variables.
     'varName' can be:
 
-    - Vorticity, 
-    - VorticityMagnitude, 
+    - Vorticity,
+    - VorticityMagnitude,
     - QCriterion,
-    - ShearStress, 
-    - SkinFriction, 
+    - ShearStress,
+    - SkinFriction,
     - SkinFrictionTangential
 
     The computation of the shear stress requires  gamma, rgp, Ts, mus, Cs as input data.
@@ -230,7 +231,7 @@ Modifying/creating variables
     :param a:  Input data
     :type  a:  [array, list of arrays] or [pyTree, base, zone, list of zones]
     :param varName: variable name (can be preceded by 'nodes:' or 'centers:')
-    :type varName: string 
+    :type varName: string
     :rtype: identical to input
 
     *Example of use:*
@@ -268,13 +269,13 @@ Modifying/creating variables
 
 .. py:function:: Post.computeGrad(a, varname)
 
-    Compute the gradient (:math:`\nabla x, \nabla y, \nabla z`) of a field of name *varname* 
+    Compute the gradient (:math:`\nabla x, \nabla y, \nabla z`) of a field of name *varname*
     defined in *a*. The returned field is located at cell centers.
 
     :param a:  Input data
     :type  a:  [array, list of arrays] or [pyTree, base, zone, list of zones]
     :param varname: variable name (can be preceded by 'nodes:' or 'centers:')
-    :type varname: string 
+    :type varname: string
     :rtype:  identical to input
 
     *Example of use:*
@@ -289,11 +290,11 @@ Modifying/creating variables
 
 ---------------------------------------
 
-.. py:function:: Post.computeGrad2(a, varname) 
+.. py:function:: Post.computeGrad2(a, varname)
 
-    Compute the gradient (:math:`\nabla x, \nabla y, \nabla z`) at cell centers for a field of name *varname* located at cell centers. 
+    Compute the gradient (:math:`\nabla x, \nabla y, \nabla z`) at cell centers for a field of name *varname* located at cell centers.
 
-    Using Converter.array interface: 
+    Using Converter.array interface:
     ::
 
         P.computeGrad2(a, ac, indices=None, BCField=None)
@@ -305,49 +306,6 @@ Modifying/creating variables
     ::
 
         P.computeGrad2(a, varname)
-
-    The variable name must be located at cell centers. 
-    Indices and BCFields are automatically extracted from BCDataSet nodes: 
-    if a BCDataSet node is defined for a BC of the pyTree, the corresponding face fields
-    are imposed when computing the gradient.
-
-    :param a:  Input data
-    :type  a:  [array, list of arrays] or [pyTree, base, zone, list of zones]
-    :param varname: variable name (can be preceded by 'nodes:' or 'centers:')
-    :type varname: string 
-    :rtype:  identical to input
-
-    *Example of use:*
-
-    * `Gradient of density field with computeGrad2 (array) <Examples/Post/computeGrad2.py>`_:
-
-    .. literalinclude:: ../build/Examples/Post/computeGrad2.py
-
-    * `Gradient of density field with computeGrad2 (pyTree) <Examples/Post/computeGradPT2.py>`_:
-
-    .. literalinclude:: ../build/Examples/Post/computeGrad2PT.py
-
----------------------------------------
-
-.. py:function:: Post.computeDiv2(a, ['vectx','vecty','vectz'])
-
-    compute the divergence ( :math:`\nabla\cdot\left(\vec{\bullet}\right)`) at cell
-    centers for a vector field defined by its variable names ['vectx','vecty','vectz']
-    located at cell centers.
-
-    Using Converter.array interface:
-    ::
-
-        P.computeDiv2(a, ac, indices=None, BCField=None)
-
-    *a* denotes the mesh, *ac* denotes the components of the vector field located at centers.
-    indices is a numpy 1D-array of face list, BCField is the corresponding numpy array of face fields.
-    They are used to force a value at some faces before computing the gradients.
-
-    Using the pyTree version:
-    ::
-
-        P.computeDiv2(a, ['vect'])
 
     The variable name must be located at cell centers.
     Indices and BCFields are automatically extracted from BCDataSet nodes:
@@ -362,7 +320,84 @@ Modifying/creating variables
 
     *Example of use:*
 
-    * `Divergence of a vector field (array) <Examples/Post/computeDiv2.py>`_:
+    * `Gradient of density field with computeGrad2 (array) <Examples/Post/computeGrad2.py>`_:
+
+    .. literalinclude:: ../build/Examples/Post/computeGrad2.py
+
+    * `Gradient of density field with computeGrad2 (pyTree) <Examples/Post/computeGradPT2.py>`_:
+
+    .. literalinclude:: ../build/Examples/Post/computeGrad2PT.py
+
+---------------------------------------
+
+.. py:function:: Post.computeDiv(a, varname)
+
+    Compute the divergence :math:`\nabla\cdot\left(\vec{\bullet}\right)` of a field defined by its
+    component names ['vectX','vectY','vectZ'] defined in *a*.
+    The returned field is located at cell centers.
+
+    Using Converter.array interface:
+    ::
+
+        P.computeDiv(a, ['vectX','vectY','vectZ'])
+
+    Using the pyTree version:
+    ::
+
+        P.computeDiv(a, 'vect')
+
+    :param a:  Input data
+    :type  a:  [array, list of arrays] or [pyTree, base, zone, list of zones]
+    :param varname: variable name (can be preceded by 'nodes:' or 'centers:')
+    :type varname: string
+    :rtype:  identical to input
+
+    *Example of use:*
+
+    * `Divergence of a vector field (array)  with computeDiv <Examples/Post/computeDiv.py>`_:
+
+    .. literalinclude:: ../build/Examples/Post/computeDiv.py
+
+    * `Divergence of a vector field (pyTree)  with computeDiv <Examples/Post/computeDivPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Post/computeDivPT.py
+
+---------------------------------------
+
+.. py:function:: Post.computeDiv2(a, varname)
+
+    compute the divergence :math:`\nabla\cdot\left(\vec{\bullet}\right)` at cell
+    centers for a vector field defined by its variable names ['vectX','vectY','vectZ']
+    located at cell centers.
+
+    Using Converter.array interface:
+    ::
+
+        P.computeDiv2(a, ac, indices=None, BCField=None)
+
+    *a* denotes the mesh, *ac* denotes the components of the vector field located at centers.
+    indices is a numpy 1D-array of face list, BCField is the corresponding numpy array of face fields.
+    They are used to force a value at some faces before computing the gradients.
+
+    Using the pyTree version:
+    ::
+
+        P.computeDiv2(a, 'vect')
+
+    The variable name must be located at cell centers.
+    Indices and BCFields are automatically extracted from BCDataSet nodes:
+    if a BCDataSet node is defined for a BC of the pyTree, the corresponding face fields
+    are imposed when computing the gradient.
+
+    :param a:  Input data
+    :type  a:  [array, list of arrays] or [pyTree, base, zone, list of zones]
+    :param varname: variable name (can be preceded by 'nodes:' or 'centers:')
+    :type varname: string
+    :rtype:  identical to input
+
+    *Example of use:*
+
+    * `Divergence of a vector field (array) with computeDiv2 <Examples/Post/computeDiv2.py>`_:
 
     .. literalinclude:: ../build/Examples/Post/computeDiv2.py
 
@@ -379,7 +414,7 @@ Modifying/creating variables
     :param a:  Input data
     :type  a:  [array, list of arrays] or [pyTree, base, zone, list of zones]
     :param varname: variable name (can be preceded by 'nodes:' or 'centers:')
-    :type varname: string 
+    :type varname: string
     :rtype:  identical to input
 
     *Example of use:*
@@ -402,8 +437,8 @@ Modifying/creating variables
 
     :param a:  Input data
     :type  a:  [array, list of arrays] or [pyTree, base, zone, list of zones]
-    :param vect*: variable name defining the 3D vector 
-    :type vect*: string 
+    :param vect*: variable name defining the 3D vector
+    :type vect*: string
     :rtype:  identical to input
 
 
@@ -426,8 +461,8 @@ Modifying/creating variables
 
     :param a:  Input data
     :type  a:  [array, list of arrays] or [pyTree, base, zone, list of zones]
-    :param vect*: variable name defining the 3D vector 
-    :type vect*: string 
+    :param vect*: variable name defining the 3D vector
+    :type vect*: string
     :rtype:  identical to input
 
     *Example of use:*
@@ -450,7 +485,7 @@ Modifying/creating variables
     :param a:  Input data
     :type  a:  [array, list of arrays] or [pyTree, base, zone, list of zones]
     :param varname: variable name (can be preceded by 'nodes:' or 'centers:')
-    :type varname: string 
+    :type varname: string
     :rtype:  identical to input
 
     *Example of use:*
@@ -468,7 +503,7 @@ Modifying/creating variables
 Solution selection
 -------------------
 
-.. py:function:: Post.selectCells(a, F, ['var1', 'var2'], strict=0) 
+.. py:function:: Post.selectCells(a, F, ['var1', 'var2'], strict=0)
 
     Select cells with respect to a given criterion.
     If strict=0, the cell is selected if at least one of the cell vertices satisfies the criterion.
@@ -476,9 +511,9 @@ Solution selection
     The criterion can be defined as a python function returning True (=selected) or False (=not selected):
     ::
 
-        P.selectCells(a, F, ['var1', 'var2'], strict=0) 
+        P.selectCells(a, F, ['var1', 'var2'], strict=0)
 
-    or by a formula:     
+    or by a formula:
     ::
 
         P.selectCells(a, '{x}+{y}>2', strict=0)
@@ -487,11 +522,11 @@ Solution selection
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
     :param F: cells selection criterion
     :type F: function
-    :param var*: arguments of function F 
+    :param var*: arguments of function F
     :type var*: string
     :param strict: selection mode (0 or 1)
-    :type strict: integer 
-    :rtype: identical to input 
+    :type strict: integer
+    :rtype: identical to input
 
     *Example of use:*
 
@@ -517,10 +552,10 @@ Solution selection
     :param a: input data
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
     :param tag: variable name
-    :type tag: string 
+    :type tag: string
     :param strict: selection mode (0 or 1)
-    :type strict: integer 
-    :rtype: identical to input 
+    :type strict: integer
+    :rtype: identical to input
 
     *Example of use:*
 
@@ -543,8 +578,8 @@ Solution selection
     :param a: input data
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
     :param strict: selection mode (0 or 1)
-    :type strict: integer 
-    :rtype: identical to input 
+    :type strict: integer
+    :rtype: identical to input
 
     *Example of use:*
 
@@ -560,16 +595,16 @@ Solution selection
 
 .. py:function:: Post.exteriorFaces(a, indices=None)
 
-    Select the exterior faces of a mesh, and return them in a single unstructured zone. If indices=[], the 
+    Select the exterior faces of a mesh, and return them in a single unstructured zone. If indices=[], the
     indices of the original exterior faces are returned.
     For structured grids, indices are the global index containing i faces, then j faces, then k faces, starting from 0.
     For NGON grids, indices are the NGON face indices, starting from 1.
 
     :param a: input data
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
-    :param indices: indices of original exterior faces 
+    :param indices: indices of original exterior faces
     :type indices: list of integers
-    :rtype: zone 
+    :rtype: zone
 
     *Example of use:*
 
@@ -631,7 +666,7 @@ Solution selection
     :param a: input data
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
     :param tag: variable name
-    :type tag: string 
+    :type tag: string
     :rtype: zone
 
     *Example of use:*
@@ -653,7 +688,7 @@ Solution selection
 
     :param A: input data
     :type A: [array, list of arrays] or [pyTree, base, zone, list of zones]
-    :param alphaRef: split angle 
+    :param alphaRef: split angle
     :type alphaRef: float
     :rtype: list of arrays / zones **??**
 
@@ -677,7 +712,7 @@ Solution selection
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
     :param vector: direction vector
     :type vector: 3-tuple of floats
-    :rtype: identical to input 
+    :rtype: identical to input
 
     *Example of use:*
 
@@ -708,7 +743,7 @@ Solution selection
 
     :param a: input data
     :type a: array, list of arrays
-    :param indic: tagged element (0 or 1) 
+    :param indic: tagged element (0 or 1)
     :type indic: i-array
     :rtype: identical to input
 
@@ -719,9 +754,9 @@ Solution selection
 
     :param a: input data
     :type a: pyTree, base, zone, list of zones
-    :param indicName: tag variable name 
+    :param indicName: tag variable name
     :type indicName: string
-    :rtype: identical to input 
+    :rtype: identical to input
 
     *Example of use:*
 
@@ -778,8 +813,8 @@ Solution selection
 
 ---------------------------------------
 
-.. py:function:: Post.computeIndicatorValue (a, t, varName)  
- 
+.. py:function:: Post.computeIndicatorValue (a, t, varName)
+
     Compute the indicator value on the unstructured octree mesh a based on the absolute maximum
     value of a varName field defined in the corresponding structured octree t.
     In the array version, t is a list of zones, and in the pyTree version, it can be a tree or a base or a list of bases
@@ -798,7 +833,7 @@ Solution selection
     .. literalinclude:: ../build/Examples/Post/computeIndicatorValuePT.py
 
 ---------------------------------------
-   
+
 .. py:function:: Post.computeIndicatorField
 
     compute an indicator field to adapt an octree mesh with respect to the
@@ -836,7 +871,7 @@ Solution selection
 Solution extraction
 -------------------
 
-.. py:function:: Post.extractPoint(A, (x,y,z), order=2, constraint=40., tol=1.e-6, hook=None) 
+.. py:function:: Post.extractPoint(A, (x,y,z), order=2, constraint=40., tol=1.e-6, hook=None)
 
     Extract the field in one or several points, given a solution defined by A.
     The extracted field(s) is returned as a list of values for each point.
@@ -861,7 +896,7 @@ Solution extraction
 
     A hook can be defined in order to keep in memory the ADT on the
     interpolation cell search.
-    It can be built and deleted by createHook and freeHook functions in Converter module, using 'extractMesh' function. 
+    It can be built and deleted by createHook and freeHook functions in Converter module, using 'extractMesh' function.
 
     *Example of use:*
 
@@ -952,7 +987,7 @@ Solution extraction
     overlapping surface grids A.
     Cell nature field is used to find blanked (0) and interpolated (2) cells.
 
-    The options argument is a list of arguments such as ["argName", argValue]. Option names can be: 
+    The options argument is a list of arguments such as ["argName", argValue]. Option names can be:
 
     - 'overlapTol' for tolerance required between two overlapping grids : if the projection distance between them is under this value then the grids are considered to be overset. Default value is 1.e-5.
     - For some cases, 'matchTol' can be set to modify the matching boundaries tolerance. Default value is set 1e-6.
@@ -996,7 +1031,7 @@ Solution extraction
     chimera cell nature field must be defined as a center field in A.
 
     Warning: normal of surfaces grids defined by A must be
-    oriented in the same direction. 
+    oriented in the same direction.
 
     *Example of use:*
 

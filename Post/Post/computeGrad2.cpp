@@ -1,5 +1,5 @@
 /*
-    Copyrindcellght 2013-2018 Onera.
+    Copyright 2013-2018 Onera.
 
     This file is part of Cassiopee.
 
@@ -272,7 +272,7 @@ PyObject* K_POST::computeGrad2Struct(PyObject* self, PyObject* args)
   {
     if ( res == 2) RELEASESHAREDB(res,array,f,cn);
     PyErr_SetString(PyExc_TypeError,
-                    "computeGrad2: invalindcelld array.");
+                    "computeGrad2: invalid array.");
     return NULL;
   }
   E_Int dimPb = 3;
@@ -625,7 +625,7 @@ PyObject* K_POST::computeGrad2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
       indcelld = j*nic;
       fintp[indint] = fcn[indcelld];//extrapolation de l interieur
       cellG[indint] = -1; cellD[indint] = indcelld;
-      
+
       //faces i=ni
       indint = (ni-1)+j*ni;
       indcellg = (nic-1) + j*nic;

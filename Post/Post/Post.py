@@ -11,7 +11,7 @@ try: import Converter
 except: raise ImportError("Post: requires Converter module.")
 
 __all__ = ['coarsen', 'computeCurl', 'computeDiff', 'computeExtraVariable', 'computeGrad',
-'computeGrad2', 'computeDiv2', 'computeIndicatorField', 'computeIndicatorFieldForBounds',
+'computeGrad2', 'computeDiv', 'computeDiv2', 'computeIndicatorField', 'computeIndicatorFieldForBounds',
 'computeIndicatorValue', 'computeNormCurl', 'computeNormGrad', 'computeVariables',
 'computeVariables2', '_computeVariables2', 'enforceIndicatorForCoarsestLevel',
 'enforceIndicatorForFinestLevel', 'enforceIndicatorNearBodies', 'exteriorElts',
@@ -394,6 +394,18 @@ def computeNormGrad(array, varname):
     else:
         return post.computeNormGrad(array, varname)
 
+def computeDiv(array, vector):
+    """Compute the divergence of the given vector, whose components are defined in array
+    using the computeGrad method for gradients.
+    Usage: computeDiv(array, vector) """
+    if isinstance(array[0], list):
+        b = []
+        for i in array:
+            b.append(post.computeDiv(i, vector))
+        return b
+    else:
+        return post.computeDiv(array, vector)
+
 def computeDiv2(array, arrayc, indices=None, BCFieldX=None, BCFieldY=None, BCFieldZ=None):
     """Compute the divergence of the field varname, whose components are defined in array
     using the computeGrad2 method for gradients.
@@ -402,7 +414,7 @@ def computeDiv2(array, arrayc, indices=None, BCFieldX=None, BCFieldY=None, BCFie
         raise ValueError("computeDiv2: input must be a single zone.")
     if len(array) == 4:
         if array[3] == 'NGON' and arrayc[3] == 'NGON*':
-            return post.computeDiv2NGon(array, arrayc, indices, BCFieldX,BCFieldY,BCFieldZ)
+            return post.computeDiv2NGon(array, arrayc, indices, BCFieldX, BCFieldY, BCFieldZ)
         else:
             raise ValueError("computeDiv2: only valid for NGon unstructured zones.")
     else:
