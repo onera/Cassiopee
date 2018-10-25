@@ -452,22 +452,22 @@ def closeOctalCells(t):
 # IN: sensor_type : basic (0) or xsensor (1)
 # OUT: returns a 3D NGON Mesh with adapted cells
 #==============================================================================
-def adaptCells(t1, t2, sensor_type = 0):
+def adaptCells(t1, t2, sensor_type = 0, itermax=-1):
     """Adapts a polyhedral mesh t1 with repsect to t2 points.
-    Usage: adaptCells(t1, t2)"""
+    Usage: adaptCells(t1, t2, sensor_type)"""
     m1 = C.getFields(Internal.__GridCoordinates__, t1)[0]
     m2 = C.getFields(Internal.__GridCoordinates__, t2)[0]
-    m = intersector.adaptCells(m1, m2, sensor_type)
+    m = intersector.adaptCells(m1, m2, sensor_type,itermax)
     return C.convertArrays2ZoneNode('adapted', [m])
 
 #==============================================================================
 # adaptBox : Adapts a bounding box to a cloud of interior points
 #==============================================================================
-def adaptBox(t, box_ratio = 10.):
+def adaptBox(t, box_ratio = 10., itermax=-1):
     """Adapts a bounding box to a cloud of interior points.
     Usage: adaptBox(t, box_ratio)"""
     m = C.getFields(Internal.__GridCoordinates__, t)[0]
-    m = intersector.adaptBox(m, box_ratio)
+    m = intersector.adaptBox(m, box_ratio, itermax)
     return C.convertArrays2ZoneNode('adapted', [m])
  
 #==============================================================================

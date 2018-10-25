@@ -24,6 +24,7 @@ namespace K_MESH
   
 const E_Int K_MESH::Tetrahedron::NB_NODES=4;
 const E_Int K_MESH::Tetrahedron::NB_TRIS=4;
+const E_Int K_MESH::Tetrahedron::NB_BOUNDS=4;
 
 bool Tetrahedron::is_inside
 (const E_Float* Ni, const E_Float* Nj, const E_Float* Nk, const E_Float* Nl, const E_Float* pt)

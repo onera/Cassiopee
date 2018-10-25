@@ -20,10 +20,11 @@
 #include "Quadrangle.h"
 #include "Triangle.h"
 
-const E_Int K_MESH::Quadrangle::NB_NODES = 4;
 
 namespace K_MESH
 {
+  const E_Int Quadrangle::NB_NODES=4;
+  
   void Quadrangle::triangulate(const E_Int* nodes, E_Int* target)
   {    
     E_Int t[3];

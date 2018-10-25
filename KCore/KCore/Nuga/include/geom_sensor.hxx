@@ -15,6 +15,7 @@
 #include "Connect/EltAlgo.h"
 #include "MeshElement/Hexahedron.h"
 #include "Fld/ngon_t.hxx"
+#include <limits.h>
 using ngon_type = ngon_t<K_FLD::IntArray>; 
 
 //#define NB_PTS_TO_INCR(nb_pts) (nb_pts/4)
@@ -31,7 +32,8 @@ class geom_sensor
     
     using data_type = crd_t; //point cloud
     
-    geom_sensor(mesh_t& mesh, E_Int max_pts_per_cell = 1):_hmesh(mesh), _is_init(false), _refine(true), _has_agglo(false), _agglo(true), _max_pts_per_cell(max_pts_per_cell){}
+    geom_sensor(mesh_t& mesh, E_Int max_pts_per_cell = 1, E_Int itermax = -1)
+            :_hmesh(mesh), _is_init(false), _refine(true), _has_agglo(false), _agglo(true), _max_pts_per_cell(max_pts_per_cell), _iter_max((itermax <= 0) ? INT_MAX : itermax), _iter(0){}
     
     virtual E_Int init(data_type& data);
     
@@ -55,6 +57,7 @@ class geom_sensor
     bool _has_agglo; // one cell might be able to be agglomerated
     bool _agglo; // we have at least 1 agglomeration
     E_Int _max_pts_per_cell;
+    E_Int _iter_max, _iter;
 };
 
 /// 
@@ -80,6 +83,8 @@ bool geom_sensor<mesh_t, crd_t>::compute(data_type& data, Vector_t<E_Int>& adap_
 #ifdef FLAG_STEP
   std::cout << _hmesh._ng.PHs.size() << std::endl;
 #endif
+  
+  if (++_iter > _iter_max) return false;
   
   E_Int nb_elts = _hmesh._ng.PHs.size();
   E_Int nb_pts = _points_to_cell.size();
@@ -204,6 +209,8 @@ void geom_sensor<mesh_t, crd_t>::locate_points(K_SEARCH::BbTree3D& tree, data_ty
   _points_to_cell.resize(nb_src_pts, E_IDX_NONE);
   
   Vector_t<E_Int> ids;
+
+  bool found=false;
   
   for (int i = 0; i < nb_src_pts; i++)
   {
@@ -235,10 +242,14 @@ void geom_sensor<mesh_t, crd_t>::locate_points(K_SEARCH::BbTree3D& tree, data_ty
           _points_to_cell[i] = cell;
         }
 
+        found = true;
         break;
       }
     }
   }
+
+  if (!found) std::cout << "WARNING : All the source points are outside the mesh. Nothing to do." << std::endl;
+
 }
 
 ///

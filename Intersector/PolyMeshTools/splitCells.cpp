@@ -111,10 +111,10 @@ PyObject* K_INTERSECTOR::splitNonStarCells(PyObject* self, PyObject* args)
 PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
 {
   PyObject *arr(nullptr), *arrS(nullptr);
-  E_Int sensor_type(0);
+  E_Int sensor_type(0), itermax(0);
   
 
-  if (!PYPARSETUPLEI(args, "OOl", "OOi", &arr, &arrS, &sensor_type)) return NULL;
+  if (!PYPARSETUPLEI(args, "OOll", "OOii", &arr, &arrS, &sensor_type, &itermax)) return NULL;
 
   K_FLD::FloatArray* f(nullptr), *fS(nullptr);
   K_FLD::IntArray* cn(nullptr), *cnS(nullptr);
@@ -173,14 +173,14 @@ PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
   if (sensor_type == 1) //xsensor
   {
   	using sensor_t = NUGA::xsensor<K_MESH::Hexahedron, mesh_type>;
-  	sensor_t sensor(hmesh, cntS);
+  	sensor_t sensor(hmesh, cntS, itermax);
     NUGA::adaptor<mesh_type, sensor_t>::run(hmesh, sensor, crdS);
 
   }
   else
   {
   	using sensor_t = NUGA::geom_sensor<mesh_type>;
-  	sensor_t sensor(hmesh);
+  	sensor_t sensor(hmesh, 1/*max_pts per cell*/, itermax);
     NUGA::adaptor<mesh_type, sensor_t>::run(hmesh, sensor, crdS);
   }
   
@@ -203,9 +203,10 @@ PyObject* K_INTERSECTOR::adaptBox(PyObject* self, PyObject* args)
 {
   PyObject *arrS(nullptr);
   E_Float bratio(10.);
+  E_Int itermax(0);
   
 
-  if (!PYPARSETUPLEF(args, "Od", "Of", &arrS, &bratio)) return NULL;
+  if (!PYPARSETUPLE(args, "Odl", "Odi", "Ofl", "Ofi", &arrS, &bratio, &itermax)) return NULL;
 
   if (bratio < 1.)bratio = 1.;
 
@@ -259,7 +260,7 @@ PyObject* K_INTERSECTOR::adaptBox(PyObject* self, PyObject* args)
   using sensor_type = NUGA::geom_sensor/*geom_static_sensor*/<mesh_type>;
   
   mesh_type hmesh(crd, ngi);
-  sensor_type sensor(hmesh);
+  sensor_type sensor(hmesh, 1/*max pts per cell*/, itermax);
   
   NUGA::adaptor<mesh_type, sensor_type>::run(hmesh, sensor, crdS);
 

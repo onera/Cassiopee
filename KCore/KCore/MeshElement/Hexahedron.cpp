@@ -25,8 +25,9 @@
 namespace K_MESH
 {
   
-const E_Int K_MESH::Hexahedron::NB_NODES=8;
-const E_Int K_MESH::Hexahedron::NB_TRIS=12;
+const E_Int Hexahedron::NB_NODES=8;
+const E_Int Hexahedron::NB_TRIS=12;
+const E_Int Hexahedron::NB_BOUNDS=6;
 
 void Hexahedron::triangulate(E_Int* target)
 {

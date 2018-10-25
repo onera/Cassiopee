@@ -66,6 +66,34 @@ struct ngon_t
   ngon_t(const Connectivity_t& cNGON) :PGs(cNGON.begin() + STARTFACE), PHs(cNGON.begin() + STARTELTS(cNGON)){ PGs.updateFacets(); PHs.updateFacets(); }
   ///
   ngon_t(const ngon_t& ngt) :PGs(ngt.PGs), PHs(ngt.PHs){ PGs.updateFacets(); PHs.updateFacets(); }
+  ///
+  template <typename ELT>
+  static void convert(const K_FLD::IntArray& cnt,ngon_t& ng)
+  {
+    E_Int nbe = cnt.cols();
+    
+    using btype = typename ELT::boundary_type;
+    
+    E_Int molec[ELT::NB_BOUNDS];
+    
+    E_Int pg_count(1);
+    
+    for (E_Int i=0; i < nbe; ++i)
+    {
+      ELT e(cnt.col(i), 1); //convert to 1-based
+      
+      for (E_Int j=0; j< ELT::NB_BOUNDS; ++j)
+      {
+        btype b;
+        e.getBoundary(j, b);
+        
+        ng.PGs.add(btype::NB_NODES, b.nodes());
+        molec[j] = pg_count++;
+      }
+      
+      ng.PHs.add(ELT::NB_BOUNDS, molec);
+    }
+  }
   /// 
   ngon_t(const E_Int* cNGon, E_Int sz1, E_Int nb_pgs, const E_Int* cNFace, E_Int sz2, E_Int nb_phs) :PGs(cNGon, sz1, nb_pgs), PHs(cNFace, sz2, nb_phs){ PGs.updateFacets(); PHs.updateFacets(); }
   ///

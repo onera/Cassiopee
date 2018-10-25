@@ -33,12 +33,13 @@ class Hexahedron {
 public:
   static const E_Int NB_NODES;
   static const E_Int NB_TRIS;
+  static const E_Int NB_BOUNDS;
   
   typedef K_MESH::Quadrangle boundary_type;
     
 public:
   Hexahedron(){}
-  Hexahedron(E_Int* nodes, E_Int shift=0):_shift(shift){ for (size_t i = 0; i< 8; ++i)_nodes[i]=*(nodes++);}
+  Hexahedron(const E_Int* nodes, E_Int shift=0):_shift(shift){ for (size_t i = 0; i< 8; ++i)_nodes[i]=*(nodes++);}
  ~Hexahedron(){}
   
   void setNodes(E_Int* nodes){for (size_t i = 0; i< 8; ++i)_nodes[i]=*(nodes++);}

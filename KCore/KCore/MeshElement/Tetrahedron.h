@@ -34,11 +34,14 @@ class Tetrahedron {
   public:
     static const E_Int NB_NODES;
     static const E_Int NB_TRIS;
+    static const E_Int NB_BOUNDS;
     typedef K_MESH::Triangle       boundary_type;
   
   public:
     Tetrahedron(){}
     ~Tetrahedron(){}
+    
+    Tetrahedron(const E_Int* nodes, E_Int shift=0):_shift(shift){ for (size_t i = 0; i< 4; ++i)_nodes[i]=*(nodes++) + shift;}
     
     void setNodes(E_Int* nodes){for (size_t i = 0; i< 4; ++i)_nodes[i]=*(nodes++);}
     
@@ -240,6 +243,7 @@ private:
   Tetrahedron(const Tetrahedron& orig);
   
 private:
+    E_Int _shift;
     E_Int _nodes[4];
 };
 
