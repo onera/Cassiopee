@@ -232,6 +232,12 @@ ClbQghfEYAY1uEEOdtCDHwRhCEUIloAAADs=
     else: myText += 'not present (mpeg export unavailable).\n'
     textWidget.insert(TK.END, myText)
 
+    myText = " Connector: libmpi: "
+    if (buildInfo.has_key('mpi') and buildInfo['mpi'] != "None"):
+        myText += 'present.\n'
+    else: myText += 'not present (direct MPI communications unavailable).\n'
+    textWidget.insert(TK.END, myText)
+
     myText = "\n\n"
     myText += " Included third party software:\n"
     myText += " - freeglut (see Converter/GLUT/LICENSE).\n"

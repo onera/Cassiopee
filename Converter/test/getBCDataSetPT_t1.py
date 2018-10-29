@@ -13,6 +13,6 @@ d = Internal.newBCDataSet(name='BCDataSet', value='UserDefined',
 d = Internal.newBCData('BCNeumann', parent=d)
 d = Internal.newDataArray('Density', value=10*[1.], parent=d)
 
-datas = Internal.getBCDataSet(a, b); print datas
+datas = Internal.getBCDataSet(a, b)
 test.testO(datas, 1)
 

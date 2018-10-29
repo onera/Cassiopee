@@ -112,9 +112,11 @@ Basic operations
 ---------------------------------------
 
 
-.. py:function:: Transform.oneovern(a,(Ni,Nj,Nk))
+.. py:function:: Transform.oneovern(a, (Ni,Nj,Nk))
 
-    Extract every Ni,Nj,Nk point in the three directions of a structured mesh a.
+    .. A1.O0.D1
+
+    Extract every Ni,Nj,Nk points in the three directions of a structured mesh a.
     
     Exists also as an in-place version (_oneovern) which modifies a and returns None.
    
@@ -123,15 +125,15 @@ Basic operations
     :param (Ni,Nj,Nk): period of extraction in the three directions
     :type (Ni,Nj,Nk): 3-tuple of integers
     :return: a coarsened structured mesh
-    :rtype: Identical to a
+    :rtype: identical to input
 
     *Example of use:*
 
-    * `Extract every two point in a mesh (array) <Examples/Transform/oneovern.py>`_:
+    * `Extract every two points in a structured mesh (array) <Examples/Transform/oneovern.py>`_:
 
     .. literalinclude:: ../build/Examples/Transform/oneovern.py
 
-    * `Extract every two point in a mesh (pyTree) <Examples/Transform/oneovernPT.py>`_:
+    * `Extract every two points in a structured mesh (pyTree) <Examples/Transform/oneovernPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Transform/oneovernPT.py
 
@@ -139,160 +141,181 @@ Basic operations
 
 .. py:function:: Transform.reorder(a, dest) 
 
-   For a structured grid, change the (i,j,k) ordering of a. 
-   To reorder a mesh (i,j,k) into (i2,j2,k2), the transformation can be achieved through a matrix M, filled with
-   a single nonzero value per line and column (equal to -1 or 1).
-   dest=(desti,destj,destk) means: 
-   M[abs(desti),1]=sign(desti); M[abs(destj),2]=sign(destj); M[abs(destk),3]=sign(destk) 
-
-   For an unstructured 2D grid (TRI, QUAD, 2D NGON), order the normals such that they are all oriented towards the 
-   same direction.
+    .. A1.O0.D1
+      
+    For a structured grid, change the (i,j,k) ordering of a. 
+    If you set dest=(i2,j2,k2) for a (i,j,k) mesh, going along i2 direction of the resulting mesh
+    will be equivalent to go along i direction of initial mesh.
    
-   Exists also as an in-place version (_reorder) which modifies a and returns None.
+    The transformation can be equivalently described by a matrix M, filled with
+    a single non-zero value per line and column (equal to -1 or 1).
+    Then, dest=(desti,destj,destk) means: 
+    M[abs(desti),1]=sign(desti); M[abs(destj),2]=sign(destj); M[abs(destk),3]=sign(destk).
+
+    For an unstructured 2D grid (TRI, QUAD, 2D NGON), order the element nodes such that all normals are oriented towards the 
+    same direction. If dest is set to (1,), all elements are oriented as element 0. If dest is (-1,), all elements are oriented
+    in the opposite sense of element 0.
    
-   :param a: initial mesh
-   :type a: array or zone
-   :param dest: integers to transform i to desti, j to destj
-   :type dest: 3-tuple of signed integers
-   :return: a reoriented mesh
-   :rtype: an array or a zone
+    Exists also as an in-place version (_reorder) which modifies a and returns None.
+   
+    :param a: initial mesh
+    :type a: [array, list of arrays] or [zone, list of zones, base, pyTree]
+    :param dest: integers specifying transformation
+    :type dest: 3-tuple of signed integers or a tuple of a single 1 or -1
+    :return: a reoriented mesh
+    :rtype: identical to input
 
-   *Example of use:*
+    *Example of use:* 
 
-   * `Reorder a mesh (array) <Examples/Transform/reorder.py>`_:
+    * `Reorder a mesh (array) <Examples/Transform/reorder.py>`_:
 
-   .. literalinclude:: ../build/Examples/Transform/reorder.py
+    .. literalinclude:: ../build/Examples/Transform/reorder.py
 
-   * `Reorder a mesh (pyTree) <Examples/Transform/reorderPT.py>`_:
+    * `Reorder a mesh (pyTree) <Examples/Transform/reorderPT.py>`_:
 
-   .. literalinclude:: ../build/Examples/Transform/reorderPT.py
+    .. literalinclude:: ../build/Examples/Transform/reorderPT.py
 
 ---------------------------------------
 
 .. py:function:: Transform.reorderAll(a, dir=1)
 
-   Order a set of surface grids a in the same direction. 
-   All the grids in a must be of same nature (structured or unstructured). 
-   Orientation of the first grid in the list is used to reorder the other grids. If dir=-1, the orientation 
-   is the opposite direction of the normals of the first grid.
+    .. A1.O0.D1
+    
+    Order a set of surface grids a such that their normals points in the same direction. 
+    All the grids in a must be of same nature (structured or unstructured). 
+    Orientation of the first grid in the list is used to reorder the other grids. If dir=-1, the orientation 
+    is the opposite direction of the normals of the first grid.
    
-   In case of unstructured grids, reorientation is guaranteed to be outward (by default) if they represent a closed volume.
+    In case of unstructured grids, reorientation is guaranteed to be outward (dir=1) if they 
+    represent a closed volume.
 
+    Exists also as an in-place version (_reorderAll) which modifies a and returns None.
    
-   Exists also as an in-place version (_reorderAll) which modifies a and returns None.
-   
-   :param a: initial set of surface grids
-   :type a: [list of arrays] or [list of zone]
-   :param dir: 1 (default), -1 if the reorientation is reversed
-   :type dir: signed integer
-   :return: a reoriented mesh
-   :rtype: [list of arrays] or [list of zones]
+    :param a: initial set of surface grids
+    :type a: [list of arrays] or [list of zones]
+    :param dir: 1 (default), -1 for a reversed orientation
+    :type dir: signed integer
+    :return: a reoriented mesh
+    :rtype: identical to input
 
-   *Example of use:*
+    *Example of use:*
 
-   * `Reorder a set of grids (array) <Examples/Transform/reorderAll.py>`_:
+    * `Reorder a set of grids (array) <Examples/Transform/reorderAll.py>`_:
 
-   .. literalinclude:: ../build/Examples/Transform/reorderAll.py
+    .. literalinclude:: ../build/Examples/Transform/reorderAll.py
 
-   * `Reorder a set of grids (pyTree) <Examples/Transform/reorderAllPT.py>`_:
+    * `Reorder a set of grids (pyTree) <Examples/Transform/reorderAllPT.py>`_:
 
-   .. literalinclude:: ../build/Examples/Transform/reorderAllPT.py
+    .. literalinclude:: ../build/Examples/Transform/reorderAllPT.py
 
 ---------------------------------------
 
 .. py:function:: Transform.makeCartesianXYZ(a)
 
-   Align a structured Cartesian mesh in order to get i,j,k aligned with X,Y,Z respectively.
-   Exists also as an in-place version (_makeCartesianXYZ) which modifies a and returns None.
+    .. A1.O0.D1. Est il necessaire de documenter cette fonction?
+    
+    Reorder a structured Cartesian mesh in order to get i,j,k aligned with X,Y,Z respectively.
+    Exists also as an in-place version (_makeCartesianXYZ) which modifies a and returns None.
    
-   :param a: Cartesian mesh with (i,j,k) not aligned with (X,Y,Z)
-   :type a: array or zone
-   :return: a Cartesian mesh such that direction i is aligned with (0X) etc
-   :rtype: array or zone
+    :param a: Cartesian mesh with (i,j,k) not ordered following (X,Y,Z)
+    :type a: [array, list of arrays] or [zone, list of zones, base, pyTree]
+    :return: a Cartesian mesh such that direction i is aligned with (0X), ...
+    :rtype: identical to input
 
-   *Example of use:*
+    *Example of use:*
 
-   * `Align a Cartesian mesh with XYZ (array) <Examples/Transform/makeCartesianXYZ.py>`_:
+    * `Align a Cartesian mesh with XYZ (array) <Examples/Transform/makeCartesianXYZ.py>`_:
 
-   .. literalinclude:: ../build/Examples/Transform/makeCartesianXYZ.py
+    .. literalinclude:: ../build/Examples/Transform/makeCartesianXYZ.py
 
-   * `Align a Cartesian mesh with XYZ (pyTree) <Examples/Transform/makeCartesianXYZPT.py>`_:
+    * `Align a Cartesian mesh with XYZ (pyTree) <Examples/Transform/makeCartesianXYZPT.py>`_:
 
-   .. literalinclude:: ../build/Examples/Transform/makeCartesianXYZPT.py
+    .. literalinclude:: ../build/Examples/Transform/makeCartesianXYZPT.py
 
 ---------------------------------------
 
 .. py:function:: Transform.makeDirect(a)
 
-   Reorder an indirect structured mesh to get a direct mesh.
-   Exists also as an in-place version (_makeDirect) which modifies a and returns None.
+    .. A1.O0.D1
+    
+    Reorder an indirect structured mesh to get a direct mesh.
+    Exists also as an in-place version (_makeDirect) which modifies a and returns None.
    
-   :param a: structured mesh
-   :type a: array or zone
-   :return: a direct structured mesh
-   :rtype: array or zone
+    :param a: structured mesh
+    :type a: [array, list of arrays] or [zone, list of zones, base, pyTree]
+    :return: a direct structured mesh
+    :rtype: identical to input
 
-   *Example of use:*
+    *Example of use:*
 
-   * `Make a mesh direct (array) <Examples/Transform/makeDirect.py>`_:
+    * `Make a mesh direct (array) <Examples/Transform/makeDirect.py>`_:
 
-   .. literalinclude:: ../build/Examples/Transform/makeDirect.py
+    .. literalinclude:: ../build/Examples/Transform/makeDirect.py
 
-   * `Make a mesh direct (pyTree) <Examples/Transform/makeDirectPT.py>`_:
+    * `Make a mesh direct (pyTree) <Examples/Transform/makeDirectPT.py>`_:
 
-   .. literalinclude:: ../build/Examples/Transform/makeDirectPT.py
+    .. literalinclude:: ../build/Examples/Transform/makeDirectPT.py
 
 ---------------------------------------
 
-.. py:function:: Transform.addkplane(a,N=1)
+.. py:function:: Transform.addkplane(a, N=1)
 
-   Add one or more planes at constant heights z0+1, ...,z0+N.
-   Exists also as an in-place version (_addkplane) which modifies a and returns None.
+    .. A1.O0.D1
+    
+    Add one or more planes at constant heights z0+1, ...,z0+N.
+    Exists also as an in-place version (_addkplane) which modifies a and returns None.
    
-   :param a: structured mesh
-   :type a: array or zone
-   :param N: number of layers in the k direction to be added
-   :type N: integer
-   :return: a structured mesh
-   :rtype: array or zone
+    :param a: structured mesh
+    :type a: [array, list of arrays] or [zone, list of zones, base, pyTree]
+    :param N: number of layers in the k direction to be added
+    :type N: integer
+    :return: a structured mesh
+    :rtype: identical to input
 
-   *Example of use:*
+    *Example of use:*
 
-   * `Add a k-plane in direction (Oz) (array) <Examples/Transform/addkplane.py>`_:
+    * `Add a k-plane in direction (Oz) (array) <Examples/Transform/addkplane.py>`_:
 
-   .. literalinclude:: ../build/Examples/Transform/addkplane.py
+    .. literalinclude:: ../build/Examples/Transform/addkplane.py
 
-   * `Add a k-plane in direction (Oz) (pyTree) <Examples/Transform/addkplanePT.py>`_:
+    * `Add a k-plane in direction (Oz) (pyTree) <Examples/Transform/addkplanePT.py>`_:
 
-   .. literalinclude:: ../build/Examples/Transform/addkplanePT.py
+    .. literalinclude:: ../build/Examples/Transform/addkplanePT.py
 
 ---------------------------------------
 
 .. py:function:: Transform.collapse(a)
 
-    Collapse and extract smallest edges of a triangular mesh 
+    .. A1.O0.D1
+    
+    Collapse the smallest edges of each element of a triangular mesh. Return
+    each element as a BAR. 
     Exists also as an in-place version (_collapse) which modifies a and returns None.
    
-    :param a: triangular mesh
-    :type a: array or zone 
-    :return: a set of edges as BAR elements
-    :rtype: an array or a zone
+    :param a: a TRI mesh
+    :type a: [array list of arrays] or [zone, list of zones, base, pyTree] 
+    :return: a BAR mesh
+    :rtype: identical to input
 
     *Example of use:*
 
-    * `Collapse edges (array) <Examples/Transform/collapse.py>`_:
+    * `Collapse smallest edge of a triangular mesh (array) <Examples/Transform/collapse.py>`_:
 
     .. literalinclude:: ../build/Examples/Transform/collapse.py
 
-    * `Creation of a point (pyTree) <Examples/Transform/collapsePT.py>`_:
+    * `Collapse smallest edge of a triangular mesh (pyTree) <Examples/Transform/collapsePT.py>`_:
 
     .. literalinclude:: ../build/Examples/Transform/collapsePT.py
 
 ---------------------------------------
 
-.. py:function:: Transform.patch(a,b,position=None,nodes=None)
+.. py:function:: Transform.patch(a, b, position=None, nodes=None)
 
+    .. A1.O0.D1. Cette fonction devrait etre optimum pour patcher des solutions.
+    
     For a structured mesh a, patch (replace) a structured mesh b from starting point position=(i,j,k) of a. 
+    Coordinates and fields are replaced.
+
     For an unstructured mesh a, patch an unstructured mesh (of same type) by replacing the nodes of indices nodes.
    
     Exists also as an in-place version (_patch) which modifies a and returns None.
@@ -320,72 +343,77 @@ Basic operations
 
 
 Mesh positioning
---------------------------
+------------------------
 
 
 .. py:function:: Transform.rotate(a, C, arg1, arg2=None, vectors=[['VelocityX','VelocityY','VelocityZ'],['MomentumX','MomentumY','MomentumZ']])
 
-   Rotate a mesh. Rotation can be also applied on some vector fields (e.g. velocity and momentum). 
-   If the vector field is located at cell centers, then each vector component name must be prefixed by 'centers:'.
+    .. A2.O1.D1
+    
+    Rotate a mesh. Rotation can be also applied on some vector fields (e.g. velocity and momentum). 
+    If the vector field is located at cell centers, then each vector component name must be 
+    prefixed by 'centers:'.
 
-   Exists also as an in-place version (_rotate) which modifies a and returns None.
+    Exists also as an in-place version (_rotate) which modifies a and returns None.
 
-   Rotation can be defined by:
+    Rotation parameters can be specified either by:
 
-   - a rotation axis (arg1) and a rotation angle (arg2)
+    - a rotation axis (arg1) and a rotation angle (arg2)
 
-   - two axes (arg1 and arg2): axis arg1 is rotated into axis arg2 
+    - two axes (arg1 and arg2): axis arg1 is rotated into axis arg2 
 
-   - three Euler angles arg1=(alpha, beta, gamma). alpha is a rotation along X (Ox->Ox, Oy->Oy1, Oz->Oz1), beta is a rotation along Y (Ox1->Ox2, Oy1->Oy1, Oz1->Oz2), gamma is a rotation along Z (Ox2->Ox3, Oy2->Oy3, Oz2->Oz2):
+    - three Euler angles arg1=(alpha, beta, gamma). alpha is a rotation along X (Ox->Ox, Oy->Oy1, Oz->Oz1), beta is a rotation along Y (Ox1->Ox2, Oy1->Oy1, Oz1->Oz2), gamma is a rotation along Z (Ox2->Ox3, Oy2->Oy3, Oz2->Oz2):
 
 
-   :param a: mesh
-   :type a: array or zone
-   :param C: center of rotation
-   :type C: 3-tuple of floats
-   :param arg1: rotation axis, original axis, rotation angles 
-   :type arg1: 3-tuple of floats
-   :param arg2: angle of rotation, destination axis, none 
-   :type arg2: float, 3-tuple of floats, None
-   :param vectors: for each vector, list of the names of the vector components 
-   :type vectors: [list of list of strings]
-   :return: mesh after rotation
-   :rtype: array or zone
+    :param a: mesh
+    :type a: [array, list of arrays] or [zone, list of zones, base, pyTree]
+    :param C: center of rotation
+    :type C: 3-tuple of floats
+    :param arg1: rotation axis or original axis or rotation angles 
+    :type arg1: 3-tuple of floats or 3-tuple of 3-tuple of floats
+    :param arg2: angle of rotation or destination axis or None 
+    :type arg2: float or 3-tuple of floats or None
+    :param vectors: for each vector, list of the names of the vector components
+    :type vectors: [list of list of strings]
+    :return: mesh after rotation
+    :rtype: identical to input
 
-   *Example of use:*
+    *Example of use:*
 
-   * `Rotate a mesh (array) <Examples/Transform/rotate.py>`_:
+    * `Rotate a mesh (array) <Examples/Transform/rotate.py>`_:
 
-   .. literalinclude:: ../build/Examples/Transform/rotate.py
+    .. literalinclude:: ../build/Examples/Transform/rotate.py
 
-   * `Rotate a mesh (pyTree) <Examples/Transform/rotatePT.py>`_:
+    * `Rotate a mesh (pyTree) <Examples/Transform/rotatePT.py>`_:
 
-   .. literalinclude:: ../build/Examples/Transform/rotatePT.py
+    .. literalinclude:: ../build/Examples/Transform/rotatePT.py
 
 ---------------------------------------
 
 .. py:function:: Transform.translate(a, T)
 
-   Translate a  mesh of vector T=(tx,ty,tz).
+    .. A2.O1.D1
+    
+    Translate a  mesh of vector T=(tx,ty,tz).
 
-   Exists also as an in-place version (_translate) which modifies a and returns None.
+    Exists also as an in-place version (_translate) which modifies a and returns None.
 
-   :param a: mesh
-   :type a: array or zone
-   :param T: translation vector
-   :type T: 3-tuple of floats
-   :return: mesh after translation
-   :rtype: array or zone
+    :param a: mesh
+    :type a: [array, list of arrays] or [zone, list of zones, base, pyTree]
+    :param T: translation vector
+    :type T: 3-tuple of floats
+    :return: mesh after translation
+    :rtype: identical to input
 
-   *Example of use:*
+    *Example of use:*
 
-   * `Translate a mesh (array) <Examples/Transform/translate.py>`_:
+    * `Translate a mesh (array) <Examples/Transform/translate.py>`_:
 
-   .. literalinclude:: ../build/Examples/Transform/translate.py
+    .. literalinclude:: ../build/Examples/Transform/translate.py
 
-   * `Translate a mesh (pyTree) <Examples/Transform/translatePT.py>`_:
+    * `Translate a mesh (pyTree) <Examples/Transform/translatePT.py>`_:
 
-   .. literalinclude:: ../build/Examples/Transform/translatePT.py
+    .. literalinclude:: ../build/Examples/Transform/translatePT.py
 
 
 ---------------------------------------
@@ -397,30 +425,32 @@ Mesh transformation
 
 .. py:function:: Transform.cart2Cyl(a, C, AXIS)
 
-   Convert a mesh in Cartesian coordinates into a mesh in cylindrical coordinates. 
-   One of the Cartesian axes, defined by parameter AXIS, must be the revolution axis of the cylindrical frame.
-   AXIS can be (0,0,1), (1,0,0) or (0,1,0).
+    .. A1.O0.D1
+    
+    Convert a mesh in Cartesian coordinates into a mesh in cylindrical coordinates. 
+    One of the Cartesian axes, defined by parameter AXIS, must be the revolution axis of the cylindrical frame.
+    AXIS can be one of (0,0,1), (1,0,0) or (0,1,0).
 
-   Exists also as an in-place version (_cart2Cyl) which modifies a and returns None.
+    Exists also as an in-place version (_cart2Cyl) which modifies a and returns None.
 
-   :param a: mesh with coordinates defined in the Cartesian frame
-   :type a: array or zone
-   :param C: center of revolution
-   :type C: 3-tuple of floats
-   :param AXIS: revolution axis
-   :type AXIS: 3-tuple of floats
-   :return: mesh with coordinates in the cylindrical frame
-   :rtype: array or zone
+    :param a: mesh with coordinates defined in the Cartesian frame
+    :type a: [array, list of arrays] or [zone, list of zone, base, pyTree]
+    :param C: center of revolution
+    :type C: 3-tuple of floats
+    :param AXIS: revolution axis
+    :type AXIS: 3-tuple of floats
+    :return: mesh with coordinates in the cylindrical frame
+    :rtype: identical to input
 
-   *Example of use:*
+    *Example of use:*
 
-   * `Cart2Cyl a mesh (array) <Examples/Transform/cart2Cyl.py>`_:
+    * `Cart2Cyl a mesh (array) <Examples/Transform/cart2Cyl.py>`_:
 
-   .. literalinclude:: ../build/Examples/Transform/cart2Cyl.py
+    .. literalinclude:: ../build/Examples/Transform/cart2Cyl.py
 
-   * `Cart2Cyl a mesh (pyTree) <Examples/Transform/cart2CylPT.py>`_:
+    * `Cart2Cyl a mesh (pyTree) <Examples/Transform/cart2CylPT.py>`_:
 
-   .. literalinclude:: ../build/Examples/Transform/cart2CylPT.py
+    .. literalinclude:: ../build/Examples/Transform/cart2CylPT.py
 
 
 ---------------------------------------
@@ -428,28 +458,30 @@ Mesh transformation
 
 .. py:function:: Transform.homothety(a, C, alpha)
 
-   Apply an homothety of center C and a factor alpha to a mesh a.
+    .. A2.O1.D1
+    
+    Apply an homothety of center C and a factor alpha to a mesh a.
 
-   Exists also as an in-place version (_homothety) which modifies a and returns None.
+    Exists also as an in-place version (_homothety) which modifies a and returns None.
 
-   :param a: mesh
-   :type a: array or zone
-   :param C: center of homothety
-   :type C: 3-tuple of floats
-   :param alpha: homothety factor
-   :type alpha: float
-   :return: mesh after translation
-   :rtype: array or zone
+    :param a: mesh
+    :type a: [array, list of arrays] or [zone, list of zones, base, pyTree]
+    :param C: center of homothety
+    :type C: 3-tuple of floats
+    :param alpha: homothety factor
+    :type alpha: float
+    :return: mesh after homothety
+    :rtype: identical to input
 
-   *Example of use:*
+    *Example of use:*
 
-   * `Homothety a mesh (array) <Examples/Transform/homothety.py>`_:
+    * `Homothety a mesh (array) <Examples/Transform/homothety.py>`_:
 
-   .. literalinclude:: ../build/Examples/Transform/homothety.py
+    .. literalinclude:: ../build/Examples/Transform/homothety.py
 
-   * `Homothety a mesh (pyTree) <Examples/Transform/homothetyPT.py>`_:
+    * `Homothety a mesh (pyTree) <Examples/Transform/homothetyPT.py>`_:
 
-   .. literalinclude:: ../build/Examples/Transform/homothetyPT.py
+    .. literalinclude:: ../build/Examples/Transform/homothetyPT.py
 
 
 ---------------------------------------
@@ -457,61 +489,65 @@ Mesh transformation
 
 .. py:function:: Transform.contract(a, C, dir1, dir2, alpha)
 
-   Make a contraction of factor alpha of a mesh with respect to a plane defined by a point C and 
-   vectors dir1 and dir2.
+    .. A2.O1.D1
 
-   Exists also as an in-place version (_contract) which modifies a and returns None.
+    Make a contraction of factor alpha of a mesh with respect to a plane defined by a point C and 
+    vectors dir1 and dir2.
 
-   :param a: mesh
-   :type a: array or zone
-   :param C: point in the contraction plane 
-   :type C: 3-tuple of floats
-   :param dir1: first vector in the plane
-   :type dir1: 3-tuple of floats
-   :param dir2: second vector in the plane
-   :type dir2: 3-tuple of floats
-   :param alpha: contraction factor
-   :type alpha: float
-   :return: mesh after contraction
-   :rtype: array or zone
+    Exists also as an in-place version (_contract) which modifies a and returns None.
 
-   *Example of use:*
+    :param a: mesh
+    :type a: [array, list of arrays] or [zone, list of zones, base, pyTree]
+    :param C: point of the contraction plane 
+    :type C: 3-tuple of floats
+    :param dir1: first vector defining the plane
+    :type dir1: 3-tuple of floats
+    :param dir2: second vector defining the plane
+    :type dir2: 3-tuple of floats
+    :param alpha: contraction factor
+    :type alpha: float
+    :return: mesh after contraction
+    :rtype: identical to input
 
-   * `contract a mesh (array) <Examples/Transform/contract.py>`_:
+    *Example of use:*
 
-   .. literalinclude:: ../build/Examples/Transform/contract.py
+    * `Contract a mesh (array) <Examples/Transform/contract.py>`_:
 
-   * `contract a mesh (pyTree) <Examples/Transform/contractPT.py>`_:
+    .. literalinclude:: ../build/Examples/Transform/contract.py
 
-   .. literalinclude:: ../build/Examples/Transform/contractPT.py
+    * `Contract a mesh (pyTree) <Examples/Transform/contractPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Transform/contractPT.py
 
 
 ---------------------------------------
 
 
-.. py:function:: Transform.scale(a,factor=1.)
+.. py:function:: Transform.scale(a, factor=1.)
 
-   Scale a  mesh of factor factor.
+    .. A2.O1.D1
+  
+    Scale a  mesh of factor factor. If factor is a list of floats, scale
+    with given factor for each canonical axis.
 
-   Exists also as an in-place version (_scale) which modifies a and returns None.
+    Exists also as an in-place version (_scale) which modifies a and returns None.
 
-   :param a: mesh
-   :type a: array or zone
-   :param factor: scaling factor 
-   :type factor: float
-   :return: mesh after scaling
-   :rtype: array or zone
+    :param a: mesh
+    :type a: [array, list of arrays] or [zone, list of zones, base, pyTree]
+    :param factor: scaling factor 
+    :type factor: float or list of 3 floats
+    :return: mesh after scaling
+    :rtype: identical to input
 
-   *Example of use:*
+    *Example of use:*
 
-   * `scale a mesh (array) <Examples/Transform/scale.py>`_:
+    * `Scale a mesh (array) <Examples/Transform/scale.py>`_:
 
-   .. literalinclude:: ../build/Examples/Transform/scale.py
+    .. literalinclude:: ../build/Examples/Transform/scale.py
 
-   * `scale a mesh (pyTree) <Examples/Transform/scalePT.py>`_:
+    * `Scale a mesh (pyTree) <Examples/Transform/scalePT.py>`_:
 
-   .. literalinclude:: ../build/Examples/Transform/scalePT.py
-
+    .. literalinclude:: ../build/Examples/Transform/scalePT.py
 
 
 ---------------------------------------
@@ -519,30 +555,32 @@ Mesh transformation
 
 .. py:function:: Transform.symetrize(a, P, vector1, vector2)
 
-   Symmetrize a mesh with respect to a plane defined by point P and vectors vector1 and vector2.
+    .. A2.O0.D1
+    
+    Symmetrize a mesh with respect to a plane defined by point P and vectors vector1 and vector2.
 
-   Exists also as an in-place version (_symetrize) which modifies a and returns None.
+    Exists also as an in-place version (_symetrize) which modifies a and returns None.
 
-   :param a: mesh
-   :type a: array or zone
-   :param C: point in the symmetry plane 
-   :type C: 3-tuple of floats
-   :param vector1: first vector in the plane
-   :type vector1: 3-tuple of floats
-   :param vector2: second vector in the plane
-   :type vector2: 3-tuple of floats
-   :return: mesh after symmetrization
-   :rtype: array or zone
+    :param a: mesh
+    :type a: [array, list of arrays] or [zone, list of zones, base, pyTree]
+    :param C: point of the symmetry plane 
+    :type C: 3-tuple of floats
+    :param vector1: first vector of the symetry plane
+    :type vector1: 3-tuple of floats
+    :param vector2: second vector of the symetry plane
+    :type vector2: 3-tuple of floats
+    :return: mesh after symmetrization
+    :rtype: identical to input
 
-   *Example of use:*
+    *Example of use:*
 
-   * `symmetrize a mesh (array) <Examples/Transform/symetrize.py>`_:
+    * `Symmetrize a mesh (array) <Examples/Transform/symetrize.py>`_:
 
-   .. literalinclude:: ../build/Examples/Transform/symetrize.py
+    .. literalinclude:: ../build/Examples/Transform/symetrize.py
 
-   * `symmetrize a mesh (pyTree) <Examples/Transform/symetrizePT.py>`_:
+    * `Symmetrize a mesh (pyTree) <Examples/Transform/symetrizePT.py>`_:
 
-   .. literalinclude:: ../build/Examples/Transform/symetrizePT.py
+    .. literalinclude:: ../build/Examples/Transform/symetrizePT.py
 
 
 ---------------------------------------
@@ -550,29 +588,33 @@ Mesh transformation
 
 .. py:function:: Transform.perturbate(a, radius, dim=3)
 
-   Perturbate randomly a mesh a with given radius. If dim=2, Z coordinates are fixed.
-   If dim=1, only the X coordinates are modified.
+    .. A1.O0.D1
+    
+    Perturbate randomly a mesh a with given radius. Mesh points are modified aleatoirely
+    in all directions, with a distance less or equal to radius.
+    If dim=2, Z coordinates are fixed.
+    If dim=1, only the X coordinates are modified.
 
-   Exists also as an in-place version (_perturbate) which modifies a and returns None.
+    Exists also as an in-place version (_perturbate) which modifies a and returns None.
 
-   :param a: mesh
-   :type a: array or zone
-   :param radius: radius of perturbation
-   :type radius: float 
-   :param dim: to select if 1, 2 or the 3 coordinates are modified.
-   :type dim: integer
-   :return: mesh after perturbation
-   :rtype: array or zone
+    :param a: mesh
+    :type a: [array, list of arrays] or [zone, list of zones, base, pyTree]
+    :param radius: radius of perturbation
+    :type radius: float 
+    :param dim: to select if 1, 2 or the 3 coordinates are modified.
+    :type dim: integer
+    :return: mesh after perturbation
+    :rtype: identical to input
 
-   *Example of use:*
+    *Example of use:*
 
-   * `Perturbate a mesh (array) <Examples/Transform/perturbate.py>`_:
+    * `Perturbate a mesh (array) <Examples/Transform/perturbate.py>`_:
 
-   .. literalinclude:: ../build/Examples/Transform/perturbate.py
+    .. literalinclude:: ../build/Examples/Transform/perturbate.py
 
-   * `Perturbate a mesh (pyTree) <Examples/Transform/perturbatePT.py>`_:
+    * `Perturbate a mesh (pyTree) <Examples/Transform/perturbatePT.py>`_:
 
-   .. literalinclude:: ../build/Examples/Transform/perturbatePT.py
+    .. literalinclude:: ../build/Examples/Transform/perturbatePT.py
 
 
 ---------------------------------------
@@ -580,44 +622,44 @@ Mesh transformation
 
 .. py:function:: Transform.smooth(a, eps=0.5, niter=4, type=0, fixedConstraints=[], projConstraints=[], delta=1., point=(0,0,0), radius=-1.)
 
+    .. A1.O0.D0
 
-   Perform a Laplacian smoothing on a set of structured grids or an unstructured mesh ('QUAD', 'TRI') with a weight eps, and niter smoothing iterations. 
-   Type=0 means isotropic Laplacian, type=1 means scaled Laplacian, type=2 means taubin smoothing.
-   Constraints can be defined in order to avoid smoothing of some points (for instance the exterior faces of a): 
+    Perform a Laplacian smoothing on a set of structured grids or an unstructured mesh ('QUAD', 'TRI') with a weight eps, and niter smoothing iterations. 
+    Type=0 means isotropic Laplacian, type=1 means scaled Laplacian, type=2 means taubin smoothing.
+    Constraints can be defined in order to avoid smoothing of some points (for instance the exterior faces of a): 
 
-   Exists also as an in-place version (_smooth) which modifies a and returns None.
+    Exists also as an in-place version (_smooth) which modifies a and returns None.
 
-   :param a: mesh
-   :type a: array or zone
-   :param eps: smoother power
-   :type eps: float
-   :param niter: number of smoothing iterations
-   :type niter: integer
-   :param type: type of smoothing algorithm
-   :type type: integer
-   :param fixedConstraints: set of fixed regions
-   :type fixedConstraints: [list of arrays] or [list of zones]
-   :param projConstraints: smoothed mesh projected on them
-   :type projConstraints: [list of arrays] or [list of zones]
-   :param delta: strength of constraints
-   :type delta: float
-   :param point: center of the region to be smoothed in case of local smoothing
-   :type point: 3-tuple of float
-   :param radius: if local smoothing, radius of the region to be smoothed
-   :type radius: float 
-   :return: mesh after smoothing
-   :rtype: array or zone
+    :param a: input mesh
+    :type a: array or zone
+    :param eps: smoother power
+    :type eps: float
+    :param niter: number of smoothing iterations
+    :type niter: integer
+    :param type: type of smoothing algorithm
+    :type type: integer
+    :param fixedConstraints: set of fixed regions
+    :type fixedConstraints: [list of arrays] or [list of zones]
+    :param projConstraints: smoothed mesh projected on them
+    :type projConstraints: [list of arrays] or [list of zones]
+    :param delta: strength of constraints
+    :type delta: float
+    :param point: center of the region to be smoothed in case of local smoothing
+    :type point: 3-tuple of float
+    :param radius: if local smoothing, radius of the region to be smoothed
+    :type radius: float 
+    :return: mesh after smoothing
+    :rtype: array or zone
 
-   *Example of use:*
+    *Example of use:*
 
-   * `Smooth a mesh (array) <Examples/Transform/smooth.py>`_:
+    * `Smooth a mesh (array) <Examples/Transform/smooth.py>`_:
 
-   .. literalinclude:: ../build/Examples/Transform/smooth.py
+    .. literalinclude:: ../build/Examples/Transform/smooth.py
 
-   * `Smooth a mesh (pyTree) <Examples/Transform/smoothPT.py>`_:
+    * `Smooth a mesh (pyTree) <Examples/Transform/smoothPT.py>`_:
 
-   .. literalinclude:: ../build/Examples/Transform/smoothPT.py
-
+    .. literalinclude:: ../build/Examples/Transform/smoothPT.py
 
 
 ---------------------------------------
@@ -625,34 +667,37 @@ Mesh transformation
 
 .. py:function:: Transform.dual(a, extraPoints=1)
 
-   Return the dual of a mesh a. If extraPoints=1, external face centers are added.
+    .. A1.O0.D0
+    
+    Return the dual of a mesh a. If extraPoints=1, external face centers are added.
 
-   Exists also as an in-place version (_dual) which modifies a and returns None.
+    Exists also as an in-place version (_dual) which modifies a and returns None.
 
-   :param a: mesh
-   :type a: array or zone
-   :param extraPoints: 0/1 external face centers are added
-   :type extraPoints: integer
-   :return: dual mesh
-   :rtype: array or zone
+    :param a: mesh
+    :type a: array or zone
+    :param extraPoints: 0/1 external face centers are added
+    :type extraPoints: integer
+    :return: dual mesh
+    :rtype: array or zone
 
-   *Example of use:*
+    *Example of use:*
 
-   * `dual a mesh (array) <Examples/Transform/dual.py>`_:
+    * `Dual a mesh (array) <Examples/Transform/dual.py>`_:
 
-   .. literalinclude:: ../build/Examples/Transform/dual.py
+    .. literalinclude:: ../build/Examples/Transform/dual.py
 
-   * `dual a mesh (pyTree) <Examples/Transform/dualPT.py>`_:
+    * `Dual a mesh (pyTree) <Examples/Transform/dualPT.py>`_:
 
-   .. literalinclude:: ../build/Examples/Transform/dualPT.py
+    .. literalinclude:: ../build/Examples/Transform/dualPT.py
 
 ---------------------------------------
 
 
 .. py:function:: Transform.breakElements(a)
 
-
-    Break a NGON mesh into a set of grids, each of them being a basic element grid (with a single connectivity)
+    .. A1.O0.D0
+    
+    Break a NGON mesh into a set of grids, each of them being a basic element grid (with a single connectivity).
 
     :param a: NGON mesh
     :type a: array or zone
@@ -678,6 +723,8 @@ Mesh splitting and merging
 
 .. py:function:: Transform.subzone(a, minIndex, maxIndex=None, type=None)
 
+    .. A1.O0.D0
+    
     Extract a subzone.
 
     Extract a subzone of a structured mesh a, where min and max ranges  must be specified. Negative indices can be used (as in Python): -1 means max index::
@@ -697,8 +744,8 @@ Mesh splitting and merging
          b = T.subzone(a, [1,2,...], type='faces')
 
 
-    :param a:  Input data
-    :type  a:  array or zone
+    :param a: input data
+    :type  a: array or zone
     :param minIndex: (imin,jmin,kmin) for a structured grid, list of indices otherwise
     :type  minIndex:  3-tuple of integers
     :param maxIndex: (imax,jmax,kmax) for a structured grid, None otherwise
@@ -710,7 +757,7 @@ Mesh splitting and merging
 
     *Example of use:*
 
-    * `Subzone (array) <Examples/Initiator/subzone.py>`_:
+    * `Subzone (array) <Examples/Transform/subzone.py>`_:
 
     .. literalinclude:: ../build/Examples/Transform/subzone.py
 
@@ -723,11 +770,13 @@ Mesh splitting and merging
 
 .. py:function:: Transform.join(a, b=None)
 
+    .. A1.O0.D0
+    
     Join two zones in one (if possible) or join a list of zones in one zone (if possible).
     For the pyTree version, boundary conditions are maintained for structured grids only.
 
-    :param a:  Input data
-    :type  a:  [array, list of arrays] or [zone, list of zones, base, pyTree]
+    :param a: input data
+    :type  a: [array, list of arrays] or [zone, list of zones, base, pyTree]
     :return: unique joined zone
     :rtype: array or zone
 
@@ -746,12 +795,14 @@ Mesh splitting and merging
 
 .. py:function:: Transform.merge(a, sizeMax=1000000000, dir=0, tol=1.e-10, alphaRef=180.)
 
+    .. A1.O0.D0
+    
     Join a set of zones such that a minimum number of zones is obtained at the end. 
     Parameter sizeMax defines the maximum size of merged grids.
     dir is the constraint direction along which the merging is prefered. 
     Default value is 0 (no prefered direction), 1 for i, 2 for j, 3 for k. 
     alphaRef can be used for surface grids and avoids merging adjacent zones
-    sharing an angle deviating of alphaRef to 180:
+    sharing an angle deviating of alphaRef to 180.
 
 
     For the pyTree version, boundary conditions are maintained for structured grids only.
@@ -772,7 +823,7 @@ Mesh splitting and merging
 
     *Example of use:*
 
-    * `Merge (array) <Examples/Initiator/merge.py>`_:
+    * `Merge (array) <Examples/Transform/merge.py>`_:
 
     .. literalinclude:: ../build/Examples/Transform/merge.py
 
@@ -785,6 +836,8 @@ Mesh splitting and merging
 
 .. py:function:: Transform.mergeCart(a, sizeMax=1000000000, tol=1.e-10)
 
+    .. A1.O0.D0
+    
     Merge a set of Cartesian grids. This function is similar to the function Transform.merge but is optimized for Cartesian grids.
 
     :param a:  list of Cartesian grids
@@ -798,7 +851,7 @@ Mesh splitting and merging
 
     *Example of use:*
 
-    * `Merge Cartesian grids (array) <Examples/Initiator/mergeCart.py>`_:
+    * `Merge Cartesian grids (array) <Examples/Transform/mergeCart.py>`_:
 
     .. literalinclude:: ../build/Examples/Transform/mergeCart.py
 
@@ -812,6 +865,8 @@ Mesh splitting and merging
 
 .. py:function:: Transform.splitNParts(a, N, multigrid=0, dirs=[1,2,3],recoverBC=True)
 
+    .. A1.O0.D0
+    
     Split a set of M grids into N parts of same size roughly, provided M < N. 
     Argument multigrid enables to ensure the multigrid level by the splitting, provided the input grids are of that multigrid level.
 
@@ -830,7 +885,7 @@ Mesh splitting and merging
 
     *Example of use:*
 
-    * `Split a mesh in N parts (array) <Examples/Initiator/splitNParts.py>`_:
+    * `Split a mesh in N parts (array) <Examples/Transform/splitNParts.py>`_:
 
     .. literalinclude:: ../build/Examples/Transform/splitNParts.py
 
@@ -842,6 +897,8 @@ Mesh splitting and merging
 
 .. py:function:: Transform.splitSize(a, N, multigrid=0, dirs=[1,2,3], type=0, R=None, minPtsPerDir=5)
 
+    .. A1.O0.D0
+    
     - Split structured blocks if their number of points is greater than N. 
 
     - splitSize can also be used to split blocks in order to fit as better as possible on a number of R processors. 
@@ -869,7 +926,7 @@ Mesh splitting and merging
 
     *Example of use:*
 
-    * `Split a mesh  by size (array) <Examples/Initiator/splitSize.py>`_:
+    * `Split a mesh  by size (array) <Examples/Transform/splitSize.py>`_:
 
     .. literalinclude:: ../build/Examples/Transform/splitSize.py
 
@@ -882,6 +939,8 @@ Mesh splitting and merging
 
 .. py:function:: Transform.splitCurvatureAngle(a,sensibility)
 
+    .. A1.O0.D0
+    
     Split a curve defined by a 1D structured grid with respect to the curvature angle. 
     If angle is lower than 180-sensibility in degrees or greater than 180+sensibility degrees, curve is split.
 
@@ -894,7 +953,7 @@ Mesh splitting and merging
 
     *Example of use:*
 
-    * `Split a curve wrt curvature angle (array) <Examples/Initiator/splitCurvatureAngle.py>`_:
+    * `Split a curve wrt curvature angle (array) <Examples/Transform/splitCurvatureAngle.py>`_:
 
     .. literalinclude:: ../build/Examples/Transform/splitCurvatureAngle.py
 
@@ -908,10 +967,12 @@ Mesh splitting and merging
 
 .. py:function:: Transform.splitCurvatureRadius(a, Rs=100.)
 
+    .. A1.O0.D0
+    
     Split a curve defined by a 1D structured grid with respect to the curvature radius, using B-Spline approximations.
     The curve can be closed or not. 
 
-    :param a:  list of grids
+    :param a: input mesh
     :type  a:  array or zone
     :param Rs: threshold curvature radius below which the initial curve is split
     :type Rs: float
@@ -920,7 +981,7 @@ Mesh splitting and merging
 
     *Example of use:*
 
-    * `Split a curve wrt curvature radius (array) <Examples/Initiator/splitCurvatureRadius.py>`_:
+    * `Split a curve wrt curvature radius (array) <Examples/Transform/splitCurvatureRadius.py>`_:
 
     .. literalinclude:: ../build/Examples/Transform/splitCurvatureRadius.py
 
@@ -933,44 +994,47 @@ Mesh splitting and merging
 
 .. py:function:: Transform.splitConnexity(a)
 
+    .. A1.O0.D0 SLOW
+
     Split an unstructured mesh into connex parts.
 
-    :param a:  initial unstructured mesh
-    :type  a:  array or zone
+    :param a: input unstructured mesh
+    :type  a: array or zone
     :return: list of connex parts
     :rtype: [list of arrays] or [list of zones]
 
     *Example of use:*
 
-    * `Split a mesh into connex parts (array) <Examples/Initiator/splitConnexity.py>`_:
+    * `Split an unstructured mesh into connex parts (array) <Examples/Transform/splitConnexity.py>`_:
 
     .. literalinclude:: ../build/Examples/Transform/splitConnexity.py
 
-    * `Split a  mesh into connex parts (pyTree) <Examples/Transform/splitConnexityPT.py>`_:
+    * `Split an unstructured mesh into connex parts (pyTree) <Examples/Transform/splitConnexityPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Transform/splitConnexityPT.py
 
 ---------------------------------------
 
 
-
 .. py:function:: Transform.splitMultiplePts(a,dim=3)
+
+    .. A1.O0.D0
 
     Split a structured mesh at external nodes connected to an even number of points, meaning that the geometrical point 
     connects an odd number of blocks.
 
-    :param a:  initial set of structured grids
-    :type  a:  [list of arrays] or [list of zones]
+    :param a: input set of structured grids
+    :type  a: [list of arrays] or [list of zones]
     :return: set of structured grids after splitting
     :rtype: [list of arrays] or [list of zones]
 
     *Example of use:*
 
-    * `Split a mesh at odd connections (array) <Examples/Initiator/splitMultiplePts.py>`_:
+    * `Split a mesh at odd connections (array) <Examples/Transform/splitMultiplePts.py>`_:
 
     .. literalinclude:: ../build/Examples/Transform/splitMultiplePts.py
 
-    * `Split a  mesh  at odd connections (pyTree) <Examples/Transform/splitMultiplePtsPT.py>`_:
+    * `Split a mesh at odd connections (pyTree) <Examples/Transform/splitMultiplePtsPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Transform/splitMultiplePtsPT.py
 
@@ -979,11 +1043,13 @@ Mesh splitting and merging
 
 .. py:function:: Transform.splitSharpEdges(a,alphaRef=30.)
 
-    Split a 1D or 2D mesh at edges sharper than alphaRef.
-    If the input grid is structured, then it returns an unstructured grid (BAR or QUAD)
+    .. A1.O0.D0
 
-    :param a:  initial mesh or set of grids
-    :type  a:  [array, list of arrays] or [zone, list of zones]
+    Split a 1D or 2D mesh at edges sharper than alphaRef.
+    If the input grid is structured, then it returns an unstructured grid (BAR or QUAD).
+
+    :param a: input mesh
+    :type  a: [array, list of arrays] or [zone, list of zones]
     :param alphaRef: angle (in degrees) below which the mesh must be split
     :type alphaRef: float
     :return: set of unstructured grids (with no sharp edges)
@@ -991,7 +1057,7 @@ Mesh splitting and merging
 
     *Example of use:*
 
-    * `Split a surface at sharp edges (array) <Examples/Initiator/splitSharpEdges.py>`_:
+    * `Split a surface at sharp edges (array) <Examples/Transform/splitSharpEdges.py>`_:
 
     .. literalinclude:: ../build/Examples/Transform/splitSharpEdges.py
 
@@ -1003,10 +1069,12 @@ Mesh splitting and merging
 
 .. py:function:: Transform.splitTBranches(a,tol=1.e-13)
 
+    .. A1.O0.D0
+    
     Split a curve defined by a 'BAR' if it has T-branches.
 
-    :param a:  initial mesh or set of grids
-    :type  a:  [array, list of arrays] or [zone, list of zones]
+    :param a: input mesh
+    :type  a: [array, list of arrays] or [zone, list of zones]
     :param tol: matching tolerance between points that define two branches
     :type tol: float 
     :return: set of BAR grids (with no T-branches) 
@@ -1014,7 +1082,7 @@ Mesh splitting and merging
 
     *Example of use:*
 
-    * `Split T-branches (array) <Examples/Initiator/splitTBranches.py>`_:
+    * `Split T-branches (array) <Examples/Transform/splitTBranches.py>`_:
 
     .. literalinclude:: ../build/Examples/Transform/splitTBranches.py
 
@@ -1026,16 +1094,18 @@ Mesh splitting and merging
 
 .. py:function:: Transform.splitManifold(a)
 
-    Split a  unstructured mesh (TRI or BAR only) into manifold pieces.
+    .. A1.O0.D0
 
-    :param a:  initial mesh (TRI or BAR)
-    :type  a:  array or zone 
+    Split a unstructured mesh (TRI or BAR only) into manifold pieces.
+
+    :param a: input mesh (TRI or BAR)
+    :type  a: [array, list of arrays] or [zone, list of zones, base, pyTree] 
     :return: set of TRI or BAR grids
     :rtype: [list of arrays] or [list of zones]
 
     *Example of use:*
 
-    * `Split into manifold parts (array) <Examples/Initiator/splitManifold.py>`_:
+    * `Split into manifold parts (array) <Examples/Transform/splitManifold.py>`_:
 
     .. literalinclude:: ../build/Examples/Transform/splitManifold.py
 
@@ -1045,12 +1115,14 @@ Mesh splitting and merging
 
 ---------------------------------------
 
-.. py:function:: Transform.splitBAR(a,N)
+.. py:function:: Transform.splitBAR(a, N)
+
+    .. A1.O0.D1 
 
     Split a curve defined by a BAR at index N.
 
-    :param a:  initial mesh (BAR)
-    :type  a:  array or zone 
+    :param a: input mesh (BAR)
+    :type  a: array or zone 
     :param N: index of split in a
     :type N: integer
     :return: two BARS 
@@ -1058,11 +1130,11 @@ Mesh splitting and merging
 
     *Example of use:*
 
-    * `Split a BAR (array) <Examples/Initiator/splitBAR.py>`_:
+    * `Split a BAR at given index (array) <Examples/Transform/splitBAR.py>`_:
 
     .. literalinclude:: ../build/Examples/Transform/splitBAR.py
 
-    * `Split a BAR (pyTree) <Examples/Transform/splitBARPT.py>`_:
+    * `Split a BAR at given index (pyTree) <Examples/Transform/splitBARPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Transform/splitBARPT.py
 
@@ -1071,10 +1143,12 @@ Mesh splitting and merging
 
 .. py:function:: Transform.splitTRI(a, idxList)
 
+    .. A1.O0.D0
+
     Split a triangular mesh into several triangular grids delineated by the polyline of indices idxList in the original TRI mesh.
 
-    :param a:  initial mesh (TRI)
-    :type  a:  array or zone 
+    :param a: input mesh (TRI)
+    :type  a: array or zone 
     :param idxList: indices of split in a defining a polyline
     :type idxList: list of integers
     :return: a set of TRI grids
@@ -1082,11 +1156,11 @@ Mesh splitting and merging
 
     *Example of use:*
 
-    * `Split a TRI (array) <Examples/Initiator/splitTRI.py>`_:
+    * `Split a TRI mesh with indices (array) <Examples/Transform/splitTRI.py>`_:
 
     .. literalinclude:: ../build/Examples/Transform/splitTRI.py
 
-    * `Split a TRI (pyTree) <Examples/Transform/splitTRIPT.py>`_:
+    * `Split a TRI mesh with indices (pyTree) <Examples/Transform/splitTRIPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Transform/splitTRIPT.py
 
@@ -1100,20 +1174,22 @@ Mesh deformation
 
 .. py:function:: Transform.deform(a, vector=['dx','dy','dz'])
 
+    .. A1.O0.D0
+    
     Deform a surface by moving each point of a vector. The vector field must be defined in a, with the same location.
 
     Exists also as an in-place version (_deform) which modifies a and returns None.
 
-    :param a:  initial surface mesh, containing the vector fields
-    :type  a:  [array or list of arrays] or [zone or list of zones] 
+    :param a: input surface mesh, containing the vector fields
+    :type  a: [array, list of arrays] or [zone, list of zones] 
     :param vector: vector component names defined in a
     :type vector: list of 3 strings
     :return: deformed surface mesh
-    :rtype: same as a
+    :rtype: identical to input
 
     *Example of use:*
 
-    * `Deform a surface (array) <Examples/Initiator/deform.py>`_:
+    * `Deform a surface (array) <Examples/Transform/deform.py>`_:
 
     .. literalinclude:: ../build/Examples/Transform/deform.py
 
@@ -1125,26 +1201,28 @@ Mesh deformation
 
 .. py:function:: Transform.deformNormals(a, alpha, niter=1)
 
-    Deform a surface a by moving each point of the surface by a scalar field alpha times the surface normals in niter steps
+    .. A1.O0.D0
+    
+    Deform a surface mesh a by moving each point of the surface by a scalar field alpha times the surface normals in niter steps
 
     Exists also as an in-place version (_deformNormals) which modifies a and returns None.
 
-    :param a:  initial surface mesh, containing the vector fields
-    :type  a:  [array or list of arrays] or [zone or list of zones] 
+    :param a: input surface mesh, containing the vector fields
+    :type  a: [array, list of arrays] or [zone, list of zones] 
     :param alpha: factor of growth wrt to normals
     :type alpha: float
     :param niter: number of steps (raise it to increase the smoothing of the resulting surface)
     :type niter: integer
     :return: deformed surface mesh
-    :rtype: same as a
+    :rtype: identical to input
 
     *Example of use:*
 
-    * `Deform a surface (array) <Examples/Initiator/deformNormals.py>`_:
+    * `Deform a surface following normals (array) <Examples/Transform/deformNormals.py>`_:
 
     .. literalinclude:: ../build/Examples/Transform/deformNormals.py
 
-    * `Deform a surface (pyTree) <Examples/Transform/deformNormalsPT.py>`_:
+    * `Deform a surface following normals (pyTree) <Examples/Transform/deformNormalsPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Transform/deformNormalsPT.py
 
@@ -1152,14 +1230,16 @@ Mesh deformation
 
 .. py:function:: Transform.deformPoint(a, xyz, dxdydz, depth, width)
 
-    Deform a by moving point P of vector V. Argument 'depth' controls the depth of deformation. 
+    .. A1.O0.D0
+    
+    Deform a surface mesh a by moving point P of vector V. Argument 'depth' controls the depth of deformation. 
     Argument 'width' controls the width of deformation.
 
     Exists also as an in-place version (_deformPoint) which modifies a and returns None.
 
-    :param a:  initial surface mesh, containing the vector fields
-    :type  a:  [array or list of arrays] or [zone or list of zones] 
-    :param P:  point that is moved
+    :param a: input surface mesh, containing the vector fields
+    :type  a: [array, list of arrays] or [zone, list of zones] 
+    :param P: point that is moved
     :type P: 3-tuple of floats
     :param V: vector of deformation
     :type V: 3-tuple of floats
@@ -1168,11 +1248,11 @@ Mesh deformation
     :param width: to control the width of deformation
     :type width: float
     :return: deformed surface mesh
-    :rtype: same as a
+    :rtype: identical to input
 
     *Example of use:*
 
-    * `Deform a surface at a point P (array) <Examples/Initiator/deformPoint.py>`_:
+    * `Deform a surface at a point P (array) <Examples/Transform/deformPoint.py>`_:
 
     .. literalinclude:: ../build/Examples/Transform/deformPoint.py
 
@@ -1184,22 +1264,24 @@ Mesh deformation
 
 .. py:function:: Transform.deformMesh(a, surfDelta, beta=4.,type='nearest')
 
+    .. A1.O0.D0
+    
     Deform a mesh defined by a given surface or a set of surfaces for which a deformation is defined at nodes as a vector field 'dx,dy,dz'.
     The surface surfDelta does not necessary match with a border of the meshes.
     Beta enables to extend the deformation region as multiplication factor of local deformation.
 
     Exists also as an in-place version (_deformMesh) which modifies a and returns None.
 
-    :param a:  initial surface mesh, containing the vector fields
-    :type  a:  [array or list of arrays] or [zone or list of zones] 
+    :param a: input surface mesh, containing the vector fields
+    :type  a: [array, list of arrays] or [zone, list of zones] 
     :param surfDelta: surface on which the deformation is defined
-    :type surfDelta: [array or list of arrays] or [zone or list of zones] 
+    :type surfDelta: [array,list of arrays] or [zone,list of zones] 
     :return: deformed mesh
-    :rtype: same as a
+    :rtype: identical to input
 
     *Example of use:*
 
-    * `Deform a mesh (array) <Examples/Initiator/deformMesh.py>`_:
+    * `Deform a mesh (array) <Examples/Transform/deformMesh.py>`_:
 
     .. literalinclude:: ../build/Examples/Transform/deformMesh.py
 
@@ -1215,26 +1297,27 @@ Mesh projections
 
 .. py:function:: Transform.projectAllDirs(a, s, vect=['nx','ny','nz'], oriented=0)
 
-
+    .. A1.O0.D0
+    
     Project a surface mesh a onto a set of surfaces s according to a vector defined for each point of the mesh a.
     If oriented=0, both directions are used for projection, else the vector direction is used.
 
     Exists also as an in-place version (_projectAllDirs) which modifies a and returns None.
 
-    :param a:  initial surface mesh, containing the vector fields
-    :type  a:  [array or list of arrays] or [zone or list of zones] 
+    :param a: input surface mesh, containing the vector fields
+    :type  a: [array, list of arrays] or [zone, list of zones] 
     :param s: projection surface
-    :type s: [array or list of arrays] or [zone or list of zones] 
+    :type s: [array,list of arrays] or [zone,list of zones] 
     :param vect: vector component names 
     :type vect: list of 3 strings
     :param oriented: 0 for projection in the vector direction and also in its opposite direction
     :type oriented: integer (0 or 1)
     :return: projected mesh
-    :rtype: same as a
+    :rtype: identical to input
 
     *Example of use:*
 
-    * `Project a mesh (array) <Examples/Initiator/projectAllDirs.py>`_:
+    * `Project a mesh (array) <Examples/Transform/projectAllDirs.py>`_:
 
     .. literalinclude:: ../build/Examples/Transform/projectAllDirs.py
 
@@ -1247,18 +1330,18 @@ Mesh projections
 
 .. py:function:: Transform.projectDir(a, s, dir, smooth=0, oriented=0)
 
-
+    .. A1.O0.D1
+    
     Project a surface mesh a onto a set of surfaces s following a constant direction dir.
-     a vector defined for each point of the mesh a.
     If oriented=0, both directions are used for projection, else the vector direction is used.
     If smooth=1, points that cannot be projected are smoothed (available only for structured grids).
 
     Exists also as an in-place version (_projectDir) which modifies a and returns None.
 
-    :param a:  initial surface mesh
-    :type  a:  [array or list of arrays] or [zone or list of zones] 
+    :param a: input surface mesh
+    :type  a: [array list of arrays] or [zone, list of zones] 
     :param s: projection surface
-    :type s: [array or list of arrays] or [zone or list of zones] 
+    :type s: [array, list of arrays] or [zone, list of zones] 
     :param dir: constant vector that directs the projection 
     :type dir: 3-tuple of floats
     :param smooth: smoothing of unprojected points
@@ -1266,11 +1349,11 @@ Mesh projections
     :param oriented: 0 for projection in the vector direction and also in its opposite direction
     :type oriented: integer (0 or 1)
     :return: projected mesh
-    :rtype: same as a
+    :rtype: identical to input
 
     *Example of use:*
 
-    * `Project a mesh following a direction (array) <Examples/Initiator/projectDir.py>`_:
+    * `Project a mesh following a direction (array) <Examples/Transform/projectDir.py>`_:
 
     .. literalinclude:: ../build/Examples/Transform/projectDir.py
 
@@ -1283,21 +1366,22 @@ Mesh projections
 
 .. py:function:: Transform.projectOrtho(a, s)
 
-
+    .. A1.O0.D1
+    
     Project a surface mesh a orthogonally onto a set of surfaces s.
 
     Exists also as an in-place version (_projectOrtho) which modifies a and returns None.
 
-    :param a:  initial surface mesh, containing the vector fields
-    :type  a:  [array or list of arrays] or [zone or list of zones] 
+    :param a: input surface mesh, containing the vector fields
+    :type  a: [array, list of arrays] or [zone, list of zones] 
     :param s: projection surface
-    :type s: [array or list of arrays] or [zone or list of zones] 
+    :type s: [array, list of arrays] or [zone, list of zones] 
     :return: projected mesh
-    :rtype: same as a
+    :rtype: identical to input
 
     *Example of use:*
 
-    * `Project a mesh orthogonally (array) <Examples/Initiator/projectOrtho.py>`_:
+    * `Project a mesh orthogonally (array) <Examples/Transform/projectOrtho.py>`_:
 
     .. literalinclude:: ../build/Examples/Transform/projectOrtho.py
 
@@ -1310,22 +1394,24 @@ Mesh projections
 
 .. py:function:: Transform.projectOrthoSmooth(a, s, niter=1)
 
+    .. A1.O0.D1
+    
     Project a surface mesh a following smoothed normals onto a set of surfaces s.
 
     Exists also as an in-place version (_projectOrthoSmooth) which modifies a and returns None.
 
-    :param a:  initial surface mesh,
-    :type  a:  [array or list of arrays] or [zone or list of zones] 
+    :param a: input surface mesh
+    :type  a: [array, list of arrays] or [zone, list of zones] 
     :param s: projection surface 
-    :type s: [array or list of arrays] or [zone or list of zones] 
+    :type s: [array, list of arrays] or [zone, list of zones] 
     :param niter: number of smoothing iterations
     :type niter: integer
     :return: projected mesh
-    :rtype: same as a
+    :rtype: identical to input
 
     *Example of use:*
 
-    * `Project a mesh following smoothed normals (array) <Examples/Initiator/projectOrthoSmooth.py>`_:
+    * `Project a mesh following smoothed normals (array) <Examples/Transform/projectOrthoSmooth.py>`_:
 
     .. literalinclude:: ../build/Examples/Transform/projectOrthoSmooth.py
 
@@ -1338,27 +1424,28 @@ Mesh projections
 
 .. py:function:: Transform.projectRay(a, s, P)
 
-
-    Project a surface mesh a onto a set of surfaces s following rays starting from P.
+    .. A1.O0.D1
+    
+    Project a surface mesh a onto a set of surfaces s following rays starting from a point P.
 
     Exists also as an in-place version (_projectRay) which modifies a and returns None.
 
-    :param a:  initial surface mesh,
-    :type  a:  [array or list of arrays] or [zone or list of zones] 
+    :param a: input surface mesh
+    :type  a: [array, list of arrays] or [zone, list of zones] 
     :param s: projection surface 
-    :type s: [array or list of arrays] or [zone or list of zones] 
-    :param P: starting point of the ray
+    :type s: [array, list of arrays] or [zone, list of zones] 
+    :param P: starting point of rays
     :type P: 3-tuple of floats
     :return: projected mesh
-    :rtype: same as a
+    :rtype: identical to input
 
     *Example of use:*
 
-    * `Project a mesh following a ray (array) <Examples/Initiator/projectRay.py>`_:
+    * `Project a mesh following rays (array) <Examples/Transform/projectRay.py>`_:
 
     .. literalinclude:: ../build/Examples/Transform/projectRay.py
 
-    * `Project a mesh following a ray  (pyTree) <Examples/Transform/projectRayPT.py>`_:
+    * `Project a mesh following rays (pyTree) <Examples/Transform/projectRayPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Transform/projectRayPT.py
 

@@ -34,7 +34,6 @@ def uniformize__(a, N, h, factor, density, sharpAngle):
     elif factor > 0: N = int(factor*(C.getNPts(a)-1))+1
     elif h > 0: N = int(L/(N-1))
     N = max(N, 2)
-    print N
     # I can add splitConnexity if needed
     b = T.splitSharpEdges(a, alphaRef=sharpAngle) # b is BAR closed
     if ntype == 1: b = T.splitTBranches(b)

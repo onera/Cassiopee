@@ -1172,7 +1172,7 @@ pyTree creation and manipulation
     :type I: list of numpys
     :param loc: location of fields in zone
     :type loc: 'centers' or 'nodes'
-    :param startFrom : starting indice of I (e.g. 0 or 1)
+    :param startFrom: starting indice of I (e.g. 0 or 1)
     :type startFrom: integer 
     :rtype: reference copy of input
     

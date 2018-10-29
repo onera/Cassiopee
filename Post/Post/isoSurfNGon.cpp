@@ -203,8 +203,6 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
       E_Int pe, pf, indFace, nbFaces, nbPts, ind, ind2;
       E_Int* ptf; E_Int* pte;
       E_Float f0, f1, f2, f3;
-      FldArrayF fco(nfld); E_Float* fc = fco.begin();
-      FldArrayF ffo(nfld); E_Float* ff = ffo.begin();
       E_Float ffs, fcs;
       E_Float delta = (nelts*1.)/(nthreads*1.);
       E_Int ieltstart = int(ithread*delta);
@@ -399,6 +397,9 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
     E_Int* prevF = new E_Int [nthreads];
     //for (E_Int i = 0; i < nthreads; i++) printf("%d %d\n", ntris[i], npts[i]);
 
+    //FldArrayI** keys = new FldArrayI* [nthreads];
+    //for (E_Int i = 0; i < nthreads; i++) keys[i] = new FldArrayI(npts[i]);
+
 #pragma omp parallel default(shared)
     {
       E_Int ithread = __CURRENT_THREAD__;
@@ -419,6 +420,8 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
       E_Int* ciso2 = cisop.begin(2);
       E_Int* ciso3 = cisop.begin(3);
       FldArrayF& fisop = *fisos[ithread];
+
+      //E_Int* key = keys[ithread]->begin();
 
       for (E_Int elt = istart[ithread]; elt < iend[ithread]; elt++)
       {
@@ -476,6 +479,9 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
               ciso2[ntri] = npt-1;
               ciso3[ntri] = npt-2;
               ntri++;
+              //key[npt-2] = f0+f1;
+              //key[npt-1] = f0+ind;
+              //key[npt] = ind+ind2;
               break;
 
               case 0x01: // OK
@@ -774,6 +780,11 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
         }
       }
     }
+
+    // supprime les pts inseres plusieurs fois
+    for (E_Int i = 0; i < nthreads; i++) delete keys[i];
+    delete [] keys;
+
 
     // rebuild
     E_Int ntri = 0; E_Int npt = 0;

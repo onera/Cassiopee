@@ -77,7 +77,7 @@ void K_COMPGEOM::projectRay(E_Int npts, E_Int nelts2,
   }
 }
 //=============================================================================
-/* IN: nelts2: nb d elements sur la surface de projection
+/* IN: nelts2: nb d'elements sur la surface de projection
    IN: fx2, fy2, fz2: coordonnees de la surface de projection
    IN: cn2: connectivite elements/noeuds de la surface de projection
    IN: Px, Py, Pz: pt de depart des rayons

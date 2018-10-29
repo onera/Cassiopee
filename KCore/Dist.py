@@ -1483,6 +1483,12 @@ def writeBuildInfo():
      if hdf: dict['hdf'] = hdfLib
      else: dict['hdf'] = "None"
 
+     # Check mpi
+     (mpi, mpiIncDir, mpiLib) = checkMpi(config.additionalLibPaths,
+                                         config.additionalIncludePaths)
+     if mpi: dict['mpi'] = mpiLib
+     else: dict['mpi'] = "None"
+
      # Write dictionnary
      p.write("buildDict = "+str(dict))
      p.close()

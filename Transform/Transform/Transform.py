@@ -483,7 +483,8 @@ def projectRay(surfaces, arrays, P):
     """Project surfaces onto surface arrays using rays starting from P. 
     Usage: projectRay(surfaces, arrays, P)"""
     try:
-        b = Converter.convertArray2Tetra(arrays); b = join(b)
+        b = Converter.convertArray2Tetra(arrays)
+        if isinstance(b[0], list): b = join(b)
     except: b = arrays[0]
     if isinstance(surfaces[0], list):
         return transform.projectRay(surfaces, b, P)
@@ -965,7 +966,7 @@ def makeDirect__(a):
     l1 = Vector.sub(P1,P0); ln1 = Vector.norm2(l1)
     l2 = Vector.sub(P2,P0); ln2 = Vector.norm2(l2)
     l3 = Vector.sub(P3,P0); ln3 = Vector.norm2(l3)
-    if (ln1 > 0 and ln2 > 0 and ln3 > 0):
+    if ln1 > 0 and ln2 > 0 and ln3 > 0:
         c = Vector.cross(l1,l2)
         c = Vector.dot(c,l3)
         if c < 0: b = reorder(a, (1,2,-3)); return b
@@ -1071,7 +1072,7 @@ def getSplitDir__(ni, nj, nk, dirs):
 # Split size au milieu
 def splitSize__(a, N, multigrid, dirs):
     if len(a) == 4: # unstructured
-        print 'Warning: splitSize: unstructured array not treated.'
+        print('Warning: splitSize: unstructured array not treated.')
         return [a]
     if len(a) == 5: # structured
         ni = a[2]; nj = a[3]; nk = a[4]
@@ -1110,7 +1111,7 @@ def splitSize__(a, N, multigrid, dirs):
 # Split size decentre
 def splitSizeUp__(a, N, multigrid, dirs):
     if len(a) == 4: # unstructured
-        print 'Warning: splitSize: unstructured zone not treated.'
+        print('Warning: splitSize: unstructured zone not treated.')
         return [a]
     if len(a) == 5: # structured
         ni = a[2]; nj = a[3]; nk = a[4]
@@ -1482,16 +1483,16 @@ def findNsi__(l, N, Np):
     # Check for N
     ND = 0
     for i in xrange(l): ND += Ns[i]
-    while (ND != N):
+    while ND != N:
         #print 'Round ', ND, N
-        if (ND < N): # pas assez de blocs
+        if ND < N: # pas assez de blocs
             # On cherche a augmenter les splits des plus grands Er
             for i in xrange(N-ND):
                 e = Er[i]
                 no = e[1]
                 Ns[no] += 1 #print Ns[no]*Nm-Np[no]
             pass
-        elif (ND > N): # trop de blocs
+        elif ND > N: # trop de blocs
             # On cherche a diminuer les splits des plus petits Er 
             for i in xrange(ND-N):
                 e = Er[l-i-1]

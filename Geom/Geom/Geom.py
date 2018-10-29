@@ -293,7 +293,7 @@ def curve__(f, N):
     a = numpy.zeros((3, N), dtype=numpy.float64)
     r = f(0)
     if len(r) != 3:
-        print "Warning: curve: parametric function must return a (x,y,z) tuple."
+        print("Warning: curve: parametric function must return a (x,y,z) tuple.")
         return ['x,y,z', a, N, 1, 1]
     for i in range(N):
         t = 1.*i/(N-1)
@@ -321,7 +321,7 @@ def surface__(f, N):
     a = numpy.zeros((3, N*N), dtype=numpy.float64)
     r = f(0,0)
     if len(r) != 3:
-        print "Warning: surface: parametric function must return a (x,y,z) tuple."
+        print("Warning: surface: parametric function must return a (x,y,z) tuple.")
         return ['x,y,z', a, N, N, 1]
     for j in range(N):
         u = 1.*j/(N-1)
