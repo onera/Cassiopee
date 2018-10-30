@@ -74,7 +74,7 @@ def computeUnsteadyInterp(tp, hook, ite,loc='cell', nGhostCells=2):
                 rcvName = '_'.join(interp[0].split('_')[1:])
                 rcvId = hook[9][rcvName]
                 # cells
-                if Internal.getNodeFromName1(interp, ListExtC) is not None :
+                if Internal.getNodeFromName1(interp, ListExtC) is not None:
                     donorIndices = Internal.getNodeFromName1(interp, ListExtC)[1]; 
                     donorIndices = donorIndices.reshape((donorIndices.shape[0]))
                     if donorIndices.shape[0] != 0: # avoid interpolation regions with only orphan points
@@ -82,10 +82,10 @@ def computeUnsteadyInterp(tp, hook, ite,loc='cell', nGhostCells=2):
                         rcvIndices = Internal.getNodeFromName1(interp, ListDonor)[1]; rcvIndices = rcvIndices.reshape((rcvIndices.shape[0]))
                         
                         periodicity =  Internal.getNodeFromName1(interp, InterpolantsType)[1]; periodicity= periodicity.reshape((periodicity.shape[0]))
-                        if FaceDirection != None:
+                        if FaceDirection is not None:
                             faceDir = Internal.getNodeFromName1(interp, FaceDirection)[1]; faceDir= faceDir.reshape((faceDir.shape[0]))
                         # cell index => faceIndex
-                        if FaceDirection != None:
+                        if FaceDirection is not None:
                             zRcv = Internal.getNodeFromName2(tp,rcvName) 
                             dimrcv = Internal.getZoneDim(zRcv)
                             imr = dimrcv[1];jmr = dimrcv[2];kmr = dimrcv[3]
@@ -114,7 +114,7 @@ def computeUnsteadyInterp(tp, hook, ite,loc='cell', nGhostCells=2):
                         if ite == 0 or listInterpData[donorName] == [] or rcvId not in listInterpData[donorName][-1].keys(): 
                             interpData[rcvId]={}
                             flag=0; i=0
-                            if FaceDirection == None: # cell
+                            if FaceDirection is None: # cell
                                 for rcvIndex in rcvIndices:
                                     interpData[rcvId][(int)(rcvIndex)]=[flag,(int)(donorIndices[i]),(int)(periodicity[i])]+[(float)(c) for c in coefs[i]]; i = i+1
                             else: # face
@@ -122,17 +122,17 @@ def computeUnsteadyInterp(tp, hook, ite,loc='cell', nGhostCells=2):
                                     interpData[rcvId][(int)(rcvIndex)]=[flag,(int)(donorIndices[i]),(int)(periodicity[i])]+[(float)(c) for c in coefs[i]]+[(int)(faceDir[i])]; i = i+1                                
                         # delta storage
                         else: 
-                            if FaceDirection == None: data=[rcvIndices,donorIndices,periodicity,coefs]
+                            if FaceDirection is None: data=[rcvIndices,donorIndices,periodicity,coefs]
                             else: data=[rcvIndices,donorIndices,periodicity,coefs,faceDir]
                             delta = Co.deltaInterpolations(data, ref[donorName][rcvId],loc)
                             interpData[rcvId]=delta
                         # set reference of current iteration for next iteration
-                        if FaceDirection == None: ref[donorName][rcvId] = [rcvIndices,donorIndices,periodicity, coefs]
+                        if FaceDirection is None: ref[donorName][rcvId] = [rcvIndices,donorIndices,periodicity, coefs]
                         else: ref[donorName][rcvId] = [rcvIndices,donorIndices,periodicity, coefs,faceDir]
             # Deals with rcv zones which have disappeared from interpolations
             for rcvId in ref[donorName].keys():
                 if rcvId not in interpData.keys():
-                    if FaceDirection ==None:
+                    if FaceDirection is None:
                         data=[numpy.array([], dtype= numpy.int32), numpy.array([], dtype= numpy.int32), numpy.array([], dtype= numpy.int32), numpy.array([], dtype= numpy.float64)]
                     else:
                         data=[numpy.array([], dtype= numpy.int32), numpy.array([], dtype= numpy.int32), numpy.array([], dtype= numpy.int32), numpy.array([], dtype= numpy.float64), numpy.array([], dtype= numpy.int32)]
@@ -143,7 +143,7 @@ def computeUnsteadyInterp(tp, hook, ite,loc='cell', nGhostCells=2):
         # la zone a aucune interpolation
         elif donorName in listInterpData.keys():
             for rcvId in ref[donorName].keys():
-                if FaceDirection ==None:
+                if FaceDirection is None:
                     data=[numpy.array([], dtype= numpy.int32), numpy.array([], dtype= numpy.int32), numpy.array([], dtype= numpy.int32), numpy.array([], dtype= numpy.float64)]
                 else:
                     data=[numpy.array([], dtype= numpy.int32), numpy.array([], dtype= numpy.int32), numpy.array([], dtype= numpy.int32), numpy.array([], dtype= numpy.float64), numpy.array([], dtype= numpy.int32)]
@@ -168,7 +168,7 @@ def computeUnsteadyBlanking(tp, hook, ite):
             if z[0] not in hook[0]: hook[0][z[0]] = ite+1
             list = Internal.getNodesFromName(hole[0], 'PointList')[0][1]
             index = globalIndex(dim, list,0) # Pour Cassiopee et elsA (pas de cellules fictives dans ces fichiers)
-            if (hook[6][z[0]] == None): hook[6][z[0]] = index ; hook[3][z[0]].append(hook[6][z[0]])
+            if (hook[6][z[0]] is None): hook[6][z[0]] = index ; hook[3][z[0]].append(hook[6][z[0]])
             else: delta = Compressor.deltaIndex(index, hook[6][z[0]]) ; hook[6][z[0]] = index ; hook[3][z[0]].append(delta)
             hook[10][z[0]] = 1
         elif hook[10][z[0]] == 1:

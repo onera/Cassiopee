@@ -1168,10 +1168,10 @@ Operations on meshes
     Exists also as in place version (_densify) that modifies a and returns None. 
 
     :param a:  1D structured mesh
-    :type  a:  [array] or [pyTree]
+    :type  a:  [array] or [zone]
     :param h:  new cell size step for the points densification
     :type  h:  float
-    :rtype: Identify to a
+    :rtype: Identical to a
 
     *Example of use:*
 
@@ -1364,13 +1364,13 @@ Operation on surface meshes
 
 .. py:function:: Generator.gapfixer(a, c, hardPoints=None, refine=1)
 
-    Fill a gap defined by a BAR contour a drawn on a surface c. You can force the generated mesh to pass through HardPoints (NODES). If refine=0, no inside points are added. 
+    Fill a gap defined by a BAR contour a drawn on a surface c. You can force the generated mesh to pass through hardPoints (NODES). If refine=0, no inside points are added. 
 
     :param a:  contour of the gap
     :type  a:  BAR array
     :param c:  surface to be filled
     :type  c:  array
-    :param hardPoints:  amplitude of the bump
+    :param hardPoints:  mesh containing nodes to be enforced
     :type  hardPoints:  array or list of arrays
     :param refine:  activation key for including points in the gap mesh (0 or 1)
     :type  refine:  integer

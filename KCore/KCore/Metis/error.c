@@ -15,6 +15,9 @@ This file contains functions dealing with error reporting and termination
 
 #include <GKlib.h>
 
+#ifdef __PGI
+#define __thread
+#endif
 
 /* These are the jmp_buf for the graceful exit in case of severe errors.
    Multiple buffers are defined to allow for recursive invokation. */

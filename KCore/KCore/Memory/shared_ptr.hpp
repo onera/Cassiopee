@@ -18,7 +18,7 @@
 */
 #ifndef _KCORE_SHARED_PTR_HPP_
 #define _KCORE_SHARED_PTR_HPP_
-#if __cplusplus >= 201103L
+#if __cplusplus >= 201103L && ! defined (__PGI)
 # include <memory>
 namespace K_MEMORY {
     template<typename K>

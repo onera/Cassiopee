@@ -10,6 +10,9 @@
 #ifndef _GK_EXTERNS_H_
 #define _GK_EXTERNS_H_
 
+#ifdef __PGI
+#define __thread
+#endif
 
 /*************************************************************************
 * Extern variable definition. Hopefully, the __thread makes them thread-safe.
