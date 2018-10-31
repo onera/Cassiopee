@@ -280,15 +280,19 @@ High level layer
 
 ---------------------------------------------------------------------------
 
-.. py:function:: Converter.Filter.Handle.loadZonesWoVars(a, znp=None)
+.. py:function:: Converter.Filter.Handle.loadZonesWoVars(a, znp=None, bbox=None)
 
-    Load specified zone (coordinates, grid connectivity, boundary conditions).
+    Load specified zones (coordinates, grid connectivity, boundary conditions).
+    If bbox=[xmin,ymin,zmin,xmax,ymax,zmax] is specified, load only zones
+    intersecting this bbox.
     This function must be called after loadSkeleton.
 
     :param a: modified pyTree 
     :type a: pyTree
     :param znp: path of zones to load from (starting from top)
     :type znp: list of strings
+    :param bbox: optional bbox
+    :type bbox: list of 6 floats
 
     *Example of use:*
 
@@ -302,7 +306,6 @@ High level layer
 
     Load specified variables.
     This function must be called after loadSkeleton.
-
 
     :param a: modified pyTree 
     :type a: pyTree

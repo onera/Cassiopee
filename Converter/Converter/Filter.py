@@ -131,7 +131,6 @@ def _loadContainerPartial(a, fileName, znp, cont, format=None):
       n[1] = r[k]
     return None
 
-
 #=========================================================================
 # Load connectivity
 # Load les connectivites dans a pour les znps donnes
@@ -461,7 +460,7 @@ class Handle:
 
   # Retourne les variables du fichier
   def getVariables(self, a=None, cont=None):
-    """Return the variables contained in file."""
+    """Return the variable names contained in file."""
     if a is not None: p = self.getZonePaths(a)
     else: p = [self.znp[0]] # only first zone
     vars = getVariables(self.fileName, p, cont, self.format)
@@ -587,21 +586,40 @@ class Handle:
 
   # Charge les grid coordinates + grid connectivity + BC
   # pour les zones specifiees
-  def loadZonesWoVars(self, a, znp=None):
+  def loadZonesWoVars(self, a, znp=None, bbox=None):
     """Load zones without loading variables."""
     b = Internal.copyRef(a)
-    self._loadZonesWoVars(b, znp)
+    self._loadZonesWoVars(b, znp, bbox)
     return b
 
-  def _loadZonesWoVars(self, a, znp=None):
+  def _loadZonesWoVars(self, a, znp=None, bbox=None):
     if znp is None: znp = self.getZonePaths(a)
-    # Read paths as skeletons
-    _readPyTreeFromPaths(a, self.fileName, znp, self.format, maxFloatSize=0)
-    _loadContainer(a, self.fileName, znp, 'GridCoordinates', self.format)
-    _loadConnectivity(a, self.fileName, znp, self.format)
-    _loadZoneBCs(a, self.fileName, znp, self.format)
-    for zp in znp:
-      _convert2PartialTree(Internal.getNodeFromPath(a, zp))
+
+    if bbox is None:
+      # Read paths as skeletons
+      _readPyTreeFromPaths(a, self.fileName, znp, self.format, maxFloatSize=0)
+      _loadContainer(a, self.fileName, znp, 'GridCoordinates', self.format)
+      _loadConnectivity(a, self.fileName, znp, self.format)
+      _loadZoneBCs(a, self.fileName, znp, self.format)
+      for zp in znp:
+        _convert2PartialTree(Internal.getNodeFromPath(a, zp))
+    else:
+      if self.bbox is None: self.geomProp()
+      for zp in znp:
+        zbb = self.bbox[zp]
+        #print zbb[3],'<', bbox[0]
+        #print zbb[0],'>', bbox[3]
+        #print zbb[4],'<', bbox[1]
+        #print zbb[1],'>', bbox[4]
+        #print zbb[5],'<', bbox[2]
+        #print zbb[2],'>', bbox[5]
+        if zbb[3] >= bbox[0] and zbb[0] <= bbox[3] and zbb[4] >= bbox[1] and zbb[1] <= bbox[4] and zbb[5] >= bbox[2] and zbb[2] <= bbox[5]:
+          print 'loading: %s'%zp
+          _readPyTreeFromPaths(a, self.fileName, [zp], self.format, maxFloatSize=0)
+          _loadContainer(a, self.fileName, [zp], 'GridCoordinates', self.format)
+          _loadConnectivity(a, self.fileName, [zp], self.format)
+          _loadZoneBCs(a, self.fileName, [zp], self.format)
+          _convert2PartialTree(Internal.getNodeFromPath(a, zp))
     return None
 
   # Charge toutes les BCs (avec BCDataSet) des zones de a  

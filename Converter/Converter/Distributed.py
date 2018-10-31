@@ -98,7 +98,7 @@ def writePyTreeFromPaths(fileName, paths, t, format=None, maxDepth=-1):
 # delete nodes in files (and all subsequent nodes) from paths
 #========================================================================
 def deletePaths(fileName, paths, format=None):
-  """Delete paths in file given their paths."""
+  """Delete nodes in file given their paths."""
   if format is None:
     format = Converter.convertExt2Format__(fileName)
   if not isinstance(paths, list): p = [paths]
