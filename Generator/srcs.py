@@ -1,4 +1,4 @@
-NETGEN = True; TETGEN = True; MMG = True
+NETGEN = True; TETGEN = True; MMGS = True
 
 #==============================================================================
 # Fichiers C++
@@ -137,8 +137,10 @@ else:
     cpp_srcs2 += ["Generator/tetgen_stub.cpp"]
    
 # mmg
-if MMG:
-    cpp_srcs2 += ["Generator/MMGS/analys_s.c",
+if MMGS:
+    cpp_srcs2 += ["Generator/mmgs.cpp",
+                  "Generator/MMGS/mmgs1.c",
+                  "Generator/MMGS/analys_s.c",
                   "Generator/MMGS/anisomovpt.c",
                   "Generator/MMGS/anisomovpt_s.c",
                   "Generator/MMGS/anisosiz.c",

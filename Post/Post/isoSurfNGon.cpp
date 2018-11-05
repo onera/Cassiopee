@@ -782,8 +782,8 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
     }
 
     // supprime les pts inseres plusieurs fois
-    for (E_Int i = 0; i < nthreads; i++) delete keys[i];
-    delete [] keys;
+    //for (E_Int i = 0; i < nthreads; i++) delete keys[i];
+    //delete [] keys;
 
 
     // rebuild

@@ -110,6 +110,7 @@ static PyMethodDef Pygenerator [] =
   {"netgen1", K_GENERATOR::netgen1, METH_VARARGS},
   {"netgen2", K_GENERATOR::netgen2, METH_VARARGS},
   {"tetgen", K_GENERATOR::tetgen, METH_VARARGS},
+  {"mmgs", K_GENERATOR::mmgs, METH_VARARGS},
   {"quad2Pyra", K_GENERATOR::quad2Pyra, METH_VARARGS},
   {NULL, NULL}
 };

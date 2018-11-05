@@ -255,8 +255,8 @@ Modifying/creating variables
 
     The function is only available in the pyTree version.
 
-    :param t:  Input data
-    :type  t:  pyTree, base, zone, list of zones
+    :param t: input data
+    :type  t: pyTree, base, zone, list of zones
     :rtype:  identical to input
 
     *Example of use:*

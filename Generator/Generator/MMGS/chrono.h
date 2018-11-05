@@ -27,6 +27,12 @@
 #include <time.h>
 #include "mmgcommon.h"
 
+// HACK Cassiopee/win64
+#ifdef _WIN32
+#undef POSIX
+#endif
+// END HACK
+
 #ifndef POSIX
 #include <windows.h>
 #else

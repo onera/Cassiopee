@@ -360,6 +360,8 @@ def show():
 def moveCamera(checkPoints, moveEye=False, N=100, speed=1., pos=-1):
     """Move camera.
     Usage: moveCamera(checkPoints, moveEye, N, speed, pos)."""
+    if isinstance(checkPoints[0], str): # zone
+        checkPoints = C.getAllFields(checkPoints, 'nodes')
     CPlot.moveCamera(checkPoints, moveEye, N, speed, pos)
 
 def travelRight(xr=0.1, N=100):

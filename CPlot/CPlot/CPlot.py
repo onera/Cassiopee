@@ -383,11 +383,20 @@ def show():
 #==============================================================================
 def moveCamera(checkPoints, moveEye=False, N=100, speed=1., pos=-1):
     """Move posCam and posEye following check points."""
-    import Geom
-    N = max(N, 3)
-    p = Geom.polyline(checkPoints)
-    if len(checkPoints) == 2: d = Geom.spline(p, 2, N)
-    else: d = Geom.spline(p, 3, N)
+    if len(checkPoints) == 5 and isinstance(checkPoints[0], str): # input array
+      import KCore
+      N = checkPoints[2]
+      d = checkPoints
+      pinc = KCore.isNamePresent(checkPoints, 'incEye')
+      if pinc >= 0: pinc = checkPoints[1][pinc]
+      else: pinc = None
+    else:
+      import Geom 
+      N = max(N, 3)
+      p = Geom.polyline(checkPoints)
+      if len(checkPoints) == 2: d = Geom.spline(p, 2, N)
+      else: d = Geom.spline(p, 3, N)
+      pinc = None
     if pos == -1:
       i = 0
       while i < N-1:
@@ -402,8 +411,9 @@ def moveCamera(checkPoints, moveEye=False, N=100, speed=1., pos=-1):
         i += 1
     else:
       i = pos
-      if i > N-11: inc = N-i-1
+      if pinc is not None: inc = int(pinc[i])
       else: inc = 10
+      inc = min(inc, N-i-1)
       posCam = (d[1][0,i],d[1][1,i],d[1][2,i])
       if moveEye:
         posEye = (d[1][0,i+inc],d[1][1,i+inc],d[1][2,i+inc])

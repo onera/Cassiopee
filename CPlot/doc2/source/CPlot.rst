@@ -118,18 +118,20 @@ Actions
 
 .. py:function:: CPlot.display(a, ...)
 
+    .. A2.O0.D1
+    
     Display entity.
     Display function has a lot of optional options that can be specified as arguments.
 
-    :param a: Input data
+    :param a: input data
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
     :param dim: dimension of data. 1: 1D, 2: 2D, 3: 3D (default: 3)
     :type dim: int
     :param mode: display mode. 0 or 'Mesh': mesh, 1 or 'Solid': solid, 2 or 'Render': render, 3 or 'Scalar': scalar field, 4 or 'Vector': vector field (default: 0)
     :type mode: int or string
-    :param scalarField: scalar field number or scalar field name
+    :param scalarField: scalar field number or scalar field name (ex:'Density')
     :type scalarField: int or string
-    :param vectorField1,2,3: vector field number or vector Field name
+    :param vectorField1,2,3: vector field number or vector field name
     :type vectorField1,2,3: int or string
     :param displayBB: 0: bounding box display (default: 1)
     :type displayBB: int
@@ -155,8 +157,8 @@ Actions
     :type niso: int
     :param isoEdges: width of iso edges for scalar display (default: -1)
     :type isoEdges: float
-    :param isoScales: list of min and max of a variable [novar, niso, min, max] (default: [])
-    :type isoScales: list of set of 4 values
+    :param isoScales: list of min and max of a variable [varName, niso, min, max] (default: [])
+    :type isoScales: list of string, int, float, float
     :param win: (sizeWinX, sizeWinY) window size (default: 700,700)
     :type win: tuple of 2 ints
     :param posCam: (x,y,z) camera position
@@ -165,7 +167,7 @@ Actions
     :type posEye: tuple of 3 floats
     :param dirCam: (x,y,z) camera direction (default: 0,0,1)
     :type dirCam: tuple of 3 floats
-    :param viewAngle: camera angle in degrees (default: 50)
+    :param viewAngle: camera angle in degrees (default: 50.)
     :type viewAngle: float
     :param bgColor: background color. 0-10 (default: 0)
     :type bgColor: int
@@ -202,7 +204,9 @@ Actions
 
 .. py:function:: CPlot.render()
 
-    Force rendering.
+    .. A2.O0.D1
+    
+    Force rendering. Must be used after functions that don't render (ex: add, delete, ...).
 
     *Example of use:*
 
@@ -219,9 +223,11 @@ Actions
     
 .. py:function:: CPlot.delete(list)
 
+    .. A2.O0.D1
+    
     Delete zones from plotter. This function does not render. Argument is either
     a list of zone numbers (struct zones then unstructured zones order) or a list 
-    of zone names if zoneNames arg has been provided before to display function:
+    of zone names if zoneNames argument has been provided before to display function.
 
     :param list: list of zone number or zone names
     :type list: list of int or strings
@@ -239,19 +245,34 @@ Actions
 
 -------------------------------------------
 
-.. py:function:: CPlot.add(A, no, a)
+.. py:function:: CPlot.add(A, ..., a)
 
+    .. A2.O0.D1
+    
     Add/insert one array/zone in plotter. This function does not render. 
-    For array interface, no is the position of insertion of a in A.
-    Replace also in A
+    
+    For array interface:
+    ::
+    
+        CPlot.add(A, no, a)
+    
+    no is the position of insertion of a in A.
+    Replace also in A.
 
-    For the pyTree interface, insert or append a to the base nob, at position
+    For the pyTree interface:
+    ::
+    
+        CPlot.add(A, nob, noz, a)
+    
+    Insert or append a to the base nob, at position
     noz in the zone list. If noz=-1, append to end of list.
 
-    :param A: Initial data
-    :type A: arrays, pyTree or zones
+    :param A: input data
+    :type A: arrays, pyTree or list of zones
     :param no: position of zone to add in A
     :type no: int
+    :param noz: position of zone to add in A
+    :type noz: int
     :param a: data to add
     :type a: array or zone
     
@@ -268,16 +289,29 @@ Actions
 
 ---------------------------------------------
 
-.. py:function:: CPlot.replace(A, no, a)
+.. py:function:: CPlot.replace(A, ..., a)
 
+    .. A2.O0.D1
+
+    For array interface:
+    ::
+        CPlot.replace(A, no, a)
+        
     Performs A[no]=a, keeping plotter coherent.
+    
+    For pyTree interface:
+    ::
+        CPlot.replace(A, nob, noz, a)
+        
     Performs t[2][nob][2][noz]=a, keeping plotter coherent. 
     This function does not render. 
 
-    :param A: Initial data
+    :param A: input data
     :type A: arrays, pyTree or zones
     :param no: position of zone to add in A
     :type no: int
+    :param noz: position of zone to add in A
+    :type noz: int
     :param a: data to add
     :type a: array or zone
     
@@ -296,6 +330,8 @@ Actions
 
 .. py:function:: CPlot.pressKey()
 
+    .. A2.O0.D1
+    
     Wait for a key to be pressed.
 
 -----------------------------------------------
@@ -303,8 +339,11 @@ Actions
 
 .. py:function:: CPlot.finalizeExport(action=0)
 
+    .. A2.O0.D0
+    
     Finalize an export. Wait for the end of file writing (action=0)
-    or in mpeg export, close the mpeg file (action=1).
+    or in mpeg export, close the mpeg file (action=1). Must be called
+    when doing offscreen rendering (offscreen=1 or 2 in display function).
     
     :param action: if 0, means wait until file is written, if 1, means close mpeg file
     :type action: int
@@ -321,6 +360,8 @@ Set / Get functions
 
 .. py:function:: CPlot.getState(stateName)
 
+    .. A2.O0.D0
+    
     Return the specified state value as stored in plotter.
     Available stateName are the same as the display
     function arguments.
@@ -342,6 +383,8 @@ Set / Get functions
 
 .. py:function:: CPlot.getSelectedZone()
 
+    .. A2.O0.D0
+    
     Return the currently selected zone. If none is selected, return -1. If
     multiple zones are selected, return the last selected zone.
 
@@ -359,6 +402,8 @@ Set / Get functions
 
 .. py:function:: CPlot.getSelectedZones()
 
+    .. A2.O0.D0
+    
     Return the list of selected zones. If none is selected, return [].
 
     *Example of use:*
@@ -372,6 +417,8 @@ Set / Get functions
 
 .. py:function:: CPlot.getSelectedStatus(nz)
 
+    .. A2.O0.D0
+    
     Return the selected status (1: selected, 0: not selected) of zone nz.
 
     :param nz: zone number
@@ -391,7 +438,9 @@ Set / Get functions
 
 .. py:function:: CPlot.getActiveZones()
 
-    Return the list of active (displayed) zones.
+    .. A2.O0.D0
+    
+    Return the list of active (visible) zones.
 
     :return: list of zone numbers
     :rtype: list of ints
@@ -406,7 +455,10 @@ Set / Get functions
 
 .. py:function:: CPlot.getActiveStatus(nz)
 
+    .. A2.O0.D0
+    
     Return the active status (1: active, 0: inactive) of zone nz.
+    Active zones are visible, unactive zones are hidden.
     
     :param nz: number of zone
     :type nz: int
@@ -424,6 +476,8 @@ Set / Get functions
 
 .. py:function:: CPlot.getActivePoint()
 
+    .. A2.O0.D0
+    
     Return the last clicked point position (coordinates in 3D world) as 
     a list of three coordinates.
 
@@ -439,6 +493,8 @@ Set / Get functions
 -----------------------------------------------
 
 .. py:function:: CPlot.getActivePointIndex()
+    
+    .. A2.O0.D0
     
     Return the active point index. For structured grids, return 
     [ind, indc, i,j,k], where ind is the global index of the nearest node
@@ -463,6 +519,8 @@ Set / Get functions
 
 .. py:function:: CPlot.getMouseState()
     
+    .. A2.O0.D0
+    
     Return the current button state
     of mouse (0: left pressed, 1: middle pressed, 2: right pressed, 
     5: not pressed) and the current mouse position (if pressed). Use 
@@ -482,6 +540,8 @@ Set / Get functions
 
 .. py:function:: CPlot.getKeyboard()
 
+    .. A2.O0.D0
+    
     Return the pressed keys as a string.
 
     :return: keys pressed in CPlot window
@@ -498,12 +558,16 @@ Set / Get functions
     
 .. py:function:: CPlot.resetKeyboard()
 
+    .. A2.O0.D0 
+    
     Reset the pressed key string stored in plotter.
     
 -----------------------------------------------
 
 .. py:function:: CPlot.changeVariable()
 
+    .. A2.O0.D0
+    
     Change displayed variable.
     
     *Example of use:*
@@ -517,6 +581,8 @@ Set / Get functions
 
 .. py:function:: CPlot.changeStyle()
 
+    .. A2.O0.D0
+    
     Change CPlot display style.
 
     *Example of use:*
@@ -541,6 +607,8 @@ Set / Get functions
 
 .. py:function:: CPlot.setState(dim, mode, ...)
 
+    .. A2.O0.D0
+    
     Set a CPlot state. The same keywords as display can be used.
 
     Additional keywords are:
@@ -571,6 +639,8 @@ Set / Get functions
 
 .. py:function:: CPlot.setMode(mode)
 
+    .. A2.O0.D0
+    
     Set CPlot display mode (0 or 'Mesh': means mesh, 1 or 'Solid': means solid, 2 or 'Render': means render, 
     3 or 'Scalar' means scalar field, 4 or 'Vector' means vector fields)
 
@@ -605,6 +675,8 @@ Set / Get functions
 
 .. py:function:: CPlot.unselectAllZones()
 
+    .. A2.O0.D0
+    
     Unselect all zones.
 
     *Example of use:*
@@ -618,8 +690,7 @@ Set / Get functions
 
 .. py:function:: CPlot.setActiveZones(list)
 
-
-    Set the active (displayed) zones.
+    Set the active (visible) status for given zones.
 
     :param list: list of zone number and status
     :type  list: list of tuples of 2 ints
@@ -651,7 +722,7 @@ Camera setting and motion
 
 .. py:function:: CPlot.lookFor()
 
-    Look for selected zone. It positions the camera for a clear wiew
+    Look for selected zone. It positions the camera for a clear view
     on the currently selected zone.
 
     *Example of use:*
@@ -664,10 +735,14 @@ Camera setting and motion
 
 .. py:function:: CPlot.moveCamera(listOfPts, moveEye=False, N=100, speed=1., pos=-1)
 
-    Move camera along check points.
+    Move camera along check points. The list of points specifies the path of the camera.
+    The camera will move along this path, making N steps. pos will position the 
+    camera at step number pos along the path. If moveEye is true, the posEye (that
+    is the position the camera is looking to) will follow the path, if false, the posEye 
+    will stay at initial posEye.
 
     :param listOfPts: coordinates of check points
-    :type listOfPts: list of tuple of 3 floats
+    :type listOfPts: list of tuple of 3 floats or 1D STRUCT Zone
     :param moveEye: if True, the eye follow check points
     :type moveEye: Boolean
     :param speed: speed of camera motion
@@ -691,6 +766,8 @@ Camera setting and motion
 
 .. py:function:: CPlot.travelLeft(xr, N=100)
 
+    .. A2.O0.D0
+    
     Travel camera left/Right/Up/Down/In/Out. 
     Xr is the range (in 0.,1.). 
     N is the number of check points.
@@ -712,7 +789,7 @@ Set rendering informations in pyTree
 .. py:function:: CPlot.PyTree.addRender2Zone(a, material, color, blending, meshOverlay, shaderParameters)
 
     Add rendering info to a zone. Info are added in a .RenderInfo user
-    defined node. Use Render mode.
+    defined node. Use Render mode in display for rendering effects.
     Exists also as in place version (_addRender2Zone) that modifies a
     and returns None.
 

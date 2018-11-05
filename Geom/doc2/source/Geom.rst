@@ -813,7 +813,7 @@ Geometry modification
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
     :param N: the final number of points
     :type N: int
-    :param h:param h: the final mesh step
+    :param h: the final mesh step
     :type h: float
     :rtype: identical to a
 

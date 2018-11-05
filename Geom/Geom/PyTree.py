@@ -58,7 +58,7 @@ def spline(t, order=3, N=100, M=100, density=-1):
 def nurbs(t, weight='weight', order=3, N=100, M=100, density=-1):
     """Create a nurbs of N points.
     Usage: nurbs(ctrlPts, order, N)"""
-    w = C.getField(weight,t)[0]
+    w = C.getField(weight, t)[0]
     Pts = C.getFields(Internal.__GridCoordinates__, t)[0]
     Pts = Converter.addVars([Pts,w])
     surf = Geom.nurbs(Pts, weight, order, N, M, density)

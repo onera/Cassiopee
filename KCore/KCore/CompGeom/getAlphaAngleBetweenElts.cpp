@@ -92,6 +92,8 @@ E_Float K_COMPGEOM::getAlphaAngleBetweenTriangles(
   if (c < 2) {return -1000.;}
   // Calcul les vecteurs t1 et t2
   E_Float t1[3]; E_Float t2[3];
+  t1[0]=0.;t1[1]=0.;t1[2]=0.;
+  t2[0]=0.;t2[1]=0.;t2[2]=0.;
   if (foundA1 == 0)
   {
     t1[0] = K_CONST::ONE_HALF*(ptB1[0]+ptC1[0])-ptA1[0];
@@ -311,6 +313,8 @@ E_Float K_COMPGEOM::getAlphaAngleBetweenQuads(
   if (c < 2) {return -1000.;}
 
   E_Float t1[3]; E_Float t2[3];
+  t1[0]=0.;t1[1]=0.;t1[2]=0.;
+  t2[0]=0.;t2[1]=0.;t2[2]=0.;
   if (foundA1 == 0 && foundB1 == 0) 
   {
     t1[0] = K_CONST::ONE_HALF*((ptD1[0]+ptC1[0])-(ptA1[0]+ptB1[0]));
