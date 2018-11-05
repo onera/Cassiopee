@@ -68,7 +68,7 @@ List of functions
    Geom.uniformize
    Geom.refine
    Geom.enforceh 
-   Geom.lineGenerate
+   Geom.lineDrive
    Geom.axisym
    Geom.connect1D
 
@@ -831,7 +831,7 @@ Geometry modification
 
 ---------------------------------------------------------------
 
-.. py:function:: Geom.lineGenerate(a, d)
+.. py:function:: Geom.lineDrive(a, d)
 
     Generate a surface mesh starting from a curve a and a single or a set of driving curves.
     The first point of the driving curves must match with one point of the original curve a.
@@ -845,13 +845,13 @@ Geometry modification
 
     *Example of use:*
 
-    * `Extrusion of a NACA0012 (array) <Examples/Geom/lineGenerate.py>`_:
+    * `Extrusion of a NACA0012 (array) <Examples/Geom/lineDrive.py>`_:
 
-    .. literalinclude:: ../build/Examples/Geom/lineGenerate.py
+    .. literalinclude:: ../build/Examples/Geom/lineDrive.py
 
-    * `Extrusion of a NACA0012 (pyTree) <Examples/Geom/lineGeneratePT.py>`_:
+    * `Extrusion of a NACA0012 (pyTree) <Examples/Geom/lineDrivePT.py>`_:
 
-    .. literalinclude:: ../build/Examples/Geom/lineGeneratePT.py
+    .. literalinclude:: ../build/Examples/Geom/lineDrivePT.py
 
 .. ---------------------------------------------------------------
 .. .. py:function:: Geom.addSeparationLine(a, b)

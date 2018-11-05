@@ -279,17 +279,21 @@ def addSeparationLine(t, line0):
         zones.append(zone)
     return zones
 
-def lineGenerate(t, line):
+# Obsolete
+def lineGenearte(t, line):
+    return lineDrive(t, line)
+
+def lineDrive(t, line):
     """Generate a surface mesh by using 1D array (defining a mesh)
     and following the curve defined in line.
-    Usage: lineGenerate(t, line)"""
+    Usage: lineDrive(t, line)"""
     al = C.getFields(Internal.__GridCoordinates__, line)
     if len(al) == 1: al = al[0]
     al2 = Converter.node2Center(al)
     # Attention les coord. des centres ne sont pas justes! mais
     # elles ne sont pas utilisees dans la fonction
-    return C.TZAGC(t, 'both', 'both', Geom.lineGenerate,
-                   Geom.lineGenerate, al, al2)
+    return C.TZAGC(t, 'both', 'both', Geom.lineDrive,
+                   Geom.lineDrive, al, al2)
 
 def axisym(t, center, axis, angle=360., Ntheta=360, rmod=None):
     """Create an axisymmetric mesh given an azimuthal surface mesh.

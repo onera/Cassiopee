@@ -253,7 +253,7 @@ def cylinder(C, R, H, N=100, ntype='STRUCT'):
     m1 = T.reorder(m1, (-1,2,3))
     m2 = circle(C, R, tetas=-45, tetae=-45+360, N=4*N-3)
     l = line(C, (x0,y0,z0+H), N=N)
-    m2 = lineGenerate(m2, l)
+    m2 = lineDrive(m2, l)
     s = m0 + m1 + [m2]
     return export__(s, ntype)
 
@@ -467,9 +467,13 @@ def getTangent(a):
     if len(b)==1: return b[0]
     else: return b
 
+# Obsolete
 def lineGenerate(a, d):
+    return lineDrive(a, d)
+
+def lineDrive(a, d):
     """Generate a surface mesh starting from a curve and a driving curve defined by d.
-    Usage: lineGenerate(a, d)"""
+    Usage: lineDrive(a, d)"""
     if isinstance(d[0], list): # set of driving curves
         if isinstance(a[0], list):
             b = []
@@ -498,6 +502,70 @@ def lineGenerate2__(array, drivingCurves):
     for i in drivingCurves[1:]:
         d += [Generator.map(i, distrib)]
     return geom.lineGenerate2(array, d)
+
+# Ortho drive avec copy ou avec stack
+# IN: a et d doivent etre orthogonals
+def orthoDrive(a, d):
+    coord = d[1]
+    center = (coord[0,0],coord[1,0],coord[2,0])
+    coordA = a[1]
+    P0 = [coordA[0,0],coordA[1,0],coordA[2,0]]
+    P1 = [coordA[0,1],coordA[1,1],coordA[2,1]]
+    xg = G.barycenter(a)
+    v0 = Vector.sub(P0, xg)
+    v1 = Vector.sub(P1, xg)
+    S = Vector.cross(v0, v1)
+    S = Vector.normalize(S)
+    if abs(S[1]) > 1.e-12 and abs(S[2]) > 1.e-12: # x,S plane
+        alpha = -S[0]
+        U = Vector.mul(alpha, S)
+        U = Vector.add(U, [1,0,0])
+    else: # y,S plane
+        alpha = -S[0]
+        U = Vector.mul(alpha, S)
+        U = Vector.add(U, [0,1,0])
+    V = Vector.cross(U, S)
+    print 'S',S
+    print 'U',U
+    print 'V',V
+
+    n = d[2]
+    all = []
+    
+    e2p = None
+    for i in xrange(n):
+        if i == n-1:
+            Pi = [coord[0,i-1],coord[1,i-1],coord[2,i-1]]
+            Pip = [coord[0,i],coord[1,i],coord[2,i]]
+        else:                
+            Pi = [coord[0,i],coord[1,i],coord[2,i]]
+            Pip = [coord[0,i+1],coord[1,i+1],coord[2,i+1]]
+        # vecteur deplacement (modele initial en 0)
+        v = Vector.sub(Pi, P0)
+        # vecteur e1 (transformation de S)
+        e1 = Vector.sub(Pip, Pi)
+        e1 = Vector.normalize(e1)
+        # vecteur e2 (intersection plan)
+        # intersection du plan normal a e1 avec le plan x,y
+        if abs(S[1]) > 1.e-12 and abs(S[2]) > 1.e-12: # x,S plane
+            alpha = -e1[0]
+            e2 = Vector.mul(alpha, e1)
+            e2 = Vector.add(e2, [1,0,0])
+        else:
+            alpha = -e1[0]
+            e2 = Vector.mul(alpha, e1)
+            e2 = Vector.add(e2, [0,2,0])
+        e2 = Vector.normalize(e2)
+        if e2p is not None:
+            if Vector.dot(e2,e2p) < -0.9:
+                e2 = Vector.mul(-1,e2)
+        e2p = e2
+        e3 = Vector.cross(e2,e1)
+
+        b2 = T.rotate(a, center, (S,U,V), (e1,e2,e3))
+        b2 = T.translate(b2, v)
+        all.append(b2)
+    return all
 
 def addSeparationLine(array, array2):
     """Add a separation line defined in array2 to a mesh defined in array.
@@ -715,7 +783,7 @@ def text3D(string, font='text1', smooth=0, offset=0.5, thickness=8.):
         raise ImportError("text3D: requires Generator, Transform, Converter.")
     a = text1D(string, font, smooth, offset)
     l = line((0,0,0),(0,0,thickness),2)
-    a = lineGenerate(a, l)
+    a = lineDrive(a, l)
     a = Converter.convertArray2Tetra(a)
     b = Transform.join(a)
     

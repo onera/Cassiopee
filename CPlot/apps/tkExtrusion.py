@@ -142,10 +142,10 @@ def extrudeWCurve():
         v = v.lstrip(); v = v.rstrip()
         sname = v.split('/', 1)
         bases = Internal.getNodesFromName1(CTK.t, sname[0])
-        if (bases != []):
+        if bases != []:
             nodes = Internal.getNodesFromType1(bases[0], 'Zone_t')
             for z in nodes:
-                if (z[0] == sname[1]): curve.append(z)
+                if z[0] == sname[1]: curve.append(z)
     if len(curve) == 0:
         CTK.TXT.insert('START', 'Curve is incorrect.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return

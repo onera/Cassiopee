@@ -142,7 +142,7 @@ def generate(event=None):
         m1 = T.reorder(m1, (-1,2,3))
         m2 = D.circle( (0,0,-0.5), 0.5, tetas=-45, tetae=-45+360, N=4*N-3)
         l = D.line((0,0,-0.5), (0,0,0.5), N=N)
-        m2 = D.lineGenerate(m2, l)
+        m2 = D.lineDrive(m2, l)
         s = m0 + m1 + [m2]
         xc = 0.; yc = 0.; zc = 0.
     elif surfType == 'Cone':

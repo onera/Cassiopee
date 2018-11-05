@@ -7,7 +7,7 @@ if os.environ.has_key('MPIRUN'): # securise import mpi4py.MPI
             from Mpi4py import *
         except: raise ImportError("Converter:Mpi: requires mpi4py module.")
     else:
-       rank = 0; size = 1
+       rank = 0; size = 1; KCOMM = None
 else: # try import (may fail - core or hang)
     try:
         from Mpi4py import *

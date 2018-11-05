@@ -18,7 +18,7 @@ def column(R=0.2, N=10, h=1.):
     b = G.gapfixer(c, p)
     b2 = T.translate(b, (0,0,h))
     l = D.line((0,0,0), (0,0,h), N=5)
-    c2 = D.lineGenerate(c, l)
+    c2 = D.lineDrive(c, l)
     c2 = C.convertArray2Tetra(c2)
     o = T.join([b,b2,c2])
     o = G.close(o)

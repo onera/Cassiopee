@@ -27,7 +27,7 @@ def star(R1=1., R2=2., shift=0.5, N=10, h=1.):
     b = G.gapfixer(c, p)
     b2 = T.translate(b, (0,0,h))
     l = D.line((0,0,0), (0,0,h), N=3)
-    c = D.lineGenerate(c, l)
+    c = D.lineDrive(c, l)
     c = C.convertArray2Tetra(c)
     o = T.join([b,c,b2])
     o = G.close(o)
