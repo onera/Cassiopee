@@ -602,14 +602,17 @@ General purpose grid generator
 
 .. py:function:: Generator.TFIHalfO(a1, a2)
 
-    Generate four meshes by transfinite interpolation around two given curves a1 and a2 forming a half-O. N1 and N2 must be odd.
+    .. A1.O0.D0
+
+    Generate four meshes by transfinite interpolation around two given curves a1 and a2 forming a half-O. 
+    N1, the number of points of a1 and N2, the number of points of a2 must be odd.
 
     :param a1:  first curve
-    :type  a1:  array
+    :type  a1:  array or Zone
     :param a2:  second curve
-    :type  a2:  array
+    :type  a2:  array or Zone
     :return: 2D structured mesh (half butterfly C-H topology)
-    :rtype: array or pyTree
+    :rtype: array or Zone
 
     *Example of use:*
 

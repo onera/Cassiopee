@@ -1131,37 +1131,65 @@ Isos
 
 ---------------------------------------
 
-.. py:function:: Post.isoSurf(A, field, val)
+.. py:function:: Post.isoSurf(a, field, val, split='simple', vars=None)
 
-    Compute an isosurface correponding to value val of field (using marching
+    .. A1.O0.D0
+
+    Compute an isosurface corresponding to value val of field (using marching
     tetrahedra). Resulting solution is always located in nodes.
-    Return a list of two zones (one TRI and one BAR, if relevant)
+    Return a list of two zones (one TRI and one BAR, if relevant).
+    If vars (for ex: ['centers:F', 'G']) is given, extract only given variables.
+
+    :param a:  input data
+    :type  a:  [array, list of arrays] or [pyTree, base, zone, list of zones]
+    :param field: field name used in iso computation
+    :type field: string
+    :param val: value of field for extraction
+    :type val: float
+    :param split: 'simple' or 'withBarycenters', used in decomposing a in tetra (if needed)
+    :type split: string
+    :param vars: list of variable names you want to see on final iso-surface
+    :type vars: list of strings
 
     *Example of use:*
 
-    * `Isosurface computation (array) <Examples/Post/isoSurf.py>`_:
+    * `Isosurface extraction by marching tetra (array) <Examples/Post/isoSurf.py>`_:
 
     .. literalinclude:: ../build/Examples/Post/isoSurf.py
 
-    * `Isosurface computation (pyTree) <Examples/Post/isoSurfPT.py>`_:
+    * `Isosurface extraction by marching tetra (pyTree) <Examples/Post/isoSurfPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Post/isoSurfPT.py
 
 
 ---------------------------------------
 
-.. py:function:: Post.isoSurfMC(A, field, val)
+.. py:function:: Post.isoSurfMC(a, field, val, split='simple', vars=None)
+
+    .. A1.O0.D0
 
     Compute an isosurface correponding to value val of field (using marching
     cubes). Resulting solution is always located in nodes.
+    If vars (for ex: ['centers:F', 'G']) is given, extract only given variables.
+
+    :param a:  input data
+    :type  a:  [array, list of arrays] or [pyTree, base, zone, list of zones]
+    :param field: field name used in iso computation
+    :type field: string
+    :param val: value of field for extraction
+    :type val: float
+    :param split: 'simple' or 'withBarycenters', used in decomposing a in tetra (if needed)
+    :type split: string
+    :param vars: list of variable names you want to see on final iso-surface
+    :type vars: list of strings
 
     *Example of use:*
 
-    * `Isosurface (array) <Examples/Post/isoSurfMC.py>`_:
+    * `Isosurface by marching cube (array) <Examples/Post/isoSurfMC.py>`_:
 
     .. literalinclude:: ../build/Examples/Post/isoSurfMC.py
 
-    * `Isosurface (pyTree) <Examples/Post/isoSurfMCPT.py>`_:
+    * `Isosurface by marching cube (pyTree) <Examples/Post/isoSurfMCPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Post/isoSurfMCPT.py
 

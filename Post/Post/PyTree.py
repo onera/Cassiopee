@@ -1581,15 +1581,26 @@ def isoLine(t, var, value):
     a = Post.isoLine(arrays, v, value)
     return C.convertArrays2ZoneNode('isoLine', [a])
 
-def isoSurf(t, var, value, split='simple'):
+def isoSurf(t, var, value, split='simple', vars=None):
     """Compute an iso surface in volume zones using marching tetra.
     Usage: isoSurf(t, var, value)"""
-    t = C.center2Node(t, Internal.__FlowSolutionCenters__)
+    if vars is None:
+        t = C.center2Node(t, Internal.__FlowSolutionCenters__)
+    else:
+        for v in vars:
+            vs = v.split(':')
+            vc = []; vn = ['CoordinateX','CoordinateY','CoordinateY']
+            if len(vs) == 2 and vs[0] == 'centers': vc.append(vs[1])
+            elif len(vs) == 2 and vs[0] == 'nodes': vn.append(vs[1])
+            else: vn.append(v)
+        if vc != []: t = C.center2Node(t, vc)
+
     zones = Internal.getZones(t)
     var, loc = Internal.fixVarName(var)
     ret = []
     for z in zones:
-        array = C.getAllFields(z, 'nodes')[0]
+        if vars is None: array = C.getAllFields(z, 'nodes')[0]
+        else: array = C.getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], z, vn+vc)[0]
         try:
             a = Post.isoSurf(array, var, value, split)
             if a != []:
@@ -1605,10 +1616,8 @@ def isoSurfMC_opt(t, var, value, list=[]):
     Usage: isoSurfMC_opt(t, var, value, varlist)"""
     import KCore
     OMP_NUM_THREADS = KCore.getOmpMaxThreads()
-
     vars = var.split(':')
     if len(vars) == 2: var = vars[1]
-
     ret = []; new_list=[]; coord=['CoordinateX','CoordinateY','CoordinateZ']
 
     if list != []:
@@ -1665,15 +1674,26 @@ def isoSurfMC_opt(t, var, value, list=[]):
     if var not in coord: ret = C.rmVars(ret, var)
     return ret
 
-def isoSurfMC(t, var, value, split='simple'):
+def isoSurfMC(t, var, value, split='simple', vars=None):
     """Compute an iso surface in volume zones using marching cubes.
-    Usage: isoSurfMC(t, var, value)"""
-    t = C.center2Node(t, Internal.__FlowSolutionCenters__)
+    Usage: isoSurfMC(t, var, value, split, vars)"""
+    if vars is None:
+        t = C.center2Node(t, Internal.__FlowSolutionCenters__)
+    else:
+        for v in vars:
+            vs = v.split(':')
+            vc = []; vn = ['CoordinateX','CoordinateY','CoordinateY']
+            if len(vs) == 2 and vs[0] == 'centers': vc.append(vs[1])
+            elif len(vs) == 2 and vs[0] == 'nodes': vn.append(vs[1])
+            else: vn.append(v)
+        if vc != []: t = C.center2Node(t, vc)
+
     zones = Internal.getZones(t)
     var, loc = Internal.fixVarName(var)
     ret = []
     for z in zones:
-        array = C.getAllFields(z, 'nodes')[0]
+        if vars is None: array = C.getAllFields(z, 'nodes')[0]
+        else: array = C.getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], z, vn+vc)[0]
         try:
             a = Post.isoSurfMC(array, var, value, split)
             if a != []:

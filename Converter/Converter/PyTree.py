@@ -1241,15 +1241,17 @@ def getField(name, t, api=1):
 # noeud d'un arbre
 # Retourne une liste de arrays
 # IN: t: n'importe quel noeud de l'arbre
-# IN: name: GridCoordinates, FlowSolution, FlowSolution#Centers (conteneur)
+# IN: containerName: GridCoordinates, FlowSolution, FlowSolution#Centers (conteneur)
+# IN: vars: optionel, liste des variables a recuperer
+# IN: api=1, sortie array (avec copie), api=2, sortie array2 sans copie
 # OUT: arrays: solution
 # OUT: peut contenir des arrays vides ([])
-# Rem: un conteneur ne contient que des champs homogenes en localisation
-def getFields(name, t, api=1):
+# Attention: il faut envoyer que des containeurs homogenes en localisation
+def getFields(containerName, t, api=1, vars=None):
   zones = Internal.getZones(t)
   arrays = []
-  if isinstance(name, list): names = name
-  else: names = [name]
+  if isinstance(containerName, list): names = containerName
+  else: names = [containerName]
   for z in zones:
     dim = Internal.getZoneDim(z)
     if dim[0] == 'Structured':
@@ -1270,7 +1272,9 @@ def getFields(name, t, api=1):
             #if j[0] == 'CoordinateX' or j[0] == 'CoordinateY' or j[0] == 'CoordinateZ':
             #  if i[0] == Internal.__GridCoordinates__: out.append(j)
             #else: out.append(j)
-            out.append(j)
+            if vars is None: out.append(j)
+            else:
+              if j[0] in vars: out.append(j)
 
     if out != []:
       if api==1: array = Internal.convertDataNodes2Array(out, dim, connects, loc)

@@ -505,7 +505,12 @@ def lineGenerate2__(array, drivingCurves):
 
 # Ortho drive avec copy ou avec stack
 # IN: a et d doivent etre orthogonals
-def orthoDrive(a, d):
+# IN: mode=0 (stack), mode=1 (copy)
+def orthoDrive(a, d, mode=0):
+    """Generate a surface mesh starting from a curve and a driving orthogonally to curve defined by d.
+    Usage: orthoDrive(a, d)"""
+    try: import Generator as G
+    except: raise ImportError("orthoDrive: requires Generator module.")
     coord = d[1]
     center = (coord[0,0],coord[1,0],coord[2,0])
     coordA = a[1]
@@ -533,15 +538,16 @@ def orthoDrive(a, d):
     all = []
     
     e2p = None
+    P0 = [coord[0,0],coord[1,0],coord[2,0]]
     for i in xrange(n):
         if i == n-1:
             Pi = [coord[0,i-1],coord[1,i-1],coord[2,i-1]]
             Pip = [coord[0,i],coord[1,i],coord[2,i]]
+            v = Vector.sub(Pip, P0)
         else:                
             Pi = [coord[0,i],coord[1,i],coord[2,i]]
             Pip = [coord[0,i+1],coord[1,i+1],coord[2,i+1]]
-        # vecteur deplacement (modele initial en 0)
-        v = Vector.sub(Pi, P0)
+            v = Vector.sub(Pi, P0)
         # vecteur e1 (transformation de S)
         e1 = Vector.sub(Pip, Pi)
         e1 = Vector.normalize(e1)
@@ -565,6 +571,7 @@ def orthoDrive(a, d):
         b2 = T.rotate(a, center, (S,U,V), (e1,e2,e3))
         b2 = T.translate(b2, v)
         all.append(b2)
+    if mode == 0: all = G.stack(all)
     return all
 
 def addSeparationLine(array, array2):

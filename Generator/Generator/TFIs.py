@@ -284,6 +284,7 @@ def TFIHalfO__(a1, a2, weight, offset=0):
     # TFIs
     m = G.TFI([l1,l2,l3,s2])
     m1 = G.TFI([s1, s4, p1, l1])
+    m1 = T.reorder(m1, (1,-2,3))
     m2 = G.TFI([s5, p1, p2, l2])
     m3 = G.TFI([s6, p2, s3, l3])
 

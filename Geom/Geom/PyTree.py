@@ -280,7 +280,7 @@ def addSeparationLine(t, line0):
     return zones
 
 # Obsolete
-def lineGenearte(t, line):
+def lineGenerate(t, line):
     return lineDrive(t, line)
 
 def lineDrive(t, line):
@@ -294,6 +294,18 @@ def lineDrive(t, line):
     # elles ne sont pas utilisees dans la fonction
     return C.TZAGC(t, 'both', 'both', Geom.lineDrive,
                    Geom.lineDrive, al, al2)
+
+def orthoDrive(t, line, mode=0):
+    """Generate a surface mesh by using 1D array (defining a mesh)
+    and following orthogonally the curve defined in line.
+    Usage: orthoDrive(t, line)"""
+    al = C.getFields(Internal.__GridCoordinates__, line)
+    if len(al) == 1: al = al[0]
+    al2 = Converter.node2Center(al)
+    # Attention les coord. des centres ne sont pas justes! mais
+    # elles ne sont pas utilisees dans la fonction
+    return C.TZAGC(t, 'both', 'both', Geom.orthoDrive,
+                   Geom.orthoDrive, al, mode, al2, mode)
 
 def axisym(t, center, axis, angle=360., Ntheta=360, rmod=None):
     """Create an axisymmetric mesh given an azimuthal surface mesh.
