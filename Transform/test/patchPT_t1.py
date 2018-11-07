@@ -26,15 +26,6 @@ a = T.patch(c1, c2,(1,1,1))
 t = C.newPyTree(['Base',3,a])
 test.testT(t, 1)
 
-# multizone
-a = D.sphere6((0,0,0), 1, N=20)
-t = C.newPyTree(['Base',3]); t[2][1][2] += a
-k=0
-t2 = T.subzone(t,(1,1,k+1),(-1,-1,k+1))
-t2 = T.smooth(t2, eps=0.5, niter=20, projConstraints=Internal.getNodesFromType(t2,'Zone_t'))
-t = T.patch(t, t2, (1,1,k+1))
-test.testT(t, 3)
-
 # cas 3D
 c1 = G.cart((0,0,0), (0.01,0.01,1), (201,101,20))
 C._addBC2Zone(c1,'wall1','BCWall','imin')
@@ -61,4 +52,4 @@ t = C.newPyTree(['Base',3,a])
 t2 = T.subzone(t,(1,1,2),(-1,-1,4))
 t2 = T.smooth(t2, eps=0.5, niter=20)
 t = T.patch(t,t2,(1,1,2))
-test.testT(t, 4)
+test.testT(t, 3)

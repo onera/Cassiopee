@@ -129,7 +129,14 @@ def setCurve():
     VARS[3].set(selected)    
 
 #=============================================================================
-def extrudeWCurve():
+def lineDrive():
+    extrudeWCurve(mode=0)
+    
+def orthoDrive():
+    extrudeWCurve(mode=1)
+    
+#=============================================================================
+def extrudeWCurve(mode=0):
     if CTK.t == []: return
     if CTK.__MAINTREE__ <= 0:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
@@ -162,7 +169,8 @@ def extrudeWCurve():
         noz = CTK.Nz[nz]
         z = CTK.t[2][nob][2][noz]
         try:
-            z = D.lineGenerate(z, curve)
+            if mode == 0: z = D.lineDrive(z, curve)
+            else: z = D.orthoDrive(z, curve)
             CTK.replace(CTK.t, nob, noz, z)
         except Exception, e: 
             fail = True; errors += [0,str(e)]
@@ -350,9 +358,13 @@ def createApp(win):
     B.grid(row=2, column=0, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Driving curve(s) for extrusion.')
     
-    B = TTK.Button(Frame, text="Extrude with curve(s)", command=extrudeWCurve)
-    B.grid(row=3, column=0, columnspan=3, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Extrude following curve(s).')
+    B = TTK.Button(Frame, text="LineDrive", command=lineDrive)
+    B.grid(row=3, column=0, columnspan=2, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Extrude following linearly curve(s).')
+    
+    B = TTK.Button(Frame, text="OrthoDrive", command=orthoDrive)
+    B.grid(row=3, column=2, columnspan=1, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Extrude following orthogonally curve(s).')
 
     # - Revolve -
     B = TTK.Button(Frame, text="Axis", command=setAxis,

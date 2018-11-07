@@ -49,6 +49,8 @@ def getSystem():
           key = os.environ['ELSAPROD']
           if key == 'win64': return ['mingw', '64']
           elif key == 'win32': return ['mingw', '32']
+          elif key == 'msys64': return ['mingw', '64']
+          elif key == 'msys32': return ['mingw', '32']
           key = os.environ['MSYSTEM']
           if key == 'MINGW32': return ['mingw', '32']
           elif key == 'MINGW64': return ['mingw', '64']

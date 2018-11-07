@@ -86,7 +86,6 @@ PyObject* K_GENERATOR::octree2Struct(PyObject* self, PyObject* args)
   E_Float* zo = f->begin(posz);
   E_Int* cn1 = cn->begin(1);
   E_Int* cn2 = cn->begin(2);
-  E_Float dhloc;
 
   FldArrayI levels(nelts); E_Int* lp = levels.begin();
   E_Int levelMax = 0;
@@ -94,7 +93,8 @@ PyObject* K_GENERATOR::octree2Struct(PyObject* self, PyObject* args)
 #pragma omp parallel default(shared)
   {
     E_Float dhminLoc = 1.e10;
-#pragma omp for nowait
+    E_Float dhloc;
+#pragma omp for
     for (E_Int et = 0; et < nelts; et++)
     {
       E_Int v1 = cn1[et]-1; E_Int v2 = cn2[et]-1;  
@@ -105,14 +105,19 @@ PyObject* K_GENERATOR::octree2Struct(PyObject* self, PyObject* args)
     {
       if (dhminLoc < dhmin) { dhmin = dhminLoc; }
     }
-
+  }
+  
+  //printf("dhmin = %f\n", dhmin);
+#pragma omp parallel default(shared)
+  { 
+    E_Float dhloc;
     E_Int levelMaxLoc = 0;
-#pragma omp for nowait
+#pragma omp for
     for (E_Int et = 0; et < nelts; et++)
     {
       E_Int v1 = cn1[et]-1; E_Int v2 = cn2[et]-1;  
       dhloc = K_FUNC::E_abs(xo[v2]-xo[v1]); 
-      E_Int lloc = E_Int(dhloc/dhmin+1e-6);
+      E_Int lloc = E_Int(dhloc/dhmin+1.e-6);
       E_Int found = 1; E_Int levelloc = 0;
       while (found < lloc){ found *= 2; levelloc++;}
       lp[et] = levelloc;
@@ -148,6 +153,7 @@ PyObject* K_GENERATOR::octree2Struct(PyObject* self, PyObject* args)
   }
   //printf("levelMax %d - %d\n",levelMax,vmint.size());
   //for (E_Int i = 0; i < vmint.size(); i++) printf("%d\n",vmint[i]);
+  //for (E_Int e = 0; e < nelts; e++) printf(" %d ",lp[e]);
 
   // decoupage de chaque QUAD ou HEXA en vmin points par direction
   // attention: QUAD en (x,y): z = 0.
