@@ -1079,7 +1079,34 @@ E_Int NGON_BOOLEAN_CLASS::Union
 #else
     MIO::write("U.tp", coord, connect, "NGON");
 #endif
-    std::cout << "total number of elements " << connect(0, 0) << std::endl;
+    std::cout << "total number of polygons " << connect(0, 0) << std::endl;
+    
+    std::cout << "final check : " << std::endl;
+    
+    using palma_t = std::vector<std::pair<E_Int, E_Int> > ;
+    palma_t palmares;
+    
+    for (E_Int i=0; i < uni.PHs.size(); ++i)
+      palmares.push_back(std::make_pair(-uni.PHs.stride(i), i));
+    
+   std::sort(palmares.begin(), palmares.end()); 
+   
+   for (size_t i=0; i < 10; ++i)
+   {
+     std::cout << "TOP 10 NB SURF : " << palmares[i].second << " with " << palmares[i].first << " faces" << std::endl;
+   }
+    
+  
+  E_Int imin, imax;
+  E_Float smin, smax;
+  ngon_type::surface_extrema(uni.PGs, coord, smin, imin, smax, imax);
+  std::cout << "the " << imin << "-th face has the smallest surface : " << smin << std::endl;
+  std::cout << "the " << imax << "-th face has the biggest surface : " << smax << std::endl;
+
+  E_Float vmin, vmax;
+  ngon_type::template volume_extrema<DELAUNAY::Triangulator>(uni, coord, vmin, imin, vmax, imax);
+  std::cout << "the " << imin << "-th cells has the smallest volume : " << vmin << std::endl;
+  std::cout << "the " << imax << "-th cells has the biggest volume : " << vmax << std::endl;
 #endif
   }
 #ifdef DEBUG_BOOLEAN 
@@ -2613,7 +2640,7 @@ NGON_BOOLEAN_CLASS::__compute()
     E_Int err = __build_connect_hard(_coord, extrawPGs, nb_pgs1, connectT3, connectHard, _nT3_to_oPG, is_skin);
     if (err)
       return ERROR;
-    
+
 #ifdef DEBUG_BOOLEAN
     //is_skin[0] = 1;
     MIO::write("connectHard.mesh", _coord, connectHard, "TRI", 0, &is_skin);
@@ -2622,7 +2649,7 @@ NGON_BOOLEAN_CLASS::__compute()
     // Duplicate the T3s to have both orientations
     K_FLD::IntArray connectT3o(connectHard);
     __duplicate_orient(connectT3o);
-        
+   
     // Build the PHT3s by constructing the right neighborhood for each oriented T3.
     std::map<E_Int, Vector_t<E_Int> > PHT3s;
     err = __build_PHT3s(_coord, connectHard, connectT3o, is_skin, PHT3s);
@@ -3048,7 +3075,7 @@ E_Int NGON_BOOLEAN_CLASS::__build_connect_hard
         }
       }
     }
-        
+    
     Vector_t<E_Int> nids;
     connectHard = connectT3;
     K_FLD::IntArray::compact(connectHard, keep, nids);
@@ -5217,8 +5244,8 @@ E_Int NGON_BOOLEAN_CLASS::__remove_parasite_PHT3s
   {
     E_Int PHT3i = _tmp_vec[i];
     
-    // to prevent to remove single-PH islands
-    if (__is_untouched_PH(_coord, connectT3o, PHT3s, PHT3i, shift, _nb_pgs1, _F2E, _nT3_to_oPG))
+    // to prevent to remove single-PH islands (SOFT PART)
+    if (mesh_oper == 0 && __is_untouched_PH(_coord, connectT3o, PHT3s, PHT3i, shift, _nb_pgs1, _F2E, _nT3_to_oPG))
       continue;
     
     thrashIds.push_back(PHT3i);

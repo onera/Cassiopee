@@ -1116,14 +1116,16 @@ PyObject* K_INTERSECTOR::statsSize(PyObject* self, PyObject* args)
   typedef ngon_t<K_FLD::IntArray> ngon_type;
   ngon_type ngi(cnt);
 
-  E_Int imin;
-  E_Float smin;
-  ngon_type::surface_minimum(ngi.PGs, crd, smin, imin);
+  E_Int imin, imax;
+  E_Float smin, smax;
+  ngon_type::surface_extrema(ngi.PGs, crd, smin, imin, smax, imax);
   std::cout << "the " << imin << "-th face has the smallest surface : " << smin << std::endl;
+  std::cout << "the " << imax << "-th face has the biggest surface : " << smax << std::endl;
 
-  E_Float vmin;
-  ngon_type::volume_minimum<DELAUNAY::Triangulator>(ngi, crd, vmin, imin);
+  E_Float vmin, vmax;
+  ngon_type::volume_extrema<DELAUNAY::Triangulator>(ngi, crd, vmin, imin, vmax, imax);
   std::cout << "the " << imin << "-th cells has the smallest volume : " << vmin << std::endl;
+  std::cout << "the " << imax << "-th cells has the biggest volume : " << vmax << std::endl;
   
   delete f; delete cn;
 

@@ -2547,7 +2547,7 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
     return nb_merges + (nb_phs0-nb_phs1) + (nb_pgs0-nb_pgs1);
   }
   
-  static void surface_minimum(const ngon_unit& PGs, const K_FLD::FloatArray& crd, E_Float& smin, E_Int& imin)
+  static void surface_extrema(const ngon_unit& PGs, const K_FLD::FloatArray& crd, E_Float& smin, E_Int& imin, E_Float& smax, E_Int& imax)
   {
     //
     E_Int nb_pgs = PGs.size();
@@ -2556,11 +2556,15 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
     
     smin = K_CONST::E_MAX_FLOAT;
     imin = E_IDX_NONE;
+    smax = -1.;
+    imax = E_IDX_NONE;
     
     E_Int nb_max_threads = __NUMTHREADS__;
     
     std::vector<E_Int> im(nb_max_threads, E_IDX_NONE);
     std::vector<E_Float> sm(nb_max_threads, K_CONST::E_MAX_FLOAT);
+    std::vector<E_Int> iM(nb_max_threads, E_IDX_NONE);
+    std::vector<E_Float> sM(nb_max_threads, -1.);
 
 #pragma omp parallel shared(sm, im, PGs, crd, nb_pgs) private (t, i, s, id)
     {
@@ -2576,6 +2580,11 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
           sm[id]=s;
           im[id]=i;
         }
+        if (s > sM[id])
+        {
+          sM[id]=s;
+          iM[id]=i;
+        }
       }
     }
     
@@ -2586,16 +2595,22 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
         imin = im[i];
         smin = sm[i];
       }
+      if (sM[i] > smax)
+      {
+        imax = iM[i];
+        smax = sM[i];
+      }
     }
   }
   
   ///
   template <typename Triangulator_t>
-  static void volume_minimum(ngon_t& ngi, const K_FLD::FloatArray& crd, E_Float& vmin, E_Int& imin)
+  static void volume_extrema(ngon_t& ngi, const K_FLD::FloatArray& crd, E_Float& vmin, E_Int& imin, E_Float& vmax, E_Int& imax)
   {
     vmin = K_CONST::E_MAX_FLOAT;
-    imin = E_IDX_NONE;
-    
+    imin = imax = E_IDX_NONE;
+    vmax = -1.;
+
     //
     E_Int nb_phs = ngi.PHs.size();
     E_Int nb_pgs = ngi.PGs.size(); 
@@ -2644,6 +2659,8 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
     
     std::vector<E_Int> im(nb_max_threads, E_IDX_NONE);
     std::vector<E_Float> vm(nb_max_threads, K_CONST::E_MAX_FLOAT);
+    std::vector<E_Int> iM(nb_max_threads, E_IDX_NONE);
+    std::vector<E_Float> vM(nb_max_threads, -1.);
     
     //std::cout << "Volumes..." << std::endl;
     
@@ -2681,6 +2698,11 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
           vm[id]=v;
           im[id]=i;
         }
+        if (v > vM[id])
+        {
+          vM[id]=v;
+          iM[id]=i;
+        }
       }
    }
 
@@ -2690,6 +2712,11 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
      {
        imin = im[i];
        vmin = vm[i];
+     }
+     if (vm[i] > vmax)
+     {
+       imax = im[i];
+       vmax = vm[i];
      }
    }
   }
