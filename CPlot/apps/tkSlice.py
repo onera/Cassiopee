@@ -90,6 +90,10 @@ def moveMoins():
     view()
     
 #==============================================================================
+def unselect(event=None):
+    CPlot.unselectAllZones()
+
+#==============================================================================
 def view(event=None):
     if CTK.t == []: return
     pos = float(VARS[1].get())
@@ -276,6 +280,8 @@ def createApp(win):
     V = TK.StringVar(win); V.set('X'); VARS.append(V)
     # -1- position
     V = TK.StringVar(win); V.set('0'); VARS.append(V)
+    #V.trace_add("write", unselect)
+    V.trace("w", lambda name, index, mode, V=V: unselect(V))
     # -2- epsilon for 2D slices
     V = TK.StringVar(win); V.set('1.e-6'); VARS.append(V)
     # -3- Order
@@ -319,7 +325,7 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='Slice direction.')
     B = TTK.Entry(Frame, textvariable=VARS[1], background='White', width=3)
     B.grid(row=1, column=2, sticky=TK.EW)
-    B.bind('<Return>', view)
+    B.bind('<Return>', unselect)
     BB = CTK.infoBulle(parent=B, text='Plane position.\nTaken from selection or set it here with no selection.')
 
     # - Extract / view -

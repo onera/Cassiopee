@@ -47,7 +47,7 @@ void main()
     vec4 col;
 
     // eclairage spherique supprime:
-    zz = -1;
+    zz = -1.;
 
     if (zz <= 0.) col = color;
     else

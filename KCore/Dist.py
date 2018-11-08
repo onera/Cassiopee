@@ -36,8 +36,7 @@ def checkModuleImport(moduleName, raiseOnError=True):
         else:
             print("FAILED: %s"%inst)
             print("FAILED: %s badly installed."%moduleName)
-        if raiseOnError: raise ImportError
-
+        
 #==============================================================================
 # Return informations on the current operating system
 # Return: Unix, Windows, Darwin, Java, mingw + bits of the system ('32', '64')

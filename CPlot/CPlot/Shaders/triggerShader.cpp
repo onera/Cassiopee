@@ -326,9 +326,9 @@ void Data::triggerShader(Zone& z, int material, float scale, float* color)
           if (_shaders.currentShader() != shader)
             _shaders.activate((short unsigned int)shader);
           if (ptrState->mode == RENDER)
-            _shaders[shader]->setUniform("specularFactor", (float)z.shaderParam1); 
+            _shaders[shader]->setUniform("specularFactor", (float)z.shaderParam1);
           else
-            _shaders[shader]->setUniform("specularFactor", (float)1.); 
+            _shaders[shader]->setUniform("specularFactor", (float)1.);
           _shaders[shader]->setUniform("shadow", (int)ptrState->shadow);
           _shaders[shader]->setUniform("ShadowMap", (int)0);
         }

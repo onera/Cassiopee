@@ -58,7 +58,7 @@ KNOWNBCS = ['BCWall', 'BCWallInviscid','BCWallViscous', 'BCWallViscousIsothermal
             'BCFarfield', 'BCExtrapolate', 'BCInflow', 'BCInflowSubsonic', 'BCOutflow',
             'BCMatch', 'BCNearMatch', 'BCOverlap', 'BCSymmetryPlane', 
             'BCDegenerateLine', 'BCDegeneratePoint', 'BCStage',
-            'BCUserDefined']
+            'UserDefined']
 
 #import math
 __DEG2RAD__ = 0.017453292519943295 #math.pi/180.

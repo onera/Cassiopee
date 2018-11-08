@@ -571,7 +571,8 @@ def addRefinementZones(o, tb, tbox, snearsf, vmin, dim):
     to = G.getVolumeMap(to)
     volmin0 = C.getMinValue(to,'centers:vol')
     #print 'volmin0 = ', volmin0, (volmin0)**(1./3.)
-    volmin0 = 6*volmin0
+    # volume minimum au dela duquel on ne peut pas raffiner
+    volmin0 = 1.*volmin0
     while end == 0:
         # Do not refine inside obstacles 
         C._initVars(to, 'centers:cellN', 1.)

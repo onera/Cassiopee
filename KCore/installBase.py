@@ -606,7 +606,7 @@ True, # CPlotOffScreen
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-False, # CPlotOffScreen
+True, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
 [] # additionalLibPaths

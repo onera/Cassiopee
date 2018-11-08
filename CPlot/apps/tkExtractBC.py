@@ -79,7 +79,7 @@ def extract(event=None):
         (Zp, BCNames, BCTypes) = C.getBCs(zones)
         Z = []
         for i in Zp: Z += i
-        for i in xrange(len(Z)): Internal._createChild(Z[i], 'BCType', 'UserDefine_t', BCTypes[i])
+        for i in xrange(len(Z)): Internal._createChild(Z[i], 'BCType', 'UserDefined_t', BCTypes[i])
 
     nob = C.getNobOfBase(base, CTK.t)
     for i in Z:
@@ -118,7 +118,7 @@ def recover(event=None):
                     BCNames.append(r[1])
                     n = Internal.getNodeFromName1(z, 'BCType')
                     if n is not None: BCTypes.append(Internal.getValue(n))
-                    else: BCTypes.append('BCUserDefined')
+                    else: BCTypes.append('UserDefined')
     CTK.saveTree()
     nzs = CPlot.getSelectedZones()
     if CTK.__MAINTREE__ <= 0 or nzs == []:

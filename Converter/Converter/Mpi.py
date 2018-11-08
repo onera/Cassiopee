@@ -1,7 +1,7 @@
 # Interface pour MPI
 
 import os
-if os.environ.has_key('MPIRUN'): # securise import mpi4py.MPI
+if os.environ.has_key('MPIRUN'): # si MPIRUN=0, force sequentiel
     if int(os.environ['MPIRUN'])>0:
         try:
             from Mpi4py import *

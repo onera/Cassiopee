@@ -24,7 +24,6 @@ using namespace K_FLD;
 # include "IBC/commonLaws.h"
 # define NUTILDE_FERRARI 1
 
-#include <iostream>
 //=============================================================================
 //Retourne -2: incoherence entre meshtype et le type d interpolation
 //         -1: type invalide
@@ -53,8 +52,8 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar1(
   E_Float ucible0, ucible, vcible, wcible, signibc,twall;
   //Lois de paroi : criteres d arret pour estimer le frottement par Newton
   E_Float newtoneps = 1.e-7; // critere d arret pour u+
-  E_Float newtonepsnutilde = 1.e-10; // critere d arret pour nutilde
-  E_Float newtonepsprime = 1.e-12;// critere d arret pour la derivee  
+  E_Float newtonepsnutilde = 1.e-10; // critere d'arret pour nutilde
+  E_Float newtonepsprime = 1.e-12;// critere d'arret pour la derivee  
   E_Float cvgaminv = 1./(cv*gam1);
   E_Float coefSuth = muS * (1.+Cs/Ts);
   E_Float Tsinv = 1./Ts;
@@ -947,9 +946,8 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
 
     
     // }
-     // Fill nutilde in linelets
+    // Fill nutilde in linelets
 
-        // std::cout << "Init Nutilde" << ithread << "ideb" << ideb << "ifin" << ifin << std::endl;
     // Test Mixing-length  
     for ( E_Int iline = 0 ; iline < nbptslinelets; iline++)
       {      
@@ -1105,7 +1103,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
         }
 
 
-              // mise a jour des variable
+        // mise a jour des variable
 #ifdef _OPENMP4
        #pragma omp simd
 #endif 
@@ -1154,14 +1152,13 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
           wOut[indR]     = wcible_vec[noind];
           tOut[indR]     = tcible_vec[noind];
           varSAOut[indR] = (nutilde1d[indexlinelets[noind + ideb]] - nutilde1d[indexlinelets[noind + ideb]-1])*alphasbeta_line[noind + ideb] + nutilde1d[indexlinelets[noind + ideb]-1]; //aa_vec[noind]*sign_vec[noind]*uext_vec[noind];  //nutilde*signibc
-                   
-
+            
         }
 
         
     } // nbptslinelets 
 
-    else  // premier call effectué par fillGhostCell (pas de TBLE +SA ) --> on renseigne les PC par du Musker + Mix Length
+    else  // premier call effectue par fillGhostCell (pas de TBLE +SA ) --> on renseigne les PC par du Musker + Mix Length
 
     {
 
