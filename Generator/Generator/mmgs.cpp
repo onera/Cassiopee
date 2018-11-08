@@ -17,7 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// Remaillage avec mmgs
+// Remaillage surfacique avec mmgs
 
 #include "generator.h"
 #include "MMGS/mmgs.h"

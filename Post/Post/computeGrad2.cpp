@@ -116,6 +116,7 @@ PyObject* K_POST::computeGrad2NGon(PyObject* self, PyObject* args)
     delete [] varStrings[i];
   }
   pt--; *pt = '\0';
+  for (size_t i = 0; i < vars.size(); i++) delete [] vars[i];
 
   // Calcul FE
   FldArrayI cFE;
@@ -334,6 +335,7 @@ PyObject* K_POST::computeGrad2Struct(PyObject* self, PyObject* args)
     delete [] varStrings[i];
   }
   pt--; *pt = '\0';
+  for (size_t i = 0; i < vars.size(); i++) delete [] vars[i];
 
   E_Int nicnjc = nic*njc;
   E_Int ninjc = ni*njc;

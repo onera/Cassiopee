@@ -180,7 +180,6 @@ PyObject* K_POST::computeVariables2(PyObject* self, PyObject* args)
   // Evaluation des nouveaux champs 
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   E_Int varsSize = vars.size();
-
   for (E_Int v = 0; v < varsSize; v++) 
   { 
       E_Int posvar = K_ARRAY::isNamePresent(vars[v],varString);
@@ -203,9 +202,9 @@ PyObject* K_POST::computeVariables2(PyObject* self, PyObject* args)
           computeCompVars2(*f, posvar, vars[v], posro, posu, posv, 
    	      	               posw, post, gamma, rgp, s0, betas, Cs);
 
-      RELEASESHAREDB(res2, array, f, cn); 
+      RELEASESHAREDB(res2, array, f, cn);
   }
-
+  for (E_Int v = 0; v < varsSize; v++) delete [] vars[v];
   Py_INCREF(Py_None);
   return Py_None;
 }

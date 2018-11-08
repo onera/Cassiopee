@@ -3073,14 +3073,14 @@ def _convertArray2NGon(t, recoverBC=True):
   else: _deleteZoneBC__(t)
   _deleteGridConnectivity__(t)
   _TZA(t, 'both', 'both', Converter.convertArray2NGon, None)
+  Internal._fixNGon(t)
 
   # Recover BCs for NGon
   if recoverBC:
     zones = Internal.getZones(t); c = 0
     for z in zones:
-      if (gbcs[c] != [] and len(gbcs[c][0]) > 0): _recoverBCs(z, gbcs[c])
+      if gbcs[c] != [] and len(gbcs[c][0]) > 0: _recoverBCs(z, gbcs[c])
       c += 1
-
   return None
 
 # -- convertArray2Node

@@ -42,12 +42,12 @@ void Data::displayUEdges()
   zone = 0;
   while (zone < _numberOfUnstructZones)
   {
-    UnstructZone* zonep = _uzones[_numberOfStructZones + zone];
+    UnstructZone* zonep = _uzones[zone];
     if ((zonep->eltType == 1) || (zonep->eltType == 10 && zonep->nelts1D > 0))
     {
       if (isInFrustum(zonep, _view) == 1)
       {
-         // if zone is active and in frustum
+        // if zone is active and in frustum
         if ((zonep->active == 1 && ptrState->edgifyActivatedZones == 1) ||
             (zonep->active == 0 && ptrState->edgifyDeactivatedZones == 1))        
         {

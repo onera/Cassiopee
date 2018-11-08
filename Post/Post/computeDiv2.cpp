@@ -147,6 +147,7 @@ PyObject* K_POST::computeDiv2NGon(PyObject* self, PyObject* args)
     delete [] varStrings[i];
   }
   pt--; *pt = '\0';
+  for (size_t i = 0; i < vars.size(); i++) delete [] vars[i];
 
   // Compute FE connectivity
   FldArrayI cFE;
@@ -363,11 +364,12 @@ PyObject* K_POST::computeDiv2Struct(PyObject* self, PyObject* args)
     if (s0 == 'X' && s1 == 'Y') ixyz = 0;
     else if (s0 == 'X' && s1 == 'Z') ixyz = 1;
     else if (s0 == 'Y' && s1 == 'Z') ixyz = 2;
-    else {
-        PyErr_SetString(PyExc_TypeError,
-                        "computeDiv2: error with the order of given scalar fields.");
-        return NULL;
-      }
+    else 
+    {
+      PyErr_SetString(PyExc_TypeError,
+                      "computeDiv2: error with the order of given scalar fields.");
+      return NULL;
+    }
   }
   else if (dimPb == 3)
   {
@@ -421,6 +423,7 @@ PyObject* K_POST::computeDiv2Struct(PyObject* self, PyObject* args)
     delete [] varStrings[i];
   }
   pt--; *pt = '\0';
+  for (size_t i = 0; i < vars.size(); i++) delete [] vars[i];
 
   E_Int nicnjc = nic*njc;
   E_Int ninjc = ni*njc;

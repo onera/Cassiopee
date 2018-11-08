@@ -208,7 +208,7 @@ PyObject* K_POST::computeVariables(PyObject* self, PyObject* args)
   E_Int varsSize = vars.size();
   for (E_Int v = 0; v < varsSize; v++) delete [] vars[v];
 
-  if (ok == 0) //erreur de developpt
+  if (ok == 0) // erreur de developpt
   {
     PyErr_SetString(PyExc_TypeError,
                     "computeVariables: invalid string.\n");
@@ -238,7 +238,7 @@ PyObject* K_POST::computeVariables(PyObject* self, PyObject* args)
    aussi construite pour l'array de sortie 
    IN: vars0: chaine contenant les variables a extraire
    OUT: vars: vecteur contenant les variables a calculer
-   OUT: varStringOut: chaine de variables calculees pour l'array de sortie 
+   OUT: varStringOut: chaine de variables calculees pour l'array de sortie
    retourne 0 si aucune variable n a ete trouvee.
 */
 //-----------------------------------------------------------------------------
