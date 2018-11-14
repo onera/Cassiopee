@@ -686,7 +686,7 @@ PyObject* K_INTERSECTOR::checkForDegenCells(PyObject* self, PyObject* args)
   typedef ngon_t<K_FLD::IntArray> ngon_type;
   ngon_type ngi(cnt);
 
-  E_Int degen = 0, imin, imax, mins(4), maxs(0);
+  E_Int degen = 0, imin(0), imax(0), mins(4), maxs(0);
   for (E_Int i=0; i< ngi.PHs.size(); ++i)
   {
     E_Int s = ngi.PHs.stride(i);

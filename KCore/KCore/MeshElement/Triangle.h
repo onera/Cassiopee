@@ -78,7 +78,11 @@ namespace K_MESH
     inline void setNodes(node_type N0, node_type N1, node_type N2){_nodes[0] = N0; _nodes[1] = N1; _nodes[2] = N2;}
     
     ///
-    inline const E_Int* nodes(){return _nodes;}
+    inline E_Int* nodes(){return _nodes;}
+    inline const E_Int* nodes() const {return _nodes;}
+    
+    E_Int nb_nodes() const {return 3;}
+    E_Int nb_tris() const {return 1;}
 
     /// Gets the i-th node.
     inline const node_type& node(const size_type& i) const {return _nodes[i];}
@@ -122,6 +126,27 @@ namespace K_MESH
     static void isoG(const K_FLD::FloatArray& coord, const E_Int* pN, E_Float* G);
     static void isoG(const K_FLD::ArrayAccessor<K_FLD::FldArrayF>& coord, const E_Int* pN, E_Float* G);
     static void isoG(const E_Float* P0, const E_Float* P1, const E_Float* P2, E_Float* G);
+    template <typename CoordAcc>
+    void iso_barycenter(const CoordAcc& coord, E_Float* G)
+    { 
+      //
+      for (size_t d=0; d < 3; ++d) G[d]=0.;
+
+      for (E_Int i=0; i < NB_NODES; ++i)
+      {
+        for (size_t d=0; d < 3; ++d)
+        {
+          //std::cout << "v : " << coord.getVal(node(i), d) << std::endl;
+          G[d] += coord.getVal(_nodes[i], d);
+        }
+      }
+
+      E_Float k = 1./(E_Float)NB_NODES;
+
+      for (size_t i = 0; i < 3; ++i) G[i] *= k;
+      //std::cout << "G : " << G[0] << "/" << G[1] << "/" << G[2] << std::endl;
+
+    }
 
     /// Returns the rank of N in the storage pointed by pK.
     inline static size_type getLocalNodeId(const size_type* pK, size_type N);
@@ -201,6 +226,21 @@ namespace K_MESH
     //dummy
     static inline void triangulate(const E_Int* nodes, E_Int* target){target[0]=nodes[0]; target[1]=nodes[1]; target[2]=nodes[2];}
     inline void triangulate(E_Int* target){target[0]=_nodes[0]; target[1]=_nodes[1]; target[2]=_nodes[2];}
+
+    inline void triangle(E_Int i, E_Int* target){assert (i==0); triangulate(target);}
+    
+    template<typename box_t, typename CoordAcc>
+    void bbox(const CoordAcc& acrd, box_t&bb) const
+    {
+      for (E_Int i = 0; i < 3; ++i)
+      {bb.minB[i] = K_CONST::E_MAX_FLOAT; bb.maxB[i] = -K_CONST::E_MAX_FLOAT;}
+
+      bb.compute(acrd, _nodes, NB_NODES, 0/*idx start*/);
+    }
+    
+     /// dummy
+     template <typename TriangulatorType, typename acrd_t>
+     void triangulate (const TriangulatorType& dt, const acrd_t& crd){}
     
     static eDegenType degen_type(const K_FLD::FloatArray& crd, E_Int N0, E_Int N1, E_Int N2, E_Float tol2, E_Float lambdac, E_Int& ns);
 

@@ -41,6 +41,12 @@ public:
   Hexahedron(){}
   Hexahedron(const E_Int* nodes, E_Int shift=0):_shift(shift){ for (size_t i = 0; i< 8; ++i)_nodes[i]=*(nodes++);}
  ~Hexahedron(){}
+ 
+  E_Int* nodes() { return _nodes;}
+  const E_Int* nodes() const { return _nodes;}
+  
+  E_Int nb_nodes() const {return NB_NODES;}
+  E_Int nb_tris() const {return NB_TRIS;}
   
   void setNodes(E_Int* nodes){for (size_t i = 0; i< 8; ++i)_nodes[i]=*(nodes++);}
   
@@ -53,6 +59,33 @@ public:
   {connect.getEntry(K, _nodes);}
   
   void triangulate(E_Int* target);//WARNING : connectT3 is Apended (not cleared upon entry)
+  
+  inline void triangle(E_Int i, E_Int* target)
+  {
+    assert (i >= 0 && i < NB_TRIS);
+    
+    switch (i)
+    {
+      case 0 : target[0] = _nodes[0]; target[1] = _nodes[3]; target[2] = _nodes[1]; break;  //031 BOTTOM
+      case 1 : target[0] = _nodes[1]; target[1] = _nodes[3]; target[2] = _nodes[2]; break;  //132
+      case 2 : target[0] = _nodes[4]; target[1] = _nodes[5]; target[2] = _nodes[7]; break;  //457 TOP
+      case 3 : target[0] = _nodes[7]; target[1] = _nodes[5]; target[2] = _nodes[6]; break;  //756
+      
+      case 4 : target[0] = _nodes[3]; target[1] = _nodes[0]; target[2] = _nodes[7]; break;  //307 LEFT
+      case 5 : target[0] = _nodes[7]; target[1] = _nodes[0]; target[2] = _nodes[4]; break;  //704
+      case 6 : target[0] = _nodes[1]; target[1] = _nodes[2]; target[2] = _nodes[6]; break;  //126 RIGHT
+      case 7 : target[0] = _nodes[1]; target[1] = _nodes[6]; target[2] = _nodes[5]; break;  //165
+      case 8 : target[0] = _nodes[0]; target[1] = _nodes[1]; target[2] = _nodes[5]; break;  //015 FONT
+      case 9 : target[0] = _nodes[0]; target[1] = _nodes[5]; target[2] = _nodes[4]; break;  //054
+      case 10 : target[0] = _nodes[2]; target[1] = _nodes[3]; target[2] = _nodes[6]; break; //236 BACK
+      case 11 : target[0] = _nodes[3]; target[1] = _nodes[7]; target[2] = _nodes[6]; break; //376
+      default:break;
+    }
+  }
+  
+  ///
+  template <typename TriangulatorType, typename acrd_t>
+  void triangulate (const TriangulatorType& dt, const acrd_t& acrd) {} //dummy : for genericity
   
   static void reorder_pgs(ngon_type& ng, const K_FLD::IntArray& F2E, E_Int i);
   
@@ -93,6 +126,16 @@ public:
       default : break;
     }
   }
+  
+  template<typename box_t, typename CoordAcc>
+  void bbox(const CoordAcc& acrd, box_t&bb) const
+  {
+    for (E_Int i = 0; i < 3; ++i)
+      {bb.minB[i] = K_CONST::E_MAX_FLOAT; bb.maxB[i] = -K_CONST::E_MAX_FLOAT;}
+
+    bb.compute(acrd, _nodes, NB_NODES, 0/*idx start*/);
+  }
+  
   
   ///
   template <typename CoordAcc>

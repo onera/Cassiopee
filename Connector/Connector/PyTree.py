@@ -1174,10 +1174,6 @@ def blankCellsTetra(t, mT4, blankingMatrix=[], blankingType='node_in',
         if coords == []: continue
 
         if len(coords[0]) == 5: coords = Converter.convertArray2Hexa(coords) # STRUCT -> HEXA
-        else:
-          if len(coords[0]) == 4:
-            if coords[0][3] == 'NGON': coords = Converter.convertArray2Hexa(coords)
-        #print 'TYPE IS %s' %(coords[0][3])
 
         if loc == 'centers': cellN = C.getField('centers:cellN', b)
         else: cellN = C.getField('cellN', b)
@@ -1238,10 +1234,6 @@ def blankCellsTri(t, mT3, blankingMatrix=[], blankingType='node_in',
         if coords == []: continue
 
         if len(coords[0]) == 5: coords = Converter.convertArray2Hexa(coords) # STRUCT -> HEXA
-        else:
-          if len(coords[0]) == 4:
-            if coords[0][3] == 'NGON': coords = Converter.convertArray2Hexa(coords)
-        #print 'TYPE IS %s' %(coords[0][3])
 
         if loc == 'centers': cellN = C.getField('centers:cellN', b)
         else: cellN = C.getField('cellN', b)

@@ -31,18 +31,82 @@ namespace K_MESH
   public:
     
     static const E_Int NB_NODES;
+    static const E_Int NB_TRIS;
+    
+    Quadrangle(){};
+    
+    template <typename NodeIterator>
+    explicit Quadrangle(const NodeIterator pN)
+    {_nodes[0] = *pN; _nodes[1] = *(pN+1); _nodes[2] = *(pN+2); _nodes[3] = *(pN+3);}
 
     void setNodes(E_Int n0, E_Int n1, E_Int n2, E_Int n3){_nodes[0]=n0;_nodes[1]=n1;_nodes[2]=n2;_nodes[3]=n3;}
     //void setNodes(E_Int* nodes){for (size_t i = 0; i< 4; ++i)_nodes[i]=*(nodes++);}
-    inline E_Int nnodes() { return 4;}
+       
+    E_Int nb_nodes() const {return NB_NODES;}
+    E_Int nb_tris() const { return NB_TRIS;}
     
     ///
-    inline const E_Int* nodes(){return _nodes;}
+    inline E_Int* nodes(){return _nodes;} 
+    inline const E_Int* nodes() const {return _nodes;}
     
     /// Gets the i-th node.
     inline const E_Int& node(const E_Int& i) const {return _nodes[i];}
     
-    static void triangulate(const E_Int* nodes, E_Int* target);//WARNING : triangulation is put at target address contiguously
+    template <typename TriangulatorType, typename acrd_t>
+    void triangulate (const TriangulatorType& dt, const acrd_t& crd){}
+    
+    inline void triangle(E_Int i, E_Int* target)
+    {
+      assert (i >= 0 && i < 2);
+      
+      if (i==0)
+      {
+        target[0]=_nodes[0]; target[1]=_nodes[1]; target[2]=_nodes[2];
+      }
+      else
+      {
+        target[0]=_nodes[0]; target[1]=_nodes[2]; target[2]=_nodes[3];
+      }
+    }
+    
+    static inline void triangulate(const E_Int* nodes, E_Int* target)//WARNING : triangulation is put at target address contiguously
+    {
+      E_Int t[3];
+      t[0] = nodes[0]; t[1] = nodes[1]; t[2] = nodes[3];
+      std::copy(&t[0], &t[0]+3, target);
+      std::copy(&nodes[0]+1, &nodes[0]+4, target+3);
+    }
+    
+    template<typename box_t, typename CoordAcc>
+    void bbox(const CoordAcc& acrd, box_t&bb) const
+    {
+      for (E_Int i = 0; i < 3; ++i)
+      {bb.minB[i] = K_CONST::E_MAX_FLOAT; bb.maxB[i] = -K_CONST::E_MAX_FLOAT;}
+
+      box_t b;
+      b.compute(acrd, _nodes, NB_NODES, 0/*idx start*/);
+      for (E_Int i = 0; i < NB_NODES; ++i)
+      {
+        bb.minB[i] = std::min(bb.minB[i], b.minB[i]);
+        bb.maxB[i] = std::max(bb.maxB[i], b.maxB[i]);
+      }
+    }
+    
+    template <typename CoordAcc>
+    void iso_barycenter(const CoordAcc& coord, E_Float* G)
+    { 
+      //
+      for (size_t d=0; d < 3; ++d) G[d]=0.;
+
+      for (E_Int i=0; i < NB_NODES; ++i)
+      {
+        for (size_t d=0; d < 3; ++d)
+        {
+          //std::cout << "v : " << coord.getVal(node(i), d) << std::endl;
+          G[d] += coord.getVal(_nodes[i], d);
+        }
+      }
+    }
     
   private:
     E_Int _nodes[4];

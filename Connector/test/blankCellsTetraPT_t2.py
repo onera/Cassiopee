@@ -88,5 +88,31 @@ t = C.initVars(t, 'centers:cellN', 1.)
 t = X.blankCellsTetra(t, [[mT4]], [], blankingType="cell_intersect", tol=1.e-12, cellnval=2, overwrite=1)
 #C.convertPyTree2File(t, 'out6.cgns')
 test.testT(t,6)
+
+# Test 7
+# Tet mask
+# Mesh to blank
+a = G.cart((-5.,-5.,-5.), (0.5,0.5,0.5), (100,100,100))
+t = C.newPyTree(['Cart', a])
+t = C.convertArray2Tetra(t)
+# celln init
+t = C.initVars(t, 'nodes:cellN', 1.)
+# Blanking
+t = X.blankCellsTetra(t, [[mT4]], [], blankingType="node_in", tol=1.e-12, cellnval=2, overwrite=1)
+#C.convertPyTree2File(t, 'out7.cgns')
+test.testT(t,7)
+# Test 8
+# Tet mask
+# Mesh to blank
+a = G.cart((-5.,-5.,-5.), (0.5,0.5,0.5), (100,100,100))
+t = C.newPyTree(['Cart', a])
+t = C.initVars(t, 'nodes:cellN', 1.)
+# celln init
+t = C.convertArray2NGon(t);
+# Blanking
+t = X.blankCellsTetra(t, [[mT4]], [], blankingType="node_in", tol=1.e-12, cellnval=2, overwrite=1)
+#C.convertPyTree2File(t, 'out8.cgns')
+test.testT(t,8)
+
 def function():
     pass

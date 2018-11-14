@@ -38,7 +38,7 @@ void Hexahedron::triangulate(E_Int* target)
   for (size_t f = 0; f < 6; ++f)
   {
     getBoundary(f, q4);
-    K_MESH::Quadrangle::triangulate(q4.nodes(), target + f*6);
+    q4.triangulate(q4.nodes(), target + f*6);
   }
 }
 

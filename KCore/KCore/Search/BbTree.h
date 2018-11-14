@@ -288,7 +288,7 @@ public:
   ///
   template<typename CoordinateArray_t>
   void compute
-  (const K_FLD::ArrayAccessor<CoordinateArray_t>& pos, const E_Int* nodes, size_t n)
+  (const K_FLD::ArrayAccessor<CoordinateArray_t>& pos, const E_Int* nodes, size_t n, E_Int index_start = 0)
   {
     E_Float Pi[DIM];
     for (E_Int i = 0; i < DIM; ++i)
@@ -296,7 +296,7 @@ public:
 
     for (size_t i = 0; i < n; ++i)
     {
-      pos.getEntry(nodes[i], Pi);
+      pos.getEntry(nodes[i] - index_start, Pi);
       for (E_Int j = 0; j < DIM; ++j)
       {
         minB[j] = (minB[j] > Pi[j]) ? Pi[j] : minB[j];
@@ -327,6 +327,7 @@ class BbTree {
     typedef           BbTree                                self_type;
     typedef           K_CONT_DEF::size_type                 size_type;
     typedef           K_FLD::IntArray                       tree_array_type;
+    typedef           BBoxType                              box_type;
    
 
 #define BBTREE_ROWS 2 // the first row contains the node id, the second(third) contains the left(right) child column id.

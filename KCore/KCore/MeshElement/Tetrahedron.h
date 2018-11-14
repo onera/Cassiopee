@@ -38,16 +38,42 @@ class Tetrahedron {
     typedef K_MESH::Triangle       boundary_type;
   
   public:
-    Tetrahedron(){}
+    Tetrahedron():_shift(0){}
     ~Tetrahedron(){}
     
     Tetrahedron(const E_Int* nodes, E_Int shift=0):_shift(shift){ for (size_t i = 0; i< 4; ++i)_nodes[i]=*(nodes++) + shift;}
+    
+    inline E_Int node(E_Int i){return _nodes[i]+_shift;}
+    
+    E_Int* nodes() { return _nodes;}
+    const E_Int* nodes() const { return _nodes;}
+    
+    E_Int nb_nodes() const {return NB_NODES;}
+    E_Int nb_tris() const {return NB_TRIS;}
     
     void setNodes(E_Int* nodes){for (size_t i = 0; i< 4; ++i)_nodes[i]=*(nodes++);}
     
     static bool is_inside(const E_Float* Ni, const E_Float* Nj, const E_Float* Nk, const E_Float* Nl, const E_Float* pt);
     
     void triangulate(E_Int* target);
+    
+    ///
+    template <typename TriangulatorType, typename acrd_t>
+    void triangulate (const TriangulatorType& dt, const acrd_t& acrd) {} //dummy : for genericity
+        
+    inline void triangle(E_Int i, E_Int* target)
+    {
+      assert (i >= 0 && i < 4);
+      
+      switch (i)
+      {
+        case 0 : target[0]=_nodes[0]; target[1]=_nodes[1]; target[2]=_nodes[3]; break;
+        case 1 : target[0]=_nodes[0]; target[1]=_nodes[3]; target[2]=_nodes[2]; break;
+        case 2 : target[0]=_nodes[0]; target[1]=_nodes[2]; target[2]=_nodes[1]; break;
+        case 3 : target[0]=_nodes[1]; target[1]=_nodes[2]; target[2]=_nodes[3]; break;
+        default:break;
+      }
+    }
     
     ///
     static inline E_Float volume(const E_Float* p1, const E_Float* p2, const E_Float* p3, const E_Float* p4)
@@ -63,6 +89,37 @@ class Tetrahedron {
       case 3: b.setNodes(_nodes[0], _nodes[2], _nodes[1]);break;
       default : break;
     }
+  }
+    
+  template <typename CoordAcc> inline
+  void iso_barycenter(const CoordAcc& coord, E_Float* G)
+  { 
+    //
+    for (size_t d=0; d < 3; ++d) G[d]=0.;
+  
+    for (E_Int i=0; i < NB_NODES; ++i)
+    {
+      for (size_t d=0; d < 3; ++d)
+      {
+        //std::cout << "v : " << coord.getVal(node(i), d) << std::endl;
+        G[d] += coord.getVal(node(i), d);
+      }
+    }
+  
+    E_Float k = 1./(E_Float)NB_NODES;
+  
+    for (size_t i = 0; i < 3; ++i) G[i] *= k;
+    //std::cout << "G : " << G[0] << "/" << G[1] << "/" << G[2] << std::endl;
+  
+  }
+  
+  template<typename box_t, typename CoordAcc>
+  void bbox(const CoordAcc& acrd, box_t&bb) const
+  {
+    for (E_Int i = 0; i < 3; ++i)
+      {bb.minB[i] = K_CONST::E_MAX_FLOAT; bb.maxB[i] = -K_CONST::E_MAX_FLOAT;}
+
+    bb.compute(acrd, _nodes, NB_NODES, _shift/*idx start*/);
   }
     
     /*void split8(K_FLD::FloatArray& crd, K_FLD::IntArray& cntTH4)

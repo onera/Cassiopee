@@ -50,7 +50,7 @@ public:
   ~ZoneExtractor(){}
   
   /// Retrieves any cell in mesh (crd,cnt) inside box(mB,MB).
-  template <E_Int DIM>
+  template <E_Int DIM, typename ELT_t>
   void getInBox(const E_Float* mB, const E_Float* MB, E_Float tol, const ACoordinate_t& crd, const AConnectivity_t& cnt, Vector_t<E_Int>& xCells_ids);
   template <E_Int DIM>
   void getInBox
@@ -81,25 +81,21 @@ typedef ZoneExtractor<K_FLD::FloatArray, K_FLD::IntArray> DynZoneExtractor;
 
 ///
 TEMPLATE_COORD_CONNECT
-template <E_Int DIM>
+template <E_Int DIM, typename ELT_t>
 void ZoneExtractor<Coordinate_t, Connectivity_t>::getInBox
 (const E_Float* mB, const E_Float* MB, E_Float tol, const ACoordinate_t& crd, const AConnectivity_t& cnt, Vector_t<E_Int>& xCells_ids)
 {
   xCells_ids.clear();
   
   K_SEARCH::BoundingBox<DIM> BB(mB, MB);
-  
-  K_FLD::IntArray e;
-  E_Int s;
-  
+    
   for (E_Int i = 0; i < cnt.size(); ++i)
   {
-    s = cnt.stride(i);
-    e.reserve(1, s);
-    cnt.getEntry(i, e.begin());
-    
-    K_SEARCH::BoundingBox<DIM> bb(crd, e.begin(), s);
-    
+    ELT_t e;
+    cnt.getEntry(i, e);
+    K_SEARCH::BoundingBox<DIM> bb;
+    e.bbox(crd, bb);
+        
     if (K_SEARCH::BbTree<DIM>::boxesAreOverlapping(&BB, &bb, tol))
       xCells_ids.push_back(i);
   }

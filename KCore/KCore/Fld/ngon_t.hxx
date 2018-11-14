@@ -2551,7 +2551,7 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
   {
     //
     E_Int nb_pgs = PGs.size();
-    E_Int t,i, id;
+    E_Int i, id;
     E_Float s;
     
     smin = K_CONST::E_MAX_FLOAT;
@@ -2566,7 +2566,7 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
     std::vector<E_Int> iM(nb_max_threads, E_IDX_NONE);
     std::vector<E_Float> sM(nb_max_threads, -1.);
 
-#pragma omp parallel shared(sm, im, PGs, crd, nb_pgs) private (t, i, s, id)
+#pragma omp parallel shared(sm, im, PGs, crd, nb_pgs) private (i, s, id)
     {
       id = __CURRENT_THREAD__;
     

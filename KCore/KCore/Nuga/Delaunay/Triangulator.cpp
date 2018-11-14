@@ -197,8 +197,8 @@ E_Int Triangulator::__set_connectE2
   const E_Int* p = pNodes;
   for (E_Int i = 0; i < nb_nodes-1; ++i, ++p)
   {
-    E[0]=(*p)-1;
-    E[1]=*(p+1)-1;
+    E[0]=(*p)-index_start;
+    E[1]=*(p+1)-index_start;
     connectE2.pushBack(&E[0], &E[0]+2);
   }
   

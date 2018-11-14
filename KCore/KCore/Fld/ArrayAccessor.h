@@ -87,6 +87,14 @@ namespace K_FLD
     {for (E_Int k = 0; k < _stride; ++k)entry[k] =*((_arr._data+((_posX[k])*_arr._sizeMax)) + j) + _shift;}
     /// Returns the j-th entry's pointer to the first field.
     inline const value_type* getEntry(const E_Int& j) const { return _arr._data+j+(_posX[0])*_arr._sizeMax;}
+    
+    /// Returns the j-th entry : MUST BE A FIXED STRIDE (i.e E2N element)
+    template <typename ELT>
+    inline void getEntry(const E_Int& j, ELT& PHj) const
+    {
+      E_Int* p = PHj.nodes();
+      for (E_Int k = 0; k < _stride; ++k)p[k] =*((_arr._data+((_posX[k])*_arr._sizeMax)) + j) + _shift;
+    }
 
     /// Checks whether the index is out of range or not.
     inline bool isOutOfRange(const E_Int& j) const {return (j >= _arr.getSize());}

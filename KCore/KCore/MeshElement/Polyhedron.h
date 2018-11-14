@@ -51,6 +51,19 @@ template <int TopoShape>
 class Polyhedron
 {   
 public:
+  const ngon_unit* _pgs;
+  const E_Int* _faces;
+  E_Int _nb_faces;
+  E_Int* _triangles;
+    
+public:
+  
+  Polyhedron():_pgs(nullptr), _faces(nullptr), _triangles(nullptr){}
+  
+  Polyhedron(const ngon_unit* pgs, const E_Int* faces):_pgs(pgs), _faces(faces), _triangles(nullptr){}
+  
+  ~Polyhedron(){ if (_triangles != nullptr) delete [] _triangles;}
+  
   ///
   template <typename CoordAcc>
   static inline void iso_barycenter(const CoordAcc& coord, const E_Int* nodes, E_Int nb_nodes, E_Int index_start, E_Float* G)
@@ -88,6 +101,54 @@ public:
 
     for (size_t i = 0; i < 3; ++i) G[i] *= k;
     //std::cout << "G : " << G[0] << "/" << G[1] << "/" << G[2] << std::endl;
+  }
+  
+  template<typename box_t, typename CoordAcc>
+  void iso_barycenter(const CoordAcc& acrd, E_Float* G, E_Int index_start) const
+  {
+    for (size_t d = 0; d < 3; ++d) G[d] = 0.;
+    E_Int counter = 0;
+    
+    for (E_Int i=0; i < _nb_faces; ++i)
+    {
+      E_Int PGi = *(_faces + i) - 1;
+      const E_Int* nodes = _pgs->get_facets_ptr(PGi);
+      E_Int nb_nodes =  _pgs->stride(PGi);
+      
+      for (E_Int j=0; j < nb_nodes; ++j)
+      {
+        ++counter;
+        for (size_t d = 0; d < 3; ++d)
+          G[d] += acrd.getVal(nodes[j]-index_start, d);
+      }
+    }
+    
+    E_Float k = 1. / (E_Float)counter;
+
+    for (size_t i = 0; i < 3; ++i) G[i] *= k;
+  }
+  
+  template<typename box_t, typename CoordAcc>
+  void bbox(const CoordAcc& acrd, box_t&bb) const
+  {
+    for (E_Int i = 0; i < 3; ++i)
+    {bb.minB[i] = K_CONST::E_MAX_FLOAT; bb.maxB[i] = -K_CONST::E_MAX_FLOAT;}
+    
+    box_t b;
+    for (E_Int i=0; i < _nb_faces; ++i)
+    {
+      E_Int PGi = *(_faces + i) - 1;
+      const E_Int* nodes = _pgs->get_facets_ptr(PGi);
+      E_Int nb_nodes =  _pgs->stride(PGi);
+      
+      b.compute(acrd, nodes, nb_nodes, 1/*idx start*/);
+      
+      for (E_Int i = 0; i < 3; ++i)
+      {
+        bb.minB[i] = std::min(bb.minB[i], b.minB[i]);
+        bb.maxB[i] = std::max(bb.maxB[i], b.maxB[i]);
+      }
+    }
   }
   
   static inline void reorient(const ngon_unit& PGS, const E_Int* first_pg, E_Int nb_pgs, ngon_unit& opgs)
@@ -1309,6 +1370,71 @@ public:
       err = K_MESH::Polygon::triangulate(dt, crd, lpgs.get_facets_ptr(i), lpgs.stride(i), 1/*index start*/, connectT3, do_not_shuffle, improve_quality);
     }
     return err;
+  }
+  
+  E_Int nb_tris()
+  {
+    E_Int ntris=0;
+    for (E_Int i=0; i < _nb_faces; ++i)
+    {
+      E_Int PGi = *(_faces + i) - 1;
+      ntris += (_pgs->stride(PGi)-2);
+    }
+    return ntris;
+  }
+  
+   ///
+  template <typename TriangulatorType, typename acrd_t>
+  E_Int triangulate
+    (const TriangulatorType& dt, const acrd_t& acrd)
+  {
+    _pgs->updateFacets();
+
+    E_Int ntris = nb_tris();
+    _triangles = new E_Int[ntris*3];
+    
+    //to get local
+    K_FLD::FloatArray crd;
+    std::vector<E_Int> oids, lpgs;
+
+    E_Int err(0);
+    E_Float Pt[3];
+    E_Int * pstart = _triangles;
+    for (E_Int i = 0; (i<_nb_faces) && !err; ++i)
+    {
+      E_Int PGi = *(_faces + i) - 1;
+      E_Int stride = _pgs->stride(PGi);
+      const E_Int* nodes = _pgs->get_facets_ptr(PGi);
+      
+      crd.clear();
+      lpgs.clear();
+      lpgs.resize(stride);
+      oids.resize(stride);
+      for (size_t n=0; n < stride; ++n){
+        lpgs[n]=n; oids[n]=nodes[n]-1;
+        acrd.getEntry(nodes[n]-1, Pt);
+        crd.pushBack(Pt, Pt+3);
+      }
+      
+      //std::cout << crd  << std::endl;
+      //MIO::write("crd.mesh", crd, K_FLD::IntArray(), "TRI");
+      
+      err = K_MESH::Polygon::triangulate_inplace(dt, crd, &lpgs[0], stride, 0/*index start*/, pstart, true/*do_not_shuffle*/, false/*improve_quality*/);
+      E_Int pgntris = stride - 2;
+      for (E_Int k=0; k < pgntris * 3; ++k, ++pstart) *pstart = oids[*pstart]; //get back to global but starting at 0
+    }
+    
+    return err;
+  }
+  
+  inline void triangle(E_Int i, E_Int* target)
+  {
+    assert (_triangles != nullptr);
+    const E_Int* p = &_triangles[i*3];
+    target[0] = *(p++);
+    target[1] = *(p++);
+    target[2] = *p;
+    
   }
   
 ///
