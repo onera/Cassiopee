@@ -123,7 +123,7 @@ extern "C"
   PyMODINIT_FUNC initgenerator();
   PyMODINIT_FUNC initgenerator()
   {
-    __activation__ = K_KCORE::activation();
+    __activation__ = K_KCORE::activation("0");
     Py_InitModule("generator", Pygenerator);
     import_array();
   }

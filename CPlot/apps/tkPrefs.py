@@ -52,8 +52,12 @@ def setPrefs(event=None):
 
 def setUndo(event=None):
     v = VARS[1].get()
-    if v == 'Active': Tk.__UNDO__ = True
-    else: Tk.__UNDO__ = False
+    if v == 'Active': CTK.__UNDO__ = True
+    else: CTK.__UNDO__ = False
+    va = '0'
+    if v == 'Active': va = '1'
+    elif v == 'Inactive': va = '0'
+    CTK.PREFS['undo'] = va
 
 def setBgColor(event=None):
     v = VARS[3].get(); va = 0
@@ -69,6 +73,7 @@ def setBgColor(event=None):
     elif v == 'Jarvis': va = 9
     elif v == 'Onera': va = 10
     CPlot.setState(bgColor=va)
+    CTK.PREFS['bgColor'] = str(va)
 
 def setDisplayInfo(event=None):
     v = VARS[2].get(); va = 0
@@ -76,24 +81,27 @@ def setDisplayInfo(event=None):
     elif v == 'Inactive': va = 0
     CPlot.setState(displayInfo=va)
     CPlot.setState(displayBB=va)
+    CTK.PREFS['displayInfo'] = str(va)
 
 def setSelectionStyle(event=None):
     v = VARS[7].get(); style = 0
     if v == 'Blue': style = 0
     elif v == 'Alpha': style = 1
     CPlot.setState(selectionStyle=style)
+    CTK.PREFS['selectionStyle'] = v
 
 def setEnvmap(event=None):
     val = VARS[6].get()
     CPlot.setState(envmap=val)
+    CTK.PREFS['envmap'] = val
 
 def setExportRes(event=None):
-    # must be in PREFS
-    PREFS['exportResolution'] = VARS[12]
+    CTK.PREFS['exportResolution'] = VARS[8].get()
 
 def setTheme(event=None):
     theme = VARS[9].get()
     TTK.setTheme(theme)
+    CTK.PREFS['guitheme'] = theme
 
 def updateThemeList(event=None):
     m = WIDGETS['guitheme'].children['menu']

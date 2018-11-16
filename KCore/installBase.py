@@ -34,7 +34,6 @@ False, # CPlotOffScreen
 ['gomp', 'gfortran'], # additionalLibs
 ['c:/msys64/mingw64/lib'] # additionalLibPaths
 ],
-
 ###############################################################################
 'node6.cluster': [ 'MacOSX (generic)',
 'ifort', # f77compiler

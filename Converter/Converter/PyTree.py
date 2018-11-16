@@ -2518,7 +2518,7 @@ def _createBCDataSetOfType(t, bndType, loc='FaceCenter', update=True, vectors=[]
       _nullifyBCDataSetVectors(t, bndType, loc=loc, vectors=[['VelocityX','VelocityY','VelocityZ']]+vectors)
   return None
 
-# Apply init to all bcdataset
+# Apply init to all BCDataSets
 def _initBCDataSet(t, varNameString, val1=[], val2=[]):
     zones = Internal.getZones(t)
     if zones == []: zones = [t] # must be a BC node
@@ -2545,7 +2545,7 @@ def _initBCDataSet(t, varNameString, val1=[], val2=[]):
                 np = max(imax-imin,1)*max(jmax-jmin,1)*max(kmax-kmin,1)
               elif np1 is not None:
                 np = np1[1].size
-              else: raise ValueError, 'initBCDataSet: no PointRange or PointList in BC.'
+              else: raise ValueError('initBCDataSet: no PointRange or PointList in BC.')
               fields = Converter.array('empty',np,1,1)
             fn = Converter.initVars(fields, varNameString, val1, val2)
             nofld = fn[1].shape[0]-1

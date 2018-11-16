@@ -88,7 +88,7 @@ extern "C"
   PyMODINIT_FUNC initintersector();
   PyMODINIT_FUNC initintersector()
   {
-    __activation__ = K_KCORE::activation();
+    __activation__ = K_KCORE::activation("0");
     Py_InitModule("intersector", Pyintersector);
     import_array();
   }

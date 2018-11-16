@@ -252,6 +252,8 @@ ClbQghfEYAY1uEEOdtCDHwRhCEUIloAAADs=
 # Ecrit simplement un fichier avec la cle
 #==============================================================================
 def activation():
+    global AVARS
+    AVARS = []
     winl = TK.Toplevel(border=0)
     winl.title('Activation key')
     winl.columnconfigure(0, weight=1)
@@ -286,17 +288,39 @@ def activation():
 
 def checkKey():
     import KCore
-    return KCore.kcore.activation()
+    return KCore.kcore.activation('0')
     
+def readKeyFile(file):
+    d = {}
+    try:
+        f = open(file, 'r')
+        ret = f.readlines()
+        f.close()
+        for i in ret:
+            i = i.replace(' ','')
+            i = i.replace('\n', '')
+            s = i.split(':')
+            if len(s) == 2: d[s[0]] = s[1]
+            if len(s) == 1: d['0'] = s[0]
+    except: pass
+    return d
+
 def submitKey(event=None):
     key = AVARS[1].get()
     import KCore.installPath
     path = KCore.installPath.libPath
     # Essai dans installPath/.CassiopeKey
+    file = path+'/.CassiopeeKey'
+    d = readKeyFile(file)
+    key = key.split(':')
+    if len(key) == 2: name = key[0]; key = key[1]
+    else: name = '0'; key = key[0]
+    d[name] = key
     fail = False
     try:
         f = open(path+'/.CassiopeeKey', 'w')
-        f.write(key)
+        for k in d.keys():
+            f.write(k+':'+d[k]+'\n')
         f.close()
         CTK.TXT.insert('START', 'Key submitted.\n')
     except: fail = True
@@ -304,12 +328,20 @@ def submitKey(event=None):
     if not fail:
          AVARS[0].destroy()
          return
+
     # Essai dans home/.CassiopeeKey
+    import os.path
+    path = os.path.expanduser('~')    
+    file = path+'/.CassiopeeKey'
+    d = readKeyFile(file)
+    key = key.split(':')
+    if len(key) == 2: name = key[0]; key = key[1]
+    else: name = '0'; key = key[0]
+    d[name] = key
     try:
-        import os.path
-        path = os.path.expanduser('~')
         f = open(path+'/.CassiopeeKey', 'w')
-        f.write(key)
+        for k in d.keys():
+            f.write(k+':'+d[k]+'\n')
         f.close()
         CTK.TXT.insert('START', 'Key submitted.\n')
     except:

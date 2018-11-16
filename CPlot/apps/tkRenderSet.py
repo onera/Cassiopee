@@ -39,12 +39,10 @@ def setColorVar2(event=None):
 def updateVarNameList(event=None):
     if CTK.t == []: return
     nzs = CPlot.getSelectedZones()
-    if (CTK.__MAINTREE__ <= 0 or nzs == []):
-        vars = C.getVarNames(CTK.t, excludeXYZ=True)
+    if CTK.__MAINTREE__ <= 0:
+        vars = C.getVarNames(CTK.dt, excludeXYZ=True, mode=1)
     else:
-        nob = CTK.Nb[0]+1
-        noz = CTK.Nz[0]
-        vars = C.getVarNames(CTK.t[2][nob][2][noz], excludeXYZ=True)
+        vars = C.getVarNames(CTK.t, excludeXYZ=True, mode=1)
     m = WIDGETS['colors'].children['menu']
     m.delete(0, TK.END)
     allvars = ['White', 'Black', 'Grey', 'Blue', 'Red', 'Green', 'Yellow',
@@ -61,13 +59,10 @@ def updateVarNameList(event=None):
 def updateVarNameList2(event=None):
     if CTK.t == []: return
     nzs = CPlot.getSelectedZones()
-    if (CTK.__MAINTREE__ <= 0 or nzs == []):
-        vars = C.getVarNames(CTK.t, excludeXYZ=True)
+    if CTK.__MAINTREE__ <= 0:
+        vars = C.getVarNames(CTK.dt, excludeXYZ=True, mode=1)
     else:
-        nob = CTK.Nb[0]+1
-        noz = CTK.Nz[0]
-        vars = C.getVarNames(CTK.t[2][nob][2][noz], excludeXYZ=True)
-    
+        vars = C.getVarNames(CTK.t, excludeXYZ=True, mode=1)
     allvars = ['White', 'Black', 'Grey', 'Blue', 'Red', 'Green', 'Yellow',
                'Orange', 'Brown', 'Magenta', 'Custom>']
     if len(vars) > 0:

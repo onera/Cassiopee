@@ -100,7 +100,7 @@ extern "C"
   PyMODINIT_FUNC initconnector();
   PyMODINIT_FUNC initconnector()
   {
-    __activation__ = K_KCORE::activation();
+    __activation__ = K_KCORE::activation("0");
     Py_InitModule("connector", Pyconnector);
     import_array();
   }
