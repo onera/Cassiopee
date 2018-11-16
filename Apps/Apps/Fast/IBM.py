@@ -70,9 +70,9 @@ def prepare0(t_case, t_out, tc_out, dfar=10., vmin=21, check=False, NP=0, format
     #------------------------------------------------------
     # distribute the mesh over NP processors
     if NP > 0:
-        print 'distribution over %d processors'%NP
+        print('distribution over %d processors'%NP)
         t,stats = D2.distribute(t, NP)
-        if check == True: print stats
+        if check: print(stats)
 
     #------------------------------------------------
     # Add reference state to the pyTree and init fields
@@ -232,8 +232,8 @@ class IBM(Common):
     # Prepare : n'utilise qu'un proc pour l'instant
     def prepare(self, t_case, t_out, tc_out, dfar=10., vmin=21, check=False):
         NP = self.data['NP']
-        if NP == 0: print 'Preparing for a sequential computation.'
-        else: print 'Preparing for a computation on %d processors.'%NP
+        if NP == 0: print('Preparing for a sequential computation.')
+        else: print('Preparing for a computation on %d processors.'%NP)
         ret = prepare(t_case, t_out, tc_out, dfar, vmin, check, NP, self.data['format'])
         return ret
 

@@ -129,7 +129,7 @@ def prepare1(t_case, t_out, tc_out, NP=0, format='single'):
 
     # Charge du proc
     ncells = C.getNCells(t)
-    print Cmpi.rank, ncells, allCells
+    print(Cmpi.rank, ncells, allCells)
     #Cmpi.convertPyTree2File(t, 'test.cgns')
     return
 
@@ -279,8 +279,8 @@ class MB(Common):
     # Prepare : n'utilise qu'un proc pour l'instant
     def prepare(self, t_case, t_out, tc_out):
         NP = self.data['NP']
-        if NP == 0: print 'Preparing for a sequential computation.'
-        else: print 'Preparing for a computation on %d processors.'%NP
+        if NP == 0: print('Preparing for a sequential computation.')
+        else: print('Preparing for a computation on %d processors.'%NP)
         ret = prepare(t_case, t_out, tc_out, NP, self.data['format'])
         return ret
 

@@ -1,4 +1,4 @@
-# This file must replace installPath.py when producing AppImage
+# Install Path when bundled with appImage
 import os
 HERE = os.environ['APPDIR']
 installPath = HERE+'/Dist/lib/python2.7/site-packages'
