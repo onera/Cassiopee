@@ -58,7 +58,23 @@ namespace {
 //==============================================================================
 PyObject* K_KCORE::tester(PyObject* self, PyObject* args)
 {
-#define TESTARRAYN
+#define TESTNUMPY
+
+#ifdef TESTNUMPY
+
+K_FLD::FldArrayF f(1,3);
+for (E_Int i = 0; i < 1; i++) f(i,1) = 1.;
+for (E_Int i = 0; i < 1; i++) f(i,2) = 2.;
+for (E_Int i = 0; i < 1; i++) f(i,3) = 3.;
+
+//f.setAllValuesAt(2.);
+PyObject* a = K_NUMPY::buildNumpyArray(f, 1);
+K_FLD::FldArrayF* out;
+K_NUMPY::getFromNumpyArray(a , out, true);
+
+return a;
+
+#endif
 
 #ifdef TEST1
   PyObject* o;

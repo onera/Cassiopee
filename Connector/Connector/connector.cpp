@@ -89,6 +89,7 @@ static PyMethodDef Pyconnector [] =
   {"getExtrapAbsCoefs", K_CONNECTOR::getExtrapAbsCoefs, METH_VARARGS},
   {"_getEmptyBCInfoNGON", K_CONNECTOR::_getEmptyBCInfoNGON, METH_VARARGS},
   {"_updateNatureForIBM",K_CONNECTOR::_updateNatureForIBM, METH_VARARGS},//on a zone, in place
+  {"_blankClosestTargetCells",K_CONNECTOR::_blankClosestTargetCells, METH_VARARGS},
   {NULL, NULL}
 };
 

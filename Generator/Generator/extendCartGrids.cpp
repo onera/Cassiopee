@@ -38,7 +38,7 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
   if (ext < 0) 
   {
      PyErr_SetString(PyExc_TypeError, 
-                    "extendCartGrids: ext must not be negative.");
+                    "extendCartGrids: ext must be a positive value.");
      return NULL;
   }
   if (ext == 0) return arrays;
@@ -65,7 +65,7 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
   E_Int isOk = K_ARRAY::getFromArrays(
     arrays, resl, structVarString, unstrVarString,
     structF, unstrF, nit, njt, nkt, cnt, eltTypet, objst, objut, 
-    skipDiffVars, skipNoCoord, skipStructured, skipUnstructured);
+    skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
   if ( isOk == -1 ) 
   {
     PyErr_SetString(PyExc_TypeError, 
@@ -85,7 +85,7 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
     {
       PyErr_SetString(PyExc_TypeError,
                       "extendCartGrids: arrays must contain coordinates.");
-      K_ARRAY::cleanStructFields(structF); 
+      for (E_Int v = 0 ; v < nzones; v++) RELEASESHAREDS(objst[v], structF[v]);
       return NULL;
     }
     posxi++; posyi++; poszi++;
@@ -977,47 +977,43 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
     }// pour ts les elts
   }
 
-  E_Int nio, njo, nko, ni, nj,nk, npts, ind;
- 
+  PyObject* l = PyList_New(0); 
+
   for (E_Int v = 0; v < nzones; v++)
   {
-    ni = nit[v]; nj = njt[v]; nk = nkt[v]; 
+    E_Int ni = nit[v]; E_Int nj = njt[v]; E_Int nk = nkt[v]; 
     E_Float* xp = structF[v]->begin(posxt[v]);
     E_Float* yp = structF[v]->begin(posyt[v]);
     E_Float* zp = structF[v]->begin(poszt[v]);
+    E_Int nfldo = structF[v]->getNfld();
     E_Float dh = xp[1]-xp[0];
     E_Float xxor = xp[0]-ext1[v]*dh;
     E_Float yyor = yp[0]-ext3[v]*dh;
     E_Float zzor = zp[0]-ext5[v]*dh;
-    nio = ni+ext1[v]+ext2[v]; njo = nj+ext3[v]+ext4[v]; nko = nk+ext5[v]+ext6[v];
-    npts = nio*njo*nko;
-    FldArrayF* newcoords = new FldArrayF(npts,3);
-    E_Float* xn = newcoords->begin(1);
-    E_Float* yn = newcoords->begin(2);
-    E_Float* zn = newcoords->begin(3);
+    RELEASESHAREDS(objst[v], structF[v]);
+    E_Int nio = ni+ext1[v]+ext2[v]; E_Int njo = nj+ext3[v]+ext4[v]; E_Int nko = nk+ext5[v]+ext6[v];
+    E_Int npts = nio*njo*nko;
+
+    E_Int api = 1;//api 2 plante
+    PyObject* tpl = K_ARRAY::buildArray2(nfldo, structVarString[v], nio, njo, nko, api); 
+    E_Float* fptr = K_ARRAY::getFieldPtr(tpl);
+    FldArrayF newcoords(npts,nfldo, fptr, true);
+    E_Float* xn = newcoords.begin(1);
+    E_Float* yn = newcoords.begin(2);
+    E_Float* zn = newcoords.begin(3);
     E_Int nionjo = nio*njo;
-    
+
     for (E_Int k = 0; k < nko; k++)    
       for (E_Int j = 0; j < njo; j++)
         for (E_Int i = 0; i < nio; i++)
         {
-          ind = i + j*nio + k*nionjo; 
+          E_Int ind = i + j*nio + k*nionjo; 
           xn[ind] = xxor + i*dh;
           yn[ind] = yyor + j*dh;
           zn[ind] = zzor + k*dh;
         }
-    delete structF[v];
-    nit[v] = nio; njt[v] = njo; nkt[v] = nko; structF[v] = newcoords;  
-  }
-  
-  PyObject* l = PyList_New(0); 
-  for (E_Int v = 0; v < nzones; v++)
-  {
-    PyObject* tpl = K_ARRAY::buildArray(*structF[v], "x,y,z", nit[v], njt[v], nkt[v]);
     PyList_Append(l, tpl); Py_DECREF(tpl);
   }
-  //nettoyage
-  for (E_Int v = 0; v < nzones; v++) delete structF[v];
   return l;
 }
 

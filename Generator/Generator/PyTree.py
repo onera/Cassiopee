@@ -104,14 +104,16 @@ def octree2Struct(o, vmin=15, ext=0, optimized=1, merged=1, AMR=0,
     if dim[3] == 'QUAD': dimPb = 2
     elif dim[3] == 'HEXA': dimPb = 3
     else: raise ValueError("octree2Struct: zone must be QUAD or HEXA.")
+    if optimized != 1 and optimized != 0:
+        print 'Warning: octree2Struct: optimized must be 0 or 1. Set to 1.'
+        optimized = 1
 
     eps = 1.e-6
     a = C.getFields(Internal.__GridCoordinates__, o)[0]
 
     # Conversion en structure
-    cartzones = Generator.octree2Struct(a, vmin, ext, optimized, merged,
+    cartzones = Generator.octree2Struct(a, vmin, -ext, optimized, merged,
                                         AMR, sizeMax)
-    
     # Creation des zones du pyTree
     c = 1; zones = []
     for mc in cartzones:
@@ -131,23 +133,48 @@ def octree2Struct(o, vmin=15, ext=0, optimized=1, merged=1, AMR=0,
             zones = X.connectNearMatch(zones,ratio=ratio0,dim=dimPb)
         return zones 
     else:
+        coords = C.getFields(Internal.__GridCoordinates__,zones, api=2)
+        coords = Generator.extendOctreeGrids__(coords,ext=ext, optimized=optimized)
+        C.setFields(coords, zones, 'nodes')
+
         #-----------------------
         # Creation des BCOverlap
         #-----------------------
         # determination de la bounding box de la grille
-        bbox0 = bbox(zones)
-        xmin = bbox0[0]; ymin = bbox0[1]; zmin = bbox0[2]
-        xmax = bbox0[3]; ymax = bbox0[4]; zmax = bbox0[5]
-        noz = 0
+        xmin = 1.e12; ymin = xmin; zmin = xmin
+        xmax =-xmin;  ymax =-ymin; zmax =-zmin
         for z in zones:
-            [x1,y1,z1,x2,y2,z2] = bbox(z)
-            if x1 > xmin+eps: z=C.addBC2Zone(z,'overlap1','BCOverlap','imin')
-            if x2 < xmax-eps: z=C.addBC2Zone(z,'overlap2','BCOverlap','imax')
-            if y1 > ymin+eps: z=C.addBC2Zone(z,'overlap3','BCOverlap','jmin')
-            if y2 < ymax-eps: z=C.addBC2Zone(z,'overlap4','BCOverlap','jmax')
-            if z1 > zmin+eps: z=C.addBC2Zone(z,'overlap5','BCOverlap','kmin')
-            if z2 < zmax-eps: z=C.addBC2Zone(z,'overlap6','BCOverlap','kmax')
-            zones[noz] = z; noz += 1
+            x1 = C.getValue(z,'CoordinateX',0)
+            y1 = C.getValue(z,'CoordinateY',0)
+            z1 = C.getValue(z,'CoordinateZ',0)
+            dimZ = Internal.getZoneDim(z)
+            ni = dimZ[1]; nj = dimZ[2]; nk = dimZ[3]
+            ind = ni-1 + (nj-1)*ni+(nk-1)*ni*nj
+            x2 = C.getValue(z,'CoordinateX',ind)
+            y2 = C.getValue(z,'CoordinateY',ind)
+            z2 = C.getValue(z,'CoordinateZ',ind) 
+            xmin = min(xmin,x1); xmax = max(xmax,x2)
+            ymin = min(ymin,y1); ymax = max(ymax,y2)
+            zmin = min(zmin,z1); zmax = max(zmax,z2)
+
+        for z in zones:
+            x1 = C.getValue(z,'CoordinateX',0)
+            y1 = C.getValue(z,'CoordinateY',0)
+            z1 = C.getValue(z,'CoordinateZ',0)
+            dimZ = Internal.getZoneDim(z)
+            ni = dimZ[1]; nj = dimZ[2]; nk = dimZ[3]
+            ind = ni-1 + (nj-1)*ni+(nk-1)*ni*nj
+            x2 = C.getValue(z,'CoordinateX',ind)
+            y2 = C.getValue(z,'CoordinateY',ind)
+            z2 = C.getValue(z,'CoordinateZ',ind)
+
+            #[x1,y1,z1,x2,y2,z2] = bbox(z)
+            if x1 > xmin+eps: C._addBC2Zone(z,'overlap1','BCOverlap','imin')
+            if x2 < xmax-eps: C._addBC2Zone(z,'overlap2','BCOverlap','imax')
+            if y1 > ymin+eps: C._addBC2Zone(z,'overlap3','BCOverlap','jmin')
+            if y2 < ymax-eps: C._addBC2Zone(z,'overlap4','BCOverlap','jmax')
+            if z1 > zmin+eps: C._addBC2Zone(z,'overlap5','BCOverlap','kmin')
+            if z2 < zmax-eps: C._addBC2Zone(z,'overlap6','BCOverlap','kmax')
     return zones
 
 def _adaptOctree(a,indicator="indicator",balancing=1,ratio=2):

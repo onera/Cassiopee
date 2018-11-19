@@ -24,16 +24,14 @@ using namespace K_FLD;
   if (dim == 1) { size = PyArray_DIMS(a)[0]; }                          \
   else if (dim == 2) {                                                  \
     if (isFortran == 0) { nfld = PyArray_DIMS(a)[0]; size = PyArray_DIMS(a)[1]; } \
-    else { nfld = PyArray_DIMS(a)[1]; size = PyArray_DIMS(a)[0]; }      \
-    if (size == 1) { size = nfld; nfld = 1; }                           \
-} else return 0;
+    else { nfld = PyArray_DIMS(a)[1]; size = PyArray_DIMS(a)[0]; } }  \
+  else return 0;
 #else
 #define GETDIMS E_Int isFortran = PyArray_CHKFLAGS(a, NPY_F_CONTIGUOUS); \
   if (dim == 1) { size = PyArray_DIMS(a)[0]; }                          \
   else if (dim == 2) {                                                  \
     if (isFortran == 0) { nfld = PyArray_DIMS(a)[0]; size = PyArray_DIMS(a)[1]; } \
     else { nfld = PyArray_DIMS(a)[1]; size = PyArray_DIMS(a)[0]; }      \
-    if (size == 1) { size = nfld; nfld = 1; }                           \
   } else return 0;
 #endif
 
@@ -48,7 +46,6 @@ E_Int K_NUMPY::getFromNumpyArray(PyObject*o , FldArrayI*& f, E_Boolean shared)
   PyArrayObject* a = (PyArrayObject*)o;
   E_Int dim = PyArray_NDIM(a);
   E_Int size = 0; E_Int nfld = 1;
-
   GETDIMS;
   if (shared == false) // copy du numpy
     f = new FldArrayI(size, nfld, (E_Int*)PyArray_DATA(a), false);

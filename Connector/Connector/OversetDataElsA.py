@@ -277,7 +277,8 @@ def _setSeqInterpolations(a, depth=2, double_wall=0, storage='inverse', prefixFi
             # calcul des cellules d interpolations et des coefficients d interpolations
             zc = Converter.node2Center(zn)
             cellN = C.getField('centers:cellN',z)[0] # celln aux centres des cellules
-            if writeInFile == 1: listCellN[ZonesId[z[0]]]=cellN[1]
+            if writeInFile == 1: 
+                listCellN[ZonesId[z[0]]]=C.getField('centers:cellN',z, api=2)[0]#cellN[1]
             zc = Converter.addVars([zc,cellN]); del cellN
             firstWallCenters1 = []
             if double_wall == 1: firstWallCenters1 = firstWallCenters[nob][noz]
@@ -405,7 +406,8 @@ def _setSeqInterpolations(a, depth=2, double_wall=0, storage='inverse', prefixFi
     if writeInFile == 1:
         if depth == 2: EX=0
         elif depth == 1: EX=1
-        Connector.writeCoefs(ntotZones, listRcvId,listIndicesRcv,listEXdir,listIndicesDonor,listInterpolantsDonor,
+        Connector.writeCoefs(ntotZones, listRcvId,listIndicesRcv,listEXdir,listIndicesDonor,
+                             listInterpolantsDonor,
                              listInterpTypes,listCellN,listZoneDim,nbInterpCellsForDonor,
                              prefixFile, isEX=EX, solver=solver, nGhostCells=nGhostCells)
     return None
@@ -827,7 +829,7 @@ def _chimeraCellRatio__(t):
         for s in subRegions:                
             zoneRole = Internal.getNodesFromName2(s,'ZoneRole')[0]
             zoneRole = Internal.getValue(zoneRole)
-            if zoneRole == 'Receiver': # direct storage ok                  
+            if zoneRole == 'Receiver': # direct storage ok                 
                 ListVolD = Internal.getNodesFromName2(s,"InterpolantsVol")
                 if ListVolD != []:
                     ListVolD = ListVolD[0][1]
@@ -984,14 +986,13 @@ def _chimeraNatureOfCells__(t, nature):
                 if idn != []: # la subRegion decrit des interpolations
                     subRegions.append(s)
         subRegions2 = []
-            
         for s in subRegions:                
             zoneRole = Internal.getNodesFromName2(s,'ZoneRole')[0]
             zoneRole = Internal.getValue(zoneRole)
             if zoneRole == 'Receiver': # direct storage ok
                 if nature == 'interpolated':
                     ListRcv = Internal.getNodesFromName1(s,'PointList')[0][1]
-                    if ListRcv.size > 0:
+                    if ListRcv is not None:
                         field = Converter.array('interpolated',ListRcv.size,1,1)
                         field = Converter.initVars(field,'interpolated',1.)
                         C._setPartialFields(zr, [field], [ListRcv], loc='centers')
@@ -1006,15 +1007,14 @@ def _chimeraNatureOfCells__(t, nature):
                         # Somme des |coefs| : necessite ListRcv, ListExtrap, Coefs, DonorType
                         field = Connector.connector.getExtrapAbsCoefs(ListRcv, ListExtrap, DonorTypes, Coefs)
                         C._setPartialFields(zr, [field], [ListExtrap],loc='centers')       
-
                 elif nature == 'orphan':
-                    orphans = Internal.getNodesFromName(zr, 'OrphanPointList')
+                    orphans = Internal.getNodesFromName(s, 'OrphanPointList')
                     if orphans != []:
                         ListOrphan = orphans[0][1]
                         field = Converter.array('orphan',ListOrphan.size,1,1)
                         field = Converter.initVars(field,'orphan',1.)
                         C._setPartialFields(zr, [field], [ListOrphan],loc='centers')          
-
+    
     # 2nd pass: storage in donor zones
     zones = Internal.getZones(t)
     for zd in zones:
@@ -1038,7 +1038,7 @@ def _chimeraNatureOfCells__(t, nature):
                     zr = zr[0]                    
                     if nature == 'interpolated':
                         ListRcv = Internal.getNodesFromName1(s, 'PointListDonor')[0][1]
-                        if ListRcv.size > 0:
+                        if ListRcv is not None:
                             field = Converter.array('interpolated',ListRcv.size,1,1)
                             field = Converter.initVars(field,'interpolated',1.)
                             C._setPartialFields(zr, [field], [ListRcv], loc='centers')                        
@@ -1053,7 +1053,7 @@ def _chimeraNatureOfCells__(t, nature):
                              field = Connector.connector.getExtrapAbsCoefs(ListRcv, ListExtrap, DonorTypes, Coefs)
                              C._setPartialFields(zr, [field], [ListExtrap], loc='centers')       
                     elif nature == 'orphan':
-                        orphans = Internal.getNodesFromName(zd, 'OrphanPointList')
+                        orphans = Internal.getNodesFromName(s, 'OrphanPointList')
                         if orphans != []:
                             ListOrphan = orphans[0][1]
                             field = Converter.array('orphan',ListOrphan.size,1,1)

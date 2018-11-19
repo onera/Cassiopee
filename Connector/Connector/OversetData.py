@@ -528,11 +528,11 @@ def _addIBCCoords__(z, zname, correctedPts, wallPts, interpolatedPts, bcType, Re
     zsr[2].append(['CoordinateY_PC',coordsPC[1][1,:], [], 'DataArray_t'])
     zsr[2].append(['CoordinateZ_PC',coordsPC[1][2,:], [], 'DataArray_t'])
     zsr[2].append(['CoordinateX_PI',coordsPI[1][0,:], [], 'DataArray_t'])
+    zsr[2].append(['CoordinateY_PI',coordsPI[1][1,:], [], 'DataArray_t'])
     zsr[2].append(['CoordinateZ_PI',coordsPI[1][2,:], [], 'DataArray_t'])
     zsr[2].append(['CoordinateX_PW',coordsPW[1][0,:], [], 'DataArray_t'])
     zsr[2].append(['CoordinateY_PW',coordsPW[1][1,:], [], 'DataArray_t'])
     zsr[2].append(['CoordinateZ_PW',coordsPW[1][2,:], [], 'DataArray_t'])
-    zsr[2].append(['CoordinateY_PI',coordsPI[1][1,:], [], 'DataArray_t'])
 
     # Creation des numpy d'extraction
     nIBC = coordsPC[1].shape[1]

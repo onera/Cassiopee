@@ -701,5 +701,6 @@ namespace K_CONNECTOR
   PyObject* _setIBCTransfersD(PyObject* self, PyObject* args);
   PyObject* getExtrapAbsCoefs(PyObject* self, PyObject* args);
   PyObject* _updateNatureForIBM(PyObject* self, PyObject* args);//on a zone, in place
+  PyObject* _blankClosestTargetCells(PyObject* self, PyObject* args);
 }
 #endif

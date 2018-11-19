@@ -71,13 +71,12 @@ def prepare0(t_case, t_out, tc_out, dfar=10., vmin=21, check=False, NP=0, format
     # distribute the mesh over NP processors
     if NP > 0:
         print('distribution over %d processors'%NP)
-        t,stats = D2.distribute(t, NP)
+        stats = D2._distribute(t, NP)
         if check: print(stats)
 
     #------------------------------------------------
     # Add reference state to the pyTree and init fields
     # Add viscosity if model is not Euler
-    if model != "Euler": C._initVars(t, 'centers:ViscosityEddy', 0.)
     C._addState(t, state=refstate)
     C._addState(t, 'GoverningEquations', model)
     C._addState(t, 'EquationDimension', dimPb)
@@ -90,9 +89,9 @@ def prepare0(t_case, t_out, tc_out, dfar=10., vmin=21, check=False, NP=0, format
         z0 = Internal.getZones(t)
         bb = G.bbox(z0); dz = bb[5]-bb[2]
         tb2 = C.initVars(tb,'CoordinateZ',dz*0.5)
-        t = DTW.distance2Walls(t,tb2,type='ortho',signed=0, dim=dimPb,loc='centers')
+        DTW._distance2Walls(t,tb2,type='ortho',signed=0, dim=dimPb,loc='centers')
     else:
-        t = DTW.distance2Walls(t,tb,type='ortho',signed=0, dim=dimPb,loc='centers')
+        DTW._distance2Walls(t,tb,type='ortho',signed=0, dim=dimPb,loc='centers')
     
     #----------------------------------------
     # Create IBM info
@@ -114,6 +113,7 @@ def prepare0(t_case, t_out, tc_out, dfar=10., vmin=21, check=False, NP=0, format
     # arbre de calcul
     del tc
     I._initConst(t, loc='centers')
+    if model != "Euler": C._initVars(t, 'centers:ViscosityEddy', 0.)
     Fast.save(t, t_out, split=format, NP=-NP)
     return t
 

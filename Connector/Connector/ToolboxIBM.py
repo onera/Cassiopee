@@ -18,6 +18,7 @@ try:
     import Converter.GhostCells as CGC
     import KCore
     import numpy
+    import math
 except:
     raise ImportError("Connector.ToolboxIBM requires Converter, Generator, Transform, Dist2Walls and Post modules.")
 
@@ -28,6 +29,15 @@ EPSCART = 1.e-6
 
 TypesOfIBC = XOD.TypesOfIBC
 
+
+def _blankClosestTargetCells(t, cellNName='cellN', depth=3):
+    for z in Internal.getZones(t):
+        connector._blankClosestTargetCells(z, depth, cellNName,
+                                           Internal.__GridCoordinates__,
+                                           Internal.__FlowSolutionNodes__,
+                                           Internal.__FlowSolutionCenters__)
+    return None
+        
 # ==============================================================================
 # Generates the fully Cartesian IBM mesh
 # ==============================================================================
@@ -216,9 +226,18 @@ def octree2StructLoc__(o, vmin=21, ext=0, optimized=0, merged=0, sizeMax=4e6, li
                                 OCTREEPARENTS[nob].append(parento2)
                         nob+=1
             for z in zones:
-                bbz = G.bbox(z)  
-                xminz=bbz[0]; yminz=bbz[1]; zminz=bbz[2]
-                xmaxz=bbz[3]; ymaxz=bbz[4]; zmaxz=bbz[5]
+                xminz = C.getValue(z,'CoordinateX',0)
+                yminz = C.getValue(z,'CoordinateY',0)
+                zminz = C.getValue(z,'CoordinateZ',0)
+                dimZ = Internal.getZoneDim(z)
+                ni = dimZ[1]; nj = dimZ[2]; nk = dimZ[3]
+                ind = ni-1 + (nj-1)*ni+(nk-1)*ni*nj
+                xmaxz = C.getValue(z,'CoordinateX',ind)
+                ymaxz = C.getValue(z,'CoordinateY',ind)
+                zmaxz = C.getValue(z,'CoordinateZ',ind)
+                # bbz = G.bbox(z)  
+                # xminz=bbz[0]; yminz=bbz[1]; zminz=bbz[2]
+                # xmaxz=bbz[3]; ymaxz=bbz[4]; zmaxz=bbz[5]
                 if zmaxz < zmeano+eps:
                     if ymaxz < ymeano+eps:
                         if xmaxz < xmeano+eps: noo=0
@@ -260,9 +279,16 @@ def octree2StructLoc__(o, vmin=21, ext=0, optimized=0, merged=0, sizeMax=4e6, li
                             OCTREEPARENTS[nob].append(parento2)
                     nob+=1
             for z in zones:
-                bbz = G.bbox(z)  
-                xminz=bbz[0]; yminz=bbz[1]
-                xmaxz=bbz[3]; ymaxz=bbz[4]
+                xminz = C.getValue(z,'CoordinateX',0)
+                yminz = C.getValue(z,'CoordinateY',0)
+                dimZ = Internal.getZoneDim(z)
+                ni = dimZ[1]; nj = dimZ[2]; nk = dimZ[3]
+                ind = ni-1 + (nj-1)*ni+(nk-1)*ni*nj
+                xmaxz = C.getValue(z,'CoordinateX',ind)
+                ymaxz = C.getValue(z,'CoordinateY',ind)
+                # bbz = G.bbox(z)  
+                # xminz=bbz[0]; yminz=bbz[1]
+                # xmaxz=bbz[3]; ymaxz=bbz[4]
                 if ymaxz < ymeano+eps:
                     if xmaxz < xmeano+eps: noo=0
                     else: noo=1
@@ -330,13 +356,22 @@ def octree2StructLoc__(o, vmin=21, ext=0, optimized=0, merged=0, sizeMax=4e6, li
         xmax = bbox0[3]; ymax = bbox0[4]; zmax = bbox0[5]
         noz = 0
         for z in zones:
-            [x1,y1,z1,x2,y2,z2] = G.bbox(z)
-            if (x1 > xmin+EPSCART): z=C.addBC2Zone(z,'overlap1','BCOverlap','imin')
-            if (x2 < xmax-EPSCART): z=C.addBC2Zone(z,'overlap2','BCOverlap','imax')
-            if (y1 > ymin+EPSCART): z=C.addBC2Zone(z,'overlap3','BCOverlap','jmin')
-            if (y2 < ymax-EPSCART): z=C.addBC2Zone(z,'overlap4','BCOverlap','jmax')
-            if (z1 > zmin+EPSCART): z=C.addBC2Zone(z,'overlap5','BCOverlap','kmin')
-            if (z2 < zmax-EPSCART): z=C.addBC2Zone(z,'overlap6','BCOverlap','kmax')
+            # [x1,y1,z1,x2,y2,z2] = G.bbox(z)
+            dimZ = Internal.getZoneDim(z)
+            niz = dimZ[1]; njz = dimZ[2]; nkz = dimZ[3]
+            indM = niz-1+(njz-1)*niz+(nkz-1)*niz*njz
+            x1 = C.getValue(z,'CoordinateX',0)
+            y1 = C.getValue(z,'CoordinateY',0)
+            z1 = C.getValue(z,'CoordinateZ',0)
+            x2 = C.getValue(z,'CoordinateX',indM)
+            y2 = C.getValue(z,'CoordinateY',indM)
+            z2 = C.getValue(z,'CoordinateZ',indM)
+            if (x1 > xmin+EPSCART): C._addBC2Zone(z,'overlap1','BCOverlap','imin')
+            if (x2 < xmax-EPSCART): C._addBC2Zone(z,'overlap2','BCOverlap','imax')
+            if (y1 > ymin+EPSCART): C._addBC2Zone(z,'overlap3','BCOverlap','jmin')
+            if (y2 < ymax-EPSCART): C._addBC2Zone(z,'overlap4','BCOverlap','jmax')
+            if (z1 > zmin+EPSCART): C._addBC2Zone(z,'overlap5','BCOverlap','kmin')
+            if (z2 < zmax-EPSCART): C._addBC2Zone(z,'overlap6','BCOverlap','kmax')
             zones[noz] = z; noz += 1
     return zones
 
@@ -384,8 +419,17 @@ def generateCartMesh__(o, dimPb=3, vmin=11, DEPTH=2, NP=0, merged=1, sizeMax=400
     nptsTot = 0
     for zp in Internal.getZones(t):
         dimZ = Internal.getZoneDim(zp)
-        nptsTot += dimZ[1]*dimZ[2]*dimZ[3]
-        bbz = G.bbox(zp)
+        niz = dimZ[1]; njz = dimZ[2]; nkz = dimZ[3]
+        nptsTot += niz*njz*nkz
+        indM = niz-1+(njz-1)*niz+(nkz-1)*niz*njz
+        x1 = C.getValue(zp,'CoordinateX',0)
+        y1 = C.getValue(zp,'CoordinateY',0)
+        z1 = C.getValue(zp,'CoordinateZ',0)
+        x2 = C.getValue(zp,'CoordinateX',indM)
+        y2 = C.getValue(zp,'CoordinateY',indM)
+        z2 = C.getValue(zp,'CoordinateZ',indM)
+        bbz=[x1,y1,z1,x2,y2,z2]
+        #bbz = G.bbox(zp)
         external = False
         for idir in dirs:
             if abs(bbz[idir]-bbo[idir])< 1.e-6:                    
@@ -436,7 +480,7 @@ def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., DEPTH=2, NP=0, tbox=None
 
     if to is None:
         o = G.octree(surfaces, snearso, dfar=dfar, balancing=2)
-        o = G.getVolumeMap(o); volmin = C.getMinValue(o, 'centers:vol')
+        G._getVolumeMap(o); volmin = C.getMinValue(o, 'centers:vol')
         dxmin = (volmin)**(1./dimPb)
         if dxmin < 0.65*dxmin0: 
             snearso = [2.*i for i in snearso]
@@ -508,7 +552,7 @@ def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., DEPTH=2, NP=0, tbox=None
             o = C.convertArrays2ZoneNode(o[0],[octreeA])
 
         to = C.newPyTree(['Base', o])
-        to = G.getVolumeMap(to); volmin = C.getMinValue(to, 'centers:vol')
+        G._getVolumeMap(to); volmin = C.getMinValue(to, 'centers:vol')
 
         dxmin = (volmin)**(1./dimPb)
         print 'Minimum spacing of Cartesian mesh= %f (targeted %f)'%(dxmin/(vmin-1),dxmin0/(vmin-1))
@@ -568,7 +612,7 @@ def addRefinementZones(o, tb, tbox, snearsf, vmin, dim):
     to = C.newPyTree(['Base', o])
     BM = numpy.ones((1,1),numpy.int32)
     end = 0
-    to = G.getVolumeMap(to)
+    G._getVolumeMap(to)
     volmin0 = C.getMinValue(to,'centers:vol')
     #print 'volmin0 = ', volmin0, (volmin0)**(1./3.)
     # volume minimum au dela duquel on ne peut pas raffiner
@@ -596,7 +640,7 @@ def addRefinementZones(o, tb, tbox, snearsf, vmin, dim):
             o = Internal.getZones(to)[0]
             o = G.adaptOctree(o, 'centers:indicator', balancing=2)
             to[2][1][2] = [o]
-            to = G.getVolumeMap(to)
+            G._getVolumeMap(to)
             volminloc = C.getMinValue(to,'centers:vol')
             #print 'volminloc = ', volminloc, (volminloc)**(1./3.)
     return Internal.getNodeFromType2(to, 'Zone_t')
@@ -710,9 +754,9 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None,
             res = connector.getIBMPtsWithFront(allCorrectedPts, listOfSnearsLoc, bodies, listOfIBCTypes,
                                                front, varsn, IBCType, depth)
 
-    #Converter.convertArrays2File(allCorrectedPts, 'correctedPts.plt')
-    #Converter.convertArrays2File(res[0], 'wallPts.plt')
-    #Converter.convertArrays2File(res[1], 'imagePts.plt')
+    Converter.convertArrays2File(allCorrectedPts, 'correctedPts.plt')
+    Converter.convertArrays2File(res[0], 'wallPts.plt')
+    Converter.convertArrays2File(res[1], 'imagePts.plt')
     allWallPts = res[0]
     allWallPts = Converter.extractVars(allWallPts,['CoordinateX','CoordinateY','CoordinateZ'])
 
@@ -769,10 +813,70 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None,
 #=============================================================================
 # Returns the front defining the image points
 #=============================================================================
-def getIBMFront(tc, frontvar, dim, frontType):
+def getIBMFront(tc, frontvar, dim, frontType, shiftIBM):
+
     if frontType == 1: front = getIBMFrontType1(tc,frontvar,dim)
     else: front = getIBMFrontType0(tc,frontvar,dim)
     front = C.deleteEmptyZones(front)
+    Internal._rmNodesFromName(front,"ID_*")
+    if shiftIBM is False: return front
+    
+    dxmin = 1e12
+    if frontType==1:
+        front = Internal.getZones(front)
+        dxmax = 1.e-12
+        dht = [[]]*len(front)
+        nof = 0
+        for f in front:
+            subf = T.subzone(f, [0], type='elements')
+            dx = C.getMaxValue(subf,"CoordinateX")-C.getMinValue(subf,"CoordinateX")
+            if dim == 3:
+                dy = C.getMaxValue(subf,"CoordinateY")-C.getMinValue(subf,"CoordinateY")
+                dz = C.getMaxValue(subf,"CoordinateZ")-C.getMinValue(subf,"CoordinateZ")
+                dht[nof] = max(dx,dy,dz)
+            else: dht[nof] = dx
+
+            if dht[nof] < dxmin and dht[nof] > 1.e-12: 
+                dxmin = dht[nof]
+            if dht[nof] > dxmax: 
+                dxmax = dht[nof]
+            nof+=1
+
+        nlevels = int(math.log(dxmax/dxmin)/math.log(2)+1)
+
+        dictOfLevels={}
+        for l in xrange(nlevels): dictOfLevels[l]=[]
+        for nof in xrange(len(dht)):
+            if dht[nof]>1.e-12:
+                nolvl = int(math.log(dht[nof]/dxmin)/math.log(2))
+                dictOfLevels[nolvl].append(front[nof])
+        
+        front=[]
+        for nol in xrange(nlevels):
+            if len(dictOfLevels[nol])>0:
+                front.append(T.join(dictOfLevels[nol]))
+
+    if shiftIBM and frontType==1:
+        # C.convertPyTree2File(front,"front0.cgns")
+        G._getNormalMap(front)
+        C._normalize(front, ['centers:sx','centers:sy','centers:sz'])
+        vshift = min(1.e-6,0.01*dxmin)
+        C._initVars(front,"{centers:sx}={centers:sx}*%g"%vshift)
+        C._initVars(front,"{centers:sy}={centers:sy}*%g"%vshift)
+        C._initVars(front,"{centers:sz}={centers:sz}*%g"%vshift)
+        front = C.center2Node(front, Internal.__FlowSolutionCenters__)
+        Internal._rmNodesByName(front,Internal.__FlowSolutionCenters__)
+        front2 = G.grow(front, ['sx','sy','sz'])
+        C._initVars(front2,"tag",2.)
+        C._initVars(front,"tag",1.)
+        hook = C.createGlobalHook(front, 'nodes')
+        front2 = C.identifySolutions(front2, front, hookN=hook, tol=1.e-14)
+        C._initVars(front2,'{tag}=abs({tag}-1.)')
+        front2 = P.exteriorFaces(front2)
+        front = P.selectCells2(front2,'tag',strict=1)
+        # C.convertPyTree2File(front,"front1.cgns")
+        Internal._rmNodesByName(front,Internal.__FlowSolutionNodes__)
+        C.freeHook(hook)
     return front
 
 # front of first computed cells - with overlapping
@@ -785,17 +889,21 @@ def getIBMFrontType1(tc,frontvar, dim):
     front = []
     for z in Internal.getZones(tc):
         if C.getMinValue(z,frontvar)==0. and C.getMaxValue(z,frontvar)==1.:
-            z = X.maximizeBlankedCells(z,depth=1,dir=1,loc='nodes', cellNName='cellNChim')
+            X._maximizeBlankedCells(z,depth=1,dir=1,loc='nodes', cellNName='cellNChim')
             C._initVars(z,'{cellNChim}=minimum(1.,{cellNChim})')
             f = P.frontFaces(z, frontvar)
-            front.append(f)
+            if Internal.getZoneDim(f)[1]>0:  
+                Internal._rmNodesByName(f,'ID_*')
+                front.append(f)
 
     C._initVars(front,'{tag}=({cellNChim}>0.5)*({cellNChim}<1.5)')
     front = P.selectCells2(front,'tag',strict=1)
+    Internal._rmNodesByName(front,Internal.__FlowSolutionNodes__)
+    Internal._rmNodesByName(front,Internal.__FlowSolutionCenters__)
     if dim == 2:
-        front = T.addkplane(front)
-        front = T.translate(front,(0,0,-zmean))
-        front = T.contract(front, (0,0,0), (1,0,0), (0,1,0), 0.9*dz)
+        T._addkplane(front)
+        T._translate(front,(0,0,-zmean))
+        T._contract(front, (0,0,0), (1,0,0), (0,1,0), 0.9*dz)
     return front
 
 # isosurface of max dist of the first interpolable cells
@@ -813,13 +921,15 @@ def getIBMFrontType0(tc, frontvar, dim):
     for z in Internal.getZones(tf):
         if C.getMinValue(z,frontvar)==0. and C.getMaxValue(z,frontvar)==1.:
             f = P.frontFaces(z, frontvar)
-            front.append(f)
+            if Internal.getZoneDim(f)[1]>0:  
+                Internal._rmNodesByName(f,'ID_*')
+                front.append(f)
     if dim == 2:
         dmin = C.getMaxValue(front, 'TurbulentDistance')
         # Creation du corps 2D pour le preprocessing IBC
         tcl = T.addkplane(tc)
-        tcl = T.translate(tcl,(0,0,-zmean))
-        tcl = T.contract(tcl, (0,0,0), (1,0,0), (0,1,0), dz)
+        T._translate(tcl,(0,0,-zmean))
+        T._contract(tcl, (0,0,0), (1,0,0), (0,1,0), dz)
         front = P.isoSurfMC(tcl,'TurbulentDistance',dmin*SHIFTD)
         del tcl
     else:
@@ -907,7 +1017,7 @@ def _signDistance(t):
     return None
 
 #=============================================================================
-def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=0, depth=2, IBCType=1):    
+def doInterp(t, tc, tbb, shiftIBM, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=0, depth=2, IBCType=1):    
     ReferenceState = Internal.getNodeFromType2(t,'ReferenceState_t')
 
     if typeI == 'ID':
@@ -953,9 +1063,10 @@ def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=0
 
         if zonesRIBC == []: return tc
 
-        print 'Building the IBM front.'
-
-        front = getIBMFront(tc, 'cellNFront', dim, frontType)
+        print 'Building the IBM front.'  
+        front = getIBMFront(tc, 'cellNFront', dim, frontType, shiftIBM)
+        C.convertPyTree2File(front,"front.cgns")
+        #
         res = getAllIBMPoints(zonesRIBC, loc='centers',tb=tb, tfront=front, frontType=frontType, \
                               cellNName='cellNIBC', depth=depth, IBCType=IBCType)
         nbZonesIBC = len(zonesRIBC)
@@ -990,9 +1101,9 @@ def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=0
                                         hook0.append(dictOfADT[zdnrname])
                                         nobOfDnrBases.append(nobd)
                                         nobOfDnrZones.append(nozd)
-
                     XOD._setIBCDataForZone__(zrcv, dnrZones, allCorrectedPts[nozr], allWallPts[nozr], allInterpPts[nozr], \
-                                             loc='centers', storage='inverse',  hook=hook0, dim=dim, ReferenceState=ReferenceState, bcType=ibcTypeL)
+                                             nature=1, penalty=1, loc='centers', storage='inverse',  hook=hook0, dim=dim, \
+                                             ReferenceState=ReferenceState, bcType=ibcTypeL)
                     nozr += 1
                     for nod in xrange(len(dnrZones)):
                         nobd = nobOfDnrBases[nod]
@@ -1004,7 +1115,7 @@ def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=0
 #=============================================================================
 # Performs the full IBM preprocessing using overlapping Cartesian grids
 #=============================================================================
-def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=0, interp='all', inv=False):
+def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, shiftIBM=False, interp='all', inv=False):
     tb =  Internal.copyRef(tbody)
     if interp == 'all': interpI = 0
     elif interp=='chimera': interpI = 1
@@ -1068,10 +1179,15 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=0, interp='all', 
     #-----------------------------------------
     C._initVars(t,'{centers:cellN}={centers:cellNIBC}')
     # determination des pts IBC
-    if IBCType == -1: t = X.setHoleInterpolatedPoints(t,depth=-DEPTH,dir=0)
+    if IBCType == -1: X._setHoleInterpolatedPoints(t,depth=-DEPTH,dir=0,loc='centers',cellNName='cellN',addGC=False)
     elif IBCType == 1:
-        t = X.setHoleInterpolatedPoints(t,depth=1,dir=1) # pour les gradients
-        t = X.setHoleInterpolatedPoints(t,depth=DEPTH,dir=0)
+        X._setHoleInterpolatedPoints(t,depth=1,dir=1,loc='centers',cellNName='cellN',addGC=False) # pour les gradients
+        if not shiftIBM:
+            X._setHoleInterpolatedPoints(t,depth=DEPTH,dir=0,loc='centers',cellNName='cellN',addGC=False)
+        else:
+            DEPTHL=DEPTH+1
+            X._setHoleInterpolatedPoints(t,depth=DEPTHL,dir=0, loc='centers',cellNName='cellN',addGC=False)         
+            _blankClosestTargetCells(t,cellNName='cellN', depth=DEPTHL)
     else:
         raise ValueError('prepareIBMData: not valid IBCType. Check model.')
     _removeBlankedGrids(t, loc='centers')
@@ -1103,7 +1219,7 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=0, interp='all', 
         print 'Euler : on repousse le front un peu plus loin.'
         C._initVars(t,'{centers:dummy}={centers:cellN}') # sauvegarde
         C._initVars(t,'{centers:cellN}=({centers:cellNIBC}>0.5)*({centers:cellNIBC}<1.5)')
-        t = X.setHoleInterpolatedPoints(t,depth=1,dir=1)
+        X._setHoleInterpolatedPoints(t,depth=1,dir=1,loc='centers',cellNName='cellN',addGC=False)
         C._initVars(t,'{centers:cellNFront}=logical_and({centers:cellN}>0.5, {centers:cellN}<1.5)')
         C._cpVars(t,'centers:dummy',t,'centers:cellN')
         C._rmVars(t, ['centers:dummy'])
@@ -1114,7 +1230,7 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=0, interp='all', 
                                           Internal.__FlowSolutionCenters__)
     #------------------------------------------------------------------------
     # setInterpData - Chimere
-    C._initVars(t,'{centers:cellN}=maximum(0.,{cellNChim})')# vaut -3, 0, 1, 2 initialement
+    C._initVars(t,'{centers:cellN}=maximum(0.,{centers:cellNChim})')# vaut -3, 0, 1, 2 initialement
 
     # maillage donneur: on MET les pts IBC comme donneurs
     tc = C.node2Center(t)
@@ -1133,7 +1249,7 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=0, interp='all', 
                 HOOKADT = C.createHook(zdnr, 'adt')
                 dictOfADT[zdnrname] = HOOKADT
         print 'Interpolations Chimere'
-        tc = doInterp(t, tc, tbb, tb=None, typeI='ID', dim=dimPb, 
+        tc = doInterp(t, tc, tbb, shiftIBM, tb=None, typeI='ID', dim=dimPb, 
                       dictOfADT=dictOfADT)
         for dnrname in dictOfADT.keys(): C.freeHook(dictOfADT[dnrname])
 
@@ -1149,7 +1265,7 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=0, interp='all', 
                 HOOKADT = C.createHook(zdnr, 'adt')
                 dictOfADT[zdnrname] = HOOKADT
         print 'Interpolations Chimere'
-        tc = doInterp(t, tc, tbb, tb=None, typeI='ID', dim=dimPb, 
+        tc = doInterp(t, tc, tbb, shiftIBM, tb=None, typeI='ID', dim=dimPb, 
                       dictOfADT=dictOfADT)
         for dnrname in dictOfADT.keys(): C.freeHook(dictOfADT[dnrname])
 
@@ -1175,7 +1291,7 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=0, interp='all', 
         print 'Minimum distance: ', C.getMinValue(t,'centers:TurbulentDistance')
         t = P.computeGrad2(t,'centers:TurbulentDistance')
         print 'Interpolations IBM'
-        tc = doInterp(t,tc,tbb,tb=tb,typeI='IBCD',dim=dimPb, dictOfADT=None, frontType=frontType, depth=DEPTH, IBCType=IBCType)
+        tc = doInterp(t,tc,tbb, shiftIBM, tb=tb,typeI='IBCD',dim=dimPb, dictOfADT=None, frontType=frontType, depth=DEPTH, IBCType=IBCType)
 
     # cleaning...
     Internal._rmNodesByName(tc, Internal.__FlowSolutionNodes__)
