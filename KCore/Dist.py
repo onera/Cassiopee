@@ -313,20 +313,17 @@ class IntelCCompiler(UnixCCompiler):
         self.cc_exe = ('icc')
         compiler = self.cc_exe
 
-        if platform.system() == 'Darwin':
-            shared_flag = '-Wl,-undefined,dynamic_lookup'
-        else:
-            shared_flag = '-shared'
+        if platform.system() == 'Darwin': shared_flag = '-Wl,-undefined,dynamic_lookup'
+        else: shared_flag = '-shared'
         self.set_executables(compiler=compiler,
                              compiler_so=compiler,
                              compiler_cxx=compiler,
                              archiver='xiar' + ' cru',
                              linker_exe=compiler,
-                             linker_so=compiler + ' ' + shared_flag
-                             )
+                             linker_so=compiler + ' ' + shared_flag)
         ccompiler._default_compilers += (('linux.*', 'intel'),('posix*', 'intel'))
 
-def new_compiler(plat=None,compiler=None,verbose=0,dry_run=0,force=0):
+def new_compiler(plat=None, compiler=None, verbose=0, dry_run=0, force=0):
     compiler = IntelCCompiler()
     return compiler
 

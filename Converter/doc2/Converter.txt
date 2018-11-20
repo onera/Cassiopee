@@ -1,4 +1,15 @@
 ==============================================================================
+Converter 2.8 [12/2018]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.8
+Optional: libhdf5 > 1.8.6 (hdf file format)
+Optional: extractBCOfType, extractBCOfName requires Transform 2.8
+Optional: Mpi requires mpi4py
+- Internal: getZonesPerIteration: retourne les zones si BaseIterativeData
+- Filter: readNodesFromFilter: lecture partielle de noeuds
+- Filter: Handle, loadZonesWoVariables, loadVariables (load partiel par zones)
+- Filter: loadZonesWoVars + bbox : permet de spécifier les zones à charger par une bbox
+- Internal: elsAProfile.createElsaHybrid: option pour générer le noeud ParentElement de façon topologique, donc valable pour des maillages conformes quelconques (pas nécessairement à cellule convexe)
+==============================================================================
 Converter 2.7 [07/2018]
 Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.7
 Optional: libhdf5 > 1.8.6 (hdf file format)

@@ -273,7 +273,8 @@ PyObject* K_CONVERTER::addGhostCellsNG(PyObject* self, PyObject* args)
     {
     	std::cout << "ERROR : could not get donnor ids" << std::endl; 
     	break;
-    } 
+    }
+     
     E_Int *ptL_sz;
     ok = K_NUMPY::getFromNumpyArray(pyo_j_ptLs_sz, ptL_sz, c, r, true/*shared*/);
     if (!ok) 
@@ -305,7 +306,6 @@ PyObject* K_CONVERTER::addGhostCellsNG(PyObject* self, PyObject* args)
       {
         PyObject* pyo_j_ptL = PyList_GetItem(pyo_j_ptLs, j);	
         E_Int c,r;
-
         ok = K_NUMPY::getFromNumpyArray(pyo_j_ptL, ptL, c, r, true/*shared*/);
         
         if (!ok) 
@@ -322,7 +322,6 @@ PyObject* K_CONVERTER::addGhostCellsNG(PyObject* self, PyObject* args)
         PyObject* pyo_ptL_D = PyList_GetItem(pyo_j_ptLs_D, j);	
         
         E_Int c,r;
-
         ok = K_NUMPY::getFromNumpyArray(pyo_ptL_D, ptL_D, c, r, true/*shared*/);
         
         if (!ok)
@@ -349,7 +348,7 @@ PyObject* K_CONVERTER::addGhostCellsNG(PyObject* self, PyObject* args)
       PyObject* pyo_bc_ptL = PyList_GetItem(pyo_bc_ptLs, b);  
 
       E_Int nb_ids,r;
-      E_Int *ptL(nullptr);
+      E_Int *ptL(nullptr);    
       ok = K_NUMPY::getFromNumpyArray(pyo_bc_ptL, ptL, nb_ids, r, true/*shared*/);
       if (!ok) 
       {

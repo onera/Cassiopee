@@ -1462,7 +1462,7 @@ def octree2Struct(a, vmin=15, ext=0, optimized=1, merged=1, AMR=0,
     If optimized=1, then the extension can be reduced for minimum overlapping.
     merged=1 means that Cartesian grids are merged when possible.
     If AMR=1, a list of AMR grids is generated.
-    Usage: octree2Struct(a, vmin, ext,optimized, merged, AMR)"""
+    Usage: octree2Struct(a, vmin, ext, optimized, merged, AMR)"""
     if not isinstance(vmin, list): vmin = [vmin]
     for nov in xrange(len(vmin)):
         if vmin[nov] < 2:

@@ -1827,7 +1827,7 @@ def adapt2FastP2(t, nlayers=2):
     for layer in xrange(1,nlayers+1):
 
       zones = Internal.getZones(t)
-      #sauvegarde taille de zone sans ghost et de la list des elememnt ajoutes
+      #sauvegarde taille de zone sans ghost et de la list des elements ajoutes
       for z in zones:
         #Nombre de face totale
         NGON_range = Internal.getNodeFromPath(z, 'NGonElements/ElementRange')[1]
@@ -1879,7 +1879,7 @@ def adapt2FastP2(t, nlayers=2):
         data_ng[2] = dims_woghost[c][4]                                           # couche 0: nbfacebc(0)
         l1 = c + nbzone
         l2 = c + nbzone*2
-        if (nlayers ==2): 
+        if nlayers == 2: 
            data_ng[4] = dims_woghost[l2][4] - dims_woghost[c ][4]                    # couche 1: nbfacebc(1)
            data_ng[3] = dims_woghost[l1][2] - dims_woghost[c ][2] - data_ng[4]       # couche 1: faceInterne(1)= nbfacetot -nfacebc(1) 
            data_ng[5] = dims_woghost[l2][2] - dims_woghost[l1][2]                    # couche 2: nbintern(2)
@@ -1892,7 +1892,7 @@ def adapt2FastP2(t, nlayers=2):
         l1 = c + nbzone
         l2 = c + nbzone*2
         data_nf[1] = dims_woghost[l1][1] -dims_woghost[c][1]                      # couche 1: nombre element
-        if (nlayers ==2): 
+        if nlayers == 2: 
            data_nf[2] = dims_woghost[l2][1] -dims_woghost[l1][1]                     # couche 2: nombre element
         node =  Internal.getNodeFromName1(z, 'NFaceElements')
         Internal.createUniqueChild(node, 'IntExt', 'DataArray_t', data_nf)
@@ -1947,7 +1947,7 @@ def addGhostCellsNG(t, nlayers=2):
       zone_ngons.append(m)
 
       F2Esep = Internal.getNodeFromName(z, 'ParentElements')
-      if (F2Esep != None) : F2Esep=F2Esep[1]
+      if F2Esep is not None: F2Esep=F2Esep[1]
 
       #print F2Esep
       F2Es.append(F2Esep)
@@ -1969,7 +1969,7 @@ def addGhostCellsNG(t, nlayers=2):
       z_bc_ptL_sizes = numpy.empty(nb_bcs, numpy.int32)
 
       j=0
-      for rac in raccords :
+      for rac in raccords:
 
         rt = Internal.getNodeFromType1(rac, 'GridConnectivityType_t')
         jn = "".join(rt[1])

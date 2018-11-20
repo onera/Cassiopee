@@ -24,7 +24,8 @@ using namespace K_FLD;
   if (dim == 1) { size = PyArray_DIMS(a)[0]; }                          \
   else if (dim == 2) {                                                  \
     if (isFortran == 0) { nfld = PyArray_DIMS(a)[0]; size = PyArray_DIMS(a)[1]; } \
-    else { nfld = PyArray_DIMS(a)[1]; size = PyArray_DIMS(a)[0]; } }  \
+    else { nfld = PyArray_DIMS(a)[1]; size = PyArray_DIMS(a)[0]; } \
+    if (size == 1) { size = nfld; nfld = 1; } }  \
   else return 0;
 #else
 #define GETDIMS E_Int isFortran = PyArray_CHKFLAGS(a, NPY_F_CONTIGUOUS); \
@@ -32,6 +33,7 @@ using namespace K_FLD;
   else if (dim == 2) {                                                  \
     if (isFortran == 0) { nfld = PyArray_DIMS(a)[0]; size = PyArray_DIMS(a)[1]; } \
     else { nfld = PyArray_DIMS(a)[1]; size = PyArray_DIMS(a)[0]; }      \
+    if (size == 1) { size = nfld; nfld = 1; } \
   } else return 0;
 #endif
 

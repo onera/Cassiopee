@@ -1,4 +1,9 @@
 ===============================================================================
+Dist2Walls 2.8 [12/2018]
+Require: C++ compiler, python > 2.4, numpy > 1.0, KCore, Converter, 
+Transform, Generator 2.8
+Signed distance: require Connector 2.8
+===============================================================================
 Dist2Walls 2.7 [07/2018]
 Require: C++ compiler, python > 2.4, numpy > 1.0, KCore, Converter, 
 Transform, Generator 2.7

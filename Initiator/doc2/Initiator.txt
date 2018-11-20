@@ -1,4 +1,8 @@
 ===============================================================================
+Initiator 2.8 [12/2018]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.8
+Optional: pyTree interface requires Converter 2.8
+===============================================================================
 Initiator 2.7 [07/2018]
 Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.7
 Optional: pyTree interface requires Converter 2.7

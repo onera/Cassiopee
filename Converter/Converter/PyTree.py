@@ -4484,7 +4484,6 @@ def getEmptyBCForNGonZone__(z, dims, pbDim, splitFactor):
   else:
     undefBC = True
     indicesE = indicesF
-
   if undefBC:
     ze = T.subzone(z, indicesE, type='faces')
     zea = getFields('GridCoordinates', ze)[0]

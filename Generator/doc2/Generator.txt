@@ -1,4 +1,13 @@
 ===============================================================================
+Generator 2.8 [12/2018]
+Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.8
+Optional: pyTree interface requires Converter 2.8
+Optional: bbox requires Converter 2.8
+Optional: addNormalLayers, gencartmb, map require Converter, Transform 2.8
+Optional: stitchedHat requires Transform 2.8
+Optional: mapSplit requires Converter, Transform, Geom 2.8
+- Generator: T3Mesher2D: 2 nouvelles options pour contrôler la gradation du maillage.
+===============================================================================
 Generator 2.7 [07/2018]
 Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.7
 Optional: pyTree interface requires Converter 2.7

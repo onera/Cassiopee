@@ -1,3 +1,4 @@
+# - adapt2FastP (pyTree) -
 import Generator.PyTree as G
 import Transform.PyTree as T
 import Converter.PyTree as C
@@ -13,5 +14,6 @@ t = X.connectMatch(t)
 t = C.fillEmptyBCWith(t, 'wall', 'BCWall', dim=3)
 Internal._adaptNFace2PE(t, remove=False) 
 # Test avec deux couches
-t = GC.adapt2FastP2(t, nlayers=2)       # creation parentElement du NGon
+t = GC.adapt2FastP(t, nlayers=2)       # creation parentElement du NGon
 test.testT(t, 1)
+

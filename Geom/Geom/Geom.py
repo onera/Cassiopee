@@ -530,9 +530,9 @@ def orthoDrive(a, d, mode=0):
         U = Vector.mul(alpha, S)
         U = Vector.add(U, [0,1,0])
     V = Vector.cross(U, S)
-    print 'S',S
-    print 'U',U
-    print 'V',V
+    #print 'S',S
+    #print 'U',U
+    #print 'V',V
 
     n = d[2]
     all = []

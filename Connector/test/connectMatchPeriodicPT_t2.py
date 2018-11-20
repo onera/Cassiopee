@@ -8,7 +8,7 @@ import KCore.test as test
 a = G.cylinder((0.,0.,0.), 0.1, 1., 0., 90., 5., (11,11,11)) 
 a = C.convertArray2NGon(a); a =G.close(a)
 C._initVars(a,'F',1.); C._initVars(a,'centers:G',2.)
-t = C.newPyTree(['Base']); t[2][1][2] += [a]
+t = C.newPyTree(['Base',a])
 C._addState(t[2][1], 'EquationDimension', 3)
 t = X.connectMatchPeriodic(t,rotationCenter=[0.,0.,0.],rotationAngle=[0.,0.,90.],unitAngle=None)
 test.testT(t,1)
@@ -24,4 +24,3 @@ C._addState(t[2][1], 'EquationDimension', 3)
 t[2][1] = X.connectMatchPeriodic(t[2][1],rotationCenter=[0.,0.,0.],rotationAngle=[0.,0.,90.])
 t[2][1] = X.connectMatchPeriodic(t[2][1],translation=[0,0,5])
 test.testT(t,2)
-C.convertPyTree2File(t,"out.cgns")

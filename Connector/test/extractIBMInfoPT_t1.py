@@ -1,4 +1,4 @@
-# - prepareIBMData (pyTree) -
+# - extractIBMInfo (pyTree) -
 import Converter.PyTree as C
 import Generator.PyTree as G
 import Connector.ToolboxIBM as IBM
@@ -15,9 +15,10 @@ C._addState(tb, 'EquationDimension',3)
 C._addState(tb, 'GoverningEquations', 'NSTurbulent')
 DTW._distance2Walls(t,bodies=tb,loc='centers',type='ortho')
 t = P.computeGrad(t,'centers:TurbulentDistance')
-t,tc=IBM.prepareIBMData(t,tb,DEPTH=2)
+t,tc=IBM.prepareIBMData(t,tb,DEPTH=2,frontType=0)
 res = IBM.extractIBMInfo(tc)
 test.testT(res,1)
+
 # CAS 2D
 N = 21
 a = G.cart((0,0,0),(1./(N-1),1./(N-1),1./(N-1)),(N,N,2))
@@ -28,6 +29,6 @@ C._addState(tb, 'EquationDimension',2)
 C._addState(tb, 'GoverningEquations', 'NSTurbulent')
 DTW._distance2Walls(t,bodies=tb,loc='centers',type='ortho',dim=2)
 t = P.computeGrad(t,'centers:TurbulentDistance')
-t,tc=IBM.prepareIBMData(t,tb,DEPTH=2)
+t,tc=IBM.prepareIBMData(t,tb,DEPTH=2,frontType=0)
 res = IBM.extractIBMInfo(tc)
 test.testT(res,2)

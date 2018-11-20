@@ -46,7 +46,6 @@ def _evalPosition(array, time, F):
     if isinstance(array[0], list): 
         b = []
         for i in array:
-            print i            
             rigidMotion.move(i, d[0], d[1], d[2], \
                              c[0], c[1], c[2], \
                              r[0][0], r[0][1], r[0][2], \

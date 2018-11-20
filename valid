@@ -31,27 +31,3 @@ do
       echo 'Directory ',$mod, 'not found.'
   fi
 done
-
-# Test CFD Base
-SEQ='NACA NACA_IBC DAUPHIN FLATPLATE RAE2822 CUBE_IBC'
-PARA='RAE2822_IBC'
-cd $DATABASE/Validation/Cases
-for case in $SEQ
-do
-    echo ''
-    echo '================ RUNNING '$case
-    echo ''
-    cd $case
-    ./valid check
-    cd ..
-done
-
-for case in $PARA
-do
-    echo ''
-    echo '================ RUNNING '$case
-    echo ''
-    cd $case
-    ./valid check 0 0 0 2 4
-    cd ..
-done

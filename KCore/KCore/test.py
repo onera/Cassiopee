@@ -886,3 +886,28 @@ def checkCGNSlib(t, number=1):
         if i1 != -1: print "FAILED: CGNSlib check"; return 0
         return 1
     except: print "FAILED: CGNSlib check"; return 0
+
+#==============================================================================
+# Ecrit la memoire prise par le process
+# IN: msg: message a ecrire en meme temps que la memoire
+# Return the memory in kB
+#==============================================================================
+def printMem(msg):
+    import os, time
+    pid = os.getpid()
+    time.sleep(2)
+    f = open("/proc/{}/smaps".format(pid))
+    s = f.readlines()
+    f.close()
+
+    tot = 0.
+    found = False
+    for ts in s:
+        if found :
+            tot += int(ts[5:-3])
+            found = False
+        if ts.find("heap") >= 0:
+            found = True
+    # print msg, tot, " kB" 
+    print '{:<40} : {} kB '.format(msg,tot)
+    return tot

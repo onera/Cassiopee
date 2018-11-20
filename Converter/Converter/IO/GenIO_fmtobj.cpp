@@ -89,8 +89,8 @@ E_Int K_IO::GenIO::objread(
       nom++;
     }
   }
-  printf("I found %d materials (occurences=%d)\n", nm, nom);
-  for (E_Int i = 0; i < nm; i++) printf("material %d: %s\n", i, matnames[i]);
+  //printf("I found %d materials (occurences=%d)\n", nm, nom);
+  //for (E_Int i = 0; i < nm; i++) printf("material %d: %s\n", i, matnames[i]);
   //for (E_Int i = 0; i < nom; i++) printf("occurence %d: %I64d\n", i, matpos[i]); 
 
   // Recherche du nombre de V
@@ -101,15 +101,15 @@ E_Int K_IO::GenIO::objread(
     res = readGivenKeyword(ptrFile, "V "); nv++;
   }
   nv = nv-1;
-  printf("I found %d vertices\n", nv);
+  //printf("I found %d vertices\n", nv);
 
   // Recherche si normales
   KFSEEK(ptrFile, 0, SEEK_SET);
   res = readGivenKeyword(ptrFile, "VN ");
   bool normalPresent = false;
   if (res == 1) normalPresent = true;
-  if (normalPresent) printf("I found normals\n");
-  else printf("I found no normal\n");
+  //if (normalPresent) printf("I found normals\n");
+  //else printf("I found no normal\n");
 
   // Recherche du nombre de VT
   KFSEEK(ptrFile, 0, SEEK_SET);
@@ -121,7 +121,7 @@ E_Int K_IO::GenIO::objread(
   nvt = nvt-1;
   bool uvPresent = false;
   if (nvt > 0) { uvPresent = true; }
-  printf("I found %d texcoord VT\n", nvt);
+  //printf("I found %d texcoord VT\n", nvt);
 
   // DBX -> force no uv
   //uvPresent = false;
@@ -134,7 +134,7 @@ E_Int K_IO::GenIO::objread(
     res = readGivenKeyword(ptrFile, "F "); nf++;
   }
   nf = nf-1;
-  printf("I found %d faces\n", nf);
+  //printf("I found %d faces\n", nf);
 
   // Type des faces
   KFSEEK(ptrFile, 0, SEEK_SET);
@@ -160,7 +160,7 @@ E_Int K_IO::GenIO::objread(
     i++;
   }
   
-  printf("I found %d tri %d quads\n", nt, nq);
+  //printf("I found %d tri %d quads\n", nt, nq);
   
   FldArrayI fv_q; FldArrayI fv_t;
   FldArrayI fvt_q; FldArrayI fvt_t;
@@ -261,7 +261,7 @@ E_Int K_IO::GenIO::objread(
   E_Int v, vt;
   bool exist;
 
-  printf("Computing maps\n");
+  //printf("Computing maps\n");
   for (E_Int i = 0; i < nq; i++)
   {
     for (E_Int j = 1; j <= 4; j++)
@@ -300,7 +300,7 @@ E_Int K_IO::GenIO::objread(
   }
 
   // indir v -> vnew
-  printf("Computing indir\n");
+  //printf("Computing indir\n");
   FldArrayF indir(nv);
   indir[0] = 0;
   for (E_Int i = 1; i < nv; i++)

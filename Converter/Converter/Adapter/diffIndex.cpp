@@ -52,7 +52,6 @@ PyObject* K_CONVERTER::diffIndex(PyObject* self, PyObject* args)
     return NULL;
   }
 
-
   // Construit la difference
   E_Int sizeA = indexA->getSize();
   E_Int sizeB = indexB->getSize();
