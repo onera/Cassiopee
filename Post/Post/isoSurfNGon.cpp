@@ -25,7 +25,7 @@ using namespace std;
 using namespace K_FLD;
 
 #define VERTEXINTERP(nfld, value, f, poscellN, f0, f1, ind0, ind1, fisos, npt) \
-  { E_Float alpha, alpha1, val; E_Float df = f1-f0;              \
+  { df = f1-f0;              \
     if (K_FUNC::fEqualZero(df) == true) alpha = 1.;              \
     else alpha = (value-f0)/df;                                  \
     alpha1 = 1.-alpha;                                           \
@@ -36,6 +36,8 @@ using namespace K_FLD;
     { if (f(ind0, poscellN) == 0. || f(ind1, poscellN) == 0.)  \
      fisos(npt, poscellN) = 0.; }                    \
      npt++; }
+
+
 
 PyObject* K_POST::isoSurfNGon(PyObject* self, PyObject* args)
 {
@@ -320,7 +322,6 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
       //printf("borne end=%d\n", elt);
     }
 
-    
     for (E_Int i = 0; i < nthreads; i++)
     {
       for (E_Int j = 0; j < 10; j++) printf("thread=%d, j=%d -> %d,%d\n", i,j,npts2[j+i*10],ntris2[j+i*10]);
@@ -397,9 +398,64 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
     E_Int* prevT = new E_Int [nthreads];
     E_Int* prevF = new E_Int [nthreads];
     
-    
-#define KEY(p1,p2,e,f) p1+p2+2*npoints*e+(2*npoints*nelts)*f
-#define ETK E_Int
+//#define KEY(p1,p2,e,f) p1+p2+2*npoints*e+(2*npoints*nelts)*f
+#define KEY(p1,p2,e,f) (ETK)p1+(ETK)p2+2*npoints*(ETK)e+(2*npoints*nelts)*(ETK)f
+#define ETK E_LONG
+#define SETKEY12(p1,p2) \
+  if (K_FUNC::fEqualZero(alpha) == true) \
+    key[npt-1] = KEY(p1,-1,-1,-1); \
+  else if (K_FUNC::fEqualZero(alpha1) == true) \
+    key[npt-1] = KEY(-1,p2,-1,-1); \
+  else \
+    key[npt-1] = KEY(p1,p2,-1,-1);
+  
+#define SETKEY13(p1,e) \
+  if (K_FUNC::fEqualZero(alpha) == true) \
+    key[npt-1] = KEY(p1,-1,-1,-1); \
+  else if (K_FUNC::fEqualZero(alpha1) == true) \
+    key[npt-1] = KEY(-1,-1,e,-1); \
+  else \
+    key[npt-1] = KEY(p1,-1,e,-1);
+  
+#define SETKEY31(e,p1) \
+  if (K_FUNC::fEqualZero(alpha) == true) \
+    key[npt-1] = KEY(-1,-1,e,-1); \
+  else if (K_FUNC::fEqualZero(alpha1) == true) \
+    key[npt-1] = KEY(p1,-1,-1,-1); \
+  else \
+    key[npt-1] = KEY(p1,-1,e,-1);
+  
+#define SETKEY14(p1,f) \
+  if (K_FUNC::fEqualZero(alpha) == true) \
+    key[npt-1] = KEY(p1,-1,-1,-1); \
+  else if (K_FUNC::fEqualZero(alpha1) == true) \
+    key[npt-1] = KEY(-1,-1,-1,f); \
+  else \
+    key[npt-1] = KEY(p1,-1,-1,f);
+
+#define SETKEY41(f,p1) \
+  if (K_FUNC::fEqualZero(alpha) == true) \
+    key[npt-1] = KEY(-1,-1,-1,f); \
+  else if (K_FUNC::fEqualZero(alpha1) == true) \
+    key[npt-1] = KEY(p1,-1,-1,-1); \
+  else \
+    key[npt-1] = KEY(p1,-1,-1,f);
+  
+#define SETKEY34(e,f) \
+  if (K_FUNC::fEqualZero(alpha) == true) \
+    key[npt-1] = KEY(-1,-1,e,-1); \
+  else if (K_FUNC::fEqualZero(alpha1) == true) \
+    key[npt-1] = KEY(-1,-1,-1,f); \
+  else \
+    key[npt-1] = KEY(-1,-1,e,f);
+  
+#define SETKEY43(f,e) \
+  if (K_FUNC::fEqualZero(alpha) == true) \
+    key[npt-1] = KEY(-1,-1,-1,f); \
+  else if (K_FUNC::fEqualZero(alpha1) == true) \
+    key[npt-1] = KEY(-1,-1,e,-1); \
+  else \
+    key[npt-1] = KEY(-1,-1,e,f);
 
     FldArray<ETK>** keys = new FldArray<ETK>* [nthreads];
     for (E_Int i = 0; i < nthreads; i++) keys[i] = new FldArray<ETK>(npts[i],2);
@@ -413,7 +469,7 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
       FldArrayF fco(nfld); E_Float* fc = fco.begin();
       FldArrayF ffo(nfld); E_Float* ff = ffo.begin();
       FldArrayF ffp(4,nfld);
-      E_Float f0, f1, f2, f3;
+      E_Float f0, f1, f2, f3, alpha, alpha1, val, df;
       int triindex;
 
       E_Int ntri = 0; // nombre de tri dans l'iso
@@ -457,6 +513,16 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
             for (E_Int n = 0; n < nfld; n++) ffp(2,n+1) = f(ind,n+1);
             for (E_Int n = 0; n < nfld; n++) ffp(3,n+1) = f(indp,n+1);
             ind0 = 0; ind1 = 1; ind2 = 2; ind3 = 3;
+            
+            // tetra = ind, indp, elt, face
+            /*
+            E_Float tf0, tf1, tf2, tf3;
+            E_Int tind0, tind1, tind2, tind3, telt, tindFace, tind, tindp;
+            tf0 = f2; tf1 = f3; tf2 = f1; tf3 = f0;
+            f0 = tf0; f1 = tf1; f2 = tf2; f3 = tf3;
+            tind0 = ind2; tind1 = ind3; tind2 = ind1; tind3 = ind0;
+            ind0 = tind0; ind1 = tind1; ind2 = tind2; ind3 = tind3;
+            */
               
             triindex = 0;
             if (f0 < value) triindex |= 1;
@@ -474,19 +540,19 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f0, f1, ind0, ind1,
                            fisop, npt);
+              SETKEY34(elt,indFace);
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f0, f2, ind0, ind2,
                            fisop, npt);
+              SETKEY31(elt,ind);
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f0, f3, ind0, ind3,
                            fisop, npt);
+              SETKEY31(elt,indp);
               ciso1[ntri] = npt;
               ciso2[ntri] = npt-1;
               ciso3[ntri] = npt-2;
               ntri++;
-              key[npt-3] = KEY(-1,-1,elt,indFace);
-              key[npt-2] = KEY(ind,-1,elt,-1);
-              key[npt-1] = KEY(indp,-1,elt,-1);
               key2[npt-3] = 0;
               key2[npt-2] = 1;
               key2[npt-1] = 2;
@@ -496,19 +562,19 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f0, f1, ind0, ind1,
                            fisop, npt);
+              SETKEY34(elt,indFace);
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f0, f2, ind0, ind2,
                            fisop, npt);
+              SETKEY31(elt,ind);
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f0, f3, ind0, ind3,
                            fisop, npt);
+              SETKEY31(elt,indp);
               ciso1[ntri] = npt-2;
               ciso2[ntri] = npt-1;
               ciso3[ntri] = npt;
               ntri++;
-              key[npt-3] = KEY(-1,-1,elt,indFace);
-              key[npt-2] = KEY(ind,-1,elt,-1);
-              key[npt-1] = KEY(indp,-1,elt,-1);
               key2[npt-3] = 3;
               key2[npt-2] = 4;
               key2[npt-1] = 5;
@@ -518,19 +584,19 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f1, f0, ind1, ind0,
                            fisop, npt);
+              SETKEY34(elt,indFace);
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f1, f3, ind1, ind3,
                            fisop, npt);
+              SETKEY41(indFace, indp);
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f1, f2, ind1, ind2,
                            fisop, npt);
+              SETKEY41(indFace, ind);
               ciso1[ntri] = npt;
               ciso2[ntri] = npt-1;
               ciso3[ntri] = npt-2;
               ntri++;
-              key[npt-3] = KEY(-1,-1,elt,indFace);
-              key[npt-2] = KEY(indp,-1,-1,indFace);
-              key[npt-1] = KEY(ind,-1,-1,indFace);
               key2[npt-3] = 6;
               key2[npt-2] = 7;
               key2[npt-1] = 8;
@@ -540,19 +606,19 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f1, f0, ind1, ind0,
                            fisop, npt);
+              SETKEY43(indFace, elt);
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f1, f3, ind1, ind3,
                            fisop, npt);
+              SETKEY41(indFace, indp);
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f1, f2, ind1, ind2,
                            fisop, npt);
+              SETKEY41(indFace, ind);
               ciso1[ntri] = npt-2;
               ciso2[ntri] = npt-1;
               ciso3[ntri] = npt;
               ntri++;
-              key[npt-3] = KEY(-1,-1,elt,indFace);
-              key[npt-2] = KEY(indp,-1,-1,indFace);
-              key[npt-1] = KEY(ind,-1,-1,indFace);
               key2[npt-3] = 9;
               key2[npt-2] = 10;
               key2[npt-1] = 11;
@@ -562,19 +628,19 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f0, f3, ind0, ind3,
                            fisop, npt);
+              SETKEY31(elt, indp);
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f0, f2, ind0, ind2,
                            fisop, npt);
+              SETKEY31(elt, ind);
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f1, f3, ind1, ind3,
                            fisop, npt);
+              SETKEY41(indFace, indp);
               ciso1[ntri] = npt-2;
               ciso2[ntri] = npt-1;
               ciso3[ntri] = npt;
               ntri++;
-              key[npt-3] = KEY(indp,-1,elt,-1);
-              key[npt-2] = KEY(ind,-1,elt,-1);
-              key[npt-1] = KEY(indp,-1,-1,indFace);
               key2[npt-3] = 12;
               key2[npt-2] = 13;
               key2[npt-1] = 14;
@@ -582,19 +648,19 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f1, f3, ind1, ind3,
                            fisop, npt);
+              SETKEY41(indFace, indp);
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f1, f2, ind1, ind2,
                            fisop, npt);
+              SETKEY41(indFace, ind);
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f0, f2, ind0, ind2,
                            fisop, npt);
+              SETKEY31(elt, ind);
               ciso1[ntri] = npt;
               ciso2[ntri] = npt-1;
               ciso3[ntri] = npt-2;
               ntri++;
-              key[npt-3] = KEY(indp,-1,-1,indFace);
-              key[npt-2] = KEY(ind,-1,-1,indFace);
-              key[npt-1] = KEY(ind,-1,elt,-1);
               key2[npt-3] = 15;
               key2[npt-2] = 16;
               key2[npt-1] = 17;
@@ -604,19 +670,19 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f0, f3, ind0, ind3,
                            fisop, npt);
+              SETKEY31(elt, indp);
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f0, f2, ind0, ind2,
                            fisop, npt);
+              SETKEY31(elt, ind);
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f1, f3, ind1, ind3,
                            fisop, npt);
+              SETKEY41(indFace, indp);
               ciso1[ntri] = npt-2;
               ciso2[ntri] = npt-1;
               ciso3[ntri] = npt;
               ntri++;
-              key[npt-3] = KEY(indp,-1,elt,-1);
-              key[npt-2] = KEY(ind,-1,elt,-1);
-              key[npt-1] = KEY(indp,-1,-1,indFace);
               key2[npt-3] = 18;
               key2[npt-2] = 19;
               key2[npt-1] = 20;
@@ -624,19 +690,19 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f1, f3, ind1, ind3,
                            fisop, npt);
+              SETKEY41(indFace, indp);
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f1, f2, ind1, ind2,
                            fisop, npt);
+              SETKEY41(indFace, ind);
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f0, f2, ind0, ind2,
                            fisop, npt);
+              SETKEY31(elt, ind);
               ciso1[ntri] = npt-2;
               ciso2[ntri] = npt-1;
               ciso3[ntri] = npt;
               ntri++;
-              key[npt-3] = KEY(indp,-1,-1,indFace);
-              key[npt-2] = KEY(ind,-1,-1,indFace);
-              key[npt-1] = KEY(ind,-1,elt,-1);
               key2[npt-3] = 21;
               key2[npt-2] = 22;
               key2[npt-1] = 23;
@@ -646,19 +712,19 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f2, f0, ind2, ind0,
                            fisop, npt);
+              SETKEY13(ind, elt);
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f2, f1, ind2, ind1,
                            fisop, npt);
+              SETKEY14(ind, indFace);
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f2, f3, ind2, ind3,
                            fisop, npt);
+              SETKEY12(ind, indp);
               ciso1[ntri] = npt;
               ciso2[ntri] = npt-1;
               ciso3[ntri] = npt-2;
               ntri++;
-              key[npt-3] = KEY(ind,-1,elt,-1);
-              key[npt-2] = KEY(ind,-1,-1,indFace);
-              key[npt-1] = KEY(ind,indp,-1,-1);
               key2[npt-3] = 24;
               key2[npt-2] = 25;
               key2[npt-1] = 26;
@@ -668,19 +734,19 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f2, f0, ind2, ind0,
                            fisop, npt);
+              SETKEY13(ind, elt);
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f2, f1, ind2, ind1,
                            fisop, npt);
+              SETKEY14(ind, indFace);
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f2, f3, ind2, ind3,
                            fisop, npt);
+              SETKEY12(ind, indp);
               ciso1[ntri] = npt-2;
               ciso2[ntri] = npt-1;
               ciso3[ntri] = npt;
               ntri++;
-              key[npt-3] = KEY(ind,-1,elt,-1);
-              key[npt-2] = KEY(ind,-1,-1,indFace);
-              key[npt-1] = KEY(indp,ind,-1,-1);
               key2[npt-3] = 27;
               key2[npt-2] = 28;
               key2[npt-1] = 29;
@@ -690,19 +756,19 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f0, f1, ind0, ind1,
                            fisop, npt);
+              SETKEY34(elt, indFace);
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f2, f3, ind2, ind3,
                            fisop, npt);
+              SETKEY12(ind, indp);
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f0, f3, ind0, ind3,
                            fisop, npt);
+              SETKEY31(elt, indp);
               ciso1[ntri] = npt;
               ciso2[ntri] = npt-1;
               ciso3[ntri] = npt-2;
               ntri++;
-              key[npt-3] = KEY(-1,-1,elt,indFace);
-              key[npt-2] = KEY(ind,indp,-1,-1);
-              key[npt-1] = KEY(indp,-1,elt,-1);
               key2[npt-3] = 30;
               key2[npt-2] = 31;
               key2[npt-1] = 32;
@@ -710,19 +776,19 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f0, f1, ind0, ind1,
                            fisop, npt);
+              SETKEY34(elt, indFace);
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f1, f2, ind1, ind2,
                            fisop, npt);
+              SETKEY41(indFace, ind);
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f2, f3, ind2, ind3,
                            fisop, npt);
+              SETKEY12(ind, indp);
               ciso1[ntri] = npt;
               ciso2[ntri] = npt-1;
               ciso3[ntri] = npt-2;
               ntri++;
-              key[npt-3] = KEY(-1,-1,elt,indFace);
-              key[npt-2] = KEY(ind,-1,-1,indFace);
-              key[npt-1] = KEY(indp,ind,-1,-1);
               key2[npt-3] = 33;
               key2[npt-2] = 34;
               key2[npt-1] = 35;
@@ -732,19 +798,19 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f0, f1, ind0, ind1,
                            fisop, npt);
+              SETKEY34(elt, indFace);
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f2, f3, ind2, ind3,
                            fisop, npt);
+              SETKEY12(ind, indp);
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f0, f3, ind0, ind3,
                            fisop, npt);
+              SETKEY31(elt, indp);
               ciso1[ntri] = npt-2;
               ciso2[ntri] = npt-1;
               ciso3[ntri] = npt;
               ntri++;
-              key[npt-3] = KEY(-1,-1,elt,indFace);
-              key[npt-2] = KEY(ind,indp,-1,-1);
-              key[npt-1] = KEY(indp,-1,elt,-1);
               key2[npt-3] = 36;
               key2[npt-2] = 37;
               key2[npt-1] = 38;
@@ -752,19 +818,19 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f0, f1, ind0, ind1,
                            fisop, npt);
+              SETKEY34(elt, indFace);
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f1, f2, ind1, ind2,
                            fisop, npt);
+              SETKEY41(indFace, ind);
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f2, f3, ind2, ind3,
                            fisop, npt);
+              SETKEY12(ind, indp);
               ciso1[ntri] = npt-2;
               ciso2[ntri] = npt-1;
               ciso3[ntri] = npt;
               ntri++;
-              key[npt-3] = KEY(-1,-1,elt,indFace);
-              key[npt-2] = KEY(ind,-1,indFace,-1);
-              key[npt-1] = KEY(indp,ind,-1,-1);
               key2[npt-3] = 39;
               key2[npt-2] = 40;
               key2[npt-1] = 41;
@@ -774,19 +840,19 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f0, f1, ind0, ind1,
                            fisop, npt);
+              SETKEY34(elt, indFace);
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f1, f3, ind1, ind3,
                            fisop, npt);
+              SETKEY41(indFace, indp);
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f2, f3, ind2, ind3,
                            fisop, npt);
+              SETKEY12(ind, indp);
               ciso1[ntri] = npt; // OK
               ciso2[ntri] = npt-1;
               ciso3[ntri] = npt-2;
               ntri++;
-              key[npt-3] = KEY(-1,-1,elt,indFace);
-              key[npt-2] = KEY(indp,-1,-1,indFace);
-              key[npt-1] = KEY(indp,ind,-1,-1);
               key2[npt-3] = 42;
               key2[npt-2] = 43;
               key2[npt-1] = 44;
@@ -794,19 +860,19 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f0, f1, ind0, ind1,
                            fisop, npt);
+              SETKEY34(elt, indFace);
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f0, f2, ind0, ind2,
                            fisop, npt);
+              SETKEY31(elt, ind);
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f2, f3, ind2, ind3,
                            fisop, npt);
+              SETKEY12(ind, indp);
               ciso1[ntri] = npt-2; // OK
               ciso2[ntri] = npt-1;
               ciso3[ntri] = npt;
               ntri++;
-              key[npt-3] = KEY(-1,-1,elt,indFace);
-              key[npt-2] = KEY(ind,-1,elt,-1);
-              key[npt-1] = KEY(ind,indp,-1,-1);
               key2[npt-3] = 45;
               key2[npt-2] = 46;
               key2[npt-1] = 47;
@@ -816,19 +882,19 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f0, f1, ind0, ind1,
                            fisop, npt);
+              SETKEY34(elt, indFace);
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f1, f3, ind1, ind3,
                            fisop, npt);
+              SETKEY41(indFace, indp);
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f2, f3, ind2, ind3,
                            fisop, npt);
+              SETKEY12(ind, indp);
               ciso1[ntri] = npt-2; // OK
               ciso2[ntri] = npt-1;
               ciso3[ntri] = npt;
               ntri++;
-              key[npt-3] = KEY(-1,-1,elt,indFace);
-              key[npt-2] = KEY(indp,-1,-1,indFace);
-              key[npt-1] = KEY(indp,ind,-1,-1);
               key2[npt-3] = 48;
               key2[npt-2] = 49;
               key2[npt-1] = 50;
@@ -836,19 +902,19 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f0, f1, ind0, ind1,
                            fisop, npt);
+              SETKEY34(elt, indFace);
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f0, f2, ind0, ind2,
                            fisop, npt);
+              SETKEY31(elt, ind);
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f2, f3, ind2, ind3,
                            fisop, npt);
+              SETKEY12(ind, indp);
               ciso1[ntri] = npt;
               ciso2[ntri] = npt-1;
               ciso3[ntri] = npt-2;
               ntri++;
-              key[npt-3] = KEY(-1,-1,elt,indFace);
-              key[npt-2] = KEY(ind,-1,elt,-1);
-              key[npt-1] = KEY(indp,ind,-1,-1);
               key2[npt-3] = 51;
               key2[npt-2] = 52;
               key2[npt-1] = 53;
@@ -858,19 +924,19 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f3, f0, ind3, ind0,
                            fisop, npt);
+              SETKEY13(indp, elt);
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f3, f2, ind3, ind2,
                            fisop, npt);
+              SETKEY12(indp, ind);
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f3, f1, ind3, ind1,
                            fisop, npt);
+              SETKEY14(indp, indFace);
               ciso1[ntri] = npt-2;
               ciso2[ntri] = npt-1;
               ciso3[ntri] = npt;
               ntri++;
-              key[npt-3] = KEY(indp,-1,elt,-1);
-              key[npt-2] = KEY(ind,indp,-1,-1);
-              key[npt-1] = KEY(indp,-1,-1,indFace);
               key2[npt-3] = 54;
               key2[npt-2] = 55;
               key2[npt-1] = 56;
@@ -880,19 +946,19 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f3, f0, ind3, ind0,
                            fisop, npt);
+              SETKEY13(indp, elt);
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f3, f2, ind3, ind2,
                            fisop, npt);
+              SETKEY12(indp, ind);
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f3, f1, ind3, ind1,
                            fisop, npt);
+              SETKEY14(indp, indFace);
               ciso1[ntri] = npt-2;
               ciso2[ntri] = npt-1;
               ciso3[ntri] = npt;
               ntri++;
-              key[npt-3] = KEY(indp,-1,elt,0);
-              key[npt-2] = KEY(ind,indp,-1,-1);
-              key[npt-1] = KEY(indp,-1,-1,indFace);
               key2[npt-3] = 57;
               key2[npt-2] = 58;
               key2[npt-1] = 59;
@@ -915,6 +981,8 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
     for (E_Int i = 0; i < npts[ithread]; i++)
       printf("%d: %f %f %f (key=%d, source=%d)\n",i,x[i],y[i],z[i],key[i],key2[i]);
     fflush(stdout);
+    for (E_Int i = 0; i < npts[ithread]; i++)
+      key[i] = i;
   }
   */
     
@@ -939,39 +1007,42 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
   
   // invMap: ind dup -> ind 
   FldArrayI invMap(npt);
+  E_Int* invMapp = invMap.begin();
     
   // Nouveau nombre de points (non dup)
   npt = map.size();
   //printf("nbre de pts uniques=%d\n",npt); fflush(stdout);
   E_Int c = 0;
-  for (std::pair<E_Int,E_Int> elt : map)
+  for (std::pair<ETK,E_Int> elt : map)
   {
-    //E_Int k = elt.first;
+    //ETK k = elt.first;
     E_Int ind = elt.second;
     //printf("map c=%d inddup=%d key=%d\n",c,ind,k);
-    invMap[ind] = c;
+    invMapp[ind] = c;
     c++;
   }
   //fflush(stdout);
   //printf("invmap0\n");
   //for (E_Int i = 0; i < invMap.getSize(); i++) printf("invdup=%d: ind=%d\n",i,invMap[i]);
-  //fflush(stdout);
+  fflush(stdout);
   
   // complete invMap
 #pragma omp parallel default(shared)
   {
     E_Int ithread = __CURRENT_THREAD__;
-
     E_Int f = prevF[ithread];
     ETK* key = keys[ithread]->begin();
     for (E_Int i = 0; i < npts[ithread]; i++)
     { 
-      E_Int k = key[i];
+      ETK k = key[i];
       //printf("check f=%d key=%d inddup=%d [%d]\n",f+i,k,map[k],invMap[map[k]]);
       //if (f+i != map[k]) 
-      invMap[f+i] = invMap[map[k]];
+      invMapp[f+i] = invMapp[map[k]];
     }
   }
+  
+  // free the map
+  map.clear();
   
   //printf("invmap\n");
   //for (E_Int i = 0; i < invMap.getSize(); i++) printf("invdup=%d: ind=%d\n",i,invMap[i]);
@@ -979,7 +1050,6 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
   
   printf("reconstruction fiso (%d points)\n", npt); fflush(stdout);
   fiso.malloc(npt, nfld);
-  ciso.malloc(ntri, 3);
   
 #pragma omp parallel default(shared)
   {
@@ -992,13 +1062,16 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
     {
       E_Float* fisop = fiso.begin(n);
       E_Float* fisol = fisos[ithread]->begin(n);
-      for (E_Int e = 0; e < np; e++) fisop[invMap[e+f]] = fisol[e];
+      for (E_Int e = 0; e < np; e++) fisop[invMapp[e+f]] = fisol[e];
     }
   }
   //for (E_Int i = 0; i < npt; i++) printf("f %d: %f %f %f\n",i,fiso(i,1),fiso(i,2),fiso(i,3));
   //fflush(stdout);
   
-  //printf("reconstruction ciso\n"); fflush(stdout);
+  printf("reconstruction ciso\n"); fflush(stdout);
+  //ciso.malloc(ntri, 3);
+  FldArrayI ciso2(ntri,3);
+  
 #pragma omp parallel default(shared)
   {
     E_Int ithread = __CURRENT_THREAD__;
@@ -1008,14 +1081,15 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
     E_Int ne = ntris[ithread];
     for (E_Int n = 1; n <= 3; n++)
     {
-      E_Int* cisop = ciso.begin(n);
+      E_Int* cisop = ciso2.begin(n);
       E_Int* cisol = cisos[ithread]->begin(n);
-      for (E_Int e = 0; e < ne; e++) cisop[e+p] = invMap[cisol[e]+f-1]+1;
+      for (E_Int e = 0; e < ne; e++) cisop[e+p] = invMapp[cisol[e]+f-1]+1;
     }
   } 
   
-  //for (E_Int i = 0; i < ntri; i++) printf("c %d: %d %d %d\n",i,ciso(i,1),ciso(i,2),ciso(i,3));
+  //for (E_Int i = 0; i < ntri; i++) printf("c %d: %d %d %d\n",i,ciso2(i,1),ciso2(i,2),ciso2(i,3));
   //fflush(stdout);
+  printf("done\n"); fflush(stdout);
     
   // delete
   for (E_Int i = 0; i < nthreads; i++) delete keys[i];
@@ -1026,44 +1100,56 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
   for (E_Int i = 0; i < nthreads; i++) delete fisos[i];
   for (E_Int i = 0; i < nthreads; i++) delete cisos[i];
   delete [] fisos; delete [] cisos;
+  invMap.malloc(0);
   
-  return;
+  // Elimination des elements identiques (eventuels)
 
-  // old code
-  /*
-    E_Int ntri = 0; E_Int npt = 0;
-    for (E_Int i = 0; i < nthreads; i++) 
-      { prevT[i] = ntri; ntri += ntris[i];
-        prevF[i] = npt; npt += npts[i]; }
-    //printf("%d %d\n", npt, ntri);
-
-    fiso.malloc(npt, nfld);
-    ciso.malloc(ntri, 3);
+#define KEY3S(c1,c2,c3) (ETK)(c1-1)+npt*(ETK)(c2-1)+npt*npt*(ETK)(c3-1)
+//#define KEY3(c1,c2,c3) KEY3S(c1,c2,c3) + KEY3S(c1,c3,c2) + KEY3S(c2,c1,c3) + KEY3S(c2,c3,c1) + KEY3S(c3,c1,c2) + KEY3S(c3,c2,c1)
+//#define KEY3(c1,c2,c3) KEY3S(c1,c2,c3)*KEY3S(c1,c3,c2)*KEY3S(c2,c1,c3)*KEY3S(c2,c3,c1)*KEY3S(c3,c1,c2)*KEY3S(c3,c2,c1)
+//#define KEY3(c1,c2,c3) (ETK)(c1-1)+npt*(ETK)(c2-1)+npt*npt*(ETK)(c3-1)
+#define KEY3(c1,c2,c3) \
+  if (c1 == c2 || c1 == c3 || c2 == c3) k = -1; \
+  else if (c1 < c2 && c2 < c3) k=KEY3S(c1,c2,c3); \
+    else if (c1 < c3 && c3 < c2) k=KEY3S(c1,c3,c2); \
+      else if (c2 < c1 && c1 < c3) k=KEY3S(c2,c1,c3); \
+        else if (c2 < c3 && c3 < c1) k=KEY3S(c2,c3,c1); \
+          else if (c3 < c1 && c1 < c2) k=KEY3S(c3,c1,c2); \
+            else k=KEY3S(c3,c2,c1);
+      
+  FldArray<ETK> key(ntri); ETK* keyp = key.begin(); 
+  E_Int* ct1 = ciso2.begin(1); E_Int* ct2 = ciso2.begin(2); E_Int* ct3 = ciso2.begin(3);
   
 #pragma omp parallel default(shared)
+  {
+    ETK k;
+#pragma omp for
+    for (E_Int i = 0; i < ntri; i++) 
     {
-    E_Int ithread = __CURRENT_THREAD__;
-    E_Int nq = ntris[ithread];
-    E_Int p = prevT[ithread];
-    E_Int f = prevF[ithread];
-    for (E_Int n = 1; n <= 3; n++)
-    {
-      E_Int* cisop = ciso.begin(n);
-      E_Int* cisol = cisos[ithread]->begin(n);
-      for (E_Int e = 0; e < nq; e++) cisop[e+p] = cisol[e]+f;
+      KEY3(ct1[i],ct2[i],ct3[i]);
+      keyp[i] = k;
     }
-    E_Int np = npts[ithread];
-    for (E_Int n = 1; n <= nfld; n++)
-    {
-      E_Float* fisop = fiso.begin(n);
-      E_Float* fisol = fisos[ithread]->begin(n);
-      for (E_Int e = 0; e < np; e++) fisop[e+f] = fisol[e];
-    }
+  }  
+  //for (E_Int i = 0; i < ntri; i++) printf("%d %d %d = %ld\n",ct1[i],ct2[i],ct3[i],keyp[i]);
+  //fflush(stdout);
+
+  for (E_Int i = 0; i < ntri; i++) { if (keyp[i] != -1) map[keyp[i]] = i; }
+    
+  E_Int newTri = map.size();
+  c = 0;
+  ciso.malloc(newTri,3);
+  E_Int* cp1 = ciso.begin(1); E_Int* cp2 = ciso.begin(2); E_Int* cp3 = ciso.begin(3);
+  E_Int ind;
+  printf("elimination TRI multiples ou degeneres =%d\n", newTri); fflush(stdout);
+  for (std::pair<ETK,E_Int> elt : map)
+  {
+    //ETK k = elt.first;
+    ind = elt.second;
+    //printf("map c=%d indTri=%d key=%ld\n",c,ind,k);
+    cp1[c] = ct1[ind];
+    cp2[c] = ct2[ind];
+    cp3[c] = ct3[ind];
+    c++;
   }
-  delete [] prevT; delete [] prevF;
-  delete [] npts; delete [] ntris;
-  for (E_Int i = 0; i < nthreads; i++) delete fisos[i];
-  for (E_Int i = 0; i < nthreads; i++) delete cisos[i];
-  delete [] fisos; delete [] cisos;
-  */
+  
 }
