@@ -137,14 +137,14 @@ E_Int Polygon::getOrientation
 ///
 bool Polygon:: is_convex
 (const K_FLD::FloatArray& coord, const E_Int* nodes, E_Int nb_nodes, E_Int index_start,
-const E_Float* normal, E_Float convexity_tol, E_Int& iworst)
+const E_Float* normal, E_Float convexity_tol, E_Int& iworst, E_Int& ibest)
 {
   //
   E_Float Ei[3], Ej[3];
   bool convex = true;
-  iworst = E_IDX_NONE;
+  ibest = iworst = E_IDX_NONE;
   
-  E_Float Z[3], det_min(-convexity_tol);
+  E_Float Z[3], det_min(-convexity_tol), det_max(0.);
   for (E_Int i = 1; i < nb_nodes + 1; ++i)
   {
     E_Int ei = nodes[i%nb_nodes] - index_start;
@@ -162,6 +162,14 @@ const E_Float* normal, E_Float convexity_tol, E_Int& iworst)
       convex = false;
       iworst = i%nb_nodes;
       det_min = det;
+    }
+    
+    det /= (K_FUNC::normalize<3>(Ei)*K_FUNC::normalize<3>(Ej)); //normalization to really have a angular-based test.
+    
+    if (det > det_max)
+    {
+      ibest = i%nb_nodes;
+      det_max = det;
     }
   }
 

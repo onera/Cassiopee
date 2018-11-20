@@ -171,10 +171,10 @@ static int count = 0;
 if (dbg_switch && sz)
 {
   std::ostringstream fname;
-  fname << "/home/slandier/tmp/MASK/caught_" << count++ << ".mesh";
+  fname << "caught_" << count++ << ".mesh";
   K_FLD::IntArray connect;
   E_Int t4[4];
-  for (size_t i = sz-1; i < sz; ++i)
+  for (size_t i = 0; i < sz; ++i)
   {
     _connT4->getEntry(boxes[i], t4);
     connect.pushBack(t4, t4+4);

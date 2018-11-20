@@ -124,7 +124,7 @@ def booleanUnion(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, im
     extrudepgs=[]
     if (solid_right == 1) :
         zones = Internal.getZones(a2)
-        (extrudepgs, cur_shift) = concatenateBC('BCUserDefined', zones, extrudepgs, cur_shift)
+        (extrudepgs, cur_shift) = concatenateBC('UserDefined', zones, extrudepgs, cur_shift)
     if (extrudepgs != []) : extrudepgs = numpy.concatenate(extrudepgs) # create a single list
     #print "nb of pgs to pass : %s" %(len(extrudepgs))
 
@@ -221,7 +221,7 @@ def XcellN(t, prioritaryMesh, blankingMatrix=[]):
 
             (wallpgs, cur_shift_new) = concatenateBC('BCWall', zones, wallpgs, cur_shift)
 
-            (ghostpgs, cur_shift_new) = concatenateBC('BCUserDefined', zones, ghostpgs, cur_shift)
+            (ghostpgs, cur_shift_new) = concatenateBC('UserDefined', zones, ghostpgs, cur_shift)
             cur_shift=cur_shift_new
 
         if (wallpgs != []) : wallpgs = numpy.concatenate(wallpgs) # create a single list
@@ -674,10 +674,10 @@ def extrudeUserDefinedBC(t, height = 0.25, mean_or_min = 1, create_ghost = 1):
     cur_shift=0
     extrudepgs=[]
     zones = Internal.getZones(t)
-    print "nb of zones %d"%(len(zones))
-    (extrudepgs, cur_shift) = concatenateBC('BCUserDefined', [zones], extrudepgs, cur_shift)
+    #print "nb of zones %d"%(len(zones))
+    (extrudepgs, cur_shift) = concatenateBC('UserDefined', [zones], extrudepgs, cur_shift)
     if (extrudepgs != []) : extrudepgs = numpy.concatenate(extrudepgs) # create a single list
-    print "nb of pgs to pass : %s" %(len(extrudepgs))
+    #print "nb of pgs to pass : %s" %(len(extrudepgs))
 
     mo = XOR.extrudeUserDefinedBC(m, extrudepgs, height, mean_or_min, create_ghost)
 

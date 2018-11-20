@@ -92,6 +92,7 @@ E_Int Triangulator::run
   DELAUNAY::MesherMode mode;
   mode.mesh_mode = mode.TRIANGULATION_MODE;
   mode.do_not_shuffle = do_not_shuffle; 
+  mode.silent_errors = true;
   DELAUNAY::T3Mesher<E_Float> mesher(mode);
   DELAUNAY::MeshData data(Wpos, connectE2b);
   

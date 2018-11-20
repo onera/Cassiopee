@@ -507,7 +507,7 @@ namespace NUGA
     ngi.build_ph_neighborhood(neighborsi);
     
     ngon_unit orienti;
-    ngon_type::build_orientation_ngu<TriangulatorType>(crd, ngi, orienti);
+    ngon_type::build_orientation_ngu<TriangulatorType>(crd, ngi, orienti); //WARNING : ngi previous types are lost
     
     std::vector<E_Int> PHlist;
     ngon_type::detect_bad_volumes<TriangulatorType>(crd, ngi, neighborsi, vmin, vratio, PHlist);

@@ -407,8 +407,8 @@ namespace NUGA
 
       K_MESH::Polygon::normal<acrd_t, 3>(acrd, nodes, nb_nodes, 1, normal);
 
-      E_Int iworst;
-      bool convex = K_MESH::Polygon::is_convex(crd, nodes, nb_nodes, 1/*index_start*/, normal, params.convexity_tol, iworst);
+      E_Int iworst, ibest;
+      bool convex = K_MESH::Polygon::is_convex(crd, nodes, nb_nodes, 1/*index_start*/, normal, params.convexity_tol, iworst, ibest);
 
       if (convex) //nothing to do
         continue;
@@ -1491,8 +1491,8 @@ if (PHi == faultyPH)
   const E_Int * pgs0 = twoPH.PHs.get_facets_ptr(0);
   const E_Int * pgs1 = twoPH.PHs.get_facets_ptr(1);
   
-  K_MESH::Polyhedron<UNKNOWN>::metrics2(dt, crd, twoPH.PGs, pgs0, nb_pgs0, v1, G);
-  K_MESH::Polyhedron<UNKNOWN>::metrics2(dt, crd, twoPH.PGs, pgs1, nb_pgs1, v2, G);
+  K_MESH::Polyhedron<UNKNOWN>::metrics2(dt, crd, twoPH.PGs, pgs0, nb_pgs0, v1, G, false/*not all cvx*/);
+  K_MESH::Polyhedron<UNKNOWN>::metrics2(dt, crd, twoPH.PGs, pgs1, nb_pgs1, v2, G, false/*not all cvx*/);
 
   if (::fabs(v1) < V * VOL_THRESHOLD) //null or two small (doesn't worth a cut)
     return false;

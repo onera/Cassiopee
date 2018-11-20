@@ -41,6 +41,7 @@
 //////////////////
 
 #include "Nuga/include/macros.h"
+#include "Splitter.h"
 
 #ifdef DEBUG_EXTRACT
 #include "debug.h"
@@ -193,6 +194,8 @@ public:
   
   ///
   E_Int XcellN (std::vector<E_Float>& cellN);
+
+  void print_state();
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -881,6 +884,8 @@ E_Int NGON_BOOLEAN_CLASS::Diff
   connect.clear();
 
   __init(XPol, MPol, DIFF);
+
+  //print_state();
 
   if (!_processed) // process the transform.
     ret = __compute();
@@ -1800,20 +1805,14 @@ E_Int NGON_BOOLEAN_CLASS::XcellN (std::vector<E_Float>& xcellN)
   // simplify supermesh (to avoid triangulation error when computing volumes)
   {
 #ifdef FLAG_STEP
-    std::cout << "Simplifying Supermesh..." << std::endl;
+    std::cout << "Simplifying Supermesh polygons (by removing superlfuous nodes)..." << std::endl;
 #endif
-
-    ngon_type ngo;
-    ngon_type& ngi = *_ngoper;
-    ngon_unit orienti, oriento, neighborsi, neighborso;
-    ngi.build_ph_neighborhood(neighborsi);
-    ngon_type::template build_orientation_ngu<DELAUNAY::Triangulator>(coord, ngi, orienti);
-    E_Float angular_max = 1.e-3;
-    NUGA::Agglomerator::simplify_phs(coord, *_ngoper, orienti, neighborsi, angular_max, true, ngo, oriento, neighborso);
-    *_ngoper = ngo;
+    
+    ngon_type::simplify_pgs(*_ngoper, coord);
 
 #ifdef FLAG_STEP
     std::cout << "Simplifying Supermesh : done" << std::endl;
+    std::cout << "Computing XcellN values..." << std::endl;
 #endif 
   }
 
@@ -1865,9 +1864,10 @@ E_Int NGON_BOOLEAN_CLASS::XcellN (std::vector<E_Float>& xcellN)
     // the piece has 2 ancestors so it's a cutted cell
     // so compute the ratio
     E_Float vold, Gdum[3];
-    K_MESH::Polyhedron<STAR_SHAPED>::metrics2<DELAUNAY::Triangulator>(dt, crd1, ng1.PGs, ng1.PHs.get_facets_ptr(ancPH1i), ng1.PHs.stride(ancPH1i), vold, Gdum);
+    E_Int err = K_MESH::Polyhedron<STAR_SHAPED>::metrics2<DELAUNAY::Triangulator>(dt, crd1, ng1.PGs, ng1.PHs.get_facets_ptr(ancPH1i), ng1.PHs.stride(ancPH1i), vold, Gdum, true/*supposed cvx*/);
+
     E_Float vnew;
-    K_MESH::Polyhedron<STAR_SHAPED>::metrics2<DELAUNAY::Triangulator>(dt, coord, _ngoper->PGs, _ngoper->PHs.get_facets_ptr(PHi), _ngoper->PHs.stride(PHi), vnew, Gdum);
+    err = K_MESH::Polyhedron<STAR_SHAPED>::metrics2<DELAUNAY::Triangulator>(dt, coord, _ngoper->PGs, _ngoper->PHs.get_facets_ptr(PHi), _ngoper->PHs.stride(PHi), vnew, Gdum, true/* made cvx*/);
     
     xcellN[ancPH1i] = ::fabs(vnew/vold);
     if (xcellN[ancPH1i] > 1. - 1.e-15) xcellN[ancPH1i] = VISIBLE; // cutoff to 1.
@@ -4840,7 +4840,7 @@ E_Int NGON_BOOLEAN_CLASS::__classify_soft()
   E_Int colmax = *std::max_element(colors.begin(), colors.end())+1;
  
 #ifdef E_TIMER
-  std::cout << "toal number of elements : " << colors.size() << std::endl;
+  std::cout << "total number of elements : " << colors.size() << std::endl;
 #endif
   
 #ifdef DEBUG_BOOLEAN
@@ -4947,7 +4947,7 @@ E_Int NGON_BOOLEAN_CLASS::__classify_soft()
   // Do the split on ngX
   Vector_t<bool> flag(colors.size());
   ngon_type ngcpy(_ngXs), *ngi(0);
-  _ngXs.clear(); // fixme !! ancestor are lost !!!!
+  _ngXs.clear();
   //WARNING : _ng1 and/or _ng2 must have been cleared properly before the following. 
   for (E_Int i=0; i < colmax; ++i)
   {
@@ -4981,7 +4981,7 @@ E_Int NGON_BOOLEAN_CLASS::__classify_soft()
 
 #endif
   }
-  
+
 #ifdef FLAG_STEP
   std::cout << "NGON Boolean : __classify_soft for " << _ngXs.PHs.size() << " elements : " << c.elapsed() << std::endl;
 #endif
@@ -6411,6 +6411,70 @@ bool NGON_BOOLEAN_CLASS::__is_untouched_PH
   }
   
   return untouched;
+}
+
+
+///
+TEMPLATE_COORD_CONNECT
+void NGON_BOOLEAN_CLASS::print_state()
+{
+  std::cout << "_XPol : " << _XPol << std::endl;
+  std::cout << "_MPol : " << _MPol << std::endl;
+  std::cout << "_AggPol : " << _AggPol << std::endl;
+  std::cout << "_Op : " << _Op << std::endl;
+  std::cout << "_build_hard : " << _build_hard << std::endl;
+  std::cout << "_convexity_tol : " << _convexity_tol << std::endl;
+  std::cout << "_processed : " << _processed << std::endl;
+  std::cout << "_cNGON1 : " << _cNGON1.cols() << "/" << _cNGON1.rows() << std::endl;
+  std::cout << "_cNGON2 : " << _cNGON2.cols() << "/" << _cNGON2.rows() << std::endl;
+  std::cout << "_aCoords1 : " << _aCoords1.size() << "/" << _aCoords1.stride() << std::endl;
+  std::cout << "_crd2 : " << _crd2.cols() << "/" << _crd2.rows() << std::endl;
+
+  //ngon_type _ngXs, _ngXh, _ng1, _ng2;
+  //ngon_type *_ngoper; 
+
+  std::cout << "_coord : " << _coord.cols() << "/" << _coord.rows() << std::endl;
+  std::cout << "_zones : " << _zones.size() << std::endl;
+
+  std::cout << "_anc_PH_for_PHT3s[0] : " << _anc_PH_for_PHT3s[0].cols() <<"/" << _anc_PH_for_PHT3s[0].rows() << std::endl;
+  std::cout << "_anc_PH_for_PHT3s[1] : " << _anc_PH_for_PHT3s[1].cols() << "/" << _anc_PH_for_PHT3s[1].rows() << std::endl;
+
+  std::cout << "_anc_PG : " << _anc_PG.cols() << "/" << _anc_PG.rows() << std::endl;
+  std::cout << "_normals : " << _normals.cols() << "/" << _normals.rows() << std::endl;
+
+  std::cout << "_nodes_history : " << _nodes_history.size() << std::endl;
+
+  std::cout << "_triangulator_do_not_shuffle : " << _triangulator_do_not_shuffle << std::endl;
+  std::cout << "_triangulator_improve_qual_by_swap : " << _triangulator_improve_qual_by_swap << std::endl;
+  std::cout << "_conformizer_split_swap_afterwards : " << _conformizer_split_swap_afterwards << std::endl;
+  
+  
+  // Vector_t<std::pair<E_Float, E_Int> > _palmares;
+  // std::set<E_Int> _tmp_set_int;
+  // Vector_t<E_Int> _tmp_vec;
+  // std::deque<E_Int> _tmp_deq;
+  // K_FLD::IntArray _tmp_IntArray, _tmp_IntArray2;
+  // K_FLD::FloatArray _tmp_FloatArray;
+  // std::set<K_MESH::Edge> _tmp_set_oedge;
+  // std::map<E_Int, E_Int> _tmp_map_nn;
+  
+  // Vector_t<E_Int> _nT3_to_oPG;
+
+  std::cout << "_nb_pgs1 : " << _nb_pgs1 << std::endl;
+  std::cout << "_F2E : " << _F2E.cols() << "/" << _F2E.rows() << std::endl;
+  std::cout << "_extraF2E : " << _extraF2E.cols() << "/" << _extraF2E.rows() << std::endl;
+
+  std::cout << "_pglist2[0] : " << _pglist2[0].size() << std::endl;
+  std::cout << "_pglist2[1] : " << _pglist2[1].size() << std::endl;
+
+  std::cout << "_nb_cells2 : " << _nb_cells2 << std::endl;
+
+
+#ifdef DEBUG_BOOLEAN
+  std::cout << "_enabled : " << _enabled << std::endl;
+#endif
+  
+  std::cout << "mesh_oper : " << mesh_oper << std::endl;
 }
 
 }

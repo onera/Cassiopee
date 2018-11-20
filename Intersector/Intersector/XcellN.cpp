@@ -23,7 +23,10 @@
 //#include <sstream>
 //#include <fstream>
 //#include <iostream>
-//#include "chrono.h"
+#ifdef FLAG_STEP
+#include "chrono.h"
+E_Int chrono::verbose=1;
+#endif
 
 using namespace std;
 using namespace K_FLD;
@@ -107,7 +110,9 @@ PyObject* K_INTERSECTOR::XcellN(PyObject* self, PyObject* args)
       return NULL;
   }
 
-  boolean_t oper (*crd, *cnt, *crdMask, *cntMask, 0., boolean_t::FULL);
+  boolean_t::eAggregation agglo_pol = boolean_t::CONVEX;
+  assert (agglo_pol == boolean_t::CONVEX); // volume is now based on cvx_triangulation that require convex PGs
+  boolean_t oper (*crd, *cnt, *crdMask, *cntMask, 0., agglo_pol);
 
   // For checking PG list consistency
   E_Int maxPGid=0;

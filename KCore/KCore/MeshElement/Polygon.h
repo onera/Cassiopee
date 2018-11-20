@@ -76,6 +76,26 @@ public:
   (const TriangulatorType& t, const K_FLD::FloatArray& coord, const E_Int* nodes, E_Int nb_nodes, E_Int index_start, K_FLD::IntArray& connectT3, K_FLD::IntArray& neighbors, bool do_no_shuffle = true, bool improve_qual = false);  
   
   ///
+  static inline E_Int cvx_triangulate(const K_FLD::FloatArray& coord, const E_Int* nodes, E_Int nb_nodes, E_Int ibest, E_Int index_start, K_FLD::IntArray& connectT3)
+  {
+    ibest = (ibest != E_IDX_NONE) ? ibest : 0;
+    ibest = (ibest < nb_nodes && ibest > -1) ? ibest : 0;
+    
+    E_Int N0 = nodes[ibest] - index_start;
+    E_Int Ni, Nip1, I((ibest+1)%nb_nodes);
+    E_Int nb_tris = nb_nodes - 2;
+    E_Int T[3];
+    T[0]=N0;
+    for (E_Int i=0; i < nb_tris; ++i)
+    {
+      T[1] = nodes[I] - index_start;
+      T[2] = nodes[(I+1)%nb_nodes] - index_start;
+      connectT3.pushBack(T, T+3);
+      I = (I+1)%nb_nodes;
+    }
+  }
+
+  ///
   static E_Int get_sharp_edges
     (const K_FLD::FloatArray& crd, const ngon_unit& PGS, const E_Int* first_pg, E_Int nb_pgs, const E_Int* orient, const ngon_unit& lneighbors,
      std::set<K_MESH::NO_Edge>& sharp_edges, E_Float angular_threshold, const E_Float** normals = 0);
@@ -160,7 +180,7 @@ public:
   // returns the worst reflex info (K0, n0)
   static bool is_convex
     (const K_FLD::FloatArray& coord, const E_Int* nodes, E_Int nb_nodes, E_Int index_start,
-    const E_Float* normal, E_Float convexity_tol, E_Int& iworst);
+    const E_Float* normal, E_Float convexity_tol, E_Int& iworst, E_Int& ibest);
 
   // predicate
   static bool is_convex
@@ -300,6 +320,7 @@ E_Int Polygon::triangulate
   return err;
 }
 
+///
 template <> inline
 void Polygon::iso_barycenter<K_FLD::FloatArray, 3>(const K_FLD::FloatArray& coord, E_Float* G)
 { 

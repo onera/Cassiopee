@@ -3412,6 +3412,8 @@ build_noF2E(K_FLD::FldArrayI& F2E) const
 template <typename TriangulatorType>
 static E_Int build_orientation_ngu(const K_FLD::FloatArray& crd, ngon_t& ng, ngon_unit& orient)
 {
+  // WARNING : type are lost (UNUSED...) fixme
+  
   ng.flag_externals(1);
   TriangulatorType dt;
   bool has_been_reversed;
@@ -3525,7 +3527,7 @@ static E_Int volumes (const K_FLD::FloatArray& crd, const ngon_t& ng, std::vecto
 #pragma omp parallel for private(err, dt, v, Gdum) reduction(+:errcount)
 #endif
     for (E_Int i = 0; i < nb_phs; ++i){
-      err = K_MESH::Polyhedron<UNKNOWN>::metrics2<TriangulatorType>(dt, crd, ng.PGs, ng.PHs.get_facets_ptr(i), ng.PHs.stride(i), v, Gdum);
+      err = K_MESH::Polyhedron<UNKNOWN>::metrics2<TriangulatorType>(dt, crd, ng.PGs, ng.PHs.get_facets_ptr(i), ng.PHs.stride(i), v, Gdum, false/*not all cvx*/);
       v = ::fabs(v);
       if (!err) vols[i] = v;
       else ++errcount;

@@ -908,9 +908,9 @@ E_Int  K_CONNECT::MeshTool::aggregate_convex
 #endif
 
     // get worst concavity
-    E_Int iworst;
+    E_Int iworst, ibest;
     E_Int nb_nodes = PGi.size();
-    bool convex = K_MESH::Polygon::is_convex(crd, &PGi[0], nb_nodes, 0, normal, convexity_tol, iworst);
+    bool convex = K_MESH::Polygon::is_convex(crd, &PGi[0], nb_nodes, 0, normal, convexity_tol, iworst, ibest/*unused here*/);
 
     if (convex)
     {

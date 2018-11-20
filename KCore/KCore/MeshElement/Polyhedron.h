@@ -882,7 +882,7 @@ public:
   (const TriangulatorType& t, const K_FLD::FloatArray& crd, const ngon_unit& PGS, const E_Int* first_pg, E_Int nb_pgs, const E_Int* orient, const E_Float** normals = 0)
   {
     E_Float centroid[3], v;
-    E_Int err = metrics2<TriangulatorType>(t, crd, PGS, first_pg, nb_pgs, v, centroid);
+    E_Int err = metrics2<TriangulatorType>(t, crd, PGS, first_pg, nb_pgs, v, centroid, false/*not all cvx*/);
     if (err) return dDELAUNAY_FAILURE; // cannot tell as the triangulation failed
     
     E_Int faultyFacet;
@@ -900,7 +900,7 @@ public:
     //centroid is tested against PHT3 to be consistent as it is computed on the PHT3 rep
     
     E_Float centroid[3], V;
-    E_Int err = metrics2(t, crd, PGS, first_pg, nb_pgs, V, centroid);
+    E_Int err = metrics2(t, crd, PGS, first_pg, nb_pgs, V, centroid, false/*not all cvx*/);
     if (err) return dDELAUNAY_FAILURE; // cannot tell as the triangulation failed
 
     E_Int faultyFacet;
@@ -1279,7 +1279,7 @@ public:
   ///
   template<typename TriangulatorType>
   static E_Int metrics2
-  (const TriangulatorType& t, const K_FLD::FloatArray& crd, const ngon_unit& PGS, const E_Int* first_pg, E_Int nb_pgs, E_Float&V, E_Float* G)
+  (const TriangulatorType& t, const K_FLD::FloatArray& crd, const ngon_unit& PGS, const E_Int* first_pg, E_Int nb_pgs, E_Float&V, E_Float* G, bool all_pgs_are_cvx)
   {
     G[0]=G[1]=G[2]=0.;
 
@@ -1316,21 +1316,41 @@ public:
     
     ngon_unit opgs;
     reorient(PGS, first_pg, nb_pgs, opgs);
-    //E_Int opgsz = opgs.size();
+    
     K_FLD::IntArray connectT3;
-    E_Int err = triangulate(t, opgs, crd, connectT3, true, false); // PH -> PHT3
-    if (connectT3.cols() == 0 || err)
+
+    E_Int err(0);
+
+    if (all_pgs_are_cvx)
     {
-      std::cout << "could not triangulate properly" << std::endl;
-      return 1;
+      typedef K_FLD::ArrayAccessor<K_FLD::FloatArray> acrd_t;
+      acrd_t acrd(crd);
+              
+      for (E_Int i = 0; (i<nb_pgs); ++i)
+      {
+        const E_Int* nodes = opgs.get_facets_ptr(i);
+        E_Int nb_nodes = opgs.stride(i);
+        E_Float normal[3];
+        K_MESH::Polygon::normal<acrd_t, 3>(acrd, nodes, nb_nodes, 1, normal);
+        E_Int iworst, ibest;
+        K_MESH::Polygon:: is_convex(crd, nodes, nb_nodes, 1, normal, 1.e-8/*convexity_tol*/, iworst, ibest);
+        K_MESH::Polygon::cvx_triangulate(crd, nodes, nb_nodes, ibest, 1, connectT3);
+      }
+      
+      //MIO::write("PHT3.mesh", crd, connectT3, "TRI");    
     }
+    else
+    {
+      connectT3.clear();
+      err = triangulate(t, opgs, crd, connectT3, false, false); // PH -> PHT3
+      //MIO::write("PHT30.mesh", crd, connectT3, "TRI");
+    }
+    
+    err &= (connectT3.cols() != 0);
 
-    //MIO::write("PHT3.mesh", crd, connectT3, "TRI");
+    if (!err) metrics(crd, connectT3, V/*acc*/, G/*Cacc*/);
 
-
-    metrics(crd, connectT3, V/*acc*/, G/*Cacc*/);
-
-    return 0;
+    return err;
   }
 
   ///
