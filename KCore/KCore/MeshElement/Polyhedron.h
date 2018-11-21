@@ -1341,7 +1341,6 @@ public:
     }
     else
     {
-      connectT3.clear();
       err = triangulate(t, opgs, crd, connectT3, false, false); // PH -> PHT3
       //MIO::write("PHT30.mesh", crd, connectT3, "TRI");
     }

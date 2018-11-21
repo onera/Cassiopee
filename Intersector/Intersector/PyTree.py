@@ -693,9 +693,9 @@ def statsUncomputableFaces(t):
 #==============================================================================
 # statsSize : XXX
 #==============================================================================
-def statsSize(t):
+def statsSize(t, compute_metrics=1):
     m = C.getFields(Internal.__GridCoordinates__, t)[0]
-    return XOR.statsSize(m)
+    return XOR.statsSize(m, compute_metrics)
 
 #==============================================================================
 # removeBaffles : XXX
@@ -744,6 +744,11 @@ def convertNGON2DToNGON3D(t):
     m = C.getFields(Internal.__GridCoordinates__, t)[0]
     m = XOR.convertNGON2DToNGON3D(m)
     return C.convertArrays2ZoneNode('nuga', [m])
+
+def centroids(t):
+    m = C.getFields(Internal.__GridCoordinates__, t)[0]
+    c = XOR.centroids(m)
+    return C.convertArrays2ZoneNode('centroids', [c])
 
 #~ def conservativeTransfer(a1, a2, tol=0., reconstruction_type=0):
     #~ 

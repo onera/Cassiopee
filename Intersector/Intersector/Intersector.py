@@ -366,8 +366,8 @@ def statsUncomputableFaces(a):
 #==============================================================================
 # statsSize : XXX
 #==============================================================================
-def statsSize(a):
-  return intersector.statsSize(a)
+def statsSize(a, compute_metrics = 1):
+  return intersector.statsSize(a, compute_metrics)
 
 #==============================================================================
 # removeBaffles : XXX
@@ -407,3 +407,5 @@ def convertNGON2DToNGON3D(a):
     #~ intersector.total_mass(a1, flowsol)
     #~ return a1
     
+def centroids(a):
+    return intersector.centroids(a)

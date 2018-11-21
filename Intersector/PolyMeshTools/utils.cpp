@@ -1097,8 +1097,9 @@ PyObject* K_INTERSECTOR::statsSize(PyObject* self, PyObject* args)
 {
 
   PyObject *arr;
+  E_Int comp_metrics(1);
 
-  if (!PyArg_ParseTuple(args, "O", &arr)) return NULL;
+  if (!PYPARSETUPLEI(args, "Ol", "Oi", &arr, &comp_metrics)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -1116,16 +1117,31 @@ PyObject* K_INTERSECTOR::statsSize(PyObject* self, PyObject* args)
   typedef ngon_t<K_FLD::IntArray> ngon_type;
   ngon_type ngi(cnt);
 
-  E_Int imin, imax;
-  E_Float smin, smax;
-  ngon_type::surface_extrema(ngi.PGs, crd, smin, imin, smax, imax);
-  std::cout << "the " << imin << "-th face has the smallest surface : " << smin << std::endl;
-  std::cout << "the " << imax << "-th face has the biggest surface : " << smax << std::endl;
+  // Span of the mesh
+  // Create the box
+  K_SEARCH::BBox3D box;
+  K_FLD::ArrayAccessor<K_FLD::FloatArray> acrd(crd);
+  box.compute(acrd);
+  // Box center and deltas
+  E_Float dMax=0.;
+  for (int i=0; i < 3; ++i)
+   dMax = std::max(dMax, box.maxB[i] - box.minB[i]);
+  std::cout << "the span is : " << dMax << std::endl;
 
-  E_Float vmin, vmax;
-  ngon_type::volume_extrema<DELAUNAY::Triangulator>(ngi, crd, vmin, imin, vmax, imax);
-  std::cout << "the " << imin << "-th cells has the smallest volume : " << vmin << std::endl;
-  std::cout << "the " << imax << "-th cells has the biggest volume : " << vmax << std::endl;
+  if (comp_metrics == 1)
+  {
+    //
+	E_Int imin, imax;
+	E_Float smin, smax;
+	ngon_type::surface_extrema(ngi.PGs, crd, smin, imin, smax, imax);
+	std::cout << "the " << imin << "-th face has the smallest surface : " << smin << std::endl;
+	std::cout << "the " << imax << "-th face has the biggest surface : " << smax << std::endl;
+	//
+	E_Float vmin, vmax;
+	ngon_type::volume_extrema<DELAUNAY::Triangulator>(ngi, crd, vmin, imin, vmax, imax);
+	std::cout << "the " << imin << "-th cells has the smallest volume : " << vmin << std::endl;
+	std::cout << "the " << imax << "-th cells has the biggest volume : " << vmax << std::endl;
+  }
   
   delete f; delete cn;
 
@@ -1297,5 +1313,40 @@ PyObject* K_INTERSECTOR::convertNGON2DToNGON3D(PyObject* self, PyObject* args)
   return tpl;
 }
 
+//=============================================================================
+/* XXX */
+//=============================================================================
+PyObject* K_INTERSECTOR::centroids(PyObject* self, PyObject* args)
+{
+  PyObject *arr;
+
+  if (!PyArg_ParseTuple(args, "O", &arr)) return NULL;
+
+  K_FLD::FloatArray* f(0);
+  K_FLD::IntArray* cn(0);
+  char* varString, *eltType;
+  // Check array # 1
+  E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
+  if (err) return NULL;
+
+  K_FLD::FloatArray & crd = *f;
+  K_FLD::IntArray & cnt = *cn;
+
+  //std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
+  //std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
+
+  typedef ngon_t<K_FLD::IntArray> ngon_type;
+  ngon_type ngi(cnt);
+
+  K_FLD::FloatArray centroids;
+  ngon_type::centroids<DELAUNAY::Triangulator>(ngi, crd, centroids);
+
+  K_FLD::IntArray cnto;
+
+  PyObject* tpl = K_ARRAY::buildArray(centroids, varString, cnto, 0, "NODE", false);
+  
+  delete f; delete cn;
+  return tpl;
+}
 
 //=======================  Intersector/PolyMeshTools/utils.cpp ====================

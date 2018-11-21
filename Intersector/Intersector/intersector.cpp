@@ -61,6 +61,7 @@ static PyMethodDef Pyintersector [] =
   {"statsSize", K_INTERSECTOR::statsSize, METH_VARARGS},
   
   {"computeAspectRatio", K_INTERSECTOR::computeAspectRatio, METH_VARARGS},
+  {"centroids", K_INTERSECTOR::centroids, METH_VARARGS},
   
   {"diffMesh", K_INTERSECTOR::diffMesh, METH_VARARGS},
 
