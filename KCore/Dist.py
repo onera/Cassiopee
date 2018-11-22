@@ -294,43 +294,19 @@ def writeEnvs():
      if installLD is not None:
         p.write("prepend-path LD_LIBRARY_PATH %s\n"%installLD)
      p.write("prepend-path LD_LIBRARY_PATH %s\n"%libPath)
-
 #==============================================================================
 # Creation intel compiler + on le met si Cppcompiler = icc
 #==============================================================================
-from distutils.unixccompiler import UnixCCompiler
-from distutils import ccompiler
-class IntelCCompiler(UnixCCompiler):
-    """A modified Intel compiler compatible with a GCC-built Python."""
-    compiler_type = 'intel'
-    cc_exe = 'icc'
-    cc_args = 'fPIC'
-
-    def __init__(self, verbose=0, dry_run=0, force=0):
-        UnixCCompiler.__init__(self, verbose, dry_run, force)
-
-        #v = self.get_version()
-        self.cc_exe = ('icc')
-        compiler = self.cc_exe
-
-        if platform.system() == 'Darwin': shared_flag = '-Wl,-undefined,dynamic_lookup'
-        else: shared_flag = '-shared'
-        self.set_executables(compiler=compiler,
-                             compiler_so=compiler,
-                             compiler_cxx=compiler,
-                             archiver='xiar' + ' cru',
-                             linker_exe=compiler,
-                             linker_so=compiler + ' ' + shared_flag)
-        ccompiler._default_compilers += (('linux.*', 'intel'),('posix*', 'intel'))
-
-def new_compiler(plat=None, compiler=None, verbose=0, dry_run=0, force=0):
-    compiler = IntelCCompiler()
-    return compiler
+#def new_compiler(plat=None, compiler=None, verbose=0, dry_run=0, force=0):
+#    compiler = IntelCCompiler()
+#    return compiler
 
 try: from config import Cppcompiler
 except: from KCore.config import Cppcompiler
 if Cppcompiler.find('icc') == 0 or Cppcompiler.find('icpc') == 0:
-    ccompiler.new_compiler = new_compiler
+    from distutils.unixccompiler import UnixCCompiler
+    from KDistutils import ccompiler
+    #ccompiler.new_compiler = new_compiler
 
 #==============================================================================
 # Write setup.cfg en fonction du compilateur C++ (si different de None)
@@ -377,6 +353,7 @@ def writeSetupCfg():
 # ou dans config.py (installBase.py)
 #==============================================================================
 def getDistUtilsCompilers():
+
     vars = distutils.sysconfig.get_config_vars('CC', 'CXX', 'OPT',
                                                'BASECFLAGS', 'CCSHARED',
                                                'LDSHARED', 'SO')
@@ -691,7 +668,7 @@ def getCArgs():
          else: options += ['-fPIC']
          return options
     elif Cppcompiler.find("gcc") == 0 or Cppcompiler.find("g++") == 0:
-         if DEBUG: options += ['-g', '-O0', '-Wall', '-D_GLIBCXX_DEBUG_PEDANTIC']
+         if DEBUG: options += ['-g', '-O0', '-Wall', '-pedantic', '-D_GLIBCXX_DEBUG_PEDANTIC']
          else: options += ['-DNDEBUG', '-O3', '-Wall']
          if useOMP() == 1: options += ['-fopenmp']
          if useStatic() == 1: options += ['--static', '-static-libstdc++', '-static-libgcc']
@@ -734,7 +711,7 @@ def getCppArgs():
     try: from config import Cppcompiler
     except: from KCore.config import Cppcompiler
     if (Cppcompiler == 'g++' or Cppcompiler == 'gcc') and getSystem()[0] == 'mingw':
-        opt += ["-std=gnu++11"]
+        opt += ["-std=c++11"]
     elif Cppcompiler == 'pgcc' or Cppcompiler == 'pg++':
         opt += ["--c++11"]
     elif Cppcompiler == "icl.exe":
@@ -1646,8 +1623,8 @@ def getEnvForScons():
             'LD_LIBRARY_PATH': getenv('LD_LIBRARY_PATH'),
             'LM_LICENSE_FILE': getenv('LM_LICENSE_FILE'),
             'INTEL_LICENSE_FILE': getenv('INTEL_LICENSE_FILE'),
-	    'TMP':getenv('TMP'),
-	    'TEMP':getenv('TEMP')}
+            'TMP':getenv('TMP'),
+            'TEMP':getenv('TEMP')}
 
 #==============================================================================
 # Fortran builder
