@@ -754,9 +754,9 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None,
             res = connector.getIBMPtsWithFront(allCorrectedPts, listOfSnearsLoc, bodies, listOfIBCTypes,
                                                front, varsn, IBCType, depth)
 
-    Converter.convertArrays2File(allCorrectedPts, 'correctedPts.plt')
-    Converter.convertArrays2File(res[0], 'wallPts.plt')
-    Converter.convertArrays2File(res[1], 'imagePts.plt')
+    # Converter.convertArrays2File(allCorrectedPts, 'correctedPts.plt')
+    # Converter.convertArrays2File(res[0], 'wallPts.plt')
+    # Converter.convertArrays2File(res[1], 'imagePts.plt')
     allWallPts = res[0]
     allWallPts = Converter.extractVars(allWallPts,['CoordinateX','CoordinateY','CoordinateZ'])
 
@@ -813,16 +813,16 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None,
 #=============================================================================
 # Returns the front defining the image points
 #=============================================================================
-def getIBMFront(tc, frontvar, dim, frontType, shiftIBM):
+def getIBMFront(tc, frontvar, dim, frontType):
 
     if frontType == 1: front = getIBMFrontType1(tc,frontvar,dim)
     else: front = getIBMFrontType0(tc,frontvar,dim)
     front = C.deleteEmptyZones(front)
     Internal._rmNodesFromName(front,"ID_*")
-    if shiftIBM is False: return front
+    if frontType==0: return front
     
     dxmin = 1e12
-    if frontType==1:
+    if frontType>0:
         front = Internal.getZones(front)
         dxmax = 1.e-12
         dht = [[]]*len(front)
@@ -856,27 +856,27 @@ def getIBMFront(tc, frontvar, dim, frontType, shiftIBM):
             if len(dictOfLevels[nol])>0:
                 front.append(T.join(dictOfLevels[nol]))
 
-    if shiftIBM and frontType==1:
-        # C.convertPyTree2File(front,"front0.cgns")
-        G._getNormalMap(front)
-        C._normalize(front, ['centers:sx','centers:sy','centers:sz'])
-        vshift = min(1.e-6,0.01*dxmin)
-        C._initVars(front,"{centers:sx}={centers:sx}*%g"%vshift)
-        C._initVars(front,"{centers:sy}={centers:sy}*%g"%vshift)
-        C._initVars(front,"{centers:sz}={centers:sz}*%g"%vshift)
-        front = C.center2Node(front, Internal.__FlowSolutionCenters__)
-        Internal._rmNodesByName(front,Internal.__FlowSolutionCenters__)
-        front2 = G.grow(front, ['sx','sy','sz'])
-        C._initVars(front2,"tag",2.)
-        C._initVars(front,"tag",1.)
-        hook = C.createGlobalHook(front, 'nodes')
-        front2 = C.identifySolutions(front2, front, hookN=hook, tol=1.e-14)
-        C._initVars(front2,'{tag}=abs({tag}-1.)')
-        front2 = P.exteriorFaces(front2)
-        front = P.selectCells2(front2,'tag',strict=1)
-        # C.convertPyTree2File(front,"front1.cgns")
-        Internal._rmNodesByName(front,Internal.__FlowSolutionNodes__)
-        C.freeHook(hook)
+    # C.convertPyTree2File(front,"front0.cgns")
+    # if frontType==2:
+    #     G._getNormalMap(front)
+    #     C._normalize(front, ['centers:sx','centers:sy','centers:sz'])
+    #     vshift = min(1.e-6,0.01*dxmin)
+    #     C._initVars(front,"{centers:sx}={centers:sx}*%g"%vshift)
+    #     C._initVars(front,"{centers:sy}={centers:sy}*%g"%vshift)
+    #     C._initVars(front,"{centers:sz}={centers:sz}*%g"%vshift)
+    #     front = C.center2Node(front, Internal.__FlowSolutionCenters__)
+    #     Internal._rmNodesByName(front,Internal.__FlowSolutionCenters__)
+    #     front2 = G.grow(front, ['sx','sy','sz'])
+    #     C._initVars(front2,"tag",2.)
+    #     C._initVars(front,"tag",1.)
+    #     hook = C.createGlobalHook(front, 'nodes')
+    #     front2 = C.identifySolutions(front2, front, hookN=hook, tol=1.e-14)
+    #     C._initVars(front2,'{tag}=abs({tag}-1.)')
+    #     front2 = P.exteriorFaces(front2)
+    #     front = P.selectCells2(front2,'tag',strict=1)
+    #     C.convertPyTree2File(front,"front1.cgns")
+    #     Internal._rmNodesByName(front,Internal.__FlowSolutionNodes__)
+    #     C.freeHook(hook)
     return front
 
 # front of first computed cells - with overlapping
@@ -1017,7 +1017,7 @@ def _signDistance(t):
     return None
 
 #=============================================================================
-def doInterp(t, tc, tbb, shiftIBM, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=0, depth=2, IBCType=1):    
+def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=0, depth=2, IBCType=1):    
     ReferenceState = Internal.getNodeFromType2(t,'ReferenceState_t')
 
     if typeI == 'ID':
@@ -1064,8 +1064,8 @@ def doInterp(t, tc, tbb, shiftIBM, tb=None, typeI='ID', dim=3, dictOfADT=None, f
         if zonesRIBC == []: return tc
 
         print 'Building the IBM front.'  
-        front = getIBMFront(tc, 'cellNFront', dim, frontType, shiftIBM)
-        C.convertPyTree2File(front,"front.cgns")
+        front = getIBMFront(tc, 'cellNFront', dim, frontType)
+        #C.convertPyTree2File(front,"front.cgns")
         #
         res = getAllIBMPoints(zonesRIBC, loc='centers',tb=tb, tfront=front, frontType=frontType, \
                               cellNName='cellNIBC', depth=depth, IBCType=IBCType)
@@ -1187,7 +1187,8 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, shiftIBM=False
         else:
             DEPTHL=DEPTH+1
             X._setHoleInterpolatedPoints(t,depth=DEPTHL,dir=0, loc='centers',cellNName='cellN',addGC=False)         
-            _blankClosestTargetCells(t,cellNName='cellN', depth=DEPTHL)
+            #cree des pts extrapoles supplementaires
+            #_blankClosestTargetCells(t,cellNName='cellN', depth=DEPTHL)
     else:
         raise ValueError('prepareIBMData: not valid IBCType. Check model.')
     _removeBlankedGrids(t, loc='centers')
@@ -1249,7 +1250,7 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, shiftIBM=False
                 HOOKADT = C.createHook(zdnr, 'adt')
                 dictOfADT[zdnrname] = HOOKADT
         print 'Interpolations Chimere'
-        tc = doInterp(t, tc, tbb, shiftIBM, tb=None, typeI='ID', dim=dimPb, 
+        tc = doInterp(t, tc, tbb, tb=None, typeI='ID', dim=dimPb, 
                       dictOfADT=dictOfADT)
         for dnrname in dictOfADT.keys(): C.freeHook(dictOfADT[dnrname])
 
@@ -1265,7 +1266,7 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, shiftIBM=False
                 HOOKADT = C.createHook(zdnr, 'adt')
                 dictOfADT[zdnrname] = HOOKADT
         print 'Interpolations Chimere'
-        tc = doInterp(t, tc, tbb, shiftIBM, tb=None, typeI='ID', dim=dimPb, 
+        tc = doInterp(t, tc, tbb, tb=None, typeI='ID', dim=dimPb, 
                       dictOfADT=dictOfADT)
         for dnrname in dictOfADT.keys(): C.freeHook(dictOfADT[dnrname])
 
@@ -1291,7 +1292,7 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, shiftIBM=False
         print 'Minimum distance: ', C.getMinValue(t,'centers:TurbulentDistance')
         t = P.computeGrad2(t,'centers:TurbulentDistance')
         print 'Interpolations IBM'
-        tc = doInterp(t,tc,tbb, shiftIBM, tb=tb,typeI='IBCD',dim=dimPb, dictOfADT=None, frontType=frontType, depth=DEPTH, IBCType=IBCType)
+        tc = doInterp(t,tc,tbb, tb=tb,typeI='IBCD',dim=dimPb, dictOfADT=None, frontType=frontType, depth=DEPTH, IBCType=IBCType)
 
     # cleaning...
     Internal._rmNodesByName(tc, Internal.__FlowSolutionNodes__)

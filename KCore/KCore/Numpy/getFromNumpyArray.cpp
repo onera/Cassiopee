@@ -25,7 +25,7 @@ using namespace K_FLD;
   else if (dim == 2) {                                                  \
     if (isFortran == 0) { nfld = PyArray_DIMS(a)[0]; size = PyArray_DIMS(a)[1]; } \
     else { nfld = PyArray_DIMS(a)[1]; size = PyArray_DIMS(a)[0]; } \
-    if (size == 1) { size = nfld; nfld = 1; } }  \
+    if (size == 1 && inverse==true) { size = nfld; nfld = 1; } }  \
   else return 0;
 #else
 #define GETDIMS E_Int isFortran = PyArray_CHKFLAGS(a, NPY_F_CONTIGUOUS); \
@@ -33,7 +33,7 @@ using namespace K_FLD;
   else if (dim == 2) {                                                  \
     if (isFortran == 0) { nfld = PyArray_DIMS(a)[0]; size = PyArray_DIMS(a)[1]; } \
     else { nfld = PyArray_DIMS(a)[1]; size = PyArray_DIMS(a)[0]; }      \
-    if (size == 1) { size = nfld; nfld = 1; } \
+    if (size == 1 && inverse==true) { size = nfld; nfld = 1; } \
   } else return 0;
 #endif
 
@@ -41,7 +41,7 @@ using namespace K_FLD;
 // Retourne un FldArray a partir d'un numpy
 // Retourne 0 (FAIL), 1 (SUCCESS)
 //=============================================================================
-E_Int K_NUMPY::getFromNumpyArray(PyObject*o , FldArrayI*& f, E_Boolean shared)
+E_Int K_NUMPY::getFromNumpyArray(PyObject*o , FldArrayI*& f, E_Boolean shared, E_Boolean inverse)
 {
   IMPORTNUMPY;
   if (PyArray_Check(o) == 0) return 0;
@@ -66,7 +66,7 @@ E_Int K_NUMPY::getFromNumpyArray(PyObject*o , FldArrayI*& f, E_Boolean shared)
 // IN: shared: 1 (partage avec python), 0 (copie)
 // Retourne 0 (FAIL), 1 (SUCCESS)
 //=============================================================================
-E_Int K_NUMPY::getFromNumpyArray(PyObject* o, FldArrayF*& f, E_Boolean shared)
+E_Int K_NUMPY::getFromNumpyArray(PyObject* o, FldArrayF*& f, E_Boolean shared, E_Boolean inverse)
 {
   IMPORTNUMPY;
   if (PyArray_Check(o) == 0) return 0;
@@ -96,7 +96,7 @@ E_Int K_NUMPY::getFromNumpyArray(PyObject* o, FldArrayF*& f, E_Boolean shared)
 // Retourne 0 (FAIL), 1 (SUCCESS)
 //=============================================================================
 E_Int K_NUMPY::getFromNumpyArray(PyObject* o, E_Float*& f, E_Int& size,
-                                 E_Int& nfld, E_Boolean shared)
+                                 E_Int& nfld, E_Boolean shared, E_Boolean inverse)
 {
   IMPORTNUMPY;
   if (PyArray_Check(o) == 0) return 0;
@@ -130,7 +130,7 @@ E_Int K_NUMPY::getFromNumpyArray(PyObject* o, E_Float*& f, E_Int& size,
 // Retourne 0 (FAIL), 1 (SUCCESS)
 //=============================================================================
 E_Int K_NUMPY::getFromNumpyArray(PyObject* o, E_Int*& f, E_Int& size,
-                                 E_Int& nfld, E_Boolean shared)
+                                 E_Int& nfld, E_Boolean shared, E_Boolean inverse)
 {
   IMPORTNUMPY;
   if (PyArray_Check(o) == 0) return 0;

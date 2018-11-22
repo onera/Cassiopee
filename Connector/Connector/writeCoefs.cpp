@@ -401,7 +401,8 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
       PyObject* pyArrayValue = PyList_GetItem(pyListValues, v);
       pyDnrCoefs.push_back(pyArrayValue);
       FldArrayF* dnrCoefs;
-      E_Int ok = K_NUMPY::getFromNumpyArray(pyArrayValue, dnrCoefs, true);
+      E_Boolean inverse = false; // pour ne pas changer (1,ncf) en (ncf,1) le cas echeant
+      E_Int ok = K_NUMPY::getFromNumpyArray(pyArrayValue, dnrCoefs, true, inverse);
       if ( ok == 1 )
       {
         FldDnrCoefs.push_back(dnrCoefs);
