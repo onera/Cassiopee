@@ -1314,7 +1314,71 @@ PyObject* K_INTERSECTOR::convertNGON2DToNGON3D(PyObject* self, PyObject* args)
 }
 
 //=============================================================================
-/* XXX */
+/* remove any cell contributing to a non-manifold boundary */
+//=============================================================================
+PyObject* K_INTERSECTOR::removeNonManifoldExternalCells(PyObject* self, PyObject* args)
+{
+  PyObject *arr;
+
+  if (!PyArg_ParseTuple(args, "O", &arr)) return NULL;
+
+  K_FLD::FloatArray* f(0);
+  K_FLD::IntArray* cn(0);
+  char* varString, *eltType;
+  // Check array # 1
+  E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
+  if (err) return NULL;
+
+  K_FLD::FloatArray & crd = *f;
+  K_FLD::IntArray & cnt = *cn;
+
+  //std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
+  //std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
+
+  typedef ngon_t<K_FLD::IntArray> ngon_type;
+  ngon_type ngi(cnt);
+
+  //std::cout << "nb initial phs : " << ngi.PHs.size() << std::endl;
+
+  ngi.flag_external_pgs(INITIAL_SKIN);
+  Vector_t<E_Int> oids;
+  ngon_unit pg_ext;
+  ngi.PGs.extract_of_type (INITIAL_SKIN, pg_ext, oids);
+
+  //std::cout << "nb of external pgs : " << pg_ext.size() << std::endl;
+    
+  std::set<E_Int> pgids;
+  ngon_type::get_pgs_with_non_manifold_edges(pg_ext, pgids);
+
+  if (pgids.empty()) std::cout << "removeNonManifoldExternalCells : surface is clean" << std::endl;
+
+  //for (auto i=pgids.begin(); i != pgids.end(); ++i) std::cout << "loc non manif id : " << *i << std::endl;
+
+  std::set<E_Int> npgids;
+  for (auto &i : pgids) npgids.insert(oids[i-1]);
+
+  //for (auto i=npgids.begin(); i != npgids.end(); ++i) std::cout << "glob non manif id : " << *i << std::endl;
+    
+  std::set<E_Int> PHlist;
+  ngi.get_PHs_having_PGs(npgids, 0, PHlist);
+
+  //for (auto i=PHlist.begin(); i != PHlist.end(); ++i) std::cout << "PH id : " << *i << std::endl;
+
+  ngi.remove_phs(PHlist);
+
+  //std::cout << "nb final phs : " << ngi.PHs.size() << std::endl;
+
+  K_FLD::IntArray cnto;
+  ngi.export_to_array(cnto);
+
+  PyObject* tpl = K_ARRAY::buildArray(crd, varString, cnto, 8, "NGON", false);
+  
+  delete f; delete cn;
+  return tpl;
+}
+
+//=============================================================================
+/* Computes centroids*/
 //=============================================================================
 PyObject* K_INTERSECTOR::centroids(PyObject* self, PyObject* args)
 {

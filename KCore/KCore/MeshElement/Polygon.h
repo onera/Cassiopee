@@ -76,7 +76,7 @@ public:
   (const TriangulatorType& t, const K_FLD::FloatArray& coord, const E_Int* nodes, E_Int nb_nodes, E_Int index_start, K_FLD::IntArray& connectT3, K_FLD::IntArray& neighbors, bool do_no_shuffle = true, bool improve_qual = false);  
   
   ///
-  static inline E_Int cvx_triangulate(const K_FLD::FloatArray& coord, const E_Int* nodes, E_Int nb_nodes, E_Int ibest, E_Int index_start, K_FLD::IntArray& connectT3)
+  static inline void cvx_triangulate(const K_FLD::FloatArray& coord, const E_Int* nodes, E_Int nb_nodes, E_Int ibest, E_Int index_start, K_FLD::IntArray& connectT3)
   {
     ibest = (ibest != E_IDX_NONE) ? ibest : 0;
     ibest = (ibest < nb_nodes && ibest > -1) ? ibest : 0;

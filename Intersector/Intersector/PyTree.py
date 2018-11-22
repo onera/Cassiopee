@@ -434,6 +434,14 @@ def collapseUncomputableFaces(t):
     return C.convertArrays2ZoneNode('agglomeratedCells', [m])
 
 #==============================================================================
+# removeNonManifoldExternalCells : removes any outer cell that has a non manifold edge
+#==============================================================================
+def removeNonManifoldExternalCells(t):
+    m = C.getFields(Internal.__GridCoordinates__, t)[0]
+    m = XOR.removeNonManifoldExternalCells(m)
+    return C.convertArrays2ZoneNode('manifoldOuter', [m])
+
+#==============================================================================
 # closeOctalCells : Closes any polyhedral cell in an octree
 # IN: t: 3D NGON mesh
 # OUT: returns a 3D NGON Mesh with all cells closed

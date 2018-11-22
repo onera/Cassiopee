@@ -216,6 +216,12 @@ def collapseUncomputableFaces(a):
     return intersector.collapseUncomputableFaces(a)
 
 #==============================================================================
+# removeNonManifoldExternalCells : removes any outer cell that has a non manifold edge
+#==============================================================================
+def removeNonManifoldExternalCells(a):
+    return intersector.removeNonManifoldExternalCells(a)
+
+#==============================================================================
 # closeOctalCells : Closes any polyhedral cell in an octree
 # IN: a : 3D NGON mesh
 # OUT: returns a 3D NGON Mesh with all cells closed

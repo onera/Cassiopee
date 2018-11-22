@@ -14,6 +14,10 @@
 #include <map>
 #include <vector>
 
+#ifdef DEBUG_ZONE_T
+#include "Nuga/Boolean/NGON_debug.h"
+#endif
+
 
 #define Vector_t std::vector
 

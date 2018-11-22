@@ -2377,6 +2377,27 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
   }
   
   ///
+  E_Int get_PHs_having_PGs(const std::set<E_Int>& pgids, E_Int idx_start, std::set<E_Int>& PHlist) const 
+  {
+    E_Int sz(PHs.size());
+    
+    PHlist.clear();
+        
+    for (E_Int i = 0; i < sz; ++i)
+    {
+      E_Int nb_pgs = PHs.stride(i);
+      const E_Int* faces = PHs.get_facets_ptr(i);
+ 
+      for (E_Int j = 0; (j < nb_pgs); ++j)
+      {
+        E_Int PGi = *(faces + j);
+        PGi = (idx_start == 0) ? PGi - 1 : PGi;
+        if (pgids.find(PGi) != pgids.end()) PHlist.insert(i);
+      }
+    }
+  }
+  
+  ///
   E_Int get_degenerated_phs(Vector_t<E_Int>& toremove)
   {    
     PHs.updateFacets();
@@ -3653,31 +3674,33 @@ static E_Int write
   PHs.updateFacets();
 
   return 0;
-}
+}*/
   
 ///
-E_Int remove_PHs(const Vector_t<E_Int>& PHs_toremove)
+E_Int remove_phs(const std::set<E_Int>& PHslist)
 {
-  std::set<E_Int> toremset(PHs_toremove.begin(), PHs_toremove.end());
+  if (PHslist.empty()) return 0;
+  
   ngon_unit keptPHs;
  
   E_Int sz = PHs.size();
   for (size_t i = 0; i < sz; ++i)
   {
-    if (toremset.empty() || (toremset.find(i) == toremset.end()))
+    if (PHslist.find(i) == PHslist.end())
       keptPHs.__add(PHs, i);
-    else
-      toremset.erase(i);
   }
       
   PHs=keptPHs;
   PHs.updateFacets();
+  
+  Vector_t<E_Int> pgnids, phnids;
+  remove_unreferenced_pgs(pgnids, phnids);
     
   return 0;
 }
   
 ///
-E_Int reorient_PGs(const Vector_t<E_Int>& PGs_toreverse)
+/*E_Int reorient_PGs(const Vector_t<E_Int>& PGs_toreverse)
 {
   E_Int sz1(PGs_toreverse.size()), sz2;
   for (size_t i = 0; i < sz1; ++i)
@@ -4207,6 +4230,57 @@ static E_Int extrude_faces
   
 
   return 0;
+}
+
+static void get_pgs_with_non_manifold_edges(const ngon_unit& PGs, std::set<E_Int>& pgsid)
+{
+  pgsid.clear();
+  
+  E_Int nb_pgs = PGs.size();
+  
+  //get non-manifold egdes
+  std::set<K_MESH::NO_Edge> edges;
+  {
+    std::map<K_MESH::NO_Edge, E_Int> edge_to_fcount;
+    K_MESH::NO_Edge noE;
+    //
+    for (E_Int i=0; i < nb_pgs; ++i)
+    {
+      const E_Int* nodes = PGs.get_facets_ptr(i);
+      E_Int nb_nodes = PGs.stride(i);
+
+      for (E_Int n=0; n < nb_nodes; ++n)
+      {
+        noE.setNodes(*(nodes+n), *(nodes+(n+1)%nb_nodes));
+
+        auto it = edge_to_fcount.find(noE);
+        if (it == edge_to_fcount.end())
+          edge_to_fcount[noE] = 1;
+        else ++it->second;
+      }
+    }
+
+    for (auto &i : edge_to_fcount)
+      if (i.second > 2)edges.insert(i.first);   
+  }
+  
+  // get pg ids having these edges
+  K_MESH::NO_Edge noE;
+  for (E_Int i=0; i < nb_pgs; ++i)
+  {
+    const E_Int* nodes = PGs.get_facets_ptr(i);
+    E_Int nb_nodes = PGs.stride(i);
+
+    for (E_Int n=0; n < nb_nodes; ++n)
+    {
+      noE.setNodes(*(nodes+n), *(nodes+(n+1)%nb_nodes));
+      if (edges.find(noE) != edges.end())
+      {
+        pgsid.insert(i+1); break;
+      }
+    }
+  }
+  
 }
     
   ngon_unit PGs;
