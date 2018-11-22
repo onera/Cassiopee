@@ -379,8 +379,24 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
       }
       
       ntris[i] = nc; npts[i] = np;
-      istart[i] = iestart[ibold];
-      iend[i] = ieend[ib-1];
+      //printf("DEBUG ib=%d %d\n",ibold,ib);
+      if (ib > ibold)
+      {
+        istart[i] = iestart[ibold];
+        iend[i] = ieend[ib-1];
+      }
+      else if (ibold < 10*nthreads)
+      {
+        istart[i] = iestart[ibold];
+        iend[i] = iestart[ibold];
+      }
+      else
+      {
+        istart[i] = ieend[10*nthreads-1];
+        iend[i] = ieend[10*nthreads-1];
+      }
+      
+      //printf("DEBUG istart=%d %d\n",istart[i],iend[i]);
       ibold = ib;
     }
     //iend[nthreads-1] = nelts;
@@ -388,8 +404,7 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
     for (E_Int i = 0; i < nthreads; i++) printf("thread=%d: %d / %d %d\n", i, ntris[i], istart[i], iend[i]);
     fflush(stdout);
     // fin equilibrage dynamique
-    delete [] npts2;
-    delete [] ntris2;
+    delete [] npts2; delete [] ntris2;
 
     FldArrayI** cisos = new FldArrayI* [nthreads];
     for (E_Int i = 0; i < nthreads; i++) cisos[i] = new FldArrayI(ntris[i], 3);
@@ -484,6 +499,8 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
       ETK* key = keys[ithread]->begin();
       ETK* key2 = keys[ithread]->begin(2);
 
+      printf("%d: %d %d\n", ithread,istart[ithread],iend[ithread]); fflush(stdout);
+      
       for (E_Int elt = istart[ithread]; elt < iend[ithread]; elt++)
       {
         // Construit centre de l'element
@@ -969,6 +986,7 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
       }
     }
 
+  printf("Analyse\n");
   // Analyse
   /*
   for (E_Int ithread = 0; ithread < nthreads; ithread++)
@@ -1090,7 +1108,7 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
   //for (E_Int i = 0; i < ntri; i++) printf("c %d: %d %d %d\n",i,ciso2(i,1),ciso2(i,2),ciso2(i,3));
   //fflush(stdout);
   printf("done\n"); fflush(stdout);
-    
+  
   // delete
   for (E_Int i = 0; i < nthreads; i++) delete keys[i];
   delete [] keys;
@@ -1103,7 +1121,8 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
   invMap.malloc(0);
   
   // Elimination des elements identiques (eventuels)
-
+  printf("Elimination des elements identiques\n");
+  
 #define KEY3S(c1,c2,c3) (ETK)(c1-1)+npt*(ETK)(c2-1)+npt*npt*(ETK)(c3-1)
 //#define KEY3(c1,c2,c3) KEY3S(c1,c2,c3) + KEY3S(c1,c3,c2) + KEY3S(c2,c1,c3) + KEY3S(c2,c3,c1) + KEY3S(c3,c1,c2) + KEY3S(c3,c2,c1)
 //#define KEY3(c1,c2,c3) KEY3S(c1,c2,c3)*KEY3S(c1,c3,c2)*KEY3S(c2,c1,c3)*KEY3S(c2,c3,c1)*KEY3S(c3,c1,c2)*KEY3S(c3,c2,c1)
@@ -1130,7 +1149,7 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
       keyp[i] = k;
     }
   }  
-  //for (E_Int i = 0; i < ntri; i++) printf("%d %d %d = %ld\n",ct1[i],ct2[i],ct3[i],keyp[i]);
+  //for (E_Int i = 0; i < ntri; i++) printf("ct=%d %d %d = %ld\n",ct1[i],ct2[i],ct3[i],keyp[i]);
   //fflush(stdout);
 
   for (E_Int i = 0; i < ntri; i++) { if (keyp[i] != -1) map[keyp[i]] = i; }

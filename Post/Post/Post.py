@@ -746,11 +746,17 @@ def isoSurf(array, var, value, split='simple'):
     if isinstance(array[0], list):
         ret = []
         for i in array:
-            try: i = Converter.convertArray2Tetra(i, split=split)
+            try:
+                if i[3] != 'NGON': 
+                    i = Converter.convertArray2Tetra(i, split=split)
             except: pass
             try:
                 if i[3] == 'TRI' or i[3] == 'QUAD' or i[3] == 'BAR':
                     i = post.isoLine(i, var, value)
+                    ret.append(i)
+                elif i[3] == 'NGON':
+                    i = post.isoSurfNGon(i, var, value)
+                    i = Transform.reorder(i, (1,))
                     ret.append(i)
                 else:
                     i = post.isoSurf(i, var, value)
@@ -759,11 +765,16 @@ def isoSurf(array, var, value, split='simple'):
             except: pass
         return ret
     else:
-        try: b = Converter.convertArray2Tetra(array, split=split)
+        try:
+            if b[3] != 'NGON': 
+                b = Converter.convertArray2Tetra(array, split=split)
         except: b = array
         try:
             if b[3] == 'TRI' or b[3] == 'QUAD' or b[3] == 'BAR':
                 b = post.isoLine(b, var, value)
+            elif b[3] == 'NGON':
+                b = post.isoSurfNGon(b, var, value)
+                b = Transform.reorder(b, (1,))
             else:
                 b = post.isoSurf(b, var, value)
                 b = Transform.reorder(b, (1,))

@@ -31,13 +31,26 @@ E_Int K_CONNECT::connectHO2LO(const char* eltTypeHO,
   
 }
 
+// Converti une connectivite HO par elements en connectivite LO coarse
 E_Int K_CONNECT::connectHO2LOCoarse(const char* eltTypeHO,
                                     FldArrayI& cEVHO,
                                     char* eltTypeLO,
                                     FldArrayI& cEVLO)
 {
-  E_Int nskip = 0;
-  E_Int nkeep = 0;
+  // Calcul des strides
+  E_Int strideEltHO = 0; // stride pour avancer d'un element
+  E_Int strideVertexHO = 0; // stride pour avancer d'un vertex dans un element
+  E_Int strideElt = 0; // stride pour avancer d'un element
+  E_Int strideVertex = 0; // stride pour avancer d'un vertex dans un element
+  E_Int nkeep = 0; // vertex a conserver dans la connectivite HO
+  E_Int nskip = 0; // nbre de vertex a dumper dans la connectivite HO
+
+  E_Int nelts = cEVHO.getSize();
+  E_Int nfld = cEVHO.getNfld();
+  E_Int stride = cEVHO.getStride();
+
+  // voir doc array2
+  
   if (eltTypeHO[0] == 'B' && eltTypeHO[1] == 'A' && eltTypeHO[2] == 'R')
   {
     // BAR
@@ -77,6 +90,7 @@ E_Int K_CONNECT::connectHO2LOCoarse(const char* eltTypeHO,
     { ptLO[i+j*nkeep] = ptHO[i+j*nkeep]; }
   }
 }
+
 
 E_Int K_CONNECT::connectHO2LOFine(const char* eltTypeHO,
                                   FldArrayI& cEVHO,
