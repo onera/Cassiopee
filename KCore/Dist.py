@@ -294,18 +294,16 @@ def writeEnvs():
      if installLD is not None:
         p.write("prepend-path LD_LIBRARY_PATH %s\n"%installLD)
      p.write("prepend-path LD_LIBRARY_PATH %s\n"%libPath)
+
 #==============================================================================
 # Creation intel compiler + on le met si Cppcompiler = icc
 #==============================================================================
-#def new_compiler(plat=None, compiler=None, verbose=0, dry_run=0, force=0):
-#    compiler = IntelCCompiler()
-#    return compiler
-
 try: from config import Cppcompiler
 except: from KCore.config import Cppcompiler
 if Cppcompiler.find('icc') == 0 or Cppcompiler.find('icpc') == 0:
     from distutils.unixccompiler import UnixCCompiler
-    from KDistutils import ccompiler
+    try: from KDistutils import ccompiler
+    except: from KCore.KDistutils import ccompiler
     #ccompiler.new_compiler = new_compiler
 
 #==============================================================================

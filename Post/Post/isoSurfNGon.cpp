@@ -200,7 +200,7 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
     
 #pragma omp parallel default(shared)
     {
-      E_Int  ithread = __CURRENT_THREAD__;
+      E_Int ithread = __CURRENT_THREAD__;
       int triindex;
       E_Int np = 0; E_Int ntri = 0;
       E_Int pe, pf, indFace, nbFaces, nbPts, ind, ind2;
@@ -210,7 +210,7 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
       E_Float delta = (nelts*1.)/(nthreads*1.);
       E_Int ieltstart = int(ithread*delta);
       E_Int ieltend = int((ithread+1)*delta);
-      //printf("ieltstart = %d , %d chekc=%d\n",ieltstart, ieltend, nelts);
+      //printf("ieltstart = %d , %d check=%d\n",ieltstart, ieltend, nelts);
       E_Float deltap = (ieltend-ieltstart)/(10.);
       E_Int elt;
 
@@ -342,9 +342,13 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
       {
         iestart[j+10*i] = ieltstart+int(deltap*j);
         ieend[j+10*i] = ieltstart+int(deltap*(j+1));
-        //printf("%d %d: %d %d\n",i,j,iestart[j+10*i],ieend[j+10*i]);
       }
     }
+    ieend[10*nthreads-1] = nelts;
+    for (E_Int i = 0; i < nthreads; i++)
+      for (E_Int j = 0; j < 10; j++)
+        printf("%d %d: %d %d\n",i,j,iestart[j+10*i],ieend[j+10*i]);
+    fflush(stdout);
 
     E_Int* istart = new E_Int [nthreads];
     E_Int* iend = new E_Int [nthreads];
@@ -353,31 +357,31 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
     E_Float alpha = 0.;
     for (E_Int i = 0; i < 10*nthreads; i++) alpha += ntris2[i];
     alpha = alpha/nthreads;
-    printf("ntri moyen equil=%d\n", int(alpha));
+    printf("ntri=%d, ntri moyen par thread=%d\n", int(alpha*nthreads),int(alpha));
     fflush(stdout);
     
     istart[0] = 0; E_Int ibold = 0; E_Int ib = 0;
-    E_Float plus = 0.;
+    E_Float plus = 1.;
     for (E_Int i = 0; i < nthreads; i++)
     {
       E_Int nc = 0; E_Int np = 0;
+      ibold = ib;
       while (ib < nthreads*10 && nc+plus*ntris2[ib] < int(alpha))
       {
         nc += ntris2[ib];
         np += npts2[ib]; ib++;
       }
-      if (plus == 0.) plus = 1.;
-      else plus = 0.;
+      //if (plus == 0.) plus = 1.;
+      //else plus = 0.;
       
       if (i == nthreads-1) // ajoute la fin (si necessaire)
       {
         while (ib < nthreads*10)
         {
           nc += ntris2[ib];
-          np += npts2[ib]; ib++; 
+          np += npts2[ib]; ib++;
         }
       }
-      
       ntris[i] = nc; npts[i] = np;
       //printf("DEBUG ib=%d %d\n",ibold,ib);
       if (ib > ibold)
@@ -401,7 +405,7 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
     }
     //iend[nthreads-1] = nelts;
     printf("reequilibrage: nthreads=%d\n", nthreads);
-    for (E_Int i = 0; i < nthreads; i++) printf("thread=%d: %d / %d %d\n", i, ntris[i], istart[i], iend[i]);
+    for (E_Int i = 0; i < nthreads; i++) printf("thread=%d: ntri=%d / start=%d end=%d\n", i, ntris[i], istart[i], iend[i]);
     fflush(stdout);
     // fin equilibrage dynamique
     delete [] npts2; delete [] ntris2;

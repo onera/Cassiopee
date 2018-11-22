@@ -111,7 +111,7 @@ def octree2Struct(o, vmin=15, ext=0, optimized=1, merged=1, AMR=0,
     eps = 1.e-6
     a = C.getFields(Internal.__GridCoordinates__, o)[0]
 
-    # Conversion en structure
+    # Conversion en structure (extension faites plus tard)
     cartzones = Generator.octree2Struct(a, vmin, ext, optimized, merged,
                                         AMR, sizeMax)
     # Creation des zones du pyTree
@@ -119,6 +119,14 @@ def octree2Struct(o, vmin=15, ext=0, optimized=1, merged=1, AMR=0,
     for mc in cartzones:
         zone = C.convertArrays2ZoneNode('cart'+str(c), [mc])        
         zones.append(zone); c += 1
+
+    cartzones = None
+    # Extension des grilles
+    #if ext > 0:
+    #    coords = C.getFields(Internal.__GridCoordinates__, zones, api=2)
+    #    coords = Generator.extendOctreeGrids__(coords, ext=ext, optimized=optimized)
+    #    C.setFields(coords, zones, 'nodes')
+
     if AMR == 1: return zones
     if ext == 0:
         try: import Connector.PyTree as X
@@ -132,12 +140,7 @@ def octree2Struct(o, vmin=15, ext=0, optimized=1, merged=1, AMR=0,
         for ratio0 in ratios:
             zones = X.connectNearMatch(zones,ratio=ratio0,dim=dimPb)
         return zones 
-    else:
-        #A voir avec Stephanie
-        #coords = C.getFields(Internal.__GridCoordinates__, zones, api=2)
-        #coords = Generator.extendOctreeGrids__(coords, ext=ext, optimized=optimized)
-        #C.setFields(coords, zones, 'nodes')
-
+    else:        
         #-----------------------
         # Creation des BCOverlap
         #-----------------------
