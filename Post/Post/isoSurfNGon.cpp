@@ -418,15 +418,16 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
     E_Int* prevF = new E_Int [nthreads];
     
 //#define KEY(p1,p2,e,f) p1+p2+2*npoints*e+(2*npoints*nelts)*f
-#define KEY(p1,p2,e,f) (ETK)p1+(ETK)p2+2*npoints*(ETK)e+(2*npoints*nelts)*(ETK)f
+#define KEY(p1,p2,e,f) (ETK)p1+(ETK)p2*npoints+npoints*npoints*(ETK)e+(npoints*npoints*nelts)*(ETK)f
 #define ETK E_LONG
 #define SETKEY12(p1,p2) \
   if (K_FUNC::fEqualZero(alpha) == true) \
     key[npt-1] = KEY(p1,-1,-1,-1); \
   else if (K_FUNC::fEqualZero(alpha1) == true) \
-    key[npt-1] = KEY(-1,p2,-1,-1); \
-  else \
-    key[npt-1] = KEY(p1,p2,-1,-1);
+    key[npt-1] = KEY(p2,-1,-1,-1); \
+  else if (p1 > p2) \
+    key[npt-1] = KEY(p1,p2,-1,-1); \
+  else key[npt-1] = KEY(p2,p1,-1,-1);
   
 #define SETKEY13(p1,e) \
   if (K_FUNC::fEqualZero(alpha) == true) \
@@ -477,7 +478,7 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
     key[npt-1] = KEY(-1,-1,e,f);
 
     FldArray<ETK>** keys = new FldArray<ETK>* [nthreads];
-    for (E_Int i = 0; i < nthreads; i++) keys[i] = new FldArray<ETK>(npts[i],2);
+    for (E_Int i = 0; i < nthreads; i++) keys[i] = new FldArray<ETK>(npts[i]);
 
 #pragma omp parallel default(shared)
     {
@@ -501,9 +502,8 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
       FldArrayF& fisop = *fisos[ithread];
 
       ETK* key = keys[ithread]->begin();
-      ETK* key2 = keys[ithread]->begin(2);
-
-      printf("%d: %d %d\n", ithread,istart[ithread],iend[ithread]); fflush(stdout);
+      
+      //printf("%d: %d %d\n", ithread,istart[ithread],iend[ithread]); fflush(stdout);
       
       for (E_Int elt = istart[ithread]; elt < iend[ithread]; elt++)
       {
@@ -574,9 +574,6 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
               ciso2[ntri] = npt-1;
               ciso3[ntri] = npt-2;
               ntri++;
-              key2[npt-3] = 0;
-              key2[npt-2] = 1;
-              key2[npt-1] = 2;
               break;
 
               case 0x01: // OK
@@ -596,9 +593,6 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
               ciso2[ntri] = npt-1;
               ciso3[ntri] = npt;
               ntri++;
-              key2[npt-3] = 3;
-              key2[npt-2] = 4;
-              key2[npt-1] = 5;
               break;
 
               case 0x0D: // OK
@@ -618,9 +612,6 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
               ciso2[ntri] = npt-1;
               ciso3[ntri] = npt-2;
               ntri++;
-              key2[npt-3] = 6;
-              key2[npt-2] = 7;
-              key2[npt-1] = 8;
               break;
 
               case 0x02: // OK
@@ -640,9 +631,6 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
               ciso2[ntri] = npt-1;
               ciso3[ntri] = npt;
               ntri++;
-              key2[npt-3] = 9;
-              key2[npt-2] = 10;
-              key2[npt-1] = 11;
               break;
 
               case 0x0C: // OK
@@ -662,9 +650,6 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
               ciso2[ntri] = npt-1;
               ciso3[ntri] = npt;
               ntri++;
-              key2[npt-3] = 12;
-              key2[npt-2] = 13;
-              key2[npt-1] = 14;
               
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f1, f3, ind1, ind3,
@@ -682,9 +667,6 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
               ciso2[ntri] = npt-1;
               ciso3[ntri] = npt-2;
               ntri++;
-              key2[npt-3] = 15;
-              key2[npt-2] = 16;
-              key2[npt-1] = 17;
               break;
 
               case 0x03:
@@ -704,9 +686,6 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
               ciso2[ntri] = npt-1;
               ciso3[ntri] = npt;
               ntri++;
-              key2[npt-3] = 18;
-              key2[npt-2] = 19;
-              key2[npt-1] = 20;
               
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f1, f3, ind1, ind3,
@@ -724,9 +703,6 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
               ciso2[ntri] = npt-1;
               ciso3[ntri] = npt;
               ntri++;
-              key2[npt-3] = 21;
-              key2[npt-2] = 22;
-              key2[npt-1] = 23;
               break;
 
               case 0x0B: // OK
@@ -746,9 +722,6 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
               ciso2[ntri] = npt-1;
               ciso3[ntri] = npt-2;
               ntri++;
-              key2[npt-3] = 24;
-              key2[npt-2] = 25;
-              key2[npt-1] = 26;
               break;
 
               case 0x04: // OK
@@ -768,9 +741,6 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
               ciso2[ntri] = npt-1;
               ciso3[ntri] = npt;
               ntri++;
-              key2[npt-3] = 27;
-              key2[npt-2] = 28;
-              key2[npt-1] = 29;
               break;
 
               case 0x0A:
@@ -790,9 +760,6 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
               ciso2[ntri] = npt-1;
               ciso3[ntri] = npt-2;
               ntri++;
-              key2[npt-3] = 30;
-              key2[npt-2] = 31;
-              key2[npt-1] = 32;
               
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f0, f1, ind0, ind1,
@@ -810,9 +777,6 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
               ciso2[ntri] = npt-1;
               ciso3[ntri] = npt-2;
               ntri++;
-              key2[npt-3] = 33;
-              key2[npt-2] = 34;
-              key2[npt-1] = 35;
               break;
 
               case 0x05:
@@ -832,9 +796,6 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
               ciso2[ntri] = npt-1;
               ciso3[ntri] = npt;
               ntri++;
-              key2[npt-3] = 36;
-              key2[npt-2] = 37;
-              key2[npt-1] = 38;
               
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f0, f1, ind0, ind1,
@@ -852,9 +813,6 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
               ciso2[ntri] = npt-1;
               ciso3[ntri] = npt;
               ntri++;
-              key2[npt-3] = 39;
-              key2[npt-2] = 40;
-              key2[npt-1] = 41;
               break;
 
               case 0x09: // OK
@@ -874,9 +832,6 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
               ciso2[ntri] = npt-1;
               ciso3[ntri] = npt-2;
               ntri++;
-              key2[npt-3] = 42;
-              key2[npt-2] = 43;
-              key2[npt-1] = 44;
               
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f0, f1, ind0, ind1,
@@ -894,9 +849,6 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
               ciso2[ntri] = npt-1;
               ciso3[ntri] = npt;
               ntri++;
-              key2[npt-3] = 45;
-              key2[npt-2] = 46;
-              key2[npt-1] = 47;
               break;
 
               case 0x06:
@@ -916,9 +868,6 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
               ciso2[ntri] = npt-1;
               ciso3[ntri] = npt;
               ntri++;
-              key2[npt-3] = 48;
-              key2[npt-2] = 49;
-              key2[npt-1] = 50;
               
               VERTEXINTERP(nfld, value, ffp, poscellN,
                            f0, f1, ind0, ind1,
@@ -936,9 +885,6 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
               ciso2[ntri] = npt-1;
               ciso3[ntri] = npt-2;
               ntri++;
-              key2[npt-3] = 51;
-              key2[npt-2] = 52;
-              key2[npt-1] = 53;
               break;
 
               case 0x07:
@@ -958,9 +904,6 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
               ciso2[ntri] = npt-1;
               ciso3[ntri] = npt;
               ntri++;
-              key2[npt-3] = 54;
-              key2[npt-2] = 55;
-              key2[npt-1] = 56;
               break;
 
               case 0x08: // OK
@@ -980,9 +923,6 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
               ciso2[ntri] = npt-1;
               ciso3[ntri] = npt;
               ntri++;
-              key2[npt-3] = 57;
-              key2[npt-2] = 58;
-              key2[npt-1] = 59;
               break;
             }
           }
@@ -1003,18 +943,27 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
     for (E_Int i = 0; i < npts[ithread]; i++)
       printf("%d: %f %f %f (key=%d, source=%d)\n",i,x[i],y[i],z[i],key[i],key2[i]);
     fflush(stdout);
-    for (E_Int i = 0; i < npts[ithread]; i++)
-      key[i] = i;
   }
   */
-    
+  
   // Nbre de pts dup + nbre de tri
   E_Int ntri = 0; E_Int npt = 0;
   for (E_Int i = 0; i < nthreads; i++) 
   { prevT[i] = ntri; ntri += ntris[i];
     prevF[i] = npt; npt += npts[i]; }
-  printf("nbre de pts dup=%d, nbre de tris=%d\n",npt,ntri);
+  printf("nbre de pts dup=%d, nbre de tris dup=%d\n",npt,ntri);
   fflush(stdout);
+  
+  // DEBUG: force une key unique
+  /*
+  for (E_Int i = 0; i < nthreads; i++)
+  {
+    E_Int f = prevF[i];
+    ETK* key = keys[i]->begin();
+    for (E_Int j = 0; j < npts[i]; j++)
+      key[j] = (ETK)(j+f);
+  }
+  */
   
   // Construction de la map (cher) key->indDup
   //printf("construction de la map\n");
@@ -1033,7 +982,7 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
     
   // Nouveau nombre de points (non dup)
   npt = map.size();
-  //printf("nbre de pts uniques=%d\n",npt); fflush(stdout);
+  printf("nbre de pts uniques=%d\n",npt); fflush(stdout);
   E_Int c = 0;
   for (std::pair<ETK,E_Int> elt : map)
   {
@@ -1151,6 +1100,7 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
     {
       KEY3(ct1[i],ct2[i],ct3[i]);
       keyp[i] = k;
+      //keyp[i] = i; // DEBUG
     }
   }  
   //for (E_Int i = 0; i < ntri; i++) printf("ct=%d %d %d = %ld\n",ct1[i],ct2[i],ct3[i],keyp[i]);

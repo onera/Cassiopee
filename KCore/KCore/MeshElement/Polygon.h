@@ -82,7 +82,7 @@ public:
     ibest = (ibest < nb_nodes && ibest > -1) ? ibest : 0;
     
     E_Int N0 = nodes[ibest] - index_start;
-    E_Int Ni, Nip1, I((ibest+1)%nb_nodes);
+    E_Int I((ibest+1)%nb_nodes);
     E_Int nb_tris = nb_nodes - 2;
     E_Int T[3];
     T[0]=N0;

@@ -2377,7 +2377,7 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
   }
   
   ///
-  E_Int get_PHs_having_PGs(const std::set<E_Int>& pgids, E_Int idx_start, std::set<E_Int>& PHlist) const 
+  void get_PHs_having_PGs(const std::set<E_Int>& pgids, E_Int idx_start, std::set<E_Int>& PHlist) const 
   {
     E_Int sz(PHs.size());
     
