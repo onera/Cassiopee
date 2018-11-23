@@ -494,7 +494,7 @@ PyObject* K_TRANSFORM::splitSharpEdgesList(PyObject* self, PyObject* args)
   }
   if (res == 2 && strcmp(eltType, "NGON") != 0)
   {
-    RELEASESHAREDS(array, f);
+    RELEASESHAREDU(array, f, cn);
     PyErr_SetString(PyExc_TypeError,
                     "splitSharpEdgesList: only for NGON array.");
     return NULL;
@@ -698,5 +698,7 @@ PyObject* K_TRANSFORM::splitSharpEdgesList(PyObject* self, PyObject* args)
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
   }
+  RELEASESHAREDU(array, f, cn);
+  RELEASESHAREDN(arrayI, indexI);
   return l;
 }

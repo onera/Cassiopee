@@ -128,10 +128,13 @@ PyObject* K_CONVERTER::extractBCMatchNG(PyObject* self, PyObject* args )
   int nint = ind->getSize();
   PyObject* pyFldD = K_ARRAY::buildArray2(nfld,varStringOut,nint,1,1,2); 
 
+  delete [] varStringOut;
+
   FldArrayF*  fldD; 
   FldArrayI* cn2;
   E_Int ni2, nj2, nk2;
-  K_ARRAY::getFromArray2(pyFldD, varStringOut, fldD, ni2, nj2, nk2, cn2, eltType);
+  char* varStringTmp;
+  K_ARRAY::getFromArray2(pyFldD, varStringTmp, fldD, ni2, nj2, nk2, cn2, eltType);
 
   // Extrapolation
   // ~~~~~~~~~~~~~
@@ -150,9 +153,12 @@ PyObject* K_CONVERTER::extractBCMatchNG(PyObject* self, PyObject* args )
       }
   }
 
+
   RELEASESHAREDZ(hook, varString, eltType);
   RELEASESHAREDS(pyFldD, fldD);
   RELEASESHAREDN(pyIndices, ind);
+
+
   return pyFldD; 
 }
 
@@ -987,8 +993,8 @@ PyObject* K_CONVERTER::buildBCMatchFieldNG(PyObject* self, PyObject* args )
                      &pyVariables, &GridCoordinates, &FlowSolutionNodes, 
                      &FlowSolutionCenters )) return NULL;
 
-  // Zone 
-  // ~~~~
+ //  // Zone 
+ //  // ~~~~
   E_Int ni, nj, nk, cnSize, cnNfld ; 
   char* varString; char* eltType;
   vector<E_Float*> fields; vector<E_Int> locs;
@@ -1050,19 +1056,19 @@ PyObject* K_CONVERTER::buildBCMatchFieldNG(PyObject* self, PyObject* args )
       {
         PyObject* tpl0 = PyList_GetItem(pyVariables, i);
         if (PyString_Check(tpl0) == 0) 
-	{
+  	{
           PyErr_Warn(PyExc_Warning, "buildBCMatchFieldNG: variable must be a string. Skipped.");
-	}
+  	}
         else 
         {
           char* varname    = PyString_AsString(tpl0); 
 
-	  // Verif. presence variables a extraire dans le dict.
-	  E_Int verif = K_ARRAY::isNamePresent(varname, varStringOut);  
-	  if (verif == -1) 
-	  {
-	    PyErr_SetString(PyExc_TypeError, "buildBCMatchFieldNG: Variable not found in dictionary allMatch.");
-	  }
+  	  // Verif. presence variables a extraire dans le dict.
+  	  E_Int verif = K_ARRAY::isNamePresent(varname, varStringOut);  
+  	  if (verif == -1) 
+  	  {
+  	    PyErr_SetString(PyExc_TypeError, "buildBCMatchFieldNG: Variable not found in dictionary allMatch.");
+  	  }
 
           posvar = K_ARRAY::isNamePresent(varname, varString);  
           if (posvar != -1 ) posvars.push_back(posvar);
@@ -1091,7 +1097,8 @@ PyObject* K_CONVERTER::buildBCMatchFieldNG(PyObject* self, PyObject* args )
 
   FldArrayF*  fld; 
   FldArrayI* cn3;
-  K_ARRAY::getFromArray2(pyFld, varStringOut, fld, ni2, nj2, nk2, cn3, eltType);
+  char* varStringTmp;
+  K_ARRAY::getFromArray2(pyFld, varStringTmp, fld, ni2, nj2, nk2, cn3, eltType);
 
 
   // Build 0.5(fldD+fldR) array on boundary faces
@@ -1109,15 +1116,16 @@ PyObject* K_CONVERTER::buildBCMatchFieldNG(PyObject* self, PyObject* args )
     {
       E_Int indFace    = ptrIndR[noindint]-1;
       E_Int indcell    = PE[indFace]-1;
-      ptrFld[noindint] = 0.5*( fieldV[indcell]+ptrFldD[noindint] );    
+      ptrFld[noindint] = 0.; //0.5*( fieldV[indcell]+ptrFldD[noindint] );    
     }
   }
 
-  RELEASESHAREDN(pyFldD, fldD);
+  RELEASESHAREDS(pyFldD, fldD);
   RELEASESHAREDN(pyIndR, indR);
-  RELEASESHAREDZ(hook, varString, eltType)
+  RELEASESHAREDZ(hook, varString, eltType); 
+  RELEASESHAREDS(pyFld, fld);
 
-  return pyFld; 
+  return pyFld;  
 }
 
 

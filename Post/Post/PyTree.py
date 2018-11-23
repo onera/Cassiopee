@@ -1193,24 +1193,25 @@ def _computeGrad2(t,var,ghostCells=False):
         if allMatch != {}:
             indFace, fldFace = C.computeBCMatchField(z,allMatch,vare)
 
-            fldp = None
+            if fldFace is not None:
 
-            for fgc in fldFace:
-                fgc   = fgc[1][0]
-                if fldp is None:
-                    fldp = fgc
-                else:
-                    fldp = numpy.concatenate((fldp,fgc))
+                fldp = None
 
-            indp    = indFace.ravel(order='K')
-            fldp    = fldp.ravel(order='K')
+                for fgc in fldFace:
+                    fgc   = fgc[1][0]
+                    if fldp is None:
+                        fldp = fgc
+                    else:
+                        fldp = numpy.concatenate((fldp,fgc))
 
-            if indices is None: indices = indp
-            else: indices = numpy.concatenate((indices, indp))
+                indp    = indFace.ravel(order='K')
+                fldp    = fldp.ravel(order='K')
 
-            if BCField is None: BCField = fldp
-            else: BCField = numpy.concatenate((BCField, fldp))
+                if indices is None: indices = indp
+                else: indices = numpy.concatenate((indices, indp))
 
+                if BCField is None: BCField = fldp
+                else: BCField = numpy.concatenate((BCField, fldp))
 
         if f != []:
             centers = Post.computeGrad2(x, f, indices=indices, BCField=BCField)

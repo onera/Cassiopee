@@ -4835,7 +4835,7 @@ def computeBCMatchField(z,allMatch,variables=None):
         else: 
           varL.append(spl[0]) 
 
-    fld  = None
+    fld  = []; indR = None
 
     for key in allMatch.keys():
       if ( key.split("/")[0] == z[0] ):
@@ -4846,13 +4846,13 @@ def computeBCMatchField(z,allMatch,variables=None):
                                                        Internal.__FlowSolutionNodes__,
                                                        Internal.__FlowSolutionCenters__)
 
-        if fld is not None:
-          fld.append(fld1)
+        if indR is not None:
           indR = numpy.concatenate((indR,indR1)) 
         else:
-          fld  = [fld1]
           indR = indR1
 
+        fld.append(fld1)
+ 
   return indR, fld 
 
 # ===================================================================================
@@ -4993,8 +4993,8 @@ def extractBCMatch(zdonor,gc,dimzR,variables=None):
         # indR = Internal.getValue(indR)
         # indD = Internal.getValue(indD)
         
-        indR = indR[1]
-        indD = indD[1]
+        indR = indR[1][0]
+        indD = indD[1][0]
 
         PE = Internal.getNodeFromName2(zdonor, 'ParentElements')
         if PE is None: Internal._adaptNFace2PE(zdonor, remove=False)

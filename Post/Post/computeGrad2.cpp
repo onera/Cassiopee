@@ -147,6 +147,7 @@ PyObject* K_POST::computeGrad2NGon(PyObject* self, PyObject* args)
   }
 
   // Replace DataSet
+
   FldArrayI* inds=NULL; FldArrayF* bfield=NULL;
   if (indices != Py_None && field != Py_None)
   {
@@ -158,12 +159,13 @@ PyObject* K_POST::computeGrad2NGon(PyObject* self, PyObject* args)
     E_Float* pf = bfield->begin();
     E_Float* fp = faceField.begin(1);
     E_Int ind;
-    //printf("in: %d %d\n", n, bfield->getSize());
+    // printf("in: %d %d\n", n, bfield->getSize());
 
     for (E_Int i = 0; i < n; i++)
     {
-      ind = pind[i]-1;
+      ind     = pind[i]-1;
       fp[ind] = pf[i];
+
       //if (ind < 0 || ind > nfaces-1) printf("%d %f\n", ind, fp[ind]);
     }
     RELEASESHAREDN(indices, inds);
@@ -188,7 +190,6 @@ PyObject* K_POST::computeGrad2NGon(PyObject* self, PyObject* args)
   K_METRIC::compNGonFacesSurf(f->begin(posx), f->begin(posy),
                               f->begin(posz), *cn,
                               sxp, syp, szp, snp, &cFE);
-
   // gradient
   E_Float ff;
   for (E_Int n = 0; n < nfld; n++)
@@ -239,14 +240,9 @@ PyObject* K_POST::computeGrad2NGon(PyObject* self, PyObject* args)
     }
   }
 
-  if (indices != Py_None && field != Py_None)
-  {
-    RELEASESHAREDN(indices, inds);
-    RELEASESHAREDN(field, bfield);
-  }
-
   RELEASESHAREDB(res,array,f,cn);
   RELEASESHAREDB(res,arrayc,fc,cnc);
+
   delete [] varStringOut;
   return tpl;
 }

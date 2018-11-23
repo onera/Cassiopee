@@ -17,6 +17,8 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// #define FLAG_STEP
+
 # include "intersector.h"
 #include "Nuga/Boolean/NGON_BooleanOperator.h"
 #include <memory>
