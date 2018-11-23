@@ -361,18 +361,17 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
     fflush(stdout);
     
     istart[0] = 0; E_Int ibold = 0; E_Int ib = 0;
-    E_Float plus = 1.;
+    E_Float plus = 0.;
     for (E_Int i = 0; i < nthreads; i++)
     {
       E_Int nc = 0; E_Int np = 0;
-      ibold = ib;
       while (ib < nthreads*10 && nc+plus*ntris2[ib] < int(alpha))
       {
         nc += ntris2[ib];
         np += npts2[ib]; ib++;
       }
-      //if (plus == 0.) plus = 1.;
-      //else plus = 0.;
+      if (plus == 0.) plus = 1.;
+      else plus = 0.;
       
       if (i == nthreads-1) // ajoute la fin (si necessaire)
       {

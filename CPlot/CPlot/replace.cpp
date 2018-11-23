@@ -120,7 +120,12 @@ PyObject* K_CPLOT::replace(PyObject* self, PyObject* args)
   {
     referenceZone = zonesp[0];
     referenceNfield = referenceZone->nfield;
-    referenceVarNames = referenceZone->varnames;
+    referenceVarNames = new char* [referenceNfield];
+    for (E_Int i = 0; i < referenceNfield; i++) 
+    {
+      referenceVarNames[i] = new char [MAXSTRINGLENGTH];
+      strcpy(referenceVarNames[i], referenceZone->varnames[i]);
+    } 
   }
 
   // malloc nouveaux pointeurs (copie)
@@ -267,6 +272,10 @@ PyObject* K_CPLOT::replace(PyObject* self, PyObject* args)
   
   // Free the input array
   RELEASESHAREDB(res, array, f, cn);
+
+  for (E_Int i = 0; i < referenceNfield; i++) delete [] referenceVarNames[i];
+  delete [] referenceVarNames;
+
   return Py_BuildValue("i", KSUCCESS);
 }
 

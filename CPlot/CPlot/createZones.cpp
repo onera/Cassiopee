@@ -309,7 +309,7 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
   z.f = new double* [z.nfield];
   for (E_Int i = 0; i < z.nfield; i++) z.f[i] = NULL;
   z.varnames = new char* [z.nfield];
-  for (E_Int n = 0; n < z.nfield; n++) 
+  for (E_Int n = 0; n < z.nfield; n++)
     z.varnames[n] = new char [MAXSTRINGLENGTH];
   z.minf = new double [z.nfield];
   z.maxf = new double [z.nfield];

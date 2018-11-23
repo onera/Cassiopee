@@ -729,7 +729,9 @@ double K_IO::GenIOAdf::writeNode(double node, PyObject* tree, double child)
         {
           E_Int diml = PyArray_DIMS(ar)[0];
           char* buf = new char [diml+1];
-          strncpy(buf, (char*)PyArray_DATA(ar), diml);
+          char* pt = (char*)PyArray_DATA(ar);
+          for (E_Int i = 0; i < diml; i++) buf[i] = pt[i]; 
+          //strncpy(buf, (char*)PyArray_DATA(ar), diml); // pb align
           buf[diml] = '\0';
           setArrayC1(child, buf);
           delete [] buf;

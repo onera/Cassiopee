@@ -228,7 +228,7 @@ def view(event=None):
                 exts += zp
 
         CTK.dt[2][2][2] += exts
-        #C._fillMissingVariables(CTK.dt) # bug exteriorFaces
+        C._fillMissingVariables(CTK.dt) # bug exteriorFaces
 
         # Activate
         lenZ = len(CTK.dt[2][1][2]); lenExts = len(CTK.dt[2][2][2])
@@ -242,7 +242,7 @@ def view(event=None):
     else:
         lenZ = len(CTK.dt[2][1][2])
         active = [(i,1) for i in xrange(lenZ)]
-        #C._fillMissingVariables(CTK.dt) # si BCDataSet != fields
+        C._fillMissingVariables(CTK.dt) # si BCDataSet != fields
         CTK.display(CTK.dt, mainTree=CTK.DEFINEDBC)
         CPlot.setActiveZones(active)
         CPlot.setState(edgifyDeactivatedZones=0)

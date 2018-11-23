@@ -1499,7 +1499,9 @@ hid_t K_IO::GenIOHdf::writeNode(hid_t node, PyObject* tree)
       {
         E_Int diml = PyArray_DIMS(ar)[0];
         char* buf = new char [diml+1];
-        strncpy(buf, (char*)PyArray_DATA(ar), diml);
+        char* pt = (char*)PyArray_DATA(ar);
+        for (E_Int i = 0; i < diml; i++) buf[i] = pt[i]; 
+        //strncpy(buf, (char*)PyArray_DATA(ar), diml); // pb align
         buf[diml] = '\0';
         setArrayC1(child, buf);
         HDF_Add_Attribute_As_String(child, L3S_DTYPE, L3T_C1);

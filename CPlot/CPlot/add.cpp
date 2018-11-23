@@ -109,11 +109,17 @@ PyObject* K_CPLOT::add(PyObject* self, PyObject* args)
   {
     referenceZone = zonesp[0];
     referenceNfield = referenceZone->nfield;
-    referenceVarNames = referenceZone->varnames;
+    referenceVarNames = new char* [referenceNfield];
+    for (E_Int i = 0; i < referenceNfield; i++) 
+    {
+      referenceVarNames[i] = new char [MAXSTRINGLENGTH];
+      strcpy(referenceVarNames[i], referenceZone->varnames[i]);
+    } 
   }
   //printf("referenceNfield=%d\n", referenceNfield);
   //printf("numberOfZones=%d\n", numberOfZones);
   //printf("numberOfStructZones=%d\n", numberOfStructZones);
+  //printf("numberOfUnstrZones=%d\n", numberOfUnstructZones);
 
   // malloc nouveaux pointeurs (copie)
   Zone** zones = (Zone**)malloc(numberOfZones*sizeof(Zone*));
@@ -206,6 +212,9 @@ PyObject* K_CPLOT::add(PyObject* self, PyObject* args)
 
   // Free the input array
   RELEASESHAREDB(res, array, f, cn);
+
+  for (E_Int i = 0; i < referenceNfield; i++) delete [] referenceVarNames[i];
+  delete [] referenceVarNames;
 
   return Py_BuildValue("i", KSUCCESS);
 }
