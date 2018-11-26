@@ -729,6 +729,7 @@ Overset connectivity
     receptor zones are avoided.
 
     .. warning:: currently, no periodic Chimera taken into account by this function automatically.
+    
     Interpolation data are stored as a ZoneSubRegion_t node, stored under the donor or receptor zone node depending of the storage.
     
     *Example of use:* 

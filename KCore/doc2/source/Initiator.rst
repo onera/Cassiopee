@@ -67,7 +67,7 @@ If the five conservative variables are not present, then the default output vari
     
     Exists also as in place version (_initConst) that modifies a and returns None.
 
-    :param a:  Input data
+    :param a:  input data
     :type  a:  [array, list of arrays] or [pyTree, base, zone, list of zones]
     :param adim:   Name of adim ('adim1', 'adim2', 'dim1', ...) - see Adimensioning section
     :type  adim:   string

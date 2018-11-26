@@ -18,7 +18,7 @@ iso = P.isoSurf(b, 'field', value=0.5)
 test.testA(iso, 2)
 
 # Melting pot
-c = G.cart( (-10,-10,-10), (1,1,1), (10,10,10) )
+c = G.cart((-10,-10,-10), (1,1,1), (10,10,10))
 c = C.initVars(c, '{field}={x}*{x}+{y}*{y}+{z}')
 all = [a,b,c]
 iso = P.isoSurf(all, 'field', value=0.5)

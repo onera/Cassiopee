@@ -68,7 +68,8 @@ List of functions
    Geom.uniformize
    Geom.refine
    Geom.enforceh 
-   Geom.lineGenerate
+   Geom.lineDrive
+   Geom.orthoDrive
    Geom.axisym
    Geom.connect1D
 
@@ -813,7 +814,7 @@ Geometry modification
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
     :param N: the final number of points
     :type N: int
-    :param h:param h: the final mesh step
+    :param h: the final mesh step
     :type h: float
     :rtype: identical to a
 
@@ -831,7 +832,7 @@ Geometry modification
 
 ---------------------------------------------------------------
 
-.. py:function:: Geom.lineGenerate(a, d)
+.. py:function:: Geom.lineDrive(a, d)
 
     Generate a surface mesh starting from a curve a and a single or a set of driving curves.
     The first point of the driving curves must match with one point of the original curve a.
@@ -845,13 +846,38 @@ Geometry modification
 
     *Example of use:*
 
-    * `Extrusion of a NACA0012 (array) <Examples/Geom/lineGenerate.py>`_:
+    * `Extrusion of a NACA0012 (array) <Examples/Geom/lineDrive.py>`_:
 
-    .. literalinclude:: ../build/Examples/Geom/lineGenerate.py
+    .. literalinclude:: ../build/Examples/Geom/lineDrive.py
 
-    * `Extrusion of a NACA0012 (pyTree) <Examples/Geom/lineGeneratePT.py>`_:
+    * `Extrusion of a NACA0012 (pyTree) <Examples/Geom/lineDrivePT.py>`_:
 
-    .. literalinclude:: ../build/Examples/Geom/lineGeneratePT.py
+    .. literalinclude:: ../build/Examples/Geom/lineDrivePT.py
+
+---------------------------------------------------------------
+
+.. py:function:: Geom.orthoDrive(a, d, mode=0)
+
+    Generate a surface mesh starting from a curve a and a single driving curve.
+    The initial mesh is driven orthogonally to the driving curve.
+    The first point of the driving curves must match with one point of the original curve a.
+
+    :param a: original curve to be extruded orthogonally wrt the driving curve d 
+    :type a: array or zone 
+    :param d: driving curve
+    :type d: [array] or [zone]
+    :param mode: if mode=0, return one single zone, if mode=1, duplicate a and return a list of zones
+    :return: a surface structured mesh or a list of meshes
+
+    *Example of use:*
+
+    * `Extrusion of a NACA0012 (array) <Examples/Geom/orthoDrive.py>`_:
+
+    .. literalinclude:: ../build/Examples/Geom/orthoDrive.py
+
+    * `Extrusion of a NACA0012 (pyTree) <Examples/Geom/orthoDrivePT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Geom/orthoDrivePT.py
 
 .. ---------------------------------------------------------------
 .. .. py:function:: Geom.addSeparationLine(a, b)

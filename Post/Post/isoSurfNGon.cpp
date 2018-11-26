@@ -139,9 +139,9 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
 
   E_Int nelts = cn.getNElts();
   E_Int nfaces = cn.getNFaces();
-  printf("nelts=%d, nfaces=%d\n", nelts, nfaces);
-  printf("api=%d, ngon=%d\n", cn.getApi(), cn.isNGon());
-  printf("nfld=%d\n", cn.getNfld());
+  //printf("nelts=%d, nfaces=%d\n", nelts, nfaces);
+  //printf("api=%d, ngon=%d\n", cn.getApi(), cn.isNGon());
+  //printf("nfld=%d\n", cn.getNfld());
   fflush(stdout);
   E_Int* ptrf = cn.getNGon();
   E_Int* ptre = cn.getNFace();
@@ -322,12 +322,26 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
       //printf("borne end=%d\n", elt);
     }
 
-    for (E_Int i = 0; i < nthreads; i++)
+    // Nbre de tris
+    E_Float alpha = 0.;
+    for (E_Int i = 0; i < 10*nthreads; i++) alpha += ntris2[i];
+    alpha = alpha/nthreads;
+    //printf("ntri=%d, ntri moyen par thread=%d\n", int(alpha*nthreads),int(alpha));
+    //fflush(stdout);
+    if (alpha == 0.)
     {
-      for (E_Int j = 0; j < 10; j++) printf("thread=%d, j=%d -> %d,%d\n", i,j,npts2[j+i*10],ntris2[j+i*10]);
+      delete [] npts2; delete [] ntris2;
+      fiso.malloc(0,nfld);
+      ciso.malloc(0,3);
+      return;
     }
-    printf("dimensionnement...\n");
-    fflush(stdout);
+
+    //for (E_Int i = 0; i < nthreads; i++)
+    //{
+    //  for (E_Int j = 0; j < 10; j++) printf("thread=%d, j=%d -> %d,%d\n", i,j,npts2[j+i*10],ntris2[j+i*10]);
+    //}
+    //printf("dimensionnement...\n");
+    //fflush(stdout);
 
     // equilibrage dynamique
     FldArrayI iestart(10*nthreads);
@@ -345,20 +359,15 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
       }
     }
     ieend[10*nthreads-1] = nelts;
-    for (E_Int i = 0; i < nthreads; i++)
-      for (E_Int j = 0; j < 10; j++)
-        printf("%d %d: %d %d\n",i,j,iestart[j+10*i],ieend[j+10*i]);
-    fflush(stdout);
+    //for (E_Int i = 0; i < nthreads; i++)
+    //  for (E_Int j = 0; j < 10; j++)
+    //    printf("%d %d: %d %d\n",i,j,iestart[j+10*i],ieend[j+10*i]);
+    //fflush(stdout);
 
     E_Int* istart = new E_Int [nthreads];
     E_Int* iend = new E_Int [nthreads];
     E_Int* ntris = new E_Int [nthreads];
     E_Int* npts = new E_Int [nthreads];
-    E_Float alpha = 0.;
-    for (E_Int i = 0; i < 10*nthreads; i++) alpha += ntris2[i];
-    alpha = alpha/nthreads;
-    printf("ntri=%d, ntri moyen par thread=%d\n", int(alpha*nthreads),int(alpha));
-    fflush(stdout);
     
     istart[0] = 0; E_Int ibold = 0; E_Int ib = 0;
     E_Float plus = 0.;
@@ -403,9 +412,9 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
       ibold = ib;
     }
     //iend[nthreads-1] = nelts;
-    printf("reequilibrage: nthreads=%d\n", nthreads);
-    for (E_Int i = 0; i < nthreads; i++) printf("thread=%d: ntri=%d / start=%d end=%d\n", i, ntris[i], istart[i], iend[i]);
-    fflush(stdout);
+    //printf("reequilibrage: nthreads=%d\n", nthreads);
+    //for (E_Int i = 0; i < nthreads; i++) printf("thread=%d: ntri=%d / start=%d end=%d\n", i, ntris[i], istart[i], iend[i]);
+    //fflush(stdout);
     // fin equilibrage dynamique
     delete [] npts2; delete [] ntris2;
 
@@ -929,7 +938,7 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
       }
     }
 
-  printf("Analyse\n");
+  //printf("Analyse\n");
   // Analyse
   /*
   for (E_Int ithread = 0; ithread < nthreads; ithread++)
@@ -950,8 +959,8 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
   for (E_Int i = 0; i < nthreads; i++) 
   { prevT[i] = ntri; ntri += ntris[i];
     prevF[i] = npt; npt += npts[i]; }
-  printf("nbre de pts dup=%d, nbre de tris dup=%d\n",npt,ntri);
-  fflush(stdout);
+  //printf("nbre de pts dup=%d, nbre de tris dup=%d\n",npt,ntri);
+  //fflush(stdout);
   
   // DEBUG: force une key unique
   /*
@@ -981,7 +990,7 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
     
   // Nouveau nombre de points (non dup)
   npt = map.size();
-  printf("nbre de pts uniques=%d\n",npt); fflush(stdout);
+  //printf("nbre de pts uniques=%d\n",npt); fflush(stdout);
   E_Int c = 0;
   for (std::pair<ETK,E_Int> elt : map)
   {
@@ -1018,7 +1027,7 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
   //for (E_Int i = 0; i < invMap.getSize(); i++) printf("invdup=%d: ind=%d\n",i,invMap[i]);
   //fflush(stdout);
   
-  printf("reconstruction fiso (%d points)\n", npt); fflush(stdout);
+  //printf("reconstruction fiso (%d points)\n", npt); fflush(stdout);
   fiso.malloc(npt, nfld);
   
 #pragma omp parallel default(shared)
@@ -1038,7 +1047,7 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
   //for (E_Int i = 0; i < npt; i++) printf("f %d: %f %f %f\n",i,fiso(i,1),fiso(i,2),fiso(i,3));
   //fflush(stdout);
   
-  printf("reconstruction ciso\n"); fflush(stdout);
+  //printf("reconstruction ciso\n"); fflush(stdout);
   //ciso.malloc(ntri, 3);
   FldArrayI ciso2(ntri,3);
   
@@ -1059,7 +1068,7 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
   
   //for (E_Int i = 0; i < ntri; i++) printf("c %d: %d %d %d\n",i,ciso2(i,1),ciso2(i,2),ciso2(i,3));
   //fflush(stdout);
-  printf("done\n"); fflush(stdout);
+  //printf("done\n"); fflush(stdout);
   
   // delete
   for (E_Int i = 0; i < nthreads; i++) delete keys[i];
@@ -1073,7 +1082,7 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
   invMap.malloc(0);
   
   // Elimination des elements identiques (eventuels)
-  printf("Elimination des elements identiques\n");
+  //printf("Elimination des elements identiques\n");
   
 #define KEY3S(c1,c2,c3) (ETK)(c1-1)+npt*(ETK)(c2-1)+npt*npt*(ETK)(c3-1)
 //#define KEY3(c1,c2,c3) KEY3S(c1,c2,c3) + KEY3S(c1,c3,c2) + KEY3S(c2,c1,c3) + KEY3S(c2,c3,c1) + KEY3S(c3,c1,c2) + KEY3S(c3,c2,c1)
@@ -1112,7 +1121,7 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
   ciso.malloc(newTri,3);
   E_Int* cp1 = ciso.begin(1); E_Int* cp2 = ciso.begin(2); E_Int* cp3 = ciso.begin(3);
   E_Int ind;
-  printf("elimination TRI multiples ou degeneres =%d\n", newTri); fflush(stdout);
+  //printf("elimination TRI multiples ou degeneres =%d\n", newTri); fflush(stdout);
   for (std::pair<ETK,E_Int> elt : map)
   {
     //ETK k = elt.first;

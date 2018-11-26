@@ -766,8 +766,8 @@ def isoSurf(array, var, value, split='simple'):
         return ret
     else:
         try:
-            if b[3] != 'NGON': 
-                b = Converter.convertArray2Tetra(array, split=split)
+            if array[3] != 'NGON': b = Converter.convertArray2Tetra(array, split=split)
+            else: b = array
         except: b = array
         try:
             if b[3] == 'TRI' or b[3] == 'QUAD' or b[3] == 'BAR':

@@ -836,7 +836,7 @@ def getIBMFront(tc, frontvar, dim, frontType):
                 dht[nof] = max(dx,dy,dz)
             else: dht[nof] = dx
 
-            if dht[nof] < dxmin and dht[nof] > 1.e-12: 
+            if dht[nof] < dxmin and dht[nof] > 1.e-12:
                 dxmin = dht[nof]
             if dht[nof] > dxmax: 
                 dxmax = dht[nof]
@@ -856,7 +856,7 @@ def getIBMFront(tc, frontvar, dim, frontType):
             if len(dictOfLevels[nol])>0:
                 front.append(T.join(dictOfLevels[nol]))
 
-    # C.convertPyTree2File(front,"front0.cgns")
+    #C.convertPyTree2File(front,"front0.cgns")
     # if frontType==2:
     #     G._getNormalMap(front)
     #     C._normalize(front, ['centers:sx','centers:sy','centers:sz'])

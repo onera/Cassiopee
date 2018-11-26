@@ -81,34 +81,34 @@ then
     sphinx-build -b latex ./source ./build
     cd build
     pdflatex Connector
-    pdflatex ConnectorMpi
-    pdflatex OversetData
-    pdflatex OversetDataElsA
+    #pdflatex ConnectorMpi
+    #pdflatex OversetData
+    #pdflatex OversetDataElsA
   cd ..
 fi
 
 # Copie dans le DEST
 if ([ $PRODUCTION -eq 1 ])
 then
-    taghtml build/ConnectorMpi.html
-    sed -i 's/Connector.Mpi.Connector.Mpi/Connector.Mpi/g' build/ConnectorMpi.html
-    sed -i 's/Connector.pdf/ConnectorMpi.pdf/g' build/ConnectorMpi.html
-    cp build/ConnectorMpi.html $DEST
-    taghtml build/OversetData.html
-    sed -i 's/OversetData.Connector/Connector/g' build/OversetData.html
-    sed -i 's/Connector.pdf/OversetData.pdf/g' build/OversetData.html
-    taghtml build/OversetData.html
-    taghtml build/OversetDataElsA.html
-    sed -i 's/OversetDataElsA.Connector/Connector/g' build/OversetDataElsA.html
-    sed -i 's/Connector.pdf/OversetDataElsA.pdf/g' build/OversetDataElsA.html
-    taghtml build/OversetDataElsA.html
+    #taghtml build/ConnectorMpi.html
+    #sed -i 's/Connector.Mpi.Connector.Mpi/Connector.Mpi/g' build/ConnectorMpi.html
+    #sed -i 's/Connector.pdf/ConnectorMpi.pdf/g' build/ConnectorMpi.html
+    #cp build/ConnectorMpi.html $DEST
+    #taghtml build/OversetData.html
+    #sed -i 's/OversetData.Connector/Connector/g' build/OversetData.html
+    #sed -i 's/Connector.pdf/OversetData.pdf/g' build/OversetData.html
+    #taghtml build/OversetData.html
+    #taghtml build/OversetDataElsA.html
+    #sed -i 's/OversetDataElsA.Connector/Connector/g' build/OversetDataElsA.html
+    #sed -i 's/Connector.pdf/OversetDataElsA.pdf/g' build/OversetDataElsA.html
+    #taghtml build/OversetDataElsA.html
     sed -i 's/Connector.Connector/Connector/g' build/Connector.html    
     sed -i 's/Connector.Connector/Connector/g' build/Connector.html
     cp build/Connector.html $DEST
     cp build/Connector.pdf $DEST
-    cp build/ConnectorMpi.pdf $DEST
-    cp build/OversetData.pdf $DEST
-    cp build/OversetDataElsA.pdf $DEST
+    #cp build/ConnectorMpi.pdf $DEST
+    #cp build/OversetData.pdf $DEST
+    #cp build/OversetDataElsA.pdf $DEST
 fi
 
 # Copie des release Notes

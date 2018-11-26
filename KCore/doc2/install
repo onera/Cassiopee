@@ -50,6 +50,7 @@ cp $CASSIOPEE/Apps/Modules/Initiator/doc2/source/Initiator.rst source/
 cp $CASSIOPEE/Apps/Modules/Generator/doc2/source/Generator.rst source/
 cp $CASSIOPEE/Apps/Modules/Transform/doc2/source/Transform.rst source/
 cp $CASSIOPEE/Apps/Modules/Dist2Walls/doc2/source/Dist2Walls.rst source/
+cp $CASSIOPEE/Apps/Modules/Connector/doc2/source/Connector.rst source/
 cp $CASSIOPEE/Apps/Modules/Distributor2/doc2/source/Distributor2.rst source/
 cp $CASSIOPEE/Apps/Modules/Post/doc2/source/Post.rst source/
 cp $CASSIOPEE/Apps/Modules/RigidMotion/doc2/source/RigidMotion.rst source/
@@ -76,6 +77,7 @@ sed -i 's/Initiator\.Initiator/Initiator/g' $FILE
 sed -i 's/Generator\.Generator/Generator/g' $FILE
 sed -i 's/Transform\.Transform/Transform/g' $FILE
 sed -i 's/Dist2Walls\.Dist2Walls/Dist2Walls/g' $FILE
+sed -i 's/Connector\.Connector/Connector/g' $FILE
 sed -i 's/Distributor2\.Distributor2/Distributor2/g' $FILE
 sed -i 's/Post\.Post/Post/g' $FILE
 sed -i 's/RigidMotion\.RigidMotion/RigidMotion/g' $FILE
@@ -97,6 +99,7 @@ sed -i 's/Initiator\.Initiator/Initiator/g' $FILE
 sed -i 's/Generator\.Generator/Generator/g' $FILE
 sed -i 's/Transform\.Transform/Transform/g' $FILE
 sed -i 's/Dist2Walls\.Dist2Walls/Dist2Walls/g' $FILE
+sed -i 's/Connector\.Connector/Connector/g' $FILE
 sed -i 's/Distributor2\.Distributor2/Distributor2/g' $FILE
 sed -i 's/Post\.Post/Post/g' $FILE
 sed -i 's/RigidMotion\.RigidMotion/RigidMotion/g' $FILE

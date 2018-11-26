@@ -10,7 +10,6 @@ a = G.cartNGon((1,1,1), (1.,1.,1.), (4,10,3)); a[0]='cart1'
 b = G.cartNGon((4,2,0), (1.,1.,1.), (5,8,5)) ; b[0]='cart2'
 c = G.cartNGon((4,9,1), (1.,1.,1.), (4,5,6)) ; c[0]='cart3'
 
-
 t = CP.newPyTree(['Base',a,b,c])
 
 t = CP.initVars(t, '{F}=3*{CoordinateX}+2*{CoordinateY}')
