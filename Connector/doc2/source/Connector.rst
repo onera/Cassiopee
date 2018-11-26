@@ -80,35 +80,36 @@ Multiblock connectivity
 
 .. py:function:: Connector.connectMatch
 
+    Detect and set all matching windows, even partially.
 
-    Using the array interface:
+    *Using the array interface:*
 
         ::
 
          res = X.connectMatch(a1, a2, sameZone=0, tol=1.e-6, dim=3)
 
-        Detect and set all matching windows, even partially between two structured arrays a1 and a2.
-        Returns the subrange of indices of abutting windows and an index transformation from a1 to a2.
+        Detect and set all matching windows between two structured arrays a1 and a2.
+        Return the subrange of indices of abutting windows and an index transformation from a1 to a2.
         If the CFD problem is 2D, then dim must be set to 2.
         Parameter sameZone must be set to 1 if a1 and a2 define the same zone.
 
     :param a1,a2:  Input data
     :type  a1,a2:  arrays
+    
 
-
-    Using the PyTree interface:
+    *Using the PyTree interface:*
 
         ::
 
          t = X.connectMatch(t, tol=1.e-6, dim=3)
         
-        Detect and set all matching windows, even partially, in a zone node, a list of zone nodes or a complete pyTree.
+        Detect and set all matching windows in a zone node, a list of zone nodes or a complete pyTree.
         Set automatically the Transform node corresponding to the transformation from matching block 1 to block 2.
         If the CFD problem is 2D, then dim must be set to 2.
 
-        :param t: input data
-        :type  t: pyTree, base, zone, list of zones
-        :rtype:  identical to input
+    :param t: input data
+    :type  t: pyTree, base, zone, list of zones
+    :rtype:  identical to input
 
     *Example of use:*
 
@@ -127,16 +128,29 @@ Multiblock connectivity
     Detect and set all periodic matching borders, even partially, in a zone node, a list of zone nodes, a base, or a full pyTree.
     Periodicity can be defined either by rotation or translation or by a composition of rotation and translation.
 
-    .. warning:: if the mesh is periodic in rotation and in translation separately (i.e. connecting with some blocks in rotation, and some other blocks in translation), 
-    the function must be applied twice.
+
+    :param t: input data
+    :type  t: pyTree, base, zone, list of zones
+    :rtype:  identical to input
+
 
     Set automatically the Transform node corresponding to the transformation from matching block 1 to block 2, and the 'GridConnectivityProperty/Periodic' for periodic matching BCs.
+
     If the CFD problem is 2D, then dim must be set to 2.
+
     For periodicity by rotation, the rotation angle units can be specified by argument unitAngle, which can be 'Degree','Radian',None.
+
     If unitAngle=None or 'Degree': parameter rotationAngle is assumed to be defined in degrees.
+
     If unitAngle='Radian': parameter rotationAngle is assumed in radians.
 
-    Since Cassiopee2.6: 'RotationAngle' node in 'Periodic' node is always defined in Radians. A DimensionalUnits child node is also defined.
+
+    .. note:: 
+
+      - if the mesh is periodic in rotation and in translation separately (i.e. connecting with some blocks in rotation, and some other blocks in translation), the function must be applied twice.
+
+      - Since *Cassiopee2.6*: 'RotationAngle' node in 'Periodic' node is always defined in Radians. A DimensionalUnits child node is also defined.
+    
 
     *Example of use:*
 
@@ -148,7 +162,7 @@ Multiblock connectivity
 
 .. py:function:: Connector.PyTree.connectNearMatch(t, ratio=2, tol=1.e-6, dim=3)
 
-    detect and set all near-matching windows, even partially in a zone node, a list of zone nodes or a complete pyTree.
+    Detect and set all near-matching windows, even partially in a zone node, a list of zone nodes or a complete pyTree.
     A 'UserDefinedData' node is set, with the PointRangeDonor, the Transform and NMRatio nodes providing information for the opposite zone.
     .. warning:: connectMatch must be applied first if matching windows exist.
 
@@ -156,6 +170,11 @@ Multiblock connectivity
     the nearmatching direction to test (less CPU-consuming).
     If the CFD problem is 2D, then dim must be set to 2.
     
+
+    :param t: input data
+    :type  t: pyTree, base, zone, list of zones
+    :rtype:  identical to input
+
     *Example of use:*
 
     * `Add n-to-m abutting grid connectivity in a pyTree (pyTree) <Examples/Connector/connectNearMatchPT.py>`_:
@@ -166,7 +185,7 @@ Multiblock connectivity
 
 .. py:function:: Connector.PyTree.setDegeneratedBC(t, dim=3, tol=1.e-10)
 
-    detect all degenerate lines in 3D zones and define a BC as a 'BCDegenerateLine' BC type. For 2D zones, 'BCDegeneratePoint'
+    Detect all degenerated lines in 3D zones and define a BC as a 'BCDegenerateLine' BC type. For 2D zones, 'BCDegeneratePoint'
     type is defined.
     If the problem is 2D according to (i,j), then parameter 'dim' must be set to 2.
     Parameter 'tol' defines a distance below which a window is assumed degenerated.
@@ -184,68 +203,81 @@ Overset connectivity
 -------------------------
 
 .. py:function:: Connector.blankCells()
+
+    Blank cells using X-Ray method.
     
-    Using the array interface:
-    ::
+    *Using the array interface:*
 
-        cellns = X.blankCells(coords, cellns, body, blankingType=2, delta=1.e-10, dim=3, masknot=0, tol=1.e-8)
+        ::
 
-    blank the cells of a list of grids defined by coords (located at nodes).
-    The X-Ray mask is defined by bodies, which is a list of arrays.
-    Cellnaturefield defined in cellns is modified (0: blanked points, 1: otherwise).
-    Some parameters can be specified: blankingType, delta, masknot, tol. Their meanings are described in the table below:
+          cellns = X.blankCells(coords, cellns, body, blankingType=2, delta=1.e-10, dim=3, masknot=0, tol=1.e-8)
 
-+---------------------------+----------------------------------------------------------------------------------+
-|  Parameter value          |  Meaning                                                                         | 
-+===========================+==================================================================================+
-|    blankingType=0         |  blank nodes inside bodies (node_in).                                            | 
-+---------------------------+----------------------------------------------------------------------------------+
-|    blankingType=2         |  blank cell centers inside bodies (center_in).                                   | 
-+---------------------------+----------------------------------------------------------------------------------+
-|    blankingType=1         |  blank cell centers intersecting with body (cell_intersect).                     | 
-+---------------------------+----------------------------------------------------------------------------------+
-|    blankingType=-2        |  blank cell centers using an optimized cell intersection (cell_intersect_opt)    |
-|                           |  and interpolation depth=2 (blanking region may be reduced where blanking point  | 
-|                           |  can be interpolated).                                                           | 
-+---------------------------+----------------------------------------------------------------------------------+
-|    blankingType=-1        |  blank cell centers using an optimized cell intersection (cell_intersect_opt)    | 
-|                           |  and interpolation depth=1.                                                      | 
-+---------------------------+----------------------------------------------------------------------------------+
-|    delta=0.               |  cells are blanked in the body                                                   | 
-+---------------------------+----------------------------------------------------------------------------------+
-| delta greater than 0.     |  the maximum distance to body, in which cells are blanked                        | 
-+---------------------------+----------------------------------------------------------------------------------+
-| masknot=0                 |  Classical blanking applied                                                      | 
-+---------------------------+----------------------------------------------------------------------------------+
-| masknot=1                 |  Inverted blanking applied: cells out of the body are blanked                    | 
-+---------------------------+----------------------------------------------------------------------------------+
-| dim=3                     |  body described by a surface and blanks 3D cells.                                | 
-+---------------------------+----------------------------------------------------------------------------------+
-|  dim=2                    |  body blanks 2D or 1D zones.                                                     | 
-+---------------------------+----------------------------------------------------------------------------------+
-| tol=1.e-8 (default)       |  tolerance for the multiple definition of the body.                              | 
-+---------------------------+----------------------------------------------------------------------------------+
+        Blank the cells of a list of grids defined by coords (located at nodes).
+        The X-Ray mask is defined by bodies, which is a list of arrays.
+        Cellnaturefield defined in cellns is modified (0: blanked points, 1: otherwise).
+        Some parameters can be specified: blankingType, delta, masknot, tol. Their meanings are described in the table below:
+
+        +---------------------------+----------------------------------------------------------------------------------+
+        |  Parameter value          |  Meaning                                                                         | 
+        +===========================+==================================================================================+
+        |    blankingType=0         |  blank nodes inside bodies (node_in).                                            | 
+        +---------------------------+----------------------------------------------------------------------------------+
+        |    blankingType=2         |  blank cell centers inside bodies (center_in).                                   | 
+        +---------------------------+----------------------------------------------------------------------------------+
+        |    blankingType=1         |  blank cell centers intersecting with body (cell_intersect).                     | 
+        +---------------------------+----------------------------------------------------------------------------------+
+        |    blankingType=-2        |  blank cell centers using an optimized cell intersection (cell_intersect_opt)    |
+        |                           |  and interpolation depth=2 (blanking region may be reduced where blanking point  | 
+        |                           |  can be interpolated).                                                           | 
+        +---------------------------+----------------------------------------------------------------------------------+
+        |    blankingType=-1        |  blank cell centers using an optimized cell intersection (cell_intersect_opt)    | 
+        |                           |  and interpolation depth=1.                                                      | 
+        +---------------------------+----------------------------------------------------------------------------------+
+        |    delta=0.               |  cells are blanked in the body                                                   | 
+        +---------------------------+----------------------------------------------------------------------------------+
+        | delta greater than 0.     |  the maximum distance to body, in which cells are blanked                        | 
+        +---------------------------+----------------------------------------------------------------------------------+
+        | masknot=0                 |  Classical blanking applied                                                      | 
+        +---------------------------+----------------------------------------------------------------------------------+
+        | masknot=1                 |  Inverted blanking applied: cells out of the body are blanked                    | 
+        +---------------------------+----------------------------------------------------------------------------------+
+        | dim=3                     |  body described by a surface and blanks 3D cells.                                | 
+        +---------------------------+----------------------------------------------------------------------------------+
+        |  dim=2                    |  body blanks 2D or 1D zones.                                                     | 
+        +---------------------------+----------------------------------------------------------------------------------+
+        | tol=1.e-8 (default)       |  tolerance for the multiple definition of the body.                              | 
+        +---------------------------+----------------------------------------------------------------------------------+
 
 
-    .. warning:: in case of blankingType=0, location of cellns and coords must be identical.
+        .. note:: in case of blankingType=0, location of cellns and coords must be identical.
     
-    Using the pyTree interface:
-    ::
+    *Using the pyTree interface:*
+        ::
 
-        B = X.blankCells(t, bodies, BM, depth=2, blankingType='cell_intersect', delta=1.e-10, dim=3, tol=1.e-8, XRaydim1=1000, XRaydim2=1000)
+         B = X.blankCells(t, bodies, BM, depth=2, blankingType='cell_intersect', delta=1.e-10, dim=3, tol=1.e-8, XRaydim1=1000, XRaydim2=1000)
 
 
-    blankCells function sets the cellN to 0 to blanked nodes or cell centers of both structured and unstructured grids.
-    The location of the cellN field depends on the blankingType parameter: if 'node_in' is used, nodes are blanked, else centers are blanked.
-    The mesh to be blanked is defined by a pyTree t, where each basis defines a Chimera component. The list of bodies blanking the grids is defined in bodies.
-    Each element of the list bodies is a set of CGNS/Python zones defining a closed and watertight surface.
-    The blanking matrix BM is a numpy array of size nbases x nbodies.
-    BM(i,j)=1 means that ith basis is blanked by jth body.
-    BM(i,j)=0 means no blanking, and BM(i,j)=-1 means that inverted hole-cutting is performed.
-    blankingType can be 'cell_intersect', 'cell_intersect_opt', 'center_in' or 'node_in'. Parameter depth is only meaningfull for 'cell_intersect_opt'.
-    XRaydim1 and XRaydim2 are the dimensions of the X-Ray hole-cutting in the x and y directions in 3D.
-    If the variable 'cellN' does not exist in the input pyTree, it is initialized to 1, located at 'nodes' if 'node_in' is set, and at centers in other cases.
-    .. warning:: 'cell_intersect_opt' can be CPU time-consuming when delta>0.
+        **blankCells** function sets the cellN to 0 to blanked nodes or cell centers of both structured and unstructured grids.
+
+        The location of the cellN field depends on the *blankingType* parameter: if 'node_in' is used, nodes are blanked, else centers are blanked.
+
+        The mesh to be blanked is defined by a pyTree t, where each basis defines a Chimera component. The list of bodies blanking the grids is defined in bodies.
+
+        Each element of the list bodies is a set of CGNS/Python zones defining a closed and watertight surface.
+
+        The blanking matrix BM is a numpy array of size nbases x nbodies.
+
+        BM(i,j)=1 means that ith basis is blanked by jth body.
+
+        BM(i,j)=0 means no blanking, and BM(i,j)=-1 means that inverted hole-cutting is performed.
+
+        blankingType can be 'cell_intersect', 'cell_intersect_opt', 'center_in' or 'node_in'. Parameter depth is only meaningfull for 'cell_intersect_opt'.
+
+        XRaydim1 and XRaydim2 are the dimensions of the X-Ray hole-cutting in the x and y directions in 3D.
+
+        If the variable 'cellN' does not exist in the input pyTree, it is initialized to 1, located at 'nodes' if 'node_in' is set, and at centers in other cases.
+
+        .. warning:: 'cell_intersect_opt' can be CPU time-consuming when delta>0.
 
     *Example of use:*
 
@@ -262,63 +294,73 @@ Overset connectivity
 
 .. py:function:: Connector.blankCellsTetra()
 
-    Using the array interface:
-    ::
+    *Using the array interface:*
 
-      cellns = X.blankCellsTetra(coords, cellns, body, blankingType=2, tol=1.e-12)
+        ::
+
+          cellns = X.blankCellsTetra(coords, cellns, body, blankingType=2, tol=1.e-12)
     
 
-    Blanks the input grids nodes or cells (depending on the *blankingType* value) that fall inside a volume body mask.
-    The blanking is achieved by setting the Cellnaturefield to *cellnval* (0 by default) in *cellns*.
-    
-    The input grids are defined by coords located at nodes as a list of arrays. The body mask is defined by sets of tetrahedra in any orientation, as a list of arrays.
+        Blanks the input grids nodes or cells (depending on the *blankingType* value) that fall inside a volume body mask.
+        The blanking is achieved by setting the Cellnaturefield to *cellnval* (0 by default) in *cellns*.
+        
+        The input grids are defined by coords located at nodes as a list of arrays. The body mask is defined by sets of tetrahedra in any orientation, as a list of arrays.
 
-    If the *blankingMode* is set to 1 (overwrite mode), Cellnaturefield is reset to 1 for any node/cell outside the body mask.
-    Hence the value of 1 is forbidden for cellnval upon entry (it will be replaced by 0).
+        If the *blankingMode* is set to 1 (overwrite mode), Cellnaturefield is reset to 1 for any node/cell outside the body mask.
+        Hence the value of 1 is forbidden for cellnval upon entry (it will be replaced by 0).
 
-    The parameters meanings and values are described in the table below:
+        The parameters meanings and values are described in the table below:
 
-+---------------------------+----------------------------------------------------------------------------------+
-|  Parameter value          |  Meaning                                                                         | 
-+===========================+==================================================================================+
-|  blankingType=0           |  blanks the nodes falling inside the body masks (node_in).                       | 
-+---------------------------+----------------------------------------------------------------------------------+
-|  blankingType=2           |  blanks the cells having their center falling inside the body masks (center_in). | 
-+---------------------------+----------------------------------------------------------------------------------+
-|  blankingType=1           |  blanks the cells that intersect or fall inside the body masks (cell_intersect). | 
-+---------------------------+----------------------------------------------------------------------------------+
-|  tol=1.e-12               |  tolerance for detecting intersections (NOT USED CURRENTLY).                     | 
-+---------------------------+----------------------------------------------------------------------------------+
-|  cellnval=0 (default)     |  value used for flagging as blanked.                                             | 
-+---------------------------+----------------------------------------------------------------------------------+
-|  blankingMode=0 (default) |  Appending mode: cellns is only modified for nodes/cells falling inside the body |
-|                           |  mask by setting the value in cellns to cellnval.                                | 
-+---------------------------+----------------------------------------------------------------------------------+
-|  blankingMode=1           |  Overwriting mode: cellns is modified for both nodes/cells falling inside        |
-|                           |  (set to cellnval) and outside (set to 1) the body mask.                         | 
-+---------------------------+----------------------------------------------------------------------------------+
+        +---------------------------+----------------------------------------------------------------------------------+
+        |  Parameter value          |  Meaning                                                                         | 
+        +===========================+==================================================================================+
+        |  blankingType=0           |  blanks the nodes falling inside the body masks (node_in).                       | 
+        +---------------------------+----------------------------------------------------------------------------------+
+        |  blankingType=2           |  blanks the cells having their center falling inside the body masks (center_in). | 
+        +---------------------------+----------------------------------------------------------------------------------+
+        |  blankingType=1           |  blanks the cells that intersect or fall inside the body masks (cell_intersect). | 
+        +---------------------------+----------------------------------------------------------------------------------+
+        |  tol=1.e-12               |  tolerance for detecting intersections (NOT USED CURRENTLY).                     | 
+        +---------------------------+----------------------------------------------------------------------------------+
+        |  cellnval=0 (default)     |  value used for flagging as blanked.                                             | 
+        +---------------------------+----------------------------------------------------------------------------------+
+        |  blankingMode=0 (default) |  Appending mode: cellns is only modified for nodes/cells falling inside the body |
+        |                           |  mask by setting the value in cellns to cellnval.                                | 
+        +---------------------------+----------------------------------------------------------------------------------+
+        |  blankingMode=1           |  Overwriting mode: cellns is modified for both nodes/cells falling inside        |
+        |                           |  (set to cellnval) and outside (set to 1) the body mask.                         | 
+        +---------------------------+----------------------------------------------------------------------------------+
     
-    .. warning:: in case of blankingType=0, location of cellns and coords must be identical.
+        .. warning:: in case of blankingType=0, location of cellns and coords must be identical.
     
 
-    Using the pyTree interface:
-    ::
+    *Using the pyTree interface:*
 
-        B = X.blankCellsTetra(t, bodies, BM, blankingType='node_in', tol=1.e-12, cellnval=0, overwrite=0)
+        ::
+
+          B = X.blankCellsTetra(t, bodies, BM, blankingType='node_in', tol=1.e-12, cellnval=0, overwrite=0)
     
-    Blanks the input grids nodes or cells (depending on the *blankingType* value) that fall inside a volume body mask.
-    
-    The blanking is achieved by setting the Cellnaturefield to *cellnval* (0 by default) in *cellns*.
-    
-    The mesh to be blanked is defined by a pyTree t, where each basis defines a Chimera component. The list of bodies blanking the grids is defined in bodies.
-    Each element of the list bodies is a set of CGNS/Python zones defining a tetrahedra mesh.
-    The blanking matrix BM is a numpy array of size nbases x nbodies.
-    BM(i,j)=1 means that ith basis is blanked by jth body.
-    BM(i,j)=0 means no blanking, and BM(i,j)=-1 means that inverted hole-cutting is performed.
-    blankingType can be 'cell_intersect', 'center_in' or 'node_in'.
-    If the variable 'cellN' does not exist in the input pyTree, it is initialized to 1, located at 'nodes' if 'node_in' is set, and at centers in other cases.
-    If the *overwrite* is set to 1 (overwrite mode), Cellnaturefield is reset to 1 for any node/cell outside the body mask.
-    Hence the value of 1 is forbidden for cellnval upon entry (it will be replaced by 0). 
+        Blanks the input grids nodes or cells (depending on the *blankingType* value) that fall inside a volume body mask.
+        
+        The blanking is achieved by setting the Cellnaturefield to *cellnval* (0 by default) in *cellns*.
+        
+        The mesh to be blanked is defined by a pyTree t, where each basis defines a Chimera component. The list of bodies blanking the grids is defined in bodies.
+
+        Each element of the list bodies is a set of CGNS/Python zones defining a tetrahedra mesh.
+
+        The blanking matrix BM is a numpy array of size nbases x nbodies.
+
+        BM(i,j)=1 means that ith basis is blanked by jth body.
+
+        BM(i,j)=0 means no blanking, and BM(i,j)=-1 means that inverted hole-cutting is performed.
+
+        blankingType can be 'cell_intersect', 'center_in' or 'node_in'.
+
+        If the variable 'cellN' does not exist in the input pyTree, it is initialized to 1, located at 'nodes' if 'node_in' is set, and at centers in other cases.
+
+        If the *overwrite* is set to 1 (overwrite mode), Cellnaturefield is reset to 1 for any node/cell outside the body mask.
+
+        Hence the value of 1 is forbidden for cellnval upon entry (it will be replaced by 0). 
 
     *Example of use:*
 
@@ -335,63 +377,73 @@ Overset connectivity
 
 .. py:function:: Connector.blankCellsTri()
 
-    Using the array interface:
-    ::
+    *Using the array interface:*
 
-     cellns = X.blankCellsTri(coords, cellns, body, blankingType=2, tol=1.e-12, cellnval=0, blankingMode=0)
-    
-    Blanks the input grids nodes or cells (depending on the *blankingType* value) that fall inside a surfacic body mask.
-    
-    The blanking is achieved by setting the Cellnaturefield to *cellnval* (0 by default) in *cellns*.
-    
-    The input grids are defined by coords located at nodes as a list of arrays. The body mask is defined by triangular surface meshes in any orientation, as a list of arrays.
+        ::
 
-    If the *blankingMode* is set to 1 (overwrite mode), Cellnaturefield is reset to 1 for any node/cell outside the body mask.
-    Hence the value of 1 is forbidden for cellnval upon entry (it will be replaced by 0).
+         cellns = X.blankCellsTri(coords, cellns, body, blankingType=2, tol=1.e-12, cellnval=0, blankingMode=0)
+    
+        Blanks the input grids nodes or cells (depending on the *blankingType* value) that fall inside a surfacic body mask.
+        
+        The blanking is achieved by setting the Cellnaturefield to *cellnval* (0 by default) in *cellns*.
+        
+        The input grids are defined by coords located at nodes as a list of arrays. The body mask is defined by triangular surface meshes in any orientation, as a list of arrays.
 
-    The parameters meanings and values are described in the table below:
+        If the *blankingMode* is set to 1 (overwrite mode), Cellnaturefield is reset to 1 for any node/cell outside the body mask.
+        Hence the value of 1 is forbidden for cellnval upon entry (it will be replaced by 0).
 
-+---------------------------+----------------------------------------------------------------------------------+
-|  Parameter value          |  Meaning                                                                         | 
-+===========================+==================================================================================+
-|  blankingType=0           |  blanks the nodes falling inside the body masks (node_in).                       | 
-+---------------------------+----------------------------------------------------------------------------------+
-|  blankingType=2           |  blanks the cells having their center falling inside the body masks (center_in). | 
-+---------------------------+----------------------------------------------------------------------------------+
-|  blankingType=1           |  blanks the cells that intersect or fall inside the body masks (cell_intersect). | 
-+---------------------------+----------------------------------------------------------------------------------+
-|  tol=1.e-12 (default)     |  tolerance for detecting intersections (NOT USED CURRENTLY).                     | 
-+---------------------------+----------------------------------------------------------------------------------+
-|  cellnval=0 (default)     |  value used for flagging as blanked.                                             | 
-+---------------------------+----------------------------------------------------------------------------------+
-|  blankingMode=0 (default) |  Appending mode: cellns is only modified for nodes/cells falling inside the body |
-|                           |  mask by setting the value in cellns to cellnval.                                | 
-+---------------------------+----------------------------------------------------------------------------------+
-|  blankingMode=1           |  Overwriting mode: cellns is modified for both nodes/cells falling inside        |
-|                           |  (set to cellnval) and outside (set to 1) the body mask.                         | 
-+---------------------------+----------------------------------------------------------------------------------+
+        The parameters meanings and values are described in the table below:
+
+        +---------------------------+----------------------------------------------------------------------------------+
+        |  Parameter value          |  Meaning                                                                         | 
+        +===========================+==================================================================================+
+        |  blankingType=0           |  blanks the nodes falling inside the body masks (node_in).                       | 
+        +---------------------------+----------------------------------------------------------------------------------+
+        |  blankingType=2           |  blanks the cells having their center falling inside the body masks (center_in). | 
+        +---------------------------+----------------------------------------------------------------------------------+
+        |  blankingType=1           |  blanks the cells that intersect or fall inside the body masks (cell_intersect). | 
+        +---------------------------+----------------------------------------------------------------------------------+
+        |  tol=1.e-12 (default)     |  tolerance for detecting intersections (NOT USED CURRENTLY).                     | 
+        +---------------------------+----------------------------------------------------------------------------------+
+        |  cellnval=0 (default)     |  value used for flagging as blanked.                                             | 
+        +---------------------------+----------------------------------------------------------------------------------+
+        |  blankingMode=0 (default) |  Appending mode: cellns is only modified for nodes/cells falling inside the body |
+        |                           |  mask by setting the value in cellns to cellnval.                                | 
+        +---------------------------+----------------------------------------------------------------------------------+
+        |  blankingMode=1           |  Overwriting mode: cellns is modified for both nodes/cells falling inside        |
+        |                           |  (set to cellnval) and outside (set to 1) the body mask.                         | 
+        +---------------------------+----------------------------------------------------------------------------------+
     
-    .. warning:: in case of blankingType=0, location of cellns and coords must be identical.
+        .. warning:: in case of blankingType=0, location of cellns and coords must be identical.
     
 
-    Using the pyTree interface:
-    ::
+    *Using the pyTree interface:*
 
-     B = X.blankCellsTri(t, bodies, BM, blankingType='node_in', tol=1.e-12, cellnval=0, overwrite=0)
+        ::
+
+         B = X.blankCellsTri(t, bodies, BM, blankingType='node_in', tol=1.e-12, cellnval=0, overwrite=0)
     
-    Blanks the input grids nodes or cells (depending on the *blankingType* value) that fall inside a volume body mask.
-    The blanking is achieved by setting the Cellnaturefield to *cellnval* (0 by default) in *cellns*.
-    
-    The mesh to be blanked is defined by a pyTree t, where each basis defines a Chimera component. The list of bodies blanking the grids is defined in bodies.
-    Each element of the list bodies is a set of CGNS/Python zones defining a triangular watertight closed surface. 
-    
-    The blanking matrix BM is a numpy array of size nbases x nbodies.
-    BM(i,j)=1 means that ith basis is blanked by jth body.
-    BM(i,j)=0 means no blanking, and BM(i,j)=-1 means that inverted hole-cutting is performed.
-    blankingType can be 'cell_intersect', 'center_in' or 'node_in'.
-    If the variable 'cellN' does not exist in the input pyTree, it is initialized to 1, located at 'nodes' if 'node_in' is set, and at centers in other cases.
-    If the *overwrite* is set to 1 (overwrite mode), Cellnaturefield is reset to 1 for any node/cell outside the body mask.
-    Hence the value of 1 is forbidden for cellnval upon entry (it will be replaced by 0).
+        Blanks the input grids nodes or cells (depending on the *blankingType* value) that fall inside a volume body mask.
+
+        The blanking is achieved by setting the Cellnaturefield to *cellnval* (0 by default) in *cellns*.
+        
+        The mesh to be blanked is defined by a pyTree t, where each basis defines a Chimera component. The list of bodies blanking the grids is defined in bodies.
+
+        Each element of the list bodies is a set of CGNS/Python zones defining a triangular watertight closed surface. 
+        
+        The blanking matrix BM is a numpy array of size nbases x nbodies.
+
+        BM(i,j)=1 means that ith basis is blanked by jth body.
+
+        BM(i,j)=0 means no blanking, and BM(i,j)=-1 means that inverted hole-cutting is performed.
+
+        blankingType can be 'cell_intersect', 'center_in' or 'node_in'.
+
+        If the variable 'cellN' does not exist in the input pyTree, it is initialized to 1, located at 'nodes' if 'node_in' is set, and at centers in other cases.
+
+        If the *overwrite* is set to 1 (overwrite mode), Cellnaturefield is reset to 1 for any node/cell outside the body mask.
+
+        Hence the value of 1 is forbidden for cellnval upon entry (it will be replaced by 0).
     
 
     *Example of use:*
@@ -409,67 +461,73 @@ Overset connectivity
 
 .. py:function:: Connector.setHoleInterpolatedPoints()
 
-    Using the array interface:
-    ::
-
-     a = X.setHoleInterpolatedPoints(a, depth=2, dir=0, loc='centers', cellNName='cellN')
+    *Using the array interface:*
     
-    compute the fringe of interpolated points around a set of blanked points in a mesh a.
-    Parameter depth is the number of layers of interpolated points to be set.
-    If depth > 0 the fringe of interpolated points is set outside the blanked zones,
-    whereas if depth < 0, the depth layers of blanked points are marked as to be interpolated.
-    If dir=0, uses a directional stencil of depth points, if dir=1, uses a full depth x depth x depth stencil:
-    Blanked points are identified by the variable 'cellN'; 'cellN' is set to 2 for the fringe of interpolated points.
-    If cellN is located at cell centers, set loc parameter to 'centers', else loc='nodes'.
-    
+        ::
 
-    Using the pyTree interface:
-    ::
-
-     t = X.setHoleInterpolatedPoints(t, depth=2, dir=0, loc='centers', cellNName='cellN')
+         a = X.setHoleInterpolatedPoints(a, depth=2, dir=0, loc='centers', cellNName='cellN')
     
-    compute the fringe of interpolated points around a set of blanked points in a pyTree t.
-    Parameter depth is the number of layers of interpolated points that are built; if depth > 0 the fringe of interpolated points is outside the blanked zones, and if depth < 0,
-    it is built towards the inside.
-    Blanked points are identified by the variable 'cellN' located at mesh nodes or centers. 'cellN' is set to 2 for the fringe of interpolated points.
+        Compute the fringe of interpolated points around a set of blanked points in a mesh a.
+        Parameter depth is the number of layers of interpolated points to be set.
+        If depth > 0 the fringe of interpolated points is set outside the blanked zones,
+        whereas if depth < 0, the depth layers of blanked points are marked as to be interpolated.
+        If dir=0, uses a directional stencil of depth points, if dir=1, uses a full depth x depth x depth stencil:
+        Blanked points are identified by the variable 'cellN'; 'cellN' is set to 2 for the fringe of interpolated points.
+        If cellN is located at cell centers, set loc parameter to 'centers', else loc='nodes'.
+        
+
+    *Using the pyTree interface:*
+
+        ::
+
+         t = X.setHoleInterpolatedPoints(t, depth=2, dir=0, loc='centers', cellNName='cellN')
+        
+        Compute the fringe of interpolated points around a set of blanked points in a pyTree t.
+        Parameter depth is the number of layers of interpolated points that are built; if depth > 0 the fringe of interpolated points is outside the blanked zones, and if depth < 0,
+        it is built towards the inside.
+        Blanked points are identified by the variable 'cellN' located at mesh nodes or centers. 'cellN' is set to 2 for the fringe of interpolated points.
     
 
     *Example of use:*
 
-    * `Set the fringe of interpolated points near blanked points (array) <Examples/Connector/setHoleInterpolatedPoints.py>`_:
+    * `Set the fringe of interpolated points near blanked points (array) <Examples/Connector/setHoleInterpolatedPts.py>`_:
 
-    .. literalinclude:: ../build/Examples/Connector/setHoleInterpolatedPoints.py
+    .. literalinclude:: ../build/Examples/Connector/setHoleInterpolatedPts.py
 
-    * `Set the fringe of interpolated points near the blanked points (pyTree) <Examples/Connector/setHoleInterpolatedPointsPT.py>`_:
+    * `Set the fringe of interpolated points near the blanked points (pyTree) <Examples/Connector/setHoleInterpolatedPtsPT.py>`_:
 
-    .. literalinclude:: ../build/Examples/Connector/setHoleInterpolatedPointsPT.py
+    .. literalinclude:: ../build/Examples/Connector/setHoleInterpolatedPtsPT.py
 
 
 -------------------------------------------------------------------------------------------------------------
 
 .. py:function:: Connector.optimizeOverlap()
 
-    Using the array interface:
-    ::
-     cellns = X.optimizeOverlap(nodes1, centers1, nodes2, centers2, prio1=0, prio2=0)
+    *Using the array interface:*
 
-    Optimize the overlap between two zones defined by nodes1 and nodes2, centers1 and centers2 correspond to the mesh located at centers and the field 'cellN'.
-    The field 'cellN' located at centers is set to 2 for interpolable points.
-    Priorities can be defined for zones: prio1=0 means that the priority of zone 1 is high.
-    If two zones have the same priority, then the cell volume criterion is used to set the cellN to 2 for one of the overlapping cells, the other not being modified.
-    If the priorities are not specified, the cell volume criterion is applied also:
+        ::
 
-    Using the pyTree interface:
-    ::
-     t = X.optimizeOverlap(t, double_wall=0, priorities=[])
+         cellns = X.optimizeOverlap(nodes1, centers1, nodes2, centers2, prio1=0, prio2=0)
 
-    Optimize the overlapping between all structured zones defined in a pyTree t.
-    The 'cellN' variable located at cell centers is modified, such that cellN=2 for a cell interpolable from another zone. 
-    Double wall projection technique is activated if 'double_wall'=1.
-    The overlapping is optimized between zones from separated bases, and is based on a priority to the cell of smallest size.
-    One can impose a priority to a base over another base, using the list priorities.
-    For instance, priorities = ['baseName1',0, 'baseName2',1] means that zones from base of name 'baseName1' are preferred over
-    zones from base of name 'baseName2':
+        Optimize the overlap between two zones defined by nodes1 and nodes2, centers1 and centers2 correspond to the mesh located at centers and the field 'cellN'.
+        The field 'cellN' located at centers is set to 2 for interpolable points.
+        Priorities can be defined for zones: prio1=0 means that the priority of zone 1 is high.
+        If two zones have the same priority, then the cell volume criterion is used to set the cellN to 2 for one of the overlapping cells, the other not being modified.
+        If the priorities are not specified, the cell volume criterion is applied also:
+
+    *Using the pyTree interface:*
+
+        ::
+
+         t = X.optimizeOverlap(t, double_wall=0, priorities=[])
+
+        Optimize the overlapping between all structured zones defined in a pyTree t.
+        The 'cellN' variable located at cell centers is modified, such that cellN=2 for a cell interpolable from another zone. 
+        Double wall projection technique is activated if 'double_wall'=1.
+        The overlapping is optimized between zones from separated bases, and is based on a priority to the cell of smallest size.
+        One can impose a priority to a base over another base, using the list priorities.
+        For instance, priorities = ['baseName1',0, 'baseName2',1] means that zones from base of name 'baseName1' are preferred over
+        zones from base of name 'baseName2':
     
     *Example of use:*
 
@@ -507,7 +565,7 @@ Overset connectivity
 .. py:function:: Connector.setDoublyDefinedBC(a, cellN, listOfInterpZones, listOfCelln, range, depth=2)
 
     
-    when a border of zone z is defined by doubly defined BC in range=[i1,i2,j1,j2,k1,k2],
+    When a border of zone z is defined by doubly defined BC in range=[i1,i2,j1,j2,k1,k2],
     one can determine whether a point is interpolated or defined by the physical BC. The array cellN defines the cell nature field at centers for zone z.
     If a cell is interpolable from a donor zone, then the cellN is set to 2 for this cell.
     The lists listOfInterpZones and listOfCelln are the list of arrays defining the interpolation domains, and corresponding cell nature fields. depth can be 1 or 2. If case of depth=2,
@@ -533,7 +591,7 @@ Overset connectivity
     The cellN is set to 0 for intersecting cells/elements. Input data are A the list of meshes, cellN the list of cellNatureField located at cell centers.
     Array version: the cellN must be an array located at centers, defined separately
 
-    blank intersecting cells of a 3D mesh. Only faces normal to k-planes for structured meshes and faces normal to triangular faces for prismatic meshes,
+    Blank intersecting cells of a 3D mesh. Only faces normal to k-planes for structured meshes and faces normal to triangular faces for prismatic meshes,
     and faces normal to 1234 and 5678 faces for hexahedral meshes are tested. Set the cellN to 0 for intersecting cells/elements. Input data are A the list of meshes, cellN the list of cellNatureField located at cell centers:
     The cellN variable is defined as a FlowSolution#Center node. The cellN is set to 0 for intersecting and negative volume cells:
     
@@ -554,7 +612,7 @@ Overset connectivity
     
 .. py:function:: Connector.getIntersectingDomains(t, t2=None, method='AABB', taabb=None, tobb=None, taabb2=None, tobb2=None)
     
-    create a Python dictionary describing the intersecting zones. If t2 is not provided, then the computed dictionary states the self-intersecting zone names, otherwise, it
+    Create a Python dictionary describing the intersecting zones. If t2 is not provided, then the computed dictionary states the self-intersecting zone names, otherwise, it
     computes the intersection between t and t2. Mode can be 'AABB', for Axis-Aligned Bounding Box method, 'OBB' for Oriented Bounding Box method, or 'hybrid', using a combination
     of AABB and OBB which gives the most accurate result. Depending on the selected mode, the user can provide the corresponding AABB and/or OBB PyTrees of t and/or t2, so that the
     algorithm will reuse those BB PyTrees instead of calculating them.
@@ -916,7 +974,7 @@ Immersed boundary (IBM) pre-processing
 -----------------------------------------------------------------------------------------------------------------------------
 
 Overset and Immersed Boundary transfers with pyTrees
-=========================================
+====================================================
 
     The following function enables to update the solution at some points, marked as interpolated for overset and IBM approaches.
 
@@ -938,27 +996,27 @@ Overset and Immersed Boundary transfers with pyTrees
 
     Parameter storage enables to define how the information is stored (see table below).
 
-+-------------------------+-----------------------------------------------------------------------------------------------------------+
-|  Parameter value        |  Meaning                                                                                                  | 
-+=========================+===========================================================================================================+
-|    bcType=0             | IBM transfers model slip conditions                                                                       | 
-+-------------------------+-----------------------------------------------------------------------------------------------------------+
-|    bcType=1             | IBM transfers model no-slip conditions                                                                    | 
-+-------------------------+-----------------------------------------------------------------------------------------------------------+
-|    varType=1            | Density,MomentumX,MomentumY,MomentumZ,EnergyStagnationDensity                                             | 
-+-------------------------+-----------------------------------------------------------------------------------------------------------+
-|    varType=2            | Density,VelocityX,VelocityY,VelocityZ,Temperature                                                         | 
-+-------------------------+-----------------------------------------------------------------------------------------------------------+
-|    varType=3            | Density,VelocityX,VelocityY,VelocityZ,Pressure                                                            | 
-+-------------------------+-----------------------------------------------------------------------------------------------------------+
-|    storage=0            | Interpolation data is stored in receptor zones aR                                                         | 
-+-------------------------+-----------------------------------------------------------------------------------------------------------+
-|    storage=1            | Interpolation data is stored in donor zones topTreeD                                                      | 
-+-------------------------+-----------------------------------------------------------------------------------------------------------+
-|    storage=-1           | Interpolation data storage is unknown or can be stored in donor and receptor zones.                       | 
-+-------------------------+-----------------------------------------------------------------------------------------------------------+
-|    extract=1            | Wall fields are stored in zone subregions (density and pressure, utau and yplus if wall law is applied).  | 
-+-------------------------+-----------------------------------------------------------------------------------------------------------+
+    +-------------------------+-----------------------------------------------------------------------------------------------------------+
+    |  Parameter value        |  Meaning                                                                                                  | 
+    +=========================+===========================================================================================================+
+    |    bcType=0             | IBM transfers model slip conditions                                                                       | 
+    +-------------------------+-----------------------------------------------------------------------------------------------------------+
+    |    bcType=1             | IBM transfers model no-slip conditions                                                                    | 
+    +-------------------------+-----------------------------------------------------------------------------------------------------------+
+    |    varType=1            | Density,MomentumX,MomentumY,MomentumZ,EnergyStagnationDensity                                             | 
+    +-------------------------+-----------------------------------------------------------------------------------------------------------+
+    |    varType=2            | Density,VelocityX,VelocityY,VelocityZ,Temperature                                                         | 
+    +-------------------------+-----------------------------------------------------------------------------------------------------------+
+    |    varType=3            | Density,VelocityX,VelocityY,VelocityZ,Pressure                                                            | 
+    +-------------------------+-----------------------------------------------------------------------------------------------------------+
+    |    storage=0            | Interpolation data is stored in receptor zones aR                                                         | 
+    +-------------------------+-----------------------------------------------------------------------------------------------------------+
+    |    storage=1            | Interpolation data is stored in donor zones topTreeD                                                      | 
+    +-------------------------+-----------------------------------------------------------------------------------------------------------+
+    |    storage=-1           | Interpolation data storage is unknown or can be stored in donor and receptor zones.                       | 
+    +-------------------------+-----------------------------------------------------------------------------------------------------------+
+    |    extract=1            | Wall fields are stored in zone subregions (density and pressure, utau and yplus if wall law is applied).  | 
+    +-------------------------+-----------------------------------------------------------------------------------------------------------+
 
     Exists also as an in-place function (X._setInterpTransfers):
 
