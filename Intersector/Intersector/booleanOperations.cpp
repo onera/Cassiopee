@@ -109,7 +109,7 @@ bool getArgs(PyObject* args, eOperation oper,
 
   improve_conformal_cloud_qual = bool(imp_qual);
 
-  E_Int ni, nj, nk, posx, posy, posz, err(0);
+  E_Int ni, nj, nk, posx[2], posy[2], posz[2], err(0);
   K_FLD::FloatArray *fS[2];
   K_FLD::IntArray* cn[2];
 
@@ -127,11 +127,11 @@ bool getArgs(PyObject* args, eOperation oper,
     }
 
     // Check coordinates.
-    posx = K_ARRAY::isCoordinateXPresent(varString);
-    posy = K_ARRAY::isCoordinateYPresent(varString);
-    posz = K_ARRAY::isCoordinateZPresent(varString);
+    posx[n] = K_ARRAY::isCoordinateXPresent(varString);
+    posy[n] = K_ARRAY::isCoordinateYPresent(varString);
+    posz[n] = K_ARRAY::isCoordinateZPresent(varString);
 
-    if ((posx == -1) || (posy == -1) || (posz == -1))
+    if ((posx[n] == -1) || (posy[n] == -1) || (posz[n] == -1))
     {
       o << opername << ": can't find coordinates in array.";
       PyErr_SetString(PyExc_TypeError, o.str().c_str());
@@ -142,7 +142,27 @@ bool getArgs(PyObject* args, eOperation oper,
   if (!err)
   {
     pos1 = *fS[0];
+    if (posx[0] !=0 || posy[0] != 1 || posz[0] != 2)
+    {
+      for (E_Int i=0; i < pos1.cols(); ++i)
+      {
+        pos1(0,i) = (*fS[0])(posx[0],i);
+        pos1(1,i) = (*fS[0])(posy[0],i);
+        pos1(2,i) = (*fS[0])(posz[0],i);    
+      }
+    }
+
     pos2 = *fS[1];
+    if (posx[1] !=0 || posy[1] != 1 || posz[1] != 2)
+    {
+      for (E_Int i=0; i < pos2.cols(); ++i)
+      {
+        pos2(0,i) = (*fS[1])(posx[1],i);
+        pos2(1,i) = (*fS[1])(posy[1],i);
+        pos2(2,i) = (*fS[1])(posz[1],i);    
+      }
+    }
+    
     connect1 = *cn[0];
     connect2 = *cn[1];
     tolerance = tol;
@@ -184,7 +204,7 @@ bool getUnionArgs(PyObject* args,
 
   improve_conformal_cloud_qual = bool(imp_qual);
 
-  E_Int ni, nj, nk, posx, posy, posz, err(0);
+  E_Int ni, nj, nk, posx[2], posy[2], posz[2], err(0);
   K_FLD::FloatArray *fS[2];
   K_FLD::IntArray* cn[2];
 
@@ -202,11 +222,11 @@ bool getUnionArgs(PyObject* args,
     }
 
     // Check coordinates.
-    posx = K_ARRAY::isCoordinateXPresent(varString);
-    posy = K_ARRAY::isCoordinateYPresent(varString);
-    posz = K_ARRAY::isCoordinateZPresent(varString);
+    posx[n] = K_ARRAY::isCoordinateXPresent(varString);
+    posy[n] = K_ARRAY::isCoordinateYPresent(varString);
+    posz[n] = K_ARRAY::isCoordinateZPresent(varString);
 
-    if ((posx == -1) || (posy == -1) || (posz == -1))
+    if ((posx[n] == -1) || (posy[n] == -1) || (posz[n] == -1))
     {
       o << opername << ": can't find coordinates in array.";
       PyErr_SetString(PyExc_TypeError, o.str().c_str());
@@ -217,7 +237,35 @@ bool getUnionArgs(PyObject* args,
   if (!err)
   {
     pos1 = *fS[0];
+    if (posx[0] !=0 || posy[0] != 1 || posz[0] != 2)
+    {
+      // std::cout << "posx 0 : " << posx[0] << std::endl;
+      // std::cout << "posy 0 : " << posy[0] << std::endl;
+      // std::cout << "posz 0 : " << posz[0] << std::endl;
+
+      for (E_Int i=0; i < pos1.cols(); ++i)
+      {
+        pos1(0,i) = (*fS[0])(posx[0],i);
+        pos1(1,i) = (*fS[0])(posy[0],i);
+        pos1(2,i) = (*fS[0])(posz[0],i);    
+      }
+    }
+
     pos2 = *fS[1];
+    if (posx[1] !=0 || posy[1] != 1 || posz[1] != 2)
+    {
+      // std::cout << "posx 1 : " << posx[1] << std::endl;
+      // std::cout << "posy 1 : " << posy[1] << std::endl;
+      // std::cout << "posz 1 : " << posz[1] << std::endl;
+
+      for (E_Int i=0; i < pos2.cols(); ++i)
+      {
+        pos2(0,i) = (*fS[1])(posx[1],i);
+        pos2(1,i) = (*fS[1])(posy[1],i);
+        pos2(2,i) = (*fS[1])(posz[1],i);    
+      }
+    }
+    
     connect1 = *cn[0];
     connect2 = *cn[1];
     tolerance = tol;

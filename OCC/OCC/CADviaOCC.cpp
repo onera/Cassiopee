@@ -52,7 +52,8 @@
 #include "Connect/BARSplitter.h"
 #include "Search/BbTree.h"
 #include "Nuga/GapFixer/FittingBox.h"
-
+#include "Nuga/Delaunay/MeshUtils1D.h"
+#include <Precision.hxx>
 /*
 #include "TopoDS_Edge.hxx"
 // Curve and Mesh
@@ -127,10 +128,11 @@ int import_step(const char* fname, TopoDS_Shape& sh)
 }
 
 //
-E_Int K_OCC::CADviaOCC::import_cad(const char* fname, const char* format, E_Float h, E_Float chordal_err)
+E_Int K_OCC::CADviaOCC::import_cad(const char* fname, const char* format, E_Float h, E_Float chordal_err, E_Float gr /*groqth ratio*/)
 {
   _chordal_err = chordal_err;
   _h = h;
+  _gr = gr;
     
   E_Int err(1);
   if (::strcmp(format, "iges")==0)
@@ -172,7 +174,10 @@ E_Int K_OCC::CADviaOCC::compute_h_sizing(K_FLD::FloatArray& coords, std::vector<
 #endif
   
   if (_h <= 0.) // undefined or badly defined
+  {
     _h = _Lmean/10.;
+    std::cout << "OCC : computed h : " << _h << std::endl;
+  }
   
   for (E_Int i=1; i <= nb_edges; ++i)
   {
@@ -517,11 +522,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces
   std::vector<E_Int> nodes, nids;
   K_FLD::FloatArray UVcontour, pos3D;
   
-  DELAUNAY::SurfaceMesherMode mode;
-  mode.chordal_error=_chordal_err;
-  //mode.hmin=_h;
-  mode.hmax=_h;
-  DELAUNAY::SurfaceMesher<OCCSurface> mesher(mode);
+  DELAUNAY::SurfaceMesher<OCCSurface> mesher;
   
   E_Int max_solid_id=0;
   for (E_Int i=1; i <= nb_faces; ++i)
@@ -561,7 +562,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces
     
 #ifdef DEBUG_CAD_READER
     //if (i==faulty_id)
-      //meshIO::write("connectB.mesh",coords , connectB);
+      MIO::write("connectB.mesh",coords , connectB);
 #endif
     
     connectB.uniqueVals(nodes);
@@ -675,7 +676,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces
       }
       
 #ifdef DEBUG_CAD_READER
-      if (i==faulty_id)
+      //if (i==faulty_id)
         MIO::write("connectBUV.mesh", UVcontour , connectB, "BAR");
       //std::cout << UVcontour << std::endl;
 #endif
@@ -697,6 +698,24 @@ E_Int K_OCC::CADviaOCC::mesh_faces
         mesher.dbg_flag=false;
 #endif
 #endif
+      DELAUNAY::SurfaceMesherMode mode;
+      
+      mode.chordal_error=_chordal_err;
+      
+      if (_gr <= 0.) // unspecified == OLD MODE
+      {
+        mode.symmetrize = false;
+        mode.hmax = _h;
+        mode.growth_ratio = 0.;
+      }
+      else
+      {
+        mode.growth_ratio = std::max(_gr, 1.); //fixme : values in [1.; 1.25] might cause errors. Anyway do not allow bellow 1. since not useful
+        mode.symmetrize = (UVcontour.cols() > 100);
+        mode.nb_smooth_iter = 2;
+      }
+
+      mesher.mode = mode;
     
       err = mesher.run (data);
       if (err || (data.connectM.cols() == 0))
@@ -711,11 +730,11 @@ E_Int K_OCC::CADviaOCC::mesh_faces
       }
     
 #ifdef DEBUG_CAD_READER
-      /*{
+      {
       std::ostringstream o;
       o << "surfaceUV_" << i << ".mesh";
-      meshIO::write(o.str().c_str(), data.pos, data.connectM);
-      }*/
+      MIO::write(o.str().c_str(), *data.pos, data.connectM);
+      }
     {
       std::ostringstream o;
       o << "surface3D_" << i << ".mesh";
@@ -966,12 +985,20 @@ E_Int K_OCC::CADviaOCC::__split_surface_of_revolution
   
   E_Int umax(2), vmax(2);
   if (S->IsUClosed())
+  {
     U[1]=0.5*U[2];
+    U[0] = E_EPSILON; //to avoid to be abmiguous on the seam when calling parameter method.
+    U[2] -= E_EPSILON;//to avoid to be abmiguous on the seam when calling parameter method.
+  }
   else
     umax=1;
   
   if (S->IsVClosed())
+  {
     V[1]=0.5*V[2];
+    V[0] = E_EPSILON; //to avoid to be abmiguous on the seam when calling parameter method.
+    V[2] -= E_EPSILON;//to avoid to be abmiguous on the seam when calling parameter method.
+  }
   else
     vmax=1;
   

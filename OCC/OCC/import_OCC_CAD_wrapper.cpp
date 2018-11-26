@@ -23,7 +23,7 @@
 
 
 E_Int K_OCC::import_OCC_CAD_wrapper::import_cad
-(const char* fname, const char* format, std::vector<K_FLD::FloatArray> & crds, std::vector<K_FLD::IntArray>& connectMs, E_Float h, E_Float chordal_err)
+(const char* fname, const char* format, std::vector<K_FLD::FloatArray> & crds, std::vector<K_FLD::IntArray>& connectMs, E_Float h, E_Float chordal_err, E_Float gr)
 {
 #ifdef DEBUG_CAD_READER
   std::cout << "import_OCC_CAD_wrapper::import_cad..." << std::endl;
@@ -32,7 +32,7 @@ E_Int K_OCC::import_OCC_CAD_wrapper::import_cad
   
   // CAD --> OCC Shape with associated homemade graph to link flat sorage ids between faces and edges.
   CADviaOCC reader;
-  E_Int err = reader.import_cad(fname, format, h, chordal_err);
+  E_Int err = reader.import_cad(fname, format, h, chordal_err, gr);
   if (err)
     return err;
   

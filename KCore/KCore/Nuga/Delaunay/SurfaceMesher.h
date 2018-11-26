@@ -33,15 +33,26 @@ class SurfaceMesher
 public:
   typedef K_CONT_DEF::size_type size_type;
 public:
-  SurfaceMesher(const SurfaceMesherMode& mode):_mode(mode){};
+  SurfaceMesher(){}
+
+  SurfaceMesher(const SurfaceMesherMode& mode):mode(mode)
+  {
+#ifdef DEBUG_MESHER
+    dbg_flag = false;
+#endif
+  };
   ~SurfaceMesher(void){}
   E_Int run (SurfaceMeshData<SurfaceType>& data);
+  
+  SurfaceMesherMode  mode;
 
 private:
   void __mapToSurface(const SurfaceType& surface, const K_FLD::FloatArray& pos2D, K_FLD::FloatArray& pos3D);
-
-private:
-    const SurfaceMesherMode&  _mode;
+    
+#ifdef DEBUG_MESHER
+public:
+    bool dbg_flag;
+#endif
 };
 
 template <typename SurfaceType>
@@ -51,14 +62,20 @@ SurfaceMesher<SurfaceType>::run(SurfaceMeshData<SurfaceType>& data)
   typedef GeomMetric<Aniso2D, SurfaceType>  MetricType;
   typedef Mesher<Aniso2D, MetricType>       MesherType;
 
-  MetricType metric_aniso(*data.pos, data.surface, (typename MetricType::GMmode)_mode.metric_mode,
-                          _mode.chordal_error, _mode.hmin, _mode.hmax);
+  MetricType metric_aniso(*data.pos, data.surface, (typename MetricType::GMmode)mode.metric_mode,
+                          mode.chordal_error, mode.hmin, mode.hmax, mode.growth_ratio);
+  
+  metric_aniso.set_pos2D(*data.pos);// hack to avoid to create an argument for init_metric (that is not required for other metric than GeomMetric
 
   //std::cout << "run 0" << std::endl;
   metric_aniso.init_metric(data.metrics, data.pos3D, *data.connectB, data.hardNodes);
   
-  MesherType mesher(metric_aniso, _mode);
+  MesherType mesher(metric_aniso, mode);
   //std::cout << "run 1" << std::endl;
+  
+#ifdef DEBUG_MESHER
+  mesher.dbg_flag = dbg_flag;
+#endif
 
   E_Int err = mesher.run(data);
 

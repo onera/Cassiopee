@@ -14,13 +14,13 @@ __version__ = O.__version__
 #==============================================================================
 # -- convertIGES2PyTree --
 #==============================================================================
-def convertIGES2PyTree(fileName, h=0., chordal_err=0.):
+def convertIGES2PyTree(fileName, h=0., chordal_err=0., growth_ratio=0.):
   """Convert an IGES file to pyTree.
   Usage: convertIGES2PyTree(fileName, options)"""
   try: file = open(fileName, 'r')
   except: raise IOError("convertIGES2PyTree: file %s not found."%fileName)
 
-  a = O.convertIGES2Arrays(fileName, h, chordal_err)
+  a = O.convertIGES2Arrays(fileName, h, chordal_err, growth_ratio)
   
   t = C.newPyTree([])
   base1 = False; base2 = False; base3 = False; base = 1; c = 0

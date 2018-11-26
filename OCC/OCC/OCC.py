@@ -5,7 +5,7 @@ __author__ = "Sam Landier"
 
 import occ
 
-def convertIGES2Arrays(fileName, h=0., chordal_err=0.):
+def convertIGES2Arrays(fileName, h=0., chordal_err=0., growth_ratio=0.):
     """Read file and create arrays containing file data.
     Usage: a = convertIGES2Arrays(fileName, options)"""
     try: file = open(fileName, 'r')
@@ -22,5 +22,5 @@ def convertIGES2Arrays(fileName, h=0., chordal_err=0.):
       return
         
     try:
-      return  occ.convertIGES2Arrays(fileName, fmt, h, chordal_err)
+      return  occ.convertIGES2Arrays(fileName, fmt, h, chordal_err, growth_ratio)
     except: pass

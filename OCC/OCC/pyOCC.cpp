@@ -33,12 +33,12 @@ using namespace K_FLD;
 PyObject* K_OCC::convertIGES2Arrays(PyObject* self, PyObject* args)
 {
   char* fileName; char* fileFmt;
-  E_Float h, chordal_err;
+  E_Float h, chordal_err, gr(-1.);
 
 #if defined E_DOUBLEREAL
-  if (!PyArg_ParseTuple(args, "ssdd", &fileName, &fileFmt, &h, &chordal_err)) return NULL;
+  if (!PyArg_ParseTuple(args, "ssddd", &fileName, &fileFmt, &h, &chordal_err, &gr)) return NULL;
 #else
-  if (!PyArg_ParseTuple(args, "ssff", &fileName, &fileFmt, &h, &chordal_err)) return NULL;
+  if (!PyArg_ParseTuple(args, "ssfff", &fileName, &fileFmt, &h, &chordal_err, &gr)) return NULL;
 #endif
 
   // Check recognised formats
@@ -58,7 +58,7 @@ PyObject* K_OCC::convertIGES2Arrays(PyObject* self, PyObject* args)
   printf("Reading %s (%s)...", fileName, fileFmt);
   fflush(stdout);
   
-  E_Int ret = CADread(fileName, fileFmt, h, chordal_err, varString, ufield, c, et, zoneNames);
+  E_Int ret = CADread(fileName, fileFmt, h, chordal_err, gr, varString, ufield, c, et, zoneNames);
 
   if (ret == 1)
   {
@@ -102,7 +102,7 @@ PyObject* K_OCC::convertIGES2Arrays(PyObject* self, PyObject* args)
 }
 
 E_Int K_OCC::CADread
-(char* file, char* fileFmt, E_Float h, E_Float chordal_err, char*& varString,
+(char* file, char* fileFmt, E_Float h, E_Float chordal_err, E_Float gr, char*& varString,
  vector<FldArrayF*>& unstructField,
  vector<FldArrayI*>& connect,
  vector<E_Int>& eltType,
@@ -111,7 +111,7 @@ E_Int K_OCC::CADread
    std::vector<K_FLD::FloatArray> crds;
    std::vector<K_FLD::IntArray> connectMs;
    
-   E_Int err = import_OCC_CAD_wrapper::import_cad(file, fileFmt, crds, connectMs, h, chordal_err);
+   E_Int err = import_OCC_CAD_wrapper::import_cad(file, fileFmt, crds, connectMs, h, chordal_err, gr);
    if (err)
      return err;
  

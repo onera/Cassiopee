@@ -2536,7 +2536,6 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
       has_dups = NG.remove_duplicated_edges();
     else // lineic
       has_dups = NG.remove_duplicated_nodes();
-    (void)has_dups;
 
     // remove duplicated references to PGs within each elements
     /*E_Int nb_phs_dups = */NG.PHs.remove_duplicated();

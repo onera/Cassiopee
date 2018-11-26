@@ -3192,9 +3192,8 @@ E_Int NGON_BOOLEAN_CLASS::__build_connect_hard
   oT3_to_PG.insert(oT3_to_PG.end(), soft_colors.begin(), soft_colors.end());
 
   E_Int max_id_new_pgs = 1 + *std::max_element(soft_colors.begin(), soft_colors.end());
-  E_Int old_sz = _anc_PG.cols();
-  assert(max_id_new_pgs >= old_sz); //ensure not reducing _anc_PG
-  (void)old_sz;
+  
+  assert(max_id_new_pgs >= _anc_PG.cols()); //ensure not reducing _anc_PG
   
   _anc_PG.resize(2, max_id_new_pgs, E_IDX_NONE);
   for (size_t i = 0; i < nT3_to_PG.size(); ++i)

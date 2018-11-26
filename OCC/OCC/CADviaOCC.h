@@ -25,6 +25,7 @@
 #include "TopExp.hxx"
 #include "TopTools_IndexedMapOfShape.hxx"
 #include "Geom_Surface.hxx"
+#include "BRepAdaptor_Curve.hxx"
 #include "Def/DefTypes.h"
 #include <vector>
 #include <map>
@@ -42,7 +43,7 @@ public:
 	~CADviaOCC();
     
     ///
-    E_Int import_cad(const char* fname, const char*format, E_Float h=0., E_Float chordal_err=0.);
+    E_Int import_cad(const char* fname, const char*format, E_Float h=0., E_Float chordal_err=0.,  E_Float gr = 0. /*groqth ratio*/);
     ///
     E_Int compute_h_sizing(K_FLD::FloatArray& coords, std::vector<E_Int>& Ns);
     ///
@@ -53,6 +54,9 @@ public:
     E_Int build_loops (K_FLD::FloatArray& coords, const std::vector<K_FLD::IntArray>& connectEs, std::vector<K_FLD::IntArray>& connectBs);
     ///
     E_Int mesh_faces(K_FLD::FloatArray& coords, const std::vector<K_FLD::IntArray>& connectEs, std::vector<K_FLD::FloatArray>& crds, std::vector<K_FLD::IntArray>& connectMs);
+    
+    E_Int __eval_chordal_error(const BRepAdaptor_Curve& curve, E_Float u0, E_Float u1, E_Float& chordal_error);
+    E_Int __eval_nb_points(const BRepAdaptor_Curve& C, E_Float u0, E_Float u1, E_Float chordal_error, E_Int& nb_points );
         
 private:
   
@@ -70,7 +74,7 @@ private:
     
     void __computeOrient(const K_FLD::FloatArray crd2D, const K_FLD::IntArray& cnt, E_Int&o);
     
-    E_Float _chordal_err, _h, _merge_tol, _Lmin, _Lmax, _Lmean;
+    E_Float _chordal_err, _h, _merge_tol, _Lmin, _Lmax, _Lmean, _gr;
     bool _hrelative;
     
     TopoDS_Shape _occ_shape;

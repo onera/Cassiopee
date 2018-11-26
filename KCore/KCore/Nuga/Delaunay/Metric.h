@@ -32,6 +32,7 @@
 #include "Linear/DelaunayMath.h"
 #include "iodata.h"
 #include "IO/io.h"
+#include <sstream>
 #endif
 
 //#include<list>
@@ -74,6 +75,13 @@ namespace DELAUNAY{
     inline E_Float length (size_type Ni, size_type Nj, const E_Float& threshold, K_CONT_DEF::int_vector_type& tmpNodes);
 
     inline E_Float getRadius(size_type Ni);
+    
+    /// computes the square of the distance between the center and a point P on the ellipse along direction dir.
+    inline E_Float get_h2_along_dir(size_type Ni, const E_Float* dir);
+    ///
+    inline void directional_metric_reduce(size_type Ni, E_Float h2, const E_Float* normed_dir);
+    ///
+    inline void metric_reduce(size_type Ni, const E_Float* NiNj, E_Float hjold2, E_Float hjnew2);
 
     virtual void init_metric
       (const K_FLD::FloatArray& metric, K_FLD::FloatArray& pos, const K_FLD::IntArray& connectB,
@@ -89,14 +97,21 @@ namespace DELAUNAY{
     (K_FLD::FloatArray& pos, size_type Ni, size_type Nj, E_Float threshold, std::vector<std::pair<E_Float, size_type> >& length_to_points, std::vector<size_type>& tmpNodes);
     
     void smoothing_loop(const std::set<K_MESH::NO_Edge>& edges, E_Float eps, E_Int itermax, E_Int N0 /* threshold for metric changes*/);
+    void smoothing_loop(const K_FLD::IntArray& connectB, E_Float eps, E_Int itermax, E_Int N0 /* threshold for metric changes*/);
 
     inline bool smooth(size_type Ni, size_type Nj, E_Float gr, E_Int N0 /* threshold for metric changes*/);
+    
+    bool is_valid() {
+      bool res= true; E_Int i=0; for (; (i < _field.size()) && res; ++i)res &= isValidMetric(_field[i]); 
+      if (i != _field.size()) std::cout << "failed at " << i-1 << std::endl;return res;
+    }
 
 
 #ifdef DEBUG_METRIC
   void append_unity_ellipse(const K_FLD::FloatArray& c, E_Int i, K_FLD::FloatArray& crd, K_FLD::IntArray& cnt, E_Int Nc = -1);
   void draw_ellipse_field(const char* fname, const K_FLD::FloatArray& crd, const K_FLD::IntArray& cnt, const std::vector<bool>* mask = 0);
   void draw_ellipse_field(const char* fname, const K_FLD::FloatArray& crd, const std::vector<size_type>& indices);
+  void draw_ellipse(const char* fname, const K_FLD::FloatArray& crd, size_type i);
 #endif
     
   protected:
@@ -108,6 +123,10 @@ namespace DELAUNAY{
     inline bool isValidMetric(const T& mi);
 
     inline bool isValidMetric(const E_Float* mi);
+    
+    inline bool isIsotropic(const T& mi) { return true;}
+    
+    inline bool isWeakAniso(size_type Ni, E_Float r) { return true;}
 
     inline void setUserMetric(const K_FLD::FloatArray& Umetric, field_type& metric);
 
@@ -129,6 +148,226 @@ namespace DELAUNAY{
     
 
   };
+  
+  /// 
+  template <> inline
+  bool
+  VarMetric<Aniso2D>::isValidMetric(const E_Float* mi)
+  {
+    const E_Float& a11 = mi[0];
+    const E_Float& a12 = mi[1];
+    const E_Float& a22 = mi[2];
+    E_Float det = (a11*a22) - (a12*a12);    
+    
+    return ((a11 > 0.) && (a22 > 0.) && (det > 0.));
+  }
+  
+    template<> inline
+  bool
+  VarMetric<E_Float>::isValidMetric(const E_Float& mi)
+  {
+    return ((mi > 0.) && (mi < K_CONST::E_MAX_FLOAT));
+  }
+
+  template<> inline
+  bool
+  VarMetric<Aniso2D>::isValidMetric(const Aniso2D& mi)
+  {
+    const E_Float& a11 = mi[0];
+    const E_Float& a12 = mi[1];
+    const E_Float& a22 = mi[2];
+    E_Float det = (a11*a22) - (a12*a12);
+
+    return ((a11 > 0.) && (a22 > 0.) && (det > 0.));
+  }
+  
+  template<> inline
+  bool
+  VarMetric<Aniso2D>::isIsotropic(const Aniso2D& mi) {
+    const E_Float& a11 = mi[0];
+    const E_Float& a12 = mi[1];
+    const E_Float& a22 = mi[2];
+    
+    if ( ::fabs(a12) > E_EPSILON) return false;
+    if ( ::fabs(a11 - a22) > E_EPSILON) return false;
+    
+    return true;
+  }
+  
+  /// computes the intersection between an ellipse and a line
+  template<> inline
+    E_Float
+    VarMetric<Aniso2D>::get_h2_along_dir(size_type Ni, const E_Float* dir)
+  {
+    E_Float L2 = K_FUNC::sqrNorm<2>(dir);
+    
+    const E_Float& m11 = _field[Ni][0];
+    const E_Float& m12 = _field[Ni][1];
+    const E_Float& m22 = _field[Ni][2];
+    
+    E_Float k2 = 1. /(m11*dir[0]*dir[0] + 2.* m12*dir[0]*dir[1] + m22*dir[1]*dir[1]);
+
+    return k2*L2;
+  }
+  
+  template<> inline
+  bool
+  VarMetric<Aniso2D>::isWeakAniso(size_type Ni, E_Float r) { 
+    
+    const Aniso2D& mi = _field[Ni];
+    
+    const E_Float& a11 = mi[0];
+    const E_Float& a12 = mi[1];
+    const E_Float& a22 = mi[2];
+    
+    E_Float lambda0, lambda1, v0[2], v1[2];
+    K_LINEAR::DelaunayMath::eigen_vectors (mi[0], mi[2], mi[1], lambda0, lambda1, v0, v1);
+    E_Float h1old2 = get_h2_along_dir(Ni, v0);
+    E_Float h2old2 = get_h2_along_dir(Ni, v1);
+    
+    E_Float rr = (std::min(h1old2, h2old2)/std::max(h1old2, h2old2));
+    
+    return (  rr < r*r );
+  }
+    
+#ifdef DEBUG_METRIC
+  
+  template <typename T> inline
+  void VarMetric<T>::draw_ellipse_field
+  (const char* fname, const K_FLD::FloatArray& crd, const K_FLD::IntArray& cnt, const std::vector<bool>* mask)
+  {
+    K_FLD::IntArray cnto;
+    K_FLD::FloatArray crdo;
+    
+    std::vector<E_Int> indices;
+    
+    if (mask)
+    {
+      std::set<E_Int> unodes;
+      for (size_t i=0; i < cnt.cols(); ++i)
+      {
+        if (!(*mask)[i]) continue;
+        unodes.insert(cnt(0,i));
+        unodes.insert(cnt(1,i));
+        unodes.insert(cnt(2,i));
+      }
+      
+      indices.insert(indices.end(), unodes.begin(), unodes.end());
+    }
+    else
+      cnt.uniqueVals(indices);
+    
+    for (size_t i = 0; i < indices.size(); ++i)
+      append_unity_ellipse(crd, indices[i], crdo, cnto);
+    
+    MIO::write(fname, crdo, cnto, "BAR");
+  }
+  
+  template <typename T> inline
+  void VarMetric<T>::draw_ellipse
+  (const char* fname, const K_FLD::FloatArray& crd, size_type i)
+  {
+    K_FLD::IntArray cnto;
+    K_FLD::FloatArray crdo;
+    
+    append_unity_ellipse(crd, i, crdo, cnto);
+    
+    MIO::write(fname, crdo, cnto, "BAR");
+  }
+  
+  template <typename T> inline
+  void VarMetric<T>::draw_ellipse_field
+  (const char* fname, const K_FLD::FloatArray& crd, const std::vector<size_type>& indices)
+  {
+    K_FLD::IntArray cnto;
+    K_FLD::FloatArray crdo;
+    
+    for (size_t i = 0; i < indices.size(); ++i)
+      append_unity_ellipse(crd, indices[i], crdo, cnto);
+    
+    MIO::write(fname, crdo, cnto, "BAR");
+  }
+  
+  template<> inline
+  void
+  VarMetric<Aniso2D>::append_unity_ellipse(const K_FLD::FloatArray& c, E_Int i, K_FLD::FloatArray& crd, K_FLD::IntArray& cnt, E_Int Nc)
+  {
+    const Aniso2D& m = this->_field[i];
+    
+    if (m[0] == 0. || m[2] == 0. ) return;
+    
+    E_Int SAMPLE = 100;
+    
+    E_Float alpha = 2. * K_CONST::E_PI /  (E_Float)SAMPLE;
+    
+    E_Int pos0 = crd.cols();
+    
+    if (Nc == -1) Nc = i;
+    
+    for (size_t n=0; n < SAMPLE; ++n)
+    {
+      E_Float a = alpha * n;
+      
+      E_Float V[] = {::cos(a), ::sin(a)};
+
+      const E_Float& u=V[0];
+      const E_Float& v=V[1];
+      const E_Float& m11 = m[0];
+      const E_Float& m12 = m[1];
+      const E_Float& m22 = m[2];
+      
+      E_Float k = 1. /::sqrt( u*(m11*u + m12*v) + v*(m12*u + m22*v) );
+      
+      E_Float Pt[] = {k*u , k*v};
+      
+      K_FUNC::sum<2>(Pt, c.col(Nc), Pt); //center it at node Nc
+      
+      crd.pushBack(Pt, Pt+2);
+      
+    }
+    
+    for (size_t n=0; n < SAMPLE; ++n)
+    {
+      E_Int e[] = {pos0+n, pos0+(n+1)%SAMPLE};
+      cnt.pushBack(e, e+2);
+    }   
+  }
+  
+  template<> inline
+  void
+  VarMetric<E_Float>::append_unity_ellipse(const K_FLD::FloatArray& c, E_Int i, K_FLD::FloatArray& crd, K_FLD::IntArray& cnt, E_Int Nc)
+  {    
+    E_Int SAMPLE = 50;
+    
+    const E_Float& h = this->_field[i];
+    
+    E_Float alpha = 2. * K_CONST::E_PI /  (E_Float)SAMPLE;
+    
+    E_Int pos0 = crd.cols();
+    
+    if (Nc == -1) Nc = i;
+    
+    for (size_t n=0; n < SAMPLE; ++n)
+    {
+      E_Float a = alpha * n;
+      E_Float V[] = {::cos(a), ::sin(a)};
+      
+      E_Float Pt[] = {h*V[0] , h*V[1]};
+      
+      K_FUNC::sum<2>(Pt, c.col(Nc), Pt); //center it at node Nc
+      
+      crd.pushBack(Pt, Pt+2);
+      
+    }
+    
+    for (size_t n=0; n < SAMPLE; ++n)
+    {
+      E_Int e[] = {pos0+n, pos0+(n+1)%SAMPLE};
+      cnt.pushBack(e, e+2);
+    }   
+  }
+  
+#endif
 
   // Implementations.
 
@@ -305,6 +544,135 @@ namespace DELAUNAY{
     _field[Ni].eigen_values(lmax, lmin);
     return 1./::sqrt(lmin);
   }
+  
+  ///
+  template<> inline
+  void
+  VarMetric<Aniso2D>::directional_metric_reduce(size_type Ni, E_Float hdir2, const E_Float* normed_dir)
+  {
+    // Aim : modifying the ellipse at Ni such d(Ni,X)*d(Ni,X) = h2 
+    //       where X is the intersection point of the ellipse with the line (Ni, dir)
+    
+    // (h2, dir) => X => hnew, the one between h1new and h2new that maximize hnew/hold
+    
+    E_Float hdir = ::sqrt(hdir2);
+        
+    E_Float NiX[] = {normed_dir[0]*hdir, normed_dir[1]*hdir};
+    
+    
+    // Diagonalization
+    E_Float lambda0, lambda1, v0[2], v1[2];
+    K_LINEAR::DelaunayMath::eigen_vectors (_field[Ni][0], _field[Ni][2], _field[Ni][1], lambda0, lambda1, v0, v1);
+    K_FLD::FloatArray D(2,2, 0.);
+    D(0,0) = lambda0;
+    D(1,1) = lambda1;
+    
+    K_FUNC::normalize<2>(v0);
+    K_FUNC::normalize<2>(v1);
+    
+    // transformation Matrix : diagonalizing base (BD) : Main axis -> (i,j)
+    K_FLD::FloatArray P(2,2, 0.), tP(2,2,0.);
+    tP(0,0) = P(0,0) = v0[0];
+    tP(0,1) = P(1,0) = v0[1];
+    tP(1,0) = P(0,1) = v1[0];
+    tP(1,1) = P(1,1) = v1[1];
+    
+    // X expressed in BD
+    E_Float Xbd[2];
+    Xbd[0] = tP(0,0) * NiX[0] + tP(0,1) * NiX[1];
+    Xbd[1] = tP(1,0) * NiX[0] + tP(1,1) * NiX[1];
+    
+    // Computing h1old and h2old to get first fundamental form coefficient (to keep them in the transfo)
+    // E = lambda0 * h1old2
+    // G = lambda1 * h2old2
+    E_Float h1old2 = get_h2_along_dir(Ni, v0);
+    E_Float h2old2 = get_h2_along_dir(Ni, v1);
+    
+    // Computing h1new and h2new
+    E_Float xbd2 = Xbd[0]*Xbd[0];
+    E_Float ybd2 = Xbd[1]*Xbd[1];
+    
+    if (xbd2 < E_EPSILON*E_EPSILON)       // along second axis
+      D(1,1) *= (h2old2 / ybd2);
+    else if (ybd2 < E_EPSILON*E_EPSILON) // along first axis
+      D(0,0) *= (h1old2 / xbd2);
+//    else if (::fabs(lambda0-lambda1) < E_EPSILON) //isotropic reduce
+//    {
+//      //assert (::fabs(xbd2 - ybd2) < E_EPSILON*E_EPSILON);
+//      D(0,0) = 1. / xbd2;
+//      D(1,1) = 1. / ybd2;
+//    }
+    else
+    {
+      bool first_axis = (ybd2/xbd2 < ::fabs(lambda0/lambda1));
+//      E_Float psu2 = K_FUNC::dot<2>(normed_dir, v0);
+//      psu2 *= psu2;
+//      E_Float psv2 = K_FUNC::dot<2>(normed_dir, v1);
+//      psv2 *= psv2;
+//      bool first_axis = (psu2 >= psv2);
+//      E_Float l0new = ::fabs((1. - lambda1*(Xbd[1]*Xbd[1])) / (Xbd[0]*Xbd[0]));
+//      E_Float l1new = ::fabs((1. - lambda0*(Xbd[0]*Xbd[0])) / (Xbd[1]*Xbd[1]));
+
+      // Replace the eigen value to reflect the transfo
+      if (first_axis)
+        D(0,0) *= (h1old2 * ::fabs(1. - lambda1 * ybd2) / xbd2);
+      else
+        D(1,1) *= (h2old2 * ::fabs(1. - lambda0 * xbd2) / ybd2);
+    }
+
+    K_FLD::FloatArray new_metric(2,2, 0.);
+    new_metric = P * D * tP;
+    
+#ifdef DEBUG_METRIC
+    E_Float sym_check = ::fabs(new_metric(0,1) - new_metric(1,0));
+    if (sym_check >=E_EPSILON)
+    {
+      sym_check = sym_check / std::max(new_metric(0,1), new_metric(1,0));
+    }
+    //std::cout << sym_check << std::endl;
+    assert (sym_check < E_EPSILON);
+//if (Ni == 112)
+//    {
+//    K_FLD::FloatArray crdo;
+//    K_FLD::IntArray cnto;
+//    append_unity_ellipse(_pos, Ni, crdo, cnto);
+//
+//    std::ostringstream o;
+//    o << "metric_at_Ni_before" << Ni << ".mesh";
+//    MIO::write(o.str().c_str(), crdo, cnto, "BAR");
+//    
+//    }
+#endif
+
+    _field[Ni][0] = new_metric(0,0);
+    _field[Ni][1] = new_metric(0,1);
+    _field[Ni][2] = new_metric(1,1);
+    
+#ifdef DEBUG_METRIC
+    
+//    if (Ni == 112)
+//    {
+//    std::ostringstream o;
+//    o << "metric_at_Ni_after" << Ni << ".mesh";
+//    draw_ellipse(o.str().c_str(), _pos, Ni);
+//    }
+    assert (isValidMetric( _field[Ni]));
+#endif
+  }
+  
+  template<> inline
+  void
+  VarMetric<Aniso2D>::metric_reduce(size_type Nj, const E_Float* normed_dir, E_Float hjold2, E_Float hjnew2)
+  {
+//    if (isValidMetric(_field[Nj]) && !isWeakAniso(Nj, 0.25))
+//      directional_metric_reduce(Nj, hjnew2, normed_dir); //orientation of NiNj does not matter
+//    else //isotropic reduction
+    {
+      _field[Nj][0] *= ( hjold2 / hjnew2) ;
+      _field[Nj][2] *= ( hjold2 / hjnew2);
+      _field[Nj][1] *= ( hjold2 / hjnew2) ;
+    }
+  }
 
   ///
   template <typename T> inline
@@ -341,23 +709,24 @@ namespace DELAUNAY{
     while ( has_changed && (++iter < itermax) );
   }
   
-  /// 
-  template <> inline
-  bool
-  VarMetric<Aniso2D>::isValidMetric(const E_Float* mi)
+  template <typename T> inline
+  void
+  VarMetric<T>::smoothing_loop
+  (const K_FLD::IntArray& connectB, E_Float gr, E_Int itermax, E_Int N0 /* threshold for metric changes*/)
   {
-    const E_Float& a11 = mi[0];
-    const E_Float& a12 = mi[1];
-    const E_Float& a22 = mi[2];
-    E_Float det = (a11*a22) - (a12*a12);    
-    
-    return ((a11 > 0.) && (a22 > 0.) && (det > 0.));
+    E_Int iter(0);
+    bool has_changed = false;
+    //
+    do
+    {
+      has_changed = false;
+      for (E_Int i=0; i < connectB.cols(); ++i)
+        has_changed |= this->smooth(connectB(0,i), connectB(1,i), gr, N0);
+    }
+    while ( has_changed && (++iter < itermax) );
   }
   
-
-  
-
-
+  ///
   template<> inline
     void VarMetric<E_Float>::compute_intersection(std::vector<E_Float>& metric1,
     const K_FLD::FloatArray& metric2)
@@ -433,25 +802,6 @@ namespace DELAUNAY{
   (const std::vector<E_Float>& isoM, std::vector<E_Float>& anisoM)
   {
     anisoM = isoM;
-  }
-
-  template<> inline
-  bool
-  VarMetric<E_Float>::isValidMetric(const E_Float& mi)
-  {
-    return ((mi > 0.) && (mi < K_CONST::E_MAX_FLOAT));
-  }
-
-  template<> inline
-  bool
-  VarMetric<Aniso2D>::isValidMetric(const Aniso2D& mi)
-  {
-    const E_Float& a11 = mi[0];
-    const E_Float& a12 = mi[1];
-    const E_Float& a22 = mi[2];
-    E_Float det = (a11*a22) - (a12*a12);
-
-    return ((a11 > 0.) && (a22 > 0.) && (det > 0.));
   }
   
   ///
@@ -691,137 +1041,7 @@ namespace DELAUNAY{
   }
 
 
-#ifdef DEBUG_METRIC
-  
-  template <typename T> inline
-  void VarMetric<T>::draw_ellipse_field
-  (const char* fname, const K_FLD::FloatArray& crd, const K_FLD::IntArray& cnt, const std::vector<bool>* mask)
-  {
-    K_FLD::IntArray cnto;
-    K_FLD::FloatArray crdo;
-    
-    std::vector<E_Int> indices;
-    
-    if (mask)
-    {
-      std::set<E_Int> unodes;
-      for (size_t i=0; i < cnt.cols(); ++i)
-      {
-        if (!(*mask)[i]) continue;
-        unodes.insert(cnt(0,i));
-        unodes.insert(cnt(1,i));
-        unodes.insert(cnt(2,i));
-      }
-      
-      indices.insert(indices.end(), unodes.begin(), unodes.end());
-    }
-    else
-      cnt.uniqueVals(indices);
-    
-    for (size_t i = 0; i < indices.size(); ++i)
-      append_unity_ellipse(crd, indices[i], crdo, cnto);
-    
-    MIO::write(fname, crdo, cnto, "BAR");
-  }
-  
-  template <typename T> inline
-  void VarMetric<T>::draw_ellipse_field
-  (const char* fname, const K_FLD::FloatArray& crd, const std::vector<size_type>& indices)
-  {
-    K_FLD::IntArray cnto;
-    K_FLD::FloatArray crdo;
-    
-    for (size_t i = 0; i < indices.size(); ++i)
-      append_unity_ellipse(crd, indices[i], crdo, cnto);
-    
-    MIO::write(fname, crdo, cnto, "BAR");
-  }
-  
-  template<> inline
-  void
-  VarMetric<Aniso2D>::append_unity_ellipse(const K_FLD::FloatArray& c, E_Int i, K_FLD::FloatArray& crd, K_FLD::IntArray& cnt, E_Int Nc)
-  {
-    const Aniso2D& m = this->_field[i];
-    
-    if (m[0] == 0. || m[2] == 0. ) return;
-    
-    E_Float lambda1, lambda2, v1[3], v2[3];
-    K_LINEAR::DelaunayMath::eigen_vectors(m[0], m[2], m[1], lambda1, lambda2, v1, v2);
-    
-    if (lambda1 < E_EPSILON || lambda2 < E_EPSILON) return;
-    
-    E_Int SAMPLE = 50;
-    
-    E_Float alpha = 2. * K_CONST::E_PI /  (E_Float)SAMPLE;
-    
-    E_Int pos0 = crd.cols();
-    
-    if (Nc == -1) Nc = i;
-    
-    for (size_t n=0; n < SAMPLE; ++n)
-    {
-      E_Float a = alpha * n;
-      
-      E_Float V[] = {::cos(a), ::sin(a)};
-      
-      E_Float FACTOR = 1.;//0.000001;
-      //E_Float Pt[] = {m[0]*V[0] + m[1]*V[1], m[1]*V[0] + m[2]*V[1]};
-      //Pt[0] *= FACTOR;
-      //Pt[1] *= FACTOR;
-      
-      E_Float h1 = ::sqrt(1./lambda1);
-      E_Float h2 = ::sqrt(1./lambda2);
-      
-      E_Float Pt[] = {h1*V[0] , h2*V[1]};
-      
-      K_FUNC::sum<2>(Pt, c.col(Nc), Pt); //center it at node Nc
-      
-      crd.pushBack(Pt, Pt+2);
-      
-    }
-    
-    for (size_t n=0; n < SAMPLE; ++n)
-    {
-      E_Int e[] = {pos0+n, pos0+(n+1)%SAMPLE};
-      cnt.pushBack(e, e+2);
-    }   
-  }
-  
-  template<> inline
-  void
-  VarMetric<E_Float>::append_unity_ellipse(const K_FLD::FloatArray& c, E_Int i, K_FLD::FloatArray& crd, K_FLD::IntArray& cnt, E_Int Nc)
-  {    
-    E_Int SAMPLE = 50;
-    
-    const E_Float& h = this->_field[i];
-    
-    E_Float alpha = 2. * K_CONST::E_PI /  (E_Float)SAMPLE;
-    
-    E_Int pos0 = crd.cols();
-    
-    if (Nc == -1) Nc = i;
-    
-    for (size_t n=0; n < SAMPLE; ++n)
-    {
-      E_Float a = alpha * n;
-      E_Float V[] = {::cos(a), ::sin(a)};
-      
-      E_Float Pt[] = {h*V[0] , h*V[1]};
-      
-      K_FUNC::sum<2>(Pt, c.col(Nc), Pt); //center it at node Nc
-      
-      crd.pushBack(Pt, Pt+2);
-      
-    }
-    
-    for (size_t n=0; n < SAMPLE; ++n)
-    {
-      E_Int e[] = {pos0+n, pos0+(n+1)%SAMPLE};
-      cnt.pushBack(e, e+2);
-    }   
-  }
-  
-#endif
+
 
 } // End namespace DELAUNAY
 

@@ -49,8 +49,8 @@ namespace DELAUNAY
 
   public:
 
-    Refiner(MetricType& metric, E_Float growth_ratio, E_Int nb_smooth_iter):_metric(metric), _threshold(0.5), 
-            _gr(growth_ratio), _nb_smooth_iter(nb_smooth_iter){}
+    Refiner(MetricType& metric, E_Float growth_ratio, E_Int nb_smooth_iter, E_Bool symmetrize):_metric(metric), _threshold(0.5), 
+            _gr(growth_ratio), _nb_smooth_iter(nb_smooth_iter), _symmetrize(symmetrize), _debug(false){}
 
     ~Refiner(void){}
 
@@ -61,6 +61,8 @@ namespace DELAUNAY
     void filterRefinePoints(MeshData& data, const int_set_type& box_nodes,
                             int_vector_type& refine_nodes,
                             tree_type& filter_tree);
+    
+    E_Bool                  _debug;
 
   private:
     MetricType&             _metric;
@@ -68,6 +70,7 @@ namespace DELAUNAY
     E_Float                 _threshold;
     E_Float                 _gr;
     E_Int                   _nb_smooth_iter;
+    E_Bool                  _symmetrize;
   };
 
   ///
@@ -84,7 +87,7 @@ namespace DELAUNAY
 
     K_FLD::IntArray::const_iterator pS;
 
-    // Get all the triangulation edges which are not hard edges.
+    // Get all the inner edges (non-hard).
     size_type cols = data.connectM.cols();
     for (size_type j = 0; j < cols; ++j)
     {
@@ -145,7 +148,7 @@ namespace DELAUNAY
     else
       for (const auto& Ei : all_edges)
         _metric.__compute_refine_points(*data.pos, Ei.node(0), Ei.node(1), _threshold, length_to_points, _tmpNodes);
-    
+
     std::sort(ALL(length_to_points));
 
     size_type sz = (size_type)length_to_points.size();
@@ -214,7 +217,9 @@ namespace DELAUNAY
             _metric.append_unity_ellipse(*data.pos, nodes[n], crdo, cnto);
           
           cnto.pushBack(E, E+2);
-          MIO::write("discard.mesh", crdo, cnto, "BAR");     
+          std::ostringstream o;
+          o << "discarded_" << Ni << ".mesh";
+          MIO::write(o.str().c_str(), crdo, cnto, "BAR");     
         }*/
 #endif
       }

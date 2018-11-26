@@ -660,7 +660,7 @@ namespace DELAUNAY
 
     size_type Ni, nb_refine_nodes;
 
-    Refiner<MetricType> saturator(_metric, _mode.growth_ratio, _mode.nb_smooth_iter);
+    Refiner<MetricType> saturator(_metric, _mode.growth_ratio, _mode.nb_smooth_iter, _mode.symmetrize);
 
 #ifdef E_TIME
     chrono c;
@@ -684,7 +684,8 @@ namespace DELAUNAY
 //    }
 //#endif
 
-      saturator.computeRefinePoints(iter++, *_data, _box_nodes, _data->hardEdges, refine_nodes, _N0);
+      saturator.computeRefinePoints(iter, *_data, _box_nodes, _data->hardEdges, refine_nodes, _N0);
+
 
 #ifdef E_TIME
       std::cout << "__compute_refine_points : " << c.elapsed() << std::endl;
@@ -696,6 +697,7 @@ namespace DELAUNAY
       o << "ellipse_refine_points_iter_" << iter << ".mesh";
       _metric.draw_ellipse_field(o.str().c_str(), *_data->pos, refine_nodes);
     }
+    //if (iter == 5) saturator._debug = true;
 #endif
 
       saturator.filterRefinePoints(*_data, _box_nodes, refine_nodes, filter_tree);
@@ -748,6 +750,7 @@ namespace DELAUNAY
       std::cout << "compacting : " << c.elapsed() << std::endl;
       std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
 #endif
+      ++iter;
     }
     while (carry_on);
 

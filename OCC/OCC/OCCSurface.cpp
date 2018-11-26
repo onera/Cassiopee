@@ -31,9 +31,10 @@
 K_OCC::OCCSurface::OCCSurface(const TopoDS_Face& F, E_Int id) :_F(F), _surface(BRep_Tool::Surface (F)), _parent(id){
 }
 
-K_OCC::OCCSurface::~OCCSurface() {
-}
+///
+K_OCC::OCCSurface::~OCCSurface() {}
 
+///
 E_Int
 K_OCC::OCCSurface::parameters
 (const K_FLD::FloatArray&coord3D, K_FLD::FloatArray& UVs)
@@ -169,7 +170,7 @@ E_Int K_OCC::OCCSurface::__sample_contour(E_Int Nsample, K_FLD::FloatArray& pos3
   K_CONNECT::IdTool::compress(pos3D, pred);
   K_CONNECT::IdTool::compress(pos2D, pred);
   
-  
+
   
   return 0;
 }
@@ -230,4 +231,47 @@ void K_OCC::OCCSurface::DUV(E_Float u, E_Float v, E_Float* P) const{
   P[0]=DUV.X();P[1]=DUV.Y();P[2]=DUV.Z();
 }
 
+/// Checks whether input parameters are in the bounds for this surface
+bool K_OCC::OCCSurface::in_bounds(E_Float u, E_Float v) const
+{
+  if (u < _U0) return false;
+  if (u > _U1) return false;
+  if (v < _V0) return false;
+  if (v > _V1) return false;
+    
+  return true;
+}
 
+void K_OCC::OCCSurface::__normalize(E_Float& u, E_Float& v) const 
+{
+  if (!_normalize_domain) return;
+  
+  // normalize in [0,1]
+  u = (u - _U0) / (_U1 - _U0);
+  v = (v - _V0) / (_V1 - _V0);
+}
+
+
+void K_OCC::OCCSurface::__denormalize(E_Float& u, E_Float& v) const 
+{
+
+  if (!_normalize_domain) return;
+  
+  u = u*(_U1-_U0) + _U0; // put in [U0,U1]
+  v = v*(_V1-_V0) + _V0; // put in [V0,V1]
+  
+  u = std::max(_U0, u);
+  u = std::min(_U1, u);
+  v = std::max(_V0, v);
+  v = std::min(_V1, v);
+  
+  //assert(u <= _U1 && u >= _U0);
+  //assert(v <= _V1 && v >= _V0);
+  
+  // put in [eps,1-eps] : to avoid problems at seam with revolution surface
+  
+  //u = std::max(u, E_EPSILON);
+  //u = std::min(u, _U1 - E_EPSILON);
+  //v = std::max(v, E_EPSILON);
+  // v = std::min(v, _V1 - E_EPSILON);
+}

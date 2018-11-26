@@ -44,19 +44,21 @@ namespace DELAUNAY
   public:
 
     /// Constructor for ISO mode : mesh size is specified.
-    GeomMetric(K_FLD::FloatArray& pos, const SurfaceType& surface, E_Float h0)
+    GeomMetric(K_FLD::FloatArray& pos, const SurfaceType& surface, E_Float h0, E_Float gr)
       :parent_type (pos, h0, h0),
-      _mode(ISO_CST), _surface(surface), _hmax2(h0*h0),
-      _h0(h0), _chordal_error(1.)
+      _mode(ISO_CST), _surface(surface), _hmax2(h0*h0),_unbounded_h(false),
+      _h0(h0), _chordal_error(1.), _gr(gr)
     {}
 
     /// Constructor for adaptive mode (ISO_RHO, ANISO) : mode and relative chordal error is specified.
     GeomMetric(K_FLD::FloatArray& pos, const SurfaceType& surface, GMmode mode, 
-               E_Float chordal_error, E_Float hmin, E_Float hmax)
+               E_Float chordal_error, E_Float hmin, E_Float hmax, E_Float gr)
       :parent_type (pos, hmin, hmax), _mode(mode), _surface(surface),
       _h0(K_CONST::E_MAX_FLOAT), _chordal_error(chordal_error),
-      _alpha2(4. * chordal_error*(2. - chordal_error))  
+      _alpha2(4. * chordal_error*(2. - chordal_error)), _gr(gr), _unbounded_h(false)  
     {}
+    
+    void set_pos2D(const K_FLD::FloatArray& pos2D){_pos2D = &pos2D;}
 
     ~GeomMetric(void){}
 
@@ -67,6 +69,8 @@ namespace DELAUNAY
     void init_metric
       (const K_FLD::FloatArray& metric, K_FLD::FloatArray& pos, const K_FLD::IntArray& connectB,
        const std::vector<E_Int>& hard_nodes);
+    
+    void reduce_by_checking_real_space(size_type Ni);
 
   private:
     void __update_boundary_metric_with_surface(const K_FLD::IntArray& connectB);
@@ -81,14 +85,20 @@ namespace DELAUNAY
     E_Float            _hmax2;
     E_Float            _h0;
     E_Float            _chordal_error;
+    E_Float            _gr;
     E_Float            _alpha2;
+    const K_FLD::FloatArray* _pos2D; //hack to avoid to pass a dummy argument for Metric::init_metric as pos2D is only required for GeomMetric
+    
+    T _boundary_metric_max;
+    E_Float _humax2, _hvmax2;
+    bool _unbounded_h;
   };
 
   ///
   template <typename T, typename SurfaceType>
   void
   GeomMetric<T, SurfaceType>::init_metric
-  (const K_FLD::FloatArray& metric, K_FLD::FloatArray& pos, const K_FLD::IntArray& connectB,
+  (const K_FLD::FloatArray& metric, K_FLD::FloatArray& pos3D, const K_FLD::IntArray& connectB,
    const std::vector<E_Int>& hard_nodes)
   {
     std::vector<E_Int> BNodes;
@@ -118,7 +128,7 @@ namespace DELAUNAY
     // Compute the isometric metric based on the boundary.
     std::vector<E_Float> m_iso;
     E_Float hmin1, hmax1;
-    MeshUtils1D::compute_iso_metric(pos, connectB, hard_nodes, m_iso, hmin1, hmax1);
+    MeshUtils1D::compute_iso_metric(pos3D, connectB, hard_nodes, m_iso, hmin1, hmax1);
 
     // Set _hmin and _hmax if not done nor correct.
      if (parent_type::_hmax <= 0.)
@@ -136,7 +146,7 @@ namespace DELAUNAY
        for (size_t i=0; i < m_iso.size(); ++i)
          m_iso[i] = std::max(m_iso[i], parent_type::_hmin);
      }
-      
+     
     _hmax2 = (parent_type::_hmax != K_CONST::E_MAX_FLOAT) ? parent_type::_hmax * parent_type::_hmax : K_CONST::E_MAX_FLOAT; //fixme : important to be done before __update_boundary_metric_with_surface
 
     // Set _metric by converting m_iso to an aniso type metric.
@@ -144,9 +154,9 @@ namespace DELAUNAY
     this->convertIsoToAniso(m_iso, parent_type::_field);
     
 #ifdef DEBUG_METRIC
-      {
-        parent_type::draw_ellipse_field("ellipse_init_metric.mesh", pos, connectB);
-      }
+//      {
+//        parent_type::draw_ellipse_field("ellipse_init_metric.mesh", pos3D, connectB); // iso on real space : always the same
+//      }
 #endif
 
     // Transform the metric in the parameter space.
@@ -171,11 +181,11 @@ namespace DELAUNAY
 #ifdef DEBUG_METRIC
       assert (isValidMetric(parent_type::_field[Ni]));
 #endif
-    }
+  }
 
 #ifdef DEBUG_METRIC
       {
-        //parent_type::draw_ellipse_field("ellipse_param_space.mesh", pos, connectB); //fixme : wrong pos, shoule be pos2D
+        //parent_type::draw_ellipse_field("ellipse_raw_param_space.mesh", *_pos2D, connectB);
       }
 #endif
 
@@ -186,6 +196,10 @@ namespace DELAUNAY
 /*
     __update_boundary_metric_with_surface(connectB);
     */
+
+#ifdef DEBUG_METRIC
+    std:: cout << "Is metric valid ? " << parent_type::is_valid() << std::endl;
+#endif
   }
 
   template <typename T, typename SurfaceType>
@@ -205,8 +219,8 @@ namespace DELAUNAY
     
     // Ask the surface.
     _surface.DU1(u,v, dU1); // First base vector of the tangential plane.
-    _surface.DU2(u,v, dU2); // Second base vector of the tangential plane.
-    _surface.DV1(u,v, dV1);
+    _surface.DU2(u,v, dU2);
+    _surface.DV1(u,v, dV1); // Second base vector of the tangential plane.
     _surface.DV2(u,v, dV2);
     _surface.DUV(u,v, dUV);
 
@@ -479,6 +493,100 @@ namespace DELAUNAY
       s[2] = M2(1,1);
       parent_type::_metric[i] = Aniso2D(&s[0]);
     }
+  }
+
+  template <typename T, typename SurfaceType>
+  void
+  GeomMetric<T, SurfaceType>::reduce_by_checking_real_space(size_type Ni)
+  {
+    if (_hmax2 == K_CONST::E_MAX_FLOAT || _hmax2 <= 0.) return;
+    
+    // Diagonalization
+    E_Float lambda0, lambda1, v0[2], v1[2];
+    K_LINEAR::DelaunayMath::eigen_vectors (_field[Ni][0], _field[Ni][2], _field[Ni][1], lambda0, lambda1, v0, v1);
+    K_FLD::FloatArray D(2,2, 0.);
+    D(0,0) = lambda0;
+    D(1,1) = lambda1;
+    
+    K_FUNC::normalize<2>(v0);
+    K_FUNC::normalize<2>(v1);
+    
+    // transformation Matrix : BD : Main axis -> (i,j)
+    K_FLD::FloatArray P(2,2, 0.), tP(2,2,0.);
+    tP(0,0) = P(0,0) = v0[0];
+    tP(0,1) = P(1,0) = v0[1];
+    tP(1,0) = P(0,1) = v1[0];
+    tP(1,1) = P(1,1) = v1[1];
+    
+    
+    E_Float P0[2], P1[2];
+    
+    E_Float h0 = ::sqrt(1./lambda0);
+    E_Float h1 = ::sqrt(1./lambda1);
+    E_Float Pix = _pos(0,Ni);
+    E_Float Piy = _pos(1,Ni);
+
+    // P0 = Pi +/- h0*v0
+    K_FUNC::sum<3>(1., _pos.col(Ni), h0, v0, P0);
+    bool P0_is_inside = _surface.in_bounds(P0[0], P0[1]);
+    if (!P0_is_inside)
+    {
+      K_FUNC::sum<3>(1., _pos.col(Ni), -h0, v0, P0); //try with the opposite point
+      P0_is_inside = _surface.in_bounds(P0[0], P0[1]);
+    }
+
+    // P1 = Pi +/- h1*v1
+    K_FUNC::sum<3>(1., _pos.col(Ni), h1, v1, P1);
+    bool P1_is_inside = _surface.in_bounds(P1[0], P1[1]);
+    if (!P1_is_inside)
+    {
+      K_FUNC::sum<3>(1., _pos.col(Ni), -h1, v1, P1); //try with the opposite point
+      P1_is_inside = _surface.in_bounds(P1[0], P1[1]);
+    }
+    
+    if (!P0_is_inside && !P1_is_inside) return; 
+    
+    // Transform in the real space
+    E_Float P0r[3], Pi[3], P1r[3];
+    _surface.point(_pos(0,Ni), _pos(1,Ni), Pi); //center of the ellipse
+    
+    E_Float k02 = 1.;
+    if (P0_is_inside)
+    {
+      _surface.point(P0[0], P0[1], P0r);
+      E_Float dPiP02 = K_FUNC::sqrDistance(Pi, P0r, 3);
+      k02 =  dPiP02 / _hmax2;
+    }
+    
+    E_Float k12 = 1.;
+    if (P1_is_inside)
+    {
+      _surface.point(P1[0], P1[1], P1r);
+      E_Float dPiP12 = K_FUNC::sqrDistance(Pi, P1r, 3);
+      k12 =  dPiP12 / _hmax2;
+    }
+
+    if (k02 <= 1. && k12 <= 1.) return; //smaller than hmax
+    
+    E_Float KMAX2 = (1. + ::sqrt(2.));
+    KMAX2 *= KMAX2;
+        
+    if (k02 > 1.1 && k02 < KMAX2) D(0,0) *= k02;
+    if (k12 > 1.1 && k12 < KMAX2) D(1,1) *= k12;
+        
+//    if (k12 > KMAX2 || k02 > KMAX2)
+//    {
+//      std::cout << "wthfck Ni : " << Ni << " k02 :" << k02 << " k12 : " << k12 << std::endl;
+//      std::ostringstream o;
+//      o << "error_real_" << Ni << ".mesh";
+//      //parent_type::draw_ellipse(o.str().c_str(), _pos, Ni);
+//    }
+    
+    K_FLD::FloatArray M = P * D * tP;
+    
+    _field[Ni][0] = M(0,0);
+    _field[Ni][1] = M(1,0);
+    _field[Ni][2] = M(1,1);
   }
 }
 

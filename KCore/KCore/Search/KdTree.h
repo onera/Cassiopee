@@ -76,6 +76,10 @@ class KdTree {
 
     /// Destructor.
     ~KdTree(){};
+    
+  public: /*Accessors */
+    
+    E_Int nb_nodes(){ return _tree_sz;}
 
   public: /** Insertion methods */
 

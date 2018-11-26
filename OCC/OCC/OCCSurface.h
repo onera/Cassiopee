@@ -31,6 +31,7 @@ namespace K_OCC
 class OCCSurface {
 public:
   OCCSurface(const TopoDS_Face&, E_Int id=0);
+  OCCSurface (const OCCSurface& rhs);
   ~OCCSurface();
   
   
@@ -60,8 +61,14 @@ public:
   /// Computes the first crossed UV-derivative at P(u,v) on the surface.
   void DUV(E_Float u, E_Float v, E_Float* P) const;
   
+  /// Checks whether input parameters are in the bounds for this surface
+  bool in_bounds(E_Float u, E_Float v) const ;
+  
 private:
   E_Int __sample_contour(E_Int Nsample, K_FLD::FloatArray& pos3D, K_FLD::FloatArray& pos2D);
+  
+  void __normalize(E_Float& u, E_Float& v) const ; 
+  void __denormalize(E_Float & u, E_Float& v) const ;
   
 public:
 
@@ -72,6 +79,8 @@ public:
   std::vector<E_Int> _edges;
   
   E_Float _U0, _U1, _V0, _V1;
+  
+  bool _normalize_domain;
 };
 
 }

@@ -26,7 +26,7 @@ namespace K_OCC
   PyObject* convertIGES2Arrays(PyObject* self, PyObject* args);
   
   E_Int CADread(
-  char* file, char* fimeFmt, E_Float h, E_Float chordal_err, char*& varString,
+  char* file, char* fimeFmt, E_Float h, E_Float chordal_err, E_Float gr, char*& varString,
   std::vector<K_FLD::FldArrayF*>& unstructField,
   std::vector<K_FLD::FldArrayI*>& connect,
   std::vector<E_Int>& eltType,
