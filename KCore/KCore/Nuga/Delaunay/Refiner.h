@@ -116,7 +116,11 @@ namespace DELAUNAY
     // so do it at leat once whatever the user ask for to impovre the overall
     // mesh quality by setting the right metrics at bone nodes (__init_refine_points)
     _metric._N0 = N0;
-    if (iter == 1 || ( (iter > 1) && (_nb_smooth_iter > 0)) )
+
+    bool do_smooth  = (_nb_smooth_iter > 0) && (iter > 1);
+         do_smooth |= (_symmetrize && (iter == 1)); // T3 Mesher use : always smooth at first iter for skeleton nodes.
+
+    if(do_smooth)
     {
     
 #ifdef DEBUG_METRIC
@@ -140,8 +144,7 @@ namespace DELAUNAY
     }
 
     std::vector<std::pair<E_Float, size_type> > length_to_points;
-
-    if (iter== 0)
+    if (_symmetrize && iter== 0)
       // Compute the bone mesh (for a 2D mesh, not a Geom Mesh)
       for (const auto& Ei : all_edges)
         _metric.__init_refine_points(*data.pos, Ei.node(0), Ei.node(1), _threshold, length_to_points, _tmpNodes);

@@ -121,6 +121,9 @@ GapFixer::run
   DELAUNAY::SurfaceMesherMode           mode;
   if (refine == false)
     mode.mesh_mode = mode.TRIANGULATION_MODE;
+  else
+    mode.symmetrize = true;
+
   data.hardNodes = hN;
   mode.growth_ratio = 1.2;
 

@@ -27,9 +27,12 @@
 #include "Connect/merge.h"
 #include "Connect/IdTool.h"
 
+///
+K_OCC::OCCSurface::OCCSurface(const TopoDS_Face& F, E_Int id) :_F(F), _surface(BRep_Tool::Surface (F)), _parent(id), _normalize_domain(true){}
 
-K_OCC::OCCSurface::OCCSurface(const TopoDS_Face& F, E_Int id) :_F(F), _surface(BRep_Tool::Surface (F)), _parent(id){
-}
+///
+K_OCC::OCCSurface::OCCSurface(const OCCSurface& rhs)
+:_F(rhs._F), _surface(rhs._surface), _parent(rhs._parent), _edges(rhs._edges), _U0(rhs._U0), _U1(rhs._U1), _V0(rhs._V0), _V1(rhs._V1), _normalize_domain(rhs._normalize_domain){}
 
 ///
 K_OCC::OCCSurface::~OCCSurface() {}

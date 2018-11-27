@@ -881,17 +881,20 @@ namespace DELAUNAY{
     
     const Aniso2D& mi0 = _field[Ni];
     const Aniso2D& mj0 = _field[Nj];
-    
-    E_Float hi0 = getRadius(Ni);
-    E_Float hj0 = getRadius(Nj);
+
+    E_Float NiNj[2];
+    K_FUNC::diff<2>(_pos.col(Nj), _pos.col(Ni), NiNj);
+       
+    E_Float hi02 = get_h2_along_dir(Ni, NiNj); // trace on NiNj of the ellipse centered at Ni
+    E_Float hj02 = get_h2_along_dir(Nj, NiNj); // trace on NiNj of the ellipse centered at Nj
     
     const Aniso2D* pmi0 = &mi0;
     
-    if (::fabs(hj0 - hi0) < E_EPSILON) return false; //same metric so nothing to smooth
-    if (hj0 < hi0)
+    if (::fabs(hj02 - hi02) < E_EPSILON*E_EPSILON) return false; //same metric so nothing to smooth
+    if (hj02 < hi02)
     {
       std::swap(Ni,Nj);
-      std::swap(hi0, hj0);
+      std::swap(hi02, hj02);
       pmi0 = &mj0;
     }
     
@@ -900,39 +903,11 @@ namespace DELAUNAY{
     if (Nj <= N0) return false; //do not touch the hard nodes
 
     E_Float dij = lengthEval(Ni, *pmi0, Nj, *pmi0);
-
-    if (hi0 >= dij && hj0 >= dij) return false; //fixme : ??
-
-    E_Float hs = hi0 *(1. + (gr-1.) * dij); // extrapolated h at Nj with respect to growth ratio
     
-    hs = std::max(_hmin, hs);
-    hs = std::min(_hmax, hs);
+    E_Float hs2 = hi02 * (1. + (gr-1.) * dij) * (1. + (gr-1.) * dij); // extrapolated h at Nj with respect to growth ratio
 
-    if (hj0 <= hs) return false; //false if metric at Nj is smaller than the replacement one.
-
-    if (isValidMetric(_field[Nj])) //previously set
-    {
-      K_FLD::FloatArray Ms(2,2, 0.);
-      Ms(0,0) = Ms(1,1) = 1./(hs*hs);
+    metric_reduce(Nj, NiNj, hj02, hs2);
     
-      K_FLD::FloatArray Mj0(2,2);
-      Mj0(0,0) = _field[Nj][0];
-      Mj0(1,1) = _field[Nj][2];
-      Mj0(1,0) = Mj0(0,1) = _field[Nj][1];
-    
-      K_FLD::FloatArray I;
-      K_LINEAR::DelaunayMath::intersect(Mj0, Ms, I);
-    
-      _field[Nj][0] = I(0,0);
-      _field[Nj][1] = I(1,0);
-      _field[Nj][2] = I(1,1);
-    }
-    else
-    {
-      _field[Nj][2] = _field[Nj][0] = 1./(hs*hs);
-      _field[Nj][1] = 0.;
-    }
-
     return true;
   }
 

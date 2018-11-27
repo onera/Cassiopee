@@ -132,7 +132,10 @@ namespace DELAUNAY
 
     // Set _hmin and _hmax if not done nor correct.
      if (parent_type::_hmax <= 0.)
-       parent_type::_hmax = K_CONST::E_MAX_FLOAT;
+     {
+       parent_type::_hmax = hmax1 * connectB.cols();
+       _unbounded_h = true;
+     }
      if ((parent_type::_hmin <= 0.) || (parent_type::_hmin > parent_type::_hmax) || (parent_type::_hmin == K_CONST::E_MAX_FLOAT) )
        parent_type::_hmin = std::min(hmin1, parent_type::_hmax);
  
@@ -164,19 +167,11 @@ namespace DELAUNAY
     for (size_t Ni = 0; Ni < parent_type::_field.size(); ++Ni)
     {
       __compute_1st_fundamental_form(Ni, E, F, G);
-
-      if ((E < E_EPSILON) || (G < E_EPSILON)) //singular point.
-        continue;
-
-      // Do the transform if and only if the ellispse is contained in the initial iso circle
-      //if (E > (1. / (parent_type::_field[Ni][0] * hmax1 * hmax1) ) )
-        parent_type::_field[Ni][0] *= E;
       
+      // Do the transform
+      parent_type::_field[Ni][0] *= E;
       //parent_type::_field[Ni][1] *= F; //here m12 is 0
-      
-      // Do the transform if and only if the ellispse is contained in the initial iso circle
-      //if (G > (1. / (parent_type::_field[Ni][2] * hmax1 * hmax1) ) )
-        parent_type::_field[Ni][2] *= G;
+      parent_type::_field[Ni][2] *= G;
       
 #ifdef DEBUG_METRIC
       assert (isValidMetric(parent_type::_field[Ni]));
@@ -188,6 +183,82 @@ namespace DELAUNAY
         //parent_type::draw_ellipse_field("ellipse_raw_param_space.mesh", *_pos2D, connectB);
       }
 #endif
+  
+  
+//    // LIMITERS
+//    
+//    // 1. compute the max ellipse base on the max du and dv over the boundary
+//    E_Float hu_max(0.), hv_max(0.);
+//    E_Int nbe = connectB.cols();
+//    const K_FLD::FloatArray &crd = *_pos2D;
+//    for (E_Int i=0; i < nbe; ++i)
+//    {
+//      E_Float du = ::fabs(crd(0,connectB(0,i)) - crd(0,connectB(1,i)));
+//      E_Float dv = ::fabs(crd(1,connectB(0,i)) - crd(1,connectB(1,i)));
+//      
+//      hu_max = std::max(hu_max, du);
+//      hv_max = std::max(hv_max, dv);
+//    }
+//    
+////    E_Float huvmax = std::max(hu_max, hv_max);
+////
+////    _boundary_metric_max[1] = 0.;
+//    _humax2 = hu_max*hu_max;
+//    _hvmax2 = hv_max*hv_max;
+//    E_Float mu_min  =  1./ _humax2;
+//    E_Float mv_min = 1./ _hvmax2;
+//    
+//    for (size_t Ni = 0; Ni < parent_type::_field.size(); ++Ni)
+//    {
+//      parent_type::_field[Ni][0] = std::max(parent_type::_field[Ni][0], mu_min);
+//      parent_type::_field[Ni][2] = std::max(parent_type::_field[Ni][2], mv_min);
+//    }
+//    
+//#ifdef DEBUG_METRIC
+//    parent_type::draw_ellipse_field("ellipse_cap_param_space.mesh", *_pos2D, connectB); //fixme : wrong pos, shoule be pos2D
+//#endif
+//    
+//    // 2. optimal reduce : ensure that the ellipses intersection with the bounday does not contain inner nodes.
+//    //    APPROX : check only connected nodes => not true for erratic boundary
+//    for (E_Int i=0; i < nbe; ++i)
+//    {
+//      const E_Int& Ni = connectB(0,i);
+//      const E_Int& Nj = connectB(1,i);
+//      
+//      E_Float NiNj[2];
+//      K_FUNC::diff<2>(crd.col(Nj),crd.col(Ni), NiNj);
+//      E_Float dij2 = K_FUNC::normalize<2>(NiNj);
+//      dij2 *= dij2;
+//      
+//      E_Float hi02 = parent_type::get_h2_along_dir(Ni, NiNj); // trace on NiNj of the ellipse centered at Ni
+//      
+//      if (hi02> dij2) //need to be reduced along that direction : the ellipse will pass through Nj after transfo
+//        parent_type::metric_reduce(Ni, NiNj, hi02, dij2);
+//
+//      E_Float hj02 = parent_type::get_h2_along_dir(Nj, NiNj); // trace on NiNj of the ellipse centered at Nj
+//      
+//      if (hj02 > dij2) //need to be reduced along that direction
+//        parent_type::metric_reduce(Nj, NiNj, hj02, dij2);
+//    }
+//
+//#ifdef DEBUG_METRIC
+//    parent_type::draw_ellipse_field("ellipse_opt_reduce_param_space.mesh", *_pos2D, connectB); //fixme : wrong pos, shoule be pos2D
+//#endif
+//    
+//#ifdef DEBUG_METRIC
+//    std:: cout << "Is metric valid ? " << parent_type::is_valid() << std::endl;
+//#endif
+//    
+//    // 3. real space checking
+//    if (!_unbounded_h)
+//    {
+//      for (size_t Ni = 0; Ni < parent_type::_field.size(); ++Ni)
+//        reduce_by_checking_real_space(Ni);
+//    }
+// 
+//#ifdef DEBUG_METRIC
+//    parent_type::draw_ellipse_field("ellipse_real_reduce_param_space.mesh", *_pos2D, connectB); //fixme : wrong pos, shoule be pos2D
+//#endif
 
     // Now take the user metric into account at each node when it's valid.
     // Only the first row of the input matrix is taken into account.
@@ -401,31 +472,27 @@ namespace DELAUNAY
     m[2] = M(1,1);
     parent_type::setMetric(N0, m);
     
-    if (!parent_type::isValidMetric(parent_type::_field[Ni]) || !parent_type::isValidMetric(parent_type::_field[Nj]))
-      return;
-    
-    // LIMITER PROCESSING
-    // both Ni and Nj metrics are valid here so check if straight interpolation (approximated by iso metric : max lambda radius) between these nodes
-    // is not smaller than the one computed at N0
-    
-    T m1 = parent_type::_interpol->interpolate(parent_type::_field[Ni], parent_type::_field[Nj], r);
-    E_Float lmax, lmin;
-    m1.eigen_values(lmax, lmin);
-    K_FLD::FloatArray Ms(2,2,0.);
-    Ms(0,0) = Ms(1,1) = lmax; // max-radius iso approximation
-    
-    if (parent_type::isValidMetric(m)) // N0 computed metrics is OK
+    if (! parent_type::isValidMetric(parent_type::_field[N0])) // hmax is inf and surface is locally planar
     {
-      K_FLD::FloatArray I(2,2);
-      K_LINEAR::DelaunayMath::intersect(M, Ms, I);
-      T m;
-      m[0] = I(0,0);
-      m[1] = I(1,0);
-      m[2] = I(1,1);
-      parent_type::setMetric(N0, m);
+      setMetric(N0, parent_type::_interpol->interpolate(_field[Ni], _field[Nj], r));
+      return;
     }
-    else // invalid metrics so simply pass the interpolated value.
-      parent_type::setMetric(N0, m1);
+
+    if (_gr >= 1.)
+    {
+      parent_type::smooth(Ni, N0, _gr, Ni);
+      parent_type::smooth(Nj, N0, _gr, Nj);
+    }
+    
+    assert (parent_type::isValidMetric(parent_type::_field[N0]));
+    
+    //parent_type::draw_ellipse("ellipse_step1.mesh", *_pos2D, N0);
+
+    //if (!_unbounded_h)
+    //  reduce_by_checking_real_space(N0);
+    //parent_type::draw_ellipse("ellipse_real.mesh", *_pos2D, N0);
+    
+    assert (parent_type::isValidMetric(parent_type::_field[N0]));
   }
 
   //fixme : implementation required ?

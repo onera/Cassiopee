@@ -196,7 +196,7 @@ E_Int K_OCC::CADviaOCC::update_with_chordal_sizing(std::vector<E_Int>& Ns)
   Ns.resize(nb_edges+1, 0);
   
   if (_chordal_err <= 0.) //undefined or badly defined
-    _chordal_err = _h/50.;
+    _chordal_err = 0.02;
 
   for (E_Int i=1; i <= nb_edges; ++i)
     __chord_sizing(TopoDS::Edge(_edges(i)), _chordal_err, Ns[i]);
@@ -228,19 +228,68 @@ E_Int K_OCC::CADviaOCC::__chord_sizing(const TopoDS_Edge& E, E_Float chordal_err
   
   BRepAdaptor_Curve C0(E);
   GeomAdaptor_Curve geom_adap(C0.Curve()); // Geometric Interface <=> access to discretizations tool
+  E_Float u0 = geom_adap.FirstParameter();
+  E_Float u1 = geom_adap.LastParameter();
   
-  GCPnts_UniformDeflection unif_defl(geom_adap, chordal_err);
-  if (!unif_defl.IsDone())
-    return 1;
+  E_Float L = (E_Float) GCPnts_AbscissaPoint::Length(geom_adap, u0, u1);
   
-  nb_points = std::max(nb_points, unif_defl.NbPoints()); // choose finer
-   
-#ifdef DEBUG_CAD_READER
-  //std::cout << "nb poins : " << nb_points << std::endl; 
-  //assert(nb_points > 1);
-#endif
+  E_Int nb_pts_defl = 0;
+  E_Float dmax = chordal_err * L;
+  __eval_nb_points(C0, u0, u1, dmax, nb_pts_defl);
+  nb_pts_defl +=1; //give the number of split => +1 to have the nb of points
+  
+  nb_pts_defl = std::max(nb_pts_defl, 3); // at least 3 points
+  nb_points = std::max(nb_pts_defl, nb_points); // at least 3 points
+  
+}
+
+E_Int K_OCC::CADviaOCC::__eval_nb_points(const BRepAdaptor_Curve& C, E_Float u0, E_Float u1, E_Float dmax, E_Int& nb_points )
+{
+  E_Float dm;
+  __eval_chordal_error(C, u0, u1, dm);
+  if (dm <= dmax)
+  {
+    ++nb_points; return 0;
+  }
+  
+  __eval_nb_points(C, u0, 0.5*(u1+u0), dmax, nb_points);
+  __eval_nb_points(C, 0.5*(u1+u0), u1, dmax, nb_points);
   
   return 0;
+  
+}
+
+E_Int K_OCC::CADviaOCC::__eval_chordal_error(const BRepAdaptor_Curve& C, E_Float u0, E_Float u1, E_Float& dmax)
+{
+  gp_Pnt pu0;
+  C.D0 (u0, pu0);
+  gp_Pnt pu1;
+  C.D0 (u1, pu1);
+    
+  gp_Pnt pu, P0, P1;
+  E_Float Pu[3], Pm[3];
+  
+  C.D0 (u0, P0);
+  C.D0 (u1, P1);
+  
+  dmax = -1;
+  
+  // 4 samples
+  for (size_t n=0; n < 3; ++n)
+  {
+    E_Float u = u0 + 0.25 * (n+1) * (u1-u0);
+    
+    C.D0 (u, pu);
+    Pu[0] = pu.X(); Pu[1] = pu.Y(); Pu[2] = pu.Z();
+    
+    Pm[0] = P0.X() + 0.25 * (n+1) * (P1.X() - P0.X());
+    Pm[1] = P0.Y() + 0.25 * (n+1) * (P1.Y() - P0.Y());
+    Pm[2] = P0.Z() + 0.25 * (n+1) * (P1.Z() - P0.Z());
+    
+    E_Float dm = ::sqrt(K_FUNC::sqrDistance(Pm, Pu, 3));
+    
+    dmax = (dm > dmax) ? dm : dmax;
+  }
 }
 
 ///
@@ -682,7 +731,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces
 #endif
     
       //
-      OCCSurface occ_surf(F._F);
+      OCCSurface occ_surf(F);
       DELAUNAY::SurfaceMeshData<OCCSurface> data(UVcontour, pos3D, connectB, occ_surf);
     
 #ifdef DEBUG_CAD_READER
@@ -713,6 +762,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces
         mode.growth_ratio = std::max(_gr, 1.); //fixme : values in [1.; 1.25] might cause errors. Anyway do not allow bellow 1. since not useful
         mode.symmetrize = (UVcontour.cols() > 100);
         mode.nb_smooth_iter = 2;
+        mode.symmetrize = false;//fxme : reactivate somehow
       }
 
       mesher.mode = mode;

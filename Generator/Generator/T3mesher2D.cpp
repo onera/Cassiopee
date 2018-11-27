@@ -126,6 +126,8 @@ PyObject* K_GENERATOR::T3mesher2D(PyObject* self, PyObject* args)
   DELAUNAY::MesherMode mode;
   if (triangulateOnly)
     mode.mesh_mode = DELAUNAY::MesherMode::TRIANGULATION_MODE;
+  else if (grading != 1.)
+  	mode.symmetrize = true;
   
   mode.growth_ratio = grading; // Growth ratio
   //std::cout << "gr : " << mode.growth_ratio << std::endl;
