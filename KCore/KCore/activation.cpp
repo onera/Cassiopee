@@ -900,7 +900,7 @@ case 559932868ul:
 // Retourne 0 sinon
 // La cle doit etre dans .CassiopeeKey
 //=============================================================================
-int K_KCORE::activation(char* name)
+int K_KCORE::activation(const char* name)
 {
   char filePath[256];
   int ret;

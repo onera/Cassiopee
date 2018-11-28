@@ -11,7 +11,9 @@ if os.environ.has_key('MPIRUN'): # si MPIRUN=0, force sequentiel
 else: # try import (may fail - core or hang)
     try:
         from Mpi4py import *
-    except: raise ImportError("Converter:Mpi: requires mpi4py module.")
+    except:
+        rank = 0; size = 1; KCOMM = None
+        #raise ImportError("Converter:Mpi: requires mpi4py module.")
 
 from Distributed import _readZones, _convert2PartialTree, _convert2SkeletonTree, _readPyTreeFromPaths
 import PyTree

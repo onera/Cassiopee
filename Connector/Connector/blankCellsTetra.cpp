@@ -556,7 +556,7 @@ inline E_Int __do_the_cell_blanking
   {    
     acvz.getEntry(i, pt);
     ELT_t Hi(pt);
-    Hi.iso_barycenter<K_FLD::ArrayAccessor<Coordinate_t> >(ac, G);
+    Hi.template iso_barycenter< K_FLD::ArrayAccessor<Coordinate_t> >(ac, G);
     ZoomCentroids.pushBack(G, G+3);
   }
 

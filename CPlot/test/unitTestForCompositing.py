@@ -1,4 +1,5 @@
 # - display (array) -
+# using compositing
 import Generator as G
 import CPlot
 import os
@@ -24,37 +25,33 @@ posCamDiag = (2.5,2.5,2.5)
 posEyeDiag = (0.5,0.5,0.5)
 dirCamDiag = (1.,0.,-1.)
 
-print "Sauvegarde cube profondeur en z"
+print("Sauvegarde cube profondeur en z")
 CPlot.display([cube,cube2], posCam=posCamZ, posEye=posEyeZ, dirCam=dirCamZ, exportResolution=res, export="ref_z.png", offscreen=2)
 CPlot.finalizeExport()
 
-
-print "Sauvegarde cube profondeur en y"
+print("Sauvegarde cube profondeur en y")
 CPlot.display([cube,cube2], posCam=posCamY, posEye=posEyeY, dirCam=dirCamY, exportResolution=res, export="ref_y.png", offscreen=2)
 CPlot.finalizeExport()
 
-print "Sauvegarde cube profondeur en diag"
+print("Sauvegarde cube profondeur en diag")
 CPlot.display([cube,cube2], posCam=posCamDiag, posEye=posEyeDiag, dirCam=dirCamDiag, exportResolution=res, export="ref_diag.png", offscreen=2)
 CPlot.finalizeExport()
 
-
 # Accumulate in images
-print "Composition en profondeur z"
+print("Composition en profondeur z")
 CPlot.display([cube], posCam=posCamZ, posEye=posEyeZ, dirCam=dirCamZ,exportResolution=res,  export="composite_z.png", offscreen=3)
 CPlot.finalizeExport(3)
 CPlot.display([cube2], posCam=posCamZ, posEye=posEyeZ, dirCam=dirCamZ,exportResolution=res,  export="composite_z.png", offscreen=4)
 CPlot.finalizeExport(4)
 
-
 # Accumulation en y
-print "Composition en profondeur y"
+print("Composition en profondeur y")
 CPlot.display([cube], posCam=posCamY, posEye=posEyeY, dirCam=dirCamY, exportResolution=res, export="composite_y.png", offscreen=3)
 CPlot.finalizeExport(3)
 CPlot.display([cube2], posCam=posCamY, posEye=posEyeY, dirCam=dirCamY, exportResolution=res, export="composite_y.png", offscreen=4)
 CPlot.finalizeExport(4)
 
-
-print "Composition en profondeur diag"
+print("Composition en profondeur diag")
 CPlot.display([cube], posCam=posCamDiag, posEye=posEyeDiag, dirCam=dirCamDiag, exportResolution=res, export="composite_diag.png", offscreen=3)
 CPlot.finalizeExport(3)
 CPlot.display([cube2], posCam=posCamDiag, posEye=posEyeDiag, dirCam=dirCamDiag, exportResolution=res, export="composite_diag.png", offscreen=4)
