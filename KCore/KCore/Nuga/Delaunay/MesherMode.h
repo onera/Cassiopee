@@ -71,6 +71,7 @@ namespace DELAUNAY
     
       chordal_error = rhs.chordal_error;
       metric_mode = rhs.metric_mode;
+      return *this;
     }
     
     enum GMmode

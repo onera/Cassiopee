@@ -474,7 +474,7 @@ namespace DELAUNAY
     
     if (! parent_type::isValidMetric(parent_type::_field[N0])) // hmax is inf and surface is locally planar
     {
-      setMetric(N0, parent_type::_interpol->interpolate(_field[Ni], _field[Nj], r));
+      setMetric(N0, parent_type::_interpol->interpolate(parent_type::_field[Ni], parent_type::_field[Nj], r));
       return;
     }
 
@@ -570,7 +570,7 @@ namespace DELAUNAY
     
     // Diagonalization
     E_Float lambda0, lambda1, v0[2], v1[2];
-    K_LINEAR::DelaunayMath::eigen_vectors (_field[Ni][0], _field[Ni][2], _field[Ni][1], lambda0, lambda1, v0, v1);
+    K_LINEAR::DelaunayMath::eigen_vectors (parent_type::_field[Ni][0], parent_type::_field[Ni][2], parent_type::_field[Ni][1], lambda0, lambda1, v0, v1);
     K_FLD::FloatArray D(2,2, 0.);
     D(0,0) = lambda0;
     D(1,1) = lambda1;
@@ -590,24 +590,24 @@ namespace DELAUNAY
     
     E_Float h0 = ::sqrt(1./lambda0);
     E_Float h1 = ::sqrt(1./lambda1);
-    E_Float Pix = _pos(0,Ni);
-    E_Float Piy = _pos(1,Ni);
+    E_Float Pix = parent_type::_pos(0,Ni);
+    E_Float Piy = parent_type::_pos(1,Ni);
 
     // P0 = Pi +/- h0*v0
-    K_FUNC::sum<3>(1., _pos.col(Ni), h0, v0, P0);
+    K_FUNC::sum<3>(1., parent_type::_pos.col(Ni), h0, v0, P0);
     bool P0_is_inside = _surface.in_bounds(P0[0], P0[1]);
     if (!P0_is_inside)
     {
-      K_FUNC::sum<3>(1., _pos.col(Ni), -h0, v0, P0); //try with the opposite point
+      K_FUNC::sum<3>(1., parent_type::_pos.col(Ni), -h0, v0, P0); //try with the opposite point
       P0_is_inside = _surface.in_bounds(P0[0], P0[1]);
     }
 
     // P1 = Pi +/- h1*v1
-    K_FUNC::sum<3>(1., _pos.col(Ni), h1, v1, P1);
+    K_FUNC::sum<3>(1., parent_type::_pos.col(Ni), h1, v1, P1);
     bool P1_is_inside = _surface.in_bounds(P1[0], P1[1]);
     if (!P1_is_inside)
     {
-      K_FUNC::sum<3>(1., _pos.col(Ni), -h1, v1, P1); //try with the opposite point
+      K_FUNC::sum<3>(1., parent_type::_pos.col(Ni), -h1, v1, P1); //try with the opposite point
       P1_is_inside = _surface.in_bounds(P1[0], P1[1]);
     }
     
@@ -615,7 +615,7 @@ namespace DELAUNAY
     
     // Transform in the real space
     E_Float P0r[3], Pi[3], P1r[3];
-    _surface.point(_pos(0,Ni), _pos(1,Ni), Pi); //center of the ellipse
+    _surface.point(parent_type::_pos(0,Ni), parent_type::_pos(1,Ni), Pi); //center of the ellipse
     
     E_Float k02 = 1.;
     if (P0_is_inside)
@@ -646,14 +646,14 @@ namespace DELAUNAY
 //      std::cout << "wthfck Ni : " << Ni << " k02 :" << k02 << " k12 : " << k12 << std::endl;
 //      std::ostringstream o;
 //      o << "error_real_" << Ni << ".mesh";
-//      //parent_type::draw_ellipse(o.str().c_str(), _pos, Ni);
+//      //parent_type::draw_ellipse(o.str().c_str(), parent_type::_pos, Ni);
 //    }
     
     K_FLD::FloatArray M = P * D * tP;
     
-    _field[Ni][0] = M(0,0);
-    _field[Ni][1] = M(1,0);
-    _field[Ni][2] = M(1,1);
+    parent_type::_field[Ni][0] = M(0,0);
+    parent_type::_field[Ni][1] = M(1,0);
+    parent_type::_field[Ni][2] = M(1,1);
   }
 }
 
