@@ -20,7 +20,7 @@ def fit():
     if CTK.t == []: return
     nzs = CPlot.getSelectedZones()
     if CTK.__MAINTREE__ <= 0 or nzs == []: bb = G.bbox(CTK.t)
-    elif len(nzs) > 1:
+    else:
         sel = []
         for nz in nzs:
             nob = CTK.Nb[nz]+1
@@ -28,21 +28,6 @@ def fit():
             z = CTK.t[2][nob][2][noz]
             sel.append(z)
         bb = G.bbox(sel)
-    else: # point
-        nob = CTK.Nb[0]+1
-        noz = CTK.Nz[0]
-        z = CTK.t[2][nob][2][noz]
-        bb = G.bbox(z)
-        point = CPlot.getActivePoint()
-        dx = 0.5*(bb[3] - bb[0])
-        dy = 0.5*(bb[4] - bb[1])
-        dz = 0.5*(bb[5] - bb[2])
-        bb[0] = point[0] - dx
-        bb[1] = point[1] - dy
-        bb[2] = point[2] - dz
-        bb[3] = point[0] + dx
-        bb[4] = point[1] + dy
-        bb[5] = point[2] + dz
         
     xmin = bb[0]; ymin = bb[1]; zmin = bb[2]
     xmax = bb[3]; ymax = bb[4]; zmax = bb[5]
@@ -71,8 +56,7 @@ def fit():
         VARS[4].set(str(delta))
         x = 0.5*(zmax+zmin)
         VARS[1].set(str(x))
-    view()
-
+    
 #==============================================================================
 def movePlus():
     pos = float(VARS[1].get())

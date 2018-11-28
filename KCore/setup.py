@@ -24,7 +24,7 @@ Dist.writeSetupCfg()
 
 # Fortran compilation ========================================================
 if f77compiler == "None":
-    print "Error: a fortran 77 compiler is required for compiling KCore."
+    print("Error: a fortran 77 compiler is required for compiling KCore.")
 args = Dist.getForArgs(); opt = ''
 for c in xrange(len(args)):
     opt += 'FOPT%d=%s '%(c, args[c])

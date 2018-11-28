@@ -25,4 +25,3 @@ except Exception, inst:
     else:
         print("FAILED: %s"%inst)
         print("FAILED: %s badly installed."%moduleName)
-    raise ImportError

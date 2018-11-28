@@ -13,7 +13,7 @@ else: # try import (may fail - core or hang)
         from Mpi4py import *
     except:
         rank = 0; size = 1; KCOMM = None
-        #raise ImportError("Converter:Mpi: requires mpi4py module.")
+        print("Warning: Converter:Mpi: mpi4py is not available. Sequential behaviour.")
 
 from Distributed import _readZones, _convert2PartialTree, _convert2SkeletonTree, _readPyTreeFromPaths
 import PyTree

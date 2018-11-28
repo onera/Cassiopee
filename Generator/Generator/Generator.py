@@ -163,7 +163,7 @@ def BB(array, method='AABB', weighting=0):
             elif method == 'OBB':  # Computes OBB
                 out.append(generator.obbox(a,weighting))
             else:
-                print 'BB: Warning, method=%s not implemented, making an OBB.'%method
+                print('BB: Warning, method=%s not implemented, making an OBB.'%method)
                 out.append(generator.obbox(a,weighting))
         return out
     else:
@@ -181,7 +181,7 @@ def BB(array, method='AABB', weighting=0):
         elif method == 'OBB':  # Computes OBB
             ar = generator.obbox(array,weighting)
         else:
-            print 'BB: Warning, method=%s not implemented, making an OBB.'%method
+            print('BB: Warning, method=%s not implemented, making an OBB.'%method)
             ar = generator.obbox(array,weighting)
         return ar       
      
@@ -222,7 +222,7 @@ def bboxIntersection(array1, array2, tol=1.e-6, isBB=False, method='AABB'):
     elif method == 'AABBOBB':  # Computes the intersection between an AABB and an OBB
         return generator.crossIntersection(array1, array2)        
     else:
-        print 'Warning: bboxIntersection: method %s not implemented, switching to AABB.'%method
+        print('Warning: bboxIntersection: method %s not implemented, switching to AABB.'%method)
         return generator.bboxIntersection(m1, m2)
 
 def checkPointInCEBB(array, P):
@@ -408,7 +408,7 @@ def enforceCurvature2(arrayD, arrayC, alpha=1.e-2):
     if posx!=-1: varx='x'
     else:
         posx = KCore.isNamePresent(arrayD, 'CoordinateX')
-        if posx == -1: print 'Warning: enforceCurvature2: x variable not found.'; return arrayD
+        if posx == -1: print('Warning: enforceCurvature2: x variable not found.'); return arrayD
         varx = 'CoordinateX'
     xs = C.getMinValue(arrayD, varx); xe = C.getMaxValue(arrayD, varx)
     s = D.getCurvilinearAbscissa(arrayC)[1]
@@ -1025,9 +1025,9 @@ def gencartmb(bodies, h, Dfar, nlvl):
         out = []
         pmin = (1,1,1)
         pmax = (ref[2], ref[3], nb)
-        if ( ref[4]- 2*nb < 3  or  ref[3]- 2*nb < 3 or ref[2]- 2*nb < 3):
-            print 'Warning: number of points for level %d is too big: %d'%(level, nb)
-            print 'composite grid:' ,ref[2], ref[3], ref[4] 
+        if (ref[4]- 2*nb < 3  or  ref[3]- 2*nb < 3 or ref[2]- 2*nb < 3):
+            print('Warning: number of points for level %d is too big: %d'%(level, nb))
+            print('composite grid: %d %d %d.'%(ref[2],ref[3],ref[4])) 
             return out
         out.append(createBlock(pmin, pmax, level, ref))
 
@@ -1466,10 +1466,10 @@ def octree2Struct(a, vmin=15, ext=0, optimized=1, merged=1, AMR=0,
     if not isinstance(vmin, list): vmin = [vmin]
     for nov in xrange(len(vmin)):
         if vmin[nov] < 2:
-            print 'Warning: octree2Struct, vmin is set to 2.'; vmin[nov] = 2
+            print('Warning: octree2Struct, vmin is set to 2.'); vmin[nov] = 2
         if ext == 0 and vmin[nov]%2 == 0:
             vmin[nov] += 1
-            print 'Warning: octree2Struct: vmin must be odd, vmin set to %d.'%vmin[nov]
+            print('Warning: octree2Struct: vmin must be odd, vmin set to %d.'%vmin[nov])
     if AMR == 0: cartzones = generator.octree2Struct(a, vmin)
     else: cartzones = generator.octree2AMR(a, vmin[0])
     if merged == 1:
@@ -1479,14 +1479,14 @@ def octree2Struct(a, vmin=15, ext=0, optimized=1, merged=1, AMR=0,
             cartzones = Transform.mergeCart(cartzones, sizeMax)
         except: pass
     if optimized != 1 and optimized != 0:
-        print 'Warning: octree2Struct: optimized must be 0 or 1. Set to 1.'
+        print('Warning: octree2Struct: optimized must be 0 or 1. Set to 1.')
         optimized = 1
 
     if ext == 0: return cartzones
     elif ext > 0: return extendOctreeGrids__(cartzones,
                                              ext=ext, optimized=optimized)
     else:
-        print 'Warning: octree2Struct: ext must be equal or greater than 0. Set to 0.'
+        print('Warning: octree2Struct: ext must be equal or greater than 0. Set to 0.')
     return cartzones
 
 # Decoupe un octant (octant)
@@ -1753,7 +1753,7 @@ def addNormalLayersUnstr__(surface, distrib, check=0, niter=0, eps=0.4):
             volmin = C.getMinValue(vol, 'vol')
             if volmin <= -1.e-10:
                 if k1 != 0:
-                    print "Warning: addNormalLayers: only %d layers created."%(k1)
+                    print("Warning: addNormalLayers: only %d layers created."%(k1))
                     return m
                 else: raise ValueError("addNormalLayers: no layer created.")
         

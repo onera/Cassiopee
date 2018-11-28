@@ -33,22 +33,13 @@ else: # Essai en dynamique
         shutil.copy(installPathLocal+"/KCore/kcore"+__EXTMODULE__,
                     libPath+"/libkcore"+__EXTSHARED__) 
     else:
-        print "Error: kcore%s can not be found in %s."%(__EXTMODULE__,installPathLocal)
+        print("Error: kcore%s can not be found in %s."%(__EXTMODULE__,installPathLocal))
 
 # Copie aussi les .py
 shutil.copy("config.py", installPathLocal+"/KCore/config.py")
 shutil.copy("Dist.py", installPathLocal+"/KCore/Dist.py")
 shutil.copy("installPath.py", installPathLocal+"/KCore/installPath.py")
 shutil.copy("installBase.py", installPathLocal+"/KCore/installBase.py")
-if not os.path.exists(installPathLocal+"/KCore/KDistutils"):
-    shutil.copytree("KDistutils", installPathLocal+"/KCore/KDistutils")
-else:
-    shutil.copy("KDistutils/ccompiler.py", 
-                installPathLocal+"/KCore/KDistutils/ccompiler.py")
-    shutil.copy("KDistutils/intelccompiler.py", 
-                installPathLocal+"/KCore/KDistutils/intelccompiler.py")
-    shutil.copy("KDistutils/__init__.py", 
-                installPathLocal+"/KCore/KDistutils/__init__.py")
 
 # Ecrit les infos d'install
 import Dist

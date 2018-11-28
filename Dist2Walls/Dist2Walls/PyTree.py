@@ -84,7 +84,7 @@ def _eikonal(t,tc=None,loc='nodes', nitmax=10, err=0.01,algo=fmm):
     for z in Internal.getNodesFromType2(t, 'Zone_t'):
         dhmin = min(dhmin,C.getValue(z,'CoordinateX',1)-C.getValue(z,'CoordinateX',0))
     while nocv < nzones and it < nitmax+1:
-        print 'Iteration %d'%it
+        print('Iteration %d'%it)
         # Eikonal sur les zones non convergees et sources
         if loc == 'nodes': C._initVars(t,'{PhiM}={Phi}')
         else: C._initVars(t,'{centers:PhiM}={centers:Phi}')
@@ -97,7 +97,7 @@ def _eikonal(t,tc=None,loc='nodes', nitmax=10, err=0.01,algo=fmm):
                 isConverged[no] = -1
             no+=1
         # Synchro
-        print 'Synchronization/transfers'
+        print('Synchronization/transfers')
         if tc is not None:
             no = 0
             for z in Internal.getNodesFromType2(t,"Zone_t"):
@@ -127,13 +127,13 @@ def _eikonal(t,tc=None,loc='nodes', nitmax=10, err=0.01,algo=fmm):
         # Iteration 
         it += 1
     #-----------------------------------------------------------------------------
-    if it < nitmax+1: print 'Distance by Eikonal converged after %d subiterations.'%it
+    if it < nitmax+1: print('Distance by Eikonal converged after %d subiterations.'%it)
     else: 
-        print 'Warning: distance by Eikonal did not converged after %d subiterations.'%nitmax
+        print('Warning: distance by Eikonal did not converged after %d subiterations.'%nitmax)
         noi = 0
         for i in isConverged: 
-            if i != 1: print i, noi
-            noi+=1
+            if i != 1: print('%d, %d'%(i, noi))
+            noi += 1
     return None
 
 #==============================================================================
@@ -252,11 +252,11 @@ def distance2WallsEikonal(t, body, tc=None, DEPTH=2, loc='nodes', err=0.01, nitm
     #----------------------------------------------
     # Marquage des pts de front entre du 0 et du 1
     #----------------------------------------------
-    #print 'transfer cellN : a passer par la fonction recente de Connector'
+    #print('transfer cellN : a passer par la fonction recente de Connector')
     t = transferCellN__(t,tc,DEPTH,loc)
 
     # Initialisation du front
-    #print 'initDistance'
+    #print('initDistance')
     #beg2 = time.time()
     for z in Internal.getZones(t):
         dims = Internal.getZoneDim(z)
@@ -265,13 +265,13 @@ def distance2WallsEikonal(t, body, tc=None, DEPTH=2, loc='nodes', err=0.01, nitm
         #beg4 = time.time()
         C._initVars(t,distName,PHIMAX)
         #end4 = time.time()
-        #print "Temps init vars phi : {} secondes".format(end4-beg4)
+        #print("Temps init vars phi : {} secondes".format(end4-beg4))
         # calcul de la distance a la paroi reelle
         if C.getMaxValue(z,flagName) == 1.:
             #beg3 = time.time()
             _distance2Walls(z,body,type='ortho',loc=loc)
             #end3 = time.time()
-            #print "Calcul distance initiale : {} secondes".format(end3-beg3)
+            #print("Calcul distance initiale : {} secondes".format(end3-beg3))
 
         #beg5 = time.time()
         if loc == 'nodes': 
@@ -279,7 +279,7 @@ def distance2WallsEikonal(t, body, tc=None, DEPTH=2, loc='nodes', err=0.01, nitm
         else:
             C._initVars(z,'{centers:Phi}={centers:TurbulentDistance}*({centers:flag}>0.)+%g*({centers:flag}<1.)'%PHIMAX)
         #end5 = time.time()
-        #print "Temps passe init var turbulentDistance : {} secondes".format(end5-beg5)
+        #print("Temps passe init var turbulentDistance : {} secondes".format(end5-beg5))
             
         if type == 0: 
             ni = dims[1]; nj = dims[2]; nk = dims[3]
@@ -291,11 +291,11 @@ def distance2WallsEikonal(t, body, tc=None, DEPTH=2, loc='nodes', err=0.01, nitm
              
         else: C._initVars(z,loc+':speed',1.)
     #end2 =time.time()
-    #print "Temps initialisation au front : {} secondes".format(end2-beg2)
+    #print("Temps initialisation au front : {} secondes".format(end2-beg2))
     #end = time.time()
-    #print "Temps initialisation champs pour l'Eikonal : {} secondes".format(end-beg)
+    #print("Temps initialisation champs pour l'Eikonal : {} secondes".format(end-beg))
     # Eikonal
-    #print 'eikonal'
+    #print('eikonal')
     _eikonal(t,tc,loc=loc, nitmax=nitmax, err=err,algo=algo)
 
     #-----------------------------------------------------------------------------

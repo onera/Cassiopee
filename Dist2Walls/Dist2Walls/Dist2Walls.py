@@ -8,7 +8,6 @@ except(ImportError):
 __version__ = '2.8'
 __author__ = "Stephanie Peron, Christophe Benoit, Pascal Raud, Sam Landier"
 
-
 # Types de solver pour Eikonal
 fmm=0
 fim=1
@@ -50,7 +49,7 @@ def distance2Walls(zones, bodies, flags=None, cellnbodies=[], type='ortho',
         onezone = 1
         zones = [zones]
     if bodies == []:
-        print 'Warning: distance2Walls: no body defined, no distance computed.'
+        print('Warning: distance2Walls: no body defined, no distance computed.')
         return zones
 
     if signed == 1:
@@ -69,7 +68,7 @@ def distance2Walls(zones, bodies, flags=None, cellnbodies=[], type='ortho',
     if cellnbodies == []:
         bodies0 = C.initVars(bodies, 'cellN', 1.)
     elif len(cellnbodies) != len(bodies):
-        print 'Warning: distance2Walls: cellN not defined for some bodies: cellN set to 1 for invalid body zones.'
+        print('Warning: distance2Walls: cellN not defined for some bodies: cellN set to 1 for invalid body zones.')
         bodies0 = C.initVars(bodies, 'cellN', 1.)
     else:
         bodies0 = bodies
@@ -79,7 +78,7 @@ def distance2Walls(zones, bodies, flags=None, cellnbodies=[], type='ortho',
             elif bodies0[c][1].shape[1] == cellnbodies[c][1].shape[1]:
                 bodies0[c] = C.addVars([bodies0[c], cellnbodies[c]])
             else:
-                print 'Warning: distance2Walls: bodies and celln must be of same dimensions: cellN set to 1 for invalid body zones.'
+                print('Warning: distance2Walls: bodies and celln must be of same dimensions: cellN set to 1 for invalid body zones.')
                 bodies0[c] = C.initVars(bodies0[c], 'cellN', 1.)
     # conversion en triangles de bodies (important pour les champs aux centres
     # sur maillages en centres)

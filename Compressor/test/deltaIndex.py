@@ -9,4 +9,4 @@ indRef = numpy.array([1,2,3,4,5], dtype='int32')
 index = numpy.array([1,2,3,4], dtype='int32')
 
 delta = Compressor.deltaIndex(index, indRef)
-print delta
+print(delta)

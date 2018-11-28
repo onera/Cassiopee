@@ -301,10 +301,17 @@ def writeEnvs():
 try: from config import Cppcompiler
 except: from KCore.config import Cppcompiler
 if Cppcompiler.find('icc') == 0 or Cppcompiler.find('icpc') == 0:
-    from distutils.unixccompiler import UnixCCompiler
-    try: from KDistutils import ccompiler
-    except: from KCore.KDistutils import ccompiler
-    #ccompiler.new_compiler = new_compiler
+    def new_compiler (plat=None, compiler=None, verbose=0, dry_run=0, force=0):
+        from numpy.distutils.intelccompiler import IntelCCompiler
+        compiler = IntelCCompiler(None, dry_run, force)
+        compiler.cc_exe = Cppcompiler
+        compiler.set_executables(compiler=Cppcompiler, compiler_cxx=Cppcompiler, compiler_so = Cppcompiler,
+                                linker_exe=Cppcompiler, linker_so=Cppcompiler+' -shared')
+        return compiler
+
+    from distutils import ccompiler
+    import numpy.distutils.ccompiler
+    ccompiler.new_compiler = new_compiler
 
 #==============================================================================
 # Write setup.cfg en fonction du compilateur C++ (si different de None)
@@ -585,9 +592,6 @@ def sortFileListByUse(files):
     # tri
     files = sorted(files, key=lambda x: nbs[x])
 
-    #for f in files:
-    #    print f, nbs[f], mods[f], defmods[f]
-
     out = []
     lf0 = 0
     lf = len(files)
@@ -614,11 +618,6 @@ def sortFileListByUse(files):
         # tri
         files = sorted(files, key=lambda x: nbs[x])
     if lf > 0: out += files
-
-    #print len(out)
-    #for f in out:
-    #    print f, nbs[f], mods[f]
-
     #print 'MODULES'
     #for f in out:
     #    if len(defmods[f])>0: print f, defmods[f], nbs[f], '->', mods[f]
@@ -1189,10 +1188,10 @@ def checkBlas(additionalLibPaths=[], additionalIncludePaths=[]):
         l = checkLibFile__(libPrefix+'blas*.a', additionalLibPaths)
     i = checkIncFile__(includePrefix+'cblas.h', additionalIncludePaths)
     if i is not None and l is not None:
-        print 'Info: Blas detected at %s.'%l
+        print('Info: Blas detected at %s.'%l)
         return (True, i, l, compOpt)
     else:
-        print 'Info: libblas or cblas.h was not found on your system. No Blas support.'
+        print('Info: libblas or cblas.h was not found on your system. No Blas support.')
         return (False, '', '', compOpt)
 
 #=============================================================================
@@ -1214,10 +1213,10 @@ def checkLapack(additionalLibPaths=[], additionalIncludePaths=[]):
     if i is None:
         i = checkIncFile__(includePrefix+'lapacke.h', additionalIncludePaths)
     if i is not None and l is not None:
-        print 'Info: Lapack detected at %s.'%l
+        print('Info: Lapack detected at %s.'%l)
         return (True, i, l, compOpt)
     else:
-        print 'Info: liblapack or lapack.h or lapacke.h was not found on your system. No Lapack support.'
+        print('Info: liblapack or lapack.h or lapacke.h was not found on your system. No Lapack support.')
         return (False, '', '', compOpt)
 
 #=============================================================================
@@ -1233,7 +1232,7 @@ def checkCython(additionalLibPaths=[], additionalIncludePaths=[]):
       except: cythonVersion = True
    except: cythonVersion = False
    if cythonVersion != False:
-     print 'Info: found Cython version '+cythonVersion
+     print('Info: found Cython version '+cythonVersion)
    return cythonVersion
 
 def cythonize(src):
@@ -1366,11 +1365,10 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
                else: ret = False
 
      # icc (stdc++, guide ou iomp5)
-     if Cppcompiler.find('icc') == 0:
+     if Cppcompiler.find('icc') == 0 or Cppcompiler.find('icpc') == 0:
           l = checkLibFile__('libstdc++.so*', additionalLibPaths)
           if l is None:
                l = checkLibFile__('libstdc++.a', additionalLibPaths)
-
           if l is not None:
                libs += ['stdc++']; paths += [l]
 

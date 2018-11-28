@@ -489,7 +489,7 @@ elif [ "$MAC24" != "" ]; then
     export PATH=$PATH:$CASSIOPEE/Dist/bin
     # Chemin de elsA.x
     export PATH=$PATH:$CASSIOPEE/Dist/bin/$ELSAPROD
-    export LD_LIBRARY_PATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/giu_r8/lib64
+    export LD_LIBRARY_PATHL=/usr/lib64:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/giu_r8/lib64
     export PYTHONPATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/giu_r8:$CASSIOPEE/Dist/bin/giu_r8/lib/python2.7/site-packages
     # LD_PRELOAD libirc for Intel Python
     #export LD_PRELOAD=/stck5/nalferez/intel/2018update2/PythonIntel/intelpython2/lib/libirc.so:$LD_PRELOAD

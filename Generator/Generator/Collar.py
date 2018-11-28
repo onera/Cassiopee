@@ -381,8 +381,8 @@ def booleanSurfaceEdges__(s1,s2, toldist):
         if len(edges0)>1: edges[noe] = joinTBranches__(edges0,toldist)
         edges[noe] = C.convertBAR2Struct(edges[noe])
     if err == 1:
-        print 'collarMesh: intersection between surfaces contains T-Branches. Intersection might be wrong. Check edge.plt file'
-        C.convertArrays2File(edges,"edge.plt")
+        print('collarMesh: intersection between surfaces contains T-Branches. Intersection might be wrong. Check edge.plt file')
+        C.convertArrays2File(edges, "edge.plt")
     return edges
 #------------------------------------------------------------------------------
 # Retourne la liste des contraintes sur une des surfaces initiales
@@ -925,7 +925,7 @@ def orderContourForUnionSurface__(edge, s1, s2):
     normn2 = max(1.e-12,math.sqrt(n2x*n2x+n2y*n2y+n2z*n2z)); normn2 = 1./normn2
     n2x = n2x*normn2; n2y = n2y*normn2; n2z = n2z*normn2
     ps = etax1*n2x+etay1*n2y+etaz1*n2z
-    #print ps
+    #print(ps)
     if ps < -0.25: return 1 # reordonner pour s1
     else: return 0
     

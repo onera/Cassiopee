@@ -24,4 +24,4 @@ index = [rcvIndices,donorIndices,periodicity,coefficients]
 
 # Liste des indexes a comparer a la reference
 delta = Compressor.deltaInterpolations(index, indRef, loc='cell')
-print delta
+print(delta)

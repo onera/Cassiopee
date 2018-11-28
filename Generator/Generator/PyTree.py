@@ -105,7 +105,7 @@ def octree2Struct(o, vmin=15, ext=0, optimized=1, merged=1, AMR=0,
     elif dim[3] == 'HEXA': dimPb = 3
     else: raise ValueError("octree2Struct: zone must be QUAD or HEXA.")
     if optimized != 1 and optimized != 0:
-        print 'Warning: octree2Struct: optimized must be 0 or 1. Set to 1.'
+        print('Warning: octree2Struct: optimized must be 0 or 1. Set to 1.')
         optimized = 1
 
     eps = 1.e-6
@@ -131,7 +131,7 @@ def octree2Struct(o, vmin=15, ext=0, optimized=1, merged=1, AMR=0,
     if ext == 0:
         try: import Connector.PyTree as X
         except: 
-            print 'Warning: octree2Struct requires Connector module. No grid connectivity built.'
+            print('Warning: octree2Struct requires Connector module. No grid connectivity built.')
             return zones
         
         if dimPb == 3: ratios = [[2,2,2],[4,4,4],[8,8,8],[16,16,16]]
@@ -424,7 +424,7 @@ def CEBBIntersection(a1, a2, tol=1.e-10):
     a1 = Internal.getZones(a1)
     a2 = Internal.getZones(a2)
     if len(a1) != 1 or len(a2) != 1:
-        print 'Warning: CEBBIntersection applied on one zone.'
+        print('Warning: CEBBIntersection applied on one zone.')
         return 0
     
     m1 = C.getFields(Internal.__GridCoordinates__, a1)[0]
@@ -453,7 +453,7 @@ def bboxIntersection(z1, z2, tol=1.e-6, isBB=False, method='AABB'):
                                             Internal.__FlowSolutionNodes__, 
                                             Internal.__FlowSolutionCenters__)
     else:
-        print 'Warning: bboxIntersection: method',method,'not implemented, switching to AABB.'
+        print('Warning: bboxIntersection: method',method,'not implemented, switching to AABB.')
         return generator._bboxIntersectionZ(z1, z2, tol,
                                             Internal.__GridCoordinates__, 
                                             Internal.__FlowSolutionNodes__, 
@@ -480,7 +480,7 @@ def _bboxIntersection(z1, z2, tol=1.e-6, isBB=False, method='AABB'):
                                             Internal.__FlowSolutionNodes__, 
                                             Internal.__FlowSolutionCenters__)
     else:
-        print 'Warning: bboxIntersection: method',method,'not implemented, switching to AABB.'
+        print('Warning: bboxIntersection: method %s not implemented, switching to AABB.'%method)
         return generator._bboxIntersectionZ(z1, z2, tol, 
                                             Internal.__GridCoordinates__, 
                                             Internal.__FlowSolutionNodes__, 
@@ -763,16 +763,16 @@ def grow(t, vector):
     """Grow a surface array of one layer by moving points of vector.
     Usage: grow( t, vector )"""
     tp = Internal.copyRef(t)
-    if (len(vector) != 3): raise ValueError("grow: 3 variables are required.")
+    if len(vector) != 3: raise ValueError("grow: 3 variables are required.")
     nodes = Internal.getZones(tp)
     for z in nodes:
         fa = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
         if (fa != []):
             a = Converter.extractVars(fa, vector)
         else:
-            print "Warning: grow: variables not found in zone."
+            print("Warning: grow: variables not found in zone.")
             a = []
-        if (a != []):
+        if a != []:
             nodes = C.getAllFields(z, 'nodes')[0]
             nodes = Generator.grow(nodes, a)
             C.setFields([nodes], z, 'nodes')
@@ -993,7 +993,7 @@ def _refine(t, power, dir):
     for z in zones:
         dims = Internal.getZoneDim(z)
         if dims[0] != 'Structured':
-            print "Warning: refine: zone must be structured."
+            print("Warning: refine: zone must be structured.")
         else:
             ni0 = dims[1]; nj0 = dims[2]; nk0 = dims[3]
             C._deleteFlowSolutions__(z)

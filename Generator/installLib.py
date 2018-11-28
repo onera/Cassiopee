@@ -27,4 +27,4 @@ else: # Essai en dynamique
         shutil.copy(installPathLocal+"/Generator/generator"+__EXTMODULE__,
                     libPath+"/libgenerator"+__EXTSHARED__) 
     else:
-        print "Error: generator"+__EXTMODULE__+" can not be found."
+        print("Error: generator"+__EXTMODULE__+" can not be found.")
