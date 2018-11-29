@@ -45,7 +45,7 @@ def mergeCartByRefinementLevel(A, sizeMax):
                     levels[level] = [noc]
                 count += 1
                 found += 1
-        print 'Level %d: merging %d zones over %d (Total: %d).'%(level,found,nzones,count)
+        print('Level %d: merging %d zones over %d (Total: %d).'%(level,found,nzones,count))
         if found > 0:
             res = []
             for i in levels[level]: res.append(A[i])            

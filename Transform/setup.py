@@ -23,8 +23,8 @@ Dist.writeSetupCfg()
     
 # Compilation des fortrans ===================================================
 from KCore.config import *
-if (f77compiler == "None"):
-    print "Error: a fortran 77 compiler is required for compiling Transform."
+if f77compiler == "None":
+    print("Error: a fortran 77 compiler is required for compiling Transform.")
 args = Dist.getForArgs(); opt = ''
 for c in xrange(len(args)):
     opt += 'FOPT'+str(c)+'='+args[c]+' '

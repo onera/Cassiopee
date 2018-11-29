@@ -1199,7 +1199,7 @@ def _projectRay(t1, t2, Pt): # t1 is modified
 def splitSize__(z, N, zoneName, multigrid, dirs):
     dim = Internal.getZoneDim(z)
     if dim[0] == 'Unstructured':
-        print 'Warning: splitSize: unstructured zone not treated.'
+        print('Warning: splitSize: unstructured zone not treated.')
         return [z]
     if dim[0] == 'Structured':
         ni = dim[1]; nj = dim[2]; nk = dim[3]
@@ -1246,7 +1246,7 @@ def splitSize__(z, N, zoneName, multigrid, dirs):
 def splitSizeUp__(z, N, zoneName, multigrid, dirs):
     dim = Internal.getZoneDim(z)
     if dim[0] == 'Unstructured':
-        print 'Warning: splitSize: unstructured zone not treated.'
+        print('Warning: splitSize: unstructured zone not treated.')
         return [z]
     if dim[0] == 'Structured':
         ni = dim[1]; nj = dim[2]; nk = dim[3]
@@ -1309,13 +1309,12 @@ def splitSizeUpR__(t, N, R, multigrid, dirs, minPtsPerDir):
         for z in zones:
             dim = Internal.getZoneDim(z)
             if dim[0] == 'Unstructured':
-                print 'Warning: splitSize: unstructured zone not treated.'
+                print('Warning: splitSize: unstructured zone not treated.')
             if dim[0] == 'Structured':
                 ni = dim[1]; nj = dim[2]; nk = dim[3]
                 ni1 = max(1, ni-1); nj1 = max(1, nj-1); nk1 = max(1, nk-1)
                 SP.append((ni1*nj1*nk1,z,b)); Nl += ni1*nj1*nk1
     if N == 0: N = Nl*1. / R
-    #print 'average cells ', N
     from operator import itemgetter
 
     # Init le vecteur des ressources
@@ -1439,7 +1438,7 @@ def splitSizeUpR_OMP__(t, N, R, multigrid, dirs, minPtsPerDir):
         for z in zones:
             dim = Internal.getZoneDim(z)            
             if dim[0] == 'Unstructured':
-                print 'Warning: splitSize: unstructured zone not treated.'
+                print('Warning: splitSize: unstructured zone not treated.')
             if dim[0] == 'Structured':
                 ni = dim[1]-2*ific; nj = dim[2]-2*ific; nk = dim[3]-2*ific
                 ni1 = max(1, ni-1); nj1 = max(1, nj-1); nk1 = max(1, nk-1)
@@ -1649,7 +1648,7 @@ def splitSizeUpR_OMP__(t, N, R, multigrid, dirs, minPtsPerDir):
                 isb=0
                 for ilisth in  xrange(0,len(zomp_threads[z[0]][i])):
                     isb=isb+1
-                    if(zomp_threads[z[0]][i][ilisth][1] != []):
+                    if (zomp_threads[z[0]][i][ilisth][1] != []):
                         Internal.createChild(thnode,'subzone'+str(isb),'DataArray_t',value=zomp_threads[z[0]][i][ilisth][1],children=[],pos=-1)
                         ind=zomp_threads[z[0]][i][ilisth][1]
                         l=0                        
