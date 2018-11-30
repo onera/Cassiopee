@@ -24,23 +24,25 @@
 #include "Fld/DynArray.h"
 #include "TopoDS_Face.hxx"
 #include "Geom_Surface.hxx"
+#include "TopExp_Explorer.hxx"
+#include "TopTools_IndexedMapOfShape.hxx"
 
 namespace K_OCC
 {
 
 class OCCSurface {
 public:
-  OCCSurface(const TopoDS_Face&, E_Int id=0);
+  OCCSurface(const TopoDS_Face& F, TopTools_IndexedMapOfShape& occ_edges, E_Int pid);
   OCCSurface (const OCCSurface& rhs);
   ~OCCSurface();
   
   
   ///
-  E_Int parameters(const K_FLD::FloatArray&coord3D, K_FLD::FloatArray& UVs);
+  E_Int parameters(const K_FLD::FloatArray&coord3D, const K_FLD::IntArray& connectB, K_FLD::FloatArray& UVs) const ;
   E_Int parametersSample(const K_FLD::FloatArray&coord3D, K_FLD::FloatArray& UVs);
   
   ///
-  E_Int parameters(const E_Float* pt, E_Float & u, E_Float& v);
+  E_Int parameters(const E_Float* pt, E_Float & u, E_Float& v) const ;
   
   
   /// Computes the surface point P for the input (u,v) parameters.
@@ -65,7 +67,11 @@ public:
   bool in_bounds(E_Float u, E_Float v) const ;
   
 private:
+  void __get_params_and_type(const TopoDS_Face& F, E_Float& U0, E_Float& U1, E_Float& V0, E_Float& V1, bool& isUClosed, bool& isVClosed);
+  
   E_Int __sample_contour(E_Int Nsample, K_FLD::FloatArray& pos3D, K_FLD::FloatArray& pos2D);
+  
+  void __traverse_face_edges(const TopoDS_Face& F, TopExp_Explorer& edge_expl, TopTools_IndexedMapOfShape& occ_edges, std::vector<E_Int>& edges);
   
   void __normalize(E_Float& u, E_Float& v) const ; 
   void __denormalize(E_Float & u, E_Float& v) const ;
@@ -79,7 +85,7 @@ public:
   std::vector<E_Int> _edges;
   
   E_Float _U0, _U1, _V0, _V1;
-  
+  bool _isUClosed, _isVClosed;
   bool _normalize_domain;
 };
 

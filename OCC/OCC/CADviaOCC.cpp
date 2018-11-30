@@ -446,7 +446,7 @@ E_Int K_OCC::CADviaOCC::build_loops
     
   // Global pass to join the loops.  
   std::vector<E_Int> nids;
-  _merge_tol = E_EPSILON;//::sqrt(tol2) + E_EPSILON;
+  _merge_tol = ::sqrt(tol2);
   E_Int nb_merges = ::merge(crdA, _merge_tol, nids);
   
   if (!nb_merges)
@@ -594,9 +594,6 @@ E_Int K_OCC::CADviaOCC::mesh_faces
     std::cout << " face nb : " << i << std::endl;
 #endif
     
-    if (!_faces[i]) // A priori Surface of revolution
-      continue;
-    
     const OCCSurface& F = *_faces[i];
     
     K_FLD::IntArray connectB = connectBs[i];
@@ -615,17 +612,6 @@ E_Int K_OCC::CADviaOCC::mesh_faces
 #endif
     
     connectB.uniqueVals(nodes);
-    
-#ifdef DEBUG_CAD_READER
-    //assert (nodes.size() == connectB.cols()); // cleaning has been done to close the loops
-    if (nodes.size() != connectB.cols())
-    {
-      std::cout << "EEROR Face : " << i << " : unclosed contour!" << std::endl;
-      //E_Float gap = ::sqrt(K_FUNC::sqrDistance(coords.col(1459), coords.col(1464), 3));
-      //std:: cout << "gap : " << gap << std::endl;
-      continue;
-    }
-#endif
     
     if (nodes.size() == 2)
       continue;
@@ -650,12 +636,18 @@ E_Int K_OCC::CADviaOCC::mesh_faces
       MIO::write("connectBcompacted.mesh",pos3D , connectB, "BAR");
 #endif
       
+    // surface of revolution => duplicate, reverse and separate seams
+    bool is_of_revolution = (nodes.size() != connectB.cols());  
+    std::map<E_Int, std::pair<E_Int, E_Int> > seam_nodes;
+    if (is_of_revolution)
+      __split_surface_of_revolution(_faces[i], connectB, pos3D, seam_nodes);
+      
     // Up to 2 tries : first by asking OCC for params, Second by "hand" (sampling)
     err = 0;
     for (size_t t=0; t<2; ++t)
     {
       if (t==0)
-        err=_faces[i]->parameters(pos3D, UVcontour);
+        err=_faces[i]->parameters(pos3D, connectB, UVcontour);
       else
         err=_faces[i]->parametersSample(pos3D, UVcontour);
     
@@ -666,63 +658,8 @@ E_Int K_OCC::CADviaOCC::mesh_faces
         continue;
       }
       
-      // Need to reorient trimmed surface (i.e. with holes)
-      {
-        std::vector<K_FLD::IntArray> cntLoops;
-        std::set<E_Int> dummy;
-        ContourSplitter<K_MESH::Edge, E_Int>::splitConnectivity(connectB, dummy, cntLoops);
-        E_Int nb_loops = cntLoops.size();
-        if (nb_loops > 1)
-        {
-          std::vector<E_Int> indices;
-          K_SEARCH::BBox3D boxOuter, box;
-          K_FLD::ArrayAccessor<K_FLD::FloatArray> acrd(UVcontour);
-          E_Int outer=0;
-          cntLoops[0].uniqueVals(indices);
-          boxOuter.compute(acrd, indices);
-          for (size_t i=1; i < nb_loops; ++i)
-          {
-            cntLoops[i].uniqueVals(indices);
-            box.compute(acrd, indices);
-            if (!box.is_included(boxOuter))
-            {
-              outer=i;
-              boxOuter=box;
-            }
-          }
-          
-          //now sort and reorient
-          E_Int o;
-          Vector_t<E_Int> sorted_nodes;
-          E_Int E[2];
-          for (size_t i=0; i < nb_loops; ++i)
-          {
-            sorted_nodes.clear();
-            BARSplitter::getSortedNodes(cntLoops[i], sorted_nodes);
-            
-            cntLoops[i].clear();
-            size_t sz(sorted_nodes.size());
-            for (size_t j=0; j < sz; ++j)
-            {
-              E[0]=sorted_nodes[j];
-              E[1]=sorted_nodes[(j+1)%sz];
-              
-              cntLoops[i].pushBack(&E[0], &E[0]+2);
-            }
-
-            __computeOrient(UVcontour, cntLoops[i], o);
-            
-            if ( (i==outer && o==-1) || (i != outer && o==1) )
-              for (size_t j=0; j < sz; ++j)
-                std::swap(cntLoops[i](0,j), cntLoops[i](1,j));
-          }
-          
-          //concatenate back to connectB
-          connectB.clear();
-          for (size_t i=0; i < nb_loops; ++i)
-            connectB.pushBack(cntLoops[i]);
-        }
-      }
+      // Need to reorient holed surface.
+      __reorient_holed_surface(connectB, UVcontour);
       
 #ifdef DEBUG_CAD_READER
       //if (i==faulty_id)
@@ -750,7 +687,10 @@ E_Int K_OCC::CADviaOCC::mesh_faces
       DELAUNAY::SurfaceMesherMode mode;
       
       mode.chordal_error=_chordal_err;
-      
+
+#ifndef DEBUG_CAD_READER
+      mode.silent_errors = true;
+#endif
       if (_gr <= 0.) // unspecified == OLD MODE
       {
         mode.symmetrize = false;
@@ -762,7 +702,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces
         mode.growth_ratio = std::max(_gr, 1.); //fixme : values in [1.; 1.25] might cause errors. Anyway do not allow bellow 1. since not useful
         mode.symmetrize = (UVcontour.cols() > 100);
         mode.nb_smooth_iter = 2;
-        mode.symmetrize = false;//fxme : reactivate somehow
+        mode.symmetrize = false;//fixme : reactivate somehow
       }
 
       mesher.mode = mode;
@@ -777,6 +717,21 @@ E_Int K_OCC::CADviaOCC::mesh_faces
         else
           std::cout << "ERROR Face : " << i << " : Cannot retrieve parametrization (OCC Limitation) !" << std::endl;    
         continue;
+      }
+      
+      // Join the seam for surface of revolution.
+      if (!seam_nodes.empty())
+      {
+        std::vector<E_Int> nids;
+        K_CONNECT::IdTool::init_inc(nids, data.pos3D.cols());
+        
+        for (auto &s : seam_nodes){
+          assert (s.first != E_IDX_NONE);
+          nids[s.second.first] = s.first;
+          nids[s.second.second] = s.first;
+        }
+        
+        K_FLD::IntArray::changeIndices(data.connectM, nids);
       }
     
 #ifdef DEBUG_CAD_READER
@@ -810,6 +765,12 @@ E_Int K_OCC::CADviaOCC::mesh_faces
       {
         if (crds[i].cols()==0)
           continue;
+       
+#ifdef DEBUG_CAD_READER
+        E_Int maxid = 0;
+        maxid = *std::max_element(connectMs[i].begin(), connectMs[i].end());
+        assert(maxid < crds[i].cols());
+#endif
         K_FLD::ArrayAccessor<K_FLD::FloatArray > crdA(crds[i]);
         ::merge(crdA, E_EPSILON, nids);
         K_FLD::IntArray::changeIndices(connectMs[i], nids);
@@ -847,37 +808,6 @@ void K_OCC::CADviaOCC::__computeOrient(const K_FLD::FloatArray crd2D, const K_FL
   o = (Z > 0.) ? 1 : -1;
 }
 
-
-///
-void K_OCC::CADviaOCC::__traverse_face_edges(const TopoDS_Face& F, TopExp_Explorer& edge_expl, std::vector<E_Int>& edges)
-{
-  for (edge_expl.Init(F, TopAbs_EDGE); edge_expl.More(); edge_expl.Next())
-  {
-    const TopoDS_Edge& E = TopoDS::Edge(edge_expl.Current());
-     
-    if (BRep_Tool::Degenerated (E))
-      continue;
-
-    // Get edge id in the flat list
-    E_Int edge_idx = _edges.FindIndex(E);
-    if (edge_idx == 0) //doesn' exist so add it (due to surface of revolution process)
-    {
-      _edges.Add(E);
-      edge_idx = _edges.FindIndex(E);
-    }
-
-#ifdef DEBUG_CAD_READER
-    //assert (E.IsSame (_edges(edge_idx)));
-#endif
-
-    // Take orientation into account
-    if (E.Orientation() != _edges(edge_idx).Orientation())
-      edge_idx = -edge_idx;
-        
-    edges.push_back(edge_idx);
-  }
-}
-
 //
 E_Int K_OCC::CADviaOCC::__build_graph(const TopoDS_Shape& occ_shape, std::vector<OCCSurface*>& vFG)
 {
@@ -906,7 +836,7 @@ E_Int K_OCC::CADviaOCC::__build_graph(const TopoDS_Shape& occ_shape, std::vector
   
   vFG.resize(nb_faces+1, 0);
   
-  TopExp_Explorer top_expl, edge_expl;
+  TopExp_Explorer top_expl;
   TopTools_IndexedMapOfShape sol_surfs;
   E_Int nb_surfs, nb_solids(0);
   TopTools_IndexedMapOfShape toto;
@@ -928,158 +858,37 @@ E_Int K_OCC::CADviaOCC::__build_graph(const TopoDS_Shape& occ_shape, std::vector
     {
       E_Int idx = (E_Int)_surfs.FindIndex(sol_surfs(i));
       const TopoDS_Face& F=TopoDS::Face(sol_surfs(i));
-            
-      if (BRep_Tool::Surface(F)->IsUClosed() || BRep_Tool::Surface(F)->IsVClosed()) // Surface of Revolution
-      {
-      // Anomaly #3848: Lecture IGES finocyl
-      // 0. The bounds of some iges TRIMMED surfaces are not retrieved (OCC issue ? ) so the following split will cut a basis surface (mostly cylinder !)
-      // 1. The follwoing has been commented because it's not necessary and is probably not robust
-      //     as the finocyl.iges case fails with it : only the first one is output upon exit (don't know why)
-
-      //  // fixme : hugly workaround to get a TopoDS_Face from a Geom_SurfaceOfRevolution
-      //  TopoDS_Shape shor = ShapeCustom::ConvertToRevolution(_surfs(i));
-      //  TopExp::MapShapes(shor, TopAbs_SHELL, toto);
-      //  E_Int nb_faces = toto.Extent(); 
-      //  const TopoDS_Face& Fb = TopoDS::Shell(toto(1)); 
-       
-        err = __split_surface_of_revolution(F, vFG, nb_solids);
-      }
-      else
-      {
-        /*vFG[idx] = new OCCSurface(F);
-      // Traverse the edges
-      __traverse_face_edges(F, edge_expl, vFG[idx]->_edges);*/
-
-      vFG[idx] = new OCCSurface(F, nb_solids);
-      // Traverse the edges
-      __traverse_face_edges(F, edge_expl, vFG[idx]->_edges);
-      
-      Handle(Geom_Surface)  S = BRep_Tool::Surface(F); 
-      S->Bounds(vFG[idx]->_U0,vFG[idx]->_U1, vFG[idx]->_V0, vFG[idx]->_V1);
-        
+                  
+      vFG[idx] = new OCCSurface(F, _edges, nb_solids);
+  
 #ifdef DEBUG_CAD_READER
       nb_edges2 +=vFG[idx]->_edges.size();
 #endif
-      }
     }
   }
 
 #ifdef DEBUG_CAD_READER
     E_Int nb_edges2=0;
 #endif
+
   // Traverse the orphan faces (not belonging to any solid)
   // And store ORIENTED edges ids //fixme : orinetation doesn't seem to work..
   for (top_expl.Init(occ_shape, TopAbs_FACE, TopAbs_SOLID); top_expl.More(); top_expl.Next())
   {
     E_Int idx = (E_Int)_surfs.FindIndex(top_expl.Current());   
     const TopoDS_Face& F=TopoDS::Face(_surfs(idx));
-        
-    if (BRep_Tool::Surface(F)->IsUClosed() || BRep_Tool::Surface(F)->IsVClosed()) // Surface of Revolution
-    {
-      // Anomaly #3848: Lecture IGES finocyl
-      // 0. The bounds of some iges TRIMMED surfaces are not retrieved (OCC issue ? ) so the following split will cut a basis surface (mostly cylinder !)
-      // 1. The follwoing has been commented because it's not necessary and is probably not robust
-      //     as the finocyl.iges case fails with it : only the first one is output upon exit (don't know why)
 
-      //  // fixme : hugly workaround to get a TopoDS_Face from a Geom_SurfaceOfRevolution
-      //  TopoDS_Shape shor = ShapeCustom::ConvertToRevolution(_surfs(idx));
-      //  TopExp::MapShapes(shor, TopAbs_SHELL, toto);
-      //  E_Int nb_faces = toto.Extent(); 
-      //  const TopoDS_Face& Fb = TopoDS::Shell(toto(1)); 
- 
-      err = __split_surface_of_revolution(F, vFG);
-    }
-    else
-    {
-      /*vFG[idx] = new OCCSurface(F);
-      // Traverse the edges
-      __traverse_face_edges(F, edge_expl, vFG[idx]->_edges);*/
-        
-      Handle(Geom_Surface)  S = BRep_Tool::Surface(F); 
-      Standard_Real U[3], V[3]; // store {Umin, 0.5*Umax, Umax} if periodic, {Umin, Umax, Umax} otherwise. Idem for V. 
-        
-      vFG[idx] = new OCCSurface(F, nb_solids);
-        
-      // Traverse the edges
-      __traverse_face_edges(F, edge_expl, vFG[idx]->_edges);
-      
-      S->Bounds(vFG[idx]->_U0,vFG[idx]->_U1, vFG[idx]->_V0, vFG[idx]->_V1);
-        
+    vFG[idx] = new OCCSurface(F, _edges, nb_solids);
+
 #ifdef DEBUG_CAD_READER
-      nb_edges2 +=vFG[idx]->_edges.size();
+    nb_edges2 +=vFG[idx]->_edges.size();
 #endif
-    }
   }
 
   return err;
 }
 
 ///
-E_Int K_OCC::CADviaOCC::__split_surface_of_revolution
-(const TopoDS_Face& f, std::vector<OCCSurface*>& vFG, E_Int nb_solid)
-{
-//#ifdef DEBUG_CAD_READER
-//      std::cout << " Surface " << idx << " is revolving, it is not supported yet." << std::endl;
-//#endif
-//      continue;
-  
-  Handle(Geom_Surface)  S = BRep_Tool::Surface(f); 
-  
-  Standard_Real U[3], V[3]; // store {Umin, 0.5*Umax, Umax} if periodic, {Umin, Umax, Umax} otherwise. Idem for V. 
-  S->Bounds(U[0],U[1], V[0], V[1]);
-  
-  U[2]=std::max(U[0], U[1]); 
-  V[2]=std::max(V[0], V[1]);
-  U[0]=std::min(U[0], U[1]);
-  V[0]=std::min(V[0], V[1]);
-  
-  E_Int umax(2), vmax(2);
-  if (S->IsUClosed())
-  {
-    U[1]=0.5*U[2];
-    U[0] = E_EPSILON; //to avoid to be abmiguous on the seam when calling parameter method.
-    U[2] -= E_EPSILON;//to avoid to be abmiguous on the seam when calling parameter method.
-  }
-  else
-    umax=1;
-  
-  if (S->IsVClosed())
-  {
-    V[1]=0.5*V[2];
-    V[0] = E_EPSILON; //to avoid to be abmiguous on the seam when calling parameter method.
-    V[2] -= E_EPSILON;//to avoid to be abmiguous on the seam when calling parameter method.
-  }
-  else
-    vmax=1;
-  
-  // Up to 4 bits for a sphere, 2 bits for a classical surface of revolution
-  for (size_t v=0; v < vmax; ++v)
-  {
-    for (size_t u=0; u < umax; ++u)
-    {
-      BRepBuilderAPI_MakeFace mf1(S, U[u], U[u+1], V[v], V[v+1], _merge_tol);
-    
-      TopoDS_Face* F1 = new TopoDS_Face(mf1.Face());
-      _surfs.Add(*F1);
-    
-      E_Int idx = (E_Int)_surfs.FindIndex(*F1);  
-      if (idx >= vFG.size()) vFG.resize(idx+1, 0);
-        vFG[idx] = new OCCSurface(*F1);
-        
-      vFG[idx]->_U0=U[u];
-      vFG[idx]->_U1=U[u+1];
-      vFG[idx]->_V0=V[v];
-      vFG[idx]->_V1=V[v+1];
-          
-      // Traverse the edges
-      TopExp_Explorer edge_expl;
-      __traverse_face_edges(*F1, edge_expl, vFG[idx]->_edges);
-    }
-  }
-  
-  return 0;
-}
-
 E_Int K_OCC::CADviaOCC::__mesh_edge(const TopoDS_Edge& E, E_Int& nb_points, K_FLD::FloatArray& coords, K_FLD::IntArray& connectE)
 {
   connectE.clear();
@@ -1123,6 +932,206 @@ E_Int K_OCC::CADviaOCC::__mesh_edge(const TopoDS_Edge& E, E_Int& nb_points, K_FL
   return 0;
 }
 
+void K_OCC::CADviaOCC::__reorient_holed_surface(K_FLD::IntArray& connectB, const K_FLD::FloatArray& UVcontour)
+{
+  std::vector<K_FLD::IntArray> cntLoops;
+  std::set<E_Int> dummy;
+  ContourSplitter<K_MESH::Edge, E_Int>::splitConnectivity(connectB, dummy, cntLoops);
+  E_Int nb_loops = cntLoops.size();
 
+  if (nb_loops == 1) return;
+
+  std::vector<E_Int> indices;
+  K_SEARCH::BBox3D boxOuter, box;
+  K_FLD::ArrayAccessor<K_FLD::FloatArray> acrd(UVcontour);
+  E_Int outer=0;
+  
+  cntLoops[0].uniqueVals(indices);
+  boxOuter.compute(acrd, indices);
+  
+  for (size_t i=1; i < nb_loops; ++i)
+  {
+    
+    cntLoops[i].uniqueVals(indices);
+    box.compute(acrd, indices);
+  
+    if (!box.is_included(boxOuter))
+    {
+      outer=i;
+      boxOuter=box;
+    }
+  }
+
+  //now sort and reorient
+  E_Int o;
+  Vector_t<E_Int> sorted_nodes;
+  E_Int E[2];
+  for (size_t i=0; i < nb_loops; ++i)
+  {
+    sorted_nodes.clear();
+    BARSplitter::getSortedNodes(cntLoops[i], sorted_nodes);
+
+    cntLoops[i].clear();
+    size_t sz(sorted_nodes.size());
+    for (size_t j=0; j < sz; ++j)
+    {
+      E[0]=sorted_nodes[j];
+      E[1]=sorted_nodes[(j+1)%sz];
+
+      cntLoops[i].pushBack(&E[0], &E[0]+2);
+    }
+
+    __computeOrient(UVcontour, cntLoops[i], o);
+
+    if ( (i==outer && o==-1) || (i != outer && o==1) )
+      for (size_t j=0; j < sz; ++j)
+        std::swap(cntLoops[i](0,j), cntLoops[i](1,j));
+  }
+
+  //concatenate back to connectB
+  connectB.clear();
+  for (size_t i=0; i < nb_loops; ++i)
+    connectB.pushBack(cntLoops[i]);
+}
+
+///
+void K_OCC::CADviaOCC::__split_surface_of_revolution(const OCCSurface* face, K_FLD::IntArray& connectB, K_FLD::FloatArray& pos3D, std::map<E_Int, std::pair<E_Int, E_Int> >& seam_nodes)
+{
+  
+#ifdef DEBUG_CAD_READER
+  std::cout << "splitting surface ..." << std::endl;
+#endif
+  
+  E_Float paramtol = 1.e-9;
+  //1. removing any duplicate
+  std::set<K_MESH::NO_Edge> uedges;  
+  seam_nodes.clear();
+  
+  //assert ((face->_isUClosed && !face->_isVClosed) || (!face->_isUClosed && face->_isVClosed));
+  
+  E_Float twoPI = 2.*K_CONST::E_PI;
+  
+  for (size_t i=0; i < connectB.cols(); ++i)
+  {
+    E_Int& N0 = connectB(0,i);
+    E_Int& N1 = connectB(1,i);
+    K_MESH::NO_Edge e(N0, N1);
+    
+    if (!uedges.insert(e).second) // already in => seam edge
+    {
+      E_Int N0 = e.node(0);
+      if (seam_nodes.find(N0) == seam_nodes.end())
+        __add_seam_node(face, pos3D, N0, seam_nodes);
+      E_Int N1 = e.node(1);
+      if (seam_nodes.find(N1) == seam_nodes.end())
+        __add_seam_node(face, pos3D, N1, seam_nodes);
+    }  
+  }
+  
+  K_FLD::IntArray new_connect;
+  
+  for (auto& e : uedges)
+  {
+    E_Int N0 = e.node(0);
+    E_Int N1 = e.node(1);
+    
+    auto it0 = seam_nodes.find(N0);
+    auto it1 = seam_nodes.find(N1);
+    
+    if (it0 == seam_nodes.end() && it1 == seam_nodes.end()) //regular non-seam edge
+      new_connect.pushBack(e.begin(), e.end());
+    else if (it0 != seam_nodes.end() && it1 == seam_nodes.end()) // seam-connected edge
+    {
+      E_Float u,v;
+      E_Int err = face->parameters(pos3D.col(N1), u, v);
+      
+      E_Float * p = &u;
+      if (face->_isVClosed && !face->_isUClosed) p = &v;
+      
+      E_Int e[] = {N1, E_IDX_NONE};
+      if (*p < K_CONST::E_PI)
+        e[1] = it0->second.second;
+      else
+        e[1] = it0->second.first;
+      new_connect.pushBack(e, e+2);
+    }
+    else if (it0 == seam_nodes.end() && it1 != seam_nodes.end()) // seam-connected edge
+    {
+      E_Float u,v;
+      E_Int err = face->parameters(pos3D.col(N0), u, v);
+      
+      E_Float * p = &u;
+      if (face->_isVClosed && !face->_isUClosed) p = &v;
+      
+      E_Int e[] = {N0, E_IDX_NONE};
+      if (*p < K_CONST::E_PI)
+        e[1] = it1->second.second;
+      else
+        e[1] = it1->second.first;
+      new_connect.pushBack(e, e+2);
+    }
+    else //seam-edge
+    {
+      E_Int e[] = {it0->second.first, it1->second.first};
+      new_connect.pushBack(e, e+2);
+      E_Int e1[] = {it0->second.second, it1->second.second};
+      new_connect.pushBack(e1, e1+2); 
+    }
+  }
+  
+  connectB = new_connect;
+
+#ifdef DEBUG_CAD_READER
+  MIO::write("revol.mesh", pos3D, connectB);
+#endif  
+}
+
+void K_OCC::CADviaOCC::__add_seam_node
+(OCCSurface const *face, K_FLD::FloatArray& pos3D, E_Int N0,
+ std::map<E_Int, std::pair<E_Int, E_Int> >& seam_nodes)
+{
+  E_Float twoPI = 2.*K_CONST::E_PI;
+  
+  //create the points
+  E_Float u,v;
+  E_Int err = face->parameters(pos3D.col(N0), u, v);
+
+  E_Float Pt[3];
+
+  if (face->_isUClosed && !face->_isVClosed)
+  {
+    E_Float eps = (u < K_CONST::E_PI) ? ::fabs(u) : ::fabs(twoPI - u);
+    
+    face->point(eps, v, Pt);
+    pos3D.pushBack(Pt, Pt+3);
+    E_Int Nright=pos3D.cols()-1;
+    seam_nodes[N0].second = Nright;
+
+    face->point(twoPI - eps, v, Pt);
+    pos3D.pushBack(Pt, Pt+3);
+    E_Int Nleft=pos3D.cols()-1;
+    seam_nodes[N0].first = Nleft;
+  }
+  else if (!face->_isUClosed && face->_isVClosed)
+  {
+    E_Float eps = (v < K_CONST::E_PI) ? ::fabs(v) : ::fabs(twoPI - v);
+    
+    face->point(u, eps, Pt);
+    pos3D.pushBack(Pt, Pt+3);
+    seam_nodes[N0].second = pos3D.cols()-1;
+
+    face->point(u, twoPI - eps, Pt);
+    pos3D.pushBack(Pt, Pt+3);
+    seam_nodes[N0].first = pos3D.cols()-1;
+  }
+  else
+  {
+#ifdef DEBUG_CAD_READER
+    //todo
+    std::cout << "to implement !" << std::endl;
+    //assert (false);
+#endif
+  }
+}
 
 

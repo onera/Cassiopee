@@ -26,9 +26,23 @@
 #include "MeshElement/Edge.h"
 #include "Connect/merge.h"
 #include "Connect/IdTool.h"
+#include "TopExp_Explorer.hxx"
+#include "TopoDS_Edge.hxx"
+#include "TopoDS.hxx"
+#include <ShapeAnalysis.hxx>
 
 ///
-K_OCC::OCCSurface::OCCSurface(const TopoDS_Face& F, E_Int id) :_F(F), _surface(BRep_Tool::Surface (F)), _parent(id), _normalize_domain(true){}
+K_OCC::OCCSurface::OCCSurface(const TopoDS_Face& F, TopTools_IndexedMapOfShape& occ_edges, E_Int pid) 
+:_F(F), _surface(BRep_Tool::Surface (F)), _parent(pid), _normalize_domain(true)
+{
+  // check if the surface is of revolution
+  _isUClosed = _isVClosed = false;
+  __get_params_and_type(F, _U0, _U1, _V0, _V1, _isUClosed, _isVClosed);
+      
+  // Traverse the edges
+  TopExp_Explorer edge_expl;
+  __traverse_face_edges(F, edge_expl, occ_edges, _edges);
+}
 
 ///
 K_OCC::OCCSurface::OCCSurface(const OCCSurface& rhs)
@@ -40,26 +54,39 @@ K_OCC::OCCSurface::~OCCSurface() {}
 ///
 E_Int
 K_OCC::OCCSurface::parameters
-(const K_FLD::FloatArray&coord3D, K_FLD::FloatArray& UVs)
+(const K_FLD::FloatArray&coord3D, const K_FLD::IntArray& connectB, K_FLD::FloatArray& UVs) const 
 {
   UVs.clear();
     
   E_Int err(0), sz(coord3D.cols());
-  E_Float UV[2];
-  UVs.resize(2, sz, 0.);
-  
-  for (size_t i=0; (i < sz) && !err; ++i)
+  UVs.resize(2, sz, K_CONST::E_MAX_FLOAT);
+
+  //traverse the edge to check 
+  for (E_Int i=0; (i < connectB.cols()) && !err; ++i)
   {
-    err = parameters(coord3D.col(i), UV[0], UV[1]);
-    UVs(0,i)=UV[0];
-    UVs(1,i)=UV[1];
+    E_Int Ni = connectB(0,i);
+    E_Int Nj = connectB(1,i);
+    
+    if (UVs(0, Ni) == K_CONST::E_MAX_FLOAT)
+    {
+      err = parameters(coord3D.col(Ni), UVs(0,Ni), UVs(1,Ni));
+    }
+    if (!err && UVs(0, Nj) == K_CONST::E_MAX_FLOAT)
+    {
+      err = parameters(coord3D.col(Nj), UVs(0,Nj), UVs(1,Nj));
+    }
+    
+    if (_isUClosed && ::fabs(UVs(0,Ni) - UVs(0,Nj)) > K_CONST::E_PI) err = 1;
+    if (_isVClosed && ::fabs(UVs(1,Ni) - UVs(1,Nj)) > K_CONST::E_PI) err = 1;
+    
   }
+
   return err;
 }
 
 ///
 E_Int
-K_OCC::OCCSurface::parameters(const E_Float* pt, E_Float & u, E_Float& v)
+K_OCC::OCCSurface::parameters(const E_Float* pt, E_Float & u, E_Float& v) const 
 {
   u=v=-1;
     
@@ -67,7 +94,7 @@ K_OCC::OCCSurface::parameters(const E_Float* pt, E_Float & u, E_Float& v)
   Point.SetCoord(pt[0], pt[1], pt[2]);
   
   E_Int ok = GeomLib_Tool::Parameters(_surface, Point, 1.e+100/*dummytol*/, u, v); 
-  
+
   if (!ok || u==-1 || v== -1)
     return 1;
   return 0;
@@ -76,6 +103,9 @@ K_OCC::OCCSurface::parameters(const E_Float* pt, E_Float & u, E_Float& v)
 E_Int
 K_OCC::OCCSurface::parametersSample(const K_FLD::FloatArray&coord3D, K_FLD::FloatArray& UVs)
 {
+#ifdef DEBUG_CAD_READER
+  std::cout << "sampling contour..." << std::endl;
+#endif  
   E_Float UV[2];
   E_Int err(0), sz(coord3D.cols());
   
@@ -277,4 +307,57 @@ void K_OCC::OCCSurface::__denormalize(E_Float& u, E_Float& v) const
   //u = std::min(u, _U1 - E_EPSILON);
   //v = std::max(v, E_EPSILON);
   // v = std::min(v, _V1 - E_EPSILON);
+}
+
+
+///
+void K_OCC::OCCSurface::__traverse_face_edges(const TopoDS_Face& F, TopExp_Explorer& edge_expl, TopTools_IndexedMapOfShape& occ_edges, std::vector<E_Int>& edges)
+{
+  for (edge_expl.Init(F, TopAbs_EDGE); edge_expl.More(); edge_expl.Next())
+  {
+    const TopoDS_Edge& E = TopoDS::Edge(edge_expl.Current());
+     
+    if (BRep_Tool::Degenerated (E))
+      continue;
+
+    // Get edge id in the flat list
+    E_Int edge_idx = occ_edges.FindIndex(E);
+    if (edge_idx == 0) //doesn' exist so add it (due to surface of revolution process)
+    {
+      occ_edges.Add(E);
+      edge_idx = occ_edges.FindIndex(E);
+    }
+
+#ifdef DEBUG_CAD_READER
+    //assert (E.IsSame (_edges(edge_idx)));
+#endif
+
+    // Take orientation into account
+    if (E.Orientation() != occ_edges(edge_idx).Orientation())
+      edge_idx = -edge_idx;
+        
+    edges.push_back(edge_idx);
+  }
+}
+
+void K_OCC::OCCSurface::__get_params_and_type
+(const TopoDS_Face& F, E_Float& U0, E_Float& U1, E_Float& V0, E_Float& V1, bool& isUClosed, bool& isVClosed)
+{
+  
+  E_Float paramtol = 1.e-6;
+  
+  ShapeAnalysis::GetFaceUVBounds(F, U0, U1, V0, V1);
+  
+  // min must be a strictly positive epsilon to avoid seam issue for revol surface (and should not hurt for others..)
+  U0 = (::fabs(U0) < paramtol ) ? paramtol : U0;
+  V0 = (::fabs(V0) < paramtol ) ? paramtol : V0;
+  
+  E_Float twoPI = 2.*K_CONST::E_PI;
+  
+  // is max is 2Pi (revolution) , we similarily put a value smaller to avoid the seam issu
+  U1 = (::fabs(U1 - twoPI) < paramtol ) ? twoPI - paramtol : U1;
+  V1 = (::fabs(V1 - twoPI) < paramtol ) ? twoPI - paramtol : V1;
+  
+  isUClosed = (U0 == paramtol) && (U1 == (twoPI - paramtol));
+  isVClosed = (V0 == paramtol) && (V1 == (twoPI - paramtol));
 }

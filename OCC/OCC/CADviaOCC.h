@@ -61,9 +61,9 @@ public:
 private:
   
     E_Int __build_graph(const TopoDS_Shape& occ_shape, std::vector<OCCSurface*>& vFG);
-    void __traverse_face_edges(const TopoDS_Face& F, TopExp_Explorer& edge_expl, std::vector<E_Int>& edges);
-    E_Int __split_surface_of_revolution(const TopoDS_Face&, std::vector<OCCSurface*>& vFG, E_Int nb_solid=-1);
     
+    void __traverse_face_edges(const TopoDS_Face& F, TopExp_Explorer& edge_expl, std::vector<E_Int>& edges);
+        
     E_Int __h_sizing(const TopoDS_Edge& E, E_Float& L);
     E_Int __chord_sizing(const TopoDS_Edge& E, E_Float chordal_err, E_Int& nb_points);
     
@@ -73,6 +73,13 @@ private:
     E_Int __remove_degenerated(K_FLD::IntArray& connectE);
     
     void __computeOrient(const K_FLD::FloatArray crd2D, const K_FLD::IntArray& cnt, E_Int&o);
+    
+    void __reorient_holed_surface(K_FLD::IntArray& cB, const K_FLD::FloatArray& UVs);
+    
+    void __split_surface_of_revolution(const OCCSurface* face, K_FLD::IntArray& connectB, K_FLD::FloatArray& pos3D, 
+                                       std::map<E_Int, std::pair<E_Int, E_Int> >& seam_nodes);
+    
+    void __add_seam_node(OCCSurface const *face, K_FLD::FloatArray& pos3D, E_Int N0, std::map<E_Int, std::pair<E_Int, E_Int> >& seam_nodes);
     
     E_Float _chordal_err, _h, _merge_tol, _Lmin, _Lmax, _Lmean, _gr;
     bool _hrelative;

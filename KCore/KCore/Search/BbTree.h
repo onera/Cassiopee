@@ -24,6 +24,7 @@
 #include "Fld/ArrayAccessor.h"
 #include "Def/DefContainers.h"
 #include "MeshElement/Triangle.h"
+#include "Nuga/include/macros.h"
 
 namespace K_SEARCH
 {
@@ -87,8 +88,8 @@ public:
   bool is_included(const BoundingBox& rhs){
     for (E_Int i = 0; i < DIM; ++i)
     {
-      if (minB[i] < rhs.minB[i]) return false;
-      if (maxB[i] > rhs.maxB[i]) return false;
+      if (minB[i] + ZERO_M < rhs.minB[i]) return false;
+      if (maxB[i] > rhs.maxB[i] + ZERO_M) return false;
     }
     
     return true;
