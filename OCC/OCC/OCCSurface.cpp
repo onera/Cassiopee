@@ -97,6 +97,10 @@ K_OCC::OCCSurface::parameters(const E_Float* pt, E_Float & u, E_Float& v) const
 
   if (!ok || u==-1 || v== -1)
     return 1;
+  
+  // normalize in [0,1]
+  __normalize(u,v);
+  
   return 0;
 }
 
@@ -149,47 +153,56 @@ K_OCC::OCCSurface::parametersSample(const K_FLD::FloatArray&coord3D, K_FLD::Floa
 
 E_Int K_OCC::OCCSurface::__sample_contour(E_Int Nsample, K_FLD::FloatArray& pos3D, K_FLD::FloatArray& pos2D)
 {
-  E_Float U[2], Pt[3];
+  E_Float V0n(0.), V1n(1.), U0n(0.), U1n(1.);
   
+  if (!_normalize_domain)
+  {
+    V0n = _V0;
+    V1n = _V1;
+    U0n = _U0;
+    U1n = _U1;
+  }
+  
+  E_Float U[2], Pt[3];
   //
-  U[1]=_V0;
+  U[1]=V0n;
   for (size_t a=0; a < Nsample-1; ++a) // up to Nsample-1 to avoid to create duplicates
   {
-    U[0]=_U0 + (_U1-_U0)*a/(Nsample-1);
-    point(U[0], _V0, Pt);
+    U[0]=U0n + (U1n-U0n)*E_Float(a)/E_Float(Nsample-1);
+    point(U[0], V0n, Pt);
     
     pos2D.pushBack(U, U+2);
     pos3D.pushBack(Pt, Pt+3);
   }
   
   //
-  U[0]=_U1;
+  U[0]=U1n;
   for (size_t a=0; a < Nsample-1; ++a)
   {
-    U[1]=_V0 + (_V1-_V0)*a/(Nsample-1);
-    point(_U1, U[1], Pt);
+    U[1]=V0n + (V1n-V0n)*E_Float(a)/E_Float(Nsample-1);
+    point(U1n, U[1], Pt);
     
     pos2D.pushBack(U, U+2);
     pos3D.pushBack(Pt, Pt+3);
   }
   
   //
-  U[1]=_V1;
+  U[1]=V1n;
   for (size_t a=0; a < Nsample-1; ++a)
   {
-    U[0]=_U1 - (_U1-_U0)*a/(Nsample-1);
-    point(U[0], _V1, Pt);
+    U[0]=U1n - (U1n-U0n)*E_Float(a)/E_Float(Nsample-1);
+    point(U[0], V1n, Pt);
     
     pos2D.pushBack(U, U+2);
     pos3D.pushBack(Pt, Pt+3);
   }
   
   //
-  U[0]=_U0;
+  U[0]=U0n;
   for (size_t a=0; a < Nsample-1; ++a)
   {
-    U[1]=_V1 - (_V1-_V0)*a/(Nsample-1);
-    point(_U0, U[1], Pt);
+    U[1]=V1n - (V1n-V0n)*E_Float(a)/E_Float(Nsample-1);
+    point(U0n, U[1], Pt);
     
     pos2D.pushBack(U, U+2);
     pos3D.pushBack(Pt, Pt+3);
@@ -203,7 +216,10 @@ E_Int K_OCC::OCCSurface::__sample_contour(E_Int Nsample, K_FLD::FloatArray& pos3
   K_CONNECT::IdTool::compress(pos3D, pred);
   K_CONNECT::IdTool::compress(pos2D, pred);
   
-
+//  _U0 = U0tmp;
+//  _U1 = U1tmp;
+//  _V0 = V0tmp;
+//  _V1 = V1tmp;
   
   return 0;
 }
@@ -211,8 +227,16 @@ E_Int K_OCC::OCCSurface::__sample_contour(E_Int Nsample, K_FLD::FloatArray& pos3
 /// Computes the surface point P for the input (u,v) parameters.
 void K_OCC::OCCSurface::point(E_Float u, E_Float v, E_Float* P) const{
   gp_Pnt Pt;
-  _surface->D0(u,v, Pt);
+  
+  __denormalize(u,v);
+  
+  _surface->D0(u, v,  Pt);
+  
   P[0]=Pt.X();P[1]=Pt.Y();P[2]=Pt.Z();
+  
+//  std::cout << "coordinated passed to D0 : " << u << "/" << v << std::endl;
+//  std::cout << "returned PT : " << P[0] << "/" << P[1] << "/" << P[2] << std::endl;
+  
 }
 
 /// Computes the first U-derivative at P(u,v) on the surface.
@@ -220,9 +244,17 @@ void K_OCC::OCCSurface::DU1(E_Float u, E_Float v, E_Float* P) const{
   gp_Pnt Pt;
   gp_Vec            DU1, DV1;
   
-  _surface->D1(u,v, Pt, DU1, DV1);
+  __denormalize(u,v);
+  
+  _surface->D1(u, v, Pt, DU1, DV1);
   
   P[0]=DU1.X();P[1]=DU1.Y();P[2]=DU1.Z();
+  
+  if (!_normalize_domain) return;
+  
+  P[0] *= (_U1 - _U0);
+  P[1] *= (_U1 - _U0);
+  P[2] *= (_U1 - _U0);
 }
 
 /// Computes the second U-derivative at P(u,v) on the surface.
@@ -230,18 +262,36 @@ void K_OCC::OCCSurface::DU2(E_Float u, E_Float v, E_Float* P) const{
   gp_Pnt            Pt;
   gp_Vec            DU1, DV1, DU2, DV2, DUV;
   
+  __denormalize(u,v);
+  
   _surface->D2 (u, v, Pt, DU1, DV1, DU2, DV2, DUV);
   
   P[0]=DU2.X();P[1]=DU2.Y();P[2]=DU2.Z();
+  
+  if (!_normalize_domain) return;
+  
+  P[0] *= (_U1 - _U0)*(_U1 - _U0);
+  P[1] *= (_U1 - _U0)*(_U1 - _U0);
+  P[2] *= (_U1 - _U0)*(_U1 - _U0);
+
 }
 
 /// Computes the first V-derivative at P(u,v) on the surface.
 void K_OCC::OCCSurface::DV1(E_Float u, E_Float v, E_Float* P) const{
   gp_Pnt Pt;
   gp_Vec            DU1, DV1;
-  _surface->D1(u,v, Pt, DU1, DV1);
+  
+  __denormalize(u,v);
+  
+  _surface->D1(u, v, Pt, DU1, DV1);
   
   P[0]=DV1.X();P[1]=DV1.Y();P[2]=DV1.Z();
+  
+  if (!_normalize_domain) return;
+  
+  P[0] *= (_V1 - _V0);
+  P[1] *= (_V1 - _V0);
+  P[2] *= (_V1 - _V0);
 }
 
 /// Computes the second U-derivative at P(u,v) on the surface.
@@ -249,9 +299,18 @@ void K_OCC::OCCSurface::DV2(E_Float u, E_Float v, E_Float* P) const{
   gp_Pnt            Pt;
   gp_Vec            DU1, DV1, DU2, DV2, DUV;
   
+  __denormalize(u,v);
+  
   _surface->D2 (u, v, Pt, DU1, DV1, DU2, DV2, DUV);
   
   P[0]=DV2.X();P[1]=DV2.Y();P[2]=DV2.Z();
+  
+  if (!_normalize_domain) return;
+  
+  P[0] *= (_V1 - _V0)*(_V1 - _V0);
+  P[1] *= (_V1 - _V0)*(_V1 - _V0);
+  P[2] *= (_V1 - _V0)*(_V1 - _V0);
+
 }
 
 /// Computes the first crossed UV-derivative at P(u,v) on the surface.
@@ -259,9 +318,17 @@ void K_OCC::OCCSurface::DUV(E_Float u, E_Float v, E_Float* P) const{
   gp_Pnt            Pt;
   gp_Vec            DU1, DV1, DU2, DV2, DUV;
   
+  __denormalize(u,v);
+  
   _surface->D2 (u, v, Pt, DU1, DV1, DU2, DV2, DUV);
   
   P[0]=DUV.X();P[1]=DUV.Y();P[2]=DUV.Z();
+  
+  if (!_normalize_domain) return;
+
+  P[0] *= (_U1 - _U0)*(_V1 - _V0);
+  P[1] *= (_U1 - _U0)*(_V1 - _V0);
+  P[2] *= (_U1 - _U0)*(_V1 - _V0);
 }
 
 /// Checks whether input parameters are in the bounds for this surface
