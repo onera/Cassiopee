@@ -1193,11 +1193,11 @@ Operations on meshes
     Grow a surface array of one layer. Vector is the node displacement. For the array version, vector is defined by an array. For the PyTree version, vector = ['v1','v2','v3'] where variables 'v1', 'v2', 'v3' are defined as solutions in a, located at nodes. 
 
     :param a:  2D surface mesh
-    :type  a:  array or pyTree
+    :type  a:  array or Zone
     :param vector:  vector of node displacement
     :type  vector:  array or list of 3 variables contained in the solution
     :return: new 3D structured mesh
-    :rtype: array or pyTree
+    :rtype: array or Zone
 
     *Example of use:*
 
@@ -1213,14 +1213,15 @@ Operations on meshes
 
 .. py:function:: Generator.stack(a, b)
 
-    Stack two 2D structured meshes (with the same nixnj) into a single 3D mesh. 
+    Stack two 2D structured meshes or a list of structured meshes (with the same nixnj) 
+    into a single 3D mesh. 
 
-    :param a:  2D structured mesh
-    :type  a:  array or pyTree
-    :param b:  2D structured mesh
-    :type  b:  array or pyTree
+    :param a:  a 2D structured mesh or a list of structured meshes
+    :type  a:  array, Zone or list of arrays, zones
+    :param b:  2D structured mesh or None
+    :type  b:  array or Zone
     :return: new 3D structured mesh
-    :rtype: array or pyTree
+    :rtype: array or Zone
 
     *Example of use:*
 

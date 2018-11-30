@@ -333,6 +333,7 @@ def _computeVariables2(array, varname,
 
 def computeExtraVariable(array, varname, gamma=1.4, rgp=287.53,
                          Cs=110.4, mus=1.76e-5, Ts=273.15):
+    """Compute variables that requires a change of location."""
     import extraVariables
     if varname == 'Vorticity':
         return extraVariables.computeVorticity(array)
@@ -373,6 +374,7 @@ def computeGrad(array, varname):
         return post.computeGrad(array, varname)
 
 def computeGrad2(array, arrayc, indices=None, BCField=None):
+    """Compute the gradient of a field defined on centers."""
     if isinstance(array[0], list):
         raise ValueError("computeGrad2: input must be a single zone.")
     if len(array) == 4:
@@ -546,6 +548,7 @@ def streamRibbon(arrays, X0, N0, vector, N=2000, dir=2):
         else: raise
 
 def streamSurf(arrays, b, vector, N=2000, dir=1):
+    """Compute a stream surface."""
     b = Converter.convertArray2Hexa(b)
     if b[3] != 'BAR': raise TypeError("streamSurf: b must be a BAR.")
     coord = b[1]

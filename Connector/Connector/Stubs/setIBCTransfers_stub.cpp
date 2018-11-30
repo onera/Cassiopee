@@ -59,7 +59,8 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
   E_Float* d1, E_Float* d2, E_Float* d3, E_Float* d4, E_Float* d5,
   E_Float* tmp, E_Int& size,
   E_Float gamma, E_Float cv, E_Float muS, E_Float Cs, E_Float Ts, E_Float Pr,
-  vector<E_Float*>& vectOfDnrFields, vector<E_Float*>& vectOfRcvFields)
+  vector<E_Float*>& vectOfDnrFields, vector<E_Float*>& vectOfRcvFields,
+  E_Int nbptslinelets, E_Float* linelets, E_Int* indexlinelets)
 {
   printf("%s\n", STUBMSG);
   return 1;

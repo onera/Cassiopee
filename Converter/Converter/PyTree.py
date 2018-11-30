@@ -4691,6 +4691,7 @@ def extractBCOfName(t, bndName, reorder=True):
 # OUT: BCNames: liste des noms des BCs
 # OUT: BCTypes: liste des types des BCs
 def getBCs(t):
+  """Return geometry, names and types of Boundary conditions."""
   BCs = []; BCNames = []; BCTypes = []
   for z in Internal.getZones(t):
     nodes = Internal.getNodesFromType2(z, 'BC_t')
@@ -5012,6 +5013,7 @@ def extractBCMatch(zdonor,gc,dimzR,variables=None):
 # If a variable is defined in a BCDataSet, it is used, else Oth order extrapolation elsewhere
 # returns a list of var names, corresponding fields defined by numpy arrays and the numpy array of bc indices 
 def extractBCFields(z, varList=None):
+  """Extract fields on BCs."""
   typeZ = Internal.typeOfNode(z)
   zp = Internal.copyRef(z)  
 
