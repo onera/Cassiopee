@@ -98,8 +98,6 @@ for i in xrange(path[2]-1):
     path[1][3,i] = 1./(s[0,i+1]-s[0,i])*0.003
     path[1][3,i] = min(path[1][3,i],800)
     path[1][3,i] = max(path[1][3,i],20)
-#print path[1][3]
-#import sys; sys.exit()
 
 import CPlot
 import time

@@ -19,6 +19,8 @@
 # include "connector.h"
 #include "stub.h"
 
+using namespace std;
+
 //=============================================================================
 //Retourne -2: incoherence entre meshtype et le type d interpolation
 //         -1: type invalide

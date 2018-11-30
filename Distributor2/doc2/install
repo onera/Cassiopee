@@ -88,6 +88,7 @@ fi
 if ([ $PRODUCTION -eq 1 ])
 then
     taghtml build/Distributor2.html
+    sed -i 's/Distributor2.Distributor2/Distributor2/g' build/Distributor2.html
     cp build/Distributor2.html $DEST
     cp build/Distributor2.pdf $DEST
 fi

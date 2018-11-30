@@ -89,6 +89,7 @@ fi
 if ([ $PRODUCTION -eq 1 ])
 then
     taghtml build/Post.html
+    sed -i 's/Post.Post/Post/g' build/Post.html
     cp build/Post.html $DEST
 fi
 

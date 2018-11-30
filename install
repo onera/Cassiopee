@@ -41,7 +41,7 @@ do
           ./install || exit 1
       fi
       if [ "$1" = "doc" -o "$1" = "all" ]; then
-          if [ "$mod" = "Converter" -o "$mod" = "Geom" -o "$mod" = "Transform" -o "$mod" = "Generator" -o "$mod" = "Intersector" -o "$mod" = "Initiator" -o "$mod" = "CPlot" -o "$mod" = "Dist2Walls" -o "$mod" = "RigidMotion" -o "$mod" = "Compressor" -o "$mod" = "Distributor2" ]; then
+          if [ "$mod" = "Converter" -o "$mod" = "Geom" -o "$mod" = "Transform" -o "$mod" = "Generator" -o "$mod" = "Intersector" -o "$mod" = "Initiator" -o "$mod" = "CPlot" -o "$mod" = "Dist2Walls" -o "$mod" = "RigidMotion" -o "$mod" = "Compressor" -o "$mod" = "Distributor2" -o "$mod" = "Connector" ]; then
               cd doc2
               ./install 1 2
               cd ..
