@@ -4,6 +4,7 @@ varying vec3 I;
 varying vec4 color;
 
 uniform float EdgeFalloff;
+uniform float intensity;
 
 void main()
 {
@@ -12,6 +13,7 @@ void main()
     opacity = 1.0 - pow(opacity, EdgeFalloff);
     opacity = clamp(opacity, 0., 1.);
     
-    gl_FragColor = color;
+    //vec4 result = pow(color, vec4(1.0 / 2.2));
+    gl_FragColor = color*(1.+opacity*2*(intensity-1));
     gl_FragColor.a = opacity;
 }

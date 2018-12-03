@@ -67,6 +67,7 @@ void Data::triggerShader(Zone& z, int material, float scale, float* color)
       if (_shaders.currentShader() != shader) _shaders.activate(shader);
       _shaders.activate(shader);
       _shaders[shader]->setUniform("MixRatio", (float)0.6*z.shaderParam1);
+      _shaders[shader]->setUniform("intensity", (float)z.shaderParam2);
       _shaders[shader]->setUniform("EnvMap", (int)1);
       _shaders[shader]->setUniform("shadow", (int)ptrState->shadow);
       _shaders[shader]->setUniform("ShadowMap", (int)0);
@@ -164,6 +165,7 @@ void Data::triggerShader(Zone& z, int material, float scale, float* color)
       /*glEnable(GL_CULL_FACE);*/ glDepthMask(GL_FALSE);
       if (_shaders.currentShader() != shader) _shaders.activate(shader);
       _shaders[shader]->setUniform("EdgeFalloff", (float)0.9*z.shaderParam1);
+      _shaders[shader]->setUniform("intensity", (float)z.shaderParam2);
       break;
 
     case 8: // Granite
@@ -253,7 +255,8 @@ void Data::triggerShader(Zone& z, int material, float scale, float* color)
       shader = 21;
       SHADOWTEXTURE;
       if (_shaders.currentShader() != shader) _shaders.activate(shader);
-      _shaders[shader]->setUniform("fallOff", (float)1.+z.shaderParam1);
+      _shaders[shader]->setUniform("fallOff", (float)2.);
+      _shaders[shader]->setUniform("exponent", (float)z.shaderParam1);
       _shaders[shader]->setUniform("shadow", (int)ptrState->shadow);
       _shaders[shader]->setUniform("ShadowMap", (int)0);
       break;
@@ -326,9 +329,15 @@ void Data::triggerShader(Zone& z, int material, float scale, float* color)
           if (_shaders.currentShader() != shader)
             _shaders.activate((short unsigned int)shader);
           if (ptrState->mode == RENDER)
+          {
             _shaders[shader]->setUniform("specularFactor", (float)z.shaderParam1);
+            _shaders[shader]->setUniform("diffuseFactor", (float)z.shaderParam2); 
+          }
           else
+          {
             _shaders[shader]->setUniform("specularFactor", (float)1.);
+            _shaders[shader]->setUniform("diffuseFactor", (float)1.);  
+          }
           _shaders[shader]->setUniform("shadow", (int)ptrState->shadow);
           _shaders[shader]->setUniform("ShadowMap", (int)0);
         }
@@ -339,9 +348,15 @@ void Data::triggerShader(Zone& z, int material, float scale, float* color)
           if (_shaders.currentShader() != shader)
             _shaders.activate((short unsigned int)shader);
           if (ptrState->mode == RENDER)
-            _shaders[shader]->setUniform("specularFactor", (float)z.shaderParam1); 
+          {
+            _shaders[shader]->setUniform("specularFactor", (float)z.shaderParam1);
+            _shaders[shader]->setUniform("diffuseFactor", (float)z.shaderParam2);
+          }
           else
-            _shaders[shader]->setUniform("specularFactor", (float)1.); 
+          {
+            _shaders[shader]->setUniform("specularFactor", (float)1.);
+            _shaders[shader]->setUniform("diffuseFactor", (float)1.);
+          }
           _shaders[shader]->setUniform("shadow", (int)ptrState->shadow);
           _shaders[shader]->setUniform("ShadowMap", (int)0);
         }

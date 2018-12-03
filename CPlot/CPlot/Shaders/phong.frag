@@ -6,6 +6,7 @@ varying vec3 P;
 varying vec4 color;
 varying vec4 vertex;
 uniform float specularFactor;
+uniform float diffuseFactor;
 uniform int shadow;
 uniform sampler2D ShadowMap;
 
@@ -17,7 +18,7 @@ void main (void)
   vec3 R = normalize(-reflect(L,N));
 
   vec4 Iamb = gl_LightSource[0].ambient; 
-  vec4 Idiff = gl_LightSource[0].diffuse*max(dot(N,L), 0.0);
+  vec4 Idiff = gl_LightSource[0].diffuse * diffuseFactor * max(dot(N,L), 0.0);
   vec4 Ispec = (specularFactor*specularFactor)*gl_LightSource[0].specular*pow(max(dot(R,E),0.0),0.2*gl_FrontMaterial.shininess);
 
   vec4 col = Iamb + color*Idiff + Ispec;

@@ -15,10 +15,10 @@ uniform sampler2D ShadowMap;
 
 void main(void) 
 {
-  vec3 ambient = 0.001 * vec3(gl_LightSource[0].ambient);
+  vec3 ambient = 0.00001 * vec3(gl_LightSource[0].ambient);
   vec3 diffuse = 0.1 * vec3(gl_LightSource[0].diffuse); // 0.2
   vec3 specular = 0.7 * vec3(gl_LightSource[0].specular); // 0.6
-  float exponent = 0.5 * gl_FrontMaterial.shininess; // 0.5
+  float exponent = 0.4 * gl_FrontMaterial.shininess; // 0.5
 
   vec3 n = normalize(normal);
   vec3 t = normalize(tangent);

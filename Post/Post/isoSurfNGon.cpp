@@ -37,8 +37,6 @@ using namespace K_FLD;
      fisos(npt, poscellN) = 0.; }                    \
      npt++; }
 
-
-
 PyObject* K_POST::isoSurfNGon(PyObject* self, PyObject* args)
 {
   PyObject* array;
@@ -101,10 +99,6 @@ PyObject* K_POST::isoSurfNGon(PyObject* self, PyObject* args)
   doIsoSurfNGon(*f, *cn, posf, value, poscellN, fiso, ciso);
   RELEASESHAREDU(array, f, cn);
   
-  //E_Float tolc = 1.e-12;
-  //K_CONNECT::cleanConnectivity(posx, posy, posz, tolc, 
-  //                             "TRI", fiso, ciso);
-
   if (fiso.getSize() == 0 || ciso.getSize() == 0)
   {
     PyErr_SetString(PyExc_ValueError,

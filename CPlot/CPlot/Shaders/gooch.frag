@@ -8,6 +8,7 @@ varying vec3 ecPos;
 varying vec3 tnorm;
 varying vec4 vertex;
 uniform float fallOff;
+uniform float exponent;
 uniform int shadow;
 uniform sampler2D ShadowMap;
 
@@ -35,7 +36,7 @@ void main (void)
     // silhouette
     float angle = dot(tnorm, normalize(ecPos));
     angle = abs(angle);
-    angle = pow(angle, -1.);
+    angle = pow(angle, -2*exponent);
     if (angle > fallOff)  {colorf = vec4(0.,0.,0.,1.);}
 
     float shadowValue = 1.;

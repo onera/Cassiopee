@@ -65,8 +65,6 @@ void Data::displayFrameTex(int mode)
     if (_shaders.currentShader() != shader) _shaders.activate(shader);
     _shaders[shader]->setUniform("FrameBuffer", (int)0);
     _shaders[shader]->setUniform("depthMap", (int)1);
-    _shaders[shader]->setUniform("windowWidth", (int)_view.w);
-    _shaders[shader]->setUniform("windowHeight", (int)_view.h);
     _shaders[shader]->setUniform("focalDepth", (float)ptrState->activePointZBuf);
     _shaders[shader]->setUniform("radius", (float)ptrState->dofPower);
   }

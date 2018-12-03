@@ -10,6 +10,7 @@ varying vec3 Normal;
 varying vec3 EyeDir;
 
 uniform float MixRatio;
+uniform float intensity;
 uniform sampler2D EnvMap;
 uniform int shadow;
 uniform sampler2D ShadowMap;
@@ -35,7 +36,6 @@ void main (void)
     index.x = dot(normalize(reflectDir), Xunitvec) * 0.5;
 
     // Translate index values into proper range
-
     if (reflectDir.z >= 0.0)
         index = (index + 1.0) * 0.5;
     else
@@ -52,7 +52,7 @@ void main (void)
     vec3 envColor = vec3(texture2D(EnvMap, index));
 
     // Add lighting to base color and mix
-    vec3 base = LightIntensity * BaseColor;
+    vec3 base = LightIntensity * intensity * BaseColor;
     envColor = mix(envColor, base, MixRatio);
     
     vec4 col = vec4(envColor, color.a);
