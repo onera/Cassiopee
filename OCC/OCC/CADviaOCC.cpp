@@ -308,10 +308,7 @@ E_Int K_OCC::CADviaOCC::mesh_edges(K_FLD::FloatArray& coords, std::vector<K_FLD:
   for (E_Int i=1; i <= _surfs.Extent(); ++i)
   {
     //std::cout << " cad face nb : " << i << std::endl;
-    
-    if (!_faces[i]) // A priori Surface of revolution
-      continue;
-    
+   
     const OCCSurface& F = *_faces[i];
     
     E_Int nb_edges = F._edges.size();
@@ -390,9 +387,6 @@ E_Int K_OCC::CADviaOCC::build_loops
   for (E_Int i=1; i <= nb_faces; ++i)
   {
     //std::cout << " cad face nb : " << i << std::endl;
-    
-    if (!_faces[i]) // A priori Surface of revolution
-      continue;
     
     const OCCSurface& F = *_faces[i];
     
@@ -562,32 +556,28 @@ E_Int K_OCC::CADviaOCC::__clean(const K_FLD::ArrayAccessor<K_FLD::FloatArray>& c
 
 //
 E_Int K_OCC::CADviaOCC::mesh_faces
-(K_FLD::FloatArray& coords, const std::vector<K_FLD::IntArray>& connectBs, std::vector<K_FLD::FloatArray>& crds, std::vector<K_FLD::IntArray>& connectMs)
+(const K_FLD::FloatArray& coords, const std::vector<K_FLD::IntArray>& connectBs, std::vector<K_FLD::FloatArray>& crds, std::vector<K_FLD::IntArray>& connectMs)
 {
   E_Int err(0), nb_faces(_surfs.Extent());
   
   if (!nb_faces) return 0;
+
+  std::vector<K_FLD::FloatArray> crds1(nb_faces);
+  std::vector<K_FLD::IntArray> connectMs1(nb_faces);
   
   std::vector<E_Int> nodes, nids;
   K_FLD::FloatArray UVcontour, pos3D;
   
   DELAUNAY::SurfaceMesher<OCCSurface> mesher;
   
-  E_Int max_solid_id=0;
-  for (E_Int i=1; i <= nb_faces; ++i)
-  {
-    if (!_faces[i]) // A priori Surface of revolution
-      continue;
-    max_solid_id = std::max(_faces[i]->_parent, max_solid_id);
-  }
-  
-  connectMs.resize(max_solid_id+1);
-  crds.resize(max_solid_id+1);
-  
 #ifdef DEBUG_CAD_READER
   E_Int faulty_id = 5;
 #endif
-  
+  size_t t;
+
+#ifndef DEBUG_CAD_READER
+#pragma omp parallel for private(nodes, nids, UVcontour, pos3D, err, mesher, t)
+#endif
   for (E_Int i=1; i <= nb_faces; ++i)
   {
 #ifdef DEBUG_CAD_READER
@@ -618,11 +608,11 @@ E_Int K_OCC::CADviaOCC::mesh_faces
     
     if (nodes.size() == 3)
     {
-      crds[F._parent].pushBack(coords.col(nodes[0]), coords.col(nodes[0])+3);
-      crds[F._parent].pushBack(coords.col(nodes[1]), coords.col(nodes[1])+3);
-      crds[F._parent].pushBack(coords.col(nodes[2]), coords.col(nodes[2])+3);
-      E_Int T[] = {crds[F._parent].cols()-3, crds[F._parent].cols()-2, crds[F._parent].cols()-1};
-      connectMs[F._parent].pushBack(T, T+3);
+      crds1[i-1].pushBack(coords.col(nodes[0]), coords.col(nodes[0])+3);
+      crds1[i-1].pushBack(coords.col(nodes[1]), coords.col(nodes[1])+3);
+      crds1[i-1].pushBack(coords.col(nodes[2]), coords.col(nodes[2])+3);
+      E_Int T[] = {crds1[i-1].cols()-3, crds1[i-1].cols()-2, crds1[i-1].cols()-1};
+      connectMs1[i-1].pushBack(T, T+3);
       continue;
     }
     
@@ -640,7 +630,10 @@ E_Int K_OCC::CADviaOCC::mesh_faces
     bool is_of_revolution = (nodes.size() != connectB.cols());  
     std::map<E_Int, std::pair<E_Int, E_Int> > seam_nodes;
     if (is_of_revolution)
+    {
+      _faces[i]->_normalize_domain = false; // fixme : currently normalizing not working with revol surfaces.
       __split_surface_of_revolution(_faces[i], connectB, pos3D, seam_nodes);
+    }
       
     // Up to 2 tries : first by asking OCC for params, Second by "hand" (sampling)
     err = 0;
@@ -747,11 +740,8 @@ E_Int K_OCC::CADviaOCC::mesh_faces
       }
 #endif
     
-      E_Int shift = crds[F._parent].cols();
-      crds[F._parent].pushBack(data.pos3D);
-      data.connectM.shift(shift);
-    
-      connectMs[F._parent].pushBack(data.connectM);
+      crds1[i-1]=data.pos3D;    
+      connectMs1[i-1]=data.connectM;
       
       if (!err) // done
         break;
@@ -760,19 +750,37 @@ E_Int K_OCC::CADviaOCC::mesh_faces
 
     //Final cleaning and compacting
     {
+      E_Int max_solid_id=0;
+      for (E_Int i=1; i <= nb_faces; ++i)
+        max_solid_id = std::max(_faces[i]->_parent, max_solid_id);
+      
+      crds.resize(max_solid_id+1);
+      connectMs.resize(max_solid_id+1);
+      
+      for (E_Int i=1; i <= nb_faces; ++i)
+      {
+        const OCCSurface& F = *_faces[i];
+        E_Int pid = F._parent;
+        
+        E_Int shft = crds[pid].cols();
+        connectMs1[i-1].shift(shft);
+        crds[pid].pushBack(crds1[i-1]);
+        connectMs[pid].pushBack(connectMs1[i-1]);
+      }
+    
       std::vector<E_Int> nids;
       for (E_Int i=0; i <= max_solid_id; ++i)
       {
         if (crds[i].cols()==0)
           continue;
-       
+
 #ifdef DEBUG_CAD_READER
         E_Int maxid = 0;
         maxid = *std::max_element(connectMs[i].begin(), connectMs[i].end());
         assert(maxid < crds[i].cols());
 #endif
         K_FLD::ArrayAccessor<K_FLD::FloatArray > crdA(crds[i]);
-        ::merge(crdA, E_EPSILON, nids);
+        ::merge(crdA, _merge_tol, nids);
         K_FLD::IntArray::changeIndices(connectMs[i], nids);
         nids.clear();
         K_CONNECT::MeshTool::compact_to_mesh(crds[i], connectMs[i], nids);
@@ -781,14 +789,14 @@ E_Int K_OCC::CADviaOCC::mesh_faces
   
 #ifdef DEBUG_CAD_READER
   {
-  K_FLD::IntArray tmp;
-  K_FLD::FloatArray crd;
-  for (E_Int i=0; i <= max_solid_id; ++i)
-  {
-    if (connectMs[i].cols()*crds[i].cols())
-      tmp.pushBack(connectMs[i]);crd.pushBack(crds[i]);
-  }
-  MIO::write("surfaceALL.mesh", crd, tmp, "TRI");
+    K_FLD::IntArray tmp;
+    K_FLD::FloatArray crd;
+    for (E_Int i=0; i <= connectMs.size(); ++i)
+    {
+      if (connectMs[i].cols()*crds[i].cols())
+        tmp.pushBack(connectMs[i]);crd.pushBack(crds[i]);
+    }
+    MIO::write("surfaceALL.mesh", crd, tmp, "TRI");
   }
   
 #endif
@@ -1100,27 +1108,29 @@ void K_OCC::CADviaOCC::__add_seam_node
 
   if (face->_isUClosed && !face->_isVClosed)
   {
-    E_Float eps = (u < K_CONST::E_PI) ? ::fabs(u) : ::fabs(twoPI - u);
-    
-    face->point(eps, v, Pt);
+    const E_Float& u0 = face->_U0;
+    const E_Float& u1 = face->_U1;
+
+    face->point(u0, v, Pt);
     pos3D.pushBack(Pt, Pt+3);
     E_Int Nright=pos3D.cols()-1;
     seam_nodes[N0].second = Nright;
 
-    face->point(twoPI - eps, v, Pt);
+    face->point(u1, v, Pt);
     pos3D.pushBack(Pt, Pt+3);
     E_Int Nleft=pos3D.cols()-1;
     seam_nodes[N0].first = Nleft;
   }
   else if (!face->_isUClosed && face->_isVClosed)
   {
-    E_Float eps = (v < K_CONST::E_PI) ? ::fabs(v) : ::fabs(twoPI - v);
+    const E_Float& v0 = face->_V0;
+    const E_Float& v1 = face->_V1;
     
-    face->point(u, eps, Pt);
+    face->point(u, v0, Pt);
     pos3D.pushBack(Pt, Pt+3);
     seam_nodes[N0].second = pos3D.cols()-1;
 
-    face->point(u, twoPI - eps, Pt);
+    face->point(u, v1, Pt);
     pos3D.pushBack(Pt, Pt+3);
     seam_nodes[N0].first = pos3D.cols()-1;
   }

@@ -455,11 +455,7 @@ namespace DELAUNAY{
 
   // Methods specialisation
 
-  static E_Float v[2];
-  static E_Float vi[2];
-  static E_Float vj[2];
-  static E_Float r1;
-  static E_Float r2;
+ 
 
   /** Anisotropic Variable field. */
   ///
@@ -467,6 +463,11 @@ namespace DELAUNAY{
     E_Float
     VarMetric<T>::lengthEval (size_type Ni, const T& mi, size_type Nj, const T& mj)
   {
+    E_Float v[2];
+    E_Float vi[2];
+    E_Float vj[2];
+    E_Float r1;
+    E_Float r2;
     r1 = r2 = 0.;
     
 #ifdef DEBUG_METRIC

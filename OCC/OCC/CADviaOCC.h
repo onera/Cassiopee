@@ -53,7 +53,7 @@ public:
     ///
     E_Int build_loops (K_FLD::FloatArray& coords, const std::vector<K_FLD::IntArray>& connectEs, std::vector<K_FLD::IntArray>& connectBs);
     ///
-    E_Int mesh_faces(K_FLD::FloatArray& coords, const std::vector<K_FLD::IntArray>& connectEs, std::vector<K_FLD::FloatArray>& crds, std::vector<K_FLD::IntArray>& connectMs);
+    E_Int mesh_faces(const K_FLD::FloatArray& coords, const std::vector<K_FLD::IntArray>& connectEs, std::vector<K_FLD::FloatArray>& crds, std::vector<K_FLD::IntArray>& connectMs);
     
     E_Int __eval_chordal_error(const BRepAdaptor_Curve& curve, E_Float u0, E_Float u1, E_Float& chordal_error);
     E_Int __eval_nb_points(const BRepAdaptor_Curve& C, E_Float u0, E_Float u1, E_Float chordal_error, E_Int& nb_points );

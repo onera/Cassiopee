@@ -80,6 +80,10 @@ K_OCC::OCCSurface::parameters
     if (_isVClosed && ::fabs(UVs(1,Ni) - UVs(1,Nj)) > K_CONST::E_PI) err = 1;
     
   }
+  
+  for (E_Int k=0; k < UVs.cols(); ++k)
+    if (UVs(0,k) == K_CONST::E_MAX_FLOAT)
+      UVs(0,k) = UVs(1,k) = 0.;
 
   return err;
 }
@@ -396,7 +400,7 @@ void K_OCC::OCCSurface::__traverse_face_edges(const TopoDS_Face& F, TopExp_Explo
     }
 
 #ifdef DEBUG_CAD_READER
-    //assert (E.IsSame (_edges(edge_idx)));
+    //assert (E.IsSame (occ_edges(edge_idx)));
 #endif
 
     // Take orientation into account
