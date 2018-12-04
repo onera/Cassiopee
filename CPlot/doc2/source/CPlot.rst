@@ -620,7 +620,8 @@ Set / Get functions
     + **viewAngle**: the camera angle (default: 50 degrees).
     + **cursor**: mouse cursor type (0: normal, 1: cross, 2: wait).
     + **lightOffset**: offset to default light position (default: (0,0)).
-    + **dofPower**: power of depth of field effect (default: 6.).
+    + **dofPower**: power of depth of field effect (default: 3.).
+    + **gamma**: gamma correction (default: 1.).
     + **selectionStyle**: style for selection (default: 0).
     + **activateShortCut**: if False, deactivate shortCut keys (def: True).
     + **billBoards**: list of billboard image files ['file.png',1,1] (default: None).
@@ -792,6 +793,7 @@ Set rendering informations in pyTree
     defined node. Use Render mode in display for rendering effects.
     Exists also as in place version (_addRender2Zone) that modifies a
     and returns None.
+    Shader parameters are described in shaderSettings_.
 
     :param a: input zone
     :type a: zone node
@@ -856,6 +858,28 @@ Set rendering informations in pyTree
 
     .. literalinclude:: ../build/Examples/CPlot/loadViewPT.py
 
+
+Shader settings
+---------------------------
+.. _shaderSettings:
+
+    Shaders can be adjusted with the two parameters of the addRender2Zone function.
+
+    Here are the meaning of each parameters for each shader:
+
+    - Solid: [1] SpecularFactor; [2] diffuseFactor
+    - Flat: [1] None; [2] None
+    - Glass: [1] mix; [2] mix2
+    - Chrome: [1] mix color/envmap; [2] base color intensity
+    - Metal: [1] reflection intensity; [2] bump size
+    - Wood: [1] ray size, [2] bump height
+    - Marble: [1] ray size, [2] None
+    - Granite: [1] bump size; [2] Bump height
+    - Brick: [1] brick size; [2] color width
+    - XRay: [1] fall off; [2] color modifier
+    - Cloud: [1] Size; [2] None
+    - Gooch : [1] width; [2] shinyness
+    - Sphere: [1] size of sphere; [2] type of billboard
 
 .. toctree::
    :maxdepth: 2

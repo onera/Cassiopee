@@ -50,13 +50,13 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
   PyObject* isoScales; PyObject* billBoards; 
   PyObject* materials; PyObject* bumpMaps;
   int gridSizeI, gridSizeJ;
-  E_Float lightOffsetX, lightOffsetY; E_Float dofPower;
+  E_Float lightOffsetX, lightOffsetY; E_Float dofPower; E_Float gamma;
   int timer; int selectionStyle;
   int continuousExport; int activateShortCuts;
   E_Float billBoardSize;
   if (!PyArg_ParseTuple(
         args, 
-	"iOOiiiiiiiiiiddiiiidO(ii)(ddd)(ddd)(ddd)d(dd)iiidiiississidi(ii)iiiOdOO",
+	"iOOiiiiiiiiiiddiiiidO(ii)(ddd)(ddd)(ddd)d(dd)iiiddiiississidi(ii)iiiOdOO",
         &dim, &modeObject, &scalarFieldObject,
         &vectorField1, &vectorField2, &vectorField3,
         &displayBB, &displayInfo, &displayIsoLegend,
@@ -68,7 +68,7 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
         &xeye, &yeye, &zeye, 
         &dirx, &diry, &dirz, &viewAngle,
         &lightOffsetX, &lightOffsetY,
-        &bgColor, &shadow, &dof, &dofPower,
+        &bgColor, &shadow, &dof, &dofPower, &gamma,
         &ghostifyDeactivatedZones, &edgifyActivatedZones,
         &edgifyDeactivatedZones,
         &exportFile, &exportResolution, &continuousExport,
@@ -128,6 +128,7 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
   if (gridSizeI != -1) d->ptrState->gridSizeI = gridSizeI;
   if (gridSizeJ != -1) d->ptrState->gridSizeJ = gridSizeJ;
   if (dofPower != -1.) d->ptrState->dofPower = dofPower;
+  if (gamma != -1.) d->ptrState->gamma = gamma;
   if (lightOffsetX != -999.) d->ptrState->lightOffsetX = lightOffsetX;
   if (lightOffsetY != -999.) d->ptrState->lightOffsetY = lightOffsetY;
   //if (viewAngle != -1) d->ptrState->farClip = 1;

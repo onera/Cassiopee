@@ -88,6 +88,9 @@ struct CPlotState {
     // Depth of field
     int    DOF;
     double dofPower;
+    
+    // Gamma correction
+    double gamma;
 
     // Last selected zone
     int selectedZone;

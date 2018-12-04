@@ -255,7 +255,7 @@ void Data::triggerShader(Zone& z, int material, float scale, float* color)
       shader = 21;
       SHADOWTEXTURE;
       if (_shaders.currentShader() != shader) _shaders.activate(shader);
-      _shaders[shader]->setUniform("fallOff", (float)2.);
+      _shaders[shader]->setUniform("specularFactor", (float)z.shaderParam2);
       _shaders[shader]->setUniform("exponent", (float)z.shaderParam1);
       _shaders[shader]->setUniform("shadow", (int)ptrState->shadow);
       _shaders[shader]->setUniform("ShadowMap", (int)0);

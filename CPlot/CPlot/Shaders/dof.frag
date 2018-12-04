@@ -1,9 +1,11 @@
-// Depth of field shader
+#version 130
+// Depth of field shader (post shader)
 uniform sampler2D FrameBuffer;
 uniform sampler2D depthMap;
 
 uniform float focalDepth; // position de la focale
 uniform float radius; // taille du rayon de blur
+uniform float gamma; // gamma correction
 
 vec2 poisson0, poisson1, poisson2, poisson3, poisson4;
 vec2 poisson5, poisson6, poisson7;
@@ -130,11 +132,10 @@ vec4 dof(vec2 coords)
      return finalColor/finalBlur;
 }
 
-void main(){
-
-     pixelSizeHigh[0] = 1.0/textureSize(FrameBuffer, 0);
-     pixelSizeHigh[1] = 1.0/textureSize(FrameBuffer, 0);
-
+void main()
+{
+     pixelSizeHigh = 1.0/textureSize(FrameBuffer, 0);
+ 
 	// poisson-distributed positions
      poisson0 = vec2( 0.0, 0.0);
      poisson1 = vec2( 0.527837,-0.08586);
@@ -145,5 +146,12 @@ void main(){
      poisson6 = vec2(-0.757088, 0.349334);
      poisson7 = vec2( 0.574619, 0.685879);
 
-	gl_FragColor = dof(gl_TexCoord[0].xy);
+     // color
+     vec4 color = dof(gl_TexCoord[0].xy);
+
+     // gamma correction
+     vec4 res = pow(color, vec4(1.0 / gamma));
+     res.a = color.a;
+     
+	gl_FragColor = res;
 }

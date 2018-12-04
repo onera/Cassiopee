@@ -20,7 +20,6 @@ def setDOF(event=None):
 
 #==============================================================================
 def setDofPower(event=None):
-    #off = WIDGETS['dofPower'].get()*8./100.+2.
     off = WIDGETS['dofPower'].get()*2./100.+2.
     VARS[5].set('Depth of field power [%.2f].'%off)
     CPlot.setState(dofPower=off)
@@ -42,6 +41,12 @@ def setViewAngle(event=None):
     angle = VARS[0].get()
     angle = float(angle)
     CPlot.setState(viewAngle=angle)
+
+#==============================================================================
+def setGammaCorrection(event=None):
+    off = WIDGETS['gammaCorrection'].get()*2.5/100.
+    VARS[6].set('Gamma correction [%.2f].'%off)
+    CPlot.setState(gamma=off)
 
 #==============================================================================
 # Create app widgets
@@ -83,6 +88,8 @@ def createApp(win):
     V = TK.StringVar(win); V.set('Light offset in y.'); VARS.append(V)
     # -5- Depth of field info bulle
     V = TK.StringVar(win); V.set('Depth of field power.'); VARS.append(V)
+    # -6- Gamma correction info bulle
+    V = TK.StringVar(win); V.set('Gamma correction.'); VARS.append(V)
 
     # - Camera angle -
     B = TTK.Button(Frame, text="Set Cam angle", command=setViewAngle)
@@ -97,31 +104,38 @@ def createApp(win):
     B = TTK.Scale(Frame, from_=0, to=100, orient=TK.HORIZONTAL, showvalue=0,
                   borderwidth=1, command=setLightOffsetX, value=55)
     WIDGETS['lightOffsetX'] = B
-    B.grid(row=1, columnspan=2, sticky=TK.EW)
+    B.grid(row=1, column=0, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, textVariable=VARS[3])
     
     # - Light offset Y -
     B = TTK.Scale(Frame, from_=0, to=100, orient=TK.HORIZONTAL, showvalue=0,
                   borderwidth=1, command=setLightOffsetY, value=25)
     WIDGETS['lightOffsetY'] = B
-    B.grid(row=2, columnspan=2, sticky=TK.EW)
+    B.grid(row=1, column=1, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, textVariable=VARS[4])
     
     # - DOF power -
     B = TTK.Scale(Frame, from_=0, to=100, orient=TK.HORIZONTAL, showvalue=0,
                   borderwidth=1, command=setDofPower, value=50)
     WIDGETS['dofPower'] = B
-    B.grid(row=3, columnspan=2, sticky=TK.EW)
+    B.grid(row=2, column=0, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, textVariable=VARS[5])
+    
+    # - Gamma correction -
+    B = TTK.Scale(Frame, from_=0, to=100, orient=TK.HORIZONTAL, showvalue=0,
+                  borderwidth=1, command=setGammaCorrection, value=50)
+    WIDGETS['gammaCorrection'] = B
+    B.grid(row=2, column=1, columnspan=1, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, textVariable=VARS[6])
     
     # - Shadow + DOF -
     B = TTK.Checkbutton(Frame, text='Shadow', variable=VARS[1],
                         command=setShadow)
     BB = CTK.infoBulle(parent=B, text='Toggle shadows.')
-    B.grid(row=4, column=0, sticky=TK.EW)
-    B = TTK.Checkbutton(Frame, text='DOF', variable=VARS[2], command=setDOF)
-    BB = CTK.infoBulle(parent=B, text='Toggle depth of field blur.')
-    B.grid(row=4, column=1, sticky=TK.EW)
+    B.grid(row=3, column=0, sticky=TK.EW)
+    B = TTK.Checkbutton(Frame, text='DOF/Gamma', variable=VARS[2], command=setDOF)
+    BB = CTK.infoBulle(parent=B, text='Toggle depth of field blur/gamma correction.')
+    B.grid(row=3, column=1, sticky=TK.EW)
     
 #==============================================================================
 # Called to display widgets

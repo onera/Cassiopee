@@ -7,7 +7,7 @@ varying vec4 color;
 varying vec3 ecPos;
 varying vec3 tnorm;
 varying vec4 vertex;
-uniform float fallOff;
+uniform float specularFactor;
 uniform float exponent;
 uniform int shadow;
 uniform sampler2D ShadowMap;
@@ -29,7 +29,7 @@ void main (void)
     vec3 nview    = normalize(ViewVec);
 
     float spec    = max(dot(nreflect, nview), 0.0);
-    spec          = pow(spec, 32.0);
+    spec          = pow(spec, 32.0*(2.-specularFactor));
        
     colorf = vec4(min(kfinal+spec, 1.0), 1.0);
 
@@ -37,7 +37,7 @@ void main (void)
     float angle = dot(tnorm, normalize(ecPos));
     angle = abs(angle);
     angle = pow(angle, -2*exponent);
-    if (angle > fallOff)  {colorf = vec4(0.,0.,0.,1.);}
+    if (angle > 2.)  {colorf = vec4(0.,0.,0.,1.);}
 
     float shadowValue = 1.;
     if (shadow > 0)
