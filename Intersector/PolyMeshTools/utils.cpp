@@ -841,7 +841,7 @@ PyObject* K_INTERSECTOR::extrudeUserDefinedBC(PyObject* self, PyObject* args)
     if (pgs != Py_None)
       res = K_NUMPY::getFromNumpyArray(pgs, inds, true);
 
-    std::auto_ptr<FldArrayI> pL(inds); // to avoid to call explicit delete at several places in the code.
+    std::unique_ptr<FldArrayI> pL(inds); // to avoid to call explicit delete at several places in the code.
   
     //std::cout << "result for NUMPY is : " << res << std::endl;
     if ((res == 1) && (inds != NULL)  && (inds->getSize() != 0))
@@ -954,8 +954,8 @@ PyObject* K_INTERSECTOR::diffMesh(PyObject* self, PyObject* args)
   err = check_is_NGON(arr2, f2, cn2, varString2, eltType2);
   if (err) return NULL;
 
-  std::auto_ptr<K_FLD::FloatArray> pf1(f1), pf2(f2);   //for memory cleaning
-  std::auto_ptr<K_FLD::IntArray> pcn1(cn1), pcn2(cn2); //for memory cleaning
+  std::unique_ptr<K_FLD::FloatArray> pf1(f1), pf2(f2);   //for memory cleaning
+  std::unique_ptr<K_FLD::IntArray> pcn1(cn1), pcn2(cn2); //for memory cleaning
 
   K_FLD::FloatArray & crd = *f1;
   K_FLD::IntArray & cnt = *cn1;

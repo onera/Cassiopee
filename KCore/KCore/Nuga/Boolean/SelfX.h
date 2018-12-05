@@ -137,9 +137,9 @@ E_Bool __intersect
 (const K_FLD::FloatArray& pos, const K_FLD::IntArray& connect, E_Int t, E_Int e0, E_Int e1, E_Float tol, E_Bool& coplanar)
 {
   
-  E_Float u0[2], E[DIM], eps(/*100.*E_EPSILON*/tol), IP[DIM];
+  E_Float u0[2], E[DIM], eps(/*100.*E_EPSILON*/tol);
   E_Bool  overlap, intersect;
-  E_Int Ni, tx[2];  
+  E_Int tx[2];  
   K_FLD::IntArray::const_iterator pS = connect.col(t);
 
   if (*pS == e0 && *(pS+1) == e1)
@@ -274,13 +274,13 @@ E_Int intersect_from_Conformizer_wo_trace
 
 void concatenate_PG_triangles (E_Int PGi, const ngon_t<cnt_t>& ng, const cnt_t& cntT3, const std::vector<E_Int>& PG_to_T3s, std::vector<E_Int>& pgi_T3s)
 {  
-  if (PGi+1 > PG_to_T3s.size()-1)
+  if (PGi+1 > (E_Int)PG_to_T3s.size()-1)
     return;
   
   E_Int nb_T3=PG_to_T3s[PGi+1]-PG_to_T3s[PGi];
   if (nb_T3 <= 0) return;
     
-  for (size_t k=0; k<nb_T3; ++k)
+  for (E_Int k=0; k<nb_T3; ++k)
     pgi_T3s.push_back(PG_to_T3s[PGi]+k);
 }
 

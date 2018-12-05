@@ -215,11 +215,7 @@ namespace DELAUNAY{
   VarMetric<Aniso2D>::isWeakAniso(size_type Ni, E_Float r) { 
     
     const Aniso2D& mi = _field[Ni];
-    
-    const E_Float& a11 = mi[0];
-    const E_Float& a12 = mi[1];
-    const E_Float& a22 = mi[2];
-    
+     
     E_Float lambda0, lambda1, v0[2], v1[2];
     K_LINEAR::DelaunayMath::eigen_vectors (mi[0], mi[2], mi[1], lambda0, lambda1, v0, v1);
     E_Float h1old2 = get_h2_along_dir(Ni, v0);

@@ -288,7 +288,7 @@ bool getUnionArgs(PyObject* args,
       E_Int nb_ghost_pgs = inds->getSize();
       //E_Int minid(INT_MAX), maxid(-1);
       pgsList.resize(nb_ghost_pgs);
-      for (size_t i = 0; i < nb_ghost_pgs; ++i) 
+      for (E_Int i = 0; i < nb_ghost_pgs; ++i) 
       {
         pgsList[i]=(*inds)[i]-1;
         //std::cout << pgsList[i] << std::endl;
@@ -433,7 +433,10 @@ PyObject* call_union(PyObject* args)
   if (!ok) return NULL;
   PyObject* tpl = NULL;
   E_Int err(0), et=-1;
+
+#ifdef DEBUG_W_PYTHON_LAYER
   PyObject *l(PyList_New(0));
+#endif
 
   char eltType2[20];
   strcpy(eltType2, eltType);
@@ -673,7 +676,7 @@ PyObject* K_INTERSECTOR::DiffSurf(PyObject* self, PyObject* args)
         preserve_right, solid_right, agg_mode, improve_conformal_cloud_qual, eltType, varString);
   if (!ok) return NULL;
   PyObject* tpl = NULL;
-  E_Int err(0), et=-1;
+  E_Int err(0)/*, et=-1*/;
 
   char eltType2[20];
   strcpy(eltType2, eltType);
@@ -700,7 +703,7 @@ PyObject* K_INTERSECTOR::DiffSurf(PyObject* self, PyObject* args)
     if (improve_conformal_cloud_qual)BO.setConformizerParams(true);
 
     err=BO.Diffsurf(pos, connect);
-    et = 8;
+    //et = 8;
   }
   
   if (!err)

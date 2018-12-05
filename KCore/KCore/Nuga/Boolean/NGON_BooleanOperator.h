@@ -1757,7 +1757,7 @@ E_Int NGON_BOOLEAN_CLASS::XcellN (std::vector<E_Float>& xcellN)
   const ngon_type ng1 = _cNGON1;
   const ngon_type ng2 = _cNGON2;
   const K_FLD::FloatArray & crd1 = _aCoords1.array();
-  const K_FLD::FloatArray & crd2 = _crd2;
+  //const K_FLD::FloatArray & crd2 = _crd2;
 
   //
   Coordinate_t coord;
@@ -1864,10 +1864,10 @@ E_Int NGON_BOOLEAN_CLASS::XcellN (std::vector<E_Float>& xcellN)
     // the piece has 2 ancestors so it's a cutted cell
     // so compute the ratio
     E_Float vold, Gdum[3];
-    E_Int err = K_MESH::Polyhedron<STAR_SHAPED>::metrics2<DELAUNAY::Triangulator>(dt, crd1, ng1.PGs, ng1.PHs.get_facets_ptr(ancPH1i), ng1.PHs.stride(ancPH1i), vold, Gdum, true/*supposed cvx*/);
+    /*E_Int err = */K_MESH::Polyhedron<STAR_SHAPED>::metrics2<DELAUNAY::Triangulator>(dt, crd1, ng1.PGs, ng1.PHs.get_facets_ptr(ancPH1i), ng1.PHs.stride(ancPH1i), vold, Gdum, true/*supposed cvx*/);
 
     E_Float vnew;
-    err = K_MESH::Polyhedron<STAR_SHAPED>::metrics2<DELAUNAY::Triangulator>(dt, coord, _ngoper->PGs, _ngoper->PHs.get_facets_ptr(PHi), _ngoper->PHs.stride(PHi), vnew, Gdum, true/* made cvx*/);
+    /*err = */K_MESH::Polyhedron<STAR_SHAPED>::metrics2<DELAUNAY::Triangulator>(dt, coord, _ngoper->PGs, _ngoper->PHs.get_facets_ptr(PHi), _ngoper->PHs.stride(PHi), vnew, Gdum, true/* made cvx*/);
     
     xcellN[ancPH1i] = ::fabs(vnew/vold);
     if (xcellN[ancPH1i] > 1. - 1.e-15) xcellN[ancPH1i] = VISIBLE; // cutoff to 1.

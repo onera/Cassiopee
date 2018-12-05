@@ -1653,8 +1653,7 @@ static E_Int detect_bad_volumes(const K_FLD::FloatArray& crd, const ngon_t& ngi,
  
   std::vector<E_Float> vols;
   ngon_t::volumes<TriangulatorType>(crd, ngi, vols);
-     
-  E_Int ratiocount(0);
+
   E_Float vi, vj;
   
   for (E_Int i=0; i < nb_phs; ++i)
@@ -1778,7 +1777,7 @@ static E_Int extract_pathological_PHs
 
   Vector_t<ePathoPH> PHtypes;
   //std::cout << "extract patho : detect_pathological_PHs..." << std::endl;
-  bool has_non_star = detect_pathological_PHs<TriangulatorType>(crd, ngi, orienti, PHtypes);
+  /*bool has_non_star = */detect_pathological_PHs<TriangulatorType>(crd, ngi, orienti, PHtypes);
   
   // OVERRIDE WITH UNCOMPUTABLES PGS (and therefore PHs) missed in detect_pathological_PHs (because some test have suceed before getting to the delaunay)
   //std::cout << "extract patho : detect_uncomputable_pgs..." << std::endl;
@@ -2529,13 +2528,13 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
     }
 
     // 3- Faces confondues : identification et suppression des références.
-    bool has_dups = false;
+    /*bool has_dups = false;*/
     if (ngon_dim == 3) //volumic
-      has_dups = NG.remove_duplicated_pgs(fcA);
+      /*has_dups = */NG.remove_duplicated_pgs(fcA);
     else if (ngon_dim == 2) //surfacic
-      has_dups = NG.remove_duplicated_edges();
+      /*has_dups = */NG.remove_duplicated_edges();
     else // lineic
-      has_dups = NG.remove_duplicated_nodes();
+      /*has_dups = */NG.remove_duplicated_nodes();
 
     // remove duplicated references to PGs within each elements
     /*E_Int nb_phs_dups = */NG.PHs.remove_duplicated();

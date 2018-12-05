@@ -556,7 +556,7 @@ E_Int K_OCC::CADviaOCC::__clean(const K_FLD::ArrayAccessor<K_FLD::FloatArray>& c
 
 //
 E_Int K_OCC::CADviaOCC::mesh_faces
-(const K_FLD::FloatArray& coords, const std::vector<K_FLD::IntArray>& connectBs, std::vector<K_FLD::FloatArray>& crds, std::vector<K_FLD::IntArray>& connectMs)
+(const K_FLD::FloatArray& coords, const std::vector<K_FLD::IntArray>& connectBs, std::vector<K_FLD::FloatArray>& crds, std::vector<K_FLD::IntArray>& connectMs, bool aniso)
 {
   E_Int err(0), nb_faces(_surfs.Extent());
   
@@ -571,7 +571,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces
   DELAUNAY::SurfaceMesher<OCCSurface> mesher;
   
 #ifdef DEBUG_CAD_READER
-  E_Int faulty_id = 5;
+  E_Int faulty_id = 109;
 #endif
   size_t t;
 
@@ -680,6 +680,8 @@ E_Int K_OCC::CADviaOCC::mesh_faces
       DELAUNAY::SurfaceMesherMode mode;
       
       mode.chordal_error=_chordal_err;
+      
+      if (aniso) mode.metric_mode = mode.ANISO;
 
 #ifndef DEBUG_CAD_READER
       mode.silent_errors = true;
@@ -693,9 +695,31 @@ E_Int K_OCC::CADviaOCC::mesh_faces
       else
       {
         mode.growth_ratio = std::max(_gr, 1.); //fixme : values in [1.; 1.25] might cause errors. Anyway do not allow bellow 1. since not useful
-        mode.symmetrize = (UVcontour.cols() > 100);
-        mode.nb_smooth_iter = 2;
-        mode.symmetrize = false;//fixme : reactivate somehow
+        E_Int MIN_NB = 20;
+        if (_gr > 1. && (connectB.cols() > (MIN_NB * 4))) // check if growth ratio is applicable to this patch, i.e. it is symmetrizable
+        {
+          // Count the minimum number of edges on a boundary of the param space per direction (U,V)
+          E_Float nu(0), nv(0);
+          for (E_Int i=0; i < connectB.cols(); ++i)
+          {
+            E_Float ds[2];
+            const E_Int& Ni = connectB(0,i);
+            const E_Int& Nj = connectB(1,i);
+            K_FUNC::diff<2>(UVcontour.col(Ni), UVcontour.col(Nj), ds);
+            K_FUNC::normalize<2>(ds);
+            
+            if (::fabs(ds[0]) < ::fabs(ds[1]))++nv;
+            else ++nu;
+          }
+          
+          E_Int n = std::min(nu, nv) / 2; // nu and nv are accumlation for "2" sides
+          
+          if (n > MIN_NB)
+          {
+            mode.symmetrize = true;
+            mode.nb_smooth_iter = 2;
+          }
+        }
       }
 
       mesher.mode = mode;

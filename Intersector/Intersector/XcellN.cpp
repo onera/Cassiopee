@@ -68,8 +68,8 @@ PyObject* K_INTERSECTOR::XcellN(PyObject* self, PyObject* args)
       return NULL;
   }
   
-  std::auto_ptr<crd_t> afmesh(crd); // to avoid to call explicit delete at several places in the code.
-  std::auto_ptr<cnt_t> acmesh(cnt); // to avoid to call explicit delete at several places in the code.
+  std::unique_ptr<crd_t> afmesh(crd); // to avoid to call explicit delete at several places in the code.
+  std::unique_ptr<cnt_t> acmesh(cnt); // to avoid to call explicit delete at several places in the code.
   
   //std::cout << "bgm : " << crd->cols() << "/" << cnt->cols() << std::endl;
   //std::cout << "res : " << res << std::endl;
@@ -83,8 +83,8 @@ PyObject* K_INTERSECTOR::XcellN(PyObject* self, PyObject* args)
 
   res = K_ARRAY::getFromArray(celln, varString2, fCelln, ni, nj, nk, cCelln, eltType2);
   
-  std::auto_ptr<crd_t> af2(fCelln); // to avoid to call explicit delete at several places in the code.
-  std::auto_ptr<cnt_t> ac2(cCelln); // to avoid to call explicit delete at several places in the code.
+  std::unique_ptr<crd_t> af2(fCelln); // to avoid to call explicit delete at several places in the code.
+  std::unique_ptr<cnt_t> ac2(cCelln); // to avoid to call explicit delete at several places in the code.
    
   if (res == -1 || strcmp(eltType2, "NGON*") != 0 )
   {
@@ -102,8 +102,8 @@ PyObject* K_INTERSECTOR::XcellN(PyObject* self, PyObject* args)
   }
   res = K_ARRAY::getFromArray(maskingMesh, varString3, crdMask, ni, nj, nk, cntMask, eltType3);
 
-  std::auto_ptr<crd_t> af3(crdMask); // to avoid to call explicit delete at several places in the code.
-  std::auto_ptr<cnt_t> ac3(cntMask); // to avoid to call explicit delete at several places in the code.
+  std::unique_ptr<crd_t> af3(crdMask); // to avoid to call explicit delete at several places in the code.
+  std::unique_ptr<cnt_t> ac3(cntMask); // to avoid to call explicit delete at several places in the code.
 
   if (res != 2 || strcmp(eltType3, "NGON") != 0 )
   {
@@ -131,7 +131,7 @@ PyObject* K_INTERSECTOR::XcellN(PyObject* self, PyObject* args)
     if (wall_pgl != Py_None)
       res = K_NUMPY::getFromNumpyArray(wall_pgl, wall_ids, true);
 
-    std::auto_ptr<FldArrayI> pL(wall_ids); // to avoid to call explicit delete at several places in the code.
+    std::unique_ptr<FldArrayI> pL(wall_ids); // to avoid to call explicit delete at several places in the code.
   
     //std::cout << "result for NUMPY (WALL) is : " << res << std::endl;
     if ((res == 1) && (wall_ids != NULL)  && (wall_ids->getSize() != 0))
@@ -139,7 +139,7 @@ PyObject* K_INTERSECTOR::XcellN(PyObject* self, PyObject* args)
       E_Int nb_special_pgs = wall_ids->getSize();
       E_Int minid(INT_MAX), maxid(-1);
       std::vector<E_Int> pgsList(nb_special_pgs);
-      for (size_t i = 0; i < nb_special_pgs; ++i) 
+      for (E_Int i = 0; i < nb_special_pgs; ++i) 
       {
         pgsList[i]=(*wall_ids)[i]-1;
         //std::cout << pgsList[i] << std::endl;
@@ -163,7 +163,7 @@ PyObject* K_INTERSECTOR::XcellN(PyObject* self, PyObject* args)
     if (ghost_pgl != Py_None)
       res = K_NUMPY::getFromNumpyArray(ghost_pgl, ghost_ids, true);
 
-    std::auto_ptr<FldArrayI> pL(ghost_ids); // to avoid to call explicit delete at several places in the code.
+    std::unique_ptr<FldArrayI> pL(ghost_ids); // to avoid to call explicit delete at several places in the code.
   
     //std::cout << "result for NUMPY (GHOST) is : " << res << std::endl;
     if ((res == 1) && (ghost_ids != NULL)  && (ghost_ids->getSize() != 0))
@@ -171,7 +171,7 @@ PyObject* K_INTERSECTOR::XcellN(PyObject* self, PyObject* args)
       E_Int nb_special_pgs = ghost_ids->getSize();
       E_Int minid(INT_MAX), maxid(-1);
       std::vector<E_Int> pgsList(nb_special_pgs);
-      for (size_t i = 0; i < nb_special_pgs; ++i) 
+      for (E_Int i = 0; i < nb_special_pgs; ++i) 
       {
         pgsList[i]=(*ghost_ids)[i]-1;
         //std::cout << pgsList[i] << std::endl;
@@ -190,9 +190,9 @@ PyObject* K_INTERSECTOR::XcellN(PyObject* self, PyObject* args)
   }
 
   
-  size_t sz = fCelln->getSize();
+  E_Int sz = fCelln->getSize();
   std::vector<E_Float> cN(sz);
-  for (size_t i = 0; i < sz; ++i) cN[i]=(*fCelln)[i];
+  for (E_Int i = 0; i < sz; ++i) cN[i]=(*fCelln)[i];
   
   E_Int err = oper.XcellN(cN);
 
@@ -205,7 +205,7 @@ PyObject* K_INTERSECTOR::XcellN(PyObject* self, PyObject* args)
   //assert (cN.size() == sz);
   
   FloatArray cellnout(1, sz);
-  for (size_t i = 0; i < sz; ++i) cellnout[i] = E_Float(cN[i]);
+  for (E_Int i = 0; i < sz; ++i) cellnout[i] = E_Float(cN[i]);
  
   return K_ARRAY::buildArray(cellnout, "cellN", *cCelln, -1, "NGON", true); 
 }

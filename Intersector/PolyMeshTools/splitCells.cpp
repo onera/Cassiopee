@@ -218,7 +218,7 @@ PyObject* K_INTERSECTOR::adaptBox(PyObject* self, PyObject* args)
   char* varString, *eltType;
 
   E_Int ni, nj, nk;
-  E_Int res2 = K_ARRAY::getFromArray(arrS, varString, f, ni, nj, nk,
+  /*E_Int res2 = */K_ARRAY::getFromArray(arrS, varString, f, ni, nj, nk,
                                      cn, eltType);
 
   K_FLD::FloatArray & crdS = *f;

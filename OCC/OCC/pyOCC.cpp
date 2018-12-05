@@ -110,8 +110,8 @@ E_Int K_OCC::CADread
 {
    std::vector<K_FLD::FloatArray> crds;
    std::vector<K_FLD::IntArray> connectMs;
-   
-   E_Int err = import_OCC_CAD_wrapper::import_cad(file, fileFmt, crds, connectMs, h, chordal_err, gr);
+   bool aniso = false; // fixme : currently aniso mode mixed with growth ratio does not work
+   E_Int err = import_OCC_CAD_wrapper::import_cad(file, fileFmt, crds, connectMs, h, chordal_err, gr, aniso);
    if (err)
      return err;
  

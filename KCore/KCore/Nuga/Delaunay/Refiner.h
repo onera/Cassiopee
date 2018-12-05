@@ -61,8 +61,6 @@ namespace DELAUNAY
     void filterRefinePoints(MeshData& data, const int_set_type& box_nodes,
                             int_vector_type& refine_nodes,
                             tree_type& filter_tree);
-    
-    E_Bool                  _debug;
 
   private:
     MetricType&             _metric;
@@ -71,6 +69,8 @@ namespace DELAUNAY
     E_Float                 _gr;
     E_Int                   _nb_smooth_iter;
     E_Bool                  _symmetrize;
+  public:
+    E_Bool                  _debug;    
   };
 
   ///

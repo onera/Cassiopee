@@ -288,7 +288,7 @@ namespace NUGA
     ngon_unit all_agg, cur_agg, all_ori, cur_ori, best_agg, best_ori;
 
     E_Int nb_phs = PHlist.size();
-    E_Int agg_id(0);
+    //E_Int agg_id(0);
     for (E_Int ii = 0; ii < nb_phs; ++ii)
     {
       E_Int i = PHlist[ii];
@@ -297,9 +297,9 @@ namespace NUGA
         continue;
 
       E_Int bestn = E_IDX_NONE;
-      size_t nbfmax=0;
-      E_Float smax=0.;
-      E_Float worst_reflex_angle=0.;
+      //size_t nbfmax=0;
+      //E_Float smax=0.;
+      //E_Float worst_reflex_angle=0.;
       E_Float qmax=0.;
       E_Int nb_reflex_edges_1(0);
       
@@ -405,8 +405,8 @@ namespace NUGA
         {
           bestn = n;
 
-          smax = s;
-          nbfmax = nbf;
+          //smax = s;
+          //nbfmax = nbf;
           best_agg = cur_agg;
           best_ori = cur_ori;
           
@@ -416,7 +416,7 @@ namespace NUGA
          if (worst_reflex_angle > worst_reflex_a)
             std::cout << "better but generating more concavity !!" << std::endl;
 #endif          
-          worst_reflex_angle = worst_reflex_a;
+          //worst_reflex_angle = worst_reflex_a;
           
 #ifdef DEBUG_AGGLOMERATOR
           //if (ii==73)

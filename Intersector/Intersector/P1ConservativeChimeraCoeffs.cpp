@@ -37,8 +37,8 @@ PyObject* K_INTERSECTOR::P1ConservativeChimeraCoeffs(PyObject* self, PyObject* a
 {
   typedef K_FLD::FldArrayF crd_t;
   typedef K_FLD::FldArrayI cnt_t;
-  typedef NUGA::NGON_BooleanOperator<crd_t, cnt_t> boolean_t;
-  typedef NUGA::P1_Conservative_Chimera<crd_t, cnt_t> chimera_t;
+  //typedef NUGA::NGON_BooleanOperator<crd_t, cnt_t> boolean_t;
+  //typedef NUGA::P1_Conservative_Chimera<crd_t, cnt_t> chimera_t;
    
   PyObject *meshD, *meshR, *cellNR;
   
@@ -61,8 +61,8 @@ PyObject* K_INTERSECTOR::P1ConservativeChimeraCoeffs(PyObject* self, PyObject* a
       return NULL;
   }
   
-  std::auto_ptr<crd_t> afD(fldD); // to avoid to call explicit delete at several places in the code.
-  std::auto_ptr<cnt_t> acD(cnD); // to avoid to call explicit delete at several places in the code.
+  std::unique_ptr<crd_t> afD(fldD); // to avoid to call explicit delete at several places in the code.
+  std::unique_ptr<cnt_t> acD(cnD); // to avoid to call explicit delete at several places in the code.
   
   //std::cout << "bgm : " << crd->cols() << "/" << cnt->cols() << std::endl;
   //std::cout << "res : " << res << std::endl;
@@ -76,8 +76,8 @@ PyObject* K_INTERSECTOR::P1ConservativeChimeraCoeffs(PyObject* self, PyObject* a
 
   res = K_ARRAY::getFromArray(meshR, varString2, fldR, ni, nj, nk, cnR, eltType2);
 
-  std::auto_ptr<crd_t> afR(fldR); // to avoid to call explicit delete at several places in the code.
-  std::auto_ptr<cnt_t> acR(cnR); // to avoid to call explicit delete at several places in the code.
+  std::unique_ptr<crd_t> afR(fldR); // to avoid to call explicit delete at several places in the code.
+  std::unique_ptr<cnt_t> acR(cnR); // to avoid to call explicit delete at several places in the code.
 
   if (res != 2 || strcmp(eltType2, "NGON") != 0 )
   {
@@ -91,8 +91,8 @@ PyObject* K_INTERSECTOR::P1ConservativeChimeraCoeffs(PyObject* self, PyObject* a
 
   res = K_ARRAY::getFromArray(cellNR, varString3, fCelln, ni, nj, nk, cCelln, eltType3);
   
-  std::auto_ptr<crd_t> afC(fCelln); // to avoid to call explicit delete at several places in the code.
-  std::auto_ptr<cnt_t> acC(cCelln); // to avoid to call explicit delete at several places in the code.
+  std::unique_ptr<crd_t> afC(fCelln); // to avoid to call explicit delete at several places in the code.
+  std::unique_ptr<cnt_t> acC(cCelln); // to avoid to call explicit delete at several places in the code.
    
   if (res == -1 || strcmp(eltType3, "NGON*") != 0 )
   {

@@ -130,7 +130,7 @@ namespace NUGA
       }
       
       ngo.PGs = ngi.PGs;
-      E_Int nb_pgs = ngo.PGs.size();
+      //E_Int nb_pgs = ngo.PGs.size();
 
 #ifdef DEBUG_SPLITTER 
       E_Int faultyPH = -1;
@@ -1289,8 +1289,8 @@ void NUGA::Splitter::__get_bad_nodes
 
     for (E_Int n = 0; n < nb_nodes; ++n)
     {
-      E_Int N = *(nodes + n);
-      E_Int np1 = *(nodes + (n + 1) % nb_nodes);
+      //E_Int N = *(nodes + n);
+      //E_Int np1 = *(nodes + (n + 1) % nb_nodes);
       K_MESH::NO_Edge E(*(nodes + n), *(nodes + (n + 1) % nb_nodes));
       if (chain_edges.find(E) == chain_edges.end())
         continue;
@@ -1501,7 +1501,7 @@ if (PHi == faultyPH)
   
   // check also they are not patholical bits
   ngon_unit orient;
-  E_Int err = ngon_type::build_orientation_ngu<TriangulatorType>(crd, twoPH, orient);//fixme hpc : should be deduced from the input PH orientation
+  /*E_Int err = */ngon_type::build_orientation_ngu<TriangulatorType>(crd, twoPH, orient);//fixme hpc : should be deduced from the input PH orientation
   E_Int res = K_MESH::Polyhedron<UNKNOWN>::is_pathological(dt, crd, twoPH.PGs, pgs0, nb_pgs0, orient.get_facets_ptr(0));
   if (res != dCONCAVITY_TO_SPLIT && res != dPATHO_PH_NONE)
     return false;
@@ -1513,10 +1513,10 @@ if (PHi == faultyPH)
   //if (err || mA < minA || MA > maxA) return false; //get worst
   
   E_Float mA, MA;
-  err = K_MESH::Polyhedron<UNKNOWN>::min_max_angles(crd, twoPH.PGs, pgs0, nb_pgs0, false, orient.get_facets_ptr(0), mA, MA);
+  /*err = */K_MESH::Polyhedron<UNKNOWN>::min_max_angles(crd, twoPH.PGs, pgs0, nb_pgs0, false, orient.get_facets_ptr(0), mA, MA);
   if (::fabs(mA) < 1.e-2 || ::fabs(2.*K_CONST::E_PI - MA) < 1.e-2) return false;
   //if (err || mA < minA || MA > maxA) return false; //get worst
-  err = K_MESH::Polyhedron<UNKNOWN>::min_max_angles(crd, twoPH.PGs, pgs1, nb_pgs1, false, orient.get_facets_ptr(1), mA, MA);
+  /*err = */K_MESH::Polyhedron<UNKNOWN>::min_max_angles(crd, twoPH.PGs, pgs1, nb_pgs1, false, orient.get_facets_ptr(1), mA, MA);
   if (::fabs(mA) < 1.e-2 || ::fabs(2.*K_CONST::E_PI - MA) < 1.e-2) return false;
   //if (err || mA < minA || MA > maxA) return false; //get worst
   

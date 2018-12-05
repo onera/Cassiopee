@@ -28,7 +28,7 @@ namespace NUGA
     bool simplicial_colliding(const acrd_t& acrd1, ELT1& e1, const acrd_t& acrd2, ELT2& e2)
     {
       //
-      E_Int T1[3], T2[3];
+      E_Int T1[3], T2[3] = {0};
       E_Float P0[DIM], P1[DIM], P2[DIM], Q0[DIM], Q1[DIM], Q2[DIM];
       
       DELAUNAY::Triangulator dt;

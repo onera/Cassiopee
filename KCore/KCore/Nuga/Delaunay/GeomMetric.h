@@ -85,12 +85,12 @@ namespace DELAUNAY
     E_Float            _hmax2;
     E_Float            _h0;
     E_Float            _chordal_error;
-    E_Float            _gr;
     E_Float            _alpha2;
+    E_Float            _gr;
     const K_FLD::FloatArray* _pos2D; //hack to avoid to pass a dummy argument for Metric::init_metric as pos2D is only required for GeomMetric
     
-    T _boundary_metric_max;
-    E_Float _humax2, _hvmax2;
+    //T _boundary_metric_max;
+    //E_Float _humax2, _hvmax2;
     bool _unbounded_h;
   };
 

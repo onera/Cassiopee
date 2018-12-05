@@ -334,8 +334,8 @@ PyObject* K_CONNECTOR::blankCellsTetra(PyObject* self, PyObject* args)
   }
 
   E_Int res = K_ARRAY::getFromArray(mesh, varString, fmesh, ni, nj, nk, cmesh, eltType);
-  std::auto_ptr<K_FLD::FldArrayF> afmesh(fmesh); // to avoid to call explicit delete at several places in the code.
-  std::auto_ptr<K_FLD::FldArrayI> acmesh(cmesh); // to avoid to call explicit delete at several places in the code.
+  std::unique_ptr<K_FLD::FldArrayF> afmesh(fmesh); // to avoid to call explicit delete at several places in the code.
+  std::unique_ptr<K_FLD::FldArrayI> acmesh(cmesh); // to avoid to call explicit delete at several places in the code.
   
   
   if (res == -1)
@@ -356,8 +356,8 @@ PyObject* K_CONNECTOR::blankCellsTetra(PyObject* self, PyObject* args)
   }
 
   res = K_ARRAY::getFromArray(celln, varStringC, fC, ni, nj, nk, cC, eltTypeC);
-  std::auto_ptr<K_FLD::FldArrayF> afC(fC); // to avoid to call explicit delete at several places in the code.
-  std::auto_ptr<K_FLD::FldArrayI> acC(cC); // to avoid to call explicit delete at several places in the code.
+  std::unique_ptr<K_FLD::FldArrayF> afC(fC); // to avoid to call explicit delete at several places in the code.
+  std::unique_ptr<K_FLD::FldArrayI> acC(cC); // to avoid to call explicit delete at several places in the code.
    
   if (res == -1)
   {
