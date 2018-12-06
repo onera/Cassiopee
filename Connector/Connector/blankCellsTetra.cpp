@@ -25,7 +25,8 @@
 #include "Nuga/include/ngacc.hxx"
 #include "Nuga/include/localizer.hxx"
 #include "Nuga/include/collider.hxx"
-
+#include "MeshElement/Pentahedron.h"
+#include "MeshElement/Pyramid.h"
 //#include <sstream>
 //#include <fstream>
 //#include <iostream>
@@ -347,10 +348,10 @@ PyObject* K_CONNECTOR::blankCellsTetra(PyObject* self, PyObject* args)
 
   if (blankingType == 1 /*cell _intersect*/)
   {
-    if ( (res != 2) || ((res == 2) && (strstr(eltType, "TETRA") == 0 && strstr(eltType, "HEXA") == 0 && strstr(eltType, "NGON") == 0) ) )
+    if ( (res != 2) || ((res == 2) && (strstr(eltType, "TETRA") == 0 && strstr(eltType, "PYRA") == 0 && strstr(eltType, "PENTA") == 0 && strstr(eltType, "HEXA") == 0 && strstr(eltType, "NGON") == 0) ) )
     {
      PyErr_SetString(PyExc_ValueError,
-		   "blankCellsTetra: the mesh can currently only be of type TETRA, HEXA or NGON in cell_intersect mode.");
+		   "blankCellsTetra: the mesh can currently only be of type TETRA, PYRA, PENTA, HEXA or NGON in cell_intersect mode.");
       return NULL;
     }
   }
@@ -432,6 +433,10 @@ PyObject* K_CONNECTOR::blankCellsTetra(PyObject* self, PyObject* args)
   E_Int err =0;
   if (eltType && strstr(eltType, "TETRA") != 0)
     err = do_the_blanking<K_MESH::Tetrahedron>(blankingType, maske, *fmesh, posx, posy, posz, cmesh, CELLNVAL, overwrite, cN);
+  else if (eltType && strstr(eltType, "PYRA") != 0)
+    err = do_the_blanking<K_MESH::Pyramid>(blankingType, maske, *fmesh, posx, posy, posz, cmesh, CELLNVAL, overwrite, cN);
+  else if (eltType && strstr(eltType, "PENTA") != 0)
+    err = do_the_blanking<K_MESH::Pentahedron>(blankingType, maske, *fmesh, posx, posy, posz, cmesh, CELLNVAL, overwrite, cN);
   else if (eltType && strstr(eltType, "HEXA") != 0)
     err = do_the_blanking<K_MESH::Hexahedron>(blankingType, maske, *fmesh, posx, posy, posz, cmesh, CELLNVAL, overwrite, cN);
   else if (eltType && strstr(eltType, "NGON") != 0)
