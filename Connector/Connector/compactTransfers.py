@@ -310,13 +310,13 @@ def miseAPlatDonorTree__(zones, tc, graph=None):
        ptd1=0;ptd2=0;ptd3=0;ptd4=0;ptd5=0
        if sname == 'IB': 
            zsrname = zsrname.split('_')
-           if len(zsrname)!=3: 
-                #print 'Warning: miseAPlatDonorTree: non consistent with the version of IBM preprocessing.'
+           if len(zsrname) != 3: 
+                #print('Warning: miseAPlatDonorTree: non consistent with the version of IBM preprocessing.')
                 if model=='Euler': 
-                    print 'Assuming IBC type is wallslip.'
+                    print('Assuming IBC type is wallslip.')
                     param_int[iadr+rac[pos]*3]  = 0
                 else: 
-                    print 'Assuming IBC type is Musker wall model.'
+                    print('Assuming IBC type is Musker wall model.')
                     param_int[iadr+rac[pos]*3]  = 3
            else: param_int[iadr+rac[pos]*3]  = int(zsrname[1]) # 'IBCD_type_zonename'
           

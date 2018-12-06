@@ -331,7 +331,6 @@ def getEmptyWindowsInfoHybrid__(t, dim=3):
                 C._initVars(winp,'centers:tag1',-1.) # defines the opposite window
                 C._initVars(winp,'centers:tag2',-2.) # defines the opp index in opp window
                 allTags += [winp]; indirBlkOfWins += [noz]
-                #print r[0],r[1],r[2],r[3],r[4],r[5],dimZ[1],dimZ[2],dimZ[3]
                 ind = Converter.converter.range2PointList(r[0],r[1],r[2],r[3],r[4],r[5],dimZ[1],dimZ[2],dimZ[3])
                 allExtIndices += [ind]
     return allTags, indirBlkOfWins, allExtIndices  
@@ -933,16 +932,16 @@ def blankCells(t, bodies, blankingMatrix=[], depth=2,
                tol=1.e-8, XRaydim1=1000, XRaydim2=1000, cellNName='cellN'):
     try: import Transform as T
     except: raise ImportError("blankCells: requires Transform module.")
-    if (depth != 1 and depth != 2):
-        print 'Warning: blankCells: depth must be equal to 1 or 2. Set to default value (2).'
+    if depth != 1 and depth != 2:
+        print('Warning: blankCells: depth must be equal to 1 or 2. Set to default value (2).')
         depth = 2
 
     if (blankingType != 'cell_intersect' and \
         blankingType != 'cell_intersect_opt' and \
         blankingType != 'center_in' and \
         blankingType != 'node_in'):
-        print 'Warning: blankCells: blankingType must be cell_intersect, cell_intersect_opt, center_in or node_in.'
-        print 'Set to default (cell_intersect).'
+        print('Warning: blankCells: blankingType must be cell_intersect, cell_intersect_opt, center_in or node_in.')
+        print('Set to default (cell_intersect).')
         blankingType = 'cell_intersect'
 
     blankType = 1 # par defaut: cell_intersect
@@ -953,8 +952,8 @@ def blankCells(t, bodies, blankingMatrix=[], depth=2,
         if depth == 2: blankType = -2
         else: blankType = -1
     else:
-        print 'Warning: blankCells: blankingType must be cell_intersect, cell_intersect_opt, center_in or node_in.'
-        print 'Set to default (cell_intersect).'
+        print('Warning: blankCells: blankingType must be cell_intersect, cell_intersect_opt, center_in or node_in.')
+        print('Set to default (cell_intersect).')
         blankType = 1
 
     nb = 0
@@ -1004,11 +1003,11 @@ def _blankCellsOpt(t, tb, blankingMatrix, depth=2, blankingType='cell_intersect'
                    tBB = None, tbBB = None):
     try: import Generator.PyTree as G
     except: raise ImportError("_blankCellsOpt: requires Generator.PyTree module.")
-    if (depth != 1 and depth != 2):
-        print 'Warning: blankCellsOpt: depth must be equal to 1 or 2. Set to default value (2).'
+    if depth != 1 and depth != 2:
+        print('Warning: blankCellsOpt: depth must be equal to 1 or 2. Set to default value (2).')
         depth = 2
     if blankingType== 'center_in':
-        print 'WARNING: _blankCellsOpt: cannot be applied yet with center_in.'
+        print('Warning: _blankCellsOpt: cannot be applied yet with center_in.')
         #raise ValueError("_blankCells : cannot be applied yet with center_in.")
         blankingType='cell_intersect'
 
@@ -1016,8 +1015,8 @@ def _blankCellsOpt(t, tb, blankingMatrix, depth=2, blankingType='cell_intersect'
         blankingType != 'cell_intersect_opt' and \
         blankingType != 'center_in' and \
         blankingType != 'node_in'):
-        print 'Warning: blankCellsOpt: blankingType must be cell_intersect, cell_intersect_opt, center_in or node_in.'
-        print 'Set to default (cell_intersect).'
+        print('Warning: blankCellsOpt: blankingType must be cell_intersect, cell_intersect_opt, center_in or node_in.')
+        print('Set to default (cell_intersect).')
         blankingType = 'cell_intersect'
 
     blankType = 1 # par defaut: cell_intersect
@@ -1028,8 +1027,8 @@ def _blankCellsOpt(t, tb, blankingMatrix, depth=2, blankingType='cell_intersect'
         if depth == 2: blankType = -2
         else: blankType = -1
     else:
-        print 'Warning: blankCellsOpt: blankingType must be cell_intersect, cell_intersect_opt, center_in or node_in.'
-        print 'Set to default (cell_intersect).'
+        print('Warning: blankCellsOpt: blankingType must be cell_intersect, cell_intersect_opt, center_in or node_in.')
+        print('Set to default (cell_intersect).')
         blankType = 1
     loc = 'centers'
     if blankType == 0: loc = 'nodes' 
@@ -1077,19 +1076,18 @@ def _blankCells(a, bodies, blankingMatrix=[], depth=2,
     try: import Transform as T
     except: raise ImportError("_blankCells: requires Transform module.")
     if (depth != 1 and depth != 2):
-        print 'Warning: blankCells: depth must be equal to 1 or 2. Set to default value (2).'
+        print('Warning: blankCells: depth must be equal to 1 or 2. Set to default value (2).')
         depth = 2
     if blankingType== 'center_in':
-        print 'WARNING: _blankCells : cannot be applied yet with center_in.'
-        #raise ValueError("_blankCells : cannot be applied yet with center_in.")
+        print('Warning: _blankCells : cannot be applied yet with center_in.')
         blankingType='cell_intersect'
 
     if (blankingType != 'cell_intersect' and \
         blankingType != 'cell_intersect_opt' and \
         blankingType != 'center_in' and \
         blankingType != 'node_in'):
-        print 'Warning: blankCells: blankingType must be cell_intersect, cell_intersect_opt, center_in or node_in.'
-        print 'Set to default (cell_intersect).'
+        print('Warning: blankCells: blankingType must be cell_intersect, cell_intersect_opt, center_in or node_in.')
+        print('Set to default (cell_intersect).')
         blankingType = 'cell_intersect'
 
     blankType = 1 # par defaut: cell_intersect
@@ -1100,8 +1098,8 @@ def _blankCells(a, bodies, blankingMatrix=[], depth=2,
         if depth == 2: blankType = -2
         else: blankType = -1
     else:
-        print 'Warning: blankCells: blankingType must be cell_intersect, cell_intersect_opt, center_in or node_in.'
-        print 'Set to default (cell_intersect).'
+        print('Warning: blankCells: blankingType must be cell_intersect, cell_intersect_opt, center_in or node_in.')
+        print('Set to default (cell_intersect).')
         blankType = 1
 
     nb = 0
@@ -1154,8 +1152,8 @@ def blankCellsTetra(t, mT4, blankingMatrix=[], blankingType='node_in',
     elif blankingType == 'cell_intersect': blankType = 1
     elif blankingType == 'center_in': blankType = 2
     else:
-        print 'Warning: blankCellsTetra: blankingType must be cell_intersect, center_in or node_in.'
-        print 'Set to default (cell_intersect).'
+        print('Warning: blankCellsTetra: blankingType must be cell_intersect, center_in or node_in.')
+        print('Set to default (cell_intersect).')
         blankType = 1
 
     nb = -1
@@ -1214,8 +1212,8 @@ def blankCellsTri(t, mT3, blankingMatrix=[], blankingType='node_in',
     elif blankingType == 'cell_intersect': blankType = 1
     elif blankingType == 'center_in': blankType = 2
     else:
-        print 'Warning: blankCellsTri: blankingType must be cell_intersect, center_in or node_in.'
-        print 'Set to cell_intersect.'
+        print('Warning: blankCellsTri: blankingType must be cell_intersect, center_in or node_in.')
+        print('Set to cell_intersect.')
         blankType = 1
 
     nb = -1
@@ -1580,7 +1578,7 @@ def _applyBCOverlapsStructured(z, depth, loc, val=2, cellNName='cellN'):
                     r = Internal.getNodesFromType(o, 'IndexRange_t')
                     l = Internal.getNodesFromType(o, 'IndexArray_t')
                     if r == [] and l == []:
-                        print "Warning: applyBCOverlaps: BCOverlap is ill-defined."
+                        print("Warning: applyBCOverlaps: BCOverlap is ill-defined.")
                     elif r != []:
                         rangew = r[0][1]
                         w = Internal.range2Window(rangew)
@@ -1614,7 +1612,7 @@ def applyBCOverlapsStructured(z, depth, loc, val=2, cellNName='cellN'):
                     r = Internal.getNodesFromType(o, 'IndexRange_t')
                     l = Internal.getNodesFromType(o, 'IndexArray_t')
                     if r == [] and l == []:
-                        print "Warning: applyBCOverlaps: BCOverlap is ill-defined."
+                        print("Warning: applyBCOverlaps: BCOverlap is ill-defined.")
                     elif r != []:
                         rangew = r[0][1]
                         w = Internal.range2Window(rangew)
@@ -1652,7 +1650,7 @@ def applyBCOverlaps(t, depth=2, loc='centers', val=2, cellNName='cellN'):
       else:
           if dimZ[3] == 'NGON': applyBCOverlapsUnstructured(z, depth, loc, val=val, cellNName=cellNName)
           else:
-              print 'Warning: applyBCOverlaps: only for NGON unstructured zones.'
+              print('Warning: applyBCOverlaps: only for NGON unstructured zones.')
   return a
 
 # VERSION getFromArray2 en structure
@@ -1667,7 +1665,7 @@ def _applyBCOverlaps(a, depth=2, loc='centers', val=2, cellNName='cellN', checkC
       else:
           if dimZ[3] == 'NGON': applyBCOverlapsUnstructured(z, depth, loc, val, cellNName=cellNName)
           else:
-              print 'Warning: _applyBCOverlaps: only for NGON unstructured zones.'
+              print('Warning: _applyBCOverlaps: only for NGON unstructured zones.')
   return None
 
 #==============================================================================
@@ -1772,7 +1770,7 @@ def getDoublyDefinedDonorZones__(oversetgcnode,topTreeD):
             listOfDnrZones.append(coords)
             cellN2 = C.getField('centers:cellN',dnrZone)[0]
             if cellN2 == []:
-                print 'Warning: setDoublyDefined: cellN init to 1 for zone %s.'%dnrZone[0]
+                print('Warning: setDoublyDefined: cellN init to 1 for zone %s.'%dnrZone[0])
                 C._initVars(dnrZone,'centers:cellN',1.)
                 cellN2 = C.getField('centers:cellN',dnrZone)[0]
             listOfDnrCellN.append(cellN2)
@@ -1818,7 +1816,7 @@ def setDoublyDefinedBC(t, depth=2):
                                     win = Internal.range2Window(Internal.getValue(r))
                                     # recuperation des zones donneuses : a  partir de o[1] ou d une famille
                                     listOfInterpZones,cellns=getDoublyDefinedDonorZones__(o,a)
-                                    print "Doubly defined: %s / %s : %i donor zones (periodic zones included)." % (z[0], o[0], len(listOfInterpZones))
+                                    print("Doubly defined: %s / %s : %i donor zones (periodic zones included)." % (z[0], o[0], len(listOfInterpZones)))
 
                                     # detection des pts non interpolables
                                     imin = win[0]; jmin = win[2]; kmin = win[4]

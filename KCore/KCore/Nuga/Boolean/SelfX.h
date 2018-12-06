@@ -346,7 +346,7 @@ void selfX(const K_FLD::FloatArray& crd, const ngon_t<cnt_t>& ng, std::vector<E_
   std::vector<E_Int> pgi_T3s, pgj_T3s, candidates;
   
   //std::cout << "selfX : run ..." << std::endl;
-  for (size_t i = 0; i < nb_elts; ++i)
+  for (E_Int i = 0; i < nb_elts; ++i)
   {  
     if (i > 10000 && i%10000 == 0)
       std::cout << i << " -th element processed over " << nb_elts << std::endl;
@@ -374,14 +374,14 @@ void selfX(const K_FLD::FloatArray& crd, const ngon_t<cnt_t>& ng, std::vector<E_
       E_Int nb_PGjs = ng.PHs.stride(jj);
       const E_Int* pPGj = ng.PHs.get_facets_ptr(jj);
       
-      for (size_t pgi=0; (pgi<nb_PGis) && !is_x; ++pgi)
+      for (E_Int pgi=0; (pgi<nb_PGis) && !is_x; ++pgi)
       {
         E_Int PGi = *(pPGi+pgi)-1;
 //        
         pgi_T3s.clear();
         concatenate_PG_triangles(PGi, ng, cntT3, PG_to_T3s, pgi_T3s);
                 
-        for (size_t pgj=0; (pgj<nb_PGjs) && !is_x; ++pgj)
+        for (E_Int pgj=0; (pgj<nb_PGjs) && !is_x; ++pgj)
         {
           E_Int PGj = *(pPGj+pgj)-1;
           //if (!processed_PG_pairs.insert(K_MESH::NO_Edge(PGi, PGj)).second) // if already in

@@ -46,9 +46,9 @@ def setInterpolations(t, loc='cell', double_wall=0, storage='inverse', prefixFil
 
     if storage == 'direct':
         if prefixFile == '':
-            print 'Warning: setInterpolations: inverse storage is mandatory if no Chimera connectivity file is written.'
+            print('Warning: setInterpolations: inverse storage is mandatory if no Chimera connectivity file is written.')
         elif  parallelDatas != []:
-            print 'Warning: setInterpolations: inverse storage is activated (mandatory in a distributed mode).'
+            print('Warning: setInterpolations: inverse storage is activated (mandatory in a distributed mode).')
             storage='inverse'
 
     a = Internal.copyRef(t)
@@ -63,9 +63,9 @@ def _setInterpolations(t, loc='cell', double_wall=0, storage='inverse', prefixFi
 
     if storage == 'direct':
         if prefixFile == '':
-            print 'Warning: _setInterpolations: inverse storage is mandatory if no Chimera connectivity files are written.'
+            print('Warning: _setInterpolations: inverse storage is mandatory if no Chimera connectivity files are written.')
         elif  parallelDatas != []:
-            print 'Warning: _setInterpolations: inverse storage is activated (mandatory in a distributed mode).'
+            print('Warning: _setInterpolations: inverse storage is activated (mandatory in a distributed mode).')
             storage='inverse'
 
     # Solveur :
@@ -80,7 +80,7 @@ def _setInterpolations(t, loc='cell', double_wall=0, storage='inverse', prefixFi
         _setSeqInterpolations(t, depth=depth, double_wall=double_wall, storage=storage, prefixFile=prefixFile, 
                               sameBase=sameBase, solver=Solver, nGhostCells=nGhostCells, cfMax=cfMax, check=check)
     else: # mode distribue
-        if nGhostCells != 2: print 'Warning: _setInterpolations: nGhostCells must be 2 in distributed mode.'
+        if nGhostCells != 2: print('Warning: _setInterpolations: nGhostCells must be 2 in distributed mode.')
         _setDistInterpolations(t, parallelDatas, depth, double_wall, sameBase, Solver, cfMax, check)
     return None
 
@@ -91,7 +91,7 @@ def _setInterpolations(t, loc='cell', double_wall=0, storage='inverse', prefixFi
 def _setDistInterpolations(a, parallelDatas=[], depth=2, double_wall=0, 
                            sameBase=0, solver=1, cfMax=30., check=True):
     if double_wall == 1: import DoubleWall
-    print "Warning: _setDistInterpolations: periodic Chimera not yet implemented."
+    print("Warning: _setDistInterpolations: periodic Chimera not yet implemented.")
 
     if parallelDatas == []: return a
     else:
@@ -342,10 +342,10 @@ def _setSeqInterpolations(a, depth=2, double_wall=0, storage='inverse', prefixFi
                         zdonorname = interpolationZonesName[nozd]
                         isperiodic = periodicZones[nozd]
                         if isperiodic == 2:
-                            print 'Periodic interpolation from +theta: ', interpType.shape[0]
+                            print('Periodic interpolation from +theta: %d.'%interpType.shape[0])
                             interpType = 102*numpy.ones((interpType.shape[0]),numpy.int32)
                         elif isperiodic == 3:
-                            print 'Periodic interpolation from -theta: ', interpType.shape[0]
+                            print('Periodic interpolation from -theta: %d.'%interpType.shape[0])
                             interpType = 103*numpy.ones((interpType.shape[0]),numpy.int32)
                         resInterp[5][nozd] = interpType
                         zdonor = Internal.getNodesFromName(a,zdonorname)[0]
@@ -482,7 +482,7 @@ def chimeraTransfer(t, storage='inverse', variables=[], loc='cell',mesh='extende
     for v in variables:
         v2 = v.split(':')
         if len(v2) == 2 and v2[0] == 'centers': vars2.append(v)
-        # DBG else: print 'Warning: chimeraTransfer: only variables located at centers taken into account.'
+        # DBG else: print('Warning: chimeraTransfer: only variables located at centers taken into account.')
     if vars2 == []:
         raise ValueError("chimeraTransfer: no variable to transfer.")
 
@@ -502,8 +502,8 @@ def chimeraTransfer(t, storage='inverse', variables=[], loc='cell',mesh='extende
 # de STEPHANIE : cette fonction semble obsolete... 
 #------------------------------------------------------------------------------
 def directChimeraTransfer__(t, variables, locinterp):
-    print 'Warning: directChimeraTransfer__: donor mesh is located at cell centers.'
-    print 'For elsA simulations: please use inverse storage.'
+    print('Warning: directChimeraTransfer__: donor mesh is located at cell centers.')
+    print('For elsA simulations: please use inverse storage.')
 
     loc = 'centers'; depth = 2
     if locinterp == 'face': depth = 1

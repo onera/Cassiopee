@@ -21,7 +21,7 @@ import Converter.Mpi as Cmpi
 for it in xrange(1000):
     FastS._compute(t, metrics, it, tc, graph)
     if it%100 == 0:
-        if Cmpi.rank == 0: print '- %d / %d'%(it,1000)
+        if Cmpi.rank == 0: print('- %d / %d'%(it,1000))
 myApp.finalize(t, 'out.cgns')
 
 # Post

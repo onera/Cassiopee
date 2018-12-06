@@ -34,14 +34,13 @@ def distributeOpt(t_in, tc_in, t_out, tc_out):
         nbpts += ncells
         maxipts=max(maxipts, ncells)
 
-    print nbpts, maxipts
     MaxNbProcs=int(nbpts/maxipts)+1
 
     MinNbProcs=MaxNbProcs
     for nbproc in xrange(2,MaxNbProcs+1):
         if nbpts/nbproc < nptMaxPerCore: MinNbProcs=min(nbproc,MinNbProcs)
 
-    print 'La distribution sera testee entre',MinNbProcs,'procs et',MaxNbProcs,'procs'
+    print('La distribution sera testee entre %d procs et %d procs.'%(MinNbProcs,MaxNbProcs))
 
     #MinNbProcs = 140
     #MaxNbProcs = 140
@@ -49,18 +48,18 @@ def distributeOpt(t_in, tc_in, t_out, tc_out):
     varmax = 99.
     for nbproc in xrange(MinNbProcs,MaxNbProcs+1):
         if nbproc%28==0:
-         print 'Distribution sur',nbproc,'procs'
+         print('Distribution sur %s procs.')
          stats=D2._distribute(t,nbproc,algorithm='fast')
          listequ.append([nbproc,stats['varMax']])
          if stats['varMax']<varmax: varmax = stats['varMax'];NP=nbproc
 
-    import pprint;print pprint.pformat(listequ)
+    import pprint; print(pprint.pformat(listequ))
 
     #import sys;sys.exit()
     #NP = 532
-    stats=D2._distribute(t, NP)
-    print stats
-    print NP
+    stats = D2._distribute(t, NP)
+    print(stats)
+    print(NP)
     #D2._printProcStats(t,stats,NP)
 
     C.convertPyTree2File(t, t_out)
@@ -145,7 +144,7 @@ def compute(t_in, tc_in,
     for it in xrange(NIT):
         FastS._compute(t, metrics, it, tc, graph)
         if it%100 == 0:
-            if rank == 0: print '- %d / %d - %f'%(it+it0, NIT+it0, time0)
+            if rank == 0: print('- %d / %d - %f'%(it+it0, NIT+it0, time0))
         #FastS.display_temporal_criteria(t, metrics, it, format='double')
         time0 += time_step
 

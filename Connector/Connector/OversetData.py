@@ -173,10 +173,10 @@ def getIntersectingDomains(t, t2=None, method='AABB', taabb=None, tobb=None,
                         IntDict[z1].append(z2) # saves the intersected zones names
                         TotInter += 1
     else:
-        print 'Warning getIntersectingDomains: method',method,'not implemented. Switched to AABB.'
+        print('Warning getIntersectingDomains: method',method,'not implemented. Switched to AABB.')
         return getIntersectingDomains(t, method='AABB', taabb=taabb, tobb=tobb)
 
-    print 'Total zone/zone intersections:', TotInter
+    print('Total zone/zone intersections: %d.'%TotInter)
     return IntDict
 #------------------------------------------------------------------------------
 def getCEBBIntersectingDomains(basis0, bases0, sameBase=0):
@@ -409,11 +409,11 @@ def _setIBCDataForZone__(z, zonesDnr, correctedPts, wallPts, interpPts, loc='nod
         nbinterpolated = nbinterpolated0-nbextrapolated-nborphan
 
         if bcType != -1:
-            print 'IBC zone %s: interpolated=%d; extrapolated=%d; orphan=%d for IBC type: %s'%(z[0],nbinterpolated,nbextrapolated,nborphan, IBCTypes[bcType])
+            print('IBC zone %s: interpolated=%d; extrapolated=%d; orphan=%d for IBC type: %s'%(z[0],nbinterpolated,nbextrapolated,nborphan, IBCTypes[bcType]))
         else:
-            print 'IBC zone %s: interpolated=%d; extrapolated=%d; orphan=%d '%(z[0],nbinterpolated,nbextrapolated,nborphan)
+            print('IBC zone %s: interpolated=%d; extrapolated=%d; orphan=%d '%(z[0],nbinterpolated,nbextrapolated,nborphan))
 
-        if  nborphan>0: print 'Warning: zone %s has %d orphan points !'%(z[0], nborphan)
+        if  nborphan>0: print('Warning: zone %s has %d orphan points !'%(z[0], nborphan))
 
         #-------------------------------------------------------------------------
         # 4. Update the indices of interpolated pts -> indices of corrected points
@@ -650,7 +650,7 @@ def setInterpData(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
     noWallsInRcv = 1 # idem mais pour les receveurs
     if double_wall == 1:
         double_wall = 0
-        print "Warning: setInterpData: double wall technique not yet implemented. Not activated."
+        print("Warning: setInterpData: double wall technique not yet implemented. Not activated.")
         # import DoubleWall
         # try: import Geom.PyTree as D
         # except: raise ImportError("setInterpData+double wall requires Geom.PyTree module.")
@@ -783,8 +783,8 @@ def setInterpData(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
                 nborphan = resInterp[5].size
                 nbinterpolated = nbinterpolated-nbextrapolated-nborphan
 
-                print 'Zone %s: interpolated=%d ; extrapolated=%d ; orphan=%d'%(z[0], nbinterpolated, nbextrapolated, nborphan)
-                if  nborphan>0: print 'Warning: zone %s has %d orphan points !'%(z[0], nborphan)
+                print('Zone %s: interpolated=%d ; extrapolated=%d ; orphan=%d'%(z[0], nbinterpolated, nbextrapolated, nborphan))
+                if  nborphan>0: print('Warning: zone %s has %d orphan points !'%(z[0], nborphan))
                 # on remet a une seule zone, attention si x,y,z sont necessaires ensuite
                 # les coordonnees peuvent etre fausses a cause du double walls
                 indcells=[]
@@ -914,8 +914,8 @@ def setInterpDataConservative__(tR, tD, storage='direct'):
                 nborphan = 0; nbextrapolated = 0; nbinterpolated = 0
                 for indicesR in resInterp[0]: nbinterpolated += indicesR.shape[0]
                 nborphan = resInterp[4].size
-                print 'Zone %s: interpolated=%d ; orphan=%d'%(zr[0], nbinterpolated, nborphan)
-                if  nborphan>0: print 'Warning: zone %s has %d orphan points !'%(zr[0], nborphan)
+                print('Zone %s: interpolated=%d ; orphan=%d'%(zr[0], nbinterpolated, nborphan))
+                if  nborphan>0: print('Warning: zone %s has %d orphan points !'%(zr[0], nborphan))
 
                 # Orphelins
                 if nborphan > 0:
@@ -991,7 +991,7 @@ def setInterpDataForGhostCells__(tR, tD, storage='direct', loc='nodes'):
         zname = zp[0]
         zoneDimR = Internal.getZoneDim(zp)
         if zoneDimR[0] == 'Unstructured':
-            print 'Warning: setInterpDataForGC not yet implemented for unstructured zones.'
+            print('Warning: setInterpDataForGC not yet implemented for unstructured zones.')
         else: # Structured
             dimPb = zoneDimR[4]
             rindnode = Internal.getNodeFromType1(zp, 'Rind_t')
@@ -2270,8 +2270,8 @@ def extractChimeraInfo(a,type='interpolated',loc='centers'):
         if FS is not None:
             chiminfo = Internal.getNodeFromName1(FS,var)
             if chiminfo is None:
-                print 'WARNING: extractChimeraInfo: chimera info %s cannot be extract for zone %s.'%(type,z[0])
-                print 'You must apply oversetInfo or chimeraInfo to create the information in tree.'                
+                print('WARNING: extractChimeraInfo: chimera info %s cannot be extract for zone %s.'%(type,z[0]))
+                print('You must apply oversetInfo or chimeraInfo to create the information in tree.')                
             else:
                 chimPts = P.selectCells(z,formula,strict=0)
                 Internal._rmNodesByType(chimPts,"ZoneSubRegion_t")

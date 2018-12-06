@@ -44,7 +44,7 @@ class App:
     def run(self):
         """Run function."""
         # Cette fonction doit etre redefinie par l'applicatif
-        print self.data
+        print(self.data)
         return
 
     def requires(self, listKwrd):
@@ -59,8 +59,8 @@ class App:
         """Check if all keywords have been set."""
         for i in self.required:
             if not self.data.has_key(i):
-                print 'key: %s is not present.'%i
-                print 'all required keys: '+str(self.required)
+                print('key: %s is not present.'%i)
+                print('all required keys: %s.'%self.required)
                 return False
         return True
 

@@ -7,7 +7,6 @@ import Transform.PyTree as T
 import Connector.ToolboxIBM as TIBM
 N = 11; N2 = 2*N-1
 h = 1./(N-1)
-print h
 a = G.cart((-1.,-1.,-1.),(h,h,h), (N2,N2,2))
 zmean = C.getMeanValue(a,'CoordinateZ')
 surf = D.sphere((0,0,zmean), 0.5, 20)

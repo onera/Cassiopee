@@ -19,7 +19,7 @@ def connectMatch(a1, a2, sameZone=0, tol=1.e-6, dim=3):
     except: raise ImportError("connectMatch requires Converter and Transform modules.")
 
     res = []
-    if len(a1) != 5 or len(a2) != 5: print 'Warning: connectMatch is valid only for structured grids.'; return res
+    if len(a1) != 5 or len(a2) != 5: print('Warning: connectMatch is valid only for structured grids.'); return res
     if dim == 2: nwins = 4
     elif dim == 3: nwins = 6
     else: raise ImportError("connectMatch: dim must be 2 or 3.")
@@ -429,7 +429,7 @@ def setInterpData__(interpPts, zonesD, order=2, penalty=1, nature=0, method='lag
 
     elif method == 'leastsquares':
         if isinstance(interpPts[0], list): # liste d'arrays
-            print 'Warning: setInterpData__: only 1st zone in 1st arg taken into account'
+            print('Warning: setInterpData__: only 1st zone in 1st arg taken into account.')
             if interpPts[0][1].shape[1]>0: 
                 return connector.setInterpDataLS(interpPts[0], zonesD, order, nature, penalty, hook, dim)
             else: return None
@@ -477,11 +477,11 @@ def setInterpolations__(rcvzonename,nir, njr, interpPts,
         nbinterpolated = nbinterpolated-nbextrapolated-nborphan
         if check: # sequential context
             if isEX == 0: 
-                print 'Zone %s: interpolated=%d ; extrapolated=%d ; orphan=%d'%(rcvzonename, nbinterpolated, nbextrapolated, nborphan) 
-                if  nborphan>0: print 'Warning: zone %s has %d orphan points !'%(rcvzonename, nborphan)
+                print('Zone %s: interpolated=%d ; extrapolated=%d ; orphan=%d'%(rcvzonename, nbinterpolated, nbextrapolated, nborphan))
+                if  nborphan>0: print('Warning: zone %s has %d orphan points !'%(rcvzonename, nborphan))
             else:
-                print 'Zone %s: EX interpolated=%d ; EX extrapolated=%d ; EX orphan=%d'%(rcvzonename, nbinterpolated, nbextrapolated, nborphan) 
-                if  nborphan>0: print 'Warning: zone %s has %d EX orphan points !'%(rcvzonename, nborphan)
+                print('Zone %s: EX interpolated=%d ; EX extrapolated=%d ; EX orphan=%d'%(rcvzonename, nbinterpolated, nbextrapolated, nborphan))
+                if  nborphan>0: print('Warning: zone %s has %d EX orphan points !'%(rcvzonename, nborphan))
     return resInterp
 
 #-----------------------------------------------------------------------------

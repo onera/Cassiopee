@@ -1747,7 +1747,7 @@ static E_Int extract_uncomputables
   }
 
   // extend with second neighborhood and separate from non-involved polyhedra
-  for (size_t j=0; j< neigh_level; ++j)
+  for (E_Int j=0; j< neigh_level; ++j)
     flag_neighbors(ngi, keep);
     
   split_phs(ngi, keep, uphs_wv1, remaining);
@@ -3681,7 +3681,7 @@ E_Int remove_phs(const std::set<E_Int>& PHslist)
   
   ngon_unit keptPHs;
  
-  E_Int sz = PHs.size();
+  size_t sz = PHs.size();
   for (size_t i = 0; i < sz; ++i)
   {
     if (PHslist.find(i) == PHslist.end())
@@ -3955,7 +3955,7 @@ E_Int remove_phs(const std::set<E_Int>& PHslist)
     tmp.insert(begin, begin+ng.PHs.stride(PHi));
   
     const E_Int* ptr = ng.PHs.get_facets_ptr(PHj); 
-    for (size_t i=0; i < ng.PHs.stride(PHj); ++i)
+    for (E_Int i=0; i < ng.PHs.stride(PHj); ++i)
     {
       if (!tmp.insert(*(ptr+i)).second)//already in
         shared_pgs.push_back(*(ptr+i));

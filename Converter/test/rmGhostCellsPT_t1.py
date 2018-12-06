@@ -1,4 +1,4 @@
-# - addGhostCells (pyTree) -
+# - rmGhostCells (pyTree) -
 import Generator.PyTree as G
 import Converter.PyTree as C
 import Converter.Internal as Internal

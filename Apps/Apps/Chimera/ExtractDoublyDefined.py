@@ -17,10 +17,8 @@ def _extrapOnBCDataSet(t, variables):
     # variables are extrapolated on BCDataSet **if not already present**
     for z in Internal.getZones(t):
         for bc in Internal.getNodesFromType2(z, 'BC_t'):
-            # print 'zone ', z[0], ' BC ', bc[0]
             allbcdset = Internal.getNodesFromType1(bc, 'BCDataSet_t')
-            # print 'bcdset = ', allbcdset
-
+            
             for bcdset in allbcdset:
                 for bcd in Internal.getNodesFromType1(bcdset, 'BCData_t'):
                     fields = Internal.getNodesFromType1(bcd, 'DataArray_t')

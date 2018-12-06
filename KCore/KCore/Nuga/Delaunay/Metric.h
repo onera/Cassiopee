@@ -102,8 +102,10 @@ namespace DELAUNAY{
     inline bool smooth(size_type Ni, size_type Nj, E_Float gr, E_Int N0 /* threshold for metric changes*/);
     
     bool is_valid() {
-      bool res= true; E_Int i=0; for (; (i < _field.size()) && res; ++i)res &= isValidMetric(_field[i]); 
-      if (i != _field.size()) std::cout << "failed at " << i-1 << std::endl;return res;
+      bool res= true; E_Int i=0; 
+      for (; (i < _field.size()) && res; ++i) res &= isValidMetric(_field[i]); 
+      if (i != _field.size()) std::cout << "failed at " << i-1 << std::endl; 
+      return res;
     }
 
 

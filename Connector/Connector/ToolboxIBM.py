@@ -305,14 +305,14 @@ def octree2StructLoc__(o, vmin=21, ext=0, optimized=0, merged=0, sizeMax=4e6, li
             nzones = len(ZONES[noo])
             if nzones > 1:
                 nop=0
-                print 'Merging %d Cartesian zones of subdomain %d'%(nzones,noo)
+                print('Merging %d Cartesian zones of subdomain %d.'%(nzones,noo))
                 if listOfParents is None:
                     ZONES[noo]=T.mergeCart(ZONES[noo],sizeMax=sizeMax)
                 else:
                     for parento in OCTREEPARENTS[noo]:             
                         ZONES[noo]=mergeByParent__(ZONES[noo], parento, sizeMax)
                         nop += 1
-                print 'nb of merged zones : %d' %len(ZONES[noo])
+                print('Nb of merged zones : %d.' %len(ZONES[noo]))
 
         if dimPb==3:
             ZONES0 = T.mergeCart(ZONES[0]+ZONES[4],sizeMax=sizeMax)# XM
@@ -335,7 +335,7 @@ def octree2StructLoc__(o, vmin=21, ext=0, optimized=0, merged=0, sizeMax=4e6, li
     else:
         zones = T.mergeCart(zones,sizeMax=sizeMax)
 
-    print 'After merging: nb Cartesian zones=%d'%(len(zones))
+    print('After merging: nb Cartesian zones=%d.'%(len(zones)))
 
     if ext > 0:
         coords = C.getFields(Internal.__GridCoordinates__,zones)
@@ -437,7 +437,7 @@ def generateCartMesh__(o, dimPb=3, vmin=11, DEPTH=2, NP=0, merged=1, sizeMax=400
                 external = True
         if externalBCType != 'BCOverlap' and externalBCType != 'BCDummy':
             if external: _modifPhysicalBCs__(zp, depth=DEPTH, dimPb=dimPb)
-    print 'Expected number of points is %d'%nptsTot
+    print('Expected number of points is %d.'%nptsTot)
     return t
 
 #--------------------------------------------------------------------------
@@ -534,7 +534,7 @@ def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., DEPTH=2, NP=0, tbox=None
 
         vmint = 31
         if vmin < vmint:
-            print 'generateIBMMesh: octree finest level expanded (expandLayer activated).'
+            print('generateIBMMesh: octree finest level expanded (expandLayer activated).')
             to = C.newPyTree(['Base',o])
             to = blankByIBCBodies(to, tb, 'centers', dimPb)
             C._initVars(o,"centers:indicator", 0.)
@@ -555,7 +555,7 @@ def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., DEPTH=2, NP=0, tbox=None
         G._getVolumeMap(to); volmin = C.getMinValue(to, 'centers:vol')
 
         dxmin = (volmin)**(1./dimPb)
-        print 'Minimum spacing of Cartesian mesh= %f (targeted %f)'%(dxmin/(vmin-1),dxmin0/(vmin-1))
+        print('Minimum spacing of Cartesian mesh= %f (targeted %f)'%(dxmin/(vmin-1),dxmin0/(vmin-1)))
 
         if tbox is not None and snearsf is not None:
             o = addRefinementZones(o, tb, tbox, snearsf, vmin, dimPb)
@@ -568,7 +568,7 @@ def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., DEPTH=2, NP=0, tbox=None
 
         nelts = Internal.getZoneDim(o)[2] 
         if nelts > 20000 and merged == 1: 
-            print 'Warning: number of zones (%d) might be too big (block merging might last a long time). Try to increase vmin or deactivate merging.'%nelts
+            print('Warning: number of zones (%d) might be too big (block merging might last a long time). Try to increase vmin or deactivate merging.'%nelts)
 
     else:
         o = Internal.getZones(to)[0]
@@ -948,7 +948,7 @@ def getMinimumCartesianSpacing(t):
         dx = abs(C.getValue(z,'CoordinateX',1)-C.getValue(z,'CoordinateX',0))
         if dx < dxmin: dxmin = dx
 
-    print 'Minimum spacing on Cartesian grids = ',dxmin
+    print('Minimum spacing on Cartesian grids = %f.'%dxmin)
     return dxmin
 
 #==============================================================================
@@ -979,7 +979,7 @@ def blankByIBCBodies(t, tb, loc, dim, gridType='single'):
             #P.exteriorFaces(wallsl)
 
     nbodies = len(bodies)
-    print 'Blanking mesh by %d immersed bodies'%nbodies
+    print('Blanking mesh by %d immersed bodies'%nbodies)
     if loc == 'centers': typeb = 'center_in'
     else: typeb = 'node_in'
     nbases = len(Internal.getBases(t))
@@ -998,7 +998,6 @@ def blankByIBCBodies(t, tb, loc, dim, gridType='single'):
             XRAYDIM2 = max(XRAYDIM2,int(Lyref/(0.15*dh_min)))
         if DIM == 2:  XRAYDIM2 = 2
 
-        #print 'XRAYDIM=', XRAYDIM1, XRAYDIM2
         if loc == 'centers':
             tc = C.node2Center(t)
             tc = X.blankCells(tc, bodies, BM,blankingType='node_in',XRaydim1=XRAYDIM1,XRaydim2=XRAYDIM2,dim=DIM)
@@ -1063,7 +1062,7 @@ def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=0
 
         if zonesRIBC == []: return tc
 
-        print 'Building the IBM front.'  
+        print('Building the IBM front.')  
         front = getIBMFront(tc, 'cellNFront', dim, frontType)
         #C.convertPyTree2File(front,"front.cgns")
         #
@@ -1169,7 +1168,7 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, shiftIBM=False
     COMPDIST = False # distance deja calculee ou non 
     if Internal.getNodeFromName(t, 'TurbulentDistance') is None: COMPDIST=True
     if COMPDIST:
-        print 'computing distance field...'
+        print('Computing distance field...')
         DTW._distance2Walls(t,tb,loc='centers',type='ortho',signed=0)
     else: pass
     _signDistance(t)
@@ -1192,12 +1191,12 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, shiftIBM=False
     else:
         raise ValueError('prepareIBMData: not valid IBCType. Check model.')
     _removeBlankedGrids(t, loc='centers')
-    print 'Nb of Cartesian grids=', len(Internal.getZones(t))
+    print('Nb of Cartesian grids=%d.'%len(Internal.getZones(t)))
     npts = 0
     for i in Internal.getZones(t):
        dims = Internal.getZoneDim(i)
        npts += dims[1]*dims[2]*dims[3]
-    print 'Final number of points=%5.4f millions.'%(npts/1000000.)
+    print('Final number of points=%5.4f millions.'%(npts/1000000.))
 
     C._initVars(t,'{centers:cellNIBC}={centers:cellN}')
 
@@ -1217,7 +1216,7 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, shiftIBM=False
                                           Internal.__FlowSolutionCenters__)
             
     else: # EN 2 PARTIES : NECESSITE LE TRANSFERT DU FRONT PAR INTERPOLATION, QUI EST CALCULEE APRES
-        print 'Euler : on repousse le front un peu plus loin.'
+        print('Euler: on repousse le front un peu plus loin.')
         C._initVars(t,'{centers:dummy}={centers:cellN}') # sauvegarde
         C._initVars(t,'{centers:cellN}=({centers:cellNIBC}>0.5)*({centers:cellNIBC}<1.5)')
         X._setHoleInterpolatedPoints(t,depth=1,dir=1,loc='centers',cellNName='cellN',addGC=False)
@@ -1249,7 +1248,7 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, shiftIBM=False
             if zdnrname not in dictOfADT:
                 HOOKADT = C.createHook(zdnr, 'adt')
                 dictOfADT[zdnrname] = HOOKADT
-        print 'Interpolations Chimere'
+        print('Interpolations Chimere.')
         tc = doInterp(t, tc, tbb, tb=None, typeI='ID', dim=dimPb, 
                       dictOfADT=dictOfADT)
         for dnrname in dictOfADT.keys(): C.freeHook(dictOfADT[dnrname])
@@ -1265,7 +1264,7 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, shiftIBM=False
             if zdnrname not in dictOfADT:
                 HOOKADT = C.createHook(zdnr, 'adt')
                 dictOfADT[zdnrname] = HOOKADT
-        print 'Interpolations Chimere'
+        print('Interpolations Chimere.')
         tc = doInterp(t, tc, tbb, tb=None, typeI='ID', dim=dimPb, 
                       dictOfADT=dictOfADT)
         for dnrname in dictOfADT.keys(): C.freeHook(dictOfADT[dnrname])
@@ -1289,9 +1288,9 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, shiftIBM=False
     C._cpVars(t,'centers:TurbulentDistance',tc,'TurbulentDistance')
 
     if interpI != 1:
-        print 'Minimum distance: ', C.getMinValue(t,'centers:TurbulentDistance')
+        print('Minimum distance: %f.'%C.getMinValue(t,'centers:TurbulentDistance'))
         t = P.computeGrad2(t,'centers:TurbulentDistance')
-        print 'Interpolations IBM'
+        print('Interpolations IBM')
         tc = doInterp(t,tc,tbb, tb=tb,typeI='IBCD',dim=dimPb, dictOfADT=None, frontType=frontType, depth=DEPTH, IBCType=IBCType)
 
     # cleaning...
@@ -1373,7 +1372,7 @@ def extractIBMWallFields(tc,tb=None):
     else:
         dimPb = Internal.getNodeFromName(tb,'EquationDimension')
         if dimPb is None: 
-            print 'Warning: extractIBMWallFields: pb dimension is set to 3.'
+            print('Warning: extractIBMWallFields: pb dimension is set to 3.')
             dimPb = 3
         else:
             dimPb = Internal.getValue(dimPb)
