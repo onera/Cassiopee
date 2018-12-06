@@ -50,7 +50,7 @@ void DataDL::displayUSolid()
         && isInFrustum(zonep, _view) == 1)
     {
       if (ptrState->mode == RENDER && zonep->meshOverlay == 1)
-        displayUMeshZone(zonep, zone, zonet); 
+      { noLight(); _shaders.activate((short unsigned int)0); displayUMeshZone(zonep, zone, zonet); } 
 
       double alphaSav = ptrState->alpha;
       if (ptrState->mode == RENDER && zonep->blending != -1.)

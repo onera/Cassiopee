@@ -37,7 +37,7 @@ void main (void)
     float angle = dot(tnorm, normalize(ecPos));
     angle = abs(angle);
     angle = pow(angle, -1.1);
-    if (angle > exponent+1.)  {colorf = vec4(0.,0.,0.,1.);}
+    if (angle > 3.-exponent)  {colorf = vec4(0.,0.,0.,1.);}
 
     float shadowValue = 1.;
     if (shadow > 0)

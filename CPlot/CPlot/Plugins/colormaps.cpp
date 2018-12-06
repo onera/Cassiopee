@@ -308,3 +308,47 @@ void diverging(Data* d, double f, float* r, float* g, float* b)
     }
   }
 }
+
+// Retourne une couleur complementaire
+// IN: r,g,b
+// OUT: ro,go,bo complementaire
+void complementColor(float r, float g, float b,
+                     float& ro, float& go, float& bo)
+{
+  // passage HSL; H entre 0 et 360,S et L entre 0 et 1.
+  float Cmax = std::max(r,std::max(g,b));
+  float Cmin = std::min(r,std::min(g,b));
+  float delta = Cmax-Cmin;
+  float H = 0.;
+  if (delta == 0.) H = 0.;
+  else if (Cmax == r) H = std::fmod((g-b)/delta, 6.) * 60.;
+  else if (Cmax == g) H = (2.+(b-r)/delta) * 60.;
+  else H = (4.+(r-g)/delta) * 60.;
+  float L = (Cmax+Cmin)*0.5;
+  float S = 0.;
+  if (delta == 0.) S = 0.;
+  else S = delta/(1.-std::abs(Cmax+Cmin-1.));
+  //printf("HSL %f %f %f\n",H,S,L);
+  
+  // decalage teinte 
+  H = H+180.;
+  if (H > 360.) H = H-360.;
+  if (L+0.2 > 1.) L = 1.-L;
+  else L = L+0.2;
+
+  // retour RGB
+  float C = (1.-std::abs(2.*L-1.))*S;
+  float X = C*(1.-std::abs(std::fmod(H/60.,2.) -1.));
+  float m = L - 0.5*C;
+  float r1,g1,b1;
+  if (H >= 300.)      { r1 = C;  g1 = 0.; b1 = X; }
+  else if (H >= 240.) { r1 = X;  g1 = 0.; b1 = C; }
+  else if (H >= 180.) { r1 = 0.; g1 = X;  b1 = C; }
+  else if (H >= 120.) { r1 = 0.; g1 = C;  b1 = X; }
+  else if (H >= 60.)  { r1 = X;  g1 = C;  b1 = 0.; }
+  else                { r1 = C;  g1 = X;  b1 = 0.; }
+
+  ro = r1+m;
+  go = g1+m;
+  bo = b1+m;
+}
