@@ -4,7 +4,6 @@ import Post.PyTree      as P
 import Generator.PyTree as G
 import Connector.PyTree as X
 import KCore.test       as test
-import Ffx              as FFX
 
 # #----------
 # # 2D STRUCT

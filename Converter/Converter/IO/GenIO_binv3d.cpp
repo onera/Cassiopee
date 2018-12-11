@@ -168,7 +168,7 @@ E_Int K_IO::GenIO::v3dread(
                        ptrFile, _convertEndian, si, si2);
   E_Int domain = 0;
 
-  // Il y deux philosophie au multibloc.
+  // Il y deux philosophies au multibloc.
   // 1. Stocker au debut nrec = nvar*nb, lire tous les nrecs et distribue suivant ndom
   // 2. Lire plusieurs nrec = nvar pour chaque bloc
   // Cette routine doit pouvoir lire les 2.
@@ -417,7 +417,7 @@ E_Int K_IO::GenIO::v3dwrite(
 
   // Analyse la varString pour construire une chaine par variable.
   c = 0; n = 0; l = 0;
-  while (varString[c] != '\0' && c < VARLENGTH)
+  while (varString[c] != '\0')
   {
     if (varString[c] == ',')
     {

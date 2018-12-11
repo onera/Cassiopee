@@ -32,7 +32,7 @@ for (E_Int noind = 0; noind < ifin-ideb; noind++)
   
   // van dryst pour nut
   expy                = 1.-exp(-yplus/19.);// ranges 17 a 26
-  nutcible_vec[noind] = (kappa * alpha_vec[noind])*utau_vec[noind ] * expy*expy;//negatif si pt ibc interieur aux corps
+  nutcible_vec[noind] = (kappa * alpha_vec[noind])*utau_vec[noind] * expy*expy;//negatif si pt ibc interieur aux corps
 
   E_Float nutcible = K_FUNC::E_abs( nutcible_vec[noind] );
   
@@ -68,8 +68,8 @@ for (E_Int noind = 0; noind < ifin-ideb; noind++)
   //printf("delta %g superdelta>0 = %g\n", delta, superdelta);
   
   
-  E_Float y1 = -1;
-  E_Float y2 = -1;
+  E_Float y1 = -1.;
+  E_Float y2 = -1.;
   if (fabs(delta) < tol && fabs(delta0) < tol) 
   {
     y1 = -bp/(3*ap);  //printf("racine y1=%g\n", y1);
@@ -104,7 +104,7 @@ for (E_Int noind = 0; noind < ifin-ideb; noind++)
   }
  
 
-  // racine de l equation du 4eme degre
+  // racine de l'equation du 4eme degre
   E_Float c1 = 2*y1-p;
   E_Float c2 = 2*y2-p;
   //printf("c1 > 0 = %g, c2 > 0 = %g\n",c1,c2);
@@ -141,7 +141,7 @@ for (E_Int noind = 0; noind < ifin-ideb; noind++)
   if (c2 <= tol && z1 == -123456)
   {
     E_Float b0 = y2*y2-r;
-    if (b0 >= tol) 
+    if (b0 >= tol)
     {
       E_Float p1 = -2*y2-p+4.*sqrt(b0);
       E_Float p2 = -2*y2-p-4.*sqrt(b0);
