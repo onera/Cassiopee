@@ -80,8 +80,8 @@ def _setInterpolations(t, loc='cell', double_wall=0, storage='inverse', prefixFi
         _setSeqInterpolations(t, depth=depth, double_wall=double_wall, storage=storage, prefixFile=prefixFile, 
                               sameBase=sameBase, solver=Solver, nGhostCells=nGhostCells, cfMax=cfMax, check=check)
     else: # mode distribue
-        if nGhostCells != 2: print('Warning: _setInterpolations: nGhostCells must be 2 in distributed mode.')
-        _setDistInterpolations(t, parallelDatas, depth, double_wall, sameBase, Solver, cfMax, check)
+        if nGhostCells != 2: print 'Warning: _setInterpolations: nGhostCells must be 2 in distributed mode.'
+        _setDistInterpolations(t, parallelDatas, depth, double_wall, sameBase, Solver, cfMax, check=check)
     return None
 
 #==============================================================================
@@ -90,20 +90,26 @@ def _setInterpolations(t, loc='cell', double_wall=0, storage='inverse', prefixFi
 #==============================================================================
 def _setDistInterpolations(a, parallelDatas=[], depth=2, double_wall=0, 
                            sameBase=0, solver=1, cfMax=30., check=True):
+
+    try: import Generator.PyTree as G
+    except: raise ImportError("_setDistInterpolations: requires Generator module.")
+
     if double_wall == 1: import DoubleWall
     print("Warning: _setDistInterpolations: periodic Chimera not yet implemented.")
 
-    if parallelDatas == []: return a
+    if parallelDatas == []: return None
     else:
-        if len(parallelDatas) != 3 :
+        if len(parallelDatas) != 3: 
             raise TypeError("setDistInterpolations: missing datas in parallelDatas.")
         else:
             graph = parallelDatas[0]
             rank = parallelDatas[1]
             interpDatas = parallelDatas[2]
 
-    localGraph = graph[rank]
-
+    if rank not in graph:
+        localGraph = {}
+    else:
+        localGraph = graph[rank]
     # ----------------------------------------
     # Initialisation
     # ----------------------------------------
@@ -121,21 +127,34 @@ def _setDistInterpolations(a, parallelDatas=[], depth=2, double_wall=0,
     if double_wall == 1:
         dwInfo = DoubleWall.extractDoubleWallInfo__(a)
         firstWallCenters = dwInfo[0]; surfacesExtC = dwInfo[1]
-    interpolationZones=[]; interpolationZonesName=[]; interpolationCelln=[]; surfi=[]
-    for nob in xrange(nbases):
-        zones = Internal.getNodesFromType1(bases[nob], 'Zone_t')
-        nzones = len(zones)
-        for noz in xrange(nzones):
-            z = zones[noz]
-            zn = C.getFields(Internal.__GridCoordinates__,z)[0]
-            cellN = C.getField('centers:cellN', z)[0]
-            interpolationZonesName.append(z[0])
-            interpolationZones.append(zn)
-            interpolationCelln.append(cellN)
-            if (surfacesExtC != []): surfi.append(surfacesExtC[nob][noz])
-            del zn
+    interpolationZonesD={}; interpolationZonesNameD={}; interpolationCellnD={}; surfiD={}
 
-    nBlksI = len(interpolationZones)
+    # initialisation des cles
+    for oppNode in localGraph.keys():
+        oppZones = graph[oppNode][rank]
+        for s in xrange(len(interpDatas[oppNode])):
+            oppZone = oppZones[s]
+            interpolationZonesD[oppZone] = []
+            interpolationZonesNameD[oppZone] = []
+            interpolationCellnD[oppZone] = []
+            surfiD[oppZone] = []
+        
+    # remplissage des dictionnaires
+    zones = Internal.getNodesFromType2(a, 'Zone_t')
+    nzones = len(zones)
+    for oppNode in localGraph.keys():
+        oppZones = graph[oppNode][rank]
+        for s in xrange(len(interpDatas[oppNode])):
+            oppZone = oppZones[s]
+            for noz in xrange(nzones):
+                z = zones[noz]
+                zn = C.getFields(Internal.__GridCoordinates__,z)[0]
+                cellN = C.getField('centers:cellN', z)[0]
+                interpolationZonesNameD[oppZone].append(z[0])
+                interpolationZonesD[oppZone].append(zn)
+                interpolationCellnD[oppZone].append(cellN)
+                if (surfacesExtC != []): surfiD[oppZone].append(surfacesExtC[nob][noz])
+                del zn
 
     # 1. deals with depth=2
     if depth == 2:
@@ -144,10 +163,14 @@ def _setDistInterpolations(a, parallelDatas=[], depth=2, double_wall=0,
             for s in xrange(len(interpDatas[oppNode])):
                 interpCells=interpDatas[oppNode][s]
                 oppZone = oppZones[s]
-
+                interpolationZonesName = interpolationZonesNameD[oppZone]
+                interpolationZones=interpolationZonesD[oppZone]
+                interpolationCelln=interpolationCellnD[oppZone]
+                surfi = surfiD[oppZone]
                 # recuperation des domaines d interpolations
                 # Calcul des cellules d interpolations et des coefficients associes
                 # -----------------------------------------------------------------
+                nBlksI = len(interpolationZones)
                 if nBlksI > 0:
                     listOfInterpCells = []
                     # traitement double_wall
@@ -165,12 +188,12 @@ def _setDistInterpolations(a, parallelDatas=[], depth=2, double_wall=0,
                                 #del zc2
                                 listOfInterpCells.append(interpCells)
                     resInterp = Connector.setInterpolations__(oppZone, 1, 1, listOfInterpCells,
-                                                              interpolationZones, interpolationCelln, isEX=0, cfMax=cfMax, check=check)
+                                                              interpolationZones, interpolationCelln, isEX=0, cfMax=cfMax,check=check)
                     del listOfInterpCells
 
                     for nozd in xrange(nBlksI):
                         zdonorname = interpolationZonesName[nozd]
-                        zdonor = Internal.getNodesFromName(a, zdonorname)[0]
+                        zdonor = Internal.getNodeFromName(a, zdonorname)
                         _interpInverseStorage(oppZone,zdonor,nozd,resInterp,depth)
     else:
         #2. deals with depth =1
@@ -179,10 +202,15 @@ def _setDistInterpolations(a, parallelDatas=[], depth=2, double_wall=0,
             for s in xrange(len(interpDatas[oppNode])):
                 EXPts=interpDatas[oppNode][s]
                 oppZone = oppZones[s]
+                interpolationZones=interpolationZonesD[oppZone]
+                interpolationCelln=interpolationCellnD[oppZone]
+                interpolationZonesName = interpolationZonesNameD[oppZone]
+                surfi = surfiD[oppZone]
 
                 # recuperation des domaines d interpolations
                 # Calcul des cellules d interpolations et des coefficients associes
                 # -----------------------------------------------------------------
+                nBlksI = len(interpolationZones)
                 if nBlksI > 0:
                     listOfEXPts = [];
                     for i in xrange(nBlksI):
@@ -203,7 +231,7 @@ def _setDistInterpolations(a, parallelDatas=[], depth=2, double_wall=0,
 
                     for nozd in xrange(nBlksI):
                         zdonorname = interpolationZonesName[nozd]
-                        zdonor = Internal.getNodesFromName(a, zdonorname)[0]
+                        zdonor = Internal.getNodeFromName(a, zdonorname)
                         _interpInverseStorage(oppZone,zdonor,nozd,resInterp,depth)
     return None
 
@@ -485,8 +513,6 @@ def chimeraTransfer(t, storage='inverse', variables=[], loc='cell',mesh='extende
         # DBG else: print('Warning: chimeraTransfer: only variables located at centers taken into account.')
     if vars2 == []:
         raise ValueError("chimeraTransfer: no variable to transfer.")
-
-    #if loc != 'cell': raise ValueError("chimeraTransfer: only valid for cell centers.")
 
     if storage == 'direct': return directChimeraTransfer__(t, vars2, loc)
     else: return inverseChimeraTransfer__(t, vars2, locinterp=loc, mesh=mesh)
