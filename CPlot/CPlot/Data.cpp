@@ -245,7 +245,7 @@ void Data::initState()
   ptrState->lightOffsetY = 0.5; // entre 0 et 5
   ptrState->DOF = 0;
   ptrState->shadow = 0;
-  ptrState->dofPower = 3.;
+  ptrState->dofPower = 0.;
   ptrState->gamma = 1.;
 
   strcpy(ptrState->winTitle, "CPlot - array/pyTree display");

@@ -5,6 +5,7 @@ uniform sampler2D depthMap;
 
 uniform float focalDepth; // position de la focale
 uniform float radius; // taille du rayon de blur
+uniform float ext; // extension du blur
 uniform float gamma; // gamma correction
 
 vec2 poisson0, poisson1, poisson2, poisson3, poisson4;
@@ -23,6 +24,7 @@ vec4 dof(vec2 coords)
 
      centerDepth = texture2D(depthMap, coords).r;
      centerDepth = (centerDepth - focalDepth)/dist;
+     centerDepth = pow(centerDepth, ext+0.0001);
      centerDepth = clamp(centerDepth,-1.,1.);
      centerDepth = centerDepth*0.5 + 0.5;
 

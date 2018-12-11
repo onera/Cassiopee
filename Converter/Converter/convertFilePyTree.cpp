@@ -33,11 +33,13 @@ PyObject* K_CONVERTER::convertFile2PyTree(PyObject* self, PyObject* args)
 {
   char* fileName;
   char* format; PyObject* skeletonData;
-  PyObject* dataShape;
-  if (!PyArg_ParseTuple(args, "ssOO", &fileName, &format, &skeletonData, &dataShape))
+  PyObject* dataShape; PyObject* links;
+  if (!PyArg_ParseTuple(args, "ssOOO", &fileName, &format, &skeletonData, 
+                        &dataShape, &links))
     return NULL;
   
   if (dataShape == Py_None) { dataShape = NULL; }
+  if (links == Py_None) { links = NULL; }
 
   E_Int l = strlen(format);
   char* myFormat = new char [l+1]; strcpy(myFormat, format);
@@ -66,7 +68,7 @@ PyObject* K_CONVERTER::convertFile2PyTree(PyObject* self, PyObject* args)
   if (strcmp(myFormat, "bin_adf") == 0)
     ret = K_IO::GenIO::getInstance()->adfcgnsread(fileName, tree, skeleton, maxFloatSize, maxDepth);
   else if (strcmp(myFormat, "bin_hdf") == 0)
-    ret = K_IO::GenIO::getInstance()->hdfcgnsread(fileName, tree, dataShape, skeleton, maxFloatSize, maxDepth);
+    ret = K_IO::GenIO::getInstance()->hdfcgnsread(fileName, tree, dataShape, links, skeleton, maxFloatSize, maxDepth);
   else
     ret = K_IO::GenIO::getInstance()->adfcgnsread(fileName, tree, skeleton, maxFloatSize, maxDepth);
   printf("done.\n");

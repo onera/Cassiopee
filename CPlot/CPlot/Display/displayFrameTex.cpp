@@ -67,6 +67,7 @@ void Data::displayFrameTex(int mode)
     _shaders[shader]->setUniform("depthMap", (int)1);
     _shaders[shader]->setUniform("focalDepth", (float)ptrState->activePointZBuf);
     _shaders[shader]->setUniform("radius", (float)ptrState->dofPower);
+    _shaders[shader]->setUniform("ext", (float)1.);
     _shaders[shader]->setUniform("gamma", (float)ptrState->gamma);  
   }
 #endif

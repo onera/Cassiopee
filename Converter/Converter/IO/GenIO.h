@@ -618,7 +618,7 @@ class GenIO
 
     ///+ HDF functions
     /* Lecture dans un arbre */
-    E_Int hdfcgnsread(char* file, PyObject*& tree, PyObject* dataShape, 
+    E_Int hdfcgnsread(char* file, PyObject*& tree, PyObject* dataShape, PyObject* links, 
                       int skeleton=0, int maxFloatSize=5, int maxDepth=-1);
     /* Ecriture d'un arbre */
     E_Int hdfcgnswrite(char* file, PyObject* tree, PyObject* links=NULL);

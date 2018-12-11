@@ -890,7 +890,7 @@ def _rmNodes(z, name):
 
 # -- convertFile2PyTree
 def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
-                       density=-1., skeletonData=None, dataShape=None):
+                       density=-1., skeletonData=None, dataShape=None, links=None):
   """Read a file and return a pyTree containing file data.
   Usage: convertFile2PyTree(fileName, format, options)"""
   if format is None:
@@ -905,7 +905,7 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
 
   if format == 'bin_cgns' or format == 'bin_adf' or format == 'bin_hdf':
     try:
-      t = Converter.converter.convertFile2PyTree(fileName, format, skeletonData, dataShape)
+      t = Converter.converter.convertFile2PyTree(fileName, format, skeletonData, dataShape, links)
       t = Internal.createRootNode(children=t[2])
       Internal._correctPyTree(t, level=10) # force CGNS names
       Internal._correctPyTree(t, level=2) # force unique name

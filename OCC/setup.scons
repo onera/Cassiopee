@@ -57,7 +57,7 @@ env = Environment(tools=tools, CC=cc, CXX=cxx, AR=AR, CPPFLAGS=[],
                   LINKFLAGS=Dist.getLinkArgs(),
                   ENV=Dist.getEnvForScons())
 if Dist.getSystem()[0] == 'mingw':
-	env.Replace(CXXFLAGS=Dist.getCppArgs()+["-DWNT", '-fpermissive'])
+	env.Replace(CXXFLAGS=Dist.getCppArgs()+['-DWNT', '-fpermissive', '-DM_PI=3.14159265359', '-D_finite=finitef', '-Dfinite=finitef'])
 else:
 	env.Replace(CXXFLAGS=Dist.getCppArgs())
 

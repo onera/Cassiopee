@@ -734,13 +734,14 @@ PyObject* K_IO::GenIOHdf::getArrayContigous(hid_t     node,
    IN: file: file name
    OUT: tree, arbre CGNS/python charge
    OUT: dataShape: si dataShape != NULL, retourne les chemins de noeuds + shape
+   OUT: links: si links != NULL, retourne les chemins des noeuds de link
    IN: skeleton: 0 (full), 1 (only skeleton loaded)
-   IN: maxFloatSize: pour skeleton=1, load si shape < maxFloatSize
-   IN: maxDepth: si skeleton=1, profondeur max de load
+   IN: maxFloatSize: si skeleton=1, load si shape < maxFloatSize
+   IN: maxDepth: profondeur max de load
 */
 //=============================================================================
-E_Int K_IO::GenIO::hdfcgnsread(char* file, PyObject*& tree, PyObject* dataShape, int skeleton,
-                               int maxFloatSize, int maxDepth)
+E_Int K_IO::GenIO::hdfcgnsread(char* file, PyObject*& tree, PyObject* dataShape, PyObject* links, 
+                               int skeleton, int maxFloatSize, int maxDepth)
 {
   tree = PyList_New(4);
 
@@ -770,7 +771,7 @@ E_Int K_IO::GenIO::hdfcgnsread(char* file, PyObject*& tree, PyObject* dataShape,
   else HDF._maxDepth = maxDepth;
   HDF._fatherStack.push_front(gid);
   HDF._stringStack.push_front("");
-  HDF.loadOne(tree, 0, dataShape);
+  HDF.loadOne(tree, 0, dataShape, links);
   HDF._fatherStack.pop_front();
   HDF._stringStack.pop_front();
 
@@ -944,7 +945,8 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPaths(char* file, PyObject* paths,
 }
 
 //=============================================================================
-PyObject* K_IO::GenIOHdf::loadOne(PyObject* tree, int depth, PyObject* dataShape)
+PyObject* K_IO::GenIOHdf::loadOne(PyObject* tree, int depth, 
+                                  PyObject* dataShape, PyObject* links)
 {
   hid_t* sonList;
   PyObject* node;
@@ -956,11 +958,11 @@ PyObject* K_IO::GenIOHdf::loadOne(PyObject* tree, int depth, PyObject* dataShape
   int c = 0;
   while (sonList != NULL && sonList[c] != (hid_t)-1)
   {
-    node = createNode(sonList[c], dataShape);
+    node = createNode(sonList[c], dataShape, links);
     PyList_Append(l, node); Py_DECREF(node);
     _stringStack.push_front(_currentPath);
     _fatherStack.push_front(sonList[c]);
-    loadOne(node, depth+1, dataShape);
+    loadOne(node, depth+1, dataShape, links);
     _fatherStack.pop_front();
     _stringStack.pop_front();
     c++;
@@ -974,8 +976,9 @@ PyObject* K_IO::GenIOHdf::loadOne(PyObject* tree, int depth, PyObject* dataShape
 // Cree un noeud du pyTree
 // node peut etre modifie dans le cas d'un lien
 // Remplit dataShape si non NULL
+// Remplit links si non null
 //=============================================================================
-PyObject* K_IO::GenIOHdf::createNode(hid_t& node, PyObject* dataShape)
+PyObject* K_IO::GenIOHdf::createNode(hid_t& node, PyObject* dataShape, PyObject* links)
 {
   // Nom du noeud de l'arbre
   HDF_Get_Attribute_As_String(node, L3S_NAME, _name);
@@ -989,6 +992,11 @@ PyObject* K_IO::GenIOHdf::createNode(hid_t& node, PyObject* dataShape)
   HDF_Get_Attribute_As_String(node, L3S_DTYPE, _dtype);
   if (strcmp(_dtype, "LK") == 0)
   {
+    // store link data
+    PyObject* v = Py_BuildValue("[%s,%s,%s]",_name,_name,_currentPath);
+    PyList_Append(links, v); Py_DECREF(v);
+    
+    // follow link
     H5G_stat_t sb; /* Object information */
     herr_t herr = H5Gget_objinfo(node, L3S_LINK, (hbool_t)0, &sb);
     if (herr < 0)

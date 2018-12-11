@@ -91,7 +91,8 @@ class GenIOHdf
 {
   public:
     /* Load one with depth deep */
-    PyObject* loadOne(PyObject* tree, int depth, PyObject* dataShape=NULL);
+    PyObject* loadOne(PyObject* tree, int depth, 
+                      PyObject* dataShape=NULL, PyObject* links=NULL);
 
     /* get* of a current HDFObject */
     hid_t* getChildren(hid_t);
@@ -100,7 +101,7 @@ class GenIOHdf
     void   getType(double node, char* type, int dim, int* dims);
 
     /* Create HDF Method */
-    PyObject* createNode(hid_t& node, PyObject* dataShape=NULL);
+    PyObject* createNode(hid_t& node, PyObject* dataShape=NULL, PyObject* links=NULL);
     PyObject* createNodePartial(hid_t& node);
     PyObject* createNodePartialContigous(hid_t& node, int iField, int &nField, PyObject* data);
 

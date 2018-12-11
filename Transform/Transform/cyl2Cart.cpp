@@ -59,19 +59,19 @@ PyObject* K_TRANSFORM::_cyl2CartA(PyObject* self, PyObject* args)
     E_Int npts = f->getSize();
 
     E_Float eps = K_CONST::E_GEOM_CUTOFF;
-    E_Int posxc, posyc, poszc;
+    E_Int posxc, posyc;
 
     if (ex > eps && ey < eps && ez < eps)
     {
-      posxc = posz; posyc = posy; poszc = posx;
+      posxc = posz; posyc = posy;
     }
     else if (ey > eps && ex < eps && ez < eps)
     {
-      posxc = posx; posyc = posz; poszc = posy;
+      posxc = posx; posyc = posz;
     }
     else if (ez > eps && ey < eps && ex < eps)
     {
-      posxc = posx; posyc = posy; poszc = posz;
+      posxc = posx; posyc = posy;
     }
     else
     {
@@ -81,8 +81,7 @@ PyObject* K_TRANSFORM::_cyl2CartA(PyObject* self, PyObject* args)
     }
     E_Float* xt = f->begin(posxc);
     E_Float* yt = f->begin(posyc);
-    //E_Float* zt = f->begin(poszc);
-
+    
 #pragma omp parallel default(shared)
     {
 #pragma omp for
@@ -141,18 +140,18 @@ PyObject* K_TRANSFORM::_cyl2CartZ(PyObject* self, PyObject* args)
     else npts = im;
 
     E_Float eps = K_CONST::E_GEOM_CUTOFF;
-    E_Int posR, posTHETA, posZ;
+    E_Int posR, posTHETA;
     if (ex > eps && ey < eps && ez < eps)// AXE (OX)
     {
-      posR = posy; posTHETA = posz; posZ = posx;
+      posR = posy; posTHETA = posz;
     }
     else if (ey > eps && ex < eps && ez < eps)// AXE (OY)
     {
-      posR = posx; posTHETA = posz; posZ = posy;
+      posR = posx; posTHETA = posz;
     }
     else if (ez > eps && ey < eps && ex < eps)// AXE (OZ)
     {
-      posR = posx; posTHETA = posy; posZ = posz;
+      posR = posx; posTHETA = posy;
     }
     else
     {
@@ -163,7 +162,7 @@ PyObject* K_TRANSFORM::_cyl2CartZ(PyObject* self, PyObject* args)
     }
     E_Float* xt = fields[posR];
     E_Float* yt = fields[posTHETA];
-    //E_Float* zt = fields[posZ];
+
 #pragma omp parallel default(shared)
     {
 #pragma omp for

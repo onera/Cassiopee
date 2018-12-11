@@ -39,7 +39,7 @@ libraryDirs += paths; libraries += libs
 # setup ======================================================================
 setup(
     name="OCC",
-    version="2.7",
+    version="2.8",
     description="OpenCascade.",
     author="Onera",
     package_dir={"":"."},

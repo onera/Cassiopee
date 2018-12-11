@@ -102,12 +102,11 @@ void K_TRANSFORM::contractEdges(FldArrayI& ct, E_Int np,
   ct1 = ct.begin(1); ct2 = ct.begin(2); ct3 = ct.begin(3);
 
   // swap edges dans les triangles
-  E_Float ndir1, ndir2, ndir3, ndir4;
+  E_Float ndir1, ndir2;
   E_Float ptA[3], ptB[3], ptC[3], dir1[3];
-  E_Float ptD[3], dir2[3], dir3[3], dir4[3];
-  E_Float inverse1, inverse2, rad1, rad2, rad3, rad4, ndirl;
+  E_Float ptD[3], dir2[3];
+  E_Float inverse1, rad1, rad2, rad3, rad4, ndirl;
   E_Int indA, indB, indC, indD, ind5, ind6, swap, ie, iv1, iv2, iv, pos1, pos2;
-  E_Int tA, tB, tC, tD;
   E_Float xx, yy, zz, e1, e2, e3, rad;
   E_Int neigh, mat, v;
   E_Int maillesEcrasees = 0;
@@ -159,7 +158,7 @@ void K_TRANSFORM::contractEdges(FldArrayI& ct, E_Int np,
           y[ind1] = yy; y[ind2] = yy;
           z[ind1] = zz; z[ind2] = zz;
           fixed[ind1] = 1; fixed[ind2] = 1;
-          for (E_Int k = 0; k < voisins.size(); k++)
+          for (size_t k = 0; k < voisins.size(); k++)
           {
             v = voisins[k]; mat = 0;
             if (ct1[v] == ind1+1 || ct1[v] == ind2+1) mat++;
@@ -177,7 +176,7 @@ void K_TRANSFORM::contractEdges(FldArrayI& ct, E_Int np,
           y[ind2] = yy; y[ind3] = yy;
           z[ind2] = zz; z[ind3] = zz;
           fixed[ind2] = 1; fixed[ind3] = 1;
-          for (E_Int k = 0; k < voisins.size(); k++)
+          for (size_t k = 0; k < voisins.size(); k++)
           {
             v = voisins[k]; mat = 0;
             if (ct1[v] == ind2+1 || ct1[v] == ind3+1) mat++;
@@ -195,7 +194,7 @@ void K_TRANSFORM::contractEdges(FldArrayI& ct, E_Int np,
           y[ind1] = yy; y[ind3] = yy;
           z[ind1] = zz; z[ind3] = zz;
           fixed[ind1] = 1; fixed[ind3] = 1;
-          for (E_Int k = 0; k < voisins.size(); k++)
+          for (size_t k = 0; k < voisins.size(); k++)
           {
             v = voisins[k]; mat = 0;
             if (ct1[v] == ind1+1 || ct1[v] == ind3+1) mat++;
