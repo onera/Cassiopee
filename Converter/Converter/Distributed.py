@@ -16,11 +16,11 @@ import PyTree
 # Warning: pour l'instant limite a hdf et adf
 #==============================================================================
 def convertFile2SkeletonTree(fileName, format=None, maxFloatSize=5, 
-                             maxDepth=-1, dataShape=None):
+                             maxDepth=-1, dataShape=None, links=None):
     """Read a file and return a skeleton tree."""
     return PyTree.convertFile2PyTree(
         fileName, format, skeletonData=[maxFloatSize,maxDepth], 
-        dataShape=dataShape)
+        dataShape=dataShape, links=links)
 
 #==============================================================================
 # Lit seulement un noeud de l'arbre ou ses enfants (suivant maxDepth)

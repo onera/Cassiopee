@@ -2916,22 +2916,34 @@ def normL2(t, var):
   if len(v) > 1: var = v[1]
   return Converter.normL2(A, var)
 
-# -- getArgMin
+# -- getArgMin (only on nodes or centers separately)
 def getArgMin(t, var):
-  """Get value where the variable defined by varName is minimum.
+  """Get field values where the variable defined by varName is minimum.
   Usage: getArgMin(t, var)"""
-  A = getField(var, t, api=2)
   v = var.split(':')
-  if len(v) > 1: var = v[1]
+  centers = False
+  if len(v) > 1:
+    var = v[1]
+    if v[0] == 'centers': centers = True
+  if centers:
+    A = getFields([Internal.__FlowSolutionCenters__], t, api=2)
+  else:
+    A = getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], t, api=2)
   return Converter.getArgMin(A, var)
 
-# -- getArgMax
+# -- getArgMax (only on nodes or centers separately)
 def getArgMax(t, var):
-  """Get value where the variable defined by varName is maximum.
-  Usage: getArgMin(t, var)"""
-  A = getField(var, t, api=2)
+  """Get field values where the variable defined by varName is maximum.
+  Usage: getArgMax(t, var)"""
   v = var.split(':')
-  if len(v) > 1: var = v[1]
+  centers = False
+  if len(v) > 1:
+    var = v[1]
+    if v[0] == 'centers': centers = True
+  if centers:
+    A = getFields([Internal.__FlowSolutionCenters__], t, api=2)
+  else:
+    A = getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], t, api=2)
   return Converter.getArgMax(A, var)
 
 # -- getMinValue
@@ -5301,8 +5313,7 @@ def getFamilyBCNamesOfType(t, bndType=None):
     for n in nodes:
       p = Internal.getNodeFromType1(n, 'FamilyBC_t')
       if p is not None:
-        bctype = Internal.getValue(p)
-        if bctype == bndType: out.add(n[0])
+        if Internal.isValue(p, bndType): out.add(n[0])
   return list(out)
 
 # -- getFamilyBCNamesDict

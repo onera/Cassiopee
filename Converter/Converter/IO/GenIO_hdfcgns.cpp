@@ -993,9 +993,37 @@ PyObject* K_IO::GenIOHdf::createNode(hid_t& node, PyObject* dataShape, PyObject*
   if (strcmp(_dtype, "LK") == 0)
   {
     // store link data
-    PyObject* v = Py_BuildValue("[%s,%s,%s]",_name,_name,_currentPath);
-    PyList_Append(links, v); Py_DECREF(v);
-    
+    if (links != NULL)
+    {
+      H5L_info_t lk;
+      char querybuff[512];
+      const char *file; const char *path;
+      char rfile[512]; char rpath[512];
+      H5Lget_info(node, L3S_LINK, &lk, NULL);
+      H5Lget_val(node, L3S_LINK, querybuff, sizeof(querybuff), H5P_DEFAULT);
+      if (lk.type == H5L_TYPE_EXTERNAL)
+      {
+        H5Lunpack_elink_val(querybuff, lk.u.val_size, NULL, &file, &path);
+        strcpy(rfile, file); strcpy(rpath, path);
+      }
+      else
+      {
+        strcpy(rpath, querybuff);
+        rfile[0] = '\0';
+      }
+
+      //printf("link %s\n", _name);
+      //printf("link file: %s\n", rfile);
+      //printf("link current path: %s\n", _currentPath.c_str());
+      //printf("link target path: %s\n", rpath);
+
+      // Poinot format ['.',file,nodePath,targetPath,0]
+      char lksearch[128]; strcpy(lksearch, ".");
+      // list of ['targetdirectory', 'targetfilename', 'targetpath', 'currentpath']
+      PyObject* v = Py_BuildValue("[s,s,s,s,l]", lksearch, rfile, rpath, _currentPath.c_str(), 0);
+      PyList_Append(links, v); Py_DECREF(v);
+    }
+
     // follow link
     H5G_stat_t sb; /* Object information */
     herr_t herr = H5Gget_objinfo(node, L3S_LINK, (hbool_t)0, &sb);
@@ -1192,12 +1220,8 @@ E_Int K_IO::GenIO::hdfcgnswrite(char* file, PyObject* tree, PyObject* links)
     HDF._fatherStack.pop_front();
   }
   
-  // DBX to test
-  //H5Gclose(gid);
-  // END DBX to test
-
   /** Manage links (a l'ecriture) */
-  /* List of ['targetdirectory', 'targetfilename', 'targetpath', 'currentpath'] */
+  /* List of ['targetdirectory', 'targetfilename', 'targetpath', 'currentpath',0] */
   E_Int size;
   if (links == NULL) size = 0;
   else size = PyList_Size(links);
@@ -1216,29 +1240,28 @@ E_Int K_IO::GenIO::hdfcgnswrite(char* file, PyObject* tree, PyObject* links)
     // printf(" tgt_path : %s \n", tgt_path);
     // printf(" cur_path : %s \n", cur_path);
     
-    /* Rip en of path to get parent */
-    char* startPath;
-    char* Name;
+    /* Rip end of path to get parent */
+    char* startPath; char* name;
     ripEndOfPath(cur_path, startPath);
-    getEndOfPath(cur_path, Name);
+    getEndOfPath(cur_path, name);
     hid_t gidp = H5Gopen(fid, startPath, H5P_DEFAULT);
     delete [] startPath;
     
     /* Create link node */
-    hid_t nid = H5Gcreate2(gidp, Name, H5P_DEFAULT, HDF._group, H5P_DEFAULT);
+    hid_t nid = H5Gcreate2(gidp, name, H5P_DEFAULT, HDF._group, H5P_DEFAULT);
     if (nid < 0) {printf("Error: nid is invalid.\n");}
     
-    if (HDF_Add_Attribute_As_String(nid,L3S_NAME, Name)    < 0) {printf("Error in link 1 \n");}
-    if (HDF_Add_Attribute_As_String(nid,L3S_DTYPE, L3T_LK) < 0) {printf("Error in link 2 \n");}
-    if (HDF_Add_Attribute_As_String(nid,L3S_LABEL,"")      < 0) {printf("Error in link 3 \n");}
+    if (HDF_Add_Attribute_As_String(nid, L3S_NAME, name)    < 0) {printf("Error in link 1 \n");}
+    if (HDF_Add_Attribute_As_String(nid, L3S_DTYPE, L3T_LK) < 0) {printf("Error in link 2 \n");}
+    if (HDF_Add_Attribute_As_String(nid, L3S_LABEL, "")     < 0) {printf("Error in link 3 \n");}
   
-    delete [] Name;
+    delete [] name;
   
     /** Make the link effective **/
     HDF_Add_Attribute_As_Data(nid, L3S_PATH, cur_path, strlen(cur_path));
     
     H5Lcreate_external(tgt_file, tgt_path, nid, L3S_LINK,H5P_DEFAULT, H5P_DEFAULT);
-    HDF_Add_Attribute_As_Data(nid,L3S_FILE,tgt_file,strlen(tgt_file));
+    HDF_Add_Attribute_As_Data(nid, L3S_FILE, tgt_file, strlen(tgt_file));
         
     H5Gclose(gidp); H5Gclose(nid);
   } /* end link */
