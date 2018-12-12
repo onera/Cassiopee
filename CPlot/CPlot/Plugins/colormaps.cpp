@@ -17,6 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "../Data.h"
+#include <cmath>
 
 //=============================================================================
 // Colormaps plugins
@@ -321,7 +322,7 @@ void complementColor(float r, float g, float b,
   float delta = Cmax-Cmin;
   float H = 0.;
   if (delta == 0.) H = 0.;
-  else if (Cmax == r) H = std::fmod((g-b)/delta, 6.) * 60.;
+  else if (Cmax == r) H = std::fmod((g-b)/delta, (float)6.) * 60.;
   else if (Cmax == g) H = (2.+(b-r)/delta) * 60.;
   else H = (4.+(r-g)/delta) * 60.;
   float L = (Cmax+Cmin)*0.5;
