@@ -1170,7 +1170,7 @@ def _computeGrad2(t,var,ghostCells=False):
         indices=None; BCField=None
 
         isghost = Internal.getNodeFromType1(z,'Rind_t')
-        if isghost is None: # not a ghost cells zone : add BCDataSet
+        if isghost is None or not ghostCells: # not a ghost cells zone : add BCDataSet
             zoneBC = Internal.getNodesFromType1(z, 'ZoneBC_t')
             if zoneBC is not None:
                 BCs = Internal.getNodesFromType1(zoneBC, 'BC_t')

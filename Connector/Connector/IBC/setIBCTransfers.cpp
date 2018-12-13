@@ -22,7 +22,7 @@ using namespace std;
 using namespace K_FLD;
 
 # include "IBC/commonLaws.h"
-# define NUTILDE_FERRARI 1
+# define NUTILDE_FERRARI 2
 
 //=============================================================================
 //Retourne -2: incoherence entre meshtype et le type d interpolation
@@ -602,8 +602,10 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
      //initialisation Newton SA  + vitesse cible
 #if NUTILDE_FERRARI == 0
 #    include "IBC/commonLogLaw_cible.h"
-#else
+#elif NUTILDE_FERRARI == 1
 #    include "IBC/nutilde_Ferrari.h"
+#else
+#    include "IBC/nutilde_Ferrari_adim.h"
 #endif
 
     if (nvars == 6)
@@ -684,8 +686,10 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
      //initialisation Newton SA  + vitesse cible
 #if NUTILDE_FERRARI == 0
 #    include "IBC/commonMuskerLaw_cible.h"
-#else
+#elif NUTILDE_FERRARI == 1
 #    include "IBC/nutilde_Ferrari.h"
+#else
+#    include "IBC/nutilde_Ferrari_adim.h"
 #endif
     if (nvars == 6)
       {
@@ -1194,8 +1198,10 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
      //initialisation Newton SA  + vitesse cible
 #if NUTILDE_FERRARI == 0
 #    include "IBC/commonMuskerLaw_cible.h"
-#else
+#elif NUTILDE_FERRARI == 1
 #    include "IBC/nutilde_Ferrari.h"
+#else
+#    include "IBC/nutilde_Ferrari_adim.h"
 #endif
     if (nvars == 6)
       {

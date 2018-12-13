@@ -3036,9 +3036,9 @@ def getZoneDim(zone):
                 eltName = 'NGON'
         return [gtype, np, ne, eltName, cellDim]
       else:
-        raise TypeError("getZoneDim: can not find zone type for zone '%s'."%zone[0])
+        raise TypeError("getZoneDim: cannot find zone type for zone '%s'."%zone[0])
       break
-  raise TypeError("getZoneDim: can not find zone type for zone '%s'."%zone[0])
+  raise TypeError("getZoneDim: cannot find zone type for zone '%s'."%zone[0])
 
 # -- getZoneType --
 # Retourne 1 si la zone est structuree
@@ -3885,9 +3885,10 @@ def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
             # Convert MIXED to NGON
             if NGON == -1 and convertMIXED:
                 connects = getElementNodes(z)
-                if connects[0][1][0] == 20:
-                    import PyTree
-                    PyTree._convertArray2NGon(z) # ineffective (2.2)
+                if connects != []:
+                    if connects[0][1][0] == 20:
+                        import PyTree
+                        PyTree._convertArray2NGon(z) # ineffective (2.2)
                                                  
     # Remet les BCs d'aplomb (en fonction de la renumerotation shift0->shift1)
     shift1 = {}
@@ -3910,7 +3911,7 @@ def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
                         ind = pln.ravel('k')[0]
                         ref = referencedElement(ind, z[0], shift0)
                         if ref is None: 
-                            print 'Warning: Can not find', ind, b[0], z[0]
+                            print 'Warning: cannot find', ind, b[0], z[0]
                         else:
                             shiftn = shift1[z[0]][ref][0]-shift0[z[0]][ref][0]
                             pln[:] += shiftn
@@ -3931,7 +3932,7 @@ def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
                         ind = pln.ravel('k')[0]
                         ref = referencedElement(ind, z[0], shift0)
                         if ref is None: 
-                            print 'Warning: Can not find', ind, b[0], z[0]
+                            print 'Warning: cannot find', ind, b[0], z[0]
                         else:
                             shiftn = shift1[z[0]][ref][0]-shift0[z[0]][ref][0]
                             pln[:] += shiftn
@@ -3942,7 +3943,7 @@ def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
                         ind = pln.ravel('k')[0]
                         ref = referencedElement(ind, zdonor, shift0)
                         if ref is None:
-                            print 'Warning: Can not find', ind, b[0], z[0]
+                            print 'Warning: cannot find', ind, b[0], z[0]
                         else:
                             shiftn = shift1[zdonor][ref][0]-shift0[zdonor][ref][0]
                             pln[:] += shiftn
@@ -3967,7 +3968,7 @@ def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
                         ind = pln.ravel('k')[0]
                         ref = referencedElement(ind, zdonorname, shift0)
                         if ref is None:
-                            print 'Warning: Can not find', ind, b[0], z[0]
+                            print 'Warning: cannot find', ind, b[0], z[0]
                         else:
                             shiftn = shift1[zdonorname][ref][0]-shift0[zdonorname][ref][0]
                             pln[:] += shiftn

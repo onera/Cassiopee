@@ -1234,8 +1234,12 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, shiftIBM=False
 
     # maillage donneur: on MET les pts IBC comme donneurs
     tc = C.node2Center(t)
-    Internal._rmNodesByName(tc, "grad*TurbulentDistance")
     Internal._rmNodesByName(tc, Internal.__FlowSolutionCenters__)
+    FSN = Internal.getNodesFromName(tc,Internal.__FlowSolutionNodes__)
+    Internal._rmNodesByName(FSN,'cellNFront')
+    Internal._rmNodesByName(FSN,'cellNIBC')
+    Internal._rmNodesByName(FSN, "TurbulentDistance")
+    Internal._rmNodesByName(FSN, "grad*TurbulentDistance")
 
     tbb = G.BB(tc)
 
@@ -1289,7 +1293,7 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, shiftIBM=False
 
     if interpI != 1:
         print('Minimum distance: %f.'%C.getMinValue(t,'centers:TurbulentDistance'))
-        t = P.computeGrad2(t,'centers:TurbulentDistance')
+        P._computeGrad2(t,'centers:TurbulentDistance')
         print('Interpolations IBM')
         tc = doInterp(t,tc,tbb, tb=tb,typeI='IBCD',dim=dimPb, dictOfADT=None, frontType=frontType, depth=DEPTH, IBCType=IBCType)
 
