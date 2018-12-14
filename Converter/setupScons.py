@@ -60,7 +60,11 @@ if mpi4py:
 ADDITIONALCPPFLAGS += ['-g', '-O0']
 if hdf: libraries.append('hdf5')
 if png: libraries.append('png')
-if mpi: libraries.append('mpi')
+if mpi:
+    if Dist.getSystem()[0] == 'mingw':
+        libraries.append('msmpi')
+    else: 
+        libraries.append('mpi')
 (ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)

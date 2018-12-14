@@ -1,6 +1,9 @@
 // RecvBuffer.hpp
 #ifndef _CMP_RECVBUFFER_HPP_
 #define _CMP_RECVBUFFER_HPP_
+#if defined(_WIN64)
+# define __int64 long long
+#endif
 #include <mpi.h>
 #include <cassert>
 #include <string>

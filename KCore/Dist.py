@@ -1138,12 +1138,14 @@ def checkMpi(additionalLibPaths=[], additionalIncludePaths=[]):
     l = checkLibFile__('libmpi.so', additionalLibPaths)
     if l is None:
         l = checkLibFile__('libmpi.a', additionalLibPaths)
+    if l is None:
+        l = checkLibFile__('msmpi.lib', additionalLibPaths)
     i = checkIncFile__('mpi.h', additionalIncludePaths)
     if i is not None and l is not None:
         print('Info: Mpi detected at %s.'%l)
         return (True, i, l)
     else:
-        print('Info: libmpi or mpi.h was not found on your system. No Mpi support.')
+        print('Info: libmpi/msmpi or mpi.h was not found on your system. No Mpi support.')
         return (False, '', '')
 
 #=============================================================================

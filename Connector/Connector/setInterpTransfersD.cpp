@@ -17,6 +17,9 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 #ifdef _MPI
+#if defined(_WIN64)
+# define __int64 long long
+#endif
 #include <mpi.h>
 #endif
 

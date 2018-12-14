@@ -19,6 +19,9 @@
 
 // Binary HDF CGNS file support
 #ifdef _MPI
+#if defined(_WIN64)
+# define __int64 long long
+#endif
 # include "mpi.h"
 #else
 #define MPI_Comm void

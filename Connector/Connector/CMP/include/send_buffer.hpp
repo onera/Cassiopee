@@ -1,6 +1,9 @@
 // SendBuffer.hpp
 #ifndef _CMP_SENDBUFFER_HPP_
 #define _CMP_SENDBUFFER_HPP_
+#if defined(_WIN64)
+# define __int64 long long
+#endif
 #include <mpi.h>
 #include <iostream>
 #include <string>
