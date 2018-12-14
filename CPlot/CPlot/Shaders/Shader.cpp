@@ -139,6 +139,20 @@ unsigned int Shader::getUniformLocation(const char* uniformName) const
   CHECK_GL_ERROR();
   return (unsigned int)loc;
 }
+// ----------------------------------------------------------------------------
+unsigned int Shader::getStorageBufferLocation(const char* storageName) const
+{
+  GLuint index = glGetProgramResourceIndex(_programId, GL_SHADER_STORAGE_BLOCK,
+                                           storageName);
+
+  if (index == GL_INVALID_INDEX )
+  {
+    printf("Doesn't find storage buffer variable %s.\n", storageName);
+    throw std::invalid_argument("Doesn't find storage buffer variable.");
+  }
+  CHECK_GL_ERROR();
+  return (unsigned int)index;
+}
 // ============================================================================
 void Shader::setUniform(const char* varName, float v0)
 {
@@ -380,3 +394,22 @@ void Shader::setAttribute(unsigned int index, unsigned int dim,
   }
 }
 // ------------------------------------------------------------------------
+unsigned int
+Shader::initStorageBuffer( int nfloats, const float* values )
+{
+  GLuint ssbo;
+  glGenBuffers(1, &ssbo);
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
+  glBufferData(GL_SHADER_STORAGE_BUFFER, nfloats*sizeof(float), (void*)values, GL_DYNAMIC_COPY);
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+  return (unsigned int)ssbo;
+}
+// ------------------------------------------------------------------------
+void 
+Shader::updateStorageBuffer( unsigned int ssbo, int nfloats, const float* values )
+{
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
+  GLvoid* p = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_WRITE_ONLY);
+  memcpy(p, (void*)values, nfloats*sizeof(float));
+  glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+}

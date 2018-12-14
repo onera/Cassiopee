@@ -42,6 +42,7 @@ namespace CPlot
 
     unsigned int getAttributeLocation(const char* attributeName) const;
     unsigned int getUniformLocation  (const char* uniformName  ) const;
+    unsigned int getStorageBufferLocation(const char* bufferName  ) const;
 
     // Submitting Uniform Variables. 
     // To apply change in shader after changing uniform variables,
@@ -101,6 +102,14 @@ namespace CPlot
      */
     void setAttribute(unsigned int index, unsigned int dim,
 		      const float* values);
+    //@}
+
+    /** Shader buffer accessors */
+    //@{
+    /** Initialize a buffer object */
+    unsigned int initStorageBuffer( int nfloats, const float* values );
+    /** *update data in buffer object */
+    void updateStorageBuffer( unsigned int ssbo, int nfloats, const float* values );
     //@}
   private:
     void unlink();
