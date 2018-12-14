@@ -154,7 +154,7 @@ class GenIOHdf
     void fillDataSpaceWithFilter(PyObject* Filter);
 
     /* Full dump of a tree */
-    PyObject* dumpOne(PyObject* tree, int depth);
+    PyObject* dumpOne(PyObject* tree, int depth, PyObject* links=NULL);
     hid_t ADF_to_HDF_datatype(const char *tp);
 
   /* Constructor */

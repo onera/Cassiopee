@@ -360,8 +360,8 @@ Array creation and manipulations
     Concatenate array fields with the same dimensions. 
     Variables defined by a list of arrays are put in the same array. 
 
-    :param array: input arrays
-    :type array: list of arrays with same dimension
+    :param arrays: input arrays
+    :type arrays: list of arrays with same dimension
     :rtype: array with all variables concanated
 
     *Example of addVars(array, 'Density'):*
@@ -2049,7 +2049,7 @@ Array / PyTree input/output
     :type fileName: string
     :param format: file format (see FileFormats_) 
     :type format: string
-    :param options: writing options (see ReadOptions_)
+    :param options: reading options (see ReadOptions_)
     :type options: keywords
     :return: a pyTree
     :rtype: pyTree
@@ -2075,7 +2075,7 @@ Array / PyTree input/output
     :type fileName: string
     :param format: file format (see FileFormats_) 
     :type format: string
-    :param options: writing options (see ReadOptions_)
+    :param options: writing options (see WriteOptions_)
     :type options: keywords
 
     *Example of use:*

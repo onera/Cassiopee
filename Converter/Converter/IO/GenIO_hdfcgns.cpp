@@ -125,7 +125,30 @@ static herr_t count_children(hid_t id, const char *name, void *count)
   }
   return 0;
 }
-
+/* ------------------------------------------------------------------------- */
+static herr_t gfind_name(hid_t id, const char *nm, void *snm)
+{
+  /*  printf("GFIND [%s][%s]\n",nm,snm);fflush(stdout); */
+  if (!strcmp(nm,(char *)snm)) return 1;
+  return 0;
+}
+#define has_child(ID,NAME) H5Giterate(ID,".",NULL,gfind_name,(void *)NAME)
+/* ------------------------------------------------------------------------- */
+static herr_t delete_children(hid_t id, const char *name, void *data)
+{
+  /* do not change link id with actual here, stop deletion at link node */
+  if (name && (name[0] == ' ')) /* leaf node */
+  {
+    H5Ldelete(id,name,H5P_DEFAULT);
+  }
+  else 
+  {
+    /* should use H5Literate */
+    H5Giterate(id, name, NULL, delete_children, data);
+    H5Ldelete(id, name, H5P_DEFAULT);
+  }
+  return 0;
+}
 /* ------------------------------------------------------------------------- */
 // static herr_t feed_children_ids_list(hid_t id, const char *name, void *idlist)
 // {
@@ -155,6 +178,21 @@ static herr_t feed_children_ids(hid_t id, const char* name,
   n = 0;
   while (((hid_t*)idlist)[n] != -1) n++;
   ((hid_t*)idlist)[n] = cid;
+  return 0;
+}
+
+// Retourne 1 si path est dans links
+E_Int checkPathInLinks(const char* path, PyObject* links)
+{
+  E_Int li = PyList_Size(links);
+  for (E_Int i = 0; i < li; i++)
+  {
+    PyObject* tp = PyList_GetItem(links, i);
+    PyObject* d = PyList_GetItem(tp, 3);
+    char* s = PyString_AsString(d);
+    //printf("path=%s links=%s\n", path, s);
+    if (strcmp(s, path) == 0) return 1;
+  }
   return 0;
 }
 
@@ -1017,10 +1055,9 @@ PyObject* K_IO::GenIOHdf::createNode(hid_t& node, PyObject* dataShape, PyObject*
       //printf("link current path: %s\n", _currentPath.c_str());
       //printf("link target path: %s\n", rpath);
 
-      // Poinot format ['.',file,nodePath,targetPath,0]
       char lksearch[128]; strcpy(lksearch, ".");
       // list of ['targetdirectory', 'targetfilename', 'targetpath', 'currentpath']
-      PyObject* v = Py_BuildValue("[s,s,s,s,l]", lksearch, rfile, rpath, _currentPath.c_str(), 0);
+      PyObject* v = Py_BuildValue("[s,s,s,s]", lksearch, rfile, rpath, _currentPath.c_str());
       PyList_Append(links, v); Py_DECREF(v);
     }
 
@@ -1215,9 +1252,11 @@ E_Int K_IO::GenIO::hdfcgnswrite(char* file, PyObject* tree, PyObject* links)
   for (int n = 0; n < listsize; n++) // pour chaque Base
   {
     o = PyList_GetItem(tree, n);
+    HDF._stringStack.push_front("");
     HDF._fatherStack.push_front(gid);
-    HDF.dumpOne(o, 0);
+    HDF.dumpOne(o, 0, links);
     HDF._fatherStack.pop_front();
+    HDF._stringStack.pop_front();
   }
   
   /** Manage links (a l'ecriture) */
@@ -1247,13 +1286,20 @@ E_Int K_IO::GenIO::hdfcgnswrite(char* file, PyObject* tree, PyObject* links)
     hid_t gidp = H5Gopen(fid, startPath, H5P_DEFAULT);
     delete [] startPath;
     
+    /* node existe deja */
+    if (has_child(gidp, name))
+    {
+      H5Giterate(gidp, name, NULL, delete_children, NULL);
+      H5Gunlink(gidp, name);
+    }
+
     /* Create link node */
     hid_t nid = H5Gcreate2(gidp, name, H5P_DEFAULT, HDF._group, H5P_DEFAULT);
     if (nid < 0) {printf("Error: nid is invalid.\n");}
     
-    if (HDF_Add_Attribute_As_String(nid, L3S_NAME, name)    < 0) {printf("Error in link 1 \n");}
-    if (HDF_Add_Attribute_As_String(nid, L3S_DTYPE, L3T_LK) < 0) {printf("Error in link 2 \n");}
-    if (HDF_Add_Attribute_As_String(nid, L3S_LABEL, "")     < 0) {printf("Error in link 3 \n");}
+    HDF_Add_Attribute_As_String(nid, L3S_NAME, name);
+    HDF_Add_Attribute_As_String(nid, L3S_DTYPE, L3T_LK);
+    HDF_Add_Attribute_As_String(nid, L3S_LABEL, "");
   
     delete [] name;
   
@@ -1401,15 +1447,29 @@ E_Int K_IO::GenIO::hdfcgnsWritePaths(char* file, PyObject* treeList,
 }
 
 //=============================================================================
-PyObject* K_IO::GenIOHdf::dumpOne(PyObject* tree, int depth)
+PyObject* K_IO::GenIOHdf::dumpOne(PyObject* tree, int depth, PyObject* links)
 {
   // ecrit le noeud courant
   hid_t node = _fatherStack.front();
 
   if (depth > _maxDepth) return tree;
 
+  // Check if node is a link, set _currentPath
+  if (_stringStack.size() > 0)
+  {
+    PyObject* pname = PyList_GetItem(tree, 0);
+    char* name = PyString_AsString(pname);    
+    std::string path = _stringStack.front();
+    _currentPath = path+"/"+string(name);
+    //printf("write node: writing %s\n", _currentPath.c_str());
+    if (links != NULL && checkPathInLinks(_currentPath.c_str(), links) == 1) return tree;
+  }
+  
+  // Write node
   hid_t child = writeNode(node, tree);
   
+  std::string parentPath = _currentPath;
+
   // Dump les enfants
   if (PyList_Check(tree) == true && PyList_Size(tree) > 3)
   {
@@ -1419,9 +1479,11 @@ PyObject* K_IO::GenIOHdf::dumpOne(PyObject* tree, int depth)
       int nChildren = PyList_Size(children);
       for (E_Int i = 0; i < nChildren; i++)
       {
+        _stringStack.push_front(parentPath);
         _fatherStack.push_front(child);
-        dumpOne(PyList_GetItem(children, i), depth+1);
+        dumpOne(PyList_GetItem(children, i), depth+1, links);
         _fatherStack.pop_front();
+        _stringStack.pop_front();
       }
     }
   }

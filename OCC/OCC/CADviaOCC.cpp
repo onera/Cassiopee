@@ -576,7 +576,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces
   size_t t;
 
 #ifndef DEBUG_CAD_READER
-#pragma omp parallel for private(nodes, nids, UVcontour, pos3D, err, mesher, t)
+//#pragma omp parallel for private(nodes, nids, UVcontour, pos3D, err, mesher, t)
 #endif
   for (E_Int i=1; i <= nb_faces; ++i)
   {

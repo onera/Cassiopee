@@ -351,6 +351,7 @@ def randomizeVar(array, var, deltaMin, deltaMax):
 
 # -- Init variables --
 def initVars(a, var, v1=[], v2=[]):
+    """Initialize a variable by a value or a formula."""
     b = copy(a)
     _initVars(b, var, v1, v2)
     return b

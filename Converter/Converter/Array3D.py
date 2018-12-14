@@ -5,6 +5,7 @@ import numpy as N
 
 # Convert arrays in 3D arrays
 def convertArrays2Arrays3D(CArrays, VERBOSE=None):
+  """Convert a standard array to a 3D array."""
   Blocks = []
   if VERBOSE:
     print len(CArrays)
@@ -23,6 +24,7 @@ def convertArrays2Arrays3D(CArrays, VERBOSE=None):
 
 # Convert 3D arrays in arrays
 def convertArrays3D2Arrays(CArrays):
+  """Convert a 3D array to a standard array."""
   a = []
   for i in CArrays:
     a.append(convertArray3D2Array(i[0], i[1]))

@@ -178,7 +178,7 @@ Low level layer
 
     *Example of use:*
 
-    * `Write nodes from file (pyTree) <Examples/Converter/writeNodesFromPathsPT.py>`_:
+    * `Write nodes from paths (pyTree) <Examples/Converter/writeNodesFromPathsPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/writeNodesFromPathsPT.py
 

@@ -4703,7 +4703,7 @@ def extractBCOfName(t, bndName, reorder=True):
 # OUT: BCNames: liste des noms des BCs
 # OUT: BCTypes: liste des types des BCs
 def getBCs(t):
-  """Return geometry, names and types of Boundary conditions."""
+  """Return geometry, names and types of boundary conditions."""
   BCs = []; BCNames = []; BCTypes = []
   for z in Internal.getZones(t):
     nodes = Internal.getNodesFromType2(z, 'BC_t')
