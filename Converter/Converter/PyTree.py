@@ -2399,7 +2399,7 @@ def _nullifyBCDataSetVectors(t, bndType, loc='FaceCenter',
       elif PL is not None:
         np = PL[1].size
       else:
-        raise(ValueError,"nullifyVectorAtBCDataSet: no PointRange/PointList in BC.")
+        raise(ValueError, "nullifyVectorAtBCDataSet: no PointRange/PointList in BC.")
 
       datas = Internal.getBCDataSet(z,bc)
       if datas == []: # create the BCDataSet
@@ -4759,8 +4759,6 @@ def extractAllBCMatch(t,varList=None):
 
   return allMatch
 
-
-
 def computeBCMatchField(z,allMatch,variables=None):
 
   # Fields array in receiver zone (z)
@@ -5058,12 +5056,12 @@ def extractBCFields(z, varList=None):
     fieldsL=[]; varsL=[]; indicesL=[]
 
     #1. extract face indices
-    if zoneType==2: 
-      indicesL=Internal.getNodeFromName1(bc,'PointList')
-      indicesL=Internal.getValue(indicesL)[0]
+    if zoneType == 2: 
+      indicesL = Internal.getNodeFromName1(bc,'PointList')
+      indicesL = Internal.getValue(indicesL)[0]
     else:
-      PR=Internal.getNodeFromName1(bc,'PointRange')
-      win=Internal.range2Window(PR[1])
+      PR = Internal.getNodeFromName1(bc,'PointRange')
+      win = Internal.range2Window(PR[1])
       imin = win[0]; imax = win[1]
       jmin = win[2]; jmax = win[3]
       kmin = win[4]; kmax = win[5]

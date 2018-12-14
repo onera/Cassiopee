@@ -118,29 +118,37 @@ PyObject* K_ARRAY::buildArray2(E_Int nfld, const char* varString,
       printf("Warning: buildArray: element type is unknown.\n");
       strcpy(eltType, "UNKNOWN");
     }
-    if (K_STRING::cmp(eltType, "NODE") == 0) nvpe = 1;
-    else if (K_STRING::cmp(eltType, "TRI") == 0) nvpe = 3;
-    else if (K_STRING::cmp(eltType, "QUAD") == 0) nvpe = 4;
-    else if (K_STRING::cmp(eltType, "TETRA") == 0) nvpe = 4;
-    else if (K_STRING::cmp(eltType, "HEXA") == 0) nvpe = 8;
-    else if (K_STRING::cmp(eltType, "BAR") == 0) nvpe = 2;
-    else if (K_STRING::cmp(eltType, "PYRA") == 0) nvpe = 5;
-    else if (K_STRING::cmp(eltType, "PENTA") == 0) nvpe = 6;
-    else if (K_STRING::cmp(eltType, "NGON") == 0) { nvpe = 1; cSize = 4+sizeNGon+sizeNFace; ngon = 1; }
-    else if (K_STRING::cmp(eltType, "NODE*") == 0) nvpe = 1;
-    else if (K_STRING::cmp(eltType, "TRI*") == 0) nvpe = 3;
-    else if (K_STRING::cmp(eltType, "QUAD*") == 0) nvpe = 4;
-    else if (K_STRING::cmp(eltType, "TETRA*") == 0) nvpe = 4;
-    else if (K_STRING::cmp(eltType, "HEXA*") == 0) nvpe = 8;
-    else if (K_STRING::cmp(eltType, "BAR*") == 0) nvpe = 2;
-    else if (K_STRING::cmp(eltType, "PYRA*") == 0) nvpe = 5;
-    else if (K_STRING::cmp(eltType, "PENTA*") == 0) nvpe = 6;
-    else if (K_STRING::cmp(eltType, "NGON*") == 0) { nvpe = 1; cSize = 4+sizeNGon+sizeNFace; ngon = 1; }
-  }
+    E_Int l = strlen(eltType);
+    if (eltType[l-1] == '*') l = l-1;
+
+    if (K_STRING::cmp(eltType, l, "NODE") == 0) nvpe = 1;
+    else if (K_STRING::cmp(eltType, l, "TRI") == 0) nvpe = 3;
+    else if (K_STRING::cmp(eltType, l, "QUAD") == 0) nvpe = 4;
+    else if (K_STRING::cmp(eltType, l, "TETRA") == 0) nvpe = 4;
+    else if (K_STRING::cmp(eltType, l, "HEXA") == 0) nvpe = 8;
+    else if (K_STRING::cmp(eltType, l, "BAR") == 0) nvpe = 2;
+    else if (K_STRING::cmp(eltType, l, "PYRA") == 0) nvpe = 5;
+    else if (K_STRING::cmp(eltType, l, "PENTA") == 0) nvpe = 6;
+    else if (K_STRING::cmp(eltType, l, "NGON") == 0) { nvpe = 1; cSize = 4+sizeNGon+sizeNFace; ngon = 1; }
+    // quadratic
+    else if (K_STRING::cmp(eltType, l, "TRI_6") == 0) nvpe = 6;
+    else if (K_STRING::cmp(eltType, l, "QUAD_8") == 0) nvpe = 8;
+    else if (K_STRING::cmp(eltType, l, "TETRA_10") == 0) nvpe = 10;
+    else if (K_STRING::cmp(eltType, l, "BAR_3") == 0) nvpe = 3;
+    else if (K_STRING::cmp(eltType, l, "HEXA_20") == 0) nvpe = 20;
+    else if (K_STRING::cmp(eltType, l, "QUAD_9") == 0) nvpe = 9;
+    else if (K_STRING::cmp(eltType, l, "PYRA_14") == 0) nvpe = 14;
+    else if (K_STRING::cmp(eltType, l, "PENTA_15") == 0) nvpe = 15;
+    else if (K_STRING::cmp(eltType, l, "PENTA_18") == 0) nvpe = 18;
+    else if (K_STRING::cmp(eltType, l, "HEXA_27") == 0) nvpe = 27;
+    else if (K_STRING::cmp(eltType, l, "PYRA_13") == 0) nvpe = 13;
+    
+    }
   else
   {
     switch (et)
     {
+      // Elements lineaires
       case 0:
         strcpy(eltType, "NODE");
         if (cSize == fSize && center == true) strcat(eltType, "*");
@@ -185,7 +193,145 @@ PyObject* K_ARRAY::buildArray2(E_Int nfld, const char* varString,
         strcpy(eltType, "NGON");
         if (cSize == fSize && center == true) strcat(eltType, "*");
         nvpe = 1; cSize = 4+sizeNGon+sizeNFace; ngon = 1;
-        break; 
+        break;
+
+      // Elements quadratiques
+      case 10:
+        strcpy(eltType, "BAR_3");
+        if (cSize == fSize && center == true) strcat(eltType, "*");
+        nvpe = 3;
+        break;
+      case 11:
+        strcpy(eltType, "TRI_6");
+        if (cSize == fSize && center == true) strcat(eltType, "*");
+        nvpe = 6;
+        break;
+      case 12:
+        strcpy(eltType, "QUAD_8");
+        if (cSize == fSize && center == true) strcat(eltType, "*");
+        nvpe = 8;
+        break;
+      case 13:
+        strcpy(eltType, "QUAD_9");
+        if (cSize == fSize && center == true) strcat(eltType, "*");
+        nvpe = 9;
+        break;
+      case 14:
+        strcpy(eltType, "TETRA_10");
+        if (cSize == fSize && center == true) strcat(eltType, "*");
+        nvpe = 10;
+        break;
+      case 15:
+        strcpy(eltType, "PYRA_14");
+        if (cSize == fSize && center == true) strcat(eltType, "*");
+        nvpe = 14;
+        break;
+      case 16:
+        strcpy(eltType, "PENTA_15");
+        if (cSize == fSize && center == true) strcat(eltType, "*");
+        nvpe = 15;
+        break;
+      case 17:
+        strcpy(eltType, "PENTA_18");
+        if (cSize == fSize && center == true) strcat(eltType, "*");
+        nvpe = 18;
+        break;
+      case 18:
+        strcpy(eltType, "HEXA_20");
+        if (cSize == fSize && center == true) strcat(eltType, "*");
+        nvpe = 20;
+        break;
+      case 19:
+        strcpy(eltType, "HEXA_27");
+        if (cSize == fSize && center == true) strcat(eltType, "*");
+        nvpe = 27;
+        break;
+      case 20:
+        strcpy(eltType, "PYRA_13");
+        if (cSize == fSize && center == true) strcat(eltType, "*");
+        nvpe = 13;
+        break;
+
+
+      // Elements cubiques
+      case 30:
+        strcpy(eltType, "BAR_4");
+        if (cSize == fSize && center == true) strcat(eltType, "*");
+        nvpe = 4;
+        break;
+      case 31:
+        strcpy(eltType, "TRI_9");
+        if (cSize == fSize && center == true) strcat(eltType, "*");
+        nvpe = 9;
+        break;
+      case 32:
+        strcpy(eltType, "TRI_10");
+        if (cSize == fSize && center == true) strcat(eltType, "*");
+        nvpe = 10;
+        break;
+      case 33:
+        strcpy(eltType, "QUAD_12");
+        if (cSize == fSize && center == true) strcat(eltType, "*");
+        nvpe = 12;
+        break;
+      case 34:
+        strcpy(eltType, "QUAD_16");
+        if (cSize == fSize && center == true) strcat(eltType, "*");
+        nvpe = 16;
+        break;
+      case 35:
+        strcpy(eltType, "TETRA_16");
+        if (cSize == fSize && center == true) strcat(eltType, "*");
+        nvpe = 16;
+        break;
+      case 36:
+        strcpy(eltType, "TETRA_20");
+        if (cSize == fSize && center == true) strcat(eltType, "*");
+        nvpe = 20;
+        break;
+      case 37:
+        strcpy(eltType, "PYRA_21");
+        if (cSize == fSize && center == true) strcat(eltType, "*");
+        nvpe = 21;
+        break;
+      case 38:
+        strcpy(eltType, "PYRA_29");
+        if (cSize == fSize && center == true) strcat(eltType, "*");
+        nvpe = 29;
+        break;
+      case 39:
+        strcpy(eltType, "PYRA_30");
+        if (cSize == fSize && center == true) strcat(eltType, "*");
+        nvpe = 30;
+        break;
+
+      // Elements quartiques
+      case 51:
+        strcpy(eltType, "BAR_5");
+        if (cSize == fSize && center == true) strcat(eltType, "*");
+        nvpe = 5;
+        break;
+      case 52:
+        strcpy(eltType, "TRI_12");
+        if (cSize == fSize && center == true) strcat(eltType, "*");
+        nvpe = 12;
+        break;
+      case 53:
+        strcpy(eltType, "TRI_15");
+        if (cSize == fSize && center == true) strcat(eltType, "*");
+        nvpe = 15;
+        break;
+      case 54:
+        strcpy(eltType, "QUAD_25");
+        if (cSize == fSize && center == true) strcat(eltType, "*");
+        nvpe = 25;
+        break;
+      case 55:
+        strcpy(eltType, "TETRA_35");
+        if (cSize == fSize && center == true) strcat(eltType, "*");
+        nvpe = 35;
+        break;
+
       default:
         printf("Warning: buildArray: element type is unknown.\n");
         strcpy(eltType, "UNKNOWN");

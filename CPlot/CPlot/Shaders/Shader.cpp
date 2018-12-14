@@ -18,6 +18,8 @@
 */
 # include <stdexcept>
 # include "Shader.h"
+# include <cstring>
+
 using namespace CPlot;
 
 //=============================================================================
