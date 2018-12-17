@@ -90,7 +90,7 @@ PyObject* K_ARRAY::buildArray2(E_Int nfld, const char* varString,
 {
   npy_intp dim[2];
   PyObject* a; PyObject* ac; PyObject* tpl;
-  char eltType[8];
+  char eltType[12];
 
   E_Int fSize;
   if (center == true) fSize = nelt;

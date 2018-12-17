@@ -39,14 +39,14 @@ False, # CPlotOffScreen
 'gfortran', # f77compiler
 'gfortran', # f90compiler
 'gcc', # Cppcompiler
-[], # CppAdditionalOptions
+['-isystem /c/msys64/mingw64/include/python2.7', '-isystem /c/msys64/mingw64/lib/python2.7/site-packages/numpy/core/include/numpy'], # CppAdditionalOptions
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
 False, # CPlotOffScreen
-['c:/msys64/mingw64/include'], # additionalIncludePaths
+['c:/msys64/mingw64/include', 'c:/Program Files (x86)/Microsoft SDKs/MPI/Include'], # additionalIncludePaths
 ['gomp', 'gfortran'], # additionalLibs
-['c:/msys64/mingw64/lib'] # additionalLibPaths
+['c:/msys64/mingw64/lib', 'c:/Program Files (x86)/Microsoft SDKs/MPI/Lib/x64'] # additionalLibPaths
 ],
 ###############################################################################
 'node6.cluster': [ 'MacOSX (generic)',

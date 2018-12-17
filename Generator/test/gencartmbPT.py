@@ -1,7 +1,6 @@
 # - gencartmb (pyTree) -
 import Generator.PyTree as G
 import Converter.PyTree as C
-import Transform.PyTree as T
 
 # body mesh
 a = G.cylinder((0.,0.,0.), 0.5, 1., 360., 0., 10., (50,50,30))

@@ -7,7 +7,7 @@ comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 size = comm.Get_size()
 print rank, size
-test.testO([rank, size], 1)
+if rank == 0: test.testO([rank, size], 1)
 
 try: import Converter.Mpi as Cmpi
 except: raise ImportError('FAILED to import Cmpi')
@@ -15,4 +15,4 @@ except: raise ImportError('FAILED to import Cmpi')
 rank = Cmpi.rank
 size = Cmpi.size
 print rank, size
-test.testO([rank, size], 2)
+if rank == 0: test.testO([rank, size], 2)

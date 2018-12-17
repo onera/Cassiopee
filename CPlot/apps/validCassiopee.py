@@ -347,13 +347,13 @@ def runSingleUnitaryTest(no, module, test):
         # Commande Dos (sans time)
         path = path.replace('/', '\\')
         if m1 is not None: cmd = 'cd %s && python %s'%(path, test)
-        else: cmd = 'cd %s && kpython -n 2 -t 1 %s'%(path, test)
+        else: cmd = 'cd %s && set OMP_NUM_THREADS=4 && mpiexec -np 2 python %s'%(path, test)
         cmd2 = 'echo %time%'
     else:
         # Unix - le shell doit avoir l'environnement cassiopee
         #sformat = r'"real\t%E\nuser\t%U\nsys\t%S"'
         if m1 is not None: cmd = 'cd %s; time python %s'%(path, test)
-        else: cmd = 'cd %s; time kpython -n 2 -t 1 %s'%(path, test)
+        else: cmd = 'cd %s; time kpython -n 2 %s'%(path, test)
     try:
         if mySystem == 'mingw' or mySystem == 'windows':
             output1 = check_output(cmd2, shell=True, stderr=subprocess.STDOUT)

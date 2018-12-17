@@ -1714,7 +1714,7 @@ def createCythonBuilder(env):
      for i in env['CPPPATH']: incs += ' -I"%s" '%i
 
      cypath = ''
-     if (env.has_key("CYTHONCOMPATH") and (env["CYTHONCOMPATH"] != "")):
+     if env.has_key("CYTHONCOMPATH") and (env["CYTHONCOMPATH"] != ""):
           SYSPATH = ""
           if env.has_key("PYTHONPATH"): SYSPATH=env['PYTHONPATH']
           cypath = env["CYTHONCOMPATH"]
