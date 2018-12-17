@@ -50,72 +50,72 @@
     switch (type)
     {
       case 1: // BAR
-	nBAR++;
-	for (E_Int j = 0; j < 2; j++) READI;
-	break;
+        nBAR++;
+        for (E_Int j = 0; j < 2; j++) READI;
+        break;
 
       case 2: // TRI
         nTRI++;
-	for (E_Int j = 0; j < 3; j++) READI;
+        for (E_Int j = 0; j < 3; j++) READI;
         break;
 
       case 3: // QUAD
         nQUAD++;
-	for (E_Int j = 0; j < 4; j++) READI;
+        for (E_Int j = 0; j < 4; j++) READI;
         break;
 
       case 4: // TETRA
         nTETRA++;
-	for (E_Int j = 0; j < 4; j++) READI;
+        for (E_Int j = 0; j < 4; j++) READI;
         break;
         
       case 5: // HEXA
         nHEXA++;
-	for (E_Int j = 0; j < 8; j++) READI;
+        for (E_Int j = 0; j < 8; j++) READI;
         break;
 
       case 6: // PENTA
         nPENTA++;
-	for (E_Int j = 0; j < 6; j++) READI;
+        for (E_Int j = 0; j < 6; j++) READI;
         break;
 
       case 7: // PYRA
         nPYRA++;
-	for (E_Int j = 0; j < 5; j++) READI;
+        for (E_Int j = 0; j < 5; j++) READI;
         break;
 
       case 8: // 3-node BAR (second order)
-        nBAR++;
+        nBAR_3++;
         for (E_Int j = 0; j < 3; j++) READI;
         break;
         
       case 9: // 6-node TRI (second order)
-        nTRI++;
+        nTRI_6++;
         for (E_Int j = 0; j < 6; j++) READI;
         break;
 
       case 10: // 9-node QUAD (second order)
-        nQUAD++;
+        nQUAD_9++;
         for (E_Int j = 0; j < 9; j++) READI;
         break;
 
       case 11: // 10-node TETRA (second order)
-        nTETRA++;
+        nTETRA_10++;
         for (E_Int j = 0; j < 10; j++) READI;
         break;
 
       case 12: // 27-node HEXA (second order)
-        nHEXA++;
+        nHEXA_27++;
         for (E_Int j = 0; j < 27; j++) READI;
         break;
 
       case 13: // 18-node PENTA (second order)
-        nPENTA++;
+        nPENTA_18++;
         for (E_Int j = 0; j < 18; j++) READI;
         break;
 
       case 14: // 14-node PYRA (second order)
-        nPYRA++;
+        nPYRA_14++;
         for (E_Int j = 0; j < 14; j++) READI;
         break;
 
@@ -125,92 +125,92 @@
         break;
 
       case 16: // 8-node QUAD (second order)
-        nQUAD++;
+        nQUAD_8++;
         for (E_Int j = 0; j < 8; j++) READI;
         break;
 
       case 17: // 20-node HEXA (second order)
-        nHEXA++;
+        nHEXA_20++;
         for (E_Int j = 0; j < 20; j++) READI;
         break;
 
       case 18: // 15-node PENTA (second order)
-        nPENTA++;
+        nPENTA_15++;
         for (E_Int j = 0; j < 15; j++) READI;
         break;
 
       case 19: // 13-node PYRA (second order)
-        nPYRA++;
+        nPYRA_13++;
         for (E_Int j = 0; j < 13; j++) READI;
         break;
 
       case 20: // 9-node TRI (third order)
-        nTRI++;
+        nTRI_9++;
         for (E_Int j = 0; j < 9; j++) READI;
         break;
         
       case 21: // 10-node TRI (third order)
-        nTRI++;
+        nTRI_10++;
         for (E_Int j = 0; j < 10; j++) READI;
         break;
 
       case 22: // 12-node TRI (fourth order)
-        nTRI++;
+        nTRI_12++;
         for (E_Int j = 0; j < 12; j++) READI;
         break;
 
       case 23: // 15-node TRI (fourth order)
+        nTRI_15++;
+        for (E_Int j = 0; j < 15; j++) READI;
+        break;
+
+      case 24: // 15-node TRI (fifth order) -> pas en CGNS
         nTRI++;
         for (E_Int j = 0; j < 15; j++) READI;
         break;
 
-      case 24: // 15-node TRI (fifth order)
-        nTRI++;
-        for (E_Int j = 0; j < 15; j++) READI;
-        break;
-
-      case 25: // 21-node TRI (fifth order)
+      case 25: // 21-node TRI (fifth order) -> pas en CGNS
         nTRI++;
         for (E_Int j = 0; j < 21; j++) READI;
         break;
 
       case 26: // 4-node BAR (third order)
-        nBAR++;
+        nBAR_4++;
         for (E_Int j = 0; j < 4; j++) READI;
         break;
 
       case 27: // 5-node BAR (fourth order)
-        nBAR++;
+        nBAR_5++;
         for (E_Int j = 0; j < 5; j++) READI;
         break;
 
-      case 28: // 6-node BAR (fifth order)
+      case 28: // 6-node BAR (fifth order)-> pas en CGNS
         nBAR++;
         for (E_Int j = 0; j < 6; j++) READI;
         break;
 
       case 29: // 20-node TETRA (third order)
-        nTETRA++;
+        nTETRA_20++;
         for (E_Int j = 0; j < 20; j++) READI;
         break;
         
       case 30: // 35-node TETRA (fourth order)
-        nTETRA++;
+        nTETRA_35++;
         for (E_Int j = 0; j < 35; j++) READI;
         break;
 
-      case 31: // 56-node TETRA (fifth order)
+      case 31: // 56-node TETRA (fifth order)-> pas en CGNS
         nTETRA++;
         for (E_Int j = 0; j < 56; j++) READI;
         break;
         
       case 92: // 64-node HEXA (third order)
-        nHEXA++;
+        nHEXA_64++;
         for (E_Int j = 0; j < 64; j++) READI;
         break;
 
       case 93: // 125-node HEXA (fourth order)
-        nHEXA++;
+        nHEXA_125++;
         for (E_Int j = 0; j < 125; j++) READI;
         break;
 

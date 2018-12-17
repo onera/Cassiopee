@@ -142,7 +142,19 @@ PyObject* K_ARRAY::buildArray2(E_Int nfld, const char* varString,
     else if (K_STRING::cmp(eltType, l, "PENTA_18") == 0) nvpe = 18;
     else if (K_STRING::cmp(eltType, l, "HEXA_27") == 0) nvpe = 27;
     else if (K_STRING::cmp(eltType, l, "PYRA_13") == 0) nvpe = 13;
-    
+    // cubic
+    else if (K_STRING::cmp(eltType, l, "TRI_9") == 0) nvpe = 9;
+    else if (K_STRING::cmp(eltType, l, "TRI_10") == 0) nvpe = 10;
+    else if (K_STRING::cmp(eltType, l, "QUAD_12") == 0) nvpe = 12;
+    else if (K_STRING::cmp(eltType, l, "QUAD_16") == 0) nvpe = 16;
+    else if (K_STRING::cmp(eltType, l, "BAR_4") == 0) nvpe = 4;
+    else if (K_STRING::cmp(eltType, l, "TETRA_16") == 0) nvpe = 16;
+    else if (K_STRING::cmp(eltType, l, "TETRA_20") == 0) nvpe = 20;
+    else if (K_STRING::cmp(eltType, l, "PYRA_21") == 0) nvpe = 21;
+    else if (K_STRING::cmp(eltType, l, "PYRA_29") == 0) nvpe = 29;
+    else if (K_STRING::cmp(eltType, l, "HEXA_32") == 0) nvpe = 32;
+    else if (K_STRING::cmp(eltType, l, "HEXA_56") == 0) nvpe = 56;
+    else if (K_STRING::cmp(eltType, l, "HEXA_64") == 0) nvpe = 64;
     }
   else
   {
@@ -252,7 +264,6 @@ PyObject* K_ARRAY::buildArray2(E_Int nfld, const char* varString,
         nvpe = 13;
         break;
 
-
       // Elements cubiques
       case 30:
         strcpy(eltType, "BAR_4");
@@ -304,6 +315,22 @@ PyObject* K_ARRAY::buildArray2(E_Int nfld, const char* varString,
         if (cSize == fSize && center == true) strcat(eltType, "*");
         nvpe = 30;
         break;
+      case 40:
+        strcpy(eltType, "HEXA_32");
+        if (cSize == fSize && center == true) strcat(eltType, "*");
+        nvpe = 32;
+        break;
+      case 41:
+        strcpy(eltType, "HEXA_56");
+        if (cSize == fSize && center == true) strcat(eltType, "*");
+        nvpe = 56;
+        break;
+      case 42:
+        strcpy(eltType, "HEXA_64");
+        if (cSize == fSize && center == true) strcat(eltType, "*");
+        nvpe = 64;
+        break;
+                    
 
       // Elements quartiques
       case 51:

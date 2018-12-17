@@ -93,14 +93,9 @@ E_Int K_IO::GenIO::gmshread(
   E_Int ne = E_Int(ti); // Global
   //printf("Number of elements %d\n", ne);
   FldArrayI indirElements(ne);
-  E_Int nNODE = 0; FldArrayI* indNODE = NULL; // type = 15
-  E_Int nBAR = 0; FldArrayI* cnBAR = NULL; // type = 1
-  E_Int nTRI = 0; FldArrayI* cnTRI = NULL; // type = 2
-  E_Int nQUAD = 0; FldArrayI* cnQUAD = NULL; // type = 3
-  E_Int nTETRA = 0; FldArrayI* cnTETRA = NULL; // type = 4
-  E_Int nHEXA = 0; FldArrayI* cnHEXA = NULL; // type = 5
-  E_Int nPENTA = 0; FldArrayI* cnPENTA = NULL; // type = 6
-  E_Int nPYRA = 0; FldArrayI* cnPYRA = NULL; // type = 7
+  // declarations
+#include "GenIO_gmsh3.h"
+  
   E_Int nDiscard = 0;
 
   E_Int tagl, ind;
@@ -111,41 +106,11 @@ E_Int K_IO::GenIO::gmshread(
   //printf("Elements BAR=%d TRI=%d QUAD=%d TETRA=%d HEXA=%d NODES=%d\n", 
   //       nBAR, nTRI, nQUAD, nTETRA, nHEXA, nNODE);
 
-  /* Allocations */
-  if (nBAR > 0) {
-    cnBAR = new FldArrayI(nBAR, 2);
-    connect.push_back(cnBAR);
-    eltType.push_back(1); nBAR = 0; }
-  if (nTRI > 0) {
-    cnTRI = new FldArrayI(nTRI, 3);
-    connect.push_back(cnTRI);
-    eltType.push_back(2); nTRI = 0; }
-  if (nQUAD > 0) {
-    cnQUAD = new FldArrayI(nQUAD, 4);
-    connect.push_back(cnQUAD);
-    eltType.push_back(3); nQUAD = 0; }
-  if (nTETRA > 0) {
-    cnTETRA = new FldArrayI(nTETRA, 4);
-    connect.push_back(cnTETRA);
-    eltType.push_back(4); nTETRA = 0; }
-  if (nHEXA > 0) {
-    cnHEXA = new FldArrayI(nHEXA, 8);
-    connect.push_back(cnHEXA);
-    eltType.push_back(7); nHEXA = 0; }
-  if (nPENTA > 0) {
-    cnPENTA = new FldArrayI(nPENTA, 6);
-    connect.push_back(cnPENTA);
-    eltType.push_back(6); nPENTA = 0; }
-  if (nPYRA > 0) {
-    cnPYRA = new FldArrayI(nPYRA, 5);
-    connect.push_back(cnPYRA);
-    eltType.push_back(5); nPYRA = 0; }
-  if (nNODE > 0) {
-    indNODE = new FldArrayI(nNODE);
-    connect.push_back(new FldArrayI());
-    eltType.push_back(0);
-    nNODE = 0; }
+  E_Boolean fo = true;
 
+  /* Allocations */
+#include "GenIO_gmsh4.h"
+  
   /* Lecture reelle des elements par type */
   KFSEEK(ptrFile, pos, SEEK_SET);
 #include "GenIO_gmsh2.h"
@@ -186,7 +151,6 @@ E_Int K_IO::GenIO::gmshread(
     FldArrayF* an = new FldArrayF(f);
     unstructField.push_back(an);
   }
-  //printf("node %d\n", nNODE);
   if (nNODE > 0)
   {
     FldArrayF* an = new FldArrayF(nNODE,3);
