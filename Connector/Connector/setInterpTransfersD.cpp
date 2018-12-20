@@ -407,12 +407,12 @@ PyObject* K_CONNECTOR::__setInterpTransfersD( PyObject* self, PyObject* args ) {
     }
     else
     {
-      ipt_param_int_Shift[nd] = 0;    
+      ipt_param_int_Shift[nd] = NULL;    
     }    
   }
   else
    {
-      ipt_param_int_Shift[nd] = 0;    
+      ipt_param_int_Shift[nd] = NULL;    
    }  
   } 
 

@@ -682,6 +682,7 @@ PyObject* K_CONNECTOR::__setInterpTransfers(PyObject* self, PyObject* args)
         E_Int ithread = 1;
         E_Int Nbre_thread_actif = 1;
 #endif
+
         // Calcul du nombre de champs a traiter par chaque thread
         E_Int chunk = nbRcvPts/Nbre_thread_actif;
         E_Int r = nbRcvPts - chunk*Nbre_thread_actif;
@@ -883,12 +884,12 @@ PyObject *timecount;
     } 
     else
     {
-      ipt_param_int_Shift[nd] = 0;    
+      ipt_param_int_Shift[nd] = NULL;    
     }       
   }  
   else
    {
-      ipt_param_int_Shift[nd] = 0;    
+      ipt_param_int_Shift[nd] = NULL;    
    }  
   } 
 
@@ -975,6 +976,7 @@ PyObject *timecount;
 
      E_Int indR, type;
      E_Int indD0, indD, i, j, k, ncfLoc/*, nocf*/, indCoef, noi, sizecoefs, /*Nbchunk,*/ imd, jmd, imdjmd;
+
 
      vector<E_Float*> vectOfRcvFields(nvars);
      vector<E_Float*> vectOfDnrFields(nvars);

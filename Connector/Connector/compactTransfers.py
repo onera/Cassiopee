@@ -56,6 +56,11 @@ def miseAPlatDonorTree__(zones, tc, graph=None):
       tmp        = Internal.getValue(zonetype)
       if tmp != "Structured": meshtype = 2
       for s in subRegions:
+
+         zRname = Internal.getValue(s)
+         proc = 0
+         if procDict is not None: proc = procDict[zRname]
+
          #tri des pas de temps instationnaire
          #  1) les stationnaires
          #  2) les instationnaires regroupes par pas de temps
@@ -75,9 +80,11 @@ def miseAPlatDonorTree__(zones, tc, graph=None):
                 Noz = Noz + [c]
                 mesh= inst[ numero_iter ][2]
                 mesh= mesh+ [meshtype]
-                inst[ numero_iter ]=  [ sub , Noz , mesh ]
+                dest= inst[ numero_iter ][3]
+                dest= dest+ [proc]
+                inst[ numero_iter ]=  [ sub , Noz , mesh, dest ]
             else:
-                inst[ numero_iter ]= [ [s],[c],[meshtype] ]
+                inst[ numero_iter ]= [ [s],[c],[meshtype], [proc] ]
 
          TimeLevelNumber = len(inst)
 
@@ -136,9 +143,6 @@ def miseAPlatDonorTree__(zones, tc, graph=None):
          if RotationCenter is not None: rotation +=3 
 
          nrac  =  nrac + 1
-         zRname = Internal.getValue(s)
-         proc = 0
-         if procDict is not None: proc = procDict[zRname]
          if proc not in listproc:
                 listproc.append(proc)
                 rac.append(1)
@@ -468,12 +472,6 @@ def miseAPlatDonorTree__(zones, tc, graph=None):
          param_int[ iadr +rac[pos]*11 ] = znd.index( zRname )         # No zone receveuse
        else:
          param_int[ iadr +rac[pos]*11  ]= procList[proc].index( zRname )  # No zone raccord
-         #no_zone =0
-         #for cle in procDict:
-         #   if (cle == zRname ): 
-         #      param_int[ iadr +rac[pos]*11  ]= no_zone  # No zone raccord
-         #print "AV dic", param_int[ iadr +rac[pos]*11  ] , proc
-         #   if (procDict[cle] == proc ): no_zone = no_zone +1
 
        #print 'rac', s[0], 'zoneR=', zRname, param_int[ iadr +rac[pos]*11 ], 'NozoneD=', zones_tc[No_zoneD[c]][0]
 
