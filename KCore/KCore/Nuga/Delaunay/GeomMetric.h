@@ -478,7 +478,7 @@ namespace DELAUNAY
       return;
     }
 
-    if (_gr >= 1.)
+    if (_gr > 1.)
     {
       parent_type::smooth(Ni, N0, _gr, Ni);
       parent_type::smooth(Nj, N0, _gr, Nj);

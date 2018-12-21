@@ -362,7 +362,7 @@ inline
 E_Float normalize (InputIterator it)
 {
   E_Float L0 = ::sqrt(sqrNorm<dim>(it));
-  if (L0 > E_EPSILON)
+  if (L0 != 0.)
   {
     E_Float L1 = 1./L0;
     for (E_Int i = 0; i < dim; ++i) *(it+i) *= L1;

@@ -331,3 +331,35 @@ E_Int SwapperT3::run (const K_FLD::FloatArray& coord, E_Float tol, K_FLD::IntArr
 
   return (connect.cols() - nb_tris0);
 }
+
+void SwapperT3::edit_T3_caracs(const K_FLD::FloatArray& crd, E_Int* pN)
+{
+  E_Float hmin, Lmin, lambda_min;
+  E_Int himin, limin;
+  Lmin = hmin = K_CONST::E_MAX_FLOAT;
+  
+  for (E_Int n=0; n < 3; ++n)
+  {
+    E_Float lambda;
+    E_Float h = K_MESH::Edge::edgePointMinDistance<3>(crd.col(pN[n]), crd.col(pN[(n + 1) % 3]), crd.col(pN[(n + 2) % 3]), lambda);
+    if (h < hmin)
+    {
+      hmin = h;
+      lambda_min = lambda;
+      himin = n;
+    }
+    
+    E_Float d = ::sqrt(K_FUNC::sqrDistance(crd.col(pN[n]), crd.col(pN[(n + 1) % 3]), 3));
+    
+    if (d < Lmin)
+    {
+      limin = n;
+      Lmin = d;
+    }
+    
+  }
+  
+  std::cout << "worst h/lambda is : " << hmin << "/" << lambda_min << " reached at i :" << himin << std::endl;
+  std::cout << "worst L is : " << Lmin << " reached at i :" << limin << std::endl;
+  
+}

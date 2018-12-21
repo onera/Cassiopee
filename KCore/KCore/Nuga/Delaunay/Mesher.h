@@ -641,12 +641,22 @@ namespace DELAUNAY
   {
     
 #ifdef DEBUG_METRIC
-    /*{
+    {
       std::ostringstream o;
       o << "ellipse_triangulation.mesh";
       _metric.draw_ellipse_field(o.str().c_str(), *_data->pos, _data->connectM, &_data->mask);
-      MIO::write("triangulation.mesh", *_data->pos, _data->connectM, "TRI", &_data->mask);
-    }*/
+      
+      std::vector<bool> tmask = _data->mask;
+      E_Int cols = _data->connectM.cols();
+      tmask.resize(cols);
+      for (size_type i = 0; i < cols; ++i) // mask box elements in top of invalidated ones.
+      {
+        if (tmask[i])
+          tmask[i] = (_data->colors[i] != 0);
+      }
+      
+      MIO::write("triangulation.mesh", *_data->pos, _data->connectM, "TRI", &tmask);
+    }
 #endif
     
     K_FLD::FloatArray& pos = *_data->pos;
@@ -733,9 +743,19 @@ namespace DELAUNAY
       
 #ifdef DEBUG_MESHER
       {
+        
         std::ostringstream o;
         o << "mesh_iter_" << iter << ".mesh";
-        MIO::write(o.str().c_str(), *_data->pos, _data->connectM, "TRI");
+        
+        std::vector<bool> tmask = _data->mask;
+        E_Int cols = _data->connectM.cols();
+        tmask.resize(cols);
+        for (size_type i = 0; i < cols; ++i) // mask box elements in top of invalidated ones.
+        {
+          if (tmask[i])
+            tmask[i] = (_data->colors[i] != 0);
+        }
+        MIO::write(o.str().c_str(), *_data->pos, _data->connectM, "TRI", &tmask);
       }
 #endif
 #ifdef DEBUG_METRIC

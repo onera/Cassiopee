@@ -100,6 +100,11 @@ E_Int Triangulator::run
   tcreate +=c.elapsed();
   c.start();
 #endif
+  
+#ifdef DEBUG_MESHER
+  if (dbg_enabled)
+    mesher.dbg_flag=true;
+#endif
     
   E_Int err = mesher.run(data);
   

@@ -22,6 +22,8 @@ public:
 
   static bool has_degen(const K_FLD::FloatArray& coord, const K_FLD::IntArray& connect, E_Float tol2);
   
+  static void edit_T3_caracs(const K_FLD::FloatArray& crd, E_Int* pN);
+  
   //
   SwapperT3();
   ~SwapperT3();

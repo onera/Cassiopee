@@ -81,7 +81,7 @@ bool geom_sensor<mesh_t, crd_t>::compute(data_type& data, Vector_t<E_Int>& adap_
 {
 
 #ifdef FLAG_STEP
-  std::cout << _hmesh._ng.PHs.size() << std::endl;
+  std::cout << "iter : " << _iter << ". nb of PHs : " <<  _hmesh._ng.PHs.size() << std::endl;
 #endif
   
   if (++_iter > _iter_max) return false;
