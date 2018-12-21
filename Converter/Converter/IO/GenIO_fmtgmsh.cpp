@@ -85,17 +85,16 @@ E_Int K_IO::GenIO::gmshread(
     res = readDouble(ptrFile, t, -1); f3[i] = t;
     //printf("%f %f %f\n", f(i,1), f(i,2), f(i,3));
   }
-  res = readGivenKeyword(ptrFile, "$ENDNODES");
+  //res = readGivenKeyword(ptrFile, "$ENDNODES"); // pas obligatoire?
 
   /* Elements by zone type */
   res = readGivenKeyword(ptrFile, "$ELEMENTS");
   res = readInt(ptrFile, ti, -1);
   E_Int ne = E_Int(ti); // Global
-  //printf("Number of elements %d\n", ne);
+  printf("Number of elements %d\n", ne);
   FldArrayI indirElements(ne);
   // declarations
 #include "GenIO_gmsh3.h"
-  
   E_Int nDiscard = 0;
 
   E_Int tagl, ind;
@@ -103,12 +102,13 @@ E_Int K_IO::GenIO::gmshread(
   E_LONG pos = KFTELL(ptrFile);
 #define READI readInt(ptrFile, ti, -1)
 #include "GenIO_gmsh1.h"
-  //printf("Elements BAR=%d TRI=%d QUAD=%d TETRA=%d HEXA=%d NODES=%d\n", 
-  //       nBAR, nTRI, nQUAD, nTETRA, nHEXA, nNODE);
-
-  E_Boolean fo = true;
+printf("Elements BAR=%d TRI=%d QUAD=%d TETRA=%d HEXA=%d NODES=%d\n", 
+       nBAR, nTRI, nQUAD, nTETRA, nHEXA, nNODE);
+printf("Elements BAR_3=%d TRI_6=%d QUAD_9=%d\n",
+       nBAR_3, nTRI_6, nQUAD_9);
 
   /* Allocations */
+  E_Boolean fo = true;
 #include "GenIO_gmsh4.h"
   
   /* Lecture reelle des elements par type */
@@ -116,50 +116,7 @@ E_Int K_IO::GenIO::gmshread(
 #include "GenIO_gmsh2.h"
 
   /* Nodes duplications */
-  if (nBAR > 0)
-  {
-    FldArrayF* an = new FldArrayF(f);
-    unstructField.push_back(an);
-  }
-  if (nTRI > 0)
-  {
-    FldArrayF* an = new FldArrayF(f);
-    unstructField.push_back(an);
-  }
-  if (nQUAD > 0)
-  {
-    FldArrayF* an = new FldArrayF(f);
-    unstructField.push_back(an);
-  }
-  if (nTETRA > 0)
-  {
-    FldArrayF* an = new FldArrayF(f);
-    unstructField.push_back(an);
-  }
-  if (nHEXA > 0)
-  {
-    FldArrayF* an = new FldArrayF(f);
-    unstructField.push_back(an);
-  }
-  if (nPENTA > 0)
-  {
-    FldArrayF* an = new FldArrayF(f);
-    unstructField.push_back(an);
-  }
-  if (nPYRA > 0)
-  {
-    FldArrayF* an = new FldArrayF(f);
-    unstructField.push_back(an);
-  }
-  if (nNODE > 0)
-  {
-    FldArrayF* an = new FldArrayF(nNODE,3);
-    for (E_Int i = 0; i < nNODE; i++) 
-    { ind = (*indNODE)[i]-1; ind = indirNodes[ind]-1;
-      (*an)(i,1) = f1[ind]; (*an)(i,2) = f2[ind]; (*an)(i,3) = f3[ind]; }
-    unstructField.push_back(an);
-    delete indNODE;
-  }
+#include "GenIO_gmsh5.h"
 
   // Cree le nom des zones
   //printf("Number of zones %d\n", unstructField.size());

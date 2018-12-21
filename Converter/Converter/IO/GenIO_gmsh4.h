@@ -36,17 +36,17 @@
     connect.push_back(cnBAR_3);
     eltType.push_back(1); nBAR_3 = 0; }
   if (nTRI_6 > 0) {
-    cnBAR_3 = new FldArrayI(nTRI_6, 2, true, fo);
+    cnTRI_6 = new FldArrayI(nTRI_6, 6, true, fo);
     connect.push_back(cnTRI_6);
-    eltType.push_back(1); nTRI_6 = 0; }
+    eltType.push_back(11); nTRI_6 = 0; }
   if (nQUAD_8 > 0) {
-    cnQUAD_8 = new FldArrayI(nQUAD_8, 2, true, fo);
+    cnQUAD_8 = new FldArrayI(nQUAD_8, 8, true, fo);
     connect.push_back(cnQUAD_8);
-    eltType.push_back(1); nQUAD_8 = 0; }
+    eltType.push_back(12); nQUAD_8 = 0; }
   if (nQUAD_9 > 0) {
-    cnQUAD_9 = new FldArrayI(nQUAD_9, 2, true, fo);
+    cnQUAD_9 = new FldArrayI(nQUAD_9, 9, true, fo);
     connect.push_back(cnQUAD_9);
-    eltType.push_back(1); nQUAD_9 = 0; }
+    eltType.push_back(13); nQUAD_9 = 0; }
   if (nTETRA_10 > 0) {
     cnTETRA_10 = new FldArrayI(nTETRA_10, 2, true, fo);
     connect.push_back(cnTETRA_10);

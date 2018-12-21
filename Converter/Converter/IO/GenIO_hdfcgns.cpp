@@ -35,6 +35,37 @@ using namespace std;
 using namespace K_IO;
 
 /* ------------------------------------------------------------------------- */
+E_Int checkCompressionFilters()
+{
+  unsigned int filter_info;
+  E_Int avail = H5Zfilter_avail(H5Z_FILTER_SZIP);
+  if (!avail) 
+  {
+    printf ("Warning: hdf: szip filter not available.\n");
+    return 1;
+  }
+  E_Int status = H5Zget_filter_info (H5Z_FILTER_SZIP, &filter_info);
+  if ( !(filter_info & H5Z_FILTER_CONFIG_ENCODE_ENABLED) ||
+      !(filter_info & H5Z_FILTER_CONFIG_DECODE_ENABLED) ) 
+  {
+    printf ("Warning: hdf: szip filter not available for encoding and decoding.\n");
+    return 1;
+  }
+
+  // Example of creating compressed dataSet
+  /*
+  dcpl = H5Pcreate(H5P_DATASET_CREATE);
+  status = H5Pset_szip (dcpl, H5_SZIP_NN_OPTION_MASK, 8);
+  status = H5Pset_chunk(dcpl, 2, chunk);
+
+  dset = H5Dcreate (file, DATASET, H5T_STD_I32LE, space, H5P_DEFAULT, dcpl,
+                    H5P_DEFAULT);
+  status = H5Dwrite (dset, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT,
+                wdata[0]);
+  */
+}
+
+/* ------------------------------------------------------------------------- */
 hid_t K_IO::GenIOHdf::ADF_to_HDF_datatype(const char *tp)
 {
   if (!strcmp(tp, L3T_B1)) return H5T_NATIVE_UCHAR;

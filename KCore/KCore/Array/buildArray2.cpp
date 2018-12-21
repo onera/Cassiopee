@@ -67,6 +67,25 @@ PyObject* K_ARRAY::buildArray2(E_Int nfld, const char* varString,
 }
 
 //=============================================================================
+/* Build a structured array from a FldArrayF
+   IN: varString: variables string
+   IN: ni,nj,nk: number of points in field
+   IN: api (1: array, 2: array2)
+   OUT: PyObject created. */
+//=============================================================================
+/*
+PyObject* K_ARRAY::buildArray2(FldArrayF& field, const char* varString, 
+                               E_Int ni, E_Int nj, E_Int nk, E_Int api)
+{
+  PyObject* o = buildArray2(field.getNfld(), varString, 
+                            ni, nj, nk, api);
+  FldArrayF* fp; char* varString2;
+  getFromArray2(o, varString2, fp);
+  delete fp;
+  return o;
+}
+*/
+//=============================================================================
 /* Build an empty unstructured array 
    IN: nfld: number of fields
    IN: varString: variable string

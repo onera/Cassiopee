@@ -22,13 +22,22 @@
 #include <iostream>
 #include <stdlib.h>
 
-//# define EXTARITH
-//# define TESTMEMORY
-//# define TESTLOGGER
-#ifdef EXTARITH
+// Les differents tests
+# define EXTARITH   0
+# define TESTMEMORY 0
+# define TESTLOGGER 0
+#define  TEST1      0
+#define  TEST2      0
+#define  TEST3      0
+#define  TESTARRAY2 0
+#define  TESTFLD    0
+#define  TESTNUMPY  0
+
+
+#if EXTARITH == 1
 #include "ExtArith/quad_double.hpp"
 #endif
-#if defined(TESTMEMORY)
+#if TESTMEMORY == 1
 #include "Memory/shared_ptr.hpp"
 #include "Memory/vector_view.hpp"
 #include "Memory/unique_ptr.hpp"
@@ -48,7 +57,7 @@ namespace {
 #   define nullptr NULL
 # endif
 #endif
-#if defined(TESTLOGGER)
+#if TESTLOGGER == 1
 # include "Logger/logger.hpp"
 # include "Logger/log_to_file.hpp"
 # include "Logger/log_from_root_output.hpp"
@@ -58,9 +67,8 @@ namespace {
 //==============================================================================
 PyObject* K_KCORE::tester(PyObject* self, PyObject* args)
 {
-#define TESTNUMPY
 
-#ifdef TESTNUMPY
+#if TESTNUMPY == 1
 
 K_FLD::FldArrayF f(1,3);
 for (E_Int i = 0; i < 1; i++) f(i,1) = 1.;
@@ -76,7 +84,7 @@ return a;
 
 #endif
 
-#ifdef TEST1
+#if TEST1 == 1
   PyObject* o;
   if (!PyArg_ParseTuple(args, "O", &o)) return NULL;
   E_Float* t = new E_Float[1]; t[0] = 12.;
@@ -86,14 +94,14 @@ return a;
   return p;
 #endif
 
-#ifdef TEST2
+#if TEST2 == 1
   PyObject* o; char* path;
   if (!PyArg_ParseTuple(args, "Os", &o, &path)) return NULL;
   PyObject* p = K_PYTREE::getNodeFromPath(o, path);
   return p;
 #endif
 
-#ifdef TEST3
+#if TEST3 == 1
   PyObject* o;
   if (!PyArg_ParseTuple(args, "O", &o)) return NULL;
   E_Int ni, nj, nk;
@@ -109,7 +117,7 @@ return a;
   return Py_None;
 #endif
 
-#ifdef TESTARRAY2
+#if TESTARRAY2 == 1
   // Structured array1 - build - ni=5,nj=5,nk=5
   PyObject* o = K_ARRAY::buildArray2(5, "x,y,z,F,G", 5,5,5, 1);
   // Structured array1 - get
@@ -199,7 +207,7 @@ return a;
   return o;
 #endif
 
-#ifdef TESTFLD
+#if TESTFLD == 1
   // test nouveau FldArray
   K_FLD::FldArrayF t1; 
 
@@ -286,7 +294,8 @@ return a;
   pt3 = t4.begin(3);
   printf("3: %f %f %f\n", pt1[10*3], pt2[10*3], pt3[10*3]);
 #endif
-#if defined(TESTMEMORY)
+
+#if TESTMEMORY == 1
   // Unique pointer tests
   // ================================================================================
   {
@@ -417,9 +426,9 @@ return a;
 #   endif
   }
   printf("End of memory tests\n");
-#undef TESTMEMORY
 #endif
-# if defined (EXTARITH)
+
+#if EXTARITH == 1
   {
     using namespace ExtendedArithmetics;
     printf("Beginning extended arithmetics tests\n");
@@ -480,9 +489,9 @@ return a;
     printf("Square root of double : %lg et square root of quad_double : %lg\n", root, double(qroot));
   }
   printf("End of Extended arithmetics tests\n");
-# undef EXTARITH
 #endif
-#if defined(TESTLOGGER)
+
+#if TESTLOGGER == 1
   {
     K_LOGGER::logger log;
     log.subscribe( new K_LOGGER::log_to_std_output(K_LOGGER::logger::all) );
@@ -491,8 +500,8 @@ return a;
     log << LogError << "Aie ca fait mal...\n\n\n...\nMais non, je rigole :-)" << std::endl;
     log << LogAssert((1==0)) << "Mmmh, ne devrait pas s'afficher" << std::endl;
   }
-# undef TESTLOGGER
 #endif  
+
   Py_INCREF(Py_None);
   return Py_None;
 }

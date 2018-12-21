@@ -1,4 +1,4 @@
-
+# OCC pyTree
 try:
     import OCC as O
     import numpy
@@ -19,6 +19,7 @@ def convertIGES2PyTree(fileName, h=0., chordal_err=0., growth_ratio=0.):
   Usage: convertIGES2PyTree(fileName, options)"""
   try: file = open(fileName, 'r')
   except: raise IOError("convertIGES2PyTree: file %s not found."%fileName)
+  file.close()
 
   a = O.convertIGES2Arrays(fileName, h, chordal_err, growth_ratio)
   
