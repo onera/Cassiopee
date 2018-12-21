@@ -9,7 +9,7 @@
 
   <body>
     <h1>OCC: Open Cascade Connexion</h1>
-    <h2>Version: 2.7 (07/2018)</h2>
+    <h2>Version: 2.8 (12/2018)</h2>
     <h2>Author: Onera</h2>
     <h2><a href="Latex/OCC.pdf" target="_self"><img src="pdf_logo.gif" alt="Download pdf version."></a></h2> 
 <HR>
@@ -49,7 +49,7 @@
     <strong>C.convertIGESArrays</strong>:
     read an IGES file and return a list of arrays:
     <div class="code">
-      A = C.convertIGESArrays(fileName, h=0., chordal_err=0.)
+      A = C.convertIGESArrays(fileName, h=0., chordal_err=0., growth_ratio=0.)
     </div>
 
     The file extension must be one of the regular extensions : .igs, .iges, .IGS or .IGES. Both ASCII and binary format are handled. <br> <br>
@@ -84,6 +84,16 @@
     </td>
     <td>
     0. The algorithm uses in this case 2% of h value. 
+    </td></tr>
+    <tr>
+    <td>
+    growth_ratio
+    </td>
+    <td>
+    Specified growth_ratio. 
+    </td>
+    <td>
+    0: constant mesh size, if > 1., specifies the growing ratio of mesh size from boundary to interior. 
     </td></tr>
     </table><br>
     

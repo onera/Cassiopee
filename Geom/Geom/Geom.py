@@ -1,6 +1,6 @@
 """Geometry definition module.
 """
-__version__ = '2.8'
+__version__ = '2.9'
 __author__ = "Stephanie Peron, Christophe Benoit, Pascal Raud, Sam Landier"
 # 
 # Python Interface to define geometries in arrays

@@ -37,7 +37,7 @@ libraryDirs += paths; libraries += libs
 # setup =======================================================================
 setup(
     name="Initiator",
-    version="2.8",
+    version="2.9",
     description="Initiator for *Cassiopee* modules.",
     author="Onera",
     package_dir={"":"."},

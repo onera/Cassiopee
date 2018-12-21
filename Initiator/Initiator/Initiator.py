@@ -1,6 +1,6 @@
 """Initialization of grid solutions.
 """
-__version__ = '2.8'
+__version__ = '2.9'
 __author__ = "Stephanie Peron, Christophe Benoit, Gaelle Jeanfaivre, Pascal Raud"
 
 import initiator
