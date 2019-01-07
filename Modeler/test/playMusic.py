@@ -1,4 +1,4 @@
-# - playMusic _
+# - playMusic -
 import Modeler.Sound as Sound
 import time
 

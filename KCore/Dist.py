@@ -73,27 +73,47 @@ def getenv(name):
      else: return ''
 
 #==============================================================================
-# Check all (python, numpy, C++, fortran, hdf)
+# Check all (python, numpy, C++, fortran, hdf, mpi, mpi4py, png, osmesa, mpeg)
 #==============================================================================
 def checkAll():
+    from config import additionalLibPaths, additionalIncludePaths
+    
     out = []
     try:
         (pythonVersion, pythonIncDir, pythonLibDir, pythonLibs) = checkPython()
         out += ['Python: %s'%pythonVersion]
     except: out += ['Python: include is missing.']
     try:
-        (numpyVersion, numpyIncDir, ti) = checkNumpy()
+        (numpyVersion, numpyIncDir, numpyLibDir) = checkNumpy()
         out += ['Numpy: %s'%numpyVersion]
     except: out += ['Numpy: is missing or numpy includes are missing.']
-    (ok, CppLibs, CppLibPaths) = checkCppLibs()
-    if ok: out += ['C++: OK, %s %s'%(CppLibs, CppLibPaths)]
-    else: out += ['C++: Fail']
-    (ok, FLibs, FLibPaths) = checkFortranLibs()
-    if ok: out += ['f77: OK, %s %s'%(FLibs, FLibPaths)]
-    else: out += ['f77: Fail']
-    (ok, hdfIncDir, hdfLib) = checkHdf()
-    if ok: out += ['hdf: OK, %s %s'%(hdfIncDir, hdfLib)]
-    else: out += ['hdf: missing']
+    (ok, CppLibs, CppLibPaths) = checkCppLibs(additionalLibPaths, additionalIncludePaths)
+    if ok: out += ['C++: OK (%s, %s).'%(CppLibs, CppLibPaths)]
+    else: out += ['C++: Fail.']
+    (ok, FLibs, FLibPaths) = checkFortranLibs(additionalLibPaths, additionalIncludePaths)
+    if ok: out += ['f77: OK (%s, %s).'%(FLibs, FLibPaths)]
+    else: out += ['f77: Fail.']
+    (ok, hdfIncDir, hdfLibDir) = checkHdf(additionalLibPaths, additionalIncludePaths)
+    if ok: out += ['hdf: OK (%s, %s).'%(hdfIncDir, hdfLibDir)]
+    else: out += ['hdf: missing (%s, %s).'%(hdfIncDir, hdfLibDir)]
+    (ok, pngIncDir, pngLibDir) = checkPng(additionalLibPaths, additionalIncludePaths)
+    if ok: out += ['png: OK (%s, %s).'%(pngIncDir, pngLibDir)]
+    else: out += ['png: missing (%s, %s).'%(pngIncDir, pngLibDir)]
+    (ok, osmesaIncDir, osmesaLibDir, libname) = checkOSMesa(additionalLibPaths, additionalIncludePaths)
+    if ok: out += ['osmesa: OK (%s, %s).'%(osmesaIncDir, osmesaLibDir)]
+    else: out += ['osmesa: missing (%s, %s).'%(osmesaIncDir, osmesaLibDir)]
+    (ok, mpegIncDir, mpegLibDir) = checkMpeg(additionalLibPaths, additionalIncludePaths)
+    if ok: out += ['mpeg: OK (%s, %s).'%(mpegIncDir, mpegLibDir)]
+    else: out += ['mpeg: missing (%s, %s).'%(mpegIncDir, mpegLibDir)]
+    (ok, mpiIncDir, mpiLibDir) = checkMpi(additionalLibPaths, additionalIncludePaths)
+    if ok: out += ['mpi: OK (%s, %s).'%(mpiIncDir, mpiLibDir)]
+    else: out += ['mpi: missing (%s %s).'%(mpiIncDir, mpiLibDir)]
+    (ok, mpi4pyIncDir, mpi4pyLibDir) = checkMpi4py(additionalLibPaths, additionalIncludePaths)
+    if ok: out += ['mpi4py: OK (%s).'%(mpi4pyIncDir)]
+    else: out += ['mpi4py: missing (%s).'%(mpi4pyIncDir)]
+    
+    print('Summary:')
+    print('========')
     for i in out: print(i)
 
 #==============================================================================
@@ -358,7 +378,6 @@ def writeSetupCfg():
 # ou dans config.py (installBase.py)
 #==============================================================================
 def getDistUtilsCompilers():
-
     vars = distutils.sysconfig.get_config_vars('CC', 'CXX', 'OPT',
                                                'BASECFLAGS', 'CCSHARED',
                                                'LDSHARED', 'SO')
@@ -829,8 +848,8 @@ def checkKCore():
         import KCore.installPath
         kcoreIncDir = KCore.installPath.includePath
         kcoreIncDir = os.path.join(kcoreIncDir, 'KCore')
-        kcoreLib = KCore.installPath.libPath
-        return (KCore.__version__, kcoreIncDir, kcoreLib)
+        kcoreLibDir = KCore.installPath.libPath
+        return (KCore.__version__, kcoreIncDir, kcoreLibDir)
 
     except ImportError:
         raise SystemError("Error: kcore library is required for the compilation of this module.")
@@ -845,8 +864,8 @@ def checkGenerator():
         generatorIncDir = KCore.installPath.includePath
         generatorIncDir = os.path.dirname(generatorIncDir)
         generatorIncDir = os.path.join(generatorIncDir, 'Generator/Generator')
-        generatorLib = KCore.installPath.libPath
-        return (Generator.__version__, generatorIncDir, generatorLib)
+        generatorLibDir = KCore.installPath.libPath
+        return (Generator.__version__, generatorIncDir, generatorLibDir)
 
     except ImportError:
         raise SystemError("Error: generator library is required for the compilation of this module.")
@@ -862,8 +881,8 @@ def checkFast():
         fastIncDir = fastIncDir.replace('Modules', 'PModules')
         fastIncDir = os.path.dirname(fastIncDir)
         fastIncDir = os.path.join(fastIncDir, 'Fast/Fast')
-        fastLib = KCore.installPath.libPath
-        return (Fast.__version__, fastIncDir, fastLib)
+        fastLibDir = KCore.installPath.libPath
+        return (Fast.__version__, fastIncDir, fastLibDir)
 
     except ImportError:
         raise SystemError("Error: fast library is required for the compilation of this module.")
@@ -878,8 +897,8 @@ def checkConnector():
         ConnectorIncDir = KCore.installPath.includePath
         ConnectorIncDir = os.path.dirname(ConnectorIncDir)
         ConnectorIncDir = os.path.join(ConnectorIncDir, 'Connector/Connector')
-        ConnectorLib = KCore.installPath.libPath
-        return (Connector.__version__, ConnectorIncDir, ConnectorLib)
+        ConnectorLibDir = KCore.installPath.libPath
+        return (Connector.__version__, ConnectorIncDir, ConnectorLibDir)
 
     except ImportError:
         raise SystemError("Error: Connector library is required for the compilation of this module.")
@@ -1042,16 +1061,21 @@ def checkGlew(additionalLibPaths=[], additionalIncludePaths=[]):
 # Retourne: (True/False, chemin des includes, chemin de la librairie)
 #=============================================================================
 def checkOSMesa(additionalLibPaths=[], additionalIncludePaths=[]):
+    libname = 'OSMesa'
     l = checkLibFile__('libOSMesa.so', additionalLibPaths)
     if l is None:
         l = checkLibFile__('libOSMesa.a', additionalLibPaths)
+        if l is None:
+            l = checkLibFile__('libosmesa.a', additionalLibPaths)
+            if l is not None: libname = 'osmesa'
+        
     i = checkIncFile__('GL/osmesa.h', additionalIncludePaths)
     if i is not None and l is not None:
         print('Info: libOSmesa detected at %s.'%l)
-        return (True, i, l)
+        return (True, i, l, libname)
     else:
         print('Info: libOSMesa or GL/osmesa.h was not found on your system. No offscreen support for CPlot.')
-        return (False, '', '')
+        return (False, i, l, libname)
 
 #=============================================================================
 # Check for png (libpng)
@@ -1070,7 +1094,7 @@ def checkPng(additionalLibPaths=[], additionalIncludePaths=[]):
         return (True, i, l)
     else:
         print('Info: libpng or png.h was not found on your system. No png support.')
-        return (False, '', '')
+        return (False, i, l)
 
 #=============================================================================
 # Check for mpeg (ffmpeg)
@@ -1093,7 +1117,7 @@ def checkMpeg(additionalLibPaths=[], additionalIncludePaths=[]):
         return (True, i, l)
     else:
         print('Info: libavcodec or libavcodec/avcodec.h,  libavutil/mem.h or libavutil/imgutils.h was not found on your system. No mpeg support.')
-        return (False, '', '')
+        return (False, i, l)
 
 #=============================================================================
 # Check for Adf
@@ -1110,7 +1134,7 @@ def checkAdf(additionalLibPaths=[], additionalIncludePaths=[]):
         return (True, i, l)
     else:
         print('Info: libadf or adf/ADF.h was not found on your system. No adf support.')
-        return (False, '', '')
+        return (False, i, l)
 
 #=============================================================================
 # Check for Hdf
@@ -1127,7 +1151,7 @@ def checkHdf(additionalLibPaths=[], additionalIncludePaths=[]):
         return (True, i, l)
     else:
         print('Info: libhdf5 or hdf5.h was not found on your system. No hdf5 support.')
-        return (False, '', '')
+        return (False, i, l)
 
 #=============================================================================
 # Check for Mpi
@@ -1146,7 +1170,7 @@ def checkMpi(additionalLibPaths=[], additionalIncludePaths=[]):
         return (True, i, l)
     else:
         print('Info: libmpi/msmpi or mpi.h was not found on your system. No Mpi support.')
-        return (False, '', '')
+        return (False, i, l)
 
 #=============================================================================
 # Check for Mpi4py
@@ -1171,7 +1195,7 @@ def checkMpi4py(additionalLibPaths=[], additionalIncludePaths=[]):
         return (True, i, '')
     else:
         print('Info: mpi4py or mpi4py.MPI.h was not found on your system. No Mpi support.')
-        return (False, '', '')
+        return (False, i, '')
 
 #=============================================================================
 # Check for BLAS
@@ -1194,7 +1218,7 @@ def checkBlas(additionalLibPaths=[], additionalIncludePaths=[]):
         return (True, i, l, compOpt)
     else:
         print('Info: libblas or cblas.h was not found on your system. No Blas support.')
-        return (False, '', '', compOpt)
+        return (False, i, l, compOpt)
 
 #=============================================================================
 # Check for LAPACK
@@ -1219,7 +1243,7 @@ def checkLapack(additionalLibPaths=[], additionalIncludePaths=[]):
         return (True, i, l, compOpt)
     else:
         print('Info: liblapack or lapack.h or lapacke.h was not found on your system. No Lapack support.')
-        return (False, '', '', compOpt)
+        return (False, i, l, compOpt)
 
 #=============================================================================
 # Check for Cython

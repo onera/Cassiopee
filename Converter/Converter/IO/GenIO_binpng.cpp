@@ -243,7 +243,8 @@ E_Int K_IO::GenIO::pngread(
 }
 
 //=============================================================================
-// This is a non-sense function
+// Ecrit seulement le premier domaine structure
+// Recupere seulement les champs RGB
 //=============================================================================
 E_Int K_IO::GenIO::pngwrite(
   char* file, char* dataFmt, char* varString,
@@ -254,6 +255,97 @@ E_Int K_IO::GenIO::pngwrite(
   vector<E_Int>& eltType,
   vector<char*>& zoneNames)
 {
-  printf("Warning: pngwrite: Can not be used for output.");
-  return 1;
+  if (structField.size() == 0) return 0;
+  printf("%s\n", varString);
+  E_Int posR = K_ARRAY::isNamePresent((char*)"r", varString);
+  if (posR == -1) posR = K_ARRAY::isNamePresent((char*)"R", varString);
+  E_Int posG = K_ARRAY::isNamePresent((char*)"g", varString);
+  if (posG == -1) posG = K_ARRAY::isNamePresent((char*)"G", varString);
+  E_Int posB = K_ARRAY::isNamePresent((char*)"b", varString);
+  if (posB == -1) posB = K_ARRAY::isNamePresent((char*)"B", varString);
+  printf("pos %d %d %d\n", posR, posG, posB);
+  int mode = 0; // only RGB
+  
+  // recupere la taille de la premiere grille structuree
+  int width = 0; int height = 0;
+  width = ni[0]; height = nj[0];
+  
+  // cree le buffer
+  png_byte* buffer = new png_byte [3*width*height];
+  for (int i = 0; i < 3*width*height; i++) buffer[i] = 0;
+  if (posR >= 0)
+  {
+    E_Float* r = structField[0]->begin(posR+1);
+    for (int i = 0; i < width*height; i++) buffer[3*i] = (png_byte)r[i];
+  }
+  if (posG >= 0)
+  {
+    E_Float* g = structField[0]->begin(posG+1);
+    for (int i = 0; i < width*height; i++) buffer[3*i+1] = (png_byte)g[i];
+  }
+  if (posB >= 0)
+  {
+    E_Float* b = structField[0]->begin(posB+1);
+    for (int i = 0; i < width*height; i++) buffer[3*i+2] = (png_byte)b[i];
+  }
+
+  
+  png_byte color_type;
+  png_byte bit_depth;
+  int stride = 0;
+  if (mode == 0) 
+  { color_type = PNG_COLOR_TYPE_RGB; bit_depth = 8; stride = 3; }
+  else { color_type = PNG_COLOR_TYPE_RGBA; bit_depth = 8; stride = 4; }  
+  
+  png_structp png_ptr;
+  png_infop info_ptr;
+  png_bytep* row_pointers;
+
+  FILE* fp;
+  if ((fp = fopen(file, "wb")) == NULL) {
+    printf("Warning: cannot open %s.\n", file);
+    return 1;
+  }
+
+  /* initialize stuff */
+  png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+  if (!png_ptr) return 1;
+
+  info_ptr = png_create_info_struct(png_ptr);
+  if (!info_ptr) return 1;
+
+  if (setjmp(png_jmpbuf(png_ptr))) return 1;
+  png_init_io(png_ptr, fp);
+
+  /* write header */
+  if (setjmp(png_jmpbuf(png_ptr))) return 1;
+
+  png_set_IHDR(png_ptr, info_ptr, width, height,
+               bit_depth, color_type, PNG_INTERLACE_NONE,
+               PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
+
+  png_write_info(png_ptr, info_ptr);
+
+  /* write bytes */
+  if (setjmp(png_jmpbuf(png_ptr))) return 1;
+  
+  row_pointers = new png_bytep [height];
+  for (int y = 0; y < height; y++)
+  {
+    row_pointers[y] = (png_bytep)buffer + (height-1-y)*width*stride;
+  }
+
+  png_write_image(png_ptr, row_pointers);
+
+  if (setjmp(png_jmpbuf(png_ptr))) {delete[] row_pointers; return 1;}
+
+  png_write_end(png_ptr, NULL);
+
+  /* cleanup allocations */
+  delete [] row_pointers;
+  delete [] buffer;
+  
+  fclose(fp); 
+
+  return 0;
 }

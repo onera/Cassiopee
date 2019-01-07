@@ -1,7 +1,7 @@
 import KCore
 
-# Test Fld
-#KCore.tester()
+KCore.tester()
+import sys; sys.exit()
 
 # Test Generator
 #import Generator.PyTree as G

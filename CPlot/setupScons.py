@@ -41,12 +41,22 @@ else:
     libGL = ['GL', 'GLU']
 
 from KCore.config import *
-if not UseOSMesa: libraries += libGL
-
 prod = os.getenv("ELSAPROD")
 if prod is None: prod = 'xx'
 libraryDirs = ["build/"+prod]
 includeDirs = [numpyIncDir, kcoreIncDir]
+
+# Test if OSMesa exists =======================================================
+if UseOSMesa:
+    (OSMesa, OSMesaIncDir, OSMesaLibDir, libname) = Dist.checkOSMesa(additionalLibPaths,
+                                                                     additionalIncludePaths)
+else: OSMesa = False
+
+if not OSMesa: libraries += libGL
+else: 
+  libraries += [libname]+libGL
+  libraryDirs += [OSMesaLibDir]
+  includeDirs += [OSMesaIncDir]
 
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
@@ -69,24 +79,12 @@ if mpeg:
     libraries += ["avcodec", "avutil"]
     libraryDirs += [mpegLib]
     includeDirs += [mpegIncDir]
-
-# Test if OSMesa exists =======================================================
-# Put this to True for using CPlot in batch mode
-if UseOSMesa:
-    (OSMesa, OSMesaIncDir, OSMesaLib) = Dist.checkOSMesa(additionalLibPaths,
-                                                         additionalIncludePaths)
-    if OSMesa:
-        libraries += ["OSMesa", "GL", "GLU"]
-        libraryDirs += [OSMesaLib]
-        includeDirs += [OSMesaIncDir]
-else: OSMesa = False
     
 libraryDirs += [kcoreLibDir]
 
 # Extensions =================================================================
 import KCore.installPath
 EXTRA = ['-D__SHADERS__']
-
 if OSMesa: EXTRA += ['-D__MESA__']
 
 EXTRA += Dist.getCppArgs()

@@ -465,7 +465,7 @@ class GenIO
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connectivity,
       std::vector<E_Int>& eltType, std::vector<char*>& zoneNames);
-    /** pngwrite (stub) */
+    /** pngwrite */
     E_Int pngwrite(
       char* file, char* dataFmt, char* varString,
       std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,

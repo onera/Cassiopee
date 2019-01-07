@@ -134,6 +134,9 @@ namespace K_ARRAY
      retourne le nombre de variables. */
   E_Int getVarName(PyObject* varNames, char* varString);
 
+  /* Analyse element string. For instance: "TRI_6" will return "TRI" and 6 */
+  E_Int eltString2TypeId(char* eltString, char* eltType, E_Int& nvpe, E_Int& loc, E_Int& typeId);
+  
   /* Get data pointers dans un PyObject array.
      Pas de verification ici. */
   E_Float* getFieldPtr(PyObject* array);

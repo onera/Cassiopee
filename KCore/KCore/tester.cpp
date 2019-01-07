@@ -23,15 +23,16 @@
 #include <stdlib.h>
 
 // Les differents tests
-# define EXTARITH   0
-# define TESTMEMORY 0
-# define TESTLOGGER 0
-#define  TEST1      0
-#define  TEST2      0
-#define  TEST3      0
-#define  TESTARRAY2 0
-#define  TESTFLD    0
-#define  TESTNUMPY  0
+# define EXTARITH      0
+# define TESTMEMORY    0
+# define TESTLOGGER    0
+#define  TEST1         0
+#define  TEST2         0
+#define  TEST3         0
+#define  TESTARRAY2    0
+#define  TESTFLD       0
+#define  TESTNUMPY     0
+#define  TESTHIGHORDER 1
 
 
 #if EXTARITH == 1
@@ -205,6 +206,33 @@ return a;
   //printf("nelts=%d, nfaces=%d\n", nelts, nfaces);
   RELEASESHAREDB(ret, o, f, c);
   return o;
+#endif
+
+#if TESTHIGHORDER == 1
+  char eltType[128];
+  E_Int loc, nvpe, typeId;
+  K_ARRAY::eltString2TypeId((char*)"TETRA_20*", eltType, nvpe, loc, typeId);
+  printf("%s %d %d\n", eltType, nvpe, loc);
+  K_ARRAY::eltString2TypeId((char*)"TETRA", eltType, nvpe, loc, typeId);
+  printf("%s %d %d\n", eltType, nvpe, loc);
+  
+  K_ARRAY::eltString2TypeId((char*)"NODE", eltType, nvpe, loc, typeId);
+  printf("%s %d %d\n", eltType, nvpe, loc);
+  
+  K_ARRAY::eltString2TypeId((char*)"QUAD_8", eltType, nvpe, loc, typeId);
+  printf("%s %d %d\n", eltType, nvpe, loc);
+  
+  K_ARRAY::eltString2TypeId((char*)"QUAD", eltType, nvpe, loc, typeId);
+  printf("%s %d %d\n", eltType, nvpe, loc);
+    
+  K_ARRAY::eltString2TypeId((char*)"BAR_3", eltType, nvpe, loc, typeId);
+  printf("%s %d %d\n", eltType, nvpe, loc);
+  K_ARRAY::eltString2TypeId((char*)"TRI_6", eltType, nvpe, loc, typeId);
+  printf("%s %d %d\n", eltType, nvpe, loc);
+  
+  K_ARRAY::eltString2TypeId((char*)"NGON", eltType, nvpe, loc, typeId);
+  printf("%s %d %d\n", eltType, nvpe, loc);
+  
 #endif
 
 #if TESTFLD == 1

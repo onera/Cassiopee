@@ -44,7 +44,7 @@ False, # CPlotOffScreen
 True, # useOMP
 False, # static
 False, # CPlotOffScreen
-['c:/msys64/mingw64/include', 'c:/Program Files (x86)/Microsoft SDKs/MPI/Include'], # additionalIncludePaths
+['c:/msys64/mingw64/include', 'c:/msys64/mingw64/include/mesa', 'c:/Program Files (x86)/Microsoft SDKs/MPI/Include'], # additionalIncludePaths
 ['gomp', 'gfortran'], # additionalLibs
 ['c:/msys64/mingw64/lib', 'c:/Program Files (x86)/Microsoft SDKs/MPI/Lib/x64'] # additionalLibPaths
 ],

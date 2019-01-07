@@ -8,7 +8,7 @@ import wave
 # Globals
 audioHandle = None
 musicFileHandle = None
-poolSize = 3
+poolSize = 4
 soundPool = [None]*poolSize
 
 # Init sound module
@@ -89,6 +89,13 @@ def soundCallback2__(in_data, frame_count, time_info, status):
     pt += frame_count; h[1] = pt
     if s*pt > len(gdata): h[1] = 0
     return (data, pyaudio.paContinue)
+def soundCallback3__(in_data, frame_count, time_info, status):
+    h = soundPool[3]
+    pt = h[1]; s = h[5]; gdata = h[6]
+    data = gdata[s*pt:s*pt+s*frame_count]
+    pt += frame_count; h[1] = pt
+    if s*pt > len(gdata): h[1] = 0
+    return (data, pyaudio.paContinue)
 
 def playSound(soundHandle):
     if audioHandle is None: initSound()
@@ -101,6 +108,7 @@ def playSound(soundHandle):
     if i == 0: callback = soundCallback0__
     elif i == 1: callback = soundCallback1__
     elif i == 2: callback = soundCallback2__
+    elif i == 3: callback = soundCallback3__
     else: callback = soundCallback0__
     soundPool[i] = [None, 0, soundHandle[2], soundHandle[3], soundHandle[4], 
     soundHandle[5], soundHandle[6]]

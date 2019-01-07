@@ -205,7 +205,7 @@ PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
     d->_view.w = screenWidth-320;
     d->_view.h = screenHeight;
  
-    //printf("Creating OS context...");
+    //printf("Creating OS context..."); fflush(stdout);
     OSMesaContext ctx; 
     ctx = OSMesaCreateContext(OSMESA_RGBA, NULL);
     d->ptrState->offscreenBuffer = (char*)malloc(d->_view.w * d->_view.h * 4 * 

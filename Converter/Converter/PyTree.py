@@ -3283,7 +3283,7 @@ def _addFamilyOfStageGC__(z, bndName, bndType2, typeZone=0, faceList=[], element
     r = r.reshape((1,r.size), order='Fortran')
     info[2].append([Internal.__FACELIST__, r, [], 'IndexArray_t'])
 
-  elif typeZone == 2: #UNS BE
+  elif typeZone == 2: # UNS BE
     if elementList != []:
       if isinstance(elementList, numpy.ndarray): r = elementList
       else: r = numpy.array(elementList, dtype=numpy.int32)

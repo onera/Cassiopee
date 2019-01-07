@@ -3,6 +3,7 @@
 #
 import Compressor
 import numpy
+import Converter.Internal as Internal
 __version__ = Compressor.__version__
 
 #------------------------------------------------------------------------------
@@ -112,3 +113,60 @@ def writeUnsteadyCoefs(iteration, indices, filename, loc,format="b"):
     """write interpolation coefficients for unsteady computation."""
     Compressor.writeUnsteadyCoefs(iteration, indices, filename,loc,format)
     
+# Remplace les coordonnees d'une grille cartesienne par un noeud UserDefined
+def compressCartesian(t):
+    tp = Internal.copyRef(t)
+    _compressCartesian(tp)
+    return tp
+
+def _compressCartesian(t):
+    zones = Internal.getZones(t)
+    for z in zones:
+        ztype = Internal.getZoneDim(z)
+        if ztype[0] == 'Unstructured': continue
+        gc = Internal.getNodeFromName1(z, Internal.__GridCoordinates__)
+        if gc is None: continue
+        xp = Internal.getNodeFromName1(gc, 'CoordinateX')
+        yp = Internal.getNodeFromName1(gc, 'CoordinateY')
+        zp = Internal.getNodeFromName1(gc, 'CoordinateZ')
+        if xp is None: continue
+        if yp is None: continue
+        if zp is None: continue
+        xp = Internal.getValue(xp).ravel('k')
+        yp = Internal.getValue(yp).ravel('k')
+        zp = Internal.getValue(zp).ravel('k')
+        ni = ztype[1]; nj = ztype[2]; nk = ztype[3]
+        x0 = xp[0]; y0 = yp[0]; z0 = zp[0]
+        hi = xp[1]-x0; hj = yp[nj]-y0; hk = zp[ni*nj]-z0
+        Internal._rmNodesFromName(gc, 'CoordinateX')
+        Internal._rmNodesFromName(gc, 'CoordinateY')
+        Internal._rmNodesFromName(gc, 'CoordinateZ')
+        Internal.createChild(z, 'CartesianData', 'DataArray_t', value=[x0,y0,z0,hi,hj,hk])
+    return None
+    
+# uncompress Cartesian
+def uncompressCartesian(t):
+    tp = Internal.copyRef(t)
+    _uncompressCartesian(tp)
+    return tp
+    
+def _uncompressCartesian(t):
+    import Generator.PyTree as G
+    zones = Internal.getZones(t)
+    for z in zones:
+        ztype = Internal.getZoneDim(z)
+        if ztype[0] == 'Unstructured': continue
+        c = Internal.getNodeFromName1(z, 'CartesianData')
+        if c is None: continue
+        c = Internal.getValue(c)
+        x0 = c[0]; y0 = c[1]; z0 = c[2]
+        hi = c[3]; hj = c[4]; hk = c[5]
+        tmp = G.cart((x0,y0,z0), (hi,hj,hk), (ztype[1], ztype[2], ztype[3]))
+        gc = Internal.getNodeFromName1(z, Internal.__GridCoordinates__)
+        gct = Internal.getNodeFromName1(tmp, Internal.__GridCoordinates__) 
+        if gc is None: Internal._addChild(z, gct)
+        else: 
+            Internal._rmNodesFromName(z, Internal.__GridCoordinates__)
+            Internal._addChild(z, gct)
+    return None
+        

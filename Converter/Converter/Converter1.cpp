@@ -640,6 +640,16 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
       fieldc, fieldu, connectu, elt,
       zoneNames);
   }
+  else if (K_STRING::cmp(fileFmt, "bin_png") == 0) // in png
+  {
+    if (fieldu.size() != 0)
+      printf("Warning: convertArrays2File: unstructured arrays not converted.\n"); 
+    
+    isok = K_IO::GenIO::getInstance()->pngwrite(fileName, dataFmt, varString,
+                                                ni, nj, nk,
+                                                fieldc, fieldu, connectu, elt,
+                                                zoneNames);
+  }
   else if (K_STRING::cmp(fileFmt, "fmt_su2") == 0) // fmt su2
   {
     if (fieldc.size() != 0)

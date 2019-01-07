@@ -106,8 +106,8 @@ E_Int K_IO::GenIO::objread(
   // Recherche si normales
   KFSEEK(ptrFile, 0, SEEK_SET);
   res = readGivenKeyword(ptrFile, "VN ");
-  bool normalPresent = false;
-  if (res == 1) normalPresent = true;
+  //bool normalPresent = false;
+  //if (res == 1) normalPresent = true;
   //if (normalPresent) printf("I found normals\n");
   //else printf("I found no normal\n");
 

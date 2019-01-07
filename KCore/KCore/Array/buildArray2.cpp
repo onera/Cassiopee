@@ -350,7 +350,6 @@ PyObject* K_ARRAY::buildArray2(E_Int nfld, const char* varString,
         nvpe = 64;
         break;
                     
-
       // Elements quartiques
       case 51:
         strcpy(eltType, "BAR_5");

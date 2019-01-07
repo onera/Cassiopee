@@ -31,13 +31,24 @@ installPath = Dist.getInstallPath(prefix)
 (kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
 
 libraries = ["GLU", "kcore", "Xi", "Xmu"]
-if not UseOSMesa: libraries += ["GL"]
 
 # Setting libraryDirs and libraries ===========================================
 libraryDirs = ['..', '.', pythonLibDir, kcoreLibDir, '/usr/X11R6/lib64']
 includeDirs = [pythonIncDir, numpyIncDir, kcoreIncDir]
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
+
+# Test if OSMesa exists =======================================================
+if UseOSMesa:
+    (OSMesa, OSMesaIncDir, OSMesaLibDir, libname) = Dist.checkOSMesa(additionalLibPaths,
+                                                                     additionalIncludePaths)
+    if OSMesa:
+        libraries += [libname]
+        libraryDirs += [OSMesaLibDir]
+        includeDirs += [OSMesaIncDir]
+else: OSMesa = False
+
+if not UseOSMesa: libraries += ["GL"]
 
 # Test if PNG exists =========================================================
 (png, pngIncDir, pngLib) = Dist.checkPng(additionalLibPaths, 
@@ -54,17 +65,6 @@ if mpeg:
     libraries += ["avcodec"]
     libraryDirs += [mpegLib]
     includeDirs += [mpegIncDir]
-
-# Test if OSMesa exists =======================================================
-# Put this to True for using CPlot in batch mode
-if UseOSMesa:
-    (OSMesa, OSMesaIncDir, OSMesaLib) = Dist.checkOSMesa(additionalLibPaths,
-                                                         additionalIncludePaths)
-    if OSMesa:
-        libraries += ["OSMesa"]
-        libraryDirs += [OSMesaLib]
-        includeDirs += [OSMesaIncDir]
-else: OSMesa = False
 
 # Env =========================================================================
 import srcs
