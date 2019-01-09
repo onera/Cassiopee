@@ -340,7 +340,7 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
     PyErr_SetString(PyExc_IOError, error);
     return NULL;
   }
-  printf("done.\n");
+  printf("done.\n"); fflush(stdout);
 
   // Building numpy arrays
   PyObject* tpl;
@@ -753,7 +753,7 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
                     "convertArrays2File: file not written.");
     return NULL;
   }
-  printf("done.\n");
+  printf("done.\n"); fflush(stdout);
   
   // Deleting fields
   E_Int sizefieldc = fieldc.size();

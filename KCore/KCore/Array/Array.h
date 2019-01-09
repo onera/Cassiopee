@@ -136,7 +136,9 @@ namespace K_ARRAY
 
   /* Analyse element string. For instance: "TRI_6" will return "TRI" and 6 */
   E_Int eltString2TypeId(char* eltString, char* eltType, E_Int& nvpe, E_Int& loc, E_Int& typeId);
-  
+  /* Analyse typeId. Retourne eltString, nvpe */  
+  E_Int typeId2eltString(E_Int typeId, E_Int loc, char* eltString, E_Int& nvpe);
+
   /* Get data pointers dans un PyObject array.
      Pas de verification ici. */
   E_Float* getFieldPtr(PyObject* array);

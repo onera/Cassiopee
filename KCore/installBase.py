@@ -21,7 +21,7 @@ False, # CPlotOffScreen
 ['c:/MinGW/lib', 'c:/Python27/libs', 'c:/MinGW/bin'] # additionalLibPaths
 ],
 ###############################################################################
-'WDAAA728Z': [ 'Machine de production win64+msys2 (Onera)',
+'WDAAA728Z': [ 'Windows win64+msys2 (XJ-Onera)',
 'gfortran', # f77compiler
 'gfortran', # f90compiler
 'gcc', # Cppcompiler
@@ -35,7 +35,7 @@ False, # CPlotOffScreen
 ['d:/juvigny/msys64/mingw64/lib', 'd:/juvigny/msys64/mingw64/bin',"c:/Program Files (x86)/Microsoft SDKs/MPI/Lib/x64"] # additionalLibPaths
 ],
 ###############################################################################
-'WDAAA859Z': [ 'Windows win64+msys2 (Onera)',
+'WDAAA859Z': [ 'Windows win64+msys2 (CB-Onera)',
 'gfortran', # f77compiler
 'gfortran', # f90compiler
 'gcc', # Cppcompiler

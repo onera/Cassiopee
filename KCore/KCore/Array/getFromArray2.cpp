@@ -28,6 +28,7 @@ using namespace K_FLD;
 E_Int K_ARRAY::eltString2TypeId(char* eltString, char* eltType, E_Int& nvpe, 
   E_Int& loc, E_Int& typeId)
 {
+  E_Int ret = 1;
   char n[128];
   E_Int l = strlen(eltString);
   if (eltString[l-1] == '*') { loc = 1; l = l-1; }
@@ -53,12 +54,14 @@ E_Int K_ARRAY::eltString2TypeId(char* eltString, char* eltType, E_Int& nvpe,
         typeId = 35; break;
       case 20:
         typeId = 36; break;
+      default:
+        ret = 0; break;
     }
   }
   else if (K_STRING::cmp(eltString, 4, "NODE") == 0)
   {
     strncpy(eltType, eltString, 4); eltType[4] = '\0';
-    nvpe = 0;
+    nvpe = 1;
     typeId = 0;
   }
   else if (K_STRING::cmp(eltString, 4, "QUAD") == 0)
@@ -84,6 +87,8 @@ E_Int K_ARRAY::eltString2TypeId(char* eltString, char* eltType, E_Int& nvpe,
         typeId = 34; break;
       case 25:
         typeId = 54; break;
+      default:
+        ret = 0; break;
     }
   }
   else if (K_STRING::cmp(eltString, 4, "HEXA") == 0)
@@ -108,7 +113,9 @@ E_Int K_ARRAY::eltString2TypeId(char* eltString, char* eltType, E_Int& nvpe,
       case 56:
         typeId = 41; break;
       case 64:
-        typeId = 42; break;  
+        typeId = 42; break;
+      default:
+        ret = 0; break;  
     }
   }
   else if (K_STRING::cmp(eltString, 4, "PYRA") == 0)
@@ -133,16 +140,18 @@ E_Int K_ARRAY::eltString2TypeId(char* eltString, char* eltType, E_Int& nvpe,
       case 29:
         typeId = 38; break;
       case 30:
-        typeId = 39; break;   
+        typeId = 39; break;
+      default:
+        ret = 0; break;   
     }
   }
-  else if (K_STRING::cmp(eltString, 4, "PENTA") == 0)
+  else if (K_STRING::cmp(eltString, 5, "PENTA") == 0)
   {
-    if (l == 4) nvpe = 6;
+    if (l == 5) nvpe = 6;
     else
     {
-      strncpy(eltType, eltString, 4); eltType[4] = '\0';
-      strncpy(n, eltString+5, l-5); n[l-5] = '\0';
+      strncpy(eltType, eltString, 5); eltType[5] = '\0';
+      strncpy(n, eltString+6, l-6); n[l-6] = '\0';
       nvpe = atoi(n);
     }
     switch (nvpe)
@@ -153,6 +162,8 @@ E_Int K_ARRAY::eltString2TypeId(char* eltString, char* eltType, E_Int& nvpe,
         typeId = 16; break;
       case 18:
         typeId = 17; break;
+      default:
+        ret = 0; break;
     }
   }
   else if (K_STRING::cmp(eltString, 4, "NGON") == 0)
@@ -183,7 +194,9 @@ E_Int K_ARRAY::eltString2TypeId(char* eltString, char* eltType, E_Int& nvpe,
       case 12:
         typeId = 52; break;
       case 15:
-        typeId = 53; break;  
+        typeId = 53; break;
+      default:
+        ret = 0; break;  
     }
   }
   else if (K_STRING::cmp(eltString, 3, "BAR") == 0)
@@ -204,19 +217,22 @@ E_Int K_ARRAY::eltString2TypeId(char* eltString, char* eltType, E_Int& nvpe,
       case 4:
         typeId = 30; break;
       case 5:
-        typeId = 51; break;    
+        typeId = 51; break;
+      default:
+        ret = 0; break;    
     }
   }
-  return 1;
+  return ret;
 }
 
-E_Int typeId2eltString(E_Int typeId, E_Int loc, char* eltString, E_Int& nvpe)
+// Analyse a typeId and loc and return eltString and nvpe
+E_Int K_ARRAY::typeId2eltString(E_Int typeId, E_Int loc, char* eltString, E_Int& nvpe)
 {  
-  if (loc == 1) strcat(eltString, "*");
+  E_Int ret = 1;
   switch (typeId)
   {
     case 0:
-      strcpy(eltString, "NODE"); nvpe = 0; break;
+      strcpy(eltString, "NODE"); nvpe = 1; break;
     
     case 1:
       strcpy(eltString, "BAR"); nvpe = 2; break;
@@ -235,9 +251,92 @@ E_Int typeId2eltString(E_Int typeId, E_Int loc, char* eltString, E_Int& nvpe)
     
     case 6:
       strcpy(eltString, "PENTA"); nvpe = 6; break;
+  
+    case 7:
+      strcpy(eltString, "HEXA"); nvpe = 8; break;
+      
+    case 8:
+      strcpy(eltString, "NGON"); nvpe = 1; break;
+      
+    case 10: 
+      strcpy(eltString, "BAR_3"); nvpe = 3; break;
+      
+    case 11: 
+      strcpy(eltString, "TRI_6"); nvpe = 6; break;
+      
+    case 12:
+      strcpy(eltString, "QUAD_8"); nvpe = 8; break;
+      
+    case 13:
+      strcpy(eltString, "QUAD_9"); nvpe = 9; break;
     
+    case 14:
+      strcpy(eltString, "TETRA_10"); nvpe = 10; break;
     
+    case 15:
+      strcpy(eltString, "PYRA_14"); nvpe = 14; break;
+    
+    case 16:
+      strcpy(eltString, "PENTA_15"); nvpe = 15; break;
+    
+    case 17:
+      strcpy(eltString, "PENTA_18"); nvpe = 18; break;
+    
+    case 18:
+      strcpy(eltString, "HEXA_20"); nvpe = 20; break;
+    
+    case 19:
+      strcpy(eltString, "HEXA_27"); nvpe = 27; break;
+    
+    case 20:
+      strcpy(eltString, "PYRA_13"); nvpe = 13; break;
+    
+    case 30:
+      strcpy(eltString, "BAR_4"); nvpe = 4; break;
+    
+    case 31:
+      strcpy(eltString, "TRI_9"); nvpe = 9; break;
+    
+    case 32:
+      strcpy(eltString, "TRI_10"); nvpe = 10; break;
+    
+    case 33:
+      strcpy(eltString, "QUAD_12"); nvpe = 12; break;
+    
+    case 34:
+      strcpy(eltString, "QUAD_16"); nvpe = 16; break;
+    
+    case 35:
+      strcpy(eltString, "TETRA_16"); nvpe = 16; break;
+    
+    case 36:
+      strcpy(eltString, "TETRA_20"); nvpe = 20; break;
+    
+    case 37:
+      strcpy(eltString, "PYRA_21"); nvpe = 21; break;
+    
+    case 38:
+      strcpy(eltString, "PYRA_29"); nvpe = 29; break;
+    
+    case 39:
+      strcpy(eltString, "PYRA_30"); nvpe = 30; break;
+    
+    case 40:
+      strcpy(eltString, "HEXA_32"); nvpe = 32; break;
+    
+    case 41:
+      strcpy(eltString, "HEXA_56"); nvpe = 56; break;
+    
+    case 42:
+      strcpy(eltString, "HEXA_64"); nvpe = 64; break;
+      
+    default:
+      ret = 0; break;
   }
+          
+  if (loc == 1) strcat(eltString, "*");
+  
+  return ret;
 }
 //=============================================================================
 // Extrait les donnees (shared) d'un objet python struct array
@@ -441,24 +540,8 @@ E_Int K_ARRAY::getFromArray2(PyObject* o,
     }
     eltType = PyString_AsString(PyList_GetItem(o,3));
 
-    if (K_STRING::cmp(eltType, "NODE") != 0 &&
-        K_STRING::cmp(eltType, "BAR") != 0 &&
-        K_STRING::cmp(eltType, "TRI") != 0 &&
-        K_STRING::cmp(eltType, "QUAD") != 0 &&
-        K_STRING::cmp(eltType, "TETRA") != 0 &&
-        K_STRING::cmp(eltType, "PYRA") != 0 &&
-        K_STRING::cmp(eltType, "PENTA") != 0 &&
-        K_STRING::cmp(eltType, "HEXA") != 0 &&
-        K_STRING::cmp(eltType, "NGON") != 0 &&
-        K_STRING::cmp(eltType, "NODE*") != 0 &&
-        K_STRING::cmp(eltType, "BAR*") != 0 &&
-        K_STRING::cmp(eltType, "TRI*") !=0 &&
-        K_STRING::cmp(eltType, "QUAD*") != 0 &&
-        K_STRING::cmp(eltType, "TETRA*") !=0 &&
-        K_STRING::cmp(eltType, "PYRA*") != 0 &&
-        K_STRING::cmp(eltType, "PENTA*") != 0 &&
-        K_STRING::cmp(eltType, "HEXA*") != 0 &&
-        K_STRING::cmp(eltType, "NGON*") != 0)
+    char st[256]; E_Int dummy;
+    if (eltString2TypeId(eltType, st, dummy, dummy, dummy) == 0)
     {
       PyErr_Warn(PyExc_Warning,
                  "getFromArray: element type unknown: %s. Must be in NODE, BAR, TRI, QUAD, TETRA, PYRA, PENTA, HEXA, NGON or NODE*, BAR*, TRI*, QUAD*, TETRA*, PYRA*, PENTA*, HEXA*, NGON*.");

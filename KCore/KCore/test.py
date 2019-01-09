@@ -114,17 +114,16 @@ def testT(t, number=1):
 # Diff byte to byte
 #=============================================================================
 def testF(infile, number=1):
-    
     # Check Data directory
     a = os.access('Data', os.F_OK)
     if not a:
          print("Data directory doesn't exist. Created.")
          os.mkdir('Data')
-
     fileName = sys.argv[0]
     baseName = os.path.basename(fileName)
     dirName = os.path.dirname(fileName)
     fileName = os.path.splitext(baseName)[0]
+
     if dirName == '': reference = 'Data/%s.ref%d'%(fileName, number)
     else: reference = '%s/Data/%s.ref%d'%(dirName, fileName, number)
     a = os.access(reference, os.R_OK)
@@ -135,7 +134,7 @@ def testF(infile, number=1):
         return True
     else:
         print("Diffing with '"+reference+"'... done.")
-        ret = os.system("diff "+reference+" "+infile+" > /dev/null")
+        ret = os.system("diff "+reference+" "+infile)
         if ret != 0:
             print("DIFF: with file "+reference+'.')
             return False

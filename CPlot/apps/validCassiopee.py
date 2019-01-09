@@ -437,6 +437,7 @@ def runSingleCFDTest(no, module, test):
         # Unix - le shell doit avoir l'environnement cassiopee
         if m1 is None: cmd = 'cd %s; ./valid check'%(path)
         else: cmd = 'cd %s; ./valid check 0 0 0 2 4'%(path)
+    print cmd
     try:
         if mySystem == 'mingw' or mySystem == 'windows':
             output1 = check_output(cmd2, shell=True, stderr=subprocess.STDOUT)
@@ -1050,7 +1051,7 @@ frame.rowconfigure(0, weight=1)
 frame.columnconfigure(1, weight=1)
 frame.grid(row=0, column=0, sticky=TK.EW)
 
-listbox = TK.Listbox(frame, selectmode=TK.EXTENDED, width=120, height=47,
+listbox = TK.Listbox(frame, selectmode=TK.EXTENDED, width=120, height=40,
                      background='White')
 listbox.grid(row=0, column=0, columnspan=10, sticky=TK.NSEW)
 

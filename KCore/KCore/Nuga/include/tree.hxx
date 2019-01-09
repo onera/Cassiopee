@@ -139,7 +139,7 @@ class tree
      // disable its children
      E_Int nbc = nb_children(i);
      const E_Int* childr = children(i);
-     for (size_t n = 0; n < nbc; ++n) 
+     for (E_Int n = 0; n < nbc; ++n) 
        _enabled[*(childr+n)] = false;
     }
     

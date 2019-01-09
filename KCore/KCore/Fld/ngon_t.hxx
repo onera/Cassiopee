@@ -3480,7 +3480,7 @@ static E_Int flag_neighbors(const ngon_t& ng, Vector_t<bool>& flag, bool overwri
   std::cout << "number of phs : " << nb_phs << std::endl;
   std::cout << "flag size : " << flag.size() << std::endl;
 #endif 
-  if (flag.size() != nb_phs)
+  if (flag.size() != (size_t)nb_phs)
     return 1;
   
   Vector_t<bool> new_flags(nb_phs, false);

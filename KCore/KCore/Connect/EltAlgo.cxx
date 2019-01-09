@@ -279,7 +279,7 @@ K_CONNECT::EltAlgo<ElementType>::coloring (const K_FLD::IntArray& neighbors, int
   int_vector_type                  cpool;
   K_FLD::IntArray::const_iterator pK;
   
-  assert (ROWS == ElementType::NB_NODES);
+  assert (ROWS == (size_t)ElementType::NB_NODES);
   
   colors.clear();
   colors.resize(NB_ELTS, E_IDX_NONE);
