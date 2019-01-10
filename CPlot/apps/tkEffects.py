@@ -121,13 +121,6 @@ def createApp(win):
     B.grid(row=2, column=0, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, textVariable=VARS[5])
     
-    # - DOF far -
-    #B = TTK.Scale(Frame, from_=0, to=100, orient=TK.HORIZONTAL, showvalue=0,
-    #              borderwidth=1, command=setGammaCorrection, value=50)
-    #WIDGETS['gammaCorrection'] = B
-    #B.grid(row=2, column=1, columnspan=1, sticky=TK.EW)
-    #BB = CTK.infoBulle(parent=B, textVariable=VARS[6])
-    
     # - Gamma correction -
     B = TTK.Scale(Frame, from_=0, to=100, orient=TK.HORIZONTAL, showvalue=0,
                   borderwidth=1, command=setGammaCorrection, value=50)

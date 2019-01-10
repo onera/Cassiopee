@@ -13,7 +13,7 @@ CASSIOPEE = os.getenv('CASSIOPEE_SOURCES')
 if CASSIOPEE is None or CASSIOPEE == '':
     CASSIOPEE = os.getenv('CASSIOPEE')
     if CASSIOPEE is None or CASSIOPEE == '':
-        print 'Error: CASSIOPEE must be present in your environement.'
+        print('Error: CASSIOPEE must be present in your environement.')
         sys.exit()
 
 # CFD Base
@@ -159,7 +159,7 @@ def buildString(module, test, CPUtime, coverage, status):
 #==============================================================================
 def getModules():
     # Tests unitaires des modules
-    print 'Getting tests in:', CASSIOPEE
+    print('Getting tests in:%s.'%CASSIOPEE)
     modules = []
 
     path = CASSIOPEE+'/Apps/PModules'
@@ -419,7 +419,7 @@ def runSingleUnitaryTest(no, module, test):
 #==============================================================================
 def runSingleCFDTest(no, module, test):
 
-    print 'running CFD test', test
+    print('Running CFD test %s.'%test)
     path = CASSIOPEE+CFDBASEPATH+'/'+test
 
     m1 = None # si None=seq
@@ -437,7 +437,6 @@ def runSingleCFDTest(no, module, test):
         # Unix - le shell doit avoir l'environnement cassiopee
         if m1 is None: cmd = 'cd %s; ./valid check'%(path)
         else: cmd = 'cd %s; ./valid check 0 0 0 2 4'%(path)
-    print cmd
     try:
         if mySystem == 'mingw' or mySystem == 'windows':
             output1 = check_output(cmd2, shell=True, stderr=subprocess.STDOUT)
@@ -622,11 +621,9 @@ def viewTest(event=None):
         if module == 'CFDBase':
             pathl = CASSIOPEE+CFDBASEPATH+'/'+test
             test = 'compute.py'
-            print pathl, test
         else:
             modulesDir = MODULESDIR[module]
             path = CASSIOPEE+'/Apps/'+modulesDir
-            print path
             pathl = '%s/%s/test'%(path,module)
         if mySystem == 'mingw' or mySystem == 'windows':
             pathl = pathl.replace('/', '\\')
@@ -828,9 +825,9 @@ def setThreads(event=None):
     try:
         nti = int(nt)
         KCore.kcore.setOmpMaxThreads(nti)
-        print 'Num threads set to %d.\n'%nti
+        print('Num threads set to %d.\n'%nti)
     except:
-        print 'Bad thread number.\n'
+        print('Bad thread number.\n')
     return
 
 #==============================================================================

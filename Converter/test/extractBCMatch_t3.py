@@ -2,7 +2,6 @@
 import Generator.PyTree as G
 import Converter.PyTree as CP
 import Converter.Internal as Internal
-import Transform.PyTree as T
 import Connector.PyTree as X
 import KCore.test as test
 

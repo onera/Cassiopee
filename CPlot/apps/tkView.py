@@ -730,7 +730,7 @@ def setStyle(event=None):
     if v == 'Monocolor/1-side': style = 0
     elif v == 'Multicolor/2-sides': style = 1
     elif v == 'White/2-sides': style = 3
-    elif v == 'Black/2-sides': style = 4
+    elif v == 'Multicolor/outlined': style = 4
     CPlot.setState(solidStyle=style)
     
 #==============================================================================
@@ -880,7 +880,7 @@ def createApp(win):
     B = TTK.Label(Solid, text="Style:")
     B.grid(row=0, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Solid style.')
-    B = TTK.OptionMenu(Solid, VARS[17], 'Monocolor/1-side', 'Multicolor/2-sides', 'White/2-sides', 'Black/2-sides', command=setStyle)
+    B = TTK.OptionMenu(Solid, VARS[17], 'Monocolor/1-side', 'Multicolor/2-sides', 'White/2-sides', 'Multicolor/outlined', command=setStyle)
     B.grid(row=0, column=1, sticky=TK.EW)
     
     # - Render frame -

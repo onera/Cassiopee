@@ -1,7 +1,6 @@
 # - convertFile2Arrays (arrays) -
 import Generator as G
 import Converter as C
-import Geom as D
 
 # Create and save test meshes
 cart = G.cart((0,0,0), (0.1, 0.2, 1.), (11, 11, 2))

@@ -1378,13 +1378,13 @@ def send(data, host='localhost', rank=0, port=15555):
         print 'Send: can not connect to %s [%d]. Nothing sent.'%(host,port)
         return
 
-    data = Compressor.pack(data) # serialize
+    data = Compressor.pack(data, method=0) # serialize
     size = len(data)
 
     # Blocks
     header = (size,sizeBuf)
     #print 'sending', header
-    header = Compressor.pack(header)
+    header = Compressor.pack(header, method=0)
     header = header.ljust(255)
     
     s.send(header)
@@ -1426,7 +1426,7 @@ def listen(s):
         nb = client.recv(255)
         if nb != "":
             nb = nb.rstrip()
-            (size,sizeBuf) = Compressor.unpack(nb)
+            (size,sizeBuf) = Compressor.unpack(nb, method=0)
             #print 'Received ',size
             data = ''
             nbytes = 0
@@ -1436,7 +1436,7 @@ def listen(s):
                 else:
                     received = client.recv(size-nbytes)
                 data += received; nbytes += len(received)
-            data = Compressor.unpack(data)
+            data = Compressor.unpack(data, method=0)
             client.close()
             return data
 

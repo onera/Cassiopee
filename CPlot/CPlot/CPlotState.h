@@ -92,6 +92,9 @@ struct CPlotState {
     // Gamma correction
     double gamma;
 
+    // Sobel threshold
+    double sobelThreshold;
+
     // Last selected zone
     int selectedZone;
     // List of deactivated zones

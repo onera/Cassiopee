@@ -306,7 +306,11 @@ void Data::display()
 #endif
 
   // Post-processing
-  if (ptrState->DOF == 1)
+  int post = 0; double sobelThreshold = -0.5; 
+  if (ptrState->DOF == 1) { post = 1;  sobelThreshold = ptrState->sobelThreshold; }
+  if (ptrState->mode == SOLID && ptrState->solidStyle == 4) { post = 1; sobelThreshold = 0.5; }
+
+  if (post == 1)
   { 
     // Recupere l'image standard
     if (_texRight != 0) glDeleteTextures(1, &_texRight);
@@ -338,7 +342,7 @@ void Data::display()
     setOrthographicProjection();
     glPushMatrix();
     glLoadIdentity();
-    displayFrameTex(2);
+    displayFrameTex(2, sobelThreshold);
     glPopMatrix();
     resetPerspectiveProjection();
   }

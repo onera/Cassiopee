@@ -752,7 +752,7 @@ def setPrefs():
             if val == 'Monocolor/1-side': style = 0
             elif val == 'Multicolor/2-sides': style = 1
             elif val == 'White/2-sides': style = 3
-            elif val == 'Black/2-sides': style = 4
+            elif val == 'Multicolor/outlined': style = 4
             else: style = 0
             CPlot.setState(solidStyle=style)
         elif i == 'tkEffectsAngle':

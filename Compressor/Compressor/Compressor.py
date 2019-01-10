@@ -32,6 +32,10 @@ def pack(a, method=0):
     if method == 0:
         import cPickle as pickle# best for now
         return pickle.dumps(a, protocol=pickle.HIGHEST_PROTOCOL)
+    elif method == 1:
+        import cPickle as pickle# best for now
+        import zlib
+        return zlib.compress(pickle.dumps(a, protocol=pickle.HIGHEST_PROTOCOL), level=1)
     else:
         import cPickle as pickle # best for now
         return pickle.dumps(a, protocol=pickle.HIGHEST_PROTOCOL)
@@ -43,6 +47,10 @@ def unpack(a, method=0):
     if method == 0:
         import cPickle as pickle# best for now
         return pickle.loads(a)
+    elif method == 1:
+        import cPickle as pickle# best for now
+        import zlib
+        return pickle.loads(zlib.decompress(a))
     else:
         import cPickle as pickle # best for now
         return pickle.loads(a)

@@ -141,7 +141,7 @@ Actions
     :type displayIsoLegend: int
     :param meshStyle: 0: white solid and red wireframe, 1: colored wireframe, 2: colored solid and wireframe, 3: cyan solid and black wireframe (default: 2)
     :type meshStyle: int
-    :param solidStyle: 0: blue, 1: colored by zone, 3: cyan (default: 1)
+    :param solidStyle: 0: blue, 1: colored by zone, 3: white, 4: colored by zone outlined (default: 1)
     :type solidStyle: int
     :param scalarStyle: 0: banded, 1: banded+mesh, 2: lines, 3: lines+mesh (default: 0)
     :type scalarStyle: int
@@ -622,6 +622,7 @@ Set / Get functions
     + **lightOffset**: offset to default light position (default: (0,0)).
     + **dofPower**: power of depth of field effect (default: 3.).
     + **gamma**: gamma correction (default: 1.).
+    + **sobelThreshold**: sobel threshold for zone outlines (default: -0.5).
     + **selectionStyle**: style for selection (default: 0).
     + **activateShortCut**: if False, deactivate shortCut keys (def: True).
     + **billBoards**: list of billboard image files ['file.png',1,1] (default: None).

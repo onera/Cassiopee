@@ -50,13 +50,14 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
   PyObject* isoScales; PyObject* billBoards; 
   PyObject* materials; PyObject* bumpMaps;
   int gridSizeI, gridSizeJ;
-  E_Float lightOffsetX, lightOffsetY; E_Float dofPower; E_Float gamma;
+  E_Float lightOffsetX, lightOffsetY; 
+  E_Float dofPower; E_Float gamma; E_Float sobelThreshold;
   int timer; int selectionStyle;
   int continuousExport; int activateShortCuts;
   E_Float billBoardSize;
   if (!PyArg_ParseTuple(
         args, 
-	"iOOiiiiiiiiiiddiiiidO(ii)(ddd)(ddd)(ddd)d(dd)iiiddiiississidi(ii)iiiOdOO",
+	"iOOiiiiiiiiiiddiiiidO(ii)(ddd)(ddd)(ddd)d(dd)iiidddiiississidi(ii)iiiOdOO",
         &dim, &modeObject, &scalarFieldObject,
         &vectorField1, &vectorField2, &vectorField3,
         &displayBB, &displayInfo, &displayIsoLegend,
@@ -68,7 +69,7 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
         &xeye, &yeye, &zeye, 
         &dirx, &diry, &dirz, &viewAngle,
         &lightOffsetX, &lightOffsetY,
-        &bgColor, &shadow, &dof, &dofPower, &gamma,
+        &bgColor, &shadow, &dof, &dofPower, &gamma, &sobelThreshold,
         &ghostifyDeactivatedZones, &edgifyActivatedZones,
         &edgifyDeactivatedZones,
         &exportFile, &exportResolution, &continuousExport,
@@ -306,7 +307,7 @@ PyObject* K_CPLOT::changeVariable(PyObject* self, PyObject* args)
    Change CPlot style 
  */
 //=============================================================================
-PyObject* K_CPLOT::changeStyle( PyObject* self, PyObject* args )
+PyObject* K_CPLOT::changeStyle(PyObject* self, PyObject* args)
 {
   Data* d = Data::getInstance();
   d->changeAppearance();
@@ -319,7 +320,7 @@ PyObject* K_CPLOT::changeStyle( PyObject* self, PyObject* args )
    Change Info display 
  */
 //=============================================================================
-PyObject* K_CPLOT::changeInfoDisplay( PyObject* self, PyObject* args )
+PyObject* K_CPLOT::changeInfoDisplay(PyObject* self, PyObject* args)
 {
   Data* d = Data::getInstance();
   if (d->ptrState->info == 1) d->ptrState->info = 0;
@@ -338,7 +339,7 @@ PyObject* K_CPLOT::changeInfoDisplay( PyObject* self, PyObject* args )
    Retourne 0 (KFAILED), 1 (KSUCCESS)
  */
 //=============================================================================
-PyObject* K_CPLOT::changeBlanking( PyObject* self, PyObject* args )
+PyObject* K_CPLOT::changeBlanking(PyObject* self, PyObject* args)
 {
   Data* d = Data::getInstance();
   if (d->_numberOfZones == 0) return Py_BuildValue("i", KFAILED);
@@ -365,7 +366,7 @@ PyObject* K_CPLOT::changeBlanking( PyObject* self, PyObject* args )
    Set dim (1D/2D/3D)
  */
 //=============================================================================
-PyObject* K_CPLOT::setDim( PyObject* self, PyObject* args )
+PyObject* K_CPLOT::setDim(PyObject* self, PyObject* args)
 {
   int dim;
   if (!PyArg_ParseTuple(args, "i", &dim)) return NULL;

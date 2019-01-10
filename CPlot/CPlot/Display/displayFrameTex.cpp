@@ -22,10 +22,10 @@
 /*
   Display une texture de la taille de l'ecran dans l'ecran.
   mode=0: anaglyph
-  mode=2: DOF
+  mode=2: DOF+GAMMA+SOBEL
 */
 //============================================================================
-void Data::displayFrameTex(int mode)
+void Data::displayFrameTex(int mode, double sobelThreshold)
 {
   glColor3f(1., 0, 0);
 
@@ -68,7 +68,8 @@ void Data::displayFrameTex(int mode)
     _shaders[shader]->setUniform("focalDepth", (float)ptrState->activePointZBuf);
     _shaders[shader]->setUniform("radius", (float)ptrState->dofPower);
     _shaders[shader]->setUniform("ext", (float)1.);
-    _shaders[shader]->setUniform("gamma", (float)ptrState->gamma);  
+    _shaders[shader]->setUniform("gamma", (float)ptrState->gamma);
+    _shaders[shader]->setUniform("sobelThreshold", (float)sobelThreshold); 
   }
 #endif
 

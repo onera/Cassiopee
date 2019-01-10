@@ -332,7 +332,7 @@ public:
     void display();
     void displayBB();
     void displayBB2();
-    void displayFrameTex(int mode);
+    void displayFrameTex(int mode, double sobelThreshold=-0.5);
     void displayAnaglyph();
     void displayActivePoint();
     void displaySEdges();
