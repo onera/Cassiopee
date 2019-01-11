@@ -51,7 +51,7 @@ def translate(t, transvect):
 def _translate(t, transvect):
     return C.__TZGC2(t, Transform._translate, transvect)
 
-def rotate(a, center, arg1, arg2=None, 
+def rotate(a, center, arg1, arg2=None,
            vectors=[['VelocityX','VelocityY','VelocityZ'],['MomentumX','MomentumY','MomentumZ']]):
     """Rotate a mesh defined by an array around vector n of center Xc
     and of angle teta.
@@ -75,7 +75,7 @@ def rotate(a, center, arg1, arg2=None,
                    center, arg1, arg2, vectorsN,
                    center, arg1, arg2, vectorsC)
 
-def _rotate(a, center, arg1, arg2=None, 
+def _rotate(a, center, arg1, arg2=None,
             vectors=[['VelocityX','VelocityY','VelocityZ'],['MomentumX','MomentumY','MomentumZ']]):
     vectorsN = []; vectorsC = []
     for vect in vectors:
@@ -513,7 +513,7 @@ def subzoneGC__(z, dim, imin, imax, jmin, jmax, kmin, kmax, \
     for nor in xrange(len(ranges)):
         if ddDnrs[nor] is None:
             C._addBC2Zone(z,C.getBCName('overlap'), 'BCOverlap', ranges[nor])
-        else: # doubly defined 
+        else: # doubly defined
             C._addBC2Zone(z,C.getBCName(bcnames[nor]),'BCOverlap',range=ranges[nor],\
                           zoneDonor=[ddDnrs[nor]], rangeDonor='doubly_defined')
     return z
@@ -556,7 +556,7 @@ def subzoneUnstruct__(t, indices, type):
                 else:
                     [nodes, centers] = Transform.transform.subzoneUnstructBoth(fc, fb, indices)
                     C.setFields([nodes], z, 'nodes')
-                    C.setFields([centers], z, 'centers')                   
+                    C.setFields([centers], z, 'centers')
         z[0] = C.getZoneName(z[0])
     return tp
 
@@ -592,7 +592,7 @@ def subzoneStruct__(t, minIndex, maxIndex):
         z2 = subzoneGC__(z2, dim, imin, imax, jmin, jmax, kmin, kmax, \
                          dimt0[4], dimt0[1], dimt0[2], dimt0[3], ni0, nj0, nk0)
         noz += 1
-        if parent is not None: 
+        if parent is not None:
             if Internal.isStdNode(t2) == 0: parent[nb] = z2
             else: parent[2][nb] = z2
         else: t2 = z2
@@ -1030,13 +1030,13 @@ def _makeCartesianXYZ(t):
             elif abs(dz_k) > 0.: dirk = 3
             dirs = [0,0,0]
             if diri == 1: dirs[0] = 1
-            elif diri==2: dirs[1] = 1 
+            elif diri==2: dirs[1] = 1
             else: dirs[2] = 1
             if dirj == 1: dirs[0] = 2
-            elif dirj==2: dirs[1] = 2 
+            elif dirj==2: dirs[1] = 2
             else: dirs[2] = 2
             if dirk == 1: dirs[0] = 3
-            elif dirk==2: dirs[1] = 3 
+            elif dirk==2: dirs[1] = 3
             else: dirs[2] = 3
             _reorder(z,(dirs[0], dirs[1], dirs[2]))
             dims = Internal.getZoneDim(z)
@@ -1071,10 +1071,25 @@ def _makeDirect(t):
             i = max(i,1); j = max(j,1); k = max(k,1)
             ip1 = i+1; jp1 = j+1; kp1 = k+1
             ip1 = min(ip1,dim[1]); jp1 = min(jp1,dim[2]); kp1 = min(kp1,dim[3])
-            P0 = C.getValue(z, Internal.__GridCoordinates__, (i,j,k))
-            P1 = C.getValue(z, Internal.__GridCoordinates__, (ip1,j,k))
-            P2 = C.getValue(z, Internal.__GridCoordinates__, (i,jp1,k))
-            P3 = C.getValue(z, Internal.__GridCoordinates__, (i,j,kp1))
+
+            P0 = [] ; P1 = [] ; P2 = [] ; P3 = []
+
+            x0 = C.getValue(z,'CoordinateX',(i,j,k)) ; P0.append(x0)
+            y0 = C.getValue(z,'CoordinateY',(i,j,k)) ; P0.append(y0)
+            z0 = C.getValue(z,'CoordinateZ',(i,j,k)) ; P0.append(z0)
+
+            x1 = C.getValue(z,'CoordinateX',(ip1,j,k)) ; P1.append(x1)
+            y1 = C.getValue(z,'CoordinateY',(ip1,j,k)) ; P1.append(y1)
+            z1 = C.getValue(z,'CoordinateZ',(ip1,j,k)) ; P1.append(z1)
+
+            x2 = C.getValue(z,'CoordinateX',(i,jp1,k)) ; P2.append(x2)
+            y2 = C.getValue(z,'CoordinateY',(i,jp1,k)) ; P2.append(y2)
+            z2 = C.getValue(z,'CoordinateZ',(i,jp1,k)) ; P2.append(z2)
+
+            x3 = C.getValue(z,'CoordinateX',(i,j,kp1)) ; P3.append(x3)
+            y3 = C.getValue(z,'CoordinateY',(i,j,kp1)) ; P3.append(y3)
+            z3 = C.getValue(z,'CoordinateZ',(i,j,kp1)) ; P3.append(z3)
+
             l1 = Vector.sub(P1,P0); ln1 = Vector.norm2(l1)
             l2 = Vector.sub(P2,P0); ln2 = Vector.norm2(l2)
             l3 = Vector.sub(P3,P0); ln3 = Vector.norm2(l3)
@@ -1436,15 +1451,15 @@ def splitSizeUpR_OMP__(t, N, R, multigrid, dirs, minPtsPerDir):
     for b in bases:
         zones = Internal.getNodesFromType1(b, 'Zone_t')
         for z in zones:
-            dim = Internal.getZoneDim(z)            
+            dim = Internal.getZoneDim(z)
             if dim[0] == 'Unstructured':
                 print('Warning: splitSize: unstructured zone not treated.')
             if dim[0] == 'Structured':
                 ni = dim[1]-2*ific; nj = dim[2]-2*ific; nk = dim[3]-2*ific
                 ni1 = max(1, ni-1); nj1 = max(1, nj-1); nk1 = max(1, nk-1)
-                SP.append((ni1*nj1*nk1,[z[0],[ni,nj,nk]])); Nl += ni1*nj1*nk1               
-                zsplit.append(([1,ni1,1,nj1,1,nk1],(ni,nj,nk),z[0],"master",z[0]))                
-                 
+                SP.append((ni1*nj1*nk1,[z[0],[ni,nj,nk]])); Nl += ni1*nj1*nk1
+                zsplit.append(([1,ni1,1,nj1,1,nk1],(ni,nj,nk),z[0],"master",z[0]))
+
     if N == 0: N = Nl*1. / R
     #print 'average cells ', N
     from operator import itemgetter
@@ -1453,7 +1468,7 @@ def splitSizeUpR_OMP__(t, N, R, multigrid, dirs, minPtsPerDir):
     Rs = [0]*R
     Thread_z=[([0],1,[])]
     for ith in xrange(2,R+1): Thread_z.append(([0],ith,[])) # Thread_z = [Nbpoints,ithread,corresponding work]
-    
+
     mins = minPtsPerDir-1 # nbre de cellules mini des blocs par direction
 
     out = []
@@ -1465,12 +1480,12 @@ def splitSizeUpR_OMP__(t, N, R, multigrid, dirs, minPtsPerDir):
         #print 'ress', Rs[0], C.getNCells(SP[0][1])
         a = SP[0][1] # le plus gros
         dim = a[1]
-      
+
         ni = dim[0]; nj = dim[1]; nk = dim[2]
         ni1 = max(1, ni-1); nj1 = max(1, nj-1); nk1 = max(1, nk-1)
         nik = ni1*nk1; njk = nj1*nk1; nij = ni1*nj1
         Nr = min(N, N-Rs[0])
-        ncells = ni1*nj1*nk1        
+        ncells = ni1*nj1*nk1
         if (ncells > Nr):
             # Calcul le meilleur split
             nc = int(round(Nr*1./njk,0))+1
@@ -1523,77 +1538,77 @@ def splitSizeUpR_OMP__(t, N, R, multigrid, dirs, minPtsPerDir):
                 if (1 in dirs): dirl = 1
                 elif (deltaj <= deltak and 2 in dirs): dirl = 2
                 elif (3 in dirs): dirl = 3
-           
+
 
             trynext = 1
-                        
+
             if dirl == 3:
                 nc = int(round(Nr*1./nij,0))+1
                 ns = Transform.findMGSplitUp__(nk, nc, level=multigrid)
-                if (ns-1 >= mins and nk-ns >= mins):                    
+                if (ns-1 >= mins and nk-ns >= mins):
                     #a1 = subzone(a, (1,1,1), (ni,nj,ns))
                     #a2 = subzone(a, (1,1,ns), (ni,nj,nk))
                     a1 = ["leafl"+str(('%05d' % nbl)),[ni,nj,ns]]
                     a2 = ["leafr"+str(('%05d' % nbl)),[ni,nj,nk-ns+1]]
-                    SP[0] = ((ni-1)*(nj-1)*(nk-ns),a2)                    
+                    SP[0] = ((ni-1)*(nj-1)*(nk-ns),a2)
                     nbl=nbl+1
-                    Rs[0] += (ni-1)*(nj-1)*(ns-1) 
+                    Rs[0] += (ni-1)*(nj-1)*(ns-1)
                     Thread_z[0][0][0] += (ni-1)*(nj-1)*(ns-1)
                     Thread_z[0][2].append(a1[0])
                     trynext = 0
             elif dirl == 2:
                 nc = int(round(Nr*1./nik,0))+1
                 ns = Transform.findMGSplitUp__(nj, nc, level=multigrid)
-                if (ns-1 >= mins and nj-ns >= mins):                    
+                if (ns-1 >= mins and nj-ns >= mins):
                     #a1 = subzone(a, (1,1,1), (ni,ns,nk))
                     #a2 = subzone(a, (1,ns,1), (ni,nj,nk))
-                    #SP[0] = (getNCells(a2), a2, base)                    
+                    #SP[0] = (getNCells(a2), a2, base)
                     a1 = ["leafl"+str(('%05d' % nbl)),[ni,ns,nk]]
                     a2 = ["leafr"+str(('%05d' % nbl)),[ni,nj-ns+1,nk]]
                     SP[0] = ((ni-1)*(nj-ns)*(nk-1),a2)
-                    nbl=nbl+1                    
-                    Rs[0] += (ni-1)*(ns-1)*(nk-1)                   
+                    nbl=nbl+1
+                    Rs[0] += (ni-1)*(ns-1)*(nk-1)
                     Thread_z[0][0][0] += (ni-1)*(ns-1)*(nk-1)
                     Thread_z[0][2].append(a1[0])
                     trynext = 0
             elif dirl == 1:
                 nc = int(round(Nr*1./njk,0))+1
                 ns = Transform.findMGSplitUp__(ni, nc, level=multigrid)
-                if (ns-1 >= mins and ni-ns >= mins):                    
+                if (ns-1 >= mins and ni-ns >= mins):
                     #a1 = subzone(a, (1,1,1), (ns,nj,nk))
                     #a2 = subzone(a, (ns,1,1), (ni,nj,nk))
-                    #SP[0] = (getNCells(a2), a2, base)    
+                    #SP[0] = (getNCells(a2), a2, base)
                     a1 = ["leafl"+str(('%05d' % nbl)),[ns,nj,nk]]
                     a2 = ["leafr"+str(('%05d' % nbl)),[ni-ns+1,nj,nk]]
                     SP[0] = ((ni-ns)*(nj-1)*(nk-1),a2)
                     nbl=nbl+1
-                    Rs[0] += (ns-1)*(nj-1)*(nk-1);  
+                    Rs[0] += (ns-1)*(nj-1)*(nk-1);
                     Thread_z[0][0][0] += (ns-1)*(nj-1)*(nk-1)
                     Thread_z[0][2].append(a1[0])
                     trynext = 0
 
             if ((dirl>=1)&(trynext==0)):
-                test=[s for s in zsplit if a[0] in s]            
-                
+                test=[s for s in zsplit if a[0] in s]
+
                 dima1=a1[1]
                 dima2=a2[1]
- 
+
                 if(test != []):
-           
+
                     indexleft  = numpy.zeros(6, numpy.int32)
                     indexright = numpy.zeros(6, numpy.int32)
                     indexfather=test[0][0]
                     dimfather  =test[0][1]
-                
-               
+
+
                     indexleft[0]=indexfather[0];indexleft[1]=indexfather[1]
                     indexleft[2]=indexfather[2];indexleft[3]=indexfather[3]
                     indexleft[4]=indexfather[4];indexleft[5]=indexfather[5]
-               
+
                     indexright[0]=indexfather[0];indexright[1]=indexfather[1]
                     indexright[2]=indexfather[2];indexright[3]=indexfather[3]
                     indexright[4]=indexfather[4];indexright[5]=indexfather[5]
-           
+
                     if(dima1[0] != dimfather[0]):
                         indexleft[1]  = indexleft[0] + dima1[0] -2-2*ific
                         indexright[0] = indexleft[1] + 1
@@ -1603,22 +1618,22 @@ def splitSizeUpR_OMP__(t, N, R, multigrid, dirs, minPtsPerDir):
                     if(dima1[2] != dimfather[2]):
                         indexleft[5]  = indexleft[4] + dima1[2] -2-2*ific
                         indexright[4] = indexleft[5] + 1
-           
-                    zsplit.append(([ indexleft[0] ,indexleft[1] ,indexleft[2] ,indexleft[3], indexleft[4], indexleft[5]],(dima1[0]-2*ific,dima1[1]-2*ific,dima1[2]-2*ific),a1[0],a[0],test[0][4]))                    
+
+                    zsplit.append(([ indexleft[0] ,indexleft[1] ,indexleft[2] ,indexleft[3], indexleft[4], indexleft[5]],(dima1[0]-2*ific,dima1[1]-2*ific,dima1[2]-2*ific),a1[0],a[0],test[0][4]))
                     zsplit.append(([indexright[0],indexright[1],indexright[2],indexright[3],indexright[4],indexright[5]],(dima2[0]-2*ific,dima2[1]-2*ific,dima2[2]-2*ific),a2[0],a[0],test[0][4]))
 
             if trynext == 1:
                 Thread_z[0][0][0] += (a[1][0]-1)*(a[1][1]-1)*(a[1][2]-1)
                 Thread_z[0][2].append(a[0])
-                Rs[0] += (a[1][0]-1)*(a[1][1]-1)*(a[1][2]-1); del SP[0]            
+                Rs[0] += (a[1][0]-1)*(a[1][1]-1)*(a[1][2]-1); del SP[0]
 
         else:
             Rs[0] += (a[1][0]-1)*(a[1][1]-1)*(a[1][2]-1); del SP[0]
             Thread_z[0][0][0] += (a[1][0]-1)*(a[1][1]-1)*(a[1][2]-1)
             Thread_z[0][2].append(a[0])
-               
+
     zomp_threads={}
-       
+
     for z in zones:
         th={}
         for r in xrange(1,R+1):
@@ -1626,17 +1641,17 @@ def splitSizeUpR_OMP__(t, N, R, multigrid, dirs, minPtsPerDir):
         zomp_threads[z[0]]=th
 
     for ith, listth in enumerate(Thread_z): # get the subzone list for each threads
-        for zleaf in enumerate(Thread_z[ith][2]):           
+        for zleaf in enumerate(Thread_z[ith][2]):
             zind= [s for s in zsplit if zleaf[1] in s[2][:] ] # get the indexes
             zomp_threads[zind[0][4]][ith+1].append((zleaf[1],zind[0][0]))
 
-      
+
     t=C.addVars(t,'centers:thread_number')
-    t=C.addVars(t,'centers:thread_subzone')        
-    bases = Internal.getBases(t)    
+    t=C.addVars(t,'centers:thread_subzone')
+    bases = Internal.getBases(t)
     for b in bases:
         zones = Internal.getNodesFromType1(b, 'Zone_t')
-        for z in zones:            
+        for z in zones:
             solverParam=Internal.createChild(z,'.Solver#Param','UserDefinedData_t',value=None,children=[],pos=-1)
             ompthread  =Internal.createChild(solverParam,  'omp_threads'  ,'UserDefinedData_t',value=None,children=[],pos=-1)
             sol  = Internal.getNodeFromName1(z, 'FlowSolution#Centers')
@@ -1651,13 +1666,13 @@ def splitSizeUpR_OMP__(t, N, R, multigrid, dirs, minPtsPerDir):
                     if (zomp_threads[z[0]][i][ilisth][1] != []):
                         Internal.createChild(thnode,'subzone'+str(isb),'DataArray_t',value=zomp_threads[z[0]][i][ilisth][1],children=[],pos=-1)
                         ind=zomp_threads[z[0]][i][ilisth][1]
-                        l=0                        
-                        for iths in xrange(ind[0]-1,ind[1]):                        
+                        l=0
+                        for iths in xrange(ind[0]-1,ind[1]):
                             for jths in xrange(ind[2]-1,ind[3]):
-                                for kths in xrange(ind[4]-1,ind[5]):                                   
+                                for kths in xrange(ind[4]-1,ind[5]):
                                     solth[1][iths][jths][kths]=i
                                     solsz[1][iths][jths][kths]=isb
-                      
+
     print 'ress:', Rs
     Tot = 0
     for i in Rs: Tot += i
