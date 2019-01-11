@@ -4390,7 +4390,7 @@ def autoSetContainers(t):
             foundNode += 1
     if __FlowSolutionNodes__ == __FlowSolutionCenters__:
         if foundNode == 0: __FlowSolutionNodes__ = ''
-        elif foundCenters == 0: __FlowSolutionCenters__ = ''
+        elif foundCenter == 0: __FlowSolutionCenters__ = ''
         else: print 'Warning: FlowSolutionNodes and FlowSolutionCenters have the same name (%s).'%__FlowSolutionNodes__
     if foundNode > 1: print 'Warning: multiple FlowSolutionNodes containers found (selected: %s)'%__FlowSolutionNodes__
     if foundCenter > 1: print 'Warning: multiple FlowSolutionCenters containers found (selected: %s)'%__FlowSolutionCenters__

@@ -46,8 +46,9 @@ PyObject* K_CONVERTER::filterPartialFields(PyObject* self, PyObject* args)
   E_Int loc;
   E_Int startFrom;
   char *filterName;// nom du filtre dans fArrays
-  if (!PYPARSETUPLEI(args, "OOOllssss", "OOOiissss", &zone, &fArrays, &listIndicesO, &loc, &startFrom, 
-                     &filterName, &GridCoordinates,  &FlowSolutionNodes, &FlowSolutionCenters))
+  E_Int verbose;
+  if (!PYPARSETUPLEI(args, "OOOllssssl", "OOOiissssi", &zone, &fArrays, &listIndicesO, &loc, &startFrom, 
+                     &filterName, &GridCoordinates,  &FlowSolutionNodes, &FlowSolutionCenters, &verbose))
     return NULL; 
 
   /* zone a modifier */
@@ -183,9 +184,12 @@ PyObject* K_CONVERTER::filterPartialFields(PyObject* self, PyObject* args)
     E_Int countInterp = nPts-countOrphan-countExtrap;
     PyObject* v = PyList_GetItem(zone, 0);
     char* zname =  PyString_AsString(v);
-    printf("Zone %s : interpolated=%d; extrapolated=%d; orphans=%d.\n",zname, countInterp, countExtrap, countOrphan);
-    if ( countOrphan>0)
-      printf("WARNING: Zone %s has %d orphan points.\n",zname,countOrphan);
+    if (verbose == 1) 
+    {
+      printf("Zone %s : interpolated=%d; extrapolated=%d; orphans=%d.\n",zname, countInterp, countExtrap, countOrphan);
+      if ( countOrphan>0)
+        printf("WARNING: Zone %s has %d orphan points.\n",zname,countOrphan);
+    }
   }
   for (E_Int no = 0; no < nzonesD; no++)
     RELEASESHAREDA(resD[no],objsD[no],fieldsD[no],a2[no],a3[no],a4[no]); 

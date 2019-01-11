@@ -1178,7 +1178,7 @@ def collarMesh(s1, s2, distribj, distribk,
     for info in infos:
         ranges = info[1:]
         z = C.convertArrays2ZoneNode('Collar', [info[0]])
-        for r in ranges: z = C.addBC2Zone(z,'wall','BCWall',r)
+        for r in ranges: C._addBC2Zone(z,'wall','BCWall',r)
         # ajout des BCOverlaps 
         if type == 'union':
             C._addBC2Zone(z, 'match', 'BCMatch', 'jmin', z, 'jmax', trirac=[1,2,3]) 
@@ -1186,7 +1186,7 @@ def collarMesh(s1, s2, distribj, distribk,
         elif type =='difference':
             C._addBC2Zone(z, 'match', 'BCMatch', 'imin', z, 'imax', trirac=[1,2,3]) 
             C._addBC2Zone(z, 'match', 'BCMatch', 'imax', z, 'imin', trirac=[1,2,3]) 
-        z = C.fillEmptyBCWith(z, 'overlap', 'BCOverlap')               
+        C._fillEmptyBCWith(z, 'overlap', 'BCOverlap')               
         zones += [z]
         
     return zones

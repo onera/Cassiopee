@@ -46,7 +46,6 @@ PyObject* K_CONNECTOR::getExtrapAbsCoefs(PyObject* self, PyObject* args)
                     "getExtrapCoefs: 1st arg must be a numpy of integers.");
     return NULL;
   }
-
   /*---------------------------------------*/
   /* Extraction des indices des extrapoles */
   /*---------------------------------------*/
@@ -78,7 +77,9 @@ PyObject* K_CONNECTOR::getExtrapAbsCoefs(PyObject* self, PyObject* args)
   /* Extraction des coefs  */
   /*-----------------------*/
   FldArrayF* donorCoefsF;
-  res = K_NUMPY::getFromNumpyArray(pyArrayCoefs, donorCoefsF, true);
+  E_Boolean shared=true;
+  E_Boolean inverse = false;
+  res = K_NUMPY::getFromNumpyArray(pyArrayCoefs, donorCoefsF, shared, inverse);
   if (res == 0) 
   {
     RELEASESHAREDN(pyIndRcv, rcvPtsI);
@@ -88,7 +89,6 @@ PyObject* K_CONNECTOR::getExtrapAbsCoefs(PyObject* self, PyObject* args)
                     "getExtrapCoefs: 4th arg must be a numpy of floats.");
     return NULL;
   }
-  
   E_Int sizecoefs = 0;
   // Types valides: 2, 3, 4, 5, 102
   E_Float* ptrCoefs = donorCoefsF->begin();

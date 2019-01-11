@@ -1300,12 +1300,12 @@ def getAllFields(t, loc, api=1):
     result.append(f)
   return result
 
-def filterPartialFields(a, arrays, listIndices, loc='nodes', startFrom=0, filterName=''):
+def filterPartialFields(a, arrays, listIndices, loc='nodes', startFrom=0, filterName='',verbose=True):
   ap = Internal.copyRef(a)
-  _filterPartialFields(ap, arrays, listIndices, loc, startFrom, filterName)
+  _filterPartialFields(ap, arrays, listIndices, loc=loc, startFrom=startFrom, filterName=filterName, verbose=verbose)
   return ap
 
-def _filterPartialFields(a, arrays, listIndices, loc='nodes', startFrom=0, filterName=''):
+def _filterPartialFields(a, arrays, listIndices, loc='nodes', startFrom=0, filterName='',verbose=True):
   if loc =='nodes':locI=0
   elif loc=='centers': locI=1
   else:
@@ -1317,10 +1317,12 @@ def _filterPartialFields(a, arrays, listIndices, loc='nodes', startFrom=0, filte
 
   if filterName=='': 
     raise ValueError("_filterPartialFields: filter name must be provided.")
+  if verbose: iverbose=1
+  else: iverbose=0
   Converter.converter.filterPartialFields(a, arrays, listIndices, locI, startFrom, filterName, 
                                           Internal.__GridCoordinates__, 
                                           Internal.__FlowSolutionNodes__, 
-                                          Internal.__FlowSolutionCenters__)
+                                          Internal.__FlowSolutionCenters__,iverbose)
   return None
 
 # -- setPartialFields

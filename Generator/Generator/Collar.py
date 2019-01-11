@@ -47,10 +47,10 @@ def createCollarMesh__(s1, s2, distribj, distribk, niterj, niterk, ext,
     if s0 == []: return []
     if contour == []: edges = booleanSurfaceEdges__(s1, s2, toldist)
     else: edges = [C.convertBAR2Struct(contour)]
-
     infos = [] # 0: TFI, 1: extrusion
     # Doit on determiner les contraintes ? oui si definies par [] en entree
     compCons1 = 0; compCons2 = 0
+
     for noe in xrange(len(edges)):
         edge = edges[noe]              
         # Remap l'edge si construit automatiquement par booleanSurfaceEdges
@@ -724,12 +724,14 @@ def generateCollarVolumeMesh1__(surf1, surf2, distribj, calpha, toldist):
         n[1][:,ind] = surfu[1][:,indU]
 
     c2p = T.deform(c2,n)
+    c2p = C.extractVars(c2p,['x','y','z'])
     #=============================================            
     # Construction de surf1opp
     #=============================================
     surf1opp = C.array('x,y,z',ni1,2,1)
     for ind in xrange(ni1):
         surf1opp[1][:,ind]= c2[1][:,ind]
+
     for ind in range(ni1,2*ni1):
         indo = ind-ni1
         surf1opp[1][:,ind]= c2p[1][:,indo]
@@ -857,13 +859,14 @@ def buildTFIMeshType0__(r1,r2):
     # creation des fenetres i = 1 et i = imax
     # calcul de r4 : 
     #=============================================
+    r1opp = C.extractVars(r1opp,['x','y','z'])
+    r2opp = C.extractVars(r2opp,['x','y','z'])
     a11 = T.subzone(r1,(1,1,1),(1,r1[3],r1[4]))
     a21 = T.subzone(r1opp,(1,1,1),(1,r1opp[3],r1opp[4]))
     a31 = T.subzone(r2,(1,1,1),(1,r2[3],r2[4]))
     a41 = T.subzone(r2opp,(1,1,1),(1,r2opp[3],r2opp[4]))
     A = [a11,a21,a31,a41]; A = T.reorder(A,(3,1,2))
     r5 = G.TFI(A)
-    
     a11 = T.subzone(r1,(ni1,1,1),(ni1,r1[3],r1[4]))
     a21 = T.subzone(r1opp,(ni1,1,1),(ni1,r1opp[3],r1opp[4]))
     a31 = T.subzone(r2,(ni2,1,1),(ni1,r2[3],r2[4]))

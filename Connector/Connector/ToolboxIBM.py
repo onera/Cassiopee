@@ -830,11 +830,12 @@ def getIBMFront(tc, frontvar, dim, frontType):
         for f in front:
             subf = T.subzone(f, [0], type='elements')
             dx = C.getMaxValue(subf,"CoordinateX")-C.getMinValue(subf,"CoordinateX")
+            dy = C.getMaxValue(subf,"CoordinateY")-C.getMinValue(subf,"CoordinateY")
             if dim == 3:
-                dy = C.getMaxValue(subf,"CoordinateY")-C.getMinValue(subf,"CoordinateY")
                 dz = C.getMaxValue(subf,"CoordinateZ")-C.getMinValue(subf,"CoordinateZ")
                 dht[nof] = max(dx,dy,dz)
-            else: dht[nof] = dx
+            else: 
+                dht[nof] = max(dx,dy)
 
             if dht[nof] < dxmin and dht[nof] > 1.e-12:
                 dxmin = dht[nof]
@@ -856,27 +857,6 @@ def getIBMFront(tc, frontvar, dim, frontType):
             if len(dictOfLevels[nol])>0:
                 front.append(T.join(dictOfLevels[nol]))
 
-    #C.convertPyTree2File(front,"front0.cgns")
-    # if frontType==2:
-    #     G._getNormalMap(front)
-    #     C._normalize(front, ['centers:sx','centers:sy','centers:sz'])
-    #     vshift = min(1.e-6,0.01*dxmin)
-    #     C._initVars(front,"{centers:sx}={centers:sx}*%g"%vshift)
-    #     C._initVars(front,"{centers:sy}={centers:sy}*%g"%vshift)
-    #     C._initVars(front,"{centers:sz}={centers:sz}*%g"%vshift)
-    #     front = C.center2Node(front, Internal.__FlowSolutionCenters__)
-    #     Internal._rmNodesByName(front,Internal.__FlowSolutionCenters__)
-    #     front2 = G.grow(front, ['sx','sy','sz'])
-    #     C._initVars(front2,"tag",2.)
-    #     C._initVars(front,"tag",1.)
-    #     hook = C.createGlobalHook(front, 'nodes')
-    #     front2 = C.identifySolutions(front2, front, hookN=hook, tol=1.e-14)
-    #     C._initVars(front2,'{tag}=abs({tag}-1.)')
-    #     front2 = P.exteriorFaces(front2)
-    #     front = P.selectCells2(front2,'tag',strict=1)
-    #     C.convertPyTree2File(front,"front1.cgns")
-    #     Internal._rmNodesByName(front,Internal.__FlowSolutionNodes__)
-    #     C.freeHook(hook)
     return front
 
 # front of first computed cells - with overlapping
@@ -888,9 +868,17 @@ def getIBMFrontType1(tc,frontvar, dim):
     else: dz = 0.
     front = []
     for z in Internal.getZones(tc):
+        if z[0]=='cart.62':
+            print frontvar, C.getMinValue(z,frontvar),C.getMaxValue(z,frontvar)
         if C.getMinValue(z,frontvar)==0. and C.getMaxValue(z,frontvar)==1.:
+            if z[0]=='cart.62':
+                C.convertPyTree2File(z,"z_avant.cgns")
+
             X._maximizeBlankedCells(z,depth=1,dir=1,loc='nodes', cellNName='cellNChim')
             C._initVars(z,'{cellNChim}=minimum(1.,{cellNChim})')
+            if z[0]=='cart.62':
+                C.convertPyTree2File(z,"z_apres.cgns")
+
             f = P.frontFaces(z, frontvar)
             if Internal.getZoneDim(f)[1]>0:  
                 Internal._rmNodesByName(f,'ID_*')
@@ -1114,7 +1102,7 @@ def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=0
 #=============================================================================
 # Performs the full IBM preprocessing using overlapping Cartesian grids
 #=============================================================================
-def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, shiftIBM=False, interp='all', inv=False):
+def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interp='all', inv=False):
     tb =  Internal.copyRef(tbody)
     if interp == 'all': interpI = 0
     elif interp=='chimera': interpI = 1
@@ -1140,7 +1128,7 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, shiftIBM=False
     #------------------------
     # Ghost cells (overlaps)
     #------------------------
-    t = X.applyBCOverlaps(t, depth=DEPTH)
+    X._applyBCOverlaps(t, depth=DEPTH,loc='centers',val=2, cellNName='cellN')
     C._initVars(t,'{centers:cellNChim}={centers:cellN}')
 
     #------------------------
@@ -1181,13 +1169,13 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, shiftIBM=False
     if IBCType == -1: X._setHoleInterpolatedPoints(t,depth=-DEPTH,dir=0,loc='centers',cellNName='cellN',addGC=False)
     elif IBCType == 1:
         X._setHoleInterpolatedPoints(t,depth=1,dir=1,loc='centers',cellNName='cellN',addGC=False) # pour les gradients
-        if not shiftIBM:
+        if frontType < 2:
             X._setHoleInterpolatedPoints(t,depth=DEPTH,dir=0,loc='centers',cellNName='cellN',addGC=False)
         else:
             DEPTHL=DEPTH+1
             X._setHoleInterpolatedPoints(t,depth=DEPTHL,dir=0, loc='centers',cellNName='cellN',addGC=False)         
             #cree des pts extrapoles supplementaires
-            #_blankClosestTargetCells(t,cellNName='cellN', depth=DEPTHL)
+            _blankClosestTargetCells(t,cellNName='cellN', depth=DEPTHL)
     else:
         raise ValueError('prepareIBMData: not valid IBCType. Check model.')
     _removeBlankedGrids(t, loc='centers')
@@ -1234,12 +1222,10 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, shiftIBM=False
 
     # maillage donneur: on MET les pts IBC comme donneurs
     tc = C.node2Center(t)
-    Internal._rmNodesByName(tc, Internal.__FlowSolutionCenters__)
     FSN = Internal.getNodesFromName(tc,Internal.__FlowSolutionNodes__)
     Internal._rmNodesByName(FSN,'cellNFront')
     Internal._rmNodesByName(FSN,'cellNIBC')
     Internal._rmNodesByName(FSN, "TurbulentDistance")
-    Internal._rmNodesByName(FSN, "grad*TurbulentDistance")
 
     tbb = G.BB(tc)
 
@@ -1275,16 +1261,54 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, shiftIBM=False
 
     # setIBCData - IBC
     C._initVars(t,'{centers:cellNIBCDnr}=minimum(2.,abs({centers:cellNIBC}))')
-    C._initVars(t,'{centers:cellNIBC}=maximum(0.,{cellNIBC})')# vaut -3, 0, 1, 2, 3 initialement
+    C._initVars(t,'{centers:cellNIBC}=maximum(0.,{centers:cellNIBC})')# vaut -3, 0, 1, 2, 3 initialement
     C._initVars(t,'{centers:cellNIBC}={centers:cellNIBC}*({centers:cellNIBC}<2.5)')    
     C._cpVars(t,'centers:cellNIBC',t,'centers:cellN')
     C._cpVars(t,'centers:cellN',tc,'cellN')
 
     #-----------------------------------------------
     # Transfert du cellNFront
-    # A OPTIMISER : NE FAIRE LE TRANSFERT QUE POUR LES ZONES DU FRONT INTERSECTANTES 
     C._cpVars(t,'centers:cellNFront',tc,'cellNFront')
-    XOD._setInterpTransfers(t,tc,variables=['cellNFront'],cellNVariable='cellNFront',compact=0)
+
+
+    for zc in Internal.getZones(tc):        
+        cellNFront = Internal.getNodeFromName2(zc,'cellNFront')
+        if cellNFront != []:
+            cellNFront = cellNFront[1]
+            sizeTot = cellNFront.shape[0]*cellNFront.shape[1]*cellNFront.shape[2]
+            sizeOne =  int(numpy.sum(cellNFront))
+            if sizeOne < sizeTot:
+                XOD._setInterpTransfers(t,zc,variables=['cellNFront'],cellNVariable='cellNFront',compact=0)
+
+    if frontType==2:
+        # dictionnaire a remonter plus haut et passer dans l interface de doInterp
+        intersectionsDict = X.getIntersectingDomains(tbb, method='AABB', taabb=tbb)
+        C._cpVars(t,'centers:cellNFront',tc,'cellNFront')
+        for z in Internal.getZones(t):
+            C._initVars(z,'{centers:cellNFront2}=1.-({centers:cellNFront}<1.)*({centers:cellNChim}>1.)')
+            cellNFront = Internal.getNodeFromName2(z,'cellNFront2')
+            if cellNFront != []:
+                cellNFront = cellNFront[1]
+                sizeTot = cellNFront.shape[0]*cellNFront.shape[1]*cellNFront.shape[2]
+                sizeOne =  int(numpy.sum(cellNFront))
+                if sizeOne < sizeTot:
+                    X._setHoleInterpolatedPoints(z, depth=1, dir=0, loc='centers',cellNName='cellNFront2',addGC=False)
+                    res = X.getInterpolatedPoints(z,loc='centers', cellNName='cellNFront2') #indices,X,Y,Z
+                    if res is not None:
+                        indicesI = res[0]
+                        XI = res[1]; YI = res[2]; ZI = res[3]
+                        allInterpFields=[]
+                        for zc in Internal.getZones(tc):
+                            if zc[0] in intersectionsDict[z[0]]:
+                                HOOKADT = C.createHook(zc, 'adt')
+                                fields = X.transferFields(zc, XI, YI, ZI, hook=HOOKADT, variables=['cellNFront'])
+                                allInterpFields.append(fields)
+                                C.freeHook(HOOKADT)
+                        if allInterpFields!=[]: 
+                            C._filterPartialFields(z, allInterpFields, indicesI, loc='centers', startFrom=0, filterName='donorVol',verbose=False)
+                            C._initVars(z,'{centers:cellNFront}=({centers:cellNFront}>0.5)')# a cause des arrondis des transferts
+
+            C._rmVars(z,['centers:cellNFront2'])
 
     ## Fin traitement specifique, vaut 0 ou 1 apres la ligne suivante
     C._cpVars(t,'centers:cellNFront',tc,'cellNFront')
