@@ -52,9 +52,26 @@ PyObject* K_CONVERTER::convertHO2LO(PyObject* self, PyObject* args)
     return NULL;
   }  
   
+  // Caracteristiques de l'array input
+  E_Int nelts = cn->getSize();
+  E_Int nfld = f->getNfld();
+  E_Int nvertex = f->getSize();
+  E_Int api = f->getApi();
+
+  // Caracteristique de l'array de sortie
+  char outEltType[128]; E_Int d;
+  K_ARRAY::eltString2TypeId(eltType, outEltType, d, d, d);
+
   // directement buildArray2
-  
+  PyObject* o = K_ARRAY::buildArray2(nfld, varString, nvertex, nelts, -1, outEltType, false, 0, 0, 0, api);
+
+  FldArrayF* fo; FldArrayI* co;
+  K_ARRAY::getFromArray2(o, fo, co);
+
+
 
   RELEASESHAREDB(res, array, f, cn);
-  return NULL;
+  RELEASESHAREDU(o, fo, co);
+  
+  return o;
 }

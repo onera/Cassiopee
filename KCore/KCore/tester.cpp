@@ -23,17 +23,16 @@
 #include <stdlib.h>
 
 // Les differents tests
-# define EXTARITH      0
-# define TESTMEMORY    0
-# define TESTLOGGER    0
-#define  TEST1         0
-#define  TEST2         0
-#define  TEST3         0
-#define  TESTARRAY2    0
-#define  TESTFLD       0
-#define  TESTNUMPY     0
-#define  TESTHIGHORDER 1
-
+# define EXTARITH       0
+# define TESTMEMORY     0
+# define TESTLOGGER     0
+#define  TEST1          0
+#define  TEST2          0
+#define  TEST3          0
+#define  TESTARRAY2     0
+#define  TESTFLD        0
+#define  TESTNUMPY      0
+#define  TESTHIGHORDER  2
 
 #if EXTARITH == 1
 #include "ExtArith/quad_double.hpp"
@@ -70,19 +69,16 @@ PyObject* K_KCORE::tester(PyObject* self, PyObject* args)
 {
 
 #if TESTNUMPY == 1
+  K_FLD::FldArrayF f(1,3);
+  for (E_Int i = 0; i < 1; i++) f(i,1) = 1.;
+    for (E_Int i = 0; i < 1; i++) f(i,2) = 2.;
+      for (E_Int i = 0; i < 1; i++) f(i,3) = 3.;
 
-K_FLD::FldArrayF f(1,3);
-for (E_Int i = 0; i < 1; i++) f(i,1) = 1.;
-for (E_Int i = 0; i < 1; i++) f(i,2) = 2.;
-for (E_Int i = 0; i < 1; i++) f(i,3) = 3.;
-
-//f.setAllValuesAt(2.);
-PyObject* a = K_NUMPY::buildNumpyArray(f, 1);
-K_FLD::FldArrayF* out;
-K_NUMPY::getFromNumpyArray(a , out, true);
-
-return a;
-
+  //f.setAllValuesAt(2.);
+  PyObject* a = K_NUMPY::buildNumpyArray(f, 1);
+  K_FLD::FldArrayF* out;
+  K_NUMPY::getFromNumpyArray(a , out, true);
+  return a;
 #endif
 
 #if TEST1 == 1
@@ -232,7 +228,47 @@ return a;
   
   K_ARRAY::eltString2TypeId((char*)"NGON", eltType, nvpe, loc, typeId);
   printf("%s %d %d\n", eltType, nvpe, loc);
+#endif
+
+#if TESTHIGHORDER == 2
+  printf("test 2\n");
+  // Construction vide
+  PyObject* o = K_ARRAY::buildArray2(3, "x,y,z", 6, 1, -1, "TRI_6", false, 0, 0, 0, 2);
+  // Recuperation des pointeurs
+  //E_Int ni,nj,nk; char* eltType; K_FLD::FldArrayF* f; K_FLD::FldArrayI* c; char* varString; 
+  //E_Int ret = K_ARRAY::getFromArray2(o, varString, f, ni, nj, nk, c, eltType);
+
+  K_FLD::FldArrayF* f; K_FLD::FldArrayI* c; 
+  E_Int ret = K_ARRAY::getFromArray2(o, f, c);
   
+  // Champs --
+  // Acces direct Fld
+  (*f)(0,1) = 0.; (*f)(0,2) = -2.; (*f)(0,3) = 0.;
+  (*f)(1,1) = 2.; (*f)(1,2) =  0.; (*f)(1,3) = 0.;
+  (*f)(2,1) = -2.; (*f)(2,2) =  0.; (*f)(2,3) = 0.;
+  (*f)(3,1) =  1.; (*f)(3,2) =  -1.; (*f)(3,3) = 0.;
+  (*f)(4,1) =  0.; (*f)(4,2) =   0.; (*f)(4,3) = 0.;
+  (*f)(5,1) = -1.; (*f)(5,2) =  1.; (*f)(5,3) = 0.;
+
+  (*c)(0,1) = 0; (*c)(0,2) = 1; (*c)(0,3) = 2; (*c)(0,4) = 3; (*c)(0,5) = 4; (*c)(0,6) = 5;
+
+  // Acces par champ Fld
+  //E_Float* f3 = f->begin(3);
+  //f3[0] = 0.; f3[1] = 1.;
+
+  // Connectivite
+  // Acces direct 
+  //(*c)(0,1) = 1; (*c)(0,2) = 2; (*c)(0,3) = 3; (*c)(0,4) = 4; (*c)(0,5) = 5; (*c)(0,6) = 6;
+  // Parcours avec stride
+  //E_Int* cp = c->begin();
+  //E_Int nelts = c->getSize(); E_Int nvpe = c->getNfld(); E_Int s = c->getStride();
+  //for (E_Int i = 0; i < nelts; i++) { cp[0] = i; cp += s; }
+
+
+  // Acces direct pour decoupage de la boucle
+  
+  RELEASESHAREDB(ret, o, f, c);
+  return o;
 #endif
 
 #if TESTFLD == 1

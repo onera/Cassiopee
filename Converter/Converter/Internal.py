@@ -2327,19 +2327,51 @@ def pyTree2Node(t, type):
 # Convertit un nom CGNS d'elt en no CGNS d'elt et son nombre de noeuds associes
 def eltName2EltNo(name):
     eltno = 0; nnodes = 0
-    if (name == 'BAR' or name == 'BAR_2'): eltno = 3; nnodes = 2
-    elif (name == 'TRI' or name == 'TRI_3'): eltno = 5; nnodes = 3
-    elif (name == 'QUAD' or name == 'QUAD_4'): eltno = 7; nnodes = 4
-    elif (name == 'TETRA' or name == 'TETRA_4'): eltno = 10; nnodes = 4
-    elif (name == 'HEXA' or name == 'HEXA_8'): eltno = 17; nnodes = 8
-    elif (name == 'PENTA' or name == 'PENTA_6'): eltno = 14; nnodes = 6
-    elif (name == 'NODE'): eltno = 2; nnodes = 1
-    elif (name == 'PYRA' or name == 'PYRA_5'): eltno = 12; nnodes = 5
-    elif (name == 'MIXED'):
+    if name == 'NODE':
+        eltno = 2; nnodes = 1
+    elif name[0:3] == 'BAR':
+        if len(name) == 3: nnodes = 2
+        else: nnodes = int(name[4:])
+        if nnodes == 2: eltno = 3
+        elif nnodes == 3: eltno = 4
+    elif name[0:3] == 'TRI':
+        if len(name) == 3: nnodes = 3
+        else: nnodes = int(name[4:])
+        if nnodes == 3: eltno = 5
+        elif nnodes == 6: eltno = 6
+    elif name[0:4] == 'QUAD':
+        if len(name) == 4: nnodes = 4
+        else: nnodes = int(name[5:])
+        if nnodes == 4: eltno = 7
+        elif nnodes == 8: eltno = 8
+        elif nnodes == 9: eltno = 9
+    elif name[0:5] == 'TETRA':
+        if len(name) == 5: nnodes = 4
+        else: nnodes = int(name[6:])
+        if nnodes == 4: eltno = 10
+        elif nnodes == 10: eltno = 11
+    elif name[0:4] == 'PYRA':
+        if len(name) == 4: nnodes = 5
+        else: nnodes = int(name[5:])
+        if nnodes == 5: eltno = 12
+        elif nnodes == 14: eltno = 13
+    elif name[0:5] == 'PENTA':
+        if len(name) == 5: nnodes = 6
+        else: nnodes = int(name[6:])
+        if nnodes == 6: eltno = 14
+        elif nnodes == 15: eltno = 15
+        elif nnodes == 18: eltno = 16
+    elif name[0:4] == 'HEXA':
+        if len(name) == 4: nnodes = 8
+        else: nnodes = int(name[5:])
+        if nnodes == 8: eltno = 17
+        elif nnodes == 20: eltno = 18
+        elif nnodes == 27: eltno = 19
+    elif name == 'MIXED':
         print 'Warning: eltName2EltNo: MIXED elements not supported.'
         eltno = 20; nnodes = -1
-    elif (name == 'NGON' or name == 'NGON_n'): eltno = 22; nnodes = 1
-    elif (name == 'NFACE' or name == 'NFACE_n'): eltno = 23; nnodes = 1
+    elif name == 'NGON' or name == 'NGON_n': eltno = 22; nnodes = 1
+    elif name == 'NFACE' or name == 'NFACE_n': eltno = 23; nnodes = 1
     return eltno, nnodes
 
 # -- EltNo2EltName
@@ -2348,13 +2380,23 @@ def eltName2EltNo(name):
 def eltNo2EltName(eltno):
     name = 'UNKNOWN'; nnodes = 0
     if eltno == 2: name = 'NODE'; nnodes = 1
-    elif eltno >= 3 and eltno <= 4: name = 'BAR'; nnodes = 2
-    elif eltno >= 5 and eltno <= 6: name = 'TRI'; nnodes = 3
-    elif eltno >= 7 and eltno <= 9: name = 'QUAD'; nnodes = 4
-    elif eltno >= 10 and eltno <= 11: name = 'TETRA'; nnodes = 4
-    elif eltno >= 12 and eltno <= 13: name = 'PYRA'; nnodes = 5
-    elif eltno >= 14 and eltno <= 16: name = 'PENTA'; nnodes = 6
-    elif eltno >= 17 and eltno <= 19: name = 'HEXA'; nnodes = 8
+    elif eltno == 3: name = 'BAR'; nnodes = 2
+    elif eltno == 4: name = 'BAR_3'; nnodes = 3
+    elif eltno == 5: name = 'TRI'; nnodes = 3
+    elif eltno == 6: name = 'TRI_6'; nnodes = 6
+    elif eltno == 7: name = 'QUAD'; nnodes = 4
+    elif eltno == 8: name = 'QUAD_8'; nnodes = 8
+    elif eltno == 9: name = 'QUAD_9'; nnodes = 9
+    elif eltno == 10: name = 'TETRA'; nnodes = 4
+    elif eltno == 11: name = 'TETRA_10'; nnodes = 10
+    elif eltno == 12: name = 'PYRA'; nnodes = 5
+    elif eltno == 13: name = 'PYRA_14'; nnodes = 14
+    elif eltno == 14: name = 'PENTA'; nnodes = 6
+    elif eltno == 15: name = 'PENTA_15'; nnodes = 15
+    elif eltno == 16: name = 'PENTA_18'; nnodes = 18
+    elif eltno == 17: name = 'HEXA'; nnodes = 8
+    elif eltno == 18: name = 'HEXA_20'; nnodes = 20
+    elif eltno == 19: name = 'HEXA_27'; nnodes = 27
     elif eltno == 20:
         print 'Warning: eltNo2EltName: MIXED elements not supported.'
         name = 'MIXED'; nnodes = -1

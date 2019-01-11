@@ -32,9 +32,9 @@ E_Int K_CONNECT::connectHO2LO(const char* eltTypeHO,
 }
 
 // Converti une connectivite HO par elements en connectivite LO coarse
+// cEVLO doit etre deja alloue
 E_Int K_CONNECT::connectHO2LOCoarse(const char* eltTypeHO,
                                     FldArrayI& cEVHO,
-                                    char* eltTypeLO,
                                     FldArrayI& cEVLO)
 {
   // Calcul des strides
@@ -46,52 +46,16 @@ E_Int K_CONNECT::connectHO2LOCoarse(const char* eltTypeHO,
   E_Int nskip = 0; // nbre de vertex a dumper dans la connectivite HO
 
   E_Int nelts = cEVHO.getSize();
-  E_Int nfld = cEVHO.getNfld();
+  E_Int nvpeHO = cEVHO.getNfld();
   E_Int stride = cEVHO.getStride();
 
-  // voir doc array2
-  
-  if (eltTypeHO[0] == 'B' && eltTypeHO[1] == 'A' && eltTypeHO[2] == 'R')
-  {
-    // BAR
-    strcpy(eltType, "BAR");
-    if (eltTypeHO[4] == '3')
-    {
-      nkeep = 2; nskip = 1;
-    }
-    else if (eltTypeHO[4] == '5')
-    {
-      nkeep = 2; nskip = 3;
-    }
-  }
-  else if (eltTypeHO[0] == 'T' && eltTypeHO[1] == 'R' && eltTypeHO[2] == 'I')
-  {
-    // TRI
-    strcpy(eltType, "TRI");
-    if (eltTypeHO[4] == '3')
-    {
-      nkeep = 2; nskip = 1;
-    }
-    else if (eltTypeHO[4] == '5')
-    {
-      nkeep = 2; nskip = 3;
-    }
-  }
-
-  E_Int* ptHO = cEVHO.begin();
-  E_Int size = cEVHO.size();
-  E_Int nelts = int(size/(nkeep+nskip));
-  E_Int nsize = nelts*nkeep;
-  cEVLO.malloc(nelts, nkeep);
-  E_Int* ptLO = cEVLO.begin();
-  for (E_Int i = 0; i < nelts; i++)
-  {
-    for (E_Int j = 0; j < nkeep; j++)
-    { ptLO[i+j*nkeep] = ptHO[i+j*nkeep]; }
-  }
+  E_Int nvpe = cEVLO;
+  // keep first
+  for (E_Int i = 0; i < nelts; i++) 
+    for (E_Int n = 1; n <= nvpe; n++) cEVLO(i,n) = cEVHO(i,n);
 }
 
-
+// Retourne toujours une connectivite TRI ou TETRA
 E_Int K_CONNECT::connectHO2LOFine(const char* eltTypeHO,
                                   FldArrayI& cEVHO,
                                   char* eltTypeLO,

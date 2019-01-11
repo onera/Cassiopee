@@ -196,11 +196,20 @@ namespace K_ARRAY
                       E_Int& ni, E_Int& nj, E_Int& nk,
                       FldArrayI*& c,
                       char*& eltType);
+  E_Int getFromArray2(PyObject* o,
+                      char*& varString,
+                      FldArrayF*& f,
+                      FldArrayI*& c,
+                      char*& eltType);
+  E_Int getFromArray2(PyObject* o,
+                      FldArrayF*& f,
+                      FldArrayI*& c);
   /* Retourne uniquement un FldArrayF (shared) sur les champs et la varstring 
      Il faut utiliser la macro RELEASESHAREDS */
   E_Int getFromArray2(PyObject* o,
                       char*& varString,
                       FldArrayF*& f);
+  E_Int getFromArray2(PyObject* o, FldArrayF*& f);
 
   /* Extrait les donnees utiles d'un objet python struct array 
      defini par: [ 'vars', a, ni, nj, nk ]

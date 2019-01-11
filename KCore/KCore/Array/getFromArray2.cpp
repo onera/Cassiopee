@@ -583,13 +583,37 @@ E_Int K_ARRAY::getFromArray2(PyObject* o,
   }
 }
 
+// Extrait sans ni,nj,nk
+E_Int K_ARRAY::getFromArray2(PyObject* o,
+                             char*& varString,
+                             FldArrayF*& f,
+                             FldArrayI*& c,
+                             char*& eltType)
+{
+  E_Int ni, nj, nk;
+  E_Int ret = getFromArray2(o, varString, f,
+                            ni, nj, nk, c, eltType);
+  return ret;
+}
+
+// Extrait sans ni,nj,nk,varString,eltType
+E_Int K_ARRAY::getFromArray2(PyObject* o,
+                             FldArrayF*& f,
+                             FldArrayI*& c)
+{
+  E_Int ni, nj, nk; char* varString; char* eltType;
+  E_Int ret = getFromArray2(o, varString, f,
+                            ni, nj, nk, c, eltType);
+  return ret;
+}
+
 //=============================================================================
 // Extrait les donnees (shared) d'un objet python struct array
 // defini par: Array1: [ 'vars', a, ni, nj, nk ]
 //             Array2: [ 'vars', [a], ni, nj, nk ]
 // ou d'un objet python unstruct array
-// defini par: Array1: [ 'vars', a, c, "ELTTYPE"]
-//             Array2: [ 'vars', [a], [c], "ELTTYPE"]
+// defini par: Array1: [ 'vars', a, c, "ELTTYPE" ]
+//             Array2: [ 'vars', [a], [c], "ELTTYPE" ]
 // ou ELTTYPE vaut: NODE, BAR, TRI, QUAD, TETRA, PYRA, PENTA, HEXA, NGON
 // avec ou sans star.
 // Ne retourne que les champs et la varstring
@@ -692,4 +716,12 @@ E_Int K_ARRAY::getFromArray2(PyObject* o,
   }
   
   return 1;
+}
+// Extrait uniquement les champs
+E_Int K_ARRAY::getFromArray2(PyObject* o,
+                             FldArrayF*& f)
+{
+  char* varString;
+  E_Int ret = getFromArray2(o, varString, f);
+  return ret;
 }

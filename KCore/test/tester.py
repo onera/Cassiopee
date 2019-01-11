@@ -1,6 +1,10 @@
 import KCore
 
-KCore.tester()
+a = KCore.tester()
+print a
+import Converter.PyTree as C
+a = C.convertArrays2ZoneNode('triangle', [a])
+C.convertPyTree2File(a, 'out.cgns')
 import sys; sys.exit()
 
 # Test Generator
