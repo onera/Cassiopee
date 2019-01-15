@@ -906,9 +906,11 @@ Immersed boundary (IBM) pre-processing
 
 ------------------------------------------------------------------------------------------------
 
-.. py:function:: X.ToolboxIBM.prepareIBMData(t, tb, DEPTH=2, loc='centers')
+.. py:function:: X.ToolboxIBM.prepareIBMData(t, tb, DEPTH=2, loc='centers', frontType=1)
 
     Compute and store all the information required for IBM computations. 
+    For Euler computations, corrected points are inside body, for viscous computations,
+    corrected points are outside body.
 
     :param t:  pyTree defining the computational domain as a structured mesh
     :type  t:  pyTree 
@@ -919,6 +921,8 @@ Immersed boundary (IBM) pre-processing
     :type DEPTH: integer
     :param loc: location of IBM points: at nodes if loc='nodes' or at cell centers if loc='centers' ('centers'default)
     :type loc: string
+    :param frontType: 0: constant distance front, 1: minimum distance front, 2: adapted distance front
+    :type frontType: integer [0-2]
     :return: t, tc
     :rtype: pyTree
 
@@ -930,7 +934,7 @@ Immersed boundary (IBM) pre-processing
 
     - a donor pyTree tc storing all the information required to transfer then the solution at cellN=2 points:
    
-     *Example of use:* 
+    *Example of use:* 
 
     * `compute the IBM preprocessing (pyTree) <Examples/Connector/prepareIBMDataPT.py>`_:
 
@@ -947,7 +951,7 @@ Immersed boundary (IBM) pre-processing
 
     If information is stored in the donor pyTree tc, then a=tc, else a must define the receptor pyTree t.
 
-      *Example of use:* 
+    *Example of use:* 
 
     * `extract all the IBM points (pyTree) <Examples/Connector/extractIBMInfoPT.py>`_:
 
@@ -964,7 +968,7 @@ Immersed boundary (IBM) pre-processing
     If tb is None, then tw is the cloud of wall points. If tb is a triangular surface mesh, then the solution extracted at cloud points is interpolated
     on the vertices of the triangular mesh. a must contain the fields in the ZoneSubRegions of name prefixed by 'IBCD'. 
 
-     *Example of use:* 
+    *Example of use:* 
 
     * `Extract the solution on the wall  (pyTree) <Examples/Connector/extractIBMWallFieldsPT.py>`_:
 

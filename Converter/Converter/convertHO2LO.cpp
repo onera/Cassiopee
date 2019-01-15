@@ -28,7 +28,8 @@ using namespace std;
 PyObject* K_CONVERTER::convertHO2LO(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
+  E_Int mode;
+  if (!PYPARSETUPLEI(args, "Ol", "Od", &array, &mode)) return NULL;
 
   // Check array
   E_Int ni, nj, nk;
@@ -50,7 +51,14 @@ PyObject* K_CONVERTER::convertHO2LO(PyObject* self, PyObject* args)
     PyErr_SetString(PyExc_TypeError, 
                     "convertHO2LO: array must be unstructured.");
     return NULL;
-  }  
+  }
+  if (K_STRING::cmp(eltType, 4, "NGON") == 0)
+  {
+    RELEASESHAREDU(array, f, cn);
+    PyErr_SetString(PyExc_TypeError, 
+                    "convertHO2LO: array must not be NGON.");
+    return NULL;
+  }
   
   // Caracteristiques de l'array input
   E_Int nelts = cn->getSize();
@@ -68,8 +76,11 @@ PyObject* K_CONVERTER::convertHO2LO(PyObject* self, PyObject* args)
   FldArrayF* fo; FldArrayI* co;
   K_ARRAY::getFromArray2(o, fo, co);
 
+  // Ne pas utiliser (*fo) = (*f); peut reallouer 
+  fo->copy(*f, 1, nfld); // copie les champs est ok
 
-
+  K_CONNECT::connectHO2LO(eltType, *cn, *co, 0);
+  
   RELEASESHAREDB(res, array, f, cn);
   RELEASESHAREDU(o, fo, co);
   

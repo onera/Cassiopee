@@ -17,7 +17,7 @@ a = G.cart((0,0,0),(1./(N-1),1./(N-1),1./(N-1)),(N,N,N))
 xm = 0.5*N/(N-1)
 s = D.sphere((xm,xm,xm),0.1,N=20)
 s = C.convertArray2Tetra(s); s = G.close(s)
-t = C.newPyTree(['Base']); t[2][1][2] = [a]
+t = C.newPyTree(['Base', a])
 
 # Blanking
 bodies = [[s]]
@@ -31,18 +31,18 @@ t = C.center2Node(t,'centers:TurbulentDistance')
 t = P.computeGrad(t, 'TurbulentDistance')
 t = I.initConst(t,MInf=0.2,loc='centers')
 tc = C.node2Center(t)
-t = X.setIBCData(t, tc, loc='centers', storage='direct')
 
-
-tb = C.newPyTree(['Base']); tb[2][1][2] = [s]
+tb = C.newPyTree(['Base', s])
 tb = C.addState(tb, 'EquationDimension',3)
 tb = C.addState(tb, 'GoverningEquations', 'NSTurbulent')
 
-t2 = X.setInterpTransfers(t,tc,bcType=0,varType=1)
-z = IBM.extractIBMWallFields(t2,tb=tb)
+tp = X.setIBCData(t, tc, loc='centers', storage='direct', bcType=0)
+t2 = X.setInterpTransfers(tp, tc, bcType=0, varType=1)
+z = IBM.extractIBMWallFields(t2, tb=tb)
 test.testT(z,1)
 
 #
-t2 = X.setInterpTransfers(t,tc,bcType=3,varType=1)
-z = IBM.extractIBMWallFields(t2,tb=tb)
+tp = X.setIBCData(t, tc, loc='centers', storage='direct', bcType=3)
+t2 = X.setInterpTransfers(tp, tc, bcType=3, varType=1)
+z = IBM.extractIBMWallFields(t2, tb=tb)
 test.testT(z,2)

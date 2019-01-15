@@ -65,7 +65,7 @@ def mergeCart(A, sizeMax=1000000000, tol=1.e-10):
 def merge(A, Ac=[], sizeMax=1000000000, dir=0, tol=1.e-10, alphaRef=180.):
     """Merge a list of matching structured grids.
     Usage: merge(A, Ac, sizeMax, dir, tol, alphaRef)"""
-    if (len(Ac) != 0 and len(A) != len(Ac)):
+    if len(Ac) != 0 and len(A) != len(Ac):
         raise ValueError("merge: node and center arrays must have the same length.")
     # Tri suivant les types
     STRUCTs = []; BARs = []; TRIs = []; QUADs = []; TETRAs = []

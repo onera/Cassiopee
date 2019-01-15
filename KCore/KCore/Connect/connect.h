@@ -188,6 +188,10 @@ namespace K_CONNECT
   */
   void connectEV2VF(K_FLD::FldArrayI& cEV, const char* eltType,
                     std::vector< std::vector<E_Int> >& cVF);
+  /* Change HO EV connectivity to LO EV connectivity.
+     mode=0: sub-select, mode=1: tesselate */
+  E_Int connectHO2LO(const char* eltTypeHO, K_FLD::FldArrayI& cEVHO,
+                     K_FLD::FldArrayI& cEVLO, E_Int mode);
   /* identifyFace */
   E_Int identifyFace(E_Int* inds, E_Int n, 
                      std::vector< std::vector<E_Int> >& cVF);

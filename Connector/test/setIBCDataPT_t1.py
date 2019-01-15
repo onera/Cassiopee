@@ -11,12 +11,12 @@ import numpy as N
 a = G.cart((-1,-1,-1),(0.1,0.1,1),(21,21,3))
 s = G.cylinder((0,0,-1), 0, 0.4, 360, 0, 4, (31,31,5)) 
 s = C.convertArray2Tetra(s); s = T.join(s); s = P.exteriorFaces(s)
-t = C.newPyTree(['Base']); t[2][1][2] = [a]
-tb = C.newPyTree(['Base']); tb[2][1][2] = [s]
+t = C.newPyTree(['Base', a])
+tb = C.newPyTree(['Base', s])
 
 # Blanking
 bodies = [[s]]
-BM = N.array([[1]],N.int32)
+BM = N.array([[1]], N.int32)
 t = X.blankCells(t, bodies, BM, blankingType='center_in')
 t = X.setHoleInterpolatedPoints(t, depth=-1)
 # Dist2Walls
@@ -30,7 +30,7 @@ t2 = X.setIBCData(t, t, loc='centers', storage='direct',hi=0.1, bcType=-1)
 test.testT(t2,2)
 
 # NODES
-t = C.newPyTree(['Base']); t[2][1][2] = [a]
+t = C.newPyTree(['Base', a])
 # Blanking
 bodies = [[s]]
 BM = N.array([[1]],N.int32)
@@ -47,7 +47,7 @@ t2 = X.setIBCData(t, t, loc='nodes', storage='direct', hi=0.1,bcType=-1)
 test.testT(t2,4)
 
 # COMBINATION INSIDE/OUTSIDE
-t = C.newPyTree(['Base']); t[2][1][2] = [a]
+t = C.newPyTree(['Base', a])
 
 # Blanking
 bodies = [[s]]

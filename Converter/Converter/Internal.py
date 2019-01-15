@@ -2895,7 +2895,7 @@ def convertDataNodes2Array2(nodes, dim, connects, loc=-1):
             if lsize == 1: ni = size[0]; nj = 1; nk = 1
             elif lsize == 2: ni = size[0]; nj = size[1]; nk = 1
             elif lsize == 3: ni = size[0]; nj = size[1]; nk = size[2]
-            print "Warning: convertDataNodes2Array: incoherency zone/array."
+            print("Warning: convertDataNodes2Array: incoherency zone/array.")
             return [vars, field, ni, nj, nk]
 
     # unstructured
@@ -2957,12 +2957,12 @@ def convertDataNodes2Array2(nodes, dim, connects, loc=-1):
         if loc == 1: ettype += '*'
     return [vars, field, cr, ettype]
 
-def _groupByFamily(t, familyChilds=None,unique=False):
+def _groupByFamily(t, familyChilds=None, unique=False):
     """Group all nodes of each base which have the same family name but not link to a family node."""
     if familyChilds is None: familyChilds=[]
     for b in getBases(t):
         # Name of Nodes Family_t
-        familiesNodeNames=[fam[0] for fam in getNodesFromType(b,'Family_t')]
+        familiesNodeNames = [fam[0] for fam in getNodesFromType(b,'Family_t')]
         # All node BC_t not family specified
         BCNotSpec = []
         for bc in getNodesFromType3(b, 'BC_t'):
@@ -3434,7 +3434,7 @@ def setElementConnectivity(z, array):
           info2.append(['ElementConnectivity', cEF, [], 'DataArray_t'])
           _updateElementRange(z)
 
-# Pour array2
+# Pour array - api2
 def setElementConnectivity2(z, array):
   etype, stype = eltName2EltNo(array[3])
   GENodes = getElementNodes(z)
@@ -3443,7 +3443,7 @@ def setElementConnectivity2(z, array):
       if etype != 22 and etype != 23: # Elements->Nodes connectivities
           z[2].append(['GridElements', i, [], 'Elements_t'])
           info = z[2][len(z[2])-1]
-          i = numpy.empty((2), numpy.int32); i[0] = 1; i[1] = array[2].shape[1]
+          i = numpy.empty((2), numpy.int32); i[0] = 1; i[1] = array[2][0].shape[1]
           info[2].append(['ElementRange', i, [], 'IndexRange_t'])
           info[2].append(['ElementConnectivity', array[2][0], [], 'DataArray_t'])
           _updateElementRange(z)
@@ -3480,13 +3480,13 @@ def setElementConnectivity2(z, array):
       if etype != 22 and etype != 23: # Elements->Nodes connectivities
           GENodes[0][1] = i
           nodeE = getNodeFromName2(z, 'ElementRange')
-          i = numpy.empty((2), numpy.int32); i[0] = 1; i[1] = array[2].shape[1]
+          i = numpy.empty((2), numpy.int32); i[0] = 1; i[1] = array[2][0].shape[1]
           nodeE[1] = i
           nodeE = getNodeFromName2(z, 'ElementConnectivity')
           nodeE[1] = array[2][0]
           _updateElementRange(z)
           for n in GENodes[1:]: # delete NFace ou NGon (si il existe)
-              if (n[1][0] == 23 or n[1][0] == 22):
+              if n[1][0] == 23 or n[1][0] == 22:
                   (p, r) = getParentOfNode(z, n)
                   del p[2][r]
       else: # Faces->Nodes and Elements->Faces connectivities (NGON or NFACE)

@@ -26,19 +26,19 @@ t = C.center2Node(t,'centers:TurbulentDistance')
 t = P.computeGrad(t, 'TurbulentDistance')
 t = I.initConst(t,MInf=0.2,loc='centers')
 tc = C.node2Center(t)
-t = X.setIBCData(t, tc, loc='centers', storage='direct')
 no = 1
 for bcType in xrange(4):
+    tp = X.setIBCData(t, tc, loc='centers', storage='direct', bcType=bcType)
     for varType in xrange(1,4):
-        t2 = X.setInterpTransfers(t,tc,bcType=bcType,varType=varType)
+        t2 = X.setInterpTransfers(tp, tc, bcType=bcType, varType=varType)
         test.testT(t2,no)
         no+=1
 
 # Stockage inverse
 Internal._rmNodesByName(t,"IBCD_*")
-tc = X.setIBCData(t, tc, loc='centers', storage='inverse')
 for bcType in xrange(4):
+    tc2 = X.setIBCData(t, tc, loc='centers', storage='inverse', bcType=bcType)
     for varType in xrange(1,4):
-        X._setInterpTransfers(t,tc,bcType=bcType,varType=varType)
-        test.testT(tc,no)
+        X._setInterpTransfers(t, tc2, bcType=bcType, varType=varType)
+        test.testT(tc, no)
         no += 1

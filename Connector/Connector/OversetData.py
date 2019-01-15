@@ -385,7 +385,7 @@ def _setIBCDataForZone__(z, zonesDnr, correctedPts, wallPts, interpPts, loc='nod
     prefixIBCD ='IBCD_'
     bcName = None
     if isinstance(bcType,int):        
-        if bcType != -1:        
+        if bcType != -1:
             prefixIBCD += str(bcType)+'_'
 
     else:
@@ -569,7 +569,7 @@ def _addIBCCoords__(z, zname, correctedPts, wallPts, interpolatedPts, bcType, bc
     zsr[2].append(['Pressure', pressNP, [], 'DataArray_t'])
     zsr[2].append(['Density' , densNP , [], 'DataArray_t'])
     
-    if bcType >0:
+    if bcType != 0:
         utauNP  = numpy.zeros((nIBC),numpy.float64)
         yplusNP = numpy.zeros((nIBC),numpy.float64)
         zsr[2].append(['utau' , utauNP , [], 'DataArray_t'])

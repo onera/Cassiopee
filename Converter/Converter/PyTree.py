@@ -1489,16 +1489,16 @@ def setFields(arrays, t, loc, writeDim=True):
           v = numpy.fromstring('Unstructured', 'c')
           typeNodes[0][1] = v
           #if isinstance(a[2], list): # Array2
-          #  setElementConnectivity2(z, a)
+          #  Internal.setElementConnectivity2(z, a)
           #else: # Array1
-          #  setElementConnectivity(z, a)
+          #  Internal.setElementConnectivity(z, a)
           Internal.setElementConnectivity(z, a)
         else:
-          #if isinstance(a[2], list): # Array2
-          #  setElementConnectivity2(z, a)
-          #else: # Array1
-          #  setElementConnectivity(z, a)
-          Internal.setElementConnectivity(z, a)
+          if isinstance(a[2], list): # Array2
+            Internal.setElementConnectivity2(z, a)
+          else: # Array1
+            Internal.setElementConnectivity(z, a)
+          #Internal.setElementConnectivity(z, a)
   return t
 
 # -- getNumpyArrays
@@ -6583,14 +6583,17 @@ def addPeriodicZones__(a):
 
 #==============================================================================
 def convertPyTree2FFD(zone, RefStat, FlowEq, nd):
-  print "nd=", nd
-  print "RefStat=", RefStat
-  print "FlowEq =", FlowEq
-  Converter.converter.convertPyTree2FFD(zone,RefStat,FlowEq,nd,
+  Converter.converter.convertPyTree2FFD(zone, RefStat, FlowEq, nd,
                                         Internal.__GridCoordinates__,
                                         Internal.__FlowSolutionNodes__,
                                         Internal.__FlowSolutionCenters__ )
   return None
+
+# Convert to low order mesh
+def convertHO2LO(t, mode=0):
+    """Convert a HO element mesh to linear mesh.
+    Usage: convertHO2LO(t, mode)"""
+    return TZGC2(t, Converter.convertHO2LO, 'nodes', True, mode)
 
 #==============================================================================
 # - client/server -

@@ -77,11 +77,15 @@ PyObject* K_ARRAY::buildArray2(E_Int nfld, const char* varString,
 PyObject* K_ARRAY::buildArray2(FldArrayF& field, const char* varString, 
                                E_Int ni, E_Int nj, E_Int nk, E_Int api)
 {
-  PyObject* o = buildArray2(field.getNfld(), varString, 
+  E_Int nfld = field.getNfld();
+  PyObject* o = buildArray2(nfld, varString, 
                             ni, nj, nk, api);
-  FldArrayF* fp; char* varString2;
-  getFromArray2(o, varString2, fp);
-  delete fp;
+  FldArrayF* fp;
+  getFromArray2(o, fp);
+  
+  for (E_Int n = 1; n <= nfld; n++)
+  for (E_Int i = 0; i < field.getSize(); i++) (*fp)(i,n) = field(i,n);
+  RELEASESHAREDS(i, fp);
   return o;
 }
 */
@@ -221,4 +225,51 @@ PyObject* K_ARRAY::buildArray2(E_Int nfld, const char* varString,
   Py_DECREF(a); Py_DECREF(ac);
 
   return tpl;
+}
+//=============================================================================
+/* Build a unstructured array from a FldArrayF and FldArrayI
+   IN: varString: variables string
+   IN: f: field Fld
+   IN: cn: connectivity Fld
+   IN: eltType: elt type
+   IN: api (1: array, 2: array2)
+   OUT: PyObject created. */
+//=============================================================================
+/*
+PyObject* K_ARRAY::buildArray2(FldArrayF& field, const char* varString, 
+                               FldArrayI& cn, char* eltType, E_Int api)
+{
+  E_Int nfld = field.getNfld();
+  E_Int nvertex = f->getSize();
+  E_Int nelt = cn->getSize();
+
+  E_Int sizeNGon = 0;
+  E_int sizeNFace = 0;
+
+  if (cn->isNGON())
+  {
+    sizeNGon = cn->getSizeNGon();
+    sizeNFace = cn->getSizeNFace();
+    nface = cn->getNFaces();
+    nelt = cn->getNElts();
+  }
+  PyObject* o = buildArray2(nfld, varString,
+                            nvertex, nelt,
+                            -1, eltType,
+                            false, sizeNGon, 
+                            sizeNFace, nface, api);
+                            
+  FldArrayF* fp; FldArrayI* cnp;
+  getFromArray2(o, fp, cnp);
+  
+  for (E_Int n = 1; n <= nfld; n++)
+  for (E_Int i = 0; i < field.getSize(); i++) (*fp)(i,n) = field(i,n);
+
+  
+  for (E_Int n = 1; n <= nfld; n++)
+  for (E_Int i = 0; i < field.getSize(); i++) (*fp)(i,n) = field(i,n);
+  
+
+  RELEASESHAREDU(i, fp, cnp);
+  return o;
 }
