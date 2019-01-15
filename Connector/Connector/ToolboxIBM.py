@@ -650,6 +650,8 @@ def addRefinementZones(o, tb, tbox, snearsf, vmin, dim):
 # =============================================================================
 def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, 
                     frontType=0, cellNName='cellN', IBCType=1, depth=2):
+    if IBCType==-1: signOfDistCorrected = -1
+    else: signOfDistCorrected=1 # signe de la distance aux points corriges
 
     allCorrectedPts = []; allWallPts = []; allInterpPts = []
     #-------------------------------------------
@@ -708,8 +710,6 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None,
         res = connector.getIBMPtsBasic(allCorrectedPts, varsn, 'TurbulentDistance')
     else:
         dictOfBodiesByIBCType={}
-        ibctypemin = 100
-        ibctypemax = -1 # pour les verifications
         for s in Internal.getZones(tb):
             sdd = Internal.getNodeFromName1(s,".Solver#define")
             if sdd is not None: # check consistency of ibc type with flow equations
@@ -722,17 +722,15 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None,
             else: # type of IBC not found: Euler -> slip, other : Musker            
                 if IBCType == -1: ibctype = 'slip' 
                 else: ibctype = 'Musker'
-            
-            ibctypeI = TypesOfIBC[ibctype]
-            ibctypemin = min(ibctypemin,ibctypeI)
-            if ibctypeI < 4: ibctypemax = max(ibctypemax,ibctypeI)
+            famName = Internal.getNodeFromType1(s,'FamilyName_t')
+            if famName is not None:
+               famName = Internal.getValue(famName)
 
-            if not dictOfBodiesByIBCType.has_key(ibctype):
-                dictOfBodiesByIBCType[ibctype]=[s]
-            else: dictOfBodiesByIBCType[ibctype]+=[s]
-        
-        if ibctypemin < 2 and ibctypemax > 1:
-            raise ValueError("prepareIBMData: cannot mix slip/noslip IBC with wall-model IBCs within the same simulation.")
+            ibctypeI = TypesOfIBC[ibctype]
+            if famName is not None: ibctype2 = str(ibctypeI)+"#"+famName
+            else: ibctype2 = str(ibctypeI)  
+            if not dictOfBodiesByIBCType.has_key(ibctype2): dictOfBodiesByIBCType[ibctype2]=[s]
+            else: dictOfBodiesByIBCType[ibctype2]+=[s]
 
         # Regroupement des corps par type de BC - optimise les projections ensuite 
         bodies = []; listOfIBCTypes=[];
@@ -742,21 +740,18 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None,
             body = Converter.convertArray2Tetra(body)
             body = Transform.join(body)
             bodies.append(body)
-            listOfIBCTypes.append(TypesOfIBC[itype])
+            listOfIBCTypes.append(itype)
+
         if frontType == 0:
             dmin = C.getMaxValue(tfront, 'TurbulentDistance')
             allCorrectedPts = Converter.initVars(allCorrectedPts,'dist',dmin)
-            res = connector.getIBMPtsWithoutFront(allCorrectedPts, bodies, listOfIBCTypes, varsn, 'dist', IBCType)
+            res = connector.getIBMPtsWithoutFront(allCorrectedPts, bodies, varsn, 'dist', signOfDistCorrected)
         else:            
             front = C.getFields(Internal.__GridCoordinates__,tfront)
             front = Converter.convertArray2Tetra(front)
             allCorrectedPts = Converter.extractVars(allCorrectedPts,['CoordinateX','CoordinateY','CoordinateZ']+varsn)
-            res = connector.getIBMPtsWithFront(allCorrectedPts, listOfSnearsLoc, bodies, listOfIBCTypes,
-                                               front, varsn, IBCType, depth)
-
-    # Converter.convertArrays2File(allCorrectedPts, 'correctedPts.plt')
-    # Converter.convertArrays2File(res[0], 'wallPts.plt')
-    # Converter.convertArrays2File(res[1], 'imagePts.plt')
+            res = connector.getIBMPtsWithFront(allCorrectedPts, listOfSnearsLoc, bodies, 
+                                               front, varsn, signOfDistCorrected, depth)
     allWallPts = res[0]
     allWallPts = Converter.extractVars(allWallPts,['CoordinateX','CoordinateY','CoordinateZ'])
 
@@ -773,7 +768,7 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None,
         allIndicesByIBCType = res[2]    
         for noz in xrange(nzonesR):
             indicesByTypeForZone = res[2][noz]
-            nbTypes = len(indicesByTypeForZone)        
+            nbTypes = len(indicesByTypeForZone)
             for nob in xrange(nbTypes):
                 ibcTypeL = listOfIBCTypes[nob]
                 indicesByTypeL = indicesByTypeForZone[nob]
@@ -803,12 +798,7 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None,
                 dictOfCorrectedPtsByIBCType[ibcTypeL] += [allCorrectedPts[noz]]
                 dictOfWallPtsByIBCType[ibcTypeL] += [allWallPts[noz]]
                 dictOfInterpPtsByIBCType[ibcTypeL] += [allInterpPts[noz]]        
-    # for ibcTypeL in  dictOfCorrectedPtsByIBCType.keys():
-    #     Converter.convertArrays2File(dictOfCorrectedPtsByIBCType[ibcTypeL],"correctedPts_%d.plt"%ibcTypeL)
-    #     Converter.convertArrays2File(dictOfWallPtsByIBCType[ibcTypeL],"wallPts_%d.plt"%ibcTypeL)
-    #     Converter.convertArrays2File(dictOfInterpPtsByIBCType[ibcTypeL],"interpPts_%d.plt"%ibcTypeL)
 
-    #return allCorrectedPts, allWallPts, allInterpPts
     return dictOfCorrectedPtsByIBCType, dictOfWallPtsByIBCType, dictOfInterpPtsByIBCType
 #=============================================================================
 # Returns the front defining the image points
@@ -868,17 +858,9 @@ def getIBMFrontType1(tc,frontvar, dim):
     else: dz = 0.
     front = []
     for z in Internal.getZones(tc):
-        if z[0]=='cart.62':
-            print frontvar, C.getMinValue(z,frontvar),C.getMaxValue(z,frontvar)
         if C.getMinValue(z,frontvar)==0. and C.getMaxValue(z,frontvar)==1.:
-            if z[0]=='cart.62':
-                C.convertPyTree2File(z,"z_avant.cgns")
-
             X._maximizeBlankedCells(z,depth=1,dir=1,loc='nodes', cellNName='cellNChim')
             C._initVars(z,'{cellNChim}=minimum(1.,{cellNChim})')
-            if z[0]=='cart.62':
-                C.convertPyTree2File(z,"z_apres.cgns")
-
             f = P.frontFaces(z, frontvar)
             if Internal.getZoneDim(f)[1]>0:  
                 Internal._rmNodesByName(f,'ID_*')
@@ -1068,7 +1050,6 @@ def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=0
             for nozr in xrange(nbZonesIBC):
                 if allCorrectedPts[nozr] != []:
                     interpPtsBB=Generator.BB(allInterpPts[nozr])
-
                     zrcv = zonesRIBC[nozr]
                     zrcvname = zrcv[0]
                     nobOfDnrBases = []; nobOfDnrZones=[]; dnrZones=[]; hook0 = []

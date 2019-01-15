@@ -44,41 +44,12 @@ using namespace K_SEARCH;
 // ============================================================================
 PyObject* K_CONNECTOR::getIBMPtsWithoutFront(PyObject* self, PyObject* args)
 {
-    PyObject *allCorrectedPts, *bodySurfaces, *normalNames, *distName, *ListOfIBCTypes;
+    PyObject *allCorrectedPts, *bodySurfaces, *normalNames, *distName;
     E_Int signOfDist; //if correctedPts are inside bodies: sign = -1, else sign=1
-    if (!PYPARSETUPLEI(args, "OOOOOl","OOOOOi", &allCorrectedPts, &bodySurfaces, 
-                       &ListOfIBCTypes, &normalNames, &distName, &signOfDist))
+    if (!PYPARSETUPLEI(args, "OOOOl","OOOOi", &allCorrectedPts, &bodySurfaces, 
+                       &normalNames, &distName, &signOfDist))
         return NULL;
 
-    if (PyList_Size(ListOfIBCTypes) == 0)
-    {
-        PyErr_SetString(PyExc_TypeError, 
-                        "getIBMPtsWithoutFront: 3rd argument is an empty list.");
-        return NULL;
-    }
-    E_Int nibcTypes = PyList_Size(ListOfIBCTypes);
-    vector<E_Int> vectOfIBCTypes;
-    PyObject* tpl0 = NULL;
-    for (int i = 0; i < nibcTypes; i++)
-    {
-        tpl0 = PyList_GetItem(ListOfIBCTypes,i);
-        if (PyLong_Check(tpl0) && PyInt_Check(tpl0) == 0)
-        {
-            PyErr_Warn(PyExc_Warning,
-                            "getIBMPtsWithoutFront: ibctypes must be integers.");
-            return NULL;
-        } 
-        else 
-        {
-            E_Int ibcTypeL = E_Int(PyLong_AsLong(tpl0));
-            if ( ibcTypeL < 0 || ibcTypeL > 5 )
-            {
-                PyErr_SetString(PyExc_TypeError, 
-                                "getIBMPtsWithoutFront: value of IBC type is not valid.");
-                return NULL;                
-            }
-        } 
-    }
     E_Int sign = -signOfDist; // sens de projection sur la paroi
 
     // check distname
@@ -217,12 +188,7 @@ PyObject* K_CONNECTOR::getIBMPtsWithoutFront(PyObject* self, PyObject* args)
             return NULL;
         }
     }
-    if ( nibcTypes != nbodies ) 
-    {
-        PyErr_SetString(PyExc_TypeError,"getIBMPtsWithoutFront: number of bodies and ibc types must ne equal.");
-        RELEASEZONES; RELEASEBODIES;
-        return NULL;        
-    }
+
     vector<E_Int> posxb; vector<E_Int> posyb; vector<E_Int> poszb;
     for (E_Int no = 0; no < nbodies; no++)
     {

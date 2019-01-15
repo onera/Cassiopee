@@ -56,7 +56,6 @@ def miseAPlatDonorTree__(zones, tc, graph=None):
       tmp        = Internal.getValue(zonetype)
       if tmp != "Structured": meshtype = 2
       for s in subRegions:
-
          zRname = Internal.getValue(s)
          proc = 0
          if procDict is not None: proc = procDict[zRname]
@@ -314,7 +313,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None):
        ptd1=0;ptd2=0;ptd3=0;ptd4=0;ptd5=0
        if sname == 'IB': 
            zsrname = zsrname.split('_')
-           if len(zsrname) != 3: 
+           if len(zsrname) < 3: 
                 #print('Warning: miseAPlatDonorTree: non consistent with the version of IBM preprocessing.')
                 if model=='Euler': 
                     print('Assuming IBC type is wallslip.')

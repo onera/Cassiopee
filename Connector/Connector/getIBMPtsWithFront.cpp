@@ -52,11 +52,11 @@ using namespace K_SEARCH;
 PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
 {
     PyObject *allCorrectedPts, *bodySurfaces, *frontSurfaces, *normalNames;
-    PyObject *ListOfSnearsLoc, *ListOfIBCTypes;
+    PyObject *ListOfSnearsLoc;
     E_Int signOfDist; //if correctedPts are inside bodies: sign = -1, else sign=1
     E_Int depth;//nb of layers of ghost cells
-    if (!PYPARSETUPLEI(args,"OOOOOOll","OOOOOOii", 
-                       &allCorrectedPts, &ListOfSnearsLoc, &bodySurfaces, &ListOfIBCTypes, &frontSurfaces, 
+    if (!PYPARSETUPLEI(args,"OOOOOll","OOOOOii", 
+                       &allCorrectedPts, &ListOfSnearsLoc, &bodySurfaces, &frontSurfaces, 
                        &normalNames, &signOfDist, &depth)) return NULL;
 
     // extract list of snearsloc
@@ -66,12 +66,7 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
                         "getIBMPtsWithFront: 2nd argument is an empty list.");
         return NULL;
     }
-    if (PyList_Size(ListOfIBCTypes) == 0)
-    {
-        PyErr_SetString(PyExc_TypeError, 
-                        "getIBMPtsWithFront: 4th argument is an empty list.");
-        return NULL;
-    }
+
 
     E_Int nsnears = PyList_Size(ListOfSnearsLoc);
     vector<E_Float> vectOfSnearsLoc;
@@ -88,27 +83,7 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
         } 
         else vectOfSnearsLoc.push_back(PyFloat_AsDouble(tpl0));
     }
-    E_Int nibcTypes = PyList_Size(ListOfIBCTypes);
-    for (int i = 0; i < nibcTypes; i++)
-    {
-        tpl0 = PyList_GetItem(ListOfIBCTypes,i);
-        if (PyLong_Check(tpl0) && PyInt_Check(tpl0) == 0)
-        {
-            PyErr_Warn(PyExc_Warning,
-                            "getIBMPtsWithFront: ibctypes must be integers.");
-            return NULL;
-        } 
-        else
-        {
-            E_Int ibcTypeL = E_Int(PyLong_AsLong(tpl0));
-            if (ibcTypeL < 0 || ibcTypeL > 5)
-            {
-                PyErr_SetString(PyExc_TypeError, 
-                                "getIBMPtsWithFront: value of IBC type is not valid.");
-                return NULL;                
-            }
-        }
-    }
+  
     E_Int sign = -signOfDist; // sens de projection sur la paroi
 
     //tolerance of distance between corrected pts and wall/image to control projection
@@ -243,12 +218,7 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
             return NULL;
         }
     }
-    if ( nibcTypes != nbodies ) 
-    {
-        PyErr_SetString(PyExc_TypeError,"getIBMPtsWithFront: number of bodies and ibc types must ne equal.");
-        RELEASEZONES; RELEASEBODIES;
-        return NULL;        
-    }
+
     vector<E_Int> posxb; vector<E_Int> posyb; vector<E_Int> poszb;
     for (E_Int no = 0; no < nbodies; no++)
     {

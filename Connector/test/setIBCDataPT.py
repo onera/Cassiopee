@@ -17,7 +17,7 @@ BM = N.array([[1]],N.int32)
 t = X.blankCells(t,bodies,BM,blankingType='center_in')
 t = X.setHoleInterpolatedPoints(t, depth=-2)
 # Dist2Walls
-t = DTW.distance2Walls(t,[s],type='ortho',loc='centers',signed=1)
+DTW._distance2Walls(t,[s],type='ortho',loc='centers',signed=1)
 t = C.center2Node(t,'centers:TurbulentDistance')
 # Gradient de distance localise en centres => normales
 t = P.computeGrad(t, 'TurbulentDistance')

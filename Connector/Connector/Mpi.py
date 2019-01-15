@@ -37,7 +37,7 @@ def optimizeOverlap(t, double_wall=0, priorities=[], graph=None,
 # IN: bcType  0: glissement
 #             1: adherence
 #             2: loi de paroi log
-#             3: loi de paroi Musker
+#             3: loi de paroi Musker,4: outpress, 5 inj, 6 TBLE-SA
 # IN: varType=1,2,3: variablesIBC define (ro,rou,rov,row,roE(,ronutilde)),(ro,u,v,w,t(,nutilde)),(ro,u,v,w,p(,nutilde))
 # Adim: KCore.adim1 for Minf=0.1
 #===============================================================================

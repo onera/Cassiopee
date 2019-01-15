@@ -303,14 +303,12 @@ def getCEBBTimeIntersectingDomains(base0, func, bases0, funcs, \
 # IN: loc='nodes','cells','faces': interpolation appliquee pour les receveurs (localises en noeuds/centres/faces)
 # IN: hi: decalage des pts IBC interieurs au corps pour avoir le pt interpole - hi peut etre constant ou variable
 # IN: he: decalage des pts IBC exterieurs au corps pour avoir le pt interpole - he peut etre constant ou variable
-#IN: image=0: algo basique (point image determine par hi,he ou symetrique)
-#IN: image=1: algo par projection sur l isosurface de la distance max du front
 # OUT: stockage direct: retourne tR avec les donnees IBC
 # OUT: stockage indirect: retourne tD avec les donnees IBC
 #=============================================================================
 def setIBCData(tR, tD, order=2, penalty=0, nature=0,
                method='lagrangian', loc='nodes', storage='direct',
-               hook=None, sameName=0, he=0., hi=0., dim=3, image=0):
+               hook=None, sameName=0, he=0., hi=0., dim=3, bcType=0):
     try: import ToolboxIBM as IBM
     except: raise ImportError("setIBCData: requires ToolboxIBM module.")
 
@@ -368,7 +366,8 @@ def setIBCData(tR, tD, order=2, penalty=0, nature=0,
                     if hook is not None: allHooks.pop(cL)
                     zonesDnr.pop(cL); nzonesDnr = nzonesDnr-1
 
-            _setIBCDataForZone__(z, zonesDnr, correctedPts[nozr], wallPts[nozr], interpPts[nozr], loc=locR, order=order, penalty=penalty,nature=nature,method=method,storage=storage,hook=hook,dim=dim, ReferenceState=ReferenceState)
+            _setIBCDataForZone__(z, zonesDnr, correctedPts[nozr], wallPts[nozr], interpPts[nozr], loc=locR, order=order, penalty=penalty,nature=nature,method=method,\
+                                 storage=storage,hook=hook,dim=dim, ReferenceState=ReferenceState, bcType=bcType)
 
     # fin parcours des zones receveuses
     if storage == 'direct': return aR
@@ -384,7 +383,21 @@ def _setIBCDataForZone__(z, zonesDnr, correctedPts, wallPts, interpPts, loc='nod
                          order=2, penalty=0, nature=0, method='lagrangian', storage='direct', hook=None, dim=3, bcType=-1, ReferenceState=None):
 
     prefixIBCD ='IBCD_'
-    if bcType != -1: prefixIBCD +='%d_'%bcType
+    bcName = None
+    if isinstance(bcType,int):        
+        if bcType != -1:        
+            prefixIBCD += str(bcType)+'_'
+
+    else:
+        bcType0 = bcType
+        ibcType = bcType.split("#")
+        bcType = int(ibcType[0])
+        prefixIBCD += ibcType[0]+'_'
+
+        if len(ibcType)>1:
+            bcName=ibcType[1]
+            prefixIBCD += bcName+'_'
+
     arraysD = C.getFields(Internal.__GridCoordinates__, zonesDnr)
     cellND  = C.getField('cellN', zonesDnr); arraysD = Converter.addVars([arraysD,cellND])
     model = "Euler"
@@ -493,14 +506,14 @@ def _setIBCDataForZone__(z, zonesDnr, correctedPts, wallPts, interpPts, loc='nod
                                              tag='Receiver', loc=loc,itype='ibc', prefix=prefixIBCD)
                     # add coordinates of corrected point, wall point, interpolated point
                     _addIBCCoords__(z, zonesDnr[noz][0], allCorrectedPts[noz], allWallPts[noz], allMirrorPts[noz], bcType, \
-                                    ReferenceState=ReferenceState, prefix=prefixIBCD)
+                                    bcName=bcName, ReferenceState=ReferenceState, prefix=prefixIBCD)
                 else: # inverse
                     _createInterpRegion__(zonesDnr[noz],z[0],resInterp[1][noz],resInterp[0][noz],resInterp[3][noz],\
                                          resInterp[2][noz], VOL, EXTRAP, ORPHAN, \
                                          tag='Donor', loc=loc,itype='ibc', prefix=prefixIBCD)
                     # add coordinates of corrected point, wall point, interpolated point
                     _addIBCCoords__(zonesDnr[noz], z[0], allCorrectedPts[noz], allWallPts[noz], allMirrorPts[noz], bcType, \
-                                    ReferenceState=ReferenceState, prefix=prefixIBCD)
+                                    bcName=bcName, ReferenceState=ReferenceState, prefix=prefixIBCD)
                     
             elif nborphan==nbinterpolated0: # Only orphan pts: orphan pt list is stored in any candidate donor zone
                 if storage == 'direct':
@@ -508,17 +521,17 @@ def _setIBCDataForZone__(z, zonesDnr, correctedPts, wallPts, interpPts, loc='nod
                                          tag='Receiver', loc=loc,itype='ibc', prefix=prefixIBCD)
                     # add coordinates of corrected point, wall point, interpolated point
                     _addIBCCoords__(z, zonesDnr[noz][0], correctedPts, wallPts, interpPts, bcType, \
-                                    ReferenceState=ReferenceState, prefix=prefixIBCD)
+                                    bcName=bcName, ReferenceState=ReferenceState, prefix=prefixIBCD)
                 else: # inverse
                     _createInterpRegion__(zonesDnr[noz],z[0],PL, PLD, CFS, INTERPTYPE,VOL,EXTRAP,ORPHAN,
                                          tag='Donor', loc=loc,itype='ibc', prefix=prefixIBCD)
                     # add coordinates of corrected point, wall point, interpolated point
                     _addIBCCoords__(zonesDnr[noz], z[0], correctedPts, wallPts, interpPts, bcType, \
-                                    ReferenceState=ReferenceState, prefix=prefixIBCD)    
+                                    bcName=bcName, ReferenceState=ReferenceState, prefix=prefixIBCD)    
       
     return None
 
-def _addIBCCoords__(z, zname, correctedPts, wallPts, interpolatedPts, bcType, ReferenceState=None, prefix='IBCD_'):
+def _addIBCCoords__(z, zname, correctedPts, wallPts, interpolatedPts, bcType, bcName=None, ReferenceState=None, prefix='IBCD_'):
     nameSubRegion = prefix+zname
     zsr = Internal.getNodeFromName1(z, nameSubRegion)
     coordsPC = Converter.extractVars(correctedPts,['CoordinateX','CoordinateY','CoordinateZ'])
@@ -555,24 +568,26 @@ def _addIBCCoords__(z, zname, correctedPts, wallPts, interpolatedPts, bcType, Re
 
     zsr[2].append(['Pressure', pressNP, [], 'DataArray_t'])
     zsr[2].append(['Density' , densNP , [], 'DataArray_t'])
-    # DBX : supp utau en euler
-    if bcType != 0:
+    
+    if bcType >0:
         utauNP  = numpy.zeros((nIBC),numpy.float64)
         yplusNP = numpy.zeros((nIBC),numpy.float64)
         zsr[2].append(['utau' , utauNP , [], 'DataArray_t'])
         zsr[2].append(['yplus', yplusNP, [], 'DataArray_t'])
 
-    if bcType == 5: # inj 
-        stagnationEnthalpy = numpy.zeros((nIBC),numpy.float64)
-        Internal._createChild(zsr, 'StagnationEnthalpy', 'DataArray_t', value=stagnationEnthalpy)
-        stagnationPressure = numpy.zeros((nIBC),numpy.float64)
-        Internal._createChild(zsr, 'StagnationPressure', 'DataArray_t', value=stagnationPressure)
-        dirx = numpy.zeros((nIBC),numpy.float64)
-        Internal._createChild(zsr, 'dirx', 'DataArray_t', value=dirx)
-        diry = numpy.zeros((nIBC),numpy.float64)
-        Internal._createChild(zsr, 'diry', 'DataArray_t', value=diry)
-        dirz = numpy.zeros((nIBC),numpy.float64)
-        Internal._createChild(zsr, 'dirz', 'DataArray_t', value=dirz)
+        if bcType == 5: # inj
+          stagnationEnthalpy = numpy.zeros((nIBC),numpy.float64)
+          Internal._createChild(zsr, 'StagnationEnthalpy', 'DataArray_t', value=stagnationEnthalpy)
+          stagnationPressure = numpy.zeros((nIBC),numpy.float64)
+          Internal._createChild(zsr, 'StagnationPressure', 'DataArray_t', value=stagnationPressure)
+          dirx = numpy.zeros((nIBC),numpy.float64)
+          Internal._createChild(zsr, 'dirx', 'DataArray_t', value=dirx)
+          diry = numpy.zeros((nIBC),numpy.float64)
+          Internal._createChild(zsr, 'diry', 'DataArray_t', value=diry)
+          dirz = numpy.zeros((nIBC),numpy.float64)
+          Internal._createChild(zsr, 'dirz', 'DataArray_t', value=dirz)
+    if bcName is not None:
+        Internal._createUniqueChild(zsr, 'FamilyName', 'FamilyName_t', value=bcName)
     return None
 
 #==============================================================================
@@ -1635,7 +1650,6 @@ def setInterpTransfersD(topTreeD, variables=[],
     for zd in zonesD:
         subRegions = Internal.getNodesFromType1(zd, 'ZoneSubRegion_t')
         for s in subRegions:
-
           sname = s[0][0:2]
           #test pour eviter parcours arbre inutile 
           if (sname=='ID' and variables is not None) or (sname == 'IB' and variablesIBC is not None):
@@ -1646,8 +1660,7 @@ def setInterpTransfersD(topTreeD, variables=[],
                 zoneRole = Internal.getValue(zoneRole)
                 if zoneRole == 'Donor':
                     location = Internal.getNodeFromName1(s, 'GridLocation') # localisation des donnees des receveurs
-                    if location is not None:
-                        location = Internal.getValue(location)
+                    if location is not None: location = Internal.getValue(location)
                     if location == 'CellCenter': loc = 'centers'
                     else: loc = 'nodes'
                     Coefs     = idn[1]
