@@ -73,22 +73,21 @@ PyObject* K_ARRAY::buildArray2(E_Int nfld, const char* varString,
    IN: api (1: array, 2: array2)
    OUT: PyObject created. */
 //=============================================================================
-/*
-PyObject* K_ARRAY::buildArray2(FldArrayF& field, const char* varString, 
+PyObject* K_ARRAY::buildArray2(FldArrayF& f, const char* varString, 
                                E_Int ni, E_Int nj, E_Int nk, E_Int api)
 {
-  E_Int nfld = field.getNfld();
+  E_Int nfld = f.getNfld();
   PyObject* o = buildArray2(nfld, varString, 
                             ni, nj, nk, api);
   FldArrayF* fp;
   getFromArray2(o, fp);
   
   for (E_Int n = 1; n <= nfld; n++)
-  for (E_Int i = 0; i < field.getSize(); i++) (*fp)(i,n) = field(i,n);
-  RELEASESHAREDS(i, fp);
+  for (E_Int i = 0; i < f.getSize(); i++) (*fp)(i,n) = f(i,n);
+  RELEASESHAREDS(o, fp);
   return o;
 }
-*/
+
 //=============================================================================
 /* Build an empty unstructured array 
    IN: nfld: number of fields
@@ -235,23 +234,23 @@ PyObject* K_ARRAY::buildArray2(E_Int nfld, const char* varString,
    IN: api (1: array, 2: array2)
    OUT: PyObject created. */
 //=============================================================================
-/*
-PyObject* K_ARRAY::buildArray2(FldArrayF& field, const char* varString, 
+PyObject* K_ARRAY::buildArray2(FldArrayF& f, const char* varString, 
                                FldArrayI& cn, char* eltType, E_Int api)
 {
-  E_Int nfld = field.getNfld();
-  E_Int nvertex = f->getSize();
-  E_Int nelt = cn->getSize();
+  E_Int nfld = f.getNfld();
+  E_Int nvertex = f.getSize();
+  E_Int nelt = cn.getSize();
 
   E_Int sizeNGon = 0;
-  E_int sizeNFace = 0;
+  E_Int sizeNFace = 0;
+  E_Int nface = 0;
 
-  if (cn->isNGON())
+  if (cn.isNGon())
   {
-    sizeNGon = cn->getSizeNGon();
-    sizeNFace = cn->getSizeNFace();
-    nface = cn->getNFaces();
-    nelt = cn->getNElts();
+    sizeNGon = cn.getSizeNGon();
+    sizeNFace = cn.getSizeNFace();
+    nface = cn.getNFaces();
+    nelt = cn.getNElts();
   }
   PyObject* o = buildArray2(nfld, varString,
                             nvertex, nelt,
@@ -263,13 +262,12 @@ PyObject* K_ARRAY::buildArray2(FldArrayF& field, const char* varString,
   getFromArray2(o, fp, cnp);
   
   for (E_Int n = 1; n <= nfld; n++)
-  for (E_Int i = 0; i < field.getSize(); i++) (*fp)(i,n) = field(i,n);
+  for (E_Int i = 0; i < f.getSize(); i++) (*fp)(i,n) = f(i,n);
 
-  
   for (E_Int n = 1; n <= nfld; n++)
-  for (E_Int i = 0; i < field.getSize(); i++) (*fp)(i,n) = field(i,n);
+  for (E_Int i = 0; i < f.getSize(); i++) (*fp)(i,n) = f(i,n);
   
-
-  RELEASESHAREDU(i, fp, cnp);
+  RELEASESHAREDU(o, fp, cnp);
   return o;
 }
+

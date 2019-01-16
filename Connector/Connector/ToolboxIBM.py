@@ -114,7 +114,7 @@ def adaptIBMMesh(t, tb, vmin, sensor, factor=1.2, DEPTH=2, NP=0, merged=1, sizeM
     if len(res)==3: to = res[0]
     o = Internal.getZones(to)[0]
     o = G.adaptOctree(o, balancing=2)
-    C.convertPyTree2File(o,fileo)
+    C.convertPyTree2File(o, fileo)
 
     t2 = generateCartMesh__(o, dimPb=dimPb, vmin=vmin, DEPTH=DEPTH, NP=NP, merged=merged, 
                             sizeMax=sizeMax, check=check, symmetry=symmetry, 

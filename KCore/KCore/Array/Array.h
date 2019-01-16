@@ -373,10 +373,8 @@ namespace K_ARRAY
      OUT: PyObject cree. */
   PyObject* buildArray2(E_Int nfld, const char* varString,
                        E_Int ni, E_Int nj, E_Int nk, E_Int api=1);
-  /*
-  PyObject* buildArray2(FldArrayF& field, const char* varString,
+  PyObject* buildArray2(FldArrayF& f, const char* varString,
                        E_Int ni, E_Int nj, E_Int nk, E_Int api=1);
-  */
   /* Construit un array non structure a partir d'un FldArray
      IN: field: Fld champ non structure
      IN: varString: variable string
@@ -415,7 +413,9 @@ namespace K_ARRAY
                        E_Boolean center=false, 
                        E_Int sizeNGon=1, E_Int sizeNFace=1,
                        E_Int nface=1, E_Int api=1);
-                        
+ PyObject* buildArray2(FldArrayF& f, const char* varString, 
+                       FldArrayI& cn, char* eltType, E_Int api=1);
+
   /* Construit un array structure a partir d'un DynArray
      IN: field: Dyn champ structure
      IN: varString: variable string
