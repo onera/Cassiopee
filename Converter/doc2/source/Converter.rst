@@ -193,6 +193,8 @@ List of functions
     Converter.convertArray2Node
     Converter.convertBAR2Struct
     Converter.convertTri2Quad
+    Converter.convertHO2LO
+    Converter.convertLO2HO
     Converter.conformizeNGon
     Converter.node2Center
     Converter.center2Node
@@ -1576,6 +1578,47 @@ Array / PyTree common manipulations
     * `Convert TRI to QUAD-array (pyTree) <Examples/Converter/convertTri2QuadPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/convertTri2QuadPT.py
+
+-----------------------------------------------------------------------------------
+
+.. py:function:: Converter.convertHO2LO(a)
+
+    Convert a high order element mesh into a low order (linear) mesh.
+
+    :param a: input data
+    :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
+    :rtype: Identical to input
+
+    *Example of use:*
+
+    * `Convert High order mesh to low order mesh (array) <Examples/Converter/convertHO2LO.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/convertHO2LO.py
+
+    * `Convert high order to low order mesh (pyTree) <Examples/Converter/convertHO2LOPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/convertHO2LOPT.py
+
+-----------------------------------------------------------------------------------
+
+.. py:function:: Converter.convertLO2HO(a)
+
+    Convert a low order element mesh into a high order mesh. Points are added linearly on edges
+    or faces.
+
+    :param a: input data
+    :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
+    :rtype: Identical to input
+
+    *Example of use:*
+
+    * `Convert Low order mesh to High order mesh (array) <Examples/Converter/convertLO2HO.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/convertLO2HO.py
+
+    * `Convert high order to low order mesh (pyTree) <Examples/Converter/convertLO2HOPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/convertLO2HOPT.py
 
 -----------------------------------------------------------------------------------
 

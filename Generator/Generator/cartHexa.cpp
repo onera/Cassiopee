@@ -87,8 +87,8 @@ PyObject* K_GENERATOR::cartHexa(PyObject* self,  PyObject* args)
 
   PyObject* tpl = K_ARRAY::buildArray2(3, "x,y,z", npts, ncells, -1, eltType, 0, 0, 0, 0, api);
   K_FLD::FldArrayF* f; K_FLD::FldArrayI* cn;
-  char* varString; char*eltType2;
-  K_ARRAY::getFromArray2(tpl, varString, f, ni, nj, nk, cn, eltType2);
+  K_ARRAY::getFromArray2(tpl, f, cn);
+  
   E_Int stride = cn->getStride();
 
   E_Float* xt = f->begin(1);

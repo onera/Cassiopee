@@ -175,7 +175,6 @@ PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
   	using sensor_t = NUGA::xsensor<K_MESH::Hexahedron, mesh_type>;
   	sensor_t sensor(hmesh, cntS, itermax);
     NUGA::adaptor<mesh_type, sensor_t>::run(hmesh, sensor, crdS);
-
   }
   else
   {
