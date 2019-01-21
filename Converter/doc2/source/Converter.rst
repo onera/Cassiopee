@@ -1581,12 +1581,14 @@ Array / PyTree common manipulations
 
 -----------------------------------------------------------------------------------
 
-.. py:function:: Converter.convertHO2LO(a)
+.. py:function:: Converter.convertHO2LO(a, mode=0)
 
     Convert a high order element mesh into a low order (linear) mesh.
 
     :param a: input data
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
+    :param mode: if 0, coarse extraction, 1, tesselate all points
+    :type mode: int
     :rtype: Identical to input
 
     *Example of use:*
@@ -1601,13 +1603,15 @@ Array / PyTree common manipulations
 
 -----------------------------------------------------------------------------------
 
-.. py:function:: Converter.convertLO2HO(a)
+.. py:function:: Converter.convertLO2HO(a, mode=0)
 
     Convert a low order element mesh into a high order mesh. Points are added linearly on edges
     or faces.
 
     :param a: input data
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
+    :param mode: specify the type of generated high order elements
+    :type mode: int
     :rtype: Identical to input
 
     *Example of use:*

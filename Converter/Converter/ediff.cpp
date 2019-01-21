@@ -126,7 +126,7 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2)
   for (int i = 0; i < n1; i++)
   {
     tpl = PyList_GetItem(arrays1, i);
-    res = K_ARRAY::getFromArray(tpl, varString1, f, ni, nj, nk, cn, eltType1, true);
+    res = K_ARRAY::getFromArray2(tpl, varString1, f, ni, nj, nk, cn, eltType1);
     object1.push_back(tpl);
     if (res == 1)
     {
@@ -172,7 +172,7 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2)
   for (int i = 0; i < n2; i++)
   {
     tpl = PyList_GetItem(arrays2, i);
-    res = K_ARRAY::getFromArray(tpl, varString2, f, ni, nj, nk, cn, eltType2, true);
+    res = K_ARRAY::getFromArray2(tpl, varString2, f, ni, nj, nk, cn, eltType2);
     object2.push_back(tpl);
 
     if (res == 1)
@@ -275,14 +275,14 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2)
   {
     if (ni1[i] != -1)
     {
-      tpl = K_ARRAY::buildArray(pos1.size(), varString, 
-                                ni1[i], nj1[i], nk1[i]);
+      tpl = K_ARRAY::buildArray2(pos1.size(), varString, 
+                                 ni1[i], nj1[i], nk1[i]);
     }
     else
     {
       E_Int csize = cn1[i]->getSize()*cn1[i]->getNfld(); 
-      tpl = K_ARRAY::buildArray(pos1.size(), varString, field1[i]->getSize(),
-                                cn1[i]->getSize(), -1, elt1[i], false, csize);
+      tpl = K_ARRAY::buildArray2(pos1.size(), varString, field1[i]->getSize(),
+                                 cn1[i]->getSize(), -1, elt1[i], false, csize);
       E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
       K_KCORE::memcpy__(cnnp, cn1[i]->begin(), csize);
     }
@@ -327,7 +327,7 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2)
     else { RELEASESHAREDS(object1[i], field1[i]); } 
   }
   for (int i = 0; i < sizefield2; i++) 
-  { 
+  {
     if (ni2[i] == -1) { RELEASESHAREDU(object2[i], field2[i], cn2[i]); }
     else { RELEASESHAREDS(object2[i], field2[i]); } 
   }
@@ -341,8 +341,7 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2)
 //=============================================================================
 /* Diff3: */
 //=============================================================================
-PyObject* 
-K_CONVERTER::diff3(PyObject* arrays1, PyObject* arrays2, PyObject* arrays3)
+PyObject* K_CONVERTER::diff3(PyObject* arrays1, PyObject* arrays2, PyObject* arrays3)
 {
   PyObject* tpl;
   E_Int res;

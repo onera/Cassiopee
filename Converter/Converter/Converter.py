@@ -18,7 +18,7 @@ __all__ = ['array', 'addVars', '_addVars', 'addVars2', 'center2ExtCenter', 'cent
     'identifySolutions', 'initVars', '_initVars', 'isNamePresent', 'listen', 'magnitude', 
     'nearestElements', 'nearestFaces', 'nearestNodes', 'node2Center', 'node2ExtCenter', 'normL0', 'normL2', 
     'normalize', '_normalize', 'randomizeVar', 'rmVars', 'send', 'setPartialFields', 'setValue', 'addGhostCellsNGon',
-    'checkFileType', 'convertHO2LO']
+    'checkFileType', 'convertHO2LO', 'convertLO2HO']
 
 # -- Create an array -- 
 # Les champs sont mis a zero, sauf si pour les champs cellN et cellNF
@@ -1373,6 +1373,19 @@ def convertHO2LO(a, mode=0):
         return out
     else:
         b = converter.convertHO2LO(a, mode)
+        return b
+
+# convert to high order mesh
+def convertLO2HO(a, mode=0):
+    """Convert a LO mesh to a high order mesh.
+    Usage: convertLO2HO(a, mode)"""
+    if isinstance(a[0], list):
+        out = []
+        for i in a:
+            out.append(converter.convertLO2HO(i, mode))
+        return out
+    else:
+        b = converter.convertLO2HO(a, mode)
         return b
 
 #==============================================================================

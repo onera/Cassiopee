@@ -71,6 +71,7 @@ namespace K_CONVERTER
   PyObject* convertArray2TetraBary(PyObject* self, PyObject* args);
   PyObject* convertArray2TetraBaryBoth(PyObject* self, PyObject* args);
   PyObject* convertHO2LO(PyObject* self, PyObject* args);
+  PyObject* convertLO2HO(PyObject* self, PyObject* args);
   PyObject* convertTri2Quad(PyObject* self, PyObject* args);
   PyObject* convertQuad2Tri(PyObject* self, PyObject* args);
   PyObject* center2Node(PyObject* self, PyObject* args);

@@ -190,11 +190,15 @@
         break;
 
       case 24: // 15-node TRI (fifth order)
-        
+        for (E_Int j = 1; j <= 3; j++) { READI; (*cnTRI)(nTRI,j) = indirNodes[ti-1]; }
+        for (E_Int j = 4; j <= 15; j++) { READI; };
+        nTRI++;
         break;
 
       case 25: // 21-node TRI (fifth order)
-        
+        for (E_Int j = 1; j <= 3; j++) { READI; (*cnTRI)(nTRI,j) = indirNodes[ti-1]; }
+        for (E_Int j = 4; j <= 21; j++) { READI; }; 
+        nTRI++;
         break;
 
       case 26: // 4-node BAR (third order)
@@ -208,7 +212,9 @@
         break;
 
       case 28: // 6-node BAR (fifth order)
-        
+        for (E_Int j = 1; j <= 2; j++) { READI; (*cnBAR)(nBAR,j) = indirNodes[ti-1]; }
+        for (E_Int j = 3; j <= 6; j++) READI;
+        nBAR++;
         break;
 
       case 29: // 20-node TETRA (third order)
@@ -222,7 +228,9 @@
         break;
 
       case 31: // 56-node TETRA (fifth order)
-        // sous lecture en tetra 35?
+        for (E_Int j = 1; j <= 4; j++) { READI; (*cnTETRA)(nTETRA,j) = indirNodes[ti-1]; }
+        for (E_Int j = 5; j <= 56; j++) READI;
+        nTETRA++;
         break;
         
       case 92: // 64-node HEXA (third order)

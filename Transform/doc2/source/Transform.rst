@@ -528,7 +528,8 @@ Mesh transformation
     .. A2.O1.D1
   
     Scale a  mesh of factor factor. If factor is a list of floats, scale
-    with given factor for each canonical axis.
+    with given factor for each canonical axis. The invariant point is
+    the barycenter of a.
 
     Exists also as an in-place version (_scale) which modifies a and returns None.
 

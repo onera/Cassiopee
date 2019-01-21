@@ -17,6 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "Connect/connect.h"
+#include "String/kstring.h"
 using namespace K_FLD;
 
 E_Int connectHO2LOCoarse(const char* eltTypeHO,
@@ -40,6 +41,7 @@ E_Int K_CONNECT::connectHO2LO(const char* eltTypeHO,
                               E_Int mode)
 {
   if (mode == 0) return connectHO2LOCoarse(eltTypeHO, cEVHO, cEVLO);
+  else if (mode == 1) return connectHO2LOFine(eltTypeHO, cEVHO, cEVLO);
   return 0;
 }
 
@@ -75,5 +77,23 @@ E_Int connectHO2LOFine(const char* eltTypeHO,
                        FldArrayI& cEVHO,
                        FldArrayI& cEVLO)
 {
-  
+  E_Int nelts = cEVHO.getSize();
+  E_Int neltsF = cEVLO.getSize();
+  E_Int nvpeHO = cEVHO.getNfld();
+  E_Int nvpe = cEVLO.getNfld();
+
+  // BAR
+  if (K_STRING::cmp((char*)eltTypeHO, 3, "BAR_3") == 0)
+  {
+    // nptsF = npts + nelts
+    // neltsF = 2*nelts 
+#pragma omp parallel for
+    for (E_Int i = 0; i < nelts; i++) 
+    {
+      cEVLO(2*i,1) = cEVHO(i,1);
+      cEVLO(2*i,2) = cEVHO(i,3);
+      cEVLO(2*i+1,1) = cEVHO(i,3);
+      cEVLO(2*i+1,2) = cEVHO(i,2);
+    }
+  }
 }

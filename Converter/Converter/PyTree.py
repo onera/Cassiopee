@@ -1488,17 +1488,15 @@ def setFields(arrays, t, loc, writeDim=True):
         if val == 'Structured':
           v = numpy.fromstring('Unstructured', 'c')
           typeNodes[0][1] = v
-          #if isinstance(a[2], list): # Array2
-          #  Internal.setElementConnectivity2(z, a)
-          #else: # Array1
-          #  Internal.setElementConnectivity(z, a)
-          Internal.setElementConnectivity(z, a)
+          if isinstance(a[2], list): # Array2
+            Internal.setElementConnectivity2(z, a)
+          else: # Array1
+            Internal.setElementConnectivity(z, a)
         else:
           if isinstance(a[2], list): # Array2
             Internal.setElementConnectivity2(z, a)
           else: # Array1
             Internal.setElementConnectivity(z, a)
-          #Internal.setElementConnectivity(z, a)
   return t
 
 # -- getNumpyArrays
@@ -6594,6 +6592,12 @@ def convertHO2LO(t, mode=0):
     """Convert a HO element mesh to linear mesh.
     Usage: convertHO2LO(t, mode)"""
     return TZGC2(t, Converter.convertHO2LO, 'nodes', True, mode)
+
+# Convert to high order mesh
+def convertLO2HO(t, mode=0):
+    """Convert a LO element mesh to high order mesh.
+    Usage: convertLO2HO(t, mode)"""
+    return TZGC2(t, Converter.convertLO2HO, 'nodes', True, mode)
 
 #==============================================================================
 # - client/server -

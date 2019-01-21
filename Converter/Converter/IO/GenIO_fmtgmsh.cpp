@@ -102,10 +102,10 @@ E_Int K_IO::GenIO::gmshread(
   E_LONG pos = KFTELL(ptrFile);
 #define READI readInt(ptrFile, ti, -1)
 #include "GenIO_gmsh1.h"
-printf("Elements BAR=%d TRI=%d QUAD=%d TETRA=%d HEXA=%d NODES=%d\n", 
-       nBAR, nTRI, nQUAD, nTETRA, nHEXA, nNODE);
-printf("Elements BAR_3=%d TRI_6=%d QUAD_9=%d\n",
-       nBAR_3, nTRI_6, nQUAD_9);
+printf("Elements BAR=%d TRI=%d QUAD=%d TETRA=%d HEXA=%d PENTA=%d PYRA=%d NODES=%d\n", 
+       nBAR, nTRI, nQUAD, nTETRA, nHEXA, nPENTA, nPYRA, nNODE);
+printf("Elements BAR_3=%d TRI_6=%d QUAD_9=%d TETRA_10=%d HEXA_27=%d PENTA_18=%d PYRA_14=%d\n",
+       nBAR_3, nTRI_6, nQUAD_9, nTETRA_10, nHEXA_27, nPENTA_18, nPYRA_14);
 
   /* Allocations */
   E_Boolean fo = true;

@@ -8,7 +8,7 @@ import Post.PyTree as P
 # Tet mask
 m = G.cart((0.,0.,0.), (0.1,0.1,0.2), (10,10,10))
 m = P.exteriorFaces(m)
-m = C.convertArray2Tetra(m)
+
 # Mesh to blank
 a = G.cart((-5.,-5.,-5.), (0.5,0.5,0.5), (100,100,100))
 

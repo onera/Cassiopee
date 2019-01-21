@@ -29,7 +29,7 @@ PyObject* K_CONVERTER::convertHO2LO(PyObject* self, PyObject* args)
 {
   PyObject* array;
   E_Int mode;
-  if (!PYPARSETUPLEI(args, "Ol", "Od", &array, &mode)) return NULL;
+  if (!PYPARSETUPLEI(args, "Ol", "Oi", &array, &mode)) return NULL;
 
   // Check array
   E_Int ni, nj, nk;
@@ -66,23 +66,201 @@ PyObject* K_CONVERTER::convertHO2LO(PyObject* self, PyObject* args)
   E_Int nvertex = f->getSize();
   E_Int api = f->getApi();
 
-  // Caracteristique de l'array de sortie
-  char outEltType[128]; E_Int d;
-  K_ARRAY::eltString2TypeId(eltType, outEltType, d, d, d);
+  PyObject* o = NULL;
+  if (mode == 0) // Coarse
+  {
+    // Caracteristique de l'array de sortie
+    char outEltType[128]; E_Int d;
+    K_ARRAY::eltString2TypeId(eltType, outEltType, d, d, d);
 
-  // directement buildArray2
-  PyObject* o = K_ARRAY::buildArray2(nfld, varString, nvertex, nelts, -1, outEltType, false, 0, 0, 0, api);
+    // directement buildArray2
+    o = K_ARRAY::buildArray2(nfld, varString, nvertex, nelts, -1, outEltType, false, 0, 0, 0, api);
 
-  FldArrayF* fo; FldArrayI* co;
-  K_ARRAY::getFromArray2(o, fo, co);
+    FldArrayF* fo; FldArrayI* co;
+    K_ARRAY::getFromArray2(o, fo, co);
 
-  // Ne pas utiliser (*fo) = (*f); peut reallouer 
-  fo->copy(*f, 1, nfld); // copie les champs est ok
+    // Ne pas utiliser (*fo) = (*f); peut reallouer 
+    fo->copy(*f, 1, nfld); // copie les champs est ok
 
-  K_CONNECT::connectHO2LO(eltType, *cn, *co, 0);
-  
+    K_CONNECT::connectHO2LO(eltType, *cn, *co, 0);
+    RELEASESHAREDU(o, fo, co);    
+  }
+  else if (mode == 1) // fine
+  {
+    if (K_STRING::cmp(eltType, 5, "BAR_3") == 0)
+    {
+      E_Int neltsF = nelts*2;
+      o = K_ARRAY::buildArray2(nfld, varString, nvertex, neltsF, -1, "BAR", false, 0, 0, 0, api);
+      FldArrayF* fo; FldArrayI* co;
+      K_ARRAY::getFromArray2(o, fo, co);
+      fo->copy(*f, 1, nfld);       
+      for (E_Int i = 0; i < nelts; i++)
+      {
+        (*co)(2*i,1) = (*cn)(i,1);
+        (*co)(2*i,2) = (*cn)(i,3);
+        (*co)(2*i+1,1) = (*cn)(i,3);
+        (*co)(2*i+1,2) = (*cn)(i,2);
+      }
+      RELEASESHAREDU(o, fo, co);   
+    }
+    else if (K_STRING::cmp(eltType, 5, "TRI_6") == 0)
+    {
+      E_Int neltsF = nelts*4;
+      o = K_ARRAY::buildArray2(nfld, varString, nvertex, neltsF, -1, "TRI", false, 0, 0, 0, api);
+      FldArrayF* fo; FldArrayI* co;
+      K_ARRAY::getFromArray2(o, fo, co);
+      fo->copy(*f, 1, nfld);
+      for (E_Int i = 0; i < nelts; i++)
+      {
+        (*co)(4*i,1) = (*cn)(i,1);
+        (*co)(4*i,2) = (*cn)(i,4);
+        (*co)(4*i,3) = (*cn)(i,6);
+
+        (*co)(4*i+1,1) = (*cn)(i,4);
+        (*co)(4*i+1,2) = (*cn)(i,2);
+        (*co)(4*i+1,3) = (*cn)(i,5);
+        
+        (*co)(4*i+2,1) = (*cn)(i,6);
+        (*co)(4*i+2,2) = (*cn)(i,4);
+        (*co)(4*i+2,3) = (*cn)(i,5);
+        
+        (*co)(4*i+3,1) = (*cn)(i,3);
+        (*co)(4*i+3,2) = (*cn)(i,6);
+        (*co)(4*i+3,3) = (*cn)(i,5);
+      }
+      RELEASESHAREDU(o, fo, co);   
+    }
+    else if (K_STRING::cmp(eltType, 6, "QUAD_8") == 0)
+    {
+      E_Int neltsF = nelts*6;
+      o = K_ARRAY::buildArray2(nfld, varString, nvertex, neltsF, -1, "TRI", false, 0, 0, 0, api);
+      FldArrayF* fo; FldArrayI* co;
+      K_ARRAY::getFromArray2(o, fo, co);
+      fo->copy(*f, 1, nfld);
+      for (E_Int i = 0; i < nelts; i++)
+      {
+        (*co)(6*i,1) = (*cn)(i,1);
+        (*co)(6*i,2) = (*cn)(i,5);
+        (*co)(6*i,3) = (*cn)(i,8);
+
+        (*co)(6*i+1,1) = (*cn)(i,2);
+        (*co)(6*i+1,2) = (*cn)(i,6);
+        (*co)(6*i+1,3) = (*cn)(i,5);
+        
+        (*co)(6*i+2,1) = (*cn)(i,3);
+        (*co)(6*i+2,2) = (*cn)(i,7);
+        (*co)(6*i+2,3) = (*cn)(i,6);
+        
+        (*co)(6*i+3,1) = (*cn)(i,4);
+        (*co)(6*i+3,2) = (*cn)(i,8);
+        (*co)(6*i+3,3) = (*cn)(i,7);
+
+        (*co)(6*i+4,1) = (*cn)(i,7);
+        (*co)(6*i+4,2) = (*cn)(i,5);
+        (*co)(6*i+4,3) = (*cn)(i,6);
+
+        (*co)(6*i+5,1) = (*cn)(i,7);
+        (*co)(6*i+5,2) = (*cn)(i,8);
+        (*co)(6*i+5,3) = (*cn)(i,5);
+      }
+      RELEASESHAREDU(o, fo, co);   
+    }
+    else if (K_STRING::cmp(eltType, 6, "QUAD_9") == 0)
+    {
+      E_Int neltsF = nelts*8;
+      o = K_ARRAY::buildArray2(nfld, varString, nvertex, neltsF, -1, "TRI", false, 0, 0, 0, api);
+      FldArrayF* fo; FldArrayI* co;
+      K_ARRAY::getFromArray2(o, fo, co);
+      fo->copy(*f, 1, nfld);
+      for (E_Int i = 0; i < nelts; i++)
+      {
+        (*co)(8*i,1) = (*cn)(i,1);
+        (*co)(8*i,2) = (*cn)(i,5);
+        (*co)(8*i,3) = (*cn)(i,8);
+
+        (*co)(8*i+1,1) = (*cn)(i,8);
+        (*co)(8*i+1,2) = (*cn)(i,5);
+        (*co)(8*i+1,3) = (*cn)(i,9);
+        
+        (*co)(8*i+2,1) = (*cn)(i,9);
+        (*co)(8*i+2,2) = (*cn)(i,5);
+        (*co)(8*i+2,3) = (*cn)(i,2);
+        
+        (*co)(8*i+3,1) = (*cn)(i,9);
+        (*co)(8*i+3,2) = (*cn)(i,2);
+        (*co)(8*i+3,3) = (*cn)(i,6);
+
+        (*co)(8*i+4,1) = (*cn)(i,7);
+        (*co)(8*i+4,2) = (*cn)(i,9);
+        (*co)(8*i+4,3) = (*cn)(i,6);
+
+        (*co)(8*i+5,1) = (*cn)(i,7);
+        (*co)(8*i+5,2) = (*cn)(i,6);
+        (*co)(8*i+5,3) = (*cn)(i,3);
+
+        (*co)(8*i+6,1) = (*cn)(i,4);
+        (*co)(8*i+6,2) = (*cn)(i,8);
+        (*co)(8*i+6,3) = (*cn)(i,9);
+
+        (*co)(8*i+7,1) = (*cn)(i,4);
+        (*co)(8*i+7,2) = (*cn)(i,9);
+        (*co)(8*i+7,3) = (*cn)(i,7);
+      }
+      RELEASESHAREDU(o, fo, co);   
+    }
+    else if (K_STRING::cmp(eltType, 8, "TETRA_10") == 0)
+    {
+      E_Int N = 8;
+      E_Int neltsF = nelts*N;
+      o = K_ARRAY::buildArray2(nfld, varString, nvertex, neltsF, -1, "TETRA", false, 0, 0, 0, api);
+      FldArrayF* fo; FldArrayI* co;
+      K_ARRAY::getFromArray2(o, fo, co);
+      fo->copy(*f, 1, nfld);
+      for (E_Int i = 0; i < nelts; i++)
+      {
+        (*co)(N*i,1) = (*cn)(i,1);
+        (*co)(N*i,2) = (*cn)(i,5);
+        (*co)(N*i,3) = (*cn)(i,7);
+        (*co)(N*i,4) = (*cn)(i,8);
+
+        (*co)(N*i+1,1) = (*cn)(i,2);
+        (*co)(N*i+1,2) = (*cn)(i,6);
+        (*co)(N*i+1,3) = (*cn)(i,9);
+        (*co)(N*i+1,4) = (*cn)(i,5);
+        
+        (*co)(N*i+2,1) = (*cn)(i,5);
+        (*co)(N*i+2,2) = (*cn)(i,6);
+        (*co)(N*i+2,3) = (*cn)(i,7);
+        (*co)(N*i+2,4) = (*cn)(i,9);
+        
+        (*co)(N*i+3,1) = (*cn)(i,6);
+        (*co)(N*i+3,2) = (*cn)(i,3);
+        (*co)(N*i+3,3) = (*cn)(i,10);
+        (*co)(N*i+3,4) = (*cn)(i,7);
+        
+        (*co)(N*i+4,1) = (*cn)(i,10);
+        (*co)(N*i+4,2) = (*cn)(i,9);
+        (*co)(N*i+4,3) = (*cn)(i,8);
+        (*co)(N*i+4,4) = (*cn)(i,7);
+        
+        (*co)(N*i+5,1) = (*cn)(i,5);
+        (*co)(N*i+5,2) = (*cn)(i,8);
+        (*co)(N*i+5,3) = (*cn)(i,7);
+        (*co)(N*i+5,4) = (*cn)(i,9);
+
+        (*co)(N*i+6,1) = (*cn)(i,6);
+        (*co)(N*i+6,2) = (*cn)(i,10);
+        (*co)(N*i+6,3) = (*cn)(i,9);
+        (*co)(N*i+6,4) = (*cn)(i,7);
+      
+        (*co)(N*i+7,1) = (*cn)(i,4);
+        (*co)(N*i+7,2) = (*cn)(i,8);
+        (*co)(N*i+7,3) = (*cn)(i,9);
+        (*co)(N*i+7,4) = (*cn)(i,10);
+      }
+      RELEASESHAREDU(o, fo, co);   
+    }
+  }
   RELEASESHAREDB(res, array, f, cn);
-  RELEASESHAREDU(o, fo, co);
-  
   return o;
 }

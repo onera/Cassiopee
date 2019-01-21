@@ -357,18 +357,20 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
   for (E_Int i = 0; i < n; i++)
   {
     // Build array
-    tpl = K_ARRAY::buildArray(*field[i], varString,
-                              im[i], jm[i], km[i]);
+    tpl = K_ARRAY::buildArray2(*field[i], varString,
+                               im[i], jm[i], km[i]);
     delete field[i];
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
-  } 
-    
+  }
+  
   n = ufield.size();    
   for (E_Int i = 0; i < n; i++)
   {
-    tpl = K_ARRAY::buildArray(*ufield[i], varString,
-                              *c[i], et[i]);
+    char eltType[28]; E_Int d;
+    K_ARRAY::typeId2eltString(et[i], 0, eltType, d);
+    tpl = K_ARRAY::buildArray2(*ufield[i], varString,
+                               *c[i], eltType);
     delete ufield[i]; delete c[i];
     PyList_Append(l, tpl);
     Py_DECREF(tpl);

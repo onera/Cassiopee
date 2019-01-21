@@ -250,7 +250,8 @@ E_Int K_IO::GenIO::su2read(
         res = readInt(ptrFile, ti, -1);
         res = readInt(ptrFile, ti, -1);
         res = readInt(ptrFile, ti, -1);
-        
+        res = readInt(ptrFile, ti, -1);
+        res = readInt(ptrFile, ti, -1);
         break;
 
       case 13: // PENTA
@@ -339,6 +340,8 @@ E_Int K_IO::GenIO::su2read(
         res = readInt(ptrFile, ti, -1);
         res = readInt(ptrFile, ti, -1);
         res = readInt(ptrFile, ti, -1);
+        res = readInt(ptrFile, ti, -1);
+        res = readInt(ptrFile, ti, -1);
         break;
 
       case 13: // PENTA
@@ -368,14 +371,14 @@ E_Int K_IO::GenIO::su2read(
   FldArrayI *cBAR, *cTRI, *cQUAD, *cTETRA, *cPENTA, *cPYRA, *cHEXA;
   E_Int *cBAR1, *cBAR2, *cTRI1, *cTRI2, *cTRI3, *cQUAD1, *cQUAD2;
   E_Int *cQUAD3, *cQUAD4, *cTETRA1, *cTETRA2, *cTETRA3, *cTETRA4;
-  E_Int *cHEXA1, *cHEXA2, *cHEXA3, *cHEXA4, *cHEXA5, *cHEXA6;
+  E_Int *cHEXA1, *cHEXA2, *cHEXA3, *cHEXA4, *cHEXA5, *cHEXA6, *cHEXA7, *cHEXA8;
   E_Int *cPENTA1, *cPENTA2, *cPENTA3, *cPENTA4, *cPENTA5, *cPENTA6;
   E_Int *cPYRA1, *cPYRA2, *cPYRA3, *cPYRA4, *cPYRA5;
   cBAR1 = NULL; cBAR2 = NULL; cTRI1 = NULL; cTRI2 = NULL; cTRI3 = NULL;
   cQUAD1 = NULL; cQUAD2 = NULL; cQUAD3 = NULL; cQUAD4 = NULL;
   cTETRA1 = NULL; cTETRA2 = NULL; cTETRA3 = NULL; cTETRA4 = NULL;
   cHEXA1 = NULL; cHEXA2 = NULL; cHEXA3 = NULL; cHEXA4 = NULL;
-  cHEXA5 = NULL; cHEXA6 = NULL;
+  cHEXA5 = NULL; cHEXA6 = NULL; cHEXA7 = NULL; cHEXA8 = NULL;
   cPENTA1 = NULL; cPENTA2 = NULL; cPENTA3 = NULL; cPENTA4 = NULL;
   cPENTA5 = NULL; cPENTA6 = NULL;
   cPYRA1 = NULL; cPYRA2 = NULL; cPYRA3 = NULL; cPYRA4 = NULL; cPYRA5 = NULL;
@@ -404,10 +407,11 @@ E_Int K_IO::GenIO::su2read(
   }
   if (HEXAS > 0) 
   {
-    cHEXA = new FldArrayI(HEXAS, 6);
+    cHEXA = new FldArrayI(HEXAS, 8);
     cHEXA1 = cHEXA->begin(1); cHEXA2 = cHEXA->begin(2);
     cHEXA3 = cHEXA->begin(3); cHEXA4 = cHEXA->begin(4);
     cHEXA5 = cHEXA->begin(5); cHEXA6 = cHEXA->begin(6);
+    cHEXA7 = cHEXA->begin(7); cHEXA8 = cHEXA->begin(8);
   }
   if (PENTAS > 0) 
   {
@@ -466,6 +470,8 @@ E_Int K_IO::GenIO::su2read(
         res = readInt(ptrFile, ti, -1); cHEXA4[HEXAS] = ti+1;
         res = readInt(ptrFile, ti, -1); cHEXA5[HEXAS] = ti+1;
         res = readInt(ptrFile, ti, -1); cHEXA6[HEXAS] = ti+1;
+        res = readInt(ptrFile, ti, -1); cHEXA7[HEXAS] = ti+1;
+        res = readInt(ptrFile, ti, -1); cHEXA8[HEXAS] = ti+1;
         HEXAS++;
         break;
 

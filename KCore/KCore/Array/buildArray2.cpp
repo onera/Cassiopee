@@ -235,7 +235,7 @@ PyObject* K_ARRAY::buildArray2(E_Int nfld, const char* varString,
    OUT: PyObject created. */
 //=============================================================================
 PyObject* K_ARRAY::buildArray2(FldArrayF& f, const char* varString, 
-                               FldArrayI& cn, char* eltType, E_Int api)
+                               FldArrayI& cn, const char* eltType, E_Int api)
 {
   E_Int nfld = f.getNfld();
   E_Int nvertex = f.getSize();
@@ -245,17 +245,26 @@ PyObject* K_ARRAY::buildArray2(FldArrayF& f, const char* varString,
   E_Int sizeNFace = 0;
   E_Int nface = 0;
 
-  if (cn.isNGon())
+  if (cn.isNGon()) // NGon Fld
   {
     sizeNGon = cn.getSizeNGon();
     sizeNFace = cn.getSizeNFace();
     nface = cn.getNFaces();
     nelt = cn.getNElts();
   }
+  else if (K_STRING::cmp((char*)eltType, 4, "NGON") == 0) // classical compact Fld
+  {
+    E_Int* cnp = cn.begin();
+    nface = cnp[0];
+    sizeNGon = cnp[1];
+    cnp += sizeNGon+2;
+    nelt = cnp[0];
+    sizeNFace = cnp[1];
+  }
   PyObject* o = buildArray2(nfld, varString,
                             nvertex, nelt,
                             -1, eltType,
-                            false, sizeNGon, 
+                            false, sizeNGon,
                             sizeNFace, nface, api);
                             
   FldArrayF* fp; FldArrayI* cnp;
@@ -264,8 +273,8 @@ PyObject* K_ARRAY::buildArray2(FldArrayF& f, const char* varString,
   for (E_Int n = 1; n <= nfld; n++)
   for (E_Int i = 0; i < f.getSize(); i++) (*fp)(i,n) = f(i,n);
 
-  for (E_Int n = 1; n <= nfld; n++)
-  for (E_Int i = 0; i < f.getSize(); i++) (*fp)(i,n) = f(i,n);
+  for (E_Int n = 1; n <= cn.getNfld(); n++)
+  for (E_Int i = 0; i < cn.getSize(); i++) (*cnp)(i,n) = cn(i,n);
   
   RELEASESHAREDU(o, fp, cnp);
   return o;
