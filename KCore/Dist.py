@@ -325,7 +325,7 @@ if Cppcompiler.find('icc') == 0 or Cppcompiler.find('icpc') == 0:
         from numpy.distutils.intelccompiler import IntelCCompiler
         compiler = IntelCCompiler(None, dry_run, force)
         compiler.cc_exe = Cppcompiler
-        compiler.set_executables(compiler=Cppcompiler, compiler_cxx=Cppcompiler, compiler_so = Cppcompiler,
+        compiler.set_executables(compiler=Cppcompiler, compiler_cxx=Cppcompiler, compiler_so=Cppcompiler,
                                 linker_exe=Cppcompiler, linker_so=Cppcompiler+' -shared')
         return compiler
 
@@ -698,8 +698,8 @@ def getCArgs():
          if useOMP() == 1: options += ['/Qopenmp']
          return options
     elif Cppcompiler.find("pgcc") == 0 or Cppcompiler.find("pgc++") == 0:
-         if DEBUG: options += ['-g', '-O0']
-         else: options += ['-DNDEBUG', '-O3']
+         if DEBUG: options += ['-g', '-O0', '-fPIC']
+         else: options += ['-DNDEBUG', '-O3', '-fPIC']
          if useOMP() == 1: options += []
          if useStatic() == 1: options += []
          else: options += []
@@ -773,6 +773,12 @@ def getForArgs():
             else: options += ['-qopenmp']
          if useStatic() == 1: options += ['-static']
          else: options += ['-fPIC']
+         return options
+    elif f77compiler == "pgf90" or f77compiler == "pgf77":
+         options += ['-fPIC']
+         if DEBUG: options += ['-g', '-O0']
+         else: options += ['-O3']
+         if useOMP() == 1: options += ['-omp']
          return options
     elif f77compiler == "x86_64-w64-mingw32-gfortran":
          if DEBUG: options += ['-g', '-O0']

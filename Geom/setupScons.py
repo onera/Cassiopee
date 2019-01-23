@@ -47,7 +47,7 @@ setup(
                            include_dirs=["Geom"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
                            library_dirs=additionalLibPaths+libraryDirs,
                            libraries=libraries+additionalLibs,
-                           extra_compile_args=Dist.getCppArgs(),
+                           extra_compile_args=Dist.getCArgs(),
                            extra_link_args=Dist.getLinkArgs()
                            )]
     )

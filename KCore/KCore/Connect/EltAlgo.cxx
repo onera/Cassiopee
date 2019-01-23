@@ -157,7 +157,7 @@ K_CONNECT::EltAlgo<ElementType>::coloring
   size_type                        seed(E_IDX_NONE), S, Sn, color(0), colored(0);
   int_vector_type                  cpool;
   int_vector_type::const_iterator  itC;
-  NeighbourType::const_iterator    itV;
+  //NeighbourType::const_iterator    itV;
   ElementType                      E, En;
   BoundaryType                     B;
   K_FLD::IntArray::const_iterator  pS, pSn;
@@ -186,7 +186,7 @@ K_CONNECT::EltAlgo<ElementType>::coloring
       colors[S] = color;
       ++colored;
 
-      assert (S >= 0 && S < neighbors.size());//Error : the neighbors object is not consistent with ELTContainer.
+      assert (S >= 0 && S < neighbors.size()); //Error: the neighbors object is not consistent with ELTContainer.
 
       const std::vector<E_Int>& neigh = neighbors[S];
       sz = neigh.size();
@@ -216,7 +216,7 @@ K_CONNECT::EltAlgo<ElementType>::coloring
     ++color;
   }
 
-  assert ((E_Int)colors.size() == ELTContainer.cols());
+  //assert ((E_Int)colors.size() == ELTContainer.cols()); //unreachable
 }
 
 /// for NGONs

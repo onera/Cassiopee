@@ -2,7 +2,7 @@ import KCore
 
 
 a = KCore.tester()
-
+print a
 #import Converter as C
 #b = C.converter.convertHO2LO(a, 0)
 #print b

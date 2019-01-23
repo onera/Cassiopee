@@ -428,7 +428,7 @@ False, # CPlotOffScreen
 [] # additionalLibPaths
 ],
 ###############################################################################
-'pgi': [ 'Machine visio avec PGI',
+'pgi': [ 'Machine eos avec PGI',
 'pgf90', # f77compiler
 'pgf90', # f90compiler
 'pgcc', # Cppcompiler
@@ -438,8 +438,8 @@ True, # useOMP
 False, # static
 False, # CPlotOffScreen
 [], # additionalIncludePaths
-["pgf90","pgf902","pgc","pgmath","pgkomp",'omp',"pgf90_rpm1","rt","pgf90rtl"], # additionalLibs
-["/opt/pgi/linuxpower/18.4/lib/"] # additionalLibPaths
+["pgf90","pgf902","pgc","pgmath","pgf90_rpm1","rt","pgf90rtl","pgftnrtl"], # additionalLibs
+["/d/juvigny/Logiciels/linux86-64/2018/lib"] # additionalLibPaths
 ],
 ##############################################################################
 'visio': [ 'Machine de post gfx (Onera)',

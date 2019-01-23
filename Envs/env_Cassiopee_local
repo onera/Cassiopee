@@ -48,9 +48,9 @@ set MAC28=`echo $KC | grep 'xdaap'`
 set MAC29=`echo $KC | grep 'spiro'`
 set MAC30=`echo $KC | grep 'eos'`
 
-# pour forcer la compilation avec pgi sur visio
-#set MAC14="pgi"
- 
+# pour forcer la compilation avec pgi sur eos
+#set MAC0="pgi"
+
 unset KC
 
 # ----------------------------- Common ----------------------------------------
@@ -61,7 +61,38 @@ unset KC
 # Si la variable ELSA est dans l'environnement, on cree des chemins compatibles
 # avec la version public : par ex: ELSA=/home/elsa/Public/v3.6.02 [eos only]
 
-if ($%MAC0 != 0) then
+if ($MAC0 == "pgi") then
+#------------------------------- eos+PGI ---------------------------------------
+        if ($MPI == true) then
+                if ($DBG == true) then
+                        setenv ELSAPROD pgi_mpi_dbg_r8
+                else
+                        setenv ELSAPROD pgi_mpi_r8
+                endif
+        else
+                if ($DBG == true) then
+                        setenv ELSAPROD pgi_dbg_r8
+                else
+                        setenv ELSAPROD pgi_r8
+                endif
+        endif
+        foreach x (`(echo "" ; module -t list) | & grep intel`)
+            module unload $x
+        end
+        module load python/2.7.8
+        module load hdf5/1.8.8
+        set path=($path /d/juvigny/Logiciels/linux86-64/2018/bin)
+        # Nombre de threads
+        setenv OMP_NUM_THREADS 8
+        # Chemin de go
+        set path=($path $CASSIOPEE/Dist/bin)
+        # Chemin de elsA.x
+        set path=($path $CASSIOPEE/Dist/bin/$ELSAPROD)
+        set path=($CASSIOPEE/Dist/bin/$ELSAPROD $path)
+        setenv LD_LIBRARY_PATHL /usr/lib64:/home/benoit/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/pgi_r8/lib:/usr/lib64/openmpi/lib:/d/juvigny/Logiciels/linux86-64/2018/lib
+        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/pgi_r8:$CASSIOPEE/Dist/bin/pgi_r8/lib/python2.7/site-packages
+
+else if ($%MAC0 != 0) then
 #----------------------------- ld centos 7 -------------------------------------
         if ($MPI == true) then
                 if ($DBG == true) then
@@ -347,37 +378,6 @@ else if ($%MAC13 != 0) then
         set path=($path $CASSIOPEE/Dist/bin/$ELSAPROD)
         setenv LD_LIBRARY_PATHL $CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/uv_r8/lib:/usr/local/hdf5-1.8.7/lib
         setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/uv_r8:$CASSIOPEE/Dist/bin/uv_r8/lib/python2.6/site-packages
-
-else if ($MAC14 == "pgi") then
-#------------------------------- visio+PGI ---------------------------------------
-        if ($MPI == true) then
-                if ($DBG == true) then
-                        setenv ELSAPROD pgi_mpi_dbg_r8
-                else
-                        setenv ELSAPROD pgi_mpi_r8
-                endif
-        else
-                if ($DBG == true) then
-                        setenv ELSAPROD pgi_dbg_r8
-                else
-                        setenv ELSAPROD pgi_r8
-                endif
-        endif
-        foreach x (`(echo "" ; module -t list) | & grep intel`)
-            module unload $x
-        end
-        module load pgi/14.4
-        # Nombre de threads
-        setenv OMP_NUM_THREADS 16
-        #setenv KMP_AFFINITY "verbose,granularity=fine,proclist=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],explicit"
-        # Chemin de python
-        set path=(/usr/local/python/bin $path)
-        # Chemin de go
-        set path=($path $CASSIOPEE/Dist/bin)
-        # Chemin de elsA.x
-        set path=($path $CASSIOPEE/Dist/bin/$ELSAPROD)
-        setenv LD_LIBRARY_PATHL $CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/vis_r8/lib:/usr/local/hdf5-intel-1.8.8/lib:/usr/local/lib64:/usr/lib64
-        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/pgi_r8:$CASSIOPEE/Dist/bin/vis_r8/lib/python2.7/site-packages
 
 else if ($%MAC14 != 0 || $%MAC18 != 0 || $%MAC19 != 0 || $%MAC20 != 0 || $%MAC21 != 0) then
 #------------------------------- visio ---------------------------------------
