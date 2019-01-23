@@ -1584,6 +1584,7 @@ Array / PyTree common manipulations
 .. py:function:: Converter.convertHO2LO(a, mode=0)
 
     Convert a high order element mesh into a low order (linear) mesh.
+    If mode=1, only valid for BAR_3, TRI_6, QUAD_8, QUAD_9, TETRA_10, HEXA_20, HEXA_27, PENTA_18, PYRA_14.
 
     :param a: input data
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
@@ -1607,6 +1608,7 @@ Array / PyTree common manipulations
 
     Convert a low order element mesh into a high order mesh. Points are added linearly on edges
     or faces.
+    Only valid for BAR_3, TRI_6, QUAD_8, QUAD_9, TETRA_10, HEXA_20, HEXA_27, PENTA_18, PYRA_14.
 
     :param a: input data
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]

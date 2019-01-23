@@ -260,7 +260,385 @@ PyObject* K_CONVERTER::convertHO2LO(PyObject* self, PyObject* args)
       }
       RELEASESHAREDU(o, fo, co);   
     }
+    else if (K_STRING::cmp(eltType, 7, "HEXA_20") == 0)
+    {
+      E_Int N = 22;
+      E_Int neltsF = nelts*N;
+      o = K_ARRAY::buildArray2(nfld, varString, nvertex, neltsF, -1, "TETRA", false, 0, 0, 0, api);
+      FldArrayF* fo; FldArrayI* co;
+      K_ARRAY::getFromArray2(o, fo, co);
+      fo->copy(*f, 1, nfld);
+      for (E_Int i = 0; i < nelts; i++)
+      {
+        (*co)(N*i,1) = (*cn)(i,1);
+        (*co)(N*i,2) = (*cn)(i,9);
+        (*co)(N*i,3) = (*cn)(i,12);
+        (*co)(N*i,4) = (*cn)(i,13);
+
+        (*co)(N*i+1,1) = (*cn)(i,2);
+        (*co)(N*i+1,2) = (*cn)(i,10);
+        (*co)(N*i+1,3) = (*cn)(i,9);
+        (*co)(N*i+1,4) = (*cn)(i,14);
+ 
+        (*co)(N*i+2,1) = (*cn)(i,3);
+        (*co)(N*i+2,2) = (*cn)(i,11);
+        (*co)(N*i+2,3) = (*cn)(i,10);
+        (*co)(N*i+2,4) = (*cn)(i,15);
+
+        (*co)(N*i+3,1) = (*cn)(i,11);
+        (*co)(N*i+3,2) = (*cn)(i,4);
+        (*co)(N*i+3,3) = (*cn)(i,12);
+        (*co)(N*i+3,4) = (*cn)(i,16);
+
+        (*co)(N*i+4,1) = (*cn)(i,15);
+        (*co)(N*i+4,2) = (*cn)(i,16);
+        (*co)(N*i+4,3) = (*cn)(i,11);
+        (*co)(N*i+4,4) = (*cn)(i,12);
+
+        (*co)(N*i+5,1) = (*cn)(i,10);
+        (*co)(N*i+5,2) = (*cn)(i,11);
+        (*co)(N*i+5,3) = (*cn)(i,12);
+        (*co)(N*i+5,4) = (*cn)(i,15);
+        
+        (*co)(N*i+6,1) = (*cn)(i,9);
+        (*co)(N*i+6,2) = (*cn)(i,14);
+        (*co)(N*i+6,3) = (*cn)(i,13);
+        (*co)(N*i+6,4) = (*cn)(i,12);
+      
+        (*co)(N*i+7,1) = (*cn)(i,9);
+        (*co)(N*i+7,2) = (*cn)(i,10);
+        (*co)(N*i+7,3) = (*cn)(i,14);
+        (*co)(N*i+7,4) = (*cn)(i,12);
+       
+        (*co)(N*i+8,1) = (*cn)(i,15);
+        (*co)(N*i+8,2) = (*cn)(i,12);
+        (*co)(N*i+8,3) = (*cn)(i,16);
+        (*co)(N*i+8,4) = (*cn)(i,20);
+        
+        (*co)(N*i+9,1) = (*cn)(i,10);
+        (*co)(N*i+9,2) = (*cn)(i,12);
+        (*co)(N*i+9,3) = (*cn)(i,15);
+        (*co)(N*i+9,4) = (*cn)(i,20);
+        
+        
+        (*co)(N*i+10,1) = (*cn)(i,10);
+        (*co)(N*i+10,2) = (*cn)(i,18);
+        (*co)(N*i+10,3) = (*cn)(i,20);
+        (*co)(N*i+10,4) = (*cn)(i,15);
+        
+        
+        (*co)(N*i+11,1) = (*cn)(i,16);
+        (*co)(N*i+11,2) = (*cn)(i,8);
+        (*co)(N*i+11,3) = (*cn)(i,19);
+        (*co)(N*i+11,4) = (*cn)(i,20);
+        
+        (*co)(N*i+12,1) = (*cn)(i,7);
+        (*co)(N*i+12,2) = (*cn)(i,19);
+        (*co)(N*i+12,3) = (*cn)(i,15);
+        (*co)(N*i+12,4) = (*cn)(i,18);
+        
+        (*co)(N*i+13,1) = (*cn)(i,15);
+        (*co)(N*i+13,2) = (*cn)(i,19);
+        (*co)(N*i+13,3) = (*cn)(i,16);
+        (*co)(N*i+13,4) = (*cn)(i,20);
+        
+        (*co)(N*i+14,1) = (*cn)(i,18);
+        (*co)(N*i+14,2) = (*cn)(i,19);
+        (*co)(N*i+14,3) = (*cn)(i,20);
+        (*co)(N*i+14,4) = (*cn)(i,15);
+        
+        (*co)(N*i+15,1) = (*cn)(i,5);
+        (*co)(N*i+15,2) = (*cn)(i,17);
+        (*co)(N*i+15,3) = (*cn)(i,20);
+        (*co)(N*i+15,4) = (*cn)(i,13);
+        
+        (*co)(N*i+16,1) = (*cn)(i,6);
+        (*co)(N*i+16,2) = (*cn)(i,18);
+        (*co)(N*i+16,3) = (*cn)(i,17);
+        (*co)(N*i+16,4) = (*cn)(i,14);
+        
+        
+        (*co)(N*i+17,1) = (*cn)(i,13);
+        (*co)(N*i+17,2) = (*cn)(i,17);
+        (*co)(N*i+17,3) = (*cn)(i,14);
+        (*co)(N*i+17,4) = (*cn)(i,12);
+        
+        (*co)(N*i+18,1) = (*cn)(i,20);
+        (*co)(N*i+18,2) = (*cn)(i,18);
+        (*co)(N*i+18,3) = (*cn)(i,17);
+        (*co)(N*i+18,4) = (*cn)(i,10);
+        
+        (*co)(N*i+19,1) = (*cn)(i,14);
+        (*co)(N*i+19,2) = (*cn)(i,18);
+        (*co)(N*i+19,3) = (*cn)(i,10);
+        (*co)(N*i+19,4) = (*cn)(i,17);
+        
+        (*co)(N*i+20,1) = (*cn)(i,12);
+        (*co)(N*i+20,2) = (*cn)(i,20);
+        (*co)(N*i+20,3) = (*cn)(i,13);
+        (*co)(N*i+20,4) = (*cn)(i,17);
+        
+        (*co)(N*i+21,1) = (*cn)(i,10);
+        (*co)(N*i+21,2) = (*cn)(i,20);
+        (*co)(N*i+21,3) = (*cn)(i,12);
+        (*co)(N*i+21,4) = (*cn)(i,17); 
+      }
+      RELEASESHAREDU(o, fo, co);   
+    }
+    else if (K_STRING::cmp(eltType, 7, "HEXA_27") == 0)
+    {
+      E_Int N = 8;
+      E_Int neltsF = nelts*N;
+      o = K_ARRAY::buildArray2(nfld, varString, nvertex, neltsF, -1, "HEXA", false, 0, 0, 0, api);
+      FldArrayF* fo; FldArrayI* co;
+      K_ARRAY::getFromArray2(o, fo, co);
+      fo->copy(*f, 1, nfld);
+      for (E_Int i = 0; i < nelts; i++)
+      {
+        (*co)(N*i,1) = (*cn)(i,4);
+        (*co)(N*i,2) = (*cn)(i,12);
+        (*co)(N*i,3) = (*cn)(i,21);
+        (*co)(N*i,4) = (*cn)(i,11);
+        (*co)(N*i,5) = (*cn)(i,16);
+        (*co)(N*i,6) = (*cn)(i,25);
+        (*co)(N*i,7) = (*cn)(i,27);
+        (*co)(N*i,8) = (*cn)(i,24);
+
+        (*co)(N*i+1,1) = (*cn)(i,12);
+        (*co)(N*i+1,2) = (*cn)(i,1);
+        (*co)(N*i+1,3) = (*cn)(i,9);
+        (*co)(N*i+1,4) = (*cn)(i,21);
+        (*co)(N*i+1,5) = (*cn)(i,25);
+        (*co)(N*i+1,6) = (*cn)(i,13);
+        (*co)(N*i+1,7) = (*cn)(i,22);
+        (*co)(N*i+1,8) = (*cn)(i,27);
+ 
+      
+        (*co)(N*i+2,1) = (*cn)(i,11);
+        (*co)(N*i+2,2) = (*cn)(i,21);
+        (*co)(N*i+2,3) = (*cn)(i,10);
+        (*co)(N*i+2,4) = (*cn)(i,3);
+        (*co)(N*i+2,5) = (*cn)(i,24);
+        (*co)(N*i+2,6) = (*cn)(i,27);
+        (*co)(N*i+2,7) = (*cn)(i,23);
+        (*co)(N*i+2,8) = (*cn)(i,15);
+        
+        (*co)(N*i+3,1) = (*cn)(i,21);
+        (*co)(N*i+3,2) = (*cn)(i,9);
+        (*co)(N*i+3,3) = (*cn)(i,2);
+        (*co)(N*i+3,4) = (*cn)(i,10);
+        (*co)(N*i+3,5) = (*cn)(i,27);
+        (*co)(N*i+3,6) = (*cn)(i,22);
+        (*co)(N*i+3,7) = (*cn)(i,14);
+        (*co)(N*i+3,8) = (*cn)(i,23);
+        
+        (*co)(N*i+4,1) = (*cn)(i,16);
+        (*co)(N*i+4,2) = (*cn)(i,25);
+        (*co)(N*i+4,3) = (*cn)(i,27);
+        (*co)(N*i+4,4) = (*cn)(i,24);
+        (*co)(N*i+4,5) = (*cn)(i,8);
+        (*co)(N*i+4,6) = (*cn)(i,20);
+        (*co)(N*i+4,7) = (*cn)(i,26);
+        (*co)(N*i+4,8) = (*cn)(i,19);
+
+        (*co)(N*i+5,1) = (*cn)(i,25);
+        (*co)(N*i+5,2) = (*cn)(i,13);
+        (*co)(N*i+5,3) = (*cn)(i,22);
+        (*co)(N*i+5,4) = (*cn)(i,27);
+        (*co)(N*i+5,5) = (*cn)(i,20);
+        (*co)(N*i+5,6) = (*cn)(i,5);
+        (*co)(N*i+5,7) = (*cn)(i,17);
+        (*co)(N*i+5,8) = (*cn)(i,26);
+        
+        (*co)(N*i+6,1) = (*cn)(i,24);
+        (*co)(N*i+6,2) = (*cn)(i,27);
+        (*co)(N*i+6,3) = (*cn)(i,23);
+        (*co)(N*i+6,4) = (*cn)(i,15);
+        (*co)(N*i+6,5) = (*cn)(i,19);
+        (*co)(N*i+6,6) = (*cn)(i,26);
+        (*co)(N*i+6,7) = (*cn)(i,18);
+        (*co)(N*i+6,8) = (*cn)(i,7);
+      
+        (*co)(N*i+7,1) = (*cn)(i,27);
+        (*co)(N*i+7,2) = (*cn)(i,22);
+        (*co)(N*i+7,3) = (*cn)(i,14);
+        (*co)(N*i+7,4) = (*cn)(i,23);
+        (*co)(N*i+7,5) = (*cn)(i,26);
+        (*co)(N*i+7,6) = (*cn)(i,17);
+        (*co)(N*i+7,7) = (*cn)(i,6);
+        (*co)(N*i+7,8) = (*cn)(i,18);
+      }
+      RELEASESHAREDU(o, fo, co);   
+    }
+    else if (K_STRING::cmp(eltType, 8, "PENTA_18") == 0)
+    {
+      E_Int N = 8;
+      E_Int neltsF = nelts*N;
+      o = K_ARRAY::buildArray2(nfld, varString, nvertex, neltsF, -1, "PENTA", false, 0, 0, 0, api);
+      FldArrayF* fo; FldArrayI* co;
+      K_ARRAY::getFromArray2(o, fo, co);
+      fo->copy(*f, 1, nfld);
+      for (E_Int i = 0; i < nelts; i++)
+      {
+        (*co)(N*i,1) = (*cn)(i,1);
+        (*co)(N*i,2) = (*cn)(i,7);
+        (*co)(N*i,3) = (*cn)(i,9);
+        (*co)(N*i,4) = (*cn)(i,10);
+        (*co)(N*i,5) = (*cn)(i,16);
+        (*co)(N*i,6) = (*cn)(i,18);
+  
+        (*co)(N*i+1,1) = (*cn)(i,7);
+        (*co)(N*i+1,2) = (*cn)(i,2);
+        (*co)(N*i+1,3) = (*cn)(i,8);
+        (*co)(N*i+1,4) = (*cn)(i,16);
+        (*co)(N*i+1,5) = (*cn)(i,11);
+        (*co)(N*i+1,6) = (*cn)(i,17);
+        
+      
+        (*co)(N*i+2,1) = (*cn)(i,7);
+        (*co)(N*i+2,2) = (*cn)(i,8);
+        (*co)(N*i+2,3) = (*cn)(i,9);
+        (*co)(N*i+2,4) = (*cn)(i,16);
+        (*co)(N*i+2,5) = (*cn)(i,17);
+        (*co)(N*i+2,6) = (*cn)(i,18);
+        
+        (*co)(N*i+3,1) = (*cn)(i,9);
+        (*co)(N*i+3,2) = (*cn)(i,8);
+        (*co)(N*i+3,3) = (*cn)(i,3);
+        (*co)(N*i+3,4) = (*cn)(i,18);
+        (*co)(N*i+3,5) = (*cn)(i,17);
+        (*co)(N*i+3,6) = (*cn)(i,12);
+        
+        (*co)(N*i+4,1) = (*cn)(i,10);
+        (*co)(N*i+4,2) = (*cn)(i,16);
+        (*co)(N*i+4,3) = (*cn)(i,18);
+        (*co)(N*i+4,4) = (*cn)(i,4);
+        (*co)(N*i+4,5) = (*cn)(i,13);
+        (*co)(N*i+4,6) = (*cn)(i,15);
+        
+        (*co)(N*i+5,1) = (*cn)(i,16);
+        (*co)(N*i+5,2) = (*cn)(i,11);
+        (*co)(N*i+5,3) = (*cn)(i,17);
+        (*co)(N*i+5,4) = (*cn)(i,13);
+        (*co)(N*i+5,5) = (*cn)(i,5);
+        (*co)(N*i+5,6) = (*cn)(i,14);
+        
+        (*co)(N*i+6,1) = (*cn)(i,16);
+        (*co)(N*i+6,2) = (*cn)(i,17);
+        (*co)(N*i+6,3) = (*cn)(i,18);
+        (*co)(N*i+6,4) = (*cn)(i,13);
+        (*co)(N*i+6,5) = (*cn)(i,14);
+        (*co)(N*i+6,6) = (*cn)(i,15);
+        
+        (*co)(N*i+7,1) = (*cn)(i,18);
+        (*co)(N*i+7,2) = (*cn)(i,17);
+        (*co)(N*i+7,3) = (*cn)(i,12);
+        (*co)(N*i+7,4) = (*cn)(i,15);
+        (*co)(N*i+7,5) = (*cn)(i,14);
+        (*co)(N*i+7,6) = (*cn)(i,6);      
+      }
+      RELEASESHAREDU(o, fo, co);   
+    }
+    else if (K_STRING::cmp(eltType, 7, "PYRA_14") == 0)
+    {
+      E_Int N = 16;
+      E_Int neltsF = nelts*N;
+      o = K_ARRAY::buildArray2(nfld, varString, nvertex, neltsF, -1, "TETRA", false, 0, 0, 0, api);
+      FldArrayF* fo; FldArrayI* co;
+      K_ARRAY::getFromArray2(o, fo, co);
+      fo->copy(*f, 1, nfld);
+      for (E_Int i = 0; i < nelts; i++)
+      {
+        (*co)(N*i,1) = (*cn)(i,1);
+        (*co)(N*i,2) = (*cn)(i,6);
+        (*co)(N*i,3) = (*cn)(i,9);
+        (*co)(N*i,4) = (*cn)(i,10);
+        
+        (*co)(N*i+1,1) = (*cn)(i,6);
+        (*co)(N*i+1,2) = (*cn)(i,2);
+        (*co)(N*i+1,3) = (*cn)(i,7);
+        (*co)(N*i+1,4) = (*cn)(i,11);
+      
+        (*co)(N*i+2,1) = (*cn)(i,7);
+        (*co)(N*i+2,2) = (*cn)(i,3);
+        (*co)(N*i+2,3) = (*cn)(i,8);
+        (*co)(N*i+2,4) = (*cn)(i,12);
+        
+        (*co)(N*i+3,1) = (*cn)(i,8);
+        (*co)(N*i+3,2) = (*cn)(i,4);
+        (*co)(N*i+3,3) = (*cn)(i,9);
+        (*co)(N*i+3,4) = (*cn)(i,13);
+        
+
+        (*co)(N*i+4,1) = (*cn)(i,6);
+        (*co)(N*i+4,2) = (*cn)(i,14);
+        (*co)(N*i+4,3) = (*cn)(i,9);
+        (*co)(N*i+4,4) = (*cn)(i,10);
+        
+        (*co)(N*i+5,1) = (*cn)(i,6);
+        (*co)(N*i+5,2) = (*cn)(i,7);
+        (*co)(N*i+5,3) = (*cn)(i,14);
+        (*co)(N*i+5,4) = (*cn)(i,11);
+        
+        (*co)(N*i+6,1) = (*cn)(i,7);
+        (*co)(N*i+6,2) = (*cn)(i,8);
+        (*co)(N*i+6,3) = (*cn)(i,14);
+        (*co)(N*i+6,4) = (*cn)(i,12);
+        
+
+        (*co)(N*i+7,1) = (*cn)(i,8);
+        (*co)(N*i+7,2) = (*cn)(i,9);
+        (*co)(N*i+7,3) = (*cn)(i,14);
+        (*co)(N*i+7,4) = (*cn)(i,13);
+
+        (*co)(N*i+8,1) = (*cn)(i,6);
+        (*co)(N*i+8,2) = (*cn)(i,14);
+        (*co)(N*i+8,3) = (*cn)(i,10);
+        (*co)(N*i+8,4) = (*cn)(i,11);
+
+        (*co)(N*i+9,1) = (*cn)(i,7);
+        (*co)(N*i+9,2) = (*cn)(i,14);
+        (*co)(N*i+9,3) = (*cn)(i,11);
+        (*co)(N*i+9,4) = (*cn)(i,12);
+
+        (*co)(N*i+10,1) = (*cn)(i,8);
+        (*co)(N*i+10,2) = (*cn)(i,14);
+        (*co)(N*i+10,3) = (*cn)(i,12);
+        (*co)(N*i+10,4) = (*cn)(i,13);
+
+        (*co)(N*i+11,1) = (*cn)(i,9);
+        (*co)(N*i+11,2) = (*cn)(i,14);
+        (*co)(N*i+11,3) = (*cn)(i,10);
+        (*co)(N*i+11,4) = (*cn)(i,13);
+
+        
+        (*co)(N*i+12,1) = (*cn)(i,14);
+        (*co)(N*i+12,2) = (*cn)(i,10);
+        (*co)(N*i+12,3) = (*cn)(i,11);
+        (*co)(N*i+12,4) = (*cn)(i,12);
+
+        (*co)(N*i+13,1) = (*cn)(i,14);
+        (*co)(N*i+13,2) = (*cn)(i,10);
+        (*co)(N*i+13,3) = (*cn)(i,12);
+        (*co)(N*i+13,4) = (*cn)(i,13);
+
+        (*co)(N*i+14,1) = (*cn)(i,10);
+        (*co)(N*i+14,2) = (*cn)(i,11);
+        (*co)(N*i+14,3) = (*cn)(i,12);
+        (*co)(N*i+14,4) = (*cn)(i,5);
+
+        (*co)(N*i+15,1) = (*cn)(i,10);
+        (*co)(N*i+15,2) = (*cn)(i,12);
+        (*co)(N*i+15,3) = (*cn)(i,13);
+        (*co)(N*i+15,4) = (*cn)(i,5);
+
+      
+      }
+      RELEASESHAREDU(o, fo, co);   
+    }
+
   }
+
   RELEASESHAREDB(res, array, f, cn);
   return o;
 }

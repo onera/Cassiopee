@@ -386,10 +386,10 @@ E_Int K_IO::GenIO::meshwrite(
         cp(n,2) = cn(n,2) + shift;
         cp(n,3) = cn(n,3) + shift;
         cp(n,4) = cn(n,4) + shift;
-        cp(n,5) = cn(n,1) + shift;
-        cp(n,6) = cn(n,2) + shift;
-        cp(n,7) = cn(n,3) + shift;
-        cp(n,8) = cn(n,4) + shift;
+        cp(n,5) = cn(n,5) + shift;
+        cp(n,6) = cn(n,6) + shift;
+        cp(n,7) = cn(n,7) + shift;
+        cp(n,8) = cn(n,8) + shift;
       }
       connectHexa.push_back(cpp);
     }
@@ -516,7 +516,7 @@ E_Int K_IO::GenIO::meshwrite(
         FldArrayI& cp = *connectHexa[c];
         for (E_Int i = 0; i < cp.getSize(); i++)
           fprintf(ptrFile, "%d %d %d %d %d %d %d %d %d\n", 
-                  cp(i,1), cp(i,2), cp(i,3), cp(i,4), 
+                  cp(i,1), cp(i,2), cp(i,3), cp(i,4),
                   cp(i,5), cp(i,6), cp(i,7), cp(i,8), c);
         c++;
       }
