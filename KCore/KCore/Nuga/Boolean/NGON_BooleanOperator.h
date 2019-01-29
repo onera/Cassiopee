@@ -1020,8 +1020,6 @@ E_Int NGON_BOOLEAN_CLASS::Union
       case SOLID_NONE:
       {
         coord = _coord;
-        __compact_and_join(_ngXs, coord);
-        _ngXs.export_to_array(connect);
         _ngoper=&_ngXs; // for mapping upon exit
 
         break;
@@ -1055,8 +1053,6 @@ E_Int NGON_BOOLEAN_CLASS::Union
         _ngXh.append(_ng1); // D12
 
         coord = _coord;
-        
-        _ngXh.export_to_array(connect);
         _ngoper=&_ngXh; // for mapping upon exit
         
         break;
@@ -1082,11 +1078,10 @@ E_Int NGON_BOOLEAN_CLASS::Union
 
   if (ret != ERROR)
   {
-    ngon_type uni(connect);
-    ngon_type::clean_connectivity(uni, coord);
-    ngon_type::simplify_pgs(uni, coord);
-    __compact_and_join(uni, coord);
-    uni.export_to_array(connect);
+    ngon_type::clean_connectivity(*_ngoper, coord);
+    ngon_type::simplify_pgs(*_ngoper, coord);
+    __compact_and_join(*_ngoper, coord);
+    _ngoper->export_to_array(connect);
 
 #ifdef DEBUG_BOOLEAN 
 #ifndef WIN32

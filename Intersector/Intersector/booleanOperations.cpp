@@ -20,6 +20,7 @@
 // Some boolean operations like intersection, union, minus...
 //#define FLAG_STEP
 //#define DEBUG_W_PYTHON_LAYER
+//#define DEBUG_MESHER
 
 # include <string>
 # include <sstream> 
@@ -34,6 +35,9 @@ using namespace NUGA;
 
 #ifdef FLAG_STEP
 E_Int chrono::verbose=1;
+#endif
+#if defined(DEBUG_TRIANGULATOR)
+      bool DELAUNAY::Triangulator::dbg_enabled = false;
 #endif
 
 //=============================================================================
