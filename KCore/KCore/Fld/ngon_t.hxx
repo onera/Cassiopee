@@ -239,6 +239,9 @@ struct ngon_t
     for (E_Int i=0; (i<polys.size()); ++i){
             
       E_Int nb_edges = polys.stride(i);
+
+      if (nb_edges < 3) continue; //degen
+
       const E_Int* pEs = polys.get_facets_ptr(i);
       
       cB.clear();
@@ -255,11 +258,11 @@ struct ngon_t
       // sort the nodes
       BARSplitter::getSortedNodes(cB, snodes);
       
-      /*if (snodes.size() != nb_edges) //degen
+      if (snodes.size() != nb_edges) //degen
       {
-        std::cout << cB << std::endl;
+        //std::cout << cB << std::endl;
         continue;
-      }*/
+      }
       
       ++nb_polys;
       
@@ -3214,6 +3217,20 @@ static E_Int reorient_skins(const TriangulatorType& t, const K_FLD::FloatArray& 
   {
     err = __reorient_skin<TriangulatorType>(coord, wNG, pg_ext, oids, neighbors, orient); //reorient a connex part NGZ of wNG. pg_ext are related to wNG
 
+    if (err)
+    {
+      std::cout << "could not orient properly zone 0" << std::endl;
+
+#ifdef DEBUG_NGON_T
+      std::ostringstream o;
+      o << "reorient_error_zone_0.tp";
+      K_FLD::IntArray cnto;
+      wNG.export_to_array(cnto);
+      MIO::write(o.str().c_str(), coord, cnto, "NGON");
+#endif
+      return err;
+    }
+
 #ifdef FLAG_STEP
     if (chrono::verbose >1) std::cout << "__reorient_skins : __reorient_skin : " << c.elapsed() << std::endl;
     c.start();
@@ -3400,10 +3417,10 @@ build_F2E(const ngon_unit& neighbors, K_FLD::IntArray& F2E) const
 void
 build_noF2E(K_FLD::FldArrayI& F2E) const
 {
+  // rule : first fill the left, then the right => upon exit, at least F2E is oriented for exterior PGs
   PGs.updateFacets();
   PHs.updateFacets();
 
-  // WARNING : assuming that external PGs have been propoerly oriented toward exterior
   E_Int NB_PHS(PHs.size());
   E_Int NB_PGS(PGs.size());
   

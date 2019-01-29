@@ -50,13 +50,37 @@ namespace DELAUNAY
       hnids.clear();
       unsync_nodes=false;
     }
+    
+    ///
+    E_Int sync_hards()
+    {
+      std::vector<E_Int> hN;
+      hN.reserve(hardNodes.size());
+      for (auto& Ni : hardNodes)
+      {
+        if (hnids[Ni] == Ni)hN.push_back(Ni);
+      }
+      hardNodes=hN;
+    
+      K_CONT_DEF::non_oriented_edge_set_type nHE;// = data.hardEdges;
+      for (auto& Ei : hardEdges)
+      { 
+        E_Int Ni = Ei.node(0);
+        Ni = (hnids[Ni] == Ni ) ? Ni : hnids[Ni];
+        E_Int Nj = Ei.node(1);
+        Nj = (hnids[Nj] == Nj ) ? Nj : hnids[Nj];
+      
+        if (Ni != Nj) nHE.insert(K_MESH::NO_Edge(Ni, Nj));
+      }
+      hardEdges = nHE;
+    }
 
     K_FLD::FloatArray*         pos;
     const K_FLD::IntArray*     connectB;
     int_vector_type            hardNodes;
     bool                       unsync_nodes;
     int_vector_type            hnids;
-    
+  
     K_CONT_DEF::non_oriented_edge_set_type hardEdges;
     K_FLD::IntArray            connectM;
     K_FLD::IntArray            neighbors;

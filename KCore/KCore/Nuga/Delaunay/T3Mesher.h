@@ -48,6 +48,8 @@ public:
     public:
       bool dbg_flag;
 #endif
+  public:
+    std::vector<edge_error_t>  _edge_errors;
 };
 
 template <typename T>
@@ -72,6 +74,8 @@ T3Mesher<T>::run (MeshData& data)
 #endif
 
   E_Int err = mesher.run (data);
+  
+  _edge_errors = mesher._edge_errors;
 
   return err;
 }

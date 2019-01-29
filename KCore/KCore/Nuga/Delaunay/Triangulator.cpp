@@ -101,7 +101,7 @@ E_Int Triangulator::run
   c.start();
 #endif
   
-#ifdef DEBUG_MESHER
+#if defined(DEBUG_TRIANGULATOR) && defined(DEBUG_MESHER)
   if (dbg_enabled)
     mesher.dbg_flag=true;
 #endif

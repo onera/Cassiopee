@@ -95,6 +95,8 @@ class ngon_unit
     E_Int get_facets_max_id() const ;
     ///
     void get_indices_of_type (E_Int FLAG, Vector_t<E_Int>& indices) const;
+
+    void get_stride_extrema(E_Int& mins, E_Int& maxs) const;
     ///
     void flag_indices_of_type (E_Int FLAG, Vector_t<bool>& flag) const;
     ///

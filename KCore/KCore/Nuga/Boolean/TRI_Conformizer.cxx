@@ -28,6 +28,7 @@
 #include "Connect/ContourSplitter.h"
 #include "Connect/GeomAlgo.h"
 #include "Nuga/Boolean/SwapperT3.h"
+#include "Nuga/Delaunay/Triangulator.h"
 
 #if (defined DEBUG_TRI_CONFORMIZER) /*|| (defined DEBUG_EXTRACT)*/
 #include "IO/io.h"
@@ -42,6 +43,9 @@ static bool xtest=false;
 #ifdef DEBUG_EXTRACT
 #include <fstream>
 #include <sstream>
+#endif
+#ifdef DEBUG_MESHER
+#include "Nuga/Delaunay/medit.hxx"
 #endif
 
 #define OLD_STYLE
@@ -125,8 +129,8 @@ TRI_Conformizer<DIM>::__split_Elements
   mode.ignore_coincident_nodes = true;
   DELAUNAY::T3Mesher<E_Float> mesher(mode);
   
-  K_CONT_DEF::int_vector_type nids;
-  if (mode.ignore_coincident_nodes) K_CONNECT::IdTool::init_inc(nids, pos.cols());
+  K_CONT_DEF::int_vector_type gnids, lnids;
+  if (mode.ignore_coincident_nodes) K_CONNECT::IdTool::init_inc(gnids, pos.cols());
   
 #ifdef DEBUG_TRI_CONFORMIZER
   int err_count(0);
@@ -280,10 +284,10 @@ TRI_Conformizer<DIM>::__split_Elements
 #endif
 
 #endif
-#ifdef DEBUG_TRI_CONFORMIZER
+#ifdef DEBUG_MESHER
       //if (ancestors[i]==1167)//parent_type::_iter == 10 || xtest
         //MIO::write("contot.mesh", pi, ci2, "BAR");
-#endif    
+#endif
       // Now mesh
       data.clear(); //reset containers
       data.pos = &pi;
@@ -300,7 +304,7 @@ TRI_Conformizer<DIM>::__split_Elements
 #endif
 #endif
       // iterative for robustness : try shuffling the input data
-      err = __iterative_run (mesher, &pi, &ci2, hnodes, data);
+      err = __iterative_run (mesher, pi, ci2, hnodes, data, lnids);
       
       if (err != 0)
       {
@@ -377,9 +381,9 @@ TRI_Conformizer<DIM>::__split_Elements
       
       if (mode.ignore_coincident_nodes && data.unsync_nodes)
       {
-        for (size_t n = 0; n < data.hnids.size(); ++n)
+        for (size_t n = 0; n < lnids.size(); ++n)
         {
-          if ((size_t)data.hnids[n] != n) nids[revIDs[n]] = revIDs[data.hnids[n]];
+          if ((size_t)lnids[n] != n) gnids[revIDs[n]] = gnids[revIDs[lnids[n]]]; //we used gnids in the rhs to propagate the moves
         }
       }
 
@@ -405,7 +409,7 @@ TRI_Conformizer<DIM>::__split_Elements
   xr[connect.cols()] = connectOut.cols();
   
   if (mode.ignore_coincident_nodes)
-    K_FLD::IntArray::changeIndices(connectOut, nids);
+    parent_type::__clean(gnids, connectOut, ancOut, &xcOut);
 
   connect = connectOut;
   ancestors = ancOut;
@@ -485,27 +489,127 @@ inline void __random_shuffle (K_FLD::IntArray& connectB)
 template <E_Int DIM>
 E_Int
 TRI_Conformizer<DIM>::__iterative_run
-(DELAUNAY::T3Mesher<E_Float>& mesher, K_FLD::FloatArray* crd, K_FLD::IntArray* cB, 
- K_CONT_DEF::int_vector_type& hnodes, DELAUNAY::MeshData& data)
+(DELAUNAY::T3Mesher<E_Float>& mesher, K_FLD::FloatArray& crd, K_FLD::IntArray& cB, 
+ K_CONT_DEF::int_vector_type& hnodes, DELAUNAY::MeshData& data, std::vector<E_Int>& lnids)
 {
-  E_Int err(0);
+  E_Int err(0), nb_pts(crd.cols());
+  
+  
+  lnids.clear();
+  if (mesher._mode.ignore_coincident_nodes) //and eventually unforceable edge
+    K_CONNECT::IdTool::init_inc(lnids, nb_pts);
+  
 
   // Multiple attempts : do not shuffle first, and then do shuffle
   E_Int railing = -1;
-  E_Int nb_attemps(cB->cols());
+  E_Int nb_attemps = std::min(cB.cols(), 6);//to test all RTOL2 values in range [1.e-8, 1.e-3]
+  E_Int k = 9;
   while (railing++ < nb_attemps)
   {
+    //if (err) std::cout << "atempt " << railing << " return error : " << err << std::endl;
+    
+    k = std::max(3, (--k));
+    E_Float RTOL2 = ::pow(10., -k);
     
     data.clear(); //reset containers
+    mesher._edge_errors.clear();
+    
     mesher._mode.do_not_shuffle=bool(!railing); // i.e. shuffle every time but the first
     mesher._mode.silent_errors=(railing == nb_attemps) ? false : true; // only listen the last attempt
-    data.pos = crd;
-    data.connectB = cB;
+
+    data.pos = &crd;
+    data.connectB = &cB;
 #ifdef OLD_STYLE
     data.hardNodes = hnodes;
 #endif
     
     err = mesher.run(data);
+    
+    // process errors and update cB, hNodes and lnids
+    if (mesher._mode.ignore_unforceable_edges) //and eventually unforceable edge
+    {
+      if (!mesher._edge_errors.empty())//has errors
+      {
+        // get (lambda,d2) for each xedge node regarding current faulty hard edge
+        for (size_t i=0; i < mesher._edge_errors.size(); ++i)
+        {
+          DELAUNAY::edge_error_t& edge_err = mesher._edge_errors[i];
+          E_Int& Ni = edge_err.Ni;
+          E_Int& Nj = edge_err.Nj;
+          std::set<E_Int>& nodes = edge_err.nodes;
+          
+          E_Float L2 = K_FUNC::sqrDistance(crd.col(Ni), crd.col(Nj), 2);
+//        
+          std::vector<std::pair<E_Float, E_Int>> sNodes;
+          
+          for (auto& N : nodes)
+          {
+            if (N >= crd.cols()) continue; // box nodes
+            
+            E_Float dNNi2 = K_FUNC::sqrDistance(crd.col(N), crd.col(Ni), 2);
+            E_Float dNNj2 = K_FUNC::sqrDistance(crd.col(N), crd.col(Nj), 2);
+            //std::cout <<data.hnids.size() << std::endl;
+            if (dNNi2 < RTOL2*L2)
+            {
+              data.hnids[MAX(N, Ni)] = MIN(N,Ni);  //lower id priorization
+            }
+            else if (dNNj2 < RTOL2*L2)
+            {
+              data.hnids[MAX(N, Nj)] = MIN(N,Nj);  //lower id priorization
+            }
+            else // do we split NiNj ?
+            {
+              E_Float lambda;
+              E_Float h2 = K_MESH::Edge::linePointMinDistance2<DIM>(crd.col(Ni),crd.col(Nj), crd.col(N), lambda);
+              if (h2 >= RTOL2*L2 || lambda < 0. || lambda > 1.) continue;
+              sNodes.push_back(std::make_pair(lambda, N));
+            }
+          }
+          
+          E_Int sz = sNodes.size();
+          if (sz > 1) std::sort(ALL(sNodes));
+          
+          if (sz)
+          {
+            data.hardEdges.erase(K_MESH::NO_Edge(Ni,Nj)); //remove edge to refine
+            data.hardEdges.insert(K_MESH::NO_Edge(Ni,sNodes[0].second)); //first bit
+            data.hardEdges.insert(K_MESH::NO_Edge(sNodes[sz-1].second, Nj)); //last bit
+            //in-between bits
+            for (size_t i=0; i < sz-1; ++i)
+              data.hardEdges.insert(K_MESH::NO_Edge(sNodes[i].second,sNodes[i+1].second));
+          }
+        }
+        
+        data.sync_hards();//reflect hnids update to hard edges and hard node
+        
+        // now rebuild cB from current data
+        cB.clear();
+        for (auto& he : data.hardEdges)
+          cB.pushBack(he.begin(), he.end());
+
+#ifdef OLD_STYLE
+        hnodes.clear();
+        for (size_t i=0; i < data.hardNodes.size(); ++i)
+        {
+          hnodes.push_back(data.hardNodes[i]);
+        }
+#endif
+        
+        //
+        err = 1;
+      }
+    }
+    if (mesher._mode.ignore_coincident_nodes)
+    {
+      for (size_t i = 0; i < nb_pts; ++i)
+      {
+        if ((data.hnids[i] != i) && (lnids[i] == i))
+        {
+          lnids[i] = data.hnids[i];
+        }
+      }
+    }
+    
     if (err == 0) return 0;
   }
   

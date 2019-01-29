@@ -23,6 +23,8 @@
 
 //#define DEBUG_EXTRACT
 //#define DEBUG_W_PYTHON_LAYER
+//#define DEBUG_MESHER
+//#define MANUAL
 
 #include "Fld/ngon_t.hxx"
 #include "Search/BbTree.h"
@@ -543,6 +545,14 @@ private:
   ///
   E_Int __sort_T3_sharing_an_edge(E_Int E0, E_Int E1, E_Int shift, 
                                  const K_FLD::FloatArray& normals, const K_FLD::FloatArray& coord, const K_FLD::IntArray& connectT3, Vector_t<E_Int>& T3indices);
+  E_Int __sort_T3_sharing_an_edge (E_Int E0, E_Int E1, const K_FLD::FloatArray& normals,
+                                   const K_FLD::FloatArray& coord, const K_FLD::IntArray& connectT3,
+                                   Vector_t<E_Int>& T3indices, std::set<std::pair<E_Int, E_Int> >& faulty_T3pairs);
+
+  bool __fix_degen_for_turning_left(const K_FLD::FloatArray& coord, K_FLD::IntArray& connectT3, std::vector<E_Int>& nT3_to_PG, K_FLD::FloatArray& normals);
+  
+  E_Int __get_degen_T3
+  (const K_FLD::FloatArray& coord, const K_FLD::IntArray& connectT3, E_Int K1, E_Int K2, E_Int& badK, E_Int& k);
   ///
   void __update_neigboring(E_Int E0, E_Int E1, E_Int shift, const K_FLD::IntArray& connectT3,
                            const Vector_t<E_Int>& T3s, K_FLD::IntArray& neighbors);  
@@ -1043,7 +1053,7 @@ E_Int NGON_BOOLEAN_CLASS::Union
         __remove_ghosts(_ngXh);
         
         _ngXh.append(_ng1); // D12
-          
+
         coord = _coord;
         
         _ngXh.export_to_array(connect);
@@ -2057,7 +2067,7 @@ NGON_BOOLEAN_CLASS::__get_working_PGs
   // issues are related to non conformity (some PGs supposed to be the same, sharing 2 PHs but one is refined).
   if (wNG1.PHs.size() != wNG1.PGs.size())//if it's not a surface : partial easy filter before the right one based on conform-ngon-or-not
     ngon_type::close_phs(wNG1, _aCoords1.array());
-  if (wNG2.PHs.size() != wNG2.PGs.size())//if it's not a surface : partial easy filter before the right one based on conform-ngon-or-not
+  if (_XPol != SURFACE_RIGHT && _XPol != BOTH_SURFACE)//if it's not a surface : partial easy filter before the right one based on conform-ngon-or-not
     ngon_type::close_phs(wNG2, _crd2);
   
 #ifdef FLAG_STEP
@@ -2264,9 +2274,9 @@ if (_XPol != BOTH_SURFACE)
 
 #ifdef DEBUG_BOOLEAN
 {
-  char* fname1 = "working1";
+  const char* fname1 = "working1";
   NGON_DBG::write(fname1, _aCoords1, wNG1);
-  char* fname2 = "left1";
+  const char* fname2 = "left1";
   NGON_DBG::write(fname2, _aCoords1, _ng1);
   fname1 = "working2";
   NGON_DBG::write(fname1, K_FLD::ArrayAccessor<K_FLD::FloatArray>(_crd2), wNG2);
@@ -2451,12 +2461,12 @@ if (_XPol != BOTH_SURFACE)
 
 #ifdef DEBUG_BOOLEAN
 {
-  char* fname1 = "working";
+  const char* fname1 = "working";
   K_FLD::ArrayAccessor<Coordinate_t> ac(_coord);
   NGON_DBG::write(fname1, ac, wPGs);
-  char* fname11 = "extra";
+  const char* fname11 = "extra";
   NGON_DBG::write(fname11, ac, extrawPGs);
-  char* fname2 = "left1";
+  const char* fname2 = "left1";
   NGON_DBG::write(fname2, ac, _ng1);
   fname2 = "left2";
   NGON_DBG::write(fname2, ac, _ng2);
@@ -2660,7 +2670,7 @@ NGON_BOOLEAN_CLASS::__compute()
     
     if (err) 
     {
-      std::cout << "ERROR : history failure" << std::endl;
+      std::cout << "ERROR : history failure when building hard" << std::endl;
       return ERROR;
     }
 
@@ -2690,42 +2700,13 @@ NGON_BOOLEAN_CLASS::__compute()
 #endif
   
   // Aggregate the soft bits
-#ifdef MANUAL
-  {
-    K_FLD::FloatArray coord=_coord;
-    __compact_and_join(_ng1, coord);
-    K_FLD::IntArray connect;
-    _ng1.export_to_array(connect);
-    MIO::write("ocext.plt", coord, connect, "NGON");
-  }
-#else
   _ngXs.append(_ng1);//tocheck : append to ngX to avoid to have to modify _zones. but might be more efficient to append the smaller to the bigger..
-#endif
   _ng1.clear();
 
   if (_XPol == SOLID_NONE)
     _ngXs.append(_ng2);
   else if (_XPol == SOLID_RIGHT)
-  {
-#ifdef MANUAL
-  {
-    K_FLD::FloatArray coord=_coord;
-    __compact_and_join(_ng2, coord);
-    K_FLD::IntArray connect;
-    _ng2.export_to_array(connect);
-    MIO::write("sub.plt", coord, connect, "NGON");
-  }
-#else
-//  {
-//    K_FLD::FloatArray coord=_coord;
-//    __compact_and_join(_ngXh, coord);
-//    K_FLD::IntArray connect;
-//    _ngXh.export_to_array(connect);
-//    MIO::write("ngxhonelayer.plt", coord, connect, "NGON");
-//  }
     _ngXh.append(_ng2);
-#endif
-  }
 
   _ng2.clear();
 
@@ -2962,6 +2943,23 @@ NGON_BOOLEAN_CLASS::__process_intersections
   //E_Int a = (Ti != E_IDX_NONE) ? nT3_to_oT3[Ti] : E_IDX_NONE;
   }
 #endif
+
+//   // fix degeneracies for sorting elemnt sharing a edge : removing degen + refining the other sharing the edge
+// #ifdef FLAG_STEP
+//   std::cout << "NGON Boolean : __fix_degen_for_turning_left..." << std::endl;
+//   c.start();
+// #endif
+//   bool has_fixed;
+//   do
+//   {
+//     has_fixed = __fix_degen_for_turning_left(_coord, connectT3, nT3_to_PG, _normals);
+//   } while (has_fixed);
+  
+//   assert(connectT3.cols() == nT3_to_PG.size());
+
+// #ifdef FLAG_STEP
+//   std::cout << "NGON Boolean : __fix_degen_for_turning_left : " << c.elapsed() << std::endl;
+// #endif
   
   return OK;
 }
@@ -3478,6 +3476,7 @@ NGON_BOOLEAN_CLASS::__reorient_externals(eInterPolicy XPol, ngon_type& wNG1, ngo
     //now we build one ph for each pg to reduce the working set with __refine_working_area
     ngu = wNG2.PGs;
     wNG2 = ngon_type(ngu, false);//
+    wNG2.PHs._ancEs.clear();
 
 #ifdef FLAG_STEP
     if (chrono::verbose >0) std::cout << "__get_working_PGs : SURFACE RIGHT MODE : reorient the right surface : " << c.elapsed() << std::endl;
@@ -4226,7 +4225,7 @@ E_Int NGON_BOOLEAN_CLASS::__sort_T3_sharing_an_edge
 {
   _palmares.clear();
   
-  E_Int sz(T3indices.size()), i, N1;
+  E_Int sz(T3indices.size()), i, N1, err(0);
   const E_Int *pSi;
   E_Float q, ERRORVAL(2.*K_CONST::E_PI);
   
@@ -4236,7 +4235,7 @@ E_Int NGON_BOOLEAN_CLASS::__sort_T3_sharing_an_edge
 //#define zeEdge (E0 == 49935 && E1 == 47262) || (E0 == 47262 && E1 == 49935)
 #endif
   
-  for (E_Int j = 1; j < sz; ++j)
+  for (E_Int j = 1; (j < sz) && !err; ++j)
   {
 #ifdef DEBUG_BOOLEAN
     /*if (zeEdge)
@@ -4279,7 +4278,8 @@ E_Int NGON_BOOLEAN_CLASS::__sort_T3_sharing_an_edge
     {
       std::cout << "ERROR at edge E0E1 : " << E0 << "/" << E1 << std::endl;
       std::cout << "The conformizer missed some intersections there." << std::endl;
-      return 1;
+      err = 1;
+      break;
     }
     
     _palmares.push_back(std::make_pair(q, Ki));
@@ -4287,7 +4287,7 @@ E_Int NGON_BOOLEAN_CLASS::__sort_T3_sharing_an_edge
   
   K0 +=shift;// to simplify __update_neigboring algo
   
-  if (_palmares.size() > 1)
+  if (_palmares.size() > 1 && !err)
   {
     std::sort(_palmares.begin(), _palmares.end());
     
@@ -4303,14 +4303,15 @@ E_Int NGON_BOOLEAN_CLASS::__sort_T3_sharing_an_edge
       {
         std::cout << "ERROR at edge E0E1 : " << E0 << "/" << E1 << std::endl;
         std::cout << "The conformizer missed some intersections there." << std::endl;
-        return 1;
+        err = 1;
+        break;
       }
     }
   }
     
   
 #ifdef DEBUG_BOOLEAN
-  /*if ( zeEdge )
+  if ( err )
   {  
     K_FLD::IntArray sorted_cnt;
     Vector_t<E_Int> colors;
@@ -4331,17 +4332,139 @@ E_Int NGON_BOOLEAN_CLASS::__sort_T3_sharing_an_edge
       E_Int tid = (T3indices[i] < shift) ? T3indices[i] : T3indices[i] - shift;
       PGs.push_back(_nT3_to_oPG[tid]);
     }
+
     std::ostringstream o;
     o << "sorted_on_edge_" << E0 << "_" << E1 << ".mesh";
-    MIO::write(o.str().c_str(), coord, sorted_cnt, "TRI", 0, &colors);
-    o.str("");
-    o << "Wsorted_on_edge_" << E0 << "_" << E1 << ".mesh";
-    TRI_debug::write_wired(o.str().c_str(), coord, connectT3, normals, 0, &keep,true);
+    medith::write(o.str().c_str(), coord, sorted_cnt, "TRI", 0, &colors);
+    //o.str("");
+    //o << "Wsorted_on_edge_" << E0 << "_" << E1 << ".mesh";
+    //TRI_debug::write_wired(o.str().c_str(), coord, connectT3, normals, 0, &keep,true);
+  }
+#endif
+
+  return err;
+
+}
+
+///
+TEMPLATE_COORD_CONNECT
+E_Int NGON_BOOLEAN_CLASS::__sort_T3_sharing_an_edge
+(E_Int E0, E_Int E1,  const K_FLD::FloatArray& normals,
+ const K_FLD::FloatArray& coord, const K_FLD::IntArray& connectT3,
+ Vector_t<E_Int>& T3indices, std::set<std::pair<E_Int, E_Int> >& faulty_T3pairs)
+{
+  _palmares.clear();
+
+  E_Int sz(T3indices.size()), i, N1;
+  const E_Int *pSi;
+  E_Float q, ERRORVAL(2.*K_CONST::E_PI);
+
+  E_Int& K0 = T3indices[0];
+
+#ifdef DEBUG_BOOLEAN
+  //#define zeEdge (E0 == 49935 && E1 == 47262) || (E0 == 47262 && E1 == 49935)
+#endif
+
+  for (E_Int j = 1; j < sz; ++j)
+  {
+
+    E_Int& Ki = T3indices[j];
+    //finding out Ap and use the right orientation for Ki.
+    pSi = connectT3.col(Ki);
+    i = K_MESH::Triangle::getLocalNodeId(pSi, E0);
+
+    N1 = *(pSi + (i + 1) % 3);
+
+    E_Float normi[] = { normals(0,Ki), normals(1,Ki), normals(2,Ki) };
+
+    if (N1 == E1) // the side to consider is the opposite
+    {
+      normi[0] = -normi[0];
+      normi[1] = -normi[1];
+      normi[2] = -normi[2];
+    }
+
+    q = K_CONNECT::GeomAlgo<K_MESH::Triangle>::angle_measure(normals.col(K0), normi, coord.col(E0), coord.col(E1));
+    if (q == ERRORVAL)
+      faulty_T3pairs.insert(std::make_pair(K0, Ki));
+
+    _palmares.push_back(std::make_pair(q, Ki));
+  }
+
+  if (_palmares.size() > 1)
+  {
+    std::sort(_palmares.begin(), _palmares.end());
+
+    T3indices.clear();
+    T3indices.push_back(K0);
+
+    for (size_t i = 0; i < _palmares.size(); ++i)
+    {
+      E_Int& K = _palmares[i].second;
+      T3indices.push_back(K);
+
+      if (_palmares[i].first == _palmares[(i + 1) % _palmares.size()].first)
+        faulty_T3pairs.insert(std::make_pair(K, _palmares[(i + 1) % _palmares.size()].second));
+    }
+  }
+
+
+#ifdef DEBUG_BOOLEAN
+  /*if ( zeEdge )
+  {
+  K_FLD::IntArray sorted_cnt;
+  Vector_t<E_Int> colors;
+  Vector_t<bool> keep(connectT3.cols(), false);
+  sorted_cnt.reserve(3, T3indices.size());
+  colors.resize(T3indices.size(), 1);
+
+  T3indices[0] -= shift; // to have a correct display for Wsorted_on_edge_
+
+  std::vector<E_Int> PGs;
+  for (size_t i = 0; i < T3indices.size(); ++i)
+  {
+  sorted_cnt.pushBack(connectT3.col(T3indices[i]), connectT3.col(T3indices[i])+3);
+  keep[T3indices[i]]=true;
+  std::cout << "Triangle : " << T3indices[i] << std::endl;
+  if (i > 0)colors[i] = 0;
+
+  E_Int tid = (T3indices[i] < shift) ? T3indices[i] : T3indices[i] - shift;
+  PGs.push_back(_nT3_to_oPG[tid]);
+  }
+  std::ostringstream o;
+  o << "sorted_on_edge_" << E0 << "_" << E1 << ".mesh";
+  MIO::write(o.str().c_str(), coord, sorted_cnt, "TRI", 0, &colors);
+  o.str("");
+  o << "Wsorted_on_edge_" << E0 << "_" << E1 << ".mesh";
+  TRI_debug::write_wired(o.str().c_str(), coord, connectT3, normals, 0, &keep,true);
   }*/
 #endif
 
   return 0;
+}
 
+///
+TEMPLATE_COORD_CONNECT
+E_Int NGON_BOOLEAN_CLASS::__get_degen_T3
+(const K_FLD::FloatArray& coord, const K_FLD::IntArray& connectT3, E_Int K1, E_Int K2, E_Int& badK, E_Int& k)
+{
+  E_Float q1 = K_MESH::Triangle::qualityG<3>(coord.col(connectT3(0,K1)), coord.col(connectT3(1, K1)), coord.col(connectT3(2, K1)));
+  E_Float q2 = K_MESH::Triangle::qualityG<3>(coord.col(connectT3(0, K2)), coord.col(connectT3(1, K2)), coord.col(connectT3(2, K2)));
+
+  badK = (q1 < q2) ? K1 : K2;
+
+  std::pair<E_Float, E_Int> palma[3];
+  E_Int N[] = { connectT3(0,badK), connectT3(1,badK), connectT3(2,badK) };
+
+  palma[0] = std::make_pair(K_FUNC::sqrDistance(coord.col(N[0]), coord.col(N[1]), 3), 2);
+  palma[1] = std::make_pair(K_FUNC::sqrDistance(coord.col(N[0]), coord.col(N[2]), 3), 1);
+  palma[2] = std::make_pair(K_FUNC::sqrDistance(coord.col(N[1]), coord.col(N[2]), 3), 0);
+
+  std::sort(&palma[0], &palma[0] + 3);
+
+  k = palma[2].second;
+  
+  return 0;
 }
 
 #define THIRD_NODE_POS(pS, E0, E1) ( (*pS != E0 && *pS != E1) ? 0 : (*(pS+1) != E0 && *(pS+1) != E1) ? 1 : 2) 
@@ -4678,11 +4801,14 @@ E_Int NGON_BOOLEAN_CLASS::__classify_skin_PHT3s
   if (_F2E.cols())
   {
     E_Int err = __set_PH_history(PHT3s, is_skin, shift, _nb_pgs1, _F2E, _anc_PH_for_PHT3s[mesh_oper], true/*soft*/, connectT3o);
+    
+#ifdef DEBUG_BOOLEAN
     if (err) 
     {
-      std::cout << "ERROR : history failure" << std::endl;
+      std::cout << "ERROR : history failure for soft" << std::endl;
       return ERROR;
     }
+#endif
   }
 
   // Remove any Z_2 appearing here (i.e solid skin is closed and has created irrelevant PHT3s.
@@ -5097,6 +5223,157 @@ E_Int NGON_BOOLEAN_CLASS::__build_neighbors_table
 
   return 0;
   
+}
+
+///
+TEMPLATE_COORD_CONNECT
+bool NGON_BOOLEAN_CLASS::__fix_degen_for_turning_left
+(const K_FLD::FloatArray& coord, K_FLD::IntArray& connectT3, std::vector<E_Int>& nT3_to_PG, K_FLD::FloatArray& normals)
+{
+  // GET THE MAP EDGE to T3s
+  K_FLD::ArrayAccessor<K_FLD::IntArray> acT3(connectT3);
+  typedef K_CONNECT::EltAlgo<K_MESH::Triangle> algoT3;
+  algoT3::BoundToEltType noE_to_oTs; // non oriented edge to oriented triangles (1 to n).
+
+  algoT3::getBoundToElements(acT3, noE_to_oTs);
+  
+  E_Int K0, E0, E1, N1, sz, Kb, i, j;
+
+  std::vector<bool> keep(connectT3.cols(), true);
+  std::map<K_MESH::NO_Edge, std::set<E_Int> > edge_to_splitnodes;
+  std::set<std::pair<E_Int, E_Int> > faultyT3_pairs;
+  
+  algoT3::BoundToEltType::iterator it, itEnd(noE_to_oTs.end());
+  K_FLD::IntArray::const_iterator pS;
+  for (it = noE_to_oTs.begin(); it != itEnd; ++it)
+  {
+    const K_MESH::Triangle::boundary_type& E = it->first;
+    Vector_t<E_Int>& T3s = it->second;
+
+    K0 = T3s[0];
+    E0 = E.node(0);
+    E1 = E.node(1);
+
+    pS = connectT3.col(K0);
+    i = K_MESH::Triangle::getLocalNodeId(pS, E0);
+    N1 = *(pS + (i + 1) % 3);
+    // Finding out E0, E1
+    if (N1 != E1)
+      std::swap(E0, E1); // real orientation of E in K0 is the opposite of the non oriented shared edge.
+
+    sz = T3s.size();
+    if (sz <= 2) continue;
+   
+    __sort_T3_sharing_an_edge(E0, E1, normals, coord, connectT3, T3s, faultyT3_pairs);
+    
+  }
+
+  if (faultyT3_pairs.empty()) return false;
+
+  //
+  for (auto& p : faultyT3_pairs)
+  {
+    E_Int badT3, khat;//rank of the splitting node
+    __get_degen_T3(coord, connectT3, p.first, p.second, badT3, khat);
+
+    keep[badT3] = false;
+
+    E_Int splitNode = connectT3(khat, badT3);
+    K_MESH::NO_Edge E(connectT3((khat + 1) % 3, badT3), connectT3((khat + 2) % 3, badT3));
+
+    edge_to_splitnodes[E].insert(splitNode);
+  }
+
+  // from edge_to_split_node to edge_to_refined_edge
+  std::map<K_MESH::NO_Edge, Vector_t<E_Int> > edge_to_refined_edge;
+  std::vector<std::pair<E_Float, E_Int> > sorted_nodes;
+  for (auto& i : edge_to_splitnodes)
+  {
+    E_Int N1 = i.first.node(0);
+    E_Int N2 = i.first.node(1);
+
+    if (i.second.size() == 1)
+    {
+      edge_to_refined_edge[i.first].push_back(N1);
+      edge_to_refined_edge[i.first].push_back(*(i.second.begin()));
+      edge_to_refined_edge[i.first].push_back(N2);
+    }
+    else
+    {
+      sorted_nodes.clear();
+      sorted_nodes.push_back(std::make_pair(-K_CONST::E_MAX_FLOAT,N1));
+      sorted_nodes.push_back(std::make_pair(K_CONST::E_MAX_FLOAT, N2));
+
+      E_Float dN1N22 = K_FUNC::sqrDistance(coord.col(N1), coord.col(N2), 3);
+
+      for (auto it = i.second.begin(); it != i.second.end(); ++it)
+      {
+        E_Float dN1n2 = K_FUNC::sqrDistance(coord.col(N1), coord.col(*it), 3);
+        sorted_nodes.push_back(std::make_pair(dN1n2/dN1N22, *it));
+      }
+
+      std::sort(sorted_nodes.begin(), sorted_nodes.end());
+
+      for (size_t n = 0; n < sorted_nodes.size(); ++n)
+        edge_to_refined_edge[i.first].push_back(sorted_nodes[n].second);
+    }
+  }
+  
+  //remove first bad T3
+  K_CONNECT::keep<bool> pred(keep);
+  K_CONNECT::IdTool::compress(connectT3, pred);
+  K_CONNECT::IdTool::compress(nT3_to_PG, pred);
+  K_CONNECT::IdTool::compress(normals, pred);
+
+  // split
+  std::vector<E_Int> new_pg_oids;
+  K_FLD::IntArray new_cnt;
+  K_FLD::FloatArray new_normals;
+  K_MESH::NO_Edge E;
+  std::vector<E_Int> pg_molec;
+  DELAUNAY::Triangulator dt;
+
+  for (E_Int i = 0; i < connectT3.cols(); ++i)
+  {
+    pg_molec.clear();
+
+    for (E_Int n = 0; n < 3; ++n)
+    {
+      E_Int Nn = connectT3(n, i);
+      E_Int Np1 = connectT3((n+1)%3, i);
+
+      E.setNodes(Nn, Np1);
+
+      auto it = edge_to_refined_edge.find(E);
+      if (it != edge_to_refined_edge.end())
+      {
+        auto nodes = it->second;
+        if (Nn == E.node(0)) //same orientation
+          for (size_t j = 0; j< nodes.size() - 1; ++j)
+            pg_molec.push_back(nodes[j]);
+        else
+          for (E_Int j = nodes.size() - 1; j>0; --j)
+            pg_molec.push_back(nodes[j]);
+      }
+      else
+        pg_molec.push_back(Nn);
+    }
+
+    E_Int sz0 = new_cnt.cols();
+    K_MESH::Polygon::triangulate(dt, coord, &pg_molec[0], pg_molec.size(), 0, new_cnt, false, true);
+    new_pg_oids.resize(new_cnt.cols(), nT3_to_PG[i]);
+
+    E_Int sz = new_cnt.cols() - sz0;
+    for (size_t k = 0; k < sz; ++k)
+      new_normals.pushBack(normals.col(i), normals.col(i) + 3);
+  }
+
+  connectT3 = new_cnt;
+  nT3_to_PG = new_pg_oids;
+  normals = new_normals;
+
+  return (!faultyT3_pairs.empty());
+
 }
 
 ///
@@ -6235,7 +6512,7 @@ E_Int NGON_BOOLEAN_CLASS::__set_PH_history
       E_Int I = (t<shift) ? 1 : 0;
       E_Int wPG = _nT3_to_oPG[T];
 
-      if ((_XPol == SOLID_RIGHT) && (wPG >= nb_pgs1)  && soft) // a soft element cut by hard polygon : we always keep the ouside part of it so no second ancestor in this case
+      if ((_XPol == SOLID_RIGHT || _XPol == SURFACE_RIGHT) && (wPG >= nb_pgs1)  && soft) // a soft element cut by hard polygon : we always keep the ouside part of it so no second ancestor in this case
         continue;
 
 #ifdef DEBUG_BOOLEAN

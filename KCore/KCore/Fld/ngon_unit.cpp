@@ -87,6 +87,22 @@ bool ngon_unit::attributes_are_consistent() const
   return true;
 }
 
+void ngon_unit::get_stride_extrema(E_Int& mins, E_Int& maxs) const
+{
+  updateFacets();
+
+  E_Int nb_pg(size());
+  maxs = -1;
+  mins = -1;
+  // Loop through the elements and increment face_count
+  for (E_Int i = 0; i < nb_pg; ++i)
+  {
+    E_Int s = stride(i);
+    mins = (mins == -1 || s < mins) ? s : mins;
+    maxs = (maxs < s) ? s : maxs;
+  }
+}
+
 
 ///
 void ngon_unit::add(E_Int n, const E_Int* facet_ptr)

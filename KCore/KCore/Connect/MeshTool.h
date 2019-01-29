@@ -44,6 +44,9 @@ class MeshTool
     typedef K_CONT_DEF::bool_vector_type bool_vector_type;
     typedef K_MESH::Triangle              element_type;
     typedef K_SEARCH::KdTree<>            tree_type;
+    
+    typedef std::map<E_Int, int_set_type >          id_to_ids_t;
+    typedef std::vector<std::deque<E_Int> >         idlists_t;
  
   public:
 
@@ -158,6 +161,16 @@ class MeshTool
     static E_Int get_edges_lying_on_plane(const K_FLD::FloatArray& crd, E_Int index_start, const std::set<K_MESH::NO_Edge>& edges, E_Int Np, const E_Float* normal, E_Float tol_rel, std::set<K_MESH::NO_Edge>& lyingEs);
     static void burn_free_branches(std::set<K_MESH::NO_Edge>& edges, std::map<E_Int, E_Int>& node_to_count);
     static E_Float get_max_deviation (const K_FLD::FloatArray& crd, const K_FLD::IntArray& cT3, const K_FLD::IntArray& neighT3);
+    
+    template <typename Triangulator>
+  static void refine_T3s(const K_FLD::FloatArray& coord, K_FLD::IntArray& connectT3, 
+                         std::map<K_MESH::NO_Edge, Vector_t<E_Int> >& edge_to_refined_edge, std::vector<E_Int>& oids);
+    
+    static inline void append_all_topo_paths (const K_FLD::FloatArray& crd, E_Int Nstart, E_Int Nend, const id_to_ids_t& nodes_graph, idlists_t& paths);
+    
+    template <typename IntCONT>
+    static inline void get_farthest_point_to_edge (const K_FLD::FloatArray& crd, E_Int Ni, E_Int Nj, const IntCONT& list, E_Int& Nf, E_Float& d2);
+    
 private:
 
   E_Int __getContainingElement(const E_Float* point, const K_FLD::FloatArray& pos, const K_FLD::IntArray& connect,

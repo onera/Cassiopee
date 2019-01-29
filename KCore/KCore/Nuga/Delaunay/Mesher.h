@@ -36,16 +36,37 @@
 #include "Connect/IdTool.h"
 #include <list>
 #include <deque>
+#include <set>
 
-#if defined(DEBUG_MESHER) || defined(DEBUG_METRIC)
+#if defined(DEBUG_METRIC)
 #include "iodata.h"
 #include <sstream>
 #include "IO/io.h"
 #endif
 #include <iostream>
 
+#ifdef DEBUG_MESHER
+#include "medit.hxx"
+#endif
+
+//#define FORCING_EDGE_ERROR 999
+#define NODE_IN_EDGE_ERROR 3
+#define COINCIDENT_NODE_ERROR 4
+
 namespace DELAUNAY
 {
+  struct edge_error_t
+  {
+    edge_error_t():Ni(E_IDX_NONE),Nj(E_IDX_NONE){};
+    edge_error_t(const edge_error_t& e)
+    {
+      Ni = e.Ni;
+      Nj = e.Nj;
+      nodes = e.nodes;
+    }
+    E_Int Ni,Nj;
+    std::set<E_Int> nodes;
+  };
 
   template <typename T, typename MetricType>
   class Mesher
@@ -105,11 +126,12 @@ namespace DELAUNAY
       const K_FLD::FloatArray& pos, K_FLD::IntArray& connect, K_FLD::IntArray& neighbors,
       int_vector_type& ancestors);    
 
+    E_Int __store_edge_error(E_Int Ni, E_Int Nj, const K_FLD::IntArray& connect, const int_pair_vector_type& Xedges);
   private:
 
     MeshData*                   _data;
 
-    const MesherMode            _mode;
+    /*const*/ MesherMode            _mode;
 
     MetricType&                 _metric;
 
@@ -125,8 +147,10 @@ namespace DELAUNAY
     E_Int                       _err;
 
     E_Int                       _N0;
+  public:
+    std::vector<edge_error_t>  _edge_errors;
     
-#ifdef DEBUG_MESHER
+#if defined(DEBUG_MESHER)
     public:
       bool dbg_flag;
 #endif
@@ -203,7 +227,7 @@ namespace DELAUNAY
     {
       if (!_mode.silent_errors) std::cout << "error triangulating" << std::endl;
 #ifdef DEBUG_MESHER
-      MIO::write("err_tria.mesh", *_data->pos, *_data->connectB, "BAR");
+      medith::write("err_tria.mesh", *_data->pos, *_data->connectB, "BAR");
 #endif
       return _err;
     }
@@ -230,7 +254,7 @@ namespace DELAUNAY
 
 #ifdef DEBUG_MESHER
     if (dbg_flag)
-      MIO::write("triangulationC.mesh", *_data->pos, _data->connectM, "TRI", &_data->mask);
+      medith::write("triangulationC.mesh", *_data->pos, _data->connectM, "TRI", &_data->mask);
 #endif
 
 #ifdef E_TIME
@@ -319,6 +343,7 @@ namespace DELAUNAY
       idmax = std::max(idmax, *it);
     }
     
+    if (_mode.ignore_unforceable_edges) _mode.ignore_coincident_nodes=true;
     // 
     if (_mode.ignore_coincident_nodes == true)
       K_CONNECT::IdTool::init_inc(_data->hnids, idmax+1);
@@ -427,7 +452,7 @@ namespace DELAUNAY
         std::ostringstream o;
         o << "t_" << i << ".mesh";
         //K_CONVERTER::DynArrayIO::write(o.str().c_str(), _data->pos, _data->connectM, "TRI", &_data->mask);
-        MIO::write(o.str().c_str(), *_data->pos, _data->connectM, "TRI", &_data->mask);
+        medith::write(o.str().c_str(), *_data->pos, _data->connectM, "TRI", &_data->mask);
       }
 #endif
     }
@@ -436,7 +461,7 @@ namespace DELAUNAY
 
 #ifdef DEBUG_MESHER
     if (dbg_flag)
-      MIO::write("triangulation0.mesh", *_data->pos, _data->connectM, "TRI", &_data->mask);
+      medith::write("triangulation0.mesh", *_data->pos, _data->connectM, "TRI", &_data->mask);
 #endif
 
     clean_data(*_data, _data->mask); // Clean by removing invalidated elements and update the data structure. 
@@ -485,32 +510,77 @@ namespace DELAUNAY
     std::set_difference (ALL(_data->hardEdges), ALL(all_edges), std::back_inserter(missing_edges));
 
     size_type sz = (size_type)missing_edges.size();
+    
+    E_Int Ni, Nj;
+    
     for (size_type i = 0; (i < sz) && !_err; ++i)
     {
+      Ni = missing_edges[i].node(0);
+      Nj = missing_edges[i].node(1);
+      
 #ifdef DEBUG_MESHER
       if (dbg_flag)
-        MIO::write("triangulationi.mesh", pos, connect, "TRI", &(_data->mask));
-      E_Int ni,nj;
-      ni = missing_edges[i].node(0);
-      nj = missing_edges[i].node(1);
+        medith::write("triangulationi.mesh", pos, connect, "TRI", &(_data->mask));
 #endif
-      _err = __getPipe(missing_edges[i].node(0), missing_edges[i].node(1), pos, connect, neighbors,
-        ancestors, pipe, Xedges);
-      if (!_mode.silent_errors && _err)
-        std::cout << "error getting pipe : " << _err << std::endl;
+      _err = __getPipe(Ni, Nj, pos, connect, neighbors, ancestors, pipe, Xedges);
+      
+      if (_err)
+      {
+        if (_mode.ignore_unforceable_edges)
+        {
+          //store this edge and the faulty entities and carry on with other missing edges
+          __store_edge_error(Ni,Nj, connect, Xedges);
+          _err = 0;
+          continue;
+        }
+        else if (!_mode.silent_errors)
+          std::cout << "error getting pipe : " << _err << std::endl;
+      }
 
       if (!_err)
-        _err = __forceEdge(missing_edges[i].node(0), missing_edges[i].node(1), /*pipe,*/ Xedges,
-        pos, connect, neighbors, ancestors);
-      if (!_mode.silent_errors && _err){
-        std::cout << "error forcing edge" << std::endl;
-        //fixme : store this edge as not forceable (and carry on if there is a "non strict" mode...)
+        _err = __forceEdge(Ni, Nj, /*pipe,*/ Xedges, pos, connect, neighbors, ancestors);
+      
+      if (_err)
+      {
+        if (_mode.ignore_unforceable_edges)
+        {
+          //store this edge and the faulty entities and carry on with other missing edges
+          __store_edge_error(Ni,Nj, connect, Xedges);
+          _err = 0;
+          continue;
+        }
+        else if (!_mode.silent_errors)
+          std::cout << "error forcing edge" << std::endl;
       }
     }
 
     return _err;
   }
-
+  
+  ///
+  template <typename T, typename MetricType>
+  E_Int Mesher<T, MetricType>::__store_edge_error(E_Int Ni, E_Int Nj, const K_FLD::IntArray& connect, const int_pair_vector_type& Xedges)
+  {
+    edge_error_t e;
+    e.Ni = Ni;
+    e.Nj = Nj;
+    
+    for (size_t i=0; i < Xedges.size(); ++i)
+    {
+      E_Int K = Xedges[i].first;
+      E_Int n = Xedges[i].second;
+      const E_Int* pK = connect.col(K);
+      E_Int N0 = *(pK+(n+1)%3);
+      E_Int N1 = *(pK+(n+2)%3);
+      
+      e.nodes.insert(N0);
+      e.nodes.insert(N1);    
+    }
+    
+    _edge_errors.push_back(e);
+    
+    return 0;
+  }
   ///
   template <typename T, typename MetricType>
   E_Int
@@ -742,7 +812,7 @@ namespace DELAUNAY
       this->clean_data(*_data, _data->mask);// Clean the current mesh by removing invalidated elements.
       
 #ifdef DEBUG_MESHER
-      {
+      /*{
         
         std::ostringstream o;
         o << "mesh_iter_" << iter << ".mesh";
@@ -755,8 +825,8 @@ namespace DELAUNAY
           if (tmask[i])
             tmask[i] = (_data->colors[i] != 0);
         }
-        MIO::write(o.str().c_str(), *_data->pos, _data->connectM, "TRI", &tmask);
-      }
+        medith::write(o.str().c_str(), *_data->pos, _data->connectM, "TRI", &tmask);
+      }*/
 #endif
 #ifdef DEBUG_METRIC
     {
@@ -856,7 +926,10 @@ namespace DELAUNAY
       if (done && (count != 0))  // Error : we must have Nj = N1 at i = 0 when reaching the end of pipe.
       {err=2; break;}
       if (!done && (count != 1)) // Error : one node is on the edge N0N1.
-      {err=3; break;}
+      {
+        err=NODE_IN_EDGE_ERROR;
+        break;
+      }
 
       pipe.insert(S);
     }
@@ -1143,32 +1216,7 @@ namespace DELAUNAY
     
     // synchronize hard entitities regarding the removed nodes
     if (_data->unsync_nodes) // if and only if ignore_coincident_nodes = true
-    {
-      std::vector<E_Int> hN;
-      hN.reserve(_data->hardNodes.size());
-      for (size_t i=0; i < _data->hardNodes.size(); ++i)
-      {
-        E_Int Ni = _data->hardNodes[i];
-        if (_data->hnids[Ni] == Ni)hN.push_back(Ni);
-      }
-      _data->hardNodes=hN;
-      
-      K_CONT_DEF::non_oriented_edge_set_type nHE;// = _data->hardEdges;
-      for (non_oriented_edge_set_type::const_iterator i = _data->hardEdges.begin(); i != _data->hardEdges.end(); ++i)
-      {
-        
-        const K_MESH::NO_Edge& Ei = *i;
-        
-        E_Int Ni = Ei.node(0);
-        Ni = (_data->hnids[Ni] == Ni ) ? Ni : _data->hnids[Ni];
-        E_Int Nj = Ei.node(1);
-        Nj = (_data->hnids[Nj] == Nj ) ? Nj : _data->hnids[Nj];
-        
-        if (Ni != Nj) nHE.insert(K_MESH::NO_Edge(Ni, Nj));
-      }
-      _data->hardEdges = nHE;
-      
-    }
+      _data->sync_hards();
 
     return (cols - data.connectM.cols());
   }

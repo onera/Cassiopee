@@ -432,6 +432,246 @@ MeshTool::extractEdges
   }
 }
 
+template <typename Triangulator>
+void MeshTool::refine_T3s(const K_FLD::FloatArray& coord, K_FLD::IntArray& connectT3, 
+                          std::map<K_MESH::NO_Edge, Vector_t<E_Int>>& edge_to_refined_edge, std::vector<E_Int>& oids)
+{
+  oids.clear();
+  K_FLD::IntArray new_cnt;
+  
+  //first sort the points
+  std::vector<std::pair<E_Float, E_Int> > sorted_nodes;
+  std::vector<E_Int> usorted_nodes;
+  for (auto& i : edge_to_refined_edge)
+  {
+    E_Int N1 = i.first.node(0);
+    E_Int N2 = i.first.node(1);
+    
+    sorted_nodes.clear();
+    sorted_nodes.push_back(std::make_pair(-K_CONST::E_MAX_FLOAT,N1));
+    sorted_nodes.push_back(std::make_pair(K_CONST::E_MAX_FLOAT, N2));
+
+    E_Float dN1N22 = K_FUNC::sqrDistance(coord.col(N1), coord.col(N2), 3);
+
+    for (auto& N : i.second)
+    {
+      if (N == N1 || N == N2) continue;
+      
+      E_Float dN1n2 = K_FUNC::sqrDistance(coord.col(N1), coord.col(N), 3);
+      sorted_nodes.push_back(std::make_pair(dN1n2/dN1N22, N));
+    }
+
+    std::sort(sorted_nodes.begin(), sorted_nodes.end());
+    usorted_nodes.clear();
+    
+    E_Float prev_d = 0.;
+    for (size_t n = 0; n < sorted_nodes.size(); ++n)
+    {
+      E_Float d = sorted_nodes[n].first;
+      if (d != prev_d)
+      {
+        usorted_nodes.push_back(sorted_nodes[n].second);
+        prev_d = d;
+      }
+    }
+    
+    edge_to_refined_edge[i.first] = usorted_nodes; // now sorted and unic vals
+  }
+  
+  K_MESH::NO_Edge E;
+  std::vector<E_Int> pg_molec;
+  Triangulator dt;
+
+  for (E_Int i = 0; i < connectT3.cols(); ++i)
+  {
+    pg_molec.clear();
+
+    for (E_Int n = 0; n < 3; ++n)
+    {
+      E_Int Nn = connectT3(n, i);
+      E_Int Np1 = connectT3((n+1)%3, i);
+
+      E.setNodes(Nn, Np1);
+
+      auto it = edge_to_refined_edge.find(E);
+      if (it != edge_to_refined_edge.end())
+      {
+        auto nodes = it->second;
+        if (Nn == E.node(0)) //same orientation
+          for (size_t j = 0; j< nodes.size() - 1; ++j)
+            pg_molec.push_back(nodes[j]);
+        else
+          for (E_Int j = nodes.size() - 1; j>0; --j)
+            pg_molec.push_back(nodes[j]);
+      }
+      else
+        pg_molec.push_back(Nn);
+    }
+
+    E_Int sz0 = new_cnt.cols();
+    K_MESH::Polygon::triangulate(dt, coord, &pg_molec[0], pg_molec.size(), 0, new_cnt, false, true);
+    oids.resize(new_cnt.cols(), i);
+  }
+  
+  connectT3 = new_cnt;
+}
+
+void MeshTool::append_all_topo_paths
+(const K_FLD::FloatArray& crd, E_Int Nstart, E_Int Nend, const id_to_ids_t& nodes_graph, idlists_t& paths)
+{
+  
+  paths.clear();
+  
+  std::deque<E_Int> path;
+  
+  id_to_ids_t::const_iterator itb = nodes_graph.find(Nstart);
+  std::cout << "before assert..." << std::endl;
+  assert(itb != nodes_graph.end());
+
+  std::cout << "ONE LINK MISSING..." << std::endl;
+  // ONE LINK MISSING
+  id_to_ids_t::const_iterator ite = nodes_graph.find(Nend);
+  std::cout << "before assert..." << std::endl;
+  assert(ite != nodes_graph.end());
+  {
+    std::cout << "before set_intersection..." << std::endl;
+    std::vector<E_Int> commonN;
+    std::set_intersection(itb->second.begin(), itb->second.end(), ite->second.begin(), ite->second.end(), std::back_inserter(commonN));
+    
+#ifdef DEBUG_SPLITTER
+    for (E_Int i=0; i < commonN.size(); ++i) std::cout << commonN[i] << " ";
+     std::cout << std::endl;
+#endif
+     
+    for (auto&n : commonN)
+    {
+      if (n == Nstart || n == Nend) continue;
+      
+      path.clear();
+      
+      path.push_back(Nstart);
+      path.push_back(n);
+      path.push_back(Nend);
+      
+      paths.push_back(path);
+    }
+  }
+  std::cout << "TWO LINK MISSING..." << std::endl;
+  // TWO LINKS MISSING
+  for (auto nb = itb->second.begin(); nb != itb->second.end(); ++nb)
+  {
+    E_Int Ni = *nb;
+    
+    if (Ni == Nend)
+      continue;
+    
+    for (auto ne = ite->second.begin(); ne != ite->second.end(); ++ne)
+    {
+      E_Int Nj = *ne;
+      
+      if (Nj == Nstart)
+        continue;
+
+      auto itNj = nodes_graph.find(Nj);
+      assert(itNj != nodes_graph.end());
+
+      for (auto ne2 = itNj->second.begin(); ne2 != itNj->second.end(); ++ne2)
+      {
+        E_Int Nk = *ne2;
+        if (Nk != Ni)
+          continue;
+        
+        path.clear();
+      
+        path.push_back(Nstart);
+        path.push_back(Ni);
+        path.push_back(Nj);
+        path.push_back(Nend);
+      
+        paths.push_back(path);
+      }
+    }
+  }
+  
+  //if (!paths.empty()) return;
+  std::cout << "THREE LINK MISSING..." << std::endl;
+  // 3 LINKS MISSING
+  for (auto nb = itb->second.begin(); nb != itb->second.end(); ++nb)
+  {
+    E_Int Ni = *nb;
+    if (Ni == Nend)
+      continue;
+    
+    auto itb1 = nodes_graph.find(Ni);
+    
+    for (auto ne = ite->second.begin(); ne != ite->second.end(); ++ne)
+    {
+      E_Int Nj = *ne;
+     
+      if (Nj == Nstart)
+        continue;
+      
+      auto ite1 = nodes_graph.find(Nj);
+
+      std::vector<E_Int> commonN;
+      std::set_intersection(itb1->second.begin(), itb1->second.end(), ite1->second.begin(), ite1->second.end(), std::back_inserter(commonN));
+
+      for (auto& n :commonN)
+      {
+        if (n == Nstart || n == Nend) continue;
+        
+        path.clear();
+      
+        path.push_back(Nstart);
+        path.push_back(Ni);
+        path.push_back(n);
+        path.push_back(Nj);
+        path.push_back(Nend);
+      
+        paths.push_back(path);
+      }
+    }
+  }
+  
+}
+
+template <typename IntCONT>
+inline void MeshTool::get_farthest_point_to_edge 
+(const K_FLD::FloatArray& crd, E_Int Ni, E_Int Nj, const IntCONT& list, E_Int& Nf, E_Float& d2)
+{
+  d2 = 0.;
+  Nf = E_IDX_NONE;
+  
+  //std::cout << "Edge : " << Ni << "/" << Nj << std::endl;
+  //std::cout << "dim : " << crd.rows() << std::endl;
+  
+  E_Float d22 = 0., lambda;
+  for (size_t k = 0; k < list.size(); ++k)
+  {
+    //std::cout << "checked point : " << list[k] << std::endl;
+    d22 = K_MESH::Edge::edgePointMinDistance2<2>(crd.col(Ni), crd.col(Nj), crd.col(list[k]), lambda);
+    
+    //std::cout << "distance found : " << d22 << std::endl;
+    //std::cout << "lambda ? : " << lambda << std::endl;
+    
+    if (lambda < -E_EPSILON || lambda > 1 + E_EPSILON)
+    {// do not consider this path
+      d2 = K_CONST::E_MAX_FLOAT;
+      Nf = E_IDX_NONE;
+      break;
+    }
+    
+    if (d22 > d2)
+    {
+      Nf = list[k];
+      d2 = d22;
+    }
+  }
+  
+  //std::cout << "farthest point :" << Nf << std::endl;
+  //std::cout << "farthest dist :" << d2 << std::endl;
+}
+  
 }
 
 #endif
