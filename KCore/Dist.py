@@ -321,7 +321,7 @@ def writeEnvs():
 try: from config import Cppcompiler
 except: from KCore.config import Cppcompiler
 if Cppcompiler.find('icc') == 0 or Cppcompiler.find('icpc') == 0:
-    def new_compiler (plat=None, compiler=None, verbose=0, dry_run=0, force=0):
+    def new_compiler(plat=None, compiler=None, verbose=0, dry_run=0, force=0):
         from numpy.distutils.intelccompiler import IntelCCompiler
         compiler = IntelCCompiler(None, dry_run, force)
         compiler.cc_exe = Cppcompiler

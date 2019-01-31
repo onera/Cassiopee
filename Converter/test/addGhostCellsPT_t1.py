@@ -20,12 +20,12 @@ a = C.initVars(a, 'centers:cellN', 1.)
 b = C.initVars(b, 'centers:cellN', 0.)
 c = C.initVars(c, 'centers:cellN', 1.)
 d = C.initVars(d, 'centers:cellN', 0.)
-#
+
 t = C.newPyTree(['Base',a,b,c,d])
 t = C.initVars(t, '{F}=3*{CoordinateX}+2*{CoordinateY}')
 t = C.initVars(t, '{centers:G}={centers:CoordinateZ}')
 t = X.connectMatch(t,dim=3)
-t = C.fillEmptyBCWith(t,"wall",'BCWall')
+t = C.fillEmptyBCWith(t,'wall','BCWall')
 t = Internal.addGhostCells(t,t,2,adaptBCs=0,fillCorner=1)
 test.testT(t,1)
 

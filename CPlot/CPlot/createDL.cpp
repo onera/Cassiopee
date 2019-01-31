@@ -35,7 +35,6 @@
 void DataDL::createGPURes()
 {
   int zone, zonet;
-
   ptrState->lockDisplay();
   // - Solid -
   zone = 0;
@@ -86,7 +85,8 @@ void DataDL::createGPURes()
     zone++;
   }
 #endif
- end: ptrState->unlockDisplay();
+ end: ;
+ ptrState->unlockDisplay();
 }
 
 //=============================================================================

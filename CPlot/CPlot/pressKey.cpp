@@ -22,8 +22,7 @@
 // ============================================================================
 /* Wait for user to press a key */
 // ============================================================================
-PyObject* K_CPLOT::pressKey(PyObject* self,
-                            PyObject* args)
+PyObject* K_CPLOT::pressKey(PyObject* self, PyObject* args)
 {
   printf("Press a key..."); fflush(stdout);
   char key;

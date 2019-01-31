@@ -172,20 +172,26 @@ struct CPlotState {
     pthread_mutex_t lock_mutex;
     pthread_cond_t  unlocked_display;
     void            lockDisplay( ) {
+        //printf("locking display\n");
         pthread_mutex_lock( &lock_mutex );
         lock = 1;
         pthread_mutex_unlock( &lock_mutex );
+        //printf("end locking display\n");
     }
     void unlockDisplay() {
+        //printf("unlocking display\n");
         pthread_mutex_lock( &lock_mutex );
         lock = 0;
         pthread_cond_signal( &unlocked_display );
         pthread_mutex_unlock( &lock_mutex );
+        //printf("end unlocking display\n");
     }
     void syncDisplay(int time = 5) {
+        //printf("sync display\n");
         pthread_mutex_lock( &lock_mutex );
         if (lock == 1) pthread_cond_wait( &unlocked_display, &lock_mutex );
         pthread_mutex_unlock( &lock_mutex );
+        //printf("end sync display\n");
     }
 
     int    freeGPURes;      // dit a display de liberer les ressources du GPU
@@ -200,20 +206,26 @@ struct CPlotState {
     // lockGPURes=display1: On bloque les ressources GPUs qui ne doivent pas etre
     //                      modifiees pendant ce temps
     void lockGPURes( ) {
+        //printf("lock GPU res\n");
         pthread_mutex_lock( &gpures_mutex );
         _lockGPURes = 1;
         pthread_mutex_unlock( &gpures_mutex );
+        //printf("end lock GPU res\n");
     }
     void unlockGPURes( ) {
+        //printf("unlock GPU res\n");
         pthread_mutex_lock( &gpures_mutex );
         _lockGPURes = 0;
         pthread_cond_signal( &unlocked_gpures );
         pthread_mutex_unlock( &gpures_mutex );
+        //printf("end unlock GPU res\n");
     }
     virtual void syncGPURes( int dt = 5 ) {
+        //printf("sync GPU res\n"); fflush(stdout);
         pthread_mutex_lock( &gpures_mutex );
         if ( _lockGPURes == 1 ) pthread_cond_wait( &unlocked_gpures, &gpures_mutex );
         pthread_mutex_unlock( &gpures_mutex );
+        //printf("end sync GPU res\n"); fflush(stdout);
     }
 
     int timeStep;           // temps en ms entre 2 appels de display

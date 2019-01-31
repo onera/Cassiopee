@@ -44,6 +44,7 @@ def stringAsKeyDict(l):
 def enumAsKeyDict(l):
   return dict(zip(range(len(l)),l))
 
+CGNSHDF5ROOT_s = "HDF5 MotherNode"
 
 (C1,I4,I8,R4,R8,MT,LK) = ('C1','I4','I8','R4','R8','MT','LK')
 

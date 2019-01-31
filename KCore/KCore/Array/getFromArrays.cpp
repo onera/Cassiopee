@@ -78,7 +78,7 @@ E_Int K_ARRAY::getFromArrays(PyObject* o,
   // o doit etre une liste
   if (PyList_Check(o) == false)
   {
-    PyErr_SetString( PyExc_TypeError, 
+    PyErr_SetString( PyExc_TypeError,
                      "getFromArrays: arrays argument must be a list.");
     return -1;
   }
@@ -101,6 +101,7 @@ E_Int K_ARRAY::getFromArrays(PyObject* o,
   for (int i = 0; i < n; i++)
   {
     tpl = PyList_GetItem(o, i);
+    /*
     if (PyList_Check(PyList_GetItem(tpl,1)) == true)
     {
       resl = K_ARRAY::getFromArray2(tpl, varString, f,
@@ -109,7 +110,10 @@ E_Int K_ARRAY::getFromArrays(PyObject* o,
     else
       resl = K_ARRAY::getFromArray(tpl, varString, f,
                                    nil, njl, nkl, cn, eltT, shared);
-  
+    */
+    resl = K_ARRAY::getFromArray2(tpl, varString, f,
+                                    nil, njl, nkl, cn, eltT);
+
     if (skipNoCoord == true)
     {
       posx = K_ARRAY::isCoordinateXPresent(varString);
@@ -233,8 +237,8 @@ E_Int K_ARRAY::getFromArrays(PyObject* o,
   // o doit etre une liste
   if (PyList_Check(o) == false)
   {
-    PyErr_SetString( PyExc_TypeError, 
-                     "getFromArrays: arrays argument must be a list.");
+    PyErr_SetString(PyExc_TypeError, 
+                    "getFromArrays: arrays argument must be a list.");
     return -1;
   }
   

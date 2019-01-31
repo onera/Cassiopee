@@ -116,6 +116,7 @@ List of functions
     Converter.Internal.getZonesPerIteration
     Converter.Internal.getBases
     Converter.Internal.getZoneDim
+    Converter.Internal.getZoneType
 
 **-- Check nodes**
 
@@ -1137,6 +1138,24 @@ Acess nodes
     * `Return zone dimension information (pyTree) <Examples/Converter/getZoneDimPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/getZoneDimPT.py
+
+-----------------------------------------------------------------------------------------------
+
+.. py:function:: Converter.Internal.getZoneType(zone) 
+
+    Return the nature of zone.
+    Return 1 if zone is structured, 2 if unstructured, 0 if failed.
+
+    :param zone:  a 'Zone_t' node
+    :type  zone:  pyTree node of type 'Zone_t'
+    :return: 1 or 2
+    :rtype: int
+
+    *Example of use:*
+
+    * `Return zone nature (pyTree) <Examples/Converter/getZoneTypePT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/getZoneTypePT.py
 
 
 Check nodes

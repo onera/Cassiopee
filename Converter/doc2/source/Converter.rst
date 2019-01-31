@@ -1214,7 +1214,7 @@ pyTree creation and manipulation
 
 .. py:function:: Converter.PyTree.fillMissingVariables(a)
 
-    Add missing variables to zones, such that 
+    Add missing variables and reorder variables for all zones, such that 
     all zones have the same variables at the end.
 
     Exists also as in place version (_fillMissingVariables) that modifies a 
