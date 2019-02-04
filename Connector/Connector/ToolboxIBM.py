@@ -339,7 +339,7 @@ def octree2StructLoc__(o, vmin=21, ext=0, optimized=0, merged=0, sizeMax=4e6, li
 
     if ext > 0:
         coords = C.getFields(Internal.__GridCoordinates__,zones)
-        coords = Generator.extendOctreeGrids__(coords,ext=ext, optimized=optimized)
+        coords = Generator.extendOctreeGrids__(coords, ext=ext, optimized=optimized)
         C.setFields(coords, zones, 'nodes')
     # Creation des zones du pyTree
     for z in zones: z[0] = C.getZoneName('cart')
@@ -375,8 +375,9 @@ def octree2StructLoc__(o, vmin=21, ext=0, optimized=0, merged=0, sizeMax=4e6, li
             zones[noz] = z; noz += 1
     return zones
 
+# IN: bbox: bbox des frontieres exterieures
 def generateCartMesh__(o, dimPb=3, vmin=11, DEPTH=2, NP=0, merged=1, sizeMax=4000000, check=True, 
-                       symmetry=0, externalBCType='BCFarfield',mergeByParents=True):
+                       symmetry=0, externalBCType='BCFarfield', mergeByParents=True, bbox=None):
 
     # Estimation du nb de pts engendres
     vminv0 = vmin+2*DEPTH
@@ -389,8 +390,8 @@ def generateCartMesh__(o, dimPb=3, vmin=11, DEPTH=2, NP=0, merged=1, sizeMax=400
     # DEPTH > 2: ghost cells added for better implicit phase process
     if DEPTH > 2: optimized = 0
     else: optimized = 1
-    if DEPTH==0: ext=0
-    else: ext=DEPTH+1
+    if DEPTH == 0: ext=0
+    else: ext = DEPTH+1
 
     dimZO = Internal.getZoneDim(o)[2]
     listOfParentOctrees=None
@@ -411,7 +412,7 @@ def generateCartMesh__(o, dimPb=3, vmin=11, DEPTH=2, NP=0, merged=1, sizeMax=400
     if dimPb == 2:
         T._addkplane(t)
         T._contract(t, (0,0,0), (1,0,0), (0,1,0), dz)
-    bbo = G.bbox(o)        
+    if bbox is None: bbox = G.bbox(o)        
     dirs = [0,1,2,3,4,5]
     rangeDir=['imin','jmin','kmin','imax','jmax','kmax']
     if dimPb == 2: dirs = [0,1,3,4]
@@ -432,7 +433,7 @@ def generateCartMesh__(o, dimPb=3, vmin=11, DEPTH=2, NP=0, merged=1, sizeMax=400
         #bbz = G.bbox(zp)
         external = False
         for idir in dirs:
-            if abs(bbz[idir]-bbo[idir])< 1.e-6:                    
+            if abs(bbz[idir]-bbox[idir])< 1.e-6:                    
                 C._addBC2Zone(zp, 'external', externalBCType, rangeDir[idir])
                 external = True
         if externalBCType != 'BCOverlap' and externalBCType != 'BCDummy':

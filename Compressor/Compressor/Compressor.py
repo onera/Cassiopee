@@ -31,10 +31,10 @@ def writeUnsteadyCoefs(iteration, indices, filename, loc, format="b"):
 def pack(a, method=0):
     """Serialize or compress a."""
     if method == 0:
-        import cPickle as pickle# best for now
+        import cPickle as pickle # best for now
         return pickle.dumps(a, protocol=pickle.HIGHEST_PROTOCOL)
     elif method == 1:
-        import cPickle as pickle# best for now
+        import cPickle as pickle # best for now
         import zlib
         return zlib.compress(pickle.dumps(a, protocol=pickle.HIGHEST_PROTOCOL), level=1)
     else:
@@ -47,10 +47,10 @@ def pack(a, method=0):
 def unpack(a, method=0):
     """Deserialize or decompress a."""
     if method == 0:
-        import cPickle as pickle# best for now
+        import cPickle as pickle # best for now
         return pickle.loads(a)
     elif method == 1:
-        import cPickle as pickle# best for now
+        import cPickle as pickle # best for now
         import zlib
         return pickle.loads(zlib.decompress(a))
     else:

@@ -411,7 +411,9 @@ inline
 T* FldArray<T>::begin(E_Int fld)
 {
   assert (fld >= NUMFIELD0);
-  assert (fld <= _nfldLoc);
+  // either we ask for a existing field in a non-empty array 
+  // OR the array is empty and we ask only for the first field i.e ask for &rake[0] 
+  assert ( (_nfldLoc && (fld <= _nfldLoc)) || (_nfldLoc == 0 && fld == NUMFIELD0) );
   //return (_data+((fld-NUMFIELD0)*_sizeMax));
   return _rake[fld-NUMFIELD0];
 }

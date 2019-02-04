@@ -55,7 +55,7 @@ class Pentahedron {
     template <typename TriangulatorType, typename acrd_t>
     void triangulate (const TriangulatorType& dt, const acrd_t& acrd) 
     {
-      assert(false);
+      // dummy function : no need to do something.
     }
         
     inline void triangle(E_Int i, E_Int* target)

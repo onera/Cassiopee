@@ -224,16 +224,26 @@ def _rmGhostCells(t, b, d, adaptBCs=0, modified=[]):
         else: # Structured:
             # zone dimension with ghost cells
             img = dim[1]; jmg = dim[2]; kmg = dim[3]
+            # Traitement particulier 2D
+            if kmg == 2:
+                try:
+                    import Transform.PyTree as T               
+                    zpp = T.subzone(zp, (1,1,1), (-1,-1,1)); kmg = 1
+                    zp[2] = zpp[2] # force in place
+                    zp[1] = zpp[1]
+                    dim = Internal.getZoneDim(zp)
+                    print 'Warning: rmGhostCells: matching boundaries will be lost.'
+                except: pass
             # zone dimension without ghost cells
             im = img-2*d; jm = jmg-2*d; km = kmg-2*d
             # check dimensions
             dim_zone = dim[4]
             if dim_zone == 3:
-                if ((im <= 0) or (jm <= 0) or (km <= 0)):
+                if (im <= 0) or (jm <= 0) or (km <= 0):
                     print "Warning: rmGhostCells: cannot remove %d ghost cells. Try less."%d
                     return b
             elif dim_zone == 2:
-                if ((im <= 0) or (jm <= 0)):
+                if (im <= 0) or (jm <= 0):
                     print "Warning: rmGhostCells: cannot to remove %d ghost cells. Try less."%d
                     return b
             else:

@@ -817,7 +817,7 @@ Set rendering informations in pyTree
     
 -----------------------------------------------
 
-.. py:function:: CPlot.PyTree.addRender2PyTree(a, slot, posCam, posEye, dirCam, mode, scalarField, niso, isoScales, isoEdges, isoLight, colormap)
+.. py:function:: CPlot.PyTree.addRender2PyTree(a, slot, posCam, posEye, dirCam, mode, scalarField, niso, isoScales, isoEdges, isoLight, colormap, materials, bumpMaps, billBoards)
 
     Add rendering info to a tree. Info are added in a .RenderInfo user
     defined node. To load the settings to the view, call explicitely CPlot.loadView.
@@ -834,6 +834,12 @@ Set rendering informations in pyTree
     :type posEye: list of 3 floats
     :param dirCam: camera direction
     :type dirCam: list of 3 floats
+    :type materials: list of image file names used for texture mapping
+    :param materials: list of strings
+    :type bumpMaps: list of image file names used for bump mapping
+    :param bumpMaps: list of strings
+    :type billBoards: list of image file names used for billboarding
+    :param billboards: list of strings
 
     *Example of use:*
 
