@@ -702,10 +702,12 @@ def checkBCFamily(t):
                 # Check for family
                 (p, c) = Internal.getParentOfNode(t, z)
                 if p is not None:
-                    ref = Internal.getNodesFromName1(p, name)
-                    if ref == []:
+                    refs = Internal.getNodesFromName1(p, name)
+                    for ref in refs:
+                        if ref[3]!= 'Family_t' : refs.remove(ref)
+                    if refs == []:
                         errors += [p, 'FamilyBC %s (referenced by zone %s) is not defined in base.'%(name,z[0])]
-                    elif ref[0][3] != 'Family_t':
+                    elif refs[0][3] != 'Family_t':
                         errors += [p, 'FamilyBC %s (referenced by zone %s) is not defined in base.'%(name,z[0])]
     return errors
 
