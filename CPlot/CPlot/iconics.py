@@ -250,6 +250,12 @@ g14VHwSCQKCAhEAjQAT6JRoYjQWDONDcABDVw9/GFBIsUIhhStO/UVksiWIjxo+HIEDfdQii68eQ
 q9GIQPFwxgEfRCpa3B2EyI8DMh5qMaEwofGDJrQIDAgAOw==
 """)
 
+invertSelectionImg = TK.PhotoImage(data="""
+R0lGODlhGAAYAPIHAAEBAQICAgMDAwQEBAUFBQYGBgcHBwAAACH5BAEAAAcAIf8LSW1hZ2VNYWdp
+Y2sNZ2FtbWE9MC40NTQ1NQAsAAAAABgAGAAAA194utz+MDpB6ag4t8w7ZV44HAIYcuORKt0krOXC
+QStpVnSs1Fj+yjcd44LbBR3Eok2mZM1Yx0WyZ2R+dh3YbTCaUqHWivcKDKemNbDzJxma0m0huV1m
+Xoh4y2tO7/shCQA7
+""")
 
 PHOTO += [saveImg, undoImg, deleteImg, copyImg, fitImg, selectallImg, eyeImg,
-          mainImg, getImg, pinImg, pin2Img, refreshIconImg]
+          mainImg, getImg, pinImg, pin2Img, refreshIconImg, invertSelectionImg]

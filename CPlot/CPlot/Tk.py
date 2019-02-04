@@ -1301,7 +1301,7 @@ def toolBar(win):
     B.grid(row=0, column=7)
     
     B = TK.Button(frame, compound=TK.TOP, width=20, height=20,
-                   image=iconics.PHOTO[5],
+                   image=iconics.PHOTO[12],
                    borderwidth=0, command=revertActivated)
     C = infoBulle(parent=B, text='Toggle active zones.')
     B.grid(row=0, column=8)
