@@ -272,7 +272,7 @@ def plaster(contours, surfaces, side=0):
     return C.convertArrays2ZoneNode('plaster', [pa])
 
 def fittingPlaster(contour, bumpFactor=0.):
-    """Create a sticky plaster around a contour and pump it.
+    """Create a sticky plaster around a contour and bump it.
     Usage: plaster(contour, bumpFactor)"""
     c = C.getAllFields(contour, 'nodes')[0]
     pa = Generator.fittingPlaster(c, bumpFactor)
@@ -302,8 +302,9 @@ def gapfixer(contour, cloud, hardPoints=None, refine=1):
     Some hard points can be sepcified to force the constructed surface to pass by.
     If the optional refine argument is set to 0, the resulting surface will be a contrained triangulation of the contour [and the additional hard nodes].
     Usage: gapFixer(contour, cloud, hardPoints, refine)"""
+    contour1 = C.deleteFlowSolutions__(contour)
+    c = C.getAllFields(contour1, 'nodes')[0]
     clouda = C.getFields(Internal.__GridCoordinates__, cloud)[0]
-    c = C.getAllFields(contour, 'nodes')[0]
     hp = None
     if hardPoints is not None:
         hp = C.getFields(Internal.__GridCoordinates__, hardPoints)[0]

@@ -515,7 +515,7 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
     o = K_ARRAY::buildArray2(nfld, varString, nvertexHO, neltsHO, -1, "HEXA_27", false, 0, 0, 0, api);
     FldArrayF* fo; FldArrayI* co;
     K_ARRAY::getFromArray2(o, fo, co);
-    E_Int p1,p2,p3,p4,ind,n9,n10,n11,n12,n13,n14,n15,n16,n17,n18,n19,n20,n21,n22,n23,n24,n25,n26,n27;
+    E_Int p1,p2,p3,p4,ind,n9,n10,n11,n12,n13,n14,n15,n16,n17,n18,n19,n20,n21,n22,n23,n24,n25,n26;
     // Fields
     for (E_Int n = 1; n <= nfld; n++)
     {

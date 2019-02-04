@@ -23,6 +23,7 @@
 #include "Search/KdTree.h"
 #include "Def/DefContainers.h"
 #include "MeshElement/Triangle.h"
+#include "MeshElement/Polygon.h"
 #include "Fld/ngon_unit.h"
 
 #include <deque>

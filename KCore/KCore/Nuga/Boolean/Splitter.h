@@ -759,7 +759,7 @@ E_Float concave_threshold, E_Float convex_threshold, E_Float rtol, ngon_type& tw
     __append_all_topo_paths(crd, chains[c], index_start, nodes_graph, bad_nodes, paths);
     __append_all_geom_paths(crd, chains[c], index_start, nodes_graph, bad_nodes, all_edges, abstol, paths);
 
-    E_Int nb_paths = paths.size();
+    size_t nb_paths = paths.size();
     if (nb_paths == 0)
       continue;
 

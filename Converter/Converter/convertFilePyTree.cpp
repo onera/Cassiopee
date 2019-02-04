@@ -206,7 +206,7 @@ PyObject* K_CONVERTER::convertPyTree2FilePartial(PyObject* self, PyObject* args)
   // > Transform in C form
   pt_comm       = (void*)&(((PyMPICommObject*)mpi4pyObj)->ob_mpi);
   MPI_Comm comm = *((MPI_Comm *) pt_comm);
-  int nRank, myRank;
+  // int nRank, myRank;
   // MPI_Comm_size(comm, &nRank);
   // MPI_Comm_rank(comm, &myRank);
   // printf("Converter:: Rank   : %d \n", nRank );

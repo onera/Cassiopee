@@ -1078,6 +1078,16 @@ def toggleSelectAll():
     CPlot.setSelectedZones(selected)
 
 #==============================================================================
+# Inverse les zones activee et desactivees
+def revertActivated():
+  if t == []: return  
+  nz = len(Internal.getZones(t))  
+  nzs = CPlot.getActiveZones()
+  active = [(i,1) for i in xrange(nz)]
+  for n in nzs: active[n] = (n,0) 
+  CPlot.setActiveZones(active)
+  
+#==============================================================================
 class infoBulle(TK.Toplevel):
     # IN: text: text to be displayed
     # IN: temps: delai for display
@@ -1289,11 +1299,18 @@ def toolBar(win):
                    borderwidth=0, command=viewDeactivatedZones)
     C = infoBulle(parent=B, text='View deactivated zones.')
     B.grid(row=0, column=7)
+    
+    B = TK.Button(frame, compound=TK.TOP, width=20, height=20,
+                   image=iconics.PHOTO[5],
+                   borderwidth=0, command=revertActivated)
+    C = infoBulle(parent=B, text='Toggle active zones.')
+    B.grid(row=0, column=8)
+    
     B = TK.Button(frame, compound=TK.TOP, width=20, height=20,
                    image=iconics.PHOTO[7],
                    borderwidth=0, command=displayMainTree)
     C = infoBulle(parent=B, text='Display main tree.')
-    B.grid(row=0, column=8)
+    B.grid(row=0, column=9)
 
 #==============================================================================
 # Minimum application: win, menu, txt

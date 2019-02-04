@@ -566,7 +566,7 @@ TRI_Conformizer<DIM>::__iterative_run
             }
           }
           
-          E_Int sz = sNodes.size();
+          size_t sz = sNodes.size();
           if (sz > 1) std::sort(ALL(sNodes));
           
           if (sz)
@@ -601,7 +601,7 @@ TRI_Conformizer<DIM>::__iterative_run
     }
     if (mesher._mode.ignore_coincident_nodes)
     {
-      for (size_t i = 0; i < nb_pts; ++i)
+      for (E_Int i = 0; i < nb_pts; ++i)
       {
         if ((data.hnids[i] != i) && (lnids[i] == i))
         {

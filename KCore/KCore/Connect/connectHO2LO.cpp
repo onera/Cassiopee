@@ -52,17 +52,8 @@ E_Int connectHO2LOCoarse(const char* eltTypeHO,
                          FldArrayI& cEVLO)
 {
   // Calcul des strides
-  E_Int strideEltHO = 0; // stride pour avancer d'un element
-  E_Int strideVertexHO = 0; // stride pour avancer d'un vertex dans un element
-  E_Int strideElt = 0; // stride pour avancer d'un element
-  E_Int strideVertex = 0; // stride pour avancer d'un vertex dans un element
-  E_Int nkeep = 0; // vertex a conserver dans la connectivite HO
-  E_Int nskip = 0; // nbre de vertex a dumper dans la connectivite HO
-
+  
   E_Int nelts = cEVHO.getSize();
-  E_Int nvpeHO = cEVHO.getNfld();
-  E_Int stride = cEVHO.getStride();
-
   E_Int nvpe = cEVLO.getNfld();
   // keep first
 #pragma omp parallel for
@@ -78,10 +69,7 @@ E_Int connectHO2LOFine(const char* eltTypeHO,
                        FldArrayI& cEVLO)
 {
   E_Int nelts = cEVHO.getSize();
-  E_Int neltsF = cEVLO.getSize();
-  E_Int nvpeHO = cEVHO.getNfld();
-  E_Int nvpe = cEVLO.getNfld();
-
+  
   // BAR
   if (K_STRING::cmp((char*)eltTypeHO, 3, "BAR_3") == 0)
   {
@@ -96,4 +84,5 @@ E_Int connectHO2LOFine(const char* eltTypeHO,
       cEVLO(2*i+1,2) = cEVHO(i,2);
     }
   }
+  return 1;
 }

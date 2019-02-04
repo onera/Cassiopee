@@ -6,6 +6,12 @@ import Distributed
 # Acces a Distributed
 from Distributed import readZones, writeZones, convert2PartialTree, convert2SkeletonTree, readNodesFromPaths, readPyTreeFromPaths, writeNodesFromPaths
 
+__all__ = ['rank', 'size', 'KCOMM', 'setCommunicator', 'barrier', 'send', 'recv', 'sendRecv', 'sendRecv2', 
+    'allgather', 
+    'allgatherTree', 'convertFile2SkeletonTree', 'convertFile2PyTree', 'convertPyTree2File', 'seq', 
+    'createBBoxTree', 'computeGraph', 'addXZones', '_addXZones', 'rmXZones', '_rmXZones', 'getProcDict', 
+    'getProc', 'setProc', '_setProc']
+
 from mpi4py import MPI
 
 COMM_WORLD = MPI.COMM_WORLD
@@ -309,6 +315,5 @@ def setProc(t, rank):
     return tp
 
 def _setProc(t, rank):
-    Distributed._setProc(z, rank)
+    Distributed._setProc(t, rank)
     return None
-

@@ -61,12 +61,12 @@ def getIntersectingDomainsAABB(t, tol=1.e-10):
 #------------------------------------------------------------------------------
 def getBBIntersectingDomains(A, B, tol=1.e-6):
     """Returns the list zones of B that intersect zones of A.
-    Usage: getBBIntersectingDomains(A, B)"""
+    Usage: getBBIntersectingDomains(A, B, tol)"""
     try: import Generator.PyTree as G
     except: raise ImportError("getBBIntersectingDomains: requires Generator module.")
 
-    BB_A=G.BB(A)
-    BB_B=G.BB(B)
+    BB_A = G.BB(A)
+    BB_B = G.BB(B)
 
     doms = []
     zones2 = Internal.getZones(BB_B)

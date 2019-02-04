@@ -73,6 +73,7 @@ namespace DELAUNAY
         if (Ni != Nj) nHE.insert(K_MESH::NO_Edge(Ni, Nj));
       }
       hardEdges = nHE;
+      return 1;
     }
 
     K_FLD::FloatArray*         pos;
