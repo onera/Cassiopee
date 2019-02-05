@@ -27,8 +27,8 @@ def center2Node(t, var=None, cellNType=0, graph=None):
     tl = addXZones(t, graph)
     tl = convert2PartialTree(tl)
     # print info
-    zones = Internal.getZones(tl)
-    print 'Rank %d has %d zones.'%(rank, len(zones))
+    #zones = Internal.getZones(tl)
+    #print 'Rank %d has %d zones.'%(rank, len(zones))
     tl = PyTree.center2Node(tl, var, cellNType)
     tl = rmXZones(tl)
     return tl
