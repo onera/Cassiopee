@@ -1,0 +1,17 @@
+Original Authors
+----------------
+
+Eric Quémerais  (ONERA, Châtillon, France) <eric.quemerais@onera.fr>
+
+Contributors
+------------
+
+Derived libraries
+-----------------
+
+FVM :
+
+A part of this work is derived from "Finite Volume Mesh" library (FVM 0.15.5).
+FVM is licensed under LGPL 2.1. It is a piece of the CFD software code_saturne 2.0 
+Principal authors are Yvan Fournier <yvan.fournier@edf.fr> and Jerome Bonelle <jerome.bonelle@edf.fr>.
+This library can be downloaded from http://code-saturne.org/cms/download/2.0.
