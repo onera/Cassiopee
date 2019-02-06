@@ -3,7 +3,6 @@ import Tkinter as TK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
-import Post.PyTree as P
 import Converter.Internal as Internal
 import Generator.PyTree as G
 

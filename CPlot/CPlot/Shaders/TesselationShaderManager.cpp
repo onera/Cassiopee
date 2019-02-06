@@ -44,8 +44,8 @@ TesselationShaderManager::addFromFile( const char* tesselationBaseNameFile )
   std::string tesselationEvaluationFileName= std::string(tesselationBaseNameFile) + ".tes";
   std::pair<std::shared_ptr<TesselationControlShader>,
             std::shared_ptr<TesselationEvaluationShader>> tesselation_shader;
-  tesselation_shader.first  = nullptr;
-  tesselation_shader.second = nullptr;
+  tesselation_shader.first.reset();
+  tesselation_shader.second.reset();
   try 
   {
     tesselation_shader.first = 

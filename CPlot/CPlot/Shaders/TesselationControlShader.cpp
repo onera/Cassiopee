@@ -2,6 +2,7 @@
 #include "TesselationControlShader.hpp"
 #include "ShaderUtil.h"
 # include <iostream>
+# include <stdexcept>
 using namespace CPlot;
 
 //==============================================================================

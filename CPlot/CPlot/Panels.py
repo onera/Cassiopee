@@ -609,7 +609,7 @@ def createDoc():
         from odf.opendocument import OpenDocumentText, load
         from odf import text
         from odf.text import P
-        from odf.draw import Page, Frame, Image
+        from odf.draw import Frame, Image
         from odf.style import Style, MasterPage, PageLayout, PageLayoutProperties, TextProperties, GraphicProperties, ParagraphProperties, DrawingPageProperties
     except: 
         CTK.TXT.insert('START', 'odf module unavailable.\n')

@@ -35,7 +35,6 @@ List of functions
    CPlot.delete
    CPlot.add
    CPlot.replace
-   CPlot.pressKey
    CPlot.finalizeExport
 
 
@@ -257,7 +256,7 @@ Actions
         CPlot.add(A, no, a)
     
     no is the position of insertion of a in A.
-    Replace also in A.
+    Replace also in A.    
 
     For the pyTree interface:
     ::
@@ -271,6 +270,8 @@ Actions
     :type A: arrays, pyTree or list of zones
     :param no: position of zone to add in A
     :type no: int
+    :param nob: position of base of zone to add in A
+    :type nob: int
     :param noz: position of zone to add in A
     :type noz: int
     :param a: data to add
@@ -310,6 +311,8 @@ Actions
     :type A: arrays, pyTree or zones
     :param no: position of zone to add in A
     :type no: int
+    :param nob: position of base of zone to add in A
+    :type nob: int
     :param noz: position of zone to add in A
     :type noz: int
     :param a: data to add
@@ -325,14 +328,6 @@ Actions
 
     .. literalinclude:: ../build/Examples/CPlot/replacePT.py
 
-
------------------------------------------------
-
-.. py:function:: CPlot.pressKey()
-
-    .. A2.O0.D1
-    
-    Wait for a key to be pressed.
 
 -----------------------------------------------
     

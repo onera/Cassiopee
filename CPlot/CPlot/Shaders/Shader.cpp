@@ -27,9 +27,9 @@ using namespace CPlot;
 
 //=============================================================================
 Shader::Shader()
-    : vertex_shader( nullptr ), 
-      tesselation_control_shader( nullptr ), tesselation_evaluation_shader( nullptr ), 
-      geometry_shader( nullptr ), fragment_shader( nullptr ), 
+    : vertex_shader(), 
+      tesselation_control_shader(), tesselation_evaluation_shader(), 
+      geometry_shader(), fragment_shader(), 
       _isActive( false ), _isLinked( false ), _isModified( false ), _programId( 0 )
 {
     _programId = glCreateProgramObjectARB();
@@ -75,19 +75,19 @@ void Shader::remove( Shader::stage st )
     _isModified = true;
     switch ( st ) {
         case VERTEX:
-            vertex_shader = nullptr;
+            vertex_shader.reset();
             break;
         case TESSELATION_CONTROL:
-            tesselation_control_shader = nullptr;
+            tesselation_control_shader.reset();
             break;
         case TESSELATION_EVALUATION:
-            tesselation_evaluation_shader = nullptr;
+            tesselation_evaluation_shader.reset();
             break;
         case GEOMETRY:
-            geometry_shader = nullptr;
+            geometry_shader.reset();
             break;
         case FRAGMENT:
-            fragment_shader = nullptr;
+            fragment_shader.reset();
             break;
         default:
             std::cerr << "Warning : Wrong kind of shader stage..." << std::endl;

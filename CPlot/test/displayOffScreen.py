@@ -2,7 +2,6 @@
 # Offscreen using mesa
 import CPlot
 import Transform as T
-import Converter as C
 import Geom as D
 
 a = D.sphere( (0,0,0), 1)

@@ -83,7 +83,6 @@ if mpeg:
 libraryDirs += [kcoreLibDir]
 
 # Extensions =================================================================
-import KCore.installPath
 EXTRA = ['-D__SHADERS__']
 if OSMesa: EXTRA += ['-D__MESA__']
 
