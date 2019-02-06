@@ -159,6 +159,10 @@ struct CPlotState {
     int   niso;            // nbre d'isos (global)
     float isoEdges;        // edge entre les isos
 
+    // Options pour le high order
+    int inner_tesselation; // Degre de raffinement pour les triangles internes
+    int outer_tesselation; // Degre de raffinement pour les triangles au bord.
+
     CPlotState() : lock(0), _lockGPURes(0), _mustExport(0), _isExporting(0) {}
 
     virtual ~CPlotState( ) { 

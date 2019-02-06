@@ -16,6 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
+# include <stdexcept>
 # include "GL/glew.h"
 # include "FragmentShader.h"
 using namespace CPlot;
@@ -27,16 +28,19 @@ FragmentShader::FragmentShader(): ShaderObject()
   CHECK_GL_ERROR();
 }
 //==============================================================================
-FragmentShader::FragmentShader(const FragmentShader& shader):
-  ShaderObject(shader)
-{}
+FragmentShader::FragmentShader(const std::string& src):
+  ShaderObject()
+{
+  _shaderId = glCreateShader(GL_FRAGMENT_SHADER);
+  bool success = this->compile(src);
+  if (not success)
+  {
+    std::string error("Failed to compile fragment shader :\n");
+    error += src; 
+    throw std::runtime_error(error.c_str());  
+  }
+}
 //==============================================================================
 FragmentShader::~FragmentShader()
 {}
 //==============================================================================
-const FragmentShader&
-FragmentShader::operator = (const FragmentShader& shader)
-{
-  ShaderObject::operator = (shader);
-  return *this;
-}

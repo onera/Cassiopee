@@ -42,6 +42,7 @@
 #ifdef __SHADERS__
 #include "GL/glew.h"
 #include "Shaders/ShaderManager.h"
+#include "Shaders/TesselationShaderManager.hpp"
 #endif
 
 #ifndef __SHADERS__
@@ -345,6 +346,7 @@ public:
     void displaySSolidZone(StructZone* zonep, int zone);
     virtual void displayUSolid() = 0;
     void displayUSolidZone(UnstructZone* zonep, int zone, int zonet);
+    void displayUSolidHOZone(UnstructZone* zonep, int zone, int zonet);
     virtual void displaySIsoSolid() = 0;
     void displaySIsoSolidZone(StructZone* zonep, int zone, int nofield);
     void displaySIsoSolidZone(StructZone* zonep, int zone, int nofield1,
@@ -363,8 +365,10 @@ public:
     virtual void renderGPUUMeshZone(UnstructZone* zonep, int zone, int zonet) = 0;
     void createGPUSSolidZone(StructZone* zonep, int zone);
     virtual void renderGPUSSolidZone(StructZone* zonep, int zone) = 0;
-    void createGPUUSolidZone(UnstructZone* zonep, int zone, int zonet);
-    void renderGPUUSolidZone(UnstructZone* zonep, int zone, int zonet);
+    virtual void createGPUUSolidZone(UnstructZone* zonep, int zone, int zonet) = 0;
+    virtual void renderGPUUSolidZone(UnstructZone* zonep, int zone, int zonet) = 0;
+    virtual void createGPUUSolidHOZone(UnstructZone* zonep, int zone, int zonet) = 0;
+    virtual void renderGPUUSolidHOZone(UnstructZone* zonep, int zone, int zonet) = 0;
     void createGPUSIsoSolidZone(StructZone* zonep, int zone, int nofield);
     void createGPUSIsoSolidZone(StructZone* zonep, int zone, int nofield1,
                                int nofield2, int nofield3);

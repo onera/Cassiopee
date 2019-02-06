@@ -278,14 +278,33 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
   if (referenceNfield != -1) z.nfield = referenceNfield;
   else z.nfield = unstrF->getNfld()-3;
 
-  z.x = new E_Float[z.npts];
-  memcpy(z.x, unstrF->begin(posx), z.npts*sizeof(E_Float));
-  z.y = new E_Float[z.npts];
-  memcpy(z.y, unstrF->begin(posy), z.npts*sizeof(E_Float));
-  z.z = new E_Float[z.npts];
-  memcpy(z.z, unstrF->begin(posz), z.npts*sizeof(E_Float));
+# if defined(__SHADERS__)
+  const char* high_order_types[] = {
+    "TRI_6", "TRI_9", "TRI_10", "TRI_12", "TRI_15", 
+    "QUAD_8", "QUAD_9", "QUAD_12", "QUAD_16", "QUAD_P4_16", "QUAD_25",
+    NULL
+  };
+  const short nb_nodes_per_elts[] = {
+    6, 9, 10, 12, 15, 8, 9, 12, 16, 16, 25, -1  
+  };
+  unsigned short ind_type = 0;
+  const char* pt_type = high_order_types[ind_type];
+  //std::cout << "Type element : " << eltType << std::endl;
+  while ( ( pt_type != NULL ) and (K_STRING::cmp(eltType, pt_type) != 0) )
+  {
+    ind_type ++;
+    pt_type = high_order_types[ind_type];
+  }
+  bool is_high_order = (pt_type != NULL);
+  z._is_high_order = is_high_order;
+# endif
+    z.x = new E_Float[z.npts];
+    memcpy(z.x, unstrF->begin(posx), z.npts*sizeof(E_Float));
+    z.y = new E_Float[z.npts];
+    memcpy(z.y, unstrF->begin(posy), z.npts*sizeof(E_Float));
+    z.z = new E_Float[z.npts];
+    memcpy(z.z, unstrF->begin(posz), z.npts*sizeof(E_Float));
   z.ne = cn->getSize();
-
   /*
   vector<char*> varsT;
   K_ARRAY::extractVars(varString, varsT);
@@ -554,6 +573,14 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
           znp[i+n*s] = cnp[n+i*nfld]; 
     }
   }
+
+# if defined(__SHADERS__)
+  if ( is_high_order )
+  {
+    z.eltSize = nb_nodes_per_elts[ind_type];
+  }
+# endif
+
 
   z.posFaces = NULL;
 

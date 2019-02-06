@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2019 Onera.
+    Copyright 2013-2018 Onera.
 
     This file is part of Cassiopee.
 
@@ -16,21 +16,21 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef _CPLOT_VERTEXSHADER_HPP_
-#define _CPLOT_VERTEXSHADER_HPP_
+#ifndef _CPLOT_TESSELATIONCONTROLSHADER_HPP_
+#define _CPLOT_TESSELATIONCONTROLSHADER_HPP_
 #include "ShaderObject.h"
 
 namespace CPlot
 {
-  class VertexShader : public ShaderObject
+  class TesselationControlShader : public ShaderObject
   {
   public:
-    VertexShader();
-    VertexShader( const std::string& src );
-    VertexShader(const VertexShader& shader) = delete;
-    virtual ~VertexShader();
+    TesselationControlShader();
+    TesselationControlShader( const std::string& src );
+    TesselationControlShader(const TesselationControlShader& shader) = delete;
+    virtual ~TesselationControlShader();
 
-    const VertexShader& operator = (const VertexShader& obj) = delete;
+    TesselationControlShader& operator = (const TesselationControlShader& obj) = delete;
 
   };
 }

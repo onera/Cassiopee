@@ -99,6 +99,21 @@ void DataDL::renderGPUUMeshZone(UnstructZone* zonep, int zone, int zonet)
 
   ZoneImplDL* zImpl = static_cast<ZoneImplDL*>(zonep->ptr_impl);
   //glCallList(zonep->_DLmesh);
+    if ( zonep->_is_high_order == true )
+    {
+      int ishader = 0;
+      if ( ( zonep->eltType == UnstructZone::TRI ) and ( zonep->eltSize == 6 ) )
+        ishader = 1;  // OK, element de type Tri_6
+      if ( not this->_shaders.has_tesselation() ) {
+        this->_shaders.set_tesselation( ishader );
+      }
+      this->_shaders.activate( (short unsigned int)38 );
+      int t_inner = this->ptrState->inner_tesselation;
+      int t_outer = this->ptrState->outer_tesselation;
+      this->_shaders[ 38 ]->setUniform( "uInner", (float)t_inner );
+      this->_shaders[ 38 ]->setUniform( "uOuter", (float)t_outer );
+    }
+
   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   glCallList(zImpl->_DLsolid);
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -127,5 +142,6 @@ void DataDL::renderGPUUMeshZone(UnstructZone* zonep, int zone, int zonet)
     }
     glEnd();
   }
+  this->_shaders.activate( (short unsigned int)0);
   glLineWidth(1.);
 }

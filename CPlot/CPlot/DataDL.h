@@ -43,6 +43,7 @@ public:
   virtual void createGPUUMeshZone(UnstructZone* zonep, int zone, int zonet);
   virtual void createGPUSSolidZone(StructZone* zonep, int zone);
   virtual void createGPUUSolidZone(UnstructZone* zonep, int zone, int zonet);
+  virtual void createGPUUSolidHOZone(UnstructZone* zonep, int zone, int zonet);
   virtual void createGPUSIsoSolidZone(StructZone* zonep, int zone, int nofield);
   virtual void createGPUSIsoSolidZone(StructZone* zonep, int zone, int nofield1,
 			      int nofield2, int nofield3);
@@ -55,6 +56,7 @@ public:
   virtual void renderGPUUMeshZone(UnstructZone* zonep, int zone, int zonet);
   virtual void renderGPUSSolidZone(StructZone* zonep, int zone);
   virtual void renderGPUUSolidZone(UnstructZone* zonep, int zone, int zonet);
+  virtual void renderGPUUSolidHOZone(UnstructZone* zonep, int zone, int zonet);
   virtual void renderSIsoSolidZone(StructZone* zonep, int zone, int nofield);
   virtual void renderSIsoSolidZone(StructZone* zonep, int zone, int nofield1,
 				   int nofield2, int nofield3);

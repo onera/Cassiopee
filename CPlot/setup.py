@@ -99,6 +99,8 @@ setup(
 os.system("cp CPlot/Shaders/*.vert %s/CPlot/"%KCore.installPath.installPath)
 os.system("cp CPlot/Shaders/*.frag %s/CPlot/"%KCore.installPath.installPath)
 os.system("cp CPlot/Shaders/*.geom %s/CPlot/"%KCore.installPath.installPath)
+os.system("cp CPlot/Shaders/*.tcs %s/CPlot/"%KCore.installPath.installPath)
+os.system("cp CPlot/Shaders/*.tes %s/CPlot/"%KCore.installPath.installPath)
 os.system("cp CPlot/Textures/*.png %s/CPlot/"%KCore.installPath.installPath)
 
 # Check PYTHONPATH ===========================================================

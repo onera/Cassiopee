@@ -1,10 +1,19 @@
+#version 400 compatibility
+
 /*
     Phong (two sides) + shadow
 */
-varying vec3 Nv;
-varying vec3 P;
-varying vec4 color;
-varying vec4 vertex;
+in V2F_OUT
+{
+    vec4 position;
+    vec4 mv_position;
+    vec4 mvp_position;
+    vec4 view_normal;
+    vec4 nrm_view_normal;
+    vec4 color;
+    vec4 vdata1, vdata2, vdata3, vdata4;
+} v2f_out;
+
 uniform float specularFactor;
 uniform float diffuseFactor;
 uniform int shadow;
@@ -12,9 +21,9 @@ uniform sampler2D ShadowMap;
 
 void main (void)
 { 
-  vec3 N = normalize(Nv);
-  vec3 E = normalize(-P);
-  vec3 L = normalize(gl_LightSource[0].position.xyz-P);
+  vec3 N = normalize(v2f_out.view_normal.xyz);
+  vec3 E = normalize(-v2f_out.mv_position.xyz);
+  vec3 L = normalize(gl_LightSource[0].position.xyz-v2f_out.mv_position.xyz);
   float dotNL = dot(N, L);
   if (dotNL < 0.) { N = -N; dotNL = -dotNL; }
 
@@ -22,14 +31,14 @@ void main (void)
   vec4 Iamb = gl_LightSource[0].ambient; 
   vec4 Idiff = gl_LightSource[0].diffuse * diffuseFactor * max(dotNL, 0.0);
   vec4 Ispec = (specularFactor*specularFactor)*gl_LightSource[0].specular*pow(max(dot(R,E),0.0),0.25*gl_FrontMaterial.shininess);
-  vec4 col = Iamb + color*Idiff + Ispec;
+  vec4 col = Iamb + v2f_out.color*Idiff + Ispec;
   col = clamp(col, 0., 1.);
   float shadowValue = 1.;
-        
+
   if (shadow > 0)
   {
   // Coords -> texCoords
-  vec4 ShadowCoord = gl_TextureMatrix[0] * vertex;
+  vec4 ShadowCoord = gl_TextureMatrix[0] * v2f_out.position;
   vec4 shadowCoordinateW = ShadowCoord / ShadowCoord.w;
 
   // Used to lower moire pattern and self-shadowing
@@ -43,7 +52,9 @@ void main (void)
   if (ShadowCoord.w > 0.0 && s > 0.001 && s < 0.999 && t > 0.001 && t < 0.999)
       shadowValue = distanceFromLight < shadowCoordinateW.z ? 0.5 : 1.0;
   }
-
+  
   gl_FragColor = shadowValue * col;
-  gl_FragColor.a = color.a;
+  gl_FragColor.a = v2f_out.color.a;
+  /*gl_FragColor.rgb = vec3(1.,1.,1.);
+  gl_FragColor.a = 1;*/
 }

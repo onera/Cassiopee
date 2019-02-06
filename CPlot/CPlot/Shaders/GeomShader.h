@@ -26,10 +26,11 @@ namespace CPlot
   {
   public:
     GeomShader();
-    GeomShader(const GeomShader& shader);
+    GeomShader( const std::string& src );
+    GeomShader(const GeomShader& shader) = delete;
     virtual ~GeomShader();
 
-    const GeomShader& operator = (const GeomShader& obj);
+    const GeomShader& operator = (const GeomShader& obj) = delete;
 
   };
 }

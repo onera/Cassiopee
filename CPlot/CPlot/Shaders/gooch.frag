@@ -1,12 +1,24 @@
+#version 400 compatibility
 // Gooch (hand drawing) shader
 
-varying float NdotL;
+/*varying float NdotL;
 varying vec3 ReflectVec;
 varying vec3 ViewVec;
 varying vec4 color;
 varying vec3 ecPos;
 varying vec3 tnorm;
-varying vec4 vertex;
+varying vec4 vertex;*/
+in V2F_OUT
+{
+    vec4 position;
+    vec4 mv_position;
+    vec4 mvp_position;
+    vec4 view_normal;
+    vec4 nrm_view_normal;
+    vec4 color;
+    vec4 vdata1, vdata2, vdata3, vdata4;
+} v2f_out;
+
 uniform float specularFactor;
 uniform float exponent;
 uniform int shadow;
@@ -14,6 +26,14 @@ uniform sampler2D ShadowMap;
 
 void main (void)
 {
+    float NdotL     = v2f_out.vdata2.w;
+    vec3 ReflectVec = v2f_out.vdata1.xyz;
+    vec3 ViewVec    = v2f_out.vdata2.xyz;
+    vec4 color      = v2f_out.color;
+    vec3 ecPos      = v2f_out.mv_position.xyz;
+    vec3 tnorm      = v2f_out.nrm_view_normal.xyz;
+    vec4 vertex     = v2f_out.position;
+
     vec4 colorf;
     vec3 SurfaceColor = vec3(color.r, color.g, color.b);
     vec3 WarmColor = vec3(color.r-0.1, color.g-0.1, color.b-0.1);

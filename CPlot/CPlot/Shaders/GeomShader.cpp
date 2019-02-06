@@ -16,6 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
+# include <stdexcept>
 # include "GL/glew.h"
 # include "ShaderUtil.h"
 # include "GeomShader.h"
@@ -28,16 +29,19 @@ GeomShader::GeomShader(): ShaderObject()
   CHECK_GL_ERROR();
 }
 //==============================================================================
-GeomShader::GeomShader(const GeomShader& shader):
-  ShaderObject(shader)
-{}
+GeomShader::GeomShader(const std::string& src):
+  ShaderObject()
+{
+  _shaderId = glCreateShader(GL_GEOMETRY_SHADER);
+  bool success = this->compile(src);
+  if (not success)
+  {
+    std::string error("Failed to compile geometry shader :\n");
+    error += src; 
+    throw std::runtime_error(error.c_str());  
+  }
+}
 //==============================================================================
 GeomShader::~GeomShader()
 {}
 //==============================================================================
-const GeomShader&
-GeomShader::operator = (const GeomShader& obj)
-{
-  ShaderObject::operator = (obj);
-  return *this;
-}

@@ -29,14 +29,15 @@ namespace CPlot
   {
   public:
     ShaderObject();
-    ShaderObject(const ShaderObject& obj);
+    ShaderObject(const ShaderObject& obj) = delete;
     virtual ~ShaderObject();
 
-    const ShaderObject& operator = (const ShaderObject& obj);
+    const ShaderObject& operator = (const ShaderObject& obj) = delete;
 
-    void load(const char* fileName);
+    static std::string 
+    load(const char* fileName);
 
-    bool compile(const char* source);
+    bool compile(const std::string& source);
     std::string getCompilerLog(void) const;
     GLhandleARB getShaderId() const { return _shaderId; }
 
@@ -48,9 +49,7 @@ namespace CPlot
 
   private:
     void destroy();
-    unsigned E_LONG getFileLength(FILE* ptrFile);
-    unsigned int* _nbReference;
-    
+    static unsigned E_LONG getFileLength(FILE* ptrFile);    
   };
 }
 

@@ -1,10 +1,21 @@
+#version 400 compatibility
 //
 // Fragment shader for producing clouds (mostly sunny)
 //
-varying float LightIntensity; 
+/*varying float LightIntensity; 
 varying vec3 MCposition;
 varying vec4 initColor;
-varying vec4 vertex;
+varying vec4 vertex;*/
+in V2F_OUT
+{
+    vec4 position;
+    vec4 mv_position;
+    vec4 mvp_position;
+    vec4 view_normal;
+    vec4 nrm_view_normal;
+    vec4 color;
+    vec4 vdata1, vdata2, vdata3, vdata4;
+} v2f_out;
 
 uniform sampler3D Noise;
 uniform vec3 Offset;
@@ -14,6 +25,11 @@ uniform sampler2D ShadowMap;
 
 void main (void)
 {
+    float LightIntensity = v2f_out.vdata1.w;
+    vec3  MCposition     = v2f_out.vdata1.xyz;
+    vec4 initColor       = v2f_out.color;
+    vec4 vertex          = v2f_out.position;
+    
     vec3 SkyColor = vec3(initColor.r, initColor.g, initColor.b); 
     vec4 noisevec = texture3D(Noise, 1.2 * (vec3(0.5) + MCposition + Offset));
 

@@ -1,10 +1,10 @@
+#version 400 compatibility
 //
 // Glass shader
 //
 const vec3 Xunitvec = vec3(1.0, 0.0, 0.0);
 const vec3 Yunitvec = vec3(0.0, 1.0, 0.0);
 
-varying vec4 color;
 uniform float MixRatio2;
 uniform float MixRatio;
 
@@ -15,14 +15,29 @@ uniform float FrameHeight;
 uniform sampler2D EnvMap;
 uniform sampler2D RefractionMap;
 
+in V2F_OUT
+{
+    vec4 position;
+    vec4 mv_position;
+    vec4 mvp_position;
+    vec4 view_normal;
+    vec4 nrm_view_normal;
+    vec4 color;
+    vec4 vdata1, vdata2, vdata3, vdata4;
+} v2f_out;
+/*varying vec4 color;
 varying vec3 Normal;
 varying vec3 EyeDir;
 varying vec4 EyePos;
+*/
 
 void main (void)
 {
+    vec3 Normal = v2f_out.nrm_view_normal.xyz;
+    vec3 EyeDir = v2f_out.mv_position.xyz;
+    vec4 EyePos = v2f_out.mvp_position;
     float Depth = 0.2;
-    vec3 BaseColor = vec3(color.r, color.g, color.b);
+    vec3 BaseColor = vec3(v2f_out.color.r, v2f_out.color.g, v2f_out.color.b);
 
     vec3 LightPos = gl_LightSource[0].position.xyz;
     vec3 L = normalize(LightPos - EyeDir);
@@ -97,5 +112,5 @@ void main (void)
     
     //envColor = RefractionColor + 0.000001*envColor;
 
-    gl_FragColor = vec4(envColor, color.a);
+    gl_FragColor = vec4(envColor, v2f_out.color.a);
 }

@@ -16,6 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
+# include <stdexcept>
 # include "GL/glew.h"
 # include "ShaderUtil.h"
 # include "VertexShader.h"
@@ -28,16 +29,19 @@ VertexShader::VertexShader(): ShaderObject()
   CHECK_GL_ERROR();
 }
 //==============================================================================
-VertexShader::VertexShader(const VertexShader& shader):
-  ShaderObject(shader)
-{}
+VertexShader::VertexShader(const std::string& src):
+  ShaderObject()
+{
+  _shaderId = glCreateShader(GL_VERTEX_SHADER);
+  bool success = this->compile(src);
+  if (not success)
+  {
+    std::string error("Failed to compile vertex shader :\n");
+    error += src; 
+    throw std::runtime_error(error.c_str());  
+  }
+}
 //==============================================================================
 VertexShader::~VertexShader()
 {}
 //==============================================================================
-const VertexShader&
-VertexShader::operator = (const VertexShader& obj)
-{
-  ShaderObject::operator = (obj);
-  return *this;
-}

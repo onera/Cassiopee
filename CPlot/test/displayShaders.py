@@ -42,7 +42,7 @@ h = CPlot.addRender2Zone(h, material='Solid', color='Iso:centers:F')
 t = C.newPyTree(['Base',a,b,c,d,e,f,g,h,i])
 
 # Tests des shaders
-CPlot.display(t, displayBB=0, mode=2)
+CPlot.display(t, displayBB=0, mode=2) # mode=2 active les shaders
 time.sleep(2)
 
 # Ajout du overlay mesh

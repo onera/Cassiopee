@@ -16,368 +16,510 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <stdexcept>
 #include "ShaderManager.h"
-#include "VertexShader.h"
+#include "../Data.h"
 #include "FragmentShader.h"
 #include "GeomShader.h"
+#include "TesselationControlShader.hpp"
+#include "TesselationEvaluationShader.hpp"
+#include "VertexShader.h"
+#include <stdexcept>
 #include <string.h>
-#include "../Data.h"
 using namespace CPlot;
 
 //=============================================================================
-ShaderManager::ShaderManager() : 
-  _shaderList(), 
-  _currentActiveShader(0)
-{}
-
+ShaderManager::ShaderManager()
+    : _shaderList(),
+      _shaderListWithTesselations(),
+      _currentActiveShader( 0 ),
+      m_previous_shader( nullptr )
+{
+}
 //=============================================================================
 ShaderManager::~ShaderManager()
 {
-  deactivate();
-  for (std::vector<Shader*>::iterator itShad = _shaderList.begin();
-       itShad != _shaderList.end(); itShad++)
-  {
-    delete (*itShad);
-  }  
+    deactivate();
+    for ( std::vector<Shader *>::iterator itShad = _shaderList.begin();
+          itShad != _shaderList.end(); itShad++ ) {
+        delete ( *itShad );
+    }
+    for ( auto &_tessshaders : this->_shaderListWithTesselations ) {
+        for ( auto pt_shaders : _tessshaders ) {
+            delete pt_shaders;
+        }
+    }
 }
 
 //=============================================================================
 /* Cree un shader a partir de 1 fichier geomShader */
 //==============================================================================
-Shader* ShaderManager::addFromFile(const char* geomFile, const char* vertexFile, const char* fragmentFile)
+Shader *ShaderManager::addFromFile( const char *geomFile, const char *vertexFile, const char *fragmentFile )
 {
-  Shader* shad = new Shader;
-  GeomShader   gShad;
-  VertexShader   vShad;
-  FragmentShader sShad;
+    Shader *shad = new Shader;
+    try {
+        shad->add( std::make_shared<GeomShader>( ShaderObject::load( geomFile ) ) );
+        shad->add( std::make_shared<VertexShader>( ShaderObject::load( vertexFile ) ) );
+        shad->add( std::make_shared<FragmentShader>( ShaderObject::load( fragmentFile ) ) );
+    } catch ( std::runtime_error &err ) {
+        printf( "Fail to add new shader: %s.\n", geomFile );
+        printf( "Fail to add new shader: %s %s.\n", vertexFile, fragmentFile );
+        printf( "Error: %s.\n", err.what() );
+        printf( "\t Geom shader log: %s.\n",
+                shad->geometry_shader->getCompilerLog().c_str() );
+        printf( "\t Vertex shader log: %s.\n",
+                shad->vertex_shader->getCompilerLog().c_str() );
+        printf( "\t Fragment shader log: %s.\n",
+                shad->fragment_shader->getCompilerLog().c_str() );
+        return NULL;
+    }
+    _shaderList.push_back( shad );
 
-  try 
-  {
-    gShad.load(geomFile);
-    vShad.load(vertexFile);
-    sShad.load(fragmentFile);    
-  }
-  catch(std::runtime_error& err)
-  {
-    printf("Fail to add new shader: %s.\n", geomFile);
-    printf("Error: %s.\n", err.what());
-    printf("\t Geom shader log: %s.\n", 
-           gShad.getCompilerLog().c_str());
-    printf("\t Vertex shader log: %s.\n", 
-           vShad.getCompilerLog().c_str());
-    printf("\t Fragment shader log: %s.\n", 
-           sShad.getCompilerLog().c_str());
-    return NULL;
-  }
-  shad->add(gShad);
-  shad->add(vShad);
-  shad->add(sShad);
-  _shaderList.push_back(shad);
-
-  return shad;
+    return shad;
 }
-
 //=============================================================================
 /* Cree un shader a partir de 2 fichiers vertexShader, fragmentShader */
 //==============================================================================
-Shader* ShaderManager::addFromFile(const char* vertexFile, 
-                                   const char* fragmentFile)
+Shader *ShaderManager::addFromFile( const char *vertexFile,
+                                    const char *fragmentFile )
 {
-  Shader* shad = new Shader;
-  VertexShader   vShad;
-  FragmentShader sShad;
-
-  try 
-  {
-    vShad.load(vertexFile);
-    sShad.load(fragmentFile);
-  }
-  catch(std::runtime_error& err)
-  {
-    printf("Fail to add new shader: %s %s.\n", vertexFile, fragmentFile);
-    printf("Error: %s.\n", err.what());
-    printf("\t Vertex shader log: %s.\n", 
-           vShad.getCompilerLog().c_str());
-    printf("\t Fragment shader log: %s.\n", 
-           sShad.getCompilerLog().c_str());
-    return NULL;
-  }
-  shad->add(vShad);
-  shad->add(sShad);
-
-  _shaderList.push_back(shad);
-
-  return shad;
+    Shader *shad = new Shader;
+    try {
+        if ( vertexFile != nullptr )
+            shad->add( std::make_shared<VertexShader>( ShaderObject::load( vertexFile ) ) );
+        if ( fragmentFile != nullptr )
+            shad->add( std::make_shared<FragmentShader>( ShaderObject::load( fragmentFile ) ) );
+    } catch ( std::runtime_error &err ) {
+        printf( "Fail to add new shader: %s %s.\n", vertexFile, fragmentFile );
+        printf( "Error: %s.\n", err.what() );
+        printf( "\t Vertex shader log: %s.\n",
+                shad->vertex_shader->getCompilerLog().c_str() );
+        printf( "\t Fragment shader log: %s.\n",
+                shad->fragment_shader->getCompilerLog().c_str() );
+        return NULL;
+    }
+    _shaderList.push_back( shad );
+    return shad;
 }
-
 //=============================================================================
-unsigned short ShaderManager::getId(Shader* shad)
+unsigned short ShaderManager::getId( Shader *shad )
 {
-  unsigned short id = 0;
-  std::vector<Shader*>::iterator it = _shaderList.begin();
-  while (it != _shaderList.end())
-  {
-    id++;
-    if ((*it) == shad) break;
-  }
-  if (id == _shaderList.size()) id = 0;
-  return id;
+    unsigned short id = 0;
+    std::vector<Shader *>::iterator it = _shaderList.begin();
+    while ( it != _shaderList.end() ) {
+        id++;
+        if ( ( *it ) == shad ) break;
+    }
+    if ( id == _shaderList.size() ) id = 0;
+    return id;
 }
 
 // ============================================================================
-bool ShaderManager::eraseShader(Shader* obj)
+bool ShaderManager::eraseShader( Shader *obj )
 {
-  std::vector<Shader*>::iterator it = _shaderList.begin();
-  while (it != _shaderList.end())
-  {
-    if ((*it) == obj)
-    {
-      _shaderList.erase(it);
-      delete obj;
-      return true;
+    std::vector<Shader *>::iterator it = _shaderList.begin();
+    while ( it != _shaderList.end() ) {
+        if ( ( *it ) == obj ) {
+            _shaderList.erase( it );
+            delete obj;
+            return true;
+        }
     }
-  }
-  return false;
+    return false;
 }
-
-// ----------------------------------------------------------------------------
-void ShaderManager::activate(unsigned short id)
-{
-  if (_currentActiveShader > 0) _shaderList[_currentActiveShader-1]->end();
-  _currentActiveShader = 0;
-  if ((id == 0) || (id > _shaderList.size())) return;
-  _currentActiveShader = id;
-  if (!_shaderList[id-1]->start())
-    throw std::runtime_error("Fail to start shader !");
-}
-
 //=============================================================================
-void ShaderManager::activate(Shader* shad)
+void ShaderManager::set_tesselation( unsigned short id )
 {
-  if (_currentActiveShader > 0) _shaderList[_currentActiveShader-1]->end();
-  _currentActiveShader = 0;
-  unsigned short id = 0;
-  std::vector<Shader*>::iterator it = _shaderList.begin();
-  while (it != _shaderList.end())
-  {
-    id++;
-    if ((*it) == shad)
-    {
-      activate(id); _currentActiveShader = id; return;
+    if ( id == 0 ) {
+        unset_tesselation();
+        return;
     }
-  }
+    // On regarde tout d'abord si on avait deja une tesselation active :
+    auto &tes_shaders = tesselationManager[ id ];
+    if ( tesselationManager.currentShader() == id ) return;
+    tesselationManager.activate( id );
+}
+// ----------------------------------------------------------------------------
+void ShaderManager::unset_tesselation()
+{
+    tesselationManager.deactivate();
+}
+// ----------------------------------------------------------------------------
+void ShaderManager::activate( unsigned short id )
+{
+    if ( tesselationManager.is_activate() == false ) {
+        if ( m_previous_shader != nullptr ) {
+            m_previous_shader->end();
+            m_previous_shader = nullptr;
+        }
+        //if ( _currentActiveShader > 0 ) _shaderList[ _currentActiveShader - 1 ]->end();
+        _currentActiveShader = 0;
+        if ( id == 0 ) return;
+        if ( id - 1 > _shaderList.size() ) return;
+        _currentActiveShader = id;
+        if ( !_shaderList[ id - 1 ]->start() )
+            throw std::runtime_error( "Fail to start shader !" );
+        else
+            m_previous_shader = _shaderList[ id - 1 ];
+    } else {
+        if ( _shaderListWithTesselations.size() < tesselationManager.numberOfShaders() )
+            _shaderListWithTesselations.resize( tesselationManager.numberOfShaders() );
+        unsigned short idTes = tesselationManager.currentShader();
+        std::vector<Shader *> &tesShad = _shaderListWithTesselations[ idTes - 1 ];
+        if ( m_previous_shader != nullptr ) {
+            m_previous_shader->end();
+            m_previous_shader = nullptr;
+        }
+        //if ( _currentActiveShader > 0 ) tesShad[ _currentActiveShader - 1 ]->end();
+        _currentActiveShader = 0;
+        if ( id == 0 ) return;
+        if ( tesShad.size() == 0 )  // Créer les shaders pour cette tesselation :
+        {
+            //std::cout << "Build new tesselation shaders" << std::flush << std::endl;
+            tesShad.reserve( _shaderList.size() );
+            auto &tes_shaders = tesselationManager[ tesselationManager.currentShader() ];
+            for ( auto pt_shad : _shaderList ) {
+                Shader *tes_pt_shader = new Shader;
+                if ( pt_shad->vertex_shader != nullptr )
+                    tes_pt_shader->add( pt_shad->vertex_shader );
+                if ( pt_shad->fragment_shader != nullptr )
+                    tes_pt_shader->add( pt_shad->fragment_shader );
+                if ( pt_shad->geometry_shader != nullptr )
+                    tes_pt_shader->add( pt_shad->geometry_shader );
+                tes_pt_shader->add( tes_shaders.first );
+                tes_pt_shader->add( tes_shaders.second );
+                tesShad.push_back( tes_pt_shader );
+            }
+        }
+        if ( id - 1 > tesShad.size() ) return;
+        _currentActiveShader = id;
+        if ( !tesShad[ id - 1 ]->start() )
+            throw std::runtime_error( "Fail to start shader !" );
+        else
+            m_previous_shader = tesShad[ id - 1 ];
+    }
+}
+//=============================================================================
+void ShaderManager::activate( Shader *shad )
+{
+    std::cout << __PRETTY_FUNCTION__ << std::endl;
+    if ( m_previous_shader != nullptr ) m_previous_shader->end();
+    //if ( _currentActiveShader > 0 ) _shaderList[ _currentActiveShader - 1 ]->end();
+    _currentActiveShader = 0;
+    unsigned short id = 0;
+    std::vector<Shader *>::iterator it = _shaderList.begin();
+    while ( it != _shaderList.end() ) {
+        id++;
+        if ( ( *it ) == shad ) {
+            activate( id );
+            _currentActiveShader = id;
+            m_previous_shader = shad;
+            return;
+        }
+    }
 }
 //=============================================================================
 void ShaderManager::deactivate()
 {
-  if (_currentActiveShader > 0) _shaderList[_currentActiveShader-1]->end();
-  _currentActiveShader = 0;
+    std::cout << __PRETTY_FUNCTION__ << std::endl;
+    if ( m_previous_shader != nullptr ) m_previous_shader->end();
+    activate( (unsigned short)0 );
+    _currentActiveShader = 0;
 }
 
 //=============================================================================
 int ShaderManager::init()
 {
-  glewInit();
-  if (GLEW_ARB_vertex_shader && GLEW_ARB_fragment_shader) return 1; // success
-  else return 0; // fail
+    glewInit();
+    if ( GLEW_ARB_vertex_shader && GLEW_ARB_fragment_shader )
+        return 1;  // success
+    else
+        return 0;  // fail
 }
 
 //=============================================================================
 int ShaderManager::load()
 {
-  char vert[256*8]; char frag[256*8]; char geom[256*8];
-  Data* d = Data::getInstance();
-  char* path = d->ptrState->shaderPath;
+    //std::cout << __PRETTY_FUNCTION__ << std::endl;
+    tesselationManager.load();
+    char vert[ 256 * 8 ];
+    char frag[ 256 * 8 ];
+    char geom[ 256 * 8 ];
+    char tes[ 256 * 8 ];
+    Data *d = Data::getInstance();
+    char *path = d->ptrState->shaderPath;
 
-  // - 1 - Phong unidirectionnel
-  strcpy(vert, path); strcat(vert, "phong.vert");
-  strcpy(frag, path); strcat(frag, "phong.frag");
-  addFromFile(vert, frag);
+    // - 1 - Phong unidirectionnel
+    strcpy( vert, path );
+    strcat( vert, "phong.vert" );
+    strcpy( frag, path );
+    strcat( frag, "phong.frag" );
+    addFromFile( vert, frag );
 
-  // - 2 - Phong bidirectionnel
-  strcpy(vert, path); strcat(vert, "phong2s.vert");
-  strcpy(frag, path); strcat(frag, "phong2s.frag");
-  addFromFile(vert, frag);
+    // - 2 - Phong bidirectionnel
+    strcpy( vert, path );
+    strcat( vert, "phong2s.vert" );
+    strcpy( frag, path );
+    strcat( frag, "phong2s.frag" );
+    addFromFile( vert, frag );
 
-  // - 3 - Glass (environ mapping - utilise la texture environ + frame buffer)
-  strcpy(vert, path); strcat(vert, "glass.vert");
-  strcpy(frag, path); strcat(frag, "glass.frag");
-  addFromFile(vert, frag);
+    // - 3 - Glass (environ mapping - utilise la texture environ + frame buffer)
+    strcpy( vert, path );
+    strcat( vert, "glass.vert" );
+    strcpy( frag, path );
+    strcat( frag, "glass.frag" );
+    addFromFile( vert, frag );
 
-  // - 4 - Chrome (environ mapping - utilise la texture environ)
-  strcpy(vert, path); strcat(vert, "envmap.vert");
-  strcpy(frag, path); strcat(frag, "envmap.frag");
-  addFromFile(vert, frag);
+    // - 4 - Chrome (environ mapping - utilise la texture environ)
+    strcpy( vert, path );
+    strcat( vert, "envmap.vert" );
+    strcpy( frag, path );
+    strcat( frag, "envmap.frag" );
+    addFromFile( vert, frag );
 
-  // - 5 - Metal (anisotropic)
-  strcpy(vert, path); strcat(vert, "anisotropic.vert");
-  strcpy(frag, path); strcat(frag, "anisotropic.frag");
-  addFromFile(vert, frag);
+    // - 5 - Metal (anisotropic)
+    strcpy( vert, path );
+    strcat( vert, "anisotropic.vert" );
+    strcpy( frag, path );
+    strcat( frag, "anisotropic.frag" );
+    addFromFile( vert, frag );
 
-  // - 6 - Wood (utilise la texture noise3D)
-  strcpy(vert, path); strcat(vert, "wood.vert");
-  strcpy(frag, path); strcat(frag, "wood.frag");
-  addFromFile(vert, frag);
+    // - 6 - Wood (utilise la texture noise3D)
+    strcpy( vert, path );
+    strcat( vert, "wood.vert" );
+    strcpy( frag, path );
+    strcat( frag, "wood.frag" );
+    addFromFile( vert, frag );
 
-  // - 7 - Marble (utilise la texture noise3D)
-  strcpy(vert, path); strcat(vert, "marble.vert");
-  strcpy(frag, path); strcat(frag, "marble.frag");
-  addFromFile(vert, frag);
+    // - 7 - Marble (utilise la texture noise3D)
+    strcpy( vert, path );
+    strcat( vert, "marble.vert" );
+    strcpy( frag, path );
+    strcat( frag, "marble.frag" );
+    addFromFile( vert, frag );
 
-  // - 8 - Smoke (pas OK)
-  strcpy(vert, path); strcat(vert, "raymarching.vert");
-  strcpy(frag, path); strcat(frag, "raymarching.frag");
-  addFromFile(vert, frag);
+    // - 8 - Smoke (pas OK)
+    strcpy( vert, path );
+    strcat( vert, "raymarching.vert" );
+    strcpy( frag, path );
+    strcat( frag, "raymarching.frag" );
+    addFromFile( vert, frag );
 
-  // - 9 - XRay
-  strcpy(vert, path); strcat(vert, "xray.vert");
-  strcpy(frag, path); strcat(frag, "xray.frag");
-  addFromFile(vert, frag);
+    // - 9 - XRay
+    strcpy( vert, path );
+    strcat( vert, "xray.vert" );
+    strcpy( frag, path );
+    strcat( frag, "xray.frag" );
+    addFromFile( vert, frag );
 
-  // - 10 - Iso banded-colormap shader
-  strcpy(vert, path); strcat(vert, "iso.vert");
-  strcpy(frag, path); strcat(frag, "iso.frag");
-  addFromFile(vert, frag);
+    // - 10 - Iso banded-colormap shader
+    strcpy( vert, path );
+    strcat( vert, "iso.vert" );
+    strcpy( frag, path );
+    strcat( frag, "iso.frag" );
+    addFromFile( vert, frag );
 
-  // - 11 - Granite (utilise la texture noise3D)
-  strcpy(vert, path); strcat(vert, "granite.vert");
-  strcpy(frag, path); strcat(frag, "granite.frag");
-  addFromFile(vert, frag);
+    // - 11 - Granite (utilise la texture noise3D)
+    strcpy( vert, path );
+    strcat( vert, "granite.vert" );
+    strcpy( frag, path );
+    strcat( frag, "granite.frag" );
+    addFromFile( vert, frag );
 
-  // - 12 - Sphere billboarding
-  strcpy(vert, path); strcat(vert, "spheres.vert");
-  strcpy(frag, path); strcat(frag, "spheres.frag");
-  addFromFile(vert, frag);
+    // - 12 - Sphere billboarding
+    strcpy( vert, path );
+    strcat( vert, "spheres.vert" );
+    strcpy( frag, path );
+    strcat( frag, "spheres.frag" );
+    addFromFile( vert, frag );
 
-  // - 13 - Anaglyph shader (monochrome)
-  strcpy(vert, path); strcat(vert, "anaglyph.vert");
-  strcpy(frag, path); strcat(frag, "anaglyph.frag");
-  addFromFile(vert, frag);
+    // - 13 - Anaglyph shader (monochrome)
+    strcpy( vert, path );
+    strcat( vert, "anaglyph.vert" );
+    strcpy( frag, path );
+    strcat( frag, "anaglyph.frag" );
+    addFromFile( vert, frag );
 
-  // - 14 - Anaglyph shader (color)
-  strcpy(vert, path); strcat(vert, "anaglyphColor.vert");
-  strcpy(frag, path); strcat(frag, "anaglyphColor.frag");
-  addFromFile(vert, frag);
+    // - 14 - Anaglyph shader (color)
+    strcpy( vert, path );
+    strcat( vert, "anaglyphColor.vert" );
+    strcpy( frag, path );
+    strcat( frag, "anaglyphColor.frag" );
+    addFromFile( vert, frag );
 
-  // - 15 - Iso continuous-colormap shader
-  strcpy(vert, path); strcat(vert, "iso2.vert");
-  strcpy(frag, path); strcat(frag, "iso2.frag");
-  addFromFile(vert, frag);
-  
-  // - 16 - Brick shader
-  strcpy(vert, path); strcat(vert, "brick.vert");
-  strcpy(frag, path); strcat(frag, "brick.frag");
-  addFromFile(vert, frag);
-  
-  // - 17 - Cloud shader
-  strcpy(vert, path); strcat(vert, "cloud.vert");
-  strcpy(frag, path); strcat(frag, "cloud.frag");
-  addFromFile(vert, frag);
+    // - 15 - Iso continuous-colormap shader
+    strcpy( vert, path );
+    strcat( vert, "iso2.vert" );
+    strcpy( frag, path );
+    strcat( frag, "iso2.frag" );
+    addFromFile( vert, frag );
 
-  // - 18 - iso + granite
-  strcpy(vert, path); strcat(vert, "isoGranite.vert");
-  strcpy(frag, path); strcat(frag, "isoGranite.frag");
-  addFromFile(vert, frag);
+    // - 16 - Brick shader
+    strcpy( vert, path );
+    strcat( vert, "brick.vert" );
+    strcpy( frag, path );
+    strcat( frag, "brick.frag" );
+    addFromFile( vert, frag );
 
-  // - 19 - shadow mapping
-  strcpy(vert, path); strcat(vert, "phong2s.vert");
-  strcpy(frag, path); strcat(frag, "phong2s.frag");
-  addFromFile(vert, frag);
+    // - 17 - Cloud shader
+    strcpy( vert, path );
+    strcat( vert, "cloud.vert" );
+    strcpy( frag, path );
+    strcat( frag, "cloud.frag" );
+    addFromFile( vert, frag );
 
-  // - 20 - DOF!
-  strcpy(vert, path); strcat(vert, "dof.vert");
-  strcpy(frag, path); strcat(frag, "dof.frag");
-  addFromFile(vert, frag);
+    // - 18 - iso + granite
+    strcpy( vert, path );
+    strcat( vert, "isoGranite.vert" );
+    strcpy( frag, path );
+    strcat( frag, "isoGranite.frag" );
+    addFromFile( vert, frag );
 
-  // - 21 - Silhouette + gooch shader
-  strcpy(vert, path); strcat(vert, "gooch.vert");
-  strcpy(frag, path); strcat(frag, "gooch.frag");
-  addFromFile(vert, frag);
-  
-  // - 22 - Flat shader
-  strcpy(vert, path); strcat(vert, "flat.vert");
-  strcpy(frag, path); strcat(frag, "flat.frag");
-  addFromFile(vert, frag);
+    // - 19 - shadow mapping
+    strcpy( vert, path );
+    strcat( vert, "phong2s.vert" );
+    strcpy( frag, path );
+    strcat( frag, "phong2s.frag" );
+    addFromFile( vert, frag );
 
-  // - 23 - Billboard shader
-  strcpy(vert, path); strcat(vert, "billboard.vert");
-  strcpy(frag, path); strcat(frag, "billboard.frag");
-  addFromFile(vert, frag);
+    // - 20 - DOF!
+    strcpy( vert, path );
+    strcat( vert, "dof.vert" );
+    strcpy( frag, path );
+    strcat( frag, "dof.frag" );
+    addFromFile( vert, frag );
 
-  // - 24 - iso + flat
-  strcpy(vert, path); strcat(vert, "isoFlat.vert");
-  strcpy(frag, path); strcat(frag, "isoFlat.frag");
-  addFromFile(vert, frag);
+    // - 21 - Silhouette + gooch shader
+    strcpy( vert, path );
+    strcat( vert, "gooch.vert" );
+    strcpy( frag, path );
+    strcat( frag, "gooch.frag" );
+    addFromFile( vert, frag );
 
-  // - 25 - iso + chrome
-  strcpy(vert, path); strcat(vert, "isoEnvmap.vert");
-  strcpy(frag, path); strcat(frag, "isoEnvmap.frag");
-  addFromFile(vert, frag);
+    // - 22 - Flat shader
+    strcpy( vert, path );
+    strcat( vert, "flat.vert" );
+    strcpy( frag, path );
+    strcat( frag, "flat.frag" );
+    addFromFile( vert, frag );
 
-  // - 26 - iso + glass
-  strcpy(vert, path); strcat(vert, "isoGlass.vert");
-  strcpy(frag, path); strcat(frag, "isoGlass.frag");
-  addFromFile(vert, frag);
+    // - 23 - Billboard shader
+    strcpy( vert, path );
+    strcat( vert, "billboard.vert" );
+    strcpy( frag, path );
+    strcat( frag, "billboard.frag" );
+    addFromFile( vert, frag );
 
-  // - 27 - vector rgb direct
-  strcpy(vert, path); strcat(vert, "rgb.vert");
-  strcpy(frag, path); strcat(frag, "rgb.frag");
-  addFromFile(vert, frag);
+    // - 24 - iso + flat
+    strcpy( vert, path );
+    strcat( vert, "isoFlat.vert" );
+    strcpy( frag, path );
+    strcat( frag, "isoFlat.frag" );
+    addFromFile( vert, frag );
 
-  // - 28 - iso + brick
-  strcpy(vert, path); strcat(vert, "isoBrick.vert");
-  strcpy(frag, path); strcat(frag, "isoBrick.frag");
-  addFromFile(vert, frag);
+    // - 25 - iso + chrome
+    strcpy( vert, path );
+    strcat( vert, "isoEnvmap.vert" );
+    strcpy( frag, path );
+    strcat( frag, "isoEnvmap.frag" );
+    addFromFile( vert, frag );
 
-  // - 29 - iso colored lines
-  strcpy(vert, path); strcat(vert, "iso3.vert");
-  strcpy(frag, path); strcat(frag, "iso3.frag");
-  addFromFile(vert, frag);
+    // - 26 - iso + glass
+    strcpy( vert, path );
+    strcat( vert, "isoGlass.vert" );
+    strcpy( frag, path );
+    strcat( frag, "isoGlass.frag" );
+    addFromFile( vert, frag );
 
-  // - 30 - iso + xray
-  strcpy(vert, path); strcat(vert, "isoXRay.vert");
-  strcpy(frag, path); strcat(frag, "isoXRay.frag");
-  addFromFile(vert, frag);
+    // - 27 - vector rgb direct
+    strcpy( vert, path );
+    strcat( vert, "rgb.vert" );
+    strcpy( frag, path );
+    strcat( frag, "rgb.frag" );
+    addFromFile( vert, frag );
 
-  // - 31 - iso + gooch
-  strcpy(vert, path); strcat(vert, "isoGooch.vert");
-  strcpy(frag, path); strcat(frag, "isoGooch.frag");
-  addFromFile(vert, frag);
-  
-  // - 32 - iso + metal (anistropic)
-  strcpy(vert, path); strcat(vert, "isoAnisotropic.vert");
-  strcpy(frag, path); strcat(frag, "isoAnisotropic.frag");
-  addFromFile(vert, frag);
+    // - 28 - iso + brick
+    strcpy( vert, path );
+    strcat( vert, "isoBrick.vert" );
+    strcpy( frag, path );
+    strcat( frag, "isoBrick.frag" );
+    addFromFile( vert, frag );
 
-  // - 33 - Velocity shader ( geom + frag + vert )
-  strcpy(geom, path); strcat(geom, "streamline.geom");
-  strcpy(vert,path);  strcat(vert, "streamline.vert");
-  strcpy(frag,path);  strcat(frag, "streamline.frag");
-  addFromFile(geom, vert, frag);
+    // - 29 - iso colored lines
+    strcpy( vert, path );
+    strcat( vert, "iso3.vert" );
+    strcpy( frag, path );
+    strcat( frag, "iso3.frag" );
+    addFromFile( vert, frag );
 
-  // - 34 - Velocity shader ( geom + frag + vert )
-  strcpy(geom, path); strcat(geom, "streamtetra.geom");
-  strcpy(vert,path);  strcat(vert, "streamtetra.vert");
-  strcpy(frag,path);  strcat(frag, "streamtetra.frag");
-  addFromFile(geom, vert, frag);
+    // - 30 - iso + xray
+    strcpy( vert, path );
+    strcat( vert, "isoXRay.vert" );
+    strcpy( frag, path );
+    strcat( frag, "isoXRay.frag" );
+    addFromFile( vert, frag );
 
-  // - 35 - Velocity shader ( geom + frag + vert (34) )
-  strcpy(geom, path); strcat(geom, "streamtriangle.geom");
-  strcpy(vert,path);  strcat(vert, "streamtriangle.vert");
-  strcpy(frag,path);  strcat(frag, "streamtetra.frag");
-  addFromFile(geom, vert, frag);
+    // - 31 - iso + gooch
+    strcpy( vert, path );
+    strcat( vert, "isoGooch.vert" );
+    strcpy( frag, path );
+    strcat( frag, "isoGooch.frag" );
+    addFromFile( vert, frag );
 
-  // - 36 - Uniform Velocity shader ( geom + vert + frag(33) )
-  strcpy(geom, path); strcat(geom, "uniformstreamline.geom");
-  strcpy(vert,path);  strcat(vert, "uniformstreamline.vert");
-  strcpy(frag,path);  strcat(frag, "streamline.frag");
-  addFromFile(geom, vert, frag);
+    // - 32 - iso + metal (anistropic)
+    strcpy( vert, path );
+    strcat( vert, "isoAnisotropic.vert" );
+    strcpy( frag, path );
+    strcat( frag, "isoAnisotropic.frag" );
+    addFromFile( vert, frag );
 
-  // - 37 - Textured material shader
-  strcpy(vert,path);  strcat(vert, "texmat.vert");
-  strcpy(frag,path);  strcat(frag, "texmat.frag");
-  addFromFile(vert, frag);
+    // - 33 - Velocity shader ( geom + frag + vert )
+    strcpy( geom, path );
+    strcat( geom, "streamline.geom" );
+    strcpy( vert, path );
+    strcat( vert, "streamline.vert" );
+    strcpy( frag, path );
+    strcat( frag, "streamline.frag" );
+    addFromFile( geom, vert, frag );
 
-  return 1;
+    // - 34 - Velocity shader ( geom + frag + vert )
+    strcpy( geom, path );
+    strcat( geom, "streamtetra.geom" );
+    strcpy( vert, path );
+    strcat( vert, "streamtetra.vert" );
+    strcpy( frag, path );
+    strcat( frag, "streamtetra.frag" );
+    addFromFile( geom, vert, frag );
+
+    // - 35 - Velocity shader ( geom + frag + vert (34) )
+    strcpy( geom, path );
+    strcat( geom, "streamtriangle.geom" );
+    strcpy( vert, path );
+    strcat( vert, "streamtriangle.vert" );
+    strcpy( frag, path );
+    strcat( frag, "streamtetra.frag" );
+    addFromFile( geom, vert, frag );
+
+    // - 36 - Uniform Velocity shader ( geom + vert + frag(33) )
+    strcpy( geom, path );
+    strcat( geom, "uniformstreamline.geom" );
+    strcpy( vert, path );
+    strcat( vert, "uniformstreamline.vert" );
+    strcpy( frag, path );
+    strcat( frag, "streamline.frag" );
+    addFromFile( geom, vert, frag );
+
+    // - 37 - Textured material shader
+    strcpy( vert, path );
+    strcat( vert, "texmat.vert" );
+    strcpy( frag, path );
+    strcat( frag, "texmat.frag" );
+    addFromFile( vert, frag );
+
+    // - 38 - Vertex only shader... ( for tesselation mesh !)
+    strcpy( vert, path );
+    strcat( vert, "simple.vert" );
+    addFromFile( vert, nullptr );
+
+
+    return 1;
 }

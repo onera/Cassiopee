@@ -21,50 +21,20 @@
 # include "GL/glew.h"
 # include "ShaderUtil.h"
 # include "ShaderObject.h"
+# include <iostream>
+# include <cassert>
+# include <vector>
 using namespace CPlot;
 
 //=============================================================================
 ShaderObject::ShaderObject() :
-  _shaderId(0),
-  _nbReference(new unsigned int(1))
+  _shaderId(0)
 {}
-
-//==============================================================================
-ShaderObject::ShaderObject(const ShaderObject& obj) :
-  _shaderId(obj._shaderId),
-  _nbReference(obj._nbReference)
-  
-{
-  *_nbReference += 1;
-}
-//==============================================================================
-void ShaderObject::destroy()
-{
-  if (*_nbReference == 1)
-  {
-    delete _nbReference;
-    glDeleteObjectARB(_shaderId);
-    CHECK_GL_ERROR();
-  }
-  else
-    *_nbReference -= 1;
-}
 //==============================================================================
 ShaderObject::~ShaderObject()
 {
-  destroy();
-}
-//==============================================================================
-const ShaderObject& ShaderObject::operator = (const ShaderObject& obj)
-{
-  if (this != &obj)
-  {
-    destroy();
-    _nbReference = obj._nbReference;
-    *_nbReference += 1;
-    _shaderId = obj._shaderId;
-  }
-  return *this;
+  glDeleteObjectARB(_shaderId);
+  CHECK_GL_ERROR();
 }
 //==============================================================================
 unsigned E_LONG ShaderObject::getFileLength(FILE* ptrFile)
@@ -77,12 +47,13 @@ unsigned E_LONG ShaderObject::getFileLength(FILE* ptrFile)
 }
 
 //==============================================================================
-bool ShaderObject::compile(const char* src)
+bool ShaderObject::compile(const std::string& src)
 {
   bool is_compiled(false);
   GLint compiled = 0;
-  GLint lgth = (GLint)strlen((const char*)src);
-  glShaderSourceARB(_shaderId, 1, (const GLcharARB**)&src, &lgth);
+  GLint lgth = (GLint)src.size();
+  const GLchar* pt_src = (const GLchar*)src.data();
+  glShaderSourceARB(_shaderId, 1, &pt_src, &lgth);
   CHECK_GL_ERROR();
 
   glCompileShaderARB(_shaderId);
@@ -91,12 +62,25 @@ bool ShaderObject::compile(const char* src)
   glGetObjectParameterivARB(_shaderId, GL_COMPILE_STATUS, &compiled);
   CHECK_GL_ERROR();
   
-  if (compiled) is_compiled = true;
+  if (compiled == GL_TRUE) is_compiled = true;
+  else
+  {
+    GLint maxLength = 0;
+    glGetShaderiv(_shaderId, GL_INFO_LOG_LENGTH, &maxLength);
+
+    // The maxLength includes the NULL character
+    std::cout << "Error in shader :\n" << src << std::endl;
+    std::vector<GLchar> errorLog(maxLength);
+    glGetShaderInfoLog(_shaderId, maxLength, &maxLength, errorLog.data());
+    for ( const auto& str : errorLog )
+      std::cout << str;
+    std::cout << std::endl;
+  }
 
   return is_compiled;
 }
 //==============================================================================
-void ShaderObject::load(const char* fileName)
+std::string ShaderObject::load(const char* fileName)
 {
   FILE* ptrFile = fopen(fileName, "r");
   if (ptrFile == NULL)
@@ -111,10 +95,11 @@ void ShaderObject::load(const char* fileName)
   while (c != EOF) { shadersource[i] = c; i++; c = fgetc(ptrFile); }
   shadersource[i] = '\0';
   shadersource[lgth] = 0;// Max value for end of file...
-
-  if (!compile(shadersource))
-    throw std::runtime_error("Failed to compile shader source!");
+  std::string s_source(shadersource);
+  /*if (!compile(shadersource))
+    throw std::runtime_error("Failed to compile shader source!");*/
   delete [] shadersource;
+  return s_source;
 }
 //==============================================================================
 static const char* errorMsg[] = {

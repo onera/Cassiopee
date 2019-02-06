@@ -1,13 +1,24 @@
+#version 400 compatibility
 //
 // Envmap shader
 //
 const vec3 Xunitvec = vec3(1.0, 0.0, 0.0);
 const vec3 Yunitvec = vec3(0.0, 1.0, 0.0);
 
-varying vec4 color;
-varying vec4 vertex;
-varying vec3 Normal;
-varying vec3 EyeDir;
+in V2F_OUT
+{
+    vec4 position;
+    vec4 mv_position;
+    vec4 mvp_position;
+    vec4 view_normal;
+    vec4 nrm_view_normal;
+    vec4 color;
+    vec4 vdata1, vdata2, vdata3, vdata4;
+} v2f_out;
+//varying vec4 color;
+//varying vec4 vertex;
+//varying vec3 Normal;
+//varying vec3 EyeDir;
 
 uniform float MixRatio;
 uniform float intensity;
@@ -17,11 +28,12 @@ uniform sampler2D ShadowMap;
 
 void main (void)
 {
-    vec3 BaseColor = vec3(color.r, color.g, color.b);
+    vec3 EyeDir = v2f_out.mv_position.xyz;
+    vec3 BaseColor = vec3(v2f_out.color.r, v2f_out.color.g, v2f_out.color.b);
     vec3 LightPos  = gl_LightSource[0].position.xyz;
     vec3 L = normalize(LightPos - EyeDir);
-    float LightIntensity = dot(Normal, L);
-    vec3 N = Normal;
+    float LightIntensity = dot(v2f_out.nrm_view_normal.xyz, L);
+    vec3 N = v2f_out.nrm_view_normal.xyz;// Normal;
     if (LightIntensity < 0.) 
     { N = -N; LightIntensity = - LightIntensity; }
 
@@ -55,13 +67,13 @@ void main (void)
     vec3 base = LightIntensity * intensity * BaseColor;
     envColor = mix(envColor, base, MixRatio);
     
-    vec4 col = vec4(envColor, color.a);
+    vec4 col = vec4(envColor, v2f_out.color.a);
 
      float shadowValue = 1.;
      if (shadow > 0)
      {
      // Coords -> texCoords
-     vec4 ShadowCoord = gl_TextureMatrix[0] * vertex;
+     vec4 ShadowCoord = gl_TextureMatrix[0] * v2f_out.position;//vertex;
      vec4 shadowCoordinateW = ShadowCoord / ShadowCoord.w;
 
      // Used to lower moire pattern and self-shadowing
@@ -78,5 +90,5 @@ void main (void)
      }
 
     gl_FragColor = shadowValue * col;
-    gl_FragColor.a = color.a;
+    gl_FragColor.a = v2f_out.color.a;
 }

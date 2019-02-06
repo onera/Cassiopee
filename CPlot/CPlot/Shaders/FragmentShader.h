@@ -27,10 +27,11 @@ namespace CPlot
   {
   public:
     FragmentShader();
-    FragmentShader(const FragmentShader& shader);
+    FragmentShader( const std::string& src );
+    FragmentShader(const FragmentShader& shader) = delete;
     virtual ~FragmentShader();
 
-    const FragmentShader& operator = ( const FragmentShader& shader);
+    const FragmentShader& operator = ( const FragmentShader& shader) = delete;
   };
 }
 

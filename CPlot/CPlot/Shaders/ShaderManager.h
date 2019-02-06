@@ -21,6 +21,7 @@
 #include <map>
 #include <vector>
 #include "Shader.h"
+#include "TesselationShaderManager.hpp"
 
 // prepare the shadow texture
 #define SHADOWTEXTURE if (ptrState->shadow > 0) {          \
@@ -61,12 +62,27 @@ namespace CPlot
     { return (unsigned short)_shaderList.size(); }
     unsigned short currentShader()
     { return _currentActiveShader; }
+
+    void set_tesselation( unsigned short id );
+    void unset_tesselation();
+    bool has_tesselation()const { return tesselationManager.is_activate(); }
     
     Shader* operator [] (unsigned short id)
-    { return _shaderList[id-1]; }
+    {
+      if ( not has_tesselation() ) 
+        return _shaderList[id-1]; 
+      else
+        return _shaderListWithTesselations[tesselationManager.currentShader()-1][id-1];
+    }
     
     const Shader* operator [] (unsigned short id) const
-    { return _shaderList[id-1]; }
+    { 
+      if ( not has_tesselation() ) 
+        return _shaderList[id-1]; 
+      else
+        return _shaderListWithTesselations[tesselationManager.currentShader()-1][id-1];
+      //return _shaderList[id-1]; 
+    }
     
     /* Return the id of a shader in shader list */
     unsigned short getId(Shader* shad);
@@ -80,15 +96,17 @@ namespace CPlot
     */
     void activate(Shader* shad);
     /* Deactivate shader pipeline and returns to a
-       default opengl pipeline
+       default opengl pipeline ( sauf si tesselation actif... )
     */
     void deactivate();
     
   private:
     ShaderManager(const ShaderManager& shadMan);
     ShaderManager& operator = (const ShaderManager& shadMan);
-    
+    TesselationShaderManager tesselationManager;
     std::vector<Shader*> _shaderList;
+    std::vector<std::vector<Shader*>> _shaderListWithTesselations;
+    Shader* m_previous_shader;
     unsigned short _currentActiveShader;
   };
 }

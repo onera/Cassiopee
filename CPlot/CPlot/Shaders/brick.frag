@@ -1,3 +1,4 @@
+#version 400 compatibility
 //
 // Fragment shader for procedural bricks (with bumps)
 //
@@ -7,14 +8,31 @@ uniform vec2 BrickPct;
 uniform int shadow;
 uniform sampler2D ShadowMap;
 
-varying vec2 MCposition;
+/*varying vec2 MCposition;
 varying vec3 Nv;
 varying vec3 P;
 varying vec4 initColor;
-varying vec4 vertex;
+varying vec4 vertex;*/
+in V2F_OUT
+{
+    vec4 position;
+    vec4 mv_position;
+    vec4 mvp_position;
+    vec4 view_normal;
+    vec4 nrm_view_normal;
+    vec4 color;
+    vec4 vdata1, vdata2, vdata3, vdata4;
+} v2f_out;
+
 
 void main(void)
 {
+    vec2 MCposition = v2f_out.position.xy;
+    vec3 Nv         = v2f_out.view_normal.xyz;
+    vec3 P          = v2f_out.mv_position.xyz;
+    vec4 initColor  = v2f_out.color;
+    vec4 vertex     = v2f_out.position;
+
     vec3 color;
     vec2 position, useBrick;
     vec3 BrickColor = vec3(initColor.r, initColor.g, initColor.b);   

@@ -55,7 +55,12 @@ void DataDL::createGPURes()
     if (zImpl._GPUResUse == 1 && zImpl._DLsolid == 0)
     {
       zonet = zone + _numberOfStructZones;
+      if ( not z->_is_high_order)
       { createGPUUSolidZone(z, zone, zonet); goto end; }
+      else
+      {
+        createGPUUSolidHOZone(z, zone, zonet); goto end;
+      }
     }
     zone++;
   }

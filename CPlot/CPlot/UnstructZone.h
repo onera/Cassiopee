@@ -20,7 +20,12 @@
 #ifndef _CPLOT_UNSTRUCTZONE_H_
 #define _CPLOT_UNSTRUCTZONE_H_
 
+//#define __SHADERS__ // A ENLEVER
+
 #include "Zone.h"
+//#if defined(__SHADERS__)
+//#  include "CPlot/Shaders/ShaderBufferObject.hpp"
+//#endif
 
 /* Define a unstructured zone */
 class UnstructZone : public Zone
@@ -37,7 +42,7 @@ class UnstructZone : public Zone
     enum enumType {
       NODE = 0, BAR, TRI, QUAD, TETRA, PENTA, PYRA, HEXA, NGON, ENDTYPE
     };
-    int eltType;                  // 0: NODE
+    int eltType;                  // 0:   NODE
                                   // 1: BAR
                                   // 2: TRI
                                   // 3: QUAD
@@ -53,5 +58,6 @@ class UnstructZone : public Zone
     int nelts2D;                  // nombre d'elements 2D
     int* posElts1D;               // position des elements 1D dans connect
     int* posElts2D;               // position des elements 2D dans connect
+    int  _is_high_order;          // Dit si on est en presence d'elements high order ou non
 };
 #endif

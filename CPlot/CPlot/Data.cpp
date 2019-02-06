@@ -130,6 +130,7 @@ Data::Data(CPlotState* ptState)
   // Init cam
   initCam();
   _CDisplayIsLaunched = 0;
+
 }
 
 //=============================================================================
@@ -341,6 +342,10 @@ void Data::initState()
   // time
   ptrState->ktime = 0;
   ptrState->ktimer = 0;
+
+  // High order :
+  ptrState->outer_tesselation = 2;
+  ptrState->inner_tesselation = 1;
 
   // locks
   ptrState->freeGPURes = 0;
