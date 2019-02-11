@@ -5966,8 +5966,8 @@ def mergeTrees(t1, t2):
 # Retourne les faces des BCs pour les zones non structurees et pour
 # les BCs definies par faces (BC physiques) une liste par zone
 # [ ['nomBC', numpy(faces), 'nomBC', numpy(faces)...] ...]
-# si nameType = 0: nomBC est le nom de la BC
-# si nameType = 1: nomBC concatene le nom de la BC et son type (BCName_BCType 
+# si nameType=0: nomBC est le nom de la BC
+# si nameType=1: nomBC concatene le nom de la BC et son type (BCName_BCType 
 # ou BCName_FamilyName)
 #==============================================================================
 def getBCFaces(t, nameType=0):

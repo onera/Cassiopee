@@ -33,7 +33,7 @@ def prepare0(t_case, t_out, tc_out, NP=0, format='single'):
 
     if isinstance(t_case, str): t = C.convertFile2PyTree(t_case)
     else: t = t_case 
-        
+    
     if NP > 0: import Distributor2.PyTree as D2
 
     # Get dim
@@ -45,7 +45,7 @@ def prepare0(t_case, t_out, tc_out, NP=0, format='single'):
     if NP > 0:
         t = T.splitSize(t, R=NP, type=2, minPtsPerDir=9)
         t = X.connectMatch(t, dim=dim)
-        t, stats = D2.distribute(t, NP, useCom='match')
+        stats = D2._distribute(t, NP, useCom='match')
     else: 
         Internal._rmNodesByName(t, 'proc')
 
@@ -82,16 +82,16 @@ def prepare0(t_case, t_out, tc_out, NP=0, format='single'):
         import Dist2Walls.PyTree as DTW
         walls = C.extractBCOfType(t, 'BCWall')
         if walls != []:
-            t = DTW.distance2Walls(t, walls, loc='centers', type='ortho')
+            DTW._distance2Walls(t, walls, loc='centers', type='ortho')
         else: C._initVars(t, 'centers:TurbulentDistance', 1000000.)
 
     # Ajout des ghost-cells
     C.addState2Node__(t, 'EquationDimension', dim)
-    t = Internal.addGhostCells(t, t, 2, adaptBCs=1, fillCorner=0)
+    Internal._addGhostCells(t, t, 2, adaptBCs=1, fillCorner=0)
     if dim == 2: 
-        t = T.addkplane(t)
-        t = T.contract(t, (0,0,0), (1,0,0), (0,1,0), 0.01)
-        t = T.makeDirect(t)
+        T._addkplane(t)
+        T._contract(t, (0,0,0), (1,0,0), (0,1,0), 0.01)
+        T._makeDirect(t)
 
     # Raccords
     tc = C.node2Center(t)
@@ -173,16 +173,16 @@ def prepare1(t_case, t_out, tc_out, NP=0, format='single'):
         import Dist2Walls.PyTree as DTW
         walls = C.extractBCOfType(t, 'BCWall')
         if walls != []:
-            t = DTW.distance2Walls(t, walls, loc='centers', type='ortho')
+            DTW._distance2Walls(t, walls, loc='centers', type='ortho')
         else: C._initVars(t, 'centers:TurbulentDistance', 1000000.)
 
     # Ajout des ghost-cells
     C.addState2Node__(t, 'EquationDimension', dim)
-    t = Internal.addGhostCells(t, t, 2, adaptBCs=1, fillCorner=0)
+    Internal._addGhostCells(t, t, 2, adaptBCs=1, fillCorner=0)
     if dim == 2: 
-        t = T.addkplane(t)
-        t = T.contract(t, (0,0,0), (1,0,0), (0,1,0), 0.01)
-        t = T.makeDirect(t)
+        T._addkplane(t)
+        T._contract(t, (0,0,0), (1,0,0), (0,1,0), 0.01)
+        T._makeDirect(t)
 
     # Raccords
     tc = C.node2Center(t)

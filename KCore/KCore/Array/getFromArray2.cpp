@@ -258,7 +258,7 @@ E_Int K_ARRAY::typeId2eltString(E_Int typeId, E_Int loc, char* eltString, E_Int&
     case 8:
       strcpy(eltString, "NGON"); nvpe = 1; break;
       
-    case 10: 
+    case 10:
       strcpy(eltString, "BAR_3"); nvpe = 3; break;
       
     case 11: 

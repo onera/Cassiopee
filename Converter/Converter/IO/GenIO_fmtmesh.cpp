@@ -264,12 +264,12 @@ E_Int K_IO::GenIO::meshwrite(
   E_Int nvalidZones = 0;
   for (E_Int zone = 0; zone < nzone; zone++)
   {
-    // triangles, quads, tetra, hexa , edges, supported
+    // triangles, quads, tetra, hexa, edges, supported
     if (eltType[zone] == 1 || eltType[zone] == 2 || eltType[zone] == 3 || 
         eltType[zone] == 4 || eltType[zone] == 7) 
       nvalidZones++;
     else
-      printf("Warning: meshwrite: zone %d not written (not a valid elements in zone).", zone);
+      printf("Warning: meshwrite: zone %d not written (not a valid element type: %d).", zone, eltType[zone]);
   }
 
   if (nvalidZones == 0) return 1;

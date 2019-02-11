@@ -337,8 +337,11 @@ def octree2StructLoc__(o, vmin=21, ext=0, optimized=0, merged=0, sizeMax=4e6, li
 
     print('After merging: nb Cartesian zones=%d.'%(len(zones)))
 
+    # Cas ext=-1, ne fait pas les extensions ni les BCs ou raccords
+    if ext == -1: return zones
+
     if ext > 0:
-        coords = C.getFields(Internal.__GridCoordinates__,zones)
+        coords = C.getFields(Internal.__GridCoordinates__, zones)
         coords = Generator.extendOctreeGrids__(coords, ext=ext, optimized=optimized)
         C.setFields(coords, zones, 'nodes')
     # Creation des zones du pyTree
@@ -408,15 +411,16 @@ def generateCartMesh__(o, dimPb=3, vmin=11, DEPTH=2, NP=0, merged=1, sizeMax=400
     res = octree2StructLoc__(o, vmin=vmin, ext=ext, optimized=optimized, merged=merged, sizeMax=sizeMax, 
                              listOfParents=listOfParentOctrees)
     t = C.newPyTree(['CARTESIAN', res])
+    
     dz = 0.01
     if dimPb == 2:
         T._addkplane(t)
         T._contract(t, (0,0,0), (1,0,0), (0,1,0), dz)
-    if bbox is None: bbox = G.bbox(o)        
+    
     dirs = [0,1,2,3,4,5]
     rangeDir=['imin','jmin','kmin','imax','jmax','kmax']
     if dimPb == 2: dirs = [0,1,3,4]
-
+    if bbox is None: bbox = G.bbox(o)        
     nptsTot = 0
     for zp in Internal.getZones(t):
         dimZ = Internal.getZoneDim(zp)
@@ -440,6 +444,54 @@ def generateCartMesh__(o, dimPb=3, vmin=11, DEPTH=2, NP=0, merged=1, sizeMax=400
             if external: _modifPhysicalBCs__(zp, depth=DEPTH, dimPb=dimPb)
     print('Expected number of points is %d.'%nptsTot)
     return t
+
+def _addBCOverlaps(t, bbox):
+    xmin = bbox[0]; ymin = bbox[1]; zmin = bbox[2]
+    xmax = bbox[3]; ymax = bbox[4]; zmax = bbox[5]
+    for z in Internal.getZones(t):
+        # [x1,y1,z1,x2,y2,z2] = G.bbox(z)
+        dimZ = Internal.getZoneDim(z)
+        niz = dimZ[1]; njz = dimZ[2]; nkz = dimZ[3]
+        indM = niz-1+(njz-1)*niz+(nkz-1)*niz*njz
+        x1 = C.getValue(z,'CoordinateX',0)
+        y1 = C.getValue(z,'CoordinateY',0)
+        z1 = C.getValue(z,'CoordinateZ',0)
+        x2 = C.getValue(z,'CoordinateX',indM)
+        y2 = C.getValue(z,'CoordinateY',indM)
+        z2 = C.getValue(z,'CoordinateZ',indM)
+        if (x1 > xmin+EPSCART): C._addBC2Zone(z,'overlap1','BCOverlap','imin')
+        if (x2 < xmax-EPSCART): C._addBC2Zone(z,'overlap2','BCOverlap','imax')
+        if (y1 > ymin+EPSCART): C._addBC2Zone(z,'overlap3','BCOverlap','jmin')
+        if (y2 < ymax-EPSCART): C._addBC2Zone(z,'overlap4','BCOverlap','jmax')
+        if (z1 > zmin+EPSCART): C._addBC2Zone(z,'overlap5','BCOverlap','kmin')
+        if (z2 < zmax-EPSCART): C._addBC2Zone(z,'overlap6','BCOverlap','kmax')
+    return None    
+
+def _addExternalBCs(t, bbox, DEPTH=2, externalBCType='BCFarfield', dimPb=3):
+    dirs = [0,1,2,3,4,5]
+    rangeDir=['imin','jmin','kmin','imax','jmax','kmax']
+    if dimPb == 2: dirs = [0,1,3,4]
+    nptsTot = 0
+    for zp in Internal.getZones(t):
+        dimZ = Internal.getZoneDim(zp)
+        niz = dimZ[1]; njz = dimZ[2]; nkz = dimZ[3]
+        nptsTot += niz*njz*nkz
+        indM = niz-1+(njz-1)*niz+(nkz-1)*niz*njz
+        x1 = C.getValue(zp,'CoordinateX',0)
+        y1 = C.getValue(zp,'CoordinateY',0)
+        z1 = C.getValue(zp,'CoordinateZ',0)
+        x2 = C.getValue(zp,'CoordinateX',indM)
+        y2 = C.getValue(zp,'CoordinateY',indM)
+        z2 = C.getValue(zp,'CoordinateZ',indM)
+        bbz=[x1,y1,z1,x2,y2,z2]
+        external = False
+        for idir in dirs:
+            if abs(bbz[idir]-bbox[idir])< 1.e-6:                    
+                C._addBC2Zone(zp, 'external', externalBCType, rangeDir[idir])
+                external = True
+        if externalBCType != 'BCOverlap' and externalBCType != 'BCDummy':
+            if external: _modifPhysicalBCs__(zp, depth=DEPTH, dimPb=dimPb)
+    return None
 
 #--------------------------------------------------------------------------
 # to : maillage octree, si not None : on le prend comme squelette 
@@ -810,7 +862,7 @@ def getIBMFront(tc, frontvar, dim, frontType):
     else: front = getIBMFrontType0(tc,frontvar,dim)
     front = C.deleteEmptyZones(front)
     Internal._rmNodesFromName(front,"ID_*")
-    if frontType==0: return front
+    if frontType == 0: return front
     
     dxmin = 1e12
     if frontType>0:
@@ -1017,7 +1069,7 @@ def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=0
                                 dnrZones.append(zdnr)
                                 hook0.append(dictOfADT[zdnrname])
 
-            dnrZones = X.setInterpData(zrcv,dnrZones,nature=1,penalty=1,loc='centers',storage='inverse',sameName=1,\
+            dnrZones = X.setInterpData(zrcv, dnrZones, nature=1,penalty=1,loc='centers',storage='inverse',sameName=1,\
                                        hook=hook0, itype='chimera')
             for nod in xrange(len(dnrZones)):
                 nobd = nobOfDnrBases[nod]
@@ -1204,7 +1256,7 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interp='all', 
 
     # maillage donneur: on MET les pts IBC comme donneurs
     tc = C.node2Center(t)
-    FSN = Internal.getNodesFromName(tc,Internal.__FlowSolutionNodes__)
+    FSN = Internal.getNodesFromName(tc, Internal.__FlowSolutionNodes__)
     Internal._rmNodesByName(FSN,'cellNFront')
     Internal._rmNodesByName(FSN,'cellNIBC')
     Internal._rmNodesByName(FSN, "TurbulentDistance")
@@ -1251,7 +1303,6 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interp='all', 
     #-----------------------------------------------
     # Transfert du cellNFront
     C._cpVars(t,'centers:cellNFront',tc,'cellNFront')
-
 
     for zc in Internal.getZones(tc):        
         cellNFront = Internal.getNodeFromName2(zc,'cellNFront')

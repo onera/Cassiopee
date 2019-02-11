@@ -31,7 +31,7 @@ then
     ELSAPROD=""
 fi
 
-NPROCS=1
+NPROCS=0
 NTHREADS=0
 ARGS=""
 while getopts hn:t:a: OPTION
@@ -61,7 +61,7 @@ then
 fi
 echo 'Running '$SCRIPT' with Nprocs='$NPROCS' and Nthreads='$NTHREADS
 
-if test $NPROCS -eq 1
+if test $NPROCS -eq 0
 then
     export MPIRUN=0
     export OMP_NUM_THREADS=$NTHREADS

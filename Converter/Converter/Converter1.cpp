@@ -246,6 +246,10 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
                                               field, im, jm, km, 
                                               ufield, c, et, zoneNames,
                                               BCFaces, BCNames);
+    // Pour l'instant, on ne peut pas les traiter en elements
+    for (size_t i = 0; i < BCFaces.size(); i++) delete BCFaces[i];
+    for (size_t i = 0; i < BCNames.size(); i++) delete [] BCNames[i];
+    BCFaces.clear(); BCNames.clear();
   }
   else if (K_STRING::cmp(fileFmt, "fmt_cedre") == 0)
   {

@@ -1049,8 +1049,8 @@ def setInterpDataForGhostCells__(tR, tD, storage='direct', loc='nodes'):
                     # donor zone name
                     zdonorname = Internal.getValue(join)
                     zdonor = Internal.getZones(aR)
-                    zdonor = Internal.getNodesFromName(zdonor, zdonorname)
-                    zdonor = zdonor[0] # Warning: if a zone name is not unique, the first zone is kept
+                    zdonor = Internal.getNodeFromName(zdonor, zdonorname)
+                    if zdonor is None: continue
                     # check if the donor zone is defined in aD
                     zdonorp = Internal.getNodesFromName2(aD, zdonorname)
                     if zdonorp == []:

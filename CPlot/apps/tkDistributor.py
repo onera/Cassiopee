@@ -344,7 +344,7 @@ def createApp(win):
     if CTK.PREFS.has_key('tkDistributorComSpeed'): 
         V.set(CTK.PREFS['tkDistributorComSpeed'])
     # -2- Algorithm
-    V = TK.StringVar(win); V.set('gradient0'); VARS.append(V)
+    V = TK.StringVar(win); V.set('graph'); VARS.append(V)
     if CTK.PREFS.has_key('tkDistributorAlgorithm'): 
         V.set(CTK.PREFS['tkDistributorAlgorithm'])
     # -3- Communication types
@@ -375,7 +375,7 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='Multigrid level.')
 
     # - Algorithms -
-    B = TTK.OptionMenu(Frame, VARS[2], 'gradient0', 'gradient1', 'genetic',
+    B = TTK.OptionMenu(Frame, VARS[2], 'graph', 'gradient0', 'gradient1', 'genetic',
                        'fast')
     B.grid(row=1, column=0, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Distribution algorithm.')
@@ -448,7 +448,7 @@ def saveApp():
 def resetApp():
     VARS[0].set('10')
     VARS[1].set('0.1')
-    VARS[2].set('gradient0')
+    VARS[2].set('graph')
     VARS[3].set('all')
     VARS[5].set('0')
     CTK.PREFS['tkDistributorNProc'] = VARS[0].get()
