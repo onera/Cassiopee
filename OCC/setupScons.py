@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from distutils.core import setup, Extension
+from KCore.config import *
 import os, sys
 
 #=============================================================================
@@ -19,17 +20,24 @@ Dist.writeSetupCfg()
 # Test if generator exists ===================================================
 (generatorVersion, generatorIncDir, generatorLibDir) = Dist.checkGenerator()
     
+# Test if open-cascade is installed ===========================================
+(OCEPresent, OCEIncDir, OCELibDir) = Dist.checkOCE(additionalLibPaths, 
+                                                   additionalIncludePaths)
+
 # Compilation des fortrans ===================================================
-from KCore.config import *
 prod = os.getenv("ELSAPROD")
 if prod is None: prod = 'xx'
 
 # Setting libraryDirs and libraries ===========================================
 libraryDirs = ["build/"+prod, kcoreLibDir, generatorLibDir]
 includeDirs = [kcoreIncDir, generatorIncDir]
-libraries = ["occ_cassiopee", 
-"TKIGES", "TKXSBase", "TKShHealing", "TKTopAlgo", "TKPrim", "TKBool", "TKBool2", "TKBool3", "TKBool4", "TKGeomAlgo", "TKBRep", "TKBRep2", "TKGeomBase", "TKG3d", "TKMath", "TKernel", "TKG2d",
-"TKIGES", "TKXSBase", "TKShHealing", "TKTopAlgo", "TKPrim", "TKBool", "TKBool2", "TKBool3", "TKBool4", "TKGeomAlgo", "TKBRep", "TKBRep2", "TKGeomBase", "TKG3d", "TKMath", "TKernel", "TKG2d", "generator", "kcore"]
+libraries = ["occ_cassiopee", "generator", "kcore"]
+if OCEPresent:
+    libOCE = ["TKIGES", "TKXSBase", "TKShHealing", "TKTopAlgo", "TKPrim", "TKBool", "TKGeomAlgo", "TKBRep", "TKGeomBase", "TKG3d", "TKMath", "TKernel", "TKG2d"]
+    libOCE = [i+".dll" for i in libOCE]
+else:
+    libOCE = ["TKIGES", "TKXSBase", "TKShHealing", "TKTopAlgo", "TKPrim", "TKBool", "TKBool2", "TKBool3", "TKBool4", "TKGeomAlgo", "TKBRep", "TKBRep2", "TKGeomBase", "TKG3d", "TKMath", "TKernel", "TKG2d"]
+libraries += libOCE + libOCE
 
 (ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
@@ -50,7 +58,7 @@ setup(
                            library_dirs=additionalLibPaths+libraryDirs,
                            libraries=libraries+additionalLibs,
                            extra_compile_args=Dist.getCppArgs(),
-                           extra_link_args=Dist.getLinkArgs() + ['-lrt']
+                           extra_link_args=Dist.getLinkArgs()
                            )]
     )
 

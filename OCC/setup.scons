@@ -30,12 +30,18 @@ installPath = Dist.getInstallPath(prefix)
 # Test if generator exists ====================================================
 (generatorVersion, generatorIncDir, generatorLibDir) = Dist.checkGenerator()
 
-# Hack: To make a full path name for the OCC include dir (the relative path to build/... doesn't contain everything, e.g fff is not copied
-import KCore.installPath
-OCCIncDir = KCore.installPath.includePath
-OCCIncDir = os.path.dirname(OCCIncDir)
-OCCIncDir = os.path.join(OCCIncDir, 'OCC/OCC/occ_inc')
+# Test if open-cascade is installed ===========================================
+(OCEPresent, OCEIncDir, OCELibDir) = Dist.checkOCE(additionalLibPaths, 
+                                                   additionalIncludePaths)
 
+if OCEPresent:
+        OCCIncDir = OCEIncDir+'/oce'
+else:
+        # Hack: To make a full path name for the OCC include dir (the relative path to build/... doesn't contain everything, e.g fff is not copied
+        import KCore.installPath
+        OCCIncDir = KCore.installPath.includePath
+        OCCIncDir = os.path.dirname(OCCIncDir)
+        OCCIncDir = os.path.join(OCCIncDir, 'OCC/OCC/occ_inc')
 
 # Setting libraryDirs and libraries ===========================================
 libraryDirs = ['..', '.', pythonLibDir, kcoreLibDir, generatorLibDir]
@@ -109,4 +115,7 @@ dp13 = env.Install(modDir, TKIGES)
 #dp15 = env.Install(modDir, TKSTEP2)
 dp = env.Install(modDir, Glob('OCC/*.py'))
 
-env.Alias(target="install", source=[dp0,dp1,dp2,dp3,dp4,dp5,dp6,dp6a,dp7,dp8,dp8a,dp8b,dp8c,dp9,dp10,dp11,dp12,dp13,dp])
+if OCEPresent:
+        env.Alias(target="install", source=[dp0,dp])
+else:
+        env.Alias(target="install", source=[dp0,dp1,dp2,dp3,dp4,dp5,dp6,dp6a,dp7,dp8,dp8a,dp8b,dp8c,dp9,dp10,dp11,dp12,dp13,dp])

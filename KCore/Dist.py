@@ -1084,6 +1084,30 @@ def checkOSMesa(additionalLibPaths=[], additionalIncludePaths=[]):
         return (False, i, l, libname)
 
 #=============================================================================
+# Check for OCE (open cascade edition library)
+# additionalPaths: chemins d'installation non standards: ['/home/toto',...]
+# Retourne: (True/False, chemin des includes, chemin de la librairie)
+#=============================================================================
+def checkOCE(additionalLibPaths=[], additionalIncludePaths=[]):
+    libnames = ['TKernel', 'TKMath', 'TKGeomBase', 'TKG2d', 'TKG3d', 'TKBRep', 
+        'TKGeomAlgo', 'TKBool', 'TKPrim', 'TKShHealing', 'TKTopAlgo', 'TKXSBase',
+        'TKIGES', 'TKSTEP', 'TKSTEP2']
+    libnames2 = ['TKXDESTEP']
+    l = checkLibFile__('libTKernel.so', additionalLibPaths)
+    if l is None:
+        l = checkLibFile__('libTKernel.a', additionalLibPaths)
+        if l is None:
+            l = checkLibFile__('libTKernel.dll.a', additionalLibPaths)
+            
+    i = checkIncFile__('oce/TopTools.hxx', additionalIncludePaths)
+    if i is not None and l is not None:
+        print('Info: libOCE detected at %s.'%l)
+        return (True, i, l)
+    else:
+        print('Info: libOCE or oce/*.hxx was not found on your system. No IGES/STEP support.')
+        return (False, i, l)
+
+#=============================================================================
 # Check for png (libpng)
 # additionalPaths: chemins d'installation non standards: ['/home/toto',...]
 # Retourne: (True/False, chemin des includes, chemin de la librairie)
