@@ -2294,6 +2294,7 @@ def _initVars(t, varNameString, v1=[], v2=[]):
     var = var.replace('}', '')
     var = var.replace('{', '')
     var = var.strip()
+    loc = loc.strip()
 
   centerCoordNeeded = False
   if loc == 'centers':
