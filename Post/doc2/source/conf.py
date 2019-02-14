@@ -151,6 +151,7 @@ html_output_encoding = 'ASCII'
 
 # Custom sidebar templates, maps document names to template names.
 #html_sidebars = {}
+html_sidebars = {'**': ['localtoc.html', 'relations.html', 'searchbox.html', 'mine.html']}
 
 # Additional templates that should be rendered to pages, maps page names to
 # template names.

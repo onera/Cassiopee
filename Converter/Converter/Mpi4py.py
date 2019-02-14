@@ -198,9 +198,9 @@ def createBBoxTree(t, method='AABB', weighting=0):
 # une zone de proc2
 # IN: type: type de graph
 # IN: reduction: si True, on assure que le graph est le meme sur tous
-# IN: procDict: le procDict de tous l'arbre, si None, on le calcul.
 # les procs. A utiliser si le graph est construit a partir d'arbres partiels
 # ou pour type='proc'
+# IN: procDict: le procDict de tous l'arbre, si None, on le calcul.
 # IN: intersectionsDict: dictionnaire d'intersections. Consulter la doc de
 # computeGraph dans Distributed.py pour plus de details.
 #==============================================================================
@@ -214,9 +214,8 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, reduction=True,
     if reduction:
         # Assure que le graph est le meme pour tous les processeurs
         g = KCOMM.allgather(graph)
-        items = []
-        for i in g: items += i.items()
-        graph = dict(items)
+        for i in g:
+            for k in i.keys(): graph[k] = i[k]
 
     return graph
 

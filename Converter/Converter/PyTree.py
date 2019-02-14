@@ -1063,6 +1063,7 @@ def convertPyTree2File(t, fileName, format=None, isize=4, rsize=8,
     pickle.dump(t, file, protocol=pickle.HIGHEST_PROTOCOL); file.close()
     print 'done.'
   else:
+    _fillMissingVariables(t) # force all zones to have the same variables 
     a = center2Node(t, Internal.__FlowSolutionCenters__)
     a = getAllFields(a, 'nodes')
     a = Internal.clearList(a)
@@ -6234,8 +6235,8 @@ def _mergeConnectivity(z1, z2, boundary=0):
     #   newc[:] = ids[oldc[:]-1]
     #   Internal.createUniqueChild(node, 'ElementConnectivity', 'DataArray_t', value=newc)
     #   c += 1
-    Internal.createUniqueChild(z1, z2[0], 'Elements_t', value=[eltType,nebb])
-    node = Internal.getNodeFromName(z1, z2[0])
+    Internal.createUniqueChild(z1, 'Elts'+z2[0], 'Elements_t', value=[eltType,nebb])
+    node = Internal.getNodeFromName1(z1, 'Elts'+z2[0])
     Internal.createUniqueChild(node, 'ElementRange', 'IndexRange_t',
                                value=[maxElt+1,maxElt+neb])
     oldc = Internal.getNodeFromName(z2, 'ElementConnectivity')[1] # first
@@ -6252,8 +6253,8 @@ def _mergeConnectivity(z1, z2, boundary=0):
 
     # on cree un nouveau noeud connectivite dans z1 (avec le nom de la zone z2)
     nebb = neb
-    Internal.createUniqueChild(z1, z2[0], 'Elements_t', value=[eltType,nebb])
-    node = Internal.getNodeFromName(z1, z2[0])
+    Internal.createUniqueChild(z1, 'Elts'+z2[0], 'Elements_t', value=[eltType,nebb])
+    node = Internal.getNodeFromName1(z1, 'Elts'+z2[0])
     Internal.createUniqueChild(node, 'ElementRange', 'IndexRange_t',
                                 value=[maxElt+1,maxElt+neb])
     oldc = Internal.getNodeFromName(z2, 'ElementConnectivity')[1] # first

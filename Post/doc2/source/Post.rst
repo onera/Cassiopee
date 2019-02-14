@@ -1009,11 +1009,13 @@ Solution extraction
 
 .. py:function:: Post.usurp(A)
 
-    An alternative to "zipper" is "usurp". Result is a ratio field
-    located at cell centers.
+    This function computes a ratio field for structured overlapping surfaces.
+    The ratio field is located at cell centers. 
     In case of no overset, ratio are set to 1, otherwise ratio represents
     the percentage of overlap of a cell by another mesh.
-
+    The finest cells have priority.
+    All surfaces must be oriented in the same way.
+    
     When using the array interface:
     ::
 

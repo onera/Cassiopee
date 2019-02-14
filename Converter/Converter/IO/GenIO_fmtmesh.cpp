@@ -96,7 +96,9 @@ E_Int K_IO::GenIO::meshread(
   E_Boolean Triangles = false;
   E_Boolean Quadrangles = false;
   E_Boolean Tetrahedra = false;
-  E_Boolean Hexahedra = false; 
+  E_Boolean Hexahedra = false;
+  E_Boolean Pentas = false;
+  E_Boolean Pyras = false;
 
   while (strcmp(buf, "End") != 0 && res >= 1)
   { 
@@ -199,6 +201,49 @@ E_Int K_IO::GenIO::meshread(
       eltType.push_back(7);
       Hexahedra = true;
     }
+    else if (strcmp(buf, "Prisms") == 0)
+    {
+      // Connectivity Penta (Global) -> 1 zone
+      res = readDouble(ptrFile, t, -1);
+      st = E_Int(t);
+      if (st == 0) goto next;
+      FldArrayI* cn = new FldArrayI(st, 6);
+      FldArrayI& c = *cn;
+      for (E_Int i = 0; i < st; i++)
+      {
+        res = readInt(ptrFile, ti, -1); c(i,1) = ti;
+        res = readInt(ptrFile, ti, -1); c(i,2) = ti;
+        res = readInt(ptrFile, ti, -1); c(i,3) = ti;
+        res = readInt(ptrFile, ti, -1); c(i,4) = ti;
+        res = readInt(ptrFile, ti, -1); c(i,5) = ti;
+        res = readInt(ptrFile, ti, -1); c(i,6) = ti;
+        res = readInt(ptrFile, ti, -1); // discarded
+      }
+      connect.push_back(cn);
+      eltType.push_back(6);
+      Pentas = true;
+    }
+    else if (strcmp(buf, "Pyramids") == 0)
+    {
+      // Connectivity Penta (Global) -> 1 zone
+      res = readDouble(ptrFile, t, -1);
+      st = E_Int(t);
+      if (st == 0) goto next;
+      FldArrayI* cn = new FldArrayI(st, 5);
+      FldArrayI& c = *cn;
+      for (E_Int i = 0; i < st; i++)
+      {
+        res = readInt(ptrFile, ti, -1); c(i,1) = ti;
+        res = readInt(ptrFile, ti, -1); c(i,2) = ti;
+        res = readInt(ptrFile, ti, -1); c(i,3) = ti;
+        res = readInt(ptrFile, ti, -1); c(i,4) = ti;
+        res = readInt(ptrFile, ti, -1); c(i,5) = ti;
+        res = readInt(ptrFile, ti, -1); // discarded
+      }
+      connect.push_back(cn);
+      eltType.push_back(5);
+      Pyras = true;
+    }
     next: ;
     res = readWord(ptrFile, buf);
     //strcpy(buf, "End");
@@ -227,6 +272,16 @@ E_Int K_IO::GenIO::meshread(
     unstructField.push_back(an);
   }
   if (Hexahedra == true)
+  {
+    FldArrayF* an = new FldArrayF(f);
+    unstructField.push_back(an);
+  }
+  if (Pentas == true)
+  {
+    FldArrayF* an = new FldArrayF(f);
+    unstructField.push_back(an);
+  }
+  if (Pyras == true)
   {
     FldArrayF* an = new FldArrayF(f);
     unstructField.push_back(an);
@@ -261,6 +316,7 @@ E_Int K_IO::GenIO::meshwrite(
   vector<vector<E_Int> >* colors)
 {
   E_Int nzone = unstructField.size();
+
   E_Int nvalidZones = 0;
   for (E_Int zone = 0; zone < nzone; zone++)
   {
@@ -273,6 +329,10 @@ E_Int K_IO::GenIO::meshwrite(
   }
 
   if (nvalidZones == 0) return 1;
+
+  // Check if this is the same zone with mutliple connectivity
+  //E_Int uniqueZone = 1;
+  //for (E_Int i = 0; i < nzone; i++) printf("zone %s\n", zoneNames[i]);
 
   // All zones must have posx, posy, posz
   E_Int posx, posy, posz;
@@ -322,6 +382,8 @@ E_Int K_IO::GenIO::meshwrite(
   vector<FldArrayI*> connectQuad;
   vector<FldArrayI*> connectTetra;
   vector<FldArrayI*> connectHexa;
+  vector<FldArrayI*> connectPenta;
+  vector<FldArrayI*> connectPyra;
 
   for (E_Int i = 0; i < nzone; i++)
   {
@@ -392,6 +454,35 @@ E_Int K_IO::GenIO::meshwrite(
         cp(n,8) = cn(n,8) + shift;
       }
       connectHexa.push_back(cpp);
+    }
+    else if (elt == 6) // penta
+    {
+      FldArrayI* cpp = new FldArrayI(cn);
+      FldArrayI& cp = *cpp;
+      for (E_Int n = 0; n < cn.getSize(); n++)
+      {
+        cp(n,1) = cn(n,1) + shift;
+        cp(n,2) = cn(n,2) + shift;
+        cp(n,3) = cn(n,3) + shift;
+        cp(n,4) = cn(n,4) + shift;
+        cp(n,5) = cn(n,5) + shift;
+        cp(n,6) = cn(n,6) + shift;
+      }
+      connectPenta.push_back(cpp);
+    }
+    else if (elt == 5) // pyra
+    {
+      FldArrayI* cpp = new FldArrayI(cn);
+      FldArrayI& cp = *cpp;
+      for (E_Int n = 0; n < cn.getSize(); n++)
+      {
+        cp(n,1) = cn(n,1) + shift;
+        cp(n,2) = cn(n,2) + shift;
+        cp(n,3) = cn(n,3) + shift;
+        cp(n,4) = cn(n,4) + shift;
+        cp(n,5) = cn(n,5) + shift;
+      }
+      connectPyra.push_back(cpp);
     }
     shift += unstructField[i]->getSize();
   }
@@ -522,7 +613,48 @@ E_Int K_IO::GenIO::meshwrite(
       }
     }
   }
-  
+  E_Int connectPentaSize = connectPenta.size();
+  if (connectPentaSize != 0)
+  {
+    E_Int size = 0;
+    for (E_Int i = 0; i < connectPentaSize; i++)
+      size = size + connectPenta[i]->getSize();
+    fprintf(ptrFile, "Prisms\n%d\n", size);
+    c = 0;
+    for (E_Int i = 0; i < nzone; i++) 
+    {
+      if (eltType[i] == 6)
+      {
+        FldArrayI& cp = *connectPenta[c];
+        for (E_Int i = 0; i < cp.getSize(); i++)
+          fprintf(ptrFile, "%d %d %d %d %d %d %d\n", 
+                  cp(i,1), cp(i,2), cp(i,3), cp(i,4),
+                  cp(i,5), cp(i,6), c);
+        c++;
+      }
+    }
+  }
+  E_Int connectPyraSize = connectPyra.size();
+  if (connectPyraSize != 0)
+  {
+    E_Int size = 0;
+    for (E_Int i = 0; i < connectPyraSize; i++)
+      size = size + connectPyra[i]->getSize();
+    fprintf(ptrFile, "Pyramids\n%d\n", size);
+    c = 0;
+    for (E_Int i = 0; i < nzone; i++) 
+    {
+      if (eltType[i] == 5)
+      {
+        FldArrayI& cp = *connectPyra[c];
+        for (E_Int i = 0; i < cp.getSize(); i++)
+          fprintf(ptrFile, "%d %d %d %d %d %d\n", 
+                  cp(i,1), cp(i,2), cp(i,3), cp(i,4),
+                  cp(i,5), c);
+        c++;
+      }
+    }
+  }
   delete vertices;
   for (E_Int i = 0; i < connectTriSize; i++)
     delete connectTri[i];
@@ -532,6 +664,10 @@ E_Int K_IO::GenIO::meshwrite(
     delete connectTetra[i];
   for (E_Int i = 0; i < connectHexaSize; i++)
     delete connectHexa[i];
+  for (E_Int i = 0; i < connectPentaSize; i++)
+    delete connectPenta[i];
+  for (E_Int i = 0; i < connectPyraSize; i++)
+    delete connectPyra[i];
 
   fclose(ptrFile);
   return 0;

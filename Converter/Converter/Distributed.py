@@ -424,7 +424,7 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
             for z2 in zones:
                 if z[0] in intersectionsDict[z2[0]]:
                     popp = getProcGlobal__(z2[0], t, procDict) 
-                    updateGraph__(graph, proc, popp, z[0])         
+                    updateGraph__(graph, proc, popp, z[0])
         #import Connector.PyTree as X 
         #for z in zones: 
         #    proc = getProcLocal__(z, procDict) 

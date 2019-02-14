@@ -63,7 +63,7 @@ def prepare0(t_case, t_out, tc_out, dfar=10., vmin=21, check=False, NP=0, format
 
     #--------------------------------------------------------
     # Generates the full Cartesian mesh
-    t = TIBM.generateIBMMesh(tb, vmin, snears, dfar, DEPTH=2, NP=NP,
+    t = TIBM.generateIBMMesh(tb, vmin, snears, dfar, DEPTH=2,
                              tbox=tbox, snearsf=snearsf, check=check,
                              sizeMax=4000000)
 

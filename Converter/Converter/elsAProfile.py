@@ -1040,7 +1040,8 @@ def _createElsaHybrid(t, method=0, axe2D=0, methodPE=0):
                  Internal.newDataArray('InternalElts', iTRI, parent=child)
                  Internal.newDataArray('ExternalElts', eTRI, parent=child)
          else:
-             print 'Warning: createElsaHybrid: no NGON node found for zone %s. No :elsAHybrid node created.'%z[0]
+             pass
+             #print 'Warning: createElsaHybrid: no NGON node found for zone %s. No :elsAHybrid node created.'%z[0]
     return None
 
 #==============================================================================
