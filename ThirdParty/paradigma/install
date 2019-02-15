@@ -1,0 +1,13 @@
+
+setenv LIBRARY_PATH /home/benoit/Cassiopee/Dist/bin/x86_r8/lib/:/usr/lib64/openmpi/lib/:$LIBRARY_PATH
+setenv CPATH /usr/include/openmpi-x86_64/:$CPATH
+
+# installation manuelle
+# mkdir build
+# cd build
+# cmake-gui
+# make
+# cd paradigm/Cython
+
+# python setup.py build
+# recopier Pydm.so dans Dist/...

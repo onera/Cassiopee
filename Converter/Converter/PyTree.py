@@ -2727,7 +2727,7 @@ def _cpVars__(z1, var1, z2, var2):
   nodes2 = getStdNodesFromName(z2, var2)
 
   # Switch nodes
-  if (nodes2 != []): # var2 existe deja dans z2
+  if nodes2 != []: # var2 existe deja dans z2
     nodes2[0][1] = nodes1[0][1]
     return None
   # Create nodes
@@ -2809,17 +2809,14 @@ def rmBCDataVars(t,var):
   return tc 
 
 def _rmBCDataVars(t,var):
-  if not isinstance(var, list):
-      vars = [var]
-  else:
-      vars = var 
+  if not isinstance(var, list): vars = [var]
+  else: vars = var 
 
   isStd = Internal.isStdNode(t)
   if isStd >= 0:
     for c in t[isStd:]: rmBCDataVars__(c,vars)
   else: 
     rmBCDataVars__(t,vars)
-
 
 def rmBCDataVars__(t,vars):
   for v in vars: 
@@ -2831,7 +2828,6 @@ def rmBCDataVars__(t,vars):
             (parent, d) = Internal.getParentOfNode(bcdata, nodes[0])
             del parent[2][d]
   return None 
-
 
 # -- normalize: normalise un jeu de variables
 def normalize(t, vars):
@@ -4000,7 +3996,7 @@ def identifyBC(t, infos, tol=1.e-12):
   # Creation d'un hook global a partir de toutes les fenetres
   indirWins = [] # permet d'identifier la fenetre a laquelle se rapporte un pt du hook
   globalHook, indirWins = Converter.createGlobalHook(allWins, 'nodes',
-                                                     extended=1)
+                                                     indir=1)
   # Identify and gather...
   tpp,typen = Internal.node2PyTree(t)
   for nob in xrange(len(tpp[2])):
@@ -6046,11 +6042,11 @@ def createHook(a, function='None'):
     else: return Converter.createHook(fields, function)
 
 # -- createGlobalHook
-def createGlobalHook(a, function='None',extended=0):
+def createGlobalHook(a, function='None', indir=0):
   """Create a global hook for all zones in a.
   Usage: hook = createGlobalHook(a, function)"""
-  fields = getFields(Internal.__GridCoordinates__, a)
-  return Converter.createGlobalHook(fields, function,extended)
+  fields = getFields(Internal.__GridCoordinates__, a, api=2)
+  return Converter.createGlobalHook(fields, function, indir)
 
 # -- freeHook
 def freeHook(hook):
@@ -6088,7 +6084,7 @@ def identifyElements(hook, a, tol=1.e-11):
 
 # -- identifySolutions: recopie la solution de tDnr dans tRcv par identification
 # des noeuds et des centres
-def identifySolutions(tRcv, tDnr, hookN=None, hookC=None, vars=[], tol=1.e-12):
+def identifySolutions(tRcv, tDnr, hookN=None, hookC=None, vars=[], tol=1.e6):
   """Identify points in stored in a global hook to mesh points and set the solution if donor
   and receptor points are distant from tol.
   Usage: identifySolutions(tRcv, tDnr, hookN, hookC, vars, tol)"""
@@ -6119,22 +6115,22 @@ def identifySolutions(tRcv, tDnr, hookN=None, hookC=None, vars=[], tol=1.e-12):
 
   if varsN != [] and hookN is not None:
     fnodes = getFields(Internal.__FlowSolutionNodes__, tDnr, api=1)
-    resn = Converter.identifySolutions(coordsR,fnodes,hookN,vars=varsN,tol=tol)
+    resn = Converter.identifySolutions(coordsR, fnodes, hookN, vars=varsN, tol=tol)
     setFields(resn, zones, 'nodes')
   if varsC != [] and hookC is not None:
-    fcenters = getFields(Internal.__FlowSolutionCenters__,tDnr, api=1)
+    fcenters = getFields(Internal.__FlowSolutionCenters__, tDnr, api=1)
     centersR = Converter.node2Center(coordsR)
-    resc=Converter.identifySolutions(centersR,fcenters,hookC,vars=varsC,tol=tol)
-    setFields(resc,zones,'centers')
+    resc = Converter.identifySolutions(centersR, fcenters, hookC, vars=varsC, tol=tol)
+    setFields(resc, zones, 'centers')
 
-  t2 = Internal.pyTree2Node(t2p,typen)
+  t2 = Internal.pyTree2Node(t2p, typen)
   return t2
 
 # -- nearestNodes: identifie le noeud de a le plus proche d'un point de hook
 def nearestNodes(hook, a):
   """Identify nearest nodes to a in hook. return identified face indices.
   Usage: nearestNodes(hook, a)"""
-  fields = getFields(Internal.__GridCoordinates__, a)
+  fields = getFields(Internal.__GridCoordinates__, a, api=2)
   if len(fields) == 1: return Converter.nearestNodes(hook, fields[0])
   else: return Converter.nearestNodes(hook, fields)
 
@@ -6142,7 +6138,7 @@ def nearestNodes(hook, a):
 def nearestFaces(hook, a):
   """Identify nearest face centers to a in hook. return identified face indices.
   Usage: nearestFaces(hook, a)"""
-  fields = getFields(Internal.__GridCoordinates__, a)
+  fields = getFields(Internal.__GridCoordinates__, a, api=2)
   if len(fields) == 1: return Converter.nearestFaces(hook, fields[0])
   else: return Converter.nearestFaces(hook, fields)
 
@@ -6151,7 +6147,7 @@ def nearestFaces(hook, a):
 def nearestElements(hook, a):
   """Identify nearest element centers to a in hook. return identified face indices.
   Usage: nearestFaces(hook, a)"""
-  fields = getFields(Internal.__GridCoordinates__, a)
+  fields = getFields(Internal.__GridCoordinates__, a, api=1)
   if len(fields) == 1: return Converter.nearestElements(hook, fields[0])
   else: return Converter.nearestElements(hook, fields)
 
@@ -6235,8 +6231,7 @@ def _mergeConnectivity(z1, z2, boundary=0):
     #   newc[:] = ids[oldc[:]-1]
     #   Internal.createUniqueChild(node, 'ElementConnectivity', 'DataArray_t', value=newc)
     #   c += 1
-    Internal.createUniqueChild(z1, 'Elts'+z2[0], 'Elements_t', value=[eltType,nebb])
-    node = Internal.getNodeFromName1(z1, 'Elts'+z2[0])
+    node = Internal.createUniqueChild(z1, z2[0], 'Elements_t', value=[eltType,nebb])
     Internal.createUniqueChild(node, 'ElementRange', 'IndexRange_t',
                                value=[maxElt+1,maxElt+neb])
     oldc = Internal.getNodeFromName(z2, 'ElementConnectivity')[1] # first
@@ -6253,8 +6248,7 @@ def _mergeConnectivity(z1, z2, boundary=0):
 
     # on cree un nouveau noeud connectivite dans z1 (avec le nom de la zone z2)
     nebb = neb
-    Internal.createUniqueChild(z1, 'Elts'+z2[0], 'Elements_t', value=[eltType,nebb])
-    node = Internal.getNodeFromName1(z1, 'Elts'+z2[0])
+    node = Internal.createUniqueChild(z1, z2[0], 'Elements_t', value=[eltType,nebb])
     Internal.createUniqueChild(node, 'ElementRange', 'IndexRange_t',
                                 value=[maxElt+1,maxElt+neb])
     oldc = Internal.getNodeFromName(z2, 'ElementConnectivity')[1] # first
@@ -6263,6 +6257,35 @@ def _mergeConnectivity(z1, z2, boundary=0):
     Internal.createUniqueChild(node, 'ElementConnectivity', 'DataArray_t',
                                value=newc)
   return None
+
+#============================================
+# Soit z une sous zone de zt
+# Remap la connectivite de z sur celle de zt
+# Share nodes field a la fin
+#============================================
+def _mapConnectOnZone(z, zt):
+    hook = createHook(zt, 'nodes')
+    ids = identifyNodes(hook, z)
+    freeHook(hook)
+    nodes = Internal.getNodesFromType(z, 'Elements_t')
+    for n in nodes:
+      node = Internal.getNodeFromName(n, 'ElementConnectivity')
+      oldc = node[1]
+      newc = numpy.copy(oldc)
+      newc[:] = ids[oldc[:]-1]
+      node[1] = newc
+    gc = Internal.getNodeFromName1(zt, Internal.__GridCoordinates__)
+    if gc is not None:
+        fields = Internal.getNodesFromType1(gc, 'DataArray_t')
+        for f in fields:
+            Internal.getNodeFromName2(z, f[0])[1] = f[1]
+    gc = Internal.getNodeFromName1(zt, Internal.__FlowSolutionNodes__)
+    if gc is not None:
+        fields = Internal.getNodesFromType1(gc, 'DataArray_t')
+        for f in fields:
+            Internal.getNodeFromName2(z, f[0])[1] = f[1]
+    z[1][0,0] = zt[1][0,0]
+    return None
 
 # -- breakConnectivity
 # break a multiple connectivity zone into single elements zones

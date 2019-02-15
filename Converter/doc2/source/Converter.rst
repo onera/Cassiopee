@@ -2246,10 +2246,12 @@ and Post.
 .. py:function:: Converter.createHook(a, functionName)
 
     Create a hook for use with identification function 'functionName'.
+    For "extractMesh" and "adt", input is intended to be a set of zones, otherwise
+    a hook is intended to be created on a single zone.
 
     :param a: input data
     :type a: [array] or [zone]
-    :param functionName: fonction the hook is made for (see functionName_)
+    :param functionName: function the hook is made for (see functionName_)
     :type functionName: string
     :return: hook
     :rtype: opaque structure
@@ -2280,6 +2282,46 @@ and Post.
     +-------------------+--------------------------------------------------------------------------------+--------------------------------------------------------+
     |'elementCenters'   |  Mesh element centers stored in a k-d tree                                     | Converter.identifyElements, Converter.nearestElements  |
     +-------------------+--------------------------------------------------------------------------------+--------------------------------------------------------+
+
+
+-------------------------------------------------------------------------------
+
+.. py:function:: Converter.createGlobalHook(a, functionName, indir=0)
+
+    Create a global hook (one single search structure) for a set of zones and
+    for use with identification function 'functionName' or identifySolutions.
+    If indir=1, the function also returns an indirection specifying the
+    zone number of each index.
+
+    :param a: input data
+    :type a: [arrays] or [zones]
+    :param functionName: function the hook is made for (see functionName2_)
+    :type functionName: string
+    :return: hook
+    :rtype: opaque structure
+
+    *Example of use:*
+
+    * `Create global hook (array) <Examples/Converter/createGlobalHook.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/createGlobalHook.py
+
+    * `Create global hook (pyTree) <Examples/Converter/createGlobalHookPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/createGlobalHookPT.py
+
+.. _functionName2:
+
+    +-------------------+--------------------------------------------------------------------------------+--------------------------------------------------------+
+    | Function name     | Type of storage                                                                | Usage                                                  |
+    +===================+================================================================================+========================================================+
+    |'nodes'            |  Mesh nodes stored in a k-d tree                                               | Converter.identifyNodes, Converter.nearestNodes        |
+    +-------------------+--------------------------------------------------------------------------------+--------------------------------------------------------+
+    |'faceCenters'      |  Mesh face centers stored in a k-d tree                                        | Converter.identifyFaces, Converter.nearestFaces        |
+    +-------------------+--------------------------------------------------------------------------------+--------------------------------------------------------+
+    |'elementCenters'   |  Mesh element centers stored in a k-d tree                                     | Converter.identifyElements, Converter.nearestElements  |
+    +-------------------+--------------------------------------------------------------------------------+--------------------------------------------------------+
+
 
 -------------------------------------------------------------------------------
 
@@ -2328,6 +2370,10 @@ Geometrical identification
     * `Indentify nodes in a hook (pyTree) <Examples/Converter/identifyNodesPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/identifyNodesPT.py
+
+    * `Indentify nodes in multiple zones (pyTree) <Examples/Converter/identifyNodesMBPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/identifyNodesMBPT.py
 
 ------------------------------------------------------------------------------------------
 
@@ -2384,6 +2430,40 @@ Geometrical identification
     .. literalinclude:: ../build/Examples/Converter/identifyElementsPT.py
 
 ------------------------------------------------------------------------------------------
+
+.. py:function:: Converter.identifySolutions(tRcv, tDnr, hookN=None, hookC=None, vars=[], tol=1.e6)
+
+    Set the solution field in tRcv with the nearest point solution of tRcv.
+    Hooks must be global hooks on tDnr.
+
+    :param tRcv: receiver data
+    :type tRcv: [array,list of arrays] or [pyTree, base, zone, list of zones]
+    :param tDnr: donor data
+    :type tDnr: [array,list of arrays] or [pyTree, base, zone, list of zones]
+    
+    :param hookN: global hook if field on nodes
+    :type hookN: created by createGlobalHook
+    :param hookC: global hook if field on centers
+    :type hookC: created by createGlobalHook
+    :param vars: variable names list
+    :type vars: list of strings
+    :param tol: tolerance for matching
+    :type tol: float
+    :return: a reference copy of tRcv
+    :rtype: identical to input
+
+    *Example of use:*
+
+    * `Indentify solutions (array) <Examples/Converter/identifySolutions.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/identifySolutions.py
+
+    * `Indentify solutions (pyTree) <Examples/Converter/identifySolutionsPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/identifySolutionsPT.py
+
+------------------------------------------------------------------------------------------
+
 
 .. py:function:: Converter.nearestNodes(hook, a)
 
@@ -2500,6 +2580,7 @@ Client/server to exchange arrays/pyTrees
 .. py:function:: Converter.send(a, host='localhost', rank=0, port=15555)
     
     Send data to the server.
+
     :param a: input data 
     :type a: [array,list of arrays] or [pyTree, base, zone, list of zones]
     :param host: host we are sending to
@@ -2508,7 +2589,6 @@ Client/server to exchange arrays/pyTrees
     :type rank:int
     :param port: communication port (must be the same as createSockets)
     :type port: int
-
 
     *Example of use:*
 

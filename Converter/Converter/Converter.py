@@ -1215,27 +1215,27 @@ def createHook(a, function='None'):
 # Fonctions de preconditionement (hook)
 # IN: function: le nom de la fonction qui va utiliser le hook
 # IN: a: liste des zones utilisees pour faire le preconditionnement global
-# IN: extended: 0: pas d indirection sur les zones
-#               1: sauvegarde de indirZones:
-#                   indirection sur le no de la zone pour chq pt du hook
+# IN: indir: 0: pas d'indirection sur les zones
+#            1: sauvegarde de indirZones:
+#               indirection sur le no de la zone pour chq pt du hook
 # OUT: hook(,indirZones)
 #===============================================================================
-def createGlobalHook(a, function='None', extended=0):
-    """Create a hook for a given function.
+def createGlobalHook(a, function='None', indir=0):
+    """Create a hook for a set of zones and for a given function.
     Usage: hook = createGlobalHook(a, function)"""
     if function == 'None': return None
     elif function == 'faceCenters': # 0
         # Retourne un KDT pour les centres des faces
-        if not isinstance(a[0],list): return converter.registerAllFaces([a],extended)
-        else: return converter.registerAllFaces(a,extended)
+        if not isinstance(a[0],list): return converter.registerAllFaces([a], indir)
+        else: return converter.registerAllFaces(a, indir)
     elif function == 'nodes': # 2
         # Retourne un KDT pour les noeuds
-        if not isinstance(a[0],list): return converter.registerAllNodes([a],extended)
-        else: return converter.registerAllNodes(a,extended)
+        if not isinstance(a[0],list): return converter.registerAllNodes([a], indir)
+        else: return converter.registerAllNodes(a, indir)
     elif function == 'elementCenters': # 3
         # Retourne un KDT pour les centres des elements
-        if not isinstance(a[0],list): return converter.registerAllElements(convertArray2NGon([a]),extended)
-        else: return converter.registerAllElements(convertArray2NGon(a),extended)
+        if not isinstance(a[0],list): return converter.registerAllElements(convertArray2NGon([a]), indir)
+        else: return converter.registerAllElements(convertArray2NGon(a), indir)
     elif function == 'extractMesh': # 1
         print 'function=extractMesh not implemented for global hook.'
     else: raise ValueError("function is invalid.")
@@ -1287,7 +1287,7 @@ def identifyElements(hook, a, tol=1.e-11):
         return converter.identifyElements(hook, a, tol)
 
 #=============================================================================
-def identifySolutions(coordsRcv, solDnr, hookDnr, vars=[], tol=1.e-13):
+def identifySolutions(coordsRcv, solDnr, hookDnr, vars=[], tol=1.e6):
     """Identify points in a hook to mesh points and set the solution if donor
     and receptor points are distant from tol.
     Usage: identifySolutions(coordsRcv, solDnr, hookDnr, vars, tol)"""

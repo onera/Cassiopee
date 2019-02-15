@@ -322,7 +322,7 @@ E_Int K_IO::GenIO::meshwrite(
   {
     // triangles, quads, tetra, hexa, edges, supported
     if (eltType[zone] == 1 || eltType[zone] == 2 || eltType[zone] == 3 || 
-        eltType[zone] == 4 || eltType[zone] == 7) 
+        eltType[zone] == 4 || eltType[zone] == 5 || eltType[zone] == 6 || eltType[zone] == 7) 
       nvalidZones++;
     else
       printf("Warning: meshwrite: zone %d not written (not a valid element type: %d).", zone, eltType[zone]);
@@ -330,9 +330,16 @@ E_Int K_IO::GenIO::meshwrite(
 
   if (nvalidZones == 0) return 1;
 
-  // Check if this is the same zone with mutliple connectivity
-  //E_Int uniqueZone = 1;
-  //for (E_Int i = 0; i < nzone; i++) printf("zone %s\n", zoneNames[i]);
+  // Check if this is the same zone with mutiple connectivity (based on coords)
+  E_Int uniqueZone = 1;
+  E_Int npts = -1;
+  for (E_Int i = 0; i < nzone; i++)
+  {
+    E_Int n = unstructField[i]->getSize();
+    if (npts == -1) npts = n;
+    if (npts != n) { uniqueZone = 0; break; }
+  }
+  if (uniqueZone == 1) printf("[unique zone]...");
 
   // All zones must have posx, posy, posz
   E_Int posx, posy, posz;
@@ -356,25 +363,44 @@ E_Int K_IO::GenIO::meshwrite(
   strcat(format1," %d\n");
 
   // Concatenate all vertices in one field
-  E_Int size = 0;
-  for (E_Int i = 0; i < nzone; i++)
+  FldArrayF* vertices;
+  if (uniqueZone == 0)
   {
-    size += unstructField[i]->getSize();
-  }
-  FldArrayF* vertices = new FldArrayF(size, 3);
-  FldArrayF& v = *vertices;
-  E_Int c = 0;
-  for (E_Int i = 0; i < nzone; i++)
-  {
-    FldArrayF& field = *unstructField[i];
-    for (E_Int n = 0; n < field.getSize(); n++)
+    E_Int size = 0;
+    for (E_Int i = 0; i < nzone; i++)
     {
-      v(c, 1) = field(n, posx);
-      v(c, 2) = field(n, posy);
-      v(c, 3) = (posz>0) ? field(n, posz) : 0.; c++;
+      size += unstructField[i]->getSize();
+    }
+    vertices = new FldArrayF(size, 3);
+    FldArrayF& v = *vertices;
+    E_Int c = 0;
+    for (E_Int i = 0; i < nzone; i++)
+    {
+      FldArrayF& field = *unstructField[i];
+      for (E_Int n = 0; n < field.getSize(); n++)
+      {
+        v(c, 1) = field(n, posx);
+        v(c, 2) = field(n, posy);
+        v(c, 3) = (posz>0) ? field(n, posz) : 0.; c++;
+      }
     }
   }
-
+  else
+  {
+    // shared coords
+    E_Int size = unstructField[0]->getSize();
+    vertices = new FldArrayF(size, 3);
+    FldArrayF& v = *vertices;
+    FldArrayF& field = *unstructField[0];
+    for (E_Int n = 0; n < field.getSize(); n++)
+    {
+      v(n, 1) = field(n, posx);
+      v(n, 2) = field(n, posy);
+      v(n, 3) = (posz>0) ? field(n, posz) : 0.;
+    }
+  }
+  FldArrayF& v = *vertices;
+  
   // Connectivite par elts
   E_Int shift = 0;
   vector<FldArrayI*> connectEdge;
@@ -484,7 +510,7 @@ E_Int K_IO::GenIO::meshwrite(
       }
       connectPyra.push_back(cpp);
     }
-    shift += unstructField[i]->getSize();
+    if (uniqueZone == 0) shift += unstructField[i]->getSize();
   }
 
   // Ecriture
@@ -503,6 +529,7 @@ E_Int K_IO::GenIO::meshwrite(
     fprintf(ptrFile, format1, v(i,1), v(i,2), v(i,3), 0);
   
   E_Int connectEdgeSize = connectEdge.size();
+  E_Int c;
   if (connectEdgeSize != 0)
   {
     E_Int size = 0;

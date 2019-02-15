@@ -38,12 +38,12 @@ fi
 #else
 #    echo 'Requires scons.'
 #fi
+
+# installation manuelle
+#cd src
 #make
 #make ptscotch
 cp lib/*.a "$INSTALLPATH"/lib
-
-# Install libkcore
-#python installLib.py
 
 # Check installation
 #python test/t1.py

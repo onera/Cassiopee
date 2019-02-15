@@ -57,7 +57,7 @@ def growOfEps__(arrays, eps, nlayers=1, planarity=True):
     modified = 0
     for i in arrays:
         if len(i) == 5: # structure
-           if (i[2] == 1 or i[3] == 1 or i[4] == 1): # 2D : to be extruded
+           if i[2] == 1 or i[3] == 1 or i[4] == 1: # 2D : to be extruded
                 p = extrudeLayer__(i, nlayers, planarity, eps, dplus, dmoins)
                 modified += 1
                 inl.append(p)

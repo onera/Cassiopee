@@ -82,7 +82,7 @@ PyObject* K_CONVERTER::registerAllFaces(PyObject* self, PyObject* args)
     posxu.push_back(posx1); posyu.push_back(posy1); poszu.push_back(posz1); 
   }
 
-    // Parcours les faces, calcule les centres, les enregistre dans le KdTree
+  // Parcours les faces, calcule les centres, les enregistre dans le KdTree
   E_Int nfacesTot=0;
   for (E_Int noz = 0; noz < nzones; noz++)
   {
@@ -297,8 +297,8 @@ PyObject* K_CONVERTER::registerAllNodes(PyObject* self, PyObject* args)
   else 
   {                   
     PyObject* res = PyList_New(0);
-    PyList_Append(res,hook);
-    PyList_Append(res,indirZones); Py_DECREF(indirZones);
+    PyList_Append(res, hook);
+    PyList_Append(res, indirZones); Py_DECREF(indirZones);
     return res;
   }
 }
@@ -483,7 +483,7 @@ PyObject* K_CONVERTER::registerAllElements(PyObject* self, PyObject* args)
     RELEASESHAREDU(objut[noz], unstrF[noz], cnt[noz]);
 
   if (extended == 0) return hook;
-  else 
+  else
   {                   
     PyObject* res = PyList_New(0);
     PyList_Append(res,hook);

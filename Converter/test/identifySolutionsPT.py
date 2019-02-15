@@ -13,6 +13,6 @@ a = D.sphere((0,0,0),0.1)
 
 # Identify solutions
 hook = C.createGlobalHook([m], 'nodes')
-a = C.identifySolutions(a, m, hookN=hook, tol=1000.)
+a = C.identifySolutions(a, m, hookN=hook)
 C.freeHook(hook)
 C.convertPyTree2File(a, 'out.cgns')

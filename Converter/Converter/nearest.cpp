@@ -61,8 +61,8 @@ PyObject* K_CONVERTER::nearestNodes(PyObject* self, PyObject* args)
   E_Int nil, njl, nkl, res;
   FldArrayF* f; FldArrayI* cnl;
   char* varString; char* eltType;
-  res = K_ARRAY::getFromArray(array, varString, 
-                              f, nil, njl, nkl, cnl, eltType, true);
+  res = K_ARRAY::getFromArray2(array, varString, 
+                               f, nil, njl, nkl, cnl, eltType);
 
   if (res != 1 && res != 2)
   {
@@ -154,8 +154,8 @@ PyObject* K_CONVERTER::nearestFaces(PyObject* self, PyObject* args)
   E_Int nil, njl, nkl, res;
   FldArrayF* f; FldArrayI* cnl;
   char* varString; char* eltType;
-  res = K_ARRAY::getFromArray(array, varString, 
-                              f, nil, njl, nkl, cnl, eltType, true);
+  res = K_ARRAY::getFromArray2(array, varString, 
+                               f, nil, njl, nkl, cnl, eltType);
 
   if (res != 1 && res != 2)
   {
@@ -274,7 +274,7 @@ PyObject* K_CONVERTER::nearestElements(PyObject* self, PyObject* args)
 #endif
   E_Int* type = (E_Int*)packet[0];
   if (*type != 0 && *type != 2 && *type != 3 &&
-      *type != 100 && *type != 102 && *type != 103) 
+      *type != 100 && *type != 102 && *type != 103)
   {
     PyErr_SetString(PyExc_TypeError, 
                     "nearestElts: this function requires a identify KDT hook.");

@@ -3,9 +3,9 @@ import Converter.PyTree as C
 import Generator.PyTree as G
 import KCore.test as test
 
-#--------
-# cas 3D 
-#--------
+#-----------------
+# cas 3D structure
+#-----------------
 # Avec une seule zone
 a = G.cart((0,0,0),(1,1,1),(10,10,10))
 a = C.initVars(a,'F',1.); a = C.initVars(a,'centers:G',2.)
@@ -47,9 +47,9 @@ a = C.fillEmptyBCWith(a, 'wall', 'BCWall')
 t = C.newPyTree(['Base']); t[2][1][2].append(a)
 test.testT(t, 4)
 
-#--------
-# cas 2D 
-#--------
+#-----------------
+# cas 2D sturcture
+#-----------------
 # Avec un arbre
 a = G.cart((0,0,0),(1,1,1),(10,10,2))
 a = C.initVars(a,'F',1.); a = C.initVars(a,'centers:G',2.)
