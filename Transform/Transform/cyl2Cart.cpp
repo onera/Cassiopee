@@ -59,19 +59,19 @@ PyObject* K_TRANSFORM::_cyl2CartA(PyObject* self, PyObject* args)
     E_Int npts = f->getSize();
 
     E_Float eps = K_CONST::E_GEOM_CUTOFF;
-    E_Int posxc, posyc;
+    E_Int posr, postheta;
 
     if (ex > eps && ey < eps && ez < eps)
     {
-      posxc = posz; posyc = posy;
+      posr = posy; postheta = posz; 
     }
     else if (ey > eps && ex < eps && ez < eps)
     {
-      posxc = posx; posyc = posz;
+      posr = posz; postheta = posx;
     }
     else if (ez > eps && ey < eps && ex < eps)
     {
-      posxc = posx; posyc = posy;
+      posr = posx; postheta = posy;
     }
     else
     {
@@ -79,20 +79,18 @@ PyObject* K_TRANSFORM::_cyl2CartA(PyObject* self, PyObject* args)
                       "cyl2Cart: axis must be x,y or z.");
       RELEASESHAREDB(res, array, f, cn); return NULL;
     }
-    E_Float* xt = f->begin(posxc);
-    E_Float* yt = f->begin(posyc);
+    E_Float* rt = f->begin(posr);
+    E_Float* thetat = f->begin(postheta);
     
 #pragma omp parallel default(shared)
     {
 #pragma omp for
       for (E_Int ind = 0; ind < npts; ind++)
       {
-        E_Float r     = xt[ind];
-        E_Float theta = yt[ind];
-        E_Float x = r*cos(theta);
-        E_Float y = r*sin(theta);
-        xt[ind] = x;
-        yt[ind] = y;
+        E_Float r     = rt[ind];
+        E_Float theta = thetat[ind];
+        rt[ind] = r*cos(theta);
+        thetat[ind] = r*sin(theta);//(y,z) dans le cas (X;R;Theta), (x,y) dans le cas (R,Theta,Z), (z,x) dans le cas (Theta,Y,R)
       }
     }
     RELEASESHAREDB(res, array, f, cn);
@@ -147,7 +145,7 @@ PyObject* K_TRANSFORM::_cyl2CartZ(PyObject* self, PyObject* args)
     }
     else if (ey > eps && ex < eps && ez < eps)// AXE (OY)
     {
-      posR = posx; posTHETA = posz;
+      posR = posz; posTHETA = posx;
     }
     else if (ez > eps && ey < eps && ex < eps)// AXE (OZ)
     {
@@ -170,11 +168,9 @@ PyObject* K_TRANSFORM::_cyl2CartZ(PyObject* self, PyObject* args)
       {
         E_Float r     = xt[ind];
         E_Float theta = yt[ind];
-        E_Float x = r*cos(theta);
-        E_Float y = r*sin(theta);
-        xt[ind] = x;
-        yt[ind] = y;
-      }
+        xt[ind] = r*cos(theta);
+        yt[ind] = r*sin(theta);
+      }//(y,z) dans le cas (X;R;Theta), (x,y) dans le cas (R,Theta,Z), (z,x) dans le cas (Theta,Y,R)
     }
 
     delete [] eltType;

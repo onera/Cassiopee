@@ -51,53 +51,52 @@ PyObject* K_TRANSFORM::splitSharpEdges(PyObject* self, PyObject* args)
   E_Int res = 
     K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType, true); 
 
+  if (res == 1)
+  {
+    RELEASESHAREDS(array, f);
+    PyErr_SetString(PyExc_TypeError,
+                    "splitSharpEdges: cannot be used on a structured array.");
+    return NULL;
+  }
   if (res != 2)
   {
     PyErr_SetString(PyExc_TypeError,
                     "splitSharpEdges: unknown type of array.");
     return NULL;
-  }
-  if (res == 1)
-  {
-    RELEASESHAREDS(array, f);
-    PyErr_SetString(PyExc_TypeError,
-                    "splitSharpEdges: can not be used on a structured array.");
-    return NULL;
-  }
-  
+  }  
   if (K_STRING::cmp(eltType, "NODE") == 0)
   {
     RELEASESHAREDU(array, f, cn);
     PyErr_SetString(PyExc_TypeError,
-                    "splitSharpEdges: can not be used on a NODE-array.");
+                    "splitSharpEdges: cannot be used on a NODE-array.");
     return NULL;
   }
   if (K_STRING::cmp(eltType, "PYRA") == 0)
   {
     RELEASESHAREDU(array, f, cn);
     PyErr_SetString(PyExc_TypeError,
-                    "splitSharpEdges: can not be used on a PYRA-array.");
+                    "splitSharpEdges: cannot be used on a PYRA-array.");
     return NULL;
   }
   if (K_STRING::cmp(eltType, "PENTA") == 0)
   {
     RELEASESHAREDU(array, f, cn);
     PyErr_SetString(PyExc_TypeError,
-                    "splitSharpEdges: can not be used on a PENTA-array.");
+                    "splitSharpEdges: cannot be used on a PENTA-array.");
     return NULL;
   }
   if (K_STRING::cmp(eltType, "HEXA") == 0)
   {
     RELEASESHAREDU(array, f, cn);
     PyErr_SetString(PyExc_TypeError,
-                    "splitSharpEdges: can not be used on a HEXA-array.");
+                    "splitSharpEdges: cannot be used on a HEXA-array.");
     return NULL;
   }
   if (K_STRING::cmp(eltType, "MIX") == 0)
   {
     RELEASESHAREDU(array, f, cn);
     PyErr_SetString(PyExc_TypeError,
-                    "splitSharpEdges: can not be used on a MIX-array.");
+                    "splitSharpEdges: cannot be used on a MIX-array.");
     return NULL;
   }
   E_Int type = 0;

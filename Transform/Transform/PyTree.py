@@ -1163,7 +1163,7 @@ def _projectDir(t1, t2, dir, smooth=0, oriented=0): # t1 is modified
     return None
 
 def projectOrtho(t1, t2):
-    """Project a surface array onto surface arrays orthogonally.
+    """Project a surface t1 onto surface t2 orthogonally.
     Usage: projectOrtho(t1, t2)"""
     t = Internal.copyRef(t1)
     _projectOrtho(t, t2)

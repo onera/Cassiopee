@@ -62,7 +62,7 @@ PyObject* K_TRANSFORM::_cart2CylA(PyObject* self, PyObject* args)
     E_Float *rt, *thetat;
     if (ex > eps && ey < eps && ez < eps) // axe X
     {
-      rt = f->begin(posz); thetat = f->begin(posy);
+      rt = f->begin(posy); thetat = f->begin(posz);
     }
     else if (ey > eps && ex < eps && ez < eps) // axe Y
     {
@@ -136,11 +136,11 @@ PyObject* K_TRANSFORM::_cart2CylZ(PyObject* self, PyObject* args)
     thetat = NULL; rt = NULL;
     if (ex > eps && ey < eps && ez < eps) // axe X
     {
-      rt = fields[posz]; thetat = fields[posy];
+      rt = fields[posy]; thetat = fields[posz];
     }
     else if (ey > eps && ex < eps && ez < eps) // axe Y
     {
-      rt = fields[posx]; thetat = fields[posz];
+      rt = fields[posz]; thetat = fields[posx];
     }
     else if (ez > eps && ey < eps && ex < eps) // axe Z
     {
