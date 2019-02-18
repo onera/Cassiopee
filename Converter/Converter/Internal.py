@@ -2918,7 +2918,7 @@ def convertDataNodes2Array2(nodes, dim, connects, loc=-1):
     else:
         #raise ValueError("convertDataNode2Array: no valid connectivity found.")
         #print 'Warning: convertDataNode2Array: no valid connectivity found (using NODE).'
-        cr = numpy.empty((1,0), dtype=numpy.int32); ettype='NODE'
+        cr = numpy.empty((1,0), dtype=numpy.int32); ettype='NODE'; eltType = 0
 
     ettype, stype = eltNo2EltName(eltType)
 
@@ -2941,13 +2941,14 @@ def convertDataNodes2Array2(nodes, dim, connects, loc=-1):
             _createUniqueChild(connect2, 'ElementIndex', 'DataArray_t', value=n)
             h = getNodeFromName(connect2, 'ElementIndex')
         cr = [e[1], f[1], g[1], h[1]]
-    else:
+    elif eltType != 0: # all elements except NODE
         e = getNodeFromName(connect, 'ElementConnectivity')
         if e[1] is not None:
             size = e[1].size/stype
             b = e[1].reshape((size,stype)) # reshape needed
             cr = [b]
         else: cr = [] # ou None?
+
     # tag *
     if dim[1] != dim[2]: # on peut decider
         if s == dim[2]: ettype += '*'
