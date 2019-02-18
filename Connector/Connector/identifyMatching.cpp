@@ -66,7 +66,7 @@ PyObject* K_CONNECTOR::identifyMatchingP(PyObject* self, PyObject* args)
   E_Boolean skipNoCoord = true;
   E_Boolean skipStructured = false;
   E_Boolean skipUnstructured = false;
-  E_Boolean skipDiffVars = true;
+  E_Boolean skipDiffVars = false;//true;
   E_Int isOk = K_ARRAY::getFromArrays(
     listOfAllWins, resl, structVarString, unstrVarString,
     structF, unstrF, nit, njt, nkt, cnt, eltTypet, objst, objut, 
@@ -381,7 +381,7 @@ PyObject* K_CONNECTOR::identifyMatching(PyObject* self, PyObject* args)
   E_Boolean skipNoCoord = true;
   E_Boolean skipStructured = false;
   E_Boolean skipUnstructured = false;
-  E_Boolean skipDiffVars = true;
+  E_Boolean skipDiffVars = false;//true;
 
   E_Int isOk = K_ARRAY::getFromArrays(
     listOfAllWins, resl, structVarString, unstrVarString,
@@ -609,7 +609,7 @@ PyObject* K_CONNECTOR::identifyMatchingNM(PyObject* self, PyObject* args)
   E_Boolean skipNoCoord = true;
   E_Boolean skipStructured = false;
   E_Boolean skipUnstructured = true;
-  E_Boolean skipDiffVars = true;
+  E_Boolean skipDiffVars = false;//true;
 
   E_Int isOk = K_ARRAY::getFromArrays(
     listOfAllWinsR, reslR, structVarStringR, unstrVarStringR,

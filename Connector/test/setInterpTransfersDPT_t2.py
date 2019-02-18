@@ -17,17 +17,17 @@ def F(x,y,z):
 # Donor mesh 
 ni = 11; nj = 11; nk = 11
 m = G.cartNGon((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,nk))
-m = C.initVars(m, '{F}={CoordinateX}+2*{CoordinateY}+3*{CoordinateZ}')
-m = C.initVars(m, '{G}=10*{CoordinateX}')
-m = C.initVars(m,'centers:G',1.)
+C._initVars(m, '{F}={CoordinateX}+2*{CoordinateY}+3*{CoordinateZ}')
+C._initVars(m, '{G}=10*{CoordinateX}')
+C._initVars(m,'centers:G',1.)
 # Receiver mesh
 a = G.cart((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,nk)); a[0] = 'extraction'
-a = C.initVars(a, 'F',-1000.)
-a = C.initVars(a, 'G',-1000.)
+C._initVars(a, 'F',-1000.)
+C._initVars(a, 'G',-1000.)
 
 # 2nd order, nodes, direct storage
 t = C.newPyTree(['Rcv','Dnr']); t[2][1][2] = [a]; t[2][2][2] = [m]
-t[2][1] = C.initVars(t[2][1], 'cellN', 2)
+C._initVars(t[2][1], 'cellN', 2)
 t[2][2]=X.setInterpData(t[2][1],t[2][2],loc='nodes',storage='inverse',order=2,method='leastsquares')
 info=X.setInterpTransfersD(t[2][2])
 test.testO(info)

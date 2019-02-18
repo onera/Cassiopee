@@ -41,7 +41,7 @@ def optimizeOverlap(t, double_wall=0, priorities=[], graph=None,
 # IN: varType=1,2,3: variablesIBC define (ro,rou,rov,row,roE(,ronutilde)),(ro,u,v,w,t(,nutilde)),(ro,u,v,w,p(,nutilde))
 # Adim: KCore.adim1 for Minf=0.1
 #===============================================================================
-def setInterpTransfers(aR, aD, variables=[], 
+def setInterpTransfers(aR, aD, variables=[], cellNVariable='cellN',
                        variablesIBC=['Density','MomentumX','MomentumY','MomentumZ','EnergyStagnationDensity'], 
                        bcType=0, varType=1, graph=None, 
                        procDict=None, type='ALLD', 
@@ -49,12 +49,12 @@ def setInterpTransfers(aR, aD, variables=[],
                        Cs=0.3831337844872463, Ts=1.0):
     tp = Internal.copyRef(aR)
     compact = 0
-    _setInterpTransfers(tp, aD, variables, variablesIBC, 
-                        bcType, varType,  compact, graph, 
-                        procDict, type, Gamma, Cv, MuS, Cs, Ts)
+    _setInterpTransfers(tp, aD, variables=variables, cellNVariable=cellNVariable, variablesIBC=variablesIBC, 
+                        bcType=bcType, varType=varType,  compact=compact, graph=graph, 
+                        procDict=procDict, type=type, Gamma=Gamma, Cv=Cv, MuS=MuS, Cs=Cs, Ts=Ts)
     return tp
 #===============================================================================
-def _setInterpTransfers(aR, aD, variables=[], 
+def _setInterpTransfers(aR, aD, variables=[], cellNVariable='cellN',
                         variablesIBC=['Density','MomentumX','MomentumY','MomentumZ','EnergyStagnationDensity'], 
                         bcType=0, varType=1, compact=0, graph=None, 
                         procDict=None, type='ALLD',
@@ -70,7 +70,8 @@ def _setInterpTransfers(aR, aD, variables=[],
     datas = {}
     zonesD = Internal.getZones(aD)
     for zD in zonesD:
-        infos = X.setInterpTransfersD(zD, variables, variablesIBC, bcType, varType, compact, Gamma, Cv, MuS, Cs, Ts)
+        infos = X.setInterpTransfersD(zD, variables=variables, cellNVariable=cellNVariable, variablesIBC=variablesIBC, 
+                                      bcType=bcType, varType=varType, compact=compact, Gamma=Gamma, Cv=Cv, MuS=MuS, Cs=Cs, Ts=Ts)
         for n in infos:
             rcvName = n[0]
             proc = procDict[rcvName]

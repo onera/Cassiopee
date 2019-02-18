@@ -31,9 +31,9 @@ t = X.setIBCData(t, tc, loc='centers', storage='direct')
 #test avec arbre tc compact
 zones = Internal.getNodesFromType2(t, 'Zone_t')
 X.miseAPlatDonorTree__(zones, tc, graph=None)
-
 t2 = X.setInterpTransfers(t, tc, bcType=0,varType=1)
 test.testT(t2,1)
+
 
 t2 = X.setInterpTransfers(t, tc, bcType=1,varType=1)
 test.testT(t2,2)

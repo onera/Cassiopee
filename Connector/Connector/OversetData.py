@@ -1369,10 +1369,9 @@ def transferFields(z, interpXN, interpYN, interpZN, order=2, penalty=1, nature=0
 # IN: loc = 'nodes' or 'centers': location of receiver zone field
 # Pour les IBCs avec loi de paroi, il faut specifier Gamma, Cv, MuS, Cs, Ts
 #===============================================================================
-def setInterpTransfers(aR, topTreeD,
-                       variables=[],
+def setInterpTransfers(aR, topTreeD, variables=[], cellNVariable='cellN',
                        variablesIBC=['Density','MomentumX','MomentumY','MomentumZ','EnergyStagnationDensity'],
-                       bcType=0, varType=1, storage=-1, cellNVariable='',
+                       bcType=0, varType=1, storage=-1, 
                        Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08,
                        Cs=0.3831337844872463, Ts=1.0):
     if variablesIBC is not None:
@@ -1411,7 +1410,10 @@ def setInterpTransfers(aR, topTreeD,
 # IN: storage=-1/0/1: unknown/direct/inverse
 # Pour les IBCs avec loi de paroi, il faut specifier Gamma, Cv, MuS, Cs, Ts
 #===============================================================================
-def _setInterpTransfers(aR, topTreeD, variables=[], variablesIBC=['Density','MomentumX','MomentumY','MomentumZ','EnergyStagnationDensity'], bcType=0, varType=1, storage=-1, compact=0, cellNVariable='',Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08,Cs=0.3831337844872463, Ts=1.0):
+def _setInterpTransfers(aR, topTreeD, variables=[],  cellNVariable='cellN',
+                        variablesIBC=['Density','MomentumX','MomentumY','MomentumZ','EnergyStagnationDensity'], 
+                        bcType=0, varType=1, storage=-1, compact=0,
+                        Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08,Cs=0.3831337844872463, Ts=1.0):
 
     # Recup des donnees a partir des zones receveuses
     if storage < 1:
@@ -1455,7 +1457,8 @@ def _setInterpTransfers(aR, topTreeD, variables=[], variablesIBC=['Density','Mom
                                     RotAngleY = RotAngle[1]
                                     RotAngleZ = RotAngle[2]
 
-                                connector._setInterpTransfers(zr,zd,variables, ListRcv, ListDonor, DonorType, Coefs, loc, varType, compact, cellNVariable,
+                                connector._setInterpTransfers(zr,zd,variables, ListRcv, ListDonor, DonorType, Coefs, loc, varType, compact, 
+                                                              cellNVariable,
                                                               Internal.__GridCoordinates__, 
                                                               Internal.__FlowSolutionNodes__, 
                                                               Internal.__FlowSolutionCenters__, 
@@ -1638,9 +1641,9 @@ def __setInterpTransfers(aR, topTreeD,
 #     varType = 31: (ro,u,v,w,p(,nutildeSA))
 # Adim: KCore.adim1 for Minf=0.1 (IBC only)
 #===============================================================================
-def setInterpTransfersD(topTreeD, variables=[],
+def setInterpTransfersD(topTreeD, variables=[], cellNVariable='cellN',
                         variablesIBC=['Density','MomentumX','MomentumY','MomentumZ','EnergyStagnationDensity'],
-                        bcType=0, varType=1, compact=0,
+                        bcType=0, varType=1, compact=0, 
                         Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08,
                         Cs=0.3831337844872463, Ts=1.0, extract=0):
 
@@ -1668,8 +1671,9 @@ def setInterpTransfersD(topTreeD, variables=[],
                     ListDonor = Internal.getNodeFromName1(s,'PointList')[1]
                     ListRcv   = Internal.getNodeFromName1(s,'PointListDonor')[1]
                     if sname == 'ID':
-                        #print 'transfert ID: zd ', zd[0]
+                        # print 'transfert ID: zd ', zd[0]
                         arrayT = connector._setInterpTransfersD(zd, variables, ListDonor, DonorType, Coefs, varType, compact,                                                                
+                                                                cellNVariable,
                                                                 Internal.__GridCoordinates__, 
                                                                 Internal.__FlowSolutionNodes__, 
                                                                 Internal.__FlowSolutionCenters__)    

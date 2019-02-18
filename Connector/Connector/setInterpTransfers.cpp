@@ -390,8 +390,8 @@ PyObject* K_CONNECTOR::_setInterpTransfers(PyObject* self, PyObject* args)
     }
     if (initAll == true)// all common variables are transfered
     {
-      posvd = K_ARRAY::isCellNatureField2Present(varStringD);
-      posvr = K_ARRAY::isCellNatureField2Present(varStringR);
+      posvd = K_ARRAY::isNamePresent(cellNVariable, varStringD);
+      posvr = K_ARRAY::isNamePresent(cellNVariable, varStringR);
       char* varStringC; // chaine de caractere commune
       E_Int l = strlen(varStringR);
       varStringC = new char [l+1];
@@ -410,6 +410,7 @@ PyObject* K_CONNECTOR::_setInterpTransfers(PyObject* self, PyObject* args)
       if (posvr != -1)
         posvarsR.erase(remove(posvarsR.begin(), posvarsR.end(), posvr), posvarsR.end());
     }
+    
     if (poscd > -1 && poscr > -1) // cellNVariable exists : do not interpolate but specific update
     {
       posvarsD.erase(remove(posvarsD.begin(), posvarsD.end(), poscd), posvarsD.end());
@@ -436,8 +437,19 @@ PyObject* K_CONNECTOR::_setInterpTransfers(PyObject* self, PyObject* args)
     // transfer of cellN variable
     if (poscd > -1 && poscr > -1) // cellNVariable exists
     {  
-# include "commonCellNTransfersStrict.h"    
-    }    
+      E_Int indR, type, nocf;
+      E_Int indD0, indD, i, j, k, ncfLoc;
+      E_Int noi = 0; // compteur sur le tableau d indices donneur
+      E_Int sizecoefs = 0;
+      E_Float* cellNR = fieldsR[poscr];
+      E_Float* cellND = fieldsD[poscd];
+      for (E_Int noind = 0; noind < nbRcvPts; noind++)
+      { 
+        // adressage indirect pour indR
+        indR = rcvPts[noind];
+      # include "commonCellNTransfersStrict.h"   
+      }  
+    }
     // Prise en compte de la periodicite par rotation
     if (dirR != 0)
     {

@@ -112,132 +112,170 @@ PyObject* K_CONNECTOR::setInterpTransfersD( PyObject* self, PyObject* args ) {
    From zone
    Retourne une liste de numpy directement des champs interpoles */
 //=============================================================================
-PyObject* K_CONNECTOR::_setInterpTransfersD( PyObject* self, PyObject* args ) {
+PyObject* K_CONNECTOR::_setInterpTransfersD( PyObject* self, PyObject* args ) 
+{
     PyObject *zoneD, *pyIndDonor, *pyArrayTypes, *pyArrayCoefs;
     PyObject* pyVariables;
-    char*     GridCoordinates;
-    char*     FlowSolutionNodes;
-    char*     FlowSolutionCenters;
+    char* GridCoordinates;
+    char* FlowSolutionNodes;
+    char* FlowSolutionCenters;
+    char* cellNVariable;
 
     E_Int vartype, compact;
-    if ( !PYPARSETUPLEI( args, "OOOOOllsss", "OOOOOiisss", &zoneD, &pyVariables, &pyIndDonor, &pyArrayTypes,
-                         &pyArrayCoefs, &vartype, &compact, &GridCoordinates, &FlowSolutionNodes,
-                         &FlowSolutionCenters ) ) {
+    if ( !PYPARSETUPLEI( args, "OOOOOllssss", "OOOOOiissss", &zoneD, &pyVariables, &pyIndDonor, &pyArrayTypes,
+                         &pyArrayCoefs, &vartype, &compact, &cellNVariable,
+                         &GridCoordinates, &FlowSolutionNodes, &FlowSolutionCenters ) ) 
+    {
         return NULL;
     }
 
     vector< PyArrayObject* > hook;
-    E_Int                    imdjmd, imd, jmd, kmd, cnNfldD, nvars, ndimdxR, ndimdxD, meshtype;
-    E_Float*                 iptroD;
-    E_Float*                 iptroR;
-
+    E_Int imdjmd, imd, jmd, kmd, cnNfldD, nvars, ndimdxR, ndimdxD, meshtype;
+    E_Float * iptroD, *iptroR;
+    E_Int poscd = -1;
 #include "extract_interpD.h"
 
     vector< E_Float* > fieldsD;
     vector< E_Int >    posvarsD;
-    E_Int*             ptrcnd;
-    char*              eltTypeD;
-    char*              varStringD;
-    char*              varStringOut = new char[K_ARRAY::VARSTRINGLENGTH];
-
+    E_Int* ptrcnd;
+    char *eltTypeD, *varStringD;
+    char* varStringOut = new char[K_ARRAY::VARSTRINGLENGTH];
     // codage general (lent ;-) )
-    if ( compact == 0 ) {
+    if ( compact == 0 ) 
+    {
         //---------------------------------------------/
         // Extraction des infos sur le domaine donneur /
         //---------------------------------------------/
-        E_Int            cnSizeD;
+        E_Int cnSizeD;
         vector< E_Int >  locsD;
         vector< E_Int* > cnd;
-        E_Int            resd =
-            K_PYTREE::getFromZone( zoneD, 0, 0, varStringD, fieldsD, locsD, imd, jmd, kmd, cnd, cnSizeD, cnNfldD,
-                                   eltTypeD, hook, GridCoordinates, FlowSolutionNodes, FlowSolutionCenters );
-        if ( cnd.size( ) > 0 ) ptrcnd = cnd[0];
-        meshtype                      = resd;  // 1: structure, 2: non structure
-        E_Int nfld                    = fieldsD.size( );
+        meshtype = K_PYTREE::getFromZone( zoneD, 0, 0, varStringD, fieldsD, locsD, 
+                                         imd, jmd, kmd, cnd, cnSizeD, cnNfldD,
+                                         eltTypeD, hook, GridCoordinates, 
+                                         FlowSolutionNodes, FlowSolutionCenters);
+        if (cnd.size()>0) ptrcnd = cnd[0];
+        E_Int nfld = fieldsD.size();
         // Extrait les positions des variables a transferer
         E_Int posvd;
         E_Int initAll   = false;
         varStringOut[0] = '\0';
-
-        if ( PyList_Check( pyVariables ) != 0 ) {
-            int nvariables = PyList_Size( pyVariables );
-            if ( nvariables > 0 ) {
-                for ( int i = 0; i < nvariables; i++ ) {
+        poscd = K_ARRAY::isNamePresent(cellNVariable, varStringD);      
+        if ( PyList_Check(pyVariables) != 0 ) 
+        {
+            int nvariables = PyList_Size(pyVariables);
+            if ( nvariables > 0 ) 
+            {
+                for ( int i = 0; i < nvariables; i++ ) 
+                {
                     PyObject* tpl0 = PyList_GetItem( pyVariables, i );
                     if ( PyString_Check( tpl0 ) == 0 )
                         PyErr_Warn( PyExc_Warning, "_setInterpTransfersD: variable must be a string. Skipped." );
-                    else {
-                        char* varname = PyString_AsString( tpl0 );
-                        posvd         = K_ARRAY::isNamePresent( varname, varStringD );
-                        if ( posvd != -1 ) {
-                            posvarsD.push_back( posvd );
-                            if ( varStringOut[0] == '\0' )
-                                strcpy( varStringOut, varname );
-                            else {
-                                strcat( varStringOut, "," );
-                                strcat( varStringOut, varname );
+                    else 
+                    {
+                        char* varname = PyString_AsString(tpl0);
+                        posvd = K_ARRAY::isNamePresent(varname, varStringD);
+                        if ( posvd != -1 && posvd != poscd) 
+                        {
+                            posvarsD.push_back(posvd);
+                            if ( varStringOut[0] == '\0' ) strcpy(varStringOut, varname);
+                            else 
+                            {
+                                strcat(varStringOut, ",");
+                                strcat(varStringOut, varname);
                             }
                         }
                     }
                 }
-            } else  // si [] toutes les variables communes sont transferees sauf le cellN
+                // cellNName at the end
+                if ( poscd != -1)
+                {
+                    if ( varStringOut[0] == '\0' )
+                        strcpy( varStringOut, cellNVariable);
+                    else 
+                    {
+                        strcat( varStringOut, "," );
+                        strcat( varStringOut, cellNVariable);
+                    }
+                }
+            }// fin nvariables > 0
+            else  // si [] toutes les variables communes sont transferees sauf le cellN
             {
                 initAll = true;
             }
-        } else  // si None toutes les variables communes sont transferees sauf le cellN
+        }//fin pyVariables==list
+        else  // si None toutes les variables communes sont transferees sauf le cellN
         {
             initAll = true;
         }
-        if ( initAll == true ) {
-            E_Int           poscd = K_ARRAY::isCellNatureField2Present( varStringD );
+        if ( initAll == true ) 
+        {
             vector< char* > tmpvars;
-            K_ARRAY::extractVars( varStringD, tmpvars );
-
-            if ( poscd == -1 ) {
-                for ( E_Int i = 0; i < nfld; i++ ) {
-                    posvarsD.push_back( i );
+            K_ARRAY::extractVars(varStringD, tmpvars);
+            if ( poscd == -1 ) 
+            {
+                for (E_Int i = 0; i < nfld; i++) 
+                {
+                    posvarsD.push_back(i);
                     if ( varStringOut[0] == '\0' )
                         strcpy( varStringOut, tmpvars[i] );
-                    else {
+                    else 
+                    {
                         strcat( varStringOut, "," );
                         strcat( varStringOut, tmpvars[i] );
                     }
                 }
-            } else {
-                for ( E_Int i = 0; i < poscd; i++ ) {
-                    posvarsD.push_back( i );
+            } 
+            else 
+            {
+                for (E_Int i = 0; i < poscd; i++) 
+                {
+                    posvarsD.push_back(i);
                     if ( varStringOut[0] == '\0' )
                         strcpy( varStringOut, tmpvars[i] );
-                    else {
+                    else 
+                    {
                         strcat( varStringOut, "," );
                         strcat( varStringOut, tmpvars[i] );
                     }
                 }
-                for ( E_Int i = poscd + 1; i < nfld; i++ ) {
-                    posvarsD.push_back( i );
+                for (E_Int i = poscd+1; i < nfld; i++ ) 
+                {
+                    posvarsD.push_back(i);
                     if ( varStringOut[0] == '\0' )
                         strcpy( varStringOut, tmpvars[i] );
-                    else {
+                    else 
+                    {
                         strcat( varStringOut, "," );
                         strcat( varStringOut, tmpvars[i] );
                     }
+                }
+                // cellNName at the end
+                if ( poscd != -1)
+                {
+                    if ( varStringOut[0] == '\0' )
+                        strcpy( varStringOut, cellNVariable);
+                    else 
+                    {
+                        strcat( varStringOut, "," );
+                        strcat( varStringOut, cellNVariable);
+                    }                    
                 }
             }
-            for ( size_t i = 0; i < tmpvars.size( ); i++ ) delete[] tmpvars[i];
-        }
+            for (size_t i = 0; i < tmpvars.size(); i++) delete[] tmpvars[i];
+        }// fin initAll==true
         delete[] varStringD;
         delete[] eltTypeD;
-
-        nvars = posvarsD.size( );
-    } else  // les variables a transferes sont compactes: on recuperes uniquement la premiere et la taille
+        if ( poscd == -1) nvars = posvarsD.size();
+        else nvars = posvarsD.size()+1;
+    }// fin compact = 0     
+    else  // les variables a transferer sont compactees: on recupere uniquement la premiere et la taille
     {
-#include "getfromzonecompactD.h"
+    #include "getfromzonecompactD.h"
     }
 
     // -- no check (perfo) --
-
-    PyObject* tpl = K_ARRAY::buildArray( nvars, varStringOut, nbRcvPts, 1, 1 );
-    E_Float*  frp = K_ARRAY::getFieldPtr( tpl );
+    PyObject* tpl = K_ARRAY::buildArray(nvars, varStringOut, nbRcvPts, 1, 1 );
+    E_Float*  frp = K_ARRAY::getFieldPtr(tpl);
     FldArrayF fieldROut( nbRcvPts, nvars, frp, true );
     //
     // utile la mise a zero???
@@ -246,27 +284,64 @@ PyObject* K_CONNECTOR::_setInterpTransfersD( PyObject* self, PyObject* args ) {
 
     // Transferts
     // Types valides: 2, 3, 4, 5
+    vector< E_Float* > vectOfRcvFields(nvars);
+    vector< E_Float* > vectOfDnrFields(nvars);
 
-    vector< E_Float* > vectOfRcvFields( nvars );
-    vector< E_Float* > vectOfDnrFields( nvars );
-
-    if ( compact == 0 ) {
-        for ( E_Int eq = 0; eq < nvars; eq++ ) {
-            vectOfRcvFields[eq] = fieldROut.begin( eq + 1 );
-            vectOfDnrFields[eq] = fieldsD[posvarsD[eq]];
+    /* compact = 0 
+       si on a specifie la variable cellNVariable, interpolation specifique comme un champ cellN    
+    */
+    if ( compact == 0 ) 
+    {   
+        if ( poscd == -1)
+        {
+            for ( E_Int eq = 0; eq < nvars; eq++ ) 
+            {
+                vectOfRcvFields[eq] = fieldROut.begin(eq+1);
+                vectOfDnrFields[eq] = fieldsD[posvarsD[eq]];
+            }  
         }
-    } else {
-        for ( E_Int eq = 0; eq < nvars; eq++ ) {
-            vectOfRcvFields[eq] = fieldROut.begin( eq + 1 );
+        else 
+        {
+            for ( E_Int eq = 0; eq < nvars; eq++ ) 
+                vectOfRcvFields[eq] = fieldROut.begin(eq+1);
+            for ( E_Int eq = 0; eq < nvars-1; eq++ )    
+                vectOfDnrFields[eq] = fieldsD[posvarsD[eq]];
+            vectOfDnrFields[nvars-1] = fieldsD[poscd];
+        }
+        #include "commonInterpTransfers_direct.h"  
+
+        //transfer of cellN variable
+        if (poscd > -1)
+        {
+            E_Int indR, type, nocf;
+            E_Int indD0, indD, i, j, k, ncfLoc;
+            E_Int noi = 0; // compteur sur le tableau d indices donneur
+            E_Int sizecoefs = 0;
+            E_Float* cellNR = fieldROut.begin(nvars);
+            E_Float* cellND = fieldsD[poscd];
+            for (E_Int noind = 0; noind < nbRcvPts; noind++)
+            { 
+                // adressage direct pour indR
+                indR = noind;
+            # include "commonCellNTransfersStrict.h"   
+            }  
+        }
+    } 
+    else 
+    {
+        for ( E_Int eq = 0; eq < nvars; eq++ ) 
+        {
+            vectOfRcvFields[eq] = fieldROut.begin(eq+1);
             vectOfDnrFields[eq] = iptroD + eq * ndimdxD;
         }
+      ///
+    ////
+    //  Interpolation parallele
+    ////
+    ////
+    #include "commonInterpTransfers_direct.h"  
     }
-///
-////
-//  Interpolation parallele
-////
-////
-#include "commonInterpTransfers_direct.h"
+
     delete[] varStringOut;
     RELEASESHAREDZ( hook, (char*)NULL, (char*)NULL );
     RELEASESHAREDN( pyIndDonor, donorPtsI );
@@ -565,8 +640,8 @@ PyObject* K_CONNECTOR::__setInterpTransfersD( PyObject* self, PyObject* args ) {
                 E_Int irac_fin = nrac_steady;
                 if ( pass_inst == 1 ) 
                 {
-		    irac_deb = ipt_param_int[ech + 4 + it_target];
-                    irac_fin = ipt_param_int[ech + 4 + it_target + timelevel];
+                  irac_deb = ipt_param_int[ech + 4 + it_target];
+                  irac_fin = ipt_param_int[ech + 4 + it_target + timelevel];
                 }
 
                 for ( E_Int irac = irac_deb; irac < irac_fin; irac++ ) 
