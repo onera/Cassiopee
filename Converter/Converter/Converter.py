@@ -423,6 +423,7 @@ def _initVarByEq__(a, eq):
     vars = varstring.split(',')
 
     eq = eq.replace('centers:', '')
+    eq = eq.replace('nodes:', '') 
 
     # Split suivant ; si plusieurs formules sont definies
     eq = eq.split(';')
