@@ -2,6 +2,9 @@
 # (c) Onera
 import numpy, sys, os
 
+# global tolerance on float fields
+TOLERANCE = 1.e-11
+
 #=============================================================================
 # Retourne la variable VALIDLOCAL si elle existe dans l'environnement
 # Cette variable est utilisee dans les cas tests pour ecrire
@@ -50,7 +53,7 @@ def testA(arrays, number=1):
             for i in ret:
                 l0 = max(l0, C.normL0(i, v))
                 l2 = max(l2, C.normL2(i, v))
-                if l0 > 1.e-11:
+                if l0 > TOLERANCE:
                     print('DIFF: Variable=%s, L0=%.12f, L2=%.12f'%(v,l0,l2))
                     retour = False
         return retour
@@ -95,7 +98,7 @@ def testT(t, number=1):
         old = C.convertFile2PyTree(reference, 'bin_pickle')
         checkTree(t, old)
         ret = C.diffArrays(t, old)
-        ret = C.fillMissingVariables(ret)
+        C._fillMissingVariables(ret)
         allvars = C.getVarNames(ret)
         if len(allvars) > 0: vars = allvars[0]
         else: vars = []
@@ -104,7 +107,7 @@ def testT(t, number=1):
         for v in vars:
             l0 = C.normL0(ret, v)
             l2 = C.normL2(ret, v)
-            if l0 > 1.e-11:
+            if l0 > TOLERANCE:
                 print('DIFF: Variable=%s, L0=%.12f, L2=%.12f'%(v,l0,l2))
                 retour = False
         return retour
@@ -149,7 +152,7 @@ def checkObject_(a, b, reference):
             print("DIFF: object shape differs from "+reference+'.')
             return False
         diff = numpy.abs(a-b)
-        diff = (diff < 1.e-11)
+        diff = (diff < TOLERANCE)
         if diff.all() != True:
             print "DIFF: object value differs from "+reference+'.'
             return False
@@ -210,7 +213,7 @@ def testO(objet, number=1):
                 print "DIFF: object shape differs from "+reference+'.'
                 return False
             diff = numpy.abs(a-objet)
-            diff = (diff < 1.e-11)
+            diff = (diff < TOLERANCE)
             if diff.all() != True:
                 print "DIFF: object value differs from "+reference+'.'
                 return False
@@ -225,7 +228,7 @@ def testO(objet, number=1):
                         print "DIFF: object shape differs from "+reference+'.'
                         return False
                     diff = numpy.abs(a[i]-objet[i])
-                    diff = (diff < 1.e-11)
+                    diff = (diff < TOLERANCE)
                     if diff.all() != True:
                         print "DIFF: object value differs from "+reference+'.'
                         return False
@@ -237,7 +240,7 @@ def testO(objet, number=1):
                                 print "DIFF: object shape differs from "+reference+'.'
                                 return False
                             diff = numpy.abs(a[i][j]-objet[i][j])
-                            diff = (diff < 1.e-11)
+                            diff = (diff < TOLERANCE)
                             if diff.all() != True:
                                 print "DIFF: object value differs from "+reference+'.'
                                 return False
@@ -248,7 +251,7 @@ def testO(objet, number=1):
                         else: return True
                 elif isinstance(a[i], float):
                     diff = abs(a[i]-objet[i])
-                    if diff > 1.e-11:
+                    if diff > TOLERANCE:
                         print "DIFF: object value differs from %s (%g)."%(reference, diff) 
                         return False
                 elif a[i] != objet[i]:      # liste d'autres objets 
@@ -257,7 +260,7 @@ def testO(objet, number=1):
                 else: return True
         elif isinstance(a, float):
             diff = abs(a-objet)
-            if diff > 1.e-11:
+            if diff > TOLERANCE:
                 print "DIFF: object value differs from %s (%g)."%(reference, diff)
                 return False
         elif isinstance(a, dict):

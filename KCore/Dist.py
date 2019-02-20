@@ -75,7 +75,7 @@ def getenv(name):
 #==============================================================================
 # Check all (python, numpy, C++, fortran, hdf, mpi, mpi4py, png, osmesa, mpeg)
 #==============================================================================
-def checkAll():
+def checkAll(summary=True):
     from config import additionalLibPaths, additionalIncludePaths
     
     out = []
@@ -112,9 +112,10 @@ def checkAll():
     if ok: out += ['mpi4py: OK (%s).'%(mpi4pyIncDir)]
     else: out += ['mpi4py: missing (%s).'%(mpi4pyIncDir)]
     
-    print('Summary:')
-    print('========')
-    for i in out: print(i)
+    if summary:
+        print('Summary:')
+        print('========')
+        for i in out: print(i)
 
 #==============================================================================
 # Check python includes / libs
@@ -1209,13 +1210,14 @@ def checkMpi(additionalLibPaths=[], additionalIncludePaths=[]):
 #=============================================================================
 def checkMpi4py(additionalLibPaths=[], additionalIncludePaths=[]):
     try: import mpi4py
-    except: return (False, '', '')
+    except:
+        print('Info: mpi4py or mpi4py.MPI.h was not found on your system. No Mpi support.')
+        return (False, '', '')
 
     incPaths = []
     try: import KCore.installPath as K
     except: import installPath as K
     incPaths += [K.installPath+'/mpi4py/include']
-    import mpi4py
     fileN = mpi4py.__file__
     incPaths += [os.path.dirname(fileN)+'/include']
     i = checkIncFile__('mpi4py/mpi4py.MPI.h', additionalIncludePaths+incPaths)
@@ -1227,6 +1229,21 @@ def checkMpi4py(additionalLibPaths=[], additionalIncludePaths=[]):
         print('Info: mpi4py or mpi4py.MPI.h was not found on your system. No Mpi support.')
         return (False, i, '')
 
+#=============================================================================
+# Check for paradigma
+# additionalPaths: chemins d'installation non standards : ['/home/toto',...]
+# Retourne: (True/False, chemin des includes, chemin de la librairie)
+#=============================================================================
+def checkParadigma(additionalLibPaths=[], additionalIncludePaths=[]):
+    try: import pyPdm
+    except:
+        print('Info: paradigma was not found on your system.')
+        return (False, '', '')
+
+    i = mpi4py.__file__
+    print('Info: paradigma detected at %s.'%i)
+    return (True, i, '')
+    
 #=============================================================================
 # Check for BLAS
 # additionalPaths: chemins d'installation non standards: ['/home/toto',...]
