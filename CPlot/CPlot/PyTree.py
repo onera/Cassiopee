@@ -359,12 +359,16 @@ def show():
     """Show window if it has been hidden with flush."""
     CPlot.show()
     
-def moveCamera(checkPoints, moveEye=False, N=100, speed=1., pos=-1):
+def moveCamera(posCams, posEyes=None, dirCams=None, moveEye=False, N=100, speed=1., pos=-1):
     """Move camera.
     Usage: moveCamera(checkPoints, moveEye, N, speed, pos)."""
-    if isinstance(checkPoints[0], str): # zone
-        checkPoints = C.getAllFields(checkPoints, 'nodes')
-    CPlot.moveCamera(checkPoints, moveEye, N, speed, pos)
+    if isinstance(posCams[0], str): # zone
+        posCams = C.getAllFields(posCams, 'nodes')
+    if posEyes is not None and isinstance(posEyes[0], str): # zone
+        posEyes = C.getAllFields(posEyes, 'nodes')
+    if dirCams is not None and isinstance(dirCams[0], str): # zone
+        dirCams = C.getAllFields(dirCams, 'nodes')
+    CPlot.moveCamera(posCams, posEyes, dirCams, moveEye, N, speed, pos)
 
 def travelRight(xr=0.1, N=100):
     CPlot.travelRight(xr, N)

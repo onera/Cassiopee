@@ -412,7 +412,7 @@ short K_KINTERP::BlkInterpAdt::searchInterpolationCell(
   /* If the technique of jump succeeds, find the interpolation coefficients
      in the cell by cut it in 24 tetrahedras */
   saut:
-  if (JUMP)  
+  if (JUMP)
   {
     if (getCoeffInterpHexa(x, y, z,
                            isomm,

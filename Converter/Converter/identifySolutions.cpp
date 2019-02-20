@@ -121,8 +121,6 @@ PyObject* K_CONVERTER::identifySolutions(PyObject* self, PyObject* args)
   PyObject* tpl;  
   E_Int nfldout = fields[0]->getNfld();
   char* varStringOut;
-  E_Float pt[3];
-  E_Float ds2;
   if (varString.size() > 0)
   {
     varStringOut = new char [strlen(varString[0])+2];
@@ -141,7 +139,6 @@ PyObject* K_CONVERTER::identifySolutions(PyObject* self, PyObject* args)
     indirZones[nod] = sizeP;
   }
   E_Int posx1, posy1, posz1;
-  E_Int noblkD, indD;
 
   for (E_Int nor = 0; nor < nRcvZones; nor++)
   {
@@ -178,28 +175,37 @@ PyObject* K_CONVERTER::identifySolutions(PyObject* self, PyObject* args)
     }
     E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
     FldArrayF fp(nptsR, nfldout, fnp, true); fp.setAllValuesAtNull();
-    for (E_Int indR = 0; indR < nptsR; indR++)
+    
+    // identification
+#pragma omp parallel default(shared)
     {
-      pt[0] = xR[indR]; pt[1] = yR[indR]; pt[2] = zR[indR];
-      E_Int indkdt = globalKdt->getClosest(pt, ds2);
-      if (ds2 < tol2 && indkdt > -1)
+      E_Float pt[3];
+      E_Int indkdt, indD, noblkD;
+      E_Float ds2;
+#pragma omp for schedule(dynamic)
+      for (E_Int indR = 0; indR < nptsR; indR++)
       {
-        indD = -1; noblkD = -1;
-        //recherche du numero du bloc correspondant
-        //algo dichotomique a brancher eventuellement       
-        for (E_Int nod = 0; nod < nDnrFields; nod++)
+        pt[0] = xR[indR]; pt[1] = yR[indR]; pt[2] = zR[indR];
+        indkdt = globalKdt->getClosest(pt, ds2);
+        if (ds2 < tol2 && indkdt > -1)
         {
-          if (indkdt < indirZones[nod]) 
+          indD = -1; noblkD = -1;
+          // recherche du numero du bloc correspondant
+          // algo dichotomique a brancher eventuellement       
+          for (E_Int nod = 0; nod < nDnrFields; nod++)
           {
-            noblkD = nod;
-            if (nod == 0) indD = indkdt;
-            else indD = indkdt-indirZones[nod-1];
-            break;
+            if (indkdt < indirZones[nod]) 
+            {
+              noblkD = nod;
+              if (nod == 0) indD = indkdt;
+              else indD = indkdt-indirZones[nod-1];
+              break;
+            }
           }
+          FldArrayF& fieldD = *fields[noblkD];
+          for (E_Int eq = 1; eq <= nfldout; eq++)
+            fp(indR,eq) = fieldD(indD,eq); 
         }
-        FldArrayF& fieldD = *fields[noblkD];
-        for (E_Int eq = 1; eq <= nfldout; eq++)
-          fp(indR,eq) = fieldD(indD,eq); 
       }
     }
     PyList_Append(l, tpl); Py_DECREF(tpl);

@@ -383,22 +383,53 @@ def show():
 #==============================================================================
 # camera
 #==============================================================================
-def moveCamera(checkPoints, moveEye=False, N=100, speed=1., pos=-1):
+def moveCamera(posCams, posEyes=None, dirCams=None, moveEye=False, N=100, speed=1., pos=-1):
     """Move posCam and posEye following check points."""
-    if len(checkPoints) == 5 and isinstance(checkPoints[0], str): # input array
-      import KCore
-      N = checkPoints[2]
-      d = checkPoints
-      pinc = KCore.isNamePresent(checkPoints, 'incEye')
-      if pinc >= 0: pinc = checkPoints[1][pinc]
+    # Set d, array of posCams and N nbre of points
+    import KCore; import Geom
+    if len(posCams) == 5 and isinstance(posCams[0], str): # input struct array
+      N = posCams[2]
+      d = posCams
+      pinc = KCore.isNamePresent(posCams, 'incEye')
+      if pinc >= 0: pinc = posCams[1][pinc]
       else: pinc = None
-    else:
-      import Geom 
+    else: # list
       N = max(N, 3)
-      p = Geom.polyline(checkPoints)
-      if len(checkPoints) == 2: d = Geom.spline(p, 2, N)
+      p = Geom.polyline(posCams)
+      if len(posCams) == 2: d = Geom.spline(p, 2, N)
       else: d = Geom.spline(p, 3, N)
       pinc = None
+
+    # Set e, array of posEye of N pts
+    if posEyes is not None:
+      if len(posEyes) == 5 and isinstance(posEyes[0], str): # input struct array
+        Neye = posEyes[2]
+        if Neye != N:
+          import Generator
+          dis = Geom.getDistribution(d)
+          posEyes = Generator.map(posEyes, dis, 1)
+        e = posEyes
+      else: # list
+        p = Geom.polyline(posEyes)
+        if len(posEyes) == 2: e = Geom.spline(p, 2, N)
+        else: e = Geom.spline(p, 3, N)
+    else: e = None
+
+    # Set dc, array of dirCams of N pts
+    if dirCams is not None:
+      if len(dirCams) == 5 and isinstance(dirCams[0], str): # input struct array
+        Ndc = dirCams[2]
+        if Ndc != N: 
+          import Generator
+          dis = Geom.getDistribution(d)
+          dirCams = Generator.map(dirCams, dis, 1)
+        dc = dirCams
+      else: # list
+        p = Geom.polyline(dirCams)
+        if len(dirCams) == 2: dc = Geom.spline(p, 2, N)
+        else: dc = Geom.spline(p, 3, N)
+    else: dc = None
+
     if pos == -1:
       i = 0
       while i < N-1:
@@ -406,7 +437,14 @@ def moveCamera(checkPoints, moveEye=False, N=100, speed=1., pos=-1):
         if i > N-11: inc = N-i-1
         else: inc = 10
         posCam = (d[1][0,i],d[1][1,i],d[1][2,i])
-        if moveEye:
+        if e is not None:
+          posEye = (e[1][0,i],e[1][1,i],e[1][2,i])
+          if dc is not None:
+            dirCam = (dc[1][0,i],dc[1][1,i],dc[1][2,i])
+            setState(posCam=posCam, posEye=posEye, dirCam=dirCam)
+          else:
+            setState(posCam=posCam, posEye=posEye)
+        elif moveEye:
           posEye = (d[1][0,i+inc],d[1][1,i+inc],d[1][2,i+inc])
           setState(posCam=posCam, posEye=posEye)
         else: setState(posCam=posCam)
@@ -417,7 +455,14 @@ def moveCamera(checkPoints, moveEye=False, N=100, speed=1., pos=-1):
       else: inc = 10
       inc = min(inc, N-i-1)
       posCam = (d[1][0,i],d[1][1,i],d[1][2,i])
-      if moveEye:
+      if e is not None:
+          posEye = (e[1][0,i],e[1][1,i],e[1][2,i])
+          if dc is not None:
+            dirCam = (dc[1][0,i],dc[1][1,i],dc[1][2,i])
+            setState(posCam=posCam, posEye=posEye, dirCam=dirCam)
+          else:
+            setState(posCam=posCam, posEye=posEye)
+      elif moveEye:
         posEye = (d[1][0,i+inc],d[1][1,i+inc],d[1][2,i+inc])
         setState(posCam=posCam, posEye=posEye)
       else: setState(posCam=posCam)

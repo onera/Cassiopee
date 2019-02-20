@@ -2363,15 +2363,15 @@ Geometrical identification
 
     *Example of use:*
 
-    * `Indentify nodes in a hook (array) <Examples/Converter/identifyNodes.py>`_:
+    * `Identify nodes in a hook (array) <Examples/Converter/identifyNodes.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/identifyNodes.py
 
-    * `Indentify nodes in a hook (pyTree) <Examples/Converter/identifyNodesPT.py>`_:
+    * `Identify nodes in a hook (pyTree) <Examples/Converter/identifyNodesPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/identifyNodesPT.py
 
-    * `Indentify nodes in multiple zones (pyTree) <Examples/Converter/identifyNodesMBPT.py>`_:
+    * `Identify nodes in multiple zones (pyTree) <Examples/Converter/identifyNodesMBPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/identifyNodesMBPT.py
 
@@ -2394,11 +2394,11 @@ Geometrical identification
 
     *Example of use:*
 
-    * `Indentify faces in a hook (array) <Examples/Converter/identifyFaces.py>`_:
+    * `Identify faces in a hook (array) <Examples/Converter/identifyFaces.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/identifyFaces.py
 
-    * `Indentify faces in a hook (pyTree) <Examples/Converter/identifyFacesPT.py>`_:
+    * `Identify faces in a hook (pyTree) <Examples/Converter/identifyFacesPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/identifyFacesPT.py
 
@@ -2421,11 +2421,11 @@ Geometrical identification
 
     *Example of use:*
 
-    * `Indentify elements in a hook (array) <Examples/Converter/identifyElements.py>`_:
+    * `Identify elements in a hook (array) <Examples/Converter/identifyElements.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/identifyElements.py
 
-    * `Indentify elements in a hook (pyTree) <Examples/Converter/identifyElementsPT.py>`_:
+    * `Identify elements in a hook (pyTree) <Examples/Converter/identifyElementsPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/identifyElementsPT.py
 
@@ -2433,8 +2433,10 @@ Geometrical identification
 
 .. py:function:: Converter.identifySolutions(tRcv, tDnr, hookN=None, hookC=None, vars=[], tol=1.e6)
 
-    Set the solution field in tRcv with the nearest point solution of tRcv.
+    Set the solution field in tRcv with the nearest point solution of tDnr.
     Hooks must be global hooks on tDnr.
+
+    Exists also as an in-place version (_identifySolutions) which modifies tRcv and returns None.
 
     :param tRcv: receiver data
     :type tRcv: [array,list of arrays] or [pyTree, base, zone, list of zones]
@@ -2454,11 +2456,11 @@ Geometrical identification
 
     *Example of use:*
 
-    * `Indentify solutions (array) <Examples/Converter/identifySolutions.py>`_:
+    * `Identify solutions (array) <Examples/Converter/identifySolutions.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/identifySolutions.py
 
-    * `Indentify solutions (pyTree) <Examples/Converter/identifySolutionsPT.py>`_:
+    * `Identify solutions (pyTree) <Examples/Converter/identifySolutionsPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/identifySolutionsPT.py
 

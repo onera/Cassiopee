@@ -730,21 +730,27 @@ Camera setting and motion
 
 -----------------------------------------------
 
-.. py:function:: CPlot.moveCamera(listOfPts, moveEye=False, N=100, speed=1., pos=-1)
+.. py:function:: CPlot.moveCamera(posCams, posEyes=None, dirCams=None, moveEye=False, N=100, speed=1., pos=-1)
 
-    Move camera along check points. The list of points specifies the path of the camera.
+    Move camera along camera points. The list of points specifies the path of the camera.
     The camera will move along this path, making N steps. pos will position the 
-    camera at step number pos along the path. If moveEye is true, the posEye (that
-    is the position the camera is looking to) will follow the path, if false, the posEye 
-    will stay at initial posEye.
+    camera at step number pos along the path. 
+    If posEyes is specified, posEye (that
+    is the position the camera is looking to) will follow this path.
+    If posEyes is not specified and moveEye is true, the posEye will follow the path
+    Otherwise, the posEye will stay at initial posEye.
 
-    :param listOfPts: coordinates of check points
-    :type listOfPts: list of tuple of 3 floats or 1D STRUCT Zone
-    :param moveEye: if True, the eye follow check points
+    :param posCams: coordinates of camera points
+    :type posCams: list of tuple of 3 floats or 1D STRUCT Zone
+    :param posEyes: coordinates of eyes points
+    :type posEyes: list of tuple of 3 floats or 1D STRUCT Zone
+    :param dirCams: camera directions
+    :type dirCams: list of tuple of 3 floats or 1D STRUCT Zone
+    :param moveEye: if True, the eye follow camera points
     :type moveEye: Boolean
     :param speed: speed of camera motion
     :type speed: float
-    :param pos: position in listOfPoints (in 0,N)
+    :param pos: position in posCams (in 0,N)
     :param pos: int
 
     *Example of use:*
@@ -756,7 +762,6 @@ Camera setting and motion
     * `Move camera along check points (pyTree) <Examples/CPlot/moveCameraPT.py>`_:
 
     .. literalinclude:: ../build/Examples/CPlot/moveCameraPT.py
-
 
 -----------------------------------------------
 
@@ -783,7 +788,7 @@ Camera setting and motion
 Set rendering informations in pyTree
 --------------------------------------
 
-.. py:function:: CPlot.PyTree.addRender2Zone(a, material, color, blending, meshOverlay, shaderParameters)
+.. py:function:: CPlot.PyTree.addRender2Zone(a, material=None, color=None, blending=None, meshOverlay=None, shaderParameters=None)
 
     Add rendering info to a zone. Info are added in a .RenderInfo user
     defined node. Use Render mode in display for rendering effects.
@@ -812,7 +817,7 @@ Set rendering informations in pyTree
     
 -----------------------------------------------
 
-.. py:function:: CPlot.PyTree.addRender2PyTree(a, slot, posCam, posEye, dirCam, mode, scalarField, niso, isoScales, isoEdges, isoLight, colormap, materials, bumpMaps, billBoards)
+.. py:function:: CPlot.PyTree.addRender2PyTree(a, slot=0, posCam=None, posEye=None, dirCam=None, mode=None, scalarField=None, niso=None, isoScales=None, isoEdges=None, isoLight=None, colormap=None, materials=None, bumpMaps=None, billBoards=None)
 
     Add rendering info to a tree. Info are added in a .RenderInfo user
     defined node. To load the settings to the view, call explicitely CPlot.loadView.

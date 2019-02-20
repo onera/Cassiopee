@@ -6088,6 +6088,14 @@ def identifySolutions(tRcv, tDnr, hookN=None, hookC=None, vars=[], tol=1.e6):
   """Identify points in stored in a global hook to mesh points and set the solution if donor
   and receptor points are distant from tol.
   Usage: identifySolutions(tRcv, tDnr, hookN, hookC, vars, tol)"""
+  tp = Internal.copyRef(tRcv)
+  _identifySolutions(tp, tDnr, hookN, hookC, vars, tol)
+  return tp
+
+def _identifySolutions(tRcv, tDnr, hookN=None, hookC=None, vars=[], tol=1.e6):
+  """Identify points in stored in a global hook to mesh points and set the solution if donor
+  and receptor points are distant from tol.
+  Usage: identifySolutions(tRcv, tDnr, hookN, hookC, vars, tol)"""
   varsC=[]; varsN=[]
   for v in vars:
     s = v.find('centers:')
@@ -6101,16 +6109,13 @@ def identifySolutions(tRcv, tDnr, hookN=None, hookC=None, vars=[], tol=1.e6):
     varsN = getVarNames(tDnr, excludeXYZ=True, loc='nodes')
     if varsN != []: varsN = varsN[0]
 
-  if len(varsC) == 0 and len(varsN) == 0: return tRcv
+  if len(varsC) == 0 and len(varsN) == 0: return None
   if varsC != []:
     for nov in xrange(len(varsC)):
       vc = varsC[nov].split(':')[1]
       varsC[nov] = vc
 
-  t2 = Internal.copyRef(tRcv)
-  t2p, typen = Internal.node2PyTree(t2)
-
-  zones = Internal.getZones(t2p)
+  zones = Internal.getZones(tRcv)
   coordsR = getFields(Internal.__GridCoordinates__, zones, api=1)
 
   if varsN != [] and hookN is not None:
@@ -6122,9 +6127,7 @@ def identifySolutions(tRcv, tDnr, hookN=None, hookC=None, vars=[], tol=1.e6):
     centersR = Converter.node2Center(coordsR)
     resc = Converter.identifySolutions(centersR, fcenters, hookC, vars=varsC, tol=tol)
     setFields(resc, zones, 'centers')
-
-  t2 = Internal.pyTree2Node(t2p, typen)
-  return t2
+  return None
 
 # -- nearestNodes: identifie le noeud de a le plus proche d'un point de hook
 def nearestNodes(hook, a):

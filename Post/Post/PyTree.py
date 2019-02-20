@@ -117,7 +117,7 @@ def _extractMesh(t, extractionMesh, order=2, extrapOrder=1,
     else: # accurate: extract les centres sur le maillage en centres
         varsC = C.getVarNames(t, excludeXYZ=True, loc='centers')
         varsN = C.getVarNames(t, excludeXYZ=True, loc='nodes')
-        if (len(varsC) == 0 or len(varsN) == 0): return extractionMesh
+        if len(varsC) == 0 or len(varsN) == 0: return extractionMesh
         varsC = varsC[0]; varsN = varsN[0]
         zones = Internal.getZones(extractionMesh)
         if len(varsN) != 0:
@@ -127,7 +127,7 @@ def _extractMesh(t, extractionMesh, order=2, extrapOrder=1,
             allf = []
             nzones = len(fc)
             for i in xrange(nzones):
-                if (fc[i] != [] and fa[i] != 0):
+                if fc[i] != [] and fa[i] != 0:
                     allf.append(Converter.addVars([fc[i], fa[i]]))
                 elif fa[i] != []: allf.append(fa[i])
                 elif fc[i] != []: allf.append(fc[i])
