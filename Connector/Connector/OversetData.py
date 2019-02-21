@@ -1410,7 +1410,7 @@ def setInterpTransfers(aR, topTreeD, variables=[], cellNVariable='cellN',
 # IN: storage=-1/0/1: unknown/direct/inverse
 # Pour les IBCs avec loi de paroi, il faut specifier Gamma, Cv, MuS, Cs, Ts
 #===============================================================================
-def _setInterpTransfers(aR, topTreeD, variables=[],  cellNVariable='cellN',
+def _setInterpTransfers(aR, topTreeD, variables=[],  cellNVariable='',
                         variablesIBC=['Density','MomentumX','MomentumY','MomentumZ','EnergyStagnationDensity'], 
                         bcType=0, varType=1, storage=-1, compact=0,
                         Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08,Cs=0.3831337844872463, Ts=1.0):
@@ -1615,11 +1615,6 @@ def __setInterpTransfers(aR, topTreeD,
                 connector.__setInterpTransfers(zones, zd, variablesIBC, param_int, param_real, varType, compact, flagibc, bcType, Gamma, Cv, MuS, Cs, Ts )
     return None
  
-
-
-
-
-
 #===============================================================================
 # General transfers: Chimera + IBC parallele - getFromZone
 # Beware: variables must be defined in topTreeD at nodes in order to be consistent with
@@ -1641,7 +1636,7 @@ def __setInterpTransfers(aR, topTreeD,
 #     varType = 31: (ro,u,v,w,p(,nutildeSA))
 # Adim: KCore.adim1 for Minf=0.1 (IBC only)
 #===============================================================================
-def setInterpTransfersD(topTreeD, variables=[], cellNVariable='cellN',
+def setInterpTransfersD(topTreeD, variables=[], cellNVariable='',
                         variablesIBC=['Density','MomentumX','MomentumY','MomentumZ','EnergyStagnationDensity'],
                         bcType=0, varType=1, compact=0, 
                         Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08,

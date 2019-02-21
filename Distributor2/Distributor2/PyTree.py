@@ -53,7 +53,7 @@ def computeBBoxes__(arrays, zoneNames):
 def distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='all', 
                algorithm='graph', mode='nodes', nghost=0):
     """Distribute a pyTree over processors.
-    Usage: distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='all', algorithm='graph')"""
+    Usage: distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='all', algorithm='graph', mode='nodes', nghost=0)"""
     tp = Internal.copyRef(t)
     out = _distribute(tp, NProc, prescribed=prescribed, perfo=perfo,
                       weight=weight, useCom=useCom, algorithm=algorithm,
@@ -64,7 +64,7 @@ def distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='all',
 def _distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='all', 
                 algorithm='graph', mode='nodes', nghost=0):
     """Distribute a pyTree over processors.
-    Usage: _distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='all', algorithm='gradient0')"""
+    Usage: _distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='all', algorithm='graph', mode='nodes', nghost=0)"""
     zones = Internal.getZones(t)
     # Formation des arrays
     arrays = []; zoneNames = []; aset = []; weightlist = [] # weight for all zones

@@ -4490,6 +4490,7 @@ def getEmptyBCForNGonZone__(z, dims, pbDim, splitFactor):
       print 'Warning: zone %s: number of faces defined by BCs is greater than the number of external faces. Try to reduce the matching tolerance.'%(z[0])
     elif nfacesExt > nfacesDef:
       indicesE = Converter.converter.diffIndex(indicesF, indicesBC)
+      #indicesE = numpy.delete(indicesF,indicesBC[0,:])
       undefBC = True
   else:
     undefBC = True

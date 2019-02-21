@@ -103,7 +103,6 @@ PyObject* K_POST::extractMesh(PyObject* self, PyObject* args)
     poszi = K_ARRAY::isCoordinateZPresent(unstrVarString0[i]); poszi++;
     posxu0.push_back(posxi); posyu0.push_back(posyi); poszu0.push_back(poszi); 
   }
-
   /* Extraction et Verification des arrays listFields (grilles a interpoler)
      - les champs x,y,z doivent etre en premier
      - le nb de champs doit etre identique */
@@ -262,13 +261,28 @@ PyObject* K_POST::extractMesh(PyObject* self, PyObject* args)
     if (interpOrder != 2) printf("Warning: extractMesh: interpolation order is 2 for tetra arrays.\n");
     if (nzonesS == 0) ncf = 4;
   }
+  // variables de sortie
+  char* varStringOut;
+  if (varString.size() > 0)
+  {
+    varStringOut = new char [strlen(varString[0])+2];
+    strcpy(varStringOut, varString[0]);
+  }
+   else
+  {
+    varStringOut = new char [2]; varStringOut[0] = '\0';
+  }
+  E_Int posxo = K_ARRAY::isCoordinateXPresent(varStringOut); posxo++;
+  E_Int posyo = K_ARRAY::isCoordinateYPresent(varStringOut); posyo++; 
+  E_Int poszo = K_ARRAY::isCoordinateZPresent(varStringOut); poszo++;
+
   // Recherche des cellules d'interpolation
   vector<FldArrayF*> structFields;
   vector<FldArrayF*> unstructFields; vector<FldArrayI*> cnout;
   E_Int type, noblk;
   for (E_Int v = 0; v < ns0; v++)
   {
-    FldArrayF& f = *structF0[v];
+    FldArrayF& f = *structF0[v];// receptor
     E_Int nbI = f.getSize();
     E_Float vol = K_CONST::E_MAX_FLOAT;
     FldArrayF* interp = new FldArrayF(nbI, nvars); //x,y,z + interpolated field
@@ -279,9 +293,9 @@ PyObject* K_POST::extractMesh(PyObject* self, PyObject* args)
     E_Float* xt = f.begin(posxi);
     E_Float* yt = f.begin(posyi);
     E_Float* zt = f.begin(poszi);  
-    E_Float* xi = interp->begin(1);
-    E_Float* yi = interp->begin(2);
-    E_Float* zi = interp->begin(3);
+    E_Float* xi = interp->begin(posxo);
+    E_Float* yi = interp->begin(posyo);
+    E_Float* zi = interp->begin(poszo);
 #pragma omp parallel default(shared) private(vol, noblk, type) if (nbI > 50)
     {
       FldArrayI indi(nindi*2); FldArrayF cf(ncf);
@@ -329,9 +343,9 @@ PyObject* K_POST::extractMesh(PyObject* self, PyObject* args)
     E_Float* yt = f.begin(posyi);
     E_Float* zt = f.begin(poszi);
   
-    E_Float* xi = interp->begin(1);
-    E_Float* yi = interp->begin(2);
-    E_Float* zi = interp->begin(3);
+    E_Float* xi = interp->begin(posxo);
+    E_Float* yi = interp->begin(posyo);
+    E_Float* zi = interp->begin(poszo);
 #pragma omp parallel default(shared) private(vol, noblk, type) if (nbI > 50)
     {
       FldArrayI indi(nindi*2); FldArrayF cf(ncf);
@@ -379,19 +393,9 @@ PyObject* K_POST::extractMesh(PyObject* self, PyObject* args)
   //------------------------------------//
   // Construction de l'arrays de sortie //
   //------------------------------------//
-  char* varStringOut;
-  if (varString.size() > 0)
-  {
-    varStringOut = new char [strlen(varString[0])+2];
-    strcpy(varStringOut, varString[0]);
-  }
-   else
-  {
-    varStringOut = new char [2]; varStringOut[0] = '\0';
-  }
 
-  if (ns0 != 0 && nu0 != 0) 
-    printf("Warning: extractMesh: structured then unstructured arrays are stored.\n");
+  // if (ns0 != 0 && nu0 != 0) 
+  //   printf("Warning: extractMesh: structured then unstructured arrays are stored.\n");
 
   // Build arrays
   PyObject* l = PyList_New(0);

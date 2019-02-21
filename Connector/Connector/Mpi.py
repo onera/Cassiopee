@@ -41,7 +41,7 @@ def optimizeOverlap(t, double_wall=0, priorities=[], graph=None,
 # IN: varType=1,2,3: variablesIBC define (ro,rou,rov,row,roE(,ronutilde)),(ro,u,v,w,t(,nutilde)),(ro,u,v,w,p(,nutilde))
 # Adim: KCore.adim1 for Minf=0.1
 #===============================================================================
-def setInterpTransfers(aR, aD, variables=[], cellNVariable='cellN',
+def setInterpTransfers(aR, aD, variables=[], cellNVariable='',
                        variablesIBC=['Density','MomentumX','MomentumY','MomentumZ','EnergyStagnationDensity'], 
                        bcType=0, varType=1, graph=None, 
                        procDict=None, type='ALLD', 
@@ -54,7 +54,7 @@ def setInterpTransfers(aR, aD, variables=[], cellNVariable='cellN',
                         procDict=procDict, type=type, Gamma=Gamma, Cv=Cv, MuS=MuS, Cs=Cs, Ts=Ts)
     return tp
 #===============================================================================
-def _setInterpTransfers(aR, aD, variables=[], cellNVariable='cellN',
+def _setInterpTransfers(aR, aD, variables=[], cellNVariable='',
                         variablesIBC=['Density','MomentumX','MomentumY','MomentumZ','EnergyStagnationDensity'], 
                         bcType=0, varType=1, compact=0, graph=None, 
                         procDict=None, type='ALLD',
@@ -88,7 +88,6 @@ def _setInterpTransfers(aR, aD, variables=[], cellNVariable='cellN',
                 if not datas.has_key(rcvNode): datas[rcvNode] = [n]
                 else: datas[rcvNode] += [n]
                 #print datas
-    
     # Envoie des numpys suivant le graph
     rcvDatas = Cmpi.sendRecv(datas, graph)
 

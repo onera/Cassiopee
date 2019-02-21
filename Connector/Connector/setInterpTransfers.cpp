@@ -346,10 +346,10 @@ PyObject* K_CONNECTOR::_setInterpTransfers(PyObject* self, PyObject* args)
     }
 
     // Extrait les positions des variables a transferer
-    E_Int posvr, posvd;
     E_Int initAll = false;
     E_Int poscd = K_ARRAY::isNamePresent(cellNVariable, varStringD);      
     E_Int poscr = K_ARRAY::isNamePresent(cellNVariable, varStringR);
+    E_Int posvr, posvd, posvarcr=-1, posvarcd=-1;
 
     if (PyList_Check(pyVariables) != 0)
     {
@@ -366,6 +366,9 @@ PyObject* K_CONNECTOR::_setInterpTransfers(PyObject* self, PyObject* args)
             char* varname = PyString_AsString(tpl0);        
             posvd = K_ARRAY::isNamePresent(varname, varStringD);      
             posvr = K_ARRAY::isNamePresent(varname, varStringR);      
+            if ( posvd == poscd) posvarcd = posvd;
+            if ( posvr == poscr) posvarcr = posvr;
+
             if (posvd != -1 && posvr != -1) 
             {
               posvarsD.push_back(posvd);
@@ -390,8 +393,6 @@ PyObject* K_CONNECTOR::_setInterpTransfers(PyObject* self, PyObject* args)
     }
     if (initAll == true)// all common variables are transfered
     {
-      posvd = K_ARRAY::isNamePresent(cellNVariable, varStringD);
-      posvr = K_ARRAY::isNamePresent(cellNVariable, varStringR);
       char* varStringC; // chaine de caractere commune
       E_Int l = strlen(varStringR);
       varStringC = new char [l+1];
@@ -404,17 +405,12 @@ PyObject* K_CONNECTOR::_setInterpTransfers(PyObject* self, PyObject* args)
 
       for (E_Int i = 0; i < sizeVarsD; i++) posvarsD[i] -= 1;
       for (E_Int i = 0; i < sizeVarsR; i++) posvarsR[i] -= 1;
-    
-      if (posvd != -1) 
-        posvarsD.erase(remove(posvarsD.begin(), posvarsD.end(), posvd), posvarsD.end());
-      if (posvr != -1)
-        posvarsR.erase(remove(posvarsR.begin(), posvarsR.end(), posvr), posvarsR.end());
+      posvarcr = poscr; posvarcd = poscd;// position de cellNVariable dans la liste des variables a interpoler
     }
-    
-    if (poscd > -1 && poscr > -1) // cellNVariable exists : do not interpolate but specific update
+    if (posvarcd > -1 && posvarcr > -1) // cellNVariable exists : do not interpolate but specific update
     {
-      posvarsD.erase(remove(posvarsD.begin(), posvarsD.end(), poscd), posvarsD.end());
-      posvarsR.erase(remove(posvarsR.begin(), posvarsR.end(), poscr), posvarsR.end());
+      posvarsD.erase(remove(posvarsD.begin(), posvarsD.end(), posvarcd), posvarsD.end());
+      posvarsR.erase(remove(posvarsR.begin(), posvarsR.end(), posvarcr), posvarsR.end());
     }
     delete [] varStringR; delete [] varStringD; delete [] eltTypeR; delete [] eltTypeD;
 
@@ -435,7 +431,7 @@ PyObject* K_CONNECTOR::_setInterpTransfers(PyObject* self, PyObject* args)
 # include "commonInterpTransfers_indirect.h" 
 
     // transfer of cellN variable
-    if (poscd > -1 && poscr > -1) // cellNVariable exists
+    if (posvarcr > -1 && posvarcd > -1) // cellNVariable exists and is transfered specifically
     {  
       E_Int indR, type, nocf;
       E_Int indD0, indD, i, j, k, ncfLoc;
