@@ -40,5 +40,5 @@ p = P.streamRibbon(m2, pt, n, vect)
 test.testA([p], 2)
 
 # Mixte
-p = P.streamRibbon([m[0],m2[1]],pt, n, vect) 
+p = P.streamRibbon([m[0],m2[1]],pt, n, vect)
 test.testA([p], 3)

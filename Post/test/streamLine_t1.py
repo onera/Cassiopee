@@ -32,7 +32,7 @@ test.testA([p], 1)
 
 # 2D struct
 x0 = 5.; y0 = 5.; z0 = 0.
-p = P.streamLine(s, (x0,y0,z0),['rou','rov','row'] , N=200)
+p = P.streamLine(s, (x0,y0,z0),['rou','rov','row'], N=200)
 test.testA([p], 2)
     
 # 3D non struct

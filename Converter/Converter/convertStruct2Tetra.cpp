@@ -319,27 +319,43 @@ PyObject* K_CONVERTER::convertStruct2Tetra(PyObject* self, PyObject* args)
               cn2[ind] = ind2;
               cn3[ind] = ind3;
               cn4[ind] = ind6;
-                
+              //cn1[ind] = ind1;
+              //cn2[ind] = ind6;
+              //cn3[ind] = ind2;
+              //cn4[ind] = ind3;
+
               // tetra HFGC: 8673
               ind++;
               cn1[ind] = ind3;
               cn2[ind] = ind6;
               cn3[ind] = ind7;
               cn4[ind] = ind8;
-                
+              //cn1[ind] = ind8;
+              //cn2[ind] = ind6;
+              //cn3[ind] = ind7;
+              //cn4[ind] = ind3;
+
               // tetra FHAE: 6815
               ind++;
               cn1[ind] = ind6;
               cn2[ind] = ind5;
               cn3[ind] = ind8;
               cn4[ind] = ind1;
-                
+              //cn1[ind] = ind6;
+              //cn2[ind] = ind8;
+              //cn3[ind] = ind1;
+              //cn4[ind] = ind5;
+              
               // tetra FHAC: 6813
               ind++;
               cn1[ind] = ind6;
               cn2[ind] = ind3;
               cn3[ind] = ind1;
               cn4[ind] = ind8;
+              //cn1[ind] = ind6;
+              //cn2[ind] = ind8;
+              //cn3[ind] = ind1;
+              //cn4[ind] = ind3;
             }
           }
       }

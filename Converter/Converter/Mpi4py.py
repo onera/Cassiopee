@@ -7,7 +7,7 @@ import Distributed
 from Distributed import readZones, writeZones, convert2PartialTree, convert2SkeletonTree, readNodesFromPaths, readPyTreeFromPaths, writeNodesFromPaths
 
 __all__ = ['rank', 'size', 'KCOMM', 'setCommunicator', 'barrier', 'send', 'recv', 'sendRecv', 'sendRecv2', 
-    'allgather', 'readZones', 'writeZones', 'convert2PartialTree', 'convert2SkeletonTree', 
+    'allgather', 'readZones', 'writeZones', 'convert2PartialTree', 'convert2SkeletonTree', 'convertFile2DistributedPyTree', 
     'readNodesFromPaths', 'readPyTreeFromPaths', 'writeNodesFromPaths',
     'allgatherTree', 'convertFile2SkeletonTree', 'convertFile2PyTree', 'convertPyTree2File', 'seq', 
     'createBBoxTree', 'computeGraph', 'addXZones', '_addXZones', 'rmXZones', '_rmXZones', 'getProcDict', 
@@ -115,6 +115,15 @@ def convertFile2SkeletonTree(fileName, format=None, maxFloatSize=5,
     t = KCOMM.bcast(t)
     return t
     
+#==============================================================================
+# Only for hdf
+# Split a file on all processors
+#==============================================================================
+def convertFile2DistributedPyTree(fileName):
+  import etc.toolbox.internal as tgi
+  tmp = tgi.convertFile2DistributedPyTree(fileName)
+  return tmp.getLocalTree()
+
 #==============================================================================
 # Lecture complete d'un arbre dans un fichier
 # Lecture proc 0 + bcast
