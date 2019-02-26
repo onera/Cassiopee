@@ -18,7 +18,7 @@ try:
     if color:
         print("\033[32m%s correctly installed.\033[0m"%moduleName)
     else: print("%s correctly installed."%moduleName)
-except Exception, inst:
+except Exception as inst:
     if color:
         print("\033[31mFAILED: %s\033[0m"%inst)
         print("\033[31mFAILED: %s badly installed.\033[0m"%moduleName)

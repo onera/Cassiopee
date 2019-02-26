@@ -39,16 +39,58 @@ static PyMethodDef Pykcore [] =
   {NULL, NULL}
 };
 
+#if PY_MAJOR_VERSION >= 3
+#define GETSTATE(m) ((struct module_state*)PyModule_GetState(m))
+#endif
+
+#if PY_MAJOR_VERSION >= 3
+struct module_state {
+    PyObject *error;
+};
+static int myextension_traverse(PyObject *m, visitproc visit, void *arg) {
+    Py_VISIT(GETSTATE(m)->error);
+    return 0;
+}
+static int myextension_clear(PyObject *m) {
+    Py_CLEAR(GETSTATE(m)->error);
+    return 0;
+}
+static struct PyModuleDef moduledef = {
+        PyModuleDef_HEAD_INIT,
+        "kcore",
+        NULL,
+        sizeof(struct module_state),
+        Pykcore,
+        NULL,
+        myextension_traverse,
+        myextension_clear,
+        NULL
+};
+#endif
+
 // ============================================================================
 /* Init of module */
 // ============================================================================
 extern "C"
 {
+#if PY_MAJOR_VERSION >= 3
+  PyMODINIT_FUNC PyInit_kcore();
+  PyMODINIT_FUNC PyInit_kcore()
+#else
   PyMODINIT_FUNC initkcore();
   PyMODINIT_FUNC initkcore()
+#endif
   {
-    Py_InitModule("kcore", Pykcore);
+#if PY_MAJOR_VERSION >= 3
+    PyObject* module = PyModule_Create(&moduledef);
+#else
+    PyObject* module = Py_InitModule("kcore", Pykcore);
+#endif
     import_array();
+#if PY_MAJOR_VERSION >= 3
+    return module;
+#endif
+
   }
 }
 

@@ -8,17 +8,17 @@ def convertArrays2Arrays3D(CArrays, VERBOSE=None):
   """Convert a standard array to a 3D array."""
   Blocks = []
   if VERBOSE:
-    print len(CArrays)
+    print(len(CArrays))
   for b in range(len(CArrays)):
     dimI = CArrays[b][2]
     dimJ = CArrays[b][3]
     dimK = CArrays[b][4]
     if VERBOSE:
-      print dimI,dimJ,dimK
+      print(dimI,dimJ,dimK)
     var = CArrays[b][0].split(',')
     if VERBOSE:
-      print CArrays[b][1].shape
-    Var = map(lambda i:N.swapaxes(CArrays[b][1][i,:].reshape((dimK,dimJ,dimI)),0,2),range(CArrays[b][1].shape[0]))
+      print(CArrays[b][1].shape)
+    Var = [N.swapaxes(CArrays[b][1][i,:].reshape((dimK,dimJ,dimI)),0,2) for i in range(CArrays[b][1].shape[0])]
     Blocks.append([var,Var])
   return Blocks
 

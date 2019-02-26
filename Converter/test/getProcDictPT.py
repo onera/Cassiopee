@@ -17,5 +17,5 @@ t = Cmpi.convertFile2SkeletonTree('in.cgns')
 (t, dic) = Distributor2.distribute(t, NProc=2, algorithm='fast')
 
 procDict = Cmpi.getProcDict(t)
-if Cmpi.rank == 0: print procDict
+if Cmpi.rank == 0: print(procDict)
 #>> {'cart.0': 1, 'cart': 0}

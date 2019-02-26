@@ -12,5 +12,5 @@ hook = C.createHook(a, function='nodes')
 # et distance correspondante
 b = T.translate(a,(0.15,0.,0.))
 f = P.exteriorFaces(b)
-nodes,dist = C.nearestNodes(hook, f); print nodes, dist
+nodes,dist = C.nearestNodes(hook, f); print(nodes, dist)
 #>> [   1    2    3   ...] [0.15  0.15  0.15  ...]

@@ -8,12 +8,9 @@ import numpy as N
 # Read a file into numpy arrays
 arrays = C.convertFile2Arrays('in.plt')
 
-n = len(arrays)
-a = range(0,n)
 out = []
 
-for x in a:
-    b = arrays[x]
+for b in arrays:
     t = b[1]
     ni = b[2]
     nj = b[3]
@@ -23,7 +20,7 @@ for x in a:
     c = 0
     for i in l:
         t2[c] = t[i]
-        c = c+1
+        c += 1
         
     v = ['x,y,z,ro,rovx,cellnf', t2, ni, nj, nk]
     out.append(v)

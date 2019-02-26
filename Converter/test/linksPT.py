@@ -19,9 +19,9 @@ C.convertPyTree2File(t, 'titi.hdf')
 # full read of tata returning links
 LC=[]
 t = C.convertFile2PyTree('tata.hdf', links=LC)
-print LC
+print(LC)
 
 # Read links with skeleton
 LC=[]
 t = Filter.convertFile2SkeletonTree('tata.hdf', links=LC)
-print LC
+print(LC)

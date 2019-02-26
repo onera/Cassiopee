@@ -21,7 +21,7 @@ def checkModuleImport(moduleName, raiseOnError=True):
     if sys.stdout.isatty(): color = True
 
     # sec / lock
-    os.chmod(moduleName, 0700)
+    os.chmod(moduleName, 0o700)
 
     # try import module
     try:
@@ -29,7 +29,7 @@ def checkModuleImport(moduleName, raiseOnError=True):
         if color:
             print("\033[32m%s correctly installed.\033[0m"%moduleName)
         else: print("%s correctly installed."%moduleName)
-    except Exception, inst:
+    except Exception as inst:
         if color:
             print("\033[31mFAILED: %s\033[0m"%inst)
             print("\033[31mFAILED: %s badly installed.\033[0m"%moduleName)
@@ -69,7 +69,7 @@ def getSystem():
 # Return '' if name is not in environ
 #==============================================================================
 def getenv(name):
-     if os.environ.has_key(name): return os.environ[name]
+     if name in os.environ: return os.environ[name]
      else: return ''
 
 #==============================================================================
@@ -163,7 +163,7 @@ def getInstallPath(prefix):
     mySystem = getSystem()[0]; bits = getSystem()[1]
     # Based on spec
     if os.environ['ELSAPROD'] == 'msys64':
-	pythonLib = distutils.sysconfig.get_python_lib()
+        pythonLib = distutils.sysconfig.get_python_lib()
         pythonLib = pythonLib.split('/')
         pythonVersion = pythonLib[-2]
         Site = pythonLib[-1]
@@ -225,7 +225,7 @@ def writeEnvs():
      except: import installPath as K
      libPath = K.libPath
      installPathLocal = K.installPath
-     env = os.environ.data
+     env = os.environ
      cassiopee = env.get('CASSIOPEE', '')
      elsaprod = env.get('ELSAPROD', '')
      if cassiopee != '': envPath = libPath+'/../../../'
@@ -382,8 +382,8 @@ def getDistUtilsCompilers():
     vars = distutils.sysconfig.get_config_vars('CC', 'CXX', 'OPT',
                                                'BASECFLAGS', 'CCSHARED',
                                                'LDSHARED', 'SO')
-    for i in xrange(len(vars)):
-        if vars[i] is None: vars[i] = ""
+    for i, v in enumerate(vars):
+        if v is None: vars[i] = "" 
 
     try: from config import Cppcompiler
     except: from KCore.config import Cppcompiler
@@ -481,7 +481,7 @@ def getVersion(compiler):
                              stderr=subprocess.PIPE)
      out = ''
      while True:
-          line = proc.stdout.readline()
+          line = proc.stdout.readline()#.decode('utf-8')
           if line != '': out += line
           else: break
      out = out.split('\n')
@@ -1504,8 +1504,8 @@ def checkIncFile__(file, additionalIncludePaths):
         p1 = env.get('PATH', None)
         if p1 is not None: pp += p1.split(':')
     #p += ['/usr/local/include', '/opt/include', '/usr/include', '/opt/local/include']
-    for i in xrange(len(pp)):
-        s = pp[i].split('/'); ls = len(s)
+    for i, v in enumerate(pp):
+        s = v.split('/'); ls = len(s)
         if ls > 0 and s[-1] == 'lib': s[-1] = 'include'
         if ls > 1 and s[-2] == 'lib': s[-2] = 'include'; s[-1] = ''
         if ls > 0 and s[-1] == 'lib64': s[-1] = 'include'
@@ -1592,7 +1592,7 @@ def writeInstallBase(dict):
 
      # Pretty print dict
      p.write("installDict = {\n")
-     keys = dict.keys()
+     keys = list(dict.keys())
      kc = 0
      for k in keys:
           p.write("###############################################################################\n")
@@ -1785,9 +1785,9 @@ def createCythonBuilder(env):
      for i in env['CPPPATH']: incs += ' -I"%s" '%i
 
      cypath = ''
-     if env.has_key("CYTHONCOMPATH") and (env["CYTHONCOMPATH"] != ""):
+     if "CYTHONCOMPATH" in env and env["CYTHONCOMPATH"] != "":
           SYSPATH = ""
-          if env.has_key("PYTHONPATH"): SYSPATH=env['PYTHONPATH']
+          if "PYTHONPATH" in env: SYSPATH=env['PYTHONPATH']
           cypath = env["CYTHONCOMPATH"]
           if cypath != "": cypath += "/"
           pypath = "PYTHONPATH=%s:%s:%s "%(RESOURCELIBPATH,CYTHONLIBPATH,SYSPATH)

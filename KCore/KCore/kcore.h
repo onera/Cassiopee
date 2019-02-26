@@ -39,6 +39,7 @@
 //#include "Memory/vector_view.hpp"
 //#include "ExtArith/quad_double.hpp"
 #include "parallel.h"
+#include "kPython.h"
 #include <vector>
 
 namespace K_KCORE

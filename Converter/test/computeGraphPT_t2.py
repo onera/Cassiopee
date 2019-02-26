@@ -15,7 +15,7 @@ N = 11
 # Cas test
 t = C.newPyTree(['Base'])
 off = 0
-for i in xrange(N):
+for i in range(N):
     a = G.cart( (off,0,0), (1,1,1), (10+i, 10, 10) )
     off += 9+i
     t[2][1][2].append(a)

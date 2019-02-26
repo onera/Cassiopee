@@ -10,5 +10,5 @@ t = C.newPyTree(['Base',a,b])
 t = X.connectMatch(t, dim=2)
 
 zones = C.getConnectedZones(t[2][1][2][1], topTree=t)
-for z in zones: print z[0]
+for z in zones: print(z[0])
 #>> cart

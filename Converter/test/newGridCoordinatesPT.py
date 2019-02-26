@@ -2,7 +2,7 @@
 import Converter.Internal as Internal
 
 # Create a GridCoordinates node
-n = Internal.newGridCoordinates(); print n
+n = Internal.newGridCoordinates(); print(n)
 #>> ['GridCoordinates', None, [], 'GridCoordinates_t']
 
 # Create a zone node

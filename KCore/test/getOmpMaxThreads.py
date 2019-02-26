@@ -1,2 +1,2 @@
 import KCore
-print KCore.kcore.getOmpMaxThreads()
+print(KCore.kcore.getOmpMaxThreads())

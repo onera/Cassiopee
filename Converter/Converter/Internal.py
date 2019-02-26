@@ -4,7 +4,7 @@
 import numpy
 import fnmatch # unix wildcards
 import KCore
-import converter
+from . import converter
 
 # Containeurs
 __GridCoordinates__ = 'GridCoordinates'
@@ -3292,7 +3292,7 @@ def adaptConnect__(connects, dim):
     elif iBE != -1: # une connectivite BE existe -> on la prend
         connect = connects[iBE]; eltType = connect[1][0]
         if iBEMultiple == 1:
-            print 'Warning: convertDataNode2Array: different connectivities in a single zone is not possible. Only first connectivity is kept.'
+            print('Warning: convertDataNode2Array: different connectivities in a single zone is not possible. Only first connectivity is kept.')
     else:
         #raise ValueError("convertDataNode2Array: no valid connectivity found.")
         #print 'Warning: convertDataNode2Array: no valid connectivity found (using NODE).'
@@ -3808,7 +3808,7 @@ def _adaptZoneBCEltRange2EltList(t):
 def getElementRangeDict(t, d):
     zones = getZones(t)
     for z in zones:
-        if not d.has_key(z[0]): d[z[0]] = {}
+        if z[0] not in d: d[z[0]] = {}
         elts = getNodesFromType1(z, 'Elements_t')
         for e in elts:
             n = getNodeFromName1(e, 'ElementRange')[1]
@@ -3818,9 +3818,9 @@ def getElementRangeDict(t, d):
 # input dict, index of a Elements of z
 # trouve la connectivite de zname referencee par ind
 def referencedElement(ind, zname, d):
-    if not d.has_key(zname): return None
+    if zname not in d: return None
     p = d[zname]
-    for k in p.keys():
+    for k in p:
         if ind >= p[k][0] and ind <= p[k][1]: return k 
     return None
 
@@ -3888,7 +3888,7 @@ def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
                     NFACE = len(sons)-1; NFACEORIG = False
                     if remove: _rmNode(z, parentElt)
                 else:
-                    print 'Warning: cannot create NFACE. ParentElements node is not present.'
+                    print('Warning: cannot create NFACE. ParentElements node is not present.')
                 _updateElementRange(z)
 
             # Reorder: NGON en premier, NFACE en deuxieme si BE
@@ -3918,7 +3918,7 @@ def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
             if NGON == -1 and breakBE:
                 connects = getElementNodes(z)
                 if len(connects) > 1: # multiple volume connectivity
-                    import PyTree; import Generator.PyTree as G
+                    from . import PyTree; import Generator.PyTree as G
                     zones = PyTree.breakConnectivity(z)
                     zones = G.close(zones)
                     (p,c) = getParentOfNode(t, z)
@@ -3930,7 +3930,7 @@ def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
                 connects = getElementNodes(z)
                 if connects != []:
                     if connects[0][1][0] == 20:
-                        import PyTree
+                        from . import PyTree
                         PyTree._convertArray2NGon(z) # ineffective (2.2)
                                                  
     # Remet les BCs d'aplomb (en fonction de la renumerotation shift0->shift1)
@@ -3954,7 +3954,7 @@ def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
                         ind = pln.ravel('k')[0]
                         ref = referencedElement(ind, z[0], shift0)
                         if ref is None: 
-                            print 'Warning: cannot find', ind, b[0], z[0]
+                            print('Warning: Cannot find', ind, b[0], z[0])
                         else:
                             shiftn = shift1[z[0]][ref][0]-shift0[z[0]][ref][0]
                             pln[:] += shiftn
@@ -3975,7 +3975,7 @@ def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
                         ind = pln.ravel('k')[0]
                         ref = referencedElement(ind, z[0], shift0)
                         if ref is None: 
-                            print 'Warning: cannot find', ind, b[0], z[0]
+                            print('Warning: Cannot find', ind, b[0], z[0])
                         else:
                             shiftn = shift1[z[0]][ref][0]-shift0[z[0]][ref][0]
                             pln[:] += shiftn
@@ -4011,7 +4011,7 @@ def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
                         ind = pln.ravel('k')[0]
                         ref = referencedElement(ind, zdonorname, shift0)
                         if ref is None:
-                            print 'Warning: cannot find', ind, b[0], z[0]
+                            print('Warning: Cannot find', ind, b[0], z[0])
                         else:
                             shiftn = shift1[zdonorname][ref][0]-shift0[zdonorname][ref][0]
                             pln[:] += shiftn
@@ -4024,7 +4024,7 @@ def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
 # methodPE = 0 : methode geometrique pour generer le ParentElement (pour un maillage relativement regulier, sans cellules concaves).
 # methodPE = 1 : methode topologique (pour un maillage quelconque).
 def _unfixNGon(t, methodPE=0):
-    import PyTree; import Transform.PyTree as T
+    from . import PyTree; import Transform.PyTree as T
     zones = getZones(t)
     for z in zones:
         _adaptNFace2PE(z, remove=False, methodPE=0)
@@ -4039,12 +4039,12 @@ def _unfixNGon(t, methodPE=0):
 # method=1: avec tri interior, exterior
 #==============================================================================
 def createElsaHybrid(t, method=0, axe2D=0, methodPE=0):
-    import elsAProfile
+    from . import elsAProfile
     tp = elsAProfile.createElsaHybrid(t, method, axe2D, methodPE)
     return tp
 
 def _createElsaHybrid(t, method=0, axe2D=0, methodPE=0):
-    import elsAProfile
+    from . import elsAProfile
     elsAProfile._createElsaHybrid(t, method, axe2D, methodPE)
     return None
 
@@ -4149,12 +4149,12 @@ def getRotationAngleValueInDegrees(RotationAngleNode):
         if angleUnit == 'Radian': alpha = __RAD2DEG__
         elif angleUnit == 'Degree': alpha = 1.
         else:
-            print 'Warning: getRotationAngleValueInDegrees: unknown angle unit=%s.'%angleUnit
-            print 'Warning: getRotationAngleInDegrees: AngleUnits must be Radian or Degree. Assuming Degree'
+            print('Warning: getRotationAngleValueInDegrees: unknown angle unit=%s.'%angleUnit)
+            print('Warning: getRotationAngleInDegrees: AngleUnits must be Radian or Degree. Assuming Degree')
             alpha = 1.
     else: 
         alpha=1.#__RAD2DEG__
-        print 'WARNING: getRotationAngleInDegrees: no angle units defined in RotationAngle node: assuming angle unit is Degree.'
+        print('Warning: getRotationAngleInDegrees: no angle units defined in RotationAngle node: assuming angle unit is Degree.')
 
     anglev = getValue(RotationAngleNode)
     if anglev.shape[0] != 3: raise ValueError("getRotationAngleInDegrees: RotationAngle value must be a numpy of size 3.")
@@ -4232,7 +4232,7 @@ def _mergeBCDataSets__(z, bcNode):
                     _createUniqueChild(cont, data0[0], 'DataArray_t', value=data0[1])
                 del parent[2][nop]
             else:
-                print 'Warning: BCDataSet location of %s is different from %s. Not merged.'%(dataSets[no], dataSets[nod])
+                print('Warning: BCDataSet location of %s is different from %s. Not merged.'%(dataSets[no], dataSets[nod]))
         no += 1
     return None
 
@@ -4324,7 +4324,7 @@ def  getBCDataSetContainers(name, z):
     containers = []
     dims = getZoneDim(z)
     if dims[0] == 'Unstructured': 
-        print 'Internal: getBCDataSetContainers not yet implemented for unstructured zones.'
+        print('Internal: getBCDataSetContainers not yet implemented for unstructured zones.')
         return None
 
     if name == __GridCoordinates__: return None
@@ -4434,9 +4434,9 @@ def autoSetContainers(t):
     if __FlowSolutionNodes__ == __FlowSolutionCenters__:
         if foundNode == 0: __FlowSolutionNodes__ = ''
         elif foundCenter == 0: __FlowSolutionCenters__ = ''
-        else: print 'Warning: FlowSolutionNodes and FlowSolutionCenters have the same name (%s).'%__FlowSolutionNodes__
-    if foundNode > 1: print 'Warning: multiple FlowSolutionNodes containers found (selected: %s)'%__FlowSolutionNodes__
-    if foundCenter > 1: print 'Warning: multiple FlowSolutionCenters containers found (selected: %s)'%__FlowSolutionCenters__
+        else: print('Warning: FlowSolutionNodes and FlowSolutionCenters have the same name (%s).'%__FlowSolutionNodes__)
+    if foundNode > 1: print('Warning: multiple FlowSolutionNodes containers found (selected: %s)'%__FlowSolutionNodes__)
+    if foundCenter > 1: print('Warning: multiple FlowSolutionCenters containers found (selected: %s)'%__FlowSolutionCenters__)
     return None
 
 #==============================================================================

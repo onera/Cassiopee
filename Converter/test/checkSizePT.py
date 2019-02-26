@@ -13,4 +13,4 @@ C.convertPyTree2File(t, 'out.cgns')
 
 # check nodes conformity
 errors = Internal.checkSize(t, sizeMax=500)
-print errors
+print(errors)

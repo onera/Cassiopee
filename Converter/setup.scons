@@ -97,12 +97,12 @@ if Cppcompiler.find('icc') == 0 or Cppcompiler.find('icpc') == 0:
     for i in cppOpts:
         if i[0:2] != '-O' and i[0:9] != '-fp-model': flags += i+' '
     flags += '-fp-model=strict -O2'
-    for i in xrange(len(srcs.cpp_srcs)):
-        if srcs.cpp_srcs[i] == "Converter/hook.cpp":
+    for i, v in enumerate(srcs.cpp_srcs):
+        if v == "Converter/hook.cpp":
             srcs.cpp_srcs[i] = env.Object("Converter/hook.cpp", CXXFLAGS=flags)
-        if srcs.cpp_srcs[i] == "Converter/identify.cpp": 
+        if v == "Converter/identify.cpp": 
             srcs.cpp_srcs[i] = env.Object("Converter/identify.cpp", CXXFLAGS=flags)
-        if srcs.cpp_srcs[i] == "Converter/nearest.cpp":
+        if v == "Converter/nearest.cpp":
             srcs.cpp_srcs[i] = env.Object("Converter/nearest.cpp", CXXFLAGS=flags)
             
 myMod = env.StaticLibrary('converter', srcs.cpp_srcs+ppf)

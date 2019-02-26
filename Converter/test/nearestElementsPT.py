@@ -13,4 +13,4 @@ hook = C.createHook(a, function='elementCenters')
 # Indices des faces de a les plus proches des centres des elts de f
 # et distance correspondante
 elts,dist = C.nearestElements(hook, f)
-print elts,dist
+print(elts,dist)

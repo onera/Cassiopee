@@ -10,5 +10,5 @@ C._initVars(a, '{centers:G}={CoordinateY}')
 Internal.__FlowSolutionCenters__ = 'FlowSolution#Centers'
 t = C.newPyTree(['Base',a])
 Internal.autoSetContainers(t)
-print Internal.__FlowSolutionNodes__
-print Internal.__FlowSolutionCenters__
+print(Internal.__FlowSolutionNodes__)
+print(Internal.__FlowSolutionCenters__)

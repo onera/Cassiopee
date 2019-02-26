@@ -12,4 +12,4 @@ hook = C.createHook(a, function='nodes')
 # Indices des noeuds de a les plus proches des noeuds de f
 # et distance correspondante
 nodes,dist = C.nearestNodes(hook, f)
-print nodes,dist
+print(nodes, dist)

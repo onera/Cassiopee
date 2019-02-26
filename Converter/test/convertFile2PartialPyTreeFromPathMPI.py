@@ -38,6 +38,6 @@ t = C.convertFile2PartialPyTreeFromPath(filenamein, Filter, comm)
 
 # ------------------------------------------------------------------------
 # 6/ Print CGNS Tree
-print '*'*23, t[0][1]
-print '*'*23, t[1][1]
+print('*'*23, t[0][1])
+print('*'*23, t[1][1])
 C.printTree(t)

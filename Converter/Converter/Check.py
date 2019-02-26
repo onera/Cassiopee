@@ -1,9 +1,9 @@
 # - check -
 # Un module de verification de la coherence des arbres pythons
 
-import Internal
+from . import Internal
+from . import PyTree as C
 import numpy
-import PyTree as C
 
 # last is 76
 CGNSTypes = {
@@ -240,7 +240,7 @@ def _correctVersionNode(t):
         else:
             c = 0
             for n in t[2]:
-                if (n[3] == 'CGNSLibraryVersion_t' and id(n) == id(node)):
+                if n[3] == 'CGNSLibraryVersion_t' and id(n) == id(node):
                     del t[2][c]; break
                 c += 1
             if added == 0: t[2].insert(0, node); added = 1 
@@ -314,7 +314,7 @@ def checkUniqueNames(t, type):
     nodes = Internal.getNodesFromType(t, type)
     for n in nodes:
         name = n[0]
-        if not nameServer.has_key(name): nameServer[name] = 0
+        if name not in nameServer: nameServer[name] = 0
         else:
             if type == 'CGNSBase_t':
                 errors += [n, "Base name %s is already used."%n[0]]
@@ -341,12 +341,12 @@ def _correctNames(t, type):
     zoneDonors = []
     for n in nodes:
         name = n[0]
-        if not nameServer.has_key(name): nameServer[name] = 0
+        if name not in nameServer: nameServer[name] = 0
         else: # deja existant
             c = nameServer[name]; ret = 1
             while ret == 1:
                 name2 = '%s.%d'%(name,c)
-                if not nameServer.has_key(name2): ret = 0
+                if name2 not in nameServer: ret = 0
                 else: ret = 1
                 c += 1
             nameServer[name2] = 0
@@ -761,7 +761,7 @@ def _correctBaseZonesDim(t):
         if lz1 == 0 and lz2 == 0: Internal.setValue(b, 3)
         elif lz1 == 0 and lz3 == 0: Internal.setValue(b, 2)
         elif lz2 == 0 and lz3 == 0: Internal.setValue(b, 1)
-        else: print "Bases must be split."
+        else: print("Bases must be split.")
     
     return None
 
@@ -894,7 +894,7 @@ def checkCGNSType(node):
 
 def checkCGNSType__(node, errors):
     ntype = node[3]
-    if not CGNSTypes.has_key(ntype):
+    if ntype not in CGNSTypes:
         errors += [node, 'Unknown CGNS type %s for node %s.\n'%(ntype, node[0])]
     sons = node[2]
     for n in sons: checkCGNSType__(n, errors)

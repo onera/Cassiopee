@@ -6,7 +6,7 @@ __author__ = "Stephanie Peron, Christophe Benoit, Gaelle Jeanfaivre, Pascal Raud
 # Python Interface for conversion between  array / file / CGNS
 #
 import numpy
-import converter
+from . import converter
 import KCore
 
 __all__ = ['array', 'addVars', '_addVars', 'addVars2', 'center2ExtCenter', 'center2Node', 'conformizeNGon', 
@@ -39,7 +39,7 @@ def arrayS(vars, ni, nj, nk, api=1):
     vars = vars.replace(' ','')
     l = len(vars)
     if vars[l-1] == ',' or vars[0] == ',':
-        print "Warning: array: your var string is suspicious."
+        print("Warning: array: your var string is suspicious.")
     vl = vars.split(','); v = len(vl)
     if api == 1:
         a = numpy.zeros((v, ni*nj*nk), numpy.float64)
@@ -62,7 +62,7 @@ def arrayNS(vars, npoints, nelts, eltType, api=1):
     vars = vars.replace(' ','')
     l = len(vars)
     if vars[l-1] == ',' or vars[0] == ',':
-        print "Warning: array: your var string is suspicious."
+        print("Warning: array: your var string is suspicious.")
     vl = vars.split(','); v = len(vl)
     if eltType == 'NODE' or eltType == 'NODE*': nt = 1
     elif eltType == 'BAR' or eltType == 'BAR*': nt = 2
@@ -434,7 +434,7 @@ def _initVarByEq__(a, eq):
         # Extrait la variable a initialiser de eq
         s = eq0.split('=', 1)
         #if len(s) != 2:
-        #    print 'Error: initVars: equation is incorrect.'; return None
+        #    print('Error: initVars: equation is incorrect.'); return None
 
         var = s[0]; var = var.replace('{', ''); var = var.replace('}', '')
         var = var.lstrip(); var = var.rstrip()
@@ -511,7 +511,7 @@ def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
     file.close()
     if format == 'bin_pickle':
         import cPickle as pickle
-        print 'Reading \''+fileName+'\'...',
+        print('Reading \''+fileName+'\'...'),
         try:
             file = open(fileName, 'rb')
             a = pickle.load(file)
@@ -519,7 +519,7 @@ def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
         except:
             raise TypeError("convertFile2Arrays: file %s can not be read."%fileName)
         else:
-            print 'done.'
+            print('done.')
             return a
     elif format == 'fmt_iges':
         try: import OCC
@@ -528,7 +528,7 @@ def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
         for c in xrange(len(a)): zoneNames.append('zone%d'%c)
         return a
     elif format == 'fmt_free':
-        print 'Reading '+fileName+' (fmt_free)...',
+        print('Reading '+fileName+' (fmt_free)...'),
         try:
             file = open(fileName, 'r')
             f = file.read()
@@ -551,7 +551,7 @@ def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
             for i in xrange(np):
                 line = f[i]; line = line.split(' ')
                 for n in xrange(len(line)): pt[n,i] = float(line[n])
-            print 'done.'
+            print('done.')
             zoneNames.append('zone0')
             return [a]
         except:
@@ -600,12 +600,12 @@ def convertArrays2File(arrays, fileName, format=None, isize=4, rsize=8,
     if format == 'bin_pickle':
         import cPickle as pickle
         file = open(fileName, 'wb')
-        print 'Writing \''+fileName+'\'...',
+        print('Writing \''+fileName+'\'...'),
         pickle.dump(arrays, file, protocol=pickle.HIGHEST_PROTOCOL); file.close()
-        print 'done.'
+        print('done.')
     elif format == 'fmt_free':
         file = open(fileName, 'w')
-        print 'Writing %s (fmt_free)...'%fileName,
+        print('Writing %s (fmt_free)...'%fileName),
         for a in arrays:
             out = ''
             pt = a[1]
@@ -619,7 +619,7 @@ def convertArrays2File(arrays, fileName, format=None, isize=4, rsize=8,
                 out += '\n'
             file.write(out)
         file.close()
-        print 'done.'
+        print('done.')
     else:
         converter.convertArrays2File(arrays, fileName, format, isize, rsize,
                                      endian, colormap, dataFormat,
@@ -1238,7 +1238,7 @@ def createGlobalHook(a, function='None', indir=0):
         if not isinstance(a[0],list): return converter.registerAllElements(convertArray2NGon([a]), indir)
         else: return converter.registerAllElements(convertArray2NGon(a), indir)
     elif function == 'extractMesh': # 1
-        print 'function=extractMesh not implemented for global hook.'
+        print('function=extractMesh not implemented for global hook.')
     else: raise ValueError("function is invalid.")
 
 #==============================================================================
@@ -1397,12 +1397,12 @@ def send(data, host='localhost', rank=0, port=15555):
     import socket; import Compressor
     port = port+rank; sizeBuf = 1024
 
-    #print 'connecting to port',port
+    #print('connecting to port', port)
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((host, port))
     except:
-        print 'Send: can not connect to %s [%d]. Nothing sent.'%(host,port)
+        print('Send: can not connect to %s [%d]. Nothing sent.'%(host,port))
         return
 
     data = Compressor.pack(data, method=0) # serialize
@@ -1410,7 +1410,7 @@ def send(data, host='localhost', rank=0, port=15555):
 
     # Blocks
     header = (size,sizeBuf)
-    #print 'sending', header
+    #print('sending', header)
     header = Compressor.pack(header, method=0)
     header = header.ljust(255)
     
@@ -1421,7 +1421,7 @@ def send(data, host='localhost', rank=0, port=15555):
             nbytes += s.send(data[nbytes:nbytes+sizeBuf])
         else: 
             nbytes += s.send(data[nbytes:])
-        #print 'send',nbytes,size
+        #print('send',nbytes,size)
     s.close()
 
 #==============================================================================
@@ -1454,7 +1454,7 @@ def listen(s):
         if nb != "":
             nb = nb.rstrip()
             (size,sizeBuf) = Compressor.unpack(nb, method=0)
-            #print 'Received ',size
+            #print('Received ',size)
             data = ''
             nbytes = 0
             while nbytes < size:

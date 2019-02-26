@@ -7,4 +7,4 @@ a = G.cart( (0,0,0), (1,1,1), (10,10,10) )
 t = C.newPyTree(['Base',a])
 
 # Return a standard node containing nodes of type 'Zone_t' as children
-zones = Internal.getByType(t, 'Zone_t'); print zones
+zones = Internal.getByType(t, 'Zone_t'); print(zones)

@@ -11,5 +11,5 @@ offset = [0, C.getNPts(a), C.getNPts(b)]
 f = D.point((13,3,3))
 nodes = C.identifyNodes(hook, f)
 ind = nodes[0]
-print 'Le premier point de f a pour indice', ind-offset[indir[ind]], 'sur la zone', indir[ind]
+print('Le premier point de f a pour indice', ind-offset[indir[ind]], 'sur la zone', indir[ind])
 #>> Le premier point de f a pour indice 332 sur la zone 1

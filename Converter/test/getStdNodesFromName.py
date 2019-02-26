@@ -14,4 +14,4 @@ t = C.newPyTree(['Base',2,a,b])
 t[2][1] = C.addState(t[2][1], 'Mach', 0.6)
 for z in t[2][1][2]:
     n = C.getStdNodesFromName(z, 'GridCoordinates')
-    print n
+    print(n)

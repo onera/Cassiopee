@@ -11,7 +11,7 @@ b = G.cart( (9,0,0), (1,1,1), (10,10,10) )
 a = C.addBC2Zone(a, 'wall1', 'BCWall', 'imin')
 t = C.newPyTree(['Base']); t[2][1][2] += [a,b]
 t = X.connectMatch(t)
-print Internal.checkPyTree(t)
+print(Internal.checkPyTree(t))
 t = Internal.correctPyTree(t)
 test.testT(t, 1)
 

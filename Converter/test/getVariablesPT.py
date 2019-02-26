@@ -16,5 +16,5 @@ h = Filter.Handle('file.hdf')
 a = h.loadSkeleton()
 
 # Get variables from file
-vars = h.getVariables(); print vars
+vars = h.getVariables(); print(vars)
 #>> ['FlowSolution/F', 'FlowSolution#Centers/G']

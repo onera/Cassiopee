@@ -5,7 +5,7 @@ import numpy as np
 from math import *
 
 def test_function(formule, func) :
-	print "testing formule ", formule
+	print("testing formule ", formule)
 	a = expr.ast(formule)
 	N = 30
 	coords = G.cart((0.01, 0.01, 0.01), (1, 1, 1), (N, 1, 1), api=1)
@@ -15,10 +15,10 @@ def test_function(formule, func) :
 	y = coords[1][1,:]
 	z = coords[1][2,:]
 	r = coords[1][3,:]
-	for i in xrange(N) :
+	for i in range(N) :
 		v = func(x[i],y[i],z[i])
 		if abs(r[i] - v ) > 1.E-14 * abs(v):
-			print "Erreur calcul : resultat trouve avec expression : ", r[i], " et avec formule : ", v
+			print("Erreur calcul : resultat trouve avec expression : ", r[i], " et avec formule : ", v)
 
 
 a = expr.ast("{x}**2+{y}**2+{z}**2")
@@ -42,49 +42,49 @@ t = a(coords)
 print("{} avec {} => {}".format(a, coords, a(coords)))
 
 a.eval(coords, "x", coords)
-print coords
+print(coords)
 a.eval(coords, "crdL2", coords)
-print coords
+print(coords)
 res = C.array("norm", 3, 1, 1)
 a.eval(res, "norm", coords)
-print res
+print(res)
 
 a = expr.ast("{norm} = {x}**2+{y}**2+{z}**2")
 coords = C.array("x,y,z,norm", 3, 1, 1)
 coords[1][:, :] = np.array([[1., 2., 3.], [2., 3., 4.], [-1., -3., -5.],
                                                         [0., 0., 0.]])
 a.run(coords)
-print coords
+print(coords)
 
 crds = G.cart((0, 0, 0), (1, 1, 1), (10, 10, 1), api=1)
 C._addVars(crds, 'norm')
 a.run(crds)
-print crds
+print(crds)
 
 crds = G.cart((0, 0, 0), (1, 1, 1), (10, 10, 1), api=2)
 C._addVars(crds, 'norm')
 a.run(crds)
-print crds
+print(crds)
 
 crds = G.cartHexa((0, 0, 0), (1, 1, 1), (10, 10, 1), api=1)
 C._addVars(crds, 'norm')
 a.run(crds)
-print crds
+print(crds)
 
 crds = G.cartHexa((0, 0, 0), (1, 1, 1), (10, 10, 1), api=2)
 C._addVars(crds, 'norm')
 a.run(crds)
-print crds
+print(crds)
 
 crds = G.cartNGon((0, 0, 0), (1, 1, 1), (10, 10, 1), api=1)
 C._addVars(crds, 'norm')
 a.run(crds)
-print crds
+print(crds)
 
 crds = G.cartNGon((0, 0, 0), (1, 1, 1), (10, 10, 1), api=2)
 C._addVars(crds, 'norm')
 a.run(crds)
-print crds
+print(crds)
 
 crds = G.cart((0, 0, 0), (1, 1, 1), (3, 3, 1), api=1)
 C._addVars(crds, 'norm')
@@ -92,8 +92,8 @@ da = expr.derivate(a)
 C._addVars(crds, 'd_norm')
 shp = crds[1][0].shape
 da.run(crds, d_x=np.ones(shp), d_y=np.zeros(shp), d_z=np.zeros(shp))
-print da
-print crds
+print(da)
+print(crds)
 
 test_function("{result} = 3 * {x} + sin({y})", lambda x,y,z : 3 * x + sin(y))
 test_function("{result} = cos(pi*{x})", lambda x,y,z : cos(pi*x))

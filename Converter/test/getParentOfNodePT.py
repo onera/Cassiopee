@@ -6,5 +6,5 @@ import Converter.Internal as Internal
 a = G.cart((0,0,0), (1,1,1), (10,10,10))
 t = C.newPyTree(['Base', a])
 
-(p, c) = Internal.getParentOfNode(t, a); print p
+(p, c) = Internal.getParentOfNode(t, a); print(p)
 #>> ['Base', array(..), [..], 'CGNSBase_t']

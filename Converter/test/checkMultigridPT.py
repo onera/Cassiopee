@@ -13,4 +13,4 @@ C.convertPyTree2File(t, 'out.cgns')
 
 # check multigrid compatibility
 errors = Internal.checkMultigrid(t, level=1)
-print errors
+print(errors)

@@ -1,7 +1,7 @@
-import PyTree as C
-import Internal
+from . import PyTree as C
+from . import Internal
 import Connector.PyTree as X
-import Converter
+from . import Converter
 import numpy
 import string
 import math
@@ -168,7 +168,7 @@ def _adaptPeriodicMatch(t, clean=False):
           #rotAngle = Internal.getValue(rotAngleNode)
           rotAngle = numpy.zeros(3,numpy.float64)
           rotAngleDeg = Internal.getRotationAngleValueInDegrees(rotAngleNode)
-          for i in xrange(3): rotAngle[i]=rotAngleDeg[i]
+          for i in range(3): rotAngle[i]=rotAngleDeg[i]
           Internal._rmNodesByNameAndType(rotAngleNode,'DimensionalUnits','DimensionalUnits_t')
         else: 
           rotAngle = numpy.empty(0,numpy.float64)
@@ -188,7 +188,7 @@ def _adaptPeriodicMatch(t, clean=False):
 
         if rotAngle.any(): # at least one rotation angle not nul => periodicity by rotation
           if len(numpy.where(rotAngle)[0]) != 1:
-            print "Warning: adaptPeriodicMatch__: rotation angle must have one non-zero component."
+            print("Warning: adaptPeriodicMatch__: rotation angle must have one non-zero component.")
             continue
           axis = numpy.zeros(3,numpy.float64)
           axis[numpy.where(rotAngle)[0][0]]=1.0
@@ -198,7 +198,7 @@ def _adaptPeriodicMatch(t, clean=False):
           pointRange = Internal.getNodeFromName1(c,'PointRange')
           pointRangeDonor = Internal.getNodeFromName1(c,'PointRangeDonor')
           if pointRange is None or pointRangeDonor is None:
-            print "Warning: adaptPeriodicMatch__: missing PointRange(Donor) for join ",c[0],"."
+            print("Warning: adaptPeriodicMatch__: missing PointRange(Donor) for join ",c[0],".")
             continue
           
           [wincur_imin, wincur_imax, wincur_jmin, wincur_jmax, wincur_kmin, wincur_kmax] = Internal.range2Window(pointRange[1])
@@ -247,24 +247,24 @@ def _addPeriodicDataInSolverParam(a, rotationCenter=[0.,0.,0.], rotationAngle=[0
     else: angle1 = int(round(360./abs(rotationAngle[diraxis]))) # number of angular sectors of the component which includes the zone in radian
     angle2 = 1    
 
-    paramNames=['axis_ang_1','axis_ang_2','axis_pnt_x','axis_pnt_y','axis_pnt_z','axis_vct_x','axis_vct_y','axis_vct_z']
-    paramValues=[angle1,angle2,xc,yc,zc,axis[0],axis[1],axis[2]]
+    paramNames = ['axis_ang_1','axis_ang_2','axis_pnt_x','axis_pnt_y','axis_pnt_z','axis_vct_x','axis_vct_y','axis_vct_z']
+    paramValues = [angle1,angle2,xc,yc,zc,axis[0],axis[1],axis[2]]
     if isChimera: paramNames.append('periodic_dir'); paramValues.append(periodicDir)
 
     for z in Internal.getZones(a):
       solverParam = Internal.getNodeFromName(z, '.Solver#Param')
       if solverParam is None:
         nodes=[]
-        for nop in xrange(len(paramNames)):
-          nodes.append(Internal.createNode(paramNames[nop],'DataArray_t',value=paramValues[nop]))
+        for nop, v in enumerate(paramValues):
+          nodes.append(Internal.createNode(paramNames[nop],'DataArray_t',value=v))
         Internal._createChild(z,".Solver#Param",'UserDefinedData_t',value=None, children=nodes)
       else: 
-        for nop in xrange(len(paramNames)):
-          node = Internal.getNodeFromName(solverParam,paramNames[nop])
+        for nop, v in enumerate(paramValues):
+          node = Internal.getNodeFromName(solverParam, paramNames[nop])
           if node is None:
-            Internal._createChild(solverParam,paramNames[nop],'DataArray_t',value=paramValues[nop])
+            Internal._createChild(solverParam, paramNames[nop], 'DataArray_t', value=v)
           else:
-            Internal.setValue(node,paramValues[nop])
+            Internal.setValue(node, v)
 
   return None
 
@@ -283,7 +283,7 @@ def getCGNSkeys(key, verbose=True):
     if key in keyselsA2CGNS.keys(): return keyselsA2CGNS[key]
     elif key in keyselsA2CGNS.values(): return key
     else:
-        if verbose: print 'Warning: getCGNSkeys: the given key %s cannot be translated in a CGNS key.'%key
+        if verbose: print('Warning: getCGNSkeys: the given key %s cannot be translated in a CGNS key.'%key)
         return key
 
 # -----------------------------------------------------------------------------
@@ -298,16 +298,16 @@ def _addOutput(a, Dict, name='', update=False):
 
     if outputnode is None:
       nodeso = []
-      for each in Dict.keys(): nodeso+=[Internal.createNode(each,'DataArray_t',value=Dict[each])]
+      for each in Dict: nodeso+=[Internal.createNode(each,'DataArray_t',value=Dict[each])]
       a[2].append(Internal.createNode(outputName, 'UserDefinedData_t',children=nodeso))
     else:
       if update: 
         Internal._rmNodesByName(a, outputName)
         nodeso = []
-        for each in Dict.keys(): nodeso+=[Internal.createNode(each,'DataArray_t',value=Dict[each])]
+        for each in Dict: nodeso+=[Internal.createNode(each,'DataArray_t',value=Dict[each])]
         a[2].append(Internal.createNode(outputName, 'UserDefinedData_t', children=nodeso))
       else:
-        for childname in Dict.keys():
+        for childname in Dict:
           childnode = Internal.getNodeFromName1(outputnode, childname)
           if childnode is None:
             newchild = Internal.createNode(childname, 'DataArray_t', value=Dict[childname])
@@ -1088,21 +1088,21 @@ def convert2elsAxdt(t, sameBase=0):
   return tp
 
 def _convert2elsAxdt(t, sameBase=0):
-  print '1. addTurbulentDistance index'
+  print('1. addTurbulentDistance index')
   _addTurbulentDistanceIndex(t)
-  print '2. buildMaskFiles'
+  print('2. buildMaskFiles')
   _buildMaskFiles(t)
-  print '3. adaptNearMatch'
+  print('3. adaptNearMatch')
   _adaptNearMatch(t)
-  print '4. adaptPeriodicMatch'
+  print('4. adaptPeriodicMatch')
   _adaptPeriodicMatch(t,clean=True)
-  print '5. overlapGC2BC'
+  print('5. overlapGC2BC')
   _overlapGC2BC(t)
-  print '6. rmGCOverlap'
+  print('6. rmGCOverlap')
   _rmGCOverlap(t)
-  print '7. fillNeighbourList'
+  print('7. fillNeighbourList')
   _fillNeighbourList(t)
-  print '8. prefixDnrInSubRegions'
+  print('8. prefixDnrInSubRegions')
   _prefixDnrInSubRegions(t)
   return None
 
@@ -1113,10 +1113,10 @@ def _convert2elsAxdt(t, sameBase=0):
 #===============================================================================================================================
 #==============================================================================
 def adaptNearmatch__(t):
-  print 'Warning: elsAProfile: adaptNearmatch__ is obsolete. New function name is adaptNearMatch.'
+  print('Warning: elsAProfile: adaptNearmatch__ is obsolete. New function name is adaptNearMatch.')
   return adaptNearMatch(t)
 def adaptNearmatch(t):
-  print 'Warning: elsAProfile: adaptNearmatch is obsolete. New function name is adaptNearMatch.'
+  print('Warning: elsAProfile: adaptNearmatch is obsolete. New function name is adaptNearMatch.')
   return adaptNearMatch(t)
 
 #==============================================================================
@@ -1230,7 +1230,7 @@ def addFamilyBCNode__(t):
 
 def buildBCOverlap(t):
   """OBSOLETE: use ovelrapGC2BC"""
-  print 'WARNING: elsAProfile.buildBCOverlap is obsolete. Will be removed in next release. Please replace by overlapGC2BC in your script.'
+  print('WARNING: elsAProfile.buildBCOverlap is obsolete. Will be removed in next release. Please replace by overlapGC2BC in your script.')
   tp = Internal.copyRef(t)
   bases = Internal.getBases(tp)
 

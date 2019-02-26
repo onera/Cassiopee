@@ -6,10 +6,10 @@
 # - BBox tree: arbre identique a un pyTree mais ou les zones sont les
 # BBox des zones du pyTree.
 
-import Converter
-import Internal
+from . import Converter
+from . import Internal
 import numpy
-import PyTree
+from . import PyTree
 
 #==============================================================================
 # Lit un arbre squelette
@@ -50,7 +50,7 @@ def _readPyTreeFromPaths(t, fileName, paths, format=None, maxFloatSize=-1, maxDe
   nodes = readNodesFromPaths(fileName, paths, format, maxFloatSize, maxDepth)
   if not isinstance(paths, list): nodes = [nodes]; paths = [paths]
   if len(paths) != len(nodes):
-    print "Warning: readPyTreeFromPaths: some paths can not be loaded. Nothing added to pyTree."
+    print("Warning: readPyTreeFromPaths: some paths can not be loaded. Nothing added to pyTree.")
     return None
   c = 0
   for p in paths:
@@ -68,7 +68,7 @@ def _readPyTreeFromPaths(t, fileName, paths, format=None, maxFloatSize=-1, maxDe
      if place is not None:
       place[2].append(n)
      else:
-      print "Warning: readPyTreeFromPaths: can not add node %s to t."%n[0]
+      print("Warning: readPyTreeFromPaths: can not add node %s to t."%n[0])
     c += 1
   return None
 
@@ -242,7 +242,7 @@ def _readZones(t, fileName, format=None, rank=None, zoneNames=None):
           if paths[c][0] != '/': paths[c] = '/'+paths[c]
 
   #print 'Reading '+fileName+' '+str(paths)+'...',
-  print 'Reading %s [%d zones]...'%(fileName,len(paths)),
+  print('Reading %s [%d zones]...'%(fileName,len(paths))),
   if format is None:
       format = Converter.convertExt2Format__(fileName)
       
@@ -276,7 +276,7 @@ def _readZones(t, fileName, format=None, rank=None, zoneNames=None):
                   a = ['proc', v, [], 'DataArray_t']
                   param[2].append(a)
           m += 1
-  print 'done.'
+  print('done.')
   return None
 
 #==============================================================================
@@ -316,11 +316,11 @@ def writeZones(t, fileName, format=None, proc=None, zoneNames=None):
             path[c] = Internal.getPathAncestor(path[c])
 
     #print 'Writing '+fileName+' '+str(paths)+'...',
-    print 'Writing %s [%d zones]...'%(fileName,len(paths)),
+    print('Writing %s [%d zones]...'%(fileName,len(paths))),
     if format is None:
         format = Converter.convertExt2Format__(fileName)
     Converter.converter.writePyTreePaths(fileName, nodes, paths, format, -1, 0)
-    print 'done.'
+    print('done.')
     return None
 
 #==============================================================================

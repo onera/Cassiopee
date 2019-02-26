@@ -13,5 +13,5 @@ t = C.newPyTree(['Base',a,b])
 C._addFamily2Base(t[2][1], 'CARTER', bndType='BCWall')
 
 # Toutes les familyBCs
-dict = C.getFamilyBCNamesDict(t); print dict
+dict = C.getFamilyBCNamesDict(t); print(dict)
 #>> {'CARTER': 'BCWall'}

@@ -31,12 +31,12 @@ dict = installBase.installDict
 key = ''
 # prod est tout d'abord cherche dans le dictionnaire
 if prod is not None:
-    for i in dict.keys():
+    for i in dict:
         if re.compile(i).search(prod) is not None:
             key = i; break
 # puis le uname
 if key == '':
-    for i in dict.keys():
+    for i in dict:
         if re.compile(i).search(host) is not None:
             key = i; break
 

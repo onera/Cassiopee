@@ -2,7 +2,7 @@
 import Converter.Internal as Internal
 
 # Create a Descriptor node
-n = Internal.newDescriptor(name='Descriptor', value='Mesh exported from Cassiopee 2.2'); print n
+n = Internal.newDescriptor(name='Descriptor', value='Mesh exported from Cassiopee 2.2'); print(n)
 #>> ['Descriptor', array(..), [], 'Descriptor_t']
 
 # Attach it to a parent node

@@ -18,7 +18,7 @@ WIDTH=40
 # tous les chemins dans config.py (ancien systeme).
 #==============================================================================
 try: import Tkinter as TK
-except: raise ImportError('Cassiopee installer requires tkInter.\nIf your python dont run tkinter, edit the installBase.py file manually and add your machine settings.')
+except: raise ImportError('Cassiopee installer requires tkinter.\nIf your python dont run tkinter, edit the installBase.py file manually and add your machine settings.')
 
 import Dist
 import os.path
@@ -110,7 +110,7 @@ def changeMachineName(event=None):
             entry.config(foreground=entry.master.cget('fg'))
     
     key = ''
-    for i in dict.keys():
+    for i in dict:
         if re.compile(i).search(machine) is not None:
             key = i; break
 
@@ -391,7 +391,7 @@ file.add_command(label='Save installBase', command=saveConfigFile)
 file.add_command(label='Quit', command=quit)
 machines = TK.Menu(menu, tearoff=0)
 menu.add_cascade(label='Machines', menu=machines)
-for i in dict.keys():
+for i in dict:
     machines.add_command(label=i, command=lambda i=i : setMachineName(i))
 master.config(menu=menu)
 help = TK.Menu(menu, tearoff=0)

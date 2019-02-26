@@ -102,7 +102,7 @@ def updateVarNameList3(event=None):
 def updateVarNameList3_2(event=None):
     if CTK.t == []: return
     nzs = CPlot.getSelectedZones()
-    if (CTK.__MAINTREE__ <= 0 or nzs == []):
+    if CTK.__MAINTREE__ <= 0 or nzs == []:
         varsl = C.getVarNames(CTK.t, excludeXYZ=True, loc='centers')
     else:
         nob = CTK.Nb[0]+1
@@ -121,7 +121,7 @@ def updateVarNameList3_2(event=None):
 def updateVarNameList4(event=None):
     if CTK.t == []: return
     nzs = CPlot.getSelectedZones()
-    if (CTK.__MAINTREE__ <= 0 or nzs == []):
+    if CTK.__MAINTREE__ <= 0 or nzs == []:
         varsl = C.getVarNames(CTK.t, excludeXYZ=True, loc='nodes')
     else:
         nob = CTK.Nb[0]+1
@@ -280,7 +280,7 @@ def importFile(event=None):
     inter = zoneNames & zoneNames1
     linter = len(inter)*1.
     comp = min(len(zoneNames), len(zoneNames1))*1.
-    if (linter / comp > 0.9): method = 0 # try match by name (safer)
+    if linter / comp > 0.9: method = 0 # try match by name (safer)
 
     if CTK.__MAINTREE__ <= 0 or nzs == []:
         CTK.t = P.importVariables(t1, CTK.t, method=method)

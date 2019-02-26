@@ -11,5 +11,4 @@ a = G.close(a)
 elt = 0
 faces = [elt*3+0, elt*3+1, elt*3+2]
 connect = KCore.indiceFace2Connect(a, faces)
-print connect
 C.convertArrays2File([a], 'out.plt')

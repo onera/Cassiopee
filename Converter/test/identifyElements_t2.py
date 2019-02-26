@@ -36,4 +36,4 @@ hook = C.createHook(a, function='elementCenters')
 faces = C.identifyElements(hook,b,tol=eps)
 ret = faces[faces<0.].shape[0]
 #if ret != 0.: print 'identifyElements (NGon) FAILED: FPU is not correct [STRUCT/FACES]. Check compilation options.'
-print 'done.'
+print('done.')

@@ -23,11 +23,10 @@ Dist.writeSetupCfg()
 # Compilation des fortrans ===================================================
 from KCore.config import *
 if f77compiler == "None":
-    print "Error: a fortran 77 compiler is required for compiling Post."
+    print("Error: a fortran 77 compiler is required for compiling Post.")
     sys.exit()
 args = Dist.getForArgs(); opt = ''
-for c in xrange(len(args)):
-    opt += 'FOPT'+str(c)+'='+args[c]+' '
+for c, v in enumerate(args): opt += 'FOPT'+str(c)+'='+v+' '
 os.system("make -e FC="+f77compiler+" F90=true WDIR=Post/Fortran "+opt)
 os.system("make -e FC="+f77compiler+" F90=true WDIR=Post/zipper "+opt)
 if f90compiler != "None" and os.access('Post/usurp', os.F_OK) == True:

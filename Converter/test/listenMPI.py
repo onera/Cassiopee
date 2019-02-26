@@ -2,7 +2,7 @@
 import Converter as C
 import CPlot
 sockets = C.createSockets(3)
-print 'created',len(sockets)
+print('created',len(sockets))
 while True:
     out = []
     for s in sockets:

@@ -47,10 +47,10 @@ Filter = dict()
 Filter[path[0]] = DataSpaceMMRY+DataSpaceFILE+DataSpaceGLOB
 Filter[path[1]] = DataSpaceMMRY+DataSpaceFILE+DataSpaceGLOB
 if rank == 0:
-    print rank, Filter
+    print(rank, Filter)
 comm.barrier()
 if rank == 1:
-    print rank, Filter
+    print(rank, Filter)
 comm.barrier()
 
 # ------------------------------------------------------------------------

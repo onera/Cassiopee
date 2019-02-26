@@ -7,7 +7,7 @@ a = G.cart( (0,0,0), (1,1,1), (10,10,10) )
 t = C.newPyTree(['Base',a])
 
 # Return the first node of type 'Zone_t'
-node = Internal.getNodeFromType(t, 'Zone_t'); print node
+node = Internal.getNodeFromType(t, 'Zone_t'); print(node)
 
 # Limit search to second level (faster)
-node = Internal.getNodeFromType2(t, 'Zone_t'); print node
+node = Internal.getNodeFromType2(t, 'Zone_t'); print(node)

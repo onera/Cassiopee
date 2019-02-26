@@ -14,5 +14,5 @@ t = C.newPyTree(['Base',a,b,c])
 C._addFamily2Base(t[2][1], 'CYLINDER')
 C._addFamily2Base(t[2][1], 'CART')
 zones = C.getFamilyZones(t, 'CYLINDER')
-for z in zones: print z[0]
+for z in zones: print(z[0])
 #>> cylinder cylinder.0

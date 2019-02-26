@@ -8,9 +8,9 @@ a = G.cart((0,0,0), (1,1,1), (10,10,10))
 t = C.newPyTree(['Base',a])
 
 # Return paths of zone named 'cart'
-paths = Internal.getPathsFromName(t, 'cart'); print paths
+paths = Internal.getPathsFromName(t, 'cart'); print(paths)
 test.testO(paths, 1)
 
 # Return the 3 coordinate paths
-paths = Internal.getPathsFromName(t, 'Coordinate*'); print paths
+paths = Internal.getPathsFromName(t, 'Coordinate*'); print(paths)
 test.testO(paths, 2)

@@ -26,8 +26,7 @@ if f77compiler == "None":
     print("Error: a fortran 77 compiler is required for compiling Connector.")
     sys.exit()
 args = Dist.getForArgs(); opt = ''
-for c in xrange(len(args)):
-    opt += 'FOPT'+str(c)+'='+args[c]+' '
+for c, v in enumerate(args): opt += 'FOPT'+str(c)+'='+v+' '
 os.system("make -e FC="+f77compiler+" WDIR=Connector/Fortran "+opt)
 prod = os.getenv("ELSAPROD")
 if prod is None: prod = 'xx'

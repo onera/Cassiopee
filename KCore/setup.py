@@ -26,8 +26,7 @@ Dist.writeSetupCfg()
 if f77compiler == "None":
     print("Error: a fortran 77 compiler is required for compiling KCore.")
 args = Dist.getForArgs(); opt = ''
-for c in xrange(len(args)):
-    opt += 'FOPT%d=%s '%(c, args[c])
+for c, v in enumerate(args): opt += 'FOPT%d=%s '%(c, v)
 os.system("make -e FC="+f77compiler+" WDIR=KCore/Fld "+opt)
 os.system("make -e FC="+f77compiler+" WDIR=KCore/Interp "+opt)
 os.system("make -e FC="+f77compiler+" WDIR=KCore/Metric "+opt)

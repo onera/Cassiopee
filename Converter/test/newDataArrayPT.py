@@ -3,7 +3,7 @@ import Converter.Internal as Internal
 import numpy
 
 # Create a DataArray node
-n = Internal.newDataArray('CoordinateX', numpy.zeros(10)); print n
+n = Internal.newDataArray('CoordinateX', numpy.zeros(10)); print(n)
 #>> ['CoordinateX', array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.]), [], 'DataArray_t']
 
 # Attach it to a parent node

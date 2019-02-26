@@ -11,5 +11,5 @@ t = C.newPyTree(['Base',a,b])
 C._addFamily2Base(t[2][1], 'CARTER')
 
 # Toutes les family zone names de l'arbre
-names = C.getFamilyZoneNames(t); print names
+names = C.getFamilyZoneNames(t); print(names)
 #>> ['CARTER']

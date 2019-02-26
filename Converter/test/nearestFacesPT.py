@@ -10,4 +10,4 @@ hook = C.createHook(a, function='faceCenters')
 # Indices des faces de a les plus proches des faces de b
 # et distance correspondante
 faces,dist = C.nearestFaces(hook, b)
-print faces,dist
+print(faces,dist)

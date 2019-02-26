@@ -2,7 +2,7 @@
 import Converter.Internal as Internal
 
 # Create a base node
-b = Internal.newCGNSBase('Base'); print b
+b = Internal.newCGNSBase('Base'); print(b)
 #>> ['Base', array([3, 3], dtype=int32), [], 'CGNSBase_t']
 
 # Create a base node and attach it to tree
