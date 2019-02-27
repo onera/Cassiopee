@@ -142,9 +142,6 @@ static PyMethodDef Pyconverter [] =
 
 #if PY_MAJOR_VERSION >= 3
 #define GETSTATE(m) ((struct module_state*)PyModule_GetState(m))
-#endif
-
-#if PY_MAJOR_VERSION >= 3
 struct module_state {
     PyObject *error;
 };

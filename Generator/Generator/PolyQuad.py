@@ -1,6 +1,6 @@
 """PolyQuad mesh generator. Extension of Generator.
 """
-import Generator as G
+from . import Generator as G
 import Geom as D
 import math
 __version__ = G.__version__
@@ -59,18 +59,18 @@ def polyQuadMesher(polyQuad, h, hf, density, next):
     # Detection de la hauteur maximum admissible
     if (h > 0.9*lmin):
         h = 0.9*lmin
-        print "Warning: height changed to", h,"..."
-        print "...because length of a line segment is", lmin
+        print("Warning: height changed to", h,"...")
+        print("...because length of a line segment is", lmin)
 
     # Detection de la densite minimum
     nk = int(h*density)+1
     if nk < 4:
         density = 4./h
-        print "Warning: density changed to", density, "to have 4 points in height."
+        print("Warning: density changed to", density, "to have 4 points in height.")
     n = int(lmax*density)+1
     if n < 4:
         density = 4./lmax
-        print "Warning: density changed to", density, "to have 4 points per segment",i
+        print("Warning: density changed to", density, "to have 4 points per segment",i)
 
     # Calcul automatique de l'extension
 #    extension = int(h*density)
@@ -516,11 +516,11 @@ def normalVector(polyQuad,i):
     norme = math.sqrt(nx*nx + ny*ny + nz*nz)
     
     if (norme == 0.):
-        print i
-        print ind1, x1, y1, z1
-        print ind2, x2, y2, z2
-        print ind3, x3, y3, z3
-        print ind4, x4, y4, z4
+        print(i)
+        print(ind1, x1, y1, z1)
+        print(ind2, x2, y2, z2)
+        print(ind3, x3, y3, z3)
+        print(ind4, x4, y4, z4)
         raise TypeError("Division par 0! (1)")
     else:
         normi = 1./norme

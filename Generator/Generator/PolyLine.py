@@ -1,6 +1,6 @@
 """PolyLine mesh generator. Extension of Generator.
 """
-import Generator as G
+from . import Generator as G
 __version__ = G.__version__
 
 #=============================================================================
@@ -34,14 +34,14 @@ def polyLineMesher(polyLine, h, yplus, density):
         l = math.sqrt( (x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2))
         if (h > 0.9*l):
             h = 0.9*l
-            print "Warning: height changed to", h,"..."
-            print "...because length of line segment", i, "is", l
+            print("Warning: height changed to", h,"...")
+            print("...because length of line segment", i, "is", l)
     
     # Detection de la densite minimum
     nj = int(h*density)+1
     if (nj < 4):
         density = 4./h
-        print "Warning: density changed to", density,"to have 4 points in height."
+        print("Warning: density changed to", density,"to have 4 points in height.")
     for i in xrange(ne):
         ind1 = c[0,i]-1; ind2 = c[1,i]-1
         x1 = f[0,ind1]; y1 = f[1,ind1]; z1 = f[2,ind1]
@@ -50,7 +50,7 @@ def polyLineMesher(polyLine, h, yplus, density):
         ni = int(l*density)+1
         if (ni < 4):
             density = 4./l
-            print "Warning: density changed to", density," to have 4 points in segment",i
+            print("Warning: density changed to", density," to have 4 points in segment",i)
 
     # Calcul automatique de l'extension
     extension = max(int(h*density)+1, 3)

@@ -72,7 +72,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None):
             if numero_iter < numero_min : numero_min = numero_iter
             if numero_iter > numero_max : numero_max = numero_iter
 
-            if numero_iter in inst.keys():
+            if numero_iter in inst:
                 sub = inst[ numero_iter ][0]
                 sub = sub + [s]
                 Noz = inst[ numero_iter ][1]
@@ -177,14 +177,14 @@ def miseAPlatDonorTree__(zones, tc, graph=None):
 
     graphIBCrcv=[]
     if graphIBCD is not None:
-      for proc in graphIBCD.keys():
-          for n in graphIBCD[proc].keys():
+      for proc in graphIBCD:
+          for n in graphIBCD[proc]:
                 if n == rank: graphIBCrcv.append(proc)
          
     graphIDrcv=[]
     if graphID is not None:
-        for proc in graphID.keys():
-          for n in graphID[proc].keys():
+        for proc in graphID:
+          for n in graphID[proc]:
                 if n == rank: graphIDrcv.append(proc)
 
     # print "graphIBCD is",graphIBCD,graphIBCrcv

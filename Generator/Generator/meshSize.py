@@ -27,85 +27,85 @@ xsurL = 0.5
 # OUTPUT
 # Reynolds inf
 ReInf = roWall*uInf*LRef / muInf
-print 'ReInf', ReInf
+print('ReInf', ReInf)
 
 # Correction
 Correction = math.exp(4.5*pow(esurc, 1.3))
-print 'Correction', Correction
+print('Correction', Correction)
 
 #==============================================================================
 # turbulent dimensionne
 #==============================================================================
 # Frottement
 Cf = 0.058*math.pow( ReInf*xsurL, -0.2) * Correction
-print 'Cf', Cf
+print('Cf', Cf)
 
 # Vitesse de frottement
 utau = math.sqrt(roInf*Cf*uInf*uInf*0.5/roWall)
-print 'utau', utau
+print('utau', utau)
 
 # DeltaPP
 deltapp = 0.16*xsurL*LRef/pow(ReInf*xsurL, 1./7.)
-print 'deltapp', deltapp
+print('deltapp', deltapp)
 
 # hauteur de la premier maille en 
 y = muInf * yplus / roInf / utau
-print 'y', y
+print('y', y)
 
-print '------------------'
+print('------------------')
 #==============================================================================
 # Laminaire dimensionne
 #==============================================================================
 # Frottement
 Cf = 0.664/math.sqrt(ReInf*xsurL)* Correction
-print 'Cf', Cf
+print('Cf', Cf)
 
 # Vitesse de frottement
 utau = math.sqrt(roInf*Cf*uInf*uInf*0.5/roWall)
-print 'utau', utau
+print('utau', utau)
 
 # hauteur de la premier maille en 
 y = muInf * yplus / roInf / utau
-print 'y', y
+print('y', y)
 
-print '------------------'
+print('------------------')
 #==============================================================================
 # Turbulent adimensionne
 #==============================================================================
 # Frottement
 Cf = 0.058*math.pow( ReInf*xsurL, -0.2) * Correction
-print 'Cf', Cf
+print('Cf', Cf)
 
 # Vitesse de frottement
 utau = math.sqrt(Cf*0.5)
-print 'utau', utau
+print('utau', utau)
 
 # DeltaPP
 deltapp = 0.16*xsurL/pow(ReInf*xsurL, 1./7.)
-print 'deltapp', deltapp
+print('deltapp', deltapp)
 
 # hauteur de la premier maille en 
 y = (1./ReInf) * yplus / utau
-print 'y', y
+print('y', y)
 
-print '------------------'
+print('------------------')
 
 #==============================================================================
 # Laminaire adimensionne
 #==============================================================================
 # Frottement
 Cf = 0.664/math.sqrt(ReInf*xsurL)* Correction
-print 'Cf', Cf
+print('Cf', Cf)
 
 # Vitesse de frottement
 utau = math.sqrt(Cf*0.5)
-print 'utau', utau
+print('utau', utau)
 
 # hauteur de la premier maille en 
 y = (1./ReInf) * yplus / utau
-print 'y', y
+print('y', y)
 
-print '------------------'
+print('------------------')
 
 
 

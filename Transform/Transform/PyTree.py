@@ -3,8 +3,8 @@
 #
 # Python Interface to make basic transformations on pyTrees
 #
-import Transform
-import transform
+from . import Transform
+from . import transform
 import numpy
 __version__ = Transform.__version__
 
@@ -61,7 +61,7 @@ def rotate(a, center, arg1, arg2=None,
     for vect in vectors:
         if len(vect) == 3:
             loc = 0; vectname=[]
-            for nov in xrange(3):
+            for nov in range(3):
                 spl = vect[nov].split(':')
                 if len(spl) == 2:
                     vectname.append(spl[1])
@@ -81,7 +81,7 @@ def _rotate(a, center, arg1, arg2=None,
     for vect in vectors:
         if len(vect) == 3:
             loc = 0; vectname=[]
-            for nov in xrange(3):
+            for nov in range(3):
                 spl = vect[nov].split(':')
                 if len(spl) == 2:
                     vectname.append(spl[1])

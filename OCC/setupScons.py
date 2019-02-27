@@ -31,7 +31,7 @@ if prod is None: prod = 'xx'
 # Setting libraryDirs and libraries ===========================================
 libraryDirs = ["build/"+prod, kcoreLibDir, generatorLibDir]
 includeDirs = [kcoreIncDir, generatorIncDir]
-libraries = ["occ_cassiopee", "generator", "kcore"]
+libraries = ["occ_cassiopee", "generator", "kcore", "rt"]
 if OCEPresent:
     libOCE = ["TKIGES", "TKXSBase", "TKShHealing", "TKTopAlgo", "TKPrim", "TKBool", "TKGeomAlgo", "TKBRep", "TKGeomBase", "TKG3d", "TKMath", "TKernel", "TKG2d"]
     libOCE = [i+".dll" for i in libOCE]

@@ -1,6 +1,6 @@
 """PolyC1 mesh generator. Extension of Generator.
 """
-import Generator as G
+from . import Generator as G
 import math
 try:
     import Geom as D
@@ -176,8 +176,8 @@ def polyC1Mesher(curve, h, yplus, density, splitCrit=10., dalpha=5.,depth=1):
         l = D.getLength(i)
         if (h > 0.9*l and ext[n,0] != -1 and ext[n,1] != -1):
             h = 0.9*l
-            print "Warning: height changed to", h,"..."
-            print "...because length of segment", n, "is", l
+            print("Warning: height changed to", h,"...")
+            print("...because length of segment", n, "is", l)
         n = n+1
 
     # Detection de la hauteur maximum admissible : h < Rc, rayon de courbure
@@ -192,21 +192,21 @@ def polyC1Mesher(curve, h, yplus, density, splitCrit=10., dalpha=5.,depth=1):
         
         if ( h > rmin ):
             h = float(0.99 * rmin)
-            print "Warning: height changed to", h, "..."
-            print "...because curvature radius in segment", n, "is", rmin
+            print("Warning: height changed to", h, "...")
+            print("...because curvature radius in segment", n, "is", rmin)
         n = n+1
     
     # Detection de la densite minimum
     nj = int(h*density)+1
     if (nj < 4):
         density = 4./h
-        print "Warning: density changed to", density
+        print("Warning: density changed to", density)
     for i in curves:
         l = D.getLength(i)
         ni = int(l*density)+1
         if (ni < 2):
             density = 2./l
-            print "Warning: density changed to", density
+            print("Warning: density changed to", density)
 
     # Calcul automatique de l'extension
     extension = max(int(h*density)+1, 5)

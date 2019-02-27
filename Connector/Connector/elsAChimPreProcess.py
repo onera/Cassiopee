@@ -130,8 +130,8 @@ def computeUnsteadyInterp(tp, hook, ite,loc='cell', nGhostCells=2):
                         if FaceDirection is None: ref[donorName][rcvId] = [rcvIndices,donorIndices,periodicity, coefs]
                         else: ref[donorName][rcvId] = [rcvIndices,donorIndices,periodicity, coefs,faceDir]
             # Deals with rcv zones which have disappeared from interpolations
-            for rcvId in ref[donorName].keys():
-                if rcvId not in interpData.keys():
+            for rcvId in ref[donorName]:
+                if rcvId not in interpData:
                     if FaceDirection is None:
                         data=[numpy.array([], dtype= numpy.int32), numpy.array([], dtype= numpy.int32), numpy.array([], dtype= numpy.int32), numpy.array([], dtype= numpy.float64)]
                     else:
@@ -141,8 +141,8 @@ def computeUnsteadyInterp(tp, hook, ite,loc='cell', nGhostCells=2):
                     ref[donorName][rcvId] = data
             listInterpData[donorName].append(interpData)
         # la zone a aucune interpolation
-        elif donorName in listInterpData.keys():
-            for rcvId in ref[donorName].keys():
+        elif donorName in listInterpData:
+            for rcvId in ref[donorName]:
                 if FaceDirection is None:
                     data=[numpy.array([], dtype= numpy.int32), numpy.array([], dtype= numpy.int32), numpy.array([], dtype= numpy.int32), numpy.array([], dtype= numpy.float64)]
                 else:
@@ -200,7 +200,7 @@ def globalIndex(dim, array1,ghostcells):
 #==============================================================================
 def writeUnsteadyCoefs(hook, prefix,nit,format="b"):
     # cells
-    for name in hook[4].keys(): # stocker le nom pour s y retrouver dans elsA
+    for name in hook[4]: # stocker le nom pour s y retrouver dans elsA
         if (hook[4][name] != []):
             if format == "b":
                 filename = prefix+"_%d_%04d.bin"%(nit,hook[9][name])
@@ -208,7 +208,7 @@ def writeUnsteadyCoefs(hook, prefix,nit,format="b"):
                 filename = prefix+"_%d_%04d.fmt"%(nit,hook[9][name])
             Compressor.writeUnsteadyCoefs(hook[1][name],hook[4][name], filename,"cell",format)
     # faces
-    for name in hook[5].keys(): # stocker le nom pour s y retrouver dans elsA
+    for name in hook[5]: # stocker le nom pour s y retrouver dans elsA
         if (hook[5][name] != []):
             if format == "b":
                 filename = prefix+"_%d_%04d_Int.bin"%(nit,hook[9][name])
@@ -224,7 +224,7 @@ def writeUnsteadyCoefs(hook, prefix,nit,format="b"):
 # IN: format: bin_raw, fmt_raw
 #=========================================================================================
 def convertIndices2File(hook,fileName,iteration,format):
-    for name in hook[3].keys():
+    for name in hook[3]:
         if (hook[3][name] != []):
             convertIndices2File__(hook[0][name],hook[3][name],iteration, 'deltas_%s.fmt'%name, 'fmt_raw')
 

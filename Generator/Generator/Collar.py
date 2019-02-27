@@ -1,6 +1,6 @@
 """Collar grid generation module. Extension of Generator.
 """
-import Generator as G
+from . import Generator as G
 __version__ = G.__version__
 
 #=============================================================================
@@ -8,12 +8,12 @@ __version__ = G.__version__
 #=============================================================================
 try:
     import KCore
-    import Generator as G
+    from . import Generator as G
     import Intersector as XOR
     import Converter as C
     import Post as P
     import Transform as T
-    import SurfaceWalk as SW
+    from . import SurfaceWalk as SW
     import Dist2Walls as DTW
     import Geom as D
     import math

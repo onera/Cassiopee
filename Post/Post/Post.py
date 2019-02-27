@@ -201,7 +201,7 @@ def refine__(a, indic, w):
 def interiorFaces(a, strict=0):
     """Interior faces of an array a. The argument strict equal to 1 means
     that interior faces with only interior nodes are taken into account.
-    Usage: interiorFaces( array, strict)"""
+    Usage: interiorFaces(array, strict)"""
     if isinstance(a[0], list):
         b = []
         for i in a:

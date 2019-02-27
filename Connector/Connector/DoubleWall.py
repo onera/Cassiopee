@@ -1,5 +1,5 @@
 # - Double Wall functions - 
-import Connector
+from . import Connector
 __version__ = Connector.__version__
 
 try:

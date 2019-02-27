@@ -17,7 +17,7 @@ for i in m[0]:
     v = G.getVolumeMap(i)
     min = C.getMinValue(v, 'vol')
     if (min <= 0):
-        print 'negative volume detected.'
+        print('negative volume detected.')
 test.testA(m[0], 1)
 
 # avec raccord coincident : critere de split de la courbure faible
@@ -26,5 +26,5 @@ for i in m[0]:
     v = G.getVolumeMap(i)
     min = C.getMinValue(v, 'vol')
     if (min <= 0):
-        print 'negative volume detected.'
+        print('negative volume detected.')
 test.testA(m[0], 2)

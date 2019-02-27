@@ -5,7 +5,7 @@ __author__ = "Stephanie Peron, Christophe Benoit, Gaelle Jeanfaivre, Pascal Raud
 # 
 # Python Interface to make basic transformations on arrays
 #
-import transform
+from . import transform
 try: import Converter 
 except: raise ImportError("Transform: requires Converter module.")
 
@@ -39,7 +39,7 @@ def mergeCartByRefinementLevel(A, sizeMax):
         for noc in xrange(nzones):
             dh = allDh[noc]
             if dh < 1.2*dhmin and dh > 0.8*dhmin: 
-                if level in levels.keys():
+                if level in levels:
                     levels[level].append(noc)
                 else:
                     levels[level] = [noc]

@@ -5,7 +5,7 @@ __author__ = "Stephanie Peron, Christophe Benoit, Gaelle Jeanfaivre, Pascal Raud
 #
 # Interface for connectivity checking
 #
-import connector
+from . import connector
 
 __all__ = ['blankCells', '_blankCells', 'blankCellsTetra', 'blankCellsTri', 'blankIntersectingCells', 'chimeraTransfer', 'connectMatch', 'getIntersectingDomainsAABB', 'maximizeBlankedCells', 'optimizeOverlap', 'setDoublyDefinedBC', 'setHoleInterpolatedPoints', 'setIBCTransfers', 'setIBCTransfersD', 'setInterpTransfers', 'setInterpTransfersD', 'writeCoefs','maskXRay__','_applyBCOverlapsStruct__','applyBCOverlapsStruct__','getInterpolatedPoints__','getEXPoints__']
 

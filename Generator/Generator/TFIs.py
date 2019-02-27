@@ -1,6 +1,6 @@
 # Various specific TFIs
 
-import Generator as G
+from . import Generator as G
 try: import Converter as C
 except: raise ImportError("TFIs: requires Converter module.")
 
@@ -28,7 +28,7 @@ def quality(meshes):
 #==============================================================================
 def TFITri(a1, a2, a3):
     import Transform as T
-    import Generator as G
+    from . import Generator as G
     import Geom as D
     N1 = a1[2]; N2 = a2[2]; N3 = a3[2]
     
@@ -199,8 +199,8 @@ def TFIO(a):
                 if (score < optScore):
                     optWeight = i; optOffset = j; optScore = score
             except: pass
-    print 'resulting weight=%g, offset=%g.'%(optWeight,optOffset)
-    print 'resulting score=%g.'%optScore
+    print('resulting weight=%g, offset=%g.'%(optWeight,optOffset))
+    print('resulting score=%g.'%optScore)
     return TFIO__(a, optWeight, optOffset)
 
 #==============================================================================
@@ -306,7 +306,7 @@ def TFIHalfO(a1, a2):
                 if score < optScore:
                     optWeight = i; optScore = score; optOffset = j
             except: pass
-    print 'resulting score=%g'%optScore
+    print('resulting score=%g'%optScore)
     return TFIHalfO__(a1, a2, optWeight, optOffset)
 
 #==============================================================================

@@ -1,6 +1,6 @@
 """Surface walk module. Extension of Generator.
 """
-import Generator as G
+from . import Generator as G
 import generator
 __version__ = G.__version__
 

@@ -88,7 +88,7 @@ for x in mshList:
         curv = D.getCurvatureAngle( temp1 )
         angleRight = curv[1][0][temp1[2]-dn+1]
 
-    print "Angles =", angleLeft, " ", angleRight
+    print("Angles =", angleLeft, " ", angleRight)
     temp1 = G.hyper2D3(temp1, distrib, "C", angleLeft, angleRight)
     C.convertArrays2File([temp1], "mesh"+repr(c)+".plt", "bin_tp")
     c = c+1

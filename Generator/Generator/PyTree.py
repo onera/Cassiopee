@@ -3,8 +3,8 @@
 # 
 # Python Interface to create PyTrees defining meshes
 #
-import Generator
-import generator
+from . import Generator
+from . import generator
 __version__ = Generator.__version__
 
 try:

@@ -1,9 +1,9 @@
 # Interface pour MPI
 import Converter.Mpi as Cmpi
-import PyTree as X
+from . import PyTree as X
 import Converter.Internal as Internal
 import Converter.PyTree as C
-import connector
+from . import connector
 import RigidMotion.PyTree as RM
 import numpy
 #==============================================================================
@@ -85,14 +85,14 @@ def _setInterpTransfers(aR, aD, variables=[], cellNVariable='',
             else:
                 rcvNode = procDict[rcvName]
                 #print Cmpi.rank, 'envoie a ',rcvNode
-                if not datas.has_key(rcvNode): datas[rcvNode] = [n]
+                if rcvNode not in datas: datas[rcvNode] = [n]
                 else: datas[rcvNode] += [n]
                 #print datas
     # Envoie des numpys suivant le graph
     rcvDatas = Cmpi.sendRecv(datas, graph)
 
     # Remise des champs interpoles dans l'arbre receveur
-    for i in rcvDatas.keys():
+    for i in rcvDatas:
         #print Cmpi.rank, 'recoit de',i, '->', len(rcvDatas[i])
         for n in rcvDatas[i]:
             rcvName = n[0]
@@ -149,7 +149,7 @@ def __setInterpTransfers(zones, zonesD, vars, param_int, param_real, type_transf
             for n in infos:
                 rcvNode = dest
                 #print Cmpi.rank, 'envoie a ',rcvNode, ' le paquet : ', n
-                if not datas.has_key(rcvNode): datas[rcvNode] = [n]
+                if rcvNode not in datas: datas[rcvNode] = [n]
                 else: datas[rcvNode] += [n]
                 #print datas
     
@@ -157,7 +157,7 @@ def __setInterpTransfers(zones, zonesD, vars, param_int, param_real, type_transf
     rcvDatas = Cmpi.sendRecv(datas, graph)
 
     # Remise des champs interpoles dans l'arbre receveur
-    for i in rcvDatas.keys():
+    for i in rcvDatas:
         #if Cmpi.rank==0: print Cmpi.rank, 'recoit de',i, '->', len(rcvDatas[i])
         for n in rcvDatas[i]:
             rcvName = n[0]
@@ -190,7 +190,7 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
     datas={}
     for z in Internal.getZones(t):
         zname = Internal.getName(z)
-        if zname not in dictOfNobOfRcvZones.keys(): continue
+        if zname not in dictOfNobOfRcvZones: continue
 
         # coordonnees dans le repere absolu de la zone receptrice
         # on les recupere de zc pour eviter un node2center des coordonnees de z
@@ -211,7 +211,7 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
             # passage des coordonnees du recepteur dans le repere absolu
             # si mouvement gere par FastS -> les coordonnees dans z sont deja les coordonnees en absolu
             if not absFrame: 
-                if dictOfMotionMatR2A.has_key(zname):
+                if zname in dictOfMotionMatR2A:
                     MatRel2AbsR=RM.getMotionMatrixForZone(z, time=time, F=None)
                     dictOfMotionMatR2A[zname]=MatRel2AbsR
                 else:
@@ -226,10 +226,10 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
                     nozc = dictOfNozOfDnrZones[znamed]
                     zdnr = tc[2][nobc][2][nozc]
                     adt = dictOfADT[znamed]
-                    if dictOfMotionMatA2R.has_key(znamed):
+                    if znamed in dictOfMotionMatA2R:
                         MatAbs2RelD=dictOfMotionMatA2R[znamed]
                     else:                        
-                        if dictOfMotionMatR2A.has_key(znamed):
+                        if znamed in dictOfMotionMatR2A:
                             MatRel2AbsD = dictOfMotionMatR2A[znamed]
                             MatAbs2RelD = numpy.transpose(MatRel2AbsD)
                             dictOfMotionMatA2R[znamed] = MatAbs2RelD
@@ -242,7 +242,7 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
 
                     # transfers avec coordonnees dans le repere relatif 
                     fields = X.transferFields(zdnr, XIRel, YIRel, ZIRel, hook=adt, variables=variables)
-                    if not dictOfFields.has_key(zname):
+                    if zname not in dictOfFields:
                         dictOfFields[zname]=[fields]
                         dictOfIndices[zname]=indicesI
                     else:
@@ -250,7 +250,7 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
 
                 else:                    
                     # print ' ECHANGE GLOBAL entre recepteur %s du proc %d et donneur %s du proc %d '%(zname, Cmpi.rank, znamed, procD)
-                    if not datas.has_key(procD):
+                    if procD not in datas:
                         datas[procD] = [[zname, znamed, indicesI, XI, YI, ZI]]
                     else: datas[procD].append([zname, znamed, indicesI, XI, YI, ZI])
 
@@ -261,7 +261,7 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
 
     # recuperation par le proc donneur des donnees pour faire les transferts    
     transferedDatas={}
-    for i in interpDatas.keys():
+    for i in interpDatas:
         #print Cmpi.rank, 'recoit de',i, '->', len(interpDatas[i])
         for n in interpDatas[i]:
             zdnrname = n[1]
@@ -272,10 +272,10 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
             nozc = dictOfNozOfDnrZones[zdnrname]
             zdnr = tc[2][nobc][2][nozc]
             adt = dictOfADT[zdnrname]
-            if dictOfMotionMatA2R.has_key(zdnrname):
+            if zdnrname in dictOfMotionMatA2R:
                 MatAbs2RelD=dictOfMotionMatA2R[zdnrname]
             else:
-                if dictOfMotionMatR2A.has_key(zdnrname):
+                if zdnrname in dictOfMotionMatR2A:
                     MatRel2AbsD = dictOfMotionMatR2A[zdnrname]
                     MatAbs2RelD = numpy.transpose(MatRel2AbsD)
                     dictOfMotionMatA2R[zdnrname] = MatAbs2RelD
@@ -290,7 +290,7 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
             fields = X.transferFields(zdnr, XIRel, YIRel, ZIRel, hook=adt, variables=variables)
             procR = procDict[zrcvname]
             
-            if not transferedDatas.has_key(procR):
+            if procR not in transferedDatas:
                 transferedDatas[procR]=[[zrcvname, indicesR, fields]]
             else:
                 transferedDatas[procR].append([zrcvname,indicesR,fields])
@@ -301,19 +301,19 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
                                                               
         # remise des donnees interpolees chez les zones receveuses
         # une fois que tous les donneurs potentiels ont calcule et envoye leurs donnees
-        for i in rcvDatas.keys():
+        for i in rcvDatas:
             #print Cmpi.rank, 'recoit des donnees interpolees de',i, '->', len(rcvDatas[i])
             for n in rcvDatas[i]:
                 zrcvname = n[0]
                 indicesI = n[1]
                 fields = n[2]
-                if not dictOfFields.has_key(zrcvname):
+                if zrcvname not in dictOfFields:
                     dictOfFields[zrcvname]=[fields]
                     dictOfIndices[zrcvname]=indicesI
                 else:
                     dictOfFields[zrcvname].append(fields)
 
-    for zrcvname in dictOfIndices.keys():
+    for zrcvname in dictOfIndices:
         nob = dictOfNobOfRcvZones[zrcvname]
         noz = dictOfNozOfRcvZones[zrcvname]
         z = t[2][nob][2][noz]

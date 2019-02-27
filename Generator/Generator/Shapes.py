@@ -1,7 +1,7 @@
 # 
 # Maillages autour de formes simples
 #
-import Generator as G
+from . import Generator as G
 __version__ = G.__version__
 
 def square((x0,y0), (x1,y1), H, (ni,nj,nk)):

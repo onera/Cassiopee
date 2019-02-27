@@ -1,13 +1,13 @@
 # - OversetDataElsA -
 # Module for internal functions used for overset info
-import Connector
+from . import Connector
 import numpy
 
 try:
     import Converter.Internal as Internal
     import Converter.PyTree as C
     import Converter
-    import OversetData as XOD
+    from . import OversetData as XOD
 except:
     raise ImportError("Connector.OversetDataElsA requires Converter and Connector.OversetData modules.")
 
@@ -80,7 +80,7 @@ def _setInterpolations(t, loc='cell', double_wall=0, storage='inverse', prefixFi
         _setSeqInterpolations(t, depth=depth, double_wall=double_wall, storage=storage, prefixFile=prefixFile, 
                               sameBase=sameBase, solver=Solver, nGhostCells=nGhostCells, cfMax=cfMax, check=check)
     else: # mode distribue
-        if nGhostCells != 2: print 'Warning: _setInterpolations: nGhostCells must be 2 in distributed mode.'
+        if nGhostCells != 2: print('Warning: _setInterpolations: nGhostCells must be 2 in distributed mode.')
         _setDistInterpolations(t, parallelDatas, depth, double_wall, sameBase, Solver, cfMax, check=check)
     return None
 
@@ -94,7 +94,7 @@ def _setDistInterpolations(a, parallelDatas=[], depth=2, double_wall=0,
     try: import Generator.PyTree as G
     except: raise ImportError("_setDistInterpolations: requires Generator module.")
 
-    if double_wall == 1: import DoubleWall
+    if double_wall == 1: from . import DoubleWall
     print("Warning: _setDistInterpolations: periodic Chimera not yet implemented.")
 
     if parallelDatas == []: return None
@@ -130,7 +130,7 @@ def _setDistInterpolations(a, parallelDatas=[], depth=2, double_wall=0,
     interpolationZonesD={}; interpolationZonesNameD={}; interpolationCellnD={}; surfiD={}
 
     # initialisation des cles
-    for oppNode in localGraph.keys():
+    for oppNode in localGraph:
         oppZones = graph[oppNode][rank]
         for s in xrange(len(interpDatas[oppNode])):
             oppZone = oppZones[s]
@@ -142,7 +142,7 @@ def _setDistInterpolations(a, parallelDatas=[], depth=2, double_wall=0,
     # remplissage des dictionnaires
     zones = Internal.getNodesFromType2(a, 'Zone_t')
     nzones = len(zones)
-    for oppNode in localGraph.keys():
+    for oppNode in localGraph:
         oppZones = graph[oppNode][rank]
         for s in xrange(len(interpDatas[oppNode])):
             oppZone = oppZones[s]
@@ -158,7 +158,7 @@ def _setDistInterpolations(a, parallelDatas=[], depth=2, double_wall=0,
 
     # 1. deals with depth=2
     if depth == 2:
-        for oppNode in localGraph.keys():
+        for oppNode in localGraph:
             oppZones = graph[oppNode][rank]
             for s in xrange(len(interpDatas[oppNode])):
                 interpCells=interpDatas[oppNode][s]
@@ -197,7 +197,7 @@ def _setDistInterpolations(a, parallelDatas=[], depth=2, double_wall=0,
                         _interpInverseStorage(oppZone,zdonor,nozd,resInterp,depth)
     else:
         #2. deals with depth =1
-        for oppNode in localGraph.keys():
+        for oppNode in localGraph:
             oppZones = graph[oppNode][rank]
             for s in xrange(len(interpDatas[oppNode])):
                 EXPts=interpDatas[oppNode][s]
@@ -243,7 +243,7 @@ def _setSeqInterpolations(a, depth=2, double_wall=0, storage='inverse', prefixFi
                           sameBase=0, solver=1, nGhostCells=2, 
                           cfMax=30., check=True):
     import Generator.PyTree as G
-    if double_wall == 1: import DoubleWall
+    if double_wall == 1: from . import DoubleWall
 
     # Ecriture ou non dans des fichiers elsA
     writeInFile=0
@@ -751,7 +751,7 @@ def inverseChimeraTransfer__(t, variables, locinterp='centers', mesh='extended')
                                     rcvField2[:rcvField.shape[0]]=rcvField
                                     rcvField2[donorArray[1].shape[0]]=cellRcv
                                     rcvField2[donorArray[1].shape[0]+1]=cellVol
-                                    if rcvZoneName in rcvFields.keys():
+                                    if rcvZoneName in rcvFields:
                                         rcvFields[rcvZoneName].append(rcvField2)
                                     else:
                                         rcvFields[rcvZoneName]=[rcvField2]
@@ -780,12 +780,12 @@ def inverseChimeraTransfer__(t, variables, locinterp='centers', mesh='extended')
                                     rcvField2[donorArray[1].shape[0]+1]=cellVolEX
                                     rcvField2[donorArray[1].shape[0]+2]=EXdir
                                     if rcvZoneName not in localZonesName:
-                                        if rcvZoneName in rcvFields.keys():
+                                        if rcvZoneName in rcvFields:
                                             rcvFields[rcvZoneName].append(rcvField2)
                                         else:
                                             rcvFields[rcvZoneName]=[rcvField2]
                                     else: # solution locale
-                                        if rcvZoneName in rcvLocalFields.keys():
+                                        if rcvZoneName in rcvLocalFields:
                                             rcvLocalFields[rcvZoneName].append(rcvField2)
                                         else:
                                             rcvLocalFields[rcvZoneName]=[rcvField2]

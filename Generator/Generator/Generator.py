@@ -5,7 +5,7 @@ __author__ = "Stephanie Peron, Sam Landier, Christophe Benoit, Gaelle Jeanfaivre
 # 
 # Python Interface to create arrays defining meshes
 #
-import generator
+from . import generator
 import numpy
 def cart(Xo, H, N, api=1):
     """Create a cartesian mesh defined by a structured array.
@@ -736,25 +736,25 @@ def TFI(arrays):
 def TFITri(a1, a2, a3):
     """Generate a transfinite interpolation mesh from 3 input curves.
     Usage: TFITri(a1,a2,a3)"""
-    import TFIs
+    from . import TFIs
     return TFIs.TFITri(a1, a2, a3)
 
 def TFIO(a):
     """Generate a transfinite interpolation mesh for 1 input curve.
     Usage: TFIO(a1,a2,a3)"""
-    import TFIs
+    from . import TFIs
     return TFIs.TFIO(a)
 
 def TFIHalfO(a1, a2):
     """Generate a transfinite interpolation mesh for 2 input curves.
     Usage: TFIHalfO(a1,a2)"""
-    import TFIs
+    from . import TFIs
     return TFIs.TFIHalfO(a1, a2)
 
 def TFIMono(a1, a2):
     """Generate a transfinite interpolation mesh for 2 input curves.
     Usage: TFIMono(a1, a2)"""
-    import TFIs
+    from . import TFIs
     return TFIs.TFIMono(a1, a2)
 
 def TTM(array, niter=100):
@@ -861,7 +861,7 @@ def collarMesh(s1, s2, distribj,distribk, niterj=100, niterk=100, ext=10,
     """Generates a collar mesh starting from s1 and s2 surfaces, distributions along the surfaces
     and along the normal direction, with respect to the assembly type between grids.
     Usage: collarMesh(s1,s2,distribj,distribk,niterj,niterk,ext, alphaRef,type,contour,constraints1,constraints2,toldist)"""
-    try: import Collar
+    try: from . import Collar
     except: raise ImportError("collarMesh: requires Collar module.")
     if isinstance(s1[0], list): surfaces1 = s1
     else: surfaces1 = [s1]
@@ -900,7 +900,7 @@ def surfaceWalk(surfaces, c, distrib, constraints=[], niter=0,
 def buildExtension(c, surfaces, dh, niter=0):
     """Build an extension zone starting from contour c with respect to normals (smoothed
     niter times) to surfaces"""
-    import SurfaceWalk as SW
+    from . import SurfaceWalk as SW
     return SW.buildExtension__(c, surfaces, dh, niter)
 
 #==============================================================================
@@ -1386,7 +1386,7 @@ def refinedSharpEdges__(surfaces, step, angle):
     Usage: snapSharpEdges(meshes, surfaces)"""
     try:
         import Post as P; import Geom as D; import Converter as C 
-        import Transform as T; import Generator as G
+        import Transform as T; from . import Generator as G
     except:
         raise ImportError("snapSharpEdges: requires Post, Geom, Converter, Transform module.")
     b = C.convertArray2Tetra(surfaces); b = T.join(b); b = close(b)

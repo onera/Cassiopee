@@ -1,8 +1,8 @@
 """Toolbox for IBM preprocessing"""
 import numpy
-import PyTree as X
-import OversetData as XOD
-import Connector
+from . import PyTree as X
+from . import OversetData as XOD
+from . import Connector
 import connector
 
 try:
@@ -383,7 +383,7 @@ def generateCartMesh__(o, dimPb=3, vmin=11, DEPTH=2, merged=1, sizeMax=4000000, 
         parento = C.initVars(o,'centers:indicator',-1.)
         parento = G.adaptOctree(parento)
         
-        for nop in xrange(3):
+        for nop in range(3):
             C._initVars(parento,'centers:indicator',-1.)
             parento = G.adaptOctree(parento)
             listOfParentOctrees.append(parento)
@@ -745,12 +745,12 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None,
             ibctypeI = TypesOfIBC[ibctype]
             if famName is not None: ibctype2 = str(ibctypeI)+"#"+famName
             else: ibctype2 = str(ibctypeI)  
-            if not dictOfBodiesByIBCType.has_key(ibctype2): dictOfBodiesByIBCType[ibctype2]=[s]
+            if ibctype2 not in dictOfBodiesByIBCType: dictOfBodiesByIBCType[ibctype2]=[s]
             else: dictOfBodiesByIBCType[ibctype2]+=[s]
 
         # Regroupement des corps par type de BC - optimise les projections ensuite 
         bodies = []; listOfIBCTypes=[];
-        for itype in dictOfBodiesByIBCType.keys():
+        for itype in dictOfBodiesByIBCType:
             s = dictOfBodiesByIBCType.get(itype)
             body = C.getFields(Internal.__GridCoordinates__,s)
             body = Converter.convertArray2Tetra(body)
@@ -1069,7 +1069,7 @@ def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None,
         dictOfCorrectedPtsByIBCType = res[0]
         dictOfWallPtsByIBCType = res[1] 
         dictOfInterpPtsByIBCType = res[2]
-        for ibcTypeL in  dictOfCorrectedPtsByIBCType.keys():
+        for ibcTypeL in  dictOfCorrectedPtsByIBCType:
             allCorrectedPts = dictOfCorrectedPtsByIBCType[ibcTypeL]
             allWallPts = dictOfWallPtsByIBCType[ibcTypeL]
             allInterpPts = dictOfInterpPtsByIBCType[ibcTypeL]
@@ -1103,7 +1103,7 @@ def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None,
                         nobd = nobOfDnrBases[nod]
                         nozd = nobOfDnrZones[nod]
                         tc[2][nobd][2][nozd] = dnrZones[nod]
-        for dnrname in dictOfADT.keys(): C.freeHook(dictOfADT[dnrname])
+        for dnrname in dictOfADT: C.freeHook(dictOfADT[dnrname])
     return tc
 
 #=============================================================================
@@ -1248,7 +1248,7 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interp='all', 
         print('Interpolations Chimere.')
         tc = doInterp(t, tc, tbb, tb=None, typeI='ID', dim=dimPb, 
                       dictOfADT=dictOfADT)
-        for dnrname in dictOfADT.keys(): C.freeHook(dictOfADT[dnrname])
+        for dnrname in dictOfADT: C.freeHook(dictOfADT[dnrname])
 
     elif interpI == 3: # maillage mobile : on n interpole pas les blocs externes ici
         for z in Internal.getZones(t):
@@ -1264,7 +1264,7 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interp='all', 
         print('Interpolations Chimere.')
         tc = doInterp(t, tc, tbb, tb=None, typeI='ID', dim=dimPb, 
                       dictOfADT=dictOfADT)
-        for dnrname in dictOfADT.keys(): C.freeHook(dictOfADT[dnrname])
+        for dnrname in dictOfADT: C.freeHook(dictOfADT[dnrname])
 
     # setIBCData - IBC
     C._initVars(t,'{centers:cellNIBCDnr}=minimum(2.,abs({centers:cellNIBC}))')
@@ -1451,7 +1451,7 @@ def extractIBMInfo(tc):
             xPW = Internal.getNodesFromName(IBCD,"CoordinateX_PW")[0][1]
             yPW = Internal.getNodesFromName(IBCD,"CoordinateY_PW")[0][1]
             zPW = Internal.getNodesFromName(IBCD,"CoordinateZ_PW")[0][1]
-            if znames in XPW.keys():
+            if znames in XPW:
                 a = numpy.concatenate((XPW[znames][0],xPW))
                 XPW[znames] = [a]
                 a = numpy.concatenate((YPW[znames][0],yPW))

@@ -1,7 +1,7 @@
 # - OversetData -
 # Module for internal functions used for overset info
-import Connector
-import connector
+from . import Connector
+from . import connector
 import numpy
 __version__ = Connector.__version__
 
@@ -24,7 +24,7 @@ TypesOfIBC["TBLE"]=6
 
 # Revert dict
 IBCTypes = {}
-for ibctypename in TypesOfIBC.keys():
+for ibctypename in TypesOfIBC:
     ibctypeint = TypesOfIBC[ibctypename]
     IBCTypes[ibctypeint] = ibctypename
 
@@ -309,7 +309,7 @@ def getCEBBTimeIntersectingDomains(base0, func, bases0, funcs, \
 def setIBCData(tR, tD, order=2, penalty=0, nature=0,
                method='lagrangian', loc='nodes', storage='direct',
                hook=None, sameName=0, he=0., hi=0., dim=3, bcType=0):
-    try: import ToolboxIBM as IBM
+    try: from . import ToolboxIBM as IBM
     except: raise ImportError("setIBCData: requires ToolboxIBM module.")
 
     locR = loc

@@ -1105,7 +1105,8 @@ def checkOCE(additionalLibPaths=[], additionalIncludePaths=[]):
         print('Info: libOCE detected at %s.'%l)
         return (True, i, l)
     else:
-        print('Info: libOCE or oce/*.hxx was not found on your system. No IGES/STEP support.')
+        # On n'affiche pas ici le message, car il peut y avoir un installation locale de OCE
+        #print('Info: libOCE or oce/*.hxx was not found on your system. No IGES/STEP support.')
         return (False, i, l)
 
 #=============================================================================

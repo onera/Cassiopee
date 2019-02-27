@@ -41,9 +41,6 @@ static PyMethodDef Pykcore [] =
 
 #if PY_MAJOR_VERSION >= 3
 #define GETSTATE(m) ((struct module_state*)PyModule_GetState(m))
-#endif
-
-#if PY_MAJOR_VERSION >= 3
 struct module_state {
     PyObject *error;
 };
@@ -84,13 +81,12 @@ extern "C"
 #if PY_MAJOR_VERSION >= 3
     PyObject* module = PyModule_Create(&moduledef);
 #else
-    PyObject* module = Py_InitModule("kcore", Pykcore);
+    Py_InitModule("kcore", Pykcore);
 #endif
     import_array();
 #if PY_MAJOR_VERSION >= 3
     return module;
 #endif
-
   }
 }
 

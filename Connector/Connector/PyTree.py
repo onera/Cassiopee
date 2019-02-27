@@ -3,14 +3,14 @@
 #
 # Python Interface to define grid connectivity
 #
-import Connector
-import connector
+from . import Connector
+from . import connector
 import numpy
 
-from OversetData import *
-from OversetData import _setInterpTransfers, __setInterpTransfers, _addCellN__
-from OversetDataElsA import _chimeraInfo, setInterpolations, chimeraInfo, chimeraTransfer
-from compactTransfers import ___setInterpTransfers, miseAPlatDonorTree__
+from .OversetData import *
+from .OversetData import _setInterpTransfers, __setInterpTransfers, _addCellN__
+from .OversetDataElsA import _chimeraInfo, setInterpolations, chimeraInfo, chimeraTransfer
+from .compactTransfers import ___setInterpTransfers, miseAPlatDonorTree__
 
 __version__ = Connector.__version__
 try:
@@ -660,9 +660,9 @@ def duplicatePeriodicZones__(t, rotationCenter=[0.,0.,0.], rotationAngle=[0.,0.,
     a = Internal.copyRef(t)
 
     typePeriodic = 0 # 1: translation, 2: rotation, 3: les deux
-    for i in xrange(3):
+    for i in range(3):
         if float(translation[i]) != 0.: typePeriodic = 1; break
-    for i in xrange(3):
+    for i in range(3):
         if float(rotationAngle[i]) != 0.: typePeriodic += 2; break
 
     # Periodicite par rotation ou translation separement
@@ -1277,7 +1277,7 @@ def optimizeOverlap(t, double_wall=0, priorities=[], intersectionsDict=None):
     except: raise ImportError('optimizeOverlap requires Generator module.')
     try: import Post.PyTree as P
     except: raise ImportError('optimizeOverlap requires Post module.')
-    if double_wall == 1: import DoubleWall
+    if double_wall == 1: from . import DoubleWall
     tol = 1.e-10
     a = Internal.copyRef(t)
 
