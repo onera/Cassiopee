@@ -60,26 +60,6 @@ def extrudeLayer__(i, nlayers, planarity, eps, dplus, dmoins):
         p = Converter.convertArray2Tetra(p)
     return p
 
-# def extrudeLayer__(i, nlayers, planarity, eps, dplus, dmoins):
-#     import Generator; import Transform
-#     if planarity:
-#         p = Generator.getCellPlanarity(i)
-#         epsmax = max(eps, 2*Converter.getMaxValue(p, 'dist'))
-#     else: epsmax = eps
-#     for k in xrange(nlayers+1): dplus[1][0,k] = k*epsmax; dmoins[1][0,k] =-k*epsmax
-#     b = Generator.addNormalLayers(i, dplus)
-#     c = Generator.addNormalLayers(i, dmoins)
-#     b = Converter.convertArray2Tetra(b)
-#     c = Converter.convertArray2Tetra(c)
-#     p = Transform.join(b, c); p = Generator.close(p)
-#     if p[3] == 'TRI': # une BAR au depart
-#         b = Generator.addNormalLayers(p, dplus)
-#         c = Generator.addNormalLayers(p, dmoins)
-#         b = Converter.convertArray2Tetra(b)
-#         c = Converter.convertArray2Tetra(c)
-#         p = Transform.join(b, c); p = Generator.close(p)
-#     return p
-
 def growOfEps__(arrays, eps, nlayers=1, planarity=True):
     try: import Generator; import Transform
     except: return arrays

@@ -356,7 +356,7 @@ def computeVariables():
         varname == 'QCriterion' or varname == 'ShearStress' or
         varname == 'SkinFriction' or varname == 'SkinFrictionTangential'): # extra variables
         varloc = loc+':'+varname
-        if (CTK.__MAINTREE__ <= 0 or nzs == []):
+        if CTK.__MAINTREE__ <= 0 or nzs == []:
             try:
                 CTK.t = P.computeExtraVariable(CTK.t, varloc, gamma=gamma,
                                                rgp=rgp, Cs=Cs, mus=muInf,
@@ -425,21 +425,25 @@ def computeVariables():
 #==============================================================================
 def addVar(event=None):
     if CTK.t == []: return
+    nzs = CPlot.getSelectedZones()
     varname = VARS[1].get()
     CTK.saveTree()
-    s = varname.split('=')
-    try:
-        if len(s) > 1: CTK.t = C.initVars(CTK.t, varname)
+    s = varname.split('=')    
+    if CTK.__MAINTREE__ <= 0 or nzs == []:
+        if len(s) > 1: C._initVars(CTK.t, varname)
         else: C._addVars(CTK.t, varname)
-        CTK.TXT.insert('START', 'Variable %s added.\n'%varname)
-        CTK.TKTREE.updateApp()
-        CTK.display(CTK.t)
-        if CTK.TKPLOTXY is not None: CTK.TKPLOTXY.updateApp()
-    except Exception, e:
-        Panels.displayErrors([0,str(e)], header='Error: addVar')
-        CTK.TXT.insert('START', 'Fail to add variable %s.\n'%varname)
-        CTK.TXT.insert('START', 'Error: ', 'Error')
-
+    else:
+        for nz in nzs:
+            nob = CTK.Nb[nz]+1
+            noz = CTK.Nz[nz]
+            z = CTK.t[2][nob][2][noz]
+            if len(s) > 1: C._initVars(z, varname)
+            else: C._addVars(z, varname)
+    CTK.TXT.insert('START', 'Variable %s added.\n'%varname)
+    CTK.TKTREE.updateApp()
+    CTK.display(CTK.t)
+    if CTK.TKPLOTXY is not None: CTK.TKPLOTXY.updateApp()
+            
 #==============================================================================
 def computeGrad():
     if CTK.t == []: return

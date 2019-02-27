@@ -40,7 +40,9 @@ fi
 #fi
 
 # installation manuelle
+# necessite flex, bison
 #cd src
+#faire un lien de Makefile.inc sur un Make.inc/Makefile adapte
 #make
 #make ptscotch
 cp lib/*.a "$INSTALLPATH"/lib
