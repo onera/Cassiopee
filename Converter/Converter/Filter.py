@@ -1,8 +1,8 @@
 # - Filters -
-import Internal
-import PyTree
-import Converter
-from Distributed import convert2PartialTree, _convert2PartialTree, convert2SkeletonTree, _convert2SkeletonTree, convertFile2SkeletonTree, _readPyTreeFromPaths, readPyTreeFromPaths, _readZones, \
+from . import Internal
+from . import PyTree
+from . import Converter
+from .Distributed import convert2PartialTree, _convert2PartialTree, convert2SkeletonTree, _convert2SkeletonTree, convertFile2SkeletonTree, _readPyTreeFromPaths, readPyTreeFromPaths, _readZones, \
 _convert2SkeletonTree, readNodesFromPaths, writeNodesFromPaths, writePyTreeFromPaths, deletePaths
 import numpy
 
@@ -64,7 +64,6 @@ def readZoneHeaders(fileName, format=None, baseNames=None, familyZoneNames=None,
         families = PyTree.getFamilyBCNamesOfType(a, BCType)
         s = BCType.split(':')
         if len(s) == 2: families.append(s[1])
-        print families
         if BCType == 'BCWall':
           families1 = PyTree.getFamilyBCNamesOfType(a, 'BCWallInviscid')
           families2 = PyTree.getFamilyBCNamesOfType(a, 'BCWallViscous*')
@@ -124,8 +123,7 @@ def _loadContainerPartial(a, fileName, znp, cont, format=None):
     r = readNodesFromFilter(fileName, f)
 
     # Repositionne les chemins
-    keys = r.keys()
-    for k in keys:
+    for k in r:
       k2 = k.replace(pname, zname)
       n = Internal.getNodeFromPath(b, k2)
       n[1] = r[k]
@@ -228,7 +226,6 @@ def _loadZoneBCsWoData(a, fileName, znp, format=None):
       children = n[2]
       for i in children:
         if i[3] == 'ZoneBC_t': paths.append(p+'/'+i[0])
-  print paths
   if paths != []: _readPyTreeFromPaths(a, fileName, paths, format, maxDepth=2, setOnlyValue=False)
   return None
 
@@ -411,8 +408,7 @@ def loadAndSplit(fileName, NParts=None, noz=None, NProc=None, rank=None, variabl
     r = readNodesFromFilter(fileName, f)
 
     # Repositionne les chemins
-    keys = r.keys()
-    for k in keys:
+    for k in r:
       k2 = k.replace(pname, zname)
       n = Internal.getNodeFromPath(b, k2)
       n[1] = r[k]
@@ -531,7 +527,7 @@ class Handle:
     if self.bary is None: self.bary = {}
     if self.hmoy is None: self.hmoy = {}
     for p in znp:
-       if self.bbox.has_key(p): continue
+       if p in self.bbox: continue
        xc = 0.; yc = 0.; zc = 0.
        bbox = [0.,0.,0.,0.,0.,0.]
        hmoy = 0.; hmax = 0.; hmin = 0.
@@ -614,7 +610,7 @@ class Handle:
         #print zbb[5],'<', bbox[2]
         #print zbb[2],'>', bbox[5]
         if zbb[3] >= bbox[0] and zbb[0] <= bbox[3] and zbb[4] >= bbox[1] and zbb[1] <= bbox[4] and zbb[5] >= bbox[2] and zbb[2] <= bbox[5]:
-          print 'loading: %s'%zp
+          print('loading: %s'%zp)
           _readPyTreeFromPaths(a, self.fileName, [zp], self.format, maxFloatSize=0)
           _loadContainer(a, self.fileName, [zp], 'GridCoordinates', self.format)
           _loadConnectivity(a, self.fileName, [zp], self.format)

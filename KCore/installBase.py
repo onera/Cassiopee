@@ -27,7 +27,7 @@ False, # CPlotOffScreen
 'gcc', # Cppcompiler
 ['-isystem /d/juvigny/msys64/mingw64/include/python2.7', '-isystem /d/juvigny/msys64/mingw64/lib/python2.7/site-packages/numpy/core/include/numpy/'], # CppAdditionalOptions
 [], # f77AdditionalOptions
-True, # useOMP ...
+True, # useOMP
 False, # static
 False, # CPlotOffScreen
 ['d:/juvigny/msys64/mingw64/include',"c:/Program Files (x86)/Microsoft SDKs/MPI/Include", "/d/juvigny/msys64/mingw64/include/OpenBLAS"], # additionalIncludePaths
@@ -254,9 +254,9 @@ False, # CPlotOffScreen
 True, # useOMP
 False, # static
 False, # CPlotOffScreen
-['/usr/include/openmpi-x86_64'], # additionalIncludePaths
+[], # additionalIncludePaths
 [], # additionalLibs
-['/usr/lib64/openmpi/lib'] # additionalLibPaths
+[] # additionalLibPaths
 ],
 ###############################################################################
 'tiamat': [ 'Machine de dev elsA (Onera)',
@@ -277,7 +277,7 @@ True, # CPlotOffScreen
 'ifort', # f77compiler
 'ifort', # f90compiler
 'icc', # Cppcompiler
-['-DCACHELINE=32','-DNB_SOCKET=2','-DCORE_PER_SOCK=12'], # CppAdditionalOptions
+['-DCACHELINE=32','-DNB_SOCKET=2','-DCORE_PER_SOCK=12','-DSIMD=AVX2'], # CppAdditionalOptions
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
@@ -319,7 +319,7 @@ True, # CPlotOffScreen
 'ifort', # f77compiler
 'ifort', # f90compiler
 'icc', # Cppcompiler
-['-DCACHELINE=64','-DNB_SOCKET=1','-Dvtune','-g'], # CppAdditionalOptions
+['-DCACHELINE=64','-DNB_SOCKET=1','-DCORE_PER_SOCK=64','-Dvtune','-g','-DSIMD=MIC'], # CppAdditionalOptions
 ['-g'], # f77AdditionalOptions
 True, # useOMP
 False, # static
@@ -614,7 +614,22 @@ True, # CPlotOffScreen
 'ifort', # f77compiler
 'ifort', # f90compiler
 'icc', # Cppcompiler
-['-DCACHELINE=32','-DNB_SOCKET=2','-DCORE_PER_SOCK=14','-Dvtune'], # CppAdditionalOptions
+['-DCACHELINE=32','-DNB_SOCKET=2','-DCORE_PER_SOCK=14','-Dvtune','-DSIMD=AVX2'], # CppAdditionalOptions
+[], # f77AdditionalOptions
+True, # useOMP
+False, # static
+True, # CPlotOffScreen
+['/opt/tools/intel/studio/2017/compilers_and_libraries_2017.4.196/linux/mpi/intel64/include','/opt/tools/intel/studio/2017/vtune_amplifier_xe_2017.3.0.510739/include/','/opt/tools/intel/studio/2017/advisor_2017.1.3.510716/include/intel64'], # additionalIncludePaths
+['ittnotify','advisor'], # additionalLibs
+['/opt/tools/intel/studio/2017/vtune_amplifier_xe_2017.3.0.510739/lib64/','/opt/tools/intel/studio/2017/advisor_2017.1.3.510716/lib64','/opt/tools/lib/hdf5-1.8.17-intel-17/lib/'] # additionalLibPaths
+#['/opt/tools/intel/studio/2017/vtune_amplifier_xe_2017.3.0.510739/lib64/','/opt/tools/intel/studio/2017/advisor_2017.1.3.510716/lib64'] # additionalLibPaths
+],
+###############################################################################
+'sat_sky': [ 'Cluster de calcul Sator skylake(Onera)',
+'ifort', # f77compiler
+'ifort', # f90compiler
+'icc', # Cppcompiler
+['-DCACHELINE=64','-DNB_SOCKET=2','-DCORE_PER_SOCK=22','-Dvtune','-DSIMD=AVX512'], # CppAdditionalOptions
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static

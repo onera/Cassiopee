@@ -4,19 +4,19 @@ import os
 if 'MPIRUN' in os.environ: # si MPIRUN=0, force sequentiel
     if int(os.environ['MPIRUN'])>0:
         try:
-            from Mpi4py import *
+            from .Mpi4py import *
         except: raise ImportError("Converter:Mpi: requires mpi4py module.")
     else:
        rank = 0; size = 1; KCOMM = None
 else: # try import (may fail - core or hang)
     try:
-        from Mpi4py import *
+        from .Mpi4py import *
     except:
         rank = 0; size = 1; KCOMM = None
         print("Warning: Converter:Mpi: mpi4py is not available. Sequential behaviour.")
 
-from Distributed import _readZones, _convert2PartialTree, _convert2SkeletonTree, _readPyTreeFromPaths
-import PyTree
+from .Distributed import _readZones, _convert2PartialTree, _convert2SkeletonTree, _readPyTreeFromPaths
+from . import PyTree
 
 #==============================================================================
 # IN: t: full/loaded skel/partial

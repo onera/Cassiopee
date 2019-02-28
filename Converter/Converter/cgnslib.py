@@ -4,9 +4,9 @@
 #  Written by M. Poinot  
 #  ---------------------------------------------------------------------------
 #  
-import cgnskeywords as CK
-import cgnstypes    as CT
-import cgnsutils    as CU
+from . import cgnskeywords as CK
+from . import cgnstypes    as CT
+from . import cgnsutils    as CU
 
 import numpy as NPY
 

@@ -1,10 +1,10 @@
 # Interface de Cassiopee pour mpi
-import PyTree as C
-import Internal
-import Distributed
+from . import PyTree as C
+from . import Internal
+from . import Distributed
 
 # Acces a Distributed
-from Distributed import readZones, writeZones, convert2PartialTree, convert2SkeletonTree, readNodesFromPaths, readPyTreeFromPaths, writeNodesFromPaths
+from .Distributed import readZones, writeZones, convert2PartialTree, convert2SkeletonTree, readNodesFromPaths, readPyTreeFromPaths, writeNodesFromPaths
 
 __all__ = ['rank', 'size', 'KCOMM', 'setCommunicator', 'barrier', 'send', 'recv', 'sendRecv', 'sendRecv2', 
     'allgather', 'readZones', 'writeZones', 'convert2PartialTree', 'convert2SkeletonTree', 'convertFile2DistributedPyTree', 
@@ -57,17 +57,17 @@ def recv(source=None):
 def sendRecv(datas, graph):
     if graph == {}: return {}
     reqs = []
-    if graph.has_key(rank):
+    if rank in graph:
         g = graph[rank] # graph du proc courant
-        for oppNode in g.keys():
+        for oppNode in g:
             # Envoie les datas necessaires au noeud oppose
             #print '%d: On envoie a %d: %s'%(rank,oppNode,g[oppNode])
             s = KCOMM.isend(datas[oppNode], dest=oppNode)
             reqs.append(s)
     rcvDatas={}
-    for node in graph.keys():
+    for node in graph:
         #print rank, graph[node].keys()
-        if rank in graph[node].keys():
+        if rank in graph[node]:
             #print '%d: On doit recevoir de %d: %s'%(rank,node,graph[node][rank])
             rcvDatas[node] = KCOMM.recv(source=node)
     MPI.Request.Waitall(reqs)
@@ -76,18 +76,18 @@ def sendRecv(datas, graph):
 def sendRecv2(datas, graph):
     if graph == {}: return {}
     reqs = []
-    if graph.has_key(rank):
+    if rank in graph:
         g = graph[rank] # graph du proc courant
-        for oppNode in g.keys():
+        for oppNode in g:
             # Envoie les datas necessaires au noeud oppose
-            print '%d: On envoie a %d: %s'%(rank,oppNode,g[oppNode])
+            print('%d: On envoie a %d: %s'%(rank,oppNode,g[oppNode]))
             s = KCOMM.isend(datas[oppNode], dest=oppNode)
             reqs.append(s)
     rcvDatas={}
-    for node in graph.keys():
+    for node in graph:
         #print rank, graph[node].keys()
-        if rank in graph[node].keys():
-            print '%d: On doit recevoir de %d: %s'%(rank,node,graph[node][rank])
+        if rank in graph[node]:
+            print('%d: On doit recevoir de %d: %s'%(rank,node,graph[node][rank]))
             rcvDatas[node] = KCOMM.recv(source=node)
     MPI.Request.Waitall(reqs)
     return rcvDatas
@@ -224,7 +224,7 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, reduction=True,
         # Assure que le graph est le meme pour tous les processeurs
         g = KCOMM.allgather(graph)
         for i in g:
-            for k in i.keys(): graph[k] = i[k]
+            for k in i: graph[k] = i[k]
 
     return graph
 
@@ -240,9 +240,9 @@ def addXZones(t, graph):
 def _addXZones(t, graph):
     if graph == {}: return t
     reqs = []
-    if graph.has_key(rank):
+    if rank in graph:
         g = graph[rank] # graph du proc courant
-        for oppNode in g.keys():
+        for oppNode in g:
             # Envoie les zones necessaires au noeud oppose
             #print '%d: On envoie a %d: %s'%(rank,oppNode,g[oppNode])
             names = g[oppNode]
@@ -254,9 +254,9 @@ def _addXZones(t, graph):
             reqs.append(s)
 
     # Reception
-    for node in graph.keys():
+    for node in graph:
         #print rank, graph[node].keys()
-        if rank in graph[node].keys():
+        if rank in graph[node]:
             #print '%d: On doit recevoir de %d: %s'%(rank,node,graph[node][rank])
             data = KCOMM.recv(source=node)
             

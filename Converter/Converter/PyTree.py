@@ -1,5 +1,5 @@
-import Converter
-import Internal
+from . import Converter
+from . import Internal
 import KCore
 import numpy, fnmatch
 __version__ = Converter.__version__
@@ -84,14 +84,14 @@ def getUniqueName(proposedName, server):
     try: c = int(namespl[1]); name = namespl[0]
     except: name = proposedName
   else: name = proposedName
-  if not server.has_key(name):
+  if name not in server:
     server[name] = 0
     return (name, server)
   else:
     c = server[name]; ret = 1
     while ret == 1:
       name2 = '%s.%d'%(name,c)
-      if not server.has_key(name2): ret = 0
+      if name2 not in server: ret = 0
       else: ret = 1
       c += 1
     server[name2] = 0
@@ -240,10 +240,10 @@ def getVarNames(t, excludeXYZ=False, loc='both', mode=0):
       d = {}
       for vars in allvars:
         for v in vars:
-          if d.has_key(v): d[v] += 1
+          if v in d: d[v] += 1
           else: d[v] = 1
       out = []
-      for k in d.keys():
+      for k in d:
         if d[k] == len(allvars):
           out.append(k)        
       allvars = [out]
@@ -962,7 +962,7 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
       file.close()
     except:
       raise TypeError("convertFile2PyTree: file %s can not be read."%fileName)
-    else: print 'done.'
+    else: print('done.')
 
     if Internal.isTopTree(a):
       registerAllNames(a)
@@ -1048,7 +1048,7 @@ def convertPyTree2File(t, fileName, format=None, isize=4, rsize=8,
                        endian='big', colormap=0, dataFormat='%.9e ', links=[]):
   """Write a pyTree to a file.
   Usage: convertPyTree2File(t, fileName, format, options)"""
-  if t == []: print 'Warning: convertPyTree2File: nothing to write.'; return
+  if t == []: print('Warning: convertPyTree2File: nothing to write.'); return
   if format is None:
     format = Converter.convertExt2Format__(fileName)
     if format == 'unknown': format = 'bin_cgns'
@@ -1059,9 +1059,9 @@ def convertPyTree2File(t, fileName, format=None, isize=4, rsize=8,
   elif format == 'bin_pickle':
     import cPickle as pickle
     file = open(fileName, 'wb')
-    print 'Writing '+fileName+'...',
+    print('Writing '+fileName+'...'),
     pickle.dump(t, file, protocol=pickle.HIGHEST_PROTOCOL); file.close()
-    print 'done.'
+    print('done.')
   else:
     _fillMissingVariables(t) # force all zones to have the same variables 
     a = center2Node(t, Internal.__FlowSolutionCenters__)
@@ -1095,15 +1095,15 @@ def convertPyTree2FilePartial(t, fileName, comm, Filter, ParallelHDF=False,
     Usage: convertPyTree2File(t, fileName, format, options)"""
   
     # > GardeFou
-    if t == []: print 'Warning: convertPyTree2File: nothing to write.'; return
+    if t == []: print('Warning: convertPyTree2File: nothing to write.'); return
     format = 'bin_hdf'
   
     if not ParallelHDF:
       # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
       # > Write Tree Data execpt Data in Filter
       SkeletonTree = Internal.copyRef(t)
-      for path in Filter.keys():
-        print path
+      for path in Filter:
+        print(path)
         Node = Internal.getNodeFromPath(SkeletonTree, path)
         Node[1] = None
       # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -1139,7 +1139,7 @@ def convertPyTree2FilePartial(t, fileName, comm, Filter, ParallelHDF=False,
       # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
       # > Write Tree Data execpt Data in Filter
       SkeletonTree = Internal.copyRef(t)
-      for path in Filter.keys():
+      for path in Filter:
         Node = Internal.getNodeFromPath(SkeletonTree, path)
         Node[1] = None
       # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -1421,12 +1421,12 @@ def setFields(arrays, t, loc, writeDim=True):
       if loc == 'nodes' and len(a) == 4:
         elt = a[3]
         if elt[len(elt)-1] == '*':
-          print 'Warning: setFields: %s array is not set.'%elt
+          print('Warning: setFields: %s array is not set.'%elt)
           vars = []
     p = 0
     for v in vars:
       renamed = 0 # si le nom est change en nom CGNS = 1
-      if Internal.name2CGNS.has_key(v): renamed = 1; variable = Internal.name2CGNS[v]
+      if v in Internal.name2CGNS: renamed = 1; variable = Internal.name2CGNS[v]
       else: variable = v
       if (variable == 'CoordinateX' or variable == 'CoordinateY'
           or variable == 'CoordinateZ') and loc == 'nodes':
@@ -1523,7 +1523,7 @@ def getNumpyArrays(t, name):
 def setNumpyArrays(t, name, arrays):
   zones = Internal.getZones(t)
   if len(arrays) != len(zones):
-    print 'Error: setNumpyArrays: not enough arrays.'; return
+    print('Error: setNumpyArrays: not enough arrays.'); return
   i = 0
   for z in zones:
     sol = Internal.getNodeFromName2(z, name)
@@ -1621,7 +1621,7 @@ def convertPyTree2Array(path, tree):
       if out != [] and out2 != []:
         array = Converter.addVars(out)
         array2 = Converter.addVars(out2)
-        print "Warning: convertPyTree2Array: only node field are in array."
+        print("Warning: convertPyTree2Array: only node field are in array.")
         return array # return array, array2
       elif out != []:
         array = Converter.addVars(out); return array
@@ -2401,7 +2401,7 @@ def _nullifyBCDataSetVectors(t, bndType, loc='FaceCenter',
       elif PL is not None:
         np = PL[1].size
       else:
-        raise(ValueError, "nullifyVectorAtBCDataSet: no PointRange/PointList in BC.")
+        raise ValueError("nullifyVectorAtBCDataSet: no PointRange/PointList in BC.")
 
       datas = Internal.getBCDataSet(z,bc)
       if datas == []: # create the BCDataSet
@@ -2420,7 +2420,7 @@ def _nullifyBCDataSetVectors(t, bndType, loc='FaceCenter',
                                                               Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__,Internal.__FlowSolutionCenters__)
 
             elif PL is not None:
-              print "nullifyVectorAtBCDataSet: not implemented for PointList."
+              print("nullifyVectorAtBCDataSet: not implemented for PointList.")
             Internal._createUniqueChild(d, vxname, 'DataArray_t', value=fxInt)
             Internal._createUniqueChild(d, vyname, 'DataArray_t', value=fyInt)
             Internal._createUniqueChild(d, vzname, 'DataArray_t', value=fzInt)
@@ -2481,7 +2481,7 @@ def _createBCDataSetOfType(t, bndType, loc='FaceCenter', update=True, vectors=[]
       elif PL is not None:
         np = PL[1].size
       else:
-        raise(ValueError,"createBCDataSetOfType: no PointRange/PointList in BC.")
+        raise ValueError("createBCDataSetOfType: no PointRange/PointList in BC.")
 
       datas = Internal.getBCDataSet(z,bc)
       if datas == []: # create the BCDataSet
@@ -2498,7 +2498,7 @@ def _createBCDataSetOfType(t, bndType, loc='FaceCenter', update=True, vectors=[]
                                                               Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__,Internal.__FlowSolutionCenters__)
 
             elif PL is not None:
-              print "createBCDataSetOfType: not implemented for PointList."
+              print("createBCDataSetOfType: not implemented for PointList.")
             Internal._createUniqueChild(d, varname, 'DataArray_t', value=fInt)
 
       else: # BCDataSet exists: add missing variables
@@ -3551,7 +3551,7 @@ def _addBC2NGonZone__(z, bndName, bndType, faceList, data, subzone,
     _addPeriodicInfoInGC__(info, rotationCenter, rotationAngle, translation, unitAngle=unitAngle)
 
   elif bndType1 == 'BCNearMatch':
-    print 'addBC2Zone: BCNearMatch not valid for NGON zones.'
+    print('addBC2Zone: BCNearMatch not valid for NGON zones.')
 
   # elif bndType1 == 'BCOverlap':
   #   # Cree le noeud zoneGridConnectivity si besoin
@@ -3716,10 +3716,10 @@ def _addBC2UnstructZone__(z, bndName, bndType, elementList, elementRange,
     _addPeriodicInfoInGC__(info, rotationCenter, rotationAngle, translation, unitAngle=unitAngle)
 
   elif bndType1 == 'BCOverlap':
-    print 'addBC2Zone: BCOverlap not valid for unstructured zones.'
+    print('addBC2Zone: BCOverlap not valid for unstructured zones.')
 
   elif bndType1 == 'BCNearMatch':
-    print 'addBC2Zone: BCNearMatch not valid for unstructured zones.'
+    print('addBC2Zone: BCNearMatch not valid for unstructured zones.')
 
   elif (bndType1 == 'FamilySpecified' and fnmatch.fnmatch(bndType2, 'BCStage*')) or (bndType1 == 'BCStage'):
     _addFamilyOfStageGC__(z, bndName, bndType2, typeZone=2, elementRange=elementRange,
@@ -4487,7 +4487,7 @@ def getEmptyBCForNGonZone__(z, dims, pbDim, splitFactor):
     nfacesExt = indicesF.shape[0]
     nfacesDef = indicesBC.shape[1]
     if nfacesExt < nfacesDef:
-      print 'Warning: zone %s: number of faces defined by BCs is greater than the number of external faces. Try to reduce the matching tolerance.'%(z[0])
+      print('Warning: zone %s: number of faces defined by BCs is greater than the number of external faces. Try to reduce the matching tolerance.'%(z[0]))
     elif nfacesExt > nfacesDef:
       indicesE = Converter.converter.diffIndex(indicesF, indicesBC)
       #indicesE = numpy.delete(indicesF,indicesBC[0,:])
@@ -4820,7 +4820,7 @@ def computeBCMatchField(z,allMatch,variables=None):
       fld  = None
       indR = None 
 
-      for key in allMatch.keys():
+      for key in allMatch:
         if ( key.split("/")[0] == z[0] ):
           [indR1,fldD] = allMatch[key] 
           
@@ -4847,7 +4847,7 @@ def computeBCMatchField(z,allMatch,variables=None):
 
     fld  = []; indR = None
 
-    for key in allMatch.keys():
+    for key in allMatch:
       if ( key.split("/")[0] == z[0] ):
         [indR1,fldD] = allMatch[key] 
           
@@ -5029,7 +5029,7 @@ def extractBCFields(z, varList=None):
   if typeZ == 1: pass
   else:
     zp = Internal.getZones(zp)[0]
-    print 'Warning: valid for only one zone. Zone %s is selected.'%(zp[0])
+    print('Warning: valid for only one zone. Zone %s is selected.'%(zp[0]))
 
 
   if varList is None:
@@ -5207,7 +5207,7 @@ def tagWithFamily(z, familyName, add=False):
 
 def _tagWithFamily__(a, familyName, add=False):
   if a[3] != 'Zone_t' and a[3] != 'BC_t':
-    print 'Warning: tagWithFamily: must be used on a Zone_t or BC_t node.'
+    print('Warning: tagWithFamily: must be used on a Zone_t or BC_t node.')
   if not add:
     Internal._createUniqueChild(a, 'FamilyName', 'FamilyName_t', value=familyName)
   else:
@@ -6433,7 +6433,7 @@ def selectOneConnectivity(z, name=None, number=None, range=None):
               r[1] = numpy.copy(r[1]); r[1][0] = 1; r[1][1] = range[1]-range[0]+1
               c = Internal.getNodeFromName1(e, 'ElementConnectivity')
               c[1] = c[1][nnodes*(range[0]-1):nnodes*(range[1])+1]
-            else: print 'Warning: selectOneConnectivity: slice impossible.'
+            else: print('Warning: selectOneConnectivity: slice impossible.')
       else: Internal._rmNodesByName(zp, e[0])
   _renumberElementConnectivity(zp)
   return zp
@@ -6479,7 +6479,7 @@ def selectConnectivity(z, name=None, number=None, range=None):
             c = Internal.getNodeFromName1(e, 'ElementConnectivity')
             r = r[1]
             c[1] = c[1][nnodes*(r[0]-1):nnodes*(r[1])+1]
-          else: print 'Warning: selectConnectivity: slice impossible.'
+          else: print('Warning: selectConnectivity: slice impossible.')
         if (r[0] > range[0] and r[1] == range[1]): # full
           # print 'slice2',r[0],r[1]
           (name, nnodes) = Internal.eltNo2EltName(e[1][0])
@@ -6515,8 +6515,8 @@ def addPeriodicZones__(a):
         raise ImportError("addPeriodicZones__: requires Transform module.")
     atype = Internal.typeOfNode(a)
     if atype != 4:  # base
-        print 'Warning: addPeriodicZones__: input node must be a CGNS basis.'
-        print 'Skipped.'
+        print('Warning: addPeriodicZones__: input node must be a CGNS basis.')
+        print('Skipped.')
         return a
 
     zones = Internal.getNodesFromType1(a, 'Zone_t')
@@ -6537,7 +6537,7 @@ def addPeriodicZones__(a):
           if rotationData == []: rotated = False
           else: rotated = True
           if rotated == True and translated == True:
-            print 'Warning: duplicatePeriodicZones__: rotation and translation cannot be applied at the same time. %s periodic grid connectivity not taken into account.'%gc[0]
+            print('Warning: duplicatePeriodicZones__: rotation and translation cannot be applied at the same time. %s periodic grid connectivity not taken into account.'%gc[0])
           elif rotated == False and translated == False: pass
           else:
             zdonorname = Internal.getValue(gc)
@@ -6566,7 +6566,7 @@ def addPeriodicZones__(a):
 
       # Chimere periodique: compatible avec elsA uniquement
       if usd is not None:
-        print "Periodic Chimera for zone %s"%(z[0])
+        print("Periodic Chimera for zone %s"%(z[0]))
         perdir = Internal.getNodeFromName1(usd,'periodic_dir')
         if perdir is not None:
           perdir = Internal.getValue(perdir)

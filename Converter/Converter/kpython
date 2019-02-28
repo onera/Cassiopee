@@ -75,9 +75,9 @@ else
     then
         set -x
         # openMpi
-        mpirun $ARGS -x OMP_NUM_THREADS=$NTHREADS -np $NPROCS python $SCRIPT $NPROCS
+        #mpirun $ARGS -x OMP_NUM_THREADS=$NTHREADS -np $NPROCS python $SCRIPT $NPROCS
         # intelMpi
-        #mpirun $ARGS -n $NPROCS -genv OMP_NUM_THREADS=$NTHREADS -l python $SCRIPT $NPROCS
+        mpirun $ARGS -n $NPROCS -genv OMP_NUM_THREADS=$NTHREADS -l python $SCRIPT $NPROCS
         set +x
     elif [ $ELSAPROD == 'aus_r8' ] # austri
     then

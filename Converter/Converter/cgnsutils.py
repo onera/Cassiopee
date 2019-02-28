@@ -3,8 +3,8 @@
 #  See license.txt file in the root directory of this Python module source  
 #  ---------------------------------------------------------------------------
 #
-import cgnskeywords as CK
-import cgnstypes    as CT
+from . import cgnskeywords as CK
+from . import cgnstypes    as CT
 
 import numpy as NPY
 
@@ -1253,7 +1253,7 @@ def getNextChildSortByType(node,parent=None,criteria=None):
     __criteria=criteria
   if (    (type(criteria)==dict)
       and (parent is not None)
-      and (criteria.has_key(parent[3]))):
+      and (parent[3] in criteria)):
     __criteria=criteria[parent[3]]
   r=[]
   for i in range(len(node[2])):
@@ -2290,7 +2290,7 @@ def hasEnumValue(node):
   # :Remarks:
   #   - See also :py:func:`getEnumAsString`
   # """
-  if (node[3] in CK.cgnsenums.keys()): return True
+  if (node[3] in CK.cgnsenums): return True
   return False
     
 # -----------------------------------------------------------------------------

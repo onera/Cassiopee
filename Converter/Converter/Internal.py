@@ -2451,7 +2451,7 @@ def clearList(list):
 
 # -- Change a var name to a CGNS name
 def getCGNSName(v):
-    if name2CGNS.has_key(v): return name2CGNS[v]
+    if v in name2CGNS: return name2CGNS[v]
     else: return v
 
 #==============================================================================
@@ -2696,7 +2696,7 @@ def convertDataNode2Array(node, dim, connects, loc=-1):
             elif lsize == 3: ni = size[0]; nj = size[1]; nk = size[2]
             a = numpy.reshape(ar, (1,ni*nj*nk), order='Fortran')
             array = [node[0], a, ni, nj, nk]
-            print "Warning: convertDataNode2Array: incoherency zone/array (%s)."%node[0]
+            print("Warning: convertDataNode2Array: incoherency zone/array (%s)."%node[0])
             return ['unknown', array]
     elif gtype == 'Unstructured':
         cr, ettype = adaptConnect__(connects, dim)
@@ -2707,7 +2707,7 @@ def convertDataNode2Array(node, dim, connects, loc=-1):
         if dim[1] != dim[2]: # on peut decider
             if s == dim[2]: ettype += '*'; locout = 'centers'
             elif s != dim[1]:
-                print "Warning: convertDataNode2Array: incoherency zone/array (%s)."%node[0]
+                print("Warning: convertDataNode2Array: incoherency zone/array (%s)."%node[0])
         else: # force + no check
             if loc == 1: ettype += '*'; locout = 'centers'
 
@@ -2743,7 +2743,7 @@ def convertDataNode2Array2(node, dim, connects, loc=-1):
             elif lsize == 2: ni = size[0]; nj = size[1]; nk = 1
             elif lsize == 3: ni = size[0]; nj = size[1]; nk = size[2]
             array = [node[0], [ar], ni, nj, nk]
-            print "Warning: convertDataNode2Array: incoherency zone/array (%s)."%node[0]
+            print("Warning: convertDataNode2Array: incoherency zone/array (%s)."%node[0])
             return ['unknown', array]
 
     # non structure
@@ -2762,7 +2762,7 @@ def convertDataNode2Array2(node, dim, connects, loc=-1):
     elif iBE != -1: # une connectivite BE existe -> on la prend
         connect = connects[iBE]; eltType = connect[1][0]
         if iBEMultiple == 1:
-            print 'Warning: convertDataNode2Array: different connectivities in a single zone is not possible. Only first connectivity is kept.'
+            print('Warning: convertDataNode2Array: different connectivities in a single zone is not possible. Only first connectivity is kept.')
     else:
         #raise ValueError("convertDataNode2Array: no valid connectivity found.")
         #print 'Warning: convertDataNode2Array: no valid connectivity found (using NODE).'
@@ -2801,7 +2801,7 @@ def convertDataNode2Array2(node, dim, connects, loc=-1):
     if dim[1] != dim[2]: # on peut decider
         if s == dim[2]: ettype += '*'; locout = 'centers'
         elif s != dim[1]:
-            print "Warning: convertDataNode2Array: incoherency zone/array (%s)."%node[0]
+            print("Warning: convertDataNode2Array: incoherency zone/array (%s)."%node[0])
     else: # force + no check
         if loc == 1: ettype += '*'; locout = 'centers'
 
@@ -2849,7 +2849,7 @@ def convertDataNodes2Array(nodes, dim, connects, loc=-1):
         else:
             # Le tableau n'est pas coherent avec les noeuds ou les centres
             # de la zone
-            print "Warning: convertDataNodes2Array: incoherency zone (%dx%dx%d)/array (%s,%d)."%(ni,nj,nk,nodes[0][0],s)
+            print("Warning: convertDataNodes2Array: incoherency zone (%dx%dx%d)/array (%s,%d)."%(ni,nj,nk,nodes[0][0],s))
             size = ar.shape; lsize = len(size)
             if lsize == 1: ni = size[0]; nj = 1; nk = 1
             elif lsize == 2: ni = size[0]; nj = size[1]; nk = 1
@@ -2862,7 +2862,7 @@ def convertDataNodes2Array(nodes, dim, connects, loc=-1):
     if dim[1] != dim[2]: # on peut decider
         if s == dim[2]: ettype += '*'
         elif s != dim[1]:
-            print "Warning: convertDataNodes2Array: incoherency zone (%d,%d)/array (%s,%d)."%(dim[1],dim[2],nodes[0][0],s)
+            print("Warning: convertDataNodes2Array: incoherency zone (%d,%d)/array (%s,%d)."%(dim[1],dim[2],nodes[0][0],s))
     else: # force + no check
         if loc == 1: ettype += '*'
     return [vars, a, cr, ettype]
@@ -2914,7 +2914,7 @@ def convertDataNodes2Array2(nodes, dim, connects, loc=-1):
     elif iBE != -1: # une connectivite BE existe -> on la prend
         connect = connects[iBE]; eltType = connect[1][0]
         if iBEMultiple == 1:
-            print 'Warning: convertDataNode2Array: different connectivities in a single zone is not possible. Only first connectivity is kept.'
+            print('Warning: convertDataNode2Array: different connectivities in a single zone is not possible. Only first connectivity is kept.')
     else:
         #raise ValueError("convertDataNode2Array: no valid connectivity found.")
         #print 'Warning: convertDataNode2Array: no valid connectivity found (using NODE).'
@@ -2953,7 +2953,7 @@ def convertDataNodes2Array2(nodes, dim, connects, loc=-1):
     if dim[1] != dim[2]: # on peut decider
         if s == dim[2]: ettype += '*'
         elif s != dim[1]:
-            print "Warning: convertDataNodes2Array: incoherency zone/array."
+            print("Warning: convertDataNodes2Array: incoherency zone/array.")
     else: # force + no check
         if loc == 1: ettype += '*'
     return [vars, field, cr, ettype]
@@ -3122,12 +3122,12 @@ def getZoneType(zone):
 def addGhostCells(t, b, d, adaptBCs=0, modified=[], fillCorner=1):
     """Add ghost cells to a pyTree.
     Usage: addGhostCells(t, b, d, modified, fillCorner)"""
-    import GhostCells
+    from . import GhostCells
     return GhostCells.addGhostCells(t, b, d, adaptBCs, modified, fillCorner)
 def _addGhostCells(t, b, d, adaptBCs=0, modified=[], fillCorner=1):
     """Add ghost cells to a pyTree.
     Usage: addGhostCells(t, b, d, modified, fillCorner)"""
-    import GhostCells
+    from . import GhostCells
     GhostCells._addGhostCells(t, b, d, adaptBCs, modified, fillCorner)
     return None
 
@@ -3137,17 +3137,17 @@ def _addGhostCells(t, b, d, adaptBCs=0, modified=[], fillCorner=1):
 def rmGhostCells(t, b, d, adaptBCs=0, modified=[]):
     """Remove ghost cells to a pyTree.
     Usage: rmGhostCells(t, b, d, modified)"""
-    import GhostCells
+    from . import GhostCells
     return GhostCells.rmGhostCells(t, b, d, adaptBCs, modified)
 def _rmGhostCells(t, b, d, adaptBCs=0, modified=[]):
     """Remove ghost cells to a pyTree.
     Usage: rmGhostCells(t, b, d, modified)"""
-    import GhostCells
+    from . import GhostCells
     return GhostCells._rmGhostCells(t, b, d, adaptBCs, modified)
 
 # -- Remove rind cells
 def rmRindCells(t, d, modified=[]):
-    import GhostCells
+    from . import GhostCells
     return GhostCells.rmRindCells(t, d, modified)
 
 #==============================================================================
@@ -3158,20 +3158,20 @@ def rmRindCells(t, d, modified=[]):
 def checkPyTree(t, level=-20):
     """Check pyTree conformity.
     Usage: checkPyTree(t, level)"""
-    import Check
+    from . import Check
     return Check.checkPyTree(t, level)
 
 # -- correctPyTree
 def correctPyTree(t, level=-20):
     """Correct a pyTree.
     Usage: correctPyTree(t, level)"""
-    import Check
+    from . import Check
     return Check.correctPyTree(t, level)
 
 def _correctPyTree(t, level=-20):
     """Correct a pyTree.
     Usage: correctPyTree(t, level)"""
-    import Check
+    from . import Check
     Check._correctPyTree(t, level)
     return None
 
@@ -3180,20 +3180,20 @@ def checkMultigrid(t, level=1, nbMinCoarseB=5, nbMinCoarseW=3):
     """Check if zones, BC ranges and grid connectivity ranges are
     compatible with multigrid of given level.
     Usage: checkMultigrid(t, level, nbMinCoarseB, nbMinCoarseW)"""
-    import Check
+    from . import Check
     return Check.checkMultigrid(t, level, nbMinCoarseB, nbMinCoarseW)
 
 # -- checkSize
 def checkSize(t, sizeMax=100000000):
     """Check if the number of points of a zone exceeds the sizeMax.
     Usage: checkSize(t,sizeMax)"""
-    import Check
+    from . import Check
     return Check.checkSize(t,sizeMax)
 
 # -- correctBCElementNodes
 def _correctBCElementNodes(t):
     """Correct element nodes to tag them as BC."""
-    import Check
+    from . import Check
     return Check._correctBCElementNodes(t)
 
 #==============================================================================

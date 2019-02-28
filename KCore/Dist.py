@@ -1593,9 +1593,8 @@ def writeInstallBase(dict):
 
      # Pretty print dict
      p.write("installDict = {\n")
-     keys = list(dict.keys())
      kc = 0
-     for k in keys:
+     for k in dict:
           p.write("###############################################################################\n")
           if isinstance(k, str): kstr = "\'%s\'"%k
           else: kstr = str(k)
@@ -1619,7 +1618,7 @@ def writeInstallBase(dict):
                elif lc == 11: p.write("%s, # additionalLibs\n"%lstr)
                elif lc == 12: p.write("%s # additionalLibPaths\n"%lstr)
           kc += 1
-          if kc == len(keys): p.write("]\n")
+          if kc == len(dict): p.write("]\n")
           else: p.write("], \n")
      p.write("}\n")
      p.close()

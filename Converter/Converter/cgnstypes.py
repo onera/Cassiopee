@@ -4,7 +4,7 @@
 #  Written by M. Poinot  
 #  -------------------------------------------------------------------------
 #
-import cgnskeywords as CK
+from . import cgnskeywords as CK
 
 tlistA=[
     CK.Descriptor_ts,

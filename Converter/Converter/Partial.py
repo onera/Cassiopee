@@ -8,7 +8,7 @@ def convertPyTree2FileMPI(t, fileName, comm, SkeletonTree, ParallelHDF=False,
   Usage: convertPyTree2File(t, fileName, format, options)"""
 
   # > GardeFou
-  if t == []: print 'Warning: convertPyTree2File: nothing to write.'; return
+  if t == []: print('Warning: convertPyTree2File: nothing to write.'); return
   format = 'bin_hdf'
 
   # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -34,13 +34,13 @@ def convertPyTree2FileMPI(t, fileName, comm, SkeletonTree, ParallelHDF=False,
   # > The path who wants to effectivly write is DataArray_t
   pathsToArray = Internal.getPathsFromType(t, 'IndexRange_t')
   pathsToArray += Internal.getPathsFromType(t, 'DataArray_t')
-  print pathsToArray
+  print(pathsToArray)
 
   pathsToArray  = CGU.getPathsByTypeSet(t, 'IndexRange_t')
   pathsToArray += CGU.getPathsByTypeSet(t, 'DataArray_t')
-  print pathsToArray
+  print(pathsToArray)
   for path in pathsToArray:
-     print path
+     print(path)
      node = Internal.getNodeFromPath(t, path)
 
      # > The ideo is to make a global Dataspace full for the current proc and void for the other
@@ -82,13 +82,13 @@ def convertPyTree2FileMPI(t, fileName, comm, SkeletonTree, ParallelHDF=False,
     DictProperAll = dict()
     DictElmtsAll  = dict()
     for Proc in ListFilter:
-       for Path in Proc.keys():
+       for Path in Proc:
          DictFilterAll[Path] = Proc[Path]
     for Proc in ListProper:
-      for Path in Proc.keys():
+      for Path in Proc:
          DictProperAll[Path] = Proc[Path]
     for Proc in ListElmts:
-      for Path in Proc.keys():
+      for Path in Proc:
          DictElmtsAll[Path] = Proc[Path]
   else:
     DictFilterAll = None
@@ -101,7 +101,7 @@ def convertPyTree2FileMPI(t, fileName, comm, SkeletonTree, ParallelHDF=False,
 
   # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
   # > Perform sort of the receive dictionnary
-  for path in Filter.keys():
+  for path in Filter:
     if(Proper[path]['ProcNumber'] != comm.Get_rank()):
        # > Change the global size
        TMP    = Filter[path]
@@ -115,7 +115,7 @@ def convertPyTree2FileMPI(t, fileName, comm, SkeletonTree, ParallelHDF=False,
 
   # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
   # > A partir de l'arbre on recreer tout les noeuds
-  for path in Filter.keys():
+  for path in Filter:
     # Node = Internal.getNodeFromPath(t, path)
     ListPath = path.split("/")[1:]
     topnode = t
@@ -135,19 +135,19 @@ def convertPyTree2FileMPI(t, fileName, comm, SkeletonTree, ParallelHDF=False,
   # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
   # > Make a proper Skeleton tree wit
   SkeletonTree2 = Internal.copyRef(t)
-  for path in Filter.keys():
+  for path in Filter:
     Node = Internal.getNodeFromPath(SkeletonTree2, path)
     Node[1] = None
 
   if comm.Get_rank() == 0:
-    for path in Elmts.keys():
+    for path in Elmts:
       ListPath = path.split("/")[1:-1]
       EndPath  = path.split("/")[-1]
       topnode  = SkeletonTree2
       for l in ListPath:
-        print l
+        print(l)
         topnode = Internal.getNodeFromName1(topnode, l)
-      print path
+      print(path)
       if Internal.getNodeFromName1(topnode, EndPath) is None:
         Internal._addChild(topnode, Elmts[path])
       else:
@@ -159,7 +159,7 @@ def convertPyTree2FileMPI(t, fileName, comm, SkeletonTree, ParallelHDF=False,
 
   SkeletonTree = Internal.merge([SkeletonTree2, SkeletonTree])
 
-  for path in Filter.keys():
+  for path in Filter:
     Node = Internal.getNodeFromPath(SkeletonTree, path)
     Node[1] = None
 
@@ -187,15 +187,15 @@ def convertPyTree2FilePartial(t, fileName, comm, Filter, ParallelHDF=False,
                               endian='big', colormap=0, dataFormat='%.9e '):
   """Convert a pyTree to a file.
   Usage: convertPyTree2File(t, fileName, format, options)"""
-  if t == []: print 'Warning: convertPyTree2File: nothing to write.'; return
+  if t == []: print('Warning: convertPyTree2File: nothing to write.'); return
   format = 'bin_hdf'
 
   if not ParallelHDF:
     # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     # > Write Tree Data execpt Data in Filter
     SkeletonTree = Internal.copyRef(t)
-    for path in Filter.keys():
-      print path
+    for path in Filter:
+      print(path)
       Node = Internal.getNodeFromPath(SkeletonTree, path)
       Node[1] = None
     # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -231,7 +231,7 @@ def convertPyTree2FilePartial(t, fileName, comm, Filter, ParallelHDF=False,
     # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     # > Write Tree Data execpt Data in Filter
     SkeletonTree = Internal.copyRef(t)
-    for path in Filter.keys():
+    for path in Filter:
       Node = Internal.getNodeFromPath(SkeletonTree, path)
       Node[1] = None
     # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

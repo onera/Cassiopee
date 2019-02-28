@@ -1499,7 +1499,7 @@ def buildGraph__(t):
                     nl = nl.tostring().split()
                     g[path].update(nl)
                     for elt in nl:
-                        if elt not in g.keys(): g[elt] = set()
+                        if elt not in g: g[elt] = set()
                         g[elt].add(path)
     return g
 
@@ -1516,7 +1516,7 @@ def buildPart__(g):
                     if g[k1] not in equivalenceValues.values():
                         i = i+1
                         equivalenceValues[i] = g[k1]
-                    if i not in equivalenceNodes.keys():
+                    if i not in equivalenceNodes:
                         equivalenceNodes[i] = set([])
                     equivalenceNodes[i].update([k1,k2])
 
@@ -1564,7 +1564,7 @@ def _splitHybridBCMatch(t):
               SPL = Converter.converter.pointList2SPL(PL[1],PLD[1],dims[1],dims[2],dims[3])
               name = g[0]
               Internal._rmNodesFromName(zgc, name)
-              for i in xrange(6):
+              for i in range(6):
                 if SPL[i] is not None: 
                   n = Internal.createChild(zgc, C.getBCName(name), 'GridConnectivity1to1_t', value=Internal.getValue(g))
                   Internal.createChild(n, 'GridLocation', 'GridLocation_t', value='FaceCenter')
@@ -1587,7 +1587,7 @@ def _splitHybridBCMatch(t):
                 SPL = Converter.converter.pointList2SPL(PLD[1],PL[1],dimsd[1],dimsd[2],dimsd[3])
                 name = g[0]
                 Internal._rmNodesFromName(zgc, name)
-                for i in xrange(6):
+                for i in range(6):
                   if SPL[i] is not None: 
                     n = Internal.createChild(zgc, C.getBCName(name), 'GridConnectivity_t', value=zdname)
                     Internal.createChild(n, 'GridLocation', 'GridLocation_t', value='FaceCenter')
