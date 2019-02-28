@@ -408,6 +408,7 @@ def setDoublyDefinedBC(z, cellN, listOfInterpZones, listOfCelln, range,
 # IN: nature=0: aucun sommet de la cellule d'interpolation ne doit etre avec un cellN=0
 #     nature=1: toutes les sommets de la cellule d'interpolation doivent etre de cellN=1
 # IN: hook: hook sur l'adt (pas reconstruit dans setInterpData), l'ordre doit suivre celui de zonesD
+# IN : interpDataType : 1 for ADT, 0 if donor are cartesian (optimized)
 # OUT: res = [[rcvInd1],[donorInd1D],[donorType],[coefs],extrapInd1D, orphanInd1D]
 #      res[0] liste des indices 1D des pts interpoles/extrapoles par zone donneuse (numerotation de interpPts)
 #      res[1] liste des indices 1D des molecules donneuses, dont le stockage est defini par le type
@@ -417,13 +418,14 @@ def setDoublyDefinedBC(z, cellN, listOfInterpZones, listOfCelln, range,
 #      res[5] orphanInd1D: indice 1D des points orphelins (numero ds interpPts)
 # 
 #===============================================================================
-def setInterpData__(interpPts, zonesD, order=2, penalty=1, nature=0, method='lagrangian', hook=None, dim=3):    
+def setInterpData__(interpPts, zonesD, order=2, penalty=1, nature=0, method='lagrangian', interpDataType=1, hook=None, dim=3):    
     if method == 'lagrangian': 
         if isinstance(interpPts[0], list): # liste d arrays
             if interpPts[0][1].shape[1] >0: return connector.setInterpDataDW(interpPts, zonesD, order, nature, penalty, hook)
             else: return None
         else: # pas de liste d arrays = pas de double wall  
-            if interpPts[1].shape[1]>0: return connector.setInterpData(interpPts, zonesD, order, nature, penalty, hook)
+            if interpPts[1].shape[1]>0: return connector.setInterpData(interpPts, zonesD, order, nature, penalty, 
+                                                                       interpDataType, hook)
             else: return None
 
     elif method == 'leastsquares':

@@ -298,6 +298,7 @@ def getCEBBTimeIntersectingDomains(base0, func, bases0, funcs, \
 # IN: penalty=1: penalise une cellule donneuse en terme de volume si elle est au bord
 # IN: nature=0: aucun sommet de la cellule d'interpolation ne doit etre avec un cellN=0
 #     nature=1: tous les sommets de la cellule d interpolation doivent etre de cellN=1
+# IN : interpDataType : 0 pour recherche cartesienne, 1 pour recherche dans ADT
 # IN: hook: hook sur l'arbre de recherche (pas reconstruit dans setInterpIBC), l'ordre doit suivre celui de zonesD
 # IN: storage: type de stockage (direct: sur le bloc interpole, inverse: sur le bloc d'interpolation)
 # IN: loc='nodes','cells','faces': interpolation appliquee pour les receveurs (localises en noeuds/centres/faces)
@@ -308,7 +309,7 @@ def getCEBBTimeIntersectingDomains(base0, func, bases0, funcs, \
 #=============================================================================
 def setIBCData(tR, tD, order=2, penalty=0, nature=0,
                method='lagrangian', loc='nodes', storage='direct',
-               hook=None, sameName=0, he=0., hi=0., dim=3, bcType=0):
+               interpDataType=1, hook=None, sameName=0, he=0., hi=0., dim=3, bcType=0):
     try: from . import ToolboxIBM as IBM
     except: raise ImportError("setIBCData: requires ToolboxIBM module.")
 
@@ -367,7 +368,7 @@ def setIBCData(tR, tD, order=2, penalty=0, nature=0,
                     zonesDnr.pop(cL); nzonesDnr = nzonesDnr-1
 
             _setIBCDataForZone__(z, zonesDnr, correctedPts[nozr], wallPts[nozr], interpPts[nozr], loc=locR, order=order, penalty=penalty,nature=nature,method=method,\
-                                 storage=storage,hook=hook,dim=dim, ReferenceState=ReferenceState, bcType=bcType)
+                                 storage=storage,interpDataType=interpDataType,hook=hook,dim=dim, ReferenceState=ReferenceState, bcType=bcType)
 
     # fin parcours des zones receveuses
     if storage == 'direct': return aR
@@ -380,7 +381,8 @@ def setIBCData(tR, tD, order=2, penalty=0, nature=0,
         return aD
 
 def _setIBCDataForZone__(z, zonesDnr, correctedPts, wallPts, interpPts, loc='nodes', \
-                         order=2, penalty=0, nature=0, method='lagrangian', storage='direct', hook=None, dim=3, bcType=-1, ReferenceState=None):
+                         order=2, penalty=0, nature=0, method='lagrangian', storage='direct',\
+                         interpDataType=1,hook=None, dim=3, bcType=-1, ReferenceState=None):
 
     prefixIBCD ='IBCD_'
     bcName = None
@@ -411,7 +413,8 @@ def _setIBCDataForZone__(z, zonesDnr, correctedPts, wallPts, interpPts, loc='nod
     #-------------------------------------------
     # resInterp = [rcvInd1D,donorInd1D,donorType,coefs,extrap,orphan, EXdirs]
     resInterp = Connector.setInterpData__(interpPts, arraysD, order=order, penalty=penalty, \
-                                          nature=nature, method=method, hook=hook, dim=dim)
+                                          nature=nature, method=method, interpDataType=interpDataType,\
+                                          hook=hook, dim=dim)
     if resInterp is not None:
         # Bilan
         nborphan = 0; nbextrapolated = 0; nbinterpolated = 0
@@ -605,6 +608,7 @@ def _addIBCCoords__(z, zname, correctedPts, wallPts, interpolatedPts, bcType, bc
 # IN: penalty=1: penalise une cellule donneuse en terme de volume si elle est au bord
 # IN: nature=0: aucun sommet de la cellule d'interpolation ne doit etre avec un cellN=0
 #     nature=1: toutes les sommets de la cellule d'interpolation doivent etre de cellN=1
+# IN : interpDataType : 1 for ADT, 0 if donor are cartesian (optimized)
 # IN: hook: hook sur l'adt (pas reconstruit dans setInterpData), l'ordre doit suivre celui de zonesD
 # IN: double_wall=1: activation de la technique double wall
 # IN: storage: type de stockage (direct: sur le bloc interpole, inverse: sur le bloc d'interpolation)
@@ -619,7 +623,7 @@ def _addIBCCoords__(z, zname, correctedPts, wallPts, interpolatedPts, bcType, bc
 #==============================================================================
 def setInterpData(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
                   method='lagrangian', loc='nodes', storage='direct',
-                  hook=None,
+                  interpDataType=1, hook=None,
                   topTreeRcv=None, topTreeDnr=None, sameName=1, dim=3, itype='both'):
 
     locR = loc
@@ -787,7 +791,8 @@ def setInterpData(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
             # Etape 2 : calcul des donnees d'interpolation
             #---------------------------------------------
             # resInterp = [rcvInd1D,donorInd1D,donorType,coefs,extrap,orphan, EXdirs]
-            resInterp = Connector.setInterpData__(interpPts, arraysD, order=order, penalty=penalty, nature=nature, method=method, hook=allHooks, dim=dim)
+            resInterp = Connector.setInterpData__(interpPts, arraysD, order=order, penalty=penalty, nature=nature, method=method, interpDataType=interpDataType,
+                                                  hook=allHooks, dim=dim)
             if resInterp is not None:
                 # Bilan
                 nborphan = 0; nbextrapolated = 0; nbinterpolated = 0

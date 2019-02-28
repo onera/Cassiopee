@@ -15,7 +15,7 @@ Cmpi.barrier()
 
 # Relit des zones par procs
 t = Cmpi.convertFile2SkeletonTree('test.cgns')
-(t, dic) = Distributor2.distribute(t, NProc=Cmpi.size, algorithm='fast')
+dic = Distributor2._distribute(t, NProc=Cmpi.size, algorithm='fast')
 t = Cmpi.readZones(t, 'test.cgns', rank=Cmpi.rank)
 # Cree le bbox tree
 tb = Cmpi.createBBoxTree(t)

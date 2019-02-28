@@ -47,8 +47,8 @@ extern "C"
    store it in plane Field */ 
 //=============================================================================
 short K_POST::computeStructIntersectionWithPlane( 
-  K_INTERP::InterpAdt* interpData,
-  K_INTERP::InterpAdt::InterpolationType interpType,
+  K_INTERP::InterpData* interpData,
+  K_INTERP::InterpData::InterpolationType interpType,
   E_Float coefa, E_Float coefb, 
   E_Float coefc, E_Float coefd, 
   E_Int ni, E_Int nj, E_Int nk,
@@ -246,8 +246,8 @@ short K_POST::computeStructIntersectionWithPlane(
 //=============================================================================
 void K_POST::computeUnstrIntersectionWithPlane(
   E_Float coefa, E_Float coefb, E_Float coefc, E_Float coefd, 
-  K_INTERP::InterpAdt* interpData, 
-  K_INTERP::InterpAdt::InterpolationType interpType,
+  K_INTERP::InterpData* interpData, 
+  K_INTERP::InterpData::InterpolationType interpType,
   FldArrayI& connect,
   E_Int posx, E_Int posy, E_Int posz, E_Int posc, FldArrayF& field, 
   FldArrayI& tagC,
@@ -453,8 +453,8 @@ void K_POST::searchUnstrIntersectForSegment(
   E_Float coefa, E_Float coefb, E_Float coefc, E_Float coefd,
   E_Int indA, E_Int indB, E_Int posx, E_Int posy, E_Int posz, E_Int posc,
   E_Float cellVol, FldArrayI& connect, FldArrayF& field, 
-  K_INTERP::InterpAdt* interpData, 
-  K_INTERP::InterpAdt::InterpolationType interpType,
+  K_INTERP::InterpData* interpData, 
+  K_INTERP::InterpData::InterpolationType interpType,
   E_Int& cnt, FldArrayF& intersectPts, FldArrayF& volOfIntersectPts)
 {
   E_Float eps = 1.e-12;
@@ -586,8 +586,8 @@ void K_POST::searchUnstrIntersectForSegment(
    else insert H if and only if k in [0,1], where k is such that  AH = k.AB */
 //=============================================================================
 void K_POST::searchStructIntersectForSegment( 
-  K_INTERP::InterpAdt* interpData,
-  K_INTERP::InterpAdt::InterpolationType interpType,
+  K_INTERP::InterpData* interpData,
+  K_INTERP::InterpData::InterpolationType interpType,
   E_Float coefa, E_Float coefb, 
   E_Float coefc, E_Float coefd,
   E_Int ni, E_Int nj, E_Int nk,
@@ -618,22 +618,22 @@ void K_POST::searchStructIntersectForSegment(
   E_Int nindi, ncf;
   switch (interpType)
   {
-    case K_INTERP::InterpAdt::O2CF:
+    case K_INTERP::InterpData::O2CF:
       ncf = 8;
       nindi = 1;
       break; 
-    case K_INTERP::InterpAdt::O3ABC: 
+    case K_INTERP::InterpData::O3ABC: 
       ncf = 9;
       nindi = 1;
       break;
-    case K_INTERP::InterpAdt::O5ABC: 
+    case K_INTERP::InterpData::O5ABC: 
       ncf = 15;
       nindi = 1;
       break;
     default:
        ncf = 8;
        nindi = 1;
-       interpType = K_INTERP::InterpAdt::O2CF;
+       interpType = K_INTERP::InterpData::O2CF;
   }
   FldArrayI indi(nindi);
   FldArrayF cf(ncf);

@@ -17,7 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "Interp/Interp.h"
-
+# include "Interp/IntTreeNode.h"
 //=============================================================================
 K_INTERP::IntTreeNode::IntTreeNode()
 {

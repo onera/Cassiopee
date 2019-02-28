@@ -20,8 +20,8 @@
 // Diff 2 arrays defining the same solution
 
 #include "converter.h"
-using namespace std;
 
+using namespace std;
 using namespace K_FUNC;
 using namespace K_FLD;
 
@@ -469,7 +469,7 @@ PyObject* K_CONVERTER::diff3(PyObject* arrays1, PyObject* arrays2, PyObject* arr
   
   /* Building the precond for all grids */
   printf("INFO: Preconditionning...");
-  vector<K_INTERP::InterpAdt*> adts;
+  vector<K_INTERP::InterpData*> adts;
   vector<FldArrayF*> errors;
   E_Int nzone = 0;
   E_Int isBuilt;
@@ -509,7 +509,8 @@ PyObject* K_CONVERTER::diff3(PyObject* arrays1, PyObject* arrays2, PyObject* arr
     K_LOC::node2ExtCenterStruct(ni, nj, nk, fn, nie, nje, nke, *fec);
     vectOfExtCenters.push_back(fec);
     //L'adt est toujours construit car le maillage est en centres etendus. Pas de verif isBuilt=1
-    K_INTERP::InterpAdt* myAdt = new K_INTERP::InterpAdt(nie*nje*nke, fec->begin(1), fec->begin(2), fec->begin(3),
+    K_INTERP::InterpAdt* myAdt = new K_INTERP::InterpAdt(nie*nje*nke, 
+                                                         fec->begin(1), fec->begin(2), fec->begin(3),
                                                          &nie, &nje, &nke, isBuilt);
     adts.push_back(myAdt);
     nzone++;
@@ -523,7 +524,7 @@ PyObject* K_CONVERTER::diff3(PyObject* arrays1, PyObject* arrays2, PyObject* arr
     
   // Creation des donnees pour l interpolation 
   // attention : centres etendus ici
-  K_INTERP::InterpAdt::InterpolationType interpType = K_INTERP::InterpAdt::O2CF;
+  K_INTERP::InterpData::InterpolationType interpType = K_INTERP::InterpData::O2CF;
   
   E_Int nindi = 1;
   E_Int ncf = 8;
@@ -584,7 +585,7 @@ PyObject* K_CONVERTER::diff3(PyObject* arrays1, PyObject* arrays2, PyObject* arr
       E_Int sizeadts = adts.size();
       for (E_Int iadt = 0; iadt < sizeadts; iadt++)
       {
-        K_INTERP::InterpAdt* adt = adts[iadt];        
+        K_INTERP::InterpData* adt = adts[iadt];        
         E_Float voli = 0.; E_Int type = 0; E_Int noblk = 0;
         E_Int nie = niet[iadt];
         E_Int nje = njet[iadt];

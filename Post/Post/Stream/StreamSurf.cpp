@@ -174,7 +174,7 @@ PyObject* K_POST::compStreamSurf(PyObject* self, PyObject* args)
    E_Int nzonesU = unstrF.size();
    // InterpData structuree
    vector<E_Int> posxs1; vector<E_Int> posys1; vector<E_Int> poszs1; vector<E_Int> poscs1;
-   vector<K_INTERP::InterpAdt*> structInterpDatas1;
+   vector<K_INTERP::InterpData*> structInterpDatas1;
    vector<FldArrayF*> structF1;
    vector<E_Int> nis1; vector<E_Int> njs1; vector<E_Int> nks1;
    vector<char*> structVarStrings1;
@@ -202,7 +202,7 @@ PyObject* K_POST::compStreamSurf(PyObject* self, PyObject* args)
    // InterpData non structuree
   vector<E_Int> posxu2; vector<E_Int> posyu2; vector<E_Int> poszu2; 
   vector<E_Int> poscu2;
-  vector<K_INTERP::InterpAdt*> unstrInterpDatas2;
+  vector<K_INTERP::InterpData*> unstrInterpDatas2;
   vector<FldArrayI*> cnt2;
   vector<FldArrayF*> unstrF2;
   vector<char*> unstrVarString2;
@@ -254,7 +254,7 @@ PyObject* K_POST::compStreamSurf(PyObject* self, PyObject* args)
   vector<E_Int> poscs;
   vector<char*> structVarStrings;
   vector<FldArrayF*> structFields;
-  vector<K_INTERP::InterpAdt*> structInterpDatas;
+  vector<K_INTERP::InterpData*> structInterpDatas;
   // non structure
   vector<FldArrayF*> unstrVector;
   vector<E_Int> posxu; vector<E_Int> posyu; vector<E_Int> poszu; 
@@ -263,7 +263,7 @@ PyObject* K_POST::compStreamSurf(PyObject* self, PyObject* args)
   vector<FldArrayF*> unstrFields;
   vector<FldArrayI*> connectu;
   vector<char*> eltTypes;
-  vector<K_INTERP::InterpAdt*> unstrInterpDatas;
+  vector<K_INTERP::InterpData*> unstrInterpDatas;
 
 
   // seuls sont pris en compte les champs ayant les variables du vecteur
@@ -432,13 +432,13 @@ void K_POST::createFront(E_Float* xBAR, E_Float* yBAR, E_Float* zBAR,
 void K_POST::advanceFront(
   vector<tracer*> front, tracer* tleft, tracer* tright,
   E_Int npts, E_Int& nt, FldArrayF* field, FldArrayI* cn,
-  vector<K_INTERP::InterpAdt*>& listOfStructInterpData, 
+  vector<K_INTERP::InterpData*>& listOfStructInterpData, 
   vector<FldArrayF*>& listOfStructFields,
   vector<FldArrayF*>& listOfStructVelocities,
   vector<E_Int>& nis, vector<E_Int>& njs, vector<E_Int>& nks, 
   vector<E_Int>& posxs, vector<E_Int>& posys, vector<E_Int>& poszs, 
   vector<E_Int>& poscs,
-  vector<K_INTERP::InterpAdt*>& listOfUnstrInterpData, 
+  vector<K_INTERP::InterpData*>& listOfUnstrInterpData, 
   vector<FldArrayF*>& listOfUnstrFields,
   vector<FldArrayF*>& listOfUnstrVelocities,
   vector<FldArrayI*>& connectu,
@@ -469,13 +469,13 @@ void K_POST::advanceFront(
 //=============================================================================
 void K_POST::advanceRibbonLeft(
   tracer* t, E_Int npts, E_Int& nt, FldArrayF* field, FldArrayI* cn,
-  vector<K_INTERP::InterpAdt*>& listOfStructInterpData, 
+  vector<K_INTERP::InterpData*>& listOfStructInterpData, 
   vector<FldArrayF*>& listOfStructFields,
   vector<FldArrayF*>& listOfStructVelocities,
   vector<E_Int>& nis, vector<E_Int>& njs, vector<E_Int>& nks, 
   vector<E_Int>& posxs, vector<E_Int>& posys, vector<E_Int>& poszs, 
   vector<E_Int>& poscs,
-  vector<K_INTERP::InterpAdt*>& listOfUnstrInterpData, 
+  vector<K_INTERP::InterpData*>& listOfUnstrInterpData, 
   vector<FldArrayF*>& listOfUnstrFields,
   vector<FldArrayF*>& listOfUnstrVelocities,
   vector<FldArrayI*>& connectu,
@@ -771,13 +771,13 @@ void K_POST::advanceRibbonLeft(
 // Avance des "ribbons" de droite a gauche
 //=============================================================================
 void K_POST::advanceRibbonRight(tracer* t, E_Int npts, E_Int& nt, FldArrayF* field, FldArrayI* cn,
-                                vector<K_INTERP::InterpAdt*>& listOfStructInterpData, 
+                                vector<K_INTERP::InterpData*>& listOfStructInterpData, 
                                 vector<FldArrayF*>& listOfStructFields,
                                 vector<FldArrayF*>& listOfStructVelocities,
                                 vector<E_Int>& nis, vector<E_Int>& njs, vector<E_Int>& nks, 
                                 vector<E_Int>& posxs, vector<E_Int>& posys, vector<E_Int>& poszs, 
                                 vector<E_Int>& poscs,
-                                vector<K_INTERP::InterpAdt*>& listOfUnstrInterpData, 
+                                vector<K_INTERP::InterpData*>& listOfUnstrInterpData, 
                                 vector<FldArrayF*>& listOfUnstrFields,
                                 vector<FldArrayF*>& listOfUnstrVelocities,
                                 vector<FldArrayI*>& connectu,

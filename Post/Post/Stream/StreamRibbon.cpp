@@ -181,7 +181,7 @@ PyObject* K_POST::compStreamRibbon(PyObject* self, PyObject* args)
   E_Int nzonesU = unstrF.size();
   // InterpData structuree
   vector<E_Int> posxs1; vector<E_Int> posys1; vector<E_Int> poszs1; vector<E_Int> poscs1;
-  vector<K_INTERP::InterpAdt*> structInterpDatas1;
+  vector<K_INTERP::InterpData*> structInterpDatas1;
   vector<FldArrayF*> structF1;
   vector<E_Int> nis1; vector<E_Int> njs1; vector<E_Int> nks1;
   vector<char*> structVarStrings1;
@@ -209,7 +209,7 @@ PyObject* K_POST::compStreamRibbon(PyObject* self, PyObject* args)
   // InterpData non structuree
   vector<E_Int> posxu2; vector<E_Int> posyu2; vector<E_Int> poszu2; 
   vector<E_Int> poscu2;
-  vector<K_INTERP::InterpAdt*> unstrInterpDatas2;
+  vector<K_INTERP::InterpData*> unstrInterpDatas2;
   vector<FldArrayI*> cnt2;
   vector<FldArrayF*> unstrF2;
   vector<char*> unstrVarString2;
@@ -258,7 +258,7 @@ PyObject* K_POST::compStreamRibbon(PyObject* self, PyObject* args)
   vector<E_Int> poscs;
   vector<char*> structVarStrings;
   vector<FldArrayF*> structFields;
-  vector<K_INTERP::InterpAdt*> structInterpDatas;
+  vector<K_INTERP::InterpData*> structInterpDatas;
   // non structure
   vector<FldArrayF*> unstrVector;
   vector<E_Int> posxu; vector<E_Int> posyu; vector<E_Int> poszu; 
@@ -267,7 +267,7 @@ PyObject* K_POST::compStreamRibbon(PyObject* self, PyObject* args)
   vector<FldArrayF*> unstrFields;
   vector<FldArrayI*> connectu;
   vector<char*> eltTypes;
-  vector<K_INTERP::InterpAdt*> unstrInterpDatas;  
+  vector<K_INTERP::InterpData*> unstrInterpDatas;  
 
   // seuls sont pris en compte les fields ayant les variables du vecteur
   // ts les arrays traites doivent avoir le meme nb de champs
@@ -402,13 +402,13 @@ PyObject* K_POST::compStreamRibbon(PyObject* self, PyObject* args)
 E_Int K_POST::computeStreamRibbonElts(
   E_Float xp, E_Float yp, E_Float zp, 
   E_Float nxp, E_Float nyp, E_Float nzp,
-  vector<K_INTERP::InterpAdt*>& listOfStructInterpData, 
+  vector<K_INTERP::InterpData*>& listOfStructInterpData, 
   vector<FldArrayF*>& listOfStructFields,
   vector<FldArrayF*>& listOfStructVelocities,
   vector<E_Int>& nis, vector<E_Int>& njs, vector<E_Int>& nks, 
   vector<E_Int>& posxs, vector<E_Int>& posys, vector<E_Int>& poszs, 
   vector<E_Int>& poscs,
-  vector<K_INTERP::InterpAdt*>& listOfUnstrInterpData, 
+  vector<K_INTERP::InterpData*>& listOfUnstrInterpData, 
   vector<FldArrayF*>& listOfUnstrFields,
   vector<FldArrayF*>& listOfUnstrVelocities,
   vector<FldArrayI*>& connectu,
@@ -423,10 +423,10 @@ E_Int K_POST::computeStreamRibbonElts(
   E_Float dt;
   
   // Creation of interpolation data
-  K_INTERP::InterpAdt::InterpolationType interpType = K_INTERP::InterpAdt::O2CF;
+  K_INTERP::InterpData::InterpolationType interpType = K_INTERP::InterpData::O2CF;
   E_Int ns = listOfStructInterpData.size();
   E_Int nu = listOfUnstrInterpData.size();
-  vector<K_INTERP::InterpAdt*> allInterpDatas;
+  vector<K_INTERP::InterpData*> allInterpDatas;
   vector<FldArrayF*> allFields;
   vector<void*> allA1; vector<void*> allA2;
   vector<void*> allA3; vector<void*> allA4;
@@ -614,22 +614,22 @@ short K_POST::compSecondPoint(
   const E_Int nopt,
   const E_Float xp, const E_Float yp, const E_Float zp,
   const E_Float nxp, const E_Float nyp, const E_Float nzp,
-  vector<K_INTERP::InterpAdt*>& listOfStructInterpData, 
+  vector<K_INTERP::InterpData*>& listOfStructInterpData, 
   vector<FldArrayF*>& listOfStructFields,
   vector<E_Int>& nis, vector<E_Int>& njs, vector<E_Int>& nks,
   vector<E_Int>& posxs, vector<E_Int>& posys, 
   vector<E_Int>& poszs, vector<E_Int>& poscs,
-  vector<K_INTERP::InterpAdt*>& listOfUnstrInterpData, 
+  vector<K_INTERP::InterpData*>& listOfUnstrInterpData, 
   vector<FldArrayF*>& listOfUnstrFields,
   vector<FldArrayI*>& connectu,
   vector<E_Int>& posxu, vector<E_Int>& posyu, 
   vector<E_Int>& poszu, vector<E_Int>& poscu,
   FldArrayF& streamPts2,  
-  K_INTERP::InterpAdt::InterpolationType interpType)
+  K_INTERP::InterpData::InterpolationType interpType)
 {
   E_Int ns = listOfStructInterpData.size();
   E_Int nu = listOfUnstrInterpData.size();
-  vector<K_INTERP::InterpAdt*> allInterpDatas;
+  vector<K_INTERP::InterpData*> allInterpDatas;
   vector<FldArrayF*> allFields;
   vector<void*> allA1; vector<void*> allA2;
   vector<void*> allA3; vector<void*> allA4;
@@ -707,13 +707,13 @@ short K_POST::compSecondPoint(
 //=============================================================================
 short K_POST::initStreamRibbon(
   E_Float xp, E_Float yp, E_Float zp,
-  vector<K_INTERP::InterpAdt*>& listOfStructInterpData, 
+  vector<K_INTERP::InterpData*>& listOfStructInterpData, 
   vector<FldArrayF*>& listOfStructFields,
   vector<FldArrayF*>& listOfStructVelocities,
   vector<E_Int>& nis, vector<E_Int>& njs, vector<E_Int>& nks,
   vector<E_Int>& posxs, vector<E_Int>& posys, 
   vector<E_Int>& poszs, vector<E_Int>& poscs,
-  vector<K_INTERP::InterpAdt*>& listOfUnstrInterpData, 
+  vector<K_INTERP::InterpData*>& listOfUnstrInterpData, 
   vector<FldArrayF*>& listOfUnstrFields,
   vector<FldArrayF*>& listOfUnstrVelocities,
   vector<FldArrayI*>& connectu,
@@ -723,7 +723,7 @@ short K_POST::initStreamRibbon(
   E_Float& nxp, E_Float& nyp, E_Float& nzp,
   FldArrayI& indi, FldArrayF& cf, 
   FldArrayF& streamPts1, FldArrayF& streamPts2, 
-  K_INTERP::InterpAdt::InterpolationType interpType)
+  K_INTERP::InterpData::InterpolationType interpType)
 {
   // Donnees pour l'appel de la methode computeStreamLineElts
   FldArrayI* connectSurf = NULL;
@@ -777,24 +777,24 @@ short K_POST::updateStreamRibbonPoints(
   E_Float& thetap,
   FldArrayI& indip, FldArrayF& cfp, E_Float& dt, 
   FldArrayF& streamPts1, FldArrayF& streamPts2,
-  vector<K_INTERP::InterpAdt*>& listOfStructInterpData, 
+  vector<K_INTERP::InterpData*>& listOfStructInterpData, 
   vector<FldArrayF*>& listOfStructFields,
   vector<FldArrayF*>& listOfStructVelocities,
   vector<E_Int>& nis, vector<E_Int>& njs, vector<E_Int>& nks,
   vector<E_Int>& posxs, vector<E_Int>& posys, 
   vector<E_Int>& poszs, vector<E_Int>& poscs,
-  vector<K_INTERP::InterpAdt*>& listOfUnstrInterpData, 
+  vector<K_INTERP::InterpData*>& listOfUnstrInterpData, 
   vector<FldArrayF*>& listOfUnstrFields,
   vector<FldArrayF*>& listOfUnstrVelocities,
   vector<FldArrayI*>& connectu,
   vector<E_Int>& posxu, vector<E_Int>& posyu, 
   vector<E_Int>& poszu, vector<E_Int>& poscu,
-  K_INTERP::InterpAdt::InterpolationType interpType,
+  K_INTERP::InterpData::InterpolationType interpType,
   E_Int& noblkn, E_Int& type)
 {
   E_Int ns = listOfStructInterpData.size();
   E_Int nu = listOfUnstrInterpData.size();
-  vector<K_INTERP::InterpAdt*> allInterpDatas;
+  vector<K_INTERP::InterpData*> allInterpDatas;
   vector<FldArrayF*> allFields;
   vector<void*> allA1; vector<void*> allA2;
   vector<void*> allA3; vector<void*> allA4;
@@ -953,23 +953,23 @@ short K_POST::compRungeKutta4ForRibbon(
   E_Float up, E_Float vp, E_Float wp, 
   FldArrayI& indip, FldArrayF& cfp,
   E_Float& dt, E_Float& xn, E_Float& yn, E_Float& zn, E_Float& thetan,
-  vector<K_INTERP::InterpAdt*>& listOfStructInterpData, 
+  vector<K_INTERP::InterpData*>& listOfStructInterpData, 
   vector<FldArrayF*>& listOfStructFields,
   vector<FldArrayF*>& listOfStructVelocities,
   vector<E_Int>& nis, vector<E_Int>& njs, vector<E_Int>& nks,
   vector<E_Int>& posxs, vector<E_Int>& posys, 
   vector<E_Int>& poszs, vector<E_Int>& poscs,
-  vector<K_INTERP::InterpAdt*>& listOfUnstrInterpData, 
+  vector<K_INTERP::InterpData*>& listOfUnstrInterpData, 
   vector<FldArrayF*>& listOfUnstrFields,
   vector<FldArrayF*>& listOfUnstrVelocities,
   vector<FldArrayI*>& connectu,
   vector<E_Int>& posxu, vector<E_Int>& posyu, 
   vector<E_Int>& poszu, vector<E_Int>& poscu,
-  K_INTERP::InterpAdt::InterpolationType interpType)
+  K_INTERP::InterpData::InterpolationType interpType)
 {
   E_Int ns = listOfStructInterpData.size();
   E_Int nu = listOfUnstrInterpData.size();
-  vector<K_INTERP::InterpAdt*> allInterpDatas;
+  vector<K_INTERP::InterpData*> allInterpDatas;
   vector<FldArrayF*> allFields;
   vector<void*> allA1; vector<void*> allA2;
   vector<void*> allA3; vector<void*> allA4;

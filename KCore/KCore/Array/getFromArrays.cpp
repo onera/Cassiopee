@@ -112,7 +112,7 @@ E_Int K_ARRAY::getFromArrays(PyObject* o,
                                    nil, njl, nkl, cn, eltT, shared);
     */
     resl = K_ARRAY::getFromArray2(tpl, varString, f,
-                                    nil, njl, nkl, cn, eltT);
+                                  nil, njl, nkl, cn, eltT);
 
     if (skipNoCoord == true)
     {

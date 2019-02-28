@@ -98,21 +98,21 @@ PyObject* K_POST::extractPlane(PyObject* self, PyObject* args)
   }
 
   // Interpolation type
-  K_INTERP::InterpAdt::InterpolationType interpType;
+  K_INTERP::InterpData::InterpolationType interpType;
   switch (order)
   {
     case 2:
-      interpType = K_INTERP::InterpAdt::O2CF;
+      interpType = K_INTERP::InterpData::O2CF;
       break;
     case 3:
-      interpType = K_INTERP::InterpAdt::O3ABC;
+      interpType = K_INTERP::InterpData::O3ABC;
       break;
     case 5:
-       interpType = K_INTERP::InterpAdt::O5ABC;
+       interpType = K_INTERP::InterpData::O5ABC;
        break;
     default:
       printf("Warning: extractPlane: interpolation order set to 2nd order.\n");
-      interpType = K_INTERP::InterpAdt::O2CF;
+      interpType = K_INTERP::InterpData::O2CF;
       break;
   }
   E_Int nzonesS = structF.size();
@@ -120,7 +120,7 @@ PyObject* K_POST::extractPlane(PyObject* self, PyObject* args)
 
   // InterpData structuree
   vector<E_Int> posxs; vector<E_Int> posys; vector<E_Int> poszs;  vector<E_Int> poscs;
-  vector<K_INTERP::InterpAdt*> structInterpDatas;
+  vector<K_INTERP::InterpData*> structInterpDatas;
   E_Int isBuilt;
   for (E_Int no = 0; no < nzonesS; no++)
   {
@@ -152,7 +152,7 @@ PyObject* K_POST::extractPlane(PyObject* self, PyObject* args)
   // InterpData non structuree
   vector<E_Int> posxu; vector<E_Int> posyu; vector<E_Int> poszu; 
   vector<E_Int> poscu;
-  vector<K_INTERP::InterpAdt*> unstrInterpDatas;
+  vector<K_INTERP::InterpData*> unstrInterpDatas;
   for (E_Int no = 0; no < nzonesU; no++)
   {
     E_Int posx = K_ARRAY::isCoordinateXPresent(unstrVarString[no]); posx++;

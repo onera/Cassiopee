@@ -160,7 +160,7 @@ void K_POST::compStreamPtFields(
   vector<E_Int>& poszu,  
   vector<FldArrayF*>& unstrFields, vector<FldArrayI*>& connectu,
   FldArrayF& streamPt,
-  K_INTERP::InterpAdt::InterpolationType interpType)
+  K_INTERP::InterpData::InterpolationType interpType)
 {
   E_Int ns = structFields.size();
   //E_Int nu = unstrFields.size();
@@ -199,14 +199,14 @@ short K_POST::compRungeKutta4(
   E_Float xp, E_Float yp, E_Float zp,
   E_Float up, E_Float vp, E_Float wp, 
   E_Float& dt, E_Float& xn, E_Float& yn, E_Float& zn,
-  vector<K_INTERP::InterpAdt*>& listOfStructInterpData,
+  vector<K_INTERP::InterpData*>& listOfStructInterpData,
   vector<FldArrayF*>& listOfStructFields,
   vector<FldArrayF*>& listOfStructVelocities,
   vector<E_Int>& nis,vector<E_Int>& njs,
   vector<E_Int>& nks, vector<E_Int>& posxs, 
   vector<E_Int>& posys, vector<E_Int>& poszs, 
   vector<E_Int>& poscs, 
-  vector<K_INTERP::InterpAdt*>& listOfUnstrInterpData,
+  vector<K_INTERP::InterpData*>& listOfUnstrInterpData,
   vector<FldArrayF*>& listOfUnstrFields,
   vector<FldArrayF*>& listOfUnstrVelocities,
   vector<FldArrayI*>& connectu,
@@ -214,11 +214,11 @@ short K_POST::compRungeKutta4(
   vector<E_Int>& poszu, vector<E_Int>& poscu, 
   FldArrayI& connectSurf, 
   E_Float* xSurf, E_Float* ySurf, E_Float* zSurf, E_Int sizeSurf, 
-  K_INTERP::InterpAdt::InterpolationType interpType)
+  K_INTERP::InterpData::InterpolationType interpType)
 {
   E_Int nu = listOfUnstrInterpData.size();
   E_Int ns = listOfStructInterpData.size();
-  vector<K_INTERP::InterpAdt*> allInterpDatas;
+  vector<K_INTERP::InterpData*> allInterpDatas;
   vector<FldArrayF*> allFields;
   vector<void*> allA1;
   vector<void*> allA2;
@@ -423,13 +423,13 @@ short K_POST::compRungeKutta4(
 //===========================================================================
 short K_POST::initStreamLine(
   E_Float xp, E_Float yp, E_Float zp,
-  vector<K_INTERP::InterpAdt*>& listOfStructInterpData, 
+  vector<K_INTERP::InterpData*>& listOfStructInterpData, 
   vector<FldArrayF*>& listOfStructFields,
   vector<FldArrayF*>& listOfStructVelocities,
   vector<E_Int>& nis, vector<E_Int>& njs, vector<E_Int>& nks,
   vector<E_Int>& posxs, vector<E_Int>& posys, 
   vector<E_Int>& poszs, vector<E_Int>& poscs,
-  vector<K_INTERP::InterpAdt*>& listOfUnstrInterpData, 
+  vector<K_INTERP::InterpData*>& listOfUnstrInterpData, 
   vector<FldArrayF*>& listOfUnstrFields,
   vector<FldArrayF*>& listOfUnstrVelocities,
   vector<FldArrayI*>& connectu,
@@ -439,12 +439,12 @@ short K_POST::initStreamLine(
   E_Float* xSurf, E_Float* ySurf, E_Float* zSurf, E_Int sizeSurf, 
   E_Float& up, E_Float& vp, E_Float& wp, E_Float& dt,
   FldArrayI& indi, FldArrayF& cf, FldArrayF& streamPts, 
-  K_INTERP::InterpAdt::InterpolationType interpType)
+  K_INTERP::InterpData::InterpolationType interpType)
 {
   E_Int noblkp0 = -1;
   E_Int ns = listOfStructInterpData.size();
   E_Int nu = listOfUnstrInterpData.size();
-  vector<K_INTERP::InterpAdt*> allInterpDatas;
+  vector<K_INTERP::InterpData*> allInterpDatas;
   vector<FldArrayF*> allFields;
   vector<void*> allA1;
   vector<void*> allA2;
@@ -553,12 +553,12 @@ E_Int K_POST::extractVectorFromStructArrays(
   vector<E_Int>& posxIn, vector<E_Int>& posyIn, vector<E_Int>& poszIn,
   vector<E_Int>& poscIn, vector<char*>& varStringIn, 
   vector<FldArrayF*>& fieldsIn, 
-  vector<K_INTERP::InterpAdt*>& interpDataIn,
+  vector<K_INTERP::InterpData*>& interpDataIn,
   vector<E_Int>& niOut, vector<E_Int>& njOut, vector<E_Int>& nkOut,
   vector<E_Int>& posxOut, vector<E_Int>& posyOut, vector<E_Int>& poszOut,
   vector<E_Int>& poscOut, vector<char*>& varStringOut, 
   vector<FldArrayF*>& fieldsOut, 
-  vector<K_INTERP::InterpAdt*>& interpDataOut,
+  vector<K_INTERP::InterpData*>& interpDataOut,
   vector<FldArrayF*>& vect, vector<char*>& vnames)
 {
   E_Int size = fieldsIn.size();
@@ -620,12 +620,12 @@ E_Int K_POST::extractVectorFromUnstrArrays(
   vector<E_Int>& poszIn, vector<E_Int>& poscIn, 
   vector<char*>& varStringIn, vector<FldArrayF*>& fieldsIn, 
   vector<FldArrayI*>& cntIn, vector<char*>& eltTypeIn,
-  vector<K_INTERP::InterpAdt*>& interpDataIn,
+  vector<K_INTERP::InterpData*>& interpDataIn,
   vector<E_Int>& posxOut, vector<E_Int>& posyOut, 
   vector<E_Int>& poszOut, vector<E_Int>& poscOut, 
   vector<char*>& varStringOut, vector<FldArrayF*>& fieldsOut, 
   vector<FldArrayI*>& cntOut, vector<char*>& eltTypeOut,
-  vector<K_INTERP::InterpAdt*>& interpDataOut,
+  vector<K_INTERP::InterpData*>& interpDataOut,
   vector<FldArrayF*>& vect, vector<char*>& vnames)
 {
   E_Int size = fieldsIn.size();
@@ -688,13 +688,13 @@ E_Int K_POST::extractVectorFromUnstrArrays(
 //===========================================================================
 void K_POST::initStreamSurf(
   E_Float xp, E_Float yp, E_Float zp,
-  vector<K_INTERP::InterpAdt*>& listOfStructInterpData, 
+  vector<K_INTERP::InterpData*>& listOfStructInterpData, 
   vector<FldArrayF*>& listOfStructFields,
   vector<FldArrayF*>& listOfStructVelocities,
   vector<E_Int>& nis, vector<E_Int>& njs, vector<E_Int>& nks,
   vector<E_Int>& posxs, vector<E_Int>& posys, 
   vector<E_Int>& poszs, vector<E_Int>& poscs,
-  vector<K_INTERP::InterpAdt*>& listOfUnstrInterpData, 
+  vector<K_INTERP::InterpData*>& listOfUnstrInterpData, 
   vector<FldArrayF*>& listOfUnstrFields,
   vector<FldArrayF*>& listOfUnstrVelocities,
   vector<FldArrayI*>& connectu,
@@ -702,11 +702,11 @@ void K_POST::initStreamSurf(
   vector<E_Int>& poszu, vector<E_Int>& poscu,
   E_Float& up, E_Float& vp, E_Float& wp, E_Float& dt,
   FldArrayI& indi, FldArrayF& cf, FldArrayF& streamPts, 
-  K_INTERP::InterpAdt::InterpolationType interpType)
+  K_INTERP::InterpData::InterpolationType interpType)
 {
   E_Int ns = listOfStructFields.size();
   E_Int nu = listOfUnstrFields.size();
-  vector<K_INTERP::InterpAdt*> allInterpDatas;
+  vector<K_INTERP::InterpData*> allInterpDatas;
   vector<FldArrayF*> allFields;
   vector<void*> allA1;
   vector<void*> allA2;

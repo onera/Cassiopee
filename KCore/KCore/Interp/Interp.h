@@ -30,11 +30,12 @@
 # define FldArrayF K_FLD::FldArrayF
 # define FldArrayI K_FLD::FldArrayI
 # define FldArrayIS K_FLD::FldArrayIS
+# include "Interp/InterpData.h"
+# include "Interp/InterpAdt.h"
+# include "Interp/InterpCart.h"
 
 namespace K_INTERP
 {
-#include "IntTreeNode.h"
-#include "InterpAdt.h"
 
 /* IN: x,y,z: point a interpoler.
    IN: interpDatas: les interpData des domaines donneurs
@@ -58,30 +59,30 @@ namespace K_INTERP
    OUT: noDonorBlk: no du bloc donneur utilise dans l'interpolation  */
   short getInterpolationCell(
     E_Float x, E_Float y, E_Float z,
-    InterpAdt* interpData,
+    InterpData* interpData,
     FldArrayF* fields,
     void* a1, void* a2, void* a3, void* a4, 
     E_Int posxt, E_Int posyt, E_Int poszt, E_Int posct,
     E_Float& voli, FldArrayI& donorIndices, FldArrayF& donorCoefs,
     E_Int& type, E_Int& noDonorBlk,
-    InterpAdt::InterpolationType interpType=InterpAdt::O2CF,
+    InterpData::InterpolationType interpType=InterpData::O2CF,
     E_Int nature=0, E_Int penalty=0);
 
   short getExtrapolationCell(
     E_Float x, E_Float y, E_Float z,
-    InterpAdt* interpData,
+    InterpData* interpData,
     FldArrayF* fields,
     void* a1, void* a2, void* a3, void* a4, 
     E_Int posxt, E_Int posyt, E_Int poszt, E_Int posct,
     E_Float& voli, FldArrayI& donorIndices, FldArrayF& donorCoefs,
     E_Int& type, E_Int& noDonorBlk,
-    InterpAdt::InterpolationType interpType=InterpAdt::O2CF,
+    InterpData::InterpolationType interpType=InterpData::O2CF,
     E_Int nature=0, E_Int penalty=0, E_Float constraint=40.,
     E_Int extrapOrder=1);
   
   short getInterpolationCell(
     E_Float x, E_Float y, E_Float z,
-    std::vector<InterpAdt*>& interpData,
+    std::vector<InterpData*>& interpData,
     std::vector<FldArrayF*>& fields,
     std::vector<void*>& a1, std::vector<void*>& a2, std::vector<void*>& a3, 
     std::vector<void*>& a4, 
@@ -89,12 +90,12 @@ namespace K_INTERP
     std::vector<E_Int>& poszt, std::vector<E_Int>& posct,
     E_Float& voli, FldArrayI& donorIndices, FldArrayF& donorCoefs,
     E_Int& type, E_Int& noDonorBlk,
-    InterpAdt::InterpolationType interpType=InterpAdt::O2CF,
+    InterpData::InterpolationType interpType=InterpData::O2CF,
     E_Int nature=0, E_Int penalty=0);
   
   short getExtrapolationCell(
     E_Float x, E_Float y, E_Float z,
-    std::vector<InterpAdt*>& interpDatas,
+    std::vector<InterpData*>& interpDatas,
     std::vector<FldArrayF*>& fields,
     std::vector<void*>& a1, std::vector<void*>& a2, std::vector<void*>& a3, 
     std::vector<void*>& a4, 
@@ -102,7 +103,7 @@ namespace K_INTERP
     std::vector<E_Int>& poszt, std::vector<E_Int>& posct,
     E_Float& voli, FldArrayI& donorIndices, FldArrayF& donorCoefs,
     E_Int& type, E_Int& noDonorBlk,
-    InterpAdt::InterpolationType interpType=InterpAdt::O2CF,
+    InterpData::InterpolationType interpType=InterpData::O2CF,
     E_Int nature=0,E_Int penalty=0, E_Float constraint=40.,
     E_Int extrapOrder=1);
 
@@ -116,7 +117,7 @@ namespace K_INTERP
    donorIndices et donorCoefs sont redimensionnes */
   short getInterpolationCellDW(
     E_Float* xt, E_Float* yt, E_Float* zt,
-    std::vector<InterpAdt*>& interpData,
+    std::vector<InterpData*>& interpData,
     std::vector<FldArrayF*>& fields,
     std::vector<void*>& a1, std::vector<void*>& a2, std::vector<void*>& a3, 
     std::vector<void*>& a4, 
@@ -124,12 +125,12 @@ namespace K_INTERP
     std::vector<E_Int>& poszt, std::vector<E_Int>& posct,
     E_Float& voli, FldArrayI& donorIndices, FldArrayF& donorCoefs,
     E_Int& type, E_Int& noDonorBlk,
-    InterpAdt::InterpolationType interpType=InterpAdt::O2CF,
+    InterpData::InterpolationType interpType=InterpData::O2CF,
     E_Int nature=0, E_Int penalty=0);
   
   short getExtrapolationCellDW(
     E_Float* xt, E_Float* yt, E_Float* zt,
-    std::vector<InterpAdt*>& interpDatas,
+    std::vector<InterpData*>& interpDatas,
     std::vector<FldArrayF*>& fields,
     std::vector<void*>& a1, std::vector<void*>& a2, std::vector<void*>& a3, 
     std::vector<void*>& a4, 
@@ -137,7 +138,7 @@ namespace K_INTERP
     std::vector<E_Int>& poszt, std::vector<E_Int>& posct,
     E_Float& voli, FldArrayI& donorIndices, FldArrayF& donorCoefs,
     E_Int& type, E_Int& noDonorBlk,
-    InterpAdt::InterpolationType interpType=InterpAdt::O2CF,
+    InterpData::InterpolationType interpType=InterpData::O2CF,
     E_Int nature=0,E_Int penalty=0, E_Float constraint=40.,
     E_Int extrapOrder=1);
   
@@ -161,93 +162,28 @@ namespace K_INTERP
   /* Fonctions internes */
   E_Int getInterpolationData(
     E_Float x, E_Float y, E_Float z,
-    InterpAdt* interpData, void* c1, void* c2, 
+    InterpData* interpData, void* c1, void* c2, 
     E_Int meshtype, E_Int ni, E_Int nj, E_Int nk,
     E_Float* xl, E_Float* yl, E_Float* zl, E_Float* cellN,
     E_Int& isBorder, E_Int& type, FldArrayI& indi, FldArrayF& cf, 
-    InterpAdt::InterpolationType interpType, E_Int nature);  
+    InterpData::InterpolationType interpType, E_Int nature);  
   
   E_Int getExtrapolationData(
     E_Float x, E_Float y, E_Float z,
-    InterpAdt* interpData, void* c1,  void* c2, 
+    InterpData* interpData, void* c1,  void* c2, 
     E_Int meshtype, E_Int ni, E_Int nj, E_Int nk,
     E_Float* xl, E_Float* yl, E_Float* zl, E_Float* cellN,
     E_Int& isBorder, E_Int& type, FldArrayI& indi, FldArrayF& cf, 
-    InterpAdt::InterpolationType interpType,
+    InterpData::InterpolationType interpType,
     E_Int nature, E_Float constraint, E_Int extrapOrder);
-
-  short searchInterpolationCellUnstruct(
-    E_Float* xt, E_Float* yt, E_Float* zt,
-    FldArrayI& connectEV,
-    InterpAdt* interpData,
-    E_Float x, E_Float y, E_Float z,
-    E_Int& noelt, FldArrayF& cf);
-  
-  short searchInterpolationCellStruct(
-    E_Int ni, E_Int nj, E_Int nk, 
-    E_Float* xl, E_Float* yl, E_Float* zl,
-    InterpAdt* interpData,
-    E_Float x, E_Float y, E_Float z,
-    E_Int& ic, E_Int& jc, E_Int& kc,
-    FldArrayF& cf);
-  short searchExtrapolationCellStruct(
-    E_Int ni, E_Int nj, E_Int nk, 
-    E_Float* xl, E_Float* yl, E_Float* zl,
-    E_Float* cellNp,
-    InterpAdt* interpData,
-    E_Float x, E_Float y, E_Float z,
-    E_Int& ic, E_Int& jc, E_Int& kc,
-    FldArrayF& cf,
-    E_Int nature, E_Int extrapOrder, E_Float constraint);
-  short searchExtrapolationCellUnstruct(
-    E_Float* xt, E_Float* yt, E_Float* zt,
-    E_Float* cellNp,
-    FldArrayI& connectEV,
-    InterpAdt* interpData,
-    E_Float x, E_Float y, E_Float z,
-    E_Int& noet, FldArrayF& cf,
-    E_Int nature, E_Int extrapOrder, E_Float constraint);
-
-  void coordHexa(E_Int ind, E_Int ni, E_Int nj, E_Int nk,
-                 E_Float* xl, E_Float* yl, E_Float* zl,
-                 E_Int& ic, E_Int& jc, E_Int& kc,
-                 E_Float* xt, E_Float* yt, E_Float* zt);
-  E_Boolean coeffInterpHexa(E_Float x, E_Float y, E_Float z,
-                            E_Float* xt, E_Float* yt, E_Float* zt,
-                            FldArrayF& cf);
-
-  E_Boolean getCellJump(E_Float x, E_Float y, E_Float z,
-                        E_Float* xt, E_Float* yt, E_Float* zt,
-                        E_Int& isomm,
-                        E_Float& xi, E_Float& yi, E_Float& zi);
-  void coeffInterpTetra(E_Float x, E_Float y, E_Float z,
-                        E_Float xp, E_Float yp, E_Float zp,
-                        E_Float xq, E_Float yq, E_Float zq,
-                        E_Float xr, E_Float yr, E_Float zr,
-                        E_Float xs, E_Float ys, E_Float zs,
-                        E_Float& xi, E_Float& yi, E_Float& zi);
-
-  E_Boolean getCoeffInterpHexa(E_Float x, E_Float y, E_Float z,
-                               E_Int isomm,
-                               E_Float xi, E_Float yi, E_Float zi, 
-                               E_Float* xt, E_Float* yt, E_Float* zt,
-                               FldArrayF& cf);
 
   short compLagrangeCoefs(E_Float x, E_Float y, E_Float z,
                           E_Int ic, E_Int jc, E_Int kc,
                           E_Int ni, E_Int nj, E_Int nk,
                           E_Float* xl, E_Float* yl, E_Float* zl,
                           FldArrayF& cf, 
-                          InterpAdt::InterpolationType interpType);
+                          InterpData::InterpolationType interpType);
 
-  short getExtrapolationCoeffForCell(E_Float x, E_Float y, E_Float z,
-                                     E_Int ic, E_Int jc, E_Int kc,
-                                     FldArrayF& cf,
-                                     E_Int ni, E_Int nj, E_Int nk,
-                                     E_Float* xl, E_Float* yl, E_Float* zl,
-                                     E_Float* cellNp, 
-                                     E_Int& is, E_Int& js, E_Int& ks,
-                                     E_Int nature, E_Float constraint, E_Float& diff_coeff);
 
   /* Interpolation MLS a partir d un nuage de points donneur, en un point donne
      IN: order: ordre de la formule

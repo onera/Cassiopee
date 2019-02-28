@@ -26,6 +26,7 @@ varsn = ['gradxTurbulentDistance','gradyTurbulentDistance','gradzTurbulentDistan
 TOLDIST = 1.e-14
 SHIFTF = 1.e-10
 EPSCART = 1.e-6
+TOLCELLN = 0.01
 
 TypesOfIBC = XOD.TypesOfIBC
 
@@ -340,9 +341,9 @@ def octree2StructLoc__(o, vmin=21, ext=0, optimized=0, merged=0, sizeMax=4e6, li
     # Cas ext=-1, ne fait pas les extensions ni les BCs ou raccords
     if ext == -1: return zones
 
-    if ext > 0:
-        coords = C.getFields(Internal.__GridCoordinates__, zones)
-        coords = Generator.extendOctreeGrids__(coords, ext=ext, optimized=optimized)
+    if ext > 0:        
+        coords = C.getFields(Internal.__GridCoordinates__, zones,api=2)
+        coords = Generator.generator.extendCartGrids(coords, ext, optimized)
         C.setFields(coords, zones, 'nodes')
     # Creation des zones du pyTree
     for z in zones: z[0] = C.getZoneName('cart')
@@ -1016,7 +1017,8 @@ def gatherFront(front):
     return front
 
 #=============================================================================
-def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None, frontType=0, depth=2, IBCType=1):    
+def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None, 
+             frontType=0, depth=2, IBCType=1, interpDataType=1):    
     ReferenceState = Internal.getNodeFromType2(t, 'ReferenceState_t')
 
     if typeI == 'ID':
@@ -1044,10 +1046,11 @@ def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None,
                                 nobOfDnrBases.append(nobd)
                                 nobOfDnrZones.append(nozd)
                                 dnrZones.append(zdnr)
-                                hook0.append(dictOfADT[zdnrname])
-
+                                if interpDataType==1 and dictOfADT is not None:
+                                    hook0.append(dictOfADT[zdnrname])
+            if interpDataType == 0: hook0 = None
             dnrZones = X.setInterpData(zrcv, dnrZones, nature=1,penalty=1,loc='centers',storage='inverse',sameName=1,\
-                                       hook=hook0, itype='chimera')
+                                       interpDataType=interpDataType, itype='chimera')
             for nod in xrange(len(dnrZones)):
                 nobd = nobOfDnrBases[nod]
                 nozd = nobOfDnrZones[nod]
@@ -1078,7 +1081,9 @@ def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None,
                     interpPtsBB=Generator.BB(allInterpPts[nozr])
                     zrcv = zonesRIBC[nozr]
                     zrcvname = zrcv[0]
-                    nobOfDnrBases = []; nobOfDnrZones=[]; dnrZones=[]; hook0 = []
+                    nobOfDnrBases = []; nobOfDnrZones=[]; dnrZones=[]
+                    if interpDataType == 1: hook0 = []
+                    else: hook0 = None
                     for nobd in xrange(len(tc[2])):
                         if tc[2][nobd][3] == 'CGNSBase_t':
                             for nozd in xrange(len(tc[2][nobd][2])):
@@ -1088,28 +1093,35 @@ def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None,
                                     zbb = tbb[2][nobd][2][nozd]
                                     bba = C.getFields(Internal.__GridCoordinates__,zbb)[0]
                                     if Generator.bboxIntersection(interpPtsBB,bba,isBB=True) == 1:
-                                        if zdnrname not in dictOfADT: 
-                                            HOOKADT = C.createHook(zdnr, 'adt')
-                                            dictOfADT[zdnrname] = HOOKADT
+                                        if interpDataType == 1:
+                                            if zdnrname not in dictOfADT: 
+                                                HOOKADT = C.createHook(zdnr, 'adt')
+                                                dictOfADT[zdnrname] = HOOKADT
+                                            hook0.append(dictOfADT[zdnrname])
+
                                         dnrZones.append(zdnr)
-                                        hook0.append(dictOfADT[zdnrname])
                                         nobOfDnrBases.append(nobd)
                                         nobOfDnrZones.append(nozd)
+
                     XOD._setIBCDataForZone__(zrcv, dnrZones, allCorrectedPts[nozr], allWallPts[nozr], allInterpPts[nozr], \
-                                             nature=1, penalty=1, loc='centers', storage='inverse',  hook=hook0, dim=dim, \
+                                             nature=1, penalty=1, loc='centers', storage='inverse',  
+                                             interpDataType=interpDataType, hook=hook0, dim=dim, \
                                              ReferenceState=ReferenceState, bcType=ibcTypeL)
                     nozr += 1
                     for nod in xrange(len(dnrZones)):
                         nobd = nobOfDnrBases[nod]
                         nozd = nobOfDnrZones[nod]
                         tc[2][nobd][2][nozd] = dnrZones[nod]
-        for dnrname in dictOfADT: C.freeHook(dictOfADT[dnrname])
+
+        if dictOfADT is not None: 
+            for dnrname in dictOfADT.keys(): C.freeHook(dictOfADT[dnrname])
+
     return tc
 
 #=============================================================================
 # Performs the full IBM preprocessing using overlapping Cartesian grids
 #=============================================================================
-def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interp='all', inv=False):
+def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interp='all', inv=False, interpDataType=1):
     tb =  Internal.copyRef(tbody)
     if interp == 'all': interpI = 0
     elif interp=='chimera': interpI = 1
@@ -1239,32 +1251,39 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interp='all', 
     if interpI < 2:
         #Creation du dictionnaire des ADT
         #En chimere toutes les zones sont interpolables pour l instant
-        dictOfADT = {}
-        for zdnr in Internal.getZones(tc):
-            zdnrname = zdnr[0]
-            if zdnrname not in dictOfADT:
-                HOOKADT = C.createHook(zdnr, 'adt')
-                dictOfADT[zdnrname] = HOOKADT
+        if interpDataType == 1:
+            dictOfADT = {}
+            for zdnr in Internal.getZones(tc):
+                zdnrname = zdnr[0]
+                if zdnrname not in dictOfADT:
+                    HOOKADT = C.createHook(zdnr, 'adt')
+                    dictOfADT[zdnrname] = HOOKADT
+        else: dictOfADT = None
         print('Interpolations Chimere.')
         tc = doInterp(t, tc, tbb, tb=None, typeI='ID', dim=dimPb, 
-                      dictOfADT=dictOfADT)
-        for dnrname in dictOfADT: C.freeHook(dictOfADT[dnrname])
+                      interpDataType=interpDataType, dictOfADT=dictOfADT)
+        if dictOfADT is not None:
+            for dnrname in dictOfADT.keys(): C.freeHook(dictOfADT[dnrname])
+
 
     elif interpI == 3: # maillage mobile : on n interpole pas les blocs externes ici
         for z in Internal.getZones(t):
             if Internal.getNodesFromName(z,"ov_ext*")!=[]:
                 C._initVars(z,'centers:cellN', 1.)
 
-        dictOfADT = {}
-        for zdnr in Internal.getZones(tc):
-            zdnrname = zdnr[0]
-            if zdnrname not in dictOfADT:
-                HOOKADT = C.createHook(zdnr, 'adt')
-                dictOfADT[zdnrname] = HOOKADT
+        if interpDataType == 0: dictOfADT=None
+        else:
+            dictOfADT = {}
+            for zdnr in Internal.getZones(tc):
+                zdnrname = zdnr[0]
+                if zdnrname not in dictOfADT:
+                    HOOKADT = C.createHook(zdnr, 'adt')
+                    dictOfADT[zdnrname] = HOOKADT
         print('Interpolations Chimere.')
         tc = doInterp(t, tc, tbb, tb=None, typeI='ID', dim=dimPb, 
-                      dictOfADT=dictOfADT)
-        for dnrname in dictOfADT: C.freeHook(dictOfADT[dnrname])
+                      interpDataType=interpDataType, dictOfADT=dictOfADT)
+        if dictOfADT is not None:
+            for dnrname in dictOfADT.keys(): C.freeHook(dictOfADT[dnrname])
 
     # setIBCData - IBC
     C._initVars(t,'{centers:cellNIBCDnr}=minimum(2.,abs({centers:cellNIBC}))')
@@ -1327,7 +1346,7 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interp='all', 
         print('Building the IBM front.')  
         front = getIBMFront(tc, 'cellNFront', dimPb, frontType)
         print('Interpolations IBM')
-        tc = doInterp(t,tc,tbb, tb=tb,typeI='IBCD',dim=dimPb, dictOfADT=None, front=front, frontType=frontType, depth=DEPTH, IBCType=IBCType)
+        tc = doInterp(t,tc,tbb, tb=tb,typeI='IBCD',dim=dimPb, dictOfADT=None, front=front, frontType=frontType, depth=DEPTH, IBCType=IBCType, interpDataType=interpDataType)
 
     # cleaning...
     Internal._rmNodesByName(tc, Internal.__FlowSolutionNodes__)

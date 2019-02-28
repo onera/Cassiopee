@@ -16,7 +16,7 @@ C._addState(tb, 'GoverningEquations', 'NSTurbulent')
 t = C.newPyTree(['Base',a])
 DTW._distance2Walls(t,bodies=tb,loc='centers',type='ortho')
 C._initVars(t,'centers:cellN',1.)
-t,tc=IBM.prepareIBMData(t,tb, DEPTH=2,frontType=0)
+t,tc=IBM.prepareIBMData(t,tb, DEPTH=2,frontType=0, interpDataType=1)
 res = IBM.extractIBMInfo(tc)
 test.testT(tc,1)
 
@@ -26,7 +26,7 @@ C._addState(tb, 'EquationDimension',3)
 C._addState(tb, 'GoverningEquations', 'NSTurbulent')
 DTW._distance2Walls(t,bodies=tb,loc='centers',type='ortho')
 C._initVars(t,'centers:cellN',1.)
-t,tc=IBM.prepareIBMData(t,tb, DEPTH=2,frontType=1)
+t,tc=IBM.prepareIBMData(t,tb, DEPTH=2,frontType=1, interpDataType=1)
 test.testT(tc,12)
 
 # front2

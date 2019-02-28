@@ -119,25 +119,25 @@ PyObject* K_POST::extractMesh(PyObject* self, PyObject* args)
 
   // Interpolation type 
   E_Int nindi; E_Int ncf;
-  K_INTERP::InterpAdt::InterpolationType interpType;
+  K_INTERP::InterpData::InterpolationType interpType;
   // attention le cas purement non structure est traite apres les interpDatas 
   switch (interpOrder)
   {
     case 2:
-      interpType = K_INTERP::InterpAdt::O2CF;
+      interpType = K_INTERP::InterpData::O2CF;
       ncf = 8; nindi = 1;
       break;
     case 3: 
-      interpType = K_INTERP::InterpAdt::O3ABC;
+      interpType = K_INTERP::InterpData::O3ABC;
       ncf = 9; nindi = 1;
       break;
     case 5:
-      interpType = K_INTERP::InterpAdt::O5ABC;
+      interpType = K_INTERP::InterpData::O5ABC;
       ncf = 15; nindi = 1;
       break;
     default:
       printf("Warning: extractMesh: unknown interpolation order. Set to 2nd order.\n");
-      interpType = K_INTERP::InterpAdt::O2CF;
+      interpType = K_INTERP::InterpData::O2CF;
       ncf = 8; nindi = 1;
       break;
   }
@@ -201,7 +201,7 @@ PyObject* K_POST::extractMesh(PyObject* self, PyObject* args)
   // Liste des interpDatas
   vector<E_Int> nis; vector<E_Int> njs; vector<E_Int> nks;
   vector<FldArrayI*> cnt;
-  vector<K_INTERP::InterpAdt*> interpDatas;
+  vector<K_INTERP::InterpData*> interpDatas;
   // creation des interpDatas
   if (hook == Py_None)
   {

@@ -49,42 +49,48 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
   E_Int Order;
   E_Int Nature;
   E_Int PenalizeBorders;
+  E_Int InterpDataType;// 1 : ADT ou 0 : CART
   PyObject* allHooks;
-  if (!PYPARSETUPLEI(args,
-                    "OOlllO", "OOiiiO",
-                    &receiverArray, &donorArrays, &Order, &Nature, &PenalizeBorders, &allHooks))
+  if (!PYPARSETUPLEI(args, "OOllllO", "OOiiiiO",
+                    &receiverArray, &donorArrays, &Order, &Nature, &PenalizeBorders, 
+                    &InterpDataType, &allHooks))
   {
       return NULL;
   }
-
+  if ( InterpDataType != 0 && InterpDataType != 1 )
+  {
+    PyErr_SetString(PyExc_TypeError,
+                    "setInterpData: InterpDataType must be 0 for CART or 1 for ADT.");
+    return NULL;
+  }
   // ordre des interpolations
   E_Int interporder = Order;
   E_Int nature = Nature; // O: produit des cellN=0 -> donneur invalide; 1: cellN=0 ou 2 -> donneur invalide
   E_Int penalty = PenalizeBorders;//1 : penalité sur le volume des pts ou cellules frontieres
   // Interpolation type
-  K_INTERP::InterpAdt::InterpolationType interpType;
+  K_INTERP::InterpData::InterpolationType interpType;
   E_Int nindi, ncfmax;
   switch (interporder)
   {
     case 2:
-      interpType = K_INTERP::InterpAdt::O2CF;
+      interpType = K_INTERP::InterpData::O2CF;
       ncfmax = 8; nindi = 1;
       break;
 
     case 3:
-      interpType = K_INTERP::InterpAdt::O3ABC;
+      interpType = K_INTERP::InterpData::O3ABC;
       ncfmax = 9; nindi = 1;
       break;
 
     case 5:
-      interpType = K_INTERP::InterpAdt::O5ABC;
+      interpType = K_INTERP::InterpData::O5ABC;
       ncfmax = 15; nindi = 1;
       break;
         
     default:
       printf("Warning: setInterpData: unknown interpolation order.");
       printf(" Set to 2nd order.\n");
-      interpType = K_INTERP::InterpAdt::O2CF;
+      interpType = K_INTERP::InterpData::O2CF;
       ncfmax = 8; nindi = 1;
       break;
   } 
@@ -195,22 +201,43 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
   // Liste des interpDatas
   vector<E_Int> nis; vector<E_Int> njs; vector<E_Int> nks;
   vector<FldArrayI*> cnt;
-  vector<K_INTERP::InterpAdt*> interpDatas;
+  vector<K_INTERP::InterpData*> interpDatas;
   E_Int isBuilt;
   // creation des interpDatas
   if (allHooks == Py_None)
   {
+    E_Int failed = 0;
     for (E_Int no = 0; no < nzones; no++)
     {
-      K_INTERP::InterpAdt* adt = new K_INTERP::InterpAdt(
-        fields[no]->getSize(), 
-        fields[no]->begin(posxs[no]),
-        fields[no]->begin(posys[no]),
-        fields[no]->begin(poszs[no]),
-        a2[no], a3[no], a4[no], isBuilt);
-      if ( isBuilt == 1 ) 
-        interpDatas.push_back(adt);
-      else 
+      if ( InterpDataType == 1)
+      {
+        K_INTERP::InterpAdt* adt = new K_INTERP::InterpAdt(fields[no]->getSize(), 
+                                                           fields[no]->begin(posxs[no]),
+                                                           fields[no]->begin(posys[no]),
+                                                           fields[no]->begin(poszs[no]),
+                                                           a2[no], a3[no], a4[no], isBuilt);
+        if ( isBuilt == 1 ) interpDatas.push_back(adt);
+        else failed = 1;
+      }
+      else //CART
+      {
+        if ( resl[no] == 1)
+        {
+          E_Float* xt = fields[no]->begin(posxs[no]);
+          E_Float* yt = fields[no]->begin(posys[no]);
+          E_Float* zt = fields[no]->begin(poszs[no]);
+          E_Int ni = *(E_Int*)a2[no];
+          E_Int nj = *(E_Int*)a3[no]; 
+          E_Int nk = *(E_Int*)a4[no];
+          E_Float x0 = xt[0]; E_Float y0 = yt[0]; E_Float z0 = zt[0];
+          E_Float hi = xt[1]-xt[0];
+          E_Float hj = yt[ni]-yt[0];
+          E_Float hk = zt[ni*nj]-zt[0];
+          K_INTERP::InterpCart* interpCart = new K_INTERP::InterpCart(ni,nj,nk,hi,hj,hk,x0,y0,z0);
+          interpDatas.push_back(interpCart);
+        }
+      }
+      if (failed==1)
       {
         RELEASESHAREDB(resr, receiverArray, fr, cnr); 
         for (E_Int no = 0; no < nzones; no++)
@@ -578,29 +605,29 @@ PyObject* K_CONNECTOR::setInterpDataDW(PyObject* self, PyObject* args)
   E_Int nature = Nature; // O: produit des cellN=0 -> donneur invalide; 1: cellN=0 ou 2 -> donneur invalide
   E_Int penalty = PenalizeBorders;//1 : penalité sur le volume des pts ou cellules frontieres
   // Interpolation type
-  K_INTERP::InterpAdt::InterpolationType interpType;
+  K_INTERP::InterpData::InterpolationType interpType;
   E_Int nindi, ncfmax;
   switch (interporder)
   {
     case 2:
-      interpType = K_INTERP::InterpAdt::O2CF;
+      interpType = K_INTERP::InterpData::O2CF;
       ncfmax = 8; nindi = 1;
       break;
 
     case 3:
-      interpType = K_INTERP::InterpAdt::O3ABC;
+      interpType = K_INTERP::InterpData::O3ABC;
       ncfmax = 9; nindi = 1;
       break;
 
     case 5:
-      interpType = K_INTERP::InterpAdt::O5ABC;
+      interpType = K_INTERP::InterpData::O5ABC;
       ncfmax = 15; nindi = 1;
       break;
 
     default:
       printf("Warning: setInterpDataDW: unknown interpolation order.");
       printf(" Set to 2nd order.\n");
-      interpType = K_INTERP::InterpAdt::O2CF;
+      interpType = K_INTERP::InterpData::O2CF;
       ncfmax = 8; nindi = 1;
       break;
   } 
@@ -733,7 +760,7 @@ PyObject* K_CONNECTOR::setInterpDataDW(PyObject* self, PyObject* args)
   // Liste des interpDatas
   vector<E_Int> nis; vector<E_Int> njs; vector<E_Int> nks;
   vector<FldArrayI*> cnt;
-  vector<K_INTERP::InterpAdt*> interpDatas;
+  vector<K_INTERP::InterpData*> interpDatas;
   E_Int isBuilt;
   // creation des interpDatas
   if (hook == Py_None)
