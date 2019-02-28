@@ -27,7 +27,7 @@ False, # CPlotOffScreen
 'gcc', # Cppcompiler
 ['-isystem /d/juvigny/msys64/mingw64/include/python2.7', '-isystem /d/juvigny/msys64/mingw64/lib/python2.7/site-packages/numpy/core/include/numpy/'], # CppAdditionalOptions
 [], # f77AdditionalOptions
-True, # useOMP
+True, # useOMP ...
 False, # static
 False, # CPlotOffScreen
 ['d:/juvigny/msys64/mingw64/include',"c:/Program Files (x86)/Microsoft SDKs/MPI/Include", "/d/juvigny/msys64/mingw64/include/OpenBLAS"], # additionalIncludePaths
