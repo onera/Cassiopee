@@ -41,7 +41,7 @@ MAC0=$(echo $KC | grep 'ldmfn423z'); if [ "$MAC0" != "" ]; then export MAC="ld";
 MAC0=$(echo $KC | grep 'node6.cluster'); if [ "$MAC0" != "" ]; then export MAC="macosx"; fi
 
 # force: sator_sky, ld_pgi
-if [ "$MACHINE" = "" ]; then
+if [ "$MACHINE" != "" ]; then
     export MAC=$MACHINE
 fi
 
