@@ -405,12 +405,13 @@ elif [ "$MAC" == "spiro" ]; then
 elif [ "$MAC" == "sator" ]; then
 #----------------------------- sator -----------------------------------------
     export ELSAPROD=sat_r8
-    # Nbre de threads
-    export OMP_NUM_THREADS=28
+    echo "elsaProd=" $ELSAPROD
+    echo "pour compil skylake, export MACHINE=sator_sky, puis sourcer sh_Cassiopee_r8" 
 
+    # Nbre de threads
     export KMP_AFFINITY="compact,1,0,granularity=fine,verbose"
 #    export KMP_AFFINITY="scatter,1,0,granularity=fine,verbose"
-    export PROC_NAME="BDW"
+    export OMP_NUM_THREADS=28
 
     # modules 
     module unload $(module -t list 2>&1 | grep -i intel)
@@ -427,18 +428,18 @@ elif [ "$MAC" == "sator" ]; then
     export PATH=$PATH:$CASSIOPEE/Dist/bin
     # Chemin de elsA.x
     export PATH=$PATH:$CASSIOPEE/Dist/bin/$ELSAPROD
-    export LD_LIBRARY_PATHL=$CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/sat_r8/lib
-    export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/sat_r8:$CASSIOPEE/Dist/bin/sat_r8/lib/python2.7/site-packages
+    export LD_LIBRARY_PATHL=$CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
+    export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
 
 elif [ "$MAC" == "sator_sky" ]; then
 #----------------------------- sator skylake ---------------------------------------
     export ELSAPROD=sat_sky_r8
+    echo "elsaProd=" $ELSAPROD
     # Nbre de threads
     export OMP_NUM_THREADS=28
 
     export KMP_AFFINITY="compact,1,0,granularity=fine,verbose"
-#    export KMP_AFFINITY="scatter,1,0,granularity=fine,verbose"
-    export PROC_NAME="BDW"
+    export PROC_NAME="SKL"
 
     # modules 
     module unload $(module -t list 2>&1 | grep -i intel)
@@ -455,8 +456,8 @@ elif [ "$MAC" == "sator_sky" ]; then
     export PATH=$PATH:$CASSIOPEE/Dist/bin
     # Chemin de elsA.x
     export PATH=$PATH:$CASSIOPEE/Dist/bin/$ELSAPROD
-    export LD_LIBRARY_PATHL=$CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/sat_r8/lib
-    export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/sat_r8:$CASSIOPEE/Dist/bin/sat_r8/lib/python2.7/site-packages
+    export LD_LIBRARY_PATHL=$CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
+    export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
 
 fi
 
