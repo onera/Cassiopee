@@ -519,6 +519,17 @@ def getCacheLine():
      return 1
 
 #=============================================================================
+# Retourne le niveau de vectorisation simd
+# Se base sur l'option du compilateur C si elle contient -DSIMD=XX
+#==============================================================================
+def getSimd():
+     opts = getCppArgs()
+     for i in opts:
+          if i[0:6] == '-DSIMD':
+               val = i[7:]; return val
+     return 1
+
+#=============================================================================
 # Retourne le nbre de socket du noeud
 # Se base sur l'option du compilateur C si elle contient -DNB_SOCKET=XX
 #==============================================================================
