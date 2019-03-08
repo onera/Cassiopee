@@ -214,11 +214,12 @@ def createBBoxTree(t, method='AABB', weighting=0):
 # computeGraph dans Distributed.py pour plus de details.
 #==============================================================================
 def computeGraph(t, type='bbox', t2=None, procDict=None, reduction=True, 
-                 intersectionsDict=None):
+                 intersectionsDict=None, exploc=False):
     """Return the communication graph for different block relation types."""
     if not procDict: procDict = getProcDict(t)
+
     graph = Distributed.computeGraph(t, type, t2, procDict, rank, 
-                                     intersectionsDict)
+                                     intersectionsDict, exploc)
 
     if reduction:
         # Assure que le graph est le meme pour tous les processeurs

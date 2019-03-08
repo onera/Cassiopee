@@ -2092,3 +2092,27 @@ def addGhostCellsNG(t, nlayers=2):
                )
 
     return ozones
+
+
+
+
+#===============================================================================================================================================
+#===============================================================================================================================================
+
+def _adaptBCStruct3__(join, dimZoneR,dimZoneD, d):
+    
+    #BCMatch
+    prange = Internal.getNodesFromName1(join, 'PointRange')
+    direction = getDirection__(dimZoneR[4], prange)
+    changePointRange__(prange, dimZoneR, direction, d, extend=0)
+
+    prangedonor = Internal.getNodesFromName1(join, 'PointRangeDonor')
+
+    direction = getDirection__(dimZoneD[4], prangedonor)
+    changePointRange__(prangedonor, dimZoneD, direction, d, extend=0)
+          
+ 
+    return None
+
+
+
