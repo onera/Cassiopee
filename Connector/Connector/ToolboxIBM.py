@@ -1049,6 +1049,7 @@ def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None,
                                 if interpDataType==1 and dictOfADT is not None:
                                     hook0.append(dictOfADT[zdnrname])
             if interpDataType == 0: hook0 = None
+
             dnrZones = X.setInterpData(zrcv, dnrZones, nature=1,penalty=1,loc='centers',storage='inverse',sameName=1,\
                                        interpDataType=interpDataType, itype='chimera')
             for nod in xrange(len(dnrZones)):
@@ -1117,6 +1118,291 @@ def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None,
             for dnrname in dictOfADT.keys(): C.freeHook(dictOfADT[dnrname])
 
     return tc
+
+
+
+
+#=============================================================================
+def doInterp2(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=0, depth=2, IBCType=1):    
+    ReferenceState = Internal.getNodeFromType2(t,'ReferenceState_t')
+
+    bases  = Internal.getNodesFromType1(t     , 'CGNSBase_t') 
+    dimmm  = Internal.getNodeFromName2(bases[0], 'EquationDimension') 
+    dimPb   = Internal.getValue(dimmm)
+
+    print 'dimPb= ', dimPb
+
+    dxmax = 0.0
+
+
+    zones = Internal.getZones(t)
+
+    dico_dx = {}
+    dico_dy = {}
+    dico_dz = {}
+
+    for z in zones:
+        nodes = Internal.getNodesFromName(z, 'GridCoordinates')
+        coordx = nodes[0][2][0][1]
+        coordy = nodes[0][2][1][1]
+        coordz = nodes[0][2][2][1]
+  
+        dxx  = abs(coordx[1,0,0]   - coordx[0,0,0])
+        dyy  = abs(coordy[0,1,0]   - coordy[0,0,0])
+        dzz  = abs(coordz[0,0,1]   - coordz[0,0,0])
+        
+        dico_dx[z[0]] = dxx
+        dico_dy[z[0]] = dyy
+        if (dimPb == 2):dico_dz[z[0]] = 1
+        else : dico_dz[z[0]] = dzz
+
+        if (dimPb == 2):dzz=max(dxx,dyy)
+
+        dx = min(dxx,dyy,dzz)
+        if (dx > dxmax):dxmax=dx
+
+    niveaux_temps = {} 
+
+    for z in zones:
+        nodes = Internal.getNodesFromName(z, 'GridCoordinates')
+        coordx = nodes[0][2][0][1]
+        coordy = nodes[0][2][1][1]
+        coordz = nodes[0][2][2][1]
+
+        dxx  = abs(coordx[1,0,0]   - coordx[0,0,0])
+        dyy  = abs(coordy[0,1,0]   - coordy[0,0,0])
+        dzz  = abs(coordz[0,0,1]   - coordz[0,0,0])
+
+        if (dimPb == 2):dzz=max(dxx,dyy)
+
+        
+        dx = min(dxx,dyy,dzz)
+
+        N = math.log(dxmax/dx)/math.log(2.0)
+        N = round(N)
+        niveaux_temps[z[0]] = 2**N
+        #if (round(dxmax/dx) == 4):niveaux_temps[z[0]]=4
+        #if (round(dxmax/dx) == 2):niveaux_temps[z[0]]=2
+        #else : niveaux_temps[z[0]]=1
+        print niveaux_temps[z[0]]
+        #print round(dxmax/dx)
+    
+    if typeI == 'ID':
+        # toutes les zones sont interpolables en Chimere
+        intersectionsDict = X.getIntersectingDomains(tbb, method='AABB', taabb=tbb)
+        
+
+        rcvZones = []
+        for zrcv in Internal.getZones(t):
+            if C.getMaxValue(zrcv,'centers:cellN')==2.:
+               zrcvname = zrcv[0]; rcvZones.append(zrcv)
+
+        #dico={}
+        #for zrcv in Internal.getZones(t):
+              # listofjoins = Internal.getNodesFromType2(zrcv, 'GridConnectivity_t')
+              # if listofjoins is not None: 
+               #    prange_list=[]
+               #    dir_list=[]
+               #    for join in listofjoins:
+               #        prange_ = Internal.getNodeFromName1(join,'PointRange')[1]
+                       #dirR = CGC.getDirBorderStruct__(prange_,dimPb)
+                       #dir_list.append(dirR)
+                       #print 'prange_= ', prange_
+                #       for i in xrange(3):
+                #           if prange_[i,1] == prange_[i,0] and prange_[i,1] != 1:
+                #               prange_[i,1] =  prange_[i,1]-1
+                #               prange_[i,0] =  prange_[i,0]-1
+                #           elif prange_[i,1] != prange_[i,0] and prange_[i,1] != 1 :
+                 #              prange_[i,1] =  prange_[i,1]-1
+                 #      prange_=numpy.reshape(prange_,6)
+                 #      prange_list.append(prange_)
+                 #  dico[zrcv[0]]=prange_list
+                   #dico[zrcv[0]]=dir_list
+                   # print prange_, zrcv[0]   
+
+
+        nozr = 0
+        nbZonesChim = len(rcvZones)
+        for nozr in xrange(nbZonesChim):
+            zrcv = rcvZones[nozr]
+            dim_ = Internal.getZoneDim(zrcv)
+            zrcvname = zrcv[0]
+            nozr += 1; hook0 = []
+            nobOfDnrBases = []; nobOfDnrZones=[]; dnrZones=[]
+            for nobd in xrange(len(tc[2])):
+                if tc[2][nobd][3] == 'CGNSBase_t':
+                    for nozd in xrange(len(tc[2][nobd][2])):
+                        zdnr = tc[2][nobd][2][nozd]
+                        if zdnr[3] == 'Zone_t':
+                            zdnrname = zdnr[0]
+                            if zdnrname in intersectionsDict[zrcvname]:
+                                nobOfDnrBases.append(nobd)
+                                nobOfDnrZones.append(nozd)
+                                dnrZones.append(zdnr)
+                                hook0.append(dictOfADT[zdnrname])
+
+            dnrZones = X.setInterpData(zrcv,dnrZones,nature=1,penalty=1,loc='centers',storage='inverse',sameName=1,\
+                                       hook=hook0, itype='chimera')
+
+
+            levelrcv = niveaux_temps[zrcv[0]]
+
+            for nod in xrange(len(dnrZones)):
+
+                dim__ = Internal.getZoneDim(dnrZones[nod])
+                prange = numpy.zeros(6,dtype=numpy.int32)
+                prangedonor = numpy.zeros(6,dtype=numpy.int32)
+                profondeur=numpy.zeros(1,dtype=numpy.int32)
+                dirD=numpy.zeros(1,dtype=numpy.int32)
+                dirR=numpy.zeros(1,dtype=numpy.int32)
+              
+                plist = dnrZones[nod][2][len(dnrZones[nod][2])-1][2][2][1]
+                plistdnr = dnrZones[nod][2][len(dnrZones[nod][2])-1][2][3][1]
+                coeff = dnrZones[nod][2][len(dnrZones[nod][2])-1][2][4][1]
+                typ = dnrZones[nod][2][len(dnrZones[nod][2])-1][2][5][1]
+
+                leveldnr = niveaux_temps[dnrZones[nod][0]]
+
+                nobd = nobOfDnrBases[nod]
+                nozd = nobOfDnrZones[nod]
+
+                tc[2][nobd][2][nozd] = dnrZones[nod]
+
+ 
+                prangebis=numpy.reshape(prange,6)
+
+                info = dnrZones[nod][2][len(dnrZones[nod][2])-1]
+                info[2].append(['PointRange', prangebis , [], 'IndexArray_t'])
+
+                transfo=XOD.getTransfo(dnrZones[nod],zrcv)
+
+                connector.indiceToCoord2(plist,prangedonor,transfo,profondeur,dirD,typ,dirR,plist.size,dim__[1]+1,dim__[2]+1,dim__[3]+1)
+
+
+                NMratio = numpy.zeros(3,dtype=numpy.int32)
+                NMratio[0]=1
+                NMratio[1]=1
+                NMratio[2]=1
+
+                info[2].append(['PointRangeDonor', prangedonor , [], 'IndexArray_t'])
+                info[2].append(['DirReceveur', dirR , [], 'IndexArray_t'])
+                info[2].append(['DirDonneur', dirD , [], 'IndexArray_t'])
+                info[2].append(['Transform', transfo , [], 'IndexArray_t'])
+                info[2].append(['Profondeur', profondeur , [], 'IndexArray_t'])
+                info[2].append(['PointPivot', transfo , [], 'IndexArray_t'])
+                info[2].append(['NMratio', NMratio , [], 'IndexArray_t'])
+                info[2].append(['LevelZRcv', levelrcv , [], 'IndexArray_t'])
+                info[2].append(['LevelZDnr', leveldnr , [], 'IndexArray_t'])
+
+
+
+    elif typeI == 'IBCD':
+        print 'coucou_IBCD'
+        # detection des zones IBC
+        zonesRIBC = []
+        for zrcv in Internal.getZones(t):
+            if C.getMaxValue(zrcv,'centers:cellNIBC')==2.:
+                zrcvname = zrcv[0]; zonesRIBC.append(zrcv)
+
+        if zonesRIBC == []: return tc
+
+        print 'Building the IBM front.'
+
+        front = getIBMFront(tc, 'cellNFront', dim, frontType)
+        res = getAllIBMPoints(zonesRIBC, loc='centers',tb=tb, tfront=front, frontType=frontType, \
+                              cellNName='cellNIBC', depth=depth, IBCType=IBCType)
+        nbZonesIBC = len(zonesRIBC)
+        dictOfADT = {}
+        dictOfCorrectedPtsByIBCType = res[0]
+        dictOfWallPtsByIBCType = res[1] 
+        dictOfInterpPtsByIBCType = res[2]
+        for ibcTypeL in  dictOfCorrectedPtsByIBCType.keys():
+            allCorrectedPts = dictOfCorrectedPtsByIBCType[ibcTypeL]
+            allWallPts = dictOfWallPtsByIBCType[ibcTypeL]
+            allInterpPts = dictOfInterpPtsByIBCType[ibcTypeL]
+            for nozr in xrange(nbZonesIBC):
+                if allCorrectedPts[nozr] != []:
+                    interpPtsBB=Generator.BB(allInterpPts[nozr])
+
+                    zrcv = zonesRIBC[nozr]
+                    zrcvname = zrcv[0]
+                    nobOfDnrBases = []; nobOfDnrZones=[]; dnrZones=[]; hook0 = []
+                    for nobd in xrange(len(tc[2])):
+                        if tc[2][nobd][3] == 'CGNSBase_t':
+                            for nozd in xrange(len(tc[2][nobd][2])):
+                                zdnr = tc[2][nobd][2][nozd]
+                                if zdnr[3] == 'Zone_t':
+                                    zdnrname = zdnr[0]
+                                    zbb = tbb[2][nobd][2][nozd]
+                                    bba = C.getFields(Internal.__GridCoordinates__,zbb)[0]
+                                    if Generator.bboxIntersection(interpPtsBB,bba,isBB=True) == 1:
+                                        if zdnrname not in dictOfADT: 
+                                            HOOKADT = C.createHook(zdnr, 'adt')
+                                            dictOfADT[zdnrname] = HOOKADT
+                                        dnrZones.append(zdnr)
+                                        hook0.append(dictOfADT[zdnrname])
+                                        nobOfDnrBases.append(nobd)
+                                        nobOfDnrZones.append(nozd)
+
+                    XOD._setIBCDataForZone__(zrcv, dnrZones, allCorrectedPts[nozr], allWallPts[nozr], allInterpPts[nozr], \
+                                             loc='centers', storage='inverse',  hook=hook0, dim=dim, ReferenceState=ReferenceState, bcType=ibcTypeL)
+                    nozr += 1
+
+                    levelrcv = niveaux_temps[zrcv[0]]
+
+                    for nod in xrange(len(dnrZones)):
+
+                        dim__ = Internal.getZoneDim(dnrZones[nod])
+                        prange = numpy.zeros(6,dtype=numpy.int32)
+                        prangedonor = numpy.zeros(6,dtype=numpy.int32)
+                        profondeur=numpy.zeros(1,dtype=numpy.int32)
+                        dirD=numpy.zeros(1,dtype=numpy.int32)
+                        dirR=numpy.zeros(1,dtype=numpy.int32)
+              
+                        plist = dnrZones[nod][2][len(dnrZones[nod][2])-1][2][2][1]
+                        plistdnr = dnrZones[nod][2][len(dnrZones[nod][2])-1][2][3][1]
+                        coeff = dnrZones[nod][2][len(dnrZones[nod][2])-1][2][4][1]
+                        typ = dnrZones[nod][2][len(dnrZones[nod][2])-1][2][5][1]
+
+                        leveldnr = niveaux_temps[dnrZones[nod][0]]
+
+                        nobd = nobOfDnrBases[nod]
+                        nozd = nobOfDnrZones[nod]
+
+                        tc[2][nobd][2][nozd] = dnrZones[nod]
+
+  
+                        prangebis=numpy.reshape(prange,6)
+
+                        info = dnrZones[nod][2][len(dnrZones[nod][2])-1]
+                        info[2].append(['PointRange', prangebis , [], 'IndexArray_t'])
+
+                        transfo=XOD.getTransfo(dnrZones[nod],zrcv)
+
+                        connector.indiceToCoord2(plist,prangedonor,transfo,profondeur,dirD,typ,dirR,plist.size,dim__[1]+1,dim__[2]+1,dim__[3]+1)
+
+
+                        NMratio = numpy.zeros(3,dtype=numpy.int32)
+                        NMratio[0]=1
+                        NMratio[1]=1
+                        NMratio[2]=1
+
+                        info[2].append(['PointRangeDonor', prangedonor , [], 'IndexArray_t'])
+                        info[2].append(['DirReceveur', dirR , [], 'IndexArray_t'])
+                        info[2].append(['DirDonneur', dirD , [], 'IndexArray_t'])
+                        info[2].append(['Transform', transfo , [], 'IndexArray_t'])
+                        info[2].append(['Profondeur', profondeur , [], 'IndexArray_t'])
+                        info[2].append(['PointPivot', transfo , [], 'IndexArray_t'])
+                        info[2].append(['NMratio', NMratio , [], 'IndexArray_t'])
+                        info[2].append(['LevelZRcv', levelrcv , [], 'IndexArray_t'])
+                        info[2].append(['LevelZDnr', leveldnr , [], 'IndexArray_t'])
+
+
+
+        for dnrname in dictOfADT.keys(): C.freeHook(dictOfADT[dnrname])
+    return tc
+
+
 
 #=============================================================================
 # Performs the full IBM preprocessing using overlapping Cartesian grids
@@ -1361,6 +1647,206 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interp='all', 
     # SORTIE
     #----------
     return t, tc
+
+
+
+
+
+#=============================================================================
+# Performs the full IBM preprocessing using overlapping Cartesian grids
+#=============================================================================
+def prepareIBMData2(t, tbody, DEPTH=2, loc='centers', frontType=0, interp='all', inv=False):
+    tb =  Internal.copyRef(tbody)
+    if interp == 'all': interpI = 0
+    elif interp=='chimera': interpI = 1
+    elif interp=='ibm': interpI = 2
+    elif interp=='composite': interpI=3# on garde les coordonnees dans tc
+    
+    # tb: fournit model et dimension
+    dimPb = Internal.getNodeFromName(tb,'EquationDimension')
+    if dimPb is None: raise ValueError, 'EquationDimension is missing in input body tree.'
+    dimPb = Internal.getValue(dimPb)
+    
+    # type de traitement paroi: pts interieurs ou externes
+    model = Internal.getNodeFromName(tb, 'GoverningEquations')
+    if model is None: raise ValueError, 'GoverningEquations is missing in input body tree.'
+    # model: Euler, NSLaminar, NSTurbulent
+    model = Internal.getValue(model)
+
+    if model == 'Euler': IBCType =-1
+    else: IBCType = 1 # Points cibles externes
+    if loc == 'nodes':
+        raise NotImplemented("prepareIBMData at nodes not yet implemented.")
+
+    #------------------------
+    # Ghost cells (overlaps)
+    #------------------------
+    t = X.applyBCOverlaps(t, depth=DEPTH)
+    C._initVars(t,'centers:cellNChim={centers:cellN}')
+
+    #------------------------
+    # Blanking IBM
+    #------------------------
+    C._initVars(t,'centers:cellN',1.)
+    if dimPb == 2:
+        z0 = Internal.getNodeFromType2(t, 'Zone_t')
+        dims = Internal.getZoneDim(z0)
+        npts = dims[1]*dims[2]*dims[3]
+        zmin = C.getValue(z0,'CoordinateZ',0)
+        zmax = C.getValue(z0,'CoordinateZ',npts-1)
+        dz = zmax-zmin
+        # Creation du corps 2D pour le preprocessing IBC
+        T._addkplane(tb)
+        T._contract(tb, (0,0,0), (1,0,0), (0,1,0), dz)
+
+    t = blankByIBCBodies(t,tb,'centers',dimPb)
+    if not inv: C._initVars(t,'{centers:cellNIBC}={centers:cellN}')
+    if inv: C._initVars(t,'{centers:cellNIBC}=1-{centers:cellN}') # ecoulement interne
+
+    #-----------------------------------------
+    # calcul de la normale et distance signee
+    #-----------------------------------------
+    COMPDIST = False # distance deja calculee ou non 
+    if Internal.getNodeFromName(t, 'TurbulentDistance') is None: COMPDIST=True
+    if COMPDIST:
+        print 'computing distance field...'
+        DTW._distance2Walls(t,tb,loc='centers',type='ortho',signed=0)
+    else: pass
+    _signDistance(t)
+
+    #-----------------------------------------
+    # Pts IBC
+    #-----------------------------------------
+    C._initVars(t,'centers:cellN={centers:cellNIBC}')
+    # determination des pts IBC
+    if IBCType == -1: t = X.setHoleInterpolatedPoints(t,depth=-DEPTH,dir=0)
+    elif IBCType == 1:
+        t = X.setHoleInterpolatedPoints(t,depth=1,dir=1) # pour les gradients
+        t = X.setHoleInterpolatedPoints(t,depth=DEPTH,dir=0)
+    else:
+        raise ValueError('prepareIBMData: not valid IBCType. Check model.')
+    _removeBlankedGrids(t, loc='centers')
+    print 'Nb of Cartesian grids=', len(Internal.getZones(t))
+    npts = 0
+    for i in Internal.getZones(t):
+       dims = Internal.getZoneDim(i)
+       npts += dims[1]*dims[2]*dims[3]
+    print 'Final number of points=%5.4f millions.'%(npts/1000000.)
+
+    C._initVars(t,'centers:cellNIBC={centers:cellN}')
+
+    #------------------------------------------------------------------------
+    # Nature des points en fonction de leur nature Chimere et leur nature IBC
+    #------------------------------------------------------------------------
+    # -3 : agit comme un point masque - non donneur pour le type de point
+    #  3  : agit comme donneur uniquement
+    # updateNatureForIBM: modifie cellNChim, cellNFront, cellNIBM
+    # cellNChim=-3, si cellNIBC=0 (masque)
+    if IBCType == 1: # Points corriges IBM externes
+        C._initVars(t,'centers:cellNFront=logical_and({centers:cellNIBC}>0.5, {centers:cellNIBC}<1.5)')
+        for z in Internal.getZones(t):
+            connector._updateNatureForIBM(z, IBCType,
+                                          Internal.__GridCoordinates__,
+                                          Internal.__FlowSolutionNodes__,
+                                          Internal.__FlowSolutionCenters__)
+            
+    else: # EN 2 PARTIES : NECESSITE LE TRANSFERT DU FRONT PAR INTERPOLATION, QUI EST CALCULEE APRES
+        print 'Euler : on repousse le front un peu plus loin.'
+        C._initVars(t,'centers:dummy={centers:cellN}') # sauvegarde
+        C._initVars(t,'centers:cellN=({centers:cellNIBC}>0.5)*({centers:cellNIBC}<1.5)')
+        t = X.setHoleInterpolatedPoints(t,depth=1,dir=1)
+        C._initVars(t,'centers:cellNFront=logical_and({centers:cellN}>0.5, {centers:cellN}<1.5)')
+        C._cpVars(t,'centers:dummy',t,'centers:cellN')
+        C._rmVars(t, ['centers:dummy'])
+        for z in Internal.getZones(t):
+            connector._updateNatureForIBM(z, IBCType,
+                                          Internal.__GridCoordinates__,
+                                          Internal.__FlowSolutionNodes__,
+                                          Internal.__FlowSolutionCenters__)
+    #------------------------------------------------------------------------
+    # setInterpData - Chimere
+    C._initVars(t,'centers:cellN=maximum(0.,{cellNChim})')# vaut -3, 0, 1, 2 initialement
+
+    # maillage donneur: on MET les pts IBC comme donneurs
+    tc = C.node2Center(t)
+    Internal._rmNodesByName(tc, "grad*TurbulentDistance")
+    Internal._rmNodesByName(tc, Internal.__FlowSolutionCenters__)
+
+    tbb = G.BB(tc)
+
+    if interpI < 2:
+        #Creation du dictionnaire des ADT
+        #En chimere toutes les zones sont interpolables pour l instant
+        dictOfADT = {}
+        for zdnr in Internal.getZones(tc):
+            zdnrname = zdnr[0]
+            if zdnrname not in dictOfADT:
+                HOOKADT = C.createHook(zdnr, 'adt')
+                dictOfADT[zdnrname] = HOOKADT
+        print 'Interpolations Chimere'
+        tc = doInterp2(t, tc, tbb, tb=None, typeI='ID', dim=dimPb, 
+                      dictOfADT=dictOfADT)
+        for dnrname in dictOfADT.keys(): C.freeHook(dictOfADT[dnrname])
+
+    elif interpI == 3: # maillage mobile : on n interpole pas les blocs externes ici
+        for z in Internal.getZones(t):
+            if Internal.getNodesFromName(z,"ov_ext*")!=[]:
+                C._initVars(z,'centers:cellN=1.')
+
+        dictOfADT = {}
+        for zdnr in Internal.getZones(tc):
+            zdnrname = zdnr[0]
+            if zdnrname not in dictOfADT:
+                HOOKADT = C.createHook(zdnr, 'adt')
+                dictOfADT[zdnrname] = HOOKADT
+        print 'Interpolations Chimere'
+        tc = doInterp(t, tc, tbb, tb=None, typeI='ID', dim=dimPb, 
+                      dictOfADT=dictOfADT)
+        for dnrname in dictOfADT.keys(): C.freeHook(dictOfADT[dnrname])
+
+    # setIBCData - IBC
+    C._initVars(t,'centers:cellNIBCDnr=minimum(2.,abs({centers:cellNIBC}))')
+    C._initVars(t,'centers:cellNIBC=maximum(0.,{cellNIBC})')# vaut -3, 0, 1, 2, 3 initialement
+    C._initVars(t,'centers:cellNIBC={centers:cellNIBC}*({centers:cellNIBC}<2.5)')    
+    C._cpVars(t,'centers:cellNIBC',t,'centers:cellN')
+    C._cpVars(t,'centers:cellN',tc,'cellN')
+
+    #-----------------------------------------------
+    # Transfert du cellNFront
+    # A OPTIMISER : NE FAIRE LE TRANSFERT QUE POUR LES ZONES DU FRONT INTERSECTANTES 
+    C._cpVars(t,'centers:cellNFront',tc,'cellNFront')
+    XOD._setInterpTransfers(t,tc,variables=['cellNFront'],cellNVariable='cellNFront',compact=0)
+
+    ## Fin traitement specifique, vaut 0 ou 1 apres la ligne suivante
+    C._cpVars(t,'centers:cellNFront',tc,'cellNFront')
+    C._rmVars(t,['centers:cellNFront'])
+    C._cpVars(t,'centers:TurbulentDistance',tc,'TurbulentDistance')
+
+    if interpI != 1:
+        print 'Minimum distance: ', C.getMinValue(t,'centers:TurbulentDistance')
+        t = P.computeGrad2(t,'centers:TurbulentDistance')
+        print 'Interpolations IBM'
+        tc = doInterp2(t,tc,tbb,tb=tb,typeI='IBCD',dim=dimPb, dictOfADT=None, frontType=frontType, depth=DEPTH, IBCType=IBCType)
+
+    # cleaning...
+    Internal._rmNodesByName(tc, Internal.__FlowSolutionNodes__)
+
+    if interpI==0: Internal._rmNodesByName(tc, Internal.__GridCoordinates__)
+    C._initVars(t,'{centers:cellN}=minimum({centers:cellNChim}*{centers:cellNIBCDnr},2.)')
+    varsRM = ['centers:gradxTurbulentDistance','centers:gradyTurbulentDistance','centers:gradzTurbulentDistance','centers:cellNFront','centers:cellNIBCDnr']
+    varsRM += ['centers:cellNChim','centers:cellNIBC']
+    C._rmVars(t, varsRM)
+    C._rmVars(tc,['cellNChim','cellNIBC','TurbulentDistance'])
+    #----------
+    # SORTIE
+    #----------
+    return t, tc
+
+
+
+
+
+
 
 #=============================================================================
 # Extraction des infos pour le post traitement

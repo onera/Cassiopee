@@ -119,8 +119,8 @@ def _setInterpTransfers(aR, aD, variables=[], cellNVariable='',
 # Adim: KCore.adim1 for Minf=0.1
 #===============================================================================
 def __setInterpTransfers(zones, zonesD, vars, param_int, param_real, type_transfert, nitrun,
-                         bcType=0, varType=1, compact=1, graph=None, 
-                         procDict=None,
+                         nstep, nitmax, rk, exploc, num_passage, bcType=0, varType=1, compact=1,
+			 graph=None, procDict=None,
                          Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08, Cs=0.3831337844872463, Ts=1.0):
 
     # Transferts locaux/globaux
@@ -138,20 +138,19 @@ def __setInterpTransfers(zones, zonesD, vars, param_int, param_real, type_transf
         if dest == Cmpi.rank: #transfert intra_processus
             #print 'transfert local', type_transfert
             connector.___setInterpTransfers(zones, zonesD, vars, param_int, param_real, nitrun, varType, bcType, 
-                                            type_transfert, no_transfert, Gamma,Cv,MuS,Cs,Ts)
+                                            type_transfert, no_transfert,  nstep, nitmax, rk, exploc, num_passage, Gamma,Cv,MuS,Cs,Ts)
 
         else:
             #print 'transfert global', type_transfert
-            infos = connector.__setInterpTransfersD(zones, zonesD, vars, param_int, param_real, nitrun, varType, 
-                                                    bcType, 
-                                                    type_transfert, no_transfert,Gamma,Cv,MuS,Cs,Ts) 
- 
-            for n in infos:
-                rcvNode = dest
-                #print Cmpi.rank, 'envoie a ',rcvNode, ' le paquet : ', n
-                if rcvNode not in datas: datas[rcvNode] = [n]
-                else: datas[rcvNode] += [n]
-                #print datas
+            infos = connector.__setInterpTransfersD(zones, zonesD, vars, param_int, param_real, nitrun, varType, bcType, 
+                                                    type_transfert, no_transfert,  nstep, nitmax, rk, exploc, num_passage, Gamma,Cv,MuS,Cs,Ts) 
+            if infos != []:
+               for n in infos:
+                  rcvNode = dest
+                  #print Cmpi.rank, 'envoie a ',rcvNode, ' le paquet : ', n
+                  if rcvNode not in datas: datas[rcvNode] = [n]
+                  else: datas[rcvNode] += [n]
+                  #print datas
     
     # Envoie des numpys suivant le graph
     rcvDatas = Cmpi.sendRecv(datas, graph)

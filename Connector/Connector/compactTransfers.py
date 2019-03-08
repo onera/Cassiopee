@@ -11,9 +11,11 @@ except:
 # Mise a plat (compactage) arbre donneur au niveau de la base
 # fonctionne avec ___setInterpTransfer
 #==============================================================================
-def miseAPlatDonorTree__(zones, tc, graph=None):
+def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
+    try: import Converter.GhostCells as GhostCells
+    except: raise ImportError("setInterpDataForGhostCells__ requires Converter.GhostCells module.")
 
-    if graph is not None:
+    if graph is not None :
         # Suppose mpirun
         procDict  = graph['procDict']
         procList  = graph['procList']
@@ -50,10 +52,12 @@ def miseAPlatDonorTree__(zones, tc, graph=None):
     zones_tc = Internal.getZones(tc)
     c        = 0
     for z in zones_tc:
+      #print z[0]
       subRegions =  Internal.getNodesFromType1(z, 'ZoneSubRegion_t')
       meshtype   = 1
       zonetype   = Internal.getNodeFromType1(z, 'ZoneType_t')
       tmp        = Internal.getValue(zonetype)
+      dimPb=Internal.getZoneDim(z)[4]
       if tmp != "Structured": meshtype = 2
       for s in subRegions:
          zRname = Internal.getValue(s)
@@ -67,7 +71,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None):
               ordered_subRegions.append(s)
               No_zoneD.append(c)
               MeshTypeD.append(meshtype)
-         else: 
+         else:
             numero_iter = int( s[0].split('#')[1].split('_')[0] )
             if numero_iter < numero_min : numero_min = numero_iter
             if numero_iter > numero_max : numero_max = numero_iter
@@ -90,6 +94,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None):
          if TimeLevelNumber != 1+numero_max-numero_min and len(inst)!= 0: 
             raise ValueError("miseAPlatDonorTree__: missing timestep in tc : %d %d %d")%(numero_max,numero_min, TimeLevelNumber)
 
+
          count_ID  = 0
          count_IBC = 0
          # alloc memoire
@@ -99,6 +104,17 @@ def miseAPlatDonorTree__(zones, tc, graph=None):
          Interptype    =  Internal.getNodeFromName1(s, 'InterpolantsType')
          RotationAngle =  Internal.getNodeFromName1(s, 'RotationAngle')
          RotationCenter=  Internal.getNodeFromName1(s, 'RotationCenter')
+         prange        =  Internal.getNodeFromName1(s, 'PointRange')       # Besoin des point range pour l'explicite local
+         pranged       =  Internal.getNodeFromName1(s, 'PointRangeDonor')  # Besoin des point range pour l'explicite local 
+         direction     =  Internal.getNodeFromName1(s, 'DirReceveur')       # Besoin des directions pour l'explicite local
+         directiond    =  Internal.getNodeFromName1(s, 'DirDonneur')  # Besoin des point directions pour l'explicite local 
+         transfo       =  Internal.getNodeFromName1(s, 'Transform')  # Besoin du transform pour l'explicite local
+         pt_pivot      =  Internal.getNodeFromName1(s, 'PointPivot')  # Besoin du point pivot pour l'explicite local (conservativite)
+         profondeur    =  Internal.getNodeFromName1(s, 'Profondeur')  # Besoin de la profondeur pour l'explicite local (nearmatch) 
+         ratio         =  Internal.getNodeFromName1(s, 'NMratio') # Besoin des ratios entre les pas d espace des zones donneuse et receveuse (exp local)
+         levelrcv      =  Internal.getNodeFromName1(s, 'LevelZRcv') # Niveau en temps zone receveuse (exp local)
+         leveldnr      =  Internal.getNodeFromName1(s, 'LevelZDnr') # Niveau en temps zone donneuse (exp local)
+         #print 'prange= ',prange
 
          Nbpts        =  numpy.shape(pointlist[ 1])[0]
          Nbpts_D      =  numpy.shape(pointlistD[1])[0]
@@ -170,26 +186,84 @@ def miseAPlatDonorTree__(zones, tc, graph=None):
     NbP2P     = len(listproc)
     sizeproc  = []
     ntab_int  = 16
+
+    if nrac != 0:
+        if prange is not None:
+             ntab_int = ntab_int + 27
+            
+
     for i in xrange(NbP2P): sizeproc.append(5 + TimeLevelNumber*2 + ntab_int*rac[i] + sizeI[i])
            
     size_int  =  1 + NbP2P + sum(sizeproc)
     size_real =  sum(sizeR)
 
-    graphIBCrcv=[]
-    if graphIBCD is not None:
-      for proc in graphIBCD:
-          for n in graphIBCD[proc]:
-                if n == rank: graphIBCrcv.append(proc)
-         
-    graphIDrcv=[]
-    if graphID is not None:
-        for proc in graphID:
-          for n in graphID[proc]:
-                if n == rank: graphIDrcv.append(proc)
-
-    # print "graphIBCD is",graphIBCD,graphIBCrcv
-    # print "graphID is",graphID,graphIDrcv
+    ### list_graph est necessaire pour l'explicite local ####
     
+    if list_graph is None: # Si list_graph n existe pas, on est pas en explicite local
+        graphIBCrcv=[]
+        if graphIBCD is not None:
+            for proc in graphIBCD.keys():
+                for n in graphIBCD[proc].keys():
+                    if n == rank: graphIBCrcv.append(proc)
+
+        graphIDrcv=[]
+        if graphID is not None:
+            for proc in graphID.keys():
+                for n in graphID[proc].keys():
+                    if n == rank: graphIDrcv.append(proc)
+    
+    else:  # Si list_graph existe, on est en explicite local, 1 graphe par ss ite      
+        graphIBCrcv_=[]
+        graphIDrcv_=[]
+        pos_ID=[]
+        pos_IBC=[]
+        S_IBC=0
+        S_ID=0
+
+        for nstep in xrange(0,len(list_graph)):
+
+            graphID_   = list_graph[nstep]['graphID']
+            graphIBCD_ = list_graph[nstep]['graphIBCD']
+
+            pos_IBC.append(len(list_graph)+S_IBC)
+            k_IBC=0
+            stokproc=[]
+            for proc in graphIBCD_.keys():
+               for n in graphIBCD_[proc].keys():
+                     if n == rank:
+                         k_IBC+=1
+                         stokproc.append(proc)
+            graphIBCrcv_.append(k_IBC)
+            S_IBC += k_IBC+1
+            for proc in stokproc:
+                graphIBCrcv_.append(proc)              
+
+
+            pos_ID.append(len(list_graph)+S_ID)            
+            k_ID=0
+            stokproc=[]
+            for proc in graphID_.keys():
+                for n in graphID_[proc].keys():
+                     if n == rank:
+                         k_ID+=1
+                         stokproc.append(proc)
+            graphIDrcv_.append(k_ID)
+            S_ID += k_ID+1
+            for proc in stokproc:
+                graphIDrcv_.append(proc)
+
+        graphIBCrcv  = pos_IBC + graphIBCrcv_    
+        graphIDrcv   = pos_ID  + graphIDrcv_    
+
+            #if sum(graphIBCrcv) < 1 : graphIBCrcv=[]
+        
+    
+    #graphIDrcv=[0,3]
+    #print "len graphIBCrcv is",len(graphIBCrcv)
+    #print "len graphIDrcv  is",len(graphIDrcv)
+    #print "pos_IBC is",pos_IBC
+    #print "pos_ID  is",pos_ID
+
     param_int  = numpy.empty(size_int + len(graphIDrcv) + len(graphIBCrcv) + 2, dtype=numpy.int32  )
     param_real = numpy.empty(size_real, dtype=numpy.float64)
     Internal.createUniqueChild(tc, 'Parameter_int' , 'DataArray_t', param_int)
@@ -197,9 +271,9 @@ def miseAPlatDonorTree__(zones, tc, graph=None):
         Internal.createUniqueChild(tc, 'Parameter_real', 'DataArray_t', param_real)
 
     if len(graphIBCrcv) == 0:
-        _graphIBC = numpy.zeros(1,dtype=numpy.int32)
+         _graphIBC = numpy.zeros(1,dtype=numpy.int32)
     else:
-        _graphIBC  = numpy.asarray([len(graphIBCrcv)]+graphIBCrcv,dtype=numpy.int32)    
+        _graphIBC  = numpy.asarray([len(graphIBCrcv)]+graphIBCrcv,dtype=numpy.int32)  
 
     _graphID   = numpy.asarray([len(graphIDrcv)] +graphIDrcv ,dtype=numpy.int32)
 
@@ -247,6 +321,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None):
     # loop sur les raccords tries
     c        = 0
     Nbtot    = 0
+    S = 0
     for s in ordered_subRegions:
 
        NozoneD  = No_zoneD[c]
@@ -256,7 +331,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None):
        proc = 0
        if procDict is not None: proc = procDict[zRname]
        pos  = listproc.index(proc) 
-
+       #print 'pos= ',pos
        pt_ech = param_int[ pos + 1 + shift_graph]                 # adresse debut raccord pour l'echange pos
        pt_coef= adr_coef[pos] + size_coef[pos]     # adresse debut coef 
 
@@ -266,6 +341,19 @@ def miseAPlatDonorTree__(zones, tc, graph=None):
        InterpD       =  Internal.getNodeFromName1(s, 'InterpolantsDonor')
        RotationAngle =  Internal.getNodeFromName1(s, 'RotationAngle')
        RotationCenter=  Internal.getNodeFromName1(s, 'RotationCenter')
+       prange        =  Internal.getNodeFromName1(s, 'PointRange')       # Besoin des point range pour l'explicite local
+       pranged       =  Internal.getNodeFromName1(s, 'PointRangeDonor')  # Besoin des point range pour l'explicite local 
+       direction     =  Internal.getNodeFromName1(s, 'DirReceveur')      # Besoin des directions pour l'explicite local
+       directiond    =  Internal.getNodeFromName1(s, 'DirDonneur')  # Besoin des point directions pour l'explicite local 
+       transfo       =  Internal.getNodeFromName1(s, 'Transform')  # Besoin du transform pour l'explicite local(conservativite) 
+       pt_pivot      =  Internal.getNodeFromName1(s, 'PointPivot')  # Besoin du point pivot pour l'explicite local (conservativite)
+       profondeur    =  Internal.getNodeFromName1(s, 'Profondeur')  # Besoin de la profondeur pour l'explicite local (nearmatch) 
+       ratio         =  Internal.getNodeFromName1(s, 'NMratio') # Besoin des ratios entre les pas d espace des zones donneuse et receveuse (exp local)
+       levelrcv      =  Internal.getNodeFromName1(s, 'LevelZRcv') # Niveau en temps zone receveuse (exp local)
+       leveldnr      =  Internal.getNodeFromName1(s, 'LevelZDnr') # Niveau en temps zone donneuse (exp local)
+
+       #print zRname, nb_rac[pos]
+
        Nbpts         =  numpy.shape(pointlist[ 1])[0]
        Nbpts_D       =  numpy.shape(pointlistD[1])[0]
        Nbpts_InterpD =  numpy.shape(InterpD[ 1  ])[0]
@@ -287,6 +375,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None):
             nrac_inst_deb  = nrac_inst_fin
  
        iadr = pt_ech + 4 + TimeLevelNumber*2 + nb_rac[pos]   # ptr echange + dest + nrac + norac
+       iadr2= pt_ech + 4 + TimeLevelNumber*2 + 1
 
        param_int[ iadr            ] = Nbpts
        param_int[ iadr + rac[pos] ] = Nbpts_InterpD
@@ -460,6 +549,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None):
        iadr = iadr +1
        param_int[ iadr +rac[pos]*8 ] = rac[pos]                  # nrac pour mpi
 
+ 
        tmp = Internal.getNodeFromName1(s , 'GridLocation')
        if tmp[1][4] == 'C': param_int[ iadr +rac[pos]*9 ] = 1   # location= CellCenter
        else               : param_int[ iadr +rac[pos]*9 ] = 0   # location= CellVertex
@@ -500,12 +590,35 @@ def miseAPlatDonorTree__(zones, tc, graph=None):
              param_int[ iadr +rac[pos]*14  ] = 0
              shiftRotation                   = 0
 
+       #print 'rac*14= ',iadr +rac[pos]*14 
+
        # raccord instationnaire
        param_int[ iadr +rac[pos]*15  ] =-1
        if '#' in s[0]:
            numero_iter = int( s[0].split('#')[1].split('_')[0] )
            param_int[ iadr +rac[pos]*15  ] = numero_iter
-          
+
+       if nrac != 0:    
+
+         if pranged is not None and prange is not None : #Si on est en explicite local, on rajoute des choses dans param_int
+         
+           param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos] : iadr2 + rac[pos]*16 + 27*nb_rac[pos]+6 ] = prange[1]
+           param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos]  + 6] = direction[1]
+           param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 7 : iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 13 ] = pranged[1]
+           param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 13] = directiond[1]
+           param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 14 : iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 17 ] = transfo[1]
+           param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 17 : iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 20 ] = pt_pivot[1]
+           param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 20 : iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 21 ] = profondeur[1]
+           param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 21 : iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 24 ] = ratio[1]
+           param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 24] = int(levelrcv[1])
+           param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 25] = int(leveldnr[1])
+           param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 26] = S
+
+           if (int(levelrcv[1]) != int(leveldnr[1])):
+               S=S + 3*5*(pranged[1][1]-pranged[1][0]+1)*(pranged[1][3]-pranged[1][2]+1)*(pranged[1][5]-pranged[1][4]+1)*(profondeur[1][0]+1)
+               #print S
+           #print [int(levelrcv[1])], [int(leveldnr[1])],'--'
+           #print int([1]
        #print 'model=', model, 'tmp=', tmp, 'neq_loc=', neq_loc
 
        ### Verifier position et chois entre Nbpts et NbptsD 
@@ -515,8 +628,10 @@ def miseAPlatDonorTree__(zones, tc, graph=None):
 
        size_coef[pos] = size_coef[pos] + Nbpts_InterpD + size_IBC + shiftRotation
        nb_rac[pos]    = nb_rac[pos] + 1
+       
        c += 1
     
+    #print 'S= ', S   
     return None
 
 #==============================================================================
@@ -609,6 +724,7 @@ def triMultiType(Nbpts_D, Nbpts, Nbpts_InterpD,meshtype, noi, lst,lstD,l0,ctyp,p
 
     param_int[ ptTy + ctyp +1 ] = l
     ctyp                        = ctyp +1
+    
 
   return None
 #==============================================================================

@@ -53,8 +53,10 @@ cpp_srcs = ['Connector/KInterp/BlkInterp.cpp',
             "Connector/updateNatureForIBM.cpp",
             "Connector/getIBMPtsWithFront.cpp",
             "Connector/getIBMPtsWithoutFront.cpp",
-            "Connector/getIBMPtsBasic.cpp"
-            ]
+            "Connector/getIBMPtsBasic.cpp",
+            "Connector/indiceToCoord2.cpp",
+            "Connector/correctCoeffList.cpp"
+             ]
 if mpi is True:
     cpp_srcs  += [
             "Connector/CMP/src/recv_buffer.cpp", 
