@@ -1,4 +1,4 @@
-# - HDF read/write with links -
+# - HDF write with links -
 import Generator.PyTree as G
 import Converter.PyTree as C
 import Converter.Internal as Internal
@@ -12,10 +12,6 @@ t = C.newPyTree(['Base',a])
 links=[['.','coord.hdf','/Base/cart/GridCoordinates','/Base/cart/GridCoordinates']]
 C.convertPyTree2File(t, 'main.hdf', links=links)
 
-# full read of main returning links
-LC=[]
-t = C.convertFile2PyTree('main.hdf', links=LC); print(LC)
-
-# Read links with skeleton
-LC=[]
-t = Filter.convertFile2SkeletonTree('main.hdf', links=LC); print(LC)
+# Write pointed file
+Internal._rmNodeByPath(t, '/Base/cart/FlowSolution')
+C.convertPyTree2File(t, 'coord.hdf')

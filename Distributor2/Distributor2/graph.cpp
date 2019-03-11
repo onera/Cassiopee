@@ -112,7 +112,7 @@ void K_DISTRIBUTOR2::graph(
     xadj[i] = size;
     for (E_Int j = 0; j < nb; j++)
     {
-      if (com[i + j*nb] > 0 && i != j)
+      if (com[i+j*nb] > 0 && i > j)
       {
         adj[size] = j;
         adjweight[size] = com[i+j*nb];

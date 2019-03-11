@@ -2213,7 +2213,24 @@ Array / PyTree input/output
     +------------+---------------------------------------------------------------------+---------------------------------------+
     |density     | Number of discretization points per unit length                     | -1: not used. If > 0, overides npts   |
     +------------+---------------------------------------------------------------------+---------------------------------------+
-        
+    |links       | list of list of 4 strings (see after)                               | None                                  |
+    +------------+---------------------------------------------------------------------+---------------------------------------+  
+
+    Links option:
+
+    For hdf format only, when reading, links are always followed but a list of links can be returned.
+    If you specify links=[] to convertFile2PyTree, a list of links is returned. Each link is a list
+    ['directoryOfPointedFile', 'pointedFile', 'targetNodePath', 'currentNodePath']. The 'directoryOfPointedFile'
+    is the directory where the pointed file must be found, 'pointedFile' is the pointed file name, 'targetNodePath' is the path
+    of pointed node (in pointed file), 'currentNodePath' is the path of node in current file.
+
+    *Example of use:*
+
+    * `HDF file read with links <Examples/Converter/linksPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/linksPT.py
+
+
 .. _WriteOptions: 
 
     Options for writing:
@@ -2231,6 +2248,23 @@ Array / PyTree input/output
     +------------+--------------------------------------------------------------------------+---------------------------------------+-----------------------------------+
     |zoneNames   | list of zone names (first struct, the unstruct zones)                    | ['Zone1','Zone2',...]                 | []                                |
     +------------+--------------------------------------------------------------------------+---------------------------------------+-----------------------------------+
+    |links       | list of list of 4 strings (see after)                                    | [['.', 'cart.hdf', '/Base', '/Base']] | None                              |
+    +------------+--------------------------------------------------------------------------+---------------------------------------+-----------------------------------+
+
+    Links option:
+    
+    For hdf format only, when writing, link node path can be specified. These nodes are then not written with data but are written as links to a pointed file.
+    A link is a list ['directoryOfPointedFile', 'pointedFile', 'targetNodePath', 'currentNodePath']. The 'directoryOfPointedFile'
+    is the directory where the pointed file must be found, 'pointedFile' is the pointed file name, 'targetNodePath' is the path
+    of pointed node (in pointed file), 'currentNodePath' is the path of node in current file. This function doesn't write 
+    the pointed file. You must explicitely write it with another call to convertPyTree2File.
+
+    *Example of use:*
+
+    * `HDF file write with links <Examples/Converter/links2PT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/links2PT.py
+
 
 
 Preconditionning (hook)
