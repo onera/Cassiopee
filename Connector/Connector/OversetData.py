@@ -10,8 +10,6 @@ try:
     import Converter.PyTree as C
     import Converter
     import KCore
-    import KCore.Vector as Vector
-    import Converter.GhostCells as GhostCells
 except:
     raise ImportError("Connector.OversetData requires Converter module.")
 
@@ -739,7 +737,6 @@ def setInterpData(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
     nozr = -1
 
     for z in zonesRcv:
-        nodes = Internal.getNodesFromType2(z, 'GridConnectivity_t')
         nozr += 1
         if loc == 'nodes': cellNPresent = C.isNamePresent(z, 'cellN')
         else: cellNPresent = C.isNamePresent(z, 'centers:cellN')
@@ -779,7 +776,6 @@ def setInterpData(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
 
             elif locR == 'centers':
                 an = C.getFields(Internal.__GridCoordinates__, z)[0]
-                #print 'an= ', an
                 ac = Converter.node2Center(an)
                 cellN = C.getField('centers:cellN',z)[0]
                 ac = Converter.addVars([ac,cellN])
@@ -790,14 +786,13 @@ def setInterpData(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
                         interpPts.append(Connector.getInterpolatedPoints__(ac2))
                 else:  # pas de dw : un seul array
                     interpPts = Connector.getInterpolatedPoints__(ac)
-                    print interpPts[1][4].size
+
             #---------------------------------------------
             # Etape 2 : calcul des donnees d'interpolation
             #---------------------------------------------
             # resInterp = [rcvInd1D,donorInd1D,donorType,coefs,extrap,orphan, EXdirs]
             resInterp = Connector.setInterpData__(interpPts, arraysD, order=order, penalty=penalty, nature=nature, method=method, interpDataType=interpDataType,
                                                   hook=allHooks, dim=dim)
-            #print resInterp[0]
             if resInterp is not None:
                 # Bilan
                 nborphan = 0; nbextrapolated = 0; nbinterpolated = 0
@@ -853,7 +848,6 @@ def setInterpData(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
                 for noz in xrange(nzonesDnr):
                     # ajout des donnees d interpolation
                     ninterploc = resInterp[0][noz].size
-                    #print resInterp[0][noz]
                     if ninterploc>0: # domaine d'interpolation
                         if storage == 'direct':
                             if resInterp[4][noz].size == 0: extrapPts = numpy.array([],numpy.int32)
@@ -865,7 +859,6 @@ def setInterpData(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
                                                   extrapPts, resInterp[5], tag='Receiver', loc=locR, EXDir=EXdir)
 
                         else: # inverse
-                            #print 'res= ', 
                             if resInterp[4][noz].size == 0: extrapPts = numpy.array([],numpy.int32)
                             else: extrapPts = resInterp[4][noz]
                             if resInterp[6] == []: EXdir = numpy.array([],numpy.int32)
@@ -1233,7 +1226,6 @@ def setInterpData2(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
             #---------------------------------------------
             # resInterp = [rcvInd1D,donorInd1D,donorType,coefs,extrap,orphan, EXdirs]
             resInterp = Connector.setInterpData__(interpPts, arraysD, order=order, penalty=penalty, nature=nature, method=method, hook=allHooks, dim=dim)
-            #print "coucou____"
             if resInterp is not None:
                 # Bilan
                 nborphan = 0; nbextrapolated = 0; nbinterpolated = 0
@@ -1349,9 +1341,7 @@ def setInterpData2(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
                             #print resInterp[3][noz]
 
                             connector.correctCoeffList(resInterp[1][noz],resInterp[3][noz],resInterp[2][noz],resInterp[2][noz].size,dim__[1]+1,dim__[2]+1,dim__[3]+1)
-                            
-                            #print "coucou_"
-                            
+                                                        
                             ### Determination du point pivot symetrique dans zoneR du point (imin,jmin,kmin) de la zoneD
                             pt_pivot=numpy.array(prange[0:3,0]) # Point (imin,jmin,kmin) de la zone R 
                             if (abs(dirR)==1): # Le point ne peut varier que dans son plan (j,k) pour etre en face du point de la zone D
@@ -1374,9 +1364,6 @@ def setInterpData2(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
                             info[2].append(['Profondeur', profondeur , [], 'IndexArray_t'])
                             info[2].append(['LevelZRcv', levelrcv , [], 'IndexArray_t'])
                             info[2].append(['LevelZDnr', leveldnr , [], 'IndexArray_t'])
-
-
-                            #print "coucou__"
 
                             NMratio = numpy.zeros(3,dtype=numpy.int32)
                             NMratio[0] = int(round(float(dim_[abs(transfo[0])])/float(dim__[1]+1)))
@@ -1414,7 +1401,7 @@ def setInterpData2(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
 # Cette fonction retourne la transformation vectorielle d'une zone à l'autre
 #==============================================================================
 def getTransfo(zdonor,zrcv):
-
+    import KCore.Vector as Vector
     transfo = numpy.zeros(3,dtype=numpy.int32)
 
     a = C.getFields(Internal.__GridCoordinates__, zdonor)[0]

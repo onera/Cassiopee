@@ -214,8 +214,7 @@ PyObject* K_GENERATOR::hyper2DMesh(PyObject* self, PyObject* args)
 // ============================================================================
 /* Hyperbolic mesh generation for a mesh. Constant alpha angle. */
 // ============================================================================
-PyObject* K_GENERATOR::hyper2D2Mesh(PyObject* self,
-                                    PyObject* args)
+PyObject* K_GENERATOR::hyper2D2Mesh(PyObject* self, PyObject* args)
 {
   PyObject* array;
   PyObject* arrayd;
@@ -272,7 +271,7 @@ PyObject* K_GENERATOR::hyper2D2Mesh(PyObject* self,
     K_ARRAY::getFromArray(arrayd, varStringd, fd, 
                           nid, njd, nkd, cnd, eltTyped);
  
-  if ( res == 1 && resd == 1)
+  if (res == 1 && resd == 1)
   {
     char* varString0 = new char [strlen(varString)+strlen(varStringd)+4];
     E_Int res0 = 

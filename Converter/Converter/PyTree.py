@@ -3487,10 +3487,6 @@ def _addBC2StructZone__(z, bndName, bndType, range=[], faceList=[],
     info = zoneBC[2][l-1]
     r = Internal.window2Range(range)
     info[2].append(['PointRange', r, [], 'IndexRange_t'])
-    #if (bndType=='BCWallViscous_transition'):
-      #nb_pts = max([r[0][1] - r[0][0],1])*max([r[1][1] - r[1][0],1])*max([r[2][1] - r[2][0],1])
-      #print nb_pts
-      #info[2].append(['PointRange', r, [], 'DataArray_t'])
 
     # Ajoute la famille si necessaire
     if bndType1 == 'FamilySpecified':

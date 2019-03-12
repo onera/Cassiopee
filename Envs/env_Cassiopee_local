@@ -86,7 +86,6 @@ else if ($MAC == "ld") then
         set ncpu=`cat /proc/cpuinfo |grep processor |cut -f2 -d: |tail -1`
         @ ncpu++
         setenv OMP_NUM_THREADS $ncpu
-        #setenv OMP_NUM_THREADS 2
         #setenv KMP_AFFINITY "verbose,granularity=fine,proclist=[0,1,2,3,4,5,6,7],explicit"
         # chemin de mpirun (forced)
         #set path=($path)
@@ -253,7 +252,7 @@ else if ($MAC == "austri") then
 #------------------------------- austri ---------------------------------------
         setenv ELSAPROD aus_r8
         # Nombre de threads
-        setenv OMP_NUM_THREADS  24
+        setenv OMP_NUM_THREADS 24
         setenv KMP_AFFINITY "verbose,granularity=fine,proclist=[0,2,4,6,8,10,12,14,16,18,20,22,1,3,5,7,9,11,13,15,17,19,21,23],explicit"
         #setenv KMP_AFFINITY "verbose,granularity=fine,proclist=[0,2,4,6,8,10,12,14,16,18,20,22,1,3,5,7,9,11,13,15,17,19,21,23,24,26,28,30,32,34,36,38,40,42,44,46,25,27,29,31,33,35,37,39,41,43,45,47],explicit"
         #setenv KMP_AFFINITY "verbose,granularity=fine,proclist=[1,3,5,7,9,11,13,15,17,19,21,23,0,2,4,6,8,10,12,14,16,18,20,22,25,27,29,31,33,35,37,39,41,43,45,47,24,26,28,30,32,34,36,38,40,42,44,46],explicit"

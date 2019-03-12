@@ -140,23 +140,23 @@ def convertFile2PyTree(fileName, format=None):
 # Avec recuperation de toutes les zones
 # Attention: les zones doivent avoir un procNode.
 #==============================================================================
-def convertPyTree2File(t, fileName, format=None):
+def convertPyTree2File(t, fileName, format=None, links=[]):
     """Write a skeleton or partial tree."""
     tp = convert2PartialTree(t)
     tp = C.deleteEmptyZones(tp)
     nzones = len(Internal.getZones(tp))
     if rank == 0:
         if nzones > 0:
-            C.convertPyTree2File(tp, fileName, format=format); go = 1
+            C.convertPyTree2File(tp, fileName, format=format, links=links); go = 1
         else: go = 0
         if size > 1: KCOMM.send(go, dest=1)
     else:
         go = KCOMM.recv(source=rank-1)
         if go == 1:
-            Distributed.writeZones(tp, fileName, format=format, proc=rank)
+            Distributed.writeZones(tp, fileName, format=format, proc=rank, links=links)
         else:
             if nzones > 0:
-                C.convertPyTree2File(tp, fileName, format=format); go = 1
+                C.convertPyTree2File(tp, fileName, format=format, links=links); go = 1
         if rank < size-1: KCOMM.send(go, dest=rank+1)
 
 #==============================================================================

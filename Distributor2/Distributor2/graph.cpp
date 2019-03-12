@@ -87,7 +87,7 @@ void K_DISTRIBUTOR2::graph(
   for (E_Int i = 0; i < nb; i++)
     for (E_Int j = 0; j < nb; j++)
     {
-      if (com[i + j*nb] > 0)
+      if (com[i + j*nb] > 0 && i != j)
       {
         size += 1;
       }
@@ -105,6 +105,9 @@ void K_DISTRIBUTOR2::graph(
     vweight[i] = nbPts[i];
   }
 
+  // com relative weight
+  E_Float rel = 0.5;
+
   // remplissage adj + xadj
   size = 0;
   for (E_Int i = 0; i < nb; i++)
@@ -112,10 +115,13 @@ void K_DISTRIBUTOR2::graph(
     xadj[i] = size;
     for (E_Int j = 0; j < nb; j++)
     {
-      if (com[i+j*nb] > 0 && i > j)
+      if (com[i+j*nb] > 0 && i != j)
       {
         adj[size] = j;
-        adjweight[size] = com[i+j*nb];
+        //printf("%d %d\n",com[i+j*nb],com[j+i*nb]);
+        if (i < j) adjweight[size] = rel*com[i+j*nb];
+        else adjweight[size] = rel*com[j+i*nb]; // force symetrie
+        //adjweight[size] = com[i+j*nb];
         size++;
       }
     }

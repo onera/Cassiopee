@@ -874,9 +874,11 @@ PyObject* K_CONVERTER::readPyTreeFromPaths(PyObject* self, PyObject* args)
 PyObject* K_CONVERTER::writePyTreePaths(PyObject* self, PyObject* args)
 {
   char* fileName; char* format; E_Int maxDepth; E_Int mode;
-  PyObject* paths; PyObject* nodeList;
-  if (!PYPARSETUPLEI(args, "sOOsll", "sOOsii", &fileName, &nodeList, &paths, &format, &maxDepth, &mode))
+  PyObject* paths; PyObject* nodeList; PyObject* links;
+  if (!PYPARSETUPLEI(args, "sOOsllO", "sOOsiiO", &fileName, &nodeList, &paths, &format, &maxDepth, &mode, &links))
     return NULL;
+  
+  if (links == Py_None) { links = NULL; }
   
   E_Int ret = 1;
   if (K_STRING::cmp(format, "bin_adf") == 0)
@@ -884,7 +886,7 @@ PyObject* K_CONVERTER::writePyTreePaths(PyObject* self, PyObject* args)
       K_IO::GenIO::getInstance()->adfcgnsWritePaths(fileName, nodeList, paths, maxDepth, mode);
   else if (K_STRING::cmp(format, "bin_hdf") == 0)
     ret = 
-      K_IO::GenIO::getInstance()->hdfcgnsWritePaths(fileName, nodeList, paths, maxDepth, mode);
+      K_IO::GenIO::getInstance()->hdfcgnsWritePaths(fileName, nodeList, paths, links, maxDepth, mode);
   else if (K_STRING::cmp(format, "bin_cgns") == 0)
     ret = 
       K_IO::GenIO::getInstance()->adfcgnsWritePaths(fileName, nodeList, paths, maxDepth, mode);

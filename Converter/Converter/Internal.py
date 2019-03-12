@@ -2209,7 +2209,7 @@ def merge(A, pathList=None):
     for path, tree in zip(pathList, A[1:]):
         if path: _append(tp, tree, path)
         else:
-            if tp[0] != tree[0]: raise AttributeError("merge: Path is None, but root name are differents.")
+            if tp[0] != tree[0]: raise AttributeError("merge: path is None, but root name are differents.")
             for child in tree[2]: _append(tp, child, tree[0])
     return tp
 

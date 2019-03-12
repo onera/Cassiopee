@@ -930,9 +930,6 @@ PyObject *timecount;
 #     include "getfromzoneRcompact_all.h"
     }
 
-
-  //cout << "coucou_" << endl;
-
   E_Int nbcomIBC = ipt_param_int[1];
   E_Int nbcomID  = ipt_param_int[2+nbcomIBC];
   
@@ -1268,7 +1265,6 @@ PyObject *timecount;
                                         vectOfDnrFields, vectOfRcvFields);
             else if (varType == 2 || varType == 21)
             {
-	      //cout << "coucou2" << endl;
               setIBCTransfersCommonVar2(ibcType, rcvPts, nbRcvPts, pt_deb, pt_fin, ithread,
                                         xPC    , xPC     +nbRcvPts, xPC     +nbRcvPts*2,
                                         xPW    , xPW     +nbRcvPts, xPW     +nbRcvPts*2,
@@ -1281,7 +1277,6 @@ PyObject *timecount;
                                         vectOfDnrFields, vectOfRcvFields);
             }
             else if (varType == 3 || varType == 31)
-	      //cout << "coucou3" << endl;
               setIBCTransfersCommonVar3(ibcType, rcvPts, nbRcvPts, pt_deb, pt_fin, ithread,
                                         xPC    , xPC     +nbRcvPts, xPC     +nbRcvPts*2,
                                         xPW    , xPW     +nbRcvPts, xPW     +nbRcvPts*2,

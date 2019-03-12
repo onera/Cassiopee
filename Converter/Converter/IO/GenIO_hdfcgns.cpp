@@ -1382,7 +1382,8 @@ void K_IO::GenIO::getEndOfPath(char* path, char*& EndPath)
 // Ecrit seulement les chemins specifies de l'arbre
 //=============================================================================
 E_Int K_IO::GenIO::hdfcgnsWritePaths(char* file, PyObject* treeList,
-                                     PyObject* paths, E_Int maxDepth, E_Int mode)
+                                     PyObject* paths, PyObject* links, 
+                                     E_Int maxDepth, E_Int mode)
 {
   if (PyList_Check(paths) == false)
   {
@@ -1445,14 +1446,14 @@ E_Int K_IO::GenIO::hdfcgnsWritePaths(char* file, PyObject* treeList,
         }
         
         HDF._fatherStack.push_front(gidp);
-        HDF.dumpOne(node, 0);
+        HDF.dumpOne(node, 0, links);
         HDF._fatherStack.pop_front();
         H5Gclose(gidp);
       }
       else if (mode == 2) // append pur
       {
         HDF._fatherStack.push_front(gidp);
-        HDF.dumpOne(node, 0);
+        HDF.dumpOne(node, 0, links);
         HDF._fatherStack.pop_front();
         H5Gclose(gidp);
       }
@@ -1470,7 +1471,7 @@ E_Int K_IO::GenIO::hdfcgnsWritePaths(char* file, PyObject* treeList,
         
         H5Ldelete(fid, path, H5P_DEFAULT); // gain space for hdf > 1.10
         HDF._fatherStack.push_front(gidp);
-        HDF.dumpOne(node, 0);
+        HDF.dumpOne(node, 0, links);
         HDF._fatherStack.pop_front();
       }
     }

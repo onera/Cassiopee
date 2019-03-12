@@ -629,7 +629,8 @@ class GenIO
     PyObject* hdfcgnsReadFromPathsPartial(char* file, PyObject* Filters,
                                           void* comm=NULL);
     /* Ecrit des parties d'un arbre python */
-    E_Int hdfcgnsWritePaths(char* file, PyObject* nodeList, PyObject* paths, E_Int maxDepth=-1, E_Int mode=0);
+    E_Int hdfcgnsWritePaths(char* file, PyObject* nodeList, PyObject* paths, PyObject* links=NULL, 
+                            E_Int maxDepth=-1, E_Int mode=0);
     E_Int hdfcgnsWritePathsPartial(char* file, PyObject* tree,
                                    PyObject* Filter,
                                    int skeleton=0,

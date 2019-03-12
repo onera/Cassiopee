@@ -82,7 +82,7 @@ def writeNodesFromPaths(fileName, paths, nodes, format=None, maxDepth=-1, mode=0
   if not isinstance(paths, list): p = [paths]; n = [nodes]
   else: p = paths; n = nodes
   p = fixPaths__(p)
-  Converter.converter.writePyTreePaths(fileName, n, p, format, maxDepth, mode)
+  Converter.converter.writePyTreePaths(fileName, n, p, format, maxDepth, mode, None)
   return None
 
 def writePyTreeFromPaths(fileName, paths, t, format=None, maxDepth=-1):
@@ -283,7 +283,7 @@ def _readZones(t, fileName, format=None, rank=None, zoneNames=None):
 # Ecrit des zones dans un fichier deja cree
 # Warning: limite a adf et hdf
 #==============================================================================
-def writeZones(t, fileName, format=None, proc=None, zoneNames=None):
+def writeZones(t, fileName, format=None, proc=None, zoneNames=None, links=None):
     """Write some zones in an existing file (adf or hdf)."""
     if zoneNames is None and proc is None: return None
     tp, ntype = Internal.node2PyTree(t)
@@ -319,7 +319,7 @@ def writeZones(t, fileName, format=None, proc=None, zoneNames=None):
     print('Writing %s [%d zones]...'%(fileName,len(paths))),
     if format is None:
         format = Converter.convertExt2Format__(fileName)
-    Converter.converter.writePyTreePaths(fileName, nodes, paths, format, -1, 0)
+    Converter.converter.writePyTreePaths(fileName, nodes, paths, format, -1, 0, links)
     print('done.')
     return None
 
@@ -401,6 +401,7 @@ def getProcGlobal__(zoneName, t, procDict):
 # tantes, comme produit par "X.getIntersectingDomains". Attention, si type='bbox3',
 # l'utilisateur doit fournir l'arbre t2 et intersectionDict doit decrire les 
 # intersections entre t et t2, comme produit par "X.getIntersectingDomains(t,t2)".
+# exploc: True si explicite local
 # OUT: graph: dictionnaire contenant des informations d'envoie
 # des zones entre processeurs
 # graph est construit de telle sorte que:
@@ -494,7 +495,7 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
         #        updateGraph__(graph, proc, popp, z[0])
 
     elif type == 'ID': # base sur les interpolations data
-      if (exploc==False):
+      if not exploc:
         for z in zones:
             proc = getProcLocal__(z, procDict)
             subRegions2 = Internal.getNodesFromType1(z,'ZoneSubRegion_t')
@@ -566,7 +567,7 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
                     
 
     elif type == 'IBCD': # base sur les IBC data
-      if (exploc==False):
+      if not exploc:
         for z in zones:
             proc = getProcLocal__(z, procDict)
             subRegions2 = Internal.getNodesFromType1(z,'ZoneSubRegion_t')
@@ -591,7 +592,7 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
                 levdnr_ = Internal.getNodesFromName1(s,'LevelZDnr')
                 levdnr  = int(levdnr_[0][1][0])
                 maximum = max(levrcv,levdnr)
-                if (maximum > maxlevel):maxlevel=maximum
+                if maximum > maxlevel:maxlevel=maximum
         nssiter = 4*maxlevel
 
         list_graph_=[]
@@ -627,14 +628,12 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
                             if idn != []: # la subRegion decrit des interpolations
                                 popp = getProcGlobal__(donor, t, procDict)
                                 updateGraph__(graph_, proc, popp, z[0])
-                    if (levdnr == levrcv and ssiter > nssiter):
-                        if (ssiter%8==6): 
+                    if levdnr == levrcv and ssiter > nssiter:
+                        if ssiter%8 == 6: 
                             if idn != []: # la subRegion decrit des interpolations
                                 popp = getProcGlobal__(donor, t, procDict)
                                 updateGraph__(graph_, proc, popp, z[0])
             list_graph_.append(graph_)
-  
-
 
     elif type == 'ALLD': # base sur les Interpolations+IBC data
         for z in zones:
@@ -663,10 +662,8 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
                 proc = rank
                 updateGraph__(graph, proc, popp, z[0])
 
-    if exploc == False:
-        return graph
-    else:
-        return list_graph_
+    if not exploc: return graph
+    else: return list_graph_
 
 #==============================================================================
 # Retourne le dictionnaire proc['blocName']
