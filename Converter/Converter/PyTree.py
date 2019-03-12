@@ -2498,7 +2498,7 @@ def _createBCDataSetOfType(t, bndType, loc='FaceCenter', update=True, vectors=[]
                                                               Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__,Internal.__FlowSolutionCenters__)
 
             elif PL is not None:
-              print("createBCDataSetOfType: not implemented for PointList.")
+              print("createBCDataSetOfType: extrapolation from interior cells not implemented for PointList. Fields are initialized by O in BCDataSet.")
             Internal._createUniqueChild(d, varname, 'DataArray_t', value=fInt)
 
       else: # BCDataSet exists: add missing variables

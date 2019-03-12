@@ -163,9 +163,14 @@ PyObject* K_CONVERTER::identifySolutions(PyObject* self, PyObject* args)
       E_Boolean iscenter = false;
       if (strchr(eltTypeR,'*') != NULL) iscenter = true;
       if (strcmp(eltTypeR,"NGON") == 0 ||  strcmp(eltTypeR,"NGON*") == 0) 
+      {
+        E_Int* cnpR = cnR->begin();
+        E_Int sizeFN = cnpR[1];
+        E_Int nelts = cnpR[sizeFN+2];  // nombre total d elements
         tpl = K_ARRAY::buildArray(nfldout, varStringOut,
-                                  nptsR, cnR->getSize(),
+                                  nptsR, nelts,
                                   -1, "NGON", iscenter, cnR->getSize()*cnR->getNfld());
+      }
       else
         tpl = K_ARRAY::buildArray(nfldout, varStringOut,
                                   nptsR, cnR->getSize(),

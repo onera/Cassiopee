@@ -71,7 +71,6 @@ short K_INTERP::InterpCart::searchInterpolationCellCartO2(E_Float x, E_Float y, 
   ic = E_Int((x-_xmin+EPS)*_hii)+1;
   jc = E_Int((y-_ymin+EPS)*_hji)+1;
   kc = E_Int((z-_zmin+EPS)*_hki)+1;
-
   E_Float* cfp = cf.begin();
   
   E_Float x0 = _xmin+(ic-1)*_hi;
@@ -325,6 +324,7 @@ E_Int K_INTERP::InterpCart::getListOfCandidateCells(E_Float x, E_Float y, E_Floa
   E_Float x0 = x-dx; E_Float x1 = x+dx;
   E_Float y0 = y-dy; E_Float y1 = x+dx;
   E_Float z0 = z-dz; E_Float z1 = x+dx;
+
   E_Int icmin = E_Int((x0-_xmin)*_hii)+1;
   E_Int jcmin = E_Int((y0-_ymin)*_hji)+1;
   E_Int kcmin = E_Int((z0-_zmin)*_hki)+1;
@@ -340,9 +340,12 @@ E_Int K_INTERP::InterpCart::getListOfCandidateCells(E_Float x, E_Float y, E_Floa
   if ( jcmin > _nj && jcmax > _nj ) return 0;
   if ( kcmin > _nk && kcmax > _nk ) return 0;
 
-  icmin = K_FUNC::E_max(1,icmin); icmin = K_FUNC::E_min(_ni-1,icmin); icmax = K_FUNC::E_min(_ni-1,icmax);
-  jcmin = K_FUNC::E_max(1,jcmin); jcmin = K_FUNC::E_min(_nj-1,jcmin); jcmax = K_FUNC::E_min(_nj-1,jcmax);
-  kcmin = K_FUNC::E_max(1,kcmin); kcmin = K_FUNC::E_min(_nk-1,kcmin); kcmax = K_FUNC::E_min(_nk-1,kcmax);
+  icmin = K_FUNC::E_min(_ni-1,icmin); icmin = K_FUNC::E_max(1,icmin); 
+  icmax = K_FUNC::E_min(_ni-1,icmax); icmax = K_FUNC::E_max(1,icmax); 
+  jcmin = K_FUNC::E_min(_nj-1,jcmin); jcmin = K_FUNC::E_max(1,jcmin);  
+  jcmax = K_FUNC::E_min(_nj-1,jcmax); jcmax = K_FUNC::E_max(1,jcmax); 
+  kcmin = K_FUNC::E_min(_nk-1,kcmin); kcmin = K_FUNC::E_max(1,kcmin);  
+  kcmax = K_FUNC::E_min(_nk-1,kcmax); kcmax = K_FUNC::E_max(1,kcmax); 
   for (E_Int k = kcmin; k <= kcmax; k++)
     for (E_Int j = jcmin; j <= jcmax; j++)
       for (E_Int i = icmin; i <= icmax; i++)
