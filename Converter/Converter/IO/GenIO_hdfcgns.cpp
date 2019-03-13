@@ -699,8 +699,8 @@ PyObject* K_IO::GenIOHdf::getArrayR8(hid_t node, hid_t tid, int dim, int* dims,
   if (_ismpi == 1)    /** HDF is executed in parallel context and compiled in MPI **/
   {
     hid_t xfer_plist = H5Pcreate(H5P_DATASET_XFER);
-    // hid_t ret        = H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_COLLECTIVE);
-    hid_t ret        = H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_INDEPENDENT);
+    hid_t ret        = H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_COLLECTIVE);
+    //hid_t ret        = H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_INDEPENDENT);
     H5Dread(did, yid, mid, sid, xfer_plist, PyArray_DATA(r));
   }     
   else  /** HDF is executed in sequential context and compiled in MPI **/

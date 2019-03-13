@@ -100,7 +100,7 @@ def prepare0(t_case, t_out, tc_out, dfar=10., vmin=21, check=False, NP=0, format
 
     # arbre donneur
     D2._copyDistribution(tc,t)
-    Fast.save(tc, tc_out, split=format, NP=-NP)
+    if isinstance(tc_out, str): Fast.save(tc, tc_out, split=format, NP=-NP)
 
     #----------------------------------------
     # Extraction des coordonnees des pts IBM
@@ -111,11 +111,10 @@ def prepare0(t_case, t_out, tc_out, dfar=10., vmin=21, check=False, NP=0, format
         del tibm
 
     # arbre de calcul
-    del tc
     I._initConst(t, loc='centers')
     if model != "Euler": C._initVars(t, 'centers:ViscosityEddy', 0.)
-    Fast.save(t, t_out, split=format, NP=-NP)
-    return t
+    if isinstance(t_out, str): Fast.save(t, t_out, split=format, NP=-NP)
+    return t, tc
 
 #=============================================================================
 # Post

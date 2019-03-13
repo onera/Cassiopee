@@ -374,6 +374,10 @@ def _append(t, node, path):
     # already exists?
     child = getNodeFromPath(root, '%s'%node[0])
     if child is None: _addChild(root, node)
+    elif node[1] is not None:
+        child[1] = node[1]; child[3] = node[3]
+        for child in node[2]: # append les enfants de node uniquement
+            _append(root, child, '%s'%node[0])
     else:
         for child in node[2]: # append les enfants de node uniquement
             _append(root, child, '%s'%node[0])

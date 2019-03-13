@@ -22,8 +22,6 @@ def prepare(t_case, t_out, tc_out, NP=0, format='single'):
     ret = None
     # sequential prep
     if rank == 0: ret = prepare0(t_case, t_out, tc_out, NP, format)
-    # parallel prep
-    #prepare1(t_case, t_out, tc_out, NP, format)
     return ret
 
 #================================================================================
@@ -281,9 +279,8 @@ class MB(Common):
         NP = self.data['NP']
         if NP == 0: print('Preparing for a sequential computation.')
         else: print('Preparing for a computation on %d processors.'%NP)
-        ret = prepare(t_case, t_out, tc_out, NP, self.data['format'])
-        return ret
-
+        return prepare(t_case, t_out, tc_out, NP, self.data['format'])
+        
     # post-processing: extrait la solution aux neouds + le champs sur les surfaces
     def post(self, t_in, t_out, wall_out):
         return post(t_in, t_out, wall_out, self.data['NP'], self.data['format'])
