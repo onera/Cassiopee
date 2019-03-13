@@ -189,7 +189,7 @@ def setState(event=None):
     elif ADIM == 'dim3(real UInf,PInf,RoInf,Rgp=287.053)': adim = 'dim3'
     CTK.saveTree()
 
-    if (CTK.__MAINTREE__ <= 0 or nzs == []):
+    if CTK.__MAINTREE__ <= 0 or nzs == []:
         nodes = Internal.getBases(CTK.t)
         fullBase = False
     else:
@@ -206,20 +206,20 @@ def setState(event=None):
     for b in nodes:
         p, r = Internal.getParentOfNode(CTK.t, b)
         C.addState2Node__(p[2][r], 'GoverningEquations', VARS[1].get())
-        if (VARS[1].get() == 'NSTurbulent'):
-            if (VARS[6].get() == 'SpalartAllmaras'):
+        if VARS[1].get() == 'NSTurbulent':
+            if VARS[6].get() == 'SpalartAllmaras':
                 C.addState2Node__(p[2][r],
                                   'TurbulenceModel',
                                   'OneEquation_SpalartAllmaras')
-            elif (VARS[6].get() == 'JonesLaunder(k-eps)'):
+            elif VARS[6].get() == 'JonesLaunder(k-eps)':
                 C.addState2Node__(p[2][r],
                                   'TurbulenceModel',
                                   'TwoEquation_JonesLaunder')
-            elif (VARS[6].get() == 'Wilcox(k-w)'):
+            elif VARS[6].get() == 'Wilcox(k-w)':
                 C.addState2Node__(p[2][r],
                                   'TurbulenceModel',
                                   'TwoEquation_Wilcox')
-            elif (VARS[6].get() == 'MenterSST(k-w)'):
+            elif VARS[6].get() == 'MenterSST(k-w)':
                 C.addState2Node__(p[2][r],
                                   'TurbulenceModel',
                                   'TwoEquation_MenterSST')

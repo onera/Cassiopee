@@ -94,8 +94,8 @@ public:
 private:
   // E_Float _xmin, _ymin, _zmin;
   // E_Float _xmax, _ymax, _zmax;
-  E_Float _hi, _hj, _hk;
   E_Int   _ni, _nj, _nk;
+  E_Float _hi, _hj, _hk;
   E_Float _his2, _hjs2, _hks2; // for optimization
   E_Float _hii, _hji, _hki;
   E_Float _his2i, _hjs2i, _hks2i;

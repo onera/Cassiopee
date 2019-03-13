@@ -52,15 +52,53 @@ static PyMethodDef Pygeom [] =
   {NULL, NULL}
 };
 
+#if PY_MAJOR_VERSION >= 3
+#define GETSTATE(m) ((struct module_state*)PyModule_GetState(m))
+struct module_state {
+    PyObject *error;
+};
+static int myextension_traverse(PyObject *m, visitproc visit, void *arg) {
+    Py_VISIT(GETSTATE(m)->error);
+    return 0;
+}
+static int myextension_clear(PyObject *m) {
+    Py_CLEAR(GETSTATE(m)->error);
+    return 0;
+}
+static struct PyModuleDef moduledef = {
+        PyModuleDef_HEAD_INIT,
+        "geom",
+        NULL,
+        sizeof(struct module_state),
+        Pyconverter,
+        NULL,
+        myextension_traverse,
+        myextension_clear,
+        NULL
+};
+#endif
+
 // ============================================================================
 /* Init of module */
 // ============================================================================
 extern "C"
 {
-  void initgeom();
-  void initgeom()
+#if PY_MAJOR_VERSION >= 3
+  PyMODINIT_FUNC PyInit_geom();
+  PyMODINIT_FUNC PyInit_geom()
+#else
+  PyMODINIT_FUNC initgeom();
+  PyMODINIT_FUNC initgeom()
+#endif
   {
+#if PY_MAJOR_VERSION >= 3
+    PyObject* module = PyModule_Create(&moduledef);
+#else
     Py_InitModule("geom", Pygeom);
+#endif
     import_array();
+#if PY_MAJOR_VERSION >= 3
+    return module;
+#endif
   }
 }

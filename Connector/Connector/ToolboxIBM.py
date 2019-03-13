@@ -99,8 +99,8 @@ def adaptIBMMesh(t, tb, vmin, sensor, factor=1.2, DEPTH=2, merged=1, sizeMax=400
     npts = dims[1]
     C._initVars(t,"{%s}={%s}*({centers:cellN}>0.)*({centers:cellN}<2.)"%(sensor,sensor))
     C._initVars(to,"centers:indicator", 1.)
-    to = P.computeIndicatorValue(to,t,sensor)
-    res = P.computeIndicatorField(to,sensor, nbTargetPts=factor*npts, \
+    to = P.computeIndicatorValue(to, t, sensor)
+    res = P.computeIndicatorField(to, sensor, nbTargetPts=factor*npts, \
                                   bodies=constraintSurfaces, \
                                   refineFinestLevel=refineLevelF, \
                                   coarsenCoarsestLevel=1)
@@ -590,7 +590,7 @@ def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., DEPTH=2, tbox=None,
     else:
         o = Internal.getZones(to)[0]
 
-    if fileo is not None: C.convertPyTree2File(o,fileo)
+    if fileo is not None: C.convertPyTree2File(o, fileo)
     res = generateCartMesh__(o, dimPb=dimPb, vmin=vmin, DEPTH=DEPTH, merged=merged, sizeMax=sizeMax, 
                              check=check, symmetry=symmetry, externalBCType=externalBCType, mergeByParents=mergeByParents)
     return res

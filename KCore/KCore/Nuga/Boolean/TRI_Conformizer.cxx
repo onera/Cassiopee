@@ -508,7 +508,7 @@ TRI_Conformizer<DIM>::__iterative_run
   {
     //if (err) std::cout << "atempt " << railing << " return error : " << err << std::endl;
     
-    k = std::max(3, (--k));
+    k = std::max(3, k-1);
     E_Float RTOL2 = ::pow(10., -k);
     
     data.clear(); //reset containers

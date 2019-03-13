@@ -52,7 +52,7 @@ extern "C"
             }                                \
       if (K_FUNC::fEqualZero(val, geomCutOff) == true) return 0;\
   }                                          \
-  else                                       \       
+  else                                       \
   {                                          \
     val = 0.;                                \
     for (E_Int kk = 0; kk < 3; kk++)         \
@@ -365,7 +365,7 @@ E_Int K_INTERP::getInterpolationData(
         corr = compLagrangeCoefs(x, y, z, ics, jcs, kcs, ni, nj, nk, xl, yl, zl, 
                                  cf, interpType);
         type = 3; indi[0] = ic + jc*ni + kc*ni*nj;
-        if (cellN != NULL) CELLNO3;
+        if (cellN != NULL) { CELLNO3; }
 
         if (corr == 1) // mauvaise approx de (x,y,z) -> ordre 2 type O2CF
         {
@@ -385,7 +385,7 @@ E_Int K_INTERP::getInterpolationData(
         ic = ic-1; jc = jc-1; kc = kc-1;// indices demarrent a 0
         type = 3; indi[0] = ic + jc*ni + kc*ni*nj;
         if (ic == 0 || ic == ni-3 || jc == 0 || jc == nj-3 || kc == 0 || kc == nk-3) isBorder = 1;
-        if (cellN != NULL) CELLNO3;
+        if (cellN != NULL) { CELLNO3; }
       }
       break;
       

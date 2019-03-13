@@ -206,8 +206,8 @@ PyObject* K_CONVERTER::extractBCMatchStruct(PyObject* self, PyObject* args )
   E_Int dim       = 3;
   E_Int noindint  = 0;
   E_Int ind ;
-  E_Int nbIntID   = (niD+1)*njD*K_FUNC::E_max(1,nkD) ;
-  E_Int nbIntJD   = (njD+1)*niD*K_FUNC::E_max(1,nkD) ;
+  //E_Int nbIntID   = (niD+1)*njD*K_FUNC::E_max(1,nkD) ;
+  //E_Int nbIntJD   = (njD+1)*niD*K_FUNC::E_max(1,nkD) ;
   E_Int nbIntIR   = (niR+1)*njR*K_FUNC::E_max(1,nkR) ;
   E_Int nbIntJR   = (njR+1)*niR*K_FUNC::E_max(1,nkR) ;
 
@@ -1114,8 +1114,8 @@ PyObject* K_CONVERTER::buildBCMatchFieldNG(PyObject* self, PyObject* args )
 
     for (E_Int noindint = 0 ; noindint < nind ; noindint++)
     {
-      E_Int indFace    = ptrIndR[noindint]-1;
-      E_Int indcell    = PE[indFace]-1;
+      //E_Int indFace    = ptrIndR[noindint]-1;
+      //E_Int indcell    = PE[indFace]-1;
       ptrFld[noindint] = 0.; //0.5*( fieldV[indcell]+ptrFldD[noindint] );    
     }
   }

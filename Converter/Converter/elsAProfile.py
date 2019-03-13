@@ -545,12 +545,12 @@ def _addFlowSolution(t, name='', loc='CellCenter', variables=None,
 
   for base in Internal.getBases(t):
     if gE0 is None:
-      GE = Internal.getNodeFromType2(base,'GoverningEquations_t')
+      GE = Internal.getNodeFromType2(base, 'GoverningEquations_t')
       if GE is not None:
         gE0 = Internal.getValue(GE)
     for z in Internal.getZones(base):
       if gE0 is None:
-        GE = Internal.getNodeFromType2(z,'GoverningEquations_t')
+        GE = Internal.getNodeFromType2(z, 'GoverningEquations_t')
         if GE is None:
           if variables is None:
             raise ValueError("addFlowSolution: no GoverningEquations in tree. You must specify it in your function parameter.")
@@ -590,7 +590,7 @@ def _addFlowSolution(t, name='', loc='CellCenter', variables=None,
       if addBCExtract:
         subChildren1 = []
         for bc in Internal.getNodesFromType2(z, "BC_t"):
-          prval = Internal.getValue(Internal.getNodeFromName1(bc,"PointRange")) 
+          prval = Internal.getValue(Internal.getNodeFromName1(bc, "PointRange")) 
           subChildren2 = [Internal.createNode("PointRange","DataArray_t", value=prval)]
           subChildren2+= [Internal.createNode("Protocol","Descriptor_t",value=protocol)]
           strval = string.join(['SurfaceSolution/NeumannData/'+variable for variable in variables],'\n')

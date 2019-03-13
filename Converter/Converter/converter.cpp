@@ -182,7 +182,7 @@ extern "C"
 #if PY_MAJOR_VERSION >= 3
     PyObject* module = PyModule_Create(&moduledef);
 #else
-    PyObject* module = Py_InitModule("converter", Pyconverter);
+    Py_InitModule("converter", Pyconverter);
 #endif
     import_array();
 #if PY_MAJOR_VERSION >= 3
