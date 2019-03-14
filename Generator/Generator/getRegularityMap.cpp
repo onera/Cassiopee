@@ -111,6 +111,7 @@ PyObject* K_GENERATOR::getRegularityMap(PyObject* self, PyObject* args)
     //    - les directions de maillage I,J,K definies (dir)
     //    - les noms des champs de sortie
     E_Int dim = 3;
+    E_Int dimC = 3;
     E_Int im1 = im-1;
     E_Int jm1 = jm-1;
     E_Int km1 = km-1;
@@ -126,29 +127,42 @@ PyObject* K_GENERATOR::getRegularityMap(PyObject* self, PyObject* args)
     switch (dir)
     {
       case  2: // dim 1 - dir I
-	ni = im; dim = 1;
+	ni = im; dim = 1; dimC = 1;
 	break;
       case  3: // dim 1 - dir J
-	ni = jm; dim = 1;
+	ni = jm; dim = 1; dimC = 1;
 	break;
       case  4: // dim 1 - dir K
-	ni = km; dim = 1;
+	ni = km; dim = 1; dimC = 1;
 	break;
       case  6: // dim 2 - dir IJ
 	ni = im;
 	nj = jm;
 	dim = 2;
+	dimC = 2;
+	if (im == 2) { dimC = 1; ni = jm; nj = 1; }
+	if (jm == 2) { dimC = 1; ni = im; nj = 1; }
 	break;
       case  8: // dim 2 - dir IK
 	ni = im;
 	nj = km;
 	dim = 2;
+	dimC = 2;
+	if (im == 2) { dimC = 1; ni = km; nj = 1; }
+	if (km == 2) { dimC = 1; ni = im; nj = 1; }
 	break;
       case 12: // dim 2 - dir JK
 	ni = jm;
 	nj = km;
 	dim = 2;
+	dimC = 2;
+	if (im == 2) { dimC = 1; ni = km; nj = 1; }
+	if (km == 2) { dimC = 1; ni = jm; nj = 1; }
 	break;
+    default:
+      if (im == 2) { dimC = 2; ni = jm; nj = km; }
+      if (jm == 2) { dimC = 2; ni = im; nj = km; }
+      if (km == 2) { dimC = 2; ni = im; nj = jm; }
     }
     if (im == 1) im1 = 1;
     if (jm == 1) jm1 = 1;
@@ -198,7 +212,7 @@ PyObject* K_GENERATOR::getRegularityMap(PyObject* self, PyObject* args)
     }
 
     // calcul de la regularite	
-    if (dim == 1) // dimension 1D
+    if (dimC == 1) // dimension 1D
     {
       // Aux frontieres, traitement degenere.
       reg[0] = E_abs(vol[1]-vol[0])/E_max(vol[0],E_GEOM_CUTOFF);
@@ -210,7 +224,7 @@ PyObject* K_GENERATOR::getRegularityMap(PyObject* self, PyObject* args)
         reg[i] = RATIOMAX2(vol[i],vol[i-1],vol[i+1]);
       }
     }
-    else if (dim == 2) // dimension = 2D
+    else if (dimC == 2) // dimension = 2D
     {
       E_Float etVol;
       // Aux coins, traitement degenere.
@@ -281,7 +295,7 @@ PyObject* K_GENERATOR::getRegularityMap(PyObject* self, PyObject* args)
           reg[ind] = RATIOMAX4(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4]);
         }
     }
-    else if (dim == 3)  // dimension = 3D
+    else if (dimC == 3)  // dimension = 3D
     {	      
       E_Int ni1nj1 = ni1*nj1;
       E_Float etVol;
