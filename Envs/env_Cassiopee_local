@@ -103,7 +103,7 @@ else if ($MAC == "ld") then
             setenv PYTHONPATHL $CASSIOPEE/Dist/bin/x86_r8/lib/python2.7/site-packages:$ELSA/Dist/lib/py:$ELSA/Dist/bin/eos-intel
         endif
         # Pour utilisation MKL+numpy
-        setenv LD_PRELOAD /opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_avx2.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_def.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_core.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_intel_lp64.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_intel_thread.so:/opt/tools/intel/studio/2017/lib/intel64/libiomp5.so
+        #setenv LD_PRELOAD /opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_avx2.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_def.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_core.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_intel_lp64.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_intel_thread.so:/opt/tools/intel/studio/2017/lib/intel64/libiomp5.so
 
 else if ($MAC == "eos") then
 #----------------------------- eos -------------------------------------
@@ -136,7 +136,7 @@ else if ($MAC == "eos") then
             setenv PYTHONPATHL $CASSIOPEE/Dist/bin/x86_r8/lib/python2.7/site-packages:$ELSA/Dist/lib/py:$ELSA/Dist/bin/eos-intel
         endif
         # Pour utilisation MKL+numpy
-        setenv LD_PRELOAD /opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_avx2.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_def.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_core.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_intel_lp64.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_intel_thread.so:/opt/tools/intel/studio/2017/lib/intel64/libiomp5.so
+        #setenv LD_PRELOAD /opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_avx2.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_def.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_core.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_intel_lp64.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_intel_thread.so:/opt/tools/intel/studio/2017/lib/intel64/libiomp5.so
 
 else if ($MAC == "macosx") then
 #----------------------------- Mac OSX-----------------------------------------

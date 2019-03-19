@@ -390,26 +390,29 @@ E_Int K_IO::GenIO::cedrewrite(
       E_Int* facesp2 = cFE.begin(2);
 
       fprintf(ptrFile, "3. FACES -> ELTS : FACE no., number of Elts, ELT 1, ELT2\n");
+      E_Int jp = 1;
       for (E_Int j = 0; j < nfaces; j++)
       {
         nd = 2;
         if (facesp1[j] == 0 && facesp2[j] == 0)
         {
           nd = 0;
-          fprintf(ptrFile, "%d %d %d %d\n", j+1, nd, facesp1[j], facesp2[j]);
+          fprintf(ptrFile, "%d %d %d %d\n", jp, nd, facesp1[j]+1, facesp2[j]+1); jp++; // this is strange!
         }
-        if (facesp1[j] == 0)
+        else if (facesp1[j] == 0)
         {
           nd = 1;
-          fprintf(ptrFile, "%d %d %d %d\n", j+1, nd, facesp2[j], facesp1[j]);
+          fprintf(ptrFile, "%d %d %d %d\n", jp, nd, facesp2[j], facesp1[j]); jp++;
         }
         else if (facesp2[j] == 0)
         {
           nd = 1;
-          fprintf(ptrFile, "%d %d %d %d\n", j+1, nd, facesp1[j], facesp2[j]);
+          fprintf(ptrFile, "%d %d %d %d\n", jp, nd, facesp1[j], facesp2[j]); jp++;
         }
         else
-          fprintf(ptrFile, "%d %d %d %d\n", j+1, nd, facesp1[j], facesp2[j]);
+        { 
+          fprintf(ptrFile, "%d %d %d %d\n", jp, nd, facesp1[j], facesp2[j]); jp++;
+        }
       }
 
       // Faces marquees, a partir de l'objet python BCFaces

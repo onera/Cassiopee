@@ -10,6 +10,8 @@ import Connector.ToolboxIBM as TIBM
 import Dist2Walls.PyTree as DTW
 import Distributor2.PyTree as D2
 import Initiator.PyTree as I
+import Converter.Mpi as Cmpi
+import Converter.Filter as Filter
 from Apps.Fast.Common import Common
 
 # IN: maillage surfacique + reference State + snears
@@ -219,6 +221,55 @@ def post(t_case, t_in, tc_in, t_out, wall_out, NP=0, format='single'):
     if isinstance(t_out, str): C.convertPyTree2File(t, t_out)
 
     return t, zw
+
+#====================================================================================
+# Redistrib on N processors
+#====================================================================================
+def distribute(t, tc, NP):
+    if isinstance(tc, str):
+        tcs = Cmpi.convertFile2SkeletonTree(tc, maxDepth=3)
+    else: tcs = tc
+    stats = D2._distribute(tcs, NP, algorithm='graph', useCom='ID') 
+    print stats
+    if isinstance(tc, str):
+        paths = []; ns = []
+        bases = Internal.getBases(tcs)
+        for b in bases:
+            zones = Internal.getZones(b)
+            for z in zones:
+                nodes = Internal.getNodesFromName2(z, 'proc')
+                for n in nodes:
+                    p = 'CGNSTree/%s/%s/.Solver#Param/proc'%(b[0],z[0])
+                    paths.append(p); ns.append(n)
+        Filter.writeNodesFromPaths(tc, paths, ns, maxDepth=0, mode=1)
+
+    if isinstance(t, str):
+        ts = Cmpi.convertFile2SkeletonTree(t, maxDepth=3)
+    else: ts = t
+    D2._copyDistribution(ts, tcs)
+
+    if isinstance(t, str):
+        paths = []; ns = []
+        bases = Internal.getBases(ts)
+        for b in bases:
+            zones = Internal.getZones(b)
+            for z in zones:
+                nodes = Internal.getNodesFromName2(z, 'proc')
+                for n in nodes:
+                    p = 'CGNSTree/%s/%s/.Solver#Param/proc'%(b[0],z[0])
+                    paths.append(p); ns.append(n)
+        Filter.writeNodesFromPaths(t, paths, ns, maxDepth=0, mode=1)
+
+    # Affichage du nombre de points par proc - equilibrage ou pas
+    NptsTot = 0
+    for i in xrange(NP):
+        NPTS = 0
+        for z in Internal.getZones(ts):
+            if Cmpi.getProc(z)==i: NPTS += C.getNPts(z)
+        NptsTot += NPTS
+        print 'Rank %d has %d points'%(i,NPTS) 
+    print 'All points: %d million points'%(NptsTot/1.e6)
+    return ts, tcs
 
 #====================================================================================
 class IBM(Common):

@@ -99,9 +99,8 @@ def merge():
                 else: zoneNames['__Pool__'] += [n]
             else: zoneNames['__Pool__'] += [n]
         # Reconstitue les listes de zone
-        keys = zoneNames.keys()
         out = []
-        for k in keys:
+        for k in zoneNames:
             l = []
             for i in zoneNames[k]:
                 l.append(Internal.getNodeFromName(Z, i))

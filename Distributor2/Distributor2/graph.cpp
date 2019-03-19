@@ -77,9 +77,32 @@ void K_DISTRIBUTOR2::graph(
   E_Float nbPtsMax = 0;
   for (E_Int i = 0; i < nb; i++) nbPtsMax = K_FUNC::E_max(nbPts[i], nbPtsMax);
 
+  // Enforce com graph symetry (necessary for metis but not necessarily ensured by IBM)
+  for (E_Int i = 0; i < nb; i++)
+    for (E_Int j = 0; j < nb; j++)
+    {
+      if (com[i+j*nb] != com[j+i*nb])
+      {
+        //printf("No Symetry - forced: %d %d (%d %d)\n", i,j, com[i+j*nb], com[j+i*nb]);
+        //com[i+j*nb] = com[j+i*nb];
+        if (com[j+i*nb] > 0) com[i+j*nb] = com[j+i*nb];
+        else com[j+i*nb] = com[i+j*nb];
+      }
+    }
+
+  /*
+  for (E_Int i = 0; i < nb; i++)
+  {
+    for (E_Int j = 0; j < nb; j++)
+    {
+      printf("%d ",com[i+j*nb]);
+    }
+    printf("\n");
+  }
+  */
   // Graph : les vertex du graph sont les blocs, 
   // le poids vertex est le nbre de pts
-  // les edges du graph sont les com
+  // les edges du graph sont les coms
   // le poids de edges est le volume de com
   
   // taille des adj
@@ -87,9 +110,9 @@ void K_DISTRIBUTOR2::graph(
   for (E_Int i = 0; i < nb; i++)
     for (E_Int j = 0; j < nb; j++)
     {
-      if (com[i + j*nb] > 0 && i != j)
+      if (com[i+j*nb] > 0 && i != j)
       {
-        size += 1;
+        size++;
       }
     }
   //printf("size of adj %d\n", size);
@@ -119,15 +142,16 @@ void K_DISTRIBUTOR2::graph(
       {
         adj[size] = j;
         //printf("%d %d\n",com[i+j*nb],com[j+i*nb]);
-        if (i < j) adjweight[size] = rel*com[i+j*nb];
-        else adjweight[size] = rel*com[j+i*nb]; // force symetrie
-        //adjweight[size] = com[i+j*nb];
+        //if (i < j) adjweight[size] = rel*com[i+j*nb];
+        //else adjweight[size] = rel*com[j+i*nb]; // force symetrie
+        adjweight[size] = com[i+j*nb];
         size++;
       }
     }
     xadj[nb] = size;
   }
-  
+  //printf("size2 of adj %d\n", size);
+
   E_Int objval = 0;
   E_Int ncon = 1;
   idx_t* parts = new idx_t [nb];

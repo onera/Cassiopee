@@ -9,7 +9,7 @@ from .Distributed import readZones, writeZones, convert2PartialTree, convert2Ske
 __all__ = ['rank', 'size', 'KCOMM', 'setCommunicator', 'barrier', 'send', 'recv', 'sendRecv', 'sendRecv2', 
     'allgather', 'readZones', 'writeZones', 'convert2PartialTree', 'convert2SkeletonTree', 'convertFile2DistributedPyTree', 
     'readNodesFromPaths', 'readPyTreeFromPaths', 'writeNodesFromPaths',
-    'allgatherTree', 'convertFile2SkeletonTree', 'convertFile2PyTree', 'convertPyTree2File', 'seq', 
+    'allgatherTree', 'convertFile2SkeletonTree', 'convertFile2PyTree', 'convertPyTree2File', 'seq', 'print0', 'printA',
     'createBBoxTree', 'computeGraph', 'addXZones', '_addXZones', 'rmXZones', '_rmXZones', 'getProcDict', 
     'getProc', 'setProc', '_setProc']
 
@@ -162,15 +162,28 @@ def convertPyTree2File(t, fileName, format=None, links=[]):
 #==============================================================================
 # Execute sequentiellement F sur tous les procs
 #==============================================================================
-def seq(F):
+def seq(F, *args):
     if rank == 0:
-        F()
-        KCOMM.send(1, dest=1)
+        F(*args)
+        if size > 1: KCOMM.send(1, dest=1)
     else:
         go = KCOMM.recv(source=rank-1)
-        F()
+        F(*args)
         if rank < size-1: KCOMM.send(rank+1, dest=rank+1)
         
+#==============================================================================
+# Print uniquement du proc 0
+#==============================================================================
+def print0(a):
+    if rank == 0: print(a)
+
+#==============================================================================
+# Print sur tous les procs sequentiellement
+#==============================================================================
+def printA(A):
+    def fprint(A): print(A)
+    seq(fprint, A)
+
 #==============================================================================
 # Construit un arbre de BBox a partir d'un arbre squelette charge
 # ou d'un arbre partiel
@@ -224,8 +237,14 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, reduction=True,
     if reduction:
         # Assure que le graph est le meme pour tous les processeurs
         g = KCOMM.allgather(graph)
+        graph = {}
         for i in g:
-            for k in i: graph[k] = i[k]
+            for k in i:
+                if not k in graph: graph[k] = {}
+                for j in i[k]:
+                    if not j in graph[k]: graph[k][j] = []
+                    graph[k][j] += i[k][j]
+                    graph[k][j] = list(set(graph[k][j]))
 
     return graph
 

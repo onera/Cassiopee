@@ -2448,8 +2448,8 @@ class editGraphWindow(TK.Toplevel):
         # 2/- Nice view
         if self.useSubPlotParams :
             params = {'left':None,'right':None,'top':None,'bottom':None,'hspace':None,'wspace':None,'isActive':True}
-            for k in params.keys():
-                if k!='isActive':
+            for k in params:
+                if k != 'isActive':
                     if self.subPlotParamsBtnItem[k].val is not None:
                         params[k] = float(self.subPlotParamsBtnItem[k].val)
                     else:
@@ -2466,8 +2466,8 @@ class editGraphWindow(TK.Toplevel):
                 return
         else:
             params = {'pad':None,'hpad':None,'wpad':None,'isActive':True}
-            for k in params.keys():
-                if k!='isActive':
+            for k in params:
+                if k != 'isActive':
                     if self.tightLayoutBtnItem[k].val is not None:
                         params[k] = float(self.tightLayoutBtnItem[k].val)
                     else:
@@ -3859,7 +3859,7 @@ class GraphTK(TK.Toplevel):
 
     # ------------------------------------------------------ updateSubPlotParams
     def updateSubPlotParams(self,params):
-        for var in params.keys():
+        for var in params:
             self.subPlotParams.setValue(var,params[var])
             if var == 'isActive':
                 self.tightLayout.setValue(var,not params[var])
@@ -3867,7 +3867,7 @@ class GraphTK(TK.Toplevel):
         self.applyViewSettings()
     # -------------------------------------------------------- updateTightLayout
     def updateTightLayout(self,params):
-        for var in params.keys():
+        for var in params:
             self.tightLayout.setValue(var,params[var])
             if var == 'isActive':
                 self.subPlotParams.setValue(var,not params[var])
@@ -4092,7 +4092,7 @@ class Graph():
         self.drawFigure()
     # ------------------------------------------------------ updateSubPlotParams
     def updateSubPlotParams(self,params):
-        for var in params.keys():
+        for var in params:
             self.subPlotParams.setValue(var,params[var])
             if var == 'isActive':
                 self.tightLayout.setValue(var,not params[var])
@@ -4100,7 +4100,7 @@ class Graph():
         self.applyViewSettings()
     # -------------------------------------------------------- updateTightLayout
     def updateTightLayout(self,params):
-        for var in params.keys():
+        for var in params:
             self.tightLayout.setValue(var,params[var])
             if var == 'isActive':
                 self.subPlotParams.setValue(var,not params[var])
@@ -6008,15 +6008,15 @@ class editCurvesWindow(TK.Toplevel):
     def filterVarWithZone(self,B):
         tmp = {}
         for zone in self.frame.zoneItem[B.ind].val:
-            for var in self.parent.data[zone].keys():
-                if not var in tmp.keys():
+            for var in self.parent.data[zone]:
+                if not var in tmp:
                     tmp[var]=1
                 else:
                     tmp[var]+=1
         #
         res = []
         nbzones = len(self.frame.zoneItem[B.ind].val)
-        for var in tmp.keys():
+        for var in tmp:
             if tmp[var]==nbzones:
                 res.append(var)
         return sorted(res)
@@ -6305,7 +6305,7 @@ class DesktopFrameTK(TK.Frame):
             tmp = {}
             # Check if d structure is 'zone' oriented
             isZoneOriented = True
-            for k in data.keys():
+            for k in data:
                 if not isinstance(data[k],dict): # then it is not zone oriented
                     isZoneOriented = False
                     break
@@ -6335,7 +6335,7 @@ class DesktopFrameTK(TK.Frame):
     def replaceGroupZonesWithDict(self,d,oldZoneList):
         # Add new data and determine the list of new zones
         newZoneList = []
-        for zoneName in d.keys():
+        for zoneName in d:
             newZoneList.append(zoneName)
             self.addZoneWithDict(d,zoneName)
         # Get the curves that are concerned by a group of old zones and change it to the group of new zones
@@ -6352,12 +6352,12 @@ class DesktopFrameTK(TK.Frame):
     # -------------------------------------------------------------- deleteZoneInCurve
     def deleteZoneInCurve(self,zoneName):
         for graph in self.graphWdwL:
-            for ax_name in graph.fig.subGraph.keys():
+            for ax_name in graph.fig.subGraph:
                 graph.deleteZoneInCurve(ax_name,zoneName)
     # -------------------------------------------------------------- updateGroupCurves
     def updateGroupCurves(self,oldZoneList,newZoneList):
         for graph in self.graphWdwL:
-            for ax_name in graph.fig.subGraph.keys():
+            for ax_name in graph.fig.subGraph:
                 graph.updateGroupCurvesZoneName(ax_name,oldZoneList,newZoneList)
     # ---------------------------------------------------------- addDataWithTree
     def addDataWithTree(self,t):
@@ -6373,7 +6373,7 @@ class DesktopFrameTK(TK.Frame):
                 try:
                     gridcoord = Internal.getNodesFromType1(zone,'GridCoordinates_t')[0]
                     for child in Internal.getChildren(gridcoord):
-                        if not basename+'/'+zonename in tmp.keys():
+                        if not basename+'/'+zonename in tmp:
                             tmp[basename+'/'+zonename]={}
                         tmp[basename+'/'+zonename][Internal.getName(child)]=Internal.getValue(child)
                         newZoneList.append(basename+'/'+zonename)
@@ -6390,7 +6390,7 @@ class DesktopFrameTK(TK.Frame):
                             bcdata = Internal.getNodesFromType(zoneBC,'BCData_t')[0]
                             for var in Internal.getChildren(bcdata):
                                 if Internal.getType(var) == 'DataArray_t':
-                                    if not basename+'/'+zonename in tmp.keys():
+                                    if not basename+'/'+zonename in tmp:
                                         tmp[basename+'/'+zonename]={}
                                     tmp[basename+'/'+zonename][Internal.getName(var)+'@'+bcname]=Internal.getValue(var)
                                     newZoneList.append(basename+'/'+zonename)
@@ -6406,7 +6406,7 @@ class DesktopFrameTK(TK.Frame):
                     flowsolutionname = Internal.getName(flowsolution)
                     for var in Internal.getChildren(flowsolution):
                         if Internal.getType(var)=='DataArray_t':
-                            if not basename+'/'+zonename in tmp.keys():
+                            if not basename+'/'+zonename in tmp:
                                 tmp[basename+'/'+zonename]={}
                             tmp[basename+'/'+zonename][Internal.getName(var)+'@'+flowsolutionname]=Internal.getValue(var)
                             newZoneList.append(basename+'/'+zonename)
@@ -6440,7 +6440,7 @@ class DesktopFrameTK(TK.Frame):
                 try:
                     gridcoord = Internal.getNodesFromType2(zone,'GridCoordinates_t')[0]
                     for child in Internal.getChildren(gridcoord):
-                        if not basename+'/'+zonename in self.data.keys():
+                        if not basename+'/'+zonename in self.data:
                             self.data[basename+'/'+zonename]={}
                         self.data[basename+'/'+zonename][Internal.getName(child)]=Internal.getValue(child)
                 except IndexError: # No GridCoordinates node in this zone
@@ -6456,7 +6456,7 @@ class DesktopFrameTK(TK.Frame):
                             bcdata = Internal.getNodesFromType(zoneBC,'BCData_t')[0]
                             for var in Internal.getChildren(bcdata):
                                 if Internal.getType(var) == 'DataArray_t':
-                                    if not basename+'/'+zonename in self.data.keys():
+                                    if not basename+'/'+zonename in self.data:
                                         self.data[basename+'/'+zonename]={}
                                     self.data[basename+'/'+zonename][Internal.getName(var)+'@'+bcname]=Internal.getValue(var)
                         except IndexError:
@@ -6471,18 +6471,18 @@ class DesktopFrameTK(TK.Frame):
                     flowsolutionname = Internal.getName(flowsolution)
                     for var in Internal.getChildren(flowsolution):
                         if Internal.getType(var)=='DataArray_t':
-                            if not basename+'/'+zonename in self.data.keys():
+                            if not basename+'/'+zonename in self.data:
                                 self.data[basename+'/'+zonename]={}
                             self.data[basename+'/'+zonename][Internal.getName(var)+'@'+flowsolutionname]=Internal.getValue(var)
     # ---------------------------------------------------------- addZoneWithDict
     def addZoneWithDict(self,d,zoneName):
-        if zoneName in d.keys():
+        if zoneName in d:
             self.data[zoneName]=d[zoneName]
         else:
             print '''### Can not find zone %s in submitted data.'''%newZoneName
     # ------------------------------------------------------- deleteZoneFromData
     def deleteZoneFromData(self,zoneName,oldBaseName=""):
-        for k in self.data.keys():
+        for k in self.data:
             re_str = oldBaseName+zoneName.replace('\\','\\\\') # replace \ by \\ for regular expression conversion
             if re.match(re_str,k):
                 del self.data[k]
@@ -6523,7 +6523,7 @@ class DesktopFrameTK(TK.Frame):
     # -------------------------------------------------- updateAllCurvesZoneName
     def updateAllCurvesZoneName(self,oldZoneName,newZoneName):
         for graph in self.graphWdwL:
-            for ax_name in graph.fig.subGraph.keys():
+            for ax_name in graph.fig.subGraph:
                 graph.updateCurvesZoneName(ax_name,oldZoneName,newZoneName)
 
     # -------------------------------------------------------------- replaceData
@@ -6540,9 +6540,9 @@ class DesktopFrameTK(TK.Frame):
             self.setDataWithDict(data)
         # Clean curves
         for graph in self.graphWdwL:
-            for ax_name in graph.fig.subGraph.keys():
+            for ax_name in graph.fig.subGraph:
                 for zonename in old_zones:
-                    if zonename not in self.data.keys():
+                    if zonename not in self.data:
                         graph.removeCurvesZoneName(ax_name,zonename)
         #
         if self.editCurveWdw  is not None:
@@ -6574,7 +6574,7 @@ class DesktopFrameTK(TK.Frame):
         tmp = {}
         # Check if d structure is 'zone' oriented
         isZoneOriented = True
-        for k in d.keys():
+        for k in d:
             if not isinstance(d[k],dict): # then it is not zone oriented
                 isZoneOriented = False
                 break
@@ -6583,9 +6583,9 @@ class DesktopFrameTK(TK.Frame):
             self.setDataWithDict(tmp)
             return
         # Here the dict of data is zone oriented
-        for k in self.data.keys():
+        for k in self.data:
             tmp[k]=self.data[k]
-        for k in d.keys():
+        for k in d:
             tmp[k]=d[k]
         # Order dict
         self.data = OrderedDict(sorted(tmp.items(),key=lambda t : t[0]))
@@ -6602,7 +6602,7 @@ class DesktopFrameTK(TK.Frame):
                 try:
                     gridcoord = Internal.getNodesFromType2(zone,'GridCoordinates_t')[0]
                     for child in Internal.getChildren(gridcoord):
-                        if not basename+'/'+zonename in tmp.keys():
+                        if not basename+'/'+zonename in tmp:
                             tmp[basename+'/'+zonename]={}
                         tmp[basename+'/'+zonename][Internal.getName(child)]=Internal.getValue(child)
                 except IndexError: # No GridCoordinates node in this zone
@@ -6618,7 +6618,7 @@ class DesktopFrameTK(TK.Frame):
                             bcdata = Internal.getNodesFromType(zoneBC,'BCData_t')[0]
                             for var in Internal.getChildren(bcdata):
                                 if Internal.getType(var) == 'DataArray_t':
-                                    if not basename+'/'+zonename in tmp.keys():
+                                    if not basename+'/'+zonename in tmp:
                                         tmp[basename+'/'+zonename]={}
                                     tmp[basename+'/'+zonename][Internal.getName(var)+'@'+bcname]=Internal.getValue(var)
                         except IndexError:
@@ -6633,7 +6633,7 @@ class DesktopFrameTK(TK.Frame):
                     flowsolutionname = Internal.getName(flowsolution)
                     for var in Internal.getChildren(flowsolution):
                         if Internal.getType(var)=='DataArray_t':
-                            if not basename+'/'+zonename in tmp.keys():
+                            if not basename+'/'+zonename in tmp:
                                 tmp[basename+'/'+zonename]={}
                             tmp[basename+'/'+zonename][Internal.getName(var)+'@'+flowsolutionname]=Internal.getValue(var)
 
@@ -6982,7 +6982,7 @@ class DesktopFrameTK(TK.Frame):
             figure = graph.fig
             # Loop on subgraph
             indsubgraph = 0
-            for k in figure.subGraph.keys():
+            for k in figure.subGraph:
                 indgrid = 0
                 indaxis = 0
                 subgraph = figure.subGraph[k]
@@ -7326,7 +7326,7 @@ class DesktopFrameTK(TK.Frame):
     # ----------------------------------------------------------- updateAllGraph
     def updateAllGraph(self):
         for graph in self.graphWdwL:
-            for ax_name in graph.fig.subGraph.keys():
+            for ax_name in graph.fig.subGraph:
                 graph.updateGraph(ax_name)
         self.addFrameAllMovie()
     # -------------------------------------------------------------- addAllMovie
@@ -7469,7 +7469,7 @@ class Desktop():
                 try:
                     gridcoord = Internal.getNodesFromType2(zone,'GridCoordinates_t')[0]
                     for child in Internal.getChildren(gridcoord):
-                        if not basename+'/'+zonename in self.data.keys():
+                        if not basename+'/'+zonename in self.data:
                             self.data[basename+'/'+zonename]={}
                         self.data[basename+'/'+zonename][Internal.getName(child)]=Internal.getValue(child)
                 except IndexError: # No GridCoordinates node in this zone
@@ -7485,7 +7485,7 @@ class Desktop():
                             bcdata = Internal.getNodesFromType(zoneBC,'BCData_t')[0]
                             for var in Internal.getChildren(bcdata):
                                 if Internal.getType(var) == 'DataArray_t':
-                                    if not basename+'/'+zonename in self.data.keys():
+                                    if not basename+'/'+zonename in self.data:
                                         self.data[basename+'/'+zonename]={}
                                     self.data[basename+'/'+zonename][Internal.getName(var)+'@'+bcname]=Internal.getValue(var)
                         except IndexError:
@@ -7500,12 +7500,12 @@ class Desktop():
                     flowsolutionname = Internal.getName(flowsolution)
                     for var in Internal.getChildren(flowsolution):
                         if Internal.getType(var)=='DataArray_t':
-                            if not basename+'/'+zonename in self.data.keys():
+                            if not basename+'/'+zonename in self.data:
                                 self.data[basename+'/'+zonename]={}
                             self.data[basename+'/'+zonename][Internal.getName(var)+'@'+flowsolutionname]=Internal.getValue(var)
     # ---------------------------------------------------------- addZoneWithDict
     def addZoneWithDict(self,d,zoneName):
-        if zoneName in d.keys():
+        if zoneName in d:
             self.data[zoneName]=d[zoneName]
         else:
             print '''### Can not find zone %s in submitted data.'''%newZoneName
@@ -7514,7 +7514,7 @@ class Desktop():
         """
         Simply delete data from a given zone and base to the set of data from the Desktop object.
         """
-        for k in self.data.keys():
+        for k in self.data:
             re_str = oldBaseName+zoneName.replace('\\','\\\\') # replace \ by \\ for regular expression conversion
             if re.match(re_str,k):
                 del self.data[k]
@@ -7531,7 +7531,7 @@ class Desktop():
             tmp = {}
             # Check if d structure is 'zone' oriented
             isZoneOriented = True
-            for k in data.keys():
+            for k in data:
                 if not isinstance(data[k],dict): # then it is not zone oriented
                     isZoneOriented = False
                     break
@@ -7571,7 +7571,7 @@ class Desktop():
                 try:
                     gridcoord = Internal.getNodesFromType1(zone,'GridCoordinates_t')[0]
                     for child in Internal.getChildren(gridcoord):
-                        if not basename+'/'+zonename in tmp.keys():
+                        if not basename+'/'+zonename in tmp:
                             tmp[basename+'/'+zonename]={}
                         tmp[basename+'/'+zonename][Internal.getName(child)]=Internal.getValue(child)
                         newZoneList.append(basename+'/'+zonename)
@@ -7588,7 +7588,7 @@ class Desktop():
                             bcdata = Internal.getNodesFromType(zoneBC,'BCData_t')[0]
                             for var in Internal.getChildren(bcdata):
                                 if Internal.getType(var) == 'DataArray_t':
-                                    if not basename+'/'+zonename in tmp.keys():
+                                    if not basename+'/'+zonename in tmp:
                                         tmp[basename+'/'+zonename]={}
                                     tmp[basename+'/'+zonename][Internal.getName(var)+'@'+bcname]=Internal.getValue(var)
                                     newZoneList.append(basename+'/'+zonename)
@@ -7604,7 +7604,7 @@ class Desktop():
                     flowsolutionname = Internal.getName(flowsolution)
                     for var in Internal.getChildren(flowsolution):
                         if Internal.getType(var)=='DataArray_t':
-                            if not basename+'/'+zonename in tmp.keys():
+                            if not basename+'/'+zonename in tmp:
                                 tmp[basename+'/'+zonename]={}
                             tmp[basename+'/'+zonename][Internal.getName(var)+'@'+flowsolutionname]=Internal.getValue(var)
                             newZoneList.append(basename+'/'+zonename)
@@ -7616,7 +7616,7 @@ class Desktop():
     def replaceGroupZonesWithDict(self,d,oldZoneList):
         # Add new data and determine the list of new zones
         newZoneList = []
-        for zoneName in d.keys():
+        for zoneName in d:
             newZoneList.append(zoneName)
             self.addZoneWithDict(d,zoneName)
         # Get the curves that are concerned by a group of old zones and change it to the group of new zones
@@ -7633,12 +7633,12 @@ class Desktop():
     # -------------------------------------------------------------- deleteZoneInCurve
     def deleteZoneInCurve(self,zoneName):
         for graph in self.graphWdwL:
-            for ax_name in graph.fig.subGraph.keys():
+            for ax_name in graph.fig.subGraph:
                 graph.deleteZoneInCurve(ax_name,zoneName)
     # -------------------------------------------------------------- updateGroupCurves
     def updateGroupCurves(self,oldZoneList,newZoneList):
         for graph in self.graphWdwL:
-            for ax_name in graph.fig.subGraph.keys():
+            for ax_name in graph.fig.subGraph:
                 graph.updateGroupCurvesZoneName(ax_name,oldZoneList,newZoneList)
     # -------------------------------------------------------------- replaceZone
     def replaceZone(self,data,oldZoneName,newZoneName,oldBaseName="",newBaseName=""):
@@ -7677,7 +7677,7 @@ class Desktop():
     # -------------------------------------------------- updateAllCurvesZoneName
     def updateAllCurvesZoneName(self,oldZoneName,newZoneName):
         for graph in self.graphWdwL:
-            for ax_name in graph.fig.subGraph.keys():
+            for ax_name in graph.fig.subGraph:
                 graph.updateCurvesZoneName(ax_name,oldZoneName,newZoneName)
 
 #    # ------------------------------------------------------------------ setData
@@ -7706,9 +7706,9 @@ class Desktop():
             self.setDataWithDict(data)
         # Clean curves
         for graph in self.graphWdwL:
-            for ax_name in graph.fig.subGraph.keys():
+            for ax_name in graph.fig.subGraph:
                 for zonename in old_zones:
-                    if zonename not in self.data.keys():
+                    if zonename not in self.data:
                         graph.removeCurvesZoneName(ax_name,zonename)
         #
         if self.editCurveWdw  is not None:
@@ -7720,7 +7720,7 @@ class Desktop():
         tmp = {}
         # Check if d structure is 'zone' oriented
         isZoneOriented = True
-        for k in d.keys():
+        for k in d:
             if not isinstance(d[k],dict): # then it is not zone oriented
                 isZoneOriented = False
                 break
@@ -7729,9 +7729,9 @@ class Desktop():
             self.setDataWithDict(tmp)
             return
         # Here the dict of data is zone oriented
-        for k in self.data.keys():
+        for k in self.data:
             tmp[k]=self.data[k]
-        for k in d.keys():
+        for k in d:
             tmp[k]=d[k]
         # Order dict
         self.data = OrderedDict(sorted(tmp.items(),key=lambda t : t[0]))
@@ -7750,7 +7750,7 @@ class Desktop():
                 try:
                     gridcoord = Internal.getNodesFromType1(zone,'GridCoordinates_t')[0]
                     for child in Internal.getChildren(gridcoord):
-                        if not basename+'/'+zonename in tmp.keys():
+                        if not basename+'/'+zonename in tmp:
                             tmp[basename+'/'+zonename]={}
                         tmp[basename+'/'+zonename][Internal.getName(child)]=Internal.getValue(child)
                 except IndexError: # No GridCoorinates node in this zone
@@ -7766,7 +7766,7 @@ class Desktop():
                             bcdata = Internal.getNodesFromType(zoneBC,'BCData_t')[0]
                             for var in Internal.getChildren(bcdata):
                                 if Internal.getType(var) == 'DataArray_t':
-                                    if not basename+'/'+zonename in tmp.keys():
+                                    if not basename+'/'+zonename in tmp:
                                         tmp[basename+'/'+zonename]={}
                                     tmp[basename+'/'+zonename][Internal.getName(var)+'@'+bcname]=Internal.getValue(var)
                         except IndexError:
@@ -7781,7 +7781,7 @@ class Desktop():
                     flowsolutionname = Internal.getName(flowsolution)
                     for var in Internal.getChildren(flowsolution):
                         if Internal.getType(var)=='DataArray_t':
-                            if not basename+'/'+zonename in tmp.keys():
+                            if not basename+'/'+zonename in tmp:
                                 tmp[basename+'/'+zonename]={}
                             tmp[basename+'/'+zonename][Internal.getName(var)+'@'+flowsolutionname]=Internal.getValue(var)
 
@@ -7841,7 +7841,7 @@ class Desktop():
             figure = graph.fig
             # Loop on subgraph
             indsubgraph = 0
-            for k in figure.subGraph.keys():
+            for k in figure.subGraph:
                 indgrid = 0
                 indaxis = 0
                 subgraph = figure.subGraph[k]
@@ -8012,7 +8012,7 @@ class Desktop():
     # ----------------------------------------------------------- updateAllGraph
     def updateAllGraph(self):
         for graph in self.graphWdwL:
-            for ax_name in graph.fig.subGraph.keys():
+            for ax_name in graph.fig.subGraph:
                 graph.updateGraph(ax_name)
         self.addFrameAllMovie()
     # -------------------------------------------------------------- addAllMovie
@@ -8089,7 +8089,7 @@ class MatplotlibFigure():
             self.movie = None
     # --------------------------------------------------------------- drawFigure
     def drawFigure(self):
-        for iCurSubGraph in self.subGraph.keys():
+        for iCurSubGraph in self.subGraph:
             self.drawOneFigure(iCurSubGraph)
     # ------------------------------------------------------removeCurvesZoneName
     def removeCurvesZoneName(self,ax_name,zonename):
@@ -8385,14 +8385,14 @@ class MatplotlibFigure():
             ## Hide axis
             if not self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].x.axis_visible:
                 self.subGraph[iCurSubGraph].axis[iCurrentAxis].get_xaxis().set_visible(False)
-                for loc in spines.keys():
+                for loc in spines:
                     if loc in ['top','bottom']:
                         spines[loc].set_visible(False)
             else:
                 self.subGraph[iCurSubGraph].axis[iCurrentAxis].get_xaxis().set_visible(True)
             if not self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].y.axis_visible:
                 self.subGraph[iCurSubGraph].axis[iCurrentAxis].get_yaxis().set_visible(False)
-                for loc in spines.keys():
+                for loc in spines:
                     if loc in ['left','right']:
                         spines[loc].set_visible(False)
             else:

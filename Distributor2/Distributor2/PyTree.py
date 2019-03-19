@@ -73,7 +73,7 @@ def _distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='all',
         zoneNames.append(zname)
         aset.append(prescribed.get(zname,-1))
 
-        if zname in weight.keys(): weightlist.append(weight[zname])
+        if zname in weight: weightlist.append(weight[zname])
         else: weightlist.append(1)
 
         a = C.getFields(Internal.__GridCoordinates__, z, api=2)

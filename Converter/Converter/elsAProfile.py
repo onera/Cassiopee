@@ -280,7 +280,7 @@ def addPeriodicDataInSolverParam(a, rotationCenter=[0.,0.,0.],
 def getCGNSkeys(key, verbose=True):
     """Return the CGNS name (if it exists) corresponding to the elsA key.
     Usage: getCGNSkeys(key, verbose=True)"""
-    if key in keyselsA2CGNS.keys(): return keyselsA2CGNS[key]
+    if key in keyselsA2CGNS: return keyselsA2CGNS[key]
     elif key in keyselsA2CGNS.values(): return key
     else:
         if verbose: print('Warning: getCGNSkeys: the given key %s cannot be translated in a CGNS key.'%key)
@@ -838,7 +838,7 @@ def _fillNeighbourList(t, sameBase=0):
           dnrListNL = ""
           listOfDnrBasesNob = []
           for dnrname in donorList.split(' '):
-            if dnrname not in dictOfNozOfZone.keys():
+            if dnrname not in dictOfNozOfZone:
               # c est une famille de zones, la prefixer par sa base
               dnrname2 = dnrname.split('/')
               if len(dnrname2)==1:
@@ -1491,7 +1491,7 @@ def buildGraph__(t):
             path = "%s/%s"%(baseName, familyName)
             Ovlp = Internal.getNodesFromName(families[j],'.Solver#Overlap')
             for k in xrange(len(Ovlp)):
-                if path not in g.keys():
+                if path not in g:
                     g[path] = set()
                 NeighbourList = Internal.getNodesFromName(Ovlp[k], 'NeighbourList')
                 nl = NeighbourList[0][1]

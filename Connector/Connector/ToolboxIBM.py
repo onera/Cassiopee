@@ -867,11 +867,13 @@ def getIBMFront(tc, frontvar, dim, frontType):
     return front
 
 # front of first computed cells - with overlapping
-def getIBMFrontType1(tc,frontvar, dim):
+def getIBMFrontType1(tc, frontvar, dim):
     if dim == 2:
         z0 = Internal.getNodeFromType2(tc, 'Zone_t')
-        zmean = C.getValue(z0, 'CoordinateZ', 0)
-        dz = 2*zmean
+        if z0 is not None:
+            zmean = C.getValue(z0, 'CoordinateZ', 0)
+            dz = 2*zmean
+        else: zmean=0.5; dz = 1.
     else: dz = 0.
     front = []
     for z in Internal.getZones(tc):
@@ -883,7 +885,7 @@ def getIBMFrontType1(tc,frontvar, dim):
                 Internal._rmNodesByName(f,'ID_*')
                 front.append(f)
     C._initVars(front,'{tag}=({cellNChim}>0.5)*({cellNChim}<1.5)')
-    front = P.selectCells2(front,'tag',strict=1)
+    front = P.selectCells2(front, 'tag', strict=1)
     Internal._rmNodesByName(front,Internal.__FlowSolutionNodes__)
     Internal._rmNodesByName(front,Internal.__FlowSolutionCenters__)
     if dim == 2:
@@ -1115,7 +1117,7 @@ def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None,
                         tc[2][nobd][2][nozd] = dnrZones[nod]
 
         if dictOfADT is not None: 
-            for dnrname in dictOfADT.keys(): C.freeHook(dictOfADT[dnrname])
+            for dnrname in dictOfADT: C.freeHook(dictOfADT[dnrname])
 
     return tc
 
@@ -1316,7 +1318,7 @@ def doInterp2(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=
         dictOfCorrectedPtsByIBCType = res[0]
         dictOfWallPtsByIBCType = res[1] 
         dictOfInterpPtsByIBCType = res[2]
-        for ibcTypeL in  dictOfCorrectedPtsByIBCType.keys():
+        for ibcTypeL in  dictOfCorrectedPtsByIBCType:
             allCorrectedPts = dictOfCorrectedPtsByIBCType[ibcTypeL]
             allWallPts = dictOfWallPtsByIBCType[ibcTypeL]
             allInterpPts = dictOfInterpPtsByIBCType[ibcTypeL]
@@ -1399,7 +1401,7 @@ def doInterp2(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=
 
 
 
-        for dnrname in dictOfADT.keys(): C.freeHook(dictOfADT[dnrname])
+        for dnrname in dictOfADT: C.freeHook(dictOfADT[dnrname])
     return tc
 
 
@@ -1549,7 +1551,7 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interp='all', 
         tc = doInterp(t, tc, tbb, tb=None, typeI='ID', dim=dimPb, 
                       interpDataType=interpDataType, dictOfADT=dictOfADT)
         if dictOfADT is not None:
-            for dnrname in dictOfADT.keys(): C.freeHook(dictOfADT[dnrname])
+            for dnrname in dictOfADT: C.freeHook(dictOfADT[dnrname])
 
 
     elif interpI == 3: # maillage mobile : on n interpole pas les blocs externes ici
@@ -1569,7 +1571,7 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interp='all', 
         tc = doInterp(t, tc, tbb, tb=None, typeI='ID', dim=dimPb, 
                       interpDataType=interpDataType, dictOfADT=dictOfADT)
         if dictOfADT is not None:
-            for dnrname in dictOfADT.keys(): C.freeHook(dictOfADT[dnrname])
+            for dnrname in dictOfADT: C.freeHook(dictOfADT[dnrname])
 
     # setIBCData - IBC
     C._initVars(t,'{centers:cellNIBCDnr}=minimum(2.,abs({centers:cellNIBC}))')
@@ -1786,7 +1788,7 @@ def prepareIBMData2(t, tbody, DEPTH=2, loc='centers', frontType=0, interp='all',
         print 'Interpolations Chimere'
         tc = doInterp2(t, tc, tbb, tb=None, typeI='ID', dim=dimPb, 
                       dictOfADT=dictOfADT)
-        for dnrname in dictOfADT.keys(): C.freeHook(dictOfADT[dnrname])
+        for dnrname in dictOfADT: C.freeHook(dictOfADT[dnrname])
 
     elif interpI == 3: # maillage mobile : on n interpole pas les blocs externes ici
         for z in Internal.getZones(t):
@@ -1802,7 +1804,7 @@ def prepareIBMData2(t, tbody, DEPTH=2, loc='centers', frontType=0, interp='all',
         print 'Interpolations Chimere'
         tc = doInterp(t, tc, tbb, tb=None, typeI='ID', dim=dimPb, 
                       dictOfADT=dictOfADT)
-        for dnrname in dictOfADT.keys(): C.freeHook(dictOfADT[dnrname])
+        for dnrname in dictOfADT: C.freeHook(dictOfADT[dnrname])
 
     # setIBCData - IBC
     C._initVars(t,'centers:cellNIBCDnr=minimum(2.,abs({centers:cellNIBC}))')

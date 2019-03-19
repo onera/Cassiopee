@@ -319,7 +319,7 @@ def submitKey(event=None):
     fail = False
     try:
         f = open(path+'/.CassiopeeKey', 'w')
-        for k in d.keys():
+        for k in d:
             f.write(k+':'+d[k]+'\n')
         f.close()
         CTK.TXT.insert('START', 'Key submitted.\n')
@@ -340,7 +340,7 @@ def submitKey(event=None):
     d[name] = key
     try:
         f = open(path+'/.CassiopeeKey', 'w')
-        for k in d.keys():
+        for k in d:
             f.write(k+':'+d[k]+'\n')
         f.close()
         CTK.TXT.insert('START', 'Key submitted.\n')

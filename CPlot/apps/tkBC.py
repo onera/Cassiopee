@@ -69,7 +69,7 @@ def getAllDefinedBC(t):
             if Internal.getValue(r) == 'Overset': results.add('BCOverlap')
 
     # FamilyBC
-    for i in FamilyBC.keys(): results.add(i)
+    for i in FamilyBC: results.add(i)
     return list(results)
 
 #==============================================================================
