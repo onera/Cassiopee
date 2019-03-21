@@ -34,7 +34,7 @@ using namespace K_FLD;
 #define BLOCK3\
   BLOCK2; \
   for (E_Int v2 =0; v2 < pyEXIndir.size(); v2++)\
-    RELEASESHAREDN(pyEXIndir[v2], FldEXIndir[v2]);\    
+    RELEASESHAREDN(pyEXIndir[v2], FldEXIndir[v2]);\
 
 # define BLOCK4 \
   BLOCK3; \

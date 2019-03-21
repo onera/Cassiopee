@@ -1429,7 +1429,7 @@ public:
       lpgs.clear();
       lpgs.resize(stride);
       oids.resize(stride);
-      for (size_t n=0; n < stride; ++n){
+      for (E_Int n=0; n < stride; ++n){
         lpgs[n]=n; oids[n]=nodes[n]-1;
         acrd.getEntry(nodes[n]-1, Pt);
         crd.pushBack(Pt, Pt+3);

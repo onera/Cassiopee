@@ -94,14 +94,14 @@ PyObject* K_CONNECTOR::_blankClosestTargetCells(PyObject* self, PyObject* args)
   E_Float* xp = fields[posx];
   E_Float DX = xp[1]-xp[0];//resolution du maillage cartesien
   E_Float distmax = DX*2.505;//
-  E_Float distmin = DX*0.495;//
+  //E_Float distmin = DX*0.495;//
 
   E_Float* cellNp = fields[posc];
   E_Float* distp = fields[posd];
   
   E_Int imc = ni-1; E_Int jmc = nj-1; E_Int kmc = nk-1;
   E_Int imcjmc = imc*jmc;
-  E_Int imcjmckmc = imcjmc*kmc;
+  //E_Int imcjmckmc = imcjmc*kmc;
   E_Int ncells = imc*jmc*kmc;
   FldArrayI tag(ncells); tag.setAllValuesAtNull();
   E_Int* tagp = tag.begin();
