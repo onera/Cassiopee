@@ -386,7 +386,7 @@ def show():
 def moveCamera(posCams, posEyes=None, dirCams=None, moveEye=False, N=100, speed=1., pos=-1):
     """Move posCam and posEye following check points."""
     # Set d, array of posCams and N nbre of points
-    import KCore; import Geom
+    import KCore; import Geom; import KCore.Vector as Vector
     if len(posCams) == 5 and isinstance(posCams[0], str): # input struct array
       N = posCams[2]
       d = posCams
@@ -395,9 +395,24 @@ def moveCamera(posCams, posEyes=None, dirCams=None, moveEye=False, N=100, speed=
       else: pinc = None
     else: # list
       N = max(N, 3)
-      p = Geom.polyline(posCams)
-      if len(posCams) == 2: d = Geom.spline(p, 2, N)
-      else: d = Geom.spline(p, 3, N)
+      Np = len(posCams)
+      pOut = []
+      P0 = posCams[0]
+      pOut.append(P0)
+      for i in xrange(1,Np):
+        P1 = posCams[i]
+        sub = Vector.sub(P1,P0)
+        if Vector.norm(sub)>1.e-10:
+            pOut.append(P1)
+        P0 = P1
+      if len(pOut) == 1:
+        d = Geom.polyline(pOut*N)
+      elif len(pOut) == 2:
+        p = Geom.polyline(pOut)
+        d = Geom.spline(p, 2, N)
+      else:
+        p = Geom.polyline(pOut) 
+        d = Geom.spline(p, 3, N)
       pinc = None
 
     # Set e, array of posEye of N pts
@@ -410,9 +425,24 @@ def moveCamera(posCams, posEyes=None, dirCams=None, moveEye=False, N=100, speed=
           posEyes = Generator.map(posEyes, dis, 1)
         e = posEyes
       else: # list
-        p = Geom.polyline(posEyes)
-        if len(posEyes) == 2: e = Geom.spline(p, 2, N)
-        else: e = Geom.spline(p, 3, N)
+        Np = len(posEyes)
+        pOut = []
+        P0 = posEyes[0]
+        pOut.append(P0)
+        for i in xrange(1,Np):
+            P1 = posEyes[i]
+            sub = Vector.sub(P1,P0)
+            if Vector.norm(sub)>1.e-10:
+                pOut.append(P1)
+            P0 = P1
+        if len(pOut) == 1:
+            e = Geom.polyline(pOut*N)
+        elif len(pOut) == 2:
+            p = Geom.polyline(pOut)
+            e = Geom.spline(p, 2, N)
+        else:
+            p = Geom.polyline(pOut)
+            e = Geom.spline(p, 3, N)
     else: e = None
 
     # Set dc, array of dirCams of N pts

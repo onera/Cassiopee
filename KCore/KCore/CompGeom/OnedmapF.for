@@ -89,8 +89,8 @@ C_LOCAL
 	big = 1.e+15
 
 C       Parametrisation	de la ligne entrante
-        CALL  k6slopebar(small, big, npts, x, y, z, net, cn1, cn2,
-     &                   dx, dy, dz)
+        CALL k6slopebar(small, big, npts, x, y, z, net, cn1, cn2,
+     &                  dx, dy, dz)
 
         CALL k6parambar(stota, small, npts, x, y, z, net, cn1, cn2, 
      &                  dx, dy, dz, s)

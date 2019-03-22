@@ -56,7 +56,7 @@ def spline(Pts, order=3, N=100, M=100, density=-1):
     return geom.spline(Pts, order, N, order, M, density)
 
 def nurbs(Pts, weight='weight', order=3, N=100, M=100, density=-1):
-    """Create a nurbs of N points. 
+    """Create a nurbs of N points.
     Usage: a = nurbs(ctrlsPts, order, N)"""
     try:
         import Converter

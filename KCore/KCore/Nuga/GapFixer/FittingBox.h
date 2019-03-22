@@ -36,7 +36,7 @@ public:
   /** and optimizing the view over the contour */
   static E_Int computeOptimalViewFrame(const K_FLD::FloatArray& pos, const K_FLD::IntArray& connect, K_FLD::FloatArray& F);
   /// Transforms points coordinates in pos by applyinf the F transformation matrix.
-  static void transform (K_FLD::FloatArray& pos, const K_FLD::FloatArray& F);
+  static void transform(K_FLD::FloatArray& pos, const K_FLD::FloatArray& F);
 
 private:
   FittingBox(void){}

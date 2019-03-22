@@ -176,7 +176,7 @@ def getIntersectingDomains(t, t2=None, method='AABB', taabb=None, tobb=None,
         print('Warning getIntersectingDomains: method',method,'not implemented. Switched to AABB.')
         return getIntersectingDomains(t, method='AABB', taabb=taabb, tobb=tobb)
 
-    print('Total zone/zone intersections: %d.'%TotInter)
+    #print('Total zone/zone intersections: %d.'%TotInter)
     return IntDict
 #------------------------------------------------------------------------------
 def getCEBBIntersectingDomains(basis0, bases0, sameBase=0):

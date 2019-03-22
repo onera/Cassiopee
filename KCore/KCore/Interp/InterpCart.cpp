@@ -54,7 +54,7 @@ K_INTERP::InterpCart::InterpCart(E_Int ni, E_Int nj, E_Int nk,
 }
 
 //=============================================================================
-/* 2nd order interpolation - (ic,jc,kc) demarre a 1 - type O2CF*/
+/* 2nd order interpolation - (ic,jc,kc) demarre a 1 - type O2CF */
 //=============================================================================
 short K_INTERP::InterpCart::searchInterpolationCellCartO2(E_Float x, E_Float y, E_Float z,
                                                           E_Int& ic, E_Int& jc, E_Int& kc,
@@ -322,8 +322,8 @@ E_Int K_INTERP::InterpCart::getListOfCandidateCells(E_Float x, E_Float y, E_Floa
   if (z > _zmax + dz) return 0;
 
   E_Float x0 = x-dx; E_Float x1 = x+dx;
-  E_Float y0 = y-dy; E_Float y1 = x+dx;
-  E_Float z0 = z-dz; E_Float z1 = x+dx;
+  E_Float y0 = y-dy; E_Float y1 = y+dy;
+  E_Float z0 = z-dz; E_Float z1 = z+dz;
 
   E_Int icmin = E_Int((x0-_xmin)*_hii)+1;
   E_Int jcmin = E_Int((y0-_ymin)*_hji)+1;
