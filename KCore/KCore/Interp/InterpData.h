@@ -136,7 +136,7 @@ public:
 
 
   public:
-  E_Int _topology;//0 : cart, 1 : struct, 2 : non struct
+  E_Int _topology; //0 : cart, 1 : struct, 2 : non struct
   const E_Float _EPS_DET;    // EPS for determinant in tetrahedra inversion
   const E_Float _EPS_TETRA;  // EPS for tetrahedra belonging test
   const E_Float _EPS_GEOM;   // EPS for Geometric intersection

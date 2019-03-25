@@ -405,8 +405,8 @@ elif [ "$MAC" == "spiro" ]; then
 elif [ "$MAC" == "sator" ]; then
 #----------------------------- sator -----------------------------------------
     export ELSAPROD=sat_r8
-    echo "elsaProd=" $ELSAPROD
-    echo "pour compil skylake, export MACHINE=sator_sky, puis sourcer sh_Cassiopee_r8" 
+    echo "ELSAPROD=" $ELSAPROD
+    echo "pour compiler sur skylake, export MACHINE=sator_sky, puis sourcer sh_Cassiopee_r8" 
 
     # Nbre de threads
     export KMP_AFFINITY="compact,1,0,granularity=fine,verbose"

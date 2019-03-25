@@ -22,7 +22,7 @@
 using namespace std;
 //using namespace K_FLD;
 
-#define TOLCELLN = 1.e-2;
+//#define TOLCELLN = 1.e-2;
 
 //=============================================================================
 /* Destructor */
@@ -95,7 +95,7 @@ short K_INTERP::InterpCart::searchInterpolationCellCartO2(E_Float x, E_Float y, 
   cfp[2] = t1*x2t3;
   cfp[3] = x1*x2t3;
 
-  if ( _nk <=2 && K_FUNC::E_abs(_zmax-_zmin)<EPS)
+  if (_nk <=2 && K_FUNC::E_abs(_zmax-_zmin)<EPS)
   {
     cfp[4]=0.; cf[5] = 0.; cfp[6] = 0.; cfp[7] = 0.;
   }
@@ -311,9 +311,13 @@ E_Int K_INTERP::InterpCart::getListOfCandidateCells(E_Float x, E_Float y, E_Floa
                                                     list<E_Int>& listIndices, 
                                                     E_Float alphaTol)
 {
-  E_Float dx = 0.1*alphaTol*(_xmax-_xmin);
-  E_Float dy = 0.1*alphaTol*(_ymax-_ymin);
-  E_Float dz = 0.1*alphaTol*(_zmax-_zmin);
+  //E_Float dx = 0.1*alphaTol*(_xmax-_xmin);
+  //E_Float dy = 0.1*alphaTol*(_ymax-_ymin);
+  //E_Float dz = 0.1*alphaTol*(_zmax-_zmin);
+  E_Float dx = 0.1*alphaTol*(_hi);
+  E_Float dy = 0.1*alphaTol*(_hj);
+  E_Float dz = 0.1*alphaTol*(_hk);
+  
   if (x < _xmin - dx) return 0;
   if (y < _ymin - dy) return 0;
   if (z < _zmin - dz) return 0;
@@ -345,7 +349,7 @@ E_Int K_INTERP::InterpCart::getListOfCandidateCells(E_Float x, E_Float y, E_Floa
   jcmin = K_FUNC::E_min(_nj-1,jcmin); jcmin = K_FUNC::E_max(1,jcmin);  
   jcmax = K_FUNC::E_min(_nj-1,jcmax); jcmax = K_FUNC::E_max(1,jcmax); 
   kcmin = K_FUNC::E_min(_nk-1,kcmin); kcmin = K_FUNC::E_max(1,kcmin);  
-  kcmax = K_FUNC::E_min(_nk-1,kcmax); kcmax = K_FUNC::E_max(1,kcmax); 
+  kcmax = K_FUNC::E_min(_nk-1,kcmax); kcmax = K_FUNC::E_max(1,kcmax);
   for (E_Int k = kcmin; k <= kcmax; k++)
     for (E_Int j = jcmin; j <= jcmax; j++)
       for (E_Int i = icmin; i <= icmax; i++)
@@ -353,7 +357,8 @@ E_Int K_INTERP::InterpCart::getListOfCandidateCells(E_Float x, E_Float y, E_Floa
         E_Int ind = (i-1) + (j-1)*_ni + (k-1)*_ni*_nj;
         listIndices.push_back(ind);
       }
-  // max indice 
+  // max indice
+  //printf("size=%d - tol=%f %f %f - alphaTol=%f, xmin=%f, xmax=%f\n", listIndices.size(),dx,dy,dz,alphaTol,_xmin,_xmax); 
   return listIndices.size();
 }
 // ============================================================================
@@ -385,7 +390,7 @@ short K_INTERP::InterpCart::searchExtrapolationCellCart(
   list<E_Int> listOfCandidateCells;
   E_Float alphaTol = K_FUNC::E_max( (2*constraint-5.)*0.1, 0.);
   E_Int found = getListOfCandidateCells(x,y,z,listOfCandidateCells, alphaTol);
-  if ( found == 0) return 0;
+  if (found == 0) return 0;
 
   list<E_Int>::iterator itr;
   E_Float sum_coef;

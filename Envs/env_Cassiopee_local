@@ -438,8 +438,8 @@ else if ($MAC == "sator") then
 #------------------------------- sator --------------------------------------
 # En dernier a cause de 'n'
         setenv ELSAPROD sat_r8
-        echo "elsaProd=" $ELSAPROD
-        echo "pour compil skylake, setenv  MACHINE sator_sky, puis sourcer env_Cassiopee_r8"
+        echo "ELSAPROD="$ELSAPROD
+        echo "pour compiler sur skylake, setenv MACHINE sator_sky, puis sourcer env_Cassiopee_r8"
 
         module unload intel/11.1.073
         module load CFD/4.0-intel-17.impi
