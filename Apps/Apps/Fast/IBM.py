@@ -350,8 +350,8 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., vmin=21, check=False,
         for zdname in interDict[zrname]:
             zd = Internal.getNodeFromName2(tc, zdname)
             dnrZones.append(zd)
-        dnrZones = X.setInterpData(zrcv, dnrZones, nature=1, penalty=1, loc='centers', storage='inverse', 
-                                   sameName=1, interpDataType=0, itype='chimera')
+        X._setInterpData(zrcv, dnrZones, nature=1, penalty=1, loc='centers', storage='inverse', 
+                         sameName=1, interpDataType=0, itype='chimera')
         for zd in dnrZones:
             zdname = zd[0]
             destProc = procDict[zdname]
@@ -611,7 +611,8 @@ def post(t_case, t_in, tc_in, t_out, wall_out, NP=0, format='single'):
 
     RoUInf2I = 1./(RouInf*RouInf+RovInf*RovInf+RowInf*RowInf)
     C._initVars(zw,'{Cp}=2*%f*({Pressure}-%f)*%f'%(RoInf,PInf,RoUInf2I))
-    if model != 'Euler':C._initVars(zw,'{Cf}=2*{Density}*{utau}**2*%f'%RoUInf2I)
+    if model != 'Euler':
+        C._initVars(zw,'{Cf}=2*%f*{Density}*{utau}**2*%f'%(RoInf,RoUInf2I))
 
     Internal._rmNodesByName(zw, '.Solver#Param')
     Internal._rmNodesByName(zw, '.Solver#ownData')

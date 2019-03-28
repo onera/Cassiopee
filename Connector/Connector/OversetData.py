@@ -625,41 +625,56 @@ def setInterpData(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
                   method='lagrangian', loc='nodes', storage='direct',
                   interpDataType=1, hook=None,
                   topTreeRcv=None, topTreeDnr=None, sameName=1, dim=3, itype='both'):
-
-    locR = loc
     aR = Internal.copyRef(tR)
     aD = Internal.copyRef(tD)
+    _setInterpData(aR, aD, double_wall=double_wall, order=order, penalty=penalty, nature=nature,
+                   method=method, loc=loc, storage=storage, interpDataType=interpDataType,
+                   hook=hook, topTreeRcv=topTreeRcv, topTreeDnr=topTreeDnr, sameName=sameName, dim=dim, itype=itype)
+    if storage=='direct': return aR
+    else: return aD
+   
 
+def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
+                   method='lagrangian', loc='nodes', storage='direct',
+                   interpDataType=1, hook=None,
+                   topTreeRcv=None, topTreeDnr=None, sameName=1, dim=3, itype='both'):
+    locR = loc
     # Recherche pour les pts coincidents (base sur les GridConnectivity)
     if itype != 'chimera':
-        if storage == 'direct': aR = setInterpDataForGhostCells__(aR,aD,storage,loc)
+        if storage == 'direct': 
+            _setInterpDataForGhostCells__(aR,aD,storage,loc)
         else: 
-            aD = setInterpDataForGhostCells__(aR,aD,storage,loc)
+            _setInterpDataForGhostCells__(aR,aD,storage,loc)
 
             # Determination du model pour RANS/LES
-            _adaptForRANSLES__(tR, aD)
+            #if itype == 'abutting': # SP : a mettre non ? sinon on le refait 2 fois
+            _adaptForRANSLES__(aR, aD)
 
     # Si pas de cellN receveur, on retourne
     if loc == 'nodes': cellNPresent = C.isNamePresent(aR, 'cellN')
     elif loc=='centers': cellNPresent = C.isNamePresent(aR, 'centers:cellN')
     else: 
         raise ValueError("setInterpData: invalid loc provided.")
-    if cellNPresent == -1 or itype == 'abutting':
-        if storage == 'direct': return aR
-        else: return aD
+    if cellNPresent == -1 or itype == 'abutting': return None
 
     locCellND = 'nodes'
-    aD = addCellN__(aD, loc=locCellND)
+
+    # pour l enlever ensuite si addCellN le cree
+    dictIsCellNPresent={}
+    for zd in Internal.getZones(aD):        
+        dictIsCellNPresent[zd[0]]=C.isNamePresent(zd, 'cellN')
+
+    _addCellN__(aD, loc=locCellND)
 
     if method == 'conservative' and itype != 'abutting':  
         if loc != 'centers':
             raise ValueError("setInterpData: conservative type is available only for loc='centers'.")
-        else: return setInterpDataConservative__(aR, aD, storage=storage)
+        else: return _setInterpDataConservative__(aR, aD, storage=storage)
 
     zonesRcv = Internal.getZones(aR); nzonesRcv = len(zonesRcv)
     zonesDnr = Internal.getZones(aD); nzonesDnr = len(zonesDnr)
 
-    #---------------------------------------------------------------------------
+   #---------------------------------------------------------------------------
     # CAS DOUBLE WALL
     # Extraction des parois de projection issues des zones donneuses
     # Extraction des premiers centres ou premiers noeuds (selon locR) des zones receveuses
@@ -714,11 +729,12 @@ def setInterpData(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
         #         else: interpWallPts.append(DoubleWall.getFirstPointsInfo__(zr, wallRanges,loc='centers'))
         #     else: interpWallPts.append([])
 
-    if noWallsInDnr == 1 or noWallsInRcv == 1: double_wall = 0 # on desactive le double wall
+    if noWallsInDnr == 1 or noWallsInRcv == 1: double_wall = 0 # on desactive le double wall    
     arraysD = C.getFields(Internal.__GridCoordinates__, zonesDnr)
     cellND = C.getField('cellN', zonesDnr)
     arraysD = Converter.addVars([arraysD,cellND])
     cellND = []
+
     #---------------------------------------------------------------------------
     # 1. Extraction des points a interpoler
     #    interpPts : un array si pas de double wall
@@ -868,32 +884,31 @@ def setInterpData(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
                                                   extrapPts, resInterp[5], tag='Donor', loc=locR, EXDir=EXdir)
 
 
-
-
-                        
     if storage != 'direct':
-        _adaptForRANSLES__(tR, aD)
+        _adaptForRANSLES__(aR, aD)
 
     # fin parcours des zones receveuses
-    if storage == 'direct': return aR
+    if storage == 'direct': return None
     else:
-        ztD = Internal.getZones(tD)
-        zaD = Internal.getZones(aD)
-        for i in xrange(len(ztD)): # enleve le cellN is interpData l'a ajoute
-            ret = C.isNamePresent(ztD[i], 'cellN')
-            if ret == -1: C._rmVars(zaD[i],['cellN'])
-        return aD
+        for zd in Internal.getZones(aD):
+            if dictIsCellNPresent[zd[0]]==-1: C._rmVars(zd,['cellN'])
+        return None
+    return None
 
 #-------------------------------------------------------------------------
 # setInterpDataConservative__
 #-------------------------------------------------------------------------
 def setInterpDataConservative__(tR, tD, storage='direct'):
+    aR = Internal.copyRef(tR)
+    aD = Internal.copyRef(tD)
+    _setInterpDataConservative__(aR,aD,storage=storage)
+    if storage=='direct': return aR
+    else: return aD
+
+def _setInterpDataConservative__(aR, aD, storage='direct'):
     try: import Post.PyTree as P; import Generator.PyTree as G
     except: raise ImportError("setInterpDataConservative__: requires Post module.")
     locR = 'centers'
-    aR = Internal.copyRef(tR)
-    aD = Internal.copyRef(tD)
-
     tRBB = G.BB(aR,method='AABB')
     tDBB = G.BB(aD,method='AABB')
     intersectionDict = getIntersectingDomains(aR, aD, method='AABB',taabb=tRBB, taabb2=tDBB)
@@ -974,20 +989,8 @@ def setInterpDataConservative__(tR, tD, storage='direct'):
                                                   extrapPts, orphanPts, tag='Donor', loc=locR, EXDir=EXdir)
 
 
-    if storage != 'direct': _adaptForRANSLES__(tR, aD)
-
-    # fin parcours des zones receveuses
-    if storage == 'direct': return aR
-    else:
-        ztD = Internal.getZones(tD)
-        zaD = Internal.getZones(aD)
-        for i in xrange(len(ztD)): # enleve le cellN is interpData l'a ajoute
-            ret = C.isNamePresent(ztD[i], 'cellN')
-            if ret == -1: C._rmVars(zaD[i],['cellN'])
-        return aD
-
-
-
+    if storage != 'direct': _adaptForRANSLES__(aR, aD)
+    return None
 
 #============================================================================================================
 #============================================================================================================
@@ -1647,6 +1650,16 @@ def getTransfo(zdonor,zrcv):
 # OUT: t: with interpolation data stored in ZoneSubRegion_t nodes of name 'ID*'
 #===============================================================================
 def setInterpDataForGhostCells__(tR, tD, storage='direct', loc='nodes'):
+    
+    aR = Internal.copyRef(tR)
+    aD = Internal.copyRef(tD)
+    _setInterpDataForGhostCells__(aR, aD, storage=storage, loc=loc)
+
+    if storage=='direct': return aR
+    else: return aD
+
+def _setInterpDataForGhostCells__(aR, aD, storage='direct',loc="nodes"):
+
     try: import Converter.GhostCells as GhostCells
     except: raise ImportError("setInterpDataForGhostCells__ requires Converter.GhostCells module.")
     # empty numpy arrays for zonesubregion nodes
@@ -1658,8 +1671,6 @@ def setInterpDataForGhostCells__(tR, tD, storage='direct', loc='nodes'):
     if loc == 'nodes': locR = 0; locS = 'Vertex'
     else: locR = 1; locS = 'CellCenter'
 
-    aR = Internal.copyRef(tR)
-    aD = Internal.copyRef(tD)
     for zp in Internal.getZones(aR):
         zname = zp[0]
         zoneDimR = Internal.getZoneDim(zp)
@@ -1806,16 +1817,15 @@ def setInterpDataForGhostCells__(tR, tD, storage='direct', loc='nodes'):
                         _createInterpRegion__(zdonorp, zname, res[1], res[0], res[3], res[2], vols, indicesExtrap,\
                                               indicesOrphan, tag = 'Donor',loc=loc,EXDir=EXdir,itype='abutting',\
                                               prefix=prefix,RotationAngle=RotationAngle, RotationCenter=RotationCenter)
-    if storage == 'direct': return aR
-    else: return aD
-
+    return None
+    
 # Adapt aD pour RANS/LES
-def _adaptForRANSLES__(tR, aD):
+def _adaptForRANSLES__(tR, tD):
     zrdict = {}
     zones = Internal.getNodesFromType2(tR, 'Zone_t')
     for z in zones: zrdict[z[0]] = z
 
-    zonesD = Internal.getNodesFromType2(aD, 'Zone_t')
+    zonesD = Internal.getNodesFromType2(tD, 'Zone_t')
     for zd in zonesD:
         subRegions = Internal.getNodesFromType1(zd, 'ZoneSubRegion_t')
         for s in subRegions:

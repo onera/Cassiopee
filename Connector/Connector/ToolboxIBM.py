@@ -187,7 +187,6 @@ def octree2StructLoc__(o, vmin=21, ext=0, optimized=0, merged=0, sizeMax=4e6, li
     elif dim[3] == 'HEXA': dimPb = 3
 
     if ext == 1: ext = 2
-
     a = C.getFields(Internal.__GridCoordinates__, o)[0]
     zones = Generator.generator.octree2Struct(a, [vmin])
     c = 1
@@ -822,7 +821,7 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None,
 #=============================================================================
 def getIBMFront(tc, frontvar, dim, frontType):
 
-    if frontType == 1: front = getIBMFrontType1(tc,frontvar,dim)
+    if frontType >0 : front = getIBMFrontType1(tc,frontvar,dim)
     else: front = getIBMFrontType0(tc,frontvar,dim)
     front = C.deleteEmptyZones(front)
     Internal._rmNodesFromName(front,"ID_*")
@@ -1022,11 +1021,9 @@ def gatherFront(front):
 def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None, 
              frontType=0, depth=2, IBCType=1, interpDataType=1):    
     ReferenceState = Internal.getNodeFromType2(t, 'ReferenceState_t')
-
     if typeI == 'ID':
         # toutes les zones sont interpolables en Chimere
         intersectionsDict = X.getIntersectingDomains(tbb, method='AABB', taabb=tbb)
-
         rcvZones = []
         for zrcv in Internal.getZones(t):
             if C.getMaxValue(zrcv,'centers:cellN')==2.:
@@ -1052,8 +1049,8 @@ def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None,
                                     hook0.append(dictOfADT[zdnrname])
             if interpDataType == 0: hook0 = None
 
-            dnrZones = X.setInterpData(zrcv, dnrZones, nature=1,penalty=1,loc='centers',storage='inverse',sameName=1,\
-                                       interpDataType=interpDataType, itype='chimera')
+            X._setInterpData(zrcv, dnrZones, nature=1,penalty=1,loc='centers',storage='inverse',sameName=1,\
+                             interpDataType=interpDataType, itype='chimera')
             for nod in xrange(len(dnrZones)):
                 nobd = nobOfDnrBases[nod]
                 nozd = nobOfDnrZones[nod]

@@ -80,7 +80,7 @@ def _setInterpTransfers(aR, aD, variables=[], cellNVariable='',
                 #print 'direct', Cmpi.rank, rcvName
                 if field != []:
                     listIndices = n[2]
-                    z = Internal.getNodesFromName2(aR, rcvName)[0]
+                    z = Internal.getNodeFromName2(aR, rcvName)
                     C._setPartialFields(z, [field], [listIndices], loc=n[3])
             else:
                 rcvNode = procDict[rcvName]
@@ -100,7 +100,7 @@ def _setInterpTransfers(aR, aD, variables=[], cellNVariable='',
             field = n[1]
             if field != []:
                 listIndices = n[2]
-                z = Internal.getNodesFromName2(aR, rcvName)[0]
+                z = Internal.getNodeFromName2(aR, rcvName)
                 C._setPartialFields(z, [field], [listIndices], loc=n[3])
     return None
 

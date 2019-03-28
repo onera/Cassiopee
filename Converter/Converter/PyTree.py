@@ -3988,15 +3988,14 @@ def pushBC(t1, t2, type='F', tol=1.e-12, overwriteBC=True):
   return t2p
 
 def identifyBC(t, infos, tol=1.e-12):
+  if infos == []: return t
   try: import Post.PyTree as P
   except: raise ImportError("identifyBC: requires Post.PyTree module.")
-  if infos == []: return t
   allWins = []
   for info in infos: allWins.append(Converter.node2Center(info[3]))
   # Creation d'un hook global a partir de toutes les fenetres
   indirWins = [] # permet d'identifier la fenetre a laquelle se rapporte un pt du hook
-  globalHook, indirWins = Converter.createGlobalHook(allWins, 'nodes',
-                                                     indir=1)
+  globalHook, indirWins = Converter.createGlobalHook(allWins, 'nodes', indir=1)
   # Identify and gather...
   tpp,typen = Internal.node2PyTree(t)
   for nob in xrange(len(tpp[2])):
@@ -4049,7 +4048,7 @@ def identifyBC(t, infos, tol=1.e-12):
                       nor += 1
 
                       # addBC
-                      z = addBC2Zone(z,bcname,bctype,[istart,iend,jstart,jend,kstart,kend],data=bcdata)
+                      _addBC2Zone(z,bcname,bctype,[istart,iend,jstart,jend,kstart,kend],data=bcdata)
                       tpp[2][nob][2][noz] = z
   Converter.freeHook(globalHook)
   tp = Internal.pyTree2Node(tpp, typen)

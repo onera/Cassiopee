@@ -57,5 +57,5 @@ t,tc=IBM.prepareIBMData(t,tb,DEPTH=2,frontType=1)
 test.testT(tc,22)
 #
 C._initVars(t,'centers:cellN',1.)
-t,tc=IBM.prepareIBMData(t,tb,DEPTH=2,frontType=2)
+t,tc=IBM.prepareIBMData(t,tb,DEPTH=2,frontType=2, interpDataType=1)
 test.testT(tc,23)

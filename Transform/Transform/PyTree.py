@@ -257,13 +257,12 @@ def mergeCart(t, sizeMax=1000000000, tol=1.e-10):
     """Merge Cartesian grids defined as a list of zones using Rigby algorithm.
     Usage: mergeCart(t, sizeMax, tol)"""
     allBCInfos = C.extractBCInfo(t)
-    A = C.getAllFields(t, 'nodes')
+    A = C.getAllFields(t, 'nodes',api=2)
     A = Transform.mergeCart(A, sizeMax, tol)
-    zones = []
-    for i in A:
-        zones.append(C.convertArrays2ZoneNode('Cart',[i]))
-    zones = C.identifyBC(zones, allBCInfos)
-    return zones
+    for noz in xrange(len(A)):
+        A[noz] = C.convertArrays2ZoneNode('Cart',[A[noz]])
+    A = C.identifyBC(A, allBCInfos)
+    return A
 
 def patch(t1, t2, position=None, nodes=None):
     """Patch mesh2 defined by t2 in mesh1 defined by t1
