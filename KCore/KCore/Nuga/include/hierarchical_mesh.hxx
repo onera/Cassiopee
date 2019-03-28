@@ -28,78 +28,98 @@ using NGDBG = NGON_debug<K_FLD::FloatArray,K_FLD::IntArray>;
 
 namespace NUGA
 {
+  
+  enum eSUBDIV_TYPE { ISO, ANISO};
 
-template <typename ELT_t>
-class tree_trait;
-
-template<>
-class tree_trait<K_MESH::Hexahedron>
+// general case : varying number of children, varying type of children
+// HYBRID (ISO OR ANISO), 
+template <typename ELT_t, eSUBDIV_TYPE STYPE> 
+class hmesh_trait
 {
   public:
-  using arr_type = K_FLD::IntArray;
-  using face_type = K_MESH::Quadrangle;
+    using arr_type = ngon_unit; 
+    
+    static const E_Int PHNBC = -1;
+    static const E_Int PGNBC = -1;
 };
 
-template<>
-class tree_trait<K_MESH::Polyhedron<UNKNOWN> >
+// isotropic HEXA subdivision => 8 HEXA children => fixed stride array
+template <> 
+class hmesh_trait<K_MESH::Hexahedron, ISO>
 {
   public:
-  using arr_type = ngon_unit;
-  using face_type = K_MESH::Polygon;
+    using arr_type = K_FLD::IntArray;
+    
+    static const E_Int PHNBC = 8;
+    static const E_Int PGNBC = 4;
+  
+};
+
+// isotropic TETRA subdivision => 8 TETRA children => fixed stride array
+template <> 
+class hmesh_trait<K_MESH::Tetrahedron, ISO>
+{
+  public:
+    using arr_type = K_FLD::IntArray;
+    
+    static const E_Int PHNBC = 8;
+    static const E_Int PGNBC = 4;
 };
 
 
-template <typename ELT_t, typename ngo_t = ngon_type, typename crd_t = K_FLD::FloatArray>
+template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t = ngon_type, typename crd_t = K_FLD::FloatArray>
 class hierarchical_mesh
 {
-  
   public:
-  using elt_type = ELT_t;
-  using arr_t = typename tree_trait<elt_type>::arr_type;
-  using face_t = typename tree_trait<elt_type>::face_type;
-  
-  crd_t&                    _crd;
-  ngo_t&                    _ng;
-  tree<arr_t>               _PGtree, _PHtree;
-  K_FLD::IntArray           _F2E;
-  bool                      _initialized;
 
-  hierarchical_mesh(crd_t& crd, ngo_t & ng):_crd(crd), _ng(ng), _PGtree(ng.PGs, face_t::NB_NODES), _PHtree(ng.PHs, elt_type::NB_NODES), _initialized(false){}
+    using elt_type = ELT_t;
+    using htrait = hmesh_trait<ELT_t, STYPE>;
+    using arr_t = typename htrait::arr_type; //InttArray or ngon_unit
+    
+    crd_t&                    _crd;             // Coordinates
+    ngo_t&                    _ng;              // NGON mesh
+    tree<arr_t>               _PGtree, _PHtree; // Polygons/Polyhedra hierarchy
+    K_FLD::IntArray           _F2E;             // neighborhood data structure : 2 X (nb_pgs) array : for each PG gives the left and right cells ids that share this PG
+    bool                      _initialized;     // flag to avoid initialization more than once.
 
-  E_Int init();
+    ///
+    hierarchical_mesh(crd_t& crd, ngo_t & ng):_crd(crd), _ng(ng), _PGtree(ng.PGs, htrait::PGNBC), _PHtree(ng.PHs, htrait::PHNBC), _initialized(false){}
+
+    ///
+    E_Int init();
+    ///
+    E_Int adapt(Vector_t<E_Int>& adap_incr, bool do_agglo);
   
-  E_Int adapt(Vector_t<E_Int>& adap_incr, bool do_agglo);
-  
-  /// face-conformity
-  void conformize();
-  /// Keep only enabled PHs
-  void filter_ngon(ngon_type& filtered_ng);
-  
-  void refine_PGs(const Vector_t<E_Int> &PHadap);
-  
-  void refine_PHs(const Vector_t<E_Int> &PHadap);
-  
-  void get_nodes_PHi(E_Int* nodes, E_Int PHi, E_Int centroid_id, E_Int* BOT, E_Int* TOP, E_Int* LEFT, E_Int* RIGHT, E_Int* FRONT, E_Int* BACK);
-  
-  void retrieve_ordered_data(E_Int PGi, E_Int i0, bool reorient, E_Int* four_childrenPG, E_Int* LNODES);
-  
-  bool need_a_reorient(E_Int PGi, E_Int PHi, bool oriented_if_R);
-  
-  E_Int get_i0(E_Int* pFace, E_Int common_node, E_Int* nodes, E_Int nb_edges_face);
-  
-  void update_F2E(E_Int PHi, E_Int PHchildr0, E_Int* INT, E_Int* BOT, E_Int* TOP, E_Int* LEFT, E_Int* RIGHT, E_Int* FRONT, E_Int* BACK);
-  
-  void update_children_F2E(E_Int PGi, E_Int side);
-  
-  void get_cell_center(E_Int PHi, E_Float* center);
-  
-  void get_enabled_neighbours(E_Int PHi, E_Int* neighbours, E_Int& nb_neighbours);
-  
-  void get_higher_level_neighbours(E_Int PHi, E_Int PGi, E_Int* neighbours, E_Int& nb_neighbours);
-  
-  bool enabled_neighbours(E_Int PHi); // return true if the PHi-th PH only has enabled neighbours
-  
-  void smooth(Vector_t<E_Int>& adap_incr);
+    /// face-conformity
+    void conformize();
+    /// Keep only enabled PHs
+    void filter_ngon(ngon_type& filtered_ng);
+    ///
+    void refine_PGs(const Vector_t<E_Int> &PHadap);
+    ///
+    void refine_PHs(const Vector_t<E_Int> &PHadap);
+    ///
+    void get_nodes_PHi(E_Int* nodes, E_Int PHi, E_Int centroid_id, E_Int* BOT, E_Int* TOP, E_Int* LEFT, E_Int* RIGHT, E_Int* FRONT, E_Int* BACK);
+    ///
+    void retrieve_ordered_data(E_Int PGi, E_Int i0, bool reorient, E_Int* four_childrenPG, E_Int* LNODES);
+    ///
+    bool need_a_reorient(E_Int PGi, E_Int PHi, bool oriented_if_R);
+    ///
+    E_Int get_i0(E_Int* pFace, E_Int common_node, E_Int* nodes, E_Int nb_edges_face);
+    ///
+    void update_F2E(E_Int PHi, E_Int PHchildr0, E_Int* INT, E_Int* BOT, E_Int* TOP, E_Int* LEFT, E_Int* RIGHT, E_Int* FRONT, E_Int* BACK);
+    ///
+    void update_children_F2E(E_Int PGi, E_Int side);
+    ///
+    void get_cell_center(E_Int PHi, E_Float* center);
+    ///
+    void get_enabled_neighbours(E_Int PHi, E_Int* neighbours, E_Int& nb_neighbours);
+    ///
+    void get_higher_level_neighbours(E_Int PHi, E_Int PGi, E_Int* neighbours, E_Int& nb_neighbours);
+    ///
+    bool enabled_neighbours(E_Int PHi); // return true if the PHi-th PH only has enabled neighbours
+    ///
+    void smooth(Vector_t<E_Int>& adap_incr);
   
   private:
     std::map<K_MESH::NO_Edge,E_Int> _ecenter;
@@ -112,8 +132,9 @@ class hierarchical_mesh
   
 };
 
-template <typename ELT_t, typename ngo_t, typename crd_t>
-E_Int hierarchical_mesh<ELT_t, ngo_t, crd_t>::init()
+///
+template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t, typename crd_t>
+E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t, crd_t>::init()
 {
   if (_initialized) return 0;
   
@@ -143,8 +164,8 @@ E_Int hierarchical_mesh<ELT_t, ngo_t, crd_t>::init()
   return err;
 }
 
-template <typename ELT_t, typename ngo_t, typename crd_t>
-E_Int hierarchical_mesh<ELT_t, ngo_t, crd_t>::adapt(Vector_t<E_Int>& adap_incr, bool do_agglo)
+template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t, typename crd_t>
+E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t, crd_t>::adapt(Vector_t<E_Int>& adap_incr, bool do_agglo)
 {
   E_Int err(0);
 
@@ -254,8 +275,8 @@ E_Int hierarchical_mesh<ELT_t, ngo_t, crd_t>::adapt(Vector_t<E_Int>& adap_incr, 
   return err;
 }
 
-template <typename ELT_t, typename ngo_t, typename crd_t>
-void hierarchical_mesh<ELT_t, ngo_t, crd_t>::conformize()
+template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t, typename crd_t>
+void hierarchical_mesh<ELT_t, STYPE, ngo_t, crd_t>::conformize()
 {
   ngon_unit new_phs;
   Vector_t<E_Int> molec;
@@ -302,8 +323,8 @@ void hierarchical_mesh<ELT_t, ngo_t, crd_t>::conformize()
 }
 
 ///
-template <typename ELT_t, typename ngo_t, typename crd_t>
-void hierarchical_mesh<ELT_t, ngo_t, crd_t>::filter_ngon(ngon_type& filtered_ng)
+template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t, typename crd_t>
+void hierarchical_mesh<ELT_t, STYPE, ngo_t, crd_t>::filter_ngon(ngon_type& filtered_ng)
 {
   filtered_ng.PGs = _ng.PGs;
         
@@ -329,7 +350,7 @@ void hierarchical_mesh<ELT_t, ngo_t, crd_t>::filter_ngon(ngon_type& filtered_ng)
 
 ///
 template <>
-void hierarchical_mesh<K_MESH::Hexahedron, ngon_type, K_FLD::FloatArray>::__compute_cell_center
+void hierarchical_mesh<K_MESH::Hexahedron, eSUBDIV_TYPE::ISO, ngon_type, K_FLD::FloatArray>::__compute_cell_center
 (const K_FLD::FloatArray& crd, const E_Int* nodes27, E_Float* centroid)
 {
   E_Int new_bary[8];
@@ -347,7 +368,7 @@ void hierarchical_mesh<K_MESH::Hexahedron, ngon_type, K_FLD::FloatArray>::__comp
 
 ///
 template <>
-void hierarchical_mesh<K_MESH::Hexahedron, ngon_type, K_FLD::FloatArray>::refine_PGs(const Vector_t<E_Int> &PHadap)
+void hierarchical_mesh<K_MESH::Hexahedron, eSUBDIV_TYPE::ISO, ngon_type, K_FLD::FloatArray>::refine_PGs(const Vector_t<E_Int> &PHadap)
 {
   
   E_Int nb_phs = PHadap.size();
@@ -415,7 +436,9 @@ void hierarchical_mesh<K_MESH::Hexahedron, ngon_type, K_FLD::FloatArray>::refine
   K_MESH::NO_Edge noE;  
   
   // Refine them
+#ifndef DEBUG_HIERARCHICAL_MESH
 #pragma omp parallel for private(noE)
+#endif
   for (E_Int i = 0; i < nb_pgs_ref; ++i)
   {
     E_Int PGi = PGref[i];
@@ -490,7 +513,15 @@ void hierarchical_mesh<K_MESH::Hexahedron, ngon_type, K_FLD::FloatArray>::refine
 
 ///
 template <>
-void hierarchical_mesh<K_MESH::Hexahedron, ngon_type, K_FLD::FloatArray>::retrieve_ordered_data(E_Int PGi, E_Int i0, bool reorient, E_Int* four_childrenPG, E_Int* LNODES)
+void hierarchical_mesh<K_MESH::Tetrahedron, eSUBDIV_TYPE::ISO, ngon_type, K_FLD::FloatArray>::refine_PGs(const Vector_t<E_Int> &PHadap)
+{
+  assert(false);
+  //todo
+}
+
+///
+template <>
+void hierarchical_mesh<K_MESH::Hexahedron, eSUBDIV_TYPE::ISO, ngon_type, K_FLD::FloatArray>::retrieve_ordered_data(E_Int PGi, E_Int i0, bool reorient, E_Int* four_childrenPG, E_Int* LNODES)
 {
   E_Int* pN = _ng.PGs.get_facets_ptr(PGi);
   E_Int nb_edges = _ng.PGs.stride(PGi);
@@ -538,8 +569,8 @@ void hierarchical_mesh<K_MESH::Hexahedron, ngon_type, K_FLD::FloatArray>::retrie
 }
 
 ///
-template <typename ELT_t, typename ngo_t, typename crd_t>
-bool hierarchical_mesh<ELT_t, ngo_t, crd_t>::need_a_reorient(E_Int PGi, E_Int PHi, bool oriented_if_R)
+template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t, typename crd_t>
+bool hierarchical_mesh<ELT_t, STYPE, ngo_t, crd_t>::need_a_reorient(E_Int PGi, E_Int PHi, bool oriented_if_R)
 {
   if (_F2E(1,PGi) == PHi && oriented_if_R == true) return false;
   else if (_F2E(0,PGi) == PHi && oriented_if_R == false) return false;
@@ -547,8 +578,8 @@ bool hierarchical_mesh<ELT_t, ngo_t, crd_t>::need_a_reorient(E_Int PGi, E_Int PH
 }
 
 ///
-template <typename ELT_t, typename ngo_t, typename crd_t>
-E_Int hierarchical_mesh<ELT_t, ngo_t, crd_t>::get_i0(E_Int* pFace, E_Int common_node, E_Int* nodes, E_Int nb_edges_face)
+template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t, typename crd_t>
+E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t, crd_t>::get_i0(E_Int* pFace, E_Int common_node, E_Int* nodes, E_Int nb_edges_face)
 {
   for (int i = 0; i < nb_edges_face; i++)
     if (pFace[i] == nodes[common_node]) return i; 
@@ -557,7 +588,8 @@ E_Int hierarchical_mesh<ELT_t, ngo_t, crd_t>::get_i0(E_Int* pFace, E_Int common_
 
 ///
 template <>
-void hierarchical_mesh<K_MESH::Hexahedron, ngon_type, K_FLD::FloatArray>::get_nodes_PHi(E_Int* nodes, E_Int PHi, E_Int centroidId, E_Int* BOT, E_Int* TOP, E_Int* LEFT, E_Int* RIGHT, E_Int* FRONT, E_Int* BACK)
+void hierarchical_mesh<K_MESH::Hexahedron, eSUBDIV_TYPE::ISO, ngon_type, K_FLD::FloatArray>::get_nodes_PHi
+(E_Int* nodes, E_Int PHi, E_Int centroidId, E_Int* BOT, E_Int* TOP, E_Int* LEFT, E_Int* RIGHT, E_Int* FRONT, E_Int* BACK)
 {
   E_Int* pPGi = _ng.PHs.get_facets_ptr(PHi);
   E_Int PGi = pPGi[0] - 1;
@@ -714,8 +746,8 @@ void hierarchical_mesh<K_MESH::Hexahedron, ngon_type, K_FLD::FloatArray>::get_no
 }
 
 ///
-template <typename ELT_t, typename ngo_t, typename crd_t>
-void hierarchical_mesh<ELT_t, ngo_t, crd_t>::update_children_F2E(E_Int PGi, E_Int side)
+template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t, typename crd_t>
+void hierarchical_mesh<ELT_t, STYPE, ngo_t, crd_t>::update_children_F2E(E_Int PGi, E_Int side)
 {
   if (_PGtree.children(PGi) != nullptr)
   {
@@ -728,7 +760,7 @@ void hierarchical_mesh<ELT_t, ngo_t, crd_t>::update_children_F2E(E_Int PGi, E_In
 
 ///
 template <>
-void hierarchical_mesh<K_MESH::Hexahedron, ngon_type, K_FLD::FloatArray>::update_F2E(E_Int PHi, E_Int PHchildr0, E_Int* INT, E_Int* BOT, E_Int* TOP, E_Int* LEFT, E_Int* RIGHT, E_Int* FRONT, E_Int* BACK)
+void hierarchical_mesh<K_MESH::Hexahedron, eSUBDIV_TYPE::ISO, ngon_type, K_FLD::FloatArray>::update_F2E(E_Int PHi, E_Int PHchildr0, E_Int* INT, E_Int* BOT, E_Int* TOP, E_Int* LEFT, E_Int* RIGHT, E_Int* FRONT, E_Int* BACK)
 {
   E_Int elt0 = PHchildr0;
   E_Int* pPGi = _ng.PHs.get_facets_ptr(PHi);
@@ -815,7 +847,7 @@ void hierarchical_mesh<K_MESH::Hexahedron, ngon_type, K_FLD::FloatArray>::update
 
 ///
 template <>
-void hierarchical_mesh<K_MESH::Hexahedron, ngon_type, K_FLD::FloatArray>::refine_PHs(const Vector_t<E_Int> &PHadap)
+void hierarchical_mesh<K_MESH::Hexahedron, eSUBDIV_TYPE::ISO, ngon_type, K_FLD::FloatArray>::refine_PHs(const Vector_t<E_Int> &PHadap)
 {
   E_Int nb_phs = PHadap.size();
   // internal PGs created (12 per PH)
@@ -841,7 +873,9 @@ void hierarchical_mesh<K_MESH::Hexahedron, ngon_type, K_FLD::FloatArray>::refine
   _crd.resize(3, pos + nb_phs);
   
   int j;
+#ifndef DEBUG_HIERARCHICAL_MESH
 #pragma omp parallel for private (j)
+#endif
   for (E_Int i = 0; i < nb_phs; ++i)
   {
     E_Int PHi = PHadap[i];
@@ -902,8 +936,16 @@ void hierarchical_mesh<K_MESH::Hexahedron, ngon_type, K_FLD::FloatArray>::refine
 }
 
 ///
-template <typename ELT_t, typename ngo_t, typename crd_t>
-void hierarchical_mesh<ELT_t, ngo_t, crd_t>::__compute_edge_center
+template <>
+void hierarchical_mesh<K_MESH::Tetrahedron, eSUBDIV_TYPE::ISO, ngon_type, K_FLD::FloatArray>::refine_PHs(const Vector_t<E_Int> &PHadap)
+{
+  assert(false);
+  //todo
+}
+
+///
+template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t, typename crd_t>
+void hierarchical_mesh<ELT_t, STYPE, ngo_t, crd_t>::__compute_edge_center
 (const Vector_t<E_Int> &PGlist, K_FLD::FloatArray& crd, std::map<K_MESH::NO_Edge,E_Int> & ecenter)
 {
   for (int i = 0; i < PGlist.size(); i++)
@@ -934,8 +976,8 @@ void hierarchical_mesh<ELT_t, ngo_t, crd_t>::__compute_edge_center
 }
 
 ///
-template <typename ELT_t, typename ngo_t, typename crd_t>
-void hierarchical_mesh<ELT_t, ngo_t, crd_t>::__compute_face_centers
+template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t, typename crd_t>
+void hierarchical_mesh<ELT_t, STYPE, ngo_t, crd_t>::__compute_face_centers
 (K_FLD::FloatArray& crd, const typename ngo_t::unit_type& PGs, const Vector_t<E_Int> &PGlist, Vector_t<E_Int>& fcenter)
 {
   E_Int nb_pgs = PGlist.size();
@@ -957,37 +999,24 @@ void hierarchical_mesh<ELT_t, ngo_t, crd_t>::__compute_face_centers
 }
 
 ///
-template <typename ELT_t, typename ngo_t, typename crd_t>
-void hierarchical_mesh<ELT_t, ngo_t, crd_t>::__compute_face_center
+template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t, typename crd_t>
+void hierarchical_mesh<ELT_t, STYPE, ngo_t, crd_t>::__compute_face_center
 (const crd_t& crd, const E_Int* nodes, E_Int nb_nodes, E_Float* C)
 {   
   K_MESH::Polygon::iso_barycenter<crd_t,3>(crd, nodes, nb_nodes, 1, C);
 }
 
 ///
-template <>
-void hierarchical_mesh<K_MESH::Hexahedron, ngon_type, K_FLD::FloatArray>::get_cell_center(E_Int PHi, E_Float* center)
-{
-  E_Int new_bary[8];
-    
-  const E_Int* p = _ng.PHs.get_facets_ptr(PHi);
-    
-  for (int i = 0; i < 2; ++i) // 8 points : bot and top nodes
-  {
-    const E_Int* nodes = _ng.PGs.get_facets_ptr(p[i]-1);
-    E_Int nb_nodes = _ng.PGs.stride(p[i]-1);
-        
-    for (int k = 0; k  < nb_nodes; ++k)
-      new_bary[nb_nodes*i+k] = nodes[k];
-        
-  }
-    
-  K_MESH::Polyhedron<STAR_SHAPED>::iso_barycenter(_crd, new_bary, 8, 1, center);
+template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t, typename crd_t>
+void hierarchical_mesh<ELT_t, STYPE, ngo_t, crd_t>::get_cell_center(E_Int PHi, E_Float* center)
+{    
+  //using ngu_t = typename ngo_t::unit_type;
+  ELT_t::iso_barycenter(_crd, _ng.PGs, _ng.PHs.get_facets_ptr(PHi), _ng.PHs.stride(PHi), 1, center);
 }
 
 ///
-template <>
-void hierarchical_mesh<K_MESH::Hexahedron, ngon_type, K_FLD::FloatArray>::get_higher_level_neighbours(E_Int PHi, E_Int PGi, E_Int* neighbours, E_Int& nb_neighbours)
+template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t, typename crd_t>
+void hierarchical_mesh<ELT_t, STYPE, ngo_t, crd_t>::get_higher_level_neighbours(E_Int PHi, E_Int PGi, E_Int* neighbours, E_Int& nb_neighbours)
 {
   // Warning : assume same orientation for all the descendant of a given PG
 
@@ -1002,8 +1031,8 @@ void hierarchical_mesh<K_MESH::Hexahedron, ngon_type, K_FLD::FloatArray>::get_hi
 }
 
 ///
-template <>
-void hierarchical_mesh<K_MESH::Hexahedron, ngon_type, K_FLD::FloatArray>::get_enabled_neighbours(E_Int PHi, E_Int* neighbours, E_Int& nb_neighbours)
+template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t, typename crd_t>
+void hierarchical_mesh<ELT_t, STYPE, ngo_t, crd_t>::get_enabled_neighbours(E_Int PHi, E_Int* neighbours, E_Int& nb_neighbours)
 {
   // fill in up to 24 enabled neighbours and gives the number of enabled neighbours
   E_Int* p = _ng.PHs.get_facets_ptr(PHi);
@@ -1029,7 +1058,7 @@ void hierarchical_mesh<K_MESH::Hexahedron, ngon_type, K_FLD::FloatArray>::get_en
 }
 
 ///
-/*template <>
+/*template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t, typename crd_t>
 bool hierarchical_mesh<K_MESH::Hexahedron, ngon_type, K_FLD::FloatArray>::enabled_neighbours(E_Int PHi)
 {
   // if at least 1 neighbour is disabled, it returns false, otherwise it returns true
@@ -1062,8 +1091,8 @@ bool hierarchical_mesh<K_MESH::Hexahedron, ngon_type, K_FLD::FloatArray>::enable
 }*/
 
 ///
-template <typename ELT_t, typename ngo_t, typename crd_t>
-void hierarchical_mesh<ELT_t, ngo_t, crd_t>::smooth(std::vector<E_Int>& adap_incr)
+template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t, typename crd_t>
+void hierarchical_mesh<ELT_t, STYPE, ngo_t, crd_t>::smooth(std::vector<E_Int>& adap_incr)
 {
   std::stack<E_Int> stck;
 

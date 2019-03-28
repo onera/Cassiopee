@@ -34,6 +34,7 @@ public:
   static const E_Int NB_NODES;
   static const E_Int NB_TRIS;
   static const E_Int NB_BOUNDS;
+  static const E_Int NB_EDGES;
   
   typedef K_MESH::Quadrangle boundary_type;
     
@@ -86,16 +87,10 @@ public:
   ///
   template <typename TriangulatorType, typename acrd_t>
   void triangulate (const TriangulatorType& dt, const acrd_t& acrd) {} //dummy : for genericity
-  
-  static void reorder_pgs(ngon_type& ng, const K_FLD::IntArray& F2E, E_Int i);
-  
+    
   static void get_internal(E_Int* nodes, E_Int* p);
   
-  static void get_orient(const ngon_type& ng, const K_FLD::IntArray& F2E, E_Int PHi, E_Int* PHi_orient);
-  
-  static bool pt_is_inside(const ngon_type& ng, const K_FLD::FloatArray& crd, E_Int PHi, const E_Int* PHi_orient, const E_Float* pt, E_Float tolerance);
-  
-  static void get_edges(E_Int* nodes, Vector_t<K_MESH::NO_Edge>& edges);
+  static void get_edges(const E_Int* nodes, Vector_t<K_MESH::NO_Edge>& edges);
   
   static bool cross(const ngon_type& ng, K_FLD::FloatArray& crd, E_Int* face, E_Int nb_faces, K_FLD::FloatArray& data, E_Float* P0, E_Float* P1, E_Float& lambda0, E_Float& lambda1, E_Float tolerance);
   
@@ -136,10 +131,16 @@ public:
     bb.compute(acrd, _nodes, NB_NODES, 0/*idx start*/);
   }
   
+  template< typename ngo_t>
+  static void reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i);
+  
   
   ///
   template <typename CoordAcc>
   inline void iso_barycenter(const CoordAcc& coord, E_Float* G);
+  
+  template <typename ngunit_t>
+  static inline void iso_barycenter(const K_FLD::FloatArray& crd, const ngunit_t & PGs, const E_Int* first_pg, E_Int nb_pgs, E_Int index_start, E_Float* G);
   
 private:
   
@@ -150,6 +151,71 @@ private:
     E_Int _nodes[8];
 
 };
+
+template< typename ngo_t>
+void Hexahedron::reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i) // bot, top, left, right, front, back
+{
+  std::map<E_Int,E_Int> glmap; // crd1 to 0-26 indexes
+  E_Int nb_faces = ng.PHs.stride(i); 
+  E_Int* faces = ng.PHs.get_facets_ptr(i);
+  E_Int PGi = faces[0] - 1;
+  E_Int* pN = ng.PGs.get_facets_ptr(PGi);
+  
+  // but convention, first face is bottom, first node is 0 in local numbering (0 to 26)
+
+  glmap[*pN] = 0; // PHi(0,0) -> 0  
+  glmap[*(pN+1)] = 1;
+  glmap[*(pN+2)] = 2;
+  glmap[*(pN+3)] = 3;
+
+  if (F2E(1,PGi) != i) // for BOT, PH is the right element. if not, wrong orientation => swap of 1 and 3
+  { 
+    glmap[*(pN+3)] = 1;
+    glmap[*(pN+1)] = 3;
+  }
+  E_Int TopId(E_IDX_NONE),LeftId(E_IDX_NONE),RightId(E_IDX_NONE),FrontId(E_IDX_NONE),BackId(E_IDX_NONE);
+
+  for (int k = 1; k < 6; ++k)
+  {
+    int count = 0;
+    Vector_t<bool> commonNodes(4,false);
+    E_Int testedPG = faces[k]-1;
+    E_Int* pNode = ng.PGs.get_facets_ptr(testedPG);
+
+    for (int j = 0; j < 4; ++j)
+    {
+      auto it = glmap.find(pNode[j]);
+      if (it != glmap.end())
+      {
+        // found
+        count++;
+        commonNodes[it->second] = true;
+      }
+    }
+    if (count == 0) // no common point, the ith PG is the TOP
+      TopId = k;
+    else if (commonNodes[0] && commonNodes[1])
+      FrontId = k;
+    else if (commonNodes[1] && commonNodes[2])
+      RightId = k;
+    else if (commonNodes[2] && commonNodes[3])
+      BackId = k;
+    else if (commonNodes[0] && commonNodes[3])
+      LeftId = k;
+  }
+  
+  E_Int mol[6];
+
+  mol[0] = faces[0];
+  mol[1] = faces[TopId];
+  mol[2] = faces[LeftId];
+  mol[3] = faces[RightId];
+  mol[4] = faces[FrontId];
+  mol[5] = faces[BackId];
+
+  for (int i = 0; i < nb_faces; ++i)
+    faces[i] = mol[i];
+}
 
 template <typename CoordAcc> inline
 void Hexahedron::iso_barycenter(const CoordAcc& coord, E_Float* G)
@@ -172,6 +238,25 @@ void Hexahedron::iso_barycenter(const CoordAcc& coord, E_Float* G)
   //std::cout << "G : " << G[0] << "/" << G[1] << "/" << G[2] << std::endl;
   
 }
+
+  template <typename ngunit_t>
+  inline void Hexahedron::iso_barycenter(const K_FLD::FloatArray& crd, const ngunit_t & PGs, const E_Int* first_pg, E_Int nb_pgs, E_Int index_start, E_Float* G)
+  {
+    //WARNING : assuming reodrederd pgs : first is bottom, second is top
+    
+    E_Int new_bary[8];
+
+    for (int i = 0; i < 2; ++i) // 8 points : bot and top nodes
+    {
+      const E_Int* nodes = PGs.get_facets_ptr(first_pg[i]-index_start);
+      E_Int nb_nodes = PGs.stride(first_pg[i]-index_start);
+      
+      for (int k = 0; k  < nb_nodes; ++k)
+        new_bary[nb_nodes*i+k] = nodes[k];   
+    }
+    
+    K_MESH::Polyhedron<STAR_SHAPED>::iso_barycenter(crd, new_bary, 8, 1, G);
+  }
 
 }
 #endif	/* __K_MESH_HEXAHEDRON_H__ */

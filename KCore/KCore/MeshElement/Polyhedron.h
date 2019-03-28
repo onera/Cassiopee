@@ -1677,6 +1677,48 @@ inline static void metrics(const K_FLD::FloatArray& crd, const K_FLD::IntArray& 
 //  } 
 //}
 
+static void get_orient(const ngon_unit& PHs, E_Int PHi, const K_FLD::IntArray& F2E, E_Int* PHi_orient)
+{    
+  E_Int nb_pgs = PHs.stride(PHi);
+  const E_Int* p = PHs.get_facets_ptr(PHi);
+  
+  for (int i = 0; i < nb_pgs; ++i)
+    PHi_orient[i] = (F2E(1,p[i]-1) == PHi) ? -1 : 1;
+}
+
+static bool pt_is_inside(const ngon_unit& PGS, const E_Int* first_pg, E_Int nb_pgs, const K_FLD::FloatArray& crd, const E_Int* PHi_orient, const E_Float* pt, E_Float tolerance)
+{
+  
+  for (int i = 0; i < nb_pgs; i++)
+  {
+    const E_Int* pN = PGS.get_facets_ptr(first_pg[i]-1);
+    E_Float det = K_FUNC::zzdet4(crd.col(pN[0]-1), crd.col(pN[1]-1), crd.col(pN[2]-1), pt); // approx : consider the first 3 nodes of the PG for defining the plane
+        
+    E_Int s = zSIGN(det,ZERO_M);
+        
+    if ( s == 0 ) // if det is in the random area, calculate the distance h
+    {
+      E_Float u[3];
+      E_Float v[3];
+      for (int j = 0; j < 3; ++j)
+      {
+        u[j] = crd.col(pN[1]-1)[j] - crd.col(pN[0]-1)[j];
+        v[j] = crd.col(pN[2]-1)[j] - crd.col(pN[0]-1)[j];
+      }
+        
+      E_Float norm = ::sqrt(K_FUNC::sqrCross<3>(u,v));
+      E_Float h = det / norm;
+        
+      s = zSIGN(h,tolerance);
+    }
+    // position will be known comparing the sign to the orientation of the PG
+    if ((PHi_orient[i] == 1) && (s == 1) ) return false;
+    else if ((PHi_orient[i] == -1) && (s == - 1) ) return false;      
+
+  }
+  return true;
+}
+
 };
 
 

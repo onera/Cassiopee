@@ -230,9 +230,9 @@ void geom_sensor<mesh_t, crd_t>::locate_points(K_SEARCH::BbTree3D& tree, data_ty
     
     for (size_t j = 0; j < ids.size(); j++) // which of these boxes has the source point ?
     {
-      E_Int PHi_orient[6];
-      ELT_t::get_orient(_hmesh._ng, _hmesh._F2E, ids[j], PHi_orient);
-      if (ELT_t::pt_is_inside(_hmesh._ng, _hmesh._crd, ids[j], PHi_orient, p, tol))
+      E_Int PHi_orient[ELT_t::NB_BOUNDS];
+      K_MESH::Polyhedron<UNKNOWN>::get_orient(_hmesh._ng.PHs, ids[j], _hmesh._F2E, PHi_orient);
+      if (K_MESH::Polyhedron<UNKNOWN>::pt_is_inside(_hmesh._ng.PGs, _hmesh._ng.PHs.get_facets_ptr(ids[j]), _hmesh._ng.PHs.stride(ids[j]), _hmesh._crd, PHi_orient, p, tol))
       {
         if (_hmesh._PHtree.children(ids[j]) == nullptr) // if the cell has no children : source point i is in this cell
           _points_to_cell[i] = ids[j];
@@ -258,16 +258,16 @@ E_Int geom_sensor<mesh_t, crd_t>::get_higher_lvl_cell(E_Float* p, E_Int PHi)
 {
   // returns in the PHi's sons where a given source point is
   using ELT_t = typename mesh_t::elt_type;
-    
+  
   E_Int* q = _hmesh._PHtree.children(PHi); // the children of PHi
   E_Int nb_children = _hmesh._PHtree.nb_children(PHi);
   bool found = false;
     
   for (int j = 0; j < nb_children; ++j)
   {
-    E_Int PHi_orient[6];
-    ELT_t::get_orient(_hmesh._ng, _hmesh._F2E, q[j], PHi_orient);
-    if (ELT_t::pt_is_inside(_hmesh._ng, _hmesh._crd, q[j], PHi_orient, p, 1.e-14)) // true when the point is located in a child
+    E_Int PHi_orient[ELT_t::NB_BOUNDS];
+    K_MESH::Polyhedron<UNKNOWN>::get_orient(_hmesh._ng.PHs, q[j], _hmesh._F2E, PHi_orient);
+    if (K_MESH::Polyhedron<UNKNOWN>::pt_is_inside(_hmesh._ng.PGs, _hmesh._ng.PHs.get_facets_ptr(q[j]), _hmesh._ng.PHs.stride(q[j]), _hmesh._crd, PHi_orient, p, 1.e-14)) // true when the point is located in a child
     {
       found = true;
       return q[j];
@@ -292,12 +292,12 @@ E_Int geom_sensor<mesh_t, crd_t>::get_highest_lvl_cell(E_Float* p, E_Int& PHi)
   
   E_Int* q = _hmesh._PHtree.children(PHi); // the children of PHi
   
-  E_Int PHi_orient[6];
+  E_Int PHi_orient[ELT_t::NB_BOUNDS];
   bool found = false;
   for (int j = 0; j < nb_children; ++j)
   {
-    ELT_t::get_orient(_hmesh._ng, _hmesh._F2E, q[j], PHi_orient);
-    if (ELT_t::pt_is_inside(_hmesh._ng, _hmesh._crd, q[j], PHi_orient, p, 1.e-14)) // true when the point is located in a child
+    K_MESH::Polyhedron<UNKNOWN>::get_orient(_hmesh._ng.PHs, q[j], _hmesh._F2E, PHi_orient);
+    if (K_MESH::Polyhedron<UNKNOWN>::pt_is_inside(_hmesh._ng.PGs, _hmesh._ng.PHs.get_facets_ptr(q[j]), _hmesh._ng.PHs.stride(q[j]), _hmesh._crd, PHi_orient, p, 1.e-14)) // true when the point is located in a child
     {
       found = true;
       if (_hmesh._PHtree.children(q[j]) != nullptr)

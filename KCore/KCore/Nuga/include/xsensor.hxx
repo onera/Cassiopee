@@ -27,7 +27,7 @@ class xsensor : public geom_sensor<mesh_t, crd_t>
 {  
   public:
     using elt_type = ELT_t;
-    
+    using parent_type = geom_sensor<mesh_t, crd_t>;
     using data_type = crd_t; //point cloud
     
     xsensor(mesh_t& mesh, const K_FLD::IntArray& cntS, E_Int itermax = -1):geom_sensor<mesh_t,crd_t>(mesh, 1/*max_pts_per_cell*/, itermax), _cntS(cntS){}
@@ -42,25 +42,18 @@ class xsensor : public geom_sensor<mesh_t, crd_t>
 };
 
 ///
-template <>
-void xsensor<K_MESH::Hexahedron, NUGA::hierarchical_mesh<K_MESH::Hexahedron>, K_FLD::FloatArray>::add_x_points(data_type& data, K_SEARCH::BbTree3D& tree)
+template <typename ELT_t, typename mesh_t, typename crd_t>
+void xsensor<ELT_t, mesh_t, crd_t>::add_x_points(data_type& data, K_SEARCH::BbTree3D& tree)
 {
   Vector_t<E_Int> ids;
   std::map<K_MESH::NO_Edge,E_Int> unique_edges;
-  // add the x points (x <=> intersection)
-  // cntS for hexa : 8 lines for nodes and one column per PHi
-  E_Int nb_nodes = 8;
+  //
   for (int i = 0; i < _cntS.cols(); ++i)// for each elts of the source file, check if there is a x situation
-  {
-    E_Int nodes[8];
-    // fill nodes with the 8 nodes of PHi
-    for (int j = 0; j < nb_nodes; ++j)
-        nodes[j] = _cntS.col(i)[j];
-      
-    // get the 12 edges
-    Vector_t<K_MESH::NO_Edge> edges(12);
+  {      
+    // get the edges
+    Vector_t<K_MESH::NO_Edge> edges(ELT_t::NB_EDGES);
     edges.clear();
-    K_MESH::Hexahedron::get_edges(nodes,edges);
+    ELT_t::get_edges(_cntS.col(i),edges);
     
     Vector_t<E_Float> lambdas;
     
@@ -90,11 +83,11 @@ void xsensor<K_MESH::Hexahedron, NUGA::hierarchical_mesh<K_MESH::Hexahedron>, K_
       for (size_t k = 0; k < ids.size(); ++k) // for each element of hmesh that may intersect with noE
       {
         E_Int PHi = ids[k];
-        E_Int* face = _hmesh._ng.PHs.get_facets_ptr(PHi);
-        E_Int nb_faces = _hmesh._ng.PHs.stride(PHi);
+        E_Int* face = parent_type::_hmesh._ng.PHs.get_facets_ptr(PHi);
+        E_Int nb_faces = parent_type::_hmesh._ng.PHs.stride(PHi);
 
         // check if noE intersect with PHi
-        bool x = K_MESH::Hexahedron::cross(_hmesh._ng, _hmesh._crd, face, nb_faces, data, P0, P1, lambda0, lambda1, tolerance);
+        bool x = ELT_t::cross(parent_type::_hmesh._ng, parent_type::_hmesh._crd, face, nb_faces, data, P0, P1, lambda0, lambda1, tolerance);
         
         if (!x) continue; // no intersection
         
@@ -134,19 +127,19 @@ void xsensor<K_MESH::Hexahedron, NUGA::hierarchical_mesh<K_MESH::Hexahedron>, K_
 }
 
 ///
-template <>
-E_Int xsensor<K_MESH::Hexahedron, NUGA::hierarchical_mesh<K_MESH::Hexahedron>, K_FLD::FloatArray>::init(data_type& data)
+template <typename ELT_t, typename mesh_t, typename crd_t>
+E_Int xsensor<ELT_t, mesh_t, crd_t>::init(data_type& data)
 {
   // fill in _points_to_cell with the initial mesh (giving for each source point the highest level cell containing it)
-  _points_to_cell.clear();
+  parent_type::_points_to_cell.clear();
   
-  K_SEARCH::BbTree3D tree(_hmesh._crd, _hmesh._ng);
+  K_SEARCH::BbTree3D tree(parent_type::_hmesh._crd, parent_type::_hmesh._ng);
 
   // add the intersection points
   add_x_points(data, tree);
   
   // localize points : fill _points_to_cell
-  geom_sensor<NUGA::hierarchical_mesh<K_MESH::Hexahedron>, K_FLD::FloatArray>::locate_points(tree, data);
+  parent_type::locate_points(tree, data);
   
   return 0;
 }

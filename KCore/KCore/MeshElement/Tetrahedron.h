@@ -75,6 +75,11 @@ class Tetrahedron {
       }
     }
     
+    template< typename ngo_t>
+    static void reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i) { assert(false); /*todo*/};
+    
+    
+    
     ///
     static inline E_Float volume(const E_Float* p1, const E_Float* p2, const E_Float* p3, const E_Float* p4)
     {return (K_FUNC::zzdet4(p1, p2, p3, p4)/6.);}
@@ -111,6 +116,13 @@ class Tetrahedron {
     for (size_t i = 0; i < 3; ++i) G[i] *= k;
     //std::cout << "G : " << G[0] << "/" << G[1] << "/" << G[2] << std::endl;
   
+  }
+  
+  template <typename ngunit_t>
+  static inline void iso_barycenter(const K_FLD::FloatArray& crd, const ngunit_t & PGs, const E_Int* first_pg, E_Int nb_pgs, E_Int index_start, E_Float* G)
+  {
+    assert(false);
+    //todo
   }
   
   template<typename box_t, typename CoordAcc>

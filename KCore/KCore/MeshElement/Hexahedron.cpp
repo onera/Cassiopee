@@ -28,6 +28,7 @@ namespace K_MESH
 const E_Int Hexahedron::NB_NODES=8;
 const E_Int Hexahedron::NB_TRIS=12;
 const E_Int Hexahedron::NB_BOUNDS=6;
+const E_Int Hexahedron::NB_EDGES=12;
 
 void Hexahedron::triangulate(E_Int* target)
 {
@@ -42,70 +43,6 @@ void Hexahedron::triangulate(E_Int* target)
   }
 }
 
-void Hexahedron::reorder_pgs(ngon_type& ng, const K_FLD::IntArray& F2E, E_Int i) // bot, top, left, right, front, back
-{
-  std::map<E_Int,E_Int> glmap; // crd1 to 0-26 indexes
-  E_Int nb_faces = ng.PHs.stride(i); 
-  E_Int* faces = ng.PHs.get_facets_ptr(i);
-  E_Int PGi = faces[0] - 1;
-  E_Int* pN = ng.PGs.get_facets_ptr(PGi);
-
-  glmap[*pN] = 0; // PHi(0,0) -> 0   
-
-  if (F2E(1,PGi) == i) // for BOT, PH is the right element = well oriented
-  { 
-    for (int k = 1; k < 4; ++k)
-      glmap[*(pN+k)] = k;
-  }
-  else // wrong orientation : swap of 1 and 3
-  { 
-    glmap[*(pN+3)] = 1;
-    glmap[*(pN+2)] = 2;
-    glmap[*(pN+1)] = 3;
-  }
-  E_Int TopId(E_IDX_NONE),LeftId(E_IDX_NONE),RightId(E_IDX_NONE),FrontId(E_IDX_NONE),BackId(E_IDX_NONE);
-
-  for (int k = 1; k < 6; ++k)
-  {
-    int count = 0;
-    Vector_t<bool> commonNodes(4,false);
-    E_Int testedPG = faces[k]-1;
-    E_Int* pNode = ng.PGs.get_facets_ptr(testedPG);
-
-    for (int j = 0; j < 4; ++j)
-    {
-      auto it = glmap.find(pNode[j]);
-      if (it != glmap.end())
-      {
-        // found
-        count++;
-        commonNodes[it->second] = true;
-      }
-    }
-    if (count == 0) // no common point, the ith PG is the TOP
-      TopId = k;
-    else if (commonNodes[0] && commonNodes[1])
-      FrontId = k;
-    else if (commonNodes[1] && commonNodes[2])
-      RightId = k;
-    else if (commonNodes[2] && commonNodes[3])
-      BackId = k;
-    else if (commonNodes[0] && commonNodes[3])
-      LeftId = k;
-  }
-  
-  E_Int mol[6];
-
-  mol[0] = faces[0];
-  mol[1] = faces[TopId];
-  mol[2] = faces[LeftId];
-  mol[3] = faces[RightId];
-  mol[4] = faces[FrontId];
-  mol[5] = faces[BackId];
-
-  for (int i = 0; i < nb_faces; ++i)
-    faces[i] = mol[i];
-}
 
 void Hexahedron::get_internal(E_Int* nodes, E_Int* p)
 { 
@@ -114,50 +51,7 @@ void Hexahedron::get_internal(E_Int* nodes, E_Int* p)
   p[18] = nodes[8];  p[19] = nodes[10];  p[20] = nodes[15];  p[21] = nodes[13];  p[22] = nodes[12];  p[23] = nodes[24];  p[24] = nodes[17];  p[25] = nodes[22];  p[26] = nodes[26];    
 }
 
-void Hexahedron::get_orient(const ngon_type& ng, const K_FLD::IntArray& F2E, E_Int PHi, E_Int* PHi_orient)
-{
-  const E_Int* p = ng.PHs.get_facets_ptr(PHi);
-    
-  for (int i = 0; i < 6; ++i)
-    PHi_orient[i] = (F2E(1,p[i]-1) == PHi) ? -1 : 1;
-}
-
-bool Hexahedron::pt_is_inside(const ngon_type& ng, const K_FLD::FloatArray& crd, E_Int PHi, const E_Int* PHi_orient, const E_Float* pt, E_Float tolerance)
-{
-  const E_Int* p = ng.PHs.get_facets_ptr(PHi);
-    
-  for (int i = 0; i < 6; i++)
-  {
-    const E_Int* pN = ng.PGs.get_facets_ptr(p[i]-1);
-    E_Float det = K_FUNC::zzdet4(crd.col(pN[0]-1), crd.col(pN[1]-1), crd.col(pN[2]-1), pt);
-        
-    E_Int s = zSIGN(det,ZERO_M);
-        
-    if ( s == 0 ) // if det is in the random area, calculate the distance h
-    {
-      E_Float u[3];
-      E_Float v[3];
-      for (int j = 0; j < 3; ++j)
-      {
-        u[j] = crd.col(pN[1]-1)[j] - crd.col(pN[0]-1)[j];
-        v[j] = crd.col(pN[2]-1)[j] - crd.col(pN[0]-1)[j];
-      }
-        
-      E_Float norm = ::sqrt(K_FUNC::sqrCross<3>(u,v));
-      E_Float h = det / norm;
-        
-      s = zSIGN(h,tolerance);
-    }
-    // position will be known comparing the sign to the orientation of the PG
-    if ((PHi_orient[i] == 1) && (s == 1) ) return false;
-    else if ((PHi_orient[i] == -1) && (s == - 1) ) return false;      
-
-  }
-  return true;
-}
-
-
-void Hexahedron::get_edges(E_Int* nodes, Vector_t<K_MESH::NO_Edge>& edges)
+void Hexahedron::get_edges(const E_Int* nodes, Vector_t<K_MESH::NO_Edge>& edges)
 {
   // nodes length is 8 and there are 12 edges in total
   E_Int nb_nodes = 4;

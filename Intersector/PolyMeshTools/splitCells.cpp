@@ -166,7 +166,7 @@ PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
     return NULL;
   }
 
-  using mesh_type = NUGA::hierarchical_mesh<K_MESH::Hexahedron>;
+  using mesh_type = NUGA::hierarchical_mesh<K_MESH::Hexahedron, NUGA::ISO>;
 
   mesh_type hmesh(crd, ngi);
   
@@ -255,7 +255,7 @@ PyObject* K_INTERSECTOR::adaptBox(PyObject* self, PyObject* args)
 
   //std::cout << "adapt box..." << std::endl;
 
-  using mesh_type = NUGA::hierarchical_mesh<K_MESH::Hexahedron>;
+  using mesh_type = NUGA::hierarchical_mesh<K_MESH::Hexahedron, NUGA::ISO>;
   using sensor_type = NUGA::geom_sensor/*geom_static_sensor*/<mesh_type>;
   
   mesh_type hmesh(crd, ngi);

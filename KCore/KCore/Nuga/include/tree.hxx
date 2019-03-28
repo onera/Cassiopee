@@ -30,16 +30,16 @@ template <typename children_array>
 class tree
 {  
   private:
-    ngon_unit &       _entities;
-    children_array    _children;
-    E_Int             _nodes_children_nb;
+    ngon_unit &       _entities; // Facets(PG) or Cells (PHs)
+    children_array    _children; // 
+    E_Int             _nb_children;
     Vector_t<E_Int>   _parent; //sized as entities
     Vector_t<E_Int>   _indir; //sized as entities
     Vector_t<E_Int>   _level; //sized as entities
     Vector_t<bool>    _enabled; //sized as entities
     
   public:
-    explicit tree(ngon_unit & entities, E_Int nbc):_entities(entities), _nodes_children_nb(nbc){ resize_hierarchy(entities.size());}
+    explicit tree(ngon_unit & entities, E_Int nbc):_entities(entities), _nb_children(nbc){ resize_hierarchy(entities.size());}
     
     const Vector_t<E_Int>& level() const {return _level;}
         
@@ -58,10 +58,10 @@ class tree
       E_Int locid = array_trait<children_array>::size(_children); 
       
       // get the total nb of new entities after refining
-      E_Int nb_new_children = array_trait<children_array>::get_nb_new_children(_entities, _nodes_children_nb, ids);
+      E_Int nb_new_children = array_trait<children_array>::get_nb_new_children(_entities, _nb_children, ids);
       
       // expand the children array
-      array_trait<children_array>::resize_for_children(_children, _nodes_children_nb, nb_new_children);
+      array_trait<children_array>::resize_for_children(_children, _nb_children, nb_new_children);
 
       // expand remaining attributes
       E_Int current_sz = _parent.size();
