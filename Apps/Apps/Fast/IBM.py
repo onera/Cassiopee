@@ -645,6 +645,157 @@ def post(t_case, t_in, tc_in, t_out, wall_out, NP=0, format='single'):
 
     return t, zw
 
+#=============================================================================
+# Post Efforts
+#==============================================================================
+def efforts(t_case, t_in, tc_in, wall_out, alpha=0., beta=0., Sref=None):
+    import Post.PyTree as P
+    import Converter.Filter as Filter
+    import math
+    import numpy as np
+
+    if isinstance(tc_in, str): tc = C.convertFile2PyTree(tc_in)
+    else: tc = tc_in
+    if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
+    else: tb = t_case
+    if isinstance(t_in, str):
+        h = Filter.Handle(t_in)
+        sol = h.loadSkeleton()
+        h._loadZonesWoVars(sol)
+        h._loadVariables(sol, var=['centers:VelocityX','centers:VelocityY','centers:VelocityZ'])
+    else: sol = t_in
+
+    if Sref is None:
+        C._initVars(tb, 'toto',1.)
+        Sref = P.integ(tb,'toto')[0]; print Sref
+        C._rmVars(tb, ['toto','centers:vol'])
+        
+
+    #==============================
+    # Reference state
+    #==============================
+    [RoInf, RouInf, RovInf, RowInf, RoeInf, PInf, TInf, cvInf, MInf,
+          ReInf, Cs, Gamma, RokInf, RoomegaInf, RonutildeInf,
+          Mus, Cs, Ts, Pr] = C.getState(tb)
+
+    dimPb = Internal.getValue(Internal.getNodeFromName(tb,'EquationDimension'))
+
+    alpha = math.radians(alpha)
+    beta = math.radians(beta)
+
+    q = 0.5*RoInf*(MInf*math.sqrt(Gamma*PInf/RoInf))**2
+
+    #=============================================
+    # Ajout de la vitesse au point corrige dans tc
+    #=============================================
+
+    loc = 'PC'
+    ibcd = 3
+
+    hooks = {}
+
+    for z in Internal.getZones(tc):
+        nodes = Internal.getNodesFromName(z,'IBCD_%d*'%ibcd)
+        for node in nodes:
+            zname = node[0].split('_')[-1]
+            coordx = Internal.getNodeFromName1(node,'CoordinateX_%s'%loc); coordx[0]='CoordinateX'
+            coordy = Internal.getNodeFromName1(node,'CoordinateY_%s'%loc); coordy[0]='CoordinateY'
+            coordz = Internal.getNodeFromName1(node,'CoordinateZ_%s'%loc); coordz[0]='CoordinateZ'
+            npts = len(coordx[1])
+            nodesol = Internal.getNodeFromName2(sol,zname)
+            if hooks.has_key(nodesol[0]): hook = hooks[nodesol[0]]
+            else:  
+                hook = C.createHook(nodesol,function='elementCenters')
+                hooks[nodesol[0]] = hook
+            newZ = Internal.newZone('dummy', zsize=[[npts,npts-1,0]], ztype='Unstructured')
+            newGC = Internal.newGridCoordinates(parent=newZ)
+            cx = Internal.newDataArray('CoordinateX', value=coordx[1], parent=newGC)
+            cy = Internal.newDataArray('CoordinateY', value=coordy[1], parent=newGC)
+            cz = Internal.newDataArray('CoordinateZ', value=coordz[1], parent=newGC)
+            inds = C.nearestNodes(hook, newZ)[0]
+            vx=[];vy=[];vz=[]
+            for index in inds:
+                vx.append(C.getValue(nodesol,'centers:VelocityX',index))
+                vy.append(C.getValue(nodesol,'centers:VelocityY',index))
+                vz.append(C.getValue(nodesol,'centers:VelocityZ',index))
+            Internal.createChild(node,'VelocityX','DataArray_t',value=np.asarray(vx))
+            Internal.createChild(node,'VelocityY','DataArray_t',value=np.asarray(vy))
+            Internal.createChild(node,'VelocityZ','DataArray_t',value=np.asarray(vz))
+
+    #====================================
+    # Extraction des grandeurs a la paroi
+    #====================================
+
+    zw = TIBM.extractIBMWallFields(tc, tb=tb)
+
+    if dimPb == 2: zw = T.addkplane(zw)
+
+    zw = C.convertArray2Tetra(zw)
+    zw = T.reorderAll(zw,1)
+    C._initVars(zw, 'Kp=-({Pressure}-%f)/%f'%(PInf,q))
+    
+    #===========================
+    # Calcul efforts de pression
+    #===========================
+
+    res = P.integNorm(zw, 'Kp')[0]
+    res = [i/Sref for i in res]
+    cd = res[0]*math.cos(alpha)*math.cos(beta) + res[2]*math.sin(alpha)*math.cos(beta)
+    cl = res[2]*math.cos(alpha)*math.cos(beta) - res[0]*math.sin(alpha)*math.cos(beta)
+    print "efforts pression",cd,cl
+
+    #======================================
+    # Calcul frottement et efforts visqueux
+    #======================================
+
+    if C.isNamePresent(zw, 'utau') != -1:
+        C._initVars(zw, '{tau_wall}={Density}*{utau}**2')
+    else:
+        C._initVars(zw, '{tau_wall}=0.')
+
+    G._getNormalMap(zw)
+    zw = C.node2Center(zw, ['Kp', 'tau_wall', 'Pressure','VelocityX','VelocityY','VelocityZ'])
+    C._rmVars(zw, 'FlowSolution')
+    C._normalize(zw, ['centers:sx','centers:sy','centers:sz'])
+
+    
+    # calcul du vecteur tangent
+    C._initVars(zw, '{centers:tx}={centers:VelocityX}-({centers:VelocityX}*{centers:sx}+{centers:VelocityY}*{centers:sy}+{centers:VelocityZ}*{centers:sz})*{centers:sx}')
+    C._initVars(zw, '{centers:ty}={centers:VelocityY}-({centers:VelocityX}*{centers:sx}+{centers:VelocityY}*{centers:sy}+{centers:VelocityZ}*{centers:sz})*{centers:sy}')
+    C._initVars(zw, '{centers:tz}={centers:VelocityZ}-({centers:VelocityX}*{centers:sx}+{centers:VelocityY}*{centers:sy}+{centers:VelocityZ}*{centers:sz})*{centers:sz}')
+    C._normalize(zw, ['centers:tx','centers:ty','centers:tz'])
+
+    C._initVars(zw, '{centers:tauxx}=2*{centers:tau_wall}*{centers:tx}*{centers:sx}')
+    C._initVars(zw, '{centers:tauyy}=2*{centers:tau_wall}*{centers:ty}*{centers:sy}')
+    C._initVars(zw, '{centers:tauzz}=2*{centers:tau_wall}*{centers:tz}*{centers:sz}')
+    C._initVars(zw, '{centers:tauxy}={centers:tau_wall}*({centers:tx}*{centers:sy}+{centers:ty}*{centers:sx})')
+    C._initVars(zw, '{centers:tauxz}={centers:tau_wall}*({centers:tx}*{centers:sz}+{centers:tz}*{centers:sx})')
+    C._initVars(zw, '{centers:tauyz}={centers:tau_wall}*({centers:ty}*{centers:sz}+{centers:tz}*{centers:sy})')
+
+    # calcul frottement
+    C._initVars(zw, '{centers:Fricx}={centers:tauxx}*{centers:sx}+{centers:tauxy}*{centers:sy}+{centers:tauxz}*{centers:sz}')
+    C._initVars(zw, '{centers:Fricy}={centers:tauxy}*{centers:sx}+{centers:tauyy}*{centers:sy}+{centers:tauyz}*{centers:sz}')
+    C._initVars(zw, '{centers:Fricz}={centers:tauxz}*{centers:sx}+{centers:tauyz}*{centers:sy}+{centers:tauzz}*{centers:sz}')
+    
+    # calcul effort complet
+    C._initVars(zw, '{centers:Fx}={centers:Fricx}-({centers:Pressure}-%f)*{centers:sx}'%PInf)
+    C._initVars(zw, '{centers:Fy}={centers:Fricy}-({centers:Pressure}-%f)*{centers:sy}'%PInf)
+    C._initVars(zw, '{centers:Fz}={centers:Fricz}-({centers:Pressure}-%f)*{centers:sz}'%PInf)
+    
+    #calcul coefficient de frottement
+    C._initVars(zw, '{centers:Cf}=(sqrt({centers:Fricx}**2+{centers:Fricy}**2+{centers:Fricz}**2))/%f'%q)
+
+    effortX = P.integ(zw, 'centers:Fricx')[0]
+    effortY = P.integ(zw, 'centers:Fricy')[0]
+    effortZ = P.integ(zw, 'centers:Fricz')[0]
+
+    cd = (effortX*math.cos(alpha)*math.cos(beta) + effortZ*math.sin(alpha)*math.cos(beta))/q
+    cl = (effortZ*math.cos(alpha)*math.cos(beta) - effortX*math.sin(alpha)*math.cos(beta))/q
+    print "efforts frottements",cd,cl
+
+    if isinstance(wall_out, str): C.convertPyTree2File(zw, wall_out)
+
+
 #====================================================================================
 # Redistrib on N processors
 #====================================================================================

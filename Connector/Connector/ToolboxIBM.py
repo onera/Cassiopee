@@ -1855,6 +1855,7 @@ def prepareIBMData2(t, tbody, DEPTH=2, loc='centers', frontType=0, interp='all',
 def extractIBMWallFields(tc, tb=None):
     xwNP = []; ywNP = []; zwNP = []
     pressNP = []; utauNP = []; yplusNP = []; densNP = []
+    vxNP = []; vyNP = []; vzNP = []
     for z in Internal.getZones(tc):
         allZSR = Internal.getNodesFromType1(z,'ZoneSubRegion_t')
         if allZSR != []:
@@ -1871,9 +1872,15 @@ def extractIBMWallFields(tc, tb=None):
                 if RHOW is not None: densNP.append(RHOW[1])
                 UTAUW = Internal.getNodeFromName1(IBCD,X.__UTAU__)
                 if UTAUW is not None: utauNP.append(UTAUW[1])
-
                 YPLUSW = Internal.getNodeFromName1(IBCD, X.__YPLUS__)
                 if YPLUSW is not None: yplusNP.append(YPLUSW[1])
+
+                VXW = Internal.getNodeFromName1(IBCD, X.__VELOCITYX__)
+                if VXW is not None: vxNP.append(VXW[1])
+                VYW = Internal.getNodeFromName1(IBCD, X.__VELOCITYY__)
+                if VYW is not None: vyNP.append(VYW[1])
+                VZW = Internal.getNodeFromName1(IBCD, X.__VELOCITYZ__)
+                if VZW is not None: vzNP.append(VZW[1])
 
     if pressNP == []: return None
     else:
@@ -1881,6 +1888,9 @@ def extractIBMWallFields(tc, tb=None):
         densNP = numpy.concatenate(densNP)
         if utauNP != []: utauNP = numpy.concatenate(utauNP)
         if yplusNP != []: yplusNP = numpy.concatenate(yplusNP)
+        if vxNP != []: vxNP = numpy.concatenate(vxNP)
+        if vyNP != []: vyNP = numpy.concatenate(vyNP)
+        if vzNP != []: vzNP = numpy.concatenate(vzNP)
         xwNP = numpy.concatenate(xwNP)
         ywNP = numpy.concatenate(ywNP)
         zwNP = numpy.concatenate(zwNP)
@@ -1908,6 +1918,12 @@ def extractIBMWallFields(tc, tb=None):
     if yplusNP != []:
         yplusPresent = 1
         FSN[2].append([X.__YPLUS__,yplusNP, [],'DataArray_t'])
+    vxPresent = 0
+    if vxNP != []:
+        vxPresent = 1
+        FSN[2].append([X.__VELOCITYX__,vxNP, [],'DataArray_t'])
+        FSN[2].append([X.__VELOCITYY__,vyNP, [],'DataArray_t'])
+        FSN[2].append([X.__VELOCITYZ__,vzNP, [],'DataArray_t'])
     if tb is None: return z
     else:
         dimPb = Internal.getNodeFromName(tb,'EquationDimension')
@@ -1928,6 +1944,10 @@ def extractIBMWallFields(tc, tb=None):
         C._initVars(td,X.__DENSITY__,0.)
         if utauPresent==1: C._initVars(td,X.__UTAU__,0.)
         if yplusPresent==1: C._initVars(td,X.__YPLUS__,0.)
+        if vxPresent==1: 
+            C._initVars(td,X.__VELOCITYX__,0.)
+            C._initVars(td,X.__VELOCITYY__,0.)
+            C._initVars(td,X.__VELOCITYZ__,0.)
         td = P.projectCloudSolution(z, td, dim=dimPb)
         return td
 

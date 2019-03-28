@@ -25,6 +25,9 @@ __PRESSURE__= 'Pressure'
 __UTAU__    = 'utau'
 __YPLUS__   = 'yplus'
 __DENSITY__ = 'Density'
+__VELOCITYX__ = 'VelocityX'
+__VELOCITYY__ = 'VelocityY'
+__VELOCITYZ__ = 'VelocityZ'
 
 __DEG2RAD__ = Internal.__DEG2RAD__
 __RAD2DEG__ = Internal.__RAD2DEG__
