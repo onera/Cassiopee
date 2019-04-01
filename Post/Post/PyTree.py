@@ -424,6 +424,18 @@ def _exteriorElts(t):
     C._deleteFlowSolutions__(t, 'centers')
     return C._TZA(t, 'nodes', 'nodes', Post.exteriorElts, None)
 
+def exteriorEltsStructured(t, depth=1):
+    """Exterior (border) elts of a mesh as a structured grid.
+    Usage: exteriorEltsStructured(t, depth)"""
+    tp = Internal.copyRef(t)
+    _exteriorEltsStructured(tp, depth)
+    return tp
+
+def _exteriorEltsStructured(t, depth=1):
+    C._TZA2(t, Post.exteriorEltsStructured, 'nodes', 'nodes', 1, depth)
+    C._TZA2(t, Post.exteriorEltsStructured, 'centers', 'centers', 0, depth)
+    return None
+    
 def computeVariables(t, varList,
                      gamma=-1., rgp=-1., s0=0., betas=-1.,
                      Cs=-1., mus=-1., Ts=-1.):

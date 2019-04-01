@@ -422,12 +422,12 @@ def _addBCOverlaps(t, bbox):
         x2 = C.getValue(z,'CoordinateX',indM)
         y2 = C.getValue(z,'CoordinateY',indM)
         z2 = C.getValue(z,'CoordinateZ',indM)
-        if (x1 > xmin+EPSCART): C._addBC2Zone(z,'overlap1','BCOverlap','imin')
-        if (x2 < xmax-EPSCART): C._addBC2Zone(z,'overlap2','BCOverlap','imax')
-        if (y1 > ymin+EPSCART): C._addBC2Zone(z,'overlap3','BCOverlap','jmin')
-        if (y2 < ymax-EPSCART): C._addBC2Zone(z,'overlap4','BCOverlap','jmax')
-        if (z1 > zmin+EPSCART): C._addBC2Zone(z,'overlap5','BCOverlap','kmin')
-        if (z2 < zmax-EPSCART): C._addBC2Zone(z,'overlap6','BCOverlap','kmax')
+        if x1 > xmin+EPSCART: C._addBC2Zone(z,'overlap1','BCOverlap','imin')
+        if x2 < xmax-EPSCART: C._addBC2Zone(z,'overlap2','BCOverlap','imax')
+        if y1 > ymin+EPSCART: C._addBC2Zone(z,'overlap3','BCOverlap','jmin')
+        if y2 < ymax-EPSCART: C._addBC2Zone(z,'overlap4','BCOverlap','jmax')
+        if z1 > zmin+EPSCART: C._addBC2Zone(z,'overlap5','BCOverlap','kmin')
+        if z2 < zmax-EPSCART: C._addBC2Zone(z,'overlap6','BCOverlap','kmax')
     return None    
 
 def _addExternalBCs(t, bbox, DEPTH=2, externalBCType='BCFarfield', dimPb=3):
@@ -597,7 +597,7 @@ def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., DEPTH=2, tbox=None,
 def _removeBlankedGrids(t,loc='centers'):
     vari = 'cellNIBC'
     varc = 'cellNChim'
-    flag='flag'
+    flag = 'flag'
     if loc == 'centers': 
         vari = 'centers:'+vari
         varc = 'centers:'+varc

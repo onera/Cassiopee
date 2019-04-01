@@ -44,6 +44,7 @@ namespace K_POST
   PyObject* selectExteriorFaces(PyObject* self, PyObject* args);
   PyObject* selectExteriorFacesStructured(PyObject* self, PyObject* args);
   PyObject* selectExteriorElts(PyObject* self, PyObject* args);
+  PyObject* exteriorEltsStructured(PyObject* self, PyObject* args);
   PyObject* frontFaces(PyObject* self, PyObject* args);
   PyObject* integ(PyObject* self, PyObject* args);
   PyObject* integ2(PyObject* self, PyObject* args);

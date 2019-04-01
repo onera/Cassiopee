@@ -268,7 +268,7 @@ def _addXZones(t, graph):
             names = g[oppNode]
             data = [] # data est une liste de zones
             for n in names:
-                zone = Internal.getNodesFromName2(t, n)[0]
+                zone = Internal.getNodeFromName2(t, n)
                 data.append(zone)
             s = KCOMM.isend(data, dest=oppNode)
             reqs.append(s)
@@ -285,9 +285,9 @@ def _addXZones(t, graph):
                 # tag z
                 Internal.createChild(z, 'XZone', 'UserDefinedData_t') 
                 # Existe deja? 
-                zone = Internal.getNodesFromName2(t, z[0])
-                if len(zone) > 0: # replace
-                    (p, c) = Internal.getParentOfNode(t, zone[0])
+                zone = Internal.getNodeFromName2(t, z[0])
+                if zone is not None: # replace
+                    (p, c) = Internal.getParentOfNode(t, zone)
                     p[2][c] = z
                 else: # append to first base
                     bases = Internal.getBases(t)
@@ -307,8 +307,8 @@ def rmXZones(t):
 def _rmXZones(t):
     zones = Internal.getZones(t)
     for z in zones:
-        tag = Internal.getNodesFromName1(z, 'XZone')
-        if len(tag) > 0:
+        tag = Internal.getNodeFromName1(z, 'XZone')
+        if tag is not None:
             (p, c) = Internal.getParentOfNode(t, z)
             del p[2][c]
     return None

@@ -142,7 +142,7 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., vmin=21, check=False,
     dimPb = Internal.getValue(dimPb)
 
     model = Internal.getNodeFromName(tb, 'GoverningEquations')
-    if model is None: raise ValueError, 'GoverningEquations is missing in input tree defined in %s.'%FILE
+    if model is None: raise ValueError('GoverningEquations is missing in input tree defined in %s.'%FILE)
     # model : Euler, NSLaminar, NSTurbulent
     model = Internal.getValue(model)
 

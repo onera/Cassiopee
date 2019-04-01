@@ -41,6 +41,7 @@ static PyMethodDef Pypost [] =
   {"exteriorFaces", K_POST::selectExteriorFaces, METH_VARARGS},
   {"exteriorFacesStructured", K_POST::selectExteriorFacesStructured, METH_VARARGS},
   {"exteriorElts", K_POST::selectExteriorElts, METH_VARARGS},
+  {"exteriorEltsStructured", K_POST::exteriorEltsStructured, METH_VARARGS},
   {"frontFaces", K_POST::frontFaces, METH_VARARGS},
   {"integ", K_POST::integ, METH_VARARGS},
   {"integ2", K_POST::integ2, METH_VARARGS},

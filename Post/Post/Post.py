@@ -15,8 +15,8 @@ __all__ = ['coarsen', 'computeCurl', 'computeDiff', 'computeExtraVariable', 'com
 'computeIndicatorValue', 'computeNormCurl', 'computeNormGrad', 'computeVariables',
 'computeVariables2', '_computeVariables2', 'enforceIndicatorForCoarsestLevel',
 'enforceIndicatorForFinestLevel', 'enforceIndicatorNearBodies', 'exteriorElts',
-'exteriorFaces', 'exteriorFacesStructured', 'extractMesh', 'extractPlane',
-'extractPoint', 'frontFaces', 'integ', 'integMoment', 'integMomentNorm',
+'exteriorEltsStructured', 'exteriorFaces', 'exteriorFacesStructured', 'extractMesh', 
+'extractPlane', 'extractPoint', 'frontFaces', 'integ', 'integMoment', 'integMomentNorm',
 'integNorm', 'integNormProduct', 'interiorFaces', 'isoLine', 'isoSurf', 'isoSurfMC',
 'isoSurfMC_opt', 'perlinNoise', 'projectCloudSolution', 'refine', 'renameVars',
 'selectCells', 'selectCells2', 'selectCells3', 'sharpEdges', 'silhouette', 'slice',
@@ -261,6 +261,17 @@ def exteriorElts(array):
         a = array
         if len(a) == 5: a = Converter.convertArray2Hexa(a)
         return post.exteriorElts(a)
+
+def exteriorEltsStructured(array, depth=1):
+    """Exterior elements of an array as a structured grid.
+    Usage: exteriorEltsStructured(a, depth)"""
+    if isinstance(array[0], list):
+        b = []
+        for i in array:
+            b.append(post.exteriorEltsStructured(i, depth))
+        return b
+    else:
+        return post.exteriorEltsStructured(array, depth)
 
 def integ(coordArrays, FArrays, ratioArrays):
     """Integral of fields.
