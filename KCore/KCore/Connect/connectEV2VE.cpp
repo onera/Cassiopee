@@ -73,7 +73,7 @@ void K_CONNECT::connectEV2VE(FldArrayI& cEV,
   }
 }
 
-std::pair<std::vector<E_Int>,std::vector<E_Int>>
+std::pair<std::vector<E_Int>,std::vector<E_Int> >
 K_CONNECT::connectEV2VE(K_FLD::FldArrayI& cEV)
 {
   E_Int ne = cEV.getSize();// Nbre elements contenus dans le maillage
