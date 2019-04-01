@@ -890,9 +890,13 @@ Cartesian grid generators
 
 ---------------------------------------
 
-.. py:function:: Generator.octree(surfs, snears, dfar=5., balancing=0, levelMax=1000, ratio=2, octant=None)
+.. py:function:: Generator.octree(surfs, snearList=[], dfarList=[], dfar=-1., balancing=0, levelMax=1000, ratio=2, octant=None)
 
-    Create a QUAD quadtree mesh in 2D or an HEXA octree mesh in 3D starting from a list of bodies and snears. Each parameter snear is the required spatial step of the octree near the corresponding body; dfar is the extension of the octree mesh in all the directions; balancing=1 means that the octree is balanced, i.e. adjacent elements are at worst twice as big/small; levelMax is the maximum number of levels required. If ratio=2, then a classical octree mesh is built. If ratio=3, a 27-tree mesh is built, in which case the spacing ratio is 3 (and not 2) between two adjacent elements. 
+    Create a QUAD quadtree mesh in 2D or an HEXA octree mesh in 3D starting from a list of bodies and snears. Each parameter snear is the required spatial step of the octree near the corresponding body; 
+    the extension of the domaine can be provided by dfar, starting from the global bounding box of all surfaces defined by surfs.
+    A list of extensions can be provided in dfarList, in order not to take into account a surface in the computation of the bounding box. 
+    It must be set to -1 for the surface that must not be taken into account.
+    Parameter balancing=1 means that the octree is balanced, i.e. adjacent elements are at worst twice as big/small; levelMax is the maximum number of levels required. If ratio=2, then a classical octree mesh is built. If ratio=3, a 27-tree mesh is built, in which case the spacing ratio is 3 (and not 2) between two adjacent elements. 
     Parameter balancing enables to balance the octree; balancing=0 means no balancing; balancing=1 means a classical balancing, whereas
     balancing=2 takes also into account elements sharing a common vertex.
 

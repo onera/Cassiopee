@@ -54,14 +54,16 @@ def cartNGon(Xo, H, N):
 # Generation d'un quadtree en 2D ou octree en 3D a partir d'une liste
 # de contours ou surfaces
 #------------------------------------------------------------------------------
-def octree(surfaces, snearList, dfar=5., balancing=0, levelMax=1000, ratio=2, octant=None):
+def octree(surfaces, snearList=[], dfarList=[], dfar=-1., balancing=0, levelMax=1000, ratio=2, octant=None):
     """Generate an octree (or a quadtree) mesh starting from a list of TRI
     (or BAR) arrays defining bodies, a list of corresponding snears,
     and the extension dfar of the mesh.
-    Usage: octree(surfaces, snearList, dfar, balancing, levelMax, ratio)"""
-    stlArrays = C.getFields(Internal.__GridCoordinates__, surfaces)
-    stlArrays = Converter.convertArray2Tetra(stlArrays)
-    a = Generator.octree(stlArrays, snearList, dfar, balancing, levelMax, ratio, octant)
+    Usage: octree(surfaces, snearList, dfarList, dfar, balancing, levelMax, ratio)"""
+    surfaces = C.convertArray2Tetra(surfaces)
+    stlArrays = C.getFields(Internal.__GridCoordinates__, surfaces,api=2)
+    #stlArrays = C.getFields(Internal.__GridCoordinates__, surfaces,api=1)
+    #stlArrays = Converter.convertArray2Tetra(stlArrays)
+    a = Generator.octree(stlArrays, snearList, dfarList, dfar, balancing, levelMax, ratio, octant)
     return C.convertArrays2ZoneNode('octree', [a])
 
 #==============================================================================

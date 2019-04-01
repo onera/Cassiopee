@@ -1516,13 +1516,13 @@ def cutOctant(octant, N, ind, dim=3):
         z0 = octant[2]+dz*k
         return [x0,y0,z0,x0+dx,y0+dy,z0+dz]
 
-def octree(stlArrays, snearList, dfar=5., balancing=0, levelMax=1000, ratio=2, octant=None):
+def octree(stlArrays, snearList=[], dfarList=[], dfar=-1., balancing=0, levelMax=1000, ratio=2, octant=None):
     """Generate an octree (or a quadtree) mesh starting from a list of TRI (or BAR) arrays defining bodies,
     a list of corresponding snears, and the extension dfar of the mesh."""
     try: import Converter as C; s = C.convertArray2Tetra(stlArrays)
     except: s = stlArrays
     if ratio == 2:
-        o = generator.octree(s, snearList, dfar, levelMax, octant)
+        o = generator.octree(s, snearList, dfarList, dfar, levelMax, octant)
         if balancing == 0: return o
         elif balancing==1: return balanceOctree__(o, 2, corners=0)
         elif balancing==2: return balanceOctree__(o, 2, corners=1)
