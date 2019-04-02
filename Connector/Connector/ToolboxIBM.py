@@ -75,7 +75,7 @@ def _modifPhysicalBCs__(zp, depth=2, dimPb=3):
 #         sensor function to be already computed
 #         factor: nb of points is roughly multiplied by factor after remeshing
 #----------------------------------------------------------------------------------
-def adaptIBMMesh(t, tb, vmin, sensor, factor=1.2, DEPTH=2, merged=1, sizeMax=4000000,
+def adaptIBMMesh(t, tb, vmin, sensor, factor=1.2, DEPTH=2, sizeMax=4000000,
                  variables=None, refineFinestLevel=False, refineNearBodies=False, 
                  check=True, symmetry=0, externalBCType='BCFarfield', fileo='octree.cgns'):
     
@@ -117,7 +117,7 @@ def adaptIBMMesh(t, tb, vmin, sensor, factor=1.2, DEPTH=2, merged=1, sizeMax=400
     o = G.adaptOctree(o, balancing=2)
     C.convertPyTree2File(o, fileo)
 
-    t2 = generateCartMesh__(o, dimPb=dimPb, vmin=vmin, DEPTH=DEPTH, merged=merged, 
+    t2 = generateCartMesh__(o, dimPb=dimPb, vmin=vmin, DEPTH=DEPTH,
                             sizeMax=sizeMax, check=check, symmetry=symmetry, 
                             externalBCType=externalBCType)
     
@@ -132,7 +132,7 @@ def adaptIBMMesh(t, tb, vmin, sensor, factor=1.2, DEPTH=2, merged=1, sizeMax=400
     t2 = P.extractMesh(t,t2,3, mode='accurate')
     return t2
 
-def mergeByParent__(zones, parent, sizeMax):
+def mergeByParent__(zones, parent, sizeMax, noo=0):
     parent = G.bboxOfCells(parent)
     xmint = Internal.getNodeFromName2(parent,"xmin")[1]
     xmaxt = Internal.getNodeFromName2(parent,"xmax")[1]
@@ -180,7 +180,7 @@ def mergeByParent__(zones, parent, sizeMax):
         elif len(pool)==1: res+=pool
     return res
 
-def octree2StructLoc__(o, vmin=21, ext=0, optimized=0, merged=0, sizeMax=4e6, listOfParents=None):
+def octree2StructLoc__(o, parento=None, vmin=21, ext=0, optimized=0, sizeMax=4e6):
     sizeMax=int(sizeMax)
     dim = Internal.getZoneDim(o)
     if dim[3] == 'QUAD': dimPb = 2
@@ -194,57 +194,37 @@ def octree2StructLoc__(o, vmin=21, ext=0, optimized=0, merged=0, sizeMax=4e6, li
         zones[noz] = C.convertArrays2ZoneNode('cartDummy'+str(c), [zones[noz]])        
         c += 1
 
-    if listOfParents is not None:
-        bbo = G.bbox(o)
-        xmino=bbo[0]; xmaxo=bbo[3]; xmeano=0.5*(xmino+xmaxo)
-        ymino=bbo[1]; ymaxo=bbo[4]; ymeano=0.5*(ymino+ymaxo)
-        zmino=bbo[2]; zmaxo=bbo[5]; zmeano=0.5*(zmino+zmaxo)
-        dx = xmeano-xmino; dy = ymeano-ymino; dz = zmeano-zmino
+    if parento is None:
+        zones = T.mergeCart(zones,sizeMax=sizeMax)
+    else:     
         eps=1.e-10
-        if dimPb == 3: 
-            noct = 8
-            OCTREEPARENTS=[[],[],[],[],[],[],[],[]]
-            ZONES=[[],[],[],[],[],[],[],[]]
-            nob = 0
-            for zm in [zmino,zmeano]:
-                for ym in [ymino,ymeano]:
-                    for xm in [xmino,xmeano]:
-                        C._initVars(o,'centers:tag',1.)
-                        C._initVars(o,'{centers:tag}=({centers:CoordinateX}>%g)*({centers:CoordinateX}<%g)'%(xm-eps,xm+dx+eps))
-                        C._initVars(o,'{centers:tag}={centers:tag}*({centers:CoordinateY}>%g)*({centers:CoordinateY}<%g)'%(ym-eps,ym+dy+eps))
-                        C._initVars(o,'{centers:tag}={centers:tag}*({centers:CoordinateZ}>%g)*({centers:CoordinateZ}<%g)'%(zm-eps,zm+dz+eps))
-                        o2 = P.selectCells2(o,'centers:tag')
-                        if listOfParents is None:
-                            OCTREEPARENTS[nob].append(o2)
-                        else:
-                            for parento in listOfParents:
-                                C._initVars(parento,'centers:tag',1.)
-                                C._initVars(parento,'{centers:tag}=({centers:CoordinateX}>%g)*({centers:CoordinateX}<%g)'%(xm-eps,xm+dx+eps))
-                                C._initVars(parento,'{centers:tag}={centers:tag}*({centers:CoordinateY}>%g)*({centers:CoordinateY}<%g)'%(ym-eps,ym+dy+eps))     
-                                C._initVars(parento,'{centers:tag}={centers:tag}*({centers:CoordinateZ}>%g)*({centers:CoordinateZ}<%g)'%(zm-eps,zm+dz+eps))
-                                parento2 = P.selectCells2(parento,'centers:tag')
-                                OCTREEPARENTS[nob].append(parento2)
-                        nob+=1
-            for z in zones:
-                xminz = C.getValue(z,'CoordinateX',0)
-                yminz = C.getValue(z,'CoordinateY',0)
-                zminz = C.getValue(z,'CoordinateZ',0)
-                dimZ = Internal.getZoneDim(z)
-                ni = dimZ[1]; nj = dimZ[2]; nk = dimZ[3]
-                ind = ni-1 + (nj-1)*ni+(nk-1)*ni*nj
-                xmaxz = C.getValue(z,'CoordinateX',ind)
-                ymaxz = C.getValue(z,'CoordinateY',ind)
-                zmaxz = C.getValue(z,'CoordinateZ',ind)
-                # bbz = G.bbox(z)  
-                # xminz=bbz[0]; yminz=bbz[1]; zminz=bbz[2]
-                # xmaxz=bbz[3]; ymaxz=bbz[4]; zmaxz=bbz[5]
+        bbo = G.bbox(parento[0])# 1st octant lower left side
+        xmeano=bbo[3]; ymeano=bbo[4]; zmeano=bbo[5]
+        # gather zones by parent octant
+        if dimPb == 2: ZONES=[[],[],[],[]]; noct = 4
+        else: ZONES = [[],[],[],[],[],[],[],[]]; noct = 8
+        for z in zones:
+            xminz = C.getValue(z,'CoordinateX',0)
+            yminz = C.getValue(z,'CoordinateY',0)
+            zminz = C.getValue(z,'CoordinateZ',0)
+            dimZ = Internal.getZoneDim(z)
+            ni = dimZ[1]; nj = dimZ[2]; nk = dimZ[3]
+            ind = ni-1 + (nj-1)*ni+(nk-1)*ni*nj
+            xmaxz = C.getValue(z,'CoordinateX',ind)
+            ymaxz = C.getValue(z,'CoordinateY',ind)
+            zmaxz = C.getValue(z,'CoordinateZ',ind)
+            # bbz = G.bbox(z)
+            # xminz=bbz[0]; yminz=bbz[1]; zminz=bbz[2]
+            # xmaxz=bbz[3]; ymaxz=bbz[4]; zmaxz=bbz[5]
+            noo = -1
+            if dimPb == 3:
                 if zmaxz < zmeano+eps:
                     if ymaxz < ymeano+eps:
                         if xmaxz < xmeano+eps: noo=0
                         else: noo=1
                     else:
                         if xmaxz < xmeano+eps: noo=2
-                        else: noo=3 
+                        else: noo=3
                 else:
                     if ymaxz < ymeano+eps:
                         if xmaxz < xmeano+eps: noo=4
@@ -252,69 +232,27 @@ def octree2StructLoc__(o, vmin=21, ext=0, optimized=0, merged=0, sizeMax=4e6, li
                     else:
                         if xmaxz < xmeano+eps: noo=6
                         else: noo=7
-                ZONES[noo].append(z)
-
-        else: 
-            noct = 4
-
-            OCTREEPARENTS=[[],[],[],[]]
-            ZONES=[[],[],[],[]]
-            nob = 0
-
-            for ym in [ymino,ymeano]:
-                for xm in [xmino,xmeano]:
-                    C._initVars(o,'centers:tag',1.)
-                    C._initVars(o,'{centers:tag}=({centers:CoordinateX}>%g)*({centers:CoordinateX}<%g)'%(xm-eps,xm+dx+eps))
-                    C._initVars(o,'{centers:tag}={centers:tag}*({centers:CoordinateY}>%g)*({centers:CoordinateY}<%g)'%(ym-eps,ym+dy+eps))
-                    o2 = P.selectCells2(o,'centers:tag')
-
-                    if listOfParents is None:
-                        OCTREEPARENTS[nob].append(o2)
-                    else:
-                        for parento in listOfParents:
-                            C._initVars(parento,'centers:tag',1.)
-                            C._initVars(parento,'{centers:tag}=({centers:CoordinateX}>%g)*({centers:CoordinateX}<%g)'%(xm-eps,xm+dx+eps))
-                            C._initVars(parento,'{centers:tag}={centers:tag}*({centers:CoordinateY}>%g)*({centers:CoordinateY}<%g)'%(ym-eps,ym+dy+eps))     
-                            parento2 = P.selectCells2(parento,'centers:tag')
-                            OCTREEPARENTS[nob].append(parento2)
-                    nob+=1
-            for z in zones:
-                xminz = C.getValue(z,'CoordinateX',0)
-                yminz = C.getValue(z,'CoordinateY',0)
-                dimZ = Internal.getZoneDim(z)
-                ni = dimZ[1]; nj = dimZ[2]; nk = dimZ[3]
-                ind = ni-1 + (nj-1)*ni+(nk-1)*ni*nj
-                xmaxz = C.getValue(z,'CoordinateX',ind)
-                ymaxz = C.getValue(z,'CoordinateY',ind)
-                # bbz = G.bbox(z)  
-                # xminz=bbz[0]; yminz=bbz[1]
-                # xmaxz=bbz[3]; ymaxz=bbz[4]
+            else:
                 if ymaxz < ymeano+eps:
                     if xmaxz < xmeano+eps: noo=0
                     else: noo=1
                 else:
                     if xmaxz < xmeano+eps: noo=2
                     else: noo=3
-
-                ZONES[noo].append(z)
-        #-----------------------------------------------------------------------------
-        #FIN 2D
+            if noo > -1: ZONES[noo].append(z)
         #-----------------------------------------------------------------------------
         zones=[]
         for noo in xrange(noct):
             nzones = len(ZONES[noo])
             if nzones > 1:
-                nop=0
-                print('Merging %d Cartesian zones of subdomain %d.'%(nzones,noo))
-                if listOfParents is None:
-                    ZONES[noo]=T.mergeCart(ZONES[noo],sizeMax=sizeMax)
-                else:
-                    for parento in OCTREEPARENTS[noo]:             
-                        ZONES[noo]=mergeByParent__(ZONES[noo], parento, sizeMax)
-                        nop += 1
+                print('Merging %d Cartesian zones of subdomain %d.'%(nzones,noo))                
+                # C.convertPyTree2File(parento[noo],"parent_%d.cgns"%noo)
+                C.convertPyTree2File(ZONES[noo],'cart1_oct%d.cgns'%noo)
+                ZONES[noo] = mergeByParent__(ZONES[noo], parento[noo], sizeMax, noo)
+                C.convertPyTree2File(ZONES[noo],'cart2_oct%d.cgns'%noo)
                 print('Nb of merged zones : %d.' %len(ZONES[noo]))
 
-        if dimPb==3:
+        if dimPb == 3:
             ZONES0 = T.mergeCart(ZONES[0]+ZONES[4],sizeMax=sizeMax)# XM
             ZONES1 = T.mergeCart(ZONES[2]+ZONES[6],sizeMax=sizeMax)# XP
             ZONES2 = T.mergeCart(ZONES[1]+ZONES[5],sizeMax=sizeMax)
@@ -332,9 +270,6 @@ def octree2StructLoc__(o, vmin=21, ext=0, optimized=0, merged=0, sizeMax=4e6, li
             ZONES=ZONES[0:2]
             zones = T.mergeCart(ZONES[0]+ZONES[1],sizeMax=sizeMax)
             del ZONES
-    else:
-        zones = T.mergeCart(zones,sizeMax=sizeMax)
-
     print('After merging: nb Cartesian zones=%d.'%(len(zones)))
 
     # Cas ext=-1, ne fait pas les extensions ni les BCs ou raccords
@@ -358,9 +293,52 @@ def octree2StructLoc__(o, vmin=21, ext=0, optimized=0, merged=0, sizeMax=4e6, li
         _addBCOverlaps(zones, bbox0)
     return zones
 
+
+def buildParentOctrees__(o, dimPb=3, level=2):
+    nzones0 = Internal.getZoneDim(o)[2] 
+    if nzones0 < 1000: return None
+
+    # build parent octree
+    parento = C.initVars(o,'centers:indicator',-1.)
+    parento = G.adaptOctree(parento)
+    for nop in range(level):
+        C._initVars(parento,'centers:indicator',-1.)
+        parento = G.adaptOctree(parento)
+    
+    bbo = G.bbox(parento)
+    xmino=bbo[0]; xmaxo=bbo[3]; xmeano=0.5*(xmino+xmaxo)
+    ymino=bbo[1]; ymaxo=bbo[4]; ymeano=0.5*(ymino+ymaxo)
+    zmino=bbo[2]; zmaxo=bbo[5]; zmeano=0.5*(zmino+zmaxo)
+    dx = xmeano-xmino; dy = ymeano-ymino; dz = zmeano-zmino
+    eps=1.e-10
+    
+    OCTREEPARENTS = None
+
+    if dimPb == 2:
+        OCTREEPARENTS=[]
+        for ym in [ymino,ymeano]:
+            for xm in [xmino,xmeano]:
+                C._initVars(parento,'centers:tag',1.)
+                C._initVars(parento,'{centers:tag}=({centers:CoordinateX}>%g)*({centers:CoordinateX}<%g)'%(xm-eps,xm+dx+eps))
+                C._initVars(parento,'{centers:tag}={centers:tag}*({centers:CoordinateY}>%g)*({centers:CoordinateY}<%g)'%(ym-eps,ym+dy+eps))
+                parento2 = P.selectCells2(parento,'centers:tag')
+                OCTREEPARENTS.append(parento2)
+    else:
+        OCTREEPARENTS=[]
+        for zm in [zmino,zmeano]:
+            for ym in [ymino,ymeano]:
+                for xm in [xmino,xmeano]:
+                    C._initVars(parento,'centers:tag',1.)
+                    C._initVars(parento,'{centers:tag}=({centers:CoordinateX}>%g)*({centers:CoordinateX}<%g)'%(xm-eps,xm+dx+eps))
+                    C._initVars(parento,'{centers:tag}={centers:tag}*({centers:CoordinateY}>%g)*({centers:CoordinateY}<%g)'%(ym-eps,ym+dy+eps))
+                    C._initVars(parento,'{centers:tag}={centers:tag}*({centers:CoordinateZ}>%g)*({centers:CoordinateZ}<%g)'%(zm-eps,zm+dz+eps))
+                    parento2 = P.selectCells2(parento,'centers:tag')
+                    OCTREEPARENTS.append(parento2)
+    return OCTREEPARENTS
+
 # IN: bbox: bbox des frontieres exterieures
-def generateCartMesh__(o, dimPb=3, vmin=11, DEPTH=2, merged=1, sizeMax=4000000, check=True, 
-                       symmetry=0, externalBCType='BCFarfield', mergeByParents=True, bbox=None):
+def generateCartMesh__(o, dimPb=3, vmin=11, DEPTH=2, sizeMax=4000000, check=True, 
+                       symmetry=0, externalBCType='BCFarfield', bbox=None):
 
     # Estimation du nb de pts engendres
     vminv0 = vmin+2*DEPTH
@@ -376,20 +354,9 @@ def generateCartMesh__(o, dimPb=3, vmin=11, DEPTH=2, merged=1, sizeMax=4000000, 
     if DEPTH == 0: ext=0
     else: ext = DEPTH+1
 
-    dimZO = Internal.getZoneDim(o)[2]
-    listOfParentOctrees=None
-    if mergeByParents and nzones0>1000:
-        listOfParentOctrees=[]
-        parento = C.initVars(o,'centers:indicator',-1.)
-        parento = G.adaptOctree(parento)
-        
-        for nop in range(3):
-            C._initVars(parento,'centers:indicator',-1.)
-            parento = G.adaptOctree(parento)
-            listOfParentOctrees.append(parento)
-
-    res = octree2StructLoc__(o, vmin=vmin, ext=ext, optimized=optimized, merged=merged, sizeMax=sizeMax, 
-                             listOfParents=listOfParentOctrees)
+    parentso = buildParentOctrees__(o, dimPb=dimPb)
+    res = octree2StructLoc__(o, vmin=vmin, ext=ext, optimized=optimized, sizeMax=sizeMax, 
+                             parento=parentso)
     t = C.newPyTree(['CARTESIAN', res])
     
     dz = 0.01
@@ -398,6 +365,7 @@ def generateCartMesh__(o, dimPb=3, vmin=11, DEPTH=2, merged=1, sizeMax=4000000, 
         T._contract(t, (0,0,0), (1,0,0), (0,1,0), dz)
     
     if bbox is None: bbox = G.bbox(o)
+    del o
     _addExternalBCs(t, bbox, DEPTH, externalBCType, dimPb) 
     
     nptsTot = 0
@@ -459,28 +427,13 @@ def _addExternalBCs(t, bbox, DEPTH=2, externalBCType='BCFarfield', dimPb=3):
 #--------------------------------------------------------------------------
 # to : maillage octree, si not None : on le prend comme squelette 
 #--------------------------------------------------------------------------
-def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., DEPTH=2, tbox=None, 
-                    snearsf=None, check=True, merged=1, sizeMax=4000000, 
-                    symmetry=0, externalBCType='BCFarfield', to=None, 
-                    composite=0, mergeByParents=True, fileo='octree.cgns'):
-    dimPb = Internal.getNodeFromName(tb, 'EquationDimension')
-    if dimPb is None: raise ValueError('generateIBMMesh: EquationDimension is missing in input body tree.')
-    dimPb = Internal.getValue(dimPb)
-    
-    # type de traitement paroi: pts interieurs ou externes
-    model = Internal.getNodeFromName(tb, 'GoverningEquations')
-    if model is None: raise ValueError('generateIBMMesh: GoverningEquations is missing in input body tree.')
-    # model: Euler, NSLaminar, NSTurbulent
-    model = Internal.getValue(model)
-    if model == 'Euler': IBCType =-1
-    else: IBCType = 1 #Turbulent
-
-    # Build octree
+def buildOctree(tb, snears=None, dfar=10., dfarList=[], to=None, tbox=None, snearsf=None, 
+                dimPb=3, vmin=15, symmetry=0, fileout=None, rank=0):
     i = 0; surfaces=[]; snearso=[] # pas d'espace sur l'octree
     bodies = Internal.getZones(tb)
     if not isinstance(snears, list): snears = len(bodies)*[snears]
     if len(bodies) != len(snears):
-        raise ValueError('generateIBMMesh: Number of bodies is not equal to the size of snears.')
+        raise ValueError('buildOctree: Number of bodies is not equal to the size of snears.')
     dxmin0 = 1.e10
     for s in bodies:
         sdd = Internal.getNodeFromName1(s, ".Solver#define")
@@ -494,47 +447,16 @@ def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., DEPTH=2, tbox=None,
         dxmin0 = min(dxmin0,dhloc)
         i += 1
 
-    if to is None:
-        o = G.octree(surfaces, snearso, dfar=dfar, balancing=2)
+    if to is not None:
+        o = Internal.getZones(to)[0]
+    else:
+        o = G.octree(surfaces, snearList=snearso, dfar=dfar, dfarList=dfarList, balancing=2)
         G._getVolumeMap(o); volmin = C.getMinValue(o, 'centers:vol')
         dxmin = (volmin)**(1./dimPb)
         if dxmin < 0.65*dxmin0: 
             snearso = [2.*i for i in snearso]
-            o = G.octree(surfaces, snearso, dfar=dfar, balancing=2)
-
-        if composite: # maillages proche corps -> maillage cubique initial decoupe
-            tb_bbox = G.bbox(tb)
-            xminb = tb_bbox[0];  xmaxb = tb_bbox[3]
-            yminb = tb_bbox[1];  ymaxb = tb_bbox[4]
-            zminb = tb_bbox[2];  zmaxb = tb_bbox[5]
-            bbo = G.bbox(o)
-            xmino = bbo[0];  xmaxo = bbo[3]
-            ymino = bbo[1];  ymaxo = bbo[4]
-            zmino = bbo[2];  zmaxo = bbo[5]
-            dfarmin = xmaxo-xmaxb; dirmin = 1
-            dfary = ymaxo-ymaxb
-            if dfary < dfarmin:
-                dfarmin = dfary; dirmin = 2
-            if dimPb == 2:
-                if dirmin == 1: 
-                    C._initVars(o,'{centers:tag}=({centers:CoordinateY}<%g)*({centers:CoordinateY}>%g)'%(ymaxb+dfarmin,yminb-dfarmin))
-                elif dirmin == 2:
-                    C._initVars(o,'{centers:tag}=({centers:CoordinateX}<%g)*({centers:CoordinateX}>%g)'%(xmaxb+dfarmin,xminb-dfarmin))
-
-            elif dimPb == 3:
-                dfarz = zmaxo-zmaxb
-                if dfarz < dfarmin:
-                    dfarmin = dfarz; dirmin = 3
-                C._initVars(o,"centers:tag", 1.)
-                if dirmin != 1: 
-                    C._initVars(o,'{centers:tag}={centers:tag}*({centers:CoordinateX}<%g)*({centers:CoordinateX}>%g)'%(xmaxb+dfarmin,xminb-dfarmin))
-                if dirmin != 2:
-                    C._initVars(o,'{centers:tag}={centers:tag}*({centers:CoordinateY}<%g)*({centers:CoordinateY}>%g)'%(ymaxb+dfarmin,yminb-dfarmin))
-                if dirmin != 3:
-                    C._initVars(o,'{centers:tag}={centers:tag}*({centers:CoordinateZ}<%g)*({centers:CoordinateZ}>%g)'%(zmaxb+dfarmin,zminb-dfarmin))
-            
-            o = P.selectCells2(o,'centers:tag')
-            
+            o = G.octree(surfaces, snearList=snearso, dfar=dfar, dfarList=dfarList, balancing=2)
+        
         symmetry = 0
         if symmetry != 0:
             bb = G.bbox(o)
@@ -546,11 +468,11 @@ def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., DEPTH=2, tbox=None,
             elif symmetry== 2: o = P.selectCells(o,'{CoordinateY}>%g'%(ymoy-TOLDIST))
             elif symmetry==-2: o = P.selectCells(o,'{CoordinateY}<%g'%(ymoy+TOLDIST))
             elif symmetry== 3: o = P.selectCells(o,'{CoordinateZ}>%g'%(zmoy-TOLDIST))
-            elif symmetry==-3: o = P.selectCells(o,'{CoordinateZ}<%g'%(zmoy+TOLDIST))
+            elif symmetry==-3: o = P.selectCells(o,'{CoordinateZ}<%g'%(zmoy+TOLDIST))  
 
         vmint = 31
         if vmin < vmint:
-            print('generateIBMMesh: octree finest level expanded (expandLayer activated).')
+            if rank==0: print('buildOctree: octree finest level expanded (expandLayer activated).')
             to = C.newPyTree(['Base',o])
             to = blankByIBCBodies(to, tb, 'centers', dimPb)
             C._initVars(o,"centers:indicator", 0.)
@@ -565,33 +487,40 @@ def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., DEPTH=2, tbox=None,
             indic = Converter.addVars([indic,cellN])
             indic = Converter.initVars(indic,"{indicator}={indicator}*({cellN}>0.)")
             octreeA = Generator.adaptOctree(octreeA, indic, balancing=2)
-            o = C.convertArrays2ZoneNode(o[0],[octreeA])
+            o = C.convertArrays2ZoneNode(o[0],[octreeA])                  
 
-        to = C.newPyTree(['Base', o])
-        G._getVolumeMap(to); volmin = C.getMinValue(to, 'centers:vol')
+
+        G._getVolumeMap(o); volmin = C.getMinValue(o, 'centers:vol')
+        C._rmVars(o,'centers:vol')
 
         dxmin = (volmin)**(1./dimPb)
-        print('Minimum spacing of Cartesian mesh= %f (targeted %f)'%(dxmin/(vmin-1),dxmin0/(vmin-1)))
+        if rank == 0: print('Minimum spacing of Cartesian mesh= %f (targeted %f)'%(dxmin/(vmin-1),dxmin0/(vmin-1)))
 
         if tbox is not None and snearsf is not None:
             o = addRefinementZones(o, tb, tbox, snearsf, vmin, dimPb)
-        if IBCType == 1 and dimPb == 3: # external points
-            to = C.newPyTree('Base'); to[2][1][2]=[o]
-            to = blankByIBCBodies(to, tb, 'nodes', dimPb)
-            to = X.setHoleInterpolatedPoints(to,depth=-1,loc='nodes')
-            # to = P.selectCells2(to,"cellN",strict=0)
-            o = Internal.getZones(to)[0]
 
         nelts = Internal.getZoneDim(o)[2] 
         if nelts > 20000 and merged == 1: 
-            print('Warning: number of zones (%d) might be too big (block merging might last a long time). Try to increase vmin or deactivate merging.'%nelts)
+            print('Warning: number of zones (%d) on rank %d is high (block merging might last a long time).'%(nelts, rank))
 
-    else:
-        o = Internal.getZones(to)[0]
+    if fileout is not None: C.convertPyTree2File(o, fileout)
+    return o
 
-    if fileo is not None: C.convertPyTree2File(o, fileo)
-    res = generateCartMesh__(o, dimPb=dimPb, vmin=vmin, DEPTH=DEPTH, merged=merged, sizeMax=sizeMax, 
-                             check=check, symmetry=symmetry, externalBCType=externalBCType, mergeByParents=mergeByParents)
+def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., dfarList=[], DEPTH=2, tbox=None, 
+                    snearsf=None, check=True, sizeMax=4000000, 
+                    symmetry=0, externalBCType='BCFarfield', to=None, 
+                    fileo='octree.cgns'):
+    dimPb = Internal.getNodeFromName(tb, 'EquationDimension')
+    if dimPb is None: raise ValueError('generateIBMMesh: EquationDimension is missing in input body tree.')
+    dimPb = Internal.getValue(dimPb)
+    
+    # type de traitement paroi: pts interieurs ou externes
+    model = Internal.getNodeFromName(tb, 'GoverningEquations')
+    if model is None: raise ValueError('generateIBMMesh: GoverningEquations is missing in input body tree.')
+    o = buildOctree(tb, snears=snears, dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf, 
+                    dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=fileo, rank=0)
+    res = generateCartMesh__(o, dimPb=dimPb, vmin=vmin, DEPTH=DEPTH, sizeMax=sizeMax, 
+                             check=check, symmetry=symmetry, externalBCType=externalBCType)
     return res
 
 def _removeBlankedGrids(t,loc='centers'):

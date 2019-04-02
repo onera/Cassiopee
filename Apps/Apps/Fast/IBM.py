@@ -20,22 +20,20 @@ from Apps.Fast.Common import Common
 # IBM prepare
 # NP is the target number of processors
 #================================================================================ 
-def prepare(t_case, t_out, tc_out, snears=0.01, dfar=10., vmin=21, check=False, NP=0, format='single'):
+def prepare(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21, check=False, NP=0, format='single'):
     import Converter.Mpi as Cmpi
     rank = Cmpi.rank; size = Cmpi.size
     ret = None
     # sequential prep
-    if rank == 0: ret = prepare0(t_case, t_out, tc_out, snears, dfar, vmin, check, NP, format)
+    if rank == 0: ret = prepare0(t_case, t_out, tc_out, snears=snears, dfar=dfar, dfarList=dfarList, vmin=vmin, check=check, NP=NP, format=format)
     return ret
 
 #================================================================================
 # IBM prepare - seq
 #================================================================================
-def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., vmin=21, check=False, NP=0, format='single'):
-
+def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21, check=False, NP=0, format='single'):
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
     else: tb = t_case
-
     #-------------------------------------------------------
     # Refinement surfaces in the fluid
     #-------------------------------------------------------
@@ -60,13 +58,10 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., vmin=21, check=False,
     dimPb = Internal.getNodeFromName(tb, 'EquationDimension')
     dimPb = Internal.getValue(dimPb)
     if dimPb == 2: C._initVars(tb, 'CoordinateZ', 0.) # forced
-
     #--------------------------------------------------------
     # Generates the full Cartesian mesh
-    t = TIBM.generateIBMMesh(tb, vmin, snears, dfar, DEPTH=2,
-                             tbox=tbox, snearsf=snearsf, check=check,
-                             sizeMax=4000000)
-
+    t = TIBM.generateIBMMesh(tb, vmin=vmin, snears=snears, dfar=dfar, dfarList=dfarList, DEPTH=2,
+                             tbox=tbox, snearsf=snearsf, check=check, sizeMax=4000000)
     #------------------------------------------------------
     # distribute the mesh over NP processors
     if NP > 0:
@@ -117,7 +112,7 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., vmin=21, check=False,
     return t, tc
 
 #==================================================================================================
-def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., vmin=21, check=False, NP=0, format='single'):
+def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21, check=False, NP=0, format='single'):
     import Generator
     import Converter
     import Connector.connector as connector
@@ -128,6 +123,14 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., vmin=21, check=False,
     import KCore.test as test
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
     else: tb = t_case
+
+    # a mettre dans la classe ou en parametre de prepare1 ??? 
+    to = None
+    tbox = None
+    snearsf = None
+    symmetry = 0
+    fileout = 'octree.cgns'
+    # 
 
     DEPTH=2
     IBCType=1
@@ -150,53 +153,13 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., vmin=21, check=False,
 
     # Octree identical on all procs
     test.printMem('>>> Octree unstruct [start]')
-    surfaces = Internal.getZones(tb)
     # Build octree
-    i = 0; surfaces=[]; snearso=[] # pas d'espace sur l'octree
-    bodies = Internal.getZones(tb)
-    if not isinstance(snears, list): snears = len(bodies)*[snears]
-    if len(bodies) != len(snears):
-        raise ValueError('generateIBMMesh: Number of bodies is not equal to the size of snears.')
-    dxmin0 = 1.e10
-    for s in bodies:
-        sdd = Internal.getNodeFromName1(s, ".Solver#define")
-        if sdd is not None:
-            snearl = Internal.getNodeFromName1(sdd, "snear")
-            if snearl is not None: 
-                snearl = Internal.getValue(snearl)
-                snears[i] = snearl
-        dhloc = snears[i]*(vmin-1)
-        surfaces += [s]; snearso += [dhloc]
-        dxmin0 = min(dxmin0,dhloc)
-        i += 1
-    o = G.octree(surfaces, snearso, dfar=dfar, balancing=2)
-    vmint = 31
+    o = TIBM.buildOctree(tb, snears=snears, dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, 
+                         dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=fileout, rank=rank)
 
-    if vmin < vmint:
-        #if rank==0: print('generateIBMMesh: octree finest level expanded (expandLayer activated).')
-        to = C.newPyTree(['Base',o])
-        to = TIBM.blankByIBCBodies(to, tb, 'centers', dimPb)
-        C._initVars(o,"centers:indicator", 0.)
-        cellN = C.getField("centers:cellN",to)[0]
-        octreeA = C.getFields(Internal.__GridCoordinates__, o)[0]
-        indic = C.getField("centers:indicator",o)[0]
-        indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic,0,0)
-        indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic,1,0) # CB
-        indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic,2,0) # CB
-        indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic,3,0) # CB
-                                                                                      
-        indic = Converter.addVars([indic,cellN])
-        indic = Converter.initVars(indic,"{indicator}={indicator}*({cellN}>0.)")
-        octreeA = Generator.adaptOctree(octreeA, indic, balancing=2)
-        o = C.convertArrays2ZoneNode(o[0],[octreeA])
-
-        to = C.newPyTree(['Base', o])
-        G._getVolumeMap(to); volmin = C.getMinValue(to, 'centers:vol')
-
-        dxmin = (volmin)**(1./dimPb)
-        if rank==0: print('Minimum spacing of Cartesian mesh= %f (targeted %f)'%(dxmin/(vmin-1),dxmin0/(vmin-1)))
-        C._rmVars(o,'centers:vol')
-
+    # build parent octree 3 levels higher
+    # returns a list of 4 octants of the parent octree in 2Dn 8 in 3D
+    parentso = TIBM.buildParentOctrees__(o,dimPb=dimPb)
     test.printMem(">>> Octree unstruct [end]")
 
     # Split octree
@@ -208,10 +171,11 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., vmin=21, check=False,
     del o
     if check: C.convertPyTree2File(p, 'octree_%d.cgns'%rank)
     test.printMem(">>> Octree unstruct split [end]")
+
     
     # fill vmin + merge in parallel
     test.printMem(">>> Octree struct [start]")
-    res = TIBM.octree2StructLoc__(p, vmin=vmin, ext=-1, optimized=0, merged=1, sizeMax=4000000); del p
+    res = TIBM.octree2StructLoc__(p, vmin=vmin, ext=-1, optimized=0, parento=parentso, sizeMax=4000000); del p
     t = C.newPyTree(['CARTESIAN', res])
     zones = Internal.getZones(t)
     for z in zones: z[0] = z[0]+'_proc%d'%rank
@@ -854,11 +818,12 @@ class IBM(Common):
         self.authors = ["ash@onera.fr"]
         
     # Prepare : n'utilise qu'un proc pour l'instant
-    def prepare(self, t_case, t_out, tc_out, snears=0.01, dfar=10., vmin=21, check=False):
+    def prepare(self, t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21, check=False):
         NP = self.data['NP']
         if NP == 0: print('Preparing for a sequential computation.')
         else: print('Preparing for a computation on %d processors.'%NP)
-        ret = prepare(t_case, t_out, tc_out, snears, dfar, vmin, check, NP, self.data['format'])
+        ret = prepare(t_case, t_out, tc_out, snears=snears, dfar=dfar, dfarList=dfarList, 
+                      vmin=vmin, check=check, NP=NP, format=self.data['format'])
         return ret
 
     # post-processing: extrait la solution aux noeuds + le champs sur les surfaces

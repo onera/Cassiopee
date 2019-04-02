@@ -13,8 +13,7 @@ myApp.set(numz={"time_step": 0.0007,
                 "cfl":4.})
 
 # Prepare
-t, tc = myApp.prepare('naca1D.cgns', t_out='t.cgns', tc_out='tc.cgns')
-
+t, tc = App.prepare1('naca1D.cgns', t_out='t.cgns', tc_out='tc.cgns')
 test.testT(tc, 1)
 
 # Compute
