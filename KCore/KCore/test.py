@@ -894,10 +894,10 @@ def checkCGNSlib(t, number=1):
 # IN: msg: message a ecrire en meme temps que la memoire
 # Return the memory in kB
 #==============================================================================
-def printMem(msg):
+def printMem(msg, waitTime=0.1):
     import os, time
     pid = os.getpid()
-    time.sleep(2)
+    time.sleep(waitTime)
     f = open("/proc/{}/smaps".format(pid))
     s = f.readlines()
     f.close()
@@ -910,6 +910,10 @@ def printMem(msg):
             found = False
         if ts.find("heap") >= 0:
             found = True
-    # print msg, tot, " kB" 
-    print '{:<40} : {} kB '.format(msg,tot)
+    # print msg, tot, " kB"
+    if tot > 1.e6:
+        print '{:<40} : {} GB '.format(msg,tot/1.e6)
+    elif tot > 1000.:
+        print '{:<40} : {} MB '.format(msg,tot/1000.)
+    else: print '{:<40} : {} kB '.format(msg,tot)
     return tot

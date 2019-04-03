@@ -89,11 +89,13 @@ public:
                                         FldArrayF& cf,
                                         E_Int nature, E_Int extrapOrder, E_Float constraint);
   virtual
-  short searchInterpolationCellCartO2(E_Float x, E_Float y, E_Float z,
+  short searchInterpolationCellCartO2(E_Int ni, E_Int nj, E_Int nk,
+                                      E_Float x, E_Float y, E_Float z,
                                       E_Int& ic, E_Int& jc, E_Int& kc,
                                       FldArrayF& cf);
   virtual
-  short searchInterpolationCellCartO3(E_Float x, E_Float y, E_Float z,
+  short searchInterpolationCellCartO3(E_Int ni, E_Int nj, E_Int nk,
+                                      E_Float x, E_Float y, E_Float z,
                                       E_Int& icHO, E_Int& jcHO, E_Int& kcHO,
                                       FldArrayF& cf);
   virtual 

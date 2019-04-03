@@ -161,7 +161,7 @@ Low level layer
     If mode=0 (append), nodes are appened to path location.
     If mode=1 (replace), nodes are replaced to path location. 
     If maxDepth>0, replace mode kill children of replaced node.
-    If maxDepth=0, replace mode replace value and type of node (not the name).
+    If maxDepth=0, replace mode replaces value and type of node (not the name).
 
     :param fileName: file name to write to
     :type fileName: string

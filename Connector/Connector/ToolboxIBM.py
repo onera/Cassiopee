@@ -132,7 +132,7 @@ def adaptIBMMesh(t, tb, vmin, sensor, factor=1.2, DEPTH=2, sizeMax=4000000,
     t2 = P.extractMesh(t,t2,3, mode='accurate')
     return t2
 
-def mergeByParent__(zones, parent, sizeMax, noo=0):
+def mergeByParent__(zones, parent, sizeMax):
     parent = G.bboxOfCells(parent)
     xmint = Internal.getNodeFromName2(parent,"xmin")[1]
     xmaxt = Internal.getNodeFromName2(parent,"xmax")[1]
@@ -247,9 +247,9 @@ def octree2StructLoc__(o, parento=None, vmin=21, ext=0, optimized=0, sizeMax=4e6
             if nzones > 1:
                 print('Merging %d Cartesian zones of subdomain %d.'%(nzones,noo))                
                 # C.convertPyTree2File(parento[noo],"parent_%d.cgns"%noo)
-                C.convertPyTree2File(ZONES[noo],'cart1_oct%d.cgns'%noo)
-                ZONES[noo] = mergeByParent__(ZONES[noo], parento[noo], sizeMax, noo)
-                C.convertPyTree2File(ZONES[noo],'cart2_oct%d.cgns'%noo)
+                #C.convertPyTree2File(ZONES[noo],'cart1_oct%d.cgns'%noo)
+                ZONES[noo] = mergeByParent__(ZONES[noo], parento[noo], sizeMax)
+                #C.convertPyTree2File(ZONES[noo],'cart2_oct%d.cgns'%noo)
                 print('Nb of merged zones : %d.' %len(ZONES[noo]))
 
         if dimPb == 3:
@@ -500,7 +500,7 @@ def buildOctree(tb, snears=None, dfar=10., dfarList=[], to=None, tbox=None, snea
             o = addRefinementZones(o, tb, tbox, snearsf, vmin, dimPb)
 
         nelts = Internal.getZoneDim(o)[2] 
-        if nelts > 20000 and merged == 1: 
+        if nelts > 20000: 
             print('Warning: number of zones (%d) on rank %d is high (block merging might last a long time).'%(nelts, rank))
 
     if fileout is not None: C.convertPyTree2File(o, fileout)

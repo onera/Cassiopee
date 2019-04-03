@@ -291,7 +291,7 @@ def _addXZones(t, graph):
                     p[2][c] = z
                 else: # append to first base
                     bases = Internal.getBases(t)
-                    bases[0][2] += [z]
+                    bases[0][2].append(z)
     MPI.Request.Waitall(reqs)
     return t
 

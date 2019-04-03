@@ -110,11 +110,11 @@ E_Int K_INTERP::getExtrapolationData(
     {
       if (InterpData->_topology == 1) 
         found = InterpData->searchExtrapolationCellStruct(ni, nj, nk, xl, yl, zl, cellN, 
-                                                         x, y, z, ic, jc, kc, cf, nature, extrapOrder, constraint);
+                                                          x, y, z, ic, jc, kc, cf, nature, extrapOrder, constraint);
       else if (InterpData->_topology == 0) 
         found = InterpData->searchExtrapolationCellCart(ni, nj, nk, xl, yl, zl, cellN, 
-                                                       x, y, z, ic, jc, kc, cf, nature, 
-                                                       extrapOrder, constraint);
+                                                        x, y, z, ic, jc, kc, cf, nature, 
+                                                        extrapOrder, constraint);
       if (found < 1) return found;
       ic = ic-1; jc = jc-1; kc = kc-1; // pour demarrer a 0        
       if ( dim == 3 ) 
@@ -248,13 +248,14 @@ E_Int K_INTERP::getInterpolationData(
       }
       else
       { 
-        if (InterpData->_topology == 1) 
+        if (InterpData->_topology == 1)
           found = InterpData->searchInterpolationCellStruct(ni, nj, nk, xl, yl, zl, 
                                                             x, y, z, ic, jc, kc, cf); 
-        else if (InterpData->_topology == 0)//cart
-          found = InterpData->searchInterpolationCellCartO2(x, y, z, ic, jc, kc, cf); 
-        if (found < 1) return found;
+        else if (InterpData->_topology == 0) //cart
+          found = InterpData->searchInterpolationCellCartO2(ni, nj, nk, x, y, z, ic, jc, kc, cf);
 
+        if (found < 1) return found;
+        
         ic = ic-1; jc = jc-1; kc = kc-1; // pour demarrer a 0   
         if ( dim == 3 ) 
         {
@@ -322,7 +323,7 @@ E_Int K_INTERP::getInterpolationData(
             }
             else // pas de pt masque ou interpole dans la cellule donneuse
             {
-              val = 0.;           
+              val = 0.;
               for (E_Int jj = 0; jj < 2; jj++)
                 for (E_Int ii = 0; ii < 2; ii++)
                 {
@@ -379,7 +380,7 @@ E_Int K_INTERP::getInterpolationData(
       }
       else if (InterpData->_topology == 0) // CART sur maillage cartesien
       {
-        found = InterpData->searchInterpolationCellCartO3(x, y, z, ic, jc, kc, cf);
+        found = InterpData->searchInterpolationCellCartO3(ni, nj, nk, x, y, z, ic, jc, kc, cf);
         if (found < 1) return found;
 
         ic = ic-1; jc = jc-1; kc = kc-1;// indices demarrent a 0

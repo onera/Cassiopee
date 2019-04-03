@@ -56,7 +56,8 @@ K_INTERP::InterpCart::InterpCart(E_Int ni, E_Int nj, E_Int nk,
 //=============================================================================
 /* 2nd order interpolation - (ic,jc,kc) demarre a 1 - type O2CF */
 //=============================================================================
-short K_INTERP::InterpCart::searchInterpolationCellCartO2(E_Float x, E_Float y, E_Float z,
+short K_INTERP::InterpCart::searchInterpolationCellCartO2(E_Int ni, E_Int nj, E_Int nk,
+                                                          E_Float x, E_Float y, E_Float z,
                                                           E_Int& ic, E_Int& jc, E_Int& kc,
                                                           FldArrayF& cf)
 { 
@@ -68,9 +69,14 @@ short K_INTERP::InterpCart::searchInterpolationCellCartO2(E_Float x, E_Float y, 
   if (z < _zmin-EPS) return 0;
   if (z > _zmax+EPS) return 0;
 
-  ic = E_Int((x-_xmin+EPS)*_hii)+1;
-  jc = E_Int((y-_ymin+EPS)*_hji)+1;
-  kc = E_Int((z-_zmin+EPS)*_hki)+1;
+  ic = E_Int((x-_xmin)*_hii)+1;
+  jc = E_Int((y-_ymin)*_hji)+1;
+  kc = E_Int((z-_zmin)*_hki)+1;
+
+  ic = std::min(ic,ni-1); ic = std::max(ic,1); 
+  jc = std::min(jc,nj-1); jc = std::max(jc,1); 
+  kc = std::min(kc,nk-1); kc = std::max(kc,1); 
+        
   E_Float* cfp = cf.begin();
   
   E_Float x0 = _xmin+(ic-1)*_hi;
@@ -114,7 +120,8 @@ short K_INTERP::InterpCart::searchInterpolationCellCartO2(E_Float x, E_Float y, 
   Returns coefs stored by direction (O3ABC) 
   e.g. : coef(P_0) = cf[0]*cf[3]*cf[6] */
 // ============================================================================
-short K_INTERP::InterpCart::searchInterpolationCellCartO3(E_Float x, E_Float y, E_Float z,
+short K_INTERP::InterpCart::searchInterpolationCellCartO3(E_Int ni, E_Int nj, E_Int nk,
+                                                          E_Float x, E_Float y, E_Float z,
                                                           E_Int& ic, E_Int& jc, E_Int& kc,
                                                           FldArrayF& cf)
 { 
@@ -126,9 +133,12 @@ short K_INTERP::InterpCart::searchInterpolationCellCartO3(E_Float x, E_Float y, 
   if (y > _ymax+EPS) return 0;
   if (z < _zmin-EPS) return 0;
   if (z > _zmax+EPS) return 0;
-  ic = E_Int((x-_xmin+EPS)*_hii)+1;
-  jc = E_Int((y-_ymin+EPS)*_hji)+1;
-  kc = E_Int((z-_zmin+EPS)*_hki)+1;
+  ic = E_Int((x-_xmin)*_hii)+1;
+  jc = E_Int((y-_ymin)*_hji)+1;
+  kc = E_Int((z-_zmin)*_hki)+1;
+  ic = std::max(ic,1); ic = std::min(ic,ni-1);
+  jc = std::max(jc,1); jc = std::min(jc,nj-1);
+  kc = std::max(kc,1); kc = std::min(kc,nk-1);
 
   E_Float* cfp = cf.begin();
   

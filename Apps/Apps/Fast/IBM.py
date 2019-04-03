@@ -32,8 +32,18 @@ def prepare(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21, 
 # IBM prepare - seq
 #================================================================================
 def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21, check=False, NP=0, format='single'):
+    import KCore.test as test
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
     else: tb = t_case
+    
+    # list of dfars
+    if dfarList == []:
+        zones = Internal.getZones(tb)
+        dfarList = [dfar*1.]*len(zones)
+        for c, z in enumerate(zones): 
+            n = Internal.getNodeFromName2(z, 'dfar')
+            if n is not None: dfarList[c] = Internal.getValue(n)*1.
+
     #-------------------------------------------------------
     # Refinement surfaces in the fluid
     #-------------------------------------------------------
@@ -62,6 +72,8 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
     # Generates the full Cartesian mesh
     t = TIBM.generateIBMMesh(tb, vmin=vmin, snears=snears, dfar=dfar, dfarList=dfarList, DEPTH=2,
                              tbox=tbox, snearsf=snearsf, check=check, sizeMax=4000000)
+    test.printMem(">>> Build octree full [end]")
+    
     #------------------------------------------------------
     # distribute the mesh over NP processors
     if NP > 0:
@@ -80,18 +92,21 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
     #----------------------------------------
     # Computes distance field
     #----------------------------------------
+    test.printMem(">>> wall distance [start]")
     if dimPb == 2:
         z0 = Internal.getZones(t)
         bb = G.bbox(z0); dz = bb[5]-bb[2]
-        tb2 = C.initVars(tb,'CoordinateZ',dz*0.5)
-        DTW._distance2Walls(t,tb2,type='ortho',signed=0, dim=dimPb,loc='centers')
+        tb2 = C.initVars(tb, 'CoordinateZ', dz*0.5)
+        DTW._distance2Walls(t,tb2,type='ortho', signed=0, dim=dimPb, loc='centers')
     else:
-        DTW._distance2Walls(t,tb,type='ortho',signed=0, dim=dimPb,loc='centers')
+        DTW._distance2Walls(t,tb,type='ortho', signed=0, dim=dimPb, loc='centers')
+    test.printMem(">>> wall distance [end]")
     
     #----------------------------------------
     # Create IBM info
     #----------------------------------------
     t,tc = TIBM.prepareIBMData(t, tb, frontType=1, interpDataType=0)
+    test.printMem(">>> ibm data [end]")
 
     # arbre donneur
     D2._copyDistribution(tc, t)
@@ -124,13 +139,20 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
     else: tb = t_case
 
+    # list of dfars
+    if dfarList == []:
+        zones = Internal.getZones(tb)
+        dfarList = [dfar*1.]*len(zones)
+        for c, z in enumerate(zones): 
+            n = Internal.getNodeFromName2(z, 'dfar')
+            if n is not None: dfarList[c] = Internal.getValue(n)*1.
+
     # a mettre dans la classe ou en parametre de prepare1 ??? 
     to = None
     tbox = None
     snearsf = None
     symmetry = 0
-    fileout = 'octree.cgns'
-    # 
+    fileout = None
 
     DEPTH=2
     IBCType=1
@@ -159,7 +181,7 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
 
     # build parent octree 3 levels higher
     # returns a list of 4 octants of the parent octree in 2Dn 8 in 3D
-    parentso = TIBM.buildParentOctrees__(o,dimPb=dimPb)
+    parentso = TIBM.buildParentOctrees__(o, dimPb=dimPb)
     test.printMem(">>> Octree unstruct [end]")
 
     # Split octree
@@ -175,26 +197,29 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
     
     # fill vmin + merge in parallel
     test.printMem(">>> Octree struct [start]")
-    res = TIBM.octree2StructLoc__(p, vmin=vmin, ext=-1, optimized=0, parento=parentso, sizeMax=4000000); del p
+    res = TIBM.octree2StructLoc__(p, vmin=vmin, ext=-1, optimized=0, parento=parentso, sizeMax=4000000)
+    del p; del parentso
     t = C.newPyTree(['CARTESIAN', res])
     zones = Internal.getZones(t)
-    for z in zones: z[0] = z[0]+'_proc%d'%rank
-    Cmpi._setProc(t,rank)
+    for z in zones: z[0] = z[0]+'X%d'%rank
+    Cmpi._setProc(t, rank)
     C._addState(t, 'EquationDimension', dimPb)
     test.printMem(">>> Octree struct [end]")
     
     # Add xzones for ext
-    test.printMem(">>> extended cart grids (XZones) [start]")
+    test.printMem(">>> extended cart grids [start]")
     tbb = Cmpi.createBBoxTree(t)
     interDict = X.getIntersectingDomains(tbb)
     graph = Cmpi.computeGraph(tbb, type='bbox', intersectionsDict=interDict, reduction=False)
     Cmpi._addXZones(t, graph)
+    test.printMem(">>> extended cart grids [after add XZones]")
     zones = Internal.getZones(t)
     coords = C.getFields(Internal.__GridCoordinates__, zones, api=2)
     coords = Generator.generator.extendCartGrids(coords, DEPTH+1, 1)
     C.setFields(coords, zones, 'nodes')
     Cmpi._rmXZones(t)
-    test.printMem(">>> extended cart grids (XZones) [end]")
+    coords = None; zones = None
+    test.printMem(">>> extended cart grids (after rmXZones) [end]")
     
     TIBM._addBCOverlaps(t, bbox=bb)
     TIBM._addExternalBCs(t, bbox=bb, dimPb=dimPb)
@@ -216,9 +241,9 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
         bb0 = G.bbox(z0); dz = bb[5]-bb[2]
         dz = bb0[5]-bb0[2]
         tb2 = C.initVars(tb,'CoordinateZ',dz*0.5)
-        DTW._distance2Walls(t,tb2,type='ortho',signed=0, dim=dimPb,loc='centers')
+        DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dimPb, loc='centers')
     else:
-        DTW._distance2Walls(t,tb,type='ortho',signed=0, dim=dimPb,loc='centers')
+        DTW._distance2Walls(t, tb, type='ortho', signed=0, dim=dimPb, loc='centers')
 
     X._applyBCOverlaps(t, depth=DEPTH, loc='centers', val=2, cellNName='cellN')
     C._initVars(t,'{centers:cellNChim}={centers:cellN}')
@@ -297,14 +322,14 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
     Internal._rmNodesByName(FSN, 'TurbulentDistance')
 
     test.printMem(">>> Interpdata [start]")
-    tc = C.node2Center(tp)
+    tc = C.node2Center(tp); del tp
     
     # setInterpData parallel pour le chimere
     tbbc = Cmpi.createBBoxTree(tc)
     interDict = X.getIntersectingDomains(tbbc)
     graph = Cmpi.computeGraph(tbbc, type='bbox', intersectionsDict=interDict, reduction=False)
     Cmpi._addXZones(tc, graph)
-    test.printMem(">>> Interpdata [after addDXzones]")
+    test.printMem(">>> Interpdata [after addXZones]")
     
     procDict = Cmpi.getProcDict(tc)
     datas={}
@@ -320,22 +345,26 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
             zdname = zd[0]
             destProc = procDict[zdname]
         
-            allIDs = Internal.getNodesFromName(zd, 'ID*')
-            IDs = []              
-            for zsr in allIDs:
-                if Internal.getValue(zsr)==zrname: IDs.append(zsr)
+            #allIDs = Internal.getNodesFromName(zd, 'ID*')
+            #IDs = []              
+            #for zsr in allIDs:
+            #    if Internal.getValue(zsr)==zrname: IDs.append(zsr)
+            IDs = []
+            for i in zd[2]:
+                if i[0][0:2] == 'ID':
+                    if Internal.getValue(i)==zrname: IDs.append(i)
+
             if IDs != []:
                 if destProc == rank:                
-                    zD = Internal.getNodeFromName2(tc,zdname)
+                    zD = Internal.getNodeFromName2(tc, zdname)
                     zD[2] += IDs
                 else:
                     if destProc not in datas: datas[destProc] = [[zdname,IDs]]
-                    else: datas[destProc] += [[zdname,IDs]]
+                    else: datas[destProc].append([zdname,IDs])
             else:
                 if destProc not in datas: datas[destProc] = []
     Cmpi._rmXZones(tc)
     test.printMem(">>> Interpdata [after rmXZones]")
-    
     destDatas = Cmpi.sendRecv(datas, graph)
     for i in destDatas:
         for n in destDatas[i]:
@@ -344,7 +373,9 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
             if IDs != []:
                 zD = Internal.getNodeFromName2(tc, zname)
                 zD[2] += IDs
-
+    datas = {}; destDatas = None; graph={}
+    test.printMem(">>> Interpdata [after free]")
+    
     # fin interpData
     C._initVars(t,'{centers:cellNIBCDnr}=minimum(2.,abs({centers:cellNIBC}))')
     C._initVars(t,'{centers:cellNIBC}=maximum(0.,{centers:cellNIBC})')# vaut -3, 0, 1, 2, 3 initialement
@@ -389,12 +420,12 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
     # dans t, il faut cellNChim et cellNIBCDnr pour recalculer le cellN a la fin
     varsRM = ['centers:gradxTurbulentDistance','centers:gradyTurbulentDistance','centers:gradzTurbulentDistance','centers:cellNFront','centers:cellNIBC']
     C._rmVars(t, varsRM)
+    front = None
     test.printMem(">>> Building IBM front [end]")
 
     # Interpolation IBC (front, tbbc)
 
     # graph d'intersection des pts images de ce proc et des zones de tbbc
-    graph = {}
     zones = Internal.getZones(tbbc)
     allBBs = []
     dictOfCorrectedPtsByIBCType = res[0]
@@ -431,11 +462,14 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
                 graph[k][j] += i[k][j]
                 graph[k][j] = list(set(graph[k][j])) # pas utile?
 
-    Cmpi._addXZones(tc, graph)
     test.printMem(">>> Interpolating IBM [start]")
+    Cmpi._addXZones(tc, graph)
+    test.printMem(">>> Interpolating IBM [after addXZones]")
 
     ReferenceState = Internal.getNodeFromType2(t, 'ReferenceState_t')
     nbZonesIBC = len(zonesRIBC)
+
+    for i in xrange(Cmpi.size): datas[i] = [] # force
 
     if dictOfCorrectedPtsByIBCType!={}:
         for ibcTypeL in dictOfCorrectedPtsByIBCType:
@@ -454,26 +488,40 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
 
                     XOD._setIBCDataForZone__(zrcv,dnrZones,allCorrectedPts[nozr],allWallPts[nozr],allInterpPts[nozr],
                                              nature=1,penalty=1,loc='centers',storage='inverse', dim=dimPb,
-                                             interpDataType=0,ReferenceState=ReferenceState,bcType=ibcTypeL)
+                                             interpDataType=0, ReferenceState=ReferenceState, bcType=ibcTypeL)
 
                     nozr += 1
                     for zd in dnrZones:       
                         zdname = zd[0]
                         destProc = procDict[zdname]
-                        allIDs = Internal.getNodesFromName(zd,'IBCD*')
-                        IDs = []      
-                        for zsr in allIDs:
-                            if Internal.getValue(zsr)==zrname: IDs.append(zsr)
+                        
+                        #allIDs = Internal.getNodesFromName(zd, 'IBCD*')
+                        #IDs = [] 
+                        #for zsr in allIDs:
+                        #    if Internal.getValue(zsr)==zrname: IDs.append(zsr)
+
+                        IDs = []
+                        for i in zd[2]:
+                            if i[0][0:4] == 'IBCD':
+                                if Internal.getValue(i)==zrname: IDs.append(i)
+
                         if IDs != []:
                             if destProc == rank:                
                                 zD = Internal.getNodeFromName2(tc,zdname)
                                 zD[2] += IDs
                             else:
                                 if destProc not in datas: datas[destProc]=[[zdname,IDs]]
-                                else: datas[destProc] += [[zdname,IDs]]
+                                else: datas[destProc].append([zdname,IDs])
+                        else:
+                            if destProc not in datas: datas[destProc] = []
 
-    Cmpi._rmXZones(tc)
     test.printMem(">>> Interpolating IBM [end]")
+    Cmpi._rmXZones(tc)
+    dictOfCorrectedPtsByIBCType = None
+    dictOfWallPtsByIBCType = None
+    dictOfInterpPtsByIBCType = None
+    interDictIBM = None
+    test.printMem(">>> Interpolating IBM [after rm XZones]")
 
     Internal._rmNodesByName(tc, Internal.__FlowSolutionNodes__)
     Internal._rmNodesByName(tc, Internal.__GridCoordinates__)
@@ -485,6 +533,7 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
             if IBCDs != []:
                 zD = Internal.getNodeFromName2(tc, zname)
                 zD[2] += IBCDs
+    datas = {}; graph = {}
 
     C._initVars(t,'{centers:cellN}=minimum({centers:cellNChim}*{centers:cellNIBCDnr},2.)')
     varsRM = ['centers:cellNChim','centers:cellNIBCDnr']
@@ -497,6 +546,12 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
         tibm = TIBM.extractIBMInfo(tc)
         Cmpi.convertPyTree2File(tibm, 'IBMInfo.cgns')
 
+    # distribution par defaut (sur Cmpi.size)
+    tcbb = Cmpi.createBBoxTree(tc)
+    stats = D2._distribute(tcbb, Cmpi.size, algorithm='graph', useCom='ID')
+    D2._copyDistribution(tcbb, tc)
+    D2._copyDistribution(tcbb, t)
+
     if isinstance(tc_out, str): Cmpi.convertPyTree2File(tc, tc_out)
 
     I._initConst(t, loc='centers')
@@ -506,8 +561,13 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
 
 #=============================================================================
 # Post
+# IN: t_case: fichier ou arbre du cas
+# IN: t_in: fichier ou arbre de resultat
+# IN: tc_in: fichier ou arbre de connectivite
+# OUT: t_out ou None: fichier pour sortie du champ aux noeuds
+# OUT: wall_out ou None: fichier pour sortie du champ sur la paroi  
 #==============================================================================
-def post(t_case, t_in, tc_in, t_out, wall_out, NP=0, format='single'):
+def post(t_case, t_in, tc_in, t_out, wall_out):
     import Post.PyTree as P
     
     if isinstance(t_in, str): t = C.convertFile2PyTree(t_in)
@@ -611,8 +671,14 @@ def post(t_case, t_in, tc_in, t_out, wall_out, NP=0, format='single'):
 
 #=============================================================================
 # Post Efforts
+# IN: t_case: fichier ou arbre du cas
+# IN: t_in: fichier ou arbre de resultat
+# IN: tc_in: fichier ou arbre de connectivite
+# OUT: wall_out ou None: fichier pour sortie des efforts sur la paroi aux centres
+# IN: alpha: angle pour les efforts
+# IN: beta: angle pour les efforts
 #==============================================================================
-def efforts(t_case, t_in, tc_in, wall_out, alpha=0., beta=0., Sref=None):
+def loads(t_case, t_in, tc_in, wall_out, alpha=0., beta=0., Sref=None):
     import Post.PyTree as P
     import Converter.Filter as Filter
     import math
@@ -655,11 +721,10 @@ def efforts(t_case, t_in, tc_in, wall_out, alpha=0., beta=0., Sref=None):
 
     loc = 'PC'
     ibcd = 3
-
     hooks = {}
 
     for z in Internal.getZones(tc):
-        nodes = Internal.getNodesFromName(z,'IBCD_%d*'%ibcd)
+        nodes = Internal.getNodesFromName(z, 'IBCD_%d*'%ibcd)
         for node in nodes:
             zname = node[0].split('_')[-1]
             coordx = Internal.getNodeFromName1(node,'CoordinateX_%s'%loc); coordx[0]='CoordinateX'
@@ -706,7 +771,7 @@ def efforts(t_case, t_in, tc_in, wall_out, alpha=0., beta=0., Sref=None):
     res = [i/Sref for i in res]
     cd = res[0]*math.cos(alpha)*math.cos(beta) + res[2]*math.sin(alpha)*math.cos(beta)
     cl = res[2]*math.cos(alpha)*math.cos(beta) - res[0]*math.sin(alpha)*math.cos(beta)
-    print "efforts pression",cd,cl
+    print "Pressure loads",cd,cl
 
     #======================================
     # Calcul frottement et efforts visqueux
@@ -755,19 +820,19 @@ def efforts(t_case, t_in, tc_in, wall_out, alpha=0., beta=0., Sref=None):
 
     cd = (effortX*math.cos(alpha)*math.cos(beta) + effortZ*math.sin(alpha)*math.cos(beta))/q
     cl = (effortZ*math.cos(alpha)*math.cos(beta) - effortX*math.sin(alpha)*math.cos(beta))/q
-    print "efforts frottements",cd,cl
+    print "Skin friction loads",cd,cl
 
     if isinstance(wall_out, str): C.convertPyTree2File(zw, wall_out)
 
 
 #====================================================================================
-# Redistrib on N processors
+# Redistrib on NP processors
 #====================================================================================
-def distribute(t_in, tc_in, NP):
+def _distribute(t_in, tc_in, NP):
     if isinstance(tc_in, str):
         tcs = Cmpi.convertFile2SkeletonTree(tc_in, maxDepth=3)
     else: tcs = tc_in
-    stats = D2._distribute(tcs, NP, algorithm='graph', useCom='ID') 
+    stats = D2._distribute(tcs, NP, algorithm='graph', useCom='ID')
     print stats
     if isinstance(tc_in, str):
         paths = []; ns = []
@@ -779,10 +844,10 @@ def distribute(t_in, tc_in, NP):
                 for n in nodes:
                     p = 'CGNSTree/%s/%s/.Solver#Param/proc'%(b[0],z[0])
                     paths.append(p); ns.append(n)
-        Filter.writeNodesFromPaths(tc, paths, ns, maxDepth=0, mode=1)
+        Filter.writeNodesFromPaths(tc_in, paths, ns, maxDepth=0, mode=1)
 
     if isinstance(t_in, str):
-        ts = Cmpi.convertFile2SkeletonTree(t, maxDepth=3)
+        ts = Cmpi.convertFile2SkeletonTree(t_in, maxDepth=3)
     else: ts = t_in
     D2._copyDistribution(ts, tcs)
 
@@ -796,7 +861,7 @@ def distribute(t_in, tc_in, NP):
                 for n in nodes:
                     p = 'CGNSTree/%s/%s/.Solver#Param/proc'%(b[0],z[0])
                     paths.append(p); ns.append(n)
-        Filter.writeNodesFromPaths(t, paths, ns, maxDepth=0, mode=1)
+        Filter.writeNodesFromPaths(t_in, paths, ns, maxDepth=0, mode=1)
 
     # Affichage du nombre de points par proc - equilibrage ou pas
     NptsTot = 0
@@ -807,7 +872,17 @@ def distribute(t_in, tc_in, NP):
         NptsTot += NPTS
         print 'Rank %d has %d points'%(i,NPTS) 
     print 'All points: %d million points'%(NptsTot/1.e6)
-    return ts, tcs
+    return None
+
+#====================================================================================
+# Prend les snear dans tb, les multiplie par factor
+def _snearFactor(tb, factor=1.):
+    zones = Internal.getZones(tb)
+    for z in zones:
+        nodes = Internal.getNodesFromName2(z, 'snear')
+        for n in nodes:
+            Internal._setValue(n, factor*Internal.getValue(n))
+    return None
 
 #====================================================================================
 class IBM(Common):
@@ -828,4 +903,8 @@ class IBM(Common):
 
     # post-processing: extrait la solution aux noeuds + le champs sur les surfaces
     def post(self, t_case, t_in, tc_in, t_out, wall_out):
-        return post(t_case, t_in, tc_in, t_out, wall_out, self.data['NP'], self.data['format'])
+        return post(t_case, t_in, tc_in, t_out, wall_out)
+
+    # post-processing: extrait les efforts sur les surfaces
+    def loads(self, t_case, t_in, tc_in, wall_out, alpha=0., beta=0., Sref=None):
+        return loads(t_case, t_in, tc_in, wall_out, alpha=0., beta=0., Sref=None)

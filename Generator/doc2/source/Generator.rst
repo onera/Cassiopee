@@ -1215,7 +1215,7 @@ Operations on meshes
 
 ---------------------------------------
 
-.. py:function:: Generator.stack(a, b)
+.. py:function:: Generator.stack(a, b=None)
 
     Stack two 2D structured meshes or a list of structured meshes (with the same nixnj) 
     into a single 3D mesh. 

@@ -820,7 +820,7 @@ def getLinkArgs():
           if useStatic() == 1: out += ['--static']
      mySystem = getSystem()[0]
      if mySystem == 'Darwin':
-	  if useStatic() == 0: out += ['-dynamiclib']
+         if useStatic() == 0: out += ['-dynamiclib']
      return out
 
 #=============================================================================

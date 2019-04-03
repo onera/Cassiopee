@@ -1914,7 +1914,7 @@ def adapt2FastP2(t, nlayers=2):
 
 #===============================================================================
 # Add ghost cells in a pyTree
-# Returns a pyTree with it zones extended with gost cells
+# Returns a pyTree with it zones extended with ghost cells
 # IN: t: top tree
 #===============================================================================
 def addGhostCellsNG(t, nlayers=2):

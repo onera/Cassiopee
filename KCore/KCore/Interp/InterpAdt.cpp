@@ -1181,14 +1181,16 @@ short K_INTERP::InterpAdt::searchInterpolationCellStruct(
   return 0;
 }
 
-short K_INTERP::InterpAdt::searchInterpolationCellCartO2(E_Float x, E_Float y, E_Float z,
+short K_INTERP::InterpAdt::searchInterpolationCellCartO2(E_Int ni, E_Int nj, E_Int nk,
+                                                         E_Float x, E_Float y, E_Float z,
                                                          E_Int& ic, E_Int& jc, E_Int& kc,
                                                          FldArrayF& cf)
 { 
   return -1;
 } 
 
-short K_INTERP::InterpAdt::searchInterpolationCellCartO3(E_Float x, E_Float y, E_Float z,
+short K_INTERP::InterpAdt::searchInterpolationCellCartO3(E_Int ni, E_Int nj, E_Int nk,
+                                                         E_Float x, E_Float y, E_Float z,
                                                          E_Int& icHO, E_Int& jcHO, E_Int& kcHO,
                                                          FldArrayF& cf)
 {return -1;}

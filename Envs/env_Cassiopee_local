@@ -37,7 +37,7 @@ set MAC0=`echo $KC | grep 'mangrove'`; if ($%MAC0 != 0) set MAC="mangrove"
 set MAC0=`echo $KC | grep 'ldmfn423z'`; if ($%MAC0 != 0) set MAC="ld"
 set MAC0=`echo $KC | grep 'node6.cluster'`; if ($%MAC0 != 0) set MAC="macosx"
 
-# force: sator_sky, ld_pgi
+# force: sator_sky, ld_pgi en faisant setenv MACHINE sator_sky
 if ($?MACHINE != 0) then
     set MAC=$MACHINE
 endif
@@ -71,6 +71,28 @@ if ($MAC == "ld_pgi") then
         setenv LD_LIBRARY_PATHL /usr/lib64:/home/benoit/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/pgi_r8/lib:/usr/lib64/openmpi/lib:/d/juvigny/Logiciels/linux86-64/2018/lib
         setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/pgi_r8:$CASSIOPEE/Dist/bin/pgi_r8/lib/python2.7/site-packages
 
+else if ($MAC == "ld_python3") then
+#----------------------------- ld centos 7 -------------------------------------
+        setenv ELSAPROD py3_r8
+        # Modules
+        foreach x (`(echo "" ; module -t list) | & grep intel`)
+            module unload $x
+        end
+        module load python/3.6.1
+        module load intel/17.0.4
+        module load impi/17
+        module load hdf5/1.8.8-intel-15
+        # Number of threads
+        set ncpu=`cat /proc/cpuinfo |grep processor |cut -f2 -d: |tail -1`
+        @ ncpu++
+        setenv OMP_NUM_THREADS $ncpu
+        # Chemin de go
+        set path=($path $CASSIOPEE/Dist/bin)
+        # Chemin de elsA.x
+        set path=($CASSIOPEE/Dist/bin/$ELSAPROD $path)
+        setenv LD_LIBRARY_PATHL /usr/lib64:/home/benoit/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
+        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"ELSAPROD"/lib/python3.6/site-packages
+        
 else if ($MAC == "ld") then
 #----------------------------- ld centos 7 -------------------------------------
         setenv ELSAPROD x86_r8
@@ -94,9 +116,9 @@ else if ($MAC == "ld") then
         if ($?ELSA == 0) then # Cassiopee Kernel
             # Chemin de elsA.x
             set path=($CASSIOPEE/Dist/bin/$ELSAPROD $path)
-            setenv LD_LIBRARY_PATHL /usr/lib64:/home/benoit/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/x86_r8/lib
-            #setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/x86_r8/lib
-            setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/x86_r8:$CASSIOPEE/Dist/bin/x86_r8/lib/python2.7/site-packages
+            setenv LD_LIBRARY_PATHL /usr/lib64:/home/benoit/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
+            #setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
+            setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
         else # elsA public
             set path=($ELSA/Dist/bin/eos-intel $path)
             setenv LD_LIBRARY_PATHL /usr/lib64:/home/benoit/lib:$ELSA/Dist/bin/eos-intel:$ELSA/Dist/bin/eos-intel/lib:/usr/local/python/lib

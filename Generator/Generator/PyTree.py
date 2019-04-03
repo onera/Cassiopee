@@ -782,11 +782,16 @@ def grow(t, vector):
     tp = Internal.addOneLayer2BC(tp, 3)
     return tp
 
-def stack(t1, t2):
+def stack(t1, t2=None):
     """Stack two meshes (with same nixnj) into a single mesh.
     Usage: stack(a1, a2)"""
-    a2 = C.getAllFields(t2, 'nodes')[0]
-    return C.TZA(t1, 'nodes', 'nodes', Generator.stack, None, a2)
+    if t2 is not None:
+        a2 = C.getAllFields(t2, 'nodes')[0]
+        return C.TZA(t1, 'nodes', 'nodes', Generator.stack, None, a2)
+    else:
+        a1 = C.getAllFields(t1, 'nodes')
+        b = Generator.stack(a1)
+        return C.convertArrays2ZoneNode('stack', [b])
 
 #================================================================
 # traitement des BC seulement definies comme fenetres completes

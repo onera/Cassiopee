@@ -394,7 +394,7 @@ def connectMatch():
     if node is not None: ndim = Internal.getValue(node)
     else:
         CTK.TXT.insert('START', 'EquationDimension not found (tkState). Using 3D.\n')
-        CTK.TXT.insert('START', 'Wanrning: ', 'Warning'); ndim = 3
+        CTK.TXT.insert('START', 'Warning: ', 'Warning'); ndim = 3
         
     mode = VARS[9].get()
     translation = [0.,0.,0.]; rotationCenter = [0.,0.,0.]; rotationAngle = [0.,0.,0.]
