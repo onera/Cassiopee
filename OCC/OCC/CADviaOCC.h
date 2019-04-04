@@ -74,7 +74,7 @@ private:
     
     void __computeOrient(const K_FLD::FloatArray crd2D, const K_FLD::IntArray& cnt, E_Int&o);
     
-    void __reorient_holed_surface(K_FLD::IntArray& cB, const K_FLD::FloatArray& UVs);
+    int __reorient_holed_surface(K_FLD::IntArray& cB, const K_FLD::FloatArray& UVs);
     
     void __split_surface_of_revolution(const OCCSurface* face, K_FLD::IntArray& connectB, K_FLD::FloatArray& pos3D, 
                                        std::map<E_Int, std::pair<E_Int, E_Int> >& seam_nodes);

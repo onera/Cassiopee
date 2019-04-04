@@ -643,6 +643,9 @@ E_Int K_OCC::CADviaOCC::mesh_faces
         err=_faces[i]->parameters(pos3D, connectB, UVcontour);
       else
         err=_faces[i]->parametersSample(pos3D, UVcontour);
+      
+      if (!err) // Need to reorient holed surface.
+        err = __reorient_holed_surface(connectB, UVcontour);
     
       if (err)
       {
@@ -651,9 +654,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces
         continue;
       }
       
-      // Need to reorient holed surface.
-      __reorient_holed_surface(connectB, UVcontour);
-      
+       
 #ifdef DEBUG_CAD_READER
       //if (i==faulty_id)
         MIO::write("connectBUV.mesh", UVcontour , connectB, "BAR");
@@ -964,14 +965,14 @@ E_Int K_OCC::CADviaOCC::__mesh_edge(const TopoDS_Edge& E, E_Int& nb_points, K_FL
   return 0;
 }
 
-void K_OCC::CADviaOCC::__reorient_holed_surface(K_FLD::IntArray& connectB, const K_FLD::FloatArray& UVcontour)
+int K_OCC::CADviaOCC::__reorient_holed_surface(K_FLD::IntArray& connectB, const K_FLD::FloatArray& UVcontour)
 {
   std::vector<K_FLD::IntArray> cntLoops;
   std::set<E_Int> dummy;
   ContourSplitter<K_MESH::Edge, E_Int>::splitConnectivity(connectB, dummy, cntLoops);
   E_Int nb_loops = cntLoops.size();
 
-  if (nb_loops == 1) return;
+  if (nb_loops == 1) return 0;
 
   std::vector<E_Int> indices;
   K_SEARCH::BBox3D boxOuter, box;
@@ -1001,7 +1002,11 @@ void K_OCC::CADviaOCC::__reorient_holed_surface(K_FLD::IntArray& connectB, const
   for (size_t i=0; i < nb_loops; ++i)
   {
     sorted_nodes.clear();
-    BARSplitter::getSortedNodes(cntLoops[i], sorted_nodes);
+    int err = BARSplitter::getSortedNodes(cntLoops[i], sorted_nodes);
+    // the following test is added to catch a getSortedNodes error. Not added inside it for efficiency (generally works fine).
+    if (std::find(sorted_nodes.begin(), sorted_nodes.end(), E_IDX_NONE) != sorted_nodes.end()) err = 1;
+    
+    if (err) return err;
 
     cntLoops[i].clear();
     size_t sz(sorted_nodes.size());
@@ -1024,6 +1029,8 @@ void K_OCC::CADviaOCC::__reorient_holed_surface(K_FLD::IntArray& connectB, const
   connectB.clear();
   for (size_t i=0; i < nb_loops; ++i)
     connectB.pushBack(cntLoops[i]);
+  
+  return 0;
 }
 
 ///
