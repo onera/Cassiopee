@@ -80,7 +80,7 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
       break;
         
     default:
-      printf("Warning: transferVariables: unknown interpolation order.");
+      printf("Warning: transferFields: unknown interpolation order.");
       printf(" Set to 2nd order.\n");
       interpType = K_INTERP::InterpAdt::O2CF;
       ncfmax = 8; nindi = 1;

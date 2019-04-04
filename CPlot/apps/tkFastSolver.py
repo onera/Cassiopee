@@ -21,6 +21,7 @@ def setData():
     time_step = VARS[5].get()
     snear = VARS[6].get()
     ibctype = VARS[7].get()
+    dfar = VARS[8].get()
 
     numb = {'temporal_scheme':temporal_scheme,
             'ss_iteration':ss_iteration}
@@ -35,7 +36,9 @@ def setData():
         for z in zones:
             n = Internal.createUniqueChild(z, '.Solver#define', 'UserDefinedData_t')
             Internal.createUniqueChild(n, 'snear', 'DataArray_t', value=snear)
-            Internal.createUniqueChild(n, 'ibctype', 'DataArray_t', ibctype)
+            Internal.createUniqueChild(n, 'ibctype', 'DataArray_t', value=ibctype)
+            Internal.createUniqueChild(n, 'dfar', 'DataArray_t', value=dfar)
+
     else:
         for nz in nzs:
             nob = CTK.Nb[nz]+1
@@ -47,6 +50,7 @@ def setData():
             n = Internal.createUniqueChild(z, '.Solver#define', 'UserDefinedData_t')
             Internal.createUniqueChild(n, 'snear', 'DataArray_t', snear)
             Internal.createUniqueChild(n, 'ibctype', 'DataArray_t', ibctype)
+            Internal.createUniqueChild(n, 'dfar', 'DataArray_t', value=dfar)
 
     CTK.TXT.insert('START', 'Solver data set.\n')
     
@@ -74,6 +78,11 @@ def getData():
         if n is not None:
             val = Internal.getValue(n)
             VARS[7].set(val)
+        n = Internal.getNodeFromPath(zone, '.Solver#define/dfar')
+        if n is not None:
+            val = Internal.getValue(n)
+            VARS[8].set(val)
+
         d, c = Internal.getParentOfNode(CTK.t, zone)
         n = Internal.getNodeFromPath(d, '.Solver#define/temporal_scheme')
         if n is not None:
@@ -236,6 +245,9 @@ def createApp(win):
     V = TK.DoubleVar(win); V.set(0.01); VARS.append(V)
     # -7- IBC type -
     V = TK.StringVar(win); V.set('Musker'); VARS.append(V)
+    # -8- dfar local -
+    V = TK.DoubleVar(win); V.set(-1.); VARS.append(V)
+
 
     # - temporal scheme -
     B = TTK.Label(Frame, text="temporal_scheme")
@@ -270,22 +282,28 @@ def createApp(win):
     B.grid(row=4, column=0, sticky=TK.EW)
     B = TTK.Entry(Frame, textvariable=VARS[6])
     B.grid(row=4, column=1, columnspan=2, sticky=TK.EW)
+    
+    #- dfar settings  -
+    B = TTK.Label(Frame, text="dfar")
+    B.grid(row=5, column=0, sticky=TK.EW)
+    B = TTK.Entry(Frame, textvariable=VARS[8])
+    B.grid(row=5, column=1, columnspan=2, sticky=TK.EW)
 
     # - IBC type -
     B = TTK.Label(Frame, text="IBC type")
-    B.grid(row=5, column=0, sticky=TK.EW)
+    B.grid(row=6, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Type of IBC.')
     B = TTK.OptionMenu(Frame, VARS[7], 'slip', 'noslip', 'Log', 'Musker', 'outpress', 'inj', 'TBLE')
-    B.grid(row=5, column=1, columnspan=2, sticky=TK.EW)
+    B.grid(row=6, column=1, columnspan=2, sticky=TK.EW)
 
     # - Set data -
     B = TTK.Button(Frame, text="Set data", command=setData)
     BB = CTK.infoBulle(parent=B, text='Set data into selected zone.')
-    B.grid(row=6, column=0, columnspan=2, sticky=TK.EW)
+    B.grid(row=7, column=0, columnspan=2, sticky=TK.EW)
     B = TTK.Button(Frame, command=getData,
                    image=iconics.PHOTO[8], padx=0, pady=0, compound=TK.RIGHT)
     BB = CTK.infoBulle(parent=B, text='Get data from selected zone.')
-    B.grid(row=6, column=2, sticky=TK.EW)
+    B.grid(row=7, column=2, sticky=TK.EW)
 
 #==============================================================================
 # Called to display widgets

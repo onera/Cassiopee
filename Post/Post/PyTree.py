@@ -1037,9 +1037,7 @@ def integ(t, var=''):
         else: loc = 0; varName = vars[1]
     else: loc = 0; varName = var
     ret = 0.
-
-    zones = Internal.getZones(t)
-    for z in zones:
+    for z in Internal.getZones(t):
         vol = None; removeVol = False; removeVar = False
         cont = Internal.getNodeFromName1(z, Internal.__FlowSolutionCenters__)
         if cont is not None:
@@ -1049,10 +1047,14 @@ def integ(t, var=''):
             removeVol = True
             G._getVolumeMap(z)
         if loc == 0:
-            try: z = C.node2Center(z, varName); removeVar = True
+            try: 
+                z2 = C.node2Center(z, varName); removeVar = True
+                ret += post.integ2(z2, varName, Internal.__GridCoordinates__,
+                                   Internal.__FlowSolutionNodes__, Internal.__FlowSolutionCenters__)
             except: pass
-        ret += post.integ2(z, varName, Internal.__GridCoordinates__,
-                           Internal.__FlowSolutionNodes__, Internal.__FlowSolutionCenters__)
+        else:
+            ret += post.integ2(z, varName, Internal.__GridCoordinates__,
+                               Internal.__FlowSolutionNodes__, Internal.__FlowSolutionCenters__)
         if removeVol: C._rmVars(z, 'centers:vol')
         if removeVar: C._rmVars(z, 'centers:'+varName)
     return [ret] # for compatibility

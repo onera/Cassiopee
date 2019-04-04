@@ -31,7 +31,7 @@ def prepare(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21, 
 #================================================================================
 # IBM prepare - seq
 #================================================================================
-def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21, check=False, NP=0, format='single'):
+def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21, check=False, NP=0, format='single', frontType=1):
     import KCore.test as test
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
     else: tb = t_case
@@ -42,7 +42,8 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
         dfarList = [dfar*1.]*len(zones)
         for c, z in enumerate(zones): 
             n = Internal.getNodeFromName2(z, 'dfar')
-            if n is not None: dfarList[c] = Internal.getValue(n)*1.
+            if n is not None: 
+                dfarList[c] = Internal.getValue(n)*1.
 
     #-------------------------------------------------------
     # Refinement surfaces in the fluid
@@ -68,6 +69,7 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
     dimPb = Internal.getNodeFromName(tb, 'EquationDimension')
     dimPb = Internal.getValue(dimPb)
     if dimPb == 2: C._initVars(tb, 'CoordinateZ', 0.) # forced
+
     #--------------------------------------------------------
     # Generates the full Cartesian mesh
     t = TIBM.generateIBMMesh(tb, vmin=vmin, snears=snears, dfar=dfar, dfarList=dfarList, DEPTH=2,
@@ -105,7 +107,7 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
     #----------------------------------------
     # Create IBM info
     #----------------------------------------
-    t,tc = TIBM.prepareIBMData(t, tb, frontType=1, interpDataType=0)
+    t,tc = TIBM.prepareIBMData(t, tb, frontType=frontType, interpDataType=0)
     test.printMem(">>> ibm data [end]")
 
     # arbre donneur
@@ -127,7 +129,7 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
     return t, tc
 
 #==================================================================================================
-def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21, check=False, NP=0, format='single'):
+def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21, check=False, NP=0, format='single', frontType=1):
     import Generator
     import Converter
     import Connector.connector as connector
@@ -156,7 +158,6 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
 
     DEPTH=2
     IBCType=1
-    frontType=1
 
     rank = Cmpi.rank
 
@@ -277,7 +278,7 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
             DEPTHL=DEPTH+1
             X._setHoleInterpolatedPoints(t,depth=DEPTHL,dir=0,loc='centers',cellNName='cellN',addGC=False)         
             #cree des pts extrapoles supplementaires
-            TIBM._blankClosestTargetCells(t,cellNName='cellN',depth=DEPTHL)
+            #TIBM._blankClosestTargetCells(t,cellNName='cellN',depth=DEPTHL)
     else:
         raise ValueError('prepareIBMData: not valid IBCType. Check model.')
     TIBM._removeBlankedGrids(t, loc='centers')
