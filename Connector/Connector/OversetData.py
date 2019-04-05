@@ -2334,16 +2334,15 @@ def _createInterpRegion__(z, zname, pointlist, pointlistdonor, interpCoef, inter
 #=============================================================================
 #=============================================================================
 # 3. TRANSFERTS
+# interpDataType = 0 if donor is Cartesian
+# interpDataType = otherwise (an ADT muse define the hook)
 #=============================================================================
 #=============================================================================
 def transferFields(z, interpXN, interpYN, interpZN, order=2, penalty=1, nature=0,
-                   constraint=30., hook=None, variables=[]):
-    if hook is None:
-        raise ValueError("transferFields: a hook on an ADT must be declared.")
-
+                   constraint=30., hook=None, variables=[], interpDataType=1):
     return connector.transferFields(z, interpXN, interpYN, interpZN, 
                                     order, nature, penalty, constraint,
-                                    hook, variables,
+                                    hook, variables, interpDataType,
                                     Internal.__GridCoordinates__,
                                     Internal.__FlowSolutionNodes__,
                                     Internal.__FlowSolutionCenters__)                                      

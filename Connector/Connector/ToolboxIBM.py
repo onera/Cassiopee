@@ -1486,7 +1486,7 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, inv=False, int
             if sizeOne < sizeTot:
                 XOD._setInterpTransfers(t,zc,variables=['cellNFront'],cellNVariable='cellNFront',compact=0)
 
-    if frontType==2: _pushBackImageFront2(t, tc, tbb)
+    if frontType==2: _pushBackImageFront2(t, tc, tbb, interpDataType=interpDataType)
 
     ## Fin traitement specifique, vaut 0 ou 1 apres la ligne suivante
     C._cpVars(t,'centers:cellNFront',tc,'cellNFront')
@@ -1516,7 +1516,7 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, inv=False, int
 #=============================================================================
 # Performs specific treatment for frontType=2
 #=============================================================================
-def _pushBackImageFront2(t, tc, tbb):
+def _pushBackImageFront2(t, tc, tbb, interpDataType=1):
     intersectionsDict = X.getIntersectingDomains(tbb, method='AABB', taabb=tbb)
     C._initVars(t,'{centers:cellNFront_origin}={centers:cellNFront}')
     C._initVars(t,'{centers:cellNIBC_origin}={centers:cellNIBC}')
@@ -1540,10 +1540,11 @@ def _pushBackImageFront2(t, tc, tbb):
                     allInterpFields=[]
                     for zc in Internal.getZones(tc):
                         if zc[0] in intersectionsDict[z[0]]:
-                            HOOKADT = C.createHook(zc, 'adt')
-                            fields = X.transferFields(zc, XI, YI, ZI, hook=HOOKADT, variables=['cellNFront_origin','cellNIBC_origin'])
-                            allInterpFields.append(fields)
-                            C.freeHook(HOOKADT)
+                            if interpDataType==1: HOOKADT = C.createHook(zc, 'adt')
+                            else: HOOKADT = None
+                            fields = X.transferFields(zc, XI, YI, ZI, hook=HOOKADT, variables=['cellNFront_origin','cellNIBC_origin'], interpDataType=interpDataType)
+                            if interpDataType == 1: allInterpFields.append(fields)
+                            # C.freeHook(HOOKADT)
                     if allInterpFields!=[]:
                         C._filterPartialFields(z, allInterpFields, indicesI, loc='centers', startFrom=0, filterName='donorVol',verbose=False)
                         # C._initVars(z,'{centers:cellNFront}=({centers:cellNFront}>0.5)') #ancienne version

@@ -54,35 +54,42 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
   E_Int penalty;//1 : penalite sur le volume des pts ou cellules frontieres
   E_Float constraint;
   E_Int extrapOrder = 1;
-  if (!PYPARSETUPLE(args, "OOOOllldOOsss", "OOOOiiidOOsss","OOOOlllfOOsss","OOOOiiifOOsss",
+  E_Int InterpDataType;// 0 : cart, 1 par ADT
+  if (!PYPARSETUPLE(args, "OOOOllldOOlsss", "OOOOiiidOOisss","OOOOlllfOOlsss","OOOOiiifOOisss",
                     &zoneD, &interpPtsCoordX, &interpPtsCoordY, &interpPtsCoordZ,
                     &interporder, &nature, &penalty, &constraint, &hookADT, &pyVariables,
-                    &GridCoordinates,  &FlowSolutionNodes, &FlowSolutionCenters)) return NULL;
+                    &InterpDataType, &GridCoordinates,  &FlowSolutionNodes, &FlowSolutionCenters)) return NULL;
+  if ( InterpDataType != 0 && InterpDataType != 1 )
+  {
+    PyErr_SetString(PyExc_TypeError,
+                    "transferFields: InterpDataType must be 0 for CART or 1 for ADT.");
+    return NULL;
+  }
 
   // Interpolation type
-  K_INTERP::InterpAdt::InterpolationType interpType;
+  K_INTERP::InterpData::InterpolationType interpType;
   E_Int nindi, ncfmax;
   switch (interporder)
   {
     case 2:
-      interpType = K_INTERP::InterpAdt::O2CF;
+      interpType = K_INTERP::InterpData::O2CF;
       ncfmax = 8; nindi = 1;
       break;
 
     case 3:
-      interpType = K_INTERP::InterpAdt::O3ABC;
+      interpType = K_INTERP::InterpData::O3ABC;
       ncfmax = 9; nindi = 1;
       break;
 
     case 5:
-      interpType = K_INTERP::InterpAdt::O5ABC;
+      interpType = K_INTERP::InterpData::O5ABC;
       ncfmax = 15; nindi = 1;
       break;
         
     default:
       printf("Warning: transferFields: unknown interpolation order.");
       printf(" Set to 2nd order.\n");
-      interpType = K_INTERP::InterpAdt::O2CF;
+      interpType = K_INTERP::InterpData::O2CF;
       ncfmax = 8; nindi = 1;
       break;
   } 
@@ -157,27 +164,6 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
   // FldArrayF* donorFields = new FldArrayF(npts, nfld, rakeFieldsD, true, true);
   FldArrayF donorFields(npts, nfld, rakeFieldsD, true, true);
 
-  //recup de l ADT
-#if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
-    void** packet = (void**) PyCObject_AsVoidPtr(hookADT);
-#else
-    void** packet = (void**) PyCapsule_GetPointer(hookADT, NULL);
-#endif
-
-  E_Int* typeHookp = (E_Int*)packet[0];
-  E_Int typeHook = typeHookp[0];
-  if  ( typeHook != 1 ) 
-  {
-    PyErr_SetString(PyExc_TypeError, 
-                    "transferFields: 5th arg must be a hook on an ADT.");
-    RELEASEDATA;
-    return NULL;
-  }
-  E_Int s1 = typeHookp[1];
-  K_INTERP::InterpAdt* adt;
-  for (E_Int i = 0; i < s1; i++)
-    adt = (K_INTERP::InterpAdt*)(packet[i+1]);
-
   E_Int posxd = K_ARRAY::isCoordinateXPresent(varStringD);
   E_Int posyd = K_ARRAY::isCoordinateYPresent(varStringD);
   E_Int poszd = K_ARRAY::isCoordinateZPresent(varStringD);
@@ -195,6 +181,68 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
     return NULL;
   }
   posxd++; posyd++; poszd++; poscd++;
+
+  //recup de l interpData
+  K_INTERP::InterpData* interpData;
+  if ( InterpDataType == 1)
+  {
+    if (hookADT == Py_None)
+    {
+      E_Int isBuilt = 0;
+      void* a1 = (void*)(&imd);
+      void* a2 = (void*)(&jmd);
+      void* a3 = (void*)(&kmd);
+
+      interpData = new K_INTERP::InterpAdt(donorFields.getSize(), donorFields.begin(posxd), donorFields.begin(posyd), donorFields.begin(poszd),
+                                           a1, a2, a3, isBuilt);
+      if ( isBuilt != 1)
+      {
+        PyErr_SetString(PyExc_TypeError, 
+                        "transferFields: interpADT cannot be built.");
+        RELEASEDATA;
+        return NULL;
+      }
+    }
+    else 
+    {
+  #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
+      void** packet = (void**) PyCObject_AsVoidPtr(hookADT);
+  #else
+      void** packet = (void**) PyCapsule_GetPointer(hookADT, NULL);
+  #endif    
+      E_Int* typeHookp = (E_Int*)packet[0];
+      E_Int typeHook = typeHookp[0];
+      if  ( typeHook != 1 ) 
+      {
+        PyErr_SetString(PyExc_TypeError, 
+                        "transferFields: 5th arg must be a hook on an ADT.");
+        RELEASEDATA;
+        return NULL;
+      }
+      E_Int s1 = typeHookp[1];
+      if ( s1 > 1)
+      {
+        PyErr_SetString(PyExc_TypeError, 
+                        "transferFields: only one ADT must be provided in hook.");
+        RELEASEDATA;
+        return NULL;
+      }
+      K_INTERP::InterpAdt* adt;
+      interpData = (K_INTERP::InterpAdt*)(packet[1]);
+    }
+  }
+  else //CART
+  {
+    E_Float* xt = donorFields.begin(posxd);
+    E_Float* yt = donorFields.begin(posyd);
+    E_Float* zt = donorFields.begin(poszd);
+    E_Float x0 = xt[0]; E_Float y0 = yt[0]; E_Float z0 = zt[0];
+    E_Float hi = xt[1]-xt[0];
+    E_Float hj = yt[imd]-yt[0];
+    E_Float hk = zt[imd*jmd]-zt[0];
+    interpData = new K_INTERP::InterpCart(imd,jmd,kmd,hi,hj,hk,x0,y0,z0);
+  }
+
   /*---------------------------------------------------*/
   /*  Extrait les positions des variables a transferer */
   /*---------------------------------------------------*/
@@ -289,13 +337,13 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
     E_Float y = yr[noind];
     E_Float z = zr[noind];
     volD = 0.;
-    short ok = K_INTERP::getInterpolationCell(x, y, z, adt, &donorFields,
+    short ok = K_INTERP::getInterpolationCell(x, y, z, interpData, &donorFields,
                                               a2, a3, a4, a5, posxd, posyd, poszd, poscd,
                                               volD, indi, cf, type, noblk, interpType, 
                                               nature, penalty);   
     if (ok != 1)
     {
-      ok = K_INTERP::getExtrapolationCell(x, y, z, adt, &donorFields,
+      ok = K_INTERP::getExtrapolationCell(x, y, z, interpData, &donorFields,
                                           a2, a3, a4, a5, posxd, posyd, poszd, poscd,
                                           volD, indi, cf, type, noblk, interpType, 
                                           nature, penalty, constraint, extrapOrder);
