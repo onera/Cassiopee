@@ -132,12 +132,16 @@ def _compressCartesian(t):
         if xp is None: continue
         if yp is None: continue
         if zp is None: continue
-        xp = Internal.getValue(xp).ravel('k')
-        yp = Internal.getValue(yp).ravel('k')
-        zp = Internal.getValue(zp).ravel('k')
+        xp = xp[1].ravel(order='K')
+        yp = yp[1].ravel(order='K')
+        zp = zp[1].ravel(order='K')
         ni = ztype[1]; nj = ztype[2]; nk = ztype[3]
         x0 = xp[0]; y0 = yp[0]; z0 = zp[0]
-        hi = xp[1]-x0; hj = yp[nj]-y0; hk = zp[ni*nj]-z0
+        hi = xp[1]-x0; 
+        if nj > 1: hj = yp[ni]-y0
+        else: hj = 1.
+        if nk > 1: hk = zp[ni*nj]-z0
+        else: hk = 1.
         Internal._rmNodesFromName(gc, 'CoordinateX')
         Internal._rmNodesFromName(gc, 'CoordinateY')
         Internal._rmNodesFromName(gc, 'CoordinateZ')
