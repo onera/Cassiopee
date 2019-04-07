@@ -2,6 +2,7 @@
 from . import PyTree as C
 from . import Internal
 from . import Distributed
+import Compressor.PyTree as Compressor
 
 # Acces a Distributed
 from .Distributed import readZones, writeZones, convert2PartialTree, convert2SkeletonTree, readNodesFromPaths, readPyTreeFromPaths, writeNodesFromPaths
@@ -204,7 +205,11 @@ def createBBoxTree(t, method='AABB', weighting=0):
         zones = Internal.getNodesFromType1(b, 'Zone_t')
         for z in zones:
             if not Distributed.isZoneSkeleton__(z):
-                zbb = G.BB(z, method, weighting); zb.append(zbb)
+                zbb = G.BB(z, method, weighting)
+                # Clean up (zoneSubRegion)
+                for c, l in enumerate(zbb[2]):
+                    if l[3] == 'ZoneSubRegion_t': del zbb[2][c]
+                zb.append(zbb)
         
     # Echanges des zones locales de bounding box
     # (allgather serialise automatiquement les donnees)
@@ -251,13 +256,13 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, reduction=True,
 #==============================================================================
 # Recupere les zones specifiees dans le graph, les ajoute a l'arbre local t
 #==============================================================================
-def addXZones(t, graph):
+def addXZones(t, graph, variables=None, cartesian=False):
     """Add zones specified in graph on current proc."""
     tp = Internal.copyRef(t)
-    _addXZones(tp, graph)
+    _addXZones(tp, graph, variables, cartesian)
     return tp
 
-def _addXZones(t, graph):
+def _addXZones(t, graph, variables=None, cartesian=False):
     if graph == {}: return t
     reqs = []
     if rank in graph:
@@ -269,7 +274,17 @@ def _addXZones(t, graph):
             data = [] # data est une liste de zones
             for n in names:
                 zone = Internal.getNodeFromName2(t, n)
-                data.append(zone)
+                if variables is not None:
+                    v = C.getVarNames(zone, excludeXYZ=True)[0]
+                    for i in variables: v.remove(i)
+                    zonep = C.rmVars(zone, v)
+                    if cartesian: Compressor._compressCartesian(zonep)
+                    data.append(zonep)
+                else:
+                    if cartesian: 
+                        zonep = Compressor._compressCartesian(zonep)
+                        data.append(zonep)
+                    else: data.append(zone)
             s = KCOMM.isend(data, dest=oppNode)
             reqs.append(s)
 
@@ -281,6 +296,7 @@ def _addXZones(t, graph):
             data = KCOMM.recv(source=node)
             
             for z in data: # data est une liste de zones
+                if cartesian: Compressor._uncompressCartesian(z)
                 #print '%d: recoit la zone %s.'%(rank,z[0])
                 # tag z
                 Internal.createChild(z, 'XZone', 'UserDefinedData_t') 

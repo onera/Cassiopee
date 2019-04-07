@@ -182,7 +182,7 @@ def isValue(node, value):
 
 # -- isNameAndType
 # Compare type and name of node with given (name, ntype)
-def isNameAndType(node, (name, ntype)):
+def isNameAndType(node, name, ntype):
     return isName(node, name) and isType(node, ntype)
 
 # -- is child
