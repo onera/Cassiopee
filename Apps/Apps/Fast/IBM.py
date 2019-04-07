@@ -212,7 +212,8 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
     tbb = Cmpi.createBBoxTree(t)
     interDict = X.getIntersectingDomains(tbb)
     graph = Cmpi.computeGraph(tbb, type='bbox', intersectionsDict=interDict, reduction=False)
-    Cmpi._addXZones(t, graph)
+    del tbb
+    Cmpi._addXZones(t, graph, variables=[], cartesian=True)
     test.printMem(">>> extended cart grids [after add XZones]")
     zones = Internal.getZones(t)
     coords = C.getFields(Internal.__GridCoordinates__, zones, api=2)
@@ -329,7 +330,8 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
     tbbc = Cmpi.createBBoxTree(tc)
     interDict = X.getIntersectingDomains(tbbc)
     graph = Cmpi.computeGraph(tbbc, type='bbox', intersectionsDict=interDict, reduction=False)
-    Cmpi._addXZones(tc, graph)
+    del tbbc
+    Cmpi._addXZones(tc, graph, variables=['cellN'], cartesian=True)
     test.printMem(">>> Interpdata [after addXZones]")
     
     procDict = Cmpi.getProcDict(tc)
@@ -464,7 +466,7 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
                 graph[k][j] = list(set(graph[k][j])) # pas utile?
 
     test.printMem(">>> Interpolating IBM [start]")
-    Cmpi._addXZones(tc, graph)
+    Cmpi._addXZones(tc, graph, variables=['cellN'], cartesian=True)
     test.printMem(">>> Interpolating IBM [after addXZones]")
 
     ReferenceState = Internal.getNodeFromType2(t, 'ReferenceState_t')
@@ -481,6 +483,7 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
                 if allCorrectedPts[nozr] != []:
                     zrcv = zonesRIBC[nozr]
                     zrname = zrcv[0]
+                    dnrZones = []
                     for zdname in interDictIBM[zrname]:
                         zd = Internal.getNodeFromName2(tc, zdname)
                         #if zd is not None: dnrZones.append(zd)
@@ -548,11 +551,11 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
         Cmpi.convertPyTree2File(tibm, 'IBMInfo.cgns')
 
     # distribution par defaut (sur Cmpi.size)
-    tcbb = Cmpi.createBBoxTree(tc)
-    stats = D2._distribute(tcbb, Cmpi.size, algorithm='graph', useCom='ID')
-    D2._copyDistribution(tcbb, tc)
-    D2._copyDistribution(tcbb, t)
-
+    tbbc = Cmpi.createBBoxTree(tc)
+    stats = D2._distribute(tbbc, Cmpi.size, algorithm='graph', useCom='ID')
+    D2._copyDistribution(tbbc, tc)
+    D2._copyDistribution(tbbc, t)
+    del tbbc
     if isinstance(tc_out, str): Cmpi.convertPyTree2File(tc, tc_out)
 
     I._initConst(t, loc='centers')
@@ -883,6 +886,14 @@ def _snearFactor(tb, factor=1.):
         nodes = Internal.getNodesFromName2(z, 'snear')
         for n in nodes:
             Internal._setValue(n, factor*Internal.getValue(n))
+    return None
+
+def _setDfar(tb, dfar=1.):
+    zones = Internal.getZones(tb)
+    for z in zones:
+        nodes = Internal.getNodesFromName2(z, 'dfar')
+        for n in nodes:
+            Internal._setValue(n, dfar*1.)
     return None
 
 #====================================================================================
