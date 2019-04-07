@@ -1235,7 +1235,7 @@ def doInterp2(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=
         dictOfCorrectedPtsByIBCType = res[0]
         dictOfWallPtsByIBCType = res[1] 
         dictOfInterpPtsByIBCType = res[2]
-        for ibcTypeL in  dictOfCorrectedPtsByIBCType:
+        for ibcTypeL in dictOfCorrectedPtsByIBCType:
             allCorrectedPts = dictOfCorrectedPtsByIBCType[ibcTypeL]
             allWallPts = dictOfWallPtsByIBCType[ibcTypeL]
             allInterpPts = dictOfInterpPtsByIBCType[ibcTypeL]

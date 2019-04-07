@@ -497,7 +497,7 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
             /* Step 2: ortho projection on the bodies + new normals for projectDir on the front     */
             /*--------------------------------------------------------------------------------------*/
             projectOrthoBody:;
-            printf("Step1 failed: ortho projection on bodies.\n");
+            //printf("Step1 failed: ortho projection on bodies.\n");
 
             valid = 1;
             // ortho projection of target pt onto bodies
@@ -538,7 +538,7 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
             /* Step 3: ortho projection onto the front + dir onto the obstacle using the ortho direction  */
             /*---------------------------------------------------------------------------------------------*/
             projectOrthoFront:;            
-            printf("Step2 failed: ortho projection on front.\n");
+            //printf("Step2 failed: ortho projection on front.\n");
             valid = 1;
 
             // Projection orthogonale du pt cible sur le front
@@ -584,7 +584,7 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
             /*   BLEND OF BOTH DIRECTIONS                                 */
             /*------------------------------------------------------------*/
             blended:;
-            printf("Step 3 failed: blending normals...\n");
+            //printf("Step 3 failed: blending normals...\n");
             valid = 1;
 
             // projection onto the front
