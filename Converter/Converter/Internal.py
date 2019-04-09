@@ -1,5 +1,7 @@
 # -- Internal --
 # -- PyTree node manipulations --
+try: range = xrange
+except: pass
 
 import numpy
 import fnmatch # unix wildcards
@@ -244,8 +246,8 @@ def setValue(node, value=None):
                     node[1] = v
                 else:
                     v = numpy.empty( (32,len(value[0]),len(value) ), dtype='c', order='F')
-                    for c in xrange(len(value)):
-                        for d in xrange(len(value[c])): v[:,d, c] = value[c][d][:]
+                    for c in range(len(value)):
+                        for d in range(len(value[c])): v[:,d, c] = value[c][d][:]
                     node[1] = v
         elif isinstance(value, tuple):
             testValue = value
@@ -261,8 +263,8 @@ def setValue(node, value=None):
                     node[1] = v
                 else:
                     v = numpy.empty( (32,len(value[0]),len(value) ), dtype='c', order='F')
-                    for c in xrange(len(value)):
-                        for d in xrange(len(value[c])): v[:,d, c] = value[c][d][:]
+                    for c in range(len(value)):
+                        for d in range(len(value[c])): v[:,d, c] = value[c][d][:]
                     node[1] = v
         else: node[1] = numpy.array([value])
     return None
@@ -1520,7 +1522,7 @@ def getPathAncestor(path, level=1):
     """Return the path ancestor of path."""
     if level == 0: return path
     s = path.split('/'); ls =  len(s); c = 0
-    for i in xrange(level): c += len(s[ls-i-1])+1
+    for i in range(level): c += len(s[ls-i-1])+1
     return path[0:-c]
 
 # -- Retourne les noeuds Zone_t --
@@ -1554,7 +1556,7 @@ def getZonesPerIteration(t, iteration=None, time=None):
     
     if iteration is not None:
         zoneNames = []
-        for nbz in xrange(nbOfZones[iteration]):
+        for nbz in range(nbOfZones[iteration]):
             zoneName = zonePtrs[:, nbz, iteration].tostring().strip()
             zoneNames.append(zoneName)
         return [getNodeFromName2(t,z) for z in zoneNames]
@@ -1562,17 +1564,17 @@ def getZonesPerIteration(t, iteration=None, time=None):
     if time is not None:
         timeValues = getNodeFromName1(bid, 'TimeValues')[1]
         zoneNames = []
-        for i in xrange(nbOfZones.shape[0]):
+        for i in range(nbOfZones.shape[0]):
             if time == timeValues[i]:
-                for nbz in xrange(nbOfZones[i]):
+                for nbz in range(nbOfZones[i]):
                     zoneName = zonePtrs[:, nbz, i].tostring().strip()
                     zoneNames.append(zoneName)
         return [getNodeFromName2(t,z) for z in zoneNames]
 
     zonesPerIteration = []
-    for i in xrange(nbOfZones.shape[0]):
+    for i in range(nbOfZones.shape[0]):
         zones = []
-        for nbz in xrange(nbOfZones[i]):
+        for nbz in range(nbOfZones[i]):
             zoneName = zonePtrs[:, nbz, i].tostring().strip()
             zones.append(getNodeFromName2(t,zoneName))
         zonesPerIteration.append(zones)
@@ -1872,7 +1874,7 @@ def getValue(node):
         elif n.dtype.char == 'c':
             if len(n.shape) == 1: return n.tostring()
             out = []
-            for i in xrange(n.shape[1]):
+            for i in range(n.shape[1]):
                 v = n[:,i].tostring()
                 out.append(v.strip())
             return out
@@ -1934,8 +1936,7 @@ def _rmNodeByPath(t, path):
     return None
 
 def rmNodeByPath__(t, path):
-    children = range(len(t[2]))
-    children.reverse()
+    children = list(range(len(t[2])-1,-1,-1))
     for ichild in children:
         if t[2][ichild][0] == path[0]:
             if len(path) == 1: t[2].pop(ichild)
@@ -1963,8 +1964,7 @@ def _rmNodesByName(t, name):
 _rmNodesFromName = _rmNodesByName # alias
 
 def rmNodesByName__(t, name):
-    children = range(len(t[2]))
-    children.reverse()
+    children = list(range(len(t[2])-1,-1,-1))
     for ichild in children:
         if isName(t[2][ichild], name): t[2].pop(ichild)
         else: rmNodesByName__(t[2][ichild], name)
@@ -2034,8 +2034,7 @@ def _rmNodesByValue(t, value):
     return None
 
 def rmNodesByValue__(t, value):
-    indchild = range(len(t[2]))
-    indchild.reverse()
+    indchild = list(range(len(t[2])-1,-1,-1))
     for ichild in indchild:
         if isValue(t[2][ichild], value): t[2].pop(ichild)
         else: rmNodesByValue__(t[2][ichild], value)
@@ -2148,7 +2147,7 @@ def copyRef(node):
         dup = duptree__(node, []); return dup
     elif ret == 0:
         l = list(node); lg = len(l)
-        for i in xrange(lg): l[i] = duptree__(l[i], [])
+        for i in range(lg): l[i] = duptree__(l[i], [])
         return l
     else: return node
 
@@ -2195,7 +2194,7 @@ def copyValue(node, byName=None, byType=None):
         dup = duptree1__(node, byName, byType, []); return dup
     elif ret == 0:
         l = list(node); lg = len(l)
-        for i in xrange(lg): l[i] = duptree1__(l[i], byName, byType, [])
+        for i in range(lg): l[i] = duptree1__(l[i], byName, byType, [])
         return l
     else: return node
 
@@ -2372,7 +2371,7 @@ def eltName2EltNo(name):
         elif nnodes == 20: eltno = 18
         elif nnodes == 27: eltno = 19
     elif name == 'MIXED':
-        print 'Warning: eltName2EltNo: MIXED elements not supported.'
+        print('Warning: eltName2EltNo: MIXED elements not supported.')
         eltno = 20; nnodes = -1
     elif name == 'NGON' or name == 'NGON_n': eltno = 22; nnodes = 1
     elif name == 'NFACE' or name == 'NFACE_n': eltno = 23; nnodes = 1
@@ -2402,7 +2401,7 @@ def eltNo2EltName(eltno):
     elif eltno == 18: name = 'HEXA_20'; nnodes = 20
     elif eltno == 19: name = 'HEXA_27'; nnodes = 27
     elif eltno == 20:
-        print 'Warning: eltNo2EltName: MIXED elements not supported.'
+        print('Warning: eltNo2EltName: MIXED elements not supported.')
         name = 'MIXED'; nnodes = -1
     elif eltno == 22: name = 'NGON'; nnodes = 1
     elif eltno == 23: name = 'NFACE'; nnodes = 1
@@ -2637,13 +2636,13 @@ def createZoneNode(name, array, array2=[],
   if isinstance(array[1], list): nvar = len(array[1])
   else: nvar = array[1].shape[0]
   createFlow = False
-  for i in xrange(nvar):
+  for i in range(nvar):
     if i != px and i != py and i != pz: createFlow = True
   if createFlow:
     vars = array[0].split(',')
     info.append([FlowSolutionNodes, None, [], 'FlowSolution_t'])
     info = info[len(info)-1]
-    for i in xrange(nvar):
+    for i in range(nvar):
       if i != px and i != py and i != pz:
         node = createDataNode(vars[i], array, i, cellDim)
         info[2].append(node)
@@ -2655,7 +2654,7 @@ def createZoneNode(name, array, array2=[],
       info = info[len(info)-1]
       v = numpy.fromstring('CellCenter', 'c')
       info[2].append(['GridLocation', v, [], 'GridLocation_t'])
-      for i in xrange(nvar):
+      for i in range(nvar):
           node = createDataNode(vars[i], array2, i, cellDim)
           info[2].append(node)
   return zone
@@ -2769,7 +2768,7 @@ def convertDataNode2Array2(node, dim, connects, loc=-1):
             print('Warning: convertDataNode2Array: different connectivities in a single zone is not possible. Only first connectivity is kept.')
     else:
         #raise ValueError("convertDataNode2Array: no valid connectivity found.")
-        #print 'Warning: convertDataNode2Array: no valid connectivity found (using NODE).'
+        #print('Warning: convertDataNode2Array: no valid connectivity found (using NODE).')
         cr = numpy.empty((1,0), dtype=numpy.int32); ettype='NODE'
 
     ettype, stype = eltNo2EltName(eltType)
@@ -2921,7 +2920,7 @@ def convertDataNodes2Array2(nodes, dim, connects, loc=-1):
             print('Warning: convertDataNode2Array: different connectivities in a single zone is not possible. Only first connectivity is kept.')
     else:
         #raise ValueError("convertDataNode2Array: no valid connectivity found.")
-        #print 'Warning: convertDataNode2Array: no valid connectivity found (using NODE).'
+        #print('Warning: convertDataNode2Array: no valid connectivity found (using NODE).')
         cr = numpy.empty((1,0), dtype=numpy.int32); ettype='NODE'; eltType = 0
 
     ettype, stype = eltNo2EltName(eltType)
@@ -3299,7 +3298,7 @@ def adaptConnect__(connects, dim):
             print('Warning: convertDataNode2Array: different connectivities in a single zone is not possible. Only first connectivity is kept.')
     else:
         #raise ValueError("convertDataNode2Array: no valid connectivity found.")
-        #print 'Warning: convertDataNode2Array: no valid connectivity found (using NODE).'
+        #print('Warning: convertDataNode2Array: no valid connectivity found (using NODE).')
         return (numpy.empty((1,0), dtype=numpy.int32), 'NODE')
 
     np = dim[1]; ne = dim[2]
@@ -3990,7 +3989,7 @@ def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
                         ind = pln.ravel('k')[0]
                         ref = referencedElement(ind, zdonor, shift0)
                         if ref is None:
-                            print 'Warning: cannot find', ind, b[0], z[0]
+                            print('Warning: cannot find', ind, b[0], z[0])
                         else:
                             shiftn = shift1[zdonor][ref][0]-shift0[zdonor][ref][0]
                             pln[:] += shiftn
@@ -4065,7 +4064,7 @@ def convertIJKArray21DArray(*thetuple):
     (a,im,jm,km) = thetuple
     size = a.shape[1]
     b = numpy.empty((1,size), numpy.int32)
-    for l in xrange(size):
+    for l in range(size):
       i = a[0][l]-1; j = a[1][l]-1; k = a[2][l]-1
       ind = adrNode1__(i,j,k,im,jm,km,0)
       b[0][l] = ind
@@ -4074,7 +4073,7 @@ def convertIJKArray21DArray(*thetuple):
     (a,im,jm) = thetuple
     size = a.shape[1]
     b = numpy.empty((1,size), numpy.int32)
-    for l in xrange(size):
+    for l in range(size):
       b[0][l] = a[0][l]-1; j = a[1][l]-1
       ind = adrNode2__(i,j,im,jm,0)
     return b
@@ -4082,7 +4081,7 @@ def convertIJKArray21DArray(*thetuple):
     (a,im) = thetuple
     size = a.shape[1]
     b = numpy.empty((1,size), numpy.int32)
-    for l in xrange(size):
+    for l in range(size):
       b[0][l] = a[l]-1
     return b
   else:
@@ -4109,14 +4108,14 @@ def gatherInStructPatch2D__(listIndices, indirWin, niw, njw, dirf, niZ, njZ, nkZ
 
         jstart = indstart/niw; istart = indstart-jstart*niw
         iend = niw-1; jend = njw-1;
-        for i in xrange(istart+1,niw):
+        for i in range(istart+1,niw):
             ind = i+jstart*niw
             indH = listIndices[ind]
             if indH == -1 or indirWin[indH-1] != noBlk:break
             else: iend=i; jend=jstart; indend=ind
-        for j in xrange(jstart+1,njw):
+        for j in range(jstart+1,njw):
             ok = 1
-            for i in xrange(istart,niw):
+            for i in range(istart,niw):
                 ind = i+j*niw
                 indH = listIndices[ind]
                 if indH == -1 or indirWin[indH-1] != noBlk:
@@ -4126,8 +4125,8 @@ def gatherInStructPatch2D__(listIndices, indirWin, niw, njw, dirf, niZ, njZ, nkZ
             if ok == 0: break
             else: jend=j
         # update listIndices
-        for j in xrange(jstart,jend+1):
-            for i in xrange(istart,iend+1):
+        for j in range(jstart,jend+1):
+            for i in range(istart,iend+1):
                 ind = i+j*niw
                 listIndices[ind] = -1;
         res.append([istart,iend,jstart,jend,noBlk])
@@ -4255,7 +4254,7 @@ def getBCDataSet(z, bcNode, withLoc=False):
     # Try from BCDataSet#EndOfRun (etc)
     dataSet = getNodeFromName1(bcNode, 'BCDataSet#EndOfRun')
     if dataSet is not None:
-        #print 'found new etc style dataSet'
+        #print('found new etc style dataSet')
         datas = getNodesFromType2(dataSet, 'DataArray_t')
         if withLoc:
             l = 'Vertex'
@@ -4268,7 +4267,7 @@ def getBCDataSet(z, bcNode, withLoc=False):
     path = '%s#ZoneBC/%s'%(__FlowSolutionCenters__, bcNode[0])
     node = getNodeFromPath(z, path)
     if node is not None:
-        #print 'found old style etc Flow#ZoneBC'
+        #print('found old style etc Flow#ZoneBC')
         datas = getNodesFromType2(node, 'DataArray_t')
         if withLoc:
             l = 'Vertex'
@@ -4280,7 +4279,7 @@ def getBCDataSet(z, bcNode, withLoc=False):
     # Try from FFD extraction
     node = getNodeFromName(bcNode, 'FFD72SurfaceSolution')
     if node is not None:
-        #print 'found FFD72'
+        #print('found FFD72')
         datas = getNodesFromType2(node, 'DataArray_t')
         if withLoc:
             l = 'Vertex'
@@ -4292,7 +4291,7 @@ def getBCDataSet(z, bcNode, withLoc=False):
     # Try from other BCDataSet
     dataSet = getNodeFromType1(bcNode, 'BCDataSet_t')
     if dataSet is not None:
-        #print 'Found dataSet'
+        #print('Found dataSet')
         datas = getNodesFromType2(dataSet, 'DataArray_t')
         if withLoc:
             l = 'Vertex'
@@ -4366,7 +4365,7 @@ def  getBCDataSetContainers(name, z):
                 if f0[3]=='DataArray_t':
                     fname = f0[0] # variable name to be extracted from bcdataset
                     dataSetL = [] # [[BCRange1,fieldBC],[BCRange2,fieldBC2],[...],...]
-                    for nobcdata in xrange(nbcdataset):
+                    for nobcdata in range(nbcdataset):
                         if allLocDS[nobcdata]==matchingLoc: # OK: locations are consistent
                             datas = getNodesFromName1(allBCDatas[nobcdata],fname) 
                             if datas != []:
@@ -4401,7 +4400,7 @@ def  getBCDataSetContainers(name, z):
                 if f0 is not None:
                     if f0[3] == 'DataArray_t':
                         dataSetL = [] # [[BCRange1,fieldBC],[BCRange2,fieldBC2],[...],...]
-                        for nobcdata in xrange(nbcdataset):
+                        for nobcdata in range(nbcdataset):
                             if allLocDS[nobcdata]==matchingLoc: # OK: locations are consistent
                                 datas = getNodesFromName1(allBCDatas[nobcdata],varname) 
                                 if datas != []:

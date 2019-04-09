@@ -221,7 +221,7 @@ def convertPyTree2FilePartial(t, fileName, comm, Filter, ParallelHDF=False,
 
     # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     # > On serialize
-    for lock in xrange(comm.Get_size()):
+    for lock in range(comm.Get_size()):
       if lock == comm.Get_rank():
         Converter.converter.convertPyTree2FilePartial(t, fileName, format, skeletonData, comm, Filter)
       comm.barrier()

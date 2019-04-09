@@ -613,7 +613,7 @@ pyTree creation and manipulation
 
 ---------------------------------------------------------------------------
 
-.. py:function:: Converter.PyTree.addBC2Zone(zone, bndName, bndType, range=[], zoneDonor=[], rangeDonor=[], trirac=[1,2,3], rotationCenter=[], rotationAngle=[], translation=[], faceList=[], elementList=[], elementRange=[], data=None, subzone=None, faceListDonor=None, elementListDonor=None, elementRangeDonor=None, tol=1.e-12, unitAngle=None)
+.. py:function:: Converter.PyTree.addBC2Zone(zone, bndName, bndType, wrange=[], zoneDonor=[], rangeDonor=[], trirac=[1,2,3], rotationCenter=[], rotationAngle=[], translation=[], faceList=[], elementList=[], elementRange=[], data=None, subzone=None, faceListDonor=None, elementListDonor=None, elementRangeDonor=None, tol=1.e-12, unitAngle=None)
 
     Add a physical boundary condition (BC) or a grid connectivity (GC) to a structured/basic element/NGON zone of a PyTree. Parameter bndName is the 
     name of the BC or GC. Exists also as in place version (_addBC2Zone) modifying zone and returning None.
@@ -624,8 +624,8 @@ pyTree creation and manipulation
     :type bndName: string
     :param bndType: type of BC or GC defined either by a CGNS type or by a family of BCs of name myFamilyBC. Joins between stages must be defined by a familyBC prefixed by 'BCStage' 
     :type bndType: string as a CGNS BC type or ['BCMatch','BCNearMatch','BCOverlap','FamilySpecified:'+myFamilyBC]
-    :param range: for structured grids only. Defines the range of the BC/GC
-    :type range: a list of integers defining the window [imin,imax,jmin,jmax,kmin,kmax] or a string in ['imin','imax','jmin','jmax,'kmin','kmax']
+    :param wrange: for structured grids only. Defines the range of the BC/GC
+    :type wrange: a list of integers defining the window [imin,imax,jmin,jmax,kmin,kmax] or a string in ['imin','imax','jmin','jmax,'kmin','kmax']
     :param zoneDonor: donor zone(s)
     :type zoneDonor: zone node for abutting GC and list of [zone nodes, zone names, family of zones prefixed by 'FamilySpecified:]
     :param rangeDonor: range of donor zone for abutting GC, 'doubly_defined' for a doubly defined overlap GC.
@@ -661,22 +661,22 @@ pyTree creation and manipulation
     :rtype: reference copy of input
 
 
-    .. For structured grids, parameter 'range' specifies the window where the BC is applied. It can be defined by a list of indices [imin, imax, jmin, jmax, kmin, kmax] or by 'imin', 'jmin', ... if the BC is defined on the whole window ('imin' stands for i=1, 'imax' for i=imax). A physical BC for a structured grid is defined by::
+    .. For structured grids, parameter 'wrange' specifies the window where the BC is applied. It can be defined by a list of indices [imin, imax, jmin, jmax, kmin, kmax] or by 'imin', 'jmin', ... if the BC is defined on the whole window ('imin' stands for i=1, 'imax' for i=imax). A physical BC for a structured grid is defined by::
 
-    ..      b = C.addBC2Zone(a, bndName, bndType, range, data=None) 
+    ..      b = C.addBC2Zone(a, bndName, bndType, wrange, data=None) 
 
-    .. For a 1-to-1 abutting GC, donor zone and range and transformation must be specified::
+    .. For a 1-to-1 abutting GC, donor zone and wrange and transformation must be specified::
 
-    ..     b = C.addBC2Zone(a, bndName, 'BCMatch', range, zoneDonor=donorZone, rangeDonor=donorRange, trirac=[-1,2,3]) 
+    ..     b = C.addBC2Zone(a, bndName, 'BCMatch', wrange, zoneDonor=donorZone, rangeDonor=donorRange, trirac=[-1,2,3]) 
 
     .. For periodic 1-to-1 GC, you must specify rotationCenter, rotationAngle and translation::
 
-    ..     b = C.addBC2Zone(a, bndName, 'BCMatch', range, zoneDonor=donorZone, rangeDonor=donorRange, trirac=[-1,2,3], rotationCenter=(0,0,0), rotationAngle(0,0,25.), translation=(0,0,0)) 
+    ..     b = C.addBC2Zone(a, bndName, 'BCMatch', wrange, zoneDonor=donorZone, rangeDonor=donorRange, trirac=[-1,2,3], rotationCenter=(0,0,0), rotationAngle(0,0,25.), translation=(0,0,0)) 
 
     .. For an overlap GC, donor zones can be provided as a list of zones/zone names/family of zones. 
     .. If the window range defines an overset GC and a physical BC, then 'doubly_defined' must defined as 'rangeDonor'::
 
-    ..     b = C.addBC2Zone(a, bndName, 'BCOverlap', range, zoneDonor=donorZones, rangeDonor='doubly_defined',topTreeD=None) 
+    ..     b = C.addBC2Zone(a, bndName, 'BCOverlap', wrange, zoneDonor=donorZones, rangeDonor='doubly_defined',topTreeD=None) 
 
     .. For basic element unstructured zones, the location of the BC/GC can be specified either by a list of faces defined by 'faceList', either by 'elementList' or 'elementRange' referencing an existing boundary connectivity, or by a subzone::
 

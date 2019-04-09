@@ -5,8 +5,13 @@ __author__ = "Stephanie Peron, Christophe Benoit, Gaelle Jeanfaivre, Pascal Raud
 #
 # Python Interface for conversion between  array / file / CGNS
 #
+try: range = xrange
+except: pass
+
 import numpy
-from . import converter
+from numpy import *
+try: from . import converter
+except: import converter
 import KCore
 
 __all__ = ['array', 'addVars', '_addVars', 'addVars2', 'center2ExtCenter', 'center2Node', 'conformizeNGon', 
@@ -43,11 +48,11 @@ def arrayS(vars, ni, nj, nk, api=1):
     vl = vars.split(','); v = len(vl)
     if api == 1:
         a = numpy.zeros((v, ni*nj*nk), numpy.float64)
-        for i in xrange(v):
+        for i in range(v):
             if vl[i] == 'cellN' or vl[i] == 'cellNF': a[i,:] = 1.
     else:
         a = []
-        for i in xrange(v):
+        for i in range(v):
             if vl[i] == 'cellN' or vl[i] == 'cellNF':
                 a.append(numpy.ones((ni*nj*nk), numpy.float64))
             else: 
@@ -80,11 +85,11 @@ def arrayNS(vars, npoints, nelts, eltType, api=1):
     if eltType[len(eltType)-1] == '*':
         if api == 1:
             a = numpy.zeros((v, nelts), numpy.float64)
-            for i in xrange(v):
+            for i in range(v):
                 if vl[i] == 'cellN' or vl[i] == 'cellNF': a[i,:] = 1.
         else:
             a = []
-            for i in xrange(v):
+            for i in range(v):
                 if vl[i] == 'cellN' or vl[i] == 'cellNF':
                     a.append(numpy.ones((nelts), numpy.float64))
                 else: 
@@ -92,11 +97,11 @@ def arrayNS(vars, npoints, nelts, eltType, api=1):
     else:
         if api == 1:
             a = numpy.zeros((v, npoints), numpy.float64)
-            for i in xrange(v):
+            for i in range(v):
                 if vl[i] == 'cellN' or vl[i] == 'cellNF': a[i,:] = 1.
         else:
             a = []
-            for i in xrange(v):
+            for i in range(v):
                 if vl[i] == 'cellN' or vl[i] == 'cellNF':
                     a.append(numpy.ones((npoints), numpy.float64))
                 else: 
@@ -308,7 +313,7 @@ def _addVars__(a, varNames):
         s = a[1].shape[1]
         nfld = a[1].shape[0]
         n = numpy.zeros((nfld+lg, s), dtype=numpy.float64)
-        for i in xrange(nfld): n[i,:] = a[1][i,:]        
+        for i in range(nfld): n[i,:] = a[1][i,:]        
         a[1] = n
     return None
 
@@ -328,11 +333,11 @@ def _addVars2__(a):
         for i in rest: nfld += i[1].shape[0]
         n = numpy.empty((nfld,a0[1].shape[1]), dtype=numpy.float64)
         nfld = a0[1].shape[0]
-        for j in xrange(nfld):
+        for j in range(nfld):
             n[j,:] = a0[1][j,:]
         for i in rest:
             nfld2 = i[1].shape[0]
-            for j in xrange(nfld2):
+            for j in range(nfld2):
                 n[nfld+j,:] = i[1][j,:]
             nfld += nfld2
         a0[1] = n
@@ -396,23 +401,23 @@ def _initVarByFunction__(a, var, F, vars):
     if not isinstance(a[1], list): # array1
         nsize = n.shape[1]
         if l == 0:
-            for i in xrange(nsize):
+            for i in range(nsize):
                 n[posvar,i] = F()
         else:
-            for i in xrange(nsize):
-                x = [n[pos[j],i] for j in xrange(l)]
+            for i in range(nsize):
+                x = [n[pos[j],i] for j in range(l)]
                 n[posvar,i] = F(*x)
     else: # array2
         nvar = n[posvar]
         nsize = nvar.size
         if l == 0:
             nvar1 = nvar.ravel(order='K')
-            for i in xrange(nsize): nvar1[i] = F()
+            for i in range(nsize): nvar1[i] = F()
         else:
-            npos = [n[pos[j]].ravel(order='K') for j in xrange(l)]
+            npos = [n[pos[j]].ravel(order='K') for j in range(l)]
             nvar1 = n[posvar].ravel(order='K')
-            for i in xrange(nsize):
-                x = [npos[j][i] for j in xrange(l)]
+            for i in range(nsize):
+                x = [npos[j][i] for j in range(l)]
                 nvar1[i] = F(*x)
     return None
                 
@@ -428,7 +433,6 @@ def _initVarByEq__(a, eq):
     # Split suivant ; si plusieurs formules sont definies
     eq = eq.split(';')
 
-    from numpy import *
     for eq0 in eq:
         #ast_eq = expr.ast(eq0)
         # Extrait la variable a initialiser de eq
@@ -453,7 +457,7 @@ def _initVarByEq__(a, eq):
             ap[varp,:] = eval(loc)
         else: # array2
             loc = s[1]; ap = a[1]
-            ap1 = [ ap[c].ravel(order='K') for c in xrange(len(ap)) ]
+            ap1 = [ ap[c].ravel(order='K') for c in range(len(ap)) ]
             c = 0
             for v in vars:
                 loc = loc.replace('{%s}'%v, 'ap1[%d][:]'%c); c += 1
@@ -525,7 +529,7 @@ def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
         try: import OCC
         except: raise ImportError("convertFile2Arrays: IGES reader requires OCC module.")
         a = OCC.convertIGES2Arrays(fileName, h=0., chordal_err=0.)
-        for c in xrange(len(a)): zoneNames.append('zone%d'%c)
+        for c in range(len(a)): zoneNames.append('zone%d'%c)
         return a
     elif format == 'fmt_free':
         print('Reading '+fileName+' (fmt_free)...'),
@@ -544,13 +548,13 @@ def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
             nv = len(line)
             # varstring
             varString = ''
-            for i in xrange(nv-1): varString += 'v%d,'%(i+1)
+            for i in range(nv-1): varString += 'v%d,'%(i+1)
             if nv > 0: varString += 'v%d'%nv
             a = array(varString, np, 1, 1)
             pt = a[1]
-            for i in xrange(np):
+            for i in range(np):
                 line = f[i]; line = line.split(' ')
-                for n in xrange(len(line)): pt[n,i] = float(line[n])
+                for n in range(len(line)): pt[n,i] = float(line[n])
             print('done.')
             zoneNames.append('zone0')
             return [a]
@@ -590,7 +594,7 @@ def convertArrays2File(arrays, fileName, format=None, isize=4, rsize=8,
     if arrays != [] and not isinstance(arrays[0], list): arrays = [arrays]
     znames = []
     if len(zoneNames) == 0:
-        for iz in xrange(len(arrays)): znames.append('Zone%d'%(iz+1))
+        for iz in range(len(arrays)): znames.append('Zone%d'%(iz+1))
     else:
         znames = zoneNames
         if len(zoneNames) != len(arrays):
@@ -611,8 +615,8 @@ def convertArrays2File(arrays, fileName, format=None, isize=4, rsize=8,
             pt = a[1]
             nv = pt.shape[0]
             s = pt.shape[1]
-            for i in xrange(s):
-                for n in xrange(nv-1):
+            for i in range(s):
+                for n in range(nv-1):
                     out += dataFormat%(pt[n,i])
                     out += ' '
                 out += dataFormat%(pt[nv-1,i])
@@ -647,7 +651,7 @@ def getValue(array, ind):
 
     n = array[1]; nfld = n.shape[0]
     v = []
-    for nf in xrange(nfld): v.append(n[nf, index])
+    for nf in range(nfld): v.append(n[nf, index])
     return v
 
 def setValue(array, ind, values):
@@ -672,7 +676,7 @@ def setValue(array, ind, values):
     nf = ar.shape[0]
     nf2 = len(values)
     if nf2 != nf: raise ValueError("setValue: values is badly dimensioned.")
-    for i in xrange(nf): ar[i, index] = values[i]
+    for i in range(nf): ar[i, index] = values[i]
     return None
 
 def getArgMin(array, varName):
@@ -1039,7 +1043,7 @@ def center2Node(array, cellNType=0):
         b = []
         for i in array:
             b.append(converter.center2Node(i, cellNType))
-        for nob in xrange(len(b)):
+        for nob in range(len(b)):
             if len(b[nob]) == 4:
                 eltType = b[nob][3]
                 b[nob][3] = eltType.split('*')[0]
@@ -1103,7 +1107,7 @@ def addGhostCellsNGon(arrayN, arrayC=[],depth=2):
         b = []
         nzones = len(arrayN); nzonesC = len(arrayC)
         if nzones == nzonesC:
-            for noz in xrange(nzones):
+            for noz in range(nzones):
                 if arrayN[noz] != [] and arrayC[noz] == []:
                     res = converter.addGhostCellsNGonNodes(arrayN[noz],depth)
                     b.append(res)
@@ -1114,7 +1118,7 @@ def addGhostCellsNGon(arrayN, arrayC=[],depth=2):
                     res = converter.addGhostCellsNGonBoth(arrayN[noz], arrayC[noz],depth)
                     b.append(res)
         else:
-            for noz in xrange(nzones):
+            for noz in range(nzones):
                 b.append(converter.addGhostCellsNGon(arrayN[noz],depth))
         return b
     else:
@@ -1129,7 +1133,7 @@ def rmGhostCellsNGon(arrayN, arrayC=[], depth=2):
         b = []
         nzones = len(arrayN); nzonesC = len(arrayC)
         if nzones == nzonesC:
-            for noz in xrange(nzones):
+            for noz in range(nzones):
                 if arrayN[noz] != [] and arrayC[noz] == []:
                     res = converter.rmGhostCellsNGonNodes(arrayN[noz],depth)
                     b.append(res)
@@ -1140,7 +1144,7 @@ def rmGhostCellsNGon(arrayN, arrayC=[], depth=2):
                     res = converter.rmGhostCellsNGonBoth(arrayN[noz], arrayC[noz],depth)
                     b.append(res)
         else:
-            for noz in xrange(nzones):
+            for noz in range(nzones):
                 b.append(converter.rmGhostCellsNGon(arrayN[noz],depth))
         return b
     else:
@@ -1431,7 +1435,7 @@ def createSockets(nprocs=1, port=15555):
     """Create sockets for communication."""
     import socket
     sockets = []
-    for i in xrange(nprocs):
+    for i in range(nprocs):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.bind(('', port+i))
         s.listen(5)

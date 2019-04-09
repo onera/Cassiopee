@@ -1,3 +1,7 @@
+from __future__ import print_function
+try: range = xrange
+except: pass
+
 from . import Converter
 from . import Internal
 import KCore
@@ -955,7 +959,7 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
 
   if format == 'bin_pickle':
     import cPickle as pickle
-    print 'Reading %s (bin_pickle)...'%fileName,
+    print('Reading %s (bin_pickle)...'%fileName, end='')
     try:
       file = open(fileName, 'rb')
       a = pickle.load(file)
@@ -1059,7 +1063,7 @@ def convertPyTree2File(t, fileName, format=None, isize=4, rsize=8,
   elif format == 'bin_pickle':
     import cPickle as pickle
     file = open(fileName, 'wb')
-    print('Writing '+fileName+'...'),
+    print('Writing '+fileName+'...', end='')
     pickle.dump(t, file, protocol=pickle.HIGHEST_PROTOCOL); file.close()
     print('done.')
   else:
@@ -1129,7 +1133,7 @@ def convertPyTree2FilePartial(t, fileName, comm, Filter, ParallelHDF=False,
   
       # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
       # > On serialize
-      for lock in xrange(comm.Get_size()):
+      for lock in range(comm.Get_size()):
         if lock == comm.Get_rank():
           Converter.converter.convertPyTree2FilePartial(t, fileName, format, skeletonData, comm, Filter)
         comm.barrier()
@@ -1346,7 +1350,7 @@ def _setPartialFields(t, arrays, listIndices, loc='nodes', startFrom=0):
   else: locI = 1
   nodes = Internal.getZones(t)
   nzones = len(nodes)
-  for c in xrange(nzones):
+  for c in range(nzones):
     a = arrays[c]; indices = listIndices[c]
     z = nodes[c] # zone
     Converter.converter.setPartialFieldsPT(z, a, indices, locI,
@@ -1374,7 +1378,7 @@ def _setPartialFields1(t, listFields, listIndices, loc='nodes', startFrom=0):
   else: locI = 1
   zones = Internal.getZones(t)
   nzones = len(zones)
-  for c in xrange(nzones):
+  for c in range(nzones):
     Converter.converter._setPartialFields(zones[c], listFields[c], listIndices[c], locI,
                                           Internal.__GridCoordinates__,
                                           Internal.__FlowSolutionNodes__,
@@ -1402,7 +1406,7 @@ def setFields(arrays, t, loc, writeDim=True):
   if len(nodes) != len(arrays):
     raise ValueError("setFields: more zones in tree than in arrays.")
 
-  for c in xrange(len(arrays)):
+  for c in range(len(arrays)):
     a = arrays[c]
     z = nodes[c] # zone
     info = z[2]
@@ -2040,7 +2044,7 @@ def TLAGC(t, F, *args):
 
   # Application par lot des noeuds
   allf = []
-  for i in xrange(nzones):
+  for i in range(nzones):
     if allfc[i] != [] and allfa[i] != []:
       allf.append(Converter.addVars([allfc[i], allfa[i]]))
     elif allfa[i] != []: allf.append(allfa[i])
@@ -2051,7 +2055,7 @@ def TLAGC(t, F, *args):
   # Application par lot des centres
   allf = []
   allfc = Converter.node2Center(allfc)
-  for i in xrange(nzones):
+  for i in range(nzones):
     if allfc[i] != [] and allfb[i] != []:
       allf.append(Converter.addVars([allfc[i],allfb[i]]))
     elif allfb[i] != []: allf.append(allfb[i])
@@ -3144,16 +3148,16 @@ def _conformizeNGon(a, tol=1.e-6):
 #=============================================================================
 
 # -- addBC2Zone
-def addBC2Zone(zone, bndName, bndType, range=[],
+def addBC2Zone(zone, bndName, bndType, wrange=[],
                zoneDonor=[], rangeDonor=[], trirac=[1,2,3],
                rotationCenter=[], rotationAngle=[], translation=[],
                faceList=[], pointList=[], elementList=[], elementRange=[], data=None,
                subzone=None, faceListDonor=None, elementListDonor=None,
                elementRangeDonor=None, tol=1.e-12, unitAngle=None):
   """Add a BC to a zone node.
-  Usage: addBC2Zone(zone, bndName, bndType, range)"""
+  Usage: addBC2Zone(zone, bndName, bndType, wrange)"""
   zonep = Internal.copyRef(zone)
-  _addBC2Zone(zonep, bndName, bndType, range=range,
+  _addBC2Zone(zonep, bndName, bndType, wrange=wrange,
               zoneDonor=zoneDonor, rangeDonor=rangeDonor, trirac=trirac,
               rotationCenter=rotationCenter, rotationAngle=rotationAngle, translation=translation,
               faceList=faceList, pointList=pointList, elementList=elementList, elementRange=elementRange, data=data, subzone=subzone,
@@ -3161,7 +3165,7 @@ def addBC2Zone(zone, bndName, bndType, range=[],
               tol=tol, unitAngle=unitAngle)
   return zonep
 
-def _addBC2Zone(a, bndName, bndType, range=[],
+def _addBC2Zone(a, bndName, bndType, wrange=[],
                 zoneDonor=[], rangeDonor=[], trirac=[1,2,3],
                 rotationCenter=[], rotationAngle=[], translation=[],
                 faceList=[], pointList=[], elementList=[], elementRange=[], data=None,
@@ -3189,7 +3193,7 @@ def _addBC2Zone(a, bndName, bndType, range=[],
                               faceListDonor=faceListDonor, rotationCenter=rotationCenter, rotationAngle=rotationAngle,
                               translation=translation, unitAngle=unitAngle)
     else: # structured
-      _addBC2StructZone__(z, bndName, bndType, range=range, faceList=faceList,
+      _addBC2StructZone__(z, bndName, bndType, wrange=wrange, faceList=faceList,
                           zoneDonor=zoneDonor, rangeDonor=rangeDonor, faceListDonor=faceListDonor,
                           trirac=trirac, rotationCenter=rotationCenter, rotationAngle=rotationAngle,
                           translation=translation, data=data, unitAngle=unitAngle)
@@ -3310,7 +3314,7 @@ def _addFamilyOfStageGC__(z, bndName, bndType2, typeZone=0, faceList=[], element
   return None
 
 # -- addBC2Zone pour les grilles structurees
-def _addBC2StructZone__(z, bndName, bndType, range=[], faceList=[],
+def _addBC2StructZone__(z, bndName, bndType, wrange=[], faceList=[],
                         zoneDonor=[], rangeDonor=[], faceListDonor=[], trirac=[1,2,3],
                         rotationCenter=[], rotationAngle=[],
                         translation=[], data=None, unitAngle=None):
@@ -3322,15 +3326,15 @@ def _addBC2StructZone__(z, bndName, bndType, range=[], faceList=[],
   else: bndType2 = ''
 
   typeR = -1 # 0  : PR, 1 PL
-  if range != []: typeR=0
+  if wrange != []: typeR=0
   elif len(faceList) != 0: typeR=1
   else:
     raise ValueError("addBC2Zone: match connectivity requires a range or face list.")
 
   # Range defini par une chaine ou non
   if typeR == 0:
-    if isinstance(range, str):
-      range = convertStringRange2Range__(range, z)#fenetre complete
+    if isinstance(wrange, str):
+      wrange = convertStringRange2Range__(wrange, z)#fenetre complete
     if isinstance(rangeDonor, str):
       if isinstance(zoneDonor, str):
         raise ValueError("addBC2Zone: donor range must be explicitly specified.")
@@ -3359,13 +3363,13 @@ def _addBC2StructZone__(z, bndName, bndType, range=[], faceList=[],
     info = zoneGC[2][l-1]
 
     if typeR == 0:
-      r = Internal.window2Range(range)
+      r = Internal.window2Range(wrange)
       info[2].append([Internal.__FACERANGE__, r, [], 'IndexRange_t'])
       o = Internal.window2Range(rangeDonor)
       info[2].append([Internal.__FACERANGE__+'Donor', o, [], 'IndexRange_t'])
       size = len(trirac)
       o = numpy.zeros((size), numpy.int32)
-      for i in xrange(size): o[i] = trirac[i]
+      for i in range(size): o[i] = trirac[i]
       info[2].append(['Transform', o, [], '\"int[IndexDimension]\"'])
 
     elif typeR == 1:
@@ -3404,7 +3408,7 @@ def _addBC2StructZone__(z, bndName, bndType, range=[], faceList=[],
     zoneGC[2].append([bndName, v, [], 'GridConnectivity_t']); l = len(zoneGC[2])
 
     info = zoneGC[2][l-1]
-    r = Internal.window2Range(range)
+    r = Internal.window2Range(wrange)
     info[2].append(['PointRange', r, [], 'IndexRange_t'])
     Internal.createChild(info, 'GridConnectivityType', 'GridConnectivityType_t', 'Abutting')
     c = numpy.ones((3,1), numpy.int32)
@@ -3416,11 +3420,11 @@ def _addBC2StructZone__(z, bndName, bndType, range=[], faceList=[],
     dd = Internal.window2Range(rangeDonor)
     info[2].append(['PointRangeDonor', dd, [], 'DataArray_t'])
     size = len(trirac); o = numpy.zeros((size), numpy.int32)
-    for i in xrange(size): o[i] = trirac[i]
+    for i in range(size): o[i] = trirac[i]
     info[2].append(['Transform', o, [], 'DataArray_t'])
-    ratio = getNMRatio__(range, rangeDonor, trirac)
+    ratio = getNMRatio__(wrange, rangeDonor, trirac)
     size = len(ratio); ro = numpy.zeros((size), numpy.float64)
-    for i in xrange(size): ro[i] = ratio[i]
+    for i in range(size): ro[i] = ratio[i]
     info[2].append(['NMRatio', ro, [], 'DataArray_t'])
 
   elif bndType1 == 'BCOverlap':
@@ -3451,7 +3455,7 @@ def _addBC2StructZone__(z, bndName, bndType, range=[], faceList=[],
       if dnrZoneNames == []: raise ValueError("addBC2ZoneStruct: no donor zone for doubly defined overlap bc %s."%(zoneGC[0]))
       # donors donnes
       st = ",".join(dnrZoneNames)
-      #print "addBC2ZoneStruct(overlap): liste des zones donneuses : ", st
+      #print("addBC2ZoneStruct(overlap): liste des zones donneuses : ", st)
       v = numpy.fromstring(st, 'c')
 
     zoneGC[2].append([bndName, v, [], 'GridConnectivity_t'])
@@ -3459,7 +3463,7 @@ def _addBC2StructZone__(z, bndName, bndType, range=[], faceList=[],
     info = zoneGC[2][len(zoneGC[2])-1]
     d = numpy.ones((3,1), numpy.int32)
     c = numpy.ones((3,1), numpy.float64)
-    r = Internal.window2Range(range)
+    r = Internal.window2Range(wrange)
     info[2].append(['PointRange', r, [], 'IndexRange_t'])
     v = numpy.fromstring('Overset', 'c')
     info[2].append(['GridConnectivityType', v, [], 'GridConnectivityType_t'])
@@ -3472,7 +3476,7 @@ def _addBC2StructZone__(z, bndName, bndType, range=[], faceList=[],
       info[2].append(['doubly_defined', dd, [], 'DataArray_t'])
 
   elif (bndType1 == 'FamilySpecified' and fnmatch.fnmatch(bndType2, 'BCStage*')) or (bndType1 == 'BCStage'):
-    _addFamilyOfStageGC__(z, bndName, bndType2, typeZone=0, pointRange=range, zoneDonor=zoneDonor)
+    _addFamilyOfStageGC__(z, bndName, bndType2, typeZone=0, pointRange=wrange, zoneDonor=zoneDonor)
 
   else: # classical BC
     # Cree le noeud zoneBC si besoin
@@ -3485,7 +3489,7 @@ def _addBC2StructZone__(z, bndName, bndType, range=[], faceList=[],
     v = numpy.fromstring(bndType1, 'c')
     zoneBC[2].append([bndName, v, [], 'BC_t']); l = len(zoneBC[2])
     info = zoneBC[2][l-1]
-    r = Internal.window2Range(range)
+    r = Internal.window2Range(wrange)
     info[2].append(['PointRange', r, [], 'IndexRange_t'])
 
     # Ajoute la famille si necessaire
@@ -3773,19 +3777,19 @@ def _addBC2UnstructZone__(z, bndName, bndType, elementList, elementRange,
 # -- converti une chaine en range (z Structure seulement)
 # IN: 'imin', 'jmin', ...
 # OUT: [imin,imax,jmin,jmax,kmin,kmax]
-def convertStringRange2Range__(range, z):
-  if range == 'doubly_defined': return range
+def convertStringRange2Range__(wrange, z):
+  if wrange == 'doubly_defined': return wrange
   dim = Internal.getZoneDim(z)
   typeGrid = dim[0]
   if typeGrid == 'Unstructured':
     raise TypeError("addBC2Zone: range invalid for unstructured grids.")
-  if range == 'imin': range = [1,1,1,dim[2],1,dim[3]]
-  elif range == 'imax': range = [dim[1],dim[1],1,dim[2],1,dim[3]]
-  elif range == 'jmin': range = [1,dim[1],1,1,1,dim[3]]
-  elif range == 'jmax': range = [1,dim[1],dim[2],dim[2],1,dim[3]]
-  elif range == 'kmin': range = [1,dim[1],1,dim[2],1,1]
-  else: range = [1,dim[1],1,dim[2],dim[3],dim[3]]
-  return range
+  if wrange == 'imin': wrange = [1,1,1,dim[2],1,dim[3]]
+  elif wrange == 'imax': wrange = [dim[1],dim[1],1,dim[2],1,dim[3]]
+  elif wrange == 'jmin': wrange = [1,dim[1],1,1,1,dim[3]]
+  elif wrange == 'jmax': wrange = [1,dim[1],dim[2],dim[2],1,dim[3]]
+  elif wrange == 'kmin': wrange = [1,dim[1],1,dim[2],1,1]
+  else: wrange = [1,dim[1],1,dim[2],dim[3],dim[3]]
+  return wrange
 
 # -- converti un BCRange en tableau de BCFaces
 def convertBCRange2BCFace__(ni, nj, nk, range0):
@@ -3818,18 +3822,18 @@ def convertBCRange2BCFace__(ni, nj, nk, range0):
   if nj == 1: jmax += 1
   if ni == 1: jmax += 1
   if dir == 1:
-    for k in xrange(kmin,kmax):
-      for j in xrange(jmin,jmax):
+    for k in range(kmin,kmax):
+      for j in range(jmin,jmax):
         indf = (imin-1) + (j-1)*ni+(k-1)*ni*nj1
         bcfaces[nof] = indf+1; nof+=1
   elif dir == 2:
-    for k in xrange(kmin,kmax):
-      for i in xrange(imin,imax):
+    for k in range(kmin,kmax):
+      for i in range(imin,imax):
         indf = (i-1) + (jmin-1)*ni1+(k-1)*ni1*nj
         bcfaces[nof] = indf+1+ninti; nof+=1
   else:
-    for j in xrange(jmin,jmax):
-      for i in xrange(imin,imax):
+    for j in range(jmin,jmax):
+      for i in range(imin,imax):
         indf = (i-1) + (j-1)*ni1+(kmin-1)*ni1*nj1
         bcfaces[nof] = indf+1+ninti+nintj; nof+=1
   return bcfaces
@@ -3881,27 +3885,28 @@ def getNMRatio__(win, winopp, trirac):
 # Identifie des subzones comme BC Faces
 # IN: liste de geometries de BC, liste de leur nom, liste de leur type
 # OUT: a modifie avec des BCs ajoutees en BCFaces
-def recoverBCs(a, (BCs, BCNames, BCTypes), tol=1.e-11):
+def recoverBCs(a, T, tol=1.e-11):
   """Recover given BCs on a tree.
   Usage: recoverBCs(a, (BCs, BCNames, BCTypes), tol)"""
   tp = Internal.copyRef(a)
-  _recoverBCs(tp, (BCs, BCNames, BCTypes), tol)
+  _recoverBCs(tp, T, tol)
   return tp
 
-def _recoverBCs(a, (BCs, BCNames, BCTypes), tol=1.e-11):
+def _recoverBCs(a, T, tol=1.e-11):
   """Recover given BCs on a tree.
   Usage: _recoverBCs(a, (BCs, BCNames, BCTypes), tol)"""
   try:import Post.PyTree as P
   except: raise ImportError("_recoverBCs: requires Post module.")
   _deleteZoneBC__(a)
   zones = Internal.getZones(a)
+  (BCs, BCNames, BCTypes) = T
   for z in zones:
     indicesF = []
     f = P.exteriorFaces(z, indices=indicesF)
     indicesF = indicesF[0]
     hook = createHook(f, 'elementCenters')
 
-    for c in xrange(len(BCs)):
+    for c in range(len(BCs)):
       b = BCs[c]
       if b == []:
         raise ValueError("_recoverBCs: boundary is probably ill-defined.")
@@ -3946,7 +3951,7 @@ def pushBC(t1, t2, type='F', tol=1.e-12, overwriteBC=True):
   t2p = Internal.copyRef(t2)
   zones2 = Internal.getZones(t2p)
   nz = min(len(zones1),len(zones2))
-  for c in xrange(nz):
+  for c in range(nz):
     z1 = zones1[c]; zp = zones2[c]
     BCs = Internal.getNodesFromType2(z1, 'BC_t')
     if len(BCs) != 0:
@@ -3998,9 +4003,9 @@ def identifyBC(t, infos, tol=1.e-12):
   globalHook, indirWins = Converter.createGlobalHook(allWins, 'nodes', indir=1)
   # Identify and gather...
   tpp,typen = Internal.node2PyTree(t)
-  for nob in xrange(len(tpp[2])):
+  for nob in range(len(tpp[2])):
     if tpp[2][nob][3] == 'CGNSBase_t':
-      for noz in xrange(len(tpp[2][nob][2])):
+      for noz in range(len(tpp[2][nob][2])):
         if tpp[2][nob][2][noz][3] == 'Zone_t':
           z = tpp[2][nob][2][noz]
           dimZ = Internal.getZoneDim(z)
@@ -4088,7 +4093,7 @@ def tagDefinedBC(t):
       if stdNode == 0 : # liste de zones
         zones = Internal.getZones(a)
         nzones = len(zones)
-        for noz in xrange(nzones):
+        for noz in range(nzones):
           z = zones[noz]
           dim = Internal.getZoneDim(z)[4]
           if dim == 3: a[noz] = tagDefinedBCForZone3D__(z)
@@ -4109,8 +4114,8 @@ def tagDefinedBCForZone2D__(z):
     # BC classique
     bnds = Internal.getNodesFromType2(z, 'BC_t')
     for bc in bnds:
-        range = Internal.getNodeFromName1(bc, 'PointRange')
-        r = range[1]
+        wrange = Internal.getNodeFromName1(bc, 'PointRange')
+        r = wrange[1]
         wins.append(Internal.range2Window(r))
     # BCNearMatch
     bnds = Internal.getNodesFromType2(z, 'GridConnectivity_t')
@@ -4119,15 +4124,15 @@ def tagDefinedBCForZone2D__(z):
       if type is not None:
         val = Internal.getValue(type)
         if val == 'Abutting':
-          range = Internal.getNodeFromName1(bc, 'PointRange')
-          r = range[1]
+          wrange = Internal.getNodeFromName1(bc, 'PointRange')
+          r = wrange[1]
           wins.append(Internal.range2Window(r))
 
     # BC match
     bnds = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
     for bc in bnds:
-        range = Internal.getNodeFromName1(bc, 'PointRange')
-        r = range[1]
+        wrange = Internal.getNodeFromName1(bc, 'PointRange')
+        r = wrange[1]
         wins.append(Internal.range2Window(r))
     # BC Overlap
     bnds = Internal.getNodesFromType1(z, 'GridConnectivity_t')
@@ -4143,8 +4148,8 @@ def tagDefinedBCForZone2D__(z):
                         info = userDef[0][2][0]
                         if info[0] == 'doubly_defined': dd = 1
                 if dd == 0:
-                    range = Internal.getNodeFromName(bc, 'PointRange')
-                    wins.append(Internal.range2Window(range[1]))
+                    wrange = Internal.getNodeFromName(bc, 'PointRange')
+                    wins.append(Internal.range2Window(wrange[1]))
 
     tag = Converter.converter.tagDefinedBC(tag, wins, 2)
     z = setFields([tag], z, 'nodes')
@@ -4160,8 +4165,8 @@ def tagDefinedBCForZone3D__(z):
   # BC classique
   bnds = Internal.getNodesFromType2(z, 'BC_t')
   for bc in bnds:
-      range = Internal.getNodeFromName1(bc, 'PointRange')
-      r = range[1]
+      wrange = Internal.getNodeFromName1(bc, 'PointRange')
+      r = wrange[1]
       wins.append(Internal.range2Window(r))
   # BCNearMatch
   bnds = Internal.getNodesFromType2(z, 'GridConnectivity_t')
@@ -4170,14 +4175,14 @@ def tagDefinedBCForZone3D__(z):
     if type is not None:
       val = Internal.getValue(type)
       if val == 'Abutting':
-        range = Internal.getNodeFromName1(bc, 'PointRange')
-        r = range[1]
+        wrange = Internal.getNodeFromName1(bc, 'PointRange')
+        r = wrange[1]
         wins.append(Internal.range2Window(r))
   # BC match
   bnds = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
   for bc in bnds:
-      range = Internal.getNodeFromName1(bc, 'PointRange')
-      r = range[1]
+      wrange = Internal.getNodeFromName1(bc, 'PointRange')
+      r = wrange[1]
       wins.append(Internal.range2Window(r))
   # BC Overlap
   bnds = Internal.getNodesFromType2(z, 'GridConnectivity_t')
@@ -4193,8 +4198,8 @@ def tagDefinedBCForZone3D__(z):
                       info = userDef[0][2][0]
                       if info[0] == 'doubly_defined': dd = 1
               if dd == 0:
-                  range = Internal.getNodeFromName1(bc, 'PointRange')
-                  wins.append(Internal.range2Window(range[1]))
+                  wrange = Internal.getNodeFromName1(bc, 'PointRange')
+                  wins.append(Internal.range2Window(wrange[1]))
   tag = Converter.converter.tagDefinedBC(tag, wins, 3)
   z = setFields([tag], z, 'nodes')
   return z
@@ -4204,9 +4209,9 @@ def tagDefinedBCForZone3D__(z):
 # wins are [i1,i2,j1,j2,k1,k2]
 def updateDefinedBCForWins__(z, wins, dim=3):
   tag = getField('definedBC', z)[0]
-  for now in xrange(len(wins)):
+  for now in range(len(wins)):
     if len(wins[now]) < 6:
-      for i in xrange(len(wins[now]),7): wins[now].append(1)
+      for i in range(len(wins[now]),7): wins[now].append(1)
   tag = Converter.converter.tagDefinedBC(tag, wins, dim)
   z = setFields([tag], z, 'nodes')
   return z
@@ -4399,8 +4404,6 @@ def getEmptyBCForStructZone__(z, dims, pbDim, splitFactor):
     r = Internal.getNodeFromName1(bc, 'PointRange')
     if r is not None: wins.append(Internal.range2Window(r[1]))
 
-  #print 'defined wins=',wins
-
   # Parcours des faces
   directions = []
   if ni != 1: directions += [1,2]
@@ -4408,7 +4411,6 @@ def getEmptyBCForStructZone__(z, dims, pbDim, splitFactor):
   if nk != 1 and pbDim == 3: directions += [5,6]
   for dir in directions:
     nwins = Converter.converter.detectEmptyBC(wins, ni, nj, nk, dir, nwins)
-  #print 'nwins=',nwins
   return nwins
 
 # -- Detect empty boundary conditions for unstruct zones
@@ -4438,7 +4440,7 @@ def getEmptyBCForBEZone__(z, dims, pbDim, splitFactor):
     erange = Internal.getNodeFromName1(bc, Internal.__ELEMENTRANGE__)
     if erange is not None:
       r = erange[1]
-      defined.append(selectOneConnectivity(zp, range=[r[0,0],r[0,1]]))
+      defined.append(selectOneConnectivity(zp, irange=[r[0,0],r[0,1]]))
 
   hook = createHook(f, 'elementCenters')
   if defined != []:
@@ -4547,8 +4549,8 @@ def getBC__(i, z, T, res, reorder=True):
     res.append(zp)
   elif r is not None and r[1].shape[0] == 1: # suppose BE + BCC
     r = r[1]
-    # zp = selectOneConnectivity(z, range=[r[0,0],r[0,1]])
-    zp = selectConnectivity(z, range=[r[0,0],r[0,1]])
+    # zp = selectOneConnectivity(z, irange=[r[0,0],r[0,1]])
+    zp = selectConnectivity(z, irange=[r[0,0],r[0,1]])
     zp[0] = z[0]+Internal.SEP1+i[0]
     _deleteZoneBC__(zp)
     _deleteGridConnectivity__(zp)
@@ -5374,7 +5376,7 @@ def node2Center(t, var=''):
     if var == '':
       if Internal.isStdNode(a) == 0: la = a
       else: la = [a] # noeud standard => liste de noeuds standards
-      for i in xrange(len(la)):
+      for i in range(len(la)):
         zones = Internal.getZones(la[i])
         for z in zones:
             (p, pos) = Internal.getParentOfNode(la[i], z)
@@ -5564,7 +5566,7 @@ def node2ExtCenter(t, var=''):
   if var == '': # on prend ts les champs
     if Internal.isStdNode(a) == 0: la = a
     else: la = [a] # noeud standard => liste de noeuds standards
-    for i in xrange(len(la)):
+    for i in range(len(la)):
       zones = Internal.getZones(la[i])
       for z in zones:
         (p, pos) = Internal.getParentOfNode(la[i], z)
@@ -5610,7 +5612,7 @@ def diffArrays(A, B):
   nz = len(zones1)
   if nz != len(zones2):
     raise ValueError("diffArrays: different number of zones (A=%d; B=%d)."%(nz,len(zones2)))
-  for no in xrange(nz):
+  for no in range(nz):
     # noeuds
     A1 = getAllFields(zones1[no], 'nodes'); A1 = Internal.clearList(A1)
     A2 = getAllFields(zones2[no], 'nodes'); A2 = Internal.clearList(A2)
@@ -6010,7 +6012,7 @@ def _addBCFaces(t, BCFaces):
   for z in zones:
     myBC = BCFaces[c]
     l = len(myBC)
-    for i in xrange(l/2):
+    for i in range(l/2):
       name = myBC[2*i]
       names = name.split(Internal.SEP2)
       if len(names) == 2:
@@ -6111,7 +6113,7 @@ def _identifySolutions(tRcv, tDnr, hookN=None, hookC=None, vars=[], tol=1.e6):
 
   if len(varsC) == 0 and len(varsN) == 0: return None
   if varsC != []:
-    for nov in xrange(len(varsC)):
+    for nov in range(len(varsC)):
       vc = varsC[nov].split(':')[1]
       varsC[nov] = vc
 
@@ -6301,7 +6303,7 @@ def breakConnectivity(t):
     bases = Internal.getBases(tp)
     for b in bases:
         c = 0; l = len(b[2])
-        for c in xrange(l):
+        for c in range(l):
             z = b[2][c]
             if z[3] == 'Zone_t':
                 # compte les connectivites elements (hors boundary)
@@ -6322,7 +6324,7 @@ def breakConnectivity(t):
                   i += 1
 
                 N = len(iBE) # split les BE
-                for p in xrange(N):
+                for p in range(N):
                   i = iBE[p]
                   zp = Internal.copyRef(z)
                   _deleteFlowSolutions__(zp, 'centers')
@@ -6399,8 +6401,8 @@ def _renumberElementConnectivity(t):
 # (passee en connectivite volumique)
 # IN: name: nom de la ElementConnectivity a conserver
 # or IN: number: no de la ElementConnectivity a conserver (first=0)
-# or IN: range=[min,max]
-def selectOneConnectivity(z, name=None, number=None, range=None):
+# or IN: irange=[min,max]
+def selectOneConnectivity(z, name=None, number=None, irange=None):
   zp = Internal.copyRef(z)
   elts = Internal.getNodesFromType1(zp, 'Elements_t')
 
@@ -6411,28 +6413,28 @@ def selectOneConnectivity(z, name=None, number=None, range=None):
   elif number is not None:
     c = 0
     for e in elts:
-      if (c != number): Internal._rmNodesByName(zp, e[0])
+      if c != number: Internal._rmNodesByName(zp, e[0])
       else: e[1] = numpy.copy(e[1]); e[1][1] = 0 # force volumique
       c += 1
-  elif range is not None:
+  elif irange is not None:
     for e in elts:
       r = Internal.getNodeFromName1(e, 'ElementRange')
       if r is not None:
         r = r[1]
-        if (r[0] > range[0] or r[1] < range[1]):
+        if r[0] > wrange[0] or r[1] < wrange[1]:
           Internal._rmNodesByName(zp, e[0])
         else:
-          if (r[0] == range[0] and r[1] == range[1]): # full
+          if r[0] == irange[0] and r[1] == irange[1]: # full
             e[1] = numpy.copy(e[1]); e[1][1] = 0 # force volumique
           else: # slice
             (name, nnodes) = Internal.eltNo2EltName(e[1][0])
-            if (name != 'NGON' and name != 'NFACE' and name != 'MIXED'):
+            if name != 'NGON' and name != 'NFACE' and name != 'MIXED':
               e[1] = numpy.copy(e[1]); e[1][1] = 0 # force volumique
               r = Internal.getNodeFromName1(e, 'ElementRange')
-              r[1] = numpy.copy(r[1]); r[1][0] = 1; r[1][1] = range[1]-range[0]+1
+              r[1] = numpy.copy(r[1]); r[1][0] = 1; r[1][1] = irange[1]-irange[0]+1
               c = Internal.getNodeFromName1(e, 'ElementConnectivity')
-              c[1] = c[1][nnodes*(range[0]-1):nnodes*(range[1])+1]
-            else: print('Warning: selectOneConnectivity: slice impossible.')
+              c[1] = c[1][nnodes*(wrange[0]-1):nnodes*(irange[1])+1]
+            else: print ('Warning: selectOneConnectivity: slice impossible.')
       else: Internal._rmNodesByName(zp, e[0])
   _renumberElementConnectivity(zp)
   return zp
@@ -6442,8 +6444,8 @@ def selectOneConnectivity(z, name=None, number=None, range=None):
 # (passee en connectivite volumique)
 # IN: name: nom de la ElementConnectivity a conserver
 # or IN: number: no de la ElementConnectivity a conserver (first=0)
-# or IN: range=[min,max]
-def selectConnectivity(z, name=None, number=None, range=None):
+# or IN: irange=[min,max]
+def selectConnectivity(z, name=None, number=None, irange=None):
   zp = Internal.copyRef(z)
   elts = Internal.getNodesFromType1(zp, 'Elements_t')
 
@@ -6454,23 +6456,21 @@ def selectConnectivity(z, name=None, number=None, range=None):
   elif number is not None:
     c = 0
     for e in elts:
-      if (c != number): Internal._rmNodesByName(zp, e[0])
+      if c != number: Internal._rmNodesByName(zp, e[0])
       else: e[1] = numpy.copy(e[1]); e[1][1] = 0 # force volumique
       c += 1
-  elif range is not None:
+  elif irange is not None:
     for e in elts:
       r = Internal.getNodeFromName1(e, 'ElementRange')
       if r is not None:
         r = r[1]
-        if (r[0] != range[0] and r[1] != range[1]):
+        if r[0] != irange[0] and r[1] != irange[1]:
           Internal._rmNodesByName(zp, e[0])
-        if (r[0] == range[0] and r[1] == range[1]): # full
-          # print 'no slice'
+        if r[0] == irange[0] and r[1] == irange[1]: # full
           e[1] = numpy.copy(e[1]); e[1][1] = 0 # force volumique
-        if (r[0] == range[0] and r[1] < range[1]): # full
-          # print 'slice1',r[0],r[1]
+        if (r[0] == irange[0] and r[1] < irange[1]): # full
           (name, nnodes) = Internal.eltNo2EltName(e[1][0])
-          if (name != 'NGON' and name != 'NFACE' and name != 'MIXED'):
+          if name != 'NGON' and name != 'NFACE' and name != 'MIXED':
             e[1] = numpy.copy(e[1]); e[1][1] = 0 # force volumique
             r0 = r[0]; r1 = r[1]
             r = Internal.getNodeFromName1(e, 'ElementRange')
@@ -6479,10 +6479,9 @@ def selectConnectivity(z, name=None, number=None, range=None):
             r = r[1]
             c[1] = c[1][nnodes*(r[0]-1):nnodes*(r[1])+1]
           else: print('Warning: selectConnectivity: slice impossible.')
-        if (r[0] > range[0] and r[1] == range[1]): # full
-          # print 'slice2',r[0],r[1]
+        if (r[0] > irange[0] and r[1] == irange[1]): # full
           (name, nnodes) = Internal.eltNo2EltName(e[1][0])
-          if (name != 'NGON' and name != 'NFACE' and name != 'MIXED'):
+          if name != 'NGON' and name != 'NFACE' and name != 'MIXED':
             e[1] = numpy.copy(e[1]); e[1][1] = 0 # force volumique
             r0 = r[0]; r1 = r[1]
             r = Internal.getNodeFromName1(e, 'ElementRange')
@@ -6490,7 +6489,7 @@ def selectConnectivity(z, name=None, number=None, range=None):
             c = Internal.getNodeFromName1(e, 'ElementConnectivity')
             r = r[1]
             c[1] = c[1][nnodes*(r[0]-1):nnodes*(r[1])+1]
-          else: print 'Warning: selectConnectivity: slice impossible.'
+          else: print('Warning: selectConnectivity: slice impossible.')
       else: Internal._rmNodesByName(zp, e[0])
   _renumberElementConnectivity(zp)
   return zp

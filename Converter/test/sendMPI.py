@@ -13,7 +13,7 @@ else:
 C.send(a, 'localhost', rank=Cmpi.rank)
 Cmpi.barrier()
 
-for i in xrange(10):
+for i in range(10):
     #import time; time.sleep(2)
     a = T.rotate(a, (0,0,0), (0,0,1), 10.)
     C.send(a, 'localhost', rank=Cmpi.rank)

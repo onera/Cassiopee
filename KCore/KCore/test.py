@@ -1,6 +1,8 @@
 # Systeme de validation des modules Cassiopee
 # (c) Onera
 from __future__ import print_function
+try: range = xrange
+except: pass
 import numpy, sys, os
 
 # global tolerance on float fields
@@ -220,7 +222,7 @@ def testO(objet, number=1):
                 return False
             else: return True
         elif isinstance(a, list):        # liste
-            for i in xrange(len(a)):
+            for i in range(len(a)):
                 if type(a[i]) != type(objet[i]):
                     print("DIFF: object type differs from "+reference+'.')
                     return False
@@ -235,7 +237,7 @@ def testO(objet, number=1):
                         return False
                     return True
                 elif isinstance(a[i], list): # liste de tuple/liste
-                    for j in xrange(len(a[i])):
+                    for j in range(len(a[i])):
                         if isinstance(a[i][j], numpy.ndarray):   # liste de tuple/liste d'array
                             if a[i][j].shape != objet[i][j].shape:
                                 print("DIFF: object shape differs from "+reference+'.')
@@ -463,10 +465,10 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         if res == 0: testA([b], 1)
         elif res == 1: testA(b, 1)
         elif res == 2: testO(b, 1)
-        for i in xrange(memory): b = F(a, *keywords)
+        for i in range(memory): b = F(a, *keywords)
         if heavy == 1:
             a = G.cart((0,0,0), (1,1,1), (10000,1,1) )
-            for i in xrange(100): C._addVars(a, 'F'+str(i))
+            for i in range(100): C._addVars(a, 'F'+str(i))
             b = F(a, *keywords)
         coverage += 1
     except TypeError:
@@ -485,10 +487,10 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         if res == 0: testA([b], 2)
         elif res == 1: testA(b, 2)
         elif res == 2: testO(b, 2)
-        for i in xrange(memory): b = F(a, *keywords)
+        for i in range(memory): b = F(a, *keywords)
         if heavy == 1:
             a = G.cart((0,0,0), (1,1,1), (1000,1000,1) )
-            for i in xrange(100): C._addVars(a, 'F'+str(i))
+            for i in range(100): C._addVars(a, 'F'+str(i))
             b = F(a, *keywords)
         coverage += 1
     except TypeError:
@@ -507,10 +509,10 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         if res == 0: testA([b], 3)
         elif res == 1: testA(b, 3)
         elif res == 2: testO(b, 3)
-        for i in xrange(memory): b = F(a, *keywords)
+        for i in range(memory): b = F(a, *keywords)
         if heavy == 1:
             a = G.cart((0,0,0), (1,1,1), (1000,1000,100) )
-            for i in xrange(100): C._addVars(a, 'F'+str(i))
+            for i in range(100): C._addVars(a, 'F'+str(i))
             b = F(a, *keywords)
         coverage += 1
     except TypeError:
@@ -529,10 +531,10 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         if res == 0: testA([b], 4)
         elif res == 1: testA(b, 4)
         elif res == 2: testO(b, 4)
-        for i in xrange(memory): b = F(a, *keywords)
+        for i in range(memory): b = F(a, *keywords)
         if heavy == 1:
             a = G.cartTetra((0,0,0), (1,1,1), (10000,1,1) )
-            for i in xrange(100): C._addVars(a, 'F'+str(i))
+            for i in range(100): C._addVars(a, 'F'+str(i))
             b = F(a, *keywords)
         coverage += 1
     except TypeError:
@@ -551,10 +553,10 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         if res == 0: testA([b], 5)
         elif res == 1: testA(b, 5)
         elif res == 2: testO(b, 5)
-        for i in xrange(memory): b = F(a, *keywords)
+        for i in range(memory): b = F(a, *keywords)
         if heavy == 1:
             a = G.cartTetra((0,0,0), (1,1,1), (1000,1000,1))
-            for i in xrange(100): C._addVars(a, 'F'+str(i))
+            for i in range(100): C._addVars(a, 'F'+str(i))
             b = F(a, *keywords)
         coverage += 1
     except TypeError:
@@ -573,10 +575,10 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         if res == 0: testA([b], 6)
         elif res == 1: testA(b, 6)
         elif res == 2: testO(b, 6)
-        for i in xrange(memory): b = F(a, *keywords)
+        for i in range(memory): b = F(a, *keywords)
         if heavy == 1:
             a = G.cartHexa((0,0,0), (1,1,1), (1000,1000,100))
-            for i in xrange(100): C._addVars(a, 'F'+str(i))
+            for i in range(100): C._addVars(a, 'F'+str(i))
             b = F(a, *keywords)
         coverage += 1
     except TypeError:
@@ -595,10 +597,10 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         if res == 0: testA([b], 7)
         elif res == 1: testA(b, 7)
         elif res == 2: testO(b, 7)
-        for i in xrange(memory): b = F(a, *keywords)
+        for i in range(memory): b = F(a, *keywords)
         if heavy == 1:
             a = G.cartTetra((0,0,0), (1,1,1), (1000,1000,100) )
-            for i in xrange(100): C._addVars(a, 'F'+str(i))
+            for i in range(100): C._addVars(a, 'F'+str(i))
             b = F(a, *keywords)
         coverage += 1
     except TypeError:
@@ -617,10 +619,10 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         if res == 0: testA([b], 8)
         elif res == 1: testA(b, 8)
         elif res == 2: testO(b, 8)
-        for i in xrange(memory): b = F(a, *keywords)
+        for i in range(memory): b = F(a, *keywords)
         if heavy == 1:
             a = G.cartHexa((0,0,0), (1,1,1), (1000,1000,100) )
-            for i in xrange(100): C._addVars(a, 'F'+str(i))
+            for i in range(100): C._addVars(a, 'F'+str(i))
             b = F(a, *keywords)
         coverage += 1
     except TypeError:
@@ -639,10 +641,10 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         if res == 0: testA([b], 9)
         elif res == 1: testA(b, 9)
         elif res == 2: testO(b, 9)
-        for i in xrange(memory): b = F(a, *keywords)
+        for i in range(memory): b = F(a, *keywords)
         if heavy == 1:
             a = G.cartPenta((0,0,0), (1,1,1), (1000,1000,100) )
-            for i in xrange(100): C._addVars(a, 'F'+str(i))
+            for i in range(100): C._addVars(a, 'F'+str(i))
             b = F(a, *keywords)
         coverage += 1
     except TypeError:
@@ -661,10 +663,10 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         if res == 0: testA([b], 10)
         elif res == 1: testA(b, 10)
         elif res == 2: testO(b, 10)
-        for i in xrange(memory): b = F(a, *keywords)
+        for i in range(memory): b = F(a, *keywords)
         if heavy == 1:
             a = G.cartPyra( (0,0,0), (1,1,1), (1000,1000,100) )
-            for i in xrange(100): C._addVars(a, 'F'+str(i))
+            for i in range(100): C._addVars(a, 'F'+str(i))
             b = F(a, *keywords)
         coverage += 1
     except TypeError:
@@ -683,10 +685,10 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         if res == 0: testA([b], 11)
         elif res == 1: testA(b, 11)
         elif res == 2: testO(b, 11)
-        for i in xrange(memory): b = F(a, *keywords)
+        for i in range(memory): b = F(a, *keywords)
         if heavy == 1:
             a = G.cartNGon((0,0,0), (1,1,1), (10000,1,1) )
-            for i in xrange(100): C._addVars(a, 'F'+str(i))
+            for i in range(100): C._addVars(a, 'F'+str(i))
             b = F(a, *keywords)
         coverage += 1
     except TypeError:
@@ -705,10 +707,10 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         if res == 0: testA([b], 12)
         elif res == 1: testA(b, 12)
         elif res == 2: testO(b, 12)
-        for i in xrange(memory): b = F(a, *keywords)
+        for i in range(memory): b = F(a, *keywords)
         if heavy == 1:
             a = G.cartNGon((0,0,0), (1,1,1), (1000,1000,1) )
-            for i in xrange(100): C._addVars(a, 'F'+str(i))
+            for i in range(100): C._addVars(a, 'F'+str(i))
             b = F(a, *keywords)
         coverage += 1
     except TypeError:
@@ -727,10 +729,10 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         if res == 0: testA([b], 13)
         elif res == 1: testA(b, 13)
         elif res == 2: testO(b, 13)
-        for i in xrange(memory): b = F(a, *keywords)
+        for i in range(memory): b = F(a, *keywords)
         if heavy == 1:
             a = G.cartNGon((0,0,0), (1,1,1), (1000,1000,100) )
-            for i in xrange(100): C._addVars(a, 'F'+str(i))
+            for i in range(100): C._addVars(a, 'F'+str(i))
             b = F(a, *keywords)
         coverage += 1
     except TypeError:

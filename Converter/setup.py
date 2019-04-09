@@ -87,7 +87,7 @@ listExtensions.append(
               ))
 listExtensions.append(
     Extension('Converter.expression',
-              sources=['Converter/Expression/Expression.cpp']+stds.cpp_srcs,
+              sources=['Converter/Expression/Expression.cpp']+srcs.cpp_srcs,
               include_dirs=["Converter"]+additionalIncludePaths+includeDirs,
               library_dirs=additionalLibPaths+libraryDirs,
               libraries=libraries+additionalLibs,
