@@ -26,7 +26,8 @@ prod = os.getenv("ELSAPROD")
 #==============================================================================
 # Nouveau systeme de configuration par la base d'installation
 #==============================================================================
-import installBase
+try: import installBase
+except: import KCore.installBase as installBase
 dict = installBase.installDict
 key = ''
 # prod est tout d'abord cherche dans le dictionnaire

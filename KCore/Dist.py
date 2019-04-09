@@ -182,11 +182,11 @@ def getInstallPath(prefix):
          # Based on python lib
          #installPath = prefix + '/' + '/'.join(pythonLib[-3:])
          # Python version
-         pythonVersion = pythonLib[-2]
+         pversion = sys.version_info
+         pythonVersion = "python{}.{}".format(pversion[0], pversion[1])
          Site = pythonLib[-1]
          # Lib
          Lib = pythonLib[-3]
-         #if (bits == '64'): Lib = 'lib64'
          installPath = '%s/%s/%s/site-packages'%(prefix, Lib, pythonVersion)
     return installPath
 

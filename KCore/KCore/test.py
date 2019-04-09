@@ -1,5 +1,6 @@
 # Systeme de validation des modules Cassiopee
 # (c) Onera
+from __future__ import print_function
 import numpy, sys, os
 
 # global tolerance on float fields
@@ -154,14 +155,14 @@ def checkObject_(a, b, reference):
         diff = numpy.abs(a-b)
         diff = (diff < TOLERANCE)
         if diff.all() != True:
-            print "DIFF: object value differs from "+reference+'.'
+            print("DIFF: object value differs from "+reference+'.')
             return False
     elif isinstance(a, list):
         for i, v in enumerate(a):
             checkObject_(v, b[i], reference)
     else:
         if a != b:
-            print "DIFF: object value differs from "+reference+'.'
+            print("DIFF: object value differs from "+reference+'.')
     return True
 
 #=============================================================================
@@ -172,7 +173,7 @@ def testO(objet, number=1):
     # Check Data directory
     a = os.access('Data', os.F_OK)
     if not a:
-         print "Data directory doesn't exist. Created."
+         print("Data directory doesn't exist. Created.")
          os.mkdir('Data')
     fileName = sys.argv[0]
     baseName = os.path.basename(fileName)
@@ -187,9 +188,9 @@ def testO(objet, number=1):
         objet = numpy.copy(objet)
 
     if not a:
-        print "Can not open file "+reference+" for reading."
-        print "Reference file "+reference+" has been created."
-        import cPickle as pickle
+        print("Can not open file "+reference+" for reading.")
+        print("Reference file "+reference+" has been created.")
+        import pickle as pickle
         file = open(reference, 'wb')
         try: pickle.dump(objet, file, protocol=pickle.HIGHEST_PROTOCOL)
         except: pickle.dump('Undumpable object', file, protocol=pickle.HIGHEST_PROTOCOL)
@@ -200,68 +201,68 @@ def testO(objet, number=1):
         file = open(reference, 'rb')
         a = pickle.load(file)
         file.close()
-        print "Reading '"+reference+"'... done."
+        print("Reading '"+reference+"'... done.")
         if isinstance(a, str) and a == 'Undumpable object': return True
 
         # tests sur les types
         if type(a) != type(objet):
-            print "DIFF: object type differs from "+reference+'.'
+            print("DIFF: object type differs from "+reference+'.')
             return False
         # autres tests
         if isinstance(a, numpy.ndarray): # array
             if a.shape != objet.shape:
-                print "DIFF: object shape differs from "+reference+'.'
+                print("DIFF: object shape differs from "+reference+'.')
                 return False
             diff = numpy.abs(a-objet)
             diff = (diff < TOLERANCE)
             if diff.all() != True:
-                print "DIFF: object value differs from "+reference+'.'
+                print("DIFF: object value differs from "+reference+'.')
                 return False
             else: return True
         elif isinstance(a, list):        # liste
             for i in xrange(len(a)):
                 if type(a[i]) != type(objet[i]):
-                    print "DIFF: object type differs from "+reference+'.'
+                    print("DIFF: object type differs from "+reference+'.')
                     return False
                 if isinstance(a[i], numpy.ndarray):   # liste d'array
-                    if (a[i].shape != objet[i].shape):
-                        print "DIFF: object shape differs from "+reference+'.'
+                    if a[i].shape != objet[i].shape:
+                        print("DIFF: object shape differs from "+reference+'.')
                         return False
                     diff = numpy.abs(a[i]-objet[i])
                     diff = (diff < TOLERANCE)
                     if diff.all() != True:
-                        print "DIFF: object value differs from "+reference+'.'
+                        print("DIFF: object value differs from "+reference+'.')
                         return False
                     return True
                 elif isinstance(a[i], list): # liste de tuple/liste
                     for j in xrange(len(a[i])):
                         if isinstance(a[i][j], numpy.ndarray):   # liste de tuple/liste d'array
-                            if (a[i][j].shape != objet[i][j].shape):
-                                print "DIFF: object shape differs from "+reference+'.'
+                            if a[i][j].shape != objet[i][j].shape:
+                                print("DIFF: object shape differs from "+reference+'.')
                                 return False
                             diff = numpy.abs(a[i][j]-objet[i][j])
                             diff = (diff < TOLERANCE)
                             if diff.all() != True:
-                                print "DIFF: object value differs from "+reference+'.'
+                                print("DIFF: object value differs from "+reference+'.')
                                 return False
                             return True
                         elif a[i][j] != objet[i][j]:  # liste de tuple/liste d'autres objets
-                            print "DIFF: object differs from "+reference+'.'
+                            print("DIFF: object differs from "+reference+'.')
                             return False
                         else: return True
                 elif isinstance(a[i], float):
                     diff = abs(a[i]-objet[i])
                     if diff > TOLERANCE:
-                        print "DIFF: object value differs from %s (%g)."%(reference, diff) 
+                        print("DIFF: object value differs from %s (%g)."%(reference, diff)) 
                         return False
                 elif a[i] != objet[i]:      # liste d'autres objets 
-                    print "DIFF: object differs from "+reference+'.'
+                    print("DIFF: object differs from "+reference+'.')
                     return False
                 else: return True
         elif isinstance(a, float):
             diff = abs(a-objet)
             if diff > TOLERANCE:
-                print "DIFF: object value differs from %s (%g)."%(reference, diff)
+                print("DIFF: object value differs from %s (%g)."%(reference, diff))
                 return False
         elif isinstance(a, dict):
             for k in a.keys():
@@ -270,11 +271,8 @@ def testO(objet, number=1):
                 v2 = objet[k]
                 ret = checkObject_(v1, v2, reference)
                 if ret == False: return False
-                # except:
-                    # print "DIFF: no key %s in dictionary."%k
-                    # return False
         elif a != objet:                    # autre objet
-            print "DIFF: object differs from "+reference+'.'
+            print("DIFF: object differs from "+reference+'.')
             return False
         else: return True
         
@@ -295,7 +293,7 @@ def checkTree(t1, t2):
         node2 = dict2[k]
         # cherche le noeud equivalent dans t1
         if not dict1.has_key(k):
-            print 'DIFF: node %s existe dans reference mais pas dans courant.'%k
+            print('DIFF: node %s existe dans reference mais pas dans courant.'%k)
         else:
             node1 = dict1[k]
             checkTree__(node1, node2)
@@ -306,99 +304,98 @@ def buildDict__(curr, dict, node):
     for i in node[2]: buildDict__(d, dict, i)
     
 def checkTree__(node1, node2):
-    #print node1[0], node2[0]
     if node1[0] != node2[0]: # nom du noeud
-        print 'DIFF: nom des noeuds differents:'
-        print 'DIFF: reference:', node2[0]
-        print 'DIFF: courant:', node1[0]
+        print('DIFF: nom des noeuds differents:')
+        print('DIFF: reference: %s.'%node2[0])
+        print('DIFF: courant: %s.'%node1[0])
         return 0
     if node1[3] != node2[3]: # type du noeud
-        print 'DIFF: type de noeud differents pour le noeud:', node1[0]
-        print 'DIFF: reference:', node2[3]
-        print 'DIFF: courant:', node1[3]
+        print('DIFF: type de noeud differents pour le noeud: %s.'%node1[0])
+        print('DIFF: reference: %s.'%node2[3])
+        print('DIFF: courant: %s.'%node1[3])
         return 0
     if len(node1[2]) != len(node2[2]):
-        print 'DIFF: longueur des fils differente pour le noeud:', node1[0]
+        print('DIFF: longueur des fils differente pour le noeud: %s.'%node1[0])
         return 0
     val1 = node1[1]; val2 = node2[1]
     if isinstance(val1, str):
         if not isinstance(val2, str):
-            print 'DIFF: types de valeurs differents pour le noeud:', node1[0]
-            print 'DIFF: reference:', val2
-            print 'DIFF: courant:', val1
+            print('DIFF: types de valeurs differents pour le noeud: %s.'%node1[0])
+            print('DIFF: reference:'+val2)
+            print('DIFF: courant:'+val1)
             return 0
         if val1 != val2:
-            print 'DIFF: valeurs differentes pour le noeud:', node1[0]
-            print 'DIFF: reference:', val2
-            print 'DIFF: courant:', val1
+            print('DIFF: valeurs differentes pour le noeud: %s.'%node1[0])
+            print('DIFF: reference:'+val2)
+            print('DIFF: courant:'+val1)
             return 0
     elif isinstance(val1, float):
         if not isinstance(val2, float):
-            print 'DIFF: types de valeurs differents pour le noeud:', node1[0]
-            print 'DIFF: reference:', val2
-            print 'DIFF: courant:', val1
+            print('DIFF: types de valeurs differents pour le noeud: %s.'%node1[0])
+            print('DIFF: reference: %f'%val2)
+            print('DIFF: courant: %f'%val1)
             return 0
         if val1 != val2:
-            print 'DIFF: valeurs differentes pour le noeud:', node1[0]
-            print 'DIFF: reference:', val2
-            print 'DIFF: courant:', val1
+            print('DIFF: valeurs differentes pour le noeud: %s.'%node1[0])
+            print('DIFF: reference: %f'%val2)
+            print('DIFF: courant: %f'%val1)
             return 0
     elif isinstance(val1, int):
         if not isinstance(val2, int):
-            print 'DIFF: types de valeurs differents pour le noeud:', node1[0]
-            print 'DIFF: reference:', val2
-            print 'DIFF: courant:', val1
+            print('DIFF: types de valeurs differents pour le noeud: %s.'%node1[0])
+            print('DIFF: reference: %d'%val2)
+            print('DIFF: courant: %d'%val1)
             return 0
         if val1 != val2:
-            print 'DIFF: valeurs differentes au noeud:', node1[0]
-            print 'DIFF: reference:', val2
-            print 'DIFF: courant:', val1
+            print('DIFF: valeurs differentes au noeud:'%node1[0])
+            print('DIFF: reference: %d'%val2)
+            print('DIFF: courant: %d'%val1)
             return 0
     elif isinstance(val1, numpy.ndarray):
         if not isinstance(val2, numpy.ndarray):
-            print 'DIFF: types numpy de valeurs differents pour le noeud:', node1[0]
-            print 'DIFF: reference:', val2.dtype
-            print 'DIFF: courant:', val1.dtype
-            print 'DIFF: reference:', val2
-            print 'DIFF: courant:', val1
+            print('DIFF: types numpy de valeurs differents pour le noeud: %s.'%node1[0])
+            print('DIFF: reference:', val2.dtype)
+            print('DIFF: courant:', val1.dtype)
+            print('DIFF: reference:', val2)
+            print('DIFF: courant:', val1)
             return 0
         if val1.dtype == numpy.int32:
             if val2.dtype != numpy.int32:
-                print 'DIFF: types numpy de valeurs differents pour le noeud:', node1[0]
-                print 'DIFF: reference:', val2
-                print 'DIFF: courant:', val1
+                print('DIFF: types numpy de valeurs differents pour le noeud: %s.'%node1[0])
+                print('DIFF: reference:', val2)
+                print('DIFF: courant:', val1)
                 return 0
             if val1.shape != val2.shape:
-                print 'DIFF: shape differentes pour le noeud:', node1[0]
-                print 'DIFF: reference:', val2.shape
-                print 'DIFF: courant:', val1.shape
-                print 'DIFF: reference:', val2
-                print 'DIFF: courant:', val1
+                print('DIFF: shape differentes pour le noeud: %s.'%node1[0])
+                print('DIFF: reference:', val2.shape)
+                print('DIFF: courant:', val1.shape)
+                print('DIFF: reference:', val2)
+                print('DIFF: courant:', val1)
                 return 0
             if ((val1 == val2).all()) == False:
-                print 'DIFF: valeurs differentes pour le noeud:', node1[0]
-                print 'DIFF: reference:', val2
-                print 'DIFF: courant:', val1
+                print('DIFF: valeurs differentes pour le noeud: %s.'%node1[0])
+                print('DIFF: reference:', val2)
+                print('DIFF: courant:', val1)
                 return 0
         if val1.dtype == numpy.float64:
             if val2.dtype != numpy.float64:
-                print 'DIFF: types numpy de valeurs differents pour le noeud:', node1[0]
-                print 'DIFF: reference:', val2.dtype
-                print 'DIFF: courant:', val1.dtype
-                print 'DIFF: reference:', val2
-                print 'DIFF: courant:', val1
+                print('DIFF: types numpy de valeurs differents pour le noeud: %s.'%node1[0])
+                print('DIFF: reference:', val2.dtype)
+                print('DIFF: courant:', val1.dtype)
+                print('DIFF: reference:', val2)
+                print('DIFF: courant:', val1)
                 return 0
             if val1.shape != val2.shape:
-                print 'DIFF: shape differentes pour le noeud:', node1[0]
-                print 'DIFF: reference:', val2.shape
-                print 'DIFF: courant:', val1.shape
-                print 'DIFF: reference:', val2
-                print 'DIFF: courant:', val1
+                print('DIFF: shape differentes pour le noeud: %s.'%node1[0])
+                print('DIFF: reference:', val2.shape)
+                print('DIFF: courant:', val1.shape)
+                print('DIFF: reference:', val2)
+                print('DIFF: courant:', val1)
                 return 0
         #     if (numpy.abs(val1 -val2)<1.e-6).all() == False:
-        #         print 'DIFF: valeurs differentes pour le noeud:', node1[0]
+        #         print('DIFF: valeurs differentes pour le noeud: %s.'%node1[0])
         #         delta = numpy.max(numpy.abs(val1 -val2))
-        #         print 'DIFF: ', delta
+        #         print('DIFF: ', delta)
         #         return 0  
     return 1
 
@@ -436,7 +433,7 @@ def checkType__(a):
         else:
             b = a[0]
             if not isinstance(b, list): return 2
-            if (len(b) == 0): return 2
+            if len(b) == 0: return 2
             if (isinstance(b[0], str) and (len(b) == 4 or len(b) == 5)):
                 return 1
             else: return 2
@@ -462,7 +459,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         res = checkType__(b)
         if output == 1 and res == 0: C.convertArrays2File([b], 'out1.plt')
         elif output == 1 and res == 1: C.convertArrays2File(b, 'out1.plt')
-        elif output == 1 and res == 2: print 'STRUCT1D'; print b
+        elif output == 1 and res == 2: print('STRUCT1D', b)
         if res == 0: testA([b], 1)
         elif res == 1: testA(b, 1)
         elif res == 2: testO(b, 1)
@@ -473,7 +470,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
             b = F(a, *keywords)
         coverage += 1
     except TypeError:
-        if output == 1: print 'STRUCT1D: uncovered.'
+        if output == 1: print('STRUCT1D: uncovered.')
     except: print('%s: Structure 1D: fails.'%testName); raise
 
     # 2- Structure 2D
@@ -484,7 +481,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         res = checkType__(b)
         if output == 1 and res == 0: C.convertArrays2File([b], 'out2.plt')
         elif output == 1 and res == 1: C.convertArrays2File(b, 'out2.plt')
-        elif output == 1 and res == 2: print 'STRUCT2D'; print b
+        elif output == 1 and res == 2: print('STRUCT2D', b)
         if res == 0: testA([b], 2)
         elif res == 1: testA(b, 2)
         elif res == 2: testO(b, 2)
@@ -495,7 +492,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
             b = F(a, *keywords)
         coverage += 1
     except TypeError:
-        if output == 1: print 'SRUCT2D: uncovered.'
+        if output == 1: print('STRUCT2D: uncovered.')
     except: print('%s: Structure 2D: fails.'%testName); raise
 
     # 3- Structure 3D
@@ -506,7 +503,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         res = checkType__(b)
         if output == 1 and res == 0: C.convertArrays2File([b], 'out3.plt')
         elif output == 1 and res == 1: C.convertArrays2File(b, 'out3.plt')
-        elif output == 1 and res == 2: print 'STRUCT3D'; print b
+        elif output == 1 and res == 2: print('STRUCT3D', b)
         if res == 0: testA([b], 3)
         elif res == 1: testA(b, 3)
         elif res == 2: testO(b, 3)
@@ -517,7 +514,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
             b = F(a, *keywords)
         coverage += 1
     except TypeError:
-        if output == 1: print 'STRUCT3D: uncovered.'
+        if output == 1: print('STRUCT3D: uncovered.')
     except: print('%s: Structure 3D: fails.'%testName); raise        
 
     # 4- BAR
@@ -528,7 +525,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         res = checkType__(b)
         if output == 1 and res == 0: C.convertArrays2File([b], 'out4.plt')
         elif output == 1 and res == 1: C.convertArrays2File(b, 'out4.plt')
-        elif output == 1 and res == 2: print 'BAR'; print b
+        elif output == 1 and res == 2: print('BAR', b)
         if res == 0: testA([b], 4)
         elif res == 1: testA(b, 4)
         elif res == 2: testO(b, 4)
@@ -539,7 +536,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
             b = F(a, *keywords)
         coverage += 1
     except TypeError:
-        if output == 1: print 'BAR: uncovered.'
+        if output == 1: print('BAR: uncovered.')
     except: print('%s: BAR: fails.'%testName); raise
 
     # 5- TRI
@@ -550,7 +547,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         res = checkType__(b)
         if output == 1 and res == 0: C.convertArrays2File([b], 'out5.plt')
         elif output == 1 and res == 1: C.convertArrays2File(b, 'out5.plt')
-        elif output == 1 and res == 2: print 'TRI'; print b
+        elif output == 1 and res == 2: print('TRI', b)
         if res == 0: testA([b], 5)
         elif res == 1: testA(b, 5)
         elif res == 2: testO(b, 5)
@@ -561,7 +558,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
             b = F(a, *keywords)
         coverage += 1
     except TypeError:
-        if output == 1: print 'TRI: uncovered.'
+        if output == 1: print('TRI: uncovered.')
     except: print('%s: TRI: fails.'%testName); raise
 
     # 6- QUAD
@@ -572,7 +569,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         res = checkType__(b)
         if output == 1 and res == 0: C.convertArrays2File([b], 'out6.plt')
         elif output == 1 and res == 1: C.convertArrays2File(b, 'out6.plt')
-        elif output == 1 and res == 2: print 'QUAD'; print b
+        elif output == 1 and res == 2: print('QUAD', b)
         if res == 0: testA([b], 6)
         elif res == 1: testA(b, 6)
         elif res == 2: testO(b, 6)
@@ -583,7 +580,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
             b = F(a, *keywords)
         coverage += 1
     except TypeError:
-        if output == 1: print 'QUAD: uncovered.'
+        if output == 1: print('QUAD: uncovered.')
     except: print('%s: QUAD: fails.'%testName); raise
     
     # 7- TETRA
@@ -594,7 +591,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         res = checkType__(b)
         if output == 1 and res == 0: C.convertArrays2File([b], 'out7.plt')
         elif output == 1 and res == 1: C.convertArrays2File(b, 'out7.plt')
-        elif output == 1 and res == 2: print 'TETRA'; print b
+        elif output == 1 and res == 2: print('TETRA', b)
         if res == 0: testA([b], 7)
         elif res == 1: testA(b, 7)
         elif res == 2: testO(b, 7)
@@ -605,7 +602,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
             b = F(a, *keywords)
         coverage += 1
     except TypeError:
-        if output == 1: print 'TETRA: uncovered.'
+        if output == 1: print('TETRA: uncovered.')
     except: print('%s: TETRA: fails.'%testName); raise
     
     # 8- HEXA
@@ -616,7 +613,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         res = checkType__(b)
         if output == 1 and res == 0: C.convertArrays2File([b], 'out8.plt')
         elif output == 1 and res == 1: C.convertArrays2File(b, 'out8.plt')
-        elif output == 1 and res == 2: print 'HEXA'; print b
+        elif output == 1 and res == 2: print('HEXA', b)
         if res == 0: testA([b], 8)
         elif res == 1: testA(b, 8)
         elif res == 2: testO(b, 8)
@@ -627,7 +624,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
             b = F(a, *keywords)
         coverage += 1
     except TypeError:
-        if output == 1: print 'HEXA: uncovered.'
+        if output == 1: print('HEXA: uncovered.')
     except: print('%s: HEXA: fails.'%testName); raise
     
     # 9- PENTA
@@ -638,7 +635,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         res = checkType__(b)
         if output == 1 and res == 0: C.convertArrays2File([b], 'out9.plt')
         elif output == 1 and res == 1: C.convertArrays2File(b, 'out9.plt')
-        elif output == 1 and res == 2: print 'PENTA'; print b
+        elif output == 1 and res == 2: print('PENTA', b)
         if res == 0: testA([b], 9)
         elif res == 1: testA(b, 9)
         elif res == 2: testO(b, 9)
@@ -649,7 +646,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
             b = F(a, *keywords)
         coverage += 1
     except TypeError:
-        if output == 1: print 'PENTA: uncovered.'
+        if output == 1: print('PENTA: uncovered.')
     except: print('%s: PENTA: fails.'%testName); raise
     
     # 10- PYRA
@@ -660,7 +657,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         res = checkType__(b)
         if output == 1 and res == 0: C.convertArrays2File([b], 'out10.plt')
         elif output == 1 and res == 1: C.convertArrays2File(b, 'out10.plt')
-        elif output == 1 and res == 2: print 'PYRA'; print b
+        elif output == 1 and res == 2: print('PYRA', b)
         if res == 0: testA([b], 10)
         elif res == 1: testA(b, 10)
         elif res == 2: testO(b, 10)
@@ -671,7 +668,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
             b = F(a, *keywords)
         coverage += 1
     except TypeError:
-        if output == 1: print 'PYRA: uncovered.'
+        if output == 1: print('PYRA: uncovered.')
     except: print('%s: PYRA: fails.'%testName); raise        
     
     # 11- NGON 1D
@@ -682,7 +679,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         res = checkType__(b)
         if output == 1 and res == 0: C.convertArrays2File([b], 'out11.tp')
         elif output == 1 and res == 1: C.convertArrays2File(b, 'out11.tp')
-        elif output == 1 and res == 2: print 'NGON1D'; print b
+        elif output == 1 and res == 2: print('NGON1D', b)
         if res == 0: testA([b], 11)
         elif res == 1: testA(b, 11)
         elif res == 2: testO(b, 11)
@@ -693,7 +690,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
             b = F(a, *keywords)
         coverage += 1
     except TypeError:
-        if (output == 1): print 'NGON1D: uncovered.'
+        if (output == 1): print('NGON1D: uncovered.')
     except: print('%s: NGON 1D: fails.'%testName); raise        
 
     # 12- NGON 2D
@@ -704,7 +701,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         res = checkType__(b)
         if output == 1 and res == 0: C.convertArrays2File([b], 'out12.tp')
         elif output == 1 and res == 1: C.convertArrays2File(b, 'out12.tp')
-        elif output == 1 and res == 2: print 'NGON2D'; print b
+        elif output == 1 and res == 2: print('NGON2D', b)
         if res == 0: testA([b], 12)
         elif res == 1: testA(b, 12)
         elif res == 2: testO(b, 12)
@@ -715,7 +712,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
             b = F(a, *keywords)
         coverage += 1
     except TypeError:
-        if output == 1: print 'NGON2D: uncovered.'
+        if output == 1: print('NGON2D: uncovered.')
     except: print('%s: NGON 2D: fails.'%testName); raise                
     
     # 13- NGON 3D
@@ -726,7 +723,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         res = checkType__(b)
         if output == 1 and res == 0: C.convertArrays2File([b], 'out13.plt')
         elif output == 1 and res == 1: C.convertArrays2File(b, 'out13.plt')
-        elif output == 1 and res == 2: print 'NGON3D'; print b
+        elif output == 1 and res == 2: print('NGON3D', b)
         if res == 0: testA([b], 13)
         elif res == 1: testA(b, 13)
         elif res == 2: testO(b, 13)
@@ -737,7 +734,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
             b = F(a, *keywords)
         coverage += 1
     except TypeError:
-        if output == 1: print 'NGON3D: uncovered.'
+        if output == 1: print('NGON3D: uncovered.')
     except: print('%s: NGON 3D: fails.'%testName); raise              
 
     # 14- liste d'arrays
@@ -750,13 +747,13 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         res = checkType__(A)
         if output == 1 and res == 0: C.convertArrays2File([A], 'out14.plt')
         elif output == 1 and res == 1: C.convertArrays2File(A, 'out14.plt')
-        elif output == 1 and res == 2: print 'List of arrays'; print b
+        elif output == 1 and res == 2: print('List of arrays', b)
         if res == 0: testA([A], 14)
         elif res == 1: testA(A, 14)
         elif res == 2: testO(A, 14)
         coverage += 1
     except TypeError:
-        if output == 1: print 'Array list: uncovered.'
+        if output == 1: print('Array list: uncovered.')
     except: print('%s: Array list: fails.'%testName); raise 
 
     # Write coverage
@@ -843,7 +840,7 @@ def stdTestT__(output, F, *keywords):
         if res != -2: testT(b, 4)
         else: testO(b, 4)
         coverage += 1
-    except TypeError: pass # 
+    except TypeError: pass #
     except: print('%s: base: fails.'%testName); raise
 
 ##     # 5- Une liste de bases
@@ -870,7 +867,7 @@ def stdTestT__(output, F, *keywords):
 #==============================================================================
 def writeCoverage(coverage):
     testName = sys.argv[0]
-    print '%s: coverage=%d'%(testName, coverage)+'%'
+    print('%s: coverage=%d'%(testName, coverage)+'%')
 
 #==============================================================================
 # Verifie la validite du fichier avec la cgnslib
@@ -885,9 +882,9 @@ def checkCGNSlib(t, number=1):
         s = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
         # Look for errors in output
         i1 = s.find("ERROR:")
-        if i1 != -1: print "FAILED: CGNSlib check"; return 0
+        if i1 != -1: print("FAILED: CGNSlib check."); return 0
         return 1
-    except: print "FAILED: CGNSlib check"; return 0
+    except: print("FAILED: CGNSlib check."); return 0
 
 #==============================================================================
 # Ecrit la memoire prise par le process
@@ -905,15 +902,14 @@ def printMem(msg, waitTime=0.1):
     tot = 0.
     found = False
     for ts in s:
-        if found :
+        if found:
             tot += int(ts[5:-3])
             found = False
         if ts.find("heap") >= 0:
             found = True
-    # print msg, tot, " kB"
     if tot > 1.e6:
-        print '{:<40} : {} GB '.format(msg,tot/1.e6)
+        print('{:<40} : {} GB '.format(msg,tot/1.e6))
     elif tot > 1000.:
-        print '{:<40} : {} MB '.format(msg,tot/1000.)
-    else: print '{:<40} : {} kB '.format(msg,tot)
+        print('{:<40} : {} MB '.format(msg,tot/1000.))
+    else: print('{:<40} : {} kB '.format(msg,tot))
     return tot

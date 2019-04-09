@@ -51,4 +51,4 @@ Dist.writeEnvs()
 
 # Installe la licence
 f = open('KCore/installKey.py'); a = f.read(); f.close()
-exec a
+exec(a)

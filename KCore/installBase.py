@@ -7,6 +7,20 @@
 # Others are strings.
 installDict = {
 ###############################################################################
+'DESKTOP...': [ 'Windows ubuntu',
+'gfortran', # f77compiler
+'gfortran', # f90compiler
+'gcc', # Cppcompiler
+[], # CppAdditionalOptions
+[], # f77AdditionalOptions
+True, # useOMP
+False, # static
+False, # CPlotOffScreen
+[], # additionalIncludePaths
+['gfortran', 'gomp', 'pthread'], # additionalLibs
+[] # additionalLibPaths
+],
+###############################################################################
 'WDSNA81OZ': [ 'Machine de production win32 (Onera)',
 'gfortran', # f77compiler
 'gfortran', # f90compiler
