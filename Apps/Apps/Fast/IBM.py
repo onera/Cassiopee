@@ -177,12 +177,12 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
     # Octree identical on all procs
     test.printMem('>>> Octree unstruct [start]')
     # Build octree
-    o = TIBM.buildOctree(tb, snears=snears, dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, 
+    o = TIBM.buildOctree(tb, snears=snears, snearFactor=1., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, 
                          dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=fileout, rank=rank)
-
     # build parent octree 3 levels higher
     # returns a list of 4 octants of the parent octree in 2Dn 8 in 3D
-    parentso = TIBM.buildParentOctrees__(o, dimPb=dimPb)
+    parento = TIBM.buildParentOctrees__(o, tb, snears=snears, snearFactor=4., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, 
+                                        dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=fileout, rank=rank)
     test.printMem(">>> Octree unstruct [end]")
 
     # Split octree
@@ -192,14 +192,14 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
     if NPI == 1: p = Internal.copyRef(o) # keep reference
     else: p = T.splitNParts(o, N=NPI, recoverBC=False)[rank]
     del o
-    if check: C.convertPyTree2File(p, 'octree_%d.cgns'%rank)
     test.printMem(">>> Octree unstruct split [end]")
 
     
     # fill vmin + merge in parallel
     test.printMem(">>> Octree struct [start]")
-    res = TIBM.octree2StructLoc__(p, vmin=vmin, ext=-1, optimized=0, parento=parentso, sizeMax=4000000)
-    del p; del parentso
+    res = TIBM.octree2StructLoc__(p, vmin=vmin, ext=-1, optimized=0, parento=parento, sizeMax=4000000)
+    del p; 
+    for po in parento: del po
     t = C.newPyTree(['CARTESIAN', res])
     zones = Internal.getZones(t)
     for z in zones: z[0] = z[0]+'X%d'%rank
@@ -330,7 +330,6 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
     tbbc = Cmpi.createBBoxTree(tc)
     interDict = X.getIntersectingDomains(tbbc)
     graph = Cmpi.computeGraph(tbbc, type='bbox', intersectionsDict=interDict, reduction=False)
-    del tbbc
     Cmpi._addXZones(tc, graph, variables=['cellN'], cartesian=True)
     test.printMem(">>> Interpdata [after addXZones]")
     
@@ -429,7 +428,7 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
     # Interpolation IBC (front, tbbc)
 
     # graph d'intersection des pts images de ce proc et des zones de tbbc
-    zones = Internal.getZones(tbbc)
+    zones = Internal.getZones(tbbc)    
     allBBs = []
     dictOfCorrectedPtsByIBCType = res[0]
     dictOfWallPtsByIBCType = res[1] 
@@ -452,7 +451,7 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
                             if zrname not in interDictIBM: interDictIBM[zrname]=[z[0]]
                             else: interDictIBM[zrname].append(z[0])
     else: graph={}
-
+    del tbbc
     allGraph = Cmpi.KCOMM.allgather(graph)
     #if rank == 0: print allGraph
 
@@ -487,7 +486,7 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
                     for zdname in interDictIBM[zrname]:
                         zd = Internal.getNodeFromName2(tc, zdname)
                         #if zd is not None: dnrZones.append(zd)
-                        if zd is None: print '!!!Zone None', zrname, zdname
+                        if zd is None: print('!!!Zone None', zrname, zdname)
                         else: dnrZones.append(zd)
 
                     XOD._setIBCDataForZone__(zrcv,dnrZones,allCorrectedPts[nozr],allWallPts[nozr],allInterpPts[nozr],
@@ -775,7 +774,7 @@ def loads(t_case, t_in, tc_in, wall_out, alpha=0., beta=0., Sref=None):
     res = [i/Sref for i in res]
     cd = res[0]*math.cos(alpha)*math.cos(beta) + res[2]*math.sin(alpha)*math.cos(beta)
     cl = res[2]*math.cos(alpha)*math.cos(beta) - res[0]*math.sin(alpha)*math.cos(beta)
-    print "Pressure loads",cd,cl
+    print("Pressure loads",cd,cl)
 
     #======================================
     # Calcul frottement et efforts visqueux
@@ -824,7 +823,7 @@ def loads(t_case, t_in, tc_in, wall_out, alpha=0., beta=0., Sref=None):
 
     cd = (effortX*math.cos(alpha)*math.cos(beta) + effortZ*math.sin(alpha)*math.cos(beta))/q
     cl = (effortZ*math.cos(alpha)*math.cos(beta) - effortX*math.sin(alpha)*math.cos(beta))/q
-    print "Skin friction loads",cd,cl
+    print("Skin friction loads",cd,cl)
 
     if isinstance(wall_out, str): C.convertPyTree2File(zw, wall_out)
 
@@ -874,8 +873,8 @@ def _distribute(t_in, tc_in, NP):
         for z in Internal.getZones(ts):
             if Cmpi.getProc(z)==i: NPTS += C.getNPts(z)
         NptsTot += NPTS
-        print 'Rank %d has %d points'%(i,NPTS) 
-    print 'All points: %d million points'%(NptsTot/1.e6)
+        print('Rank %d has %d points'%(i,NPTS))
+    print('All points: %d million points'%(NptsTot/1.e6))
     return None
 
 #====================================================================================

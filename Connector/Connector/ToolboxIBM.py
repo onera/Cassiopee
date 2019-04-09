@@ -246,10 +246,7 @@ def octree2StructLoc__(o, parento=None, vmin=21, ext=0, optimized=0, sizeMax=4e6
             nzones = len(ZONES[noo])
             if nzones > 1:
                 print('Merging %d Cartesian zones of subdomain %d.'%(nzones,noo))                
-                # C.convertPyTree2File(parento[noo],"parent_%d.cgns"%noo)
-                #C.convertPyTree2File(ZONES[noo],'cart1_oct%d.cgns'%noo)
                 ZONES[noo] = mergeByParent__(ZONES[noo], parento[noo], sizeMax)
-                #C.convertPyTree2File(ZONES[noo],'cart2_oct%d.cgns'%noo)
                 print('Nb of merged zones : %d.' %len(ZONES[noo]))
 
         if dimPb == 3:
@@ -294,16 +291,13 @@ def octree2StructLoc__(o, parento=None, vmin=21, ext=0, optimized=0, sizeMax=4e6
     return zones
 
 
-def buildParentOctrees__(o, dimPb=3, level=2):
+def buildParentOctrees__(o, tb, snears=None, snearFactor=4., dfar=10., dfarList=[], to=None, tbox=None, snearsf=None, 
+                         dimPb=3, vmin=15, symmetry=0, fileout=None, rank=0):
     nzones0 = Internal.getZoneDim(o)[2] 
     if nzones0 < 1000: return None
 
-    # build parent octree
-    parento = C.initVars(o,'centers:indicator',-1.)
-    parento = G.adaptOctree(parento)
-    for nop in range(level):
-        C._initVars(parento,'centers:indicator',-1.)
-        parento = G.adaptOctree(parento)
+    parento = buildOctree(tb, snears=snears, snearFactor=snearFactor, dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf, 
+                          dimPb=dimPb, vmin=vmin, symmetry=symmetry, balancing=0, rank=rank)
     
     bbo = G.bbox(parento)
     xmino=bbo[0]; xmaxo=bbo[3]; xmeano=0.5*(xmino+xmaxo)
@@ -337,7 +331,7 @@ def buildParentOctrees__(o, dimPb=3, level=2):
     return OCTREEPARENTS
 
 # IN: bbox: bbox des frontieres exterieures
-def generateCartMesh__(o, dimPb=3, vmin=11, DEPTH=2, sizeMax=4000000, check=True, 
+def generateCartMesh__(o, parento=None, dimPb=3, vmin=11, DEPTH=2, sizeMax=4000000, check=True, 
                        symmetry=0, externalBCType='BCFarfield', bbox=None):
 
     # Estimation du nb de pts engendres
@@ -354,9 +348,8 @@ def generateCartMesh__(o, dimPb=3, vmin=11, DEPTH=2, sizeMax=4000000, check=True
     if DEPTH == 0: ext=0
     else: ext = DEPTH+1
 
-    parentso = buildParentOctrees__(o, dimPb=dimPb)
     res = octree2StructLoc__(o, vmin=vmin, ext=ext, optimized=optimized, sizeMax=sizeMax, 
-                             parento=parentso)
+                             parento=parento)
     t = C.newPyTree(['CARTESIAN', res])
     
     dz = 0.01
@@ -427,8 +420,8 @@ def _addExternalBCs(t, bbox, DEPTH=2, externalBCType='BCFarfield', dimPb=3):
 #--------------------------------------------------------------------------
 # to : maillage octree, si not None : on le prend comme squelette 
 #--------------------------------------------------------------------------
-def buildOctree(tb, snears=None, dfar=10., dfarList=[], to=None, tbox=None, snearsf=None, 
-                dimPb=3, vmin=15, symmetry=0, fileout=None, rank=0):
+def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None, tbox=None, snearsf=None, 
+                dimPb=3, vmin=15, balancing=2, symmetry=0, fileout=None, rank=0):
     i = 0; surfaces=[]; snearso=[] # pas d'espace sur l'octree
     bodies = Internal.getZones(tb)
     if not isinstance(snears, list): snears = len(bodies)*[snears]
@@ -441,7 +434,7 @@ def buildOctree(tb, snears=None, dfar=10., dfarList=[], to=None, tbox=None, snea
             snearl = Internal.getNodeFromName1(sdd, "snear")
             if snearl is not None: 
                 snearl = Internal.getValue(snearl)
-                snears[i] = snearl
+                snears[i] = snearl*snearFactor
         dhloc = snears[i]*(vmin-1)
         surfaces+=[s]; snearso+=[dhloc]
         dxmin0 = min(dxmin0,dhloc)
@@ -450,12 +443,12 @@ def buildOctree(tb, snears=None, dfar=10., dfarList=[], to=None, tbox=None, snea
     if to is not None:
         o = Internal.getZones(to)[0]
     else:
-        o = G.octree(surfaces, snearList=snearso, dfar=dfar, dfarList=dfarList, balancing=2)
+        o = G.octree(surfaces, snearList=snearso, dfar=dfar, dfarList=dfarList, balancing=balancing)
         G._getVolumeMap(o); volmin = C.getMinValue(o, 'centers:vol')
         dxmin = (volmin)**(1./dimPb)
         if dxmin < 0.65*dxmin0: 
             snearso = [2.*i for i in snearso]
-            o = G.octree(surfaces, snearList=snearso, dfar=dfar, dfarList=dfarList, balancing=2)
+            o = G.octree(surfaces, snearList=snearso, dfar=dfar, dfarList=dfarList, balancing=balancing)
         
         symmetry = 0
         if symmetry != 0:
@@ -517,9 +510,14 @@ def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., dfarList=[], DEPTH=2, tb
     # type de traitement paroi: pts interieurs ou externes
     model = Internal.getNodeFromName(tb, 'GoverningEquations')
     if model is None: raise ValueError('generateIBMMesh: GoverningEquations is missing in input body tree.')
-    o = buildOctree(tb, snears=snears, dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf, 
+    o = buildOctree(tb, snears=snears, snearFactor=1., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf, 
                     dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=fileo, rank=0)
-    res = generateCartMesh__(o, dimPb=dimPb, vmin=vmin, DEPTH=DEPTH, sizeMax=sizeMax, 
+
+    # retourne les 4 quarts (en 2D) de l octree parent 2 niveaux plus haut 
+    # et les 8 octants en 3D sous forme de listes de zones non structurees
+    parento = buildParentOctrees__(o, tb, snears=snears, snearFactor=4., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf, 
+                                   dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=None, rank=0)
+    res = generateCartMesh__(o, parento=parento, dimPb=dimPb, vmin=vmin, DEPTH=DEPTH, sizeMax=sizeMax, 
                              check=check, symmetry=symmetry, externalBCType=externalBCType)
     return res
 
@@ -559,7 +557,6 @@ def addRefinementZones(o, tb, tbox, snearsf, vmin, dim):
     end = 0
     G._getVolumeMap(to)
     volmin0 = C.getMinValue(to,'centers:vol')
-    #print 'volmin0 = ', volmin0, (volmin0)**(1./3.)
     # volume minimum au dela duquel on ne peut pas raffiner
     volmin0 = 1.*volmin0
     while end == 0:
@@ -587,7 +584,6 @@ def addRefinementZones(o, tb, tbox, snearsf, vmin, dim):
             to[2][1][2] = [o]
             G._getVolumeMap(to)
             volminloc = C.getMinValue(to,'centers:vol')
-            #print 'volminloc = ', volminloc, (volminloc)**(1./3.)
     return Internal.getNodeFromType2(to, 'Zone_t')
 
 # =============================================================================
