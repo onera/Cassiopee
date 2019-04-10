@@ -899,6 +899,7 @@ def blankByIBCBodies(t, tb, loc, dim):
     else: typeb = 'node_in'
     nbases = len(Internal.getBases(t))
     BM = numpy.ones((nbases,nbodies),dtype=numpy.int32)
+    BM2 = numpy.ones((nbases,1),dtype=numpy.int32)
 
     if blankalgo == 'xray' or DIM == 2:
         dh_min = getMinimumCartesianSpacing(t)
@@ -918,7 +919,8 @@ def blankByIBCBodies(t, tb, loc, dim):
         else:
             t = X.blankCells(t, bodies,BM,blankingType=typeb,delta=TOLDIST,XRaydim1=XRAYDIM1,XRaydim2=XRAYDIM2,dim=DIM)
     else:
-        t = X.blankCellsTri(t,bodies,BM,blankingType=typeb)
+        # t = X.blankCellsTri(t,bodies,BM,blankingType=typeb)
+        for body in bodies: t = X.blankCellsTri(t,[body],BM2,blankingType=typeb)
     return t
 
 #=============================================================================
