@@ -10,13 +10,11 @@ a4 = G.cart((0,9.0001,0),(1,1,1),(10,6,1)); a4[0] = 'cart4'
 a5 = G.cart((9.01,9.0002,0),(1,1,1),(10,6,1)); a5[0] = 'cart5'
 
 zones = [a1,a2,a3,a4,a5]
-for i in xrange(len(zones)):
-    zones[i] = C.addBC2Zone(zones[i], 'match1','BCMatch','imin',\
-                            zones[i],'imax',[1,2])
-    zones[i] = C.addBC2Zone(zones[i], 'match2','BCMatch','imax',\
-                            zones[i],'imin',[1,2])
-    zones[i] = C.addBC2Zone(zones[i], 'wall1','BCWall','jmin')
-    zones[i] = C.addBC2Zone(zones[i], 'wall2','BCWall','jmax')
+for z in zones:
+    C._addBC2Zone(z, 'match1','BCMatch','imin', z,'imax',[1,2])
+    C._addBC2Zone(z, 'match2','BCMatch','imax', z,'imin',[1,2])
+    C._addBC2Zone(z, 'wall1','BCWall','jmin')
+    C._addBC2Zone(z, 'wall2','BCWall','jmax')
 
 zones = C.addVars(zones,'Density'); zones = C.addVars(zones,'centers:cellN')
 

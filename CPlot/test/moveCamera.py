@@ -9,7 +9,7 @@ a = D.sphere((0,0,0), 1., N=20)
 CPlot.display(a, posCam=(3,-1,0.7), posEye=(0,0,0))
 
 t = 0.
-for i in xrange(1000):
+for i in range(1000):
     # change model
     defo = C.initVars(a, '{df}=0.1*cos(%f)*sin(10*pi*{x})'%(t))
     defo = C.extractVars(defo, ['df'])

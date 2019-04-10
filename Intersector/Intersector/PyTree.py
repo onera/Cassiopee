@@ -10,6 +10,9 @@ __version__ = XOR.__version__
 
 import numpy
 
+try: range = xrange
+except: pass
+
 try:
     import Converter.PyTree as C
     import Converter.Internal as Internal
@@ -139,8 +142,8 @@ def booleanUnion(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, im
     # debug : mutli zones
     ozones = []
 
-    for i in xrange(len(res)) :
-      if (len(res[i][0][1]) != 0) : ozones.append(C.convertArrays2ZoneNode(res[i][1], [res[i][0]])) #(zname, array)
+    for i in range(len(res)):
+      if len(res[i][0][1]) != 0: ozones.append(C.convertArrays2ZoneNode(res[i][1], [res[i][0]])) #(zname, array)
     
     return ozones
 
@@ -201,7 +204,7 @@ def XcellN(t, prioritaryMesh, blankingMatrix=[]):
         wallpgs = [] # LIST OF BODY WALLS IDS USED TO IGNORE BGM CELLS INSIDE THEM 
         ghostpgs = [] # LIST OF BOUNDARIES TO EXTRUDE TO PREVENT UNECESSARY X COMPUTATIONS
         cur_shift=0
-        for nb2 in xrange(len(prioritaryMesh)):
+        for nb2 in range(len(prioritaryMesh)):
             blanking = blankingMatrix[nb, nb2]
             #if (prioritaryMesh[nb2] == []): print 'empty'
             if (prioritaryMesh[nb2] == []): continue
@@ -349,7 +352,7 @@ def agglomerateSmallCells(t, vmin=0., vratio=1000.):
     if (nb_zones == 0) : return z
     #print nb_zones
 
-    for i in xrange(nb_zones):
+    for i in range(nb_zones):
         zones.append(C.convertArrays2ZoneNode('agg', [res[i+1]]))
 
     C.convertPyTree2File(zones, 'agglo.cgns')
@@ -410,7 +413,7 @@ def agglomerateNonStarCells(t):
     if (nb_zones == 0) : return z
     #print nb_zones
 
-    for i in xrange(nb_zones):
+    for i in range(nb_zones):
         zones.append(C.convertArrays2ZoneNode('agg', [res[i+1]]))
 
     C.convertPyTree2File(zones, 'agglo.cgns')
@@ -569,7 +572,7 @@ def extractNthCell(t, nth):
     if (nb_zones == 0) : return zones
 
     # here it has neighbors 
-    for i in xrange(nb_zones):
+    for i in range(nb_zones):
         zones.append(C.convertArrays2ZoneNode('neigh', [m[i+1]]))
 
     return zones
@@ -589,7 +592,7 @@ def extractNthFace(t, nth):
     if (nb_zones == 0) : return zones
 
     # here it has parent elements 
-    for i in xrange(nb_zones):
+    for i in range(nb_zones):
         zones.append(C.convertArrays2ZoneNode('ph', [m[i+1]]))
 
     return zones
@@ -735,7 +738,7 @@ def oneZonePerCell(t):
     if (nb_zones == 0) : return zones
 
     # here it has parent elements 
-    for i in xrange(nb_zones):
+    for i in range(nb_zones):
         zones.append(C.convertArrays2ZoneNode('cell%s'%i, [m[i]]))
 
     return zones

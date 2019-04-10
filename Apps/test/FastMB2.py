@@ -18,7 +18,7 @@ t, tc, ts, metrics, graph = myApp.setup('t.cgns', 'tc.cgns')
 import FastS.PyTree as FastS
 import Converter.Mpi as Cmpi
 
-for it in xrange(1000):
+for it in range(1000):
     FastS._compute(t, metrics, it, tc, graph)
     if it%100 == 0:
         if Cmpi.rank == 0: print('- %d / %d'%(it,1000))

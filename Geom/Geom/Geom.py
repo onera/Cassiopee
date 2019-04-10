@@ -11,6 +11,9 @@ import KCore.Vector as Vector
 
 from .MapEdge import *
 
+try: range = xrange
+except: pass
+
 # - Basic entities -
 def point(P):
     """Create a point. 
@@ -326,7 +329,7 @@ def surface__(f, N):
         return ['x,y,z', a, N, N, 1]
     for j in range(N):
         u = 1.*j/(N-1)
-        for i in xrange(N):
+        for i in range(N):
             ind = i + j*N
             t = 1.*i/(N-1)
             r = f(t,u)
@@ -359,11 +362,11 @@ def getNearestPointIndex(a, pointList):
     if isinstance(a[0], list):
         # keep nearest
         npts = len(pL)
-        res0 = [(0,1.e6) for i in xrange(npts)]
+        res0 = [(0,1.e6) for i in range(npts)]
         noi = 0
         for i in a:
             res = geom.getNearestPointIndex(i, pL)
-            for j in xrange(npts):
+            for j in range(npts):
                 if res0[j][1] > res[j][1]:
                     res0[j] = (res[j][0], res[j][1])
             noi += 1
@@ -540,7 +543,7 @@ def orthoDrive(a, d, mode=0):
     
     e2p = None
     P0 = [coord[0,0],coord[1,0],coord[2,0]]
-    for i in xrange(n):
+    for i in range(n):
         if i == n-1:
             Pi = [coord[0,i-1],coord[1,i-1],coord[2,i-1]]
             Pip = [coord[0,i],coord[1,i],coord[2,i]]
@@ -831,7 +834,7 @@ def connect1D(curves, sharpness=0, N=10, lengthFactor=1.):
         PtsM.append([e1M, e2M])
 
     added = []
-    for c in xrange(ncurves):
+    for c in range(ncurves):
         lcurve = getLength(curves[c]) * lengthFactor
         P1 = Pts[c][0] 
         minDist, P2, d, ext = findNearest__(P1, Pts, c)
@@ -892,7 +895,7 @@ def intersectionPoint__(P1,n1,P2,n2):
 # trouve le pt le plus proche de Pt dans Pts mais different de c
 def findNearest__(Pt, Pts, c):
     minDist = 1.e6; nearest = None; dmin = -1; ext=0;
-    for d in xrange(len(Pts)):
+    for d in range(len(Pts)):
         if d <= c: # possible sur lui meme !!
             e2a = Pts[d][0]; e2b = Pts[d][1]    
             d1 = Vector.squareDist(Pt, e2a)

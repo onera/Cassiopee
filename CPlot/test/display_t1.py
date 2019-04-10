@@ -103,19 +103,19 @@ a = C.initVars(a, 'p', F, ['x'])
 a = C.convertArray2Hexa(a)
 
 # mesh (mode 0)
-CPlot.display([a], mode=0, posCam=(40,-2,15), posEye=(8,13,0)); time.sleep(2)
+CPlot.display(a, mode=0, posCam=(40,-2,15), posEye=(8,13,0)); time.sleep(2)
 
 # solid (mode 1)
-CPlot.display([a], mode=1); time.sleep(2)
+CPlot.display(a, mode=1); time.sleep(2)
 
 # scalar field (mode 3)
-CPlot.display([a], mode=3, scalarField=0); time.sleep(2)
+CPlot.display(a, mode=3, scalarField=0); time.sleep(2)
 
 # - NODE -
 # mesh (mode 0)
 a = C.array('x,y,z', 18*28, 0, 'NODE')
-for i in xrange(18):
-    for j in xrange(28):
+for i in range(18):
+    for j in range(28):
         C.setValue(a, i+j*18, (i,j,0.))
-CPlot.display([a], mode=0); time.sleep(2)
+CPlot.display(a, mode=0); time.sleep(2)
 

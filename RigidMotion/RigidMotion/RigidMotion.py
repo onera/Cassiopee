@@ -70,7 +70,7 @@ def _moveN(coordsN, d, c, r):
 
 def moveN(coordsN, d, c, r):
     coordsNP = []
-    for i in xrange(3):
+    for i in range(3):
         XP = numpy.copy(coordsN[i])
         coordsNP.append(XP)
 

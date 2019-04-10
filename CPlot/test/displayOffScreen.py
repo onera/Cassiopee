@@ -12,7 +12,7 @@ CPlot.display([a], offscreen=1, bgColor=1, mode=1, meshStyle=2,
 CPlot.finalizeExport()
 
 # Movie
-for i in xrange(50):
+for i in range(50):
     a = T.rotate(a, (0,0,0), (0,0,1), 1.)
     CPlot.display([a], offscreen=1, bgColor=1, mode=1, meshStyle=2,
                   solidStyle=1, posCam=(0,6,0), 

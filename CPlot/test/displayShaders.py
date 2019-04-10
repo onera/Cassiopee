@@ -52,7 +52,7 @@ time.sleep(2)
 
 # Ajout du blending
 CPlot._addRender2Zone(t, meshOverlay=0)
-for i in xrange(30):
+for i in range(30):
     CPlot._addRender2Zone(t, blending=1.-i*1./30.)
     CPlot.display(t, displayBB=0, mode=2)
     time.sleep(0.1)

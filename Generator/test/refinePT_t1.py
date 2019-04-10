@@ -15,17 +15,17 @@ b = C.addBC2Zone(b,"overlap",'BCOverlap','imax')
 t = C.newPyTree(['Base',2]); t[2][1][2] += [a,b]
 t = C.initVars(t,'F',1.); t = C.initVars(t,'centers:G',2.)
 # facteur de raffinement non entier
-for noz in xrange(2): t[2][1][2][noz] = G.refine(t[2][1][2][noz],1.5,dir=1)
+for noz in range(2): t[2][1][2][noz] = G.refine(t[2][1][2][noz],1.5,dir=1)
 test.testT(t,1)
 # facteur de raffinement entier 1 direction
 t = C.newPyTree(['Base']); t[2][1][2]+=[a,b]
 t = C.initVars(t,'F',1.); t = C.initVars(t,'centers:G',2.)
-for noz in xrange(2): t[2][1][2][noz] = G.refine(t[2][1][2][noz],2.,dir=1)
+for noz in range(2): t[2][1][2][noz] = G.refine(t[2][1][2][noz],2.,dir=1)
 test.testT(t,2)
 #
 # facteur de raffinement entier 3 directions
 #
 t = C.newPyTree(['Base',2]); t[2][1][2] += [a,b]
 t = C.initVars(t,'F',1.); t = C.initVars(t,'centers:G',2.)
-for noz in xrange(2): t[2][1][2][noz] = G.refine(t[2][1][2][noz],2,dir=0)
+for noz in range(2): t[2][1][2][noz] = G.refine(t[2][1][2][noz],2,dir=0)
 test.testT(t,3)

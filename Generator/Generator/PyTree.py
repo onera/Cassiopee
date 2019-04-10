@@ -214,9 +214,9 @@ def expandLayer(o, level=0, corners=0, balancing=0):
 def _expandLayer(o, level=0, corners=0, balancing=0):
     zones = Internal.getZones(o)
     hexa = C.getFields(Internal.__GridCoordinates__,zones)
-    for noz in xrange(len(zones)):
+    for noz, z in enumerate(zones):
         res = Generator.expandLayer(hexa[noz], level, corners, balancing)
-        C.setFields([res],zones[noz],'nodes',writeDim=True)
+        C.setFields([res], z, 'nodes', writeDim=True)
     return None
 
 def cylinder(Xo, R1, R2, tetas, tetae, H, N):

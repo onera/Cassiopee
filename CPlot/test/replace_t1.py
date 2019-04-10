@@ -11,17 +11,17 @@ A = [a,b,c]
 CPlot.display(A); time.sleep(dt)
 
 # Replace first zone
-for i in xrange(5):
+for i in range(5):
     b = G.cart( (i,0,0), (1,1,1), (10,10,10) )
     CPlot.replace(A, 0, b); CPlot.render(); time.sleep(dt)
 
 # Replace second zone
-for i in xrange(5):
+for i in range(5):
     b = G.cartTetra( (-10+i,0,0), (1,1,1), (10,10,10) )
     CPlot.replace(A, 1, b); CPlot.render(); time.sleep(dt)
 
 # Replace third zone
-for i in xrange(5):
+for i in range(5):
     b = G.cart( (i,0,0), (1,1,1), (10,10,10) )
     CPlot.replace(A, 2, b); CPlot.render(); time.sleep(dt)
 

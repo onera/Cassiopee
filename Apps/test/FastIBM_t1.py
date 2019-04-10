@@ -3,6 +3,8 @@ import Apps.Fast.IBM as App
 import Converter.PyTree as C
 import KCore.test as test
 
+LOCAL = test.getLocal()
+
 myApp = App.IBM(NP=0, format='single')
 myApp.set(numb={"temporal_scheme": "implicit",
                 "ss_iteration":3,
@@ -13,14 +15,14 @@ myApp.set(numz={"time_step": 0.0007,
                 "cfl":4.})
 
 # Prepare
-t, tc = myApp.prepare('naca1D.cgns', t_out='t.cgns', tc_out='tc.cgns')
+t, tc = myApp.prepare('naca1D.cgns', t_out=LOCAL+'/t.cgns', tc_out=LOCAL+'/tc.cgns')
 test.testT(tc, 1)
 
 # Compute
-t,tc = myApp.compute('t.cgns', 'tc.cgns', t_out='restart.cgns', tc_out='tc_restart.cgns', nit=300)
+t,tc = myApp.compute(LOCAL+'/t.cgns', LOCAL+'/tc.cgns', t_out=LOCAL+'/restart.cgns', tc_out=LOCAL+'/tc_restart.cgns', nit=300)
 test.testT(t, 2)
 
 # Post
-t, zw = myApp.post('naca1D.cgns', 'restart.cgns', 'tc_restart.cgns', t_out='out.cgns', wall_out='wall.cgns')
+t, zw = myApp.post('naca1D.cgns', LOCAL+'/restart.cgns', LOCAL+'/tc_restart.cgns', t_out=LOCAL+'/out.cgns', wall_out=LOCAL+'/wall.cgns')
 test.testT(t, 3)
 test.testT(zw, 4)

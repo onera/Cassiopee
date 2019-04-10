@@ -1,8 +1,10 @@
 # Various specific TFIs
-
 from . import Generator as G
 try: import Converter as C
 except: raise ImportError("TFIs: requires Converter module.")
+
+try: range = xrange
+except: pass
 
 #==============================================================================
 # Evalue la qualite du maillage m
@@ -191,8 +193,8 @@ def TFIO(a):
     Nt = a[2]
     if (Nt/2 - Nt*0.5 == 0): raise ValueError("TFIO: number of points must be odd.")
 
-    for j in xrange(-Nt/4,Nt/4+1):
-        for i in xrange(3,10):
+    for j in range(-Nt/4,Nt/4+1):
+        for i in range(3,10):
             try:
                 [m,m1,m2,m3,m4] = TFIO__(a, i, j)
                 score = quality([m,m1,m2,m3])
@@ -298,8 +300,8 @@ def TFIHalfO(a1, a2):
     Nt1 = a1[2]; Nt2 = a2[2]
     if (Nt1/2 - Nt1*0.5 == 0 and Nt2/2 - Nt2*0.5 != 0):
         raise ValueError("TFIHalfO: N1 and N2 must be odd.")
-    for j in xrange(-Nt2/8,Nt2/8):
-        for i in xrange(2,10):
+    for j in range(-Nt2/8,Nt2/8):
+        for i in range(2,10):
             try:
                 [m,m1,m2,m3] = TFIHalfO__(a1, a2, i, j)
                 score = quality([m,m1,m2,m3])

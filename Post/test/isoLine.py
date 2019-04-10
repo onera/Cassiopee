@@ -12,7 +12,7 @@ a = C.initVars(a, 'field', F, ['x','y'])
 isos = []
 min = C.getMinValue(a, 'field')
 max = C.getMaxValue(a, 'field')
-for v in xrange(20):
+for v in range(20):
     value = min + (max-min)/18.*v
     try:
         i = P.isoLine(a, 'field', value)

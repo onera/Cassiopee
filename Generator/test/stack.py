@@ -12,7 +12,7 @@ c = G.stack(a, b)
 
 # Concatenate a list of structured grids
 a = []
-for i in xrange(10):
+for i in range(10):
     a.append(D.circle((0,0,i), 1.))
 c = G.stack(a)
 

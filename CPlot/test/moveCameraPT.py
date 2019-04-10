@@ -11,7 +11,7 @@ a = C.convertArray2Hexa(a); a = G.close(a)
 CPlot.display(a, posCam=(3,-1,0.7), posEye=(0,0,0))
 
 t = 0.
-for i in xrange(1000):
+for i in range(1000):
     # change model
     C._initVars(a, '{df}=0.1*cos(%f)*sin(10*pi*{CoordinateX})'%(t))
     b = T.deformNormals(a, 'df')

@@ -9,6 +9,9 @@ try:
     importOK = True
 except: importOK = False
 
+try: range = xrange
+except: pass
+
 def checkImport():
     if not importOK: 
         raise ImportError("mapEdge requires Converter, Generator, Transform.")
@@ -149,7 +152,7 @@ def moyenne(a, hl):
     npts = hl.size
     h1 = -1; h2 = -1; i1 = -1; i2 = -1
     href = 0.
-    for i in xrange(npts):
+    for i in range(npts):
         hi = hl[i]
         if hi == 0. and i == npts-1: hi = h1
         if hi > 1.e-12:
@@ -220,7 +223,7 @@ def enforceh__(a, N, h):
     # Calcul h1s, h2s, i1s, i2s
     h1s=[]; h2s=[]; Ps=[]; i1s=[]; i2s=[]
     h1 = -1; h2 = -1; i1 = -1; i2 = -1
-    for i in xrange(npts):
+    for i in range(npts):
         hi = hl[i]
         if hi == 0. and i == npts-1: hi = h1
         if hi > 1.e-12:
@@ -240,18 +243,18 @@ def enforceh__(a, N, h):
                 # loop
                 i1 = i2; h1 = h2
     Pt = 0.
-    for x in xrange(len(h1s)):
+    for x in range(len(h1s)):
         Pi = Ps[x]
         Pt += Pi
 
-    for x in xrange(len(h1s)):
+    for x in range(len(h1s)):
         Pi = Ps[x]
         Pi = Pi/Pt*N
         #print Ps[x], Pi
         Ps[x] = int(round(Pi))+1
 
     out = []
-    for x in xrange(len(h1s)):
+    for x in range(len(h1s)):
         i1 = i1s[x]; i2 = i2s[x]
         h1 = h1s[x]; h2 = h2s[x]
         # subzone
@@ -320,14 +323,14 @@ def mapCurvature(a, N, factor=1., sharpAngle=30.):
     out = []
     radiusp = 0.
     split = [0]
-    for i in xrange(npts):
+    for i in range(npts):
         alpha0 = abs(alpha[i]-180.)
         radius0 = rad[i]
         if alpha0 > 30.: split.append(i)
     split.append(npts-1)
     
     nsplit = len(split)
-    for x in xrange(nsplit):
+    for x in range(nsplit):
         isp = split[x]
         alp = abs(alpha[isp]-180.)/180.
         alp = max(1.-alp,0.1)

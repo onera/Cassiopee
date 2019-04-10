@@ -527,7 +527,6 @@ def deformNormals(array, alpha, niter=1):
             aloc = i
             for ite in range(niter):
                 n = G.getSmoothNormalMap(aloc, niter=0)
-                #for ind in xrange(npts): n[1][:,ind] = n[1][:,ind]*alpi[ind]
                 n[1][:,:] = n[1][:,:]*alpi[:]
                 aloc = Converter.addVars([aloc,n])
                 aloc = deform(aloc,['sx','sy','sz'])
@@ -543,7 +542,6 @@ def deformNormals(array, alpha, niter=1):
         aloc = array
         for ite in range(niter):
             n = G.getSmoothNormalMap(aloc, niter=0)
-            #for ind in xrange(npts): n[1][:,ind] = n[1][:,ind]*alp[ind]
             n[1][:,:] = n[1][:,:]*alp[:]
             aloc = Converter.addVars([aloc,n])
             aloc = deform(aloc,['sx','sy','sz'])
@@ -1480,8 +1478,6 @@ def findNsi__(l, N, Np):
     # Tri suivant Er
     from operator import itemgetter
     Er = sorted(Er, key=itemgetter(0))
-
-    #for i in xrange(l): print 'Erreur ',Er[i][1],Er[i][0]
 
     # Check for N
     ND = 0

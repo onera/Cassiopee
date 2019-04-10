@@ -30,9 +30,9 @@ ip = 1; jp = 1; kp = 1
 indp = (kp-1)*im2*jm2 + (jp-1)*im2 + ip-1
 nodes = numpy.arange((im1*jm1*km1), dtype=numpy.int32)
 c = 0
-for k in xrange(0,km1):
-    for j in xrange(0,jm1):
-        for i in xrange(0,im1):
+for k in range(0,km1):
+    for j in range(0,jm1):
+        for i in range(0,im1):
             nodes[c] = indp+k*im2*jm2+j*im2+i+1; c += 1
 a = T.patch(c1, c2, nodes=nodes)
 t = C.newPyTree(['Base',3]); t[2][1][2].append(a)
@@ -60,9 +60,9 @@ ip = 1; jp = 1; kp = 1
 indp = (kp-1)*im2*jm2 + (jp-1)*im2 + ip-1
 nodes = numpy.arange((im1*jm1*km1),dtype=numpy.int32)
 c = 0
-for k in xrange(0,km1):
-    for j in xrange(0,jm1):
-        for i in xrange(0,im1):
+for k in range(0,km1):
+    for j in range(0,jm1):
+        for i in range(0,im1):
             nodes[c] = indp+k*im2*jm2+j*im2+i+1; c += 1
 a = T.patch(c1, c2, nodes=nodes)
 t = C.newPyTree(['Base']); t[2][1][2].append(a)

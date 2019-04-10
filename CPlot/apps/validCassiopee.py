@@ -949,7 +949,7 @@ def untagSelection(event=None):
         ls = len(star)
         star = ''
         if ls > 1:
-            for i in xrange(ls-1): star += '*'
+            for i in range(ls-1): star += '*'
             writeStar(fileStar, star)
         else:
             rmFile(path, testr[0]+'.star')

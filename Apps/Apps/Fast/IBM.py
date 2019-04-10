@@ -1,5 +1,4 @@
 # Class for FastS "IBM" prepare and compute
-
 import Fast.PyTree as Fast
 import Converter.PyTree as C
 import Generator.PyTree as G
@@ -13,6 +12,9 @@ import Initiator.PyTree as I
 import Converter.Mpi as Cmpi
 import Converter.Filter as Filter
 from Apps.Fast.Common import Common
+
+try: range = xrange
+except: pass
 
 # IN: maillage surfacique + reference State + snears
 
@@ -450,7 +452,7 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
             allCorrectedPts = dictOfCorrectedPtsByIBCType[ibcTypeL]
             allWallPts = dictOfWallPtsByIBCType[ibcTypeL]
             allInterpPts = dictOfInterpPtsByIBCType[ibcTypeL]
-            for nozr in xrange(nbZonesIBC):
+            for nozr in range(nbZonesIBC):
                 if allCorrectedPts[nozr] != []:
                     zrname = zonesRIBC[nozr][0]
                     interpPtsBB = Generator.BB(allInterpPts[nozr])
@@ -482,14 +484,14 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
     ReferenceState = Internal.getNodeFromType2(t, 'ReferenceState_t')
     nbZonesIBC = len(zonesRIBC)
 
-    for i in xrange(Cmpi.size): datas[i] = [] # force
+    for i in range(Cmpi.size): datas[i] = [] # force
 
     if dictOfCorrectedPtsByIBCType!={}:
         for ibcTypeL in dictOfCorrectedPtsByIBCType:
             allCorrectedPts = dictOfCorrectedPtsByIBCType[ibcTypeL]
             allWallPts = dictOfWallPtsByIBCType[ibcTypeL]
             allInterpPts = dictOfInterpPtsByIBCType[ibcTypeL]
-            for nozr in xrange(nbZonesIBC):
+            for nozr in range(nbZonesIBC):
                 if allCorrectedPts[nozr] != []:
                     zrcv = zonesRIBC[nozr]
                     zrname = zrcv[0]
@@ -716,10 +718,9 @@ def loads(t_case, t_in, tc_in, wall_out, alpha=0., beta=0., Sref=None):
 
     if Sref is None:
         C._initVars(tb, 'toto',1.)
-        Sref = P.integ(tb,'toto')[0]; print Sref
+        Sref = P.integ(tb,'toto')[0]; print(Sref)
         C._rmVars(tb, ['toto','centers:vol'])
         
-
     #==============================
     # Reference state
     #==============================
@@ -852,7 +853,7 @@ def _distribute(t_in, tc_in, NP):
         tcs = Cmpi.convertFile2SkeletonTree(tc_in, maxDepth=3)
     else: tcs = tc_in
     stats = D2._distribute(tcs, NP, algorithm='graph', useCom='ID')
-    print stats
+    print(stats)
     if isinstance(tc_in, str):
         paths = []; ns = []
         bases = Internal.getBases(tcs)
@@ -884,7 +885,7 @@ def _distribute(t_in, tc_in, NP):
 
     # Affichage du nombre de points par proc - equilibrage ou pas
     NptsTot = 0
-    for i in xrange(NP):
+    for i in range(NP):
         NPTS = 0
         for z in Internal.getZones(ts):
             if Cmpi.getProc(z)==i: NPTS += C.getNPts(z)

@@ -14,8 +14,8 @@ a = C.initVars(a,'centers:VelocityZ', 1.)
 vx = C.getField('centers:VelocityX',a)[0]
 vy = C.getField('centers:VelocityY',a)[0]
 nic = vx[2]; njc = vx[3]
-for j in xrange(njc):
-    for i in xrange(nic):
+for j in range(njc):
+    for i in range(nic):
         i0 = i * math.pi/2./90.
         vx[1][0,i+j*nic] = math.cos(i0)
         vy[1][0,i+j*nic] = math.sin(i0)

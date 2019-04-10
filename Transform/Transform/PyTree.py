@@ -1208,7 +1208,7 @@ def _projectRay(t1, t2, Pt): # t1 is modified
     a1 = C.getFields(Internal.__GridCoordinates__, zones)
     a2 = C.getFields(Internal.__GridCoordinates__, t2)
     res = Transform.projectRay(a1, a2, Pt)
-    for noz in xrange(len(zones)):
+    for noz in range(len(zones)):
         C.setFields([res[noz]], zones[noz], 'nodes')
     return None
 

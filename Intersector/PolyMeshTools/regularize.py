@@ -93,7 +93,7 @@ t=aglomerate(t, vr=VRATIO, vm=VMIN)
 
 C.convertPyTree2File(t, "agglo1.cgns")
 
-for i in xrange(5):
+for i in range(5):
   print " "
   print " $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ "
   print " 2. split. iter %s"%(i)

@@ -1,11 +1,13 @@
 # Class common to all types of FAST simulations
-
 import Fast.PyTree as Fast
 import Converter.PyTree as C
 import Transform.PyTree as T
 import Converter.Internal as Internal
 import Connector.PyTree as X
 from Apps.App import App
+
+try: range = xrange
+except: pass
 
 #================================================================================
 # Redistribue un fichier in place sans com pour l'instant
@@ -21,23 +23,22 @@ def distribute(t_in, NP):
         Filter.writeNodesFromPaths(t_in, p, n)
     return t
 
-# distirbution + choix du nombre de coeurs optimum
+# distribution + choix du nombre de coeurs optimum
 def distributeOpt(t_in, tc_in, t_out, tc_out):
-
     if instance(t_in, str): t = C.convertFile2PyTree(t_in)
     else: t = t_in
     nptMaxPerCore = 4000000.
 
     nbpts=0.; maxipts=0.
     for zone in Internal.getZones(t):
-        ncells=C.getNCells(zone)
+        ncells = C.getNCells(zone)
         nbpts += ncells
-        maxipts=max(maxipts, ncells)
+        maxipts = max(maxipts, ncells)
 
     MaxNbProcs=int(nbpts/maxipts)+1
 
     MinNbProcs=MaxNbProcs
-    for nbproc in xrange(2,MaxNbProcs+1):
+    for nbproc in range(2,MaxNbProcs+1):
         if nbpts/nbproc < nptMaxPerCore: MinNbProcs=min(nbproc,MinNbProcs)
 
     print('La distribution sera testee entre %d procs et %d procs.'%(MinNbProcs,MaxNbProcs))
@@ -46,7 +47,7 @@ def distributeOpt(t_in, tc_in, t_out, tc_out):
     #MaxNbProcs = 140
     listequ=[]
     varmax = 99.
-    for nbproc in xrange(MinNbProcs,MaxNbProcs+1):
+    for nbproc in range(MinNbProcs,MaxNbProcs+1):
         if nbproc%28==0:
          print('Distribution sur %s procs.')
          stats=D2._distribute(t,nbproc,algorithm='fast')
@@ -141,7 +142,7 @@ def compute(t_in, tc_in,
     time_step = Internal.getNodeFromName(t, 'time_step')
     time_step = Internal.getValue(time_step)
 
-    for it in xrange(NIT):
+    for it in range(NIT):
         FastS._compute(t, metrics, it, tc, graph)
         if it%100 == 0:
             if rank == 0: print('- %d / %d - %f'%(it+it0, NIT+it0, time0))

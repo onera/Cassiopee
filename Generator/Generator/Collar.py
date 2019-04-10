@@ -342,7 +342,7 @@ def joinTBranches__(edges,toldist):
     tag = [0]*nedges; n = 0
     lenmax = 0.
     noestart = 0
-    for noe in xrange(nedges):
+    for noe in range(nedges):
         edges[noe] = C.convertBAR2Struct(edges[noe])
         len0 = D.getLength(edges[noe])
         if len0 > lenmax: lenmax = len0; noestart = noe

@@ -451,7 +451,6 @@ def _moveZone__(z, time):
                 T._translate(z, (tx,ty,tz))
                 if (angle != 0):
                     angle = angle#*__RAD2DEG__
-                    #print 'moveZone : rotation d angle %g degres'%angle
                     T._rotate(z, (cx,cy,cz), (ex-cx,ey-cy,ez-cz), angle)
             elif dtype == 2: # type 2: rotation motion CassiopeeSolver
                 try: 
@@ -593,7 +592,6 @@ def _moveZone__(z, time):
                 ey = axis_vct[1]
                 ez = axis_vct[2]
                 angle = omega[0]*time*__RAD2DEG__
-                #print 'moveZone : rotation uniforme d angle %g degres'%angle
                 T._rotate(z, (cx,cy,cz), (ex-cx,ey-cy,ez-cz), angle)
     return None
     
@@ -603,10 +601,10 @@ def _moveZone__(z, time):
 # Les coordonnees de la zone sont modifiees
 #==============================================================================
 def _evalPosition__(a, time):
-    type = Internal.typeOfNode(a)
-    if (type == 1): return _moveZone__(a, time)
-    elif (type == 2):
-        for i in xrange(len(a)): _moveZone__(a[i], time)
+    ntype = Internal.typeOfNode(a)
+    if ntype == 1: return _moveZone__(a, time)
+    elif ntype == 2:
+        for i in a: _moveZone__(i, time)
     else:
         for b in Internal.getBases(a):
             c = 0
@@ -668,7 +666,6 @@ def getMotionMatrixForZone(z, time, F=None):
         for m in motions:
             mtype = Internal.getNodeFromName1(m, 'MotionType')
             dtype = mtype[1][0]
-            #print 'motion type = ', dtype
             if dtype == 1: # type 1: time string
                 cx = evalTimeString__(m, 'cx', time)
                 cy = evalTimeString__(m, 'cy', time)
@@ -677,7 +674,6 @@ def getMotionMatrixForZone(z, time, F=None):
                 ey = evalTimeString__(m, 'ey', time)
                 ez = evalTimeString__(m, 'ez', time)
                 theta = evalTimeString__(m, 'angle', time)
-                #print 'theta = %g degres.'%theta
                 # theta doit etre en radians
                 theta = theta*__DEG2RAD__
                 return getRotationMatrix__(cx,cy,cz,ex,ey,ez,theta)
@@ -697,7 +693,6 @@ def getMotionMatrixForZone(z, time, F=None):
                 ey = axis_vct[1]
                 ez = axis_vct[2]
                 theta = omega[0]*time
-                print 'theta = ', theta
                 # getRotationMatrix : theta en radians
                 return getRotationMatrix__(cx,cy,cz,ex,ey,ez,theta)
             else:
@@ -712,7 +707,6 @@ def getMotionMatrixForZone(z, time, F=None):
 #getRotationMatrix : l angle theta doit etre en radians
 def getRotationMatrix__(cx,cy,cz,ex,ey,ez,theta):
 
-  #print 'theta = %g degres'%(theta*__RAD2DEG__)
   Rot = numpy.zeros((3,3), numpy.float64)
 
   vnorm = sqrt(ex*ex+ey*ey+ez*ez)
@@ -743,9 +737,9 @@ def getRotationMatrix__(cx,cy,cz,ex,ey,ez,theta):
   Rot[2,0] = t11 - t12
   Rot[2,1] = t19 + t20
   Rot[2,2] = t1 + t2*t24
-  print 'Matrice de rotation de RigidMotion en x : ', Rot[0,:]
-  print 'Matrice de rotation de RigidMotion en y : ', Rot[1,:]
-  print 'Matrice de rotation de RigidMotion en z : ', Rot[2,:]
+  print('Matrice de rotation de RigidMotion en x: ', Rot[0,:])
+  print('Matrice de rotation de RigidMotion en y: ', Rot[1,:])
+  print('Matrice de rotation de RigidMotion en z: ', Rot[2,:])
 
   return Rot
 
