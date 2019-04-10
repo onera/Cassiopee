@@ -1126,30 +1126,73 @@ PyObject* K_INTERSECTOR::statsSize(PyObject* self, PyObject* args)
   E_Float dMax=0.;
   for (int i=0; i < 3; ++i)
    dMax = std::max(dMax, box.maxB[i] - box.minB[i]);
-  std::cout << "the span is : " << dMax << std::endl;
+  //std::cout << "the span is : " << dMax << std::endl;
+
+  E_Float smin, smax;
+  E_Float vmin, vmax(-1.);
 
   if (comp_metrics == 1)
   {
     //
-	E_Int imin, imax;
-	E_Float smin, smax;
-	ngon_type::surface_extrema(ngi.PGs, crd, smin, imin, smax, imax);
-	std::cout << "the " << imin << "-th face has the smallest surface : " << smin << std::endl;
-	std::cout << "the " << imax << "-th face has the biggest surface : " << smax << std::endl;
-	//
-	E_Float vmin, vmax;
-	ngon_type::volume_extrema<DELAUNAY::Triangulator>(ngi, crd, vmin, imin, vmax, imax);
-	std::cout << "the " << imin << "-th cells has the smallest volume : " << vmin << std::endl;
-	std::cout << "the " << imax << "-th cells has the biggest volume : " << vmax << std::endl;
+    E_Int imin, imax;
+	  
+	  ngon_type::surface_extrema(ngi.PGs, crd, smin, imin, smax, imax);
+	  //std::cout << "the " << imin << "-th face has the smallest surface : " << smin << std::endl;
+	  //std::cout << "the " << imax << "-th face has the biggest surface : " << smax << std::endl;
+	  //
+	  
+	  ngon_type::volume_extrema<DELAUNAY::Triangulator>(ngi, crd, vmin, imin, vmax, imax);
+	  //std::cout << "the " << imin << "-th cells has the smallest volume : " << vmin << std::endl;
+    // if not a single cell
+	  //if (imax != E_IDX_NONE) std::cout << "the " << imax << "-th cells has the biggest volume : " << vmax << std::endl;
   }
+
+  if (ngi.PGs.size() == 1) smax = -1.;
+  if (ngi.PHs.size() == 1) vmax = -1.;
+
+  PyObject *l(PyList_New(0)), *tpl;
   
   delete f; delete cn;
 
 #ifdef E_DOUBLEINT
-  return Py_BuildValue("l", long(0));
+  tpl = Py_BuildValue("d", long(dMax));
+  PyList_Append(l, tpl);
 #else
-  return Py_BuildValue("i", 0);
+  tpl =  Py_BuildValue("f", dMax);
+  PyList_Append(l, tpl);
 #endif
+
+#ifdef E_DOUBLEREAL
+  tpl = Py_BuildValue("d", double(smin));
+  PyList_Append(l, tpl);
+#else
+  tpl =  Py_BuildValue("f", smin);
+  PyList_Append(l, tpl);
+#endif
+#ifdef E_DOUBLEREAL
+  tpl = Py_BuildValue("d", double(smax));
+  PyList_Append(l, tpl);
+#else
+  tpl =  Py_BuildValue("f", smax);
+  PyList_Append(l, tpl);
+#endif
+#ifdef E_DOUBLEREAL
+  tpl = Py_BuildValue("d", double(vmin));
+  PyList_Append(l, tpl);
+#else
+  tpl =  Py_BuildValue("f", vmin);
+  PyList_Append(l, tpl);
+#endif
+#ifdef E_DOUBLEREAL
+  tpl = Py_BuildValue("d", double(vmax));
+  PyList_Append(l, tpl);
+#else
+  tpl =  Py_BuildValue("f", vmax);
+  PyList_Append(l, tpl);
+#endif
+
+  return l;
+
 }
 
 //=============================================================================
