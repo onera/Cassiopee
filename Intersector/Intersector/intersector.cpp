@@ -100,7 +100,7 @@ static struct PyModuleDef moduledef = {
         "intersector",
         NULL,
         sizeof(struct module_state),
-        Pyconverter,
+        Pyintersector,
         NULL,
         myextension_traverse,
         myextension_clear,

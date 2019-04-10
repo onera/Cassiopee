@@ -8,6 +8,9 @@ from . import transform
 import numpy
 __version__ = Transform.__version__
 
+try: range = xrange
+except: pass
+
 try:
     import Converter.PyTree as C
     import Converter.Internal as Internal
@@ -246,7 +249,7 @@ def merge(t, sizeMax=1000000000, dir=0, tol=1.e-10, alphaRef=180.):
         for i in res: zones += [C.convertArrays2ZoneNode('zone',[i])]
     else:
         nzones = len(res[0])
-        for noi in xrange(nzones):
+        for noi in range(nzones):
             z = C.convertArrays2ZoneNode('zone',[res[0][noi]])
             z = C.setFields([res[1][noi]], z, 'centers')
             zones += [z]
@@ -259,7 +262,7 @@ def mergeCart(t, sizeMax=1000000000, tol=1.e-10):
     allBCInfos = C.extractBCInfo(t)
     A = C.getAllFields(t, 'nodes',api=2)
     A = Transform.mergeCart(A, sizeMax, tol)
-    for noz in xrange(len(A)):
+    for noz in range(len(A)):
         A[noz] = C.convertArrays2ZoneNode('Cart',[A[noz]])
     A = C.identifyBC(A, allBCInfos)
     return A
@@ -509,7 +512,7 @@ def subzoneGC__(z, dim, imin, imax, jmin, jmax, kmin, kmax, \
                         ddDnrs.append(DDDnrName)
                         bcnames.append(Internal.getName(i))
     C._rmBCOfType(z, 'BCOverlap')
-    for nor in xrange(len(ranges)):
+    for nor in range(len(ranges)):
         if ddDnrs[nor] is None:
             C._addBC2Zone(z,C.getBCName('overlap'), 'BCOverlap', ranges[nor])
         else: # doubly defined
@@ -705,8 +708,8 @@ def reorderTrirac__(transfo, order=[1,2,3]):
     OM = numpy.zeros((nt,nt), numpy.int32) # matrice transposee de order:  son inverse
     BM = numpy.zeros((nt,nt), numpy.int32) # T.R^-1 pour reordonner la transfo
     from numpy import linalg
-    for i in xrange(nt):
-        for j in xrange(nt):
+    for i in range(nt):
+        for j in range(nt):
             a = transfo[j]
             if abs(a) == i+1:
                 if a > 0: TM[i,j] = 1
@@ -720,11 +723,11 @@ def reorderTrirac__(transfo, order=[1,2,3]):
     BM = numpy.dot(TM,OM)
     trirac = [1,2,3]
     if nt == 2: trirac = [1,2]
-    for i in xrange(nt):
-        for j in xrange(nt):
+    for i in range(nt):
+        for j in range(nt):
             if BM[j,i] > 0: trirac[i] = j+1
             elif BM[j,i] < 0: trirac[i] = -(j+1)
-    for i in xrange(nt): transfo[i] = trirac[i]
+    for i in range(nt): transfo[i] = trirac[i]
     return transfo
 
 def reorderTriracOpp__(transfo, order=[1,2,3]):
@@ -733,8 +736,8 @@ def reorderTriracOpp__(transfo, order=[1,2,3]):
     OM = numpy.zeros((nt,nt), numpy.int32) # matrice transposee de order appliquee a z1:  son inverse
     BM = numpy.zeros((nt,nt), numpy.int32) # R.T pour reordonner la transfo
     from numpy import linalg
-    for i in xrange(nt):
-        for j in xrange(nt):
+    for i in range(nt):
+        for j in range(nt):
             a = transfo[j]
             if abs(a) == i+1:
                 if a > 0: TM[i,j] = 1
@@ -747,11 +750,11 @@ def reorderTriracOpp__(transfo, order=[1,2,3]):
     BM = numpy.dot(OM,TM)
     trirac = [1,2,3]
     if nt == 2: trirac = [1,2]
-    for i in xrange(nt):
-        for j in xrange(nt):
+    for i in range(nt):
+        for j in range(nt):
             if BM[j,i] > 0: trirac[i] = j+1
             elif BM[j,i] < 0: trirac[i] = -(j+1)
-    for i in xrange(nt): transfo[i] = trirac[i]
+    for i in range(nt): transfo[i] = trirac[i]
     return transfo
 
 # Reorder in a the PointRange for zones and the PointRangeDonor for donor zones of name in zoneNames
@@ -784,10 +787,10 @@ def _reorderBCNearMatch__(a, order, zoneNames):
                             for nmratio in nmratios:
                                 (parent,d) = Internal.getParentOfNode(cn, nmratio)
                                 triracnm = numpy.zeros((3), numpy.int32)
-                                for i in xrange(3): triracnm[i] = i+1
+                                for i in range(3): triracnm[i] = i+1
                                 triracnm = reorderTrirac__(triracnm,[abs(oi),abs(oj),abs(ok)])
                                 nmr = nmratio[1]
-                                for i in xrange(3): nmr[i] = nmr[triracnm[i]-1]
+                                for i in range(3): nmr[i] = nmr[triracnm[i]-1]
                             break
 
                     # modif du PointRangeDonor si la donor est dans la liste
@@ -1141,7 +1144,7 @@ def _projectAllDirs(t1, t2, vect=['nx','ny','nz'], oriented=0):
     a1 = Converter.extractVars(a1,['CoordinateX','CoordinateY','CoordinateZ']+vect)
     a2 = C.getFields(Internal.__GridCoordinates__, t2)
     res = Transform.projectAllDirs(a1, a2, vect, oriented)
-    for noz in xrange(len(zones)):
+    for noz in range(len(zones)):
         C.setFields([res[noz]], zones[noz], 'nodes')
     return None
 
@@ -1157,7 +1160,7 @@ def _projectDir(t1, t2, dir, smooth=0, oriented=0): # t1 is modified
     a1 = C.getFields(Internal.__GridCoordinates__, zones)
     a2 = C.getFields(Internal.__GridCoordinates__, t2)
     res = Transform.projectDir(a1, a2, dir, smooth, oriented)
-    for noz in xrange(len(zones)):
+    for noz in range(len(zones)):
         C.setFields([res[noz]], zones[noz], 'nodes')
     return None
 
@@ -1173,7 +1176,7 @@ def _projectOrtho(t1, t2): # t1 is modified
     a1 = C.getFields(Internal.__GridCoordinates__, zones)
     a2 = C.getFields(Internal.__GridCoordinates__, t2)
     res = Transform.projectOrtho(a1, a2)
-    for noz in xrange(len(zones)):
+    for noz in range(len(zones)):
         C.setFields([res[noz]], zones[noz], 'nodes')
     return None
 
@@ -1189,7 +1192,7 @@ def _projectOrthoSmooth(t1, t2, niter=1): # t1 is modified
     a1 = C.getFields(Internal.__GridCoordinates__, zones)
     a2 = C.getFields(Internal.__GridCoordinates__, t2)
     res = Transform.projectOrthoSmooth(a1, a2, niter)
-    for noz in xrange(len(zones)):
+    for noz in range(len(zones)):
         C.setFields([res[noz]], zones[noz], 'nodes')
     return None
 
@@ -1430,7 +1433,7 @@ def splitSizeUpR__(t, N, R, multigrid, dirs, minPtsPerDir):
 
     # Remises dans les bonnes bases
     l = len(out)/2
-    for i in xrange(l):
+    for i in range(l):
         zone = out[2*i]
         base = out[2*i+1]
         base[2] += [zone]
@@ -1466,7 +1469,7 @@ def splitSizeUpR_OMP__(t, N, R, multigrid, dirs, minPtsPerDir):
     # Init le vecteur des ressources
     Rs = [0]*R
     Thread_z=[([0],1,[])]
-    for ith in xrange(2,R+1): Thread_z.append(([0],ith,[])) # Thread_z = [Nbpoints,ithread,corresponding work]
+    for ith in range(2,R+1): Thread_z.append(([0],ith,[])) # Thread_z = [Nbpoints,ithread,corresponding work]
 
     mins = minPtsPerDir-1 # nbre de cellules mini des blocs par direction
 
@@ -1635,7 +1638,7 @@ def splitSizeUpR_OMP__(t, N, R, multigrid, dirs, minPtsPerDir):
 
     for z in zones:
         th={}
-        for r in xrange(1,R+1):
+        for r in range(1,R+1):
             th[r]=[]
         zomp_threads[z[0]]=th
 
@@ -1656,27 +1659,27 @@ def splitSizeUpR_OMP__(t, N, R, multigrid, dirs, minPtsPerDir):
             sol  = Internal.getNodeFromName1(z, 'FlowSolution#Centers')
             solth=Internal.getNodeFromName1(sol, 'thread_number')
             solsz=Internal.getNodeFromName1(sol, 'thread_subzone')
-            for i in xrange(1,R+1):
+            for i in range(1,R+1):
                 thnode=[]
                 thnode=Internal.createChild(ompthread,str(i),'UserDefinedData_t',value=None,children=[],pos=-1)
                 isb=0
-                for ilisth in  xrange(0,len(zomp_threads[z[0]][i])):
+                for ilisth in range(0,len(zomp_threads[z[0]][i])):
                     isb=isb+1
                     if (zomp_threads[z[0]][i][ilisth][1] != []):
                         Internal.createChild(thnode,'subzone'+str(isb),'DataArray_t',value=zomp_threads[z[0]][i][ilisth][1],children=[],pos=-1)
                         ind=zomp_threads[z[0]][i][ilisth][1]
                         l=0
-                        for iths in xrange(ind[0]-1,ind[1]):
-                            for jths in xrange(ind[2]-1,ind[3]):
-                                for kths in xrange(ind[4]-1,ind[5]):
+                        for iths in range(ind[0]-1,ind[1]):
+                            for jths in range(ind[2]-1,ind[3]):
+                                for kths in range(ind[4]-1,ind[5]):
                                     solth[1][iths][jths][kths]=i
                                     solsz[1][iths][jths][kths]=isb
 
-    print 'ress:', Rs
+    print ('ress:', Rs)
     Tot = 0
     for i in Rs: Tot += i
-    print 'Tot', Tot
-    print "Imbalance",min(Rs)/(max(Rs)*1.0)
+    print ('Tot', Tot)
+    print ("Imbalance",min(Rs)/(max(Rs)*1.0))
     return t
 
 
@@ -1704,13 +1707,13 @@ def splitNParts__(zones, N, multigrid, dirs, recoverBC, splitDict={}):
     alpha = N*1./(SumS+SumN)
     NbN = len(NeN) # nbre de grilles non structurees
     NPart = [0]*(NbN+1); Nt = 0
-    for i in xrange(NbN): NPart[i] = max(int(alpha*NeN[i]),1); Nt += NPart[i]
+    for i in range(NbN): NPart[i] = max(int(alpha*NeN[i]),1); Nt += NPart[i]
     if SumS != 0: NPart[NbN] = max(N-Nt,1)
     else: NPart[NbN-1] = max(N-Nt+NPart[NbN-1], 1)
 
     # Blocs non structures
     outN = []
-    for i in xrange(len(zonesN)):
+    for i in range(len(zonesN)):
         outL = []
         z = zonesN[i]
         a = C.getFields(Internal.__GridCoordinates__, z)[0]
@@ -1733,7 +1736,7 @@ def splitNParts__(zones, N, multigrid, dirs, recoverBC, splitDict={}):
     Ns = Transform.findNsi__(l, NPa, NpS)
 
     outS = []
-    for i in xrange(l):
+    for i in range(l):
         outL = []
         a = zonesS[i]
         dimL = Internal.getZoneDim(a)
@@ -2073,9 +2076,9 @@ def splitMultiplePts__(tp, dim):
                 if val == 'Abutting':
                     range0 = Internal.getNodeFromName1(bc, 'PointRange')
                     r = range0[1]; [i1,i2,j1,j2,k1,k2] = Internal.range2Window(r)
-                    for k in xrange(k1-1,k2):
-                        for j in xrange(j1-1,j2):
-                            for i in xrange(i1-1,i2):
+                    for k in range(k1-1,k2):
+                        for j in range(j1-1,j2):
+                            for i in range(i1-1,i2):
                                 ind = i + j *ni + k *ninj
                                 taga[1][0,ind] += 1
         # BC match

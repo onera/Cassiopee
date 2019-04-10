@@ -10,7 +10,7 @@ N = 11
 # Test raccords matchs
 t = C.newPyTree(['Base'])
 off = 0
-for i in xrange(N):
+for i in range(N):
     a = G.cart( (off,0,0), (1,1,1), (10+i, 10, 10) )
     off += 9+i
     t[2][1][2].append(a)
@@ -28,7 +28,7 @@ test.testT(t, 3)
 # avec overlap
 t = C.newPyTree(['Base'])
 off = 0
-for i in xrange(N):
+for i in range(N):
     a = G.cart( (off,0,0), (1,1,1), (10+i, 10, 10) )
     a = C.addBC2Zone(a, 'overlap', 'BCOverlap', 'imin')
     a = C.addBC2Zone(a, 'overlap', 'BCOverlap', 'imax')
@@ -47,7 +47,7 @@ test.testT(t, 6)
 # Avec zones qui se recouvrent
 t = C.newPyTree(['Base'])
 off = 0
-for i in xrange(N):
+for i in range(N):
     a = G.cart( (off,0,0), (1,1,1), (10+i, 10, 10) )
     off += 9+i
     t[2][1][2].append(a)
@@ -59,7 +59,7 @@ test.testT(t, 7)
 t = C.newPyTree(['Base'])
 off = 0
 weightDict={}
-for i in xrange(N):
+for i in range(N):
     a = G.cart( (off,0,0), (1,1,1), (10+i, 10, 10) )
     off += 9+i
     t[2][1][2].append(a)
@@ -68,4 +68,3 @@ for i in xrange(N):
 
 t, stats = D2.distribute(t, NProc=5, weight=weightDict,algorithm='gradient', useCom='bbox')
 test.testT(t,8)
-

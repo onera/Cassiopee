@@ -1,7 +1,7 @@
 # Sound support
 
 try: import pyaudio
-except: raise ImportError, "Sound module requires pyaudio."
+except: raise ImportError("Sound module requires pyaudio.")
 
 import wave
 
@@ -15,8 +15,8 @@ soundPool = [None]*poolSize
 def initSound():
     global audioHandle
     audioHandle = pyaudio.PyAudio()
-    print 'available devices: ', audioHandle.get_device_count()
-    print audioHandle.get_default_input_device_info()
+    print ('available devices: ', audioHandle.get_device_count())
+    print (audioHandle.get_default_input_device_info())
     return audioHandle
 
 def closeSound():

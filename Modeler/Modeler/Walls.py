@@ -2,7 +2,7 @@ import Geom as D
 import Transform as T
 import Generator as G
 import Converter as C
-import Boxes
+from . import Boxes
 import math
 
 #==============================================================================
@@ -23,8 +23,8 @@ def wall(line,Bx,By,Bz,nlayers=1,chamfer=-1., shrink=1.):
     bx = Boxes.box((0,0,0), (Bx,By,Bz), chamfer)
     hbx = Boxes.box((0,0,0), (Bx*0.5,By,Bz), chamfer) # half box
     bricks = []
-    for n in xrange(nlayers):
-        for i in xrange(Nb-1):
+    for n in range(nlayers):
+        for i in range(Nb-1):
             [x,y,z] = C.getValue(line, i)
             [xp,yp,zp] = C.getValue(line, i+1)
             

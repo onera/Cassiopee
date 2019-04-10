@@ -58,7 +58,7 @@ def distribute(arrays, NProc, prescribed=[], perfo=[], weight=[], com=[],
 
     # Liste des arrays deja distribues
     if prescribed == []: # nothing set
-        setArrays = [-1 for x in xrange(len(arrays))]
+        setArrays = [-1]*len(arrays)
     else: setArrays = prescribed
     
     # Liste des alpha, beta, gamma pour chaque processeur
@@ -69,15 +69,15 @@ def distribute(arrays, NProc, prescribed=[], perfo=[], weight=[], com=[],
         beta = 1.e-2
         # Poids de la vitesse de com pour une unite de volume de com
         gamma = 0.1
-        perfProcs = [(alpha,beta,gamma) for x in xrange(NProc)]
+        perfProcs = [(alpha,beta,gamma)]*NProc
     elif isinstance(perfo, tuple):
-        perfProcs = [perfo for x in xrange(NProc)]
+        perfProcs = [perfo]*NProc
     else:
         perfProcs = perfo
 
     # Liste des poids du solveur pour chaque bloc
     Nb = len(arrays)
-    if weight == []: weight = [1 for x in xrange(Nb)]
+    if weight == []: weight = [1]*Nb
         
     # Matrice du volume des coms
     if com == []: volCom = numpy.zeros((Nb, Nb), numpy.int32)

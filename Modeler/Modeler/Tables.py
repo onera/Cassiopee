@@ -1,6 +1,6 @@
 # - all tables -
 
-import Boxes
+from . import Boxes
 import Geom as D
 import Transform as T
 import Post as P

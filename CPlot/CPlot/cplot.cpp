@@ -103,8 +103,8 @@ static struct PyModuleDef moduledef = {
 extern "C"
 {
 #if PY_MAJOR_VERSION >= 3
-  PyMODINIT_FUNC PyInit_converter();
-  PyMODINIT_FUNC PyInit_converter()
+  PyMODINIT_FUNC PyInit_cplot();
+  PyMODINIT_FUNC PyInit_cplot()
 #else
   PyMODINIT_FUNC initcplot();
   PyMODINIT_FUNC initcplot()

@@ -1,6 +1,6 @@
 # Calcul des autres variables de computeVariables
 
-import Post as P
+from . import Post as P
 import Converter as C
 import KCore
 

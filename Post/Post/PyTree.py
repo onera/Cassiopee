@@ -3,9 +3,12 @@
 #
 # Python Interface to CFD post-processing using pyTrees
 #
-import Post
-import post
+from . import Post
+from . import post
 __version__ = Post.__version__
+
+try: range = xrange
+except: pass
 
 try:
     import Converter
@@ -27,7 +30,7 @@ def extractPoint(t, Pts, order=2, extrapOrder=1,
     else:
         npts = len(Pts)
         a = Converter.array('CoordinateX,CoordinateY,CoordinateZ',npts,1,1)
-        for i in xrange(npts):
+        for i in range(npts):
             a[1][0,i] = Pts[i][0]
             a[1][1,i] = Pts[i][1]
             a[1][2,i] = Pts[i][2]
@@ -41,12 +44,12 @@ def extractPoint(t, Pts, order=2, extrapOrder=1,
     if not isinstance(Pts, list):
         resn = []; resc = []
         solnN = soln[1]
-        for nov in xrange(solnN.shape[0]):
+        for nov in range(solnN.shape[0]):
             resn.append(solnN[nov][0])
 
         if solc != []: # que les noeuds
             solcN = solc[1]
-            for nov in xrange(solcN.shape[0]):
+            for nov in range(solcN.shape[0]):
                 resc.append(solcN[nov][0])
             return [resn,resc]
         else: return resn
@@ -56,9 +59,9 @@ def extractPoint(t, Pts, order=2, extrapOrder=1,
         solnN = soln[1]
         npts = solnN.shape[1]
         nvar = solnN.shape[0]
-        for nop in xrange(npts):
+        for nop in range(npts):
             resn = []
-            for nov in xrange(nvar):
+            for nov in range(nvar):
                 resn.append(solnN[nov][nop])
             allresN.append(resn)
 
@@ -66,22 +69,22 @@ def extractPoint(t, Pts, order=2, extrapOrder=1,
             solcN = solc[1]
             npts = solcN.shape[1]
             nvar = solcN.shape[0]
-            for nop in xrange(npts):
+            for nop in range(npts):
                 resc = []
-                for nov in xrange(nvar):
+                for nov in range(nvar):
                     resc.append(solcN[nov][nop])
                 allresC.append(resc)
 
             return [allresN,allresC]
         else: return allresN
 
-def extractPlane(t, (coefa, coefb, coefc, coefd), order=2, tol=1.e-6):
+def extractPlane(t, T, order=2, tol=1.e-6):
     """Slice solution with a plane.
     Usage: extractPlane(t, (coefa, coefb, coefc, coefd), order)"""
     #t = C.deleteFlowSolutions__(t, 'centers')
     t = C.center2Node(t, Internal.__FlowSolutionCenters__)
-    A = C.getAllFields(t, 'nodes')
-    a = Post.extractPlane(A, (coefa, coefb, coefc, coefd), order, tol)
+    A = C.getAllFields(t, 'nodes')    
+    a = Post.extractPlane(A, T, order, tol)
     return C.convertArrays2ZoneNode('extractedPlane', [a])
 
 def projectCloudSolution(cloud, surf, dim=3):
@@ -89,7 +92,7 @@ def projectCloudSolution(cloud, surf, dim=3):
     surf2 = Internal.copyRef(surf)
     fc = C.getAllFields(cloud, 'nodes')[0]
     zones = Internal.getZones(surf2)
-    for noz in xrange(len(zones)):
+    for noz in range(len(zones)):
         fs = C.getAllFields(zones[noz], 'nodes')[0]
         res = Post.projectCloudSolution(fc,fs,dim=dim)
         C.setFields([res], zones[noz], 'nodes')
@@ -126,7 +129,7 @@ def _extractMesh(t, extractionMesh, order=2, extrapOrder=1,
             fa = C.getFields(Internal.__FlowSolutionNodes__, t)
             allf = []
             nzones = len(fc)
-            for i in xrange(nzones):
+            for i in range(nzones):
                 if fc[i] != [] and fa[i] != 0:
                     allf.append(Converter.addVars([fc[i], fa[i]]))
                 elif fa[i] != []: allf.append(fa[i])
@@ -142,7 +145,7 @@ def _extractMesh(t, extractionMesh, order=2, extrapOrder=1,
             ac = Converter.node2Center(an)
             fc = C.getFields(Internal.__GridCoordinates__, tp)
             nzones = len(fc)
-            for i in xrange(len(fc)):
+            for i in range(len(fc)):
                 if len(fc[i]) == 4:
                     try: import Transform
                     except: raise ImportError('extractMesh: Transform module is required.')
@@ -151,7 +154,7 @@ def _extractMesh(t, extractionMesh, order=2, extrapOrder=1,
             fa = C.getFields(Internal.__FlowSolutionCenters__, tp)
             allf = []
             nzones = len(fc)
-            for i in xrange(nzones):
+            for i in range(nzones):
                 if fc[i] != [] and fa[i] != 0:
                     allf.append(Converter.addVars([fc[i], fa[i]]))
                 elif fa[i] != []: allf.append(fa[i])
@@ -735,7 +738,7 @@ def importVariables(t1, t2, method=0, eps=1.e-6, addExtra=1):
 
     loc = 1
     if method == 2:
-        for noz1 in xrange(nzones1):
+        for noz1 in range(nzones1):
             z1 = zones1[noz1]; found = 0
             noz2 = noz1
             if dejaVu[noz2] == 0 and found == 0:
@@ -772,9 +775,9 @@ def importVariables(t1, t2, method=0, eps=1.e-6, addExtra=1):
                     parent2[2][d] = z2
 
     elif method in (0,1):
-        for noz1 in xrange(nzones1):
+        for noz1 in range(nzones1):
             z1 = zones1[noz1]; found = 0
-            for noz2 in xrange(nzones2):
+            for noz2 in range(nzones2):
                 if dejaVu[noz2] == 0 and found == 0:
                     z2 = zones2[noz2]
                     (parent2, d) = Internal.getParentOfNode(a2, z2)
@@ -814,11 +817,11 @@ def importVariables(t1, t2, method=0, eps=1.e-6, addExtra=1):
     if not Internal.isTopTree(a2): return a2
 
     tag = numpy.zeros(nzones1, numpy.int32)
-    for noz2 in xrange(nzones2):
+    for noz2 in range(nzones2):
         if dejaVu[noz2] > 0: tag[dejaVu[noz2]-1] = 1
 
     extra = False
-    for noz1 in xrange(nzones1):
+    for noz1 in range(nzones1):
         if tag[noz1] == 0: extra = True; break
 
     if extra == True and addExtra == 1:
@@ -826,11 +829,11 @@ def importVariables(t1, t2, method=0, eps=1.e-6, addExtra=1):
         a2 = C.addBase2PyTree(a2, 'EXTRA', 3)
         base = Internal.getNodesFromName1(a2, 'EXTRA')
         if loc == 1: # ajout direct
-            for noz1 in xrange(nzones1):
+            for noz1 in range(nzones1):
                 if tag[noz1] == 0:
                     base[0][2].append(zones1[noz1])
         else: # ajout coord en noeud et champ direct
-            for noz1 in xrange(nzones1):
+            for noz1 in range(nzones1):
                 if tag[noz1] == 0:
                     z = zones1[noz1]
                     zc = C.center2Node(z)
@@ -956,10 +959,10 @@ def extractArraysForScalarInteg__(t, var=''):
 
     # mise a jour de fields [[],[],[],..,[]] -> []
     foundn = 0; foundc = 0
-    for nof in xrange(len(fields)):
+    for nof in range(len(fields)):
         if fields[nof] != []: foundn = 1
     if foundn == 0: fields = []
-    for nof in xrange(len(fieldsc)):
+    for nof in range(len(fieldsc)):
         if fieldsc[nof] != []: foundc = 1
     if foundc == 0: fieldsc = []
     return [coords, fields, fieldsc]
@@ -988,10 +991,10 @@ def extractArraysForVectorInteg__(t, vector):
 
     # mise a jour de fields [[],[],[],..,[]] -> []
     foundn = 0; foundc = 0
-    for nof in xrange(len(fields)):
+    for nof in range(len(fields)):
         if fields[nof] != []: foundn = 1
     if foundn == 0: fields = []
-    for nof in xrange(len(fieldsc)):
+    for nof in range(len(fieldsc)):
         if fieldsc[nof] != []: foundc = 1
     if foundc == 0: fieldsc = []
     return [coords, fields, fieldsc]
@@ -1002,10 +1005,10 @@ def extractRatioForInteg__(t):
     ration = C.getField('ratio', zones)
     ratioc = C.getField('centers:ratio', zones)
     foundn = 0; foundc = 0
-    for nof in xrange(len(ration)):
+    for nof in range(len(ration)):
         if ration[nof] != []: foundn = 1
     if foundn == 0: ration = []
-    for nof in xrange(len(ratioc)):
+    for nof in range(len(ratioc)):
         if ratioc[nof] != []: foundc = 1
     if foundn == 0: ration = []
     if foundc == 0: ratioc = []
@@ -1260,7 +1263,7 @@ def computeDiv(t,var):
     dim = 3
     posv = [0]*dim
     divVector = list()
-    for i in xrange(dim):
+    for i in range(dim):
         name = var+sdirlist[i]
         v = name.split(':')
         if len(v) > 1:
@@ -1271,7 +1274,7 @@ def computeDiv(t,var):
         divVector.append(name)
 
     tn = C.getAllFields(tp, 'nodes') # < get all fields (?) We only need a few...
-    for i in xrange(dim):
+    for i in range(dim):
         if posv[i] == -1: C._rmVars(tp, divVector[i])
     tc = Post.computeDiv(tn, divVector)
     C.setFields(tc, tp, 'centers')
@@ -1491,7 +1494,7 @@ def computeCurl(t, vector):
     curlVector = []
     n = len(vector)
     posv = [0]*n
-    for i in xrange(n):
+    for i in range(n):
         var = vector[i]
         curlVar = var
         v = var.split(':')
@@ -1503,7 +1506,7 @@ def computeCurl(t, vector):
         curlVector.append(curlVar)
 
     nodes = C.getAllFields(tp, 'nodes')
-    for i in xrange(n):
+    for i in range(n):
         if posv[i] == -1: tp = C.rmVars(tp, curlVector[i])
 
     centers = Post.computeCurl(nodes, curlVector)
@@ -1517,7 +1520,7 @@ def computeNormCurl(t, vector):
     curlVector = []
     n = len(vector)
     posv = [0]*n
-    for i in xrange(n):
+    for i in range(n):
         var = vector[i]
         curlVar = var
         v = var.split(':')
@@ -1529,7 +1532,7 @@ def computeNormCurl(t, vector):
         curlVector.append(curlVar)
 
     nodes = C.getAllFields(tp, 'nodes')
-    for i in xrange(n):
+    for i in range(n):
         if posv[i] == -1: tp = C.rmVars(tp, curlVector[i])
     centers = Post.computeNormCurl(nodes, curlVector)
     C.setFields(centers, tp, 'centers')
@@ -1819,7 +1822,7 @@ def _renameVars(a, varsPrev, varsNew):
 
     fnodes = Internal.getNodesFromName3(a, Internal.__FlowSolutionNodes__)
     fcenters = Internal.getNodesFromName3(a, Internal.__FlowSolutionCenters__)
-    for nov in xrange(len(varsPrev)):
+    for nov in range(len(varsPrev)):
         splP = varsPrev[nov].split(':')
         splN = varsNew[nov].split(':')
         if fcenters != []:

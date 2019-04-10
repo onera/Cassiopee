@@ -99,7 +99,7 @@ static struct PyModuleDef moduledef = {
         "post",
         NULL,
         sizeof(struct module_state),
-        Pyconverter,
+        Pypost,
         NULL,
         myextension_traverse,
         myextension_clear,

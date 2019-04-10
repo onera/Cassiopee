@@ -6,12 +6,12 @@ import Ttk as TTK
 import Converter.PyTree as C
 import Converter
 import Converter.Internal as Internal
-import CPlot as CP
+from . import CPlot as CP
 import Transform
 import Post
-import PyTree as CPlot
-import cplot
-import Panels
+from . import PyTree as CPlot
+from . import cplot
+from . import Panels
 import os, os.path
 
 #==============================================================================

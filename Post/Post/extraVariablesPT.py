@@ -1,6 +1,6 @@
 # Calcul des autres variables de computeVariables
 
-import PyTree as P
+from . import PyTree as P
 import Converter.PyTree as C
 import Converter.Internal as Internal
 
@@ -144,7 +144,7 @@ def _computeWallShearStress(t):
         if presgx == 1: loc = 'centers'
         else:
            raise ValueError('gradxVelocity is required in tree.')
-        for nov in xrange(len(vars1)): 
+        for nov in range(len(vars1)): 
             vars1[nov]='centers:'+vars1[nov]
 
     [RoInf, RouInf, RovInf, RowInf, RoeInf, PInf, TInf, cvInf, MInf, ReInf, Cs, Gamma, RokInf, RoomegaInf, RonutildeInf, Mus, Cs, Ts, Pr] = C.getState(t)

@@ -8,7 +8,7 @@ import KCore.test as test
 N = 11
 t = C.newPyTree(['Base'])
 pos = 0
-for i in xrange(N):
+for i in range(N):
     a = G.cart( (pos,0,0), (1,1,1), (10+i, 10, 10) )
     pos += 10 + i - 1
     t[2][1][2].append(a)

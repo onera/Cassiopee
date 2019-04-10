@@ -6,7 +6,7 @@ import KCore.test as test
 # Premier cas pas trop gros
 N = 11
 arrays = []; off = 0
-for i in xrange(N):
+for i in range(N):
     a = G.cart( (off,0,0), (1,1,1), (10+i, 10, 10) )
     off += 9+i
     arrays.append(a)
@@ -23,9 +23,9 @@ test.testO(out['distrib'], 3)
 # Deuxieme cas plus gros
 N = 11
 arrays = []; offj = 0
-for j in xrange(N):
+for j in range(N):
     offi = 0
-    for i in xrange(N):
+    for i in range(N):
         a = G.cart( (offi,offj,0), (1,1,1), (10+i, 10+j, 10) )
         offi += 9+i
         arrays.append(a)

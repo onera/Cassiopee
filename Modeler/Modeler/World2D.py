@@ -86,7 +86,7 @@ class World:
         j = 0; pc = 0
         for l in lines:
             nl = len(l)
-            for i in xrange(nl):
+            for i in range(nl):
                 if l[i] == 'X' or l[i] == 'x': # wall
                     self.map[i,j] = 1
                 elif l[i] == 'P' or l[i] == 'p': # Pastille orange
@@ -103,8 +103,7 @@ class World:
                 elif l[i] == 'Z' or l[i] == 'z': # rocket spring
                     self.map[i,j] = 5
             j += 1
-        print self.map.shape
-        print self.map
+       
     
     # Create objects from map
     def build(self):
@@ -112,8 +111,8 @@ class World:
         a = G.cart((0,0,0), (1,1,1), (self.nx+1,self.ny+1,1))
         CPlot._addRender2Zone(a, color='White', meshOverlay=True)
         self.world = [a]
-        for j in xrange(self.ny):
-            for i in xrange(self.nx):
+        for j in range(self.ny):
+            for i in range(self.nx):
                 if self.map[i,j] == 1: # wall
                     a = G.cart((i,self.ny-j-1,0), (1,1,2), (2,2,2))
                     CPlot._addRender2Zone(a, color='White', meshOverlay=True)

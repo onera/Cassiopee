@@ -10,6 +10,9 @@ import numpy
 try: import Converter
 except: raise ImportError("Post: requires Converter module.")
 
+try: range = xrange
+except: pass
+
 __all__ = ['coarsen', 'computeCurl', 'computeDiff', 'computeExtraVariable', 'computeGrad',
 'computeGrad2', 'computeDiv', 'computeDiv2', 'computeIndicatorField', 'computeIndicatorFieldForBounds',
 'computeIndicatorValue', 'computeNormCurl', 'computeNormGrad', 'computeVariables',
@@ -35,7 +38,7 @@ def extrudeLayer__(i, nlayers, planarity, eps, dplus, dmoins):
         epsmax = max(eps, 2*Converter.getMaxValue(p, 'dist'))
     else: epsmax = eps
     if i[3] == 'BAR' or (i[3] == 1 and i[4] == 1): # 1D
-        for k in xrange(nlayers+1): dplus[1][0,k] = k*epsmax; dmoins[1][0,k] =-k*epsmax
+        for k in range(nlayers+1): dplus[1][0,k] = k*epsmax; dmoins[1][0,k] =-k*epsmax
         b = Generator.addNormalLayers(i, dplus)
         c = Generator.addNormalLayers(i, dmoins)
         b = Converter.convertArray2Tetra(b)
@@ -43,7 +46,7 @@ def extrudeLayer__(i, nlayers, planarity, eps, dplus, dmoins):
         p = Transform.join(b, c); p = Generator.close(p)
     else: # other
         j = Converter.convertArray2Tetra(i)
-        for k in xrange(nlayers+1): dplus[1][0,k] = k*epsmax; dmoins[1][0,k] =-k*epsmax
+        for k in range(nlayers+1): dplus[1][0,k] = k*epsmax; dmoins[1][0,k] =-k*epsmax
         j = Transform.reorder(j, (1.,))
         b = Generator.addNormalLayers(j, dplus)
         j = Transform.reorder(j, (-1.,))
@@ -103,22 +106,21 @@ def extractPoint(arrays, Pts, order=2, extrapOrder=1,
     else: res = post.extractPoint(inl, [Pts], order, extrapOrder, constraint, hook)
     out = []
     npts = res[1].shape[1]; nfld = res[1].shape[0]
-    for i in xrange(npts):
+    for i in range(npts):
         outi = []
-        for nof in xrange(nfld): outi.append(res[1][nof,i])
+        for nof in range(nfld): outi.append(res[1][nof,i])
         out.append(outi)
     if isinstance(Pts, list): return out
     else: return out[0]
 
-def extractPlane(arrays, (coefa, coefb, coefc, coefd), order=2, tol=1.e-6):
+def extractPlane(arrays, T, order=2, tol=1.e-6):
     """Slice solution with a plane.
     Usage: extractPlane(arrays, (coefa, coefb, coefc, coefd), order)"""
     try: import Generator; import Transform
     except:
-        return post.extractPlane(arrays,(coefa, coefb, coefc, coefd),
-                                 order)
+        return post.extractPlane(arrays,T, order)
     inl, modified = growOfEps__(arrays, tol, nlayers=2, planarity=False)
-    ret1 = post.extractPlane(inl, (coefa, coefb, coefc, coefd), order)
+    ret1 = post.extractPlane(inl, T, order)
     if modified == 0: return ret1
     else:
         ret1 = Generator.close(ret1)
@@ -176,7 +178,7 @@ def coarsen(a, indic, argqual=0.1, tol=1.e6):
     Usage: coarsen(a, indic, argqual, tol)"""
     if isinstance(a[0], list):
         b = []
-        for i in xrange(len(a)):
+        for i in range(len(a)):
             b.append(post.coarsen(a[i], indic[i], argqual, tol))
         return b
     else:
@@ -188,7 +190,7 @@ def refine(a, indic=None, w=-1):
     Usage: refine(a, indic, w)"""
     if isinstance(a[0], list):
         b = []
-        for i in xrange(len(a)):
+        for i in range(len(a)):
             b.append(refine__(a[i], indic[i], w))
         return b
     else:
@@ -627,8 +629,8 @@ def buildTag1__(array, F, varStrings):
     if l == 0:
         if (F() == True): tag[:] = 1
     else:
-        for i in xrange(nsize):
-            x = [ n[pos[j]-1,i] for j in xrange(l)]
+        for i in range(nsize):
+            x = [ n[pos[j]-1,i] for j in range(l)]
             if (F(*x) == True): tag[i] = 1
     tag = tag.reshape(1, tag.size)
     if len(array) == 5: out = ['__tag__', tag, array[2], array[3], array[4]]
@@ -663,7 +665,7 @@ def selectCells2(a, tag, strict=0, loc=-1):
     if isinstance(a[0], list):
         b = []
         lena = len(a)
-        for i in xrange(lena):
+        for i in range(lena):
             sizetag = tag[i][1].shape[1]
             sizea = a[i][1].shape[1]
             if (sizetag != sizea or loc == 1): # centers
@@ -705,7 +707,7 @@ def frontFaces(a, tag):
     if isinstance(a[0], list):
         b = []
         lena = len(a)
-        for i in xrange(lena):
+        for i in range(lena):
             try:
                 if len(a[i]) == 5: # structure
                     a[i] = Converter.convertArray2Hexa(a[i])
@@ -726,7 +728,7 @@ def isoLine(array, var, value):
     try:
         b = Converter.convertArray2Tetra(array)
         if isinstance(b[0], list):
-            for i in xrange(len(b)):
+            for i in range(len(b)):
                 if b[i][3] == 'TETRA': b[i] = exteriorFaces(b[i])
         else:
             if b[3] == 'TETRA': b = exteriorFaces(b)
@@ -899,7 +901,7 @@ def computeIndicatorFieldForBounds(indicator, indicatorValues, valMin, valMax):
     valt = indicatorValues[1]; nelts = indicator[1][0].shape[0]
     indicator2 = Converter.copy(indicator)
     indict = indicator2[1]
-    for i in xrange(nelts):
+    for i in range(nelts):
         if indict[0,i] == -1000.: # enforce near bodies
             if valt[0,i] >= valMax: indict[0,i] = 1.
             else: indict[0,i] = 0.
@@ -1048,7 +1050,7 @@ def renameVars(array, varsPrev, varsNew):
         for a in array:
             b = a[:]
             varsb = b[0]; varsb = varsb.split(',')
-            for nov in xrange(len(varsPrev)):
+            for nov in range(len(varsPrev)):
                 try:
                     pos = varsb.index(varsPrev[nov])
                     varsb[pos] = varsNew[nov]
@@ -1061,7 +1063,7 @@ def renameVars(array, varsPrev, varsNew):
         res = array[:]
         varsb = res[0]; varsb = varsb.split(',')
 
-        for nov in xrange(len(varsPrev)):
+        for nov in range(len(varsPrev)):
             try:
                 pos = varsb.index(varsPrev[nov])
                 varsb[pos] = varsNew[nov]

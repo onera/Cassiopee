@@ -17,9 +17,9 @@ t, stats = D2.distribute(t, 3)
 
 proc = D2.getProcDict(t)
 zoneNames = C.getZoneNames(t, prefixByBase=False)
-for z in zoneNames: print z, proc[z]
+for z in zoneNames: print(z[0], proc[z])
 
 # - or with base prefix -
 proc = D2.getProcDict(t, prefixByBase=True)
 zoneNames = C.getZoneNames(t, prefixByBase=True)
-for z in zoneNames: print z, proc[z]
+for z in zoneNames: print(z[0], proc[z])

@@ -5,9 +5,12 @@ __author__ = "Sam Landier, Christophe Benoit, Stephanie Peron, Luis Bernardos"
 # 
 # Python Interface to create arrays defining meshes
 #
-import intersector
+from . import intersector
 import Generator as G
 import Converter as C
+
+try: range = xrange
+except: pass
 
 def conformUnstr(a1, a2=None, tol=0., left_or_right=0, itermax=10):
     """Conformizes a1 (optionally with a2).
@@ -96,7 +99,7 @@ def XcellN(coords, cellnfields, maskingMesh, wall_pgl=[], ghost_pgl=[]):
     cellnt = []
     #C.convertArrays2File([maskingMesh], "mask.plt")
     #print pgl
-    for i in xrange(len(coords)):
+    for i in range(len(coords)):
       #print 'coords : %d / %d' %(i+1, len(coords))
       #C.convertArrays2File([coords[i]], "bloc%d.plt"%(i))
       #print pgl

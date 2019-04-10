@@ -140,7 +140,7 @@ def wing(sections=[airfoil(),airfoil()], span=[1.], washout=[0.], sweep=[0.],
     '''        
     sectionsA = []
     
-    for i in xrange(len(sections)):
+    for i in range(len(sections)):
         sectionsA.append(C.getFields(Internal.__GridCoordinates__, sections[i])[0])
     a = Aero.wing(sectionsA, span, washout, sweep, 
         dihedral, distribution,sectionShapeLaw)
@@ -192,7 +192,7 @@ def sweepSections(sections=[airfoil(),airfoil()], SpanPositions=None,
     this reference, you may apply a translation to the sections beforehand.
     '''                        
     sectionsA = []
-    for i in xrange(len(sections)):
+    for i in range(len(sections)):
         sectionsA.append(C.getFields(Internal.__GridCoordinates__, sections[i])[0])
     spineA = C.getFields(Internal.__GridCoordinates__, spine)[0]
     a = Aero.sweepSections(sectionsA, SpanPositions, rotation, rotationLaw,

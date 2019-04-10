@@ -3,8 +3,8 @@ import Geom as D
 import Transform as T
 import Generator as G
 import Converter as C
-import Boxes
-import Cylinders
+from . import Boxes
+from . import Cylinders
 
 #==============================================================================
 # Panneau avec un texte

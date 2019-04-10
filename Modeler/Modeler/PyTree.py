@@ -1,4 +1,4 @@
-import Models
+from . import Models
 import Converter.PyTree as C
 
 def box(Pmin, Pmax, chamfer=-1.):

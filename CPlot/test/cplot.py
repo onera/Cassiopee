@@ -75,7 +75,7 @@ def CPlotDisplay__(file):
 if (__name__ == "__main__"):
     import sys
     if (len(sys.argv) < 2):
-        print "cplot: cplot <file>"
+        print ("cplot: cplot <file>")
     else:
       file = sys.argv[1]
       CPlotDisplay__(file)

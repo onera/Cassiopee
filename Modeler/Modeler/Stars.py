@@ -19,7 +19,7 @@ def star(R1=1., R2=2., shift=0.5, N=10, h=1.):
     points = []
     xc1 = c1[1][0]; yc1 = c1[1][1]
     xc2 = c2[1][0]; yc2 = c2[1][1]
-    for i in xrange(N):
+    for i in range(N):
         points.append((xc1[i],yc1[i],0))
         points.append((xc2[i],yc2[i],0))
     c = D.polyline(points)

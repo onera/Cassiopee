@@ -17,7 +17,7 @@ def circle1(R=1., Rd=0.8, Nd=10, fracD=0.5, N=180):
     Npts = int(N*1./Nd)
     Npts1 = int((1.-fracD)*Npts)
     out = []; c = 1
-    for i in xrange(Nd):
+    for i in range(Nd):
         bx = min(c+Npts, N)
         a1 = T.subzone(c1, (c,1,1), (c+Npts1,1,1))
         a2 = T.subzone(c2, (c+Npts1,1,1), (bx,1,1))
@@ -41,7 +41,7 @@ def circle2(R=1., Rd=0.8, Nd=10, fracD=0.5, N=180):
     Npts = int(N*1./Nd)
     Npts1 = int((1.-fracD)*Npts)
     out = []; c = 1
-    for i in xrange(Nd):
+    for i in range(Nd):
         bx = min(c+Npts, N)
         a1 = T.subzone(c1, (c,1,1), (c+Npts1,1,1))
         a2 = T.subzone(c2, (c+Npts1,1,1), (bx,1,1))

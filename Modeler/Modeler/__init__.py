@@ -1,4 +1,4 @@
-from Modeler import *
+from .Modeler import *
 from .Boxes import *
 from .Stars import *
 from .Columns import *

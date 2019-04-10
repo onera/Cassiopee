@@ -12,7 +12,7 @@ import KCore.Vector as Vector
 #==================================================================
 def drive(line, profiles):
     n = line[2]
-    for i in xrange(n):
+    for i in range(n):
         P = Converter.getValue(line, i)
         if i == n-1:
             PP = Converter.getValue(line, i-1)
@@ -38,7 +38,7 @@ def drive(line, profiles):
 def tunnel1(line):
     n = line[2]
     profiles = []
-    for i in xrange(n):
+    for i in range(n):
         c = Geom.circle((0,0,0),1.,N=30)
         profiles.append(c)
     tunnel = drive(line, profiles)

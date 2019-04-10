@@ -7,7 +7,7 @@ import Generator.PyTree as G
 N = 11
 t = C.newPyTree(['Base'])
 pos = 0
-for i in xrange(N):
+for i in range(N):
     a = G.cart((pos,0,0), (1,1,1), (10+i, 10, 10))
     a[0] = 'cart%d'%i
     pos += 10 + i - 1
@@ -15,7 +15,7 @@ for i in xrange(N):
     t[2][1][2].append(a)
 
 t2 = C.newPyTree(['Base'])
-for i in xrange(N):
+for i in range(N):
     a = G.cart((pos,0,0), (1,1,1), (10+i, 10, 10))
     a[0] = 'cart%d'%i
     pos += 10 + i - 1

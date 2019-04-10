@@ -6,8 +6,8 @@ import CPlot.PyTree as CPlot
 import Generator.PyTree as G
 import Converter.Internal as Internal
 import Converter.PyTree as C
-import Sound
-import Animator2D
+from . import Sound
+from . import Animator2D
 
 animator = Animator2D.Animator2D()
 
@@ -71,7 +71,7 @@ class perso:
             self.vx = 0.
             self.vy = 0.
         else:
-            print '>>init pb'
+            print ('>>init pb')
         
     # Build the model (sphere)
     def build(self, world):
