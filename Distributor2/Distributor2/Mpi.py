@@ -2,7 +2,7 @@
 
 import Converter.Mpi as Cmpi
 import Converter.Internal as Internal
-import PyTree as D2
+from . import PyTree as D2
 
 #==============================================================================
 # redispatch

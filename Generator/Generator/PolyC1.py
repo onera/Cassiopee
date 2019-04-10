@@ -11,6 +11,9 @@ try:
 except: raise ImportError("PolyC1 module requires numpy, Geom, Post, Transform and Converter modules.")
 __version__ = G.__version__
 
+try: range = xrange
+except: pass
+
 #=============================================================================
 # PolyC1Mesher pour les i-arrays
 #=============================================================================
@@ -50,7 +53,7 @@ def polyC1Mesher(curve, h, yplus, density, splitCrit=10., dalpha=5.,depth=1):
     surfxpts = N.zeros((ne,2)); surfypts = N.zeros((ne,2)); surfzpts = N.zeros((ne,2))
 
     # Calcul des coord. des Pts de contact entre courbes C1
-    for c in xrange(ne):
+    for c in range(ne):
         s = curves[c]
         faces = P.exteriorFaces(s)
         xpts[c,0] = faces[1][0][0]
@@ -63,7 +66,7 @@ def polyC1Mesher(curve, h, yplus, density, splitCrit=10., dalpha=5.,depth=1):
     #    print 'courbe ',c,' x0=',xpts[c,0],' ->',xpts[c,1]
 
     # No des courbes voisines
-    for c in xrange(ne):
+    for c in range(ne):
         d = c+1
         while (d < ne):
             distx = xpts[c,0] - xpts[d,0]
@@ -121,10 +124,10 @@ def polyC1Mesher(curve, h, yplus, density, splitCrit=10., dalpha=5.,depth=1):
     # On determine l'angle de courbure et les normales pour les pts de contact
     coord = unique[1]
     npts = coord.shape[1]
-    for i in xrange(ne):
-        for j in xrange(2):
+    for i in range(ne):
+        for j in range(2):
             x = xpts[i,j]; y = ypts[i,j]; z = zpts[i,j]
-            for ind in xrange(npts):
+            for ind in range(npts):
                 distx = coord[0,ind] - x
                 disty = coord[1,ind] - y
                 distz = coord[2,ind] - z
@@ -147,7 +150,7 @@ def polyC1Mesher(curve, h, yplus, density, splitCrit=10., dalpha=5.,depth=1):
     # ext=0 ; TFI paroi
     # ext=-1; TFI MD + TTM
     # ext=2; extension coincidente
-    for c in xrange(ne):
+    for c in range(ne):
         if (cpts[c,0] >= alphaMax): # extension coincidente
             ext[c,0] = 2
         elif (cpts[c,0] >= 185): # extension chimere
@@ -166,8 +169,8 @@ def polyC1Mesher(curve, h, yplus, density, splitCrit=10., dalpha=5.,depth=1):
         elif (cpts[c,1] >= 90+38): # TFI MD + TTM
             ext[c,1] = -1
 
-    for c in xrange(ne):
-        print 'courbe %d: ext0=%d, ext1=%d'%(c, ext[c,0], ext[c,1])
+    for c in range(ne):
+        print ('courbe %d: ext0=%d, ext1=%d'%(c, ext[c,0], ext[c,1]))
 
     # Detection de la hauteur maximum admissible en fonction de la longueur
     # de chaque segment
@@ -186,7 +189,7 @@ def polyC1Mesher(curve, h, yplus, density, splitCrit=10., dalpha=5.,depth=1):
         r = D.getCurvatureRadius(i)
         rp = r[1]
         rmin = 1.e8
-        for x in xrange(r[2]):
+        for x in range(r[2]):
             if (rp[0,x] <= 0 and -rp[0,x] < rmin):
                 rmin = -rp[0,x]
         
@@ -221,12 +224,12 @@ def polyC1Mesher(curve, h, yplus, density, splitCrit=10., dalpha=5.,depth=1):
     # Distribution avec resserrement utilisee a la fin pour remailler en j
     distrib2 = G.enforcePlusX(distrib, yplus/h, nj-1, add)
     nj = distrib[2]; delta = C.array('d', nj, 1, 1)
-    for i in xrange(nj): delta[1][0,i] = h*distrib[1][0,i]
+    for i in range(nj): delta[1][0,i] = h*distrib[1][0,i]
     # Generation des maillages
     mesh = []; walls = []
     cm = 0
     
-    for c in xrange(ne):
+    for c in range(ne):
         if (ext[c,0] == 1 and ext[c,1] == 1):
             m = generateExtExt(curves[c], density, extension, delta)
             m = G.map(m, distrib2, 2)
@@ -293,7 +296,7 @@ def polyC1Mesher(curve, h, yplus, density, splitCrit=10., dalpha=5.,depth=1):
 def findNeighbourIndex(polyLine, index, e):
     c = polyLine[2]
     ne = c.shape[1]
-    for i in xrange(ne):
+    for i in range(ne):
         ind1 = c[0,i]
         ind2 = c[1,i]
         if (i != e-1):
@@ -841,16 +844,16 @@ def buildd2(d1, d3, d4, h, ext1, ext2, angle1, angle2):
     ni = s[2]; sp = s[1]
     vect = C.array('hx,hy,hz', ni, 1, 1)
 
-    for i in xrange(ind13):
+    for i in range(ind13):
         sl = 1./s1*sp[0,i]
         vect[1][0,i] = (1.-sl)*h1x + sl*h*np[0,ind13]
         vect[1][1,i] = (1.-sl)*h1y + sl*h*np[1,ind13]
         vect[1][2,i] = (1.-sl)*h1z + sl*h*np[2,ind13]
-    for i in xrange(ind13, ind23):
+    for i in range(ind13, ind23):
         vect[1][0,i] = h*np[0,i]
         vect[1][1,i] = h*np[1,i]
         vect[1][2,i] = h*np[2,i]
-    for i in xrange(ind23, ni):
+    for i in range(ind23, ni):
         sl = (sp[0,i]-s2)/(1. -s2)
         vect[1][0,i] = sl*h2x + (1.-sl)*h*np[0,ind23]
         vect[1][1,i] = sl*h2y + (1.-sl)*h*np[1,ind23]
@@ -877,16 +880,16 @@ def buildBC(m, walls,  ext1, ext2, extension):
     else:
         i2 = m[2]-extension+1; i1 = 1  
     
-    range = [i1,i2,1,1,1,m[4]]
-    wl.append(range)
+    wrange = [i1,i2,1,1,1,m[4]]
+    wl.append(wrange)
 
     if (ext2 == 0):
-        range = [1,1,1,m[3],1,m[4]]
-        wl.append(range)
+        wrange = [1,1,1,m[3],1,m[4]]
+        wl.append(wrange)
             
     if (ext1 == 0):
-        range = [m[2],m[2],1,m[3],1,m[4]]
-        wl.append(range)
+        wrange = [m[2],m[2],1,m[3],1,m[4]]
+        wl.append(wrange)
         
     walls.append(wl)
     return

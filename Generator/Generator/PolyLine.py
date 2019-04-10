@@ -3,6 +3,9 @@
 from . import Generator as G
 __version__ = G.__version__
 
+try: range = xrange
+except: pass
+
 #=============================================================================
 # PolyLineMesher pour les i-arrays ou les BAR-arrays
 #=============================================================================
@@ -27,7 +30,7 @@ def polyLineMesher(polyLine, h, yplus, density):
     f = polyLine[1]; c = polyLine[2]; ne = c.shape[1]
     
     # Detection de la hauteur maximum admissible
-    for i in xrange(ne):
+    for i in range(ne):
         ind1 = c[0,i]-1; ind2 = c[1,i]-1
         x1 = f[0,ind1]; y1 = f[1,ind1]; z1 = f[2,ind1]
         x2 = f[0,ind2]; y2 = f[1,ind2]; z2 = f[2,ind2]
@@ -42,7 +45,7 @@ def polyLineMesher(polyLine, h, yplus, density):
     if (nj < 4):
         density = 4./h
         print("Warning: density changed to", density,"to have 4 points in height.")
-    for i in xrange(ne):
+    for i in range(ne):
         ind1 = c[0,i]-1; ind2 = c[1,i]-1
         x1 = f[0,ind1]; y1 = f[1,ind1]; z1 = f[2,ind1]
         x2 = f[0,ind2]; y2 = f[1,ind2]; z2 = f[2,ind2]
@@ -70,14 +73,14 @@ def polyLineMesher(polyLine, h, yplus, density):
     distrib = G.enforcePlusX(distrib, yplus/h, nj-1, add)
     nj = distrib[2]-1
     delta = C.array('d',nj,1,1)
-    for i in xrange(nj):
+    for i in range(nj):
         delta[1][0,i] = h* distrib[1][0,i]
     mesh = []; walls = []
 
     pool = 0; poolFirst = 0
     
     # Generation des maillages
-    for i in xrange(ne):
+    for i in range(ne):
         ind1 = c[0,i]-1; ind2 = c[1,i]-1
         x1 = f[0,ind1]; y1 = f[1,ind1]; z1 = f[2,ind1]
         x2 = f[0,ind2]; y2 = f[1,ind2]; z2 = f[2,ind2]
@@ -198,16 +201,16 @@ def polyLineMesher(polyLine, h, yplus, density):
         else: i1 = extension+1
         if ext2 != 1: i2 = m[2]
         else: i2 = m[2]-extension
-        range = [i1,i2, 1, 1, 1, m[4]]
-        rangesw.append(range)
+        wrange = [i1,i2, 1, 1, 1, m[4]]
+        rangesw.append(wrange)
             
         if (ext1 == 0):
-            range = [1, 1, 1, m[3], 1, m[4]]
-            rangesw.append(range)
+            wrange = [1, 1, 1, m[3], 1, m[4]]
+            rangesw.append(wrange)
             
         if (ext2 == 0):
-            range = [m[2], m[2], 1, m[3], 1, m[4]]
-            rangesw.append(range)
+            wrange = [m[2], m[2], 1, m[3], 1, m[4]]
+            rangesw.append(wrange)
         walls.append(rangesw)
             
     return [mesh, walls, h, density]
@@ -217,7 +220,7 @@ def polyLineMesher(polyLine, h, yplus, density):
 def findNeighbourIndex(polyLine, index, e):
     c = polyLine[2]
     ne = c.shape[1]
-    for i in xrange(ne):
+    for i in range(ne):
         ind1 = c[0,i]
         ind2 = c[1,i]
         if (i != e-1):

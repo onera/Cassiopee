@@ -1,12 +1,14 @@
 """Module of computation of distance to walls.
 """
-import dist2walls
-try:
-    import Converter as C
+from . import dist2walls
+try: import Converter as C
 except(ImportError):
     raise ImportError("Dist2Walls: requires Converter modules.")
 __version__ = '2.9'
 __author__ = "Stephanie Peron, Christophe Benoit, Pascal Raud, Sam Landier"
+
+try: range = xrange
+except: pass
 
 # Types de solver pour Eikonal
 fmm=0
@@ -72,7 +74,7 @@ def distance2Walls(zones, bodies, flags=None, cellnbodies=[], type='ortho',
         bodies0 = C.initVars(bodies, 'cellN', 1.)
     else:
         bodies0 = bodies
-        for c in xrange(len(bodies0)):
+        for c in range(len(bodies0)):
             if cellnbodies[c] == []:
                 bodies0[c] = C.initVars(bodies0[c], 'cellN', 1.)
             elif bodies0[c][1].shape[1] == cellnbodies[c][1].shape[1]:
@@ -89,7 +91,7 @@ def distance2Walls(zones, bodies, flags=None, cellnbodies=[], type='ortho',
     if loc == 'nodes':
         if type == 'ortho':
             if flags is not None:
-                for noz in xrange(len(zones)):
+                for noz in range(len(zones)):
                     if flags[noz] != []:
                         zones[noz] = C.addVars([zones[noz], flags[noz]])
             dist = dist2walls.distance2WallsOrtho(zones, bodies0)
@@ -100,7 +102,7 @@ def distance2Walls(zones, bodies, flags=None, cellnbodies=[], type='ortho',
         zonesc = C.node2Center(zones)
         if type == 'ortho':
             if flags is not None:
-                for noz in xrange(len(zonesc)):
+                for noz in range(len(zonesc)):
                     if flags[noz] != []:
                         zonesc[noz] = C.addVars([zonesc[noz], flags[noz]])
             dist = dist2walls.distance2WallsOrtho(zonesc, bodies0)

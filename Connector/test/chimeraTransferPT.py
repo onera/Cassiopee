@@ -22,7 +22,7 @@ C._addVars(t,'centers:MomentumX')
 C._addVars(t,'centers:MomentumY') 
 C._addVars(t,'centers:MomentumZ')
 C._addVars(t,'centers:StagnationEnergy')
-for i in xrange(len(t[2])):
+for i in range(len(t[2])):
     C._initVars(t[2][i], 'centers:Density', float(i+1))
     C._initVars(t[2][i], 'centers:MomentumX', float(i+1))
     C._initVars(t[2][i], 'centers:MomentumY', float(i+1))

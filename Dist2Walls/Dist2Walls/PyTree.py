@@ -1,7 +1,7 @@
 #
 # Python Interface to compute distance to walls from PyTrees
 #
-import Dist2Walls
+from . import Dist2Walls
 __version__ = Dist2Walls.__version__
 
 try:

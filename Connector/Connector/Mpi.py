@@ -6,6 +6,10 @@ import Converter.PyTree as C
 from . import connector
 import RigidMotion.PyTree as RM
 import numpy
+
+try: range = xrange
+except: pass
+
 #==============================================================================
 # optimizeOverlap
 # IN: t: full/loaded skel/partial
@@ -130,7 +134,7 @@ def __setInterpTransfers(zones, zonesD, vars, param_int, param_real, type_transf
     nbcomIBC    = param_int[1]
     shift_graph = nbcomIBC + param_int[2+nbcomIBC] + 2
 
-    for comm_P2P in xrange(1,param_int[0]+1):
+    for comm_P2P in range(1,param_int[0]+1):
         pt_ech = param_int[comm_P2P + shift_graph]
         dest   = param_int[pt_ech]
 

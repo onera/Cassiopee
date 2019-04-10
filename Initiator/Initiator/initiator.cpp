@@ -50,7 +50,7 @@ static struct PyModuleDef moduledef = {
         "initiator",
         NULL,
         sizeof(struct module_state),
-        Pyconverter,
+        Pyinitiator,
         NULL,
         myextension_traverse,
         myextension_clear,

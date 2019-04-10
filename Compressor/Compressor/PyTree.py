@@ -1,7 +1,7 @@
 #
 # Python Interface to compress solutions from PyTrees
 #
-import Compressor
+from . import Compressor
 import numpy
 import Converter.Internal as Internal
 __version__ = Compressor.__version__

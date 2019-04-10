@@ -113,7 +113,7 @@ static struct PyModuleDef moduledef = {
         "connector",
         NULL,
         sizeof(struct module_state),
-        Pykcore,
+        Pyconnector,
         NULL,
         myextension_traverse,
         myextension_clear,

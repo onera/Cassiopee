@@ -3,7 +3,7 @@
 __version__ = '2.9'
 __author__ = "Stephanie Peron, Christophe Benoit, Pascal Raud"
 
-import compressor
+from . import compressor
 import numpy
 
 #==============================================================================

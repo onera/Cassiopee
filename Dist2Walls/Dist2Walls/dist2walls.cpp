@@ -48,10 +48,10 @@ static int myextension_clear(PyObject *m) {
 }
 static struct PyModuleDef moduledef = {
         PyModuleDef_HEAD_INIT,
-        "connector",
+        "dist2walls",
         NULL,
         sizeof(struct module_state),
-        Pykcore,
+        Pydist2walls,
         NULL,
         myextension_traverse,
         myextension_clear,

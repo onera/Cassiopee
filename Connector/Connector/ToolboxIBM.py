@@ -5,6 +5,9 @@ from . import OversetData as XOD
 from . import Connector
 import connector
 
+try: range = xrange
+except: pass
+
 try:
     import Converter.PyTree as C
     import Generator.PyTree as G
@@ -57,7 +60,7 @@ def _modifPhysicalBCs__(zp, depth=2, dimPb=3):
             pr = numpy.copy(prange[0][1])
             ijk = int(direction/2)
             minmax = direction%2
-            for dirl in xrange(dimZone[4]):
+            for dirl in range(dimZone[4]):
                 if dirl != ijk:
                     if dimPb == 2 and dirl == 2: pass
                     else:
@@ -159,12 +162,12 @@ def mergeByParent__(zones, parent, sizeMax):
         noz += 1
 
     found=[0]*len(zones)
-    for no in xrange(xmint.shape[0]):
+    for no in range(xmint.shape[0]):
         xmin = xmint[no]; xmax = xmaxt[no]
         ymin = ymint[no]; ymax = ymaxt[no]
         zmin = zmint[no]; zmax = zmaxt[no]
         pool=[]
-        for noz in xrange(len(zones)):
+        for noz in range(len(zones)):
             if found[noz]==0:
                 xminz = xminAll[noz]; xmaxz = xmaxAll[noz]
                 yminz = yminAll[noz]; ymaxz = ymaxAll[noz]
@@ -190,7 +193,7 @@ def octree2StructLoc__(o, parento=None, vmin=21, ext=0, optimized=0, sizeMax=4e6
     a = C.getFields(Internal.__GridCoordinates__, o)[0]
     zones = Generator.generator.octree2Struct(a, [vmin])
     c = 1
-    for noz in xrange(len(zones)):
+    for noz in range(len(zones)):
         zones[noz] = C.convertArrays2ZoneNode('cartDummy'+str(c), [zones[noz]])        
         c += 1
 
@@ -242,7 +245,7 @@ def octree2StructLoc__(o, parento=None, vmin=21, ext=0, optimized=0, sizeMax=4e6
             if noo > -1: ZONES[noo].append(z)
         #-----------------------------------------------------------------------------
         zones=[]
-        for noo in xrange(noct):
+        for noo in range(noct):
             nzones = len(ZONES[noo])
             if nzones > 1:
                 print('Merging %d Cartesian zones of subdomain %d.'%(nzones,noo))                
@@ -643,7 +646,7 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None,
     #-------------------------------------------        
     indcell = Converter.extractVars(allCorrectedPts,['indcell'])
     if tb is None or tfront is None: # constant hi, he   
-        for nozc in xrange(len(allCorrectedPts)):
+        for nozc in range(len(allCorrectedPts)):
             poshe = KCore.isNamePresent(allCorrectedPts[nozc],'he')
             if poshe == -1: allCorrectedPts[nozc] = Converter.initVars(allCorrectedPts[nozc],'he',he)
             poshi = KCore.isNamePresent(allCorrectedPts[nozc],'hi')
@@ -707,10 +710,10 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None,
     nzonesR = len(allInterpPts)
     if len(res)==3: 
         allIndicesByIBCType = res[2]    
-        for noz in xrange(nzonesR):
+        for noz in range(nzonesR):
             indicesByTypeForZone = res[2][noz]
             nbTypes = len(indicesByTypeForZone)
-            for nob in xrange(nbTypes):
+            for nob in range(nbTypes):
                 ibcTypeL = listOfIBCTypes[nob]
                 indicesByTypeL = indicesByTypeForZone[nob]
                 if indicesByTypeL.shape[0] > 0 :                
@@ -730,7 +733,7 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None,
     else:
         if IBCType == -1: ibcTypeL = 0
         else: ibcTypeL = 3 
-        for noz in xrange(nzonesR):
+        for noz in range(nzonesR):
             if noz == 0:
                 dictOfCorrectedPtsByIBCType[ibcTypeL] = [allCorrectedPts[noz]]
                 dictOfWallPtsByIBCType[ibcTypeL] = [allWallPts[noz]]
@@ -777,14 +780,14 @@ def getIBMFront(tc, frontvar, dim, frontType):
         nlevels = int(math.log(dxmax/dxmin)/math.log(2)+1)
 
         dictOfLevels={}
-        for l in xrange(nlevels): dictOfLevels[l]=[]
-        for nof in xrange(len(dht)):
+        for l in range(nlevels): dictOfLevels[l]=[]
+        for nof in range(len(dht)):
             if dht[nof]>1.e-12:
                 nolvl = int(math.log(dht[nof]/dxmin)/math.log(2))
                 dictOfLevels[nolvl].append(front[nof])
         
         front=[]
-        for nol in xrange(nlevels):
+        for nol in range(nlevels):
             if len(dictOfLevels[nol])>0:
                 front.append(T.join(dictOfLevels[nol]))
 
@@ -953,14 +956,14 @@ def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None,
                 zrcvname = zrcv[0]; rcvZones.append(zrcv)
         nozr = 0
         nbZonesChim = len(rcvZones)
-        for nozr in xrange(nbZonesChim):
+        for nozr in range(nbZonesChim):
             zrcv = rcvZones[nozr]
             zrcvname = zrcv[0]
             nozr += 1; hook0 = []
             nobOfDnrBases = []; nobOfDnrZones=[]; dnrZones=[]
-            for nobd in xrange(len(tc[2])):
+            for nobd in range(len(tc[2])):
                 if tc[2][nobd][3] == 'CGNSBase_t':
-                    for nozd in xrange(len(tc[2][nobd][2])):
+                    for nozd in range(len(tc[2][nobd][2])):
                         zdnr = tc[2][nobd][2][nozd]
                         if zdnr[3] == 'Zone_t':
                             zdnrname = zdnr[0]
@@ -974,7 +977,7 @@ def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None,
 
             X._setInterpData(zrcv, dnrZones, nature=1,penalty=1,loc='centers',storage='inverse',sameName=1,\
                              interpDataType=interpDataType, itype='chimera')
-            for nod in xrange(len(dnrZones)):
+            for nod in range(len(dnrZones)):
                 nobd = nobOfDnrBases[nod]
                 nozd = nobOfDnrZones[nod]
                 tc[2][nobd][2][nozd] = dnrZones[nod]
@@ -999,7 +1002,7 @@ def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None,
             allCorrectedPts = dictOfCorrectedPtsByIBCType[ibcTypeL]
             allWallPts = dictOfWallPtsByIBCType[ibcTypeL]
             allInterpPts = dictOfInterpPtsByIBCType[ibcTypeL]
-            for nozr in xrange(nbZonesIBC):
+            for nozr in range(nbZonesIBC):
                 if allCorrectedPts[nozr] != []:
                     interpPtsBB=Generator.BB(allInterpPts[nozr])
                     zrcv = zonesRIBC[nozr]
@@ -1007,9 +1010,9 @@ def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None,
                     nobOfDnrBases = []; nobOfDnrZones=[]; dnrZones=[]
                     if interpDataType == 1: hook0 = []
                     else: hook0 = None
-                    for nobd in xrange(len(tc[2])):
+                    for nobd in range(len(tc[2])):
                         if tc[2][nobd][3] == 'CGNSBase_t':
-                            for nozd in xrange(len(tc[2][nobd][2])):
+                            for nozd in range(len(tc[2][nobd][2])):
                                 zdnr = tc[2][nobd][2][nozd]
                                 if zdnr[3] == 'Zone_t':
                                     zdnrname = zdnr[0]
@@ -1031,7 +1034,7 @@ def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None,
                                              interpDataType=interpDataType, hook=hook0, dim=dim, \
                                              ReferenceState=ReferenceState, bcType=ibcTypeL)
                     nozr += 1
-                    for nod in xrange(len(dnrZones)):
+                    for nod in range(len(dnrZones)):
                         nobd = nobOfDnrBases[nod]
                         nozd = nobOfDnrZones[nod]
                         tc[2][nobd][2][nozd] = dnrZones[nod]
@@ -1124,7 +1127,7 @@ def doInterp2(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=
                        #dirR = CGC.getDirBorderStruct__(prange_,dimPb)
                        #dir_list.append(dirR)
                        #print 'prange_= ', prange_
-                #       for i in xrange(3):
+                #       for i in range(3):
                 #           if prange_[i,1] == prange_[i,0] and prange_[i,1] != 1:
                 #               prange_[i,1] =  prange_[i,1]-1
                 #               prange_[i,0] =  prange_[i,0]-1
@@ -1139,15 +1142,15 @@ def doInterp2(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=
 
         nozr = 0
         nbZonesChim = len(rcvZones)
-        for nozr in xrange(nbZonesChim):
+        for nozr in range(nbZonesChim):
             zrcv = rcvZones[nozr]
             dim_ = Internal.getZoneDim(zrcv)
             zrcvname = zrcv[0]
             nozr += 1; hook0 = []
             nobOfDnrBases = []; nobOfDnrZones=[]; dnrZones=[]
-            for nobd in xrange(len(tc[2])):
+            for nobd in range(len(tc[2])):
                 if tc[2][nobd][3] == 'CGNSBase_t':
-                    for nozd in xrange(len(tc[2][nobd][2])):
+                    for nozd in range(len(tc[2][nobd][2])):
                         zdnr = tc[2][nobd][2][nozd]
                         if zdnr[3] == 'Zone_t':
                             zdnrname = zdnr[0]
@@ -1163,7 +1166,7 @@ def doInterp2(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=
 
             levelrcv = niveaux_temps[zrcv[0]]
 
-            for nod in xrange(len(dnrZones)):
+            for nod in range(len(dnrZones)):
 
                 dim__ = Internal.getZoneDim(dnrZones[nod])
                 prange = numpy.zeros(6,dtype=numpy.int32)
@@ -1235,16 +1238,16 @@ def doInterp2(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=
             allCorrectedPts = dictOfCorrectedPtsByIBCType[ibcTypeL]
             allWallPts = dictOfWallPtsByIBCType[ibcTypeL]
             allInterpPts = dictOfInterpPtsByIBCType[ibcTypeL]
-            for nozr in xrange(nbZonesIBC):
+            for nozr in range(nbZonesIBC):
                 if allCorrectedPts[nozr] != []:
                     interpPtsBB=Generator.BB(allInterpPts[nozr])
 
                     zrcv = zonesRIBC[nozr]
                     zrcvname = zrcv[0]
                     nobOfDnrBases = []; nobOfDnrZones=[]; dnrZones=[]; hook0 = []
-                    for nobd in xrange(len(tc[2])):
+                    for nobd in range(len(tc[2])):
                         if tc[2][nobd][3] == 'CGNSBase_t':
-                            for nozd in xrange(len(tc[2][nobd][2])):
+                            for nozd in range(len(tc[2][nobd][2])):
                                 zdnr = tc[2][nobd][2][nozd]
                                 if zdnr[3] == 'Zone_t':
                                     zdnrname = zdnr[0]
@@ -1265,7 +1268,7 @@ def doInterp2(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=
 
                     levelrcv = niveaux_temps[zrcv[0]]
 
-                    for nod in xrange(len(dnrZones)):
+                    for nod in range(len(dnrZones)):
 
                         dim__ = Internal.getZoneDim(dnrZones[nod])
                         prange = numpy.zeros(6,dtype=numpy.int32)
@@ -1650,7 +1653,7 @@ def extractIBMWallFields(tc, tb=None):
         else:
             dimPb = Internal.getValue(dimPb)
         td = Internal.copyRef(tb)
-        for nob in xrange(len(td[2])):
+        for nob in range(len(td[2])):
             b = td[2][nob]
             if b[3] == 'CGNSBase_t':                
                 zones = Internal.getNodesFromType1(b, 'Zone_t')

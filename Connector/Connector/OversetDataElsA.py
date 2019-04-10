@@ -3,6 +3,9 @@
 from . import Connector
 import numpy
 
+try: range = xrange
+except: pass
+
 try:
     import Converter.Internal as Internal
     import Converter.PyTree as C
@@ -132,7 +135,7 @@ def _setDistInterpolations(a, parallelDatas=[], depth=2, double_wall=0,
     # initialisation des cles
     for oppNode in localGraph:
         oppZones = graph[oppNode][rank]
-        for s in xrange(len(interpDatas[oppNode])):
+        for s in range(len(interpDatas[oppNode])):
             oppZone = oppZones[s]
             interpolationZonesD[oppZone] = []
             interpolationZonesNameD[oppZone] = []
@@ -144,9 +147,9 @@ def _setDistInterpolations(a, parallelDatas=[], depth=2, double_wall=0,
     nzones = len(zones)
     for oppNode in localGraph:
         oppZones = graph[oppNode][rank]
-        for s in xrange(len(interpDatas[oppNode])):
+        for s in range(len(interpDatas[oppNode])):
             oppZone = oppZones[s]
-            for noz in xrange(nzones):
+            for noz in range(nzones):
                 z = zones[noz]
                 zn = C.getFields(Internal.__GridCoordinates__,z)[0]
                 cellN = C.getField('centers:cellN', z)[0]
@@ -160,7 +163,7 @@ def _setDistInterpolations(a, parallelDatas=[], depth=2, double_wall=0,
     if depth == 2:
         for oppNode in localGraph:
             oppZones = graph[oppNode][rank]
-            for s in xrange(len(interpDatas[oppNode])):
+            for s in range(len(interpDatas[oppNode])):
                 interpCells=interpDatas[oppNode][s]
                 oppZone = oppZones[s]
                 interpolationZonesName = interpolationZonesNameD[oppZone]
@@ -174,7 +177,7 @@ def _setDistInterpolations(a, parallelDatas=[], depth=2, double_wall=0,
                 if nBlksI > 0:
                     listOfInterpCells = []
                     # traitement double_wall
-                    for i in xrange(nBlksI):
+                    for i in range(nBlksI):
                         # changewall des centres et EX si paroi existe pour le domaine d interpolation
                         if surfi ==[] or walls1 == []:# attention: walls1 est tjs [] ici, pourquoi ?
                             listOfInterpCells.append(interpCells)
@@ -191,7 +194,7 @@ def _setDistInterpolations(a, parallelDatas=[], depth=2, double_wall=0,
                                                               interpolationZones, interpolationCelln, isEX=0, cfMax=cfMax,check=check)
                     del listOfInterpCells
 
-                    for nozd in xrange(nBlksI):
+                    for nozd in range(nBlksI):
                         zdonorname = interpolationZonesName[nozd]
                         zdonor = Internal.getNodeFromName(a, zdonorname)
                         _interpInverseStorage(oppZone,zdonor,nozd,resInterp,depth)
@@ -199,7 +202,7 @@ def _setDistInterpolations(a, parallelDatas=[], depth=2, double_wall=0,
         #2. deals with depth =1
         for oppNode in localGraph:
             oppZones = graph[oppNode][rank]
-            for s in xrange(len(interpDatas[oppNode])):
+            for s in range(len(interpDatas[oppNode])):
                 EXPts=interpDatas[oppNode][s]
                 oppZone = oppZones[s]
                 interpolationZones=interpolationZonesD[oppZone]
@@ -213,7 +216,7 @@ def _setDistInterpolations(a, parallelDatas=[], depth=2, double_wall=0,
                 nBlksI = len(interpolationZones)
                 if nBlksI > 0:
                     listOfEXPts = [];
-                    for i in xrange(nBlksI):
+                    for i in range(nBlksI):
                         if surfi == [] or walls1 == []:
                             listOfEXPts.append(EXPts);
                         else:
@@ -229,7 +232,7 @@ def _setDistInterpolations(a, parallelDatas=[], depth=2, double_wall=0,
                                                               interpolationCelln, isEX=1, cfMax=cfMax, check=check)
                     del listOfEXPts
 
-                    for nozd in xrange(nBlksI):
+                    for nozd in range(nBlksI):
                         zdonorname = interpolationZonesName[nozd]
                         zdonor = Internal.getNodeFromName(a, zdonorname)
                         _interpInverseStorage(oppZone,zdonor,nozd,resInterp,depth)
@@ -260,9 +263,9 @@ def _setSeqInterpolations(a, depth=2, double_wall=0, storage='inverse', prefixFi
     if writeInFile == 1:
         # declaration de dictionnaire pour le stockage de donnees par bloc donneur pour l'ecriture en fichier elsA
         listRcvId = {}; nbInterpCellsForDonor = {}; listIndicesRcv = {}; listEXdir={}; listIndicesDonor = {}; listInterpolantsDonor = {}; listCellN={}; listZoneDim={}; listInterpTypes = {}
-    for nob in xrange(nbases):
+    for nob in range(nbases):
         zones = Internal.getNodesFromType1(bases[nob], 'Zone_t')
-        for noz in xrange(len(zones)):
+        for noz in range(len(zones)):
             ZonesId[zones[noz][0]]=Id; Id = Id+1
     ntotZones = len(ZonesId)
 
@@ -271,7 +274,7 @@ def _setSeqInterpolations(a, depth=2, double_wall=0, storage='inverse', prefixFi
     #     duplication des blocs periodiques dans les bases associees
     #     creation d un noeud fils au niveau de la zone dupliquee de nom 'TemporaryPeriodicZone'
     #=======================================================================
-    for nob in xrange(len(a[2])):
+    for nob in range(len(a[2])):
         if a[2][nob][3]=='CGNSBase_t':
             a[2][nob] = C.addPeriodicZones__(a[2][nob])
     # initialisation de liste de parois et de surfaces pour le traitement 'double_wall'
@@ -289,11 +292,11 @@ def _setSeqInterpolations(a, depth=2, double_wall=0, storage='inverse', prefixFi
 
     intersectionDict = XOD.getIntersectingDomains(a, method='AABB')
 
-    for nob in xrange(nbases):
+    for nob in range(nbases):
         if bases[nob][0] == 'CARTESIAN': sameBase = 1 # peut etre a enlever ??
         zones = Internal.getNodesFromType1(bases[nob], 'Zone_t')
         nzones = len(zones)
-        for noz in xrange(nzones):
+        for noz in range(nzones):
             z = zones[noz]
             zname = z[0]
             if Internal.getNodeFromName1(z,'TempPeriodicZone') is not None: break
@@ -327,7 +330,7 @@ def _setSeqInterpolations(a, depth=2, double_wall=0, storage='inverse', prefixFi
                     if depth == 2:
                         listOfInterpCells = []
                         # traitement double_wall
-                        for i in xrange(nBlksI):
+                        for i in range(nBlksI):
                             # changewall des centres et EX si paroi existe pour le domaine d interpolation
                             if (firstWallCenters1 == [] or surfi == []):
                                 listOfInterpCells.append(interpCells)
@@ -347,7 +350,7 @@ def _setSeqInterpolations(a, depth=2, double_wall=0, storage='inverse', prefixFi
                     # traitement des pts EX
                     elif depth == 1:
                         listOfEXPts = []
-                        for i in xrange(nBlksI):
+                        for i in range(nBlksI):
                             zdonorId = ZonesId[interpolationZonesName[i]]
                             if (surfi == [] or firstWallCenters1 == []): listOfEXPts.append(EXPts)
                             else:
@@ -359,7 +362,7 @@ def _setSeqInterpolations(a, depth=2, double_wall=0, storage='inverse', prefixFi
                         resInterp = Connector.setInterpolations__(z[0],nirc, njrc, listOfEXPts, interpolationZones, \
                                                                   interpolationCelln, isEX=1, cfMax=cfMax, zoneId=ZonesId[z[0]]+1, check=check)
                         del listOfEXPts
-                    for nozd in xrange(nBlksI):
+                    for nozd in range(nBlksI):
                         indicesRcv = resInterp[0][nozd]
                         indicesDonor=resInterp[1][nozd]
                         indicesDonorExtC = resInterp[2][nozd]
@@ -536,7 +539,7 @@ def directChimeraTransfer__(t, variables, locinterp):
 
     tp = Internal.copyRef(t)
     zones = Internal.getZones(tp); nzones = len(zones)
-    for noz in xrange(nzones):
+    for noz in range(nzones):
         z = zones[noz]
         parent1,d1 = Internal.getParentOfNode(tp,z)
         lRcvArrays = []
@@ -599,10 +602,10 @@ def getInterpolationDomains__(bases, nob0, noz0, zn0, surfacest=[],
     if surfacest != []: surf = 1
     nbases = len(bases)
     names = []; zones = []; cellns = []
-    for nob in xrange(nbases):
+    for nob in range(nbases):
         if nob != nob0:
             nodes = Internal.getNodesFromType1(bases[nob], 'Zone_t')
-            for noz in xrange(len(nodes)):
+            for noz in range(len(nodes)):
                 zname = nodes[noz][0]; intersect = 1
                 zn = C.getFields(Internal.__GridCoordinates__,nodes[noz])[0]
                 if intersectionDict is not None:
@@ -627,7 +630,7 @@ def getInterpolationDomains__(bases, nob0, noz0, zn0, surfacest=[],
         else:
             if sameBase == 1:
                 nodes = Internal.getNodesFromType1(bases[nob], 'Zone_t')
-                for noz in xrange(len(nodes)):
+                for noz in range(len(nodes)):
                     if (noz != noz0):
                         zname = nodes[noz][0]; intersect = 1
                         zn = C.getFields(Internal.__GridCoordinates__,nodes[noz])[0]
@@ -684,7 +687,7 @@ def inverseChimeraTransfer__(t, variables, locinterp='centers', mesh='extended')
 
     # Parcours des zones locales (qui sont zones donneuses)
     nzones = len(zones)
-    for noz in xrange(nzones):
+    for noz in range(nzones):
         zdonor = zones[noz]
         # Recuperation des champs des zones donneuses pour les grandeurs a transferer
         # Ces champs sont stockes dans un array unique donorArray
@@ -864,7 +867,7 @@ def _chimeraCellRatio__(t):
                     if nindI > 0:
                         field = Converter.array('cellRatio',nindI,1,1)
                         ListIndex = []                                 
-                        for noind in xrange(nindI):
+                        for noind in range(nindI):
                             index = ListRcv[noind]
                             volr = volR[0,index]
                             vold = ListVolD[noind]
@@ -901,7 +904,7 @@ def _chimeraCellRatio__(t):
                         nindI = ListRcv.size         
                         if nindI > 0:
                             field = Converter.array('cellRatio',nindI,1,1)
-                            for noind in xrange(nindI):
+                            for noind in range(nindI):
                                 index = ListRcv[noind]
                                 volr = volR[0,index]
                                 vold = ListVolD[noind]
@@ -951,7 +954,7 @@ def _chimeraDonorAspect__(t):
                 if nindI > 0:
                     edgeRatio = C.getField('centers:EdgeRatio',zd)[0][1]
                     field = Converter.array('donorAspect',nindI,1,1)
-                    for noind in xrange(nindI):     
+                    for noind in range(nindI):     
                         indD = ListDnr[noind]          
                         field[1][0,noind] = edgeRatio[0,indD]
                     C._setPartialFields(zr, [field], [ListRcv], loc='centers')
@@ -987,7 +990,7 @@ def _chimeraDonorAspect__(t):
                     if nindI > 0:
                         ListDnr = Internal.getNodesFromName1(s,'PointList')[0][1]
                         field = Converter.array('donorAspect',nindI,1,1)
-                        for noind in xrange(nindI):
+                        for noind in range(nindI):
                             indD = ListDnr[noind]       
                             field[1][0,noind] = edgeRatio[0,indD]              
                         C._setPartialFields(zr, [field], [ListRcv],loc='centers')                        

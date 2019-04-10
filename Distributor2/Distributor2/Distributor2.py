@@ -5,7 +5,7 @@ __author__ = "Christophe Benoit, Xavier Juvigny, Stephanie Peron, Pascal Raud"
 # 
 # Python Interface for block distribution over processors
 #
-import distributor2
+from . import distributor2
 import numpy
 
 #==============================================================================

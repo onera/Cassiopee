@@ -6,6 +6,9 @@ import Generator as G
 import numpy
 __version__ = Distributor2.__version__
 
+try: range = xrange
+except: pass
+
 #==============================================================================
 # Calcul la liste des bbox
 # IN: arrays: liste des zones sous forme array
@@ -250,7 +253,7 @@ def getProcList(t, NProc=None, sort=False):
                proc = Internal.getValue(proc)
                NProc = max(NProc, proc+1)
     procList = []
-    for s in xrange(NProc): procList.append([])
+    for s in range(NProc): procList.append([])
 
     if not sort: # pas de tri
         for z in zones: 
@@ -277,7 +280,7 @@ def getProcList(t, NProc=None, sort=False):
 
            # Tri les zone par taille decroissante
            new_zones =[]
-           for z in xrange(len(size_zone)):
+           for z in range(len(size_zone)):
              vmax    = max(size_zone)
              pos_max = size_zone.index(vmax)
              new_zones.append(zones[pos_max])
@@ -363,11 +366,11 @@ def printProcStats(t, stats=None, NProc=None):
         dist = stats['distrib']
         if NProc is None: NProc = max(dist)+1
         if len(list(set(dist))) != NProc:
-            print 'Warning: some processors are empty!'
+            print ('Warning: some processors are empty!')
             import sys;sys.exit()
 
         zones = Internal.getZones(t)
-        for proc in xrange(NProc):
+        for proc in range(NProc):
             indexes = [i for i,x in enumerate(dist) if x == proc]
             npts = 0
             lzone = []
@@ -376,19 +379,19 @@ def printProcStats(t, stats=None, NProc=None):
                 lzone.append(Internal.getName(z))
                 dim = Internal.getZoneDim(z)
                 npts += dim[1]*dim[2]*dim[3]
-            print 'Info: proc '+str(proc)+': '+str(npts)+' points for zones ',lzone
+            print ('Info: proc '+str(proc)+': '+str(npts)+' points for zones ',lzone)
                 
     else: # no dist
         d = getProcList(t)
         if NProc is None: NProc = len(d)
-        for proc in xrange(NProc):
+        for proc in range(NProc):
             lzone = d[proc]
             npts = 0
             for i in lzone:
                 z = Internal.getNodeFromName2(t, i)
                 dim = Internal.getZoneDim(z)
                 npts += dim[1]*dim[2]*dim[3]
-            print 'Info: proc '+str(proc)+': '+str(npts)+' points for zones ',lzone
+            print ('Info: proc '+str(proc)+': '+str(npts)+' points for zones ',lzone)
 
     return None
 

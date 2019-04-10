@@ -7,6 +7,9 @@ from . import Connector
 from . import connector
 import numpy
 
+try: range = xrange
+except: pass
+
 from .OversetData import *
 from .OversetData import _setInterpTransfers, __setInterpTransfers, _addCellN__, _setInterpData
 from .OversetDataElsA import _chimeraInfo, setInterpolations, chimeraInfo, chimeraTransfer
@@ -64,13 +67,13 @@ def _connectMatchNGON__(a, tol, dim, glob, allExtFaces=None, allExtIndices=None,
         #C._initVars(allExtFaces,'{centers:tag1}=-1.') # defines the opposite window
         #C._initVars(allExtFaces,'{centers:tag2}=-1.') # defines the opp index in opp window
         #indirBlkOfWins = []
-        #for i in xrange(len(zonesp)): indirBlkOfWins.append(i)
+        #for i in range(len(zonesp)): indirBlkOfWins.append(i)
         # - Par getEmptyWindows
         allExtFaces, indirBlkOfWins, allExtIndices = getEmptyWindowsInfoNGON__(zonesp, dim)
     else:
         # Cas periodique: allExtFaces vient d'un exteriorFaces
         indirBlkOfWins = []
-        for i in xrange(len(allExtFaces)): indirBlkOfWins.append(i)
+        for i in range(len(allExtFaces)): indirBlkOfWins.append(i)
 
     # identify matching exterior faces
     if allExtFaces != []:
@@ -80,15 +83,15 @@ def _connectMatchNGON__(a, tol, dim, glob, allExtFaces=None, allExtIndices=None,
         tagsF = Connector.identifyMatching(tagsF, tol) # modifie tag1, tag2
         infos = Connector.gatherMatchingNGon__(tagsF, allExtIndices)
         rcvZones = infos[0]
-        for i in xrange(rcvZones.size):
+        for i in range(rcvZones.size):
             rcvZones[i] = indirBlkOfWins[rcvZones[i]]
         dnrZones = infos[1]
-        for i in xrange(dnrZones.size):
+        for i in range(dnrZones.size):
             dnrZones[i] = indirBlkOfWins[dnrZones[i]]
         allListRcvFaces = infos[2]
         allListDnrFaces = infos[3]
         nmatch = rcvZones.shape[0]
-        for nm in xrange(nmatch):
+        for nm in range(nmatch):
             noz1p = rcvZones[nm]; noz2p = dnrZones[nm]
             isok = 1
             if periodic == 1:
@@ -181,15 +184,15 @@ def _connectMatchHybrid__(a, tol, dim, glob):
         tagsF = Connector.identifyMatching(tagsF, tol)
         infos = Connector.gatherMatchingNGon__(tagsF, allExtIndices)
         rcvZones = infos[0]
-        for i in xrange(rcvZones.size):
+        for i in range(rcvZones.size):
             rcvZones[i] = indirBlkOfWins[rcvZones[i]]
         dnrZones = infos[1]
-        for i in xrange(dnrZones.size):
+        for i in range(dnrZones.size):
             dnrZones[i] = indirBlkOfWins[dnrZones[i]]
         allListRcvFaces = infos[2]
         allListDnrFaces = infos[3]
         nmatch = rcvZones.shape[0]
-        for nm in xrange(nmatch):
+        for nm in range(nmatch):
             noz1p = rcvZones[nm]; noz2p = dnrZones[nm]
             noz1 = indirZones[noz1p]; noz2 = indirZones[noz2p]
             z1OppName = zones[noz1][0]
@@ -294,7 +297,7 @@ def getEmptyWindowsInfoNGON__(t, dim=3):
     zones = Internal.getZones(t)
     nzones = len(zones)
     indirBlkOfWins=[]; allTags=[]; allExtIndices=[]
-    for noz in xrange(nzones):
+    for noz in range(nzones):
         z = zones[noz]
         zp = C.extractVars(z,['CoordinateX','CoordinateY','CoordinateZ']) # pour eviter des subzones de champs inutiles
         dimZ = Internal.getZoneDim(zp)
@@ -314,7 +317,7 @@ def getEmptyWindowsInfoHybrid__(t, dim=3):
     zones = Internal.getZones(t)
     nzones = len(zones)
     indirBlkOfWins=[]; allTags=[]; allExtIndices=[]
-    for noz in xrange(nzones):
+    for noz in range(nzones):
         z = zones[noz]
         zp = C.extractVars(z,['CoordinateX','CoordinateY','CoordinateZ']) # pour eviter des subzones de champs inutiles
         dimZ = Internal.getZoneDim(zp)
@@ -346,7 +349,7 @@ def getEmptyWindowsInfoStruct__(t, dim=3):
     nzones = len(zones)
     allWins=[]; typeOfWins=[]; indirBlkOfWins=[]; allTags=[]
     dimsI=[]; dimsJ=[]; dimsK=[]
-    for noz in xrange(nzones):
+    for noz in range(nzones):
         z = zones[noz]
         dimsZ = Internal.getZoneDim(z)
         if dimsZ[0] == 'Structured':
@@ -408,13 +411,13 @@ def getEmptyWindowsInfoStruct__(t, dim=3):
                     if dim == 2: kmax = max(1,kmax)
 
                     if now == 1 or now == 2:
-                        for k in xrange(kmin-1,kmax):
+                        for k in range(kmin-1,kmax):
                             taga[jmin-1+k*njc:jmax+k*njc] = -1.
                     elif now == 3 or now == 4:
-                        for k in xrange(kmin-1,kmax):
+                        for k in range(kmin-1,kmax):
                             taga[imin-1+k*nic:imax+k*nic] = -1.
                     elif now == 5 or now == 6:
-                        for j in xrange(jmin-1,jmax):
+                        for j in range(jmin-1,jmax):
                             taga[imin-1+j*nic:imax+j*nic] = -1.
                 allWins += locWins
                 allTags += locTags
@@ -549,9 +552,9 @@ def connectMatchPeriodicNGON__(a, rotationCenter, rotationAngle, translation, to
     elif typePeriodic==2: signT=[0,0]; signR=[-1,1]
     elif typePeriodic==3: signT = [-1,-1,1,1]; signR=[-1,1,-1,1]
     dupname = 'DUPPER_' # prefix for duplicated zones
-    for i in xrange(1, len(infoPer)):
+    for i in range(1, len(infoPer)):
         # renommage des zones dupliquees
-        for noz in xrange(nzonesU):
+        for noz in range(nzonesU):
             zname = infoPer[i][noz][0]
             infoPer[i][noz][0] = dupname+zname
         glob = 0
@@ -564,7 +567,7 @@ def connectMatchPeriodicNGON__(a, rotationCenter, rotationAngle, translation, to
         if glob > 0:
             tag1p = C.getField('centers:tag1',infoPer[i])
             tag1o = C.getField('centers:tag1',allExtFaces0)
-            for noz in xrange(len(tag1p)): tag1p[noz][0]='tag1p'
+            for noz in range(len(tag1p)): tag1p[noz][0]='tag1p'
             tag1o = Converter.addVars([tag1o,tag1p])
             tag1o = Converter.initVars(tag1o,'{tag1}=maximum({tag1},{tag1p})')
             C.setFields(tag1o,allExtFaces0,loc='centers')
@@ -610,14 +613,14 @@ def connectMatchPeriodicStruct__(a,rotationCenter,rotationAngle,translation,tol,
     elif typePeriodic==2: signT=[0,0]; signR=[-1,1]
     elif typePeriodic==3: signT = [-1,-1,1,1]; signR=[-1,1,-1,1]
     dupname = 'DUPPER_' # prefix for duplicated zones
-    for i in xrange(1, len(infoPer)):
+    for i in range(1, len(infoPer)):
         # renommage des zones dupliquees
-        for noz in xrange(nzonesS):
+        for noz in range(nzonesS):
             zname = infoPer[i][noz][0]
             infoPer[i][noz][0] = dupname+zname
         glob = 0
         glob = _connectMatchStruct__(zonesS+infoPer[i],tol,dim,glob)
-        for noz in xrange(nzonesS):
+        for noz in range(nzonesS):
             gcnodes = Internal.getNodesFromType2(zonesS[noz],'GridConnectivity1to1_t')
             _addPeriodicInfo__(gcnodes,rotationCenter,rotationAngle,translation,\
                                signT[i-1],signR[i-1],dupname,unitAngle=unitAngle)
@@ -785,7 +788,7 @@ def connectNearMatch(t, ratio=2, tol=1.e-6, dim=3):
     nzones = len(zones)
     for ratios in allRatios:
         zones2 = []
-        for noz1 in xrange(nzones):
+        for noz1 in range(nzones):
             z1 = zones[noz1]
             # modification des GC pour garder les frontieres definies par une BC lors du passage en oneovern
             bcmatch = Internal.getNodesFromType2(z1, 'GridConnectivity1to1_t')
@@ -815,10 +818,10 @@ def connectNearMatch(t, ratio=2, tol=1.e-6, dim=3):
         allTags1, allWins1, indirBlkOfWins1, typeOfWins1,dimsI1,dimsJ1,dimsK1=getEmptyWindowsInfoStruct__(zones,dim)
         #
         ntags1 = len(allTags1)
-        for now1 in xrange(ntags1): indirBlkOfWins1[now1] +=nzones
+        for now1 in range(ntags1): indirBlkOfWins1[now1] +=nzones
         #
         if len(allTags2) < len(allTags1):
-            for iblk in xrange(len(indirBlkOfWins2)):
+            for iblk in range(len(indirBlkOfWins2)):
                 if indirBlkOfWins2[iblk] != indirBlkOfWins1[iblk]-len(zones):
                     allTags1.pop(iblk)
                     allWins1.pop(iblk)
@@ -974,7 +977,7 @@ def blankCells(t, bodies, blankingMatrix=[], depth=2,
         if coords != []:
             if loc == 'centers': cellN = C.getField('centers:'+cellNName, b)
             else: cellN = C.getField(cellNName, b)
-            for nb2 in xrange(len(bodies)):
+            for nb2 in range(len(bodies)):
                 blanking = blankingMatrix[nb, nb2]
                 if (bodies[nb2] != [] and \
                     (blanking == 1 or blanking == -1)):
@@ -1040,14 +1043,14 @@ def _blankCellsOpt(t, tb, blankingMatrix, depth=2, blankingType='cell_intersect'
     if loc == 'centers': varCellN='centers:'+varCellN
 
     nobody=0
-    for nos in xrange(len(tb[2])):
+    for nos in range(len(tb[2])):
         if tb[2][nos][3]=='CGNSBase_t':
             bodyZones = Internal.getZones(tb[2][nos])
             if len(bodyZones)>0: 
                 bodies = C.getFields(Internal.__GridCoordinates__,bodyZones)# pas d api=2 car peut etre non structure
 
                 nobase=0
-                for nob in xrange(len(t[2])):
+                for nob in range(len(t[2])):
                     if t[2][nob][3]=='CGNSBase_t':
                         blanking = blankingMatrix[nobase,nobody]
                         if blanking == 1 or blanking==-1:
@@ -1055,7 +1058,7 @@ def _blankCellsOpt(t, tb, blankingMatrix, depth=2, blankingType='cell_intersect'
                             if blanking == -1: masknot = 1
 
                             allcoords=[]; allCellN = []
-                            for noz in xrange(len(t[2][nob][2])):
+                            for noz in range(len(t[2][nob][2])):
                                 z = t[2][nob][2][noz]
                                 if z[3]=='Zone_t':
                                     for zb in Internal.getZones(tbBB[2][nos]):
@@ -1120,7 +1123,7 @@ def _blankCells(a, bodies, blankingMatrix=[], depth=2,
         if coords != []:
             if loc == 'centers': cellN = C.getField('centers:'+cellNName, b,api=2)
             else: cellN = C.getField(cellNName, b,api=2)
-            for nb2 in xrange(len(bodies)):
+            for nb2 in range(len(bodies)):
                 blanking = blankingMatrix[nb, nb2]
                 if (bodies[nb2] != [] and \
                     (blanking == 1 or blanking == -1)):
@@ -1179,7 +1182,7 @@ def blankCellsTetra(t, mT4, blankingMatrix=[], blankingType='node_in',
         if loc == 'centers': cellN = C.getField('centers:cellN', b)
         else: cellN = C.getField('cellN', b)
         bc = []
-        for nb2 in xrange(len(mT4)):
+        for nb2 in range(len(mT4)):
             blanking = blankingMatrix[nb, nb2]
             #if (mT4[nb2] == []): print 'empty'
             if (mT4[nb2] == [] or \
@@ -1239,7 +1242,7 @@ def blankCellsTri(t, mT3, blankingMatrix=[], blankingType='node_in',
         if loc == 'centers': cellN = C.getField('centers:cellN', b)
         else: cellN = C.getField('cellN', b)
         bc = []
-        for nb2 in xrange(len(mT3)):
+        for nb2 in range(len(mT3)):
             blanking = blankingMatrix[nb, nb2]
             #if (mT3[nb2] == []): print 'empty'
             if (mT3[nb2] == [] or \
@@ -1299,13 +1302,13 @@ def optimizeOverlap(t, double_wall=0, priorities=[], intersectionsDict=None):
     prios = []
     size = 0
     if nprios == 0:
-        for nob in xrange(nbases): prios.append(0)
+        for nob in range(nbases): prios.append(0)
     else:
         max_prio = 0
-        for nob in xrange(nbases):
+        for nob in range(nbases):
             baseName = bases[nob][0]
             prio = -1
-            for nop in xrange(nprios):
+            for nop in range(nprios):
                 if priorities[2*nop] == baseName:
                     prio = priorities[2*nop+1]
                     max_prio = max(max_prio, prio)
@@ -1314,7 +1317,7 @@ def optimizeOverlap(t, double_wall=0, priorities=[], intersectionsDict=None):
 
         max_prio += 1
         nprios = len(prios)
-        for nop in xrange(nprios):
+        for nop in range(nprios):
             if prios[nop] == -1: prios[nop] = max_prio
 
     #=======================================================================
@@ -1322,7 +1325,7 @@ def optimizeOverlap(t, double_wall=0, priorities=[], intersectionsDict=None):
     #     duplication des blocs periodiques dans les bases associees
     #     creation d'un noeud fils au niveau de la zone dupliquee de nom 'TemporaryPeriodicZone'
     #=======================================================================
-    for nob in xrange(len(a[2])):
+    for nob in range(len(a[2])):
         if Internal.getType(a[2][nob])=='CGNSBase_t':
             a[2][nob] = C.addPeriodicZones__(a[2][nob])
 
@@ -1333,24 +1336,24 @@ def optimizeOverlap(t, double_wall=0, priorities=[], intersectionsDict=None):
         NewAndOldZones = Internal.getZones(a)
         #NAOZqty = len(NewAndOldZones)
         NewAndOldZonesNames = []
-        #[NewAndOldZonesNames.append(NewAndOldZones[i][0]) for i in xrange(NAOZqty)]
+        #[NewAndOldZonesNames.append(NewAndOldZones[i][0]) for i in range(NAOZqty)]
         [NewAndOldZonesNames.append(z[0]) for z in NewAndOldZones]
         OldNames = intersectionsDict.keys()
         NewNames = []
-        #for i in xrange(NAOZqty):
+        #for i in range(NAOZqty):
         #    if NewAndOldZonesNames[i] not in OldNames: NewNames.append(NewAndOldZonesNames[i])
         for zn in NewAndOldZonesNames:
             if zn not in OldNames: NewNames.append(zn)
         if not not NewNames:
             tDuplZones = C.newPyTree(['DuplicatedZones'])
-            #for i in xrange(len(NewNames)): tDuplZones[2][1][2].append(Internal.getNodeFromName2(a,NewNames[i]))
+            #for i in range(len(NewNames)): tDuplZones[2][1][2].append(Internal.getNodeFromName2(a,NewNames[i]))
             for newname in NewNames: tDuplZones[2][1][2].append(Internal.getNodeFromName2(a,newname))
             periodicZonesIntersectionDict = getIntersectingDomains(tDuplZones,a,method='hybrid')
             intersectionsDict.update(periodicZonesIntersectionDict)
 
     # Creation of extended centers meshes
     allExtCenters = []; allCenters = []; zones = [];
-    for nob1 in xrange(nbases):
+    for nob1 in range(nbases):
         zones.append(Internal.getNodesFromType1(bases[nob1], 'Zone_t'))
         nodesPerBase = C.getFields(Internal.__GridCoordinates__,zones[nob1])
         if nodesPerBase == []:
@@ -1366,16 +1369,16 @@ def optimizeOverlap(t, double_wall=0, priorities=[], intersectionsDict=None):
     #=======================================================
     # on cree par zone de chq base la liste des noms des domaines intersectants
     nobOfIntersectBasesAndZones = []; allHooks = []
-    for nob1 in xrange(nbases):
+    for nob1 in range(nbases):
         nobOfIntersectBasesAndZonesForBase1 = []
         allHooksForBase1 = []
-        for noz1 in xrange(len(zones[nob1])):
+        for noz1 in range(len(zones[nob1])):
             isIntersected = False
             nobOfIntersectBasesAndZonesForZone1=[]
-            for nob2 in xrange(nbases):
+            for nob2 in range(nbases):
                 if nob2 != nob1 :
                     nobOfIntersectZonesOfBase2 = [] # numero des zones de base2 intersectant z1
-                    for noz2 in xrange(len(zones[nob2])):
+                    for noz2 in range(len(zones[nob2])):
                         if zones[nob2][noz2][0] in intersectionsDict[zones[nob1][noz1][0]]:
                             isIntersected = True
                             nobOfIntersectZonesOfBase2.append(noz2)
@@ -1395,11 +1398,11 @@ def optimizeOverlap(t, double_wall=0, priorities=[], intersectionsDict=None):
     #=====================================================
     isDW = 0
     if double_wall == 0:
-        for nob1 in xrange(nbases-1):
+        for nob1 in range(nbases-1):
             base1 = bases[nob1]
             zones1 = Internal.getNodesFromType1(base1, 'Zone_t')
             prio1 = prios[nob1]; noz1 = 0
-            for noz1 in xrange(len(zones1)):
+            for noz1 in range(len(zones1)):
                 z1 = zones1[noz1]
                 isTempPeriodicZone1 = 0
                 if Internal.getNodeFromName1(z1,'TempPeriodicZone') is None:
@@ -1412,7 +1415,7 @@ def optimizeOverlap(t, double_wall=0, priorities=[], intersectionsDict=None):
                 ac1 = Converter.addVars([ac1,sol1,vol1])
                 adt1 = allHooks[nob1][noz1]
                 nobOfIntersectBasesAndZonesForZone1 = nobOfIntersectBasesAndZones[nob1][noz1]
-                for nobi in xrange(len(nobOfIntersectBasesAndZonesForZone1)/2):
+                for nobi in range(len(nobOfIntersectBasesAndZonesForZone1)/2):
                     nob2 = nobOfIntersectBasesAndZonesForZone1[nobi*2]
                     if nob2 > nob1:
                         prio2 = prios[nob2]
@@ -1444,11 +1447,11 @@ def optimizeOverlap(t, double_wall=0, priorities=[], intersectionsDict=None):
         dwInfo = DoubleWall.extractDoubleWallInfo__(a)
         firstWallCenters = dwInfo[0]; surfacesExtC = dwInfo[1]
         # liste des surfaces en centres etendus de toutes les zones de toutes les bases
-        for nob1 in xrange(nbases-1):
+        for nob1 in range(nbases-1):
             base1 = bases[nob1]
             zones1 = Internal.getNodesFromType1(base1, 'Zone_t')
             prio1 = prios[nob1]
-            for noz1 in xrange(len(zones1)):
+            for noz1 in range(len(zones1)):
                 z1 = zones1[noz1]
                 isTempPeriodicZone1 = 0
                 if Internal.getNodeFromName1(z1,'TempPeriodicZone') is None:
@@ -1466,7 +1469,7 @@ def optimizeOverlap(t, double_wall=0, priorities=[], intersectionsDict=None):
 
                 # parcours des bases intersectantes
                 nobOfIntersectBasesAndZonesForZone1 = nobOfIntersectBasesAndZones[nob1][noz1]
-                for nobi in xrange(len(nobOfIntersectBasesAndZonesForZone1)/2):
+                for nobi in range(len(nobOfIntersectBasesAndZonesForZone1)/2):
                     nob2 = nobOfIntersectBasesAndZonesForZone1[nobi*2]
                     if nob2 > nob1:
                         prio2 = prios[nob2]
@@ -1528,7 +1531,7 @@ def optimizeOverlap(t, double_wall=0, priorities=[], intersectionsDict=None):
     # remise a jour du celln : de 3 passe a 2
     C._initVars(a,'{centers:cellN}=minimum(2.,{centers:cellN})')
     #
-    for nob1 in xrange(len(allHooks)):
+    for nob1 in range(len(allHooks)):
         allHooksForBase1 = allHooks[nob1]
         for hookZ1 in allHooksForBase1:
             if hookZ1 is not None: Converter.freeHook(hookZ1)
@@ -1793,7 +1796,7 @@ def setDoublyDefinedBC(t, depth=2):
     #     duplication des blocs periodiques dans les bases associees
     #     creation d un noeud fils au niveau de la zone dupliquee de nom 'TemporaryPeriodicZone'
     #=======================================================================
-    for nob in xrange(len(a[2])):
+    for nob in range(len(a[2])):
         if Internal.getType(a[2][nob])=='CGNSBase_t':
             a[2][nob] = C.addPeriodicZones__(a[2][nob])
 

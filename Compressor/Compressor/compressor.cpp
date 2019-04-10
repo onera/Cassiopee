@@ -47,7 +47,7 @@ static struct PyModuleDef moduledef = {
         "compressor",
         NULL,
         sizeof(struct module_state),
-        Pykcore,
+        Pycompressor,
         NULL,
         myextension_traverse,
         myextension_clear,

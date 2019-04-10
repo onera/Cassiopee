@@ -1,11 +1,12 @@
 # - gestion du compactage et des transferts compacts - 
-import connector
+from . import connector
 import numpy
 
-try:
-    import Converter.Internal as Internal
-except:
-    raise ImportError("Connector.compactTransfers requires Converter module.")
+try: import Converter.Internal as Internal
+except: raise ImportError("Connector.compactTransfers requires Converter module.")
+
+try: range = xrange
+except: pass
 
 #==============================================================================
 # Mise a plat (compactage) arbre donneur au niveau de la base
@@ -135,7 +136,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
          # on recupere le nombre de type different
          #typecell = Interptype[1][0]
          #Nbtype = [ typecell ]
-         #for i in xrange(Nbpts_D):
+         #for i in range(Nbpts_D):
          #  if Interptype[1][i] not in Nbtype: Nbtype.append(Interptype[1][i])
          #print 'nb type',  len(Nbtype), s[0],z[0], Nbtype
          nbType = numpy.unique(Interptype[1])
@@ -192,7 +193,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
              ntab_int = ntab_int + 27
             
 
-    for i in xrange(NbP2P): sizeproc.append(5 + TimeLevelNumber*2 + ntab_int*rac[i] + sizeI[i])
+    for i in range(NbP2P): sizeproc.append(5 + TimeLevelNumber*2 + ntab_int*rac[i] + sizeI[i])
            
     size_int  =  1 + NbP2P + sum(sizeproc)
     size_real =  sum(sizeR)
@@ -220,7 +221,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
         S_IBC=0
         S_ID=0
 
-        for nstep in xrange(0,len(list_graph)):
+        for nstep in range(0,len(list_graph)):
 
             graphID_   = list_graph[nstep]['graphID']
             graphIBCD_ = list_graph[nstep]['graphIBCD']
@@ -300,7 +301,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
     # print "shift_graph is ",shift_graph
     shift_coef  =0
     shift       = shift_graph # le shift prend en compte la postion des graphs (ID+IBC) entre la address contenant NbP2P et 
-    for i in xrange(NbP2P):
+    for i in range(NbP2P):
        adr_coef.append(shift_coef)                    #adresse echange dans param_real
        shift_coef = shift_coef + sizeR[i]
 
@@ -313,7 +314,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
        size_coef.append(0)
        nb_rac.append(0)
 
-    for iter in xrange(numero_min,numero_max+1): 
+    for iter in range(numero_min,numero_max+1): 
         ordered_subRegions =  ordered_subRegions + inst[ iter ][0]
         No_zoneD           =  No_zoneD           + inst[ iter ][1]
         MeshTypeD          =  MeshTypeD          + inst[ iter ][2]
@@ -365,7 +366,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
 
        param_int[ pt_ech +3 ] = TimeLevelNumber
        nrac_inst_deb  =  nrac_steady
-       for i in xrange(TimeLevelNumber):
+       for i in range(TimeLevelNumber):
             # len(inst[i][0])  = nb de raccord instationnaire pour le temps i
             nrac_inst_fin  = nrac_inst_deb + len(inst[i+numero_min][0])
 
@@ -383,7 +384,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
        #on recupere le nombre de type different
        typecell = Interptype[1][0]
        Nbtype= [ typecell ]
-       for i in xrange(Nbpts_D):
+       for i in range(Nbpts_D):
           if Interptype[1][i] not in Nbtype: Nbtype.append(Interptype[1][i])
 
        #Si le type zero existe, on le place a la fin: sinon adressage openmp=boom dans donorPts
@@ -650,7 +651,7 @@ def triMultiType(Nbpts_D, Nbpts, Nbpts_InterpD,meshtype, noi, lst,lstD,l0,ctyp,p
     noi_old   = 0
     nocoef_old= 0
     l         = 0
-    for i in xrange(Nbpts_D):
+    for i in range(Nbpts_D):
        ltype = Interptype[1][i]
        if meshtype == 1:
          if ltype == 1: sizecoef=1

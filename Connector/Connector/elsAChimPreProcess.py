@@ -3,6 +3,9 @@ import numpy
 import Compressor
 import Compressor.PyTree as Co
 
+try: range = xrange
+except: pass
+
 # =============================================================================
 # Initialization of dictionnary for unsteady preprocessing
 # OUT : hook: list of dictionnaries for blanking, center and face interpolations
@@ -93,7 +96,7 @@ def computeUnsteadyInterp(tp, hook, ite,loc='cell', nGhostCells=2):
                             jmrg = jmr-1 + 2*nGhostCells
                             kmrg = kmr-1 + 2*nGhostCells
                             nbintByDir = imrg*jmrg*kmrg
-                            for i in xrange(len(rcvIndices)):
+                            for i in range(len(rcvIndices)):
                                 rk = rcvIndices[i]/((imr-1)*(jmr-1))
                                 rj = (rcvIndices[i] - rk*(imr-1)*(jmr-1))/(imr-1)
                                 ri = rcvIndices[i] - rk*(imr-1)*(jmr-1) - rj*(imr-1)+1
@@ -188,7 +191,7 @@ def globalIndex(dim, array1,ghostcells):
     nij = ni*nj
     s = array1.shape[1]
     a = numpy.empty( (s), dtype=numpy.int32 )
-    for i in xrange(s):
+    for i in range(s):
         a[i] = (array1[0,i]-1+ghostcells) + (array1[1,i]-1+ghostcells)*ni + (array1[2,i]-1+ghostcells)*nij
     return a
 

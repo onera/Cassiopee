@@ -47,7 +47,7 @@ static struct PyModuleDef moduledef = {
         "distributor2",
         NULL,
         sizeof(struct module_state),
-        Pyconverter,
+        Pydistributor2,
         NULL,
         myextension_traverse,
         myextension_clear,

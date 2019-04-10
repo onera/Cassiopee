@@ -2,6 +2,9 @@
 from . import Connector
 __version__ = Connector.__version__
 
+try: range = xrange
+except: pass
+
 try:
     import Geom
     import Transform
@@ -20,7 +23,7 @@ def getBCWallRanges__(z, familyNames=[]):
     bnds = Internal.getNodesFromType2(z, 'BC_t')
     for bc in bnds:
         v = Internal.getValue(bc)
-        if (v == 'BCWallViscous' or v == 'BCWall' or v == 'BCWallInviscid'):
+        if v == 'BCWallViscous' or v == 'BCWall' or v == 'BCWallInviscid':
             range0 = Internal.getNodeFromName1(bc, 'PointRange')
             r = Internal.range2Window(range0[1])
             i1 = int(r[0]); j1 = int(r[2]); k1 = int(r[4])
@@ -55,7 +58,7 @@ def getFirstPointsInfo0__(z, wallRanges, loc='nodes'):
 
     ni = z[2]; nj = z[3]; nk = z[4]; ninj = ni*nj
     indwt = Converter.array('indcellw',ni,nj,nk); indca = indwt[1]
-    for ind in xrange(indca.shape[1]): indca[0,ind] = float(ind)
+    for ind in range(indca.shape[1]): indca[0,ind] = float(ind)
 
     wallsc = []
     dirz = Converter.array('dir1,dir2,dir3',ni,nj,nk)
@@ -276,7 +279,7 @@ def extractDoubleWallInfo__(t):
             # Identify nodes
             hsRef = hsRef[1]
             hook = Converter.createHook(surfacesPerBase,'nodes') 
-            for nosz in xrange(len(surfacesExt)): # identification par zone
+            for nosz in range(len(surfacesExt)): # identification par zone
                 surfECZ = surfacesExt[nosz]
                 if surfECZ != []:
                     surfECZ = Converter.addVars(surfECZ,'hmax')
@@ -289,7 +292,7 @@ def extractDoubleWallInfo__(t):
                     surfECZ = Converter.addVars([surfECZ,hsLoc])
                     surfECZ = Converter.convertArray2Tetra(surfECZ,split='withBarycenters')
                     surfacesExt[nosz]=[surfECZ]
-            for nozOfNob in xrange(len(firstCenters[nob])):
+            for nozOfNob in range(len(firstCenters[nob])):
                 wallZ = firstCenters[nob][nozOfNob]
                 if wallZ !=[]:
                     indices2 = Converter.identifyNodes(hook,wallZ)

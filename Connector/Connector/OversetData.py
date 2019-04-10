@@ -5,6 +5,9 @@ from . import connector
 import numpy
 __version__ = Connector.__version__
 
+try: range = xrange
+except: pass
+
 try:
     import Converter.Internal as Internal
     import Converter.PyTree as C
@@ -246,7 +249,7 @@ def getCEBBTimeIntersectingDomains(base0, func, bases0, funcs, \
     zones = []
     t = 0.
     doms = []
-    for i in xrange(inititer, niter):
+    for i in range(inititer, niter):
         t = i*dt
         if func != []: basep = R.evalPosition(basem, t, func)
         else: basep = Internal.copyRef(basem)
@@ -375,7 +378,7 @@ def setIBCData(tR, tD, order=2, penalty=0, nature=0,
     else:
         ztD = Internal.getZones(tD)
         zaD = Internal.getZones(aD)
-        for i in xrange(len(ztD)): # enleve le cellN si interpData l'a ajoute
+        for i in range(len(ztD)): # enleve le cellN si interpData l'a ajoute
             ret = C.isNamePresent(ztD[i], 'cellN')
             if ret == -1: C._rmVars(zaD[i],['cellN'])
         return aD
@@ -449,12 +452,12 @@ def _setIBCDataForZone__(z, zonesDnr, correctedPts, wallPts, interpPts, loc='nod
         #-------------------------------------------------------------------------
         # Orphan
         if nborphan>0:
-            for noi in xrange(nborphan):
+            for noi in range(nborphan):
                 noind = resInterp[5][noi]
                 resInterp[5][noi] = indcells[noind]
 
         # Interpolated/Extrapolated
-        for noz in xrange(nzonesDnr):
+        for noz in range(nzonesDnr):
             ninterploc = resInterp[0][noz].size
             if ninterploc>0: # domaine d'interpolation
                 correctedPtsL = Converter.array("CoordinateX,CoordinateY,CoordinateZ",ninterploc,1,1)
@@ -464,7 +467,7 @@ def _setIBCDataForZone__(z, zonesDnr, correctedPts, wallPts, interpPts, loc='nod
                 mirrorPtsL = Converter.array("CoordinateX,CoordinateY,CoordinateZ",ninterploc,1,1)
                 xPI = mirrorPtsL[1][0,:]; yPI = mirrorPtsL[1][1,:]; zPI = mirrorPtsL[1][2,:]
 
-                for noi in xrange(ninterploc):
+                for noi in range(ninterploc):
                     index = resInterp[0][noz][noi]
                     # Indices of receptor pts
                     resInterp[0][noz][noi] = indcells[index]
@@ -478,10 +481,10 @@ def _setIBCDataForZone__(z, zonesDnr, correctedPts, wallPts, interpPts, loc='nod
                 allMirrorPts[noz] = mirrorPtsL
 
         if len(resInterp[4])>0: # Sort extrapolated points wrt donor zones
-            for noz in xrange(nzonesDnr):
+            for noz in range(nzonesDnr):
                 nextraploc = resInterp[4][noz].size
                 if nextraploc>0: # Extrapoles
-                    for noi in xrange(nextraploc):
+                    for noi in range(nextraploc):
                         index = resInterp[4][noz][noi]
                         resInterp[4][noz][noi] = indcells[index]
 
@@ -497,7 +500,7 @@ def _setIBCDataForZone__(z, zonesDnr, correctedPts, wallPts, interpPts, loc='nod
         CFS = numpy.array([],numpy.float64)
         VOL = numpy.array([],numpy.float64)
         ORPHAN = resInterp[5]
-        for noz in xrange(nzonesDnr):
+        for noz in range(nzonesDnr):
             # ajout des donnees d'interpolation
             ninterploc = resInterp[0][noz].size
             if ninterploc>0:# est un domaine donneur
@@ -784,7 +787,7 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
                 an = Converter.addVars([an,cellN])
                 if double_wall == 1 and interpWallPts[nozr] != []: # dw: liste d arrays
                     isdw = 1
-                    for nozd in xrange(nzonesDnr):
+                    for nozd in range(nzonesDnr):
                         an2 = Connector.changeWall__(an, interpWallPts[nozr], donorSurfs[nozd])
                         interpPts.append(Connector.getInterpolatedPoints__(an2))
                 else: # pas de dw: un seul array
@@ -797,7 +800,7 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
                 ac = Converter.addVars([ac,cellN])
                 if double_wall == 1 and interpWallPts[nozr] != []:# dw : liste d arrays
                     isdw = 1
-                    for nozd in xrange(nzonesDnr):
+                    for nozd in range(nzonesDnr):
                         ac2 = Connector.changeWall__(ac, interpWallPts[nozr], donorSurfs[nozd])
                         interpPts.append(Connector.getInterpolatedPoints__(ac2))
                 else:  # pas de dw : un seul array
@@ -837,22 +840,22 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
                 # pour ceux obtenus en sortie de setInterpData
                 # Orphelins
                 if nborphan > 0:
-                    for noi in xrange(nborphan):
+                    for noi in range(nborphan):
                         noind = resInterp[5][noi]
                         resInterp[5][noi] = indcells[noind]
                 # Interpoles/Extrapoles
-                for noz in xrange(nzonesDnr):
+                for noz in range(nzonesDnr):
                     ninterploc = resInterp[0][noz].size
                     if ninterploc > 0:# domaine d'interpolation
                         # Indices des receveurs
-                        for noi in xrange(ninterploc):
+                        for noi in range(ninterploc):
                             index = resInterp[0][noz][noi]
                             resInterp[0][noz][noi] = indcells[index]
                 if len(resInterp[4])>0: # pts extrapoles par zone donneuse
-                    for noz in xrange(nzonesDnr):
+                    for noz in range(nzonesDnr):
                         nextraploc = resInterp[4][noz].size
                         if nextraploc > 0:# Extrapoles
-                            for noi in xrange(nextraploc):
+                            for noi in range(nextraploc):
                                 index = resInterp[4][noz][noi]
                                 resInterp[4][noz][noi] = indcells[index]
 
@@ -861,7 +864,7 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
                 # direct: on stocke dans aR
                 # inverse: on stocke dans aD
                 #----------------------------------
-                for noz in xrange(nzonesDnr):
+                for noz in range(nzonesDnr):
                     # ajout des donnees d interpolation
                     ninterploc = resInterp[0][noz].size
                     if ninterploc>0: # domaine d'interpolation
@@ -959,7 +962,7 @@ def _setInterpDataConservative__(aR, aD, storage='direct'):
 
                 # Orphelins
                 if nborphan > 0:
-                    for noi in xrange(nborphan):
+                    for noi in range(nborphan):
                         index = resInterp[4][noi]
                         resInterp[4][noi]=indicesRcvOrig[index]
                     orphanPts = resInterp[4]
@@ -970,7 +973,7 @@ def _setInterpDataConservative__(aR, aD, storage='direct'):
 
                 # 3. stockage dans l arbre                            
                 # on recupere les bons indices de pts interpoles (indcell ds interpPts)
-                for noz in xrange(nzonesDnr):
+                for noz in range(nzonesDnr):
                     dnrname=donorZoneNames[noz]
                     # ajout des donnees d interpolation
                     ninterploc = resInterp[0][noz].size
@@ -1153,7 +1156,7 @@ def setInterpData2(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
       #    prange_list=[]
       #    for join in listofjoins:
       #        prange = Internal.getNodeFromName1(join,'PointRange')[1]
-      #        for i in xrange(3):
+      #        for i in range(3):
       #            if prange[i,1] == prange[i,0] and prange[i,1] != 1:
       #                  prange[i,1] =  prange[i,1]-1
       #                  prange[i,0] =  prange[i,0]-1
@@ -1205,7 +1208,7 @@ def setInterpData2(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
                 an = Converter.addVars([an,cellN])
                 if double_wall == 1 and interpWallPts[nozr] != []: # dw: liste d arrays
                     isdw = 1
-                    for nozd in xrange(nzonesDnr):
+                    for nozd in range(nzonesDnr):
                         an2 = Connector.changeWall__(an, interpWallPts[nozr], donorSurfs[nozd])
                         interpPts.append(Connector.getInterpolatedPoints__(an2))
                 else: # pas de dw: un seul array
@@ -1218,7 +1221,7 @@ def setInterpData2(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
                 ac = Converter.addVars([ac,cellN])
                 if double_wall == 1 and interpWallPts[nozr] != []:# dw : liste d arrays
                     isdw = 1
-                    for nozd in xrange(nzonesDnr):
+                    for nozd in range(nzonesDnr):
                         ac2 = Connector.changeWall__(ac, interpWallPts[nozr], donorSurfs[nozd])
                         interpPts.append(Connector.getInterpolatedPoints__(ac2))
                 else:  # pas de dw : un seul array
@@ -1257,22 +1260,22 @@ def setInterpData2(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
                 # pour ceux obtenus en sortie de setInterpData
                 # Orphelins
                 if nborphan > 0:
-                    for noi in xrange(nborphan):
+                    for noi in range(nborphan):
                         noind = resInterp[5][noi]
                         resInterp[5][noi] = indcells[noind]
                 # Interpoles/Extrapoles
-                for noz in xrange(nzonesDnr):
+                for noz in range(nzonesDnr):
                     ninterploc = resInterp[0][noz].size
                     if ninterploc > 0:# domaine d'interpolation
                         # Indices des receveurs
-                        for noi in xrange(ninterploc):
+                        for noi in range(ninterploc):
                             index = resInterp[0][noz][noi]
                             resInterp[0][noz][noi] = indcells[index]
                 if len(resInterp[4])>0: # pts extrapoles par zone donneuse
-                    for noz in xrange(nzonesDnr):
+                    for noz in range(nzonesDnr):
                         nextraploc = resInterp[4][noz].size
                         if nextraploc > 0:# Extrapoles
-                            for noi in xrange(nextraploc):
+                            for noi in range(nextraploc):
                                 index = resInterp[4][noz][noi]
                                 resInterp[4][noz][noi] = indcells[index]
 
@@ -1284,7 +1287,7 @@ def setInterpData2(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
             
                 levelrcv = niveaux_temps[z[0]]
   
-                for noz in xrange(nzonesDnr):
+                for noz in range(nzonesDnr):
                     # ajout des donnees d interpolation
                     ninterploc = resInterp[0][noz].size
                     if ninterploc>0: # domaine d'interpolation
@@ -1394,7 +1397,7 @@ def setInterpData2(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
     else:
         ztD = Internal.getZones(tD)
         zaD = Internal.getZones(aD)
-        for i in xrange(len(ztD)): # enleve le cellN is interpData l'a ajoute
+        for i in range(len(ztD)): # enleve le cellN is interpData l'a ajoute
             ret = C.isNamePresent(ztD[i], 'cellN')
             if ret == -1: C._rmVars(zaD[i],['cellN'])
         return aD
@@ -2057,8 +2060,8 @@ def setInterpDataForGhostCells2__(tR, tD, storage='direct', loc='nodes'):
                   
                     #print 'prangeav= ',prange
                     ### passage en indices "cell centered"
-                    #for j in xrange(2):
-                    for i in xrange(3):
+                    #for j in range(2):
+                    for i in range(3):
                         if prange[i,1] == prange[i,0] and prange[i,1] != 1:
                              prange[i,1] =  prange[i,1]-1
                              prange[i,0] =  prange[i,0]-1
@@ -2075,7 +2078,7 @@ def setInterpDataForGhostCells2__(tR, tD, storage='direct', loc='nodes'):
                     #prangedonor=numpy.append(prangedonor,[directiond,0])
 
                     ### passage en indices "cell centered"
-                    for i in xrange(3):
+                    for i in range(3):
                         if prangedonor[i,1] == prangedonor[i,0] and prangedonor[i,1] != 1:
                              prangedonor[i,1] =  prangedonor[i,1]-1
                              prangedonor[i,0] =  prangedonor[i,0]-1
@@ -2100,9 +2103,9 @@ def setInterpDataForGhostCells2__(tR, tD, storage='direct', loc='nodes'):
                     #print 'pt_pivot_ap= ',pt_pivot
                     # Inversion du vector transform pour l explicite local
                     transfo_inv=numpy.array(transfo[1][0:3])   
-                    for i in xrange(0,3):
+                    for i in range(0,3):
                         transfo_inv[abs(transfo[1][i])-1]=i+1
-                        if (transfo[1][i] < 0): transfo_inv[abs(transfo[1][i])-1]=-(i+1) 
+                        if transfo[1][i] < 0: transfo_inv[abs(transfo[1][i])-1]=-(i+1) 
 
                     dirR = GhostCells.getDirBorderStruct__(prange,dimm)
                     dirD = GhostCells.getDirBorderStruct__(prangedonor,dimm)
@@ -2941,7 +2944,7 @@ def oversetCellRatio__(aR, topTreeD):
                 nindI = ListDnr.size
                 if nindI > 0:
                     field = Converter.array('cellRatio',nindI,1,1)
-                    for noind in xrange(nindI):
+                    for noind in range(nindI):
                         voldl = volDnr[0,ListDnr[noind]]
                         volrl = volRcv[0,ListRcv[noind]]
                         cr = max(voldl/volrl,volrl/voldl)
@@ -2985,7 +2988,7 @@ def oversetCellRatio__(aR, topTreeD):
                     nindI = ListDnr.size
                     if nindI > 0:
                         field = Converter.array('cellRatio',nindI,1,1)
-                        for noind in xrange(nindI):
+                        for noind in range(nindI):
                             voldl = volDnr[0,ListDnr[noind]]
                             volrl = volRcv[0,ListRcv[noind]]
                             cr = max(voldl/volrl,volrl/voldl)
@@ -3048,7 +3051,7 @@ def oversetDonorAspect__(aR, topTreeD):
                 nindI = ListDnr.size
                 if nindI > 0:
                     field = Converter.array('donorAspect',nindI,1,1)
-                    for noind in xrange(nindI):             
+                    for noind in range(nindI):             
                         field[1][0,noind] = ER[0,ListDnr[noind]]
                     zr = C.setPartialFields(zr, [field], [ListRcv],loc=locr)   
         #
@@ -3088,7 +3091,7 @@ def oversetDonorAspect__(aR, topTreeD):
                     nindI = ListDnr.size
                     if nindI > 0:
                         field = Converter.array('donorAspect',nindI,1,1)
-                        for noind in xrange(nindI):
+                        for noind in range(nindI):
                             field[1][0,noind] = ER[0,ListDnr[noind]]
                         zr = C.setPartialFields(zr, [field], [ListRcv], loc=locr)  
                         # parentr[2][dr] = zr
@@ -3141,14 +3144,14 @@ def cellN2OversetHoles(t, append=False):
             im = dim[1]; jm = dim[2]; km = dim[3]
             if loc == 'centers': im = im-1; jm = jm-1; km = km-1
             nb = 0
-            for i in xrange(cellN.size):
+            for i in range(cellN.size):
                 if cellN[i] == 0: nb += 1
             pointList = numpy.empty((cellDim,nb), dtype=numpy.int32, order='Fortran' )
             connector.cellN2OversetHolesStruct(pointList, cellN, im, jm, cellDim, cellN.size)
         # Unstructured zone
         else:
             nb = 0
-            for i in xrange(cellN.size):
+            for i in range(cellN.size):
                 if cellN[i] == 0: nb += 1
             pointList = numpy.empty((1,nb), dtype=numpy.int32)
             connector.cellN2OversetHolesUnStruct(pointList, cellN, cellN.size)

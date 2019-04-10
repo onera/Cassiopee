@@ -7,8 +7,10 @@ __author__ = "Stephanie Peron, Christophe Benoit, Gaelle Jeanfaivre, Pascal Raud
 #
 from . import connector
 
-__all__ = ['blankCells', '_blankCells', 'blankCellsTetra', 'blankCellsTri', 'blankIntersectingCells', 'chimeraTransfer', 'connectMatch', 'getIntersectingDomainsAABB', 'maximizeBlankedCells', 'optimizeOverlap', 'setDoublyDefinedBC', 'setHoleInterpolatedPoints', 'setIBCTransfers', 'setIBCTransfersD', 'setInterpTransfers', 'setInterpTransfersD', 'writeCoefs','maskXRay__','_applyBCOverlapsStruct__','applyBCOverlapsStruct__','applyBCOverlapsNG__','getInterpolatedPoints__','getEXPoints__']
+try: range = xrange
+except: pass
 
+__all__ = ['blankCells', '_blankCells', 'blankCellsTetra', 'blankCellsTri', 'blankIntersectingCells', 'chimeraTransfer', 'connectMatch', 'getIntersectingDomainsAABB', 'maximizeBlankedCells', 'optimizeOverlap', 'setDoublyDefinedBC', 'setHoleInterpolatedPoints', 'setIBCTransfers', 'setIBCTransfersD', 'setInterpTransfers', 'setInterpTransfersD', 'writeCoefs','maskXRay__','_applyBCOverlapsStruct__','applyBCOverlapsStruct__','applyBCOverlapsNG__','getInterpolatedPoints__','getEXPoints__']
 
 #===============================================================================
 def connectMatch(a1, a2, sameZone=0, tol=1.e-6, dim=3):
@@ -301,7 +303,7 @@ def blankCellsTetra(coords, cellnfields, meshT4, blankingType=1, tol = 1.e-12, c
     
     mask = connector.createTetraMask(meshT4, maskSkin, tol)  
     
-    for i in xrange(len(coords)):
+    for i in range(len(coords)):
       #print 'coords : %d / %d' %(i+1, len(coords))
       bt = blankingType
       if blankingType == 2: # center_in: simplement un node_in sur les centres
@@ -334,7 +336,7 @@ def blankCellsTri(coords, cellnfields, meshT3, blankingType=1, tol = 1.e-12,
     
     mask = connector.createTriMask(meshT3, tol)
     
-    for i in xrange(len(coords)):
+    for i in range(len(coords)):
       #print 'coords : %d / %d' %(i+1, len(coords))
       bt = blankingType
       if blankingType == 2: # center_in: simplement un node_in sur les centres
@@ -473,7 +475,7 @@ def setInterpolations__(rcvzonename,nir, njr, interpPts,
     nborphan = 0; nbextrapolated = 0; nbinterpolated = 0
     nbinterpolated = interpPts[0][1].shape[1]
     if len(resInterp[5])>0:
-        for nozd in xrange(len(resInterp[6])): nbextrapolated += resInterp[6][nozd].size
+        for nozd in range(len(resInterp[6])): nbextrapolated += resInterp[6][nozd].size
         nborphan = resInterp[7][0].size
         nbinterpolated = nbinterpolated-nbextrapolated-nborphan
         if check: # sequential context

@@ -12,6 +12,9 @@ try:
 except:
     raise ImportError("Connector.ToolboxIBM requires Converter, Generator, Transform, Dist2Walls and Post modules.")
 
+try: range = xrange
+except: pass
+
 varsn = ['gradxTurbulentDistance','gradyTurbulentDistance','gradzTurbulentDistance']
 TOLDIST = 1.e-14
 SHIFTF = 1.e-10
@@ -37,7 +40,7 @@ def generateCompositeIBMMesh(tb, vmin, snears, dfar, dfarloc=0., DEPTH=2, NP=0, 
 
     DEPTHEXT = 3*DEPTH+1
     tov = Internal.rmNodesFromType(tb,'Zone_t')
-    for nob in xrange(len(tb[2])):
+    for nob in range(len(tb[2])):
         base = tb[2][nob]
         if base[3] == 'CGNSBase_t':
             basename = base[0]
@@ -96,11 +99,11 @@ def prepareCompositeIBMData(t,tb, DEPTH=2, loc='centers', frontType=1):
     if dimPb is None: raise ValueError('EquationDimension is missing in input body tree.')
     dimPb = Internal.getValue(dimPb)
     tc = C.newPyTree()
-    for nob in xrange(len(t[2])):
+    for nob in range(len(t[2])):
         if Internal.getType(t[2][nob])=='CGNSBase_t':
             basename = t[2][nob][0]
             C._addBase2PyTree(tc,basename)
-    for nob in xrange(len(tb[2])):
+    for nob in range(len(tb[2])):
         if tb[2][nob][3]=='CGNSBase_t':
             basename = tb[2][nob][0]
             tloc = C.newPyTree([basename]); tloc[2][1]=t[2][nob]
@@ -186,7 +189,7 @@ def getListOfOffBodyIntersectingNBZones(tBB, noBaseOff, NIT=1, DEPTH=2,
     C._initVars(tBB[2][noBaseOff],"{CoordinateYInit}={CoordinateY}")
     C._initVars(tBB[2][noBaseOff],"{CoordinateZInit}={CoordinateZ}")
 
-    for it in xrange(NIT):
+    for it in range(NIT):
         if constantMotion: 
             if rotation:
                 angleX = RotationAngle[0]*it
@@ -214,7 +217,7 @@ def getListOfOffBodyIntersectingNBZones(tBB, noBaseOff, NIT=1, DEPTH=2,
         elif translation: 
             tBB[2][noBaseOff]=T.translate(tBB[2][noBaseOff],(-tx,-ty,-tz))      
 
-        for nob in xrange(len(tBB[2])):
+        for nob in range(len(tBB[2])):
             if nob != noBaseOff and Internal.getType(tBB[2][nob])=='CGNSBase_t':
                 dictOfIntersectingZones = X.getIntersectingDomains(tBB[2][nob],t2=tBB[2][noBaseOff],
                                                                    method='AABB',taabb=tBB[2][nob],taabb2=tBB[2][noBaseOff])
@@ -282,11 +285,11 @@ def prepareMotionChimeraData(t,tc,tblank,noBaseOff, tBB=None,DEPTH=2,loc='center
     C._initVars(tc[2][noBaseOff],"{cellNInit}={cellN}")
     dictOfNearBodyBaseNb={}
     dictOfNearBodyZoneNb={}
-    for nob in xrange(len(tc[2])):
+    for nob in range(len(tc[2])):
         if nob != noBaseOff:
             base = tc[2][nob]
             if Internal.getType(base)=='CGNSBase_t':
-                for noz in xrange(len(base[2])):
+                for noz in range(len(base[2])):
                     zone = base[2][noz]
                     if Internal.getType(zone)=='Zone_t':
                         zname=zone[0]
@@ -295,7 +298,7 @@ def prepareMotionChimeraData(t,tc,tblank,noBaseOff, tBB=None,DEPTH=2,loc='center
 
     dictOfOffBodyZoneNb={}
     dictOfOffBodyADT={} # preconditionnement 
-    for noz in xrange(len(tc[2][noBaseOff][2])):
+    for noz in range(len(tc[2][noBaseOff][2])):
         z = tc[2][noBaseOff][2][noz]
         zname = z[0]
         if Internal.getType(z)=='Zone_t':
@@ -336,13 +339,13 @@ def prepareMotionChimeraData(t,tc,tblank,noBaseOff, tBB=None,DEPTH=2,loc='center
     # a remonter dans l interface
     intersectionsDictOffOff = X.getIntersectingDomains(tBB[2][noBaseOff], method='AABB', taabb=tBB[2][noBaseOff])
     listOfIntersectionDictsNBNB={}
-    for nob in xrange(len(t[2])):
+    for nob in range(len(t[2])):
         if nob != noBaseOff and Internal.getType(t[2][nob])=='CGNSBase_t':
             intersectionsDictNB= X.getIntersectingDomains(tBB[2][nob], method='AABB', taabb=tBB[2][nob])
             listOfIntersectionDictsNBNB[nob]=intersectionsDictNB
 
-    for it in xrange(NIT):
-        print ' ------------------- Iteration %d ----------------------- '%it
+    for it in range(NIT):
+        print (' ------------------- Iteration %d ----------------------- '%it)
         if constantMotion: 
             if rotation:
                 angleX = RotationAngle[0]*it
@@ -380,7 +383,7 @@ def prepareMotionChimeraData(t,tc,tblank,noBaseOff, tBB=None,DEPTH=2,loc='center
         dictOfMotionADT={} # ADT des blocs en mvt  a detruire a chq pas de temps
 
         # bases proches corps interpolees par le maillage de fond fixe + ses voisins
-        for nob in xrange(len(t[2])):
+        for nob in range(len(t[2])):
             base = t[2][nob]
             if nob != noBaseOff and Internal.getType(base)=='CGNSBase_t':
                 if rotation: 
@@ -395,7 +398,7 @@ def prepareMotionChimeraData(t,tc,tblank,noBaseOff, tBB=None,DEPTH=2,loc='center
         tBBNB = Internal.rmNodesByName(tBB, tBB[2][noBaseOff][0])
         intersectionsDictOffNB = X.getIntersectingDomains(tBB[2][noBaseOff], t2=tBBNB, method='AABB', 
                                                           taabb=tBB[2][noBaseOff],taabb2=tBBNB) 
-        for nob in xrange(len(t[2])):
+        for nob in range(len(t[2])):
             base = t[2][nob]
             if nob != noBaseOff and Internal.getType(base)=='CGNSBase_t':
                 # test intersection entre maillage proche corps et maillage de fond
@@ -531,12 +534,12 @@ def prepareSteadyOffBodyChimeraData(t,tc,tblank,noBaseOff, tBB=None,DEPTH=2,loc=
     intersectionDict = X.getIntersectingDomains(tBB[2][noBaseOff])
 
     dictOfOffBodyZoneNb={}
-    for noz in xrange(len(tc[2][noBaseOff][2])):
+    for noz in range(len(tc[2][noBaseOff][2])):
         z = tc[2][noBaseOff][2][noz]
         if Internal.getType(z)=='Zone_t': dictOfOffBodyZoneNb[z[0]] = noz
 
     dictOfOffBodyZoneNbRcv={}# t et tc peuvent ne pas avoir la meme structure
-    for noz in xrange(len(t[2][noBaseOff][2])):
+    for noz in range(len(t[2][noBaseOff][2])):
         z = t[2][noBaseOff][2][noz]
         if Internal.getType(z)=='Zone_t': dictOfOffBodyZoneNbRcv[z[0]] = noz
 

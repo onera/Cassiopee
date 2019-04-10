@@ -1,8 +1,11 @@
 # 
 # Python Interface to initialize pyTrees solutions
 #
-import Initiator
+from . import Initiator
 __version__ = Initiator.__version__
+
+try: range = xrange
+except: pass
 
 try:
     import Converter
@@ -65,8 +68,7 @@ def _initLamb(t, position=(0.,0.), Gamma=2., MInf=0.5, loc='nodes'):
     for z in nodes:
         coordn = C.getFields(Internal.__GridCoordinates__, z)
         if coordn == []:
-            print 'Warning: initLamb: zone '+z[0]+\
-            ' has no coordinates. Skipped...'
+            print ('Warning: initLamb: zone '+z[0]+' has no coordinates. Skipped...')
             continue
         coordn = coordn[0]
         if loc == 'nodes':
@@ -99,7 +101,7 @@ def _initVisbal(t, position=(0.,0.), Gamma=2., MInf=0.5, loc='nodes'):
     for z in nodes:
         coordn = C.getFields(Internal.__GridCoordinates__, z)
         if coordn == []:
-            print 'Warning: initVisbal: zone '+z[0]+' has no coordinates. Skipped...'
+            print ('Warning: initVisbal: zone '+z[0]+' has no coordinates. Skipped...')
             continue
         coordn = coordn[0]
         if loc == 'nodes':
@@ -132,7 +134,7 @@ def _initYee(t, position=(0.,0.), Gamma=2., MInf=0.5, loc='nodes'):
     for z in nodes:
         coordn = C.getFields(Internal.__GridCoordinates__, z)
         if coordn == []:
-            print 'Warning: initYee: zone '+z[0]+' has no coordinates. Skipped...'
+            print ('Warning: initYee: zone '+z[0]+' has no coordinates. Skipped...')
             continue
         coordn = coordn[0]
         if loc == 'nodes':
@@ -166,8 +168,7 @@ def _initScully(t, position=(0.,0.), Gamma=2.,
     for z in nodes:
         coordn = C.getFields(Internal.__GridCoordinates__, z)
         if (coordn == []):
-            print 'Warning: initScully: zone '+z[0]+\
-            ' has no coordinates. Skipped...'
+            print ('Warning: initScully: zone '+z[0]+' has no coordinates. Skipped...')
             continue
         coordn = coordn[0]
         if loc == 'nodes':
@@ -198,7 +199,7 @@ def overlayField(t1, t2, MInf=0.5, loc='nodes'):
 def _overlayField(t1, t2, MInf=0.5, loc='nodes'):
     nodes = Internal.getZones(t1)
     nodes2 = Internal.getZones(t2)
-    for c in xrange(len(nodes)):
+    for c in range(len(nodes)):
         z1 = nodes[c]
         if loc == 'centers':
             a1 = C.getAllFields(z1, 'centers')[0]

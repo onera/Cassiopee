@@ -3,6 +3,10 @@
 from . import Generator as G
 import Geom as D
 import math
+
+try: range = xrange
+except: pass
+
 __version__ = G.__version__
 
 #=============================================================================
@@ -30,7 +34,7 @@ def polyQuadMesher(polyQuad, h, hf, density, next):
     # Calcul des longueurs minimum et maximum des arretes
     lmin = 1.e6
     lmax = 0.
-    for i in xrange(ne):
+    for i in range(ne):
         ind1 = c[0,i]-1; ind2 = c[1,i]-1
         x1 = f[0,ind1]; y1 = f[1,ind1]; z1 = f[2,ind1]
         x2 = f[0,ind2]; y2 = f[1,ind2]; z2 = f[2,ind2]
@@ -84,12 +88,12 @@ def polyQuadMesher(polyQuad, h, hf, density, next):
     distribk = G.enforcePlusX(distribk, hf/h, nk-1, add)
     nk = distribk[2]-1
     delta = C.array('d',nk,1,1)
-    for i in xrange(nk):
+    for i in range(nk):
         delta[1][0,i] = h*( distribk[1][0,i+1] - distribk[1][0,i])
     mesh = []; walls = []
     
     # Generation des maillages
-    for i in xrange(ne):
+    for i in range(ne):
         ind1 = c[0,i]-1; ind2 = c[1,i]-1 ; ind3 = c[2,i]-1; ind4 = c[3,i]-1
         x1 = f[0,ind1]; y1 = f[1,ind1]; z1 = f[2,ind1]
         x2 = f[0,ind2]; y2 = f[1,ind2]; z2 = f[2,ind2]
@@ -396,60 +400,60 @@ def polyQuadMesher(polyQuad, h, hf, density, next):
             j2 = m[3]
         else:
             j2 = m[3]-next
-        range = [i1,i2, j1, j2, 1, 1]
-        rangesw.append(range)
+        wrange = [i1,i2, j1, j2, 1, 1]
+        rangesw.append(wrange)
         
         if (ext1 == 0):
             if (ext4 == 1):
                 if (ext2 == 1):
-                    range = [next+1, m[2]-next, 1, 1, 1, m[4]]
+                    wrange = [next+1, m[2]-next, 1, 1, 1, m[4]]
                 else:
-                    range = [next+1, m[2], 1, 1, 1, m[4]]
+                    wrange = [next+1, m[2], 1, 1, 1, m[4]]
             else:
                 if (ext2 == 1):
-                    range = [1, m[2]-next, 1, 1, 1, m[4]]
+                    wrange = [1, m[2]-next, 1, 1, 1, m[4]]
                 else:
-                    range = [1, m[2], 1, 1, 1, m[4]]
-            rangesw.append(range)
+                    wrange = [1, m[2], 1, 1, 1, m[4]]
+            rangesw.append(wrange)
             
         if (ext2 == 0):
             if (ext1 == 1):
                 if (ext3 == 1):
-                    range = [m[2], m[2], next+1, m[3]-next, 1, m[4]]
+                    wrange = [m[2], m[2], next+1, m[3]-next, 1, m[4]]
                 else:
-                    range = [m[2], m[2], next+1, m[3], 1, m[4]]
+                    wrange = [m[2], m[2], next+1, m[3], 1, m[4]]
             else:
                 if (ext3 == 1):
-                    range = [m[2], m[2], 1, m[3]-next, 1, m[4]]
+                    wrange = [m[2], m[2], 1, m[3]-next, 1, m[4]]
                 else:
-                    range = [m[2], m[2], 1, m[3], 1, m[4]]
-            rangesw.append(range)
+                    wrange = [m[2], m[2], 1, m[3], 1, m[4]]
+            rangesw.append(wrange)
 
         if (ext3 == 0):
             if (ext4 == 1):
                 if (ext2 == 1):
-                    range = [next+1, m[2]-next, m[3], m[3], 1, m[4]]
+                    wrange = [next+1, m[2]-next, m[3], m[3], 1, m[4]]
                 else:
-                    range = [next+1, m[2], m[3], m[3], 1, m[4]]
+                    wrange = [next+1, m[2], m[3], m[3], 1, m[4]]
             else:
                 if (ext2 == 1):
-                    range = [1, m[2]-next, m[3], m[3], 1, m[4]]
+                    wrange = [1, m[2]-next, m[3], m[3], 1, m[4]]
                 else:
-                    range = [1, m[2], m[3], m[3], 1, m[4]]
-            rangesw.append(range)
+                    wrange = [1, m[2], m[3], m[3], 1, m[4]]
+            rangesw.append(wrange)
         
         if (ext4 == 0):
             if (ext1 == 1):
                 if (ext3 == 1):
-                    range = [1, 1, next+1, m[3]-next, 1, m[4]]
+                    wrange = [1, 1, next+1, m[3]-next, 1, m[4]]
                 else:
-                    range = [1, 1, next+1, m[3], 1, m[4]]
+                    wrange = [1, 1, next+1, m[3], 1, m[4]]
             else:
                 if (ext3 == 1):
-                    range = [1, 1, 1, m[3]-next, 1, m[4]]
+                    wrange = [1, 1, 1, m[3]-next, 1, m[4]]
                 else:
-                    range = [1, 1, 1, m[3], 1, m[4]]
-            rangesw.append(range)
+                    wrange = [1, 1, 1, m[3], 1, m[4]]
+            rangesw.append(wrange)
 
         walls.append(rangesw)
             
@@ -484,7 +488,7 @@ def meshQuad(P1, P2, P3, P4, distrib1, distrib2):
 def findNeighbourIndex(polyQuad,i,iP1,iP2):
     c = polyQuad[2]
     ne = c.shape[1]
-    for j in xrange(ne):
+    for j in range(ne):
         ind1 = c[0,j]-1; ind2 = c[1,j]-1 ; ind3 = c[2,j]-1; ind4 = c[3,j]-1
         if (ind1 == iP1 and ind4 == iP2):
             return j
