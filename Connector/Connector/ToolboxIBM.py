@@ -749,7 +749,7 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None,
 #=============================================================================
 def getIBMFront(tc, frontvar, dim, frontType):
 
-    if frontType >0 : front = getIBMFrontType1(tc,frontvar,dim)
+    if frontType == 1 or frontType == 2 : front = getIBMFrontType1(tc,frontvar,dim)
     else: front = getIBMFrontType0(tc,frontvar,dim)
     front = C.deleteEmptyZones(front)
     Internal._rmNodesFromName(front,"ID_*")
@@ -1485,7 +1485,7 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, inv=False, int
             if sizeOne < sizeTot:
                 XOD._setInterpTransfers(t,zc,variables=['cellNFront'],cellNVariable='cellNFront',compact=0)
 
-    if frontType==2: _pushBackImageFront2(t, tc, tbb, interpDataType=interpDataType)
+    if frontType==2 or frontType==3 : _pushBackImageFront2(t, tc, tbb, interpDataType=interpDataType)
 
     ## Fin traitement specifique, vaut 0 ou 1 apres la ligne suivante
     C._cpVars(t,'centers:cellNFront',tc,'cellNFront')
@@ -1513,7 +1513,7 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, inv=False, int
     return t, tc
 
 #=============================================================================
-# Performs specific treatment for frontType=2
+# Performs specific treatment for frontType=2 or frontType=3
 #=============================================================================
 def _pushBackImageFront2(t, tc, tbb, interpDataType=1):
     intersectionsDict = X.getIntersectingDomains(tbb, method='AABB', taabb=tbb)

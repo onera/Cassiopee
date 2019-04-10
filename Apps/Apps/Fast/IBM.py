@@ -393,6 +393,16 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
     # propager cellNVariable='cellNFront'
     Xmpi._setInterpTransfers(t,tc,variables=['cellNFront'], cellNVariable='cellNFront', compact=0)
 
+    #============================================================================
+    if frontType==2 or frontType==3:
+        test.printMem(">>> pushBackImageFront2 [start]")
+        Cmpi._addXZones(tc, graph)
+        TIBM._pushBackImageFront2(t, tc, tbbc)
+        Cmpi._rmXZones(tc)
+        Xmpi._setInterpTransfers(t,tc,variables=['cellNFront'], cellNVariable='cellNFront', compact=0)
+        test.printMem(">>> pushBackImageFront2 [end]")
+    #============================================================================
+
     C._cpVars(t,'centers:cellNFront',tc,'cellNFront')
     C._rmVars(t,['centers:cellNFront'])
     C._cpVars(t,'centers:TurbulentDistance',tc,'TurbulentDistance')
@@ -545,10 +555,13 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
     C._rmVars(t, varsRM)
     test.printMem(">>> Saving [start]")
 
-    # ne marche pas pour l'instant en parallele
-    if check: 
+    #============================================================================
+    if check:
         tibm = TIBM.extractIBMInfo(tc)
-        Cmpi.convertPyTree2File(tibm, 'IBMInfo.cgns')
+        for z in Internal.getZones(tibm): z[0] += '_'+str(Cmpi.rank)
+        tibm = Cmpi.allgatherTree(tibm)
+        if rank==0: C.convertPyTree2File(tibm, 'IBMInfo.cgns')
+    #============================================================================
 
     # distribution par defaut (sur Cmpi.size)
     tbbc = Cmpi.createBBoxTree(tc)
