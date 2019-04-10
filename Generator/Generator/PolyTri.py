@@ -1,6 +1,6 @@
 """PolyTri mesh generator. Extension of Generator.
 """
-import Generator as G
+from . import Generator as G
 __version__ = G.__version__
 
 #=============================================================================
@@ -10,7 +10,7 @@ def polyTriMesher(polyTri, h, hf, density, next):
     """Generate a multiple mesh for a polytri.
     Usage:
     polyTriMesher(polyTri, h, hf, density, next)"""
-    import PolyQuad
+    from . import PolyQuad
     
     polyQuad = polyTri2PolyQuad(polyTri)
     return PolyQuad.polyQuadMesher(polyQuad, h, hf, density, next)
@@ -26,10 +26,10 @@ def polyTri2PolyQuad(polyTri):
     
     polyTri = G.close(polyTri)
     
-    if (len(polyTri) != 4):
+    if len(polyTri) != 4:
         raise TypeError("polyTri2PolyQuad: requires a TRI array.")
     else:
-        if (polyTri[3] != 'TRI'):
+        if polyTri[3] != 'TRI':
             raise TypeError("polyTri2PolyQuad: requires a TRI array.")
     
     f = polyTri[1]; c = polyTri[2]; ne = c.shape[1]; n = f.shape[1]

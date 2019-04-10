@@ -26,6 +26,7 @@ def box(Pmin, Pmax, chamfer=-1.):
         a = [Q1,Q2,Q3,Q4,Q5,Q6]
         a = T.join(a)
         a = G.close(a)
+        a = T.reorder(a, (1,))
         return a
     else: # chanfrein droit
         deltax = xmax-xmin

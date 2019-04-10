@@ -70,7 +70,7 @@ static struct PyModuleDef moduledef = {
         "geom",
         NULL,
         sizeof(struct module_state),
-        Pyconverter,
+        Pygeom,
         NULL,
         myextension_traverse,
         myextension_clear,

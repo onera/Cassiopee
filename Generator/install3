@@ -1,0 +1,51 @@
+#! /bin/sh
+#
+# Installation du module Generator
+# Par defaut dans : $CASSIOPEE/Dist/bin/$ELSAPROD/
+# Sinon : dans le repertoire specifie en argument
+#
+if ([ $# -eq 0 ])
+then
+    if [ "$CASSIOPEE" = "" ]; then
+        echo "You must specify a CASSIOPEE variable in you environment."
+        echo "This variable specifies the installation path of *Cassiopee*."
+        exit
+    fi
+    if [ "$ELSAPROD" = "" ]; then
+        export ELSAPROD=x86_r8
+    fi
+    INSTALLPATH="$CASSIOPEE/Dist/bin/$ELSAPROD"
+
+elif ([ $# -eq 1 ])
+then
+    INSTALLPATH="$1"
+else
+    echo 'install: install in $CASSIOPEE/Dist/bin/$ELSAPROD'
+    echo ' -or-'
+    echo 'install <dir>: install in directory <dir>.'
+    exit
+fi
+
+# Compilation et installation
+which scons &>/dev/null
+alias scons3="/usr/bin/env python3 $(which scons)"
+if [ $? -eq 0 ]; then
+    if [ "$OMP_NUM_THREADS" != "" ]; then
+        export SCONSOPT="-j $OMP_NUM_THREADS"
+    else
+        export SCONSOPT=""
+    fi
+    scons3 install prefix="$INSTALLPATH" "$SCONSOPT"
+    [ $? != 0 ] && exit;
+    #touch Generator/generator.cpp
+    rm -f build/lib.*/Generator/generator.*
+    python3 setupScons.py install --prefix="$INSTALLPATH"
+else
+    python3 setup.py install --prefix="$INSTALLPATH"
+fi
+
+# Install libgenerator
+python3 installLib.py
+
+# Test installation
+python3 test/t1.py

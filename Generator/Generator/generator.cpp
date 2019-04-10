@@ -133,7 +133,7 @@ static struct PyModuleDef moduledef = {
         "generator",
         NULL,
         sizeof(struct module_state),
-        Pyconverter,
+        Pygenerator,
         NULL,
         myextension_traverse,
         myextension_clear,

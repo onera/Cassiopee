@@ -513,7 +513,7 @@ def subzoneGC__(z, dim, imin, imax, jmin, jmax, kmin, kmax, \
         if ddDnrs[nor] is None:
             C._addBC2Zone(z,C.getBCName('overlap'), 'BCOverlap', ranges[nor])
         else: # doubly defined
-            C._addBC2Zone(z,C.getBCName(bcnames[nor]),'BCOverlap',range=ranges[nor],\
+            C._addBC2Zone(z,C.getBCName(bcnames[nor]),'BCOverlap', wrange=ranges[nor],\
                           zoneDonor=[ddDnrs[nor]], rangeDonor='doubly_defined')
     return z
 

@@ -5,11 +5,11 @@ __author__ = "Stephanie Peron, Christophe Benoit, Pascal Raud, Sam Landier"
 # 
 # Python Interface to define geometries in arrays
 #
-import geom
+from . import geom
 import numpy
 import KCore.Vector as Vector
 
-from MapEdge import *
+from .MapEdge import *
 
 # - Basic entities -
 def point(P):

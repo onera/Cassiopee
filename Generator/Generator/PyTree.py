@@ -192,16 +192,16 @@ def _adaptOctree(a,indicator="indicator",balancing=1,ratio=2):
     indic = C.getFields(Internal.__FlowSolutionCenters__,zones)
     indic = Converter.extractVars(indic, [indicator])
     C._deleteFlowSolutions__(a)
-    for noz in xrange(len(zones)):        
+    for noz, z in enumerate(zones):        
         res = Generator.adaptOctree(hexa[noz], indic[noz], balancing, ratio)
-        C.setFields([res],zones[noz],'nodes',writeDim=True)
+        C.setFields([res], zones[noz], 'nodes', writeDim=True)
     return None
 
 def adaptOctree(a, indicator='indicator', balancing=1, ratio=2):
     """Adapt the octree with respect to the field 'indicator' located at centers.
     Usage: adaptOctree(a, indicator, balancing, ratio)"""
     tp = Internal.copyRef(a)
-    _adaptOctree(tp,indicator=indicator,balancing=balancing,ratio=ratio)
+    _adaptOctree(tp, indicator=indicator, balancing=balancing, ratio=ratio)
     return tp
 
 def expandLayer(o, level=0, corners=0, balancing=0):
@@ -741,18 +741,18 @@ def _close(t, tol=1.e-12):
     C.setFields(fields, t, 'nodes')
     return None
 
-def pointedHat(a, (x,y,z)):
+def pointedHat(a, coord):
     """Create a structured surface defined by a contour and a point (x,y,z).
     Usage: pointedHat(array, (x,y,z))"""
     a = C.deleteFlowSolutions__(a, 'both')
-    return C.TZA(a, 'nodes', 'nodes', Generator.pointedHat, None, (x,y,z))
+    return C.TZA(a, 'nodes', 'nodes', Generator.pointedHat, None, coord)
 
-def stitchedHat(a, (offx,offy,offz), tol=1.e-6, tol2=1.e-5):
+def stitchedHat(a, offset, tol=1.e-6, tol2=1.e-5):
     """Create a structured surface defined by a contour and an offset (dx,dy,dz).
     Usage: stitchedHat(a, (dx,dy,dz))"""
     a = C.deleteFlowSolutions__(a, 'both')
     return C.TZGC(a, 'nodes', Generator.stitchedHat, \
-                  (offx,offy,offz), tol, tol2)
+                  offset, tol, tol2)
 
 def selectInsideElts(a, curvesList):
     """Select elements whose center is in the surface delimited by curves.
@@ -1240,9 +1240,9 @@ def polyLineMesher(z, h, yplus, density):
         zone = C.convertArrays2ZoneNode(name+suffz,[m])
         walls = allwalls[noz-1]
         now = 1
-        for range in walls :
+        for wrange in walls :
             bndName = 'wall'+str(noz)+'_'+str(now)
-            zone = C.addBC2Zone(zone, bndName, 'BCWall', range)
+            zone = C.addBC2Zone(zone, bndName, 'BCWall', wrange)
             now = now + 1
         noz += 1
         zones.append(zone)
@@ -1274,9 +1274,9 @@ def polyC1Mesher(z, h, yplus, density, splitCrit=10., dalpha=5., depth=1):
         zone = C.convertArrays2ZoneNode(name+suffz,[m])
         walls = allwalls[noz-1]
         now = 1
-        for range in walls :
+        for wrange in walls :
             bndName = 'wall'+str(noz)+'_'+str(now)
-            zone = C.addBC2Zone(zone, bndName, 'BCWall', range)
+            zone = C.addBC2Zone(zone, bndName, 'BCWall', wrange)
             now += 1
         noz += 1
         zones.append(zone)
@@ -1310,9 +1310,9 @@ def polyQuadMesher(z, h, hf, density, next):
         zone = C.convertArrays2ZoneNode(name+suffz,[m])
         walls = allwalls[noz-1]
         now = 1
-        for range in walls :
+        for wrange in walls :
             bndName = 'wall'+str(noz)+'_'+str(now)
-            zone = C.addBC2Zone(zone, bndName, 'BCWall', range)
+            zone = C.addBC2Zone(zone, bndName, 'BCWall', wrange)
             now = now + 1
         noz = noz + 1
         zones.append(zone)
@@ -1346,9 +1346,9 @@ def polyTriMesher(z, h, hf, density, next):
         zone = C.convertArrays2ZoneNode(name+suffz,[m])
         walls = allwalls[noz-1]
         now = 1
-        for range in walls :
+        for wrange in walls :
             bndName = 'wall'+str(noz)+'_'+str(now)
-            zone = C.addBC2Zone(zone, bndName, 'BCWall', range)
+            zone = C.addBC2Zone(zone, bndName, 'BCWall', wrange)
             now += 1
         noz += 1
         zones.append(zone)

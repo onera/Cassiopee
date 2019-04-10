@@ -61,7 +61,7 @@ if Cppcompiler.find('icc') == 0 or Cppcompiler.find('icpc') == 0:
     for i in cppOpts:
         if i[0:2] != '-O' and i[0:9] != '-fp-model': flags += i+' '
     flags += '-fp-model=strict -O2'
-    for i in xrange(len(srcs.cpp_srcs2)):
+    for i in range(len(srcs.cpp_srcs2)):
         if srcs.cpp_srcs2[i] == "Generator/Tetgen/predicates.cxx":
             srcs.cpp_srcs2[i] = env.Object("Generator/Tetgen/predicates.cxx", CXXFLAGS=flags)
         if srcs.cpp_srcs2[i] == "Generator/Tetgen/tetgen.cxx": 
@@ -70,7 +70,7 @@ if Cppcompiler.find('gcc') == 0 or Cppcompiler.find('g++') == 0 or Cppcompiler =
     flags = ''
     for i in cppOpts: 
         if i[0:2] != '-O': flags += i+' '
-    for i in xrange(len(srcs.cpp_srcs2)):
+    for i in range(len(srcs.cpp_srcs2)):
         if srcs.cpp_srcs2[i] == "Generator/Tetgen/predicates.cxx":
             srcs.cpp_srcs2[i] = env.Object("Generator/Tetgen/predicates.cxx", CXXFLAGS=flags+'-O0')
         if srcs.cpp_srcs2[i] == "Generator/Tetgen/tetgen.cxx": 

@@ -42,7 +42,7 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
         dfarList = [dfar*1.]*len(zones)
         for c, z in enumerate(zones): 
             n = Internal.getNodeFromName2(z, 'dfar')
-            if n is not None: 
+            if n is not None:
                 dfarList[c] = Internal.getValue(n)*1.
 
     #-------------------------------------------------------
@@ -180,7 +180,7 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
     o = TIBM.buildOctree(tb, snears=snears, snearFactor=1., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, 
                          dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=fileout, rank=rank)
     # build parent octree 3 levels higher
-    # returns a list of 4 octants of the parent octree in 2Dn 8 in 3D
+    # returns a list of 4 octants of the parent octree in 2D and 8 in 3D
     parento = TIBM.buildParentOctrees__(o, tb, snears=snears, snearFactor=4., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, 
                                         dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=fileout, rank=rank)
     test.printMem(">>> Octree unstruct [end]")
@@ -198,8 +198,9 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
     # fill vmin + merge in parallel
     test.printMem(">>> Octree struct [start]")
     res = TIBM.octree2StructLoc__(p, vmin=vmin, ext=-1, optimized=0, parento=parento, sizeMax=4000000)
-    del p; 
-    for po in parento: del po
+    del p 
+    if parento is not None:
+        for po in parento: del po
     t = C.newPyTree(['CARTESIAN', res])
     zones = Internal.getZones(t)
     for z in zones: z[0] = z[0]+'X%d'%rank
@@ -555,10 +556,12 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
     D2._copyDistribution(tbbc, tc)
     D2._copyDistribution(tbbc, t)
     del tbbc
-    if isinstance(tc_out, str): Cmpi.convertPyTree2File(tc, tc_out)
 
+    # Save tc
+    if isinstance(tc_out, str): Cmpi.convertPyTree2File(tc, tc_out)
     I._initConst(t, loc='centers')
     if model != "Euler": C._initVars(t, 'centers:ViscosityEddy', 0.)
+    # Save t
     if isinstance(t_out, str): Cmpi.convertPyTree2File(t, t_out)
     return t, tc
 

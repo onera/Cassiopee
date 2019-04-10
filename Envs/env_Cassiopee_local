@@ -72,7 +72,7 @@ if ($MAC == "ld_pgi") then
         setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/pgi_r8:$CASSIOPEE/Dist/bin/pgi_r8/lib/python2.7/site-packages
 
 else if ($MAC == "ld_python3") then
-#----------------------------- ld centos 7 -------------------------------------
+#-------------------------- ld centos 7 + python 3 -----------------------------
         setenv ELSAPROD py3_r8
         # Modules
         foreach x (`(echo "" ; module -t list) | & grep intel`)

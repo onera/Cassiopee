@@ -190,13 +190,13 @@ def barycenter(array, weight=None):
     Usage: barycenter(a, w)"""
     if isinstance(array[0], list):
         N = 0; xb = 0; yb = 0; zb = 0
-        for i in xrange(len(array)):
+        for i, a in enumerate(array):
             if weight is not None:
-                X = generator.barycenter(array[i], weight[i])
-            else: X = generator.barycenter(array[i], None)
-            if isinstance(array[i][1], list): # array2
-               n = array[i][1][0].size
-            else: n = array[i][1].shape[1]
+                X = generator.barycenter(a, weight[i])
+            else: X = generator.barycenter(a, None)
+            if isinstance(a[1], list): # array2
+               n = a[1][0].size
+            else: n = a[1].shape[1]
             xb += X[0]*n
             yb += X[1]*n
             zb += X[2]*n
@@ -361,11 +361,11 @@ def enforceCurvature2(arrayD, arrayC, alpha=1.e-2):
     rc = D.getCurvatureRadius(arrayC)
     ni = rc[1].shape[1]
     rcmin = C.getMinValue(rc,'radius'); rcmax = 1.
-    for i in xrange(ni): rc[1][0,i] = min(1.,rc[1][0,i])
+    for i in range(ni): rc[1][0,i] = min(1.,rc[1][0,i])
     rcmean = C.getMeanValue(rc, 'radius')
     dh = C.initVars(rc, 'dhloc', 1.); dh = C.extractVars(dh, ['dhloc'])
     coefa = math.log(alpha)/(rcmin-1.)
-    for i in xrange(ni):
+    for i in range(ni):
         rad = rc[1][0,i]
         if rad < 0.2*rcmean: dh[1][0,i] = math.exp(coefa*rc[1][0,i]-coefa)
     if loop == 1: rc[1][0,ni-1] = rc[1][0,0]
@@ -413,7 +413,7 @@ def enforceCurvature2(arrayD, arrayC, alpha=1.e-2):
     xs = C.getMinValue(arrayD, varx); xe = C.getMaxValue(arrayD, varx)
     s = D.getCurvilinearAbscissa(arrayC)[1]
     stot = s[0, ni-1]
-    for i in xrange(ni): s[0,i] = (s[0,i]/stot)*(xe-xs)+xs
+    for i in range(ni): s[0,i] = (s[0,i]/stot)*(xe-xs)+xs
 
     # recherche du point a forcer dans distrib
     distrib = C.copy(arrayD)
@@ -457,8 +457,8 @@ def map1dpl(array, d, dir):
     elif (dir == 1): m = array
     ni = m[2]; nj = m[3]; nk = m[4]; ndi = d[2]; ndi2 = ndi*nj
     a = C.array('x,y,z', ndi, nj, nk)
-    for k in xrange(nk):
-        for j in xrange(nj):
+    for k in range(nk):
+        for j in range(nj):
             l = T.subzone(m, (1,j+1,k+1), (ni,j+1,k+1))
             am = map1d(l, d)
             ind = j*ndi+k*ndi2
@@ -479,18 +479,18 @@ def map2d(array, d):
     # Passage en i
     ni = array[2]; nj = array[3]
     m = C.array('x,y,z', ndi, nj, 1)
-    for j in xrange(nj):
+    for j in range(nj):
         a = T.subzone(array, (1,j+1,1), (ni,j+1,1))
         am = map1d(a, di)
-        for i in xrange(ndi):
+        for i in range(ndi):
             v = C.getValue(am, (i+1,1,1))
             C.setValue(m, (i+1,j+1,1), v)
     m = T.reorder(m, (2,1,3))
     p = C.array('x,y,z', ndi, ndj, 1)
-    for i in xrange(ndi):
+    for i in range(ndi):
         a = T.subzone(m, (1,i+1,1), (nj,i+1,1))
         am = map1d(a, dj)
-        for j in xrange(ndj):
+        for j in range(ndj):
             v = C.getValue(am, (j+1,1,1))
             C.setValue(p, (i+1,j+1,1), v)
     return p
@@ -516,8 +516,8 @@ def mapCurvature___(array, N, power, dir):
     N2 = N*nj
     a = C.array('x,y,z', N, nj, nk)
     d = cart((0,0,0), (1./(N-1),1,1), (N,1,1))
-    for k in xrange(nk):
-        for j in xrange(nj):
+    for k in range(nk):
+        for j in range(nj):
             l = T.subzone(m, (1,j+1,k+1), (ni,j+1,k+1))
             e = enforceCurvature(a, l, power)
             am = map1d(l, e)
@@ -575,9 +575,9 @@ def refinePerDir__(a, power, dir):
     vvK = 1./max(NK-1, 1.e-12)
     NINJ = NI*NJ; ninj = ni*nj
     # Distribution fine a interpoler: cartesienne a pas constant par direction
-    for k in xrange(NK):
-        for j in xrange(NJ):
-            for i in xrange(NI): 
+    for k in range(NK):
+        for j in range(NJ):
+            for i in range(NI): 
                 ind = i + j*NI + k*NINJ
                 distribI[1][0,ind] = i*vvI
                 distribI[1][1,ind] = j*vvJ
@@ -589,8 +589,8 @@ def refinePerDir__(a, power, dir):
     dhk =  1./max(nk-1, 1.e-12)
     coord = cart((0,0,0),(dhi,dhj,dhk),(ni,nj,nk))
     coord = C.addVars(coord,['s'])
-    for k in xrange(nk):
-        for j in xrange(nj):
+    for k in range(nk):
+        for j in range(nj):
             l = T.subzone(array, (1,j+1,k+1), (ni,j+1,k+1))
             cu = D.getCurvilinearAbscissa(l)
             l0 = T.subzone(coord, (1,j+1,k+1), (ni,j+1,k+1))
@@ -602,8 +602,8 @@ def refinePerDir__(a, power, dir):
     distribI = C.extractVars(distribI, ['s','y','z']); distribI[0] = 'x,y,z'
     
     aout = C.array('x,y,z', NI, nj, nk)
-    for k in xrange(nk):
-        for j in xrange(nj):
+    for k in range(nk):
+        for j in range(nj):
             l = T.subzone(array, (1,j+1,k+1), (ni,j+1,k+1))
             dis = T.subzone(distribI,(1,j+1,k+1), (NI,j+1,k+1))
             am = map1d(l, dis)
@@ -658,12 +658,12 @@ def close(array, tol=1.e-12):
     else:
         return generator.close(array, tol)
 
-def pointedHat(array, (x,y,z)):
+def pointedHat(array, coord):
     """Create a structured surface defined by a contour and a point (x,y,z).
     Usage: pointedHat(array, (x,y,z))"""
-    return generator.pointedHat(array, (x,y,z))
+    return generator.pointedHat(array, coord)
 
-def stitchedHat(array, (offx,offy,offz), tol=1.e-6, tol2=1.e-5):
+def stitchedHat(array, offset, tol=1.e-6, tol2=1.e-5):
     """Create a structured surface defined by a contour and an offset (dx,dy,dz).
     Usage: stitchedHat(array, (dx,dy,dz))"""
     try: import Transform as T
@@ -671,7 +671,7 @@ def stitchedHat(array, (offx,offy,offz), tol=1.e-6, tol2=1.e-5):
     c = generator.stitchedHat(array, tol)
     t = T.subzone(c, (1,2,1),(c[2],2,1))
     t = close(t, tol2)
-    t = T.translate(t, (offx, offy, offz))
+    t = T.translate(t, offset)
     c = T.patch(c, t, (1,2,1))
     return c
 
@@ -968,7 +968,7 @@ def addNormalLayers(surface, distrib, check=0, niter=0, eps=0.4):
     if isinstance(surface[0], list): # liste d'arrays
         if len(surface[0]) == 5: type = 0 # structured
         else: type = 1 # unstructured
-        for i in xrange(1,len(surface)):
+        for i in range(1,len(surface)):
             if ((len(surface[i]) == 5 and type != 0) or (len(surface[i]) == 4 and type != 1)):
                 raise ValueError("addNormalLayers: all the surfaces must be structured or unstructured.")
         if (type == 0): return addNormalLayersStruct__(surface, distrib, check, niter, eps)
@@ -1140,7 +1140,7 @@ def mapSplitStruct__(array, dist, splitCrit, densMax):
     nbpoints = len(x)
     ld = numpy.zeros(nbpoints, dtype='float64'); ld[0] = 0.
 
-    for i in xrange(1, nbpoints):
+    for i in range(1, nbpoints):
         dx = x[i]-x[i-1]; dy = y[i]-y[i-1]; dz = z[i]-z[i-1]
         ld[i] = ld[i-1] + math.sqrt(dx*dx+dy*dy+dz*dz)*ldti
 
@@ -1159,7 +1159,7 @@ def mapSplitStruct__(array, dist, splitCrit, densMax):
 
     xa = a[1][posx]; ya = a[1][posy]; za = a[1][posz]
 
-    for i in xrange(1,len(xa)):
+    for i in range(1,len(xa)):
         dxa = xa[i]-xa[i-1]; dya = ya[i]-ya[i-1]; dza = za[i]-za[i-1]
         la = math.sqrt(dxa*dxa+dya*dya+dza*dza) *lti 
         if la < stepmin and la > 0.: stepmin = la
@@ -1174,7 +1174,7 @@ def mapSplitStruct__(array, dist, splitCrit, densMax):
     ltinv = 1./lt
     L[0] = D.getLength(a[0]) * ltinv
    
-    for i in xrange(1,len(a)):
+    for i in range(1,len(a)):
         L[i] = L[i-1] + D.getLength(a[i]) * ltinv
      
     # Find indices in dist which correspond to "split points"
@@ -1306,7 +1306,7 @@ def front2Hexa(a, surf, h, hf, hext, density=50):
     # Distribution dans la direction k
     npts = a[1][0].shape[0]; h0 = 0.
     a1 = a[1]; b1 = b[1]
-    for ind in xrange(npts):
+    for ind in range(npts):
         dx=a1[0,ind]-b1[0,ind]; dy=a1[1,ind]-b1[1,ind]; dz=a1[2,ind]-b1[2,ind]
         h0 = max(h0, dx*dx+dy*dy+dz*dz)
     h0 = math.sqrt(h0)
@@ -1464,7 +1464,7 @@ def octree2Struct(a, vmin=15, ext=0, optimized=1, merged=1, AMR=0,
     If AMR=1, a list of AMR grids is generated.
     Usage: octree2Struct(a, vmin, ext, optimized, merged, AMR)"""
     if not isinstance(vmin, list): vmin = [vmin]
-    for nov in xrange(len(vmin)):
+    for nov in range(len(vmin)):
         if vmin[nov] < 2:
             print('Warning: octree2Struct, vmin is set to 2.'); vmin[nov] = 2
         if ext == 0 and vmin[nov]%2 == 0:
@@ -1586,7 +1586,7 @@ def addNormalLayersStruct__(surfaces, distrib, check=0, niter=0, eps=0.4):
 
     vect = ['sx','sy','sz']
     # verifications 
-    for nos in xrange(len(surfaces)):
+    for nos in range(len(surfaces)):
         surfs = surfaces[nos]
         if surfs[4] != 1: raise ValueError("addNormalLayers: structured surface must be k=1.")
         if surfs[3] == 1: surfaces[nos] = T.addkplane(surfs)
@@ -1612,7 +1612,7 @@ def addNormalLayersStruct__(surfaces, distrib, check=0, niter=0, eps=0.4):
 
     # determination de kb1,kb2
     kb1 =-1; kb2 =-1
-    for k1 in xrange(kmax-1):
+    for k1 in range(kmax-1):
         if (distrib[1][0,k1+1] >= 0.1*hmean and kb1 == -1): kb1 = k1
         elif (distrib[1][0,k1+1] >= 1.*hmean and kb2 == -1): kb2 = k1
     kb2 = max(kb2, kb1+2)
@@ -1662,13 +1662,13 @@ def addNormalLayersStruct__(surfaces, distrib, check=0, niter=0, eps=0.4):
         surfu = C.rmVars(surfu, ['sx','sy','sz'])
 
         kminout = kmax
-        for noz in xrange(nzones):
+        for noz in range(nzones):
             coords = listOfCoords[noz]
             ni=coords[2]; nj=coords[3]
             ninj = ni*nj
             indicesU = listOfIndices[noz]
             shift = (k1+1)*ninj
-            for ind in xrange(ninj):
+            for ind in range(ninj):
                 indu = indicesU[ind]; inds = ind + shift
                 coords[1][:,inds] = surfu[1][:,indu]
             listOfCoords[noz] = coords
@@ -1679,7 +1679,7 @@ def addNormalLayersStruct__(surfaces, distrib, check=0, niter=0, eps=0.4):
                 if C.getMinValue(vol,'vol') <= -1.e-10: 
                     stop = 1; kminout = min(kminout,k1+1)
         if check == 1 and stop == 1:
-            for noz in xrange(nzones):
+            for noz in range(nzones):
                 coords = listOfCoords[noz]
                 ni = coords[2]; nj = coords[3]
                 coords = T.subzone(coords,(1,1,1),(ni,nj,kminout))
@@ -1706,11 +1706,11 @@ def addNormalLayersUnstr__(surface, distrib, check=0, niter=0, eps=0.4):
     hmean =  (distrib[1][0,kmax-1]-distrib[1][0,0])/(kmax-1)
     # determination de kb1,kb2
     kb1 =-1; kb2 =-1
-    for k1 in xrange(kmax-1):
+    for k1 in range(kmax-1):
         if (distrib[1][0,k1+1] >= 0.1*hmean and kb1 == -1): kb1 = k1
         elif (distrib[1][0,k1+1] >= 1.*hmean and kb2 == -1): kb2 = k1
     kb2 = max(kb2, kb1+2)  
-    for k1 in xrange(kmax-1):
+    for k1 in range(kmax-1):
         hloc = distrib[1][0,k1+1]-distrib[1][0,k1]
         if (niter == 0):
             n = getNormalMap(surf)
