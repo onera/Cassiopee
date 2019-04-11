@@ -505,7 +505,7 @@ def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None,
 def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., dfarList=[], DEPTH=2, tbox=None, 
                     snearsf=None, check=True, sizeMax=4000000, 
                     symmetry=0, externalBCType='BCFarfield', to=None, 
-                    fileo='octree.cgns'):
+                    fileo=None):
     dimPb = Internal.getNodeFromName(tb, 'EquationDimension')
     if dimPb is None: raise ValueError('generateIBMMesh: EquationDimension is missing in input body tree.')
     dimPb = Internal.getValue(dimPb)
@@ -898,10 +898,9 @@ def blankByIBCBodies(t, tb, loc, dim):
     if loc == 'centers': typeb = 'center_in'
     else: typeb = 'node_in'
     nbases = len(Internal.getBases(t))
-    BM = numpy.ones((nbases,nbodies),dtype=numpy.int32)
-    BM2 = numpy.ones((nbases,1),dtype=numpy.int32)
-
+    
     if blankalgo == 'xray' or DIM == 2:
+        BM = numpy.ones((nbases,nbodies),dtype=numpy.int32)
         dh_min = getMinimumCartesianSpacing(t)
         XRAYDIM1 = 2000; XRAYDIM2 = XRAYDIM1
         if dh_min > 0.:
@@ -914,12 +913,14 @@ def blankByIBCBodies(t, tb, loc, dim):
 
         if loc == 'centers':
             tc = C.node2Center(t)
-            tc = X.blankCells(tc, bodies, BM,blankingType='node_in',XRaydim1=XRAYDIM1,XRaydim2=XRAYDIM2,dim=DIM)
+            tc = X.blankCells(tc, bodies, BM, blankingType='node_in',XRaydim1=XRAYDIM1,XRaydim2=XRAYDIM2,dim=DIM)
             C._cpVars(tc,'cellN',t,'centers:cellN')
         else:
-            t = X.blankCells(t, bodies,BM,blankingType=typeb,delta=TOLDIST,XRaydim1=XRAYDIM1,XRaydim2=XRAYDIM2,dim=DIM)
+            t = X.blankCells(t, bodies, BM, blankingType=typeb,delta=TOLDIST,XRaydim1=XRAYDIM1,XRaydim2=XRAYDIM2,dim=DIM)
     else:
+        BM = numpy.ones((nbases,nbodies),dtype=numpy.int32)    
         # t = X.blankCellsTri(t,bodies,BM,blankingType=typeb)
+        BM2 = numpy.ones((nbases,1),dtype=numpy.int32)
         for body in bodies: t = X.blankCellsTri(t,[body],BM2,blankingType=typeb)
     return t
 

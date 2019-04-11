@@ -101,7 +101,7 @@ def playSound(soundHandle):
     if audioHandle is None: initSound()
     # Cherche un pool de libre
     i = -1
-    for j in xrange(poolSize): 
+    for j in range(poolSize): 
         if soundPool[j] is None: i = j; break
     if i == -1: return None # full
     #print 'found free pool=%d'%i
@@ -123,7 +123,7 @@ def playSound(soundHandle):
 
 # Close all sounds (if finished)
 def closeAllSounds():
-    for i in xrange(poolSize):
+    for i in range(poolSize):
         h = soundPool[i]
         #print 'Checking pool=',i
         if h is not None:

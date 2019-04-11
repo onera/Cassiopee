@@ -5,7 +5,7 @@ import Transform as T
 import CPlot
 
 def rotate(a):
-    for i in xrange(90*2):
+    for i in range(90*2):
         a = T.rotate(a, (0.5, 0, 0), (0,0,1), 0.5)
         CPlot.display(a)
     return a

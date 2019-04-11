@@ -50,7 +50,7 @@ box = World.placeObject(zmap,box,110.,40.,impact=1)
 staticZMap.append(box)
 
 #column = Models.column(R=1., N=1, h=1)
-#for i in xrange(67,56):
+#for i in range(67,56):
 #    staticZMap.append(World.placeRandomObject(zmap,column,impact=1,zshift=-0.5))
 allObjects += staticZMap
 

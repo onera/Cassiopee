@@ -9,7 +9,7 @@ zmap = World.initGround(zmap, type=0)
 ground = C.copy(zmap)
 allObjects = [ground]
 
-for i in xrange(800):
+for i in range(800):
     a = Models.cobbleStone(hx=1., hy=0.3, hz=0.2)
     a = World.placeRandomObject(zmap,a,impact=0,rotateZ=True)
     allObjects.append(a)

@@ -132,7 +132,7 @@ while 1 != 2:
     time.sleep(0.05)
     t += 1
 
-    for i in xrange(nstars):
+    for i in range(nstars):
         tg = targetCoords[i]
         if abs(pos[0][0]-tg[0])<3 and abs(pos[0][1]-tg[1])<3:
             o = World.placeObject(zmap,star,tg[0],tg[1],zshift=10.,impact=0)

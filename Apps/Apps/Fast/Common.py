@@ -114,8 +114,7 @@ def finalize(t, t_out, it0=None, time0=None, NP=0, format='single'):
 def compute(t_in, tc_in, 
             t_out, tc_out,
             numb, numz,
-            NIT, 
-            NP=0, format='single'):
+            NIT, NP=0, format='single'):
     if NP > 0:
         import Converter.Mpi as Cmpi
         import FastS.Mpi as FastS
@@ -146,6 +145,9 @@ def compute(t_in, tc_in,
         FastS._compute(t, metrics, it, tc, graph)
         if it%100 == 0:
             if rank == 0: print('- %d / %d - %f'%(it+it0, NIT+it0, time0))
+        #if it%50 == 0:
+        #    import CPlot.PyTree as CPlot
+        #    CPlot.display(t, dim=2, mode='Scalar', scalarField='Density')
         #FastS.display_temporal_criteria(t, metrics, it, format='double')
         time0 += time_step
 

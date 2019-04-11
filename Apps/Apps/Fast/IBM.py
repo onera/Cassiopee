@@ -127,7 +127,7 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
     # arbre de calcul
     I._initConst(t, loc='centers')
     if model != "Euler": C._initVars(t, 'centers:ViscosityEddy', 0.)
-    if isinstance(t_out, str): Fast.save(t, t_out, split=format, NP=-NP)
+    if isinstance(t_out, str): Fast.save(t, t_out, split=format, NP=-NP, cartesian=False)
     return t, tc
 
 #==================================================================================================
@@ -157,6 +157,7 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
     snearsf = None
     symmetry = 0
     fileout = None
+    if check: fileout = 'octree.cgns'
 
     DEPTH=2
     IBCType=1
@@ -403,6 +404,7 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
         Cmpi._rmXZones(tc)
         Xmpi._setInterpTransfers(t,tc,variables=['cellNFront'], cellNVariable='cellNFront', compact=0)
         test.printMem(">>> pushBackImageFront2 [end]")
+        
     #============================================================================
 
     C._cpVars(t,'centers:cellNFront',tc,'cellNFront')
@@ -563,14 +565,16 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
         for z in Internal.getZones(tibm): z[0] += '_'+str(Cmpi.rank)
         tibm = Cmpi.allgatherTree(tibm)
         if rank==0: C.convertPyTree2File(tibm, 'IBMInfo.cgns')
+        del tibm
+        
     #============================================================================
 
     # distribution par defaut (sur Cmpi.size)
-    tbbc = Cmpi.createBBoxTree(tc)
-    stats = D2._distribute(tbbc, Cmpi.size, algorithm='graph', useCom='ID')
-    D2._copyDistribution(tbbc, tc)
-    D2._copyDistribution(tbbc, t)
-    del tbbc
+    #tbbc = Cmpi.createBBoxTree(tc)
+    #stats = D2._distribute(tbbc, Cmpi.size, algorithm='graph', useCom='ID')
+    #D2._copyDistribution(tbbc, tc)
+    #D2._copyDistribution(tbbc, t)
+    #del tbbc
 
     # Save tc
     if isinstance(tc_out, str): Cmpi.convertPyTree2File(tc, tc_out)
@@ -895,21 +899,60 @@ def _distribute(t_in, tc_in, NP):
     return None
 
 #====================================================================================
-# Prend les snear dans tb, les multiplie par factor
-def _snearFactor(tb, factor=1.):
-    zones = Internal.getZones(tb)
+# Prend les snear dans t, les multiplie par factor
+def snearFactor(t, factor=1.):
+    tp = Internal.copyRef(t)
+    _snearFactor(t, value)
+    return tp
+
+def _snearFactor(t, factor=1.):
+    zones = Internal.getZones(t)
     for z in zones:
         nodes = Internal.getNodesFromName2(z, 'snear')
         for n in nodes:
             Internal._setValue(n, factor*Internal.getValue(n))
     return None
 
-def _setDfar(tb, dfar=1.):
-    zones = Internal.getZones(tb)
+# Set IBC type in zones
+def setIBCType(t, value):
+    tp = Internal.copyRef(t)
+    _setIBCType(t, value)
+    return tp
+    
+def _setIBCType(z, value):
+    zones = Internal.getZones(z)
     for z in zones:
-        nodes = Internal.getNodesFromName2(z, 'dfar')
-        for n in nodes:
-            Internal._setValue(n, dfar*1.)
+        Internal._createUniqueChild(z, '.Solver#define', 'UseDefinedData_t')
+        n = Internal.getNodeFromName1(z, '.Solver#define')
+        Internal._createUniqueChild(n, 'ibctype', 'DataArray_t', value)
+    return None
+
+# Set snear in zones
+def setSnear(t, value):
+    tp = Internal.copyRef(t)
+    _setSnear(t, value)
+    return tp
+
+def _setSnear(z, value):
+    zones = Internal.getZones(z)
+    for z in zones:
+        Internal._createUniqueChild(z, '.Solver#define', 'UseDefinedData_t')
+        n = Internal.getNodeFromName1(z, '.Solver#define')
+        Internal._createUniqueChild(n, 'snear', 'DataArray_t', value)
+    return None
+
+# Set dfar in zones 
+def setDfar(t, value):
+    tp = Internal.copyRef(t)
+    _setDfar(t, value)
+    return tp
+
+def _setDfar(z, value):
+    zones = Internal.getZones(z)
+    for z in zones:
+        Internal._createUniqueChild(z, '.Solver#define', 'UseDefinedData_t')
+        n = Internal.getNodeFromName1(z, '.Solver#define')
+        Internal._createUniqueChild(n, 'dfar', 'DataArray_t', value)
     return None
 
 #====================================================================================

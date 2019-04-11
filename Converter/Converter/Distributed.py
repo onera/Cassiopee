@@ -8,8 +8,11 @@
 
 from . import Converter
 from . import Internal
-import numpy
 from . import PyTree
+import numpy
+
+try: range = xrange
+except: pass
 
 #==============================================================================
 # Lit un arbre squelette
@@ -118,15 +121,16 @@ def fixPath__(path, nodeName=None):
   elif p[0:9] == 'CGNSTree/': r = p[8:]
   if nodeName is not None and nodeName == Internal.getPathLeaf(p): r = Internal.getPathAncestor(r)
   return r
+  
 def fixPaths__(paths, nodes=None):
   l = len(paths)
   out = []
   if nodes is not None:
-    for i in xrange(l):
+    for i in range(l):
       r = fixPath__(paths[i], nodes[i][0])
       out.append(r)
   else:
-    for i in xrange(l):
+    for i in range(l):
       r = fixPath__(paths[i])
       out.append(r)
   return out
@@ -238,7 +242,7 @@ def _readZones(t, fileName, format=None, rank=None, zoneNames=None):
       
   else: # by zone names
       paths = zoneNames[:]
-      for c in xrange(len(paths)):
+      for c in range(len(paths)):
           if paths[c][0] != '/': paths[c] = '/'+paths[c]
 
   #print 'Reading '+fileName+' '+str(paths)+'...',
@@ -311,7 +315,7 @@ def writeZones(t, fileName, format=None, proc=None, zoneNames=None, links=None):
         for p in paths:
             n = Internal.getNodeFromPath(tp, p)
             nodes.append(n)
-        for c in xrange(len(paths)):
+        for c in range(len(paths)):
             if paths[c][0] != '/': paths[c] = '/'+paths[c]
             path[c] = Internal.getPathAncestor(path[c])
 
@@ -337,8 +341,8 @@ def setZonesInTree(t, zones):
 
 def _setZonesInTree(t, zones):
     size = len(zones)
-    for i in xrange(size):
-        for j in xrange(len(zones[i])):
+    for i in range(size):
+        for j in range(len(zones[i])):
             zone = zones[i][j]
             zoneName = zone[0]
             z = Internal.getNodeFromName2(t, zoneName)
@@ -523,7 +527,7 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
         nssiter = 4*maxlevel
         
         list_graph_=[]
-        for ssiter in xrange(1,2*nssiter+1):
+        for ssiter in range(1,2*nssiter+1):
             graph_={}
             for z in zones:
                 proc = getProcLocal__(z, procDict)
@@ -596,7 +600,7 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
         nssiter = 4*maxlevel
 
         list_graph_=[]
-        for ssiter in xrange(1,2*nssiter+1):
+        for ssiter in range(1,2*nssiter+1):
             graph_={}
             for z in zones:
                 proc = getProcLocal__(z, procDict)

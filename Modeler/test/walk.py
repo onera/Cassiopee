@@ -27,7 +27,7 @@ wall = World.placeObject(zmap,wall,0,198,impact=1)
 staticZMap.append(wall)
 
 column = Models.column2(R1=2., R2=1.7,N=10, h=15)
-for i in xrange(10):
+for i in range(10):
     staticZMap.append(World.placeRandomObject(zmap,column,impact=1,zshift=-0.5))
 allObjects += staticZMap
 
@@ -36,7 +36,7 @@ star = Models.star(R1=0.5,R2=1.,N=10,h=0.5)
 star = T.rotate(star, (0,0,0), (0,1,0), 90.)
 nstars = 5
 targetCoords = []
-for i in xrange(nstars):
+for i in range(nstars):
     st = World.placeRandomObject(zmap,star,impact=0)
     bb = G.bbox(st)
     targetCoords.append((bb[0]+(bb[3]-bb[0])*0.5,bb[1]+(bb[4]-bb[1])*0.5))
@@ -73,7 +73,7 @@ while 1 != 2:
     t += 1
 
     # petit jeu de chasse au tresor
-    for i in xrange(5):
+    for i in range(5):
         tg = targetCoords[i]
         if abs(pos[0][0]-tg[0])<3 and abs(pos[0][1]-tg[1])<3:
             o = World.placeObject(zmap,star,tg[0],tg[1],zshift=10.,impact=0)

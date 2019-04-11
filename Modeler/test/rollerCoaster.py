@@ -26,7 +26,7 @@ n = l[2]
 coord = l[1]
 e2p = None
 
-for i in xrange(n-1):
+for i in range(n-1):
     # Pt i
     Pi = [coord[0,i],coord[1,i],coord[2,i]]
     # Pt i+1
@@ -67,7 +67,7 @@ for i in xrange(n-1):
 Pts = []
 path = G.cart((0,0,0),(1,1,1),(n,1,1))
 
-for i in xrange(n):
+for i in range(n):
     Pts.append((coord[0,i],coord[1,i],coord[2,i]+0.2))
     path[1][0,i] = coord[0,i]
     path[1][1,i] = coord[1,i]
@@ -94,7 +94,7 @@ path = C.initVars(path, 'incEye', 50.)
 # incView inverse de abscisse curviligne?
 s = D.getCurvilinearAbscissa(path)[1]
 f = path[1]
-for i in xrange(path[2]-1):
+for i in range(path[2]-1):
     path[1][3,i] = 1./(s[0,i+1]-s[0,i])*0.003
     path[1][3,i] = min(path[1][3,i],800)
     path[1][3,i] = max(path[1][3,i],20)
@@ -104,7 +104,7 @@ import time
 CPlot.display(all, bgColor=1, displayInfo=0, mode='solid')
 
 # MoveCamera avec ensemble de points
-#for i in xrange(6000):
+#for i in range(6000):
 #    #time.sleep(0.001)
 #    p = int(i/2000)
 #    pos = i -p*2000
@@ -112,7 +112,7 @@ CPlot.display(all, bgColor=1, displayInfo=0, mode='solid')
     
 # MoveCamera avec array path
 N = path[2]
-for i in xrange(N*3):
+for i in range(N*3):
     time.sleep(0.001)
     p = int(i/N)
     pos = i-p*N

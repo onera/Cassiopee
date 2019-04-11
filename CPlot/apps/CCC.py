@@ -15,7 +15,7 @@ ttk = CTK.importTtk()
 
 # CASSIOPEE var
 CASSIOPEE = os.getenv('CASSIOPEE')
-if (CASSIOPEE == ''):
+if CASSIOPEE == '':
     print 'Error: CASSIOPEE must be present in your environement.'
     sys.exit()
 
@@ -99,7 +99,7 @@ def caseSelector():
         B.grid(row=1, column=9)
         # populate list
         getCases()
-        for i in xrange(len(CASES)):
+        for i in range(len(CASES)):
             txt = CASES[i].ljust(20) + separatorl + INFOS[i].ljust(75) + STATUS[i].ljust(6) 
             lb.insert(TK.END, txt)
     else:

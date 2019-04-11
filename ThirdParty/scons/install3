@@ -29,4 +29,4 @@ else
 fi
 
 # installation
-python3 setup.py install --prefix="$INSTALLPATH"
+python3 setup.py install --prefix="$INSTALLPATH" --standard-lib

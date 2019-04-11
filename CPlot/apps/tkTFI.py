@@ -179,15 +179,15 @@ def OTFI():
     optWeight = 0; optOffset = 0; optScore = 1.e6
     Nt = coords[2]
     for j in xrange(-Nt/4,Nt/4+1):
-        for i in xrange(3,10):
+        for i in range(3,10):
             try:
                 [m,m1,m2,m3,m4] = TFIs.TFIO__(coords, i, j)
                 score = quality([m,m1,m2,m3])
                 if (score < optScore):
                     optWeight = i; optOffset = j; optScore = score
             except: pass
-    print 'resulting weight=%g, offset=%g.'%(optWeight,optOffset)
-    print 'resulting score=%g.'%optScore
+    print('resulting weight=%g, offset=%g.'%(optWeight,optOffset))
+    print('resulting score=%g.'%optScore)
     [m,m1,m2,m3,m4] = TFIs.TFIO__(coords, optWeight, optOffset)
     
     m = C.convertArrays2ZoneNode('TFI1', [m])
@@ -257,7 +257,7 @@ def HOTFI():
     optWeight = 0; optOffset = 0; optScore = 1.e6
     Nt2 = coords2[2]
     for j in xrange(-Nt2/8,Nt2/8):
-        for i in xrange(2,10):
+        for i in range(2,10):
             try:
                 [m,m1,m2,m3] = TFIs.TFIHalfO__(coords1, coords2, i, j)
                 score = quality([m,m1,m2,m3])

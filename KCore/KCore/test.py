@@ -897,7 +897,10 @@ def printMem(msg, waitTime=0.1):
     import os, time
     pid = os.getpid()
     time.sleep(waitTime)
-    f = open("/proc/{}/smaps".format(pid))
+    try: f = open("/proc/{}/smaps".format(pid))
+    except:
+        #f = open("/proc/{}/status".format(pid))
+        return 0.
     s = f.readlines()
     f.close()
 
