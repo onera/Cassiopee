@@ -1,8 +1,0 @@
-#==============================================================================
-# Module Geom
-#==============================================================================
-
-[MISSING] getCurvatureAngle pour des surfaces
-[MISSING] torsion pour les surfaces
-[MISSING] lineGenerate : ne fonctionne pas pour les array non structures
-[BAD FEATURE] axisym : ne fait pas tourner les vecteurs.

@@ -1,7 +1,0 @@
-
-Module initiator :
-
-============================= A faire =========================================
-
-[MISSING] test si les variables conservatives sont deja dans la zone ou l'arbre au moment de l'initialisation
-[MISSING] test si d'autres variables que les variables conservatives sont deja dans la zone ou l'arbre au moment de l'initialisation

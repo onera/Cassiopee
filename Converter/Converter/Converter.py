@@ -1,5 +1,6 @@
 """Conversion module for Cassiopee package.
 """
+from numpy import *
 __version__ = '2.9'
 __author__ = "Stephanie Peron, Christophe Benoit, Gaelle Jeanfaivre, Pascal Raud, Benoit Rodriguez, Simon Verley, Bruno Maugars, Thomas Renaud"
 #
@@ -9,7 +10,6 @@ try: range = xrange
 except: pass
 
 import numpy
-from numpy import *
 try: from . import converter
 except: import converter
 import KCore

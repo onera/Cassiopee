@@ -1259,7 +1259,8 @@ def checkParadigma(additionalLibPaths=[], additionalIncludePaths=[]):
 #=============================================================================
 # Check for BLAS
 # additionalPaths: chemins d'installation non standards: ['/home/toto',...]
-# Retourne: (True/False, chemin des includes, chemin de la librairie, option de compile)
+# Retourne: (True/False, chemin des includes, chemin de la librairie, 
+# option de compile, nom de la librarie)
 #=============================================================================
 def checkBlas(additionalLibPaths=[], additionalIncludePaths=[]):
     try: from config import Cppcompiler
@@ -1268,21 +1269,28 @@ def checkBlas(additionalLibPaths=[], additionalIncludePaths=[]):
         libPrefix = 'libmkl_'; includePrefix = 'mkl_'; compOpt = '-mkl'
     else: # cherche std
         libPrefix = 'lib'; includePrefix = ''; compOpt = ''
-    l = checkLibFile__(libPrefix+'blas*.so', additionalLibPaths)
+    libname = 'openblas'
+    l = checkLibFile__(libPrefix+'openblas*.so', additionalLibPaths)
     if l is None:
-        l = checkLibFile__(libPrefix+'blas*.a', additionalLibPaths)
+        l = checkLibFile__(libPrefix+'openblas*.a', additionalLibPaths)
+    if l is None:
+        libname = 'blas'
+        l = checkLibFile__(libPrefix+'blas*.so', additionalLibPaths)
+        if l is None:
+            l = checkLibFile__(libPrefix+'blas*.a', additionalLibPaths)
     i = checkIncFile__(includePrefix+'cblas.h', additionalIncludePaths)
     if i is not None and l is not None:
         print('Info: Blas detected at %s.'%l)
-        return (True, i, l, compOpt)
+        return (True, i, l, compOpt, libname)
     else:
         print('Info: libblas or cblas.h was not found on your system. No Blas support.')
-        return (False, i, l, compOpt)
+        return (False, i, l, compOpt, libname)
 
 #=============================================================================
 # Check for LAPACK
 # additionalPaths: chemins d'installation non standards : ['/home/toto',...]
-# Retourne: (True/False, chemin des includes, chemin de la librairie, option de compile)
+# Retourne: (True/False, chemin des includes, chemin de la librairie, 
+# option de compile, nom de la librarie)
 #=============================================================================
 def checkLapack(additionalLibPaths=[], additionalIncludePaths=[]):
     try: from config import Cppcompiler
@@ -1291,18 +1299,24 @@ def checkLapack(additionalLibPaths=[], additionalIncludePaths=[]):
         libPrefix = 'libmkl_'; includePrefix = 'mkl_'; compOpt = '-mkl'
     else: # cherche std
         libPrefix = 'lib'; includePrefix = ''; compOpt = ''
-    l = checkLibFile__(libPrefix+'lapack*.so', additionalLibPaths)
+    libname = 'openblas'
+    l = checkLibFile__(libPrefix+'openblas*.so', additionalLibPaths)
     if l is None:
-        l = checkLibFile__(libPrefix+'lapack*.a', additionalLibPaths)
+        l = checkLibFile__(libPrefix+'openblas*.a', additionalLibPaths)
+    if l is None:
+        libname = 'lapacke'
+        l = checkLibFile__(libPrefix+'lapack*.so', additionalLibPaths)
+        if l is None:
+            l = checkLibFile__(libPrefix+'lapack*.a', additionalLibPaths)
     i = checkIncFile__(includePrefix+'lapack.h', additionalIncludePaths)
     if i is None:
         i = checkIncFile__(includePrefix+'lapacke.h', additionalIncludePaths)
     if i is not None and l is not None:
         print('Info: Lapack detected at %s.'%l)
-        return (True, i, l, compOpt)
+        return (True, i, l, compOpt, libname)
     else:
         print('Info: liblapack or lapack.h or lapacke.h was not found on your system. No Lapack support.')
-        return (False, i, l, compOpt)
+        return (False, i, l, compOpt, libname)
 
 #=============================================================================
 # Check for Cython

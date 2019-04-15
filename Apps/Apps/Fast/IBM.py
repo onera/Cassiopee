@@ -955,6 +955,26 @@ def _setDfar(z, value):
         Internal._createUniqueChild(n, 'dfar', 'DataArray_t', value)
     return None
 
+def _modifIBCD(tc):
+    # modif BC outpress
+    nodes = Internal.getNodesFromName(tc, 'IBCD_4_*')
+    for n in nodes:
+        pres = Internal.getNodeFromName1(n, 'Pressure')
+        Internal.setValue(pres, 74500.*numpy.ones(numpy.shape(pres[1])))
+    # modif BC injection
+    alpha = 0.*pi/180.
+    nodes = I.getNodesFromName(tc, 'dirx')
+    for n in nodes:
+        d = numpy.ones(numpy.shape(n[1]))
+        Internal.setValue(n, d)
+    nodes = Internal.getNodesFromName(tc, 'StagnationEnthalpy')
+    for n in nodes:
+        Internal.setValue(n, stagEnt*numpy.ones(numpy.shape(n[1])))
+    nodes = Internal.getNodesFromName(tc, 'StagnationPressure')
+    for n in nodes:
+        Internal.setValue(n, PiInj*numpy.ones(numpy.shape(n[1])))
+    return None
+    
 #====================================================================================
 class IBM(Common):
     """Preparation et caculs avec le module FastS."""

@@ -10,6 +10,9 @@ import time
 __timeStep__ = 0.02
 __slot__ = None
 
+try: range = xrange
+except: pass
+
 #==============================================================================
 def configure(useRender):
     """
@@ -103,7 +106,7 @@ def add(arrays, no, array, zoneName=None, renderTag=None):
     """Add one zone to plotter.
     Usage: add(arrays, no, array, zoneName, renderTag)"""
     nzs = 0; nzu = 0
-    for i in xrange(no):
+    for i in range(no):
         if len(arrays[i]) == 5: nzs += 1
         else: nzu += 1
     arrays.insert(no, array)
@@ -124,7 +127,7 @@ def replace(arrays, no, array, zoneName=None, renderTag=None):
     if len(zone) == 5: oldType = 1
     else: oldType = 2
     nzs = 0; nzu = 0
-    for i in xrange(no):
+    for i in range(no):
         if len(arrays[i]) == 5: nzs += 1
         else: nzu += 1
     arrays[no] = array
@@ -399,7 +402,7 @@ def moveCamera(posCams, posEyes=None, dirCams=None, moveEye=False, N=100, speed=
       pOut = []
       P0 = posCams[0]
       pOut.append(P0)
-      for i in xrange(1,Np):
+      for i in range(1,Np):
         P1 = posCams[i]
         sub = Vector.sub(P1,P0)
         if Vector.norm(sub)>1.e-10:
@@ -429,7 +432,7 @@ def moveCamera(posCams, posEyes=None, dirCams=None, moveEye=False, N=100, speed=
         pOut = []
         P0 = posEyes[0]
         pOut.append(P0)
-        for i in xrange(1,Np):
+        for i in range(1,Np):
             P1 = posEyes[i]
             sub = Vector.sub(P1,P0)
             if Vector.norm(sub)>1.e-10:

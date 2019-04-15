@@ -587,8 +587,6 @@ class ColorControler(object):
             colormapList.append(html)
         return colormapList
 
-
-
     def turnOnFlag2ChangeColor(self):
         self.flag2ChangeColor = True
 
