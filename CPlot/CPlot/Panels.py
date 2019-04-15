@@ -9,6 +9,9 @@ import time, re
 import PyTree as CPlot
 import Ttk as TTK
 
+try: range = xrange
+except: pass
+
 #==============================================================================
 # LoadPanel
 LOADPANEL = None
@@ -401,7 +404,7 @@ def displayErrors(errors, header=''):
         # myText.delete(1.0, TK.END)
     # Errors
     nerr = len(errors)/2; allText = ''
-    for l in xrange(nerr): allText += ' - '+errors[2*l+1]+'\n'
+    for l in range(nerr): allText += ' - '+errors[2*l+1]+'\n'
     allText += '\n'
     myText.insert('START', allText)
     # Header
@@ -887,7 +890,7 @@ def getSelection(event=None):
         baseName = CTK.t[2][nob][0]
         name = baseName+'/'+CTK.t[2][nob][2][noz][0]
         name = name.strip()
-        for c in xrange(myList.size()):
+        for c in range(myList.size()):
             b = myList.get(c) ; b = b.split('|')
             name2 = b[0]
             if name2.strip() == name: print c; break
@@ -1144,8 +1147,7 @@ def ripTag(wname):
 def getNumber(l, e, et):
     #e = e.encode('utf-8')
     #et = et.encode('utf-8')
-    for i in xrange(len(l)):
-        li = l[i]
+    for i, li in enumerate(l):
         if li == e: return i
         if li == et: return i
     return -1

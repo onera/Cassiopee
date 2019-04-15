@@ -8,6 +8,7 @@ import Compressor.PyTree as Compressor
 from .Distributed import readZones, writeZones, convert2PartialTree, convert2SkeletonTree, readNodesFromPaths, readPyTreeFromPaths, writeNodesFromPaths
 
 __all__ = ['rank', 'size', 'KCOMM', 'setCommunicator', 'barrier', 'send', 'recv', 'sendRecv', 'sendRecv2', 
+    'bcast', 'Bcast', 'bcastZone', 
     'allgather', 'readZones', 'writeZones', 'convert2PartialTree', 'convert2SkeletonTree', 'convertFile2DistributedPyTree', 
     'readNodesFromPaths', 'readPyTreeFromPaths', 'writeNodesFromPaths',
     'allgatherTree', 'convertFile2SkeletonTree', 'convertFile2PyTree', 'convertPyTree2File', 'seq', 'print0', 'printA',
@@ -104,6 +105,36 @@ def allgatherTree(t):
     d = KCOMM.allgather(t)
     return Internal.merge(d)
     
+#==============================================================================
+# bcast from root
+#==============================================================================
+# data=All with pickle
+def bcast(data, root=0):
+    return KCOMM.bcast(data, root)
+
+# data=numpy
+def Bcast(data, root=0):
+    return KCOMM.Bcast(data, root)
+    
+# data=zone
+def bcastZone(z, root=0):
+    if rank == root:
+        zp = Internal.copyRef(z)
+        Internal._rmNodesFromName(zp, 'GridCoordinates')
+        
+        
+    zp = KCOMM.bcast(zp, root)
+    if rank == root: x = Internal.getNodeFromName2('CoordinateX')
+    else: x = None
+    x = KCOMM.Bcast(x, root)
+    if rank == root: y = Internal.getNodeFromName2('CoordinateY')
+    else: y = None
+    if rank == root: z = Internal.getNodeFromName2('CoordinateZ')
+    else: z = None
+    
+    
+    return 0
+       
 #==============================================================================
 # Lecture du squelette d'un arbre dans un fichier
 # Lecture proc 0 + bcast

@@ -311,7 +311,6 @@ def drawArc(npts):
                     pt1 = D.point((x1,y1,z1))
                     pt2 = D.point((x2,y2,z2))
                     pt3 = D.point((x3,y3,z3))
-                    #print 'orig', x1,y1,z1
                     pt1 = T.rotate(pt1,
                                    (center[0], center[1], center[2]),
                                    (e1, e4, e3),
@@ -333,33 +332,29 @@ def drawArc(npts):
                     xp3 = C.getValue(pt3, 'CoordinateX', 0)
                     yp3 = C.getValue(pt3, 'CoordinateY', 0)
                     zp3 = C.getValue(pt3, 'CoordinateZ', 0)
-                    #print xp1,yp1,zp1
-                
+                    
                     dx1 = (xp1-center[0])/R; dy1 = (yp1-center[1])/R
-                    if (dx1 > 1.): dx1 = 1.
-                    if (dx1 < -1.): dx1 = -1.
-                    #print dx1, dy1
-                    if (dy1 > 0): teta1 = math.acos(dx1)
+                    if dx1 > 1.: dx1 = 1.
+                    if dx1 < -1.: dx1 = -1.
+                    if dy1 > 0: teta1 = math.acos(dx1)
                     else: teta1 = 2*math.pi - math.acos(dx1)
                     teta1 = teta1*180./math.pi; teta1 = 360.
 
                     dx2 = (xp2-center[0])/R; dy2 = (yp2-center[1])/R
-                    if (dx2 > 1.): dx2 = 1.
-                    if (dx2 < -1.): dx2 = -1.
-                    #print dx2, dy2
-                    if (dy2 > 0): teta2 = math.acos(dx2)
+                    if dx2 > 1.: dx2 = 1.
+                    if dx2 < -1.: dx2 = -1.
+                    if dy2 > 0: teta2 = math.acos(dx2)
                     else: teta2 = 2*math.pi - math.acos(dx2)
                     teta2 = teta2*180./math.pi
 
                     dx3 = (xp3-center[0])/R; dy3 = (yp3-center[1])/R
-                    if (dx3 > 1.): dx3 = 1.
-                    if (dx3 < -1.): dx3 = -1.
-                    #print dx2, dy2
-                    if (dy3 > 0): teta3 = math.acos(dx3)
+                    if dx3 > 1.: dx3 = 1.
+                    if dx3 < -1.: dx3 = -1.
+                    if dy3 > 0: teta3 = math.acos(dx3)
                     else: teta3 = 2*math.pi - math.acos(dx3)
                     teta3 = teta3*180./math.pi
 
-                    if (teta3 > teta2): teta1 = 360.
+                    if teta3 > teta2: teta1 = 360.
                     else: teta1 = 0.
 
                     circle = D.circle((center[0],center[1],center[2]), R, 
@@ -368,7 +363,7 @@ def drawArc(npts):
                                       (center[0], center[1], center[2]),
                                       ((1,0,0), (0,1,0), (0,0,1)),
                                       (e1, e4, e3))
-                    if (surfaces != []):
+                    if surfaces != []:
                         circle = T.projectOrthoSmooth(circle, surfaces)
                     CTK.add(CTK.t, nob, -1, circle)
                     CTK.TXT.insert('START', 'Circle created.\n')

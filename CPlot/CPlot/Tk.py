@@ -14,6 +14,9 @@ from . import cplot
 from . import Panels
 import os, os.path
 
+try: range = xrange
+except: pass
+
 #==============================================================================
 # Variables globales partagees entre toutes les apps tk
 # Fichier de donnees lu (en cours), nom du fichier et/ou handle
@@ -237,19 +240,19 @@ def buildCPlotArrays(a, topTree=[]):
         if len(v) == 2: v = v[1]
         else: v = __FIELD__
         arrays2 = C.getField(v, a)
-        for i in xrange(len(arrays)):
+        for i in range(len(arrays)):
             if arrays2[i] != []:
                 Converter._addVars([arrays[i], arrays2[i]])
 
     if __ONEOVERN__ > 1:
-        for i in xrange(len(arrays)):
+        for i in range(len(arrays)):
             if len(arrays[i]) == 5:
                 arrays[i] = Transform.oneovern(arrays[i], (__ONEOVERN__,__ONEOVERN__,__ONEOVERN__))
 
     # Transmet les maillages contenant les borders elts pour HEXA, TETRA,
     # PYRA, PENTA, NGON
     if __ONEOVERN__ > 0:
-        for i in xrange(len(arrays)):
+        for i in range(len(arrays)):
             b = arrays[i]
             if b[3] == 'TETRA' or b[3] == 'HEXA' or b[3] == 'PYRA' or b[3] == 'PENTA':
                 arrays[i] = Post.exteriorElts(b)
@@ -1046,7 +1049,7 @@ def unselectAll():
     s = 0
 
     nodes = Internal.getZones(t)
-    for no in xrange(len(nodes)): selected.append( (no, s) )
+    for no in range(len(nodes)): selected.append( (no, s) )
 
     TXT.insert('START', 'Tree unselected.\n')
     CPlot.setSelectedZones(selected)
@@ -1071,7 +1074,7 @@ def toggleSelectAll():
                 break
 
     nodes = Internal.getZones(t)
-    for no in xrange(len(nodes)): selected.append( (no, s) )
+    for no in range(len(nodes)): selected.append( (no, s) )
 
     if s == 0: TXT.insert('START', 'Tree unselected.\n')
     elif s == 1: TXT.insert('START', 'Tree selected.\n')
@@ -1083,7 +1086,7 @@ def revertActivated():
   if t == []: return  
   nz = len(Internal.getZones(t))  
   nzs = CPlot.getActiveZones()
-  active = [(i,1) for i in xrange(nz)]
+  active = [(i,1) for i in range(nz)]
   for n in nzs: active[n] = (n,0) 
   CPlot.setActiveZones(active)
   

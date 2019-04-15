@@ -59,17 +59,17 @@ def createZoneFamily(event=None):
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     nzs = CPlot.getSelectedZones()
     CTK.saveTree()
-    if (CTK.__MAINTREE__ <= 0 or nzs == []):
+    if CTK.__MAINTREE__ <= 0 or nzs == []:
         bases = CTK.t[2]
-        for b in xrange(len(bases)):
-            if CTK.t[2][b][3] == 'CGNSBase_t':
-                CTK.t[2][b] = C.addFamily2Base(CTK.t[2][b], name)
+        for b in bases:
+            if b[3] == 'CGNSBase_t':
+                C._addFamily2Base(b, name)
         CTK.TXT.insert('START', 'Zone Family '+name+' added to all bases.\n')
     else:
         nob = CTK.Nb[nzs[0]]+1
         noz = CTK.Nz[nzs[0]]
         z = CTK.t[2][nob][2][noz]
-        CTK.t[2][nob] = C.addFamily2Base(CTK.t[2][nob], name)
+        C._addFamily2Base(CTK.t[2][nob], name)
         CTK.TXT.insert('START', 'Zone Family '+name+' added to base '+CTK.t[2][nob][0]+'.\n')
     CTK.TKTREE.updateApp()
 
@@ -82,17 +82,17 @@ def createBCFamily(event=None):
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     nzs = CPlot.getSelectedZones()
     CTK.saveTree()
-    if (CTK.__MAINTREE__ <= 0 or nzs == []):
+    if CTK.__MAINTREE__ <= 0 or nzs == []:
         bases = CTK.t[2]
-        for b in xrange(len(bases)):
-            if CTK.t[2][b][3] == 'CGNSBase_t':
-                CTK.t[2][b] = C.addFamily2Base(CTK.t[2][b], name, 'UserDefined')
+        for b in bases:
+            if b[3] == 'CGNSBase_t':
+                C._addFamily2Base(b, name, 'UserDefined')
         CTK.TXT.insert('START', 'BC Family '+name+' added to all bases.\n')
     else:
         nob = CTK.Nb[nzs[0]]+1
         noz = CTK.Nz[nzs[0]]
         z = CTK.t[2][nob][2][noz]
-        CTK.t[2][nob] = C.addFamily2Base(CTK.t[2][nob], name, 'UserDefined')
+        C._addFamily2Base(CTK.t[2][nob], name, 'UserDefined')
         CTK.TXT.insert('START', 'BC Family '+name+' added to base '+CTK.t[2][nob][0]+'.\n')
     CTK.TKTREE.updateApp()
 

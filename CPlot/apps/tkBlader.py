@@ -8,6 +8,9 @@ import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
 import CPlot.Panels as Panels
 
+try: range = xrange
+except: pass
+
 # local widgets list
 WIDGETS = {}; VARS = []
 
@@ -351,7 +354,7 @@ def step1():
     # check volume + subzone
     vol = G.getVolumeMap(m4[0])
     nk = vol[4]; ni = vol[2]
-    for k in xrange(nk-1):
+    for k in range(nk-1):
         sub = T.subzone(vol, (1,1,k+1), (ni,1,k+2)) 
         volmin = Converter.getMinValue(sub, 'vol')
         if volmin < 0.:
@@ -447,13 +450,13 @@ def step2():
     #==========================================================================
     M1b = T.translate(M1, (0,0,Dfar))
     B1 = []
-    for i in xrange(len(M1)):
+    for i in range(len(M1)):
         B1.append(G.stack(M1[i], M1b[i]))
 
     M1c = T.translate(M1, (0,0,-span))
     M1d = T.translate(M1, (0,0,-span-Dfar))
     B2 = []
-    for i in xrange(len(M1c)):
+    for i in range(len(M1c)):
         B2.append(G.stack(M1c[i], M1d[i]))
 
     #C.convertArrays2File(B1+B2, 'bouchon.plt')
@@ -461,7 +464,7 @@ def step2():
     M2b = T.translate(M2, (0,0,Dfar))
     M2c = T.translate(M2, (0,0,-span-Dfar))
     I = []
-    for i in xrange(len(M2b)):
+    for i in range(len(M2b)):
         I.append(G.stack(M2c[i], M2b[i]))
 
     # B1, B2: les bouchons; I le reste
@@ -472,13 +475,13 @@ def step2():
 
     N = int(Dfar/hp)+1
     distrib = G.cart( (0,0,0), (1./(N-1),1,1), (N,1,1) )
-    for i in xrange(len(B1)):
+    for i in range(len(B1)):
         B1[i] = G.map(B1[i], distrib, 3)
-    for i in xrange(len(B2)):
+    for i in range(len(B2)):
         B2[i] = G.map(B2[i], distrib, 3)
     N = int((2*Dfar+span)/hp)+1
     distrib = G.cart( (0,0,0), (1./(N-1),1,1), (N,1,1) )
-    for i in xrange(len(I)):
+    for i in range(len(I)):
         I[i] = G.map(I[i], distrib, 3)
     
     # Back to zones
@@ -515,12 +518,12 @@ def step2():
         z = C.addBC2Zone(z, 'overlap', 'BCOverlap', 'imax')
         base[2][11] = z
 
-        for i in xrange(5):
+        for i in range(5):
             z = base[2][i]
             z = C.addBC2Zone(z, 'overlap', 'BCOverlap', 'kmax')
             base[2][i] = z
 
-        for i in xrange(5):
+        for i in range(5):
             z = base[2][5+i]
             z = C.addBC2Zone(z, 'overlap', 'BCOverlap', 'kmax')
             base[2][5+i] = z
@@ -545,12 +548,12 @@ def step2():
         z = C.addBC2Zone(z, 'overlap', 'BCOverlap', 'kmin')
         base[2][7] = z
 
-        for i in xrange(3):
+        for i in range(3):
             z = base[2][i]
             z = C.addBC2Zone(z, 'overlap', 'BCOverlap', 'kmax')
             base[2][i] = z
 
-        for i in xrange(3):
+        for i in range(3):
             z = base[2][3+i]
             z = C.addBC2Zone(z, 'overlap', 'BCOverlap', 'kmax')
             base[2][3+i] = z

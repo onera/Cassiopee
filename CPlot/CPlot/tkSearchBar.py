@@ -288,8 +288,7 @@ class AutocompleteEntry(TK.Entry):
         for a in askString:
             pattern.append(re.compile('.*' + a + '.*', re.IGNORECASE))
 
-        sol = []
-        for i in xrange(la): sol.append([])
+        sol = [[]]*la
 
         for w in self.lista:
             ma = 0

@@ -8,6 +8,9 @@ import CPlot.Panels as Panels
 import Converter.Internal as Internal
 import Dist2Walls.PyTree as DW
 
+try: range = xrange
+except: pass
+
 # local widgets list
 WIDGETS = {}; VARS = []
 
@@ -15,11 +18,11 @@ WIDGETS = {}; VARS = []
 def initWallDistance():
     if CTK.t == []: return
     bodies = C.extractBCOfType(CTK.t, 'BCWall')
-    for c in xrange(len(bodies)):
+    for c in range(len(bodies)):
         try: bodies[c] = C.node2ExtCenter(bodies[c])
         except: pass
     tb = C.newPyTree(['Base', 2]); tb[2][1][2] += bodies
-    CTK.saveTree() 
+    CTK.saveTree()
     try:
         CTK.t = DW.distance2Walls(CTK.t, tb, loc='centers', type='ortho')
         CTK.TXT.insert('START', 'Distance to wall computed.\n')

@@ -10,6 +10,9 @@ import Converter.Internal as Internal
 import Tkdnd # drag and drop
 import numpy
 
+try: range = xrange
+except: pass
+
 # local widgets list
 STATUS = 0
 WIDGETS = {}; VARS = []
@@ -565,7 +568,7 @@ class Node:
                         break
                     
             nodes = Internal.getZones(CTK.t)
-            for no in xrange(len(nodes)): activated.append((no, s))
+            for no in range(len(nodes)): activated.append((no, s))
            
             if s == 0: CTK.TXT.insert('START', 'Tree deactivated.\n')
             elif s == 1: CTK.TXT.insert('START', 'Tree activated.\n')
@@ -674,7 +677,7 @@ class Node:
             nodes = Internal.getZones(CTK.t)
             if clear: CPlot.unselectAllZones(); s = 1 # force select
             selected = []
-            for no in xrange(len(nodes)): selected.append((no, s))
+            for no in range(len(nodes)): selected.append((no, s))
             
             CPlot.setSelectedZones(selected)
             if s == 1: CTK.TXT.insert('START', 'Tree selected.\n')

@@ -76,5 +76,5 @@ try:
 		index += 1
 	plt.show()
 except:
-	print "matplotlib not installed"
+	print("matplotlib not installed")
 os._exit(0)

@@ -10,6 +10,9 @@ import Converter.Internal as Internal
 import Connector.PyTree as X
 import Post.PyTree as P
 
+try: range = xrange
+except: pass
+
 # local widgets list
 WIDGETS = {}; VARS = []
 __SPLITFACTOR__ = 180.
@@ -232,16 +235,16 @@ def view(event=None):
 
         # Activate
         lenZ = len(CTK.dt[2][1][2]); lenExts = len(CTK.dt[2][2][2])
-        active = [(i,1) for i in xrange(lenZ+lenExts)]
-        for i in xrange(lenZ): active[i] = (i,1)
-        for i in xrange(lenExts): active[i+lenZ] = (i+lenZ,0)
+        active = [(i,1) for i in range(lenZ+lenExts)]
+        for i in range(lenZ): active[i] = (i,1)
+        for i in range(lenExts): active[i+lenZ] = (i+lenZ,0)
 
         CTK.display(CTK.dt, mainTree=CTK.DEFINEDBC)
         CPlot.setActiveZones(active)
         CPlot.setState(edgifyDeactivatedZones=1)
     else:
         lenZ = len(CTK.dt[2][1][2])
-        active = [(i,1) for i in xrange(lenZ)]
+        active = [(i,1) for i in range(lenZ)]
         C._fillMissingVariables(CTK.dt) # si BCDataSet != fields
         CTK.display(CTK.dt, mainTree=CTK.DEFINEDBC)
         CPlot.setActiveZones(active)
@@ -314,16 +317,16 @@ def check():
         
         # Activate
         lenZ = len(CTK.dt[2][1][2]); lenExts = len(exts)
-        active = [(i,1) for i in xrange(lenZ+lenExts)]
-        for i in xrange(lenZ): active[i] = (i,1)
-        for i in xrange(lenExts): active[i+lenZ] = (i+lenZ,0)
+        active = [(i,1) for i in range(lenZ+lenExts)]
+        for i in range(lenZ): active[i] = (i,1)
+        for i in range(lenExts): active[i+lenZ] = (i+lenZ,0)
 
         CTK.display(CTK.dt, mainTree=CTK.UNDEFINEDBC)
         CPlot.setActiveZones(active)
         CPlot.setState(edgifyDeactivatedZones=1)
     else:
         lenZ = len(CTK.dt[2][1][2])
-        active = [(i,1) for i in xrange(lenZ)]
+        active = [(i,1) for i in range(lenZ)]
         CTK.display(CTK.dt, mainTree=CTK.UNDEFINEDBC)
         CPlot.setActiveZones(active)
 

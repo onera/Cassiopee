@@ -10,6 +10,9 @@ import Post.PyTree as P
 import Transform.PyTree as T
 import math
 
+try: range = xrange
+except: pass
+
 # local widgets list
 WIDGETS = {}; VARS = []
 
@@ -52,7 +55,7 @@ def setMode(event=None):
                 ivar_with_X = -1
                 ivar_with_Y = -1
                 ivar_with_Z = -1
-                for iv in xrange(lg):
+                for iv in range(lg):
                     if vars0[iv].find('X') >= 0: ivar_with_X = iv
                 # On cherche si d'autres variables portent le meme nom avec un Y au lieu d'un X
                 iv = ivar_with_X
@@ -60,7 +63,7 @@ def setMode(event=None):
                     y_var_str = vars0[iv].replace('X','Y')
                     z_var_str = vars0[iv].replace('X','Z')
 
-                    for jv in xrange(lg):
+                    for jv in range(lg):
                         if vars0[jv] == y_var_str: ivar_with_Y = jv
                         if vars0[jv] == z_var_str: ivar_with_Z = jv
                         if (ivar_with_Y >= 0) and (ivar_with_Z  >= 0): break
@@ -692,7 +695,7 @@ def triggerIsoLines(event=None):
         fmax = float(VARS[10].get())
         zones = CTK.getValidZones()
         isos = []
-        for v in xrange(nlevels):
+        for v in range(nlevels):
             value = fmin + (fmax-fmin)/(nlevels-1)*v
             for zone in zones:
                 try:

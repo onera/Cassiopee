@@ -17,9 +17,9 @@ for i in range(50):
         CPlot.display(a)
     except:
         v = ord(l[0])
-        if v == 1: print 'up'
-        elif v == 2: print 'down'
-        elif v == 3: print 'left'
-        elif v == 4: print 'right'
+        if v == 1: print('up')
+        elif v == 2: print('down')
+        elif v == 3: print('left')
+        elif v == 4: print('right')
         time.sleep(0.1)
         l = ''

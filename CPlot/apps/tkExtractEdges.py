@@ -11,6 +11,9 @@ import Transform.PyTree as T
 import Generator.PyTree as G
 import Intersector.PyTree as XOR
 
+try: range = xrange
+except: pass
+
 # local widgets list
 WIDGETS = {}; VARS = []
 
@@ -256,10 +259,10 @@ def splitTBranches():
         if (structured == 1): splits = C.convertBAR2Struct(splits)
         n = len(nzs); ns = len(splits)
 
-        for c in xrange(n):
+        for c in range(n):
             nob = CTK.Nb[nzs[c]]+1
             noz = CTK.Nz[nzs[c]]
-            if (c < ns):
+            if c < ns:
                 CTK.replace(CTK.t, nob, noz, splits[c])
             else:
                 baseName = CTK.t[2][nob][0]

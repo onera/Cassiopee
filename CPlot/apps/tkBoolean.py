@@ -8,6 +8,9 @@ import CPlot.Panels as Panels
 import Converter.Internal as Internal
 import Intersector.PyTree as XOR
 
+try: range = xrange
+except: pass
+
 # local widgets list
 WIDGETS = {}; VARS = []
 
@@ -46,7 +49,7 @@ def union():
         Panels.displayErrors([0,str(e)], header='Error: union')
         CTK.TXT.insert('START', 'Union failed\n'); return
 
-    for nz in xrange(len(zlist)-2):
+    for nz in range(len(zlist)-2):
         try: j = XOR.booleanUnion(j, zlist[nz+2], tol=tol)
         except Exception, e:
             Panels.displayErrors([0,str(e)], header='Error: union')
@@ -186,7 +189,7 @@ def intersection():
         Panels.displayErrors([0,str(e)], header='Error: intersection')
         CTK.TXT.insert('START', 'Intersection failed.\n'); return
 
-    for nz in xrange(len(zlist)-2):
+    for nz in range(len(zlist)-2):
         try: j = XOR.booleanIntersection(j, zlist[nz+2], tol=tol)
         except Exception, e:
             Panels.displayErrors([0,str(e)], header='Error: intersection')

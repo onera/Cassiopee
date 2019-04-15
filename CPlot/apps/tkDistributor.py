@@ -165,19 +165,19 @@ def computeStats():
     m = 0; ntot = 0
     for z in zones:
         param = Internal.getNodesFromName1(z, '.Solver#Param')
-        if (param != []):
+        if param != []:
             proc = Internal.getNodesFromName1(param[0], 'proc')
-            if (proc != []):
+            if proc != []:
                 value = proc[0][1][0,0]
                 dim = Internal.getZoneDim(z)
-                if (dim[0] == 'Structured'): size = dim[1]*dim[2]*dim[3]
+                if dim[0] == 'Structured': size = dim[1]*dim[2]*dim[3]
                 else: size = dim[1]
                 a[value] += size
                 ntot += size
     m = ntot*1. / NProc
     varRMS = 0.; varMin = 1.e6; varMax = 0.
-    for i in xrange(NProc):
-        v = abs(a[i]-m)
+    for i in a:
+        v = abs(i-m)
         varMin = min(varMin, v)
         varMax = max(varMax, v)
         varRMS += v*v
@@ -231,17 +231,17 @@ def updateStats():
 
     m = STATS['meanPtsPerProc']
     fmin = 1.e10; fmax = 0
-    for i in xrange(NProc):
-        fmin = min(a[i], fmin); fmax = max(a[i], fmax)
+    for i in a:
+        fmin = min(i, fmin); fmax = max(i, fmax)
     
     alpha = min(1./abs(fmax-m+1.e-6), 1./abs(fmin-m+1.e-6))
     alpha = min(alpha, 1./m)
     
     barWidth = width*1. / (NProc*1.)
-    for i in xrange(NProc):
+    for i in range(NProc):
         v = -alpha*(a[i] - m*1.)
-        if (a[i] == 0): fillColor = 'yellow'
-        elif (i%2 == 0): fillColor = 'blue'
+        if a[i] == 0: fillColor = 'yellow'
+        elif i%2 == 0: fillColor = 'blue'
         else: fillColor = 'red'
        
         c.create_rectangle(i*barWidth, height/2., (i+1)*barWidth,
@@ -266,13 +266,13 @@ def updateStats():
     b.label.configure(text=stats)
 
 #==============================================================================
-# Essai d'ajuste le nbre de procs
-# (essai les classes de stelvio)
+# Essai d'ajuster le nbre de procs
+# (essai les classes de sator)
 # Note: je ne suis pas sur que ca soit tres utile
 #==============================================================================
 def adjustNProc():
     global STATS
-    if (CTK.t == []): return
+    if CTK.t == []: return
     try: NProc = int(VARS[0].get())
     except: NProc = 1
     try: comSpeed = float(VARS[1].get())
@@ -286,16 +286,16 @@ def adjustNProc():
     classes = [8,16,32,64,128,256,512]
     CTK.saveTree()
 
-    for c in xrange(len(classes)):
+    for c in range(len(classes)):
         if NProc > classes[c]: break;
     
     CTK.t, stat1 = D.distribute(CTK.t, classes[c], perfo=(1.,0.,comSpeed),
                                 useCom=useCom, algorithm=algo)
-    if (c > 0):
+    if c > 0:
         CTK.t, stat2 = D.distribute(CTK.t, classes[c-1],
                                     perfo=(1.,0.,comSpeed),
                                     useCom=useCom, algorithm=algo)
-    if (c < len(classes)-1):
+    if c < len(classes)-1:
         CTK.t, stat3 = D.distribute(CTK.t, classes[c+1],
                                     perfo=(1.,0.,comSpeed),
                                     useCom=useCom, algorithm=algo)

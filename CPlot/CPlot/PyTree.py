@@ -1,12 +1,12 @@
-"""Plotter functions.
+"""Plotter functions for pyTrees.
 """
-#
-# Plotter functions for pyTrees
-#
 import numpy
 import CPlot
 try: import cplot
 except: ImportError("CPlot: is partially installed (no display).")
+
+try: range = xrange
+except: pass
 
 # Separateur intra-nom
 SEP1 = '/'
@@ -493,22 +493,22 @@ def getNzs(t, zone):
 def deleteSelection(t, Nb, Nz, nzs):
     nbases = len(t[2])
     bases = []
-    for i in xrange(nbases): bases.append([])
+    for i in range(nbases): bases.append([])
     for nz in nzs:
         nob = Nb[nz]+1
         noz = Nz[nz]
         bases[nob].append(noz)
 
-    for i in xrange(nbases):
+    for i in range(nbases):
         l = bases[i]
-        for a in xrange(len(l)):
-            for b in xrange(a+1, len(l)):
+        for a in range(len(l)):
+            for b in range(a+1, len(l)):
                 if l[a] < l[b]:
                     temp = l[a]; l[a] = l[b]; l[b] = temp
 
-    for i in xrange(1, nbases):
+    for i in range(1, nbases):
         l = bases[i]
-        for a in xrange(len(l)):
+        for a in range(len(l)):
             del t[2][i][2][l[a]]
     return t
 
@@ -595,7 +595,7 @@ def getRenderTags__(z, renderTags):
             if isinstance(v, numpy.ndarray):
                 shaderParameters = ''
                 lgt = v.shape[0]
-                for i in xrange(lgt):
+                for i in range(lgt):
                     shaderParameters += str(v[i])
                     if i < lgt-1: shaderParameters += ':'
         renderTags.append(color+':'+material+':'+blending+':'+meshOverlay+':'+shaderParameters)
@@ -697,14 +697,14 @@ def _addRender2PyTree(a, slot=0, posCam=None, posEye=None, dirCam=None,
     
     if rt is None:
       v = numpy.empty((n), numpy.float64)
-      for i in xrange(n): v[i] = float(isoScales[i])
+      for i in range(n): v[i] = float(isoScales[i])
       sl[2].append(['isoScales', v, [], 'DataArray_t'])
     elif rt[1] is not None:
       old = rt[1]
       dict = {}
       l = old.shape[0]
-      for i in xrange(0,l,4): dict[old[i]] = [old[i+1], old[i+2], old[i+3]]
-      for i in xrange(0,n,4): dict[isoScales[i]] = [isoScales[i+1], isoScales[i+2], isoScales[i+3]]
+      for i in range(0,l,4): dict[old[i]] = [old[i+1], old[i+2], old[i+3]]
+      for i in range(0,n,4): dict[isoScales[i]] = [isoScales[i+1], isoScales[i+2], isoScales[i+3]]
       k = dict.keys(); l = len(k)
       v = numpy.empty((4*l), numpy.float64)
       c = 0

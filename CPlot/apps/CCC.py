@@ -16,7 +16,7 @@ ttk = CTK.importTtk()
 # CASSIOPEE var
 CASSIOPEE = os.getenv('CASSIOPEE')
 if CASSIOPEE == '':
-    print 'Error: CASSIOPEE must be present in your environement.'
+    prin() 'Error: CASSIOPEE must be present in your environement.')
     sys.exit()
 
 # Systeme
@@ -183,8 +183,7 @@ def launchAndSurvey(cmd, no, info):
         try: line = q.get_nowait() # non bloquant
         except: line = ''
        
-        #if (line != ''): print line
-        if (line != ''):
+        if line != '':
             ret = analyse(line, int(nit))
             if (ret[0] > -0.5):
                 info[4] = 'RUNNING (%2.2f'%ret[0]

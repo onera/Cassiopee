@@ -105,9 +105,7 @@ def replaceText(event=None):
     if abs(n1) < 1.e-12: v1 = Vector.cross(v2,v3); v1p = (0.,0.,0.)
     elif abs(n2) < 1.e-12: v2 = Vector.cross(v1,v3); v2p = (0.,0.,0.)
     elif abs(n3) < 1.e-12: v3 = Vector.cross(v2,v3); v3p = (0.,0.,0.)
-    #print 'Pts OBB',P0,P1,P2,P3
-    #print 'vector OBB',v1,v2,v3
-
+    
     # Essaie de matcher les vecteur sur la vue p1,p2,p3
     # On suppose que dirCam doit etre e2, ...
     posCam = CPlot.getState('posCam')
@@ -116,8 +114,7 @@ def replaceText(event=None):
     e2 = dirCam
     e3 = Vector.sub(posCam, posEye)
     e1 = Vector.cross(e2, e3)
-    #print 'cam',e1,e2,e3
-
+    
     f1 = None; f2 = None; f3 = None; Pt = P0
     s1 = Vector.dot(e1, v1)
     s2 = Vector.dot(e1, v2)
@@ -155,12 +152,7 @@ def replaceText(event=None):
     elif abs(s3) > abs(s1) and abs(s3) > abs(s2):
         if s3 > 0: f3 = v3
         else: f3 = Vector.mul(-1.,v3); Pt = Vector.add(Pt,v3p)
-    #print 'match',Pt, f1, f2, f3
     (x0,y0,z0) = Pt
-    #print 'pt', P0, Pt
-    #print 'e1',e1, f1
-    #print 'e2',e2, f2
-    #print 'e3',e3, f3
     n2 = Vector.norm(f2)
 
     # Cree le texte

@@ -87,7 +87,7 @@ def mapSurf(z, density, smoothIter, eltType, constraints, strength):
             f = T.projectOrtho(f, [a])
             #if constraints != []:
             #    f = G.snapSharpEdges(f, constraints, step=0.3*h, angle=30.)
-            for smooth in xrange(smoothIter):
+            for smooth in range(smoothIter):
                 f = T.smooth(f, eps=0.5, niter=2, 
                              fixedConstraints=constraints,
                              #projConstraints=constraints,
@@ -104,13 +104,13 @@ def mapSurf(z, density, smoothIter, eltType, constraints, strength):
         N = 2
         distrib = G.cart((0,0,0), (1./(N-1),1,1), (N,1,1))
         if smoothIter == 0: f = T.projectOrtho(f, [a])
-        for smooth in xrange(smoothIter):
+        for smooth in range(smoothIter):
             f = T.projectOrtho(f, [a])
             f = T.smooth(f, eps=0.5, niter=2, fixedConstraints=constraints,
                          delta=strength)
         r = G.fillWithStruct(f, Vmin=10)
 
-        for smooth in xrange(smoothIter):
+        for smooth in range(smoothIter):
             print('Smoothing iteration %d...'%smooth)
             r = T.smooth(r, eps=0.5, niter=2, fixedConstraints=constraints,
                          delta=strength)

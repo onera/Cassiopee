@@ -9,6 +9,9 @@ import Converter.Internal as Internal
 import Post.PyTree as P
 import Transform.PyTree as T
 
+try: range = xrange
+except: pass
+
 # local widgets list
 WIDGETS = {}; VARS = []
 
@@ -16,7 +19,7 @@ WIDGETS = {}; VARS = []
 def updateVarNameList(event=None):
     if CTK.t == []: return
     nzs = CPlot.getSelectedZones()
-    if (CTK.__MAINTREE__ <= 0 or nzs == []):
+    if CTK.__MAINTREE__ <= 0 or nzs == []:
         vars = C.getVarNames(CTK.t)
     else:
         nob = CTK.Nb[0]+1
@@ -44,8 +47,8 @@ def updateVarNameList2(event=None):
 
 #==============================================================================
 def drawIsoLines():
-    if (CTK.t == []): return
-    if (CTK.__MAINTREE__ <= 0):
+    if CTK.t == []: return
+    if CTK.__MAINTREE__ <= 0:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
@@ -54,18 +57,18 @@ def drawIsoLines():
 
     try: nlevels = int(nlevels)
     except: levels = 30
-    if (nlevels < 2): nlevels = 2
+    if nlevels < 2: nlevels = 2
     
     nzs = CPlot.getSelectedZones()
     CTK.saveTree()
 
     fmin = CTK.varsFromWidget(VARS[3].get(), type=1)
-    if (fmin == []): fmin = C.getMinValue(CTK.t, field)
+    if fmin == []: fmin = C.getMinValue(CTK.t, field)
     else: fmin = fmin[0]
     fmax = CTK.varsFromWidget(VARS[4].get(), type=1)
-    if (fmax == []): fmax = C.getMaxValue(CTK.t, field)
+    if fmax == []: fmax = C.getMaxValue(CTK.t, field)
     else: fmax = fmax[0]
-    if (nzs == []):
+    if nzs == []:
         z = Internal.getZones(CTK.t)
     else:
         z = []
@@ -77,7 +80,7 @@ def drawIsoLines():
     isos = []
     nlevels += 1 # pour etre coeherent avec les niveaux d'iso solides
     fail = False; errors = []
-    for v in xrange(nlevels):
+    for v in range(nlevels):
         value = fmin + (fmax-fmin)/(nlevels-1)*v
         for zone in z:
             try:
@@ -89,7 +92,7 @@ def drawIsoLines():
     CTK.t = C.addBase2PyTree(CTK.t, 'CONTOURS', 1)
     bases = Internal.getNodesFromName1(CTK.t, 'CONTOURS')
     nob = C.getNobOfBase(bases[0], CTK.t)
-    if (isos != []):
+    if isos != []:
         isos = T.join(isos)
         CTK.add(CTK.t, nob, -1, isos)
     if (fail == False):

@@ -13,6 +13,9 @@ import Transform.PyTree as T
 import Converter
 import numpy
 
+try: range = xrange
+except: pass
+
 # local widgets list
 WIDGETS = {}; VARS = []
 
@@ -72,7 +75,7 @@ def getIBCFrontInfo__(fc1, parentZone, dhloc, toldist=1.e-10):
     xt = C.getField('CoordinateX',parentZone)[0][1]
     yt = C.getField('CoordinateY',parentZone)[0][1]
     zt = C.getField('CoordinateZ',parentZone)[0][1]
-    for ind in xrange(npts):
+    for ind in range(npts):
         index = indices[ind]-1
         dist  = distances[ind]
         if dist < toldist:
@@ -108,7 +111,7 @@ def getIBCFrontInfo__(fc1, parentZone, dhloc, toldist=1.e-10):
         deltaa = C.getField('delta',fc1)[0]
         distance = C.getField('TurbulentDistance',fc1)[0][1]
         # formule d obtention du frontC2
-        for ind in xrange(deltaa[1].shape[1]):
+        for ind in range(deltaa[1].shape[1]):
             dist = distance[0,ind]
             # NOUVELLE VERSION
             # # cas 1 : le centre est proche paroi, le point interpole est alors positionne a dhloc+eps de la paroi
@@ -215,7 +218,7 @@ def blank():
     t = X.setHoleInterpolatedPoints(t, depth=-depth)
 
     tp = C.newPyTree(['Base']); donorNoz=[]
-    for noz in xrange(len(t[2][1][2])):       
+    for noz in range(len(t[2][1][2])):       
         z = t[2][1][2][noz]
         valmax = C.getMaxValue(z, 'centers:cellN')
         if valmax == 2.: tp[2][1][2].append(z); donorNoz.append(noz)
@@ -224,7 +227,7 @@ def blank():
     tp = Internal.correctPyTree(tp, level= 6) 
     tp = C.center2Node(tp,'centers:TurbulentDistance')
     tp = P.computeGrad(tp, 'TurbulentDistance')
-    for noz2 in xrange(len(donorNoz)):
+    for noz2 in range(len(donorNoz)):
         noz = donorNoz[noz2]
         t[2][1][2][noz] = tp[2][1][2][noz2]
 
@@ -278,7 +281,7 @@ def getIBCFront():
     # dhloc : distmin a partir de laquelle on peut symetriser fc1
     dhloc = float(VARS[9].get())
     # get ind,indi,indj,indk,delta,nx,ny,nz pour les pts du front1
-    for nof1 in xrange(len(front1)):
+    for nof1 in range(len(front1)):
         fc1 = front1[nof1]
         fc1 = getIBCFrontInfo__(fc1, td[2][1][2][nozDonors[nof1]], dhloc)
         fc1 = C.rmNodes(fc1,'gradxTurbulentDistance')
