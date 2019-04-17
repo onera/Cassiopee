@@ -123,6 +123,7 @@ List of functions
 .. autosummary::
 
     Converter.Internal.printTree
+    Converter.Internal.getSizeOf
     Converter.Internal.checkPyTree
     Converter.Internal.correctPyTree
 
@@ -1182,6 +1183,23 @@ Check nodes
     * `Pretty print pyTree nodes (pyTree) <Examples/Converter/printTreePT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/printTreePT.py
+
+-----------------------------------------------------------------------------------------------
+
+.. py:function:: Converter.Internal.getSizeOf(node) 
+
+    Return the size of input node and attached nodes in octets.
+
+    :param node:  input node
+    :type  node:  pyTree node of list of pyTree nodes
+    :return: size of node in octets
+    :rtype: int
+
+    *Example of use:*
+
+    * `Get size of node (pyTree) <Examples/Converter/getSizeOfPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/getSizeOfPT.py
 
 -----------------------------------------------------------------------------------------------
 

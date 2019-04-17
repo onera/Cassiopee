@@ -2280,6 +2280,29 @@ def printTree(node, file=None, stdOut=None, editor=None, color=False):
         import sys
         sys.stdout.write(rep)
 
+# Mesure de la taille de a en octets
+def getSizeOf__(a, s):
+    s += len(a[0])
+    s += len(a[3])
+    r = a[1]
+    if r is not None:
+        if isinstance(r, numpy.ndarray):
+            if r.dtype == numpy.int32: s += r.size*4
+            else: s += r.size*8
+    for i in a[2]:
+        s = getSizeOf__(i, s)
+    return s
+
+def getSizeOf(a):
+    """Return the size of a in octets."""
+    s = 0
+    if isStdNode(a) == 0:
+        for i in a: 
+            sl = 0
+            s += getSizeOf__(i, sl)
+    else: s = getSizeOf__(a, s)
+    return s
+
 #==============================================================================
 # -- Conversion zones, bases, listes de zones <-> tree + noms + ranges --
 #==============================================================================

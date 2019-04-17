@@ -33,7 +33,7 @@ TOLCELLN = 0.01
 
 TypesOfIBC = XOD.TypesOfIBC
 
-
+# ?
 def _blankClosestTargetCells(t, cellNName='cellN', depth=3):
     for z in Internal.getZones(t):
         connector._blankClosestTargetCells(z, depth, cellNName,
@@ -940,12 +940,15 @@ def gatherFront(front):
     import Converter.Mpi as Cmpi
     zones = Internal.getNodesFromType1(front, 'Zone_t')
     for z in zones: z[0] += '_'+str(Cmpi.rank)
-    if Cmpi.KCOMM is not None: allFront = Cmpi.KCOMM.allgather(front)
-    else: return front
-    front = []
-    for f in allFront: front += f
-    return front
-
+    
+    if Cmpi.KCOMM is not None: 
+        #allFront = Cmpi.KCOMM.allgather(front)
+        #front = []
+        #for f in allFront: front += f
+        front = Cmpi.allgatherZones(front)
+        return front
+    else: return front    
+    
 #=============================================================================
 def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None, 
              frontType=0, depth=2, IBCType=1, interpDataType=1):    

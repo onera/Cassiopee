@@ -197,7 +197,6 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
     del o
     test.printMem(">>> Octree unstruct split [end]")
 
-    
     # fill vmin + merge in parallel
     test.printMem(">>> Octree struct [start]")
     res = TIBM.octree2StructLoc__(p, vmin=vmin, ext=-1, optimized=0, parento=parento, sizeMax=4000000)
@@ -252,6 +251,11 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
         DTW._distance2Walls(t, tb, type='ortho', signed=0, dim=dimPb, loc='centers')
 
     X._applyBCOverlaps(t, depth=DEPTH, loc='centers', val=2, cellNName='cellN')
+    
+    # Blank des corps chimere
+    # applyBCOverlap des maillages de corps
+    # SetHoleInterpolated points
+
     C._initVars(t,'{centers:cellNChim}={centers:cellN}')
 
     C._initVars(t,'centers:cellN',1.)
@@ -570,11 +574,11 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
     #============================================================================
 
     # distribution par defaut (sur Cmpi.size)
-    #tbbc = Cmpi.createBBoxTree(tc)
-    #stats = D2._distribute(tbbc, Cmpi.size, algorithm='graph', useCom='ID')
-    #D2._copyDistribution(tbbc, tc)
-    #D2._copyDistribution(tbbc, t)
-    #del tbbc
+    tbbc = Cmpi.createBBoxTree(tc)
+    stats = D2._distribute(tbbc, Cmpi.size, algorithm='graph', useCom='ID')
+    D2._copyDistribution(tbbc, tc)
+    D2._copyDistribution(tbbc, t)
+    del tbbc
 
     # Save tc
     if isinstance(tc_out, str): Cmpi.convertPyTree2File(tc, tc_out)
@@ -974,7 +978,7 @@ def _modifIBCD(tc):
     for n in nodes:
         Internal.setValue(n, PiInj*numpy.ones(numpy.shape(n[1])))
     return None
-    
+
 #====================================================================================
 class IBM(Common):
     """Preparation et caculs avec le module FastS."""

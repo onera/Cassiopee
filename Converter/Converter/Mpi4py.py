@@ -8,7 +8,7 @@ import Compressor.PyTree as Compressor
 from .Distributed import readZones, writeZones, convert2PartialTree, convert2SkeletonTree, readNodesFromPaths, readPyTreeFromPaths, writeNodesFromPaths
 
 __all__ = ['rank', 'size', 'KCOMM', 'setCommunicator', 'barrier', 'send', 'recv', 'sendRecv', 'sendRecv2', 
-    'bcast', 'Bcast', 'bcastZone', 
+    'bcast', 'Bcast', 'bcastZone', 'allgatherZones', 
     'allgather', 'readZones', 'writeZones', 'convert2PartialTree', 'convert2SkeletonTree', 'convertFile2DistributedPyTree', 
     'readNodesFromPaths', 'readPyTreeFromPaths', 'writeNodesFromPaths',
     'allgatherTree', 'convertFile2SkeletonTree', 'convertFile2PyTree', 'convertPyTree2File', 'seq', 'print0', 'printA',
@@ -16,6 +16,7 @@ __all__ = ['rank', 'size', 'KCOMM', 'setCommunicator', 'barrier', 'send', 'recv'
     'getProc', 'setProc', '_setProc']
 
 from mpi4py import MPI
+import numpy
 
 COMM_WORLD = MPI.COMM_WORLD
 KCOMM = COMM_WORLD
@@ -115,26 +116,70 @@ def bcast(data, root=0):
 # data=numpy
 def Bcast(data, root=0):
     return KCOMM.Bcast(data, root)
-    
+
+# data=tree
+def bcastTree(t, root=0):
+    if t is not None:
+        zones = Internal.getZones(t)
+        for z in zones:
+            z = bcastZone(z)
+    return t
+
 # data=zone
+# Envoie uniquement les coords de z
 def bcastZone(z, root=0):
+    # zp = squelette envoye en pickle
     if rank == root:
         zp = Internal.copyRef(z)
-        Internal._rmNodesFromName(zp, 'GridCoordinates')
+        Internal._rmNodesFromType(zp, 'GridCoordinates_t')
+        Internal._rmNodesFromType(zp, 'FlowSolution_t')
+        Internal._rmNodesFromType(zp, 'ZoneSubRegion_t')
+    else: zp = None
+
+    if rank == root:
+        px = Internal.getNodeFromName2(z, 'CoordinateX')[1]
+        py = Internal.getNodeFromName2(z, 'CoordinateY')[1]
+        pz = Internal.getNodeFromName2(z, 'CoordinateZ')[1]
+        sx = px.shape; sy = py.shape; sz = pz.shape
+    else:
+        sx = None; sy = None; sz = None
+
+    zp, sx, sy, sz = KCOMM.bcast((zp, sx, sy, sz), root)
         
-        
-    zp = KCOMM.bcast(zp, root)
-    if rank == root: x = Internal.getNodeFromName2('CoordinateX')
-    else: x = None
-    x = KCOMM.Bcast(x, root)
-    if rank == root: y = Internal.getNodeFromName2('CoordinateY')
-    else: y = None
-    if rank == root: z = Internal.getNodeFromName2('CoordinateZ')
-    else: z = None
+    if rank != root:
+        px = numpy.empty(sx, dtype=numpy.float64, order='F')
+        py = numpy.empty(sy, dtype=numpy.float64, order='F')
+        pz = numpy.empty(sz, dtype=numpy.float64, order='F')
     
+    KCOMM.Bcast([px,MPI.DOUBLE], root)
+    KCOMM.Bcast([py,MPI.DOUBLE], root)
+    KCOMM.Bcast([pz,MPI.DOUBLE], root)
     
-    return 0
-       
+    if rank != root:
+        # Reconstruction de la zone
+        Internal._createUniqueChild(zp, Internal.__GridCoordinates__, 'GridCoordinates_t')
+        n = Internal.getNodeFromName1(zp, Internal.__GridCoordinates__)
+        Internal._createUniqueChild(n, 'CoordinateX', 'DataArray_t', value=px)
+        Internal._createUniqueChild(n, 'CoordinateY', 'DataArray_t', value=py)
+        Internal._createUniqueChild(n, 'CoordinateZ', 'DataArray_t', value=pz)
+    else: zp = z
+    return zp
+
+# All gather une liste de zones, recuperation identique sur tous les procs
+# dans une liste a plat
+# Uniquement les coordonnees sont envoyees
+def allgatherZones(zones):
+    # Chaque processeur bcast ses zones vers les autres ranks
+    zones = Internal.getZones(zones)
+    lenZones = KCOMM.allgather(len(zones))
+    allZones = []
+    for i in xrange(size):
+        for cz in xrange(lenZones[i]):
+            if rank == i: zp = bcastZone(zones[cz], root=i)
+            else: zp = bcastZone(None, root=i)
+            allZones.append(zp)
+    return allZones
+
 #==============================================================================
 # Lecture du squelette d'un arbre dans un fichier
 # Lecture proc 0 + bcast
@@ -238,8 +283,7 @@ def createBBoxTree(t, method='AABB', weighting=0):
             if not Distributed.isZoneSkeleton__(z):
                 zbb = G.BB(z, method, weighting)
                 # Clean up (zoneSubRegion)
-                for c, l in enumerate(zbb[2]):
-                    if l[3] == 'ZoneSubRegion_t': del zbb[2][c]
+                Internal._rmNodesFromType(zbb, 'ZoneSubRegion_t')
                 zb.append(zbb)
         
     # Echanges des zones locales de bounding box
