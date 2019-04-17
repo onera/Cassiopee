@@ -77,10 +77,12 @@ if Cppcompiler.find('gcc') == 0 or Cppcompiler.find('g++') == 0 or Cppcompiler =
             srcs.cpp_srcs2[i] = env.Object("Generator/Tetgen/tetgen.cxx", CXXFLAGS=flags+'-O2')
 
 myMod = env.StaticLibrary('generator', srcs.cpp_srcs)
-myMod2 = env.StaticLibrary('generator2', srcs.cpp_srcs2+ppf)
+myMod2 = env.StaticLibrary('generator2', srcs.cpp_srcs2)
+myMod3 = env.StaticLibrary('generator3', ppf)
 modDir = installPath+'/Generator/'
 dp1 = env.Install(modDir, myMod)
 dp2 = env.Install(modDir, myMod2)
-dp3 = env.Install(modDir, Glob('Generator/*.py'))
+dp3 = env.Install(modDir, myMod3)
+dp4 = env.Install(modDir, Glob('Generator/*.py'))
 
-env.Alias(target="install", source=[dp1,dp2,dp3])
+env.Alias(target="install", source=[dp1,dp2,dp3,dp4])

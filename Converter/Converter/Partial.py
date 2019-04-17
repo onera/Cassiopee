@@ -24,13 +24,10 @@ def convertPyTree2FileMPI(t, fileName, comm, SkeletonTree, ParallelHDF=False,
 
   for Zone in Internal.getZones(t):
     pathsToArray = Internal.getPathsFromType(Zone, 'IndexRange_t')
-    print '*'*100
-    print pathsToArray
-    print '*'*100
+    print(pathsToArray)
     pathsToArray  = CGU.getPathsByTypeSet(Zone, 'IndexRange_t')
-    print pathsToArray
-    print '*'*100
-
+    print(pathsToArray)
+    
   # > The path who wants to effectivly write is DataArray_t
   pathsToArray = Internal.getPathsFromType(t, 'IndexRange_t')
   pathsToArray += Internal.getPathsFromType(t, 'DataArray_t')

@@ -20,7 +20,7 @@
 # include "Array/Array.h"
 
 //=============================================================================
-// Retourne la chaines des variables de l'array
+// Retourne la chaine des variables de l'array
 //==============================================================================
 E_Int K_ARRAY::getVarStringFromArray(PyObject* o, char*& varString)
 {
@@ -38,12 +38,23 @@ E_Int K_ARRAY::getVarStringFromArray(PyObject* o, char*& varString)
   }
 
   // -- varString --
-  if (PyString_Check(PyList_GetItem(o,0)) == 0)
+  PyObject* l = PyList_GetItem(o,0);
+  
+  if (PyString_Check(l))
+  {
+    varString = PyString_AsString(l);  
+  }
+#if PY_VERSION_HEX >= 0x03000000
+  else if (PyUnicode_Check(l))
+  {
+    varString = PyBytes_AsString(PyUnicode_AsUTF8String(l)); 
+  }
+#endif
+  else
   {
     PyErr_Warn(PyExc_Warning,
                "getVarStringFromArray: an array must be a list of type ['vars', a, ni, nj, nk] or ['vars', a, c, 'ELTTYPE']. First element must be a string.");
     return -3;
   }
-  varString = PyString_AsString(PyList_GetItem(o,0));
   return 1;
 }

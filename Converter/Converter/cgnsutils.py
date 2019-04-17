@@ -2435,9 +2435,9 @@ def toStringChildren(l,readable=False,shift=0):
 
 # --------------------------------------------------
 def prettyPrint(tree,path='',depth=0):
-  print depth*' ',
+  print(depth*' ')
   n="%s(%s)"%(tree[0],tree[3]),
-  print "%-32s"%n
+  print("%-32s"%n)
   for c in tree[2]:
     prettyPrint(c,path='/'+tree[0],depth=depth+2)
 

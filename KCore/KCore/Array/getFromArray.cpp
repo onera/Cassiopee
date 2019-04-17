@@ -80,14 +80,25 @@ E_Int K_ARRAY::getFromArray(PyObject* o,
   }
  
   // -- varString --
-  if (PyString_Check(PyList_GetItem(o,0)) == false)
+  PyObject* l = PyList_GetItem(o,0);
+  if (PyString_Check(l))
+  {
+    // pointeur sur la chaine python
+    varString = PyString_AsString(l);  
+  }
+#if PY_VERSION_HEX >= 0x03000000
+  else if (PyUnicode_Check(l))
+  {
+    varString = PyBytes_AsString(PyUnicode_AsUTF8String(l)); 
+  }
+#endif
+  else
   {
     PyErr_Warn(PyExc_Warning,
                "getFromArray: an array must be a list of type ['vars', a, ni, nj, nk] or ['vars', a, c, 'ELTTYPE']. First element must be a string.");
     return -3;
   }
-  // pointeur sur la chaine python
-  varString = PyString_AsString(PyList_GetItem(o,0));
+  
   E_Int nvar = getNumberOfVariables(varString);
 
   // -- field --
@@ -170,15 +181,25 @@ E_Int K_ARRAY::getFromArray(PyObject* o,
     c = new FldArrayI(s, nfld, (E_Int*)PyArray_DATA(ac), shared);
 
     // -- element type --
-    if (PyString_Check(PyList_GetItem(o,3)) == false)
+    PyObject* l = PyList_GetItem(o,3);
+    if (PyString_Check(l))
+    {
+      eltType = PyString_AsString(l);  
+    }
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(l))
+    {
+      eltType = PyBytes_AsString(PyUnicode_AsUTF8String(l)); 
+    }
+#endif
+    else
     {
       PyErr_Warn(PyExc_Warning,
                  "getFromArray: an unstruct array must be of list of type ['vars', a, c, 'ELTTYPE']. Last element must be a string.");
       Py_DECREF(a); Py_DECREF(ac);
       return -7;
     }
-    eltType = PyString_AsString(PyList_GetItem(o,3));
-
+    
     if (K_STRING::cmp(eltType, "NODE") != 0 &&
         K_STRING::cmp(eltType, "BAR") != 0 &&
         K_STRING::cmp(eltType, "TRI") != 0 &&

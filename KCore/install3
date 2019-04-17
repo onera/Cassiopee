@@ -44,6 +44,7 @@ if [ $? -eq 0 ]; then
     [ $? != 0 ] && exit;
     #touch KCore/kcore.cpp
     rm -f build/lib.*/KCore/kcore.*
+    rm -f build/lib.*/KCore/kcore-*.*
     python3 -c "import Dist; Dist.symLinks()"
     python3 setupScons.py install --prefix="$INSTALLPATH"
 else

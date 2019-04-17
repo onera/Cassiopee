@@ -1106,8 +1106,8 @@ def doInterp2(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=
         #if (round(dxmax/dx) == 4):niveaux_temps[z[0]]=4
         #if (round(dxmax/dx) == 2):niveaux_temps[z[0]]=2
         #else : niveaux_temps[z[0]]=1
-        print niveaux_temps[z[0]]
-        #print round(dxmax/dx)
+        print(niveaux_temps[z[0]])
+        #print(round(dxmax/dx))
     
     if typeI == 'ID':
         # toutes les zones sont interpolables en Chimere

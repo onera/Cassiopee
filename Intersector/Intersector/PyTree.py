@@ -57,7 +57,7 @@ def concatenateBC(bctype, zones, wallpgs, cur_shift):
 
       if (c == []): continue
 
-      #print ' -- zone : %d / %d' %(i+1, len(zones))
+      #print(' -- zone : %d / %d' %(i+1, len(zones)))
       i=i+1
       bnds = Internal.getNodesFromType(z, 'BC_t')
       #print " -- this zone has %d boundaries"%(len(bnds))
@@ -622,7 +622,7 @@ def diffMesh(t1, t2):
     nb_zones = len(res)
 
     if (nb_zones == 0) : 
-        print "No difference." ; return zones
+        print("No difference.") ; return zones
     
     zones.append(C.convertArrays2ZoneNode('z1', [res[0]]))
     zones.append(C.convertArrays2ZoneNode('z2', [res[1]]))
@@ -733,7 +733,7 @@ def oneZonePerCell(t):
     zones = []
     nb_zones = len(m)
 
-    print nb_zones
+    print(nb_zones)
 
     if (nb_zones == 0) : return zones
 

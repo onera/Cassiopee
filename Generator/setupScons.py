@@ -26,7 +26,7 @@ from KCore.config import *
 prod = os.getenv("ELSAPROD")
 if prod is None: prod = 'xx'
 libraryDirs = ["build/"+prod, kcoreLibDir]
-libraries = ["generator", "generator2", "kcore"]
+libraries = ["generator", "generator2", "generator3", "kcore"]
 (ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)

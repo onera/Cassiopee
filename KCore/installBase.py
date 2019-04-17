@@ -53,7 +53,7 @@ False, # CPlotOffScreen
 'gfortran', # f77compiler
 'gfortran', # f90compiler
 'gcc', # Cppcompiler
-['-isystem /c/msys64/mingw64/include/python2.7', '-isystem /c/msys64/mingw64/lib/python2.7/site-packages/numpy/core/include/numpy'], # CppAdditionalOptions
+[], # CppAdditionalOptions
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static

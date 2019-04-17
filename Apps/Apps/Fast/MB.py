@@ -56,7 +56,7 @@ def prepare0(t_case, t_out, tc_out, NP=0, format='single'):
     if ret != 1: # Density not present, init from ref state
         state = Internal.getNodeFromType(t, 'ReferenceState_t')
         if state is None:
-            raise ValueError, 'Reference state is missing in input cgns.'
+            raise ValueError('Reference state is missing in input cgns.')
         vars = ['Density', 'MomentumX', 'MomentumY', 'MomentumZ',
         'EnergyStagnationDensity']
         for v in vars:
@@ -65,7 +65,7 @@ def prepare0(t_case, t_out, tc_out, NP=0, format='single'):
                 val = float(node[1][0])
                 C._initVars(t, 'centers:'+v, val)
             else:
-                raise ValueError, v + ' is missing in ReferenceState.'
+                raise ValueError(v + ' is missing in ReferenceState.')
 
         if Model == 'NSTurbulent':
             vars = ['TurbulentSANuTildeDensity']
@@ -147,7 +147,7 @@ def prepare1(t_case, t_out, tc_out, NP=0, format='single'):
     if ret != 1: # Density not present, init from ref state
         state = Internal.getNodeFromType(t, 'ReferenceState_t')
         if state is None:
-            raise ValueError, 'Reference state is missing in input cgns.'
+            raise ValueError('Reference state is missing in input cgns.')
         vars = ['Density', 'MomentumX', 'MomentumY', 'MomentumZ',
         'EnergyStagnationDensity']
         for v in vars:
@@ -156,7 +156,7 @@ def prepare1(t_case, t_out, tc_out, NP=0, format='single'):
                 val = float(node[1][0])
                 C._initVars(t, 'centers:'+v, val)
             else:
-                raise ValueError, v + ' is missing in ReferenceState.'
+                raise ValueError(v + ' is missing in ReferenceState.')
 
         if Model == 'NSTurbulent':
             vars = ['TurbulentSANuTildeDensity']
@@ -230,7 +230,7 @@ def post0(t_in, t_out, wall_out, NP=0, format='single'):
     #=================================
     model = Internal.getNodeFromName(a, 'GoverningEquations')
     model = Internal.getValue(model)
-    if model is None: raise ValueError, 'GoverningEquations is missing in input file.'
+    if model is None: raise ValueError('GoverningEquations is missing in input file.')
 
     #==============================
     # Sortie champs aux noeuds

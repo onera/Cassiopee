@@ -84,7 +84,7 @@ def setup(t_in, tc_in, numb, numz, NP=0, format='single'):
         rank = 0; size = 1
 
     if NP != 0 and NP != size:
-        raise ValueError, 'setup: you are running not on the prepared number of processors %d != %d'%(NP, size)
+        raise ValueError('setup: you are running not on the prepared number of processors %d != %d'%(NP, size))
 
     t,tc,ts,graph = Fast.load(t_in, tc_in, split=format, NP=NP)
 

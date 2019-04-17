@@ -61,7 +61,7 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
     #--------------------------------------------------------
     # Get Reference State and model from body pyTree
     model = Internal.getNodeFromName(tb, 'GoverningEquations')
-    if model is None: raise ValueError, 'GoverningEquations is missing in input cgns.'
+    if model is None: raise ValueError('GoverningEquations is missing in input cgns.')
     # model: Euler, NSLaminar, NSTurbulent
     model = Internal.getValue(model)
 
@@ -622,7 +622,7 @@ def post(t_case, t_in, tc_in, t_out, wall_out):
     #--------------------------------------------------------
     # Get Reference State and model from body pyTree
     model = Internal.getNodeFromName(tb, 'GoverningEquations')
-    if model is None: raise ValueError, 'GoverningEquations is missing in input cgns.'
+    if model is None: raise ValueError('GoverningEquations is missing in input cgns.')
     # model : Euler, NSLaminar, NSTurbulent
     model = Internal.getValue(model)
 

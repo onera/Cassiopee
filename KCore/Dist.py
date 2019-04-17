@@ -49,6 +49,7 @@ def getSystem():
           if key == 'win64': return ['mingw', '64']
           elif key == 'win32': return ['mingw', '32']
           elif key == 'msys64': return ['mingw', '64']
+          elif key == 'msys64p3': return ['mingw', '64']
           elif key == 'msys32': return ['mingw', '32']
           key = os.environ['MSYSTEM']
           if key == 'MINGW32': return ['mingw', '32']
@@ -162,7 +163,7 @@ def checkNumpy():
 def getInstallPath(prefix):
     mySystem = getSystem()[0]; bits = getSystem()[1]
     # Based on spec
-    if os.environ['ELSAPROD'] == 'msys64':
+    if os.environ['ELSAPROD'][0:6] == 'msys64':
         pythonLib = distutils.sysconfig.get_python_lib()
         pythonLib = pythonLib.split('/')
         pythonVersion = pythonLib[-2]

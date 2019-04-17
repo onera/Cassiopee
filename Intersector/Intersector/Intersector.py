@@ -98,7 +98,7 @@ def XcellN(coords, cellnfields, maskingMesh, wall_pgl=[], ghost_pgl=[]):
     Usage: XcellN(coords, cellnfields, maskingMesh)"""
     cellnt = []
     #C.convertArrays2File([maskingMesh], "mask.plt")
-    #print pgl
+    #print(pgl)
     for i in range(len(coords)):
       #print 'coords : %d / %d' %(i+1, len(coords))
       #C.convertArrays2File([coords[i]], "bloc%d.plt"%(i))

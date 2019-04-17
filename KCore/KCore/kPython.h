@@ -12,4 +12,3 @@
 #define PyInt_AsLong PyLong_AsLong
 #define PyInt_FromLong PyLong_FromLong
 #endif
-

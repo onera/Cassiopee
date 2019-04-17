@@ -1093,14 +1093,14 @@ def setInterpData2(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
             if Internal.isTopTree(aR): ttreeR = aR
             else:
                 if Internal.getBases(aR) != []: ttreeR = aR# c est une base on peut recuperer les familles
-                else: print 'Warning: setInterpData+double wall: receptor zones may require a top tree.'
+                else: print('Warning: setInterpData+double wall: receptor zones may require a top tree.')
         ttreeD = []
         if topTreeDnr is not None: ttreeD = topTreeDnr
         else:
             if Internal.isTopTree(aD): ttreeD = aD
             else:
                 if Internal.getBases(aD) != []: ttreeD = aD # c'est une base on peut recuperer les familles
-                else: print 'Warning: setInterpData+double wall: donors zones may require a top tree.'
+                else: print('Warning: setInterpData+double wall: donors zones may require a top tree.')
 
         # Zones donneuses : on recupere les surfaces de projection double wall
         for zd in zonesDnr:
@@ -1242,8 +1242,8 @@ def setInterpData2(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
                 nborphan = resInterp[5].size
                 nbinterpolated = nbinterpolated-nbextrapolated-nborphan
 
-                print 'Zone %s: interpolated=%d ; extrapolated=%d ; orphan=%d'%(z[0], nbinterpolated, nbextrapolated, nborphan)
-                if  nborphan>0: print 'Warning: zone %s has %d orphan points !'%(z[0], nborphan)
+                print('Zone %s: interpolated=%d ; extrapolated=%d ; orphan=%d'%(z[0], nbinterpolated, nbextrapolated, nborphan))
+                if  nborphan>0: print('Warning: zone %s has %d orphan points !'%(z[0], nborphan))
                 # on remet a une seule zone, attention si x,y,z sont necessaires ensuite
                 # les coordonnees peuvent etre fausses a cause du double walls
                 indcells=[]
@@ -1316,9 +1316,9 @@ def setInterpData2(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
                             dirR=numpy.zeros(1,dtype=numpy.int32)
                             leveldnr = niveaux_temps[zonesDnr[noz][0]]
 
-                            print 'donneur= ', zonesDnr[noz][0],noz
+                            print('donneur= ', zonesDnr[noz][0],noz)
                             #print 'donneur= ', zonesRcv[noz][0],noz
-                            print 'receveur= ', z[0] 
+                            print('receveur= ', z[0]) 
                             #connector.indiceToCoordbis(resInterp[0][noz],prange,dirR,resInterp[0][noz].size,resInterp[2][noz][0],dim_[1],dim_[2],dim_[3])
 
                             prange=numpy.reshape(prange,(3,2))
@@ -1326,23 +1326,20 @@ def setInterpData2(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
                             #dirR = GhostCells.getDirBorderStruct__(prange,dimPb)
                             #print dirR
                             prangebis=numpy.reshape(prange,6)
-                            print prange
+                            print(prange)
                             info = zonesDnr[noz][2][len(zonesDnr[noz][2])-1]
                             info[2].append(['PointRange', prangebis , [], 'IndexArray_t'])
 
-                            #print 'coucou'
                             transfo=getTransfo(zonesDnr[noz],z)
 
 
                             prangedonor = numpy.zeros(6,dtype=numpy.int32)
                             profondeur=numpy.zeros(1,dtype=numpy.int32)
                             dirD=numpy.zeros(1,dtype=numpy.int32)
-
-                            #print resInterp[2][noz]
                             
                             connector.indiceToCoord2(resInterp[1][noz],prangedonor,transfo,profondeur,dirD,resInterp[2][noz],dirR,resInterp[2][noz].size,dim__[1]+1,dim__[2]+1,dim__[3]+1)
 
-                            print 'dirR= ',dirR
+                            print('dirR= ',dirR)
                             #print 'dimPb= ',dimPb
                             #print resInterp[3][noz]
 
@@ -1359,8 +1356,7 @@ def setInterpData2(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
                             else :  # Le point ne peut varier que dans son plan (i,j) pour etre en face du point de la zone D
                                 if (transfo[0] < 0) : pt_pivot[0] = prange[0,1]
                                 if (transfo[1] < 0) : pt_pivot[1] = prange[1,1]
-                            #print transfo
-
+                            
                             info[2].append(['PointRangeDonor', prangedonor , [], 'IndexArray_t'])
  
                             info[2].append(['DirDonneur', dirD , [], 'IndexArray_t'])
@@ -1380,7 +1376,7 @@ def setInterpData2(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
                             #print dim_[abs(transfo[2])], dim__[3]+1
                             #print profondeur
                             NMratio[abs(dirD)-1]=1
-                            print 'NMratio= ',NMratio
+                            print('NMratio= ',NMratio)
 
                             info[2].append(['NMratio', NMratio , [], 'IndexArray_t'])
                             info[2].append(['DnrZoneName', zonesDnr[noz][0] , [], 'IndexArray_t'])                            
@@ -1414,34 +1410,26 @@ def getTransfo(zdonor,zrcv):
     ni = a[2]; nj=a[3]; nk=a[4]
 
     if (nk == 1): #2D
-    #print ni, nj ,nk
         i = ni/2; j = nj/2; k = nk/2
         ip1 = max(i+1,ni-1); jp1 = max(j+1,nj-1); kp1 = max(k+1,nk-1)
         ind = i + j*ni + k*ni*nj
-        #print ind
         P0 = [ a[1][0][ind], a[1][1][ind],0.0 ]
         ind = ip1 + j*ni + k*ni*nj
-        #print ind
         P1 = [ a[1][0][ind], a[1][1][ind],0.0 ]
         ind = i + jp1*ni + k*ni*nj
-        #print ind
         P2 = [ a[1][0][ind], a[1][1][ind],0.0 ]
         l1 = Vector.sub(P1,P0)
         l2 = Vector.sub(P2,P0)
         l1=Vector.normalize(l1)
         l2=Vector.normalize(l2)
-        #print l1
-        #print l2
         x=[1.0,0.0,0.0]
         y=[0.0,1.0,0.0]
         a=Vector.dot(l1,x);b=Vector.dot(l1,y)
         c=Vector.dot(l2,x);d=Vector.dot(l2,y)
         mat_ = numpy.array([[a,b],
                           [c,d]])
-        #print 'mat_= ',mat_
         
         a = C.getFields(Internal.__GridCoordinates__, zrcv)[0]
-        #print a
         ni = a[2]; nj=a[3]; nk=a[4]
         i = ni/2; j = nj/2; k = nk/2
         ip1 = max(i+1,ni-1); jp1 = max(j+1,nj-1); kp1 = max(k+1,nk-1)
@@ -1469,7 +1457,6 @@ def getTransfo(zdonor,zrcv):
         c=Vector.dot(l2rcv,x);d=Vector.dot(l2rcv,y)
         mat = numpy.array([[a,b],
                           [c,d]])
-        #print 'mat= ',mat
         mat=mat.T
         a=mat_[0,0]*mat[0,0] + mat_[0,1]*mat[1,0] 
         b=mat_[0,0]*mat[0,1] + mat_[0,1]*mat[1,1]
@@ -1889,7 +1876,7 @@ def setInterpDataForGhostCells2__(tR, tD, storage='direct', loc='nodes'):
         zname = zp[0]
         zoneDimR = Internal.getZoneDim(zp)
         if zoneDimR[0] == 'Unstructured':
-            print 'Warning: setInterpDataForGC not yet implemented for unstructured zones.'
+            print('Warning: setInterpDataForGC not yet implemented for unstructured zones.')
         else: # Structured
             dimPb = zoneDimR[4]
             rindnode = Internal.getNodeFromType1(zp, 'Rind_t')
@@ -1944,7 +1931,7 @@ def setInterpDataForGhostCells2__(tR, tD, storage='direct', loc='nodes'):
                     if zdonorp == []:
                         raise ValueError("setInterpDataForGhostCells: donor zone not found in donor pyTree.")
                     if len(zdonorp)  > 1 :
-                        print 'Warning: setInterpDataForGhostCells: zone name %s defined several times in donor pyTree.'%zdonorname
+                        print('Warning: setInterpDataForGhostCells: zone name %s defined several times in donor pyTree.'%zdonorname)
                     zdonorp = zdonorp[0]
                     # donor zone dimensions
                     zoneDimD = Internal.getZoneDim(zdonor)
