@@ -40,6 +40,7 @@ if [ $? -eq 0 ]; then
     [ $? != 0 ] && exit;
     #touch Initiator/initiator.cpp
     rm -f build/lib.*/Initiator/initiator.*
+    rm -f build/lib.*/Initiator/initiator-*.*
     python3 setupScons.py install --prefix="$INSTALLPATH"
 else
     python3 setup.py install --prefix="$INSTALLPATH"

@@ -72,8 +72,12 @@ void K_PYTREE::getNodesFromType1(PyObject* o, const char* type,
 char* K_PYTREE::getNodeName(PyObject* o, vector<PyArrayObject*>& hook)
 {
   PyObject* v = PyList_GetItem(o, 0);
-  if (PyString_Check(v) == true)
+  if (PyString_Check(v))
   { char* r = PyString_AsString(v); return r; }
+#if PY_VERSION_HEX >= 0x03000000
+  else if (PyUnicode_Check(v))
+  { char* r = PyBytes_AsString(PyUnicode_AsUTF8String(v)); return r; }
+#endif
   return NULL;
 }
 
@@ -86,8 +90,12 @@ char* K_PYTREE::getNodeName(PyObject* o, vector<PyArrayObject*>& hook)
 char* K_PYTREE::getNodeType(PyObject* o, vector<PyArrayObject*>& hook)
 {
   PyObject* v = PyList_GetItem(o, 3);
-  if (PyString_Check(v) == true)
+  if (PyString_Check(v))
   { char* r = PyString_AsString(v); return r; }
+#if PY_VERSION_HEX >= 0x03000000
+  else if (PyUnicode_Check(v))
+  { char* r = PyBytes_AsString(PyUnicode_AsUTF8String(v)); return r; }
+#endif
   return NULL;
 }
 
@@ -103,7 +111,10 @@ char* K_PYTREE::getValueS(PyObject* o, vector<PyArrayObject*>& hook)
 {
   //IMPORTNUMPY;
   PyObject* v = PyList_GetItem(o, 1);
-  if (PyString_Check(v) == true) return PyString_AsString(v);
+  if (PyString_Check(v)) return PyString_AsString(v);
+#if PY_VERSION_HEX >= 0x03000000
+  else if (PyUnicode_Check(v)) return PyBytes_AsString(PyUnicode_AsUTF8String(v));
+#endif
   PyArrayObject* ac = (PyArrayObject*)v; Py_INCREF(ac);
   char* d = (char*)PyArray_DATA(ac);
   hook.push_back(ac);
@@ -122,8 +133,12 @@ char* K_PYTREE::getValueS(PyObject* o, E_Int& s, vector<PyArrayObject*>& hook)
 {
   IMPORTNUMPY;
   PyObject* v = PyList_GetItem(o, 1);
-  if (PyString_Check(v) == true)
+  if (PyString_Check(v))
   { char* r = PyString_AsString(v); s = strlen(r); return r; }
+#if PY_VERSION_HEX >= 0x03000000
+  else if (PyUnicode_Check(v))
+  { char* r = PyBytes_AsString(PyUnicode_AsUTF8String(v)); return r; }
+#endif
   PyArrayObject* ac = (PyArrayObject*)v; Py_INCREF(ac);
   char* d = (char*)PyArray_DATA(ac);
   s = PyArray_DIM(ac, 0);

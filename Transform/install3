@@ -39,6 +39,7 @@ if [ $? -eq 0 ]; then
     [ $? != 0 ] && exit;
     #touch Transform/transform.cpp
     rm -f build/lib.*/Transform/transform.*
+    rm -f build/lib.*/Transform/transform-*.*
     python3 setupScons.py install --prefix="$INSTALLPATH"
 else
     python3 setup.py install --prefix="$INSTALLPATH"

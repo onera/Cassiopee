@@ -598,22 +598,28 @@ double K_IO::GenIOAdf::writeNode(double node, PyObject* tree, double child)
   {
     setArrayMT(child);
   }
-  else if (PyString_Check(v) == true)
+  else if (PyString_Check(v))
   {
     setArrayC1(child, PyString_AsString(v));
   }
-  else if (PyInt_Check(v) == true)
+#if PY_VERSION_HEX >= 0x03000000
+  else if (PyUnicode_Check(v))
+  {
+    setArrayC1(child, PyBytes_AsString(PyUnicode_AsUTF8String(v)));
+  }
+#endif
+  else if (PyInt_Check(v))
   {
     setSingleI4(child, PyInt_AsLong(v));
   }
-  else if (PyFloat_Check(v) == true)
+  else if (PyFloat_Check(v))
   {
     if (strcmp(name, "CGNSLibraryVersion") == 0)
       setSingleR4(child, PyFloat_AsDouble(v));
     else
       setSingleR8(child, PyFloat_AsDouble(v));
   }
-  else if (PyArray_Check(v) == true)
+  else if (PyArray_Check(v))
   {
     PyArrayObject* ar = (PyArrayObject*)v;
     int dim = PyArray_NDIM(ar);

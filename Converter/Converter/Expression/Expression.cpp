@@ -355,13 +355,24 @@ namespace {
             return NULL;
         }
         PyObject *py_name = PyTuple_GetItem(args, 1);
-        if (PyString_Check(py_name) == false) {
+        char* outName;
+        if (PyString_Check(py_name))
+        {
+         outName = PyString_AsString(py_name);   
+        }
+#if PY_VERSION_HEX >= 0x03000000
+        else if (PyUnicode_Check(py_name))
+        {
+            outName = PyBytes_AsString(PyUnicode_AsUTF8String(py_name));
+        }
+#endif
+        else
+        {
             std::string s_error = std::string("Second argument of the method must be the name of a variable");
             PyErr_SetString(PyExc_ValueError, s_error.c_str());
             RELEASESHAREDB(res, parray, f, cn);
             return NULL;
         }
-        char *outName = PyString_AsString(py_name);
         // Parcourt des arguments ( commence a deux car le zero est reserve pour le tableau de sortie et le un pour le
         // nom de la variable de sortie )
         bool must_release = true;

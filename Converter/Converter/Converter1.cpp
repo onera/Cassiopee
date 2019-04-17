@@ -459,14 +459,21 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
   for (int z = 0; z < PyList_Size(zoneNamesO); z++)
   {
     PyObject* tplz = PyList_GetItem(zoneNamesO, z);
-    if (PyString_Check(tplz) == 0)
-    {
-      printf("Warning: convertArrays2File: zone name must be a string. Skipped...\n");
-    }
-    else
+    if (PyString_Check(tplz))
     {
       char* str = PyString_AsString(tplz);
       zoneNames.push_back(str);
+    }
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(tplz))
+    {
+      char* str = PyBytes_AsString(PyUnicode_AsUTF8String(tplz));
+      zoneNames.push_back(str);  
+    }
+#endif  
+    else
+    {
+      printf("Warning: convertArrays2File: zone name must be a string. Skipped...\n");
     }
   }
 

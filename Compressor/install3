@@ -36,6 +36,7 @@ if [ $? -eq 0 ]; then
     [ $? != 0 ] && exit;
     #touch Compressor/compressor.cpp
     rm -f build/lib.*/Compressor/compressor.*
+    rm -f build/lib.*/Compressor/compressor-*.*
     python3 setupScons.py install --prefix="$INSTALLPATH"
 else
     python3 setup.py install --prefix="$INSTALLPATH"

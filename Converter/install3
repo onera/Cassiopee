@@ -39,6 +39,7 @@ if [ $? -eq 0 ]; then
     [ $? != 0 ] && exit;
     #touch Converter/converter.cpp
     rm -f build/lib.*/Converter/converter.*
+    rm -f build/lib.*/Converter/converter-*.*
     rm -f build/lib.*/Converter/expression.*
     python3 setupScons.py install --prefix="$INSTALLPATH"
 else

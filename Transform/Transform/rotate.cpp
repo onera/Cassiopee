@@ -69,13 +69,24 @@ E_Int K_TRANSFORM::extractVectorComponents(char* varString,
     for (E_Int noc = 0; noc < 3; noc++)
     {
       PyObject* tpl1 = PyList_GetItem(tpl0, noc);
-      if (PyString_Check(tpl1) == 0)
+      char* vect;
+      if (PyString_Check(tpl1))
+      {
+        vect = PyString_AsString(tpl1); 
+      }
+#if PY_VERSION_HEX >= 0x03000000
+      else if (PyUnicode_Check(tpl1))
+      {
+        vect = PyBytes_AsString(PyUnicode_AsUTF8String(tpl1)); 
+      }
+#endif 
+      else 
       {
         PyErr_SetString(PyExc_TypeError,
                         "rotate: vector component name must be a string.");
         return -1;
       }
-      char* vect = PyString_AsString(tpl1); vars.push_back(vect);
+      vars.push_back(vect);
     }
     E_Int posu = K_ARRAY::isNamePresent(vars[0], varString);
     E_Int posv = K_ARRAY::isNamePresent(vars[1], varString);

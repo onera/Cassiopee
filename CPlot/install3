@@ -37,6 +37,7 @@ if [ $? -eq 0 ]; then
     [ $? != 0 ] && exit;
     #touch CPlot/cplot.cpp
     rm -f build/lib.*/CPlot/cplot.*
+    rm -f build/lib.*/CPlot/cplot-*.*
     python3 setupScons.py install --prefix="$INSTALLPATH"
 else
     python3 setup.py install --prefix="$INSTALLPATH"

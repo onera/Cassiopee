@@ -179,4 +179,4 @@ def addImportModule(moduleName):
 
 #=================================================================================
 def displayLog():
-    print LOG
+    print(LOG)

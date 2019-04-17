@@ -45,7 +45,7 @@ PyObject* K_CONVERTER::addVar(PyObject* self, PyObject* args)
   if (res != 1 && res != 2) return NULL; // errors are alread set
   PyObject* tpl; 
   // Check additional
-  if (PyString_Check(additional) != 0)
+  if (PyString_Check(additional))
   {
     // String name
     char* name = PyString_AsString(additional);

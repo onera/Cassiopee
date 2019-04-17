@@ -100,7 +100,8 @@ PyObject* K_TRANSFORM::projectAllDirs(PyObject* self, PyObject* args)
   for (E_Int v  = 0 ; v < nvars; v++)
   {
     E_Int* posN = posnormal.begin(v+1);
-    if (PyString_Check(PyList_GetItem(varsO, v)) == 0)
+    PyObject* l = PyList_GetItem(varsO, v);
+    if (PyString_Check(l) == 0)
     {
       err = 1;
       PyErr_SetString(PyExc_TypeError,
@@ -108,7 +109,7 @@ PyObject* K_TRANSFORM::projectAllDirs(PyObject* self, PyObject* args)
     }
     else 
     {
-      var = PyString_AsString(PyList_GetItem(varsO, v));
+      var = PyString_AsString(l);
       for (E_Int no = 0; no < nprojectedZones; no++)
       {
         m = K_ARRAY::isNamePresent(var, varStringP[no]);

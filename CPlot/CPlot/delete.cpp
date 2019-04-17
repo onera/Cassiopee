@@ -52,9 +52,9 @@ PyObject* K_CPLOT::deletez(PyObject* self, PyObject* args)
     for (E_Int i = 0; i < size; i++)
     {
       tpl = PyList_GetItem(l, i);
-      if (PyLong_Check(tpl) != 0 || PyInt_Check(tpl) != 0)
+      if (PyLong_Check(tpl) || PyInt_Check(tpl))
         deleted[i] = PyLong_AsLong(tpl);
-      else if (PyString_Check(tpl) != 0)
+      else if (PyString_Check(tpl))
       {
         char* name = PyString_AsString(tpl);
         for (E_Int j = 0; j < d->_numberOfZones; j++)
@@ -63,6 +63,17 @@ PyObject* K_CPLOT::deletez(PyObject* self, PyObject* args)
           { deleted[i] = j; break; }
         }
       }
+#if PY_VERSION_HEX >= 0x03000000
+      else if (PyUnicode_Check(tpl))
+      {
+        char* name = PyBytes_AsString(PyUnicode_AsUTF8String(tpl));
+        for (E_Int j = 0; j < d->_numberOfZones; j++)
+        {
+          if (strcmp(d->_zones[j]->zoneName, name) == 0) 
+          { deleted[i] = j; break; }
+        } 
+      }
+#endif
       else
       {
         PyErr_SetString(PyExc_TypeError, 
@@ -71,12 +82,20 @@ PyObject* K_CPLOT::deletez(PyObject* self, PyObject* args)
       }
     }
   }
-  else if (PyString_Check(l) == true) // string -> delete all
+  else if (PyString_Check(l)) // string -> delete all
   {
     size = d->_numberOfZones;
     deleted.malloc(size);
     for (E_Int i = 0; i < size ; i++) deleted[i] = i;
   }
+#if PY_VERSION_HEX >= 0x03000000
+  else if (PyUnicode_Check(l))
+  {
+    size = d->_numberOfZones;
+    deleted.malloc(size);
+    for (E_Int i = 0; i < size ; i++) deleted[i] = i;   
+  }
+#endif
   else
   {
     PyErr_SetString(PyExc_TypeError, 

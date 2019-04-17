@@ -29,11 +29,11 @@ int findFace(double xp, double yp, double zp, int elt,
 E_Int getMode(PyObject* modeObject)
 {
   E_Int mode = -1;
-  if (PyLong_Check(modeObject) == true || PyInt_Check(modeObject) == true) 
+  if (PyLong_Check(modeObject) || PyInt_Check(modeObject)) 
     mode = PyLong_AsLong(modeObject);
-  else if (PyFloat_Check(modeObject) == true)
+  else if (PyFloat_Check(modeObject))
     mode = int(PyFloat_AsDouble(modeObject));
-  else if (PyString_Check(modeObject) == true) 
+  else if (PyString_Check(modeObject)) 
   {  
     char* m = PyString_AsString(modeObject);
     if (strcmp(m, "mesh")==0 || strcmp(m,"MESH")==0 || strcmp(m,"Mesh")==0) mode=0;
@@ -42,6 +42,17 @@ E_Int getMode(PyObject* modeObject)
     if (strcmp(m, "scalar")==0 || strcmp(m,"SCALAR")==0 || strcmp(m,"Scalar")==0) mode=3;
     if (strcmp(m, "vector")==0 || strcmp(m,"VECTOR")==0 || strcmp(m,"Vector")==0) mode=4;
   }
+#if PY_VERSION_HEX >= 0x03000000
+  else if (PyUnicode_Check(modeObject))
+  {
+    char* m = PyBytes_AsString(PyUnicode_AsUTF8String(modeObject));
+    if (strcmp(m, "mesh")==0 || strcmp(m,"MESH")==0 || strcmp(m,"Mesh")==0) mode=0;
+    if (strcmp(m, "solid")==0 || strcmp(m,"SOLID")==0 || strcmp(m,"Solid")==0) mode=1;
+    if (strcmp(m, "render")==0 || strcmp(m,"RENDER")==0 || strcmp(m,"Render")==0) mode=2;
+    if (strcmp(m, "scalar")==0 || strcmp(m,"SCALAR")==0 || strcmp(m,"Scalar")==0) mode=3;
+    if (strcmp(m, "vector")==0 || strcmp(m,"VECTOR")==0 || strcmp(m,"Vector")==0) mode=4;
+  }
+#endif  
   return mode;
 }
 
@@ -52,11 +63,11 @@ E_Int getScalarField(PyObject* scalarFieldObject)
 {
   Data* d = Data::getInstance();  
   E_Int scalarField = -1;
-  if (PyLong_Check(scalarFieldObject) == true || PyInt_Check(scalarFieldObject) == true) 
+  if (PyLong_Check(scalarFieldObject) || PyInt_Check(scalarFieldObject)) 
     scalarField = PyLong_AsLong(scalarFieldObject);
-  else if (PyFloat_Check(scalarFieldObject) == true)
+  else if (PyFloat_Check(scalarFieldObject))
     scalarField = int(PyFloat_AsDouble(scalarFieldObject));
-  else if (PyString_Check(scalarFieldObject) == true) 
+  else if (PyString_Check(scalarFieldObject)) 
   {  
     char* m1 = PyString_AsString(scalarFieldObject);
     char m [MAXSTRINGLENGTH];
@@ -84,6 +95,37 @@ E_Int getScalarField(PyObject* scalarFieldObject)
       }
     }
   }
+  
+#if PY_VERSION_HEX >= 0x03000000
+  else if (PyUnicode_Check(scalarFieldObject))
+  {
+    char* m1 = PyBytes_AsString(PyUnicode_AsUTF8String(scalarFieldObject));
+    char m [MAXSTRINGLENGTH];
+    strcpy(m, m1);
+    E_Int l = strlen(m);
+    if (l > 6 && m[0] == 'n' && m[1] == 'o' && m[2] == 'd' && m[3] == 'e' && 
+        m[4] == 's' && m[5] == ':')
+    {
+      for (E_Int i = 6; i < l; i++) m[i-6] = m[i];
+      m[l-6] = '\0';
+    }
+    if (l > 8 && m[0] == 'c' && m[1] == 'e' && m[2] == 'n' && m[3] == 't' && 
+        m[4] == 'e' && m[5] == 'r' && m[6] == 's' && m[7] == ':')
+    {
+      for (E_Int i = 8; i < l; i++) m[i-8] = m[i];
+      m[l-8] = '\0';
+    }
+    // cherche dans la premiere zone (if any)
+    if (d->_numberOfZones > 0)
+    {
+      Zone* z = d->_zones[0];
+      for (E_Int i = 0; i < z->nfield; i++)
+      {
+        if (strcmp(z->varnames[i], m) == 0) {scalarField = i; break;}
+      }
+    }
+  }
+#endif
   return scalarField;
 }
 

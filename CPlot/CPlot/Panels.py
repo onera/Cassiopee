@@ -689,7 +689,6 @@ def createDoc():
     p.addElement(imgFrame)
     doc.text.addElement(p)
   
-    #print docName[-4:]
     doc.save(docName, True)
     os.remove('.tmp001204.png')
     CTK.TXT.insert('START', 'Image added to %s.\n'%(docNameOdt))
@@ -893,7 +892,7 @@ def getSelection(event=None):
         for c in range(myList.size()):
             b = myList.get(c) ; b = b.split('|')
             name2 = b[0]
-            if name2.strip() == name: print c; break
+            if name2.strip() == name: print(c); break
         if c < myList.size(): myList.selection_set(c)
 
 def updateVarNameList(event=None):

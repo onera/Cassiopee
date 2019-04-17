@@ -39,6 +39,7 @@ if [ $? -eq 0 ]; then
     [ $? != 0 ] && exit;
     #touch Connector/connector.cpp
     rm -f build/lib.*/Connector/connector.*
+    rm -f build/lib.*/Connector/connector-*.*
     python3 setupScons.py install --prefix="$INSTALLPATH"
 else
     python3 setup.py install --prefix="$INSTALLPATH"

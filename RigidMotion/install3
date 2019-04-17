@@ -37,6 +37,7 @@ if [ $? -eq 0 ]; then
     [ $? != 0 ] && exit;
     #touch RigidMotion/rigidMotion.cpp
     rm -f build/lib.*/RigidMotion/rigidMotion.*
+    rm -f build/lib.*/RigidMotion/rigidMotion-*.*
     python3 setupScons.py install --prefix="$INSTALLPATH"
 else
     python3 setup.py install --prefix="$INSTALLPATH"
