@@ -63,6 +63,7 @@ E_Int checkCompressionFilters()
   status = H5Dwrite (dset, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT,
                 wdata[0]);
   */
+  return 1;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -223,7 +224,12 @@ E_Int checkPathInLinks(const char* path, PyObject* links)
   {
     PyObject* tp = PyList_GetItem(links, i);
     PyObject* d = PyList_GetItem(tp, 3);
-    char* s = PyString_AsString(d);
+    char* s;
+    if (PyString_Check(d)) s = PyString_AsString(d);
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(d)) s = PyBytes_AsString(PyUnicode_AsUTF8String(d));
+#endif
+    else s = NULL;
     //printf("path=%s links=%s\n", path, s);
     if (strcmp(s, path) == 0) return 1;
   }
@@ -952,15 +958,6 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPaths(char* file, PyObject* paths,
     return NULL;
   }
   E_Int size = PyList_Size(paths);
-  for (E_Int i = 0; i < size; i++)
-  {
-    if (PyString_Check(PyList_GetItem(paths, i)) == false)
-    {
-      PyErr_SetString(PyExc_TypeError,
-                      "hdfread: paths must be a list of strings.");
-      return NULL;
-    }
-  }
 
   /* Open file */
   hid_t fapl, fid;
@@ -981,7 +978,17 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPaths(char* file, PyObject* paths,
 
   for (E_Int i = 0; i < size; i++)
   {
-    char* path = PyString_AsString(PyList_GetItem(paths, i));
+    char* path; PyObject* l;
+    l = PyList_GetItem(paths, i);
+    if (PyString_Check(l)) path = PyString_AsString(l);
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(l)) path = PyBytes_AsString(PyUnicode_AsUTF8String(l));
+#endif
+    else
+    {
+      PyErr_SetString(PyExc_TypeError, "hdfcgnsread: paths must be strings.");
+      return NULL;
+    }
     /* Open group in HDF corresponding to path */
     hid_t gid = HDF.openGroupWithLinks(fid, path);
     if (gid < 0)
@@ -1303,9 +1310,26 @@ E_Int K_IO::GenIO::hdfcgnswrite(char* file, PyObject* tree, PyObject* links)
   {
     PyObject* llink  = PyList_GetItem(links, i);
     //char* tgt_dire = PyString_AsString(PyList_GetItem(llink, 0));
-    char* tgt_file = PyString_AsString(PyList_GetItem(llink, 1));
-    char* tgt_path = PyString_AsString(PyList_GetItem(llink, 2));
-    char* cur_path = PyString_AsString(PyList_GetItem(llink, 3));
+    char* tgt_file; char* tgt_path; char* cur_path;
+    PyObject* l = PyList_GetItem(llink, 1);
+    if (PyString_Check(l)) tgt_file = PyString_AsString(l);
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(l)) tgt_file = PyBytes_AsString(PyUnicode_AsUTF8String(l));
+#endif
+    else tgt_file = NULL;
+    l = PyList_GetItem(llink, 2);
+    if (PyString_Check(l)) tgt_path = PyString_AsString(l);
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(l)) tgt_path = PyBytes_AsString(PyUnicode_AsUTF8String(l));
+#endif
+    else tgt_path = NULL;
+    l = PyList_GetItem(llink, 3);
+    if (PyString_Check(l)) cur_path = PyString_AsString(l);
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(l)) cur_path = PyBytes_AsString(PyUnicode_AsUTF8String(l));
+#endif
+    else cur_path = NULL;
+    
     
     // > Dramatic verbose 
     // printf(" tgt_dire : %s \n", tgt_dire);
@@ -1392,15 +1416,6 @@ E_Int K_IO::GenIO::hdfcgnsWritePaths(char* file, PyObject* treeList,
     return 1;
   }
   E_Int size = PyList_Size(paths);
-  for (E_Int i = 0; i < size; i++)
-  {
-    if (PyString_Check(PyList_GetItem(paths, i)) == false)
-    {
-      PyErr_SetString(PyExc_TypeError,
-                      "hdwrite: paths must be a list of strings.");
-      return 1;
-    }
-  }
 
   /* Ouverture du fichier pour l'ecriture */
   hid_t fapl, fid;
@@ -1422,7 +1437,18 @@ E_Int K_IO::GenIO::hdfcgnsWritePaths(char* file, PyObject* treeList,
 
   for (E_Int i = 0; i < size; i++)
   {
-    char* path = PyString_AsString(PyList_GetItem(paths, i));
+    char* path; PyObject* l;
+    l = PyList_GetItem(paths, i);
+    if (PyString_Check(l)) path = PyString_AsString(l);
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(l)) path = PyBytes_AsString(PyUnicode_AsUTF8String(l));
+#endif
+    else
+    {
+      PyErr_SetString(PyExc_TypeError, "hdfwrite: paths must be strings.");
+      return 1;
+    }
+    
     PyObject* node = PyList_GetItem(treeList, i);
     hid_t gidp = H5Gopen(fid, path, H5P_DEFAULT);
     
@@ -1433,7 +1459,13 @@ E_Int K_IO::GenIO::hdfcgnsWritePaths(char* file, PyObject* treeList,
       if (mode == 0) // append mixed
       {
         // Find node[0]
-        char* nodeName = PyString_AsString(PyList_GetItem(node,0));
+        char* nodeName; PyObject* l;
+        l = PyList_GetItem(node,0);
+        if (PyString_Check(l)) nodeName = PyString_AsString(l);
+#if PY_VERSION_HEX >= 0x03000000
+        else if (PyUnicode_Check(l)) nodeName = PyBytes_AsString(PyUnicode_AsUTF8String(l));
+#endif
+        else nodeName = NULL;
         char spath[512];
         strcpy(spath, path);
         strcat(spath, "/");
@@ -1493,7 +1525,12 @@ PyObject* K_IO::GenIOHdf::dumpOne(PyObject* tree, int depth, PyObject* links)
   if (_stringStack.size() > 0)
   {
     PyObject* pname = PyList_GetItem(tree, 0);
-    char* name = PyString_AsString(pname);    
+    char* name;
+    if (PyString_Check(pname)) name = PyString_AsString(pname);
+    #if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(pname)) name = PyBytes_AsString(PyUnicode_AsUTF8String(pname));
+#endif
+    else name = NULL;
     std::string path = _stringStack.front();
     _currentPath = path+"/"+string(name);
     //printf("write node: writing %s\n", _currentPath.c_str());
@@ -1532,9 +1569,18 @@ hid_t K_IO::GenIOHdf::writeNode(hid_t node, PyObject* tree)
   char s1[CGNSMAXLABEL+1];
   char s2[CGNSMAXLABEL+1];
   PyObject* pname = PyList_GetItem(tree, 0);
-  char* name = PyString_AsString(pname);
   PyObject* plabel = PyList_GetItem(tree, 3);
-  char* label = PyString_AsString(plabel);
+  char* name; char* label;
+  if (PyString_Check(pname)) name = PyString_AsString(pname);
+#if PY_VERSION_HEX >= 0x03000000
+  else if (PyUnicode_Check(pname)) name = PyBytes_AsString(PyUnicode_AsUTF8String(pname));
+#endif
+  else name = NULL;
+  if (PyString_Check(plabel)) label = PyString_AsString(plabel);
+#if PY_VERSION_HEX >= 0x03000000
+  else if (PyUnicode_Check(plabel)) label = PyBytes_AsString(PyUnicode_AsUTF8String(plabel));
+#endif
+  else label = NULL;
   strcpy(s1, name); strcpy(s2, label);
 
   // Creation du noeud, prop. est requis par cgnslib

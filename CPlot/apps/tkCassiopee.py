@@ -1,5 +1,6 @@
 # -- Cassiopee main app --
-import Tkinter as TK
+try: import Tkinter as TK
+except: import tkinter as TK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
@@ -73,7 +74,7 @@ def addPersonalApp():
     a = os.access(file, os.F_OK)
     if not a: return
     CTK.loadPrefFile()
-    if CTK.PREFS.has_key('module'): CTK.PREFS['module'] += ' ;'+file
+    if 'module' in CTK.PREFS: CTK.PREFS['module'] += ' ;'+file
     else: CTK.PREFS['module'] = file
     CTK.savePrefFile()
     file = os.path.split(file)
@@ -124,7 +125,7 @@ def addMenuItem(app, menu, frame, submenus, auto):
             if auto[app] == 1: CTK.openApp(app)
 
     else: # submenu
-        if submenus.has_key(submenu):
+        if submenu in submenus:
             myMenu = submenus[submenu]
         else:
             myMenu = TK.Menu(menu, tearoff=0)
@@ -166,7 +167,7 @@ def run(t=None):
         if len(app) == 2: app = app[1]
         else: app = app[0]
         auto[app] = 0
-    if CTK.PREFS.has_key('auto'):
+    if 'auto' in CTK.PREFS:
         p = CTK.PREFS['auto']; p = p.split(';')
         for i in p:
             i = i.strip()
@@ -215,7 +216,7 @@ def run(t=None):
     tools.add_command(label='Add a personal app',
                       command=addPersonalApp)
 
-    if CTK.PREFS.has_key('module'):
+    if 'module' in CTK.PREFS:
         mod = CTK.PREFS['module']
         mod = mod.split(';')
         for i in mod:

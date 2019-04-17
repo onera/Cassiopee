@@ -1,13 +1,14 @@
 # Panels - les panneaux de tkCassiopee
 
-import Tkinter as TK
-import Tk as CTK
+try: import Tkinter as TK
+except: import tkinter as TK
+from . import Tk as CTK
 import Converter
 import Converter.Internal as Internal
 import Converter.PyTree as C
 import time, re
-import PyTree as CPlot
-import Ttk as TTK
+from . import PyTree as CPlot
+from . import Ttk as TTK
 
 try: range = xrange
 except: pass

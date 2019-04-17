@@ -5,7 +5,7 @@ __author__ = "Stephanie Peron, Christophe Benoit, Gaelle Jeanfaivre, Pascal Raud
 #
 # Python Interface for post-processing tools
 #
-import post
+from . import post
 import numpy
 try: import Converter
 except: raise ImportError("Post: requires Converter module.")

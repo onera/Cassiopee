@@ -1,5 +1,6 @@
-import Tkinter as TK
-import Tk as CTK
+try: import Tkinter as TK
+except: import tkinter as TK
+from . import Tk as CTK
 
 ttk = None
 try: import ttk

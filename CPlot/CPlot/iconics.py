@@ -1,5 +1,6 @@
 # iconics Photos
-import Tkinter as TK
+try: import Tkinter as TK
+except: import tkinter as TK
 PHOTO = []
 
 saveImg = TK.PhotoImage(data="""

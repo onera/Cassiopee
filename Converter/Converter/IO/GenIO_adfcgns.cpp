@@ -580,9 +580,18 @@ double K_IO::GenIOAdf::writeNode(double node, PyObject* tree, double child)
   char s1[CGNSMAXLABEL+1];
   char s2[CGNSMAXLABEL+1];
   PyObject* pname = PyList_GetItem(tree, 0);
-  char* name = PyString_AsString(pname);
   PyObject* plabel = PyList_GetItem(tree, 3);
-  char* label = PyString_AsString(plabel);
+  char* name; char* label;
+  if (PyString_Check(pname)) name = PyString_AsString(pname);
+#if PY_VERSION_HEX >= 0x03000000
+  else if (PyUnicode_Check(pname)) name = PyBytes_AsString(PyUnicode_AsUTF8String(pname));
+#endif
+  else name = NULL;
+  if (PyString_Check(plabel)) label = PyString_AsString(plabel);
+#if PY_VERSION_HEX >= 0x03000000
+  else if (PyUnicode_Check(plabel)) label = PyBytes_AsString(PyUnicode_AsUTF8String(plabel));
+#endif
+  else label = NULL;
   blankAndCopy(s1, name, CGNSMAXLABEL);
   blankAndCopy(s2, label, CGNSMAXLABEL);
 
@@ -946,15 +955,6 @@ PyObject* K_IO::GenIO::adfcgnsReadFromPaths(char* file, PyObject* paths,
     return NULL;
   }
   E_Int size = PyList_Size(paths);
-  for (E_Int i = 0; i < size; i++)
-  {
-    if (PyString_Check(PyList_GetItem(paths, i)) == false)
-    {
-      PyErr_SetString(PyExc_TypeError,
-                      "adfcgnsread: paths must be a list of strings.");
-      return NULL;
-    }
-  }
 
   /* Open file */
   double rootId; int errorFlag;
@@ -975,7 +975,18 @@ PyObject* K_IO::GenIO::adfcgnsReadFromPaths(char* file, PyObject* paths,
 
   for (E_Int i = 0; i < size; i++)
   {
-    char* path = PyString_AsString(PyList_GetItem(paths, i));
+    char* path; PyObject* l;
+    l = PyList_GetItem(paths, i);
+    if (PyString_Check(l)) path = PyString_AsString(l);
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(l)) path = PyBytes_AsString(PyUnicode_AsUTF8String(l));
+#endif
+    else 
+    {
+      PyErr_SetString(PyExc_TypeError,
+                      "adfcgnsread: paths must be a list of strings.");
+      return NULL;
+    }  
     int found = 0;
     vector<char*> pelts;
     getABFromPath(path, pelts);
@@ -1043,15 +1054,6 @@ E_Int K_IO::GenIO::adfcgnsWritePaths(char* file, PyObject* treeList,
     return 1;
   }
   E_Int size = PyList_Size(paths);
-  for (E_Int i = 0; i < size; i++)
-  {
-    if (PyString_Check(PyList_GetItem(paths, i)) == false)
-    {
-      PyErr_SetString(PyExc_TypeError,
-                      "adfcgnswrite: paths must be a list of strings.");
-      return 1;
-    }
-  }
 
   /* Ouverture du fichier pour l'ecriture */
   double rootId; int errorFlag;
@@ -1070,7 +1072,18 @@ E_Int K_IO::GenIO::adfcgnsWritePaths(char* file, PyObject* treeList,
   for (E_Int i = 0; i < size; i++)
   {
     found = 0;
-    char* path = PyString_AsString(PyList_GetItem(paths, i));
+    char* path; PyObject* l;
+    l = PyList_GetItem(paths, i);
+    if (PyString_Check(l)) path = PyString_AsString(l);
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(l)) path = PyBytes_AsString(PyUnicode_AsUTF8String(l));
+#endif
+    else 
+    {
+      PyErr_SetString(PyExc_TypeError,
+                      "adfcgnswrite: paths must be a list of strings.");
+      return 1;
+    }  
     vector<char*> pelts;
     getABFromPath(path, pelts);
     
@@ -1110,7 +1123,13 @@ E_Int K_IO::GenIO::adfcgnsWritePaths(char* file, PyObject* treeList,
       {
         // node[0] existe deja dans les enfants du chemin?
         double idp;
-        char* nodeName = PyString_AsString(PyList_GetItem(node,0));
+        char* nodeName; PyObject* l;
+        l = PyList_GetItem(node,0);
+        if (PyString_Check(l)) nodeName = PyString_AsString(l);
+#if PY_VERSION_HEX >= 0x03000000
+        else if (PyUnicode_Check(l)) nodeName = PyBytes_AsString(PyUnicode_AsUTF8String(l));
+#endif
+        else nodeName = NULL;
         found = 0;
         ADF_Number_of_Children(id, &nChildren, &errorFlag);
         for (int j = 1; j <= nChildren; j++)
@@ -1173,22 +1192,13 @@ E_Int K_IO::GenIO::adfcgnsDeletePaths(char* file,
     return 1;
   }
   E_Int size = PyList_Size(paths);
-  for (E_Int i = 0; i < size; i++)
-  {
-    if (PyString_Check(PyList_GetItem(paths, i)) == false)
-    {
-      PyErr_SetString(PyExc_TypeError,
-                      "adfcgnsdelete: paths must be a list of strings.");
-      return 1;
-    }
-  }
 
   /* Ouverture du fichier pour l'ecriture */
   double rootId; int errorFlag;
   ADF_Database_Open(file, "old", " ", &rootId, &errorFlag);
   if (errorFlag != -1)
   {
-    PyErr_SetString(PyExc_TypeError, "adcgnsdelete: cannot open file.");
+    PyErr_SetString(PyExc_TypeError, "adfcgnsdelete: cannot open file.");
     return 1;
   }
 
@@ -1200,7 +1210,18 @@ E_Int K_IO::GenIO::adfcgnsDeletePaths(char* file,
   for (E_Int i = 0; i < size; i++)
   {
     found = 0;
-    char* path = PyString_AsString(PyList_GetItem(paths, i));
+    char* path; PyObject* l;
+    l = PyList_GetItem(paths, i);
+    if (PyString_Check(l)) path = PyString_AsString(l);
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(l)) path = PyBytes_AsString(PyUnicode_AsUTF8String(l));
+#endif
+    else
+    {
+      PyErr_SetString(PyExc_TypeError, "adfcgnsdelete: paths must be strings.");
+      return 1;
+    }
+
     vector<char*> pelts;
     getABFromPath(path, pelts);
                                               

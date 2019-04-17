@@ -1,7 +1,8 @@
 # Search BAR
-import Tkinter as TK
-import Ttk as TTK
-import Tk as CTK
+try: import Tkinter as TK
+except: import tkinter as TK
+from . import Ttk as TTK
+from . import Tk as CTK
 
 # Dictionaire Action->applet
 applet = {

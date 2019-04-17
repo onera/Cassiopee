@@ -5,7 +5,7 @@ __author__ = "Christophe Benoit, Stephanie Peron, Pascal Raud, Matthieu Soismier
 #
 # Plotter for arrays
 #
-import cplot
+from . import cplot
 import time
 __timeStep__ = 0.02
 __slot__ = None

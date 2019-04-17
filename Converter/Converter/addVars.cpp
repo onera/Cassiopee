@@ -45,10 +45,18 @@ PyObject* K_CONVERTER::addVar(PyObject* self, PyObject* args)
   if (res != 1 && res != 2) return NULL; // errors are alread set
   PyObject* tpl; 
   // Check additional
+#if PY_VERSION_HEX >= 0x03000000
+  if (PyString_Check(additional) || PyUnicode_Check(additional))
+  {
+    char* name;
+    if (PyString_Check(additional)) name = PyString_AsString(additional);
+    else name = PyBytes_AsString(PyUnicode_AsUTF8String(additional));
+#else
   if (PyString_Check(additional))
   {
     // String name
     char* name = PyString_AsString(additional);
+#endif
     
     // Name must be a unique var name
     E_Int i = 0;

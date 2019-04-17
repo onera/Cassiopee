@@ -58,18 +58,29 @@ PyObject* K_CONVERTER::normalize(PyObject* self, PyObject* args)
   E_Int m;
   for (E_Int v  = 0 ; v < PyList_Size(varsO); v++)
   {
-    if (PyString_Check(PyList_GetItem(varsO, v)) == 0)
+    PyObject* l = PyList_GetItem(varsO, v);
+    if (PyString_Check(l))
     {
-      printf("Warning: normalize: invalid string for variable %d. Skipped...\n", v);
-    }
-    else
-    {
-      var = PyString_AsString(PyList_GetItem(varsO, v));
+      var = PyString_AsString(l);
       m = K_ARRAY::isNamePresent(var, varString);
       if (m == -1)
         printf("Warning: normalize: variable %d not present in array. Skipped...\n", v);
       else {m++; pos.push_back(m);}
     }
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(l))
+    {
+      var = PyBytes_AsString(PyUnicode_AsUTF8String(l));
+      m = K_ARRAY::isNamePresent(var, varString);
+      if (m == -1)
+        printf("Warning: normalize: variable %d not present in array. Skipped...\n", v);
+      else {m++; pos.push_back(m);}
+    }
+#endif
+    else
+    {
+      printf("Warning: normalize: invalid string for variable %d. Skipped...\n", v);
+    }  
   }
 
   n = pos.size();

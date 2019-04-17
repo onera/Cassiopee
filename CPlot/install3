@@ -46,7 +46,7 @@ cp test/cplot "$INSTALLPATH"
 cp test/cplot.py "$INSTALLPATH"
 # Copie les applications
 cp apps/*.py "$INSTALLPATH"
-cp apps/cassiopee "$INSTALLPATH"
+cp apps/cassiopee3 "$INSTALLPATH"
 cp apps/appCassiopee "$INSTALLPATH"
 cp apps/CCC "$INSTALLPATH"
 cp apps/cassiopee.bat "$INSTALLPATH"

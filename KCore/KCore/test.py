@@ -199,7 +199,8 @@ def testO(objet, number=1):
         file.close()
         return True
     else:
-        import cPickle as pickle
+        try: import cPickle as pickle
+        except: import pickle
         file = open(reference, 'rb')
         a = pickle.load(file)
         file.close()

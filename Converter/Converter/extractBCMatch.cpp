@@ -50,7 +50,7 @@ PyObject* K_CONVERTER::extractBCMatchNG(PyObject* self, PyObject* args )
                                          cn, cnSize, cnNfld, eltType, hook, GridCoordinates, 
                                          FlowSolutionNodes, FlowSolutionCenters);
 
-  if ( zoneType == 0) 
+  if (zoneType == 0) 
   {
     PyErr_SetString(PyExc_TypeError, "extractBCMatchNG: not a valid zone.");
     RELEASESHAREDZ(hook, varString, eltType);
@@ -60,9 +60,9 @@ PyObject* K_CONVERTER::extractBCMatchNG(PyObject* self, PyObject* args )
   // Parent Elements 
   // ~~~~~~~~~~~~~~~
   E_Int* PE = NULL;
-  if ( zoneType == 2)
+  if (zoneType == 2)
   {
-    if ( cn.size() < 3)//PE does not exist
+    if (cn.size() < 3)//PE does not exist
     {
       PyErr_SetString(PyExc_TypeError, "extractBCMatchNG: ParentElements node must be defined in zone.");
       RELEASESHAREDZ(hook, varString, eltType);
@@ -86,23 +86,33 @@ PyObject* K_CONVERTER::extractBCMatchNG(PyObject* self, PyObject* args )
       for (int i = 0; i < nvariables; i++)
       {
         PyObject* tpl0 = PyList_GetItem(pyVariables, i);
-        if (PyString_Check(tpl0) == 0) 
-	{
-          PyErr_Warn(PyExc_Warning, "extractBCMatchNG: variable must be a string. Skipped.");
-	}
-        else 
+        if (PyString_Check(tpl0)) 
         {
-          char* varname    = PyString_AsString(tpl0); 
-	  if ( varStringOut[0] == '\0' )
-	    strcpy( varStringOut, varname );
-	  else 
-	  {
-	    strcat( varStringOut, "," );
-	    strcat( varStringOut, varname );
-	  }
-	    
+           char* varname = PyString_AsString(tpl0); 
+	         if (varStringOut[0] == '\0' ) strcpy(varStringOut, varname);
+	         else
+	         {
+	           strcat(varStringOut, ","); strcat(varStringOut, varname);
+	         }
+           posvar = K_ARRAY::isNamePresent(varname, varString);  
+           if (posvar != -1 ) posvars.push_back(posvar);
+        }
+#if PY_VERSION_HEX >= 0x03000000
+        else if (PyUnicode_Check(tpl0))
+        {
+          char* varname = PyBytes_AsString(PyUnicode_AsUTF8String(tpl0)); 
+          if (varStringOut[0] == '\0' ) strcpy(varStringOut, varname);
+          else
+          {
+             strcat(varStringOut, ","); strcat(varStringOut, varname);
+          }
           posvar = K_ARRAY::isNamePresent(varname, varString);  
           if (posvar != -1 ) posvars.push_back(posvar);
+        }
+#endif
+        else
+        {
+          PyErr_Warn(PyExc_Warning, "extractBCMatchNG: variable must be a string. Skipped.");
         }
       }
     }
@@ -1055,24 +1065,36 @@ PyObject* K_CONVERTER::buildBCMatchFieldNG(PyObject* self, PyObject* args )
       for (int i = 0; i < nvariables; i++)
       {
         PyObject* tpl0 = PyList_GetItem(pyVariables, i);
-        if (PyString_Check(tpl0) == 0) 
-  	{
-          PyErr_Warn(PyExc_Warning, "buildBCMatchFieldNG: variable must be a string. Skipped.");
-  	}
-        else 
+        if (PyString_Check(tpl0)) 
         {
-          char* varname    = PyString_AsString(tpl0); 
-
-  	  // Verif. presence variables a extraire dans le dict.
-  	  E_Int verif = K_ARRAY::isNamePresent(varname, varStringOut);  
-  	  if (verif == -1) 
-  	  {
-  	    PyErr_SetString(PyExc_TypeError, "buildBCMatchFieldNG: Variable not found in dictionary allMatch.");
-  	  }
-
+          char* varname = PyString_AsString(tpl0); 
+  	      // Verif. presence variables a extraire dans le dict.
+  	      E_Int verif = K_ARRAY::isNamePresent(varname, varStringOut);  
+  	      if (verif == -1) 
+  	      {
+  	        PyErr_SetString(PyExc_TypeError, "buildBCMatchFieldNG: Variable not found in dictionary allMatch.");
+  	      }
           posvar = K_ARRAY::isNamePresent(varname, varString);  
           if (posvar != -1 ) posvars.push_back(posvar);
         }
+#if PY_VERSION_HEX >= 0x03000000
+        else if (PyUnicode_Check(tpl0))
+        {
+          char* varname = PyBytes_AsString(PyUnicode_AsUTF8String(tpl0)); 
+          // Verif. presence variables a extraire dans le dict.
+          E_Int verif = K_ARRAY::isNamePresent(varname, varStringOut);  
+          if (verif == -1) 
+          {
+            PyErr_SetString(PyExc_TypeError, "buildBCMatchFieldNG: Variable not found in dictionary allMatch.");
+          }
+          posvar = K_ARRAY::isNamePresent(varname, varString);  
+          if (posvar != -1 ) posvars.push_back(posvar); 
+        }
+#endif
+        else
+        {
+          PyErr_Warn(PyExc_Warning, "buildBCMatchFieldNG: variable must be a string. Skipped.");
+        }  
       }
     }
   }

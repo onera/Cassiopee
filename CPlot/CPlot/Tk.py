@@ -1,8 +1,9 @@
 #
 # Interface Tkinter pour CPlot
 #
-import Tkinter as TK
-import Ttk as TTK
+try: import Tkinter as TK
+except: import tkinter as TK
+from . import Ttk as TTK
 import Converter.PyTree as C
 import Converter
 import Converter.Internal as Internal
@@ -528,7 +529,7 @@ def loadFile(event=None):
             else: t = C.mergeTrees(t, t2)
         t = upgradeTree(t)
         (Nb, Nz) = CPlot.updateCPlotNumbering(t); TKTREE.updateApp()
-        if TKMODULES.has_key('tkContainers'): TKMODULES['tkContainers'].updateApp()
+        if 'tkContainers' in TKMODULES: TKMODULES['tkContainers'].updateApp()
         if TKPLOTXY is not None: TKPLOTXY.updateApp()
         Panels.updateRenderPanel()
         fileName = os.path.split(FILE)[1]
@@ -567,7 +568,7 @@ def addFile():
             else: t = C.mergeTrees(t, t2)
         t = upgradeTree(t)
         (Nb, Nz) = CPlot.updateCPlotNumbering(t); TKTREE.updateApp()
-        if TKMODULES.has_key('tkContainers'): TKMODULES['tkContainers'].updateApp()
+        if 'tkContainers' in TKMODULES: TKMODULES['tkContainers'].updateApp()
         if TKPLOTXY is not None: TKPLOTXY.updateApp()
         Panels.updateRenderPanel()
         TXT.insert('START', 'File '+os.path.split(files[0])[1]+' added.\n')
@@ -626,7 +627,7 @@ def quickReloadFile(event=None):
     t = C.convertFile2PyTree(FILE, density=1.)
     t = upgradeTree(t)
     (Nb, Nz) = CPlot.updateCPlotNumbering(t); TKTREE.updateApp()
-    if TKMODULES.has_key('tkContainers'): TKMODULES['tkContainers'].updateApp()
+    if 'tkContainers' in TKMODULES: TKMODULES['tkContainers'].updateApp()
     Panels.updateRenderPanel()
     fileName = os.path.split(FILE)[1]
     filePath = os.path.split(FILE)[0]
@@ -735,7 +736,7 @@ def setPrefs():
     global __UNDO__, __ONEOVERN__, FONTTYPE, FONTSIZE
     global GENERALFONT, FRAMEFONT, LABELFONT, MENUFONT, BUTTONFONT
     global TEXTFONT, MSGDFONT, FIXEDFONT, FRAMESTYLE
-    for i in PREFS.iterkeys():
+    for i in PREFS:
         val = PREFS[i]
         if i == 'tkViewMode':
             if val == 'Mesh': CPlot.setState(mode=0)
@@ -777,8 +778,8 @@ def setPrefs():
             elif val == 'White2Black': style = 6
             elif val == 'Diverging': style = 8
             else: style = 0
-            if PREFS.has_key('tkViewIsoLight'):
-                if (PREFS['tkViewIsoLight'] == 'IsoLight on'): style += 1
+            if 'tkViewIsoLight' in PREFS:
+                if PREFS['tkViewIsoLight'] == 'IsoLight on': style += 1
             else: style += 1
             CPlot.setState(colormap=style)
         elif i == 'tkViewLegend':
@@ -865,7 +866,7 @@ def savePrefFile():
         #os.rename(homePath+'/.cassiopee_save', homePath+'/.cassiopee/config')
       else:
         file = open(homePath+'/.cassiopee/config', 'w')
-    for i in PREFS.iterkeys():
+    for i in PREFS:
         file.write(i+':'+PREFS[i]+'\n')
     file.close()
 
@@ -1259,7 +1260,7 @@ def getValidZones():
 # Create a tool bar on top of win
 #==============================================================================
 def toolBar(win):
-    import iconics
+    from . import iconics
     frame = TTK.Frame(win)
     frame.grid(sticky=TK.W, columnspan=2)
     B = TK.Button(frame, compound=TK.TOP, width=20, height=20,
@@ -1425,7 +1426,7 @@ def minimal(title, show=True):
     TXT.mark_set('START', TK.INSERT)
     TXT.mark_gravity('START', TK.LEFT)
     TXT.grid(sticky=TK.EW)
-    import tkSearchBar 
+    from . import tkSearchBar 
     E = tkSearchBar.createSearchBar2(F)
     E.grid(row=1, sticky=TK.EW)
     F.grid(sticky=TK.EW, columnspan=2)
@@ -1639,7 +1640,7 @@ def getOnlineTutorials():
 # Retourne False: non, retourne True: oui
 #==============================================================================
 def isAppAutoOpen(name):
-    if not PREFS.has_key('auto'): return False
+    if 'auto' not in PREFS: return False
     auto = PREFS['auto']
     if auto.find(name) != -1: return True
     else: return False
@@ -1658,7 +1659,7 @@ def toggleAutoOpen(name, m):
         PREFS['auto'] = auto
         m.entryconfigure('Pin ', image=iconics.PHOTO[9])
     else:
-        if not PREFS.has_key('auto'): PREFS['auto'] = name+';'
+        if 'auto' not in PREFS: PREFS['auto'] = name+';'
         else:
             auto = PREFS['auto']
             auto += name+';'
