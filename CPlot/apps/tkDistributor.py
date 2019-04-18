@@ -1,5 +1,6 @@
 # - block distributor -
-import Tkinter as TK
+try: import Tkinter as TK
+except: import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -337,25 +338,25 @@ def createApp(win):
     # - VARS -
     # -0- NProc -
     V = TK.StringVar(win); V.set('10'); VARS.append(V)
-    if CTK.PREFS.has_key('tkDistributorNProc'): 
+    if 'tkDistributorNProc' in CTK.PREFS: 
         V.set(CTK.PREFS['tkDistributorNProc'])
     # -1- ComSpeed -
     V = TK.StringVar(win); V.set('0.1'); VARS.append(V)
-    if CTK.PREFS.has_key('tkDistributorComSpeed'): 
+    if 'tkDistributorComSpeed' in CTK.PREFS: 
         V.set(CTK.PREFS['tkDistributorComSpeed'])
     # -2- Algorithm
     V = TK.StringVar(win); V.set('graph'); VARS.append(V)
-    if CTK.PREFS.has_key('tkDistributorAlgorithm'): 
+    if 'tkDistributorAlgorithm' in CTK.PREFS: 
         V.set(CTK.PREFS['tkDistributorAlgorithm'])
     # -3- Communication types
     V = TK.StringVar(win); V.set('all'); VARS.append(V)
-    if CTK.PREFS.has_key('tkDistributorComType'): 
+    if 'tkDistributorComType' in CTK.PREFS: 
         V.set(CTK.PREFS['tkDistributorComType'])
     # -4- Manual proc setting
     V = TK.StringVar(win); V.set('0'); VARS.append(V)
     # -5- Multigrid level
     V = TK.StringVar(win); V.set('0'); VARS.append(V)
-    if CTK.PREFS.has_key('tkDistributorMultigrid'): 
+    if 'tkDistributorMultigrid' in CTK.PREFS: 
         V.set(CTK.PREFS['tkDistributorMultigrid'])
 
     # - NProc -

@@ -1,5 +1,6 @@
 # - basic surfaces -
-import Tkinter as TK
+try: import Tkinter as TK
+except: import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -232,15 +233,15 @@ def createApp(win):
     # - VARS -
     # -0- NPts -
     V = TK.StringVar(win); V.set('10'); VARS.append(V)
-    if CTK.PREFS.has_key('tkBasicSurfsNpts'): 
+    if 'tkBasicSurfsNpts' in CTK.PREFS: 
         V.set(CTK.PREFS['tkBasicSurfsNpts'])
     # -1- Type d'elements
     V = TK.StringVar(win); V.set('TRI'); VARS.append(V)
-    if CTK.PREFS.has_key('tkBasicSurfsElts'): 
+    if 'tkBasicSurfsElts' in CTK.PREFS: 
         V.set(CTK.PREFS['tkBasicSurfsElts'])
     # -2- Type de surface
     V = TK.StringVar(win); V.set('Sphere'); VARS.append(V)
-    if CTK.PREFS.has_key('tkBasicSurfsType'): 
+    if 'tkBasicSurfsType' in CTK.PREFS: 
         V.set(CTK.PREFS['tkBasicSurfsType'])
 
     # - Npts -

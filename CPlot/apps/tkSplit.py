@@ -1,5 +1,6 @@
 # - fonctions de bloc split -
-import Tkinter as TK
+try: import Tkinter as TK
+except: import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -94,7 +95,7 @@ def merge():
                 try: no = int(s[1])
                 except: no = -1
                 if no > -1: 
-                    if (zoneNames.has_key(s[0]) == True): zoneNames[s[0]] += [n]
+                    if s[0] in zoneNames: zoneNames[s[0]] += [n]
                     else: zoneNames[s[0]] = [n]
                 else: zoneNames['__Pool__'] += [n]
             else: zoneNames['__Pool__'] += [n]
@@ -290,7 +291,7 @@ def splitNParts(event=None):
                 name = name.rsplit('.', 1)[0]
                 b[0] = C.getZoneName(pname[name])
                 nob = nobs[name][0]; noz = nobs[name][1]
-                if rep.has_key(name) == False: # remplace le parent
+                if name not in rep: # remplace le parent
                     CTK.replace(CTK.t, nob, noz, b); rep[name] = 1
                 else: CTK.add(CTK.t, nob, -1, b)
         except Exception, e:
@@ -485,33 +486,33 @@ def createApp(win):
     # - VARS -
     # -0- splitSize -
     V = TK.StringVar(win); V.set('1000'); VARS.append(V)
-    if CTK.PREFS.has_key('tkSplitSize'): V.set(CTK.PREFS['tkSplitSize'])
+    if 'tkSplitSize' in CTK.PREFS: V.set(CTK.PREFS['tkSplitSize'])
     # -1- direction pour subzone
     V = TK.StringVar(win); V.set('i-indices'); VARS.append(V)
     # -2- multigrid (niveau)
     V = TK.StringVar(win); V.set('0'); VARS.append(V)
-    if CTK.PREFS.has_key('tkSplitSizeMultigrid'): 
+    if 'tkSplitSizeMultigrid' in CTK.PREFS: 
         V.set(CTK.PREFS['tkSplitSizeMultigrid'])
     # -3- splitSharpEdges angle -
     V = TK.StringVar(win); V.set('30.'); VARS.append(V)
-    if CTK.PREFS.has_key('tkSplitSharpEdges'): 
+    if 'tkSplitSharpEdges' in CTK.PREFS: 
         V.set(CTK.PREFS['tkSplitSharpEdges'])
     # -4- tol for join -
     V = TK.StringVar(win); V.set('1.e-8'); VARS.append(V)
-    if CTK.PREFS.has_key('tkSplitJoinTol'): 
+    if 'tkSplitJoinTol' in CTK.PREFS: 
         V.set(CTK.PREFS['tkSplitJoinTol'])
     # -5- tol for merge -
     V = TK.StringVar(win); V.set('1.e-8'); VARS.append(V)
-    if CTK.PREFS.has_key('tkSplitMergeTol'): 
+    if 'tkSplitMergeTol' in CTK.PREFS: 
         V.set(CTK.PREFS['tkSplitMergeTol'])
     # -6- constraint direction for merge -
     V = TK.StringVar(win); V.set('0'); VARS.append(V) 
     # -7- Nparts for splitNParts -
     V = TK.StringVar(win); V.set('2'); VARS.append(V)
-    if CTK.PREFS.has_key('tkSplitNParts'): V.set(CTK.PREFS['tkSplitNParts'])
+    if 'tkSplitNParts' in CTK.PREFS: V.set(CTK.PREFS['tkSplitNParts'])
     # -8- Multigrid level for splitNParts -
     V = TK.StringVar(win); V.set('0'); VARS.append(V)
-    if CTK.PREFS.has_key('tkSplitNPartsMultigrid'): 
+    if 'tkSplitNPartsMultigrid' in CTK.PREFS: 
         V.set(CTK.PREFS['tkSplitNPartsMultigrid'])
 
     # - Buttons -

@@ -1,5 +1,6 @@
 # - simple transformations of mesh -
-import Tkinter as TK
+try: import Tkinter as TK
+except: import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import Generator.PyTree as G

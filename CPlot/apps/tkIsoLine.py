@@ -1,5 +1,6 @@
 # - Draw isolines -
-import Tkinter as TK
+try: import Tkinter as TK
+except: import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -42,7 +43,7 @@ def updateVarNameList2(event=None):
         noz = CTK.Nz[0]
         vars = C.getVarNames(CTK.t[2][nob][2][noz])
     if len(vars) == 0: return
-    if WIDGETS.has_key('field'):
+    if 'field' in WIDGETS:
         WIDGETS['field']['values'] = vars[0]
 
 #==============================================================================
@@ -184,20 +185,20 @@ def createApp(win):
     V = TK.StringVar(win); V.set('CoordinateX'); VARS.append(V)
     # -1- nlevels -
     V = TK.StringVar(win); V.set('25'); VARS.append(V)
-    if CTK.PREFS.has_key('tkIsoLineLevels'): 
+    if 'tkIsoLineLevels' in CTK.PREFS: 
         V.set(CTK.PREFS['tkIsoLineLevels'])
     # -2- value -
     V = TK.StringVar(win); V.set('1.'); VARS.append(V)
-    if CTK.PREFS.has_key('tkIsoLineValue'): 
+    if 'tkIsoLineValue' in CTK.PREFS: 
         V.set(CTK.PREFS['tkIsoLineValue'])
     # -3- min iso
     V = TK.StringVar(win); V.set('MIN'); VARS.append(V)
-    if CTK.PREFS.has_key('tkIsoLineMin'): 
+    if 'tkIsoLineMin' in CTK.PREFS: 
         V.set(CTK.PREFS['tkIsoLineMin'])
     # -4- max iso
     V = TK.StringVar(win); V.set('MAX'); VARS.append(V)
     V = TK.StringVar(win); V.set('MIN'); VARS.append(V)
-    if CTK.PREFS.has_key('tkIsoLineMax'): 
+    if 'tkIsoLineMax' in CTK.PREFS: 
         V.set(CTK.PREFS['tkIsoLineMax'])
 
     # - field name -

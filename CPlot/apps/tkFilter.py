@@ -1,5 +1,6 @@
 # -- filters in a pyTree --
-import Tkinter as TK
+try: import Tkinter as TK
+except: import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -358,13 +359,13 @@ def createApp(win):
     # - VARS -
     # -0- filter value -
     V = TK.StringVar(win); V.set(''); VARS.append(V)
-    if CTK.PREFS.has_key('tkFilterValue'): V.set(CTK.PREFS['tkFilterValue'])
+    if 'tkFilterValue' in CTK.PREFS: V.set(CTK.PREFS['tkFilterValue'])
     # -1- filter type
     V = TK.StringVar(win); V.set('By name'); VARS.append(V)
-    if CTK.PREFS.has_key('tkFilterName'): V.set(CTK.PREFS['tkFilterName'])
+    if 'tkFilterName' in CTK.PREFS: V.set(CTK.PREFS['tkFilterName'])
     # -2- action
     V = TK.StringVar(win); V.set('Activate'); VARS.append(V)
-    if CTK.PREFS.has_key('tkFilterAction'): V.set(CTK.PREFS['tkFilterAction'])
+    if 'tkFilterAction' in CTK.PREFS: V.set(CTK.PREFS['tkFilterAction'])
 
     # - Options -
     B = TTK.OptionMenu(Frame, VARS[2], 'Activate', 'Deactivate', 'Select')

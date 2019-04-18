@@ -1,5 +1,6 @@
 # - Variable manager -
-import Tkinter as TK
+try: import Tkinter as TK
+except: import tkinter as TK
 import CPlot.Ttk as TTK
 import tkFileDialog
 import Converter.PyTree as C
@@ -45,7 +46,7 @@ def updateVarNameList1_2(event=None):
 
     vars = ['All', 'FlowSolutionNodes', 'FlowSolutionCenters']
     if len(varsl) != 0: vars += varsl[0]
-    if WIDGETS.has_key('var1'):
+    if 'var1' in WIDGETS:
         WIDGETS['var1']['values'] = vars
 
 #==============================================================================
@@ -76,7 +77,7 @@ def updateVarNameList2_2(event=None):
         noz = CTK.Nz[0]
         vars = C.getVarNames(CTK.t[2][nob][2][noz])    
     if len(vars) == 0: return
-    if WIDGETS.has_key('var2'):
+    if 'var2' in WIDGETS:
         WIDGETS['var2']['values'] = vars[0]
 
 #==============================================================================
@@ -113,7 +114,7 @@ def updateVarNameList3_2(event=None):
     vars = ['FlowSolutionCenters']
     if len(varsl) != 0: vars += varsl[0]
 
-    if WIDGETS.has_key('var3'):
+    if 'var3' in WIDGETS:
         WIDGETS['var3']['values'] = vars
 
 #==============================================================================
@@ -148,7 +149,7 @@ def updateVarNameList4_2(event=None):
                               loc='nodes')
     vars = ['FlowSolutionNodes']
     if len(varsl) != 0: vars += varsl[0]
-    if WIDGETS.has_key('var4'):
+    if 'var4' in WIDGETS:
         WIDGETS['var4']['values'] = vars
 
 #==============================================================================
@@ -178,7 +179,7 @@ def updateVarNameList5_2(event=None):
         noz = CTK.Nz[0]
         varsl = C.getVarNames(CTK.t[2][nob][2][noz], excludeXYZ=True)
 
-    if WIDGETS.has_key('var5'):
+    if 'var5' in WIDGETS:
         WIDGETS['var5']['values'] = varsl[0]
 
 #==============================================================================
@@ -548,11 +549,11 @@ def createApp(win):
     # - VARS -
     # -0- computeVariable name
     V = TK.StringVar(win); V.set('Pressure'); VARS.append(V)
-    if CTK.PREFS.has_key('tkVariablesName'): 
+    if 'tkVariablesName' in CTK.PREFS: 
         V.set(CTK.PREFS['tkVariablesName'])
     # -1- addVar
     V = TK.StringVar(win); V.set('Density'); VARS.append(V)
-    if CTK.PREFS.has_key('tkVariablesAddVar'): 
+    if 'tkVariablesAddVar' in CTK.PREFS: 
         V.set(CTK.PREFS['tkVariablesAddVar'])
     # -2- computeGrad -
     V = TK.StringVar(win); V.set('CoordinateX'); VARS.append(V)
@@ -561,17 +562,17 @@ def createApp(win):
     VARS.append(V)
     # -4- importFile -
     V = TK.StringVar(win); V.set('output.plt'); VARS.append(V)
-    if CTK.PREFS.has_key('tkVariablesImportFile'): 
+    if 'tkVariablesImportFile' in CTK.PREFS: 
         V.set(CTK.PREFS['tkVariablesImportFile'])
     # -5- Rm variable
     V = TK.StringVar(win); V.set('All'); VARS.append(V)
     # -6- Var location
     V = TK.StringVar(win); V.set('nodes'); VARS.append(V)
-    if CTK.PREFS.has_key('tkVariablesLoc'): 
+    if 'tkVariablesLoc' in CTK.PREFS: 
         V.set(CTK.PREFS['tkVariablesLoc'])
     # -7- adim type
     V = TK.StringVar(win); V.set('Adim1 (ro,a,T)'); VARS.append(V)
-    if CTK.PREFS.has_key('tkVariablesAdim'): 
+    if 'tkVariablesAdim' in CTK.PREFS: 
         V.set(CTK.PREFS['tkVariablesAdim'])
     # -8- center2Node variable
     V = TK.StringVar(win); V.set('FlowSolutionCenters'); VARS.append(V)

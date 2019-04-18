@@ -8,9 +8,11 @@ import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
 import tkTreeOps # for node inspector
 import Converter.Internal as Internal
-import Tkdnd # drag and drop
+try: import Tkdnd # drag and drop
+except: import tkinter.dnd as Tkdnd
 import numpy
 
+from sys import version_info
 try: range = xrange
 except: pass
 
@@ -1091,7 +1093,8 @@ tcuom2foARAAyKRSmQAAOw==
         """Keep track of callback bindings so we can delete them later. I
         shouldn't have to do this!!!!"""
         # pass args to superclass
-        func_id = apply(TK.Canvas.tag_bind, (self, tag, seq)+args, kw_args)
+        if version_info[0] == 2: func_id = apply(TK.Canvas.tag_bind, (self, tag, seq)+args, kw_args)
+        #else: func_id = TK.Canvas.tag_bind(*(self, tag, seq)+args, kw_args)
         # save references
         self.bindings[tag] = self.bindings.get(tag, [])+[(seq, func_id)]
 
@@ -1151,7 +1154,9 @@ tcuom2foARAAyKRSmQAAOw==
         
     def see(self, *items):
         """Scroll (in a series of nudges) so items are visible"""
-        x1, y1, x2, y2 = apply(self.bbox, items)
+        if version_info[0] == 2: x1, y1, x2, y2 = apply(self.bbox, items)
+        else: x1, y1, x2, y2 = self.bbox(*items)
+        
         while x2 > self.canvasx(0)+self.winfo_width():
             old = self.canvasx(0)
             self.xview('scroll', 1, 'units')
@@ -1419,8 +1424,8 @@ def createApp(win):
     Frame2.grid(sticky=TK.EW)
 
     aw = 230; ah = 210
-    if CTK.PREFS.has_key('tkTreeWidth'): aw = CTK.PREFS['tkTreeWidth']
-    if CTK.PREFS.has_key('tkTreeHeight'): aw = CTK.PREFS['tkTreeHeight']
+    if 'tkTreeWidth' in CTK.PREFS: aw = CTK.PREFS['tkTreeWidth']
+    if 'tkTreeHeight' in CTK.PREFS: aw = CTK.PREFS['tkTreeHeight']
 
     # - Tree -
     B = Tree(master=Frame2,
@@ -1516,7 +1521,7 @@ def updateApp():
         children = newRoot.children()
         bcount = 0
         for c in children: # Bases
-            if OPENBASES.has_key(c.get_label()): c.expand()
+            if c.get_label() in OPENBASES: c.expand()
             if LEVSEL == 0 and c.get_label() == SELECTED: 
                 c.widget.move_cursor(c)
 
@@ -1524,12 +1529,12 @@ def updateApp():
             zcount = 0
             for d in children2: # Zones
                 dlabel = d.get_label()
-                if OPENZONES[bcount].has_key(dlabel): d.expand()
+                if dlabel in OPENZONES[bcount]: d.expand()
                 if (LEVSEL == 1 and dlabel == SELECTED): d.widget.move_cursor(d)
                 children3 = d.children()
                 for e in children3:
                     elabel = e.get_label()
-                    if OPENNODES[bcount][zcount].has_key(elabel): 
+                    if elabel in OPENNODES[bcount][zcount]: 
                         e.expand()
                     if (LEVSEL == 2 and elabel == SELECTED): 
                         e.widget.move_cursor(e)

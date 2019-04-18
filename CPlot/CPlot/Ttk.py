@@ -5,7 +5,9 @@ except: from . import Tk as CTK
 
 ttk = None
 try: import ttk
-except: ttk = None
+except: 
+    try: import tkinter.ttk as ttk
+    except: ttk = None
 #Uncomment that for a pure Tk interface
 #ttk = None
 

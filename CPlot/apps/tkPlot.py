@@ -1,5 +1,6 @@
 # - plot 1d data (plots) -
-import Tkinter as TK
+try: import Tkinter as TK
+except: import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -28,7 +29,7 @@ def updateVar1NameList2(event=None):
     vars = C.getVarNames(CTK.t)
     vars[0] += ['s']
     if len(vars) == 0: return
-    if WIDGETS.has_key('var1'):
+    if 'var1' in WIDGETS:
         WIDGETS['var1']['values'] = vars[0]
 
 #==============================================================================
@@ -47,7 +48,7 @@ def updateVar2NameList2(event=None):
     vars = C.getVarNames(CTK.t)
     vars[0] += ['s']
     if len(vars) == 0: return
-    if WIDGETS.has_key('var2'):
+    if 'var2' in WIDGETS:
         WIDGETS['var2']['values'] = vars[0]
 
 #==============================================================================
@@ -291,13 +292,13 @@ def createApp(win):
     # - VARS -
     # -0- Direction -
     V = TK.StringVar(win); V.set('None'); VARS.append(V)
-    if CTK.PREFS.has_key('tkPlotDirection'): V.set(CTK.PREFS['tkPlotDirection'])
+    if 'tkPlotDirection' in CTK.PREFS: V.set(CTK.PREFS['tkPlotDirection'])
     # -1- grid size -
     V = TK.StringVar(win); V.set('3;3'); VARS.append(V)
-    if CTK.PREFS.has_key('tkPlotGridSize'): V.set(CTK.PREFS['tkPlotGridSize'])
+    if 'tkPlotGridSize' in CTK.PREFS: V.set(CTK.PREFS['tkPlotGridSize'])
     # -2- grid pos -
     V = TK.StringVar(win); V.set('0;0'); VARS.append(V)
-    if CTK.PREFS.has_key('tkPlotGridPos'): V.set(CTK.PREFS['tkPlotGridPos'])
+    if 'tkPlotGridPos' in CTK.PREFS: V.set(CTK.PREFS['tkPlotGridPos'])
     # -3- Var1
     V = TK.StringVar(win); V.set('CoordinateX'); VARS.append(V)
     # -4- Var2

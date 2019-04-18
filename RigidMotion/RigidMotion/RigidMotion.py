@@ -3,11 +3,10 @@
 __version__ = '2.9'
 __author__ = "Stephanie Peron, Christophe Benoit, Pascal Raud"
 
-import rigidMotion
+from . import rigidMotion
 import numpy
 try: import Converter as C
-except:
-    raise ImportError("RigidMotion: requires Converter module.")
+except: raise ImportError("RigidMotion: requires Converter module.")
 
 #==============================================================================
 # IN: time: instant d'avaluation

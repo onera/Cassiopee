@@ -1,5 +1,6 @@
 # - CPlot view settings -
-import Tkinter as TK
+try: import Tkinter as TK
+except: import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -124,7 +125,7 @@ def updateVarNameList_2(event=None):
     allvars = []
     if len(vars) > 0:
         for v in vars[0]: allvars.append(v)
-    if WIDGETS.has_key('scalarField'):
+    if 'scalarField' in WIDGETS:
         WIDGETS['scalarField']['values'] = allvars
 
 #==============================================================================
@@ -156,7 +157,7 @@ def updateVarNameList2__(no):
     if len(vars) > 0:
         for v in vars[0]: allvars.append(v)
 
-    if WIDGETS.has_key('vectorField'+str(no)):
+    if 'vectorField'+str(no) in WIDGETS:
         WIDGETS['vectorField'+str(no)]['values'] = allvars
 
 #==============================================================================
@@ -769,55 +770,55 @@ def createApp(win):
     V = TK.StringVar(win); V.set('Default'); VARS.append(V)
     # -2- Niso
     V = TK.StringVar(win); V.set('25'); VARS.append(V)
-    if CTK.PREFS.has_key('tkViewNiso'): V.set(CTK.PREFS['tkViewNiso'])
+    if 'tkViewNiso' in CTK.PREFS: V.set(CTK.PREFS['tkViewNiso'])
     # -3- isoEdges
     V = TK.StringVar(win); V.set('-0.5'); VARS.append(V)
     # -4- colormap type
     V = TK.StringVar(win); V.set('Blue2Red'); VARS.append(V)
-    if CTK.PREFS.has_key('tkViewColormap'): V.set(CTK.PREFS['tkViewColormap'])
+    if 'tkViewColormap' in CTK.PREFS: V.set(CTK.PREFS['tkViewColormap'])
     # -5- iso light
     V = TK.StringVar(win); V.set('IsoLight on'); VARS.append(V)
-    if CTK.PREFS.has_key('tkViewIsoLight'): V.set(CTK.PREFS['tkViewIsoLight'])
+    if 'tkViewIsoLight' in CTK.PREFS: V.set(CTK.PREFS['tkViewIsoLight'])
     # -6- Displayed mode
     V = TK.StringVar(win); V.set('Mesh'); VARS.append(V)
-    if CTK.PREFS.has_key('tkViewMode'): V.set(CTK.PREFS['tkViewMode'])
+    if 'tkViewMode' in CTK.PREFS: V.set(CTK.PREFS['tkViewMode'])
     # -7- Legende
     V = TK.StringVar(win); V.set('0'); VARS.append(V)
-    if CTK.PREFS.has_key('tkViewLegend'): V.set(CTK.PREFS['tkViewLegend'])
+    if 'tkViewLegend' in CTK.PREFS: V.set(CTK.PREFS['tkViewLegend'])
     # -8- Dim
     V = TK.StringVar(win); V.set('3D'); VARS.append(V)
-    if CTK.PREFS.has_key('tkViewDim'): V.set(CTK.PREFS['tkViewDim'])
+    if 'tkViewDim' in CTK.PREFS: V.set(CTK.PREFS['tkViewDim'])
     # -9- Min value of isos
     V = TK.StringVar(win); V.set('0.'); VARS.append(V)
-    if CTK.PREFS.has_key('tkViewMin'): V.set(CTK.PREFS['tkViewMin'])
+    if 'tkViewMin' in CTK.PREFS: V.set(CTK.PREFS['tkViewMin'])
     # -10- Max value of isos
     V = TK.StringVar(win); V.set('1.'); VARS.append(V)
-    if CTK.PREFS.has_key('tkViewMax'): V.set(CTK.PREFS['tkViewMax'])
+    if 'tkViewMax' in CTK.PREFS: V.set(CTK.PREFS['tkViewMax'])
     # -11- IsoLine trigger
     V = TK.StringVar(win); V.set('0'); VARS.append(V)
     # -12- Edge for activated zones
     V = TK.StringVar(win); V.set('0'); VARS.append(V)
-    if CTK.PREFS.has_key('tkViewEdgeA'): V.set(CTK.PREFS['tkViewEdgeA'])
+    if 'tkViewEdgeA' in CTK.PREFS: V.set(CTK.PREFS['tkViewEdgeA'])
     # -13- Edge for deactivated zones
     V = TK.StringVar(win); V.set('0'); VARS.append(V)
-    if CTK.PREFS.has_key('tkViewEdgeD'): V.set(CTK.PREFS['tkViewEdgeD'])
+    if 'tkViewEdgeD' in CTK.PREFS: V.set(CTK.PREFS['tkViewEdgeD'])
     # -14- Shadow
     V = TK.StringVar(win); V.set('0'); VARS.append(V)
     # -15- DOF
     V = TK.StringVar(win); V.set('0'); VARS.append(V)
     # -16- Mesh style
     V = TK.StringVar(win); V.set('Multicolor wires+solid'); VARS.append(V)
-    if CTK.PREFS.has_key('tkViewMeshStyle'): 
+    if 'tkViewMeshStyle' in CTK.PREFS: 
         V.set(CTK.PREFS['tkViewMeshStyle'])
     # -17- Solid style
     V = TK.StringVar(win); V.set('Monocolor/1-side'); VARS.append(V)
-    if CTK.PREFS.has_key('tkViewSolidStyle'): 
+    if 'tkViewSolidStyle' in CTK.PREFS: 
         V.set(CTK.PREFS['tkViewSolidStyle'])
     # -18- scalar variable
     V = TK.StringVar(win); V.set('None'); VARS.append(V)
     # -19- Scalar style
     V = TK.StringVar(win); V.set('Bands'); VARS.append(V)
-    if CTK.PREFS.has_key('tkViewScalarStyle'): 
+    if 'tkViewScalarStyle' in CTK.PREFS: 
         V.set(CTK.PREFS['tkViewScalarStyle'])
     # -20- vector variable 1
     V = TK.StringVar(win); V.set('None'); VARS.append(V)
@@ -1117,7 +1118,7 @@ def createApp(win):
     B.grid(row=5, column=2, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Load view, ... from slot.')
 
-    if CTK.PREFS.has_key('tkViewMode'): setMode()
+    if 'tkViewMode' in CTK.PREFS: setMode()
 
 #==============================================================================
 # Called to display widgets

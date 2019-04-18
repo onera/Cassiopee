@@ -1,5 +1,6 @@
 # - slice -
-import Tkinter as TK
+try: import Tkinter as TK
+except: import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import Converter.Internal as Internal
@@ -272,7 +273,7 @@ def createApp(win):
     V = TK.StringVar(win); V.set('2'); VARS.append(V)
     # -4- Delta pour le move
     V = TK.StringVar(win); V.set('0.1'); VARS.append(V)
-    if CTK.PREFS.has_key('tkSliceStep'): V.set(CTK.PREFS['tkSliceStep'])
+    if 'tkSliceStep' in CTK.PREFS: V.set(CTK.PREFS['tkSliceStep'])
     # -5- slice algorithm
     V = TK.StringVar(win); V.set('Slice1'); VARS.append(V)
 

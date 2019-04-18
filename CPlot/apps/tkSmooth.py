@@ -1,5 +1,6 @@
 # - mesh smoother -
-import Tkinter as TK
+try: import Tkinter as TK
+except: import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -206,30 +207,30 @@ def createApp(win):
     # - VARS -
     # -0- Smoother niter -
     V = TK.StringVar(win); V.set('10'); VARS.append(V)
-    if CTK.PREFS.has_key('tkSmoothIter'): V.set(CTK.PREFS['tkSmoothIter'])
+    if 'tkSmoothIter' in CTK.PREFS: V.set(CTK.PREFS['tkSmoothIter'])
     # -1- Constraint
     V = TK.StringVar(win); V.set(''); VARS.append(V)
     # -2- Constraint strength
     V = TK.StringVar(win); V.set('0.1'); VARS.append(V)
-    if CTK.PREFS.has_key('tkSmoothConsStrength'): 
+    if 'tkSmoothConsStrength' in CTK.PREFS: 
         V.set(CTK.PREFS['tkSmoothConsStrength'])
     # -3- Constraint external faces
     V = TK.IntVar(win); V.set(1); VARS.append(V)
     # -4- smooth eps
     V = TK.StringVar(win); V.set('0.5'); VARS.append(V)
-    if CTK.PREFS.has_key('tkSmoothEps'): 
+    if 'tkSmoothEps' in CTK.PREFS: 
         V.set(CTK.PREFS['tkSmoothEps'])
     # -5- Constraint sharp edges
     V = TK.IntVar(win); V.set(0); VARS.append(V)
     # -6- Sharp edges detection angle
     V = TK.StringVar(win); V.set('30.'); VARS.append(V)
-    if CTK.PREFS.has_key('tkSmoothSharpAngle'): 
+    if 'tkSmoothSharpAngle' in CTK.PREFS: 
         V.set(CTK.PREFS['tkSmoothSharpAngle'])
     # -7- Project on surface
     V = TK.IntVar(win); V.set(0); VARS.append(V)
     # -8- Type de smoothing
     V = TK.StringVar(win); V.set('Volume'); VARS.append(V)
-    if CTK.PREFS.has_key('tkSmoothType'): 
+    if 'tkSmoothType' in CTK.PREFS: 
         V.set(CTK.PREFS['tkSmoothType'])
 
     # - Smoother power -

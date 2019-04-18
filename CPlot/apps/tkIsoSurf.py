@@ -1,5 +1,6 @@
 # - Draw isosurfaces -
-import Tkinter as TK
+try: import Tkinter as TK
+except: import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -39,7 +40,7 @@ def updateVarNameList2(event=None):
         vars = C.getVarNames(CTK.t[2][nob][2][noz])
     
     if len(vars) == 0: return
-    if WIDGETS.has_key('field'):
+    if 'field' in WIDGETS:
         WIDGETS['field']['values'] = vars[0]
         
 #==============================================================================
@@ -146,7 +147,7 @@ def createApp(win):
     V = TK.StringVar(win); V.set('CoordinateX'); VARS.append(V)
     # -1- value -
     V = TK.StringVar(win); V.set('1.'); VARS.append(V)
-    if CTK.PREFS.has_key('tkIsoSurfValue'): 
+    if 'tkIsoSurfValue' in CTK.PREFS: 
         V.set(CTK.PREFS['tkIsoSurfValue'])
 
     # - field name -

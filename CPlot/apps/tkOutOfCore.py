@@ -1,5 +1,6 @@
 # - out/in core memory management -
-import Tkinter as TK
+try: import Tkinter as TK
+except: import tkinter as TK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
@@ -12,12 +13,12 @@ WIDGETS = {}; VARS = []
 
 #==============================================================================
 def inCore():
-    if (CTK.t == []): return
+    if CTK.t == []: return
     if (CTK.__MAINTREE__ <= 0):
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     nzs = CPlot.getSelectedZones()
-    if (nzs == []):
+    if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     for nz in nzs:

@@ -1649,7 +1649,7 @@ def isAppAutoOpen(name):
 # Interne: appele pour changer le status d'une applet (auto-open ou non)
 #==============================================================================
 def toggleAutoOpen(name, m):
-    import iconics
+    from . import iconics
     opened = isAppAutoOpen(name)
     if opened:
         # Le retire de la liste
@@ -1671,7 +1671,7 @@ def toggleAutoOpen(name, m):
 # Ajoute a un TkMenu no m un pin menu
 #==============================================================================
 def addPinMenu(m, name):
-    import iconics
+    from . import iconics
     opened = isAppAutoOpen(name)
     if opened: icon = iconics.PHOTO[10]
     else: icon = iconics.PHOTO[9]

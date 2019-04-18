@@ -1,5 +1,6 @@
 # - Log file management -
-import Tkinter as TK
+try: import Tkinter as TK
+except: import tkinter as TK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK

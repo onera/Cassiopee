@@ -1,5 +1,6 @@
 # - PolyC1Mesher app -
-import Tkinter as TK
+try: import Tkinter as TK
+except: import tkinter as TK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
@@ -8,8 +9,7 @@ import Converter.Internal as Internal
 import Generator.PyTree as G
 
 # local widgets list
-WIDGETS = {}
-VARS = []
+WIDGETS = {}; VARS = []
 
 #==============================================================================
 def generatePC1M():

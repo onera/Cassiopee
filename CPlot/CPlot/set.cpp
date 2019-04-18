@@ -163,7 +163,11 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
     for (int i = 0; i < nb; i++)
     {
       PyObject* o = PyList_GetItem(billBoards, 3*i);
-      char* file = PyString_AsString(o);
+      char* file = NULL;
+      if (PyString_Check(o)) file = PyString_AsString(o);
+#if PY_VERSION_HEX >= 0x03000000
+      else if (PyUnicode_Check(o)) file = PyBytes_AsString(PyUnicode_AsUTF8String(o)); 
+#endif
       o = PyList_GetItem(billBoards, 3*i+1);
       int ni = PyLong_AsLong(o);
       o = PyList_GetItem(billBoards, 3*i+2);
@@ -200,7 +204,11 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
     for (int i = 0; i < nb; i++)
     {
       PyObject* o = PyList_GetItem(materials, i);
-      char* file = PyString_AsString(o);
+      char* file = NULL;
+      if (PyString_Check(o)) file = PyString_AsString(o);
+#if PY_VERSION_HEX >= 0x03000000
+      else if (PyUnicode_Check(o)) file = PyBytes_AsString(PyUnicode_AsUTF8String(o)); 
+#endif
       d->_materialFiles[i] = new char [128];  
       strcpy(d->_materialFiles[i], file);
       d->_materialTexs[i] = 0;
@@ -233,7 +241,11 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
       }
       else
       {
-        char* file = PyString_AsString(o);
+        char* file = NULL;
+        if (PyString_Check(o)) file = PyString_AsString(o);
+#if PY_VERSION_HEX >= 0x03000000
+        else if (PyUnicode_Check(o)) file = PyBytes_AsString(PyUnicode_AsUTF8String(o)); 
+#endif
         d->_bumpMapFiles[i] = new char [128];  
         strcpy(d->_bumpMapFiles[i], file);
       }
@@ -755,7 +767,14 @@ PyObject* K_CPLOT::setZoneNames(PyObject* self, PyObject* args)
       return NULL;
     }
     int noz = PyLong_AsLong(PyTuple_GetItem(tpl, 0));
-    char* name = PyString_AsString(PyTuple_GetItem(tpl, 1));
+    
+    char* name = NULL;
+    PyObject* l = PyTuple_GetItem(tpl, 1);
+    if (PyString_Check(l)) name = PyString_AsString(l);
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(l)) name = PyBytes_AsString(PyUnicode_AsUTF8String(l)); 
+#endif
+    
     if (noz < 0 || noz > d->_numberOfZones-1)
     {
       printf("Warning: setZoneNames: number of zone is invalid.\n");

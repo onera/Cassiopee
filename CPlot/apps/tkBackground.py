@@ -1,5 +1,6 @@
 # - backgrounds -
-import Tkinter as TK
+try: import Tkinter as TK
+except: import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -296,11 +297,11 @@ def createApp(win):
     # - VARS -
     # -0- Type de background -
     V = TK.StringVar(win); V.set('None'); VARS.append(V)
-    if CTK.PREFS.has_key('tkBackgroundType'): 
+    if 'tkBackgroundType' in CTK.PREFS: 
         V.set(CTK.PREFS['tkBackgroundType'])
     # -1- Border
     V = TK.StringVar(win); V.set('2'); VARS.append(V)
-    if CTK.PREFS.has_key('tkBackgroundBorder'): 
+    if 'tkBackgroundBorder' in CTK.PREFS: 
         V.set(CTK.PREFS['tkBackgroundBorder'])
 
     # - Type de background -

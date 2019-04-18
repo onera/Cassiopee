@@ -1,5 +1,6 @@
 # - Draw curves -
-import Tkinter as TK
+try: import Tkinter as TK
+except: import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -682,10 +683,10 @@ def createApp(win):
     # - VARS -
     # -0- Figure type -
     V = TK.StringVar(win); V.set('Line'); VARS.append(V)
-    if CTK.PREFS.has_key('tkDrawType'): V.set(CTK.PREFS['tkDrawType'])
+    if 'tkDrawType' in CTK.PREFS: V.set(CTK.PREFS['tkDrawType'])
     # -1- Npts -
     V = TK.StringVar(win); V.set('10'); VARS.append(V)
-    if CTK.PREFS.has_key('tkDrawNpts'): V.set(CTK.PREFS['tkDrawNpts'])
+    if 'tkDrawNpts' in CTK.PREFS: V.set(CTK.PREFS['tkDrawNpts'])
     # -2- underlaying surface
     V = TK.StringVar(win); V.set(''); VARS.append(V)
 

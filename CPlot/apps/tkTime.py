@@ -1,5 +1,6 @@
 # - time machine -
-import Tkinter as TK
+try: import Tkinter as TK
+except: import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -151,15 +152,15 @@ def createApp(win):
     # - VARS -
     # -0- t0 -
     V = TK.StringVar(win); V.set('0.'); VARS.append(V)
-    if CTK.PREFS.has_key('tkTimeT0'): V.set(CTK.PREFS['tkTimeT0'])
+    if 'tkTimeT0' in CTK.PREFS: V.set(CTK.PREFS['tkTimeT0'])
     # -1- t -
     V = TK.StringVar(win); V.set('0.5'); VARS.append(V)
     # -2- tf -
     V = TK.StringVar(win); V.set('1.'); VARS.append(V)
-    if CTK.PREFS.has_key('tkTimeTF'): V.set(CTK.PREFS['tkTimeTF'])
+    if 'tkTimeTF' in CTK.PREFS: V.set(CTK.PREFS['tkTimeTF'])
     # -3- Show only BCWall
     V = TK.StringVar(win); V.set('0'); VARS.append(V)
-    if CTK.PREFS.has_key('tkTimeWall'): V.set(CTK.PREFS['tkTimeWall'])
+    if 'tkTimeWall' in CTK.PREFS: V.set(CTK.PREFS['tkTimeWall'])
     # -4- time info bulle
     V = TK.StringVar(win); V.set('Time.'); VARS.append(V)
 

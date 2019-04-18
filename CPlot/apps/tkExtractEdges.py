@@ -1,5 +1,6 @@
 # - manipulate edges -
-import Tkinter as TK
+try: import Tkinter as TK
+except: import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -348,7 +349,7 @@ def createApp(win):
     # - VARS -
     # -0- Edge split angle -
     V = TK.StringVar(win); V.set('30.'); VARS.append(V)
-    if CTK.PREFS.has_key('tkExtractEdgesSplitAngle'):
+    if 'tkExtractEdgesSplitAngle' in CTK.PREFS:
         V.set(CTK.PREFS['tkExtractEdgesSplitAngle'])
     # -1- Tolerance for T-branches splitting -
     V = TK.StringVar(win); V.set('1.e-8'); VARS.append(V)

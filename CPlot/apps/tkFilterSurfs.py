@@ -1,5 +1,6 @@
 # - surface filter and offset -
-import Tkinter as TK
+try: import Tkinter as TK
+except: import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -193,15 +194,15 @@ def createApp(win):
     # - VARS -
     # -0- Point density -
     V = TK.StringVar(win); V.set('1.'); VARS.append(V)
-    if CTK.PREFS.has_key('tkFilterSurfsDensity'): 
+    if 'tkFilterSurfsDensity' in CTK.PREFS: 
         V.set(CTK.PREFS['tkFilterSurfsDensity'])
     # -1- Offset -
     V = TK.StringVar(win); V.set('0.'); VARS.append(V)
-    if CTK.PREFS.has_key('tkFilterSurfsOffset'): 
+    if 'tkFilterSurfsOffset' in CTK.PREFS: 
         V.set(CTK.PREFS['tkFilterSurfsOffset'])
     # -2- Algorithm cart/octree
     V = TK.StringVar(win); V.set('0'); VARS.append(V)
-    if CTK.PREFS.has_key('tkFilterSurfsType'): 
+    if 'tkFilterSurfsType' in CTK.PREFS: 
         V.set(CTK.PREFS['tkFilterSurfsType'])
 
     # - Point density -

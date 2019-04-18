@@ -16,19 +16,33 @@ PyObject* K_KCORE::activation(PyObject* self, PyObject* args)
 char* installPath()
 {
   Py_Initialize();
-  PyObject* pName = PyString_FromString("KCore.installPath");
-  PyObject* pModule = PyImport_Import(pName);
-  Py_DECREF(pName);
-  if (pModule != NULL) 
+  
+//#if PY_VERSION_HEX >= 0x03000000
+//  PyObject* pName = PyUnicode_FromString("KCore.installPath");
+//#else
+//  PyObject* pName = PyString_FromString("KCore.installPath");
+//#endif
+  //pName = Py_BuildValue("s", "KCore");
+  //PyObject* pModule = PyImport_Import(pName);
+  //Py_DECREF(pName);
+  PyObject* pModule = PyImport_ImportModule("KCore.installPath");
+  if (pModule != NULL)
   {
     PyObject* dict = PyModule_GetDict(pModule);
+
+#if PY_VERSION_HEX >= 0x03000000    
+    PyObject* o = PyDict_GetItem(dict, PyUnicode_FromString("libPath"));
+    char* retChar = PyBytes_AsString(PyUnicode_AsUTF8String(o));
+#else
     PyObject* o = PyDict_GetItem(dict, PyString_FromString("libPath"));
     char* retChar = PyString_AsString(o);
+#endif
     Py_DECREF(pModule);
     return retChar;
   }
   else
   {
+    PyErr_Print();
     printf("Warning: module KCore.installPath can not be found.\n");
   }
   return NULL;
@@ -40,9 +54,10 @@ char* installPath()
 char* getHome()
 {
   Py_Initialize();
-  PyObject* pName = PyString_FromString("os.path");
-  PyObject* pModule = PyImport_Import(pName);
-  Py_DECREF(pName);
+  //PyObject* pName = PyString_FromString("os.path");
+  //PyObject* pModule = PyImport_Import(pName);
+  //Py_DECREF(pName);
+  PyObject* pModule = PyImport_ImportModule("KCore.installPath");
   char* answer = NULL;
   if (pModule != NULL)
   {
@@ -52,13 +67,21 @@ char* getHome()
     {
       if (PyCallable_Check(func))
       {
+#if PY_VERSION_HEX >= 0x03000000
+        PyObject* sarg = PyUnicode_FromString("~");
+#else  
         PyObject* sarg = PyString_FromString("~");
+#endif
         PyObject* args = PyTuple_New(1);
         PyTuple_SetItem(args, 0, sarg);
         PyObject* rslt = PyObject_CallObject(func, args);
         if (rslt)
         {
+#if PY_VERSION_HEX >= 0x03000000
+          answer = PyBytes_AsString(PyUnicode_AsUTF8String(rslt));
+#else 
           answer = PyString_AsString(rslt);
+#endif
           Py_DECREF(rslt);
         }
         Py_DECREF(sarg);

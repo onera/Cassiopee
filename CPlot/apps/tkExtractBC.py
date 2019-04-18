@@ -1,5 +1,6 @@
 # - extract BCs in a pyTree -
-import Tkinter as TK
+try: import Tkinter as TK
+except: import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -25,7 +26,7 @@ def updateFamilyBCNameList(event=None):
 def updateFamilyBCNameList2(event=None):
     if CTK.t == []: return
     varsp = ['-All BC-']+getAllDefinedBC(CTK.t)
-    if WIDGETS.has_key('BC'): WIDGETS['BC']['values'] = varsp
+    if 'BC' in WIDGETS: WIDGETS['BC']['values'] = varsp
 
 #==============================================================================
 def setBC2Recover():
@@ -169,7 +170,7 @@ def createApp(win):
     # - VARS -
     # - 0 - Type de BC -
     V = TK.StringVar(win); V.set('-All BC-'); VARS.append(V)
-    if CTK.PREFS.has_key('tkExtractBCType'): 
+    if 'tkExtractBCType' in CTK.PREFS: 
         V.set(CTK.PREFS['tkExtractBCType'])
     # - 1 - List of zoneBCs to recover
     V = TK.StringVar(win); V.set(''); VARS.append(V)

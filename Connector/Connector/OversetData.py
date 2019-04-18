@@ -1400,7 +1400,7 @@ def setInterpData2(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
 
 
 #==============================================================================
-# Cette fonction retourne la transformation vectorielle d'une zone à l'autre
+# Cette fonction retourne la transformation vectorielle d'une zone a l'autre
 #==============================================================================
 def getTransfo(zdonor,zrcv):
     import KCore.Vector as Vector

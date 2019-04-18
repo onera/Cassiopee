@@ -1,7 +1,7 @@
 #
 # Python Interface to compute/define rigid motion from PyTrees
 #
-import RigidMotion
+from . import RigidMotion
 __version__ = RigidMotion.__version__
  
 try:

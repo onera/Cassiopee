@@ -1,5 +1,6 @@
 # - check pyTree integrity -
-import Tkinter as TK
+try: import Tkinter as TK
+except: import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -118,13 +119,13 @@ def createApp(win):
     # - VARS -
     # -0- MinPtsPerCoarseGrid -
     V = TK.StringVar(win); V.set('5'); VARS.append(V)
-    if CTK.PREFS.has_key('tkCheckPyTree0'): V.set(CTK.PREFS['tkCheckPyTree0'])
+    if 'tkCheckPyTree0' in CTK.PREFS: V.set(CTK.PREFS['tkCheckPyTree0'])
     # -1- MinPtsPerCoarseWin -
     V = TK.StringVar(win); V.set('3'); VARS.append(V)
-    if CTK.PREFS.has_key('tkCheckPyTree1'): V.set(CTK.PREFS['tkCheckPyTree1'])
+    if 'tkCheckPyTree1' in CTK.PREFS: V.set(CTK.PREFS['tkCheckPyTree1'])
     # -2- Multigrid level
     V = TK.StringVar(win); V.set('1'); VARS.append(V)
-    if CTK.PREFS.has_key('tkCheckPyTree2'): V.set(CTK.PREFS['tkCheckPyTree2'])
+    if 'tkCheckPyTree2' in CTK.PREFS: V.set(CTK.PREFS['tkCheckPyTree2'])
     # -3- global option menu -> things to check
     V = TK.StringVar(win); V.set('All conformity'); VARS.append(V)
 

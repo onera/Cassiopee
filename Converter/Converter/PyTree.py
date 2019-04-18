@@ -1764,8 +1764,8 @@ def _TZA(t, locin, locout, F, Fc, *args):
         setFields([fp], z, locout)
     else: # both
       # Dans ce cas, on suppose que F ne change pas la localisation
-      l = len(args);
-      args1 = args[0:l/2]; args2 = args[l/2:]
+      l = int(len(args)/2);
+      args1 = args[0:l]; args2 = args[l:]
       fc = getFields(Internal.__GridCoordinates__, z)[0]
       fa = getFields(Internal.__FlowSolutionNodes__, z)[0]
       fb = getFields(Internal.__FlowSolutionCenters__, z)[0]
@@ -1814,8 +1814,8 @@ def _TZANW(t, locin, locout, F, Fc, *args):
         setFields([fp], z, locout, writeDim=False)
     else: # both
       # Dans ce cas, on suppose que F ne change pas la localisation
-      l = len(args);
-      args1 = args[0:l/2]; args2 = args[l/2:]
+      l = int(len(args)/2);
+      args1 = args[0:l]; args2 = args[l:]
       fc = getFields(Internal.__GridCoordinates__, z)[0]
       fa = getFields(Internal.__FlowSolutionNodes__, z)[0]
       fb = getFields(Internal.__FlowSolutionCenters__, z)[0]

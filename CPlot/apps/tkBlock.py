@@ -1,5 +1,6 @@
 # - block operations in a pyTree -
-import Tkinter as TK
+try: import Tkinter as TK
+except: import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import Transform.PyTree as T
@@ -349,10 +350,10 @@ def createApp(win):
     # - VARS -
     # -0- oneovern -
     V = TK.StringVar(win); V.set('2;2;2'); VARS.append(V)
-    if CTK.PREFS.has_key('tkBlockOneovern'): V.set(CTK.PREFS['tkBlockOneovern'])
+    if 'tkBlockOneovern' in CTK.PREFS: V.set(CTK.PREFS['tkBlockOneovern'])
     # -1- eps pour close
     V = TK.StringVar(win); V.set('1.e-6'); VARS.append(V)
-    if CTK.PREFS.has_key('tkBlockClose'): V.set(CTK.PREFS['tkBlockClose'])
+    if 'tkBlockClose' in CTK.PREFS: V.set(CTK.PREFS['tkBlockClose'])
 
     # - Rm block from model -
     B = TTK.Button(Frame, text="Rm block", command=rmBlock)

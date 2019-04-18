@@ -971,14 +971,14 @@ def addNormalLayers(surface, distrib, check=0, niter=0, eps=0.4):
         for i in range(1,len(surface)):
             if ((len(surface[i]) == 5 and type != 0) or (len(surface[i]) == 4 and type != 1)):
                 raise ValueError("addNormalLayers: all the surfaces must be structured or unstructured.")
-        if (type == 0): return addNormalLayersStruct__(surface, distrib, check, niter, eps)
+        if type == 0: return addNormalLayersStruct__(surface, distrib, check, niter, eps)
         else: # NS
             out = []
             for s in surface: out.append(addNormalLayersUnstr__(s, distrib, check, niter, eps))
             return out
     else: # 1 array
-        if (len(surface) == 5): return addNormalLayersStruct__([surface], distrib, check, niter, eps)[0]
-        else: return addNormalLayersUnstr__(surface, distrib, check, niter, eps)# NS
+        if len(surface) == 5: return addNormalLayersStruct__([surface], distrib, check, niter, eps)[0]
+        else: return addNormalLayersUnstr__(surface, distrib, check, niter, eps) # NS
 
 #-----------------------------------------------------------------------------
 # Generation de grilles cartesiennes multibloc a partir de:
@@ -995,7 +995,7 @@ def gencartmb(bodies, h, Dfar, nlvl):
         raise ImportError("gencartmb: requires Transform and Converter.")
     for b in bodies:
         ni = b[2]; nj = b[3]; nk = b[4]
-        if (ni < 2 or nj < 2 or nk < 2):
+        if ni < 2 or nj < 2 or nk < 2:
             raise ValueError("gencartmb: arrays must be 3D.")
         
     # Cree un bloc

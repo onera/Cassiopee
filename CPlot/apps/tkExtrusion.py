@@ -1,5 +1,6 @@
 # - Mesh generation by extrusion -
-import Tkinter as TK
+try: import Tkinter as TK
+except: import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import Generator.PyTree as G
@@ -305,15 +306,15 @@ def createApp(win):
     # - VARS -
     # -0- Hauteur de chaque maille -
     V = TK.StringVar(win); V.set('1.e-1'); VARS.append(V)
-    if CTK.PREFS.has_key('tkExtrusionHeight'):
+    if 'tkExtrusionHeight' in CTK.PREFS:
         V.set(CTK.PREFS['tkExtrusionHeight'])
     # -1- Nombre de layers a ajouter
     V = TK.StringVar(win); V.set('1'); VARS.append(V)
-    if CTK.PREFS.has_key('tkExtrusionNLayers'):
+    if 'tkExtrusionNLayers' in CTK.PREFS:
         V.set(CTK.PREFS['tkExtrusionNLayers'])
     # -2- Nombre d'iterations de lissage
     V = TK.StringVar(win); V.set('50'); VARS.append(V)
-    if CTK.PREFS.has_key('tkExtrusionSmooth'):
+    if 'tkExtrusionSmooth' in CTK.PREFS:
         V.set(CTK.PREFS['tkExtrusionSmooth'])
     # -3- Driving curve
     V = TK.StringVar(win); V.set(''); VARS.append(V)
@@ -321,11 +322,11 @@ def createApp(win):
     V = TK.StringVar(win); V.set(''); VARS.append(V)
     # -5- Angle for revolve
     V = TK.StringVar(win); V.set('360.'); VARS.append(V)
-    if CTK.PREFS.has_key('tkExtrusionRevAngle'):
+    if 'tkExtrusionRevAngle' in CTK.PREFS:
         V.set(CTK.PREFS['tkExtrusionRevAngle'])
     # -6- Npts for revolve
     V = TK.StringVar(win); V.set('30'); VARS.append(V)
-    if CTK.PREFS.has_key('tkExtrusionNpts'):
+    if 'tkExtrusionNpts' in CTK.PREFS:
         V.set(CTK.PREFS['tkExtrusionNpts'])
 
     # - AddNormalLayers -

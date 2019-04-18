@@ -1,5 +1,6 @@
 # - tkCanvas : create drawing canvas -
-import Tkinter as TK
+try: import Tkinter as TK
+except: import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -243,11 +244,11 @@ def createApp(win):
     V = TK.StringVar(win); V.set('0.'); VARS.append(V)
     # -2- Canvas dir step
     V = TK.StringVar(win); V.set('0.1'); VARS.append(V)
-    if CTK.PREFS.has_key('tkCanvasDirStep'):
+    if 'tkCanvasDirStep' in CTK.PREFS:
         V.set(CTK.PREFS['tkCanvasDirStep'])
     # -3- Canvas enlarge step
     V = TK.StringVar(win); V.set('1.'); VARS.append(V)
-    if CTK.PREFS.has_key('tkCanvasEnlargeStep'):
+    if 'tkCanvasEnlargeStep' in CTK.PREFS:
         V.set(CTK.PREFS['tkCanvasEnlargeStep'])
 
     # - Direction -

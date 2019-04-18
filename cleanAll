@@ -8,6 +8,7 @@ do
   then
       cd $mod
       rm -fr build
+      rm -fr .sconsign.dblite
       cd ..
   fi
 done

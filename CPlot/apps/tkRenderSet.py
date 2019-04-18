@@ -1,5 +1,6 @@
 # - tkRenderSet -
-import Tkinter as TK
+try: import Tkinter as TK
+except: import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import Converter.Internal as Internal
@@ -68,7 +69,7 @@ def updateVarNameList2(event=None):
     if len(vars) > 0:
         for v in vars[0]: allvars.append('Iso:'+v)
 
-    if WIDGETS.has_key('colors'):
+    if 'colors' in WIDGETS:
         WIDGETS['colors']['values'] = allvars
 
 #==============================================================================

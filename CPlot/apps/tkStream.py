@@ -1,5 +1,6 @@
 # - stream management -
-import Tkinter as TK
+try: import Tkinter as TK
+except: import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -43,7 +44,7 @@ def updateVarNameList2__(no):
     allvars = []
     if (len(vars) > 0):
         for v in vars[0]: allvars.append(v)
-    if WIDGETS.has_key('variable'+str(no)):
+    if 'variable'+str(no) in WIDGETS:
         WIDGETS['variable'+str(no)]['values'] = allvars
 
 #==============================================================================
@@ -194,7 +195,7 @@ def createApp(win):
     # - VARS -
     # -0- nptsmax -
     V = TK.StringVar(win); V.set('2000'); VARS.append(V)
-    if CTK.PREFS.has_key('tkStreamNpts'): 
+    if 'tkStreamNpts' in CTK.PREFS: 
         V.set(CTK.PREFS['tkStreamNpts'])
     # -1- Var0 for vector -
     V = TK.StringVar(win); V.set('CoordinateX'); VARS.append(V)

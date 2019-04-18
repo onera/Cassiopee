@@ -1,5 +1,6 @@
 # - integration -
-import Tkinter as TK
+try: import Tkinter as TK
+except: import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -39,7 +40,7 @@ def updateVarNameList2__(no):
     allvars = []
     if (len(vars) > 0):
         for v in vars[0]: allvars.append(v)
-    if (WIDGETS.has_key('variable'+str(no)) == True):
+    if 'variable'+str(no) in WIDGETS:
         WIDGETS['variable'+str(no)]['values'] = allvars
 
 #==============================================================================

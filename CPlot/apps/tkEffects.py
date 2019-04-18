@@ -1,5 +1,6 @@
 # - render effects (shadow, dof,...) -
-import Tkinter as TK
+try: import Tkinter as TK
+except: import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -74,14 +75,14 @@ def createApp(win):
     # - VARS -
     # -0- cam view angle -
     V = TK.StringVar(win); V.set('50.'); VARS.append(V)
-    if CTK.PREFS.has_key('tkEffectsAngle'): V.set(CTK.PREFS['tkEffectsAngle'])
+    if 'tkEffectsAngle' in CTK.PREFS: V.set(CTK.PREFS['tkEffectsAngle'])
     # -1- Shadow
     V = TK.StringVar(win); V.set('0'); VARS.append(V)
-    if CTK.PREFS.has_key('tkEffectsShadow'):
+    if 'tkEffectsShadow' in CTK.PREFS:
         V.set(CTK.PREFS['tkEffectsShadow'])
     # -2- DOF
     V = TK.StringVar(win); V.set('0'); VARS.append(V)
-    if CTK.PREFS.has_key('tkEffectsDOF'): V.set(CTK.PREFS['tkEffectsDOF'])
+    if 'tkEffectsDOF' in CTK.PREFS: V.set(CTK.PREFS['tkEffectsDOF'])
     # -3- Light offset X info bulle
     V = TK.StringVar(win); V.set('Light offset in x.'); VARS.append(V)
     # -4- Light offset Y info bulle

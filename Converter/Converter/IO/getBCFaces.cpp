@@ -53,8 +53,11 @@ E_Int K_IO::GenIO::getBCFaces(PyObject* BCFaces, E_Int i, char* name,
 {
   // BC name
   PyObject* o = PyList_GetItem(BCFaces, 2*i);
-  if (PyString_Check(o) == false) return -1;
-  strcpy(name, PyString_AsString(o));
+  if (PyString_Check(o)) strcpy(name, PyString_AsString(o));
+#if PY_VERSION_HEX >= 0x03000000
+  else if (PyUnicode_Check(o)) strcpy(name, PyBytes_AsString(PyUnicode_AsUTF8String(o))); 
+#endif
+  else return -1;
   
   // BC data
   o = PyList_GetItem(BCFaces, 2*i+1);

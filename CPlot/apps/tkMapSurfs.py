@@ -1,5 +1,6 @@
 # - surface remapper -
-import Tkinter as TK
+try: import Tkinter as TK
+except: import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -226,21 +227,21 @@ def createApp(win):
     # - VARS -
     # -0- Point density -
     V = TK.StringVar(win); V.set('1.'); VARS.append(V)
-    if CTK.PREFS.has_key('tkMapSurfsDensity'): 
+    if 'tkMapSurfsDensity' in CTK.PREFS: 
         V.set(CTK.PREFS['tkMapSurfsDensity'])
     # -1- Smoother power -
     V = TK.StringVar(win); V.set('10'); VARS.append(V)
-    if CTK.PREFS.has_key('tkMapSurfsSmooth'): 
+    if 'tkMapSurfsSmooth' in CTK.PREFS: 
         V.set(CTK.PREFS['tkMapSurfsSmooth'])
     # -2- Elt type -
     V = TK.StringVar(win); V.set('QUAD'); VARS.append(V)
-    if CTK.PREFS.has_key('tkMapSurfsElts'): 
+    if 'tkMapSurfsElts' in CTK.PREFS: 
         V.set(CTK.PREFS['tkMapSurfsElts'])
     # -3- Constraint
     V = TK.StringVar(win); V.set(''); VARS.append(V)
     # -4- Constraint strength
     V = TK.StringVar(win); V.set('1.'); VARS.append(V)
-    if CTK.PREFS.has_key('tkMapSurfsConsStrength'): 
+    if 'tkMapSurfsConsStrength' in CTK.PREFS: 
         V.set(CTK.PREFS['tkMapSurfsConsStrength'])
 
     # - Point density -

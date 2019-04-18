@@ -1,5 +1,6 @@
 # - surface walker -
-import Tkinter as TK
+try: import Tkinter as TK
+except: import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -239,15 +240,15 @@ def createApp(win):
     V = TK.StringVar(win); V.set(''); VARS.append(V)
     # -2- Hauteur de chaque maille -
     V = TK.StringVar(win); V.set('1.e-1'); VARS.append(V)
-    if CTK.PREFS.has_key('tkSurfaceWalkHeight'): 
+    if 'tkSurfaceWalkHeight' in CTK.PREFS: 
         V.set(CTK.PREFS['tkSurfaceWalkHeight'])
     # -3- Nombre de layers a ajouter
     V = TK.StringVar(win); V.set('1'); VARS.append(V)
-    if CTK.PREFS.has_key('tkSurfaceWalkNLayers'): 
+    if 'tkSurfaceWalkNLayers' in CTK.PREFS: 
         V.set(CTK.PREFS['tkSurfaceWalkNLayers'])
     # -4- Nombre d'iterations de lissage
     V = TK.StringVar(win); V.set('0'); VARS.append(V)
-    if CTK.PREFS.has_key('tkSurfaceWalkSmooth'): 
+    if 'tkSurfaceWalkSmooth' in CTK.PREFS: 
         V.set(CTK.PREFS['tkSurfaceWalkSmooth'])
 
     # - Surface -

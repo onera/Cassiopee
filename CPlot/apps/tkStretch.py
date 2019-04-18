@@ -1,5 +1,6 @@
 # - mapping/remeshing -
-import Tkinter as TK
+try: import Tkinter as TK
+except: import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -334,7 +335,7 @@ def createApp(win):
     # - VARS -
     # -0- enforced height -
     V = TK.StringVar(win); V.set('1.e-6'); VARS.append(V)
-    if CTK.PREFS.has_key('tkStretchHeight'):
+    if 'tkStretchHeight' in CTK.PREFS:
         V.set(CTK.PREFS['tkStretchHeight'])
     # -1- direction pour remap
     V = TK.StringVar(win); V.set('i-j-k indices'); VARS.append(V)
@@ -346,7 +347,7 @@ def createApp(win):
     V = TK.StringVar(win); V.set('1.'); VARS.append(V)
     # -5- power for mapCurvature
     V = TK.StringVar(win); V.set('0.5'); VARS.append(V)
-    if CTK.PREFS.has_key('tkStretchCurvPower'):
+    if 'tkStretchCurvPower' in CTK.PREFS:
         V.set(CTK.PREFS['tkStretchCurvPower'])
     # -6- Width of mesh info bulle
     V = TK.StringVar(win); V.set('Width of mesh concerned with remeshing (% of points).'); VARS.append(V)

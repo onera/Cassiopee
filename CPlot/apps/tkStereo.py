@@ -1,5 +1,6 @@
 # - stereo -
-import Tkinter as TK
+try: import Tkinter as TK
+except: import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -49,7 +50,7 @@ def createApp(win):
     # - VARS -
     # -0- Stero mode -
     V = TK.StringVar(win); V.set('None'); VARS.append(V)
-    if CTK.PREFS.has_key('tkStereoMode'): V.set(CTK.PREFS['tkStereoMode'])
+    if 'tkStereoMode' in CTK.PREFS: V.set(CTK.PREFS['tkStereoMode'])
     # -1- Stereo dist info bulle
     V = TK.StringVar(win); V.set('Stereo distance.'); VARS.append(V)
 

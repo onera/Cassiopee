@@ -1,5 +1,6 @@
 # - Text app -
-import Tkinter as TK
+try: import Tkinter as TK
+except: import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -216,14 +217,14 @@ def createApp(win):
     V = TK.StringVar(win); V.set(''); VARS.append(V)
     # -1- 1D/2D/3D -
     V = TK.StringVar(win); V.set('3D'); VARS.append(V)
-    if CTK.PREFS.has_key('tkTextDim'): V.set(CTK.PREFS['tkTextDim'])
+    if 'tkTextDim' in CTK.PREFS: V.set(CTK.PREFS['tkTextDim'])
     # -2-  Smoothness -
     V = TK.StringVar(win); V.set('Regular'); VARS.append(V)
-    if CTK.PREFS.has_key('tkTextSmoothness'):
+    if 'tkTextSmoothness' in CTK.PREFS:
         V.set(CTK.PREFS['tkTextSmoothness'])
     # -3- Font -
     V = TK.StringVar(win); V.set('text1'); VARS.append(V)
-    if CTK.PREFS.has_key('tkTextFont'): V.set(CTK.PREFS['tkTextFont'])
+    if 'tkTextFont' in CTK.PREFS: V.set(CTK.PREFS['tkTextFont'])
 
     # - 1D/2D/3D -
     B = TTK.OptionMenu(Frame, VARS[1], '3D', '2D', '1D')

@@ -1,5 +1,6 @@
 # - blader -
-import Tkinter as TK
+try: import Tkinter as TK
+except: import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import Converter.Internal as Internal
@@ -592,29 +593,29 @@ def createApp(win):
     # - VARS -
     # -0- front split % -
     V = TK.StringVar(win); V.set('0.5'); VARS.append(V)
-    if CTK.PREFS.has_key('tkBladerFrontSplit'): 
+    if 'tkBladerFrontSplit' in CTK.PREFS: 
         V.set(CTK.PREFS['tkBladerFrontSplit'])
     # -1- front step -
     V = TK.StringVar(win); V.set('0.001'); VARS.append(V)
-    if CTK.PREFS.has_key('tkBladerFrontStep'): 
+    if 'tkBladerFrontStep' in CTK.PREFS: 
         V.set(CTK.PREFS['tkBladerFrontStep'])
     # -2- other step -
     V = TK.StringVar(win); V.set('0.01'); VARS.append(V)
-    if CTK.PREFS.has_key('tkBladerStep'): 
+    if 'tkBladerStep' in CTK.PREFS: 
         V.set(CTK.PREFS['tkBladerStep'])
     # -3- delta line index -
     V = TK.StringVar(win); V.set('15'); VARS.append(V)
     # -4- Dfar. Mesh height -
     V = TK.StringVar(win); V.set('0.3'); VARS.append(V)
-    if CTK.PREFS.has_key('tkBladerHeight'): 
+    if 'tkBladerHeight' in CTK.PREFS: 
         V.set(CTK.PREFS['tkBladerHeight'])
     # -5- hp: step en envergure -
     V = TK.StringVar(win); V.set('0.02'); VARS.append(V)
-    if CTK.PREFS.has_key('tkBladerSpanStep'): 
+    if 'tkBladerSpanStep' in CTK.PREFS: 
         V.set(CTK.PREFS['tkBladerSpanStep'])
     # -6- span: longeur de l'envergure -
     V = TK.StringVar(win); V.set('5.'); VARS.append(V)
-    if CTK.PREFS.has_key('tkBladerSpan'): 
+    if 'tkBladerSpan' in CTK.PREFS: 
         V.set(CTK.PREFS['tkBladerSpan'])
 
     # - Step1 -

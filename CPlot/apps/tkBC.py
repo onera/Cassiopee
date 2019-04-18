@@ -1,5 +1,6 @@
 # -- view/set BCs in a pyTree --
-import Tkinter as TK
+try: import Tkinter as TK
+except: import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -40,7 +41,7 @@ def getAllDefinedBC(t):
                 f = Internal.getNodeFromType1(i, 'FamilyName_t')
                 if f is not None:
                     name = Internal.getValue(f)
-                    if FamilyBC.has_key(name): results.add(FamilyBC[name])
+                    if name in FamilyBC: results.add(FamilyBC[name])
 
     for z in zones:
         # BCMatch
@@ -88,7 +89,7 @@ def updateFamilyBCNameList1(event=None):
 def updateFamilyBCNameList1_2(event=None):
     if CTK.t == []: return
     varsp = ['Mesh', '-All BC-']+getAllDefinedBC(CTK.t)
-    if WIDGETS.has_key('BCs'): WIDGETS['BCs']['values'] = varsp
+    if 'BCs' in WIDGETS: WIDGETS['BCs']['values'] = varsp
 
 #================================================================================
 # Pour list box
@@ -129,7 +130,7 @@ def updateFamilyBCNameList2(event=None):
 def updateFamilyBCNameList2_2(event=None):
     if CTK.t == []: return
     varsp = ['-All BC-']+getAllDefinedBC(CTK.t)
-    if WIDGETS.has_key('BCs3'): WIDGETS['BCs3']['values'] = varsp
+    if 'BCs3' in WIDGETS: WIDGETS['BCs3']['values'] = varsp
 
 #==============================================================================
 # Pour set BC
@@ -148,7 +149,7 @@ def updateFamilyBCNameList3_2(event=None):
     varsl = C.getFamilyBCNamesOfType(CTK.t)
     varsp = Internal.KNOWNBCS[:]
     if len(varsl) != 0: varsp += varsl
-    if WIDGETS.has_key('BCs2'): WIDGETS['BCs2']['values'] = varsp
+    if 'BCs2' in WIDGETS: WIDGETS['BCs2']['values'] = varsp
 #==============================================================================
 # Pour fillEmptyBC
 def updateFamilyBCNameList4(event=None):
@@ -166,7 +167,7 @@ def updateFamilyBCNameList4_2(event=None):
     varsl = C.getFamilyBCNamesOfType(CTK.t)
     varsp = Internal.KNOWNBCS[:]
     if len(varsl) != 0: varsp += varsl
-    if WIDGETS.has_key('BCs4'): WIDGETS['BCs4']['values'] = varsp
+    if 'BCs4' in WIDGETS: WIDGETS['BCs4']['values'] = varsp
 
 #==============================================================================
 # DisplayUndefinedBoundaries
@@ -669,7 +670,7 @@ def createApp(win):
     V = TK.StringVar(win); V.set('3D'); VARS.append(V)
     # - 2 - tol pour ConnectMatch -
     V = TK.StringVar(win); V.set('1.e-6'); VARS.append(V)
-    if CTK.PREFS.has_key('tkBCMatchTol'): V.set(CTK.PREFS['tkBCMatchTol'])
+    if 'tkBCMatchTol' in CTK.PREFS: V.set(CTK.PREFS['tkBCMatchTol'])
     # - 3 - ratio pour ConnectNearMatch -
     V = TK.StringVar(win); V.set('2'); VARS.append(V)
     # - 4 - Type de BC pour fillEmptyBCWith -
@@ -680,14 +681,14 @@ def createApp(win):
     V = TK.StringVar(win); V.set('BCWall'); VARS.append(V)
     # - 7 - Edges des zones du calcul
     V = TK.StringVar(win); V.set('0'); VARS.append(V)
-    if CTK.PREFS.has_key('tkBCEdges'): V.set(CTK.PREFS['tkBCEdges'])
+    if 'tkBCEdges' in CTK.PREFS: V.set(CTK.PREFS['tkBCEdges'])
     # -8- SplitFactor info bulle
     V = TK.StringVar(win); V.set('Split more or less undefined BCs. \nUsefull only for unstructured grids.'); VARS.append(V)
     # -9- Periodicity? in connectMatch
     V = TK.StringVar(win); V.set('Not periodic'); VARS.append(V)
     # -10- Periodicity field (0;0;0...)
     V = TK.StringVar(win); V.set('0;0;0;0;0;0'); VARS.append(V)
-    if CTK.PREFS.has_key('tkBCMatchPer'): V.set(CTK.PREFS['tkBCMatchPer'])
+    if 'tkBCMatchPer' in CTK.PREFS: V.set(CTK.PREFS['tkBCMatchPer'])
 
     # - View mesh -
     B = TTK.Button(Frame, text="View Mesh", command=viewMesh)

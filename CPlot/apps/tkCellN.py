@@ -1,5 +1,6 @@
 # - cellNatureField visualisation and extraction -
-import Tkinter as TK
+try: import Tkinter as TK
+except: import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import Post.PyTree as P
@@ -238,7 +239,7 @@ def createApp(win):
     # -0- cellN filter -
     norow = 0
     V = TK.StringVar(win); V.set('cellN=0'); VARS.append(V)
-    if CTK.PREFS.has_key('tkCellNFilter'): V.set(CTK.PREFS['tkCellNFilter'])
+    if 'tkCellNFilter' in CTK.PREFS: V.set(CTK.PREFS['tkCellNFilter'])
 
     # Filter
     B = TTK.OptionMenu(Frame, VARS[0], 'Mesh', 'cellN=0', 'cellN=-99999',
@@ -261,7 +262,7 @@ def createApp(win):
     # -1- chimeraInfo type
     norow+=1
     V = TK.StringVar(win); V.set('interpolated'); VARS.append(V)
-    if CTK.PREFS.has_key('tkChimeraInfoType'): V.set(CTK.PREFS['tkChimeraInfoType'])
+    if 'tkChimeraInfoType' in CTK.PREFS: V.set(CTK.PREFS['tkChimeraInfoType'])
 
     # Filter
     B = TTK.Button(Frame, text="Chimera info", command=chimeraInfo)

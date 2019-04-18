@@ -30,7 +30,7 @@ def updateBaseNameList2(event=None):
     bases = Internal.getBases(CTK.t)
     vars = []
     for b in bases: vars.append(b[0])
-    if WIDGETS.has_key('base'):
+    if 'base' in WIDGETS:
         WIDGETS['base']['values'] = vars
 
 #==============================================================================

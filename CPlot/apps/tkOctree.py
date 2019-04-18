@@ -1,5 +1,6 @@
 # - Octree mesher app -
-import Tkinter as TK
+try: import Tkinter as TK
+except: import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -385,19 +386,19 @@ def createApp(win):
     # - VARS -
     # -0- Snears -
     V = TK.StringVar(win); V.set('0.1'); VARS.append(V)
-    if CTK.PREFS.has_key('tkOctreeSnear'): V.set(CTK.PREFS['tkOctreeSnear'])
+    if 'tkOctreeSnear' in CTK.PREFS: V.set(CTK.PREFS['tkOctreeSnear'])
     # -1- Dfar -
     V = TK.StringVar(win); V.set('10.'); VARS.append(V)
-    if CTK.PREFS.has_key('tkOctreeDfar'): V.set(CTK.PREFS['tkOctreeDfar'])
+    if 'tkOctreeDfar' in CTK.PREFS: V.set(CTK.PREFS['tkOctreeDfar'])
     # -2- Balanced/unbalanced -
     V = TK.StringVar(win); V.set('Balanced'); VARS.append(V)
-    if CTK.PREFS.has_key('tkOctreeBalance'): V.set(CTK.PREFS['tkOctreeBalance'])
+    if 'tkOctreeBalance' in CTK.PREFS: V.set(CTK.PREFS['tkOctreeBalance'])
     # -3- Vmins
     V = TK.StringVar(win); V.set('10'); VARS.append(V)
-    if CTK.PREFS.has_key('tkOctreeVmin'): V.set(CTK.PREFS['tkOctreeVmin'])
+    if 'tkOctreeVmin' in CTK.PREFS: V.set(CTK.PREFS['tkOctreeVmin'])
     # -4- Level to expand
     V = TK.StringVar(win); V.set('0'); VARS.append(V)
-    if CTK.PREFS.has_key('tkOctreeExpand'): V.set(CTK.PREFS['tkOctreeExpand'])
+    if 'tkOctreeExpand' in CTK.PREFS: V.set(CTK.PREFS['tkOctreeExpand'])
     # -5- Type of body fitting
     V = TK.StringVar(win); V.set('Snap'); VARS.append(V)
     # -6- Body surfaces for body fitting

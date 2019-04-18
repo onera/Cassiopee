@@ -1,5 +1,6 @@
 # - edge mapping -
-import Tkinter as TK
+try: import Tkinter as TK
+except: import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -968,7 +969,7 @@ def createApp(win):
     V = TK.StringVar(win); V.set('1.'); VARS.append(V)
     # -1- Enforce height
     V = TK.StringVar(win); V.set('1.e-6'); VARS.append(V)
-    if CTK.PREFS.has_key('tkMapEdgeEnforceHeight'):
+    if 'tkMapEdgeEnforceHeight' in CTK.PREFS:
         V.set(CTK.PREFS['tkMapEdgeEnforceHeight'])
     # -2- Option for uniformize
     V = TK.StringVar(win); V.set('Factor'); VARS.append(V)
@@ -980,11 +981,11 @@ def createApp(win):
     V = TK.StringVar(win); V.set('1.'); VARS.append(V)
     # -6- Smoothing iterations
     V = TK.StringVar(win); V.set('5'); VARS.append(V)
-    if CTK.PREFS.has_key('tkMapEdgeSmoothIt'):
+    if 'tkMapEdgeSmoothIt' in CTK.PREFS:
         V.set(CTK.PREFS['tkMapEdgeSmoothIt'])
     # -7- Smoothing eps
     V = TK.StringVar(win); V.set('0.5'); VARS.append(V)
-    if CTK.PREFS.has_key('tkMapEdgeSmoothEps'):
+    if 'tkMapEdgeSmoothEps' in CTK.PREFS:
         V.set(CTK.PREFS['tkMapEdgeSmoothEps'])
 
     # - Uniformize -

@@ -1,5 +1,6 @@
 # -- Internal --
 # -- PyTree node manipulations --
+from sys import version_info
 try: range = xrange
 except: pass
 
@@ -1870,12 +1871,17 @@ def getValue(node):
     """Return the value of a node."""
     n = node[1]
     if isinstance(n, numpy.ndarray):
-        if n.dtype.char == 'S': return n.tostring()
+        if n.dtype.char == 'S': 
+            if version_info[0] == 2: return n.tostring()
+            else: return n.tostring().decode()
         elif n.dtype.char == 'c':
-            if len(n.shape) == 1: return n.tostring()
+            if len(n.shape) == 1:
+                if version_info[0] == 2: return n.tostring()
+                else: return n.tostring().decode() 
             out = []
             for i in range(n.shape[1]):
-                v = n[:,i].tostring()
+                if version_info[0] == 2: v = n[:,i].tostring()
+                else: v = n[:,i].tostring().decode()
                 out.append(v.strip())
             return out
         elif n.dtype == numpy.int32:

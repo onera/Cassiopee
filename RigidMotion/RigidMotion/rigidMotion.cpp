@@ -48,7 +48,7 @@ static struct PyModuleDef moduledef = {
         "rigidMotion",
         NULL,
         sizeof(struct module_state),
-        Pyconverter,
+        PyrigidMotion,
         NULL,
         myextension_traverse,
         myextension_clear,

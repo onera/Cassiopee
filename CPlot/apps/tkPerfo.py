@@ -1,5 +1,6 @@
 # - CPlot control app  -
-import Tkinter as TK
+try: import Tkinter as TK
+except: import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -76,7 +77,7 @@ def updateVarNameList2(event=None):
         vars = C.getVarNames(CTK.t[2][nob][2][noz], excludeXYZ=True)
     if len(vars) == 0: return
     vars = ['All fields', 'No field'] + vars[0]
-    if WIDGETS.has_key('fields'):
+    if 'fields' in WIDGETS:
         WIDGETS['fields']['values'] = vars
 
 #==============================================================================
@@ -138,7 +139,7 @@ def createApp(win):
     V = TK.StringVar(win); V.set('All fields'); VARS.append(V)
     # -1- Oneovern -
     V = TK.StringVar(win); V.set('All points'); VARS.append(V)
-    if CTK.PREFS.has_key('tkPerfoPoints'): V.set(CTK.PREFS['tkPerfoPoints'])
+    if 'tkPerfoPoints' in CTK.PREFS: V.set(CTK.PREFS['tkPerfoPoints'])
     # -2- Threads
     V = TK.StringVar(win); V.set('1'); VARS.append(V)
     

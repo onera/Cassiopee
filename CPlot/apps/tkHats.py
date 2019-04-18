@@ -1,5 +1,6 @@
 # - tkHats: close surfaces with hats -
-import Tkinter as TK
+try: import Tkinter as TK
+except: import tkinter as TK
 import Converter.Internal as Internal
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot

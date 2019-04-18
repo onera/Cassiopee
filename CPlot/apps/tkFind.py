@@ -1,5 +1,6 @@
 # - find nodes and elements of given number -
-import Tkinter as TK
+try: import Tkinter as TK
+except: import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import Converter.Internal as Internal
@@ -159,7 +160,7 @@ def createApp(win):
     # - VARS -
     # -0- type (node/elements/coordinates) -
     V = TK.StringVar(win); V.set('Node index'); VARS.append(V)
-    if CTK.PREFS.has_key('tkFindDataType'): V.set(CTK.PREFS['tkFindDataType'])
+    if 'tkFindDataType' in CTK.PREFS: V.set(CTK.PREFS['tkFindDataType'])
     # -1- value -
     V = TK.StringVar(win); V.set('0'); VARS.append(V)
     

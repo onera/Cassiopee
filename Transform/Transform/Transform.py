@@ -956,13 +956,13 @@ def makeDirect__(a):
     ni = a[2]; nj = a[3]; nk = a[4]; p = a[1]
     i = ni/2; j = nj/2; k = nk/2
     ip1 = max(i+1,ni-1); jp1 = max(j+1,nj-1); kp1 = max(k+1,nk-1)
-    ind = i + j*ni + k*ni*nj
+    ind = int(i + j*ni + k*ni*nj)
     P0 = [ p[px,ind], p[py,ind], p[pz,ind] ]
-    ind = ip1 + j*ni + k*ni*nj
+    ind = int(ip1 + j*ni + k*ni*nj)
     P1 = [ p[px,ind], p[py,ind], p[pz,ind] ]
-    ind = i + jp1*ni + k*ni*nj
+    ind = int(i + jp1*ni + k*ni*nj)
     P2 = [ p[px,ind], p[py,ind], p[pz,ind] ]
-    ind = i + j*ni + kp1*ni*nj
+    ind = int(i + j*ni + kp1*ni*nj)
     P3 = [ p[px,ind], p[py,ind], p[pz,ind] ]
     l1 = Vector.sub(P1,P0); ln1 = Vector.norm2(l1)
     l2 = Vector.sub(P2,P0); ln2 = Vector.norm2(l2)

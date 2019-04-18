@@ -1,5 +1,6 @@
 # - display mesh info -
-import Tkinter as TK
+try: import Tkinter as TK
+except: import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -108,7 +109,7 @@ def updateVarNameList2(event=None):
         noz = CTK.Nz[0]
         vars = C.getVarNames(CTK.t[2][nob][2][noz])
 
-    if WIDGETS.has_key('variable'):
+    if 'variable' in WIDGETS:
         WIDGETS['variable']['values'] = vars[0]
 
 #==============================================================================
