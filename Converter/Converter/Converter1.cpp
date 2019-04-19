@@ -854,14 +854,15 @@ E_Int K_CONVERTER::getElementTypeId(const char* eltType)
 PyObject* K_CONVERTER::readPyTreeFromPaths(PyObject* self, PyObject* args)
 {
   char* fileName; char* format; E_Int maxFloatSize; E_Int maxDepth; 
-  PyObject* paths;
-  if (!PYPARSETUPLEI(args, "sOsll", "sOsii", 
+  PyObject* paths; PyObject* skipTypes;
+  if (!PYPARSETUPLEI(args, "sOsllO", "sOsiiO", 
                      &fileName, &paths, &format, 
-                     &maxFloatSize, &maxDepth)) return NULL;
+                     &maxFloatSize, &maxDepth, &skipTypes)) return NULL;
   
+  if (skipTypes == Py_None) skipTypes = NULL;
   PyObject* ret = NULL;
   if (K_STRING::cmp(format, "bin_hdf") == 0)
-    ret = K_IO::GenIO::getInstance()->hdfcgnsReadFromPaths(fileName, paths, maxFloatSize, maxDepth);
+    ret = K_IO::GenIO::getInstance()->hdfcgnsReadFromPaths(fileName, paths, maxFloatSize, maxDepth, skipTypes);
   else if (K_STRING::cmp(format, "bin_adf") == 0)
     ret = K_IO::GenIO::getInstance()->adfcgnsReadFromPaths(fileName, paths, maxFloatSize, maxDepth);
   else if (K_STRING::cmp(format, "bin_cgns") == 0)

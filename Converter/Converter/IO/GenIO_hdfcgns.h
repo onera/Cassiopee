@@ -20,6 +20,7 @@
 #include "GenIO.h"
 #include "kcore.h"
 #include "hdf5.h"
+#include <map>
 
 //# define CGNSMAXLABEL 33
 # define CGNSMAXLABEL 128
@@ -99,13 +100,14 @@ class GenIOHdf
     char*  getName(double node);
     char*  getLabel(double node);
     void   getType(double node, char* type, int dim, int* dims);
+    bool   isAnodeToSkip();
 
     /* Create HDF Method */
     PyObject* createNode(hid_t& node, PyObject* dataShape=NULL, PyObject* links=NULL);
     PyObject* createNodePartial(hid_t& node);
     PyObject* createNodePartialContigous(hid_t& node, int iField, int &nField, PyObject* data);
 
-    /* Get HDF Method */
+    /* Write HDF Method */
     hid_t writeNode(hid_t node, PyObject* tree);
     hid_t writeNodePartial(hid_t node, PyObject* tree);
     hid_t modifyNode(hid_t node, PyObject* tree);
@@ -192,6 +194,7 @@ class GenIOHdf
   public:
     std::list<hid_t> _fatherStack;
     std::list<std::string> _stringStack;
+    std::map<std::string, bool> _skipTypes;
     hid_t _NATIVE_FLOAT;
     hid_t _NATIVE_DOUBLE;
     hid_t _NATIVE_INT;

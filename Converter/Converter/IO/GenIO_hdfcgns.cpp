@@ -948,8 +948,9 @@ hid_t K_IO::GenIOHdf::openGroupWithLinks(hid_t start, char* path)
 // Retourne une liste d'objets pythons contenant les noeuds pointes par les
 // chemins
 //=============================================================================
-PyObject* K_IO::GenIO::hdfcgnsReadFromPaths(char* file, PyObject* paths, 
-                                            E_Int maxFloatSize, E_Int maxDepth)
+PyObject* K_IO::GenIO::hdfcgnsReadFromPaths(char* file, PyObject* paths,
+                                            E_Int maxFloatSize, E_Int maxDepth,
+                                            PyObject* skipTypes)
 {
   if (PyList_Check(paths) == false)
   {
@@ -975,6 +976,22 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPaths(char* file, PyObject* paths,
   HDF._ismpi = 0;
   HDF._skeleton = 0;
   PyObject* node;
+
+  /* Prepare skip type */
+  if (skipTypes != NULL)
+  {
+    E_Int skipSize = PyList_Size(skipTypes);
+    for (E_Int i = 0; i < skipSize; i++)
+    {
+      char* typeToSkip = NULL;
+      PyObject* l = PyList_GetItem(skipTypes, i);
+      if (PyString_Check(l)) typeToSkip = PyString_AsString(l);
+#if PY_VERSION_HEX >= 0x03000000
+      else if (PyUnicode_Check(l)) typeToSkip = PyBytes_AsString(PyUnicode_AsUTF8String(l)); 
+#endif
+      HDF._skipTypes[string(typeToSkip)] = true;
+    }
+  }
 
   for (E_Int i = 0; i < size; i++)
   {
@@ -1046,9 +1063,38 @@ PyObject* K_IO::GenIOHdf::loadOne(PyObject* tree, int depth,
     _stringStack.pop_front();
     c++;
   }
+
+  /* with Skip
+  while (sonList != NULL && sonList[c] != (hid_t)-1)
+  {
+    node = createNode(sonList[c], dataShape, links);
+    if(isAnodeToSkip())
+    {
+      // printf(" skipType %s \n", _type);
+      Py_DECREF(node);
+    }
+    else
+    {
+      PyList_Append(l, node); Py_DECREF(node);
+      _stringStack.push_front(_currentPath);
+      _fatherStack.push_front(sonList[c]);
+      loadOne(node, depth+1, dataShape, links);
+      _fatherStack.pop_front();
+      _stringStack.pop_front();
+    }
+    c++;
+  }
+  */
+
   free(sonList);
   H5Gclose(father);
   return tree;
+}
+
+//=============================================================================
+bool K_IO::GenIOHdf::isAnodeToSkip()
+{
+  return (_skipTypes.find(_type) != _skipTypes.end());
 }
 
 //=============================================================================
