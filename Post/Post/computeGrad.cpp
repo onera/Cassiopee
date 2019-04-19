@@ -96,14 +96,17 @@ PyObject* K_POST::computeGrad(PyObject* self,PyObject* args)
     return NULL;
   }
   // check varname
-  char* var;
-  if (PyString_Check(varname) == 0)
+  char* var = NULL;
+  if (PyString_Check(varname)) var = PyString_AsString(varname);
+#if PY_VERSION_HEX >= 0x03000000
+  else if (PyUnicode_Check(varname)) var = PyBytes_AsString(PyUnicode_AsUTF8String(varname));
+#endif
+  else
   {    
     PyErr_SetString(PyExc_TypeError, 
                     "computeGrad: varname must be a string.");
     RELEASESHAREDB(res,array,f,cn); return NULL;
-  }
-  else var = PyString_AsString(varname);
+  } 
   E_Int posv = K_ARRAY::isNamePresent(var, varString);
   if (posv == -1)
   {

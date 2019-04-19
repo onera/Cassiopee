@@ -106,14 +106,12 @@ PyObject* K_CONNECTOR::setInterpTransfers(PyObject* self, PyObject* args)
   if (PyList_Check(pyVariables) != 0)
   {
     int nvariables = PyList_Size(pyVariables);
-    if ( nvariables > 0 )
+    if (nvariables > 0)
     {
       for (int i = 0; i < nvariables; i++)
       {
         PyObject* tpl0 = PyList_GetItem(pyVariables, i);
-        if (PyString_Check(tpl0) == 0)
-          PyErr_Warn(PyExc_Warning, "setInterpTransfers: variable must be a string. Skipped.");
-        else 
+        if (PyString_Check(tpl0))
         {
           char* varname = PyString_AsString(tpl0);        
           posvd = K_ARRAY::isNamePresent(varname, varStringD);      
@@ -124,6 +122,21 @@ PyObject* K_CONNECTOR::setInterpTransfers(PyObject* self, PyObject* args)
             posvarsR.push_back(posvr+1);
           }
         }
+#if PY_VERSION_HEX >= 0x03000000
+        else if (PyUnicode_Check(l))
+        {
+          char* varname = PyBytes_AsString(PyUnicode_AsUTF8String(tpl0));
+          posvd = K_ARRAY::isNamePresent(varname, varStringD);      
+          posvr = K_ARRAY::isNamePresent(varname, varStringR);      
+          if (posvd != -1 && posvr != -1) 
+          {
+            posvarsD.push_back(posvd+1);
+            posvarsR.push_back(posvr+1);
+          }  
+        }
+#endif
+        else  
+          PyErr_Warn(PyExc_Warning, "setInterpTransfers: variable must be a string. Skipped.");
       }
     }
     else // toutes les variables communes sont transferees sauf le cellN
@@ -360,22 +373,36 @@ PyObject* K_CONNECTOR::_setInterpTransfers(PyObject* self, PyObject* args)
         for (int i = 0; i < nvariables; i++)
         {
           PyObject* tpl0 = PyList_GetItem(pyVariables, i);
-          if (PyString_Check(tpl0) == 0)
-            PyErr_Warn(PyExc_Warning, "_setInterpTransfers: variable must be a string. Skipped.");
-          else 
+          if (PyString_Check(tpl0))  
           {
             char* varname = PyString_AsString(tpl0);        
             posvd = K_ARRAY::isNamePresent(varname, varStringD);      
             posvr = K_ARRAY::isNamePresent(varname, varStringR);      
-            if ( posvd == poscd) posvarcd = posvd;
-            if ( posvr == poscr) posvarcr = posvr;
-
+            if (posvd == poscd) posvarcd = posvd;
+            if (posvr == poscr) posvarcr = posvr;
             if (posvd != -1 && posvr != -1) 
             {
               posvarsD.push_back(posvd);
               posvarsR.push_back(posvr);
             }
           }
+#if PY_VERSION_HEX >= 0x03000000
+          else if (PyUnicode_Check(tpl0))
+          {
+            char* varname = PyBytes_AsString(PyUnicode_AsUTF8String(tpl0));
+            posvd = K_ARRAY::isNamePresent(varname, varStringD);      
+            posvr = K_ARRAY::isNamePresent(varname, varStringR);      
+            if (posvd == poscd) posvarcd = posvd;
+            if (posvr == poscr) posvarcr = posvr;
+            if (posvd != -1 && posvr != -1) 
+            {
+              posvarsD.push_back(posvd);
+              posvarsR.push_back(posvr);
+            } 
+          }
+#endif
+          else
+            PyErr_Warn(PyExc_Warning, "_setInterpTransfers: variable must be a string. Skipped.");
         }
       }
       else initAll = true;

@@ -1093,8 +1093,8 @@ tcuom2foARAAyKRSmQAAOw==
         """Keep track of callback bindings so we can delete them later. I
         shouldn't have to do this!!!!"""
         # pass args to superclass
-        if version_info[0] == 2: func_id = apply(TK.Canvas.tag_bind, (self, tag, seq)+args, kw_args)
-        #else: func_id = TK.Canvas.tag_bind(*(self, tag, seq)+args, kw_args)
+        aargs = (self, tag, seq)+args
+        func_id = TK.Canvas.tag_bind(*aargs, **kw_args)
         # save references
         self.bindings[tag] = self.bindings.get(tag, [])+[(seq, func_id)]
 
@@ -1154,8 +1154,7 @@ tcuom2foARAAyKRSmQAAOw==
         
     def see(self, *items):
         """Scroll (in a series of nudges) so items are visible"""
-        if version_info[0] == 2: x1, y1, x2, y2 = apply(self.bbox, items)
-        else: x1, y1, x2, y2 = self.bbox(*items)
+        x1, y1, x2, y2 = self.bbox(*items)
         
         while x2 > self.canvasx(0)+self.winfo_width():
             old = self.canvasx(0)

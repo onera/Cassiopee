@@ -80,7 +80,7 @@ def extract(event=None):
         (Zp, BCNames, BCTypes) = C.getBCs(zones)
         Z = []
         for i in Zp: Z += i
-        for i, z in enumerate(Z)): Internal._createChild(z, 'BCType', 'UserDefined_t', BCTypes[i])
+        for i, z in enumerate(Z): Internal._createChild(z, 'BCType', 'UserDefined_t', BCTypes[i])
 
     nob = C.getNobOfBase(base, CTK.t)
     for i in Z:

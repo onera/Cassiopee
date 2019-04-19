@@ -169,9 +169,7 @@ PyObject* K_CONNECTOR::_setInterpTransfersD( PyObject* self, PyObject* args )
                 for (int i = 0; i < nvariables; i++ ) 
                 {
                     PyObject* tpl0 = PyList_GetItem( pyVariables, i );
-                    if ( PyString_Check( tpl0 ) == 0 )
-                        PyErr_Warn( PyExc_Warning, "_setInterpTransfersD: variable must be a string. Skipped." );
-                    else 
+                    if (PyString_Check(tpl0))
                     {
                         char* varname = PyString_AsString(tpl0);
                         posvd = K_ARRAY::isNamePresent(varname, varStringD);
@@ -187,6 +185,26 @@ PyObject* K_CONNECTOR::_setInterpTransfersD( PyObject* self, PyObject* args )
                             }
                         }
                     }
+#if PY_VERSION_HEX >= 0x03000000
+                    else if (PyUnicode_Check(tpl0))
+                    {
+                        char* varname = PyBytes_AsString(PyUnicode_AsUTF8String(tpl0));
+                        posvd = K_ARRAY::isNamePresent(varname, varStringD);
+                        if (posvd == poscd) posvarcd = posvd;
+                        if (posvd != -1) 
+                        {
+                            posvarsD.push_back(posvd);
+                            if (varStringOut[0] == '\0' ) strcpy(varStringOut, varname);
+                            else 
+                            {
+                                strcat(varStringOut, ",");
+                                strcat(varStringOut, varname);
+                            }
+                        }   
+                    }
+#endif
+                    else
+                        PyErr_Warn(PyExc_Warning, "_setInterpTransfersD: variable must be a string. Skipped."); 
                 }
             }// fin nvariables > 0
             else  // si [] toutes les variables communes sont transferees sauf le cellN
@@ -205,12 +223,12 @@ PyObject* K_CONNECTOR::_setInterpTransfersD( PyObject* self, PyObject* args )
             for (E_Int i = 0; i < nfld; i++) 
             {
                 posvarsD.push_back(i);
-                if ( varStringOut[0] == '\0' )
+                if (varStringOut[0] == '\0')
                     strcpy( varStringOut, tmpvars[i] );
                 else 
                 {
-                    strcat( varStringOut, "," );
-                    strcat( varStringOut, tmpvars[i] );
+                    strcat(varStringOut, ",");
+                    strcat(varStringOut, tmpvars[i]);
                 }
             }
             for (size_t i = 0; i < tmpvars.size(); i++) delete[] tmpvars[i];
@@ -228,11 +246,11 @@ PyObject* K_CONNECTOR::_setInterpTransfersD( PyObject* self, PyObject* args )
     // -- no check (perfo) --
     PyObject* tpl = K_ARRAY::buildArray(nvars, varStringOut, nbRcvPts, 1, 1 );
     E_Float*  frp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF fieldROut( nbRcvPts, nvars, frp, true );
+    FldArrayF fieldROut(nbRcvPts, nvars, frp, true);
     //
     // utile la mise a zero???
     //
-    fieldROut.setAllValuesAtNull( );
+    fieldROut.setAllValuesAtNull();
 
     // Transferts
     // Types valides: 2, 3, 4, 5
@@ -242,9 +260,9 @@ PyObject* K_CONNECTOR::_setInterpTransfersD( PyObject* self, PyObject* args )
     /* compact = 0 
        si on a specifie la variable cellNVariable, interpolation specifique comme un champ cellN    
     */
-    if ( compact == 0 ) 
+    if (compact == 0) 
     {   
-        for ( E_Int eq = 0; eq < nvars; eq++ ) 
+        for (E_Int eq = 0; eq < nvars; eq++) 
         {
             vectOfRcvFields[eq] = fieldROut.begin(eq+1);
             vectOfDnrFields[eq] = fieldsD[posvarsD[eq]];
@@ -271,12 +289,12 @@ PyObject* K_CONNECTOR::_setInterpTransfersD( PyObject* self, PyObject* args )
     } 
     else 
     {
-        for ( E_Int eq = 0; eq < nvars; eq++ ) 
+        for (E_Int eq = 0; eq < nvars; eq++) 
         {
             vectOfRcvFields[eq] = fieldROut.begin(eq+1);
             vectOfDnrFields[eq] = iptroD + eq * ndimdxD;
         }
-      ///
+    ///
     ////
     //  Interpolation parallele
     ////
@@ -285,10 +303,10 @@ PyObject* K_CONNECTOR::_setInterpTransfersD( PyObject* self, PyObject* args )
     }
 
     delete[] varStringOut;
-    RELEASESHAREDZ( hook, (char*)NULL, (char*)NULL );
-    RELEASESHAREDN( pyIndDonor, donorPtsI );
-    RELEASESHAREDN( pyArrayTypes, typesI );
-    RELEASESHAREDN( pyArrayCoefs, donorCoefsF );
+    RELEASESHAREDZ(hook, (char*)NULL, (char*)NULL);
+    RELEASESHAREDN(pyIndDonor, donorPtsI);
+    RELEASESHAREDN(pyArrayTypes, typesI);
+    RELEASESHAREDN(pyArrayCoefs, donorCoefsF);
     return tpl;
 }
 
@@ -298,7 +316,8 @@ PyObject* K_CONNECTOR::_setInterpTransfersD( PyObject* self, PyObject* args )
 // Retourne une liste de numpy directement des champs interpoles
 // in place + from zone + tc compact
 //=============================================================================
-PyObject* K_CONNECTOR::__setInterpTransfersD( PyObject* self, PyObject* args ) {
+PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args) 
+{
     PyObject *zonesR, *zonesD;
     PyObject* pyVariables;
     PyObject *pyParam_int, *pyParam_real;
@@ -333,10 +352,9 @@ PyObject* K_CONNECTOR::__setInterpTransfersD( PyObject* self, PyObject* args ) {
   MPI_Comm_rank (MPI_COMM_WORLD, &rank);  
 #endif
 
- if ( rank == 0 )
+ if (rank == 0)
  {
    time_in_D = omp_get_wtime();
-   
  }
 #endif
 
@@ -406,11 +424,6 @@ PyObject* K_CONNECTOR::__setInterpTransfersD( PyObject* self, PyObject* args ) {
   /*----------------------------------*/
   
   E_Int nidomR = PyList_Size( zonesR );
-
-
-
-
-
   
   E_Int** ipt_param_int_Shift;
 

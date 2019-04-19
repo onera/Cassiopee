@@ -125,11 +125,7 @@ PyObject* K_POST::computeVariables(PyObject* self, PyObject* args)
     for (int i = 0; i < PyList_Size(vars0); i++)
     {
       PyObject* tpl0 = PyList_GetItem(vars0, i);
-      if (PyString_Check(tpl0) == 0)
-      {
-        printf("Warning: computeVariables: varname must be a string. Skipped...\n");
-      }
-      else 
+      if (PyString_Check(tpl0))
       {
         char* str = PyString_AsString(tpl0);
         char tmpVarString[K_ARRAY::VARSTRINGLENGTH];
@@ -140,16 +136,41 @@ PyObject* K_POST::computeVariables(PyObject* self, PyObject* args)
           else {strcat(varStringOut, ","); strcat(varStringOut, tmpVarString);}
         }
       }
+#if PY_VERSION_HEX >= 0x03000000
+      else if (PyUnicode_Check(tpl0)) 
+      {
+        char* str = PyBytes_AsString(PyUnicode_AsUTF8String(tpl0));
+        char tmpVarString[K_ARRAY::VARSTRINGLENGTH];
+        short ok = checkAndExtractVariables(str, vars, tmpVarString);
+        if (ok != 0) 
+        {
+          if (varStringOut[0] == '\0') strcpy(varStringOut, tmpVarString);
+          else {strcat(varStringOut, ","); strcat(varStringOut, tmpVarString);}
+        }
+      }
+#endif
+      else  
+      {
+        printf("Warning: computeVariables: varname must be a string. Skipped...\n");
+      }
     }
   }
   else 
   {
-    if (PyString_Check(vars0) == 0) printf("Warning: computeVariables: varname must be a string. Skipped...\n");
-    else 
+    if (PyString_Check(vars0)) 
     {  
       char* str = PyString_AsString(vars0);
       checkAndExtractVariables(str, vars, varStringOut);
     }
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(vars0)) 
+    {
+      char* str = PyBytes_AsString(PyUnicode_AsUTF8String(vars0));
+      checkAndExtractVariables(str, vars, varStringOut);
+    }
+#endif
+    else
+      printf("Warning: computeVariables: varname must be a string. Skipped...\n");
   }
   E_Int nvarout = vars.size();// variables a calculer
   if (nvarout == 0)

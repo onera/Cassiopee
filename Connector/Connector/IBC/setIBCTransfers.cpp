@@ -1777,9 +1777,7 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
       for (int i = 0; i < nvariables; i++)
       {
         PyObject* tpl0 = PyList_GetItem(pyVariables, i);
-        if (PyString_Check(tpl0) == 0)
-          PyErr_Warn(PyExc_Warning, "setIBCTransfers: variable must be a string. Skipped.");
-        else 
+        if (PyString_Check(tpl0))
         {
           char* varname = PyString_AsString(tpl0);        
           posvd = K_ARRAY::isNamePresent(varname, varStringD);      
@@ -1791,6 +1789,22 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
             nfoundvar += 1;
           }
         }
+#if PY_VERSION_HEX >= 0x03000000
+        else if (PyUnicode_Check(tpl0)) 
+        {
+          char* varname = PyBytes_AsString(PyUnicode_AsUTF8String(tpl0));
+          posvd = K_ARRAY::isNamePresent(varname, varStringD);      
+          posvr = K_ARRAY::isNamePresent(varname, varStringR);      
+          if (posvd != -1 && posvr != -1) 
+          {
+            vectOfDnrFields.push_back(fd->begin(posvd+1));
+            vectOfRcvFields.push_back(fieldROut.begin(posvr+1));
+            nfoundvar += 1;
+          }
+        }
+#endif
+        else  
+          PyErr_Warn(PyExc_Warning, "setIBCTransfers: variable must be a string. Skipped.");
       }
     }// nvariables > 0
   }

@@ -73,16 +73,23 @@ PyObject* K_POST::compStreamSurf(PyObject* self, PyObject* args)
   for (int i = 0; i < PyList_Size(vectorNames); i++)
   {
     PyObject* tpl0 = PyList_GetItem(vectorNames, i);
-    if (PyString_Check(tpl0) == 0)
+    if (PyString_Check(tpl0))
+    {
+      char* str = PyString_AsString(tpl0);
+      vnames.push_back(str);
+    }
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(tpl0)) 
+    {
+      char* str = PyBytes_AsString(PyUnicode_AsUTF8String(tpl0));
+      vnames.push_back(str);
+    }
+#endif
+    else  
     {
       PyErr_SetString(PyExc_TypeError,
                       "streamSurf: vector component name must be a string.");
       return NULL;
-    }
-    else 
-    {
-      char* str = PyString_AsString(tpl0);
-      vnames.push_back(str);
     }
   }
   // Extract BAR
