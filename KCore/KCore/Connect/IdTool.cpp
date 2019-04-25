@@ -50,7 +50,7 @@ namespace K_CONNECT
   }
   
   /// n-to-1 => 1-to-n
-  void IdTool::reverse_indirection(E_Int nb_pgs, const Vector_t<E_Int>& oids, ngon_unit& split_graph)
+  void IdTool::reverse_indirection(E_Int nb_pgs, const E_Int*oids, E_Int sz, ngon_unit& split_graph)
   {
     std::map<E_Int, std::vector<E_Int> > molecules;
 
@@ -61,7 +61,7 @@ namespace K_CONNECT
     E_Int max_id = -1;
 #endif
 
-    for (size_t i = 0; i < oids.size(); ++i)
+    for (size_t i = 0; i < sz; ++i)
     {
       E_Int id = oids[i]; //+ shift;
       molecules[id].push_back(i);
@@ -77,7 +77,6 @@ namespace K_CONNECT
 #endif
 
     E_Int empty = E_IDX_NONE;
-    Vector_t<E_Int> molecule;
     std::map<E_Int, std::vector<E_Int> >::const_iterator it;
 
     split_graph.clear();

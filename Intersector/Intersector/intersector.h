@@ -37,6 +37,7 @@ namespace K_INTERSECTOR
 
   PyObject* selfX(PyObject* self, PyObject* args);
   PyObject* triangulateExteriorFaces(PyObject* self, PyObject* args);
+  PyObject* triangulateSpecifiedFaces(PyObject* self, PyObject* args);
   PyObject* convexifyFaces(PyObject* self, PyObject* args);
   PyObject* closeOctalCells(PyObject* self, PyObject* args);
   
@@ -82,6 +83,10 @@ namespace K_INTERSECTOR
   PyObject* extrudeUserDefinedBC(PyObject* self, PyObject* args);
 
   PyObject* convertNGON2DToNGON3D(PyObject* self, PyObject* args);  
+
+  /////////// syncronizing the tree ///////////
+  PyObject* updatePointLists(PyObject* self, PyObject* args);
+  /////////////////////////////////////////////
   
   E_Int check_is_NGON(PyObject* arr, K_FLD::FloatArray*& f1, K_FLD::IntArray*& cn1, char*& varString, char*& eltType);
   

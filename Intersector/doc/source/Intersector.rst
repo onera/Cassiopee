@@ -48,6 +48,7 @@ List of functions
 
 .. autosummary::
 
+   Intersector.triangulateBC
    Intersector.triangulateExteriorFaces
    Intersector.reorientExternalFaces
    Intersector.convexifyFaces  
@@ -361,6 +362,21 @@ Main Functions
 
 Transformation Functions
 --------------------------
+
+.. py:function:: Intersector.triangulateBC(a, bctype)
+
+    Triangulates the prescribed BC type polygons of a volume mesh.
+
+    :param           a:  Input mesh
+    :type            a:  [array, list of arrays] or [pyTree, base, zone, list of zones]
+    :param      bctype:  boundary type ('BCWall', ...).
+    :type       bctype:  string
+
+    *Example of use:*
+
+    * `BC polygons triangulation (pyTree) <Examples/Intersector/triangulateBCPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Intersector/triangulateBCPT.py
 
 
 .. py:function:: Intersector.triangulateExteriorFaces(a, in_or_out=2)

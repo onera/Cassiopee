@@ -52,7 +52,9 @@
 #include <fstream>
 #include <sstream>
 #endif
-//#include "medit.hxx"
+#ifdef DEBUG_LIGHT
+#include "medit.hxx"
+#endif
 
 #if defined(DEBUG_BOOLEAN) && !defined(MANUAL)
 #include "TRI_debug.h"
@@ -1096,8 +1098,8 @@ E_Int NGON_BOOLEAN_CLASS::Union
     using palma_t = std::vector<std::pair<E_Int, E_Int> > ;
     palma_t palmares;
     
-    for (E_Int i=0; i < uni.PHs.size(); ++i)
-      palmares.push_back(std::make_pair(-uni.PHs.stride(i), i));
+    for (E_Int i=0; i < _ngoper->PHs.size(); ++i)
+      palmares.push_back(std::make_pair(-_ngoper->PHs.stride(i), i));
     
    std::sort(palmares.begin(), palmares.end()); 
    
@@ -1109,12 +1111,12 @@ E_Int NGON_BOOLEAN_CLASS::Union
   
   E_Int imin, imax;
   E_Float smin, smax;
-  ngon_type::surface_extrema(uni.PGs, coord, smin, imin, smax, imax);
+  ngon_type::surface_extrema(_ngoper->PGs, coord, smin, imin, smax, imax);
   std::cout << "the " << imin << "-th face has the smallest surface : " << smin << std::endl;
   std::cout << "the " << imax << "-th face has the biggest surface : " << smax << std::endl;
 
   E_Float vmin, vmax;
-  ngon_type::template volume_extrema<DELAUNAY::Triangulator>(uni, coord, vmin, imin, vmax, imax);
+  ngon_type::template volume_extrema<DELAUNAY::Triangulator>(*_ngoper, coord, vmin, imin, vmax, imax);
   std::cout << "the " << imin << "-th cells has the smallest volume : " << vmin << std::endl;
   std::cout << "the " << imax << "-th cells has the biggest volume : " << vmax << std::endl;
 #endif
@@ -4303,9 +4305,8 @@ E_Int NGON_BOOLEAN_CLASS::__sort_T3_sharing_an_edge
       }
     }
   }
-    
-  
-#ifdef DEBUG_BOOLEAN
+
+#if defined (DEBUG_BOOLEAN) || defined(DEBUG_LIGHT)
   if ( err )
   {  
     K_FLD::IntArray sorted_cnt;
@@ -4327,13 +4328,20 @@ E_Int NGON_BOOLEAN_CLASS::__sort_T3_sharing_an_edge
       E_Int tid = (T3indices[i] < shift) ? T3indices[i] : T3indices[i] - shift;
       PGs.push_back(_nT3_to_oPG[tid]);
     }
-
-    std::ostringstream o;
-    o << "sorted_on_edge_" << E0 << "_" << E1 << ".mesh";
-    medith::write(o.str().c_str(), coord, sorted_cnt, "TRI", 0, &colors);
-    //o.str("");
-    //o << "Wsorted_on_edge_" << E0 << "_" << E1 << ".mesh";
-    //TRI_debug::write_wired(o.str().c_str(), coord, connectT3, normals, 0, &keep,true);
+#ifdef DEBUG_LIGHT
+    {
+      std::ostringstream o;
+      o << "sorted_on_edge_" << E0 << "_" << E1 << ".mesh";
+      medith::write(o.str().c_str(), coord, sorted_cnt, "TRI", 0, &colors);
+    }
+#endif
+#ifdef DEBUG_BOOLEAN
+    {
+      std::ostringstream o;
+      o << "Wsorted_on_edge_" << E0 << "_" << E1 << ".mesh";
+      TRI_debug::write_wired(o.str().c_str(), coord, connectT3, normals, 0, &keep,true);
+    }
+#endif
   }
 #endif
 

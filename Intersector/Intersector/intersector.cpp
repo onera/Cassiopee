@@ -39,6 +39,7 @@ static PyMethodDef Pyintersector [] =
   {"P1ConservativeChimeraCoeffs", K_INTERSECTOR::P1ConservativeChimeraCoeffs, METH_VARARGS},
   {"selfX", K_INTERSECTOR::selfX, METH_VARARGS},
   {"triangulateExteriorFaces", K_INTERSECTOR::triangulateExteriorFaces, METH_VARARGS},
+  {"triangulateSpecifiedFaces", K_INTERSECTOR::triangulateSpecifiedFaces, METH_VARARGS},
   {"convexifyFaces", K_INTERSECTOR::convexifyFaces, METH_VARARGS},
   {"prepareCellsSplit", K_INTERSECTOR::prepareCellsSplit, METH_VARARGS},
   {"simplifyCells", K_INTERSECTOR::simplifyCells, METH_VARARGS},
@@ -78,6 +79,10 @@ static PyMethodDef Pyintersector [] =
   { "reorientExternalFaces", K_INTERSECTOR::reorientExternalFaces, METH_VARARGS },
 
   { "convertNGON2DToNGON3D", K_INTERSECTOR::convertNGON2DToNGON3D, METH_VARARGS },
+
+  /////////// syncronizing the tree ///////////
+  { "updatePointLists", K_INTERSECTOR::updatePointLists, METH_VARARGS },
+  /////////////////////////////////////////////
 
   {NULL, NULL}
 };

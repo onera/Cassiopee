@@ -24,7 +24,7 @@
 # include "Fld/ngon_t.hxx"
 # include "Nuga/Delaunay/Triangulator.h"
 # include "Nuga/Boolean/Splitter.h"
-
+# include <memory>
 //#include <iostream>
 
 using namespace std;
@@ -59,6 +59,63 @@ E_Int K_INTERSECTOR::check_is_NGON(PyObject* arr, K_FLD::FloatArray*& f1, K_FLD:
   }
   
   return 0;
+}
+
+// update the point list according to a split expressed by oids
+PyObject* K_INTERSECTOR::updatePointLists(PyObject* self, PyObject* args)
+{
+  PyObject *py_oids, *py_ptLists;
+
+  if (!PyArg_ParseTuple(args, "OO", &py_oids, &py_ptLists)) return NULL;
+
+  E_Int nb_bcs = PyList_Size(py_ptLists);
+
+  E_Int sz, r;
+  E_Int* oids;
+  E_Int res = K_NUMPY::getFromNumpyArray(py_oids, oids, sz, r, true/*shared*/);
+  if (res != 1) return NULL;
+  
+  E_Int nb_pgs = *std::max_element(oids, oids+sz) + 1;
+
+  ngon_unit split_graph;
+  K_CONNECT::IdTool::reverse_indirection(nb_pgs,  oids, sz, split_graph);
+
+  PyObject *l(PyList_New(0)), *tpl;
+  std::vector<E_Int> new_ptl;
+
+  for (size_t i=0; i < nb_bcs; ++i)
+  {
+    new_ptl.clear();
+    PyObject* o = PyList_GetItem(py_ptLists, i);
+
+    E_Float* fptl;
+    E_Int ptl_sz;
+    FldArrayI out;
+    E_Int ok = K_ARRAY::getFromList(o, out);
+    ptl_sz = out.getSize();
+
+    for (size_t j=0; j < ptl_sz; ++j)
+    {
+      E_Int oid = out(j,1)-1;
+            
+      E_Int nb_bits = split_graph.stride(oid);
+      const E_Int* pbits = split_graph.get_facets_ptr(oid);
+
+      if (nb_bits == 1 && pbits[0] == E_IDX_NONE)  // untouched
+        new_ptl.push_back(oid+1);
+      else
+        for (size_t u=0; u<nb_bits; ++u )
+          new_ptl.push_back(pbits[u]+1);
+    }
+
+    tpl = K_NUMPY::buildNumpyArray(&new_ptl[0], new_ptl.size(), 1, 0);
+    
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
+  }
+
+   return l;
+  
 }
 
 
@@ -98,6 +155,75 @@ PyObject* K_INTERSECTOR::triangulateExteriorFaces(PyObject* self, PyObject* args
   
   delete f; delete cn;
   return tpl;
+}
+
+//=============================================================================
+/* Triangulates BC. */
+//=============================================================================
+PyObject* K_INTERSECTOR::triangulateSpecifiedFaces(PyObject* self, PyObject* args)
+{
+  PyObject *arr, *py_pgs;
+  E_Int int_or_ext(2); //0 : internals only, 1: external only, 2: both
+
+  if (!PyArg_ParseTuple(args, "OO", &arr, &py_pgs)) return NULL;
+
+  K_FLD::FloatArray* f(0);
+  K_FLD::IntArray* cn(0);
+  char* varString, *eltType;
+  // Check array # 1
+  E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
+  if (err) return NULL;
+    
+  K_FLD::FloatArray & crd = *f;
+  K_FLD::IntArray & cnt = *cn;
+
+  E_Int res=0;
+  E_Int* pgsList=NULL;
+  E_Int size, nfld;
+  if (py_pgs != Py_None)
+    res = K_NUMPY::getFromNumpyArray(py_pgs, pgsList, size, nfld, 1, 0);
+
+  std::unique_ptr<E_Int> pL(pgsList); // to avoid to call explicit delete at several places in the code.
+
+  if (res != 1) return NULL;
+  
+  //std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
+  //std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
+  
+  typedef ngon_t<K_FLD::IntArray> ngon_type;
+  
+  ngon_type ngi(cnt), ngo;
+
+  // enable history
+  ngi.PGs._ancEs.resize(2, ngi.PGs.size(), 0);
+  for (size_t i=0; i < ngi.PGs.size(); ++i) ngi.PGs._ancEs(0,i)=i;
+
+  Splitter::triangulate_specified_pgs<DELAUNAY::Triangulator>(crd, ngi, pgsList, size, ngo);
+  
+  K_FLD::IntArray cnto;
+  ngo.export_to_array(cnto);
+
+  PyObject *l(PyList_New(0)), *tpl;
+  
+  // pushing out the mesh
+  tpl = K_ARRAY::buildArray(crd, varString, cnto, -1, eltType, false);
+  PyList_Append(l, tpl);
+  Py_DECREF(tpl);
+
+  // pushing out history  
+  E_Int sz = ngo.PGs.size();
+
+  std::vector<E_Int> oids(sz);
+  for (E_Int i = 0; i < sz; ++i) oids[i] = ngo.PGs._ancEs(0,i);
+
+  tpl = K_NUMPY::buildNumpyArray(&oids[0], oids.size(), 1, 0);
+ 
+  PyList_Append(l, tpl);
+  Py_DECREF(tpl);
+  
+  
+  delete f; delete cn;
+  return l;
 }
 
 //=============================================================================

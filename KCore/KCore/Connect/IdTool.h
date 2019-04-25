@@ -38,7 +38,7 @@ public:
   static void reverse_indirection
   (const Vector_t<E_Int> & assoc, Vector_t<E_Int>& reverse_assoc);
   /// non-bijective : convert a n-to-one vector (tipically an oids) to a ngon_unit
-  static void reverse_indirection(E_Int nb_pgs, const Vector_t<E_Int>& oids, ngon_unit& split_graph);
+  static void reverse_indirection(E_Int nb_pgs, const E_Int*oids, E_Int sz, ngon_unit& split_graph);
   /// 
   template < E_Int S >
   static void right_shift(E_Int* list, E_Int sz);

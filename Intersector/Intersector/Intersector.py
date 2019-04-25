@@ -12,6 +12,11 @@ import Converter as C
 try: range = xrange
 except: pass
 
+
+def updatePointLists(oids, pointLists):
+    return intersector.updatePointLists(oids, pointLists)
+
+
 def conformUnstr(a1, a2=None, tol=0., left_or_right=0, itermax=10):
     """Conformizes a1 (optionally with a2).
     If a2 is specified, the third argument "left_or_right" tells wheter the ouput contains only a1 modified (0), a2 modified (1) or both (2).
@@ -128,6 +133,16 @@ def triangulateExteriorFaces(a, in_or_out=2):
     """Triangulates exterior polygons of a volume mesh.
     Usage: triangulateExteriorFaces(a, in_or_out)"""
     return intersector.triangulateExteriorFaces(a, in_or_out)
+
+#==============================================================================
+# triangulateBC
+# IN: coords: 3D NGON mesh
+# OUT: returns a 3D NGON Mesh with BC polygons triangulated
+#==============================================================================
+def triangulateSpecifiedFaces(a, pgs):
+    """Triangulates specified polygons of a volume mesh.
+    Usage: triangulateExteriorFaces(a, in_or_out)"""
+    return intersector.triangulateSpecifiedFaces(a, pgs)
 
 #==============================================================================
 # reorientExternalFaces

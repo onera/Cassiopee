@@ -171,6 +171,10 @@ void ngon_unit::append(const ngon_unit& cngon_in)
     else
       _dirty=true;
   }
+ 
+#ifdef DEBUG_NGON_UNIT
+  assert(this->attributes_are_consistent());
+#endif
 }
 
 void ngon_unit::append(const ngon_unit& cngon_in, const E_Int* first, E_Int nb_elts)
@@ -182,6 +186,11 @@ void ngon_unit::append(const ngon_unit& cngon_in, const E_Int* first, E_Int nb_e
   
   for (E_Int i=0; i < nb_elts; ++i)
     __add(cngon_in, *(first+i)-1);
+  
+#ifdef DEBUG_NGON_UNIT
+  assert(this->attributes_are_consistent());
+#endif
+  
 }
 
 ///
@@ -336,6 +345,11 @@ E_Int ngon_unit::remove_facets(const Vector_t<E_Int>& nfacids, Vector_t<E_Int>& 
   ngu.compact_attributes(*this, nids);
 
   *this = ngu;
+  
+#ifdef DEBUG_NGON_UNIT
+  assert(this->attributes_are_consistent());
+#endif
+
   return (nb_elts - ngu.size());// the diff tells if some there wer some degen
 }
   
@@ -549,6 +563,10 @@ E_Int ngon_unit::remove_duplicated()
   
   *this=ngtmp;
   
+#ifdef DEBUG_NGON_UNIT
+  assert(this->attributes_are_consistent());
+#endif
+  
   updateFacets();
   
   return this->_NGON[1] - prev_sz;
@@ -613,6 +631,10 @@ E_Int ngon_unit::remove_consecutive_duplicated()
   ngtmp.compact_attributes(*this, nids);
   
   *this=ngtmp;
+  
+#ifdef DEBUG_NGON_UNIT
+  assert(this->attributes_are_consistent());
+#endif
   
   return ngtmp._NGON[1] - prev_sz;
 }

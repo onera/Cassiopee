@@ -86,6 +86,50 @@ def concatenateBC(bctype, zones, wallpgs, cur_shift):
       cur_shift += z_nb_pgs
     return (wallpgs, cur_shift)
 
+# update BC and JOINS point lists givzn an indirection "new id to old id"
+def updatePointLists(z, zones, oids):
+    bnds = Internal.getNodesFromType(z, 'BC_t')
+    joins = Internal.getNodesFromType(z, 'GridConnectivity_t')
+    zname=z[0]
+
+    ptLists = []
+    for bb in bnds :
+      ptLists.append(bb[2][1][1][0])
+    for j in joins:
+      ptLists.append(j[2][1][1][0])
+
+    if (ptLists == []) : return
+
+    # recalcul des pointlist
+    ptLists = XOR.updatePointLists(oids, ptLists)
+
+    i=0
+    # update the BC pointlists 
+    for bb in bnds :
+      bb[2][1][1] = ptLists[i]
+      #print bb[2][1][1]
+      i=i+1
+
+    # update the Join pointlist and synchronize with other zones (their pointListDonnor)
+    for j in joins:
+      donnorName = "".join(j[1])
+      #print donnorName
+      dz = Internal.getNodeFromName(zones, donnorName)
+      joinsD = Internal.getNodesFromType(dz, 'GridConnectivity_t')
+      for jd in joinsD:
+        dname = "".join(jd[1])
+        if (dname != zname) : continue
+        
+        PG0 = j[2][1][1][0][0] # first polygon in the poitn list 
+        PG0D = jd[2][2][1][0][0] # first polygon in the poitn list
+        #print PG0 
+        if (PG0 != PG0D) : continue # not the right join (in case of multiple joins for 2 zones) : the first PG must be the same (assume one PG only in one join)
+        j[2][1][1]= ptLists[i]
+        jd[2][2][1] = ptLists[i]
+        #print pgs[0]
+        break
+      i=i+1
+
 #------------------------------------------------------------------------------
 # Conformisation d'une soupe de TRI ou de BAR
 #------------------------------------------------------------------------------
@@ -257,6 +301,55 @@ def triangulateExteriorFaces(t, in_or_out=2):
 
 def _triangulateExteriorFaces(t, in_or_out=2):
     return C._TZA(t, 'nodes', 'nodes', XOR.triangulateExteriorFaces, t, in_or_out)
+
+
+#==============================================================================
+# triangulateBC
+# IN: t: 3D NGON mesh
+# IN : btype : boundary type to mesh
+# OUT: returns a 3D NGON mesh with all the external faces triangulated
+#==============================================================================
+def triangulateBC(t, bctype):
+     
+    tp = Internal.copyRef(t)
+    _triangulateBC(tp,bctype)
+    return tp
+
+def _triangulateBC(t, bctype):
+     
+    zones = Internal.getZones(t)
+   
+    for z in zones:
+        
+        coords = C.getFields(Internal.__GridCoordinates__, z)[0]
+        if coords == []: continue
+
+        coords = Converter.convertArray2NGon(coords)
+
+        bnds = Internal.getNodesFromType(z, 'BC_t')
+
+        bcpgs = []
+        for bb in bnds :
+          if (Internal.isValue(bb, bctype) == False) : continue
+          bcpgs.append(bb[2][1][1][0]) # POINTLIST NUMPY
+
+        if bcpgs == []: continue 
+        bcpgs = numpy.concatenate(bcpgs) # create a single list
+        bcpgs = bcpgs -1
+
+        res = XOR.triangulateSpecifiedFaces(coords, bcpgs)
+
+        mesh = res[0]
+        pg_oids=res[1]
+
+        # MAJ du maillage de la zone
+        C.setFields([mesh], z, 'nodes') 
+
+        # MAJ POINT LISTS #
+        updatePointLists(z, zones, pg_oids)
+
+    return t
+
 
 #==============================================================================
 # convexifyFaces

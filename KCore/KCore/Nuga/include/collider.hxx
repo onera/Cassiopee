@@ -69,7 +69,7 @@ namespace NUGA
       E_Float Ni[3], Nj[3], Nk[3], Nl[3];
       E_Int t4[NB_NODES];
       
-      using cnt_t = typename acnt_t::ArrayType;
+      using cnt_t = typename acnt_t::array_type;
 
       for (size_t i = 0; i < nb_elts; ++i)
       {

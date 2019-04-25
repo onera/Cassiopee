@@ -63,6 +63,9 @@ namespace NUGA
     inline static E_Int triangulate_external_pgs(const K_FLD::FloatArray& crd, ngon_type& ngi, ngon_type& ngo, E_Int in_or_out); //in_or_out : 0(internal only), 1(extrnal only), 2(both)
     ///
     template <typename TriangulatorType>
+    inline static E_Int triangulate_specified_pgs(const K_FLD::FloatArray& crd, ngon_type& ngi, const E_Int* PGlist, E_Int sz, ngon_type& ngo); 
+    ///
+    template <typename TriangulatorType>
     inline static E_Int starify_pgs_at_chain_nodes
       (const K_FLD::FloatArray& crd, const ngon_type& ngi, const ngon_unit& orient, E_Float concave_threshold, E_Float convex_threshold, E_Float convexity_tol, ngon_type& ngo, const Vector_t<E_Int>* PHlist = 0);
     ///
@@ -500,6 +503,21 @@ namespace NUGA
   }
 }
 
+///
+template <typename TriangulatorType>
+E_Int NUGA::Splitter::triangulate_specified_pgs(const K_FLD::FloatArray& crd, ngon_type& ngi, const E_Int* PGlist, E_Int sz, ngon_type& ngo)
+{
+  E_Int nb_pgs = ngi.PGs.size();
+  Vector_t<bool> toprocess(nb_pgs, false);
+  for (E_Int i = 0; i < sz; ++i)
+    toprocess[PGlist[i]] = true;
+  
+  // triangulate any specified PG
+  transfo_t dummy;
+  ngon_unit split_graph;
+  __split_pgs(crd, ngi, ngo, split_graph, triangulate_pgs<TriangulatorType>, dummy, &toprocess);
+}
+
 template <typename TriangulatorType>
 E_Int NUGA::Splitter::triangulate_external_pgs(const K_FLD::FloatArray& crd, ngon_type& ngi, ngon_type& ngo, E_Int in_or_out)
 {
@@ -820,7 +838,7 @@ E_Int NUGA::Splitter::__split_pgs
   // create the split graph using the history.
   E_Int nb_pgs = ngi.PGs.size();
   split_graph.clear();
-  K_CONNECT::IdTool::reverse_indirection(nb_pgs, oids, split_graph);
+  K_CONNECT::IdTool::reverse_indirection(nb_pgs, &oids[0], oids.size(), split_graph);
 
   ngo = ngi; //init
 
