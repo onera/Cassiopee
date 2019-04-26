@@ -1719,6 +1719,60 @@ static bool pt_is_inside(const ngon_unit& PGS, const E_Int* first_pg, E_Int nb_p
   return true;
 }
 
+static bool is_HX8(const ngon_unit& PGs, const E_Int* firstPG, E_Int nb_pgs)
+{    
+  if (nb_pgs != 6) return false;
+  
+  for (int i=0; i<6; i++)
+    if (PGs.stride(*(firstPG+i)-1) != 4)
+      return false;
+
+  return true;
+}
+
+static bool is_TH4(const ngon_unit& PGs, const E_Int* firstPG, E_Int nb_pgs)
+{    
+  if (nb_pgs != 4) return false;
+  
+  for (int i=0; i<4; i++)
+    if (PGs.stride(*(firstPG+i)-1) != 3) return false; 
+
+  return true;
+}
+
+static bool is_PY5(const ngon_unit& PGs, const E_Int* firstPG, E_Int nb_pgs)
+{    
+  E_Int s1(0), s2(0); 
+    
+  if (nb_pgs != 5) return false;
+  
+  for (int i=0; i<5; i++)
+  {
+    if (PGs.stride(*(firstPG+i)-1) == 3) ++s1;
+    else if (PGs.stride(*(firstPG+i)-1) == 4) ++s2;
+    else return false;
+  }
+
+  return ((s1 == 4) && (s2 == 1));
+}
+
+static bool is_PR6(const ngon_unit& PGs, const E_Int* firstPG, E_Int nb_pgs)
+{    
+  E_Int s1(0), s2(0);
+
+  if (nb_pgs != 6) return false;
+    
+  for (int i=0; i<6; i++)
+  {
+    if (PGs.stride(*(firstPG+i)-1) == 3) ++s1;
+    else if (PGs.stride(*(firstPG+i)-1) == 4) ++s2;
+    else return false;
+  }
+  
+  return ((s1==2) && (s2==3));
+ 
+}
+
 };
 
 

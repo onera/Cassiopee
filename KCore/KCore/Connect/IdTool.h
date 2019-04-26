@@ -112,7 +112,7 @@ void IdTool::right_shift(E_Int* list, E_Int sz)
           tmp[i] = list[(i+sz)%S];
       }
 
-      for (int i =0; i < 4; ++i){
+      for (int i =0; i < S; ++i){
           list[i] = tmp[i];
       }    
 }

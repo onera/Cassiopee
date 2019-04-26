@@ -335,7 +335,6 @@ E_Float tripleProduct(const E_Float* u, const E_Float* v, E_Float* w)
 inline
 E_Float zzdet4(const E_Float* P0, const E_Float* P1, const E_Float* P2, const E_Float* Q)
 {
-  // zzdet3(P0Q, P0P1, P0P2)
   return zzdet3(Q[0]-P0[0], Q[1]-P0[1], Q[2]-P0[2],  P1[0]-P0[0], P1[1]-P0[1], P1[2]-P0[2], P2[0]-P0[0], P2[1]-P0[1], P2[2]-P0[2]);
 }
 

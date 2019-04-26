@@ -54,14 +54,13 @@ namespace K_CONNECT
   {
     std::map<E_Int, std::vector<E_Int> > molecules;
 
-  
     //E_Int shift = (zero_based_in) ? 0 : -1;
 
 #ifdef DEBUG_NGON_UNIT
     E_Int max_id = -1;
 #endif
 
-    for (size_t i = 0; i < sz; ++i)
+    for (E_Int i = 0; i < sz; ++i)
     {
       E_Int id = oids[i]; //+ shift;
       molecules[id].push_back(i);

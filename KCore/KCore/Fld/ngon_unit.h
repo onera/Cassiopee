@@ -55,7 +55,8 @@ class ngon_unit
         
     /// ngon_unit& operator=(const Vector_t<E_Int>& vNGON);
     ngon_unit& operator=(const ngon_unit& ngin);
-    
+    ///
+    E_Float operator[](const E_Int i){return _NGON[i];}
     /// Refresh the facets starts.
     void updateFacets() const;
     
@@ -74,7 +75,7 @@ class ngon_unit
       _NGON[0] += n;
       _NGON[1] = _NGON.size() - 2;
     }
-    
+    E_Int capacity(){return _NGON.capacity();}
     // Interrogations
     /// Returns the number of facets for the i-th PH(PG)  (ArrayAccessor interface)
     inline E_Int stride(E_Int i) const {return _NGON[_facet[i]];}

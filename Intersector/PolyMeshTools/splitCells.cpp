@@ -46,19 +46,39 @@ E_Int chrono::verbose = 0;
 
 typedef ngon_t<K_FLD::IntArray> ngon_type;
 
-E_Int check_is_NGON_HEXA(ngon_type& ng)
+E_Int check_is_NGON_BASIC_ELEMENT(ngon_type& ng)
 {
+  E_Int s1(0), s2(0), s3(0), s4(0);  
   E_Int err = 0;
-  for (E_Int i = 0; (i < ng.PGs.size()) && !err; ++i)
-    if (ng.PGs.stride(i) != 4) err = 1;;
-  for (E_Int i = 0; (i < ng.PHs.size()) && !err; ++i)
-    if (ng.PHs.stride(i) != 6) err = 1;
+  for (E_Int i = 0; (i < ng.PHs.size()) && !err; ++i){
+        if (K_MESH::Polyhedron<0>::is_HX8(ng.PGs, ng.PHs.get_facets_ptr(i), ng.PHs.stride(i)) ) ++s1;
+        else if (K_MESH::Polyhedron<0>::is_TH4(ng.PGs, ng.PHs.get_facets_ptr(i), ng.PHs.stride(i)) ) ++s2;
+        else if (K_MESH::Polyhedron<0>::is_PY5(ng.PGs, ng.PHs.get_facets_ptr(i), ng.PHs.stride(i)) ) ++s3;
+        else if (K_MESH::Polyhedron<0>::is_PR6(ng.PGs, ng.PHs.get_facets_ptr(i), ng.PHs.stride(i)) ) ++s4;
+        else{
+//            std::cout << "i= " << i << " ng.PHs.stride(i)= " << ng.PHs.stride(i) << std::endl;
+            err=-1;
+        }
+  }
+#ifdef DEBUG_2019   
+//  std::cout << "ng.PHs.size()= " << ng.PHs.size() << std::endl;  
+//  std::cout << "s1= " << s1 << std::endl;
+//  std::cout << "s2= " << s2 << std::endl;
+//  std::cout << "s3= " << s3 << std::endl;
+//  std::cout << "s4= " << s4 << std::endl;
+#endif
 
-  if (err)
+  if (ng.PHs.size()==s1) return 8;
+  else if (ng.PHs.size()==s2) return 4;
+  //else if (ng.PHs.size()==s3) return 5;
+  //else if (ng.PHs.size()==s4) return 6;
+  else err=-1;
+
+  if (err==-1)
   {
     //std::cout << "input error : err => " << err << std::endl;
     //std::cout << "input error : eltType => " << eltType << std::endl;
-    PyErr_SetString(PyExc_TypeError, "input error : invalid array, must be a HEXAmesh in NGON format.");//fixme triangulateExteriorFaces : PASS A STRING AS INPUT
+    PyErr_SetString(PyExc_TypeError, "input error : invalid array, must be a pure HEXA or TETRA mesh in NGON format.");
     return 1;
   }
 
@@ -156,39 +176,70 @@ PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
   typedef ngon_t<K_FLD::IntArray> ngon_type;
   ngon_type ngi(cnt);
 
-  err = check_is_NGON_HEXA(ngi);
-  if (err)
+  PyObject* tpl =nullptr;
+
+  E_Int elt_type = check_is_NGON_BASIC_ELEMENT(ngi);
+  if (elt_type==-1)
   {
     PyErr_SetString(PyExc_ValueError,
-       "adaptCells: input mesh to adapt must currently be an hexahedral mesh in NGON format.");
+       "adaptCells: input mesh to adapt must currently be a pure HEXA or TETRA mesh in NGON format.");
     delete f; delete cn;
     delete fS; delete cnS;
     return NULL;
   }
-
-  using mesh_type = NUGA::hierarchical_mesh<K_MESH::Hexahedron, NUGA::ISO>;
-
-  mesh_type hmesh(crd, ngi);
-  
-  if (sensor_type == 1) //xsensor
+  else if (elt_type==8)
   {
-  	using sensor_t = NUGA::xsensor<K_MESH::Hexahedron, mesh_type>;
-  	sensor_t sensor(hmesh, cntS, itermax);
-    NUGA::adaptor<mesh_type, sensor_t>::run(hmesh, sensor, crdS);
-  }
-  else
-  {
-  	using sensor_t = NUGA::geom_sensor<mesh_type>;
-  	sensor_t sensor(hmesh, 1/*max_pts per cell*/, itermax);
-    NUGA::adaptor<mesh_type, sensor_t>::run(hmesh, sensor, crdS);
-  }
-  
-  hmesh.conformize();
+    using mesh_type = NUGA::hierarchical_mesh<K_MESH::Hexahedron, NUGA::ISO>;
 
-  K_FLD::IntArray cnto;
-  hmesh._ng.export_to_array(cnto);
+    mesh_type hmesh(crd, ngi);
   
-  PyObject* tpl = K_ARRAY::buildArray(hmesh._crd, varString, cnto, -1, "NGON", false);;
+    if (sensor_type == 1) //xsensor
+    {
+      using sensor_t = NUGA::xsensor<K_MESH::Hexahedron, mesh_type>;
+      sensor_t sensor(hmesh, cntS, itermax);
+      NUGA::adaptor<mesh_type, sensor_t>::run(hmesh, sensor, crdS);
+    }
+    else
+    {
+      using sensor_t = NUGA::geom_sensor<mesh_type>;
+      sensor_t sensor(hmesh, 1/*max_pts per cell*/, itermax);
+      NUGA::adaptor<mesh_type, sensor_t>::run(hmesh, sensor, crdS);
+    }
+  
+    hmesh.conformize();
+
+    K_FLD::IntArray cnto;
+    hmesh._ng.export_to_array(cnto);
+    tpl = K_ARRAY::buildArray(hmesh._crd, varString, cnto, -1, "NGON", false);;
+  }
+  else if (elt_type==4)
+  {
+    using mesh_type = NUGA::hierarchical_mesh<K_MESH::Tetrahedron, NUGA::ISO>;
+    mesh_type hmesh(crd, ngi);
+
+    sensor_type = 0; //currently force type
+  
+    //std::cout << "sensor_type : " << sensor_type << std::endl;
+  
+    if (sensor_type == 1) //xsensor
+    {
+      //using sensor_t = NUGA::xsensor<K_MESH::Tetrahedron, mesh_type>;
+      //sensor_t sensor(hmesh, cntS, itermax);
+      //NUGA::adaptor<mesh_type, sensor_t>::run(hmesh, sensor, crdS);
+    }
+    else
+    {
+      //std::cout << "adapting..." << std::endl;
+      using sensor_t = NUGA::geom_sensor<mesh_type>;
+      sensor_t sensor(hmesh, 1/*max_pts per cell*/, itermax);
+      NUGA::adaptor<mesh_type, sensor_t>::run(hmesh, sensor, crdS);
+    }   
+
+    hmesh.conformize();
+    K_FLD::IntArray cnto;
+    hmesh._ng.export_to_array(cnto);
+    tpl = K_ARRAY::buildArray(hmesh._crd, varString, cnto, -1, "NGON", false);;
+  }
 
   delete f; delete cn;
   delete fS; delete cnS;

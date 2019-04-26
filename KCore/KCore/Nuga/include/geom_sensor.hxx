@@ -48,6 +48,10 @@ class geom_sensor
     E_Int get_higher_lvl_cell(E_Float* p, E_Int PHi);
     
     E_Int detect_child(E_Float* p, E_Int PHi, E_Int* children);
+
+#ifdef DEBUG_2019
+    void verif();
+#endif
     
   protected:
     mesh_t& _hmesh;
@@ -74,6 +78,30 @@ E_Int geom_sensor<mesh_t, crd_t>::init(data_type& data)
   
   return 0;
 }
+
+#ifdef DEBUG_2019
+template <typename mesh_t, typename crd_t>
+void geom_sensor<mesh_t, crd_t>::verif()
+{
+  E_Int err(0);  
+  E_Int nb_elts = _hmesh._ng.PHs.size();
+  E_Int nb_pts = _points_to_cell.size();
+  //points_to_cell gives the number of points per cell
+  Vector_t<E_Int> nb_pts_per_cell(nb_elts,0);
+  
+  for (int i = 0; i < nb_pts; ++i)
+  {
+    E_Int PHi = _points_to_cell[i];
+    if (PHi != E_IDX_NONE)
+      nb_pts_per_cell[PHi] += 1;
+  }
+
+  for (int i=0; i< nb_elts; i++){
+      if (nb_pts_per_cell[i]>1) err += 1; 
+  }
+  std::cout << "err= " << err <<std::endl;
+}
+#endif
 
 /// 
 template <typename mesh_t, typename crd_t>
