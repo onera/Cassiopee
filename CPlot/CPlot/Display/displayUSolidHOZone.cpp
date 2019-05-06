@@ -66,9 +66,7 @@ void Data::displayUSolidHOZone( UnstructZone *zonep, int zone, int zonet )
     if ( ptrState->mode == RENDER && zonep->material == 14 && zonep->nfield >= 2 )  // Textured rendering
     {
         // Sans doute également à modifier pour le high order ?
-#ifdef __SHADERS__
         triggerShader( *zonep, zonep->material, s, color1 );
-#endif
 
         int nofield1 = 0;
         int nofield2 = 1;
@@ -80,17 +78,14 @@ void Data::displayUSolidHOZone( UnstructZone *zonep, int zone, int zonet )
         glLineWidth( 1. );
         return;
     }
-    // END Textured rendering ============================================
-    bool must_define_outer_and_inner = true;
+    // END Textured rendering ===========================================
     // Activation du shader de tesselation :
     int ishader = 0;
-    if ( ( zonep->eltType == UnstructZone::TRI ) and ( zonep->eltSize == 6 ) )
+    if ( zonep->eltType == UnstructZone::TRI )
         ishader = 1;  // OK, element de type Tri_6
-    // CONTINUER DE MEME POUR LES AUTRES TYPES DE HO
-    if ( not this->_shaders.has_tesselation() ) {
-        this->_shaders.set_tesselation( ishader );
-        must_define_outer_and_inner = true;
-    }
+    if ( zonep->eltType == UnstructZone::QUAD )
+        ishader = 2;  // OK, element de type Quad_8 ou Quad_9
+    this->_shaders.set_tesselation( ishader );
     if ( ptrState->mode == RENDER ) {
         if ( zonep->selected == 1 && zonep->active == 1 )
             triggerShader( *zonep, zonep->material, s, color2 );
@@ -103,13 +98,13 @@ void Data::displayUSolidHOZone( UnstructZone *zonep, int zone, int zonet )
             triggerShader( *zonep, 0, s, color1 );
     }
     // Pour eviter de tracer le lo order sans faire expres :-)
-    if ( must_define_outer_and_inner == true ) {
-        unsigned short idShader = this->_shaders.currentShader();
-        int t_inner = this->ptrState->inner_tesselation;
-        int t_outer = this->ptrState->outer_tesselation;
-        this->_shaders[ idShader ]->setUniform( "uInner", (float)t_inner );
-        this->_shaders[ idShader ]->setUniform( "uOuter", (float)t_outer );
-    }
+    unsigned short idShader = this->_shaders.currentShader();
+    int t_inner = this->ptrState->inner_tesselation;
+    int t_outer = this->ptrState->outer_tesselation;
+    this->_shaders[ idShader ]->setUniform( "uInner", (float)t_inner );
+    this->_shaders[ idShader ]->setUniform( "uOuter", (float)t_outer );
+    this->_shaders[ idShader ]->setUniform( "patch_size", (int)zonep->eltSize );
+
     glPatchParameteri( GL_PATCH_VERTICES, zonep->eltSize );
     unsigned stride = zonep->ne;
     glBegin( GL_PATCHES );

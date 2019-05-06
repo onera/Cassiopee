@@ -90,5 +90,10 @@ void DataDL::renderGPUUSolidZone(UnstructZone* zonep, int zone, int zonet)
 
   ZoneImplDL* zImpl = static_cast<ZoneImplDL*>(zonep->ptr_impl);
   glCallList(zImpl->_DLsolid);
+    GLenum error = glGetError();
+    if ( error != GL_NO_ERROR )
+    {
+        std::cerr << __PRETTY_FUNCTION__ << " : get error n°0x" << std::hex << error << std::dec << std::flush << std::endl;
+    }
   glLineWidth(1.);
 }

@@ -47,8 +47,8 @@ void DataDL::displaySIsoSolid()
     if (_texColormap == 0) createColormapTexture();
     fillColormapTexture((int)_pref.colorMap->varName[0]-48);
     glBindTexture(GL_TEXTURE_1D, _texColormap);
-    int s = 10;
-    if (ptrState->scalarStyle == 2 || ptrState->scalarStyle == 3) s = 29;
+    int s = _shaders.shader_id(10);
+    if (ptrState->scalarStyle == 2 || ptrState->scalarStyle == 3) s = _shaders.shader_id(29);
     
     if (_shaders.currentShader() != s) _shaders.activate((short unsigned int)s);
     _shaders[s]->setUniform("colormap", (int)1);
@@ -78,19 +78,19 @@ void DataDL::displaySIsoSolid()
   }
   else
   { // shader pour les isos vectoriels
-    int s = 27;
+    int s = _shaders.shader_id(27);
     if (ptrState->vectorStyle == 2) s = 33;
     if (ptrState->vectorStyle == 1) s = 34;
     if (ptrState->vectorStyle == 3) s = 35;
     if (ptrState->vectorStyle == 4) s = 36;
     if (_shaders.currentShader() != s)
       _shaders.activate((short unsigned int)s);
-    if ( s == 27 ) {
+    if ( s == _shaders.shader_id(27) ) {
       _shaders[s]->setUniform("lightOn", (int)0);
       _shaders[s]->setUniform("shadow", (int)ptrState->shadow);
       _shaders[s]->setUniform("ShadowMap", (int)0);
     }
-    if ((s == 33)||(s == 34)|| (s == 35) ) {
+    if ((s == _shaders.shader_id(33))||(s == _shaders.shader_id(34))|| (s == _shaders.shader_id(35)) ) {
       _shaders[s]->setUniform("lightOn", (int)0);
       _shaders[s]->setUniform("shadow", (int)ptrState->shadow);
       _shaders[s]->setUniform("ShadowMap", (int)0);
@@ -98,9 +98,9 @@ void DataDL::displaySIsoSolid()
       double sc = ptrState->vectorScale/100.f;
       _shaders[s]->setUniform("scale", float(sc*diag));
       _shaders[s]->setUniform("fix_length", ptrState->vectorNormalize);
-      if ((s==34)||(s==35)) _shaders[s]->setUniform("show_surface",ptrState->vectorShowSurface);
+      if ((s==_shaders.shader_id(34))||(s==_shaders.shader_id(35))) _shaders[s]->setUniform("show_surface",ptrState->vectorShowSurface);
     }
-    if (s==36) {
+    if (s==_shaders.shader_id(36)) {
       _shaders[s]->setUniform("lightOn", (int)0);
       _shaders[s]->setUniform("shadow", (int)ptrState->shadow);
       _shaders[s]->setUniform("ShadowMap", (int)0);
@@ -121,16 +121,16 @@ void DataDL::displaySIsoSolid()
 #ifdef __SHADERS__
     if (ptrState->mode == SCALARFIELD)
     {
-      int s = 10;
-        if (ptrState->scalarStyle == 2 || ptrState->scalarStyle == 3) s = 29;
+      int s = _shaders.shader_id(10);
+        if (ptrState->scalarStyle == 2 || ptrState->scalarStyle == 3) s = _shaders.shader_id(29);
       _shaders[s]->setUniform("lightOn", (int)1);
     }
     else
     {
-	int s = 27;
-	if (ptrState->vectorStyle == 3) s = 35;
-	if (ptrState->vectorStyle == 2) s = 33;
-	if (ptrState->vectorStyle == 1) s = 34;
+	int s = _shaders.shader_id(27);
+	if (ptrState->vectorStyle == 3) s = _shaders.shader_id(35);
+	if (ptrState->vectorStyle == 2) s = _shaders.shader_id(33);
+	if (ptrState->vectorStyle == 1) s = _shaders.shader_id(34);
 	_shaders[s]->setUniform("lightOn", (int)1);
     }
 #endif

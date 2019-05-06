@@ -31,15 +31,15 @@ static int checkGLError(char *file, int line)
   glErr = glGetError();
   while (glErr != GL_NO_ERROR) 
   {
-    const GLubyte* sError = gluErrorString(glErr);
+    //const GLubyte* sError = gluErrorString(glErr);
 
-    if (sError)
+/*    if (sError)
       printf("GL Error # %d (%s) in file %s at line %d.\n",
              glErr, gluErrorString(glErr), file, line);
     else
        printf("GL Error # %d (no message) in file %s at line %d.\n",
              glErr, file, line);
-			
+	*/		
     retCode = 1;
     glErr = glGetError();
   }

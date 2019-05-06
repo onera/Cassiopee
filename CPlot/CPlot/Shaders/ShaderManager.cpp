@@ -30,7 +30,6 @@ using namespace CPlot;
 //=============================================================================
 ShaderManager::ShaderManager()
     : _shaderList(),
-      _shaderListWithTesselations(),
       _currentActiveShader( 0 ),
       m_previous_shader( nullptr )
 {
@@ -42,11 +41,6 @@ ShaderManager::~ShaderManager()
     for ( std::vector<Shader *>::iterator itShad = _shaderList.begin();
           itShad != _shaderList.end(); itShad++ ) {
         delete ( *itShad );
-    }
-    for ( auto &_tessshaders : this->_shaderListWithTesselations ) {
-        for ( auto pt_shaders : _tessshaders ) {
-            delete pt_shaders;
-        }
     }
 }
 
@@ -72,7 +66,23 @@ Shader *ShaderManager::addFromFile( const char *geomFile, const char *vertexFile
                 shad->fragment_shader->getCompilerLog().c_str() );
         return NULL;
     }
+    // Rajout shader sans tesselation
     _shaderList.push_back( shad );
+    // Puis rajout des shaders avec tesselation :
+    for ( int idTess = 1; idTess <= tesselationManager.numberOfShaders(); ++idTess )
+    {
+        auto tes_shaders = tesselationManager[ idTess ];
+        Shader *tes_pt_shader = new Shader;
+        if ( shad->vertex_shader != nullptr )
+            tes_pt_shader->add( shad->vertex_shader );
+        if ( shad->geometry_shader != nullptr )
+            tes_pt_shader->add( shad->geometry_shader );
+        tes_pt_shader->add( tes_shaders.first );
+        tes_pt_shader->add( tes_shaders.second );
+        if ( shad->fragment_shader != nullptr )
+            tes_pt_shader->add( shad->fragment_shader );
+        _shaderList.push_back( tes_pt_shader );
+    }
 
     return shad;
 }
@@ -98,21 +108,33 @@ Shader *ShaderManager::addFromFile( const char *vertexFile,
         return NULL;
     }
     _shaderList.push_back( shad );
+    // Puis rajout des shaders avec tesselation :
+    for ( int idTess = 1; idTess <= tesselationManager.numberOfShaders(); ++idTess )
+    {
+        auto tes_shaders = tesselationManager[ idTess ];
+        Shader *tes_pt_shader = new Shader;
+        if ( shad->vertex_shader != nullptr )
+            tes_pt_shader->add( shad->vertex_shader );
+        tes_pt_shader->add( tes_shaders.first );
+        tes_pt_shader->add( tes_shaders.second );
+        if ( shad->fragment_shader != nullptr )
+            tes_pt_shader->add( shad->fragment_shader );
+        _shaderList.push_back( tes_pt_shader );
+    }
     return shad;
 }
 //=============================================================================
-unsigned short ShaderManager::getId( Shader *shad )
+unsigned short ShaderManager::getId( Shader *shad ) const
 {
     unsigned short id = 0;
-    std::vector<Shader *>::iterator it = _shaderList.begin();
+    std::vector<Shader *>::const_iterator it = _shaderList.begin();
     while ( it != _shaderList.end() ) {
-        id++;
         if ( ( *it ) == shad ) break;
+        id++;
     }
-    if ( id == _shaderList.size() ) id = 0;
+    if ( id == _shaderList.size() ) return 0;
     return id;
 }
-
 // ============================================================================
 bool ShaderManager::eraseShader( Shader *obj )
 {
@@ -127,16 +149,15 @@ bool ShaderManager::eraseShader( Shader *obj )
     return false;
 }
 //=============================================================================
-void ShaderManager::set_tesselation( unsigned short id )
+void ShaderManager::set_tesselation( unsigned short idTess )
 {
-    if ( id == 0 ) {
+    if ( idTess == 0 ) {
         unset_tesselation();
         return;
     }
     // On regarde tout d'abord si on avait deja une tesselation active :
-    auto &tes_shaders = tesselationManager[ id ];
-    if ( tesselationManager.currentShader() == id ) return;
-    tesselationManager.activate( id );
+    if ( tesselationManager.currentShader() == idTess ) return;
+    tesselationManager.activate( idTess );
 }
 // ----------------------------------------------------------------------------
 void ShaderManager::unset_tesselation()
@@ -146,7 +167,6 @@ void ShaderManager::unset_tesselation()
 // ----------------------------------------------------------------------------
 void ShaderManager::activate( unsigned short id )
 {
-    if ( tesselationManager.is_activate() == false ) {
         if ( m_previous_shader != nullptr ) {
             m_previous_shader->end();
             m_previous_shader = nullptr;
@@ -154,54 +174,16 @@ void ShaderManager::activate( unsigned short id )
         //if ( _currentActiveShader > 0 ) _shaderList[ _currentActiveShader - 1 ]->end();
         _currentActiveShader = 0;
         if ( id == 0 ) return;
-        if ( id - 1 > _shaderList.size() ) return;
+        if ( id >= _shaderList.size() ) return;
         _currentActiveShader = id;
-        if ( !_shaderList[ id - 1 ]->start() )
+        if ( !_shaderList[ id  ]->start() )
             throw std::runtime_error( "Fail to start shader !" );
         else
-            m_previous_shader = _shaderList[ id - 1 ];
-    } else {
-        if ( _shaderListWithTesselations.size() < tesselationManager.numberOfShaders() )
-            _shaderListWithTesselations.resize( tesselationManager.numberOfShaders() );
-        unsigned short idTes = tesselationManager.currentShader();
-        std::vector<Shader *> &tesShad = _shaderListWithTesselations[ idTes - 1 ];
-        if ( m_previous_shader != nullptr ) {
-            m_previous_shader->end();
-            m_previous_shader = nullptr;
-        }
-        //if ( _currentActiveShader > 0 ) tesShad[ _currentActiveShader - 1 ]->end();
-        _currentActiveShader = 0;
-        if ( id == 0 ) return;
-        if ( tesShad.size() == 0 )  // Créer les shaders pour cette tesselation :
-        {
-            //std::cout << "Build new tesselation shaders" << std::flush << std::endl;
-            tesShad.reserve( _shaderList.size() );
-            auto &tes_shaders = tesselationManager[ tesselationManager.currentShader() ];
-            for ( auto pt_shad : _shaderList ) {
-                Shader *tes_pt_shader = new Shader;
-                if ( pt_shad->vertex_shader != nullptr )
-                    tes_pt_shader->add( pt_shad->vertex_shader );
-                if ( pt_shad->fragment_shader != nullptr )
-                    tes_pt_shader->add( pt_shad->fragment_shader );
-                if ( pt_shad->geometry_shader != nullptr )
-                    tes_pt_shader->add( pt_shad->geometry_shader );
-                tes_pt_shader->add( tes_shaders.first );
-                tes_pt_shader->add( tes_shaders.second );
-                tesShad.push_back( tes_pt_shader );
-            }
-        }
-        if ( id - 1 > tesShad.size() ) return;
-        _currentActiveShader = id;
-        if ( !tesShad[ id - 1 ]->start() )
-            throw std::runtime_error( "Fail to start shader !" );
-        else
-            m_previous_shader = tesShad[ id - 1 ];
-    }
+            m_previous_shader = _shaderList[ id ];
 }
 //=============================================================================
 void ShaderManager::activate( Shader *shad )
 {
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
     if ( m_previous_shader != nullptr ) m_previous_shader->end();
     //if ( _currentActiveShader > 0 ) _shaderList[ _currentActiveShader - 1 ]->end();
     _currentActiveShader = 0;
@@ -220,7 +202,6 @@ void ShaderManager::activate( Shader *shad )
 //=============================================================================
 void ShaderManager::deactivate()
 {
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
     if ( m_previous_shader != nullptr ) m_previous_shader->end();
     activate( (unsigned short)0 );
     _currentActiveShader = 0;
@@ -239,14 +220,19 @@ int ShaderManager::init()
 //=============================================================================
 int ShaderManager::load()
 {
-    //std::cout << __PRETTY_FUNCTION__ << std::endl;
     tesselationManager.load();
+
     char vert[ 256 * 8 ];
     char frag[ 256 * 8 ];
     char geom[ 256 * 8 ];
-    char tes[ 256 * 8 ];
+    char tes [ 256 * 8 ];
     Data *d = Data::getInstance();
     char *path = d->ptrState->shaderPath;
+
+    // - 0 - Pas de shader materiel, mais shader tesselation
+    strcpy( vert, path );
+    strcat( vert, "simple.vert" );
+    addFromFile( vert, nullptr );
 
     // - 1 - Phong unidirectionnel
     strcpy( vert, path );
@@ -516,9 +502,9 @@ int ShaderManager::load()
     addFromFile( vert, frag );
 
     // - 38 - Vertex only shader... ( for tesselation mesh !)
-    strcpy( vert, path );
-    strcat( vert, "simple.vert" );
-    addFromFile( vert, nullptr );
+    //strcpy( vert, path );
+    //strcat( vert, "simple.vert" );
+    //addFromFile( vert, nullptr );
 
 
     return 1;

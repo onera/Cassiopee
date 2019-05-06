@@ -17,6 +17,8 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "../Data.h"
+#include "Shaders/shaders_id.h"
+#include <iostream>
 
 //=============================================================================
 // Trigger le shader approprie en fonction de material, de scale et de color
@@ -32,7 +34,7 @@ void Data::triggerShader(Zone& z, int material, float scale, float* color)
   switch (material)
   {
     case 1: // Glass
-      shader = 3;
+      shader = _shaders.shader_id(shader::glass);
       glActiveTexture(GL_TEXTURE0);
       glBindTexture(GL_TEXTURE_2D, _texEnviron1); // environnement
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -56,7 +58,7 @@ void Data::triggerShader(Zone& z, int material, float scale, float* color)
       break;
 
     case 2: // Chrome
-      shader = 4;
+      shader = _shaders.shader_id(shader::chrome);
       SHADOWTEXTURE;
       glActiveTexture(GL_TEXTURE1);
       glBindTexture(GL_TEXTURE_2D, _texEnviron1); // environnement
@@ -74,7 +76,7 @@ void Data::triggerShader(Zone& z, int material, float scale, float* color)
       break;
 
     case 3: // Metal
-       shader = 5;
+       shader = _shaders.shader_id(shader::metal);
        SHADOWTEXTURE;
        glActiveTexture(GL_TEXTURE1);
        glBindTexture(GL_TEXTURE_3D, _texNoise);
@@ -88,7 +90,7 @@ void Data::triggerShader(Zone& z, int material, float scale, float* color)
       break;
 
     case 4: // Wood
-      shader = 6;
+      shader = _shaders.shader_id(shader::wood);
       SHADOWTEXTURE;
       glActiveTexture(GL_TEXTURE1);
       glBindTexture(GL_TEXTURE_3D, _texNoise);
@@ -118,7 +120,7 @@ void Data::triggerShader(Zone& z, int material, float scale, float* color)
       break;
       
     case 5: // Marble
-      shader = 7;
+      shader = _shaders.shader_id(shader::marble);
       SHADOWTEXTURE;
       glActiveTexture(GL_TEXTURE1);
       glBindTexture(GL_TEXTURE_3D, _texNoise);
@@ -137,7 +139,7 @@ void Data::triggerShader(Zone& z, int material, float scale, float* color)
       break;
       
     case 6: // Smoke: volumetric shader
-      shader = 8;
+      shader = _shaders.shader_id(shader::smoke);
       glEnable(GL_CULL_FACE); glDepthMask(GL_FALSE);
       glActiveTexture(GL_TEXTURE0);
       glBindTexture(GL_TEXTURE_3D, _texVoxelBuffer);
@@ -161,7 +163,7 @@ void Data::triggerShader(Zone& z, int material, float scale, float* color)
       break;
 
     case 7: // XRay
-      shader = 9;
+      shader = _shaders.shader_id(shader::xray);
       /*glEnable(GL_CULL_FACE);*/ glDepthMask(GL_FALSE);
       if (_shaders.currentShader() != shader) _shaders.activate(shader);
       _shaders[shader]->setUniform("EdgeFalloff", (float)0.9*z.shaderParam1);
@@ -169,7 +171,7 @@ void Data::triggerShader(Zone& z, int material, float scale, float* color)
       break;
 
     case 8: // Granite
-      shader = 11;
+      shader = _shaders.shader_id(shader::granite);
       SHADOWTEXTURE;
       glActiveTexture(GL_TEXTURE1);
       glBindTexture(GL_TEXTURE_3D, _texNoise);
@@ -186,7 +188,7 @@ void Data::triggerShader(Zone& z, int material, float scale, float* color)
     case 9: // billboarding
       if (z.shaderParam2 < 0.1) // Sphere billboard
       {
-        shader = 12;
+        shader = _shaders.shader_id(shader::sphere_billboarding);
         ptrState->billBoardNi = 1;
         ptrState->billBoardNj = 1;
         ptrState->billBoardWidth = 1;
@@ -211,7 +213,7 @@ void Data::triggerShader(Zone& z, int material, float scale, float* color)
         ptrState->billBoardHeight = _billBoardHeights[t];
         _texBillBoard = _billBoardTexs[t];
 
-        shader = 23;
+        shader = _shaders.shader_id(shader::billboard);
         //glEnable(GL_CULL_FACE);
         glDepthMask(GL_FALSE);
         
@@ -227,7 +229,7 @@ void Data::triggerShader(Zone& z, int material, float scale, float* color)
       break;
 
     case 10: // Bricks
-      shader = 16;
+      shader = _shaders.shader_id(shader::brick);
       SHADOWTEXTURE;
       if (_shaders.currentShader() != shader) _shaders.activate(shader);
       _shaders[shader]->setUniform("MortarColor", (float)1., (float)1., (float)1.);
@@ -238,7 +240,7 @@ void Data::triggerShader(Zone& z, int material, float scale, float* color)
       break;
 
     case 11: // Clouds
-      shader = 17;
+      shader = _shaders.shader_id(shader::cloud);
       SHADOWTEXTURE;
       glActiveTexture(GL_TEXTURE1);
       glBindTexture(GL_TEXTURE_3D, _texNoise);
@@ -252,7 +254,7 @@ void Data::triggerShader(Zone& z, int material, float scale, float* color)
       break;
 
     case 12: // gooch
-      shader = 21;
+      shader = _shaders.shader_id(shader::gooch);
       SHADOWTEXTURE;
       if (_shaders.currentShader() != shader) _shaders.activate(shader);
       _shaders[shader]->setUniform("specularFactor", (float)z.shaderParam2);
@@ -262,7 +264,7 @@ void Data::triggerShader(Zone& z, int material, float scale, float* color)
       break;
 
     case 13: // flat shader (no light)
-      shader = 22;
+      shader = _shaders.shader_id(shader::flat);
       SHADOWTEXTURE;
       if (_shaders.currentShader() != shader) _shaders.activate(shader);
       _shaders[shader]->setUniform("shadow", (int)ptrState->shadow);
@@ -272,7 +274,7 @@ void Data::triggerShader(Zone& z, int material, float scale, float* color)
     case 14: // textured
       if (_nMaterials > 0)
       {
-        shader = 37;
+        shader = _shaders.shader_id(shader::textured_material);
         SHADOWTEXTURE;
         // choix de la texture
         t = (int)( (z.shaderParam2)*((_nMaterials-1)*0.5) );
@@ -321,10 +323,10 @@ void Data::triggerShader(Zone& z, int material, float scale, float* color)
 
     default: // phong
       if (ptrState->dim == 3)
-      {
+      {        
         if (ptrState->solidStyle == 0) // one side
         {
-          shader = 1;
+          shader = _shaders.shader_id(shader::unidirectionnel_phong);
           SHADOWTEXTURE;
           if (_shaders.currentShader() != shader)
             _shaders.activate((short unsigned int)shader);
@@ -343,7 +345,7 @@ void Data::triggerShader(Zone& z, int material, float scale, float* color)
         }
         else if (ptrState->solidStyle == 1 || ptrState->solidStyle == 3 || ptrState->solidStyle == 4) // two sides
         {
-          shader = 2;
+          shader = _shaders.shader_id(shader::bidirectionnel_phong);
           SHADOWTEXTURE;
           if (_shaders.currentShader() != shader)
             _shaders.activate((short unsigned int)shader);
@@ -360,8 +362,8 @@ void Data::triggerShader(Zone& z, int material, float scale, float* color)
           _shaders[shader]->setUniform("shadow", (int)ptrState->shadow);
           _shaders[shader]->setUniform("ShadowMap", (int)0);
         }
-        else _shaders.activate((short unsigned int)0);
+        else _shaders.activate((short unsigned int)shader::None);
       }
-      else _shaders.activate((short unsigned int)0);
+      else _shaders.activate((short unsigned int)shader::None);
   }
 }

@@ -10,7 +10,6 @@ out V2CT_OUT
 
 void main(void)
 {
-
   v2ct_out.color  = gl_Color;
   v2ct_out.position = gl_Vertex;
   v2ct_out.data_comp = ivec4(0,0,0,0);

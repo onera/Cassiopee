@@ -342,6 +342,7 @@ public:
     void displaySMeshZone(StructZone* zonep, int zone);
     virtual void displayUMesh() = 0;
     void displayUMeshZone(UnstructZone* zonep, int zone, int zonet);
+    void displayUMeshZone_ho(UnstructZone* zonep, int zone, int zonet);
     virtual void displaySSolid() = 0;
     void displaySSolidZone(StructZone* zonep, int zone);
     virtual void displayUSolid() = 0;

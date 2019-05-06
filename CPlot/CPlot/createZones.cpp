@@ -289,7 +289,6 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
   };
   unsigned short ind_type = 0;
   const char* pt_type = high_order_types[ind_type];
-  //std::cout << "Type element : " << eltType << std::endl;
   while ( ( pt_type != NULL ) and (K_STRING::cmp(eltType, pt_type) != 0) )
   {
     ind_type ++;
@@ -534,7 +533,7 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
     z.eltSize = 1;
     z.dim = 3;
   }
-  else
+  else if ( not z._is_high_order )
   {
     printf("Warning: element type is unknown. Set to TRI.\n");
     z.eltType = 2;
@@ -578,6 +577,8 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
   if ( is_high_order )
   {
     z.eltSize = nb_nodes_per_elts[ind_type];
+    z.eltType = ( ind_type < 5 ? 2 : 3 );
+    z.dim     = 2;
   }
 # endif
 

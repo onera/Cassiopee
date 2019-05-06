@@ -2,7 +2,7 @@
 
 uniform float uOuter, uInner;
 
-layout(vertices = 6) out;
+layout(vertices = 9) out;
 
 in V2CT_OUT
 {
@@ -47,18 +47,18 @@ float computeLod( vec3 origin, vec3 radius )
 }
 
 void main()
-{
+{    
     float lod1 = computeLod( gl_in[0].gl_Position.xyz, gl_in[1].gl_Position.xyz - gl_in[0].gl_Position.xyz );
-    float lod2 = computeLod( gl_in[1].gl_Position.xyz, gl_in[2].gl_Position.xyz - gl_in[1].gl_Position.xyz );
-    float lod3 = computeLod( gl_in[2].gl_Position.xyz, gl_in[0].gl_Position.xyz - gl_in[2].gl_Position.xyz );
-    gl_TessLevelInner[0] = uInner*min(lod1,min(lod2,lod3));
+    //float lod2 = computeLod( gl_in[1].gl_Position.xyz, gl_in[3].gl_Position.xyz - gl_in[1].gl_Position.xyz );
+    float lod3 = computeLod( gl_in[3].gl_Position.xyz, gl_in[0].gl_Position.xyz - gl_in[3].gl_Position.xyz );
+    float lod4 = computeLod( gl_in[3].gl_Position.xyz, gl_in[2].gl_Position.xyz - gl_in[3].gl_Position.xyz );
+    float lod5 = computeLod( gl_in[2].gl_Position.xyz, gl_in[1].gl_Position.xyz - gl_in[2].gl_Position.xyz );
+    gl_TessLevelInner[0] = max(uInner*min(lod1,lod4),1);
+    gl_TessLevelInner[1] = max(uInner*min(lod5,lod3),1);
     gl_TessLevelOuter[0] = uOuter*lod3;
     gl_TessLevelOuter[1] = uOuter*lod1;
-    gl_TessLevelOuter[2] = uOuter*lod2;
-    /*gl_TessLevelOuter[0] = uOuter;
-    gl_TessLevelOuter[1] = uOuter;
-    gl_TessLevelOuter[2] = uOuter;
-    gl_TessLevelInner[0] = uInner;*/
+    gl_TessLevelOuter[2] = uOuter*lod5;
+    gl_TessLevelOuter[3] = uOuter*lod4;
 
     gl_out[gl_InvocationID].gl_Position = vs_in[gl_InvocationID].position;
 

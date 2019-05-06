@@ -17,6 +17,8 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "../Data.h"
+#include "../ZoneImplDL.h"
+#include "../Shaders/shaders_id.h"
 
 #define PLOTNODE xi = x[i]; yi = y[i]; zi = z[i];               \
   dx = xi - xcam; dy = yi - ycam; dz = zi - zcam;               \
@@ -43,6 +45,15 @@
   glVertex3dv(pt1); glVertex3dv(pt2);                           \
   glVertex3dv(pt3); glVertex3dv(pt4);
 
+
+#define PLOTHO                                    \
+               glVertex3d(x[n1], y[n1], z[n1]);   \
+               glVertex3d(x[n3], y[n3], z[n3]);   \
+               glVertex3d(x[n2], y[n2], z[n2]);
+#define PLOTBHO ret1 = _pref.blanking->f(this, n1, zonep->blank, zonet); \
+                ret2 = _pref.blanking->f(this, n2, zonep->blank, zonet); \
+                if (ret1*ret2 != 0) { PLOTHO; }
+
 //=============================================================================
 /*
   Display une zone en mesh.
@@ -51,14 +62,9 @@
   IN: zonet: le no de la zone dans liste globale des zones
 */
 //=============================================================================
-void Data::displayUMeshZone(UnstructZone* zonep, int zone, int zonet)
+void Data::displayUMeshZone_ho(UnstructZone* zonep, int zone, int zonet)
 {
-  if ( zonep->_is_high_order == true )
-  {
-    displayUMeshZone_ho(zonep, zone, zonet);
-    return;
-  }
-  int i, n1, n2, ret1, ret2, ret;
+  int i, n1, n2, n3, ret1, ret2, ret;
 
   // Style colors
   float color1[3]; float color2[3];
@@ -94,27 +100,16 @@ void Data::displayUMeshZone(UnstructZone* zonep, int zone, int zonet)
 #include "selection.h"
 
   if (zonep->eltType == 1 || zonep->eltType == 0 || (zonep->eltType == 10 && zonep->nelts1D > 0)) glLineWidth(3.);
-    /*if ( zonep->_is_high_order == true )
-    {
-      int ishader = 0;
-      if ( zonep->eltType == UnstructZone::TRI )
-        ishader = 1;  // OK, element de type Tri_6
-      if ( zonep->eltType == UnstructZone::QUAD )
-        ishader = 2;  // OK, element de type Quad_8
-      if ( not this->_shaders.has_tesselation() ) {
-        this->_shaders.set_tesselation( ishader );
-      }
+  int ishader = 3;
+  this->_shaders.set_tesselation(ishader);
+  this->_shaders.activate((short unsigned int)this->_shaders.shader_id(shader::None));
+  int t_outer = this->ptrState->outer_tesselation;
+  this->_shaders[this->_shaders.currentShader()]->setUniform("uOuter", (float)t_outer);
+  this->_shaders[this->_shaders.currentShader()]->setUniform( "patch_size", 3 );
+  glPatchParameteri( GL_PATCH_VERTICES, 3 );
+  #include "displayUMeshZone_ho.h"
 
-      this->_shaders.activate( (short unsigned int)this->_shaders.shader_id(0) );
-      std::cerr << "Shader id ::: " << this->_shaders.currentShader() << std::flush << std::endl;
-      int t_inner = this->ptrState->inner_tesselation;
-      int t_outer = this->ptrState->outer_tesselation;
-      this->_shaders[ this->_shaders.currentShader() ]->setUniform( "uInner", (float)t_inner );
-      this->_shaders[ this->_shaders.currentShader() ]->setUniform( "uOuter", (float)t_outer );
-      glPatchParameteri( GL_PATCH_VERTICES, zonep->eltSize );
-    }*/
-
-#include "displayUMeshZone.h"
+  this->_shaders.set_tesselation(0);
 
   // For BARS or NODES or 1D NGONS: display node
   if (eltType == 1 || eltType ==  0 || (eltType == 10 && zonep->nelts1D > 0))

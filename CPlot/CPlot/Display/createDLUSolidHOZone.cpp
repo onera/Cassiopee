@@ -29,10 +29,15 @@ void DataDL::createGPUUSolidHOZone( UnstructZone *zonep, int zone, int zonet )
     int i, n1, n2, n3, n4, n5, n6, n7, n8;
     int ret1, ret2, ret3, ret4, f;
     ZoneImplDL *zImpl = static_cast<ZoneImplDL *>( zonep->ptr_impl );
-    zImpl->_DLsolid = glGenLists( 1 );
-    glNewList( zImpl->_DLsolid, GL_COMPILE );
-    glPatchParameteri( GL_PATCH_VERTICES, zonep->eltSize );
+    GLenum error = glGetError();
+    if ( error != GL_NO_ERROR )
+    {
+        std::cerr << __PRETTY_FUNCTION__ << " : get error 0 n°0x" << std::hex << error << std::dec << std::flush << std::endl;
+    }
+   zImpl->_DLsolid = glGenLists( 1 );
     unsigned stride = zonep->ne;
+    glNewList( zImpl->_DLsolid, GL_COMPILE );
+    glPatchParameteri( GL_PATCH_VERTICES, GLint(zonep->eltSize) );
     glBegin( GL_PATCHES );
     for ( int ielts = 0; ielts < zonep->ne; ++ielts ) {
         int ind_elt = ielts;

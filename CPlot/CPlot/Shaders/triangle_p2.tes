@@ -1,5 +1,7 @@
 #version 400 compatibility
 
+uniform int patch_size;
+
 layout( triangles, equal_spacing, ccw ) in;
 
 in TCS_OUT
@@ -24,6 +26,7 @@ out V2F_OUT
 
 void main()
 {
+    if (patch_size != 6) return;
     vec3 p0 = gl_in[0].gl_Position.xyz;
     vec3 p1 = gl_in[1].gl_Position.xyz;
     vec3 p2 = gl_in[2].gl_Position.xyz;

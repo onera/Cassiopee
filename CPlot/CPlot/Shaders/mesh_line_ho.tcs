@@ -1,8 +1,8 @@
 #version 400 compatibility
 
-uniform float uOuter, uInner;
+uniform float uOuter;
 
-layout(vertices = 6) out;
+layout(vertices = 3) out;
 
 in V2CT_OUT
 {
@@ -16,8 +16,6 @@ out TCS_OUT
 {
     vec4 position;
     vec4 color;
-    ivec4 data_comp; // Raconte si vdata1,2,3 ou 4 est utilisé
-    vec4 vdata1, vdata2, vdata3, vdata4;    
 } tcs_out[];
 
 float computeLod( vec3 origin, vec3 radius )
@@ -47,26 +45,13 @@ float computeLod( vec3 origin, vec3 radius )
 }
 
 void main()
-{
-    float lod1 = computeLod( gl_in[0].gl_Position.xyz, gl_in[1].gl_Position.xyz - gl_in[0].gl_Position.xyz );
-    float lod2 = computeLod( gl_in[1].gl_Position.xyz, gl_in[2].gl_Position.xyz - gl_in[1].gl_Position.xyz );
-    float lod3 = computeLod( gl_in[2].gl_Position.xyz, gl_in[0].gl_Position.xyz - gl_in[2].gl_Position.xyz );
-    gl_TessLevelInner[0] = uInner*min(lod1,min(lod2,lod3));
-    gl_TessLevelOuter[0] = uOuter*lod3;
-    gl_TessLevelOuter[1] = uOuter*lod1;
-    gl_TessLevelOuter[2] = uOuter*lod2;
-    /*gl_TessLevelOuter[0] = uOuter;
-    gl_TessLevelOuter[1] = uOuter;
-    gl_TessLevelOuter[2] = uOuter;
-    gl_TessLevelInner[0] = uInner;*/
+{    
+    float lod = computeLod( gl_in[0].gl_Position.xyz, gl_in[2].gl_Position.xyz - gl_in[0].gl_Position.xyz );
+    gl_TessLevelOuter[0] = 1;
+    gl_TessLevelOuter[1] = uOuter * lod;
 
     gl_out[gl_InvocationID].gl_Position = vs_in[gl_InvocationID].position;
 
     tcs_out[gl_InvocationID].position  = vs_in[gl_InvocationID].position;
     tcs_out[gl_InvocationID].color     = vs_in[gl_InvocationID].color;
-    tcs_out[gl_InvocationID].data_comp = vs_in[gl_InvocationID].data_comp;
-    tcs_out[gl_InvocationID].vdata1    = vs_in[gl_InvocationID].vdata1;
-    tcs_out[gl_InvocationID].vdata2    = vs_in[gl_InvocationID].vdata2;
-    tcs_out[gl_InvocationID].vdata3    = vs_in[gl_InvocationID].vdata3;
-    tcs_out[gl_InvocationID].vdata4    = vs_in[gl_InvocationID].vdata4;
 }

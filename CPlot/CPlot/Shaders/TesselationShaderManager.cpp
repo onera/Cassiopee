@@ -83,5 +83,12 @@ int TesselationShaderManager::load()
   // - 1 - Triangle HO polynomial IP_{2} - 6 vertices
   strcpy(tes,path); strcat(tes, "triangle_p2");
   addFromFile(tes);
+  // - 2 - Quadrangle HO polynomial - 8 or 9 vertices
+  strcpy(tes,path); strcat(tes, "quadrangle_ho");
+  addFromFile(tes);
+
+  // - 3 - HO Line polynomial
+  strcpy(tes,path); strcat(tes, "mesh_line_ho");
+  addFromFile(tes);
   return 1;
 }

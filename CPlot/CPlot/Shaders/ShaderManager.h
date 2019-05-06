@@ -16,10 +16,15 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
+#define DEBUG
+#undef  NDEBUG
 #ifndef _CPLOT_SHADERMANAGER_HPP_
 #define _CPLOT_SHADERMANAGER_HPP_
+#include <cassert>
 #include <map>
 #include <vector>
+
+#include <iostream>
 #include "Shader.h"
 #include "TesselationShaderManager.hpp"
 
@@ -60,32 +65,35 @@ namespace CPlot
     bool eraseShader(Shader* obj);
     unsigned short numberOfShaders() const
     { return (unsigned short)_shaderList.size(); }
-    unsigned short currentShader()
+    unsigned short currentShader() const
     { return _currentActiveShader; }
+    unsigned short shader_id( int idShadMat ) const
+    {
+      unsigned short id = idShadMat*(tesselationManager.numberOfShaders()+1) + tesselationManager.currentShader();
+      if ( id >= (unsigned short)_shaderList.size() ) std::cerr << "Bogue, depassement de tableau de shader !!!!" << std::flush << std::endl;
+      return id;
+    }
 
-    void set_tesselation( unsigned short id );
+    void set_tesselation( unsigned short idTes );
     void unset_tesselation();
     bool has_tesselation()const { return tesselationManager.is_activate(); }
     
     Shader* operator [] (unsigned short id)
     {
-      if ( not has_tesselation() ) 
-        return _shaderList[id-1]; 
-      else
-        return _shaderListWithTesselations[tesselationManager.currentShader()-1][id-1];
+        assert(id > 0);
+        assert(id < _shaderList.size());
+        return _shaderList[id]; 
     }
     
     const Shader* operator [] (unsigned short id) const
     { 
-      if ( not has_tesselation() ) 
-        return _shaderList[id-1]; 
-      else
-        return _shaderListWithTesselations[tesselationManager.currentShader()-1][id-1];
-      //return _shaderList[id-1]; 
+        assert(id > 0);
+        assert(id < _shaderList.size());
+        return _shaderList[id]; 
     }
     
     /* Return the id of a shader in shader list */
-    unsigned short getId(Shader* shad);
+    unsigned short getId(Shader* shad) const;
     
     /* Activate a shader from his identificator 
        Desactivate the previous shader if different.
@@ -105,7 +113,6 @@ namespace CPlot
     ShaderManager& operator = (const ShaderManager& shadMan);
     TesselationShaderManager tesselationManager;
     std::vector<Shader*> _shaderList;
-    std::vector<std::vector<Shader*>> _shaderListWithTesselations;
     Shader* m_previous_shader;
     unsigned short _currentActiveShader;
   };

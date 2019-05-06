@@ -41,6 +41,7 @@ public:
   virtual void createIsoGPUResForRender(); // scalaire for render mode
   virtual void createGPUSMeshZone(StructZone* zonep, int zone);
   virtual void createGPUUMeshZone(UnstructZone* zonep, int zone, int zonet);
+  virtual void createGPUUMeshZone_ho(UnstructZone* zonep, int zone, int zonet);
   virtual void createGPUSSolidZone(StructZone* zonep, int zone);
   virtual void createGPUUSolidZone(UnstructZone* zonep, int zone, int zonet);
   virtual void createGPUUSolidHOZone(UnstructZone* zonep, int zone, int zonet);
