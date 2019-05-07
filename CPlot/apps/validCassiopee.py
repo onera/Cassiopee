@@ -1,5 +1,6 @@
 # *Cassiopee* GUI for validation and tests
-import Tkinter as TK
+try: import Tkinter as TK
+except: import tkinter as TK
 import os, sys, re
 import subprocess
 import time
@@ -343,25 +344,33 @@ def runSingleUnitaryTest(no, module, test):
 
     m1 = expTest1.search(test) # seq ou distribue
 
+    if sys.version_info[0] == 3: pythonExec = 'python3'
+    else: pythonExec = 'python' 
+
     if mySystem == 'mingw' or mySystem == 'windows':
         # Commande Dos (sans time)
         path = path.replace('/', '\\')
-        if m1 is not None: cmd = 'cd %s && python %s'%(path, test)
-        else: cmd = 'cd %s && set OMP_NUM_THREADS=4 && mpiexec -np 2 python %s'%(path, test)
+        if m1 is not None: cmd = 'cd %s && %s %s'%(path, pythonExec, test)
+        else: cmd = 'cd %s && set OMP_NUM_THREADS=4 && mpiexec -np 2 %s %s'%(path, pythonExec, test)
         cmd2 = 'echo %time%'
     else:
         # Unix - le shell doit avoir l'environnement cassiopee
         #sformat = r'"real\t%E\nuser\t%U\nsys\t%S"'
-        if m1 is not None: cmd = 'cd %s; time python %s'%(path, test)
+        if m1 is not None: cmd = 'cd %s; time %s %s'%(path, pythonExec, test)
         else: cmd = 'cd %s; time kpython -n 2 %s'%(path, test)
     try:
         if mySystem == 'mingw' or mySystem == 'windows':
             output1 = check_output(cmd2, shell=True, stderr=subprocess.STDOUT)
+            if sys.version_info[0] == 3: output1 = output1.decode()
         output = check_output(cmd, shell=True, stderr=subprocess.STDOUT)
+        if sys.version_info[0] == 3: output = output.decode()
+        
         if mySystem == 'mingw' or mySystem == 'windows':
             output2 = check_output(cmd2, shell=True, stderr=subprocess.STDOUT)
-        print output
-
+            if sys.version_info[0] == 3: output2 = output2.decode()
+        
+        print(output)
+        
         # Recupere success/failed
         success = True
         if regDiff.search(output) is not None: success = False
@@ -387,7 +396,7 @@ def runSingleUnitaryTest(no, module, test):
             coverage = sub[:i1+1]
             coverage = coverage.strip()
     except Exception as e:
-        print e
+        print(e)
         success = False; CPUtime = 'Unknown'; coverage='0%' # Core dump/error
 
     # update le fichier .time (si non present)
@@ -443,7 +452,7 @@ def runSingleCFDTest(no, module, test):
         output = check_output(cmd, shell=True, stderr=subprocess.STDOUT)
         if mySystem == 'mingw' or mySystem == 'windows':
             output2 = check_output(cmd2, shell=True, stderr=subprocess.STDOUT)
-        print output
+        print(output)
 
         # Recupere success/failed
         success = True
@@ -460,7 +469,7 @@ def runSingleCFDTest(no, module, test):
         # Recupere le coverage
         coverage = '100%'
     except Exception as e:
-        print e
+        print(e)
         success = False; CPUtime = 'Unknown'; coverage='0%' # Core dump/error
 
     # update le fichier .time (si non present)

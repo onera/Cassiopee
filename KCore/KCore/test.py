@@ -295,7 +295,7 @@ def checkTree(t1, t2):
     for k in dict2.keys():
         node2 = dict2[k]
         # cherche le noeud equivalent dans t1
-        if not dict1.has_key(k):
+        if k not in dict1:
             print('DIFF: node %s existe dans reference mais pas dans courant.'%k)
         else:
             node1 = dict1[k]

@@ -95,10 +95,10 @@ void K_TRANSFORM::checkTriMesh(FldArrayI& ct, E_Int np,
   vector< vector<E_Int> > cEEN(ntr);
   K_CONNECT::connectEV2EENbrs("TRI", np, ct, cEEN);
   ct1 = ct.begin(1); ct2 = ct.begin(2); ct3 = ct.begin(3);
-  E_Float ndir1, ndir2, ndir3, ndir4;
+  E_Float ndir1, ndir2;
   E_Float ptA[3], ptB[3], ptC[3], dir1[3];
-  E_Float ptD[3], dir2[3], dir3[3], dir4[3];
-  E_Float inverse1, inverse2, rad1, rad2, rad3, rad4, ndirl;
+  E_Float ptD[3], dir2[3];
+  E_Float inverse1, rad1, rad2, rad3, rad4, ndirl;
   E_Int indA, indB, indC, indD, ind5, ind6, swap, ie, iv1, iv2, iv, pos1, pos2;
 
   E_Int maillesEcrasees = 0;

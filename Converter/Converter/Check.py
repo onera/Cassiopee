@@ -234,7 +234,7 @@ def checkVersionNode(t):
 #==============================================================================
 def _correctVersionNode(t):
     errors = checkVersionNode(t)
-    le = len(errors)/2
+    le = len(errors)//2
     added = 0
     for e in range(le):
         node = errors[2*e]
@@ -299,7 +299,7 @@ def checkNode__(node, errors):
 #==============================================================================
 def _correctNodes(t):
     errors = checkNodes(t)
-    le = len(errors)/2
+    le = len(errors)//2
     for e in range(le):
         node = errors[2*e]
         (p, c) = Internal.getParentOfNode(t, node)
@@ -499,7 +499,7 @@ def checkDonorFaces(t, type):
 #==============================================================================
 def _correctBCRanges(t, type):
     errors = checkBCRanges(t, type)
-    le = len(errors)/2
+    le = len(errors)//2
     for e in range(le):
         node = errors[2*e]
         (p, c) = Internal.getParentOfNode(t, node)
@@ -513,7 +513,7 @@ def _correctBCRanges(t, type):
 #==============================================================================
 def _correctDonorRanges(t, type):
     errors = checkDonorRanges(t, type)
-    le = len(errors)/2
+    le = len(errors)//2
     for e in range(le):
         node = errors[2*e]
         (p, c) = Internal.getParentOfNode(t, node)
@@ -642,7 +642,7 @@ def checkOppositRanges(t, type):
 #==============================================================================
 def _correctOppositRanges(t, type):
     errors = checkOppositRanges(t, type)
-    le = len(errors)/2
+    le = len(errors)//2
     for e in range(le):
         node = errors[2*e]
         (p, c) = Internal.getParentOfNode(t, node)
@@ -678,7 +678,7 @@ def checkZoneFamily(t):
 #==============================================================================
 def _correctZoneFamily(t):
     errors = checkZoneFamily(t)
-    le = len(errors)/2
+    le = len(errors)//2
     for e in range(le):
         node = errors[2*e]
         name = errors[2*e+1]
@@ -718,7 +718,7 @@ def checkBCFamily(t):
 #==============================================================================
 def _correctBCFamily(t):
     errors = checkBCFamily(t)
-    le = len(errors)/2
+    le = len(errors)//2
     for e in range(le):
         node = errors[2*e]
         name = errors[2*e+1]
@@ -906,7 +906,7 @@ def checkCGNSType__(node, errors):
 #==============================================================================
 def _correctCGNSType(t):
     errors = checkCGNSType(t)
-    le = len(errors)/2
+    le = len(errors)//2
     for e in range(le):
         node = errors[2*e]
         (p, c) = Internal.getParentOfNode(t, node)
@@ -954,7 +954,7 @@ def checkElementNodes(t):
 def _correctElementNodes(t):
     _correctBCElementNodes(t)
     errors = checkElementNodes(t)
-    le = len(errors)/2
+    le = len(errors)//2
     for e in range(le):
         zone = errors[2*e]
         msg = errors[2*e+1]
@@ -1024,7 +1024,7 @@ def checkCGNSVarNames(t):
 
 def _correctCGNSVarNames(t):
     errors = checkCGNSVarNames(t)
-    for e in range(len(errors)/2):
+    for e in range(len(errors)//2):
         node = errors[2*e]
         n = Internal.getCGNSName(node[0])
         node[0] = n
@@ -1055,7 +1055,7 @@ def checkCoordinatesInFields(t):
 
 def _correctCoordinatesInFields(t):
     errors = checkCoordinatesInFields(t)
-    for e in range(len(errors)/2):
+    for e in range(len(errors)//2):
         node = errors[2*e]
         n = node[0]+'F'
         node[0] = n
@@ -1085,7 +1085,7 @@ def checkFieldConformity(t):
 
 def _correctFieldConformity(t):
     errors = checkFieldConformity(t)
-    for e in range(len(errors)/2):
+    for e in range(len(errors)//2):
         node = errors[2*e]
         (p, c) = Internal.getParentOfNode(t, node)
         if p is not None: del p[2][c]

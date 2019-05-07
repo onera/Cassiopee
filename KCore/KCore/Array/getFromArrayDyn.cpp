@@ -161,7 +161,7 @@ E_Int K_ARRAY::getFromArray(PyObject* o,
     {
       PyErr_Warn(PyExc_Warning,
                  "getFromArray: an unstruct array must be of list of type ['vars', a, c, 'ELTTYPE']. Last element must be a string.");
-      Py_DECREF(a); Py_DECREF(ac);
+      Py_DECREF(a);
       return -7;
     }
 

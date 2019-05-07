@@ -148,7 +148,7 @@ graph_t *CoarsenGraphNlevels(ctrl_t *ctrl, graph_t *graph, idx_t nlevels)
 /**************************************************************************/
 idx_t Match_RM(ctrl_t *ctrl, graph_t *graph)
 {
-  idx_t i, pi, ii, j, jj, jjinc, k, nvtxs, ncon, cnvtxs, maxidx, last_unmatched;
+  idx_t i, pi, j, k, nvtxs, ncon, cnvtxs, maxidx, last_unmatched;
   idx_t *xadj, *vwgt, *adjncy, *adjwgt, *maxvwgt;
   idx_t *match, *cmap, *perm;
   size_t nunmatched=0;
@@ -275,7 +275,7 @@ idx_t Match_RM(ctrl_t *ctrl, graph_t *graph)
 /**************************************************************************/
 idx_t Match_SHEM(ctrl_t *ctrl, graph_t *graph)
 {
-  idx_t i, pi, ii, j, jj, jjinc, k, nvtxs, ncon, cnvtxs, maxidx, maxwgt, 
+  idx_t i, pi, j, k, nvtxs, ncon, cnvtxs, maxidx, maxwgt, 
         last_unmatched, avgdegree;
   idx_t *xadj, *vwgt, *adjncy, *adjwgt, *maxvwgt;
   idx_t *match, *cmap, *degrees, *perm, *tperm;
@@ -437,7 +437,7 @@ idx_t Match_2Hop(ctrl_t *ctrl, graph_t *graph, idx_t *perm, idx_t *match,
 idx_t Match_2HopAny(ctrl_t *ctrl, graph_t *graph, idx_t *perm, idx_t *match, 
           idx_t cnvtxs, size_t *r_nunmatched, size_t maxdegree)
 {
-  idx_t i, pi, ii, j, jj, k, nvtxs;
+  idx_t i, pi, j, jj, nvtxs;
   idx_t *xadj, *adjncy, *colptr, *rowind;
   idx_t *cmap;
   size_t nunmatched;
@@ -516,7 +516,7 @@ idx_t Match_2HopAny(ctrl_t *ctrl, graph_t *graph, idx_t *perm, idx_t *match,
 idx_t Match_2HopAll(ctrl_t *ctrl, graph_t *graph, idx_t *perm, idx_t *match, 
           idx_t cnvtxs, size_t *r_nunmatched, size_t maxdegree)
 {
-  idx_t i, pi, pk, ii, j, jj, k, nvtxs, mask, idegree;
+  idx_t i, pi, pk, j, jj, k, nvtxs, mask, idegree;
   idx_t *xadj, *adjncy;
   idx_t *cmap, *mark;
   ikv_t *keys;
@@ -621,7 +621,7 @@ void PrintCGraphStats(ctrl_t *ctrl, graph_t *graph)
 void CreateCoarseGraph(ctrl_t *ctrl, graph_t *graph, idx_t cnvtxs, 
          idx_t *match)
 {
-  idx_t j, jj, k, kk, l, m, istart, iend, nvtxs, nedges, ncon, cnedges, 
+  idx_t j, jj, k, kk, m, istart, iend, nvtxs, nedges, ncon, cnedges, 
         v, u, mask, dovsize;
   idx_t *xadj, *vwgt, *vsize, *adjncy, *adjwgt;
   idx_t *cmap, *htable;

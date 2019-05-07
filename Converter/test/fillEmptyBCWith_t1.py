@@ -12,7 +12,7 @@ a = C.initVars(a,'F',1.); a = C.initVars(a,'centers:G',2.)
 a = C.addBC2Zone(a, 'overlap', 'BCOverlap', 'imin')
 a = C.addBC2Zone(a, 'match1', 'BCMatch', 'jmin', a, 'jmax', [1,2,3])
 a = C.fillEmptyBCWith(a, 'wall', 'BCWall')
-t = C.newPyTree(['Base']); t[2][1][2].append(a)
+t = C.newPyTree(['Base', a])
 test.testT(t,1)
 
 # Avec un arbre
@@ -44,7 +44,7 @@ a = C.initVars(a,'F',1.); a = C.initVars(a,'centers:G',2.)
 a = C.addBC2Zone(a, 'overlap', 'BCOverlap', 'imin')
 a = C.addBC2Zone(a, 'match1', 'BCMatch', 'jmin', a, 'jmax', [1,2,3])
 a = C.fillEmptyBCWith(a, 'wall', 'BCWall')
-t = C.newPyTree(['Base']); t[2][1][2].append(a)
+t = C.newPyTree(['Base', a])
 test.testT(t, 4)
 
 #-----------------

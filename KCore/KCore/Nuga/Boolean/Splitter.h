@@ -700,7 +700,7 @@ E_Float concave_threshold, E_Float convex_threshold, E_Float rtol, ngon_type& tw
   E_Float abstol = __get_abs_tol(crd, rtol, PGS, first_pg, nb_pgs);
   E_Float angle_max = std::max/*min*/(concave_threshold, convex_threshold) * K_CONST::E_PI;
 
-  E_Int nb_chains = chains.size();
+  size_t nb_chains = chains.size();
 
   E_Float v, G[3];
   TriangulatorType dt;

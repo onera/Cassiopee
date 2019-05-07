@@ -129,7 +129,7 @@ void K_DISTRIBUTOR2::graph(
   }
 
   // com relative weight
-  E_Float rel = 0.5;
+  // E_Float rel = 0.5;
 
   // remplissage adj + xadj
   size = 0;

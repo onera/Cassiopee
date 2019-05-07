@@ -123,7 +123,7 @@ PyObject* K_CONNECTOR::setInterpTransfers(PyObject* self, PyObject* args)
           }
         }
 #if PY_VERSION_HEX >= 0x03000000
-        else if (PyUnicode_Check(l))
+        else if (PyUnicode_Check(tpl0))
         {
           char* varname = PyBytes_AsString(PyUnicode_AsUTF8String(tpl0));
           posvd = K_ARRAY::isNamePresent(varname, varStringD);      

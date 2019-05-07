@@ -24,7 +24,7 @@
 /*
   Create une texture a partir d'un fichier png.
   IN: filename: fichier png
-  IN: mipmap: si true, cree une texture avec mipmaps
+  IN: mipmap: si true, cree une texture avec mipmaps (not used, always mipmap)
   OUT: tex: texture.
   OUT: width, height: nbre de pixels de la texture
 */
@@ -34,8 +34,8 @@ int Data::createPngTexture(const char* filename, GLuint &tex,
 {
   Data* d = Data::getInstance();
 
-  GLint mipMap = GL_FALSE;
-  if (mipmap == true) mipMap = GL_TRUE;
+  //GLint mipMap = GL_FALSE;
+  //if (mipmap == true) mipMap = GL_TRUE;
 
   // Shader path
   char path[256*8];
@@ -48,7 +48,7 @@ int Data::createPngTexture(const char* filename, GLuint &tex,
 
   // local path name
   char path2[256*8];
-  char* file = ptrState->file;
+  //char* file = ptrState->file;
   char* lpn = ptrState->filePath;
   strcpy(path2, lpn);
   strcat(path2, "/");
@@ -64,7 +64,6 @@ int Data::createPngTexture(const char* filename, GLuint &tex,
     return 0; }
   
   png_structp png_ptr;
-  int number_of_passes;
   png_byte color_type;
   png_byte bit_depth;
 
@@ -122,7 +121,7 @@ int Data::createPngTexture(const char* filename, GLuint &tex,
     fclose(ptrFile); return 1;
   }
 
-  number_of_passes = png_set_interlace_handling(png_ptr);
+  //int number_of_passes = png_set_interlace_handling(png_ptr);
   png_read_update_info(png_ptr, info_ptr);
 
   /* read file */

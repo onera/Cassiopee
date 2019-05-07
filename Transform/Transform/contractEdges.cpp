@@ -105,12 +105,12 @@ void K_TRANSFORM::contractEdges(FldArrayI& ct, E_Int np,
   E_Float ndir1, ndir2;
   E_Float ptA[3], ptB[3], ptC[3], dir1[3];
   E_Float ptD[3], dir2[3];
-  E_Float inverse1, rad1, rad2, rad3, rad4, ndirl;
-  E_Int indA, indB, indC, indD, ind5, ind6, swap, ie, iv1, iv2, iv, pos1, pos2;
+  E_Float inverse1, rad1, rad2, ndirl;
+  E_Int indA, indB, indC, indD, ind5, ind6, swap;
   E_Float xx, yy, zz, e1, e2, e3, rad;
   E_Int neigh, mat, v;
-  E_Int maillesEcrasees = 0;
-  E_Int maillesInversees = 0;
+  //E_Int maillesEcrasees = 0;
+  //E_Int maillesInversees = 0;
 
   short* decim = new short [ntr];
   for (E_Int i = 0; i < ntr; i++) decim[i] = 1;

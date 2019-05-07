@@ -2824,7 +2824,7 @@ def convertDataNode2Array2(node, dim, connects, loc=-1):
     else:
         e = getNodeFromName(connect, 'ElementConnectivity')
         if e[1] is not None:
-            size = e[1].size/stype
+            size = e[1].size//stype
             b = e[1].reshape((size,stype)) # reshape needed
             cr = [b]
         else: cr = [None] # nodes
@@ -2976,7 +2976,7 @@ def convertDataNodes2Array2(nodes, dim, connects, loc=-1):
     elif eltType != 0: # all elements except NODE
         e = getNodeFromName(connect, 'ElementConnectivity')
         if e[1] is not None:
-            size = e[1].size/stype
+            size = e[1].size//stype
             b = e[1].reshape((size,stype)) # reshape needed
             cr = [b]
         else: cr = [] # ou None?
@@ -3357,7 +3357,7 @@ def adaptConnect__(connects, dim):
             if c is None: # a NODE
                 cr = numpy.empty((stype, 0), numpy.int32)
             else:
-                nelts = c.size / stype # elts = ne sauf si MULTIPLE
+                nelts = c.size // stype # elts = ne sauf si MULTIPLE
                 cr = numpy.empty((stype, nelts), numpy.int32)
                 c2 = None
                 converter.cpyConnectP2ConnectA(cr, c, c2, stype, nelts, -1, -1)

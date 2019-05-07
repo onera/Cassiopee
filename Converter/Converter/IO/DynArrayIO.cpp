@@ -170,7 +170,7 @@ E_Int DynArrayIO::read
   if (rdir == "")
   {
     //const char* -> char*
-    fname = new char[l +1]();
+    fname = new char[l+1]();
     strncpy(fname, fileName, l); 
   }
   else
@@ -178,7 +178,7 @@ E_Int DynArrayIO::read
     //const char* -> char*
     fname = new char[l+rdir.size()+1]();
     strncpy(fname, rdir.c_str(), rdir.size()); 
-    strncat(fname, fileName, l); 
+    strncat(fname, fileName, l);
   }
   
   const char* fileFmt = get_fmt(fileName);

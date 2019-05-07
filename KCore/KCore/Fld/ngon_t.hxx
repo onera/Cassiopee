@@ -258,7 +258,7 @@ struct ngon_t
       // sort the nodes
       BARSplitter::getSortedNodes(cB, snodes);
       
-      if (snodes.size() != nb_edges) //degen
+      if (snodes.size() != (size_t)nb_edges) //degen
       {
         //std::cout << cB << std::endl;
         continue;

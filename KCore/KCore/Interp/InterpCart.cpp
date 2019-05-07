@@ -37,7 +37,7 @@ K_INTERP::InterpCart::~InterpCart()
 K_INTERP::InterpCart::InterpCart(E_Int ni, E_Int nj, E_Int nk,
                                  E_Float hi, E_Float hj, E_Float hk,
                                  E_Float x0, E_Float y0, E_Float z0):
-   _ni(ni), _nj(nj), _nk(nk), InterpData(0, x0, y0, z0)
+   InterpData(0, x0, y0, z0), _ni(ni), _nj(nj), _nk(nk)
 {
   _hi = hi;
   _hj = hj;
@@ -140,7 +140,7 @@ short K_INTERP::InterpCart::searchInterpolationCellCartO3(E_Int ni, E_Int nj, E_
   jc = std::max(jc,1); jc = std::min(jc,nj-1);
   kc = std::max(kc,1); kc = std::min(kc,nk-1);
 
-  E_Float* cfp = cf.begin();
+  //E_Float* cfp = cf.begin();
   
   E_Float x_i = _xmin+(ic-1)*_hi; E_Float x_ip = x_i +_hi;
   E_Float y_j = _ymin+(jc-1)*_hj; E_Float y_jp = y_j +_hj;

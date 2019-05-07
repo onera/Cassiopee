@@ -514,7 +514,8 @@ def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
     except: raise IOError("convertFile2Arrays: file %s not found."%fileName)
     file.close()
     if format == 'bin_pickle':
-        import cPickle as pickle
+        try: import cPickle as pickle
+        except: import pickle
         print('Reading \''+fileName+'\'...'),
         try:
             file = open(fileName, 'rb')
@@ -602,7 +603,8 @@ def convertArrays2File(arrays, fileName, format=None, isize=4, rsize=8,
     if format is None:
         format = convertExt2Format__(fileName)
     if format == 'bin_pickle':
-        import cPickle as pickle
+        try: import cPickle as pickle
+        except: import pickle
         file = open(fileName, 'wb')
         print('Writing \''+fileName+'\'...'),
         pickle.dump(arrays, file, protocol=pickle.HIGHEST_PROTOCOL); file.close()

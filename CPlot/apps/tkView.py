@@ -374,8 +374,8 @@ def loadSlot():
     pos = Internal.getNodeFromName1(renderInfo, 'billBoards')
     if pos is not None:
         out = []
-        for i in pos[2]: out.append(Internal.getValue(i))
-        CPlot.setState(billBoards=out)
+        for i in pos[2]: out.append(Internal.getValue(i)) #; out += [1,1]
+        CPlot.setState(billBoards=out, billBoardSize=0.8)
         
     CTK.TXT.insert('START', 'Slot loaded.\n')
 

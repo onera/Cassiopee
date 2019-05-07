@@ -597,7 +597,7 @@ def _addFlowSolution(t, name='', loc='CellCenter', variables=None,
           prval = Internal.getValue(Internal.getNodeFromName1(bc, "PointRange")) 
           subChildren2 = [Internal.createNode("PointRange","DataArray_t", value=prval)]
           subChildren2+= [Internal.createNode("Protocol","Descriptor_t",value=protocol)]
-          strval = string.join(['SurfaceSolution/NeumannData/'+variable for variable in variables],'\n')
+          strval = '\n'.join(['SurfaceSolution/NeumannData/'+variable for variable in variables])
           subChildren2+= [Internal.createNode("Path","DataArray_t",value=strval)]
           subChildren1+= [Internal.createNode(Internal.getName(bc), "UserDefinedData_t",children=subChildren2)]
         

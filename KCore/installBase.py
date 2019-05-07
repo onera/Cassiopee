@@ -53,7 +53,7 @@ False, # CPlotOffScreen
 'gfortran', # f77compiler
 'gfortran', # f90compiler
 'gcc', # Cppcompiler
-[], # CppAdditionalOptions
+['-Wno-attributes'], # CppAdditionalOptions
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static

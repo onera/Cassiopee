@@ -1765,7 +1765,7 @@ def _TZA(t, locin, locout, F, Fc, *args):
         setFields([fp], z, locout)
     else: # both
       # Dans ce cas, on suppose que F ne change pas la localisation
-      l = int(len(args)/2);
+      l = len(args)//2
       args1 = args[0:l]; args2 = args[l:]
       fc = getFields(Internal.__GridCoordinates__, z)[0]
       fa = getFields(Internal.__FlowSolutionNodes__, z)[0]
@@ -1815,7 +1815,7 @@ def _TZANW(t, locin, locout, F, Fc, *args):
         setFields([fp], z, locout, writeDim=False)
     else: # both
       # Dans ce cas, on suppose que F ne change pas la localisation
-      l = int(len(args)/2);
+      l = len(args)//2
       args1 = args[0:l]; args2 = args[l:]
       fc = getFields(Internal.__GridCoordinates__, z)[0]
       fa = getFields(Internal.__FlowSolutionNodes__, z)[0]
@@ -1907,8 +1907,8 @@ def _TZAGC(t, locin, locout, F, Fc, *args):
         fp = Fc(fa, *args)
         setFields([fp], z, locout)
     else: # both
-      l = len(args)
-      args1 = args[0:l/2]; args2 = args[l/2:]
+      l = len(args)//2
+      args1 = args[0:l]; args2 = args[l:]
       fc = getFields(Internal.__GridCoordinates__, z)[0]
       fa = getFields(Internal.__FlowSolutionNodes__, z)[0]
       fb = getFields(Internal.__FlowSolutionCenters__, z)[0]
@@ -1931,7 +1931,7 @@ def _TZAGC(t, locin, locout, F, Fc, *args):
         st = fp[0].split(',')
         vars = []
         for i in st:
-          if (i != 'CoordinateX' and i != 'CoordinateY' and i != 'CoordinateZ'):
+          if i != 'CoordinateX' and i != 'CoordinateY' and i != 'CoordinateZ':
             vars.append(i)
         if vars != []:
           fp = Converter.extractVars(fp, vars)
@@ -1961,8 +1961,8 @@ def TZANC(t, locin, locout, F, Fc, *args):
 
 def _TZANC(t, locin, locout, F, Fc, *args):
   zones = Internal.getZones(t)
-  l = len(args)
-  args1 = args[0:l/2]; args2 = args[l/2:]
+  l = len(args)//2
+  args1 = args[0:l]; args2 = args[l:]
   for z in zones:
     if locin == 'nodes':
       fc = getFields(Internal.__GridCoordinates__, z)[0]
@@ -1991,8 +1991,8 @@ def _TZANC(t, locin, locout, F, Fc, *args):
           setFields([fa], z, 'centers')
 
     else: # both
-      l = len(args)
-      args1 = args[0:l/2]; args2 = args[l/2:]
+      l = len(args)//2
+      args1 = args[0:l]; args2 = args[l:]
       fc = getFields(Internal.__GridCoordinates__, z)[0]
       fa = getFields(Internal.__FlowSolutionNodes__, z)[0]
       zp = Internal.copyRef(z)
@@ -2033,8 +2033,8 @@ def _TZANC(t, locin, locout, F, Fc, *args):
 def TLAGC(t, F, *args):
   tp = Internal.copyRef(t)
   zones = Internal.getZones(tp)
-  l = len(args)
-  args1 = args[0:l/2]; args2 = args[l/2:]
+  l = len(args)//2
+  args1 = args[0:l]; args2 = args[l:]
   allfc = []; allfa = []; allfb = []
   nzones = len(zones)
   if nzones == 0: return tp

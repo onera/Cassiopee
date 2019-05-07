@@ -1772,7 +1772,7 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t, crd_t>::smooth(std::vector<E_Int>& a
 {
   std::stack<E_Int> stck;
 
-  for (size_t i = 0; i < _ng.PHs.size();  i++){
+  for (E_Int i = 0; i < _ng.PHs.size();  i++){
     if (adap_incr[i] != 0){
       stck.push(i);
     }
