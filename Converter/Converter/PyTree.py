@@ -1217,6 +1217,7 @@ def getField(name, t, api=1):
       connects = Internal.getElementNodes(z)
 
     info = z[2]; a = None
+
     if loc == 'nodes': # regarde les containeurs GridCoordinates et Nodes
       for i in info:
         if i[0] == Internal.__GridCoordinates__ or i[0] == Internal.__FlowSolutionNodes__:
@@ -4755,7 +4756,6 @@ def extractAllBCMatch(t,varList=None):
           zdonor = Internal.getNodeFromName(t,zname)
           # Extraction BCMatch pour la zone donneuse
           [indR,fldD]  = extractBCMatch(zdonor,gc,dim,varList)
-
           key           = z[0]+"/"+gc[0]
           allMatch[key] = [indR,fldD]
 
@@ -4917,7 +4917,7 @@ def extractBCMatch(zdonor,gc,dimzR,variables=None):
         for fs in FS[2]:
           if Internal.getType(fs)=='DataArray_t': 
             varList.append(Internal.getName(fs))
-
+          
     # Traitement pour maillage struture 
     # =================================
     if zoneType == 1: # Structured mesh
@@ -4930,7 +4930,6 @@ def extractBCMatch(zdonor,gc,dimzR,variables=None):
                     raise TypeError("extractBCMatch: expected variables at centers location.")
             else:
                 var = 'centers:'+var 
-              
             fld = getField(var,zdonor)[0]
 
             if fld != []:
@@ -4947,8 +4946,8 @@ def extractBCMatch(zdonor,gc,dimzR,variables=None):
 
     #     fields = getAllFields(zdonor, 'centers')[0]
 
-    # if fields == []:
-        # raise ValueError("extractBCMatch: Variable not found.", variables)
+        if fields == []:
+            raise ValueError("extractBCMatch. Variable(s) not found:", variables)
 
         # Infos raccord 
         # =============
