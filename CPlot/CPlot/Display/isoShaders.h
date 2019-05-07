@@ -31,7 +31,7 @@ switch (zonep->material)
 { 
   case 1: // iso+glass 
   {
-    shader = 26;
+    shader = _shaders.shader_id(shader::iso_glass);
     glActiveTexture(GL_TEXTURE0);
     if (_texColormap == 0) createColormapTexture();
     fillColormapTexture((int)_pref.colorMap->varName[0]-48);
@@ -85,7 +85,7 @@ switch (zonep->material)
 
   case 2: // envmap (chrome) 
   {
-    shader = 25;
+    shader = _shaders.shader_id(shader::iso_chrome);
     SHADOWTEXTURE;
     glActiveTexture(GL_TEXTURE1);
     if (_texColormap == 0) createColormapTexture();
@@ -132,7 +132,7 @@ switch (zonep->material)
 
   case 8: // iso+granite 
   {
-    shader = 18;
+    shader = _shaders.shader_id(shader::iso_granite);
     SHADOWTEXTURE;
     glActiveTexture(GL_TEXTURE1);
     if (_texColormap == 0) createColormapTexture();
@@ -179,7 +179,7 @@ switch (zonep->material)
 
  case 10: // iso+brick 
  {
-    shader = 28;
+    shader = _shaders.shader_id(shader::iso_brick);
     glActiveTexture(GL_TEXTURE0);
     if (_texColormap == 0) createColormapTexture();
     fillColormapTexture((int)_pref.colorMap->varName[0]-48);
@@ -216,7 +216,7 @@ switch (zonep->material)
 
  case 12: // iso+gooch 
  {
-    shader = 31;
+    shader = _shaders.shader_id(shader::iso_gooch);
     glActiveTexture(GL_TEXTURE0);
     if (_texColormap == 0) createColormapTexture();
     fillColormapTexture((int)_pref.colorMap->varName[0]-48);
@@ -253,7 +253,7 @@ switch (zonep->material)
 
   case 13: // iso+flat 
   {
-    shader = 24;
+    shader = _shaders.shader_id(shader::iso_flat);
     SHADOWTEXTURE;
     glActiveTexture(GL_TEXTURE1);
     if (_texColormap == 0) createColormapTexture();
@@ -290,7 +290,7 @@ switch (zonep->material)
 
   case 7: // iso + Xray
   {
-    shader = 30;
+    shader = _shaders.shader_id(shader::iso_xray);
     glActiveTexture(GL_TEXTURE1);
     if (_texColormap == 0) createColormapTexture();
     fillColormapTexture((int)_pref.colorMap->varName[0]-48);
@@ -329,7 +329,7 @@ switch (zonep->material)
 
   case 3: // iso+metal (anisotropic) 
   {
-    shader = 32;
+    shader = _shaders.shader_id(shader::iso_metal);
     SHADOWTEXTURE;
     glActiveTexture(GL_TEXTURE1);
     if (_texColormap == 0) createColormapTexture();
@@ -367,7 +367,7 @@ switch (zonep->material)
 
   default: // iso+solid
   {
-    shader = 10;
+    shader = _shaders.shader_id(shader::iso_banded_colormap);
     SHADOWTEXTURE;
     glActiveTexture(GL_TEXTURE1);
     if (_texColormap == 0) createColormapTexture();

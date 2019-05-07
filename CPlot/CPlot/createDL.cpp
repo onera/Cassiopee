@@ -66,18 +66,30 @@ void DataDL::createGPURes()
   }
 
   // - Mesh -
-# define USEDLMESH 1
 #if (USEDLMESH == 1)
   zone = 0;
-  /*while (zone < _numberOfStructZones)
+  while (zone < _numberOfStructZones)
   {
     StructZone* z = _szones[zone];
     ZoneImplDL& zImpl = *static_cast<ZoneImplDL*>(z->ptr_impl);
     if (zImpl._GPUResUse == 1 && zImpl._DLmesh == 0)
     { createGPUSMeshZone(z, zone); goto end; }
     zone++;
-  }*/
+  }
 
+  zone = 0;
+  while (zone < _numberOfUnstructZones)
+  {
+    UnstructZone* z = _uzones[zone];
+    ZoneImplDL& zImpl = *static_cast<ZoneImplDL*>(z->ptr_impl);
+    if (zImpl._GPUResUse == 1 && zImpl._DLmesh == 0)
+    {
+      zonet = zone + _numberOfStructZones;
+      { createGPUUMeshZone(z, zone, zonet); goto end; }
+    }
+    zone++;
+  }
+#else
   zone = 0;
   while (zone < _numberOfUnstructZones)
   {

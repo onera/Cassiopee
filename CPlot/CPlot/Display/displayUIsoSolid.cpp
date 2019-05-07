@@ -43,8 +43,8 @@ void DataDL::displayUIsoSolid()
     if (_texColormap == 0) createColormapTexture();
     fillColormapTexture((int)_pref.colorMap->varName[0]-48);
     glBindTexture(GL_TEXTURE_1D, _texColormap);
-    int s = _shaders.shader_id(10);
-    if (ptrState->scalarStyle == 2 || ptrState->scalarStyle == 3) s = _shaders.shader_id(29);
+    int s = _shaders.shader_id(shader::iso_banded_colormap);
+    if (ptrState->scalarStyle == 2 || ptrState->scalarStyle == 3) s = _shaders.shader_id(shader::iso_colored_lines);
     if (_shaders.currentShader() != s) _shaders.activate((short unsigned int)s);
     _shaders[s]->setUniform("colormap", (int)1);
     int nofield = ptrState->scalarField;

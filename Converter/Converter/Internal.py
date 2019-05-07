@@ -2059,7 +2059,7 @@ def sortByName(t, recursive=True):
     _sortByName(tp, recursive)
     return tp
 
-def _sortByName(t, recursive):
+def _sortByName(t, recursive=True):
     names = [n[0] for n in t[2]]
     names.sort()
     for name in names:

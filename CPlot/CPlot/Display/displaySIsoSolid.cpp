@@ -47,8 +47,8 @@ void DataDL::displaySIsoSolid()
     if (_texColormap == 0) createColormapTexture();
     fillColormapTexture((int)_pref.colorMap->varName[0]-48);
     glBindTexture(GL_TEXTURE_1D, _texColormap);
-    int s = _shaders.shader_id(10);
-    if (ptrState->scalarStyle == 2 || ptrState->scalarStyle == 3) s = _shaders.shader_id(29);
+    int s = _shaders.shader_id(shader::iso_banded_colormap);
+    if (ptrState->scalarStyle == 2 || ptrState->scalarStyle == 3) s = _shaders.shader_id(shader::iso_colored_lines);
     
     if (_shaders.currentShader() != s) _shaders.activate((short unsigned int)s);
     _shaders[s]->setUniform("colormap", (int)1);
@@ -79,10 +79,10 @@ void DataDL::displaySIsoSolid()
   else
   { // shader pour les isos vectoriels
     int s = _shaders.shader_id(27);
-    if (ptrState->vectorStyle == 2) s = 33;
-    if (ptrState->vectorStyle == 1) s = 34;
-    if (ptrState->vectorStyle == 3) s = 35;
-    if (ptrState->vectorStyle == 4) s = 36;
+    if (ptrState->vectorStyle == 2) s = _shaders.shader_id(33);
+    if (ptrState->vectorStyle == 1) s = _shaders.shader_id(34);
+    if (ptrState->vectorStyle == 3) s = _shaders.shader_id(35);
+    if (ptrState->vectorStyle == 4) s = _shaders.shader_id(36);
     if (_shaders.currentShader() != s)
       _shaders.activate((short unsigned int)s);
     if ( s == _shaders.shader_id(27) ) {
