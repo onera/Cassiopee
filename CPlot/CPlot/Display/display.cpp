@@ -230,7 +230,6 @@ void gdisplay()
 void Data::display()
 {
   ptrState->lockDisplay();
-  //fprintf(stderr, "Dans le display\n");
   // Preprocessing pour le shadow mapping
   if (ptrState->shadow == 1)
   {
@@ -286,7 +285,7 @@ void Data::display()
   displayPlots();
 
 #ifdef __SHADERS__
-  // Update du frame buffer pour les shaders le necessitant (glass)
+  // Update du frame buffer pour les shaders le necessitant (glass par ex)
   int update = 0;
   for (E_Int i = 0; i < _numberOfZones; i++)
   {
@@ -307,18 +306,18 @@ void Data::display()
 
   // Post-processing
   int post = 0; double sobelThreshold = -0.5; 
-  if (ptrState->DOF == 1) { post = 1;  sobelThreshold = ptrState->sobelThreshold; }
+  if (ptrState->DOF == 1) { post = 1; sobelThreshold = ptrState->sobelThreshold; }
   if (ptrState->mode == SOLID && ptrState->solidStyle == 4) { post = 1; sobelThreshold = 0.5; }
 
   if (post == 1)
   { 
-    // Recupere l'image standard
+    // Recupere l'image standard dans _texRight
     if (_texRight != 0) glDeleteTextures(1, &_texRight);
     glActiveTexture(GL_TEXTURE0);
     glGenTextures(1, &_texRight);
     glBindTexture(GL_TEXTURE_2D, _texRight);
     glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, 0, _view.w, _view.h, 0);
-    // Recupere le depth buffer
+    // Recupere le depth buffer dans _texLeft
     if (_texLeft != 0) glDeleteTextures(1, &_texLeft);
     glActiveTexture(GL_TEXTURE1);
     glGenTextures(1, &_texLeft);

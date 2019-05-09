@@ -34,7 +34,7 @@ void main()
     gAlpha = 0.f;
     EmitVertex();
 
-    gl_Position =  bary2;
+    gl_Position = bary2;
     color  = bcol;
     Nv     = bnorm.xyz;
     P      = bary1.xyz;

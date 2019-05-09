@@ -16,8 +16,6 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-#define DEBUG
-#undef  NDEBUG
 #ifndef _CPLOT_SHADERMANAGER_HPP_
 #define _CPLOT_SHADERMANAGER_HPP_
 #include <cassert>

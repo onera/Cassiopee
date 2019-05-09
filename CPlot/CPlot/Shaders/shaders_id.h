@@ -6,43 +6,43 @@ namespace shader
 enum shaders_id
 {
 	None = 0,
-	unidirectionnel_phong,
-	bidirectionnel_phong,
-	glass,
-	chrome,
-	metal,
-	wood,
-	marble,
-	smoke,
-	xray,
-	iso_banded_colormap,
-	granite,
-	sphere_billboarding,
-	monochrome_anaglyph,
-	color_anaglyph,
-	iso_continuous_colormap,
-	brick,
-	cloud,
-	iso_granite,
-	shadow_mapping,
-	DOF,
-	gooch,
-	flat,
-	billboard,
-	iso_flat,
-	iso_chrome,
-	iso_glass,
-	rgb_vector,
-	iso_brick,
-	iso_colored_lines,
-	iso_xray,
-	iso_gooch,
-	iso_metal,
-	velocity_line,
-	velocity_tetra,
-	velocity_triangle,
-	velocity_uniform_streamline,
-	textured_material,
+	unidirectionnel_phong, // 1
+	bidirectionnel_phong,  // 2
+	glass, // 3
+	chrome, // 4
+	metal, // 5
+	wood, // 6
+	marble, // 7
+	smoke, // 8
+	xray, // 9
+	iso_banded_colormap, // 10
+	granite, // 11
+	sphere_billboarding, // 12
+	monochrome_anaglyph, // 13
+	color_anaglyph, // 14
+	iso_continuous_colormap, // 15
+	brick, // 16
+	cloud, // 17
+	iso_granite, // 18
+	shadow_mapping, // 19
+	DOF, // 20
+	gooch, // 21
+	flat, // 22
+	billboard, // 23
+	iso_flat, // 24
+	iso_chrome, // 25
+	iso_glass, // 26
+	vector_rgb, // 27
+	iso_brick, // 28
+	iso_colored_lines, // 29
+	iso_xray, // 30
+	iso_gooch, // 31
+	iso_metal, // 32
+	vector_line, // 33
+	vector_tetra, // 34
+	vector_triangle, // 35
+	vector_uniform_streamline, // 36
+	textured_material, // 37
 
 	end_of_shaders_id
 };

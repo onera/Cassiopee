@@ -73,22 +73,21 @@ void DataDL::displayUIsoSolid()
   }
   else
   { // shader pour les isos vectoriels
-    int s = _shaders.shader_id(27);
-    if ( ptrState->vectorStyle == 3) s = _shaders.shader_id(35);
-    if ( ptrState->vectorStyle == 2) s = _shaders.shader_id(33);
-    if ( ptrState->vectorStyle == 1) s = _shaders.shader_id(34);
-    if ( ptrState->vectorStyle == 4) s = _shaders.shader_id(36);
+    int s = _shaders.shader_id(shader::vector_rgb);
+    if (ptrState->vectorStyle == 1) s = _shaders.shader_id(shader::vector_tetra);
+    else if (ptrState->vectorStyle == 2) s = _shaders.shader_id(shader::vector_line);
+    else if (ptrState->vectorStyle == 3) s = _shaders.shader_id(shader::vector_triangle);
+    else if (ptrState->vectorStyle == 4) s = _shaders.shader_id(shader::vector_uniform_streamline);
+    
     if (_shaders.currentShader() != s)
       _shaders.activate((short unsigned int)s);
-    if ( s == _shaders.shader_id(27) ) {
+    if (s == _shaders.shader_id(shader::vector_rgb)) 
+    {
       _shaders[s]->setUniform("lightOn", (int)0);
       _shaders[s]->setUniform("shadow", (int)ptrState->shadow);
       _shaders[s]->setUniform("ShadowMap", (int)0);
     }
-    if ((s == _shaders.shader_id(33))||(s==_shaders.shader_id(34))||(s==_shaders.shader_id(35))) {
-      // ##############################################################
-      // Faudra rajouter une option scale pour la taille des vecteurs !
-      // ##############################################################
+    if ((s == _shaders.shader_id(shader::vector_line))||(s==_shaders.shader_id(shader::vector_tetra))||(s==_shaders.shader_id(shader::vector_triangle))) {
       _shaders[s]->setUniform("lightOn", (int)0);
       _shaders[s]->setUniform("shadow", (int)ptrState->shadow);
       _shaders[s]->setUniform("ShadowMap", (int)0);
@@ -96,9 +95,10 @@ void DataDL::displayUIsoSolid()
       double sc = ptrState->vectorScale/100.;
       _shaders[s]->setUniform("scale", float(sc*diag));
       _shaders[s]->setUniform("fix_length", ptrState->vectorNormalize);
-      if ((s==_shaders.shader_id(34))||(s==_shaders.shader_id(35))) _shaders[s]->setUniform("show_surface",ptrState->vectorShowSurface);
+      if ((s==_shaders.shader_id(shader::vector_tetra))||(s==_shaders.shader_id(shader::vector_triangle))) _shaders[s]->setUniform("show_surface",ptrState->vectorShowSurface);
     }
-    if (s==_shaders.shader_id(36)) {
+    if (s == _shaders.shader_id(shader::vector_uniform_streamline)) 
+    {
       _shaders[s]->setUniform("lightOn", (int)0);
       _shaders[s]->setUniform("shadow", (int)ptrState->shadow);
       _shaders[s]->setUniform("ShadowMap", (int)0);
@@ -108,7 +108,6 @@ void DataDL::displayUIsoSolid()
       _shaders[s]->setUniform("density", float(ptrState->vectorDensity/diag));
       _shaders[s]->setUniform("fix_length", ptrState->vectorNormalize);
     }
-
   }
 #endif 
 
@@ -120,15 +119,16 @@ void DataDL::displayUIsoSolid()
     if (ptrState->mode == SCALARFIELD)
     {
       int s = _shaders.shader_id(10);
-      if (ptrState->scalarStyle == 2 || ptrState->scalarStyle == 3) s = _shaders.shader_id(29);
+      if (ptrState->scalarStyle == 2 || ptrState->scalarStyle == 3) s = _shaders.shader_id(shader::iso_colored_lines);
       _shaders[s]->setUniform("lightOn", (int)1);
     }
-    else {
-	int s = _shaders.shader_id(27);
-	if (ptrState->vectorStyle == 2) s = _shaders.shader_id(33);
-	if (ptrState->vectorStyle == 1) s = _shaders.shader_id(34);
-	if (ptrState->vectorStyle == 3) s = _shaders.shader_id(35);
-	_shaders[s]->setUniform("lightOn", (int)1);
+    else 
+    {
+	   int s = _shaders.shader_id(shader::vector_rgb);
+	   if (ptrState->vectorStyle == 2) s = _shaders.shader_id(shader::vector_line);
+	   else if (ptrState->vectorStyle == 1) s = _shaders.shader_id(shader::vector_tetra);
+	   else if (ptrState->vectorStyle == 3) s = _shaders.shader_id(shader::vector_triangle);
+	   _shaders[s]->setUniform("lightOn", (int)1);
     }
 #endif
   }
@@ -189,7 +189,7 @@ void DataDL::displayUIsoSolid()
            (zonep->active == 0 && ptrState->ghostifyDeactivatedZones == 1))
           && isInFrustum(zonep, _view) == 1)
       {
-	displayUMeshZone(zonep, zone, zonet);
+	     displayUMeshZone(zonep, zone, zonet);
       }
       zone++;
     }
