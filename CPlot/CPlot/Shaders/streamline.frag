@@ -10,7 +10,6 @@ uniform int lightOn;
 uniform float blend;
 uniform int shadow;
 uniform sampler2D ShadowMap;
-uniform float Brightness = 0.5;
 
 void main()
 {

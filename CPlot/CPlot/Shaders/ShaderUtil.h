@@ -18,11 +18,14 @@
 */
 #ifndef _CPLOT_SHADERUTIL_HPP_
 #define _CPLOT_SHADERUTIL_HPP_
-#include <stdio.h>
 
-//#define DEBUGSHADER 
+//#define DEBUGSHADER
 
 #ifdef DEBUGSHADER
+#include <stdio.h>
+#include <GL/glu.h>
+
+// Retourne 1 si error et 0 sinon
 static int checkGLError(char *file, int line)
 {
   GLenum glErr;
@@ -31,17 +34,16 @@ static int checkGLError(char *file, int line)
   glErr = glGetError();
   while (glErr != GL_NO_ERROR) 
   {
-    //const GLubyte* sError = gluErrorString(glErr);
+    const GLubyte* sError = gluErrorString(glErr);
 
-/*    if (sError)
+    if (sError)
       printf("GL Error # %d (%s) in file %s at line %d.\n",
              glErr, gluErrorString(glErr), file, line);
     else
-       printf("GL Error # %d (no message) in file %s at line %d.\n",
+      printf("GL Error # %d (no message) in file %s at line %d.\n",
              glErr, file, line);
-	*/		
-    retCode = 1;
     glErr = glGetError();
+    retCode = 1;
   }
   return retCode;
 }

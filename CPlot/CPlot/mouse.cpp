@@ -92,7 +92,6 @@ void Data::mouseButton(int button, int etat, int x, int y)
                 break;
             }
           }
-
         }
       }
       else
@@ -132,7 +131,8 @@ void Data::mouseButton(int button, int etat, int x, int y)
 
     case 3: // mouse wheel, zoom in
     {
-      double alpha = 0.08;
+      //double alpha = 0.08;
+      double alpha = 0.15;
       double dx = (_view.xeye - _view.xcam)*alpha;
       double dy = (_view.yeye - _view.ycam)*alpha;
       double dz = (_view.zeye - _view.zcam)*alpha;
@@ -149,23 +149,14 @@ void Data::mouseButton(int button, int etat, int x, int y)
         _view.zeye += dz;
       }
       
-      /*
-      if (d <= epsup*1.e-3)
-      { if (_view.clipping != 3) veryVeryCloseClipping(); }
-      else if (d <= epsup*1.e-2)
-      { if (_view.clipping != 2) veryCloseClipping(); }
-      else if (d <= epsup*1.)
-      { if (_view.clipping != 1) { printf("dist %f\n",d); closeClipping(); } }
-      else
-      { if (_view.clipping != 0) farClipping(); }
-      */
       adaptiveClipping(d);
       button = GLUT_MIDDLE_BUTTON;
     }
 
     case 4: // mouse wheel, zoom out
     {
-      double alpha = 0.04;
+      //double alpha = 0.04;
+      double alpha = 0.075;
       double dx = (_view.xeye - _view.xcam)*alpha;
       double dy = (_view.yeye - _view.ycam)*alpha;
       double dz = (_view.zeye - _view.zcam)*alpha;
@@ -280,8 +271,9 @@ void Data::mouseMotion(int x, int y)
     double d = sqrt(dx*dx + dy*dy + dz*dz);
     double alpha = 0.009;
     //alpha = MIN(0.0015+d/dmoy*0.0035, 0.005);
-    alpha = 0.005+d/dmoy*0.005;
+    //alpha = 0.005+d/dmoy*0.005;
     //alpha = MIN(0.000001+d/dmoy*0.0025, 0.005);
+    alpha = 0.005+d/dmoy*0.008;
     dx = dx*alpha; dy = dy*alpha; dz = dz*alpha; d = d*alpha;
 
     double dirx = _view.dirx;
@@ -329,7 +321,8 @@ void Data::mouseMotion(int x, int y)
     double dy = (_view.yeye - _view.ycam);
     double dz = (_view.zeye - _view.zcam);
     double d = sqrt(dx*dx + dy*dy + dz*dz);
-    double alpha = 0.003 + d/dmoy*0.0010;
+    //double alpha = 0.003 + d/dmoy*0.0010;
+    double alpha = 0.003 + d/dmoy*0.003;
     dx = dx*alpha; dy = dy*alpha; dz = dz*alpha; d = d*alpha;
 
     double dirx = _view.dirx;

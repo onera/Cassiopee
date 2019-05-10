@@ -827,7 +827,7 @@ def createApp(win):
     # -22- vector variable 3
     V = TK.StringVar(win); V.set('None'); VARS.append(V)
     # -23- vector vectorStyle
-    V = TK.StringVar(win); V.set('RGB'); VARS.append(V)
+    V = TK.StringVar(win); V.set('Vector lines'); VARS.append(V)
     # -24- vector vectorScale
     V = TK.StringVar(win); V.set('1.0'); VARS.append(V)
     # -25- vector vectorDensity
@@ -996,8 +996,9 @@ def createApp(win):
     # - Vector style -
     B = TTK.Label(Vector, text='Style:')
     B.grid(row=0, column=0, sticky=TK.EW)
-    B = TTK.OptionMenu(Vector, VARS[23], 'RGB', 'Vector lines', 
-                       'Vector arrows', 'Vector triangles', 'Uniform Vector Lines',
+    B = TTK.OptionMenu(Vector, VARS[23], 'Vector lines', 'Vector arrows', 
+                       'Vector triangles', 'Uniform Vector Lines', 
+                       'RGB', 
                        command=setVectorStyle)
     B.grid(row=0, column=1, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Vector style.')
@@ -1008,7 +1009,7 @@ def createApp(win):
     B = TTK.Entry(Vector, textvariable=VARS[24], width=4, background='White')
     B.bind('<Return>', setScaleVector)
     B.grid(row=1, column=1, sticky=TK.EW)
-    B = TTK.Scale(Vector, from_=1E-10, to=200, orient=TK.HORIZONTAL,
+    B = TTK.Scale(Vector, from_=1E-10, to=10, orient=TK.HORIZONTAL,
                   command=scaleVector, showvalue=1, borderwidth=1, value=1.)
     B.grid(row=1, column=2, sticky=TK.EW)
     WIDGETS['vectorScale'] = B
@@ -1022,7 +1023,6 @@ def createApp(win):
     B = TTK.Scale(Vector, from_=0.1, to=1.E5, orient=TK.HORIZONTAL,
                   command=densityVector, showvalue=1, borderwidth=1, value=100.)
     WIDGETS['vectorDensity'] = B
-
 
     # - Vector field settings -
     B = TTK.Label(Vector, text='Field1:')
@@ -1119,6 +1119,7 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='Load view, ... from slot.')
 
     if 'tkViewMode' in CTK.PREFS: setMode()
+    setVectorStyle()
 
 #==============================================================================
 # Called to display widgets

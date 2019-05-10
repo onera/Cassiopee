@@ -79,34 +79,34 @@ void DataDL::displayUIsoSolid()
     else if (ptrState->vectorStyle == 3) s = _shaders.shader_id(shader::vector_triangle);
     else if (ptrState->vectorStyle == 4) s = _shaders.shader_id(shader::vector_uniform_streamline);
     
-    if (_shaders.currentShader() != s)
-      _shaders.activate((short unsigned int)s);
+    if (_shaders.currentShader() != s) _shaders.activate((short unsigned int)s);
+
     if (s == _shaders.shader_id(shader::vector_rgb)) 
     {
       _shaders[s]->setUniform("lightOn", (int)0);
       _shaders[s]->setUniform("shadow", (int)ptrState->shadow);
       _shaders[s]->setUniform("ShadowMap", (int)0);
     }
-    if ((s == _shaders.shader_id(shader::vector_line))||(s==_shaders.shader_id(shader::vector_tetra))||(s==_shaders.shader_id(shader::vector_triangle))) {
+    else if ((s == _shaders.shader_id(shader::vector_line))||(s==_shaders.shader_id(shader::vector_tetra))||(s==_shaders.shader_id(shader::vector_triangle))) {
       _shaders[s]->setUniform("lightOn", (int)0);
       _shaders[s]->setUniform("shadow", (int)ptrState->shadow);
       _shaders[s]->setUniform("ShadowMap", (int)0);
       double diag = 0.01*sqrt((xmax-xmin)*(xmax-xmin)+(ymax-ymin)*(ymax-ymin)+(zmax-zmin)*(zmax-zmin));
       double sc = ptrState->vectorScale/100.;
       _shaders[s]->setUniform("scale", float(sc*diag));
-      _shaders[s]->setUniform("fix_length", ptrState->vectorNormalize);
+      _shaders[s]->setUniform("fix_length", (int)ptrState->vectorNormalize);
       if ((s==_shaders.shader_id(shader::vector_tetra))||(s==_shaders.shader_id(shader::vector_triangle))) _shaders[s]->setUniform("show_surface",ptrState->vectorShowSurface);
     }
-    if (s == _shaders.shader_id(shader::vector_uniform_streamline)) 
+    else if (s == _shaders.shader_id(shader::vector_uniform_streamline)) 
     {
       _shaders[s]->setUniform("lightOn", (int)0);
       _shaders[s]->setUniform("shadow", (int)ptrState->shadow);
       _shaders[s]->setUniform("ShadowMap", (int)0);
       double diag = 0.01*sqrt((xmax-xmin)*(xmax-xmin)+(ymax-ymin)*(ymax-ymin)+(zmax-zmin)*(zmax-zmin));
-      double sc = ptrState->vectorScale/100.f;
+      double sc = ptrState->vectorScale/100.;
       _shaders[s]->setUniform("scale", float(sc*diag));
+      _shaders[s]->setUniform("fix_length", (int)ptrState->vectorNormalize);
       _shaders[s]->setUniform("density", float(ptrState->vectorDensity/diag));
-      _shaders[s]->setUniform("fix_length", ptrState->vectorNormalize);
     }
   }
 #endif 
@@ -118,7 +118,7 @@ void DataDL::displayUIsoSolid()
 #ifdef __SHADERS__
     if (ptrState->mode == SCALARFIELD)
     {
-      int s = _shaders.shader_id(10);
+      int s = _shaders.shader_id(shader::iso_banded_colormap);
       if (ptrState->scalarStyle == 2 || ptrState->scalarStyle == 3) s = _shaders.shader_id(shader::iso_colored_lines);
       _shaders[s]->setUniform("lightOn", (int)1);
     }
@@ -128,6 +128,7 @@ void DataDL::displayUIsoSolid()
 	   if (ptrState->vectorStyle == 2) s = _shaders.shader_id(shader::vector_line);
 	   else if (ptrState->vectorStyle == 1) s = _shaders.shader_id(shader::vector_tetra);
 	   else if (ptrState->vectorStyle == 3) s = _shaders.shader_id(shader::vector_triangle);
+     else if (ptrState->vectorStyle == 4) s = _shaders.shader_id(shader::vector_uniform_streamline);
 	   _shaders[s]->setUniform("lightOn", (int)1);
     }
 #endif

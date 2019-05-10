@@ -19,6 +19,6 @@ void main()
     transpos = (1-fix_length)*transpos + fix_length*normalize(transpos);
     vertex.translation = gl_ModelViewProjectionMatrix*(scale*vec4(transpos.xyz,0.));
     //vertex.translation = (1-fix_length)*vertex.translation + fix_length*normalize(vertex.translation);
-    vertex.normal   = vec4(gl_Normal,0.);
-    vertex.color    = gl_Color;
+    vertex.normal = vec4(gl_Normal,0.);
+    vertex.color  = gl_Color;
 }

@@ -2047,6 +2047,7 @@ PyObject* K_CONNECTOR::_setIBCTransfers(PyObject* self, PyObject* args)
                 //vectOfDnrFields.push_back(fieldsD[posvd]);
                 //vectOfRcvFields.push_back(fieldsR[posvr]);
                 nfoundvar += 1;
+              }
             }
 #endif
             else

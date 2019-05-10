@@ -16,7 +16,6 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-
 #include "Array/Array.h"
 #include "String/kstring.h"
 
@@ -103,7 +102,24 @@ E_Int K_ARRAY::getInfoFromArray(PyObject* o, char*& varString,
   E_Int s = PyList_Size(o);
   if (s == 5) // structure 
   {
-    varString = PyString_AsString(PyList_GetItem(o,0));
+    PyObject* l = PyList_GetItem(o,0);
+    if (PyString_Check(l))
+    {
+      // pointeur sur la chaine python
+      varString = PyString_AsString(l);  
+    }
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(l))
+    {
+      varString = PyBytes_AsString(PyUnicode_AsUTF8String(l)); 
+    }
+    else
+    {
+      PyErr_Warn(PyExc_Warning,
+                 "getInfoFromArray: an array must be a list of type ['vars', a, ni, nj, nk] or ['vars', a, c, 'ELTTYPE']. Check list.");
+      return -1;
+    }
+#endif
     ni = PyLong_AsLong(PyList_GetItem(o, 2));
     nj = PyLong_AsLong(PyList_GetItem(o, 3));
     nk = PyLong_AsLong(PyList_GetItem(o, 4));
@@ -111,7 +127,19 @@ E_Int K_ARRAY::getInfoFromArray(PyObject* o, char*& varString,
   }
   else if (s == 4) // non structure
   {
-    varString = PyString_AsString(PyList_GetItem(o,0));
+      PyObject* l = PyList_GetItem(o,0);
+      if (PyString_Check(l))
+      {
+        // pointeur sur la chaine python
+        varString = PyString_AsString(l);  
+      }
+#if PY_VERSION_HEX >= 0x03000000
+      else if (PyUnicode_Check(l))
+      {
+        varString = PyBytes_AsString(PyUnicode_AsUTF8String(l)); 
+      }
+#endif
+    //varString = PyString_AsString(PyList_GetItem(o,0));
     IMPORTNUMPY;
     PyObject* f = PyList_GetItem(o,1);
     if (PyList_Check(f) == true) // array2
@@ -119,7 +147,24 @@ E_Int K_ARRAY::getInfoFromArray(PyObject* o, char*& varString,
     else
       nvertex = PyArray_DIM((PyArrayObject*)f, 1);
     
-    eltType = PyString_AsString(PyList_GetItem(o,3));
+    PyObject* e = PyList_GetItem(o,3);
+    if (PyString_Check(e))
+    {
+      // pointeur sur la chaine python
+      eltType = PyString_AsString(e);
+    }
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(l))
+    {
+      eltType = PyBytes_AsString(PyUnicode_AsUTF8String(e)); 
+    }
+#endif
+    else
+    {
+      PyErr_Warn(PyExc_Warning,
+                 "getInfoFromArray: an array must be a list of type ['vars', a, ni, nj, nk] or ['vars', a, c, 'ELTTYPE']. Check list.");
+      return -1;
+    }
     PyObject* c = PyList_GetItem(o,2);
 
     //PyArrayObject* ac = 

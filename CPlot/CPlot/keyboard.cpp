@@ -82,10 +82,10 @@ void Data::keyboard(unsigned char key, int x, int y)
   case 'q':
   case 'Q':
     glutHideWindow();
-  freeGPUResources(-1, 0, _numberOfZones-1, 1);
-  ptrState->freeGPURes = 1;
-  _exit(0);
-  break;
+    freeGPUResources(-1, 0, _numberOfZones-1, 1);
+    ptrState->freeGPURes = 1;
+    _exit(0);
+    break;
 
   // Menu - display state information
   case 27: // esc key
@@ -389,7 +389,7 @@ void Data::keyboard(unsigned char key, int x, int y)
 //=============================================================================
 void Data::arrows(int key, int x, int y)
 {
-  double alpha = 0.05;
+  double alpha = 0.07;
   double dx = (_view.xeye - _view.xcam)*alpha;
   double dy = (_view.yeye - _view.ycam)*alpha;
   double dz = (_view.zeye - _view.zcam)*alpha;
