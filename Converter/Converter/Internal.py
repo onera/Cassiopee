@@ -3084,13 +3084,13 @@ def getZoneDim(zone):
             if NGON == 1 and NFACE == 1:
                 data = getNodeFromName1(NGONp, 'ElementConnectivity')
                 datar = data[1]
-                if (datar is not None and datar.size > 0):
+                if datar is not None and datar.size > 0:
                     if datar[0] == 1: cellDim = 1
                     elif datar[0] == 2: cellDim = 2
                 return [gtype, np, ne, 'NGON', cellDim]
             else: return [gtype, np, ne, 'MULTIPLE', 3]
         eltName,stype = eltNo2EltName(c[0][1][0])
-        if (lc == 2 and eltName != 'NGON' and eltName != 'NFACE'):
+        if lc == 2 and eltName != 'NGON' and eltName != 'NFACE':
             return [gtype, np, ne, 'MULTIPLE', 3]
         if eltName == 'NODE': cellDim = 0
         elif eltName == 'BAR': cellDim = 1
@@ -3105,7 +3105,7 @@ def getZoneDim(zone):
             if len(c) > 1:
                 data = getNodeFromName1(c[1], 'ElementConnectivity')
                 datar = data[1]
-                if (datar is not None and datar.size > 0):
+                if datar is not None and datar.size > 0:
                     if datar[0] == 1: cellDim = 1
                     elif datar[0] == 2: cellDim = 2
                 eltName = 'NGON'
@@ -3125,7 +3125,7 @@ def getZoneType(zone):
     for i in info:
         if i[3] == 'ZoneType_t':
             gtype = i[1][0] # OK si numpy ou string
-            if gtype == 'S': return 1
+            if gtype == 'S' or gtype == b'S': return 1
             else: return 2
     return 0
 
@@ -4135,7 +4135,7 @@ def gatherInStructPatch2D__(listIndices, indirWin, niw, njw, dirf, niZ, njZ, nkZ
             noind += 1
         if indstart == -1: return []
 
-        jstart = indstart/niw; istart = indstart-jstart*niw
+        jstart = indstart//niw; istart = indstart-jstart*niw
         iend = niw-1; jend = njw-1;
         for i in range(istart+1,niw):
             ind = i+jstart*niw

@@ -106,7 +106,7 @@ namespace NUGA
       // Create orientation info
       ngon_unit orient;
       E_Int err = ngon_type::build_orientation_ngu<TriangulatorType>(crd, ngi, orient);
-      if (err) return NULL;
+      if (err) return 0;
   
       std::vector<ngon_type::ePathoPH> PHtypes;
       ngon_type::detect_pathological_PHs<TriangulatorType>(crd, ngi, orient, PHtypes);

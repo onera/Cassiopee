@@ -2,7 +2,7 @@
 # Data oriented 
 # One method: run
 
-__version__ = 2.7
+__version__ = 2.9
 __author__ = "Stephanie Peron, Christophe Benoit, Thomas Renaud, Ivan Mary"
 
 import Converter.PyTree as C
@@ -58,7 +58,7 @@ class App:
     def check(self):
         """Check if all keywords have been set."""
         for i in self.required:
-            if not self.data.has_key(i):
+            if i not in self.data:
                 print('key: %s is not present.'%i)
                 print('all required keys: %s.'%self.required)
                 return False

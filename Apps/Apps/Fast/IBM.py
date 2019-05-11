@@ -760,7 +760,7 @@ def loads(t_case, t_in, tc_in, wall_out, alpha=0., beta=0., Sref=None):
             coordz = Internal.getNodeFromName1(node,'CoordinateZ_%s'%loc); coordz[0]='CoordinateZ'
             npts = len(coordx[1])
             nodesol = Internal.getNodeFromName2(sol,zname)
-            if hooks.has_key(nodesol[0]): hook = hooks[nodesol[0]]
+            if nodesol[0] in hooks: hook = hooks[nodesol[0]]
             else:  
                 hook = C.createHook(nodesol,function='elementCenters')
                 hooks[nodesol[0]] = hook

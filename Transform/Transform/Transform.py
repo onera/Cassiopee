@@ -1014,13 +1014,13 @@ def addkplaneCenters(arrayC, arrayK, N=1):
 
 # Essaie de couper en 2 en respectant level niveaux de multigrille
 def findMGSplit__(n, level):
-    ns = (n+1)/2
+    ns = (n+1)//2
     if level == 0: return ns
-    pow = 2**level
-    if ((ns-1)%pow == 0 and (n-ns)%pow == 0): return ns
-    if ((ns-2)%pow == 0 and (n-ns+1)%pow == 0): return ns-1
-    if ((ns-3)%pow == 0 and (n-ns+2)%pow == 0): return ns-2
-    if ((ns-4)%pow == 0 and (n-ns+3)%pow == 0): return ns-3
+    power = 2**level
+    if ((ns-1)%power == 0 and (n-ns)%power == 0): return ns
+    if ((ns-2)%power == 0 and (n-ns+1)%power == 0): return ns-1
+    if ((ns-3)%power == 0 and (n-ns+2)%power == 0): return ns-2
+    if ((ns-4)%power == 0 and (n-ns+3)%power == 0): return ns-3
     return -1
 
 # Fait un split nv et le reste en respectant le multigrille
@@ -1028,11 +1028,11 @@ def findMGSplitUp__(n, nv, level):
     ns = nv
     if ns < 4: ns = 4
     if level == 0: return ns
-    pow = 2**level
-    if ((ns-1)%pow == 0 and (n-ns)%pow == 0): return ns
-    if ((ns-2)%pow == 0 and (n-ns+1)%pow == 0): return ns-1
-    if ((ns-3)%pow == 0 and (n-ns+2)%pow == 0): return ns-2
-    if ((ns-4)%pow == 0 and (n-ns+3)%pow == 0): return ns-3
+    power = 2**level
+    if ((ns-1)%power == 0 and (n-ns)%power == 0): return ns
+    if ((ns-2)%power == 0 and (n-ns+1)%power == 0): return ns-1
+    if ((ns-3)%power == 0 and (n-ns+2)%power == 0): return ns-2
+    if ((ns-4)%power == 0 and (n-ns+3)%power == 0): return ns-3
     return -1
 
 # Get split dir
@@ -1058,7 +1058,7 @@ def getSplitDir__(ni, nj, nk, dirs):
             else:
                 if 3 in dirs: dirl = 3
                 elif 1 in dirs: dirl = 1
-    elif (nk >= ni and nk >= nj):
+    elif nk >= ni and nk >= nj:
         dirl = 3
         if 3 in dirs: dirl = 3
         else:
@@ -1120,28 +1120,28 @@ def splitSizeUp__(a, N, multigrid, dirs):
         if ni*nj*nk > N:
             dirl = getSplitDir__(ni, nj, nk, dirs)
             if dirl == 1:
-                nc = int(N/njk)
+                nc = N//njk
                 ns = findMGSplitUp__(ni, nc, level=multigrid)
                 if ns > 0: 
                     a1 = subzone(a, (1,1,1), (ns,nj,nk))
                     a2 = subzone(a, (ns,1,1), (ni,nj,nk))
                 else: return [a]
             elif dirl == 2:
-                nc = int(N/nik)
+                nc = N//nik
                 ns = findMGSplitUp__(nj, nc, level=multigrid)
                 if ns > 0:
                     a1 = subzone(a, (1,1,1), (ni,ns,nk))
                     a2 = subzone(a, (1,ns,1), (ni,nj,nk))
                 else: return [a]
             elif dirl == 3:
-                nc = int(N/nik)
+                nc = N//nik
                 ns = findMGSplitUp__(nk, nc, level=multigrid)
                 if ns > 0:
                     a1 = subzone(a, (1,1,1), (ni,nj,ns))
                     a2 = subzone(a, (1,1,ns), (ni,nj,nk))
                 else: return [a]
             else:
-                nc = int(N/njk)
+                nc = N//njk
                 ns = findMGSplitUp__(ni, nc, level=multigrid)
                 if ns > 0:
                     a1 = subzone(a, (1,1,1), (ns,nj,nk))
@@ -1291,7 +1291,7 @@ def findSplits__(ni, nj, nk, N, dirs, multigrid):
     ldir = len(dirs)
     # Passage en multigrille
     plev = 2**multigrid
-    nig = (ni-1)/plev+1; njg = (nj-1)/plev+1; nkg = (nk-1)/plev+1
+    nig = (ni-1)//plev+1; njg = (nj-1)//plev+1; nkg = (nk-1)//plev+1
     out = []
     if ldir == 1: # pas le choix
         if dirs[0] == 1:
@@ -1301,8 +1301,8 @@ def findSplits__(ni, nj, nk, N, dirs, multigrid):
             #print ns, ni-(N-1)*ns*plev
             b1 = 1
             for j in range(N):
-                if (r > 0): b2 = b1+plev*(ns+1); r -= 1
-                elif (r < 0): b2 = b1+plev*(ns-1); r += 1
+                if r > 0: b2 = b1+plev*(ns+1); r -= 1
+                elif r < 0: b2 = b1+plev*(ns-1); r += 1
                 else: b2 = b1+plev*ns
                 if j == N-1: b2 = ni
                 out.append((b1,b2,1,nj,1,nk))
@@ -1313,8 +1313,8 @@ def findSplits__(ni, nj, nk, N, dirs, multigrid):
             r = (nj-N*ns*plev)/plev
             b1 = 1
             for j in range(N):
-                if (r > 0): b2 = b1+plev*(ns+1); r -= 1
-                elif (r < 0): b2 = b1+plev*(ns-1); r += 1
+                if r > 0: b2 = b1+plev*(ns+1); r -= 1
+                elif r < 0: b2 = b1+plev*(ns-1); r += 1
                 else: b2 = b1+plev*ns
                 if j == N-1: b2 = nj
                 out.append((1,ni,b1,b2,1,nk))
@@ -1324,28 +1324,28 @@ def findSplits__(ni, nj, nk, N, dirs, multigrid):
             r = (nk-N*ns*plev)/plev
             b1 = 1
             for j in range(N):
-                if (r > 0): b2 = b1+plev*(ns+1); r -= 1
-                elif (r < 0): b2 = b1+plev*(ns-1); r += 1
+                if r > 0: b2 = b1+plev*(ns+1); r -= 1
+                elif r < 0: b2 = b1+plev*(ns-1); r += 1
                 else: b2 = b1+plev*ns
                 if j == N-1: b2 = nk
                 out.append((1,ni,1,nj,b1,b2))
                 b1 = b2
                 
-    elif (ldir == 2):
-        if (dirs[0] == 1): ns1 = ni; bs1 = ni; ng1 = (ni-1)/plev+1 
-        elif (dirs[0] == 2): ns1 = nj; bs1 = nj; ng1 = (nj-1)/plev+1 
-        else: ns1 = nk; bs1 = nk; ng1 = (nk-1)/plev+1 
-        if (dirs[1] == 1): ns2 = ni; bs2 = ni; ng2 = (ni-1)/plev+1 
-        elif (dirs[1] == 2): ns2 = nj; bs2 = nj; ng2 = (nj-1)/plev+1 
-        else: ns2 = nk; bs2 = nk; ng2 = (nk-1)/plev+1 
+    elif ldir == 2:
+        if dirs[0] == 1: ns1 = ni; bs1 = ni; ng1 = (ni-1)//plev+1 
+        elif dirs[0] == 2: ns1 = nj; bs1 = nj; ng1 = (nj-1)//plev+1 
+        else: ns1 = nk; bs1 = nk; ng1 = (nk-1)//plev+1 
+        if dirs[1] == 1: ns2 = ni; bs2 = ni; ng2 = (ni-1)//plev+1 
+        elif dirs[1] == 2: ns2 = nj; bs2 = nj; ng2 = (nj-1)//plev+1 
+        else: ns2 = nk; bs2 = nk; ng2 = (nk-1)//plev+1 
         best = [1,1,1]
         size = -1
         for N1 in range(1,N+1):
             for N2 in range(1,N+1):
-                if (N1*N2 == N):
-                    ns1 = ng1/N1; ns2 = ng2/N2
+                if N1*N2 == N:
+                    ns1 = ng1//N1; ns2 = ng2//N2
                     s = min(ns1, ns2)
-                    if (s > size): best = [N1,N2]; size = s
+                    if s > size: best = [N1,N2]; size = s
         N1 = best[0]; N2 = best[1]
         #ns1 = ng1/N1; ns2 = ng2/N2
         ns1 = round(ng1*1./N1, 0); ns1 = int(ns1)
@@ -1357,13 +1357,13 @@ def findSplits__(ni, nj, nk, N, dirs, multigrid):
         k1 = 1; k2 = nk
         b1 = 1
         for i in range(N1): # tous les splits en 1
-            if (r1 > 0): b2 = b1+plev*(ns1+1); r1 -= 1
-            elif (r1 < 0): b2 = b1+plev*(ns1-1); r1 += 1
+            if r1 > 0: b2 = b1+plev*(ns1+1); r1 -= 1
+            elif r1 < 0: b2 = b1+plev*(ns1-1); r1 += 1
             else: b2 = b1+plev*ns1
-            if (dirs[0] == 1): 
+            if dirs[0] == 1: 
                 i1 = b1; i2 = b2; 
                 if i == N1-1: i2 = ni
-            elif (dirs[0] == 2): 
+            elif dirs[0] == 2: 
                 j1 = b1; j2 = b2
                 if i == N1-1: j2 = nj
             else: 

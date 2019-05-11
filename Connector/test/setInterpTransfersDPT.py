@@ -29,4 +29,4 @@ tR = X.applyBCOverlaps(tR, depth=1)
 tD = X.setInterpData(tR, tD, double_wall=1, loc='centers',
                      storage='inverse', order=3)
 info = X.setInterpTransfersD(tD,variables=['MomentumX'])
-print info
+print(info)

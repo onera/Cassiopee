@@ -3,19 +3,14 @@ import sys, os
 from elsA import *
 
 # Rm . from PYTHONPATH
-try:
-  del sys.path[sys.path.index('')]
-except:
-  pass
-try:
-  del sys.path[sys.path.index(os.getcwd())]
-except:
-  pass
+try: del sys.path[sys.path.index('')]
+except: pass
+try: del sys.path[sys.path.index(os.getcwd())]
+except: pass
 
 try:
     import Connector.Cassiopee
-    print "Connector.Cassiopee correctly installed."
+    print("Connector.Cassiopee correctly installed.")
 except Exception, inst:
-    print "FAILED:",inst
-    print "FAILED: Connector.Cassiopee badly installed."
-
+    print("FAILED:",inst)
+    print("FAILED: Connector.Cassiopee badly installed.")

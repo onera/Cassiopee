@@ -9,8 +9,8 @@ def F(x,y,z): return x + 2.*y + 3.*z
 a = C.initVars(a, 'F', F, ['CoordinateX','CoordinateY','CoordinateZ'])
 
 # Utilisation directe
-val = P.extractPoint(a, (0.55, 0.38, 0.12), 2); print val
+val = P.extractPoint(a, (0.55, 0.38, 0.12), 2); print(val)
 
 # Utilisation avec un hook
 hook = C.createHook(a, function='extractMesh')
-val = P.extractPoint(a, (0.55, 0.38, 0.12), 2, hook=hook); print val
+val = P.extractPoint(a, (0.55, 0.38, 0.12), 2, hook=hook); print(val)

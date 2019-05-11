@@ -999,7 +999,7 @@ def createElsaHybrid(t, method=0, axe2D=0, methodPE=0):
     return tp
 
 def _createElsaHybrid(t, method=0, axe2D=0, methodPE=0):
-    import converter
+    from . import converter
     zones = Internal.getZones(t)
     for z in zones:
          GEl = Internal.getElementNodes(z)

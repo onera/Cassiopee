@@ -418,12 +418,12 @@ def getValue__(t, var, ind):
         raise ValueError("getValue: too much values in tuple.")
     else:
       if loc == 'nodes' or loc == '*':
-        km = ind / (ninj)
-        jm = (ind - km*ninj) / ni
+        km = ind // (ninj)
+        jm = (ind - km*ninj) // ni
         im = ind - jm*ni - km*ninj
       else:
-        km = ind / (ni1nj1)
-        jm = (ind - km*ni1nj1) / ni1
+        km = ind // (ni1nj1)
+        jm = (ind - km*ni1nj1) // ni1
         im = ind - jm*ni1 - km*ni1nj1
 
     # GridCoordinates
@@ -1541,8 +1541,9 @@ def setNumpyArrays(t, name, arrays):
 # -- ownNumpyArrays
 # For numpys allocated with KCore empty (OWNDATA=False), reown it
 def _ownNumpyArrays(t):
+  if t == []: return None
   n = t[1]
-  if (isinstance(n, numpy.ndarray) and n.flags['OWNDATA'] == False):
+  if isinstance(n, numpy.ndarray) and n.flags['OWNDATA'] == False:
     b = numpy.copy(n); t[1] = b
   for i in t[2]: _ownNumpyArrays(i)
   return None
@@ -3337,7 +3338,7 @@ def _addBC2StructZone__(z, bndName, bndType, wrange=[], faceList=[],
   # Range defini par une chaine ou non
   if typeR == 0:
     if isinstance(wrange, str):
-      wrange = convertStringRange2Range__(wrange, z)#fenetre complete
+      wrange = convertStringRange2Range__(wrange, z) #fenetre complete
     if isinstance(rangeDonor, str):
       if isinstance(zoneDonor, str):
         raise ValueError("addBC2Zone: donor range must be explicitly specified.")

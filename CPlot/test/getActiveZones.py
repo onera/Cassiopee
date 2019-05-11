@@ -9,4 +9,4 @@ CPlot.display([a1, a2])
 
 time.sleep(5.)
 ret = CPlot.getActiveZones()
-print 'Active zones: ', ret
+print('Active zones: ', ret)

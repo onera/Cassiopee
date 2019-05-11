@@ -1,5 +1,5 @@
 # Create menus and submenus in CPlot
-import PyTree as CPlot
+from . import PyTree as CPlot
 import time
 dt = 0.01
 

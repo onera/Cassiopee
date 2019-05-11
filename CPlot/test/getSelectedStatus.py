@@ -9,5 +9,5 @@ CPlot.display([a1, a2])
 
 time.sleep(5.)
 ret = CPlot.getSelectedStatus(0)
-if ret == 1: print 'Zone 0 is selected.'
-else: print 'Zone 0 is not selected.'
+if ret == 1: print('Zone 0 is selected.')
+else: print('Zone 0 is not selected.')

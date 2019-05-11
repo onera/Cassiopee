@@ -17,7 +17,7 @@ def F(x,y,z):
     elif deg == 4: return x*x*x*x + 2.*y + z*z
     elif deg == 5: return 2*x*x*x*x*x + 2.*y*y*z + z*z
     else:
-        print 'Error: unknown order.'
+        print('Error: unknown order.')
         import sys; sys.exit()
 
 deg = 3
@@ -26,7 +26,7 @@ a = C.initVars(a, 'F', F, ['x','y','z'])
 # Interpole 1 point a l'ordre 2
 val = P.extractPoint([a], (0.55, 0.38, 0.12), 2)
 ref = [0.5918312757201647]
-print "Test1... done."
+print("Test1... done.")
 for i in range(len(val)):
     if abs(val[i]-ref[i]) > 1.e-10:
         print('DIFF: reference: '+str(ref[i])+'.')
@@ -35,7 +35,7 @@ for i in range(len(val)):
 # Interpole 1 point a l'ordre 3
 val = P.extractPoint([a], (0.55, 0.38, 0.12), 3)
 ref = [0.58564300411522652]
-print "Test2... done."
+print("Test2... done.")
 for i in range(len(val)):
     if abs(val[i]-ref[i]) > 1.e-10:
         print('DIFF: reference: '+str(ref[i])+'.')
@@ -44,7 +44,7 @@ for i in range(len(val)):
 # Interpole 1 point a l'ordre 5
 val = P.extractPoint([a], (0.55, 0.38, 0.12), 5)
 ref = [0.58469400000224414]
-print "Test3... done."
+print("Test3... done.")
 for i in range(len(val)):
     if abs(val[i]-ref[i]) > 1.e-10:
         print('DIFF: reference: '+str(ref[i])+'.')

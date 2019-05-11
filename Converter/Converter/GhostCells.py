@@ -1135,7 +1135,7 @@ def _adaptBCStruct__(zp, dimZone, d, nodesRef):
             prangedonor = Internal.getNodesFromName1(i, 'PointRangeDonor')
             if prangedonor != []:
                 zdonorname = Internal.getValue(i)
-                if nodesRef.has_key(zdonorname): zdonor = nodesRef[zdonorname]
+                if zdonorname in nodesRef: zdonor = nodesRef[zdonorname]
                 else: zdonor = []
                 # multi-bases approach
                 # if several zdonor found corresponding to name v, zdonor=first zone found
@@ -1161,7 +1161,7 @@ def _adaptBCStruct__(zp, dimZone, d, nodesRef):
                     prangedonor = Internal.getNodesFromName1(udd, 'PointRangeDonor')
                     if prangedonor != []:
                         zdonorname = Internal.getValue(i)
-                        if nodesRef.has_key(zdonorname): zdonor = nodesRef[zdonorname]
+                        if zdonorname in nodesRef: zdonor = nodesRef[zdonorname]
                         else: zdonor = []
                         # multi-bases approach
                         # if several zdonor found corresponding to name v, zdonor=first zone found
@@ -1255,7 +1255,7 @@ def getJoinInfo__(join, jointype, dim_zone, nodesRef, d):
         if nmrnode == []: return []
         for nm in nmrnode[0][1]: nmr.append(nm)
     v = Internal.getValue(join)
-    if nodesRef.has_key(v): zdonor = nodesRef[v]
+    if v in nodesRef: zdonor = nodesRef[v]
     else: zdonor = []
 
     # if several zdonor found corresponding to name v, zdonor=first zone found

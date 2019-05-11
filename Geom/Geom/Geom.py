@@ -113,9 +113,9 @@ def sphereYinYang(C, R, N=100, ntype='STRUCT'):
     try: import Transform as T
     except: raise ImportError("sphereYinYang: requires Transform module.")
     fringe = 2
-    Ni = 4*(N/2)
+    Ni = 4*(N//2)
     a = sphere(C, R, N=Ni)
-    a = T.subzone(a, (Ni/4-2,Ni/4-2,1), (3*Ni/4+2,7*Ni/4+2,1))
+    a = T.subzone(a, (Ni//4-2,Ni//4-2,1), (3*Ni//4+2,7*Ni//4+2,1))
     b = T.rotate(a, (0,0,0), (0,1,0), 90.)
     b = T.rotate(b, (0,0,0), (0,0,1), 180.)
     m = [a, b]
@@ -653,12 +653,12 @@ def volumeFromCrossSections(contours):
 def text1D(string, font='text1', smooth=0, offset=0.5):
     """Create a 1D text.
     Usage: text1D(string, font, smooth, offset)"""
-    if font == 'text1': import text1 as Text
-    elif font == 'vera': import vera as Text
-    elif font == 'chancery': import chancery as Text
-    elif font == 'courier': import courier as Text
-    elif font == 'nimbus': import nimbus as Text
-    else: import text1 as Text
+    if font == 'text1': from . import text1 as Text
+    elif font == 'vera': from . import vera as Text
+    elif font == 'chancery': from . import chancery as Text
+    elif font == 'courier': from . import courier as Text
+    elif font == 'nimbus': from . import nimbus as Text
+    else: from . import text1 as Text
     try: import Transform
     except: raise ImportError("text1D: requires Transform.")
     retour = []

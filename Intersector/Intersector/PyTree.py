@@ -3,8 +3,8 @@
 # 
 # Python Interface to create PyTrees defining meshes
 #
-import Intersector as XOR
-import intersector
+from . import Intersector as XOR
+from . import intersector
 
 __version__ = XOR.__version__
 

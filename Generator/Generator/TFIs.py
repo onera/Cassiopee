@@ -20,8 +20,8 @@ def quality(meshes):
         min2 = C.getMinValue(vol, 'vol')
         max2 = C.getMaxValue(vol, 'vol')
         score = max(score, min1); score = max(score, max1)
-        if (min2 < 1.e-12 and max2 > 0): score += 1000.
-        elif (max2 < 1.e-12 and min2 > 0): score += 1000.
+        if min2 < 1.e-12 and max2 > 0: score += 1000.
+        elif max2 < 1.e-12 and min2 > 0: score += 1000.
     return score
 
 #==============================================================================
@@ -36,11 +36,11 @@ def TFITri(a1, a2, a3):
     
     # Verif de N
     Nt = N3-N2+N1+1
-    if (Nt/2-Nt*0.5 != 0): raise ValueError("TFITri: N3-N2+N1 must be odd.")
-    N = Nt/2
-    if (N < 2): raise ValueError("TFITri: invalid number of points for this operation.")
-    if (N > N1-1): raise ValueError("TFITri: invalid number of points for this operation.")
-    if (N > N2-1): raise ValueError("TFITri: invalid number of points for this operation.")
+    if Nt//2-Nt*0.5 != 0: raise ValueError("TFITri: N3-N2+N1 must be odd.")
+    N = Nt//2
+    if N < 2: raise ValueError("TFITri: invalid number of points for this operation.")
+    if N > N1-1: raise ValueError("TFITri: invalid number of points for this operation.")
+    if N > N2-1: raise ValueError("TFITri: invalid number of points for this operation.")
 
     # Assure la continuite
     P0 = (a1[1][0,N1-1], a1[1][1,N1-1], a1[1][2,N1-1])
@@ -135,8 +135,8 @@ def TFIO__(a, weight, offset=0):
     PP2 = (PPP[0,1], PPP[1,1], PPP[2,1])
     
     indexPP1 = D.getNearestPointIndex(a, PP1)[0]+offset
-    if (indexPP1 < 0): indexPP1 = Nt+indexPP1-1
-    if (indexPP1 > Nt-1): indexPP1 = indexPP1-Nt-1
+    if indexPP1 < 0: indexPP1 = Nt+indexPP1-1
+    if indexPP1 > Nt-1: indexPP1 = indexPP1-Nt-1
     
     # Renumerote a a partir de PP1
     b = T.subzone(a, (1,1,1), (indexPP1+1,1,1) )
@@ -191,14 +191,14 @@ def TFIO__(a, weight, offset=0):
 def TFIO(a):
     optWeight = 0; optOffset = 0; optScore = 1.e6
     Nt = a[2]
-    if (Nt/2 - Nt*0.5 == 0): raise ValueError("TFIO: number of points must be odd.")
+    if (Nt//2 - Nt*0.5 == 0): raise ValueError("TFIO: number of points must be odd.")
 
-    for j in range(-Nt/4,Nt/4+1):
+    for j in range(-Nt//4,Nt//4+1):
         for i in range(3,10):
             try:
                 [m,m1,m2,m3,m4] = TFIO__(a, i, j)
                 score = quality([m,m1,m2,m3])
-                if (score < optScore):
+                if score < optScore:
                     optWeight = i; optOffset = j; optScore = score
             except: pass
     print('resulting weight=%g, offset=%g.'%(optWeight,optOffset))
@@ -245,10 +245,10 @@ def TFIHalfO__(a1, a2, weight, offset=0):
     PP4 = (PPP[0,1], PPP[1,1], PPP[2,1])
     
     indexPP3 = D.getNearestPointIndex(a2, PP3)[0]+offset
-    if ((Nt1-Nt2)/2-(Nt1-Nt2)*0.5 == 0 and
-        (indexPP3+1)/2-(indexPP3+1)*0.5 != 0): indexPP3 += 1
-    if ((Nt1-Nt2)/2-(Nt1-Nt2)*0.5 != 0 and
-        (indexPP3+1)/2-(indexPP3+1)*0.5 == 0): indexPP3 += 1
+    if ((Nt1-Nt2)//2-(Nt1-Nt2)*0.5 == 0 and
+        (indexPP3+1)//2-(indexPP3+1)*0.5 != 0): indexPP3 += 1
+    if ((Nt1-Nt2)//2-(Nt1-Nt2)*0.5 != 0 and
+        (indexPP3+1)//2-(indexPP3+1)*0.5 == 0): indexPP3 += 1
     #if (indexPP3 == 0): indexPP3 = 1
     #elif (indexPP3 == (Nt2-1)/2): indexPP3 += -1
     PP3 = (a2[1][0,indexPP3], a2[1][1,indexPP3], a2[1][2,indexPP3])
@@ -258,7 +258,7 @@ def TFIHalfO__(a1, a2, weight, offset=0):
     N2 = Nt2-2*N1+2
 
     # Straight
-    N3 = (Nt1-N2+2)/2
+    N3 = (Nt1-N2+2)//2
     
     ind = N3-1
     P1 = (a1[1][0,ind], a1[1][1,ind], a1[1][2,ind])
@@ -298,9 +298,9 @@ def TFIHalfO__(a1, a2, weight, offset=0):
 def TFIHalfO(a1, a2):
     optWeight = 0; optOffset = 0; optScore = 1.e6
     Nt1 = a1[2]; Nt2 = a2[2]
-    if (Nt1/2 - Nt1*0.5 == 0 and Nt2/2 - Nt2*0.5 != 0):
+    if (Nt1//2 - Nt1*0.5 == 0 and Nt2//2 - Nt2*0.5 != 0):
         raise ValueError("TFIHalfO: N1 and N2 must be odd.")
-    for j in range(-Nt2/8,Nt2/8):
+    for j in range(-Nt2//8,Nt2/8):
         for i in range(2,10):
             try:
                 [m,m1,m2,m3] = TFIHalfO__(a1, a2, i, j)
@@ -321,8 +321,8 @@ def TFIMono(a1, a2):
     import Transform as T
     N1 = a1[2]; N2 = a2[2]
     diff = N2-N1
-    if (diff == 0):
-        Np = N1/2
+    if diff == 0:
+        Np = N1//2
         b1 = T.subzone(a1, (1,1,1), (Np+1,1,1))
         b2 = T.subzone(a1, (Np+1,1,1), (N1,1,1))
         b3 = T.subzone(a2, (1,1,1), (N1-Np,1,1))
@@ -331,9 +331,9 @@ def TFIMono(a1, a2):
         m1 = G.TFI([b1,b2,b3,b4])
         return [m1]
 
-    if (diff/2 != diff*0.5): raise ValueError("TFIMono: N1-N2 must be even.")
-    if (diff < 0): ap = a2; a2 = a1; a1 = ap; diff = -diff; N2 = N1
-    Np = (diff+2)/2
+    if diff//2 != diff*0.5: raise ValueError("TFIMono: N1-N2 must be even.")
+    if diff < 0: ap = a2; a2 = a1; a1 = ap; diff = -diff; N2 = N1
+    Np = (diff+2)//2
     b1 = T.subzone(a2, (1,1,1), (Np,1,1))
     b2 = T.subzone(a2, (N2-Np+1,1,1), (N2,1,1))
     b3 = T.subzone(a2, (Np,1,1), (N2-Np+1,1,1))
