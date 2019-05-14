@@ -44,13 +44,16 @@ PyObject* K_CONNECTOR::getIBMPtsBasic(PyObject* self, PyObject* args)
         return NULL;
     // check distname
     char* distname;
-    if (PyString_Check(distName) == 0)
+    if (PyString_Check(distName)) distname = PyString_AsString(distName);
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(distName)) distname = PyBytes_AsString(PyUnicode_AsUTF8String(distName));
+#endif
+    else
     {    
         PyErr_SetString(PyExc_TypeError, 
                         "getIBMPts: distName must be a string.");
         return NULL;
     }
-    else distname = PyString_AsString(distName);
 
     // Check normal components
     if (PyList_Check(normalNames) == 0)
@@ -70,16 +73,24 @@ PyObject* K_CONNECTOR::getIBMPtsBasic(PyObject* self, PyObject* args)
     vector<char*> varsn;// normal components names
     for (E_Int v = 0; v < 3; v++)
     {
-        if (PyString_Check(PyList_GetItem(normalNames, v)) == 0)
+        PyObject* l = PyList_GetItem(normalNames, v);
+        if (PyString_Check(l))
+        {
+            var = PyString_AsString(l);
+            varsn.push_back(var);
+        }
+#if PY_VERSION_HEX >= 0x03000000
+        else if (PyUnicode_Check(l)) 
+        {
+            var = PyBytes_AsString(PyUnicode_AsUTF8String(l));
+            varsn.push_back(var);
+        } 
+#endif
+        else
         {
             PyErr_SetString(PyExc_TypeError,
                             "getIBMPts: invalid string for normal component.");
             return NULL;
-        }
-        else 
-        {
-            var = PyString_AsString(PyList_GetItem(normalNames, v));
-            varsn.push_back(var);
         }
     }
     // Extract correctedPts

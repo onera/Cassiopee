@@ -17,11 +17,12 @@ void main()
   vec3 N = normalize(Nv);
   vec3 L = normalize(gl_LightSource[0].position.xyz-P);
 
-  // light on!
-  if (lightOn == 1)
+  // Ce shader ne doit pas utiliser de lumiere, on passe lightOn
+  // pour des raisons d'homogeneite avec les autres shaders
+  if (lightOn == 2) // force no light
   {
     vec3 E, R;
-    vec4 Iamb, Idiff, Ispec;    
+    vec4 Iamb, Idiff, Ispec;
     E = normalize(-P);
     if (dot(N, L) < 0.) N = -N;
 
@@ -35,8 +36,10 @@ void main()
     color2.a = blend;
   }
   
+  // Ce shader ne doit pas utiliser de shadow, on passe shadow
+  // pour des raisons d'homogeneite avec les autres shaders
   float shadowValue = 1.;
-  if (shadow > 0)
+  if (shadow == 128.5) // force no shadow
   {
      // Coords -> texCoords
      vec4 ShadowCoord = gl_TextureMatrix[0] * vert;
@@ -55,7 +58,7 @@ void main()
        shadowValue = distanceFromLight < shadowCoordinateW.z ? 0.5 : 1.0;
   }
 
+  // tete blanche, queue de la couleur emise par le geom shader
   gl_FragColor = gAlpha*vec4(1.,1.,1.,1.) + (1.-gAlpha)*shadowValue * color2;
   gl_FragColor.a = blend;
-  //gl_FragColor = (1.-0.001*blend)*vec4(1.0,1.0,1.0,1.0);
 }

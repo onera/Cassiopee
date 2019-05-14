@@ -249,6 +249,9 @@ def run(t=None):
         CTK.display(CTK.t)
         CTK.TKTREE.updateApp()
 
+    # - open load panel if partial load -
+    #Panels.openLoadPanel()
+
     # - Main loop -
     win.mainloop()
 
@@ -261,9 +264,5 @@ if __name__ == "__main__":
     import sys
     if len(sys.argv) >= 2:
         files = sys.argv[1:]
-        CTK.tkLoadFile(files, mode='full')
-        #CTK.FILE = sys.argv[1]
-        #try:
-        #    CTK.t = C.convertFile2PyTree(CTK.FILE, density=1.)
-        #except: print 'Error: convertFile2PyTree: fail to read file %s.'%CTK.FILE
+        CTK.tkLoadFile(files, mode='auto')
     run()

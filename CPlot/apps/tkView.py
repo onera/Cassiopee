@@ -829,7 +829,7 @@ def createApp(win):
     # -23- vector vectorStyle
     V = TK.StringVar(win); V.set('Vector lines'); VARS.append(V)
     # -24- vector vectorScale
-    V = TK.StringVar(win); V.set('1.0'); VARS.append(V)
+    V = TK.StringVar(win); V.set('100.0'); VARS.append(V)
     # -25- vector vectorDensity
     V = TK.StringVar(win); V.set('100.'); VARS.append(V)
     # -26- Normalize vector before displaying
@@ -1009,8 +1009,8 @@ def createApp(win):
     B = TTK.Entry(Vector, textvariable=VARS[24], width=4, background='White')
     B.bind('<Return>', setScaleVector)
     B.grid(row=1, column=1, sticky=TK.EW)
-    B = TTK.Scale(Vector, from_=1E-10, to=10, orient=TK.HORIZONTAL,
-                  command=scaleVector, showvalue=1, borderwidth=1, value=1.)
+    B = TTK.Scale(Vector, from_=1E-10, to=200, orient=TK.HORIZONTAL,
+                  command=scaleVector, showvalue=1, borderwidth=1, value=100.)
     B.grid(row=1, column=2, sticky=TK.EW)
     WIDGETS['vectorScale'] = B
 

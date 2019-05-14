@@ -699,9 +699,6 @@ def loadPrefFile():
     if not exist: savePrefFile(); return []
     isdir = os.path.isdir(kdir)
     if not isdir:
-      #os.rename(kdir, homePath+'/.cassiopee_save')
-      #os.makedirs(kdir)
-      #os.rename(homePath+'/.cassiopee_save', homePath+'/.cassiopee/config')
       file = open(homePath+'/.cassiopee', 'r')
     else:
       file = open(homePath+'/.cassiopee/config', 'r')
@@ -1754,8 +1751,8 @@ def changeWindowTitle(fileName, filePath="."):
 # Meta load function of multiple files
 # Si partial: load un CTK.t squelette + HANDLE
 # Si full: CTK.t full
-# mode = full, partial, auto
-# Cette fonction en fait pas upgrade et updateApps
+# mode = 'full', 'partial', 'auto'
+# Cette fonction ne fait pas upgrade et updateApps
 #==============================================================================
 def tkLoadFile(files, mode='full'):
   global FILE; global HANDLE; global t
@@ -1763,11 +1760,14 @@ def tkLoadFile(files, mode='full'):
     size = 0
     for f in files:
       size += os.path.getsize(f) # en octets
+    print 'size:', size
     maxSize = PREFS.get('maxFileSizeForLoad', 8.) # en Gb
     maxSize = maxSize * 100000000
+    print 'maxSize', maxSize
     if size > maxSize: mode = 'partial'
     else: mode = 'full' 
 
+  print 'mode:', mode
   if mode == 'partial':
     fileName = files[0]
     try:

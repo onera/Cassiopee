@@ -1,6 +1,6 @@
 #version 150 compatibility
 layout(triangles) in;
-layout(triangle_strip, max_vertices=6) out;
+layout(triangle_strip, max_vertices=15) out;
 
 in Vertex {
     vec4 P0;
@@ -19,6 +19,8 @@ out vec3 P;
 out vec4 vert;
 out float gAlpha;
 uniform int   show_surface;
+
+uniform sampler1D colormap;
 
 void main()
 {
@@ -42,12 +44,17 @@ void main()
     vec4 vbary = ust*(vertex[0].vP+vertex[1].vP+vertex[2].vP);
     vec4 be1  = ust*(vertex[0].e1+vertex[1].e1+vertex[2].e1);
     vec4 be3  = ust*(vertex[0].e3+vertex[1].e3+vertex[2].e3);
-    vec4 bcol = ust*(vertex[0].color+vertex[1].color+vertex[2].color);
+    vec4 bcol = vec4(ust*(vertex[0].color+vertex[1].color+vertex[2].color).xyz,1.);
+    float f = length(bcol.rgb);
+    f = clamp(f, 0.0f, 1.0f);
+    vec3 val = vec3(texture1D(colormap, f));
+    bcol = vec4(val.r, val.g, val.b, 1.);
+    
     vec4 bvert= ust*(vertex[0].position+vertex[1].position+vertex[2].position);
-   // vec4 bnorm= ust*(vertex[0].normal+vertex[1].normal+vertex[2].normal);
+    // vec4 bnorm= ust*(vertex[0].normal+vertex[1].normal+vertex[2].normal);
     vec3 trn  = cross(be1.xyz,be3.xyz);
 
-    gl_Position = bary-0.5*be1;
+    gl_Position = bary-0.125*be1;
     color       = bcol;
     Nv          = trn.xyz; //bnorm.xyz;
     P           = vbary.xyz;
@@ -55,7 +62,7 @@ void main()
     gAlpha      = 0.f;
     EmitVertex();
 
-    gl_Position =  bary+0.5*be1;
+    gl_Position =  bary+0.125*be1;
     color       = bcol;
     Nv          = trn.xyz;//bnorm.xyz;
     P           = vbary.xyz;
@@ -63,12 +70,91 @@ void main()
     gAlpha      = 0.f;
     EmitVertex();
 
+    gl_Position = bary + 0.75*be3;
+    color       = bcol;
+    Nv          = trn.xyz; //bnorm.xyz;
+    P           = vbary.xyz;
+    vert        = bvert;
+    gAlpha      = 0.f;
+    EmitVertex();
+    EndPrimitive();
+
+
+    gl_Position = bary-0.3*be1 + 0.55 * be3;
+    color       = bcol;
+    Nv          = trn.xyz; //bnorm.xyz;
+    P           = vbary.xyz;
+    vert        = bvert;
+    gAlpha      = 0.0f;
+    EmitVertex();
+
+    gl_Position =  bary+0.3*be1 + 0.55 * be3;
+    color       = bcol;
+    Nv          = trn.xyz;//bnorm.xyz;
+    P           = vbary.xyz;
+    vert        = bvert;
+    gAlpha      = 0.0f;
+    EmitVertex();
+
     gl_Position = bary + be3;
     color       = bcol;
     Nv          = trn.xyz; //bnorm.xyz;
     P           = vbary.xyz;
     vert        = bvert;
-    gAlpha = 1.f;
+    gAlpha      = 0.f;
+    EmitVertex();
+    EndPrimitive();
+
+
+    // Ortho
+    vec4 trn4 = normalize(vec4(trn,0.))*length(be1);
+    gl_Position = bary-0.125*trn4;
+    color       = bcol;
+    Nv          = be1.xyz; //bnorm.xyz;
+    P           = vbary.xyz;
+    vert        = bvert;
+    gAlpha      = 0.f;
+    EmitVertex();
+
+    gl_Position =  bary+0.125*trn4;
+    color       = bcol;
+    Nv          = be1.xyz;//bnorm.xyz;
+    P           = vbary.xyz;
+    vert        = bvert;
+    gAlpha      = 0.f;
+    EmitVertex();
+
+    gl_Position = bary + 0.75*be3;
+    color       = bcol;
+    Nv          = be1.xyz; //bnorm.xyz;
+    P           = vbary.xyz;
+    vert        = bvert;
+    gAlpha      = 0.f;
+    EmitVertex();
+    EndPrimitive();
+
+    gl_Position = bary-0.3*trn4 + 0.55 * be3;
+    color       = bcol;
+    Nv          = be1.xyz; //bnorm.xyz;
+    P           = vbary.xyz;
+    vert        = bvert;
+    gAlpha      = 0.0f;
+    EmitVertex();
+
+    gl_Position =  bary+0.3*trn4 + 0.55 * be3;
+    color       = bcol;
+    Nv          = be1.xyz;//bnorm.xyz;
+    P           = vbary.xyz;
+    vert        = bvert;
+    gAlpha      = 0.0f;
+    EmitVertex();
+
+    gl_Position = bary + be3;
+    color       = bcol;
+    Nv          = be1.xyz; //bnorm.xyz;
+    P           = vbary.xyz;
+    vert        = bvert;
+    gAlpha = 0.f;
     EmitVertex();
     EndPrimitive();
 }

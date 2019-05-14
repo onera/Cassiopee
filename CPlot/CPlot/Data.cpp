@@ -280,7 +280,7 @@ void Data::initState()
   ptrState->solidStyle = 1;
   ptrState->scalarStyle = 0;
   ptrState->vectorStyle = 0;
-  ptrState->vectorScale = 1.f;
+  ptrState->vectorScale = 100.f;
   ptrState->vectorDensity = 100.f;
   ptrState->vectorNormalize = 0;
   ptrState->vectorShowSurface = 1;

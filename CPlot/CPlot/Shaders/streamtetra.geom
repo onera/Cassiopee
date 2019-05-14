@@ -21,6 +21,8 @@ out vec4 vert;
 out float gAlpha;
 uniform int   show_surface;
 
+uniform sampler1D colormap;
+
 void main()
 {
     int i;
@@ -47,6 +49,11 @@ void main()
     vec3 nbe2 = normalize(be2.xyz).xyz;
     vec4 be3  = ust*(vertex[0].e3+vertex[1].e3+vertex[2].e3);
     vec4 bcol = vec4(ust*(vertex[0].color+vertex[1].color+vertex[2].color).xyz,1.0);
+    float f = length(bcol.rgb);
+    f = clamp(f, 0.0f, 1.0f);
+    vec3 val = vec3(texture1D(colormap, f));
+    bcol = vec4(val.r, val.g, val.b, 1.);
+    
     vec4 bvert= ust*(vertex[0].position+vertex[1].position+vertex[2].position);
     //vec4 bnorm= ust*(vertex[0].normal+vertex[1].normal+vertex[2].normal);
 
@@ -55,7 +62,7 @@ void main()
     Nv          = nbe2;//bnorm.xyz;
     P           = vbary.xyz;
     vert        = bvert;
-    gAlpha      = 0.f;
+    gAlpha      = 0.8f;
     EmitVertex();
 
     gl_Position =  bary+0.5*be1;
@@ -63,7 +70,7 @@ void main()
     Nv          = nbe2;//bnorm.xyz;
     P           = vbary.xyz;
     vert        = bvert;
-    gAlpha      = 0.f;
+    gAlpha      = 0.8f;
     EmitVertex();
 
     gl_Position = bary + be3;
@@ -71,7 +78,7 @@ void main()
     Nv          = nbe2;//bnorm.xyz;
     P           = vbary.xyz;
     vert        = bvert;
-    gAlpha      = 1.f;
+    gAlpha      = 0.f;
     EmitVertex();
     EndPrimitive();
     // --------------------------------------------------------
@@ -80,7 +87,7 @@ void main()
     Nv          = nbe1;//bnorm.xyz;
     P           = vbary.xyz;
     vert        = bvert;
-    gAlpha      = 0.f;
+    gAlpha      = 0.8f;
     EmitVertex();
 
     gl_Position = bary+0.5*be2;
@@ -88,7 +95,7 @@ void main()
     Nv          = nbe1;//bnorm.xyz;
     P           = vbary.xyz;
     vert        = bvert;
-    gAlpha      = 0.f;
+    gAlpha      = 0.8f;
     EmitVertex();
 
     gl_Position = bary + be3;
@@ -96,7 +103,7 @@ void main()
     Nv          = nbe1;//bnorm.xyz;
     P           = vbary.xyz;
     vert        = bvert;
-    gAlpha      = 1.f;
+    gAlpha      = 0.f;
     EmitVertex();
     EndPrimitive();
 }

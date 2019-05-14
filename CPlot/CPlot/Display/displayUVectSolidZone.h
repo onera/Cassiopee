@@ -82,7 +82,9 @@
   glNormal3f(surfx[n3], surfy[n3], surfz[n3]);                          \
   glVertex3d(x[n3], y[n3], z[n3]);                                      \
   r = f1[n4]*deltai+0.5;                                            \
-  glColor3f(r, g, 0.);                                                 \
+  g = f2[n4]*deltai+0.5;                                            \
+  b = f3[n4]*deltai+0.5;                                            \
+  glColor3f(r, g, b);                                                 \
   glNormal3f(surfx[n4], surfy[n4], surfz[n4]);                          \
   glVertex3d(x[n4], y[n4], z[n4]);                                    
 

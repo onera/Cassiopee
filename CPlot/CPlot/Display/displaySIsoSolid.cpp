@@ -28,7 +28,7 @@
 //============================================================================
 void DataDL::displaySIsoSolid()
 {
-  // TO DO : Surement une grande partie du code à factoriser entre les VBOs et les DLs
+  // TO DO : Surement une grande partie du code a factoriser entre les VBOs et les DLs
   if (_numberOfStructZones == 0) return;
   int zone;
 
@@ -83,7 +83,6 @@ void DataDL::displaySIsoSolid()
     else if (ptrState->vectorStyle == 2) s = _shaders.shader_id(shader::vector_line);
     else if (ptrState->vectorStyle == 3) s = _shaders.shader_id(shader::vector_triangle);
     else if (ptrState->vectorStyle == 4) s = _shaders.shader_id(shader::vector_uniform_streamline);
-    //else if (ptrState->vectorStyle == 4) s = _shaders.shader_id(shader::vector_line);
     
     if (_shaders.currentShader() != s) _shaders.activate((short unsigned int)s);
     if (s == _shaders.shader_id(shader::vector_rgb))
@@ -99,11 +98,14 @@ void DataDL::displaySIsoSolid()
       _shaders[s]->setUniform("ShadowMap", (int)0);
       double diag = 0.01*sqrt((xmax-xmin)*(xmax-xmin)+(ymax-ymin)*(ymax-ymin)+(zmax-zmin)*(zmax-zmin));
       double sc = ptrState->vectorScale/100.;
-      printf("scale1=%f\n", sc*diag);
-      printf("fix=%d\n", ptrState->vectorNormalize);
-      _shaders[s]->setUniform("scale", float(sc*diag));
+      double ed = sqrt( (_view.xcam-_view.xeye)*(_view.xcam-_view.xeye)+(_view.ycam-_view.yeye)*(_view.ycam-_view.yeye)+(_view.zcam-_view.zeye)*(_view.zcam-_view.zeye) )*0.1;
+      _shaders[s]->setUniform("scale", float(sc*ed));
       _shaders[s]->setUniform("fix_length", (int)ptrState->vectorNormalize);
-      if ((s==_shaders.shader_id(shader::vector_tetra))||(s==_shaders.shader_id(shader::vector_triangle))) _shaders[s]->setUniform("show_surface", ptrState->vectorShowSurface);
+      if ((s == _shaders.shader_id(shader::vector_tetra))||(s == _shaders.shader_id(shader::vector_triangle))) _shaders[s]->setUniform("show_surface", ptrState->vectorShowSurface);
+      glActiveTexture(GL_TEXTURE1);
+      if (_texColormap == 0) createColormapTexture();
+      fillColormapTexture((int)_pref.colorMap->varName[0]-48);
+      _shaders[s]->setUniform("colormap", (int)1);
     }
     else if (s ==_shaders.shader_id(shader::vector_uniform_streamline))
     {
@@ -112,13 +114,17 @@ void DataDL::displaySIsoSolid()
       _shaders[s]->setUniform("ShadowMap", (int)0);
       double diag = 0.01*sqrt((xmax-xmin)*(xmax-xmin)+(ymax-ymin)*(ymax-ymin)+(zmax-zmin)*(zmax-zmin));
       double sc = ptrState->vectorScale/100.;
-      printf("scale2=%f\n", sc*diag);
-      _shaders[s]->setUniform("scale", float(sc*diag));
+      double ed = sqrt( (_view.xcam-_view.xeye)*(_view.xcam-_view.xeye)+(_view.ycam-_view.yeye)*(_view.ycam-_view.yeye)+(_view.zcam-_view.zeye)*(_view.zcam-_view.zeye) )*0.1;
+      _shaders[s]->setUniform("scale", float(sc*ed));
       _shaders[s]->setUniform("fix_length", (int)ptrState->vectorNormalize);
       _shaders[s]->setUniform("density", float(ptrState->vectorDensity/diag));
+      glActiveTexture(GL_TEXTURE1);
+      if (_texColormap == 0) createColormapTexture();
+      fillColormapTexture((int)_pref.colorMap->varName[0]-48);
+      _shaders[s]->setUniform("colormap", (int)1);
     }
   }
-#endif 
+#endif
 
   // lumiere
   if (ptrState->isoLight == 1 && ptrState->dim == 3)
@@ -196,7 +202,7 @@ void DataDL::displaySIsoSolid()
            (zonep->active == 0 && ptrState->ghostifyDeactivatedZones == 1))
           && isInFrustum(zonep, _view) == 1)
       {
-	displaySMeshZone(zonep, zone);
+       displaySMeshZone(zonep, zone);
       }
       zone++;
     }

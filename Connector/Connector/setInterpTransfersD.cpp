@@ -161,7 +161,7 @@ PyObject* K_CONNECTOR::_setInterpTransfersD( PyObject* self, PyObject* args )
         E_Int initAll   = false;
         varStringOut[0] = '\0';
         poscd = K_ARRAY::isNamePresent(cellNVariable, varStringD);      
-        if ( PyList_Check(pyVariables) != 0 ) 
+        if (PyList_Check(pyVariables) != 0) 
         {
             int nvariables = PyList_Size(pyVariables);
             if ( nvariables > 0 ) 
@@ -174,7 +174,7 @@ PyObject* K_CONNECTOR::_setInterpTransfersD( PyObject* self, PyObject* args )
                         char* varname = PyString_AsString(tpl0);
                         posvd = K_ARRAY::isNamePresent(varname, varStringD);
                         if (posvd == poscd) posvarcd = posvd;
-                        if (posvd != -1) 
+                        if (posvd != -1)
                         {
                             posvarsD.push_back(posvd);
                             if (varStringOut[0] == '\0' ) strcpy(varStringOut, varname);
@@ -465,8 +465,11 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
     
     // On recupere le nom de la 1ere variable a recuperer
     PyObject* tpl0    = PyList_GetItem( pyVariables, 0 );
-    char*     varname = PyString_AsString( tpl0 );
-
+    char*     varname = NULL;
+    if PyString_Check(tpl0) varname = PyString_AsString(tpl0);
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(tpl0)) varname = PyBytes_AsString(PyUnicode_AsUTF8String(tpl0));
+#endif
     // on recupere sol et solcenter ainsi que connectivite et taille zones Donneuses (tc)
     for ( E_Int nd = 0; nd < nidomD; nd++ ) {
         PyObject* zoneD = PyList_GetItem( zonesD, nd );

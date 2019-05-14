@@ -16,6 +16,8 @@ out vec3 P;
 out vec4 vert;
 out float gAlpha;
 
+uniform sampler1D colormap;
+
 void main()
 {
     int i;
@@ -24,14 +26,19 @@ void main()
     vec4 bary2 = ust*(vertex[0].P1+vertex[1].P1+vertex[2].P1);
     vec4 bvert= ust*(vertex[0].position+vertex[1].position+vertex[2].position);
     vec4 bcol = ust*(vertex[0].color+vertex[1].color+vertex[2].color);
-    vec4 bnorm= ust*(vertex[0].normal+vertex[1].normal+vertex[2].normal);
+    float f = length(bcol.rgb);
+    f = clamp(f, 0.0f, 1.0f);
+    vec3 val = vec3(texture1D(colormap, f));
+    bcol = vec4(val.r, val.g, val.b, 1.);
+    
+    vec4 bnorm = ust*(vertex[0].normal+vertex[1].normal+vertex[2].normal);
 
     gl_Position = bary1;
     color  = bcol;
     Nv     = bnorm.xyz;
     P      = bary1.xyz;
     vert   = bvert;
-    gAlpha = 0.f;
+    gAlpha = 0.8f;
     EmitVertex();
 
     gl_Position = bary2;
@@ -39,7 +46,7 @@ void main()
     Nv     = bnorm.xyz;
     P      = bary1.xyz;
     vert   = bvert;
-    gAlpha = 1.f;
+    gAlpha = 0.f;
     EmitVertex();
     EndPrimitive();
 }
