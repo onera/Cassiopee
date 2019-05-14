@@ -1233,6 +1233,9 @@ def filterVarList(event=None):
 def loadZones(event=None):
     if CTK.HANDLE is None: return
     import Converter.Filter as Filter
+    # First load
+    if len(Internal.getZones(CTK.t)) == 0: firstLoad = True
+    else: firstLoad = False 
     # Recupere les zones selectionnees
     selection = WIDGETS['LBZONES'].curselection()
     zList = []
@@ -1259,7 +1262,7 @@ def loadZones(event=None):
     CTK.TKTREE.updateApp()
     if CTK.TKPLOTXY is not None: CTK.TKPLOTXY.updateApp()
     CTK.display(CTK.t)
-    # auto-fit view? if first zone?
+    if firstLoad: CPlot.fitView(); module = CTK.getModule('tkContainers'); module.updateApp()
 
 def unloadZones(event=None):
     if CTK.HANDLE is None: return

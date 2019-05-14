@@ -1761,7 +1761,7 @@ def tkLoadFile(files, mode='full'):
     for f in files:
       size += os.path.getsize(f) # en octets
     print 'size:', size
-    maxSize = PREFS.get('maxFileSizeForLoad', 8.) # en Gb
+    maxSize = PREFS.get('maxFileSizeForLoad', 6.) # en Gb
     maxSize = maxSize * 100000000
     print 'maxSize', maxSize
     if size > maxSize: mode = 'partial'

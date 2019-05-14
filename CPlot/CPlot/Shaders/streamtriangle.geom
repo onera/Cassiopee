@@ -45,7 +45,7 @@ void main()
     vec4 be1  = ust*(vertex[0].e1+vertex[1].e1+vertex[2].e1);
     vec4 be3  = ust*(vertex[0].e3+vertex[1].e3+vertex[2].e3);
     vec4 bcol = vec4(ust*(vertex[0].color+vertex[1].color+vertex[2].color).xyz,1.);
-    float f = length(bcol.rgb);
+    float f = length(bcol.rgb - vec3(0.5,0.5,0.5))*2./1.73205080;
     f = clamp(f, 0.0f, 1.0f);
     vec3 val = vec3(texture1D(colormap, f));
     bcol = vec4(val.r, val.g, val.b, 1.);

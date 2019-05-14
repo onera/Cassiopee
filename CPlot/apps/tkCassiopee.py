@@ -6,6 +6,7 @@ import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
 import CPlot.Panels as Panels
 import Converter.Internal as Internal
+import Converter.Distributed as Distributed
 import os
 import os.path, sys
 
@@ -250,7 +251,9 @@ def run(t=None):
         CTK.TKTREE.updateApp()
 
     # - open load panel if partial load -
-    #Panels.openLoadPanel()
+    zones = Internal.getZones(CTK.t)
+    if len(zones) == 0: # all skeletons certainely
+        Panels.openLoadPanel()
 
     # - Main loop -
     win.mainloop()

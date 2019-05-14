@@ -598,6 +598,7 @@ def getRenderTags__(z, renderTags):
                 for i in range(lgt):
                     shaderParameters += str(v[i])
                     if i < lgt-1: shaderParameters += ':'
+            else: shaderParameters = 'None:None' 
         renderTags.append(color+':'+material+':'+blending+':'+meshOverlay+':'+shaderParameters)
     return renderTags
 
