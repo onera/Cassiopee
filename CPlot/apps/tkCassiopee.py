@@ -48,7 +48,7 @@ VISUAPPS = ['tkView', #'tkPlot',
             'tkPlotXY', '---',
             'tkSlice', 'tkCellN', '---',
             'tkBackground']
-RENDERAPPS = ['tkRenderSet', '---',
+RENDERAPPS = ['tkRenderTree', 'tkRenderSet', '---',
               'tkStereo', 'tkEffects', 'tkDemo', '---',
               'tkPovRay', 'tkLuxRender']
 
@@ -251,9 +251,10 @@ def run(t=None):
         CTK.TKTREE.updateApp()
 
     # - open load panel if partial load -
-    zones = Internal.getZones(CTK.t)
-    if len(zones) == 0: # all skeletons certainely
-        Panels.openLoadPanel()
+    if CTK.t != []:
+        zones = Internal.getZones(CTK.t)
+        if len(zones) == 0: # all skeletons certainely
+            Panels.openLoadPanel()
 
     # - Main loop -
     win.mainloop()

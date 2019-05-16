@@ -47,7 +47,7 @@ void simple_line_draw()
     vec4 bcol = ust*(vertex[0].color+vertex[1].color+vertex[2].color);
     float f = length(bcol.rgb - vec3(0.5,0.5,0.5))*2./1.73205080;
     f = clamp(f, 0.0f, 1.0f);
-    vec3 val = vec3(texture1D(colormap, f));
+    vec3 val = vec3(texture(colormap, f));
     bcol = vec4(val.r, val.g, val.b, 1.);
     
     gl_Position = bary1;
@@ -93,7 +93,7 @@ void uniform_line_draw()
             vec4 c = psi*vertex[0].color+ki*vertex[1].color+te*vertex[2].color;
             float f = length(c.rgb - vec3(0.5,0.5,0.5))*2./1.73205080;
             f = clamp(f, 0.0f, 1.0f);
-            vec3 val = vec3(texture1D(colormap, f));
+            vec3 val = vec3(texture(colormap, f));
             c = vec4(val.r, val.g, val.b, 1.);
             vec4 t = psi*vertex[0].translation+ki*vertex[1].translation+te*vertex[2].translation;
 
@@ -123,7 +123,7 @@ void uniform_line_draw()
             vec4 bcol = ust*(vertex[0].color+vertex[1].color+vertex[2].color);
             float f = length(bcol.rgb - vec3(0.5,0.5,0.5))*2./1.73205080;
             f = clamp(f, 0.0f, 1.0f);
-            vec3 val = vec3(texture1D(colormap, f));
+            vec3 val = vec3(texture(colormap, f));
             bcol = vec4(val.r, val.g, val.b, 1.);
 
             gl_Position = bary1;

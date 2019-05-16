@@ -38,6 +38,7 @@ def setMode(event=None):
         imode = 1; WIDGETS['solid'].grid(row=2, column=0, columnspan=3, sticky=TK.EW)
     elif mode == 'Render':
         imode = 2; WIDGETS['render'].grid(row=2, column=0, columnspan=3, sticky=TK.EW)
+        CPlot.loadImageFiles(CTK.t)
     elif mode == 'Scalar':
         imode = 3
         if VARS[18].get() == 'None':

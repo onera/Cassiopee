@@ -55,7 +55,7 @@ class Animator2D:
         zones = Internal.getZones(self.t)
         for z in zones:
             param = Internal.getNodeFromName(z, 'ShaderParameters')
-            print (z[0], self.getShaderNo(z[0]))
+            print(z[0], self.getShaderNo(z[0]))
             param[1][1] = self.getShaderNo(z[0])
             
     # display all t

@@ -728,19 +728,33 @@ def _addRender2PyTree(a, slot=0, posCam=None, posEye=None, dirCam=None,
   # Under .RenderInfo
   if materials is not None:
     ri = Internal.createUniqueChild(ri, 'materials', 'UserDefinedData_t')
+    prevValues = [Internal.getValue(i) for i in ri[2]]
+    cnt = len(prevValues)
+    li = []
+    for i in materials:
+      if i not in prevValues: li.append(i)
     for c, f in enumerate(materials):
         rt = Internal.createUniqueChild(ri, 'file%d'%c, 'DataArray_t', value=f)
 
   if bumpMaps is not None:
     ri = Internal.createUniqueChild(ri, 'bumpMaps', 'UserDefinedData_t')
-    for c, f in enumerate(materials):
+    prevValues = [Internal.getValue(i) for i in ri[2]]
+    cnt = len(prevValues)
+    li = []
+    for i in bumpMaps:
+      if i not in prevValues: li.append(i)
+    for c, f in enumerate(bumpMaps):
         rt = Internal.createUniqueChild(ri, 'file%d'%c, 'DataArray_t', value=f)
 
   if billBoards is not None:
     ri = Internal.createUniqueChild(ri, 'billBoards', 'UserDefinedData_t')
-    for c, f in enumerate(billBoards):
-        rt = Internal.createUniqueChild(ri, 'file%d'%c, 'DataArray_t', value=f)
-
+    prevValues = [Internal.getValue(i) for i in ri[2]]
+    cnt = len(prevValues)
+    li = []
+    for i in billBoards:
+      if i not in prevValues: li.append(i)
+    for c, f in enumerate(li):
+        rt = Internal.createUniqueChild(ri, 'file%d'%(c+cnt), 'DataArray_t', value=f)
   return None
 
 #==============================================================================
@@ -822,3 +836,27 @@ def loadView(t, slot=0):
         out = []
         for i in pos[2]: out.append(Internal.getValue(i))
         CPlot.setState(billBoards=out)
+
+#==============================================================================
+# loadGlobalFiles (material, bumpmaps, billboards)
+#==============================================================================
+def loadImageFiles(t):
+    """Load image files (texture, billboards, bumpmaps) in CPlot."""
+    renderInfo = Internal.getNodeFromName1(t, '.RenderInfo')
+    if renderInfo is None: return None
+    pos = Internal.getNodeFromName1(renderInfo, 'materials')
+    if pos is not None:
+        out = []
+        for i in pos[2]: out.append(Internal.getValue(i))
+        CPlot.setState(materials=out)
+    pos = Internal.getNodeFromName1(renderInfo, 'bumpMaps')
+    if pos is not None:
+        out = []
+        for i in pos[2]: out.append(Internal.getValue(i))
+        CPlot.setState(bumpMaps=out)
+    pos = Internal.getNodeFromName1(renderInfo, 'billBoards')
+    if pos is not None:
+        out = []
+        for i in pos[2]: out.append(Internal.getValue(i))
+        CPlot.setState(billBoards=out)
+    return None

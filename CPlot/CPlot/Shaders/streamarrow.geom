@@ -338,7 +338,7 @@ void generate_uniform_field()
             vec4 c = psi*vertex[0].color+ki*vertex[1].color+te*vertex[2].color;
             float f = length(c.rgb - vec3(0.5,0.5,0.5))*2./1.73205080;
             f = clamp(f, 0.0f, 1.0f);
-            vec3 val = vec3(texture1D(colormap, f));
+            vec3 val = vec3(texture(colormap, f));
             c = vec4(val.r, val.g, val.b, 1.);
 
             vec4 nr= psi*vertex[0].normal+ki*vertex[1].normal+te*vertex[2].normal;
@@ -364,7 +364,7 @@ void generate_uniform_field()
             vec4 bcol = ust*(vertex[0].color+vertex[1].color+vertex[2].color);
             float f = length(bcol.rgb - vec3(0.5,0.5,0.5))*2./1.73205080;
             f = clamp(f, 0.0f, 1.0f);
-            vec3 val = vec3(texture1D(colormap, f));
+            vec3 val = vec3(texture(colormap, f));
             bcol = vec4(val.r, val.g, val.b, 1.);
 
             if ( style_arrow == 0 ) draw_3d_arrow(bary1, be3, bnorm, bcol);
@@ -389,7 +389,7 @@ void main()
         vec4 bcol = ust*(vertex[0].color+vertex[1].color+vertex[2].color);
         float f = length(bcol.rgb - vec3(0.5,0.5,0.5))*2./1.73205080;
         f = clamp(f, 0.0f, 1.0f);
-        vec3 val = vec3(texture1D(colormap, f));
+        vec3 val = vec3(texture(colormap, f));
         bcol = vec4(val.r, val.g, val.b, 1.);
         if ( style_arrow == 0 ) draw_3d_arrow(bary, be3, trn, bcol);
         if ( style_arrow == 1 ) draw_flat_arrow(bary, be3, trn, bcol);

@@ -1759,9 +1759,13 @@ def changeWindowTitle(fileName, filePath="."):
 def tkLoadFile(files, mode='full'):
   global FILE; global HANDLE; global t
   if mode == 'auto':
-    size = 0
-    for f in files:
-      size += os.path.getsize(f) # en octets
+    try:
+      size = 0
+      for f in files:
+        size += os.path.getsize(f) # en octets
+    except: 
+      print('Error: convertFile2PyTree: fail to read file %s.'%files[0])
+      return
     print 'size:', size
     maxSize = PREFS.get('maxFileSizeForLoad', 6.) # en Gb
     maxSize = maxSize * 100000000
