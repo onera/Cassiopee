@@ -284,6 +284,8 @@ void Data::initState()
   ptrState->vectorDensity = 100.f;
   ptrState->vectorNormalize = 0;
   ptrState->vectorShowSurface = 1;
+  ptrState->vectorShape = 0;
+  ptrState->vector_projection = 0;
   ptrState->selectionStyle = 0;
   ptrState->colormap = 0;
   ptrState->isoLight = 1;
@@ -747,7 +749,7 @@ void Data::enforceGivenData2(float xcam, float ycam, float zcam,
                              float viewAngle,
                              int meshStyle, int solidStyle, int scalarStyle,
                              int vectorStyle, float vectorScale, float vectorDensity, int vectorNormalize, 
-                             int vectorShowSurface, int colormap,
+                             int vectorShowSurface, int vectorShape, int vector_projection, int colormap,
                              int niso, float isoEdges, PyObject* isoScales,
                              int bgColor, int ghostifyDeactivatedZones,
                              int edgifyActivatedZones,
@@ -786,6 +788,8 @@ void Data::enforceGivenData2(float xcam, float ycam, float zcam,
   if (vectorDensity>0.) ptrState->vectorDensity = vectorDensity;
   if (vectorNormalize != -1) ptrState->vectorNormalize = vectorNormalize;
   if (vectorShowSurface != -1) ptrState->vectorShowSurface = vectorShowSurface;
+  if ( ( vector_projection > -1 ) and ( vector_projection < 2 ) ) ptrState->vector_projection = vector_projection;
+  if ( ( vectorShape > -1 ) and ( vectorShape < 3 ) ) ptrState->vectorShape = vectorShape;
   if (niso != -1) ptrState->niso = niso;
   if (isoEdges != -1) ptrState->isoEdges = isoEdges;
 

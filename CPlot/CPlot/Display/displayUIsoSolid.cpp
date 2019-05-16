@@ -74,36 +74,17 @@ void DataDL::displayUIsoSolid()
   else
   { // shader pour les isos vectoriels
     int s = _shaders.shader_id(shader::vector_rgb);
-    if (ptrState->vectorStyle == 1) s = _shaders.shader_id(shader::vector_tetra);
+    if (ptrState->vectorStyle == 1) s = _shaders.shader_id(shader::vector_arrow);
     else if (ptrState->vectorStyle == 2) s = _shaders.shader_id(shader::vector_line);
-    else if (ptrState->vectorStyle == 3) s = _shaders.shader_id(shader::vector_triangle);
-    else if (ptrState->vectorStyle == 4) s = _shaders.shader_id(shader::vector_uniform_streamline);
     
     if (_shaders.currentShader() != s) _shaders.activate((short unsigned int)s);
-
-    if (s == _shaders.shader_id(shader::vector_rgb)) 
+    if (s == _shaders.shader_id(shader::vector_rgb))
     {
       _shaders[s]->setUniform("lightOn", (int)0);
       _shaders[s]->setUniform("shadow", (int)ptrState->shadow);
       _shaders[s]->setUniform("ShadowMap", (int)0);
     }
-    else if ((s == _shaders.shader_id(shader::vector_line))||(s==_shaders.shader_id(shader::vector_tetra))||(s==_shaders.shader_id(shader::vector_triangle))) 
-    {
-      _shaders[s]->setUniform("lightOn", (int)0);
-      _shaders[s]->setUniform("shadow", (int)ptrState->shadow);
-      _shaders[s]->setUniform("ShadowMap", (int)0);
-      double diag = 0.01*sqrt((xmax-xmin)*(xmax-xmin)+(ymax-ymin)*(ymax-ymin)+(zmax-zmin)*(zmax-zmin));
-      double sc = ptrState->vectorScale/100.;
-      double ed = sqrt( (_view.xcam-_view.xeye)*(_view.xcam-_view.xeye)+(_view.ycam-_view.yeye)*(_view.ycam-_view.yeye)+(_view.zcam-_view.zeye)*(_view.zcam-_view.zeye) )*0.1;
-      _shaders[s]->setUniform("scale", float(sc*ed));
-      _shaders[s]->setUniform("fix_length", (int)ptrState->vectorNormalize);
-      if ((s==_shaders.shader_id(shader::vector_tetra))||(s==_shaders.shader_id(shader::vector_triangle))) _shaders[s]->setUniform("show_surface",ptrState->vectorShowSurface);
-      glActiveTexture(GL_TEXTURE1);
-      if (_texColormap == 0) createColormapTexture();
-      fillColormapTexture((int)_pref.colorMap->varName[0]-48);
-      _shaders[s]->setUniform("colormap", (int)1);
-    }
-    else if (s == _shaders.shader_id(shader::vector_uniform_streamline)) 
+    else
     {
       _shaders[s]->setUniform("lightOn", (int)0);
       _shaders[s]->setUniform("shadow", (int)ptrState->shadow);
@@ -118,6 +99,12 @@ void DataDL::displayUIsoSolid()
       if (_texColormap == 0) createColormapTexture();
       fillColormapTexture((int)_pref.colorMap->varName[0]-48);
       _shaders[s]->setUniform("colormap", (int)1);
+      if ( s == _shaders.shader_id(shader::vector_arrow) )
+      {
+        _shaders[s]->setUniform("show_surface", ptrState->vectorShowSurface);
+        _shaders[s]->setUniform("project_vectors", (int)ptrState->vector_projection);
+        _shaders[s]->setUniform("style_arrow", (int)ptrState->vectorShape);
+      }
     }
   }
 #endif 
@@ -135,12 +122,10 @@ void DataDL::displayUIsoSolid()
     }
     else 
     {
-	   int s = _shaders.shader_id(shader::vector_rgb);
-	   if (ptrState->vectorStyle == 2) s = _shaders.shader_id(shader::vector_line);
-	   else if (ptrState->vectorStyle == 1) s = _shaders.shader_id(shader::vector_tetra);
-	   else if (ptrState->vectorStyle == 3) s = _shaders.shader_id(shader::vector_triangle);
-     else if (ptrState->vectorStyle == 4) s = _shaders.shader_id(shader::vector_uniform_streamline);
-	   _shaders[s]->setUniform("lightOn", (int)1);
+        int s = _shaders.shader_id(shader::vector_rgb);
+        if (ptrState->vectorStyle == 1) s = _shaders.shader_id(shader::vector_arrow);
+        else if (ptrState->vectorStyle == 2) s = _shaders.shader_id(shader::vector_line);
+  	    _shaders[s]->setUniform("lightOn", (int)1);
     }
 #endif
   }

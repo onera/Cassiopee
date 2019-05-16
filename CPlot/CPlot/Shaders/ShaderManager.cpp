@@ -467,34 +467,16 @@ int ShaderManager::load()
     strcat( frag, "streamline.frag" );
     addFromFile( geom, vert, frag );
 
-    // - 34 - Vector tetra shader ( geom + frag + vert )
+    // - 34 - Vector triangle shader ( geom + frag + vert (34) )
     strcpy( geom, path );
-    strcat( geom, "streamtetra.geom" );
+    strcat( geom, "streamarrow.geom" );
     strcpy( vert, path );
-    strcat( vert, "streamtetra.vert" );
+    strcat( vert, "streamarrow.vert" );
     strcpy( frag, path );
-    strcat( frag, "streamtetra.frag" );
+    strcat( frag, "streamarrow.frag" );
     addFromFile( geom, vert, frag );
 
-    // - 35 - Vector triangle shader ( geom + frag + vert (34) )
-    strcpy( geom, path );
-    strcat( geom, "streamtriangle.geom" );
-    strcpy( vert, path );
-    strcat( vert, "streamtriangle.vert" );
-    strcpy( frag, path );
-    strcat( frag, "streamtetra.frag" );
-    addFromFile( geom, vert, frag );
-
-    // - 36 - Uniform Vector line shader ( geom + vert + frag(33) )
-    strcpy( geom, path );
-    strcat( geom, "uniformstreamline.geom" );
-    strcpy( vert, path );
-    strcat( vert, "uniformstreamline.vert" );
-    strcpy( frag, path );
-    strcat( frag, "streamline.frag" );
-    addFromFile( geom, vert, frag );
-
-    // - 37 - Textured material shader
+    // - 35 - Textured material shader
     strcpy( vert, path );
     strcat( vert, "texmat.vert" );
     strcpy( frag, path );

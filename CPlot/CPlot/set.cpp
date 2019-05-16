@@ -38,7 +38,7 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
   int meshStyle, solidStyle, scalarStyle, vectorStyle, colormap, niso;
   E_Float xcam, ycam, zcam, xeye, yeye, zeye, viewAngle, dirx, diry, dirz;
   E_Float isoEdges, vectorScale, vectorDensity;
-  int vectorNormalize, vectorShowSurface;
+  int vectorNormalize, vectorShowSurface, vectorShape, vectorProjection;
   int bgColor, shadow, dof;
   int ghostifyDeactivatedZones;
   int edgifyActivatedZones;
@@ -57,13 +57,13 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
   E_Float billBoardSize;
   if (!PyArg_ParseTuple(
         args, 
-	"iOOiiiiiiiiiiddiiiidO(ii)(ddd)(ddd)(ddd)d(dd)iiidddiiississidi(ii)iiiOdOO",
+	"iOOiiiiiiiiiiddiiiiiidO(ii)(ddd)(ddd)(ddd)d(dd)iiidddiiississidi(ii)iiiOdOO",
         &dim, &modeObject, &scalarFieldObject,
         &vectorField1, &vectorField2, &vectorField3,
         &displayBB, &displayInfo, &displayIsoLegend,
         &meshStyle, &solidStyle, &scalarStyle, 
         &vectorStyle, &vectorScale, &vectorDensity, &vectorNormalize, 
-        &vectorShowSurface, &colormap,
+        &vectorShowSurface, &vectorShape, &vectorProjection, &colormap,
         &niso, &isoEdges, &isoScales,
         &winx, &winy, &xcam, &ycam, &zcam,
         &xeye, &yeye, &zeye, 
@@ -91,7 +91,7 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
                        dirx, diry, dirz, viewAngle,
                        meshStyle, solidStyle, scalarStyle, 
                        vectorStyle, vectorScale, vectorDensity, vectorNormalize,
-                       vectorShowSurface, colormap, 
+                       vectorShowSurface, vectorShape, vectorProjection, colormap, 
                        niso, isoEdges, isoScales, bgColor,
                        ghostifyDeactivatedZones, edgifyActivatedZones,
                        edgifyDeactivatedZones,

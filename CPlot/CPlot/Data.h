@@ -220,7 +220,7 @@ public:
 			 float viewAngle,
 			 int meshStyle, int solidStyle, 
 			 int scalarStyle, int vectorStyle, float vectorScale, float vectorDensity, int vectorNormalize,
-       int vectorShowSurface,
+       int vectorShowSurface, int vectorShape, int vector_projection,
        int colormap, int niso, float isoEdges, PyObject* isoScales,
 			 int bgColor, int ghostifyDeactivatedZones,
 			 int edgifyActivatedZones, 

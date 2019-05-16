@@ -431,20 +431,18 @@ def setVectorStyle(event=None):
     if var == 'RGB': style = 0
     elif var == 'Vector lines': style = 2
     elif var == 'Vector arrows': style = 1
-    elif var == 'Vector triangles': style = 3
-    elif var == 'Uniform Vector Lines' : style = 4
-    if style == 4:
-        WIDGETS['vectorDensityLabel'].grid(row=2, column=0, sticky=TK.EW)
-        WIDGETS['vectorDensityEnter'].grid(row=2, column=1, sticky=TK.EW)
-        WIDGETS['vectorDensity'].grid(row=2, column=2, sticky=TK.EW)
-    else:
-        WIDGETS['vectorDensityLabel'].grid_forget()
-        WIDGETS['vectorDensityEnter'].grid_forget()
-        WIDGETS['vectorDensity'].grid_forget()
-    if style == 1 or style == 3:
+    WIDGETS['vectorDensityLabel'].grid(row=2, column=0, sticky=TK.EW)
+    WIDGETS['vectorDensityEnter'].grid(row=2, column=1, sticky=TK.EW)
+    WIDGETS['vectorDensity'].grid(row=2, column=2, sticky=TK.EW)
+
+    if style == 1:
         WIDGETS['vectorShowSurface'].grid(row=6,column=2,sticky=TK.EW)
+        WIDGETS['vectorShape'].grid(row=7,column=0,sticky=TK.EW)
+        WIDGETS['vectorProjection'].grid(row=7,column=2,sticky=TK.EW)
     else:
         WIDGETS['vectorShowSurface'].grid_forget()
+        WIDGETS['vectorProjection'].grid_forget()
+        WIDGETS['vectorShape'].grid_forget()
 
     CPlot.setState(vectorStyle=style)
     
@@ -484,7 +482,24 @@ def setShowSurfaceVector(event=None):
     if CTK.t == []: return
     showS = int(VARS[27].get())
     CPlot.setState(vectorShowSurface=showS)
-    
+#==============================================================================
+def setVectorProjection(event=None):
+    if CTK.t == []: return
+    proj = int(VARS[29].get())
+    CPlot.setState(vectorProjection=proj)
+#==============================================================================
+def setVectorShape(event=None):
+    # '3D arrows', 'Flat arrows', 'Tetrahedra arrows'
+    val = VARS[28].get()
+    ishape = None
+    if val == '3D arrows' :
+        ishape = 0
+    if val == 'Flat arrows' :
+        ishape = 1
+    if val == 'Tetrahedra arrows' :
+        ishape = 2
+    CPlot.setState(vectorShape=ishape)
+
 #==============================================================================
 def setDim(event=None):
     if CTK.t == []: return
@@ -831,12 +846,15 @@ def createApp(win):
     # -24- vector vectorScale
     V = TK.StringVar(win); V.set('100.0'); VARS.append(V)
     # -25- vector vectorDensity
-    V = TK.StringVar(win); V.set('100.'); VARS.append(V)
+    V = TK.StringVar(win); V.set('0.'); VARS.append(V)
     # -26- Normalize vector before displaying
     V = TK.StringVar(win); V.set('0'); VARS.append(V)
     # -27- Show triangle emmiting a field vector
     V = TK.StringVar(win); V.set('1'); VARS.append(V)
-    
+    # -28- vector shape of arrow
+    V = TK.StringVar(win); V.set('3D arrows'); VARS.append(V)
+    # -29- vector projection of arrow on surface
+    V = TK.StringVar(win); V.set('0'); VARS.append(V)
     # - Dimension '2D ou 3D'
     B = TTK.OptionMenu(Frame, VARS[8], '3D', '2D',
                        command=setDim)
@@ -996,10 +1014,7 @@ def createApp(win):
     # - Vector style -
     B = TTK.Label(Vector, text='Style:')
     B.grid(row=0, column=0, sticky=TK.EW)
-    B = TTK.OptionMenu(Vector, VARS[23], 'Vector lines', 'Vector arrows', 
-                       'Vector triangles', 'Uniform Vector Lines', 
-                       'RGB', 
-                       command=setVectorStyle)
+    B = TTK.OptionMenu(Vector, VARS[23], 'Vector lines', 'Vector arrows', 'RGB', command=setVectorStyle)
     B.grid(row=0, column=1, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Vector style.')
 
@@ -1020,8 +1035,8 @@ def createApp(win):
     B = TTK.Entry(Vector, textvariable=VARS[25], width=4, background='White')
     B.bind('<Return>', setDensityVector)
     WIDGETS['vectorDensityEnter'] = B
-    B = TTK.Scale(Vector, from_=0.1, to=1.E5, orient=TK.HORIZONTAL,
-                  command=densityVector, showvalue=1, borderwidth=1, value=100.)
+    B = TTK.Scale(Vector, from_=0., to=1.E5, orient=TK.HORIZONTAL,
+                  command=densityVector, showvalue=1, borderwidth=1, value=0.)
     WIDGETS['vectorDensity'] = B
 
     # - Vector field settings -
@@ -1089,13 +1104,22 @@ def createApp(win):
                         command=setNormalizeVector)
     BB = CTK.infoBulle(parent=B, text='Normalize all vectors before displaying.')
     B.grid(row=6, column=1  , sticky=TK.EW)    
+
     B = TTK.Checkbutton(Vector, text='Show Surface', variable=VARS[27],
                         command=setShowSurfaceVector)
     BB = CTK.infoBulle(parent=B, text='Show all triangles emmiting vector field.')
     WIDGETS['vectorShowSurface'] = B
+
+    B = TTK.Checkbutton(Vector, text='Vector Projection', variable=VARS[29],
+                        command=setVectorProjection)
+    BB = CTK.infoBulle(parent=B, text='Project vector field on the surface of the mesh.')
+    WIDGETS['vectorProjection'] = B
     #B.grid(row=6, column=1  , sticky=TK.EW)
 
-
+    # - arrow shape -
+    B = TTK.OptionMenu(Vector, VARS[28], '3D arrows', 'Flat arrows', 'Tetrahedra arrows', command=setVectorShape)
+    BB = CTK.infoBulle(parent=B, text='Shape of the arrows.')
+    WIDGETS['vectorShape'] = B
     # - Edge activation -
     B = TTK.Checkbutton(Frame, text='AEdges', variable=VARS[12],
                         command=setVals)

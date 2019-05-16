@@ -39,12 +39,10 @@ enum shaders_id
 	iso_gooch, // 31
 	iso_metal, // 32
 	vector_line, // 33
-	vector_tetra, // 34
-	vector_triangle, // 35
-	vector_uniform_streamline, // 36
-	textured_material, // 37
+	vector_arrow, // 34
+	textured_material, // 35
 
-	end_of_shaders_id
+	end_of_shaders_id // 36 !
 };
 }
 #endif

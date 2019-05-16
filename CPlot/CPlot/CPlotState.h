@@ -153,6 +153,8 @@ struct CPlotState {
     float vectorDensity;   // Density of vectors in vector mode
     int   vectorNormalize; // Normalize all vectors before display them ( 1 : yes, 0 : no )
     int   vectorShowSurface;// Show the triangle emmiting the vector field.
+    int   vectorShape;     // Shape of the arrow
+    int   vector_projection; // Project ( 1 ) or not ( 0 ) the vector on the surface of the obstacle
     int   selectionStyle;  // style pour la selection (0: bleue, 1: alpha)
     int   colormap;        // colormap
     int   isoLight;        // light ou pas light -> isoLight
