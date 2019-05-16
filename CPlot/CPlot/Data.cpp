@@ -281,7 +281,7 @@ void Data::initState()
   ptrState->scalarStyle = 0;
   ptrState->vectorStyle = 0;
   ptrState->vectorScale = 100.f;
-  ptrState->vectorDensity = 100.f;
+  ptrState->vectorDensity = 0.f;
   ptrState->vectorNormalize = 0;
   ptrState->vectorShowSurface = 1;
   ptrState->vectorShape = 0;
@@ -785,7 +785,7 @@ void Data::enforceGivenData2(float xcam, float ycam, float zcam,
   if (scalarStyle != -1) ptrState->scalarStyle = scalarStyle;
   if (vectorStyle != -1) ptrState->vectorStyle = vectorStyle;
   if (vectorScale > 0.) ptrState->vectorScale = vectorScale;
-  if (vectorDensity>0.) ptrState->vectorDensity = vectorDensity;
+  if (vectorDensity > -0.5) ptrState->vectorDensity = vectorDensity;
   if (vectorNormalize != -1) ptrState->vectorNormalize = vectorNormalize;
   if (vectorShowSurface != -1) ptrState->vectorShowSurface = vectorShowSurface;
   if ( ( vector_projection > -1 ) and ( vector_projection < 2 ) ) ptrState->vector_projection = vector_projection;

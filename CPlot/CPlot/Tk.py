@@ -1766,14 +1766,14 @@ def tkLoadFile(files, mode='full'):
     except: 
       print('Error: convertFile2PyTree: fail to read file %s.'%files[0])
       return
-    print 'size:', size
+    if size > 1000000000: print('size: %f Gb'%(size/1000000000))
+    elif size > 1000000: print('size: %f Mb'%(size/1000000))
+    else: print('size: %f kb'%(size/1000))
     maxSize = PREFS.get('maxFileSizeForLoad', 6.) # en Gb
     maxSize = maxSize * 100000000
-    print 'maxSize', maxSize
     if size > maxSize: mode = 'partial'
     else: mode = 'full' 
 
-  print 'mode:', mode
   if mode == 'partial':
     fileName = files[0]
     try:

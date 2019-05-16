@@ -452,32 +452,33 @@ def setScaleVector(event=None):
     val = float(VARS[24].get())
     WIDGETS['vectorScale'].set(val)
     CPlot.setState(vectorScale=val)
-    CTK.TKTREE.updateApp()
+    
 #==============================================================================
 def scaleVector(event=None):
     if CTK.t == []: return
     val = WIDGETS['vectorScale'].get()
     VARS[24].set(str(val))
     CPlot.setState(vectorScale=val)
-    CTK.TKTREE.updateApp()
+    
 #==============================================================================
 def setDensityVector(event=None):
     val = float(VARS[25].get())
     WIDGETS['vectorDensity'].set(val)
     CPlot.setState(vectorDensity=val)
-    CTK.TKTREE.updateApp()
+    
 #==============================================================================
 def densityVector(event=None):
     if CTK.t == []: return
     val = WIDGETS['vectorDensity'].get()
     VARS[25].set(str(val))
     CPlot.setState(vectorDensity=val)
-    CTK.TKTREE.updateApp()
+    
 #==============================================================================
 def setNormalizeVector(event=None):
     if CTK.t == []: return
     normalize = int(VARS[26].get())
     CPlot.setState(vectorNormalize=normalize)
+
 #==============================================================================
 def setShowSurfaceVector(event=None):
     if CTK.t == []: return
