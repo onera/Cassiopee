@@ -7,7 +7,6 @@ CPlot.display(a)
 
 print('dim=',CPlot.getState('dim'))
 print('mode=',CPlot.getState('mode'))
-print('displayBB=',CPlot.getState('displayBB'))
 print('displayInfo=',CPlot.getState('displayInfo'))
 print('meshStyle=',CPlot.getState('meshStyle'))
 print('solidStyle=',CPlot.getState('solidStyle'))

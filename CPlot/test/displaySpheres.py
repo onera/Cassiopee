@@ -13,5 +13,5 @@ for i in range(10):
     CPlot._addRender2Zone(a, material='Sphere', color='White',
                           shaderParameters=[1.5,i*2./5.])
 
-    CPlot.display(a, displayBB=0, mode='render', bgColor=1)
+    CPlot.display(a, mode='render', bgColor=1)
     time.sleep(1.)

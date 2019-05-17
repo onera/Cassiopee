@@ -484,11 +484,13 @@ def setShowSurfaceVector(event=None):
     if CTK.t == []: return
     showS = int(VARS[27].get())
     CPlot.setState(vectorShowSurface=showS)
+    
 #==============================================================================
 def setVectorProjection(event=None):
     if CTK.t == []: return
     proj = int(VARS[29].get())
     CPlot.setState(vectorProjection=proj)
+
 #==============================================================================
 def setVectorShape(event=None):
     # '3D arrows', 'Flat arrows', 'Tetrahedra arrows'

@@ -224,7 +224,7 @@ void Data::initState()
   // Render
   ptrState->farClip = 0;
   ptrState->render = 1;
-  ptrState->bb = 1;
+  ptrState->bb = 0;
   ptrState->header = 1;
   ptrState->info = 1;
   ptrState->menu = 1;
@@ -788,8 +788,8 @@ void Data::enforceGivenData2(float xcam, float ycam, float zcam,
   if (vectorDensity > -0.5) ptrState->vectorDensity = vectorDensity;
   if (vectorNormalize != -1) ptrState->vectorNormalize = vectorNormalize;
   if (vectorShowSurface != -1) ptrState->vectorShowSurface = vectorShowSurface;
-  if ( ( vector_projection > -1 ) and ( vector_projection < 2 ) ) ptrState->vector_projection = vector_projection;
-  if ( ( vectorShape > -1 ) and ( vectorShape < 3 ) ) ptrState->vectorShape = vectorShape;
+  if ((vector_projection > -1) and (vector_projection < 2)) ptrState->vector_projection = vector_projection;
+  if (( vectorShape > -1) and (vectorShape < 3)) ptrState->vectorShape = vectorShape;
   if (niso != -1) ptrState->niso = niso;
   if (isoEdges != -1) ptrState->isoEdges = isoEdges;
 

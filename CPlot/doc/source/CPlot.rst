@@ -132,8 +132,6 @@ Actions
     :type scalarField: int or string
     :param vectorField1,2,3: vector field number or vector field name
     :type vectorField1,2,3: int or string
-    :param displayBB: 0: bounding box display (default: 1)
-    :type displayBB: int
     :param displayInfo: 0 means no info display (default: 1)
     :type displayInfo: int
     :param displayIsoLegend: 0 means no iso legend display (default: 0)
@@ -144,12 +142,18 @@ Actions
     :type solidStyle: int
     :param scalarStyle: 0: banded, 1: banded+mesh, 2: lines, 3: lines+mesh (default: 0)
     :type scalarStyle: int
-    :param vectorStyle: 0: RGB, 1: triangles, 2: lines, 3: arrows, 4: uniform lines
+    :param vectorStyle: 0: RGB, 1: arrows, 2: lines
     :type vectorStyle: int
     :param vectorDensity: the density of vectors
     :type vectorDensity: float
     :param vectorNormalize: if 1, displayed vectors are normalized
     :type vectorNormalize: 0 or 1
+    :param vectorShowSurface: if 1, display surface in vector mode (vectorStyle=1)
+    :type vectorShowSurface: 0 or 1
+    :param vectorShape: type of arrows for vectors (vectorStyle=1)
+    :type vectorShape: 0 (3D arrows), 1 (Flat arrows), 2 (Tetra arrows)
+    :param vectorProjection: 1 of vectors are projected on surface
+    :type vectorProjection: 0 or 1
     :param colormap: 0: Blue2Red, 2: Green2Red, 4: Black2White, 6: White2Black, 8: Diverging (default: 0)
     :type colormap: int
     :param niso: number of isos (default: 25)
