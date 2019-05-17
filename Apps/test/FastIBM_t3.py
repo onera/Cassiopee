@@ -1,4 +1,5 @@
 # - Fast.IBM -
+# Euler, seq, frontType=2
 import Apps.Fast.IBM as App
 import Converter.PyTree as C
 import KCore.test as test
@@ -15,7 +16,7 @@ myApp.set(numz={"time_step": 0.0007,
                 "cfl":4.})
 
 # Prepare
-t, tc = App.prepare0('naca1D.cgns', t_out=LOCAL+'/t.cgns', tc_out=LOCAL+'/tc.cgns', frontType=2)
+t, tc = App.prepare0('naca1DEuler.cgns', t_out=LOCAL+'/t.cgns', tc_out=LOCAL+'/tc.cgns', frontType=2)
 test.testT(tc, 1)
 
 # Compute
@@ -23,5 +24,5 @@ t,tc = myApp.compute(LOCAL+'/t.cgns', LOCAL+'/tc.cgns', t_out=LOCAL+'/restart.cg
 test.testT(t, 2)
 
 # Post
-t, zw = myApp.post('naca1D.cgns', LOCAL+'/restart.cgns', LOCAL+'/tc_restart.cgns', t_out=LOCAL+'/out.cgns', wall_out=LOCAL+'/wall.cgns')
+t, zw = myApp.post('naca1DEuler.cgns', LOCAL+'/restart.cgns', LOCAL+'/tc_restart.cgns', t_out=LOCAL+'/out.cgns', wall_out=LOCAL+'/wall.cgns')
 test.testT(t, 3)

@@ -50,9 +50,9 @@ void Data::displayUSolidZone( UnstructZone *zonep, int zone, int zonet )
 #include "selection.h"
 
     bool is1D = ( ( zonep->eltType == 1 ) | ( zonep->eltType == 10 && zonep->nelts1D > 0 ) );
-    if ( is1D == true && ptrState->mode == RENDER )
+    if (is1D == true && ptrState->mode == RENDER)
         glLineWidth( 1. + 5 * zonep->shaderParam1 );
-    else if ( is1D == true )
+    else if (is1D == true)
         glLineWidth( 3. );
     else
         glLineWidth( 1. );

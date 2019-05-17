@@ -10,7 +10,7 @@ LOCAL = test.getLocal()
 a = G.cart((0,0,0), (1,1,1), (10,10,10))
 b = G.cart((12,0,0), (1,1,1), (10,10,10))
 t = C.newPyTree(['Base',a,b])
-C.convertPyTree2File(t, LOCAL+'.test.adf')
+C.convertPyTree2File(t, LOCAL+'/test.adf')
 
 t = Filter.convertFile2SkeletonTree(LOCAL+'/test.adf', maxDepth=3)
 

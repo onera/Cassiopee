@@ -64,7 +64,7 @@ void Data::displaySSolidZone(StructZone* zonep, int zone)
 #ifdef __SHADERS__
         triggerShader(*zonep, zonep->material, s, color1);
 #endif
-      int nofield1 = 0; 
+      int nofield1 = 0;
       int nofield2 = 1; 
       int nofield3 = 0;
       computeSteps(zonep, stepi, stepj, stepk);
