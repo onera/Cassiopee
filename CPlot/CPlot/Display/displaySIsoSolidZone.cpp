@@ -118,10 +118,10 @@ void Data::displaySIsoSolidZone(StructZone* zonep, int zone,
   if (curr != 0) _shaders[curr]->setUniform("blend", (float)blend);
   glColor4f(0.,0.,0., blend); // pour imposer blend
 #endif
-
+  
 #undef PLOT
 #include "displaySVectSolidZone.h"
-      
+  
   // Pour les lignes
   if (nij == 1 || ni*nk == 1 || nj*nk == 1)
   {

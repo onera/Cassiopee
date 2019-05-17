@@ -84,7 +84,7 @@ void draw_flat_arrow( vec4 origin, vec4 be3, vec4 trn, vec4 bcol )
         }
     }
     be3 = gl_ModelViewProjectionMatrix * be3;
-    vec3 bnorm= normalize(vec3(0., be3.z, -be3.y));
+    vec3 bnorm = normalize(vec3(0., be3.z, -be3.y));
     if ( be3.z > 0 ) bnorm = -bnorm;
 
     gl_Position = bary1 - 0.125 * be1;
@@ -130,7 +130,6 @@ void draw_flat_arrow( vec4 origin, vec4 be3, vec4 trn, vec4 bcol )
     //vert   = bvert;
     EmitVertex();
     EndPrimitive();
-
 }
 
 void draw_3d_arrow( vec4 origin, vec4 be3, vec4 trn, vec4 bcol )
@@ -345,8 +344,8 @@ void generate_uniform_field()
             vec4 be3 = psi * vertex[0].e3 + ki * vertex[1].e3 + te * vertex[2].e3;
 
             if ( style_arrow == 0 ) draw_3d_arrow(p, be3, nr, c);
-            if ( style_arrow == 1 ) draw_flat_arrow(p, be3, nr, c);
-            if ( style_arrow == 2 ) draw_tetra_arrow(p, be3, nr, c);
+            else if ( style_arrow == 1 ) draw_flat_arrow(p, be3, nr, c);
+            else if ( style_arrow == 2 ) draw_tetra_arrow(p, be3, nr, c);
         }
     } }
     else {
@@ -368,8 +367,8 @@ void generate_uniform_field()
             bcol = vec4(val.r, val.g, val.b, 1.);
 
             if ( style_arrow == 0 ) draw_3d_arrow(bary1, be3, bnorm, bcol);
-            if ( style_arrow == 1 ) draw_flat_arrow(bary1, be3, bnorm, bcol);
-            if ( style_arrow == 2 ) draw_tetra_arrow(bary1, be3, bnorm, bcol);
+            else if ( style_arrow == 1 ) draw_flat_arrow(bary1, be3, bnorm, bcol);
+            else if ( style_arrow == 2 ) draw_tetra_arrow(bary1, be3, bnorm, bcol);
         }
     }
 
@@ -377,7 +376,7 @@ void generate_uniform_field()
 
 void main()
 {
-    if ( show_surface == 1 ) show_trig_surf();        // Emission du triangle de base :
+    if ( show_surface == 1 ) show_trig_surf();        // Emission du triangle de base
 
     // Emission des triangles pour le champs de vecteur
     if ( density < 1.E-6 )
@@ -392,9 +391,8 @@ void main()
         vec3 val = vec3(texture(colormap, f));
         bcol = vec4(val.r, val.g, val.b, 1.);
         if ( style_arrow == 0 ) draw_3d_arrow(bary, be3, trn, bcol);
-        if ( style_arrow == 1 ) draw_flat_arrow(bary, be3, trn, bcol);
-        if ( style_arrow == 2 ) draw_tetra_arrow(bary, be3, trn, bcol);
+        else if ( style_arrow == 1 ) draw_flat_arrow(bary, be3, trn, bcol);
+        else if ( style_arrow == 2 ) draw_tetra_arrow(bary, be3, trn, bcol);
     }
-    else
-        generate_uniform_field();
+    else generate_uniform_field();
 }

@@ -33,6 +33,7 @@ Shader::Shader()
       _isActive( false ), _isLinked( false ), _isModified( false ), _programId( 0 )
 {
     _programId = glCreateProgramObjectARB();
+    CHECK_GL_ERROR();
 }
 //==============================================================================
 void Shader::unlink()
@@ -168,6 +169,7 @@ bool Shader::start()
         _isLinked = true;
         _isModified = false;
     }
+    CHECK_GL_ERROR();
 # if defined(GL_TRACE)
     std::cout << "End " << __PRETTY_FUNCTION__ << " with status "
               << std::boolalpha << success << std::endl;
@@ -250,33 +252,39 @@ void Shader::setUniform( const char *varName, float v0 )
 {
     GLint loc = GLint( getUniformLocation( varName ) );
     glUniform1fARB( loc, v0 );
+    CHECK_GL_ERROR();
 }
 // ----------------------------------------------------------------------------
 void Shader::setUniform( unsigned int loc, float v0 )
 {
     glUniform1fARB( GLint( loc ), v0 );
+    CHECK_GL_ERROR();
 }
 // ------------------------------------------------------------------------
 void Shader::setUniform( const char *varName, float v0, float v1 )
 {
     GLint loc = GLint( getUniformLocation( varName ) );
     glUniform2fARB( loc, v0, v1 );
+    CHECK_GL_ERROR();
 }
 // ------------------------------------------------------------------------
 void Shader::setUniform( unsigned int loc, float v0, float v1 )
 {
     glUniform2fARB( GLint( loc ), v0, v1 );
+    CHECK_GL_ERROR();
 }
 // ------------------------------------------------------------------------
 void Shader::setUniform( const char *varName, float v0, float v1, float v2 )
 {
     GLint loc = GLint( getUniformLocation( varName ) );
     glUniform3fARB( loc, v0, v1, v2 );
+    CHECK_GL_ERROR();
 }
 // ------------------------------------------------------------------------
 void Shader::setUniform( unsigned int loc, float v0, float v1, float v2 )
 {
     glUniform3fARB( GLint( loc ), v0, v1, v2 );
+    CHECK_GL_ERROR();
 }
 // ------------------------------------------------------------------------
 void Shader::setUniform( const char *varName,
@@ -284,45 +292,53 @@ void Shader::setUniform( const char *varName,
 {
     GLint loc = GLint( getUniformLocation( varName ) );
     glUniform4fARB( loc, v0, v1, v2, v3 );
+    CHECK_GL_ERROR();
 }
 // ------------------------------------------------------------------------
 void Shader::setUniform( unsigned int loc,
                          float v0, float v1, float v2, float v3 )
 {
     glUniform4fARB( GLint( loc ), v0, v1, v2, v3 );
+    CHECK_GL_ERROR();
 }
 // ------------------------------------------------------------------------
 void Shader::setUniform( const char *varName, int v0 )
 {
     GLint loc = GLint( getUniformLocation( varName ) );
     glUniform1iARB( loc, v0 );
+    CHECK_GL_ERROR();
 }
 // ------------------------------------------------------------------------
 void Shader::setUniform( unsigned int loc, int v0 )
 {
     glUniform1iARB( GLint( loc ), v0 );
+    CHECK_GL_ERROR();
 }
 // ------------------------------------------------------------------------
 void Shader::setUniform( const char *varName, int v0, int v1 )
 {
     GLint loc = GLint( getUniformLocation( varName ) );
     glUniform2iARB( loc, v0, v1 );
+    CHECK_GL_ERROR();
 }
 // ------------------------------------------------------------------------
 void Shader::setUniform( unsigned int loc, int v0, int v1 )
 {
     glUniform2iARB( GLint( loc ), v0, v1 );
+    CHECK_GL_ERROR();
 }
 // ------------------------------------------------------------------------
 void Shader::setUniform( const char *varName, int v0, int v1, int v2 )
 {
     GLint loc = GLint( getUniformLocation( varName ) );
     glUniform3iARB( loc, v0, v1, v2 );
+    CHECK_GL_ERROR();
 }
 // ------------------------------------------------------------------------
 void Shader::setUniform( unsigned int loc, int v0, int v1, int v2 )
 {
     glUniform3iARB( GLint( loc ), v0, v1, v2 );
+    CHECK_GL_ERROR();
 }
 // ------------------------------------------------------------------------
 void Shader::setUniform( const char *varName,
@@ -330,11 +346,13 @@ void Shader::setUniform( const char *varName,
 {
     GLint loc = GLint( getUniformLocation( varName ) );
     glUniform4iARB( loc, v0, v1, v2, v3 );
+    CHECK_GL_ERROR();
 }
 // ------------------------------------------------------------------------
 void Shader::setUniform( unsigned int loc, int v0, int v1, int v2, int v3 )
 {
     glUniform4iARB( GLint( loc ), v0, v1, v2, v3 );
+    CHECK_GL_ERROR();
 }
 // ------------------------------------------------------------------------
 void Shader::setUniform( const char *varName, size_t sz, size_t count,
@@ -342,6 +360,7 @@ void Shader::setUniform( const char *varName, size_t sz, size_t count,
 {
     unsigned int loc = getUniformLocation( varName );
     setUniform( loc, sz, count, value );
+    CHECK_GL_ERROR();
 }
 // ------------------------------------------------------------------------
 void Shader::setUniform( unsigned int loc, size_t sz, size_t count, float *value )
@@ -363,6 +382,7 @@ void Shader::setUniform( unsigned int loc, size_t sz, size_t count, float *value
             throw std::length_error( "Size of vectors must be 1,2, 3 or 4" );
     }
     _isModified = true;
+    CHECK_GL_ERROR();
 }
 // ------------------------------------------------------------------------
 void Shader::setUniform( const char *varName, size_t sz, size_t count,
@@ -370,6 +390,7 @@ void Shader::setUniform( const char *varName, size_t sz, size_t count,
 {
     unsigned int loc = getUniformLocation( varName );
     setUniform( loc, sz, count, value );
+    CHECK_GL_ERROR();
 }
 // ------------------------------------------------------------------------
 void Shader::setUniform( unsigned int loc, size_t sz, size_t count, int *value )
@@ -391,6 +412,7 @@ void Shader::setUniform( unsigned int loc, size_t sz, size_t count, int *value )
             throw std::length_error( "Size of vectors must be 1,2, 3 or 4" );
     }
     _isModified = true;
+    CHECK_GL_ERROR();
 }
 // ------------------------------------------------------------------------
 void Shader::setUniformMatrix( const char *varname, size_t dim, size_t count,
@@ -398,6 +420,7 @@ void Shader::setUniformMatrix( const char *varname, size_t dim, size_t count,
 {
     unsigned int loc = getUniformLocation( varname );
     setUniformMatrix( loc, dim, count, transpose, value );
+    CHECK_GL_ERROR();
 }
 // ------------------------------------------------------------------------
 void Shader::setUniformMatrix( unsigned int loc, size_t dim, size_t count,
@@ -417,21 +440,25 @@ void Shader::setUniformMatrix( unsigned int loc, size_t dim, size_t count,
             throw std::length_error( "Size of matrices must be 2, 3 or 4." );
     }
     _isModified = true;
+    CHECK_GL_ERROR();
 }
 // ============================================================================
 void Shader::setAttribute( unsigned int index, float v0 )
 {
     glVertexAttrib1fARB( GLint( index ), GLfloat( v0 ) );
+    CHECK_GL_ERROR();
 }
 //==============================================================================
 void Shader::setAttribute( unsigned int index, float v0, float v1 )
 {
     glVertexAttrib2fARB( GLint( index ), GLfloat( v0 ), GLfloat( v1 ) );
+    CHECK_GL_ERROR();
 }
 //==============================================================================
 void Shader::setAttribute( unsigned int index, float v0, float v1, float v2 )
 {
     glVertexAttrib3fARB( GLint( index ), GLfloat( v0 ), GLfloat( v1 ), GLfloat( v2 ) );
+    CHECK_GL_ERROR();
 }
 //==============================================================================
 void Shader::setAttribute( unsigned int index, float v0, float v1, float v2,
@@ -439,6 +466,7 @@ void Shader::setAttribute( unsigned int index, float v0, float v1, float v2,
 {
     glVertexAttrib4fARB( GLint( index ), GLfloat( v0 ), GLfloat( v1 ), GLfloat( v2 ),
                          GLfloat( v3 ) );
+    CHECK_GL_ERROR();
 }
 //==============================================================================
 void Shader::setAttribute( unsigned int index, unsigned int dim,
@@ -460,6 +488,7 @@ void Shader::setAttribute( unsigned int index, unsigned int dim,
         default:
             throw std::length_error( "Size of vectors must be 1, 2, 3 or 4." );
     }
+    CHECK_GL_ERROR();
 }
 // ------------------------------------------------------------------------
 unsigned int
@@ -470,6 +499,7 @@ Shader::initStorageBuffer( int nfloats, const float *values )
     glBindBuffer( GL_SHADER_STORAGE_BUFFER, ssbo );
     glBufferData( GL_SHADER_STORAGE_BUFFER, nfloats * sizeof( float ), (void *)values, GL_DYNAMIC_COPY );
     glBindBuffer( GL_SHADER_STORAGE_BUFFER, 0 );
+    CHECK_GL_ERROR();
     return (unsigned int)ssbo;
 }
 // ------------------------------------------------------------------------
@@ -479,4 +509,5 @@ void Shader::updateStorageBuffer( unsigned int ssbo, int nfloats, const float *v
     GLvoid *p = glMapBuffer( GL_SHADER_STORAGE_BUFFER, GL_WRITE_ONLY );
     memcpy( p, (void *)values, nfloats * sizeof( float ) );
     glUnmapBuffer( GL_SHADER_STORAGE_BUFFER );
+    CHECK_GL_ERROR();
 }

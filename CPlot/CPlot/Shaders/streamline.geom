@@ -72,7 +72,6 @@ void uniform_line_draw()
     vec4 e1 = v1P0 - v0P0;
     vec4 e2 = v2P0 - v0P0;
     vec3 unrm = cross(e1.xyz,e2.xyz);
-    // 
     float nrm = length(unrm);
     //float nrm = sqrt(dot(unrm.xyz,unrm.xyz));
     //float nrm_e1 = sqrt(e1.x*e1.x+e1.y*e1.y+e1.z*e1.z);

@@ -22,6 +22,18 @@
 //#define DEBUGSHADER
 
 #ifdef DEBUGSHADER
+
+/* for glu.h to work on win */
+#ifdef _WIN32
+#ifndef APIENTRY
+#define APIENTRY __stdcall
+#endif
+#ifndef CALLBACK
+#define CALLBACK __attribute__ ((__stdcall__))
+#endif
+//typedef unsigned short wchar_t;
+#endif
+
 #include <stdio.h>
 #include <GL/glu.h>
 
@@ -43,6 +55,7 @@ static int checkGLError(char *file, int line)
       printf("GL Error # %d (no message) in file %s at line %d.\n",
              glErr, file, line);
     glErr = glGetError();
+    fflush(stdout);
     retCode = 1;
   }
   return retCode;

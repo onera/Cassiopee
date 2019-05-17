@@ -1,15 +1,16 @@
 #version 150 compatibility
 
 out Vertex {
-    vec4 P0;// Coordonnées dans l'espace projeté écran
-    vec4 vP;// Coordonnées dans l'espace caméra
+    vec4 P0;// Coordonnees dans l'espace projete ecran
+    vec4 vP;// Coordonnees dans l'espace camera
     vec4 e3;
     vec4 position;// Position dans l'espace world
     vec4 normal;
     vec4 color;
 } vertex;
-uniform float scale;
+
 uniform int fix_length;
+uniform float scale;
 
 void main()
 {

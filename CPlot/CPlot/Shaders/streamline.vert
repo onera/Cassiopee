@@ -7,6 +7,7 @@ out Vertex {
     vec4 translation;
     vec4 color;
 } vertex;
+
 uniform int fix_length;
 uniform float scale;
 

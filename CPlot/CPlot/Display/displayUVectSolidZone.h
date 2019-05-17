@@ -36,7 +36,7 @@
   glNormal3f(surfx[n3], surfy[n3], surfz[n3]);                          \
   glVertex3d(x[n3], y[n3], z[n3]);
                               
-#define PLOTTRI2 r =f1[n1]*deltai+0.5;                              \
+#define PLOTTRI2 r = f1[n1]*deltai+0.5;                              \
   g = f2[n1]*deltai+0.5;                                            \
   b = f3[n1]*deltai+0.5;                                            \
   glColor3f(r, g, b);                                                   \

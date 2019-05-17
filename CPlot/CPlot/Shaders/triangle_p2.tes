@@ -8,7 +8,7 @@ in TCS_OUT
 {
     vec4 position;
     vec4 color;
-    ivec4 data_comp; // Raconte si vdata1,2,3 ou 4 est utilisé
+    ivec4 data_comp; // Raconte si vdata1,2,3 ou 4 est utilise
     vec4 vdata1, vdata2, vdata3, vdata4;    
 } tcs_in[];
 
@@ -63,13 +63,13 @@ void main()
     v2f_out.mvp_position = gl_ModelViewProjectionMatrix * xyz;
     v2f_out.view_normal = vec4(gl_NormalMatrix * vec3(nx, ny, nz), 0.);
     v2f_out.nrm_view_normal = normalize(v2f_out.view_normal);
-    // POur la couleur, sans doute à changer, il faut voir quel est la fonction de forme associée
-    // Ce sera sûrement une fonction dans un fichier à rajouter au programme de tesselation shader
+    // Pour la couleur, sans doute a changer, il faut voir quel est la fonction de forme associee
+    // Ce sera surement une fonction dans un fichier a rajouter au programme de tesselation shader
     vec4  c0 = tcs_in[0].color;
     vec4  c1 = tcs_in[1].color;
     vec4  c2 = tcs_in[2].color;
     v2f_out.color       = u * c1 + v * c2 + w * c0;
-    // Les interpolations suivantes sûrement aussi à changer selon une fonction bien définie
+    // Les interpolations suivantes surement aussi a changer selon une fonction bien definie
     // qu'on nommera par exemple : interpol_data1, interpol_data2, interpol_data3 et
     // interpol_data4...
     // Par defaut, on fera une interpolation lineaire par rapport aux sommets.

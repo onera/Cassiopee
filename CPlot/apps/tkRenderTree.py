@@ -123,6 +123,10 @@ def createApp(win):
     B.grid(row=2, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B,
                        text='Add file name as texture file to be referenced\n in Texmat material of tkRenderSet..')
+    B = TTK.Button(Frame, text="Add BumpMap", command=addBumpMapFile)
+    B.grid(row=3, column=0, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B,
+                       text='Add file name as bumpmap file to be referenced\n in Texmat material of tkRenderSet..')
     
 #==============================================================================
 # Called to display widgets
@@ -157,7 +161,7 @@ if (__name__ == "__main__"):
         except: pass
 
     # Main window
-    (win, menu, file, tools) = CTK.minimal('tkPersonal '+C.__version__)
+    (win, menu, file, tools) = CTK.minimal('tkRenderTree '+C.__version__)
 
     createApp(win); showApp()
 

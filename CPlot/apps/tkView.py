@@ -438,7 +438,7 @@ def setVectorStyle(event=None):
 
     if style == 1:
         WIDGETS['vectorShowSurface'].grid(row=6,column=2,sticky=TK.EW)
-        WIDGETS['vectorShape'].grid(row=7,column=0,sticky=TK.EW)
+        WIDGETS['vectorShape'].grid(row=7,column=1,sticky=TK.EW)
         WIDGETS['vectorProjection'].grid(row=7,column=2,sticky=TK.EW)
     else:
         WIDGETS['vectorShowSurface'].grid_forget()
@@ -484,7 +484,7 @@ def setShowSurfaceVector(event=None):
     if CTK.t == []: return
     showS = int(VARS[27].get())
     CPlot.setState(vectorShowSurface=showS)
-    
+
 #==============================================================================
 def setVectorProjection(event=None):
     if CTK.t == []: return
@@ -496,12 +496,9 @@ def setVectorShape(event=None):
     # '3D arrows', 'Flat arrows', 'Tetrahedra arrows'
     val = VARS[28].get()
     ishape = None
-    if val == '3D arrows' :
-        ishape = 0
-    if val == 'Flat arrows' :
-        ishape = 1
-    if val == 'Tetrahedra arrows' :
-        ishape = 2
+    if val == '3D arrows': ishape = 0
+    if val == 'Flat arrows': ishape = 1
+    if val == 'Tetrahedra arrows': ishape = 2
     CPlot.setState(vectorShape=ishape)
 
 #==============================================================================
@@ -995,7 +992,7 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='Max of isos for this field.')
     
     # - Colormap + light -
-    B = TTK.Checkbutton(Scalar, text='Leg', variable=VARS[7],
+    B = TTK.Checkbutton(Scalar, text='Legend', variable=VARS[7],
                         command=setIsoLegend)
     B.grid(row=5, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Display color legend.')
@@ -1081,9 +1078,9 @@ def createApp(win):
         F.bind('<Enter>', updateVarNameList1_2)
         F.grid(row=3, column=1, columnspan=2, sticky=TK.EW)
         WIDGETS['vectorField1'] = B
-        B = TK.Label(Vector, text='Field2:')
+        B = TTK.Label(Vector, text='Field2:')
         B.grid(row=4, column=0, sticky=TK.EW)
-        F = TK.Frame(Vector, borderwidth=0)
+        F = TTK.Frame(Vector, borderwidth=0)
         F.columnconfigure(0, weight=1)
         B = ttk.Combobox(F, textvariable=VARS[21], 
                          values=[], state='readonly', width=15)
@@ -1092,9 +1089,9 @@ def createApp(win):
         F.bind('<Enter>', updateVarNameList2_2)
         F.grid(row=4, column=1, columnspan=2, sticky=TK.EW)
         WIDGETS['vectorField2'] = B
-        B = TK.Label(Vector, text='Field3:')
+        B = TTK.Label(Vector, text='Field3:')
         B.grid(row=5, column=0, sticky=TK.EW)
-        F = TK.Frame(Vector, borderwidth=0)
+        F = TTK.Frame(Vector, borderwidth=0)
         F.columnconfigure(0, weight=1)
         B = ttk.Combobox(F, textvariable=VARS[22], 
                          values=[], state='readonly', width=15)
@@ -1107,7 +1104,7 @@ def createApp(win):
     B = TTK.Checkbutton(Vector, text='Normalize', variable=VARS[26],
                         command=setNormalizeVector)
     BB = CTK.infoBulle(parent=B, text='Normalize all vectors before displaying.')
-    B.grid(row=6, column=1  , sticky=TK.EW)    
+    B.grid(row=6, column=1, sticky=TK.EW)    
 
     B = TTK.Checkbutton(Vector, text='Show Surface', variable=VARS[27],
                         command=setShowSurfaceVector)
@@ -1124,6 +1121,7 @@ def createApp(win):
     B = TTK.OptionMenu(Vector, VARS[28], '3D arrows', 'Flat arrows', 'Tetrahedra arrows', command=setVectorShape)
     BB = CTK.infoBulle(parent=B, text='Shape of the arrows.')
     WIDGETS['vectorShape'] = B
+    
     # - Edge activation -
     B = TTK.Checkbutton(Frame, text='AEdges', variable=VARS[12],
                         command=setVals)
