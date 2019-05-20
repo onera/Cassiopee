@@ -69,6 +69,13 @@ void DataDL::createGPUUIsoSolidZone(UnstructZone* zonep, int zone, int zonet,
 #undef PLOTQUAD
 #undef PLOTQUAD2
 #undef PLOTNGON
+  double* f1 = zonep->f[nofield1];
+  double* f2 = zonep->f[nofield2];
+  double* f3 = zonep->f[nofield3];
+  double fmin1, fmax1, fmin2, fmax2, fmin3, fmax3;
+  fmax1 = maxf[nofield1]; fmin1 = minf[nofield1];
+  fmax2 = maxf[nofield2]; fmin2 = minf[nofield2];
+  fmax3 = maxf[nofield3]; fmin3 = minf[nofield3];
 #include "displayUVectSolidZone.h"
   glEndList();
 }

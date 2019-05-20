@@ -30,8 +30,8 @@ using namespace CPlot;
 //=============================================================================
 ShaderManager::ShaderManager()
     : _shaderList(),
-      _currentActiveShader( 0 ),
-      m_previous_shader( nullptr )
+      m_previous_shader( nullptr ),
+      _currentActiveShader( 0 )
 {
 }
 //=============================================================================
@@ -84,7 +84,7 @@ Shader *ShaderManager::addFromFile( const char *geomFile, const char *vertexFile
         _shaderList.push_back( tes_pt_shader );
     }
 
-    return shad;
+    return shad; 
 }
 //=============================================================================
 /* Cree un shader a partir de 2 fichiers vertexShader, fragmentShader */
@@ -225,7 +225,6 @@ int ShaderManager::load()
     char vert[ 256 * 8 ];
     char frag[ 256 * 8 ];
     char geom[ 256 * 8 ];
-    char tes [ 256 * 8 ];
     Data *d = Data::getInstance();
     char *path = d->ptrState->shaderPath;
 

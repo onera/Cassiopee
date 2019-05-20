@@ -127,11 +127,6 @@
   b = f3[n]*deltai+0.5;                                             \
   glColor3f(r, g, b);                                                   \
   glVertex3d(x[n], y[n], z[n]);
-
-  double fmin1, fmax1, fmin2, fmax2, fmin3, fmax3;
-  fmax1 = maxf[nofield1]; fmin1 = minf[nofield1];
-  fmax2 = maxf[nofield2]; fmin2 = minf[nofield2];
-  fmax3 = maxf[nofield3]; fmin3 = minf[nofield3];
   
   double deltai1 = MAX(ABS(fmax1), 1.e-6);
   deltai1 = MAX(deltai1, ABS(fmin1));
@@ -148,10 +143,6 @@
   // Colormap
   void (*getrgb)(Data* data, double, float*, float*, float*);
   getrgb = _pref.colorMap->f;
-
-  double* f1 = zonep->f[nofield1];
-  double* f2 = zonep->f[nofield2];
-  double* f3 = zonep->f[nofield3];
 
   int ne = zonep->ne;
   int ne2 = 2*ne; int ne3 = 3*ne;

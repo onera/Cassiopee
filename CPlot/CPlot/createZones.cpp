@@ -248,6 +248,42 @@ StructZone* Data::createStructZone(FldArrayF* structF, char* varString,
   z.selected = 0;
   findMinMax(&z); findFMinMax(&z);
 
+  /* met les pointeurs sur u,v,w pour le rendu texture */
+  z.texu = NULL; z.texv = NULL; z.texw = NULL;
+  z.regtexu = NULL; z.regtexv = NULL;
+  if (z.material == 14)
+  {
+    for (E_Int n = 0; n < z.nfield; n++)
+    { 
+      if (strcmp(z.varnames[n], "texu") == 0 || strcmp(z.varnames[n], "u") == 0 || strcmp(z.varnames[n], "U") == 0) { z.texu = z.f[n]; }
+      else if (strcmp(z.varnames[n], "texv") == 0 || strcmp(z.varnames[n], "v") == 0 || strcmp(z.varnames[n], "V") == 0) { z.texv = z.f[n]; }
+      else if (strcmp(z.varnames[n], "texw") == 0 || strcmp(z.varnames[n], "w") == 0 || strcmp(z.varnames[n], "W") == 0) { z.texw = z.f[n]; }
+    }
+    if (z.texu == NULL)
+    {
+      // Create uniform texture field
+      z.regtexu = new E_Float [z.npts];
+      E_Float di = 1./(z.ni-1);
+      for (E_Int j = 0; j < z.nj; j++)
+        for (E_Int i = 0; i < z.ni; i++)
+            z.regtexu[i+j*ni] = i*di;
+      z.texu = z.regtexu;
+    }
+    if (z.texv == NULL)
+    {
+      // Create uniform texture field
+      z.regtexv = new E_Float [z.npts];
+      E_Float dj = 1./(z.nj-1);
+      for (E_Int j = 0; j < z.nj; j++)
+        for (E_Int i = 0; i < z.ni; i++)
+            z.regtexv[i+j*ni] = j*dj;
+      z.texv = z.regtexv;
+    }
+    
+    if (z.texu != NULL && z.texv == NULL) z.texu = NULL;
+    if (z.texu != NULL && z.texw == NULL) z.texw = z.texu;
+  }
+
   return sz;
 }
 
@@ -642,5 +678,20 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
   z.selected = 0;
   findMinMax(&z); findFMinMax(&z);
 
+  /* met les pointeurs sur u,v,w pour le rendu texture */
+  z.texu = NULL; z.texv = NULL; z.texw = NULL;
+  z.regtexu = NULL; z.regtexv = NULL;
+  if (z.material == 14)
+  {
+    for (E_Int n = 0; n < z.nfield; n++)
+    { 
+      if (strcmp(z.varnames[n], "texu") == 0 || strcmp(z.varnames[n], "u") == 0 || strcmp(z.varnames[n], "U") == 0) { z.texu = z.f[n]; }
+      else if (strcmp(z.varnames[n], "texv") == 0 || strcmp(z.varnames[n], "v") == 0 || strcmp(z.varnames[n], "V") == 0) { z.texv = z.f[n]; }
+      else if (strcmp(z.varnames[n], "texw") == 0 || strcmp(z.varnames[n], "w") == 0 || strcmp(z.varnames[n], "W") == 0) { z.texw = z.f[n]; }
+    }
+    
+    if (z.texu != NULL && z.texv == NULL) z.texu = NULL;
+    if (z.texu != NULL && z.texw == NULL) z.texw = z.texu;
+  }
   return uz;
 }

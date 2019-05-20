@@ -109,10 +109,10 @@ namespace CPlot
   private:
     ShaderManager(const ShaderManager& shadMan);
     ShaderManager& operator = (const ShaderManager& shadMan);
-    TesselationShaderManager tesselationManager;
     std::vector<Shader*> _shaderList;
     Shader* m_previous_shader;
     unsigned short _currentActiveShader;
+    TesselationShaderManager tesselationManager;
   };
 }
 #endif

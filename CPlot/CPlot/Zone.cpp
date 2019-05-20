@@ -71,6 +71,9 @@ Zone::~Zone()
   if (minf != NULL) delete [] minf;
   if (maxf != NULL) delete [] maxf;
   
+  if (regtexu != NULL) delete [] regtexu;
+  if (regtexv != NULL) delete [] regtexv;
+  
   delete [] _voxelArray;
   ptr_impl->freeGPURes(ptrState);
   delete ptr_impl;

@@ -56,14 +56,19 @@ void DataDL::renderGPUSSolidZone(StructZone* zonep, int zone)
   s = 100./(s+1.e-12);
 
   // Only for textured rendering, we use vect display =======================
-  if (ptrState->mode == RENDER && zonep->material == 14 && zonep->nfield >= 3) // Textured rendering
+  if (ptrState->mode == RENDER && zonep->material == 14 && zonep->texu != NULL) // Textured rendering
   {
 #ifdef __SHADERS__
-        triggerShader(*zonep, zonep->material, s, color1);
+      triggerShader(*zonep, zonep->material, s, color1);
 #endif
-      int nofield1 = 0; 
-      int nofield2 = 1; 
-      int nofield3 = 2;
+      double* f1 = zonep->texu;
+      double* f2 = zonep->texv;
+      double* f3 = zonep->texw;
+      double fmin1, fmax1, fmin2, fmax2, fmin3, fmax3;
+      fmax1 = 0.; fmin1 = 1.;
+      fmax2 = 0.; fmin2 = 1.;
+      fmax3 = 0.; fmin3 = 1.;
+  
       int stepi, stepj, stepk;
       computeSteps(zonep, stepi, stepj, stepk);
       #undef PLOT
