@@ -65,10 +65,7 @@ void draw_flat_arrow( vec4 origin, vec4 be3, vec4 trn, vec4 bcol )
 
     vec4 bary1 = gl_ModelViewProjectionMatrix * origin;//ust*(vertex[0].P0+vertex[1].P0+vertex[2].P0);
     vec4 bary2 = gl_ModelViewProjectionMatrix * end;   //ust*(vertex[0].P1+vertex[1].P1+vertex[2].P1);
-    //vec4 bvert= ust*(vertex[0].position+vertex[1].position+vertex[2].position);
 
-    vec4 be1 = vec4(cross(trn.xyz,be3.xyz),0.);
-    
     trn.xyz = (gl_ModelViewProjectionMatrix * vec4(trn.xyz,0.)).xyz;
     if ( project_vectors == 1 )
     {
@@ -84,28 +81,25 @@ void draw_flat_arrow( vec4 origin, vec4 be3, vec4 trn, vec4 bcol )
         }
     }
     be3 = gl_ModelViewProjectionMatrix * be3;
-    vec3 bnorm = normalize(vec3(0., be3.z, -be3.y));
-    if ( be3.z > 0 ) bnorm = -bnorm;
+    vec4 be1 = vec4(be3.y, -be3.x, 0., 0.);/*cross(trn.xyz,be3.xyz),0.);*/
+    vec3 bnorm = vec3(0., 0., -1.);
 
     gl_Position = bary1 - 0.125 * be1;
     color  = bcol;
     Nv     = bnorm.xyz;
     P      = bary1.xyz;
-    //vert   = bvert;
     EmitVertex();
 
     gl_Position = bary1 + 0.125 * be1;
     color  = bcol;
     Nv     = bnorm.xyz;
     P      = bary1.xyz;
-    //vert   = bvert;
     EmitVertex();
 
     gl_Position = bary1 + 0.75 * be3;//bary2;
     color  = bcol;
     Nv     = bnorm.xyz;
     P      = bary1.xyz;
-    //vert   = bvert;
     EmitVertex();
     EndPrimitive();
 
@@ -113,21 +107,18 @@ void draw_flat_arrow( vec4 origin, vec4 be3, vec4 trn, vec4 bcol )
     color  = bcol;
     Nv     = bnorm.xyz;
     P      = bary1.xyz;
-    //vert   = bvert;
     EmitVertex();
 
     gl_Position = bary1 + 0.2 * be1 + 0.6 * be3;
     color  = bcol;
     Nv     = bnorm.xyz;
     P      = bary1.xyz;
-    //vert   = bvert;
     EmitVertex();
 
     gl_Position = bary2;//bary2;
     color  = bcol;
     Nv     = bnorm.xyz;
     P      = bary1.xyz;
-    //vert   = bvert;
     EmitVertex();
     EndPrimitive();
 }
@@ -136,7 +127,6 @@ void draw_3d_arrow( vec4 origin, vec4 be3, vec4 trn, vec4 bcol )
 {
     const float ust = 1./3.;
     vec4 vbary = ust*(vertex[0].vP+vertex[1].vP+vertex[2].vP);
-    //vec4 bvert= ust*(vertex[0].position+vertex[1].position+vertex[2].position);
     // vec4 bnorm= ust*(vertex[0].normal+vertex[1].normal+vertex[2].normal);
     if ( project_vectors == 1 ) be3 = be3 - dot(be3.xyz,trn.xyz) * trn;
     vec4 be1  = vec4(cross(be3.xyz, trn.xyz),0.);
@@ -156,21 +146,18 @@ void draw_3d_arrow( vec4 origin, vec4 be3, vec4 trn, vec4 bcol )
     color       = bcol;
     Nv          = trn.xyz; //bnorm.xyz;
     P           = vbary.xyz;
-    //vert        = bvert;
     EmitVertex();
 
     gl_Position =  bary+0.125*be1;
     color       = bcol;
     Nv          = trn.xyz;//bnorm.xyz;
     P           = vbary.xyz;
-    //vert        = bvert;
     EmitVertex();
 
     gl_Position = bary + 0.75*be3;
     color       = bcol;
     Nv          = trn.xyz; //bnorm.xyz;
     P           = vbary.xyz;
-    //vert        = bvert;
     EmitVertex();
     EndPrimitive();
 
@@ -179,24 +166,20 @@ void draw_3d_arrow( vec4 origin, vec4 be3, vec4 trn, vec4 bcol )
     color       = bcol;
     Nv          = trn.xyz; //bnorm.xyz;
     P           = vbary.xyz;
-    //vert        = bvert;
     EmitVertex();
 
     gl_Position =  bary+0.2*be1 + 0.55 * be3;
     color       = bcol;
     Nv          = trn.xyz;//bnorm.xyz;
     P           = vbary.xyz;
-    //vert        = bvert;
     EmitVertex();
 
     gl_Position = bary + be3;
     color       = bcol;
     Nv          = trn.xyz; //bnorm.xyz;
     P           = vbary.xyz;
-    //vert        = bvert;
     EmitVertex();
     EndPrimitive();
-
 
     // Ortho
     vec4 trn4 = normalize(vec4(trn.xyz,0.))*length(be1);
@@ -204,21 +187,18 @@ void draw_3d_arrow( vec4 origin, vec4 be3, vec4 trn, vec4 bcol )
     color       = bcol;
     Nv          = be1.xyz; //bnorm.xyz;
     P           = vbary.xyz;
-    //vert        = bvert;
     EmitVertex();
 
     gl_Position =  bary+0.125*trn4;
     color       = bcol;
     Nv          = be1.xyz;//bnorm.xyz;
     P           = vbary.xyz;
-    //vert        = bvert;
     EmitVertex();
 
     gl_Position = bary + 0.75*be3;
     color       = bcol;
     Nv          = be1.xyz; //bnorm.xyz;
     P           = vbary.xyz;
-    //vert        = bvert;
     EmitVertex();
     EndPrimitive();
 
@@ -226,21 +206,18 @@ void draw_3d_arrow( vec4 origin, vec4 be3, vec4 trn, vec4 bcol )
     color       = bcol;
     Nv          = be1.xyz; //bnorm.xyz;
     P           = vbary.xyz;
-    //vert        = bvert;
     EmitVertex();
 
     gl_Position =  bary+0.2*trn4 + 0.55 * be3;
     color       = bcol;
     Nv          = be1.xyz;//bnorm.xyz;
     P           = vbary.xyz;
-    //vert        = bvert;
     EmitVertex();
 
     gl_Position = bary + be3;
     color       = bcol;
     Nv          = be1.xyz; //bnorm.xyz;
     P           = vbary.xyz;
-    //vert        = bvert;
     EmitVertex();
     EndPrimitive();    
 }
@@ -271,21 +248,18 @@ void draw_tetra_arrow( vec4 origin, vec4 be3, vec4 trn, vec4 bcol )
     color       = bcol;
     Nv          = nbe2;//bnorm.xyz;
     P           = vbary.xyz;
-    //vert        = bvert;
     EmitVertex();
 
     gl_Position =  bary+0.15*be1;
     color       =  bcol;
     Nv          = nbe2;//bnorm.xyz;
     P           = vbary.xyz;
-    //vert        = bvert;
     EmitVertex();
 
     gl_Position = bary + be3;
     color       = bcol;
     Nv          = nbe2;//bnorm.xyz;
     P           = vbary.xyz;
-    //vert        = bvert;
     EmitVertex();
     EndPrimitive();
     // --------------------------------------------------------
@@ -293,24 +267,20 @@ void draw_tetra_arrow( vec4 origin, vec4 be3, vec4 trn, vec4 bcol )
     color       = bcol;
     Nv          = nbe1;//bnorm.xyz;
     P           = vbary.xyz;
-    //vert        = bvert;
     EmitVertex();
 
     gl_Position = bary+0.15*be2;
     color       = bcol;
     Nv          = nbe1;//bnorm.xyz;
     P           = vbary.xyz;
-    //vert        = bvert;
     EmitVertex();
 
     gl_Position = bary + be3;
     color       = bcol;
     Nv          = nbe1;//bnorm.xyz;
     P           = vbary.xyz;
-    //vert        = bvert;
     EmitVertex();
     EndPrimitive();
-
 }
 
 void generate_uniform_field()
@@ -320,8 +290,11 @@ void generate_uniform_field()
     vec4 v2P0 = vertex[2].position;
     vec4 e1 = v1P0 - v0P0;
     vec4 e2 = v2P0 - v0P0;
-    vec3 unrm = cross(e1.xyz,e2.xyz);
-    // 
+    vec4 me1= gl_ModelViewProjectionMatrix * e1;
+    vec4 me2= gl_ModelViewProjectionMatrix * e2;
+
+    vec3 unrm = cross(me1.xyz,me2.xyz);
+
     float nrm = length(unrm);
     float proba = nrm*density;
     int n = int(0.5f*(-1.f+sqrt(1.+8.f*proba)));
@@ -335,12 +308,12 @@ void generate_uniform_field()
             float te = 1.f-ki-psi;
             vec4 p = psi*v0P0 + ki*v1P0 + te*v2P0;
             vec4 c = psi*vertex[0].color+ki*vertex[1].color+te*vertex[2].color;
-            float f = length(c.rgb - vec3(0.5,0.5,0.5))*2./1.73205080;
+            float f = length(c.rgb - vec3(0.5,0.5,0.5))*1.154700543;
             f = clamp(f, 0.0f, 1.0f);
             vec3 val = vec3(texture(colormap, f));
             c = vec4(val.r, val.g, val.b, 1.);
 
-            vec4 nr= psi*vertex[0].normal+ki*vertex[1].normal+te*vertex[2].normal;
+            vec4 nr = psi*vertex[0].normal+ki*vertex[1].normal+te*vertex[2].normal;
             vec4 be3 = psi * vertex[0].e3 + ki * vertex[1].e3 + te * vertex[2].e3;
 
             if ( style_arrow == 0 ) draw_3d_arrow(p, be3, nr, c);
@@ -350,18 +323,19 @@ void generate_uniform_field()
     } }
     else {
     //if ( n == 0 ) {
-        float ust = (1./3.);
-        // On va tirer une proba pour voir si on emet un vecteur :
+        float ust = 0.33333333333;
+        // On va tirer une proba pour voir si on emet un vecteur
         vec4 bary1 = ust*(v0P0+v1P0+v2P0);
+        vec4 mbary1 = gl_ModelViewProjectionMatrix * bary1;
+
         //float proba = (nrm_e1+nrm_e2)*0.5f*density;
-        float r = 0.5*rand(bary1.xy);
+        float r = 0.5*rand(mbary1.xy);
         if (r < proba)
         {
             vec4 bnorm= ust*(vertex[0].normal+vertex[1].normal+vertex[2].normal);
             vec4 be3 = ust*(vertex[0].e3+vertex[1].e3+vertex[2].e3);
-            //vec4 bvert= ust*(vertex[0].position+vertex[1].position+vertex[2].position);
             vec4 bcol = ust*(vertex[0].color+vertex[1].color+vertex[2].color);
-            float f = length(bcol.rgb - vec3(0.5,0.5,0.5))*2./1.73205080;
+            float f = length(bcol.rgb - vec3(0.5,0.5,0.5))*1.154700543;
             f = clamp(f, 0.0f, 1.0f);
             vec3 val = vec3(texture(colormap, f));
             bcol = vec4(val.r, val.g, val.b, 1.);
@@ -386,7 +360,7 @@ void main()
         vec4 be3  = ust*(vertex[0].e3+vertex[1].e3+vertex[2].e3);
         vec4 trn  = normalize(ust*(vertex[0].normal+vertex[1].normal+vertex[2].normal));//cross(be1.xyz,be3.xyz);
         vec4 bcol = ust*(vertex[0].color+vertex[1].color+vertex[2].color);
-        float f = length(bcol.rgb - vec3(0.5,0.5,0.5))*2./1.73205080;
+        float f = length(bcol.rgb - vec3(0.5,0.5,0.5))*1.154700543;
         f = clamp(f, 0.0f, 1.0f);
         vec3 val = vec3(texture(colormap, f));
         bcol = vec4(val.r, val.g, val.b, 1.);

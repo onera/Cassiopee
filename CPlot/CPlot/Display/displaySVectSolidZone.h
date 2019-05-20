@@ -16,7 +16,12 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-#define PLOT r = f1[n1]*deltai+0.5;                                \
+// Change this to draw two triangles instead of one quad
+#define GL_QUADS_ARE GL_QUADS
+#define PLOT PLOTQ
+
+// Plot as quads
+#define PLOTQ r = f1[n1]*deltai+0.5;                                \
   g = f2[n1]*deltai+0.5;                                           \
   b = f3[n1]*deltai+0.5;                                           \
   glColor3f(r, g, b);                                                   \
@@ -40,6 +45,45 @@
   glColor3f(r, g, b);                                                   \
   glNormal3f(surfx[n3s], surfy[n3s], surfz[n3s]);                       \
   glVertex3d(x[n3], y[n3], z[n3]);                                      
+
+// Plot QUAD as 2 triangles
+#define PLOTT r = f1[n1]*deltai+0.5;                                \
+  g = f2[n1]*deltai+0.5;                                           \
+  b = f3[n1]*deltai+0.5;                                           \
+  glColor3f(r, g, b);                                                   \
+  glNormal3f(surfx[n1s], surfy[n1s], surfz[n1s]);                       \
+  glVertex3d(x[n1], y[n1], z[n1]);                                      \
+  r = f1[n2]*deltai+0.5;                                           \
+  g = f2[n2]*deltai+0.5;                                           \
+  b = f3[n2]*deltai+0.5;                                            \
+  glColor3f(r, g, b);                                                   \
+  glNormal3f(surfx[n2s], surfy[n2s], surfz[n2s]);                       \
+  glVertex3d(x[n2], y[n2], z[n2]);                                      \
+  r = f1[n3]*deltai+0.5;                                           \
+  g = f2[n3]*deltai+0.5;                                           \
+  b = f3[n3]*deltai+0.5;                                           \
+  glColor3f(r, g, b);                                                   \
+  glNormal3f(surfx[n4s], surfy[n4s], surfz[n4s]);                       \
+  glVertex3d(x[n4], y[n4], z[n4]);                                      \
+  \
+  r = f1[n2]*deltai+0.5;                                \
+  g = f2[n2]*deltai+0.5;                                           \
+  b = f3[n2]*deltai+0.5;                                           \
+  glColor3f(r, g, b);                                                   \
+  glNormal3f(surfx[n2s], surfy[n2s], surfz[n2s]);                       \
+  glVertex3d(x[n2], y[n2], z[n2]);                                      \
+  r = f1[n4]*deltai+0.5;                                           \
+  g = f2[n4]*deltai+0.5;                                           \
+  b = f3[n4]*deltai+0.5;                                            \
+  glColor3f(r, g, b);                                                   \
+  glNormal3f(surfx[n4s], surfy[n4s], surfz[n4s]);                       \
+  glVertex3d(x[n4], y[n4], z[n4]);                                      \
+  r = f1[n3]*deltai+0.5;                                           \
+  g = f2[n3]*deltai+0.5;                                           \
+  b = f3[n3]*deltai+0.5;                                           \
+  glColor3f(r, g, b);                                                   \
+  glNormal3f(surfx[n3s], surfy[n3s], surfz[n3s]);                       \
+  glVertex3d(x[n3], y[n3], z[n3]);
 
 #define PLOTB ret1 = _pref.blanking->f(this, n1, zonep->blank, zone);   \
   ret2 = _pref.blanking->f(this, n2, zonep->blank, zone);               \
@@ -91,7 +135,7 @@
   float* surfy = surfx + nbElti;
   float* surfz = surfy + nbElti;
 
-  glBegin(GL_QUADS);  
+  glBegin(GL_QUADS_ARE);
 
   // I Plane
   i = zonep->iPlane;

@@ -41,11 +41,11 @@ float rand(vec2 co){                            //2147483647
 void simple_line_draw()
 {
     int i;
-    float ust = (1./3.);
+    float ust = 0.33333333333;
     vec4 bary1 = gl_ModelViewProjectionMatrix * (ust*(vertex[0].P0+vertex[1].P0+vertex[2].P0));
     vec4 bary2 = gl_ModelViewProjectionMatrix * (ust*(vertex[0].P1+vertex[1].P1+vertex[2].P1));
     vec4 bcol = ust*(vertex[0].color+vertex[1].color+vertex[2].color);
-    float f = length(bcol.rgb - vec3(0.5,0.5,0.5))*2./1.73205080;
+    float f = length(bcol.rgb - vec3(0.5,0.5,0.5))*1.154700543;
     f = clamp(f, 0.0f, 1.0f);
     vec3 val = vec3(texture(colormap, f));
     bcol = vec4(val.r, val.g, val.b, 1.);
@@ -90,7 +90,7 @@ void uniform_line_draw()
             float te = 1.f-ki-psi;
             vec4 p = psi*v0P0 + ki*v1P0 + te*v2P0;
             vec4 c = psi*vertex[0].color+ki*vertex[1].color+te*vertex[2].color;
-            float f = length(c.rgb - vec3(0.5,0.5,0.5))*2./1.73205080;
+            float f = length(c.rgb - vec3(0.5,0.5,0.5))*1.154700543;
             f = clamp(f, 0.0f, 1.0f);
             vec3 val = vec3(texture(colormap, f));
             c = vec4(val.r, val.g, val.b, 1.);
@@ -120,7 +120,7 @@ void uniform_line_draw()
             vec4 t = ust*(vertex[0].translation+vertex[1].translation+vertex[2].translation);
             //vec4 bvert= ust*(vertex[0].position+vertex[1].position+vertex[2].position);
             vec4 bcol = ust*(vertex[0].color+vertex[1].color+vertex[2].color);
-            float f = length(bcol.rgb - vec3(0.5,0.5,0.5))*2./1.73205080;
+            float f = length(bcol.rgb - vec3(0.5,0.5,0.5))*1.154700543;
             f = clamp(f, 0.0f, 1.0f);
             vec3 val = vec3(texture(colormap, f));
             bcol = vec4(val.r, val.g, val.b, 1.);
