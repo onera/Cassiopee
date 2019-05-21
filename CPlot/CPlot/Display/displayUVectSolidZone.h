@@ -95,15 +95,15 @@
 #define PLOTQUADT r = f1[n1]*deltai+0.5;                            \
   g = f2[n1]*deltai+0.5;                                            \
   b = f3[n1]*deltai+0.5;                                            \
-  glColor3f(r, g, b);                                                   \
-  glNormal3f(surfx[n1], surfy[n1], surfz[n1]);                          \
-  glVertex3d(x[n1], y[n1], z[n1]);                                      \
+  glColor3f(r, g, b);                                               \
+  glNormal3f(surfx[n1], surfy[n1], surfz[n1]);                      \
+  glVertex3d(x[n1], y[n1], z[n1]);                                  \
   r = f1[n2]*deltai+0.5;                                            \
   g = f2[n2]*deltai+0.5;                                            \
   b = f3[n2]*deltai+0.5;                                            \
-  glColor3f(r, g, b);                                                   \
-  glNormal3f(surfx[n2], surfy[n2], surfz[n2]);                          \
-  glVertex3d(x[n2], y[n2], z[n2]);                                      \
+  glColor3f(r, g, b);                                               \
+  glNormal3f(surfx[n2], surfy[n2], surfz[n2]);                      \
+  glVertex3d(x[n2], y[n2], z[n2]);                                  \
   r = f1[n4]*deltai+0.5;                                            \
   g = f2[n4]*deltai+0.5;                                            \
   b = f3[n4]*deltai+0.5;                                            \

@@ -63,7 +63,7 @@ bool ShaderObject::compile(const std::string& src)
   CHECK_GL_ERROR();
   
   if (compiled == GL_TRUE) is_compiled = true;
-  else
+  /*else
   {
     GLint maxLength = 0;
     glGetShaderiv(_shaderId, GL_INFO_LOG_LENGTH, &maxLength);
@@ -75,7 +75,7 @@ bool ShaderObject::compile(const std::string& src)
     for ( const auto& str : errorLog )
       std::cout << str;
     std::cout << std::endl;
-  }
+  }*/
 
   return is_compiled;
 }
@@ -84,7 +84,11 @@ std::string ShaderObject::load(const char* fileName)
 {
   FILE* ptrFile = fopen(fileName, "r");
   if (ptrFile == NULL)
-    throw std::runtime_error("File not found!");
+  {
+    char errorMsg[1024];
+    sprintf(errorMsg, "File %s not found !", fileName);
+    throw std::runtime_error(std::string(errorMsg));
+  }
   unsigned E_LONG lgth = getFileLength(ptrFile);
   if (lgth == 0) throw std::runtime_error("Empty Shader file!");
   char* shadersource = new char[lgth+1];
@@ -118,31 +122,19 @@ std::string ShaderObject::getCompilerLog(void) const
 
   if (_shaderId == 0) return std::string(errorMsg[1]);
 
-  glGetObjectParameterivARB(_shaderId, GL_OBJECT_COMPILE_STATUS_ARB, &isOK);
+  glGetShaderiv( _shaderId, GL_COMPILE_STATUS, &isOK );
   CHECK_GL_ERROR();
 
-  char* compiler_log = NULL;
-  if (isOK != 1)
+  if (isOK == GL_FALSE )
   {
-    int infoLgth;
-    glGetObjectParameterivARB(_shaderId, GL_OBJECT_INFO_LOG_LENGTH_ARB, &infoLgth);
+    GLint infoLgth;
+    glGetShaderiv( _shaderId, GL_INFO_LOG_LENGTH, &infoLgth );
+    std::string slog(infoLgth+1,'\0' );
+    glGetShaderInfoLog(_shaderId, infoLgth, &infoLgth, &slog[0]);
     CHECK_GL_ERROR();
-    if (infoLgth > 0) compiler_log = new char[infoLgth];
-    if (compiler_log == NULL)
-    {
-      printf("ERROR: Could not allocate compiler_log buffer.\n");
-      return errorMsg[2];
-    }
-    int msgLgth;
-    glGetInfoLogARB(_shaderId, infoLgth, &msgLgth, compiler_log);
-    CHECK_GL_ERROR();
-    
+    return slog;    
   }
-  std::string errMsg;
-  if (compiler_log != NULL) errMsg = std::string(compiler_log);
-  else errMsg = std::string(errorMsg[4]);
-  delete [] compiler_log;
-  return errMsg;
+  return std::string("No log available.");
 }
 //==============================================================================
 unsigned int

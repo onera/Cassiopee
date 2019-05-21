@@ -34,12 +34,12 @@ VertexShader::VertexShader(const std::string& src):
 {
   _shaderId = glCreateShader(GL_VERTEX_SHADER);
   bool success = this->compile(src);
-  if (not success)
+  /*if (not success)
   {
     std::string error("Failed to compile vertex shader :\n");
     error += src; 
     throw std::runtime_error(error.c_str());  
-  }
+  }*/
 }
 //==============================================================================
 VertexShader::~VertexShader()

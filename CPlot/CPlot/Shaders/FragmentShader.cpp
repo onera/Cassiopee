@@ -33,12 +33,12 @@ FragmentShader::FragmentShader(const std::string& src):
 {
   _shaderId = glCreateShader(GL_FRAGMENT_SHADER);
   bool success = this->compile(src);
-  if (not success)
+  /*if (not success)
   {
     std::string error("Failed to compile fragment shader :\n");
     error += src; 
-    throw std::runtime_error(error.c_str());  
-  }
+    throw std::runtime_error(error.c_str());
+  }*/
 }
 //==============================================================================
 FragmentShader::~FragmentShader()

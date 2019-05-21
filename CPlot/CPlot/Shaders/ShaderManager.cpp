@@ -25,13 +25,14 @@
 #include "VertexShader.h"
 #include <stdexcept>
 #include <string.h>
+#include <iostream>
 using namespace CPlot;
 
 //=============================================================================
 ShaderManager::ShaderManager()
     : _shaderList(),
-      m_previous_shader( nullptr ),
-      _currentActiveShader( 0 )
+      _currentActiveShader( 0 ),
+      m_previous_shader( nullptr )
 {
 }
 //=============================================================================
@@ -50,21 +51,35 @@ ShaderManager::~ShaderManager()
 Shader *ShaderManager::addFromFile( const char *geomFile, const char *vertexFile, const char *fragmentFile )
 {
     Shader *shad = new Shader;
-    try {
-        shad->add( std::make_shared<GeomShader>( ShaderObject::load( geomFile ) ) );
-        shad->add( std::make_shared<VertexShader>( ShaderObject::load( vertexFile ) ) );
-        shad->add( std::make_shared<FragmentShader>( ShaderObject::load( fragmentFile ) ) );
+    if ( vertexFile   != nullptr ) shad->add( std::make_shared<VertexShader>  () );
+    if ( geomFile     != nullptr ) shad->add( std::make_shared<GeomShader>    () );
+    if ( fragmentFile != nullptr ) shad->add( std::make_shared<FragmentShader>() );
+    try
+    {
+        if ( (vertexFile != nullptr) && not shad->vertex_shader->compile( ShaderObject::load( vertexFile ) ) )
+        {
+            std::cerr << "Failed compiling vertex shader " << vertexFile << " : " << std::endl;
+            std::cerr << shad->vertex_shader->getCompilerLog().c_str() << std::endl;
+            delete shad;
+            return nullptr;
+        }
+        if ( ( geomFile != nullptr ) && ( not shad->geometry_shader->compile( ShaderObject::load( geomFile ) ) ) )
+        {
+            std::cerr << "Failed compiling geometry shader " << geomFile << " : " << std::endl;
+            std::cerr << shad->geometry_shader->getCompilerLog().c_str() << std::endl;
+            delete shad;
+            return nullptr;            
+        }
+        if ( ( fragmentFile != nullptr ) && ( not shad->fragment_shader->compile( ShaderObject::load( fragmentFile ) ) ) )
+        {
+            std::cerr << "Failed compiling fragment shader " << fragmentFile << " : " << std::endl;
+            std::cerr << shad->fragment_shader->getCompilerLog().c_str() << std::endl;
+            delete shad;
+            return nullptr;
+        }
     } catch ( std::runtime_error &err ) {
-        printf( "Fail to add new shader: %s.\n", geomFile );
-        printf( "Fail to add new shader: %s %s.\n", vertexFile, fragmentFile );
-        printf( "Error: %s.\n", err.what() );
-        printf( "\t Geom shader log: %s.\n",
-                shad->geometry_shader->getCompilerLog().c_str() );
-        printf( "\t Vertex shader log: %s.\n",
-                shad->vertex_shader->getCompilerLog().c_str() );
-        printf( "\t Fragment shader log: %s.\n",
-                shad->fragment_shader->getCompilerLog().c_str() );
-        return NULL;
+        std::cerr << "Failed to load shader : " << err.what() << std::endl;
+        return nullptr;
     }
     // Rajout shader sans tesselation
     _shaderList.push_back( shad );
@@ -84,7 +99,7 @@ Shader *ShaderManager::addFromFile( const char *geomFile, const char *vertexFile
         _shaderList.push_back( tes_pt_shader );
     }
 
-    return shad; 
+    return shad;
 }
 //=============================================================================
 /* Cree un shader a partir de 2 fichiers vertexShader, fragmentShader */
@@ -93,19 +108,27 @@ Shader *ShaderManager::addFromFile( const char *vertexFile,
                                     const char *fragmentFile )
 {
     Shader *shad = new Shader;
-    try {
-        if ( vertexFile != nullptr )
-            shad->add( std::make_shared<VertexShader>( ShaderObject::load( vertexFile ) ) );
-        if ( fragmentFile != nullptr )
-            shad->add( std::make_shared<FragmentShader>( ShaderObject::load( fragmentFile ) ) );
+    if ( vertexFile   != nullptr ) shad->add( std::make_shared<VertexShader>  () );
+    if ( fragmentFile != nullptr ) shad->add( std::make_shared<FragmentShader>() );
+    try
+    {
+        if ( (vertexFile != nullptr) && not shad->vertex_shader->compile( ShaderObject::load( vertexFile ) ) )
+        {
+            std::cerr << "Failed compiling vertex shader " << vertexFile << " : " << std::endl;
+            std::cerr << shad->vertex_shader->getCompilerLog().c_str() << std::endl;
+            delete shad;
+            return nullptr;
+        }
+        if ( ( fragmentFile != nullptr ) && ( not shad->fragment_shader->compile( ShaderObject::load( fragmentFile ) ) ) )
+        {
+            std::cerr << "Failed compiling fragment shader " << fragmentFile << " : " << std::endl;
+            std::cerr << shad->fragment_shader->getCompilerLog().c_str() << std::endl;
+            delete shad;
+            return nullptr;
+        }
     } catch ( std::runtime_error &err ) {
-        printf( "Fail to add new shader: %s %s.\n", vertexFile, fragmentFile );
-        printf( "Error: %s.\n", err.what() );
-        printf( "\t Vertex shader log: %s.\n",
-                shad->vertex_shader->getCompilerLog().c_str() );
-        printf( "\t Fragment shader log: %s.\n",
-                shad->fragment_shader->getCompilerLog().c_str() );
-        return NULL;
+        std::cerr << "Failed to load shader : " << err.what() << std::endl;
+        return nullptr;
     }
     _shaderList.push_back( shad );
     // Puis rajout des shaders avec tesselation :
