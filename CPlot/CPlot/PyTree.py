@@ -732,27 +732,27 @@ def _addRender2PyTree(a, slot=0, posCam=None, posEye=None, dirCam=None,
     ri = Internal.createUniqueChild(ri, 'materials', 'UserDefinedData_t')
     prevValues = [Internal.getValue(i) for i in ri[2]]
     cnt = len(prevValues)
-    li = []
+    li = prevValues
     for i in materials:
       if i not in prevValues: li.append(i)
-    for c, f in enumerate(materials):
+    for c, f in enumerate(li):
         rt = Internal.createUniqueChild(ri, 'file%d'%c, 'DataArray_t', value=f)
 
   if bumpMaps is not None:
     ri = Internal.createUniqueChild(ri, 'bumpMaps', 'UserDefinedData_t')
     prevValues = [Internal.getValue(i) for i in ri[2]]
     cnt = len(prevValues)
-    li = []
+    li = prevValues
     for i in bumpMaps:
       if i not in prevValues: li.append(i)
-    for c, f in enumerate(bumpMaps):
+    for c, f in enumerate(li):
         rt = Internal.createUniqueChild(ri, 'file%d'%c, 'DataArray_t', value=f)
 
   if billBoards is not None:
     ri = Internal.createUniqueChild(ri, 'billBoards', 'UserDefinedData_t')
     prevValues = [Internal.getValue(i) for i in ri[2]]
     cnt = len(prevValues)
-    li = []
+    li = prevValues
     for i in billBoards:
       if i not in prevValues: li.append(i)
     for c, f in enumerate(li):

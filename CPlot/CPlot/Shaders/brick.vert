@@ -30,7 +30,7 @@ void main(void)
     v2f_out.mv_position = gl_ModelViewMatrix * gl_Vertex;
     // Nv = gl_NormalMatrix * gl_Normal;
     v2f_out.view_normal = vec4(gl_NormalMatrix * gl_Normal,0.);
-   // vertex = gl_Vertex;
+    // vertex = gl_Vertex;
     v2f_out.position = gl_Vertex;
     // MCposition = gl_Vertex.xy
     // initColor = gl_Color;

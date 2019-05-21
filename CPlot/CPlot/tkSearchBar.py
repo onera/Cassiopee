@@ -184,6 +184,7 @@ applet = {
     # tkBackground
     'tkBackground':'tkBackground', 'Add a background mesh':'tkBackground',
     # tkRender
+    'tkRenderTree':'tkRenderTree', 'Load textures':'tkRenderTree',
     'tkRenderSet':'tkRenderSet', 'Set surface material': 'tkRenderSet',
     'Set Chrome/Wood/Glass/Stone effect on surface':'tkRenderSet',
     'Set XRay/Metal/Gooch/Smoke effect on surface':'tkRenderSet',
@@ -195,7 +196,7 @@ applet = {
     'Use Red/Blue glasses':'tkStereo',
     # tkEffects
     'tkEffects':'tkEffects', 'Add shadow':'tkEffects', 'Change camera angle':'tkEffects',
-    'Add depth of field': 'tkEffects', 
+    'Add depth of field': 'tkEffects', 'Set gamma': 'tkEffects', 'Set camera angle': 'tkEffects',
     # tkDemo
     'tkDemo':'tkDemo', 'Automatic camera motion':'tkDemo'
     }

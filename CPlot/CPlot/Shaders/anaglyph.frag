@@ -4,10 +4,10 @@
 uniform sampler2D leftEyeTexture;
 uniform sampler2D rightEyeTexture;
 varying vec4 color;
-vec2 vTexCoord;
 
 void main(void)
 {
+	  vec2 vTexCoord;
       // monochrome anaglyph
       vTexCoord = gl_TexCoord[0].xy;
       vec4 leftFrag = texture2D(leftEyeTexture, vTexCoord);

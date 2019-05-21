@@ -72,6 +72,8 @@ void DataDL::renderGPUSSolidZone(StructZone* zonep, int zone)
       int stepi, stepj, stepk;
       computeSteps(zonep, stepi, stepj, stepk);
       #undef PLOT
+      #define GL_QUADS_ARE GL_QUADS
+      #define PLOT PLOTQ
       #include "displaySVectSolidZone.h"
       glLineWidth(1.);
       return;

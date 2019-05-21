@@ -17,8 +17,8 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 // Change this to draw two triangles instead of one quad
-#define GL_QUADS_ARE GL_QUADS
-#define PLOT PLOTQ
+//#define GL_QUADS_ARE GL_QUADS/GL_TRIANGLES
+//#define PLOT PLOTQ/PLOTT
 
 // Plot as quads
 #define PLOTQ r = f1[n1]*deltai+0.5;                                \

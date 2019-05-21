@@ -16,10 +16,10 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-#define GL_QUADS_ARE GL_QUADS
-#define PLOTQUAD PLOTQUADQ
-#define PLOTQUAD2 PLOTQUADQ2
+// change this to draw 2 triangles instead of one quad
+//#define GL_QUADS_ARE GL_QUADS/GL_TRIANGLES
+//#define PLOTQUAD PLOTQUADQ/PLOTSQUADT
+//#define PLOTQUAD2 PLOTQUADQ2/PLOTQUADT2
 
 #define PLOTTRI r = f1[n1]*deltai+0.5;                              \
   g = f2[n1]*deltai+0.5;                                            \
@@ -262,7 +262,7 @@
     float* surfy = surfx + np;
     float* surfz = surfy + np;
     
-    glBegin(GL_QUADS);
+    glBegin(GL_QUADS_ARE);
     if (zonep->blank == 0)
     {
       for (i = 0; i < ne; i++)
@@ -392,7 +392,7 @@
     }
     glEnd();
     
-    glBegin(GL_QUADS);
+    glBegin(GL_QUADS_ARE);
     if (zonep->blank == 0)
     {
       for (i = 0; i < ne; i++)
@@ -506,7 +506,7 @@
     }
     glEnd();
     
-    glBegin(GL_QUADS);
+    glBegin(GL_QUADS_ARE);
     if (zonep->blank == 0)
     {
       for (i = 0; i < ne; i++)
@@ -540,7 +540,7 @@
     float* surfy = surfx + 6*ne;
     float* surfz = surfy + 6*ne;
     
-    glBegin(GL_QUADS);      
+    glBegin(GL_QUADS_ARE);      
     if (zonep->blank == 0)
     {
       for (i = 0; i < ne; i++)
@@ -657,7 +657,7 @@
       glEnd();
 
       c = 2;
-      glBegin(GL_QUADS); 
+      glBegin(GL_QUADS_ARE); 
       for (i = 0; i < nf; i++)
       {
         nd = connect[c];
@@ -754,7 +754,7 @@
       glEnd();
 
       c = 2;
-      glBegin(GL_QUADS);
+      glBegin(GL_QUADS_ARE);
       for (i = 0; i < nf; i++)
       {
         nd = connect[c];

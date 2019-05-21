@@ -62,7 +62,6 @@ void main()
      col = vec4(color, initColor.a);   
      vec4 col2 =  Iamb + col * Idiff + Ispec;
      col = clamp(col2, 0., 1.);
-     
     }
     else
     {

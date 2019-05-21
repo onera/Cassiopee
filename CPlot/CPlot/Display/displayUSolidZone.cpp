@@ -80,7 +80,9 @@ void Data::displayUSolidZone( UnstructZone *zonep, int zone, int zonet )
         fmax1 = 0.; fmin1 = 1.;
         fmax2 = 0.; fmin2 = 1.;
         fmax3 = 0.; fmin3 = 1.;
-  
+#define GL_QUADS_ARE GL_QUADS
+#define PLOTQUAD PLOTQUADQ
+#define PLOTQUAD2 PLOTQUADQ2
 #include "displayUVectSolidZone.h"
         glLineWidth( 1. );
         return;

@@ -14,6 +14,7 @@ WIDGETS = {}; VARS = []
 
 #==============================================================================
 def addBillboardFile(event=None):
+    if CTK.t == []: return
     v = VARS[0].get()
     v.replace(' ', '')
     v = v.split(';')
@@ -31,6 +32,7 @@ def addBillboardFile(event=None):
 
 #==============================================================================
 def addBumpMapFile(event=None):
+    if CTK.t == []: return
     v = VARS[0].get()
     v.replace(' ', '')
     v = v.split(';')
@@ -48,6 +50,7 @@ def addBumpMapFile(event=None):
     
 #==============================================================================
 def addTextureFile(event=None):
+    if CTK.t == []: return
     v = VARS[0].get()
     v.replace(' ', '')
     v = v.split(';')

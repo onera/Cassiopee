@@ -58,5 +58,5 @@ void main (void)
   }
 
   gl_FragColor = shadowValue * col;
-  gl_FragColor.a = color.a;
+  gl_FragColor.a = col2.a * color.a;
 }

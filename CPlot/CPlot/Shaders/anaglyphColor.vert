@@ -1,5 +1,5 @@
 //
-// Vertex shader for anaglyph
+// Vertex shader for anaglyph with color
 //
 varying vec4 color;
 void main() 

@@ -74,6 +74,8 @@ void Data::displaySSolidZone(StructZone* zonep, int zone)
   
       computeSteps(zonep, stepi, stepj, stepk);
       #undef PLOT
+      #define GL_QUADS_ARE GL_QUADS
+      #define PLOT PLOTQ
       #include "displaySVectSolidZone.h"
       glLineWidth(1.);
       return;
