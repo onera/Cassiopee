@@ -75,10 +75,10 @@ class Tetrahedron {
       assert (nb_nodes == 3);
 #endif
 
-      if ((nodes[0] != _nodes[0]) && (nodes[0] != _nodes[1]) && (nodes[0] != _nodes[2])) _nodes[3] = nodes[0];
-      else if ((nodes[1] != _nodes[0]) && (nodes[1] != _nodes[1]) && (nodes[1] != _nodes[2])) _nodes[3] = nodes[1];
-      else //if ((nodes[1] != _nodes[0]) && (nodes[1] != _nodes[1]) && (nodes[1] != _nodes[2])) _nodes[3] = nodes[1];
-        _nodes[3] = nodes[2];
+      if ((nodes[0]-1 != _nodes[0]) && (nodes[0]-1 != _nodes[1]) && (nodes[0]-1 != _nodes[2])) _nodes[3] = nodes[0]-1;
+      else if ((nodes[1]-1 != _nodes[0]) && (nodes[1]-1 != _nodes[1]) && (nodes[1]-1 != _nodes[2])) _nodes[3] = nodes[1]-1;
+      else if ((nodes[2]-1 != _nodes[0]) && (nodes[2]-1 != _nodes[1]) && (nodes[2]-1 != _nodes[2])) //_nodes[3] = nodes[1];
+        _nodes[3] = nodes[2]-1;
     }
     
     inline E_Int node(E_Int i){return _nodes[i]+_shift;}

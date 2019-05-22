@@ -7,7 +7,7 @@
  
  
  */
-//Authors : Sâm Landier (sam.landier@onera.fr), Alexis Gay (alexis.gay@onera.fr)
+//Authors : Sâm Landier (sam.landier@onera.fr), Alexis Gay (alexis.gay@onera.fr), Alexis Rouil (alexis.rouil@onera.fr)
 
 #ifndef NUGA_GEOM_SENSOR_HXX
 #define NUGA_GEOM_SENSOR_HXX
@@ -16,10 +16,15 @@
 #include "MeshElement/Hexahedron.h"
 #include "Fld/ngon_t.hxx"
 #include <limits.h>
+#ifdef DEBUG_2019
+#include <chrono>
+#include <ctime>
+#endif
 using ngon_type = ngon_t<K_FLD::IntArray>; 
 
 //#define NB_PTS_TO_INCR(nb_pts) (nb_pts/4)
 //#define NB_PTS_TO_INCR(nb_pts) ((nb_pts > 0 ) ? nb_pts -1 : 0) // static_sensor : n-1 subdivision where n is the number of source pts in a cell
+#define NEIGHBOR(PHi, _F2E, PGi) ( (_F2E(0,PGi) == PHi) ? _F2E(1,PGi) : _F2E(0,PGi) )
 
 namespace NUGA
 {
@@ -37,7 +42,7 @@ class geom_sensor
     
     virtual E_Int init(data_type& data);
     
-    bool compute(data_type& data, Vector_t<E_Int>& adap_incr, bool do_agglo);
+    virtual bool compute(data_type& data, Vector_t<E_Int>& adap_incr, bool do_agglo);
 
     void fill_adap_incr(Vector_t<E_Int>& adap_incr, bool do_agglo);
     
@@ -51,6 +56,7 @@ class geom_sensor
 
 #ifdef DEBUG_2019
     void verif();
+    E_Int verif2();
 #endif
     
   protected:
@@ -100,6 +106,30 @@ void geom_sensor<mesh_t, crd_t>::verif()
       if (nb_pts_per_cell[i]>1) err += 1; 
   }
   std::cout << "err= " << err <<std::endl;
+}
+///
+template <typename mesh_t, typename crd_t>
+E_Int geom_sensor<mesh_t, crd_t>::verif2()
+{
+  E_Int err(0);  
+  E_Int nb_elts = _hmesh._ng.PHs.size();
+  E_Int nb_pts = _points_to_cell.size();
+  //points_to_cell gives the number of points per cell
+  Vector_t<E_Int> nb_pts_per_cell(nb_elts,0);
+  
+  for (int i = 0; i < nb_pts; ++i)
+  {
+    E_Int PHi = _points_to_cell[i];
+    if (PHi != E_IDX_NONE)
+      nb_pts_per_cell[PHi] += 1;
+  }
+
+  for (int i=0; i< nb_elts; i++){
+      if (nb_pts_per_cell[i]>1) err += 1; 
+  }
+  
+  std::cout << "err= " << err <<std::endl;
+  return err;
 }
 #endif
 
@@ -186,7 +216,10 @@ void geom_sensor<mesh_t, crd_t>::fill_adap_incr(std::vector<E_Int>& adap_incr, b
 
   for (int i = 0; i < nb_elts; ++i)
   {
-    if ( (nb_pts_per_cell[i] >= _max_pts_per_cell + 1) && (_hmesh._PHtree.is_enabled(i))) // has to be subdivided
+    const E_Int* faces = _hmesh._ng.PHs.get_facets_ptr(i);
+    E_Int nb_faces = _hmesh._ng.PHs.stride(i);
+    bool admissible_elt = K_MESH::Polyhedron<0>::is_HX8(_hmesh._ng.PGs, faces, nb_faces) || K_MESH::Polyhedron<0>::is_TH4(_hmesh._ng.PGs, faces, nb_faces);
+    if ( admissible_elt && (nb_pts_per_cell[i] >= _max_pts_per_cell + 1) && (_hmesh._PHtree.is_enabled(i)) ) // can be and has to be subdivided
     {
       adap_incr[i] = 1;
       _refine = true;
@@ -467,6 +500,218 @@ E_Int geom_sensor<mesh_t, crd_t>::detect_child(E_Float* p, E_Int PHi, E_Int* chi
 //}
 //
 //
+
+template <typename mesh_t, typename crd_t = K_FLD::FloatArray>
+class geom_sensor2 : public geom_sensor<mesh_t, crd_t>
+{
+    public:
+        using parent_t = geom_sensor<mesh_t, crd_t>;
+        Vector_t<E_Int> _Ln;       
+        
+        
+        
+        //////////
+        geom_sensor2(mesh_t& mesh, E_Int max_pts_per_cell = 1, E_Int itermax = -1): parent_t(mesh, max_pts_per_cell, itermax){}
+        void init2();
+        bool compute(typename parent_t::data_type& data, Vector_t<E_Int>& adap_incr, bool do_agglo);
+        void update(E_Int i);
+};
+
+template <typename mesh_t, typename crd_t>
+void geom_sensor2<mesh_t, crd_t>::init2()
+{
+    E_Int n_nodes= parent_t::_hmesh._crd.cols();
+    _Ln.resize(n_nodes);
+//    for (int i=0; i< _Ln.size(); i++){
+//        std::cout << "_Ln[" << i << "]= " << _Ln[i] << std::endl; 
+//    }
+}
+
+template <typename mesh_t, typename crd_t>
+bool geom_sensor2<mesh_t, crd_t>::compute(typename parent_t::data_type& data, Vector_t<E_Int>& adap_incr, bool do_agglo)
+{
+#ifdef DEBUG_2019    
+  auto start = std::chrono::system_clock::now();
+  //std::cout << "compute2" << std::endl;
+#endif
+
+  init2();
+    
+  if (++parent_t::_iter > parent_t::_iter_max) return false;
+  
+  //E_Int nb_elts = parent_t::_hmesh._ng.PHs.size();
+  E_Int nb_pts = parent_t::_points_to_cell.size();
+  parent_t::_refine=false;
+  parent_t::_agglo = false;
+  parent_t::_has_agglo = false;
+  
+  if (parent_t::_is_init) // first iteration : init is done instead
+  {
+    //update points_to_cell : replace the PH that have been subdivided in adapt by the child(ren) containing the source point(s)
+    for (int i = 0; i < nb_pts; ++i)
+    {
+      E_Int PHi = parent_t::_points_to_cell[i];
+
+      if (PHi == E_IDX_NONE) continue; //external point
+      if (parent_t::_hmesh._PHtree.children(PHi) != nullptr) // we detect the subdivised PH : one of his children has this source point
+      {
+        E_Float* p = data.col(i); // in which children of PHi is the point
+        E_Int cell = parent_t::get_higher_lvl_cell(p,PHi);
+        parent_t::_points_to_cell[i] = cell;
+      }
+    }
+  }
+
+  parent_t::_is_init = true;
+
+  //fill in adap incr thanks to points to cell
+  parent_t::fill_adap_incr(adap_incr, do_agglo);
+  
+//  if (parent_t::verif()==0){
+//      return false;
+//  }
+  //std::cout << "update" << std::endl;
+  for (int i=0; i<adap_incr.size(); i++){
+      if (adap_incr[i]==1)
+      update(i);
+  }
+  
+  // NODAL SMOOTHING LOOP
+  E_Int Lc;
+  E_Int n(0);
+  bool carry_on=true;
+  while (carry_on)
+  {
+    n=n+1;  
+    carry_on=false;
+    //std::cout << "carry_on[" << n << "]= " << carry_on << std::endl;
+    for (int i=0; i<parent_t::_hmesh._ng.PHs.size(); i++){
+      //std::cout << "i= " << i << " sur " << parent_t::_hmesh._ng.PHs.size() << std::endl;
+      E_Int Mnodes(0);
+      if (adap_incr[i]) continue;
+      if (parent_t::_hmesh._PHtree.is_enabled(i)){
+      //std::cout << "PH enabled= " << i  << " sur " << parent_t::_hmesh._ng.PHs.size() << std::endl; 
+      Lc= parent_t::_hmesh._PHtree.get_level(i);
+      //std::cout << "     lvl= " << Lc << std::endl;
+      E_Int* pPHi= parent_t::_hmesh._ng.PHs.get_facets_ptr(i);
+//    E_Int s = parent_t::_hmesh._ng.PHs.stride(i);
+//    E_Int neighbours[4*s];
+//    E_Int nb_neighbours = 0;
+//    parent_t::_hmesh.get_enabled_neighbours(i, neighbours, nb_neighbours);
+//    for (int j = 0; j < nb_neighbours; ++j){
+//      E_Int stride = parent_t::_hmesh._ng.PGs.stride(neighbours[j]);
+//      E_Int *ind = parent_t::_hmesh._ng.PGs.get_facets_ptr(neighbours[j]);
+//      for (int l=0; l< stride; l++){
+//        Mnodes = std::max(_Ln[*(ind+l)-1],Mnodes);
+//      }
+//    }
+      
+      for (int j=0; j<parent_t::_hmesh._ng.PHs.stride(i); j++){
+        E_Int PGi = *(pPHi +j) - 1;
+        //std::cout << "PGi= " << PGi << std::endl;
+        //if (!parent_t::_hmesh._PGtree.is_enabled(PGi)){
+        E_Int PHn = NEIGHBOR(i, parent_t::_hmesh._F2E, PGi);
+//      if (!(PHn == E_IDX_NONE)){
+        //std::cout << "voisin[" << j << "]= " << PHn << std::endl;
+//    }
+      
+      //std::cout << "nb_pgs= " << parent_t::_hmesh._ng.PGs.size() << std::endl;
+//    if (!(PHn == E_IDX_NONE) && !(parent_t::_hmesh._PHtree.is_enabled(PHn)) && !(parent_t::_hmesh._PHtree.is_enabled(parent_t::_hmesh._PHtree.parent(PHn)))){
+//      std::cout << "oui" << std::endl;
+//      std::cout << "level= " << parent_t::_hmesh._PHtree.get_level(PHn) << std::endl;
+//    }
+      //if (!(PHn == E_IDX_NONE) && !(parent_t::_hmesh._PHtree.is_enabled(PHn)) && !(parent_t::_hmesh._PHtree.is_enabled(parent_t::_hmesh._PHtree.parent(PHn)))){
+        if (!(PHn == E_IDX_NONE) && !(parent_t::_hmesh._PHtree.is_enabled(PHn)) && !(parent_t::_hmesh._PHtree.get_level(PHn)==0) && !(parent_t::_hmesh._PHtree.is_enabled(parent_t::_hmesh._PHtree.parent(PHn)))){
+          //std::cout << "child" << std::endl;
+          E_Int nb_ch= parent_t::_hmesh._PGtree.nb_children(PGi);
+          for (int k=0; k< nb_ch; k++){
+            E_Int* enf= parent_t::_hmesh._PGtree.children(PGi);
+            //std::cout << "child[" << k << "]= " << *(enf+k) << std::endl;
+            E_Int stride= parent_t::_hmesh._ng.PGs.stride(*(enf+k)-1); // réindéxage ici ?? 
+            E_Int* ind = parent_t::_hmesh._ng.PGs.get_facets_ptr(*(enf+k)-1); // réindéxage ici ??
+            for (int l=0; l<stride; l++){
+              Mnodes = std::max(_Ln[*(ind+l)-1],Mnodes);
+            }
+          }
+        }
+        else {
+          //std::cout << "stride= " << parent_t::_hmesh._ng.PGs.stride(PGi) << std::endl;
+          E_Int stride = parent_t::_hmesh._ng.PGs.stride(PGi);
+          E_Int *ind = parent_t::_hmesh._ng.PGs.get_facets_ptr(PGi);
+          for (int l=0; l< stride; l++){
+          //std::cout << "nodes[" << l << "] sur " << stride << std::endl;
+            Mnodes = std::max(_Ln[*(ind+l)-1],Mnodes);
+          }
+          //std::cout << "fin max Mnodes" << std::endl;
+        }
+      }
+      //std::cout << "///////////////////////" << std::endl;
+      if (Lc < Mnodes-1)
+      {
+        const E_Int* faces = parent_t::_hmesh._ng.PHs.get_facets_ptr(i);
+        E_Int nb_faces = parent_t::_hmesh._ng.PHs.stride(i);
+        bool admissible_elt = K_MESH::Polyhedron<0>::is_HX8(parent_t::_hmesh._ng.PGs, faces, nb_faces) || K_MESH::Polyhedron<0>::is_TH4(parent_t::_hmesh._ng.PGs, faces, nb_faces);
+    
+        if (admissible_elt)
+          continue;
+        
+        adap_incr[i] = 1;
+        update(i);        
+        carry_on= true;
+      }
+    }
+  }
+}
+#ifdef DEBUG_2019
+  
+//  std::cout << "///////////////////////" << std::endl;
+//  std::cout << "///////////////////////" << std::endl;
+  //std::cout << "fin lissage" << std::endl;
+  auto end = std::chrono::system_clock::now();
+  std::chrono::duration<double> t1 = end-start;
+  std::cout << "tps compute geom2= " << t1.count() << "s"<< std::endl;
+#endif
+
+  for (int i=0; i< adap_incr.size(); i++){
+      if (adap_incr[i]==1){
+          return true;
+      }
+  }  
+  return false;
+}
+
+template <typename mesh_t, typename crd_t>
+void geom_sensor2<mesh_t, crd_t>::update(E_Int i)
+{         
+  E_Int PHi = i;
+  E_Int Lc= parent_t::_hmesh._PHtree.get_level(PHi);
+//  std::cout << "PHi= " << PHi << "  Lc= " << Lc << std::endl;
+        
+  E_Int nb_faces = parent_t::_hmesh._ng.PHs.stride(PHi); 
+//  std::cout << "nb_faces= " << nb_faces << std::endl;
+    for (int j=0; j< nb_faces; j++){    
+        E_Int* PGj= parent_t::_hmesh._ng.PHs.get_facets_ptr(PHi);
+        ///
+        E_Int PG = PGj[j] - 1;
+        E_Int* pN = parent_t::_hmesh._ng.PGs.get_facets_ptr(PG);
+        E_Int nb_nodes = parent_t::_hmesh._ng.PGs.stride(PG);
+//        std::cout << "face " << j << "    *PGj= " << PG << "  ";
+//        std::cout << "nb_nodes= " << nb_nodes << std::endl;
+        for (int l=0; l< nb_nodes; l++){
+//            std::cout << "avant _Ln["<< *(pN+l)-1 << "]= " <<_Ln[*(pN+l)-1] << std::endl;
+           _Ln[*(pN+l)-1]=std::max(_Ln[*(pN+l)-1], Lc+1);
+           //_Ln[*(pN+l)-1]=std::max(_Ln[*(pN+l)-1], Lc+1);
+
+//            std::cout << "     nodes[" << l << "]= " << *(pN+l)-1 << "      _Ln[" << *(pN+l)-1 << "]= " << _Ln[*(pN+l)-1] << std::endl;
+        }
+    }
+//  std::cout << "//////////////////////" << std::endl;
+//  std::cout << "//////////////////////" << std::endl;  
+//  for (int i=0; i<parent_t::_hmesh._ng.PHs.size(); i++){
+//      std::cout << "level[ "<< i << "]= " << parent_t::_hmesh._PHtree.get_level(i) << std::endl;
+//  }
+}
+
 }
 
 #endif

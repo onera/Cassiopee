@@ -68,12 +68,16 @@ class ngon_unit
       _NGON.resize(_NGON.size() + n*(strd+1), strd) ; _facet.resize(sz0 + n) ; 
       if (!_type.empty()) _type.resize(_type.size() + n) ;
       if (_ancEs.cols()!=0) _ancEs.resize(2, _ancEs.cols() + n);
-      E_Int pos = _facet[sz0-1] + strd+1;
-      // set the facets pos
-      for (E_Int i=0; i< n; ++i, pos += strd+1)
-        _facet[sz0 + i] = pos;
+//      E_Int pos = _facet[sz0-1] + strd+1;
+//      // set the facets pos
+//      for (E_Int i=0; i< n; ++i, pos += strd+1)
+//        _facet[sz0 + i] = pos;
+
       _NGON[0] += n;
       _NGON[1] = _NGON.size() - 2;
+      // the following update has been added since the commented block above doesn't work in Basic element mode.
+      _dirty=true;
+      updateFacets(); 
     }
     E_Int capacity(){return _NGON.capacity();}
     // Interrogations

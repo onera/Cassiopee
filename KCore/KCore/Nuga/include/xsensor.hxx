@@ -35,7 +35,11 @@ class xsensor : public geom_sensor<mesh_t, crd_t>
     E_Int init(data_type& data) override;
     
     void add_x_points(data_type& data, K_SEARCH::BbTree3D& tree);
-    
+
+#ifdef DEBUG_2019    
+    E_Int verif(){}
+    E_Int verif2(){}
+ #endif       
   private:
     const K_FLD::IntArray& _cntS;
             
