@@ -603,7 +603,7 @@ Transformation Functions
 
 .. py:function:: Intersector.adaptCells(a1, a2, sensor_type=0)
 
-    Adapts a1 cells with respect to a2.Adaptation is a per-cell octal 2:1 decomposition.
+    Adapts a1 cells (only TETRA and HEXA cells currently) with respect to a2 points. Adaptation is a per-cell octal 2:1 decomposition.
     With a sensor_type equal to 0, a2 points are only considered : a1 will be refined such any a1 cell contains at most 1 a2's point.
     With a sensor_type equal to 1, a2's connectivity is also taken into account by adding refinement wherever a1 cells are crossed by a2 edges.
 
@@ -627,6 +627,7 @@ Transformation Functions
     *Tips and Notes:*
 
     * Do this transformation before calling any Volume-Volume boolean operations in order to improve the mesh quality of the result.
+    * When the input mesh has mixed-basic-type elements, only Tets and Hexas will be considered currently for adaptation. but the result wil be conformal, the pyramids and prisms will modified to respect the conformity. 
 
 ---------------------------------------
 
