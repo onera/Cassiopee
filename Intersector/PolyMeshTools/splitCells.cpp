@@ -196,7 +196,13 @@ PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
 
     mesh_type hmesh(crd, ngi);
   
-    if (sensor_type == 1) //xsensor
+    if (sensor_type == 0)
+    {
+      using sensor_t = NUGA::geom_sensor<mesh_type>;
+      sensor_t sensor(hmesh, 1/*max_pts per cell*/, itermax);
+      NUGA::adaptor<mesh_type, sensor_t>::run(hmesh, sensor, crdS);
+    }
+    else if (sensor_type == 1) //xsensor
     {
       using sensor_t = NUGA::xsensor<K_MESH::Hexahedron, mesh_type>;
       sensor_t sensor(hmesh, cntS, itermax);
@@ -204,7 +210,7 @@ PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
     }
     else
     {
-      using sensor_t = NUGA::geom_sensor<mesh_type>;
+      using sensor_t = NUGA::geom_sensor2<mesh_type>;
       sensor_t sensor(hmesh, 1/*max_pts per cell*/, itermax);
       NUGA::adaptor<mesh_type, sensor_t>::run(hmesh, sensor, crdS);
     }
@@ -220,11 +226,18 @@ PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
     using mesh_type = NUGA::hierarchical_mesh<K_MESH::Tetrahedron, NUGA::ISO>;
     mesh_type hmesh(crd, ngi);
 
-    sensor_type = 0; //currently force type
+    if (sensor_type == 1) sensor_type = 0; //currently xsensor not supported
   
     //std::cout << "sensor_type : " << sensor_type << std::endl;
   
-    if (sensor_type == 1) //xsensor
+    if (sensor_type == 0)
+    {
+      //std::cout << "adapting..." << std::endl;
+      using sensor_t = NUGA::geom_sensor<mesh_type>;
+      sensor_t sensor(hmesh, 1/*max_pts per cell*/, itermax);
+      NUGA::adaptor<mesh_type, sensor_t>::run(hmesh, sensor, crdS);
+    }
+    else if (sensor_type == 1) //xsensor
     {
       //using sensor_t = NUGA::xsensor<K_MESH::Tetrahedron, mesh_type>;
       //sensor_t sensor(hmesh, cntS, itermax);
@@ -233,7 +246,7 @@ PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
     else
     {
       //std::cout << "adapting..." << std::endl;
-      using sensor_t = NUGA::geom_sensor<mesh_type>;
+      using sensor_t = NUGA::geom_sensor2<mesh_type>;
       sensor_t sensor(hmesh, 1/*max_pts per cell*/, itermax);
       NUGA::adaptor<mesh_type, sensor_t>::run(hmesh, sensor, crdS);
     }   
@@ -249,11 +262,18 @@ PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
     using mesh_type = NUGA::hierarchical_mesh<K_MESH::Basic, NUGA::ISO>;
     mesh_type hmesh(crd, ngi);
 
-    sensor_type = 0; //currently force type
+    if (sensor_type == 1) sensor_type = 0; //currently xsensor not supported
   
     //std::cout << "sensor_type : " << sensor_type << std::endl;
   
-    if (sensor_type == 1) //xsensor
+    if (sensor_type == 0)
+    {
+      //std::cout << "adapting..." << std::endl;
+      using sensor_t = NUGA::geom_sensor<mesh_type>;
+      sensor_t sensor(hmesh, 1/*max_pts per cell*/, itermax);
+      NUGA::adaptor<mesh_type, sensor_t>::run(hmesh, sensor, crdS);
+    } 
+    else if (sensor_type == 1) //xsensor
     {
       //using sensor_t = NUGA::xsensor<K_MESH::Basic, mesh_type>;
       //sensor_t sensor(hmesh, cntS, itermax);
@@ -262,7 +282,7 @@ PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
     else
     {
       //std::cout << "adapting..." << std::endl;
-      using sensor_t = NUGA::geom_sensor<mesh_type>;
+      using sensor_t = NUGA::geom_sensor2<mesh_type>;
       sensor_t sensor(hmesh, 1/*max_pts per cell*/, itermax);
       NUGA::adaptor<mesh_type, sensor_t>::run(hmesh, sensor, crdS);
     }   

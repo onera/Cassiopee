@@ -652,7 +652,7 @@ bool geom_sensor2<mesh_t, crd_t>::compute(typename parent_t::data_type& data, Ve
         E_Int nb_faces = parent_t::_hmesh._ng.PHs.stride(i);
         bool admissible_elt = K_MESH::Polyhedron<0>::is_HX8(parent_t::_hmesh._ng.PGs, faces, nb_faces) || K_MESH::Polyhedron<0>::is_TH4(parent_t::_hmesh._ng.PGs, faces, nb_faces);
     
-        if (admissible_elt)
+        if (!admissible_elt)
           continue;
         
         adap_incr[i] = 1;
