@@ -27,7 +27,7 @@ void show_trig_surf()
     for ( i = 0; i < gl_in.length(); ++i ) {
         gl_Position = vertex[i].P0;
         color  = vec4(0.85,0.85,0.85,1.0);
-        Nv     = vertex[i].normal.xyz;
+        Nv     = gl_NormalMatrix * vertex[i].normal.xyz;
         P      = vertex[i].vP.xyz;
         //vert   = vertex[i].position;
         EmitVertex();
@@ -126,13 +126,20 @@ void draw_flat_arrow( vec4 origin, vec4 be3, vec4 trn, vec4 bcol )
 void draw_3d_arrow( vec4 origin, vec4 be3, vec4 trn, vec4 bcol )
 {
     const float ust = 1./3.;
-    vec4 vbary = ust*(vertex[0].vP+vertex[1].vP+vertex[2].vP);
     // vec4 bnorm= ust*(vertex[0].normal+vertex[1].normal+vertex[2].normal);
     if ( project_vectors == 1 ) be3 = be3 - dot(be3.xyz,trn.xyz) * trn;
     vec4 be1  = vec4(cross(be3.xyz, trn.xyz),0.);
     be3 = gl_ModelViewProjectionMatrix * be3;
-    vec4 bary = gl_ModelViewProjectionMatrix * origin;
     be1 = gl_ModelViewProjectionMatrix * be1;
+    float nrmbe1 = length(be1);
+    float nrmbe3 = length(be3);
+    if ( nrmbe1 < 1.E-1 * nrmbe3 )
+    {
+        be1 = vec4(be3.y, -be3.x, 0., 0.);
+        nrmbe1 = length(be1);
+    }
+    vec4 vbary = ust*(vertex[0].vP+vertex[1].vP+vertex[2].vP);
+    vec4 bary = gl_ModelViewProjectionMatrix * origin;
     trn.xyz = (gl_ModelViewProjectionMatrix * vec4(trn.xyz,0.)).xyz;
     if ( project_vectors == 1 )
     {
@@ -182,7 +189,9 @@ void draw_3d_arrow( vec4 origin, vec4 be3, vec4 trn, vec4 bcol )
     EndPrimitive();
 
     // Ortho
-    vec4 trn4 = normalize(vec4(trn.xyz,0.))*length(be1);
+    vec4 trn4 = nrmbe1 * normalize(vec4(cross(be1.xyz,be3.xyz),0.));
+    /*if ( nrmbe1 > 1.E-6 ) trn4 = normalize(vec4(trn.xyz,0.))*length(be1);
+    else trn4 = normalize(vec4(cross(be1.xyz, be3.xyz),0.));*/
     gl_Position = bary-0.125*trn4;
     color       = bcol;
     Nv          = be1.xyz; //bnorm.xyz;
@@ -225,13 +234,20 @@ void draw_3d_arrow( vec4 origin, vec4 be3, vec4 trn, vec4 bcol )
 void draw_tetra_arrow( vec4 origin, vec4 be3, vec4 trn, vec4 bcol )
 {
     float ust = (1./3.);
-    vec4 vbary= ust*(vertex[0].vP+vertex[1].vP+vertex[2].vP);
     
     if ( project_vectors == 1 ) be3 = be3 - dot(be3,trn) * trn;
     vec4 be1  = vec4(cross(be3.xyz, trn.xyz),0.);
     be3 = gl_ModelViewProjectionMatrix * be3;
-    vec4 bary = gl_ModelViewProjectionMatrix * origin;
     be1 = gl_ModelViewProjectionMatrix * be1;
+    float nrmbe1 = length(be1);
+    float nrmbe3 = length(be3);
+    if ( nrmbe1 < 1.E-1 * nrmbe3 )
+    {
+        be1 = vec4(be3.y, -be3.x, 0., 0.);
+        nrmbe1 = length(be1);
+    }
+    vec4 vbary= ust*(vertex[0].vP+vertex[1].vP+vertex[2].vP);
+    vec4 bary = gl_ModelViewProjectionMatrix * origin;
     trn.xyz = (gl_ModelViewProjectionMatrix * vec4(trn.xyz,0.)).xyz;
     if ( project_vectors == 1 )
     {
@@ -240,7 +256,7 @@ void draw_tetra_arrow( vec4 origin, vec4 be3, vec4 trn, vec4 bcol )
         else
             bary += 1.E-6 * vec4(trn.xyz,0.);
     }
-    vec4 be2 = length(be3)*vec4(trn.xyz,0.);
+    vec4 be2 = nrmbe1 * normalize(vec4(cross(be1.xyz,be3.xyz),0.));//length(be3)*vec4(trn.xyz,0.);
     vec3 nbe1 = normalize(be1.xyz).xyz;
     vec3 nbe2 = normalize(be2.xyz).xyz;
 

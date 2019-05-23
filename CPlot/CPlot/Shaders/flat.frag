@@ -1,13 +1,26 @@
+#version 400 compatibility
 // Flat shader (no light)
-varying vec3 Nv;
-varying vec3 P;
-varying vec4 color;
-varying vec4 vertex;
+
+in V2F_OUT
+{
+    vec4 position;
+    vec4 mv_position;
+    vec4 mvp_position;
+    vec4 view_normal;
+    vec4 nrm_view_normal;
+    vec4 color;
+    vec4 vdata1, vdata2, vdata3, vdata4;
+} v2f_out;
+
 uniform int shadow;
 uniform sampler2D ShadowMap;
 
 void main (void)
 { 
+  vec3 Nv     = v2f_out.view_normal.xyz;
+  vec3 P      = v2f_out.mv_position.xyz;
+  vec4 vertex = v2f_out.position;
+
   float shadowValue = 1.;
   if (shadow > 0)
   {
@@ -30,6 +43,6 @@ void main (void)
   if (ShadowCoord.w > 0.0 && s > 0.001 && s < 0.999 && t > 0.001 && t < 0.999)
       shadowValue = distanceFromLight < shadowCoordinateW.z ? 0.5 : 1.0;
   }
-  gl_FragColor = shadowValue * color;
-  gl_FragColor.a = color.a;
+  gl_FragColor = shadowValue * v2f_out.color;
+  gl_FragColor.a = v2f_out.color.a;
 }

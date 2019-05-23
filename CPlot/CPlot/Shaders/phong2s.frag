@@ -55,6 +55,4 @@ void main (void)
   
   gl_FragColor = shadowValue * col;
   gl_FragColor.a = v2f_out.color.a;
-  /*gl_FragColor.rgb = vec3(1.,1.,1.);
-  gl_FragColor.a = 1;*/
 }

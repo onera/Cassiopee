@@ -29,12 +29,11 @@ void Data::displayUSolidZone( UnstructZone *zonep, int zone, int zonet )
     int ret1, ret2, ret3, ret4, f;
 
     // Style
-    float color1[ 3 ];
-    float color2[ 3 ];
+    float color1[3]; float color2[ 3 ];
 
     // Colormap
     float r, g, b;
-    void ( *getrgb )( Data * data, double, float *, float *, float * );
+    void (*getrgb)(Data* data, double, float*, float*, float*);
     getrgb = _plugins.colorMap->next->f;
 
     E_Float nz = 1. / _numberOfUnstructZones;
@@ -52,10 +51,8 @@ void Data::displayUSolidZone( UnstructZone *zonep, int zone, int zonet )
     bool is1D = ( ( zonep->eltType == 1 ) | ( zonep->eltType == 10 && zonep->nelts1D > 0 ) );
     if (is1D == true && ptrState->mode == RENDER)
         glLineWidth( 1. + 5 * zonep->shaderParam1 );
-    else if (is1D == true)
-        glLineWidth( 3. );
-    else
-        glLineWidth( 1. );
+    else if (is1D == true) glLineWidth(3.);
+    else glLineWidth(1.);
 
     // scale
     E_Float s = MAX( zonep->xmax - zonep->xmin, zonep->ymax - zonep->ymin );
@@ -63,11 +60,10 @@ void Data::displayUSolidZone( UnstructZone *zonep, int zone, int zonet )
     s = 100. / ( s + 1.e-12 );
 
     // Only for textured rendering, we use vect display =======================
-    if ( ptrState->mode == RENDER && zonep->material == 14 && zonep->texu != NULL )  // Textured rendering
+    if (ptrState->mode == RENDER && zonep->material == 14 && zonep->texu != NULL)  // Textured rendering
     {
-
 #ifdef __SHADERS__
-        triggerShader( *zonep, zonep->material, s, color1 );
+        triggerShader(*zonep, zonep->material, s, color1);
 #endif
 
         int ff;

@@ -93,7 +93,6 @@ void DataDL::renderGPUSSolidZone(StructZone* zonep, int zone)
       triggerShader(*zonep, 0, s, color2);
     else triggerShader(*zonep, 0, s, color1);
   }
-  //if (is1D == true) { light(2); glColor3f(1,0,0); printf("deactivating\n"); _shaders.deactivate(); }
 #endif
 
   ZoneImplDL* zImpl = static_cast<ZoneImplDL*>(zonep->ptr_impl);

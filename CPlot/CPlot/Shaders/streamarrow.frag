@@ -28,9 +28,9 @@ void main()
     R = normalize(-reflect(L,N));
     Iamb = gl_LightSource[0].ambient; 
     Idiff = gl_LightSource[0].diffuse*max(dot(N,L), 0.0);
-    Ispec = gl_LightSource[0].specular * pow(max(dot(R,E),0.0),0.2 * gl_FrontMaterial.shininess);
+    Ispec = gl_LightSource[0].specular * 0.1 * pow(max(dot(R,E),0.0),0.2 * gl_FrontMaterial.shininess);
 
-    vec4 col = Iamb + color2 * Idiff;// + Ispec;
+    vec4 col = Iamb + color2 * Idiff + Ispec;
     vec4 colg = Iamb + color3 * Idiff + Ispec;
     color2 = clamp(col, 0., 1.);
     color3 = clamp(colg,0., 1.);

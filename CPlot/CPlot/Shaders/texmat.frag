@@ -1,11 +1,19 @@
+#version 400 compatibility
 /*
     Textured material + phong
     use r,g,b to get r=u, g=v, b=no of texture
 */
-varying vec3 Nv;
-varying vec3 P;
-varying vec4 color;
-varying vec4 vertex;
+in V2F_OUT
+{
+    vec4 position;
+    vec4 mv_position;
+    vec4 mvp_position;
+    vec4 view_normal;
+    vec4 nrm_view_normal;
+    vec4 color;
+    vec4 vdata1, vdata2, vdata3, vdata4;
+} v2f_out;
+
 uniform float specularFactor;
 uniform int shadow;
 uniform int hasBump;
@@ -15,13 +23,16 @@ uniform sampler2D Texbump0;
 
 void main (void)
 {
+  vec3 Nv = v2f_out.view_normal.xyz;
+  vec3 P  = v2f_out.mv_position.xyz;
+  vec4 vertex = v2f_out.position;
   // couleur texture 
-  vec4 col2 = texture2D(Texmat0, vec2((color.r-0.5)*2., (color.g-0.5)*2.));
+  vec4 col2 = texture2D(Texmat0, vec2((v2f_out.color.r-0.5)*2., (v2f_out.color.g-0.5)*2.));
   
   vec3 N = normalize(Nv);
   if (hasBump == 1) 
   {
-      vec4 D = texture2D(Texbump0, vec2((color.r-0.5)*2., (color.g-0.5)*2.));
+      vec4 D = texture2D(Texbump0, vec2((v2f_out.color.r-0.5)*2., (v2f_out.color.g-0.5)*2.));
       N += 2.5*vec3( (D.r-0.5)*2., (D.g-0.5)*2., (D.b-0.5)*2. );
       N = normalize(N);
   }
@@ -38,7 +49,6 @@ void main (void)
   col = clamp(col, 0., 1.);
 
   float shadowValue = 1.;
-        
   if (shadow > 0)
   {
   // Coords -> texCoords
@@ -58,5 +68,6 @@ void main (void)
   }
 
   gl_FragColor = shadowValue * col;
-  gl_FragColor.a = col2.a * color.a;
+  gl_FragColor.a = col2.a * v2f_out.color.a;
+  //gl_FragColor.a = 0.1; 
 }
