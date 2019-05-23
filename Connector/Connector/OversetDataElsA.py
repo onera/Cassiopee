@@ -43,7 +43,7 @@ except:
 #                   fichier relisible par elsA
 #==============================================================================
 def setInterpolations(t, loc='cell', double_wall=0, storage='inverse', prefixFile='',
-                      sameBase=0, solver='elsA', nGhostCells=2, parallelDatas=[], cfMax=30., check=True):
+                      sameBase=0, solver='elsA', nGhostCells=2, parallelDatas=[], cfMax=30., planarTol=0., check=True):
     if storage != 'direct' and storage != 'inverse':
         raise TypeError("setInterpolations: bad value for attribute 'storage'.")
 
@@ -56,11 +56,12 @@ def setInterpolations(t, loc='cell', double_wall=0, storage='inverse', prefixFil
 
     a = Internal.copyRef(t)
     _setInterpolations(a, loc=loc, double_wall=double_wall, storage=storage, prefixFile=prefixFile,
-                       sameBase=sameBase, solver=solver, nGhostCells=nGhostCells, parallelDatas=parallelDatas, cfMax=cfMax, check=check)
+                       sameBase=sameBase, solver=solver, nGhostCells=nGhostCells, parallelDatas=parallelDatas, 
+                       cfMax=cfMax, planarTol=planarTol, check=check)
     return a
 
-def _setInterpolations(t, loc='cell', double_wall=0, storage='inverse', prefixFile='',
-                      sameBase=0, solver='elsA', nGhostCells=2, parallelDatas=[], cfMax=30., check=True):
+def _setInterpolations(t, loc='cell', double_wall=0, storage='inverse', prefixFile='', sameBase=0, 
+                       solver='elsA', nGhostCells=2, parallelDatas=[], cfMax=30., planarTol=0., check=True):
     if storage != 'direct' and storage != 'inverse':
         raise TypeError("_setInterpolations: bad value for attribute 'storage'.")
 
@@ -81,7 +82,8 @@ def _setInterpolations(t, loc='cell', double_wall=0, storage='inverse', prefixFi
     else: raise TypeError("setInterpolations: bad value for attribute 'loc'.")
     if parallelDatas == []: # mode sequentiel
         _setSeqInterpolations(t, depth=depth, double_wall=double_wall, storage=storage, prefixFile=prefixFile, 
-                              sameBase=sameBase, solver=Solver, nGhostCells=nGhostCells, cfMax=cfMax, check=check)
+                              sameBase=sameBase, solver=Solver, nGhostCells=nGhostCells, cfMax=cfMax, planarTol=planarTol,
+                              check=check)
     else: # mode distribue
         if nGhostCells != 2: print('Warning: _setInterpolations: nGhostCells must be 2 in distributed mode.')
         _setDistInterpolations(t, parallelDatas, depth, double_wall, sameBase, Solver, cfMax, check=check)
@@ -244,7 +246,7 @@ def _setDistInterpolations(a, parallelDatas=[], depth=2, double_wall=0,
 #==============================================================================
 def _setSeqInterpolations(a, depth=2, double_wall=0, storage='inverse', prefixFile='', 
                           sameBase=0, solver=1, nGhostCells=2, 
-                          cfMax=30., check=True):
+                          cfMax=30., planarTol=0., check=True):
     import Generator.PyTree as G
     if double_wall == 1: from . import DoubleWall
 
@@ -338,7 +340,7 @@ def _setSeqInterpolations(a, depth=2, double_wall=0, storage='inverse', prefixFi
                                 if surfi[i] == []:
                                     listOfInterpCells.append(interpCells)
                                 else: # surface existe
-                                    zc2 = Connector.changeWall__(zc, firstWallCenters1, surfi[i])
+                                    zc2 = Connector.changeWall__(zc, firstWallCenters1, surfi[i], planarTol)
                                     interpCells = Connector.getInterpolatedPoints__(zc2)
                                     interpCells = Converter.extractVars(interpCells,['CoordinateX','CoordinateY','CoordinateZ','indcell'])
                                     del zc2
@@ -356,7 +358,7 @@ def _setSeqInterpolations(a, depth=2, double_wall=0, storage='inverse', prefixFi
                             else:
                                 if surfi[i] == []: listOfEXPts.append(EXPts)
                                 else:
-                                    expts = Connector.changeWallEX__(EXPts, zc, zn, firstWallCenters1, surfi[i])
+                                    expts = Connector.changeWallEX__(EXPts, zc, zn, firstWallCenters1, surfi[i], planarTol)
                                     listOfEXPts.append(expts)
                         del zn
                         resInterp = Connector.setInterpolations__(z[0],nirc, njrc, listOfEXPts, interpolationZones, \

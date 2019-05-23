@@ -17,7 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// Récupère les pointeurs si grandeurs conservatives
+// Recupere les pointeurs si grandeurs conservatives
 #define GETPTRS \
   rop  = (E_Float*)f.begin(posro);  \
   roup = (E_Float*)f.begin(posrou); \
@@ -90,8 +90,8 @@ PyObject* K_POST::computeVariables2(PyObject* self, PyObject* args)
   }
 
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  // Extrait les variables à calculer de la chaîne vars0. 
-  // Insert dans vars uniquement celles qui seront effectivement calculées
+  // Extrait les variables a calculer de la chaine vars0. 
+  // Insere dans vars uniquement celles qui seront effectivement calculees
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   char varStringOut[K_ARRAY::VARSTRINGLENGTH]; varStringOut[0] = '\0';
   vector<char*> vars;
@@ -230,7 +230,7 @@ PyObject* K_POST::computeVariables2(PyObject* self, PyObject* args)
 }
 
 // =================================================================================
-// Calcule les variables composées (à partir des variables cons.)
+// Calcule les variables composees (a partir des variables cons.)
 //==================================================================================
 E_Int K_POST::computeCompVars(const FldArrayF& f,  const E_Int posnew, 
                                     char* varnew,  const E_Int posro,

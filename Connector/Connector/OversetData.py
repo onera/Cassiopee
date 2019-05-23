@@ -369,7 +369,6 @@ def setIBCData(tR, tD, order=2, penalty=0, nature=0,
                 if found == 1:
                     if hook is not None: allHooks.pop(cL)
                     zonesDnr.pop(cL); nzonesDnr = nzonesDnr-1
-
             _setIBCDataForZone__(z, zonesDnr, correctedPts[nozr], wallPts[nozr], interpPts[nozr], loc=locR, order=order, penalty=penalty,nature=nature,method=method,\
                                  storage=storage,interpDataType=interpDataType,hook=hook,dim=dim, ReferenceState=ReferenceState, bcType=bcType)
 
@@ -796,7 +795,7 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
                 if double_wall == 1 and interpWallPts[nozr] != []: # dw: liste d arrays
                     isdw = 1
                     for nozd in range(nzonesDnr):
-                        an2 = Connector.changeWall__(an, interpWallPts[nozr], donorSurfs[nozd])
+                        an2 = Connector.changeWall__(an, interpWallPts[nozr], donorSurfs[nozd], planarTol=0.)
                         interpPts.append(Connector.getInterpolatedPoints__(an2))
                 else: # pas de dw: un seul array
                     interpPts = Connector.getInterpolatedPoints__(an)
@@ -809,7 +808,7 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
                 if double_wall == 1 and interpWallPts[nozr] != []:# dw : liste d arrays
                     isdw = 1
                     for nozd in range(nzonesDnr):
-                        ac2 = Connector.changeWall__(ac, interpWallPts[nozr], donorSurfs[nozd])
+                        ac2 = Connector.changeWall__(ac, interpWallPts[nozr], donorSurfs[nozd], planarTol=0.)
                         interpPts.append(Connector.getInterpolatedPoints__(ac2))
                 else:  # pas de dw : un seul array
                     interpPts = Connector.getInterpolatedPoints__(ac)
@@ -1217,7 +1216,7 @@ def setInterpData2(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
                 if double_wall == 1 and interpWallPts[nozr] != []: # dw: liste d arrays
                     isdw = 1
                     for nozd in range(nzonesDnr):
-                        an2 = Connector.changeWall__(an, interpWallPts[nozr], donorSurfs[nozd])
+                        an2 = Connector.changeWall__(an, interpWallPts[nozr], donorSurfs[nozd], planarTol=0.)
                         interpPts.append(Connector.getInterpolatedPoints__(an2))
                 else: # pas de dw: un seul array
                     interpPts = Connector.getInterpolatedPoints__(an)
@@ -1230,7 +1229,7 @@ def setInterpData2(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
                 if double_wall == 1 and interpWallPts[nozr] != []:# dw : liste d arrays
                     isdw = 1
                     for nozd in range(nzonesDnr):
-                        ac2 = Connector.changeWall__(ac, interpWallPts[nozr], donorSurfs[nozd])
+                        ac2 = Connector.changeWall__(ac, interpWallPts[nozr], donorSurfs[nozd], planarTol=0.)
                         interpPts.append(Connector.getInterpolatedPoints__(ac2))
                 else:  # pas de dw : un seul array
                     interpPts = Connector.getInterpolatedPoints__(ac)

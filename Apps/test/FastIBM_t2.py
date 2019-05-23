@@ -20,7 +20,7 @@ t, tc = App.prepare1('naca1DEuler.cgns', t_out=LOCAL+'/t.cgns', tc_out=LOCAL+'/t
 test.testT(tc, 1)
 
 # Compute
-t = myApp.compute(LOCAL+'/t.cgns', LOCAL+'/tc.cgns', t_out=LOCAL+'/restart.cgns', tc_out=LOCAL+'/tc_restart.cgns', nit=300)
+t, tc = myApp.compute(LOCAL+'/t.cgns', LOCAL+'/tc.cgns', t_out=LOCAL+'/restart.cgns', tc_out=LOCAL+'/tc_restart.cgns', nit=300)
 t = C.convertFile2PyTree(LOCAL+'/restart.cgns')
 test.testT(t, 2)
 

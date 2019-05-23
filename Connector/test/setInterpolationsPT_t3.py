@@ -15,7 +15,7 @@ b = C.addBC2Zone(b, 'wall', 'BCWall', 'jmin')
 b = C.fillEmptyBCWith(b,'overlap','BCOverlap',dim=2)
 t = C.newPyTree(['Base','Base2']); t[2][1][2] = [a]; t[2][2][2] = [b]
 t = C.initVars(t,'Density',1.); t = C.initVars(t,'centers:G',10.)
-t[2][1] = C.addState(t[2][1], 'EquationDimension',2)
+C._addState(t[2][1], 'EquationDimension',2)
 # # depth = 2
 t1 = X.applyBCOverlaps(t, depth=2)
 t1 = X.setInterpolations(t1, loc='cell', double_wall=1,storage='direct')

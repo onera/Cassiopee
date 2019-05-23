@@ -124,7 +124,7 @@ def _setInterpTransfers(aR, aD, variables=[], cellNVariable='',
 #===============================================================================
 def __setInterpTransfers(zones, zonesD, vars, param_int, param_real, type_transfert, nitrun,
                          nstep, nitmax, rk, exploc, num_passage, bcType=0, varType=1, compact=1,
-			 graph=None, procDict=None,
+                         graph=None, procDict=None,
                          Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08, Cs=0.3831337844872463, Ts=1.0):
 
     # Transferts locaux/globaux

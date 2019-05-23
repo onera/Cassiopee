@@ -17,7 +17,7 @@ myApp.set(numz={"time_step": 0.0007,
 t, tc = myApp.prepare('naca.cgns', t_out=LOCAL+'/t.cgns', tc_out=LOCAL+'/tc.cgns')
 test.testT(tc, 2)
 
-t = myApp.compute(LOCAL+'/t.cgns', LOCAL+'/tc.cgns', t_out=LOCAL+'/restart.cgns', nit=300)
+t, tc = myApp.compute(LOCAL+'/t.cgns', LOCAL+'/tc.cgns', t_out=LOCAL+'/restart.cgns', nit=300)
 t = C.convertFile2PyTree(LOCAL+'/restart.cgns')
 test.testT(t, 1)
 

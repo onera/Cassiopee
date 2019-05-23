@@ -501,7 +501,8 @@ namespace K_CONNECTOR
                   std::vector<E_Int> posht, std::vector<E_Int> posct,
                   std::vector<K_FLD::FldArrayI*>& cnt, std::vector<K_FLD::FldArrayF*>& unstrF,
                   E_Float* xc, E_Float* yc, E_Float* zc,
-                  E_Float* xc2, E_Float* yc2, E_Float* zc2);
+                  E_Float* xc2, E_Float* yc2, E_Float* zc2,
+                  E_Float planartol=0.);
   
   void shiftAbovePoints(E_Int imc, E_Int jmc, E_Int kmc,
                         E_Int dir, E_Int indA, E_Int iA, E_Int jA, E_Int kA,
@@ -517,7 +518,8 @@ namespace K_CONNECTOR
                     E_Int nbCentersW, E_Float* indicesw, E_Float* dirw1, E_Float* dirw2, E_Float* dirw3, E_Float* hmaxw,
                     std::vector<E_Int> posxt, std::vector<E_Int> posyt, std::vector<E_Int> poszt, 
                     std::vector<E_Int> posht, std::vector<E_Int> posct,
-                    std::vector<K_FLD::FldArrayI*>& cnt, std::vector<K_FLD::FldArrayF*>& unstrF);
+                    std::vector<K_FLD::FldArrayI*>& cnt, std::vector<K_FLD::FldArrayF*>& unstrF,
+                    E_Float planartol=0.);
 
   /* Calcul du centre d interface au dessus du centre d interface dont le noeud min est indn
      IN: dirEX : direction du pt EX (interface i constante => 1)

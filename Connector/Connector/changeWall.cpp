@@ -30,12 +30,19 @@ PyObject* K_CONNECTOR::changeWall(PyObject* self, PyObject* args)
 {
   PyObject *arrayCenters, *firstWallCenters;//domaine a interpoler
   PyObject *projectSurfArrays; // liste des surfaces de projection : TRI
-  if (!PyArg_ParseTuple(args, "OOO",
-                        &arrayCenters, &firstWallCenters, &projectSurfArrays))
-  {
-      return NULL;
-  }
-     
+  E_Float planarTol=0.; // tolerance de shift double wall dans les cas ou le 
+  // if (!PYPARSETUPLEF(args, "OOOd", "OOOf"
+  //                   &arrayCenters, &firstWallCenters, &projectSurfArrays, &planarTol))
+  //   return NULL;
+#if defined E_DOUBLEREAL
+  if (!PyArg_ParseTuple(args, "OOOd", 
+                        &arrayCenters, &firstWallCenters, &projectSurfArrays, &planarTol)) 
+#else
+  if (!PyArg_ParseTuple(args, "OOOf", 
+                        &arrayCenters, &firstWallCenters, &projectSurfArrays, &planarTol)) 
+#endif
+   return NULL;
+
   if (PyList_Check(firstWallCenters) == 0)
   {
     PyErr_SetString(PyExc_TypeError, 
@@ -62,7 +69,6 @@ PyObject* K_CONNECTOR::changeWall(PyObject* self, PyObject* args)
                     "changeWall: 1st arg must be structured.");
     return NULL;   
   }  
-  
   // Verif des coordonnees dans zc
   E_Int posxc = K_ARRAY::isCoordinateXPresent(varStringc);
   E_Int posyc = K_ARRAY::isCoordinateYPresent(varStringc);
@@ -183,7 +189,7 @@ PyObject* K_CONNECTOR::changeWall(PyObject* self, PyObject* args)
              f1->begin(poshw),
              posxt, posyt, poszt, posht, posct, cnt, unstrF, 
              fc->begin(posxc), fc->begin(posyc), fc->begin(poszc),
-             fc2.begin(posxc), fc2.begin(posyc), fc2.begin(poszc));
+             fc2.begin(posxc), fc2.begin(posyc), fc2.begin(poszc), planarTol);
 
   // cleaning
   for (E_Int iu = 0; iu < nu; iu++)
@@ -203,7 +209,7 @@ void K_CONNECTOR::changeWall(
   vector<E_Int> posht, vector<E_Int> posct,
   vector<FldArrayI*>& cnt, vector<FldArrayF*>& unstrF,
   E_Float* xc, E_Float* yc, E_Float* zc,
-  E_Float* xc2, E_Float* yc2, E_Float* zc2)
+  E_Float* xc2, E_Float* yc2, E_Float* zc2, E_Float planartol)
 {
   E_Float coefhmax = 10.; // tolerance de projection : coefhmax * hmax
   E_Float tolbb = 1.e-6;
@@ -328,6 +334,10 @@ void K_CONNECTOR::changeWall(
           hmax = K_FUNC::E_max(hmax1, hmax2); hmax = hmax*hmax;
           if (dAP2 < coefhmax*hmax && dAP2 < delta)  
           {delta = dAP2; deltax = dxa; deltay = dya; deltaz = dza; isProjected = true; }
+          else if ( hmax < 0.1*K_CONST::E_GEOM_CUTOFF && dAP2 < planartol)
+          {
+            delta = dAP2; deltax = dxa; deltay = dya; deltaz = dza; isProjected = true; 
+          }
         }
       }     
       if (isProjected == false) goto nextptB;         

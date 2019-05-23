@@ -519,11 +519,12 @@ Overset connectivity
 
         ::
 
-         t = X.optimizeOverlap(t, double_wall=0, priorities=[])
+         t = X.optimizeOverlap(t, double_wall=0, priorities=[], planarTol=0.)
 
         Optimize the overlapping between all structured zones defined in a pyTree t.
         The 'cellN' variable located at cell centers is modified, such that cellN=2 for a cell interpolable from another zone. 
-        Double wall projection technique is activated if 'double_wall'=1.
+        Double wall projection technique is activated if 'double_wall'=1. Parameter planarTol can be useful for double wall cases, 
+        in the case when double wall surfaces are planar but distant from planarTol to each other.  
         The overlapping is optimized between zones from separated bases, and is based on a priority to the cell of smallest size.
         One can impose a priority to a base over another base, using the list priorities.
         For instance, priorities = ['baseName1',0, 'baseName2',1] means that zones from base of name 'baseName1' are preferred over
@@ -784,11 +785,12 @@ Overset connectivity
 Overset grid connectivity for elsA solver
 ------------------------------------------
 
-.. py:function:: X.setInterpolations(t, loc='cell', double_wall=0, storage='inverse', prefixFile='', sameBase=0, solver='elsA', nGhostCells=2, parallelDatas=[], cfMax=30., check=True)
+.. py:function:: X.setInterpolations(t, loc='cell', double_wall=0, storage='inverse', prefixFile='', sameBase=0, solver='elsA', nGhostCells=2, parallelDatas=[], cfMax=30., planarTol=0., check=True)
 
     This function is specific to elsA solver.
     Set the Chimera connectivity (EX points and cell centers to be interpolated, index for donor interpolation cell and interpolation coefficients). 
     Double wall projection technique is activated if 'double_wall=1'.
+    Parameter planarTol can be useful for double wall cases, in the case when double wall surfaces are planar but distant from planarTol to each other.  
     Parameter 'sameBase=1' means that donor zones can be found in the same base as the current zone. 
 
     parallelDatas=[graph,rank,listOfInterpCells] is defined only in a coupling context. It contains the graph of communication, the rank of the current processor and the list of interpolated cells/faces indices.  graph is a Python dictionary with the following structure : graph[proc1][proc2] gives the list of zones on processeur 1 which intersect with zones on processor 2. 

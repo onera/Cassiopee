@@ -1278,7 +1278,7 @@ def getInterpolatedPoints(z,loc='centers', cellNName='cellN'):
 #==============================================================================
 # optimisation du recouvrement
 #==============================================================================
-def optimizeOverlap(t, double_wall=0, priorities=[], intersectionsDict=None):
+def optimizeOverlap(t, double_wall=0, priorities=[], planarTol=0., intersectionsDict=None):
     try: import Generator.PyTree as G
     except: raise ImportError('optimizeOverlap requires Generator module.')
     try: import Post.PyTree as P
@@ -1496,8 +1496,8 @@ def optimizeOverlap(t, double_wall=0, priorities=[], intersectionsDict=None):
                                 isDW = 1
                                 acp1 = Converter.initVars(ac1,'{cellN}=minimum(2.,2*{cellN})')
                                 acp2 = Converter.initVars(ac2,'{cellN}=minimum(2.,2*{cellN})')
-                                acn1 = Connector.changeWall__(acp1, firstWallCenters1, surfacesExtC2)
-                                acn2 = Connector.changeWall__(acp2, firstWallCenters2, surfacesExtC1)
+                                acn1 = Connector.changeWall__(acp1, firstWallCenters1, surfacesExtC2, planarTol=planarTol)
+                                acn2 = Connector.changeWall__(acp2, firstWallCenters2, surfacesExtC1, planarTol=planarTol)
                                 cellN1 = Converter.extractVars(ac1,['cellN','vol'])
                                 cellN2 = Converter.extractVars(ac2,['cellN','vol'])
                                 acn1 = Converter.addVars([acn1,cellN1])

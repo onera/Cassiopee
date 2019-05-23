@@ -29,12 +29,20 @@ PyObject* K_CONNECTOR::changeWallEX(PyObject* self, PyObject* args)
 {
   PyObject *arrayEX, *arrayNodes, *arrayCenters,*firstWallCenters;//domaine a interpoler
   PyObject *projectSurfArrays; // liste des surfaces de projection : TRI
-  if (!PyArg_ParseTuple(args, "OOOOO",
-                        &arrayEX, &arrayNodes, &arrayCenters, &firstWallCenters, &projectSurfArrays))
-  {
-      return NULL;
-  }
-     
+  E_Float planarTol;
+  // if (!PYPARSETUPLEF(args, "OOOOOd", "OOOOOf"
+  //                       &arrayEX, &arrayNodes, &arrayCenters, &firstWallCenters, &projectSurfArrays, &planarTol))
+  // {
+  //     return NULL;
+  // }
+#if defined E_DOUBLEREAL
+  if (!PyArg_ParseTuple(args, "OOOOOd", 
+                        &arrayEX, &arrayNodes, &arrayCenters, &firstWallCenters, &projectSurfArrays, &planarTol))
+#else
+  if (!PyArg_ParseTuple(args, "OOOOOf", 
+                        &arrayEX, &arrayNodes, &arrayCenters, &firstWallCenters, &projectSurfArrays, &planarTol))
+#endif
+   return NULL;     
   if (PyList_Check(firstWallCenters) == 0)
   {
     PyErr_SetString(PyExc_TypeError, 
@@ -283,7 +291,7 @@ PyObject* K_CONNECTOR::changeWallEX(PyObject* self, PyObject* args)
                im, jm, km, f->begin(posx), f->begin(posy), f->begin(posz),
                imc, jmc, kmc, fc->begin(posxc), fc->begin(posyc), fc->begin(poszc), fc->begin(poscc),
                f1->getSize(), f1->begin(posindw), f1->begin(posdir1), f1->begin(posdir2), f1->begin(posdir3),f1->begin(poshw),
-               posxt, posyt, poszt, posht, posct, cnt, unstrF);
+               posxt, posyt, poszt, posht, posct, cnt, unstrF, planarTol);
             
   RELEASESHAREDU(arrayEX,fEX,cnEX);
   RELEASESHAREDS(arrayNodes,f);
@@ -303,7 +311,7 @@ void K_CONNECTOR::changeWallEX(
   E_Int imc, E_Int jmc, E_Int kmc, E_Float* xc, E_Float* yc, E_Float* zc, E_Float* cellnc,
   E_Int nbCentersW, E_Float* indicesw, E_Float* dirw1, E_Float* dirw2, E_Float* dirw3, E_Float* hmaxw,
   vector<E_Int> posxt, vector<E_Int> posyt, vector<E_Int> poszt, vector<E_Int> posht, vector<E_Int> posct, 
-  vector<FldArrayI*>& cnt, vector<FldArrayF*>& unstrF)
+  vector<FldArrayI*>& cnt, vector<FldArrayF*>& unstrF, E_Float planartol)
 {
   E_Float coefhmax = 2.; // tolerance de projection : coefhmax * hmax
   E_Float tolbb = 1.e-6;
@@ -483,6 +491,10 @@ void K_CONNECTOR::changeWallEX(
             hmax = K_FUNC::E_max(hmax1, hmax2); hmax = hmax*hmax;
             if ( dAP2 < coefhmax*hmax && dAP2 < delta)  
             {delta = dAP2; deltax = dxa; deltay = dya; deltaz = dza; isProjected = true;}
+            else if ( hmax < 0.1*K_CONST::E_GEOM_CUTOFF && dAP2 < planartol)
+            {
+              delta = dAP2; deltax = dxa; deltay = dya; deltaz = dza; isProjected = true; 
+            }
           }//elt trouve
         }//parcours de ts les surfaces de projection
         if (isProjected == false) goto nextptB;

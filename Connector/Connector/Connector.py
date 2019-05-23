@@ -589,9 +589,9 @@ def getInterpolatedPoints__(a):
 # IN: projectionSurfaces: liste des surfaces TRI correspondant aux surfaces de projection
 # OUT: z modifie pour les pts de cellN=2
 #------------------------------------------------------------------------------
-def changeWall__(z, firstWallPoints, projectionSurfaces):
+def changeWall__(z, firstWallPoints, projectionSurfaces, planarTol=0.):
     if projectionSurfaces == [] or firstWallPoints == []: return z
-    else: return connector.changeWall(z, firstWallPoints, projectionSurfaces)
+    else: return connector.changeWall(z, firstWallPoints, projectionSurfaces, planarTol)
 
 #-----------------------------------------------------------------------------
 # Nouvel algo de changeWall, sans tolerance double wall
@@ -602,9 +602,9 @@ def changeWall__(z, firstWallPoints, projectionSurfaces):
 # IN: projectionSurfaces: liste des surfaces TRI correspondant aux surfaces de projection
 # OUT: zc modifie pour les pts de cellN=2
 #-----------------------------------------------------------------------------
-def changeWallEX__(EXPts, zc, zn, firstWallCenters, projectionSurfaces):
+def changeWallEX__(EXPts, zc, zn, firstWallCenters, projectionSurfaces, planarTol=0.):
     if projectionSurfaces == [] or firstWallCenters == []: return z
-    else: return connector.changeWallEX(EXPts, zn, zc, firstWallCenters, projectionSurfaces)
+    else: return connector.changeWallEX(EXPts, zn, zc, firstWallCenters, projectionSurfaces, planarTol)
 
 #----------------------------------------------------------------------------------------------
 # Pour determiner les frontieres de projection double wall, dans le cas ou les frontieres
