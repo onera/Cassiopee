@@ -33,7 +33,7 @@ test.testT(m1,1)
 m2 = XOR.adaptCells(mesh,source, sensor_type=2)
 m2 = XOR.closeOctalCells(m2)
 #C.convertPyTree2File(m2, 'out1.cgns')
-test.testT(m2,1)
+test.testT(m2,2)
 
 
 
