@@ -93,10 +93,16 @@
     RELEASESHAREDN(pyArrayPressure, pressF);            \
   if ( pyArrayDens != Py_None)                          \
     RELEASESHAREDN(pyArrayDens, densF);                 \
+  if ( pyArrayVx != Py_None)                            \
+    RELEASESHAREDN(pyArrayVx, vxF);                     \
+  if ( pyArrayVy != Py_None)                            \
+    RELEASESHAREDN(pyArrayVy, vyF);                     \
+  if ( pyArrayVz != Py_None)                            \
+    RELEASESHAREDN(pyArrayVz, vzF);                     \
   if ( pyArrayUtau != Py_None)                          \
     RELEASESHAREDN(pyArrayUtau, utauF);                 \
   if ( pyArrayYplus != Py_None)                         \
-    RELEASESHAREDN(pyArrayYplus, yplusF);
+    RELEASESHAREDN(pyArrayYplus, yplusF);                              
 
 
 extern "C"
@@ -577,6 +583,7 @@ namespace K_CONNECTOR
                                   E_Float* xPW, E_Float* yPW, E_Float* zPW,
                                   E_Float* xPI, E_Float* yPI, E_Float* zPI, 
                                   E_Float* densPtr, E_Float* pressPtr, 
+                                  E_Float* vxPtr, E_Float* vyPtr, E_Float* vzPtr, 
                                   E_Float* utauPtr, E_Float* yplusPtr,
                                   E_Float* d1, E_Float* d2, E_Float* d3, E_Float* d4, E_Float* d5,
                                   E_Float* tmp, E_Int&  size,
@@ -591,13 +598,14 @@ namespace K_CONNECTOR
                                   E_Float* xPW, E_Float* yPW, E_Float* zPW,
                                   E_Float* xPI, E_Float* yPI, E_Float* zPI, 
                                   E_Float* densPtr, E_Float* pressPtr, 
+                                  E_Float* vxPtr, E_Float* vyPtr, E_Float* vzPtr, 
                                   E_Float* utauPtr, E_Float* yplusPtr,
                                   E_Float* d1, E_Float* d2, E_Float* d3, E_Float* d4, E_Float* d5,
                                   E_Float* tmp, E_Int&  size,
                                   E_Float gamma, E_Float cv, E_Float muS, E_Float Cs, E_Float Ts, E_Float Pr,
                                   std::vector<E_Float*>& WIn, std::vector<E_Float*>& WOut, 
                                   E_Int nbptslinelets=0, E_Float* linelets=NULL, E_Int* indexlinelets=NULL);
-  
+
   /* Transferts IBC avec variables (ro,u,v,w,p) en entree/sortie */
   E_Int setIBCTransfersCommonVar3(E_Int bctype,
                                   E_Int* rcvPtsI, E_Int& nbRcvPts, E_Int& ideb, E_Int& ifin, E_Int& ithread,
@@ -605,7 +613,8 @@ namespace K_CONNECTOR
                                   E_Float* xPW, E_Float* yPW, E_Float* zPW,
                                   E_Float* xPI, E_Float* yPI, E_Float* zPI, 
                                   E_Float* densPtr, E_Float* pressPtr, 
-                                  E_Float* utauPtr, E_Float* yplusPtr,
+                                  E_Float* vxPtr, E_Float* vyPtr, E_Float* vzPtr,
+                                  E_Float* utauPtr, E_Float* yplusPtr, 
                                   E_Float* d1, E_Float* d2, E_Float* d3, E_Float* d4, E_Float* d5,
                                   E_Float* tmp, E_Int&  size,
                                   E_Float gamma, E_Float cv, E_Float muS, E_Float Cs, E_Float Ts, E_Float Pr,

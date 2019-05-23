@@ -574,6 +574,13 @@ def _addIBCCoords__(z, zname, correctedPts, wallPts, interpolatedPts, bcType, bc
 
     zsr[2].append(['Pressure', pressNP, [], 'DataArray_t'])
     zsr[2].append(['Density' , densNP , [], 'DataArray_t'])
+
+    vxNP = numpy.zeros((nIBC),numpy.float64)
+    vyNP = numpy.zeros((nIBC),numpy.float64)
+    vzNP = numpy.zeros((nIBC),numpy.float64)
+    zsr[2].append(['VelocityX' , vxNP , [], 'DataArray_t'])
+    zsr[2].append(['VelocityY' , vyNP , [], 'DataArray_t'])
+    zsr[2].append(['VelocityZ' , vzNP , [], 'DataArray_t'])
     
     if bcType != 0:
         utauNP  = numpy.zeros((nIBC),numpy.float64)
@@ -581,17 +588,18 @@ def _addIBCCoords__(z, zname, correctedPts, wallPts, interpolatedPts, bcType, bc
         zsr[2].append(['utau' , utauNP , [], 'DataArray_t'])
         zsr[2].append(['yplus', yplusNP, [], 'DataArray_t'])
 
-        if bcType == 5: # inj
-          stagnationEnthalpy = numpy.zeros((nIBC),numpy.float64)
-          Internal._createChild(zsr, 'StagnationEnthalpy', 'DataArray_t', value=stagnationEnthalpy)
-          stagnationPressure = numpy.zeros((nIBC),numpy.float64)
-          Internal._createChild(zsr, 'StagnationPressure', 'DataArray_t', value=stagnationPressure)
-          dirx = numpy.zeros((nIBC),numpy.float64)
-          Internal._createChild(zsr, 'dirx', 'DataArray_t', value=dirx)
-          diry = numpy.zeros((nIBC),numpy.float64)
-          Internal._createChild(zsr, 'diry', 'DataArray_t', value=diry)
-          dirz = numpy.zeros((nIBC),numpy.float64)
-          Internal._createChild(zsr, 'dirz', 'DataArray_t', value=dirz)
+    if bcType == 5: # inj
+      stagnationEnthalpy = numpy.zeros((nIBC),numpy.float64)
+      Internal._createChild(zsr, 'StagnationEnthalpy', 'DataArray_t', value=stagnationEnthalpy)
+      stagnationPressure = numpy.zeros((nIBC),numpy.float64)
+      Internal._createChild(zsr, 'StagnationPressure', 'DataArray_t', value=stagnationPressure)
+      dirx = numpy.zeros((nIBC),numpy.float64)
+      Internal._createChild(zsr, 'dirx', 'DataArray_t', value=dirx)
+      diry = numpy.zeros((nIBC),numpy.float64)
+      Internal._createChild(zsr, 'diry', 'DataArray_t', value=diry)
+      dirz = numpy.zeros((nIBC),numpy.float64)
+      Internal._createChild(zsr, 'dirz', 'DataArray_t', value=dirz)
+
     if bcName is not None:
         Internal._createUniqueChild(zsr, 'FamilyName', 'FamilyName_t', value=bcName)
     return None
@@ -2469,6 +2477,9 @@ def _setInterpTransfers(aR, topTreeD, variables=[],  cellNVariable='',
                                zPI = Internal.getNodeFromName1(s,'CoordinateZ_PI')[1]
                                density = Internal.getNodeFromName1(s,'Density')[1]
                                pressure = Internal.getNodeFromName1(s,'Pressure')[1]
+                               vx = Internal.getNodeFromName1(s,'VelocityX')[1]
+                               vy = Internal.getNodeFromName1(s,'VelocityY')[1]
+                               vz = Internal.getNodeFromName1(s,'VelocityZ')[1]
                                utau = Internal.getNodeFromName1(s, 'utau')
                                if utau is not None: utau = utau[1]
                                else: utau = None
@@ -2478,7 +2489,9 @@ def _setInterpTransfers(aR, topTreeD, variables=[],  cellNVariable='',
                                # Transferts
                                #print 'transfert IBC : zr ', zr[0], ' et donor : ', zd[0]
                                connector._setIBCTransfers(zr, zd, variablesIBC, ListRcv, ListDonor, DonorType, Coefs, 
-                                                          xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, density, pressure, utau, yplus,
+                                                          xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, density, pressure, 
+                                                          vx, vy, vz, 
+                                                          utau, yplus,
                                                           bcType, loc, varType, compact, Gamma, Cv, MuS, Cs, Ts,
                                                           Internal.__GridCoordinates__, 
                                                           Internal.__FlowSolutionNodes__, 
@@ -2542,6 +2555,9 @@ def _setInterpTransfers(aR, topTreeD, variables=[],  cellNVariable='',
                                     zPI = Internal.getNodeFromName1(s,'CoordinateZ_PI')[1]
                                     Density = Internal.getNodeFromName1(s,'Density')[1]
                                     Pressure= Internal.getNodeFromName1(s,'Pressure')[1]
+                                    vx = Internal.getNodeFromName1(s,'VelocityX')[1]
+                                    vy = Internal.getNodeFromName1(s,'VelocityY')[1]
+                                    vz = Internal.getNodeFromName1(s,'VelocityZ')[1]
                                     utau = Internal.getNodeFromName1(s, 'utau')
                                     if utau is not None: utau = utau[1]
                                     else: utau = None
@@ -2550,7 +2566,9 @@ def _setInterpTransfers(aR, topTreeD, variables=[],  cellNVariable='',
                                     else: yplus = None
                                     #  print 'transfert IBC : zr ', zr[0], ' et donor : ', zd[0] 
                                     connector._setIBCTransfers(zr, zd, variablesIBC, ListRcv, ListDonor, DonorType, Coefs, 
-                                                               xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, Density, Pressure, utau, yplus,
+                                                               xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, Density, Pressure, 
+                                                               vx, vy, vz, 
+                                                               utau, yplus,
                                                                bcType, loc, varType, compact, Gamma, Cv, MuS, Cs, Ts,
                                                                Internal.__GridCoordinates__, 
                                                                Internal.__FlowSolutionNodes__, 
@@ -2679,6 +2697,9 @@ def setInterpTransfersD(topTreeD, variables=[], cellNVariable='',
                         zPI = Internal.getNodeFromName1(s,'CoordinateZ_PI')[1]
                         Density = Internal.getNodeFromName1(s,'Density')[1]
                         Pressure= Internal.getNodeFromName1(s,'Pressure')[1]
+                        vx = Internal.getNodeFromName1(s,'VelocityX')[1]
+                        vy = Internal.getNodeFromName1(s,'VelocityY')[1]
+                        vz = Internal.getNodeFromName1(s,'VelocityZ')[1]
                         utau = Internal.getNodeFromName1(s, 'utau')
                         if utau is not None: utau = utau[1]
                         else: utau = None
@@ -2687,7 +2708,9 @@ def setInterpTransfersD(topTreeD, variables=[], cellNVariable='',
                         else: yplus = None
                         #print 'transfert IBC : zd ', zd[0]
                         arrayT = connector._setIBCTransfersD(zd, variablesIBC, ListDonor, DonorType, Coefs, 
-                                                             xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, Density, Pressure, utau, yplus,
+                                                             xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, Density, Pressure,
+                                                             vx, vy, vz, 
+                                                             utau, yplus,
                                                              bcType, varType, compact, Gamma, Cv, MuS, Cs, Ts,                                                             
                                                              Internal.__GridCoordinates__, 
                                                              Internal.__FlowSolutionNodes__, 

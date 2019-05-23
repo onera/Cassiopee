@@ -182,6 +182,8 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
     # Build octree
     o = TIBM.buildOctree(tb, snears=snears, snearFactor=1., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, 
                          dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=fileout, rank=rank)
+    if rank==0 and check:
+        C.convertPyTree2File(o,fileout)
     # build parent octree 3 levels higher
     # returns a list of 4 octants of the parent octree in 2D and 8 in 3D
     parento = TIBM.buildParentOctrees__(o, tb, snears=snears, snearFactor=4., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, 
@@ -207,6 +209,7 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
     zones = Internal.getZones(t)
     for z in zones: z[0] = z[0]+'X%d'%rank
     Cmpi._setProc(t, rank)
+
     C._addState(t, 'EquationDimension', dimPb)
     test.printMem(">>> Octree struct [end]")
     
@@ -402,9 +405,8 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
 
     #============================================================================
     if frontType==2 or frontType==3:
-        test.printMem(">>> pushBackImageFront2 [start]")
-        Cmpi._addXZones(tc, graph)
-        TIBM._pushBackImageFront2(t, tc, tbbc)
+        Cmpi._addXZones(tc, graph, cartesian=True)
+        TIBM._pushBackImageFront2(t, tc, tbbc, interpDataType=0)
         Cmpi._rmXZones(tc)
         Xmpi._setInterpTransfers(t,tc,variables=['cellNFront'], cellNVariable='cellNFront', compact=0)
         test.printMem(">>> pushBackImageFront2 [end]")
@@ -567,10 +569,10 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
     if check:
         tibm = TIBM.extractIBMInfo(tc)
         for z in Internal.getZones(tibm): z[0] += '_'+str(Cmpi.rank)
-        tibm = Cmpi.allgatherTree(tibm)
-        if rank==0: C.convertPyTree2File(tibm, 'IBMInfo.cgns')
+        #tibm = Cmpi.allgatherTree(tibm)
+        #if rank==0: C.convertPyTree2File(tibm, 'IBMInfo.cgns')
+        Cmpi.convertPyTree2File(tibm, 'IBMInfo.cgns')
         del tibm
-        
     #============================================================================
 
     # distribution par defaut (sur Cmpi.size)

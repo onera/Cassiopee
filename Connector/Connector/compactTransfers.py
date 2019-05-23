@@ -144,7 +144,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
          #print len(Nbtype), Nbtype2.size
 
          size_IBC =  0
-         ntab_IBC = 11
+         ntab_IBC = 11+3 #On ajoute dorenavant les vitesses dans l'arbre tc pour faciliter le post
          if utau is not None: ntab_IBC += 2
          if sd1 is not None: ntab_IBC += 5
          if sname == 'IB': 
@@ -397,8 +397,12 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
 
        zsrname = s[0]
        sname = zsrname[0:2]
-       xc=None;yc=None;zc=None; xi=None;yi=None;zi=None; xw=None;yw=None;zw=None;density=None;pressure=None;utau=None;yplus=None;
-       ptxc=0;ptyc=0;ptzc=0;ptxi=0;ptyi=0;ptzi=0;ptxw=0;ptyw=0;ptzw=0;ptdensity=0;ptpressure=0; ptutau=0;ptyplus=0;
+       xc=None;yc=None;zc=None; xi=None;yi=None;zi=None; xw=None;yw=None;zw=None;density=None;pressure=None;
+       vx=None; vy=None; vz=None;
+       utau=None;yplus=None;
+       ptxc=0;ptyc=0;ptzc=0;ptxi=0;ptyi=0;ptzi=0;ptxw=0;ptyw=0;ptzw=0;ptdensity=0;ptpressure=0; 
+       ptvx=0;ptvy=0;ptvz=0;
+       ptutau=0;ptyplus=0;
        sd1=None;sd2=None;sd3=None;sd4=None;sd5=None
        ptd1=0;ptd2=0;ptd3=0;ptd4=0;ptd5=0
        if sname == 'IB': 
@@ -440,12 +444,22 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
 
            size_IBC  = 11*Nbpts_D
            inc = 11
+
+           vx = Internal.getNodeFromName1(s, 'VelocityX')
+           vy = Internal.getNodeFromName1(s, 'VelocityY')
+           vz = Internal.getNodeFromName1(s, 'VelocityZ')
+           ptvx = pt_coef + Nbpts_InterpD + Nbpts_D*inc
+           ptvy = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+1)
+           ptvz = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+2)
+           size_IBC +=3*Nbpts_D; inc += 3
+
            utau = Internal.getNodeFromName1(s, 'utau')
            yplus = Internal.getNodeFromName1(s, 'yplus')
            if utau is not None:
                ptutau    = pt_coef + Nbpts_InterpD + Nbpts_D*inc
                ptyplus   = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+1)
                size_IBC += 2*Nbpts_D; inc += 2
+
            sd1 = Internal.getNodeFromName1(s, 'StagnationEnthalpy')
            if sd1 is not None:
                ptd1    = pt_coef + Nbpts_InterpD + Nbpts_D*inc
@@ -495,20 +509,28 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
            triMonoType(Nbpts_D, Nbpts,Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp, ptTy,shift_typ,pt_coef,nocoef,sname,Nbtype,
                        Interptype, pointlist, pointlistD, param_int,
                        ptxc,ptyc,ptzc,ptxi,ptyi,ptzi,ptxw,ptyw,ptzw, 
-                       ptdensity,ptpressure,ptutau,ptyplus,
+                       ptdensity,ptpressure,
+                       ptvx, ptvy, ptvz,
+                       ptutau,ptyplus,
                        ptd1,ptd2,ptd3,ptd4,ptd5,
                        xc,yc,zc,xi,yi,zi,xw,yw,zw, 
-                       density,pressure,utau,yplus,
+                       density,pressure,
+                       vx, vy, vz,
+                       utau,yplus,
                        sd1,sd2,sd3,sd4,sd5,
                        InterpD,param_real)
        else:
            triMultiType(Nbpts_D,Nbpts,Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp, ptTy,shift_typ,pt_coef,nocoef,sname,Nbtype,
                         Interptype, pointlist, pointlistD, param_int,
                         ptxc,ptyc,ptzc,ptxi,ptyi,ptzi,ptxw,ptyw,ptzw, 
-                        ptdensity,ptpressure,ptutau,ptyplus,
+                        ptdensity,ptpressure,
+                        ptvx, ptvy, ptvz,
+                        ptutau,ptyplus,
                         ptd1,ptd2,ptd3,ptd4,ptd5, 
                         xc,yc,zc,xi,yi,zi,xw,yw,zw, 
-                        density,pressure,utau,yplus,
+                        density,pressure,
+                        vx, vy, vz,
+                        utau,yplus,
                         sd1,sd2,sd3,sd4,sd5,
                         InterpD,param_real)
 
@@ -531,9 +553,15 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
            zw[1]       = param_real[ ptzw: ptzw+ Nbpts_D ]
            density[1]  = param_real[ ptdensity : ptdensity + Nbpts_D ]
            pressure[1] = param_real[ ptpressure: ptpressure+ Nbpts_D ]
+
+           vx[1]       = param_real[ ptvx: ptvx+ Nbpts_D ]
+           vy[1]       = param_real[ ptvy: ptvy+ Nbpts_D ]
+           vz[1]       = param_real[ ptvz: ptvz+ Nbpts_D ]
+
            if utau is not None:
                utau[1]  = param_real[ ptutau : ptutau + Nbpts_D ]
                yplus[1] = param_real[ ptyplus: ptyplus + Nbpts_D ]
+
            if sd1 is not None:
                sd1[1]  = param_real[ ptd1 : ptd1 + Nbpts_D ]
            if sd2 is not None:
@@ -641,10 +669,14 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
 def triMultiType(Nbpts_D, Nbpts, Nbpts_InterpD,meshtype, noi, lst,lstD,l0,ctyp,ptTy,shift_typ,pt_coef,nocoef,sname,Nbtype,
                  Interptype, pointlist, pointlistD, param_int,
                  ptxc,ptyc,ptzc,ptxi,ptyi,ptzi,ptxw,ptyw,ptzw, 
-                 ptdensity,ptpressure,ptutau,ptyplus,
+                 ptdensity,ptpressure,
+                 ptvx, ptvy, ptvz,
+                 ptutau,ptyplus,
                  ptd1,ptd2,ptd3,ptd4,ptd5,
                  xc,yc,zc,xi,yi,zi,xw,yw,zw, 
-                 density,pressure,utau,yplus,
+                 density,pressure,
+                 vx, vy, vz,
+                 utau,yplus,
                  sd1,sd2,sd3,sd4,sd5,
                  InterpD,param_real):
   for ntype in Nbtype:
@@ -696,9 +728,15 @@ def triMultiType(Nbpts_D, Nbpts, Nbpts_InterpD,meshtype, noi, lst,lstD,l0,ctyp,p
                param_real[ ptzw      + l + l0 ]= zw[1][i]
                param_real[ ptdensity + l + l0 ]= density[1][i]
                param_real[ ptpressure+ l + l0 ]= pressure[1][i]
+
+               param_real[ ptvx      + l + l0 ]= vx[1][i]
+               param_real[ ptvy      + l + l0 ]= vy[1][i]
+               param_real[ ptvz      + l + l0 ]= vz[1][i]
+
                if utau is not None:
                    param_real[ ptutau    + l + l0 ]= utau[1][i]
                    param_real[ ptyplus   + l + l0 ]= yplus[1][i]
+
                if sd1 is not None:
                    param_real[ ptd1   + l + l0 ]= sd1[1][i]
                    param_real[ ptd2   + l + l0 ]= sd2[1][i]
@@ -734,10 +772,14 @@ def triMultiType(Nbpts_D, Nbpts, Nbpts_InterpD,meshtype, noi, lst,lstD,l0,ctyp,p
 def triMonoType(Nbpts_D, Nbpts, Nbpts_InterpD,meshtype, noi, lst,lstD,l0,ctyp,ptTy,shift_typ,pt_coef,nocoef,sname,Nbtype,
                 Interptype, pointlist, pointlistD, param_int,
                 ptxc,ptyc,ptzc,ptxi,ptyi,ptzi,ptxw,ptyw,ptzw, 
-                ptdensity,ptpressure,ptutau,ptyplus,
+                ptdensity,ptpressure,
+                ptvx, ptvy, ptvz,
+                ptutau,ptyplus,
                 ptd1,ptd2,ptd3,ptd4,ptd5,
                 xc,yc,zc,xi,yi,zi,xw,yw,zw, 
-                density,pressure,utau,yplus,
+                density,pressure,
+                vx, vy, vz,
+                utau,yplus,
                 sd1,sd2,sd3,sd4,sd5,
                 InterpD, param_real):
 
@@ -772,9 +814,15 @@ def triMonoType(Nbpts_D, Nbpts, Nbpts_InterpD,meshtype, noi, lst,lstD,l0,ctyp,pt
        
        connector.initNuma(density[1], param_real, ptdensity , Nbpts_D , 0, val)
        connector.initNuma(pressure[1], param_real, ptpressure, Nbpts_D , 0, val)
+
+       connector.initNuma(vx[1], param_real, ptvx, Nbpts_D , 0, val)
+       connector.initNuma(vy[1], param_real, ptvy, Nbpts_D , 0, val)
+       connector.initNuma(vz[1], param_real, ptvz, Nbpts_D , 0, val)
+
        if utau is not None:
            connector.initNuma(utau[1], param_real, ptutau, Nbpts_D, 0, val)
            connector.initNuma(yplus[1], param_real, ptyplus, Nbpts_D , 0, val)
+
        if sd1 is not None:
            connector.initNuma(sd1[1], param_real, ptd1 , Nbpts_D , 0, val)
        if sd2 is not None:
@@ -813,7 +861,7 @@ def miseAPlatDonorZone__(zones, tc, procDict):
             utau         =  Internal.getNodeFromName1(rac, 'utau')
             sd1          =  Internal.getNodeFromName1(rac, 'StagnationEnthalpy')
 
-            ntab_IBC   = 11
+            ntab_IBC   = 11+3 #On ajoute dorenavant les vitesses dans l'arbre tc pour le post
             if utau is not None: ntab_IBC += 2
             if sd1 is not None: ntab_IBC += 5
 
@@ -908,9 +956,9 @@ def miseAPlatDonorZone__(zones, tc, procDict):
             sname = rac[0][0:2]
             if sname == 'IB': 
                 if utau is not None:
-                   var_ibc=['CoordinateX_PC','CoordinateY_PC','CoordinateZ_PC','CoordinateX_PI','CoordinateY_PI','CoordinateZ_PI','CoordinateX_PW','CoordinateY_PW','CoordinateZ_PW', 'Density','Pressure','utau','yplus']
+                   var_ibc=['CoordinateX_PC','CoordinateY_PC','CoordinateZ_PC','CoordinateX_PI','CoordinateY_PI','CoordinateZ_PI','CoordinateX_PW','CoordinateY_PW','CoordinateZ_PW', 'Density','Pressure','VelocityX','VelocityY','VelocityZ','utau','yplus']
                 else:
-                   var_ibc=['CoordinateX_PC','CoordinateY_PC','CoordinateZ_PC','CoordinateX_PI','CoordinateY_PI','CoordinateZ_PI','CoordinateX_PW','CoordinateY_PW','CoordinateZ_PW', 'Density','Pressure']
+                   var_ibc=['CoordinateX_PC','CoordinateY_PC','CoordinateZ_PC','CoordinateX_PI','CoordinateY_PI','CoordinateZ_PI','CoordinateX_PW','CoordinateY_PW','CoordinateZ_PW', 'Density','Pressure','VelocityX','VelocityY','VelocityZ']
 
                 count_ibc = 0
                 ideb      = pt_coef + Nbpts_InterpD

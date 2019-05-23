@@ -37,7 +37,8 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar1(
   E_Float* xPW, E_Float* yPW, E_Float* zPW,
   E_Float* xPI, E_Float* yPI, E_Float* zPI, 
   E_Float* densPtr, E_Float* pressPtr, 
-  E_Float* utauPtr, E_Float* yplusPtr,
+  E_Float* vxPtr, E_Float* vyPtr, E_Float* vzPtr,
+  E_Float* utauPtr, E_Float* yplusPtr, 
   E_Float* d1, E_Float* d2, E_Float* d3, E_Float* d4, E_Float* d5,
   E_Float* tmp, E_Int& size,
   E_Float gamma, E_Float cv, E_Float muS, E_Float Cs, E_Float Ts, E_Float Pr,
@@ -104,6 +105,10 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar1(
            pressPtr[noind +ideb] = pext; 
            densPtr[ noind +ideb] = roext;
 
+           vxPtr[noind+ideb] = ucible;
+           vyPtr[noind+ideb] = vcible;
+           vzPtr[noind+ideb] = wcible;
+
            if (nvars == 6) varSAOut[indR] = varSAOut[indR]*alphasbeta;
         }
   }
@@ -131,6 +136,11 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar1(
 
            pressPtr[noind +ideb] = pext; 
            densPtr[ noind +ideb] = roext;
+
+           vxPtr[noind+ideb] = ucible;
+           vyPtr[noind+ideb] = vcible;
+           vzPtr[noind+ideb] = wcible;
+
            //utau pas calcule ni y+
            //
            if (nvars == 6) varSAOut[indR] = varSAOut[indR]*alphasbeta;
@@ -225,6 +235,10 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar1(
                                                    +w*w );
 
            varSAOut[indR] = aa_vec[noind]*sign_vec[noind]*uext_vec[noind]*ro_vec[noind];                                    //nutilde*signibc    
+
+           vxPtr[noind+ideb] = ucible_vec[noind];
+           vyPtr[noind+ideb] = vcible_vec[noind];
+           vzPtr[noind+ideb] = wcible_vec[noind];
           }
       }
       else //5eq 
@@ -268,6 +282,10 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar1(
            // roEOut[indR] = roE + 0.5*ro_vec[noind]*( ucible_vec[noind]*ucible_vec[noind] - u*u
            //                                         +vcible_vec[noind]*vcible_vec[noind] - v*v
            //                                         +wcible_vec[noind]*wcible_vec[noind] - w*w );
+
+           vxPtr[noind+ideb] = ucible_vec[noind];
+           vyPtr[noind+ideb] = vcible_vec[noind];
+           vzPtr[noind+ideb] = wcible_vec[noind];                   
           }
       }
   }
@@ -360,6 +378,10 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar1(
                                                    +w*w );
 
          varSAOut[indR] = aa_vec[noind]*sign_vec[noind]*uext_vec[noind]*ro_vec[noind];                                    //nutilde*signibc    
+
+         vxPtr[noind+ideb] = ucible_vec[noind];
+         vyPtr[noind+ideb] = vcible_vec[noind];
+         vzPtr[noind+ideb] = wcible_vec[noind];
       }
     }
     else //5eq 
@@ -403,6 +425,10 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar1(
          // roEOut[indR] = roE + 0.5*ro_vec[noind]*( ucible_vec[noind]*ucible_vec[noind] - u*u
          //                                         +vcible_vec[noind]*vcible_vec[noind] - v*v
          //                                         +wcible_vec[noind]*wcible_vec[noind] - w*w );
+
+         vxPtr[noind+ideb] = ucible_vec[noind];
+         vyPtr[noind+ideb] = vcible_vec[noind];
+         vzPtr[noind+ideb] = wcible_vec[noind];
       }
     }
   }
@@ -421,6 +447,9 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar1(
           v = rovOut[indR]*roinv;
           w = rowOut[indR]*roinv;
           roEOut[indR] = pext/gam1+0.5*roOut[indR]*(u*u+v*v+w*w);
+          vxPtr[noind+ideb] = u;
+          vyPtr[noind+ideb] = v;
+          vzPtr[noind+ideb] = w;
         }
   }
   else 
@@ -443,6 +472,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
   E_Float* xPW, E_Float* yPW, E_Float* zPW,
   E_Float* xPI, E_Float* yPI, E_Float* zPI, 
   E_Float* densPtr, E_Float* pressPtr, 
+  E_Float* vxPtr, E_Float* vyPtr, E_Float* vzPtr, 
   E_Float* utauPtr, E_Float* yplusPtr,
   E_Float* d1, E_Float* d2, E_Float* d3, E_Float* d4, E_Float* d5,
   E_Float* tmp, E_Int& size,
@@ -541,8 +571,17 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
          wOut[indR] = wcible;
          if (nvars == 6) varSAOut[indR] = varSAOut[indR]*alphasbeta;
 
-         pressPtr[noind +ideb] = roOut[indR]* tOut[indR]*cvgam; 
-         densPtr[ noind +ideb] = roOut[indR];
+         pressPtr[noind + ideb] = roOut[indR]* tOut[indR]*cvgam; 
+         densPtr[ noind + ideb] = roOut[indR];
+
+         vxPtr[noind+ideb] = uOut[indR];
+         vyPtr[noind+ideb] = vOut[indR];
+         vzPtr[noind+ideb] = wOut[indR];
+
+         // vxPtr[noind+ideb] = ucible;
+         // vyPtr[noind+ideb] = vcible;
+         // vzPtr[noind+ideb] = wcible;
+
         }
   }
   else if (bctype == 1) // adherence (lineaire)
@@ -564,8 +603,13 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
          wOut[indR] = wcible;      
          if (nvars == 6) varSAOut[indR] = varSAOut[indR]*alphasbeta;
 
-         pressPtr[noind +ideb] = roOut[indR]* tOut[indR]*cvgam; 
-         densPtr[ noind +ideb] = roOut[indR];
+         pressPtr[noind + ideb] = roOut[indR]* tOut[indR]*cvgam; 
+         densPtr[ noind + ideb] = roOut[indR];
+
+         vxPtr[noind+ideb] = uOut[indR];
+         vyPtr[noind+ideb] = vOut[indR];
+         vzPtr[noind+ideb] = wOut[indR];
+
         }
   }
   else if (bctype == 2) // loi de paroi log
@@ -632,7 +676,11 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
          roOut[indR]    = press_vec[noind ]/tcible_vec[noind]*cvgaminv; 
          uOut[indR]     = ucible_vec[noind]; vOut[indR] = vcible_vec[noind]; wOut[indR]  = wcible_vec[noind];
          tOut[indR]     = tcible_vec[noind];        
-         varSAOut[indR] = aa_vec[noind]*sign_vec[noind]*uext_vec[noind];                                         //nutilde*signibc    
+         varSAOut[indR] = aa_vec[noind]*sign_vec[noind]*uext_vec[noind];                                         //nutilde*signibc   
+
+         vxPtr[noind+ideb] = uOut[indR];
+         vyPtr[noind+ideb] = vOut[indR];
+         vzPtr[noind+ideb] = wOut[indR];
         }
       }
     else //5eq 
@@ -649,6 +697,10 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
 
          uOut[indR] = ucible_vec[noind]; vOut[indR] = vcible_vec[noind]; wOut[indR] = wcible_vec[noind];
          tOut[indR]     = tcible_vec[noind];
+
+         vxPtr[noind+ideb] = uOut[indR];
+         vyPtr[noind+ideb] = vOut[indR];
+         vzPtr[noind+ideb] = wOut[indR];
         }
       }
   }
@@ -719,6 +771,10 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
           tOut[indR]     = tcible_vec[noind];
           varSAOut[indR] = aa_vec[noind]*sign_vec[noind]*uext_vec[noind];  //nutilde*signibc
 
+          vxPtr[noind+ideb] = uOut[indR];
+          vyPtr[noind+ideb] = vOut[indR];
+          vzPtr[noind+ideb] = wOut[indR];
+
           // printf("OUT WALL LAW: %f %f %f %f\n",uOut[indR],vOut[indR],wOut[indR],varSAOut[indR]);
         }
       }
@@ -742,6 +798,10 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
          vOut[indR]     = vcible_vec[noind];
          wOut[indR]     = wcible_vec[noind];
          tOut[indR]     = tcible_vec[noind];
+
+         vxPtr[noind+ideb] = uOut[indR];
+         vyPtr[noind+ideb] = vOut[indR];
+         vzPtr[noind+ideb] = wOut[indR];
         }
       }
 
@@ -757,6 +817,9 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
          tOut[indR] = pressPtr[noind+ideb]/(roOut[indR]*cvgam);//pext/(roext*cvgam)
          densPtr[noind+ideb] = roOut[indR];
          // printf(" press = %g \n", pressPtr[noind+ideb]);
+         vxPtr[noind+ideb] = uOut[indR];
+         vyPtr[noind+ideb] = vOut[indR];
+         vzPtr[noind+ideb] = wOut[indR];
         }
   }
   else if (bctype == 5) // inj
@@ -1156,7 +1219,11 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
           wOut[indR]     = wcible_vec[noind];
           tOut[indR]     = tcible_vec[noind];
           varSAOut[indR] = (nutilde1d[indexlinelets[noind + ideb]] - nutilde1d[indexlinelets[noind + ideb]-1])*alphasbeta_line[noind + ideb] + nutilde1d[indexlinelets[noind + ideb]-1]; //aa_vec[noind]*sign_vec[noind]*uext_vec[noind];  //nutilde*signibc
-            
+          
+          vxPtr[noind+ideb] = uOut[indR];
+          vyPtr[noind+ideb] = vOut[indR];
+          vzPtr[noind+ideb] = wOut[indR];
+
         }
 
         
@@ -1231,6 +1298,10 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
           tOut[indR]     = tcible_vec[noind];
           varSAOut[indR] = aa_vec[noind]*sign_vec[noind]*uext_vec[noind];  //nutilde*signibc
 
+          vxPtr[noind+ideb] = uOut[indR];
+          vyPtr[noind+ideb] = vOut[indR];
+          vzPtr[noind+ideb] = wOut[indR];
+
           // printf("OUT WALL LAW: %f %f %f %f\n",uOut[indR],vOut[indR],wOut[indR],varSAOut[indR]);
         }
       }
@@ -1254,6 +1325,11 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
          vOut[indR]     = vcible_vec[noind];
          wOut[indR]     = wcible_vec[noind];
          tOut[indR]     = tcible_vec[noind];
+
+         vxPtr[noind+ideb] = uOut[indR];
+         vyPtr[noind+ideb] = vOut[indR];
+         vzPtr[noind+ideb] = wOut[indR];
+
         }
       }
 
@@ -1281,6 +1357,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar3(
   E_Float* xPW, E_Float* yPW, E_Float* zPW,
   E_Float* xPI, E_Float* yPI, E_Float* zPI, 
   E_Float* densPtr, E_Float* pressPtr, 
+  E_Float* vxPtr, E_Float* vyPtr, E_Float* vzPtr, 
   E_Float* utauPtr, E_Float* yplusPtr,
   E_Float* d1, E_Float* d2, E_Float* d3, E_Float* d4, E_Float* d5,
   E_Float* tmp, E_Int& size,
@@ -1342,6 +1419,11 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar3(
 
          pressPtr[noind +ideb] = pOut[indR]; 
          densPtr[ noind +ideb] = roOut[indR];
+
+         vxPtr[noind+ideb] = uOut[indR];
+         vyPtr[noind+ideb] = vOut[indR];
+         vzPtr[noind+ideb] = wOut[indR];
+
         }
   }
   else if (bctype == 1) // adherence
@@ -1365,6 +1447,10 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar3(
 
          pressPtr[noind +ideb] = pOut[indR]; 
          densPtr[ noind +ideb] = roOut[indR];
+
+         vxPtr[noind+ideb] = uOut[indR];
+         vyPtr[noind+ideb] = vOut[indR];
+         vzPtr[noind+ideb] = wOut[indR];
 
         }
   }
@@ -1427,6 +1513,10 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar3(
          roOut[indR]    = press_vec[noind ]/tcible_vec[noind]*cvgaminv;   
          uOut[indR]     = ucible_vec[noind]; vOut[indR] = vcible_vec[noind]; wOut[indR]  = wcible_vec[noind];
          varSAOut[indR] = aa_vec[noind]*sign_vec[noind]*uext_vec[noind];                                         //nutilde*signibc    
+
+         vxPtr[noind+ideb] = uOut[indR];
+         vyPtr[noind+ideb] = vOut[indR];
+         vzPtr[noind+ideb] = wOut[indR];
         }
     }
     else //5eq 
@@ -1447,6 +1537,10 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar3(
 
          roOut[indR]    = press_vec[noind ]/tcible_vec[noind]*cvgaminv; 
          uOut[indR] = ucible_vec[noind]; vOut[indR] = vcible_vec[noind]; wOut[indR] = wcible_vec[noind];
+
+         vxPtr[noind+ideb] = uOut[indR];
+         vyPtr[noind+ideb] = vOut[indR];
+         vzPtr[noind+ideb] = wOut[indR];
         }
     }
   }
@@ -1522,6 +1616,10 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar3(
          
          roOut[indR]    = press_vec[noind ]/tcible_vec[noind]*cvgaminv; 
          uOut[indR] = ucible_vec[noind]; vOut[indR] = vcible_vec[noind]; wOut[indR] = wcible_vec[noind];
+
+         vxPtr[noind+ideb] = uOut[indR];
+         vyPtr[noind+ideb] = vOut[indR];
+         vzPtr[noind+ideb] = wOut[indR];
         }
     }
   }
@@ -1534,6 +1632,9 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar3(
         {
           E_Int indR = rcvPts[noind+ideb];
           densPtr[noind+ideb] = roOut[indR];
+          vxPtr[noind+ideb] = uOut[indR];
+          vyPtr[noind+ideb] = vOut[indR];
+          vzPtr[noind+ideb] = wOut[indR];
         }
   }
   else 
@@ -1557,20 +1658,24 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
   PyObject *pyArrayXPC, *pyArrayXPI, *pyArrayXPW;
   PyObject *pyArrayYPC, *pyArrayYPI, *pyArrayYPW;
   PyObject *pyArrayZPC, *pyArrayZPI, *pyArrayZPW;
-  PyObject *pyArrayPressure, *pyArrayUtau, *pyArrayYplus, *pyArrayDens;
+  PyObject *pyArrayDens, *pyArrayPressure;
+  PyObject *pyArrayVx, *pyArrayVy, *pyArrayVz;
+  PyObject *pyArrayUtau, *pyArrayYplus;
   E_Int bctype;
   E_Int vartype;
   E_Float gamma, cv, muS, Cs, Ts;
 
   if (!PYPARSETUPLE(args,
-                    "OOOOOOOOOOOOOOOOOOOOllddddd", "OOOOOOOOOOOOOOOOOOOOiiddddd",
-                    "OOOOOOOOOOOOOOOOOOOOllfffff", "OOOOOOOOOOOOOOOOOOOOiifffff",
+                    "OOOOOOOOOOOOOOOOOOOOOOOllddddd", "OOOOOOOOOOOOOOOOOOOOOOOiiddddd",
+                    "OOOOOOOOOOOOOOOOOOOOOOOllfffff", "OOOOOOOOOOOOOOOOOOOOOOOiifffff",
                     &arrayR, &arrayD,  &pyVariables,
                     &pyIndRcv, &pyIndDonor, &pyArrayTypes, &pyArrayCoefs, 
                     &pyArrayXPC, &pyArrayYPC, &pyArrayZPC,
                     &pyArrayXPW, &pyArrayYPW, &pyArrayZPW,
                     &pyArrayXPI, &pyArrayYPI, &pyArrayZPI,
                     &pyArrayPressure, &pyArrayUtau, &pyArrayYplus, &pyArrayDens, 
+                    &pyArrayVx, &pyArrayVy, &pyArrayVz, 
+                    &pyArrayYplus, &pyArrayDens, 
                     &bctype, &vartype, &gamma, &cv, &muS, &Cs, &Ts))
   {
       return NULL;
@@ -1719,7 +1824,7 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
                     "setIBCTransfersD: coordinates of interpolated points are invalid.");
     return NULL;
   }
-  if (okD*okP*okU*okY == 0 )
+  if (okD*okP*okVx*okVy*okVz*okU*okY == 0 )
   {
     RELEASESHAREDB(resd, arrayD, fd, cnd); 
     RELEASESHAREDN(pyIndDonor  , donorPtsI  );
@@ -1736,6 +1841,9 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
     RELEASESHAREDN(pyArrayZPI  , coordzPI  );
     if (okD != 0) { RELEASESHAREDN(pyArrayDens    , densF   );}
     if (okP != 0) { RELEASESHAREDN(pyArrayPressure, pressF  );}
+    if (okVx != 0) { RELEASESHAREDN(pyArrayVx      , vxF     );}
+    if (okVy != 0) { RELEASESHAREDN(pyArrayVy      , vyF     );}
+    if (okVz != 0) { RELEASESHAREDN(pyArrayVz      , vzF     );}
     if (okU != 0) { RELEASESHAREDN(pyArrayUtau    , utauF   );}
     if (okY != 0) { RELEASESHAREDN(pyArrayYplus   , yplusF  );}
     PyErr_SetString(PyExc_TypeError, 
@@ -1836,7 +1944,6 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
     FldArrayF  tmp(size*14*threadmax_sdm);
     E_Float* ipt_tmp=  tmp.begin();
 
-#pragma omp parallel default(shared)
   {
    //indice loop pour paralelisation omp
    E_Int ideb, ifin;
@@ -1858,7 +1965,9 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
    if (varType == 1 || varType == 11) 
      setIBCTransfersCommonVar1(bcType, rcvPts, nbRcvPts, ideb, ifin, ithread, 
 			      xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, 
-            density, pressure, utau, yplus,
+            density, pressure, 
+            vx, vy, vz, 
+            utau, yplus,
             NULL, NULL, NULL, NULL, NULL,
             ipt_tmp, size,
             gamma, cv, muS, Cs, Ts, 0.71,
@@ -1867,7 +1976,9 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
    else if (varType == 2 || varType == 21) 
      setIBCTransfersCommonVar2(bcType, rcvPts, nbRcvPts, ideb, ifin, ithread,
 			      xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, 
-            density, pressure, utau, yplus,
+            density, pressure, 
+            vx, vy, vz, 
+            utau, yplus,
             NULL, NULL, NULL, NULL, NULL,
             ipt_tmp, size,
             gamma, cv, muS, Cs, Ts, 0.71,
@@ -1875,12 +1986,14 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
 
    else if (varType == 3 || varType == 31)
      setIBCTransfersCommonVar3(bcType, rcvPts, nbRcvPts, ideb, ifin, ithread,
-    			      xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, 
-                density, pressure, utau, yplus,
-                NULL, NULL, NULL, NULL, NULL,
-                ipt_tmp, size,
-                gamma, cv, muS, Cs, Ts, 0.71,
-                vectOfDnrFields, vectOfRcvFields);
+			      xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, 
+            density, pressure, 
+            vx, vy, vz, 
+            utau, yplus,
+            NULL, NULL, NULL, NULL, NULL,
+            ipt_tmp, size,
+            gamma, cv, muS, Cs, Ts, 0.71,
+            vectOfDnrFields, vectOfRcvFields);
  
   } // Fin zone // omp
 
@@ -1906,18 +2019,22 @@ PyObject* K_CONNECTOR::_setIBCTransfers(PyObject* self, PyObject* args)
   PyObject *pyArrayXPC, *pyArrayXPI, *pyArrayXPW;
   PyObject *pyArrayYPC, *pyArrayYPI, *pyArrayYPW;
   PyObject *pyArrayZPC, *pyArrayZPI, *pyArrayZPW;
-  PyObject *pyArrayDens, *pyArrayPressure, *pyArrayUtau, *pyArrayYplus ;
+  PyObject *pyArrayDens, *pyArrayPressure;
+  PyObject *pyArrayVx, *pyArrayVy, *pyArrayVz;
+  PyObject *pyArrayUtau, *pyArrayYplus;
   E_Int bctype, loc, vartype, compact;
   E_Float gamma, cv, muS, Cs, Ts;
 
   if (!PYPARSETUPLE(args,
-                    "OOOOOOOOOOOOOOOOOOOOlllldddddsss", "OOOOOOOOOOOOOOOOOOOOiiiidddddsss",
-                    "OOOOOOOOOOOOOOOOOOOOllllfffffsss", "OOOOOOOOOOOOOOOOOOOOiiiifffffsss",
+                    "OOOOOOOOOOOOOOOOOOOOOOOlllldddddsss", "OOOOOOOOOOOOOOOOOOOOOOOiiiidddddsss",
+                    "OOOOOOOOOOOOOOOOOOOOOOOllllfffffsss", "OOOOOOOOOOOOOOOOOOOOOOOiiiifffffsss",
                     &zoneR, &zoneD, &pyVariables,
                     &pyIndRcv  , &pyIndDonor, &pyArrayTypes, &pyArrayCoefs, 
                     &pyArrayXPC, &pyArrayYPC, &pyArrayZPC,
                     &pyArrayXPW, &pyArrayYPW, &pyArrayZPW,
-                    &pyArrayXPI, &pyArrayYPI, &pyArrayZPI, &pyArrayDens, &pyArrayPressure, &pyArrayUtau, &pyArrayYplus,
+                    &pyArrayXPI, &pyArrayYPI, &pyArrayZPI, &pyArrayDens, &pyArrayPressure, 
+                    &pyArrayVx,  &pyArrayVy,  &pyArrayVz, 
+                    &pyArrayUtau, &pyArrayYplus,
                     &bctype    , &loc       , &vartype   , &compact   ,&gamma, &cv, &muS, &Cs, &Ts,
                     &GridCoordinates,  &FlowSolutionNodes, &FlowSolutionCenters))
   {
@@ -2125,23 +2242,29 @@ PyObject* K_CONNECTOR::_setIBCTransfers(PyObject* self, PyObject* args)
   if (varType == 1 || varType == 11)
     setIBCTransfersCommonVar1(bcType, rcvPts, nbRcvPts, ideb, ifin, ithread,
 			      xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, 
-            density, pressure, utau, yplus,
+            density, pressure, 
+            vx, vy, vz, 
+            utau, yplus,
             NULL, NULL, NULL, NULL, NULL,
             ipt_tmp, size,
             gamma, cv, muS, Cs, Ts, Pr,
             vectOfDnrFields, vectOfRcvFields);
   else if (varType == 2 || varType == 21)
     setIBCTransfersCommonVar2(bcType, rcvPts, nbRcvPts, ideb, ifin, ithread,
-	             	      xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, 
-                      density, pressure, utau, yplus,
-                      NULL, NULL, NULL, NULL, NULL,
-                      ipt_tmp, size,
-                      gamma, cv, muS, Cs, Ts, Pr,
-                      vectOfDnrFields, vectOfRcvFields);
+     	      xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, 
+            density, pressure, 
+            vx, vy, vz, 
+            utau, yplus,
+            NULL, NULL, NULL, NULL, NULL,
+            ipt_tmp, size,
+            gamma, cv, muS, Cs, Ts, Pr,
+            vectOfDnrFields, vectOfRcvFields);
   else if (varType == 3 || varType == 31)
     setIBCTransfersCommonVar3(bcType, rcvPts, nbRcvPts, ideb, ifin, ithread,
 			      xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, 
-            density, pressure, utau, yplus,
+            density, pressure, 
+            vx, vy, vz, 
+            utau, yplus,
             NULL, NULL, NULL, NULL, NULL,
             ipt_tmp, size,
             gamma, cv, muS, Cs, Ts, Pr,
