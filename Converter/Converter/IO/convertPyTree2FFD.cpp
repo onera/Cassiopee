@@ -393,7 +393,10 @@ void K_CONVERTER::scanBC(PyObject* zone,  E_Int* nlimt)
     {
       bc   = PyList_GetItem(list_bc, ibc);
       node = PyList_GetItem(bc, 3);
-      str  = PyString_AsString(node); // type_bc
+      if (PyString_Check(node)) str = PyString_AsString(node); // type_bc
+#if PY_VERSION_HEX >= 0x03000000
+      else if (PyUnicode_Check(node)) str = PyBytes_AsString(PyUnicode_AsUTF8String(node));
+#endif
       if (K_STRING::cmp(str, "BC_t") == 0)
       {
         //E_Int s;
@@ -443,7 +446,10 @@ void K_CONVERTER::getVarBC(PyObject* zone, E_Float* Var_l, E_Int* ielmtmtch2, E_
     {
       bc   = PyList_GetItem(list_bc, ibc);
       node = PyList_GetItem(bc, 3);
-      str  = PyString_AsString(node); // type_bc
+      if (PyString_Check(node)) str = PyString_AsString(node); // type_bc
+#if PY_VERSION_HEX >= 0x03000000
+      else if (PyUnicode_Check(node)) str = PyBytes_AsString(PyUnicode_AsUTF8String(node));
+#endif
       if (K_STRING::cmp(str, "BC_t") == 0)
       {
         E_Int s;
@@ -682,7 +688,10 @@ void K_CONVERTER::splitElementConnectivity(PyObject* zone, E_Int* npoint,E_Int* 
 //  {
 //    l = PyList_GetItem(childrens, i);
 //    node = PyList_GetItem(l, 3);
-//    str = PyString_AsString(node);
+//    if (PyString_Check(node)) str = PyString_AsString(node); // type_bc
+//#if PY_VERSION_HEX >= 0x03000000
+//       else if (PyUnicode_Check(node)) str = PyBytes_AsString(PyUnicode_AsUTF8String(node));
+//#endif
 //    if (K_STRING::cmp(str, type) == 0) out.push_back(l);
 //  }
 //}

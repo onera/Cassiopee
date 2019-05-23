@@ -101,13 +101,7 @@ PyObject* K_TRANSFORM::projectAllDirs(PyObject* self, PyObject* args)
   {
     E_Int* posN = posnormal.begin(v+1);
     PyObject* l = PyList_GetItem(varsO, v);
-    if (PyString_Check(l) == 0)
-    {
-      err = 1;
-      PyErr_SetString(PyExc_TypeError,
-                    "projectAllDirs: invalid string for normal component.");
-    }
-    else 
+    if (PyString_Check(l))
     {
       var = PyString_AsString(l);
       for (E_Int no = 0; no < nprojectedZones; no++)
@@ -120,12 +114,36 @@ PyObject* K_TRANSFORM::projectAllDirs(PyObject* self, PyObject* args)
                           "projectAllDirs: variable not found in projected zones.");
           break;
         }
-        else 
-        {
-          posN[no] = m+1;
-        }
+        else posN[no] = m+1;
       }
     }
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(l))
+    {
+      var = PyBytes_AsString(PyUnicode_AsUTF8String(l));
+      for (E_Int no = 0; no < nprojectedZones; no++)
+      {
+        m = K_ARRAY::isNamePresent(var, varStringP[no]);
+        if (m == -1)
+        {
+          err = 2;
+          PyErr_SetString(PyExc_TypeError,
+                          "projectAllDirs: variable not found in projected zones.");
+          break;
+        }
+        else posN[no] = m+1;
+      } 
+    }
+#endif 
+  
+    else
+    {
+      err = 1;
+      PyErr_SetString(PyExc_TypeError,
+                    "projectAllDirs: invalid string for normal component.");
+    }
+    
+    
     if (err != 0)
     {
       for (E_Int no = 0; no < nprojectedZones; no++)

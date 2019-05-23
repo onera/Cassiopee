@@ -90,7 +90,7 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPathsPartial(char* file,
   while (PyDict_Next(Filter, &pos, &key, &DataSpaceDIM))
   {
     // Multiple path or Not ?
-    if (PyString_Check(key) == true)
+    if (PyString_Check(key))
     {
       E_Int FilterSize = PyList_Size(DataSpaceDIM);
       /* ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo */
@@ -163,7 +163,11 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPathsPartial(char* file,
       for (int iField = 0; iField < nField; iField++)
       {
         lpath      = PyTuple_GetItem(key, iField);
-        char* path = PyString_AsString(lpath);
+        char* path = NULL;
+        if (PyString_Check(lpath)) path = PyString_AsString(lpath);
+#if PY_VERSION_HEX >= 0x03000000
+        else if (PyUnicode_Check(lpath)) path = PyBytes_AsString(PyUnicode_AsUTF8String(lpath));
+#endif
 
         /** Verbose **/
         // printf("path contigous ...  %s\n", path);
@@ -753,7 +757,11 @@ E_Int K_IO::GenIO::hdfcgnsWritePathsPartial(char* file, PyObject* tree,
     /* ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo */
 
     /* Get path */
-    char* path = PyString_AsString(key);
+    char* path = NULL;
+    if (PyString_Check(key)) path = PyString_AsString(key);
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(key)) path = PyBytes_AsString(PyUnicode_AsUTF8String(key));
+#endif
     // printf("path to write ...  %s\n", path);
 
     /* Open group in HDF corresponding to path */
@@ -789,9 +797,17 @@ hid_t K_IO::GenIOHdf::writeNodePartial(hid_t     node,
   // hid_t child;
   /* ***************************************************** */
   PyObject* pname  = PyList_GetItem(tree, 0);
-  char* name       = PyString_AsString(pname);
+  char* name = NULL;
+  if (PyString_Check(pname)) name = PyString_AsString(pname);
+#if PY_VERSION_HEX >= 0x03000000
+  else if (PyUnicode_Check(pname)) name = PyBytes_AsString(PyUnicode_AsUTF8String(pname));
+#endif
   PyObject* plabel = PyList_GetItem(tree, 3);
-  char* label      = PyString_AsString(plabel);
+  char* label = NULL;
+  if (PyString_Check(plabel)) label = PyString_AsString(plabel);
+#if PY_VERSION_HEX >= 0x03000000
+  else if (PyUnicode_Check(plabel)) label = PyBytes_AsString(PyUnicode_AsUTF8String(plabel));
+#endif
   strcpy(s1, name); strcpy(s2, label);
 
   // printf("writeNodePartial -> tre::name  %s \n", name);
@@ -811,23 +827,30 @@ hid_t K_IO::GenIOHdf::writeNodePartial(hid_t     node,
     // direct dans l'attribut
     HDF_Add_Attribute_As_String(node, L3S_DTYPE, L3T_MT);
   }
-  else if (PyString_Check(v) == true)
+  else if (PyString_Check(v))
   {
     setArrayC1(node, PyString_AsString(v));
     HDF_Add_Attribute_As_String(node, L3S_DTYPE, L3T_C1);
   }
-  else if (PyInt_Check(v) == true)
+#if PY_VERSION_HEX >= 0x03000000
+  else if (PyUnicode_Check(v))
+  {
+    setArrayC1(node, PyBytes_AsString(PyUnicode_AsUTF8String(v)));
+    HDF_Add_Attribute_As_String(node, L3S_DTYPE, L3T_C1);
+  }
+#endif
+  else if (PyInt_Check(v))
   {
     setSingleI4(node, PyInt_AsLong(v));
   }
-  else if (PyFloat_Check(v) == true)
+  else if (PyFloat_Check(v))
   {
     if (strcmp(name, "CGNSLibraryVersion") == 0)
       setSingleR4(node, PyFloat_AsDouble(v));
     else
       setSingleR8(node, PyFloat_AsDouble(v));
   }
-  else if (PyArray_Check(v) == true)
+  else if (PyArray_Check(v))
   {
     PyArrayObject* ar = (PyArrayObject*)v;
     int dim = PyArray_NDIM(ar);

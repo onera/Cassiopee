@@ -183,11 +183,16 @@ PyObject* K_CONVERTER::filterPartialFields(PyObject* self, PyObject* args)
   {
     E_Int countInterp = nPts-countOrphan-countExtrap;
     PyObject* v = PyList_GetItem(zone, 0);
-    char* zname =  PyString_AsString(v);
+    char* zname = NULL;
+    if (PyString_Check(v)) zname = PyString_AsString(v);
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(v)) zname = PyBytes_AsString(PyUnicode_AsUTF8String(v)); 
+#endif
+    
     if (verbose == 1) 
     {
       printf("Zone %s : interpolated=%d; extrapolated=%d; orphans=%d.\n",zname, countInterp, countExtrap, countOrphan);
-      if ( countOrphan>0)
+      if (countOrphan > 0)
         printf("WARNING: Zone %s has %d orphan points.\n",zname,countOrphan);
     }
   }

@@ -487,7 +487,7 @@ def moveCamera(posCams, posEyes=None, dirCams=None, moveEye=False, N=100, speed=
         else: setState(posCam=posCam)
         i += 1
     else:
-      i = pos
+      i = pos; i = min(pos, N-1)
       if pinc is not None: inc = int(pinc[i])
       else: inc = 10
       inc = min(inc, N-i-1)

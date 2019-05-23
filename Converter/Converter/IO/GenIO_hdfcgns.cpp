@@ -1355,7 +1355,6 @@ E_Int K_IO::GenIO::hdfcgnswrite(char* file, PyObject* tree, PyObject* links)
   for (E_Int i = 0; i < size; i++)
   {
     PyObject* llink  = PyList_GetItem(links, i);
-    //char* tgt_dire = PyString_AsString(PyList_GetItem(llink, 0));
     char* tgt_file; char* tgt_path; char* cur_path;
     PyObject* l = PyList_GetItem(llink, 1);
     if (PyString_Check(l)) tgt_file = PyString_AsString(l);
@@ -1652,23 +1651,30 @@ hid_t K_IO::GenIOHdf::writeNode(hid_t node, PyObject* tree)
     // direct dans l'attribut
     HDF_Add_Attribute_As_String(child, L3S_DTYPE, L3T_MT);
   }
-  else if (PyString_Check(v) == true)
+  else if (PyString_Check(v))
   {
     setArrayC1(child, PyString_AsString(v));
     HDF_Add_Attribute_As_String(child, L3S_DTYPE, L3T_C1);
   }
-  else if (PyInt_Check(v) == true)
+#if PY_VERSION_HEX >= 0x03000000
+  else if (PyUnicode_Check(v))
+  {
+    setArrayC1(child, PyBytes_AsString(PyUnicode_AsUTF8String(v)));
+    HDF_Add_Attribute_As_String(child, L3S_DTYPE, L3T_C1);
+  }
+#endif
+  else if (PyInt_Check(v))
   {
     setSingleI4(child, PyInt_AsLong(v));
   }
-  else if (PyFloat_Check(v) == true)
+  else if (PyFloat_Check(v))
   {
     if (strcmp(name, "CGNSLibraryVersion") == 0)
       setSingleR4(child, PyFloat_AsDouble(v));
     else
       setSingleR8(child, PyFloat_AsDouble(v));
   }
-  else if (PyArray_Check(v) == true)
+  else if (PyArray_Check(v))
   {
     PyArrayObject* ar = (PyArrayObject*)v;
     int dim = PyArray_NDIM(ar);
@@ -1840,9 +1846,18 @@ hid_t K_IO::GenIOHdf::modifyNode(hid_t node, PyObject* tree)
   char s1[CGNSMAXLABEL+1];
   char s2[CGNSMAXLABEL+1];
   PyObject* pname = PyList_GetItem(tree, 0);
-  char* name = PyString_AsString(pname);
+  
+  char* name = NULL;
+  if (PyString_Check(pname)) name = PyString_AsString(pname);
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(pname)) name = PyBytes_AsString(PyUnicode_AsUTF8String(pname));
+#endif
   PyObject* plabel = PyList_GetItem(tree, 3);
-  char* label = PyString_AsString(plabel);
+  char* label = NULL;
+  if (PyString_Check(plabel)) label = PyString_AsString(plabel);
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(plabel)) label = PyBytes_AsString(PyUnicode_AsUTF8String(plabel));
+#endif
   strcpy(s1, name); strcpy(s2, label);
 
   HDF_Set_Attribute_As_String(node, L3S_NAME, s1);
@@ -2071,7 +2086,13 @@ E_Int K_IO::GenIO::hdfcgnsDeletePaths(char* file,
   E_Int size = PyList_Size(paths);
   for (E_Int i = 0; i < size; i++)
   {
-    if (PyString_Check(PyList_GetItem(paths, i)) == false)
+    PyObject* o = PyList_GetItem(paths, i);
+    E_Int isString = 0;
+    if (PyString_Check(o)) isString = 1;
+#if PY_VERSION_HEX >= 0x03000000
+    if (PyUnicode_Check(o)) isString = 1;
+#endif
+    if (isString == 0)
     {
       PyErr_SetString(PyExc_TypeError,
                       "hdfdelete: paths must be a list of strings.");
@@ -2096,8 +2117,12 @@ E_Int K_IO::GenIO::hdfcgnsDeletePaths(char* file,
   GenIOHdf HDF;
   for (E_Int i = 0; i < size; i++)
   {
-    char* path = PyString_AsString(PyList_GetItem(paths, i));
-    
+    PyObject* o = PyList_GetItem(paths, i);
+    char* path = NULL;
+    if (PyString_Check(o)) path = PyString_AsString(o);
+#if PY_VERSION_HEX >= 0x03000000
+      else if (PyUnicode_Check(o)) path = PyBytes_AsString(PyUnicode_AsUTF8String(o));
+#endif
     hid_t gidp = H5Gopen(fid, path, H5P_DEFAULT);
     
     if (gidp < 0)

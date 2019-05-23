@@ -77,8 +77,8 @@ def _addGhostCells(t, b, d, adaptBCs=0, modified=[], fillCorner=1):
                 #isghost[c] = _addGhostCellsNGON__(zp, b, d, isghost[c], stdNode, modified)
                 pass
             else: 
-                #print 'Warning: addGhostCells: not yet implemented for BE.'
-                pass # other elt types                     
+                #print('Warning: addGhostCells: not yet implemented for BE.')
+                pass # other elt types
         else : # Structured
             validjoins,dictjoins,indexjoin = _addGhostCellsStruct__(zp, b, d, modified, nodesRef, validjoins, dictjoins, indexjoin)
         c += 1
@@ -422,7 +422,7 @@ def fillJoinGhostCellsStruct__(zp, join, modified, joininfo,
             fieldsc = Transform.rotate(fieldsc, (xc,yc,zc), (vx,vy,vz), anglep, vectors=vectorsR) 
             PyTree.setFields([fieldsc], zdonor, 'centers', writeDim=False)
     elif  translVect != [] and rotationData != []:
-        print ('Periodicity by rotation and translation cannot be applied at the same time.')
+        print('Periodicity by rotation and translation cannot be applied at the same time.')
 
     PR = prange[0][1]; PRD = prangedonor[0][1]
     borderinfoN = getInfoForFillJoinsStruct__(PR, PRD, trirac, dim, dimdonor, d, 'Vertex', dim_zone, nmratio=nmratio,
@@ -631,7 +631,7 @@ def fillJoinCornerStruct__(prange, prangedonor, trirac, dim, dimdonor, frecv,
     
     # fill ghost corner values for join
     if typegc == 0:
-        Converter.converter.fillCornerGhostCells(a,f,arrayborder,listdonor,loc,dim1,dim2,incrrecvI,incrrecvJ,
+        Converter.converter.fillCornerGhostCells(a, f, arrayborder, listdonor, loc, dim1, dim2, incrrecvI, incrrecvJ,
                                                  incrdonorI, incrdonorJ, direction, dirdonor, incrrecv, incrdonor, 
                                                  dim_zone, d, passage)
     else: # non implemented for nearmatch

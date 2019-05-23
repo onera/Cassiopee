@@ -425,7 +425,12 @@ E_Int K_IO::GenIO::cedrewrite(
         E_Int c = 1;
         for (E_Int j = 0; j < size/2; j++)
         {
-          char* name = PyString_AsString(PyList_GetItem(BCs, 2*j));
+          char* name = NULL; 
+          PyObject* o = PyList_GetItem(BCs, 2*j);
+          if (PyString_Check(o)) name = PyString_AsString(o);
+#if PY_VERSION_HEX >= 0x03000000
+          else if (PyUnicode_Check(o)) name = PyBytes_AsString(PyUnicode_AsUTF8String(o));
+#endif
           PyArrayObject* array = (PyArrayObject*)PyList_GetItem(BCs, 2*j+1);
           int* ptr = (int*)PyArray_DATA(array);
           E_Int np = PyArray_SIZE(array);

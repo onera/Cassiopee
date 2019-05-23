@@ -248,7 +248,6 @@ def scale():
         X = [v[3],v[4],v[5]]
     else:
         X = G.barycenter(selection)
-    print X
     if len(v) == 1 and v[0] == 0.: # scale unitaire 
         bbox = G.bbox(selection)
         dx = bbox[3]-bbox[0]
@@ -287,7 +286,6 @@ def changeFrame():
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
     mode = VARS[7].get()
-    #print "Transform: apply({}): ".format(mode)
     assert(mode in dir(T))
 
     args = CTK.varsFromWidget(VARS[8].get(), type=1)

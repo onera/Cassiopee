@@ -6,7 +6,7 @@ import Geom.PyTree as D
 # Axisym a curve
 a0 = D.line((0.5,0,0), (0.6,0,1))
 a = D.axisym(a0,(0.,0.,0.),(0.,0.,1.),360.,360)
-C.convertPyTree2File([a], "out.cgns")
+C.convertPyTree2File(a, "out.cgns")
 
 # Axisym a curve with varying r
 a0 = D.line((1.0,0,0), (0.,0,1))
