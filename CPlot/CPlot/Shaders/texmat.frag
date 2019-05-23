@@ -17,6 +17,7 @@ in V2F_OUT
 uniform float specularFactor;
 uniform int shadow;
 uniform int hasBump;
+uniform float blend;
 uniform sampler2D ShadowMap;
 uniform sampler2D Texmat0;
 uniform sampler2D Texbump0;
@@ -68,6 +69,5 @@ void main (void)
   }
 
   gl_FragColor = shadowValue * col;
-  gl_FragColor.a = col2.a * v2f_out.color.a;
-  //gl_FragColor.a = 0.1; 
+  gl_FragColor.a = col2.a * blend;
 }

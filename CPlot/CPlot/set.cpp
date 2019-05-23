@@ -186,11 +186,19 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
 
   if (materials != Py_None)
   {
+    //printf("deleting %d\n", d->_nMaterials); 
     for (int i = 0; i < d->_nMaterials; i++)
     {
       delete [] d->_materialFiles[i];
-      if (d->_materialTexs[i] != 0) glDeleteTextures(1, &d->_materialTexs[i]);
+      if (d->_materialTexs[i] != 0) 
+      {
+        //printf("deleting\n"); 
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glDeleteTextures(1, &d->_materialTexs[i]);
+        //printf("done.\n");
+      }
     }
+    
     delete [] d->_materialTexs;
     delete [] d->_materialFiles;
     delete [] d->_materialWidths;

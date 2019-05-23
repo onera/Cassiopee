@@ -21,7 +21,8 @@
 //#define PLOT PLOTQ/PLOTT
 
 // Plot as quads
-#define PLOTQ r = f1[n1]*deltai+0.5;                                \
+#define PLOTQ \
+  r = f1[n1]*deltai+0.5;                                \
   g = f2[n1]*deltai+0.5;                                           \
   b = f3[n1]*deltai+0.5;                                           \
   glColor3f(r, g, b);                                                   \
@@ -65,7 +66,6 @@
   glColor3f(r, g, b);                                                   \
   glNormal3f(surfx[n4s], surfy[n4s], surfz[n4s]);                       \
   glVertex3d(x[n4], y[n4], z[n4]);                                      \
-  \
   r = f1[n1]*deltai+0.5;                                \
   g = f2[n1]*deltai+0.5;                                           \
   b = f3[n1]*deltai+0.5;                                           \
