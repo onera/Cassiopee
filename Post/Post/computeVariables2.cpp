@@ -138,7 +138,7 @@ PyObject* K_POST::computeVariables2(PyObject* self, PyObject* args)
       checkAndExtractVariables(str, vars, varStringOut);
     }
 #if PY_VERSION_HEX >= 0x03000000
-    else if (PyUnicode_Check(tpl0)) 
+    else if (PyUnicode_Check(vars0)) 
     {
       char* str = PyBytes_AsString(PyUnicode_AsUTF8String(vars0));
       checkAndExtractVariables(str, vars, varStringOut); 

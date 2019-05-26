@@ -22,7 +22,7 @@ cnt = 0
 for extrapOrder in extrapOrders:
     for constraint in constraints:
         val = P.extractPoint([a], (x,y,z), 2, extrapOrder, constraint)
-        if ( abs(val[0]-val0) > err[cnt]+1e-12):
-            print 'DIFF: reference: '+str(err[cnt])+'.'
-            print 'DIFF: courant: '+str(abs(val[0]-val0))+'.'
+        if abs(val[0]-val0) > err[cnt]+1e-12:
+            print('DIFF: reference: '+str(err[cnt])+'.')
+            print('DIFF: courant: '+str(abs(val[0]-val0))+'.')
         cnt += 1

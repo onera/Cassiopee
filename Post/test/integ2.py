@@ -14,11 +14,11 @@ c = C.initVars(c1, 'vx,vy,vz', 1.); del c1
 
 # Integration de chaque champ
 res = P.integNorm([m], [c], [])
-print res
+print(res)
 
 # Champ a integrer en noeuds
 c1 = C.array('vx,vy,vz', ni, nj, 1)
 cn = C.initVars(c1, 'vx,vy,vz', 1.); del c1
 resn = P.integNorm([m], [cn], [])
-print resn
+print(resn)
 

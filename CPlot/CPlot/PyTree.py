@@ -844,6 +844,7 @@ def loadView(t, slot=0):
 #==============================================================================
 def loadImageFiles(t):
     """Load image files (texture, billboards, bumpmaps) in CPlot."""
+    if t == []: return
     renderInfo = Internal.getNodeFromName1(t, '.RenderInfo')
     if renderInfo is None: return None
     pos = Internal.getNodeFromName1(renderInfo, 'materials')

@@ -31,7 +31,7 @@ void main (void)
   vec4 col2 = texture2D(Texmat0, vec2((v2f_out.color.r-0.5)*2., (v2f_out.color.g-0.5)*2.));
   
   vec3 N = normalize(Nv);
-  if (hasBump == 1) 
+  if (hasBump == 1)
   {
       vec4 D = texture2D(Texbump0, vec2((v2f_out.color.r-0.5)*2., (v2f_out.color.g-0.5)*2.));
       N += 2.5*vec3( (D.r-0.5)*2., (D.g-0.5)*2., (D.b-0.5)*2. );

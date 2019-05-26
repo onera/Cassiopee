@@ -10,6 +10,8 @@ C._initVars(a, '{fx}=-{CoordinateY}')
 C._initVars(a, '{fy}={CoordinateX}')
 C._initVars(a, '{fz}={CoordinateZ}')
 
+C.convertPyTree2File(a, 'out.cgns')
+
 CPlot.display(a, mode='Vector', vectorField1=0, vectorField2=1, vectorField3=2, vectorStyle=1, vectorScale=80.)
 #CPlot.display(a, mode='Vector', vectorField1=0, vectorField2=1, vectorField3=2, vectorStyle=1, vectorScale=80.)
 #CPlot.display(a, mode='Vector', vectorField1='fx', vectorField2='fy', vectorField3='fz', vectorStyle=1, vectorScale=80., vectorNormalize=1)

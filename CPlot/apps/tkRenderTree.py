@@ -68,7 +68,7 @@ def addTextureFile(event=None):
     
 #==============================================================================
 def chooseFile():
-    import sys
+    import os.path
     init = VARS[0].get()
     init = init.split(';')[0]
     files = tkFileDialog.askopenfilenames(
@@ -78,7 +78,11 @@ def chooseFile():
     # strangely, initfile is part of the return
     files = CTK.fixFileString__(files, init)
     s = ''
-    for f in files: s += f+';'
+    for f in files:
+        bname = os.path.basename(f)
+        if os.path.exists(bname): s += bname+';' # short
+        else: s += f+';' # full name
+    s = s[:-1]
     VARS[0].set(s)
 
 #==============================================================================
@@ -155,7 +159,7 @@ def displayFrameMenu(event=None):
 #==============================================================================
 if (__name__ == "__main__"):
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

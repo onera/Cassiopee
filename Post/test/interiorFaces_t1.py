@@ -21,6 +21,5 @@ test.testA([b], 2)
 # ici aucune 
 a = G.cartTetra((0,0,0), (1,1.,1), (20,2,1))
 b = P.interiorFaces(a,1)
-if (b[1].shape[1] != 0):
-    print 'FAILED...'
+if b[1].shape[1] != 0: print('FAILED...')
 

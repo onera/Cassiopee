@@ -137,6 +137,7 @@ int Data::createPngTexture(const char* filename, GLuint &tex,
   png_set_rows(png_ptr, info_ptr, rows);
   png_read_image(png_ptr, rows);
 
+  //printf("reading file %s\n", filename);
   if (tex == 0)
   {
     glGenTextures(1, &tex);

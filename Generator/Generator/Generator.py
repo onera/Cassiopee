@@ -888,9 +888,9 @@ def surfaceWalk(surfaces, c, distrib, constraints=[], niter=0,
     if check=1, walk stops before negative cells appear.
     Usage: surfaceWalk(surfaces, c, distrib, constraints, niter, alphaRef,
     check, toldist)"""
-    import SurfaceWalk as SW
-    res = SW.surfaceWalk__(surfaces, c, distrib, constraints, niter,
-                           alphaRef, check, toldist)
+    from . import SurfaceWalk
+    res = SurfaceWalk.surfaceWalk__(surfaces, c, distrib, constraints, niter,
+                                    alphaRef, check, toldist)
     return res
     
 #==============================================================================
@@ -1352,11 +1352,11 @@ def snapSharpEdges(meshes, surfaces, step=None, angle=30.):
     corners = out[2]
     if corners == []: corners = None
 
-    import Converter as C
-    if contours is not None:
-        C.convertArrays2File(contours, 'contours.plt')
-    if corners is not None:
-        C.convertArrays2File(corners, 'corners.plt')
+    #import Converter as C
+    #if contours is not None:
+    #    C.convertArrays2File(contours, 'contours.plt')
+    #if corners is not None:
+    #    C.convertArrays2File(corners, 'corners.plt')
 
     if isinstance(meshes[0], list):
         if contours is not None:

@@ -29,6 +29,6 @@ a2 = P.extractMesh([m], [a], order=2)
 test.testA(a2,1)
 # Extrait la solution sur le maillage d'extraction
 for order in [2,3,5]:
-    print 'Computing order',order,'...'
+    print('Computing order %d...'%order)
     a2 = P.extractMesh([m], a, order)
     test.testA([a2], order)

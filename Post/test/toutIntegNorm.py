@@ -20,7 +20,7 @@ densa = ['t', dens, ni,nj,nk]
 res = P.integNorm([a2],[densa],[])
 res = res[0]
 if math.fabs(res[0]) > 1.e-1:
-    print "pb in integNormNodeCenter, nj=1"
+    print("pb in integNormNodeCenter, nj=1")
 
 # integNorm, nj = 1
 ni = a[2]; nj = a[3]-1; nk = a[4]
@@ -29,7 +29,7 @@ densa = ['t', dens, ni,nj,nk]
 res = P.integNorm([a2],[densa],[])
 res = res[0]
 if math.fabs(res[0]) > 1.e-1:
-    print "pb in integNorm, nj=1"
+    print("pb in integNorm, nj=1")
 
 ##############################################################
 a = G.cart( (0,0,0), (0.1, 0.2, 1.), (11, 11, 2))
@@ -46,7 +46,7 @@ densa = ['t', dens, ni,nj,nk]
 res = P.integNorm([a2],[densa],[])
 res = res[0]
 if math.fabs(res[2]-res2) > 1.e-1:
-    print "pb in integNormNodeCenter, nk=1"
+    print("pb in integNormNodeCenter, nk=1")
 
 # integNorm, nk = 1
 
@@ -59,7 +59,7 @@ densa = ['t', dens, ni,nj,nk]
 res = P.integNorm([a2],[densa],[])
 res = res[0]
 if math.fabs(res[2]-res2) > 1.e-1:
-    print "pb in integNorm, nk=1"
+    print("pb in integNorm, nk=1")
 
 
 #######################################################
@@ -77,8 +77,7 @@ densa = ['t', dens, ni,nj,nk]
 res = P.integNorm([a2],[densa],[])
 res = res[0]
 if math.fabs(res[0]-res2) > 1.e-1:
-    print "pb in integNormNodeCenter, ni=1"
-
+    print("pb in integNormNodeCenter, ni=1")
 
 
 # integ, ni = 1
@@ -90,7 +89,7 @@ densa = ['t', dens, ni,nj,nk]
 res = P.integNorm([a2],[densa],[])
 res = res[0]
 if math.fabs(res[0]-res2) > 1.e-1:
-    print "pb in integ, ni=1"
+    print("pb in integ, ni=1")
 
 
 

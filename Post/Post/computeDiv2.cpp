@@ -439,7 +439,7 @@ PyObject* K_POST::computeDiv2Struct(PyObject* self, PyObject* args)
   E_Int* cellG = voisins.begin(1);
   E_Int* cellD = voisins.begin(2);
   PyObject* tpl;
-  if ( dimPb == 2)
+  if (dimPb == 2)
     tpl = computeDiv2Struct2D(ni, nj, nic, njc, ixyz, varStringOut, f->begin(posx),  f->begin(posy), f->begin(posz),
                               *fc, faceField, cellG, cellD, indices, fieldX, fieldY, fieldZ); // ATTENTION !!!!!
   else if (dimPb == 3)

@@ -37,7 +37,7 @@ test.testA(a2,1)
 # Extrait la solution sur le maillage d'extraction
 cnt = 0
 for i in [2,3]:
-    print 'Computing order',i,'...'
+    print('Computing order %d...'%i)
     a2 = P.extractMesh([m], a, i)
     test.testA([a2], i)
 

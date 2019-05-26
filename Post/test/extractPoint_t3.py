@@ -20,8 +20,8 @@ a = C.initVars(a, 'F', F, ['x','y','z'])
 cnt = 0
 val = P.extractPoint([a], (x,y,z), 3)
 err = 0.010897125
-print "Test1... done."
-if ( abs(val[0]-val0) > err):
-     print 'DIFF: reference: '+str(err)+'.'
-     print 'DIFF: courant: '+str(val[0]-val0)+'.'   
+print("Test1... done.")
+if abs(val[0]-val0) > err:
+     print('DIFF: reference: '+str(err)+'.')
+     print('DIFF: courant: '+str(val[0]-val0)+'.')   
     

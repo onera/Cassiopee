@@ -38,7 +38,6 @@ def setMode(event=None):
         imode = 1; WIDGETS['solid'].grid(row=2, column=0, columnspan=3, sticky=TK.EW)
     elif mode == 'Render':
         imode = 2; WIDGETS['render'].grid(row=2, column=0, columnspan=3, sticky=TK.EW)
-        CPlot.loadImageFiles(CTK.t)
     elif mode == 'Scalar':
         imode = 3
         if VARS[18].get() == 'None':
@@ -493,12 +492,12 @@ def setVectorProjection(event=None):
 
 #==============================================================================
 def setVectorShape(event=None):
-    # '3D arrows', 'Flat arrows', 'Tetrahedra arrows'
+    # '3D arrows', 'Flat arrows', 'Tetra arrows'
     val = VARS[28].get()
     ishape = None
     if val == '3D arrows': ishape = 0
     if val == 'Flat arrows': ishape = 1
-    if val == 'Tetrahedra arrows': ishape = 2
+    if val == 'Tetra arrows': ishape = 2
     CPlot.setState(vectorShape=ishape)
 
 #==============================================================================
@@ -1118,7 +1117,7 @@ def createApp(win):
     #B.grid(row=6, column=1  , sticky=TK.EW)
 
     # - arrow shape -
-    B = TTK.OptionMenu(Vector, VARS[28], '3D arrows', 'Flat arrows', 'Tetrahedra arrows', command=setVectorShape)
+    B = TTK.OptionMenu(Vector, VARS[28], '3D arrows', 'Flat arrows', 'Tetra arrows', command=setVectorShape)
     BB = CTK.infoBulle(parent=B, text='Shape of the arrows.')
     WIDGETS['vectorShape'] = B
     

@@ -16,16 +16,14 @@ a2 = T.subzone(a, (1,1,1), (50,1,30))
 #C.convertArrays2File([a], "new.plt", "bin_tp")
 
 # integNormProd node2center, nj = 1
-ni = a[2]-1
-nj = a[3]-1
-nk = a[4]-1
+ni = a[2]-1; nj = a[3]-1; nk = a[4]-1
 dens = C.array('tx,ty,tz', ni, nj, nk)
 densa = C.initVars(dens,'tx', 0.)
 densa = C.initVars(densa,'ty', 1.)
 densa = C.initVars(densa,'tz', 0.)
 res = P.integNormProduct([a2],[densa],[])
 if math.fabs(res) > 1.e-1:
-    print "pb in integNormProdNodeCenter, nj=1"
+    print("pb in integNormProdNodeCenter, nj=1")
 
 # integNormProd, nj = 1
 ni = a[2]
@@ -37,7 +35,7 @@ densa = C.initVars(densa,'ty', 1.)
 densa = C.initVars(densa,'tz', 0.)
 res = P.integNormProduct([a2],[densa],[])
 if math.fabs(res) > 1.e-1:
-    print "pb in integNormProd, nj=1"
+    print("pb in integNormProd, nj=1")
 
 ##############################################################
 a = G.cart( (0,0,0), (0.1, 0.2, 1.), (11, 11, 2))
@@ -55,7 +53,7 @@ densa = C.initVars(densa,'ty', 1.)
 densa = C.initVars(densa,'tz', 0.)
 res = P.integNormProduct([a2],[densa],[])
 if math.fabs(res) > 1.e-1:
-    print "pb in integNormProdNodeCenter, nk=1"
+    print("pb in integNormProdNodeCenter, nk=1")
 
 # integNormProd, nk = 1
 ni = a[2]
@@ -67,7 +65,7 @@ densa = C.initVars(densa,'ty', 1.)
 densa = C.initVars(densa,'tz', 0.)
 res = P.integNormProduct([a2],[densa],[])
 if math.fabs(res) > 1.e-1:
-    print "pb in integNormProd, nk=1"
+    print("pb in integNormProd, nk=1")
 
 #######################################################
 a = G.cart( (0,0,0), (1., 0.2, 0.1), (2, 11, 11))
@@ -84,7 +82,7 @@ densa = C.initVars(densa,'ty', 1.)
 densa = C.initVars(densa,'tz', 0.)
 res = P.integNormProduct([a2],[densa],[])
 if math.fabs(res) > 1.e-1:
-    print "pb in integNormProdNodeCenter, ni=1"
+    print("pb in integNormProdNodeCenter, ni=1")
 
 
 # integNormProd, ni = 1
@@ -97,9 +95,4 @@ densa = C.initVars(densa,'ty', 1.)
 densa = C.initVars(densa,'tz', 0.)
 res = P.integNormProduct([a2],[densa],[])
 if math.fabs(res) > 1.e-1:
-    print "pb in integNormProd, ni=1"
-
-
-
-
-
+    print("pb in integNormProd, ni=1")

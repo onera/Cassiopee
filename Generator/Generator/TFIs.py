@@ -111,13 +111,13 @@ def TFIO__(a, weight, offset=0):
     
     # Calcul des points P1, P2, P3, P4
     w = C.array('weight', Nt, 1, 1)
-    w = C.initVars(w, 'weight', 1.); w[1][0,0:Nt/4+1] = weight
+    w = C.initVars(w, 'weight', 1.); w[1][0,0:Nt//4+1] = weight
     P1 = G.barycenter(a, w)
-    w = C.initVars(w, 'weight', 1.); w[1][0,Nt/4:Nt/2+1] = weight
+    w = C.initVars(w, 'weight', 1.); w[1][0,Nt//4:Nt//2+1] = weight
     P2 = G.barycenter(a, w)
-    w = C.initVars(w, 'weight', 1.); w[1][0,Nt/2:3*Nt/4+1] = weight
+    w = C.initVars(w, 'weight', 1.); w[1][0,Nt//2:3*Nt//4+1] = weight
     P3 = G.barycenter(a, w)
-    w = C.initVars(w, 'weight', 1.); w[1][0,3*Nt/4:Nt] = weight
+    w = C.initVars(w, 'weight', 1.); w[1][0,3*Nt//4:Nt] = weight
     P4 = G.barycenter(a, w)
     
     # Calcul de P'1: projete de P1 sur le cercle
@@ -148,10 +148,10 @@ def TFIO__(a, weight, offset=0):
     indexPP2 = D.getNearestPointIndex(a, PP2)[0]-offset
     PP2 = (a[1][0,indexPP2], a[1][1,indexPP2], a[1][2,indexPP2])
     
-    indexPP3 = indexPP1 + Nt/2
+    indexPP3 = indexPP1 + Nt//2
     PP3 = (a[1][0,indexPP3], a[1][1,indexPP3], a[1][2,indexPP3])
     
-    N1 = indexPP2-indexPP1+1; N2 = Nt/2-N1+2
+    N1 = indexPP2-indexPP1+1; N2 = Nt//2-N1+2
     indexPP4 = indexPP3 + N1-1
     PP4 = (a[1][0,indexPP4], a[1][1,indexPP4], a[1][2,indexPP4])
     
@@ -191,7 +191,7 @@ def TFIO__(a, weight, offset=0):
 def TFIO(a):
     optWeight = 0; optOffset = 0; optScore = 1.e6
     Nt = a[2]
-    if (Nt//2 - Nt*0.5 == 0): raise ValueError("TFIO: number of points must be odd.")
+    if Nt//2 - Nt*0.5 == 0: raise ValueError("TFIO: number of points must be odd.")
 
     for j in range(-Nt//4,Nt//4+1):
         for i in range(3,10):
@@ -228,9 +228,9 @@ def TFIHalfO__(a1, a2, weight, offset=0):
     # Round
     w1 = C.array('weight', Nt1, 1, 1); w1 = C.initVars(w1, 'weight', 1.)
     w = C.array('weight', Nt2, 1, 1)
-    w = C.initVars(w, 'weight', 1.); w[1][0,0:Nt2/2+1] = weight
+    w = C.initVars(w, 'weight', 1.); w[1][0,0:Nt2//2+1] = weight
     P3 = G.barycenter([a2,a1], [w,w1])
-    w = C.initVars(w, 'weight', 1.); w[1][0,Nt2/2:Nt2] = weight
+    w = C.initVars(w, 'weight', 1.); w[1][0,Nt2//2:Nt2] = weight
     P4 = G.barycenter([a2,a1], [w,w1])
 
     # Projection
@@ -250,7 +250,7 @@ def TFIHalfO__(a1, a2, weight, offset=0):
     if ((Nt1-Nt2)//2-(Nt1-Nt2)*0.5 != 0 and
         (indexPP3+1)//2-(indexPP3+1)*0.5 == 0): indexPP3 += 1
     #if (indexPP3 == 0): indexPP3 = 1
-    #elif (indexPP3 == (Nt2-1)/2): indexPP3 += -1
+    #elif (indexPP3 == (Nt2-1)//2): indexPP3 += -1
     PP3 = (a2[1][0,indexPP3], a2[1][1,indexPP3], a2[1][2,indexPP3])
     N1 = indexPP3+1
     indexPP4 = Nt2-N1 
@@ -300,7 +300,7 @@ def TFIHalfO(a1, a2):
     Nt1 = a1[2]; Nt2 = a2[2]
     if (Nt1//2 - Nt1*0.5 == 0 and Nt2//2 - Nt2*0.5 != 0):
         raise ValueError("TFIHalfO: N1 and N2 must be odd.")
-    for j in range(-Nt2//8,Nt2/8):
+    for j in range(-Nt2//8, Nt2//8):
         for i in range(2,10):
             try:
                 [m,m1,m2,m3] = TFIHalfO__(a1, a2, i, j)

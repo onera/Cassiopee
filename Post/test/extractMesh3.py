@@ -19,8 +19,8 @@ def F(x,y,z):
         return x*x*x*x + 2.*y*y*y*y +z*z
     elif deg == 5 :
         return 2*x*x*x*x*x + 2.*y*y*z + z*z
-    else :
-        print 'Error : unknown degree of polynomials'
+    else:
+        print('Error : unknown degree of polynomials')
         import sys
         sys.exit()
         
@@ -51,7 +51,7 @@ for ordre in ordret :
     c = C.initVars(c, 'F', F, ['x','y','z'])
     #
     e = C.diffArrays([a2], [c])
-    print 'ordre ', ordre,' = ', C.normL0(e[0],"DF")
+    print('ordre %d=%f'%(ordre, C.normL0(e[0],"DF"))
 
 # ordre  2  =  2.6645352591e-15
 # ordre  3  =  5.09975549789e-06

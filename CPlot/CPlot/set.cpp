@@ -146,7 +146,7 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
     for (int i = 0; i < d->_nBillBoards; i++)
     {
       delete [] d->_billBoardFiles[i];
-      if (d->_billBoardTexs[i] != 0) glDeleteTextures(1, &d->_billBoardTexs[i]);
+      //if (d->_billBoardTexs[i] != 0) glDeleteTextures(1, &d->_billBoardTexs[i]);
     }
     delete [] d->_billBoardTexs;
     delete [] d->_billBoardNis; delete [] d->_billBoardNjs;
@@ -186,17 +186,11 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
 
   if (materials != Py_None)
   {
-    //printf("deleting %d\n", d->_nMaterials); 
     for (int i = 0; i < d->_nMaterials; i++)
     {
       delete [] d->_materialFiles[i];
-      if (d->_materialTexs[i] != 0) 
-      {
-        //printf("deleting\n"); 
-        glBindTexture(GL_TEXTURE_2D, 0);
-        glDeleteTextures(1, &d->_materialTexs[i]);
-        //printf("done.\n");
-      }
+      // DeleteTex must be done by gfx thread
+      //if (d->_materialTexs[i] != 0) glDeleteTextures(1, &d->_materialTexs[i]);
     }
     
     delete [] d->_materialTexs;
@@ -228,7 +222,7 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
     for (int i = 0; i < d->_nBumpMaps; i++)
     {
       delete [] d->_bumpMapFiles[i];
-      if (d->_bumpMapTexs[i] != 0) glDeleteTextures(1, &d->_bumpMapTexs[i]);
+      //if (d->_bumpMapTexs[i] != 0) glDeleteTextures(1, &d->_bumpMapTexs[i]);
     }
     delete [] d->_bumpMapTexs;
     delete [] d->_bumpMapFiles;

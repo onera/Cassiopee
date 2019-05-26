@@ -266,25 +266,25 @@ def polyC1Mesher(curve, h, yplus, density, splitCrit=10., dalpha=5.,depth=1):
             buildBC(m, walls, ext[c,0], ext[c,1], extension)
 
     # Si une seule grille a ete engendre, on la coupe en 2
-    if (len(mesh) == 1):
-        m = mesh[0]; isp = m[2]/2
+    if len(mesh) == 1:
+        m = mesh[0]; isp = m[2]//2
         m1 = T.subzone(m, (1,1,1), (isp,m[3],m[4]))
         m2 = T.subzone(m, (isp,1,1), (m[2],m[3],m[4]))
         del mesh[0]; mesh.append(m1); mesh.append(m2)
         w = walls[0]; l = len(w); wf1 = []; wf2 = []
-        if (l > 0):
+        if l > 0:
             r = w[0]
             wf1.append([r[0],isp,r[2],r[3],r[4],r[5]])
             wf2.append([1,r[1]-isp+1,r[2],r[3],r[4],r[5]])
-        if (l > 1):
+        if l > 1:
             r = w[1]
-            if (r[0] == 1):
+            if r[0] == 1:
                 wf1.append([r[0],r[1],r[2],r[3],r[4],r[5]])
             else:
                 wf2.append([r[0]-isp+1,r[1]-isp+1,r[2],r[3],r[4],r[5]])
-        if (l > 2):
+        if l > 2:
             r = w[2]
-            if (r[0] == 1):
+            if r[0] == 1:
                 wf1.append([r[0],r[1],r[2],r[3],r[4],r[5]])
             else:
                 wf2.append([r[0]-isp+1,r[1]-isp+1,r[2],r[3],r[4],r[5]])

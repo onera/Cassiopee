@@ -110,23 +110,18 @@ Data::Data(CPlotState* ptState)
   _billBoardNis[c] = 4; _billBoardNjs[c] = 4; c++;
   
   // material settings
-  _nMaterials = 1;
-  _materialFiles = new char* [1];
-  _materialFiles[0] = new char [128];
-  strcpy(_materialFiles[0], "windtunnel.png");
-  _materialWidths = new int [1];
-  _materialHeights = new int[1];
-  _materialTexs = new GLuint [1];
-  _materialTexs[0] = 0;
-
-  _nBumpMaps = 1; // must be equal to nMaterials
-  _bumpMapFiles = new char* [1];
-  _bumpMapFiles[0] = NULL; // means no bump map for this material
-  _bumpMapWidths = new int [1];
-  _bumpMapHeights = new int[1];
-  _bumpMapTexs = new GLuint [1];
-  _bumpMapTexs[0] = 0;
-
+  _nMaterials = 0;
+  _materialFiles = NULL;
+  _materialWidths = NULL;
+  _materialHeights = NULL;
+  _materialTexs = NULL;
+  
+  _nBumpMaps = 0; // must be equal to nMaterials
+  _bumpMapFiles = NULL;
+  _bumpMapWidths = NULL;
+  _bumpMapHeights = NULL;
+  _bumpMapTexs = NULL;
+  
   // Init cam
   initCam();
   _CDisplayIsLaunched = 0;

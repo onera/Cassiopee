@@ -649,13 +649,13 @@ def computeWallShearStress(t):
     return tp
 
 def _computeWallShearStress(t):
-    import extraVariablesPT
+    from . import extraVariablesPT
     return extraVariablesPT._computeWallShearStress(t)
 
 def computeExtraVariable(t, varname, gamma=-1, rgp=-1.,
                          Cs=-1., mus=-1., Ts=-1.):
     """Compute variables that requires a change of location."""
-    import extraVariablesPT
+    from . import extraVariablesPT
     try:
         state = C.getState(t)
         if gamma < 0: gamma = state[11]
@@ -687,14 +687,14 @@ def computeExtraVariable(t, varname, gamma=-1, rgp=-1.,
         return t2
     elif varname == 'centers:VorticityMagnitude':
         return extraVariablesPT.computeVorticityMagnitude(t)
-    elif (varname == 'QCriterion' or varname == 'nodes:QCriterion'):
+    elif varname == 'QCriterion' or varname == 'nodes:QCriterion':
         t2 = extraVariablesPT.computeQCriterion(t)
         t2 = C.center2Node(t2, 'centers:QCriterion')
         C._rmVars(t2, 'centers:QCriterion')
         return t2
     elif varname == 'centers:QCriterion':
         return extraVariablesPT.computeQCriterion(t)
-    elif (varname == 'ShearStress' or varname == 'nodes:ShearStress'):
+    elif varname == 'ShearStress' or varname == 'nodes:ShearStress':
         t2 = extraVariablesPT.computeShearStress(t, gamma, rgp, Cs, mus, Ts)
         vars = ['centers:ShearStressXX',
                 'centers:ShearStressXY',

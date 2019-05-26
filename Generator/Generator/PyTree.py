@@ -1168,7 +1168,7 @@ def collarMesh(s1, s2, distribj, distribk,
     """Generates a collar mesh starting from s1 and s2 surfaces, distributions
     along the surfaces and along the normal direction, with respect to the assembly type between grids.
     Usage: collarMesh(s1, s2, distribj, distribk, niterj, niterk, ext, alphaRef, type, contour,constraints1,constraints2,toldist)"""
-    import Collar
+    from . import Collar
     surf1 = C.getFields(Internal.__GridCoordinates__,s1)
     surf2 = C.getFields(Internal.__GridCoordinates__,s2)
     dj = C.getFields(Internal.__GridCoordinates__,distribj)[0]
@@ -1225,7 +1225,7 @@ def polyLineMesher(z, h, yplus, density):
     Usage: polyLineMesher(z, h, yplus, density)"""
     try:
         import Connector.PyTree as X
-        import PolyLine as GP
+        from . import PolyLine as GP
     except:
         raise ImportError("polyLineMesher: requires Polyline and Connector modules.")
     name = z[0]
@@ -1295,7 +1295,7 @@ def polyQuadMesher(z, h, hf, density, next):
      Usage: polyQuadMesher(z, h, hf, density, next)"""
     try:
         import Connector.PyTree as X
-        import PolyQuad as GP
+        from . import PolyQuad as GP
     except:
         raise ImportError("polyQuadMesher: requires PolyQuad and Connector modules.")
     name = z[0]
@@ -1331,7 +1331,7 @@ def polyTriMesher(z, h, hf, density, next):
     Usage: polyTriMesher(z, h, hf, density, next)"""
     try:
         import Connector.PyTree as X
-        import PolyTri as GP
+        from . import PolyTri as GP
     except:
         raise ImportError("polyTriMesher: requires PolyTri and Connector modules.")
     name = z[0]

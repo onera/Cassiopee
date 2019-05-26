@@ -256,6 +256,9 @@ def run(t=None):
         if len(zones) == 0: # all skeletons certainely
             Panels.openLoadPanel()
 
+    # Load textures, billboards file names into CPlot
+    CPlot.loadImageFiles(CTK.t)
+    
     # - Main loop -
     win.mainloop()
 

@@ -30,4 +30,4 @@ GAMMA=1.4; RGP = 287.053; CS = 110.4; BETAS = 0.000001458
 const = ['gamma',GAMMA,'rgp',RGP,'Cs',CS,'betas',BETAS]
 
 mu = P.computeVariables(m, vars, const)
-print mu
+print(mu)

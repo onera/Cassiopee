@@ -360,7 +360,7 @@ def _computeVariables2(array, varname,
 def computeExtraVariable(array, varname, gamma=1.4, rgp=287.53,
                          Cs=110.4, mus=1.76e-5, Ts=273.15):
     """Compute variables that requires a change of location."""
-    import extraVariables
+    from . import extraVariables
     if varname == 'Vorticity':
         return extraVariables.computeVorticity(array)
     elif varname == 'VorticityMagnitude':

@@ -110,7 +110,7 @@ def getSplitZones__(a, constraints,toldist):
 #-----------------------------------------------------------------------------
 def remapIntersectionEdge__(edge, s1, s2, hjmin, constraints, alphaRef, toldist):
     if constraints == []:
-        net = max(10,edge[1].shape[1]/2)
+        net = max(10,edge[1].shape[1]//2)
         db = G.cart((0,0,0), (1./(net-1.),1,1), (net,1,1) )
         edge = G.map(edge, db)
         return edge
@@ -118,7 +118,7 @@ def remapIntersectionEdge__(edge, s1, s2, hjmin, constraints, alphaRef, toldist)
         edges = getSplitZones__(edge,constraints,toldist)
         for noe in range(len(edges)):
             e = edges[noe]
-            net = max(10,e[1].shape[1]/2)
+            net = max(10,e[1].shape[1]//2)
             le = D.getLength(e)
             if le < hjmin:
                 db = G.cart((0,0,0), (1.,1.,1.), (2,1,1) )
