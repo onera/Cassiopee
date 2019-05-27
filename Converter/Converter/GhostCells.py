@@ -485,7 +485,7 @@ def getInfoForFillJoinsStruct__(prange, prangedonor, trirac, dim, dimdonor,
     imdonor = dimdonor[1]
     if dim_zone != 1: jmdonor = dimdonor[2]
     if dim_zone == 3: kmdonor = dimdonor[3]
-    if loc =='CellCenter':
+    if loc == 'CellCenter':
         imdonor = imdonor-1
         im = im-1 ; jm = jm-1 ; km = km-1        
         if dim_zone != 1: jmdonor = jmdonor-1
@@ -587,8 +587,8 @@ def getInfoForFillJoinsStruct__(prange, prangedonor, trirac, dim, dimdonor,
             # computation of incrdonorI and incrdonorJ in the same local (I,J) frame as for recv join
             absI = abs(DonorI); signI = absI/DonorI
             absJ = abs(DonorJ); signJ = absJ/DonorJ
-            incrdonorI = signI*(absI-2)*(absI-3)/2 -  signI*(absI-1)*(absI-3)*(imdonor+2*d) + signI*(absI-1)*(absI-2)/2*(imdonor+2*d)*(jmdonor+2*d)
-            incrdonorJ = signJ*(absJ-2)*(absJ-3)/2 -  signJ*(absJ-1)*(absJ-3)*(imdonor+2*d) + signJ*(absJ-1)*(absJ-2)/2*(imdonor+2*d)*(jmdonor+2*d)
+            incrdonorI = signI*(absI-2)*(absI-3)//2 -  signI*(absI-1)*(absI-3)*(imdonor+2*d) + signI*(absI-1)*(absI-2)//2*(imdonor+2*d)*(jmdonor+2*d)
+            incrdonorJ = signJ*(absJ-2)*(absJ-3)//2 -  signJ*(absJ-1)*(absJ-3)*(imdonor+2*d) + signJ*(absJ-1)*(absJ-2)//2*(imdonor+2*d)*(jmdonor+2*d)
         elif dim_zone == 2:
             if abs(direction) == 1:
                 incrrecv = increment__(1,0,im,jm,d)
@@ -623,12 +623,8 @@ def fillJoinCornerStruct__(prange, prangedonor, trirac, dim, dimdonor, frecv,
     a = frecv[1]
     f = fdonor[1]
 
-    [arrayborder, dim1, dim2, listdonor,incrrecvI,incrrecvJ,incrdonorI,incrdonorJ,direction,dirdonor,incrrecv,incrdonor, shiftDir1, shiftDir2,isFine] = borderinfo
-    
-    #dim2 = 0
-    #if len(arrayborder.shape) == 2: dim2 = arrayborder.shape[1]
-    #dim1 = arrayborder.shape[0]
-    
+    [arrayborder, dim1, dim2, listdonor,incrrecvI,incrrecvJ,incrdonorI,incrdonorJ,direction,dirdonor,incrrecv,incrdonor, shiftDir1, shiftDir2, isFine] = borderinfo
+        
     # fill ghost corner values for join
     if typegc == 0:
         Converter.converter.fillCornerGhostCells(a, f, arrayborder, listdonor, loc, dim1, dim2, incrrecvI, incrrecvJ,
@@ -1874,7 +1870,7 @@ def adapt2FastP2(t, nlayers=2):
         NGON_range = Internal.getNodeFromPath(z, 'NGonElements/ElementRange')[1]
         nface_tot  = NGON_range[1]-NGON_range[0] +1
         #Nombre de face BC      
-        gc         = Internal.getNodesFromType2(z, 'BC_t')
+        gc        = Internal.getNodesFromType2(z, 'BC_t')
         nface_bc  = 0
         for g in gc:
              nface_bc = nface_bc + numpy.size( Internal.getNodeFromName1(g, 'PointList')[1] )
@@ -1984,7 +1980,7 @@ def addGhostCellsNG(t, nlayers=2):
       for rac in raccords:
 
         rt = Internal.getNodeFromType1(rac, 'GridConnectivityType_t')
-        jn = "".join(rt[1])
+        jn = "".join(Internal.getValue(rt))
         #print jn
         JNames.append(rac[0])
         JTypes.append(jn)
@@ -1992,7 +1988,7 @@ def addGhostCellsNG(t, nlayers=2):
         #print Internal.getType(rac)
         #print Internal.getValue(rac)
 
-        donnorName = "".join(rac[1])
+        donnorName = "".join(Internal.getValue(rac))
         #print donnorName
         #dz = Internal.getNodeFromName(zones, donnorName)
 

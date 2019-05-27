@@ -243,12 +243,18 @@ def setValue(node, value=None):
             elif isinstance(testValue, str):
                 if isinstance(value[0], str):
                     v = numpy.empty( (32,len(value) ), dtype='c', order='F')
-                    for c, i in enumerate(value): v[:,c] = i[:]
+                    for c, i in enumerate(value): 
+                        s = min(len(i),32)
+                        v[:,c] = ' '
+                        v[0:s,c] = i[0:s]
                     node[1] = v
                 else:
                     v = numpy.empty( (32,len(value[0]),len(value) ), dtype='c', order='F')
                     for c in range(len(value)):
-                        for d in range(len(value[c])): v[:,d, c] = value[c][d][:]
+                        for d in range(len(value[c])):
+                            s = min(len(value[c][d]),32)
+                            v[:,d,c] = ' '
+                            v[0:s,d,c] = value[c][d][0:s]
                     node[1] = v
         elif isinstance(value, tuple):
             testValue = value

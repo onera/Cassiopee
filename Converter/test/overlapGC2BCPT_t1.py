@@ -1,4 +1,4 @@
-# -overlapGC2BC (pyTree) -
+# - overlapGC2BC (pyTree) -
 import Converter.PyTree as C
 import Generator.PyTree as G
 import Converter.elsAProfile as CE

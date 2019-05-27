@@ -719,10 +719,12 @@ def _overlapGC2BC(t):
       if oversetBase:
         if isClassical:
           famOvlpName = __FAMOVERLAPBC__+baseName
-          Internal._groupBCByBCType(t[2][nob],btype='UserDefined',name=famOvlpName)
-          NLnode=Internal.createNode('NeighbourList','DataArray_t')
-          FamOvlp = Internal.getNodeFromName1(base,famOvlpName)
-          Internal._createChild(FamOvlp,'.Solver#Overlap','UserDefinedData_t',value=None,children=[NLnode])
+          Internal._groupBCByBCType(base, btype='UserDefined', name=famOvlpName)
+          FamOvlp = Internal.getNodeFromName1(base, famOvlpName)
+          if FamOvlp:
+            NLnode = Internal.createNode('NeighbourList', 'DataArray_t')
+            Internal._createChild(FamOvlp, '.Solver#Overlap', 'UserDefinedData_t', 
+                                  value=None, children=[NLnode])
       
       # renommage en FamilySpecified des doubly defined UserDefinedDD
       for bc in Internal.getNodesFromType3(t[2][nob],'BC_t'): 

@@ -22,7 +22,7 @@
 // Comportement de cette routine:
 // A l'ecriture: on respecte les types d'entree, sauf pour les noeuds version
 // et periodic (R4)
-// A la lecture: on converti en numpy I4/R8.
+// A la lecture: on convertit en numpy I4/R8.
 
 # include "GenIO.h"
 # include "kcore.h"

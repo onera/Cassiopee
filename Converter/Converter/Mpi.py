@@ -13,6 +13,12 @@ else: # try import (may fail - core or hang)
         from .Mpi4py import *
     except:
         rank = 0; size = 1; KCOMM = None
+        def barrier():
+            return
+        def convertFile2SkeletonTree(fileName, format=None, maxFloatSize=5, maxDepth=-1):
+            from . import Distributed
+            return Distributed.convertFile2SkeletonTree(fileName, format, maxFloatSize, maxDepth)
+            
         print("Warning: Converter:Mpi: mpi4py is not available. Sequential behaviour.")
 
 from .Distributed import _readZones, _convert2PartialTree, _convert2SkeletonTree, _readPyTreeFromPaths

@@ -31,12 +31,15 @@ PyObject* K_PYTREE::getNodeFromName1(PyObject* o, const char* name)
 {
   PyObject* childrens = PyList_GetItem(o, 2);
   E_Int n = PyList_Size(childrens);
-  PyObject *l; PyObject *node; char* str;
+  PyObject *l; PyObject *node; char* str=NULL;
   for (E_Int i = 0; i < n; i++)
   {
     l = PyList_GetItem(childrens, i);
     node = PyList_GetItem(l, 0);
-    str = PyString_AsString(node);
+    if (PyString_Check(node)) str = PyString_AsString(node);    
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(node)) str = PyBytes_AsString(PyUnicode_AsUTF8String(node)); 
+#endif
     if (K_STRING::cmp(str, name) == 0) return l;
   }
   return NULL;
@@ -53,12 +56,15 @@ void K_PYTREE::getNodesFromType1(PyObject* o, const char* type,
 {
   PyObject* childrens = PyList_GetItem(o, 2);
   E_Int n = PyList_Size(childrens);
-  PyObject *l; PyObject *node; char* str;
+  PyObject *l; PyObject *node; char* str=NULL;
   for (E_Int i = 0; i < n; i++)
   {
     l = PyList_GetItem(childrens, i);
     node = PyList_GetItem(l, 3);
-    str = PyString_AsString(node);
+    if (PyString_Check(node)) str = PyString_AsString(node);
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(node)) str = PyBytes_AsString(PyUnicode_AsUTF8String(node)); 
+#endif    
     if (K_STRING::cmp(str, type) == 0) out.push_back(l);
   }
 }
@@ -255,7 +261,7 @@ E_Int fillName(char*& pt, char* name)
 //==============================================================================
 PyObject* K_PYTREE::getNodeFromPath(PyObject* o, const char* path)
 {
-  PyObject *l; PyObject *node; char* str;
+  PyObject *l; PyObject *node; char* str=NULL;
   char name[256];
   char* pt = (char*)path;
   PyObject* next = o;
@@ -280,7 +286,10 @@ PyObject* K_PYTREE::getNodeFromPath(PyObject* o, const char* path)
     {
       l = PyList_GetItem(childrens, i);
       node = PyList_GetItem(l, 0);
-      str = PyString_AsString(node);
+      if (PyString_Check(node)) str = PyString_AsString(node);
+#if PY_VERSION_HEX >= 0x03000000
+      else if (PyUnicode_Check(node)) str = PyBytes_AsString(PyUnicode_AsUTF8String(node)); 
+#endif
       // printf("comparing %s %s %c\n", str, name, *pt);
       if (K_STRING::cmp(str, name) == 0) { next = l; found = true; break; }
     }

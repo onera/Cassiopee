@@ -141,7 +141,7 @@ def extractIJSurface(t_sol, t_pts, XC=(0.,0.,0.), AXIS=(1.,0.,0.), loc='centers'
     #res = G.map(res,dhi,dir=1)
 
     ThetaMean = C.getMeanValue(res,'CoordinateZ')
-    print 'ThetaMean = ', ThetaMean, C.getMeanValue(Pts,'CoordinateZ'), C.getMaxValue(Pts,'CoordinateZ')-C.getMinValue(Pts,'CoordinateZ')
+    print('ThetaMean = ', ThetaMean, C.getMeanValue(Pts,'CoordinateZ'), C.getMaxValue(Pts,'CoordinateZ')-C.getMinValue(Pts,'CoordinateZ'))
     # PLAN MERIDIEN Theta=ThetaMean
     PM = P.isoSurfMC(t,"CoordinateZ",ThetaMean)
     PM = T.join(PM); PM = T.splitConnexity(PM)
@@ -170,8 +170,8 @@ def extractIJSurface(t_sol, t_pts, XC=(0.,0.,0.), AXIS=(1.,0.,0.), loc='centers'
     ThetaMax = C.getMaxValue(intersectedZones,'CoordinateZ')
     ThetaMin = C.getMinValue(intersectedZones,'CoordinateZ')
     del intersectedZones
-    print ' RMin = %g %g , XMin = %g %g '%(RMin,RMax,XMin,XMax)
-    print ' ThetaMin/Mean/Max : ', ThetaMin, ThetaMean, ThetaMax
+    print(' RMin = %g %g , XMin = %g %g '%(RMin,RMax,XMin,XMax))
+    print(' ThetaMin/Mean/Max : ', ThetaMin, ThetaMean, ThetaMax)
 
     # EXTRUSION DE LA LIGNE
     res1 = T.translate(res,(0,0,-ThetaMean))
