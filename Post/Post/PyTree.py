@@ -736,7 +736,7 @@ def importVariables(t1, t2, method=0, eps=1.e-6, addExtra=1):
     nzones1 = len(zones1); nzones2 = len(zones2)
     dejaVu = numpy.zeros(nzones2, numpy.int32)
 
-    loc = 1
+    locDict={}
     if method == 2:
         for noz1 in range(nzones1):
             z1 = zones1[noz1]; found = 0
@@ -745,6 +745,7 @@ def importVariables(t1, t2, method=0, eps=1.e-6, addExtra=1):
                 z2 = zones2[noz2]
                 (parent2, d) = Internal.getParentOfNode(a2, z2)
                 loc = identifyZonesLoc__(z1, z2, method, eps)
+                locDict[z1[0]]=loc
                 if abs(loc) == 1: # nodes
                     dejaVu[noz2] = noz1+1; found = 1
                     sol1 = Internal.getNodesFromType1(z1, 'FlowSolution_t')
@@ -768,10 +769,17 @@ def importVariables(t1, t2, method=0, eps=1.e-6, addExtra=1):
                     dim1 = Internal.getZoneDim(z1)
                     cn1 = Internal.getNodeFromName1(z1, 'GridElements')
                     for s1 in sol1:
-                        sol11 = Internal.getNodesFromType(s1, 'DataArray_t')
-                        for s11 in sol11:
-                            ar1 = Internal.convertDataNode2Array(s11, dim1, cn1)[1]
-                            z2 = C.setFields([ar1], z2, 'centers')
+                        loc1 = 0
+                        loci = Internal.getNodesFromType1(s1, 'GridLocation_t')
+                        if len(loci) > 0:
+                            v = loci[0]
+                            if v[0]!='V': loc1 = 1# 'Vertex'
+
+                        if loc1==0:
+                            sol11 = Internal.getNodesFromType(s1, 'DataArray_t')
+                            for s11 in sol11:
+                                ar1 = Internal.convertDataNode2Array(s11, dim1, cn1)[1]
+                                z2 = C.setFields([ar1], z2, 'centers')
                     parent2[2][d] = z2
 
     elif method in (0,1):
@@ -782,6 +790,7 @@ def importVariables(t1, t2, method=0, eps=1.e-6, addExtra=1):
                     z2 = zones2[noz2]
                     (parent2, d) = Internal.getParentOfNode(a2, z2)
                     loc = identifyZonesLoc__(z1, z2, method, eps)
+                    locDict[z1[0]]=loc
                     if loc == 1: # nodes
                         dejaVu[noz2] = noz1+1; found = 1
                         sol1 = Internal.getNodesFromType1(z1, 'FlowSolution_t')
@@ -807,10 +816,18 @@ def importVariables(t1, t2, method=0, eps=1.e-6, addExtra=1):
                         dim1 = Internal.getZoneDim(z1)
                         cn1 = Internal.getNodeFromName1(z1, 'GridElements')
                         for s1 in sol1:
-                            sol11 = Internal.getNodesFromType(s1, 'DataArray_t')
-                            for s11 in sol11:
-                                ar1 = Internal.convertDataNode2Array(s11, dim1, cn1)[1]
-                                z2 = C.setFields([ar1], z2, 'centers')
+                            loc1 = 0
+                            loci = Internal.getNodesFromType1(s1, 'GridLocation_t')
+                            if len(loci) > 0:
+                                v = loci[0]
+                                if v[0]!='V': loc1 = 1# 'Vertex'
+
+                            if loc1==0:
+                                sol11 = Internal.getNodesFromType(s1, 'DataArray_t')
+                                for s11 in sol11:
+                                    ar1 = Internal.convertDataNode2Array(s11, dim1, cn1)[1]
+                                    z2 = C.setFields([ar1], z2, 'centers')        
+
                         parent2[2][d] = z2
     else: raise NotImplementedError("Method {0!r} is not implemented. Please refer to the documentation".format(method))
 
@@ -826,16 +843,17 @@ def importVariables(t1, t2, method=0, eps=1.e-6, addExtra=1):
 
     if extra == True and addExtra == 1:
         print('Warning: importVariables: extra grid(s) in t2 detected, added to EXTRA base.')
-        a2 = C.addBase2PyTree(a2, 'EXTRA', 3)
+        C._addBase2PyTree(a2, 'EXTRA', 3)
         base = Internal.getNodesFromName1(a2, 'EXTRA')
-        if loc == 1: # ajout direct
-            for noz1 in range(nzones1):
-                if tag[noz1] == 0:
-                    base[0][2].append(zones1[noz1])
-        else: # ajout coord en noeud et champ direct
-            for noz1 in range(nzones1):
-                if tag[noz1] == 0:
-                    z = zones1[noz1]
+        for noz1 in range(nzones1):
+            if tag[noz1] == 0:
+                z = zones1[noz1]
+                loc = locDict[z[0]]
+                if abs(loc)==1: # ajout direct
+                    base[0][2].append(z)
+
+                elif abs(loc) == 2: # ajout coord en noeud et champ direct (qui correspond aux centres du  nouveau)
+                    C._rmVars(z,Internal.__FlowSolutionCenters__)                    
                     zc = C.center2Node(z)
                     coords = Internal.getNodesFromType1(zc, 'GridCoordinates_t')
                     dim = Internal.getZoneDim(zc)
@@ -847,11 +865,17 @@ def importVariables(t1, t2, method=0, eps=1.e-6, addExtra=1):
                             z = C.setFields([ar], z, 'nodes')
                     fields = Internal.getNodesFromType1(z, 'FlowSolution_t')
                     for x in fields:
-                        ax = Internal.getNodesFromType(x, 'DataArray_t')
-                        for sx in ax:
-                            ar = Internal.convertDataNode2Array(sx, dim, cn)[1]
-                            z = C.setFields([ar], z, 'centers')
-                    z = C.rmVars(z, 'FlowSolution')
+                        gloc= Internal.getNodeFromType(x,'GridLocation_t')
+                        vloc = 1
+                        if gloc is None: vloc = 0
+                        else:
+                            if gloc[1][0]=='V': vloc=0# =='Vertex'
+                        if vloc == 0:                       
+                            ax = Internal.getNodesFromType(x, 'DataArray_t')
+                            for sx in ax:
+                                ar = Internal.convertDataNode2Array(sx, dim, cn)[1]
+                                z = C.setFields([ar], z, 'centers')
+                    C._rmVars(z,Internal.__FlowSolutionNodes__)                    
                     base[0][2].append(z)
     return a2
 
