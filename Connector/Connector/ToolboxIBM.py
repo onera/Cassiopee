@@ -3,7 +3,7 @@ import numpy
 from . import PyTree as X
 from . import OversetData as XOD
 from . import Connector
-import connector
+from . import connector
 
 try: range = xrange
 except: pass

@@ -335,16 +335,16 @@ def computeVariables(array, varname,
 
 
 def computeVariables2(array, varname,
-                     gamma=1.4, rgp=287.053, s0=0., betas=1.458e-6,
-                     Cs=110.4, mus=1.76e-5, Ts=273.15):
+                      gamma=1.4, rgp=287.053, s0=0., betas=1.458e-6,
+                      Cs=110.4, mus=1.76e-5, Ts=273.15):
     """In place compute variable2"""
     b = Converter.copy(array)
     _computeVariables2(b, varname, gamma, rgp, s0, betas, Cs, mus, Ts)
     return b
 
 def _computeVariables2(array, varname,
-                     gamma=1.4, rgp=287.053, s0=0., betas=1.458e-6,
-                     Cs=110.4, mus=1.76e-5, Ts=273.15):
+                       gamma=1.4, rgp=287.053, s0=0., betas=1.458e-6,
+                       Cs=110.4, mus=1.76e-5, Ts=273.15):
     if varname == []:
         #print('Warning: computeVariables: varname list is empty.')
         return array

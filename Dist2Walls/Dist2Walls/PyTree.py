@@ -283,7 +283,7 @@ def distance2WallsEikonal(t, body, tc=None, DEPTH=2, loc='nodes', err=0.01, nitm
             
         if type == 0: 
             ni = dims[1]; nj = dims[2]; nk = dims[3]
-            i = max(1,ni/2); j = max(1,nj/2); k = max(1,nk/2)
+            i = max(1,ni//2); j = max(1,nj//2); k = max(1,nk//2)
             ind1 = i+j*ni+k*ni*nj
             ind2 = ind1+1
             dh = C.getValue(z,'CoordinateX',ind2)-C.getValue(z,'CoordinateX',ind1)

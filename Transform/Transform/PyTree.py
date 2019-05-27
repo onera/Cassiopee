@@ -1069,7 +1069,7 @@ def _makeDirect(t):
     for z in zones:
         dim = Internal.getZoneDim(z)
         if dim[0] == 'Structured':
-            i = dim[1]/2; j = dim[2]/2; k = dim[3]/2
+            i = dim[1]//2; j = dim[2]//2; k = dim[3]//2
             i = max(i,1); j = max(j,1); k = max(k,1)
             ip1 = i+1; jp1 = j+1; kp1 = k+1
             ip1 = min(ip1,dim[1]); jp1 = min(jp1,dim[2]); kp1 = min(kp1,dim[3])
@@ -1432,7 +1432,7 @@ def splitSizeUpR__(t, N, R, multigrid, dirs, minPtsPerDir):
         b[2] = rem
 
     # Remises dans les bonnes bases
-    l = len(out)/2
+    l = len(out)//2
     for i in range(l):
         zone = out[2*i]
         base = out[2*i+1]

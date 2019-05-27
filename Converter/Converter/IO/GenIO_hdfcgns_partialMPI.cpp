@@ -90,16 +90,17 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPathsPartial(char* file,
   while (PyDict_Next(Filter, &pos, &key, &DataSpaceDIM))
   {
     // Multiple path or Not ?
-    if (PyString_Check(key))
+    E_Boolean isKeyString = false;
+    if (PyString_Check(key)) isKeyString = true;
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(key)) isKeyString = true; 
+#endif
+    if (isKeyString)
     {
       E_Int FilterSize = PyList_Size(DataSpaceDIM);
       /* ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo */
       /* Check if key is String values */
-      // if (PyString_Check(key) == false)
-      // {
-      //   PyErr_SetString(PyExc_TypeError, "hdfread: paths must be a list of strings.");
-      //   return NULL;
-      // }
+      
       /* Check if key is String values */
       if (PyList_Check(DataSpaceDIM) == false)
       {
@@ -115,7 +116,11 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPathsPartial(char* file,
       /* ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo */
 
       /* Get path */
-      char* path = PyString_AsString(key);
+      char* path = NULL;
+      if (PyString_Check(key)) path = PyString_AsString(key);
+#if PY_VERSION_HEX >= 0x03000000
+      else if (PyUnicode_Check(key)) path = PyBytes_AsString(PyUnicode_AsUTF8String(key)); 
+#endif
       // printf("path 1 ...  %s\n", path);
 
       HDF._path = path;
@@ -230,8 +235,11 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPathsPartial(char* file,
       {
         /** Get current path **/
         lpath      = PyTuple_GetItem(key, iField);
-        char* path = PyString_AsString(lpath);
-
+        char* path = NULL;
+        if (PyString_Check(lpath)) path = PyString_AsString(lpath);
+#if PY_VERSION_HEX >= 0x03000000
+        else if (PyUnicode_Check(lpath)) path = PyBytes_AsString(PyUnicode_AsUTF8String(lpath)); 
+#endif
         /** Store the first path **/
         if (iField == 0){HDF._path = path;}
 
@@ -738,7 +746,12 @@ E_Int K_IO::GenIO::hdfcgnsWritePathsPartial(char* file, PyObject* tree,
     E_Int FilterSize = PyList_Size(DataSpaceDIM);
     /* ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo */
     /* Check if key is String values */
-    if (PyString_Check(key) == false)
+    E_Boolean isKeyString = false;
+    if (PyString_Check(key)) isKeyString = true;
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(key)) isKeyString = true; 
+#endif
+    if (isKeyString == false)
     {
       PyErr_SetString(PyExc_TypeError, "hdfread: paths must be a list of strings.");
       return 0;

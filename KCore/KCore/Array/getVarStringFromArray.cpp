@@ -40,15 +40,9 @@ E_Int K_ARRAY::getVarStringFromArray(PyObject* o, char*& varString)
   // -- varString --
   PyObject* l = PyList_GetItem(o,0);
   
-  if (PyString_Check(l))
-  {
-    varString = PyString_AsString(l);  
-  }
+  if (PyString_Check(l)) varString = PyString_AsString(l);  
 #if PY_VERSION_HEX >= 0x03000000
-  else if (PyUnicode_Check(l))
-  {
-    varString = PyBytes_AsString(PyUnicode_AsUTF8String(l)); 
-  }
+  else if (PyUnicode_Check(l)) varString = PyBytes_AsString(PyUnicode_AsUTF8String(l)); 
 #endif
   else
   {

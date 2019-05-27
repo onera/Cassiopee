@@ -643,7 +643,7 @@ def _computeVariablesBC(t, varList, gamma=1.4, rgp=287.053, s0=0.,
 #===============================================================================
 def computeWallShearStress(t):
     """Compute wall shear stress."""
-    import extraVariablesPT
+    from . import extraVariablesPT
     tp = Internal.copyRef(t)
     extraVariablesPT._computeWallShearStress(tp)
     return tp

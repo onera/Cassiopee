@@ -52,7 +52,7 @@ cp apps/CCC "$INSTALLPATH"
 cp apps/cassiopee.bat "$INSTALLPATH"
 cp apps/cassiopeeRunWin32.bat "$INSTALLPATH"
 cp apps/cassiopeeRunWin64.bat "$INSTALLPATH"
-cp apps/validCassiopee "$INSTALLPATH"
+cp apps/validCassiopee3 "$INSTALLPATH"
 cp apps/validCassiopee.bat "$INSTALLPATH"
 python3 installThemes.py
 

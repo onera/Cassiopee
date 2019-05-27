@@ -35,7 +35,12 @@ void K_ARRAY::addFieldInArray(PyObject* array, char* varName)
   IMPORTNUMPY;
 
   // Le champ existe deja?
-  char* varString = PyString_AsString(PyList_GetItem(array, 0));
+  PyObject* o = PyList_GetItem(array, 0);
+  char* varString = NULL; 
+  if (PyString_Check(o)) varString = PyString_AsString(o);
+#if PY_VERSION_HEX >= 0x03000000
+  else if (PyUnicode_Check(o)) varString = PyBytes_AsString(PyUnicode_AsUTF8String(o)); 
+#endif
   E_Int pos = K_ARRAY::isNamePresent(varString, varName);
   if (pos != -1) return;
 
@@ -45,8 +50,12 @@ void K_ARRAY::addFieldInArray(PyObject* array, char* varName)
   strcpy(newVarstring, varString);
   strcat(newVarstring, ",");
   strcat(newVarstring, varName);
+#if PY_VERSION_HEX >= 0x03000000
+  PyList_SetItem(array, 0, PyUnicode_FromString(newVarstring));
+#else
   PyList_SetItem(array, 0, PyString_FromString(newVarstring));
-
+#endif
+  
   // Recuperation des champs
   PyObject* a = PyList_GetItem(array, 1);
 

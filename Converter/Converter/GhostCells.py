@@ -585,8 +585,8 @@ def getInfoForFillJoinsStruct__(prange, prangedonor, trirac, dim, dimdonor,
                 incrdonor = increment__(0,0,1,imdonor,jmdonor,kmdonor,d)
 
             # computation of incrdonorI and incrdonorJ in the same local (I,J) frame as for recv join
-            absI = abs(DonorI); signI = absI/DonorI
-            absJ = abs(DonorJ); signJ = absJ/DonorJ
+            absI = abs(DonorI); signI = absI//DonorI
+            absJ = abs(DonorJ); signJ = absJ//DonorJ
             incrdonorI = signI*(absI-2)*(absI-3)//2 -  signI*(absI-1)*(absI-3)*(imdonor+2*d) + signI*(absI-1)*(absI-2)//2*(imdonor+2*d)*(jmdonor+2*d)
             incrdonorJ = signJ*(absJ-2)*(absJ-3)//2 -  signJ*(absJ-1)*(absJ-3)*(imdonor+2*d) + signJ*(absJ-1)*(absJ-2)//2*(imdonor+2*d)*(jmdonor+2*d)
         elif dim_zone == 2:
@@ -603,7 +603,7 @@ def getInfoForFillJoinsStruct__(prange, prangedonor, trirac, dim, dimdonor,
             elif abs(dirdonor) == 2:
                 incrdonor = increment__(0,1,imdonor,jmdonor,d)
             # computation of incrdonorI and incrdonorJ in the same local (I,J) frame as for recv join
-            absI = abs(DonorI); signI = absI/DonorI
+            absI = abs(DonorI); signI = absI//DonorI
             incrdonorI = signI*(2-absI) + signI*(absI-1)*(imdonor+2*d)
             incrdonorJ = 0
  
@@ -624,7 +624,7 @@ def fillJoinCornerStruct__(prange, prangedonor, trirac, dim, dimdonor, frecv,
     f = fdonor[1]
 
     [arrayborder, dim1, dim2, listdonor,incrrecvI,incrrecvJ,incrdonorI,incrdonorJ,direction,dirdonor,incrrecv,incrdonor, shiftDir1, shiftDir2, isFine] = borderinfo
-        
+    
     # fill ghost corner values for join
     if typegc == 0:
         Converter.converter.fillCornerGhostCells(a, f, arrayborder, listdonor, loc, dim1, dim2, incrrecvI, incrrecvJ,

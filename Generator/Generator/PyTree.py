@@ -1259,7 +1259,7 @@ def polyLineMesher(z, h, yplus, density):
 def polyC1Mesher(z, h, yplus, density, splitCrit=10., dalpha=5., depth=1):
     """Generate a multiple mesh for a polyC1-curve defined by z.
     Usage: polyC1Mesher(z, h, yplus, density, splitCrit, dalpha, depth)"""
-    try: import Connector.PyTree as X; import PolyC1 as GP
+    try: import Connector.PyTree as X; from . import PolyC1 as GP
     except: raise ImportError("polyC1Mesher: requires PolyC1 and Connector.PyTree modules.")
     name = z[0]
     coord = C.getFields(Internal.__GridCoordinates__,z)[0]
