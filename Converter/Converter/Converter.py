@@ -1478,83 +1478,61 @@ def listen(s):
 #=============================================================================
 def checkFileType(fileName):
   """Find file type."""
-  import binascii as b
   import os
-  eol = "0a"
-  inria = "MeshVersionUnformatted"
-  try: file = open(fileName, 'r')
+  try: file = os.open(fileName, os.O_RDONLY)
   except: raise IOError("checkFileType: file %s not found."%fileName)
+  #header = file.read(512)  # lecture des 512 premiers octets
+  header = os.read(file, 512)
+  os.close(file)
 
-  fileSize = os.path.getsize(fileName)
-  header = file.read(512)  # lecture des 512 premiers octets
-  file.seek(0)
+  if header[1:4] == b'HDF': return 'bin_hdf'
+  if header[4:7] == b'ADF': return 'bin_adf'
+  if header[0:5] == b'#!TDV': return 'bin_tp'
+  if header[0:5] == b'TITLE' or header[0:5] == b'title' or header[0:9] == b"VARIABLES" or header[0:9] == b"variables" or header[0:8] == b"FILETYPE" or header[0:8] == b"filetype":
+    return 'fmt_tp'
+  if header.find(b"MeshVersionUnformatted") != -1: return 'bin_mesh'
+  if header.find(b"MeshVersionFormatted") != -1: return 'fmt_mesh'
+  if header.find(b"NDIME=") != -1: return 'fmt_su2'
+  if header.find(b"DONNEES GENERALES") != -1 or header.find(b"--------") != -1: return 'fmt_cedre'
+  if header[0:8] == b'CEDRE_IO': return 'bin_cedre'
+  if header.find(b"solid") == 0: return 'fmt_stl'
+  if header.find(b"v ") != -1: return 'fmt_obj'
+  if header.find(b"$MeshFormat") != -1:
+    EndMesh = header.find(b"$EndMeshFormat")
+    if EndMesh == 20: return 'fmt_gmsh'
+    elif EndMesh == 25: return 'bin_gmsh'
+  if header.find(b"ply") != -1: return 'bin_ply'
+  if header.find(b"#FIG") == 0: return 'fmt_xfig'
+  if header.find(b"<svg") != -1: return 'fmt_svg'
+  if header.find(b"PNG") == 1: return 'bin_png'
+  import binascii as b
   beader = b.b2a_hex(header)
-  eolx1 = beader.find(eol, 0)
-  eolx2 = beader.find(eol, eolx1 + 1)
-  eol1 = (eolx1 +1)/2
-  eol2 = (eolx2 +1)/2
-  file.seek(0)
+  eol = b"0a"
+  if (beader[0:8] == b"04000000" or beader[0:8] == b"00000004") and (header[16:18] == b'va' or header[16:17] == b'x' or header[16:17] == b'y' or header[16:17] == b'z' or header[16:18] == b'VA' or header[16:17] == b'X' or header[16:17] == b'Y' or header[16:17] == b'Z'): 
+    return 'bin_v3d' 
+  if (beader[0:8] == b"08000000" or beader[0:8] == b"00000008") and (header[20:22] == b'va' or header[20:21] == b'x' or header[20:21] == b'y' or header[20:21] == b'z' or header[20:22] == b'VA' or header[20:21] == b'X' or header[20:21] == b'Y' or header[20:21] == b'Z'): 
+    return 'bin_v3d' 
+  if (beader[10:12] == eol and (beader[50:52] == b"78" or beader[50:52] == b"79" or beader[50:52] == b"80" or  beader[12:14] == b"78" or   beader[12:14] == b"79" or beader[12:14] == b"80"  or beader[50:52] == b"58" or beader[50:52] == b"59" or beader[50:52] == b"60" or  beader[12:14] == b"58" or beader[12:14] == b"59" or beader[12:14] == b"60" or beader[46:52] == b"766172" or beader[46:52] == b"564152" or beader[12:18] == b"766172" or beader[12:18] == b"564152")):
+    return 'fmt_v3d' 
+  if beader.find(b"4d4d") == 0: return 'bin_3ds'
   dt = numpy.dtype('<i4')
   ieader = numpy.fromfile(fileName,dtype=dt,count=128,sep="")
-  # Overflow sur ce clacul de sizet (uniquement util pour bin_stl)
-  #ntri = numpy.frombuffer(header[80:],dtype='i4',count=1)  # format bin_stl, nombre de triangles
-  #sizet = ntri[0]*50+84  #format bin_stl 80 octets d entete/nombre de triangles/50 octets par triangles
-  sizet = 0
-
-  if header[1:4] == 'HDF':
-    fileType = 'bin_hdf'
-  elif header[4:7] == 'ADF':
-    fileType = 'bin_adf'
-  elif header[0:5] == '#!TDV':
-    fileType = 'bin_tp'
-  elif header[0:5] == 'TITLE' or header[0:5] == 'title' or header[0:9] == "VARIABLES" or header[0:9] == "variables" or header[0:8] == "FILETYPE" or header[0:8] == "filetype":
-    fileType = 'fmt_tp'
-  elif ((beader[0:8] == "04000000" or beader[0:8] == "00000004") and (header[16:18] == 'va' or  header[16:17] == 'x' or header[16:17] == 'y' or header[16:17] == 'z' or header[16:18] == 'VA' or header[16:17] == 'X' or header[16:17] == 'Y' or header[16:17] == 'Z')): 
-    fileType = 'bin_v3d' 
-  elif ((beader[0:8] == "08000000" or beader[0:8] == "00000008") and (header[20:22] == 'va' or  header[20:21] == 'x' or header[20:21] == 'y' or header[20:21] == 'z' or header[20:22] == 'VA' or header[20:21] == 'X' or header[20:21] == 'Y' or header[20:21] == 'Z')): 
-    fileType = 'bin_v3d' 
-  elif (beader[10:12] == eol and (beader[50:52] == "78" or beader[50:52] == "79" or beader[50:52] == "80" or  beader[12:14] == "78" or   beader[12:14] == "79" or beader[12:14] == "80"  or beader[50:52] == "58" or beader[50:52] == "59" or beader[50:52] == "60" or  beader[12:14] == "58" or   beader[12:14] == "59" or beader[12:14] == "60" or beader[46:52] == "766172" or beader[46:52] == "564152" or beader[12:18] == "766172" or beader[12:18] == "564152")):
-    fileType = 'fmt_v3d' 
-  elif (header.find("MeshVersionUnformatted") != -1):
-    fileType = 'bin_mesh'
-  elif (header.find("MeshVersionFormatted") != -1):
-    fileType = 'fmt_mesh'
-  elif  (header.find("$MeshFormat") != -1):
-    EndMesh=header.find("$EndMeshFormat")
-    if EndMesh == 20:
-      fileType = 'fmt_gmsh'
-    elif EndMesh == 25:
-      fileType = 'bin_gmsh'
-  elif header.find("NDIME=") != -1:
-    fileType = 'fmt_su2'
-  elif header.find("DONNEES GENERALES") != -1 or header.find("--------") != -1:
-    fileType = 'fmt_cedre'
-  elif header[0:8] == 'CEDRE_IO':
-    fileType = 'bin_cedre'
-  elif fileSize == sizet:
-    fileType = 'bin_stl'
-  elif header.find("solid") == 0:
-    fileType = 'fmt_stl'
-  elif header.find("v ") != -1:
-    fileType = 'fmt_obj'
-  elif beader.find("4d4d") == 0:
-    fileType = 'bin_3ds'
-  elif header.find("ply") != -1:
-    fileType = 'bin_ply'
-  elif header.find("#FIG") == 0:
-    fileType = 'fmt_xfig'
-  elif header.find("<svg") != -1:
-    fileType = 'fmt_svg'
-  elif header.find("PNG") == 1:
-    fileType = 'bin_png'
-  elif ieader[0] == 4:
+  if ieader[0] == 4:
       ninjnk = ieader[1] * 3 * 4   # 3 pour ni,nj,nk, 4 pour 4 octets cas 3D multibloc
       ninj   = ieader[1] * 2 * 4 # 3 pour ni,nj, 4 pour 4 octets cas 2D multibloc
       if ieader[3] == ninjnk or ieader[3] == ninj: 
-        fileType = 'bin_plot3d'
-  elif ieader[0] == 12 or ieader[0] == 8:  # cas 2D ou 3d monobloc
-        fileType = 'bin_plot3d'
-  elif eol1 != 0:
+        return 'bin_plot3d'
+  if ieader[0] == 12 or ieader[0] == 8:  # cas 2D ou 3d monobloc
+    return 'bin_plot3d'
+
+  fileSize = os.path.getsize(fileName)
+  if fileSize == sizet: return 'bin_stl'
+
+  eolx1 = beader.find(eol, 0)
+  eolx2 = beader.find(eol, eolx1 + 1)
+  eol1 = (eolx1 +1)//2
+  eol2 = (eolx2 +1)//2
+  if eol1 != 0:
       i = 0
       ligne0=[]
       ligne1=[]
@@ -1572,8 +1550,5 @@ def checkFileType(fileName):
         i += 1
       ninjnk_size = ninjnk_size + len(ligne1)
       if ninjnk_size == 2 * npi or ninjnk_size == 3 * npi:
-        fileType = 'fmt_plot3d'
-      else: 
-        fileType = 'unknown'
-  file.close()
-  return fileType 
+        return 'fmt_plot3d'
+  return 'unknown'

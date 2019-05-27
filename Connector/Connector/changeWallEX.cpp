@@ -30,19 +30,10 @@ PyObject* K_CONNECTOR::changeWallEX(PyObject* self, PyObject* args)
   PyObject *arrayEX, *arrayNodes, *arrayCenters,*firstWallCenters;//domaine a interpoler
   PyObject *projectSurfArrays; // liste des surfaces de projection : TRI
   E_Float planarTol;
-  // if (!PYPARSETUPLEF(args, "OOOOOd", "OOOOOf"
-  //                       &arrayEX, &arrayNodes, &arrayCenters, &firstWallCenters, &projectSurfArrays, &planarTol))
-  // {
-  //     return NULL;
-  // }
-#if defined E_DOUBLEREAL
-  if (!PyArg_ParseTuple(args, "OOOOOd", 
-                        &arrayEX, &arrayNodes, &arrayCenters, &firstWallCenters, &projectSurfArrays, &planarTol))
-#else
-  if (!PyArg_ParseTuple(args, "OOOOOf", 
-                        &arrayEX, &arrayNodes, &arrayCenters, &firstWallCenters, &projectSurfArrays, &planarTol))
-#endif
-   return NULL;     
+  if (!PYPARSETUPLEF(args, "OOOOOd", "OOOOOf",
+                     &arrayEX, &arrayNodes, &arrayCenters, &firstWallCenters, &projectSurfArrays, &planarTol))
+    return NULL;
+
   if (PyList_Check(firstWallCenters) == 0)
   {
     PyErr_SetString(PyExc_TypeError, 

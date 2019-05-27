@@ -25,9 +25,6 @@ c = C.initVars(c, 'roE', ROEINF)
 m = C.addVars([m,c])
 A = [m]
 
-vars = ['ViscosityMolecular']
-GAMMA=1.4; RGP = 287.053; CS = 110.4; BETAS = 0.000001458
-const = ['gamma',GAMMA,'rgp',RGP,'Cs',CS,'betas',BETAS]
-
-mu = P.computeVariables(m, vars, const)
+variables = ['ViscosityMolecular']
+mu = P.computeVariables(m, variables, gamma=1.4, rgp=287.053, Cs=110.4, betas=0.000001458)
 print(mu)

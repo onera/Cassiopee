@@ -30,18 +30,10 @@ PyObject* K_CONNECTOR::changeWall(PyObject* self, PyObject* args)
 {
   PyObject *arrayCenters, *firstWallCenters;//domaine a interpoler
   PyObject *projectSurfArrays; // liste des surfaces de projection : TRI
-  E_Float planarTol=0.; // tolerance de shift double wall dans les cas ou le 
-  // if (!PYPARSETUPLEF(args, "OOOd", "OOOf"
-  //                   &arrayCenters, &firstWallCenters, &projectSurfArrays, &planarTol))
-  //   return NULL;
-#if defined E_DOUBLEREAL
-  if (!PyArg_ParseTuple(args, "OOOd", 
-                        &arrayCenters, &firstWallCenters, &projectSurfArrays, &planarTol)) 
-#else
-  if (!PyArg_ParseTuple(args, "OOOf", 
-                        &arrayCenters, &firstWallCenters, &projectSurfArrays, &planarTol)) 
-#endif
-   return NULL;
+  E_Float planarTol; // tolerance de shift double wall dans les cas planaires
+  if (!PYPARSETUPLEF(args, "OOOd", "OOOf",
+                     &arrayCenters, &firstWallCenters, &projectSurfArrays, &planarTol))
+     return NULL;
 
   if (PyList_Check(firstWallCenters) == 0)
   {

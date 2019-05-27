@@ -1,4 +1,4 @@
-# test : importVariables (pyTree)
+# - importVariables (pyTree) -
 import Converter.PyTree as C
 import Generator.PyTree as G
 import Post.PyTree as P
@@ -31,7 +31,7 @@ t2 = P.importVariables(t1,t2)
 test.testT(t2,3)
 
 # test t1 en centres/ t2 en noeuds
-t2 = C.newPyTree(['Base']); t2[2][1][2].append(z1)
+t2 = C.newPyTree(['Base', z1])
 C._initVars(t2,'centers:cellN',0.)
 t2 = P.importVariables(t1,t2)
 test.testT(t2,4)
