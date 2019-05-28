@@ -360,7 +360,7 @@ def setDegeneratedBC():
             CTK.t = X.setDegeneratedBC(CTK.t, tol=eps, dim=ndim)
             CTK.TKTREE.updateApp()
             CTK.TXT.insert('START', 'Degenerated BCs successfully set.\n')
-        except Exception, e:
+        except Exception as e:
             Panels.displayErrors([0,str(e)], header='Error: setDegenratedBC')
             CTK.TXT.insert('START', 'Degenerated BCs failed.\n')
             CTK.TXT.insert('START', 'Error: ', 'Error')
@@ -378,7 +378,7 @@ def setDegeneratedBC():
                 CTK.t[2][nob][2][noz] = sel[c]; c += 1
             CTK.TKTREE.updateApp()    
             CTK.TXT.insert('START', 'Degenerated BCs successfully set.\n')
-        except Exception, e:
+        except Exception as e:
             Panels.displayErrors([0,str(e)], header='Error: setDegeneratedBC')
             CTK.TXT.insert('START', 'Degenerated BCs failed.\n')
             CTK.TXT.insert('START', 'Error: ', 'Error')  
@@ -421,7 +421,7 @@ def connectMatch():
                                                unitAngle=None)
             CTK.TKTREE.updateApp()
             CTK.TXT.insert('START', 'Matching BCs successfully set.\n')
-        except Exception, e:
+        except Exception as e:
             Panels.displayErrors([0,str(e)], header='Error: connectMatch')
             CTK.TXT.insert('START', 'Matching BCs failed.\n')
             CTK.TXT.insert('START', 'Error: ', 'Error')
@@ -444,7 +444,7 @@ def connectMatch():
                 CTK.t[2][nob][2][noz] = sel[c]; c += 1
             CTK.TKTREE.updateApp()    
             CTK.TXT.insert('START', 'Matching BCs successfully set.\n')
-        except Exception, e:
+        except Exception as e:
             Panels.displayErrors([0,str(e)], header='Error: connectMatch')
             CTK.TXT.insert('START', 'Matching BCs failed.\n')
             CTK.TXT.insert('START', 'Error: ', 'Error')  
@@ -480,7 +480,7 @@ def connectNearMatch():
             CTK.t = X.connectNearMatch(CTK.t, ratio=ratio, tol=eps, dim=ndim)
             CTK.TKTREE.updateApp()
             CTK.TXT.insert('START', 'n/m matching BCs successfully set.\n')
-        except Exception, e:
+        except Exception as e:
             Panels.displayErrors([0,str(e)], header='Error: connectNearMatch')
             CTK.TXT.insert('START', 'n/m matching BCs failed.\n')
             CTK.TXT.insert('START', 'Error: ', 'Error')
@@ -498,7 +498,7 @@ def connectNearMatch():
                 CTK.t[2][nob][2][noz] = sel[c]; c += 1
             CTK.TKTREE.updateApp()    
             CTK.TXT.insert('START', 'n/m matching BCs successfully set.\n')
-        except Exception, e:
+        except Exception as e:
             Panels.displayErrors([0,str(e)], header='Error: connectNearMatch')
             CTK.TXT.insert('START', 'n/m matching BCs failed.\n')
             CTK.TXT.insert('START', 'Error: ', 'Error')  
@@ -849,7 +849,7 @@ def displayFrameMenu(event=None):
 #==============================================================================
 if (__name__ == "__main__"):
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

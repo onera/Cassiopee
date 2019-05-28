@@ -303,7 +303,7 @@ class ColorControler(object):
         # determine rgb value of self.color
         hexa = self.color.lstrip('#')
         (r,g,b) = tuple(int(hexa[i:i+2], 16) for i in (0, 2 ,4))
-        # print r,g,b
+        # print(r,g,b)
         # (r,g,b) = self.winfo_rgb(self.color)
         r = float(r)/255.
         g = float(g)/255.
@@ -2422,7 +2422,7 @@ class editGraphWindow(TK.Toplevel):
 #        self.parent.graphWdwL[self.graph].updateGraph(self.zone)
     # ------------------------------------------------------------ cmd_configure
     def cmd_configure(self):
-        # print 'configure was hit'
+        # print('configure was hit')
 
         # 1/- Set size and resolution
 
@@ -2431,12 +2431,10 @@ class editGraphWindow(TK.Toplevel):
         # it will change the size of the figure in the mean time.
         # TODO : find a real a solution to this issue !!!
 #        tkwidget = self.graphInstance.canvas.get_tk_widget()
-#        print tkwidget.winfo_width(),tkwidget.winfo_height()
 #        figsizeStr = self.sizeItem['figsize'].val[1:-1]
 #        figsize = (int(figsizeStr.split(',')[0]),int(figsizeStr.split(',')[1]))
 #        self.fig.set_size_inches(figsize,forward=True)
 #        tkwidget = self.graphInstance.canvas.get_tk_widget()
-#        print tkwidget.winfo_width(),tkwidget.winfo_height()
         #
         dpi = int(self.sizeItem['dpi'].val)
         self.fig.set_dpi(dpi)
@@ -2508,7 +2506,6 @@ class editGraphWindow(TK.Toplevel):
                     #     axe.patch.set_facecolor(B.val)
                         # axe.patch.set_alpha(1.0)
                     # for axes in self.subGraph.axis :
-                    #     print type(axes)
                     #     # axes.patch.set_facecolor(B.val)
                     #     axes.set_axis_bgcolor(B.val)
                 # Update Graph
@@ -2542,7 +2539,6 @@ class editGraphWindow(TK.Toplevel):
             #                 #     axe.patch.set_facecolor(B.val)
             #                     # axe.patch.set_alpha(1.0)
             #                 # for axes in self.subGraph.axis :
-            #                 #     print type(axes)
             #                 #     # axes.patch.set_facecolor(B.val)
             #                 #     axes.set_axis_bgcolor(B.val)
             #             # Update Graph
@@ -3912,7 +3908,7 @@ class GraphTK(TK.Toplevel):
             newaxis.ind = newind
             return newaxis
         else:
-            print '''### Error : value used for 'shared' is unknown, must be in [None, 'x', 'X', 'y', 'Y'].'''
+            print('''### Error : value used for 'shared' is unknown, must be in [None, 'x', 'X', 'y', 'Y'].''')
     # ---------------------------------------------------------------- getLegend
     def getLegend(self,iCurSubGraph):
         return self.fig.getLegend(iCurSubGraph)
@@ -3991,7 +3987,7 @@ class GraphTK(TK.Toplevel):
 # Was aimed to turn off eventually the tight_layout, but seems useless ... and not working !
 #            try:
 #                self.fig.instance.tight_layout(False)
-#                print 'STOP TIGHT LAYOUT'
+#                print('STOP TIGHT LAYOUT')
 #            except AttributeError:
 #                pass
 
@@ -4073,7 +4069,7 @@ class Graph():
 # Was aimed to turn off eventually the tight_layout, but seems useless ... and not working !
 #            try:
 #                self.fig.instance.tight_layout(False)
-#                print 'STOP TIGHT LAYOUT'
+#                print('STOP TIGHT LAYOUT')
 #            except AttributeError:
 #                pass
 
@@ -4155,7 +4151,7 @@ class Graph():
             newaxis.ind = newind
             return newaxis
         else:
-            print '''### Error : value used for 'shared' is unknown, must be in [None, 'x', 'X', 'y', 'Y'].'''
+            print('''### Error: value used for 'shared' is unknown, must be in [None, 'x', 'X', 'y', 'Y'].''')
     # ---------------------------------------------------------------- getLegend
     def getLegend(self,iCurSubGraph):
         return self.fig.getLegend(iCurSubGraph)
@@ -5269,9 +5265,9 @@ class editCurvesWindow(TK.Toplevel):
         #     ### Loop on curves
         #     for ind in xrange(len(self.subGraph.curves)):
         #         lblframe.rowconfigure(ind,weight=0)
-        #         print '-> ',ind
+        #         print('-> ',ind)
         #     lblframe.rowconfigure(len(self.subGraph.curves),weight=0)
-        #     print '-> ',len(self.subGraph.curves)
+        #     print('-> ',len(self.subGraph.curves))
         #     #
         self.frame.grid_rowconfigure(0,weight=len(self.subGraph.curves)+1)
         self.frame.grid_rowconfigure(1,weight=0)
@@ -6156,29 +6152,28 @@ class editCurvesWindow(TK.Toplevel):
             deletionList = [i-1 for i in deletionList]
         self.updatelblFrameSize()
 
-        # print deletionList
-        # print '*'*80
+        # print(deletionList)
+        # print('*'*80)
         # size2delete = len(self.frame.selectionItem) - 1
         # ind = 0
         # while ind<size2delete:
-        #     print '°°° ',ind
+        #     print('°°° ',ind)
         #     select = self.frame.selectionItem[ind-nbDeletion]
-        #     print ind,' : ',select.val.get()
+        #     print(ind,' : ',select.val.get())
         #     if select.val.get():
         #         indRemove = ind -nbDeletion
         #         nbDeletion += 1
         #         del self.subGraph.curves[indRemove]
         #         self.popUpCurveLine(indRemove)
-        #         print '!!!!!!!!!!!!! YES !!!!!!!!!!!'
         #     ind += 1
-            #     print ' - ',ind
+            #     print(' - ',ind)
             #     indRemove = ind -nbDeletion
             #     nbDeletion += 1
             #     del self.subGraph.curves[indRemove]
             #     self.popUpCurveLine(indRemove)
             #     self.updatelblFrameSize()
             # else:
-            #     print ' + ',ind
+            #     print(' + ',ind)
         # self.reloadWindow()
         # Update Graph
         self.parent.graphWdwL[self.graph].updateGraph(self.zone)
@@ -6376,7 +6371,7 @@ class DesktopFrameTK(TK.Frame):
                         tmp[basename+'/'+zonename][Internal.getName(child)]=Internal.getValue(child)
                         newZoneList.append(basename+'/'+zonename)
                 except IndexError: # No GridCoorinates node in this zone
-                    # print '''gridcoord = Internal.getNodesFromType(zone,'GridCoordinates_t')[0] -----> Can not be loaded'''
+                    # print('''gridcoord = Internal.getNodesFromType(zone,'GridCoordinates_t')[0] -----> Can not be loaded''')
                     pass
 
                 # Grab FlowSolution for ZoneBC
@@ -6393,11 +6388,11 @@ class DesktopFrameTK(TK.Frame):
                                     tmp[basename+'/'+zonename][Internal.getName(var)+'@'+bcname]=Internal.getValue(var)
                                     newZoneList.append(basename+'/'+zonename)
                         except IndexError:
-                            # print '''bcdata = Internal.getNodesFromType(zoneBC,'BCData_t')[0] ------> Can not be loaded'''
+                            # print('''bcdata = Internal.getNodesFromType(zoneBC,'BCData_t')[0] ------> Can not be loaded''')
                             pass
 
                 except IndexError: # No zoneBC in this zone
-                    # print '''zoneBC = Internal.getNodesFromType(zone,'ZoneBC_t')[0] -----> Can not be loaded'''
+                    # print('''zoneBC = Internal.getNodesFromType(zone,'ZoneBC_t')[0] -----> Can not be loaded''')
                     pass
                 # Grab FlowSolution (the rest of them)
                 for flowsolution in Internal.getNodesFromType1(zone,'FlowSolution_t'):
@@ -6442,7 +6437,7 @@ class DesktopFrameTK(TK.Frame):
                             self.data[basename+'/'+zonename]={}
                         self.data[basename+'/'+zonename][Internal.getName(child)]=Internal.getValue(child)
                 except IndexError: # No GridCoordinates node in this zone
-                    # print '''gridcoord = Internal.getNodesFromType(zone,'GridCoordinates_t')[0] -----> Can not be loaded'''
+                    # print('''gridcoord = Internal.getNodesFromType(zone,'GridCoordinates_t')[0] -----> Can not be loaded''')
                     pass
 
                 # Grab FlowSolution for ZoneBC
@@ -6458,11 +6453,11 @@ class DesktopFrameTK(TK.Frame):
                                         self.data[basename+'/'+zonename]={}
                                     self.data[basename+'/'+zonename][Internal.getName(var)+'@'+bcname]=Internal.getValue(var)
                         except IndexError:
-                            # print '''bcdata = Internal.getNodesFromType(zoneBC,'BCData_t')[0] ------> Can not be loaded'''
+                            # print('''bcdata = Internal.getNodesFromType(zoneBC,'BCData_t')[0] ------> Can not be loaded''')
                             pass
 
                 except IndexError: # No zoneBC in this zone
-                    # print '''zoneBC = Internal.getNodesFromType(zone,'ZoneBC_t')[0] -----> Can not be loaded'''
+                    # print('''zoneBC = Internal.getNodesFromType(zone,'ZoneBC_t')[0] -----> Can not be loaded''')
                     pass
                 # Grab FlowSolution (the rest of them)
                 for flowsolution in Internal.getNodesFromType1(zone,'FlowSolution_t'):
@@ -6477,7 +6472,7 @@ class DesktopFrameTK(TK.Frame):
         if zoneName in d:
             self.data[zoneName]=d[zoneName]
         else:
-            print '''### Can not find zone %s in submitted data.'''%newZoneName
+            print('''### Can not find zone %s in submitted data.'''%newZoneName)
     # ------------------------------------------------------- deleteZoneFromData
     def deleteZoneFromData(self,zoneName,oldBaseName=""):
         for k in self.data:
@@ -6549,7 +6544,7 @@ class DesktopFrameTK(TK.Frame):
         self.updateAllGraph()
 #    # ------------------------------------------------------------------ setData
 #    def setData(self,data):
-#        print "self data..."
+#        print("self data...")
 #        self.data = {}
 #        if isinstance(data,list):
 #            # set data according to a tree
@@ -6557,16 +6552,16 @@ class DesktopFrameTK(TK.Frame):
 #        elif isinstance(data,dict):
 #            # set data according to a dict data
 #            self.setDataWithDict(data)
-#        print '-'*50
+#        print('-'*50)
 #        for k in self.data.keys():
-#            print k
+#            print(k)
 #            for kk in self.data[k].keys():
-#                print '-> ',kk
-#        print '-'*50
+#                print('-> ',kk)
+#        print('-'*50)
 #        if self.editCurveWdw  is not None:
-#            print '/'*50
+#            print('/'*50)
 #            self.editCurveWdw.reloadWindow()
-#            print '='*50
+#            print('='*50)
     # ---------------------------------------------------------- setDataWithDict
     def setDataWithDict(self,d):
         tmp = {}
@@ -6604,7 +6599,7 @@ class DesktopFrameTK(TK.Frame):
                             tmp[basename+'/'+zonename]={}
                         tmp[basename+'/'+zonename][Internal.getName(child)]=Internal.getValue(child)
                 except IndexError: # No GridCoordinates node in this zone
-                    # print '''gridcoord = Internal.getNodesFromType(zone,'GridCoordinates_t')[0] -----> Can not be loaded'''
+                    # print('''gridcoord = Internal.getNodesFromType(zone,'GridCoordinates_t')[0] -----> Can not be loaded''')
                     pass
 
                 # Grab FlowSolution for ZoneBC
@@ -6620,11 +6615,11 @@ class DesktopFrameTK(TK.Frame):
                                         tmp[basename+'/'+zonename]={}
                                     tmp[basename+'/'+zonename][Internal.getName(var)+'@'+bcname]=Internal.getValue(var)
                         except IndexError:
-                            # print '''bcdata = Internal.getNodesFromType(zoneBC,'BCData_t')[0] ------> Can not be loaded'''
+                            # print('''bcdata = Internal.getNodesFromType(zoneBC,'BCData_t')[0] ------> Can not be loaded''')
                             pass
 
                 except IndexError: # No zoneBC in this zone
-                    # print '''zoneBC = Internal.getNodesFromType(zone,'ZoneBC_t')[0] -----> Can not be loaded'''
+                    # print('''zoneBC = Internal.getNodesFromType(zone,'ZoneBC_t')[0] -----> Can not be loaded''')
                     pass
                 # Grab FlowSolution (the rest of them)
                 for flowsolution in Internal.getNodesFromType1(zone,'FlowSolution_t'):
@@ -6950,7 +6945,7 @@ class DesktopFrameTK(TK.Frame):
                 tkMessageBox.showerror("Saving configuration","Failed because %s does not exist"%directory)
                 return
             else:
-                print '''### Error : Saving configuration failed because %s does not exist'''%directory
+                print('''### Error: Saving configuration failed because %s does not exist'''%directory)
                 return
         #
         ## 2/- Create the dictionary to save
@@ -7058,7 +7053,7 @@ class DesktopFrameTK(TK.Frame):
                 tkMessageBox.showerror("Loading configuration","Failed because %s does not exist"%filename)
                 return
             else:
-                print '''### Error: Loading configuration failed because %s does not exist'''%filename
+                print('''### Error: Loading configuration failed because %s does not exist'''%filename)
                 return
         #
         ## 2/- Load data
@@ -7066,7 +7061,7 @@ class DesktopFrameTK(TK.Frame):
 #        cwd = os.getcwd()
 #        os.chdir(os.path.split(filename)[0])
 #        modulename = os.path.splitext(os.path.split(filename)[1])[0]
-#        print modulename
+#        print(modulename)
 #        loadedModule = __import__(modulename)
 #        os.chdir(cwd)
 #        loadedModule.loadData(self)
@@ -7163,7 +7158,7 @@ class DesktopFrameTK(TK.Frame):
             self.editCurveWdw.zone  = self.position.val
             self.editCurveWdw.updateBar(self)
         # else:
-        #     print '''no, shouldn't we do something ?'''
+        #     print('''no, shouldn't we do something ?''')
             # self.editCurveWdw.initialize(self)
         #
         # We can not merge the two if statements since initialize may set self.editCurveWdw to None
@@ -7205,7 +7200,7 @@ class DesktopFrameTK(TK.Frame):
             if val<len(self.graphWdwL):
                 # Save active graph
                 self.graphWdwL[val].save(filename)
-                print 'Wrote file %s.'%filename
+                print('Wrote file %s.'%filename)
                 return True
         except ValueError: return False
 
@@ -7317,7 +7312,7 @@ class DesktopFrameTK(TK.Frame):
                 self.data = self.queue.get(0)
                 # Check contents of message and do what it says
                 # As a test, we simply print it
-                print "From client thread, msg = "
+                print("From client thread, msg = ")
                 self.updateAllGraph()
             except Queue.Empty:
                 pass
@@ -7471,7 +7466,7 @@ class Desktop():
                             self.data[basename+'/'+zonename]={}
                         self.data[basename+'/'+zonename][Internal.getName(child)]=Internal.getValue(child)
                 except IndexError: # No GridCoordinates node in this zone
-                    # print '''gridcoord = Internal.getNodesFromType(zone,'GridCoordinates_t')[0] -----> Can not be loaded'''
+                    # print('''gridcoord = Internal.getNodesFromType(zone,'GridCoordinates_t')[0] -----> Can not be loaded''')
                     pass
 
                 # Grab FlowSolution for ZoneBC
@@ -7487,11 +7482,11 @@ class Desktop():
                                         self.data[basename+'/'+zonename]={}
                                     self.data[basename+'/'+zonename][Internal.getName(var)+'@'+bcname]=Internal.getValue(var)
                         except IndexError:
-                            # print '''bcdata = Internal.getNodesFromType(zoneBC,'BCData_t')[0] ------> Can not be loaded'''
+                            # print('''bcdata = Internal.getNodesFromType(zoneBC,'BCData_t')[0] ------> Can not be loaded''')
                             pass
 
                 except IndexError: # No zoneBC in this zone
-                    # print '''zoneBC = Internal.getNodesFromType(zone,'ZoneBC_t')[0] -----> Can not be loaded'''
+                    # print('''zoneBC = Internal.getNodesFromType(zone,'ZoneBC_t')[0] -----> Can not be loaded''')
                     pass
                 # Grab FlowSolution (the rest of them)
                 for flowsolution in Internal.getNodesFromType1(zone,'FlowSolution_t'):
@@ -7506,7 +7501,7 @@ class Desktop():
         if zoneName in d:
             self.data[zoneName]=d[zoneName]
         else:
-            print '''### Can not find zone %s in submitted data.'''%newZoneName
+            print('''### Can not find zone %s in submitted data.'''%newZoneName)
     # ------------------------------------------------------- deleteZoneFromData
     def deleteZoneFromData(self,zoneName,oldBaseName=""):
         """
@@ -7574,7 +7569,7 @@ class Desktop():
                         tmp[basename+'/'+zonename][Internal.getName(child)]=Internal.getValue(child)
                         newZoneList.append(basename+'/'+zonename)
                 except IndexError: # No GridCoorinates node in this zone
-                    # print '''gridcoord = Internal.getNodesFromType(zone,'GridCoordinates_t')[0] -----> Can not be loaded'''
+                    # print('''gridcoord = Internal.getNodesFromType(zone,'GridCoordinates_t')[0] -----> Can not be loaded''')
                     pass
 
                 # Grab FlowSolution for ZoneBC
@@ -7591,11 +7586,11 @@ class Desktop():
                                     tmp[basename+'/'+zonename][Internal.getName(var)+'@'+bcname]=Internal.getValue(var)
                                     newZoneList.append(basename+'/'+zonename)
                         except IndexError:
-                            # print '''bcdata = Internal.getNodesFromType(zoneBC,'BCData_t')[0] ------> Can not be loaded'''
+                            # print('''bcdata = Internal.getNodesFromType(zoneBC,'BCData_t')[0] ------> Can not be loaded''')
                             pass
 
                 except IndexError: # No zoneBC in this zone
-                    # print '''zoneBC = Internal.getNodesFromType(zone,'ZoneBC_t')[0] -----> Can not be loaded'''
+                    # print('''zoneBC = Internal.getNodesFromType(zone,'ZoneBC_t')[0] -----> Can not be loaded''')
                     pass
                 # Grab FlowSolution (the rest of them)
                 for flowsolution in Internal.getNodesFromType1(zone,'FlowSolution_t'):
@@ -7752,7 +7747,7 @@ class Desktop():
                             tmp[basename+'/'+zonename]={}
                         tmp[basename+'/'+zonename][Internal.getName(child)]=Internal.getValue(child)
                 except IndexError: # No GridCoorinates node in this zone
-                    # print '''gridcoord = Internal.getNodesFromType(zone,'GridCoordinates_t')[0] -----> Can not be loaded'''
+                    # print('''gridcoord = Internal.getNodesFromType(zone,'GridCoordinates_t')[0] -----> Can not be loaded''')
                     pass
 
                 # Grab FlowSolution for ZoneBC
@@ -7768,11 +7763,11 @@ class Desktop():
                                         tmp[basename+'/'+zonename]={}
                                     tmp[basename+'/'+zonename][Internal.getName(var)+'@'+bcname]=Internal.getValue(var)
                         except IndexError:
-                            # print '''bcdata = Internal.getNodesFromType(zoneBC,'BCData_t')[0] ------> Can not be loaded'''
+                            # print('''bcdata = Internal.getNodesFromType(zoneBC,'BCData_t')[0] ------> Can not be loaded''')
                             pass
 
                 except IndexError: # No zoneBC in this zone
-                    # print '''zoneBC = Internal.getNodesFromType(zone,'ZoneBC_t')[0] -----> Can not be loaded'''
+                    # print('''zoneBC = Internal.getNodesFromType(zone,'ZoneBC_t')[0] -----> Can not be loaded''')
                     pass
                 # Grab FlowSolution (the rest of them)
                 for flowsolution in Internal.getNodesFromType1(zone,'FlowSolution_t'):
@@ -7814,7 +7809,7 @@ class Desktop():
         #
         directory = os.path.split(filename)[0]
         if not os.path.isdir(directory):
-            print '''### Error: Saving configuration failed because %s does not exist'''%directory
+            print('''### Error: Saving configuration failed because %s does not exist'''%directory)
             return
         #
         ## 2/- Create the dictionary to save
@@ -7895,9 +7890,9 @@ class Desktop():
     def confLoad(self,filename):
         #
         ## 1/- Check that the file exists
-        #
+        #)
         if not os.path.isfile(filename):
-            print '''### Error: Loading configuration failed because %s does not exist'''%filename
+            print('''### Error: Loading configuration failed because %s does not exist'''%filename)
             return
         #
         ## 2/- Load data
@@ -7905,7 +7900,7 @@ class Desktop():
 #        cwd = os.getcwd()
 #        os.chdir(os.path.split(filename)[0])
 #        modulename = os.path.splitext(os.path.split(filename)[1])[0]
-#        print modulename
+#        print(modulename)
 #        loadedModule = __import__(modulename)
 #        os.chdir(cwd)
 #        loadedModule.loadData(self)
@@ -8003,7 +7998,7 @@ class Desktop():
                 self.data = self.queue.get(0)
                 # Check contents of message and do what it says
                 # As a test, we simply print it
-                print "From client thread, msg = "
+                print("From client thread, msg = ")
                 self.updateAllGraph()
             except Queue.Empty:
                 pass
@@ -8050,7 +8045,7 @@ class MatplotlibFigure():
         self.nc = val[1]
         # Figure
         self.instance = plt.figure(facecolor="white",figsize=self.figsize,dpi=self.dpi)
-        # print '''##### Fig instance = ''',self.instance
+        # print('''##### Fig instance = ''',self.instance)
         # Ax
         self.subGraph = {}
         for il in xrange(self.nl):
@@ -8165,8 +8160,8 @@ class MatplotlibFigure():
                             if c.marker_sampling_end=='':
                                 markingSampling=(c.marker_sampling_start,c.marker_sampling_step)
                             else:
-                                print '''Could not manage to make the 'slice' runs, therefore, it will be necessary to
-                                filter data manually ...\n Note that for the moment, the slice becomes : (start,step)'''
+                                print('''Could not manage to make the 'slice' runs, therefore, it will be necessary to
+                                filter data manually ...\n Note that for the moment, the slice becomes: (start,step)''')
         #                        markingSampling = slice(c.marker_sampling_start,c.marker_sampling_end,c.marker_sampling_step)
                                 markingSampling=(c.marker_sampling_start,c.marker_sampling_step)
                     if c.visible:
@@ -8174,13 +8169,12 @@ class MatplotlibFigure():
                             for zone in c.zone:
                                 try:
                                     if self.parent.data[zone][c.varx].shape != self.parent.data[zone][c.vary].shape:
-                #                        print '''### Message : can not plot %s vs %s since their shape are different.'''%(c.varx,c.vary)
+                #                        print('''### Message : can not plot %s vs %s since their shape are different.'''%(c.varx,c.vary))
                                         continue
                                 except AttributeError:
                                     try:
                                         if len(self.parent.data[zone][c.varx])!=len(self.parent.data[zone][c.vary]):
-                                            # print '#~'*50
-                                            # print len(self.parent.data[zone][c.varx]),len(self.parent.data[zone][c.vary])
+                                            # print('#~'*50)
                                             continue
                                     except TypeError:
                                         continue
@@ -9214,7 +9208,7 @@ class Movie(object):
 
     def activate(self):
         width, height = self.fig.canvas.get_width_height()
-        print "width = ",width,", height = ",height
+        print("width = ",width,", height = ",height)
 
 ############################################################################################################
 #BERTRAND :
@@ -9238,7 +9232,7 @@ class Movie(object):
 
 #    def exit(self, type, value, traceback):
     def exit(self):
-        print "Finalize(exit) Movie = ",self.filename
+        print("Finalize(exit) Movie = ",self.filename)
         self.p.communicate()
 # ==============================================================================
 # ==============================================================================
@@ -9262,7 +9256,7 @@ class Movie(object):
 
 ##    def exit(self, type, value, traceback):
 #    def exit(self):
-#        print "Finalize(exit) Movie = ",self.filename
+#        print("Finalize(exit) Movie = ",self.filename)
 #        self.moviewritter.finish()
 
 # ==============================================================================
@@ -9408,7 +9402,7 @@ def main(data):
     desktop.setData(data)
     desktop.mainloop()
     desktop.quit()
-    print 'end of programm'
+    print('end of programm')
 
 # ==============================================================================
 # ==============================================================================
@@ -9425,18 +9419,18 @@ class GraphEditor():
 
 
     def __enter__(self,display):
-        print "Enter"
+        print("Enter")
         return self.desktop
 
 
     def __exit__(self, type, value, traceback):
-        print "Exit"
+        print("Exit")
         for graph in self.desktop.graphWdwL:
             graph.quit()
 
 
     def close(self):
-        print "Close"
+        print("Close")
         for graph in self.desktop.graphWdwL:
             graph.quit()
 

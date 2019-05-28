@@ -85,7 +85,7 @@ def withOctree(a, offset, density):
     # iteration d'adaptation
     nit = 0
     while nit < 10:
-        print 'iterating: ', nit
+        print('iterating: %d...'%nit)
 
         o = C.node2Center(o, 'TurbulentDistance')
         o = G.getVolumeMap(o)

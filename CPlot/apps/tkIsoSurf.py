@@ -72,7 +72,7 @@ def extractIsoSurf(event=None):
     try:
         iso = P.isoSurfMC(z, field, value)
         isos += iso
-    except Exception, e:
+    except Exception as e:
         Panels.displayErrors([0,str(e)], header='Error: isoSurf')
     if isos == []:
         CTK.TXT.insert('START', 'isoSurf failed.\n')
@@ -222,7 +222,7 @@ def displayFrameMenu(event=None):
 #==============================================================================
 if (__name__ == "__main__"):
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

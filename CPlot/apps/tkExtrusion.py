@@ -78,7 +78,7 @@ def revolve():
         try:
             z = D.axisym(z, (xo,yo,zo), (ntx,nty,ntz), teta, Nteta, rmod)
             CTK.replace(CTK.t, nob, noz, z)
-        except Exception, e: 
+        except Exception as e: 
             fail = True; errors += [0,str(e)]
 
     if not fail:
@@ -173,7 +173,7 @@ def extrudeWCurve(mode=0):
             if mode == 0: z = D.lineDrive(z, curve)
             else: z = D.orthoDrive(z, curve)
             CTK.replace(CTK.t, nob, noz, z)
-        except Exception, e: 
+        except Exception as e: 
             fail = True; errors += [0,str(e)]
 
     if not fail:
@@ -227,7 +227,7 @@ def addLayers():
     fail = False; errors = []
     try:
         zlist = G.addNormalLayers(zlist, d, niter=smooth)
-    except Exception, e: 
+    except Exception as e: 
         fail = True; errors += [0,str(e)]
         
     for z in zlist: z[0] = C.getZoneName(z[0]) # unique name
@@ -270,7 +270,7 @@ def addkplanes():
         #try:
         z = T.addkplane(CTK.t[2][nob][2][noz], N=N)
         CTK.replace(CTK.t, nob, noz, z)
-        #except Exception, e: fail = True
+        #except Exception as e: fail = True
     if not fail: CTK.TXT.insert('START', 'K planes added.\n')
     else: 
         CTK.TXT.insert('START', 'add K planes failed.\n')
@@ -434,7 +434,7 @@ def displayFrameMenu(event=None):
 #==============================================================================
 if (__name__ == "__main__"):
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

@@ -59,7 +59,7 @@ def expandLayer():
         try:
             z = G.expandLayer(z, level=level)
             CTK.replace(CTK.t, nob, noz, z)
-        except Exception, e:
+        except Exception as e:
             fail = True; errors += [0,str(e)]
 
     #C._fillMissingVariables(CTK.t)
@@ -108,7 +108,7 @@ def octree2Struct():
         try:
             zlist = G.octree2Struct(z, vmin=vmin, ext=ext, optimized=optimized, 
                                     merged=merged, AMR=AMR)    
-        except Exception, e: 
+        except Exception as e: 
             fail = True; errors += [0,str(e)]
             
     CTK.t = C.addBase2PyTree(CTK.t, 'CARTESIAN')
@@ -195,7 +195,7 @@ def bodyFit():
         try:
             z = G.snapFront(z, surfaces, optimized=2)
             CTK.t[2][nob][2][noz] = z
-        except Exception, e:
+        except Exception as e:
             fail = True; errors += [0,str(e)]
             
     #C._fillMissingVariables(CTK.t)
@@ -347,8 +347,8 @@ def hexaOctree():
         o = G.octree(surfs, snears, dfar=dfar, balancing=balancing)
         nob = C.getNobOfBase(b[0], CTK.t)
         CTK.add(CTK.t, nob, -1, o)
-    except Exception, e:
-        fail = True; print 'Error: octree: %s.'%str(e)
+    except Exception as e:
+        fail = True; print('Error: octree: %s.'%str(e))
     #C._fillMissingVariables(CTK.t)
     if fail == False:
         CTK.TXT.insert('START', 'Hexa octree computed.\n')
@@ -528,7 +528,7 @@ def displayFrameMenu(event=None):
 #==============================================================================
 if (__name__ == "__main__"):
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

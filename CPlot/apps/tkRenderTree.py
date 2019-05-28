@@ -7,7 +7,6 @@ import Converter.PyTree as C
 import Converter.Internal as Internal
 import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
-import tkFileDialog
 
 # local widgets list
 WIDGETS = {}; VARS = []
@@ -68,6 +67,8 @@ def addTextureFile(event=None):
     
 #==============================================================================
 def chooseFile():
+    try: import tkFileDialog
+    except: import tkinter.filedialog as tkFileDialog
     import os.path
     init = VARS[0].get()
     init = init.split(';')[0]

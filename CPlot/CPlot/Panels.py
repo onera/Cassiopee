@@ -221,24 +221,24 @@ ClbQghfEYAY1uEEOdtCDHwRhCEUIloAAADs=
     textWidget.insert(TK.END, myText)
 
     myText = " Converter: libhdf5: "
-    if (buildInfo.has_key('hdf') and buildInfo['hdf'] != "None"):
+    if 'hdf' in buildInfo and buildInfo['hdf'] != "None":
         myText += 'present.\n'
     else: myText += 'not present (HDF format unavailable).\n'
     textWidget.insert(TK.END, myText)
     
     myText = " CPlot: png: "
-    if (buildInfo.has_key('png') and buildInfo['png'] != "None"):
+    if 'png' in buildInfo and buildInfo['png'] != "None":
         myText += 'present.\n'
     else: myText += 'not present (png export unavailable).\n'
     textWidget.insert(TK.END, myText)
     myText = " CPlot: mpeg: "
-    if (buildInfo.has_key('mpeg') and buildInfo['mpeg'] != "None"):
+    if 'mpeg' in buildInfo and buildInfo['mpeg'] != "None":
         myText += 'present.\n'
     else: myText += 'not present (mpeg export unavailable).\n'
     textWidget.insert(TK.END, myText)
 
     myText = " Connector: libmpi: "
-    if (buildInfo.has_key('mpi') and buildInfo['mpi'] != "None"):
+    if 'mpi' in buildInfo and buildInfo['mpi'] != "None":
         myText += 'present.\n'
     else: myText += 'not present (direct MPI communications unavailable).\n'
     textWidget.insert(TK.END, myText)
@@ -511,7 +511,7 @@ def sendMail(event=None):
     mailData['messageText'] = txt.encode('utf-8')
     mailData['bugReport'] = False
     CTK.PREFS['mailMe'] = mailData['mailMe']
-    if CTK.PREFS.has_key('mailFriends'):
+    if 'mailFriends' in CTK.PREFS:
         CTK.PREFS['mailFriends1'] = CTK.PREFS['mailFriends']
     CTK.PREFS['mailFriends'] = mailData['mailFriends']
     CTK.PREFS['mailTitle'] = mailData['titleText']
@@ -538,11 +538,11 @@ def sendBug(event=None):
 
 def openMailWindow():
     global mailData
-    if mailData.has_key('mailWindow'):
+    if 'mailWindow' in mailData:
         try: mailData['mailWindow'].withdraw()
         except: mailData.pop('mailWindow')
     
-    if not mailData.has_key('mailWindow'):
+    if 'mailWindow' not in mailData:
         MAILWINDOW = TK.Toplevel()
         mailData['mailWindow'] = MAILWINDOW
         MAILWINDOW.columnconfigure(0, weight=0)
@@ -565,20 +565,20 @@ def openMailWindow():
         B = TK.Text(MAILWINDOW, width=40, height=1, background='White')
         BB = CTK.infoBulle(parent=B, text='Your email-adress: toto@tata.com')
         B.grid(row=0, column=1, columnspan=2, sticky=TK.EW)
-        if CTK.PREFS.has_key('mailMe'): B.insert(TK.END, CTK.PREFS['mailMe'])
+        if 'mailMe' in CTK.PREFS: B.insert(TK.END, CTK.PREFS['mailMe'])
         mailData['meWidget'] = B
         B = TK.Label(MAILWINDOW, text="To:")
         B.grid(row=1, column=0, sticky=TK.EW)
         B = TK.Text(MAILWINDOW, width=40, height=2, background='White')
         BB = CTK.infoBulle(parent=B, text='Destinaries email-adress: toto@tata.com; titi@tata.com\nCassiopee support: cassiopee@onera.fr')
         B.grid(row=1, column=1, columnspan=2, sticky=TK.EW)
-        if CTK.PREFS.has_key('mailFriends'): B.insert(TK.END, CTK.PREFS['mailFriends'])
+        if 'mailFriends' in CTK.PREFS: B.insert(TK.END, CTK.PREFS['mailFriends'])
         mailData['friendWidget'] = B
         B = TK.Label(MAILWINDOW, text="Title:")
         B.grid(row=2, column=0, sticky=TK.EW)
         B = TK.Text(MAILWINDOW, width=40, height=1, background='White')
         B.grid(row=2, column=1, columnspan=2, sticky=TK.EW)
-        if CTK.PREFS.has_key('mailTitle'): B.insert(TK.END, CTK.PREFS['mailTitle'])
+        if 'mailTitle' in CTK.PREFS: B.insert(TK.END, CTK.PREFS['mailTitle'])
         mailData['titleWidget'] = B
         B = TK.Label(MAILWINDOW, text="Message:")
         B.grid(row=3, column=0, sticky=TK.EW)
@@ -722,7 +722,8 @@ def writeBlog(event=None):
     #docData['docWindow'].destroy()
 
 def openDocFile(event=None):
-    import tkFileDialog
+    try: import tkFileDialog
+    except: import tkinter.filedialog as tkFileDialog
     initFile = docData['docWidget'].get("1.0", TK.END)
     initFile = ''
     file = tkFileDialog.asksaveasfilename(
@@ -735,10 +736,10 @@ def openDocFile(event=None):
 
 def openDocWindow():
     global docData
-    if docData.has_key('docWindow'):
+    if 'docWindow' in docData:
         try: docData['docWindow'].withdraw()
         except: docData.pop('docWindow')
-    if not docData.has_key('docWindow'):
+    if 'docWindow' not in docData:
         DOCWINDOW = TK.Toplevel()
         docData['docWindow'] = DOCWINDOW
         DOCWINDOW.columnconfigure(0, weight=0)
@@ -760,14 +761,14 @@ def openDocWindow():
         B = TK.Text(DOCWINDOW, width=40, height=1, background='White')
         B.grid(row=0, column=1, columnspan=2, sticky=TK.EW)
         BB = CTK.infoBulle(parent=B, text='Put here your document name (mydoc.odt).')
-        if CTK.PREFS.has_key('docName'): B.insert(TK.END, CTK.PREFS['docName'])
+        if 'docName' in CTK.PREFS: B.insert(TK.END, CTK.PREFS['docName'])
         docData['docWidget'] = B
         B = TK.Label(DOCWINDOW, text="Text:")
         B.grid(row=1, column=0, sticky=TK.EW)
         B = TK.Text(DOCWINDOW, width=40, height=5, background='White')
         B.grid(row=1, column=1, columnspan=2, sticky=TK.EW)
         docData['textWidget'] = B
-        if CTK.PREFS.has_key('docText'):
+        if 'docText' in CTK.PREFS:
             s = CTK.PREFS['docText'].decode('base64', 'strict')
             B.insert(TK.END, s)
         B = TTK.Button(DOCWINDOW, text="Cancel", command=cancelDocument)
@@ -1121,9 +1122,9 @@ def openRenderPanel():
 #====================================================================================
 # Load panel: panel for partial load of files
 #====================================================================================
-
 def openLoadFileDialog(event=None):
-    import tkFileDialog
+    try: import tkFileDialog
+    except: import tkinter.filedialog as tkFileDialog
     files = tkFileDialog.askopenfilenames(
         filetypes=[('CGNS files', '*.cgns'), ('CGNS files', '*.adf'), ('CGNS files', '*.hdf'), ('CGNS/ADF files', '*.adf'), ('CGNS/HDF files', '*.hdf'), ('All files', '*.*')], initialfile=CTK.FILE, multiple=0)
     if files == '' or files is None or files == (): # user cancel
@@ -1195,7 +1196,7 @@ def loadVars(event=None):
     CTK.t = CTK.upgradeTree(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
-    if CTK.TKMODULES.has_key('tkContainers'): CTK.TKMODULES['tkContainers'].updateApp()
+    if 'tkContainers' in CTK.TKMODULES: CTK.TKMODULES['tkContainers'].updateApp()
     if CTK.TKPLOTXY is not None: CTK.TKPLOTXY.updateApp()
     CTK.display(CTK.t)
 

@@ -852,7 +852,8 @@ def getThreads():
 # Exporte les resultats de la valid dans un fichier texte
 #==============================================================================
 def export2Text():
-    import tkFileDialog
+    try: import tkFileDialog
+    except: import tkinter.filedialog as tkFileDialog 
     ret = tkFileDialog.asksaveasfilename()
     if ret == '' or ret == None or ret == (): # user cancel
         return

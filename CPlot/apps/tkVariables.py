@@ -2,7 +2,6 @@
 try: import Tkinter as TK
 except: import tkinter as TK
 import CPlot.Ttk as TTK
-import tkFileDialog
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
@@ -238,6 +237,8 @@ def node2CenterVar():
 #==============================================================================
 def chooseImportFile(event=None):
     import sys
+    try: import tkFileDialog
+    except: import tkinter.tkfiledialog as tkFileDialog 
     init = VARS[4].get()
     init = init.split(';')[0]
     files = tkFileDialog.askopenfilenames(
@@ -363,7 +364,7 @@ def computeVariables():
                                                rgp=rgp, Cs=Cs, mus=muInf,
                                                Ts=TInf)
                 CTK.TXT.insert('START', 'Variable %s computed.\n'%varloc)
-            except Exception, e:
+            except Exception as e:
                 Panels.displayErrors([0,str(e)], header='Error: computeExtraVariables')
                 CTK.TXT.insert('START', 'Computation of variable %s failed.\n'%varloc)
                 CTK.TXT.insert('START', 'Error: ', 'Error')
@@ -377,7 +378,7 @@ def computeVariables():
                         P.computeExtraVariable(CTK.t[2][nob][2][noz], varloc,
                                                gamma=gamma, rgp=rgp, Cs=Cs,
                                                mus=muInf, Ts=TInf)
-                except Exception, e:
+                except Exception as e:
                     fail = True; errors += [0,str(e)]
 
             if not fail:
@@ -395,7 +396,7 @@ def computeVariables():
                                            gamma=gamma, rgp=rgp, Cs=Cs,
                                            mus=muInf, Ts=TInf)
                 CTK.TXT.insert('START', 'Variable %s computed.\n'%varloc)
-            except Exception, e:
+            except Exception as e:
                 Panels.displayErrors([0,str(e)], header='Error: computeVariables')
                 CTK.TXT.insert('START', 'Computation of variable %s failed.\n'%varloc)
                 CTK.TXT.insert('START', 'Error: ', 'Error')
@@ -409,7 +410,7 @@ def computeVariables():
                         P.computeVariables(CTK.t[2][nob][2][noz], [varloc],
                                            gamma=gamma, rgp=rgp, Cs=Cs,
                                            mus=muInf, Ts=TInf)
-                except Exception, e:
+                except Exception as e:
                     fail = True; errors += [0,str(e)]
 
             if not fail: 
@@ -451,7 +452,7 @@ def computeGrad():
     varname = VARS[2].get()
     CTK.saveTree()
     try: CTK.t = P.computeGrad(CTK.t, varname)
-    except Exception, e:
+    except Exception as e:
         Panels.displayErrors([0,str(e)], header='Error: computeGrad')
         CTK.TXT.insert('START', 'Gradient computation failed.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
@@ -466,7 +467,7 @@ def computeNormGrad():
     varname = VARS[2].get()
     CTK.saveTree()
     try: CTK.t = P.computeNormGrad(CTK.t, varname)
-    except Exception, e:
+    except Exception as e:
         Panels.displayErrors([0,str(e)], header='Error: computeNormGrad')
         CTK.TXT.insert('START', 'Gradient\'s norm computation failed.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
@@ -483,7 +484,7 @@ def computeNormCurl():
     vars = vars.split(';')
     CTK.saveTree()
     try: CTK.t = P.computeNormCurl(CTK.t, vars)
-    except Exception, e:
+    except Exception as e:
         Panels.displayErrors([0,str(e)], header='Error: computeNormCurl')
         CTK.TXT.insert('START', 'Curl\'s norm computation failed.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
@@ -500,7 +501,7 @@ def computeCurl():
     vars = vars.split(';')
     CTK.saveTree()
     try: CTK.t = P.computeCurl(CTK.t, vars)
-    except Exception, e:
+    except Exception as e:
         Panels.displayErrors([0,str(e)], header='Error: computeCurl')
         CTK.TXT.insert('START', 'Curl computation failed.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
@@ -832,7 +833,7 @@ def displayFrameMenu(event=None):
 #==============================================================================
 if (__name__ == "__main__"):
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

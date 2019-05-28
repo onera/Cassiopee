@@ -69,7 +69,7 @@ def extractMesh():
     fail = False
     try:
         meshes = P.extractMesh(sources, meshes, order=2, tol=1.e-6) 
-    except Exception, e:
+    except Exception as e:
         fail = True
         Panels.displayErrors([0,str(e)], header='Error: extractMesh')
     # Remise dans l'arbre
@@ -150,7 +150,7 @@ def displayFrameMenu(event=None):
 #==============================================================================
 if (__name__ == "__main__"):
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

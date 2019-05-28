@@ -71,7 +71,7 @@ def reorder():
                 #else: a = T.reorder(z, (-1,2,3), topTree=CTK.t)
                 T._reorder(z, (i1,j1,k1), topTree=CTK.t)
             CTK.replace(CTK.t, nob, noz, z)
-        except Exception, e:
+        except Exception as e:
             fail = True; errors += [0,str(e)]
             
     if not fail:
@@ -102,7 +102,7 @@ def reorderAll():
         CTK.TKTREE.updateApp()
         CTK.display(CTK.t)
         CTK.TXT.insert('START', 'All blocks reordered.\n')
-    except Exception, e:
+    except Exception as e:
         Panels.displayErrors([0,str(e)], header='Error: reorderAll')
         CTK.TXT.insert('START', 'Reorder all fails.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error')
@@ -132,7 +132,7 @@ def makeDirect():
         try:
             a = T.makeDirect(z)
             CTK.replace(CTK.t, nob, noz, a)
-        except Exception, e:
+        except Exception as e:
             fail = True; errors += [0,str(e)]
             
     if not fail:
@@ -214,7 +214,7 @@ def displayFrameMenu(event=None):
 #==============================================================================
 if (__name__ == "__main__"):
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(FILE)

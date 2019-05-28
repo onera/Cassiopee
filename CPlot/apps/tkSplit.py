@@ -48,7 +48,7 @@ def join():
         CPlot.delete(dels)
         CTK.add(CTK.t, nob0, -1, j)
         CTK.TXT.insert('START', 'Selection joined.\n')
-    except Exception, e:
+    except Exception as e:
         Panels.displayErrors([0,str(e)], header='Error: join')
         CTK.TXT.insert('START', 'Join failed.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error')
@@ -111,7 +111,7 @@ def merge():
             for zones in out:
                 js += T.merge(zones, tol=eps)
             CTK.TXT.insert('START', 'Selection merged.\n')
-        except Exception, e:
+        except Exception as e:
             Panels.displayErrors([0,str(e)], header='Error: merge')
             CTK.TXT.insert('START', 'Merge failed.\n')
             CTK.TXT.insert('START', 'Error: ', 'Error')
@@ -125,7 +125,7 @@ def merge():
             CTK.t = CPlot.deleteSelection(CTK.t, CTK.Nb, CTK.Nz, nzs)
             CTK.t[2][nob0][2] += j
             CTK.TXT.insert('START', 'Selection merged.\n')
-        except Exception, e:
+        except Exception as e:
             Panels.displayErrors([0,str(e)], header='Error: merge')
             CTK.TXT.insert('START', 'Merge failed.\n')
             CTK.TXT.insert('START', 'Error: ', 'Error')
@@ -176,7 +176,7 @@ def split():
                 else:
                     CTK.replace(CTK.t, nob, noz, B[0])
                     CTK.add(CTK.t, nob, -1, B[1])
-        except Exception, e:
+        except Exception as e:
             fail = True; errors += [0,str(e)]
 
     if fail:
@@ -210,11 +210,11 @@ def splitSize(event=None):
     
     CTK.saveTree()
     fail = False; errors = []
-    if (nzs == []):
+    if nzs == []:
         try: 
             CTK.t = T.splitSize(CTK.t, size, multigrid=level)
             CTK.display(CTK.t)
-        except Exception, e:
+        except Exception as e:
             fail = True; errors += [0,str(e)]
     else:
         for nz in nzs:
@@ -225,7 +225,7 @@ def splitSize(event=None):
                                      multigrid=level)
                 CTK.replace(CTK.t, nob, noz, blocks[0])
                 for i in blocks[1:]: CTK.add(CTK.t, nob, -1, i)
-            except Exception, e:
+            except Exception as e:
                 fail = True; errors += [0,str(e)]
 
     if not fail:
@@ -263,7 +263,7 @@ def splitNParts(event=None):
         try: 
             CTK.t = T.splitNParts(CTK.t, NParts, multigrid=level)
             CTK.display(CTK.t)
-        except Exception, e:
+        except Exception as e:
             fail = True; errors += [0,str(e)]
             
     else:
@@ -294,7 +294,7 @@ def splitNParts(event=None):
                 if name not in rep: # remplace le parent
                     CTK.replace(CTK.t, nob, noz, b); rep[name] = 1
                 else: CTK.add(CTK.t, nob, -1, b)
-        except Exception, e:
+        except Exception as e:
             fail = True; errors += [0,str(e)]
 
     if not fail:
@@ -328,7 +328,7 @@ def splitMultiplePoints():
     try:
         CTK.t = T.splitMultiplePts(CTK.t, dim=ndim)
         CTK.TXT.insert('START', 'splitMultiplePts done on all tree.\n')
-    except Exception, e:
+    except Exception as e:
         Panels.displayErrors([0,str(e)], header='Error: splitMultiplePoints')
         CTK.TXT.insert('START', 'Split multiple points fails.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error')
@@ -362,7 +362,7 @@ def splitConnexity():
             splits = T.splitConnexity(z)
             CTK.replace(CTK.t, nob, noz, splits[0])
             for i in splits[1:]: CTK.add(CTK.t, nob, -1, i)
-        except Exception, e:
+        except Exception as e:
             fail = True; errors += [0,str(e)]
 
     if (fail == False):
@@ -401,7 +401,7 @@ def splitManifold():
             splits = T.splitManifold(z)
             CTK.replace(CTK.t, nob, noz, splits[0])
             for i in splits[1:]: CTK.add(CTK.t, nob, -1, i)
-        except Exception, e:
+        except Exception as e:
             fail = True; errors += [0,str(e)]
 
     if (fail == False):
@@ -446,7 +446,7 @@ def splitSharpAngles():
             splits = T.splitSharpEdges(z, alphaRef)
             CTK.replace(CTK.t, nob, noz, splits[0])
             for i in splits[1:]: CTK.add(CTK.t, nob, -1, i)
-        except Exception, e:
+        except Exception as e:
             fail = True; errors += [0,str(e)]
 
     if (fail == False):
@@ -643,7 +643,7 @@ def displayFrameMenu(event=None):
 #==============================================================================
 if (__name__ == "__main__"):
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

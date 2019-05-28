@@ -36,7 +36,7 @@ def convert2NGon():
         try:
             a = C.convertArray2NGon(z)
             CTK.replace(CTK.t, nob, noz, a)
-        except Exception, e:
+        except Exception as e:
             fail = False; errors += [0,str(e)]
             
     if not fail:
@@ -76,7 +76,7 @@ def breakElts():
             zones = T.breakElements(z)
             if (len(zones) > 0): CTK.replace(CTK.t, nob, noz, zones[0])
             for zz in zones[1:]: CTK.add(CTK.t, nob, -1, zz)
-        except Exception, e:
+        except Exception as e:
             fail = True; errors += [0,str(e)]
 
     if not fail:
@@ -115,7 +115,7 @@ def dual():
         try:
             a = T.dual(z)
             CTK.replace(CTK.t, nob, noz, a)
-        except Exception, e:
+        except Exception as e:
             fail = True; errors += [0,str(e)]
 
     if not fail:
@@ -154,7 +154,7 @@ def conformize():
         try:
             zp = C.conformizeNGon(z)
             CTK.replace(CTK.t, nob, noz, zp)
-        except Exception, e:
+        except Exception as e:
             fail = True; errors += [0,str(e)]
 
     if not fail:
@@ -227,7 +227,7 @@ def displayFrameMenu(event=None):
 #==============================================================================
 if (__name__ == "__main__"):
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

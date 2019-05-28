@@ -1689,8 +1689,8 @@ def extractIBMInfo(tc):
     for z in Internal.getZones(tc):
         allIBCD = Internal.getNodesFromName(z, "IBCD_*")
         for IBCD in allIBCD:
-            znamea = IBCD[1]
-            znames = znamea.tostring()
+            znames = Internal.getValue(IBCD)
+            #znames = znamea.tostring()
             Zones.append(znames)
             xPC = Internal.getNodesFromName(IBCD,"CoordinateX_PC")[0][1]
             yPC = Internal.getNodesFromName(IBCD,"CoordinateY_PC")[0][1]

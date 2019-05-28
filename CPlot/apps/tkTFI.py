@@ -12,6 +12,9 @@ import Generator.PyTree as G
 import Generator.TFIs as TFIs
 import Transform.PyTree as T
 
+try: range = xrange
+except: pass
+
 # local widgets list
 WIDGETS = {}; VARS = []
 
@@ -84,7 +87,7 @@ def TFI():
         (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
         CTK.TKTREE.updateApp()
         CPlot.render()
-    except Exception, e:
+    except Exception as e:
         Panels.displayErrors([0,str(e)], header='Error: TFI')
         CTK.TXT.insert('START', 'TFI mesh failed.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error')
@@ -179,12 +182,12 @@ def OTFI():
 
     optWeight = 0; optOffset = 0; optScore = 1.e6
     Nt = coords[2]
-    for j in xrange(-Nt/4,Nt/4+1):
+    for j in range(-Nt//4,Nt//4+1):
         for i in range(3,10):
             try:
                 [m,m1,m2,m3,m4] = TFIs.TFIO__(coords, i, j)
                 score = quality([m,m1,m2,m3])
-                if (score < optScore):
+                if score < optScore:
                     optWeight = i; optOffset = j; optScore = score
             except: pass
     print('resulting weight=%g, offset=%g.'%(optWeight,optOffset))
@@ -257,7 +260,7 @@ def HOTFI():
 
     optWeight = 0; optOffset = 0; optScore = 1.e6
     Nt2 = coords2[2]
-    for j in xrange(-Nt2/8,Nt2/8):
+    for j in range(-Nt2//8,Nt2//8):
         for i in range(2,10):
             try:
                 [m,m1,m2,m3] = TFIs.TFIHalfO__(coords1, coords2, i, j)
@@ -265,7 +268,7 @@ def HOTFI():
                 if (score < optScore):
                     optWeight = i; optScore = score; optOffset = j
             except: pass
-    print 'resulting score=%g'%optScore
+    print('resulting score=%g'%optScore)
     [m,m1,m2,m3] = TFIs.TFIHalfO__(coords1, coords2, optWeight, optOffset) 
     
     m = C.convertArrays2ZoneNode('TFI1', [m])

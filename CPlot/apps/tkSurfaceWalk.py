@@ -74,7 +74,7 @@ def walkIn():
             z = G.surfaceWalk(surfaces, c, dh, constraints=constraints,
                               niter=nit, check=1)
             zlist.append(z)
-        except Exception, e:
+        except Exception as e:
             fail = True; errors += [0,str(e)]
             
     # Ajout dans la base SURFACES
@@ -153,7 +153,7 @@ def walkOut():
             z = G.surfaceWalk(surfaces, c, dh, constraints=constraints,
                               niter=nit, check=1)
             zlist.append(z)
-        except Exception, e:
+        except Exception as e:
             fail = True; errors += [0,str(e)]
             
     # Ajout dans la base SURFACES

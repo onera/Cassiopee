@@ -1298,7 +1298,7 @@ def optimizeOverlap(t, double_wall=0, priorities=[], planarTol=0., intersections
     #=====================================================
     # 2-traitement priorites
     #=====================================================
-    nprios = len(priorities)/2
+    nprios = len(priorities)//2
     prios = []
     size = 0
     if nprios == 0:
@@ -1415,7 +1415,7 @@ def optimizeOverlap(t, double_wall=0, priorities=[], planarTol=0., intersections
                 ac1 = Converter.addVars([ac1,sol1,vol1])
                 adt1 = allHooks[nob1][noz1]
                 nobOfIntersectBasesAndZonesForZone1 = nobOfIntersectBasesAndZones[nob1][noz1]
-                for nobi in range(len(nobOfIntersectBasesAndZonesForZone1)/2):
+                for nobi in range(len(nobOfIntersectBasesAndZonesForZone1)//2):
                     nob2 = nobOfIntersectBasesAndZonesForZone1[nobi*2]
                     if nob2 > nob1:
                         prio2 = prios[nob2]
@@ -1469,7 +1469,7 @@ def optimizeOverlap(t, double_wall=0, priorities=[], planarTol=0., intersections
 
                 # parcours des bases intersectantes
                 nobOfIntersectBasesAndZonesForZone1 = nobOfIntersectBasesAndZones[nob1][noz1]
-                for nobi in range(len(nobOfIntersectBasesAndZonesForZone1)/2):
+                for nobi in range(len(nobOfIntersectBasesAndZonesForZone1)//2):
                     nob2 = nobOfIntersectBasesAndZonesForZone1[nobi*2]
                     if nob2 > nob1:
                         prio2 = prios[nob2]

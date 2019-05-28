@@ -49,7 +49,7 @@ def intersection():
         CTK.TKTREE.updateApp()
         CPlot.render()
         return
-    except Exception, e:
+    except Exception as e:
         Panels.displayErrors([0,str(e)], header='Error: intersection')
         CTK.TXT.insert('START', 'Intersection failed.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
@@ -86,7 +86,7 @@ def exteriorFaces():
                 ext = G.close(ext)
                 ext = T.splitConnexity(ext)
                 exts += ext
-            except Exception, e: 
+            except Exception as e: 
                 fail = True; errors += [0,str(e)]
         else:
             ext = P.exteriorFacesStructured(z)
@@ -142,7 +142,7 @@ def silhouette():
         try:
             ext = P.silhouette(z, vector)
             exts += ext
-        except Exception, e:
+        except Exception as e:
             fail = True; errors += [0,str(e)]
 
     if fail: 
@@ -194,7 +194,7 @@ def sharpEdges():
         z = CTK.t[2][nob][2][noz]
         z = G.close(z)
         try: ext = P.sharpEdges(z, alphaRef)
-        except Exception, e:
+        except Exception as e:
             ext = []; fail = True; errors += [0,str(e)]
         sharps += ext
 
@@ -273,7 +273,7 @@ def splitTBranches():
                 CPlot.delete([i])
         for i in splits[n:]: CTK.add(CTK.t, nob, -1, i)
 
-    except Exception, e:
+    except Exception as e:
         fail = True; errors += [0,str(e)]
 
     if not fail:
@@ -308,7 +308,7 @@ def convertBAR2Struct():
         try:
             zp = C.convertBAR2Struct(z)
             CTK.replace(CTK.t, nob, noz, zp)
-        except Exception, e:
+        except Exception as e:
             fail = True; errors += [0,str(e)]
 
     if not fail:

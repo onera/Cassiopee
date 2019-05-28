@@ -201,6 +201,7 @@ fileTypes=[('converter', '*.plt'),
 #==============================================================================
 def getModule(app):
   global TKMODULES
+  if app not in TKMODULES: return None
   if TKMODULES[app] is None:
       try:
         module = __import__(app)
@@ -515,7 +516,8 @@ def fixFileString2__(file):
 #==============================================================================
 def loadFile(event=None):
     global FILE; global t; global Nb; global Nz; global __FIELD__
-    import tkFileDialog
+    try: import tkFileDialog
+    except: import tkinter.filedialog as tkFileDialog
     files = tkFileDialog.askopenfilenames(
         filetypes=fileTypes, initialfile=FILE, multiple=1)
     if files == '' or files is None or files == (): # user cancel
@@ -554,7 +556,8 @@ def loadFile(event=None):
 #==============================================================================
 def addFile():
     global t; global Nb; global Nz
-    import tkFileDialog
+    try: import tkFileDialog
+    except: import tkinter.filedialog as tkFileDialog
     files = tkFileDialog.askopenfilenames(
         filetypes=fileTypes, initialfile=FILE, multiple=1)
     if files == '' or files is None or files == (): # user cancel
@@ -589,7 +592,8 @@ def addFile():
 #==============================================================================
 def saveFile():
     global FILE
-    import tkFileDialog
+    try: import tkFileDialog
+    except: import tkinter.filedialog as tkFileDialog
     ret = tkFileDialog.asksaveasfilename(filetypes=fileTypes, initialfile=FILE)
     if ret == '' or ret is None or ret == (): # user cancel
         return
@@ -608,7 +612,8 @@ def saveFile():
 #==============================================================================
 def quickSaveFile(event=None):
     global FILE
-    import tkFileDialog
+    try: import tkFileDialog
+    except: import tkinter.filedialog as tkFileDialog
     if FILE == '':
         ret = tkFileDialog.asksaveasfilename(filetypes=fileTypes)
         if ret == '' or ret is None or ret == (): # user cancel
@@ -652,7 +657,8 @@ def saveSelFile():
     if nzs == []:
         TXT.insert('START', 'Selection is empty.\n')
         TXT.insert('START', 'Error: ', 'Error'); return
-    import tkFileDialog
+    try: import tkFileDialog
+    except: import tkinter.filedialog as tkFileDialog
     ret = tkFileDialog.asksaveasfilename(filetypes=fileTypes)
     if (ret == '' or ret is None or ret == ()): # user cancel
         return
@@ -957,7 +963,8 @@ def changeCPlotBlanking():
 #==============================================================================
 def cplotExport():
     global EXPORTFILE
-    import tkFileDialog
+    try: import tkFileDialog
+    except: import tkinter.filedialog as tkFileDialog
     ret = tkFileDialog.asksaveasfilename(
         title='Export as...',
         initialfile=EXPORTFILE,

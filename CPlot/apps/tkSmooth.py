@@ -100,7 +100,7 @@ def smooth():
     try:
         A = C.convertArray2Tetra(zones)
         A = T.join(A); A = G.close(A)
-    except Exception, e:
+    except Exception as e:
         Panels.displayErrors([0,str(e)], header='Error: smooth')
         CTK.TXT.insert('START', 'Some zones are invalid for smoothing.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
@@ -157,7 +157,7 @@ def smooth():
                                  projConstraints=projConstraints, 
                                  delta=strength)
                 zones = T.projectOrtho(zones, [projSurf])
-    except Exception, e:
+    except Exception as e:
         fail = True
         Panels.displayErrors([0,str(e)], header='Error: smooth')
 
@@ -334,7 +334,7 @@ def displayFrameMenu(event=None):
 #==============================================================================
 if (__name__ == "__main__"):
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

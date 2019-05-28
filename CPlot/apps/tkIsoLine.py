@@ -36,7 +36,7 @@ def updateVarNameList(event=None):
 def updateVarNameList2(event=None):
     if CTK.t == []: return
     nzs = CPlot.getSelectedZones()
-    if (CTK.__MAINTREE__ <= 0 or nzs == []):
+    if CTK.__MAINTREE__ <= 0 or nzs == []:
         vars = C.getVarNames(CTK.t)
     else:
         nob = CTK.Nb[0]+1
@@ -87,7 +87,7 @@ def drawIsoLines():
             try:
                 i = P.isoLine(zone, field, value)
                 isos.append(i)
-            except Exception, e:
+            except Exception as e:
                 fail = True; errors += [0,str(e)]
                 
     CTK.t = C.addBase2PyTree(CTK.t, 'CONTOURS', 1)
@@ -137,7 +137,7 @@ def extractIsoLine():
         try:
             i = P.isoLine(zone, field, value)
             isos.append(i)
-        except Exception, e:
+        except Exception as e:
             fail = True; errors += [0,str(e)]
             
     CTK.t = C.addBase2PyTree(CTK.t, 'CONTOURS', 1)
@@ -301,7 +301,7 @@ def displayFrameMenu(event=None):
 #==============================================================================
 if (__name__ == "__main__"):
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

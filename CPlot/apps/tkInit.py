@@ -27,7 +27,7 @@ def initWallDistance():
     try:
         CTK.t = DW.distance2Walls(CTK.t, tb, loc='centers', type='ortho')
         CTK.TXT.insert('START', 'Distance to wall computed.\n')
-    except Exception, e:
+    except Exception as e:
         Panels.displayErrors([0,str(e)], header='Error: wallDistance')
         CTK.TXT.insert('START', 'Wall distance fails.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error')
@@ -132,7 +132,7 @@ def displayFrameMenu(event=None):
 #==============================================================================
 if (__name__ == "__main__"):
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

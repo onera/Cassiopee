@@ -68,7 +68,7 @@ def orthoProject():
         try:
             a = T.projectOrtho(z, surfaces)
             CTK.replace(CTK.t, nob, noz, a)
-        except Exception, e:
+        except Exception as e:
             fail = True; errors += [0,str(e)]
 
     if not fail:
@@ -118,7 +118,7 @@ def dirProject():
         try:
             a = T.projectDir(z, surfaces, dir)
             CTK.replace(CTK.t, nob, noz, a)
-        except Exception, e:
+        except Exception as e:
             fail = True; errors += [0,str(e)]
             
     if (fail == False):

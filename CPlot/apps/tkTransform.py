@@ -307,7 +307,7 @@ def changeFrame():
             func = getattr(T, mode)
             a = func(CTK.t[2][nob][2][noz], origin, axis)
             CTK.replace(CTK.t, nob, noz, a)
-        except Exception, e:
+        except Exception as e:
             fail = True; errors += [0,str(e)]
 
     if not fail: CTK.TXT.insert('START', '{} done.\n'.format(mode))
@@ -444,7 +444,7 @@ def displayFrameMenu(event=None):
 #==============================================================================
 if (__name__ == "__main__"):
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

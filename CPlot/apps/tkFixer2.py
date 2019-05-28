@@ -49,7 +49,7 @@ def fixGap():
           p = G.fittingPlaster(contour, bumpFactor=factor)
           b = G.gapfixer(contour, p)
           out.append(b)
-        except Exception, e:
+        except Exception as e:
           fail = True
           Panels.displayErrors([0,str(e)], header='Error: gapfixer on %s.'%contour[0])
   

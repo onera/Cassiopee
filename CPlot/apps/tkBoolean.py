@@ -46,13 +46,13 @@ def union():
         zlist.append(z)
     
     try: j = XOR.booleanUnion(zlist[0], zlist[1], tol=tol)
-    except Exception, e:
+    except Exception as e:
         Panels.displayErrors([0,str(e)], header='Error: union')
         CTK.TXT.insert('START', 'Union failed\n'); return
 
     for nz in range(len(zlist)-2):
         try: j = XOR.booleanUnion(j, zlist[nz+2], tol=tol)
-        except Exception, e:
+        except Exception as e:
             Panels.displayErrors([0,str(e)], header='Error: union')
             CTK.TXT.insert('START', 'Union failed.\n'); return
         
@@ -103,7 +103,7 @@ def difference():
         CPlot.delete(deletedZoneNames)
         CTK.add(CTK.t, nob1, -1, j)
         CTK.TXT.insert('START', 'Difference performed.\n')
-    except Exception, e:
+    except Exception as e:
         Panels.displayErrors([0,str(e)], header='Error: difference')
         CTK.TXT.insert('START', 'Difference failed.\n')
     #C._fillMissingVariables(CTK.t)
@@ -148,7 +148,7 @@ def difference2():
         CPlot.delete(deletedZoneNames)
         CTK.add(CTK.t, nob1, -1, j)
         CTK.TXT.insert('START', 'Difference performed.\n')
-    except Exception, e:
+    except Exception as e:
         Panels.displayErrors([0,str(e)], header='Error: difference')
         CTK.TXT.insert('START', 'Difference failed.\n')
 
@@ -186,13 +186,13 @@ def intersection():
         zlist.append(z)
 
     try: j = XOR.booleanIntersection(zlist[0], zlist[1], tol=tol)
-    except Exception, e:
+    except Exception as e:
         Panels.displayErrors([0,str(e)], header='Error: intersection')
         CTK.TXT.insert('START', 'Intersection failed.\n'); return
 
     for nz in range(len(zlist)-2):
         try: j = XOR.booleanIntersection(j, zlist[nz+2], tol=tol)
-        except Exception, e:
+        except Exception as e:
             Panels.displayErrors([0,str(e)], header='Error: intersection')
             CTK.TXT.insert('START', 'Intersection failed.\n'); return
         

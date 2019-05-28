@@ -77,7 +77,7 @@ def splitAndDistribute(event=None):
         CTK.t = X.connectMatch(CTK.t, dim=ndim)
             
         CTK.display(CTK.t)
-    except Exception, e:
+    except Exception as e:
         Panels.displayErrors([0,str(e)], header='Error: distribute/split')
         CTK.TXT.insert('START', 'splitSize fails for at least one zone.\n')
         CTK.TXT.insert('START', 'Warning: ', 'Warning')
@@ -466,7 +466,7 @@ def displayFrameMenu(event=None):
 #==============================================================================
 if (__name__ == "__main__"):
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

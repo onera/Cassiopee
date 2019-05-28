@@ -153,10 +153,10 @@ def step1():
         noz = CTK.Nz[nz]
         z = CTK.t[2][nob][2][noz]
         dim = Internal.getZoneDim(z)
-        if (dim[0] == 'Unstructured'): 
+        if dim[0] == 'Unstructured': 
             try: z = C.convertBAR2Struct(z)
-            except Exception, e:
-                #print 'Error: blader: %s'%str(e)
+            except Exception as e:
+                #print('Error: blader: %s'%str(e))
                 errors += [0,str(e)]
                 CTK.TXT.insert('START', 'Input profile must be structured.\n')
                 CTK.TXT.insert('START', 'Error: ', 'Error'); return
@@ -726,7 +726,7 @@ def displayFrameMenu(event=None):
 #==============================================================================
 if (__name__ == "__main__"):
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

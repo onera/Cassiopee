@@ -81,7 +81,7 @@ def compute():
         CTK.TKTREE.updateApp()
         CTK.display(CTK.t)
         CTK.TXT.insert('START', 'Distance to walls computed.\n')
-    except Exception, e:
+    except Exception as e:
         Panels.displayErrors([0,str(e)], header='Error: dist2Walls')
         CTK.TXT.insert('START', 'Distance to walls failed.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error')
@@ -184,7 +184,7 @@ def displayFrameMenu(event=None):
 #==============================================================================
 if (__name__ == "__main__"):
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

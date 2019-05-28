@@ -31,7 +31,7 @@ def copyDistrib1D(source):
         try:
             zp = G.map(z, source, 1)
             CTK.replace(CTK.t, nob, noz, zp)
-        except Exception, e:
+        except Exception as e:
             fail = True; errors += [0,str(e)]
     if len(errors)>0: Panels.displayErrors(errors, header='Error: copyDistrib1D')
     return fail
@@ -50,7 +50,7 @@ def stretch1D(h):
     try:
         if dims[0] == 'Unstructured': a = C.convertBAR2Struct(z)
         else: a = z
-    except Exception, e:
+    except Exception as e:
         #print 'Error: stretch1D: %s.'%str(e)
         Panels.displayErrors([0,str(e)], header='Error: stretch1D')
         return True # Fail
@@ -99,7 +99,7 @@ def stretch1D(h):
     try:
         a1 = G.map(a, distrib)
         CTK.replace(CTK.t, nob, noz, a1)
-    except Exception, e:
+    except Exception as e:
         fail = True
         Panels.displayErrors([0,str(e)], header='Error: stretch1D')
     return fail
@@ -128,7 +128,7 @@ def smooth1D(niter, eps):
                                fixedConstraints=[bornes])
             b = G.map(a, distrib)
             CTK.replace(CTK.t, nob, noz, b)
-        except Exception, e:
+        except Exception as e:
             fail = True
             Panels.displayErrors([0,str(e)], header='Error: smooth1D')
     return fail
@@ -151,7 +151,7 @@ def refine1D(density, npts, factor):
             if factor < 0: factor = (npts-1.)/(np-1)
             b = G.refine(a, factor, 1)
             CTK.replace(CTK.t, nob, noz, b)
-        except Exception, e:
+        except Exception as e:
             fail = True
             Panels.displayErrors([0,str(e)], header='Error: refine1D')
     return fail
@@ -177,7 +177,7 @@ def uniformize1D(density, npts, factor):
             distrib = G.cart((0,0,0), (1./(npts-1.),1,1), (npts,1,1))
             b = G.map(a, distrib)
             CTK.replace(CTK.t, nob, noz, b)
-        except Exception, e:
+        except Exception as e:
             fail = True
             Panels.displayErrors([0,str(e)], header='Error: uniformize1D')
     return fail
@@ -300,7 +300,7 @@ def apply2D(density, npts, factor, ntype=0):
         b = T.projectOrtho(b, [zone])
         CTK.replace(CTK.t, nob, noz, b)
         return False
-    except Exception, e:
+    except Exception as e:
         Panels.displayErrors([0,str(e)], header='Error: apply2D')
         return True
 
@@ -438,7 +438,7 @@ def apply3D(density, npts, factor, ntype):
         b = G.TFI(outf)
         CTK.replace(CTK.t, nob, noz, b)
         return False
-    except Exception, e:
+    except Exception as e:
         Panels.displayErrors([0,str(e)], header='Error: apply3D')
         return True
 

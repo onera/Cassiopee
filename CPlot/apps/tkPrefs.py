@@ -190,7 +190,7 @@ def createApp(win):
 
     # Init VARS par le fichier de preferences
     CTK.loadPrefFile()
-    for i in CTK.PREFS.iterkeys():
+    for i in CTK.PREFS:
         k1 = CTK.PREFS[i]
         if i == 'undo':
             if k1 == '1': VARS[1].set('Active')

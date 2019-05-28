@@ -147,7 +147,7 @@ def view(event=None):
         if CTK.TKPLOTXY is not None: CTK.TKPLOTXY.updateApp()
     except ValueError:
         CTK.TXT.insert('START', 'Intersection is empty.\n'); return
-    except Exception, e:
+    except Exception as e:
         Panels.displayErrors([0,str(e)], header='Error: slice')
         CTK.TXT.insert('START', 'Slice failed.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error') ; return    
@@ -231,7 +231,7 @@ def extract(event=None):
         if CTK.TKPLOTXY is not None: CTK.TKPLOTXY.updateApp()
     except ValueError:
         CTK.TXT.insert('START', 'Intersection is empty.\n'); return
-    except Exception, e:
+    except Exception as e:
         Panels.displayErrors([0,str(e)], header='Error: slice')
         CTK.TXT.insert('START', 'Slice failed.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
@@ -359,7 +359,7 @@ def displayFrameMenu(event=None):
 #==============================================================================
 if (__name__ == "__main__"):
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

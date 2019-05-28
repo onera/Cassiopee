@@ -113,7 +113,7 @@ def convert2Tetra():
         try:
             a = C.convertArray2Tetra(CTK.t[2][nob][2][noz])
             CTK.replace(CTK.t, nob, noz, a)
-        except Exception, e:
+        except Exception as e:
             fail = True; errors += [0,str(e)]
 
     if not fail: CTK.TXT.insert('START', 'Zones converted to tetra.\n')
@@ -157,7 +157,7 @@ def convert2Hexa():
             else:
                 a = C.convertArray2Hexa(z)
                 CTK.replace(CTK.t, nob, noz, a)
-        except Exception, e:
+        except Exception as e:
             fail = True; errors += [0,str(e)]
     if not fail: CTK.TXT.insert('START', 'Zones converted to hexa.\n')
     else:
@@ -226,7 +226,7 @@ def exteriorFaces():
             ext = P.exteriorFaces(CTK.t[2][nob][2][noz])
             ext = T.splitConnexity(ext)
             for i in ext: CTK.add(CTK.t, gnob, -1, i)
-        except TypeError, e: # type d'element non reconnu
+        except TypeError as e: # type d'element non reconnu
             fail = True; errors += [0,str(e)]
         except ValueError: # empty set
             pass
@@ -271,7 +271,7 @@ def oneovern():
         try:
             a = T.oneovern(CTK.t[2][nob][2][noz], (ni,nj,nk))
             CTK.replace(CTK.t, nob, noz, a)
-        except Exception, e:
+        except Exception as e:
             fail = True; errors += [0,str(e)]
 
     if not fail: CTK.TXT.insert('START', 'oneovern done.\n')
@@ -307,7 +307,7 @@ def close():
         z = CTK.t[2][nob][2][noz]
         zones.append(z)
     try: zones = G.close(zones, eps)
-    except Exception, e:
+    except Exception as e:
         fail = True; errors += [0,str(e)]
         
     if not fail:
@@ -433,7 +433,7 @@ def displayFrameMenu(event=None):
 #==============================================================================
 if (__name__ == "__main__"):
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)
