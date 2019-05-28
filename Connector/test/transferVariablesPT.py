@@ -16,5 +16,5 @@ for zdnr in [b,c]:
     zdnrc = C.node2Center(zdnr)
     adt = C.createHook(zdnrc,'adt')
     fields = X.transferFields(zdnrc, XI, YI, ZI, hook=adt, variables=['Density'])
-    print fields[1][-1,:]
+    print(fields[1][-1,:])
     C.freeHook(adt)

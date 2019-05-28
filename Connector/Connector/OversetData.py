@@ -347,7 +347,8 @@ def setIBCData(tR, tD, order=2, penalty=0, nature=0,
     # 1. Get the list of IBC pts
     #-------------------------------------------
     res = IBM.getAllIBMPoints(zonesRcv, loc=locR, hi=hi, he=he)
-    correctedPts=list(res[0].values())[0]; wallPts=list(res[1].values())[0]; interpPts=list(res[2].values())[0]
+    #correctedPts=list(res[0].values())[0]; wallPts=list(res[1].values())[0]; interpPts=list(res[2].values())[0]
+    correctedPts=res[0][3]; wallPts=res[1][3]; interpPts=res[2][3]
     
     #-------------------------------------------
     # 2. Interpolation of IBC interp pts

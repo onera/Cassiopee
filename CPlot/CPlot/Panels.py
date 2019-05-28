@@ -405,7 +405,7 @@ def displayErrors(errors, header=''):
         myText = ERRORWINDOW.winfo_children()[1] # text
         # myText.delete(1.0, TK.END)
     # Errors
-    nerr = len(errors)/2; allText = ''
+    nerr = len(errors)//2; allText = ''
     for l in range(nerr): allText += ' - '+errors[2*l+1]+'\n'
     allText += '\n'
     myText.insert('START', allText)

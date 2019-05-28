@@ -116,15 +116,15 @@ def getIBCFrontInfo__(fc1, parentZone, dhloc, toldist=1.e-10):
             dist = distance[0,ind]
             # NOUVELLE VERSION
             # # cas 1 : le centre est proche paroi, le point interpole est alors positionne a dhloc+eps de la paroi
-	    # if abs(dist) < dhLoc[ind]: deltaa[1][0,ind] =  2*dhLoc[ind] + eps
+	        # if abs(dist) < dhLoc[ind]: deltaa[1][0,ind] =  2*dhLoc[ind] + eps
             # # cas 2 : le centre est loin de la paroi, le point interpole est alors positionne a dist+eps de la paroi
-	    # else: deltaa[1][0,ind] = 2.*abs(dist) + eps
+	        # else: deltaa[1][0,ind] = 2.*abs(dist) + eps
             # FIN NOUVELLE VERSION
 
             # cas 1 : le centre est proche paroi, le point interpole est alors positionne a dhloc+eps de la paroi
-	    if abs(dist) < dhloc: deltaa[1][0,ind] = abs(dist) + dhloc + eps
-            # cas 2 : le centre est loin de la paroi, le point interpole est alors positionne a dist+eps de la paroi
-	    else: deltaa[1][0,ind] = 2.*abs(dist) + eps
+	        # cas 2 : le centre est loin de la paroi, le point interpole est alors positionne a dist+eps de la paroi
+            if abs(dist) < dhloc: deltaa[1][0,ind] = abs(dist) + dhloc + eps
+            else: deltaa[1][0,ind] = 2.*abs(dist) + eps
         C.setFields([deltaa], fc1, loc='nodes')
 
     else:
@@ -145,7 +145,7 @@ def setSurface():
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     nzs = CPlot.getSelectedZones()
-    if (nzs == []):
+    if nzs == []:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     selected = ''
@@ -182,7 +182,7 @@ def blank():
         v = v.lstrip(); v = v.rstrip()
         sname = v.split('/', 1)
         bases = Internal.getNodesFromName1(CTK.t, sname[0])
-        if (bases != []):
+        if bases != []:
             nodes = Internal.getNodesFromType1(bases[0], 'Zone_t')
             for z in nodes:
                 if (z[0] == sname[1]): surfaces.append(z)
@@ -253,11 +253,11 @@ def getIBCFront():
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     nzs = CPlot.getSelectedZones()
-    if (nzs == []):
+    if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
-    front1 = [];nozDonors=[]# numerotation ds td
+    front1 = []; nozDonors=[]# numerotation ds td
     td = C.newPyTree(['Donors'])
     nozloc = 0
     for nz in nzs:
@@ -487,7 +487,7 @@ def displayFrameMenu(event=None):
 #==============================================================================
 if (__name__ == "__main__"):
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

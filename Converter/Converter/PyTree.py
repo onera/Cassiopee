@@ -525,13 +525,13 @@ def setValue(t, var, ind, val):
       else:
         raise ValueError("setValue: too much values in tuple.")
     else:
-      if (loc == 'nodes' or loc == '*'):
-        km = ind / (ninj)
-        jm = (ind - km*ninj) / ni
+      if loc == 'nodes' or loc == '*':
+        km = ind // (ninj)
+        jm = (ind - km*ninj) // ni
         im = ind - jm*ni - km*ninj
       else:
-        km = ind / (ni1nj1)
-        jm = (ind - km*ni1nj1) / ni1
+        km = ind // (ni1nj1)
+        jm = (ind - km*ni1nj1) // ni1
         im = ind - jm*ni1 - km*ni1nj1
 
     # GridCoordinates
@@ -540,7 +540,7 @@ def setValue(t, var, ind, val):
       for i in v[2]:
         if ((i[0] == var or var == Internal.__GridCoordinates__)
         and (loc == 'nodes' or loc == '*')):
-          if (cellDim == 3):
+          if cellDim == 3:
             i[1][im,jm,km] = val[c]; c += 1
           elif (cellDim == 2):
             i[1][im,jm] = val[c]; c += 1
@@ -552,7 +552,7 @@ def setValue(t, var, ind, val):
       for i in v[2]:
         if ((i[0] == var or var == Internal.__FlowSolutionNodes__)
         and (loc == 'nodes' or loc == '*')):
-          if (cellDim == 3):
+          if cellDim == 3:
             i[1][im,jm,km] = val[c]; c += 1
           elif (cellDim == 2):
             i[1][im,jm] = val[c]; c += 1
