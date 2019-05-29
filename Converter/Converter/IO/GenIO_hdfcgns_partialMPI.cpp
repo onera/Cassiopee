@@ -713,18 +713,17 @@ E_Int K_IO::GenIO::hdfcgnsWritePathsPartial(char* file, PyObject* tree,
 #endif
 
 #if defined(_MPI) && defined(H5_HAVE_PARALLEL)
-  if(HDF._ismpi == 1){
+  if (HDF._ismpi == 1)
+  {
      /* Mpi context */
      MPI_Comm* comm2 = (MPI_Comm*)comm;
      MPI_Info info   = MPI_INFO_NULL;
      ret             = H5Pset_fapl_mpio(fapl, *comm2, info);
-   }
+  }
 #endif  
    
   /* Access to the file collectively */
-  fid = H5Fopen(file, H5F_ACC_RDWR, fapl);
-  // H5Pset_libver_bounds(fapl, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST);
- 
+  fid = H5Fopen(file, H5F_ACC_RDWR, fapl); 
   if (fid < 0)
   {
     PyErr_SetString(PyExc_TypeError, "hdfwritepartial: can not open file.");

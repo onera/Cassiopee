@@ -1,6 +1,6 @@
 #! /bin/sh
 #
-# Installation du module networkx
+# Installation du module mpi4py
 # Par defaut dans : $CASSIOPEE/Dist/bin/$ELSAPROD/
 # Sinon : dans le repertoire specifie en argument
 #

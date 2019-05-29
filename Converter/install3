@@ -47,6 +47,6 @@ else
 fi
 cp test/ediff "$INSTALLPATH"
 cp test/ediff.py "$INSTALLPATH"
-cp Converter/kpython "$INSTALLPATH"
+cp Converter/kpython3 "$INSTALLPATH"
 # Test installation
 python3 test/t1.py

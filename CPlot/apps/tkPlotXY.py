@@ -12,15 +12,28 @@ import shlex
 from collections import OrderedDict
 import imp
 
+try: xrange= range
+except: pass
+
 # Import Tkinter
 IMPORTOK = True
+try: import Tkinter as TK
+except: 
+    try: import tkinter as TK
+    except: IMPORTOK = False
+    
+try: from . import ttk as cttk
+except: IMPORTOK = False
+
 try:
-    import Tkinter as TK
-    import ttk as cttk
     # from tkColorChooser import askcolor
     import tkFileDialog
     import tkMessageBox
-except: IMPORTOK = False
+except:
+    try:
+        import tkinter.filedialog as tkFileDialog
+        import tkinter.messageBox as tkMessageBox
+    except: IMPORTOK = False
 
 # Import matplotlib
 try:
@@ -61,9 +74,9 @@ try:
     import Converter.PyTree as C
     import Converter.Internal as Internal
     import Transform.PyTree as T
-    import CPlot.PyTree as CPlot
-    import CPlot.Tk as CTK
-    import CPlot.Ttk as TTK
+    from . import CPlot.PyTree as CPlot
+    from . import CPlot.Tk as CTK
+    from . import CPlot.Ttk as TTK
 except ImportError:
     CTK = None
     TTK = TK
@@ -318,7 +331,7 @@ class ColorControler(object):
         # Step Value
         step = (hmax - hmin)/self.Nstep
         # Creation of the table of h
-        h_l = [i*step for i in xrange(self.Nstep+1)]
+        h_l = [i*step for i in range(self.Nstep+1)]
         # Getting the rgb values according to h (rgb 0->255)
         self.rgb_l = [self.discretizedColor(h) for h in h_l]
         # Getting the colormap HTML code liste
@@ -477,7 +490,7 @@ class ColorControler(object):
         #
         classicalColorLblFrame = TTK.LabelFrame(pickUpColorFrame,text="Classical colors")
         classicalColorLblFrame.rowconfigure(0,weight=1)
-        for ind in xrange(nbColorMap):
+        for ind in range(nbColorMap):
             classicalColorLblFrame.columnconfigure(ind,weight=1)
         classicalColorLblFrame.grid(row=0,column=0,sticky="NSEW")
         #
@@ -491,7 +504,7 @@ class ColorControler(object):
         #
         lastUsedColorLblFrame = TTK.LabelFrame(pickUpColorFrame,text="Last colors")
         lastUsedColorLblFrame.rowconfigure(0,weight=1)
-        for ind in xrange(len(colorHistoryList)):
+        for ind in range(len(colorHistoryList)):
             lastUsedColorLblFrame.columnconfigure(ind,weight=1)
         lastUsedColorLblFrame.grid(row=0,column=1,sticky="NSEW")
         #
@@ -581,7 +594,7 @@ class ColorControler(object):
     def createColorMap(self,colormapName,nbColorMap):
         colormapList = []
         cm = plt.get_cmap(colormapName)
-        for ind in xrange(nbColorMap):
+        for ind in range(nbColorMap):
             rgb = cm(1.*(ind%nbColorMap)/nbColorMap)
             html = '#%02x%02x%02x' % (int(255*rgb[0]),int(255*rgb[1]),int(255*rgb[2]))
             colormapList.append(html)
@@ -1055,7 +1068,7 @@ class editAxisWindow(TK.Toplevel):
         self.addAxisItem = []
         B = TTK.Button(selectAxisLblFrame,text=self.ind_axis,command=lambda n=(0,self.addAxisItem): self.bt_click(n))
         self.addAxisItem.append(B)
-        B.list = [i for i in xrange(len(self.subGraph.axis))]
+        B.list = [i for i in range(len(self.subGraph.axis))]
         B.val = self.ind_axis
         B.var = ['ind_axis']
         B.treatmentId = 0 # 4 is float here
@@ -2627,7 +2640,7 @@ class editGridWindow(TK.Toplevel):
         selectLblFrame.grid(row=0, column=0, sticky='NSEW')
         B = TTK.Button(selectLblFrame,text=self.ind_axis,command=lambda n=(0,self.addAxisItem): self.bt_click(n))
         self.addAxisItem.append(B)
-        B.list = [i for i in xrange(len(self.subGraph.axis))]
+        B.list = [i for i in range(len(self.subGraph.axis))]
         B.val = self.ind_axis
         B.var = 'axis'
         B.treatmentId = 0 # 4 is float here
@@ -4366,14 +4379,14 @@ class editCurvesWindow(TK.Toplevel):
         lblframe.grid(row=0,column=0,sticky='NESW')
         #
         lblframe.grid_columnconfigure(0,weight=1)
-        for ind in xrange(len(self.subGraph.curves)+1):
+        for ind in range(len(self.subGraph.curves)+1):
             lblframe.grid_rowconfigure(ind,weight=1)
         #
         lblframelvl1.append(lblframe)
         #
         self.frame.selectionItem=[]
         #
-        for ind in xrange(len(self.subGraph.curves)):
+        for ind in range(len(self.subGraph.curves)):
             var = TK.IntVar()
             CB = TTK.Checkbutton(lblframe,variable=var,command=lambda n=ind: self.cb_selection(n))#, variable=var)
             CB.val = var
@@ -4398,14 +4411,14 @@ class editCurvesWindow(TK.Toplevel):
         lblframe.grid(row=0,column=1,sticky='NESW')
         #
         lblframe.grid_columnconfigure(0,weight=1)
-        for ind in xrange(len(self.subGraph.curves)+1):
+        for ind in range(len(self.subGraph.curves)+1):
             lblframe.grid_rowconfigure(ind,weight=1)
         #
         lblframelvl1.append(lblframe)
         #
         self.frame.IdItem = []
         #
-        for ind in xrange(len(self.subGraph.curves)):
+        for ind in range(len(self.subGraph.curves)):
             LBL = TK.Label(lblframe,text='%s'%ind)
             LBL.ind = ind
             LBL.grid(row=ind,column=0,sticky='NSEW')
@@ -4424,16 +4437,16 @@ class editCurvesWindow(TK.Toplevel):
         lblframe.grid(row=0,column=2,sticky='NESW')
         #
         lblframe.grid_columnconfigure(0,weight=1)
-        for ind in xrange(len(self.subGraph.curves)+1):
+        for ind in range(len(self.subGraph.curves)+1):
             lblframe.grid_rowconfigure(ind,weight=1)
         #
         lblframelvl1.append(lblframe)
         #
         self.frame.axisItem = []
-        for ind in xrange(len(self.subGraph.curves)):
+        for ind in range(len(self.subGraph.curves)):
             c = self.subGraph.curves[ind]
             B = TTK.Button(lblframe,text=c.axis,command=lambda n=(ind,self.frame.axisItem): self.bt_click(n))
-            B.list = [i for i in xrange(len(self.subGraph.axis))]
+            B.list = [i for i in range(len(self.subGraph.axis))]
             B.val = c.axis
             B.var = 'ind_axis'
             B.ind = ind
@@ -4444,7 +4457,7 @@ class editCurvesWindow(TK.Toplevel):
         # Curve to add
         ind = len(self.subGraph.curves)
         B = TTK.Button(lblframe,text=0,command=lambda n=(ind,self.frame.axisItem): self.bt_click(n))
-        B.list = [i for i in xrange(len(self.subGraph.axis))]
+        B.list = [i for i in range(len(self.subGraph.axis))]
         indexNone = 0
         B.val = 0
         B.var = 'axis'
@@ -4458,14 +4471,14 @@ class editCurvesWindow(TK.Toplevel):
         lblframe.grid(row=0,column=3,sticky='NESW')
         #
         lblframe.grid_columnconfigure(0,weight=1)
-        for ind in xrange(len(self.subGraph.curves)+1):
+        for ind in range(len(self.subGraph.curves)+1):
             lblframe.grid_rowconfigure(ind,weight=1)
         #
         lblframelvl1.append(lblframe)
         #
         self.frame.visibilityItem=[]
         #
-        for ind in xrange(len(self.subGraph.curves)):
+        for ind in range(len(self.subGraph.curves)):
             var = TK.IntVar()
             var.set(1)
             # CB = TTK.Checkbutton(lblframe,variable=var,command=lambda n=ind: self.cb_visibility(n))#, variable=var)
@@ -4524,13 +4537,13 @@ class editCurvesWindow(TK.Toplevel):
         lblframe.grid(row=0,column=0,sticky='NESW')
         #
         lblframe.grid_columnconfigure(0,weight=1)
-        for ind in xrange(len(self.subGraph.curves)+1):
+        for ind in range(len(self.subGraph.curves)+1):
             lblframe.grid_rowconfigure(ind,weight=1)
         #
         lblframelvl1.append(lblframe)
         #
         self.frame.zoneItem = []
-        for ind in xrange(len(self.subGraph.curves)):
+        for ind in range(len(self.subGraph.curves)):
             c = self.subGraph.curves[ind]
             B = TTK.Button(lblframe,text=len(c.zone),command=lambda n=(ind,self.frame.zoneItem): self.bt_click(n))
             B.val = c.zone
@@ -4558,13 +4571,13 @@ class editCurvesWindow(TK.Toplevel):
         lblframe.grid(row=0,column=1,sticky='NESW')
         #
         lblframe.grid_columnconfigure(0,weight=1)
-        for ind in xrange(len(self.subGraph.curves)+1):
+        for ind in range(len(self.subGraph.curves)+1):
             lblframe.grid_rowconfigure(ind,weight=1)
         #
         lblframelvl1.append(lblframe)
         #
         self.frame.varxItem = []
-        for ind in xrange(len(self.subGraph.curves)):
+        for ind in range(len(self.subGraph.curves)):
             c = self.subGraph.curves[ind]
             B = TTK.Button(lblframe,text=c.varx,command=lambda n=(ind,self.frame.varxItem): self.bt_click(n))
             B.ind = ind
@@ -4596,13 +4609,13 @@ class editCurvesWindow(TK.Toplevel):
         lblframe.grid(row=0,column=2,sticky='NESW')
         #
         lblframe.grid_columnconfigure(0,weight=1)
-        for ind in xrange(len(self.subGraph.curves)+1):
+        for ind in range(len(self.subGraph.curves)+1):
             lblframe.grid_rowconfigure(ind,weight=1)
         #
         lblframelvl1.append(lblframe)
         #
         self.frame.varyItem = []
-        for ind in xrange(len(self.subGraph.curves)):
+        for ind in range(len(self.subGraph.curves)):
             c = self.subGraph.curves[ind]
             B = TTK.Button(lblframe,text=c.vary,command=lambda n=(ind,self.frame.varyItem): self.bt_click(n))
             B.ind = ind
@@ -4669,13 +4682,13 @@ class editCurvesWindow(TK.Toplevel):
         lblframe.grid(row=0,column=0,sticky='NESW')
         #
         lblframe.grid_columnconfigure(0,weight=1)
-        for ind in xrange(len(self.subGraph.curves)+1):
+        for ind in range(len(self.subGraph.curves)+1):
             lblframe.grid_rowconfigure(ind,weight=1)
         #
         lblframelvl1.append(lblframe)
         #
         self.frame.line_colorItem = []
-        for ind in xrange(len(self.subGraph.curves)):
+        for ind in range(len(self.subGraph.curves)):
             c = self.subGraph.curves[ind]
             B = TK.Button(lblframe,command=lambda n=(ind,self.frame.line_colorItem): self.bt_click(n))
             B.list = []
@@ -4707,13 +4720,13 @@ class editCurvesWindow(TK.Toplevel):
         lblframe.grid(row=0,column=1,sticky='NESW')
         #
         lblframe.grid_columnconfigure(0,weight=1)
-        for ind in xrange(len(self.subGraph.curves)+1):
+        for ind in range(len(self.subGraph.curves)+1):
             lblframe.grid_rowconfigure(ind,weight=1)
         #
         lblframelvl1.append(lblframe)
         #
         self.frame.line_widthItem = []
-        for ind in xrange(len(self.subGraph.curves)):
+        for ind in range(len(self.subGraph.curves)):
             c = self.subGraph.curves[ind]
             B = TTK.Button(lblframe,text=c.line_width,command=lambda n=(ind,self.frame.line_widthItem): self.bt_click(n))
             B.list = (np.arange(0.5,100,0.5)).tolist()
@@ -4740,13 +4753,13 @@ class editCurvesWindow(TK.Toplevel):
         lblframe.grid(row=0,column=2,sticky='NESW')
         #
         lblframe.grid_columnconfigure(0,weight=1)
-        for ind in xrange(len(self.subGraph.curves)+1):
+        for ind in range(len(self.subGraph.curves)+1):
             lblframe.grid_rowconfigure(ind,weight=1)
         #
         lblframelvl1.append(lblframe)
         #
         self.frame.line_styleItem = []
-        for ind in xrange(len(self.subGraph.curves)):
+        for ind in range(len(self.subGraph.curves)):
             c = self.subGraph.curves[ind]
             B = TTK.Button(lblframe,text=c.line_style,command=lambda n=(ind,self.frame.line_styleItem): self.bt_click(n))
             B.list = linestylelist
@@ -4807,13 +4820,13 @@ class editCurvesWindow(TK.Toplevel):
         lblframe.grid(row=0,column=0,sticky='NESW')
         #
         lblframe.grid_columnconfigure(0,weight=1)
-        for ind in xrange(len(self.subGraph.curves)+1):
+        for ind in range(len(self.subGraph.curves)+1):
             lblframe.grid_rowconfigure(ind,weight=1)
         #
         lblframelvl1.append(lblframe)
         #
         self.frame.marker_face_colorItem = []
-        for ind in xrange(len(self.subGraph.curves)):
+        for ind in range(len(self.subGraph.curves)):
             c = self.subGraph.curves[ind]
             B = TK.Button(lblframe,command=lambda n=(ind,self.frame.marker_face_colorItem): self.bt_click(n))
             B.list = []
@@ -4845,13 +4858,13 @@ class editCurvesWindow(TK.Toplevel):
         lblframe.grid(row=0,column=1,sticky='NESW')
         #
         lblframe.grid_columnconfigure(0,weight=1)
-        for ind in xrange(len(self.subGraph.curves)+1):
+        for ind in range(len(self.subGraph.curves)+1):
             lblframe.grid_rowconfigure(ind,weight=1)
         #
         lblframelvl1.append(lblframe)
         #
         self.frame.marker_sizeItem = []
-        for ind in xrange(len(self.subGraph.curves)):
+        for ind in range(len(self.subGraph.curves)):
             c = self.subGraph.curves[ind]
             B = TTK.Button(lblframe,text=c.marker_size,command=lambda n=(ind,self.frame.marker_sizeItem): self.bt_click(n))
             B.list = (np.arange(0.5,100,0.5)).tolist()
@@ -4878,13 +4891,13 @@ class editCurvesWindow(TK.Toplevel):
         lblframe.grid(row=0,column=2,sticky='NESW')
         #
         lblframe.grid_columnconfigure(0,weight=1)
-        for ind in xrange(len(self.subGraph.curves)+1):
+        for ind in range(len(self.subGraph.curves)+1):
             lblframe.grid_rowconfigure(ind,weight=1)
         #
         lblframelvl1.append(lblframe)
         #
         self.frame.marker_styleItem = []
-        for ind in xrange(len(self.subGraph.curves)):
+        for ind in range(len(self.subGraph.curves)):
             c = self.subGraph.curves[ind]
             B = TTK.Button(lblframe,text=c.marker_style,command=lambda n=(ind,self.frame.marker_styleItem): self.bt_click(n))
             B.list = markername
@@ -4912,13 +4925,13 @@ class editCurvesWindow(TK.Toplevel):
         lblframe.grid(row=0,column=3,sticky='NESW')
         #
         lblframe.grid_columnconfigure(0,weight=1)
-        for ind in xrange(len(self.subGraph.curves)+1):
+        for ind in range(len(self.subGraph.curves)+1):
             lblframe.grid_rowconfigure(ind,weight=1)
         #
         lblframelvl1.append(lblframe)
         #
         self.frame.marker_edge_colorItem = []
-        for ind in xrange(len(self.subGraph.curves)):
+        for ind in range(len(self.subGraph.curves)):
             c = self.subGraph.curves[ind]
             B = TK.Button(lblframe,command=lambda n=(ind,self.frame.marker_edge_colorItem): self.bt_click(n))
             B.list = []
@@ -4950,13 +4963,13 @@ class editCurvesWindow(TK.Toplevel):
         lblframe.grid(row=0,column=4,sticky='NESW')
         #
         lblframe.grid_columnconfigure(0,weight=1)
-        for ind in xrange(len(self.subGraph.curves)+1):
+        for ind in range(len(self.subGraph.curves)+1):
             lblframe.grid_rowconfigure(ind,weight=1)
         #
         lblframelvl1.append(lblframe)
         #
         self.frame.marker_edge_widthItem = []
-        for ind in xrange(len(self.subGraph.curves)):
+        for ind in range(len(self.subGraph.curves)):
             c = self.subGraph.curves[ind]
             B = TTK.Button(lblframe,text=c.marker_edge_width,command=lambda n=(ind,self.frame.marker_edge_widthItem): self.bt_click(n))
             B.list = (np.arange(0.5,100,0.5)).tolist()
@@ -5015,13 +5028,13 @@ class editCurvesWindow(TK.Toplevel):
         lblframe.grid(row=0,column=0,sticky='NESW')
         #
         lblframe.grid_columnconfigure(0,weight=1)
-        for ind in xrange(len(self.subGraph.curves)+1):
+        for ind in range(len(self.subGraph.curves)+1):
             lblframe.grid_rowconfigure(ind,weight=1)
         #
         lblframelvl1.append(lblframe)
         #
         self.frame.marker_sampling_startItem = []
-        for ind in xrange(len(self.subGraph.curves)):
+        for ind in range(len(self.subGraph.curves)):
             c = self.subGraph.curves[ind]
             B = TTK.Button(lblframe,text=c.marker_sampling_start,command=lambda n=(ind,self.frame.marker_sampling_startItem): self.bt_click(n))
             B.list = []
@@ -5048,13 +5061,13 @@ class editCurvesWindow(TK.Toplevel):
         lblframe.grid(row=0,column=1,sticky='NESW')
         #
         lblframe.grid_columnconfigure(0,weight=1)
-        for ind in xrange(len(self.subGraph.curves)+1):
+        for ind in range(len(self.subGraph.curves)+1):
             lblframe.grid_rowconfigure(ind,weight=1)
         #
         lblframelvl1.append(lblframe)
         #
         self.frame.marker_sampling_endItem = []
-        for ind in xrange(len(self.subGraph.curves)):
+        for ind in range(len(self.subGraph.curves)):
             c = self.subGraph.curves[ind]
             B = TTK.Button(lblframe,text=c.marker_sampling_end,command=lambda n=(ind,self.frame.marker_sampling_endItem): self.bt_click(n))
             B.list = []
@@ -5081,13 +5094,13 @@ class editCurvesWindow(TK.Toplevel):
         lblframe.grid(row=0,column=2,sticky='NESW')
         #
         lblframe.grid_columnconfigure(0,weight=1)
-        for ind in xrange(len(self.subGraph.curves)+1):
+        for ind in range(len(self.subGraph.curves)+1):
             lblframe.grid_rowconfigure(ind,weight=1)
         #
         lblframelvl1.append(lblframe)
         #
         self.frame.marker_sampling_stepItem = []
-        for ind in xrange(len(self.subGraph.curves)):
+        for ind in range(len(self.subGraph.curves)):
             c = self.subGraph.curves[ind]
             B = TTK.Button(lblframe,text=c.marker_sampling_step,command=lambda n=(ind,self.frame.marker_sampling_stepItem): self.bt_click(n))
             B.list = []
@@ -5145,13 +5158,13 @@ class editCurvesWindow(TK.Toplevel):
         lblframe.grid(row=0,column=0,sticky='NESW')
         #
         lblframe.grid_columnconfigure(0,weight=1)
-        for ind in xrange(len(self.subGraph.curves)+1):
+        for ind in range(len(self.subGraph.curves)+1):
             lblframe.grid_rowconfigure(ind,weight=1)
         #
         lblframelvl1.append(lblframe)
         #
         self.frame.legend_labelItem = []
-        for ind in xrange(len(self.subGraph.curves)):
+        for ind in range(len(self.subGraph.curves)):
             c = self.subGraph.curves[ind]
             B = TTK.Button(lblframe,text=c.legend_label,command=lambda n=(ind,self.frame.legend_labelItem): self.bt_click(n))
             B.list = []
@@ -5178,14 +5191,14 @@ class editCurvesWindow(TK.Toplevel):
         lblframe.grid(row=0,column=1,sticky='NESW')
         #
         lblframe.grid_columnconfigure(0,weight=1)
-        for ind in xrange(len(self.subGraph.curves)+1):
+        for ind in range(len(self.subGraph.curves)+1):
             lblframe.grid_rowconfigure(ind,weight=1)
         #
         lblframelvl1.append(lblframe)
         #
         self.frame.legend_displayItem=[]
         #
-        for ind in xrange(len(self.subGraph.curves)):
+        for ind in range(len(self.subGraph.curves)):
             var = TK.IntVar()
             var.set(1)
             CB = TTK.Checkbutton(lblframe,variable=var,command=lambda n=ind: self.cb_legend_display(n))#, variable=var)
@@ -5248,8 +5261,8 @@ class editCurvesWindow(TK.Toplevel):
 
     # --------------------------------------------------------------- updateAxisList
     def updateAxisList(self):
-        for ind in xrange(len(self.subGraph.curves)+1):
-            self.frame.axisItem[ind].list = [i for i in xrange(len(self.subGraph.axis))]
+        for ind in range(len(self.subGraph.curves)+1):
+            self.frame.axisItem[ind].list = [i for i in range(len(self.subGraph.axis))]
     # --------------------------------------------------------------- updatelblFrameSize
     def updatelblFrameSize(self):
         for action in [self.frame.selectionItem,self.frame.IdItem,self.frame.axisItem,
@@ -5263,7 +5276,7 @@ class editCurvesWindow(TK.Toplevel):
             lblframe = action[0].winfo_parent() # Returns the name of the parent
             lblframe = self.frame.nametowidget(lblframe) # returns the instance of the parent # Returns the name of the parent
         #     ### Loop on curves
-        #     for ind in xrange(len(self.subGraph.curves)):
+        #     for ind in range(len(self.subGraph.curves)):
         #         lblframe.rowconfigure(ind,weight=0)
         #         print('-> ',ind)
         #     lblframe.rowconfigure(len(self.subGraph.curves),weight=0)
@@ -5289,7 +5302,7 @@ class editCurvesWindow(TK.Toplevel):
 
         # action[indRemove].destroy()
         ### Loop on curves
-        for ind in xrange(len(self.subGraph.curves)+1):
+        for ind in range(len(self.subGraph.curves)+1):
             ### ### Check index value
             if ind>=indRemove:
                 for action in [self.frame.selectionItem,self.frame.IdItem,self.frame.axisItem,
@@ -5395,7 +5408,7 @@ class editCurvesWindow(TK.Toplevel):
         ### Add new curve line
         c = self.subGraph.curves[ind]
         self.frame.axisItem[ind].config(text=c.axis)
-        self.frame.axisItem[ind].list = [i for i in xrange(len(self.subGraph.axis))]
+        self.frame.axisItem[ind].list = [i for i in range(len(self.subGraph.axis))]
         self.frame.axisItem[ind].val = c.axis
         self.frame.axisItem[ind].var = 'ind_axis'
         self.frame.axisItem[ind].ind = ind
@@ -5405,7 +5418,7 @@ class editCurvesWindow(TK.Toplevel):
         # Curve to add
         ind = len(self.subGraph.curves)
         B = TTK.Button(lblframe,text=0,command=lambda n=(ind,self.frame.axisItem): self.bt_click(n))
-        B.list = [i for i in xrange(len(self.subGraph.axis))]
+        B.list = [i for i in range(len(self.subGraph.axis))]
         indexNone = 0
         B.val = 0
         B.var = 'axis'
@@ -5872,7 +5885,7 @@ class editCurvesWindow(TK.Toplevel):
         # Works only if a single curve is selected !
         nbSelected = 0
         indSelected = None
-        for ind in xrange(len(self.frame.selectionItem)):
+        for ind in range(len(self.frame.selectionItem)):
             select = self.frame.selectionItem[ind]
             if select.val.get():
                 nbSelected += 1
@@ -5949,7 +5962,7 @@ class editCurvesWindow(TK.Toplevel):
         # Works only if a single curve is selected !
         nbSelected = 0
         indSelected = None
-        for ind in xrange(len(self.frame.selectionItem)):
+        for ind in range(len(self.frame.selectionItem)):
             select = self.frame.selectionItem[ind]
             if select.val.get():
                 nbSelected += 1
@@ -6021,7 +6034,7 @@ class editCurvesWindow(TK.Toplevel):
         l_ind = [extra_data[0]]
         # If line is selected, apply the modification to all other selected lines
         if self.frame.selectionItem[extra_data[0]].val.get():
-            for ind2 in xrange(len(self.frame.selectionItem)):
+            for ind2 in range(len(self.frame.selectionItem)):
                 if extra_data[0]!=ind2 and self.frame.selectionItem[ind2].val.get():
                     l_ind.append(ind2)
         if color is not None:
@@ -6053,7 +6066,7 @@ class editCurvesWindow(TK.Toplevel):
             #     l_ind = [ind[0]]
             #     # If line is selected, apply the modification to all other selected lines
             #     if self.frame.selectionItem[ind[0]].val.get():
-            #         for ind2 in xrange(len(self.frame.selectionItem)):
+            #         for ind2 in range(len(self.frame.selectionItem)):
             #             if ind[0]!=ind2 and self.frame.selectionItem[ind2].val.get():
             #                 l_ind.append(ind2)
             #     if color[1] is not None:
@@ -6098,7 +6111,7 @@ class editCurvesWindow(TK.Toplevel):
         self.subGraph.curves[ind].setValue('visible',CB.val.get())
         # If line was selected, apply this modification to all other selected lines
         if self.frame.selectionItem[ind].val.get():
-            for ind2 in xrange(len(self.frame.selectionItem)):
+            for ind2 in range(len(self.frame.selectionItem)):
                 if ind!=ind2 and self.frame.selectionItem[ind2].val.get():
                     CB = self.frame.visibilityItem[ind2]
                     CB.val.set(not initialValue)
@@ -6117,7 +6130,7 @@ class editCurvesWindow(TK.Toplevel):
         self.subGraph.curves[ind].setValue('legend_display',CB.val.get())
         # If line was selected, apply this modification to all other selected lines
         if self.frame.selectionItem[ind].val.get():
-            for ind2 in xrange(len(self.frame.selectionItem)):
+            for ind2 in range(len(self.frame.selectionItem)):
                 if ind!=ind2 and self.frame.selectionItem[ind2].val.get():
                     CB = self.frame.legend_displayItem[ind2]
                     CB.val.set(not initialValue)
@@ -6137,7 +6150,7 @@ class editCurvesWindow(TK.Toplevel):
         nbDeletion = 0
 
         deletionList = []
-        for ind in xrange(len(self.frame.selectionItem)):
+        for ind in range(len(self.frame.selectionItem)):
             select = self.frame.selectionItem[ind]
             if select.val.get():
                 deletionList.append(ind)
@@ -6216,7 +6229,7 @@ class editCurvesWindow(TK.Toplevel):
     # ------------------------------------------------------ cmd_duplicateCurves
     def cmd_duplicateCurves(self):
 
-        for ind in xrange(len(self.frame.selectionItem)):
+        for ind in range(len(self.frame.selectionItem)):
             select = self.frame.selectionItem[ind]
             if select.val.get():
 
@@ -6259,7 +6272,7 @@ class editCurvesWindow(TK.Toplevel):
         containerOfB = B.container
         # If line is selected, apply the modification to all other selected lines
         if self.frame.selectionItem[B.ind].val.get():
-            for ind2 in xrange(len(self.frame.selectionItem)):
+            for ind2 in range(len(self.frame.selectionItem)):
                 if B.ind!=ind2 and self.frame.selectionItem[ind2].val.get():
                     l_ind.append(ind2)
         for ind in l_ind:
@@ -6986,7 +6999,7 @@ class DesktopFrameTK(TK.Frame):
                 #
                 # Create all axes
                 lines += '''%s######\n%s# Axis\n%s######\n'''%(space,space,space)
-                for ind_axis in xrange(len(subgraph.axis)):
+                for ind_axis in range(len(subgraph.axis)):
                     if subgraph.axis[ind_axis].type[0]=='main':
                         lines +='''    axis_%s_%s_%s = graph_%s.getAxis('%s',%s)\n'''%(indgraph,indsubgraph,ind_axis,indgraph,subgraph.name,ind_axis)
                         # lines +='''    indAxis_%s_%s_%s = 0\n'''%(indgraph,indsubgraph,ind_axis)
@@ -7010,14 +7023,14 @@ class DesktopFrameTK(TK.Frame):
                     indcurve += 1
                 # Get Grid
                 lines += '''%s######\n%s# Grids\n%s######\n'''%(space,space,space)
-                for ind_axis in xrange(len(subgraph.axis)):
+                for ind_axis in range(len(subgraph.axis)):
                     gridobj = graph.getGrid(subgraph.name, ind_axis)
                     lines += '''    grid_%s_%s_%s = graph_%s.getGrid('%s',axis=axis_%s_%s_%s)\n'''%(indgraph,indsubgraph,ind_axis,indgraph,subgraph.name,indgraph,indsubgraph,ind_axis)
                     lines += '''%s'''%(gridobj.write('grid_%s_%s_%s'%(indgraph,indsubgraph,ind_axis)))
 
                 # Get Axis
                 lines += '''%s######\n%s# Axis settings\n%s######\n'''%(space,space,space)
-                for ind_axis in xrange(len(subgraph.axis)):
+                for ind_axis in range(len(subgraph.axis)):
                     axisobj = graph.getAxis(subgraph.name, ind_axis)
                     # Following line is useless now that addAxis() returns an axis !
                     # lines += '''    axis_%s_%s_%s = graph_%s.getAxis('%s',%s)\n'''%(indgraph,indsubgraph,ind_axis,indgraph,subgraph.name,ind_axis)
@@ -7135,7 +7148,7 @@ class DesktopFrameTK(TK.Frame):
     # ------------------------------------------------------- updateGraphName2Id
     def updateGraphName2Id(self):
         self.graphName2Id = {}
-        for ind in xrange(len(self.graphWdwL)):
+        for ind in range(len(self.graphWdwL)):
             graph = self.graphWdwL[ind]
             self.graphName2Id[graph.name]=ind
 
@@ -7229,7 +7242,7 @@ class DesktopFrameTK(TK.Frame):
         self.updateactiveGraph()
     # ------------------------------------------------------------ renumberGraph
     def renumberGraph(self):
-        for ind in xrange(len(self.graphWdwL)):
+        for ind in range(len(self.graphWdwL)):
             graph = self.graphWdwL[ind]
             graph.index = ind
     # -------------------------------------------------------- cmd_closeAllGraph
@@ -7839,7 +7852,7 @@ class Desktop():
                 indaxis = 0
                 subgraph = figure.subGraph[k]
                 # Create all axes
-                for ind_axis in xrange(len(subgraph.axis)):
+                for ind_axis in range(len(subgraph.axis)):
                     if subgraph.axis[ind_axis].type[0]=='main':
                         lines +='''    indAxis_%s_%s_%s = 0\n'''%(indgraph,indsubgraph,ind_axis)
                     elif subgraph.axis[ind_axis].type[0]=='twinx':
@@ -7860,13 +7873,13 @@ class Desktop():
                     lines += '''%s\n'''%(curve.write(indgraph,subgraph.name,indcurve))
                     indcurve += 1
                 # Get Grid
-                for ind_axis in xrange(len(subgraph.axis)):
+                for ind_axis in range(len(subgraph.axis)):
                     gridobj = graph.getGrid(subgraph.name, ind_axis)
                     lines += '''    grid_%s_%s_%s = graph_%s.getGrid('%s',%s)\n'''%(indgraph,indsubgraph,ind_axis,indgraph,subgraph.name,ind_axis)
                     lines += '''%s'''%(gridobj.write('grid_%s_%s_%s'%(indgraph,indsubgraph,ind_axis)))
 
                 # Get Axis
-                for ind_axis in xrange(len(subgraph.axis)):
+                for ind_axis in range(len(subgraph.axis)):
                     axisobj = graph.getAxis(subgraph.name, ind_axis)
                     lines += '''    axis_%s_%s_%s = graph_%s.getAxis('%s',%s)\n'''%(indgraph,indsubgraph,ind_axis,indgraph,subgraph.name,ind_axis)
                     lines += '''%s'''%(axisobj.write('axis_%s_%s_%s'%(indgraph,indsubgraph,ind_axis)))
@@ -7942,7 +7955,7 @@ class Desktop():
     # ------------------------------------------------------- updateGraphName2Id
     def updateGraphName2Id(self):
         self.graphName2Id = {}
-        for ind in xrange(len(self.graphWdwL)):
+        for ind in range(len(self.graphWdwL)):
             graph = self.graphWdwL[ind]
             self.graphName2Id[graph.name]=ind
 
@@ -7960,7 +7973,7 @@ class Desktop():
         self.updateactiveGraph()
     # ------------------------------------------------------------ renumberGraph
     def renumberGraph(self):
-        for ind in xrange(len(self.graphWdwL)):
+        for ind in range(len(self.graphWdwL)):
             graph = self.graphWdwL[ind]
             graph.index = ind
     # -------------------------------------------------------- cmd_closeAllGraph
@@ -8048,8 +8061,8 @@ class MatplotlibFigure():
         # print('''##### Fig instance = ''',self.instance)
         # Ax
         self.subGraph = {}
-        for il in xrange(self.nl):
-            for ic in xrange(self.nc):
+        for il in range(self.nl):
+            for ic in range(self.nc):
                 ind = il*self.nc+ic
                 self.subGraph['%s:%s'%(il+1,ic+1)] = SubGraph(self.instance,self.nl,self.nc,ind,il,ic)
 
@@ -8086,7 +8099,7 @@ class MatplotlibFigure():
             self.drawOneFigure(iCurSubGraph)
     # ------------------------------------------------------removeCurvesZoneName
     def removeCurvesZoneName(self,ax_name,zonename):
-        for ind in xrange(len(self.subGraph[ax_name].curves)):
+        for ind in range(len(self.subGraph[ax_name].curves)):
             c = self.subGraph[ax_name].curves[ind]
             if zonename in c.zone:
                 index = c.zone.index(zonename)
@@ -8132,13 +8145,13 @@ class MatplotlibFigure():
     def drawOneFigure(self,iCurSubGraph):
         curves = self.subGraph[iCurSubGraph].curves
         iCurrentAxis = 0
-        for iCurrentAxis in xrange(len(self.subGraph[iCurSubGraph].axis)):
+        for iCurrentAxis in range(len(self.subGraph[iCurSubGraph].axis)):
             self.subGraph[iCurSubGraph].axis[iCurrentAxis].clear()
         ###
         legend_list = []
         legend_text = []
         ###
-        for iCurrentAxis in xrange(len(self.subGraph[iCurSubGraph].axis)):
+        for iCurrentAxis in range(len(self.subGraph[iCurSubGraph].axis)):
             plt.sca(self.subGraph[iCurSubGraph].axis[iCurrentAxis])
     #        self.subGraph[iCurSubGraph].axis[iCurrentAxis].clear()
 #            plt.cla()

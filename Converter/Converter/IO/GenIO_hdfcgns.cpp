@@ -826,9 +826,6 @@ E_Int K_IO::GenIO::hdfcgnsread(char* file, PyObject*& tree, PyObject* dataShape,
   /* Open file */
   hid_t fapl, fid;
   fapl = H5Pcreate(H5P_FILE_ACCESS);
-  //H5Pset_libver_bounds(fapl, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST);
-
-  //H5Pset_fclose_degree(fapl, H5F_CLOSE_STRONG);
   fid = H5Fopen(file, H5F_ACC_RDONLY, fapl);
   //printf("open Avant =%d\n",H5Fget_obj_count(fid, H5F_OBJ_ALL));
   // printf("open=%d\n",H5Fget_obj_count(fid, H5F_OBJ_ALL));
@@ -1287,7 +1284,8 @@ E_Int K_IO::GenIO::hdfcgnswrite(char* file, PyObject* tree, PyObject* links)
   hid_t fapl, fid, capl;
   fapl = H5Pcreate(H5P_FILE_ACCESS);
   H5Pset_fclose_degree(fapl, H5F_CLOSE_STRONG);
-  H5Pset_libver_bounds(fapl, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST);
+  //H5Pset_libver_bounds(fapl, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST);
+  H5Pset_libver_bounds(fapl, KHDFVERSION, KHDFVERSION);
 
   capl = H5Pcreate(H5P_FILE_CREATE);
   H5Pset_link_creation_order(capl, H5P_CRT_ORDER_TRACKED | H5P_CRT_ORDER_INDEXED);
