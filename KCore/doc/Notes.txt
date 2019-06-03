@@ -1,5 +1,0 @@
-Dans KCore: 
-- les tableaux de reels sont des doubles
-- les tableaux d'entiers sont des simples.
-Ceci peut etre change dans Def/DefTypes.h
-

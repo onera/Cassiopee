@@ -74,9 +74,9 @@ try:
     import Converter.PyTree as C
     import Converter.Internal as Internal
     import Transform.PyTree as T
-    from . import CPlot.PyTree as CPlot
-    from . import CPlot.Tk as CTK
-    from . import CPlot.Ttk as TTK
+    import CPlot.PyTree as CPlot
+    import CPlot.Tk as CTK
+    import CPlot.Ttk as TTK
 except ImportError:
     CTK = None
     TTK = TK

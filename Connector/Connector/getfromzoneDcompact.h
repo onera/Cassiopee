@@ -2,7 +2,12 @@
        if (loc==0) { solD = K_PYTREE::getNodeFromName1(zoneD , "FlowSolution#Centers"); }
        else        { solD = K_PYTREE::getNodeFromName1(zoneD , "FlowSolution"        ); }    
        
-       PyObject* tpl0= PyList_GetItem(pyVariables, 0); char* varname = PyString_AsString(tpl0);
+       PyObject* tpl0 = PyList_GetItem(pyVariables, 0); 
+       char* varname = NULL;
+       if (PyString_Check(tpl0)) varname = PyString_AsString(tpl0);
+#if PY_VERSION_HEX >= 0x03000000
+       else if (PyUnicode_Check(tpl0)) varname = PyBytes_AsString(PyUnicode_AsUTF8String(tpl0)); 
+#endif
        
        t             = K_PYTREE::getNodeFromName1(solD, varname );
        iptroD        = K_PYTREE::getValueAF(t, hook);
