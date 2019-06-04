@@ -116,12 +116,14 @@ List of functions
     Converter.Internal.getZonesPerIteration
     Converter.Internal.getBases
     Converter.Internal.getZoneDim
+    Converter.Internal.getZoneType
 
 **-- Check nodes**
 
 .. autosummary::
 
     Converter.Internal.printTree
+    Converter.Internal.getSizeOf
     Converter.Internal.checkPyTree
     Converter.Internal.correctPyTree
 
@@ -1138,6 +1140,24 @@ Acess nodes
 
     .. literalinclude:: ../build/Examples/Converter/getZoneDimPT.py
 
+-----------------------------------------------------------------------------------------------
+
+.. py:function:: Converter.Internal.getZoneType(zone) 
+
+    Return the nature of zone.
+    Return 1 if zone is structured, 2 if unstructured, 0 if failed.
+
+    :param zone:  a 'Zone_t' node
+    :type  zone:  pyTree node of type 'Zone_t'
+    :return: 1 or 2
+    :rtype: int
+
+    *Example of use:*
+
+    * `Return zone nature (pyTree) <Examples/Converter/getZoneTypePT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/getZoneTypePT.py
+
 
 Check nodes
 ------------
@@ -1163,6 +1183,23 @@ Check nodes
     * `Pretty print pyTree nodes (pyTree) <Examples/Converter/printTreePT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/printTreePT.py
+
+-----------------------------------------------------------------------------------------------
+
+.. py:function:: Converter.Internal.getSizeOf(node) 
+
+    Return the size of input node and attached nodes in octets.
+
+    :param node:  input node
+    :type  node:  pyTree node of list of pyTree nodes
+    :return: size of node in octets
+    :rtype: int
+
+    *Example of use:*
+
+    * `Get size of node (pyTree) <Examples/Converter/getSizeOfPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/getSizeOfPT.py
 
 -----------------------------------------------------------------------------------------------
 

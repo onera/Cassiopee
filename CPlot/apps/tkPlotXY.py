@@ -22,7 +22,7 @@ except:
     try: import tkinter as TK
     except: IMPORTOK = False
     
-try: from . import ttk as cttk
+try: import ttk as cttk
 except: IMPORTOK = False
 
 try:
@@ -9521,7 +9521,7 @@ def createApp(win):
 
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                            text='tkPlotXY', font=CTK.FRAMEFONT, takefocus=1)
+                           text='tkPlotXY', font=CTK.FRAMEFONT, takefocus=1)
     #BB = CTK.infoBulle(parent=Frame, text='My personal applet.\nCtrl+c to close applet.', temps=0, btype=1)
     Frame.bind('<Control-c>', hideApp)
     Frame.bind('<Control-u>', updateFromTree)
@@ -9604,6 +9604,7 @@ def showApp():
 #==============================================================================
 def cmd_hideApp(event=None):
     hideApp(event)
+
 def hideApp(event=None):
     WIDGETS['frame'].grid_forget()
 
@@ -9656,10 +9657,10 @@ IMAGE_DICT = {
 #}
 
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     if False:
         import sys
-        if (len(sys.argv) == 2):
+        if len(sys.argv) == 2:
             CTK.FILE = sys.argv[1]
             try: CTK.t = C.convertFile2PyTree(CTK.FILE)
             except: pass

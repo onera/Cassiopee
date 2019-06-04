@@ -91,6 +91,8 @@ then
     taghtml build/Post.html
     sed -i 's/Post.Post/Post/g' build/Post.html
     cp build/Post.html $DEST
+
+    cp build/Post.pdf $DEST
 fi
 
 # Copie des release Notes

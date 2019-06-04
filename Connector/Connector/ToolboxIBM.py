@@ -716,7 +716,7 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None,
             for nob in range(nbTypes):
                 ibcTypeL = listOfIBCTypes[nob]
                 indicesByTypeL = indicesByTypeForZone[nob]
-                if indicesByTypeL.shape[0] > 0 :                
+                if indicesByTypeL.shape[0] > 0:                
                     correctedPtsL = Transform.subzone(allCorrectedPts[noz], indicesByTypeL)
                     interpPtsL = Transform.subzone(allInterpPts[noz], indicesByTypeL)
                     wallPtsL = Transform.subzone(allWallPts[noz], indicesByTypeL)                

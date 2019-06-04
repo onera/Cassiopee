@@ -1,4 +1,10 @@
 ===============================================================================
+Connector 2.9 [06/2019]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.9
+Optional: pyTree interface requires Converter 2.9
+Optional: preconditionning requires Generator, Transform 2.9
+- setIBCTransfers + injection + imposed pressure
+===============================================================================
 Connector 2.8 [12/2018]
 Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.8
 Optional: pyTree interface requires Converter 2.8

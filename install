@@ -53,7 +53,7 @@ done
 
 # Fini avec la doc KCore pour genindex...
 if [ "$1" = "doc" -o "$1" = "all" ]; then
-    cd KCore/doc2
+    cd KCore/doc
     ./install 1 2
     cd ../..
 fi

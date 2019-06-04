@@ -44,12 +44,18 @@ def getBCName(proposedName):
 # Enregistre les noms des BCs de t dans le __BCNameServer__
 def registerBCNames(t):
   global __BCNameServer__
-  nodes = Internal.getNodesFromType(t, 'BC_t')
-  for i in nodes: __BCNameServer__[i[0]] = 0
-  nodes = Internal.getNodesFromType(t, 'GridConnectivity1to1_t')
-  for i in nodes: __BCNameServer__[i[0]] = 0
-  nodes = Internal.getNodesFromType(t, 'GridConnectivity_t')
-  for i in nodes: __BCNameServer__[i[0]] = 0
+  zones = Internal.getZones(t)
+  for z in zones:
+    zoneBCs = Internal.getNodesFromType1(z, 'ZoneBC_t')
+    for zbc in zoneBCs:
+      nodes = Internal.getNodesFromType1(zbc, 'BC_t')
+      for i in nodes: __BCNameServer__[i[0]] = 0
+    zoneGCs = Internal.getNodesFromType1(z, 'ZoneGridConnectivity_t')
+    for zgc in zoneGCs:
+      nodes = Internal.getNodesFromType1(zgc, 'GridConnectivity1to1_t')
+      for i in nodes: __BCNameServer__[i[0]] = 0
+      nodes = Internal.getNodesFromType1(zgc, 'GridConnectivity_t')
+      for i in nodes: __BCNameServer__[i[0]] = 0
 
 # -- getBaseName
 # Retourne un nom de base (unique)

@@ -896,7 +896,7 @@ Geometry modification
 
 ---------------------------------------
 
-.. py:function:: Geom.axisym(a, C, axis,theta=360.,Ntheta=100,rmod=None)
+.. py:function:: Geom.axisym(a, C, axis, angle=360., Ntheta=100, rmod=None)
 
     Create an axisymmetrical mesh given one of its borders following axis.
     
@@ -908,8 +908,8 @@ Geometry modification
     :type C: 3-tuple of floats
     :param axis: rotation axis
     :type axis: 3-tuple of floats
-    :param theta: azimuthal sector angle
-    :type theta: float
+    :param angle: azimuthal sector angle
+    :type angle: float
     :param Ntheta: number of points in the azimuthal direction
     :type Ntheta: integer
     :param rmod: optional curve defining r=f(theta) instead of defining theta and Ntheta

@@ -1,4 +1,14 @@
 ==============================================================================
+Converter 2.9 [06/2019]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.9
+Optional: libhdf5 > 1.8.6 (hdf file format)
+Optional: extractBCOfType, extractBCOfName requires Transform 2.9
+Optional: Mpi requires mpi4py
+- Internal: getSizeOf
+- ADF/HDF: high order elements read/write
+- convertHO2LO
+- convertLO2HO (partial)
+==============================================================================
 Converter 2.8 [12/2018]
 Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.8
 Optional: libhdf5 > 1.8.6 (hdf file format)
