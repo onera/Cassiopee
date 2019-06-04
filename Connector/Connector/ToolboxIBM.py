@@ -513,6 +513,16 @@ def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., dfarList=[], DEPTH=2, tb
     # type de traitement paroi: pts interieurs ou externes
     model = Internal.getNodeFromName(tb, 'GoverningEquations')
     if model is None: raise ValueError('generateIBMMesh: GoverningEquations is missing in input body tree.')
+     # check Euler non consistant avec Musker
+
+    if Internal.getValue(model) == 'Euler': 
+        for z in Internal.getZones(tb):
+            ibctype = Internal.getNodeFromName2(z, 'ibctype')
+            if ibctype is not None:
+                ibctype = Internal.getValue(ibctype)
+                if ibctype == 'Musker' or ibctype == 'Log': 
+                    raise ValueError("In tb: governing equations (Euler) not consistent with ibc type (%s)"%(ibctype))
+
     o = buildOctree(tb, snears=snears, snearFactor=1., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf, 
                     dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=fileo, rank=0)
 
@@ -1351,7 +1361,6 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, inv=False, int
     else: IBCType = 1 # Points cibles externes
     if loc == 'nodes':
         raise NotImplemented("prepareIBMData: prepareIBMData at nodes not yet implemented.")
-
     #------------------------
     # Ghost cells (overlaps)
     #------------------------

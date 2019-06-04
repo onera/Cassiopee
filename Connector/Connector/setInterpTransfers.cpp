@@ -1285,7 +1285,13 @@ PyObject *timecount;
           // ibc    
           if (ibc == 1)
           {
-	    
+            E_Int nvars = vectOfDnrFields.size();
+            if ( (ibcType==2 || (ibcType==3)) && nvars < 6)
+            {
+              printf("Warning: setIBCTransfersCommonVar: number of variables (<6) inconsistent with ibctype (wall law).\n"); 
+            }
+            else 
+            {
             if (varType == 1 || varType == 11)
               setIBCTransfersCommonVar1(ibcType, rcvPts, nbRcvPts, pt_deb, pt_fin, ithread,
                                         xPC, xPC+nbRcvPts, xPC+nbRcvPts*2,
@@ -1324,6 +1330,7 @@ PyObject *timecount;
                                         ipt_tmp, size,
                                         gamma, cv, muS, Cs, Ts, Pr,
                                         vectOfDnrFields, vectOfRcvFields);
+          }
           }//ibc          
   //*
   //        } //chunk

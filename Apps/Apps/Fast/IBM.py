@@ -22,18 +22,18 @@ except: pass
 # IBM prepare
 # NP is the target number of processors
 #================================================================================ 
-def prepare(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21, check=False, NP=0, format='single'):
+def prepare(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21, check=False, NP=0, format='single',inv=False):
     import Converter.Mpi as Cmpi
     rank = Cmpi.rank; size = Cmpi.size
     ret = None
     # sequential prep
-    if rank == 0: ret = prepare0(t_case, t_out, tc_out, snears=snears, dfar=dfar, dfarList=dfarList, vmin=vmin, check=check, NP=NP, format=format)
+    if rank == 0: ret = prepare0(t_case, t_out, tc_out, snears=snears, dfar=dfar, dfarList=dfarList, vmin=vmin, check=check, NP=NP, format=format, inv=inv)
     return ret
 
 #================================================================================
 # IBM prepare - seq
 #================================================================================
-def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21, check=False, NP=0, format='single', frontType=1):
+def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21, check=False, NP=0, format='single', frontType=1, inv=False):
     import KCore.test as test
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
     else: tb = t_case
@@ -64,6 +64,15 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
     if model is None: raise ValueError('GoverningEquations is missing in input cgns.')
     # model: Euler, NSLaminar, NSTurbulent
     model = Internal.getValue(model)
+
+    # check Euler non consistant avec Musker
+    if model == 'Euler': 
+        for z in Internal.getZones(tb):
+            ibctype = Internal.getNodeFromName2(z, 'ibctype')
+            if ibctype is not None:
+                ibctype = Internal.getValue(ibctype)
+                if ibctype == 'Musker' or ibctype == 'Log': 
+                    raise ValueError("In tb: governing equations (Euler) not consistent with ibc type (%s)"%(ibctype))
 
     # reference state
     refstate = C.getState(tb)
@@ -109,7 +118,7 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
     #----------------------------------------
     # Create IBM info
     #----------------------------------------
-    t,tc = TIBM.prepareIBMData(t, tb, frontType=frontType, interpDataType=0)
+    t,tc = TIBM.prepareIBMData(t, tb, frontType=frontType, interpDataType=0, inv=inv)
     test.printMem(">>> ibm data [end]")
 
     # arbre donneur
@@ -131,7 +140,7 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
     return t, tc
 
 #==================================================================================================
-def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21, check=False, NP=0, format='single', frontType=1):
+def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21, check=False, NP=0, format='single', frontType=1,inv=False):
     import Generator
     import Converter
     import Connector.connector as connector
@@ -174,6 +183,15 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
     if model is None: raise ValueError('GoverningEquations is missing in input tree defined in %s.'%FILE)
     # model : Euler, NSLaminar, NSTurbulent
     model = Internal.getValue(model)
+
+    # check Euler non consistant avec Musker
+    if model == 'Euler': 
+        for z in Internal.getZones(tb):
+            ibctype = Internal.getNodeFromName2(z, 'ibctype')
+            if ibctype is not None:
+                ibctype = Internal.getValue(ibctype)
+                if ibctype == 'Musker' or ibctype == 'Log': 
+                    raise ValueError("In tb: governing equations (Euler) not consistent with ibc type (%s)"%(ibctype))
 
     if dimPb == 2: C._initVars(tb, 'CoordinateZ', 0.) # forced
 
@@ -276,7 +294,8 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
     
     test.printMem(">>> Blanking [start]")
     t = TIBM.blankByIBCBodies(t, tb, 'centers', dimPb)
-    C._initVars(t, '{centers:cellNIBC}={centers:cellN}')
+    if not inv: C._initVars(t, '{centers:cellNIBC}={centers:cellN}')
+    else: C._initVars(t,'{centers:cellNIBC}=1-{centers:cellN}') # ecoulement interne
     TIBM._signDistance(t)
 
     C._initVars(t,'{centers:cellN}={centers:cellNIBC}')
@@ -423,7 +442,7 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
     test.printMem(">>> Building IBM front [start]")
     front = TIBM.getIBMFront(tc, 'cellNFront', dim=dimPb, frontType=frontType)
     front = TIBM.gatherFront(front)
-
+    
     if check and rank == 0: C.convertPyTree2File(front, 'front.cgns')
 
     zonesRIBC = []

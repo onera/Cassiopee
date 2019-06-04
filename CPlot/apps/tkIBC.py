@@ -122,7 +122,7 @@ def getIBCFrontInfo__(fc1, parentZone, dhloc, toldist=1.e-10):
             # FIN NOUVELLE VERSION
 
             # cas 1 : le centre est proche paroi, le point interpole est alors positionne a dhloc+eps de la paroi
-	        # cas 2 : le centre est loin de la paroi, le point interpole est alors positionne a dist+eps de la paroi
+            # cas 2 : le centre est loin de la paroi, le point interpole est alors positionne a dist+eps de la paroi
             if abs(dist) < dhloc: deltaa[1][0,ind] = abs(dist) + dhloc + eps
             else: deltaa[1][0,ind] = 2.*abs(dist) + eps
         C.setFields([deltaa], fc1, loc='nodes')

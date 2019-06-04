@@ -80,7 +80,11 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar1(
   if (nvars == 6) varSAOut = vectOfRcvFields[5]; // ronutildeSA
 
   //E_Int* rcvPts = rcvPtsI.begin();
-
+  // if ( (bctype==2 || (bctype==3)) && nvars < 6)
+  // {
+  //   printf("Warning: setIBCTransfersCommonVar1: number of variables (<6) inconsistent with bctype.\n"); 
+  //   return 0;
+  // }
   if (bctype == 0) // wallslip
   { 
 #ifdef _OPENMP4
@@ -552,6 +556,11 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
 
   if (nvars == 6) varSAOut = vectOfRcvFields[5]; // nutildeSA
 
+  // if ( (bctype==2 || (bctype==3)) && nvars < 6)
+  // {
+  //   printf("Warning: setIBCTransfersCommonVar2: number of variables (<6) inconsistent with bctype.\n"); 
+  //   return 0;
+  // }
   if (bctype == 0) // wallslip
   { 
 #ifdef _OPENMP4
@@ -1397,7 +1406,11 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar3(
   E_Float* pOut = vectOfRcvFields[4];// pressure
   E_Float* varSAOut = NULL;
   if ( nvars == 6 ) varSAOut = vectOfRcvFields[5];//ronutildeSA
-
+  // if ( (bctype==2 || (bctype==3)) && nvars < 6)
+  // {
+  //   printf("Warning: setIBCTransfersCommonVar3: number of variables (<6) inconsistent with bctype.\n"); 
+  //   return 0;
+  // }
   if (bctype == 0) // wallslip
   {
 #ifdef _OPENMP4
