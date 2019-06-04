@@ -806,7 +806,6 @@ PyObject *timecount;
       }
 
 #else
-
       if (!PYPARSETUPLE(args,
                         "OOOOOllllllllllddddd", "OOOOOiiiiiiiiiiddddd",
                         "OOOOOllllllllllfffff", "OOOOOiiiiiiiiiifffff",
@@ -818,10 +817,9 @@ PyObject *timecount;
 #endif
 
   
-
   //E_Int init=0;
 
-#ifdef TimeShowsetinterp  
+#ifdef TimeShowsetinterp
   FldArrayF* timecnt;
   E_Float* ipt_timecount = NULL;
   K_NUMPY::getFromNumpyArray(timecount, timecnt, true);
@@ -841,7 +839,6 @@ PyObject *timecount;
  if ( rank_intp == 0)
  {
    time_in_0 = omp_get_wtime();
-   
  }
 #endif
 
@@ -916,14 +913,14 @@ PyObject *timecount;
   {
     
   PyObject* zone = PyList_GetItem(zonesR, nd);  
-  PyObject* own   = K_PYTREE::getNodeFromName1(zone , ".Solver#ownData");
+  PyObject* own  = K_PYTREE::getNodeFromName1(zone , ".Solver#ownData");
   if (own != NULL)
   {
     PyObject* paramint = K_PYTREE::getNodeFromName1(own, "Parameter_int");
     if (paramint != NULL)
     {
       ipt_param_int_Shift[nd] = K_PYTREE::getValueAI(paramint, hook);      
-    } 
+    }
     else
     {
       ipt_param_int_Shift[nd] = NULL;    
@@ -987,7 +984,7 @@ PyObject *timecount;
   if (nrac_inst > 0) pass_inst_fin=2;
 
   E_Int size_autorisation = nrac_steady+1;
-  size_autorisation = K_FUNC::E_max(  size_autorisation , nrac_inst+1);
+  size_autorisation = K_FUNC::E_max(size_autorisation , nrac_inst+1);
 
   //E_Int autorisation_transferts[nrac_inst+1][nrac_steady+1];
   E_Int autorisation_transferts[pass_inst_fin][size_autorisation];
@@ -1002,10 +999,10 @@ PyObject *timecount;
   //on dimension tableau travail pour IBC
   E_Int nbRcvPts_mx =0;
   for  (E_Int pass_inst=pass_inst_deb; pass_inst< pass_inst_fin; pass_inst++)
-    {
+  {
       E_Int irac_deb= 0; E_Int irac_fin= nrac_steady;
-      if(pass_inst == 1){ irac_deb = ipt_param_int[ ech + 4 + it_target             ];
-	irac_fin = ipt_param_int[ ech + 4 + it_target + timelevel ];}
+      if (pass_inst == 1) { irac_deb = ipt_param_int[ ech + 4 + it_target ];
+	   irac_fin = ipt_param_int[ ech + 4 + it_target + timelevel ];}
 
 
       for  (E_Int irac=irac_deb; irac< irac_fin; irac++)
@@ -1015,10 +1012,10 @@ PyObject *timecount;
 	  //E_Int NoD      =  ipt_param_int[ shift_rac + nrac*5     ];
 	  //E_Int NoR      =  ipt_param_int[ shift_rac + nrac*11 +1 ];
 
-          E_Int irac_auto= irac-irac_deb;
+    E_Int irac_auto= irac-irac_deb;
 	  autorisation_transferts[pass_inst][irac_auto]=0;
 
-	  if(rk==3 and exploc == 2) // Si on est en explicit local, on va autoriser les transferts entre certaines zones seulement en fonction de la ss-ite courante
+	  if(rk==3 && exploc == 2) // Si on est en explicit local, on va autoriser les transferts entre certaines zones seulement en fonction de la ss-ite courante
 
 	    {
 
@@ -1028,9 +1025,9 @@ PyObject *timecount;
 	      E_Int cyclD  = nitmax/levelD;
 
 		// Le pas de temps de la zone donneuse est plus petit que celui de la zone receveuse   
-		if (levelD > levelR and num_passage == 1)		
+		if (levelD > levelR && num_passage == 1)		
 		  {
-		    if (nstep%cyclD==cyclD-1 or nstep%cyclD==cyclD/2 and (nstep/cyclD)%2==1)
+		    if (nstep%cyclD==cyclD-1 or nstep%cyclD==cyclD/2 && (nstep/cyclD)%2==1)
 		      {
 			autorisation_transferts[pass_inst][irac_auto]=1;
 			//if( ipt_param_int[ shift_rac+ nrac*10 + 1] > nbRcvPts_mx) nbRcvPts_mx = ipt_param_int[ shift_rac+ nrac*10 + 1];
@@ -1038,9 +1035,9 @@ PyObject *timecount;
 		    else {continue;}
 		  }
 		// Le pas de temps de la zone donneuse est plus grand que celui de la zone receveuse
-		else if (levelD < levelR and num_passage == 1) 
+		else if (levelD < levelR && num_passage == 1) 
 		  {
-		    if (nstep%cyclD==1 or nstep%cyclD==cyclD/4 or nstep%cyclD== cyclD/2-1 or nstep%cyclD== cyclD/2+1 or nstep%cyclD== cyclD/2+cyclD/4 or nstep%cyclD== cyclD-1)
+		    if (nstep%cyclD==1 || nstep%cyclD==cyclD/4 || nstep%cyclD== cyclD/2-1 || nstep%cyclD== cyclD/2+1 || nstep%cyclD== cyclD/2+cyclD/4 || nstep%cyclD== cyclD-1)
                          {
 			   autorisation_transferts[pass_inst][irac_auto]=1;
 			   //if( ipt_param_int[ shift_rac+ nrac*10 + 1] > nbRcvPts_mx) nbRcvPts_mx = ipt_param_int[ shift_rac+ nrac*10 + 1];
@@ -1048,9 +1045,9 @@ PyObject *timecount;
 		    else {continue;}
 		  }
 		// Le pas de temps de la zone donneuse est egal a celui de la zone receveuse
-		else if (levelD == levelR and num_passage == 1)
+		else if (levelD == levelR && num_passage == 1)
 		  {
-		    if (nstep%cyclD==cyclD/2-1 or (nstep%cyclD==cyclD/2 and (nstep/cyclD)%2==0) or nstep%cyclD==cyclD-1) 
+		    if (nstep%cyclD==cyclD/2-1 || (nstep%cyclD==cyclD/2 && (nstep/cyclD)%2==0) || nstep%cyclD==cyclD-1) 
 		      { 
 			autorisation_transferts[pass_inst][irac_auto]=1; 
 			//if( ipt_param_int[ shift_rac+ nrac*10 + 1] > nbRcvPts_mx) nbRcvPts_mx = ipt_param_int[ shift_rac+ nrac*10 + 1];
@@ -1058,9 +1055,9 @@ PyObject *timecount;
 		    else {continue;}
 		  }
 		// Le pas de temps de la zone donneuse est egal a celui de la zone receveuse (cas du deuxieme passage)   
-		else if (levelD ==  ipt_param_int[debut_rac +24] and num_passage == 2)
+		else if (levelD == ipt_param_int[debut_rac +24] && num_passage == 2)
 		  {
-		  if (nstep%cyclD==cyclD/2 and (nstep/cyclD)%2==1)
+		  if (nstep%cyclD==cyclD/2 && (nstep/cyclD)%2==1)
 		    {
 		      autorisation_transferts[pass_inst][irac_auto]=1;
 		      //if( ipt_param_int[ shift_rac+ nrac*10 + 1] > nbRcvPts_mx) nbRcvPts_mx = ipt_param_int[ shift_rac+ nrac*10 + 1];

@@ -36,7 +36,7 @@ PyObject* K_PYTREE::getNodeFromName1(PyObject* o, const char* name)
   {
     l = PyList_GetItem(childrens, i);
     node = PyList_GetItem(l, 0);
-    if (PyString_Check(node)) str = PyString_AsString(node);    
+    if (PyString_Check(node)) str = PyString_AsString(node);
 #if PY_VERSION_HEX >= 0x03000000
     else if (PyUnicode_Check(node)) str = PyBytes_AsString(PyUnicode_AsUTF8String(node)); 
 #endif
@@ -64,7 +64,7 @@ void K_PYTREE::getNodesFromType1(PyObject* o, const char* type,
     if (PyString_Check(node)) str = PyString_AsString(node);
 #if PY_VERSION_HEX >= 0x03000000
     else if (PyUnicode_Check(node)) str = PyBytes_AsString(PyUnicode_AsUTF8String(node)); 
-#endif    
+#endif
     if (K_STRING::cmp(str, type) == 0) out.push_back(l);
   }
 }

@@ -325,7 +325,7 @@ def moveZone__(z, time):
                 pre_con_pnt = getNodeValue__(m, 'pre_con_pnt')
                 pre_con_vct = getNodeValue__(m, 'pre_con_vct')
 
-                if (DEFINEDMOTIONS.has_key(z[0]+'_'+m[0]) == False):
+                if z[0]+'_'+m[0] not in DEFINEDMOTIONS:
                     Func1 = E.function('rotor_motion', z[0]+'_'+m[0])
                     # angle initial du rotor par rapport au champ a l'infini
                     Func1.set("psi0", float(psi0[0]))
@@ -490,7 +490,7 @@ def _moveZone__(z, time):
                 pre_con_pnt = getNodeValue__(m, 'pre_con_pnt')
                 pre_con_vct = getNodeValue__(m, 'pre_con_vct')
 
-                if (DEFINEDMOTIONS.has_key(z[0]+'_'+m[0]) == False):
+                if z[0]+'_'+m[0] not in DEFINEDMOTIONS:
                     Func1 = E.function('rotor_motion', z[0]+'_'+m[0])
                     # angle initial du rotor par rapport au champ a l'infini
                     Func1.set("psi0", float(psi0[0]))

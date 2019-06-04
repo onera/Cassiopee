@@ -18,6 +18,9 @@ __all__ = ['rank', 'size', 'KCOMM', 'setCommunicator', 'barrier', 'send', 'recv'
 from mpi4py import MPI
 import numpy
 
+try: range = xrange
+except: pass
+
 COMM_WORLD = MPI.COMM_WORLD
 KCOMM = COMM_WORLD
 
@@ -173,8 +176,8 @@ def allgatherZones(zones):
     zones = Internal.getZones(zones)
     lenZones = KCOMM.allgather(len(zones))
     allZones = []
-    for i in xrange(size):
-        for cz in xrange(lenZones[i]):
+    for i in range(size):
+        for cz in range(lenZones[i]):
             if rank == i: zp = bcastZone(zones[cz], root=i)
             else: zp = bcastZone(None, root=i)
             allZones.append(zp)

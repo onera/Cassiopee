@@ -308,7 +308,7 @@ def _copyDistribution(a, b):
     procs = getProcDict(b)
     zones = Internal.getZones(a)
     for z in zones:
-        if procs.has_key(z[0]):
+        if z[0] in procs:
             proc = procs[z[0]]
             node = Internal.getNodeFromName1(z, '.Solver#Param')
             if node is not None: param = node

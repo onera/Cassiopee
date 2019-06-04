@@ -1901,7 +1901,6 @@ def setInterpDataForGhostCells2__(tR, tD, storage='direct', loc='nodes'):
                 if locR == 1: imr=imr-1; jmr=jmr-1; kmr=kmr-1
                 listofjoins = Internal.getNodesFromType2(zp, 'GridConnectivity1to1_t')
                 for join in listofjoins:
-                    #print 'joinName= ', join[0]
                     # receptor window ranges
                     prange = Internal.getNodeFromName1(join,'PointRange')[1]
                     # donor window ranges
@@ -1946,8 +1945,6 @@ def setInterpDataForGhostCells2__(tR, tD, storage='direct', loc='nodes'):
                     imd = zoneDimD[1]; jmd = zoneDimD[2]; kmd = zoneDimD[3]
                     if locR == 1: imd=imd-1; jmd=jmd-1; kmd=kmd-1
 
-                    #print 'zonedimD= ', zoneDimD
-
                     # rind for donor
                     rindnode = Internal.getNodeFromType1(zdonor, 'Rind_t')
                     if rindnode is not None: # rind indices exist: ghost cell data to be computed
@@ -1962,8 +1959,6 @@ def setInterpDataForGhostCells2__(tR, tD, storage='direct', loc='nodes'):
                         # get directions of receptor and donor borders
                         dirR = GhostCells.getDirBorderStruct__(prange,dimPb)
                         dirD = GhostCells.getDirBorderStruct__(prangedonor,dimPb)               
-                        
-
                     
                         # get list of border nodes and direction of border
                         if dimPb != 1:
@@ -2014,8 +2009,8 @@ def setInterpDataForGhostCells2__(tR, tD, storage='direct', loc='nodes'):
                     elif dirR==-3: depth = rinddnr[4]
                     else: depth = rinddnr[5]
 
-                    res = connector.setInterpDataForGC(arrayOfIndicesR, listOfIndicesD, \
-                                                                     dimPb, locR, depth, incrR, incrD)
+                    res = connector.setInterpDataForGC(arrayOfIndicesR, listOfIndicesD,
+                                                       dimPb, locR, depth, incrR, incrD)
                     # Stockage
                     vol = numpy.array([],numpy.float64)
                     prefix = 'ID_'
@@ -2032,8 +2027,6 @@ def setInterpDataForGhostCells2__(tR, tD, storage='direct', loc='nodes'):
                         _createInterpRegion__(zdonorp, zname, res[1], res[0], res[3], res[2], vols, indicesExtrap,\
                                               indicesOrphan, tag = 'Donor',loc=loc,EXDir=EXdir,itype='abutting',\
                                               prefix=prefix,RotationAngle=RotationAngle, RotationCenter=RotationCenter)
-
-
 
                     zoneDimR2 = list(zoneDimR) 
                     zoneDimR2[4] = dimm
@@ -2083,7 +2076,7 @@ def setInterpDataForGhostCells2__(tR, tD, storage='direct', loc='nodes'):
 
                     ### Determination du point pivot symetrique dans zoneR du point (imin,jmin,kmin) de la zoneD
                     pt_pivot=numpy.array(prange[0:3,0]) # Point (imin,jmin,kmin) de la zone R 
-                    if (abs(dirR)==1): # Le point ne peut varier que dans son plan (j,k) pour etre en face du point de la zone D
+                    if abs(dirR)==1: # Le point ne peut varier que dans son plan (j,k) pour etre en face du point de la zone D
                         if (transfo[1][1] < 0) : pt_pivot[1] = prange[1,1] #Le vecteur j et son transforme sont opposes jmin -> jmax
                         if (transfo[1][2] < 0) : pt_pivot[2] = prange[2,1]
                     elif (abs(dirR)==2):  # Le point ne peut varier que dans son plan (i,k) pour etre en face du point de la zone D
@@ -2182,7 +2175,7 @@ def _adaptForRANSLES__(tR, aD):
                 a = Internal.getNodeFromName2(zd, 'GoverningEquations')
                 if a is not None: model_z2 = Internal.getValue(a)
 
-                if ((model_z2=='NSTurbulent' or model_z1=='NSTurbulent') and  model_z1 != model_z2):
+                if (model_z2=='NSTurbulent' or model_z1=='NSTurbulent') and  model_z1 != model_z2:
                    datap = numpy.ones(1, numpy.int32)
                    Internal.createUniqueChild(s, 'RANSLES', 'DataArray_t', datap)
             except: pass

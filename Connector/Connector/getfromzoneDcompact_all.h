@@ -5,7 +5,7 @@
        sol = K_PYTREE::getNodeFromName1(zoneD , "FlowSolution#Centers");
        if (sol != NULL)
        {  
-          t  = K_PYTREE::getNodeFromName1(sol, varname );
+         t  = K_PYTREE::getNodeFromName1(sol, varname );
          ipt_roD_vert[nd] = K_PYTREE::getValueAF(t, hook);
        }
        else { ipt_roD_vert[nd]= NULL; } 

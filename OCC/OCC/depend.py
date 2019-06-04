@@ -26,13 +26,13 @@ def checkDepend(file, dic):
             print 'Found %s.'%(i+'/'+file)
             break
         except: pass 
-    if (f == None): 
+    if f is None: 
         print 'File %s not found.'%file ; return
 
     lines = f.readlines()
     for i in lines:
         r = exp.search(i)
-        if (r != None):
+        if r is not None:
             i = i.replace("#include", "")
             i = i.replace("\"","")
             i = i.replace(" ","")
@@ -40,12 +40,12 @@ def checkDepend(file, dic):
             i = i.replace("\r","")
             i = i.replace("<","")
             i = i.replace(">","")
-            if dic.has_key(i) == False: dic[i] = 0 # add include file
+            if i not in dic: dic[i] = 0 # add include file
             
             c = i.replace("hxx", "cxx")
-            if dic.has_key(c) == False: dic[c] = 0 # add cxx file
+            if c not in dic: dic[c] = 0 # add cxx file
             d = i.replace("hxx", "dxx")
-            if dic.has_key(c) == False: dic[c] = 0 # add cxx file
+            if c not in dic: dic[c] = 0 # add cxx file
     f.close()
 
 #==============================================================================

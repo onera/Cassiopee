@@ -25,7 +25,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
         import Converter.Mpi as Cmpi
         rank = Cmpi.rank
     else: 
-        procDict=None; procList=None; graphID=None; graphIBCD=None; rank = 0
+        procDict=None; procList=None; graphID=None; graphIBCD=None; rank=0
 
     # if Cmpi is not None and rank == 0: 
     #    print "GRAPH IBC IS : ",graph['graphIBCD']
@@ -58,7 +58,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
       meshtype   = 1
       zonetype   = Internal.getNodeFromType1(z, 'ZoneType_t')
       tmp        = Internal.getValue(zonetype)
-      dimPb=Internal.getZoneDim(z)[4]
+      dimPb      = Internal.getZoneDim(z)[4]
       if tmp != "Structured": meshtype = 2
       for s in subRegions:
          zRname = Internal.getValue(s)
@@ -124,6 +124,19 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
          sname = s[0][0:2]
          utau = Internal.getNodeFromName1(s, 'utau')
          sd1 = Internal.getNodeFromName1(s, 'StagnationEnthalpy')
+         
+         # cas ou les vitesses n'ont pas ete ajoutees lors du prep (ancien tc)
+         if sname == 'IB':
+          vx = Internal.getNodeFromName1(s, 'VelocityX')
+          if vx is None:
+            density = Internal.getNodeFromName1(s, 'Density')
+            nIBC    = density[1].shape[0]
+            vxNP = numpy.zeros((nIBC),numpy.float64)
+            vyNP = numpy.zeros((nIBC),numpy.float64)
+            vzNP = numpy.zeros((nIBC),numpy.float64)
+            s[2].append(['VelocityX' , vxNP , [], 'DataArray_t'])
+            s[2].append(['VelocityY' , vyNP , [], 'DataArray_t'])
+            s[2].append(['VelocityZ' , vzNP , [], 'DataArray_t'])
          
          # DBX: supp utau en euler
          #if utau is None:
@@ -482,8 +495,8 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
                size_IBC += Nbpts_D; inc += 1
 
        tmp = Internal.getNodeFromName1(s, 'ZoneRole')
-       if tmp[1][0] == 'D': param_int[ iadr +rac[pos]*4 ] = 0   # role= Donor
-       else               : param_int[ iadr +rac[pos]*4 ] = 1   # role= Receiver
+       if tmp[1][0] == b'D': param_int[ iadr +rac[pos]*4 ] = 0   # role= Donor
+       else                : param_int[ iadr +rac[pos]*4 ] = 1   # role= Receiver
             
        param_int[ iadr +rac[pos]*5 ] = NozoneD                    # No zone donneuse
 
@@ -580,8 +593,8 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
 
  
        tmp = Internal.getNodeFromName1(s , 'GridLocation')
-       if tmp[1][4] == 'C': param_int[ iadr +rac[pos]*9 ] = 1   # location= CellCenter
-       else               : param_int[ iadr +rac[pos]*9 ] = 0   # location= CellVertex
+       if tmp[1][4] == b'C': param_int[ iadr +rac[pos]*9 ] = 1   # location= CellCenter
+       else                : param_int[ iadr +rac[pos]*9 ] = 0   # location= Vertex
 
        param_int[ iadr +rac[pos]*10 ] = Nbpts_D
 
@@ -660,7 +673,6 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
        
        c += 1
     
-    #print 'S= ', S   
     return None
 
 #==============================================================================
@@ -917,20 +929,20 @@ def miseAPlatDonorZone__(zones, tc, procDict):
             typecell = Interptype[1][0]
             #on cree un tableau qui contient les elements non egaux au premier element
             b = Interptype[1] [ Interptype[1] != typecell ]
-            if (len(b) == 0):   param_int[ pt_rac +3 ] = 0    # type homogene
-            else:                param_int[ pt_rac +3 ] = 1    # type melange
+            if len(b) == 0:   param_int[ pt_rac +3 ] = 0    # type homogene
+            else:             param_int[ pt_rac +3 ] = 1    # type melange
 
             tmp =  Internal.getNodeFromName1(rac, 'ZoneRole')
-            if (tmp[1][0] == 'D'): param_int[ pt_rac +4 ] = 0           # role= Donor
-            else                 : param_int[ pt_rac +4 ] = 1           # role= Receiver
+            if tmp[1][0] == b'D': param_int[ pt_rac +4 ] = 0           # role= Donor
+            else                : param_int[ pt_rac +4 ] = 1           # role= Receiver
             tmp =  Internal.getNodeFromName1(rac, 'GridLocation')
-            if (tmp[1][4] == 'C'): param_int[ pt_rac +5 ] = 1           # location= CellCenter
-            else                 : param_int[ pt_rac +5 ] = 0           # location= CellVertex
+            if tmp[1][4] == b'C': param_int[ pt_rac +5 ] = 1           # location= CellCenter
+            else                : param_int[ pt_rac +5 ] = 0           # location= Vertex
             
             zrcvname = Internal.getValue(rac)
             no_zone =0
             for z in zones:
-               if (z[0] == zrcvname ): param_int[ pt_rac +6 ]= no_zone  # No zone raccord                    
+               if z[0] == zrcvname: param_int[ pt_rac +6 ]= no_zone  # No zone raccord                    
                no_zone = no_zone +1
 
             ideb =  pt_rac +7
@@ -967,7 +979,7 @@ def miseAPlatDonorZone__(zones, tc, procDict):
                    param_real[ ideb:ideb+ Nbpts_D]= tmp[1][0:Nbpts_D]
                    tmp[1]                         = param_real[ ideb:ideb+ Nbpts_D ]
                    ideb                           = ideb + Nbpts_D
-                   count_ibc   = count_ibc +1
+                   count_ibc += 1
 
                 size_coef = size_coef + count_ibc*Nbpts_D
 

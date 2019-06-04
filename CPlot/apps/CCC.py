@@ -258,7 +258,7 @@ def updateCases1(event=None):
 #==============================================================================
 def updateCases2(event=None):
     getCases()
-    if WIDGETS.has_key('case'):
+    if 'case' in WIDGETS:
         WIDGETS['case']['values'] = CASES
 
 #==============================================================================

@@ -312,7 +312,7 @@ class AutocompleteEntry(TK.Entry):
 
     def enter(self, event=None):
         word = self.var.get()
-        if applet.has_key(word):
+        if word in applet:
             # Get applet name
             app = applet[word]
             # activate the APP
