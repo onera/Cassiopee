@@ -161,13 +161,15 @@ class ngon_unit
     void add(E_Int n, const E_Int* facet_ptr);
 
     //check
-    bool is_fixed_stride(E_Int& stride);
+    bool is_fixed_stride(E_Int& stride) const;
     bool attributes_are_consistent() const ;
     
     /// Conversions
 
     /// convert a fixed-stride storage to a ngon_unit storage : work only for polygons and tetrahedra
     static void convert_fixed_stride_to_ngon_unit(const K_FLD::IntArray&cnt, E_Int shift, ngon_unit& nguo);
+    /// reciprocal 
+    static void convert_ngon_unit_to_fixed_stride(const ngon_unit& ngui, E_Int shift, K_FLD::IntArray& cnto);
 
     // tranfer attributes for a reduced set (tipically an agglomeration)
     void compact_attributes(const ngon_unit& ngi, const Vector_t<E_Int>& nids);

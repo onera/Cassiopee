@@ -208,5 +208,43 @@ PyObject* K_INTERSECTOR::agglomerateNonStarCells(PyObject* self, PyObject* args)
 //   return tpl;
 // }
 
+//=============================================================================
+/* Agglomerate cells where polygons are specified */
+//=============================================================================
+PyObject* K_INTERSECTOR::agglomerateCellsWithSpecifiedFaces(PyObject* self, PyObject* args)
+{
+  PyObject *arr, *py_pgs;
 
+  if (!PyArg_ParseTuple(args, "OO", &arr, &py_pgs)) return NULL;
+
+  K_FLD::FloatArray* f(0);
+  K_FLD::IntArray* cn(0);
+  char* varString, *eltType;
+  // Check array # 1
+  E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
+  if (err) return NULL;
+
+  K_FLD::FloatArray & crd = *f;
+  K_FLD::IntArray & cnt = *cn;
+
+  E_Int res=0;
+  E_Int* pgsList=NULL;
+  E_Int size, nfld;
+  if (py_pgs != Py_None)
+    res = K_NUMPY::getFromNumpyArray(py_pgs, pgsList, size, nfld, 1, 0);
+
+  typedef ngon_t<K_FLD::IntArray> ngon_type;
+  ngon_type ngio(cnt);
+
+  NUGA::Agglomerator::agglomerate_phs_having_pgs(crd, ngio, pgsList, size);
+
+  K_FLD::IntArray cnto;
+  ngio.export_to_array(cnto);
+
+  PyObject* tpl = K_ARRAY::buildArray(crd, varString, cnto, -1, "NGON", false);
+  
+  delete f; delete cn;
+  return tpl;
+
+}
 //=======================  Intersector/PolyMeshTools/aggloFaces.cpp ====================

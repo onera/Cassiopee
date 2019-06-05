@@ -691,7 +691,7 @@ void ngon_unit::change_indices (const Vector_t<E_Int>& nIds, bool zerobased)
   }
 }
 
-bool ngon_unit::is_fixed_stride(E_Int& strd)
+bool ngon_unit::is_fixed_stride(E_Int& strd) const
 {
   updateFacets();
   
@@ -729,6 +729,28 @@ void ngon_unit::convert_fixed_stride_to_ngon_unit(const K_FLD::IntArray&cnt, E_I
   }
 
   nguo.updateFacets();
+}
+
+void ngon_unit::convert_ngon_unit_to_fixed_stride(const ngon_unit& ngui, E_Int shift, K_FLD::IntArray& cnto)
+{
+  if (ngui.size() == 0) return;
+  //
+  E_Int stride;
+  if (!ngui.is_fixed_stride(stride))
+    return;
+  
+  E_Int nb_elts = ngui.size();
+  
+  cnto.clear();
+  cnto.resize(stride, nb_elts);
+
+  for (E_Int i = 0; i < nb_elts; ++i)
+  {
+    const E_Int* p = ngui.get_facets_ptr(i);
+    
+    for (E_Int j=0; j < stride; ++j)
+      cnto(j,i)=*(p+j)-shift;
+  }
 }
 
 /// transfer attribute (reduction)

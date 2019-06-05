@@ -49,6 +49,7 @@ static PyMethodDef Pyintersector [] =
   {"agglomerateSmallCells", K_INTERSECTOR::agglomerateSmallCells, METH_VARARGS},
   {"agglomerateNonStarCells", K_INTERSECTOR::agglomerateNonStarCells, METH_VARARGS},
   //{"agglomerateUncomputableCells", K_INTERSECTOR::agglomerateUncomputableCells, METH_VARARGS},
+  {"agglomerateCellsWithSpecifiedFaces", K_INTERSECTOR::agglomerateCellsWithSpecifiedFaces, METH_VARARGS},
   {"adaptCells", K_INTERSECTOR::adaptCells, METH_VARARGS},
   {"adaptBox", K_INTERSECTOR::adaptBox, METH_VARARGS},
   {"closeOctalCells", K_INTERSECTOR::closeOctalCells, METH_VARARGS},
@@ -58,6 +59,8 @@ static PyMethodDef Pyintersector [] =
   {"extractNthCell", K_INTERSECTOR::extractNthCell, METH_VARARGS},
   {"extractNthFace", K_INTERSECTOR::extractNthFace, METH_VARARGS},
   {"removeNthCell", K_INTERSECTOR::removeNthCell, METH_VARARGS},
+
+  {"getOverlappingFaces", K_INTERSECTOR::getOverlappingFaces, METH_VARARGS},
 
   {"statsUncomputableFaces", K_INTERSECTOR::statsUncomputableFaces, METH_VARARGS},
   {"statsSize", K_INTERSECTOR::statsSize, METH_VARARGS},

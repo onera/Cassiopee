@@ -47,6 +47,9 @@ namespace NUGA
 //    template<typename TriangulatorType>
 //    inline static void agglomerate_uncomputable_phs(const K_FLD::FloatArray& crd, ngon_type& ngi, ngon_type& ngo);
     
+    ///
+    inline static void agglomerate_phs_having_pgs(const K_FLD::FloatArray& crd, ngon_type& ngi, const E_Int* PGlist, E_Int sz);
+    
     template<typename TriangulatorType>
     inline static void collapse_uncomputable_pgs(K_FLD::FloatArray& crd, ngon_type& ngio);
     
@@ -569,6 +572,111 @@ namespace NUGA
 //
 //    NUGA::Agglomerator::agglomerate_phs<TriangulatorType>(crd, ngi, neighborsi, PHlist, ngo);
 //  }
+  
+  void NUGA::Agglomerator::agglomerate_phs_having_pgs
+  (const K_FLD::FloatArray& crd, ngon_type& ngi, const E_Int* PGlist, E_Int sz)
+  {
+    K_FLD::IntArray F2E;
+    ngi.build_noF2E(F2E);
+    
+    ngon_unit mergedPH;
+    
+    E_Int nb_phs = ngi.PHs.size();
+    
+    Vector_t<E_Int> newPGlist, PHtoremove;
+    const E_Int* pPGlist(&PGlist[0]);
+    
+    bool carry_on(true);
+    while (carry_on)
+    {
+      std::vector<E_Int> phnids;
+      nb_phs = ngi.PHs.size(); //it changes
+      K_CONNECT::IdTool::init_inc(phnids, nb_phs);
+      
+      newPGlist.clear();
+      
+      for (size_t i=0; i < sz; ++i)
+      {
+        E_Int PGi = pPGlist[i];
+
+        E_Int lPH = F2E(0, PGi);
+        E_Int rPH = F2E(1, PGi);
+        
+        if (lPH == rPH) continue; //the PG is gone already in a merge
+        if (lPH == E_IDX_NONE || rPH == E_IDX_NONE) continue; // discard skin PGs for aggregattion
+        
+        if ( (phnids[lPH] != lPH) || (phnids[rPH] != rPH) ) //at least one ph has been already processed in that iteration
+        {
+          //so keep that face for the nex iteration
+          newPGlist.push_back(PGi);
+          continue;
+        }
+
+        const E_Int* pgs1 = ngi.PHs.get_facets_ptr(lPH);
+        E_Int nb_pgs1 = ngi.PHs.stride(lPH);
+        
+        const E_Int* pgs2 = ngi.PHs.get_facets_ptr(rPH);
+        E_Int nb_pgs2 = ngi.PHs.stride(rPH);
+        
+        K_MESH::Polyhedron<UNKNOWN>::merge_two_phs(crd, ngi.PGs, pgs1, nb_pgs1, pgs2, nb_pgs2, mergedPH);
+        
+        //assert (mergedPH.size());
+
+        E_Int newPHi = ngi.PHs.size();
+        ngi.PHs.append(mergedPH);
+        
+        phnids[rPH] = phnids[lPH] = newPHi;
+        PHtoremove.push_back(lPH);
+        PHtoremove.push_back(rPH);
+        //phnids.push_back(newPHi);
+      }
+      
+      carry_on = !newPGlist.empty();
+      if (carry_on)
+      {
+        pPGlist = &newPGlist[0];
+        sz = newPGlist.size();
+        ngi.PHs.updateFacets();
+        K_FLD::IntArray::changeIndices(F2E, phnids);
+
+#ifdef DEBUG_AGGLOMERATOR
+//        ngon_unit PGs;
+//        for (size_t i=0; i< sz; ++i)
+//          PGs.add(ngi.PGs.stride(newPGlist[i]), ngi.PGs.get_facets_ptr(newPGlist[i]));
+//        PGs.updateFacets();
+//        NGON_debug<K_FLD::FloatArray, K_FLD::IntArray>::draw_PGs("new_ps", crd, PGs);
+//        
+//        ngon_type ngo = ngi;
+//        
+//        ngo.PHs.updateFacets();
+//    
+//        Vector_t<E_Int> pgnids, phnids;
+//    
+//        ngo.PHs.remove_entities(PHtoremove, phnids);
+//        ngo.remove_unreferenced_pgs(pgnids, phnids); 
+//    
+//        K_FLD::IntArray cnto;
+//        ngo.export_to_array(cnto);
+//        MIO::write("current.plt", crd, cnto, "NGON");
+//
+//        for (size_t i=0; i < F2E.cols(); ++i)
+//        {
+//          if (F2E(0,i) == F2E(1,i)){
+//            std::cout << "baffle" << std::endl;
+//            NGON_debug<K_FLD::FloatArray, K_FLD::IntArray>::draw_PH("PHbaffle.plt", crd, ngi, F2E(0,i));
+//          }
+//        }
+#endif   
+      }
+    }
+    
+    ngi.PHs.updateFacets();
+    
+    Vector_t<E_Int> pgnids, phnids;
+    
+    ngi.PHs.remove_entities(PHtoremove, phnids);
+    ngi.remove_unreferenced_pgs(pgnids, phnids); 
+  }
  
   ///
   template<typename TriangulatorType>

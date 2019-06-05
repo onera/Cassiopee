@@ -496,9 +496,6 @@ K_CONNECT::EltAlgo<K_MESH::Polygon>::reversi_connex
     s1 = PGs.stride(K);
     ElementType PGk(PGs.get_facets_ptr(K), s1);
     
-    if (orient[K]==-1)
-      PGk.reverse();
-    
     nb_neighs = neighbors.stride(K); // neighbor ptr;
     
     for (E_Int n = 0; n < nb_neighs; ++n)
@@ -517,6 +514,8 @@ K_CONNECT::EltAlgo<K_MESH::Polygon>::reversi_connex
       Nj = PGk.node((i+1)%s1);
       
       ElementType::getOrientation(PGkngh, Ni, Nj, reverse);
+
+      if (orient[K]==-1) reverse = !reverse;
       
       if (reverse) orient[Kngh] = -1;
       

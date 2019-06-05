@@ -51,6 +51,9 @@ namespace K_INTERSECTOR
   PyObject* agglomerateSmallCells(PyObject* self, PyObject* args);
   PyObject* agglomerateNonStarCells(PyObject* self, PyObject* args);
   //PyObject* agglomerateUncomputableCells(PyObject* self, PyObject* args);
+  PyObject* agglomerateCellsWithSpecifiedFaces(PyObject* self, PyObject* args);
+
+  PyObject* getOverlappingFaces(PyObject* self, PyObject* args);
 
   PyObject* adaptCells(PyObject* self, PyObject* args);
   PyObject* adaptBox(PyObject* self, PyObject* args);

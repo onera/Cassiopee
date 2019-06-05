@@ -63,7 +63,8 @@ public:
   static void draw_wired_PH(const char* fname, const K_FLD::FloatArray& crd, const ngon_type& ng, E_Int ith, E_Int index_start);
   static void draw_PHs(const char* fname, const K_FLD::FloatArray& coord, const ngon_type& ng, const Vector_t<E_Int>& ids);
   static void draw_PG (const K_FLD::FloatArray& crd, const ngon_unit& PGs, E_Int PGi, bool localid=false);
-  static void draw_PGs(const K_FLD::FloatArray& crd, const ngon_unit& PGs, const Vector_t<E_Int>& PGis, bool localid = false);
+  static void draw_PGs(const char* fname, const K_FLD::FloatArray& crd, const ngon_unit& PGs, const Vector_t<E_Int>& PGis, bool localid = false);
+  static void draw_PGs(const char* fname, const K_FLD::FloatArray& crd, const ngon_unit& PGs, bool localid = false);
   static void draw_PG_to_T3(E_Int PGi, const Vector_t<E_Int>& nT3_to_PG, const K_FLD::FloatArray& coord, const K_FLD::IntArray& connectT3);
   
   static void draw_wired_PG(const char* fname, const K_FLD::FloatArray& coord, const ngon_unit& PGs, E_Int ith, E_Float *normal);
@@ -436,7 +437,7 @@ void NGON_DBG_CLASS::draw_PG
 
 ///
 TEMPLATE_COORD_CONNECT
-void NGON_DBG_CLASS::draw_PGs(const K_FLD::FloatArray& crd, const ngon_unit& PGs, const Vector_t<E_Int>& PGis, bool localid)
+void NGON_DBG_CLASS::draw_PGs(const char* fname, const K_FLD::FloatArray& crd, const ngon_unit& PGs, const Vector_t<E_Int>& PGis, bool localid)
 {
   ngon_unit pg;
   for (size_t i = 0; i < PGis.size(); ++i)
@@ -447,10 +448,28 @@ void NGON_DBG_CLASS::draw_PGs(const K_FLD::FloatArray& crd, const ngon_unit& PGs
   ng.export_to_array(cnt);
   std::ostringstream o;
 #ifndef WIN32
-  o << "all_pg.plt";
+  o << fname  << ".plt";
 #else
-  o << "all_pg.tp";
+  o << fname << ".tp";
 #endif
+  
+  MIO::write(o.str().c_str(), crd, cnt, "NGON");
+}
+///
+TEMPLATE_COORD_CONNECT
+void NGON_DBG_CLASS::draw_PGs(const char* fname, const K_FLD::FloatArray& crd, const ngon_unit& PGs, bool localid)
+{    
+  ngon_type ng(PGs);
+  K_FLD::IntArray cnt;
+  ng.export_to_array(cnt);
+  std::ostringstream o;
+  
+#ifndef WIN32
+  o << fname  << ".plt";
+#else
+  o << fname << ".tp";
+#endif
+  
   MIO::write(o.str().c_str(), crd, cnt, "NGON");
 }
 /*

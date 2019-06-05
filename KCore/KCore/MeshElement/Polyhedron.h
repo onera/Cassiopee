@@ -1502,6 +1502,7 @@ public:
    ngon_unit& mPH)
   {
     mPH.clear();
+    if (nb_pgs2*nb_pgs1 == 0) return 1;
 
     std::set<E_Int> tmp, commonPG;
     tmp.insert(pgs1, pgs1+nb_pgs1);
@@ -1511,15 +1512,25 @@ public:
         commonPG.insert(*(pgs2+i));
   
     std::vector<E_Int> molecPH;
-    E_Int sz = nb_pgs1 + nb_pgs2 - 2*commonPG.size();
-    molecPH.reserve(sz);
-  
-    for (E_Int i=0; i < nb_pgs1; ++i)
-      if (commonPG.find(*(pgs1+i)) == commonPG.end())
+    
+    if (commonPG.size() == nb_pgs1 && nb_pgs1 == nb_pgs2) // PH1 is the same as PH2 => by convention the merge is one of them
+    { 
+      molecPH.reserve(nb_pgs1);
+      for (E_Int i=0; i < nb_pgs1; ++i)
         molecPH.push_back(*(pgs1+i));
-    for (E_Int i=0; i < nb_pgs2; ++i)
-      if (commonPG.find(*(pgs2+i)) == commonPG.end())
-        molecPH.push_back(*(pgs2+i));
+    }
+    else
+    {
+      E_Int sz = nb_pgs1 + nb_pgs2 - 2*commonPG.size();
+      molecPH.reserve(sz);
+  
+      for (E_Int i=0; i < nb_pgs1; ++i)
+        if (commonPG.find(*(pgs1+i)) == commonPG.end())
+          molecPH.push_back(*(pgs1+i));
+      for (E_Int i=0; i < nb_pgs2; ++i)
+        if (commonPG.find(*(pgs2+i)) == commonPG.end())
+          molecPH.push_back(*(pgs2+i));
+    }
 
     mPH.add(molecPH.size(), &molecPH[0]);
     mPH._type.push_back(INNER);//fixme

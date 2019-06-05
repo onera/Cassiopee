@@ -29,6 +29,8 @@ E_Int chrono::verbose=1;
 
 # include "Fld/ngon_t.hxx"
 # include "Nuga/Delaunay/Triangulator.h"
+#include "Nuga/include/localizer.hxx"
+#include "Nuga/include/collider.hxx"
 
 //#include <iostream>
 #include <memory>
@@ -1128,7 +1130,7 @@ PyObject* K_INTERSECTOR::statsSize(PyObject* self, PyObject* args)
    dMax = std::max(dMax, box.maxB[i] - box.minB[i]);
   //std::cout << "the span is : " << dMax << std::endl;
 
-  E_Float smin, smax;
+  E_Float smin(0.), smax(0.);
   E_Float vmin, vmax(-1.);
 
   if (comp_metrics == 1)
@@ -1456,4 +1458,84 @@ PyObject* K_INTERSECTOR::centroids(PyObject* self, PyObject* args)
   return tpl;
 }
 
+//=============================================================================
+/* retrieves any polygon that are overlapping */
+//=============================================================================
+PyObject* K_INTERSECTOR::getOverlappingFaces(PyObject* self, PyObject* args)
+{
+  PyObject *arr1, *arr2;
+  E_Float RTOL(0.1), PS_MIN(0.95);
+  E_Float d2[3], *pdir2(nullptr);
+
+  if (!PYPARSETUPLEF(args, "OOdd(ddd)", "OOff(fff)", &arr1, &arr2, &RTOL, &PS_MIN, &d2[0], &d2[1], &d2[2])) return NULL;
+
+  if (d2[0] != 0. || d2[1] != 0. || d2[2] != 0.)
+    pdir2 = d2;
+
+  K_FLD::FloatArray *f1(0), *f2(0);
+  K_FLD::IntArray *cn1(0), *cn2(0);
+  char *varString1, *varString2, *eltType1, *eltType2;
+  // Check array # 1
+  E_Int err = check_is_NGON(arr1, f1, cn1, varString1, eltType1);
+  if (err) return NULL;
+
+  // Check array # 2
+  err = check_is_NGON(arr2, f2, cn2, varString2, eltType2);
+  if (err) return NULL;
+
+  std::unique_ptr<K_FLD::FloatArray> pf1(f1), pf2(f2);   //for memory cleaning
+  std::unique_ptr<K_FLD::IntArray> pcn1(cn1), pcn2(cn2); //for memory cleaning
+
+  K_FLD::FloatArray & crd1 = *f1;
+  K_FLD::IntArray & cnt1 = *cn1;
+  K_FLD::FloatArray & crd2 = *f2;
+  K_FLD::IntArray & cnt2 = *cn2;
+
+  typedef ngon_t<K_FLD::IntArray> ngon_type;
+  
+  ngon_type ng1(cnt1), ng2(cnt2);
+
+  std::vector<E_Int> isx1, isx2;
+    
+  using tree_t = K_SEARCH::BbTree3D;
+  using acrd_t = K_FLD::ArrayAccessor<K_FLD::FloatArray>;
+  using acnt_t = K_FLD::ArrayAccessor<K_FLD::IntArray>;
+  
+  tree_t tree(crd2, ng2.PGs);
+    
+  NUGA::localizer<tree_t, acrd_t, acnt_t> localiz(tree, E_EPSILON);
+    
+#ifdef FLAG_STEP
+  chrono c;
+  c.start();
+#endif
+  NUGA::COLLIDE::compute_overlap<K_MESH::Polygon, K_MESH::Polygon>(crd1, ng1.PGs, crd2, ng2.PGs, localiz, PS_MIN, isx1, isx2, RTOL, true/*shuffle triangulation*/, pdir2);
+
+#ifdef FLAG_STEP
+  std::cout << "v0 : " << c.elapsed() << std::endl;
+  std::cout << "nb x : " << std::count(isx1.begin(), isx1.end(), 1) << std::endl;
+#endif
+
+  PyObject *l(PyList_New(0)), *tpl;
+
+  std::vector<E_Int> pgids1, pgids2;
+
+  for (size_t i=0; i < isx1.size(); ++i)
+    if (isx1[i]) pgids1.push_back(i);
+  for (size_t i=0; i < isx2.size(); ++i)
+    if (isx2[i]) pgids2.push_back(i);
+    
+  tpl = K_NUMPY::buildNumpyArray(&pgids1[0], pgids1.size(), 1, 0);
+ 
+  PyList_Append(l, tpl);
+  Py_DECREF(tpl);
+
+  tpl = K_NUMPY::buildNumpyArray(&pgids2[0], pgids2.size(), 1, 0);
+ 
+  PyList_Append(l, tpl);
+  Py_DECREF(tpl);
+
+  return l;
+
+}
 //=======================  Intersector/PolyMeshTools/utils.cpp ====================

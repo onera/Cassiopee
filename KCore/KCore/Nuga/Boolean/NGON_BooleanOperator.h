@@ -3400,7 +3400,7 @@ void NGON_BOOLEAN_CLASS::__refine_open_PGs
           
           if (d22 < d21) //if the stored is better meaning having the smallest geom distance
             continue;
-          else if (IS_ZERO(d22-d21) && szd1 <= szd2) //same distance => keep smallest nb of nodes
+          else if (IS_ZERO(d22-d21, E_EPSILON) && szd1 <= szd2) //same distance => keep smallest nb of nodes
             continue;
         }
         

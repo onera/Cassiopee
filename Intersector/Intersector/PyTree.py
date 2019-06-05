@@ -304,6 +304,32 @@ def _triangulateExteriorFaces(t, in_or_out=2):
 
 
 #==============================================================================
+# triangulateSpecifiedFaces 
+# IN: a: 3D NGON mesh
+# IN: pgs : list of polygons
+# OUT: returns a 3D NGON Mesh
+#==============================================================================
+def triangulateSpecifiedFaces(t, pgs):
+     
+    tp = Internal.copyRef(t)
+    _triangulateSpecifiedFaces(tp,pgs)
+    return tp
+
+def _triangulateSpecifiedFaces(t, pgs):
+
+    zones = Internal.getZones(t)
+    if (len(pgs) != len(zones)) :
+        print 'agglomerateCellsWithSpecifiedFaces : input error : nb of polygons packs differ from nb of zones'
+        return None
+
+    i=0
+    for z in zones:
+      m = C.getFields(Internal.__GridCoordinates__, z)[0]
+      m = XOR.triangulateSpecifiedFaces(m, pgs[i])
+      C.setFields([m], z, 'nodes') # replace the mesh in the zone
+      i = i+1
+
+#==============================================================================
 # triangulateBC
 # IN: t: 3D NGON mesh
 # IN : btype : boundary type to mesh
@@ -314,7 +340,12 @@ def triangulateBC(t, bctype):
     tp = Internal.copyRef(t)
     _triangulateBC(tp,bctype)
     return tp
-
+#==============================================================================
+# _triangulateBC
+# IN: t: 3D NGON mesh
+# IN : btype : boundary type to mesh
+# OUT: returns a 3D NGON mesh with all the external faces triangulated
+#==============================================================================
 def _triangulateBC(t, bctype):
      
     zones = Internal.getZones(t)
@@ -514,6 +545,35 @@ def agglomerateNonStarCells(t):
     return z
 
 #==============================================================================
+# agglomerateCellsWithSpecifiedFaces : Agglomerates cells sharing specified polygons
+# IN: a: 3D NGON mesh
+# IN: pgs : list of polygons
+# OUT: returns a 3D NGON Mesh
+#==============================================================================
+def agglomerateCellsWithSpecifiedFaces(t, pgs, simplify=2): # 0 : dno not simplify, 1 : simplify only internals, 2 : simlplify evrywhere
+     
+    tp = Internal.copyRef(t)
+    _agglomerateCellsWithSpecifiedFaces(tp,pgs, simplify)
+    return tp
+
+def _agglomerateCellsWithSpecifiedFaces(t, pgs, simplify=2):
+
+    zones = Internal.getZones(t)
+    if (len(pgs) != len(zones)) :
+    	print 'agglomerateCellsWithSpecifiedFaces : input error : nb of polygons packs differ from nb of zones'
+    	return None
+
+    i=0
+    for z in zones:
+      m = C.getFields(Internal.__GridCoordinates__, z)[0]
+      m = XOR.agglomerateCellsWithSpecifiedFaces(m, pgs[i])
+      if (simplify != 0) : 
+        simplify = simplify -1
+        m = XOR.simplifyCells(m, simplify)# treat externals iff simplify==1
+      C.setFields([m], z, 'nodes') # replace the mesh in the zone
+      i = i+1
+ 
+#==============================================================================
 # agglomerateUncomputableCells : XXX
 #==============================================================================
 # def agglomerateUncomputableCells(mesh):
@@ -697,6 +757,40 @@ def removeNthCell(t, nth):
     m = C.getFields(Internal.__GridCoordinates__, t)[0]
     m = XOR.removeNthCell(m, nth)
     return C.convertArrays2ZoneNode('mes_wo_%d'%(nth), [m])
+
+
+ #==============================================================================
+# getOverlappingFaces   : returns the list of polygons in a1 and a2 that are overlapping.
+# IN : t1:              : NGON mesh (surface or volume).
+# IN : t2:              : NGON mesh (surface or volume).
+# IN : RTOL:            : Relative tolerance (in ]0., 1.[).
+# IN: ps_min            : minimal value for the dot product of the normals of each pair of colliding polygons. A value of 1. means pure parallelism.
+# IN: dir2              : if specified, direction vector used for all a2's polygons instead of their own normals.
+# OUT: 2 lists of overlapping polygons, the first one for a1, the seoncd one for a2.
+#==============================================================================
+def getOverlappingFaces(t1, t2, RTOL = 0.1, ps_min = 0.95, dir2=(0.,0.,0.)):
+   """ Returns the list of polygons in a1 and a2 that are overlapping.
+   Usage: getOverlappingFaces(t1, t2, RTOL, ps_min, dir2)"""
+
+   try: import Transform as T
+   except: raise ImportError("getOverlappingFaces: requires Transform module.")
+
+   zones1 = Internal.getZones(t1)
+   zones2 = Internal.getZones(t2)
+
+   pgids = []
+   #print t2
+   t2j = T.join(zones2)
+   m2 = C.getFields(Internal.__GridCoordinates__, t2j)[0]
+
+   for z in zones1:
+        
+     m1 = C.getFields(Internal.__GridCoordinates__, z)[0]
+     if m1 == []: continue
+
+     pgids.append(XOR.getOverlappingFaces(m1,m2, RTOL, ps_min, dir2))
+
+   return pgids
 
 #==============================================================================
 # diffMesh : Returns the diff between 2 meshes as 2 zones.

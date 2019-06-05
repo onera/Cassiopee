@@ -406,7 +406,7 @@ void selfX(const K_FLD::FloatArray& crd, const ngon_t<cnt_t>& ng, std::vector<E_
               const E_Float* Q2 = crd.col(cntT3(1,J));
               const E_Float* Q3 = crd.col(cntT3(2,J));
           
-              is_x = K_MESH::Triangle::fast_intersectT3<3>(P1, P2, P3, Q1, Q2, Q3);
+              is_x = K_MESH::Triangle::fast_intersectT3<3>(P1, P2, P3, Q1, Q2, Q3, E_EPSILON/*dummy tol*/);
               if (is_x)
                 is_x = intersect_from_Conformizer_wo_trace<3>(crd, cntT3, I, J, E_EPSILON);
 #ifdef DEBUG_SELFX

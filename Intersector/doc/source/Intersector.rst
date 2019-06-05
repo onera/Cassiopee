@@ -44,6 +44,13 @@ List of functions
 .. Intersector.booleanModifiedSolid
 .. Intersector.P1ConservativeChimeraCoeffs 
 
+**-- Collision predicates**
+
+.. autosummary::
+
+   Intersector.selfX
+   Intersector.getOverlappingFaces
+
 **-- Transformation Functions**
 
 .. autosummary::
@@ -57,6 +64,7 @@ List of functions
    Intersector.simplifyCells
    Intersector.agglomerateSmallCells
    Intersector.agglomerateNonStarCells
+   Intersector.agglomerateCellsWithSpecifiedFaces
    Intersector.closeOctalCells
    Intersector.adaptCells
    Intersector.adaptBox
@@ -76,7 +84,7 @@ List of functions
 
 .. autosummary::
 
-   Intersector.selfX
+   
    Intersector.diffMesh
    Intersector.checkCellsClosure
    Intersector.computeAspectRatio
@@ -576,6 +584,37 @@ Transformation Functions
 
 ---------------------------------------
 
+.. py:function:: Intersector.agglomerateCellsWithSpecifiedFaces(a, pgs, simplify)
+
+    Agglomerate cells that are non-centroid-star-shaped. The agglomeration process does not create non-star-shaped agglomerates.
+
+    :param           a:  Input mesh
+    :type            a:  [array, list of arrays] or [pyTree, base, zone, list of zones]
+    :param           pgs:  list of polygons to remove
+    :type            pgs:  list of integers
+
+
+    *Example of use:*
+
+    * `agglomerateCellsWithSpecifiedFaces (array) <Examples/Intersector/getOverlappingFaces.py>`_:
+
+    .. literalinclude:: ../build/Examples/Intersector/getOverlappingFaces.py
+
+    * `agglomerateCellsWithSpecifiedFaces (pyTree) <Examples/Intersector/getOverlappingFacesPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Intersector/getOverlappingFacesPT.py
+
+    *Tips and Notes:*
+
+    * When asembling 2 meshes m1 and m2 where m2 is priorized , to improve the assembly quality, do before calling the boolean union:
+
+    1) getOverlappingFaces (m1, skin(m2)) where skin(m2) is the external polygonal skin of m2
+
+    2) agglomerateCellsWithSpecifiedFaces on m1 with the above list of polygons
+    
+
+---------------------------------------
+
 
 .. py:function:: Intersector.closeOctalCells(a)
 
@@ -705,6 +744,40 @@ Extraction Functions
     * `extractOuterLayers (pyTree) <Examples/Intersector/extractOutersPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Intersector/extractOutersPT.py
+
+---------------------------------------
+
+.. py:function:: Intersector.getOverlappingFaces(t1, t2, RTOL, ps_min, dir2)
+
+    Detects all the overlapping polygons in t1 and t2. Returns the result as a list sized as the number of zones in t1. Each entry gives 2 lists : the first is the pg ids in t1 ith-zone, the second is the pg ids in t2 (joined). 
+
+    :param           t1:  Input mesh
+    :type            t1:  [array, list of arrays] or [pyTree, base, zone, list of zones]
+    :param           t2:  Input mesh
+    :type            t2:  [array, list of arrays] or [pyTree, base, zone, list of zones]
+    :param           RTOL:  relative tolerance
+    :type            RTOL:  float
+    :param           RTOL:  minimal dot product between normals of a pair of polygon to consider them as potentially overlapping.
+    :type            RTOL:  float
+
+
+    *Example of use:*
+
+    * `getOverlappingFaces (array) <Examples/Intersector/getOverlappingFaces.py>`_:
+
+    .. literalinclude:: ../build/Examples/Intersector/getOverlappingFaces.py
+
+    * `getOverlappingFaces (pyTree) <Examples/Intersector/getOverlappingFacesPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Intersector/getOverlappingFacesPT.py
+
+    *Tips and Notes:*
+
+    * When asembling 2 meshes m1 and m2 where m2 is priorized , to improve the assembly quality, do before calling the boolean union:
+    
+    1) getOverlappingFaces (m1, skin(m2)) where skin(m2) is the external polygonal skin of m2
+
+    2) agglomerateCellsWithSpecifiedFaces on m1 with the above list of polygons
 
 ---------------------------------------
 

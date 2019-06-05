@@ -87,6 +87,41 @@ BbTree<3>::BbTree
 
   __insert(indices.begin(), indices.end());
 }
+
+template <>
+template <> inline
+BbTree<3>::BbTree<ngon_unit>
+(const K_FLD::FloatArray& crd, const ngon_unit& PGs, E_Float tolerance)
+: _tolerance(tolerance), _owes_boxes(true), _pool(NULL)
+{
+    
+  E_Int nb_elts = PGs.size();
+  _pool = new K_SEARCH::BBox3D[nb_elts];
+
+  _boxes.reserve(nb_elts);
+
+  for (int i = 0; i < nb_elts; i++){
+    
+    const E_Int* nodes = PGs.get_facets_ptr(i);
+    E_Int stride = PGs.stride(i);
+    K_SEARCH::BBox3D* box = &_pool[i];
+    box->compute(crd, nodes, stride, 1);
+    _boxes.push_back(box);
+  }
+  
+  size_type none = E_IDX_NONE, size = _boxes.size();
+
+  _root_id = (size > 1) ? size : 0;
+  
+  //
+  _tree.resize(BBTREE_ROWS, size, &none); //fixme 
+  _tree.reserve(BBTREE_ROWS, 2*size); //fixme
+  
+  std::vector<size_type> indices(size);
+  for (size_type i = 0; i < size; ++i) indices[i] = i;
+
+  __insert(indices.begin(), indices.end());
+}
 }
 
 ///

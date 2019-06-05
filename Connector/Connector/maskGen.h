@@ -282,7 +282,7 @@ if (dbg_switch && sz)
         if (!K_MESH::Triangle::intersectv2<3>(Q0, Q1, Q2, pt, A, tol, tol_is_abs,  u0, u1, tx, overlap, coincident))
           continue;
       
-        if (IS_ZERO(u0)) // lying on the mask surface
+        if (IS_ZERO(u0, E_EPSILON)) // lying on the mask surface
           return 1;
         
         if (overlap || coincident) //ambiguous : overlap (but pt is not inside - otherwise u0=0. -) or coincident : touching a triangle's border
@@ -295,7 +295,7 @@ if (dbg_switch && sz)
         candidates[0]=candidates[b]; //overwrite candidates to have real candidates between rank 0 and (nb_visibles-1)
         mindp=u0;
       }
-      else if (IS_ZERO(u0-mindp))
+      else if (IS_ZERO(u0-mindp, E_EPSILON))
         candidates[nb_visibles++]=candidates[b];
     }
     

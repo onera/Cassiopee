@@ -515,7 +515,8 @@ E_Int NUGA::Splitter::triangulate_specified_pgs(const K_FLD::FloatArray& crd, ng
   // triangulate any specified PG
   transfo_t dummy;
   ngon_unit split_graph;
-  __split_pgs(crd, ngi, ngo, split_graph, triangulate_pgs<TriangulatorType>, dummy, &toprocess);
+  return __split_pgs(crd, ngi, ngo, split_graph, triangulate_pgs<TriangulatorType>, dummy, &toprocess);
+
 }
 
 template <typename TriangulatorType>

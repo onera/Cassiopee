@@ -631,4 +631,45 @@ E_Int Polygon::get_boundary
   return ( (Nnext != Nbegin) || (PGb.size() != w_oe_set.size()) ); // unclosed or non-connex/holes
 }
 
+E_Int Polygon::shuffle_triangulation()
+{
+  
+  if (_triangles == nullptr) return 0;
+  
+  E_Int ntris = nb_tris();
+  if (ntris == 1) return 0;
+  
+  // Get inner edges
+  std::vector<std::pair<E_Int, E_Int> > wpair_set;
+  {
+    std::set<K_MESH::NO_Edge> tmp;
+    K_MESH::NO_Edge E;
+    for (size_t i=0; i < ntris; ++i)
+    {
+      for (size_t n=0; n < 3; ++n)
+      {
+        E.setNodes(_triangles[3*i + n], _triangles[3*i + (n+1)%3]);
+        if (!tmp.insert(E).second)//already in => inner edge
+          wpair_set.push_back(std::make_pair(i, (n+2)%3));
+      }
+    }
+  }
+  
+  if (wpair_set.empty()) return 0; //Triangle
+  
+  // _triangle => IntArray (for fast_swap_edges)
+  K_FLD::IntArray cT3(3, ntris);
+  for (size_t i=0; i < ntris; ++i)
+    for (size_t n=0; n < 3; ++n) cT3(n,i) = _triangles[3*i + n];
+  
+  K_FLD::IntArray neighbors;
+  K_CONNECT::EltAlgo<K_MESH::Triangle>::getManifoldNeighbours(cT3, neighbors);
+  K_CONNECT::EltAlgo<K_MESH::Triangle>::fast_swap_edges(wpair_set, cT3, neighbors);
+  
+  // IntArray => _triangles
+  for (size_t i=0; i < ntris; ++i)
+    for (size_t n=0; n < 3; ++n) _triangles[3*i + n] = cT3(n,i);
+  
+}
+
 } //namespace

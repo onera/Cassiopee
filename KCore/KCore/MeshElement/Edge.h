@@ -168,7 +168,7 @@ K_MESH::Edge::intersect
   overlap = false;
   u00 = u01 = u10 = u11 = K_CONST::E_MAX_FLOAT;
 
-  lineLineMinDistance<DIM>(P0, P1, Q0, Q1, u0, u1, E_EPSILON/*fixmetol*/, parallel, coincident, min_d);
+  lineLineMinDistance<DIM>(P0, P1, Q0, Q1, u0, u1, tol, parallel, coincident, min_d);
 
   E_Float E0[DIM], E1[DIM];
   K_FUNC::diff<DIM>(P1, P0, E0);
@@ -259,7 +259,7 @@ K_MESH::Edge::intersect
   overlap = false;
   u00 = u01 = u10 = u11 = K_CONST::E_MAX_FLOAT;
 
-  lineLineMinDistance<DIM>(P0, P1, Q0, Q1, u0, u1, E_EPSILON/*fixmetol*/, parallel, coincident, min_d);
+  lineLineMinDistance<DIM>(P0, P1, Q0, Q1, u0, u1, tol, parallel, coincident, min_d);
 
   sharing_a_node = ((N0 == M0) || (N0 == M1) || (N1 == M0) || (N1 == M1));
 

@@ -3444,6 +3444,35 @@ build_noF2E(K_FLD::FldArrayI& F2E) const
   }
 }
 
+void
+build_noF2E(K_FLD::IntArray& F2E) const
+{
+  // rule : first fill the left, then the right => upon exit, at least F2E is oriented for exterior PGs
+  PGs.updateFacets();
+  PHs.updateFacets();
+
+  E_Int NB_PHS(PHs.size());
+  E_Int NB_PGS(PGs.size());
+  
+  //std::cout << "build_noF2E : phs/pgs : " << NB_PHS << "/" << NB_PGS << std::endl;
+
+  F2E.clear();
+  F2E.resize(2, NB_PGS, E_IDX_NONE);
+    
+  for (E_Int i = 0; i < NB_PHS; ++i)
+  {
+    E_Int stride = PHs.stride(i);
+    const E_Int* pPGi = PHs.get_facets_ptr(i);
+    
+    for (E_Int n = 0; n < stride; ++n)
+    {
+      E_Int PGi = *(pPGi + n) - 1;
+      E_Int k= (F2E(0, PGi) == E_IDX_NONE) ? 0 : 1;
+      
+      F2E(k, PGi) = i;
+    }
+  }
+}
 
 template <typename TriangulatorType>
 static E_Int build_orientation_ngu(const K_FLD::FloatArray& crd, ngon_t& ng, ngon_unit& orient)

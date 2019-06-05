@@ -44,6 +44,7 @@ namespace K_MESH
        
     E_Int nb_nodes() const {return NB_NODES;}
     E_Int nb_tris() const { return NB_TRIS;}
+    E_Int nbounds() const { return 4;}
     
     ///
     inline E_Int* nodes(){return _nodes;} 

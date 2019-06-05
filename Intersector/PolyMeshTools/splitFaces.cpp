@@ -83,7 +83,7 @@ PyObject* K_INTERSECTOR::updatePointLists(PyObject* self, PyObject* args)
   PyObject *l(PyList_New(0)), *tpl;
   std::vector<E_Int> new_ptl;
 
-  for (size_t i=0; i < nb_bcs; ++i)
+  for (E_Int i=0; i < nb_bcs; ++i)
   {
     new_ptl.clear();
     PyObject* o = PyList_GetItem(py_ptLists, i);
@@ -94,7 +94,7 @@ PyObject* K_INTERSECTOR::updatePointLists(PyObject* self, PyObject* args)
     E_Int ok = K_ARRAY::getFromList(o, out);
     ptl_sz = out.getSize();
 
-    for (size_t j=0; j < ptl_sz; ++j)
+    for (E_Int j=0; j < ptl_sz; ++j)
     {
       E_Int oid = out(j,1)-1;
             
@@ -104,7 +104,7 @@ PyObject* K_INTERSECTOR::updatePointLists(PyObject* self, PyObject* args)
       if (nb_bits == 1 && pbits[0] == E_IDX_NONE)  // untouched
         new_ptl.push_back(oid+1);
       else
-        for (size_t u=0; u<nb_bits; ++u )
+        for (E_Int u=0; u<nb_bits; ++u )
           new_ptl.push_back(pbits[u]+1);
     }
 

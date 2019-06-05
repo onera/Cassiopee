@@ -135,11 +135,16 @@ def triangulateExteriorFaces(a, in_or_out=2):
     return intersector.triangulateExteriorFaces(a, in_or_out)
 
 #==============================================================================
-# triangulateBC
+# triangulateSpecifiedFaces
 # IN: coords: 3D NGON mesh
 # OUT: returns a 3D NGON Mesh with BC polygons triangulated
 #==============================================================================
 def triangulateSpecifiedFaces(a, pgs):
+    """Triangulates specified polygons of a volume mesh.
+    Usage: triangulateExteriorFaces(a, in_or_out)"""
+    return intersector.triangulateSpecifiedFaces(a, pgs)
+#synonym
+def triangulateBC(a, pgs):
     """Triangulates specified polygons of a volume mesh.
     Usage: triangulateExteriorFaces(a, in_or_out)"""
     return intersector.triangulateSpecifiedFaces(a, pgs)
@@ -214,6 +219,17 @@ def agglomerateSmallCells(a, vmin=0., vratio=1000.):
     """Agglomerates prescribed cells.
     Usage: agglomerateSmallCells(a, vmin, vratio)"""
     return intersector.agglomerateSmallCells(a, vmin, vratio)
+
+#==============================================================================
+# agglomerateCellsWithSpecifiedFaces : Agglomerates cells sharing specified polygons
+# IN: a: 3D NGON mesh
+# IN: pgs : list of polygons
+# OUT: returns a 3D NGON Mesh
+#==============================================================================
+def agglomerateCellsWithSpecifiedFaces(a, pgs):
+    """Agglomerates cells to make disappear specified polygons
+    Usage: agglomerateCellsWithSpecifiedFaces(a)"""
+    return intersector.agglomerateCellsWithSpecifiedFaces(a, pgs)
 
 #==============================================================================
 # agglomerateNonStarCells : Agglomerates non-centroid-star-shaped cells
@@ -319,6 +335,20 @@ def extractNthFace(a, nth):
 #==============================================================================
 def removeNthCell(a, nth):
     return intersector.removeNthCell(a, nth)
+
+#==============================================================================
+# getOverlappingFaces   : returns the list of polygons in a1 and a2 that are overlapping.
+# IN : a1:              : NGON mesh (surface or volume).
+# IN : a2:              : NGON mesh (surface or volume).
+# IN : RTOL:            : Relative tolerance (in ]0., 1.[).
+# IN: ps_min            : minimal value for the dot product of the normals of each pair of colliding polygons. A value of 1. means pure parallelism.
+# IN: dir2              : if specified, direction vector used for all a2's polygons instead of their own normals.
+# OUT: 2 lists of overlapping polygons, the first one for a1, the seoncd one for a2.
+#==============================================================================
+def getOverlappingFaces(a1, a2, RTOL = 0.1, ps_min = 0.95, dir2=(0.,0.,0.)):
+    """ Returns the list of polygons in a1 and a2 that are overlapping.
+    Usage: getOverlappingFaces(a1, a2, RTOL, ps_min, dir2)"""
+    return intersector.getOverlappingFaces(a1,a2, RTOL, ps_min, dir2)
 
 #==============================================================================
 # selfX : Checks self-intersections in a mesh

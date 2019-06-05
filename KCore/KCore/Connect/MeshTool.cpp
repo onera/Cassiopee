@@ -1295,9 +1295,13 @@ void K_CONNECT::MeshTool::computeIncidentEdgesSqrLengths
 (const K_FLD::FloatArray& crd, const ngon_unit& pgs, K_FLD::FloatArray& L)
 {
   E_Int                           nb_pgs(pgs.size());
-  E_Int idmaxp1 = pgs.get_facets_max_id();
   
   L.clear();
+  
+  if (nb_pgs == 0) return;
+  
+  E_Int idmaxp1 = pgs.get_facets_max_id();
+  
   L.resize(1, idmaxp1, K_CONST::E_MAX_FLOAT);  //mins
   L.resize(2, idmaxp1, -K_CONST::E_MAX_FLOAT); // maxs
   
