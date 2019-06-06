@@ -198,6 +198,7 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
     delete [] d->_materialWidths;
     delete [] d->_materialHeights;
     int nb = PyList_Size(materials);
+    
     d->_nMaterials = nb;
     d->_materialFiles = new char* [nb];
     d->_materialWidths = new int [nb];

@@ -70,7 +70,8 @@ sed -i 's/Converter\.elsAProfile\.Converter\.elsAProfile/Converter\.elsAProfile/
 sed -i 's/Converter\.Filter\.Converter\.Filter/Converter\.Filter/g' $FILE
 sed -i 's/Converter\.Converter\.PyTree/Converter\.PyTree/g' $FILE
 sed -i 's/Converter\.Converter\.Array3D/Converter\.Array3D/g' $FILE
-#sed -i 's/Converter\.Converter/Converter/g' $FILE
+sed -i 's/Converter\.Converter/Converter/g' $FILE
+sed -i 's/Converter\:{/converter\:{/g' $FILE
 sed -i 's/Geom\.Geom/Geom/g' $FILE
 sed -i 's/Compressor\.Compressor/Compressor/g' $FILE
 sed -i 's/Initiator\.Initiator/Initiator/g' $FILE
@@ -92,7 +93,7 @@ sed -i 's/Converter\.elsAProfile\.Converter\.elsAProfile/Converter\.elsAProfile/
 sed -i 's/Converter\.Filter\.Converter\.Filter/Converter\.Filter/g' $FILE
 sed -i 's/Converter\.Converter\.PyTree/Converter\.PyTree/g' $FILE
 sed -i 's/Converter\.Converter\.Array3D/Converter\.Array3D/g' $FILE
-#sed -i 's/Converter\.Converter/Converter/g' $FILE
+sed -i 's/Converter\.Converter/Converter/g' $FILE
 sed -i 's/Geom\.Geom/Geom/g' $FILE
 sed -i 's/Compressor\.Compressor/Compressor/g' $FILE
 sed -i 's/Initiator\.Initiator/Initiator/g' $FILE

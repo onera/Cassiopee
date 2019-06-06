@@ -408,6 +408,7 @@ def displayErrors(errors, header=''):
     nerr = len(errors)//2; allText = ''
     for l in range(nerr): allText += ' - '+errors[2*l+1]+'\n'
     allText += '\n'
+    myText.delete('1.0', TK.END) # clear previous errors
     myText.insert('START', allText)
     # Header
     ti = time.localtime()

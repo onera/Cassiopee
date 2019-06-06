@@ -913,7 +913,7 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
   if format == 'bin_cgns' or format == 'unknown':
     format = Converter.checkFileType(fileName)
 
-  if format == 'bin_cgns' or format == 'bin_adf' or format == 'bin_hdf':
+  if format == 'bin_cgns' or format == 'bin_adf' or format == 'bin_hdf':  
     try:
       t = Converter.converter.convertFile2PyTree(fileName, format, skeletonData, dataShape, links)
       t = Internal.createRootNode(children=t[2])

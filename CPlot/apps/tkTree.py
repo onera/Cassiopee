@@ -492,7 +492,10 @@ class Node:
             self.PVT_highlight(item)
         elif event.keysym == "Return":
             pid = self.id
+            # Change the node name
             pid[0] = sw.itemcget(item, "text")
+            try: tkTreeOps.updateNode(pid)
+            except: pass
             sw.focus('')
             sw.select_clear()
             sw.delete("highlight")
@@ -771,7 +774,7 @@ class Node:
                 (ret[0][0] == Internal.__FlowSolutionNodes__ or
                  ret[0][0] == Internal.__FlowSolutionCenters__)):
                 field = pid[0]
-                if (ret[0][0] == Internal.__FlowSolutionCenters__):
+                if ret[0][0] == Internal.__FlowSolutionCenters__:
                     field = 'centers:'+field
                 vars = C.getVarNames(CTK.t)[0]
                 ifield = 0; lenvars = 0
@@ -1128,7 +1131,7 @@ tcuom2foARAAyKRSmQAAOw==
     def add_node(self, name=None, id=None, flag=0, expanded_icon=None,
                  collapsed_icon=None):
         """Add a node during get_contents_callback()"""
-        if (id is not None and len(id) >= 4):
+        if id is not None and len(id) >= 4:
             if id[3] == 'Zone_t': 
                 collapsed_icon = self.collapsed_zone
                 expanded_icon = self.expanded_zone
@@ -1138,7 +1141,7 @@ tcuom2foARAAyKRSmQAAOw==
             elif id[3] == 'Family_t' or id[3] == 'FamilyName_t':
                 collapsed_icon = self.collapsed_family
                 expanded_icon = self.expanded_family
-            elif (id[3] == 'UserDefinedData_t' and len(id[2])>0):
+            elif id[3] == 'UserDefinedData_t' and len(id[2])>0:
                 collapsed_icon = self.collapsed_user
                 expanded_icon = self.expanded_user
         self.add_list(self.new_nodes, name, id, flag, expanded_icon,
@@ -1456,7 +1459,7 @@ def onMouseWheel(event):
     tree = WIDGETS['tree']
     if event.num == 5 or event.delta == -120:
         tree.yview('scroll', +1, 'units')
-    elif (event.num == 4 or event.delta == 120):
+    elif event.num == 4 or event.delta == 120:
         tree.yview('scroll', -1, 'units')
 
 #==============================================================================
@@ -1529,20 +1532,20 @@ def updateApp():
             for d in children2: # Zones
                 dlabel = d.get_label()
                 if dlabel in OPENZONES[bcount]: d.expand()
-                if (LEVSEL == 1 and dlabel == SELECTED): d.widget.move_cursor(d)
+                if LEVSEL == 1 and dlabel == SELECTED: d.widget.move_cursor(d)
                 children3 = d.children()
                 for e in children3:
                     elabel = e.get_label()
                     if elabel in OPENNODES[bcount][zcount]: 
                         e.expand()
-                    if (LEVSEL == 2 and elabel == SELECTED): 
+                    if LEVSEL == 2 and elabel == SELECTED: 
                         e.widget.move_cursor(e)
                     children4 = e.children()
                     for f in children4:
-                        if (LEVSEL == 3 and f.get_label() == SELECTED): 
+                        if LEVSEL == 3 and f.get_label() == SELECTED: 
                             f.widget.move_cursor(f)
-                if (len(children3) > 0): zcount += 1
-            if (len(children2) > 0): bcount += 1
+                if len(children3) > 0: zcount += 1
+            if len(children2) > 0: bcount += 1
 
 #==============================================================================
 def saveApp():
@@ -1591,9 +1594,9 @@ def shrinkCanvas():
     WIDGETS['tree'].shrinkCanvas()
 
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

@@ -1078,6 +1078,14 @@ def newFamily(name='Family', parent=None):
     else: node = createUniqueChild(parent, name, 'Family_t')
     return node
 
+# -- newFamilyName (zones)
+def newFamilyName(name='Family', value='myFamily', parent=None):
+    """Create a new FamilyName node."""
+    if parent is None:
+        node = createNode(name, 'FamilyName_t', value=value)
+    else: node = createUniqueChild(parent, name, 'FamilyName_t', value=value)
+    return node
+
 # -- newFamilyBC
 def newFamilyBC(value='UserDefined', parent=None):
     """Create a new FamilyBC node."""

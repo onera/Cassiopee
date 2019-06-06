@@ -119,7 +119,7 @@ def moveNodeUp():
 def moveNodeDown():
     if CTK.t == []: return
     node = CTK.TKTREE.getCurrentSelectedNode()
-    if (node[3] == 'CGNSTree_t'): return # Tree node can not move
+    if node[3] == 'CGNSTree_t': return # Tree node can not move
     (p, c) = Internal.getParentOfNode(CTK.t, node)
     if c == len(p[2])-1: return # already last
 

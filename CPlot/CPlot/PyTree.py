@@ -670,8 +670,7 @@ def _addRender2PyTree(a, slot=0, posCam=None, posEye=None, dirCam=None,
     if i[0] == '.RenderInfo': break
     exist += 1
   if exist < len(a[2]): ri = a[2][exist]
-  else:
-    ri = Internal.createChild(a, '.RenderInfo', 'UserDefinedData_t')
+  else: ri = Internal.createChild(a, '.RenderInfo', 'UserDefinedData_t')
     
   # find slot
   sl = Internal.getNodeFromName1(ri, 'Slot%d'%slot)
@@ -729,34 +728,34 @@ def _addRender2PyTree(a, slot=0, posCam=None, posEye=None, dirCam=None,
 
   # Under .RenderInfo
   if materials is not None:
-    ri = Internal.createUniqueChild(ri, 'materials', 'UserDefinedData_t')
-    prevValues = [Internal.getValue(i) for i in ri[2]]
+    rt = Internal.createUniqueChild(ri, 'materials', 'UserDefinedData_t')
+    prevValues = [Internal.getValue(i) for i in rt[2]]
     cnt = len(prevValues)
     li = prevValues
     for i in materials:
       if i not in prevValues: li.append(i)
     for c, f in enumerate(li):
-        rt = Internal.createUniqueChild(ri, 'file%d'%c, 'DataArray_t', value=f)
+        rt = Internal.createUniqueChild(rt, 'file%d'%c, 'DataArray_t', value=f)
 
   if bumpMaps is not None:
-    ri = Internal.createUniqueChild(ri, 'bumpMaps', 'UserDefinedData_t')
-    prevValues = [Internal.getValue(i) for i in ri[2]]
+    rt = Internal.createUniqueChild(ri, 'bumpMaps', 'UserDefinedData_t')
+    prevValues = [Internal.getValue(i) for i in rt[2]]
     cnt = len(prevValues)
     li = prevValues
     for i in bumpMaps:
       if i not in prevValues: li.append(i)
     for c, f in enumerate(li):
-        rt = Internal.createUniqueChild(ri, 'file%d'%c, 'DataArray_t', value=f)
+        rt = Internal.createUniqueChild(rt, 'file%d'%c, 'DataArray_t', value=f)
 
   if billBoards is not None:
-    ri = Internal.createUniqueChild(ri, 'billBoards', 'UserDefinedData_t')
-    prevValues = [Internal.getValue(i) for i in ri[2]]
+    rt = Internal.createUniqueChild(ri, 'billBoards', 'UserDefinedData_t')
+    prevValues = [Internal.getValue(i) for i in rt[2]]
     cnt = len(prevValues)
     li = prevValues
     for i in billBoards:
       if i not in prevValues: li.append(i)
     for c, f in enumerate(li):
-        rt = Internal.createUniqueChild(ri, 'file%d'%(c+cnt), 'DataArray_t', value=f)
+        re = Internal.createUniqueChild(rt, 'file%d'%(c+cnt), 'DataArray_t', value=f)
   return None
 
 #==============================================================================
