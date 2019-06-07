@@ -22,7 +22,7 @@
 #include "hdf5.h"
 #include <map>
 
-// For now, always output v1.8 of HDF
+// For now, force output of v1.8 of HDF
 #if H5_VERSION_GE(1,10,2)
 #define KHDFVERSION H5F_LIBVER_V18
 #else

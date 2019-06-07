@@ -833,11 +833,11 @@ E_Int K_IO::GenIO::hdfcgnsread(char* file, PyObject*& tree, PyObject* dataShape,
     return 1;
   }
   hid_t gid = H5Gopen(fid, "/", H5P_DEFAULT);
+  GenIOHdf HDF;
 
   /* Prepare skip types */
   if (skipTypes != NULL)
   {
-    GenIOHdf HDF;
     E_Int skipSize = PyList_Size(skipTypes);
     for (E_Int i = 0; i < skipSize; i++)
     {
@@ -852,7 +852,6 @@ E_Int K_IO::GenIO::hdfcgnsread(char* file, PyObject*& tree, PyObject* dataShape,
   }
 
   /* Recursive load */
-  GenIOHdf HDF;
   HDF._skeleton = skeleton;
   HDF._ismpi = 0;
   HDF._maxFloatSize = maxFloatSize;

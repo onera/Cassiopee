@@ -843,7 +843,7 @@ E_Int K_CONVERTER::getElementTypeId(const char* eltType)
     return 7;
   if (K_STRING::cmp(eltType, "NGON") == 0)
     return 8;
-  return -1;//unknown
+  return -1; //unknown
 }
 
 //=============================================================================
@@ -861,13 +861,13 @@ PyObject* K_CONVERTER::readPyTreeFromPaths(PyObject* self, PyObject* args)
   
   if (skipTypes == Py_None) skipTypes = NULL;
   PyObject* ret = NULL;
-  if (K_STRING::cmp(format, "bin_hdf") == 0)
+  if (K_STRING::cmp(format, "bin_cgns") == 0)
+    ret = K_IO::GenIO::getInstance()->hdfcgnsReadFromPaths(fileName, paths, maxFloatSize, maxDepth, skipTypes);
+  else if (K_STRING::cmp(format, "bin_hdf") == 0)
     ret = K_IO::GenIO::getInstance()->hdfcgnsReadFromPaths(fileName, paths, maxFloatSize, maxDepth, skipTypes);
   else if (K_STRING::cmp(format, "bin_adf") == 0)
     ret = K_IO::GenIO::getInstance()->adfcgnsReadFromPaths(fileName, paths, maxFloatSize, maxDepth);
-  else if (K_STRING::cmp(format, "bin_cgns") == 0)
-    ret = K_IO::GenIO::getInstance()->adfcgnsReadFromPaths(fileName, paths, maxFloatSize, maxDepth);
-  else 
+  else
   {
     PyErr_SetString(PyExc_TypeError, 
                     "readPyTreeFromPaths: unknown file format.");
@@ -889,15 +889,13 @@ PyObject* K_CONVERTER::writePyTreePaths(PyObject* self, PyObject* args)
   if (links == Py_None) { links = NULL; }
   
   E_Int ret = 1;
-  if (K_STRING::cmp(format, "bin_adf") == 0)
-    ret = 
-      K_IO::GenIO::getInstance()->adfcgnsWritePaths(fileName, nodeList, paths, maxDepth, mode);
+
+  if (K_STRING::cmp(format, "bin_cgns") == 0)
+    ret = K_IO::GenIO::getInstance()->hdfcgnsWritePaths(fileName, nodeList, paths, links, maxDepth, mode);
   else if (K_STRING::cmp(format, "bin_hdf") == 0)
-    ret = 
-      K_IO::GenIO::getInstance()->hdfcgnsWritePaths(fileName, nodeList, paths, links, maxDepth, mode);
-  else if (K_STRING::cmp(format, "bin_cgns") == 0)
-    ret = 
-      K_IO::GenIO::getInstance()->adfcgnsWritePaths(fileName, nodeList, paths, maxDepth, mode);
+    ret = K_IO::GenIO::getInstance()->hdfcgnsWritePaths(fileName, nodeList, paths, links, maxDepth, mode);
+  else if (K_STRING::cmp(format, "bin_adf") == 0)
+    ret = K_IO::GenIO::getInstance()->adfcgnsWritePaths(fileName, nodeList, paths, maxDepth, mode);
   if (ret == 1) return NULL; // exceptions deja levees
 
   Py_INCREF(Py_None);
@@ -915,15 +913,12 @@ PyObject* K_CONVERTER::deletePyTreePaths(PyObject* self, PyObject* args)
     return NULL;
   
   E_Int ret = 1;
-  if (K_STRING::cmp(format, "bin_adf") == 0)
-    ret = 
-      K_IO::GenIO::getInstance()->adfcgnsDeletePaths(fileName, paths);
+  if (K_STRING::cmp(format, "bin_cgns") == 0)
+    ret = K_IO::GenIO::getInstance()->hdfcgnsDeletePaths(fileName, paths);
   else if (K_STRING::cmp(format, "bin_hdf") == 0)
-    ret =
-      K_IO::GenIO::getInstance()->hdfcgnsDeletePaths(fileName, paths);
-  else if (K_STRING::cmp(format, "bin_cgns") == 0)
-    ret = 
-      K_IO::GenIO::getInstance()->adfcgnsDeletePaths(fileName, paths);
+    ret = K_IO::GenIO::getInstance()->hdfcgnsDeletePaths(fileName, paths);
+  else if (K_STRING::cmp(format, "bin_adf") == 0)
+    ret = K_IO::GenIO::getInstance()->adfcgnsDeletePaths(fileName, paths);
   if (ret == 1) return NULL; // exceptions deja levees
 
   Py_INCREF(Py_None);

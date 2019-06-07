@@ -483,7 +483,7 @@ def convertExt2Format__(fileName):
     elif extension == '.svg': format = 'fmt_svg'
     elif extension == '.pov': format = 'fmt_pov'
     elif extension == '.cgns': format = 'bin_cgns'
-    elif extension == '.adf': format = 'bin_cgns'
+    elif extension == '.adf': format = 'bin_adf'
     elif extension == '.hdf': format = 'bin_hdf'
     elif extension == '.hdf5': format = 'bin_hdf'
     elif extension == '.pickle': format = 'bin_pickle'

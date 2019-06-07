@@ -20,10 +20,10 @@
 
 #ifdef _MPI
 #if defined(_WIN64)
-# define __int64 long long
+#define __int64 long long
 #endif
-# include "mpi.h"
-# include "mpi4py/mpi4py.h"
+#include "mpi.h"
+#include "mpi4py/mpi4py.h"
 #endif
 #include "converter.h"
 #include "kcore.h"
@@ -34,15 +34,16 @@
 // ============================================================================
 PyObject* K_CONVERTER::convertFile2PyTree(PyObject* self, PyObject* args)
 {
-  char* fileName;
-  char* format; PyObject* skeletonData;
-  PyObject* dataShape; PyObject* links;
-  if (!PyArg_ParseTuple(args, "ssOOO", &fileName, &format, &skeletonData, 
-                        &dataShape, &links))
+  char* fileName; char* format; 
+  PyObject* skeletonData; PyObject* dataShape; 
+  PyObject* links; PyObject* skipTypes;
+  if (!PyArg_ParseTuple(args, "ssOOOO", &fileName, &format, &skeletonData, 
+                        &dataShape, &links, &skipTypes))
     return NULL;
   
   if (dataShape == Py_None) { dataShape = NULL; }
   if (links == Py_None) { links = NULL; }
+  if (skipTypes == Py_None) { skipTypes = NULL; }
 
   E_Int l = strlen(format);
   char* myFormat = new char [l+1]; strcpy(myFormat, format);
@@ -71,7 +72,8 @@ PyObject* K_CONVERTER::convertFile2PyTree(PyObject* self, PyObject* args)
   if (strcmp(myFormat, "bin_adf") == 0)
     ret = K_IO::GenIO::getInstance()->adfcgnsread(fileName, tree, skeleton, maxFloatSize, maxDepth);
   else if (strcmp(myFormat, "bin_hdf") == 0)
-    ret = K_IO::GenIO::getInstance()->hdfcgnsread(fileName, tree, dataShape, links, skeleton, maxFloatSize, maxDepth);
+    ret = K_IO::GenIO::getInstance()->hdfcgnsread(fileName, tree, dataShape, links, skeleton, maxFloatSize, 
+                                                  maxDepth, skipTypes);
   else
     ret = K_IO::GenIO::getInstance()->adfcgnsread(fileName, tree, skeleton, maxFloatSize, maxDepth);
   printf("done.\n");
@@ -122,12 +124,12 @@ PyObject* K_CONVERTER::convertPyTree2File(PyObject* self, PyObject* args)
   printf("Writing %s (%s)...", fileName, format);
   fflush(stdout);
 
-  if (strcmp(format, "bin_adf") == 0)
-    K_IO::GenIO::getInstance()->adfcgnswrite(fileName, t);
-  else if (strcmp(format, "bin_cgns") == 0)
-    K_IO::GenIO::getInstance()->adfcgnswrite(fileName, t);
-  else if (strcmp(format, "bin_hdf") == 0)
+  if (strcmp(format, "bin_cgns") == 0)
     K_IO::GenIO::getInstance()->hdfcgnswrite(fileName, t, links);
+  else if (strcmp(format, "bin_hdf") == 0)
+    K_IO::GenIO::getInstance()->hdfcgnswrite(fileName, t, links);  
+  else if (strcmp(format, "bin_adf") == 0)
+    K_IO::GenIO::getInstance()->adfcgnswrite(fileName, t);
   else
     K_IO::GenIO::getInstance()->hdfcgnswrite(fileName, t, links);
   printf("done.\n");
@@ -218,7 +220,6 @@ PyObject* K_CONVERTER::convertPyTree2FilePartial(PyObject* self, PyObject* args)
 
 #else
   E_Int comm = 0; // dummy
-
   /* En sequentielle */
   // skeleton = 1;
   K_IO::GenIO::getInstance()->hdfcgnsWritePathsPartial(fileName, t, Filter, skeleton, &comm);

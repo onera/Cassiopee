@@ -900,7 +900,7 @@ def _rmNodes(z, name):
 
 # -- convertFile2PyTree
 def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
-                       density=-1., skeletonData=None, dataShape=None, links=None):
+                       density=-1., skeletonData=None, dataShape=None, links=None, skipTypes=None):
   """Read a file and return a pyTree containing file data.
   Usage: convertFile2PyTree(fileName, format, options)"""
   if format is None:
@@ -915,7 +915,7 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
 
   if format == 'bin_cgns' or format == 'bin_adf' or format == 'bin_hdf':  
     try:
-      t = Converter.converter.convertFile2PyTree(fileName, format, skeletonData, dataShape, links)
+      t = Converter.converter.convertFile2PyTree(fileName, format, skeletonData, dataShape, links, skipTypes)
       t = Internal.createRootNode(children=t[2])
       Internal._correctPyTree(t, level=10) # force CGNS names
       Internal._correctPyTree(t, level=2) # force unique name
@@ -925,7 +925,7 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
     except:
       if format == 'bin_cgns' or format == 'bin_adf':
         try:
-          t = Converter.converter.convertFile2PyTree(fileName, 'bin_hdf', skeletonData)
+          t = Converter.converter.convertFile2PyTree(fileName, 'bin_hdf', skeletonData, dataShape, links, skipTypes)
           t = Internal.createRootNode(children=t[2])
           Internal._correctPyTree(t, level=10) # force CGNS names
           Internal._correctPyTree(t, level=2) # force unique name
@@ -935,7 +935,7 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
         except: pass
       else: # adf par defaut
         try:
-          t = Converter.converter.convertFile2PyTree(fileName, 'bin_adf', skeletonData)
+          t = Converter.converter.convertFile2PyTree(fileName, 'bin_adf', skeletonData, dataShape, links, skipTypes)
           t = Internal.createRootNode(children=t[2])
           Internal._correctPyTree(t, level=10) # force CGNS names
           Internal._correctPyTree(t, level=2) # force unique name
@@ -945,7 +945,7 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
         except: pass
   elif format == 'unknown':
     try:
-      t = Converter.converter.convertFile2PyTree(fileName, 'bin_adf', skeletonData)
+      t = Converter.converter.convertFile2PyTree(fileName, 'bin_adf', skeletonData, dataShape, links, skipTypes)
       t = Internal.createRootNode(children=t[2])
       Internal._correctPyTree(t, level=10) # force CGNS names
       Internal._correctPyTree(t, level=2) # force unique name
@@ -954,7 +954,7 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
       return t
     except: pass
     try:
-      t = Converter.converter.convertFile2PyTree(fileName, 'bin_hdf', skeletonData)
+      t = Converter.converter.convertFile2PyTree(fileName, 'bin_hdf', skeletonData, dataShape, links, skipTypes)
       t = Internal.createRootNode(children=t[2])
       Internal._correctPyTree(t, level=10) # force CGNS names
       Internal._correctPyTree(t, level=2) # force unique name
@@ -1089,7 +1089,7 @@ def convertFile2PartialPyTreeFromPath(fileName, Filter, comm=None,
                                       format=None, nptsCurve=20, nptsLine=2,
                                       density=-1., skeletonData=None):
   """Convert a file to pyTree.
-  Usage: convertFile2PyTree(fileName, format, options)"""
+  Usage: convertFile2PartialPyTree(fileName, format, options)"""
   if format is None:
     format = Converter.convertExt2Format__(fileName); autoTry = True
   else: autoTry = False
