@@ -8,5 +8,5 @@ b = P.selectCells(a, '{CoordinateX} > 12')
 c = P.selectCells(a, '{CoordinateX} > 15')
 
 t = C.newPyTree(['Base',c,a,b])
-t = C.deleteEmptyZones(t)
+C._deleteEmptyZones(t)
 C.convertPyTree2File(t, 'out.cgns')

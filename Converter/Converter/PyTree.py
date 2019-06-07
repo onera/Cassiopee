@@ -864,7 +864,16 @@ def _deleteEmptyZones(t):
   zones = Internal.getZones(t)
   for z in zones:
     dim = Internal.getZoneDim(z)
-    if (dim[0] == 'Unstructured' and dim[1]*dim[2] == 0) or (dim[0] == 'Structured' and dim[1]*dim[2]*dim[3] == 0):
+    removeZ = False
+    if (dim[0]=='Structured'):
+      if dim[1]*dim[2]*dim[3] == 0: removeZ = True
+    else:
+      if dim[3]=='NODE':
+        if dim[1]==0: removeZ = True
+      else: 
+        if dim[1]*dim[2] == 0: removeZ = True
+
+    if removeZ:        
       (p, c) = Internal.getParentOfNode(t, z)
       if id(p) == id(t): del p[c] # this is a list
       else: del p[2][c]

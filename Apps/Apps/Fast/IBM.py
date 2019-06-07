@@ -486,10 +486,12 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
                     for z in zones:
                         bba = C.getFields('GridCoordinates', z)[0]
                         if Generator.bboxIntersection(interpPtsBB,bba,isBB=True):
+                            zname = z[0]
                             popp = Cmpi.getProc(z)
-                            Distributed.updateGraph__(graph, popp, rank, z[0])
-                            if zrname not in interDictIBM: interDictIBM[zrname]=[z[0]]
-                            else: interDictIBM[zrname].append(z[0])
+                            Distributed.updateGraph__(graph, popp, rank, zname)
+                            if zrname not in interDictIBM: interDictIBM[zrname]=[zname]
+                            else: 
+                                if zname not in interDictIBM[zrname]: interDictIBM[zrname].append(zname)
     else: graph={}
     del tbbc
     allGraph = Cmpi.KCOMM.allgather(graph)
@@ -528,7 +530,6 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
                         #if zd is not None: dnrZones.append(zd)
                         if zd is None: print('!!!Zone None', zrname, zdname)
                         else: dnrZones.append(zd)
-
                     XOD._setIBCDataForZone__(zrcv,dnrZones,allCorrectedPts[nozr],allWallPts[nozr],allInterpPts[nozr],
                                              nature=1,penalty=1,loc='centers',storage='inverse', dim=dimPb,
                                              interpDataType=0, ReferenceState=ReferenceState, bcType=ibcTypeL)
