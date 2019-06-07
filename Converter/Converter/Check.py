@@ -220,14 +220,6 @@ def _correctPyTree(t, level=-20):
     return None
 
 #==============================================================================
-# Return the position of node in parent children list
-# Return -1 if not found
-def getNodePosition(node, parent):
-    for c, n in enumerate(parent[2]):
-        if id(n) == id(node): return c
-    return -1
-
-#==============================================================================
 # Check version node
 # Doit etre en premier dans l'arbre et non duplique.
 #==============================================================================
@@ -315,7 +307,7 @@ def _correctNodes(t):
     for e in range(le):
         node = errors[3*e]
         parent = errors[3*e+1]
-        c = getNodePosition(node, parent)
+        c = Internal.getNodePosition(node, parent)
         del parent[2][c]
     return None
 
@@ -571,7 +563,7 @@ def _correctBCRanges(t, ntype):
     for e in range(le):
         node = errors[3*e]
         parent = errors[3*e+1]
-        c = getNodePosition(node, parent)
+        c = Internal.getNodePosition(node, parent)
         del parent[2][c]
     return None
 
@@ -584,7 +576,7 @@ def _correctDonorRanges(t, ntype):
     for e in range(le):
         node = errors[3*e]
         parent = errors[3*e+1]
-        c = getNodePosition(node, parent)
+        c = Internal.getNodePosition(node, parent)
         del parent[2][c]
     return None
 
@@ -714,7 +706,7 @@ def _correctOppositRanges(t, ntype):
     for e in range(le):
         node = errors[3*e]
         parent = errors[3*e+1]
-        c = getNodePosition(node, parent)
+        c = Internal.getNodePosition(node, parent)
         del parent[2][c]
     return None
 
@@ -972,7 +964,7 @@ def _correctCGNSType(t):
     for e in range(le):
         node = errors[3*e]
         parent = errors[3*e+1]
-        c = getNodePosition(node, parent)
+        c = Internal.getNodePosition(node, parent)
         del parent[2][c]
     return None
 
@@ -1031,7 +1023,7 @@ def _correctElementNodes(t):
 
         if msg[0:8] == 'Multiple':
             zones = C.breakConnectivity(zone)
-            c = getNodePosition(zone, parent)
+            c = Internal.getNodePosition(zone, parent)
             parent[2][c] = zones[0]; parent[2] += zones[1:]
         elif msg[0:6] == 'NFace':
             # Look for PE
@@ -1154,6 +1146,6 @@ def _correctFieldConformity(t):
     for e in range(len(errors)//3):
         node = errors[3*e]
         parent = errors[3*e+1]
-        c = getNodePosition(node, parent)
+        c = Internal.getNodePosition(node, parent)
         del parent[2][c]
     return None

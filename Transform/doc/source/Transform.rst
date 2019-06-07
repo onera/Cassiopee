@@ -881,7 +881,7 @@ Mesh splitting and merging
     :type dirs: list of integers (possible values:1,2,3 or a combination of them)
     :param recoverBC: BCs are recovered after split (True) or not (False)
     :type recoverBC: Boolean (True or False)
-    :return: list of merged Cartesian grids
+    :return: list of splitted grids
     :rtype: [list of arrays] or [list of zones]
 
     *Example of use:*
@@ -922,7 +922,7 @@ Mesh splitting and merging
     :type R: integer
     :param minPtsPerDir: minimum number of points per direction
     :type minPtsPerDir: integer
-    :return: list of merged Cartesian grids
+    :return: list of splitted grids
     :rtype: [list of arrays] or [list of zones]
 
     *Example of use:*

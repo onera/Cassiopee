@@ -103,7 +103,7 @@ Contents
 Input/output
 -------------
 
-.. py:function:: Converter.Mpi.convertFile2SkeletonTree(fileName, format=None, maxFloatSize=5, maxDepth=-1)
+.. py:function:: Converter.Mpi.convertFile2SkeletonTree(fileName, format=None, maxFloatSize=5, maxDepth=-1, links=None)
 
     Read a skeleton tree (**S**) from file (adf or hdf file format only). The loaded in
     memory skeleton tree is identical on all processors.
@@ -120,6 +120,8 @@ Input/output
     :type maxFloatSize: int
     :param maxDepth: max depth of load
     :type maxDepth: int
+    :param links: if not None, return a list of links in file
+    :type links: list of list of 4 strings
     :return: Skeleton tree
     :rtype: pyTree node
 

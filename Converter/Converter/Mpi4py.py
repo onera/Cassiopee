@@ -188,11 +188,14 @@ def allgatherZones(zones):
 # Lecture proc 0 + bcast
 #==============================================================================
 def convertFile2SkeletonTree(fileName, format=None, maxFloatSize=5,
-                             maxDepth=-1):
+                             maxDepth=-1, links=None):
     """Read a file and return a skeleton tree."""
-    if rank == 0: t = Distributed.convertFile2SkeletonTree(fileName, format, maxFloatSize, maxDepth)
+    if rank == 0: t = Distributed.convertFile2SkeletonTree(fileName, format, maxFloatSize, maxDepth, None, links)
     else: t = None
     t = KCOMM.bcast(t)
+    if links is not None:
+        lk = KCOMM.bcast(links)
+        if rank > 0: links += lk
     return t
     
 #==============================================================================
@@ -381,8 +384,10 @@ def _addXZones(t, graph, variables=None, cartesian=False):
                 # Existe deja? 
                 zone = Internal.getNodeFromName2(t, z[0])
                 if zone is not None: # replace
-                    (p, c) = Internal.getParentOfNode(t, zone)
-                    p[2][c] = z
+                    bases = Internal.getBases(t)
+                    for b in bases:
+                        c = Internal.getNodePosition(zone, b)
+                        if c != -1: b[2][c] = z
                 else: # append to first base
                     bases = Internal.getBases(t)
                     bases[0][2].append(z)
@@ -399,12 +404,22 @@ def rmXZones(t):
     return tp
 
 def _rmXZones(t):
-    zones = Internal.getZones(t)
-    for z in zones:
-        tag = Internal.getNodeFromName1(z, 'XZone')
-        if tag is not None:
-            (p, c) = Internal.getParentOfNode(t, z)
-            del p[2][c]
+    bases = Internal.getBases(t)
+    if bases == []:
+        zones = Internal.getZones(t)
+        for z in zones:
+            tag = Internal.getNodeFromName1(z, 'XZone')
+            if tag is not None:
+                (p, c) = Internal.getParentOfNode(t, z)
+                del p[2][c]
+    else:
+        for b in bases:
+            zones = Internal.getZones(b)
+            for z in zones:
+                tag = Internal.getNodeFromName1(z, 'XZone')
+                if tag is not None:
+                    c = Internal.getNodePosition(z, b)
+                    del b[2][c]
     return None
 
 #==============================================================================

@@ -6526,8 +6526,7 @@ def removeDuplicatedPeriodicZones__(a):
 #=============================================================================
 def addPeriodicZones__(a):
     try: import Transform.PyTree as T
-    except:
-        raise ImportError("addPeriodicZones__: requires Transform module.")
+    except: raise ImportError("addPeriodicZones__: requires Transform module.")
     atype = Internal.typeOfNode(a)
     if atype != 4:  # base
         print('Warning: addPeriodicZones__: input node must be a CGNS basis.')
@@ -6572,7 +6571,7 @@ def addPeriodicZones__(a):
                   Internal.createChild(zddup,'TempPeriodicZone','UserDefinedData_t',value=zdonorname,children=[rotationInfo])
                   zonesdup.append(zddup)
               elif translated:
-                tvx=translVect[0];tvy=translVect[1];tvz=translVect[2]
+                tvx = translVect[0]; tvy = translVect[1]; tvz = translVect[2]
                 zddup = T.translate(zd,(tvx,tvy,tvz))
                 # creation du noeud temporaire le marquant comme periodique
                 zddup[0] = getZoneName(zddup[0]+'_dup')
@@ -6601,7 +6600,7 @@ def addPeriodicZones__(a):
               rotationInfo = Internal.createNode('SignOfRotationAngle','UserDefinedData_t',value=signangle)
               # creation du noeud temporaire le marquant comme periodique
               #zdup[0] = getZoneName(zdup[0]+'_dup')
-              pref=zdup[0].split('_')
+              pref = zdup[0].split('_')
               if len(pref) == 1: pref = pref[0]
               else: pref = pref[0]+'_'+pref[1]
               zdup[0] = getZoneName(pref+'_dup')
@@ -6613,7 +6612,7 @@ def addPeriodicZones__(a):
               rotationInfo = Internal.createNode('SignOfRotationAngle','UserDefinedData_t',value=signangle)
               # creation du noeud temporaire le marquant comme periodique
               zdup[0] = getZoneName(zdup[0]+'_dup')
-              pref=zdup[0].split('_')
+              pref = zdup[0].split('_')
               if len(pref) == 1: pref = pref[0]
               else: pref = pref[0]+'_'+pref[1]
               zdup[0] = getZoneName(pref+'_dup')

@@ -46,7 +46,7 @@ Contents
 Low level layer
 ----------------
 
-.. py:function:: Converter.Filter.convertFile2SkeletonTree(fileName, format=None, maxFloatSize=5, maxDepth=-1)
+.. py:function:: Converter.Filter.convertFile2SkeletonTree(fileName, format=None, maxFloatSize=5, maxDepth=-1, links=None)
 
     Read a skeleton tree. 
     If float data array size of DataArray_t type nodes is lower than maxFloatSize then the 
@@ -61,6 +61,8 @@ Low level layer
     :type maxFloatSize: int
     :param maxDepth: max depth of load
     :type maxDepth: int
+    :param links: if not None, return a list of links in file
+    :type links: list of list of 4 strings
     :return: Skeleton tree
     :rtype: pyTree node
 

@@ -1864,6 +1864,13 @@ def getParentsFromType(start, node, parentType, l=[]):
         if ret != []: return ret
     return []
     
+# -- Return the position of node in parent children list (Return -1 if not found)
+def getNodePosition(node, parent):
+    """Return the position of node in parent children list."""
+    for c, n in enumerate(parent[2]):
+        if id(n) == id(node): return c
+    return -1
+
 # -- Retourne le nom d'un noeud
 def getName(node):
     """Return node name."""
@@ -1921,14 +1928,14 @@ def rmNode(t, node):
     """Remove given node from t."""
     (p, c) = getParentOfNode(t, node)
     if p is not None:
-        if (isStdNode(t) == 0 and id(p) == id(t)): del p[c]
+        if isStdNode(t) == 0 and id(p) == id(t): del p[c]
         else: del p[2][c]
     return None
 
 def _rmNode(t, node):
     (p, c) = getParentOfNode(t, node)
     if p is not None:
-        if (isStdNode(t) == 0 and id(p) == id(t)): del p[c]
+        if isStdNode(t) == 0 and id(p) == id(t): del p[c]
         else: del p[2][c]
     return None
 
@@ -3278,7 +3285,7 @@ def _addOneLayer2BC(a, dir, N=1):
                 parent[2][d][1] = window2Range(win)
             nom = 0
             for w in winsopp: # passe seult pour les matchs/nearmatch
-                if (dir == 3 and len(transf[nom][1]) == 2):
+                if dir == 3 and len(transf[nom][1]) == 2:
                     n = numpy.empty((3), numpy.int32)
                     n[0] = transf[nom][1][0]; n[1] = transf[nom][1][1]; n[2] = 3
                     transf[nom][1] = n; diropp = 3

@@ -208,7 +208,7 @@ PyObject* K_GENERATOR::adaptOctree3(PyObject* self, PyObject* args)
   delete fo;
   PyList_Append(l, tpl); Py_DECREF(tpl);
   char eltType2[8];
-  if ( strcmp(eltType, "QUAD")  == 0 ) strcpy(eltType2, "QUAD*");
+  if (strcmp(eltType, "QUAD")  == 0) strcpy(eltType2, "QUAD*");
   else strcpy(eltType2, "HEXA*");
   PyObject* tpl2 = K_ARRAY::buildArray(*indicout, "indicator", *cno, 
                                        -1, eltType2);
