@@ -26,7 +26,8 @@
 */
 //=============================================================================
 E_Int K_IO::GenIO::hdfcgnsread(char* file, PyObject*& tree, PyObject* dataShape, 
-                               PyObject* links, int skeleton, int maxFloatSize, int maxDepth)
+                               PyObject* links, int skeleton, int maxFloatSize, 
+                               int maxDepth, PyObject* skipTypes)
 {
   printf("Error: Converter has been installed without CGNS/HDF support.\n");
   printf("Error: please install libhdf5 first for CGNS/HDF support.\n");
@@ -47,7 +48,8 @@ E_Int K_IO::GenIO::hdfcgnswrite(char* file, PyObject* tree, PyObject* links)
 
 //=============================================================================
 PyObject* K_IO::GenIO::hdfcgnsReadFromPaths(char* file, PyObject* paths,
-                                            E_Int maxFloatSize, E_Int maxDepth, PyObject* skipType)
+                                            E_Int maxFloatSize, E_Int maxDepth, 
+                                            PyObject* skipTypes)
 { 
   printf("Error: Converter has been installed without CGNS/HDF support.\n");
   printf("Error: please install libhdf5 first for CGNS/HDF support.\n");

@@ -619,14 +619,14 @@ class GenIO
     ///+ HDF functions
     /* Lecture dans un arbre */
     E_Int hdfcgnsread(char* file, PyObject*& tree, PyObject* dataShape, PyObject* links, 
-                      int skeleton=0, int maxFloatSize=5, int maxDepth=-1);
+                      int skeleton=0, int maxFloatSize=5, int maxDepth=-1, PyObject* skipTypes=NULL);
     /* Ecriture d'un arbre */
     E_Int hdfcgnswrite(char* file, PyObject* tree, PyObject* links=NULL);
 
     /* Lecture a partir de chemins donnes */
     PyObject* hdfcgnsReadFromPaths(char* file, PyObject* paths,
                                    E_Int maxFloatSize=1.e6, E_Int maxDepth=-1,
-                                   PyObject* skipType=NULL);
+                                   PyObject* skipTypes=NULL);
     PyObject* hdfcgnsReadFromPathsPartial(char* file, PyObject* Filters,
                                           void* comm=NULL);
     /* Ecrit des parties d'un arbre python */

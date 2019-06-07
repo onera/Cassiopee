@@ -10,18 +10,17 @@ DEBUG = False
 #==============================================================================
 def checkModuleImport(moduleName, raiseOnError=True):
     # Remove . from PYTHONPATH
-    try:
-        del sys.path[sys.path.index('')]
+    try: del sys.path[sys.path.index('')]
     except: pass
-    try:
-        del sys.path[sys.path.index(os.getcwd())]
+    try: del sys.path[sys.path.index(os.getcwd())]
     except: pass
     # Try to detect if colored output is supported
     color = False
     if sys.stdout.isatty(): color = True
 
     # sec / lock
-    os.chmod(moduleName, 0o700)
+    moduleBase = moduleName.split('.')[0]
+    os.chmod(moduleBase, 0o700)
 
     # try import module
     try:
@@ -1270,6 +1269,8 @@ def checkBlas(additionalLibPaths=[], additionalIncludePaths=[]):
         libPrefix = 'libmkl_'; includePrefix = 'mkl_'; compOpt = '-mkl'
     else: # cherche std
         libPrefix = 'lib'; includePrefix = ''; compOpt = ''
+
+    # Cherche libname et le chemin des libs
     libname = 'openblas'
     l = checkLibFile__(libPrefix+'openblas*.so', additionalLibPaths)
     if l is None:
@@ -1279,6 +1280,9 @@ def checkBlas(additionalLibPaths=[], additionalIncludePaths=[]):
         l = checkLibFile__(libPrefix+'blas*.so', additionalLibPaths)
         if l is None:
             l = checkLibFile__(libPrefix+'blas*.a', additionalLibPaths)
+    if libPrefix == 'libmkl_': libname = 'mkl'
+
+    # Chemin des includes
     i = checkIncFile__(includePrefix+'cblas.h', additionalIncludePaths)
     if i is not None and l is not None:
         print('Info: Blas detected at %s.'%l)

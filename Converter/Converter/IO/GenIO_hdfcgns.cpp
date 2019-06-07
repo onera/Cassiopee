@@ -340,7 +340,7 @@ int HDF_Get_DataDimensions(hid_t nid, int *dims)
 
 /* ------------------------------------------------------------------------- */
 int HDF_Add_Attribute_As_String(hid_t nodeid, const char *name,
-				const char *value)
+                                const char *value)
 {
   hid_t sid, tid, aid;
   herr_t status;
@@ -793,15 +793,12 @@ PyObject* K_IO::GenIOHdf::getArrayContigous(hid_t     node,
  }
  else
  {
-   // printf("getArrayContigous H5_HAVE_PARALLEL / _ismpi OFF \n ");
    H5Dread(did, yid, mid, sid, H5P_DEFAULT, PyArray_DATA( (PyArrayObject*) data));
  }
 #else
-  // printf("getArrayContigous SEQUENTIAL \n ");
   H5Dread(did, yid, mid, sid, H5P_DEFAULT, PyArray_DATA( (PyArrayObject*) data));
 #endif
   H5Tclose(yid); H5Dclose(did);
-  // printf("K_IO::GenIOHdf::getArrayContigous end \n ");
 
   return data;
 }
@@ -819,7 +816,7 @@ PyObject* K_IO::GenIOHdf::getArrayContigous(hid_t     node,
 */
 //=============================================================================
 E_Int K_IO::GenIO::hdfcgnsread(char* file, PyObject*& tree, PyObject* dataShape, PyObject* links, 
-                               int skeleton, int maxFloatSize, int maxDepth)
+                               int skeleton, int maxFloatSize, int maxDepth, PyObject* skipTypes)
 {
   tree = PyList_New(4);
 
@@ -836,6 +833,23 @@ E_Int K_IO::GenIO::hdfcgnsread(char* file, PyObject*& tree, PyObject* dataShape,
     return 1;
   }
   hid_t gid = H5Gopen(fid, "/", H5P_DEFAULT);
+
+  /* Prepare skip types */
+  if (skipTypes != NULL)
+  {
+    GenIOHdf HDF;
+    E_Int skipSize = PyList_Size(skipTypes);
+    for (E_Int i = 0; i < skipSize; i++)
+    {
+      char* typeToSkip = NULL;
+      PyObject* l = PyList_GetItem(skipTypes, i);
+      if (PyString_Check(l)) typeToSkip = PyString_AsString(l);
+#if PY_VERSION_HEX >= 0x03000000
+      else if (PyUnicode_Check(l)) typeToSkip = PyBytes_AsString(PyUnicode_AsUTF8String(l)); 
+#endif
+      HDF._skipTypes[string(typeToSkip)] = true;
+    }
+  }
 
   /* Recursive load */
   GenIOHdf HDF;
@@ -974,7 +988,7 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPaths(char* file, PyObject* paths,
   HDF._skeleton = 0;
   PyObject* node;
 
-  /* Prepare skip type */
+  /* Prepare skip types */
   if (skipTypes != NULL)
   {
     E_Int skipSize = PyList_Size(skipTypes);
@@ -1049,39 +1063,42 @@ PyObject* K_IO::GenIOHdf::loadOne(PyObject* tree, int depth,
   if (depth >= _maxDepth) {H5Gclose(father); return tree;}
   sonList = getChildren(father);
   int c = 0;
-  while (sonList != NULL && sonList[c] != (hid_t)-1)
+  if (_skipTypes.size() == 0)
   {
-    node = createNode(sonList[c], dataShape, links);
-    PyList_Append(l, node); Py_DECREF(node);
-    _stringStack.push_front(_currentPath);
-    _fatherStack.push_front(sonList[c]);
-    loadOne(node, depth+1, dataShape, links);
-    _fatherStack.pop_front();
-    _stringStack.pop_front();
-    c++;
-  }
-
-  /* with Skip
-  while (sonList != NULL && sonList[c] != (hid_t)-1)
-  {
-    node = createNode(sonList[c], dataShape, links);
-    if(isAnodeToSkip())
+    while (sonList != NULL && sonList[c] != (hid_t)-1)
     {
-      // printf(" skipType %s \n", _type);
-      Py_DECREF(node);
-    }
-    else
-    {
+      node = createNode(sonList[c], dataShape, links);
       PyList_Append(l, node); Py_DECREF(node);
       _stringStack.push_front(_currentPath);
       _fatherStack.push_front(sonList[c]);
       loadOne(node, depth+1, dataShape, links);
       _fatherStack.pop_front();
       _stringStack.pop_front();
+      c++;
     }
-    c++;
   }
-  */
+  else
+  {
+    /* with Skip */
+    while (sonList != NULL && sonList[c] != (hid_t)-1)
+    {
+      node = createNode(sonList[c], dataShape, links);
+      if (isAnodeToSkip())
+      {
+        Py_DECREF(node);
+      }
+      else
+      {
+        PyList_Append(l, node); Py_DECREF(node);
+        _stringStack.push_front(_currentPath);
+        _fatherStack.push_front(sonList[c]);
+        loadOne(node, depth+1, dataShape, links);
+        _fatherStack.pop_front();
+        _stringStack.pop_front();
+      }
+      c++;
+    }
+  }
 
   free(sonList);
   H5Gclose(father);

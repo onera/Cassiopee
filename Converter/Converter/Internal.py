@@ -4405,7 +4405,7 @@ def  getBCDataSetContainers(name, z):
             else: matchingLoc = 'FaceCenter'   
 
             for f0 in f[2]: # for all the fields stored in flow solution
-                if f0[3]=='DataArray_t':
+                if f0[3] == 'DataArray_t':
                     fname = f0[0] # variable name to be extracted from bcdataset
                     dataSetL = [] # [[BCRange1,fieldBC],[BCRange2,fieldBC2],[...],...]
                     for nobcdata in range(nbcdataset):
@@ -4471,12 +4471,14 @@ def autoSetContainers(t):
     foundNode = 0; foundCenter = 0
     for n in nodes:
         loc = getNodeFromType1(n, 'GridLocation_t')
-        if loc is not None and getValue(loc) == 'CellCenter':
-            if foundCenter == 0: __FlowSolutionCenters__ = n[0]
-            foundCenter += 1
-        else:
-            if foundNode == 0: __FlowSolutionNodes__ = n[0]
-            foundNode += 1
+        data = getNodeFromType1(n, 'DataArray_t')
+        if data is not None and data[1] is not None:
+            if loc is not None and getValue(loc) == 'CellCenter':
+                if foundCenter == 0: __FlowSolutionCenters__ = n[0]
+                foundCenter += 1
+            else:
+                if foundNode == 0: __FlowSolutionNodes__ = n[0]
+                foundNode += 1
     if __FlowSolutionNodes__ == __FlowSolutionCenters__:
         if foundNode == 0: __FlowSolutionNodes__ = ''
         elif foundCenter == 0: __FlowSolutionCenters__ = ''
