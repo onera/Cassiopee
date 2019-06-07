@@ -246,7 +246,7 @@ Modifying/creating variables
 
 ---------------------------------------
 
-.. py:function:: Post.computeWallShearStress(t)
+.. py:function:: Post.PyTree.computeWallShearStress(t)
 
     Compute the shear stress at wall boundaries provided the velocity gradient is already computed.
     The problem dimension and the reference state must be provided in t, defining the skin mesh.
