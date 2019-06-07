@@ -80,7 +80,7 @@ struct T3T3_XPredicate
     _coords2->getEntry(t2[1], Q1);
     _coords2->getEntry(t2[2], Q2);
     
-    return K_MESH::Triangle::fast_intersectT3<DIM>(P0, P1, P2, Q0, Q1, Q2);
+    return K_MESH::Triangle::fast_intersectT3<DIM>(P0, P1, P2, Q0, Q1, Q2, -1.);
   }
           
   const ACoordinate_t* _coords1;
@@ -158,7 +158,7 @@ struct TH4T3_XPredicate
       _coords1->getEntry(*(pK+1), P1);
       _coords1->getEntry(*(pK+2), P2);
       
-      if (K_MESH::Triangle::fast_intersectT3<DIM>(P0, P1, P2, Q0, Q1, Q2))
+      if (K_MESH::Triangle::fast_intersectT3<DIM>(P0, P1, P2, Q0, Q1, Q2, -1.))
         return true;
     }
     return false;
@@ -248,12 +248,12 @@ struct TH4HX6_XPredicate
        _coords1->getEntry(*(pK+1), P1);
        _coords1->getEntry(*(pK+2), P2);
       
-       if (K_MESH::Triangle::fast_intersectT3<DIM>(P0, P1, P2, Q0, Q1, Q2))
+       if (K_MESH::Triangle::fast_intersectT3<DIM>(P0, P1, P2, Q0, Q1, Q2, -1.))
          return true;
        
        _coords2->getEntry(q4[3], Q1);
        
-       if (K_MESH::Triangle::fast_intersectT3<DIM>(P0, P1, P2, Q0, Q2, Q1))
+       if (K_MESH::Triangle::fast_intersectT3<DIM>(P0, P1, P2, Q0, Q2, Q1, -1.))
          return true;
       }
     }
@@ -330,7 +330,7 @@ struct T3HX6_XPredicate
       _coords2->getEntry(q4[1], Q1);
       _coords2->getEntry(q4[2], Q2);
             
-      if (K_MESH::Triangle::fast_intersectT3<DIM>(P0, P1, P2, Q0, Q1, Q2))
+      if (K_MESH::Triangle::fast_intersectT3<DIM>(P0, P1, P2, Q0, Q1, Q2, -1.))
       {
 #ifdef DEBUG_COLLIDE_PRED
         if( enable)
@@ -344,7 +344,7 @@ struct T3HX6_XPredicate
       
       _coords2->getEntry(q4[3], Q1);
       
-      if (K_MESH::Triangle::fast_intersectT3<DIM>(P0, P1, P2, Q0, Q2, Q1))
+      if (K_MESH::Triangle::fast_intersectT3<DIM>(P0, P1, P2, Q0, Q2, Q1, -1.))
       {
 #ifdef DEBUG_COLLIDE_PRED
         if( enable)

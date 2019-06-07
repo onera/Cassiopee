@@ -60,21 +60,18 @@ def concatenateBC(bctype, zones, wallpgs, cur_shift):
       #print(' -- zone : %d / %d' %(i+1, len(zones)))
       i=i+1
       bnds = Internal.getNodesFromType(z, 'BC_t')
-      #print " -- this zone has %d boundaries"%(len(bnds))
-      #print ' -- cur shift %d' %(cur_shift)
+      #print(" -- this zone has %d boundaries"%(len(bnds)))
+      #print(' -- cur shift %d' %(cur_shift))
 
       # GET THE WALL PGS FROM THE POINTLISTS
-      for bb in bnds :
-        #print bb
-        if (Internal.isValue(bb, bctype) == False) : continue
+      for bb in bnds:
+        if Internal.isValue(bb, bctype) == False: continue
           
-        #print bb[1]#[2][1]
         wpgs = bb[2][1][1][0] # POINTLIST NUMPY
         #print wpgs
         # SYNC THE POINTLIST BEFORE APPENDING  : SHIFT WITH THE CURRENT NB OF STORED POLYGONS
         id2 = numpy.empty(len(wpgs), numpy.int32)
         id2[:] = wpgs[:] + cur_shift
-        #print id2
         wallpgs.append(id2)
 
       c = c[0]
@@ -122,11 +119,9 @@ def updatePointLists(z, zones, oids):
         
         PG0 = j[2][1][1][0][0] # first polygon in the poitn list 
         PG0D = jd[2][2][1][0][0] # first polygon in the poitn list
-        #print PG0 
         if (PG0 != PG0D) : continue # not the right join (in case of multiple joins for 2 zones) : the first PG must be the same (assume one PG only in one join)
         j[2][1][1]= ptLists[i]
         jd[2][2][1] = ptLists[i]
-        #print pgs[0]
         break
       i=i+1
 
@@ -250,10 +245,10 @@ def XcellN(t, prioritaryMesh, blankingMatrix=[]):
         cur_shift=0
         for nb2 in range(len(prioritaryMesh)):
             blanking = blankingMatrix[nb, nb2]
-            #if (prioritaryMesh[nb2] == []): print 'empty'
+            #if (prioritaryMesh[nb2] == []): print('empty')
             if (prioritaryMesh[nb2] == []): continue
             
-            #print 'hiding base : %d / %d' %(nb2+1, len(prioritaryMesh))
+            #print('hiding base : %d / %d' %(nb2+1, len(prioritaryMesh)))
             zones = Internal.getZones(prioritaryMesh[nb2])
             i=0
             for z in zones:
@@ -261,7 +256,7 @@ def XcellN(t, prioritaryMesh, blankingMatrix=[]):
 
                 if c == []: continue
 
-                #print ' -- hiding base %d zone : %d / %d' %(nb2+1, i+1, len(zones))
+                #print(' -- hiding base %d zone : %d / %d' %(nb2+1, i+1, len(zones)))
 
                 c = c[0]
                 bc.append(c)
@@ -272,12 +267,12 @@ def XcellN(t, prioritaryMesh, blankingMatrix=[]):
             cur_shift=cur_shift_new
 
         if (wallpgs != []) : wallpgs = numpy.concatenate(wallpgs) # create a single list
-        #print "nb of wall pgs %s"%(len(wallpgs))
+        #print("nb of wall pgs %s"%(len(wallpgs)))
         if (ghostpgs != []) : ghostpgs = numpy.concatenate(ghostpgs) # create a single list
-        #print "nb of ghost pgs %s"%(len(ghostpgs))
+        #print("nb of ghost pgs %s"%(len(ghostpgs)))
                 
         if bc == []:
-            #print 'Warning : no xcelln to compute for base %d'%(nb)
+            #print('Warning : no xcelln to compute for base %d'%(nb))
             continue
 
         bc = Converter.convertArray2NGon(bc); bc = T.join(bc);
@@ -319,7 +314,7 @@ def _triangulateSpecifiedFaces(t, pgs):
 
     zones = Internal.getZones(t)
     if (len(pgs) != len(zones)) :
-        print 'agglomerateCellsWithSpecifiedFaces : input error : nb of polygons packs differ from nb of zones'
+        print('triangulateSpecifiedFaces: input error: nb of polygons packs differ from nb of zones.')
         return None
 
     i=0
@@ -462,7 +457,7 @@ def agglomerateSmallCells(t, vmin=0., vratio=1000.):
     m = C.getFields(Internal.__GridCoordinates__, t)[0]
 
     res = XOR.agglomerateSmallCells(m, vmin, vratio)
-    #print "NB ZONES %d"%(len(res))
+    #print("NB ZONES %d"%(len(res)))
 
     z = C.convertArrays2ZoneNode('agglomeratedCells', [res[0]])
 
@@ -474,7 +469,6 @@ def agglomerateSmallCells(t, vmin=0., vratio=1000.):
         
     nb_zones = len(res)-1
     if (nb_zones == 0) : return z
-    #print nb_zones
 
     for i in range(nb_zones):
         zones.append(C.convertArrays2ZoneNode('agg', [res[i+1]]))
@@ -523,7 +517,7 @@ def agglomerateNonStarCells(t):
     m = C.getFields(Internal.__GridCoordinates__, t)[0]
 
     res = XOR.agglomerateNonStarCells(m)
-    #print "NB ZONES %d"%(len(res))
+    #print("NB ZONES %d"%(len(res)))
 
     z = C.convertArrays2ZoneNode('agglomeratedCells', [res[0]])
 
@@ -535,7 +529,6 @@ def agglomerateNonStarCells(t):
         
     nb_zones = len(res)-1
     if (nb_zones == 0) : return z
-    #print nb_zones
 
     for i in range(nb_zones):
         zones.append(C.convertArrays2ZoneNode('agg', [res[i+1]]))
@@ -559,8 +552,8 @@ def agglomerateCellsWithSpecifiedFaces(t, pgs, simplify=2): # 0 : dno not simpli
 def _agglomerateCellsWithSpecifiedFaces(t, pgs, simplify=2):
 
     zones = Internal.getZones(t)
-    if (len(pgs) != len(zones)) :
-    	print 'agglomerateCellsWithSpecifiedFaces : input error : nb of polygons packs differ from nb of zones'
+    if len(pgs) != len(zones):
+    	print('agglomerateCellsWithSpecifiedFaces: input error: nb of polygons packs differ from nb of zones.')
     	return None
 
     i=0
@@ -671,7 +664,6 @@ def extractPathologicalCells(t, neigh_level=0):
     zones = []
         
     nb_zones = len(res)
-    #print nb_zones
     if (nb_zones == 1) :
       zones.append(C.convertArrays2ZoneNode('okstar', [res[0]]))
     else:
@@ -701,7 +693,6 @@ def extractOuterLayers(t, N, discard_external=0):
     zones = []
         
     nb_zones = len(res)
-    #print nb_zones
     if (nb_zones == 1) :
       zones.append(C.convertArrays2ZoneNode('remaining', [res[0]]))
     else:
@@ -779,7 +770,6 @@ def getOverlappingFaces(t1, t2, RTOL = 0.1, ps_min = 0.95, dir2=(0.,0.,0.)):
    zones2 = Internal.getZones(t2)
 
    pgids = []
-   #print t2
    t2j = T.join(zones2)
    m2 = C.getFields(Internal.__GridCoordinates__, t2j)[0]
 
@@ -872,10 +862,10 @@ def extrudeUserDefinedBC(t, height = 0.25, mean_or_min = 1, create_ghost = 1):
     cur_shift=0
     extrudepgs=[]
     zones = Internal.getZones(t)
-    #print "nb of zones %d"%(len(zones))
+    #print("nb of zones %d"%(len(zones)))
     (extrudepgs, cur_shift) = concatenateBC('UserDefined', [zones], extrudepgs, cur_shift)
     if (extrudepgs != []) : extrudepgs = numpy.concatenate(extrudepgs) # create a single list
-    #print "nb of pgs to pass : %s" %(len(extrudepgs))
+    #print("nb of pgs to pass : %s" %(len(extrudepgs)))
 
     mo = XOR.extrudeUserDefinedBC(m, extrudepgs, height, mean_or_min, create_ghost)
 
