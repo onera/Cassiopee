@@ -16,7 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-
+#include <iostream>
 #include "Connect/connect.h"
 
 using namespace K_FLD;
@@ -38,6 +38,7 @@ void K_CONNECT::connectEV2VE(FldArrayI& cEV,
   E_Int ne = cEV.getSize();
   E_Int ns = cEV.getNfld();
   E_Int nv = cVE.size();
+  E_Int stride = cEV.getStride();
   E_Int vertex;
 
   // Calcul du nombre d'elements attaches a chaque noeud
@@ -52,7 +53,7 @@ void K_CONNECT::connectEV2VE(FldArrayI& cEV,
 //#pragma omp for
       for (E_Int i = 0; i < ne; i++)
       {
-        vertex = cEVp[i]-1;
+        vertex = cEVp[i*stride]-1;
 //#pragma omp atomic update
         nvep[vertex]++;
       }
@@ -67,7 +68,7 @@ void K_CONNECT::connectEV2VE(FldArrayI& cEV,
     E_Int* cEVp = cEV.begin(j);
     for (E_Int i = 0; i < ne; i++)
     {
-      vertex = cEVp[i]-1;
+      vertex = cEVp[i*stride]-1;
       cVE[vertex].push_back(i);
     }
   }
@@ -76,8 +77,10 @@ void K_CONNECT::connectEV2VE(FldArrayI& cEV,
 std::pair<std::vector<E_Int>,std::vector<E_Int> >
 K_CONNECT::connectEV2VE(K_FLD::FldArrayI& cEV)
 {
-  E_Int ne = cEV.getSize();// Nbre elements contenus dans le maillage
-  E_Int ns = cEV.getNfld();// Nombre de points par elements
+  E_Int ne       = cEV.getSize();// Nbre elements contenus dans le maillage
+  E_Int ns       = cEV.getNfld();// Nombre de points par elements
+  E_Int stride   = cEV.getStride();
+
   E_Int nv = 0;
   // On prepare un tableau de pointeur pour chaque composante de la connectivité
   std::vector<E_Int*> pt_nevs(ns);
@@ -87,14 +90,14 @@ K_CONNECT::connectEV2VE(K_FLD::FldArrayI& cEV)
   // On compte le nombre d'elements contenant chaque sommet
   // On en profite pour compter le nombre de sommets du maillage
   // à l'aide de sa numérotation.
-  std::vector<E_Int> counter(nv, 0);
+  std::vector<E_Int> counter(ns*ne, 0);
   E_Int* pt_cter = counter.data();
   for ( E_Int j_vert = 0; j_vert < ns; ++j_vert )
   {
     E_Int* pt_nev = pt_nevs[j_vert];
     for ( E_Int i_elt = 0; i_elt < ne; ++i_elt )
     {
-      E_Int vertex = pt_nev[i_elt]-1;
+      E_Int vertex = pt_nev[i_elt*stride]-1;
       nv = (nv <= vertex ? vertex+1 : nv);
       pt_cter[vertex] += 1;
     }
@@ -120,7 +123,7 @@ K_CONNECT::connectEV2VE(K_FLD::FldArrayI& cEV)
     // On regarde les sommets qu'il contient
     for ( E_Int i_vert = 0; i_vert < ns; ++i_vert )
     {
-      E_Int vertex = pt_nevs[i_vert][i_elt]-1;
+      E_Int vertex = pt_nevs[i_vert][i_elt*stride]-1;
       // Et on rajoute cet element aux elements contenant ce sommet
       pt_v2e[pt_beg[vertex] + pt_cter[vertex]] = i_elt;
       pt_cter[vertex] += 1;
