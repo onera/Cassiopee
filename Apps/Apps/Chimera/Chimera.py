@@ -14,7 +14,7 @@ IMETHOD = 'AABB'
 # t_sol et t_pts sont dans le systeme de coordonnees cartesiennes
 # t_sol et t_pts sont des fichiers
 # aX + bR + c Theta +d = 0
-def extractSurface(t_sol, t_pts=None, eq=(0.,0.,0.,0.), XC=(0.,0.,0.), AXIS=(1.,0.,0.), loc='centers', cellNName='cellN',variables=[]):
+def extractSurface(t_sol, t_pts=None, eq=(0.,0.,0.,0.), XC=(0.,0.,0.), AXIS=(1.,0.,0.), loc='centers', cellNName='cellN',variables=[], mode='robust'):
     if loc == 'centers': cellNName2 = 'centers:'+cellNName
     else: cellNName2 = cellNName
     a = eq[0]; b = eq[1]; c = eq[2]; d=eq[3]
@@ -62,7 +62,9 @@ def extractSurface(t_sol, t_pts=None, eq=(0.,0.,0.,0.), XC=(0.,0.,0.), AXIS=(1.,
             V3 = DX1*DY2-DX2*DY1
             # (X-X0)*V1+(Y-Y0)*V2+(Z-Z0)*V3=0
             a = V1;b=V2;c=V3;d=-(CoordX[0]*V1+CoordY[0]*V2+CoordZ[0]*V3)
-            C._initVars(res,'{eq}=%g*{CoordinateX}+%g*{CoordinateY}+%g*{CoordinateZ}+%g'%(a,b,c,d))
+            C._initVars(t,'{eq}=%g*{CoordinateX}+%g*{CoordinateY}+%g*{CoordinateZ}+%g'%(a,b,c,d))
+            varc = '{'+cellNName2+'}'
+            res = P.selectCells(t,"%s>0.2"%varc)
             res = P.isoSurfMC(res, 'eq',0.)
         else:
             varc = '{'+cellNName2+'}'
@@ -95,7 +97,7 @@ def extractSurface(t_sol, t_pts=None, eq=(0.,0.,0.,0.), XC=(0.,0.,0.), AXIS=(1.,
         if G.bboxIntersection(resBB,zbbd,method=IMETHOD,isBB=True)==1:
             zd = Internal.getNodeFromName(t,zbbd[0])
             dnrZones.append(zd)
-    P._extractMesh(dnrZones,res,order=2,constraint=10.,mode='accurate') 
+    P._extractMesh(dnrZones,res,order=2,constraint=10.,mode=mode) 
     C._rmVars(res,[cellNName])
     return res
 

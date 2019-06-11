@@ -120,6 +120,8 @@ static PyMethodDef Pyconverter [] =
   {"nearestElements", K_CONVERTER::nearestElements, METH_VARARGS},
   {"nearestFaces", K_CONVERTER::nearestFaces, METH_VARARGS},
   {"nearestNodes", K_CONVERTER::nearestNodes, METH_VARARGS},
+  {"createGlobalIndex", K_CONVERTER::createGlobalIndex, METH_VARARGS},
+  {"recoverGlobalIndex", K_CONVERTER::recoverGlobalIndex, METH_VARARGS},
   {"adaptPE2NFace", K_CONVERTER::adaptPE2NFace, METH_VARARGS},
   {"adaptNFace2PE", K_CONVERTER::adaptNFace2PE, METH_VARARGS},
   {"adaptNGon2Index", K_CONVERTER::adaptNGon2Index, METH_VARARGS},

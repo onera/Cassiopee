@@ -28,8 +28,7 @@ using namespace std;
 // IN: varString: de type "x,y,z,ro"
 // OUT: un vector <"x", "y", "z", "ro">
 //=============================================================================
-void K_ARRAY::extractVars(char* varString, 
-                          vector<char*>& vars)
+void K_ARRAY::extractVars(char* varString, vector<char*>& vars)
 {
   E_Int l = strlen(varString);
   E_Int c = 0;

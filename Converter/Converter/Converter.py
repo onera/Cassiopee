@@ -17,7 +17,9 @@ import KCore
 __all__ = ['array', 'addVars', '_addVars', 'addVars2', 'center2ExtCenter', 'center2Node', 'conformizeNGon', 
     'convertArray2Hexa', 'convertArray2NGon', 'convertArray2Node', 'convertArray2Tetra',
     'convertArrays2File', 'convertBAR2Struct', 'convertFile2Arrays', 'convertTri2Quad', 'copy', 
-    'createGlobalHook', 'createHook', 'createSockets', 'diffArrays', 'extCenter2Node', 'extractVars', 
+    'createGlobalHook', 'createHook', 
+    'createGlobalIndex', '_createGlobalIndex', 'recoverGlobalIndex', '_recoverGlobalIndex',
+    'createSockets', 'diffArrays', 'extCenter2Node', 'extractVars', 
     'freeHook', 'getArgMax', 'getArgMin', 'getMaxValue', 'getMeanRangeValue', 'getMeanValue', 'getMinValue', 
     'getNCells', 'getNPts', 'getValue', 'getVarNames', 'identifyElements', 'identifyFaces', 'identifyNodes', 
     'identifySolutions', 'initVars', '_initVars', 'isNamePresent', 'listen', 'magnitude', 
@@ -1350,6 +1352,36 @@ def nearestElements(hook, a):
     else:
         if len(a)==5: a = convertArray2Hexa(a)
         return converter.nearestElements(hook, a)
+
+# Create global index
+def createGlobalIndex(a, start=0):
+    """Create the global index field."""
+    b = copy(a)
+    _createGlobalIndex(b, start)
+    return b
+
+def _createGlobalIndex(a, start=0):
+    """Create the global index field."""
+    _initVars(a, 'globalIndex', 0)
+    if isinstance(a[0], list):
+        for i in a: converter.createGlobalIndex(i, start)
+        return a
+    else:
+        converter.createGlobalIndex(a, start)
+        return a
+
+def recoverGlobalIndex(a, b):
+    """Recover fields of b in a following the global index field."""
+    c = copy(a)
+    _recoverGlobalIndex(c, b)
+    return c
+
+def _recoverGlobalIndex(a, b):
+    """Recover fields of b in a following the global index field."""
+    variables = getVarNames(b)
+    _addVars(a, variables)
+    converter.recoverGlobalIndex(b, a)
+    return a
 
 # Retourne -1: la variable n'est presente dans aucun array
 # Retourne 0: la variable est presente dans au moins un array

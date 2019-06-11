@@ -638,7 +638,7 @@ E_Int K_ARRAY::getFromArray2(PyObject* o,
 // ou ELTTYPE vaut: NODE, BAR, TRI, QUAD, TETRA, PYRA, PENTA, HEXA, NGON
 // avec ou sans star.
 // Ne retourne que les champs et la varstring
-// // Retourne 1 si ok.
+// Retourne 1 si ok.
 //=============================================================================
 E_Int K_ARRAY::getFromArray2(PyObject* o,
                              char*& varString,
@@ -687,7 +687,7 @@ E_Int K_ARRAY::getFromArray2(PyObject* o,
 
   // -- field --
   tpl = PyList_GetItem(o, 1);
-  ref = tpl; Py_INCREF(ref); // trick
+  //ref = tpl; Py_INCREF(ref); // trick
   Py_INCREF(tpl); ref = tpl;
 
   if (PyArray_Check(tpl) == true) // -- Array1 --

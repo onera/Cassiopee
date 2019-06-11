@@ -212,7 +212,7 @@ Input/output
 
 ---------------------------------------------------------------------------
 
-.. py:function:: Converter.Mpi.convertPyTree2File(t, fileName, format=None)
+.. py:function:: Converter.Mpi.convertPyTree2File(t, fileName, format=None, links=[])
 
    Write a skeleton tree (**S**), a loaded skeleton tree (**LS**) or a 
    partial tree (**P**) to a file (adf or hdf).
@@ -223,6 +223,8 @@ Input/output
    :type fileName: string
    :param format: bin_cgns, bin_adf, bin_hdf (optional)
    :type format: string
+   :param links: optional list of links to be written
+   :type links: list of list of 4 strings
     
    *Example of use:*
 

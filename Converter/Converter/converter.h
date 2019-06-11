@@ -132,6 +132,9 @@ namespace K_CONVERTER
   PyObject* nearestElements(PyObject* self, PyObject* args);
   PyObject* nearestFaces(PyObject* self, PyObject* args);
   PyObject* nearestNodes(PyObject* self, PyObject* args);
+  // topological identification
+  PyObject* createGlobalIndex(PyObject* self, PyObject* args);
+  PyObject* recoverGlobalIndex(PyObject* self, PyObject* args);
   // Adapter
   PyObject* adaptPE2NFace(PyObject* self, PyObject* args);
   PyObject* adaptNFace2PE(PyObject* self, PyObject* args);
