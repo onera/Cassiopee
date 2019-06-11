@@ -181,9 +181,7 @@ PyObject* K_INTERSECTOR::triangulateSpecifiedFaces(PyObject* self, PyObject* arg
   E_Int* pgsList=NULL;
   E_Int size, nfld;
   if (py_pgs != Py_None)
-    res = K_NUMPY::getFromNumpyArray(py_pgs, pgsList, size, nfld, 1, 0);
-
-  std::unique_ptr<E_Int> pL(pgsList); // to avoid to call explicit delete at several places in the code.
+    res = K_NUMPY::getFromNumpyArray(py_pgs, pgsList, size, nfld, true/*shared*/, 0);
 
   if (res != 1) return NULL;
   
