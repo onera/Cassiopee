@@ -75,9 +75,14 @@ Low level layer
 
 ---------------------------------------------------------------------------
 
-.. py:function:: Converter.Filter.readNodesFromPaths(fileName, paths, format=None, maxFloatSize=-1, maxDepth=-1)
+.. py:function:: Converter.Filter.readNodesFromPaths(fileName, paths, format=None, maxFloatSize=-1, maxDepth=-1, skipTypes=None)
 
     Read nodes specified by their paths.
+    If maxFloatSize=-1, all data are loaded, otherwise data are loaded
+    only if the number of elements is lower that maxFloatSize.
+    If maxDepth=-1, the read is fully recursive. Otherwise, load is limited
+    to maxDepth levels.
+    If skipTypes is specified, load is stopped when given node type is met (HDF only).
 
     :param fileName: file name to read from
     :type fileName: string
@@ -89,6 +94,8 @@ Low level layer
     :type maxFloatSize: int
     :param maxDepth: max depth of load
     :type maxDepth: int
+    :param skipTypes: list of CGNS types to skip
+    :type skipTypes: None or list of strings
     :return: read nodes
     :rtype: pyTree node list
 

@@ -1378,10 +1378,26 @@ def recoverGlobalIndex(a, b):
 
 def _recoverGlobalIndex(a, b):
     """Recover fields of b in a following the global index field."""
-    variables = getVarNames(b)
-    _addVars(a, variables)
-    converter.recoverGlobalIndex(b, a)
-    return a
+    if isinstance(b[0], list):
+        for i in b:
+            variables = getVarNames(i); _addVars(a, variables)
+    else:
+        variables = getVarNames(b); _addVars(a, variables)
+    if isinstance(b[0], list):
+        if isinstance(a[0], list):
+            for bi in b:
+                for ai in a:
+                    converter.recoverGlobalIndex(bi, ai)
+        else:
+            for bi in b:
+                converter.recoverGlobalIndex(bi, a)
+    else:
+        if isinstance(a[0], list):
+            for ai in a:
+                converter.recoverGlobalIndex(b, ai)
+        else:
+            converter.recoverGlobalIndex(b, a)
+    return None
 
 # Retourne -1: la variable n'est presente dans aucun array
 # Retourne 0: la variable est presente dans au moins un array

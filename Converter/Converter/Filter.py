@@ -203,7 +203,9 @@ def _loadZoneBCs(a, fileName, znp, format=None):
       children = n[2]
       for i in children:
         if i[3] == 'ZoneBC_t': paths.append(p+'/'+i[0])
-        if i[3] == 'ZoneGridConnectivity_t': paths.append(p+'/'+i[0])
+        elif i[3] == 'ZoneGridConnectivity_t': paths.append(p+'/'+i[0])
+        if i[0] == '.Solver#define': paths.append(p+'/'+i[0])
+        elif i[0] == '.Solver#ownData': paths.append(p+'/'+i[0])
   if paths != []: _readPyTreeFromPaths(a, fileName, paths, format)
   return None
 

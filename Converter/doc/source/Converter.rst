@@ -232,7 +232,7 @@ List of functions
     Converter.createGlobalHook
     Converter.freeHook
 
-**-- Geometrical identification**
+**-- Geometrical/topological identification**
 
 .. autosummary::
 
@@ -243,6 +243,9 @@ List of functions
     Converter.nearestNodes
     Converter.nearestFaces
     Converter.nearestElements
+
+    Converter.createGlobalIndex
+    Converter.recoverGlobalIndex
 
 **-- Client/server to exchange arrays/pyTrees**
 
@@ -1594,11 +1597,11 @@ Array / PyTree common manipulations
 
     *Example of use:*
 
-    * `Convert High order mesh to low order mesh (array) <Examples/Converter/convertHO2LO.py>`_:
+    * `Convert High order mesh to Low order mesh (array) <Examples/Converter/convertHO2LO.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/convertHO2LO.py
 
-    * `Convert high order to low order mesh (pyTree) <Examples/Converter/convertHO2LOPT.py>`_:
+    * `Convert High order to Low order mesh (pyTree) <Examples/Converter/convertHO2LOPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/convertHO2LOPT.py
 
@@ -1622,7 +1625,7 @@ Array / PyTree common manipulations
 
     .. literalinclude:: ../build/Examples/Converter/convertLO2HO.py
 
-    * `Convert high order to low order mesh (pyTree) <Examples/Converter/convertLO2HOPT.py>`_:
+    * `Convert Low order to High order mesh (pyTree) <Examples/Converter/convertLO2HOPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/convertLO2HOPT.py
 
@@ -2213,6 +2216,8 @@ Array / PyTree input/output
     +------------+---------------------------------------------------------------------+---------------------------------------+
     |density     | Number of discretization points per unit length                     | -1: not used. If > 0, overides npts   |
     +------------+---------------------------------------------------------------------+---------------------------------------+
+    |skipTypes   | list of strings (CGNS types) that stop reading when met             | None                                  |
+    +------------+---------------------------------------------------------------------+---------------------------------------+  
     |links       | list of list of 4 strings (see after)                               | None                                  |
     +------------+---------------------------------------------------------------------+---------------------------------------+  
 
@@ -2575,6 +2580,51 @@ Geometrical identification
     .. literalinclude:: ../build/Examples/Converter/nearestElementsPT.py
 
 
+------------------------------------------------------------------------------------------
+
+.. py:function:: Converter.createGlobalIndex(a)
+
+    Create a index field corresponding to the vertex number.
+
+    :param a: input data
+    :type a: [array,list of arrays] or [pyTree, base, zone, list of zones]
+    :return: input data with a 'globalIndex' field
+    :rtype: Identical to input
+
+    *Example of use:*
+
+    * `Create global index (array) <Examples/Converter/createGlobalIndex.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/createGlobalIndex.py
+
+    * `Create global index (pyTree) <Examples/Converter/createGlobalIndexPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/createGlobalIndexPT.py
+
+------------------------------------------------------------------------------------------
+
+.. py:function:: Converter.recoverGlobalIndex(a, b)
+
+    Push the field of b in a follwing the global index field.
+
+    :param a: input data
+    :type a: [array,list of arrays] or [pyTree, base, zone, list of zones]
+    :param b: input data with 'globalIndex' field
+    :type b: [array,list of arrays] or [pyTree, base, zone, list of zones]
+    :return: modified a with the field of b
+    :rtype: Identical to a
+
+    *Example of use:*
+
+    * `Recover global index (array) <Examples/Converter/recoverGlobalIndex.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/recoverGlobalIndex.py
+
+    * `Create global index (pyTree) <Examples/Converter/recoverGlobalIndexPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/recoverGlobalIndexPT.py
+
+
 Client/server to exchange arrays/pyTrees
 -------------------------------------------
 
@@ -2622,7 +2672,7 @@ Client/server to exchange arrays/pyTrees
     :param host: host we are sending to
     :type host: string
     :param rank: rank of sending process
-    :type rank:int
+    :type rank: int
     :param port: communication port (must be the same as createSockets)
     :type port: int
 

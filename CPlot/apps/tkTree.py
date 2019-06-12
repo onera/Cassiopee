@@ -585,7 +585,7 @@ class Node:
             for b in bases:
                 zones = Internal.getNodesFromType1(b, 'Zone_t')
                 for z in zones:
-                    if (id(z) == id(pid)): ret = b; break
+                    if id(z) == id(pid): ret = b; break
             noz = CPlot.getCPlotNumber(CTK.t, ret[0], pid[0])
             active = CPlot.getActiveStatus(noz)
             if active == 1:

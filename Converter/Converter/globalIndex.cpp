@@ -58,11 +58,15 @@ PyObject* K_CONVERTER::createGlobalIndex(PyObject* self, PyObject* args)
   E_Float* fp = f->begin(pos);
   E_LONG* gi = (E_LONG*)fp;
 
-  for (E_Int ind = 0; ind < f->getSize(); ind++)
+#pragma omp parallel
   {
-    gi[ind] = (E_LONG)ind;
+#pragma omp for
+    for (E_Int ind = 0; ind < f->getSize(); ind++)
+    {
+      gi[ind] = (E_LONG)ind;
+    }
   }
-  
+
   RELEASESHAREDB(res, array, f, cn);
   Py_INCREF(Py_None);
   return Py_None;
@@ -122,23 +126,27 @@ PyObject* K_CONVERTER::recoverGlobalIndex(PyObject* self, PyObject* args)
     return NULL;
   }
   E_Int sizeo = fo->getSize();
-  E_Int ind;
-
+  
   // Recovering
-  for (E_Int n = 1; n <= f->getNfld(); n++)
+#pragma omp parallel
   {
-    if (n != pos)
+    E_Int ind;
+    for (E_Int n = 1; n <= f->getNfld(); n++)
     {
-      char* v = vars[n-1];
-      E_Int pv = K_ARRAY::isNamePresent(v, varStringo);
-      if (pv != -1)
+      if (n != pos)
       {
-        E_Float* fp = f->begin(n);
-        E_Float* fop = fo->begin(pv+1);
-        for (E_Int i = 0; i < f->getSize(); i++)
+        char* v = vars[n-1];
+        E_Int pv = K_ARRAY::isNamePresent(v, varStringo);
+        if (pv != -1)
         {
-          ind = indp[i];
-          if (ind < sizeo) fop[ind] = fp[i]; 
+          E_Float* fp = f->begin(n);
+          E_Float* fop = fo->begin(pv+1);
+#pragma omp for
+          for (E_Int i = 0; i < f->getSize(); i++)
+          {
+            ind = indp[i];
+            if (ind < sizeo) fop[ind] = fp[i]; 
+          }
         }
       }
     }

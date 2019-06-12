@@ -560,7 +560,7 @@ def setValue(t, var, ind, val):
         and (loc == 'nodes' or loc == '*')):
           if cellDim == 3:
             i[1][im,jm,km] = val[c]; c += 1
-          elif (cellDim == 2):
+          elif cellDim == 2:
             i[1][im,jm] = val[c]; c += 1
           else: i[1][im] = val[c]; c += 1
 
@@ -570,9 +570,9 @@ def setValue(t, var, ind, val):
       for i in v[2]:
         if ((i[0] == var or var == Internal.__FlowSolutionCenters__)
         and (loc == 'centers' or loc == '*')):
-          if (cellDim == 3):
+          if cellDim == 3:
             i[1][im,jm,km] = val[c]; c += 1
-          elif (cellDim == 2):
+          elif cellDim == 2:
             i[1][im,jm] = val[c]; c += 1
           else: i[1][im] = val[c]; c += 1
 
@@ -865,7 +865,7 @@ def _deleteEmptyZones(t):
   for z in zones:
     dim = Internal.getZoneDim(z)
     removeZ = False
-    if (dim[0]=='Structured'):
+    if dim[0] == 'Structured':
       if dim[1]*dim[2]*dim[3] == 0: removeZ = True
     else:
       if dim[3]=='NODE':
@@ -1288,7 +1288,7 @@ def getFields(containerName, t, api=1, vars=None):
     for i in info:
       if i[0] in names:
         locf = Internal.getNodeFromType1(i, 'GridLocation_t')
-        if (locf is not None and Internal.getValue(locf) == 'CellCenter'): loc = 1
+        if locf is not None and Internal.getValue(locf) == 'CellCenter': loc = 1
         for j in i[2]:
           if j[3] == 'DataArray_t':
             # Firewall for Coordinates in Fields containers
@@ -1865,7 +1865,7 @@ def _TZANW(t, locin, locout, F, Fc, *args):
 # dans le cas both.
 # La fonction F est appelee une fois pour les noeuds, Fc une fois pour les
 # centres.
-def TZAGC(t, locin, locout, F, Fc, *args):
+def TZAGC(t, locin, locout, writeDim, F, Fc, *args):
   tp = Internal.copyRef(t)
   _TZAGC(tp, locin, locout, F, Fc, *args)
   return tp
@@ -1914,7 +1914,7 @@ def _TZAGC(t, locin, locout, F, Fc, *args):
         st = fp[0].split(',')
         vars = []
         for i in st:
-          if (i != 'CoordinateX' and i != 'CoordinateY' and i != 'CoordinateZ'):
+          if i != 'CoordinateX' and i != 'CoordinateY' and i != 'CoordinateZ':
             vars.append(i)
         if vars != []:
           fp = Converter.extractVars(fp, vars)
@@ -2344,7 +2344,7 @@ def _initVars(t, varNameString, v1=[], v2=[]):
        c += 1
 
   #centerCoordNeeded = True # for DBX
-  if centerCoordNeeded == False:
+  if not centerCoordNeeded:
     if v1 == []:
       _addVars(t, var)
       return __TZA2(t, Converter._initVars, loc, varNameString, v1, v2)
@@ -4747,16 +4747,13 @@ def getBCs(t):
         fname = Internal.getNodeFromType1(gc, 'FamilyName_t')
         if fname is not None:
           fname = Internal.getValue(fname)
-          zBC = extractBCOfName(z,name)
+          zBC = extractBCOfName(z, name)
           typeGC = 'FamilySpecified:%s'%fname
           BCs.append(zBC); BCNames.append(name); BCTypes.append(typeGC)
-
   return (BCs, BCNames, BCTypes)
 
-
-
+# Extract fields on all match connectivities
 def extractAllBCMatch(t,varList=None):
-# Extract fields on all match connectivities 
   zones    = Internal.getZones(t)
   allMatch = {}
 
@@ -4786,14 +4783,11 @@ def computeBCMatchField(z,allMatch,variables=None):
 
   # Type de la zone
   # ================
-  if dim[0]=='Structured': zoneType=1
+  if dim[0] == 'Structured': zoneType=1
   else: 
     zoneType = 2; eltName = dim[3]
-    if eltName=='NGON': 
-      pass
-    else:
-      raise ValueError("computeBCMatchField: not yet implement for basic elements.")
-
+    if eltName=='NGON': pass
+    else: raise ValueError("computeBCMatchField: not yet implement for basic elements.")
 
   # Liste des variables 
   # ====================
@@ -6173,6 +6167,34 @@ def nearestElements(hook, a):
   if len(fields) == 1: return Converter.nearestElements(hook, fields[0])
   else: return Converter.nearestElements(hook, fields)
 
+# Create global index
+def createGlobalIndex(a, start=0):
+    """Create the global index field."""
+    return TZA2(a, Converter.createGlobalIndex, 'nodes', 'nodes', start)
+
+def _createGlobalIndex(a, start=0):
+    """Create the global index field."""
+    _initVars(a, 'globalIndex', 0)
+    return __TZA2(a, Converter._createGlobalIndex, 'nodes', start)
+
+# Recver field from global index
+def recoverGlobalIndex(a, b):
+    """Recover fields of b in a following the global index field."""
+    fb = getFields(Internal.__FlowSolutionNodes__, b, api=2)[0]
+    return TZA2(a, Converter.recoverGlobalIndex, 'nodes', 'nodes', fb)
+
+def _recoverGlobalIndex(a, b):
+    """Recover fields of b in a following the global index field."""
+    variables = getVarNames(b)[0]
+    _addVars(a, variables)
+    fx = getFields(Internal.__GridCoordinates__, b, api=2)[0]
+    fb = getFields(Internal.__FlowSolutionNodes__, b, api=2)[0]
+    if fx != [] and fb != []:
+      fb[0] = fb[0]+','+fx[0]
+      fb[1] = fb[1]+fx[1]
+    elif fb == []: fb = fx 
+    return __TZA2(a, Converter._recoverGlobalIndex, 'nodes', fb)
+    
 #==============================================================================
 # -- Connectivity management --
 #==============================================================================

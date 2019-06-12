@@ -234,13 +234,14 @@ Input/output
 
 ---------------------------------------------------------------------------
 
-.. py:function:: Converter.Mpi.readNodesFromPaths(fileName, paths, format=None, maxFloatSize=-1, maxDepth=-1)
+.. py:function:: Converter.Mpi.readNodesFromPaths(fileName, paths, format=None, maxFloatSize=-1, maxDepth=-1, skipTypes=None)
 
-   Read a node from a file (adf or hdf).
+   Read nodes from a file (adf or hdf).
    If maxFloatSize=-1, all data are loaded, otherwise data are loaded
    only if the number of elements is lower that maxFloatSize.
    If maxDepth=-1, the read is fully recursive. Otherwise, load is limited
    to maxDepth levels.
+   If skipTypes is specified, load is stopped when given node type is met (HDF only).
 
    :param fileName: file name to write to
    :type fileName: string
@@ -252,7 +253,11 @@ Input/output
    :type maxDepth: int
    :param maxDepth: max depth of load
    :type maxDepth: int
-    
+   :param skipTypes: list of CGNS types to skip
+   :type skipTypes: None or list of strings
+   :return: read nodes
+   :rtype: pyTree node list
+
    *Example of use:*
 
    * `Read nodes from file (pyTree) <Examples/Converter/readNodesFromPathsPT.py>`_:
