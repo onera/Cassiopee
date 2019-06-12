@@ -22,6 +22,7 @@
 #define __TRI_CONFORMIZER_CXX__
 
 //#define DEBUG_EXTRACT
+//#define DEBUG_LIGHT
 
 #include "TRI_Conformizer.h"
 #include "Connect/merge.h"
@@ -44,7 +45,7 @@ static bool xtest=false;
 #include <fstream>
 #include <sstream>
 #endif
-#ifdef DEBUG_MESHER
+#if defined(DEBUG_MESHER) || defined(DEBUG_LIGHT)
 #include "Nuga/Delaunay/medit.hxx"
 #endif
 
@@ -300,18 +301,35 @@ TRI_Conformizer<DIM>::__split_Elements
 #ifdef DEBUG_MESHER
       mesher.dbg_flag=false;
       //if (/*parent_type::_iter == 10 || xtest*/ancestors[i]==Ti) DBG_MESHER_FLAG = 1;
-      if (i==17969) mesher.dbg_flag=true;
+      //if (i==59259) mesher.dbg_flag=true;
+      /*if (i==59259 || i == 59281)
+        {
+        std::ostringstream o;
+        o << "/home/slandier/tmp/contot_" << i << ".mesh";
+        medith::write(o.str().c_str(), pi, ci2, "toto");
+        //continue;
+      }*/
 #endif
 #endif
       // iterative for robustness : try shuffling the input data
+      
       err = __iterative_run (mesher, pi, ci2, hnodes, data, lnids);
       
       if (err != 0)
       {
-#ifdef DEBUG_TRI_CONFORMIZER
+#ifdef DEBUG_LIGHT
         std::ostringstream o;
         o << "TRIConformizer_err_" << i << ".mesh";
-        MIO::write(o.str().c_str(), pos, ci, "BAR");
+        medith::write(o.str().c_str(), pi, ci2, "BAR");
+        o.str("");
+        K_FLD::FloatArray coord1(pos);
+        std::vector<E_Int> newIDs;
+        K_CONNECT::MeshTool::compact_to_mesh(coord1, ci2, newIDs);
+        o << "TRIConformizer_err3D_" << i << ".mesh";
+        medith::write(o.str().c_str(), coord1, ci2, "BAR");
+#endif
+        
+#ifdef DEBUG_TRI_CONFORMIZER
         drawT3(pos, connectIn, i, true);
 #endif
         {

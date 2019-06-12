@@ -44,7 +44,7 @@ public:
   E_Int run (MeshData& data);
   
   MesherMode& _mode;
-#ifdef DEBUG_MESHER
+#if defined(DEBUG_MESHER)
     public:
       bool dbg_flag;
 #endif
@@ -69,7 +69,8 @@ T3Mesher<T>::run (MeshData& data)
 
   MesherType mesher(metric, _mode);
   
-#ifdef DEBUG_MESHER
+  
+#if defined(DEBUG_MESHER)
   mesher.dbg_flag=dbg_flag;
 #endif
 

@@ -52,7 +52,7 @@ namespace DELAUNAY
     }
     
     ///
-    E_Int sync_hards()
+    void sync_hards()
     {
       std::vector<E_Int> hN;
       hN.reserve(hardNodes.size());
@@ -73,7 +73,6 @@ namespace DELAUNAY
         if (Ni != Nj) nHE.insert(K_MESH::NO_Edge(Ni, Nj));
       }
       hardEdges = nHE;
-      return 1;
     }
 
     K_FLD::FloatArray*         pos;

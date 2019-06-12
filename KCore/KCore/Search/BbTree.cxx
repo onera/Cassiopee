@@ -89,10 +89,10 @@ BbTree<3>::BbTree
 }
 
 template <>
-template <> inline
-BbTree<3>::BbTree<ngon_unit>
-(const K_FLD::FloatArray& crd, const ngon_unit& PGs, E_Float tolerance)
-: _tolerance(tolerance), _owes_boxes(true), _pool(NULL)
+template <typename array_t>
+BbTree<3>::BbTree
+(const K_FLD::FloatArray& crd, const array_t& PGs)
+: _tolerance(E_EPSILON), _owes_boxes(true), _pool(NULL)
 {
     
   E_Int nb_elts = PGs.size();

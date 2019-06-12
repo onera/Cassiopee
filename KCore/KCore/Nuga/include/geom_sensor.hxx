@@ -77,7 +77,7 @@ E_Int geom_sensor<mesh_t, crd_t>::init(data_type& data)
   // fill in _points_to_cell with the initial mesh (giving for each source point the highest level cell containing it)
   _points_to_cell.clear();
   
-  K_SEARCH::BbTree3D tree(_hmesh._crd, _hmesh._ng);
+  K_SEARCH::BbTree3D tree(_hmesh._crd, _hmesh._ng, E_EPSILON);
   
   // Count the number of data per cell
   locate_points(tree, data);

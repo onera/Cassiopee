@@ -137,7 +137,7 @@ E_Int xsensor<ELT_t, mesh_t, crd_t>::init(data_type& data)
   // fill in _points_to_cell with the initial mesh (giving for each source point the highest level cell containing it)
   parent_type::_points_to_cell.clear();
   
-  K_SEARCH::BbTree3D tree(parent_type::_hmesh._crd, parent_type::_hmesh._ng);
+  K_SEARCH::BbTree3D tree(parent_type::_hmesh._crd, parent_type::_hmesh._ng, E_EPSILON);
 
   // add the intersection points
   add_x_points(data, tree);

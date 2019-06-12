@@ -339,7 +339,10 @@ class BbTree {
     BbTree(const std::vector<BBoxType*>& boxes, E_Float tolerance=E_EPSILON);
     
     template <typename array_t>
-    BbTree(const K_FLD::FloatArray& crd, const array_t& ng, E_Float tolerance=E_EPSILON);
+    BbTree(const K_FLD::FloatArray& crd, const array_t& ng, E_Float tolerance);
+    //fixme : hack overload rather than specialization to distinghuish ngon_unit (viso icc 15 compil issue)
+    template <typename array_t>
+    BbTree(const K_FLD::FloatArray& crd, const array_t& pgs);
 
     /// Destructor.
     ~BbTree()
