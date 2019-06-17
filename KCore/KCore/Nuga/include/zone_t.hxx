@@ -163,6 +163,7 @@ class zone_t
     E_Int reduce_to_positive_types();
     
     void sort_by_type() ;
+    void insert_ghosts_on_bcs();
     
     void init_pg_types(E_Int& color);
     void set_join_types(E_Int& color);
@@ -926,12 +927,73 @@ void zone_t<crd_t, ngo_t>::sort_by_type()
     phs.reserve(nb_phs);
     phs._NGON.reserve(_ng.PHs._NGON.size());
 
-    for (size_t i=0; i < nb_phs; ++i)
+    Vector_t<E_Int> typ(nb_phs);
+    
+    for (size_t i=0; i < nb_phs; ++i){
       phs.add(_ng.PHs.stride(oids[i]), _ng.PHs.get_facets_ptr(oids[i]));
+      typ[i] = _ng.PHs._type[oids[i]];
+    }
 
     _ng.PHs = phs;
+    _ng.PHs._type = typ;
   }
   
+}
+
+template <typename crd_t, typename ngo_t>
+void zone_t<crd_t, ngo_t>::insert_ghosts_on_bcs()
+{
+  // first shift types to make room for BC ghost (just before 2nd layer)
+  size_t nb_phs = _ng.PHs.size();
+  for (size_t i=0; i < nb_phs; ++i)
+  {
+    if (_ng.PHs._type[i] > 1 && _ng.PHs._type[i] != E_IDX_NONE) ++_ng.PHs._type[i];
+  }
+  // Now add one cell per BC pg
+  size_t nb_pgs = _ng.PGs.size();
+  E_Int pg;
+  for (size_t i=0; i < nb_pgs; ++i)
+  {
+    if (_ng.PGs._type[i]  == PG_BC)
+    {
+      pg = i+1;
+      _ng.PHs.add(1, &pg);
+    }
+  }
+  
+  _ng.PHs.updateFacets();
+  nb_phs = _ng.PHs.size();
+    
+  _ng.PHs._type.resize(nb_phs, 2); //
+  
+  // put the PHs of type 2 at the right place
+  Vector_t<E_Int> nids, oids;
+  _ng.PHs.sort_by_type(nids, oids);
+  
+  // do the change
+  {
+    size_t nb_phs = _ng.PHs.size();
+    ngon_unit phs;
+    phs.reserve(nb_phs);
+    phs._NGON.reserve(_ng.PHs._NGON.size());
+
+    Vector_t<E_Int> typ(nb_phs);
+    
+    for (size_t i=0; i < nb_phs; ++i){
+      phs.add(_ng.PHs.stride(oids[i]), _ng.PHs.get_facets_ptr(oids[i]));
+      typ[i] = _ng.PHs._type[oids[i]];
+    }
+
+    _ng.PHs = phs;
+    _ng.PHs._type = typ;
+  }
+  
+  // Now get back to previous types
+  nb_phs = _ng.PHs.size();
+  for (size_t i=0; i < nb_phs; ++i)
+  {
+    if (_ng.PHs._type[i] > 1 && _ng.PHs._type[i] != E_IDX_NONE) --_ng.PHs._type[i];
+  }
 }
 
 
