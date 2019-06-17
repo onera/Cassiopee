@@ -269,7 +269,6 @@ PyObject* K_CONVERTER::adapt2FastP(PyObject* self, PyObject* args)
     {
       E_Int face          = ipt_ptlist_rac[i][j];
       ipt_ptlist_rac[i][j] = nn[face-1]+1;
-      //printf(" pt rac= %d %d %d %d\n", nn[face-1]+1, face, j,i);
     }
   }
   // modify pointlistdonor Match
@@ -279,7 +278,6 @@ PyObject* K_CONVERTER::adapt2FastP(PyObject* self, PyObject* args)
     {
       E_Int face          = ipt_ptlist_racD[i][j];
       ipt_ptlist_racD[i][j] = nn[face-1]+1;
-      //printf(" pt rac= %d %d %d %d\n", nn[face-1]+1, face, j,i);
     }
   }
 

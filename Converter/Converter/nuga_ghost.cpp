@@ -70,7 +70,7 @@ E_Int check_is_NGON(PyObject* arr, K_FLD::FloatArray*& f1, K_FLD::IntArray*& cn1
   return 0;
 }
 
-void add_n_topo_layers(std::vector<zone_type>& zones, E_Int i0, E_Int NLAYERS)
+void add_n_topo_layers(std::vector<zone_type>& zones, E_Int i0, E_Int NLAYERS, bool ghost_on_bcs)
 {
   E_Int nb_zones = zones.size();
   zone_type& Zi0 = zones[i0];
@@ -166,6 +166,11 @@ void add_n_topo_layers(std::vector<zone_type>& zones, E_Int i0, E_Int NLAYERS)
 
   Zi0.set_pg_colors();
   Zi0.sort_by_type();
+
+  if (ghost_on_bcs) //insert one layer of ghost cell on BCs
+  {
+    Zi0.insert_ghosts_on_bcs();
+  }
 
 }
 
@@ -361,6 +366,8 @@ PyObject* K_CONVERTER::addGhostCellsNG(PyObject* self, PyObject* args)
 
   }
 
+
+ 
   err = !ok;
 
   PyObject *node_list(PyList_New(0));
@@ -380,8 +387,16 @@ PyObject* K_CONVERTER::addGhostCellsNG(PyObject* self, PyObject* args)
     // Adding layers
     Vector_t<zone_type> tmp_zones;
 
+
     for (E_Int i = 0; i < nb_zones; ++i)
     {
+
+      PyObject*  nbelts = K_NUMPY::buildNumpyArray( 5  , 1, 1, 1);
+      PyObject*  nbfaces= K_NUMPY::buildNumpyArray( 6  , 1, 1, 1);
+      E_Int*         Elt= K_NUMPY::getNumpyPtrI( nbelts );
+      E_Int*        Face= K_NUMPY::getNumpyPtrI( nbfaces );
+      Elt[1]=0;Elt[2]=0;Elt[3]=0;Elt[4]=0;
+      Face[0]=0;Face[1]=0;Face[2]=0;Face[3]=0;Face[4]=0;Face[5]=0;
 
       tmp_zones.clear();
 
@@ -393,8 +408,36 @@ PyObject* K_CONVERTER::addGhostCellsNG(PyObject* self, PyObject* args)
       		tmp_zones[j].change_joins_zone(zones[k], &tmp_zones[k]);
       }
       
-      add_n_topo_layers(tmp_zones, i, NLAYERS);
+      add_n_topo_layers(tmp_zones, i, NLAYERS, true/*add gost on bcs*/);
       zone_type& Zghost = tmp_zones[i];
+
+      E_Int nb_phs = Zghost._ng.PHs.size();
+      for (size_t l=0; l < nb_phs; ++l) {
+       if(Zghost._ng.PHs._type[l]==-1) Elt[0]=l+1;
+       if(Zghost._ng.PHs._type[l]== 1)
+         { Elt[1]=l-Elt[0]+1;
+           if (Zghost._ng.PHs.stride(l)!= 1) Elt[3]= l -Elt[0]; //nbre d element couche 1 de type raccord
+                                                                   // stride = nbr faces de l element
+         }
+       if(Zghost._ng.PHs._type[l]== 2) 
+         { Elt[2]= l-Elt[0]-Elt[1]+1;
+           if (Zghost._ng.PHs.stride(l)!= 1) Elt[4]= l -Elt[0]-Elt[1]; //nbre d element couche 2 de type raccord
+                                                                        // stride = nbr faces de l element
+         }
+      }
+      //printf("ELts0 = %d, ELts1 = %d, ELts2 = %d %d %d \n", Elt[0],Elt[1],Elt[2],Elt[3],Elt[4];
+
+      E_Int nb_pgs = Zghost._ng.PGs.size();
+      for (size_t l=0; l < nb_pgs; ++l) {
+       if(Zghost._ng.PGs._type[l]==PG_INNER_COL  ) Face[0]=l+1;
+       if(Zghost._ng.PGs._type[l]==PG_JOIN_COL   ) Face[1]=l-Face[0]+1;
+       if(Zghost._ng.PGs._type[l]==PG_LAY1_IN_COL) Face[2]=l-Face[0]-Face[1]+1;
+       if(Zghost._ng.PGs._type[l]==PG_LAY1_BC_COL) Face[3]=l-Face[0]-Face[1]-Face[2]+1;
+       if(Zghost._ng.PGs._type[l]==PG_BC         ) Face[4]=l-Face[0]-Face[1]-Face[2]-Face[3]+1;
+       if(Zghost._ng.PGs._type[l]==PG_LAY2_IN_COL) Face[5]=l-Face[0]-Face[1]-Face[2]-Face[3]-Face[4]+1;
+
+      //printf("face = %d %d \n", Zghost._ng.PGs._type[l], l);
+      }
 
       if (!err)
       {
@@ -463,11 +506,15 @@ PyObject* K_CONVERTER::addGhostCellsNG(PyObject* self, PyObject* args)
         }
 
         PyList_Append(onode, bcs);
+        PyList_Append(onode, nbelts);
+        PyList_Append(onode, nbfaces);
+        Py_DECREF(nbelts);
+        Py_DECREF(nbfaces);
         PyList_Append(node_list, onode);
 
-      }
-    }
-  }
+      }//ierr
+    }//loop zone
+  }//err
 
   for (E_Int i=0; i < nb_zones; ++i)
   {

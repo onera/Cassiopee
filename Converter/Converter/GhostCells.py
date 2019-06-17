@@ -1852,11 +1852,13 @@ def adapt2FastP2(t, nlayers=2):
         for g in gc:
              nface_bc = nface_bc + numpy.size( Internal.getNodeFromName1(g, 'PointList')[1] )
 
-        #print 'zone=', z[0],'Nface total=', nface_tot, 'Nface_rac=', nface_rac, 'Nface_bc=', nface_bc, 'layer=', layer -1
 
         Nvtx  = z[1][0][0]
         Nelts = z[1][0][1]
         dims_woghost.append( [ Nvtx , Nelts,  nface_tot, nface_rac, nface_bc ] )
+
+        print 'zone=', z[0],'Nface total=', nface_tot, 'Nface_rac=', nface_rac, 'Nface_bc=', nface_bc, 'layer=', layer -1, Nvtx, Nelts
+
 
     #creation nouvel arbre avec ghost
     t = addGhostCellsNG(t, nlayers)
@@ -1875,6 +1877,7 @@ def adapt2FastP2(t, nlayers=2):
         for g in gc:
              nface_bc = nface_bc + numpy.size( Internal.getNodeFromName1(g, 'PointList')[1] )
 
+        '''
         #print 'zone=', z[0],'Nface total=', nface_tot, 'Nface_rac=', 0 , 'Nface_bc=', nface_bc, 'layer=', 2
 
         Nvtx  = z[1][0][0]
@@ -1905,7 +1908,8 @@ def adapt2FastP2(t, nlayers=2):
         node =  Internal.getNodeFromName1(z, 'NFaceElements')
         Internal.createUniqueChild(node, 'IntExt', 'DataArray_t', data_nf)
 
-        #print 'zone=', z[0], 'Elts0=', data_nf[0], 'Elts1=', data_nf[1],'Elts2=', data_nf[2]
+        print 'zone=', z[0], 'Elts0=', data_nf[0], 'Elts1=', data_nf[1],'Elts2=', data_nf[2]
+        '''
         c +=1
 
     return t
@@ -1916,6 +1920,8 @@ def adapt2FastP2(t, nlayers=2):
 # IN: t: top tree
 #===============================================================================
 def addGhostCellsNG(t, nlayers=2):
+
+    bases = Internal.getNodesFromType1(t     , 'CGNSBase_t') 
 
     zones = Internal.getZones(t)
     nbz = len(zones)
@@ -1962,62 +1968,44 @@ def addGhostCellsNG(t, nlayers=2):
 
       raccords = Internal.getNodesFromType(z, 'GridConnectivity_t')
       nb_racs = len(raccords)
-      #print nb_racs
 
       bcs = Internal.getNodesFromType2(z, 'BC_t')
       nb_bcs = len(bcs)
-      #print "NB OF BCS %d"%nb_bcs
 
-      z_PointLists = []
-      z_donIds = numpy.empty(nb_racs, numpy.int32)
-      z_ptL_sizes = numpy.empty(nb_racs, numpy.int32)
-      z_PointListsD = []
-
+      z_PointLists    = []
+      z_PointListsD   = []
       z_bc_PointLists = []
-      z_bc_ptL_sizes = numpy.empty(nb_bcs, numpy.int32)
+      z_donIds        = numpy.empty(nb_racs, numpy.int32)
+      z_ptL_sizes     = numpy.empty(nb_racs, numpy.int32)
+      z_bc_ptL_sizes  = numpy.empty(nb_bcs, numpy.int32)
 
       j=0
       for rac in raccords:
 
         rt = Internal.getNodeFromType1(rac, 'GridConnectivityType_t')
         jn = "".join(Internal.getValue(rt))
-        #print jn
         JNames.append(rac[0])
         JTypes.append(jn)
-        #JTypes.append('BCMatch')
-        #print Internal.getType(rac)
-        #print Internal.getValue(rac)
 
         donnorName = "".join(Internal.getValue(rac))
-        #print donnorName
-        #dz = Internal.getNodeFromName(zones, donnorName)
 
         id = name2id[donnorName]
         z_donIds[j] = id
         
-
-        #print "#####################################################"
-        #print rac #dz
-        #print "#####################################################"
-
         ptList = Internal.getNodeFromName1(rac, 'PointList')[1][0]
         sz  = len(ptList)
         
         z_ptL_sizes[j] = sz
         z_PointLists.append(ptList)
-        #print ptList
 
         ptListD = Internal.getNodeFromName1(rac, 'PointListDonor')[1][0]
         z_PointListsD.append(ptListD)
-        #print ptList
 
         j = j+1
 
       b = 0
       for bc in bcs :
         BCNames.append(bc[0])
-        #print Internal.getType(bc)
-        #print Internal.getValue(bc)
         BCTypes.append(Internal.getValue(bc))
 
         ptList = Internal.getNodeFromName1(bc, 'PointList')[1][0]
@@ -2069,6 +2057,9 @@ def addGhostCellsNG(t, nlayers=2):
 
     # ozones must have been created to set the joins between them
 
+    tp = PyTree.newPyTree([bases[0][0]])
+    # Attache les zones
+
     for i in range(nbz):
 
       zwgh = ozones[i]
@@ -2085,11 +2076,18 @@ def addGhostCellsNG(t, nlayers=2):
 
          PyTree._addBC2Zone(zwgh, JNames[oid], JTypes[oid],
                zoneDonor=ozones[zid],
-               faceList=ids , #elementList=elementList, elementRange=elementRange, data=data, subzone=subzone,
+               faceList=ids ,           #elementList=elementList, elementRange=elementRange, data=data, subzone=subzone,
                faceListDonor=donnor_ids #, elementListDonor=elementListDonor, elementRangeDonor=elementRangeDonor
                )
+      node =  Internal.getNodeFromName1(zwgh, 'NFaceElements')
+      Internal.createUniqueChild(node, 'IntExt', 'DataArray_t',  nodes[i][3])
+      node =  Internal.getNodeFromName1(zwgh, 'NGonElements')
+      Internal.createUniqueChild(node, 'IntExt', 'DataArray_t',  nodes[i][4])
 
-    return ozones
+    tp[2][1][2] += ozones
+
+    #return ozones
+    return tp
 
 
 
