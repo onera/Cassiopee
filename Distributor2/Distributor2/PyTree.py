@@ -378,7 +378,8 @@ def printProcStats(t, stats=None, NProc=None):
                 z = zones[i]
                 lzone.append(Internal.getName(z))
                 dim = Internal.getZoneDim(z)
-                npts += dim[1]*dim[2]*dim[3]
+                if dim[0] == 'Structured': npts += dim[1]*dim[2]*dim[3]
+                else: npts += dim[1] 
             print ('Info: proc '+str(proc)+': '+str(npts)+' points for zones ',lzone)
                 
     else: # no dist
@@ -390,7 +391,8 @@ def printProcStats(t, stats=None, NProc=None):
             for i in lzone:
                 z = Internal.getNodeFromName2(t, i)
                 dim = Internal.getZoneDim(z)
-                npts += dim[1]*dim[2]*dim[3]
+                if dim[0] == 'Structured': npts += dim[1]*dim[2]*dim[3]
+                else: npts += dim[1]
             print ('Info: proc '+str(proc)+': '+str(npts)+' points for zones ',lzone)
 
     return None

@@ -21,7 +21,6 @@
 # include "intersector.h"
 # include "stub.h"
 
-
 //=============================================================================
 /* Agglomerate cells with a too high aspect ratio */
 //=============================================================================
@@ -37,6 +36,15 @@ PyObject* K_INTERSECTOR::agglomerateSmallCells(PyObject* self, PyObject* args)
 PyObject* K_INTERSECTOR::agglomerateNonStarCells(PyObject* self, PyObject* args)
 {
   PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
+  return NULL;
+}
+
+//=============================================================================
+/* Agglomerate cells where polygons are specified */
+//=============================================================================
+PyObject* K_INTERSECTOR::agglomerateCellsWithSpecifiedFaces(PyObject* self, PyObject* args)
+{
+    PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
   return NULL;
 }
 

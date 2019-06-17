@@ -219,12 +219,22 @@ PyObject* K_INTERSECTOR::removeNonManifoldExternalCells(PyObject* self, PyObject
 }
 
 //=============================================================================
-/* Computes centroids*/
+/* Computes centroids */
 //=============================================================================
 PyObject* K_INTERSECTOR::centroids(PyObject* self, PyObject* args)
 {
   PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
   return NULL;
+}
+
+//=============================================================================
+/* retrieves any polygon that are overlapping */
+//=============================================================================
+PyObject* K_INTERSECTOR::getOverlappingFaces(PyObject* self, PyObject* args)
+{
+  PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
+  return NULL;
+}
 }
 
 //=======================  Intersector/PolyMeshTools/utils.cpp ====================

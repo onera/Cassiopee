@@ -1867,10 +1867,10 @@ def _TZANW(t, locin, locout, F, Fc, *args):
 # centres.
 def TZAGC(t, locin, locout, writeDim, F, Fc, *args):
   tp = Internal.copyRef(t)
-  _TZAGC(tp, locin, locout, F, Fc, *args)
+  _TZAGC(tp, locin, locout, writeDim, F, Fc, *args)
   return tp
 
-def _TZAGC(t, locin, locout, F, Fc, *args):
+def _TZAGC(t, locin, locout, writeDim, F, Fc, *args):
   zones = Internal.getZones(t)
   for z in zones:
     if locin == 'nodes':
@@ -1879,13 +1879,13 @@ def _TZAGC(t, locin, locout, F, Fc, *args):
       if fc != [] and fa != []:
         Converter._addVars([fc, fa]) # modifie fc
         fp = F(fc, *args)
-        setFields([fp], z, locout)
+        setFields([fp], z, locout, writeDim)
       elif fa != []:
         fp = F(fa, *args)
-        setFields([fp], z, locout)
+        setFields([fp], z, locout, writeDim)
       elif fc != []:
         fp = Fc(fc, *args)
-        setFields([fp], z, locout)
+        setFields([fp], z, locout, writeDim)
     elif locin == 'centers':
       fc = getFields(Internal.__GridCoordinates__, z)[0]
       fa = getFields(Internal.__FlowSolutionCenters__, z)[0]
@@ -1907,7 +1907,7 @@ def _TZAGC(t, locin, locout, F, Fc, *args):
             vars.append(i)
         if vars != []:
           fp = Converter.extractVars(fp, vars)
-          setFields([fp], z, locout)
+          setFields([fp], z, locout, writeDim)
       elif fc != []:
         fc2 = Converter.node2Center(fc)
         fp = Fc(fc2, *args)
@@ -1918,7 +1918,7 @@ def _TZAGC(t, locin, locout, F, Fc, *args):
             vars.append(i)
         if vars != []:
           fp = Converter.extractVars(fp, vars)
-          setFields([fp], z, locout)
+          setFields([fp], z, locout, writeDim)
       elif fa != []:
         fp = Fc(fa, *args)
         setFields([fp], z, locout)
@@ -1931,13 +1931,13 @@ def _TZAGC(t, locin, locout, F, Fc, *args):
       if fc != [] and fa != []:
         f = Converter.addVars([fc, fa])
         fp = F(f, *args1)
-        setFields([fp], z, 'nodes')
+        setFields([fp], z, 'nodes', writeDim)
       elif fa != []:
         fp = F(fa, *args1)
-        setFields([fp], z, 'nodes')
+        setFields([fp], z, 'nodes', writeDim)
       elif fc != []:
         fp = F(fc, *args1)
-        setFields([fp], z, 'nodes')
+        setFields([fp], z, 'nodes', writeDim)
 
       fa = None
       if fc != [] and fb != []:
@@ -1951,10 +1951,10 @@ def _TZAGC(t, locin, locout, F, Fc, *args):
             vars.append(i)
         if vars != []:
           fp = Converter.extractVars(fp, vars)
-          setFields([fp], z, 'centers')
+          setFields([fp], z, 'centers', writeDim)
       elif fb != []:
         fp = Fc(fb, *args2)
-        setFields([fp], z, 'centers')
+        setFields([fp], z, 'centers', writeDim)
   return None
 
 # -- TZANC
@@ -2368,14 +2368,14 @@ def _initVars(t, varNameString, v1=[], v2=[]):
           if len(v) > 1: v2[c] = v[1]
           else: v2[c] = v[0]
           c += 1
-      _TZAGC(t, loc, loc, Converter.initVars, Converter.initVars,
-             var, v1, v2)
+      _TZAGC(t, loc, loc, False, Converter.initVars, 
+             Converter.initVars, var, v1, v2)
     else: # formule
       loc = 'nodes'
       v = s[0].split(':')
       if len(v) > 1: loc = v[0]; loc = loc.replace('{', '')
-      _TZAGC(t, loc, loc, Converter.initVars, Converter.initVars,
-             varNameString, v1, v2)
+      _TZAGC(t, loc, loc, False, Converter.initVars, 
+             Converter.initVars, varNameString, v1, v2)
   return None
 
 # Merge BCDataSets

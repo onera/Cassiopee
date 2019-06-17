@@ -100,9 +100,11 @@ List of functions
     Converter.Internal.getNodesFromNameAndType
     Converter.Internal.getNodeFromNameAndType
     Converter.Internal.getNodesFromValue
+
     Converter.Internal.getParentOfNode
     Converter.Internal.getParentFromType
     Converter.Internal.getParentsFromType
+    Converter.Internal.getNodePosition
 
     Converter.Internal.getNodeFromPath
     Converter.Internal.getPathsFromName
@@ -904,6 +906,29 @@ Acess nodes
     .. literalinclude:: ../build/Examples/Converter/getParentsFromTypePT.py
 
     .. note:: new in version 2.7.
+
+-----------------------------------------------------------------------------------------------
+
+.. py:function:: Converter.Internal.getNodePosition(node, parent)
+
+    Return the position of node in parent children list.
+    If node is not found, return -1.
+
+    :param node:  node which position need to be found 
+    :type  node:  pyTree node
+    :param parent:  the parent of node
+    :type  parent:  pyTree node
+    
+    :return: node position in parent children 
+    :rtype: int
+
+    *Example of use:*
+
+    * `Return position of a node (pyTree) <Examples/Converter/getNodePositionPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/getNodePositionPT.py
+
+    .. note:: new in version 2.9.
 
 -----------------------------------------------------------------------------------------------
 

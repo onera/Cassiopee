@@ -17,22 +17,33 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 # include "intersector.h"
 # include "stub.h"
-
 
 E_Int K_INTERSECTOR::check_is_NGON(PyObject* arr, K_FLD::FloatArray*& f1, K_FLD::IntArray*& cn1, char*& varString, char*& eltType)
 {
   return 0;
 }
 
+PyObject* K_INTERSECTOR::updatePointLists(PyObject* self, PyObject* args)
+{
+  PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
+  return NULL; 
+}
 
 //=============================================================================
 /* Triangulates exterior faces (any Polygon). */
 //=============================================================================
 PyObject* K_INTERSECTOR::triangulateExteriorFaces(PyObject* self, PyObject* args)
+{
+  PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
+  return NULL;
+}
+
+//=============================================================================
+/* Triangulates BC. */
+//=============================================================================
+PyObject* K_INTERSECTOR::triangulateSpecifiedFaces(PyObject* self, PyObject* args)
 {
   PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
   return NULL;

@@ -292,7 +292,7 @@ def lineDrive(t, line):
     al2 = Converter.node2Center(al)
     # Attention les coord. des centres ne sont pas justes! mais
     # elles ne sont pas utilisees dans la fonction
-    return C.TZAGC(t, 'both', 'both', Geom.lineDrive,
+    return C.TZAGC(t, 'both', 'both', True, Geom.lineDrive,
                    Geom.lineDrive, al, al2)
 
 def orthoDrive(t, line, mode=0):
@@ -304,7 +304,7 @@ def orthoDrive(t, line, mode=0):
     al2 = Converter.node2Center(al)
     # Attention les coord. des centres ne sont pas justes! mais
     # elles ne sont pas utilisees dans la fonction
-    return C.TZAGC(t, 'both', 'both', Geom.orthoDrive,
+    return C.TZAGC(t, 'both', 'both', True, Geom.orthoDrive,
                    Geom.orthoDrive, al, mode, al2, mode)
 
 def axisym(t, center, axis, angle=360., Ntheta=360, rmod=None):
@@ -313,13 +313,13 @@ def axisym(t, center, axis, angle=360., Ntheta=360, rmod=None):
     # Attention en centres, les coord. des centres ne sont pas justes! mais
     # elles ne sont pas utilisees dans la fonction
     if rmod is not None: rmod = C.getFields(Internal.__GridCoordinates__, rmod)[0]
-    return C.TZAGC(t, 'both', 'both', Geom.axisym, Geom.axisym,
+    return C.TZAGC(t, 'both', 'both', True, Geom.axisym, Geom.axisym,
                    center, axis, angle, Ntheta, rmod,
                    center, axis, angle, Ntheta-1, rmod)
 
 def _axisym(t, center, axis, angle=360., Ntheta=360, rmod=None):
     if rmod is not None: rmod = C.getFields(Internal.__GridCoordinates__, rmod)[0]
-    return C._TZAGC(t, 'both', 'both', Geom.axisym, Geom.axisym,
+    return C._TZAGC(t, 'both', 'both', True, Geom.axisym, Geom.axisym,
                     center, axis, angle, Ntheta, rmod,
                     center, axis, angle, Ntheta-1, rmod)
 

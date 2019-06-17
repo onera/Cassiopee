@@ -1574,6 +1574,9 @@ def checkFileType(fileName):
     return 'bin_plot3d'
 
   fileSize = os.path.getsize(fileName)
+  try: ntri = header[80:82]; ntri = int(ntri)
+  except: ntri = 0
+  sizet = ntri*50+84  #format bin_stl 80 octets d entete/nombre de triangles/50 octets par triangles
   if fileSize == sizet: return 'bin_stl'
 
   eolx1 = beader.find(eol, 0)
@@ -1581,22 +1584,22 @@ def checkFileType(fileName):
   eol1 = (eolx1 +1)//2
   eol2 = (eolx2 +1)//2
   if eol1 != 0:
+      file = open(fileName, 'r')
       i = 0
       ligne0=[]
       ligne1=[]
       ninjnk_size = 0
       for line in file:
         if i == 0:
-          ligne0= line.split()
+          ligne0 = line.split()
           npi = int(ligne0[0])
         else:
           newline = line.split()
           sfloat = newline[0].count(".")
-          if sfloat == 0: 
-             ligne1.extend(newline)
+          if sfloat == 0: ligne1.extend(newline)
           else: break
         i += 1
-      ninjnk_size = ninjnk_size + len(ligne1)
-      if ninjnk_size == 2 * npi or ninjnk_size == 3 * npi:
-        return 'fmt_plot3d'
+      file.close()
+      ninjnk_size += len(ligne1)
+      if ninjnk_size == 2 * npi or ninjnk_size == 3 * npi: return 'fmt_plot3d'
   return 'unknown'

@@ -40,7 +40,8 @@ using namespace K_FLD;
 
 
 //=============================================================================
-/* Creates 4 zones : 1) uncomputable polygons 2) uncomputable polyhedra 3) uncomputable polyhedra & neighbors 4) complementary of 3)*/
+/* Creates 4 zones : 1) uncomputable polygons 2) uncomputable polyhedra 
+   3) uncomputable polyhedra & neighbors 4) complementary of 3) */
 //=============================================================================
 PyObject* K_INTERSECTOR::extractUncomputables(PyObject* self, PyObject* args)
 {

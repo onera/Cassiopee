@@ -18,11 +18,11 @@ try:
 except:
     raise ImportError("Post.PyTree: requires Converter.PyTree module.")
 
+# Extraction de la liste des pts
 def extractPoint(t, Pts, order=2, extrapOrder=1,
-                 constraint=40., tol=1.e-6, hook=None,mode='robust'):
+                 constraint=40., tol=1.e-6, hook=None, mode='robust'):
     """Extract the solution in one point.
-    Usage: extractPoint(t, (x,y,z), order, tol, hook)"""
-    # Extraction de la liste des pts
+    Usage: extractPoint(t, (x,y,z), order, tol, hook, mode)"""
     listOfPts = []
     if not isinstance(Pts, list):
         a = Converter.array('CoordinateX,CoordinateY,CoordinateZ',1,1,1)
@@ -300,7 +300,7 @@ def selectCells2(t, tagName, strict=0):
     C._deleteZoneBC__(tp)
     C._deleteGridConnectivity__(tp)
     res = tagName.split(':')
-    if (len(res) == 2 and res[0] == 'centers'): loc = 1
+    if len(res) == 2 and res[0] == 'centers': loc = 1
     else: loc = 0
     zones = Internal.getZones(tp)
     for z in zones:
@@ -312,7 +312,7 @@ def selectCells2(t, tagName, strict=0):
             taga = Converter.extractVars(taga, [res[1]])[0]
         fc = C.getFields(Internal.__GridCoordinates__, z)[0]
         fa = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
-        if (fc != [] and fa != []):
+        if fc != [] and fa != []:
             f = Converter.addVars([fc, fa])
             fp = Post.selectCells2(f, taga, strict, loc)
             C.setFields([fp], z, 'nodes')
@@ -473,23 +473,23 @@ def computeVariables(t, varList,
         else: varnamesn.append(var)
     presn = C.isNamePresent(t, 'Density')
     presc = C.isNamePresent(t, 'centers:Density')
-    if (presc == -1 and varnamesc != []):
+    if presc == -1 and varnamesc != []:
         tp = C.node2Center(tp, ['Density', 'MomentumX', 'MomentumY',
                                 'MomentumZ', 'EnergyStagnationDensity'])
-    if (presn == -1 and varnamesn != []):
+    if presn == -1 and varnamesn != []:
         tp = C.center2Node(tp, ['centers:Density', 'centers:MomentumX',
                                 'centers:MomentumY', 'centers:MomentumZ',
                                 'centers:EnergyStagnationDensity'])
 
-    tp = C.TZAGC(tp, 'both', 'both',
+    tp = C.TZAGC(tp, 'both', 'both', False,
                  Post.computeVariables, Post.computeVariables,
                  varnamesn, gamma, rgp, s0, betas, Cs, mus, Ts,
                  varnamesc, gamma, rgp, s0, betas, Cs, mus, Ts)
-    if (presc == -1 and varnamesc != []):
+    if presc == -1 and varnamesc != []:
         tp = C.rmVars(tp, ['centers:Density', 'centers:MomentumX',
                            'centers:MomentumY', 'centers:MomentumZ',
                            'centers:EnergyStagnationDensity'])
-    if (presn == -1 and varnamesn != []):
+    if presn == -1 and varnamesn != []:
         tp = C.rmVars(tp, ['Density', 'MomentumX', 'MomentumY',
                            'MomentumZ', 'EnergyStagnationDensity'])
     return tp
@@ -515,6 +515,7 @@ def _computeVariables(t, varList,
     if Cs < 0: Cs=110.4
     if mus < 0: mus=1.76e-5
     if Ts < 0: Ts=273.15
+    if isinstance(varList, str): varList = [varList]
 
     varnamesn = [] # variables aux noeuds
     varnamesc = [] # variables aux centres
@@ -527,11 +528,11 @@ def _computeVariables(t, varList,
     presn = C.isNamePresent(t, 'Density')
     presc = C.isNamePresent(t, 'centers:Density')
     if presc == -1 and varnamesc != []:
-        raise ValueError("computeVariables: Not implemented.")
+        raise ValueError("computeVariables: conservative variables missing.")
     if presn == -1 and varnamesn != []:
-        raise ValueError("computeVariables: Not implemented.")
+        raise ValueError("computeVariables: conservative variables missing.")
 
-    C._TZAGC(t, 'both', 'both',
+    C._TZAGC(t, 'both', 'both', False,
              Post.computeVariables, Post.computeVariables,
              varnamesn, gamma, rgp, s0, betas, Cs, mus, Ts,
              varnamesc, gamma, rgp, s0, betas, Cs, mus, Ts)
@@ -544,17 +545,16 @@ def _computeVariables(t, varList,
                       'MomentumZ', 'EnergyStagnationDensity'])
     return None
 
-def computeVariables2(t,varList,gamma=-1., rgp=-1., s0=0., betas=-1.,
+def computeVariables2(t, varList, gamma=-1., rgp=-1., s0=0., betas=-1.,
                         Cs=-1., mus=-1., Ts=-1.):
     """Compute variables (in place version) defined in varList.
     Usage: computeVariables2(array, varList, gamma=1.4, rgp=287.053, s0=0., betas=1.458e-6, Cs=110.4, mus=0., Ts=0.)"""
     tp = Internal.copyRef(t)
-    _computeVariables2(tp,varList,gamma,rgp,s0,betas,Cs,mus,Ts)
+    _computeVariables2(tp, varList, gamma, rgp, s0, betas, Cs, mus, Ts)
     return tp
 
 def _computeVariables2(t, varList,gamma=-1., rgp=-1., s0=0., betas=-1.,
                           Cs=-1., mus=-1., Ts=-1.):
-
     if gamma < 0:
         try: gamma = C.getState(t,'gamma')
         except: pass
