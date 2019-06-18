@@ -48,13 +48,13 @@ E_Int NUGA::adaptor<mesh_t, sensor_t>::run(mesh_t& hmesh, sensor_t& sensor, type
 
 #ifdef DEBUG_2019
   //  E_Float Vol_init = hmesh.vol_init();
-  std::cout << "avant" << std::endl;
-  hmesh.quality_measure();
+  //std::cout << "avant" << std::endl;
+  //hmesh.quality_measure();
 // 
   //std::cout << "_ng.PHs size= " <<hmesh._ng.PHs.size() << std::endl;
   //hmesh.check_vol(Vol_init, false);
-  std::cout << "///////////////////////////////////////////////" << std::endl;
-  std::cout << "///////////////////////////////////////////////" << std::endl;
+  //std::cout << "///////////////////////////////////////////////" << std::endl;
+  //std::cout << "///////////////////////////////////////////////" << std::endl;
   E_Int k(0);
   auto end0 = std::chrono::system_clock::now();
   std::chrono::duration<double> t0 = end0-start0;
@@ -93,13 +93,32 @@ E_Int NUGA::adaptor<mesh_t, sensor_t>::run(mesh_t& hmesh, sensor_t& sensor, type
     std::cout << "///////////////////////////////////////////////" << std::endl;
 
 //  auto start = std::chrono::system_clock::now();  
-//  E_Int v=sensor.verif();
-//  v++;
+//  sensor.verif();
 //  hmesh.verif3();
 //  hmesh.verif4();
 //  auto end = std::chrono::system_clock::now();
 //  std::chrono::duration<double> t1 = end-start;
 //  std::cout << "tps verif= " << t1.count() << "s"<< std::endl;
+    Vector_t<E_Int> s(10,0);
+  for (int i=0; i< hmesh._ng.PHs.size(); i++){
+      if (hmesh._PHtree.is_enabled(i)){
+          E_Int level= hmesh._PHtree.get_level(i);
+          for (int j=0; j<10; j++){
+              if (level==j){
+                  s[j] += 1 ;
+              }
+          }
+      }
+  }
+  E_Int sT(0);
+  for (int i=0; i<10; i++){
+    std::cout << "s[" << i << "]= " << s[i] << std::endl;
+    sT += s[i];
+  }
+  std::cout << "sT= " << sT << std::endl;
+  std::cout << "///////////////////////"<< std::endl;
+  hmesh.verif5();
+
 #endif
 
   return err;

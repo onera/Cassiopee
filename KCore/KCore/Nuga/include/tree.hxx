@@ -15,11 +15,11 @@
 #include "MeshElement/Hexahedron.h"
 #include "MeshElement/Polyhedron.h"
 
-#define Vector_t std::vector
 using ngon_type = ngon_t<K_FLD::IntArray>;
 
 namespace NUGA
 {
+  enum eSUBDIV_TYPE { ISO, ANISO};
 
 //
 template <typename array>
@@ -32,14 +32,13 @@ class tree
   private:
     ngon_unit &       _entities; // Facets(PG) or Cells (PHs)
     children_array    _children; // 
-    E_Int             _nb_children;
     Vector_t<E_Int>   _parent; //sized as entities
     Vector_t<E_Int>   _indir; //sized as entities
     Vector_t<E_Int>   _level; //sized as entities
     Vector_t<bool>    _enabled; //sized as entities
     
   public:
-    explicit tree(ngon_unit & entities, E_Int nbc):_entities(entities), _nb_children(nbc){ resize_hierarchy(entities.size());}
+    explicit tree(ngon_unit & entities, E_Int nbc):_entities(entities){ resize_hierarchy(entities.size());}
     
     const Vector_t<E_Int>& level() const {return _level;}
         
@@ -52,20 +51,41 @@ class tree
       _enabled.resize(nb_ent, true);
     }
     
-    void resize(const Vector_t<E_Int>& ids)
+    void resize(const Vector_t<E_Int>& ids, E_Int stride) //storing fixed stride
     {
       //first available local id : one passed-the-end before appending : important to get it before resizing _children
-      E_Int locid = array_trait<children_array>::size(_children); 
+      E_Int locid = array_trait<children_array>::size(_children); // nb_child
       
       // get the total nb of new entities after refining
-      E_Int nb_new_children = array_trait<children_array>::get_nb_new_children(_entities, _nb_children, ids);
+      E_Int nb_new_children = array_trait<children_array>::get_nb_new_children(_entities, stride, ids);
       
       // expand the children array
-      array_trait<children_array>::resize_for_children(_children, _nb_children, nb_new_children);
+      array_trait<children_array>::resize_for_children(_children, stride, nb_new_children);
 
       // expand remaining attributes
       E_Int current_sz = _parent.size();
       resize_hierarchy(current_sz + nb_new_children);
+
+      // set the local id of each entity promoted for refinement.
+      E_Int n = ids.size();
+      for (E_Int i=0; i < n; ++i)
+        _indir[ids[i]] = locid++;
+    }
+
+    void resize(const Vector_t<E_Int>& ids, const Vector_t<E_Int>& pregnant)
+    {
+      //first available local id : one passed-the-end before appending : important to get it before resizing _children
+      E_Int locid = array_trait<children_array>::size(_children); // nb_child
+      
+      // get the total nb of new entities after refining
+      E_Int nb_new_children = array_trait<children_array>::get_nb_new_children(_entities, ids, pregnant);
+      
+      // expand the children array
+      array_trait<children_array>::resize_for_children(_children, ids, pregnant); // espace _children
+
+      // expand remaining attributes
+      E_Int current_sz = _parent.size();
+      resize_hierarchy(current_sz + nb_new_children); // _espace parent 
 
       // set the local id of each entity promoted for refinement.
       E_Int n = ids.size();
@@ -185,11 +205,50 @@ class array_trait<ngon_unit>
   static E_Int* children(ngon_unit& arr, E_Int loci) {
       return arr.get_facets_ptr(loci);
   }
-  
-  static void resize_for_children(K_FLD::IntArray& arr, E_Int stride, E_Int nb_new_children)
+   
+  //fixed stride but stored in ngon_unit
+  static E_Int get_nb_new_children(const ngon_unit &dummy, E_Int stride, const Vector_t<E_Int>& to_refine_ids)
   {
-    //todo
-    assert(false);
+    return to_refine_ids.size() * stride;
+  }
+
+  // variable stride
+  static E_Int get_nb_new_children(const ngon_unit &dummy, E_Int stride, const Vector_t<E_Int>& to_refine_ids, const Vector_t<E_Int>& pregnant)
+  {
+    E_Int nb_new_children(0);
+    E_Int len = to_refine_ids.size();
+    for (int i=0; i< len; i++){
+      nb_new_children += pregnant[i];
+    }  
+    return nb_new_children;
+  }
+  
+  static void resize_for_children(ngon_unit& arr, E_Int stride, E_Int nb_new_children) //fixed strride
+  {
+    //fixme : to optimize
+    E_Int children[stride];
+    for (int j=0; j< stride; j++)
+        children[j]= E_IDX_NONE ;
+
+    for (int i=0; i< nb_new_children; i++)
+      arr.add(stride,children);  
+
+    arr.updateFacets();
+  }
+  
+  // variable stride
+  static void resize_for_children(ngon_unit& arr, const Vector_t<E_Int>& pregnant)
+  {
+    //assert(false);
+    E_Int len = pregnant.size();
+    for (int i=0; i< len; i++){
+      E_Int children[pregnant[i]];
+      for (int j=0; j< pregnant[i]; j++){
+        children[j]= E_IDX_NONE ;
+      }
+      arr.add(pregnant[i],children);  
+    }
+    arr.updateFacets();
   }
 };
 

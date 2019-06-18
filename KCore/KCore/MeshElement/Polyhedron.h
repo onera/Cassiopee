@@ -1771,9 +1771,9 @@ static bool is_PR6(const ngon_unit& PGs, const E_Int* firstPG, E_Int nb_pgs)
 {    
   E_Int s1(0), s2(0);
 
-  if (nb_pgs != 6) return false;
+  if (nb_pgs != 5) return false;
     
-  for (int i=0; i<6; i++)
+  for (int i=0; i<5; i++)
   {
     if (PGs.stride(*(firstPG+i)-1) == 3) ++s1;
     else if (PGs.stride(*(firstPG+i)-1) == 4) ++s2;

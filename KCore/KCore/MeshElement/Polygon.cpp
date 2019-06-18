@@ -644,7 +644,7 @@ E_Int Polygon::shuffle_triangulation()
   {
     std::set<K_MESH::NO_Edge> tmp;
     K_MESH::NO_Edge E;
-    for (size_t i=0; i < ntris; ++i)
+    for (E_Int i=0; i < ntris; ++i)
     {
       for (size_t n=0; n < 3; ++n)
       {
@@ -659,7 +659,7 @@ E_Int Polygon::shuffle_triangulation()
   
   // _triangle => IntArray (for fast_swap_edges)
   K_FLD::IntArray cT3(3, ntris);
-  for (size_t i=0; i < ntris; ++i)
+  for (E_Int i=0; i < ntris; ++i)
     for (size_t n=0; n < 3; ++n) cT3(n,i) = _triangles[3*i + n];
   
   K_FLD::IntArray neighbors;
@@ -667,9 +667,10 @@ E_Int Polygon::shuffle_triangulation()
   K_CONNECT::EltAlgo<K_MESH::Triangle>::fast_swap_edges(wpair_set, cT3, neighbors);
   
   // IntArray => _triangles
-  for (size_t i=0; i < ntris; ++i)
+  for (E_Int i=0; i < ntris; ++i)
     for (size_t n=0; n < 3; ++n) _triangles[3*i + n] = cT3(n,i);
   
+  return 0;
 }
 
 } //namespace

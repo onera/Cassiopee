@@ -43,6 +43,9 @@ public:
   Hexahedron(const E_Int* nodes, E_Int shift=0):_shift(shift){ for (size_t i = 0; i< 8; ++i)_nodes[i]=*(nodes++);}
  ~Hexahedron(){}
  
+ template <typename ngunit_t>
+  Hexahedron(const ngunit_t & PGs, const E_Int* first_pg){}
+
   E_Int* nodes() { return _nodes;}
   const E_Int* nodes() const { return _nodes;}
   
@@ -142,6 +145,8 @@ public:
   template <typename ngunit_t>
   static inline void iso_barycenter(const K_FLD::FloatArray& crd, const ngunit_t & PGs, const E_Int* first_pg, E_Int nb_pgs, E_Int index_start, E_Float* G);
   
+  E_Float quality(const K_FLD::FloatArray& crd, E_Float* Vol){return 1;}
+
 private:
   
   Hexahedron(const Hexahedron& orig);

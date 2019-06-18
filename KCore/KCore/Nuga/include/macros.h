@@ -20,4 +20,6 @@
 #define ZERO_M 1.e-15
 #define EPSILON 1.e-12
 
+#define Vector_t std::vector
+
 #endif

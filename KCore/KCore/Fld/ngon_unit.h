@@ -77,7 +77,7 @@ class ngon_unit
       _NGON[1] = _NGON.size() - 2;
       // the following update has been added since the commented block above doesn't work in Basic element mode.
       _dirty=true;
-      updateFacets(); 
+      updateFacets();
     }
     E_Int capacity(){return _NGON.capacity();}
     // Interrogations
