@@ -339,6 +339,7 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, reduction=True,
 #==============================================================================
 def addXZones(t, graph, variables=None, cartesian=False):
     """Add zones specified in graph on current proc."""
+    print("DBG CW. Attention appel addXZones !!!")
     tp = Internal.copyRef(t)
     _addXZones(tp, graph, variables, cartesian)
     return tp

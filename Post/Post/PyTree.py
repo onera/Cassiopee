@@ -1176,10 +1176,7 @@ def computeGrad(t, var):
         if v[0] == 'centers':
             posv = C.isNamePresent(tp, v[1])
             tp = C.center2Node(tp, var)
-            gradVar = v[1]
-        if v[0] == 'nodes':
-            posv    = C.isNamePresent(tp, v[1])
-            gradVar = v[1]
+        gradVar = v[1]
 
     nodes = C.getAllFields(tp, 'nodes')
     if posv == -1: C._rmVars(tp, gradVar)
@@ -1300,7 +1297,7 @@ def computeDiv(t,var):
             if v[0] == 'centers':
                 posv[i] = C.isNamePresent(tp, v[1])
                 tp = C.center2Node(tp, name)
-                name = v[1]
+            name = v[1]
         divVector.append(name)
 
     tn = C.getAllFields(tp, 'nodes') # < get all fields (?) We only need a few...

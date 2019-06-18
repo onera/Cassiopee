@@ -265,6 +265,9 @@ def getVarNames(t, excludeXYZ=False, loc='both', mode=0):
 # Retourne 0: la variable est presente dans au moins une zone, mais pas toutes.
 # Retourne 1: la variables est presente dans toutes les zones
 def isNamePresent(t, varname):
+  v = varname.split(':')
+  if len(v) > 1 and v[0] == 'nodes':
+    varname = v[1]
   vars = getVarNames(t)
   if len(vars) == 0: return -1
   one = 0
@@ -4532,7 +4535,7 @@ def _reorderSubzone__(z, w, T):
   ni = dim[1]; nj = dim[2]; nk = dim[3]
   imin = w[0]; imax = w[1]; jmin = w[2]; jmax = w[3]; kmin = w[4]; kmax = w[5]
  
-  if imin == imax and imin == ni: T._reorder(z, (1,-2,3)) 
+  if imin == imax and imin > 1: T._reorder(z, (1,-2,3)) 
   elif jmin == jmax and jmin == 1: T._reorder(z, (-1,2,3))
   elif kmin == kmax and kmin > 1: T._reorder(z, (-1,2,3))
   return None
@@ -4752,27 +4755,41 @@ def getBCs(t):
           BCs.append(zBC); BCNames.append(name); BCTypes.append(typeGC)
   return (BCs, BCNames, BCTypes)
 
+def isXZone(zone):
+    """ Check wheter a zone has been added by addXZones (for MPI computation)"""
+    r = Internal.getNodeFromName1(zone,'XZone')
+    if r is None: return False
+    else: return True 
+
 # Extract fields on all match connectivities
 def extractAllBCMatch(t,varList=None):
   zones    = Internal.getZones(t)
   allMatch = {}
 
-  for z in zones:
-      dim = Internal.getZoneDim(z)
-      if dim[0]=='Structured':
-          gcs = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
-      else:
-          gcs = Internal.getNodesFromType2(z, 'GridConnectivity_t')
+  import Mpi  as Cmpi
+  rank = Cmpi.rank
 
-      for gc in gcs:
-          zname  = Internal.getValue(gc)
-          zdonor = Internal.getNodeFromName(t,zname)
-          # Extraction BCMatch pour la zone donneuse
-          [indR,fldD]  = extractBCMatch(zdonor,gc,dim,varList)
-          key           = z[0]+"/"+gc[0]
-          allMatch[key] = [indR,fldD]
+  for z in zones:
+      if not isXZone(z):
+          dim = Internal.getZoneDim(z)
+          if dim[0]=='Structured':
+              gcs = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
+          else:
+              gcs = Internal.getNodesFromType2(z, 'GridConnectivity_t')
+
+          for gc in gcs:
+              zname  = Internal.getValue(gc)
+              zdonor = Internal.getNodeFromName(t,zname)
+              # convertPyTree2File(t,'toto.cgns')
+              # Extraction BCMatch pour la zone donneuse
+              # print("rank / zone / zname / zdonor : ", rank, z[0], zname, zdonor)
+              [indR,fldD]  = extractBCMatch(zdonor,gc,dim,varList)
+              key           = z[0]+"/"+gc[0]
+              if fldD is not None:
+                allMatch[key] = [indR,fldD]
 
   return allMatch
+
 
 def computeBCMatchField(z,allMatch,variables=None):
 
@@ -4836,15 +4853,16 @@ def computeBCMatchField(z,allMatch,variables=None):
       for key in allMatch:
         if ( key.split("/")[0] == z[0] ):
           [indR1,fldD] = allMatch[key] 
-          
-          fld1 = Converter.converter.buildBCMatchFieldStruct(fields,indR1,fldD)
+ 
+          if fields != []:
+              fld1 = Converter.converter.buildBCMatchFieldStruct(fields,indR1,fldD)
 
-          if fld is not None:
-            fld.append(fld1)
-            indR = numpy.concatenate((indR,indR1)) 
-          else:
-            fld  = [fld1]
-            indR = indR1
+              if fld is not None:
+                fld.append(fld1)
+                indR = numpy.concatenate((indR,indR1)) 
+              else:
+                fld  = [fld1]
+                indR = indR1
 
 
   # Traitement pour maillage NGON 
@@ -4878,6 +4896,7 @@ def computeBCMatchField(z,allMatch,variables=None):
  
   return indR, fld 
 
+
 # ===================================================================================
 # Extraction des champs sur les raccords de type match 
 # Le champs en centre est extrapole sur les centres des faces 
@@ -4897,6 +4916,8 @@ def extractBCMatch(zdonor,gc,dimzR,variables=None):
 
     # On verifie que gc donne le raccord dans zdonor 
     # ==============================================
+    # print("zdonor :", zdonor[0])
+    # print("gc : ", gc)
     if Internal.getValue(gc) != zdonor[0]:
         raise ValueError("extractBCMatch: GridConnectivity doesn't match zdonor.")
 
@@ -4956,46 +4977,47 @@ def extractBCMatch(zdonor,gc,dimzR,variables=None):
 
     #     fields = getAllFields(zdonor, 'centers')[0]
 
-        if fields == []:
-            raise ValueError("extractBCMatch. Variable(s) not found:", variables)
+        if fields != []:
+            # raise ValueError("extractBCMatch. Variable(s) not found:", variables)
 
-        # Infos raccord 
-        # =============
-        prr   = Internal.getNodeFromName1(gc,'PointRange')  
-        prd   = Internal.getNodeFromName1(gc,'PointRangeDonor')  
-        tri   = Internal.getNodeFromName1(gc,'Transform')
-        tri   = Internal.getValue(tri)
+            # Infos raccord 
+            # =============
+            prr   = Internal.getNodeFromName1(gc,'PointRange')  
+            prd   = Internal.getNodeFromName1(gc,'PointRangeDonor')  
+            tri   = Internal.getNodeFromName1(gc,'Transform')
+            tri   = Internal.getValue(tri)
 
-        wr    = Internal.range2Window(prr[1])
-        wd    = Internal.range2Window(prd[1])
+            wr    = Internal.range2Window(prr[1])
+            wd    = Internal.range2Window(prd[1])
 
-        iminR = wr[0] ; imaxR = wr[1] ; 
-        jminR = wr[2] ; jmaxR = wr[3] ;
-        kminR = wr[4] ; kmaxR = wr[5] ;
+            iminR = wr[0] ; imaxR = wr[1] ; 
+            jminR = wr[2] ; jmaxR = wr[3] ;
+            kminR = wr[4] ; kmaxR = wr[5] ;
 
 
-        iminD = wd[0] ; imaxD = wd[1] ;
-        jminD = wd[2] ; jmaxD = wd[3] ;
-        kminD = wd[4] ; kmaxD = wd[5] ;
+            iminD = wd[0] ; imaxD = wd[1] ;
+            jminD = wd[2] ; jmaxD = wd[3] ;
+            kminD = wd[4] ; kmaxD = wd[5] ;
 
-        niR   = dimzR[1]-1 
-        njR   = dimzR[2]-1
-        nkR   = dimzR[3]-1 
+            niR   = dimzR[1]-1 
+            njR   = dimzR[2]-1
+            nkR   = dimzR[3]-1 
 
-        t1    = tri[0]
-        t2    = tri[1]
+            t1    = tri[0]
+            t2    = tri[1]
 
-        if (len(tri) == 3):
-            t3 = tri[2]
+            if (len(tri) == 3):
+                t3 = tri[2]
+            else:
+                t3 = 0 
+
+            [indR,fldD]  = Converter.converter.extractBCMatchStruct(fields,(iminD,jminD,kminD,imaxD,jmaxD,kmaxD),
+                                                                           (iminR,jminR,kminR,imaxR,jmaxR,kmaxR),
+                                                                           (niR,njR,nkR),(t1,t2,t3)) 
         else:
-            t3 = 0 
-
-        # Tester fields vide ?
-
-        [indR,fldD]  = Converter.converter.extractBCMatchStruct(fields,(iminD,jminD,kminD,imaxD,jmaxD,kmaxD),
-                                                                       (iminR,jminR,kminR,imaxR,jmaxR,kmaxR),
-                                                                       (niR,njR,nkR),(t1,t2,t3)) 
-
+            fldD = None
+            indR = None
+            print('Warning: extractBCMatch: field not found ', variables)
 
     # Traitement pour maillage NGON 
     # ==============================
@@ -5011,9 +5033,6 @@ def extractBCMatch(zdonor,gc,dimzR,variables=None):
 
         indR = Internal.getNodeFromName1(gc,'PointList')  
         indD = Internal.getNodeFromName1(gc,'PointListDonor')  
-
-        # indR = Internal.getValue(indR)
-        # indD = Internal.getValue(indD)
         
         indR = indR[1][0]
         indD = indD[1][0]
