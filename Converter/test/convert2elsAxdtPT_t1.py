@@ -4,6 +4,8 @@ import Generator.PyTree as G
 import Connector.PyTree as X
 import Converter.elsAProfile as CE
 import KCore.test as test
+LOCAL=test.getLocal()
+
 a = G.cylinder((0,0,0),1.,3.,360,0,1,(200,30,2)); a[0] = 'cylindre1'
 C._addBC2Zone(a, 'wall1', 'BCWall', 'jmin')
 C._addBC2Zone(a, 'ov1', 'BCOverlap', 'jmax')
@@ -22,6 +24,6 @@ C._initVars(t[2][3],'{centers:cellN}={centers:cellN}*(1.-({centers:CoordinateX}<
 t = X.setInterpolations(t, loc='cell',storage='inverse')
 t = X.cellN2OversetHoles(t)
 #C._initVars(t,"centers:TurbulentDistance",1.)
-CE._convert2elsAxdt(t)
+CE._convert2elsAxdt(t, fileDir=LOCAL)
 test.testT(t, 1)
 

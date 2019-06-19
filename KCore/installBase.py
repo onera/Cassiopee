@@ -333,14 +333,12 @@ True, # CPlotOffScreen
 'ifort', # f77compiler
 'ifort', # f90compiler
 'icc', # Cppcompiler
-#['-DCACHELINE=64','-DNB_SOCKET=1','-DCORE_PER_SOCK=64','-Dvtune','-g','-DSIMD=MIC'], # CppAdditionalOptions
 ['-DCACHELINE=64','-DNB_SOCKET=1','-DCORE_PER_SOCK=64','-g','-DSIMD=MIC'], # CppAdditionalOptions
 ['-g'], # f77AdditionalOptions
 True, # useOMP
 False, # static
 True, # CPlotOffScreen
 ['/usr/local/hdf5-1.8.8-intel-16/include','/home/benoit/aus/include','/stck/nalferez/intel/parallel_studio_xe_2018/compilers_and_libraries_2018/linux/mpi/include64/','/stck/nalferez/intel/parallel_studio_xe_2018/vtune_amplifier_2018/include/','/stck/nalferez/intel/parallel_studio_xe_2018/advisor_2018/include/intel64'], # additionalIncludePaths
-#['ittnotify','advisor'], # additionalLibs
 [], # additionalLibs
 ['/home/benoit/aus/lib','/stck/nalferez/intel/parallel_studio_xe_2018/compilers_and_libraries_2018/linux/mpi/lib64/','/stck/nalferez/intel/parallel_studio_xe_2018/compilers_and_libraries_2018/lib64/','/usr/local/hdf5-1.8.8-intel-16/lib/','/stck/nalferez/intel/parallel_studio_xe_2018/advisor_2018/lib64'] # additionalLibPaths
 ],

@@ -435,12 +435,9 @@ def upgradeTree(t):
     #t = Internal.correctPyTree(t, level=9) # connectivity
     Internal._fixNGon(t)
     try:
-      if C.isNamePresent(t, 'CoordinateX') <= 0:
-        C._addVars(t, 'CoordinateX')
-      if C.isNamePresent(t, 'CoordinateY') <= 0:
-        C._addVars(t, 'CoordinateY')
-      if C.isNamePresent(t, 'CoordinateZ') <= 0:
-        C._addVars(t, 'CoordinateZ')
+      if C.isNamePresent(t, 'CoordinateX') <= 0: C._addVars(t, 'CoordinateX')
+      if C.isNamePresent(t, 'CoordinateY') <= 0: C._addVars(t, 'CoordinateY')
+      if C.isNamePresent(t, 'CoordinateZ') <= 0: C._addVars(t, 'CoordinateZ')
     except: pass
     return t
 

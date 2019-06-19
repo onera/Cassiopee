@@ -628,9 +628,7 @@ def _buildMaskFiles(t, keepOversetHoles=True, fileDir='.', prefixBase=False):
         hf[:] = h[:]
         array = ['cell_index', hf, hf.size, 1, 1]
         fileName = fileDir+'/hole_'
-        if prefixBase: 
-          fileName += basename+'_'
-
+        if prefixBase: fileName += basename+'_'
         Converter.convertArrays2File([array], fileName+z[0]+'.v3d',
                                      "bin_v3d", dataFormat=dataFormat)
 
@@ -638,7 +636,7 @@ def _buildMaskFiles(t, keepOversetHoles=True, fileDir='.', prefixBase=False):
   return None
 
 #==============================================================================
-def buildMaskFiles(t, keepOversetHoles=True, fileDir='.',prefixBase=False):
+def buildMaskFiles(t, keepOversetHoles=True, fileDir='.', prefixBase=False):
   """Write the mask files for elsA solver."""
   tp = Internal.copyRef(t)
   _buildMaskFiles(tp, keepOversetHoles, fileDir, prefixBase)
@@ -1087,13 +1085,13 @@ def _prefixDnrInSubRegions(t):
 #==============================================================================
 # Conversion d'un arbre CGNS a la Cassiopee en un arbre de profil elsAxdt
 #==============================================================================
-def convert2elsAxdt(t, sameBase=0):
+def convert2elsAxdt(t, sameBase=0, fileDir='.'):
   """Perform all necessary transformations to obtain a computable tree for elsA."""
   tp = Internal.copyRef(t)
-  _convert2elsAxdt(tp)
+  _convert2elsAxdt(tp, fileDir)
   return tp
 
-def _convert2elsAxdt(t, sameBase=0):
+def _convert2elsAxdt(t, sameBase=0, fileDir='.'):
   print('1. addTurbulentDistance index')
   _addTurbulentDistanceIndex(t)
   print('2. buildMaskFiles')

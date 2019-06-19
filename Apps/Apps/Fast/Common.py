@@ -45,7 +45,7 @@ def distributeOpt(t_in, tc_in, t_out, tc_out):
 
     #MinNbProcs = 140
     #MaxNbProcs = 140
-    listequ=[]
+    listequ = []
     varmax = 99.
     for nbproc in range(MinNbProcs,MaxNbProcs+1):
         if nbproc%28==0:
@@ -56,8 +56,6 @@ def distributeOpt(t_in, tc_in, t_out, tc_out):
 
     import pprint; print(pprint.pformat(listequ))
 
-    #import sys;sys.exit()
-    #NP = 532
     stats = D2._distribute(t, NP)
     print(stats)
     print(NP)
@@ -99,22 +97,33 @@ def setup(t_in, tc_in, numb, numz, NP=0, format='single'):
 # t_out: fichier de sortie
 # it0: iteration correspondant a la fin du cacul
 # time0: temps correspondant a la fin du calcul
+# NP: nbre de procs du calcul (utile pour le format multiple)
+# format: "single" ou "multiple"
+# cartesian: si True, compress le fichier pour le cartesien
 # ===========================================================================
-def finalize(t, t_out, it0=None, time0=None, NP=0, format='single'):
+def finalize(t, t_out, it0=None, time0=None, NP=0, format='single', cartesian=False):
     if it0 is not None:
         Internal.createUniqueChild(t, 'Iteration', 'DataArray_t', value=it0)
     if time0 is not None:
         Internal.createUniqueChild(t, 'Time', 'DataArray_t', value=time0)
-    Fast.save(t, t_out, split=format, NP=NP)
+    Fast.save(t, t_out, split=format, NP=NP, cartesian=cartesian)
 
 #=====================================================================================
 # NP is the currently running number of processors
-# IN: file names
+# IN: t_in : nom du fichier t input ou arbre input
+# IN: tc_in: nom du fichier tc input ou arbre tc
+# IN: t_out, tc_out: noms de fichiers ou arbres de sortie
+# IN: numb, numz: les data numeriques
+# IN: NIT: nbre d'iterations
+# NP: nbre de process, utile si fomat multiple
+# format: single ou multiple
+# cartesian: si True, compress le fichier de sortie pour le cartesien
 #======================================================================================
 def compute(t_in, tc_in, 
             t_out, tc_out,
             numb, numz,
-            NIT, NP=0, format='single'):
+            NIT, 
+            NP=0, format='single', cartesian=False):
     if NP > 0:
         import Converter.Mpi as Cmpi
         import FastS.Mpi as FastS
@@ -154,7 +163,7 @@ def compute(t_in, tc_in,
     # time stamp
     Internal.createUniqueChild(t, 'Iteration', 'DataArray_t', value=it0+NIT)
     Internal.createUniqueChild(t, 'Time', 'DataArray_t', value=time0)
-    Fast.save(t, t_out, split=format, NP=NP)
+    Fast.save(t, t_out, split=format, NP=NP, cartesian=cartesian)
     if tc_out is not None: Fast.save(tc, tc_out, split=format, NP=NP)
     if NP > 0: Cmpi.barrier()
     return t, tc
@@ -167,6 +176,7 @@ class Common(App):
         self.__version__ = "0.0"
         self.authors = ["ash@onera.fr"]
         self.requires(['NP', 'format', 'numb', 'numz'])
+        self.cartesian = False
         # default values
         if NP is not None: self.set(NP=NP)
         else: self.set(NP=0)
@@ -180,11 +190,13 @@ class Common(App):
     def compute(self, t_in, tc_in, t_out, nit, tc_out=None):
         numb = self.data['numb']
         numz = self.data['numz']
+        cartesian = self.cartesian
         return compute(t_in, tc_in, t_out, tc_out,
                        numb, numz,
                        nit, 
                        NP=self.data['NP'], 
-                       format=self.data['format'])
+                       format=self.data['format'],
+                       cartesian=cartesian)
 
     # warm up et all
     def setup(self, t_in, tc_in):

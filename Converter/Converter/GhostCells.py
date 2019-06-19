@@ -172,7 +172,7 @@ def _addGhostCellsNGON__(zp, bp, d, isghost, stdNode, modified):
     # fieldsn and fieldsc contain coords, solution at nodes and centers
     #
     if fieldsc == [] and fieldsn == []: 
-        print ('Warning: addGhostCells: variables not found. No ghost cells added.')
+        print('Warning: addGhostCells: variables not found. No ghost cells added.')
     elif fieldsc == [] and fieldsn != []: # nodes only 
         out = Converter.converter.addGhostCellsNGonNodes(fieldsn,d)
         #PyTree.setFields([out], zp, 'nodes', writeDim=True)
@@ -220,7 +220,7 @@ def _rmGhostCells(t, b, d, adaptBCs=0, modified=[]):
             if typeElt == 'NGON':
                 _rmGhostCellsNGON__(zp, b, d, stdNode, modified)
             else: 
-                #print 'Warning: rmGhostCells: not yet implemented for BE zones.'
+                #print('Warning: rmGhostCells: not yet implemented for BE zones.')
                 pass # other elt types 
 
         else: # Structured:
@@ -234,7 +234,7 @@ def _rmGhostCells(t, b, d, adaptBCs=0, modified=[]):
                     zp[2] = zpp[2] # force in place
                     zp[1] = zpp[1]
                     dim = Internal.getZoneDim(zp)
-                    print ('Warning: rmGhostCells: matching boundaries will be lost.')
+                    print('Warning: rmGhostCells: matching boundaries will be lost.')
                 except: pass
             # zone dimension without ghost cells
             im = img-2*d; jm = jmg-2*d; km = kmg-2*d
@@ -242,15 +242,15 @@ def _rmGhostCells(t, b, d, adaptBCs=0, modified=[]):
             dim_zone = dim[4]
             if dim_zone == 3:
                 if (im <= 0) or (jm <= 0) or (km <= 0):
-                    print ("Warning: rmGhostCells: cannot remove %d ghost cells. Try less."%d)
+                    print("Warning: rmGhostCells: cannot remove %d ghost cells. Try less."%d)
                     return b
             elif dim_zone == 2:
                 if (im <= 0) or (jm <= 0):
-                    print ("Warning: rmGhostCells: cannot to remove %d ghost cells. Try less."%d)
+                    print("Warning: rmGhostCells: cannot to remove %d ghost cells. Try less."%d)
                     return b
             else:
                 if im <= 0:
-                    print ("Warning: rmGhostCells: cannot remove %d ghost cells. Try less."%d)
+                    print("Warning: rmGhostCells: cannot remove %d ghost cells. Try less."%d)
                     return b
 
             #-----------------------
@@ -322,7 +322,7 @@ def _rmGhostCellsNGON__(zp, bp, d, stdNode, modified):
     # fieldsn and fieldsc contain coords, solution at nodes and centers
     #
     if fieldsc == [] and fieldsn == []:
-        print ('Warning: rmGhostCells: variables not found. No ghost cells removed.')
+        print('Warning: rmGhostCells: variables not found. No ghost cells removed.')
     elif fieldsc == [] and fieldsn !=[]:
         out = Converter.converter.rmGhostCellsNGonNodes(fieldsn,d)
         #PyTree.setFields([out], zp, 'nodes', writeDim=True)
@@ -934,7 +934,7 @@ def _initWithExtrapStruct__(z, dim, modified, d):
 # Warning: z dimension is not already modified - containers of flow solutions are not consistent yet with zone dim
 def _setBCDataInGhostCellsStruct__(z, dim, modified, d):
     if dim[0] == 'Unstructured': 
-        print ('addGhostCells: _setBCDataInGhostCellsStruct__: not valid for unstructured zones.')
+        print('addGhostCells: _setBCDataInGhostCellsStruct__: not valid for unstructured zones.')
         return None
     dim_zone = dim[4]
     imz = dim[1] ; jmz = dim[2] ; kmz = dim[3]
@@ -1138,7 +1138,7 @@ def _adaptBCStruct__(zp, dimZone, d, nodesRef):
                 if zdonor == []: continue
                 zdonor = zdonor[0]
                 dimZoneDonor = Internal.getZoneDim(zdonor)
-                #print 'h2',zdonor[0], dimZoneDonor
+                #print('h2',zdonor[0], dimZoneDonor)
                 direction = getDirection__(dimZoneDonor[4], prangedonor)
                 changePointRange__(prangedonor, dimZoneDonor, direction, d, extend=0)
     # BCNearMatch
@@ -1164,7 +1164,7 @@ def _adaptBCStruct__(zp, dimZone, d, nodesRef):
                         if zdonor == []: continue
                         zdonor = zdonor[0]
                         dimZoneDonor = Internal.getZoneDim(zdonor)
-                        #print 'h3',zdonor[0], dimZoneDonor
+                        #print('h3',zdonor[0], dimZoneDonor)
                         direction = getDirection__(dimZoneDonor[4], prangedonor)
                         changePointRange__(prangedonor, dimZoneDonor, direction, d, extend=0)
     # 'Overset'
@@ -1258,7 +1258,7 @@ def getJoinInfo__(join, jointype, dim_zone, nodesRef, d):
     if zdonor == []: return []
     zdonor = zdonor[0]
     dimdonor = Internal.getZoneDim(zdonor)
-    #print 'h1',zdonor[0], dimdonor
+    #print('h1',zdonor[0], dimdonor)
 
     # get periodic info (if any)
     rotationData, translVect = Internal.getPeriodicInfo__(join)
@@ -1307,7 +1307,7 @@ def getJoinInfo__(join, jointype, dim_zone, nodesRef, d):
             if (((abs(dirdonor) == 1) and (imdonor < d+1)) or 
                 ((abs(dirdonor) == 2) and (abs(jmdonor) < d+1)) or 
                 ((abs(dirdonor) == 3) and (kmdonor < d+1))):
-                print ("Warning: addGhostCells: dimension of matching zone is too small for", d, "ghost cells. Skip join treatment for ghost extension.")
+                print("Warning: addGhostCells: dimension of matching zone is too small for", d, "ghost cells. Skip join treatment for ghost extension.")
                 return []
             else:
                 return [zdonor, prange, prangedonor, trirac, nmr, translVect, rotationData]
@@ -1419,7 +1419,7 @@ def getLayer(zD, zR, elts_old, mask, xyz0, no_layer, faceListD=None, faceListR=N
               code = x0 + 1000000.*y0 +   1.e12*z0
               xyz0.add( code )
 
-              #print 'elts', elts
+              #print('elts', elts)
         else:
               if (NG_PE_D[ faceD, 0] > NG_PE_D[ faceD, 1]):  e1D = NG_PE_D[faceD,1]
               else:                                          e1D = NG_PE_D[faceD,0] 
@@ -1563,18 +1563,18 @@ def getLayer(zD, zR, elts_old, mask, xyz0, no_layer, faceListD=None, faceListR=N
 
                               #creation du noeud BC si type inconnu sur zone receveuse
                               if ldone == False:
-                                  print ('type BC inconnu: creation from scratch',gD)
+                                  print('type BC inconnu: creation from scratch',gD)
                                   #ptlistR = Internal.getNodeFromName1(tmp, 'PointList')[1]
                                   datap = numpy.empty(1, numpy.int32)
                                   datap[0] = fbingo +1
                                   tmp = [ gD[0],  gD[1], [ gD[2][0] ], gD[3]]
                                   tmp[2].append( [ 'PointList',  datap, [], 'IndexArray_t'] )
-                                  print ('tmp',tmp)
+                                  print('tmp',tmp)
                                   zbc_R[2]+=tmp
 
-    #print 'zoneD=', zD[0], 'elts new ', elts,'elts old ', elts_old
+    #print('zoneD=', zD[0], 'elts new ', elts,'elts old ', elts_old)
     elts = elts-elts_old
-    #print 'layer=', no_layer, elts
+    #print('layer=', no_layer, elts)
     b = T.subzone(zD, list(elts), type='elements')
     
     return b, elts, zbc_R
@@ -1614,7 +1614,7 @@ def addGhostCellsP(t, dims_woghost, list_elts, mask_elts, xyz0, no_layer):
                 #zp1= Internal.copyRef(z)
                 c1            = 0
                 nbElts_inf = dims_woghost[c][1]+1
-                print ('Traitement zone',z[0],c)
+                print('Traitement zone',z[0],c)
                 for g in gc:
                     faceListD= Internal.getNodeFromName1(g, 'PointListDonor')[1]
                     faceListR= Internal.getNodeFromName1(g, 'PointList')[1]
@@ -1709,7 +1709,7 @@ def adapt2FastP(t, nlayers=2):
         for g in gc:
              nface_bc = nface_bc + numpy.size( Internal.getNodeFromName1(g, 'PointList')[1] )
 
-        print ('zone=', z[0],'Nface total=', nface_tot, 'Nface_rac=', nface_rac, 'Nface_bc=', nface_bc, 'layer=', layer -1)
+        print('zone=', z[0],'Nface total=', nface_tot, 'Nface_rac=', nface_rac, 'Nface_bc=', nface_bc, 'layer=', layer -1)
 
         list_elts.append( elts )
         mask_elts.append( mask )
@@ -1739,7 +1739,7 @@ def adapt2FastP(t, nlayers=2):
         for g in gc:
              nface_bc = nface_bc + numpy.size( Internal.getNodeFromName1(g, 'PointList')[1] )
 
-        print ('zone=', z[0],'Nface total=', nface_tot, 'Nface_rac=', 0 , 'Nface_bc=', nface_bc, 'layer=', 2)
+        print('zone=', z[0],'Nface total=', nface_tot, 'Nface_rac=', 0 , 'Nface_bc=', nface_bc, 'layer=', 2)
 
         Nvtx  = z[1][0][0]
         Nelts = z[1][0][1]
@@ -1769,7 +1769,7 @@ def adapt2FastP(t, nlayers=2):
         node =  Internal.getNodeFromName1(z, 'NFaceElements')
         Internal.createUniqueChild(node, 'IntExt', 'DataArray_t', data_nf)
 
-        print ('zone=', z[0], 'Elts0=', data_nf[0], 'Elts1=', data_nf[1],'Elts2=', data_nf[2])
+        print('zone=', z[0], 'Elts0=', data_nf[0], 'Elts1=', data_nf[1],'Elts2=', data_nf[2])
         c +=1
 
     #print 'dim_wo final ', dims_woghost
@@ -1819,8 +1819,8 @@ def adapt2FastP(t, nlayers=2):
       nf       = converter.adapt2FastP(NG_EC, FA_EC, NG_PE,  NG_intext, FA_intext, ptlist_bc, ptlist_rac, ptlist_racD, dim[2])
       NF[1]    = nf
       #Mise a jour du nombre d'elemnt
-      print ('FA_RG[1]', FA_RG[1], 'NG_intext[2]',NG_intext[2],'NG_intext[4]', NG_intext[4])
-      print ('voir christophe pour probleme visu')
+      print('FA_RG[1]', FA_RG[1], 'NG_intext[2]',NG_intext[2],'NG_intext[4]', NG_intext[4])
+      print('voir christophe pour probleme visu')
       FA_RG[1] = FA_RG[1] + NG_intext[2] + NG_intext[4]
       z[1][0,1]= z[1][0,1]+ NG_intext[2] + NG_intext[4]  
       Internal._adaptNFace2Index(z) 
@@ -1857,7 +1857,7 @@ def adapt2FastP2(t, nlayers=2):
         Nelts = z[1][0][1]
         dims_woghost.append( [ Nvtx , Nelts,  nface_tot, nface_rac, nface_bc ] )
 
-        print 'zone=', z[0],'Nface total=', nface_tot, 'Nface_rac=', nface_rac, 'Nface_bc=', nface_bc, 'layer=', layer -1, Nvtx, Nelts
+        print('zone=', z[0],'Nface total=', nface_tot, 'Nface_rac=', nface_rac, 'Nface_bc=', nface_bc, 'layer=', layer -1, Nvtx, Nelts)
 
 
     #creation nouvel arbre avec ghost

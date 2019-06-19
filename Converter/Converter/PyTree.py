@@ -906,6 +906,18 @@ def _rmNodes(z, name):
         del parent[2][d]
   return None
 
+# Upgrade tree
+def _upgradeTree(t):
+  Internal._correctPyTree(t, level=10) # force CGNS names
+  Internal._correctPyTree(t, level=2) # force unique name
+  Internal._correctPyTree(t, level=7) # create familyNames
+  registerAllNames(t)
+  try:
+    import Compressor.PyTree as Compressor
+    Compressor._uncompressCartesian(t)
+  except: pass
+  return None
+
 #==============================================================================
 # -- File / pyTree conversions --
 #==============================================================================
@@ -929,49 +941,34 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
     try:
       t = Converter.converter.convertFile2PyTree(fileName, format, skeletonData, dataShape, links, skipTypes)
       t = Internal.createRootNode(children=t[2])
-      Internal._correctPyTree(t, level=10) # force CGNS names
-      Internal._correctPyTree(t, level=2) # force unique name
-      Internal._correctPyTree(t, level=7) # create familyNames
-      registerAllNames(t)
+      _upgradeTree(t)
       return t
     except:
       if format == 'bin_cgns' or format == 'bin_adf':
         try:
           t = Converter.converter.convertFile2PyTree(fileName, 'bin_hdf', skeletonData, dataShape, links, skipTypes)
           t = Internal.createRootNode(children=t[2])
-          Internal._correctPyTree(t, level=10) # force CGNS names
-          Internal._correctPyTree(t, level=2) # force unique name
-          Internal._correctPyTree(t, level=7) # create familyNames
-          registerAllNames(t)
+          _upgradeTree(t)
           return t
         except: pass
       else: # adf par defaut
         try:
           t = Converter.converter.convertFile2PyTree(fileName, 'bin_adf', skeletonData, dataShape, links, skipTypes)
           t = Internal.createRootNode(children=t[2])
-          Internal._correctPyTree(t, level=10) # force CGNS names
-          Internal._correctPyTree(t, level=2) # force unique name
-          Internal._correctPyTree(t, level=7) # create familyNames
-          registerAllNames(t)
+          _upgradeTree(t)
           return t
         except: pass
   elif format == 'unknown':
     try:
       t = Converter.converter.convertFile2PyTree(fileName, 'bin_adf', skeletonData, dataShape, links, skipTypes)
       t = Internal.createRootNode(children=t[2])
-      Internal._correctPyTree(t, level=10) # force CGNS names
-      Internal._correctPyTree(t, level=2) # force unique name
-      Internal._correctPyTree(t, level=7) # create familyNames
-      registerAllNames(t)
+      _upgradeTree(t)
       return t
     except: pass
     try:
       t = Converter.converter.convertFile2PyTree(fileName, 'bin_hdf', skeletonData, dataShape, links, skipTypes)
       t = Internal.createRootNode(children=t[2])
-      Internal._correctPyTree(t, level=10) # force CGNS names
-      Internal._correctPyTree(t, level=2) # force unique name
-      Internal._correctPyTree(t, level=7) # create familyNames
-      registerAllNames(t)
+      _upgradeTree(t)
       return t
     except: pass
 
@@ -4766,13 +4763,10 @@ def extractAllBCMatch(t,varList=None):
   zones    = Internal.getZones(t)
   allMatch = {}
 
-  import Mpi  as Cmpi
-  rank = Cmpi.rank
-
   for z in zones:
       if not isXZone(z):
           dim = Internal.getZoneDim(z)
-          if dim[0]=='Structured':
+          if dim[0] == 'Structured':
               gcs = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
           else:
               gcs = Internal.getNodesFromType2(z, 'GridConnectivity_t')
@@ -4782,14 +4776,11 @@ def extractAllBCMatch(t,varList=None):
               zdonor = Internal.getNodeFromName(t,zname)
               # convertPyTree2File(t,'toto.cgns')
               # Extraction BCMatch pour la zone donneuse
-              # print("rank / zone / zname / zdonor : ", rank, z[0], zname, zdonor)
               [indR,fldD]  = extractBCMatch(zdonor,gc,dim,varList)
-              key           = z[0]+"/"+gc[0]
-              if fldD is not None:
-                allMatch[key] = [indR,fldD]
+              key          = z[0]+"/"+gc[0]
+              if fldD is not None: allMatch[key] = [indR,fldD]
 
   return allMatch
-
 
 def computeBCMatchField(z,allMatch,variables=None):
 

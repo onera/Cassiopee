@@ -20,20 +20,30 @@ except: pass
 
 #================================================================================
 # IBM prepare
-# NP is the target number of processors
+# NP is the target number of processors for computation 
+# (maybe different from the number of processors the prep is run on)
 #================================================================================ 
-def prepare(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21, check=False, NP=0, format='single',inv=False):
+def prepare(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21, check=False, 
+            NP=0, format='single',
+            inv=False):
     import Converter.Mpi as Cmpi
     rank = Cmpi.rank; size = Cmpi.size
     ret = None
     # sequential prep
-    if rank == 0: ret = prepare0(t_case, t_out, tc_out, snears=snears, dfar=dfar, dfarList=dfarList, vmin=vmin, check=check, NP=NP, format=format, inv=inv)
+    if size == 1: ret = prepare0(t_case, t_out, tc_out, snears=snears, dfar=dfar, dfarList=dfarList, vmin=vmin, 
+                                 check=check, NP=NP, format=format, inv=inv)
+    # parallel prep
+    else: ret = prepare1(t_case, t_out, tc_out, snears=snears, dfar=dfar, dfarList=dfarList, vmin=vmin, 
+                         check=check, NP=NP, format=format, inv=inv)
+    
     return ret
 
 #================================================================================
 # IBM prepare - seq
 #================================================================================
-def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21, check=False, NP=0, format='single', frontType=1, inv=False):
+def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21, check=False, 
+             NP=0, format='single',
+             frontType=1, inv=False):
     import KCore.test as test
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
     else: tb = t_case
@@ -140,7 +150,9 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
     return t, tc
 
 #==================================================================================================
-def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21, check=False, NP=0, format='single', frontType=1,inv=False):
+def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21, check=False, 
+             NP=0, format='single',
+             frontType=1, inv=False):
     import Generator
     import Converter
     import Connector.connector as connector
@@ -607,7 +619,10 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
     I._initConst(t, loc='centers')
     if model != "Euler": C._initVars(t, 'centers:ViscosityEddy', 0.)
     # Save t
-    if isinstance(t_out, str): Cmpi.convertPyTree2File(t, t_out)
+    if isinstance(t_out, str):
+        #import Compressor.PyTree as Compressor
+        #Compressor._compressCartesian(t)
+        Cmpi.convertPyTree2File(t, t_out)
     return t, tc
 
 #=============================================================================
@@ -729,28 +744,25 @@ def post(t_case, t_in, tc_in, t_out, wall_out):
 # IN: alpha: angle pour les efforts
 # IN: beta: angle pour les efforts
 #==============================================================================
-def loads(t_case, t_in, tc_in, wall_out, alpha=0., beta=0., Sref=None):
+def loads(t_case, tc_in, wall_out, alpha=0., beta=0., Sref=None):
     import Post.PyTree as P
     import Converter.Filter as Filter
     import math
-    import numpy as np
+    import numpy as numpy
 
     if isinstance(tc_in, str): tc = C.convertFile2PyTree(tc_in)
     else: tc = tc_in
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
     else: tb = t_case
-    if isinstance(t_in, str):
-        h = Filter.Handle(t_in)
-        sol = h.loadSkeleton()
-        h._loadZonesWoVars(sol)
-        h._loadVariables(sol, var=['centers:VelocityX','centers:VelocityY','centers:VelocityZ'])
-    else: sol = t_in
 
     if Sref is None:
-        C._initVars(tb, 'toto',1.)
-        Sref = P.integ(tb,'toto')[0]; print(Sref)
-        C._rmVars(tb, ['toto','centers:vol'])
-        
+        C._initVars(tb, '__ONE__',1.)
+        Sref = P.integ(tb, '__ONE__')[0]; print(Sref)
+        C._rmVars(tb, ['__ONE__', 'centers:vol'])
+
+    # Dans le cas du CRM version adimensionnee :
+    # Sref = 2*191.8445/(7.00532**2)
+
     #==============================
     # Reference state
     #==============================
@@ -758,66 +770,28 @@ def loads(t_case, t_in, tc_in, wall_out, alpha=0., beta=0., Sref=None):
           ReInf, Cs, Gamma, RokInf, RoomegaInf, RonutildeInf,
           Mus, Cs, Ts, Pr] = C.getState(tb)
 
-    dimPb = Internal.getValue(Internal.getNodeFromName(tb,'EquationDimension'))
-
     alpha = math.radians(alpha)
     beta = math.radians(beta)
 
+    dimPb = Internal.getValue(Internal.getNodeFromName(tb,'EquationDimension'))
+
     q = 0.5*RoInf*(MInf*math.sqrt(Gamma*PInf/RoInf))**2
-
-    #=============================================
-    # Ajout de la vitesse au point corrige dans tc
-    #=============================================
-
-    loc = 'PC'
-    ibcd = 3
-    hooks = {}
-
-    for z in Internal.getZones(tc):
-        nodes = Internal.getNodesFromName(z, 'IBCD_%d*'%ibcd)
-        for node in nodes:
-            zname = node[0].split('_')[-1]
-            coordx = Internal.getNodeFromName1(node,'CoordinateX_%s'%loc); coordx[0]='CoordinateX'
-            coordy = Internal.getNodeFromName1(node,'CoordinateY_%s'%loc); coordy[0]='CoordinateY'
-            coordz = Internal.getNodeFromName1(node,'CoordinateZ_%s'%loc); coordz[0]='CoordinateZ'
-            npts = len(coordx[1])
-            nodesol = Internal.getNodeFromName2(sol,zname)
-            if nodesol[0] in hooks: hook = hooks[nodesol[0]]
-            else:  
-                hook = C.createHook(nodesol,function='elementCenters')
-                hooks[nodesol[0]] = hook
-            newZ = Internal.newZone('dummy', zsize=[[npts,npts-1,0]], ztype='Unstructured')
-            newGC = Internal.newGridCoordinates(parent=newZ)
-            cx = Internal.newDataArray('CoordinateX', value=coordx[1], parent=newGC)
-            cy = Internal.newDataArray('CoordinateY', value=coordy[1], parent=newGC)
-            cz = Internal.newDataArray('CoordinateZ', value=coordz[1], parent=newGC)
-            inds = C.nearestNodes(hook, newZ)[0]
-            vx=[];vy=[];vz=[]
-            for index in inds:
-                vx.append(C.getValue(nodesol,'centers:VelocityX',index))
-                vy.append(C.getValue(nodesol,'centers:VelocityY',index))
-                vz.append(C.getValue(nodesol,'centers:VelocityZ',index))
-            Internal.createChild(node,'VelocityX','DataArray_t',value=np.asarray(vx))
-            Internal.createChild(node,'VelocityY','DataArray_t',value=np.asarray(vy))
-            Internal.createChild(node,'VelocityZ','DataArray_t',value=np.asarray(vz))
 
     #====================================
     # Extraction des grandeurs a la paroi
     #====================================
-
     zw = TIBM.extractIBMWallFields(tc, tb=tb)
 
     if dimPb == 2: zw = T.addkplane(zw)
 
     zw = C.convertArray2Tetra(zw)
-    zw = T.reorderAll(zw,1)
-    C._initVars(zw, 'Kp=-({Pressure}-%f)/%f'%(PInf,q))
-    
+    zw = T.reorderAll(zw, 1)
+    C._initVars(zw, 'Cp=-({Pressure}-%f)/%f'%(PInf,q))
+
     #===========================
     # Calcul efforts de pression
     #===========================
-
-    res = P.integNorm(zw, 'Kp')[0]
+    res = P.integNorm(zw, 'Cp')[0]
     res = [i/Sref for i in res]
     cd = res[0]*math.cos(alpha)*math.cos(beta) + res[2]*math.sin(alpha)*math.cos(beta)
     cl = res[2]*math.cos(alpha)*math.cos(beta) - res[0]*math.sin(alpha)*math.cos(beta)
@@ -826,18 +800,18 @@ def loads(t_case, t_in, tc_in, wall_out, alpha=0., beta=0., Sref=None):
     #======================================
     # Calcul frottement et efforts visqueux
     #======================================
-
     if C.isNamePresent(zw, 'utau') != -1:
         C._initVars(zw, '{tau_wall}={Density}*{utau}**2')
     else:
         C._initVars(zw, '{tau_wall}=0.')
 
     G._getNormalMap(zw)
-    zw = C.node2Center(zw, ['Kp', 'tau_wall', 'Pressure','VelocityX','VelocityY','VelocityZ'])
+    zw = C.node2Center(zw, ['Cp', 'tau_wall', 'Pressure','VelocityX','VelocityY','VelocityZ'])
+    if C.isNamePresent(zw, 'utau') != -1:
+        zw = C.node2Center(zw, ['utau','yplus'])
     C._rmVars(zw, 'FlowSolution')
     C._normalize(zw, ['centers:sx','centers:sy','centers:sz'])
 
-    
     # calcul du vecteur tangent
     C._initVars(zw, '{centers:tx}={centers:VelocityX}-({centers:VelocityX}*{centers:sx}+{centers:VelocityY}*{centers:sy}+{centers:VelocityZ}*{centers:sz})*{centers:sx}')
     C._initVars(zw, '{centers:ty}={centers:VelocityY}-({centers:VelocityX}*{centers:sx}+{centers:VelocityY}*{centers:sy}+{centers:VelocityZ}*{centers:sz})*{centers:sy}')
@@ -855,13 +829,13 @@ def loads(t_case, t_in, tc_in, wall_out, alpha=0., beta=0., Sref=None):
     C._initVars(zw, '{centers:Fricx}={centers:tauxx}*{centers:sx}+{centers:tauxy}*{centers:sy}+{centers:tauxz}*{centers:sz}')
     C._initVars(zw, '{centers:Fricy}={centers:tauxy}*{centers:sx}+{centers:tauyy}*{centers:sy}+{centers:tauyz}*{centers:sz}')
     C._initVars(zw, '{centers:Fricz}={centers:tauxz}*{centers:sx}+{centers:tauyz}*{centers:sy}+{centers:tauzz}*{centers:sz}')
-    
+
     # calcul effort complet
     C._initVars(zw, '{centers:Fx}={centers:Fricx}-({centers:Pressure}-%f)*{centers:sx}'%PInf)
     C._initVars(zw, '{centers:Fy}={centers:Fricy}-({centers:Pressure}-%f)*{centers:sy}'%PInf)
     C._initVars(zw, '{centers:Fz}={centers:Fricz}-({centers:Pressure}-%f)*{centers:sz}'%PInf)
-    
-    #calcul coefficient de frottement
+
+    # calcul coefficient de frottement
     C._initVars(zw, '{centers:Cf}=(sqrt({centers:Fricx}**2+{centers:Fricy}**2+{centers:Fricz}**2))/%f'%q)
 
     effortX = P.integ(zw, 'centers:Fricx')[0]
@@ -870,10 +844,20 @@ def loads(t_case, t_in, tc_in, wall_out, alpha=0., beta=0., Sref=None):
 
     cd = (effortX*math.cos(alpha)*math.cos(beta) + effortZ*math.sin(alpha)*math.cos(beta))/q
     cl = (effortZ*math.cos(alpha)*math.cos(beta) - effortX*math.sin(alpha)*math.cos(beta))/q
-    print("Skin friction loads",cd,cl)
+    print("Skin friction loads", cd, cl)
+
+    vars = ['centers:sx','centers:sy','centers:sz','centers:tx','centers:ty','centers:tz','centers:tauxx','centers:tauyy','centers:tauzz','centers:tauxy','centers:tauxz',
+'centers:tauyz','centers:Fricx','centers:Fricy','centers:Fricz','centers:Fx','centers:Fy','centers:Fz']
+    zw = C.rmVars(zw, vars)
+
+    if dimPb == 2: # reextrait en 2D
+        zw = P.isoSurfMC(zw, "CoordinateZ", 0.)
+        nodes = Internal.getNodesFromName(zw, 'CoordinateX')
+        xmin = numpy.min(nodes[0][1])
+        xmax = numpy.max(nodes[0][1])
+        C._initVars(zw, 'xc=({CoordinateX}-%f)/(%f-%f)'%(xmin, xmax, xmin))
 
     if isinstance(wall_out, str): C.convertPyTree2File(zw, wall_out)
-
 
 #====================================================================================
 # Redistrib on NP processors
@@ -1008,8 +992,9 @@ class IBM(Common):
         Common.__init__(self, NP, format, numb, numz)
         self.__version__ = "0.0"
         self.authors = ["ash@onera.fr"]
+        #self.cartesian = True
         
-    # Prepare : n'utilise qu'un proc pour l'instant
+    # Prepare 
     def prepare(self, t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21, check=False):
         NP = self.data['NP']
         if NP == 0: print('Preparing for a sequential computation.')

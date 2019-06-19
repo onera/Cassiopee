@@ -94,7 +94,7 @@ def deltaInterpolations(interpData, ref, loc='cell'):
 
     return storedInterpData
 
-def container__(flag,newPos,indDonor,periodicity,coefs,faceDir):
+def container__(flag, newPos, indDonor, periodicity, coefs, faceDir):
     if flag == 0 and faceDir == None: return [flag,(int)(indDonor),(int)(periodicity[newPos])]+[(float)(c) for c in coefs[newPos]]
     elif flag == 0: return [flag,(int)(indDonor),(int)(periodicity[newPos])]+[(float)(c) for c in coefs[newPos]]+[(int)(faceDir[newPos])]
     elif flag == 1 and faceDir == None: return [flag]+[(float)(c) for c in coefs[newPos]]
@@ -119,6 +119,8 @@ def compressCartesian(t):
     _compressCartesian(tp)
     return tp
 
+# Supprime CoordinateX, CoordinateY, CoordinateZ
+# Ajoute un noeud CartesianData 
 def _compressCartesian(t):
     zones = Internal.getZones(t)
     for z in zones:
@@ -154,6 +156,8 @@ def uncompressCartesian(t):
     _uncompressCartesian(tp)
     return tp
     
+# Reconstruit CoordinateX, CoordinateY, CoordinateZ
+# Supprime CartesianData
 def _uncompressCartesian(t):
     import Generator.PyTree as G
     zones = Internal.getZones(t)
@@ -172,5 +176,6 @@ def _uncompressCartesian(t):
         else: 
             Internal._rmNodesFromName(z, Internal.__GridCoordinates__)
             Internal._addChild(z, gct)
+        Internal._rmNodesFromName(z, 'CartesianData')
     return None
         

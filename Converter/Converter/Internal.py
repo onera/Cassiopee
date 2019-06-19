@@ -3823,7 +3823,7 @@ def _adaptBCC2BCFace(t, remove=True):
             if ra is not None:
                 for e in BCCs:
                     r = getNodeFromName1(e, 'ElementRange')
-                    if (r is not None and r[0] == ra[0] and r[1] == ra[1]):
+                    if r is not None and r[0] == ra[0] and r[1] == ra[1]:
                         bcc = getNodeFromName1(e, 'ElementConnectivity'); break # found
             if bcc is not None:
                 faces = converter.adaptBCC2BCFace(bcc[1], cEV[1], dims[3])
@@ -3926,7 +3926,7 @@ def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
                 # Essaie de transformer la connectivite ParentElements en NFACE
                 ngon = sons[NGON]
                 parentElt = getNodeFromName1(ngon, 'ParentElements')
-                if parentElt is not None: # parent element est present
+                if parentElt is not None and parentElt[1] is not None: # parent element est present
                     cFE = parentElt[1]
                     sh = cFE.shape
                     if len(sh) == 1: # Bug elsA

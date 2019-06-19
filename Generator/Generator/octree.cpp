@@ -353,13 +353,13 @@ PyObject* octree(PyObject* self, PyObject* args)
     xmaxo = -K_CONST::E_MAX_FLOAT;
     ymaxo = -K_CONST::E_MAX_FLOAT;
     zmaxo = -K_CONST::E_MAX_FLOAT;
-    for (E_Int v = 0; v < xmint.size(); v++)
+    for (size_t v = 0; v < xmint.size(); v++)
     {
       xmino = K_FUNC::E_min(xmino, xmint[v]);
       ymino = K_FUNC::E_min(ymino, ymint[v]);
       xmaxo = K_FUNC::E_max(xmaxo, xmaxt[v]);
       ymaxo = K_FUNC::E_max(ymaxo, ymaxt[v]);
-      if ( dim == 3)
+      if (dim == 3)
       {
         zmino = K_FUNC::E_min(zmino, zmint[v]);
         zmaxo = K_FUNC::E_max(zmaxo, zmaxt[v]);
@@ -370,7 +370,7 @@ PyObject* octree(PyObject* self, PyObject* args)
     E_Float xc = (xmino+xmaxo)*0.5;
     E_Float yc = (ymino+ymaxo)*0.5;
     E_Float zc = 0.;
-    if ( dim == 3 ) zc = (zmino+zmaxo)*0.5;
+    if (dim == 3) zc = (zmino+zmaxo)*0.5;
 
     // calcul de l'extension max entre les 3 directions pour faire avoir un octree cubique
     E_Float Deltax = xmaxo-xmino;

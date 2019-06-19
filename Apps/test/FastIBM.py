@@ -1,7 +1,7 @@
 # - Fast.IBM -
 import Apps.Fast.IBM as App
 
-myApp = App.IBM(NP=0, format='single')
+myApp = App.IBM(format='single')
 myApp.set(numb={"temporal_scheme": "implicit",
                 "ss_iteration":3,
                 "omp_mode":1})
