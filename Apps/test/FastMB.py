@@ -2,7 +2,7 @@
 import Apps.Fast.MB as App
 import Converter.Mpi as Cmpi
 
-myApp = App.MB(NP=Cmpi.size, format='single')
+myApp = App.MB(format='single')
 myApp.set(numb={"temporal_scheme": "implicit",
                 "ss_iteration":3})
 myApp.set(numz={"time_step": 0.0007,
@@ -11,9 +11,9 @@ myApp.set(numz={"time_step": 0.0007,
                 "cfl":4.})
 
 # Prepare
-myApp.prepare('naca.cgns', t_out='t.cgns', tc_out='tc.cgns')
+myApp.prepare('naca.cgns', t_out='t.cgns', tc_out='tc.cgns', NP=Cmpi.size)
 
-# closed compute
+# Compute
 myApp.compute('t.cgns', 'tc.cgns', t_out='restart.cgns', nit=300)
 
 # Post

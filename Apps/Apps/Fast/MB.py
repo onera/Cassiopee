@@ -197,16 +197,16 @@ def prepare1(t_case, t_out, tc_out, NP=0, format='single'):
 #==========================================================================
 # Post
 #===========================================================================
-def post(t_in, t_out, wall_out, NP=0, format='single'):
+def post(t_in, t_out, wall_out, format='single'):
     import Converter.Mpi as Cmpi
     rank = Cmpi.rank; size = Cmpi.size
     # sequential post
     ret = None
-    if rank == 0: ret = post0(t_in, t_out, wall_out, NP, format)
+    if rank == 0: ret = post0(t_in, t_out, wall_out, format)
     return ret
 
 #====================================================================================
-def post0(t_in, t_out, wall_out, NP=0, format='single'):
+def post0(t_in, t_out, wall_out, format='single'):
     import Transform.PyTree as T
     import Post.PyTree as P
     from math import sqrt
@@ -269,18 +269,17 @@ def post0(t_in, t_out, wall_out, NP=0, format='single'):
 #====================================================================================
 class MB(Common):
     """Preparation et calculs avec le module FastS."""
-    def __init__(self, NP=None, format=None, numb=None, numz=None):
-        Common.__init__(self, NP, format, numb, numz)
+    def __init__(self, format=None, numb=None, numz=None):
+        Common.__init__(self, format, numb, numz)
         self.__version__ = "0.0"
         self.authors = ["ash@onera.fr"]
         
     # Prepare : n'utilise qu'un proc pour l'instant
-    def prepare(self, t_case, t_out, tc_out):
-        NP = self.data['NP']
+    def prepare(self, t_case, t_out, tc_out, NP):
         if NP == 0: print('Preparing for a sequential computation.')
         else: print('Preparing for a computation on %d processors.'%NP)
         return prepare(t_case, t_out, tc_out, NP, self.data['format'])
         
     # post-processing: extrait la solution aux neouds + le champs sur les surfaces
     def post(self, t_in, t_out, wall_out):
-        return post(t_in, t_out, wall_out, self.data['NP'], self.data['format'])
+        return post(t_in, t_out, wall_out, self.data['format'])

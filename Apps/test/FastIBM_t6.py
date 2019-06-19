@@ -6,7 +6,7 @@ import KCore.test as test
 
 LOCAL = test.getLocal()
 
-myApp = App.IBM(NP=0, format='single')
+myApp = App.IBM(format='single')
 myApp.set(numb={"temporal_scheme": "implicit",
                 "ss_iteration":3,
                 "omp_mode":0})

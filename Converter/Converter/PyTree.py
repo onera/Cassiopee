@@ -6093,7 +6093,7 @@ def identifyNodes(hook, a, tol=1.e-11):
 def identifyFaces(hook, a, tol=1.e-11):
   """Find in a hook nearest points of face centers of a. return identified face indices.
   Usage: identifyFaces(hook, a)"""
-  fields = getFields(Internal.__GridCoordinates__, a, api=2)
+  fields = getFields(Internal.__GridCoordinates__, a, api=1)
   if len(fields) == 1: return Converter.identifyFaces(hook, fields[0], tol)
   else: return Converter.identifyFaces(hook, fields, tol)
 

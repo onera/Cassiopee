@@ -14,7 +14,7 @@ if [ -z "$OMP_NUM_THREADS" ]
 then
     OMPNUMTHREADSINIT=$OMP_NUM_THREADS
 else
-    OMPNUMTHREADSINIT=1    
+    OMPNUMTHREADSINIT=1
 fi
 
 # Ressources

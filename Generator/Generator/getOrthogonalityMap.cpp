@@ -445,10 +445,10 @@ PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
     }
     else
     {
-        PyErr_SetString(PyExc_TypeError,
-                        "getOrthogonalityMap: unknown type of element.");
-        RELEASESHAREDU(array, f, cn);
-        return NULL;
+      PyErr_SetString(PyExc_TypeError,
+                      "getOrthogonalityMap: unknown type of element.");
+      RELEASESHAREDU(array, f, cn);
+      return NULL;
     }
     RELEASESHAREDU(array, f, cn); 
     return tpl;

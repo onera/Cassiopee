@@ -25,16 +25,16 @@ except: pass
 #================================================================================ 
 def prepare(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21, check=False, 
             NP=0, format='single',
-            inv=False):
+            frontType=1, inv=False):
     import Converter.Mpi as Cmpi
     rank = Cmpi.rank; size = Cmpi.size
     ret = None
     # sequential prep
     if size == 1: ret = prepare0(t_case, t_out, tc_out, snears=snears, dfar=dfar, dfarList=dfarList, vmin=vmin, 
-                                 check=check, NP=NP, format=format, inv=inv)
+                                 check=check, NP=NP, format=format, frontType=frontType, inv=inv)
     # parallel prep
     else: ret = prepare1(t_case, t_out, tc_out, snears=snears, dfar=dfar, dfarList=dfarList, vmin=vmin, 
-                         check=check, NP=NP, format=format, inv=inv)
+                         check=check, NP=NP, format=format, frontType=frontType, inv=inv)
     
     return ret
 
@@ -988,19 +988,20 @@ def _modifIBCD(tc):
 #====================================================================================
 class IBM(Common):
     """Preparation et caculs avec le module FastS."""
-    def __init__(self, NP=None, format=None, numb=None, numz=None):
-        Common.__init__(self, NP, format, numb, numz)
+    def __init__(self, format=None, numb=None, numz=None):
+        Common.__init__(self, format, numb, numz)
         self.__version__ = "0.0"
         self.authors = ["ash@onera.fr"]
         #self.cartesian = True
         
     # Prepare 
-    def prepare(self, t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21, check=False):
-        NP = self.data['NP']
+    def prepare(self, t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21, check=False, 
+                frontType=1, inv=False, NP=None):
+        if NP is None: NP = Cmpi.size
         if NP == 0: print('Preparing for a sequential computation.')
         else: print('Preparing for a computation on %d processors.'%NP)
         ret = prepare(t_case, t_out, tc_out, snears=snears, dfar=dfar, dfarList=dfarList, 
-                      vmin=vmin, check=check, NP=NP, format=self.data['format'])
+                      vmin=vmin, check=check, NP=NP, format=self.data['format'], frontType=frontType, inv=inv)
         return ret
 
     # post-processing: extrait la solution aux noeuds + le champs sur les surfaces

@@ -6,7 +6,7 @@ import KCore.test as test
 
 LOCAL = test.getLocal()
 
-myApp = App.IBM(NP=0, format='single')
+myApp = App.IBM(format='single')
 myApp.set(numb={"temporal_scheme": "implicit",
                 "ss_iteration":3,
                 "omp_mode":0})
@@ -16,7 +16,7 @@ myApp.set(numz={"time_step": 0.0007,
                 "cfl":4.})
 
 # Prepare
-t, tc = App.prepare1('naca1DEuler.cgns', t_out=LOCAL+'/t.cgns', tc_out=LOCAL+'/tc.cgns')
+t, tc = App.prepare1('naca1DEuler.cgns', t_out=LOCAL+'/t.cgns', tc_out=LOCAL+'/tc.cgns',NP=1)
 test.testT(tc, 1)
 
 # Compute

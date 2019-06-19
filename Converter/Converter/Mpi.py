@@ -3,14 +3,12 @@
 import os
 if 'MPIRUN' in os.environ: # si MPIRUN=0, force sequentiel
     if int(os.environ['MPIRUN'])>0:
-        try:
-            from .Mpi4py import *
+        try: from .Mpi4py import *
         except: raise ImportError("Converter:Mpi: requires mpi4py module.")
     else:
        rank = 0; size = 1; KCOMM = None
 else: # try import (may fail - core or hang)
-    try:
-        from .Mpi4py import *
+    try: from .Mpi4py import *
     except:
         rank = 0; size = 1; KCOMM = None
         from .Distributed import setProc, _setProc, getProc, getProcDict, convertFile2SkeletonTree, computeGraph
