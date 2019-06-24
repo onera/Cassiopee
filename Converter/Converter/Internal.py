@@ -3104,7 +3104,8 @@ def getZoneDim(zone):
                 elif i[1][0] == 23: NFACE = 1
             if NGON == 1 and NFACE == 1:
                 data = getNodeFromName1(NGONp, 'ElementConnectivity')
-                datar = data[1]
+                if data is not None: datar = data[1]
+                else: datar = None
                 if datar is not None and datar.size > 0:
                     if datar[0] == 1: cellDim = 1
                     elif datar[0] == 2: cellDim = 2
@@ -3356,7 +3357,7 @@ def adaptConnect__(connects, dim):
 
     if eltType == 22: # NGON
         info = connect1[2]
-        c1 = None; nfaces = 0
+        c1 = None; nfaces = 0; cr = None
         for i in info:
           if i[0] == 'ElementConnectivity': c1 = i[1]
           if i[0] == 'ElementRange': nfaces = i[1][1]-i[1][0]+1
@@ -3365,10 +3366,11 @@ def adaptConnect__(connects, dim):
         for i in info:
           if i[0] == 'ElementConnectivity': c2 = i[1]
           if i[0] == 'ElementRange': nelts = i[1][1]-i[1][0]+1
-        st1 = c1.size; st2 = c2.size
-        st = st1 + st2 + 4
-        cr = numpy.empty((1, st), numpy.int32)
-        converter.cpyConnectP2ConnectA(cr, c1, c2, stype, ne, nfaces, nelts)
+        if c1 is not None and c2 is not None:
+            st1 = c1.size; st2 = c2.size
+            st = st1 + st2 + 4
+            cr = numpy.empty((1, st), numpy.int32)
+            converter.cpyConnectP2ConnectA(cr, c1, c2, stype, ne, nfaces, nelts)
     else: # Autres types
         info = connect[2]
         cr = None
@@ -3864,8 +3866,8 @@ def getElementRangeDict(t, d):
         if z[0] not in d: d[z[0]] = {}
         elts = getNodesFromType1(z, 'Elements_t')
         for e in elts:
-            n = getNodeFromName1(e, 'ElementRange')[1]
-            if n is not None: d[z[0]][e[0]] = (n[0],n[1])
+            n = getNodeFromName1(e, 'ElementRange')
+            if n is not None and n[1] is not None: d[z[0]][e[0]] = (n[1][0],n[1][1])
             else: d[z[0]][e[0]] = (1,1)
 
 # input dict, index of a Elements of z
@@ -3919,7 +3921,7 @@ def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
             # si NFACE, abs face index
             if NFACE != -1:
                 c = getNodeFromName1(sons[NFACE], 'ElementConnectivity')
-                if c[1] is not None: c[1] = numpy.absolute(c[1])
+                if c is not None and c[1] is not None: c[1] = numpy.absolute(c[1])
 
             # Si NGON, ajoute NFace si manquant
             if addNFace == True and NFACE == -1 and NGON >= 0:

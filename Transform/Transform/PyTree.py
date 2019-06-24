@@ -514,9 +514,9 @@ def subzoneGC__(z, dim, imin, imax, jmin, jmax, kmin, kmax, \
     C._rmBCOfType(z, 'BCOverlap')
     for nor in range(len(ranges)):
         if ddDnrs[nor] is None:
-            C._addBC2Zone(z,C.getBCName('overlap'), 'BCOverlap', ranges[nor])
+            C._addBC2Zone(z, C.getBCName('overlap'), 'BCOverlap', ranges[nor])
         else: # doubly defined
-            C._addBC2Zone(z,C.getBCName(bcnames[nor]),'BCOverlap', wrange=ranges[nor],\
+            C._addBC2Zone(z, C.getBCName(bcnames[nor]), 'BCOverlap', wrange=ranges[nor],\
                           zoneDonor=[ddDnrs[nor]], rangeDonor='doubly_defined')
     return z
 
@@ -566,13 +566,14 @@ def subzoneStruct__(t, minIndex, maxIndex):
     # indices pour les centres
     imin = minIndex[0]; jmin = minIndex[1]; kmin = minIndex[2]
     imax,jmax,kmax = [max(1, val-1) if val > -1 else val for val in maxIndex]
-    if (imin == maxIndex[0] and imin != 1): imin = imax
-    if (jmin == maxIndex[1] and jmin != 1): jmin = jmax
-    if (kmin == maxIndex[2] and kmin != 1): kmin = kmax
+    if imin == maxIndex[0] and imin != 1: imin = imax
+    if jmin == maxIndex[1] and jmin != 1: jmin = jmax
+    if kmin == maxIndex[2] and kmin != 1: kmin = kmax
     t2 = C.TZA(t, 'both', 'both',
                Transform.subzone, Transform.subzone,
                minIndex, maxIndex,
                (imin, jmin, kmin), (imax,jmax,kmax))
+    
     C._rmBCOfType(t2, 'BCMatch'); C._rmBCOfType(t2, 'BCNearMatch')
     imin = minIndex[0]; imax = maxIndex[0]
     jmin = minIndex[1]; jmax = maxIndex[1]
@@ -588,9 +589,9 @@ def subzoneStruct__(t, minIndex, maxIndex):
         (parent, nb) = Internal.getParentOfNode(t2, z2)
         dimt = Internal.getZoneDim(z2)
         ni0 = dimt[1]; nj0 = dimt[2]; nk0 = dimt[3]; dim = dimt[4]
-        z2[0] = C.getZoneName(z2[0])
+        z2[0] = C.getZoneName(z2[0]) # ?? pourquoi changer le nom?
         subzoneBC__(t2, z2, dim, imin, imax, jmin, jmax, kmin, kmax, \
-                     dimt0[4], dimt0[1], dimt0[2], dimt0[3], ni0, nj0, nk0)
+                    dimt0[4], dimt0[1], dimt0[2], dimt0[3], ni0, nj0, nk0)
         z2 = subzoneGC__(z2, dim, imin, imax, jmin, jmax, kmin, kmax, \
                          dimt0[4], dimt0[1], dimt0[2], dimt0[3], ni0, nj0, nk0)
         noz += 1
@@ -598,7 +599,7 @@ def subzoneStruct__(t, minIndex, maxIndex):
             if Internal.isStdNode(t2) == 0: parent[nb] = z2
             else: parent[2][nb] = z2
         else: t2 = z2
-
+    
     return t2
 
 #======================================

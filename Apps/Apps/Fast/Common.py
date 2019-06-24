@@ -159,7 +159,7 @@ def compute(t_in, tc_in,
         import FastS.PyTree as FastS
         rank = 0; size = 1
 
-    t,tc,ts,graph = Fast.load(t_in, tc_in, split=format)
+    t,tc,ts,graph = Fast.load(t_in, tc_in, split=format, cartesian=cartesian)
 
     # Numerics
     Fast._setNum2Zones(t, numz); Fast._setNum2Base(t, numb)

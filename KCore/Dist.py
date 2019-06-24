@@ -239,9 +239,10 @@ def writeEnvs():
           mt = multiprocessing.cpu_count()
      except: mt = 1
 
-     # sh
+     # sh ou bash
      # usage: source $CASSIOPEE/Dist/env_Cassiopee.sh
      p = open(envPath+"env_Cassiopee.sh", 'w')
+     p.write("ulimit -s unlimited\n")
      if cassiopee != '': p.write("export CASSIOPEE=%s\n"%cassiopee)
      if elsaprod != '': p.write("export ELSAPROD=%s\n"%elsaprod)
      p.write("export OMP_NUM_THREADS=%d\n"%mt)
@@ -265,9 +266,10 @@ def writeEnvs():
           p.write("fi\n")
      p.close()
 
-     # csh
+     # csh ou tcsh
      # usage: source $CASSIOPEE/Dist/env_Cassiopee.csh
      p = open(envPath+"env_Cassiopee.csh", 'w')
+     p.write("limit stacksize unlimited\n")
      if cassiopee != '': p.write("setenv CASSIOPEE %s\n"%cassiopee)
      if elsaprod != '': p.write("setenv ELSAPROD %s\n"%elsaprod)
      p.write("setenv OMP_NUM_THREADS %d\n"%mt)

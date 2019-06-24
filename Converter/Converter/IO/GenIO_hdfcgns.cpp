@@ -2150,7 +2150,6 @@ E_Int K_IO::GenIO::hdfcgnsDeletePaths(char* file,
 
   H5Fclose(fid);
   return 0;
-
 }
 
 #include "GenIO_hdfcgns_partialMPI.cpp"

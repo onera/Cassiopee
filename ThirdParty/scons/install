@@ -30,3 +30,5 @@ fi
 
 # installation
 python setup.py install --prefix="$INSTALLPATH"
+echo 'scons est installe dans'"$INSTALLPATH"/bin
+echo 'Il faut ajouter ce chemin au PATH.'

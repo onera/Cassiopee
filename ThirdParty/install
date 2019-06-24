@@ -1,0 +1,23 @@
+#! /bin/csh
+# Installation des Third party utiles
+
+# Preliminary checks
+if ($?CASSIOPEE == 0) then
+    echo "You must specify a CASSIOPEE variable in you .csrhc"
+    echo "This variable specifies the installation path of *Cassiopee*"
+    exit
+endif
+
+source $CASSIOPEE/Kernel/env_Cassiopee_r8
+
+set local=`pwd`
+
+# -- scons
+cd scons
+./install
+cd ..
+
+# -- mpy4py
+cd mpi4py
+./install
+cd ..

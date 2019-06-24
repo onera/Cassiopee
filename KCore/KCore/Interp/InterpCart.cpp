@@ -327,13 +327,12 @@ E_Int K_INTERP::InterpCart::getListOfCandidateCells(E_Float x, E_Float y, E_Floa
   E_Float dx = 0.1*alphaTol*(_hi);
   E_Float dy = 0.1*alphaTol*(_hj);
   E_Float dz = 0.1*alphaTol*(_hk);
-  
   if (x < _xmin - dx) return 0;
   if (y < _ymin - dy) return 0;
-  if (z < _zmin - dz) return 0;
+  if (_nk > 1 && z < _zmin - dz) return 0;
   if (x > _xmax + dx) return 0;
   if (y > _ymax + dy) return 0;
-  if (z > _zmax + dz) return 0;
+  if (_nk > 1 && z > _zmax + dz) return 0;
 
   E_Float x0 = x-dx; E_Float x1 = x+dx;
   E_Float y0 = y-dy; E_Float y1 = y+dy;

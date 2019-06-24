@@ -146,6 +146,8 @@ def isZoneSkeleton__(z, ntype=0):
       t1 = Internal.getNodesFromType1(cx, 'DataArray_t')
       for d in t1:
         if d[1] is None: return True
+      if len(cx[2]) == 0: return True
+      return False
     if ntype == 0:
       cx = Internal.getNodesFromType1(z, 'FlowSolution_t')
       for x in cx:

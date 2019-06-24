@@ -192,7 +192,7 @@ char* Data::export2Image(int exportWidth, int exportHeight)
       }
       else
       {
-                // Relit et stocke RGB + depth
+        // Relit et stocke RGB + depth
         glReadPixels(0, 0, exportWidth, exportHeight, GL_RGB, GL_UNSIGNED_BYTE, buffer);
         glReadPixels(0, 0, exportWidth, exportHeight, GL_DEPTH_COMPONENT, GL_FLOAT, depth);
         /*GLfloat projMat[16];
@@ -225,7 +225,7 @@ char* Data::export2Image(int exportWidth, int exportHeight)
           for ( unsigned j = 0; j < exportWidth; ++j ) {
             unsigned ind = i*exportWidth+j;
             assert(ind<s);
-            if (depth[ind] <offscreenD[ind]) {
+            if (depth[ind] < offscreenD[ind]) {
               //printf("replace pixel %d,%d => %e < %e \n", i, j, depth[ind], offscreenD[ind]);
               offscreen[3*ind  ] = buffer[3*ind  ];
               offscreen[3*ind+1] = buffer[3*ind+1];

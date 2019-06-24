@@ -89,19 +89,19 @@ def adaptIBMMesh(t, tb, vmin, sensor, factor=1.2, DEPTH=2, sizeMax=4000000,
     dimPb = Internal.getNodeFromName(tb, 'EquationDimension')
     if dimPb is None: raise ValueError('adaptIBMMesh: EquationDimension is missing in input body tree.')
     dimPb = Internal.getValue(dimPb)
-    #
-    refstate = Internal.getNodeFromName(tb,'ReferenceState')
-    #
+    
+    refstate = Internal.getNodeFromName(tb, 'ReferenceState')
+    
     if refineNearBodies: constraintSurfaces = []
     else: constraintSurfaces = Internal.getZones(tb)
     if refineFinestLevel: refineLevelF = 1
     else: refineLevelF = 0
-    #
+
     o = Internal.getZones(to)[0]
     dims = Internal.getZoneDim(o)
     npts = dims[1]
     C._initVars(t,"{%s}={%s}*({centers:cellN}>0.)*({centers:cellN}<2.)"%(sensor,sensor))
-    C._initVars(to,"centers:indicator", 1.)
+    C._initVars(to, "centers:indicator", 1.)
     to = P.computeIndicatorValue(to, t, sensor)
     res = P.computeIndicatorField(to, sensor, nbTargetPts=factor*npts, \
                                   bodies=constraintSurfaces, \
@@ -178,9 +178,9 @@ def mergeByParent__(zones, parent, sizeMax):
                             pool.append(zones[noz])
                             found[noz]=1
         if len(pool)> 1:
-            res+= T.mergeCart(pool, sizeMax=sizeMax)
+            res += T.mergeCart(pool, sizeMax=sizeMax)
             del pool
-        elif len(pool)==1: res+=pool
+        elif len(pool)==1: res += pool
     return res
 
 def octree2StructLoc__(o, parento=None, vmin=21, ext=0, optimized=0, sizeMax=4e6):
@@ -449,7 +449,7 @@ def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None,
         o = G.octree(surfaces, snearList=snearso, dfar=dfar, dfarList=dfarList, balancing=balancing)
         G._getVolumeMap(o); volmin = C.getMinValue(o, 'centers:vol')
         dxmin = (volmin)**(1./dimPb)
-        if dxmin < 0.65*dxmin0: 
+        if dxmin < 0.65*dxmin0:
             snearso = [2.*i for i in snearso]
             o = G.octree(surfaces, snearList=snearso, dfar=dfar, dfarList=dfarList, balancing=balancing)
         
@@ -1315,7 +1315,6 @@ def doInterp2(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=
 
                         connector.indiceToCoord2(plist,prangedonor,transfo,profondeur,dirD,typ,dirR,plist.size,dim__[1]+1,dim__[2]+1,dim__[3]+1)
 
-
                         NMratio = numpy.zeros(3,dtype=numpy.int32)
                         NMratio[0]=1
                         NMratio[1]=1
@@ -1331,11 +1330,8 @@ def doInterp2(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=
                         info[2].append(['LevelZRcv', levelrcv , [], 'IndexArray_t'])
                         info[2].append(['LevelZDnr', leveldnr , [], 'IndexArray_t'])
 
-
-
         for dnrname in dictOfADT: C.freeHook(dictOfADT[dnrname])
     return tc
-
 
 #=============================================================================
 # Performs the full IBM preprocessing using overlapping Cartesian grids
@@ -1361,6 +1357,7 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, inv=False, int
     else: IBCType = 1 # Points cibles externes
     if loc == 'nodes':
         raise NotImplemented("prepareIBMData: prepareIBMData at nodes not yet implemented.")
+
     #------------------------
     # Ghost cells (overlaps)
     #------------------------
@@ -1465,7 +1462,7 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, inv=False, int
 
     tbb = G.BB(tc)
 
-    #Creation du dictionnaire des ADT pour les raccords
+    # Creation du dictionnaire des ADT pour les raccords
     if interpDataType == 1:
         dictOfADT = {}
         for zdnr in Internal.getZones(tc):
@@ -1500,7 +1497,7 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, inv=False, int
             if sizeOne < sizeTot:
                 XOD._setInterpTransfers(t,zc,variables=['cellNFront'],cellNVariable='cellNFront',compact=0)
 
-    if frontType==2 or frontType==3 : _pushBackImageFront2(t, tc, tbb, interpDataType=interpDataType)
+    if frontType==2 or frontType==3: _pushBackImageFront2(t, tc, tbb, interpDataType=interpDataType)
 
     ## Fin traitement specifique, vaut 0 ou 1 apres la ligne suivante
     C._cpVars(t,'centers:cellNFront',tc,'cellNFront')
@@ -1559,7 +1556,7 @@ def _pushBackImageFront2(t, tc, tbb, interpDataType=1):
                             fields = X.transferFields(zc, XI, YI, ZI, hook=HOOKADT, variables=['cellNFront_origin','cellNIBC_origin'], interpDataType=interpDataType)
                             if interpDataType == 1: allInterpFields.append(fields)
                             # C.freeHook(HOOKADT)
-                    if allInterpFields!=[]:
+                    if allInterpFields != []:
                         C._filterPartialFields(z, allInterpFields, indicesI, loc='centers', startFrom=0, filterName='donorVol',verbose=False)
                         # C._initVars(z,'{centers:cellNFront}=({centers:cellNFront}>0.5)') #ancienne version
                         C._initVars(z,'{centers:cellNFront}={centers:cellNFront}*({centers:cellNFront_origin}>0.5)') # Modification du Front uniquement lorsque celui-ci est repousse

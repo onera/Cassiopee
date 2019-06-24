@@ -16,7 +16,7 @@ myApp.set(numz={"time_step": 0.0007,
                 "cfl":4.})
 
 # Prepare
-t, tc = myApp.prepare('naca1DEuler.cgns', t_out=LOCAL+'/t.cgns', tc_out=LOCAL+'/tc.cgns')
+t, tc = myApp.prepare('naca1DEuler.cgns', t_out=LOCAL+'/t.cgns', tc_out=LOCAL+'/tc.cgns', NP=0)
 test.testT(tc, 1)
 
 # Compute

@@ -8,6 +8,9 @@ if [ "$CASSIOPEE" = "" ]; then
     exit
 fi
 
+# Environement
+ulimit -s unlimited
+
 # Compilation on different machines:
 # eos: x86 processors, intel compilers -> x86
 # cephee: x86 processors, intel compilers -> cp

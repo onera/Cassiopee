@@ -1780,8 +1780,7 @@ def tkLoadFile(files, mode='full'):
 
   if mode == 'partial':
     fileName = files[0]
-    try:
-      format = Converter.checkFileType(fileName)
+    try: format = Converter.checkFileType(fileName)
     except:
       print('Error: convertFile2PyTree: fail to read file %s.'%fileName)
       return

@@ -8,6 +8,9 @@ if ($?CASSIOPEE == 0) then
     exit
 endif
 
+# Environement
+limit stacksize unlimited
+
 # Compilation on different machines:
 
 # Detection machine (shortest first)
@@ -256,7 +259,6 @@ else if ($MAC == "tiamat") then
         setenv ELSAPROD tia_r8
         # Nombre de threads
         setenv OMP_NUM_THREADS 12
-        #setenv OMP_STACKSIZE "8M"
         setenv KMP_AFFINITY "verbose,granularity=fine,proclist=[0,1,2,3,4,5,6,7,8,9,10,11],explicit"
         # modules
         foreach x (`(echo "" ; module -t list) | & grep intel`)

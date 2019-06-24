@@ -362,7 +362,7 @@ def _addXZones(t, graph, variables=None, cartesian=False):
                     if cartesian: Compressor._compressCartesian(zonep)
                     data.append(zonep)
                 else:
-                    if cartesian: 
+                    if cartesian:
                         zonep = Compressor._compressCartesian(zonep)
                         data.append(zonep)
                     else: data.append(zone)
@@ -371,9 +371,9 @@ def _addXZones(t, graph, variables=None, cartesian=False):
 
     # Reception
     for node in graph:
-        #print rank, graph[node].keys()
+        #print(rank, graph[node].keys())
         if rank in graph[node]:
-            #print '%d: On doit recevoir de %d: %s'%(rank,node,graph[node][rank])
+            #print('%d: On doit recevoir de %d: %s'%(rank,node,graph[node][rank]))
             data = KCOMM.recv(source=node)
             
             for z in data: # data est une liste de zones

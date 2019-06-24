@@ -146,7 +146,7 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
     # arbre de calcul
     I._initConst(t, loc='centers')
     if model != "Euler": C._initVars(t, 'centers:ViscosityEddy', 0.)
-    if isinstance(t_out, str): Fast.save(t, t_out, split=format, NP=-NP, cartesian=False)
+    if isinstance(t_out, str): Fast.save(t, t_out, split=format, NP=-NP, cartesian=True)
     return t, tc
 
 #==================================================================================================
@@ -542,8 +542,8 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
                         #if zd is not None: dnrZones.append(zd)
                         if zd is None: print('!!!Zone None', zrname, zdname)
                         else: dnrZones.append(zd)
-                    XOD._setIBCDataForZone__(zrcv,dnrZones,allCorrectedPts[nozr],allWallPts[nozr],allInterpPts[nozr],
-                                             nature=1,penalty=1,loc='centers',storage='inverse', dim=dimPb,
+                    XOD._setIBCDataForZone__(zrcv, dnrZones, allCorrectedPts[nozr], allWallPts[nozr], allInterpPts[nozr],
+                                             nature=1, penalty=1, loc='centers', storage='inverse', dim=dimPb,
                                              interpDataType=0, ReferenceState=ReferenceState, bcType=ibcTypeL)
 
                     nozr += 1
@@ -620,9 +620,11 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
     if model != "Euler": C._initVars(t, 'centers:ViscosityEddy', 0.)
     # Save t
     if isinstance(t_out, str):
-        #import Compressor.PyTree as Compressor
-        #Compressor._compressCartesian(t)
+        import Compressor.PyTree as Compressor
+        Compressor._compressCartesian(t)
         Cmpi.convertPyTree2File(t, t_out)
+
+    if Cmpi.size > 1: Cmpi.barrier()
     return t, tc
 
 #=============================================================================
@@ -652,7 +654,6 @@ def post(t_case, t_in, tc_in, t_out, wall_out):
     #=============================
     if isinstance(tc_in, str): tc = C.convertFile2PyTree(tc_in)
     else: tc = tc_in
-    
     Internal._rmNodesByName(tc, 'GridCoordinates')
 
     #==========================================================
@@ -714,7 +715,7 @@ def post(t_case, t_in, tc_in, t_out, wall_out):
     #================================
     if dimPb == 2:
         t = T.subzone(t, (1,1,1), (-1,-1,1))
-        C._initVars(tb, 'CoordinateZ', 0.) # forced
+        C._initVars(t, 'CoordinateZ', 0.) # forced
 
     #=================================
     # Calcul de mut/mu dans le volume
@@ -729,7 +730,7 @@ def post(t_case, t_in, tc_in, t_out, wall_out):
     #==============================
     vars = ['centers:Density','centers:VelocityX', 'centers:Temperature','centers:ViscosityEddy', 
     'centers:TurbulentSANuTilde','centers:ViscosityMolecular', 'centers:mutsmu', 'centers:cellN']
-    for v in vars: t = C.center2Node(t, v)
+    t = C.center2Node(t, vars)
     Internal._rmNodesByName(t, 'FlowSolution#Centers')
     if isinstance(t_out, str): C.convertPyTree2File(t, t_out)
 
@@ -992,7 +993,7 @@ class IBM(Common):
         Common.__init__(self, format, numb, numz)
         self.__version__ = "0.0"
         self.authors = ["ash@onera.fr"]
-        #self.cartesian = True
+        self.cartesian = True
         
     # Prepare 
     def prepare(self, t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21, check=False, 

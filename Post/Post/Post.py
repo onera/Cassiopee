@@ -776,7 +776,12 @@ def isoSurf(array, var, value, split='simple'):
         ret = []
         for i in array:
             try:
-                if i[3] != 'NGON': 
+                dim = 3
+                if i[3] == 'NGON':
+                    ap = i[2].ravel('K')
+                    if ap[2] == 1: dim = 1
+                    if ap[2] == 2: dim = 2
+                if i[3] != 'NGON' or dim != 3:
                     i = Converter.convertArray2Tetra(i, split=split)
             except: pass
             try:
@@ -795,7 +800,12 @@ def isoSurf(array, var, value, split='simple'):
         return ret
     else:
         try:
-            if array[3] != 'NGON': b = Converter.convertArray2Tetra(array, split=split)
+            dim = 3
+            if array[3] == 'NGON': 
+                ap = array[2].ravel('K')
+                if ap[2] == 1: dim = 1
+                if ap[2] == 2: dim = 2
+            if array[3] != 'NGON' or dim != 3: b = Converter.convertArray2Tetra(array, split=split)
             else: b = array
         except: b = array
         try:

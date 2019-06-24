@@ -906,7 +906,7 @@ def _rmNodes(z, name):
         del parent[2][d]
   return None
 
-# Upgrade tree
+# Upgrade tree (applique apres lecture)
 def _upgradeTree(t):
   Internal._correctPyTree(t, level=10) # force CGNS names
   Internal._correctPyTree(t, level=2) # force unique name
