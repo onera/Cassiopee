@@ -842,7 +842,7 @@ struct ngon_t
           connectE.pushBack(e.begin(), e.end());
         }
         connectE.shift(-1);  
-        MIO::write("/home/slandier/tmp/free_edges.mesh", coord, connectE, "BAR");
+        MIO::write("free_edges.mesh", coord, connectE, "BAR");
       }*/
 #endif
       

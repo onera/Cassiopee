@@ -141,8 +141,8 @@ class hierarchical_mesh
     void verif3();
     void verif4();
     void verif5();
-    static void debug_ph_actif(E_Int j, const ngon_type& ng, tree<arr_t2> PHtree, ngon_unit& ph);
-    static void debug_draw(E_Int j, const ngon_type& ng, tree<arr_t2> PHtree, const K_FLD::FloatArray& crd);
+    static void debug_ph_actif(E_Int j, const ngon_type& ng, tree<arr_t> PHtree, ngon_unit& ph);
+    static void debug_draw(E_Int j, const ngon_type& ng, tree<arr_t> PHtree, const K_FLD::FloatArray& crd);
 #endif
 
   private:
@@ -906,7 +906,7 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t, crd_t>::verif5()
 
 
 template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t, typename crd_t>
-void hierarchical_mesh<ELT_t, STYPE, ngo_t, crd_t>::debug_ph_actif(E_Int j, const ngon_type& ng, tree<arr_t2> PHtree, ngon_unit& ph)
+void hierarchical_mesh<ELT_t, STYPE, ngo_t, crd_t>::debug_ph_actif(E_Int j, const ngon_type& ng, tree<arr_t> PHtree, ngon_unit& ph)
 {
     if (PHtree.is_enabled(j)){
         ph.add(ng.PHs.stride(j), ng.PHs.get_facets_ptr(j));
@@ -922,7 +922,7 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t, crd_t>::debug_ph_actif(E_Int j, cons
 
 // fixme : debug par encore au point
 template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t, typename crd_t>
-void hierarchical_mesh<ELT_t, STYPE, ngo_t, crd_t>::debug_draw(E_Int j, const ngon_type& ng, tree<arr_t2> PHtree, const K_FLD::FloatArray& crd)
+void hierarchical_mesh<ELT_t, STYPE, ngo_t, crd_t>::debug_draw(E_Int j, const ngon_type& ng, tree<arr_t> PHtree, const K_FLD::FloatArray& crd)
 {
     ngon_unit ph;
     //ph._NGON[0]=1;

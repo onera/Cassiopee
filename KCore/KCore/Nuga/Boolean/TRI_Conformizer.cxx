@@ -339,9 +339,11 @@ TRI_Conformizer<DIM>::__split_Elements
           K_CONNECT::MeshTool::compact_to_mesh(coord1, ci, newIDs);
 #endif
 #ifdef DEBUG_TRI_CONFORMIZER
-          o.str("");
-          o << "TRI_mesher_err_compact_" <<parent_type::_iter << "_" <<  i << ".mesh";
-          MIO::write(o.str().c_str(), coord1, ci, "BAR");
+          {
+            std::ostringstream o;
+            o << "TRI_mesher_err_compact_" <<parent_type::_iter << "_" <<  i << ".mesh";
+            MIO::write(o.str().c_str(), coord1, ci, "BAR");
+          }
 #endif
 #ifdef DEBUG_EXTRACT
           K_SEARCH::BBox3D box;

@@ -17,6 +17,6 @@ test.testT(m,1)
 
 m = XOR.adaptCells(a,b, sensor_type=1)
 m = XOR.closeOctalCells(m)
-C.convertPyTree2File(m, 'out.cgns')
+#C.convertPyTree2File(m, 'out.cgns')
 test.testT(m,2)
 

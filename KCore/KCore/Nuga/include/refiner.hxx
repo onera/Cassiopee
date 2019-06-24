@@ -145,7 +145,7 @@ void refine_point_computer<K_MESH::Hexahedron>::compute_center
   
       ///
       template <typename arr_t>
-      static void update_F2E (E_Int PHi, E_Int PHchildr0, E_Int* INT, E_Int** FACES, E_Int ndiag, ngon_type& ng, K_FLD::IntArray & F2E, tree<arr_t> & PGtree);
+      static void update_F2E (E_Int PHi, E_Int *children, E_Int* INT, E_Int** FACES, E_Int ndiag, ngon_type& ng, K_FLD::IntArray & F2E, tree<arr_t> & PGtree);
         
       ///
       template <typename arr_t>
@@ -367,7 +367,7 @@ void refiner<K_MESH::Triangle, eSUBDIV_TYPE::ISO>::refine_PGs
   }
   
 #ifdef DEBUG_HIERARCHICAL_MESH
-  NGDBG::draw_PGs(crd, ng.PGs, ids, false);
+  NGDBG::draw_PGs("draw.plt",crd, ng.PGs, ids, false);
 #endif
 
 }
@@ -432,9 +432,10 @@ void refiner<ELT_t, STYPE>::split_basic_PGref
     }
 }
 
-template <>
+// default implementation : ISO case , for all basic element types (Basic, Tetra, Pyra, Penta, Hexa)
+template <typename ELT_t, eSUBDIV_TYPE STYPE>
 template <typename arr_t>
-void refiner<K_MESH::Basic, eSUBDIV_TYPE::ISO>::refine_PGs
+void refiner<ELT_t, STYPE>::refine_PGs
 (const Vector_t<E_Int> &PHadap, 
  ngon_type& ng, tree<arr_t> & PGtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E,                 
  std::map<K_MESH::NO_Edge,E_Int>& ecenter)
@@ -442,8 +443,8 @@ void refiner<K_MESH::Basic, eSUBDIV_TYPE::ISO>::refine_PGs
   Vector_t<E_Int> PG_ref_T3, PG_ref_Q4; 
   split_basic_PGref(PHadap,  ng, PGtree,PG_ref_T3, PG_ref_Q4);
  
-  refiner<K_MESH::Quadrangle, eSUBDIV_TYPE::ISO>::refine_PGs(PG_ref_Q4, ng, PGtree, crd, F2E, ecenter);
-  refiner<K_MESH::Triangle, eSUBDIV_TYPE::ISO>::refine_PGs(PG_ref_T3, ng, PGtree, crd, F2E, ecenter);  
+  refiner<K_MESH::Quadrangle, STYPE>::refine_PGs(PG_ref_Q4, ng, PGtree, crd, F2E, ecenter);
+  refiner<K_MESH::Triangle, STYPE>::refine_PGs(PG_ref_T3, ng, PGtree, crd, F2E, ecenter);  
 }
 
 ///
@@ -1251,7 +1252,7 @@ void refiner<ELT_t, STYPE>::update_children_F2E(E_Int PGi, E_Int side, tree<arr_
 template <>
 template <typename arr_t>
 void refiner<K_MESH::Hexahedron, eSUBDIV_TYPE::ISO>::update_F2E
-(E_Int PHi, E_Int PHchildr0, E_Int* INT, E_Int** FACES, E_Int ndiag,
+(E_Int PHi, E_Int *children, E_Int* INT, E_Int** FACES, E_Int ndiag,
 ngon_type& ng, K_FLD::IntArray & F2E, tree<arr_t>& PGtree)
 {
   E_Int* BOT = &FACES[0][0];  
@@ -1261,97 +1262,96 @@ ngon_type& ng, K_FLD::IntArray & F2E, tree<arr_t>& PGtree)
   E_Int* FRONT = &FACES[4][0];  
   E_Int* BACK = &FACES[5][0];      
     
-  E_Int elt0 = PHchildr0;
   E_Int* pPGi = ng.PHs.get_facets_ptr(PHi);
   // BOT and TOP
   for (int i = 0; i < 4; i++)
   {
     E_Int sid = (F2E(1,pPGi[0]-1) == PHi) ? 1 : 0;
-    F2E(sid,BOT[i]) = elt0+i;
+    F2E(sid,BOT[i]) = *(children+i);
     update_children_F2E(BOT[i],sid, PGtree, F2E);
 
     sid = (F2E(0,pPGi[1]-1) == PHi) ? 0 : 1;
-    F2E(sid,TOP[i]) = elt0+4+i;
+    F2E(sid,TOP[i]) = *(children+4+i);
     update_children_F2E(TOP[i],sid, PGtree, F2E);
   }
   // LEFT
   E_Int sid = (F2E(1,pPGi[2]-1) == PHi) ? 1: 0;
-  F2E(sid,LEFT[0]) = elt0;
-  F2E(sid,LEFT[1]) = elt0+3;
-  F2E(sid,LEFT[2]) = elt0+7;
-  F2E(sid,LEFT[3]) = elt0+4;
+  F2E(sid,LEFT[0]) = *(children);
+  F2E(sid,LEFT[1]) = *(children+3);
+  F2E(sid,LEFT[2]) = *(children+7);
+  F2E(sid,LEFT[3]) = *(children+4);
   for (int i = 0; i < 4; ++i){
     update_children_F2E(LEFT[i], sid, PGtree, F2E);
   }
   // RIGHT
   sid = (F2E(0,pPGi[3]-1) == PHi) ? 0 : 1;
-  F2E(sid,RIGHT[0]) = elt0+1;
-  F2E(sid,RIGHT[1]) = elt0+2;
-  F2E(sid,RIGHT[2]) = elt0+6;
-  F2E(sid,RIGHT[3]) = elt0+5;
+  F2E(sid,RIGHT[0]) = *(children+1);
+  F2E(sid,RIGHT[1]) = *(children+2);
+  F2E(sid,RIGHT[2]) = *(children+6);
+  F2E(sid,RIGHT[3]) = *(children+5);
   for (int i = 0; i < 4; ++i){
     update_children_F2E(RIGHT[i],sid, PGtree, F2E);
   }
   // FRONT
   sid = (F2E(1,pPGi[4]-1) == PHi) ? 1: 0;
-  F2E(sid,FRONT[0]) = elt0+1;
-  F2E(sid,FRONT[1]) = elt0;
-  F2E(sid,FRONT[2]) = elt0+4;
-  F2E(sid,FRONT[3]) = elt0+5;
+  F2E(sid,FRONT[0]) = *(children+1);
+  F2E(sid,FRONT[1]) = *(children);
+  F2E(sid,FRONT[2]) = *(children+4);
+  F2E(sid,FRONT[3]) = *(children+5);
   for (int i = 0; i < 4; ++i){
     update_children_F2E(FRONT[i],sid, PGtree, F2E);
   }
   // BACK
   sid = (F2E(0,pPGi[5]-1) == PHi) ? 0 : 1;
-  F2E(sid,BACK[0]) = elt0+2;
-  F2E(sid,BACK[1]) = elt0+3;
-  F2E(sid,BACK[2]) = elt0+7;
-  F2E(sid,BACK[3]) = elt0+6;
+  F2E(sid,BACK[0]) = *(children+2);
+  F2E(sid,BACK[1]) = *(children+3);
+  F2E(sid,BACK[2]) = *(children+7);
+  F2E(sid,BACK[3]) = *(children+6);
   for (int i = 0; i < 4; ++i)
     update_children_F2E(BACK[i],sid, PGtree, F2E);
   // INTERNAL faces
-  F2E(0,INT[0]) = elt0+1;
-  F2E(1,INT[0]) = elt0+2;
+  F2E(0,INT[0]) = *(children+1);
+  F2E(1,INT[0]) = *(children+2);
 
-  F2E(0,INT[1]) = elt0;
-  F2E(1,INT[1]) = elt0+3;
+  F2E(0,INT[1]) = *(children);
+  F2E(1,INT[1]) = *(children+3);
 
-  F2E(0,INT[2]) = elt0+4;
-  F2E(1,INT[2]) = elt0+7;
+  F2E(0,INT[2]) = *(children+4);
+  F2E(1,INT[2]) = *(children+7);
 
-  F2E(0,INT[3]) = elt0+5;
-  F2E(1,INT[3]) = elt0+6;
+  F2E(0,INT[3]) = *(children+5);
+  F2E(1,INT[3]) = *(children+6);
 
-  F2E(0,INT[4]) = elt0;
-  F2E(1,INT[4]) = elt0+4;
+  F2E(0,INT[4]) = *(children);
+  F2E(1,INT[4]) = *(children+4);
 
-  F2E(0,INT[5]) = elt0+1;
-  F2E(1,INT[5]) = elt0+5;
+  F2E(0,INT[5]) = *(children+1);
+  F2E(1,INT[5]) = *(children+5);
 
-  F2E(0,INT[6]) = elt0+2;
-  F2E(1,INT[6]) = elt0+6;
+  F2E(0,INT[6]) = *(children+2);
+  F2E(1,INT[6]) = *(children+6);
 
-  F2E(0,INT[7]) = elt0+3;
-  F2E(1,INT[7]) = elt0+7;
+  F2E(0,INT[7]) = *(children+3);
+  F2E(1,INT[7]) = *(children+7);
 
-  F2E(0,INT[8]) = elt0;
-  F2E(1,INT[8]) = elt0+1;
+  F2E(0,INT[8]) = *(children);
+  F2E(1,INT[8]) = *(children+1);
 
-  F2E(0,INT[9]) = elt0+3;
-  F2E(1,INT[9]) = elt0+2;
+  F2E(0,INT[9]) = *(children+3);
+  F2E(1,INT[9]) = *(children+2);
 
-  F2E(0,INT[10]) = elt0+7;
-  F2E(1,INT[10]) = elt0+6;
+  F2E(0,INT[10]) = *(children+7);
+  F2E(1,INT[10]) = *(children+6);
 
-  F2E(0,INT[11]) = elt0+4;
-  F2E(1,INT[11]) = elt0+5;
+  F2E(0,INT[11]) = *(children+4);
+  F2E(1,INT[11]) = *(children+5);
 
 }
 
 template <>
 template <typename arr_t>
 void refiner<K_MESH::Tetrahedron, eSUBDIV_TYPE::ISO>::update_F2E
-(E_Int PHi, E_Int PHchildr0, E_Int* INT, E_Int** FACES, E_Int ndiag,
+(E_Int PHi, E_Int *children, E_Int* INT, E_Int** FACES, E_Int ndiag,
 ngon_type& ng, K_FLD::IntArray & F2E, tree<arr_t>& PGtree)
 {
   E_Int* BOT = &FACES[0][0];  
@@ -1360,180 +1360,179 @@ ngon_type& ng, K_FLD::IntArray & F2E, tree<arr_t>& PGtree)
   E_Int* F3 = &FACES[3][0];      
     
     
-  E_Int elt0 = PHchildr0;
   E_Int* pPGi = ng.PHs.get_facets_ptr(PHi);
   // BOT and TOP
   for (int i = 0; i < 3; i++)
   {
     E_Int sid = (F2E(1,pPGi[0]-1) == PHi) ? 1 : 0;
-    F2E(sid,BOT[i]) = elt0+i;
+    F2E(sid,BOT[i]) = *(children+i);
     update_children_F2E(BOT[i],sid, PGtree, F2E);
   }
   E_Int sid = (F2E(1,pPGi[0]-1) == PHi) ? 1 : 0;
   
   
   if (ndiag==1){
-  F2E(sid,BOT[3]) = elt0+5;
+  F2E(sid,BOT[3]) = *(children+5);
   update_children_F2E(BOT[3],sid, PGtree, F2E);
   // F1
   sid = (F2E(1,pPGi[1]-1) == PHi) ? 1: 0;
-  F2E(sid,F1[0]) = elt0;
-  F2E(sid,F1[1]) = elt0+1;
-  F2E(sid,F1[2]) = elt0+3;
-  F2E(sid,F1[3]) = elt0+4;
+  F2E(sid,F1[0]) = *(children);
+  F2E(sid,F1[1]) = *(children+1);
+  F2E(sid,F1[2]) = *(children+3);
+  F2E(sid,F1[3]) = *(children+4);
   for (int i = 0; i < 4; ++i)
     update_children_F2E(F1[i], sid, PGtree, F2E);
   // F2
   sid = (F2E(0,pPGi[2]-1) == PHi) ? 0 : 1;
-  F2E(sid,F2[0]) = elt0+1;
-  F2E(sid,F2[1]) = elt0+2;
-  F2E(sid,F2[2]) = elt0+3;
-  F2E(sid,F2[3]) = elt0+6;
+  F2E(sid,F2[0]) = *(children+1);
+  F2E(sid,F2[1]) = *(children+2);
+  F2E(sid,F2[2]) = *(children+3);
+  F2E(sid,F2[3]) = *(children+6);
   for (int i = 0; i < 4; ++i)
     update_children_F2E(F2[i],sid, PGtree, F2E);
   // F3
   sid = (F2E(1,pPGi[3]-1) == PHi) ? 1: 0;
-  F2E(sid,F3[0]) = elt0+2;
-  F2E(sid,F3[1]) = elt0;
-  F2E(sid,F3[2]) = elt0+3;
-  F2E(sid,F3[3]) = elt0+7;
+  F2E(sid,F3[0]) = *(children+2);
+  F2E(sid,F3[1]) = *(children);
+  F2E(sid,F3[2]) = *(children+3);
+  F2E(sid,F3[3]) = *(children+7);
   for (int i = 0; i < 4; ++i)
     update_children_F2E(F3[i],sid, PGtree, F2E);
   // INTERNAL faces
-  F2E(0,INT[0]) = elt0;
-  F2E(1,INT[0]) = elt0+4;
+  F2E(0,INT[0]) = *(children);
+  F2E(1,INT[0]) = *(children+4);
 
-  F2E(0,INT[1]) = elt0+1;
-  F2E(1,INT[1]) = elt0+5;
+  F2E(0,INT[1]) = *(children+1);
+  F2E(1,INT[1]) = *(children+5);
 
-  F2E(0,INT[2]) = elt0+2;
-  F2E(1,INT[2]) = elt0+6;
+  F2E(0,INT[2]) = *(children+2);
+  F2E(1,INT[2]) = *(children+6);
 
-  F2E(0,INT[3]) = elt0+3;
-  F2E(1,INT[3]) = elt0+7;
+  F2E(0,INT[3]) = *(children+3);
+  F2E(1,INT[3]) = *(children+7);
 
-  F2E(0,INT[4]) = elt0+5;
-  F2E(1,INT[4]) = elt0+6;
+  F2E(0,INT[4]) = *(children+5);
+  F2E(1,INT[4]) = *(children+6);
 
-  F2E(0,INT[5]) = elt0+4;
-  F2E(1,INT[5]) = elt0+7;
+  F2E(0,INT[5]) = *(children+4);
+  F2E(1,INT[5]) = *(children+7);
 
-  F2E(0,INT[6]) = elt0+4;
-  F2E(1,INT[6]) = elt0+5;
+  F2E(0,INT[6]) = *(children+4);
+  F2E(1,INT[6]) = *(children+5);
 
-  F2E(0,INT[7]) = elt0+7;
-  F2E(1,INT[7]) = elt0+6;
+  F2E(0,INT[7]) = *(children+7);
+  F2E(1,INT[7]) = *(children+6);
   }
   else if (ndiag==2) {
-  F2E(sid,BOT[3]) = elt0+4;
+  F2E(sid,BOT[3]) = *(children+4);
   update_children_F2E(BOT[3],sid, PGtree, F2E);
   // F1
   sid = (F2E(1,pPGi[1]-1) == PHi) ? 1: 0;
-  F2E(sid,F1[0]) = elt0;
-  F2E(sid,F1[1]) = elt0+1;
-  F2E(sid,F1[2]) = elt0+3;
-  F2E(sid,F1[3]) = elt0+5;
+  F2E(sid,F1[0]) = *(children);
+  F2E(sid,F1[1]) = *(children+1);
+  F2E(sid,F1[2]) = *(children+3);
+  F2E(sid,F1[3]) = *(children+5);
   for (int i = 0; i < 4; ++i)
     update_children_F2E(F1[i], sid, PGtree, F2E);
   // F2
   sid = (F2E(0,pPGi[2]-1) == PHi) ? 0 : 1;
-  F2E(sid,F2[0]) = elt0+1;
-  F2E(sid,F2[1]) = elt0+2;
-  F2E(sid,F2[2]) = elt0+3;
-  F2E(sid,F2[3]) = elt0+7;
+  F2E(sid,F2[0]) = *(children+1);
+  F2E(sid,F2[1]) = *(children+2);
+  F2E(sid,F2[2]) = *(children+3);
+  F2E(sid,F2[3]) = *(children+7);
   for (int i = 0; i < 4; ++i)
     update_children_F2E(F2[i],sid, PGtree, F2E);
   // F3
   sid = (F2E(1,pPGi[3]-1) == PHi) ? 1: 0;
-  F2E(sid,F3[0]) = elt0+2;
-  F2E(sid,F3[1]) = elt0;
-  F2E(sid,F3[2]) = elt0+3;
-  F2E(sid,F3[3]) = elt0+6;
+  F2E(sid,F3[0]) = *(children+2);
+  F2E(sid,F3[1]) = *(children);
+  F2E(sid,F3[2]) = *(children+3);
+  F2E(sid,F3[3]) = *(children+6);
   for (int i = 0; i < 4; ++i)
     update_children_F2E(F3[i],sid, PGtree, F2E);
   // INTERNAL faces
-  F2E(0,INT[0]) = elt0;
-  F2E(1,INT[0]) = elt0+4;
+  F2E(0,INT[0]) = *(children);
+  F2E(1,INT[0]) = *(children+4);
 
-  F2E(0,INT[1]) = elt0+1;
-  F2E(1,INT[1]) = elt0+5;
+  F2E(0,INT[1]) = *(children+1);
+  F2E(1,INT[1]) = *(children+5);
 
-  F2E(0,INT[2]) = elt0+2;
-  F2E(1,INT[2]) = elt0+6;
+  F2E(0,INT[2]) = *(children+2);
+  F2E(1,INT[2]) = *(children+6);
 
-  F2E(0,INT[3]) = elt0+3;
-  F2E(1,INT[3]) = elt0+7;
+  F2E(0,INT[3]) = *(children+3);
+  F2E(1,INT[3]) = *(children+7);
 
-  F2E(0,INT[4]) = elt0+5;
-  F2E(1,INT[4]) = elt0+7;
+  F2E(0,INT[4]) = *(children+5);
+  F2E(1,INT[4]) = *(children+7);
 
-  F2E(0,INT[5]) = elt0+4;
-  F2E(1,INT[5]) = elt0+6;
+  F2E(0,INT[5]) = *(children+4);
+  F2E(1,INT[5]) = *(children+6);
 
-  F2E(0,INT[6]) = elt0+5;
-  F2E(1,INT[6]) = elt0+4;
+  F2E(0,INT[6]) = *(children+5);
+  F2E(1,INT[6]) = *(children+4);
 
-  F2E(0,INT[7]) = elt0+7;
-  F2E(1,INT[7]) = elt0+6;
+  F2E(0,INT[7]) = *(children+7);
+  F2E(1,INT[7]) = *(children+6);
   }
   else {
-  F2E(sid,BOT[3]) = elt0+6;
+  F2E(sid,BOT[3]) = *(children+6);
   update_children_F2E(BOT[3],sid, PGtree, F2E);
   // F1
   sid = (F2E(1,pPGi[1]-1) == PHi) ? 1: 0;
-  F2E(sid,F1[0]) = elt0;
-  F2E(sid,F1[1]) = elt0+1;
-  F2E(sid,F1[2]) = elt0+3;
-  F2E(sid,F1[3]) = elt0+7;
+  F2E(sid,F1[0]) = *(children);
+  F2E(sid,F1[1]) = *(children+1);
+  F2E(sid,F1[2]) = *(children+3);
+  F2E(sid,F1[3]) = *(children+7);
   for (int i = 0; i < 4; ++i)
     update_children_F2E(F1[i], sid, PGtree, F2E);
   // F2
   sid = (F2E(0,pPGi[2]-1) == PHi) ? 0 : 1;
-  F2E(sid,F2[0]) = elt0+1;
-  F2E(sid,F2[1]) = elt0+2;
-  F2E(sid,F2[2]) = elt0+3;
-  F2E(sid,F2[3]) = elt0+5;
+  F2E(sid,F2[0]) = *(children+1);
+  F2E(sid,F2[1]) = *(children+2);
+  F2E(sid,F2[2]) = *(children+3);
+  F2E(sid,F2[3]) = *(children+5);
   for (int i = 0; i < 4; ++i)
     update_children_F2E(F2[i],sid, PGtree, F2E);
   // F3
   sid = (F2E(1,pPGi[3]-1) == PHi) ? 1: 0;
-  F2E(sid,F3[0]) = elt0+2;
-  F2E(sid,F3[1]) = elt0;
-  F2E(sid,F3[2]) = elt0+3;
-  F2E(sid,F3[3]) = elt0+4;
+  F2E(sid,F3[0]) = *(children+2);
+  F2E(sid,F3[1]) = *(children);
+  F2E(sid,F3[2]) = *(children+3);
+  F2E(sid,F3[3]) = *(children+4);
   for (int i = 0; i < 4; ++i)
     update_children_F2E(F3[i],sid, PGtree, F2E);
   // INTERNAL faces
-  F2E(0,INT[0]) = elt0;
-  F2E(1,INT[0]) = elt0+4;
+  F2E(0,INT[0]) = *(children);
+  F2E(1,INT[0]) = *(children+4);
 
-  F2E(0,INT[1]) = elt0+1;
-  F2E(1,INT[1]) = elt0+5;
+  F2E(0,INT[1]) = *(children+1);
+  F2E(1,INT[1]) = *(children+5);
 
-  F2E(0,INT[2]) = elt0+2;
-  F2E(1,INT[2]) = elt0+6;
+  F2E(0,INT[2]) = *(children+2);
+  F2E(1,INT[2]) = *(children+6);
 
-  F2E(0,INT[3]) = elt0+3;
-  F2E(1,INT[3]) = elt0+7;
+  F2E(0,INT[3]) = *(children+3);
+  F2E(1,INT[3]) = *(children+7);
 
-  F2E(0,INT[4]) = elt0+6;
-  F2E(1,INT[4]) = elt0+4;
+  F2E(0,INT[4]) = *(children+6);
+  F2E(1,INT[4]) = *(children+4);
 
-  F2E(0,INT[5]) = elt0+5;
-  F2E(1,INT[5]) = elt0+7;
+  F2E(0,INT[5]) = *(children+5);
+  F2E(1,INT[5]) = *(children+7);
 
-  F2E(0,INT[6]) = elt0+6;
-  F2E(1,INT[6]) = elt0+5;
+  F2E(0,INT[6]) = *(children+6);
+  F2E(1,INT[6]) = *(children+5);
 
-  F2E(0,INT[7]) = elt0+4;
-  F2E(1,INT[7]) = elt0+7;
+  F2E(0,INT[7]) = *(children+4);
+  F2E(1,INT[7]) = *(children+7);
   }
 }
 
 template <>
 template <typename arr_t>
 void refiner<K_MESH::Pyramid, eSUBDIV_TYPE::ISO>::update_F2E
-(E_Int PHi, E_Int PHchildr0, E_Int* INT, E_Int** FACES, E_Int ndiag,
+(E_Int PHi, E_Int* children, E_Int* INT, E_Int** FACES, E_Int ndiag,
 ngon_type& ng, K_FLD::IntArray & F2E, tree<arr_t>& PGtree)
 {
   E_Int* BOT = &FACES[0][0];  
@@ -1542,48 +1541,47 @@ ngon_type& ng, K_FLD::IntArray & F2E, tree<arr_t>& PGtree)
   E_Int* F3 = &FACES[3][0];  
   E_Int* F4 = &FACES[4][0];      
     
-  E_Int elt0 = PHchildr0;
   E_Int* pPGi = ng.PHs.get_facets_ptr(PHi);
   // BOT
   for (int i = 0; i < 4; i++)
   {
     E_Int sid = (F2E(1,pPGi[0]-1) == PHi) ? 1 : 0;
-    F2E(sid,BOT[i]) = elt0+i;
+    F2E(sid,BOT[i]) = *(children+i);
     update_children_F2E(BOT[i],sid, PGtree, F2E);
   }
   // F1
   E_Int sid = (F2E(1,pPGi[1]-1) == PHi) ? 1: 0;
-  F2E(sid,F1[0]) = elt0;
-  F2E(sid,F1[1]) = elt0+1;
-  F2E(sid,F1[2]) = elt0+4;
-  F2E(sid,F1[3]) = elt0+6;
+  F2E(sid,F1[0]) = *children;
+  F2E(sid,F1[1]) = *(children+1);
+  F2E(sid,F1[2]) = *(children+4);
+  F2E(sid,F1[3]) = *(children+6);
   for (int i = 0; i < 4; ++i){
     update_children_F2E(F1[i], sid, PGtree, F2E);
   }
   // F2
   sid = (F2E(0,pPGi[2]-1) == PHi) ? 0 : 1;
-  F2E(sid,F2[0]) = elt0+1;
-  F2E(sid,F2[1]) = elt0+2;
-  F2E(sid,F2[2]) = elt0+4;
-  F2E(sid,F2[3]) = elt0+7;
+  F2E(sid,F2[0]) = *(children+1);
+  F2E(sid,F2[1]) = *(children+2);
+  F2E(sid,F2[2]) = *(children+4);
+  F2E(sid,F2[3]) = *(children+7);
   for (int i = 0; i < 4; ++i){
     update_children_F2E(F2[i],sid, PGtree, F2E);
   }
   // F3
   sid = (F2E(1,pPGi[3]-1) == PHi) ? 1: 0;
-  F2E(sid,F3[0]) = elt0+2;
-  F2E(sid,F3[1]) = elt0+3;
-  F2E(sid,F3[2]) = elt0+4;
-  F2E(sid,F3[3]) = elt0+8;
+  F2E(sid,F3[0]) = *(children+2);
+  F2E(sid,F3[1]) = *(children+3);
+  F2E(sid,F3[2]) = *(children+4);
+  F2E(sid,F3[3]) = *(children+8);
   for (int i = 0; i < 4; ++i){
     update_children_F2E(F3[i],sid, PGtree, F2E);
   }
   // F4
   sid = (F2E(0,pPGi[4]-1) == PHi) ? 0 : 1;
-  F2E(sid,F4[0]) = elt0+3;
-  F2E(sid,F4[1]) = elt0;
-  F2E(sid,F4[2]) = elt0+4;
-  F2E(sid,F4[3]) = elt0+9;
+  F2E(sid,F4[0]) = *(children+3);
+  F2E(sid,F4[1]) = *(children);
+  F2E(sid,F4[2]) = *(children+4);
+  F2E(sid,F4[3]) = *(children+9);
   for (int i = 0; i < 4; ++i){
     update_children_F2E(F4[i],sid, PGtree, F2E);
   }
@@ -1593,50 +1591,50 @@ ngon_type& ng, K_FLD::IntArray & F2E, tree<arr_t>& PGtree)
 //  }
 //  std::cout << "PG size= " << ng.PGs.size() << std::endl;
 //  std::cout << "F2E size= " << F2E.cols() << std::endl;
-  F2E(0,INT[0]) = elt0;
-  F2E(1,INT[0]) = elt0+6;
+  F2E(0,INT[0]) = *(children);
+  F2E(1,INT[0]) = *(children+6);
 
-  F2E(0,INT[1]) = elt0+1;
-  F2E(1,INT[1]) = elt0+6;
+  F2E(0,INT[1]) = *(children+1);
+  F2E(1,INT[1]) = *(children+6);
 
-  F2E(0,INT[2]) = elt0+1;
-  F2E(1,INT[2]) = elt0+7;
+  F2E(0,INT[2]) = *(children+1);
+  F2E(1,INT[2]) = *(children+7);
 
-  F2E(0,INT[3]) = elt0+2;
-  F2E(1,INT[3]) = elt0+7;
+  F2E(0,INT[3]) = *(children+2);
+  F2E(1,INT[3]) = *(children+7);
 
-  F2E(0,INT[4]) = elt0+2;
-  F2E(1,INT[4]) = elt0+8;
+  F2E(0,INT[4]) = *(children+2);
+  F2E(1,INT[4]) = *(children+8);
 
-  F2E(0,INT[5]) = elt0+3;
-  F2E(1,INT[5]) = elt0+8;
+  F2E(0,INT[5]) = *(children+3);
+  F2E(1,INT[5]) = *(children+8);
 
-  F2E(0,INT[6]) = elt0+3;
-  F2E(1,INT[6]) = elt0+9;
+  F2E(0,INT[6]) = *(children+3);
+  F2E(1,INT[6]) = *(children+9);
 
-  F2E(0,INT[7]) = elt0;
-  F2E(1,INT[7]) = elt0+9;
+  F2E(0,INT[7]) = *(children);
+  F2E(1,INT[7]) = *(children+9);
 
-  F2E(0,INT[8]) = elt0+5;
-  F2E(1,INT[8]) = elt0+6;
+  F2E(0,INT[8]) = *(children+5);
+  F2E(1,INT[8]) = *(children+6);
 
-  F2E(0,INT[9]) = elt0+5;
-  F2E(1,INT[9]) = elt0+7;
+  F2E(0,INT[9]) = *(children+5);
+  F2E(1,INT[9]) = *(children+7);
 
-  F2E(0,INT[10]) = elt0+5;
-  F2E(1,INT[10]) = elt0+8;
+  F2E(0,INT[10]) = *(children+5);
+  F2E(1,INT[10]) = *(children+8);
 
-  F2E(0,INT[11]) = elt0+5;
-  F2E(1,INT[11]) = elt0+9;
+  F2E(0,INT[11]) = *(children+5);
+  F2E(1,INT[11]) = *(children+9);
   
-  F2E(0,INT[12]) = elt0+5;
-  F2E(1,INT[12]) = elt0+4;
+  F2E(0,INT[12]) = *(children+5);
+  F2E(1,INT[12]) = *(children+4);
 }
 
 template <>
 template<typename arr_t>
 void refiner<K_MESH::Prism, eSUBDIV_TYPE::ISO>::update_F2E
-(E_Int PHi, E_Int PHchildr0, E_Int* INT, E_Int** FACES, E_Int ndiag,
+(E_Int PHi, E_Int* children, E_Int* INT, E_Int** FACES, E_Int ndiag,
 ngon_type& ng, K_FLD::IntArray & F2E, tree<arr_t>& PGtree)
 {
   E_Int* BOT = &FACES[0][0];  
@@ -1646,84 +1644,83 @@ ngon_type& ng, K_FLD::IntArray & F2E, tree<arr_t>& PGtree)
   E_Int* TOP = &FACES[4][0];     
     
     
-  E_Int elt0 = PHchildr0;
   E_Int* pPGi = ng.PHs.get_facets_ptr(PHi);
   // BOT
   E_Int sid = (F2E(1,pPGi[0]-1) == PHi) ? 1 : 0;
   for (int i = 0; i < 4; i++)
   {
-    F2E(sid,BOT[i]) = elt0+i;
+    F2E(sid,BOT[i]) = *(children+i);
     update_children_F2E(BOT[i],sid, PGtree, F2E);
   }
   
   
   // F1
   sid = (F2E(1,pPGi[1]-1) == PHi) ? 1: 0;
-  F2E(sid,F1[0]) = elt0;
-  F2E(sid,F1[1]) = elt0+1;
-  F2E(sid,F1[2]) = elt0+5;
-  F2E(sid,F1[3]) = elt0+4;
+  F2E(sid,F1[0]) = *children;
+  F2E(sid,F1[1]) = *(children+1);
+  F2E(sid,F1[2]) = *(children+5);
+  F2E(sid,F1[3]) = *(children+4);
   for (int i = 0; i < 4; ++i){
     update_children_F2E(F1[i], sid, PGtree, F2E);
   }
   // F2
   sid = (F2E(0,pPGi[2]-1) == PHi) ? 0 : 1;
-  F2E(sid,F2[0]) = elt0+1;
-  F2E(sid,F2[1]) = elt0+2;
-  F2E(sid,F2[2]) = elt0+6;
-  F2E(sid,F2[3]) = elt0+5;
+  F2E(sid,F2[0]) = *(children+1);
+  F2E(sid,F2[1]) = *(children+2);
+  F2E(sid,F2[2]) = *(children+6);
+  F2E(sid,F2[3]) = *(children+5);
   for (int i = 0; i < 4; ++i){
     update_children_F2E(F2[i],sid, PGtree, F2E);
   }
   // F3
   sid = (F2E(1,pPGi[3]-1) == PHi) ? 1: 0;
-  F2E(sid,F3[0]) = elt0+2;
-  F2E(sid,F3[1]) = elt0;
-  F2E(sid,F3[2]) = elt0+4;
-  F2E(sid,F3[3]) = elt0+6;
+  F2E(sid,F3[0]) = *(children+2);
+  F2E(sid,F3[1]) = *(children);
+  F2E(sid,F3[2]) = *(children+4);
+  F2E(sid,F3[3]) = *(children+6);
   for (int i = 0; i < 4; ++i){
     update_children_F2E(F3[i],sid, PGtree, F2E);
   }
   // TOP
   sid = (F2E(0,pPGi[4]-1) == PHi) ? 0 : 1;
-  F2E(sid,TOP[0]) = elt0+4;
-  F2E(sid,TOP[1]) = elt0+5;
-  F2E(sid,TOP[2]) = elt0+6;
-  F2E(sid,TOP[3]) = elt0+7;
+  F2E(sid,TOP[0]) = *(children+4);
+  F2E(sid,TOP[1]) = *(children+5);
+  F2E(sid,TOP[2]) = *(children+6);
+  F2E(sid,TOP[3]) = *(children+7);
   for (int i = 0; i < 4; ++i){
     update_children_F2E(TOP[i],sid, PGtree, F2E);
   }
   // INTERNAL faces
 
-  F2E(0,INT[0]) = elt0;
-  F2E(1,INT[0]) = elt0+4;
+  F2E(0,INT[0]) = *children;
+  F2E(1,INT[0]) = *(children+4);
 
-  F2E(0,INT[1]) = elt0+1;
-  F2E(1,INT[1]) = elt0+5;
+  F2E(0,INT[1]) = *(children+1);
+  F2E(1,INT[1]) = *(children+5);
 
-  F2E(0,INT[2]) = elt0+2;
-  F2E(1,INT[2]) = elt0+6;
+  F2E(0,INT[2]) = *(children+2);
+  F2E(1,INT[2]) = *(children+6);
 
-  F2E(0,INT[3]) = elt0+3;
-  F2E(1,INT[3]) = elt0+7;
+  F2E(0,INT[3]) = *(children+3);
+  F2E(1,INT[3]) = *(children+7);
 
-  F2E(0,INT[4]) = elt0;
-  F2E(1,INT[4]) = elt0+3;
+  F2E(0,INT[4]) = *(children);
+  F2E(1,INT[4]) = *(children+3);
 
-  F2E(0,INT[5]) = elt0+1;
-  F2E(1,INT[5]) = elt0+3;
+  F2E(0,INT[5]) = *(children+1);
+  F2E(1,INT[5]) = *(children+3);
 
-  F2E(0,INT[6]) = elt0+2;
-  F2E(1,INT[6]) = elt0+3;
+  F2E(0,INT[6]) = *(children+2);
+  F2E(1,INT[6]) = *(children+3);
 
-  F2E(0,INT[7]) = elt0+4;
-  F2E(1,INT[7]) = elt0+7;
+  F2E(0,INT[7]) = *(children+4);
+  F2E(1,INT[7]) = *(children+7);
 
-  F2E(0,INT[8]) = elt0+5;
-  F2E(1,INT[8]) = elt0+7;
+  F2E(0,INT[8]) = *(children+5);
+  F2E(1,INT[8]) = *(children+7);
 
-  F2E(0,INT[9]) = elt0+6;
-  F2E(1,INT[9]) = elt0+7;
+  F2E(0,INT[9]) = *(children+6);
+  F2E(1,INT[9]) = *(children+7);
 }
 
 ///
@@ -1827,7 +1824,7 @@ void refiner<K_MESH::Hexahedron, eSUBDIV_TYPE::ISO>::refine_PHs
 
     // update F2E
     E_Int ndiag(0); // spécialisation argument ndiag pour tétra
-    update_F2E(PHi,PHichildr[0],INT, FACESindex, ndiag,ng, F2E, PGtree);
+    update_F2E(PHi,PHichildr,INT, FACESindex, ndiag,ng, F2E, PGtree);
   }  
 }
 
@@ -1981,7 +1978,7 @@ ngon_type& ng, tree<arr_t> & PGtree, tree<arr_t> & PHtree, K_FLD::FloatArray& cr
     PHtree.set_children(PHi, PHichildr, 8);
 
     // update F2E
-    update_F2E(PHi,PHichildr[0],INT, FACESindex, ndiag, ng, F2E, PGtree);
+    update_F2E(PHi,PHichildr,INT, FACESindex, ndiag, ng, F2E, PGtree);
 
 #ifdef DEBUG_2019    
 //  E_Float Vol;
@@ -2127,14 +2124,6 @@ void refiner<K_MESH::Pyramid, eSUBDIV_TYPE::ISO>::refine_PHs
     // the 8 children of PH
     E_Int PHichildr[10];
 
-//    for (int j = 0; j < 6; ++j){
-//      PHichildr[j] = nb_phs0 + 6*i + j;
-//      //std::cout << "child i= " << PHichildr[j] << std::endl;
-//    }
-//    for (int j = 0; j < 4; ++j){
-//      PHichildr[6+j] = nb_phs0 + 6*(nb_phs) +4*i + j;
-//      //std::cout << "child i= " << PHichildr[j] << std::endl;
-//    }
     for (int j = 0; j < 10; ++j){
       PHichildr[j] = nb_phs0 + 10*i + j;
       //std::cout << "child i= " << PHichildr[j] << std::endl;
@@ -2161,7 +2150,7 @@ void refiner<K_MESH::Pyramid, eSUBDIV_TYPE::ISO>::refine_PHs
 
     // update F2E
     E_Int ndiag(0);
-    update_F2E(PHi,PHichildr[0],INT, FACESindex, ndiag,ng, F2E, PGtree);
+    update_F2E(PHi,PHichildr,INT, FACESindex, ndiag,ng, F2E, PGtree);
     //std::cout << "is hybrid after refine pyra i=  "<< i << "? " << (is_hybrid(ng) ? "oui" : "non") << std::endl;
 
   }  
@@ -2263,8 +2252,6 @@ void refiner<K_MESH::Prism, eSUBDIV_TYPE::ISO>::refine_PHs
     E_Int* h277 = ng.PHs.get_facets_ptr(PHichildr[6]);
     E_Int* h278 = ng.PHs.get_facets_ptr(PHichildr[7]);
 
-
-
     NUGA::H27::splitPr18(crd, INT, BOT, F1, F2, F3, TOP, h271, h272, h273, h274, h275, h276, h277, h278);
 
     // set them in the tree
@@ -2272,7 +2259,7 @@ void refiner<K_MESH::Prism, eSUBDIV_TYPE::ISO>::refine_PHs
 
     // update F2E
     E_Int ndiag(0);
-    update_F2E(PHi,PHichildr[0],INT, FACESindex, ndiag,ng, F2E, PGtree);
+    update_F2E(PHi,PHichildr,INT, FACESindex, ndiag,ng, F2E, PGtree);
 
   }  
   

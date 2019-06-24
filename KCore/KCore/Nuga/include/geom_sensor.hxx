@@ -664,6 +664,80 @@ void geom_sensor2<mesh_t, crd_t>::update(E_Int i)
   }
 }
 
+//////////////////////////////////////////////
+template <typename mesh_t, typename crd_t = K_FLD::FloatArray>
+class geom_sensor3 : public geom_sensor<mesh_t, crd_t>
+{
+    public:
+        using parent_t = geom_sensor<mesh_t, crd_t>;
+        Vector_t<E_Int> _Ln;       
+        using data_type = Vector_t<E_Int>;
+        
+        
+        //////////
+        geom_sensor3(mesh_t& mesh, E_Int max_pts_per_cell = 1, E_Int itermax = -1): parent_t(mesh, max_pts_per_cell, itermax){}
+        E_Int init(data_type level);
+        bool compute(data_type& data, Vector_t<E_Int>& adap_incr, bool do_agglo);
+};
+
+template <typename mesh_t, typename crd_t>
+E_Int geom_sensor3<mesh_t, crd_t>::init(data_type level)
+{
+    E_Int n_nodes= level.size(); 
+    _Ln.resize(n_nodes);
+
+    for (int i=0; i< n_nodes; i++){
+        _Ln[i]= level[i];
+    }
+    return 0;
+    
+}      
+
+template <typename mesh_t, typename crd_t>
+bool geom_sensor3<mesh_t, crd_t>::compute(data_type& data, Vector_t<E_Int>& adap_incr, bool do_agglo)
+{
+  E_Int n_nodes= parent_t::_hmesh._crd.size();
+  _Ln.resize(n_nodes, 0);
+  E_Int nb_elt= parent_t::_hmesh._ng.PHs.size();
+  bool flag(false);
+  adap_incr.clear();
+  adap_incr.resize(nb_elt, 0);
+
+  for (int i=0; i< nb_elt; i++){
+    if (parent_t::_hmesh._PHtree.is_enabled(i)){
+      E_Int* faces= parent_t::_hmesh._ng.PHs.get_facets_ptr(i);
+      E_Int n_faces= parent_t::_hmesh._ng.PHs.stride(i);
+      for (int k=0; k< n_faces; k++){
+        E_Int PGk= *(faces+k)-1;
+        E_Int* pN= parent_t::_hmesh._ng.PGs.get_facets_ptr(PGk);
+        E_Int n_face_nodes = parent_t::_hmesh._ng.PGs.stride(PGk);
+        
+        for (int l=0; l< n_face_nodes; l++){
+          E_Int nodes_faces= *(pN+l)-1;
+          if (_Ln[nodes_faces]>0){
+            adap_incr[i]= 1;
+            flag=true;
+            break;
+          }
+        }
+        if (flag==true) break;
+      }
+    }
+    flag=false;
+  }
+  for (int i=0; i< n_nodes; i++)
+  {
+    if (_Ln[i]>0)
+      _Ln[i]--;
+  }
+    
+  for (int i=0; i< adap_incr.size(); i++){
+    if (adap_incr[i]==1){
+      return true;
+    }
+  }  
+  return false;
+}
 
 }
 #endif

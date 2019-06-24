@@ -20,14 +20,23 @@ namespace K_MESH
 {
 class Prism {
 public:
+    static const E_Int NB_BOUNDS=5;
+
     Prism(){}
     Prism(const Prism& orig){}
+
+    template <typename ngunit_t>
+    Prism(const ngunit_t & PGs, const E_Int* first_pg){}
+
     ~Prism();
     template< typename ngo_t>
     static void reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i);
     ///
     template <typename ngunit_t>
     static inline void iso_barycenter(const K_FLD::FloatArray& crd, const ngunit_t & PGs, const E_Int* first_pg, E_Int nb_pgs, E_Int index_start, E_Float* G);
+
+    E_Float quality(const K_FLD::FloatArray& crd, E_Float* Vol){return 1;}
+
 private:
 
 };
