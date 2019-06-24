@@ -2023,12 +2023,8 @@ void refiner<K_MESH::Pyramid, eSUBDIV_TYPE::ISO>::refine_PHs
   E_Int nb_pgs0 = ng.PGs.size();
 
   // And in the mesh : each H27 is split in 36 Pgs including 12 new internal Q4
-  for (int i=0; i<nb_phs; i++){
-//    ng.PGs.expand_n_fixed_stride(12*nb_phs, 3/*Q4 stride*/); // 12 triangle stride 3 
-//    ng.PGs.expand_n_fixed_stride(1*nb_phs, 4/*Q4 stride*/);  // 1 quad stride 4  
-      ng.PGs.expand_n_fixed_stride(12, 3/*Q4 stride*/); // 12 triangle stride 3 
-      ng.PGs.expand_n_fixed_stride(1, 4/*Q4 stride*/);  // 1 quad stride 4  
-  }
+  ng.PGs.expand_n_fixed_stride(12*nb_phs, 3/*Q4 stride*/); // 12 triangle stride 3 
+  ng.PGs.expand_n_fixed_stride(1*nb_phs, 4/*Q4 stride*/);  // 1 quad stride 4  
   //    E_Int children[5];
 //    for (int j=0; j< 5; j++){
 //        children[j]= 4 ;
@@ -2042,12 +2038,8 @@ void refiner<K_MESH::Pyramid, eSUBDIV_TYPE::ISO>::refine_PHs
 
   // And in the mesh : each H27 is split into 8 H27
   E_Int nb_phs0 = ng.PHs.size();
-  for (int i=0; i<nb_phs; i++){
-//  ng.PHs.expand_n_fixed_stride(6*nb_phs, 5/*H27 stride*/); // 6 pyra stride 5
-//  ng.PHs.expand_n_fixed_stride(4*nb_phs, 4/*H27 stride*/); // 4 tetra stride 4
-    ng.PHs.expand_n_fixed_stride(6, 5/*H27 stride*/); // 6 pyra stride 5
-    ng.PHs.expand_n_fixed_stride(4, 4/*H27 stride*/); // 4 tetra stride 4
-  }
+  ng.PHs.expand_n_fixed_stride(6*nb_phs, 5/*H27 stride*/); // 6 pyra stride 5
+  ng.PHs.expand_n_fixed_stride(4*nb_phs, 4/*H27 stride*/); // 4 tetra stride 4
 //  std::cout << "ng.PH size= " << ng.PHs.size() <<std::endl;
   E_Int pos = crd.cols();
   //crd.resize(3, pos + nb_phs);
@@ -2083,10 +2075,11 @@ void refiner<K_MESH::Pyramid, eSUBDIV_TYPE::ISO>::refine_PHs
 //    }
 //    INT[12]= nb_pgs0 + 12*(nb_phs) +i;
     
-    for ( j = 0; j < 13; ++j)
-    {
-        INT[j]= nb_pgs0 + 13*i + j;
+    for ( j = 0; j < 12; ++j){
+      INT[j]= nb_pgs0 + 12*i + j;
     }
+
+    INT[12]= nb_pgs0 + 12*nb_phs + i;
     
     E_Int* q41 = ng.PGs.get_facets_ptr(INT[0]);
     E_Int* q42 = ng.PGs.get_facets_ptr(INT[1]);
@@ -2124,12 +2117,12 @@ void refiner<K_MESH::Pyramid, eSUBDIV_TYPE::ISO>::refine_PHs
     // the 8 children of PH
     E_Int PHichildr[10];
 
-    for (int j = 0; j < 10; ++j){
-      PHichildr[j] = nb_phs0 + 10*i + j;
-      //std::cout << "child i= " << PHichildr[j] << std::endl;
+    for (int j = 0; j < 6; ++j){
+      PHichildr[j] = nb_phs0 + 6*i + j;
     }
-    
-    
+    for (int j = 0; j < 4; ++j){
+      PHichildr[6+j] = nb_phs0 + 6*nb_phs + 4*i +j;
+    }
     
     E_Int* h271 = ng.PHs.get_facets_ptr(PHichildr[0]);
     E_Int* h272 = ng.PHs.get_facets_ptr(PHichildr[1]);
@@ -2173,11 +2166,9 @@ void refiner<K_MESH::Prism, eSUBDIV_TYPE::ISO>::refine_PHs
 
   E_Int nb_pgs0 = ng.PGs.size();
   // faces internes : 4 TRI + 6 QUAD
-  //fixme : hpc
-  for (int i=0; i<nb_phs; i++){
-    ng.PGs.expand_n_fixed_stride(4, 3/*T3 stride*/); // 4 triangle stride 3 
-    ng.PGs.expand_n_fixed_stride(6, 4/*Q4 stride*/); // 6 quad stride 4
-  }
+  ng.PGs.expand_n_fixed_stride(4*nb_phs, 3/*T3 stride*/);
+  ng.PGs.expand_n_fixed_stride(6*nb_phs, 4/*Q4 stride*/);
+  
   F2E.resize(2,nb_pgs0+10*nb_phs,E_IDX_NONE);
   PHtree.resize(PHadap, 8);
 
@@ -2207,9 +2198,12 @@ void refiner<K_MESH::Prism, eSUBDIV_TYPE::ISO>::refine_PHs
                   ng, crd, F2E, PGtree);
 
     E_Int INT[10];  
-    for ( j = 0; j < 10; ++j)
-    {
-        INT[j]= nb_pgs0 + 10*i + j;
+    for ( j = 0; j < 4; ++j){
+      INT[j]= nb_pgs0 + 4*i + j;
+    }
+
+    for ( j = 0; j < 6; ++j){
+      INT[4+j]= nb_pgs0 + 4*nb_phs + 6*i +j;
     }
     
     E_Int* q41 = ng.PGs.get_facets_ptr(INT[0]);     // triangle

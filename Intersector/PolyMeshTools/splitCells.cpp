@@ -19,6 +19,11 @@
 
 
 //#define FLAG_STEP
+//#define DEBUG_2019
+#ifdef DEBUG_2019
+#include <chrono>
+#include <ctime>
+#endif
 
 # include <string>
 # include <sstream> 
@@ -72,9 +77,8 @@ E_Int check_has_NGON_BASIC_ELEMENT(ngon_type& ng)
 
   if (ng.PHs.size()==s1) return HX8;           // pure HX8 
   else if (ng.PHs.size()==s2) return TH4;      // pure TH4
-  //else if (ng.PHs.size()==s3) return PYRA5;  // pure PYRA
-  //else if (ng.PHs.size()==s4) return PENTA6; // pure PENTA
-  else if (s1+s2+s3+s4 > 0)                    // mixed basic
+  else if (ng.PHs.size()==s4) return PENTA6; // pure PENTA
+  else if (s1+s2+s3+s4 > 0)                    // mixed basic (or Pyra which is mixed after first split in iso mode)
     return MIXED;
   else err=-1;
 
@@ -256,7 +260,40 @@ PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
     hmesh._ng.export_to_array(cnto);
     tpl = K_ARRAY::buildArray(hmesh._crd, varString, cnto, -1, "NGON", false);;
   }
+  else if (elt_type==PENTA6 && !force_basic)
+  {
+    using mesh_type = NUGA::hierarchical_mesh<K_MESH::Prism, NUGA::ISO>;
+    mesh_type hmesh(crd, ngi);
 
+    if (sensor_type == 1) sensor_type = 0; //currently xsensor not supported
+  
+    //std::cout << "sensor_type : " << sensor_type << std::endl;
+  
+    if (sensor_type == 0)
+    {
+      std::cout << "force_basic" << std::endl;
+      using sensor_t = NUGA::geom_sensor<mesh_type>;
+      sensor_t sensor(hmesh, 1/*max_pts per cell*/, itermax);
+      NUGA::adaptor<mesh_type, sensor_t>::run(hmesh, sensor, crdS);
+    }
+    else if (sensor_type == 1) //xsensor
+    {
+      //using sensor_t = NUGA::xsensor<K_MESH::Tetrahedron, mesh_type>;
+      //sensor_t sensor(hmesh, cntS, itermax);
+      //NUGA::adaptor<mesh_type, sensor_t>::run(hmesh, sensor, crdS);
+    }
+    else
+    {
+      //std::cout << "adapting..." << std::endl;
+      using sensor_t = NUGA::geom_sensor2<mesh_type>;
+      sensor_t sensor(hmesh, 1/*max_pts per cell*/, itermax);
+      NUGA::adaptor<mesh_type, sensor_t>::run(hmesh, sensor, crdS);
+    }   
+    hmesh.conformize();
+    K_FLD::IntArray cnto;
+    hmesh._ng.export_to_array(cnto);
+    tpl = K_ARRAY::buildArray(hmesh._crd, varString, cnto, -1, "NGON", false);;
+  }
   else if (elt_type==MIXED || force_basic)
   {    
     using mesh_type = NUGA::hierarchical_mesh<K_MESH::Basic, NUGA::ISO>;
