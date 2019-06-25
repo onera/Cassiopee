@@ -20,7 +20,8 @@ class adaptor
 {
   public:
     
-    using elt_type = typename mesh_t::elt_type;
+    static constexpr eSUBDIV_TYPE sub_type = mesh_t::sub_type;
+    using output_type = typename mesh_t::output_type;
     
     static E_Int run(mesh_t& hmesh, sensor_t& sensor, typename sensor_t::data_type& data, bool do_agglo = false);
 };
@@ -38,7 +39,7 @@ E_Int NUGA::adaptor<mesh_t, sensor_t>::run(mesh_t& hmesh, sensor_t& sensor, type
   
   E_Int err(0);
   
-  Vector_t<E_Int> adap_incr;
+  output_type adap_incr;
 
   err = hmesh.init();
   if (err) return err;

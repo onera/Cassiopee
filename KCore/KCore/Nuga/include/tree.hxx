@@ -19,7 +19,8 @@ using ngon_type = ngon_t<K_FLD::IntArray>;
 
 namespace NUGA
 {
-  enum eSUBDIV_TYPE { ISO, ANISO};
+  enum eSUBDIV_TYPE { ISO, DIR, ANISO};
+  enum eDIR { NONE=0, X, Y, XY, /*XZ, YZ*/XYZ};
 
 //
 template <typename array>
@@ -190,7 +191,7 @@ class array_trait<ngon_unit>
   static E_Int size(const ngon_unit& arr) { return arr.size();}
   
   static void add_children(ngon_unit& arr, const E_Int* children, E_Int n){
-      arr.add(n, children);
+      arr.add(n, children);//alexis : set _type for children
       arr.updateFacets();
   }
 
@@ -230,7 +231,7 @@ class array_trait<ngon_unit>
     for (int j=0; j< stride; j++)
         children[j]= E_IDX_NONE ;
 
-    for (int i=0; i< nb_new_children; i++)
+    for (int i=0; i< nb_new_children; i++)//alexis : set _type for children
       arr.add(stride,children);  
 
     arr.updateFacets();
@@ -246,7 +247,7 @@ class array_trait<ngon_unit>
       for (int j=0; j< pregnant[i]; j++){
         children[j]= E_IDX_NONE ;
       }
-      arr.add(pregnant[i],children);  
+      arr.add(pregnant[i],children);  //alexis : set _type for children
     }
     arr.updateFacets();
   }

@@ -17,6 +17,7 @@
 #include "MeshElement/Basic.h"
 #include "q9.hxx"
 #include "h27.hxx"
+#include "tree.hxx"
 
 namespace NUGA
 {
@@ -120,24 +121,23 @@ void refine_point_computer<K_MESH::Hexahedron>::compute_center
   template <typename ELT_t, eSUBDIV_TYPE STYPE>
   class refiner
   {
+    public : 
+      using output_type = typename adap_incr_type<STYPE>::output_type;
+
     public:
       template <typename arr_t>
-      static void refine_PGs(const Vector_t<E_Int> &PHadap, 
+      static void refine_PGs(const output_type &adap_incr, 
                       ngon_type& ng, tree<arr_t> & PGtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E,         
                       std::map<K_MESH::NO_Edge,E_Int>& ecenter);
       
       ///
       template <typename arr_t>
-      static void refine_PHs(const Vector_t<E_Int> &PHadap, ngon_type& ng, tree<arr_t> & PGtree, tree<arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E);
+      static void refine_PHs(const output_type &adap_incr, ngon_type& ng, tree<arr_t> & PGtree, tree<arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E);
       
       //private:
       template <typename arr_t>
       static void retrieve_ordered_data(E_Int PGi, E_Int i0, bool reorient, E_Int* four_childrenPG, E_Int* LNODES, ngon_type& ng, tree<arr_t> & PGtree);
         
-      ///
-      template <typename arr_t>
-      static void split_basic_PGref(const Vector_t<E_Int> &PHadap,  ngon_type& ng, tree<arr_t> & PGtree, Vector_t<E_Int> &PGref_tri, Vector_t<E_Int> &PGref_quad);
-      
       ///
       template <typename arr_t>
       static void get_nodes_PHi (E_Int* nodes, E_Int PHi, E_Int centroidId, E_Int** FACES,
@@ -153,15 +153,56 @@ void refine_point_computer<K_MESH::Hexahedron>::compute_center
       
   };
   
-
-
-
+///
 template <>
 template <typename arr_t>
 void refiner<K_MESH::Quadrangle, eSUBDIV_TYPE::ISO>::refine_PGs
-(const std::vector<E_Int>& PGref, ngon_type& ng, tree<arr_t>& PGtree, K_FLD::FloatArray& crd, 
+(const std::vector<E_Int>& adap_incr, ngon_type& ng, tree<arr_t>& PGtree, K_FLD::FloatArray& crd, 
  K_FLD::IntArray& F2E, std::map<K_MESH::NO_Edge,E_Int>& ecenter)
 {
+  
+  std::vector<E_Int> PGref;
+  {
+    E_Int nb_phs = ng.PHs.size();
+    // Gets PGs to refine
+    E_Int nb_pgs(ng.PGs.size()), nb_pgs_ref(0);
+    Vector_t<bool> is_PG_to_refine(nb_pgs, false);
+    //
+    for (E_Int i = 0; i < nb_phs; ++i)
+    {
+      if (adap_incr[i] <= 0) continue;
+
+      E_Int nb_faces = ng.PHs.stride(i); 
+      E_Int* faces = ng.PHs.get_facets_ptr(i);
+      bool admissible_elt = K_MESH::Polyhedron<0>::is_HX8(ng.PGs, faces, nb_faces) || K_MESH::Polyhedron<0>::is_TH4(ng.PGs, faces, nb_faces)
+                             || K_MESH::Polyhedron<0>::is_PR6(ng.PGs, faces, nb_faces) || K_MESH::Polyhedron<0>::is_PY5(ng.PGs, faces, nb_faces);
+    
+      if (!admissible_elt)
+        continue;
+
+      for (E_Int j = 0; j < nb_faces; ++j)
+      {
+        E_Int PGi = * (faces + j) - 1;
+        
+        if (PGtree.nb_children(PGi) == 0) // leaf PG => to refine
+        {
+         if (ng.PGs.stride(PGi)==4){
+            ++nb_pgs_ref;
+            is_PG_to_refine[PGi] = true;
+          }
+        }
+      }
+    }
+
+
+    PGref.reserve(nb_pgs_ref);
+    for (E_Int i = 0; i < nb_pgs; ++i)
+    {
+      if (is_PG_to_refine[i]){
+        PGref.push_back(i);
+      }
+    }
+  }
   
   E_Int nb_pgs_ref = PGref.size();
   if (nb_pgs_ref == 0) return;
@@ -265,14 +306,71 @@ void refiner<K_MESH::Quadrangle, eSUBDIV_TYPE::ISO>::refine_PGs
 }
 
 ///
+template <>
+template <typename arr_t>
+void refiner<K_MESH::Quadrangle, eSUBDIV_TYPE::DIR>::refine_PGs
+(const output_type& adap_incr, ngon_type& ng, tree<arr_t>& PGtree, K_FLD::FloatArray& crd, 
+ K_FLD::IntArray& F2E, std::map<K_MESH::NO_Edge,E_Int>& ecenter)
+{
+  //alexis : todo:
+  
+  //extraire d'abord la partii ISO de adap_incr et creer un vector<E_Int> avec cette partie, appler la version ISO de refine_PGs dessus
+  
+  // faire le reste en XY
+}
+
+///
 template<>
 template <typename arr_t>
 void refiner<K_MESH::Triangle, eSUBDIV_TYPE::ISO>::refine_PGs
-(const Vector_t<E_Int> &PGref,
+(const Vector_t<E_Int> &adap_incr,
  ngon_type& ng, tree<arr_t> & PGtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E,         
  std::map<K_MESH::NO_Edge,E_Int>& ecenter)
 {
-  
+  std::vector<E_Int> PGref;
+  {
+    
+    E_Int nb_phs = ng.PHs.size();
+    // Gets PGs to refine
+    E_Int nb_pgs(ng.PGs.size()), nb_pgs_ref(0);
+    Vector_t<bool> is_PG_to_refine(nb_pgs, false);
+    //
+    for (E_Int i = 0; i < nb_phs; ++i)
+    {
+      if (adap_incr[i] <= 0) continue;
+
+      E_Int nb_faces = ng.PHs.stride(i); 
+      E_Int* faces = ng.PHs.get_facets_ptr(i);
+      bool admissible_elt = K_MESH::Polyhedron<0>::is_HX8(ng.PGs, faces, nb_faces) || K_MESH::Polyhedron<0>::is_TH4(ng.PGs, faces, nb_faces)
+                             || K_MESH::Polyhedron<0>::is_PR6(ng.PGs, faces, nb_faces) || K_MESH::Polyhedron<0>::is_PY5(ng.PGs, faces, nb_faces);
+    
+      if (!admissible_elt)
+        continue;
+
+      for (E_Int j = 0; j < nb_faces; ++j)
+      {
+        E_Int PGi = * (faces + j) - 1;
+        
+        if (PGtree.nb_children(PGi) == 0) // leaf PG => to refine
+        {
+         if (ng.PGs.stride(PGi)==3){
+            ++nb_pgs_ref;
+            is_PG_to_refine[PGi] = true;
+          }
+        }
+      }
+    }
+
+
+    PGref.reserve(nb_pgs_ref);
+    for (E_Int i = 0; i < nb_pgs; ++i)
+    {
+      if (is_PG_to_refine[i]){
+        PGref.push_back(i);
+      }
+    }
+  }
+
   E_Int nb_pgs_ref = PGref.size();
   if (nb_pgs_ref == 0) return;
 
@@ -373,78 +471,27 @@ void refiner<K_MESH::Triangle, eSUBDIV_TYPE::ISO>::refine_PGs
 }
 
 ///
-template <typename ELT_t, eSUBDIV_TYPE STYPE>
+template<>
 template <typename arr_t>
-void refiner<ELT_t, STYPE>::split_basic_PGref
-(const Vector_t<E_Int> &PHadap,  ngon_type& ng, tree<arr_t> & PGtree,
- Vector_t<E_Int> &PGref_tri, Vector_t<E_Int> &PGref_quad)
+void refiner<K_MESH::Triangle, eSUBDIV_TYPE::DIR>::refine_PGs
+(const dir_incr_type &adap_incr,
+ ngon_type& ng, tree<arr_t> & PGtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E,         
+ std::map<K_MESH::NO_Edge,E_Int>& ecenter)
 {
-  E_Int nb_phs = PHadap.size();
-  
-  // Gets PGs to refine
-    E_Int nb_pgs(ng.PGs.size()), nb_pgs_ref_tri(0), nb_pgs_ref_quad(0);
-    Vector_t<E_Int> is_PG_to_refine(nb_pgs, 0); // 0 false
-                                                // 1 refine tri
-                                                // 2 refine quad
-    //
-    for (E_Int i = 0; i < nb_phs; ++i)
-    {
-      E_Int PHi = PHadap[i];
-
-      E_Int nb_faces = ng.PHs.stride(PHi); 
-      E_Int* faces = ng.PHs.get_facets_ptr(PHi);
-      bool admissible_elt = K_MESH::Polyhedron<0>::is_HX8(ng.PGs, faces, nb_faces) || K_MESH::Polyhedron<0>::is_TH4(ng.PGs, faces, nb_faces)
-                             || K_MESH::Polyhedron<0>::is_PR6(ng.PGs, faces, nb_faces) || K_MESH::Polyhedron<0>::is_PY5(ng.PGs, faces, nb_faces);
-    
-      if (!admissible_elt)
-        continue;
-#ifdef DEBUG_HIERARCHICAL_MESH
-//      assert (nb_faces == 6);
-#endif
-      for (E_Int j = 0; j < nb_faces; ++j)
-      {
-        E_Int PGi = * (faces + j) - 1;
-        
-        if (PGtree.nb_children(PGi) == 0) // leaf PG => to refine
-        {
-          if (ng.PGs.stride(PGi)==3){  // triangle
-            is_PG_to_refine[PGi] = 1;
-            ++nb_pgs_ref_tri;
-          }
-          else if (ng.PGs.stride(PGi)==4){
-            ++nb_pgs_ref_quad;
-            is_PG_to_refine[PGi] = 2;
-          }
-        }
-      }
-    }
-
-    PGref_tri.reserve(nb_pgs_ref_tri);
-    PGref_quad.reserve(nb_pgs_ref_tri);
-    for (E_Int i = 0; i < nb_pgs; ++i)
-    {
-      if (is_PG_to_refine[i]==1){
-        PGref_tri.push_back(i);
-      }
-      else if (is_PG_to_refine[i]==2){
-        PGref_quad.push_back(i);
-      }    
-    }
+  // do not handle DIR for Triangle yet
+  refiner<K_MESH::Triangle, eSUBDIV_TYPE::ISO>::refine_PGs<arr_t>(adap_incr._adap_incr, ng, PGtree, crd, F2E, ecenter);
 }
 
 // default implementation : ISO case , for all basic element types (Basic, Tetra, Pyra, Penta, Hexa)
 template <typename ELT_t, eSUBDIV_TYPE STYPE>
 template <typename arr_t>
 void refiner<ELT_t, STYPE>::refine_PGs
-(const Vector_t<E_Int> &PHadap, 
+(const output_type &adap_incr, 
  ngon_type& ng, tree<arr_t> & PGtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E,                 
  std::map<K_MESH::NO_Edge,E_Int>& ecenter)
-{
-  Vector_t<E_Int> PG_ref_T3, PG_ref_Q4; 
-  split_basic_PGref(PHadap,  ng, PGtree,PG_ref_T3, PG_ref_Q4);
- 
-  refiner<K_MESH::Quadrangle, STYPE>::refine_PGs(PG_ref_Q4, ng, PGtree, crd, F2E, ecenter);
-  refiner<K_MESH::Triangle, STYPE>::refine_PGs(PG_ref_T3, ng, PGtree, crd, F2E, ecenter);  
+{ 
+  refiner<K_MESH::Quadrangle, STYPE>::refine_PGs(adap_incr, ng, PGtree, crd, F2E, ecenter);
+  refiner<K_MESH::Triangle, STYPE>::refine_PGs(adap_incr, ng, PGtree, crd, F2E, ecenter);  
 }
 
 ///
@@ -1727,9 +1774,15 @@ ngon_type& ng, K_FLD::IntArray & F2E, tree<arr_t>& PGtree)
 template <>
 template <typename arr_t>
 void refiner<K_MESH::Hexahedron, eSUBDIV_TYPE::ISO>::refine_PHs
-(const Vector_t<E_Int> &PHadap, 
+(const Vector_t<E_Int> &adap_incr, 
  ngon_type& ng, tree<arr_t> & PGtree, tree<arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
 {
+  //alexis : fixme : remplacer l'appel ais_HX8 pour l'emploi de ng.PHs.type
+  std::vector<E_Int> PHadap;
+  for (size_t i = 0; i < ng.PHs.size(); ++i)
+    if (adap_incr[i] > 0 && PHtree.is_enabled(i) && (K_MESH::Polyhedron<0>::is_HX8(ng.PGs, ng.PHs.get_facets_ptr(i), ng.PHs.stride(i))))
+      PHadap.push_back(i);
+  
   E_Int nb_phs = PHadap.size();
   if (nb_phs == 0) return;
   // internal PGs created (12 per PH)
@@ -1832,9 +1885,15 @@ void refiner<K_MESH::Hexahedron, eSUBDIV_TYPE::ISO>::refine_PHs
 template <>
 template <typename arr_t>
 void refiner<K_MESH::Tetrahedron, eSUBDIV_TYPE::ISO>::refine_PHs
-(const Vector_t<E_Int> &PHadap, 
+(const Vector_t<E_Int> &adap_incr, 
 ngon_type& ng, tree<arr_t> & PGtree, tree<arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
 {
+  //alexis : fixme : remplacer l'appel ais_HX8 pour l'emploi de ng.PHs.type
+  std::vector<E_Int> PHadap;
+  for (size_t i = 0; i < ng.PHs.size(); ++i)
+    if (adap_incr[i] > 0 && PHtree.is_enabled(i) && (K_MESH::Polyhedron<0>::is_TH4(ng.PGs, ng.PHs.get_facets_ptr(i), ng.PHs.stride(i))))
+      PHadap.push_back(i);
+  
   E_Int nb_phs = PHadap.size();
   if (nb_phs == 0) return;
 
@@ -2009,9 +2068,15 @@ ngon_type& ng, tree<arr_t> & PGtree, tree<arr_t> & PHtree, K_FLD::FloatArray& cr
 template <>
 template <typename arr_t>
 void refiner<K_MESH::Pyramid, eSUBDIV_TYPE::ISO>::refine_PHs
-(const Vector_t<E_Int> &PHadap, 
+(const Vector_t<E_Int> &adap_incr, 
  ngon_type& ng, tree<arr_t> & PGtree, tree<arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
 {
+  //alexis : fixme : remplacer l'appel is_PY5 pour l'emploi de ng.PHs.type
+  std::vector<E_Int> PHadap;
+  for (size_t i = 0; i < ng.PHs.size(); ++i)
+    if (adap_incr[i] > 0 && PHtree.is_enabled(i) && (K_MESH::Polyhedron<0>::is_PY5(ng.PGs, ng.PHs.get_facets_ptr(i), ng.PHs.stride(i))))
+      PHadap.push_back(i);
+  
   E_Int nb_phs = PHadap.size();
   if (nb_phs == 0) return;
   // internal PGs created (12 per PH)
@@ -2153,9 +2218,15 @@ void refiner<K_MESH::Pyramid, eSUBDIV_TYPE::ISO>::refine_PHs
 template <>
 template <typename arr_t>
 void refiner<K_MESH::Prism, eSUBDIV_TYPE::ISO>::refine_PHs
-(const Vector_t<E_Int> &PHadap, 
+(const Vector_t<E_Int> &adap_incr, 
  ngon_type& ng, tree<arr_t> & PGtree, tree<arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
 {
+  //alexis : fixme : remplacer l'appel is_PR6 pour l'emploi de ng.PHs.type
+  std::vector<E_Int> PHadap;
+  for (size_t i = 0; i < ng.PHs.size(); ++i)
+    if (adap_incr[i] > 0 && PHtree.is_enabled(i) && (K_MESH::Polyhedron<0>::is_PR6(ng.PGs, ng.PHs.get_facets_ptr(i), ng.PHs.stride(i))))
+      PHadap.push_back(i);
+  
   E_Int nb_phs = PHadap.size();
   if (nb_phs == 0) return;
   // internal PGs created (12 per PH)
@@ -2263,41 +2334,70 @@ void refiner<K_MESH::Prism, eSUBDIV_TYPE::ISO>::refine_PHs
 template <>
 template <typename arr_t>
 void refiner<K_MESH::Basic, eSUBDIV_TYPE::ISO>::refine_PHs
-(const Vector_t<E_Int> &PHadap, 
+(const output_type &adap_incr, 
  ngon_type& ng, tree<arr_t> & PGtree, tree<arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
-{
-  Vector_t<E_Int> PHadap1, PHadap2;
-  Vector_t<E_Int> PHadap3;
-  Vector_t<E_Int> PHadap4;
+{  
+  refiner<K_MESH::Hexahedron, eSUBDIV_TYPE::ISO>::refine_PHs(adap_incr, ng, PGtree, PHtree, crd, F2E);
 
-  E_Int nb_phs = PHadap.size();
-  for (E_Int i=0; i< nb_phs; i++){
-    E_Int PHi=PHadap[i];
-    E_Int s= ng.PHs.stride(PHi);
-    if (K_MESH::Polyhedron<0>::is_HX8(ng.PGs, ng.PHs.get_facets_ptr(PHi), s)){
-        PHadap1.push_back(PHi);
-    }
-    else if (K_MESH::Polyhedron<0>::is_TH4(ng.PGs, ng.PHs.get_facets_ptr(PHi), s)){
-        PHadap2.push_back(PHi);
-    }
-    else if (K_MESH::Polyhedron<0>::is_PY5(ng.PGs, ng.PHs.get_facets_ptr(PHi), s)){
-        PHadap3.push_back(PHi);
-    }
-    else if (K_MESH::Polyhedron<0>::is_PR6(ng.PGs, ng.PHs.get_facets_ptr(PHi), s)){
-        PHadap4.push_back(PHi);
-    }
-  }
-  
-  refiner<K_MESH::Hexahedron, eSUBDIV_TYPE::ISO>::refine_PHs(PHadap1, ng, PGtree, PHtree, crd, F2E);
+  refiner<K_MESH::Tetrahedron, eSUBDIV_TYPE::ISO>::refine_PHs(adap_incr, ng, PGtree, PHtree, crd, F2E);
 
-  refiner<K_MESH::Tetrahedron, eSUBDIV_TYPE::ISO>::refine_PHs(PHadap2, ng, PGtree, PHtree, crd, F2E);
+  refiner<K_MESH::Pyramid, eSUBDIV_TYPE::ISO>::refine_PHs(adap_incr, ng, PGtree, PHtree, crd, F2E);
 
-  refiner<K_MESH::Pyramid, eSUBDIV_TYPE::ISO>::refine_PHs(PHadap3, ng, PGtree, PHtree, crd, F2E);
-
-  refiner<K_MESH::Prism, eSUBDIV_TYPE::ISO>::refine_PHs(PHadap4, ng, PGtree, PHtree, crd, F2E);
+  refiner<K_MESH::Prism, eSUBDIV_TYPE::ISO>::refine_PHs(adap_incr, ng, PGtree, PHtree, crd, F2E);
     
 }
 
+
+// DIRECTIONNEL
+//default impl : DIR IS ISO for all elements but HEXA "Layer"
+template <>
+template <typename arr_t>
+void refiner<K_MESH::Tetrahedron, DIR>::refine_PHs
+(const output_type &adap_incr, 
+ ngon_type& ng, tree<arr_t> & PGtree, tree<arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
+{
+  refiner<K_MESH::Tetrahedron, ISO>::refine_PHs(adap_incr, ng, PGtree, PHtree, crd, F2E);
+}
+
+///
+template <>
+template <typename arr_t>
+void refiner<K_MESH::Pyramid, DIR>::refine_PHs
+(const output_type &adap_incr,
+ ngon_type& ng, tree<arr_t> & PGtree, tree<arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
+{
+  refiner<K_MESH::Pyramid, ISO>::refine_PHs(adap_incr, ng, PGtree, PHtree, crd, F2E);
+}
+
+///
+template <>
+template <typename arr_t>
+void refiner<K_MESH::Prism, DIR>::refine_PHs
+(const output_type &adap_incr,
+ ngon_type& ng, tree<arr_t> & PGtree, tree<arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
+{
+  refiner<K_MESH::Prism, ISO>::refine_PHs(adap_incr, ng, PGtree, PHtree, crd, F2E);
+}
+
+///
+template <>
+template <typename arr_t>
+void refiner<K_MESH::Hexahedron, DIR>::refine_PHs
+(const output_type &adap_incr,
+ ngon_type& ng, tree<arr_t> & PGtree, tree<arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
+{
+  //alexis : todo
+}
+
+///
+template <>
+template <typename arr_t>
+void refiner<K_MESH::Basic, DIR>::refine_PHs
+(const output_type &adap_incr, 
+ ngon_type& ng, tree<arr_t> & PGtree, tree<arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
+{
+  //alexis : todo
+}
 
 } // NUGA
 

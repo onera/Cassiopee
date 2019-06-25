@@ -28,6 +28,37 @@ using ngon_type = ngon_t<K_FLD::IntArray>;
 
 namespace NUGA
 {
+  struct dir_incr_type
+  {
+    std::vector<E_Int>      _adap_incr;
+    std::vector<NUGA::eDIR> _ph_dir, _pg_dir;
+    
+    E_Int& operator[](E_Int i) {return _adap_incr[i]; };
+    
+    void clear() {_adap_incr.clear();}
+    void resize(E_Int sz, E_Int val){_adap_incr.resize(sz, val);}
+    std::vector<E_Int>::iterator begin() {return _adap_incr.begin();}
+    std::vector<E_Int>::iterator end() {return _adap_incr.end();}
+  };
+  
+  template <eSUBDIV_TYPE STYPE>
+  struct adap_incr_type
+  {};
+  
+  template <>
+  struct adap_incr_type<ISO>
+  {
+    using output_type = Vector_t<E_Int>;
+  };
+  
+  template <>
+  struct adap_incr_type<DIR>
+  {
+    using output_type = dir_incr_type;
+  };
+  
+  
+  
 
 /// Octal geometric sensor
 template <typename mesh_t, typename crd_t = K_FLD::FloatArray> //ngu for surfacic (PGs) or ngon_t for volumic
@@ -36,15 +67,20 @@ class geom_sensor
   public:
     
     using data_type = crd_t; //point cloud
+    static constexpr eSUBDIV_TYPE sub_type = mesh_t::sub_type;
+    using output_type = typename mesh_t::output_type;
     
     geom_sensor(mesh_t& mesh, E_Int max_pts_per_cell = 1, E_Int itermax = -1)
             :_hmesh(mesh), _is_init(false), _refine(true), _has_agglo(false), _agglo(true), _max_pts_per_cell(max_pts_per_cell), _iter_max((itermax <= 0) ? INT_MAX : itermax), _iter(0){}
     
     virtual E_Int init(data_type& data);
     
-    virtual bool compute(data_type& data, Vector_t<E_Int>& adap_incr, bool do_agglo);
+    virtual bool compute(data_type& data, output_type& adap_incr, bool do_agglo);
 
-    void fill_adap_incr(Vector_t<E_Int>& adap_incr, bool do_agglo);
+    void fill_adap_incr(output_type& adap_incr, bool do_agglo);
+    
+    void fix_adap_incr(dir_incr_type& adap_incr); //DIR : output_type is 
+    void fix_adap_incr(std::vector<E_Int>& adap_incr); //ISO
     
     void locate_points(K_SEARCH::BbTree3D& tree, data_type& data);
     
@@ -143,7 +179,7 @@ E_Int geom_sensor<mesh_t, crd_t>::verif2()
 
 /// 
 template <typename mesh_t, typename crd_t>
-bool geom_sensor<mesh_t, crd_t>::compute(data_type& data, Vector_t<E_Int>& adap_incr, bool do_agglo)
+bool geom_sensor<mesh_t, crd_t>::compute(data_type& data, output_type& adap_incr, bool do_agglo)
 {
 
 #ifdef FLAG_STEP
@@ -183,6 +219,9 @@ bool geom_sensor<mesh_t, crd_t>::compute(data_type& data, Vector_t<E_Int>& adap_
   //apply the 2:1 rule
   _hmesh.smooth(adap_incr);
   
+  // fix inconsistencies (does something only in DIR mode)
+  fix_adap_incr(adap_incr);
+  
   //detect if at least one agglomeration can be done
   if (_has_agglo)
   {
@@ -204,7 +243,7 @@ bool geom_sensor<mesh_t, crd_t>::compute(data_type& data, Vector_t<E_Int>& adap_
 
 ///
 template <typename mesh_t, typename crd_t>
-void geom_sensor<mesh_t, crd_t>::fill_adap_incr(std::vector<E_Int>& adap_incr, bool do_agglo)
+void geom_sensor<mesh_t, crd_t>::fill_adap_incr(output_type& adap_incr, bool do_agglo)
 {
   E_Int nb_elts = _hmesh._ng.PHs.size();
   E_Int nb_pts = _points_to_cell.size();
@@ -266,6 +305,79 @@ void geom_sensor<mesh_t, crd_t>::fill_adap_incr(std::vector<E_Int>& adap_incr, b
   }
 }
 
+/// ISO
+template <typename mesh_t, typename crd_t>
+void geom_sensor<mesh_t, crd_t>::fix_adap_incr(std::vector<E_Int>& adap_incr)
+{
+  E_Int nb_phs = _hmesh._ng.PHs.size();
+  // disable unhandled_elements
+  for (E_Int i = 0; i < nb_phs; ++i)
+  {
+    if (adap_incr[i] == 0) continue;
+
+    E_Int nb_faces = _hmesh._ng.PHs.stride(i); 
+    E_Int* faces = _hmesh._ng.PHs.get_facets_ptr(i);
+    bool admissible_elt = K_MESH::Polyhedron<0>::is_HX8(_hmesh._ng.PGs, faces, nb_faces) || K_MESH::Polyhedron<0>::is_TH4(_hmesh._ng.PGs, faces, nb_faces)
+                           || K_MESH::Polyhedron<0>::is_PR6(_hmesh._ng.PGs, faces, nb_faces) || K_MESH::Polyhedron<0>::is_PY5(_hmesh._ng.PGs, faces, nb_faces);
+    
+    if (!admissible_elt || !_hmesh._PHtree.is_enabled(i))
+      adap_incr[i] = 0;
+  }
+}
+///
+template <typename mesh_t, typename crd_t>
+void geom_sensor<mesh_t, crd_t>::fix_adap_incr(dir_incr_type& adap_incr)
+{
+  E_Int nb_phs = _hmesh._ng.PHs.size();
+  
+  // disable unhandled_elements
+  for (E_Int i = 0; i < nb_phs; ++i)
+  {
+    if (adap_incr[i] == 0) continue;
+
+    E_Int nb_faces = _hmesh._ng.PHs.stride(i); 
+    E_Int* faces = _hmesh._ng.PHs.get_facets_ptr(i);
+    bool admissible_elt = K_MESH::Polyhedron<0>::is_HX8(_hmesh._ng.PGs, faces, nb_faces) || K_MESH::Polyhedron<0>::is_TH4(_hmesh._ng.PGs, faces, nb_faces)
+                           || K_MESH::Polyhedron<0>::is_PR6(_hmesh._ng.PGs, faces, nb_faces) || K_MESH::Polyhedron<0>::is_PY5(_hmesh._ng.PGs, faces, nb_faces);
+    
+    if (!admissible_elt || !_hmesh._PHtree.is_enabled(i))
+      adap_incr[i] = 0;
+  }
+      
+  //solve inconsistencies
+  //alexis : todo
+  
+  
+  
+  // premiere version : desactiver l'adaptation dans les cellules XYZ (iso) qui sont connectées à une cellule "layer" par un QUAD lateral
+  adap_incr._ph_dir.clear();
+  adap_incr._ph_dir.resize(_hmesh._ng.PHs.size(), XYZ);
+  
+  for (E_Int i=0; i < nb_phs; ++i)
+  {
+    // if type is layer => adap_incr._ph_dir[i] = XY
+  }
+  
+  E_Int nb_pgs = _hmesh._ng.PGs.size();
+  adap_incr._pg_dir.clear();
+  adap_incr._pg_dir.resize(nb_pgs, NONE);
+  
+  
+  // boucle sur les layer
+  
+    // appel à get_local
+  
+    // remplissage approprié de adap_incr._pg_dir pour les 6 faces : X, Y, ou XY
+  
+  // boucle sur le reste : 
+  
+    // appel à get_local
+  
+    // remplissage de adap_incr._pg_dir ou desactivation de adap_incr._ph_dir
+  
+       // si NONE => remplissage
+       // sinon, si valeur différente => desactivation
+}
 ///
 template <typename mesh_t, typename crd_t>
 void geom_sensor<mesh_t, crd_t>::locate_points(K_SEARCH::BbTree3D& tree, data_type& data)

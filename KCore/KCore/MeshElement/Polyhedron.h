@@ -49,7 +49,10 @@ namespace K_MESH
 
 template <int TopoShape>
 class Polyhedron
-{   
+{ 
+public:  
+  enum eType { UNKN, TETRA, PYRA, PRISM3, HEXA, /*PRISMN,*/ LAYER};
+  
 public:
   const ngon_unit* _pgs;
   const E_Int* _faces;
@@ -1134,96 +1137,6 @@ public:
     return 0;
   }
 
-  /// is the polyhedron a prism ?
-  static bool is_prism(const ngon_unit& PGS, const E_Int* first_pg, E_Int nb_pgs, E_Int*& generators, E_Int*& HX6opposites)
-  {
-    // returns true iff it'a prism (including hexa)
-    // in case of hexa, fill in HX6opposites which gives the opposite sides : i is opposed to HX6opposites[i] and vice and versa
-    // in case of prism, fill in the 2 generators
-
-    std::vector<E_Int> nb_nods(nb_pgs);
-    //
-    generators[0] = generators[1] = E_IDX_NONE;
-
-    E_Int nb_quads = 0;
-    E_Int nb_gens = 0;
-    E_Int nb_gen_nodes = 0;
-    for (E_Int i = 0; i < nb_pgs; ++i)
-    {
-      E_Int PGi = *(first_pg + i) - 1;
-      nb_nods[i] = PGS.stride(PGi);
-
-      if (nb_nods[i] == 4)
-        ++nb_quads;
-      else
-        ++nb_gens;
-
-      if (nb_gens > 2) return false;
-      if (nb_gen_nodes != 0 && nb_gen_nodes != nb_nods[i]) return false;
-
-      nb_gen_nodes = nb_nods[i];
-    }
-    bool is_hexa = (nb_quads == nb_pgs) && (nb_pgs == 6);
-    if ((nb_quads != nb_pgs - 2) && !is_hexa) return false;
-
-    // at this point : either hexa, classical prism or unknown (e.g an hexa with a quad split into 2 T3)
-
-    // build PG neighborhood for that given PH
-    ngon_unit lneighbors;
-    K_MESH::Polygon::build_pg_neighborhood(PGS, lneighbors, first_pg, nb_pgs);
-
-    if (is_hexa) // compute each pair of opposite ids
-    {
-      for (E_Int i = 0; i < nb_pgs; ++i) HX6opposites[i] = E_IDX_NONE;
-      //
-      const E_Int* neigh = lneighbors.get_facets_ptr(0);
-
-      for (E_Int n = 0; n < 4; ++n)
-      {
-        E_Int j = *(neigh + n);
-        if (j == E_IDX_NONE) return false; //open cells !
-        E_Int jopp = *(neigh + (n + 2) % 4);
-        if (jopp == E_IDX_NONE) return false; //open cells !
-
-        HX6opposites[j] = jopp;
-        HX6opposites[jopp] = j;
-      }
-      //O is opposite to ?
-      for (E_Int i = 1; i < nb_pgs; ++i)
-        if (HX6opposites[i] == E_IDX_NONE){
-          HX6opposites[0] = HX6opposites[i];
-          HX6opposites[i] = HX6opposites[0];
-        break;
-      }
-
-      return true;
-    }
-    else // CLASSIC PRISM ?
-    {
-      //find generators
-      for (E_Int p = 0; p < nb_pgs; ++p)
-      {
-        if (nb_nods[p] != 4)
-        {
-          E_Int k = (generators[0] == E_IDX_NONE) ? 0 : 1;
-          generators[k] = p;
-        }
-      }
-        
-      // check that all the generator neighbors are quads (check only for one of them)
-      const E_Int& first_gen = generators[0];
-      const E_Int* neigh = lneighbors.get_facets_ptr(first_gen);
-      for (E_Int n = 0; n < nb_nods[first_gen]; ++n)
-      {
-        E_Int j = *(neigh + n);
-        if (j == E_IDX_NONE) return false; //open cells !
-        if (nb_nods[j] != 4) return false;
-      }
-
-      return true;
-    }
-  }
-
   ///
   static bool has_baffles
   (const ngon_unit& PGS, const E_Int* first_pg, E_Int nb_pgs, std::map<K_MESH::NO_Edge, E_Int>& w_map, E_Int* buffer_baffle_ids)
@@ -1728,6 +1641,96 @@ static bool pt_is_inside(const ngon_unit& PGS, const E_Int* first_pg, E_Int nb_p
 
   }
   return true;
+}
+
+/// is the polyhedron a prism ?
+static bool is_prismN(const ngon_unit& PGS, const E_Int* first_pg, E_Int nb_pgs, E_Int*& generators, E_Int*& HX6opposites)
+{
+  // returns true iff it'a prism (including hexa)
+  // in case of hexa, fill in HX6opposites which gives the opposite sides : i is opposed to HX6opposites[i] and vice and versa
+  // in case of prism, fill in the 2 generators
+
+  std::vector<E_Int> nb_nods(nb_pgs);
+  //
+  generators[0] = generators[1] = E_IDX_NONE;
+
+  E_Int nb_quads = 0;
+  E_Int nb_gens = 0;
+  E_Int nb_gen_nodes = 0;
+  for (E_Int i = 0; i < nb_pgs; ++i)
+  {
+    E_Int PGi = *(first_pg + i) - 1;
+    nb_nods[i] = PGS.stride(PGi);
+
+    if (nb_nods[i] == 4)
+      ++nb_quads;
+    else
+      ++nb_gens;
+
+    if (nb_gens > 2) return false;
+    if (nb_gen_nodes != 0 && nb_gen_nodes != nb_nods[i]) return false;
+
+    nb_gen_nodes = nb_nods[i];
+  }
+  bool is_hexa = (nb_quads == nb_pgs) && (nb_pgs == 6);
+  if ((nb_quads != nb_pgs - 2) && !is_hexa) return false;
+
+  // at this point : either hexa, classical prism or unknown (e.g an hexa with a quad split into 2 T3)
+
+  // build PG neighborhood for that given PH
+  ngon_unit lneighbors;
+  K_MESH::Polygon::build_pg_neighborhood(PGS, lneighbors, first_pg, nb_pgs);
+
+  if (is_hexa) // compute each pair of opposite ids
+  {
+    for (E_Int i = 0; i < nb_pgs; ++i) HX6opposites[i] = E_IDX_NONE;
+    //
+    const E_Int* neigh = lneighbors.get_facets_ptr(0);
+
+    for (E_Int n = 0; n < 4; ++n)
+    {
+      E_Int j = *(neigh + n);
+      if (j == E_IDX_NONE) return false; //open cells !
+      E_Int jopp = *(neigh + (n + 2) % 4);
+      if (jopp == E_IDX_NONE) return false; //open cells !
+
+      HX6opposites[j] = jopp;
+      HX6opposites[jopp] = j;
+    }
+    //O is opposite to ?
+    for (E_Int i = 1; i < nb_pgs; ++i)
+      if (HX6opposites[i] == E_IDX_NONE){
+        HX6opposites[0] = HX6opposites[i];
+        HX6opposites[i] = HX6opposites[0];
+      break;
+    }
+
+    return true;
+  }
+  else // CLASSIC PRISM ?
+  {
+    //find generators
+    for (E_Int p = 0; p < nb_pgs; ++p)
+    {
+      if (nb_nods[p] != 4)
+      {
+        E_Int k = (generators[0] == E_IDX_NONE) ? 0 : 1;
+        generators[k] = p;
+      }
+    }
+
+    // check that all the generator neighbors are quads (check only for one of them)
+    const E_Int& first_gen = generators[0];
+    const E_Int* neigh = lneighbors.get_facets_ptr(first_gen);
+    for (E_Int n = 0; n < nb_nods[first_gen]; ++n)
+    {
+      E_Int j = *(neigh + n);
+      if (j == E_IDX_NONE) return false; //open cells !
+      if (nb_nods[j] != 4) return false;
+    }
+
+    return true;
+  }
 }
 
 static bool is_HX8(const ngon_unit& PGs, const E_Int* firstPG, E_Int nb_pgs)

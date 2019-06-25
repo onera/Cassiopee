@@ -91,6 +91,8 @@ class hierarchical_mesh
     using htrait = hmesh_trait<ELT_t, STYPE>;
     using arr_t = typename htrait::arr_type; //InttArray or ngon_unit
     using self_type = hierarchical_mesh<ELT_t, STYPE, ngo_t, crd_t>;
+    using output_type = typename adap_incr_type<STYPE>::output_type;
+    static constexpr eSUBDIV_TYPE sub_type = STYPE;
     
     crd_t&                    _crd;             // Coordinates
     ngo_t&                    _ng;              // NGON mesh
@@ -104,7 +106,7 @@ class hierarchical_mesh
     ///
     E_Int init();
     ///
-    E_Int adapt(Vector_t<E_Int>& adap_incr, bool do_agglo);
+    E_Int adapt(output_type& adap_incr, bool do_agglo);
   
     /// face-conformity
     void conformize();
@@ -120,7 +122,7 @@ class hierarchical_mesh
     ///
     bool enabled_neighbours(E_Int PHi); // return true if the PHi-th PH only has enabled neighbours
     ///
-    void smooth(Vector_t<E_Int>& adap_incr);
+    void smooth(output_type& adap_incr);
     ///
 #ifdef DEBUG_2019    
     ///
@@ -147,13 +149,86 @@ class hierarchical_mesh
 
   private:
     std::map<K_MESH::NO_Edge,E_Int> _ecenter;
+    
+    ///
+    void __init(ngo_t& ng, const K_FLD::IntArray& F2E);
 
     ///
     void __conformize_next_lvl(Vector_t<E_Int>& molec, E_Int PGi, E_Int i);
-        
-    
-  
+
 };
+
+// default implementation for any basci element in ISO mode
+template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t, typename crd_t>
+void hierarchical_mesh<ELT_t, STYPE, ngo_t, crd_t>::__init(ngo_t& ng, const K_FLD::IntArray& F2E)
+{
+  // sort the PGs of the initial NGON
+  for (int i = 0; i < (int)_ng.PHs.size(); ++i)
+  {
+    ELT_t::reorder_pgs(_ng,_F2E,i);
+  }
+}
+
+template <>
+void hierarchical_mesh<K_MESH::Hexahedron, DIR, ngon_type, K_FLD::FloatArray>::__init(ngo_t& ng, const K_FLD::IntArray& F2E)
+{
+  // alexis : todo
+  
+  E_Int nb_phs = _ng.PHs.size();
+  
+  //type init
+  ng.PHs._type.clear();
+  ng.PHs._type.resize(nb_phs, (E_Int)K_MESH::Polyhedron<0>::eType::HEXA);
+  
+  // first reorder : by opposite pair
+  E_Int generators[2], HX6opposites[6], *pg(generators), *qopp(HX6opposites);
+  for (E_Int i=0; i < nb_phs; ++i)
+  {
+    K_MESH::Polyhedron<0>::is_prismN(ng.PGs, ng.PHs.get_facets_ptr(i), ng.PHs.stride(i), pg, qopp);
+    // alexis : utiliser pg et qopp pour réordonner
+  }
+  
+  // promote eventually to layer type + 2nd reorder
+  for (E_Int i=0; i < _F2E.cols(); ++i)
+  {
+    // alexis : si i n'est pas une frontière => continue
+    
+    E_Int PHi = (_F2E(0,i) != E_IDX_NONE) ? _F2E(0,i) : _F2E(1,i);
+    
+    E_Int PHcur = PHi;
+    E_Int Basecur = i;
+    
+    while (true) // climb over the layer
+    {
+      if (_ng.PHs._type[PHcur] == K_MESH::Polyhedron<0>::eType::LAYER) //already set
+        break;
+      
+      // alexis :mettre la paire de i en premier, i en premier dans la pair
+      
+      // alexis : verifier l'anisotropie
+      
+      // alexis : si pas anisotrope => break
+      
+      // alexis : faire Basecur := 2nd de la pair (top)
+      // alexis :marquer ng.PHs.type[PHcur] := LAYER 
+      // alexis :faire PHcur = le voisin qui partage le top
+    }; 
+  }
+  
+  // third reorder 
+  for (E_Int i = 0; i < nb_phs; ++i)
+  {
+    K_MESH::Hexahedron::reorder_pgs(_ng,_F2E,i);
+  }
+  
+  
+  
+  //detect now any layer cell
+  double aniso_ratio = 0.2; //fixme : parametre a externaliser
+  
+  //to do : si aniso => faire  ng.PHs._type =  K_MESH::Polyhedron<0>::eType::LAYER
+  
+}
 
 ///
 template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t, typename crd_t>
@@ -176,11 +251,9 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t, crd_t>::init()
   _ng.build_ph_neighborhood(neighbors);
   _ng.build_F2E(neighbors, _F2E);
   
-  // sort the PGs of the initial NGON
-  for (int i = 0; i < (int)_ng.PHs.size(); ++i)
-  {
-    ELT_t::reorder_pgs(_ng,_F2E,i);
-  }
+  __init(_ng, _F2E); // for pure type == reorder_pgs
+  
+  
 
   _initialized = true;
   
@@ -192,14 +265,12 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t, crd_t>::init()
 #endif
 
 template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t, typename crd_t>
-E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t, crd_t>::adapt(Vector_t<E_Int>& adap_incr, bool do_agglo)
+E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t, crd_t>::adapt(output_type& adap_incr, bool do_agglo)
 {
   E_Int err(0);
 
-  Vector_t<E_Int> PHadap, PHagglo, PHref, PGref;
+  Vector_t<E_Int> PHagglo, PHref, PGref;
 
-
-  
   // identify the sensor
   E_Int max = *std::max_element(ALL(adap_incr));
   E_Int min;
@@ -214,29 +285,22 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t, crd_t>::adapt(Vector_t<E_Int>& adap
   
   while (!err)
   {
-    PHadap.clear();
     PHagglo.clear();
-
-    // PHadap : Get the list of enabled PHs for which adap_incr[PHi] != 0
-    if (max > 0) // there is a need to refine
-    {
-      for (size_t i = 0; i < _ng.PHs.size(); ++i)
-        if (adap_incr[i] > 0 && _PHtree.is_enabled(i)) PHadap.push_back(i);
-    }
-    
     if (min < 0) // there is a need to agglomerate
     {
       for (size_t i = 0; i < _ng.PHs.size(); ++i)
         if (adap_incr[i] == -1) PHagglo.push_back(i);
     }
+
+    if (max > 0) // there is a need to refine
+    {
+      // refine PGs : create missing children (those PGi with _PGtree.nb_children(PGi) == 0)
+      refiner<ELT_t, STYPE>::refine_PGs(adap_incr, _ng, _PGtree, _crd, _F2E, _ecenter);
+      // refine PHs with missing children (those PHi with _PHtree.nb_children(PHi) == 0)
+      refiner<ELT_t, STYPE>::refine_PHs(adap_incr, _ng, _PGtree, _PHtree, _crd, _F2E);
+    }
     
-    if (PHadap.empty() && PHagglo.empty()) break; // adapted
-
-    // refine PGs : create missing children (those PGi with _PGtree.nb_children(PGi) == 0)
-    refiner<K_MESH::Basic, STYPE>::refine_PGs(PHadap, _ng, _PGtree, _crd, _F2E, _ecenter);
-
-    // refine PHs with missing children (those PHi with _PHtree.nb_children(PHi) == 0)
-    refiner<ELT_t, STYPE>::refine_PHs(PHadap, _ng, _PGtree, _PHtree, _crd, _F2E);
+    if (max == 0 && min == 0) break; // adapted
     
 #ifdef DEBUG_2019    
 //    NGDBG::draw_PH("s1.plt",_crd, _ng, 1);
@@ -251,9 +315,11 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t, crd_t>::adapt(Vector_t<E_Int>& adap
     
     // enable the right PHs & their levels, disable subdivided PHs
     adap_incr.resize(_ng.PHs.size(),0);
-    for (size_t i = 0; i < PHadap.size(); ++i)
+    for (E_Int i = 0; i < _ng.PHs.size(); ++i)
     {
-      E_Int PHi = PHadap[i];
+      E_Int& PHi = i;
+
+      if (!_PHtree.is_enabled(PHi)) continue;
 
       if (adap_incr[PHi] > 0) // activate the children
       {
@@ -352,7 +418,7 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t, crd_t>::conformize()
       }
     }
     
-    new_phs.add(molec.size(), &molec[0]);  
+    new_phs.add(molec.size(), &molec[0]);  //alexis : set _type for children ??
   }
 
   _ng.PHs = new_phs;
@@ -400,7 +466,7 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t, crd_t>::filter_ngon(ngon_type& filte
     {
       E_Int* p = _ng.PHs.get_facets_ptr(i);
       E_Int s = _ng.PHs.stride(i);
-      filtered_ng.PHs.add(s,p);
+      filtered_ng.PHs.add(s,p);//alexis : set _type for children ??
     }
   }
     
@@ -490,7 +556,7 @@ bool hierarchical_mesh<K_MESH::Hexahedron, ngon_type, K_FLD::FloatArray>::enable
 
 ///
 template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t, typename crd_t>
-void hierarchical_mesh<ELT_t, STYPE, ngo_t, crd_t>::smooth(std::vector<E_Int>& adap_incr)
+void hierarchical_mesh<ELT_t, STYPE, ngo_t, crd_t>::smooth(output_type& adap_incr)
 {
   std::stack<E_Int> stck;
 

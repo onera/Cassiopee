@@ -137,6 +137,9 @@ public:
   template< typename ngo_t>
   static void reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i);
   
+  template <typename ngunit_t>
+  static void get_local(const ngunit_t & PGs, const E_Int* first_pg, E_Int*& local);
+  
   
   ///
   template <typename CoordAcc>
@@ -221,6 +224,14 @@ void Hexahedron::reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i) // 
   for (int i = 0; i < nb_faces; ++i)
     faces[i] = mol[i];
 }
+
+
+///
+template <typename ngunit_t>
+  static void get_local(const ngunit_t & PGs, const E_Int* first_pg, E_Int*& local)
+{ /*alexis : todo : de taille 6, signe+ si l'orientation est bonne, 
+   * -sinon, indice one-based du i0*/
+}                                                                        
 
 template <typename CoordAcc> inline
 void Hexahedron::iso_barycenter(const CoordAcc& coord, E_Float* G)
