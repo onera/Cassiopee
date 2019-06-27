@@ -3347,8 +3347,7 @@ def _addBC2StructZone__(z, bndName, bndType, wrange=[], faceList=[],
   typeR = -1 # 0  : PR, 1 PL
   if wrange != []: typeR=0
   elif len(faceList) != 0: typeR=1
-  else:
-    raise ValueError("addBC2Zone: match connectivity requires a range or face list.")
+  else: raise ValueError("addBC2Zone: match connectivity requires a range or face list.")
 
   # Range defini par une chaine ou non
   if typeR == 0:
@@ -3361,26 +3360,24 @@ def _addBC2StructZone__(z, bndName, bndType, wrange=[], faceList=[],
         rangeDonor = convertStringRange2Range__(rangeDonor, zoneDonor)
 
   if bndType1 == 'BCMatch' or bndType1 == 'Abutting1to1':
-    if typeR==0 and rangeDonor == [] and trirac==[]:
+    if typeR == 0 and rangeDonor == [] and trirac == []:
       raise ValueError("addBC2Zone: match connectivity requires a donor point range and a trirac.")
-    elif typeR==1 and faceListDonor == []:
+    elif typeR == 1 and faceListDonor == []:
       raise ValueError("addBC2Zone: match connectivity requires a donor face list.")
 
     if zoneDonor == []:
       raise ValueError("addBC2Zone: match connectivity requires a donor zone.")
     # Cree le noeud zoneGridConnectivity si besoin
-    zoneGC = Internal.getNodesFromType1(z, 'ZoneGridConnectivity_t')
-    if zoneGC == []:
+    zoneGC = Internal.getNodeFromType1(z, 'ZoneGridConnectivity_t')
+    if zoneGC is None:
       z[2].append(['ZoneGridConnectivity', None, [], 'ZoneGridConnectivity_t'])
       zoneGC = z[2][len(z[2])-1]
-    else:
-      zoneGC = zoneGC[0]
     # Cree le noeud de GC1-1
     if isinstance(zoneDonor, str): v = numpy.fromstring(zoneDonor, 'c')
     else: v = numpy.fromstring(zoneDonor[0], 'c')
     zoneGC[2].append([bndName, v, [], 'GridConnectivity1to1_t']); l = len(zoneGC[2])
     info = zoneGC[2][l-1]
-
+    
     if typeR == 0:
       r = Internal.window2Range(wrange)
       info[2].append([Internal.__FACERANGE__, r, [], 'IndexRange_t'])

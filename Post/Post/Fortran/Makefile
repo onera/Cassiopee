@@ -26,5 +26,9 @@ CompUnstrGrad1DF.for\
 CompStructCurlF.for\
 CompStructCurl2DF.for\
 CompUnstrCurlF.for\
-CompUnstrCurl2DF.for
+CompUnstrCurl2DF.for\
+CompUnstrDiv2DF.for\
+CompUnstrDivF.for\
+CompStructDivF.for\
+CompStructDiv2DF.for
 include ../Make.inc

@@ -1934,7 +1934,7 @@ Create specific CGNS nodes
 
     :param name: name of node
     :type name: string
-    :param value: list of point indices (6 for a structured point range)
+    :param value: list of point indices ([imin,imax,jmin,jmax,kmin,kmax] for a structured point range)
     :type value: list of integers
     :param parent: optional parent node
     :type parent: pyTree node
@@ -2142,7 +2142,7 @@ Create specific CGNS nodes
 
     :param name: name of the node
     :type name: string
-    :param pointRange: list of point indices (6 for a structured point range)
+    :param pointRange: list of point indices ([imin,imax,jmin,jmax,kmin,kmax] for a structured point range)
     :type pointRange: list of integers
     :param pointList: list of point indices (for unstructured grid)
     :type pointList: list of integers
@@ -2324,11 +2324,11 @@ Create specific CGNS nodes
     :type name: string
     :param donorName: name of donor zone
     :type donorName: string
-    :param pointRange: list of point indices of the local zone (6 for a structured point range)
+    :param pointRange: list of point indices of the local zone ([imin,imax,jmin,jmax,kmin,kmax] for a structured point range)
     :type pointRange: list of integers
     :param pointList: list of point indices of the local zone (for unstructured grid)
     :type pointList: list of integers
-    :param pointRangeDonor: list of point indices of the donor zone (6 for a structured point range)
+    :param pointRangeDonor: list of point indices of the donor zone ([imin,imax,jmin,jmax,kmin,kmax] for a structured point range)
     :type pointRangeDonor: list of integers
     :param pointListDonor: list of point indices of the donor zone (for unstructured grid)
     :type pointListDonor: list of integers
@@ -2440,7 +2440,7 @@ Create specific CGNS nodes
 
     :param name: coordinates of the rotation center
     :type name: list of 3 floats
-    :param pointRange: list of point indices (6 for a structured point range)
+    :param pointRange: list of point indices ([imin,imax,jmin,jmax,kmin,kmax] for a structured point range)
     :type pointRange: list of integers
     :param pointList: list of point indices (for unstructured grid)
     :type pointList: list of integers

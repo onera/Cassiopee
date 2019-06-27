@@ -571,10 +571,13 @@ def newPointList(name='PointList', value=None, parent=None):
 # -- newPointRange
 def newPointRange(name='PointRange', value=None, parent=None):
     """Create a new PointRange node."""
+    if value is not None:
+        if isinstance(value, list) and len(value) == 6: # si fourni a plat
+            (imin,imax,jmin,jmax,kmin,kmax) = value
+            value = [[imin, imax], [jmin, jmax], [kmin, kmax]]
     if parent is None:
         node = createNode(name, 'IndexRange_t', value=value)
-    else: node = createUniqueChild(parent, name, 'IndexRange_t',
-                                   value=value)
+    else: node = createUniqueChild(parent, name, 'IndexRange_t', value=value)
     return node
 
 # -- newRind
@@ -770,6 +773,8 @@ def newGridConnectivity1to1(name='Match', donorName=None,
         newPointRange(name='PointRangeDonor', value=pointRangeDonor, parent=node)
     if pointListDonor is not None:
         newPointList(name='PointListDonor', value=pointListDonor, parent=node)
+    if transform is not None:
+        createUniqueChild(node, 'Transform', '"int[IndexDimension]"', value=transform)
     return node
 
 # -- newGridConnectivity

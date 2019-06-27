@@ -30,7 +30,7 @@ using namespace std;
 PyObject* K_CONVERTER::normalize(PyObject* self, PyObject* args)
 {
   PyObject* array; PyObject* varsO;
-  if (!PyArg_ParseTuple(args, "OO", &array, &varsO )) return NULL;
+  if (!PyArg_ParseTuple(args, "OO", &array, &varsO)) return NULL;
 
   // Check vars
   if (PyList_Check(varsO) == 0)
@@ -91,7 +91,7 @@ PyObject* K_CONVERTER::normalize(PyObject* self, PyObject* args)
     Py_INCREF(Py_None); return Py_None;
   }
   E_Int npts = f->getSize();
-
+  
   FldArrayF fp(npts);
   E_Float* fpt0 = fp.begin();
 
@@ -120,9 +120,7 @@ PyObject* K_CONVERTER::normalize(PyObject* self, PyObject* args)
       }
     }
   }
-
   RELEASESHAREDB(res, array, f, cn);
   Py_INCREF(Py_None);
   return Py_None;
 } 
-    

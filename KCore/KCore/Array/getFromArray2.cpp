@@ -507,7 +507,11 @@ E_Int K_ARRAY::getFromArray2(PyObject* o,
     else if (PyList_Check(tpl) == true) // -- Array2 --
     {
       E_Int nc = PyList_Size(tpl);
-      if (nc == 1) // BE => compact + stride
+      if (nc == 0) // BE NODE
+      {
+        c = NULL;
+      }
+      else if (nc == 1) // BE => compact + stride
       {
         ac = (PyArrayObject*)PyList_GetItem(tpl,0);
         E_Int s, nfld;
