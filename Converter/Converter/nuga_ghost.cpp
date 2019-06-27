@@ -70,7 +70,7 @@ E_Int check_is_NGON(PyObject* arr, K_FLD::FloatArray*& f1, K_FLD::IntArray*& cn1
   return 0;
 }
 
-void add_n_topo_layers(std::vector<zone_type>& zones, E_Int i0, E_Int NLAYERS, bool ghost_on_bcs)
+void add_n_topo_layers(std::vector<zone_type>& zones, E_Int i0, E_Int NLAYERS, int ghost_on_bcs)
 {
   E_Int nb_zones = zones.size();
   zone_type& Zi0 = zones[i0];
@@ -167,10 +167,8 @@ void add_n_topo_layers(std::vector<zone_type>& zones, E_Int i0, E_Int NLAYERS, b
   Zi0.set_pg_colors();
   Zi0.sort_by_type();
 
-  if (ghost_on_bcs) //insert one layer of ghost cell on BCs
-  {
-    Zi0.insert_ghosts_on_bcs();
-  }
+  if (ghost_on_bcs != 0) //insert one layer of ghost cell on BCs
+    Zi0.insert_ghosts_on_bcs(ghost_on_bcs, NLAYERS); //1 : single PG ghost /  2 : degen ghost
 
 }
 
@@ -408,7 +406,7 @@ PyObject* K_CONVERTER::addGhostCellsNG(PyObject* self, PyObject* args)
       		tmp_zones[j].change_joins_zone(zones[k], &tmp_zones[k]);
       }
       
-      add_n_topo_layers(tmp_zones, i, NLAYERS, true/*add gost on bcs*/);
+      add_n_topo_layers(tmp_zones, i, NLAYERS, 2/*add degen gost cells on bcs*/); //0 : no ghost / 1: ghost with only one PG / 2: degen ghost
       zone_type& Zghost = tmp_zones[i];
 
       E_Int nb_phs = Zghost._ng.PHs.size();

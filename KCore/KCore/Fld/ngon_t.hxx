@@ -4271,11 +4271,114 @@ static E_Int extrude_faces
   
 #endif
 
-  
+  wNG.PGs.updateFacets();
+  wNG.PHs.updateFacets();
 
   return 0;
 }
 
+///
+static E_Int add_flat_ghosts(ngon_t& wNG, const Vector_t<E_Int>& PGlist)
+{
+  
+  if (PGlist.empty()) return 0;
+  
+#ifdef DEBUG_NGON_T
+  E_Int minid = *std::min_element(PGlist.begin(), PGlist.end());
+  E_Int maxid = *std::max_element(PGlist.begin(), PGlist.end());
+  E_Int nb_pgs = wNG.PGs.size();
+  assert (minid >= 0);
+  assert (maxid < nb_pgs);
+#endif
+  
+  // 1. extract ghost bottom PGs
+
+  ngon_unit ghost_pgs;
+  Vector_t<E_Int> obids; //initial bottom ids  : for indirection when building ghost cells at the end
+  wNG.PGs.extract(PGlist, ghost_pgs, obids);
+
+  // 2. add flat ghost cells without requiring a clean_conenctivity
+  
+  // a. conversion NGON3D -> NGON2D
+  ngon_t ng2D;
+  ngon_t::export_surfacic_FN_to_EFN(ghost_pgs, ng2D);
+  // sync with wNG for future bulks appending
+  E_Int shft = wNG.PGs.size();
+  ng2D.PHs.shift(shft);
+  
+#ifdef DEBUG_NGON_T
+  ngon_unit bulks;
+#endif
+
+  // c. Q4 bulkheads
+  E_Int nb_bulks = ng2D.PGs.size(); // for each edge, a bulk
+  E_Int bulk[4];
+  for (E_Int i = 0; i < nb_bulks; ++i)
+  {
+    const E_Int* nodes = ng2D.PGs.get_facets_ptr(i);
+
+    bulk[0] = nodes[0];
+    bulk[1] = nodes[1];
+    bulk[2] = nodes[1];
+    bulk[3] = nodes[0];
+    
+    wNG.PGs.add(4, &bulk[0]); // this PG id is sync with ng2D (due to previous shift)
+    
+    //wNG.PGs._type.push_back(ng2D.PGs._type[i]);
+    
+#ifdef DEBUG_NGON_T
+    bulks.add(4, &bulk[0]);   // this PG id is sync with ng2D (due to previous shift)
+#endif
+  }
+  
+  wNG.PGs._type.resize(wNG.PGs.size(), 0);
+  wNG.PGs._ancEs.resize(2, wNG.PGs.size(), E_IDX_NONE);
+  
+#ifdef DEBUG_NGON_T
+  assert(wNG.PGs.attributes_are_consistent());
+#endif
+  // e. ghost PHs
+  E_Int nb_cells = ghost_pgs.size();
+  Vector_t<E_Int> buff;
+  //
+  for (E_Int i = 0 ; i < nb_cells; ++i)
+  {
+    const E_Int* pgs = ng2D.PHs.get_facets_ptr(i);
+    E_Int nb_pgs = ng2D.PHs.stride(i);
+    
+    buff.clear();
+    buff.insert(buff.end(), pgs, pgs + nb_pgs); // adding bulkheads
+    buff.push_back(obids[i] + 1);               // adding bottom
+    buff.push_back(obids[i] + 1);               // adding "top"
+    
+    wNG.PHs.add(buff.size()/*nb_pgs + 2*/, &buff[0]);
+  }
+  //std::cout << "size before adding ghost : " << wNG.PHs._type.size() << std::endl;
+  wNG.PHs._type.resize(wNG.PHs.size(), INITIAL_SKIN);
+  wNG.PHs._ancEs.resize(2, wNG.PHs.size(), E_IDX_NONE);
+  //std::cout << "nb of added ghost : " << nb_cells << std::endl;
+  
+#ifdef DEBUG_NGON_T  
+  {
+    ngon_t just_bulks(bulks, false);
+    just_bulks.PGs.updateFacets();
+    just_bulks.PHs.updateFacets();
+    K_FLD::IntArray cnto;
+    just_bulks.export_to_array(cnto);
+    MIO::write("bulks.plt", coord, cnto, "NGON");
+  }
+  
+  {
+    K_FLD::IntArray cnto;
+    wNG.export_to_array(cnto);
+    MIO::write("ghost.plt", coord, cnto, "NGON");
+  }
+#endif
+
+  return 0;
+}
+
+///
 static void get_pgs_with_non_manifold_edges(const ngon_unit& PGs, std::set<E_Int>& pgsid)
 {
   pgsid.clear();

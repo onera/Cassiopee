@@ -163,7 +163,7 @@ class zone_t
     E_Int reduce_to_positive_types();
     
     void sort_by_type() ;
-    void insert_ghosts_on_bcs();
+    void insert_ghosts_on_bcs(E_Int type, E_Int nb_layers);
     
     void init_pg_types(E_Int& color);
     void set_join_types(E_Int& color);
@@ -191,10 +191,10 @@ void draw_boundaries()
   E_Int nb_pgs = _ng.PGs.size();
   for (size_t i=0; i < nb_pgs; ++i)
   {
-    if (_F2Es[i] == _F2E_NONE || _F2Es[i+nb_pgs] == _F2E_NONE)ids.push_back(i);
+    if (_F2Es[i+nb_pgs] == _F2E_NONE)ids.push_back(i);
   }
   
-  NGON_debug<K_FLD::FloatArray, K_FLD::IntArray>::draw_PGs(_crd, _ng.PGs, ids, false);
+  NGON_debug<K_FLD::FloatArray, K_FLD::IntArray>::draw_PGs("bound", _crd, _ng.PGs, ids, false);
 }
 #endif
     
@@ -518,6 +518,9 @@ void zone_t<crd_t, ngo_t>::set_pg_colors()
   {
     E_Int eL    = _F2Es[i];
     E_Int eR    = _F2Es[i+nb_pgs];
+#ifdef DEBUG_ZONE_T
+    assert(eL > 0);
+#endif
     E_Int typeL = _ng.PHs._type[eL-1];
     E_Int typeR = (eR != _F2E_NONE) ? _ng.PHs._type[eR-1] : E_IDX_NONE;
     
@@ -556,6 +559,31 @@ void zone_t<crd_t, ngo_t>::set_pg_colors()
         _ng.PGs._type[i] = OTHER_LAYS_COL;
     }
   }
+
+#ifdef DEBUG_ZONE_T
+  E_Int pg_inner(0),pg_join(0), lay1in(0), lay1bc(0), bc(0), lay2in(0), lay2bc(0), other(0);
+          
+  for (E_Int i = 0; i < nb_pgs; ++i)
+  {
+    if ( _ng.PGs._type[i] == PG_INNER_COL)++pg_inner;
+    else if ( _ng.PGs._type[i] == PG_JOIN_COL)++pg_join;
+    else if ( _ng.PGs._type[i] == PG_BC)++bc;
+    else if ( _ng.PGs._type[i] == PG_LAY1_IN_COL)++lay1in;
+    else if ( _ng.PGs._type[i] == PG_LAY1_BC_COL)++lay1bc;
+    else if ( _ng.PGs._type[i] == PG_LAY2_IN_COL)++lay2in;
+    else if ( _ng.PGs._type[i] == PG_LAY2_BC_COL)++lay2bc;
+    else if ( _ng.PGs._type[i] == OTHER_LAYS_COL)++other;
+  }
+  
+  std::cout << " PG_INNER_COL : " << pg_inner << std::endl;
+  std::cout << " PG_JOIN_COL : " << pg_join << std::endl;
+  std::cout << " PG_BC : " << bc << std::endl;
+  std::cout << " PG_LAY1_IN_COL : " << lay1in << std::endl;
+  std::cout << " PG_LAY1_BC_COL : " << lay1bc << std::endl;
+  std::cout << " PG_LAY2_IN_COL : " << lay2in << std::endl;
+  std::cout << " PG_LAY2_BC_COL : " << lay2bc << std::endl;
+  std::cout << " OTHER_LAYS_COL : " << other << std::endl;
+#endif
 }
 
 template <typename crd_t, typename ngo_t>
@@ -819,8 +847,11 @@ void zone_t<crd_t, ngo_t>::append( zone_t& that_z, bool keep_joins)
       
       for (E_Int i = 0; i < pgs.size(); ++i)
       {
-        _F2Es[i + shftPG0]       = that_z._F2Es[poids[i]];
-        _F2Es[i + shftPG0 + nb_pgs1] = that_z._F2Es[poids[i] + sz1];
+        E_Int left = that_z._F2Es[poids[i]];
+        E_Int right = that_z._F2Es[poids[i] + sz1];
+        if (left == _F2E_NONE)std::swap(left,right);
+        _F2Es[i + shftPG0]           = left;
+        _F2Es[i + shftPG0 + nb_pgs1] = right;
       }
     }
     
@@ -874,7 +905,7 @@ void zone_t<crd_t, ngo_t>::sort_by_type()
 {
   Vector_t<E_Int> nids, oids;
   _ng.PGs.sort_by_type(nids, oids);
-  
+
   // do the change
   {
     size_t nb_pgs = _ng.PGs.size();
@@ -941,8 +972,10 @@ void zone_t<crd_t, ngo_t>::sort_by_type()
 }
 
 template <typename crd_t, typename ngo_t>
-void zone_t<crd_t, ngo_t>::insert_ghosts_on_bcs()
+void zone_t<crd_t, ngo_t>::insert_ghosts_on_bcs(E_Int type, E_Int nb_layers) //type 1 : single-PG host, 2: degen ghost
 {
+  if (type != 1 && type != 2) return;
+
   // first shift types to make room for BC ghost (just before 2nd layer)
   size_t nb_phs = _ng.PHs.size();
   for (size_t i=0; i < nb_phs; ++i)
@@ -951,14 +984,44 @@ void zone_t<crd_t, ngo_t>::insert_ghosts_on_bcs()
   }
   // Now add one cell per BC pg
   size_t nb_pgs = _ng.PGs.size();
-  E_Int pg;
-  for (size_t i=0; i < nb_pgs; ++i)
+  if (type == 1)
   {
-    if (_ng.PGs._type[i]  == PG_BC)
+    // Now add one cell per BC pg
+    E_Int pg;
+
+    // RULE
+    // for any nb of layers, add PG_BC
+    // for nlayers >=2 , add also PG_LAY1_BC_COL
+    // for nlayer n>=3 , add also PG_LAY2_BC_COL
+    // above not handled
+
+    for (size_t i=0; i < nb_pgs; ++i)
     {
-      pg = i+1;
-      _ng.PHs.add(1, &pg);
+      bool ad = (_ng.PGs._type[i]  == PG_BC) || 
+              ((_ng.PGs._type[i]  == PG_LAY1_BC_COL) && (nb_layers>=2)) ||
+              ((_ng.PGs._type[i]  == PG_LAY2_BC_COL) && (nb_layers>=3));
+
+      if (ad)
+      {
+        pg = i+1;
+        _ng.PHs.add(1, &pg);
+      }
     }
+    _ng.PHs.updateFacets();
+  }
+  else if (type == 2)
+  {
+    std::vector<E_Int> pglist;
+    for (size_t i=0; i < nb_pgs; ++i)
+    {
+      bool ad = (_ng.PGs._type[i]  == PG_BC) || 
+              ((_ng.PGs._type[i]  == PG_LAY1_BC_COL) && (nb_layers>=2)) ||
+              ((_ng.PGs._type[i]  == PG_LAY2_BC_COL) && (nb_layers>=3));
+
+      if (ad)
+        pglist.push_back(i);
+    }
+    ngon_type::add_flat_ghosts(_ng, pglist);
   }
   
   _ng.PHs.updateFacets();
