@@ -615,27 +615,26 @@ struct ngon_t
     if (toremove.empty())
       return 0;
     //
-    /*std::cout << "stats after remove_entities" << std::endl;
+    /*std::cout << "stats before remove_entities" << std::endl;
     std::cout << "nb pgs : " << PGs.size() << std::endl;
-    std::cout <<"pg max " << PGs.get_facets_max_id() << std::endl;
     std::cout << "nb phs : " << PHs.size() << std::endl;
-    std::cout <<"ph range " << PHs.get_facets_max_id() << std::endl;
+    std::cout <<"max face id " << PHs.get_facets_max_id() << std::endl;
     std::cout << "//////////////////////////////////" << std::endl;*/
         
     pgnids.clear();
     PGs.remove_entities(toremove, pgnids); //0-based nids
     PGs.updateFacets();
     
-    /*std::cout << "stats after remove_entities" << std::endl;
-    std::cout << "nb pgs : " << PGs.size() << std::endl;
-    std::cout <<"pg max " << PGs.get_facets_max_id() << std::endl;
-    std::cout << "nb phs : " << PHs.size() << std::endl;
-    std::cout <<"ph range " << PHs.get_facets_max_id() << std::endl;
-    std::cout << "//////////////////////////////////" << std::endl;*/
     
     //std::cout << "nids size " << nids.size() << std::endl;
 
     PHs.remove_facets(pgnids, phnids); //0-based nids
+    
+    /*std::cout << "stats after remove_entities" << std::endl;
+    std::cout << "nb pgs : " << PGs.size() << std::endl;
+    std::cout << "nb phs : " << PHs.size() << std::endl;
+    std::cout <<"max face id  " << PHs.get_facets_max_id() << std::endl;
+    std::cout << "//////////////////////////////////" << std::endl;*/
     
     //std::cout << "remove_pgs : 3 " << std::endl;
     return 0;

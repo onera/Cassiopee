@@ -183,7 +183,7 @@ PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
   typedef ngon_t<K_FLD::IntArray> ngon_type;
   ngon_type ngi(cnt);
 
-  PyObject* tpl =nullptr;
+  PyObject *l(PyList_New(0));
 
   E_Int elt_type = check_has_NGON_BASIC_ELEMENT(ngi);
   if (elt_type==-1)
@@ -219,11 +219,23 @@ PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
       NUGA::adaptor<mesh_type, sensor_t>::run(hmesh, sensor, crdS);
     }
   
-    hmesh.conformize();
+    std::vector<E_Int> oids;
+    hmesh.conformize(oids);
 
     K_FLD::IntArray cnto;
     hmesh._ng.export_to_array(cnto);
-    tpl = K_ARRAY::buildArray(hmesh._crd, varString, cnto, -1, "NGON", false);;
+  
+    // pushing out the mesh
+    PyObject *tpl = K_ARRAY::buildArray(hmesh._crd, varString, cnto, -1, "NGON", false);
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
+
+    // pushing out PG history
+    tpl = K_NUMPY::buildNumpyArray(&oids[0], oids.size(), 1, 0);
+ 
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
+
   }
   else if (elt_type==TH4 && !force_basic)
   {
@@ -255,10 +267,21 @@ PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
       NUGA::adaptor<mesh_type, sensor_t>::run(hmesh, sensor, crdS);
     }   
 
-    hmesh.conformize();
+    std::vector<E_Int> oids;
+    hmesh.conformize(oids);
     K_FLD::IntArray cnto;
     hmesh._ng.export_to_array(cnto);
-    tpl = K_ARRAY::buildArray(hmesh._crd, varString, cnto, -1, "NGON", false);;
+      
+    // pushing out the mesh
+    PyObject *tpl = K_ARRAY::buildArray(hmesh._crd, varString, cnto, -1, "NGON", false);
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
+
+    // pushing out PG history
+    tpl = K_NUMPY::buildNumpyArray(&oids[0], oids.size(), 1, 0);
+ 
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
   }
   else if (elt_type==PENTA6 && !force_basic)
   {
@@ -288,11 +311,24 @@ PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
       using sensor_t = NUGA::geom_sensor2<mesh_type>;
       sensor_t sensor(hmesh, 1/*max_pts per cell*/, itermax);
       NUGA::adaptor<mesh_type, sensor_t>::run(hmesh, sensor, crdS);
-    }   
-    hmesh.conformize();
+    }
+
+    std::vector<E_Int> oids;
+    hmesh.conformize(oids);
+
     K_FLD::IntArray cnto;
     hmesh._ng.export_to_array(cnto);
-    tpl = K_ARRAY::buildArray(hmesh._crd, varString, cnto, -1, "NGON", false);;
+  
+    // pushing out the mesh
+    PyObject *tpl = K_ARRAY::buildArray(hmesh._crd, varString, cnto, -1, "NGON", false);
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
+
+    // pushing out PG history
+    tpl = K_NUMPY::buildNumpyArray(&oids[0], oids.size(), 1, 0);
+ 
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
   }
   else if (elt_type==MIXED || force_basic)
   {    
@@ -324,15 +360,26 @@ PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
       NUGA::adaptor<mesh_type, sensor_t>::run(hmesh, sensor, crdS);
     }   
 
-    hmesh.conformize();
+    std::vector<E_Int> oids;
+    hmesh.conformize(oids);
     K_FLD::IntArray cnto;
     hmesh._ng.export_to_array(cnto);
-    tpl = K_ARRAY::buildArray(hmesh._crd, varString, cnto, -1, "NGON", false);;
+  
+    // pushing out the mesh
+    PyObject *tpl = K_ARRAY::buildArray(hmesh._crd, varString, cnto, -1, "NGON", false);
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
+
+    // pushing out PG history
+    tpl = K_NUMPY::buildNumpyArray(&oids[0], oids.size(), 1, 0);
+ 
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
   }
 
   delete f; delete cn;
   delete fS; delete cnS;
-  return tpl;
+  return l;
 }
 
 //=============================================================================
@@ -404,8 +451,8 @@ PyObject* K_INTERSECTOR::adaptBox(PyObject* self, PyObject* args)
   NUGA::adaptor<mesh_type, sensor_type>::run(hmesh, sensor, crdS);
 
   //std::cout << "output leaves..." << std::endl;
-  
-  hmesh.conformize();
+  std::vector<E_Int> oids;
+  hmesh.conformize(oids);
 
   K_FLD::IntArray cnto;
   hmesh._ng.export_to_array(cnto);

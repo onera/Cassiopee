@@ -17,20 +17,24 @@ a = G.close(a)
 b = G.cart((0.2,0.2,-0.2), (0.01,0.01,-0.01),(25,25,25)) 
 b = C.convertArray2NGon(b)
 b = G.close(b)
-#C.convertPyTree2File(b,'z_nonreg6_source.plt')
+#C.convertPyTree2File(b,'z_nonreg6_source.cgns')
 
 a4 = T.subzone(a, [2,3,4,5], type='faces')
 a4 = C.convertArray2Hexa(a4)
 a4 = G.quad2Pyra(a4)
 a5 = T.join(a, a4)
-#C.convertPyTree2File(a5, 'z_a4.plt')
+#C.convertPyTree2File(a5, 'z_a4.cgns')
+
+a5 = C.fillEmptyBCWith(a5, 'wall', 'BCWall')
 
 m1 = XOR.adaptCells(a5,b, sensor_type=0)
-#m1 = XOR.closeOctalCells(m1)
+m1 = XOR.closeOctalCells(m1)
 #C.convertPyTree2File(m1, 'out6.cgns')
 test.testT(m1,1)
 
+a = C.fillEmptyBCWith(a, 'wall', 'BCWall')
+
 m2 = XOR.adaptCells(a,b, sensor_type=2)
-#m2 = XOR.closeOctalCells(m2)
+m2 = XOR.closeOctalCells(m2)
 #C.convertPyTree2File(m2, 'out61.cgns')
 test.testT(m2,2)

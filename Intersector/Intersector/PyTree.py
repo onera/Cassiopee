@@ -598,9 +598,27 @@ def removeNonManifoldExternalCells(t):
 def closeOctalCells(t):
     """Closes any polyhedral cell in an octree.
     Usage: closeOctalCells(t)"""
-    m = C.getFields(Internal.__GridCoordinates__, t)[0]
-    m = XOR.closeOctalCells(m)
-    return C.convertArrays2ZoneNode('closed', [m])
+    tp = Internal.copyRef(t)
+    _closeOctalCells(tp)
+    return tp
+
+def _closeOctalCells(t):
+    """Adapts a polyhedral mesh t1 with repsect to t2 points.
+    Usage: adaptCells(t1, t2, sensor_type)"""
+
+    zones = Internal.getZones(t)
+
+    for z in zones:
+        coords = C.getFields(Internal.__GridCoordinates__, z)[0]
+        if coords == []: continue
+
+        coords = Converter.convertArray2NGon(coords)
+        mesh = intersector.closeOctalCells(coords)
+
+        # MAJ du maillage de la zone
+        C.setFields([mesh], z, 'nodes')
+
+    return t
 
 #==============================================================================
 # adaptCells : Adapts a polyhedral mesh a1 with repsect to a2 points
@@ -609,13 +627,37 @@ def closeOctalCells(t):
 # IN: sensor_type : basic (0) or xsensor (1)
 # OUT: returns a 3D NGON Mesh with adapted cells
 #==============================================================================
-def adaptCells(t1, t2, sensor_type = 0, itermax=-1, force_basic=0):
+def adaptCells(t, t2, sensor_type = 0, itermax=-1, force_basic=0):
+     
+    tp = Internal.copyRef(t)
+    _adaptCells(tp, t2, sensor_type, itermax, force_basic)
+    return tp
+
+def _adaptCells(t, t2, sensor_type = 0, itermax=-1, force_basic=0):
     """Adapts a polyhedral mesh t1 with repsect to t2 points.
     Usage: adaptCells(t1, t2, sensor_type)"""
-    m1 = C.getFields(Internal.__GridCoordinates__, t1)[0]
-    m2 = C.getFields(Internal.__GridCoordinates__, t2)[0]
-    m = intersector.adaptCells(m1, m2, sensor_type,itermax, force_basic)
-    return C.convertArrays2ZoneNode('adapted', [m])
+
+    source = C.getFields(Internal.__GridCoordinates__, t2)[0]
+
+    zones = Internal.getZones(t)
+
+    for z in zones:
+        coords = C.getFields(Internal.__GridCoordinates__, z)[0]
+        if coords == []: continue
+
+        coords = Converter.convertArray2NGon(coords)
+        res = intersector.adaptCells(coords, source, sensor_type, itermax, force_basic)
+
+        mesh = res[0]
+        pg_oids=res[1]
+
+        # MAJ du maillage de la zone
+        C.setFields([mesh], z, 'nodes') 
+        # MAJ POINT LISTS #
+        updatePointLists(z, zones, pg_oids)
+
+    return t
+
 
 #==============================================================================
 # adaptBox : Adapts a bounding box to a cloud of interior points

@@ -109,7 +109,7 @@ class hierarchical_mesh
     E_Int adapt(output_type& adap_incr, bool do_agglo);
   
     /// face-conformity
-    void conformize();
+    void conformize(Vector_t<E_Int>& pgoids);
     /// Keep only enabled PHs
     void filter_ngon(ngon_type& filtered_ng);
     
@@ -196,7 +196,7 @@ void hierarchical_mesh<K_MESH::Hexahedron, DIR, ngon_type, K_FLD::FloatArray>::_
     E_Int PHi = (_F2E(0,i) != E_IDX_NONE) ? _F2E(0,i) : _F2E(1,i);
     
     E_Int PHcur = PHi;
-    E_Int Basecur = i;
+//    E_Int Basecur = i;
     
     while (true) // climb over the layer
     {
@@ -224,7 +224,7 @@ void hierarchical_mesh<K_MESH::Hexahedron, DIR, ngon_type, K_FLD::FloatArray>::_
   
   
   //detect now any layer cell
-  double aniso_ratio = 0.2; //fixme : parametre a externaliser
+//  double aniso_ratio = 0.2; //fixme : parametre a externaliser
   
   //to do : si aniso => faire  ng.PHs._type =  K_MESH::Polyhedron<0>::eType::LAYER
   
@@ -379,8 +379,13 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t, crd_t>::adapt(output_type& adap_inc
 }
 
 template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t, typename crd_t>
-void hierarchical_mesh<ELT_t, STYPE, ngo_t, crd_t>::conformize()
+void hierarchical_mesh<ELT_t, STYPE, ngo_t, crd_t>::conformize(Vector_t<E_Int>& pgoids)
 {
+  Vector_t<E_Int> old_pgoids;
+  _PGtree.get_oids(old_pgoids);
+  
+  pgoids.clear();//for history (BC and Join preserving)
+  
   ngon_unit new_phs;
   Vector_t<E_Int> molec;
 
@@ -426,6 +431,11 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t, crd_t>::conformize()
   
   std::vector<E_Int> pgnids, phnids;
   _ng.remove_unreferenced_pgs(pgnids, phnids);
+      
+  //  
+  pgoids.resize(_ng.PGs.size(), E_IDX_NONE);
+  for (size_t i=0; i <  pgnids.size(); ++i)
+    if (pgnids[i] != E_IDX_NONE)pgoids[pgnids[i]] = old_pgoids[i]; //old_pgoids cannot have E_IDX_NONE : new entities must be self referring
 }
 
 template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t, typename crd_t>
@@ -573,7 +583,7 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t, crd_t>::smooth(output_type& adap_inc
     E_Int s = _ng.PHs.stride(ind_PHi);
 
     
-    E_Int* neighbours= new E_Int[4*s];
+    E_Int* neighbours= new E_Int[4*s];//fixme
     E_Int nb_neighbours = 0;
     get_enabled_neighbours(ind_PHi, neighbours, nb_neighbours); // get the effective neighbours (enabled ones) to assert the 2:1 rule
 

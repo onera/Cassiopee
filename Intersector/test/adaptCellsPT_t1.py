@@ -6,9 +6,11 @@ import KCore.test as test
 
 a = G.cartHexa((0.,0.,0.), (0.1,0.1,0.1), (5,5,5))
 a = C.convertArray2NGon(a); a = G.close(a)
-#C.convertArrays2File([a], 'a.plt')
+#C.convertPyTree2File(a, 'a.cgns')
 b = G.cartHexa((0.,0.,0.), (0.005,0.005,0.005), (5,5,5))
-#C.convertArrays2File([b], 'b.plt')
+#C.convertPyTree2File(b, 'b.cgns')
+
+a = C.fillEmptyBCWith(a, 'wall', 'BCWall')
 
 m = XOR.adaptCells(a,b, sensor_type=0)
 m = XOR.closeOctalCells(m)

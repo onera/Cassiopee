@@ -20,15 +20,16 @@ b = G.cart((0.4,0.4,-0.2), (0.01,0.01,-0.01),(5,5,5))
 b = C.convertArray2NGon(b)
 b = G.close(b)
 
-#C.convertPyTree2File(b,'z_nonreg7_source.plt')
+#C.convertPyTree2File(b,'z_nonreg7_source.cgns')
 
+a = C.fillEmptyBCWith(a, 'wall', 'BCWall')
 
 m1 = XOR.adaptCells(a,b, sensor_type=0)
-#m1 = XOR.closeOctalCells(m1)
+m1 = XOR.closeOctalCells(m1)
 #C.convertPyTree2File(m1, 'out7.cgns')
 test.testT(m1,1)
 
 m2 = XOR.adaptCells(a,b, sensor_type=2)
-#m2 = XOR.closeOctalCells(m2)
+m2 = XOR.closeOctalCells(m2)
 #C.convertPyTree2File(m2, 'out71.cgns')
 test.testT(m2,2)

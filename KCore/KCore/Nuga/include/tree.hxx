@@ -102,6 +102,9 @@ class tree
     
     inline E_Int parent(E_Int i /*zero based*/){ return _parent[i];}
     
+    void get_oids(std::vector<E_Int>& oids); //WAZRNING : NOT VALID AFTER CONFOMIZE
+    
+    
     //
     void add_children(E_Int i/*zero based*/, const E_Int* children, E_Int n){
      
@@ -179,6 +182,25 @@ class tree
     
 };
 
+/// WARNING : true while the tree is alive (NOT AFTER CONFORMIZE))
+template <typename children_array>
+void tree<children_array>::get_oids(std::vector<E_Int>& oids)
+{
+  E_Int nb_ents(_parent.size());
+  
+  oids.clear();
+  K_CONNECT::IdTool::init_inc(oids, nb_ents);
+  
+  for (size_t i=0; i < nb_ents; ++i)
+  {
+    E_Int pid = _parent[i];
+    while (pid != E_IDX_NONE) //get back to root _parent
+    {
+      oids[i] = pid;
+      pid = _parent[pid];
+    };
+  }
+}
 
 //////////////  ARRAY TRAITS : how to get size, expand an array whether it is fixed stride (IntArray) or not (ngon_unit) 
 

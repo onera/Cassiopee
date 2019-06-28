@@ -11,10 +11,10 @@ b = G.cartHexa((0.,0.,0.), (0.005,0.005,0.005), (5,5,5))
 #C.convertArrays2File([b], 'b.plt')
 
 m = XOR.adaptCells(a,b, sensor_type=0)
-m = XOR.closeOctalCells(m)
+m = XOR.closeOctalCells(m[0])
 test.testA(m,1)
 
 m = XOR.adaptCells(a,b, sensor_type=1)
-m = XOR.closeOctalCells(m)
+m = XOR.closeOctalCells(m[0])
 test.testA(m,2)
 

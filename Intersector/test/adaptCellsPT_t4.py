@@ -18,8 +18,10 @@ b = G.cart((0.2,0.2,-0.5), (0.01,0.01,0.01),(5,5,5))
 b = C.convertArray2NGon(b)
 b = G.close(b)
 
-#C.convertPyTree2File(a,'nonreg_prism.plt')
-#C.convertPyTree2File(b,'nonreg_prism_source.plt')
+#C.convertPyTree2File(a,'nonreg_prism.cgns')
+#C.convertPyTree2File(b,'nonreg_prism_source.cgns')
+
+a = C.fillEmptyBCWith(a, 'wall', 'BCWall')
 
 m1 = XOR.adaptCells(a,b, sensor_type=0)
 m1 = XOR.closeOctalCells(m1)

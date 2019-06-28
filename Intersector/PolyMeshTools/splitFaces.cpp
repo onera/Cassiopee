@@ -75,6 +75,7 @@ PyObject* K_INTERSECTOR::updatePointLists(PyObject* self, PyObject* args)
   E_Int res = K_NUMPY::getFromNumpyArray(py_oids, oids, sz, r, true/*shared*/);
   if (res != 1) return NULL;
   
+  // WARNING : oids has no E_IDX_NONE (created entities are self referring) and is 0-based 
   E_Int nb_pgs = *std::max_element(oids, oids+sz) + 1;
 
   ngon_unit split_graph;
