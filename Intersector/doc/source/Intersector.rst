@@ -67,6 +67,7 @@ List of functions
    Intersector.agglomerateCellsWithSpecifiedFaces
    Intersector.closeOctalCells
    Intersector.adaptCells
+   Intersector.adaptCellsNodal
    Intersector.adaptBox
 
 **-- Extraction Functions**
@@ -642,7 +643,7 @@ Transformation Functions
 
 .. py:function:: Intersector.adaptCells(a1, a2, sensor_type=0)
 
-    Adapts a1 cells (only TETRA and HEXA cells currently) with respect to a2 points. Adaptation is a per-cell octal 2:1 decomposition.
+    Adapts a1 cells (any basic cells - TETRA, PENTA, PYRA, HEXA - currently) with respect to a2 points. Adaptation is a per-cell octal 2:1 decomposition.
     With a sensor_type equal to 0, a2 points are only considered : a1 will be refined such any a1 cell contains at most 1 a2's point.
     With a sensor_type equal to 1, a2's connectivity is also taken into account by adding refinement wherever a1 cells are crossed by a2 edges.
 
@@ -666,7 +667,36 @@ Transformation Functions
     *Tips and Notes:*
 
     * Do this transformation before calling any Volume-Volume boolean operations in order to improve the mesh quality of the result.
-    * When the input mesh has mixed-basic-type elements, only Tets and Hexas will be considered currently for adaptation. but the result wil be conformal, the pyramids and prisms will modified to respect the conformity. 
+    * When the input mesh has any kind of polyhedral elements, only basic elements will be considered currently for adaptation. but the result wil be conformal, the non-handled elements will modified to respect the conformity. 
+
+---------------------------------------
+
+
+.. py:function:: Intersector.adaptCellsNodal(a1, nodal_vals)
+
+    Adapts a1 cells (any basic cells - TETRA, PENTA, PYRA, HEXA - currently) with respect to nodal subdivision values. Adaptation is a per-cell octal 2:1 decomposition.
+    If nodal_vals[i] is n>0, cells sharing point i will be at least subdivided n times.
+
+    :param           a1:  Input mesh (NGON format)
+    :type            a1:  [array] or [ single zone pyTree (currently)]
+    :param           nodal_vals:  Nodal subdivision specification
+    :type            nodal_vals:  [list of numpy arrays] one per zone in a
+    
+
+    *Example of use:*
+
+    * `adaptCellsNodal (array) <Examples/Intersector/adaptCellsNodal.py>`_:
+
+    .. literalinclude:: ../build/Examples/Intersector/adaptCellsNodal.py
+
+    * `adaptCellsNodal (pyTree) <Examples/Intersector/adaptCellsNodalPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Intersector/adaptCellsNodalPT.py
+
+    *Tips and Notes:*
+
+    * Do this transformation before calling any Volume-Volume boolean operations in order to improve the mesh quality of the result.
+    * When the input mesh has any kind of polyhedral elements, only basic elements will be considered currently for adaptation. but the result wil be conformal, the non-handled elements will modified to respect the conformity.
 
 ---------------------------------------
 

@@ -56,6 +56,7 @@ namespace K_INTERSECTOR
   PyObject* getOverlappingFaces(PyObject* self, PyObject* args);
 
   PyObject* adaptCells(PyObject* self, PyObject* args);
+  PyObject* adaptCellsNodal(PyObject* self, PyObject* args);
   PyObject* adaptBox(PyObject* self, PyObject* args);
   
   PyObject* extractUncomputables(PyObject* self, PyObject* args);

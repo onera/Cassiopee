@@ -658,6 +658,51 @@ def _adaptCells(t, t2, sensor_type = 0, itermax=-1, force_basic=0):
 
     return t
 
+#==============================================================================
+# adaptCellsNodal : Adapts a polyhedral mesh a1 with repsect to the nodal subdivision values.
+# IN: t : 3D NGON mesh
+# IN: nodal_vals : nb of subdivision required expressed at mesh nodes
+# OUT: returns a 3D NGON Mesh with adapted cells
+#==============================================================================
+def adaptCellsNodal(t, nodal_vals):
+     
+    tp = Internal.copyRef(t)
+    _adaptCellsNodal(tp, nodal_vals)
+    return tp
+
+def _adaptCellsNodal(t, nodal_vals):
+    """Adapts a polyhedral mesh a1 with repsect to the nodal subdivision values.
+    Usage: _adaptCellsNodal(t, nodal_vals)"""
+
+    zones = Internal.getZones(t)
+    nb_zones = len(zones)
+    nb_nodals = len(nodal_vals)
+
+    if (nb_zones != nb_nodals) :
+        print 'must give one nodal list (sized as cooridnates) per zone'
+        return
+
+    i=0
+    for z in zones:
+        coords = C.getFields(Internal.__GridCoordinates__, z)[0]
+        if coords == []: continue
+
+        nval = nodal_vals[i] # 
+        #print nval
+
+        #coords = Converter.convertArray2NGon(coords)
+        res = intersector.adaptCellsNodal(coords, nval)
+
+        mesh = res[0]
+        pg_oids=res[1]
+
+        # MAJ du maillage de la zone
+        C.setFields([mesh], z, 'nodes') 
+        # MAJ POINT LISTS #
+        updatePointLists(z, zones, pg_oids)
+
+    return t
+
 
 #==============================================================================
 # adaptBox : Adapts a bounding box to a cloud of interior points

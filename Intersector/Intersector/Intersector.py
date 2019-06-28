@@ -277,6 +277,18 @@ def adaptCells(a1, a2, sensor_type=0, itermax=-1, force_basic=0):
     return intersector.adaptCells(a1, a2, sensor_type, itermax, force_basic)
 
 #==============================================================================
+# adaptCellsNodal : Adapts a polyhedral mesh a1 with repsect to the nodal subdivision values.
+# IN: a1 : 3D NGON mesh
+# IN: nodal_vals : nb of subdivision required expressed at mesh nodes
+# OUT: returns a 3D NGON Mesh with adapted cells
+#==============================================================================
+def adaptCellsNodal(a1, nodal_vals):
+    """Adapts a polyhedral mesh a1 with repsect to the nodal subdivision values.
+    Usage: adaptCells(a1, nodal_vals)"""
+    return intersector.adaptCellsNodal(a1, nodal_vals)
+
+
+#==============================================================================
 # adaptBox : Adapts a bounding box to a cloud of interior points.
 #==============================================================================
 def adaptBox(a, box_ratio=10., itermax=-1):
