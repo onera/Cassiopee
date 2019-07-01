@@ -664,13 +664,12 @@ def _adaptCells(t, t2, sensor_type = 0, itermax=-1, force_basic=0):
 # IN: nodal_vals : nb of subdivision required expressed at mesh nodes
 # OUT: returns a 3D NGON Mesh with adapted cells
 #==============================================================================
-def adaptCellsNodal(t, nodal_vals):
-     
+def adaptCellsNodal(t, nodal_vals, hmesh=None):
     tp = Internal.copyRef(t)
-    _adaptCellsNodal(tp, nodal_vals)
+    _adaptCellsNodal(tp, nodal_vals, hmesh)
     return tp
 
-def _adaptCellsNodal(t, nodal_vals):
+def _adaptCellsNodal(t, nodal_vals, hmesh=None):
     """Adapts a polyhedral mesh a1 with repsect to the nodal subdivision values.
     Usage: _adaptCellsNodal(t, nodal_vals)"""
 
@@ -690,19 +689,69 @@ def _adaptCellsNodal(t, nodal_vals):
         nval = nodal_vals[i] # 
         #print nval
 
-        #coords = Converter.convertArray2NGon(coords)
-        res = intersector.adaptCellsNodal(coords, nval)
+        if (hmesh != None):
+            res = intersector.adaptCellsNodal(coords, nval, hmesh[i])
+        else:
+            print 'this one'
+            res = intersector.adaptCellsNodal(coords, nval, None)
 
         mesh = res[0]
-        pg_oids=res[1]
-
         # MAJ du maillage de la zone
-        C.setFields([mesh], z, 'nodes') 
-        # MAJ POINT LISTS #
-        updatePointLists(z, zones, pg_oids)
+        C.setFields([mesh], z, 'nodes')
+
+        if (len(res) > 1):
+            pg_oids=res[1]
+            # MAJ POINT LISTS #
+            updatePointLists(z, zones, pg_oids)
+        i=i+1
 
     return t
 
+def createHMesh(t, subdiv_type = 0):
+    zones = Internal.getZones(t)
+    i=0
+    hmeshs = []
+    for z in zones:
+        m = C.getFields(Internal.__GridCoordinates__, z)[0]
+        if m == []: continue
+        hmeshs.append(intersector.createHMesh(m, subdiv_type))
+        i=i+1
+    return hmeshs
+
+def deleteHMesh(hooks):
+    nb_hooks = len(hooks)
+    i=0
+    for h in range(nb_hooks):
+        intersector.deleteHMesh(hooks[i])
+        i=i+1
+
+def conformizeHMesh(t, hooks):
+    tp = Internal.copyRef(t)
+    _conformizeHMesh(tp, hooks)
+    return tp
+
+def _conformizeHMesh(t, hooks):
+    nb_hooks = len(hooks)
+    zones = Internal.getZones(t)
+    nb_zones = len(zones)
+
+    if (nb_zones != nb_hooks) :
+        print 'must give one hook per zone'
+        return
+    i=0
+    for z in zones:
+        m = C.getFields(Internal.__GridCoordinates__, z)[0]
+        if m == []: continue
+        res = intersector.conformizeHMesh(m, hooks[i])
+        mesh = res[0]
+        # MAJ du maillage de la zone
+        C.setFields([mesh], z, 'nodes')
+
+        if (len(res) > 1):
+            pg_oids=res[1]
+            # MAJ POINT LISTS #
+            updatePointLists(z, zones, pg_oids)
+        i=i+1
 
 #==============================================================================
 # adaptBox : Adapts a bounding box to a cloud of interior points
@@ -713,7 +762,7 @@ def adaptBox(t, box_ratio = 10., itermax=-1):
     m = C.getFields(Internal.__GridCoordinates__, t)[0]
     m = intersector.adaptBox(m, box_ratio, itermax)
     return C.convertArrays2ZoneNode('adapted', [m])
- 
+
 #==============================================================================
 # extractUncomputables :XXX
 #==============================================================================

@@ -330,7 +330,7 @@ PyObject* K_CONNECTOR::blankCellsTetra(PyObject* self, PyObject* args)
   if (*type != TETRA_HOOK_ID && *type != TRI_HOOK_ID)
   {
     PyErr_SetString(PyExc_TypeError, 
-                    "identifyNodes: this function requires a identify K_CONNECTOR::maskT4Fld hook.");
+                    "blankCellsTetra: this function requires a identify K_CONNECTOR::maskT4Fld hook.");
     return NULL;
   }
 

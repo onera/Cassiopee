@@ -87,11 +87,11 @@ void xsensor<ELT_t, mesh_t, crd_t>::add_x_points(data_type& data, K_SEARCH::BbTr
       for (size_t k = 0; k < ids.size(); ++k) // for each element of hmesh that may intersect with noE
       {
         E_Int PHi = ids[k];
-        E_Int* face = parent_type::_hmesh._ng.PHs.get_facets_ptr(PHi);
-        E_Int nb_faces = parent_type::_hmesh._ng.PHs.stride(PHi);
+        E_Int* face = parent_type::_hmesh._ng->PHs.get_facets_ptr(PHi);
+        E_Int nb_faces = parent_type::_hmesh._ng->PHs.stride(PHi);
 
         // check if noE intersect with PHi
-        bool x = ELT_t::cross(parent_type::_hmesh._ng, parent_type::_hmesh._crd, face, nb_faces, data, P0, P1, lambda0, lambda1, tolerance);
+        bool x = ELT_t::cross(*parent_type::_hmesh._ng, *parent_type::_hmesh._crd, face, nb_faces, data, P0, P1, lambda0, lambda1, tolerance);
         
         if (!x) continue; // no intersection
         
@@ -137,7 +137,7 @@ E_Int xsensor<ELT_t, mesh_t, crd_t>::init(data_type& data)
   // fill in _points_to_cell with the initial mesh (giving for each source point the highest level cell containing it)
   parent_type::_points_to_cell.clear();
   
-  K_SEARCH::BbTree3D tree(parent_type::_hmesh._crd, parent_type::_hmesh._ng, E_EPSILON);
+  K_SEARCH::BbTree3D tree(*parent_type::_hmesh._crd, *parent_type::_hmesh._ng, E_EPSILON);
 
   // add the intersection points
   add_x_points(data, tree);

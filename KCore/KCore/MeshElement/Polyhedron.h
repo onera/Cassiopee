@@ -51,7 +51,7 @@ template <int TopoShape>
 class Polyhedron
 { 
 public:  
-  enum eType { UNKN, TETRA, PYRA, PRISM3, HEXA, /*PRISMN,*/ LAYER};
+  enum eType { UNKN=-1, TETRA, PYRA, PRISM3, HEXA, /*PRISMN,*/ LAYER, BASIC};
   
 public:
   const ngon_unit* _pgs;

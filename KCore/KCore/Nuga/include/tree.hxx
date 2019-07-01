@@ -19,7 +19,7 @@ using ngon_type = ngon_t<K_FLD::IntArray>;
 
 namespace NUGA
 {
-  enum eSUBDIV_TYPE { ISO, DIR, ANISO};
+  enum eSUBDIV_TYPE { ISO = 0, DIR, ANISO};
   enum eDIR { NONE=0, X, Y, XY, /*XZ, YZ*/XYZ};
 
 //
@@ -31,7 +31,7 @@ template <typename children_array>
 class tree
 {  
   private:
-    ngon_unit &       _entities; // Facets(PG) or Cells (PHs)
+    ngon_unit *       _entities; // Facets(PG) or Cells (PHs)
     children_array    _children; // 
     Vector_t<E_Int>   _parent; //sized as entities
     Vector_t<E_Int>   _indir; //sized as entities
@@ -39,7 +39,10 @@ class tree
     Vector_t<bool>    _enabled; //sized as entities
     
   public:
-    explicit tree(ngon_unit & entities, E_Int nbc):_entities(entities){ resize_hierarchy(entities.size());}
+    explicit tree(ngon_unit & entities, E_Int nbc):_entities(&entities){ resize_hierarchy(entities.size());}
+    
+    void set_entities(ngon_unit& ngu) { _entities = &ngu ;}//relocate for hook
+
     
     const Vector_t<E_Int>& level() const {return _level;}
         
@@ -58,7 +61,7 @@ class tree
       E_Int locid = array_trait<children_array>::size(_children); // nb_child
       
       // get the total nb of new entities after refining
-      E_Int nb_new_children = array_trait<children_array>::get_nb_new_children(_entities, stride, ids);
+      E_Int nb_new_children = array_trait<children_array>::get_nb_new_children(*_entities, stride, ids);
       
       // expand the children array
       array_trait<children_array>::resize_for_children(_children, stride, nb_new_children);
@@ -79,7 +82,7 @@ class tree
       E_Int locid = array_trait<children_array>::size(_children); // nb_child
       
       // get the total nb of new entities after refining
-      E_Int nb_new_children = array_trait<children_array>::get_nb_new_children(_entities, ids, pregnant);
+      E_Int nb_new_children = array_trait<children_array>::get_nb_new_children(*_entities, ids, pregnant);
       
       // expand the children array
       array_trait<children_array>::resize_for_children(_children, ids, pregnant); // espace _children
@@ -108,7 +111,7 @@ class tree
     //
     void add_children(E_Int i/*zero based*/, const E_Int* children, E_Int n){
      
-      assert(i < _entities.size());
+      assert(i < _entities->size());
       _indir[i] = array_trait<children_array>::size(_children);// size of _children
 
       array_trait<children_array>::add_children(_children, children, n);

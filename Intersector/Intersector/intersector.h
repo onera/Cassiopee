@@ -58,6 +58,9 @@ namespace K_INTERSECTOR
   PyObject* adaptCells(PyObject* self, PyObject* args);
   PyObject* adaptCellsNodal(PyObject* self, PyObject* args);
   PyObject* adaptBox(PyObject* self, PyObject* args);
+  PyObject* createHMesh(PyObject* self, PyObject* args);
+  PyObject* deleteHMesh(PyObject* self, PyObject* args);
+  PyObject* conformizeHMesh(PyObject* self, PyObject* args);
   
   PyObject* extractUncomputables(PyObject* self, PyObject* args);
   PyObject* extractPathologicalCells(PyObject* self, PyObject* args);

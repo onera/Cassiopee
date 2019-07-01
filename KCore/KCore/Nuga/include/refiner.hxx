@@ -18,6 +18,7 @@
 #include "q9.hxx"
 #include "h27.hxx"
 #include "tree.hxx"
+#include "geom_sensor.hxx"
 
 namespace NUGA
 {
@@ -608,7 +609,7 @@ ngon_type& ng, tree<arr_t> & PGtree)
   }
 }
 ///
-bool need_a_reorient(E_Int PGi, E_Int PHi, bool oriented_if_R, K_FLD::IntArray & F2E)
+inline bool need_a_reorient(E_Int PGi, E_Int PHi, bool oriented_if_R, K_FLD::IntArray & F2E)
 {
   if (F2E(1,PGi) == PHi && oriented_if_R == true) return false;
   else if (F2E(0,PGi) == PHi && oriented_if_R == false) return false;
@@ -616,7 +617,7 @@ bool need_a_reorient(E_Int PGi, E_Int PHi, bool oriented_if_R, K_FLD::IntArray &
 }
 
 ///
-E_Int get_i0(E_Int* pFace, E_Int common_node, E_Int* nodes, E_Int nb_edges_face)
+inline E_Int get_i0(E_Int* pFace, E_Int common_node, E_Int* nodes, E_Int nb_edges_face)
 {
   for (int i = 0; i < nb_edges_face; i++)
     if (pFace[i] == nodes[common_node]) return i; 

@@ -49,15 +49,12 @@ using namespace NUGA;
 E_Int chrono::verbose = 0;
 #endif
 
-#define HX8 8
-#define TH4 4
-#define PYRA5 5
-#define PENTA6 6
-#define MIXED 9  // means that the mesh contains at least one basic-type element
+#define HMESH_HOOK_ID 77
 
 typedef ngon_t<K_FLD::IntArray> ngon_type;
+using elt_t = K_MESH::Polyhedron<0>::eType;
 
-E_Int check_has_NGON_BASIC_ELEMENT(ngon_type& ng)
+elt_t check_has_NGON_BASIC_ELEMENT(ngon_type& ng)
 {
   E_Int s1(0), s2(0), s3(0), s4(0);  
   E_Int err = 0;
@@ -75,11 +72,10 @@ E_Int check_has_NGON_BASIC_ELEMENT(ngon_type& ng)
 //  std::cout << "s4= " << s4 << std::endl;
 #endif
 
-  if (ng.PHs.size()==s1) return HX8;           // pure HX8 
-  else if (ng.PHs.size()==s2) return TH4;      // pure TH4
-  else if (ng.PHs.size()==s4) return PENTA6; // pure PENTA
-  else if (s1+s2+s3+s4 > 0)                    // mixed basic (or Pyra which is mixed after first split in iso mode)
-    return MIXED;
+  if (ng.PHs.size()==s1)      return elt_t::HEXA; 
+  else if (ng.PHs.size()==s2) return elt_t::TETRA;
+  else if (ng.PHs.size()==s4) return elt_t::PRISM3;
+  else if (s1+s2+s3+s4 > 0)   return elt_t::BASIC;
   else err=-1;
 
   if (err==-1)
@@ -88,10 +84,322 @@ E_Int check_has_NGON_BASIC_ELEMENT(ngon_type& ng)
     //std::cout << "input error : eltType => " << eltType << std::endl;
     PyErr_SetString(PyExc_TypeError, "input error : invalid array, must contain some basic elements (TETRA and HEXA currently) in NGON format.");
   }
-
-  return err;
+  return elt_t::UNKN;
 }
 
+//============================================================================
+/* Create a hmesh and returns a hook */
+//============================================================================
+PyObject* K_INTERSECTOR::createHMesh(PyObject* self, PyObject* args)
+{
+  PyObject* hook;
+
+  E_Int* type = new E_Int; *type = HMESH_HOOK_ID;
+  void** packet = new void* [5];
+  packet[0] = type; // hook type
+  //packet[1] = hmesh;//to delete when releasing the hook
+  E_Int* subtype = new E_Int; *subtype = (E_Int)NUGA::eSUBDIV_TYPE::ISO;
+  packet[2] = subtype;
+  elt_t* typ = new elt_t;
+  packet[3] = typ;
+  char* varString(new char), *eltType;
+  packet[4] = varString;
+
+  PyObject *arr;
+  E_Int SUBDIV_TYPE(0);/*ISO*/
+  if (!PYPARSETUPLEI(args, "Ol", "Oi", &arr, &SUBDIV_TYPE)) return NULL;
+
+  K_FLD::FloatArray* f(0);
+  K_FLD::IntArray* cn(0);
+  
+  // Check array # 1
+  E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
+  std::unique_ptr<K_FLD::FloatArray> afmesh(f);  // to avoid to call explicit delete at several places in the code.
+  std::unique_ptr<K_FLD::IntArray> acmesh(cn); // to avoid to call explicit delete at several places in the code.
+  if (err) return NULL;
+
+  K_FLD::FloatArray & crd = *f;
+  K_FLD::IntArray & cnt = *cn;
+  //~ std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
+  //~ std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
+
+  typedef ngon_t<K_FLD::IntArray> ngon_type;
+  ngon_type ngi(cnt);
+
+  elt_t elt_type = check_has_NGON_BASIC_ELEMENT(ngi);
+
+  if (elt_type==elt_t::UNKN)
+  {
+    PyErr_SetString(PyExc_ValueError,
+       "createHMesh: input mesh to adapt must have basic elements and must be in NGON format.");
+    delete f; delete cn;
+    return NULL;
+  }
+  else if (elt_type==elt_t::HEXA)
+  {
+    using ELT_t = K_MESH::Hexahedron;
+    using mesh_type = NUGA::hierarchical_mesh<ELT_t, NUGA::ISO>;
+    using sensor_type = NUGA::geom_sensor3<mesh_type>;
+
+    mesh_type* hmesh = new mesh_type(crd, ngi);
+    packet[1] = hmesh;//to delete when releasing the hook
+    *typ = elt_t::HEXA;
+  }
+  else if (elt_type==elt_t::TETRA)
+  {
+    using ELT_t = K_MESH::Tetrahedron;
+    using mesh_type = NUGA::hierarchical_mesh<ELT_t, NUGA::ISO>;
+    using sensor_type = NUGA::geom_sensor3<mesh_type>;
+
+    mesh_type* hmesh = new mesh_type(crd, ngi);
+    packet[1] = hmesh;//to delete when releasing the hook
+    *typ = elt_t::TETRA;
+  }
+  else if (elt_type==elt_t::PRISM3)
+  {
+    using ELT_t = K_MESH::Prism;
+    using mesh_type = NUGA::hierarchical_mesh<ELT_t, NUGA::ISO>;
+    using sensor_type = NUGA::geom_sensor3<mesh_type>;
+
+    mesh_type* hmesh = new mesh_type(crd, ngi);
+    packet[1] = hmesh;//to delete when releasing the hook
+    *typ = elt_t::PRISM3;
+  }
+  else if (elt_type==elt_t::BASIC)
+  {
+    using ELT_t = K_MESH::Basic;
+    using mesh_type = NUGA::hierarchical_mesh<ELT_t, NUGA::ISO>;
+    using sensor_type = NUGA::geom_sensor3<mesh_type>;
+
+    mesh_type* hmesh = new mesh_type(crd, ngi);
+    packet[1] = hmesh;//to delete when releasing the hook
+    *typ = elt_t::BASIC;
+  }
+
+#if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
+  hook = PyCObject_FromVoidPtr(packet, NULL);
+#else
+  hook = PyCapsule_New(packet, NULL, NULL);
+#endif
+  
+  return hook;
+}
+
+//=============================================================================
+/* 
+   Confomize a hmesh
+ */
+//=============================================================================
+PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
+{
+  PyObject* hook;
+  PyObject *arr;
+  if (!PyArg_ParseTuple(args, "OO", &arr, &hook))
+  {
+      return NULL;
+  }
+
+  K_FLD::FloatArray* f(0);
+  K_FLD::IntArray* cn(0);
+  char* varString0, *eltType;
+  E_Int err = check_is_NGON(arr, f, cn, varString0, eltType);
+  std::unique_ptr<K_FLD::FloatArray> afmesh(f);  // to avoid to call explicit delete at several places in the code.
+  std::unique_ptr<K_FLD::IntArray> acmesh(cn); // to avoid to call explicit delete at several places in the code.
+  if (err) return NULL;
+
+  K_FLD::FloatArray & crd = *f;
+  K_FLD::IntArray & cnt = *cn;
+  ngon_type ngi(cnt);
+
+  // recupere le hook
+  void** packet = NULL;
+#if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
+  packet = (void**) PyCObject_AsVoidPtr(hook);
+#else
+  packet = (void**) PyCapsule_GetPointer(hook, NULL);
+#endif
+  E_Int* type = (E_Int*)packet[0]; // type of hook
+  E_Int* sub_type = (E_Int*)packet[2]; // subdivision type ISO or DIR
+  E_Int* elt_type = (E_Int*)packet[3]; // type of elements in hmesh
+  char* varString = (char*)packet[4];
+  assert (*type == HMESH_HOOK_ID);
+
+  // if (*elt_type == elt_t::HEXA) std::cout << "HEXA type" << std::endl;
+  // else if (*elt_type == elt_t::TETRA) std::cout << "TETRA type" << std::endl;
+  // else if (*elt_type == elt_t::PYRA) std::cout << "PYRA type" << std::endl;
+  // else if (*elt_type == elt_t::PRISM3) std::cout << "PRISM3 type" << std::endl;
+  // else if (*elt_type == elt_t::LAYER) std::cout << "LAYER type" << std::endl;
+  // else if (*elt_type == elt_t::BASIC) std::cout << "BASIC type" << std::endl;
+
+  PyObject *l(PyList_New(0));
+
+  if (*elt_type==elt_t::HEXA)
+  {
+    using ELT_t = K_MESH::Hexahedron;
+    using mesh_type = NUGA::hierarchical_mesh<ELT_t, NUGA::ISO>;
+    using sensor_type = NUGA::geom_sensor3<mesh_type>;
+
+    mesh_type* hmesh = (mesh_type*)packet[1];
+    hmesh->relocate(crd, ngi);
+
+    std::vector<E_Int> oids;
+    hmesh->conformize(oids);
+
+    K_FLD::IntArray cnto;
+    hmesh->_ng->export_to_array(cnto);
+  
+    // pushing out the mesh
+    PyObject *tpl = K_ARRAY::buildArray(*hmesh->_crd, varString, cnto, -1, "NGON", false);
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
+
+    // pushing out PG history
+    tpl = K_NUMPY::buildNumpyArray(&oids[0], oids.size(), 1, 0);
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
+  }
+  else if (*elt_type==(E_Int)elt_t::TETRA)
+  {
+    using ELT_t = K_MESH::Tetrahedron;
+    using mesh_type = NUGA::hierarchical_mesh<ELT_t, NUGA::ISO>;
+    using sensor_type = NUGA::geom_sensor3<mesh_type>;
+
+    mesh_type* hmesh = (mesh_type*)packet[1];
+    hmesh->relocate(crd, ngi);
+
+    std::vector<E_Int> oids;
+    hmesh->conformize(oids);
+
+    K_FLD::IntArray cnto;
+    hmesh->_ng->export_to_array(cnto);
+  
+    // pushing out the mesh
+    PyObject *tpl = K_ARRAY::buildArray(*hmesh->_crd, varString, cnto, -1, "NGON", false);
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
+
+    // pushing out PG history
+    tpl = K_NUMPY::buildNumpyArray(&oids[0], oids.size(), 1, 0);
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
+  }
+  else if (*elt_type==(E_Int)elt_t::PRISM3)
+  {
+    using ELT_t = K_MESH::Prism;
+    using mesh_type = NUGA::hierarchical_mesh<ELT_t, NUGA::ISO>;
+    using sensor_type = NUGA::geom_sensor3<mesh_type>;
+
+    mesh_type* hmesh = (mesh_type*)packet[1];
+    hmesh->relocate(crd, ngi);
+
+    std::vector<E_Int> oids;
+    hmesh->conformize(oids);
+
+    K_FLD::IntArray cnto;
+    hmesh->_ng->export_to_array(cnto);
+  
+    // pushing out the mesh
+    PyObject *tpl = K_ARRAY::buildArray(*hmesh->_crd, varString, cnto, -1, "NGON", false);
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
+
+    // pushing out PG history
+    tpl = K_NUMPY::buildNumpyArray(&oids[0], oids.size(), 1, 0);
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
+  }
+  else if (*elt_type==(E_Int)elt_t::BASIC)
+  {
+    using ELT_t = K_MESH::Basic;
+    using mesh_type = NUGA::hierarchical_mesh<ELT_t, NUGA::ISO>;
+    using sensor_type = NUGA::geom_sensor3<mesh_type>;
+
+    mesh_type* hmesh = (mesh_type*)packet[1];
+    hmesh->relocate(crd, ngi);
+    
+    std::vector<E_Int> oids;
+    hmesh->conformize(oids);
+
+    K_FLD::IntArray cnto;
+    hmesh->_ng->export_to_array(cnto);
+  
+    // pushing out the mesh
+    PyObject *tpl = K_ARRAY::buildArray(*hmesh->_crd, varString, cnto, -1, "NGON", false);
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
+
+    // pushing out PG history
+    tpl = K_NUMPY::buildNumpyArray(&oids[0], oids.size(), 1, 0);
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
+  }
+  return l;
+}
+
+PyObject* K_INTERSECTOR::deleteHMesh(PyObject* self, PyObject* args)
+{
+  PyObject* hook;
+  if (!PyArg_ParseTuple(args, "O", &hook))
+  {
+      return NULL;
+  }
+
+  // recupere le hook
+  void** packet = NULL;
+#if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
+  packet = (void**) PyCObject_AsVoidPtr(hook);
+#else
+  packet = (void**) PyCapsule_GetPointer(hook, NULL);
+#endif
+  E_Int* type = (E_Int*)packet[0]; // type of hook
+  E_Int* sub_type = (E_Int*)packet[2]; // subdivision type ISO or DIR
+  E_Int* elt_type = (E_Int*)packet[3]; // type of elements in hmesh
+  char* varString = (char*)packet[4];
+  assert (*type == HMESH_HOOK_ID);
+
+  if (*elt_type==elt_t::HEXA)
+  {
+    using ELT_t = K_MESH::Hexahedron;
+    using mesh_type = NUGA::hierarchical_mesh<ELT_t, NUGA::ISO>;
+    using sensor_type = NUGA::geom_sensor3<mesh_type>;
+
+    mesh_type* hmesh = (mesh_type*)packet[1];
+    delete hmesh;
+  }
+  else if (*elt_type==(E_Int)elt_t::TETRA)
+  {
+    using ELT_t = K_MESH::Tetrahedron;
+    using mesh_type = NUGA::hierarchical_mesh<ELT_t, NUGA::ISO>;
+    using sensor_type = NUGA::geom_sensor3<mesh_type>;
+
+    mesh_type* hmesh = (mesh_type*)packet[1];
+    delete hmesh;
+  }
+  else if (*elt_type==(E_Int)elt_t::PRISM3)
+  {
+    using ELT_t = K_MESH::Prism;
+    using mesh_type = NUGA::hierarchical_mesh<ELT_t, NUGA::ISO>;
+    using sensor_type = NUGA::geom_sensor3<mesh_type>;
+
+    mesh_type* hmesh = (mesh_type*)packet[1];
+    delete hmesh;
+  }
+  else if (*elt_type==(E_Int)elt_t::BASIC)
+  {
+    using ELT_t = K_MESH::Basic;
+    using mesh_type = NUGA::hierarchical_mesh<ELT_t, NUGA::ISO>;
+    using sensor_type = NUGA::geom_sensor3<mesh_type>;
+
+    mesh_type* hmesh = (mesh_type*)packet[1];
+    delete hmesh;
+  }
+  
+  delete type; delete varString;
+  delete sub_type; delete elt_type;
+  delete [] packet;
+  Py_INCREF(Py_None);
+  return Py_None;
+}
 
 //=============================================================================
 /* Agglomerate superfuous faces (overdefined polyhedra) */
@@ -189,12 +497,12 @@ PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
   if (elt_type==-1)
   {
     PyErr_SetString(PyExc_ValueError,
-       "adaptCells: input mesh to adapt must have basic elements (Only Tets and Hexas are currently adapted) and must be in NGON format.");
+       "adaptCells: input mesh to adapt must have basic elements and must be in NGON format.");
     delete f; delete cn;
     delete fS; delete cnS;
     return NULL;
   }
-  else if (elt_type==HX8 && !force_basic)
+  else if (elt_type==elt_t::HEXA && !force_basic)
   {
     using mesh_type = NUGA::hierarchical_mesh<K_MESH::Hexahedron, NUGA::ISO>;
 
@@ -223,10 +531,10 @@ PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
     hmesh.conformize(oids);
 
     K_FLD::IntArray cnto;
-    hmesh._ng.export_to_array(cnto);
+    hmesh._ng->export_to_array(cnto);
   
     // pushing out the mesh
-    PyObject *tpl = K_ARRAY::buildArray(hmesh._crd, varString, cnto, -1, "NGON", false);
+    PyObject *tpl = K_ARRAY::buildArray(*hmesh._crd, varString, cnto, -1, "NGON", false);
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
 
@@ -237,7 +545,7 @@ PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
     Py_DECREF(tpl);
 
   }
-  else if (elt_type==TH4 && !force_basic)
+  else if (elt_type==elt_t::TETRA && !force_basic)
   {
     using mesh_type = NUGA::hierarchical_mesh<K_MESH::Tetrahedron, NUGA::ISO>;
     mesh_type hmesh(crd, ngi);
@@ -270,10 +578,10 @@ PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
     std::vector<E_Int> oids;
     hmesh.conformize(oids);
     K_FLD::IntArray cnto;
-    hmesh._ng.export_to_array(cnto);
+    hmesh._ng->export_to_array(cnto);
       
     // pushing out the mesh
-    PyObject *tpl = K_ARRAY::buildArray(hmesh._crd, varString, cnto, -1, "NGON", false);
+    PyObject *tpl = K_ARRAY::buildArray(*hmesh._crd, varString, cnto, -1, "NGON", false);
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
 
@@ -283,7 +591,7 @@ PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
   }
-  else if (elt_type==PENTA6 && !force_basic)
+  else if (elt_type==elt_t::PRISM3 && !force_basic)
   {
     using mesh_type = NUGA::hierarchical_mesh<K_MESH::Prism, NUGA::ISO>;
     mesh_type hmesh(crd, ngi);
@@ -317,10 +625,10 @@ PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
     hmesh.conformize(oids);
 
     K_FLD::IntArray cnto;
-    hmesh._ng.export_to_array(cnto);
+    hmesh._ng->export_to_array(cnto);
   
     // pushing out the mesh
-    PyObject *tpl = K_ARRAY::buildArray(hmesh._crd, varString, cnto, -1, "NGON", false);
+    PyObject *tpl = K_ARRAY::buildArray(*hmesh._crd, varString, cnto, -1, "NGON", false);
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
 
@@ -330,7 +638,7 @@ PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
   }
-  else if (elt_type==MIXED || force_basic)
+  else if (elt_type==elt_t::BASIC || force_basic)
   {    
     using mesh_type = NUGA::hierarchical_mesh<K_MESH::Basic, NUGA::ISO>;
     mesh_type hmesh(crd, ngi);
@@ -363,10 +671,10 @@ PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
     std::vector<E_Int> oids;
     hmesh.conformize(oids);
     K_FLD::IntArray cnto;
-    hmesh._ng.export_to_array(cnto);
+    hmesh._ng->export_to_array(cnto);
   
     // pushing out the mesh
-    PyObject *tpl = K_ARRAY::buildArray(hmesh._crd, varString, cnto, -1, "NGON", false);
+    PyObject *tpl = K_ARRAY::buildArray(*hmesh._crd, varString, cnto, -1, "NGON", false);
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
 
@@ -382,14 +690,53 @@ PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
   return l;
 }
 
+template <typename ELT_t>
+void __adapt(K_FLD::FloatArray& crd, ngon_type& ngi, std::vector<E_Int>& nodal_data, const char* varString, PyObject *out, void* hook_hmesh=nullptr)
+{
+  using mesh_type = NUGA::hierarchical_mesh<ELT_t, NUGA::ISO>;
+  mesh_type * hmesh = nullptr;
+  if (hook_hmesh != nullptr){
+    hmesh = (mesh_type*)hook_hmesh;
+    hmesh->relocate(crd, ngi); //refresh pointers
+  }
+  else 
+    hmesh = new mesh_type(crd, ngi);
+
+  using sensor_t = NUGA::geom_sensor3<mesh_type>;
+  sensor_t sensor(*hmesh, 1/*max_pts per cell*/);
+  NUGA::adaptor<mesh_type, sensor_t>::run(*hmesh, sensor, nodal_data);
+ 
+  std::vector<E_Int> oids;
+  if (!hook_hmesh)
+    hmesh->conformize(oids);
+
+  K_FLD::IntArray cnto;
+  hmesh->_ng->export_to_array(cnto);
+
+  // pushing out the mesh
+  PyObject *tpl = K_ARRAY::buildArray(*hmesh->_crd, varString, cnto, -1, "NGON", false);
+  PyList_Append(out, tpl);
+  Py_DECREF(tpl);
+
+  // pushing out PG history
+  if (!hook_hmesh)
+  {
+    tpl = K_NUMPY::buildNumpyArray(&oids[0], oids.size(), 1, 0);
+    PyList_Append(out, tpl);
+    Py_DECREF(tpl);
+  }
+
+  if (!hook_hmesh) delete hmesh;
+}
+
 //=============================================================================
 /* Adapt cells with respect to the nodal subdivisions query */
 //=============================================================================
 PyObject* K_INTERSECTOR::adaptCellsNodal(PyObject* self, PyObject* args)
 {
-  PyObject *arr(nullptr), *nodal_vals(nullptr);
+  PyObject *arr(nullptr), *nodal_vals(nullptr), *hook_hmesh(nullptr);
 
-  if (!PyArg_ParseTuple(args, "OO", &arr, &nodal_vals)) return NULL;
+  if (!PyArg_ParseTuple(args, "OOO", &arr, &nodal_vals, &hook_hmesh)) return NULL;
 
   K_FLD::FloatArray* f(nullptr), *fS(nullptr);
   K_FLD::IntArray* cn(nullptr), *cnS(nullptr);
@@ -409,6 +756,32 @@ PyObject* K_INTERSECTOR::adaptCellsNodal(PyObject* self, PyObject* args)
   E_Int *nodv, size, nfld;
   E_Int res2 = K_NUMPY::getFromNumpyArray(nodal_vals, nodv, size, nfld, true/* shared*/, false/* inverse*/);
 
+  bool update_hook = (hook_hmesh != Py_None);
+  elt_t elt_type (elt_t::UNKN);
+  void * hookhm = nullptr;
+  if (update_hook)
+  {
+    void** packet = NULL;
+#if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
+    packet = (void**) PyCObject_AsVoidPtr(hook_hmesh);
+#else
+    packet = (void**) PyCapsule_GetPointer(hook_hmesh, NULL);
+#endif
+    E_Int type = *((E_Int*)(packet[0]));
+    NUGA::eSUBDIV_TYPE sub_type = *((NUGA::eSUBDIV_TYPE*)(packet[2]));
+    elt_type = *((elt_t*)(packet[3]));
+
+    hookhm = (void*)packet[1];
+
+    if (type != HMESH_HOOK_ID)
+    {
+      PyErr_SetString(PyExc_TypeError, 
+                    "adaptCellsNodal: this function requires a identify hmesh hook.");
+      return NULL;
+    }
+  }
+
+  ///
   std::vector<E_Int> nodal_data(crd.cols(), 0);
   E_Int imax = std::min(size, crd.cols());
   
@@ -424,117 +797,23 @@ PyObject* K_INTERSECTOR::adaptCellsNodal(PyObject* self, PyObject* args)
 
   PyObject *l(PyList_New(0));
 
-  E_Int elt_type = check_has_NGON_BASIC_ELEMENT(ngi);
-  if (elt_type==-1)
+  if (elt_type == elt_t::UNKN)
+    elt_type = check_has_NGON_BASIC_ELEMENT(ngi);
+
+  if (elt_type == elt_t::UNKN)
   {
     PyErr_SetString(PyExc_ValueError,
        "adaptCells: input mesh to adapt must have basic elements (Only Tets and Hexas are currently adapted) and must be in NGON format.");
     return NULL;
   }
-  else if (elt_type==HX8)
-  {
-    using mesh_type = NUGA::hierarchical_mesh<K_MESH::Hexahedron, NUGA::ISO>;
-
-    mesh_type hmesh(crd, ngi);
-  
-    using sensor_t = NUGA::geom_sensor3<mesh_type>;
-    sensor_t sensor(hmesh, 1/*max_pts per cell*/);
-    NUGA::adaptor<mesh_type, sensor_t>::run(hmesh, sensor, nodal_data);
-  
-    std::vector<E_Int> oids;
-    hmesh.conformize(oids);
-
-    K_FLD::IntArray cnto;
-    hmesh._ng.export_to_array(cnto);
-  
-    // pushing out the mesh
-    PyObject *tpl = K_ARRAY::buildArray(hmesh._crd, varString, cnto, -1, "NGON", false);
-    PyList_Append(l, tpl);
-    Py_DECREF(tpl);
-
-    // pushing out PG history
-    tpl = K_NUMPY::buildNumpyArray(&oids[0], oids.size(), 1, 0);
- 
-    PyList_Append(l, tpl);
-    Py_DECREF(tpl);
-
-  }
-  else if (elt_type==TH4)
-  {
-    using mesh_type = NUGA::hierarchical_mesh<K_MESH::Tetrahedron, NUGA::ISO>;
-    mesh_type hmesh(crd, ngi);
-
-    using sensor_t = NUGA::geom_sensor3<mesh_type>;
-    sensor_t sensor(hmesh, 1/*max_pts per cell*/);
-    NUGA::adaptor<mesh_type, sensor_t>::run(hmesh, sensor, nodal_data);
-
-    std::vector<E_Int> oids;
-    hmesh.conformize(oids);
-    K_FLD::IntArray cnto;
-    hmesh._ng.export_to_array(cnto);
-      
-    // pushing out the mesh
-    PyObject *tpl = K_ARRAY::buildArray(hmesh._crd, varString, cnto, -1, "NGON", false);
-    PyList_Append(l, tpl);
-    Py_DECREF(tpl);
-
-    // pushing out PG history
-    tpl = K_NUMPY::buildNumpyArray(&oids[0], oids.size(), 1, 0);
- 
-    PyList_Append(l, tpl);
-    Py_DECREF(tpl);
-  }
-  else if (elt_type==PENTA6)
-  {
-    using mesh_type = NUGA::hierarchical_mesh<K_MESH::Prism, NUGA::ISO>;
-    mesh_type hmesh(crd, ngi);
-
-    using sensor_t = NUGA::geom_sensor3<mesh_type>;
-    sensor_t sensor(hmesh, 1/*max_pts per cell*/);
-    NUGA::adaptor<mesh_type, sensor_t>::run(hmesh, sensor, nodal_data);
-
-    std::vector<E_Int> oids;
-    hmesh.conformize(oids);
-
-    K_FLD::IntArray cnto;
-    hmesh._ng.export_to_array(cnto);
-  
-    // pushing out the mesh
-    PyObject *tpl = K_ARRAY::buildArray(hmesh._crd, varString, cnto, -1, "NGON", false);
-    PyList_Append(l, tpl);
-    Py_DECREF(tpl);
-
-    // pushing out PG history
-    tpl = K_NUMPY::buildNumpyArray(&oids[0], oids.size(), 1, 0);
- 
-    PyList_Append(l, tpl);
-    Py_DECREF(tpl);
-  }
-  else if (elt_type==MIXED)
-  {    
-    using mesh_type = NUGA::hierarchical_mesh<K_MESH::Basic, NUGA::ISO>;
-    mesh_type hmesh(crd, ngi);
-
-    using sensor_t = NUGA::geom_sensor3<mesh_type>;
-    sensor_t sensor(hmesh, 1/*max_pts per cell*/);
-    NUGA::adaptor<mesh_type, sensor_t>::run(hmesh, sensor, nodal_data);
-
-    std::vector<E_Int> oids;
-    hmesh.conformize(oids);
-    K_FLD::IntArray cnto;
-    hmesh._ng.export_to_array(cnto);
-  
-    // pushing out the mesh
-    PyObject *tpl = K_ARRAY::buildArray(hmesh._crd, varString, cnto, -1, "NGON", false);
-    PyList_Append(l, tpl);
-    Py_DECREF(tpl);
-
-    // pushing out PG history
-    tpl = K_NUMPY::buildNumpyArray(&oids[0], oids.size(), 1, 0);
- 
-    PyList_Append(l, tpl);
-    Py_DECREF(tpl);
-  }
+  else if (elt_type == elt_t::HEXA)
+    __adapt<K_MESH::Hexahedron>(crd, ngi, nodal_data, varString, l, hookhm);
+  else if (elt_type == elt_t::TETRA)
+    __adapt<K_MESH::Tetrahedron>(crd, ngi, nodal_data, varString, l, hookhm);
+  else if (elt_type == elt_t::PRISM3)
+    __adapt<K_MESH::Prism>(crd, ngi, nodal_data, varString, l, hookhm);
+  else if (elt_type == elt_t::BASIC)
+    __adapt<K_MESH::Basic>(crd, ngi, nodal_data, varString, l, hookhm);
 
   return l;
 }
@@ -612,11 +891,11 @@ PyObject* K_INTERSECTOR::adaptBox(PyObject* self, PyObject* args)
   hmesh.conformize(oids);
 
   K_FLD::IntArray cnto;
-  hmesh._ng.export_to_array(cnto);
+  hmesh._ng->export_to_array(cnto);
 
   //std::cout << "output ..." << std::endl;
   
-  PyObject* tpl = K_ARRAY::buildArray(hmesh._crd, varString, cnto, -1, "NGON", false);
+  PyObject* tpl = K_ARRAY::buildArray(*hmesh._crd, varString, cnto, -1, "NGON", false);
 
   delete f; delete cn;
   return tpl;

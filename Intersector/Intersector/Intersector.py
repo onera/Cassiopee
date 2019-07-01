@@ -282,10 +282,10 @@ def adaptCells(a1, a2, sensor_type=0, itermax=-1, force_basic=0):
 # IN: nodal_vals : nb of subdivision required expressed at mesh nodes
 # OUT: returns a 3D NGON Mesh with adapted cells
 #==============================================================================
-def adaptCellsNodal(a1, nodal_vals):
+def adaptCellsNodal(a1, nodal_vals, hmesh=None):
     """Adapts a polyhedral mesh a1 with repsect to the nodal subdivision values.
     Usage: adaptCells(a1, nodal_vals)"""
-    return intersector.adaptCellsNodal(a1, nodal_vals)
+    return intersector.adaptCellsNodal(a1, nodal_vals, hmesh)
 
 
 #==============================================================================
@@ -295,7 +295,15 @@ def adaptBox(a, box_ratio=10., itermax=-1):
     """Adapts a bounding box to a cloud of interior points"""
     return intersector.adaptBox(a, box_ratio, itermax)
 
-    
+
+def createHMesh(a, subdiv_type = 0): # 0 : ISO
+    return intersector.createHMesh(a, subdiv_type)
+
+def deleteHMesh(hmesh):
+    return intersector.deleteHMesh(hook)
+
+def conformizeHMesh(a, hmesh):
+    return intersector.conformizeHMesh(a, hmesh)
 #==============================================================================
 # extractUncomputables : Extracts any entity that will probably cause trouble to a CFD solver
 # IN: t:         : 3D NGON mesh
