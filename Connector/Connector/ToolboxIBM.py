@@ -1339,7 +1339,7 @@ def doInterp2(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=
 # interpDataType = 0 : interpolation optimisees sur grilles cartesiennes
 # frontType 0, 1, 2
 #=============================================================================
-def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, inv=False, interpDataType=1):
+def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, inv=False, interpDataType=0):
     tb =  Internal.copyRef(tbody)
 
     # tb: fournit model et dimension

@@ -4456,7 +4456,7 @@ def getEmptyBCForBEZone__(z, dims, pbDim, splitFactor):
     erange = Internal.getNodeFromName1(bc, Internal.__ELEMENTRANGE__)
     if erange is not None:
       r = erange[1]
-      defined.append(selectOneConnectivity(zp, irange=[r[0,0],r[0,1]]))
+      defined.append(_selectOneConnectivity(zp, irange=[r[0,0],r[0,1]]))
 
   hook = createHook(f, 'elementCenters')
   if defined != []:
@@ -6450,6 +6450,10 @@ def _renumberElementConnectivity(t):
 # or IN: irange=[min,max]
 def selectOneConnectivity(z, name=None, number=None, irange=None):
   zp = Internal.copyRef(z)
+  _selectOneConnectivity(zp, name=name, number=number, irange=irange)
+  return zp
+
+def _selectOneConnectivity(z, name=None, number=None, irange=None):
   elts = Internal.getNodesFromType1(zp, 'Elements_t')
 
   if name is not None:
@@ -6467,7 +6471,7 @@ def selectOneConnectivity(z, name=None, number=None, irange=None):
       r = Internal.getNodeFromName1(e, 'ElementRange')
       if r is not None:
         r = r[1]
-        if r[0] > wrange[0] or r[1] < wrange[1]:
+        if r[0] > irange[0] or r[1] < irange[1]:
           Internal._rmNodesByName(zp, e[0])
         else:
           if r[0] == irange[0] and r[1] == irange[1]: # full
@@ -6479,11 +6483,11 @@ def selectOneConnectivity(z, name=None, number=None, irange=None):
               r = Internal.getNodeFromName1(e, 'ElementRange')
               r[1] = numpy.copy(r[1]); r[1][0] = 1; r[1][1] = irange[1]-irange[0]+1
               c = Internal.getNodeFromName1(e, 'ElementConnectivity')
-              c[1] = c[1][nnodes*(wrange[0]-1):nnodes*(irange[1])+1]
+              c[1] = c[1][nnodes*(irange[0]-1):nnodes*(irange[1])+1]
             else: print ('Warning: selectOneConnectivity: slice impossible.')
       else: Internal._rmNodesByName(zp, e[0])
   _renumberElementConnectivity(zp)
-  return zp
+  return None
 
 # -- selectConnectivity
 # Retourne une nouvelle zone avec une seule de ses connectivites

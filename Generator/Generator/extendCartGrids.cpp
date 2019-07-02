@@ -37,9 +37,9 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
 #endif
   if (ext < 0) 
   {
-     PyErr_SetString(PyExc_TypeError, 
-                    "extendCartGrids: ext must be a positive value.");
-     return NULL;
+   PyErr_SetString(PyExc_TypeError, 
+                   "extendCartGrids: ext must be a positive value.");
+   return NULL;
   }
   if (ext == 0) return arrays;
   if (optimized != 0 && optimized != 1)
@@ -135,6 +135,7 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
   E_Float dhmax;
   E_Int found1, found2, found3, found4;
   vector< vector<E_Int> > dejaVu(nzones); 
+  E_Float diff;
   if (dim == 2) 
   {
     FldArrayF face(2,3);//3D
@@ -198,20 +199,23 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
         { 
           vector<E_Int>& dejaVu1 = dejaVu[v1]; dejaVu1.push_back(v2);
           vector<E_Int>& dejaVu2 = dejaVu[v2]; dejaVu2.push_back(v1);
-
-          if ( K_FUNC::fEqualZero(s1-dhmax,tol2) == true ) 
+          diff = s1-dhmax;
+          if ( K_FUNC::fEqualZero(diff,tol2) == true ) //F/F : 3/2 if possible
           {
-            ext1[v1] = extf; ext2[v2] = K_FUNC::E_max(ext2[v2],extg);
+            ext1[v1] = K_FUNC::E_max(ext1[v1],extf); 
+            ext2[v2] = K_FUNC::E_max(ext2[v2],extg);
           }
-          else if ( s1 < dhmax - tol2) // niveau fin etendu de ext+1
+          else if ( s1 < dhmax - tol2) // current grid is finer than all its opposite grids
           {
-            ext1[v1] = extf; ext2[v2] = K_FUNC::E_max(ext2[v2],extg);
+            ext1[v1] = K_FUNC::E_max(ext1[v1],extg); //F/G : 2/3 if possible
+            ext2[v2] = K_FUNC::E_max(ext2[v2],extf);
           }
-          else // niveau fin etendu de ext+1
+          else // current grid is coarser than all its opp grids
           {
-            ext2[v2] = extf; ext1[v1] = K_FUNC::E_max(ext1[v1],extg);
+            ext1[v1] = K_FUNC::E_max(ext1[v1],extf); //G/F : 3/2 if possible
+            ext2[v2] = K_FUNC::E_max(ext2[v2],extg);
           }
-          goto faceimax2;
+          // goto faceimax2;
         }
       }// fin parcours de ts les elts intersectant 
       // fin test facette i = 1
@@ -264,19 +268,24 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
         { 
           vector<E_Int>& dejaVu1 = dejaVu[v1]; dejaVu1.push_back(v2);
           vector<E_Int>& dejaVu2 = dejaVu[v2]; dejaVu2.push_back(v1);
-          if ( K_FUNC::fEqualZero(s1-dhmax,tol2) == true ) 
+          diff = s1-dhmax;
+          if ( K_FUNC::fEqualZero(diff,tol2) == true ) //F/F : 3/2 if possible
           {
-            ext2[v1] = extf; ext1[v2] = K_FUNC::E_max(ext1[v2],extg);
+            ext2[v1] = K_FUNC::E_max(ext2[v1],extf); 
+            ext1[v2] = K_FUNC::E_max(ext1[v2],extg);
           }
-          else if ( s1 < dhmax - tol2) // niveau fin etendu de ext+1
+          else if ( s1 < dhmax - tol2) // current grid is finer than all its opposite grids
           {
-            ext2[v1] = extf; ext1[v2] = K_FUNC::E_max(ext1[v2],extg);
+            ext2[v1] = K_FUNC::E_max(ext2[v1],extg); //F/G : 2/3 if possible
+            ext1[v2] = K_FUNC::E_max(ext1[v2],extf);
           }
-          else // niveau fin etendu de ext+1
+          else // current grid is coarser than all its opp grids
           {
-            ext1[v2] = extf; ext2[v1] = K_FUNC::E_max(ext2[v1],extg);
-          }
-          goto facejmin2;
+            ext2[v1] = K_FUNC::E_max(ext2[v1],extf); //G/F : 3/2 if possible
+            ext1[v2] = K_FUNC::E_max(ext1[v2],extg);
+          }          
+
+          // goto facejmin2;
         }
       }// fin parcours de ts les elts intersectant 
       // fin test facette i = imax      
@@ -330,19 +339,23 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
         {
           vector<E_Int>& dejaVu1 = dejaVu[v1]; dejaVu1.push_back(v2);
           vector<E_Int>& dejaVu2 = dejaVu[v2]; dejaVu2.push_back(v1);
-          if ( K_FUNC::fEqualZero(s1-dhmax,tol2) == true ) 
+          diff = s1-dhmax;
+          if ( K_FUNC::fEqualZero(diff,tol2) == true ) //F/F : 3/2 if possible
           {
-            ext3[v1] = extf; ext4[v2] = K_FUNC::E_max(ext4[v2],extg);
+            ext3[v1] = K_FUNC::E_max(ext3[v1],extf); 
+            ext4[v2] = K_FUNC::E_max(ext4[v2],extg);
           }
-          else if (s1 < dhmax - tol2) // niveau fin etendu de ext+1
+          else if ( s1 < dhmax - tol2) // current grid is finer than all its opposite grids
           {
-            ext3[v1] = extf; ext4[v2] = K_FUNC::E_max(ext4[v2],extg);
+            ext3[v1] = K_FUNC::E_max(ext3[v1],extg); //F/G : 2/3 if possible
+            ext4[v2] = K_FUNC::E_max(ext4[v2],extf);
           }
-          else // niveau fin etendu de ext+1
+          else // current grid is coarser than all its opp grids
           {
-            ext4[v2] = extf; ext3[v1] = K_FUNC::E_max(ext3[v1],extg);
-          }
-          goto facejmax2;
+            ext3[v1] = K_FUNC::E_max(ext3[v1],extf); //G/F : 3/2 if possible
+            ext4[v2] = K_FUNC::E_max(ext4[v2],extg);
+          }          
+          // goto facejmax2;
         }
       }// fin parcours de ts les elts intersectant 
       // fin test facette i = 1
@@ -395,19 +408,23 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
         { 
           vector<E_Int>& dejaVu1 = dejaVu[v1]; dejaVu1.push_back(v2);
           vector<E_Int>& dejaVu2 = dejaVu[v2]; dejaVu2.push_back(v1);
-          if ( K_FUNC::fEqualZero(s1-dhmax,tol2) == true ) 
+          diff = s1-dhmax;
+          if ( K_FUNC::fEqualZero(diff,tol2) == true ) //F/F : 3/2 if possible
           {
-            ext4[v1] = extf; ext3[v2] = K_FUNC::E_max(ext3[v2],extg);
+            ext4[v1] = K_FUNC::E_max(ext4[v1],extf); 
+            ext3[v2] = K_FUNC::E_max(ext3[v2],extg);
           }
-          else if ( s1 < dhmax - tol2) // niveau fin etendu de ext+1
+          else if ( s1 < dhmax - tol2) // current grid is finer than all its opposite grids
           {
-            ext4[v1] = extf; ext3[v2] = K_FUNC::E_max(ext3[v2],extg);
+            ext4[v1] = K_FUNC::E_max(ext4[v1],extg); //F/G : 2/3 if possible
+            ext3[v2] = K_FUNC::E_max(ext3[v2],extf);
           }
-          else // niveau fin etendu de ext+1
+          else // current grid is coarser than all its opp grids
           {
-            ext3[v2] = extf; ext4[v1] = K_FUNC::E_max(ext4[v1],extg);
-          }
-          goto end2;
+            ext4[v1] = K_FUNC::E_max(ext4[v1],extf); //G/F : 3/2 if possible
+            ext3[v2] = K_FUNC::E_max(ext3[v2],extg);
+          }          
+          // goto end2;
         }
       }// fin parcours de ts les elts intersectant 
       // fin test facette j = jmax      
@@ -505,19 +522,23 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
         { 
           vector<E_Int>& dejaVu1 = dejaVu[v1]; dejaVu1.push_back(v2);
           vector<E_Int>& dejaVu2 = dejaVu[v2]; dejaVu2.push_back(v1);
-          if ( K_FUNC::fEqualZero(s1-dhmax,tol2) == true ) 
+          diff = s1-dhmax;
+          if ( K_FUNC::fEqualZero(diff,tol2) == true ) //F/F : 3/2 if possible
           {
-            ext1[v1] = extf; ext2[v2] = K_FUNC::E_max(ext2[v2],extg);
+            ext1[v1] = K_FUNC::E_max(ext1[v1],extf); 
+            ext2[v2] = K_FUNC::E_max(ext2[v2],extg);
           }
-          else if ( s1 < dhmax - tol2) // niveau fin etendu de ext+1
+          else if ( s1 < dhmax - tol2) // current grid is finer than all its opposite grids
           {
-            ext1[v1] = extf; ext2[v2] = K_FUNC::E_max(ext2[v2],extg);
+            ext1[v1] = K_FUNC::E_max(ext1[v1],extg); //F/G : 2/3 if possible
+            ext2[v2] = K_FUNC::E_max(ext2[v2],extf);
           }
-          else // niveau fin etendu de ext+1
+          else // current grid is coarser than all its opp grids
           {
-            ext2[v2] = extf; ext1[v1] = K_FUNC::E_max(ext1[v1],extg);
-          }
-          goto faceimax;
+            ext1[v1] = K_FUNC::E_max(ext1[v1],extf); //G/F : 3/2 if possible
+            ext2[v2] = K_FUNC::E_max(ext2[v2],extg);
+          }                    
+          // goto faceimax;
         }
       }// fin parcours de ts les elts intersectant 
       // fin test facette i = 1
@@ -596,19 +617,23 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
         { 
           vector<E_Int>& dejaVu1 = dejaVu[v1]; dejaVu1.push_back(v2);
           vector<E_Int>& dejaVu2 = dejaVu[v2]; dejaVu2.push_back(v1);
-          if ( K_FUNC::fEqualZero(s1-dhmax,tol2) == true ) 
+          diff = s1-dhmax;
+          if ( K_FUNC::fEqualZero(diff,tol2) == true ) //F/F : 3/2 if possible
           {
-            ext2[v1] = extf; ext1[v2] = K_FUNC::E_max(ext1[v2],extg);
+            ext2[v1] = K_FUNC::E_max(ext2[v1],extf); 
+            ext1[v2] = K_FUNC::E_max(ext1[v2],extg);
           }
-          else if ( s1 < dhmax - tol2) // niveau fin etendu de ext+1
+          else if ( s1 < dhmax - tol2) // current grid is finer than all its opposite grids
           {
-            ext2[v1] = extf; ext1[v2] = K_FUNC::E_max(ext1[v2],extg);
+            ext2[v1] = K_FUNC::E_max(ext2[v1],extg); //F/G : 2/3 if possible
+            ext1[v2] = K_FUNC::E_max(ext1[v2],extf);
           }
-          else // niveau fin etendu de ext+1
+          else // current grid is coarser than all its opp grids
           {
-            ext1[v2] = extf; ext2[v1] = K_FUNC::E_max(ext2[v1],extg);
-          }
-          goto facejmin;
+            ext2[v1] = K_FUNC::E_max(ext2[v1],extf); //G/F : 3/2 if possible
+            ext1[v2] = K_FUNC::E_max(ext1[v2],extg);
+          }             
+          // goto facejmin;
         }
       }// fin parcours de ts les elts intersectant 
       // fin test facette i = imax
@@ -688,19 +713,24 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
         { 
           vector<E_Int>& dejaVu1 = dejaVu[v1]; dejaVu1.push_back(v2);
           vector<E_Int>& dejaVu2 = dejaVu[v2]; dejaVu2.push_back(v1);
-          if ( K_FUNC::fEqualZero(s1-dhmax,tol2) == true ) 
+          diff = s1-dhmax;
+          
+          if ( K_FUNC::fEqualZero(diff,tol2) == true ) //F/F : 3/2 if possible
           {
-            ext3[v1] = extf; ext4[v2] = K_FUNC::E_max(ext4[v2],extg);
+            ext3[v1] = K_FUNC::E_max(ext3[v1],extf); 
+            ext4[v2] = K_FUNC::E_max(ext4[v2],extg);
           }
-          else if ( s1 < dhmax - tol2) // niveau fin etendu de ext+1
+          else if ( s1 < dhmax - tol2) // current grid is finer than all its opposite grids
           {
-            ext3[v1] = extf; ext4[v2] = K_FUNC::E_max(ext4[v2],extg);
+            ext3[v1] = K_FUNC::E_max(ext3[v1],extg); //F/G : 2/3 if possible
+            ext4[v2] = K_FUNC::E_max(ext4[v2],extf);
           }
-          else // niveau fin etendu de ext+1
+          else // current grid is coarser than all its opp grids
           {
-            ext4[v2] = extf; ext3[v1] = K_FUNC::E_max(ext3[v1],extg);
-          }
-          goto facejmax;
+            ext3[v1] = K_FUNC::E_max(ext3[v1],extf); //G/F : 3/2 if possible
+            ext4[v2] = K_FUNC::E_max(ext4[v2],extg);
+          }                
+          // goto facejmax;
         }
       }// fin parcours de ts les elts intersectant 
       // fin test facette j=1
@@ -715,7 +745,6 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
       getBlocksIntersecting(v1, minB, maxB, bbox, tol, indicesBB);
       nbboxes = indicesBB.size();
       dhmax = 0.;// dh max des grilles adjacentes
-
       // facette opposee en i = 1: A'B'F'E'
       for (E_Int noe = 0; noe < nbboxes; noe++)
       {
@@ -772,26 +801,30 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
         dx = xp-xt1[indH1]; dy = yp-yt1[indH1]; dz = zp-zt1[indH1];
         if ( ret > -1 && dx*dx + dy*dy + dz*dz <= tol2 )
         { found4 = 1; dhmax = K_FUNC::E_max(dhmax,s2);}
-        if ( found4 == 1 ) goto finjmax;
+        // if ( found4 == 1 ) goto finjmax;
 
         finjmax:;
         if ( found1+found2+found3+found4 > 0) 
         { 
           vector<E_Int>& dejaVu1 = dejaVu[v1]; dejaVu1.push_back(v2);
           vector<E_Int>& dejaVu2 = dejaVu[v2]; dejaVu2.push_back(v1);
-          if ( K_FUNC::fEqualZero(s1-dhmax,tol2) == true ) 
+          diff = s1-dhmax;
+          if ( K_FUNC::fEqualZero(diff,tol2) == true ) //F/F : 3/2 if possible
           {
-            ext4[v1] = extf; ext3[v2] = K_FUNC::E_max(ext3[v2],extg);
+            ext4[v1] = K_FUNC::E_max(ext4[v1],extf); 
+            ext3[v2] = K_FUNC::E_max(ext3[v2],extg);
           }
-          else if ( s1 < dhmax - tol2) // niveau fin etendu de ext+1
+          else if ( s1 < dhmax - tol2) // current grid is finer than all its opposite grids
           {
-            ext4[v1] = extf; ext3[v2] = K_FUNC::E_max(ext3[v2],extg);
+            ext4[v1] = K_FUNC::E_max(ext4[v1],extg); //F/G : 2/3 if possible
+            ext3[v2] = K_FUNC::E_max(ext3[v2],extf);
           }
-          else // niveau fin etendu de ext+1
+          else // current grid is coarser than all its opp grids
           {
-            ext3[v2] = extf; ext4[v1] = K_FUNC::E_max(ext4[v1],extg);
-          }
-          goto facekmin;
+            ext4[v1] = K_FUNC::E_max(ext4[v1],extf); //G/F : 3/2 if possible
+            ext3[v2] = K_FUNC::E_max(ext3[v2],extg);
+          }      
+          // goto facekmin;
         }
       }// fin parcours de ts les elts intersectant 
       // fin test facette j=jmax
@@ -868,19 +901,24 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
         { 
           vector<E_Int>& dejaVu1 = dejaVu[v1]; dejaVu1.push_back(v2);
           vector<E_Int>& dejaVu2 = dejaVu[v2]; dejaVu2.push_back(v1);
-          if ( K_FUNC::fEqualZero(s1-dhmax,tol2) == true ) 
+          diff = s1-dhmax;
+          if ( K_FUNC::fEqualZero(diff,tol2) == true ) //F/F : 3/2 if possible
           {
-            ext5[v1] = extf; ext6[v2] = K_FUNC::E_max(ext6[v2],extg);
+            ext5[v1] = K_FUNC::E_max(ext5[v1],extf); 
+            ext6[v2] = K_FUNC::E_max(ext6[v2],extg);
           }
-          else if ( s1 < dhmax - tol2) // niveau fin etendu de ext+1
+          else if ( s1 < dhmax - tol2) // current grid is finer than all its opposite grids
           {
-            ext5[v1] = extf; ext6[v2] = K_FUNC::E_max(ext6[v2],extg);
+            ext5[v1] = K_FUNC::E_max(ext5[v1],extg); //F/G : 2/3 if possible
+            ext6[v2] = K_FUNC::E_max(ext6[v2],extf);
           }
-          else // niveau fin etendu de ext+1
+          else // current grid is coarser than all its opp grids
           {
-            ext6[v2] = extf; ext5[v1] = K_FUNC::E_max(ext5[v1],extg);
-          }
-          goto facekmax;
+            ext5[v1] = K_FUNC::E_max(ext5[v1],extf); //G/F : 3/2 if possible
+            ext6[v2] = K_FUNC::E_max(ext6[v2],extg);
+          }           
+
+          // goto facekmax;
         }
       }// fin parcours de ts les elts intersectant 
       // fin test facette k = 1     
@@ -957,19 +995,24 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
         { 
           vector<E_Int>& dejaVu1 = dejaVu[v1]; dejaVu1.push_back(v2);
           vector<E_Int>& dejaVu2 = dejaVu[v2]; dejaVu2.push_back(v1);
-          if ( K_FUNC::fEqualZero(s1-dhmax,tol2) == true ) 
+          diff = s1-dhmax;
+          if ( K_FUNC::fEqualZero(diff,tol2) == true ) //F/F : 3/2 if possible
           {
-            ext6[v1] = extf; ext5[v2] = K_FUNC::E_max(ext5[v2],extg);
+            ext6[v1] = K_FUNC::E_max(ext6[v1],extf); 
+            ext5[v2] = K_FUNC::E_max(ext5[v2],extg);
           }
-          else if ( s1 < dhmax - tol2) // niveau fin etendu de ext+1
+          else if ( s1 < dhmax - tol2) // current grid is finer than all its opposite grids
           {
-            ext6[v1] = extf; ext5[v2] = K_FUNC::E_max(ext5[v2],extg);
+            ext6[v1] = K_FUNC::E_max(ext6[v1],extg); //F/G : 2/3 if possible
+            ext5[v2] = K_FUNC::E_max(ext5[v2],extf);
           }
-          else // niveau fin etendu de ext+1
+          else // current grid is coarser than all its opp grids
           {
-            ext5[v2] = extf; ext6[v1] = K_FUNC::E_max(ext6[v1],extg);
-          }
-          goto end;
+            ext6[v1] = K_FUNC::E_max(ext6[v1],extf); //G/F : 3/2 if possible
+            ext5[v2] = K_FUNC::E_max(ext5[v2],extg);
+          }              
+
+          // goto end;
         }
       }// fin parcours de ts les elts intersectant 
       // fin test facette k = kmax           
@@ -993,7 +1036,6 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
     RELEASESHAREDS(objst[v], structF[v]);
     E_Int nio = ni+ext1[v]+ext2[v]; E_Int njo = nj+ext3[v]+ext4[v]; E_Int nko = nk+ext5[v]+ext6[v];
     E_Int npts = nio*njo*nko;
-
     E_Int api = 1;//api 2 plante
     PyObject* tpl = K_ARRAY::buildArray2(nfldo, structVarString[v], nio, njo, nko, api); 
     E_Float* fptr = K_ARRAY::getFieldPtr(tpl);
@@ -1002,7 +1044,6 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
     E_Float* yn = newcoords.begin(2);
     E_Float* zn = newcoords.begin(3);
     E_Int nionjo = nio*njo;
-
     for (E_Int k = 0; k < nko; k++)    
       for (E_Int j = 0; j < njo; j++)
         for (E_Int i = 0; i < nio; i++)
@@ -1042,8 +1083,8 @@ void K_GENERATOR::getBlocksIntersecting(E_Int noz1,
     {
        if ( xminp[noz] <= maxB0 && xmaxp[noz] >= minB0 &&
             yminp[noz] <= maxB1 && ymaxp[noz] >= minB1 &&
-            zminp[noz] <= maxB2 && zmaxp[noz] >= minB2 ) 
-         listOfZones.push_back(noz);
+            zminp[noz] <= maxB2 && zmaxp[noz] >= minB2 )
+         listOfZones.push_back(noz);        
     }
   }
 }

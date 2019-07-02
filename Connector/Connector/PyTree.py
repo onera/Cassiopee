@@ -1211,7 +1211,7 @@ def blankCellsTetra(t, mT4, blankingMatrix=[], blankingType='node_in',
 def blankCellsTri(t, mT3, blankingMatrix=[], blankingType='node_in',
                     tol=1.e-12, cellnval=0, overwrite=0):
     try: import Transform as T
-    except: raise ImportError("blankCells: requires Transform module.")
+    except: raise ImportError("blankCellsTri: requires Transform module.")
 
     blankType = 1 # par defaut: cell_intersect
     if blankingType == 'node_in': blankType = 0

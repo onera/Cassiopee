@@ -99,7 +99,7 @@ PyObject* K_DIST2WALLS::eikonal(PyObject* self, PyObject* args)
     return NULL;
   }
   E_Float* phi = fn.begin(pos+1);
-  E_Float max_float = 0;
+  E_Float max_float = 0.;
   for ( int i = 0; i < nil*njl*nkl; ++i )
     max_float = std::max(max_float,phi[i]);
 

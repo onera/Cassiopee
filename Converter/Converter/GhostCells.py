@@ -2034,6 +2034,7 @@ def addGhostCellsNG(t, nlayers=2):
       #print "zone %d"%i
 
       zwgh = PyTree.convertArrays2ZoneNode(znames[i], [nodes[i][0]])
+      #zwgh[0] = znames[i] # oblige de forcer, car la fonction getZoneName est appelee par convertArrays2ZoneNode
 
       ######################################################################################
       # FIXME : can be retrieved from K_CONVERTER::addGhostCellsNG instead of regenerating it

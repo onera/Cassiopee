@@ -1146,33 +1146,40 @@ void K_INTERP::getBestDonor(
         nj=*(E_Int*)a3[no];
         nk=*(E_Int*)a4[no];
       }
-      E_Float radius[3]; // longueurs des axes de l'ellipse
-      radius[0] = radius[1] = radius[2] = 1.;
-      E_Float axis[9];  // Axes de l'ellipse
-      vector<E_Int> indicesIn;
-      E_Int ok = buildStencil(dimPb, order, nature, sizeBasis,
-                              indDnr, resl[no], ni, nj, nk, vectOfcVN[no],
-                              xtDnr, ytDnr, ztDnr, cellN,
-                              pt, radius, axis, axisConst, indicesIn);
-      if (vol < volMin && ok == 1)
-      {
-        volMin = vol;    // volume minimal
-        noBest = no;     // numero de la zone donneuse
-        indBestDnr = indDnr; // indice du meilleur donneur
-        dBestDnr = dDnr;
-      }
       if (dDnr < K_CONST::E_GEOM_CUTOFF)//pt coincident
       {
         indCandidates.push_back(indDnr);
         blkCandidates.push_back(no);
         volCandidates.push_back(realVol);
+        dBestDnr = dDnr;
+        indBestDnr = indDnr;
+        noBest = no;
+        volMin = vol;
+      }
+      else 
+      {
+        E_Float radius[3]; // longueurs des axes de l'ellipse
+        radius[0] = radius[1] = radius[2] = 1.;
+        E_Float axis[9];  // Axes de l'ellipse
+        vector<E_Int> indicesIn;
+        E_Int ok = buildStencil(dimPb, order, nature, sizeBasis,
+                                indDnr, resl[no], ni, nj, nk, vectOfcVN[no],
+                                xtDnr, ytDnr, ztDnr, cellN,
+                                pt, radius, axis, axisConst, indicesIn);
+
+        if (vol < volMin && ok == 1)
+        {
+          volMin = vol;    // volume minimal
+          noBest = no;     // numero de la zone donneuse
+          indBestDnr = indDnr; // indice du meilleur donneur
+          dBestDnr = dDnr;
+        }
       }
     }
   }
 
   // si points coincidents, on definit celui de plus petit volume comme donneur
   volMin = K_CONST::E_MAX_FLOAT;
-
   for (size_t i = 0; i < indCandidates.size(); i++)
   {
     if (volCandidates[i] < volMin)

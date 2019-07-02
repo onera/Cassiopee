@@ -27,13 +27,13 @@ def _distributeFile(t_in, tc_in, NP):
     tc = Filter.convertFile2SkeletonTree(tc_in, maxDepth=3, maxFloatSize=6)
     stats = D2._distribute(tc, NP, algorithm='graph', useCom='ID')
     D2._copyDistribution(tc, t)
-    nodes = Internal.getNodesFromName(t, 'Proc')
+    nodes = Internal.getNodesFromName(t, 'proc')
     for n in nodes:
-        p = Internal.getPath(n)
+        p = Internal.getPath(t, n)
         Filter.writeNodesFromPaths(t_in, p, n)
-    nodes = Internal.getNodesFromName(tc, 'Proc')
+    nodes = Internal.getNodesFromName(tc, 'proc')
     for n in nodes:
-        p = Internal.getPath(n)
+        p = Internal.getPath(tc, n)
         Filter.writeNodesFromPaths(tc_in, p, n)
     return None
 
@@ -93,13 +93,13 @@ def _distributeOptFile(t_in, tc_in, corePerNode=28, nptMaxPerCore=4.e6):
     #D2._printProcStats(t,stats,NP)
 
     D2._copyDistribution(tc, t)
-    nodes = Internal.getNodesFromName(t, 'Proc')
+    nodes = Internal.getNodesFromName(t, 'proc')
     for n in nodes:
-        p = Internal.getPath(n)
+        p = Internal.getPath(t, n)
         Filter.writeNodesFromPaths(t_in, p, n)
-    nodes = Internal.getNodesFromName(tc, 'Proc')
+    nodes = Internal.getNodesFromName(tc, 'proc')
     for n in nodes:
-        p = Internal.getPath(n)
+        p = Internal.getPath(tc, n)
         Filter.writeNodesFromPaths(tc_in, p, n)
     
     return NP
