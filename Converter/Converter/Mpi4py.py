@@ -345,6 +345,7 @@ def addXZones(t, graph, variables=None, cartesian=False):
 def _addXZones(t, graph, variables=None, cartesian=False):
     if graph == {}: return t
     reqs = []
+    if cartesian: import Compressor.PyTree as Compressor 
     if rank in graph:
         g = graph[rank] # graph du proc courant
         for oppNode in g:
@@ -359,13 +360,11 @@ def _addXZones(t, graph, variables=None, cartesian=False):
                     for i in variables: v.remove(i)
                     zonep = C.rmVars(zone, v)
                     if cartesian:
-                        import Compressor 
                         Compressor._compressCartesian(zonep)
                     data.append(zonep)
                 else:
                     if cartesian:
-                        import Compressor
-                        zonep = Compressor._compressCartesian(zonep)
+                        zonep = Compressor.compressCartesian(zone)
                         data.append(zonep)
                     else: data.append(zone)
             s = KCOMM.isend(data, dest=oppNode)
@@ -380,7 +379,7 @@ def _addXZones(t, graph, variables=None, cartesian=False):
             
             for z in data: # data est une liste de zones
                 if cartesian:
-                    import Compressor 
+                    import Compressor.PyTree as Compressor
                     Compressor._uncompressCartesian(z)
                 #print '%d: recoit la zone %s.'%(rank,z[0])
                 # tag z

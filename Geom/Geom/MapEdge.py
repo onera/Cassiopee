@@ -147,7 +147,6 @@ def setH(a, ind, h):
         b = a[1][pos]
         b = b.reshape((a[4],a[3],a[2]))
         imin = imin-1; jmin = jmin-1; kmin = kmin-1
-        print imin,imax,jmin,jmax,kmin,kmax
         b[kmin:kmax,jmin:jmax,imin:imax] = h
     else: # suppose range
         if len(ind) == 2:
@@ -242,13 +241,12 @@ def enforceh3D_(array, N, h, dir):
     # first line
     l = T.subzone(m, (1,1,1), (ni,1,1))
     am = enforceh(l, N, h)
-    ndi = am[2]; print ndi
+    ndi = am[2]
     a = C.array('x,y,z', ndi, nj, nk)
     for k in range(nk):
         for j in range(nj):
             l = T.subzone(m, (1,j+1,k+1), (ni,j+1,k+1))
             am = enforceh(l, N)
-            print am[2], ndi
             ind = j*ndi+k*ndi*nj
             a[1][:,ind:ndi+ind] = am[1][:,0:ndi]
     if dir == 2: a = T.reorder(a, (2,1,3))
@@ -320,7 +318,6 @@ def enforceh__(a, N, h):
                     i2 = i; h2 = hi
                 sub = T.subzone(a, (i1+1,1,1), (i2+1,1,1))                
                 Li = D.getLength(sub)
-                #print 'h1',Li,h1,h2
                 Pi = Li*1./(0.5*(h1+h2)+1.e-12)
                 i1s.append(i1); i2s.append(i2)
                 h1s.append(h1/Li); h2s.append(h2/Li)
@@ -335,7 +332,6 @@ def enforceh__(a, N, h):
     for x in range(len(h1s)):
         Pi = Ps[x]
         Pi = Pi/Pt*N
-        #print Ps[x], Pi
         Ps[x] = int(round(Pi))+1
 
     out = []
