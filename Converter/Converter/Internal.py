@@ -153,9 +153,10 @@ def isValue(node, value):
     if node[1] is None: return (node[1] == value)
     # bool for string value
     isStrValue = isinstance(value, str)
+    isByteValue = isinstance(value, bytes)
     isNStrValue= (isinstance(value, numpy.ndarray) and value.dtype == numpy.array('a').dtype)
     # Not string case
-    if not(isStrValue or isNStrValue):
+    if not(isStrValue or isByteValue or isNStrValue):
         # Value to ndarray
         if not isinstance(value, numpy.ndarray): value = numpy.array([value]) # float or int
         # Node Value to ndarray
@@ -169,15 +170,11 @@ def isValue(node, value):
     # String Case
     else:
         # bool for string node value
-        isStrNode = isinstance(node[1], str)
-        isNStrNode=(isinstance(node[1], numpy.ndarray) and node[1].dtype == numpy.array('a').dtype)
-        # node value not string
-        if not(isStrNode or isNStrNode): return False
-        # Value  to string if ndarray string
+        nodeValue = getValue(node) 
+        isNStrNode = isinstance(nodeValue, str)
+        if not isNStrNode: return False        
         if isNStrValue: value = value.tostring()
-        # Node value to string if ndarray string
-        if isNStrNode: nodeValue = node[1].tostring()
-        else: nodeValue = node[1] # not CGNS/Compliant
+        if isByteValue: value = value.decode()
         # Comparison
         if ('*' in value)|('?' in value)|('[' in value): res = fnmatch.fnmatch(nodeValue, value)
         else: res = (nodeValue == value)

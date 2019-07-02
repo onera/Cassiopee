@@ -53,7 +53,7 @@ def column2(R1=0.2, R2=0.2, N=10, h=1.):
 
 #==============================================================================
 def column3(R1=0.2, R2=0.2, N=10, h=1.):
-    import Circles
+    from . import Circles
     a = Circles.circle1(1., 0.9, Nd=N//2, fracD=0.2, N=N)
     l = D.line((R1,0,0),(R2,0,h), N=N//2+2)
     o = D.axisym(l, (0,0,0), (0,0,1), rmod=a)

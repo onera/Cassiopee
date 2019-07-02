@@ -884,7 +884,7 @@ def modifyBC__(dir, ni0, nj0, nk0, z):
 
 def map(z, d, dir=0):
     """Map a distribution d on a curve defined by zone z.
-    Usage: map( z, d )"""
+    Usage: map(z, d)"""
     dims = Internal.getZoneDim(z)
     ni0 = 1; nj0 = 1; nk0 = 1
     if dims[0] == 'Structured': ni0 = dims[1]; nj0 = dims[2]; nk0 = dims[3]

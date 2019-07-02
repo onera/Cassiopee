@@ -2,7 +2,6 @@
 from . import PyTree as C
 from . import Internal
 from . import Distributed
-import Compressor.PyTree as Compressor
 
 # Acces a Distributed
 from .Distributed import readZones, writeZones, convert2PartialTree, convert2SkeletonTree, readNodesFromPaths, readPyTreeFromPaths, writeNodesFromPaths
@@ -359,10 +358,13 @@ def _addXZones(t, graph, variables=None, cartesian=False):
                     v = C.getVarNames(zone, excludeXYZ=True)[0]
                     for i in variables: v.remove(i)
                     zonep = C.rmVars(zone, v)
-                    if cartesian: Compressor._compressCartesian(zonep)
+                    if cartesian:
+                        import Compressor 
+                        Compressor._compressCartesian(zonep)
                     data.append(zonep)
                 else:
                     if cartesian:
+                        import Compressor
                         zonep = Compressor._compressCartesian(zonep)
                         data.append(zonep)
                     else: data.append(zone)
@@ -377,7 +379,9 @@ def _addXZones(t, graph, variables=None, cartesian=False):
             data = KCOMM.recv(source=node)
             
             for z in data: # data est une liste de zones
-                if cartesian: Compressor._uncompressCartesian(z)
+                if cartesian:
+                    import Compressor 
+                    Compressor._uncompressCartesian(z)
                 #print '%d: recoit la zone %s.'%(rank,z[0])
                 # tag z
                 Internal.createChild(z, 'XZone', 'UserDefinedData_t') 

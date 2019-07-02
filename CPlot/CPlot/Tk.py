@@ -724,7 +724,9 @@ def loadPrefFile():
 #==============================================================================
 def importTtk():
     try: import ttk
-    except: ttk = None
+    except:
+      try: import tkinter.ttk as ttk
+      except: ttk = None
     return ttk
 
 #==============================================================================
