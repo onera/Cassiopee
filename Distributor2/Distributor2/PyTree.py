@@ -53,7 +53,7 @@ def computeBBoxes__(arrays, zoneNames):
 # IN: algorithm: gradient0, gradient1, genetic, fast
 # IN: nghost: nbre de couches de ghost cells ajoutees
 #==============================================================================
-def distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='all', 
+def distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='match', 
                algorithm='graph', mode='nodes', nghost=0):
     """Distribute a pyTree over processors.
     Usage: distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='all', algorithm='graph', mode='nodes', nghost=0)"""
@@ -64,7 +64,7 @@ def distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='all',
     return tp, out
 
 # in place version
-def _distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='all', 
+def _distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='match', 
                 algorithm='graph', mode='nodes', nghost=0):
     """Distribute a pyTree over processors.
     Usage: _distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='all', algorithm='graph', mode='nodes', nghost=0)"""
@@ -105,7 +105,7 @@ def _distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='all',
             for z in zones: dict[z[0]] = pc; pc += 1
             
             for z in zones:
-                match = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
+                match = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t') # forcement structure
                 for m in match:
                     donorName = Internal.getValue(m)
                     if donorName in dict: d = dict[donorName]+zc
@@ -115,6 +115,15 @@ def _distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='all',
                     w = Internal.range2Window(win)
                     vol = (w[1]-w[0]+1)*(w[3]-w[2]+1)*(w[5]-w[4]+1)
                     if d != -1: com[c, d] += vol
+                match = Internal.getNodesFromType2(z, 'GridConnectivity_t') # non structure
+                for m in match:
+                    donorName = Internal.getValue(m)
+                    if donorName in dict: d = dict[donorName]+zc
+                    else: d = -1
+                    node = Internal.getNodeFromName1(m, 'PointList')
+                    if node is not None:
+                        vol = node[1].size
+                        if d != -1: com[c, d] += vol              
                 c += 1
             zc += len(zones)
 
@@ -180,7 +189,7 @@ def _distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='all',
                 d += 1
             c += 1
 
-    if useCom == 'ID' or useCom == 'all':
+    if useCom == 'ID' or useCom == 'all' or useCom == 'match':
         dict = {}
         pc = 0
         for z in zones: dict[z[0]] = pc; pc += 1

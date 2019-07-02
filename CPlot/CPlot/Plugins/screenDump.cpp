@@ -221,8 +221,8 @@ char* Data::export2Image(int exportWidth, int exportHeight)
 
         char* offscreen = (char*)ptrState->offscreenBuffer;
         float* offscreenD = (float*)ptrState->offscreenDepthBuffer;
-        for ( unsigned i = 0; i < exportHeight; ++i ) {
-          for ( unsigned j = 0; j < exportWidth; ++j ) {
+        for ( int i = 0; i < exportHeight; ++i ) {
+          for ( int j = 0; j < exportWidth; ++j ) {
             unsigned ind = i*exportWidth+j;
             assert(ind<s);
             if (depth[ind] < offscreenD[ind]) {

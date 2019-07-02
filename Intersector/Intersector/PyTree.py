@@ -68,18 +68,18 @@ def concatenateBC(bctype, zones, wallpgs, cur_shift):
         if Internal.isValue(bb, bctype) == False: continue
           
         wpgs = bb[2][1][1][0] # POINTLIST NUMPY
-        #print wpgs
+        #print(wpgs)
         # SYNC THE POINTLIST BEFORE APPENDING  : SHIFT WITH THE CURRENT NB OF STORED POLYGONS
         id2 = numpy.empty(len(wpgs), numpy.int32)
         id2[:] = wpgs[:] + cur_shift
         wallpgs.append(id2)
 
       c = c[0]
-      #print c
+      #print(c)
       #z_nb_pts= len(c[1][0])
       z_nb_pgs= c[2][0][0]
-      #print z_nb_pts
-      #print z_nb_pgs
+      #print(z_nb_pts)
+      #print(z_nb_pgs)
       cur_shift += z_nb_pgs
     return (wallpgs, cur_shift)
 
@@ -104,13 +104,13 @@ def updatePointLists(z, zones, oids):
     # update the BC pointlists 
     for bb in bnds :
       bb[2][1][1] = ptLists[i]
-      #print bb[2][1][1]
+      #print(bb[2][1][1])
       i=i+1
 
     # update the Join pointlist and synchronize with other zones (their pointListDonnor)
     for j in joins:
       donnorName = "".join(j[1])
-      #print donnorName
+      #print(donnorName)
       dz = Internal.getNodeFromName(zones, donnorName)
       joinsD = Internal.getNodesFromType(dz, 'GridConnectivity_t')
       for jd in joinsD:
@@ -168,7 +168,7 @@ def booleanUnion(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, im
         zones = Internal.getZones(a2)
         (extrudepgs, cur_shift) = concatenateBC('UserDefined', zones, extrudepgs, cur_shift)
     if (extrudepgs != []) : extrudepgs = numpy.concatenate(extrudepgs) # create a single list
-    #print "nb of pgs to pass : %s" %(len(extrudepgs))
+    #print("nb of pgs to pass : %s" %(len(extrudepgs)))
 
     res = XOR.booleanUnion(s1, s2, tol, preserve_right, solid_right, agg_mode, improve_conformal_cloud_qual, extrudepgs)
     
@@ -230,7 +230,7 @@ def XcellN(t, prioritaryMesh, blankingMatrix=[]):
     if blankingMatrix == []: blankingMatrix = numpy.ones((len(bases), len(prioritaryMesh)), numpy.int32)
     for b in bases:
         nb += 1
-        #print 'bgm base : %d / %d' %(nb+1, len(bases))
+        #print('bgm base : %d / %d' %(nb+1, len(bases)))
         coords = C.getFields(Internal.__GridCoordinates__, b)
         if coords == []: continue
 
@@ -678,7 +678,7 @@ def _adaptCellsNodal(t, nodal_vals, hmesh=None):
     nb_nodals = len(nodal_vals)
 
     if (nb_zones != nb_nodals) :
-        print 'must give one nodal list (sized as cooridnates) per zone'
+        print('must give one nodal list (sized as cooridnates) per zone')
         return
 
     i=0

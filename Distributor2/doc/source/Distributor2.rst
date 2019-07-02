@@ -115,7 +115,7 @@ Contents
 
 ===================================================================
 
-.. py:function:: Distributor2.PyTree.distribute(A, NProc, prescribed={}, perfo=[], weight=[], useCom='all', algorithm='graph', mode='nodes', nghost=0)
+.. py:function:: Distributor2.PyTree.distribute(A, NProc, prescribed={}, perfo=[], weight=[], useCom='match', algorithm='graph', mode='nodes', nghost=0)
 
     Distribute automatically the blocks amongst NProc processors.
 
@@ -123,12 +123,12 @@ Contents
     is updated with the attributed processor number.
 
     If useCom=0, only the grid number of points is taken into account.
-    If useCom='all', matching and overlap communications are taken into account. 
-    If useCom='match', only match connectivity are taken into account.
-    if useCom='overlap', only overlap connectivity are taken into account.
+    If useCom='match', only match connectivities are taken into account.
+    if useCom='overlap', only overlap connectivities are taken into account.
     if useCom='bbox', overlap between zone bbox is taken into account.
     if useCom='ID', ID (interpolation or match) and IBCD (IBM points) are taken into account.
-
+    If useCom='all', matching and overlap communications are taken into account. 
+    
     When using distributed trees, prescribed must be a dictionary containing 
     the zones names as key, and the prescribed proc as value.  
     weight is also a dictionary where the keys are the zone names and the weight as the value.

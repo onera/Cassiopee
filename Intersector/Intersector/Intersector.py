@@ -105,10 +105,10 @@ def XcellN(coords, cellnfields, maskingMesh, wall_pgl=[], ghost_pgl=[]):
     #C.convertArrays2File([maskingMesh], "mask.plt")
     #print(pgl)
     for i in range(len(coords)):
-      #print 'coords : %d / %d' %(i+1, len(coords))
+      #print('coords : %d / %d' %(i+1, len(coords)))
       #C.convertArrays2File([coords[i]], "bloc%d.plt"%(i))
-      #print pgl
-      #print coords[i]
+      #print(pgl)
+      #print(coords[i])
       cn = intersector.XcellN(coords[i], cellnfields[i], maskingMesh, wall_pgl, ghost_pgl)
       #C.convertArrays2File([cn], "walls%d.plt"%(i))
       cellnt.append(cn)

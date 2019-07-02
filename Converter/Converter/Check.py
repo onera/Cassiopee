@@ -624,7 +624,7 @@ def checkOppositRanges(t, ntype):
                         for nopp in nodesopp:
                             if n is not nopp:  
                                 prangeopp = Internal.getNodesFromName1(nopp, 'PointRange')
-                                prangedonoropp = Internal.getNodesFromName2(nopp, 'PointRangeDonor')#NearMatch : necessaire d aller au niveau 2
+                                prangedonoropp = Internal.getNodesFromName2(nopp, 'PointRangeDonor') # NearMatch: necessaire d'aller au niveau 2
                                 mtypeopp = Internal.getNodeFromName1(nopp, 'GridConnectivityType')
                                 if mtypeopp is not None:
                                     mtypeopp = mtypeopp[1]

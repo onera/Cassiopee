@@ -118,15 +118,49 @@ def refine__(a, N, factor, sharpAngle):
         b = G.close(b)
     return b
 
+# -- converti une chaine en range (a Structure seulement)
+# IN: 'imin', 'jmin', ...
+# OUT: [imin,imax,jmin,jmax,kmin,kmax]
+def convertStringRange2Range__(wrange, a):
+  ni = a[2]; nj = a[3]; nk = a[4]
+  if wrange == 'imin': wrange = [1,1,1,nj,1,nk]
+  elif wrange == 'imax': wrange = [ni,ni,1,nj,1,nk]
+  elif wrange == 'jmin': wrange = [1,ni,1,1,1,nk]
+  elif wrange == 'jmax': wrange = [1,ni,nj,nj,1,nk]
+  elif wrange == 'kmin': wrange = [1,ni,1,nj,1,1]
+  else: wrange = [1,ni,1,nj,nk,nk]
+  return wrange
+
 # set h step in place
+# ind : indice ou [imin,imax,jmin,jmax,kmin,kmax] ou 'imin'
 def setH(a, ind, h):
     """Set the mesh step for a given index."""
     pos = KCore.isNamePresent(a, 'h')
     if pos == -1:
         C._initVars(a, 'h', 0.)
         pos = KCore.isNamePresent(a, 'h')
-    if ind == -1: ind = a[1].shape[1]-1
-    a[1][pos,ind] = h
+    if isinstance(ind, int):
+        if ind == -1: ind = a[1].shape[1]-1
+        a[1][pos,ind] = h
+    elif isinstance(ind, str):
+        [imin,imax,jmin,jmax,kmin,kmax] = convertStringRange2Range__(ind, a)
+        b = a[1][pos]
+        b = b.reshape((a[4],a[3],a[2]))
+        imin = imin-1; jmin = jmin-1; kmin = kmin-1
+        print imin,imax,jmin,jmax,kmin,kmax
+        b[kmin:kmax,jmin:jmax,imin:imax] = h
+    else: # suppose range
+        if len(ind) == 2:
+            [imin,imax] = ind
+            jmin = 1; jmax = 1; kmin = 1; kmax = 1
+        elif len(ind) == 4:
+            [imin,imax,jmin,jmax] = ind
+            kmin = 1; kmax = 1
+        else: [imin,imax,jmin,jmax,kmin,kmax] = ind
+        b = a[1][pos]
+        b = b.reshape((a[4],a[3],a[2]))
+        imin = imin-1; jmin = jmin-1; kmin = kmin-1
+        b[kmin:kmax,jmin:jmax,imin:imax] = h
 
 # set factor in place
 def setF(a, ind, f):
@@ -135,10 +169,29 @@ def setF(a, ind, f):
     if pos == -1:
         C._initVars(a, 'f', 0.)
         pos = KCore.isNamePresent(a, 'f')
-    if ind == -1: ind = a[1].shape[1]-1
-    a[1][pos,ind] = f
+    if isinstance(ind, int):
+        if ind == -1: ind = a[1].shape[1]-1
+        a[1][pos,ind] = f
+    elif isinstance(ind, str):
+        [imin,imax,jmin,jmax,kmin,kmax] = convertStringRange2Range__(ind, a)
+        b = a[1][pos]
+        b = b.reshape((a[4],a[3],a[2]))
+        imin = imin-1; jmin = jmin-1; kmin = kmin-1
+        b[kmin:kmax,jmin:jmax,imin:imax] = f
+    else: # suppose range
+        if len(ind) == 2:
+           [imin,imax] = ind
+           jmin = 1; jmax = 1; kmin = 1; kmax = 1
+        elif len(ind) == 4:
+           [imin,imax,jmin,jmax] = ind
+           kmin = 1; kmax = 1
+        else: [imin,imax,jmin,jmax,kmin,kmax] = ind
+        b = a[1][pos]
+        b = b.reshape((a[4],a[3],a[2]))
+        imin = imin-1; jmin = jmin-1; kmin = kmin-1
+        b[kmin:kmax,jmin:jmax,imin:imax] = f
 
-# Build a dstrib between 0. and 1. with h1 left, h2 right
+# Build a distrib between 0. and 1. with h1 left, h2 right
 def buildDistrib(h1, h2, N):
     Ni = int(round(1./h2))+1
     a = G.cart((0,0,0), (h2,1,1), (Ni,1,1))
@@ -169,6 +222,38 @@ def moyenne(a, hl):
                 i1 = i2; h1 = h2
     href = href / L
     return href
+
+def enforceh3D(a, N=100, h=-1, dir=1):
+    """Enforce mesh size in a 3D-mesh."""
+    if checkImport is None: return None
+    if isinstance(a[0], list):
+        b = []
+        for i in a:
+            b.append(enforceh3D_(i, N, h, dir))
+        return b
+    else:
+        return enforceh3D_(a, N, h, dir)
+
+def enforceh3D_(array, N, h, dir):
+    if dir == 2: m = T.reorder(array, (2,1,3))
+    elif dir == 3: m = T.reorder(array, (3,2,1))
+    elif dir == 1: m = array
+    ni = m[2]; nj = m[3]; nk = m[4]
+    # first line
+    l = T.subzone(m, (1,1,1), (ni,1,1))
+    am = enforceh(l, N, h)
+    ndi = am[2]; print ndi
+    a = C.array('x,y,z', ndi, nj, nk)
+    for k in range(nk):
+        for j in range(nj):
+            l = T.subzone(m, (1,j+1,k+1), (ni,j+1,k+1))
+            am = enforceh(l, N)
+            print am[2], ndi
+            ind = j*ndi+k*ndi*nj
+            a[1][:,ind:ndi+ind] = am[1][:,0:ndi]
+    if dir == 2: a = T.reorder(a, (2,1,3))
+    elif dir == 3: a = T.reorder(a, (3,2,1))
+    return a
 
 # h must be set at sharp angles
 # Set: N + h field (step size)
@@ -258,7 +343,6 @@ def enforceh__(a, N, h):
         i1 = i1s[x]; i2 = i2s[x]
         h1 = h1s[x]; h2 = h2s[x]
         # subzone
-        #print i1, i2, h1, h2
         sub = T.subzone(a, (i1+1,1,1), (i2+1,1,1))
         d = buildDistrib(h1, h2, Ps[x])            
         # remap

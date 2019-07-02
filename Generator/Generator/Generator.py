@@ -437,9 +437,9 @@ def addPointInDistribution(array, ind):
 def map(array, d, dir=0):
     """Map a distribution on a curve or a surface.
     Usage: map(array, d, dir)"""
-    if (len(d) == 5 and d[3] != 1 and d[4] == 1 and dir == 0):
+    if len(d) == 5 and d[3] != 1 and d[4] == 1 and dir == 0:
         return map2d(array, d)
-    elif (len(d) == 5 and dir != 0):
+    elif len(d) == 5 and dir != 0:
         return map1dpl(array, d, dir)
     else: return map1d(array, d)
     
@@ -452,9 +452,9 @@ def map1dpl(array, d, dir):
     try: import Transform as T; import Converter as C
     except:
         raise ImportError("map: requires Transform and Converter modules.")
-    if (dir == 2): m = T.reorder(array, (2,1,3))
-    elif (dir == 3): m = T.reorder(array, (3,2,1))
-    elif (dir == 1): m = array
+    if dir == 2: m = T.reorder(array, (2,1,3))
+    elif dir == 3: m = T.reorder(array, (3,2,1))
+    elif dir == 1: m = array
     ni = m[2]; nj = m[3]; nk = m[4]; ndi = d[2]; ndi2 = ndi*nj
     a = C.array('x,y,z', ndi, nj, nk)
     for k in range(nk):
@@ -463,8 +463,8 @@ def map1dpl(array, d, dir):
             am = map1d(l, d)
             ind = j*ndi+k*ndi2
             a[1][:,ind:ndi+ind] = am[1][:,0:ndi]
-    if (dir == 2): a = T.reorder(a, (2,1,3))
-    elif (dir == 3): a = T.reorder(a, (3,2,1))
+    if dir == 2: a = T.reorder(a, (2,1,3))
+    elif dir == 3: a = T.reorder(a, (3,2,1))
     return a
 
 # map sur une surface
