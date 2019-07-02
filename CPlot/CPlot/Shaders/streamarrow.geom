@@ -81,16 +81,20 @@ void draw_flat_arrow( vec4 origin, vec4 be3, vec4 trn, vec4 bcol )
         }
     }
     be3 = gl_ModelViewProjectionMatrix * be3;
-    vec4 be1 = vec4(be3.y, -be3.x, 0., 0.);/*cross(trn.xyz,be3.xyz),0.);*/
+    vec4 dir = normalize(be3);
+    vec4 be1 = vec4(dir.y, -dir.x, 0., 0.);/*cross(trn.xyz,be3.xyz),0.);*/
     vec3 bnorm = vec3(0., 0., -1.);
+    const float thickness = 0.01f;
+    const float head_arrow_width = 1.5;
+    vec4 offset = vec4(be1 * bary1.w * thickness / 2.0f );
 
-    gl_Position = bary1 - 0.125 * be1;
+    gl_Position = bary1 - offset;
     color  = bcol;
     Nv     = bnorm.xyz;
     P      = bary1.xyz;
     EmitVertex();
 
-    gl_Position = bary1 + 0.125 * be1;
+    gl_Position = bary1 + offset;
     color  = bcol;
     Nv     = bnorm.xyz;
     P      = bary1.xyz;
@@ -103,13 +107,13 @@ void draw_flat_arrow( vec4 origin, vec4 be3, vec4 trn, vec4 bcol )
     EmitVertex();
     EndPrimitive();
 
-    gl_Position = bary1 - 0.2 * be1 + 0.6 * be3;
+    gl_Position = bary1 - head_arrow_width * offset + 0.6 * be3;
     color  = bcol;
     Nv     = bnorm.xyz;
     P      = bary1.xyz;
     EmitVertex();
 
-    gl_Position = bary1 + 0.2 * be1 + 0.6 * be3;
+    gl_Position = bary1 + head_arrow_width * offset + 0.6 * be3;
     color  = bcol;
     Nv     = bnorm.xyz;
     P      = bary1.xyz;
@@ -148,14 +152,19 @@ void draw_3d_arrow( vec4 origin, vec4 be3, vec4 trn, vec4 bcol )
         else
             bary += 1.E-6 * vec4(trn.xyz,0.);
     }
+    be1 = normalize(be1);
+    vec4 dir = normalize(be3);
+    const float thickness = 0.01f;
+    const float head_arrow_width = 1.5;
+    vec4 offset = vec4(be1 * bary.w * thickness / 2.0f );
 
-    gl_Position = bary-0.125*be1;
+    gl_Position = bary-offset;
     color       = bcol;
     Nv          = trn.xyz; //bnorm.xyz;
     P           = vbary.xyz;
     EmitVertex();
 
-    gl_Position =  bary+0.125*be1;
+    gl_Position =  bary+offset;
     color       = bcol;
     Nv          = trn.xyz;//bnorm.xyz;
     P           = vbary.xyz;
@@ -169,13 +178,13 @@ void draw_3d_arrow( vec4 origin, vec4 be3, vec4 trn, vec4 bcol )
     EndPrimitive();
 
 
-    gl_Position = bary-0.2*be1 + 0.55 * be3;
+    gl_Position = bary- head_arrow_width * offset + 0.55 * be3;
     color       = bcol;
     Nv          = trn.xyz; //bnorm.xyz;
     P           = vbary.xyz;
     EmitVertex();
 
-    gl_Position =  bary+0.2*be1 + 0.55 * be3;
+    gl_Position =  bary+ head_arrow_width * offset + 0.55 * be3;
     color       = bcol;
     Nv          = trn.xyz;//bnorm.xyz;
     P           = vbary.xyz;
@@ -189,16 +198,17 @@ void draw_3d_arrow( vec4 origin, vec4 be3, vec4 trn, vec4 bcol )
     EndPrimitive();
 
     // Ortho
-    vec4 trn4 = nrmbe1 * normalize(vec4(cross(be1.xyz,be3.xyz),0.));
+    vec4 trn4 = /*nrmbe1 **/ normalize(vec4(cross(be1.xyz,be3.xyz),0.));
     /*if ( nrmbe1 > 1.E-6 ) trn4 = normalize(vec4(trn.xyz,0.))*length(be1);
     else trn4 = normalize(vec4(cross(be1.xyz, be3.xyz),0.));*/
-    gl_Position = bary-0.125*trn4;
+    offset = vec4(trn4 * bary.w * thickness / 2.0f );
+    gl_Position = bary-offset;
     color       = bcol;
     Nv          = be1.xyz; //bnorm.xyz;
     P           = vbary.xyz;
     EmitVertex();
 
-    gl_Position =  bary+0.125*trn4;
+    gl_Position =  bary+offset;
     color       = bcol;
     Nv          = be1.xyz;//bnorm.xyz;
     P           = vbary.xyz;
@@ -211,13 +221,13 @@ void draw_3d_arrow( vec4 origin, vec4 be3, vec4 trn, vec4 bcol )
     EmitVertex();
     EndPrimitive();
 
-    gl_Position = bary-0.2*trn4 + 0.55 * be3;
+    gl_Position = bary- head_arrow_width * offset + 0.55 * be3;
     color       = bcol;
     Nv          = be1.xyz; //bnorm.xyz;
     P           = vbary.xyz;
     EmitVertex();
 
-    gl_Position =  bary+0.2*trn4 + 0.55 * be3;
+    gl_Position =  bary+ head_arrow_width * offset + 0.55 * be3;
     color       = bcol;
     Nv          = be1.xyz;//bnorm.xyz;
     P           = vbary.xyz;
@@ -256,17 +266,20 @@ void draw_tetra_arrow( vec4 origin, vec4 be3, vec4 trn, vec4 bcol )
         else
             bary += 1.E-6 * vec4(trn.xyz,0.);
     }
-    vec4 be2 = nrmbe1 * normalize(vec4(cross(be1.xyz,be3.xyz),0.));//length(be3)*vec4(trn.xyz,0.);
+    vec4 be2 = normalize(vec4(cross(be1.xyz,be3.xyz),0.));//length(be3)*vec4(trn.xyz,0.);
     vec3 nbe1 = normalize(be1.xyz).xyz;
     vec3 nbe2 = normalize(be2.xyz).xyz;
+    be1 = normalize(be1);
+    const float thickness = 0.015f;
+    vec4 offset = vec4(be1 * bary.w * thickness / 2.0f );
 
-    gl_Position = bary-0.15*be1;
+    gl_Position = bary-offset;
     color       = bcol;
     Nv          = nbe2;//bnorm.xyz;
     P           = vbary.xyz;
     EmitVertex();
 
-    gl_Position =  bary+0.15*be1;
+    gl_Position =  bary+offset;
     color       =  bcol;
     Nv          = nbe2;//bnorm.xyz;
     P           = vbary.xyz;
@@ -279,13 +292,15 @@ void draw_tetra_arrow( vec4 origin, vec4 be3, vec4 trn, vec4 bcol )
     EmitVertex();
     EndPrimitive();
     // --------------------------------------------------------
-    gl_Position = bary-0.15*be2;
+    offset = vec4(be2 * bary.w * thickness / 2.0f );
+
+    gl_Position = bary-offset;
     color       = bcol;
     Nv          = nbe1;//bnorm.xyz;
     P           = vbary.xyz;
     EmitVertex();
 
-    gl_Position = bary+0.15*be2;
+    gl_Position = bary+offset;
     color       = bcol;
     Nv          = nbe1;//bnorm.xyz;
     P           = vbary.xyz;
