@@ -972,8 +972,14 @@ def checkForDegenCells(t):
 # edgeLengthExtrema : XXX
 #==============================================================================
 def edgeLengthExtrema(t):
-    m = C.getFields(Internal.__GridCoordinates__, t)[0]
-    return XOR.edgeLengthExtrema(m)
+    zones = Internal.getZones(t)
+    Lmin = 100000
+    for z in zones:
+        coords = C.getFields(Internal.__GridCoordinates__, z)[0]
+        L = XOR.edgeLengthExtrema(coords)
+        Lmin = min(L, Lmin)
+    print 'min over zones is ', Lmin
+    return Lmin
 
 #==============================================================================
 # computeAspectRatio : Returns a field of aspect ratio

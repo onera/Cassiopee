@@ -24,7 +24,7 @@ class localizer
   
   public:
   
-  localizer(const Tree_t& tree, E_Float tolerance):_tree(&tree), _owner(false), _tolerance(tolerance){}
+  localizer(Tree_t& tree, E_Float tolerance):_tree(&tree), _owner(false), _tolerance(tolerance){_tree->_tolerance = _tolerance;}
   
   localizer(const acrd_t& coords, const acnt_t& connect, E_Float tolerance):_owner(true), _tolerance(tolerance){__create_tree(coords, connect);}
   
@@ -40,7 +40,7 @@ class localizer
     void __destroy_tree();
   
   private:
-    const Tree_t* _tree;
+    Tree_t* _tree;
     std::vector<box_t> _boxes;
     bool _owner;
     E_Float _tolerance;

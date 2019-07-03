@@ -23,6 +23,7 @@
 
 #define PH_INNER_COL -1
 #define UNSET_COL     0
+#define PH_GHOST      99
 
 #define PG_INNER_COL   0
 #define PG_JOIN_COL    1
@@ -32,7 +33,7 @@
 #define PG_LAY2_IN_COL 5
 #define PG_LAY2_BC_COL 6
 #define OTHER_LAYS_COL 7  //above 2nd lauyer , anything is unsorted for now
-
+#define PG_GHOST       99
 
 #define NEIGHBOR(PH0, F2E, shift, Fi) ((F2E[Fi] == PH0 ) ? F2E[Fi+shift] : F2E[Fi])
 
@@ -183,6 +184,8 @@ class zone_t
     void add_boundary(E_Int obcid, const E_Int* ids, E_Int n);
     
     void set_pg_colors();
+    
+    void color_ranges(std::vector<E_Int>& PGcolors, std::vector<E_Int>& PHcolors);
     
 #ifdef DEBUG_ZONE_T
 void draw_boundaries()
@@ -1008,6 +1011,8 @@ void zone_t<crd_t, ngo_t>::insert_ghosts_on_bcs(E_Int type, E_Int nb_layers) //t
       }
     }
     _ng.PHs.updateFacets();
+    nb_phs = _ng.PHs.size();
+    _ng.PHs._type.resize(nb_phs, 2); // set GHOST cells color
   }
   else if (type == 2)
   {
@@ -1022,12 +1027,13 @@ void zone_t<crd_t, ngo_t>::insert_ghosts_on_bcs(E_Int type, E_Int nb_layers) //t
         pglist.push_back(i);
     }
     ngon_type::add_flat_ghosts(_ng, pglist);
+    //replace temporarily to put ghost at the right position
+    nb_phs = _ng.PHs.size();
+    for (E_Int i = 0; i < nb_phs; ++i)
+      if (_ng.PHs._type[i] == PH_GHOST)_ng.PHs._type[i] = 2; 
   }
   
-  _ng.PHs.updateFacets();
-  nb_phs = _ng.PHs.size();
-    
-  _ng.PHs._type.resize(nb_phs, 2); //
+  
   
   // put the PHs of type 2 at the right place
   Vector_t<E_Int> nids, oids;
@@ -1055,10 +1061,41 @@ void zone_t<crd_t, ngo_t>::insert_ghosts_on_bcs(E_Int type, E_Int nb_layers) //t
   nb_phs = _ng.PHs.size();
   for (size_t i=0; i < nb_phs; ++i)
   {
-    if (_ng.PHs._type[i] > 1 && _ng.PHs._type[i] != E_IDX_NONE) --_ng.PHs._type[i];
+    if (_ng.PHs._type[i] == 2) _ng.PHs._type[i] = PH_GHOST;
+    else if (_ng.PHs._type[i] > 1 && _ng.PHs._type[i] != E_IDX_NONE) --_ng.PHs._type[i];
   }
 }
 
+template <typename crd_t, typename ngo_t>
+void zone_t<crd_t, ngo_t>::color_ranges
+(std::vector<E_Int>& PGcolors, std::vector<E_Int>& PHcolors)
+{
+  PGcolors.clear(); PHcolors.clear();
+  E_Int pgColCur=_ng.PGs._type[0];
+  
+  PGcolors.push_back(0);
+  E_Int i=0;
+
+  while (i<_ng.PGs.size())
+  {
+    while (i<_ng.PGs.size() && _ng.PGs._type[i] ==  pgColCur)++i;
+    pgColCur = _ng.PGs._type[i];
+    PGcolors.push_back(i);
+    ++i;
+  }
+  
+  E_Int phColCur=_ng.PHs._type[0];
+  PHcolors.push_back(0);
+  i=0;
+
+  while (i<_ng.PHs.size())
+  {
+    while (i<_ng.PHs.size() && _ng.PHs._type[i] ==  phColCur)++i;
+    phColCur = _ng.PHs._type[i];
+    PHcolors.push_back(i);
+    ++i;
+  }
+}
 
 } // NUGA
 

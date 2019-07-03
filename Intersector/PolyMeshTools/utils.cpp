@@ -1503,8 +1503,15 @@ PyObject* K_INTERSECTOR::getOverlappingFaces(PyObject* self, PyObject* args)
   using acnt_t = K_FLD::ArrayAccessor<K_FLD::IntArray>;
   
   tree_t tree(crd2, ng2.PGs);
+
+  // compute a tolerance for the Tree
+  E_Float tol,Lmax;
+  E_Int imin, imax;
+  ngon_type::edge_length_extrema(ng1.PGs, crd1, tol, imin, Lmax, imax);
+
+  tol *= RTOL;
     
-  NUGA::localizer<tree_t, acrd_t, acnt_t> localiz(tree, E_EPSILON);
+  NUGA::localizer<tree_t, acrd_t, acnt_t> localiz(tree, tol);
     
 #ifdef FLAG_STEP
   chrono c;

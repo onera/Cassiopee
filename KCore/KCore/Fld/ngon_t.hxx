@@ -4330,7 +4330,7 @@ static E_Int add_flat_ghosts(ngon_t& wNG, const Vector_t<E_Int>& PGlist)
 #endif
   }
   
-  wNG.PGs._type.resize(wNG.PGs.size(), 0);
+  wNG.PGs._type.resize(wNG.PGs.size(), 99/*PG_GHOST*/);
   wNG.PGs._ancEs.resize(2, wNG.PGs.size(), E_IDX_NONE);
   
 #ifdef DEBUG_NGON_T
@@ -4353,9 +4353,12 @@ static E_Int add_flat_ghosts(ngon_t& wNG, const Vector_t<E_Int>& PGlist)
     wNG.PHs.add(buff.size()/*nb_pgs + 2*/, &buff[0]);
   }
   //std::cout << "size before adding ghost : " << wNG.PHs._type.size() << std::endl;
-  wNG.PHs._type.resize(wNG.PHs.size(), INITIAL_SKIN);
+  wNG.PHs._type.resize(wNG.PHs.size(), 99/*PH GHOST*/);
   wNG.PHs._ancEs.resize(2, wNG.PHs.size(), E_IDX_NONE);
   //std::cout << "nb of added ghost : " << nb_cells << std::endl;
+  
+  wNG.PGs.updateFacets();
+  wNG.PHs.updateFacets();
   
 #ifdef DEBUG_NGON_T  
   {
