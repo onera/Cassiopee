@@ -124,10 +124,13 @@ def OptionMenu(*args, **kwargs):
         largs = (args[0],args[1],None)+args[2:] 
         return ttk.OptionMenu(*largs, **kwargs)
 
-def ComboBox(*args, **kwargs):
+# Si ttk, renvoie une combobox avec accelerateur clavier
+def Combobox(*args, **kwargs):
     if ttk is None: # process args here
         raise ValueError('No comboxbox.')
-    else: return ttk.Combobox(*args, **kwargs)
+    else:
+        return ComboboxAuto(*args, **kwargs)
+        #return ttk.Combobox(*args, **kwargs)
 
 def superOptionMenu(F, var, itemList, command, 
                     updateCommand1, updateCommand2):
@@ -210,9 +213,12 @@ def Scrollbar(*args, **kwargs):
         #if width != 0: b.configure(style='TKTREE.TScrollbar')
         return b
 
+# Si ttk, renvoie une listbox avec accelerateur clavier
 def Listbox(*args, **kwargs):
     if ttk is None: return TK.Listbox(*args, **kwargs)
-    else: return TK.Listbox(*args, **kwargs)
+    else:
+        return ListboxAuto(*args, **kwargs)
+        #return TK.Listbox(*args, **kwargs)
 
 def raiseButton(B):
     if ttk is None: B.config(relief=TK.RAISED)
@@ -229,3 +235,125 @@ def setButtonRed(B):
 def setButtonGreen(B):
     if ttk is None: B.config(bg='green')
     else: B.configure(style='GREEN.TButton')   
+
+if ttk is not None:
+    # Combobox avec accelerateur clavier
+    class ComboboxAuto(ttk.Combobox):
+        def __init__(self, *args, **kwargs):
+            ttk.Combobox.__init__(self, *args, **kwargs)
+            self.bind('<KeyRelease>', self.keyRelease)
+            self.bind('<Enter>', self.onEnter)
+            self.bind('<Leave>', self.onLeave)
+            self._searchString = ''
+
+        def onEnter(self, event):
+            self.focus_set()
+            self._searchString = ''
+
+        def onLeave(self, event):
+            self.focus_set()
+            self._searchString = ''
+
+        def keyRelease(self, event):
+            keysym = event.keysym
+            if keysym == 'underscore': keysym = "_"
+            values = self['values']
+
+            if len(keysym) == 1: # not code
+                key = keysym[0]
+                self._searchString += key
+                ss = self._searchString
+                ss = ss.lower()
+                ls = len(ss)
+                
+                # Match first chars
+                #index = 0
+                #for i in values:
+                #    if ss <= i[0:ls].lower(): break
+                #    index += 1
+                #if index >= len(values): index = 0
+
+                # Match any place
+                index = 0
+                for i in values:
+                    if ss in i.lower(): break
+                    index += 1
+                if index < len(values): self.set(values[index])
+            elif keysym == "Right":
+                index = self.current()
+                index += 1
+                if index >= len(values): index = 0
+                self.set(values[index])
+            elif keysym == "Left":
+                index = self.current()
+                index -= 1
+                if index < 0: index = len(values)-1
+                self.set(values[index])
+            elif keysym == "Return":
+                self._searchString = ''
+            elif keysym == "Escape":
+                self._searchString = ''
+            elif keysym == "Delete":
+                self._searchString = ''
+            elif keysym == "BackSpace":
+                ls = len(self._searchString)
+                if ls > 0: self._searchString = self._searchString[0:ls-1]
+                else: self._searchString = ''
+                #print(self._searchString)
+
+    # Listbox avec accelerateur clavier
+    class ListboxAuto(TK.Listbox):
+        def __init__(self, *args, **kwargs):
+            TK.Listbox.__init__(self, *args, **kwargs)
+            self.bind('<KeyRelease>', self.keyRelease)
+            self.bind('<Enter>', self.onEnter)
+            self.bind('<Leave>', self.onLeave)
+            self.bind('<<ListboxSelect>>', self.onSelect)
+            self._searchString = ''
+
+        def onEnter(self, event):
+            self.focus_set()
+            self._searchString = ''
+
+        def onLeave(self, event):
+            self.focus_set()
+            self._searchString = ''
+
+        def onSelect(self, event):
+            self.focus_set()
+            self._searchString = ''
+
+        def keyRelease(self, event):
+            keysym = event.keysym
+            if keysym == 'underscore': keysym = "_"
+            values = self.get(0, TK.END)
+
+            if len(keysym) == 1: # not code
+                key = keysym[0]
+                self._searchString += key
+                ss = self._searchString
+                ss = ss.lower()
+                ls = len(ss)
+                
+                # Match first chars
+                #index = 0
+                #for i in values:
+                #    if ss <= i[0:ls].lower(): break
+                #    index += 1
+                #if index >= len(values): index = 0
+
+                # Match any place
+                index = 0
+                for i in values:
+                    if ss in i.lower(): break
+                    index += 1
+                if index < len(values): self.see(index)
+            elif keysym == "Return":
+                self._searchString = ''
+            elif keysym == "Delete":
+                self._searchString = ''
+            elif keysym == "BackSpace":
+                ls = len(self._searchString)
+                if ls > 0: self._searchString = self._searchString[0:ls-1]
+                else: self._searchString = ''
+                #print(self._searchString)

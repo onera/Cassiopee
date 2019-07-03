@@ -376,12 +376,12 @@ PyObject* K_POST::extractPlane(PyObject* self, PyObject* args)
     }
         
     E_Int posc = K_ARRAY::isCellNatureField2Present(tmpStr);
-    char* varStringOut = new char [strlen(tmpStr)+4];
+    char* varStringOut = new char [strlen(tmpStr)+7];
 
     if (posc == -1) strcpy(varStringOut, tmpStr);
     else
     {
-      vector<char*> vars; 
+      vector<char*> vars;
       K_ARRAY::extractVars(tmpStr, vars); E_Int varsSize = vars.size();
       E_Int c = 0;
       for (E_Int v = 0; v < varsSize; v++)

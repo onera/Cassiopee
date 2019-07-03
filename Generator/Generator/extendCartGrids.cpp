@@ -51,9 +51,7 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
   vector<char*> unstrVarString;
   vector<FldArrayF*> structF;
   vector<FldArrayF*> unstrF;
-  vector<E_Int> nit;
-  vector<E_Int> njt; 
-  vector<E_Int> nkt;
+  vector<E_Int> nit; vector<E_Int> njt; vector<E_Int> nkt;
   vector<FldArrayI*> cnt;
   vector<char*> eltTypet;
   vector<PyObject*> objst, objut;

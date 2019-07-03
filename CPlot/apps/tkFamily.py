@@ -27,6 +27,7 @@ def updateFamilyZoneNameList2(event=None):
     if CTK.t == []: return
     varsl = C.getFamilyZoneNames(CTK.t)
     varsl = list(set(varsl))
+    varsl.sort(key=str.lower)
     if 'zones' in WIDGETS:
         WIDGETS['zones']['values'] = varsl
 
@@ -153,12 +154,12 @@ def createApp(win):
         F.grid(row=1, column=1, sticky=TK.EW)
         WIDGETS['zones'] = B
     else:
-        B = ttk.Combobox(F, textvariable=VARS[2], 
+        B = TTK.Combobox(F, textvariable=VARS[2], 
                          values=[], state='readonly')
         B.grid(sticky=TK.EW)
         F.bind('<Enter>', updateFamilyZoneNameList2)
         F.grid(row=1, column=1, sticky=TK.EW)
-        BB = CTK.infoBulle(parent=B, text='Family zone name.')
+        #BB = CTK.infoBulle(parent=B, text='Family zone name.')
         WIDGETS['zones'] = B
 
     # - Create BC family -

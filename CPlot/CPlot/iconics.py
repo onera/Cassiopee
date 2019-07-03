@@ -258,5 +258,21 @@ QStpVnSs1Fj+yjcd44LbBR3Eok2mZM1Yx0WyZ2R+dh3YbTCaUqHWivcKDKemNbDzJxma0m0huV1m
 Xoh4y2tO7/shCQA7
 """)
 
+logoCassiopeeImg = TK.PhotoImage(data="""
+R0lGODlhEAAQAMZUAAAAAAABAAADABUPFR8SKCQUMCkTPioaOjcbUUsTf0MaWEkbZkocZXUD/lMb
+eUAkWnMF91IcgHML5YMG/4AH/34J/28S2n0O+mYdsnYT6YkM/0s4AoQR/1ssdYcU/34Z6YsU/30Z
+/2I0RWooqUxBC1g8NnIqoXYl15gh/5ci/YYuyIwp6n02upY122hZEpFAoZ00/KE5+INiCIdoB4Nq
+AIVtFJNtCYt1CZRzGZF4Bp9ompR6DKZ8Bb93q7aTD6+aG8OdN8agLcmgM8ujONOyH+CxLem0AO23
+BNa2YuK6G+65C9S4bt+2k+PBZ//GBNjGkeHHff/KCP/TCvngaP//////////////////////////
+////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////yH+
+EUNyZWF0ZWQgd2l0aCBHSU1QACH5BAEKAH8ALAAAAAAQABAAAAeJgH+Cg4SFhoYhJ4RNhyCCCoRQ
+G4YjAH8UJoNPMoMVEX8pKn8sloNDJRoLf5YeAoIShEs8NS49OoUJpYJFR1FSTjQNDoIohS84Nz5K
+Nh0BghkFhC2WEw9CDB+HhBgATCIHhxwWBH8rgjOEP4QDgheuQIJTRIQwgwiCSEZJOYQxEAaFguwg
+oa3goEAAOw==
+""")
+
+
 PHOTO += [saveImg, undoImg, deleteImg, copyImg, fitImg, selectallImg, eyeImg,
-          mainImg, getImg, pinImg, pin2Img, refreshIconImg, invertSelectionImg]
+          mainImg, getImg, pinImg, pin2Img, refreshIconImg, invertSelectionImg,
+          logoCassiopeeImg]

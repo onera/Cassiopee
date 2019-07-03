@@ -1680,8 +1680,8 @@ Create specific CGNS nodes
 
     :param name: name of zone
     :type name: string
-    :param zsize:
-    :type zsize: 
+    :param zsize: number of points, number of elements, 0
+    :type zsize: list of integers
     :param ztype: 'Structured' or 'Unstructured'
     :type ztype: string
     :param family: optional family name

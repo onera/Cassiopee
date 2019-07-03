@@ -25,7 +25,7 @@ def viewl(v, l):
 #==============================================================================
 # Retourne les BCs definies dans t + les familles
 def getAllDefinedBC(t):
-    results = set()
+    natives = set()
     zones = Internal.getZones(t)
 
     # FamilyBC
@@ -36,23 +36,23 @@ def getAllDefinedBC(t):
         nodes = Internal.getNodesFromType2(z, 'BC_t')
         for i in nodes:
             if Internal.getValue(i) != 'FamilySpecified':
-                results.add(Internal.getValue(i))
+                natives.add(Internal.getValue(i))
             else:
                 f = Internal.getNodeFromType1(i, 'FamilyName_t')
                 if f is not None:
                     name = Internal.getValue(f)
-                    if name in FamilyBC: results.add(FamilyBC[name])
+                    if name in FamilyBC: natives.add(FamilyBC[name])
 
     for z in zones:
         # BCMatch
         nodes = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
         for i in nodes:
-            if i is not None: results.add('BCMatch')
+            if i is not None: natives.add('BCMatch')
         nodes = Internal.getNodesFromType2(z, 'GridConnectivity_t')
         for i in nodes:
           r = Internal.getNodeFromType1(i, 'GridConnectivityType_t')
           if r is not None:
-            if Internal.getValue(r) == 'Abutting1to1': results.add('BCMatch')
+            if Internal.getValue(r) == 'Abutting1to1': natives.add('BCMatch')
 
         # BCNearMatch
         nodes = Internal.getNodesFromType2(z, 'GridConnectivity_t')
@@ -62,19 +62,24 @@ def getAllDefinedBC(t):
             if Internal.getValue(r) == 'Abutting':
                 f = Internal.getNodeFromType1(i, 'FamilyName_t')
                 if f is not None and Internal.getValue(f).startswith('BCStage'):
-                    results.add(Internal.getValue(f))
-                else: results.add('BCNearMatch')
+                    natives.add(Internal.getValue(f))
+                else: natives.add('BCNearMatch')
 
         # BCOverlap
         nodes = Internal.getNodesFromType2(z, 'GridConnectivity_t')
         for i in nodes:
           r = Internal.getNodeFromType1(i, 'GridConnectivityType_t')
           if r is not None:
-            if Internal.getValue(r) == 'Overset': results.add('BCOverlap')
+            if Internal.getValue(r) == 'Overset': natives.add('BCOverlap')
+
+    natives = list(natives)
+    natives.sort(key=str.lower)
 
     # FamilyBC
-    for i in FamilyBC: results.add(i)
-    return list(results)
+    fams = []
+    for i in FamilyBC: fams.append(i)
+    fams.sort(key=str.lower)
+    return natives + fams
 
 #==============================================================================
 # Pour view BC
@@ -97,24 +102,13 @@ def updateBCNameList(event=None):
     if CTK.t == []: return
 
     lb = WIDGETS['BCLB']
+    lb.focus_set()
     varsbc = ['-All BC-']+getAllDefinedBC(CTK.t)
     if len(varsbc) == lb.size(): return # un peu brutal
 
-    # Get list item
-    bcvalues = lb.get(0, lb.size())
-
-    # Remove items
-    item2rm = []
-    for i, value in enumerate(bcvalues):
-        if value not in varsbc:
-            item2rm.append(i)
-    for i in item2rm:
-        lb.delete(i)
-
-    # Add items
-    for i, value in enumerate(varsbc):
-        if value not in bcvalues:
-            lb.insert(i+lb.size(), value)
+    # Remplace tous les elements
+    lb.delete(0, TK.END)
+    for i, value in enumerate(['-All BC-']+getAllDefinedBC(CTK.t)): lb.insert(i, value)
     return lb
 
 #==============================================================================
@@ -148,7 +142,9 @@ def updateFamilyBCNameList3_2(event=None):
     if CTK.t == []: return
     varsl = C.getFamilyBCNamesOfType(CTK.t)
     varsp = Internal.KNOWNBCS[:]
-    if len(varsl) != 0: varsp += varsl
+    if len(varsl) != 0:
+       varsl.sort(key=str.lower)
+       varsp += varsl
     if 'BCs2' in WIDGETS: WIDGETS['BCs2']['values'] = varsp
 #==============================================================================
 # Pour fillEmptyBC
@@ -166,7 +162,9 @@ def updateFamilyBCNameList4_2(event=None):
     if CTK.t == []: return
     varsl = C.getFamilyBCNamesOfType(CTK.t)
     varsp = Internal.KNOWNBCS[:]
-    if len(varsl) != 0: varsp += varsl
+    if len(varsl) != 0:
+        varsl.sort(key=str.lower)
+        varsp += varsl
     if 'BCs4' in WIDGETS: WIDGETS['BCs4']['values'] = varsp
 
 #==============================================================================
@@ -719,8 +717,7 @@ def createApp(win):
     LB.bind('<Double-1>', view)
     LB.bind('<Enter>', updateBCNameList)
     # LB.bind('<ButtonRelease-1>', view)
-    for i, value in enumerate(['-All BC-']+getAllDefinedBC(CTK.t)):
-        LB.insert(i, value)
+    for i, value in enumerate(['-All BC-']+getAllDefinedBC(CTK.t)): LB.insert(i, value)
     SB.config(command = LB.yview)
     LB.config(yscrollcommand = SB.set)
     LB.grid(row=0, column=0, sticky=TK.NSEW)
@@ -760,7 +757,7 @@ def createApp(win):
         F.grid(row=6, column=1, sticky=TK.EW)
         WIDGETS['BCs2'] = B
     else:
-        B = ttk.Combobox(F, textvariable=VARS[6], 
+        B = TTK.Combobox(F, textvariable=VARS[6], 
                          values=Internal.KNOWNBCS, state='readonly', width=10)
         B.grid(sticky=TK.EW)
         F.bind('<Enter>', updateFamilyBCNameList3_2)
@@ -780,7 +777,7 @@ def createApp(win):
         F.grid(row=6, column=1, sticky=TK.EW)
         WIDGETS['BCs4'] = B
     else:
-        B = ttk.Combobox(F, textvariable=VARS[4], 
+        B = TTK.Combobox(F, textvariable=VARS[4], 
                          values=Internal.KNOWNBCS, state='readonly', width=10)
         B.grid(sticky=TK.EW)
         F.bind('<Enter>', updateFamilyBCNameList4_2)
@@ -847,7 +844,7 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
     
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
     if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]

@@ -1266,6 +1266,8 @@ def getValidZones():
 #==============================================================================
 def toolBar(win):
     from . import iconics
+    # Change l'icone de la fenetre
+    win.tk.call('wm', 'iconphoto', win._w, iconics.PHOTO[13])
     frame = TTK.Frame(win)
     frame.grid(sticky=TK.W, columnspan=2)
     B = TK.Button(frame, compound=TK.TOP, width=20, height=20,
@@ -1328,7 +1330,6 @@ def toolBar(win):
 #==============================================================================
 def minimal(title, show=True):
     global TXT, TKTREE
-
     win = TK.Tk()
     WIDGETS['masterWin'] = win
     if not show: win.withdraw()

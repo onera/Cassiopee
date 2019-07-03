@@ -257,14 +257,17 @@ def createApp(win):
 
     # - Type de surface -
     SURFTYPES = ['Sphere', 'Cube', 'Tetra', 'Pyramid', 'Cylinder', 'Plane', 'Cone']
-    SURFTYPES += base.keys()
+    baseKeys = base.keys()
+    baseKeys.sort(key=str.lower)
+    SURFTYPES += baseKeys
     if ttk is None:
         B = TK.OptionMenu(Frame, VARS[2], *SURFTYPES)
     else:
-        B = ttk.Combobox(Frame, textvariable=VARS[2], values=SURFTYPES, 
+        B = TTK.Combobox(Frame, textvariable=VARS[2], values=SURFTYPES, 
                          state='readonly', width=10)
+        
     B.grid(row=1, column=0, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Type of generated surface.')
+    #BB = CTK.infoBulle(parent=B, text='Type of generated surface.')
     B = TTK.Button(Frame, text="Generate", command=generate)
     B.grid(row=1, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Generate surface.')
