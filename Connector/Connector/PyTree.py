@@ -468,15 +468,13 @@ def connectMatchPeriodic(t, rotationCenter=[0.,0.,0.],
     a = C.tagDefinedBC(a)
     a = connectMatchPeriodicStruct__(a, rotationCenter, rotationAngle, translation, tol, dim, unitAngle)
     a = connectMatchPeriodicNGON__(a, rotationCenter, rotationAngle, translation, tol, dim, unitAngle)
-    if len(zones) == len(removeFSN):
-        C._rmNodes(a, Internal.__FlowSolutionNodes__)
-    else:
-        C._rmVars(a, 'definedBC')
+    if len(zones) == len(removeFSN): C._rmNodes(a, Internal.__FlowSolutionNodes__)
+    else: C._rmVars(a, 'definedBC')
     return a
 
 def connectMatchPeriodicNGON__(a, rotationCenter, rotationAngle, translation, tol, dim, unitAngle):
     try: import Post.PyTree as P; import Transform.PyTree as T
-    except: raise ImportError("connectMatchPeriodicNGON__ requires Transform and Post modules.")
+    except: raise ImportError("connectMatchPeriodicNGON__: requires Transform and Post modules.")
 
     if unitAngle in ['Degree', None]: rotationAngleD=rotationAngle
     elif unitAngle == 'Radian': rotationAngleD=[v*__RAD2DEG__ for v in rotationAngle]
@@ -655,6 +653,12 @@ def _addPeriodicInfo__(gcnodes,rotationCenter,rotationAngle,translation,signT,si
                 translationS = [v*signT for v in translation]
                 C._addPeriodicInfoInGC__(info, rotationCenter, rotationAngleS, translationS, unitAngle=unitAngle)
     return None
+
+#===============================================================================
+# Extraits les informations periodiques d'une zone
+def getPeriodicInfo(z,rotationCenter,rotationAngle,translation,signT,signR):
+    node = Internal.getNodeFromType(z, 'GridConnectivity1to1_t')
+    
 
 #============================================================================================
 # duplique les zones par periodicite . En rotation, on suppose ici que l'angle est en degres

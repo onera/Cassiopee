@@ -65,8 +65,7 @@ sn = I.addChild(st, ['SuperName', None, [], 'DataArray_t'])
 I._addChild(sn, ['SuperGirl', None, [], 'DataArray_t'])
 C.printTree(st)
 
-if (rank == 0):
-    C.convertPyTree2File(st, filenameout)
+if rank == 0: C.convertPyTree2File(st, filenameout)
 comm.barrier()
 
 C.convertPyTree2FilePartial(dt, filenameout, comm, Filter)

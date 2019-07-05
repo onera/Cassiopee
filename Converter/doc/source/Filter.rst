@@ -195,30 +195,6 @@ Low level layer
 ---------------------------------------------------------------------------
 
 
-.. py:function:: Converter.Filter._readPyTreeFromPaths(a, fileName, paths, format=None, maxFloatSize=-1, maxDepth=-1)
-
-    Read nodes specified by their paths and stored it in a (in place).
-
-    :param a: input data
-    :type a: [pyTree, base, Zone, list of Zones]
-    :param fileName: file name to read from
-    :type fileName: string
-    :param paths: paths to read (relative to a)
-    :type paths: list of strings
-    :param format: bin_cgns, bin_adf, bin_hdf (optional)
-    :type format: string
-    :param maxFloatSize: the maxSize of float array to load
-    :type maxFloatSize: int
-    :param maxDepth: max depth of load
-    :type maxDepth: int
-
-    *Example of use:*
-
-    * `Read nodes from file and modify pyTree (pyTree) <Examples/Converter/readPyTreeFromPathsPT.py>`_:
-
-    .. literalinclude:: ../build/Examples/Converter/readPyTreeFromPathsPT.py
-
----------------------------------------------------------------------------
 
 .. py:function:: Converter.Filter.deletePaths(fileName, paths, format=None)
 

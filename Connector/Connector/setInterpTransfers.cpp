@@ -16,12 +16,6 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifdef _MPI
-#if defined(_WIN64)
-# define __int64 long long
-#endif
-#include <mpi.h>
-#endif
 
 # include "connector.h"
 # include "param_solver.h"
@@ -32,6 +26,9 @@ using namespace K_FLD;
 #undef TimeShowsetinterp
 
 #ifdef TimeShowsetinterp
+#ifdef _MPI
+#include <mpi.h>
+#endif
 E_Float time_in_0;
 E_Float time_out_0;
 E_Int rank_intp;

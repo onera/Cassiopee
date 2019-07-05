@@ -89,12 +89,12 @@ void DataDL::displayUIsoSolid()
       _shaders[s]->setUniform("lightOn", (int)0);
       _shaders[s]->setUniform("shadow", (int)ptrState->shadow);
       _shaders[s]->setUniform("ShadowMap", (int)0);
-      double diag = 0.01*sqrt((xmax-xmin)*(xmax-xmin)+(ymax-ymin)*(ymax-ymin)+(zmax-zmin)*(zmax-zmin));
+      //double diag = 0.01*sqrt((xmax-xmin)*(xmax-xmin)+(ymax-ymin)*(ymax-ymin)+(zmax-zmin)*(zmax-zmin));
       double sc = ptrState->vectorScale/100.;
       double ed = sqrt( (_view.xcam-_view.xeye)*(_view.xcam-_view.xeye)+(_view.ycam-_view.yeye)*(_view.ycam-_view.yeye)+(_view.zcam-_view.zeye)*(_view.zcam-_view.zeye) )*0.1;
       _shaders[s]->setUniform("scale", float(sc*ed));
       _shaders[s]->setUniform("fix_length", (int)ptrState->vectorNormalize);
-      _shaders[s]->setUniform("density", float(ptrState->vectorDensity/diag));
+      _shaders[s]->setUniform("density", float(ptrState->vectorDensity));
       glActiveTexture(GL_TEXTURE1);
       if (_texColormap == 0) createColormapTexture();
       fillColormapTexture((int)_pref.colorMap->varName[0]-48);

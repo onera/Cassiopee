@@ -41,8 +41,16 @@ def prepare0(t_case, t_out, tc_out, NP=0, format='single'):
 
     # Split size
     if NP > 0:
+        perioInfo = Internal.getPeriodicInfo(Internal.getZones(t)[0])
         t = T.splitSize(t, R=NP, type=2, minPtsPerDir=9)
         t = X.connectMatch(t, dim=dim)
+        for p in perioInfo:
+            if p[0] != []: 
+                [xc,yc,zc,vx,vy,vz,angle] = p[0]
+                t = X.connectMatchPeriodic(t, rotationCenter=[xc,yc,zc], rotationAngle=[vx*angle,vy*angle,vz*angle], tol=1.e-6, dim=dim)
+            if p[1] != []:
+                [tx,ty,tz] = p[1]
+                t = X.connectMatchPeriodic(t, translation=[tx,ty,tz], tol=1.e-6, dim=dim)
         stats = D2._distribute(t, NP, useCom='match')
     else: 
         Internal._rmNodesByName(t, 'proc')
@@ -135,6 +143,8 @@ def prepare1(t_case, t_out, tc_out, NP=0, format='single'):
     if NP > 0:
         t = T.splitSize(t, R=NP, type=2, minPtsPerDir=9)
         t = X.connectMatch(t, dim=dim)
+        perioInfo = Internal.getPeriodicInfo(t)
+        #print(perioInfo)
         t, stats = D2.distribute(t, NP, useCom='match')
         # redispatch
 

@@ -257,7 +257,7 @@ def createApp(win):
 
     # - Type de surface -
     SURFTYPES = ['Sphere', 'Cube', 'Tetra', 'Pyramid', 'Cylinder', 'Plane', 'Cone']
-    baseKeys = base.keys()
+    baseKeys = list(base.keys())
     baseKeys.sort(key=str.lower)
     SURFTYPES += baseKeys
     if ttk is None:

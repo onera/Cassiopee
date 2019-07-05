@@ -6,7 +6,7 @@ from . import Distributed
 # Acces a Distributed
 from .Distributed import readZones, writeZones, convert2PartialTree, convert2SkeletonTree, readNodesFromPaths, readPyTreeFromPaths, writeNodesFromPaths
 
-__all__ = ['rank', 'size', 'KCOMM', 'setCommunicator', 'barrier', 'send', 'recv', 'sendRecv', 'sendRecv2', 
+__all__ = ['rank', 'size', 'KCOMM', 'COMM_WORLD', 'setCommunicator', 'barrier', 'send', 'recv', 'sendRecv', 'sendRecv2', 
     'bcast', 'Bcast', 'bcastZone', 'allgatherZones', 
     'allgather', 'readZones', 'writeZones', 'convert2PartialTree', 'convert2SkeletonTree', 'convertFile2DistributedPyTree', 
     'readNodesFromPaths', 'readPyTreeFromPaths', 'writeNodesFromPaths',

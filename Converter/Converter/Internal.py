@@ -4218,6 +4218,7 @@ def getRotationAngleValueInDegrees(RotationAngleNode):
     anglev = [v*alpha for v in anglev]
     return anglev
 
+
 #=============================================================================
 # Get the periodic connectivity information (rotation or translation)
 # IN: gcnode: GridConnectivity node
@@ -4247,9 +4248,20 @@ def getPeriodicInfo__(gcnode):
         if   anglev[0] != 0: angle = anglev[0]; vx = 1.; isRotated = 1
         elif anglev[1] != 0: angle = anglev[1]; vy = 1.; isRotated = 1
         elif anglev[2] != 0: angle = anglev[2]; vz = 1.; isRotated = 1
-        if angle != 0.: rotationData = [xc,yc,zc,vx, vy, vz,angle]
+        if angle != 0.: rotationData = [xc,yc,zc,vx,vy,vz,angle]
 
     return rotationData, translVect
+
+# Idem for zones
+def getPeriodicInfo(t):
+    zones = Internal.getZones(t)
+    for z in zones:
+        gcnodes = getNodesFromType2(z, 'GridConnectivity1to1_t')
+        ret = []
+        for gc in gcnodes: ret += [getPeriodicInfo__(gc)]
+    # Synthetisation    
+    return ret
+
 #=================================================================================
 # Merge BCDataSets: special bcdataset (etc/FFD) are prefered, other are destroyed
 #=================================================================================
