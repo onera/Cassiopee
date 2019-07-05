@@ -1,6 +1,4 @@
        PyObject* sol;  PyObject* t; PyObject* t2;
-       //if( loc==0) { sol = K_PYTREE::getNodeFromName1(zoneD , "FlowSolution#Centers"); }
-       //else        { sol = K_PYTREE::getNodeFromName1(zoneD , "FlowSolution"        ); }    
        
        sol = K_PYTREE::getNodeFromName1(zoneD , "FlowSolution#Centers");
        if (sol != NULL)
@@ -30,7 +28,7 @@
           ipt_ndimdxD[nd+ nidomD*6] = meshtype;
           
           if  (s0 == 1){ ipt_ndimdxD[nd+ nidomD  ]= d[0]; ipt_ndimdxD[nd+ nidomD*2]=  1 ; kmd=1   ; ipt_ndimdxD[nd          ]= d[0];  
-                               ipt_ndimdxD[nd+ nidomD*4]= d[3]; ipt_ndimdxD[nd+ nidomD*5]=  1 ; kmd=1   ; ipt_ndimdxD[nd+ nidomD*3]= d[3];
+                         ipt_ndimdxD[nd+ nidomD*4]= d[3]; ipt_ndimdxD[nd+ nidomD*5]=  1 ; kmd=1   ; ipt_ndimdxD[nd+ nidomD*3]= d[3];
                             }
           else if (s0 == 2){ ipt_ndimdxD[nd+ nidomD  ]= d[0]; ipt_ndimdxD[nd+ nidomD*2]=d[1]; kmd=1   ; ipt_ndimdxD[nd          ]= d[0]*d[1];  
                              ipt_ndimdxD[nd+ nidomD*4]= d[3]; ipt_ndimdxD[nd+ nidomD*5]=d[4]; kmd=1   ; ipt_ndimdxD[nd+ nidomD*3]= d[3]*d[4];

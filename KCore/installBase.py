@@ -654,6 +654,34 @@ True, # CPlotOffScreen
 #['/opt/tools/intel/studio/2017/vtune_amplifier_xe_2017.3.0.510739/lib64/','/opt/tools/intel/studio/2017/advisor_2017.1.3.510716/lib64'] # additionalLibPaths
 ],
 ###############################################################################
+'spiro_sky': [ 'Machine dev Spiro (proc skylake)',
+'ifort', # f77compiler
+'ifort', # f90compiler
+'icc', # Cppcompiler
+['-DCACHELINE=64','-DNB_SOCKET=2','-DCORE_PER_SOCK=22','-DSIMD=AVX512'], # CppAdditionalOptions
+[], # f77AdditionalOptions
+True, # useOMP
+False, # static
+True, # CPlotOffScreen
+[], # additionalIncludePaths
+[], # additionalLibs
+[] # additionalLibPaths
+],
+###############################################################################
+'spiro_amd': [ 'Machine dev Spiro (proc amd)',
+'gfortran', # f77compiler
+'gfortran', # f90compiler
+'gcc', # Cppcompiler
+['-DCACHELINE=32'], # CppAdditionalOptions
+[], # f77AdditionalOptions
+True, # useOMP
+False, # static
+True, # CPlotOffScreen
+[], # additionalIncludePaths
+[], # additionalLibs
+[] # additionalLibPaths
+],
+###############################################################################
 'spiro': [ 'Machine dev Spiro (Onera)',
 'ifort', # f77compiler
 'ifort', # f90compiler

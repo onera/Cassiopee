@@ -1,5 +1,6 @@
 // recv_buffer.cpp
 #include "recv_buffer.hpp"
+#include <iostream>
 #include <cassert>
 
 namespace CMP {
@@ -43,9 +44,11 @@ namespace CMP {
     // Définition de la réalisation du buffer de réception
     // ================================================================================================
     int RecvBuffer::Implementation::irecv( ) {
+      //std::cout << __PRETTY_FUNCTION__ << std::endl;
         int ierr = MPI_SUCCESS;
         if ( size( ) == 0 ) testAndGetLengthOfMessage( );
         if ( size( ) > 0 ) {
+            m_cur_iterator = m_rcv_buffer.begin( );
             ierr = MPI_Irecv( &m_rcv_buffer[0], m_rcv_buffer.size( ), MPI_BYTE, m_sender, m_id_tag, m_ref_comm,
                               &m_request );
         }
@@ -53,6 +56,7 @@ namespace CMP {
     }
     // ------------------------------------------------------------------------------------------------
     bool RecvBuffer::Implementation::test( MPI_Status* pt_status ) {
+      //std::cout << __PRETTY_FUNCTION__ << std::endl;
         if ( size( ) == 0 ) {
             testAndGetLengthOfMessage( );
             if ( size( ) > 0 ) {
@@ -70,6 +74,7 @@ namespace CMP {
     }
     // ------------------------------------------------------------------------------------------------
     void RecvBuffer::Implementation::wait( MPI_Status* pt_status ) {
+      //std::cout << __PRETTY_FUNCTION__ << std::endl;
         if ( size( ) == 0 ) {
             waitAndGetLengthOfMessage( );
             MPI_Status loc_status;
@@ -84,30 +89,41 @@ namespace CMP {
     }
     // ------------------------------------------------------------------------------------------------
     void RecvBuffer::Implementation::testAndGetLengthOfMessage( ) {
+      //std::cout << __PRETTY_FUNCTION__ << std::endl;
         MPI_Status status;
         int        is_available;
         MPI_Iprobe( m_sender, m_id_tag, m_ref_comm, &is_available, &status );
         if ( is_available ) {
             int length;
             MPI_Get_count( &status, MPI_BYTE, &length );
-            std::vector<char>( length ).swap( m_rcv_buffer );
+            //std::cout << "Recv buffer : " << length << std::endl;
+            if (length > m_rcv_buffer.size() )
+                std::vector<char>( length ).swap( m_rcv_buffer );
             m_cur_iterator = m_rcv_buffer.begin( );
         }
     }
     // ------------------------------------------------------------------------------------------------
     void RecvBuffer::Implementation::waitAndGetLengthOfMessage( ) {
+      //std::cout << __PRETTY_FUNCTION__ << std::endl;
         MPI_Status status;
         MPI_Probe( m_sender, m_id_tag, m_ref_comm, &status );
         int length;
         MPI_Get_count( &status, MPI_BYTE, &length );
-        std::vector<char>( length ).swap( m_rcv_buffer );
+        //std::cout << "Recv buffer : " << length << std::endl;
+        if (length > m_rcv_buffer.size())
+            std::vector<char>( length ).swap( m_rcv_buffer );
         m_cur_iterator = m_rcv_buffer.begin( );
     }
     // ------------------------------------------------------------------------------------------------
     const char* RecvBuffer::Implementation::unpack( std::size_t& sz ) {
+      /*std::cout << __PRETTY_FUNCTION__ << std::endl;
+      std::cout << "distance fin buffer et pointeur courant : " << m_rcv_buffer.end() - m_cur_iterator
+                << std::endl;
+                std::cout << "Taille donne a rajoutee : " << sizeof(sz) << " + ";*/
         assert( m_cur_iterator + sizeof( sz ) < m_rcv_buffer.end( ) );
         const char* pt_cur = current_data( );
         sz                 = *( (const std::size_t*)( pt_cur ) );
+        //std::cout << sz << std::endl;
         m_cur_iterator += sizeof( std::size_t );
         assert( m_cur_iterator + sz <= m_rcv_buffer.end( ) );
         const char* data = current_data( );

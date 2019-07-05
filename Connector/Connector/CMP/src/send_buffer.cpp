@@ -34,6 +34,8 @@ namespace CMP {
             return m_arr_pkg_data.back();
         }
 
+      void clear() { m_cur_size = 0; m_arr_pkg_data.clear(); }
+
     private:
         void           copyPackagedDataInBuffer( );
         int            m_recv_rank;
@@ -73,6 +75,7 @@ namespace CMP {
         }
         const void* pt_data = &m_arr_buffer[0];
         int         length  = int( m_arr_buffer.size( ) );
+        //std::cout << "Envoie donnees a " << m_recv_rank << " de taille " << length << std::endl;
         int ret = MPI_Issend( (void*)pt_data, length, MPI_BYTE, m_recv_rank, m_id_tag, m_ref_comm, &m_request );
         m_is_data_copied = false;
         return ret;
@@ -123,10 +126,12 @@ namespace CMP {
     void SendBuffer::Implementation::copyPackagedDataInBuffer( ) {
         const std::size_t data_chunk                 = 2048;            // Copie par paquet de 2048 octets maximum
         const std::size_t min_size_for_parallel_copy = 8 * data_chunk;  // Taille minimal pour faire une copie parallèle
-        if (m_cur_size != m_arr_buffer.size())
+        /*std::cout << __PRETTY_FUNCTION__ << " : m_cur_size = " << m_cur_size 
+          << " et m_arr_buffer : " << m_arr_buffer.size() << std::endl;*/
+        if (m_cur_size > m_arr_buffer.size())
             std::vector<char>( m_cur_size ).swap( m_arr_buffer );
         std::size_t count = 0;
-        // m_arr_buffer.resize( m_cur_size );
+        //m_arr_buffer.resize( m_cur_size );
         Buffer::iterator itB = m_arr_buffer.begin( );
 
         for ( Datas::iterator it_d = m_arr_pkg_data.begin( ); it_d != m_arr_pkg_data.end( ); ++it_d ) {
@@ -202,5 +207,7 @@ namespace CMP {
     std::size_t SendBuffer::size( ) const { return m_pt_implementation->size( ); }
     // -------------------------------------------------------------------------------------------
     const void* SendBuffer::data( ) const { return m_pt_implementation->data( ); }
+    // -------------------------------------------------------------------------------------------
+    void SendBuffer::clear() { m_pt_implementation->clear(); }
 }
 

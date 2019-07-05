@@ -24,6 +24,8 @@
 #endif
 
 #include "connector.h"
+#include "param_solver.h"
+
 using namespace std;
 using namespace K_FLD;
 
@@ -321,22 +323,22 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
     PyObject *zonesR, *zonesD;
     PyObject* pyVariables;
     PyObject *pyParam_int, *pyParam_real;
-    E_Int     vartype, bctype, type_transfert, no_transfert, It_target;
+    E_Int     vartype, type_transfert, no_transfert, It_target;
     E_Int     nstep, nitmax, rk, exploc, num_passage;
-    E_Float   gamma, cv, muS, Cs, Ts;
+    E_Float   gamma, cv, muS, Cs, Ts, Pr;
 #ifdef TimeShow    
     PyObject  *timecount;
 
-    if ( !PYPARSETUPLE( args, "OOOOOlllllllllldddddO", "OOOOOiiiiiiiiiidddddO", "OOOOOllllllllllfffffO", "OOOOOiiiiiiiiiifffffO", &zonesR,
-                        &zonesD, &pyVariables, &pyParam_int, &pyParam_real, &It_target, &vartype, &bctype, &type_transfert,
-                        &no_transfert, &nstep, &nitmax, &rk, &exploc, &num_passage, &gamma, &cv, &muS, &Cs, &Ts, &timecount ) ) {
+    if ( !PYPARSETUPLE( args, "OOOOOlllllllllO", "OOOOOiiiiiiiiiO", "OOOOOlllllllllO", "OOOOOiiiiiiiiiO", &zonesR,
+                        &zonesD, &pyVariables, &pyParam_int, &pyParam_real, &It_target, &vartype, &type_transfert,
+                        &no_transfert, &nstep, &nitmax, &rk, &exploc, &num_passage, &timecount ) ) {
         return NULL;
     }
 #else
 
-    if ( !PYPARSETUPLE( args, "OOOOOllllllllllddddd", "OOOOOiiiiiiiiiiddddd", "OOOOOllllllllllfffff", "OOOOOiiiiiiiiiifffff", &zonesR,
-                        &zonesD, &pyVariables, &pyParam_int, &pyParam_real, &It_target, &vartype, &bctype, &type_transfert,
-                        &no_transfert, &nstep, &nitmax, &rk, &exploc, &num_passage, &gamma, &cv, &muS, &Cs, &Ts ) ) {
+    if ( !PYPARSETUPLE( args, "OOOOOlllllllll", "OOOOOiiiiiiiii", "OOOOOlllllllll", "OOOOOiiiiiiiii", &zonesR,
+                        &zonesD, &pyVariables, &pyParam_int, &pyParam_real, &It_target, &vartype, &type_transfert,
+                        &no_transfert, &nstep, &nitmax, &rk, &exploc, &num_passage  ) ) {
         return NULL;
     }
 #endif    
@@ -358,7 +360,6 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
  }
 #endif
 
-    E_Int bcType   = E_Int( bctype );  // 0 : wallslip; 1: noslip; 2: log law of wall; 3: Musker law of wall
     E_Int varType  = E_Int( vartype );
     E_Int it_target= E_Int(It_target);
 
@@ -382,18 +383,7 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
 
     vector< PyArrayObject* > hook;
 
-    E_Float Pr = 0.71;
-    PyObject* zone0 = PyList_GetItem(zonesD, 0);
-    PyObject* own   = K_PYTREE::getNodeFromName1(zone0, ".Solver#ownData");
-    if (own != NULL)
-    {
-      PyObject* paramreal0 = K_PYTREE::getNodeFromName1(own, "Parameter_real");
-      if (paramreal0 != NULL)
-      {
-        E_Float* paramreal0val = K_PYTREE::getValueAF(paramreal0, hook);
-        Pr = paramreal0val[10];
-      }
-    }
+
 
     // E_Int kmd, cnNfldD, nvars,ndimdxR, ndimdxD,meshtype;
     E_Int   kmd, cnNfldD, nvars, ndimdxD, meshtype;
@@ -420,36 +410,28 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
 
   
   /*----------------------------------*/
-  /* Get the Shift values for Padding */
+  /* Get  param_int param_real zone donneuse */
   /*----------------------------------*/
   
   E_Int nidomR = PyList_Size( zonesR );
   
-  E_Int** ipt_param_int_Shift;
+  E_Int** ipt_param_intD; E_Float** ipt_param_realD;
 
-  ipt_param_int_Shift = new E_Int*[nidomR];
+  ipt_param_intD   = new E_Int*[nidomR];
+  ipt_param_realD  = new E_Float*[nidomR];
 
   for (E_Int nd = 0; nd < nidomR; nd++)
   {
     
-  PyObject* zone = PyList_GetItem(zonesR, nd);  
-  PyObject* own   = K_PYTREE::getNodeFromName1(zone , ".Solver#ownData");
-  if (own != NULL)
-  {
-    PyObject* paramint = K_PYTREE::getNodeFromName1(own, "Parameter_int");
-    if (paramint != NULL)
-    {
-      ipt_param_int_Shift[nd] = K_PYTREE::getValueAI(paramint, hook);      
-    }
-    else
-    {
-      ipt_param_int_Shift[nd] = NULL;    
-    }    
-  }
-  else
-   {
-      ipt_param_int_Shift[nd] = NULL;    
-   }  
+    //attention en parallel, zone receveuse indisponible, on recupere param_int de la zone donneuse
+    PyObject* zoneR = PyList_GetItem(zonesR, nd);  
+
+    PyObject* own      = K_PYTREE::getNodeFromName1(zoneR , ".Solver#ownData");
+    PyObject* t        = K_PYTREE::getNodeFromName1(own, "Parameter_int");
+    ipt_param_intD[nd] = K_PYTREE::getValueAI(t, hook);
+
+            t          = K_PYTREE::getNodeFromName1(own, "Parameter_real");
+    ipt_param_realD[nd]= K_PYTREE::getValueAF(t, hook);
   } 
 
 
@@ -514,6 +496,7 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
     // 1ere pass_inst: les raccord fixe
     // 2eme pass_inst: les raccord instationnaire
     E_Int nbRcvPts_mx = 0;
+    E_Int ibcTypeMax  = 0;
     E_Int count_rac   = 0;
 
 
@@ -533,14 +516,13 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
             E_Int shift_rac = ech + 4 + timelevel * 2 + irac;
             E_Int nbRcvPts  = ipt_param_int[shift_rac + nrac * 10 + 1];
 
-            //if ( nbRcvPts > nbRcvPts_mx ) nbRcvPts_mx = nbRcvPts;
+            if ( nbRcvPts > nbRcvPts_mx ) nbRcvPts_mx = nbRcvPts;
+
+            if( ipt_param_int[shift_rac+nrac*3] > ibcTypeMax)  ibcTypeMax =  ipt_param_int[shift_rac+nrac*3];
 
             E_Int ibcType = ipt_param_int[shift_rac + nrac * 3];
             E_Int ibc = 1;
             if ( ibcType < 0) ibc = 0;
-
-	    //E_Int NoD      =  ipt_param_int[ shift_rac + nrac*5     ];
-	    //E_Int NoR      =  ipt_param_int[ shift_rac + nrac*11 +1 ];
 
             E_Int irac_auto= irac-irac_deb;
      	    autorisation_transferts[pass_inst][irac_auto]=0;
@@ -558,53 +540,35 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
 		if (levelD > levelR and num_passage == 1)		
 		  {
 		    if (nstep%cyclD==cyclD-1 or nstep%cyclD==cyclD/2 and (nstep/cyclD)%2==1)
-		      {
-			autorisation_transferts[pass_inst][irac_auto]=1;
-			if ( nbRcvPts > nbRcvPts_mx ) nbRcvPts_mx = nbRcvPts;
-		      }
+		      { autorisation_transferts[pass_inst][irac_auto]=1; }
 		    else {continue;}
 		  }
 		// Le pas de temps de la zone donneuse est plus grand que celui de la zone receveuse
 		else if (levelD < levelR and num_passage == 1) 
 		  {
 		    if (nstep%cyclD==1 or nstep%cyclD==cyclD/4 or nstep%cyclD== cyclD/2-1 or nstep%cyclD== cyclD/2+1 or nstep%cyclD== cyclD/2+cyclD/4 or nstep%cyclD== cyclD-1)
-                         {
-			   autorisation_transferts[pass_inst][irac_auto]=1;
-			   if ( nbRcvPts > nbRcvPts_mx ) nbRcvPts_mx = nbRcvPts;
-			 }
+                         { autorisation_transferts[pass_inst][irac_auto]=1; }
 		    else {continue;}
 		  }
 		// Le pas de temps de la zone donneuse est egal a celui de la zone receveuse
 		else if (levelD == levelR and num_passage == 1)
 		  {
 		    if (nstep%cyclD==cyclD/2-1 or (nstep%cyclD==cyclD/2 and (nstep/cyclD)%2==0) or nstep%cyclD==cyclD-1) 
-		      { 
-			autorisation_transferts[pass_inst][irac_auto]=1; 
-			if ( nbRcvPts > nbRcvPts_mx ) nbRcvPts_mx = nbRcvPts;
-		      }
+		      { autorisation_transferts[pass_inst][irac_auto]=1; }
 		    else {continue;}
 		  }
 		// Le pas de temps de la zone donneuse est egal a celui de la zone receveuse (cas du deuxieme passage)   
 		else if (levelD ==  ipt_param_int[debut_rac +24] and num_passage == 2)
 		  {
-		  if (nstep%cyclD==cyclD/2 and (nstep/cyclD)%2==1)
-		    {
-		      autorisation_transferts[pass_inst][irac_auto]=1;
-		      if ( nbRcvPts > nbRcvPts_mx ) nbRcvPts_mx = nbRcvPts;
-		    }
-		  else                                            {continue;}
+		  if (nstep%cyclD==cyclD/2 and (nstep/cyclD)%2==1) { autorisation_transferts[pass_inst][irac_auto]=1; }
+		  else {continue;}
 		  }
 		else {continue;} 
 	      }
             // Sinon, on autorise les transferts entre ttes les zones a ttes les ss-ite
 	    else 
-	      { 
-		autorisation_transferts[pass_inst][irac_auto]=1; 
-		if ( nbRcvPts > nbRcvPts_mx ) nbRcvPts_mx = nbRcvPts;
-	      }
+	      { autorisation_transferts[pass_inst][irac_auto]=1; }
 	
-	    //cout << "autorisation= " << autorisation_transferts[pass_inst][irac_auto] << endl;
-
             // QUOI????? - CBX
             if ( TypeTransfert == 0 && ibc == 1 ) {
                 continue;
@@ -643,7 +607,7 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
     E_Int size              = ( nbRcvPts_mx / threadmax_sdm ) + 1;  // on prend du gras pour gerer le residus
     E_Int r                 = size % 8;
     if ( r != 0 ) size      = size + 8 - r;  // on rajoute du bas pour alignememnt 64bits
-    if ( bctype <= 1 ) size = 0;             // tableau inutile : SP ; voir avec Ivan
+    if ( ibcTypeMax <= 1 ) size = 0;             // tableau inutile : SP ; voir avec Ivan
 
     FldArrayF tmp( size * 14 * threadmax_sdm );
     E_Float*  ipt_tmp = tmp.begin();
@@ -692,18 +656,11 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
                   irac_deb = ipt_param_int[ech + 4 + it_target];
                   irac_fin = ipt_param_int[ech + 4 + it_target + timelevel];
                 }
-
                 for ( E_Int irac = irac_deb; irac < irac_fin; irac++ ) 
                 {
-
                   E_Int irac_auto= irac-irac_deb;
-		  //cout << autorisation_transferts[pass_inst][irac] << endl;
-		  //cout << autorisation_transferts[pass_inst][irac] <<" "<<irac<< endl; 
 		  if (autorisation_transferts[pass_inst][irac_auto]==1)
-    
 		   {
-
-
                     E_Int shift_rac = ech + 4 + timelevel * 2 + irac; 
            
                     E_Int ibcType = ipt_param_int[shift_rac+nrac*3];                    
@@ -728,17 +685,18 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
                     // printf("navr_loc %d %d %d \n", nvars_loc, nvars, Rans);
 
                     if ( loc == 0 ) {
-                        for ( E_Int eq = 0; eq < nvars_loc; eq++ ) {
+                        printf("transferts optimises pas code en vextex \n");
+                        /*for ( E_Int eq = 0; eq < nvars_loc; eq++ ) {
                             vectOfRcvFields[eq] = frp[count_rac] + eq * nbRcvPts;
                             vectOfDnrFields[eq] = ipt_roD_vert[NoD] + eq * ipt_ndimdxD[NoD + nidomD * 3];
-                        }
+                        }*/
                         imd = ipt_ndimdxD[NoD + nidomD * 4];
                         jmd = ipt_ndimdxD[NoD + nidomD * 5];
                     } else {
 
                         for ( E_Int eq = 0; eq < nvars_loc; eq++ ) {
                             vectOfRcvFields[eq] = frp[count_rac] + eq * nbRcvPts;
-                            vectOfDnrFields[eq] = ipt_roD[NoD] + eq * ( ipt_ndimdxD[NoD] + ipt_param_int_Shift[NoD][66]);
+                            vectOfDnrFields[eq] = ipt_roD[NoD] + eq *ipt_param_intD[NoD][ NDIMDX ];
                         }
                         imd = ipt_ndimdxD[NoD + nidomD];
                         jmd = ipt_ndimdxD[NoD + nidomD * 2];
@@ -839,6 +797,14 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
                         if (ibc == 1) 
                         {
                             E_Int nvars = vectOfDnrFields.size();
+
+                            Pr    = ipt_param_realD[ NoD ][ PRANDT ];
+                            Ts    = ipt_param_realD[ NoD ][ TEMP0 ];
+                            Cs    = ipt_param_realD[ NoD ][ CS ];
+                            muS   = ipt_param_realD[ NoD ][ XMUL0 ];
+                            cv    = ipt_param_realD[ NoD ][ CVINF ];
+                            gamma = ipt_param_realD[ NoD ][ GAMMA ];
+
                             if ( (ibcType==2 || (ibcType==3)) && nvars < 6)
                             {
                                 printf("Warning: __setInterpTransfersD: number of variables (<6) inconsistent with ibctype (wall law).\n"); 
@@ -970,7 +936,7 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
     //cout << "taille liste= "<< size_list << endl;
  
     
-
+    delete[] ipt_param_intD; delete[] ipt_param_realD;
     delete[] list_tpl;
     delete[] frp; 
     delete[] ipt_ndimdxD;

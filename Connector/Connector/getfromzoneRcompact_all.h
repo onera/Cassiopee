@@ -19,13 +19,16 @@
          if(t != NULL) ipt_roR_vert[nd] = K_PYTREE::getValueAF(t, hook);
        }
 
+        PyObject* own      = K_PYTREE::getNodeFromName1(zoneR , ".Solver#ownData");
+                t          = K_PYTREE::getNodeFromName1(own, "Parameter_int");
+        ipt_param_intR[nd] = K_PYTREE::getValueAI(t, hook);
 
-        //if( loc==0) { solR = K_PYTREE::getNodeFromName1(zoneR , "FlowSolution"        ); }
-        //else        { solR = K_PYTREE::getNodeFromName1(zoneR , "FlowSolution#Centers"); }
-        //t             = K_PYTREE::getNodeFromName1(solR, varname );
-        //iptroR        = K_PYTREE::getValueAF(t, hook);
+                t          = K_PYTREE::getNodeFromName1(own, "Parameter_real");
+        ipt_param_realR[nd]= K_PYTREE::getValueAF(t, hook);
 
-        char* type; E_Int s, s0, s1;  E_Int* d;
+
+
+/*        char* type; E_Int s, s0, s1;  E_Int* d;
         // get type
         t    =  K_PYTREE::getNodeFromName1(zoneR, "ZoneType");
         type =  K_PYTREE::getValueS(t, s, hook);
@@ -34,15 +37,9 @@
 
         if (K_STRING::cmp(type, s, "Structured") == 0)
          {
-
           if      (s0 == 1){ ipt_ndimdxR[nd + nidomR]= d[0]          ; ipt_ndimdxR[nd]= d[3];           }
           else if (s0 == 2){ ipt_ndimdxR[nd + nidomR]= d[0]*d[1]     ; ipt_ndimdxR[nd]= d[3]*d[4];      }
           else if (s0 == 3){ ipt_ndimdxR[nd + nidomR]= d[0]*d[1]*d[2]; ipt_ndimdxR[nd]= d[3]*d[4]*d[5]; }
-          
-          /*E_Int shift = 0; if(loc == 1) shift =1;
-          if      (s0 == 1) { ndimdxR= d[0+shift];          }
-          else if (s0 == 2) { ndimdxR= d[0+shift]*d[1+shift];     } 
-          else if (s0 == 3) { ndimdxR= d[0+shift]*d[1+shift]*d[2+shift];} */
          }
 
         else // non structure
@@ -50,3 +47,4 @@
               ipt_ndimdxR[nd        ]= d[0]* d[1]; // npoint, nelements
               ipt_ndimdxR[nd+ nidomR]= d[0]* d[1]; // pourquoi pas de dependance a la localisation en non structure??
          }
+*/

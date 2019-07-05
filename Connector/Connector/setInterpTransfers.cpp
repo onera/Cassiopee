@@ -24,6 +24,7 @@
 #endif
 
 # include "connector.h"
+# include "param_solver.h"
 
 using namespace std;
 using namespace K_FLD;
@@ -782,7 +783,7 @@ PyObject* K_CONNECTOR::__setInterpTransfers(PyObject* self, PyObject* args)
  return Py_None;
 }
 //=============================================================================
-// Idem: in place + from zone + tc compact au niveau base 
+// Idem: in place + from zone + tc compact au niveau base. Valid pour FastS uniquememnt
 //=============================================================================
 PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
 {
@@ -790,27 +791,27 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
 
   PyObject *pyVariables;
   PyObject *pyParam_int, *pyParam_real;
-  E_Int vartype, bctype, type_transfert, no_transfert, It_target, nstep, nitmax;
+  E_Int vartype, type_transfert, no_transfert, It_target, nstep, nitmax;
   E_Int rk, exploc, num_passage;
-  E_Float gamma, cv, muS, Cs, Ts;
+  E_Float gamma, cv, muS, Cs, Ts, Pr;
 
 #ifdef TimeShowsetinterp  
 PyObject *timecount;
       if (!PYPARSETUPLE(args,
-                        "OOOOOlllllllllldddddO", "OOOOOiiiiiiiiiidddddO",
-                        "OOOOOllllllllllfffffO", "OOOOOiiiiiiiiiifffffO",
+                        "OOOOOlllllllllO", "OOOOOiiiiiiiiiO",
+                        "OOOOOlllllllllO", "OOOOOiiiiiiiiiO",
                         &zonesR, &zonesD, &pyVariables, &pyParam_int,  &pyParam_real, &It_target, &vartype,
-                        &bctype, &type_transfert, &no_transfert, &nstep, &nitmax, &rk, &exploc, &num_passage, &gamma, &cv, &muS, &Cs, &Ts, &timecount))
+                        &type_transfert, &no_transfert, &nstep, &nitmax, &rk, &exploc, &num_passage, &timecount))
       {
           return NULL;
       }
 
 #else
       if (!PYPARSETUPLE(args,
-                        "OOOOOllllllllllddddd", "OOOOOiiiiiiiiiiddddd",
-                        "OOOOOllllllllllfffff", "OOOOOiiiiiiiiiifffff",
+                        "OOOOOlllllllll", "OOOOOiiiiiiiii",
+                        "OOOOOlllllllll", "OOOOOiiiiiiiii",
                         &zonesR, &zonesD, &pyVariables, &pyParam_int,  &pyParam_real, &It_target, &vartype,
-                        &bctype, &type_transfert, &no_transfert, &nstep, &nitmax, &rk, &exploc, &num_passage, &gamma, &cv, &muS, &Cs, &Ts))
+                        &type_transfert, &no_transfert, &nstep, &nitmax, &rk, &exploc, &num_passage))
       {
           return NULL;
       }
@@ -842,7 +843,6 @@ PyObject *timecount;
  }
 #endif
 
-  //E_Int bcType   = E_Int(bctype);    // 0 : wallslip; 1: noslip; 2: log law of wall; 3: Musker law of wall
   E_Int it_target= E_Int(It_target);
 
   /* varType : 
@@ -873,67 +873,28 @@ PyObject *timecount;
   E_Int nidomD   = PyList_Size(zonesD);
 
   //pointeur pour stocker solution au centre ET au noeud 
-  E_Int* ipt_ndimdxR; E_Int* ipt_ndimdxD; E_Int** ipt_cnd;
-  E_Float** ipt_roR; E_Float** ipt_roD; E_Float** ipt_roR_vert;  E_Float** ipt_roD_vert;
+  E_Int* ipt_ndimdxD; E_Int** ipt_param_intR; E_Int** ipt_cnd;
+  E_Float** ipt_roR; E_Float** ipt_roD; E_Float** ipt_roR_vert;  E_Float** ipt_roD_vert; E_Float** ipt_param_realR;
 
-  ipt_ndimdxR      = new E_Int[nidomR*2];   // on stocke ndimdx  en centre et vertexe
-  ipt_roR          = new E_Float*[nidomR*2];
+  //ipt_ndimdxR      = new E_Int*[nidomR*3];   // on stocke ndimdx  en centre et vertexe
+  ipt_param_intR   = new E_Int*[nidomR];
+
+  ipt_roR          = new E_Float*[nidomR*3];
   ipt_roR_vert     = ipt_roR + nidomR;
+  ipt_param_realR  = ipt_roR_vert + nidomR;
 
   ipt_ndimdxD      = new E_Int[nidomD*8];  //on stocke ndimdx, imd, jmd, en centre et vertexe, meshtype et cnDfld
   ipt_cnd          = new E_Int*[nidomD];
+
   ipt_roD          = new E_Float*[nidomD*2];
   ipt_roD_vert     = ipt_roD + nidomD;
 
 
   vector<PyArrayObject*> hook ;
 
-  E_Float Pr = 0.71;
-  PyObject* zone0 = PyList_GetItem(zonesR, 0);  
-  PyObject* own   = K_PYTREE::getNodeFromName1(zone0 , ".Solver#ownData");
-  if (own != NULL)
-  {
-    PyObject* paramreal0 = K_PYTREE::getNodeFromName1(own, "Parameter_real");
-    if (paramreal0 != NULL)
-    {
-      E_Float* paramreal0val = K_PYTREE::getValueAF(paramreal0, hook);
-      Pr = paramreal0val[10];
-    }
-  }
-
-  /*----------------------------------*/
-  /* Get the Shift values for Padding */
-  /*----------------------------------*/
-
-  E_Int** ipt_param_int_Shift;
-
-  ipt_param_int_Shift = new E_Int*[nidomR];
-
-  for (E_Int nd = 0; nd < nidomR; nd++)
-  {
-    
-  PyObject* zone = PyList_GetItem(zonesR, nd);  
-  PyObject* own  = K_PYTREE::getNodeFromName1(zone , ".Solver#ownData");
-  if (own != NULL)
-  {
-    PyObject* paramint = K_PYTREE::getNodeFromName1(own, "Parameter_int");
-    if (paramint != NULL)
-    {
-      ipt_param_int_Shift[nd] = K_PYTREE::getValueAI(paramint, hook);      
-    }
-    else
-    {
-      ipt_param_int_Shift[nd] = NULL;    
-    }       
-  }  
-  else
-   {
-      ipt_param_int_Shift[nd] = NULL;    
-   }  
-  } 
 
   /*-------------------------------------*/
-  /* Extraction tableau int et real      */
+  /* Extraction tableau int et real de tc*/
   /*-------------------------------------*/
   FldArrayI* param_int;
   E_Int res_donor = K_NUMPY::getFromNumpyArray(pyParam_int, param_int, true);
@@ -957,7 +918,7 @@ PyObject *timecount;
 #    include "getfromzoneDcompact_all.h"
   }
 
-  //on recupere sol et solcenter et taille zones receuveuses (t)
+  //on recupere sol et solcenter taille zones receuveuses, param_int et param_real (t)
   for (E_Int nd = 0; nd < nidomR; nd++)
     {  
       PyObject* zoneR = PyList_GetItem(zonesR, nd);
@@ -986,18 +947,11 @@ PyObject *timecount;
   E_Int size_autorisation = nrac_steady+1;
   size_autorisation = K_FUNC::E_max(size_autorisation , nrac_inst+1);
 
-  //E_Int autorisation_transferts[nrac_inst+1][nrac_steady+1];
   E_Int autorisation_transferts[pass_inst_fin][size_autorisation];
-  //E_Int** autorisation_transfert = new E_int*[pass_inst_fin]
-  //for (E_Int i = 0 ; i < pass_inst_fin; i++)
-  //    {
-  //	E_Int* autorisation_transfert[i] = new E_Int[size_autorisation];
-  //   }
-
 
   // printf("nrac = %d, nrac_inst = %d, level= %d, it_target= %d , nitrun= %d \n",  nrac, nrac_inst, timelevel,it_target, NitRun);
   //on dimension tableau travail pour IBC
-  E_Int nbRcvPts_mx =0;
+  E_Int nbRcvPts_mx =0; E_Int ibcTypeMax=0;
   for  (E_Int pass_inst=pass_inst_deb; pass_inst< pass_inst_fin; pass_inst++)
   {
       E_Int irac_deb= 0; E_Int irac_fin= nrac_steady;
@@ -1009,16 +963,15 @@ PyObject *timecount;
 	{ 
 	  E_Int shift_rac =  ech + 4 + timelevel*2 + irac;
 	  if( ipt_param_int[ shift_rac+ nrac*10 + 1] > nbRcvPts_mx) nbRcvPts_mx = ipt_param_int[ shift_rac+ nrac*10 + 1];
-	  //E_Int NoD      =  ipt_param_int[ shift_rac + nrac*5     ];
-	  //E_Int NoR      =  ipt_param_int[ shift_rac + nrac*11 +1 ];
 
-    E_Int irac_auto= irac-irac_deb;
+          if( ipt_param_int[shift_rac+nrac*3] > ibcTypeMax)  ibcTypeMax =  ipt_param_int[shift_rac+nrac*3];
+
+
+          E_Int irac_auto= irac-irac_deb;
 	  autorisation_transferts[pass_inst][irac_auto]=0;
 
 	  if(rk==3 && exploc == 2) // Si on est en explicit local, on va autoriser les transferts entre certaines zones seulement en fonction de la ss-ite courante
-
 	    {
-
 	      E_Int debut_rac = ech + 4 + timelevel*2 + 1 + nrac*16 + 27*irac;     
 	      E_Int levelD = ipt_param_int[debut_rac + 25];
 	      E_Int levelR = ipt_param_int[debut_rac + 24];
@@ -1030,7 +983,6 @@ PyObject *timecount;
 		    if (nstep%cyclD==cyclD-1 or nstep%cyclD==cyclD/2 && (nstep/cyclD)%2==1)
 		      {
 			autorisation_transferts[pass_inst][irac_auto]=1;
-			//if( ipt_param_int[ shift_rac+ nrac*10 + 1] > nbRcvPts_mx) nbRcvPts_mx = ipt_param_int[ shift_rac+ nrac*10 + 1];
 		      }
 		    else {continue;}
 		  }
@@ -1038,40 +990,27 @@ PyObject *timecount;
 		else if (levelD < levelR && num_passage == 1) 
 		  {
 		    if (nstep%cyclD==1 || nstep%cyclD==cyclD/4 || nstep%cyclD== cyclD/2-1 || nstep%cyclD== cyclD/2+1 || nstep%cyclD== cyclD/2+cyclD/4 || nstep%cyclD== cyclD-1)
-                         {
-			   autorisation_transferts[pass_inst][irac_auto]=1;
-			   //if( ipt_param_int[ shift_rac+ nrac*10 + 1] > nbRcvPts_mx) nbRcvPts_mx = ipt_param_int[ shift_rac+ nrac*10 + 1];
-			 }
+                         { autorisation_transferts[pass_inst][irac_auto]=1; }
 		    else {continue;}
 		  }
 		// Le pas de temps de la zone donneuse est egal a celui de la zone receveuse
 		else if (levelD == levelR && num_passage == 1)
 		  {
 		    if (nstep%cyclD==cyclD/2-1 || (nstep%cyclD==cyclD/2 && (nstep/cyclD)%2==0) || nstep%cyclD==cyclD-1) 
-		      { 
-			autorisation_transferts[pass_inst][irac_auto]=1; 
-			//if( ipt_param_int[ shift_rac+ nrac*10 + 1] > nbRcvPts_mx) nbRcvPts_mx = ipt_param_int[ shift_rac+ nrac*10 + 1];
-		      }
+		      { autorisation_transferts[pass_inst][irac_auto]=1; }
 		    else {continue;}
 		  }
 		// Le pas de temps de la zone donneuse est egal a celui de la zone receveuse (cas du deuxieme passage)   
 		else if (levelD == ipt_param_int[debut_rac +24] && num_passage == 2)
 		  {
 		  if (nstep%cyclD==cyclD/2 && (nstep/cyclD)%2==1)
-		    {
-		      autorisation_transferts[pass_inst][irac_auto]=1;
-		      //if( ipt_param_int[ shift_rac+ nrac*10 + 1] > nbRcvPts_mx) nbRcvPts_mx = ipt_param_int[ shift_rac+ nrac*10 + 1];
-		    }
-		  else                                            {continue;}
+		    { autorisation_transferts[pass_inst][irac_auto]=1; }
+		  else {continue;}
 		  }
 		else {continue;} 
 	    }
            // Sinon, on autorise les transferts entre ttes les zones a ttes les ss-ite
-	   else 
-	     { 
-	       autorisation_transferts[pass_inst][irac_auto]=1; 
-	       //if( ipt_param_int[ shift_rac+ nrac*10 + 1] > nbRcvPts_mx) nbRcvPts_mx = ipt_param_int[ shift_rac+ nrac*10 + 1];
-	     }
+	   else { autorisation_transferts[pass_inst][irac_auto]=1; }
 	    
 	}
     }
@@ -1079,7 +1018,7 @@ PyObject *timecount;
   E_Int size = (nbRcvPts_mx/threadmax_sdm)+1; // on prend du gras pour gerer le residus
   E_Int r =  size % 8;
   if (r != 0) size  = size + 8 - r;           // on rajoute du bas pour alignememnt 64bits
-  if (bctype <=1 ) size = 0;                  // tableau inutile : SP voir avec Ivan 
+  if (ibcTypeMax <=1 ) size = 0;              // tableau inutile : SP voir avec Ivan 
 
   FldArrayF  tmp(size*14*threadmax_sdm);
   E_Float* ipt_tmp = tmp.begin();
@@ -1119,7 +1058,6 @@ PyObject *timecount;
       irac_fin = ipt_param_int[ ech + 4 + it_target + timelevel ];  
     }
 
-    //cout << irac_deb << " "  << endl;
     for  (E_Int irac=irac_deb; irac< irac_fin; irac++)
     {
 
@@ -1150,21 +1088,17 @@ PyObject *timecount;
 
       if (loc == 0)
       {
-        for (E_Int eq = 0; eq < nvars_loc; eq++)
-        {
-         vectOfRcvFields[eq] = ipt_roR_vert[ NoR] + eq*ipt_ndimdxR[ NoR + nidomR  ];
-         vectOfDnrFields[eq] = ipt_roD_vert[ NoD] + eq*ipt_ndimdxD[ NoD + nidomD*3];
-        }
-         imd= ipt_ndimdxD[ NoD+ nidomD*4]; jmd= ipt_ndimdxD[ NoD + nidomD*5];
+        printf("transferts optimises pas code en vextex \n"); 
+        //imd= ipt_ndimdxD[ NoD+ nidomD*4]; jmd= ipt_ndimdxD[ NoD + nidomD*5];
       }
       else
       {
         for (E_Int eq = 0; eq < nvars_loc; eq++)
         {
-         vectOfRcvFields[eq] = ipt_roR[ NoR] + eq*(ipt_ndimdxR[ NoR ] + ipt_param_int_Shift[NoR][66] );
-         vectOfDnrFields[eq] = ipt_roD[ NoD] + eq*(ipt_ndimdxD[ NoD ] + ipt_param_int_Shift[NoD][66] );
+         vectOfRcvFields[eq] = ipt_roR[ NoR] + eq*ipt_param_intR[ NoR ][ NDIMDX ];
+         vectOfDnrFields[eq] = ipt_roD[ NoD] + eq*ipt_param_intR[ NoD ][ NDIMDX ];
         }
-         imd= ipt_ndimdxD[ NoD+ nidomD  ]; jmd= ipt_ndimdxD[ NoD+ nidomD*2];
+         imd= ipt_param_intR[ NoD ][ NIJK ]; jmd= ipt_param_intR[ NoD ][ NIJK+1];
       }
 
       imdjmd = imd*jmd;
@@ -1182,7 +1116,6 @@ PyObject *timecount;
       ////  
 
        E_Int nbRcvPts = ipt_param_int[ shift_rac +  nrac*10 + 1 ];
-       //E_Int nbDonPts = ipt_param_int[ shift_rac                ];
   
        E_Int pos;
        pos  = ipt_param_int[ shift_rac + nrac*7 ]     ; E_Int* ntype      = ipt_param_int  + pos;
@@ -1286,6 +1219,14 @@ PyObject *timecount;
           if (ibc == 1)
           {
             E_Int nvars = vectOfDnrFields.size();
+
+            Pr    = ipt_param_realR[ NoR ][ PRANDT ];
+            Ts    = ipt_param_realR[ NoR ][ TEMP0 ];
+            Cs    = ipt_param_realR[ NoR ][ CS ];
+            muS   = ipt_param_realR[ NoR ][ XMUL0 ];
+            cv    = ipt_param_realR[ NoR ][ CVINF ];
+            gamma = ipt_param_realR[ NoR ][ GAMMA ];
+
             if ( (ibcType==2 || (ibcType==3)) && nvars < 6)
             {
               printf("Warning: setIBCTransfersCommonVar: number of variables (<6) inconsistent with ibctype (wall law).\n"); 
@@ -1347,8 +1288,7 @@ PyObject *timecount;
   }// omp
 
 
-  delete [] ipt_ndimdxR; delete [] ipt_roR; delete [] ipt_ndimdxD; delete [] ipt_roD; delete [] ipt_cnd;
-  delete [] ipt_param_int_Shift;
+  delete [] ipt_param_intR; delete [] ipt_roR; delete [] ipt_ndimdxD; delete [] ipt_roD; delete [] ipt_cnd;
 
   RELEASESHAREDZ(hook, (char*)NULL, (char*)NULL); 
   RELEASESHAREDN(pyParam_int    , param_int    );

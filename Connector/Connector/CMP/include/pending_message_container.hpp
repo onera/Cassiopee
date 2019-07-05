@@ -14,6 +14,7 @@ class PendingMsgContainer {
   struct pending_message {
     pointer_message_buffer message_buffer;
     pending_message(pointer_message_buffer pt_msg) : message_buffer(pt_msg) {}
+    pending_message(const pending_message& ) = default;
     MsgBuffer& get_message_buffer() { return *message_buffer; }
     const MsgBuffer& get_message_buffer() const { return *message_buffer; }
   };
@@ -25,6 +26,7 @@ class PendingMsgContainer {
   PendingMsgContainer(std::size_t maxSize) : m_pending_message() {
     m_pending_message.reserve(maxSize);
   }
+  PendingMsgContainer(const PendingMsgContainer&) = default;
   ~PendingMsgContainer() {}
 
   template <typename... Args>
@@ -34,7 +36,7 @@ class PendingMsgContainer {
 
   bool empty() const { return m_pending_message.empty(); }
   std::size_t size() const { return m_pending_message.size(); }
-  void clear() { m_pending_message.clear(); }
+  void clear() { for ( auto& pm : m_pending_message ) pm.message_buffer->clear(); }
 
   void waitAll();
   // If iterator is equal to end(), not complete message found

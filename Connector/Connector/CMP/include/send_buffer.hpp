@@ -129,7 +129,7 @@ namespace CMP {
         int         tag( ) const;                   // Retourne l'identifiant du message envoyé par le buffer
         std::size_t size( ) const;                  // Retourne la taille en octet pris par le buffer d'envoi
         const void* data( ) const;                  // Renvoie l'adresse du buffer d'envoi ( pour déboguage )
-
+        void clear();
     private:  // ######################### PRIVATE PART BELOW #############################################
         // PIMPL template
         class Implementation;

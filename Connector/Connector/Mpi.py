@@ -123,9 +123,8 @@ def _setInterpTransfers(aR, aD, variables=[], cellNVariable='',
 # Adim: KCore.adim1 for Minf=0.1
 #===============================================================================
 def __setInterpTransfers(zones, zonesD, vars, param_int, param_real, type_transfert, nitrun,
-                         nstep, nitmax, rk, exploc, num_passage, bcType=0, varType=1, compact=1,
-                         graph=None, procDict=None,
-                         Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08, Cs=0.3831337844872463, Ts=1.0):
+                         nstep, nitmax, rk, exploc, num_passage, varType=1, compact=1,
+                         graph=None, procDict=None):
 
     # Transferts locaux/globaux
     # Calcul des solutions interpolees par arbre donneur
@@ -141,13 +140,13 @@ def __setInterpTransfers(zones, zonesD, vars, param_int, param_real, type_transf
         no_transfert = comm_P2P
         if dest == Cmpi.rank: #transfert intra_processus
             #print 'transfert local', type_transfert
-            connector.___setInterpTransfers(zones, zonesD, vars, param_int, param_real, nitrun, varType, bcType, 
-                                            type_transfert, no_transfert,  nstep, nitmax, rk, exploc, num_passage, Gamma,Cv,MuS,Cs,Ts)
+            connector.___setInterpTransfers(zones, zonesD, vars, param_int, param_real, nitrun, varType,
+                                            type_transfert, no_transfert,  nstep, nitmax, rk, exploc, num_passage)
 
         else:
             #print 'transfert global', type_transfert
-            infos = connector.__setInterpTransfersD(zones, zonesD, vars, param_int, param_real, nitrun, varType, bcType, 
-                                                    type_transfert, no_transfert,  nstep, nitmax, rk, exploc, num_passage, Gamma,Cv,MuS,Cs,Ts) 
+            infos = connector.__setInterpTransfersD(zones, zonesD, vars, param_int, param_real, nitrun, varType,
+                                                    type_transfert, no_transfert,  nstep, nitmax, rk, exploc, num_passage) 
             if infos != []:
                for n in infos:
                   rcvNode = dest

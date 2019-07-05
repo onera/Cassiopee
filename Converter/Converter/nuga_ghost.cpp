@@ -168,7 +168,12 @@ void add_n_topo_layers(std::vector<zone_type>& zones, E_Int i0, E_Int NLAYERS, i
   Zi0.sort_by_type();
 
   if (ghost_on_bcs != 0) //insert one layer of ghost cell on BCs
+  { 
     Zi0.insert_ghosts_on_bcs(ghost_on_bcs, NLAYERS); //1 : single PG ghost /  2 : degen ghost
+
+    std::vector<E_Int> PGcolors, PHcolors;
+    Zi0.color_ranges(PGcolors, PHcolors);
+  }
 
 }
 
@@ -393,7 +398,7 @@ PyObject* K_CONVERTER::addGhostCellsNG(PyObject* self, PyObject* args)
       PyObject*  nbfaces= K_NUMPY::buildNumpyArray( 6  , 1, 1, 1);
       E_Int*         Elt= K_NUMPY::getNumpyPtrI( nbelts );
       E_Int*        Face= K_NUMPY::getNumpyPtrI( nbfaces );
-      Elt[1]=0;Elt[2]=0;Elt[3]=0;Elt[4]=0;
+      Elt[0]=0;Elt[1]=0;Elt[2]=0;Elt[3]=0;Elt[4]=0;
       Face[0]=0;Face[1]=0;Face[2]=0;Face[3]=0;Face[4]=0;Face[5]=0;
 
       tmp_zones.clear();
@@ -410,20 +415,25 @@ PyObject* K_CONVERTER::addGhostCellsNG(PyObject* self, PyObject* args)
       zone_type& Zghost = tmp_zones[i];
 
       E_Int nb_phs = Zghost._ng.PHs.size();
-      for (size_t l=0; l < nb_phs; ++l) {
-       if(Zghost._ng.PHs._type[l]==-1) Elt[0]=l+1;
-       if(Zghost._ng.PHs._type[l]== 1)
-         { Elt[1]=l-Elt[0]+1;
-           if (Zghost._ng.PHs.stride(l)!= 1) Elt[3]= l -Elt[0]; //nbre d element couche 1 de type raccord
-                                                                   // stride = nbr faces de l element
-         }
-       if(Zghost._ng.PHs._type[l]== 2) 
-         { Elt[2]= l-Elt[0]-Elt[1]+1;
-           if (Zghost._ng.PHs.stride(l)!= 1) Elt[4]= l -Elt[0]-Elt[1]; //nbre d element couche 2 de type raccord
-                                                                        // stride = nbr faces de l element
+      for (size_t l=0; l < nb_phs; ++l)
+      {
+         //CALCUL nb ELEMENT COUCHE ZERO
+         if(Zghost._ng.PHs._type[l]==-1) Elt[0]+=1;
+
+         //CALCUL nb ELEMENT COUCHE un
+         if(Zghost._ng.PHs._type[l]== 1)
+         { Elt[1]+=1;
+           const E_Int* pFace = Zghost._ng.PHs.get_facets_ptr(l);
+
+           E_Int nfaces = Zghost._ng.PHs.stride(l);
+           E_Int PGi0 = pFace[nfaces-1]-1;
+           E_Int PGi1 = pFace[nfaces-2]-1;
+           //printf("verif %d %d %d   \n", Zghost._ng.PGs._type[PGi0], PGi0, PGi1);
+
+           if (PGi0 != PGi1) Elt[3]+=1;  //nbre d element couche 1 de type raccord
          }
       }
-      //printf("ELts0 = %d, ELts1 = %d, ELts2 = %d %d %d \n", Elt[0],Elt[1],Elt[2],Elt[3],Elt[4];
+      printf("ELts0 = %d, ELts1 = %d, ELts2 = %d %d %d \n", Elt[0],Elt[1],Elt[2],Elt[3],Elt[4]);
 
       E_Int nb_pgs = Zghost._ng.PGs.size();
       for (size_t l=0; l < nb_pgs; ++l) {
@@ -436,6 +446,9 @@ PyObject* K_CONVERTER::addGhostCellsNG(PyObject* self, PyObject* args)
 
       //printf("face = %d %d \n", Zghost._ng.PGs._type[l], l);
       }
+
+
+      printf("FACES= %d %d %d %d %d %d \n",Face[0],Face[1],Face[2],Face[3],Face[4],Face[5] );
 
       if (!err)
       {
