@@ -45,7 +45,6 @@ template< typename ngo_t>
 void Prism::reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i)
 {
   //std::cout << "reorder_pgs" << std::endl;
-//  std::cout << "reorder_pgs prism" << std::endl;
   std::map<E_Int,E_Int> glmap; // crd1 to 0-26 indexes
   E_Int nb_faces = ng.PHs.stride(i); 
   E_Int* faces = ng.PHs.get_facets_ptr(i);
@@ -54,13 +53,13 @@ void Prism::reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i)
 
   E_Int l(0);
   for (int i=0; i< nb_faces; i++){
-    if (ng.PGs.stride(PGi)!=4){
+    if (ng.PGs.stride(faces[i]-1)!=4){
         PGi= faces[i] - 1;
         l=i;
         break;
     }
   }
-  
+
 //  std::cout << "after break" << std::endl;
 //  std::cout << "l= " << l << std::endl;
 //    for (int l1=0; l1<ng.PHs.stride(i); l1++){

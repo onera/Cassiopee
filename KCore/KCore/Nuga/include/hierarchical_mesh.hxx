@@ -439,8 +439,8 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t, crd_t>::conformize(Vector_t<E_Int>& 
   std::vector<E_Int> pgnids, phnids;
   _ng->remove_unreferenced_pgs(pgnids, phnids);
       
-  //  
-  pgoids.resize(_ng->PGs.size(), E_IDX_NONE);
+  //
+  K_CONNECT::IdTool::init_inc(pgoids, _ng->PGs.size());
   for (size_t i=0; i <  pgnids.size(); ++i)
     if (pgnids[i] != E_IDX_NONE)pgoids[pgnids[i]] = old_pgoids[i]; //old_pgoids cannot have E_IDX_NONE : new entities must be self referring
 }

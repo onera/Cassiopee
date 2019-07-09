@@ -67,7 +67,7 @@ def concatenateBC(bctype, zones, wallpgs, cur_shift):
       for bb in bnds:
         if Internal.isValue(bb, bctype) == False: continue
           
-        wpgs = bb[2][1][1][0] # POINTLIST NUMPY
+        wpgs = bb[2][1][1][0] # POINTLIST NUMPY fixme : can be somewhere else in the array
         #print(wpgs)
         # SYNC THE POINTLIST BEFORE APPENDING  : SHIFT WITH THE CURRENT NB OF STORED POLYGONS
         id2 = numpy.empty(len(wpgs), numpy.int32)
@@ -91,9 +91,11 @@ def updatePointLists(z, zones, oids):
 
     ptLists = []
     for bb in bnds :
-      ptLists.append(bb[2][1][1][0])
+      ptl = Internal.getNodesFromType(bb, 'IndexArray_t')
+      ptLists.append(ptl[0][1][0])
     for j in joins:
-      ptLists.append(j[2][1][1][0])
+      ptl = Internal.getNodeFromName1(j, 'PointList')
+      ptLists.append(ptl[1])#ptl[0][1][0]
 
     if (ptLists == []) : return
 
@@ -103,25 +105,28 @@ def updatePointLists(z, zones, oids):
     i=0
     # update the BC pointlists 
     for bb in bnds :
-      bb[2][1][1] = ptLists[i]
-      #print(bb[2][1][1])
+      ptl = Internal.getNodesFromType(bb, 'IndexArray_t')
+      ptl[0][1] = ptLists[i]
+      #print(ptl[0][1])
       i=i+1
 
     # update the Join pointlist and synchronize with other zones (their pointListDonnor)
     for j in joins:
       donnorName = "".join(j[1])
+      ptl = Internal.getNodeFromName1(j, 'PointList')
       #print(donnorName)
       dz = Internal.getNodeFromName(zones, donnorName)
       joinsD = Internal.getNodesFromType(dz, 'GridConnectivity_t')
       for jd in joinsD:
         dname = "".join(jd[1])
         if (dname != zname) : continue
+        ptlD = Internal.getNodeFromName1(jd, 'PointListDonor')
         
-        PG0 = j[2][1][1][0][0] # first polygon in the poitn list 
-        PG0D = jd[2][2][1][0][0] # first polygon in the poitn list
+        PG0 = ptl[1][0][0] # first polygon in the poitn list 
+        PG0D = ptlD[1][0][0] # first polygon in the poitn list
         if (PG0 != PG0D) : continue # not the right join (in case of multiple joins for 2 zones) : the first PG must be the same (assume one PG only in one join)
-        j[2][1][1]= ptLists[i]
-        jd[2][2][1] = ptLists[i]
+        ptl[1]= ptLists[i]
+        ptlD[1] = ptLists[i]
         break
       i=i+1
 
