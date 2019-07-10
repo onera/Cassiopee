@@ -44,7 +44,7 @@ private:
 template< typename ngo_t>
 void Prism::reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i)
 {
-  //std::cout << "reorder_pgs" << std::endl;
+  //std::cout << "reorder_pgs" << std::endl;  
   std::map<E_Int,E_Int> glmap; // crd1 to 0-26 indexes
   E_Int nb_faces = ng.PHs.stride(i); 
   E_Int* faces = ng.PHs.get_facets_ptr(i);
@@ -114,13 +114,13 @@ void Prism::reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i)
       }
     }
     if (commonNodes[0] && commonNodes[1])
-      F1Id = k;
+      F1Id = (k+l) % nb_faces;
     else if (commonNodes[1] && commonNodes[2])
-      F2Id = k;
+      F2Id = (k+l) % nb_faces;
     else if (commonNodes[2] && commonNodes[0])
-      F3Id = k;
+      F3Id = (k+l) % nb_faces;
     else if (count == 0)
-      TOPId = k;    
+      TOPId = (k+l) % nb_faces;    
     }
 
   E_Int mol[5];
@@ -134,7 +134,7 @@ void Prism::reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i)
   for (int i = 0; i < nb_faces; ++i)
     faces[i] = mol[i];
    
-  //sam
+  //
   assert(ng.PGs.stride(faces[0]-1) == 3);
   assert(ng.PGs.stride(faces[1]-1) == 4);
   assert(ng.PGs.stride(faces[2]-1) == 4);

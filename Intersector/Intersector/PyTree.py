@@ -697,7 +697,6 @@ def _adaptCellsNodal(t, nodal_vals, hmesh=None):
         if (hmesh != None):
             res = intersector.adaptCellsNodal(coords, nval, hmesh[i])
         else:
-            print 'this one'
             res = intersector.adaptCellsNodal(coords, nval, None)
 
         mesh = res[0]

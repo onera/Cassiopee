@@ -101,7 +101,7 @@ E_Int NUGA::adaptor<mesh_t, sensor_t>::run(mesh_t& hmesh, sensor_t& sensor, type
 //  std::chrono::duration<double> t1 = end-start;
 //  std::cout << "tps verif= " << t1.count() << "s"<< std::endl;
     Vector_t<E_Int> s(10,0);
-  for (int i=0; i< hmesh._ng.PHs.size(); i++){
+  for (int i=0; i< hmesh._ng->PHs.size(); i++){
       if (hmesh._PHtree.is_enabled(i)){
           E_Int level= hmesh._PHtree.get_level(i);
           for (int j=0; j<10; j++){

@@ -953,8 +953,8 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t, crd_t>::verif4()
 template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t, typename crd_t>
 void hierarchical_mesh<ELT_t, STYPE, ngo_t, crd_t>::verif5()
 {
-    Vector_t<E_Int> lmax(_crd.cols(),0);
-    Vector_t<E_Int> lmin(_crd.cols(),E_IDX_NONE);
+    Vector_t<E_Int> lmax(_crd->cols(),0);
+    Vector_t<E_Int> lmin(_crd->cols(),E_IDX_NONE);
     
     E_Int nb_phs= _ng->PHs.size();
     for (int i=0; i< nb_phs; i++){
@@ -977,7 +977,7 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t, crd_t>::verif5()
         }
     }
     
-    E_Int nb_nodes= _crd.cols();
+    E_Int nb_nodes= _crd->cols();
     E_Int err(0);
     for (int i=0; i< nb_nodes; i++){
         if (lmax[i]-lmin[i]>1){
