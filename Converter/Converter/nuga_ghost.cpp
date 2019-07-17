@@ -79,7 +79,6 @@ void add_n_topo_layers(std::vector<zone_type>& zones, E_Int i0, E_Int NLAYERS, i
   E_Int color(0);
   
   Zi0.init_pg_types(color);
-    
   for (E_Int i=0; i < nb_zones; ++i)
   {
     if (i == i0) continue;
@@ -169,7 +168,7 @@ void add_n_topo_layers(std::vector<zone_type>& zones, E_Int i0, E_Int NLAYERS, i
 
   if (ghost_on_bcs != 0) //insert one layer of ghost cell on BCs
   { 
-    Zi0.insert_ghosts_on_bcs(ghost_on_bcs, NLAYERS); //1 : single PG ghost /  2 : degen ghost
+    Zi0.insert_ghosts_on_bcs(ghost_on_bcs, NLAYERS); //1 : single PG ghost /  2 : flat ghost / 3: flat ghsot with top creation
 
     std::vector<E_Int> PGcolors, PHcolors;
     Zi0.color_ranges(PGcolors, PHcolors);
@@ -395,11 +394,11 @@ PyObject* K_CONVERTER::addGhostCellsNG(PyObject* self, PyObject* args)
     {
 
       PyObject*  nbelts = K_NUMPY::buildNumpyArray( 5  , 1, 1, 1);
-      PyObject*  nbfaces= K_NUMPY::buildNumpyArray( 6  , 1, 1, 1);
+      PyObject*  nbfaces= K_NUMPY::buildNumpyArray( 7  , 1, 1, 1);
       E_Int*         Elt= K_NUMPY::getNumpyPtrI( nbelts );
       E_Int*        Face= K_NUMPY::getNumpyPtrI( nbfaces );
       Elt[0]=0;Elt[1]=0;Elt[2]=0;Elt[3]=0;Elt[4]=0;
-      Face[0]=0;Face[1]=0;Face[2]=0;Face[3]=0;Face[4]=0;Face[5]=0;
+      Face[0]=0;Face[1]=0;Face[2]=0;Face[3]=0;Face[4]=0;Face[5]=0;Face[6]=0;
 
       tmp_zones.clear();
 
@@ -411,15 +410,33 @@ PyObject* K_CONVERTER::addGhostCellsNG(PyObject* self, PyObject* args)
       		tmp_zones[j].change_joins_zone(zones[k], &tmp_zones[k]);
       }
       
-      add_n_topo_layers(tmp_zones, i, NLAYERS, 2/*add degen gost cells on bcs*/); //0 : no ghost / 1: ghost with only one PG / 2: degen ghost
+      add_n_topo_layers(tmp_zones, i, NLAYERS, 3/*add degen gost cells on bcs whith top creation*/); //0 : no ghost / 1: ghost with only one PG / 2: degen ghost / 3 : degen ghost with top creation
       zone_type& Zghost = tmp_zones[i];
+/*
+std::vector<E_Int> PGcolors, PHcolors;
+Zghost.color_ranges(PGcolors, PHcolors);
+
+E_Int nb_colors = PHcolors.size(); 
+
+for (E_Int p=0; p < nb_colors - 1; ++p)
+{
+    E_Int current_start = PHcolors[p];  //indice de debut de la couleur courante
+    E_Int current_type = Zghost._ng.PHs._type[current_start ];  //couleur : -1(interne), 1(couche 1) , 99(ghost sur BC), 2(couche 2), ...
+    E_Int current_range = PHcolors[p+1] - PHcolors[p]; // nombre d'élément portant cette couleur
+    printf("current_start: %d , current_type: %d , current_range: %d, colors_i: %d \n", current_start,current_type,current_range, p);
+}
+*/
 
       E_Int nb_phs = Zghost._ng.PHs.size();
       for (size_t l=0; l < nb_phs; ++l)
       {
          //CALCUL nb ELEMENT COUCHE ZERO
          if(Zghost._ng.PHs._type[l]==-1) Elt[0]+=1;
+         if(Zghost._ng.PHs._type[l]== 1) Elt[1]+=1;
+         if(Zghost._ng.PHs._type[l]== 2) Elt[2]+=1;
+         if(Zghost._ng.PHs._type[l]==99) Elt[3]+=1;
 
+         /*
          //CALCUL nb ELEMENT COUCHE un
          if(Zghost._ng.PHs._type[l]== 1)
          { Elt[1]+=1;
@@ -431,7 +448,7 @@ PyObject* K_CONVERTER::addGhostCellsNG(PyObject* self, PyObject* args)
            //printf("verif %d %d %d   \n", Zghost._ng.PGs._type[PGi0], PGi0, PGi1);
 
            if (PGi0 != PGi1) Elt[3]+=1;  //nbre d element couche 1 de type raccord
-         }
+         }*/
       }
       printf("ELts0 = %d, ELts1 = %d, ELts2 = %d %d %d \n", Elt[0],Elt[1],Elt[2],Elt[3],Elt[4]);
 
@@ -447,8 +464,10 @@ PyObject* K_CONVERTER::addGhostCellsNG(PyObject* self, PyObject* args)
       //printf("face = %d %d \n", Zghost._ng.PGs._type[l], l);
       }
 
-
+      Face[6] = nb_pgs;
       printf("FACES= %d %d %d %d %d %d \n",Face[0],Face[1],Face[2],Face[3],Face[4],Face[5] );
+
+      printf("ELts0 = %d, ELts1 RacTyp = %d, ELts2 RacTyp = %d, ELts BC1&2 %d \n", Elt[0],Elt[1],Elt[2],Elt[3]);
 
       if (!err)
       {
