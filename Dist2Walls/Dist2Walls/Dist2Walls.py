@@ -4,7 +4,7 @@ from . import dist2walls
 try: import Converter as C
 except(ImportError):
     raise ImportError("Dist2Walls: requires Converter modules.")
-__version__ = '2.9'
+__version__ = '3.0'
 __author__ = "Stephanie Peron, Christophe Benoit, Pascal Raud, Sam Landier"
 
 try: range = xrange

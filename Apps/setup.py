@@ -15,7 +15,7 @@ if prod is None: prod = 'xx'
 # setup ======================================================================
 setup(
     name="Apps",
-    version="2.9",
+    version="3.0",
     description="Application module (layer1).",
     author="C. Benoit",
     package_dir={"":"."},

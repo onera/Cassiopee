@@ -1,6 +1,6 @@
 """Grid generation module.
 """
-__version__ = '2.9'
+__version__ = '3.0'
 __author__ = "Stephanie Peron, Sam Landier, Christophe Benoit, Gaelle Jeanfaivre, Pascal Raud, Luis Bernardos"
 # 
 # Python Interface to create arrays defining meshes

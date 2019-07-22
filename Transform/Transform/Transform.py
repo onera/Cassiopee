@@ -1,6 +1,6 @@
 """Transformation of arrays.
 """
-__version__ = '2.9'
+__version__ = '3.0'
 __author__ = "Stephanie Peron, Christophe Benoit, Gaelle Jeanfaivre, Pascal Raud"
 # 
 # Python Interface to make basic transformations on arrays

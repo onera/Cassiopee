@@ -1754,8 +1754,7 @@ def _setInterpDataForGhostCells__(aR, aD, storage='direct',loc="nodes"):
                             # definie par le prange dimensionnes dans le maillage ghost cells
                             shift = 0 # les indices sont ceux des pts en frontiere max GC
                             #arrayOfIndicesR = GhostCells.getBorderIndicesStruct__(prange,zoneDimR,dirR,0,locS,dimPb,shift)
-                            [ arrayOfIndicesR, dim1, dim2]  = GhostCells.getBorderIndicesStruct__(prange,zoneDimR,dirR,0,locS,dimPb,shift)
-
+                            [arrayOfIndicesR, dim1, dim2]  = GhostCells.getBorderIndicesStruct__(prange,zoneDimR,dirR,0,locS,dimPb,shift)
 
                             # listOfIndicesD : indices globaux des 1ers pts donneurs associes a ceux definis par
                             # arrayOfIndicesR

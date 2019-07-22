@@ -43,7 +43,7 @@ libraryDirs += paths; libraries += libs
 import srcs
 setup(
     name="Intersector",
-    version="2.9",
+    version="3.0",
     description="Mesh-intersection-based services in *Cassiopee*.",
     author="Onera",
     package_dir={"":"."},
