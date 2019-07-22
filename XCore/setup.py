@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from distutils.core import setup, Extension
 import os
 
@@ -33,7 +34,7 @@ if prod is None: prod = 'xx'
 # Setting libraryDirs, include dirs and libraries =============================
 libraryDirs = ["build/"+prod, kcoreLibDir]
 includeDirs = [numpyIncDir, kcoreIncDir]
-libraries = ["xcore", "kcore"]
+libraries = ["kcore"]
 
 ADDITIONALCPPFLAGS = []
 if mpi:
@@ -45,27 +46,28 @@ if mpi4py:
 if mpi:
     if Dist.getSystem()[0] == 'mingw': libraries.append('msmpi')
     else: libraries.append('mpi');#libraries.append('mpi_cxx')
-        
+
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
-    
+
 # Extensions ==================================================================
+import srcs
 listExtensions = []
 listExtensions.append(
     Extension('XCore.xcore',
-              sources=['XCore/xcore.cpp'],
+              sources=['XCore/xcore.cpp']+srcs.cpp_srcs,
               include_dirs=["XCore"]+additionalIncludePaths+includeDirs,
               library_dirs=additionalLibPaths+libraryDirs,
               libraries=libraries+additionalLibs,
-              extra_compile_args=Dist.getCArgs()+ADDITIONALCPPFLAGS,
+              extra_compile_args=Dist.getCppArgs()+ADDITIONALCPPFLAGS,
               extra_link_args=Dist.getLinkArgs()
-              ) )
+              ))
 
 # setup ======================================================================
 setup(
     name="XCore",
     version="2.9",
-    description="XCore for *Cassiopee* modules.",
+    description="Parallel core for *Cassiopee* modules.",
     author="Onera",
     package_dir={"":"."},
     packages=['XCore'],

@@ -50,8 +50,13 @@ if mpi:
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 
+# Options for scotch
+opts =['-DCOMMON_FILE_COMPRESS_GZ','-DCOMMON_PTHREAD','-DCOMMON_RANDOM_FIXED_SEED',
+       '-DSCOTCH_RENAME','-DSCOTCH_PTHREAD','-restrict','-DIDXSIZE64',
+       '-DSCOTCH_VERSION_NUM=6','-DSCOTCH_RELEASE_NUM=0','-DSCOTCH_PATCHLEVEL_NUM=6']
+ADDITIONALCPPFLAGS += opts
+
 # Env =========================================================================
-import srcs
 if Dist.getSystem()[0] == 'mingw': tools = ['mingw']
 else: tools = None
 
@@ -67,8 +72,12 @@ env.Replace(CPPPATH=["XCore"]+additionalIncludePaths+includeDirs)
 env.Replace(CXXFLAGS=Dist.getCppArgs()+ADDITIONALCPPFLAGS)
 env.Replace(CFLAGS=Dist.getCArgs()+ADDITIONALCPPFLAGS)
             
+import srcs
 myMod = env.StaticLibrary('xcore', srcs.cpp_srcs)
+myMod2 = env.StaticLibrary('scotch', srcs.cpp_srcs1)
+
 modDir = installPath+'/XCore/'
 dp1 = env.Install(modDir, myMod)
-dp2 = env.Install(modDir, Glob('XCore/*.py'))
-env.Alias(target="install", source=[dp1,dp2])
+dp2 = env.Install(modDir, myMod2)
+dp3 = env.Install(modDir, Glob('XCore/*.py'))
+env.Alias(target="install", source=[dp1,dp2,dp3])
