@@ -5444,10 +5444,12 @@ def node2Center(t, var=''):
       return a
     else:
       if isinstance(var, list):
-        for v in var: node2Center__(a, v)
-      else: node2Center__(a, var)
+        for v in var: _node2Center__(a, v)
+      else: _node2Center__(a, var)
       return a
 
+# commentaire SP : mauvais fonctionnement : modifie a et retourne a 
+# est appele par etc tel quel...
 def node2Center__(a, var):
   var, loc = Internal.fixVarName(var)
   if loc == 1: return a
@@ -5455,6 +5457,14 @@ def node2Center__(a, var):
   fieldc = Converter.node2Center(fieldn)
   setFields(fieldc, a, 'centers')
   return a
+
+def _node2Center__(a, var):
+  var, loc = Internal.fixVarName(var)
+  if loc == 1: return None
+  fieldn = getField(var, a)
+  fieldc = Converter.node2Center(fieldn)
+  setFields(fieldc, a, 'centers')
+  return None
 
 # Adapte les arrays pour les cas nk=1 => passe en nk=2 si la zone est nk=2
 def _patchArrayForCenter2NodeNK1__(fields, a):
@@ -5552,7 +5562,7 @@ def center2Node(t, var=None, cellNType=0):
       if ghost is None:
         a = Internal.addGhostCells(t, t, 1, modified=vars)
       else: a = Internal.copyRef(t)
-      for v in vars: center2Node__(a, v, cellNType)
+      for v in vars: _center2Node__(a, v, cellNType)
       # if there are center vars in the list, add equivalent node vars because
       # they have been created by center2Node
       ghost2 = Internal.getNodeFromName(a, 'ZoneRind')
@@ -5565,7 +5575,13 @@ def center2Node(t, var=None, cellNType=0):
         a = Internal.rmGhostCells(a, a, 1, modified=var2)
       return a
 
+# mauvais fonctionnement : modifie a et retourne a 
+# mais appele dans etc tel quel.
 def center2Node__(a, var, cellNType):
+  _center2Node__(a, var, cellNType)
+  return a
+
+def _center2Node__(a, var, cellNType):
   fieldc = getField(var, a)
   fieldn = []
   for i in fieldc:
@@ -5573,7 +5589,7 @@ def center2Node__(a, var, cellNType):
     fieldn.append(i)
   _patchArrayForCenter2NodeNK1__(fieldn, a)
   setFields(fieldn, a, 'nodes', writeDim=False)
-  return a
+  return None
 
 # -- node2ExtCenters
 # Convert a zone to an extended center zone

@@ -101,13 +101,19 @@ PyObject* K_GENERATOR::TFI2D(PyObject* arrays)
   //short isok = TFIstruct2D(ni, nj, nfld, imin, imax, jmin, jmax, fields, coord);
   short isok = TFIstruct2D2(ni, nj, nfld, posx, posy, posz, imin, imax, jmin, jmax, fields, coord);
 
-  if (isok == 0) //echec
+  if (isok < 1) //echec
   {
     for (E_Int nos = 0; nos < nzones; nos++)
-        RELEASESHAREDS(objs[nos], fields[nos]);
-    
-    PyErr_SetString(PyExc_TypeError,
-                    "TFI: input arrays are not valid.");
+      RELEASESHAREDS(objs[nos], fields[nos]);
+    if ( isok == -1)
+      PyErr_SetString(PyExc_TypeError,
+                      "TFI: imin and imax borders are not of same size ni.");
+    else if ( isok == -2 )
+            PyErr_SetString(PyExc_TypeError,
+                      "TFI: jmin and jmax borders are not of same size nj.");
+    else       
+      PyErr_SetString(PyExc_TypeError,
+                      "TFI: input arrays are not valid.");
     return NULL;
   }
   for (E_Int nos = 0; nos < nzones; nos++)
@@ -163,6 +169,9 @@ short K_GENERATOR::TFIstruct2D2(E_Int ni, E_Int nj, E_Int nfld,
   E_Int ni1 = ni-1;
   E_Int nj1 = nj-1;
   E_Int i, j, ind;
+
+  if ( fields[imin]->getSize() != fields[imax]->getSize()) return -1;
+  if ( fields[jmin]->getSize() != fields[jmax]->getSize()) return -2;
 
   E_Float* pondximin = fields[imin]->begin(posx);
   E_Float* pondximax = fields[imax]->begin(posx);

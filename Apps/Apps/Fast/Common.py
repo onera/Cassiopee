@@ -26,7 +26,7 @@ def _distributeFile(t_in, tc_in, NP):
     t = Filter.convertFile2SkeletonTree(t_in, maxDepth=3, maxFloatSize=6)
     tc = Filter.convertFile2SkeletonTree(tc_in, maxDepth=3, maxFloatSize=6)
     stats = D2._distribute(tc, NP, algorithm='graph', useCom='ID')
-    D2._copyDistribution(tc, t)
+    D2._copyDistribution(t, tc)
     nodes = Internal.getNodesFromName(t, 'proc')
     for n in nodes:
         p = Internal.getPath(t, n)
@@ -41,8 +41,8 @@ def _distributeMem(t, tc, NP):
     import Distributor2.PyTree as D2
     tbbc = Cmpi.createBBoxTree(tc)
     stats = D2._distribute(tbbc, NP, algorithm='graph', useCom='ID')
-    D2._copyDistribution(tbbc, tc)
-    D2._copyDistribution(tbbc, t)
+    D2._copyDistribution(tc, tbbc)
+    D2._copyDistribution(t, tbbc)
     return None
 
 #==================================================
@@ -92,7 +92,7 @@ def _distributeOptFile(t_in, tc_in, corePerNode=28, nptMaxPerCore=4.e6):
     print(stats)
     #D2._printProcStats(t,stats,NP)
 
-    D2._copyDistribution(tc, t)
+    D2._copyDistribution(t, tc)
     nodes = Internal.getNodesFromName(t, 'proc')
     for n in nodes:
         p = Internal.getPath(t, n)

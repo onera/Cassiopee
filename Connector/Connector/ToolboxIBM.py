@@ -300,7 +300,7 @@ def buildParentOctrees__(o, tb, snears=None, snearFactor=4., dfar=10., dfarList=
     if nzones0 < 1000: return None
 
     parento = buildOctree(tb, snears=snears, snearFactor=snearFactor, dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf, 
-                          dimPb=dimPb, vmin=vmin, symmetry=symmetry, balancing=0, rank=rank)
+                          dimPb=dimPb, vmin=vmin, symmetry=symmetry, balancing=0, rank=rank, expand=0)
     
     bbo = G.bbox(parento)
     xmino=bbo[0]; xmaxo=bbo[3]; xmeano=0.5*(xmino+xmaxo)
@@ -424,7 +424,7 @@ def _addExternalBCs(t, bbox, DEPTH=2, externalBCType='BCFarfield', dimPb=3):
 # to : maillage octree, si not None : on le prend comme squelette 
 #--------------------------------------------------------------------------
 def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None, tbox=None, snearsf=None, 
-                dimPb=3, vmin=15, balancing=2, symmetry=0, fileout=None, rank=0):
+                dimPb=3, vmin=15, balancing=2, symmetry=0, fileout=None, rank=0, expand=1):
     i = 0; surfaces=[]; snearso=[] # pas d'espace sur l'octree
     bodies = Internal.getZones(tb)
     if not isinstance(snears, list): snears = len(bodies)*[snears]
@@ -467,24 +467,34 @@ def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None,
             elif symmetry==-3: o = P.selectCells(o,'{CoordinateZ}<%g'%(zmoy+TOLDIST))  
 
         vmint = 31
-        if vmin < vmint:
-            if rank==0: print('buildOctree: octree finest level expanded (expandLayer activated).')
+        if expand == 1:
+            if vmin < vmint:
+                if rank==0: print('buildOctree: octree finest level expanded (expandLayer activated).')
+                to = C.newPyTree(['Base',o])
+                to = blankByIBCBodies(to, tb, 'centers', dimPb)
+                C._initVars(o,"centers:indicator", 0.)
+                cellN = C.getField("centers:cellN",to)[0]
+                octreeA = C.getFields(Internal.__GridCoordinates__, o)[0]
+                indic = C.getField("centers:indicator",o)[0]
+                indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic,0,0, 2)
+                indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic,1,0, 2) # CB
+                indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic,2,0, 2) # CB
+                indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic,3,0, 2) # CB
+                                                                                          
+                indic = Converter.addVars([indic,cellN])
+                indic = Converter.initVars(indic,"{indicator}={indicator}*({cellN}>0.)")
+                octreeA = Generator.adaptOctree(octreeA, indic, balancing=2)
+                o = C.convertArrays2ZoneNode(o[0],[octreeA])                  
+
             to = C.newPyTree(['Base',o])
             to = blankByIBCBodies(to, tb, 'centers', dimPb)
-            C._initVars(o,"centers:indicator", 0.)
-            cellN = C.getField("centers:cellN",to)[0]
+            indic = C.getField("centers:cellN",to)[0]
             octreeA = C.getFields(Internal.__GridCoordinates__, o)[0]
-            indic = C.getField("centers:indicator",o)[0]
-            indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic,0,0)
-            indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic,1,0) # CB
-            indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic,2,0) # CB
-            indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic,3,0) # CB
-                                                                                      
-            indic = Converter.addVars([indic,cellN])
-            indic = Converter.initVars(indic,"{indicator}={indicator}*({cellN}>0.)")
+            indic = Converter.initVars(indic,'indicator',0.)
+            indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic,0,0,1)
+            indic = Converter.extractVars(indic,["indicator"])
             octreeA = Generator.adaptOctree(octreeA, indic, balancing=2)
-            o = C.convertArrays2ZoneNode(o[0],[octreeA])                  
-
+            o = C.convertArrays2ZoneNode(o[0],[octreeA])     
 
         G._getVolumeMap(o); volmin = C.getMinValue(o, 'centers:vol')
         C._rmVars(o,'centers:vol')

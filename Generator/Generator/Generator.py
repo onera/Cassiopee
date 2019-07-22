@@ -1568,11 +1568,11 @@ def expandLayer(octreeHexa, level=0, corners=0, balancing=0):
     Usage: expandLayer(octree, level, corners, balancing)"""
     try: import Converter as C
     except: raise ImportError("expandLayer: requires Converter module.")
-    
+    typeExpand=2 # check neigbours only
     indic = C.node2Center(octreeHexa)
     indic = C.initVars(indic, 'indicator', 0.)
     indic = generator.modifyIndicToExpandLayer(octreeHexa, indic,
-                                               level, corners)
+                                               level, corners, typeExpand)
     return adaptOctree(octreeHexa, indic, balancing)
 
 # addnormallayers pour une liste d'arrays structures

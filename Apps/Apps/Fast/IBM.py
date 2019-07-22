@@ -276,8 +276,7 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
     test.printMem(">>> Wall distance [start]")
     if dimPb == 2:
         z0 = Internal.getNodeFromType2(t, "Zone_t")
-        bb0 = G.bbox(z0); dz = bb[5]-bb[2]
-        dz = bb0[5]-bb0[2]
+        bb0 = G.bbox(z0); dz = bb0[5]-bb0[2]
         tb2 = C.initVars(tb,'CoordinateZ',dz*0.5)
         DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dimPb, loc='centers')
     else:
@@ -859,7 +858,8 @@ def loads(t_case, tc_in, wall_out, alpha=0., beta=0., Sref=None):
         C._initVars(zw, 'xc=({CoordinateX}-%f)/(%f-%f)'%(xmin, xmax, xmin))
 
     if isinstance(wall_out, str): C.convertPyTree2File(zw, wall_out)
-
+    return zw
+    
 #====================================================================================
 # Redistrib on NP processors
 #====================================================================================

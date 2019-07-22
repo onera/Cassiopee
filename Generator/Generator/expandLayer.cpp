@@ -22,16 +22,21 @@ using namespace K_FLD;
 using namespace std;
 
 //=============================================================================
-/* Modify the indicator to expand the layer of level l */
+/* Modify the indicator to expand the layer of level l 
+  checkType = 0 : none
+  checkType = 1 : check blanking of neighbouring cells
+  checkType = 2 : check spacing of neighbouring cells
+  checkType = 3 : 1+2
+*/
 //=============================================================================
 PyObject* K_GENERATOR::modifyIndicToExpandLayer(PyObject* self, PyObject* args)
 {
   PyObject *octree, *indicator; 
-  E_Int level; E_Int corners;
+  E_Int level, corners, checkType;
 #ifdef E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "OOll", &octree, &indicator, &level, &corners)) return NULL;
+  if (!PyArg_ParseTuple(args, "OOlll", &octree, &indicator, &level, &corners, &checkType)) return NULL;
 #else
-  if (!PyArg_ParseTuple(args, "OOii", &octree, &indicator, &level, &corners)) return NULL;
+  if (!PyArg_ParseTuple(args, "OOiii", &octree, &indicator, &level, &corners, &checkType)) return NULL;
 #endif
   if (level < 0) {printf("Warning: expandLayer: level is set to 0.\n"); level = 0;}
 
@@ -74,7 +79,7 @@ PyObject* K_GENERATOR::modifyIndicToExpandLayer(PyObject* self, PyObject* args)
   if (resi != 1 && resi != 2) 
   {
     PyErr_SetString(PyExc_TypeError,
-                    "expandLayer: indic array must be structured.");
+                    "expandLayer: indic array is not valid.");
     RELEASESHAREDU(octree, f, cn); return NULL;
   }
   E_Int posi = K_ARRAY::isNamePresent("indicator", varStringi);
@@ -125,6 +130,13 @@ PyObject* K_GENERATOR::modifyIndicToExpandLayer(PyObject* self, PyObject* args)
   vector< vector<E_Int> > cEEN(nelts);
   getNeighbourElts(npts, xt, yt, zt, *cn, cEEN, corners, dhmin); 
   E_Float* indict = fi->begin(posi);
+  E_Int posc = K_ARRAY::isCellNatureField1Present(varStringi);
+  E_Float* cellNp = NULL;
+  if (posc > -1)
+  {
+    posc++;
+    cellNp = fi->begin(posc);
+  }
 
   // detection des elements de niveau l 
   E_Float eps = 1.e-10; E_Float dhl = pow(2.,level) * dhmin;
@@ -133,15 +145,34 @@ PyObject* K_GENERATOR::modifyIndicToExpandLayer(PyObject* self, PyObject* args)
   E_Float dhleps = dhl + eps;
   for (E_Int et = 0; et < nelts; et++)
   {
-    if (K_FUNC::fEqualZero(dhtp[et]-dhl,eps) == true) 
+    E_Float dhet = dhtp[et];
+    if ( checkType == 1 && cellNp[et]==0.)// check blanking only
     {
       vector<E_Int>& voisins = cEEN[et];
       for (size_t nov = 0; nov < voisins.size(); nov++)
       {
         etv = voisins[nov];
-        if (dhtp[etv] > dhleps) indict[etv] = 1.;
+        E_Float dhetv = dhtp[etv];
+        if (cellNp[etv]==1.) 
+        {
+          if (dhet > dhetv+eps) indict[et]=1.;           
+          else if (dhetv > dhet+eps) indict[etv]=1.;  
+        }
       }
     }
+    else if (checkType == 2)//compare sizes of neighbouring cells
+    {
+      if (K_FUNC::fEqualZero(dhet-dhl,eps) == true)
+      {
+        vector<E_Int>& voisins = cEEN[et];
+        for (size_t nov = 0; nov < voisins.size(); nov++)
+        {
+          etv = voisins[nov];
+          E_Float dhetv = dhtp[etv];
+          if (dhetv > dhleps ) indict[etv] = 1.;
+        }
+      }
+    }   
   }
 
   /*-----------CONSTRUCTION ARRAY DE SORTIE ------------------*/

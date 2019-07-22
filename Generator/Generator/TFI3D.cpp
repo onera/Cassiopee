@@ -114,8 +114,18 @@ PyObject* K_GENERATOR::TFI3D(PyObject* arrays)
   {
     for (E_Int nos = 0; nos < nzones; nos++)
       RELEASESHAREDS(objs[nos], fields[nos]);
-    PyErr_SetString(PyExc_TypeError,
-                    "TFI: input arrays are not valid.");
+    if ( isok == -1)
+      PyErr_SetString(PyExc_TypeError,
+                      "TFI: imin and imax borders are not of same size ni.");
+    else if ( isok == -2)
+      PyErr_SetString(PyExc_TypeError,
+                      "TFI: jmin and jmax borders are not of same size nj.");
+    else if ( isok == -3)
+      PyErr_SetString(PyExc_TypeError,
+                      "TFI: kmin and kmax borders are not of same size nk.");    
+    else    
+      PyErr_SetString(PyExc_TypeError,
+                      "TFI: input arrays are not valid.");
     return NULL;
   }
   for (E_Int nos = 0; nos < nzones; nos++)
@@ -197,6 +207,9 @@ short K_GENERATOR::TFIstruct3D2(
   E_Int ind, indij, indjk, indik;
   E_Float t1x, t3x, t2x12, t2x13, t2x23;
   E_Int ninj = ni*nj;
+  if ( fields[imin]->getSize() != fields[imax]->getSize()) return -1;
+  if ( fields[jmin]->getSize() != fields[jmax]->getSize()) return -2;
+  if ( fields[kmin]->getSize() != fields[kmax]->getSize()) return -3;
 
   //  x,y,z pour 6 faces
   E_Float* pondximin = fields[imin]->begin(posx);
