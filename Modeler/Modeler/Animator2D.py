@@ -7,6 +7,7 @@ import Generator.PyTree as G
 import Transform.PyTree as T
 import CPlot.PyTree as CPlot
 from operator import itemgetter
+import math
 
 class Animator2D:
     def __init__(self):
@@ -16,18 +17,23 @@ class Animator2D:
         self.line = []
 
     # tri t suivant zpos
+    # normalement, cette fonction ne devrait pas etre appelee
+    # car le tri doit etre fait au drawImage
     def sort(self):
         zones = Internal.getZones(self.t)
         out = []
         for z in zones:
             zpos = Internal.getNodeFromName1(z, 'zpos')
-            zpos = Internal.getValue(zpos)
+            if zpos is not None: zpos = Internal.getValue(zpos)
+            else: zpos = 0.
             out.append( (zpos, z) )
-        so = sorted(out, key=itemgetter(0))
+        #so = sorted(out, key=itemgetter(0))
+        out.sort(key=itemgetter(0))
         zs = []
-        for s in so:
-            zs.append(so[1])
+        for s in out: zs.append(s[1])
         self.t[2][1][2] = zs
+        # Must redisplay to keep ploter coherent
+        CPlot.display(self.t)
 
     # Register an image
     def registerImage(self, key, fileName, Ni=1, Nj=1, speed=0.1):
@@ -66,33 +72,69 @@ class Animator2D:
                       posEye=(0.,0,0), dirCam=(0,1,0))
         CPlot.setState(activateShortCuts=0, displayInfo=0)
 
+    # get noz of key
+    def getNozOfKey(self, key, zones):
+        for noz, z in enumerate(zones):
+            if z[0] == key: return noz
+        return -1
+
+    # get noz of zpos
+    def getNozOfZPos(self, zpos, zones):
+        for noz, z in enumerate(zones):
+            zp = Internal.getNodeFromName1(z, 'zpos')
+            if zp is not None: zp = Internal.getValue(zp)
+            else: zp = 0.
+            if zp >= zpos: return noz
+        return -1
+
     # move key right
-    def moveRight(self, key, xr=0.01):
-        self.move(key, (xr,0,0))
+    def moveRight(self, key, xr=0.01, render=True):
+        self.move(key, (xr,0,0), render)
 
-    def moveLeft(self, key, xr=0.01):
-        self.move(key, (-xr,0,0))
+    def moveLeft(self, key, xr=0.01, render=True):
+        self.move(key, (-xr,0,0), render)
 
-    def moveUp(self, key, xr=0.01):
-        self.move(key, (0,xr,0))
+    def moveUp(self, key, xr=0.01, render=True):
+        self.move(key, (0,xr,0), render)
     
-    def moveDown(self, key, xr=0.01):
-        self.move(key, (0,-xr,0))
+    def moveDown(self, key, xr=0.01, render=True):
+        self.move(key, (0,-xr,0), render)
 
-    # move a key
-    def move(self, key, v):
+    # move a key from an offset v
+    def move(self, key, v, render=True):
         if len(v) == 2: v = (v[0],v[1],0.)
         zones = Internal.getZones(self.t)
-        noz = 0
-        for z in zones:
-            if z[0] == key: break
-            noz += 1
+        #noz = 0
+        #for z in zones:
+        #    if z[0] == key: break
+        #    noz += 1
+        noz = self.getNozOfKey(key, zones)    
         z = Internal.getNodeFromName2(self.t, key)
         zp = T.translate(z, v)
         CPlot.replace(self.t,1,noz,zp)
-        CPlot.render()
+        if render: CPlot.render()
 
-    # Return zone of key
+    # place a key in x,y
+    def place(self, key, pos, render=True):
+        if len(pos) == 2: v = (pos[0],pos[1],0.)
+        else: v = pos   
+        zones = Internal.getZones(self.t)
+        #noz = 0
+        #for z in zones:
+        #    if z[0] == key: break
+        #    noz += 1
+        noz = self.getNozOfKey(key, zones)
+        z = Internal.getNodeFromName2(self.t, key)
+        sp = Internal.getNodeFromName2(z, 'ShaderParameters')[1]
+        zp = D.point(v)
+        CPlot._addRender2Zone(zp, material='Sphere', shaderParameters=[sp[0],sp[1]])
+        zp[0] = key
+        C._initVars(zp, 'TBB__', 0.)
+        Internal._createChild(zp, 'zpos', 'DataArray_t', value=v[2])
+        CPlot.replace(self.t,1,noz,zp)
+        if render: CPlot.render()
+
+    # Return zone of key in tree
     def getZone(self, key):
         z = Internal.getNodeFromName2(self.t, key)
         return z
@@ -106,19 +148,65 @@ class Animator2D:
         return (px[1].ravel()[0],py[1].ravel()[0],pz[1].ravel()[0])
 
     # draw an image
-    def drawImage(self, key, imageKey=None, pos=(0,0,0), scale=1.):
+    def drawImage(self, key, imageKey=None, pos=(0,0,0), scale=1., render=True):
         if imageKey is None: imageKey = key
         a = D.point(pos)
         CPlot._addRender2Zone(a, material='Sphere', shaderParameters=[30.*scale,self.getShaderNo(imageKey)])
         a[0] = key
         C._initVars(a, 'TBB__', 0.)
         Internal._createChild(a, 'zpos', 'DataArray_t', value=pos[2])
-        CPlot.add(self.t, 1, -1, a)
-        CPlot.render()
+        # tri suivant zpos
+        zones = Internal.getZones(self.t)
+        noz = self.getNozOfZPos(pos[2], zones)
+        CPlot.add(self.t, 1, noz, a)
+        if render: CPlot.render()
+
+    # draw multiple time the same image in one key
+    def drawMultipleImage(self, key, imageKey=None, pos=[(0,0,0)], scale=1., render=True):
+        if imageKey is None: imageKey = key
+        a = D.polyline(pos)
+        a = C.convertArray2Hexa(a)
+        #a = C.convertArray2Node(a)
+        CPlot._addRender2Zone(a, material='Sphere', shaderParameters=[30.*scale,self.getShaderNo(imageKey)])
+        a[0] = key
+        C._initVars(a, 'TBB__', 0.)
+        Internal._createChild(a, 'zpos', 'DataArray_t', value=pos[0][2])
+        # tri suivant zpos
+        zones = Internal.getZones(self.t)
+        noz = self.getNozOfZPos(pos[0][2], zones)
+        CPlot.add(self.t, 1, noz, a)
+        if render: CPlot.render()        
+
+    # draw a particle system from a point
+    def drawParticles(self, key, imageKey=None, pos=(0,0,0), Np=10, scale=1., render=True):
+        import random
+        if imageKey is None: imageKey = key
+        out = []
+        for i in range(Np):
+            xpos = (pos[0]-i*0.01/Np,pos[1],pos[2])
+            b = D.point(xpos)
+            alpha = i*math.pi/(Np-1)
+            C._initVars(b, 'vx=%g'%math.cos(alpha))
+            C._initVars(b, 'vy=%g'%math.sin(alpha))
+            C._initVars(b, 'vz=0.')
+            r = random.randint(-10, 10)
+            if r > 0: r = 0
+            C._initVars(b, 'life=%d'%r)
+            out.append(b)
+        a = T.join(out, tol=1.e-12)
+        #CPlot._addRender2Zone(a, material='Sphere', shaderParameters=[30.*scale,self.getShaderNo(imageKey)])
+        a[0] = key
+        C._initVars(a, 'TBB__', 0.)
+        Internal._createChild(a, 'zpos', 'DataArray_t', value=pos[2])
+        # Tri suivant zpos
+        zones = Internal.getZones(self.t)
+        noz = self.getNozOfZPos(pos[2], zones)
+        CPlot.add(self.t, 1, noz, a)
+        if render: CPlot.render()        
 
     # draw a text
     def drawText(self, key, pos=(0,0,0), scale=1., text="youpi", color='Black',
-                 h=0.):
+                 h=0., render=True):
         if h == 0.: a = D.text2D(text, font='vera')
         else: 
             a = D.text3D(text, font='vera')
@@ -132,25 +220,40 @@ class Animator2D:
         CPlot._addRender2Zone(a, color=color)
         Internal._createChild(a, 'zpos', 'DataArray_t', value=pos[2])
         CPlot.add(self.t, 1, -1, a)
-        CPlot.render()
+        if render: CPlot.render()
+
+    # draw a selector
+    def drawSelector(self, key, pos=(0,0,0), w=1., h=1., e=0.01, color='Black', render=True):
+        x0 = pos[0]; y0 = pos[1]; z0 = pos[2]
+        P0 = (x0,y0,z0); P1 = (x0+w,y0,z0); P2 = (x0+w,y0+h,z0); P3 = (x0,y0+h,z0)
+        P4 = (x0+e,y0+e,z0); P5 = (x0+w-e,y0+e,z0); P6 = (x0+w-e,y0+h-e,z0); P7 = (x0+e,y0+h-e,z0)
+        Q1 =  D.quadrangle(P0,P1,P5,P4)
+        Q2 =  D.quadrangle(P5,P1,P2,P6)
+        Q3 =  D.quadrangle(P7,P6,P2,P3)
+        Q4 =  D.quadrangle(P0,P4,P7,P3)
+        a = T.join([Q1,Q2,Q3,Q4])
+        a[0] = key
+        C._initVars(a, 'TBB__', 0.)
+        CPlot._addRender2Zone(a, color=color)
+        Internal._createChild(a, 'zpos', 'DataArray_t', value=pos[2])
+        CPlot.add(self.t, 1, -1, a)
+        if render: CPlot.render()
 
     # erase a key
     def erase(self, key, render=True):
         # Replace par un point hors cadre
         a = D.point((0,0,0))
-        noz = 0
         zones = Internal.getZones(self.t)
-        for z in zones:
-            if z[0] == key: break
-            noz += 1
+        noz = self.getNozOfKey(key, zones)
         CPlot.replace(self.t, 1, noz, a)
         if render: CPlot.render()
 
-    # Animate one step of an image
+    # Animate one step of an image (pour les images contenant plusieurs images)
     # si curMin et curMax fournis, loop entre curMin et curMax
-    def animate(self, key, curMin=None, curMax=None):
+    def animate(self, key, curMin=None, curMax=None, imageKey=None, render=True):
+        if imageKey is None: imageKey = key
         a = self.getZone(key)
-        im = self.images[key]
+        im = self.images[imageKey]
         speed = im[4]
         cur = im[5]
         cur += speed
@@ -160,10 +263,46 @@ class Animator2D:
             if cur >= curMax: cur = curMin # loop
         im[5] = cur
         C._initVars(a, 'TBB__', cur)
-        noz = 0
         zones = Internal.getZones(self.t)
-        for z in zones:
-            if z[0] == key: break
-            noz += 1
+        noz = self.getNozOfKey(key, zones)
         CPlot.replace(self.t, 1, noz, a)
-        CPlot.render()
+        if render: CPlot.render()
+
+    # Positionne l'animation de l'image key sur une case (posi,posj)
+    # avec 0 < posi < Ni et 0 < posj < Nj 
+    def setAnimation(self, key, posi, posj, imageKey=None, render=True):
+        if imageKey is None: imageKey = key
+        a = self.getZone(key)
+        im = self.images[imageKey]
+        Ni = im[1]; Nj = im[2]
+        cur = posi + Ni*posj;
+        cur = cur*1. / (Ni*Nj-0.5)
+        im[5] = cur
+        C._initVars(a, 'TBB__', cur)
+        zones = Internal.getZones(self.t)
+        noz = self.getNozOfKey(key, zones)
+        CPlot.replace(self.t, 1, noz, a)
+        if render: CPlot.render()
+
+    # Animate particles
+    def animateParticles(self, key, step, gravity, render=True):
+        a = self.getZone(key)
+        C._initVars(a, '{life}={life}+1')
+        C._initVars(a, '{vy}={vy}-%g'%gravity)
+        C._initVars(a, '{ux}=%g * {vx} * ({life}>0)'%step)
+        C._initVars(a, '{uy}=%g * {vy} * ({life}>0)'%step)
+        a = T.deform(a, ['ux','uy','vz'])
+        zones = Internal.getZones(self.t)
+        noz = self.getNozOfKey(key, zones)
+        CPlot.replace(self.t, 1, noz, a)       
+        if render: CPlot.render()
+
+    # Clone une key (jamais teste)
+    def clone(self, key, newKey):
+        a = self.getZone(key)
+        b = Internal.copyTree(a); b[0] = newKey
+        im = self.images[key]
+        self.images[newKey] = [im[0],im[1],im[2],self.nimages,im[4],im[5]]
+        self.line += [im[0],im[1],im[2]]
+        self.nimages += 1
+        CPlot.add(self.t, 1, -1, b)  

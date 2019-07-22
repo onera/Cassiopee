@@ -11,5 +11,3 @@ while c < 5:
     time.sleep(0.5)
     Sound.closeAllSounds()
     c += 1
-
-

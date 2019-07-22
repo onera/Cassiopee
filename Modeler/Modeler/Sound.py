@@ -25,7 +25,8 @@ def closeSound():
 # def music callback (internal)
 def musicCallback__(in_data, frame_count, time_info, status):
     data = musicFileHandle.readframes(frame_count)
-    if data == '': musicFileHandle.rewind(); musicFileHandle.readframes(frame_count)
+    if len(data) < 4*frame_count: # safe?
+        musicFileHandle.rewind(); data = musicFileHandle.readframes(frame_count)
     return (data, pyaudio.paContinue)
 
 # Play music from a wav file
@@ -97,7 +98,7 @@ def soundCallback3__(in_data, frame_count, time_info, status):
     if s*pt > len(gdata): h[1] = 0
     return (data, pyaudio.paContinue)
 
-def playSound(soundHandle):
+def playSound(soundHandle, poolNo=[]):
     if audioHandle is None: initSound()
     # Cherche un pool de libre
     i = -1
@@ -112,13 +113,19 @@ def playSound(soundHandle):
     else: callback = soundCallback0__
     soundPool[i] = [None, 0, soundHandle[2], soundHandle[3], soundHandle[4], 
     soundHandle[5], soundHandle[6]]
-    stream = audioHandle.open(format=audioHandle.get_format_from_width(soundHandle[3]),
-                              channels=soundHandle[2],
-                              rate=soundHandle[4],
-                              output=True,
-                              stream_callback=callback)
-    soundPool[i][0] = stream
-    stream.start_stream()
+    try:
+        stream = audioHandle.open(format=audioHandle.get_format_from_width(soundHandle[3]),
+                                  channels=soundHandle[2],
+                                  rate=soundHandle[4],
+                                  output=True,
+                                  stream_callback=callback)
+        soundPool[i][0] = stream
+        stream.start_stream()
+        poolNo.append(i)
+    except:
+        soundPool[i] = None
+        stream = None
+        poolNo.append(-1)
     return stream
 
 # Close all sounds (if finished)
