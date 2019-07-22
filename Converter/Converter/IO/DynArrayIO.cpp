@@ -64,15 +64,15 @@ E_Int DynArrayIO::read
   if (rdir == "")
   {
     //const char* -> char*
-    fname = new char[l +1]();
-    strncpy(fname, fileName, l); 
+    fname = new char[l+1]();
+    strncpy(fname, fileName, l+1); 
   }
   else
   {
     //const char* -> char*
-    fname = new char[l+rdir.size() +1]();
+    fname = new char[l+rdir.size()+1]();
     strncpy(fname, rdir.c_str(), rdir.size()); 
-    strncat(fname, fileName, l); 
+    strncat(fname, fileName, l+1); 
   }
   
   const char* fileFmt = get_fmt(fileName);
@@ -171,14 +171,14 @@ E_Int DynArrayIO::read
   {
     //const char* -> char*
     fname = new char[l+1]();
-    strncpy(fname, fileName, l); 
+    strncpy(fname, fileName, l+1); 
   }
   else
   {
     //const char* -> char*
     fname = new char[l+rdir.size()+1]();
     strncpy(fname, rdir.c_str(), rdir.size()); 
-    strncat(fname, fileName, l);
+    strncat(fname, fileName, l+1);
   }
   
   const char* fileFmt = get_fmt(fileName);
@@ -306,15 +306,15 @@ const std::vector<K_FLD::IntArray>& connects,
   if (wdir == "")
   {
     //const char* -> char*
-    fname = new char[l +1]();
-    strncpy(fname, fileName, l); 
+    fname = new char[l+1]();
+    strncpy(fname, fileName, l+1); 
   }
   else
   {
     //const char* -> char*
-    fname = new char[l+wdir.size() +1]();
+    fname = new char[l+wdir.size()+1]();
     strncpy(fname, wdir.c_str(), wdir.size()); 
-    strncat(fname, fileName, l); 
+    strncat(fname, fileName, l+1); 
   }
     
   if (strcmp(fileFmt, "bin_tp") == 0) // binary tecplot
@@ -428,14 +428,14 @@ E_Int DynArrayIO::write
   {
     //const char* -> char*
     fname = new char[l +1]();
-    strncpy(fname, fileName, l); 
+    strncpy(fname, fileName, l+1); 
   }
   else
   {
     //const char* -> char*
     fname = new char[l+wdir.size() +1]();
     strncpy(fname, wdir.c_str(), wdir.size()); 
-    strncat(fname, fileName, l); 
+    strncat(fname, fileName, l+1); 
   }
   
   if (strcmp(fileFmt, "bin_tp") == 0) // binary tecplot
@@ -537,15 +537,15 @@ E_Int DynArrayIO::write
   if (wdir == "")
   {
     //const char* -> char*
-    fname = new char[l +1]();
-    strncpy(fname, fileName, l); 
+    fname = new char[l+1]();
+    strncpy(fname, fileName, l+1); 
   }
   else
   {
     //const char* -> char*
-    fname = new char[l+wdir.size() +1]();
+    fname = new char[l+wdir.size()+1]();
     strncpy(fname, wdir.c_str(), wdir.size()); 
-    strncat(fname, fileName, l); 
+    strncat(fname, fileName, l+1); 
   }
   
   if (strcmp(fileFmt, "bin_tp") == 0) // binary tecplot

@@ -1428,6 +1428,8 @@ Add/remove node
     Remove all nodes in t that match given name.
 
     Exists also as in place version (_rmNodesByName) that modifies t and returns None.
+    Exists also as in place with search limited to 1 or 2 levels as _rmNodesByName1
+    and _rmNodesByName2.
 
     :param t: input node
     :type  t: pyTree node or list of pyTree nodes
@@ -1449,6 +1451,8 @@ Add/remove node
     Remove all nodes in t that match given type.
 
     Exists also as in place version (_rmNodesByType) that modifies t and returns None.
+    Exists also as in place with search limited to 1 or 2 levels as _rmNodesByType1
+    and _rmNodesByType2.
 
     :param t: input node
     :type  t: pyTree node or list of pyTree nodes

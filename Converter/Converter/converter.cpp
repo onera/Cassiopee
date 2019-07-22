@@ -29,6 +29,7 @@ static PyMethodDef Pyconverter [] =
   {"_setPartialFields", K_CONVERTER::_setPartialFields, METH_VARARGS},
   {"filterPartialFields", K_CONVERTER::filterPartialFields, METH_VARARGS},
   {"setPartialFieldsPT", K_CONVERTER::setPartialFieldsPT, METH_VARARGS},
+  {"_setPartialFieldsAverage", K_CONVERTER::_setPartialFieldsAverage, METH_VARARGS},
   {"extractVars", K_CONVERTER::extractVars, METH_VARARGS},
   {"addVars", K_CONVERTER::addVars, METH_VARARGS},
   {"addVar", K_CONVERTER::addVar, METH_VARARGS},
@@ -133,12 +134,14 @@ static PyMethodDef Pyconverter [] =
   {"pointList2Ranges", K_CONVERTER::pointList2Ranges, METH_VARARGS},
   {"pointList2SPL", K_CONVERTER::pointList2SPL, METH_VARARGS},
   {"range2PointList", K_CONVERTER::range2PointList, METH_VARARGS},
+  {"PR2VL", K_CONVERTER::PR2VL, METH_VARARGS},
   {"addGhostCellsNG", K_CONVERTER::addGhostCellsNG, METH_VARARGS},
   {"extractBCMatchStruct", K_CONVERTER::extractBCMatchStruct, METH_VARARGS},
   {"extractBCMatchNG", K_CONVERTER::extractBCMatchNG, METH_VARARGS},
   {"buildBCMatchFieldStruct", K_CONVERTER::buildBCMatchFieldStruct, METH_VARARGS},
   {"buildBCMatchFieldNG", K_CONVERTER::buildBCMatchFieldNG, METH_VARARGS},
   {"extractBCFields", K_CONVERTER::extractBCFields, METH_VARARGS},
+  {"extractFields", K_CONVERTER::extractFields, METH_VARARGS},
   {NULL, NULL}
 };
 

@@ -1265,15 +1265,19 @@ def getField(name, t, api=1):
 # Retourne une liste de arrays
 # IN: t: n'importe quel noeud de l'arbre
 # IN: containerName: GridCoordinates, FlowSolution, FlowSolution#Centers (conteneur)
-# IN: vars: optionel, liste des variables a recuperer
+# ou liste de conteneurs homogenes en localisation
+# IN: vars: optionel, liste des variables a recuperer (sans centers: car deja specifie dans container)
 # IN: api=1, sortie array (avec copie), api=2, sortie array2 sans copie
-# OUT: arrays: solution
+# OUT: arrays: solution (un par zone)
 # OUT: peut contenir des arrays vides ([])
 # Attention: il faut envoyer que des containeurs homogenes en localisation
 def getFields(containerName, t, api=1, vars=None):
   zones = Internal.getZones(t)
   arrays = []
-  if isinstance(containerName, list): names = containerName
+  if containerName == 'nodes': names = [Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__]
+  elif containerName == 'centers': names = [Internal.__FlowSolutionCenters__]
+  elif containerName == 'coords': names = [Internal.__GridCoordinates__] 
+  elif isinstance(containerName, list): names = containerName
   else: names = [containerName]
   for z in zones:
     dim = Internal.getZoneDim(z)
@@ -1323,23 +1327,20 @@ def getAllFields(t, loc, api=1):
     result.append(f)
   return result
 
-def filterPartialFields(a, arrays, listIndices, loc='nodes', startFrom=0, filterName='',verbose=True):
+def filterPartialFields(a, arrays, listIndices, loc='nodes', startFrom=0, filterName='', verbose=True):
   ap = Internal.copyRef(a)
   _filterPartialFields(ap, arrays, listIndices, loc=loc, startFrom=startFrom, filterName=filterName, verbose=verbose)
   return ap
 
 def _filterPartialFields(a, arrays, listIndices, loc='nodes', startFrom=0, filterName='',verbose=True):
-  if loc =='nodes':locI=0
-  elif loc=='centers': locI=1
-  else:
-    raise ValueError("_filterPartialFields: value of loc argument is not valid.")
+  if loc == 'nodes': locI=0
+  elif loc == 'centers': locI=1
+  else: raise ValueError("_filterPartialFields: value of loc argument is not valid.")
 
   typeN = Internal.typeOfNode(a)
-  if typeN != 1: 
-    raise ValueError("_filterPartialFields: 1st arg must be a zone.")
+  if typeN != 1: raise ValueError("_filterPartialFields: 1st arg must be a zone.")
 
-  if filterName=='': 
-    raise ValueError("_filterPartialFields: filter name must be provided.")
+  if filterName == '': raise ValueError("_filterPartialFields: filter name must be provided.")
   if verbose: iverbose=1
   else: iverbose=0
   Converter.converter.filterPartialFields(a, arrays, listIndices, locI, startFrom, filterName, 

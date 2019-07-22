@@ -116,12 +116,14 @@ cpp_srcs =  ['Converter/Converter1.cpp',
              'Converter/Adapter/pointList2Ranges.cpp',
              'Converter/Adapter/pointList2SPL.cpp',
              'Converter/Adapter/range2PointList.cpp',
+             'Converter/Adapter/PR2VL.cpp',
              'Converter/Adapter/diffIndex.cpp',
              'Converter/setBCDataInGhostCells.cpp',
              'Converter/extrapInterior2BCFace.cpp',
              'Converter/nullifyVectorAtBCFace.cpp',
              'Converter/nuga_ghost.cpp',
-             'Converter/extractBCFields.cpp']
+             'Converter/extractBCFields.cpp',
+             'Converter/Extract/extractFields.cpp']
 cpp_srcs += ['Converter/IO/GenIO_adfcgns.cpp']
 
 #import glob

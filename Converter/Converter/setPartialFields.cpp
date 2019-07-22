@@ -79,7 +79,7 @@ PyObject* K_CONVERTER::setPartialFields(PyObject* self, PyObject* args)
     PyErr_SetString(PyExc_TypeError, 
                     "setPartialFields: 3rd arg must be a numpy of integers.");
     return NULL;
-  }  
+  }
 
   PyObject* tpl; 
   if (res == 1) //structured
@@ -346,6 +346,136 @@ PyObject* K_CONVERTER::_setPartialFields(PyObject* self, PyObject* args)
   {
     if (isEmpty[v] == 0) RELEASESHAREDN(objs[v], listFields[v]);
   } 
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
+//=============================================================================
+/* SetPartialFields with accumulation  */
+//=============================================================================
+PyObject* K_CONVERTER::_setPartialFieldsAverage(PyObject* self, PyObject* args)
+{
+  PyObject* array; PyObject* indexList; PyObject* valueList;
+  if (!PYPARSETUPLEF(args,
+                     "OOO", "OOO",
+                     &array, &indexList, &valueList)) return NULL;
+  
+  // Check array
+  E_Int ni, nj, nk;
+  FldArrayF* f; FldArrayI* cn;
+  char* varString; char* eltType;
+  E_Int res = K_ARRAY::getFromArray2(array, varString, f, ni, nj, nk, 
+                                     cn, eltType);
+  if (res != 1 && res != 2)
+  {
+    PyErr_SetString(PyExc_TypeError,
+                    "setPartialFields: invalid array.");
+    return NULL;
+  }
+
+  // Check index list
+  if (PyList_Check(indexList) == false)
+  {
+    RELEASESHAREDB(res, array, f, cn);
+    PyErr_SetString(PyExc_TypeError,
+                    "setPartialFields: invalid array.");
+    return NULL;
+  }
+  E_Int size = PyList_Size(indexList);
+  vector<FldArrayI*> inds(size);
+  for (E_Int i = 0; i < size; i++)
+  {
+    FldArrayI* t;
+    PyObject* index = PyList_GetItem(indexList, i);
+    E_Int res2 = K_NUMPY::getFromNumpyArray(index, t, true);
+
+    if (res2 == 0)
+    {
+      RELEASESHAREDB(res, array, f, cn);
+      PyErr_SetString(PyExc_TypeError, 
+                      "setPartialFields: index numpy is invalid.");
+      return NULL;
+    }
+    inds[i] = t;
+  }
+
+  // Check value list
+  if (PyList_Check(valueList) == false)
+  {
+    RELEASESHAREDB(res, array, f, cn);
+    PyErr_SetString(PyExc_TypeError,
+                    "setPartialFields: invalid value array.");
+    return NULL;
+  }
+
+  vector<FldArrayF*> values(size);
+  for (E_Int i = 0; i < size; i++)
+  {
+    PyObject* v = PyList_GetItem(valueList, i);
+
+    E_Int ni2, nj2, nk2; 
+    FldArrayF* f2; FldArrayI* cn2;
+    char* varString2; char* eltType2;
+    E_Int res2 = K_ARRAY::getFromArray2(v, varString2, f2, ni2, nj2, nk2, 
+                                        cn2, eltType2);
+    if (res2 != 1 && res2 != 2)
+    {
+      RELEASESHAREDB(res, array, f, cn);
+      PyErr_SetString(PyExc_TypeError,
+                      "setPartialFields: invalid value array.");
+      return NULL;
+    }
+    
+    values[i] = f2;
+  }  
+
+  // update with accu (first pass)
+  E_Int nall = f->getSize();
+  E_Int nfld = f->getNfld();
+  E_Int* accu = new E_Int [nall];
+  for (E_Int i = 0; i < nall; i++) accu[i] = 0;
+  
+  for (E_Int i = 0; i < size; i++)
+  {
+    FldArrayI* index = inds[i];
+    FldArrayF* v = values[i];
+    E_Int npts = index->getSize();
+    E_Int* indexp = index->begin();
+    
+    for (E_Int n = 1; n <= nfld; n++)
+    {
+      E_Float* fp = f->begin(n);
+      E_Float* vp = v->begin(n);
+  
+      for (E_Int j = 0; j < npts; j++)
+      {
+        E_Int ind = indexp[i];
+        if (n == 1) accu[ind]++;
+        fp[ind] += vp[j];
+      }
+    }
+  }
+
+  // redivise par accu
+  for (E_Int n = 1; n <= nfld; n++)
+  {
+    E_Float* fp = f->begin(n);
+    for (E_Int i = 0; i < nall; i++)
+    {
+      if (accu[i] == 1) fp[i] = fp[i]*0.5;
+      else if (accu[i] == 2) fp[i] = fp[i]/3.;
+      else fp[i] = fp[i]*0.25;
+    }
+  }
+
+  // Release
+  delete [] accu;
+  RELEASESHAREDB(res, array, f, cn);
+  for (E_Int i = 0; i < size; i++)
+  {
+    PyObject* index = PyList_GetItem(indexList, i);
+    RELEASESHAREDN(index, inds[i]);
+  }
   Py_INCREF(Py_None);
   return Py_None;
 }

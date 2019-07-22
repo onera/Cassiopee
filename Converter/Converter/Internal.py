@@ -1999,6 +1999,27 @@ def rmNodesByName__(t, name):
         else: rmNodesByName__(t[2][ichild], name)
     return None
 
+def _rmNodesByName1(t, name):
+    children = list(range(len(t[2])-1,-1,-1))
+    for ichild in children:
+        if t[2][ichild][0] == name: t[2].pop(ichild)
+    return None
+
+_rmNodesFromName1 = _rmNodesByName1 # alias
+
+def _rmNodesByName2(t, name):
+    children = list(range(len(t[2])-1,-1,-1))
+    for ichild in children:
+        if t[2][ichild][0] == name: t[2].pop(ichild)
+        else:
+            n = t[2][ichild]
+            children = list(range(len(n[2])-1,-1,-1))
+            for ichild in children:
+                if n[2][ichild][0] == name: n[2].pop(ichild)
+    return None
+
+_rmNodesFromName2 = _rmNodesByName2 # alias
+
 # -- rmNodesByType
 def rmNodesByType(t, ntype):
     """Remove nodes of given type."""
@@ -2018,9 +2039,32 @@ def _rmNodesByType(t, ntype):
 _rmNodesFromType = _rmNodesByType # alias
 
 def rmNodesByType__(t, ntype):
-    nodes = getNodesFromType(t, ntype)
-    for n in nodes: _rmNode(t, n)
+    children = list(range(len(t[2])-1,-1,-1))
+    for ichild in children:
+        if t[2][ichild][3] == ntype: t[2].pop(ichild)
+        else: rmNodesByType__(t[2][ichild], ntype)
     return None
+
+def _rmNodesByType1(t, ntype):
+    children = list(range(len(t[2])-1,-1,-1))
+    for ichild in children:
+        if t[2][ichild][3] == ntype: t[2].pop(ichild)
+    return None
+
+_rmNodesFromType1 = _rmNodesByType1 # alias
+
+def _rmNodesByType2(t, ntype):
+    children = list(range(len(t[2])-1,-1,-1))
+    for ichild in children:
+        if t[2][ichild][3] == ntype: t[2].pop(ichild)
+        else:
+            n = t[2][ichild]
+            children = list(range(len(n[2])-1,-1,-1))
+            for ichild in children:
+                if n[2][ichild][3] == ntype: n[2].pop(ichild)
+    return None
+
+_rmNodesFromType2 = _rmNodesByType2 # alias
 
 # -- rmNodesByNameAndType
 def rmNodesByNameAndType(t, name, ntype):
@@ -2040,10 +2084,19 @@ def _rmNodesByNameAndType(t, name, ntype):
 
 _rmNodesFromPathAndType = _rmNodesByNameAndType # alias
 
+"""
 def rmNodesByNameAndType__(t, name, ntype):
     nodes = getNodesFromType(t, ntype)
     for n in nodes:
         if isName(n, name): _rmNode(t, n)
+    return None
+"""
+
+def rmNodesByNameAndType__(t, name, ntype):
+    children = list(range(len(t[2])-1,-1,-1))
+    for ichild in children:
+        if t[2][ichild][3] == ntype and isName(t[2][ichild],name): t[2].pop(ichild)
+        else: rmNodesByNameAndType__(t[2][ichild], name, ntype)
     return None
 
 # -- rmNodesByValue

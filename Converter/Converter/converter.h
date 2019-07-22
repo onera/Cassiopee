@@ -29,6 +29,7 @@ namespace K_CONVERTER
   PyObject* setPartialFields(PyObject* self, PyObject* args);
   PyObject* _setPartialFields(PyObject* self, PyObject* args);
   PyObject* setPartialFieldsPT(PyObject* self, PyObject* args);
+  PyObject* _setPartialFieldsAverage(PyObject* self, PyObject* args);
   PyObject* filterPartialFields(PyObject* self, PyObject* args);
   PyObject* extractVars(PyObject* self, PyObject* args);
   PyObject* addVar(PyObject* self, PyObject* args);
@@ -147,14 +148,16 @@ namespace K_CONVERTER
   PyObject* diffIndex(PyObject* self, PyObject* args);
   PyObject* pointList2Ranges(PyObject* self, PyObject* args);
   PyObject* pointList2SPL(PyObject* self, PyObject* args);
-  // Extraction d'infos pour les raccords match 
+  PyObject* range2PointList(PyObject* self, PyObject* args);
+  PyObject* PR2VL(PyObject* self, PyObject* args);
+  // Extraction d'infos ou de champs
+  PyObject* extractFields(PyObject* self, PyObject* args); 
   PyObject* extractBCMatchStruct(PyObject* self, PyObject* args);
   PyObject* extractBCMatchNG(PyObject* self, PyObject* args);
   PyObject* extractBCFields(PyObject* self, PyObject* args);
   PyObject* buildBCMatchFieldStruct(PyObject* self, PyObject* args);
   PyObject* buildBCMatchFieldNG(PyObject* self, PyObject* args);
-  PyObject* range2PointList(PyObject* self, PyObject* args);
-
+  
   // addGhostCells NGON
   void addGhostCellsNGon2D(E_Int depth,
                            K_FLD::FldArrayF& f, K_FLD::FldArrayI& cn,

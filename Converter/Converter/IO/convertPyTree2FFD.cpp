@@ -373,10 +373,10 @@ void K_CONVERTER::scanBC(PyObject* zone,  E_Int* nlimt)
     //E_Int type_bc;
     *nlimt = 0;
     vector<PyObject*> data_set;
-    K_PYTREE::getNodesFromType1(zone, "ZoneBC_t", data_set );
+    K_PYTREE::getNodesFromType1(zone, "ZoneBC_t", data_set);
     zonebc = data_set[0];
 //   zonebc   = K_PYTREE::getNodeFromName1(zone, "ZoneBC" );
-    if(zonebc == NULL)
+    if (zonebc == NULL)
     {  printf("pas de ZoneBC \n"); 
     }
     else
@@ -393,6 +393,7 @@ void K_CONVERTER::scanBC(PyObject* zone,  E_Int* nlimt)
     {
       bc   = PyList_GetItem(list_bc, ibc);
       node = PyList_GetItem(bc, 3);
+      str = NULL;
       if (PyString_Check(node)) str = PyString_AsString(node); // type_bc
 #if PY_VERSION_HEX >= 0x03000000
       else if (PyUnicode_Check(node)) str = PyBytes_AsString(PyUnicode_AsUTF8String(node));
@@ -446,6 +447,7 @@ void K_CONVERTER::getVarBC(PyObject* zone, E_Float* Var_l, E_Int* ielmtmtch2, E_
     {
       bc   = PyList_GetItem(list_bc, ibc);
       node = PyList_GetItem(bc, 3);
+      str = NULL;
       if (PyString_Check(node)) str = PyString_AsString(node); // type_bc
 #if PY_VERSION_HEX >= 0x03000000
       else if (PyUnicode_Check(node)) str = PyBytes_AsString(PyUnicode_AsUTF8String(node));

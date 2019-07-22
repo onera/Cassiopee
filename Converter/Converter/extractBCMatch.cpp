@@ -1015,7 +1015,7 @@ PyObject* K_CONVERTER::buildBCMatchFieldNG(PyObject* self, PyObject* args )
                                          cn, cnSize, cnNfld, eltType, hook, GridCoordinates, 
                                          FlowSolutionNodes, FlowSolutionCenters);
 
-  if ( zoneType == 0) 
+  if (zoneType == 0) 
   {
     PyErr_SetString(PyExc_TypeError, "buildBCMatchFieldNG: not a valid zone.");
     RELEASESHAREDZ(hook, varString, eltType);
@@ -1025,9 +1025,9 @@ PyObject* K_CONVERTER::buildBCMatchFieldNG(PyObject* self, PyObject* args )
   // Parent Elements 
   // ~~~~~~~~~~~~~~~
   E_Int* PE = NULL;
-  if ( zoneType == 2)
+  if (zoneType == 2)
   {
-    if ( cn.size() < 3)//PE does not exist
+    if (cn.size() < 3) //PE does not exist
     {
       PyErr_SetString(PyExc_TypeError, "buildBCMatchFieldNG: ParentElements node must be defined in zone.");
       RELEASESHAREDZ(hook, varString, eltType);
@@ -1125,13 +1125,13 @@ PyObject* K_CONVERTER::buildBCMatchFieldNG(PyObject* self, PyObject* args )
 
   // Build 0.5(fldD+fldR) array on boundary faces
   // ============================================
-  E_Int* ptrIndR = indR->begin();
+  //E_Int* ptrIndR = indR->begin();
 
   for (E_Int var = 1; var <= nfld; var++)
   {
-    E_Int posv          = posvars[var-1];
-    E_Float* fieldV     = fields[posv];
-    E_Float* ptrFldD    = fldD->begin(var);
+    //E_Int posv          = posvars[var-1];
+    //E_Float* fieldV     = fields[posv];
+    //E_Float* ptrFldD    = fldD->begin(var);
     E_Float* ptrFld     = fld->begin(var);
 
     for (E_Int noindint = 0 ; noindint < nind ; noindint++)
