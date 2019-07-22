@@ -133,8 +133,9 @@ void simple_line_draw()
 
     Reference : Efficient barycentric point sampling on meshes, J. Portsmouth, Pacific Graphics 2017
 */
-float compute_u(float zeta_u, float zeta_v, const float tol = 5.0E-3 )
+float compute_u(float zeta_u, float zeta_v)
 {
+    const float tol = 5.0E-3;
     float r = uniform_rand(); float l = (2.0f*zeta_u - zeta_v)/3.0;
     const int maxIter = 20; float u = 0.5; int n = 0;
     while ( n++ < maxIter )

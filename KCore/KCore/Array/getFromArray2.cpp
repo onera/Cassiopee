@@ -650,7 +650,7 @@ E_Int K_ARRAY::getFromArray2(PyObject* o,
 {
   PyObject* tpl; PyObject* p;
   PyArrayObject* a;
-  PyObject* ref; //PyObject* ref2;
+  //PyObject* ref; PyObject* ref2;
   IMPORTNUMPY;
 
   // -- list --
@@ -692,7 +692,7 @@ E_Int K_ARRAY::getFromArray2(PyObject* o,
   // -- field --
   tpl = PyList_GetItem(o, 1);
   //ref = tpl; Py_INCREF(ref); // trick
-  Py_INCREF(tpl); ref = tpl;
+  Py_INCREF(tpl); //ref = tpl;
 
   if (PyArray_Check(tpl) == true) // -- Array1 --
   {

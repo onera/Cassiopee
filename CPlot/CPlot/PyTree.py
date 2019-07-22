@@ -462,7 +462,7 @@ def getCPlotNumber(t, baseName, zoneName):
         unstr = nstr
         for b in bases:
             nodes = Internal.getNodesFromType1(b, 'Zone_t')
-            if (b[0] != baseName):
+            if b[0] != baseName:
                 for z in nodes:
                     type = Internal.getZoneType(z)
                     if type == 2: unstr += 1

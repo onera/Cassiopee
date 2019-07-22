@@ -1029,7 +1029,7 @@ void zone_t<crd_t, ngo_t>::insert_ghosts_on_bcs(E_Int type, E_Int nb_layers) //t
     ngon_type::add_flat_ghosts(_ng, pglist);
     //replace temporarily to put ghost at the right position
     nb_phs = _ng.PHs.size();
-    for (E_Int i = 0; i < nb_phs; ++i)
+    for (size_t i = 0; i < nb_phs; ++i)
       if (_ng.PHs._type[i] == PH_GHOST)_ng.PHs._type[i] = 2; 
   }
   
