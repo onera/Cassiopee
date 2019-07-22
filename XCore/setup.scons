@@ -1,0 +1,74 @@
+import distutils.sysconfig, os
+import KCore.Dist as Dist
+from KCore.config import *
+#==============================================================================
+# XCore requires:
+# C++ compiler
+# Numpy, MPI
+# KCore library
+#==============================================================================
+
+# Get prefix from command line
+prefix = ARGUMENTS.get('prefix', '')
+installPath = Dist.getInstallPath(prefix)
+
+# Get compilers from Distutils ================================================
+(cc, cxx, opt, basecflags, ccshared, ldshared, so_ext) = Dist.getDistUtilsCompilers()
+
+# Python ======================================================================
+(pythonVersion, pythonIncDir, pythonLibDir, pythonLibs) = Dist.checkPython()
+
+# Test if numpy exists =======================================================
+(numpyVersion, numpyIncDir, numpyLibDir) = Dist.checkNumpy()
+
+# Test if kcore exists =======================================================
+(kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
+
+from KCore.config import *
+
+# Test if libmpi exists ======================================================
+(mpi, mpiIncDir, mpiLibDir) = Dist.checkMpi(additionalLibPaths,
+                                            additionalIncludePaths)
+(mpi4py, mpi4pyIncDir, mpi4pyLibDir) = Dist.checkMpi4py(additionalLibPaths,
+                                                        additionalIncludePaths)
+
+# Setting libraryDirs and libraries ===========================================
+libraryDirs = ['..', '.', pythonLibDir, kcoreLibDir]
+includeDirs = [numpyIncDir, kcoreIncDir, pythonIncDir]
+libraries = ["xcore"]
+
+ADDITIONALCPPFLAGS = []
+if mpi and mpi4py:
+    libraryDirs.append(mpiLibDir)
+    includeDirs.append(mpiIncDir)
+    includeDirs.append(mpi4pyIncDir)
+    ADDITIONALCPPFLAGS = ['-D_MPI']
+if mpi:
+    if Dist.getSystem()[0] == 'mingw': libraries.append('msmpi')
+    else: libraries.append('mpi')
+
+(ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
+libraryDirs += paths; libraries += libs
+
+# Env =========================================================================
+import srcs
+if Dist.getSystem()[0] == 'mingw': tools = ['mingw']
+else: tools = None
+
+AR = Dist.getAR()
+env = Environment(tools=tools, CC=cc, CXX=cxx, AR=AR, CPPFLAGS=[],
+                  FORTRAN=f77compiler,
+                  LIBPATH=additionalLibPaths+libraryDirs,
+                  LIBS=libraries+additionalLibs,
+                  SHLIBSUFFIX=so_ext, SHLIBPREFIX='',
+                  LINKFLAGS=Dist.getLinkArgs(),
+                  ENV=Dist.getEnvForScons())
+env.Replace(CPPPATH=["XCore"]+additionalIncludePaths+includeDirs)
+env.Replace(CXXFLAGS=Dist.getCppArgs()+ADDITIONALCPPFLAGS)
+env.Replace(CFLAGS=Dist.getCArgs()+ADDITIONALCPPFLAGS)
+            
+myMod = env.StaticLibrary('xcore', srcs.cpp_srcs)
+modDir = installPath+'/XCore/'
+dp1 = env.Install(modDir, myMod)
+dp2 = env.Install(modDir, Glob('XCore/*.py'))
+env.Alias(target="install", source=[dp1,dp2])
