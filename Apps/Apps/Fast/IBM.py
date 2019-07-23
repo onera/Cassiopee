@@ -94,7 +94,7 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
     #--------------------------------------------------------
     # Generates the full Cartesian mesh
     t = TIBM.generateIBMMesh(tb, vmin=vmin, snears=snears, dfar=dfar, dfarList=dfarList, DEPTH=2,
-                             tbox=tbox, snearsf=snearsf, check=check, sizeMax=4000000)
+                             tbox=tbox, snearsf=snearsf, check=check, sizeMax=1000000)
     test.printMem(">>> Build octree full [end]")
     
     #------------------------------------------------------
@@ -150,7 +150,7 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
     return t, tc
 
 #==================================================================================================
-def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21, check=False, 
+def prepare1(t_case, t_out, tc_out, tbox=None, snears=0.01, snearsf=None, dfar=10., dfarList=[], vmin=21, check=False, 
              NP=0, format='single',
              frontType=1, inv=False):
     import Generator
@@ -174,8 +174,10 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
 
     # a mettre dans la classe ou en parametre de prepare1 ??? 
     to = None
-    tbox = None
-    snearsf = None
+    # refinementSurfFile: surface meshes describing refinement zones
+    if tbox is not None:
+        if isinstance(tbox, str): tbox = C.convertFile2PyTree(tbox)
+        else: tbox = tbox
     symmetry = 0
     fileout = None
     if check: fileout = 'octree.cgns'
@@ -210,14 +212,14 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
     # Octree identical on all procs
     test.printMem('>>> Octree unstruct [start]')
     # Build octree
-    o = TIBM.buildOctree(tb, snears=snears, snearFactor=1., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, 
+    o = TIBM.buildOctree(tb, snears=snears, snearFactor=1., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf, 
                          dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=fileout, rank=rank)
     if rank==0 and check:
         C.convertPyTree2File(o,fileout)
     # build parent octree 3 levels higher
     # returns a list of 4 octants of the parent octree in 2D and 8 in 3D
     parento = TIBM.buildParentOctrees__(o, tb, snears=snears, snearFactor=4., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, 
-                                        dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=fileout, rank=rank)
+                                        snearsf=snearsf, dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=fileout, rank=rank)
     test.printMem(">>> Octree unstruct [end]")
 
     # Split octree
@@ -231,7 +233,7 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
 
     # fill vmin + merge in parallel
     test.printMem(">>> Octree struct [start]")
-    res = TIBM.octree2StructLoc__(p, vmin=vmin, ext=-1, optimized=0, parento=parento, sizeMax=4000000)
+    res = TIBM.octree2StructLoc__(p, vmin=vmin, ext=-1, optimized=0, parento=parento, sizeMax=1000000)
     del p 
     if parento is not None:
         for po in parento: del po
@@ -838,8 +840,11 @@ def loads(t_case, tc_in, wall_out, alpha=0., beta=0., Sref=None):
     # calcul coefficient de frottement
     C._initVars(zw, '{centers:Cf}=(sqrt({centers:Fricx}**2+{centers:Fricy}**2+{centers:Fricz}**2))/%f'%q)
 
+    zw = G.getVolumeMap(zw)
     effortX = P.integ(zw, 'centers:Fricx')[0]
+    zw = G.getVolumeMap(zw)
     effortY = P.integ(zw, 'centers:Fricy')[0]
+    zw = G.getVolumeMap(zw)
     effortZ = P.integ(zw, 'centers:Fricz')[0]
 
     cd = (effortX*math.cos(alpha)*math.cos(beta) + effortZ*math.sin(alpha)*math.cos(beta))/q

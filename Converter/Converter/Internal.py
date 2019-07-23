@@ -4307,7 +4307,7 @@ def getPeriodicInfo__(gcnode):
 
 # Idem for zones
 def getPeriodicInfo(t):
-    zones = Internal.getZones(t)
+    zones = getZones(t)
     for z in zones:
         gcnodes = getNodesFromType2(z, 'GridConnectivity1to1_t')
         ret = []

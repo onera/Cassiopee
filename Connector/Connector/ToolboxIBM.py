@@ -536,6 +536,8 @@ def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., dfarList=[], DEPTH=2, tb
     o = buildOctree(tb, snears=snears, snearFactor=1., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf, 
                     dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=fileo, rank=0)
 
+    if check: C.convertPyTree2File(o, "octree.cgns")
+
     # retourne les 4 quarts (en 2D) de l octree parent 2 niveaux plus haut 
     # et les 8 octants en 3D sous forme de listes de zones non structurees
     parento = buildParentOctrees__(o, tb, snears=snears, snearFactor=4., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf, 

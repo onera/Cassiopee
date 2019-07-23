@@ -4572,6 +4572,14 @@ def getBC__(i, z, T, res, reorder=True):
     _deleteZoneBC__(zp)
     _deleteGridConnectivity__(zp)
     _deleteSolverNodes__(zp)
+    # Get BCDataSet if any
+    datas = Internal.getBCDataSet(z, i)
+    print(datas)
+    if datas != []:
+      f = Internal.createUniqueChild(zp, Internal.__FlowSolutionCenters__,
+                                     'FlowSolution_t')
+      Internal.newGridLocation(value='CellCenter', parent=f)
+      for d in datas: Internal.createUniqueChild(f, d[0], d[3], value=d[1])
     res.append(zp)
   # IndexArray
   if r is None: r = Internal.getNodeFromName(i, Internal.__FACELIST__)
@@ -4608,6 +4616,13 @@ def getBC__(i, z, T, res, reorder=True):
         _deleteZoneBC__(zp)
         _deleteGridConnectivity__(zp)
         _deleteSolverNodes__(zp)
+        # Get BCDataSet if any
+        datas = Internal.getBCDataSet(z, i)
+        if datas != []:
+          f = Internal.createUniqueChild(zp, Internal.__FlowSolutionCenters__,
+                                         'FlowSolution_t')
+          Internal.newGridLocation(value='Vertex', parent=f)
+          for d in datas: Internal.createUniqueChild(f, d[0], d[3], value=d[1])
         res.append(zp)
     else: # suppose FaceList
       faceList = r[1]
