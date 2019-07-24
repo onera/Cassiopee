@@ -32,7 +32,7 @@ libraries = ['portaudio']
 libraryDirs += paths; libraries += libs
 
 # suppress --static
-if prod == 'win64':
+if prod == 'win64' or prod == 'msys64p3' or prod == 'msys64':
     inp = Dist.getLinkArgs()
     linkArgs = []
     for i in inp:
@@ -55,7 +55,7 @@ listExtensions.append(
 # Setup ======================================================================
 setup(
     name="pyaudio",
-    version="2.5",
+    version="2.9",
     description="Audio binding.",
     author="",
     package_dir={"":"."},

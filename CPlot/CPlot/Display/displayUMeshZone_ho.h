@@ -11,7 +11,6 @@
   int ne6 = 6*ne;
   int ne7 = 7*ne;
   int eltType = zonep->eltType;
-  int nd, l;
   int nbNodesPerPatch = zonep->eltSize;
   glPatchParameteri( GL_PATCH_VERTICES, 3 );
   glBegin(GL_PATCHES);

@@ -1,5 +1,6 @@
 # - playSound -
-import Modeler.Sound as Sound
+try: import Modeler.Sound as Sound
+except: import Modeler.SoundLess as Sound
 import time
 
 sound = Sound.registerSound("Images/380.wav")

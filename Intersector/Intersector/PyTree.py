@@ -55,7 +55,7 @@ def concatenateBC(bctype, zones, wallpgs, cur_shift):
     for z in zones:
       c = C.getFields(Internal.__GridCoordinates__, z)
 
-      if (c == []): continue
+      if c == []: continue
 
       #print(' -- zone : %d / %d' %(i+1, len(zones)))
       i=i+1
@@ -694,7 +694,7 @@ def _adaptCellsNodal(t, nodal_vals, hmesh=None):
         nval = nodal_vals[i] # 
         #print nval
 
-        if (hmesh != None):
+        if hmesh is not None:
             res = intersector.adaptCellsNodal(coords, nval, hmesh[i])
         else:
             res = intersector.adaptCellsNodal(coords, nval, None)
