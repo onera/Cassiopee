@@ -239,7 +239,7 @@ def createApp(win):
     # -3- restart_fields -
     V = TK.StringVar(win); V.set('1');VARS.append(V)
     # -4- scheme -
-    V = TK.StringVar(win); V.set('ausmpred'); VARS.append(V)
+    V = TK.StringVar(win); V.set('roe_min'); VARS.append(V)
     # -5- Time step -
     V = TK.DoubleVar(win); V.set(0.002); VARS.append(V)
     # -6- Snear -
@@ -268,7 +268,7 @@ def createApp(win):
     B = TTK.Label(Frame, text="scheme")
     B.grid(row=2, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Numerical scheme.')
-    B = TTK.OptionMenu(Frame, VARS[4], 'ausmpred', 'roe_min')
+    B = TTK.OptionMenu(Frame, VARS[4], 'roe_min', 'ausmpred', 'senseur')
     B.grid(row=2, column=1, columnspan=2, sticky=TK.EW)
 
     # - time_step -

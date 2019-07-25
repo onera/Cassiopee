@@ -51,17 +51,17 @@ if mpi:
 libraryDirs += paths; libraries += libs
 
 # Options for scotch
-opts =['-DCOMMON_FILE_COMPRESS_GZ','-DCOMMON_PTHREAD','-DCOMMON_RANDOM_FIXED_SEED',
-       '-DSCOTCH_RENAME','-DSCOTCH_PTHREAD','-restrict','-DIDXSIZE64',
+opt1 =['-DCOMMON_FILE_COMPRESS_GZ','-DCOMMON_PTHREAD','-DCOMMON_RANDOM_FIXED_SEED',
+       '-DSCOTCH_RENAME','-restrict','-DIDXSIZE64',
        '-DSCOTCH_VERSION_NUM=6','-DSCOTCH_RELEASE_NUM=0','-DSCOTCH_PATCHLEVEL_NUM=6']
-# options for paradigma
+opt1 += ['-DSCOTCH_PTSCOTCH']
+# Options for paradigma
 opt2 = ['-IXCore/paradigma','-IXCore/paradigma/mpi_wrapper','-IXCore/paradigma/mesh','-IXCore/paradigma/util','-IXCore/paradigma/io','-IXCore/paradigma/ppart','-IXCore/paradigma/struct','-IXCore/paradigma/pario','-IXCore/paradigma/ext_wrapper']
 opt2 += ['-std=c99']
 #opt2 +=['-DPDM_HAVE_PTSCOTCH','-DPDM_ENABLE_ANISO_AGGLO=0']
-#ADDITIONALCPPFLAGS += opts + opt2
-ADDITIONALCPPFLAGS += opt2
+ADDITIONALCPPFLAGS += opt1+opt2
+
 # Env =========================================================================
-import srcs
 if Dist.getSystem()[0] == 'mingw': tools = ['mingw']
 else: tools = None
 
@@ -71,20 +71,22 @@ env = Environment(tools=tools, CC=cc, CXX=cxx, AR=AR, CPPFLAGS=[],
                   LIBS=libraries+additionalLibs,
                   SHLIBSUFFIX=so_ext, SHLIBPREFIX='',
                   LINKFLAGS=Dist.getLinkArgs(),
-                  ENV=Dist.getEnvForScons())
-
-env.Replace(CPPPATH=["XCore"]+additionalIncludePaths+includeDirs)
-env.Replace(CXXFLAGS=Dist.getCppArgs()+ADDITIONALCPPFLAGS)
-env.Replace(CFLAGS=Dist.getCArgs()+ADDITIONALCPPFLAGS)
+                  ENV=Dist.getEnvForScons(),
+                  CPPPATH=["XCore"]+additionalIncludePaths+includeDirs,
+                  CXXFLAGS=Dist.getCppArgs()+ADDITIONALCPPFLAGS,
+                  CFLAGS=Dist.getCArgs()+ADDITIONALCPPFLAGS)
             
+import srcs
+import srcs_scotch
 myMod = env.StaticLibrary('xcore', srcs.cpp_srcs)
-myMod2 = env.StaticLibrary('scotch', srcs.cpp_srcs1)
-myMod3 = env.StaticLibrary('paradigma', srcs.cpp_srcs2)
+myMod2 = env.StaticLibrary('paradigma', srcs.cpp_srcs2)
+myMod3 = env.StaticLibrary('scotch', srcs_scotch.cpp_srcs1)
+myMod4 = env.StaticLibrary('ptscotch', srcs_scotch.cpp_srcs2)
 
 modDir = installPath+'/XCore/'
 dp1 = env.Install(modDir, myMod)
 dp2 = env.Install(modDir, myMod2)
 dp3 = env.Install(modDir, myMod3)
-dp4 = env.Install(modDir, Glob('XCore/*.py'))
-#env.Alias(target="install", source=[dp1,dp2,dp3,dp4])
-env.Alias(target="install", source=[dp1,dp3,dp4])
+dp4 = env.Install(modDir, myMod4)
+dp5 = env.Install(modDir, Glob('XCore/*.py'))
+env.Alias(target="install", source=[dp1,dp2,dp4,dp5])

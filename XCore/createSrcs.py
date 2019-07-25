@@ -4,8 +4,8 @@ import KCore.Dist as Dist
 # proper
 cpp_srcs = []
 
-# scotch
-cpp_srcs1 = Dist.getFilesOfExt('XCore/scotch', ['.c'])
+# scotch (manually)
+#cpp_srcs1 = Dist.getFilesOfExt('XCore/scotch', ['.c'])
 cpp_srcs2 = Dist.getFilesOfExt('XCore/paradigma', ['.c'])
 
 f = open('srcs.py', 'w')

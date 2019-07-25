@@ -173,15 +173,17 @@ def compute(t_in, tc_in,
     if first is not None: time0 = Internal.getValue(first)
     time_step = Internal.getNodeFromName(t, 'time_step')
     time_step = Internal.getValue(time_step)
+    if 'modulo_verif' in numb: moduloVerif = numb['modulo_verif']
+    else: moduloVerif = 200
 
     for it in range(NIT):
         FastS._compute(t, metrics, it, tc, graph)
-        if it%100 == 0:
+        if it%moduloVerif == 0:
             if rank == 0: print('- %d / %d - %f'%(it+it0, NIT+it0, time0))
+            FastS.display_temporal_criteria(t, metrics, it, format='double')
         #if it%50 == 0:
         #    import CPlot.PyTree as CPlot
         #    CPlot.display(t, dim=2, mode='Scalar', scalarField='Density')
-        #FastS.display_temporal_criteria(t, metrics, it, format='double')
         time0 += time_step
 
     # time stamp

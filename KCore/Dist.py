@@ -1094,6 +1094,12 @@ def checkOSMesa(additionalLibPaths=[], additionalIncludePaths=[]):
     if i is not None and l is not None:
         print('Info: libOSmesa detected at %s.'%l)
         return (True, i, l, libname)
+    elif l is None and i is not None:
+        print('Info: libOSMesa was not found on your system. No offscreen support for CPlot.')
+        return (False, i, l, libname)
+    elif l is not None and i is None:
+        print('Info: GL/osmesa.h was not found on your system. No offscreen support for CPlot.')
+        return (False, i, l, libname)
     else:
         print('Info: libOSMesa or GL/osmesa.h was not found on your system. No offscreen support for CPlot.')
         return (False, i, l, libname)
@@ -1117,7 +1123,7 @@ def checkOCE(additionalLibPaths=[], additionalIncludePaths=[]):
     i = checkIncFile__('oce/TopTools.hxx', additionalIncludePaths)
     if i is not None and l is not None:
         print('Info: libOCE detected at %s.'%l)
-        return (True, i, l)
+        return (True, i, l)    
     else:
         # On n'affiche pas ici le message, car il peut y avoir un installation locale de OCE
         #print('Info: libOCE or oce/*.hxx was not found on your system. No IGES/STEP support.')
@@ -1138,6 +1144,12 @@ def checkPng(additionalLibPaths=[], additionalIncludePaths=[]):
     if i is not None and l is not None:
         print('Info: png detected at %s.'%l)
         return (True, i, l)
+    elif l is None and i is not None:
+        print('Info: libpng was not found on your system. No png support.')
+        return (False, i, l)
+    elif l is not None and i is None:
+        print('Info: png.h was not found on your system. No png support.')
+        return (False, i, l)
     else:
         print('Info: libpng or png.h was not found on your system. No png support.')
         return (False, i, l)
@@ -1161,6 +1173,12 @@ def checkMpeg(additionalLibPaths=[], additionalIncludePaths=[]):
     if i is not None and l is not None:
         print('Info: mpeg detected at %s.'%l)
         return (True, i, l)
+    elif l is None and i is not None:
+        print('Info: libavcodec was not found on your system. No mpeg support.')
+        return (False, i, l)
+    elif l is not None and i is None:
+        print('Info: libavcodec/avcodec.h,  libavutil/mem.h or libavutil/imgutils.h was not found on your system. No mpeg support.')
+        return (False, i, l)
     else:
         print('Info: libavcodec or libavcodec/avcodec.h,  libavutil/mem.h or libavutil/imgutils.h was not found on your system. No mpeg support.')
         return (False, i, l)
@@ -1195,6 +1213,12 @@ def checkHdf(additionalLibPaths=[], additionalIncludePaths=[]):
     if i is not None and l is not None:
         print('Info: Hdf5 detected at %s.'%l)
         return (True, i, l)
+    elif l is None and i is not None:
+        print('Info: libhdf5 was not found on your system. No hdf5 support.')
+        return (False, i, l)
+    elif l is not None and i is None:
+        print('Info: hdf5.h was not found on your system. No hdf5 support.')
+        return (False, i, l)
     else:
         print('Info: libhdf5 or hdf5.h was not found on your system. No hdf5 support.')
         return (False, i, l)
@@ -1214,6 +1238,12 @@ def checkMpi(additionalLibPaths=[], additionalIncludePaths=[]):
     if i is not None and l is not None:
         print('Info: Mpi detected at %s.'%l)
         return (True, i, l)
+    elif l is None and i is not None:
+        print('Info: libmpi/msmpi was not found on your system. No Mpi support.')
+        return (False, i, l)
+    elif l is not None and i is None:
+        print('Info: mpi.h was not found on your system. No Mpi support.')
+        return (False, i, l)
     else:
         print('Info: libmpi/msmpi or mpi.h was not found on your system. No Mpi support.')
         return (False, i, l)
@@ -1241,7 +1271,7 @@ def checkMpi4py(additionalLibPaths=[], additionalIncludePaths=[]):
         print('Info: Mpi4py detected at %s.'%i)
         return (True, i, '')
     else:
-        print('Info: mpi4py or mpi4py.MPI.h was not found on your system. No Mpi support.')
+        print('Info: mpi4py.MPI.h was not found on your system. No Mpi support.')
         return (False, i, '')
 
 #=============================================================================
@@ -1290,6 +1320,12 @@ def checkBlas(additionalLibPaths=[], additionalIncludePaths=[]):
     if i is not None and l is not None:
         print('Info: Blas detected at %s.'%l)
         return (True, i, l, compOpt, libname)
+    elif l is None and i is not None:
+        print('Info: libblas was not found on your system. No Blas support.')
+        return (False, i, l, compOpt, libname)
+    elif l is not None and i is None:
+        print('Info: cblas.h was not found on your system. No Blas support.')
+        return (False, i, l, compOpt, libname)
     else:
         print('Info: libblas or cblas.h was not found on your system. No Blas support.')
         return (False, i, l, compOpt, libname)
@@ -1322,6 +1358,12 @@ def checkLapack(additionalLibPaths=[], additionalIncludePaths=[]):
     if i is not None and l is not None:
         print('Info: Lapack detected at %s.'%l)
         return (True, i, l, compOpt, libname)
+    elif l is None and i is not None:
+        print('Info: liblapack or lapacke.h was not found on your system. No Lapack support.')
+        return (False, i, l, compOpt, libname)
+    elif l is not None and i is None:
+        print('Info: lapack.h or lapacke.h was not found on your system. No Lapack support.')
+        return (False, i, l, compOpt, libname)
     else:
         print('Info: liblapack or lapack.h or lapacke.h was not found on your system. No Lapack support.')
         return (False, i, l, compOpt, libname)
@@ -1571,12 +1613,12 @@ def writeBuildInfo():
 
      # Check python
      (pythonVersion, pythonIncDir, pythonLibDir, pythonLibs) = checkPython()
-     if (pythonVersion != False): dict['python'] = pythonVersion
+     if pythonVersion != False: dict['python'] = pythonVersion
      else: dict['numpy'] = "None"
 
      # Check numpy
      (numpyVersion, numpyIncDir, numpyLibDir) = checkNumpy()
-     if (numpyVersion != False): dict['numpy'] = numpyVersion
+     if numpyVersion != False: dict['numpy'] = numpyVersion
      else: dict['numpy'] = "None"
 
      # Check png
@@ -1883,5 +1925,5 @@ def createCythonFiles(env, srcs):
      return deps
 
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
    checkAll()
