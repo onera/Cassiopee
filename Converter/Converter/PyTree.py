@@ -2115,7 +2115,6 @@ def TZGC2(t, F, locout, writeDim, *args):
 # Traitement uniquement sur les champs
 def __TZC(t, _F, locin, *args):
   zones = Internal.getZones(t)
-
   for z in zones:
     if   locin == 'nodes':
         fa = getFields(Internal.__FlowSolutionNodes__, z, api=2)[0]
@@ -2124,9 +2123,8 @@ def __TZC(t, _F, locin, *args):
 
     if fa != []:
         _F(fa, *args)
-        setFields([fa],z,locin)
+        setFields([fa], z, locin)
   return None
-
 
 # Recupere les champs de locin en shared array2
 # applique _F

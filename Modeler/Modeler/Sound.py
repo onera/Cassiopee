@@ -73,28 +73,28 @@ def registerSound(fileName):
 def soundCallback0__(in_data, frame_count, time_info, status):
     h = soundPool[0]
     pt = h[1]; s = h[5]; gdata = h[6]
-    data = gdata[s*pt:s*pt+s*frame_count]
+    data = gdata[int(s*pt):int(s*pt+s*frame_count)]
     pt += frame_count; h[1] = pt
     if s*pt > len(gdata): h[1] = 0
     return (data, pyaudio.paContinue)
 def soundCallback1__(in_data, frame_count, time_info, status):
     h = soundPool[1]
     pt = h[1]; s = h[5]; gdata = h[6]
-    data = gdata[s*pt:s*pt+s*frame_count]
+    data = gdata[int(s*pt):int(s*pt+s*frame_count)]
     pt += frame_count; h[1] = pt
     if s*pt > len(gdata): h[1] = 0
     return (data, pyaudio.paContinue)
 def soundCallback2__(in_data, frame_count, time_info, status):
     h = soundPool[2]
     pt = h[1]; s = h[5]; gdata = h[6]
-    data = gdata[s*pt:s*pt+s*frame_count]
+    data = gdata[int(s*pt):int(s*pt+s*frame_count)]
     pt += frame_count; h[1] = pt
     if s*pt > len(gdata): h[1] = 0
     return (data, pyaudio.paContinue)
 def soundCallback3__(in_data, frame_count, time_info, status):
     h = soundPool[3]
     pt = h[1]; s = h[5]; gdata = h[6]
-    data = gdata[s*pt:s*pt+s*frame_count]
+    data = gdata[int(s*pt):int(s*pt+s*frame_count)]
     pt += frame_count; h[1] = pt
     if s*pt > len(gdata): h[1] = 0
     return (data, pyaudio.paContinue)

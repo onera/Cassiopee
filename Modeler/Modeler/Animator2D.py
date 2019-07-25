@@ -104,11 +104,7 @@ class Animator2D:
     def move(self, key, v, render=True):
         if len(v) == 2: v = (v[0],v[1],0.)
         zones = Internal.getZones(self.t)
-        #noz = 0
-        #for z in zones:
-        #    if z[0] == key: break
-        #    noz += 1
-        noz = self.getNozOfKey(key, zones)    
+        noz = self.getNozOfKey(key, zones)
         z = Internal.getNodeFromName2(self.t, key)
         zp = T.translate(z, v)
         CPlot.replace(self.t,1,noz,zp)
@@ -119,10 +115,6 @@ class Animator2D:
         if len(pos) == 2: v = (pos[0],pos[1],0.)
         else: v = pos   
         zones = Internal.getZones(self.t)
-        #noz = 0
-        #for z in zones:
-        #    if z[0] == key: break
-        #    noz += 1
         noz = self.getNozOfKey(key, zones)
         z = Internal.getNodeFromName2(self.t, key)
         sp = Internal.getNodeFromName2(z, 'ShaderParameters')[1]

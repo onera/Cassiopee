@@ -39,7 +39,7 @@ void gkeyboardup(int key, int x, int y)
     {ptrState->keys[ptrState->kcursor]=6; ptrState->kcursor++;}
     else if (key == GLUT_KEY_LEFT) 
     {ptrState->keys[ptrState->kcursor]=7; ptrState->kcursor++;}
-     else if (key == GLUT_KEY_RIGHT) 
+    else if (key == GLUT_KEY_RIGHT) 
     {ptrState->keys[ptrState->kcursor]=8; ptrState->kcursor++;}
     return;
   }

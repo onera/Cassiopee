@@ -2254,6 +2254,31 @@ static PyObject *pa_get_stream_read_available(PyObject *self, PyObject *args) {
 #endif
 
 #if PY_MAJOR_VERSION >= 3
+/*
+#define GETSTATE(m) ((struct module_state*)PyModule_GetState(m))
+struct module_state {
+    PyObject *error;
+};
+static int myextension_traverse(PyObject *m, visitproc visit, void *arg) {
+    Py_VISIT(GETSTATE(m)->error);
+    return 0;
+}
+static int myextension_clear(PyObject *m) {
+    Py_CLEAR(GETSTATE(m)->error);
+    return 0;
+}
+static struct PyModuleDef moduledef = {
+        PyModuleDef_HEAD_INIT,
+        "_portaudio",
+        NULL,
+        sizeof(struct module_state),
+        paMethods,
+        NULL,
+        myextension_traverse,
+        myextension_clear,
+        NULL
+};*/
+
 static struct PyModuleDef moduledef = {  //
     PyModuleDef_HEAD_INIT,
     "_portaudio",

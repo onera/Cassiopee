@@ -19,4 +19,5 @@ t[2][1] = C.addFamily2Base(t[2][1], 'LOIN', bndType='BCFarfield')
 names1 = C.getFamilyBCNamesOfType(t, 'BCWall')
 # Toutes les familyBCs de l'arbre
 names2 = C.getFamilyBCNamesOfType(t)
+names1.sort(); names2.sort()
 test.testO([names1, names2], 1)
