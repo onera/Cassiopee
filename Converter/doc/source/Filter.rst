@@ -36,9 +36,12 @@ List of functions
     Converter.Filter.Handle
     Converter.Filter.Handle.loadSkeleton
     Converter.Filter.Handle.getVariables
+    Converter.Filter.Handle.loadZones
     Converter.Filter.Handle.loadZonesWoVars
     Converter.Filter.Handle.loadVariables
-
+    Converter.Filter.Handle.writeZones
+    Converter.Filter.Handle.writeZonesWoVars
+    Converter.Filter.Handle.writeVariables
 
 Contents
 #########
@@ -265,9 +268,27 @@ High level layer
 
 ---------------------------------------------------------------------------
 
+.. py:function:: Converter.Filter.Handle.loadZones(a, znp=None)
+
+    Fully load specified zones (coordinates, fields, grid connectivity, boundary conditions) in tree.
+    This function must be called after loadSkeleton.
+
+    :param a: modified pyTree 
+    :type a: pyTree
+    :param znp: path of zones to load from (starting from top)
+    :type znp: list of strings
+    
+    *Example of use:*
+
+    * `Fully load zones (pyTree) <Examples/Converter/loadZonesPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/loadZonesPT.py
+
+---------------------------------------------------------------------------
+
 .. py:function:: Converter.Filter.Handle.loadZonesWoVars(a, znp=None, bbox=None)
 
-    Load specified zones (coordinates, grid connectivity, boundary conditions).
+    Load specified zones (coordinates, grid connectivity, boundary conditions) in tree.
     If bbox=[xmin,ymin,zmin,xmax,ymax,zmax] is specified, load only zones
     intersecting this bbox.
     This function must be called after loadSkeleton.
@@ -289,7 +310,7 @@ High level layer
         
 .. py:function:: Converter.Filter.Handle.loadVariables(a, var, znp=None)
 
-    Load specified variables.
+    Load specified variables in tree.
     This function must be called after loadSkeleton.
 
     :param a: modified pyTree 
@@ -304,6 +325,60 @@ High level layer
     * `Load given variables (pyTree) <Examples/Converter/loadVariablesPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/loadVariablesPT.py
+
+---------------------------------------------------------------------------
+
+.. py:function:: Converter.Filter.Handle.writeZones(a, znp=None)
+
+    Fully write specified zones (coordinates, fields, grid connectivity, boundary conditions) in file.
+    
+    :param a: input pyTree 
+    :type a: pyTree or list of zones
+    :param znp: path of zones to write to in file (starting from root)
+    :type znp: list of strings
+    
+    *Example of use:*
+
+    * `Fully write zones (pyTree) <Examples/Converter/writeZonesFPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/writeZonesFPT.py
+
+---------------------------------------------------------------------------
+
+.. py:function:: Converter.Filter.Handle.writeZonesWoVars(a, znp=None)
+
+    Write specified zones without fields (coordinates, grid connectivity, boundary conditions) in file.
+    
+    :param a: input pyTree 
+    :type a: pyTree or list of zones
+    :param znp: path of zones to write to in file (starting from root)
+    :type znp: list of strings
+    
+    *Example of use:*
+
+    * `Write zones without fields (pyTree) <Examples/Converter/writeZonesWoVarsPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/writeZonesWoVarsPT.py
+
+---------------------------------------------------------------------------
+
+.. py:function:: Converter.Filter.Handle.writeVariables(a, var, znp=None)
+
+    Write specified variables in file.
+    
+    :param a: input pyTree 
+    :type a: pyTree or list of zones
+    :param var: variables to write
+    :type var: string or list of strings
+    :param znp: path of zones to write to in file (starting from root)
+    :type znp: list of strings
+    
+    *Example of use:*
+
+    * `Write variables (pyTree) <Examples/Converter/writeVariablesPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/writeVariablesPT.py
+
 
 
 .. toctree::

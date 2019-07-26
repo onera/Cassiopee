@@ -15,8 +15,11 @@ h = Filter.Handle('file.hdf')
 # Load skeleton
 a = h.loadSkeleton()
 
-# Load zones without variable
+# Load all zones without variable
 h._loadZonesWoVars(a)
 
-# Load given variables
+# Load given variables for all zones
 h._loadVariables(a, var=['F', 'centers:G'])
+
+# Load given variables for given zone
+h._loadVariables(a, var=['F', 'centers:G'], znp=['Base/cart'])

@@ -907,15 +907,16 @@ def _rmNodes(z, name):
   return None
 
 # Upgrade tree (applique apres lecture)
-def _upgradeTree(t):
+def _upgradeTree(t, uncompress=True):
   Internal._correctPyTree(t, level=10) # force CGNS names
   Internal._correctPyTree(t, level=2) # force unique name
   Internal._correctPyTree(t, level=7) # create familyNames
   registerAllNames(t)
-  try:
-    import Compressor.PyTree as Compressor
-    Compressor._uncompressCartesian(t)
-  except: pass
+  if uncompress:
+    try:
+      import Compressor.PyTree as Compressor
+      Compressor._uncompressCartesian(t)
+    except: pass
   return None
 
 #==============================================================================
@@ -924,7 +925,8 @@ def _upgradeTree(t):
 
 # -- convertFile2PyTree
 def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
-                       density=-1., skeletonData=None, dataShape=None, links=None, skipTypes=None):
+                       density=-1., skeletonData=None, dataShape=None, 
+                       links=None, skipTypes=None, uncompress=True):
   """Read a file and return a pyTree containing file data.
   Usage: convertFile2PyTree(fileName, format, options)"""
   if format is None:
@@ -941,14 +943,14 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
     try:
       t = Converter.converter.convertFile2PyTree(fileName, format, skeletonData, dataShape, links, skipTypes)
       t = Internal.createRootNode(children=t[2])
-      _upgradeTree(t)
+      _upgradeTree(t, uncompress)
       return t
     except:
       if format == 'bin_cgns' or format == 'bin_adf':
         try:
           t = Converter.converter.convertFile2PyTree(fileName, 'bin_hdf', skeletonData, dataShape, links, skipTypes)
           t = Internal.createRootNode(children=t[2])
-          _upgradeTree(t)
+          _upgradeTree(t, uncompress)
           return t
         except: pass
       else: # adf par defaut

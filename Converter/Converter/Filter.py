@@ -231,11 +231,11 @@ def _loadZoneBCsWoData(a, fileName, znp, format=None):
   if paths != []: _readPyTreeFromPaths(a, fileName, paths, format, maxDepth=2, setOnlyValue=False)
   return None
 
-# Load fully extras node (not Zone or Base)
-def _loadExtras(a, fileName, format=None):
+# Load fully extra nodes of a tree (but no Zone or Base)
+def _loadTreeExtras(a, fileName, format=None):
   # Fully load nodes of level 1 except CGNSBase_t
-  children = a[2]
   paths = []
+  children = a[2]
   for i in children:
     if i[3] != 'CGNSBase_t': paths.append(i[0])
   
@@ -246,6 +246,35 @@ def _loadExtras(a, fileName, format=None):
     for i in children:
       if i[3] != 'Zone_t': paths.append(b[0]+'/'+i[0])
   if paths != []: _readPyTreeFromPaths(a, fileName, paths, format)
+  return None
+
+# Load extra data of zones (cartesianData or solver#define)
+def _loadZoneExtras(a, fileName, znp, format=None, uncompress=True):
+  if isinstance(znp, list): znps = znp
+  else: znps = [znp]
+  paths = []
+  for p in znps:
+    n = Internal.getNodeFromPath(a, p)
+    # Level1
+    for i in n[2]:
+      if i[3] == 'DataArray_t': paths.append(p+'/'+i[0])
+  
+    # Level2
+    for i in n[2]:
+      if i[3] == 'UserDefinedData_t':
+        for j in i[2]:
+          if i[3] == 'DataArray_t': paths.append(p+'/'+i[0]+'/'+j[0])
+  if paths != []: _readPyTreeFromPaths(a, fileName, paths, format)
+  # Decompression cartesien evetuellement
+  if uncompress:
+    for p in znps:
+      n = Internal.getNodeFromPath(a, p)
+      for i in n[2]:
+        if i[0] == 'CartesianData':
+          try:
+            import Compressor.PyTree as Compressor
+            Compressor._uncompressCartesian(n)
+          except: pass
   return None
 
 # get variables: return a list
@@ -419,6 +448,99 @@ def loadAndSplit(fileName, NParts=None, noz=None, NProc=None, rank=None, variabl
   return b
 
 #==========================================================
+# a : must be a tree or a zone list coherent with znp
+# znp: is the full path from top
+def writeZones(a, fileName, znp, format=None):
+  if isinstance(znp, list): znps = znp
+  else: znps = [znp]
+  if len(a) < 4: zones = a # suppose single zone in a list
+  else:
+    if a[3] == 'CGNSTree_t':
+      zones = []
+      for p in znps: zones.append(Internal.getNodeFromPath(a, p))
+    elif a[3] == 'Zone_t': zones = [a]
+    else: zones = a
+
+  if len(zones) != len(znps): raise ValueError('writeZones: data and znp are incompatible.')
+  
+  paths = []
+  for p in znps:
+    pp = p.rsplit('/', 1)
+    paths.append(pp[0])
+  writeNodesFromPaths(fileName, paths, zones, format, mode=0)
+  
+# Write all except flowfield containers
+def writeZonesWoVars(a, fileName, znp, format=None):
+  if isinstance(znp, list): znps = znp
+  else: znps = [znp]
+  if len(a) < 4: zones = a # suppose single zone in a list
+  else:
+    if a[3] == 'CGNSTree_t':
+      zones = []
+      for p in znps: zones.append(Internal.getNodeFromPath(a, p))
+    elif a[3] == 'Zone_t': zones = [a]
+    else: zones = a
+  
+  if len(zones) != len(znps): raise ValueError('writeZones: data and znp are incompatible.')
+  
+  ppaths = []
+  for p in znps:
+    pp = p.rsplit('/', 1)
+    ppaths.append(pp[0])
+  writeNodesFromPaths(fileName, ppaths, zones, format, maxDepth=0, mode=0)
+
+  nodes = []; paths = []
+  # skipType=FlowSolution_t
+  for c, z in enumerate(zones):
+    children = z[2]
+    for i in children:
+      if i[3] != 'FlowSolution_t': 
+        nodes.append(i)
+        paths.append(znps[c])
+  writeNodesFromPaths(fileName, paths, nodes, format, mode=0)
+
+# Write zone variables only
+def writeVariables(a, fileName, var, znp, format=None):
+  if isinstance(znp, list): znps = znp
+  else: znps = [znp]
+  if isinstance(var, list): vars = var
+  else: vars = [var]
+  if len(a) < 4: zones = a # suppose single zone in a list
+  else:
+    if a[3] == 'CGNSTree_t':
+      zones = []
+      for p in znps: zones.append(Internal.getNodeFromPath(a, p))
+    elif a[3] == 'Zone_t': zones = [a]
+    else: zones = a
+  
+  if len(zones) != len(znps): raise ValueError('writeZones: data and znp are incompatible.')
+  
+  loc = []
+  for v in vars:
+    vs = v.split(':')
+    if len(vs) == 2: 
+      if vs[0] == 'centers': loc.append(Internal.__FlowSolutionCenters__)
+      else: loc.append(Internal.__FlowSolutionNodes__)
+    else: loc.append(Internal.__FlowSolutionNodes__)
+
+  conts = []; cpaths = []; nodes = []; npaths = []
+  for c, z in enumerate(zones):
+    for i in z[2]:
+      if i[3] == 'FlowSolution_t': 
+        conts.append(i); cpaths.append(znps[c])
+      for j in i[2]:
+        if j[3] == 'GridLocation_t': 
+          conts.append(j); cpaths.append(znps[c]+'/'+i[0])
+    for d, v in enumerate(vars):
+      ns = PyTree.getStdNodesFromName(z, v)
+      if ns != []:
+        npaths.append(znps[c]+'/'+loc[d])
+        nodes.append(ns[0])
+        
+  writeNodesFromPaths(fileName, cpaths, conts, format, maxDepth=0, mode=0)
+  writeNodesFromPaths(fileName, npaths, nodes, format, mode=0)
+
+#==========================================================
 class Handle:
   """Handle for partial reading."""
   def __init__(self, fileName):
@@ -571,13 +693,19 @@ class Handle:
     Internal._fixNGon(a)
     return None
 
-  # Charge tous les noeuds extra de a
-  def _loadExtras(self, a):
-    _loadExtras(a, self.fileName, self.format)
+  # Charge tous les noeuds extra d'un arbre a
+  def _loadTreeExtras(self, a):
+    _loadTreeExtras(a, self.fileName, self.format)
+    return None
+
+  # Charge tous les noeuds extra des zones
+  def _loadZoneExtras(self, a):
+    _loadZoneExtras(a, self.fileName, self.format)
     return None
 
   # Charge completement toutes les zones de a ou de chemin fourni
   def _loadZones(self, a, znp=None):
+    """Fully load zones."""
     if znp is None: znp = self.getZonePaths(a)
     _loadZones(a, self.fileName, znp, self.format)
     return None
@@ -592,13 +720,13 @@ class Handle:
 
   def _loadZonesWoVars(self, a, znp=None, bbox=None):
     if znp is None: znp = self.getZonePaths(a)
-
     if bbox is None:
       # Read paths as skeletons
       _readPyTreeFromPaths(a, self.fileName, znp, self.format, maxFloatSize=0)
       _loadContainer(a, self.fileName, znp, 'GridCoordinates', self.format)
       _loadConnectivity(a, self.fileName, znp, self.format)
       _loadZoneBCs(a, self.fileName, znp, self.format)
+      _loadZoneExtras(a, self.fileName, znp, self.format)
       for zp in znp:
         _convert2PartialTree(Internal.getNodeFromPath(a, zp))
     else:
@@ -660,3 +788,21 @@ class Handle:
   def isInBBox(self, a, bbox, znp=None):
     if znp is None: znp = self.getZonePaths(a)
     return isInBBox(a, self.fileName, bbox, znp)
+
+  # Ecrit des zones
+  def writeZones(self, a, znp=None):
+    """Write specified zones."""
+    if znp is None: znp = self.getZonePaths(a)
+    writeZones(a, self.fileName, znp, self.format)
+
+  # Ecrit des zones sans les FlowSolution_t
+  def writeZonesWoVars(self, a, znp=None):
+    """Write specified zones without variables."""
+    if znp is None: znp = self.getZonePaths(a)
+    writeZonesWoVars(a, self.fileName, znp, self.format)
+  
+  # Ecrit des variables
+  def writeVariables(self, a, var, znp=None):
+    """Write specified variables."""
+    if znp is None: znp = self.getZonePaths(a)  
+    writeVariables(a, self.fileName, var, znp, self.format)

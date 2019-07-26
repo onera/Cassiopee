@@ -668,7 +668,7 @@ def selectCells2(a, tag, strict=0, loc=-1):
         for i in range(lena):
             sizetag = tag[i][1].shape[1]
             sizea = a[i][1].shape[1]
-            if (sizetag != sizea or loc == 1): # centers
+            if sizetag != sizea or loc == 1: # centers
                 ret = post.selectCellCenters(a[i], tag[i])
             else:
                 ret = post.selectCells(a[i], tag[i], strict)
@@ -677,7 +677,7 @@ def selectCells2(a, tag, strict=0, loc=-1):
     else:
         sizetag = tag[1].shape[1]
         sizea = a[1].shape[1]
-        if (sizea != sizetag or loc == 1): # centers
+        if sizea != sizetag or loc == 1: # centers
             ret = post.selectCellCenters(a, tag)
         else:
             ret = post.selectCells(a, tag, strict)
@@ -760,7 +760,7 @@ def isoLine(array, var, value):
             except: pass
 
     if out == []: raise ValueError("isoLine: isoline is empty.")
-    if (isinstance(value, list) and len(value) == 1): return out[0]
+    if isinstance(value, list) and len(value) == 1: return out[0]
     if not isinstance(value, list): return out[0]
     return out
 
@@ -942,8 +942,7 @@ def computeIndicatorField(octreeHexa, indicVal, nbTargetPts=-1, bodies=[],
     Returns the indicator field.
     Usage: computeIndicatorField(octreeHexa, indicVal, nbTargetPts, bodies, refinestLevel, coarsenCoarsestLevel)"""
     try: import Generator as G
-    except:
-        raise ImportError("computeIndicatorField: requires Generator module.")
+    except: raise ImportError("computeIndicatorField: requires Generator module.")
     npts = octreeHexa[1][0].shape[0]
     if nbTargetPts == -1: nbTargetPts = npts
 
@@ -968,7 +967,7 @@ def computeIndicatorField(octreeHexa, indicVal, nbTargetPts=-1, bodies=[],
     res = G.adaptOctree(octreeHexa, indicator1)
     nptsfin = len(res[1][0])
     print('Number of points for low bound value %g is %d (targetPts=%d)'%(epsInf, nptsfin, nbTargetPts))
-    if (nptsfin < nbTargetPts): return indicator1, epsInf/4., epsInf*4.
+    if nptsfin < nbTargetPts: return indicator1, epsInf/4., epsInf*4.
 
     # calcul de l'indicateur : ts les pts sont deraffines
     indicator1 = computeIndicatorFieldForBounds(indicator, indicVal, \
@@ -983,7 +982,7 @@ def computeIndicatorField(octreeHexa, indicVal, nbTargetPts=-1, bodies=[],
     # dichotomie
     count = 0; Delta = nbTargetPts
     diffmax = 1.e-8*nbTargetPts/max(Delta,1e-6); diff = diffmax+1.
-    while (count < 100 and Delta > 0.02*nbTargetPts and diff > diffmax):
+    while count < 100 and Delta > 0.02*nbTargetPts and diff > diffmax:
         eps = 0.5*(epsInf+epsSup)
         #print 'epsInf =', epsInf, ' | epsSup = ', epsSup
         indicator1 = computeIndicatorFieldForBounds(indicator, indicVal, eps/4., 4.*eps)
