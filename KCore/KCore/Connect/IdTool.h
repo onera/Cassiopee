@@ -63,6 +63,10 @@ public:
   static E_Int compress(K_FLD::DynArray<T>& arr, const Predicate_t& P);
   ///
   template < typename T, typename Predicate_t>
+  static E_Int compress(K_FLD::DynArray<T>& arr, const Predicate_t& P, std::vector<E_Int>& nids);
+  
+  ///
+  template < typename T, typename Predicate_t>
   static E_Int compress(K_FLD::FldArray<T>& arr, const Predicate_t& P);
   ///
   static E_Int max(const K_FLD::IntArray& connect);
@@ -76,6 +80,8 @@ public:
   static void compact(std::vector<T>& vec, const std::vector<E_Int> & nids);
   template <typename T>
   static void compact(K_FLD::DynArray<T>& arr, const std::vector<E_Int> & nids);
+  template <typename T>
+  static E_Int compact (E_Int* target, E_Int& szio, const T* keep/*, Vector2& new_Ids*/);
   
   ///
   template <typename T>
@@ -92,6 +98,9 @@ public:
 
   template<typename VecDec>
   static void init_inc(VecDec & vec, E_Int sz){ vec.clear(); vec.resize(sz, E_IDX_NONE); for (E_Int i = 0; i < sz; ++i) vec[i] = i; }
+  
+  template<typename VecDec>
+  static void init_inc(VecDec & vec, E_Int sz, E_Int shift){ vec.clear(); vec.resize(sz, E_IDX_NONE); for (E_Int i = 0; i < sz; ++i) vec[i] = i+shift; }
 
   template <typename T>
   static void init_inc(K_FLD::DynArray<T>& arr, E_Int row, E_Int sz){ 
@@ -115,6 +124,17 @@ void IdTool::right_shift(E_Int* list, E_Int sz)
       for (int i =0; i < S; ++i){
           list[i] = tmp[i];
       }    
+}
+
+///
+template<>
+inline void IdTool::shift<K_FLD::IntArray> (K_FLD::IntArray & arr, E_Int from, E_Int shift)
+{
+  for (E_Int i=from;i<arr.cols(); ++i) 
+  {
+    for (E_Int j = 0; j < arr.rows(); ++j)
+      if (arr(j,i) != E_IDX_NONE) arr(j,i) +=shift;
+  }
 }
 
 ///
@@ -179,6 +199,18 @@ struct keep : public std::unary_function <E_Int, bool>
 
   const std::vector<T>& _indir;
 };
+template< typename T = bool>
+struct keep2 : public std::unary_function <E_Int, bool>
+{
+  keep2(const T* indir, E_Int n):_indir(indir), _n(n){}
+  inline bool operator() (E_Int i ) const
+  {
+    return (_indir[i]);
+  }
+
+  const T* _indir;
+  E_Int _n;
+};
 
 struct strictly_positive : public std::unary_function <E_Int, bool>
 {
@@ -195,7 +227,7 @@ struct strictly_positive : public std::unary_function <E_Int, bool>
 template < typename T, typename Predicate_t>
 E_Int IdTool::compress(std::vector<T>& vec, const Predicate_t& P)
 {
-  assert (vec.size() == P._indir.size());
+  //assert (vec.size() == P._indir.size());
   size_t         i, cols(vec.size());
   std::vector<T> new_vec;
   for (i = 0; i < cols; ++i)
@@ -239,12 +271,39 @@ E_Int IdTool::compress(K_FLD::DynArray<T>& arr, const Predicate_t& P)
 {
   if (arr.cols() == 0)
     return 0;
-  assert (arr.cols() == P._indir.size());
+  //assert (arr.cols() == P._indir.size());
   size_t         i, cols(arr.cols()), stride(arr.rows());
   K_FLD::DynArray<T> new_arr;
   for (i = 0; i < cols; ++i)
   {
     if (P(i)) new_arr.pushBack(arr.col(i), arr.col(i)+stride);
+  }
+
+  E_Int ret = arr.cols() - new_arr.cols();
+  arr = new_arr;
+  return ret;
+}
+
+///
+template < typename T, typename Predicate_t>
+E_Int IdTool::compress(K_FLD::DynArray<T>& arr, const Predicate_t& P, std::vector<E_Int>& nids)
+{
+  if (arr.cols() == 0)
+    return 0;
+  //assert (arr.cols() == P._indir.size());
+  size_t         i, cols(arr.cols()), stride(arr.rows()), count(0);
+  
+  nids.clear();
+  nids.resize(cols, E_IDX_NONE);
+  
+  K_FLD::DynArray<T> new_arr;
+  for (i = 0; i < cols; ++i)
+  {
+    if (P(i))
+    {
+      new_arr.pushBack(arr.col(i), arr.col(i)+stride);
+      nids[i] = count++;
+    }
   }
 
   E_Int ret = arr.cols() - new_arr.cols();
@@ -313,6 +372,39 @@ void IdTool::compact(K_FLD::DynArray<T>& arr, const std::vector<E_Int> & nids)
     }
   }
   arr=tmp;
+}
+
+template <typename T>
+E_Int IdTool::compact (E_Int* target, E_Int& szio, const T* keep/*, Vector2& new_Ids*/)
+{
+
+  bool  carry_on(false);
+  E_Int i1(0), i2(szio-1);
+
+  //new_Ids.clear();
+  //new_Ids.resize(cols, E_IDX_NONE);
+
+  do{
+
+    while ((i1 <= i2) && keep[i1]){/*new_Ids[i1] = i1;*/ ++i1;}  // Get the first empty column.
+    while ((i1 <= i2) && !keep[i2]){--i2;} // Get the first column to move from the tail.
+
+    carry_on = (i1 < i2);
+
+    if (carry_on)
+    { // Copy column i2 in column i1.
+      //new_Ids[i2] = i1;
+      E_Int& v2 = target[i2--];
+      E_Int& v1 = target[i1++];
+      v1 = v2;
+    }
+  }
+  while (carry_on);
+
+  E_Int szi = szio;
+  szio = i1;
+
+  return (szi - szio);
 }
 
 }

@@ -85,7 +85,7 @@ namespace NUGA
 //  MIO::write("conf.mesh", crd, tmpE, "BAR");
           
 #endif
-      
+
           if (COLLIDING_FUNC(P0, P1, P2, Q0, Q1, Q2, abstol))
             return true;
         }
@@ -287,7 +287,7 @@ void compute_overlap(const K_FLD::FloatArray& crd1, const ngon_unit& PGs1,
       double ps = ::fabs(K_FUNC::dot<3>(n1,n2));
       if (ps < ps_min) continue;
       
-      // Polygons pairs are now roughly overlapping/parallel
+      // Polygons pairs are now roughly overlapping/parallel : important in order to have a relevant result when using simplicial_colliding with Triangle::overlap
       
       ELT2 PG2(nodes2, nb_nodes2, -1);
       

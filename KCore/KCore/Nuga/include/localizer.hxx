@@ -35,6 +35,8 @@ class localizer
   template<typename ELT>
   void get_candidates(const ELT& e, const acrd_t crde, std::vector<E_Int>& candidates) const ;
   
+  const Tree_t* get_tree() const { return _tree;}
+  
   private:
     void __create_tree(const acrd_t& crd, const acnt_t& cnt);
     void __destroy_tree();

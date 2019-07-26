@@ -24,6 +24,7 @@
 #include "Fld/ArrayAccessor.h"
 #include "Fld/ngon_t.hxx"
 #include "Def/DefTypes.h"
+#include "Polygon.h"
 
 namespace K_MESH
 {
@@ -43,7 +44,7 @@ public:
   Hexahedron(const E_Int* nodes, E_Int shift=0):_shift(shift){ for (size_t i = 0; i< 8; ++i)_nodes[i]=*(nodes++);}
  ~Hexahedron(){}
  
- template <typename ngunit_t>
+  template <typename ngunit_t>
   Hexahedron(const ngunit_t & PGs, const E_Int* first_pg){}
 
   E_Int* nodes() { return _nodes;}
@@ -61,6 +62,10 @@ public:
   template <typename Connectivity_t>
   inline void set(const K_FLD::ArrayAccessor<Connectivity_t>& connect, E_Int K)
   {connect.getEntry(K, _nodes);}
+  
+  E_Int volume(const K_FLD::FloatArray& crd, E_Float& v);
+  
+  void compact(const K_FLD::FloatArray& crdi, ngon_unit& pgs, K_FLD::FloatArray&crd);
   
   void triangulate(E_Int* target);//WARNING : connectT3 is Apended (not cleared upon entry)
   
@@ -272,6 +277,47 @@ void Hexahedron::iso_barycenter(const CoordAcc& coord, E_Float* G)
     }
     
     K_MESH::Polyhedron<STAR_SHAPED>::iso_barycenter(crd, new_bary, 8, 1, G);
+  }
+  
+  ///
+  inline E_Int Hexahedron::volume(const K_FLD::FloatArray& crd, E_Float& v)
+  {    
+    K_FLD::IntArray cT3(3, 12);
+    for (E_Int i=0; i < 12; ++i)
+      this->triangle(i, cT3.col(i));
+    E_Float G[3];
+    K_MESH::Polyhedron<UNKNOWN>::metrics(crd, cT3, v, G);
+    return 0;
+    
+  }
+  
+  inline void Hexahedron::compact(const K_FLD::FloatArray& crdi, ngon_unit& pgs, K_FLD::FloatArray&crd) //1-based
+  {
+    assert (false); // not tested
+    pgs.clear();
+    crd.clear();
+    
+    E_Int F1[] = {1,4,3,2};
+    E_Int F2[] = {5,6,7,8};
+    E_Int F3[] = {1,5,8,4};
+    E_Int F4[] = {2,3,7,6};
+    E_Int F5[] = {1,2,6,5};
+    E_Int F6[] = {3,4,8,7};
+    
+    pgs.add(4, F1);
+    pgs.add(4, F2);
+    pgs.add(4, F3);
+    pgs.add(4, F4);
+    pgs.add(4, F5);
+    pgs.add(4, F6);
+    
+    pgs.updateFacets();
+    
+    for (size_t i=0; i < 8; ++i)
+    {
+      E_Int id = node(i);
+      crd.pushBack(crdi.col(node(i)), crdi.col(node(i))+3);
+    }
   }
 
 }

@@ -27,6 +27,7 @@
 #include "Fld/ArrayAccessor.h"
 #include "Fld/ngon_unit.h"
 
+#define NON_MANIFOLD_COL -9
 
 namespace K_CONNECT {
 
@@ -53,12 +54,15 @@ public:
   static void getNeighbours (const K_FLD::IntArray& ELTContainer, NeighbourType& neighbors);  
 
   static inline bool getManifoldNeighbours (const K_FLD::IntArray& ELTContainer, K_FLD::IntArray& neighbors, bool strict=true);
+  static inline E_Int getNeighbours (const K_FLD::IntArray& ELTContainer, K_FLD::IntArray& neighbors, bool non_manifold_as_free = false);
    
   inline static void coloring (const K_FLD::IntArray& ELTContainer, const NeighbourType& neighbors,
                                const std::set<BoundaryType> & color_bounds, int_vector_type& colors);  
   
   inline static void coloring (const K_FLD::IntArray& neighbors, int_vector_type& colors);
   inline static void coloring (const ngon_unit& neighbors, int_vector_type& colors);
+  
+  template<typename T> inline static void coloring (const ngon_unit& neighbors, std::vector<T>& colors, T UNSET_COL, T FIRST_COL);
   
   inline static void extrapolate (const ngon_unit& neighbors, K_FLD::IntArray& properties);
   

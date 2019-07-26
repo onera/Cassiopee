@@ -30,8 +30,8 @@ template <typename cnt_t>
     template <typename ELT>
     inline void getEntry(const E_Int& j, ELT& PHj) const
     {
-      PHj._pgs=&_ng.PGs;
-      PHj._faces=_ng.PHs.get_facets_ptr(j);
+      PHj._pgs=const_cast<ngon_unit*>(&_ng.PGs);
+      PHj._faces=const_cast<E_Int*>(_ng.PHs.get_facets_ptr(j));
       PHj._nb_faces=_ng.PHs.stride(j);
     }
     

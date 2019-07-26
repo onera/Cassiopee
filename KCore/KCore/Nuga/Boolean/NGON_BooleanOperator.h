@@ -2904,7 +2904,7 @@ NGON_BOOLEAN_CLASS::__process_intersections
   // Compute the normals and replace it by the PG ancestor for nearly degen triangles.
   K_FLD::ArrayAccessor<Coordinate_t> ac(_coord);
   K_FLD::ArrayAccessor<K_FLD::IntArray> acT3n(connectT3);
-  __compute_normals(ac, acT3n, wPGs, nT3_to_PG, _normals);
+  K_CONNECT::MeshTool::compute_or_transfer_normals(ac, acT3n, wPGs, nT3_to_PG, _normals);
   
 #ifdef FLAG_STEP
   std::cout << "NGON Boolean : __process_duplicates : " << c.elapsed() << std::endl;
@@ -3170,7 +3170,7 @@ E_Int NGON_BOOLEAN_CLASS::__build_connect_hard
   K_FLD::FloatArray extraNorms;
   K_FLD::ArrayAccessor<K_FLD::FloatArray> acrd(_coord);
   K_FLD::ArrayAccessor<K_FLD::IntArray> acT3o(cT3);
-  __compute_normals(acrd, acT3o, extrawPGs, oT3_to_PG, extraNorms);
+  K_CONNECT::MeshTool::compute_or_transfer_normals(acrd, acT3o, extrawPGs, oT3_to_PG, extraNorms);
     
   // append the hard skin to the open layer
   extraNorms.pushBack(_normals);
@@ -4140,77 +4140,6 @@ void NGON_BOOLEAN_CLASS::__duplicate_orient
     _normals(1,i)=-_normals(1,i);
     _normals(2,i)=-_normals(2,i);
   }
-}
-
-///
-TEMPLATE_COORD_CONNECT
-void NGON_BOOLEAN_CLASS::__compute_normals
-(const K_FLD::ArrayAccessor<K_FLD::FloatArray>& acrd, const K_FLD::ArrayAccessor<K_FLD::IntArray>& acnt, 
- const ngon_unit& PGs, const Vector_t<E_Int> T3_to_PG, K_FLD::FloatArray& T3normals)
-{
-  size_t nb_t3s = acnt.size();
-  
-  T3normals.clear();
-  T3normals.reserve(3, nb_t3s);
-  
-  std::map<E_Int, E_Int> pgid_to_PGnorm;
-  std::map<E_Int, E_Int>::iterator it;
-  K_FLD::FloatArray PGnormals;
-  
-  E_Int t3[3], PGi, Normi;
-  E_Float p0[3], p1[3], p2[3], normal[3];
-    
-  //
-  for (size_t i = 0; i < nb_t3s; ++i)
-  {
-    acnt.getEntry(i, t3);
-    acrd.getEntry(t3[0], p0);
-    acrd.getEntry(t3[1], p1);
-    acrd.getEntry(t3[2], p2);
-    
-    K_MESH::Triangle::normal(p0, p1, p2, normal); 
-    
-    E_Float l2 = ::sqrt(normal[0]*normal[0]+normal[1]*normal[1]+normal[2]*normal[2]);
-    
-    if (::fabs(l2 - 1.) < E_EPSILON) // NOT degen
-      T3normals.pushBack(normal, normal+3);
-    else
-    {
-      PGi = T3_to_PG[i];
-      it = pgid_to_PGnorm.find(PGi);
-      if (it == pgid_to_PGnorm.end()) // PG normal not computed yet
-      {
-        const E_Int* pN = PGs.get_facets_ptr(PGi);
-        E_Int stride = PGs.stride(PGi);
-    
-        typedef K_FLD::ArrayAccessor<K_FLD::FloatArray> CordAcc_t;
-        K_MESH::Polygon::normal<CordAcc_t, 3>(acrd, pN, stride, 1, &normal[0]); 
-        
-        PGnormals.pushBack(normal, normal+3);
-        pgid_to_PGnorm[PGi]=PGnormals.cols()-1;
-      }
-      
-      Normi = pgid_to_PGnorm[PGi];
-      const E_Float* pg_normal = PGnormals.col(Normi);
-      
-      T3normals.pushBack(pg_normal, pg_normal+3);
-    }
-  }  
-  
-//#ifdef DEBUG_BOOLEAN
-//  {
-//    E_Int PGi = 5;
-//    ///NGON_DBG::draw_PGT3(acrd.array(), PGs, PGi, (PGnormals.cols() == 0) ? 0: &PGnormals);
-//    Vector_t<E_Int> oids;
-//    const K_FLD::IntArray& cT3 = acnt.array();
-//    TRI_debug::get_same_ancestor_T3s(PGi, 1, _coord, cT3, T3_to_PG, oids);
-//    Vector_t<bool> keep(cT3.cols(), false);
-//    for (size_t i=0; i < oids.size(); ++i)keep[oids[i]]=true;
-//    std::ostringstream o;
-//    o << "normals_for_" << PGi << ".mesh";
-//    TRI_debug::write_wired(o.str().c_str(), _coord, cT3, T3normals, 0, &keep, true);
-//  }
-//#endif
 }
 
 ///

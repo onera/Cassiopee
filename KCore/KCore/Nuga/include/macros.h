@@ -22,4 +22,6 @@
 
 #define Vector_t std::vector
 
+#define STACK_ARRAY(T, n, name) std::unique_ptr<T[]> name(new T[n]);
+
 #endif

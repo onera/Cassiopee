@@ -117,10 +117,11 @@ public:
   
 public://fixme
   bool _split_swap_afterwards; // TRI specific
+  bool _silent_errors; // T3Mesher errors
 
 protected:
   ///
-  Conformizer(bool wnh = false): _split_swap_afterwards(false), _absolute_tol(true)/*fixme : no choice yet*/, _with_node_history(wnh), _X0(0) {}
+  Conformizer(bool wnh = false): _split_swap_afterwards(false), _silent_errors(false), _absolute_tol(true)/*fixme : no choice yet*/, _with_node_history(wnh), _X0(0) {}
   
   // Methods to override : interface to implement
 protected:

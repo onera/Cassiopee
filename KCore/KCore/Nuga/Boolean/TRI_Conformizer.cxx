@@ -128,6 +128,7 @@ TRI_Conformizer<DIM>::__split_Elements
   mode.mesh_mode = mode.TRIANGULATION_MODE;
   mode.remove_holes = false;  // option to speed up.
   mode.ignore_coincident_nodes = true;
+  mode.silent_errors = parent_type::_silent_errors;
   DELAUNAY::T3Mesher<E_Float> mesher(mode);
   
   K_CONT_DEF::int_vector_type gnids, lnids;
@@ -514,6 +515,8 @@ TRI_Conformizer<DIM>::__iterative_run
 {
   E_Int err(0), nb_pts(crd.cols());
   
+  bool silent_last_it = mesher._mode.silent_errors;
+  
   
   lnids.clear();
   if (mesher._mode.ignore_coincident_nodes) //and eventually unforceable edge
@@ -535,7 +538,7 @@ TRI_Conformizer<DIM>::__iterative_run
     mesher._edge_errors.clear();
     
     mesher._mode.do_not_shuffle=bool(!railing); // i.e. shuffle every time but the first
-    mesher._mode.silent_errors=(railing == nb_attemps) ? false : true; // only listen the last attempt
+    mesher._mode.silent_errors=(railing == nb_attemps) ? silent_last_it : true; // only listen EVENTUALLY the last attempt
 
     data.pos = &crd;
     data.connectB = &cB;

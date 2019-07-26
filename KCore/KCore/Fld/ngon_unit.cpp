@@ -35,6 +35,7 @@ ngon_unit::ngon_unit(const E_Int* begin):_dirty(true)
   const E_Int* end = begin+l;
   _NGON.clear();
   _NGON.insert(_NGON.end(), begin, end);
+  updateFacets();
 }
 
 ///
@@ -45,7 +46,8 @@ ngon_unit::ngon_unit(const E_Int* begin, E_Int sz, E_Int nbe):_dirty(true)
   _NGON.resize(2, 0);
   _NGON.insert(_NGON.end(), begin, end);
   _NGON[0]=nbe;
-  _NGON[1]=sz;         
+  _NGON[1]=sz;  
+  updateFacets();
 }
 
 ///
@@ -421,6 +423,7 @@ void ngon_unit::extract
     ng_out.__add(*this, *(ptr+i)-1);
     oids.push_back(*(ptr+i)-1);
   }
+  ng_out.updateFacets();
 }
 
 ///

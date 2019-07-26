@@ -25,6 +25,7 @@
 #include "MeshElement/Tetrahedron.h"
 #include "Connect/GeomAlgo.h"
 #include "Connect/BARSplitter.h"
+#include "Polygon.h"
 
 #define dPATHO_PH_NONE 0
 #define dCENTROID_NOT_STAR 2
@@ -53,19 +54,41 @@ class Polyhedron
 public:  
   enum eType { UNKN=-1, TETRA, PYRA, PRISM3, HEXA, /*PRISMN,*/ LAYER, BASIC};
   
+  using boundary_type = K_MESH::Polygon;
+  
 public:
-  const ngon_unit* _pgs;
-  const E_Int* _faces;
+  ngon_unit* _pgs;
+  E_Int* _faces;
   E_Int _nb_faces;
   E_Int* _triangles;
     
 public:
   
-  Polyhedron():_pgs(nullptr), _faces(nullptr), _triangles(nullptr){}
+  Polyhedron():_pgs(nullptr), _faces(nullptr), _nb_faces(0), _triangles(nullptr){}
   
-  Polyhedron(const ngon_unit* pgs, const E_Int* faces):_pgs(pgs), _faces(faces), _triangles(nullptr){}
+  Polyhedron(ngon_unit* pgs, E_Int* faces, E_Int nb_faces):_pgs(pgs), _faces(faces), _nb_faces(nb_faces), _triangles(nullptr){}
+  
+  void reset(ngon_unit* pgs, E_Int* faces, E_Int nb_faces){_pgs = pgs; _faces = faces; _nb_faces = nb_faces; if (_triangles != nullptr) {delete [] _triangles;_triangles = nullptr;}/*fixme : just set it as PGS is pure T3*/}
   
   ~Polyhedron(){ if (_triangles != nullptr) delete [] _triangles;}
+  
+  Polyhedron(const Polyhedron& rhs){ *this = rhs; }
+  
+  Polyhedron& operator=(const Polyhedron& rhs){
+    _pgs = rhs._pgs;
+    _faces = rhs._faces;
+    _nb_faces = rhs._nb_faces;
+    if (_triangles != nullptr) delete _triangles;
+    _triangles = rhs._triangles;
+  }
+  
+  E_Int nb_faces() const { return _nb_faces;}
+  E_Int& nb_faces() { return _nb_faces;}
+  const E_Int* faces() const {return _faces;}
+  E_Int* faces() {return _faces;}
+  const ngon_unit* pgs() {return _pgs;}
+  const E_Int* nodes(E_Int Fi) { return _pgs->get_facets_ptr(_faces[Fi]-1);}
+  E_Int nb_nodes(E_Int Fi) { return _pgs->stride(_faces[Fi]-1);}
   
   ///
   template <typename CoordAcc>
@@ -174,6 +197,38 @@ public:
         E_Int* p = opgs.get_facets_ptr(i);
         std::reverse(p, p + s);
       }
+    }
+  }
+  
+  static inline void reorient(ngon_unit& locPGS)
+  {
+    // build PG neighborhood for that given PH    
+    ngon_unit neighbors;
+    std::vector<E_Int> orient(locPGS.size(), 1);
+    K_MESH::Polygon::build_pg_neighborhood(locPGS, neighbors); 
+    K_CONNECT::EltAlgo<K_MESH::Polygon>::reversi_connex(locPGS, neighbors, 0/*ref*/, orient);
+    
+    //Apply new orientation
+    for (E_Int i = 0; i < locPGS.size(); ++i)
+    {
+      if (orient[i] == -1)
+      {
+        E_Int s = locPGS.stride(i);
+        E_Int* p = locPGS.get_facets_ptr(i);
+        std::reverse(p, p + s);
+      }
+    }
+  }
+  
+  static void reverse(ngon_unit& PGS, const E_Int* first_pg, E_Int nb_pgs)
+  {
+    //Apply new orientation
+    for (E_Int i = 0; i < nb_pgs; ++i)
+    {
+      E_Int Fi = first_pg[i] -1;
+      E_Int s = PGS.stride(Fi);
+      E_Int* p = PGS.get_facets_ptr(Fi);
+      std::reverse(p, p + s);
     }
   }
   
@@ -1192,7 +1247,7 @@ public:
   ///
   template<typename TriangulatorType>
   static E_Int metrics2
-  (const TriangulatorType& t, const K_FLD::FloatArray& crd, const ngon_unit& PGS, const E_Int* first_pg, E_Int nb_pgs, E_Float&V, E_Float* G, bool all_pgs_are_cvx)
+  (const TriangulatorType& t, const K_FLD::FloatArray& crd, const ngon_unit& PGS, const E_Int* first_pg, E_Int nb_pgs, E_Float&V, E_Float* G, bool all_pgs_are_cvx, bool need_reorient=true)
   {
     G[0]=G[1]=G[2]=0.;
 
@@ -1227,8 +1282,15 @@ public:
       }
     }
     
+    // get local and oriented
     ngon_unit opgs;
-    reorient(PGS, first_pg, nb_pgs, opgs);
+    if (need_reorient)
+      reorient(PGS, first_pg, nb_pgs, opgs);
+    else
+    {
+      std::vector<E_Int> oids;
+      PGS.extract(first_pg, nb_pgs, opgs, oids);
+    }
     
     K_FLD::IntArray connectT3;
 
@@ -1263,6 +1325,23 @@ public:
     if (!err) metrics(crd, connectT3, V/*acc*/, G/*Cacc*/);
 
     return err;
+  }
+  
+  template<typename TriangulatorType>
+  E_Int volume(const K_FLD::FloatArray&crd, E_Float& v, bool need_reorient)
+  {
+    return volume<TriangulatorType>(crd, *_pgs, _faces, _nb_faces, v, need_reorient);
+  }
+  
+  //fixme : proto !
+  template<typename TriangulatorType>
+  static E_Int volume(const K_FLD::FloatArray& crd, const ngon_unit& PGS, const E_Int* first_pg, E_Int nb_pgs, E_Float& v, bool need_reorient)
+  {
+    TriangulatorType t;
+    E_Float G[3];
+    bool all_pgs_are_cvx = true; //fixme
+
+    return metrics2(t, crd, PGS, first_pg, nb_pgs, v, G, all_pgs_are_cvx, need_reorient);
   }
 
   ///
@@ -1304,7 +1383,7 @@ public:
     return err;
   }
   
-  E_Int nb_tris()
+  E_Int nb_tris() const 
   {
     E_Int ntris=0;
     for (E_Int i=0; i < _nb_faces; ++i)
@@ -1352,6 +1431,7 @@ public:
       //MIO::write("crd.mesh", crd, K_FLD::IntArray(), "TRI");
       
       err = K_MESH::Polygon::triangulate_inplace(dt, crd, &lpgs[0], stride, 0/*index start*/, pstart, true/*do_not_shuffle*/, false/*improve_quality*/);
+      if (err) return err;
       E_Int pgntris = stride - 2;
       for (E_Int k=0; k < pgntris * 3; ++k, ++pstart) *pstart = oids[*pstart]; //get back to global but starting at 0
     }
@@ -1359,7 +1439,7 @@ public:
     return err;
   }
   
-  inline void triangle(E_Int i, E_Int* target)
+  inline void triangle(E_Int i, E_Int* target) const 
   {
     assert (_triangles != nullptr);
     const E_Int* p = &_triangles[i*3];
@@ -1367,6 +1447,19 @@ public:
     target[1] = *(p++);
     target[2] = *p;
     
+  }
+  
+  inline void get_triangle_oids(std::vector<E_Int>& oids)
+  {
+    oids.clear();
+    oids.resize(nb_tris());
+    E_Int t(0);
+    for (E_Int i=0; i < _nb_faces; ++i)
+    {
+      E_Int PGi = *(_faces + i) - 1;
+      E_Int ntris = (_pgs->stride(PGi)-2);
+      for (size_t n=0; n<ntris; ++n) oids[t++] = PGi;
+    }
   }
   
 ///
@@ -1610,6 +1703,7 @@ static void get_orient(const ngon_unit& PHs, E_Int PHi, const K_FLD::IntArray& F
     PHi_orient[i] = (F2E(1,p[i]-1) == PHi) ? -1 : 1;
 }
 
+// fixme : valid for cvx only
 static bool pt_is_inside(const ngon_unit& PGS, const E_Int* first_pg, E_Int nb_pgs, const K_FLD::FloatArray& crd, const E_Int* PHi_orient, const E_Float* pt, E_Float tolerance)
 {
   
@@ -1786,6 +1880,35 @@ static bool is_PR6(const ngon_unit& PGs, const E_Int* firstPG, E_Int nb_pgs)
   return ((s1==2) && (s2==3));
  
 }
+
+ void compact(const K_FLD::FloatArray& crdi, ngon_unit& pgs, K_FLD::FloatArray&crd)
+ {
+   crd.clear();
+   pgs.clear();
+   
+   std::vector<E_Int> nodes;
+   unique_nodes(*_pgs, _faces, _nb_faces, nodes);
+   //std::sort(unodes.begin(), unodes.end());
+   
+   for (size_t i=0; i < nodes.size(); ++i)
+     crd.pushBack(crdi.col(nodes[i]-1), crdi.col(nodes[i]-1)+3);
+   
+   std::map<E_Int, E_Int> gid_to_lid;
+   for (size_t i=0; i < nodes.size(); ++i)
+     gid_to_lid[nodes[i]] = i+1;
+   
+   for (size_t i=0; i < _nb_faces; ++i)
+   {
+     const E_Int* pN = _pgs->get_facets_ptr(_faces[i]-1);
+     E_Int nb_nodes = _pgs->stride(_faces[i]-1);
+     //pass to local
+     nodes.clear();
+     for (size_t j=0; j < nb_nodes; ++j)
+       nodes[j] = gid_to_lid[pN[j]];
+     
+     pgs.add(nb_nodes, &nodes[0]);
+   }
+ }
 
 };
 

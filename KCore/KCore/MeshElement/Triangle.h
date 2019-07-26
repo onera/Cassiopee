@@ -177,7 +177,7 @@ namespace K_MESH
 
     /// 
     static inline E_Float
-    minDistanceToPoint(const E_Float* const  p1, const E_Float* const  p2, const E_Float* const  p3, const E_Float* P, E_Float* UV, bool& inside);
+    minDistanceToPoint(const E_Float* const  p1, const E_Float* const  p2, const E_Float* const  p3, const E_Float* P, E_Float* UV, bool& interfere, bool& inside);
     
     ///
     template <typename CoordMatrix, typename NodeIterator>
@@ -197,6 +197,7 @@ namespace K_MESH
      E_Float& d11, E_Float& d21, E_Float& d31, E_Float& d12, E_Float& d22, E_Float& d32, E_Float ABSTOL = -1.);
     
     static inline bool overlap (const E_Float* P1, const E_Float* Q1, const E_Float* R1, const E_Float* P2, const E_Float* Q2, const E_Float* R2, E_Float ABSTOL);
+    static inline bool overlap2 (const E_Float* P1, const E_Float* Q1, const E_Float* R1, const E_Float* P2, const E_Float* Q2, const E_Float* R2, E_Float ABSTOL);
     
     /// Implementation de l'algo rapide de test d'inetrsection T3-T3 en 3D (INRIA - Rapport de recherche N° 4488)
     template <E_Int DIM>
@@ -482,11 +483,12 @@ namespace K_MESH
 
   ///
   E_Float
-    Triangle::minDistanceToPoint(const E_Float* const  p1, const E_Float* const  p2, const E_Float* const  p3, const E_Float* P, E_Float* UV, bool& inside)
+    Triangle::minDistanceToPoint(const E_Float* const  p1, const E_Float* const  p2, const E_Float* const  p3, const E_Float* P, E_Float* UV, bool& interfere, bool& inside)
   {
     E_Float n[3], U[3], V[3], VP[3], d, tol(E_EPSILON), u, v, di;
 
     inside = false;
+    interfere = false;
 
     K_FUNC::diff<3>(p2, p1, U);
     K_FUNC::diff<3>(p3, p1, V);
@@ -508,7 +510,9 @@ namespace K_MESH
       K_FUNC::crossProduct<3>(U,V,n);
       K_FUNC::normalize<3>(n);
       d = K_FUNC::dot<3>(VP, n);
-      inside = true;
+      interfere = true;
+      inside = (((1. - u - v) >= tol)  && 
+      (u >= tol) && (v >= tol));
       return ::fabs(d);
     }
 
@@ -551,12 +555,15 @@ namespace K_MESH
     assert (pos.rows() >= 3); // fixme : should be dim instead of rows.
 
     inside = false;
+    bool interfere = false;
 
     const E_Float* const  p1   = pos.col(*pS);
     const E_Float* const  p2   = pos.col(*(pS+1));
     const E_Float* const  p3   = pos.col(*(pS+2));
 
-    return minDistanceToPoint(p1, p2, p3, P, UV, inside);
+    E_Float d = minDistanceToPoint(p1, p2, p3, P, UV, interfere, inside);
+    if (interfere)inside = true; //fixme : just to keep old behaviour
+    return d;
   }
 
   ///
@@ -989,45 +996,45 @@ namespace K_MESH
     bool are_far = is_far_filter(P1, Q1, R1, P2, Q2, R2, d11, d21, d31, d12, d22, d32, ABSTOL);
     if (are_far) return false;
     
-    bool inside;
+    bool inside, interfere;
     E_Float UV[2];
     
     // May be at least one point (but not all 3) is closed, and may be , it falls inside
     
     if (IS_ZERO(d11, ABSTOL))
     {
-      E_Float d = K_MESH::Triangle::minDistanceToPoint(P2,Q2,R2, P1, UV, inside);
-      if (IS_ZERO(d, ABSTOL) && inside) return true;
+      E_Float d = K_MESH::Triangle::minDistanceToPoint(P2,Q2,R2, P1, UV, interfere, inside);
+      if (IS_ZERO(d, ABSTOL) && interfere) return true;
     }
     
     if (IS_ZERO(d21, ABSTOL))
     {
-      E_Float d = K_MESH::Triangle::minDistanceToPoint(P2,Q2,R2, Q1, UV, inside);
-      if (IS_ZERO(d, ABSTOL) && inside) return true;
+      E_Float d = K_MESH::Triangle::minDistanceToPoint(P2,Q2,R2, Q1, UV, interfere, inside);
+      if (IS_ZERO(d, ABSTOL) && interfere) return true;
     }
     
     if (IS_ZERO(d31, ABSTOL))
     {
-      E_Float d = K_MESH::Triangle::minDistanceToPoint(P2,Q2,R2, R1, UV, inside);
-      if (IS_ZERO(d, ABSTOL) && inside) return true;
+      E_Float d = K_MESH::Triangle::minDistanceToPoint(P2,Q2,R2, R1, UV, interfere, inside);
+      if (IS_ZERO(d, ABSTOL) && interfere) return true;
     }
     
     if (IS_ZERO(d12, ABSTOL))
     {
-      E_Float d = K_MESH::Triangle::minDistanceToPoint(P1,Q1,R1, P2, UV, inside);
-      if (IS_ZERO(d, ABSTOL) && inside) return true;
+      E_Float d = K_MESH::Triangle::minDistanceToPoint(P1,Q1,R1, P2, UV, interfere, inside);
+      if (IS_ZERO(d, ABSTOL) && interfere) return true;
     }
     
     if (IS_ZERO(d22, ABSTOL))
     {
-      E_Float d = K_MESH::Triangle::minDistanceToPoint(P1,Q1,R1, Q2, UV, inside);
-      if (IS_ZERO(d, ABSTOL) && inside) return true;
+      E_Float d = K_MESH::Triangle::minDistanceToPoint(P1,Q1,R1, Q2, UV, interfere, inside);
+      if (IS_ZERO(d, ABSTOL) && interfere) return true;
     }
     
     if (IS_ZERO(d32, ABSTOL))
     {
-      E_Float d = K_MESH::Triangle::minDistanceToPoint(P1,Q1,R1, R2, UV, inside);
-      if (IS_ZERO(d, ABSTOL) && inside) return true;
+      E_Float d = K_MESH::Triangle::minDistanceToPoint(P1,Q1,R1, R2, UV, interfere, inside);
+      if (IS_ZERO(d, ABSTOL) && interfere) return true;
     }
     
     // Check now the intersection point location (if any)
@@ -1127,7 +1134,267 @@ namespace K_MESH
       }
     }
     
-    return false;     
+    return false;
+  }
+  
+  inline bool
+  K_MESH::Triangle::overlap2
+  (const E_Float* P1, const E_Float* Q1, const E_Float* R1, const E_Float* P2, const E_Float* Q2, const E_Float* R2, E_Float ABSTOL)
+  {
+    E_Float d11, d21, d31, d12, d22, d32;
+    
+    bool are_far = is_far_filter(P1, Q1, R1, P2, Q2, R2, d11, d21, d31, d12, d22, d32, ABSTOL);
+    if (are_far) return false;
+    
+    bool interfere, inside;
+    E_Float UV[2];
+    E_Int status = 0;
+        
+    // May be at least one point (but not all 3) is closed, and may be , it falls inside
+    
+    if (IS_ZERO(d11, ABSTOL))
+    {
+      E_Float d = K_MESH::Triangle::minDistanceToPoint(P2,Q2,R2, P1, UV, interfere, inside);
+      if (IS_ZERO(d, ABSTOL) && interfere) 
+      {
+        if (inside) return true;
+        status = 1;
+      }
+    }
+    
+    if (IS_ZERO(d21, ABSTOL) && status != 1)
+    {
+      E_Float d = K_MESH::Triangle::minDistanceToPoint(P2,Q2,R2, Q1, UV, interfere, inside);
+      if (IS_ZERO(d, ABSTOL) && interfere)
+      {
+        if (inside) return true;
+        status = 1;
+      }
+    }
+    
+    if (IS_ZERO(d31, ABSTOL) && status != 1)
+    {
+      E_Float d = K_MESH::Triangle::minDistanceToPoint(P2,Q2,R2, R1, UV, interfere, inside);
+      if (IS_ZERO(d, ABSTOL) && interfere)
+      {
+        if (inside) return true;
+        status = 1;
+      }
+    }
+    
+    if (IS_ZERO(d12, ABSTOL) && status != 1)
+    {
+      E_Float d = K_MESH::Triangle::minDistanceToPoint(P1,Q1,R1, P2, UV, interfere, inside);
+      if (IS_ZERO(d, ABSTOL) && interfere)
+      {
+        if (inside) return true;
+        status = 1;
+      }
+    }
+    
+    if (IS_ZERO(d22, ABSTOL) && status != 1)
+    {
+      E_Float d = K_MESH::Triangle::minDistanceToPoint(P1,Q1,R1, Q2, UV, interfere, inside);
+      if (IS_ZERO(d, ABSTOL) && interfere)
+      {
+        if (inside) return true;
+        status = 1;
+      }
+    }
+    
+    if (IS_ZERO(d32, ABSTOL) && status != 1)
+    {
+      E_Float d = K_MESH::Triangle::minDistanceToPoint(P1,Q1,R1, R2, UV, interfere, inside);
+      if (IS_ZERO(d, ABSTOL) && interfere)
+      {
+        if (inside) return true;
+        status = 1;
+      }
+    }
+    
+    // Check now the intersection point location (if any)
+    
+    
+    if (status == 0)
+    {
+    
+    // T2 points on T1's plane
+    
+    E_Float lambda, min_d;
+    E_Bool parallel, coincident;
+    
+    E_Float Lu = ::sqrt(K_FUNC::sqrDistance(P2, Q2, 3));
+    E_Float Lv = ::sqrt(K_FUNC::sqrDistance(P2, R2, 3));
+    E_Float L = MAX(Lu,Lv);
+    
+    E_Float RELTOL = ABSTOL/L;
+      
+    if (SIGN(d11*d21) < 0.)
+    {  
+      planeLineMinDistance<3>(P2, Q2, R2, P1, Q1, ABSTOL, true, lambda, UV, parallel, coincident, min_d, true/*strict*/);     
+      
+      if ( (lambda > -RELTOL) && (lambda < 1. + RELTOL) &&
+        ((1. - UV[0] -  UV[1]) >= -RELTOL)  && 
+        (UV[0] >= -RELTOL) && 
+        (UV[1] >= -RELTOL) )
+      {
+        inside = ( ((1. - UV[0] -  UV[1]) >= RELTOL)  && 
+        (UV[0] >= RELTOL) && 
+        (UV[1] >= RELTOL) );
+        if (inside) return true;
+        status = 1;
+      }
+    }
+    
+    if (SIGN(d11*d31) < 0. && status != 1)
+    {  
+      planeLineMinDistance<3>(P2, Q2, R2, P1, R1, ABSTOL, true, lambda, UV, parallel, coincident, min_d, true/*strict*/);     
+      
+      if ( (lambda > -RELTOL) && (lambda < 1. + RELTOL) &&
+        ((1. - UV[0] -  UV[1]) >= -RELTOL)  && 
+        (UV[0] >= -RELTOL) && 
+        (UV[1] >= -RELTOL) )
+      {
+        inside = ( ((1. - UV[0] -  UV[1]) >= RELTOL)  && 
+        (UV[0] >= RELTOL) && 
+        (UV[1] >= RELTOL) );
+        if (inside) return true;
+        status = 1;
+      }
+    }
+    
+    if (SIGN(d21*d31) < 0. && status != 1)
+    {  
+      planeLineMinDistance<3>(P2, Q2, R2, Q1, R1, ABSTOL, true, lambda, UV, parallel, coincident, min_d, true/*strict*/);     
+      
+      if ( (lambda > -RELTOL) && (lambda < 1. + RELTOL) &&
+        ((1. - UV[0] -  UV[1]) >= -RELTOL)  && 
+        (UV[0] >= -RELTOL) && 
+        (UV[1] >= -RELTOL) )
+      {
+        inside = ( ((1. - UV[0] -  UV[1]) >= RELTOL)  && 
+        (UV[0] >= RELTOL) && 
+        (UV[1] >= RELTOL) );
+        if (inside) return true;
+        status = 1;
+      }
+    }
+    
+    // T1's points on T2's plane
+    
+    Lu = ::sqrt(K_FUNC::sqrDistance(P1, Q1, 3));
+    Lv = ::sqrt(K_FUNC::sqrDistance(P1, R1, 3));
+    L = MAX(Lu,Lv);
+    
+    RELTOL = ABSTOL/L;
+      
+    if (SIGN(d12*d22) < 0. && status != 1)
+    {  
+      planeLineMinDistance<3>(P1, Q1, R1, P2, Q2, ABSTOL, true, lambda, UV, parallel, coincident, min_d, true/*strict*/);     
+      
+      if ( (lambda > -RELTOL) && (lambda < 1. + RELTOL) &&
+        ((1. - UV[0] -  UV[1]) >= -RELTOL)  && 
+        (UV[0] >= -RELTOL) && 
+        (UV[1] >= -RELTOL) )
+      {
+        inside = ( ((1. - UV[0] -  UV[1]) >= RELTOL)  && 
+        (UV[0] >= RELTOL) && 
+        (UV[1] >= RELTOL) );
+        if (inside) return true;
+        status = 1;
+      }
+    }
+    
+    if (SIGN(d12*d32) < 0. && status != 1)
+    {  
+      planeLineMinDistance<3>(P1, Q1, R1, P2, R2, ABSTOL, true, lambda, UV, parallel, coincident, min_d, true/*strict*/);     
+      
+      if ( (lambda > -RELTOL) && (lambda < 1. + RELTOL) &&
+        ((1. - UV[0] -  UV[1]) >= -RELTOL)  && 
+        (UV[0] >= -RELTOL) && 
+        (UV[1] >= -RELTOL) )
+      {
+        inside = ( ((1. - UV[0] -  UV[1]) >= RELTOL)  && 
+        (UV[0] >= RELTOL) && 
+        (UV[1] >= RELTOL) );
+        if (inside) return true;
+        status = 1;
+      }
+    }
+    
+    if (SIGN(d22*d32) < 0. && status != 1)
+    {  
+      planeLineMinDistance<3>(P1, Q1, R1, Q2, R2, ABSTOL, true, lambda, UV, parallel, coincident, min_d, true/*strict*/);     
+      
+      if ( (lambda > -RELTOL) && (lambda < 1. + RELTOL) &&
+        ((1. - UV[0] -  UV[1]) >= -RELTOL)  && 
+        (UV[0] >= -RELTOL) && 
+        (UV[1] >= -RELTOL) )
+      {
+        inside = ( ((1. - UV[0] -  UV[1]) >= RELTOL)  && 
+        (UV[0] >= RELTOL) && 
+        (UV[1] >= RELTOL) );
+        if (inside) return true;
+        status = 1;
+      }
+    }
+    }
+    
+    // Final check : Edge/Edge intersection test
+      
+    const E_Float* pP1[] = {P1,Q1,R1};
+    const E_Float* pP2[] = {P2,Q2,R2};
+    E_Float u00, u01, u10, u11;
+    E_Bool overlap;
+    
+    for (size_t i=0; i < 3; ++i)
+    {
+      for (size_t j=0; j < 3; ++j)
+      {
+        if (K_MESH::Edge::intersect<3> (pP1[i], pP1[(i+1)%3], pP2[j], pP2[(j+1)%3], ABSTOL, true,  u00, u01, u10, u11, overlap))
+        {
+          if (!overlap)
+          {
+            if ( (u00 > E_EPSILON && u00 < 1. - E_EPSILON) && (u10 > E_EPSILON && u10 < 1. - E_EPSILON)) return true;
+          }
+        }
+      }
+    }
+    
+//    if (status == INTERFERE)
+//    {
+//      // Go to the Plane
+//      K_FLD::FloatArray P(3,3);
+//      E_Float *u(P.col(0)), *v(P.col(1)), *w(P.col(2));
+//      
+//      K_FUNC::diff<3>(Q1, P1, u);
+//      K_FUNC::diff<3>(R1, P1, v);
+//      K_FUNC::crossProduct<3>(u, v, w);
+//      K_FUNC::normalize<3>(w);
+//      K_FUNC::normalize<3>(u);
+//      K_FUNC::crossProduct<3>(w, u, v);
+//      K_FUNC::normalize<3>(v);
+//      
+//      K_FLD::FloatArray::inverse3(P);
+//      //do the transform
+//      E_Float p1[2], q1[2], r1[2], p2[2], q2[2], r2[2];
+//      for (size_t i = 0; i < 2; ++i)
+//      {
+//        p1[i] = q1[i] = r1[i] = p2[i] = q2[i] = r2[i] = 0.;
+//        for (size_t j = 0; j < 3; ++j)
+//        {
+//          p1[i] += P(i,j) * P1[j];
+//          q1[i] += P(i,j) * Q1[j];
+//          r1[i] += P(i,j) * R1[j];
+//          p2[i] += P(i,j) * P2[j];
+//          q2[i] += P(i,j) * Q2[j];
+//          r2[i] += P(i,j) * R2[j];
+//        }
+//      }
+//      if (fast_intersectT3<2>(p1, q1, r1, p2, q2, r2, -1./*dummy tol*/)) return K_MESH::Triangle::OVERLAP;
+//    }
+    
+    return status;     
   }
 
   // Triangle-Edge intersection. ==> used only in CompGeom/trianglesIntersection.cpp

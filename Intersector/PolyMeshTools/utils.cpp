@@ -915,14 +915,16 @@ PyObject* K_INTERSECTOR::reorientExternalFaces(PyObject* self, PyObject* args)
   typedef ngon_t<K_FLD::IntArray> ngon_type;
   ngon_type ngio(cnt), outer, remaining;
 
+  ngio.flag_externals(INITIAL_SKIN);
+
   bool has_been_reversed;
   DELAUNAY::Triangulator t;
   err = ngon_type::reorient_skins(t, crd, ngio, has_been_reversed);
 
-  if (has_been_reversed)
-    std::cout << "reorientExternalFaces : external faces has been reoriented" << std::endl;
-  else
-    std::cout << "reorientExternalFaces : external faces orientation is correct" << std::endl;
+  // if (has_been_reversed)
+  //   std::cout << "reorientExternalFaces : external faces has been reoriented" << std::endl;
+  // else
+  //   std::cout << "reorientExternalFaces : external faces orientation is correct" << std::endl;
 
   PyObject* tpl = NULL;
 

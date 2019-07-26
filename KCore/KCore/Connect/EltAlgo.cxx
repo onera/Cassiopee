@@ -149,6 +149,53 @@ K_CONNECT::EltAlgo<ElementType>::getManifoldNeighbours
 
 ///
 template <typename ElementType>
+inline E_Int
+K_CONNECT::EltAlgo<ElementType>::getNeighbours (const K_FLD::IntArray& ELTContainer, K_FLD::IntArray& neighbors, bool non_manifold_as_free)
+{
+  BoundToEltType bound_to_elt;
+  typename BoundToEltType::const_iterator itB;
+  BoundaryType                            b;
+  K_FLD::IntArray::const_iterator         pS;
+  E_Int ROWS(ELTContainer.rows()), COLS(ELTContainer.cols()), sz;
+
+  assert (ElementType::NB_NODES == ROWS);
+  
+  E_Int UNSET = non_manifold_as_free ? E_IDX_NONE : NON_MANIFOLD_COL;
+  
+  neighbors.clear();
+  neighbors.resize(ROWS, COLS, UNSET);
+  
+  // Map the boundary to the connected elements.
+  K_FLD::ArrayAccessor<K_FLD::IntArray> actv(ELTContainer);
+  E_Int maxNgh = getBoundToElements(actv, bound_to_elt);
+
+  for (E_Int i = 0; i < COLS; ++i)
+  {
+    pS = ELTContainer.col(i);
+    for (E_Int n = 0; n < ROWS; ++n)
+    {
+      ElementType::getBoundary(pS, (n+2)%ROWS, b);
+      itB = bound_to_elt.find(b);
+      sz = itB->second.size();
+      
+      if (sz < 2 && !non_manifold_as_free){
+        neighbors((n+2)%ROWS, i) = E_IDX_NONE;
+        continue;
+      }
+      else if (sz > 2) continue;
+      
+      for (E_Int e = 0;  e < sz; ++e)
+      {
+        if (itB->second[e] != i)
+          neighbors((n+2)%ROWS, i) = itB->second[e];
+      }
+    }
+  }
+  return 0;
+}
+
+///
+template <typename ElementType>
 inline void
 K_CONNECT::EltAlgo<ElementType>::coloring
 (const K_FLD::IntArray& ELTContainer, const NeighbourType& neighbors, const std::set<BoundaryType> & color_bounds, int_vector_type& colors)
@@ -268,6 +315,55 @@ K_CONNECT::EltAlgo<ElementType>::coloring (const ngon_unit& neighbors, int_vecto
   }
 }
 
+template <typename ElementType>
+template<typename T>
+inline void
+K_CONNECT::EltAlgo<ElementType>::coloring (const ngon_unit& neighbors, std::vector<T>& colors, T UNSET_COL, T FIRST_COL)
+{
+  // WARNING : colors are not cleared and suppose that contains coloured elements.
+
+  size_t K, Kn, Kseed(0), sz, NB_ELTS(neighbors.size());
+  int_vector_type                  cpool;
+  K_FLD::IntArray neighs;
+  
+  T color(FIRST_COL);
+  
+  assert (colors.size() >= NB_ELTS);
+  
+  while (1)
+  {
+    while ((Kseed < NB_ELTS) && (colors[Kseed] != UNSET_COL)) ++Kseed;
+    if (NB_ELTS-1 < Kseed)
+      return;
+    
+    cpool.push_back(Kseed);
+
+    while (!cpool.empty())
+    {
+      K = cpool.back();
+      cpool.pop_back();
+      
+      if (colors[K] != UNSET_COL)
+        continue;
+
+      colors[K] = color;
+
+      sz = neighbors.stride(K);
+      neighs.reserve(1, sz);
+      neighbors.getEntry(K, neighs.begin());
+      E_Int* ptr = neighs.begin();
+      for (size_t i = 0; i < sz; ++i)
+      {
+        Kn = *(ptr++);
+
+        if ((Kn != E_IDX_NONE) && (colors[Kn] == UNSET_COL)) // Not colored.
+          cpool.push_back(Kn);
+      }
+    }
+
+    ++color;
+  }
+}
 
 template <typename ElementType>
 inline void
