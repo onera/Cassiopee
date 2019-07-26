@@ -202,14 +202,14 @@ fileTypes=[('converter', '*.plt'),
 def getModule(app):
   global TKMODULES
   if app not in TKMODULES: return None
-  if app == 'tkPlotXY': return None
+  #if app == 'tkPlotXY': return None
   if TKMODULES[app] is None:
-      #try:
-      module = __import__(app)
-      TKMODULES[app] = module
-      frame = TKMODULEFRAMES[app]
-      module.createApp(frame)
-      #except: print('Warning: module %s can not be loaded.'%app)
+      try:
+        module = __import__(app)
+        TKMODULES[app] = module
+        frame = TKMODULEFRAMES[app]
+        module.createApp(frame)
+      except: print('Warning: module %s can not be loaded.'%app)
   return TKMODULES[app]
 
 def openApp(app):
