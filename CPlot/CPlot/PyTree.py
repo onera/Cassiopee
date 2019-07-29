@@ -118,7 +118,6 @@ def replace(t, nob, noz, zone):
     Usage: replace(t, nob, noz, zone)"""
     zoneName = t[2][nob][0]+SEP1+zone[0]
     renderTag = getRenderTags__(zone, [])[0]
-
     oldType = Internal.getZoneType(t[2][nob][2][noz])
     t[2][nob][2][noz] = zone
     if CPlot.__slot__ is None: display(t); return
@@ -128,7 +127,7 @@ def replace(t, nob, noz, zone):
         zone = C.center2Node(zone, Internal.__FlowSolutionCenters__)
     else: zone = C.node2Center(zone)
     array = C.getAllFields(zone, 'nodes', api=2)[0]
-   
+    
     cplot.replace(array, (nzs, nzu, oldType), zoneName, renderTag)
     
 #==============================================================================
@@ -574,24 +573,16 @@ def getRenderTags__(z, renderTags):
     else:
         rc = Internal.getNodeFromName1(ri, 'Color')
         if rc is None: color = 'None'
-        else:
-            v = Internal.getValue(rc)
-            color = v
+        else: color = Internal.getValue(rc)
         rm = Internal.getNodeFromName1(ri, 'Material')
         if rm is None: material = 'None'
-        else:
-            v = Internal.getValue(rm)
-            material = v
+        else: material = Internal.getValue(rm)
         rm = Internal.getNodeFromName1(ri, 'Blending')
         if rm is None: blending = 'None'
-        else:
-            v = Internal.getValue(rm)
-            blending = str(v)
+        else: blending = str(Internal.getValue(rm))
         rm = Internal.getNodeFromName1(ri, 'MeshOverlay')
         if rm is None: meshOverlay = 'None'
-        else:
-            v = Internal.getValue(rm)
-            meshOverlay = str(v)
+        else: meshOverlay = str(Internal.getValue(rm))
         rm = Internal.getNodeFromName1(ri, 'ShaderParameters')
         if rm is None: shaderParameters = 'None:None'
         else:

@@ -315,7 +315,7 @@ void Hexahedron::iso_barycenter(const CoordAcc& coord, E_Float* G)
     
     for (size_t i=0; i < 8; ++i)
     {
-      E_Int id = node(i);
+      //E_Int id = node(i);
       crd.pushBack(crdi.col(node(i)), crdi.col(node(i))+3);
     }
   }

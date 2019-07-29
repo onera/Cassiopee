@@ -32,7 +32,7 @@
 idx_t FindPartitionInducedComponents(graph_t *graph, idx_t *where, 
           idx_t *cptr, idx_t *cind)
 {
-  idx_t i, ii, j, jj, k, me=0, nvtxs, first, last, nleft, ncmps;
+  idx_t i, j, k, me=0, nvtxs, first, last, nleft, ncmps;
   idx_t *xadj, *adjncy;
   idx_t *touched, *perm, *todo;
   idx_t mustfree_ccsr=0, mustfree_where=0;

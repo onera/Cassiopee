@@ -43,8 +43,7 @@ if mpi:
     includeDirs.append(mpiIncDir)
     ADDITIONALCPPFLAGS = ['-D_MPI']
     if Dist.getSystem()[0] == 'mingw': libraries.append('msmpi')
-    else:
-        libraries.append('mpi');#libraries.append('mpi_cxx')
+    else: libraries.append('mpi');#libraries.append('mpi_cxx')
 
 # setup =======================================================================
 listExtensions = []

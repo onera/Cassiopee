@@ -103,6 +103,12 @@ else
 	# MSMPI
 	mpiexec $ARGS -np $NPROCS python $SCRIPT $NPROCS
         set +x
+    elif [ $ELSAPROD == 'msys64p3' ] # MSYS 2 With Win64 production
+    then
+        set -x
+	# MSMPI
+	mpiexec $ARGS -np $NPROCS python $SCRIPT $NPROCS
+        set +x
     else
         set -x
         mpirun $ARGS -np $NPROCS python $SCRIPT $NPROCS

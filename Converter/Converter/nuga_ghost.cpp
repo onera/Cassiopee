@@ -427,7 +427,7 @@ for (E_Int p=0; p < nb_colors - 1; ++p)
 }
 */
 
-      E_Int nb_phs = Zghost._ng.PHs.size();
+      size_t nb_phs = Zghost._ng.PHs.size();
       for (size_t l=0; l < nb_phs; ++l)
       {
          //CALCUL nb ELEMENT COUCHE ZERO
@@ -452,7 +452,7 @@ for (E_Int p=0; p < nb_colors - 1; ++p)
       }
       printf("ELts0 = %d, ELts1 = %d, ELts2 = %d %d %d \n", Elt[0],Elt[1],Elt[2],Elt[3],Elt[4]);
 
-      E_Int nb_pgs = Zghost._ng.PGs.size();
+      size_t nb_pgs = Zghost._ng.PGs.size();
       for (size_t l=0; l < nb_pgs; ++l) {
        if(Zghost._ng.PGs._type[l]==PG_INNER_COL  ) Face[0]=l+1;
        if(Zghost._ng.PGs._type[l]==PG_JOIN_COL   ) Face[1]=l-Face[0]+1;

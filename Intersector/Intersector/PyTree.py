@@ -484,9 +484,9 @@ def agglomerateSmallCells(t, vmin=0., vratio=1000.):
 
 # def agglomerateSmallCells(mesh, vmin=0., vratio=1000.):
 #     m = C.getFields(Internal.__GridCoordinates__, mesh)[0]
-#     print "one"
+#     print("one")
 #     res = XOR.agglomerateSmallCells(m, vmin, vratio)
-#     print "NB ZONES %d"%(len(res))
+#     print("NB ZONES %d"%len(res))
 
 #     z = C.convertArrays2ZoneNode('agglomeratedCells', [res[0]])
 
@@ -682,7 +682,7 @@ def _adaptCellsNodal(t, nodal_vals, hmesh=None):
     nb_zones = len(zones)
     nb_nodals = len(nodal_vals)
 
-    if (nb_zones != nb_nodals) :
+    if nb_zones != nb_nodals:
         print('must give one nodal list (sized as cooridnates) per zone')
         return
 
@@ -691,8 +691,8 @@ def _adaptCellsNodal(t, nodal_vals, hmesh=None):
         coords = C.getFields(Internal.__GridCoordinates__, z)[0]
         if coords == []: continue
 
-        nval = nodal_vals[i] # 
-        #print nval
+        nval = nodal_vals[i] 
+        #print(nval)
 
         if hmesh is not None:
             res = intersector.adaptCellsNodal(coords, nval, hmesh[i])
@@ -739,8 +739,8 @@ def _conformizeHMesh(t, hooks):
     zones = Internal.getZones(t)
     nb_zones = len(zones)
 
-    if (nb_zones != nb_hooks) :
-        print 'must give one hook per zone'
+    if nb_zones != nb_hooks:
+        print('must give one hook per zone')
         return
     i=0
     for z in zones:
@@ -982,7 +982,7 @@ def edgeLengthExtrema(t):
         coords = C.getFields(Internal.__GridCoordinates__, z)[0]
         L = XOR.edgeLengthExtrema(coords)
         Lmin = min(L, Lmin)
-    print 'min over zones is ', Lmin
+    print('min over zones is ', Lmin)
     return Lmin
 
 #==============================================================================
@@ -1058,7 +1058,7 @@ def oneZonePerCell(t):
 
     print(nb_zones)
 
-    if (nb_zones == 0) : return zones
+    if nb_zones == 0: return zones
 
     # here it has parent elements 
     for i in range(nb_zones):

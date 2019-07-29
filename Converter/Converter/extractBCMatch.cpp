@@ -1024,6 +1024,7 @@ PyObject* K_CONVERTER::buildBCMatchFieldNG(PyObject* self, PyObject* args )
 
   // Parent Elements 
   // ~~~~~~~~~~~~~~~
+  /*
   E_Int* PE = NULL;
   if (zoneType == 2)
   {
@@ -1035,7 +1036,7 @@ PyObject* K_CONVERTER::buildBCMatchFieldNG(PyObject* self, PyObject* args )
     }
     else PE = cn[2];
   }
-
+  */
   // Champs de la zone donneuse
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~
   E_Int ni2, nj2, nk2 ;

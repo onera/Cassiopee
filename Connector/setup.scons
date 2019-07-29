@@ -73,4 +73,3 @@ dp1 = env.Install(modDir, myMod)
 dp2 = env.Install(modDir, Glob('Connector/*.py'))
 
 env.Alias(target="install", source=[dp1,dp2])
-

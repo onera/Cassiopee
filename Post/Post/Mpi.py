@@ -1,7 +1,7 @@
 # Interface pour MPI
 
 import Converter.Mpi as Cmpi
-import PyTree as P
+from . import PyTree as P
 import Converter.Internal as Internal
 
 #==============================================================================

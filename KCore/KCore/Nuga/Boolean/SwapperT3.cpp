@@ -335,7 +335,7 @@ E_Int SwapperT3::run (const K_FLD::FloatArray& coord, E_Float tol, K_FLD::IntArr
 void SwapperT3::edit_T3_caracs(const K_FLD::FloatArray& crd, E_Int* pN)
 {
   E_Float hmin, Lmin, lambda_min;
-  E_Int himin, limin;
+  E_Int himin=-1, limin=-1;
   Lmin = hmin = K_CONST::E_MAX_FLOAT;
   
   for (E_Int n=0; n < 3; ++n)

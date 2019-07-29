@@ -149,7 +149,7 @@ graph_t *CoarsenGraphNlevels(ctrl_t *ctrl, graph_t *graph, idx_t nlevels)
 idx_t Match_RM(ctrl_t *ctrl, graph_t *graph)
 {
   idx_t i, pi, j, k, nvtxs, ncon, cnvtxs, maxidx, last_unmatched;
-  idx_t *xadj, *vwgt, *adjncy, *adjwgt, *maxvwgt;
+  idx_t *xadj, *vwgt, *adjncy, *maxvwgt; /* *adjwgt */ 
   idx_t *match, *cmap, *perm;
   size_t nunmatched=0;
 
@@ -162,7 +162,7 @@ idx_t Match_RM(ctrl_t *ctrl, graph_t *graph)
   xadj   = graph->xadj;
   vwgt   = graph->vwgt;
   adjncy = graph->adjncy;
-  adjwgt = graph->adjwgt;
+  //adjwgt = graph->adjwgt;
   cmap   = graph->cmap;
 
   maxvwgt  = ctrl->maxvwgt;
@@ -932,7 +932,7 @@ void CreateCoarseGraphNoMask(ctrl_t *ctrl, graph_t *graph, idx_t cnvtxs,
 void CreateCoarseGraphPerm(ctrl_t *ctrl, graph_t *graph, idx_t cnvtxs, 
          idx_t *match, idx_t *perm)
 {
-  idx_t i, j, jj, k, kk, l, m, istart, iend, nvtxs, nedges, ncon, cnedges, 
+  idx_t i, j, jj, k, kk, m, istart, iend, nvtxs, nedges, ncon, cnedges, 
         v, u, mask, dovsize;
   idx_t *xadj, *vwgt, *vsize, *adjncy, *adjwgt;
   idx_t *cmap, *htable;
