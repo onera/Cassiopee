@@ -284,6 +284,9 @@ def _readZones(t, fileName, format=None, rank=None, zoneNames=None):
 
 #==============================================================================
 # Ecrit des zones dans un fichier deja cree
+# si zoneNames != None: ecrit les zones specifiees
+# si proc == rank: ecrit les zones dont le noeud proc correspond
+# si proc == -1: ecrit tout les zones de t
 # Warning: limite a adf et hdf
 #==============================================================================
 def writeZones(t, fileName, format=None, proc=None, zoneNames=None, links=None):
@@ -297,17 +300,16 @@ def writeZones(t, fileName, format=None, proc=None, zoneNames=None, links=None):
         for b in bases:
             zones = Internal.getNodesFromType1(b, 'Zone_t') + Internal.getNodesFromType1(b, 'IntegralData_t')
             for z in zones:
-                nproc = Internal.getNodeFromName2(z, 'proc')
-                if nproc is not None:
+                if proc == -1:
+                  paths.append('/%s'%b[0]); nodes.append(z)
+                else:
+                  nproc = Internal.getNodeFromName2(z, 'proc')
+                  if nproc is not None:
                     nproc = Internal.getValue(nproc)
                     if nproc == proc:
-                        #paths.append('/%s/%s'%(b[0],z[0]))
-                        paths.append('/%s'%b[0])
-                        nodes.append(z)
-                else: # write nevertheless
-                    #paths.append('/%s/%s'%(b[0],z[0]))
-                    paths.append('/%s'%b[0])
-                    nodes.append(z)
+                      paths.append('/%s'%b[0]); nodes.append(z)
+                  else: # write nevertheless
+                    paths.append('/%s'%b[0]); nodes.append(z)
     else: # by zone names
         paths = zoneNames[:]
         nodes = []

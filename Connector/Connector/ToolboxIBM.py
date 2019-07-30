@@ -472,32 +472,43 @@ def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None,
                 if rank==0: print('buildOctree: octree finest level expanded (expandLayer activated).')
                 to = C.newPyTree(['Base',o])
                 to = blankByIBCBodies(to, tb, 'centers', dimPb)
-                C._initVars(o,"centers:indicator", 0.)
-                cellN = C.getField("centers:cellN",to)[0]
+                C._initVars(o, "centers:indicator", 0.)
+                cellN = C.getField("centers:cellN", to)[0]
                 octreeA = C.getFields(Internal.__GridCoordinates__, o)[0]
-                indic = C.getField("centers:indicator",o)[0]
+                indic = C.getField("centers:indicator", o)[0]
                 indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic,0,0, 2)
                 indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic,1,0, 2) # CB
                 indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic,2,0, 2) # CB
                 indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic,3,0, 2) # CB
                                                                                           
                 indic = Converter.addVars([indic,cellN])
-                indic = Converter.initVars(indic,"{indicator}={indicator}*({cellN}>0.)")
+                indic = Converter.initVars(indic, "{indicator}={indicator}*({cellN}>0.)")
                 octreeA = Generator.adaptOctree(octreeA, indic, balancing=2)
-                o = C.convertArrays2ZoneNode(o[0],[octreeA])                  
+                o = C.convertArrays2ZoneNode(o[0], [octreeA])                  
 
             to = C.newPyTree(['Base',o])
             to = blankByIBCBodies(to, tb, 'centers', dimPb)
             indic = C.getField("centers:cellN",to)[0]
             octreeA = C.getFields(Internal.__GridCoordinates__, o)[0]
-            indic = Converter.initVars(indic,'indicator',0.)
+            indic = Converter.initVars(indic, 'indicator', 0.)
             indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic,0,0,1)
-            indic = Converter.extractVars(indic,["indicator"])
+            indic = Converter.extractVars(indic, ["indicator"])
             octreeA = Generator.adaptOctree(octreeA, indic, balancing=2)
-            o = C.convertArrays2ZoneNode(o[0],[octreeA])     
+            o = C.convertArrays2ZoneNode(o[0], [octreeA])
+
+        if expand == 2:
+            to = C.newPyTree(['Base',o])
+            to = blankByIBCBodies(to, tb, 'centers', dimPb)
+            C._initVars(o, "centers:indicator", 0.)
+            cellN = C.getField("centers:cellN", to)[0]
+            octreeA = C.getFields(Internal.__GridCoordinates__, o)[0]
+            indic = C.getField("centers:indicator", o)[0]
+            indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic, 0, 0, 3)                                                                              
+            octreeA = Generator.adaptOctree(octreeA, indic, balancing=2)
+            o = C.convertArrays2ZoneNode(o[0], [octreeA])
 
         G._getVolumeMap(o); volmin = C.getMinValue(o, 'centers:vol')
-        C._rmVars(o,'centers:vol')
+        C._rmVars(o, 'centers:vol')
 
         dxmin = (volmin)**(1./dimPb)
         if rank == 0: print('Minimum spacing of Cartesian mesh= %f (targeted %f)'%(dxmin/(vmin-1),dxmin0/(vmin-1)))
@@ -538,7 +549,7 @@ def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., dfarList=[], DEPTH=2, tb
 
     if check: C.convertPyTree2File(o, "octree.cgns")
 
-    # retourne les 4 quarts (en 2D) de l octree parent 2 niveaux plus haut 
+    # retourne les 4 quarts (en 2D) de l'octree parent 2 niveaux plus haut 
     # et les 8 octants en 3D sous forme de listes de zones non structurees
     parento = buildParentOctrees__(o, tb, snears=snears, snearFactor=4., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf, 
                                    dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=None, rank=0)

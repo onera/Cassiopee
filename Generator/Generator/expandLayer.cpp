@@ -22,11 +22,11 @@ using namespace K_FLD;
 using namespace std;
 
 //=============================================================================
-/* Modify the indicator to expand the layer of level l 
+/* Modify the indicator to expand layers
   checkType = 0 : none
   checkType = 1 : check blanking of neighbouring cells
   checkType = 2 : check spacing of neighbouring cells
-  checkType = 3 : 1+2
+  checkType = 3 : algorithme different
 */
 //=============================================================================
 PyObject* K_GENERATOR::modifyIndicToExpandLayer(PyObject* self, PyObject* args)
@@ -146,33 +146,51 @@ PyObject* K_GENERATOR::modifyIndicToExpandLayer(PyObject* self, PyObject* args)
   for (E_Int et = 0; et < nelts; et++)
   {
     E_Float dhet = dhtp[et];
-    if ( checkType == 1 && cellNp[et]==0.)// check blanking only
+    if (checkType == 1 && cellNp[et] == 0.)// check blanking only
     {
       vector<E_Int>& voisins = cEEN[et];
       for (size_t nov = 0; nov < voisins.size(); nov++)
       {
         etv = voisins[nov];
         E_Float dhetv = dhtp[etv];
-        if (cellNp[etv]==1.) 
+        if (cellNp[etv]==1.)
         {
           if (dhet > dhetv+eps) indict[et]=1.;           
           else if (dhetv > dhet+eps) indict[etv]=1.;  
         }
       }
     }
-    else if (checkType == 2)//compare sizes of neighbouring cells
+    else if (checkType == 2) //compare sizes of neighbouring cells
     {
-      if (K_FUNC::fEqualZero(dhet-dhl,eps) == true)
+      if (K_FUNC::fEqualZero(dhet-dhl,eps) == true) // niveau l?
       {
         vector<E_Int>& voisins = cEEN[et];
         for (size_t nov = 0; nov < voisins.size(); nov++)
         {
           etv = voisins[nov];
           E_Float dhetv = dhtp[etv];
-          if (dhetv > dhleps ) indict[etv] = 1.;
+          if (dhetv > dhleps) indict[etv] = 1.; // raffine le voisin si niveau du voisin plus grand
         }
       }
-    }   
+    }
+    else if (checkType == 3)
+    {
+      if (cellNp[et] > 0.1) // pas masque
+      {
+        // voisine masquee?
+        E_Boolean voisinBlanked = false;
+        E_Float voisinStep = K_CONST::E_MAX_FLOAT;
+        vector<E_Int>& voisins = cEEN[et];
+        for (size_t nov = 0; nov < voisins.size(); nov++)
+        {
+          etv = voisins[nov];
+          if (cellNp[etv] == 0.) voisinBlanked = true;
+          E_Float dhetv = dhtp[etv];
+          if (dhetv < voisinStep) voisinStep = dhetv;
+        }
+        if (voisinBlanked && voisinStep < dhleps) indict[et] = 1.;
+      }
+    }
   }
 
   /*-----------CONSTRUCTION ARRAY DE SORTIE ------------------*/

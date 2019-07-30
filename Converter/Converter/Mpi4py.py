@@ -220,9 +220,10 @@ def convertFile2PyTree(fileName, format=None):
 #==============================================================================
 # Ecriture sequentielle
 # Avec recuperation de toutes les zones
-# Attention: les zones doivent avoir un procNode.
+# si ignoreProcNodes=True, toutes les zones non squelette sont ecrites,
+# sinon ecrit seulement les zones procNode correspondant a rank
 #==============================================================================
-def convertPyTree2File(t, fileName, format=None, links=[]):
+def convertPyTree2File(t, fileName, format=None, links=[], ignoreProcNodes=False):
     """Write a skeleton or partial tree."""
     tp = convert2PartialTree(t)
     tp = C.deleteEmptyZones(tp)
@@ -235,7 +236,8 @@ def convertPyTree2File(t, fileName, format=None, links=[]):
     else:
         go = KCOMM.recv(source=rank-1)
         if go == 1:
-            Distributed.writeZones(tp, fileName, format=format, proc=rank, links=links)
+            if ignoreProcNodes: Distributed.writeZones(tp, fileName, format=format, proc=-1, links=links)
+            else: Distributed.writeZones(tp, fileName, format=format, proc=rank, links=links)
         else:
             if nzones > 0:
                 C.convertPyTree2File(tp, fileName, format=format, links=links); go = 1

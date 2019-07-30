@@ -111,7 +111,7 @@ else if ($MAC == "ld") then
         #set path=($path)
         # Chemin de go
         set path=($path $CASSIOPEE/Dist/bin)
-        if ($?ELSA == 0) then # Cassiopee 
+        if ($?ELSA == 0) then # Cassiopee
             set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
             setenv LD_LIBRARY_PATHL /usr/lib64:/home/benoit/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
             #setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib

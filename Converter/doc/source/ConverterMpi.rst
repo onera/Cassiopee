@@ -212,7 +212,7 @@ Input/output
 
 ---------------------------------------------------------------------------
 
-.. py:function:: Converter.Mpi.convertPyTree2File(t, fileName, format=None, links=[])
+.. py:function:: Converter.Mpi.convertPyTree2File(t, fileName, format=None, links=[], ignoreProcNodes=False)
 
    Write a skeleton tree (**S**), a loaded skeleton tree (**LS**) or a 
    partial tree (**P**) to a file (adf or hdf).
@@ -225,6 +225,8 @@ Input/output
    :type format: string
    :param links: optional list of links to be written
    :type links: list of list of 4 strings
+   :param ignoreProcNodes: if true, only write zones with procNode set to rank, else write all proc zones
+   :type ignoreProcNodes: boolean
     
    *Example of use:*
 

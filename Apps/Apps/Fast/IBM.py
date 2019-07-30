@@ -608,22 +608,23 @@ def prepare1(t_case, t_out, tc_out, tbox=None, snears=0.01, snearsf=None, dfar=1
         del tibm
     #============================================================================
 
-    # distribution par defaut (sur Cmpi.size)
+    # distribution par defaut (sur NP)
     tbbc = Cmpi.createBBoxTree(tc)
-    stats = D2._distribute(tbbc, Cmpi.size, algorithm='graph', useCom='ID')
-    D2._copyDistribution(tbbc, tc)
-    D2._copyDistribution(tbbc, t)
+    if NP == 0: NP = Cmpi.size
+    stats = D2._distribute(tbbc, NP, algorithm='graph', useCom='ID')
+    D2._copyDistribution(tc, tbbc)
+    D2._copyDistribution(t, tbbc)
     del tbbc
 
     # Save tc
-    if isinstance(tc_out, str): Cmpi.convertPyTree2File(tc, tc_out)
+    if isinstance(tc_out, str): Cmpi.convertPyTree2File(tc, tc_out, ignoreProcNodes=True)
     I._initConst(t, loc='centers')
     if model != "Euler": C._initVars(t, 'centers:ViscosityEddy', 0.)
     # Save t
     if isinstance(t_out, str):
         import Compressor.PyTree as Compressor
         Compressor._compressCartesian(t)
-        Cmpi.convertPyTree2File(t, t_out)
+        Cmpi.convertPyTree2File(t, t_out, ignoreProcNodes=True)
 
     if Cmpi.size > 1: Cmpi.barrier()
     return t, tc
@@ -797,7 +798,7 @@ def loads(t_case, tc_in, wall_out, alpha=0., beta=0., Sref=None):
     res = [i/Sref for i in res]
     cd = res[0]*math.cos(alpha)*math.cos(beta) + res[2]*math.sin(alpha)*math.cos(beta)
     cl = res[2]*math.cos(alpha)*math.cos(beta) - res[0]*math.sin(alpha)*math.cos(beta)
-    print("Pressure loads",cd,cl)
+    print("Pressure loads", cd, cl)
 
     #======================================
     # Calcul frottement et efforts visqueux
