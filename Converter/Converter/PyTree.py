@@ -2115,7 +2115,7 @@ def TZGC2(t, F, locout, writeDim, *args):
 
 # TZC
 # Traitement uniquement sur les champs
-def __TZC(t, _F, locin, *args):
+def __TZC(t, _F, locin, writeDim, *args):
   zones = Internal.getZones(t)
   for z in zones:
     if   locin == 'nodes':
@@ -2125,7 +2125,7 @@ def __TZC(t, _F, locin, *args):
 
     if fa != []:
         _F(fa, *args)
-        setFields([fa], z, locin)
+        setFields([fa], z, locin, writeDim)
   return None
 
 # Recupere les champs de locin en shared array2

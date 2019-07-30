@@ -598,11 +598,11 @@ def _computeVariables2(t, varList,gamma=-1., rgp=-1., s0=0., betas=-1.,
         else: varnamesn.append(var)
 
     if varnamesn != []:
-        C.__TZC(t, Post._computeVariables2, 'nodes',
+        C.__TZC(t, Post._computeVariables2, 'nodes', False,
                 varnamesn, gamma, rgp, s0, betas, Cs, mus, Ts)
 
     if varnamesc != []:
-        C.__TZC(t, Post._computeVariables2, 'centers',
+        C.__TZC(t, Post._computeVariables2, 'centers', False,
                 varnamesc, gamma, rgp, s0, betas, Cs, mus, Ts)
 
     return None
