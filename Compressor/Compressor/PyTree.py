@@ -4,6 +4,7 @@
 from . import Compressor
 import numpy
 import Converter.Internal as Internal
+import Converter.PyTree as C
 __version__ = Compressor.__version__
 
 #------------------------------------------------------------------------------
@@ -114,17 +115,22 @@ def writeUnsteadyCoefs(iteration, indices, filename, loc,format="b"):
     Compressor.writeUnsteadyCoefs(iteration, indices, filename,loc,format)
     
 # Remplace les coordonnees d'une grille cartesienne par un noeud CartesianData
-def compressCartesian(t):
+#
+# if layers not None, only communicate the desired number of layers
+# bboxDict is dict with the zones of t as keys and their specific bboxes as key values, used when layers not None
+# if subr, the tree subregions are kept during the exchange 
+def compressCartesian(t,bbox=[],layers=None,subr=True):
     """Replace Grid Coordinates with a UserDefined CartesianData node of zone is cartesian."""
     tp = Internal.copyRef(t)
-    _compressCartesian(tp)
+    _compressCartesian(tp,bbox=bbox,layers=layers,subr=subr)
     return tp
 
 # Si la zone est cartesienne :
 # Ajoute un noeud CartesianData a la zone
 # remplace Coordinates par des noeuds avec des champs de taille 10
-def _compressCartesian(t):
+def _compressCartesian(t,bbox=[],layers=None,subr=True):
     zones = Internal.getZones(t)
+    vars  = C.getVarNames(t, excludeXYZ=True)[0]
     for z in zones:
         ztype = Internal.getZoneDim(z)
         if ztype[0] == 'Unstructured': continue
@@ -159,10 +165,67 @@ def _compressCartesian(t):
             if abs(zp[2*ni*nj] - zp[ni*nj] - hk) > 1.e-10: cartesian = False
             if abs(xp[ni*nj] - x0) > 1.e-10: cartesian = False
             if abs(yp[ni*nj] - y0) > 1.e-10: cartesian = False
+
+        if cartesian and layers is not None:
+            # align bbox with the gridzone
+            bbox[0] = numpy.round((bbox[0]-x0)/hi)*hi+x0
+            bbox[3] = numpy.round((bbox[3]-x0)/hi)*hi+x0
+            # Add the number of layers to the bbox coordinates in every directions and
+            # reduce the data volume to an acceptable region (i.e. information cannot be outside the zone)
+            x0 = max(xp[0], bbox[0]-layers*hi)
+            x1 = min(xp[ni-1], bbox[3]+layers*hi)
+            # translate the first and last coordinates of the block to send in terms of a number of layers
+            # useful for the numpy slices
+            xmin = int(numpy.round((x0 - xp[0])/hi))
+            xmax = int(numpy.round((x1- xp[0])/hi))
+
+            bbox[1] = numpy.round((bbox[1]-y0)/hj)*hj+y0
+            bbox[4] = numpy.round((bbox[4]-y0)/hj)*hj+y0
+            y0 = max(yp[0], bbox[1]-layers*hj)
+            y1 = min(yp[ni*nj-1], bbox[4]+layers*hj)
+            ymin = int(numpy.round((y0 - yp[0])/hj))
+            ymax = int(numpy.round((y1- yp[0])/hj))
+
+            if nk > 1:
+                # perform the same treatment in the z-direction
+                bbox[2] = numpy.round((bbox[2]-z0)/hk)*hk+z0
+                bbox[5] = numpy.round((bbox[5]-z0)/hk)*hk+z0
+                z0 = max(zp[0], bbox[2]-layers*hk)
+                z1 = min(zp[ni*nj*nk-1], bbox[5]+layers*hk)
+                zmin = int(numpy.round((z0 - zp[0])/hk))
+                zmax = int(numpy.round((z1- zp[0])/hk))
+                for var in vars:
+                    if 'centers:' in var:
+                        var = var.replace('centers:', '')
+                        var = Internal.getNodeFromName(z, var)
+                        # order='F' is VERY important
+                        Internal.setValue(var, numpy.array(var[1][xmin:xmax,ymin:ymax,zmin:zmax],order='F'))
+                    else:
+                        # if the data are stored in nodes, we need to go one step further for the numpy slices
+                        var = Internal.getNodeFromName(z, var)
+                        Internal.setValue(var, numpy.array(var[1][xmin:xmax+1,ymin:ymax+1,zmin:zmax+1],order='F'))
+
+            else:
+                for var in vars:
+                    if 'centers:' in var:
+                        var = var.replace('centers:', '')
+                        var = Internal.getNodeFromName(z, var)
+                        Internal.setValue(var, numpy.array(var[1][xmin:xmax,ymin:ymax],order='F'))
+                    else:
+                        var = Internal.getNodeFromName(z, var)
+                        Internal.setValue(var, numpy.array(var[1][xmin:xmax+1,ymin:ymax+1],order='F'))
+
+            # Replace the old size information by the new ones
+            z[1][0,0] = xmax-xmin+1
+            z[1][1,0] = ymax-ymin+1
+            if nk > 1: z[1][2,0] = zmax-zmin+1
+
+
         if cartesian:
-            Internal.createUniqueChild(gc, 'CoordinateX', 'DataArray_t', value=[0.]*10) # important pour skeleton read
+            Internal.createUniqueChild(gc, 'CoordinateX', 'DataArray_t', value=[0.]*10) # important for skeleton read
             Internal.createUniqueChild(gc, 'CoordinateY', 'DataArray_t', value=[0.]*10)
             Internal.createUniqueChild(gc, 'CoordinateZ', 'DataArray_t', value=[0.]*10)
+            if not subr: Internal._rmNodesByType(z, 'ZoneSubRegion_t') # delete subregions (e.g. ID in tc)
             Internal.createChild(z, 'CartesianData', 'DataArray_t', value=[x0,y0,z0,hi,hj,hk])
     return None
     

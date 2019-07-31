@@ -1365,7 +1365,7 @@ def doInterp2(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=
 # interpDataType = 0 : interpolation optimisees sur grilles cartesiennes
 # frontType 0, 1, 2
 #=============================================================================
-def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, inv=False, interpDataType=0):
+def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, inv=False, interpDataType=0, smoothing=False):
     tb =  Internal.copyRef(tbody)
 
     # tb: fournit model et dimension
@@ -1523,10 +1523,25 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, inv=False, int
             if sizeOne < sizeTot:
                 XOD._setInterpTransfers(t,zc,variables=['cellNFront'],cellNVariable='cellNFront',compact=0)
 
-    if frontType==2 or frontType==3: _pushBackImageFront2(t, tc, tbb, interpDataType=interpDataType)
+    if frontType==2 or frontType==3 : 
+        # C.convertPyTree2File(t, "BeforeF2.cgns")
+        _pushBackImageFront2(t, tc, tbb, interpDataType=interpDataType) 
+        if smoothing and dimPb==2: _smoothImageFront(t, tc); _pushBackImageFront2(t, tc, tbb, interpDataType=interpDataType) 
+
+        C._cpVars(t,'centers:cellNFront',tc,'cellNFront')
+
+        for zc in Internal.getZones(tc):
+            cellNFront = Internal.getNodeFromName2(zc,'cellNFront')
+            if cellNFront != []:
+                cellNFront = cellNFront[1]
+                sizeTot = cellNFront.shape[0]*cellNFront.shape[1]*cellNFront.shape[2]
+                sizeOne =  int(numpy.sum(cellNFront))
+                if sizeOne < sizeTot:
+                    XOD._setInterpTransfers(t,zc,variables=['cellNFront'],cellNVariable='cellNFront',compact=0)
+        # C.convertPyTree2File(t, "AfterF2.cgns")
 
     ## Fin traitement specifique, vaut 0 ou 1 apres la ligne suivante
-    C._cpVars(t,'centers:cellNFront',tc,'cellNFront')
+    # C._cpVars(t,'centers:cellNFront',tc,'cellNFront')
     C._rmVars(t,['centers:cellNFront'])
     C._cpVars(t,'centers:TurbulentDistance',tc,'TurbulentDistance')
 
@@ -1534,6 +1549,7 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, inv=False, int
     P._computeGrad2(t,'centers:TurbulentDistance')
     print('Building the IBM front.')
     front = getIBMFront(tc, 'cellNFront', dimPb, frontType)
+    C.convertPyTree2File(front, 'front.cgns')
     print('Interpolations IBM')
     tc = doInterp(t,tc,tbb, tb=tb,typeI='IBCD',dim=dimPb, dictOfADT=None, front=front, frontType=frontType, depth=DEPTH, IBCType=IBCType, interpDataType=interpDataType)
 
@@ -1580,8 +1596,8 @@ def _pushBackImageFront2(t, tc, tbb, interpDataType=1):
                             if interpDataType==1: HOOKADT = C.createHook(zc, 'adt')
                             else: HOOKADT = None
                             fields = X.transferFields(zc, XI, YI, ZI, hook=HOOKADT, variables=['cellNFront_origin','cellNIBC_origin'], interpDataType=interpDataType)
-                            if interpDataType == 1: allInterpFields.append(fields)
-                            # C.freeHook(HOOKADT)
+                            allInterpFields.append(fields)
+                            if interpDataType == 1: C.freeHook(HOOKADT)
                     if allInterpFields != []:
                         C._filterPartialFields(z, allInterpFields, indicesI, loc='centers', startFrom=0, filterName='donorVol',verbose=False)
                         # C._initVars(z,'{centers:cellNFront}=({centers:cellNFront}>0.5)') #ancienne version
@@ -1603,7 +1619,60 @@ def _pushBackImageFront2(t, tc, tbb, interpDataType=1):
     C._cpVars(t,'centers:cellNIBC',tc,'cellNIBC')
     C._cpVars(t,'centers:cellNIBC',t,'centers:cellN')
     C._cpVars(t,'centers:cellN',tc,'cellN')
+
     return None      
+
+#=============================================================================
+# Performs smoothing after _pushBackImageFront2 
+#=============================================================================
+def _smoothImageFront(t, tc, dimPb=2):
+    for z in Internal.getZones(t):
+        cellNFront  = Internal.getNodeFromName(z,'cellNFront')
+        cellNIBC    = Internal.getNodeFromName(z,'cellNIBC')
+        cellNIBCDnr = Internal.getNodeFromName(z,'cellNIBCDnr')
+        dim         = Internal.getZoneDim(z)
+        if cellNIBC != []:
+                cellNIBC = cellNIBC[1]
+                sizeTot = cellNIBC.shape[0]*cellNIBC.shape[1]*cellNIBC.shape[2]
+                sizeOne =  int(numpy.sum(cellNIBC))
+                if sizeOne < sizeTot:
+                    cellNFront  = cellNFront[1]
+                    cellNIBCDnr = cellNIBCDnr[1]
+                    for i in range(1, int(dim[1])-2):
+                        for j in range(1, int(dim[2])-2):
+                            if cellNIBC[i,j,k] == 1 and cellNIBC[i,j-1,k] == 2:
+                                if cellNIBC[i-1,j+1,k] == 2:
+                                    cellNFront[i,j,k]    = 0
+                                    cellNIBC[i,j,k]      = 2
+                                    cellNIBCDnr[i,j,k]   = 2
+
+                        for j in range(int(dim[2])-3, 0, -1):
+                            if cellNIBC[i,j,k] == 1 and cellNIBC[i,j+1,k] == 2:
+                                if cellNIBC[i-1,j-1,k] == 2:
+                                    cellNFront[i,j,k]    = 0
+                                    cellNIBC[i,j,k]      = 2
+                                    cellNIBCDnr[i,j,k]   = 2
+
+                    for i in range(int(dim[1])-3, 0, -1):
+                        for j in range(1, int(dim[2])-2):
+                            if cellNIBC[i,j,k] == 1 and cellNIBC[i,j-1,k] == 2:
+                                if cellNIBC[i+1,j+1,k] == 2:
+                                    cellNFront[i,j,k]    = 0
+                                    cellNIBC[i,j,k]      = 2
+                                    cellNIBCDnr[i,j,k]   = 2
+
+                        for j in range(int(dim[2])-3, 0, -1):
+                            if cellNIBC[i,j,k] == 1 and cellNIBC[i,j+1,k] == 2:
+                                if cellNIBC[i+1,j-1,k] == 2:
+                                    cellNFront[i,j,k]    = 0
+                                    cellNIBC[i,j,k]      = 2
+                                    cellNIBCDnr[i,j,k]   = 2
+
+    C._cpVars(t,'centers:cellNIBC',tc,'cellNIBC')
+    C._cpVars(t,'centers:cellNIBC',t,'centers:cellN')
+    C._cpVars(t,'centers:cellN',tc,'cellN')
+
+    return None  
 
 #=============================================================================
 # Extraction des infos pour le post traitement
@@ -1612,6 +1681,7 @@ def _pushBackImageFront2(t, tc, tbb, interpDataType=1):
 #=============================================================================
 def extractIBMWallFields(tc, tb=None):
     xwNP = []; ywNP = []; zwNP = []
+    xiNP = []; yiNP = []; ziNP = []
     pressNP = []; utauNP = []; yplusNP = []; densNP = []
     vxNP = []; vyNP = []; vzNP = []
     for z in Internal.getZones(tc):
@@ -1623,6 +1693,11 @@ def extractIBMWallFields(tc, tb=None):
                 yPW = Internal.getNodeFromName1(IBCD,"CoordinateY_PW")[1]
                 zPW = Internal.getNodeFromName1(IBCD,"CoordinateZ_PW")[1]
                 xwNP.append(xPW); ywNP.append(yPW); zwNP.append(zPW)
+
+                xPI = Internal.getNodeFromName1(IBCD,"CoordinateX_PI")[1]
+                yPI = Internal.getNodeFromName1(IBCD,"CoordinateY_PI")[1]
+                zPI = Internal.getNodeFromName1(IBCD,"CoordinateZ_PI")[1]
+                xiNP.append(xPI); yiNP.append(yPI); ziNP.append(zPI)
 
                 PW = Internal.getNodeFromName1(IBCD,X.__PRESSURE__)
                 if PW is not None: pressNP.append(PW[1])
@@ -1653,6 +1728,10 @@ def extractIBMWallFields(tc, tb=None):
         ywNP = numpy.concatenate(ywNP)
         zwNP = numpy.concatenate(zwNP)
 
+        xiNP = numpy.concatenate(xiNP)
+        yiNP = numpy.concatenate(yiNP)
+        ziNP = numpy.concatenate(ziNP)
+
     # Creation d une seule zone
     zsize = numpy.empty((1,3), numpy.int32, order='Fortran')
     zsize[0,0] = xwNP.shape[0]; zsize[0,1] = 0; zsize[0,2] = 0
@@ -1669,6 +1748,11 @@ def extractIBMWallFields(tc, tb=None):
                                    gridLocation='Vertex', parent=z)
     FSN[2].append([X.__PRESSURE__,pressNP, [],'DataArray_t'])
     FSN[2].append([X.__DENSITY__,densNP, [],'DataArray_t'])
+
+    FSN[2].append(["CoordinateX_PI",xiNP, [],'DataArray_t'])
+    FSN[2].append(["CoordinateY_PI",yiNP, [],'DataArray_t'])
+    FSN[2].append(["CoordinateZ_PI",ziNP, [],'DataArray_t'])
+
     utauPresent = 0; yplusPresent = 0
     if utauNP != []:
         utauPresent = 1
@@ -1698,6 +1782,9 @@ def extractIBMWallFields(tc, tb=None):
                 zones = C.convertArray2Tetra(zones)
                 zones = T.join(zones); zones = G.close(zones)
                 b[2] = [zones]
+        C._initVars(td,"CoordinateX_PI",0.)     
+        C._initVars(td,"CoordinateY_PI",0.)     
+        C._initVars(td,"CoordinateZ_PI",0.)        
         C._initVars(td,X.__PRESSURE__,0.)
         C._initVars(td,X.__DENSITY__,0.)
         if utauPresent==1: C._initVars(td,X.__UTAU__,0.)

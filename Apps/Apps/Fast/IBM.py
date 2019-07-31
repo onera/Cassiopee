@@ -150,9 +150,17 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
     return t, tc
 
 #==================================================================================================
-def prepare1(t_case, t_out, tc_out, tbox=None, snears=0.01, snearsf=None, dfar=10., dfarList=[], vmin=21, check=False, 
-             NP=0, format='single',
-             frontType=1, inv=False):
+
+#================================================================================
+# IBM prepare - para
+#
+# extrusion: make an extrusion from a 2D profile. ATTENTION, each zone of the profile must be joined in one single zone
+# smoothing : smooth the front during the front 2 specific treatment in the cases of local refinements
+# balancing ; balance the entire distribution after the octree generation, useful for symetries
+# distrib : new distribution at the end of prepare1
+#================================================================================
+def prepare1(t_case, t_out, tc_out, tbox=None, snears=0.01, snearsf=None, dfar=10., dfarList=[], vmin=21, check=False, NP=0, format='single',
+             frontType=1, extrusion=False, smoothing=False, inv=False, balancing=False, distrib=True):
     import Generator
     import Converter
     import Connector.connector as connector
@@ -161,8 +169,13 @@ def prepare1(t_case, t_out, tc_out, tbox=None, snears=0.01, snearsf=None, dfar=1
     import Converter.Distributed as Distributed
     import Connector.OversetData as XOD
     import KCore.test as test
+    from mpi4py import MPI
+    import numpy as numpy
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
     else: tb = t_case
+
+    rank = Cmpi.rank
+    comm = MPI.COMM_WORLD
 
     # list of dfars
     if dfarList == []:
@@ -172,20 +185,25 @@ def prepare1(t_case, t_out, tc_out, tbox=None, snears=0.01, snearsf=None, dfar=1
             n = Internal.getNodeFromName2(z, 'dfar')
             if n is not None: dfarList[c] = Internal.getValue(n)*1.
 
+    # refinementBody
+    if tbox is not None:
+        if isinstance(tbox, str): tbox = C.convertFile2PyTree(tbox)
+        else: tb = tbox
+
     # a mettre dans la classe ou en parametre de prepare1 ??? 
     to = None
+
     # refinementSurfFile: surface meshes describing refinement zones
     if tbox is not None:
         if isinstance(tbox, str): tbox = C.convertFile2PyTree(tbox)
         else: tbox = tbox
+
     symmetry = 0
     fileout = None
     if check: fileout = 'octree.cgns'
 
     DEPTH=2
     IBCType=1
-
-    rank = Cmpi.rank
 
     # reference state
     refstate = C.getState(tb)
@@ -211,15 +229,17 @@ def prepare1(t_case, t_out, tc_out, tbox=None, snears=0.01, snearsf=None, dfar=1
 
     # Octree identical on all procs
     test.printMem('>>> Octree unstruct [start]')
-    # Build octree
-    o = TIBM.buildOctree(tb, snears=snears, snearFactor=1., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf, 
-                         dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=fileout, rank=rank)
+
+    o = TIBM.buildOctree(tb, snears=snears, snearFactor=1., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf,
+                         dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=None, rank=rank)
+
+
     if rank==0 and check:
         C.convertPyTree2File(o,fileout)
     # build parent octree 3 levels higher
     # returns a list of 4 octants of the parent octree in 2D and 8 in 3D
-    parento = TIBM.buildParentOctrees__(o, tb, snears=snears, snearFactor=4., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, 
-                                        snearsf=snearsf, dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=fileout, rank=rank)
+    parento = TIBM.buildParentOctrees__(o, tb, snears=snears, snearFactor=4., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf,
+                                        dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=None, rank=rank)
     test.printMem(">>> Octree unstruct [end]")
 
     # Split octree
@@ -261,18 +281,91 @@ def prepare1(t_case, t_out, tc_out, tbox=None, snears=0.01, snearsf=None, dfar=1
     coords = None; zones = None
     test.printMem(">>> extended cart grids (after rmXZones) [end]")
     
-    TIBM._addBCOverlaps(t, bbox=bb)
-    TIBM._addExternalBCs(t, bbox=bb, dimPb=dimPb)
+    if extrusion==False:
+        TIBM._addBCOverlaps(t, bbox=bb)
+        TIBM._addExternalBCs(t, bbox=bb, dimPb=dimPb)
 
     dz = 0.01
     if dimPb == 2:
-        T._addkplane(t)
-        T._contract(t, (0,0,0), (1,0,0), (0,1,0), dz)
+        if extrusion == False:
+            T._addkplane(t)
+            T._contract(t, (0,0,0), (1,0,0), (0,1,0), dz)
+        if extrusion == True:
+            chord = 1.
+            NSplit = 1
+            NPas = 200
+            span = 0.25*chord
+            dimPb = 3
+            # Extrude 2D case
+            T._addkplane(tb,N=NPas+4)
+            for node in Internal.getNodesFromName(tb,'EquationDimension'): Internal.setValue(node,3)
+            T._contract(tb, (0.,0.,0.), (1,0,0), (0,1,0), span/NPas)
+            zmax = C.getMaxValue(tb,'CoordinateZ')
+            T._translate(tb,(0.,0.,-0.5*zmax))
+            # Close new 3D case
+            for b in Internal.getBases(tb):
+                name = Internal.getName(b)
+                b = C.convertArray2Tetra(b)
+                b = G.close(b)
+                b = P.exteriorFaces(b)
+                b = T.splitConnexity(b)
+                for line in Internal.getZones(b):
+                    closure = G.tetraMesher(line, algo=1)
+                    tb = Internal.append(tb, closure, name)
+            if rank==0: C.convertPyTree2File(tb, '3Dcase.cgns')
+            # create new 3D tree
+            t = T.subzone(t, (1,1,1), (-1,-1,1))
+            bbox = G.bbox(t); bbox = [round(i,1) for i in bbox]
+            bbox = numpy.array(bbox)
+            # Share the boundaries of the entire mesh for BCFarfield
+            comm.Barrier()
+            minbox = numpy.zeros(3)
+            maxbox = numpy.zeros(3)
+            comm.Allreduce([bbox[0:3], MPI.DOUBLE], [minbox, MPI.DOUBLE], MPI.MIN)
+            comm.Allreduce([bbox[3:], MPI.DOUBLE], [maxbox, MPI.DOUBLE], MPI.MAX)
+            comm.Barrier()
+            bbox[0:3] = minbox
+            bbox[3:]  = maxbox
+            C._rmBCOfType(t, 'BCFarfield')
+            C._rmBCOfType(t, 'BCOverlap')
+            Internal._rmNodesByType(t,'FlowSolution_t')
+            for z in Internal.getZones(t):
+                xmin = C.getValue( z, 'CoordinateX', (1,1,1))
+                xmax = C.getValue( z, 'CoordinateX', (0,1,1))
+                ymin = C.getValue( z, 'CoordinateY', (1,1,1))
+                ymax = C.getValue( z, 'CoordinateY', (1,0,1))
+                if abs(round(xmin-bbox[0]))==0.: C._addBC2Zone(z, 'external', 'BCFarfield', 'imin')
+                if abs(round(xmax-bbox[3]))==0.: C._addBC2Zone(z, 'external', 'BCFarfield', 'imax')
+                if abs(round(ymin-bbox[1]))==0.: C._addBC2Zone(z, 'external', 'BCFarfield', 'jmin')
+                if abs(round(ymax-bbox[4]))==0.: C._addBC2Zone(z, 'external', 'BCFarfield', 'jmax')
+            C._fillEmptyBCWith(t,'overlap','BCOverlap')
+            T._addkplane(t,N=NPas+4)
+            for node in Internal.getNodesFromName(t,'EquationDimension'): Internal.setValue(node,3)
+            T._contract(t, (0.,0.,0.), (1,0,0), (0,1,0), span/NPas)
+            T._translate(t,(0.,0.,-0.5*zmax))
+            C._addBC2Zone(t, 'period', 'BCautoperiod', 'kmin')
+            C._addBC2Zone(t, 'period', 'BCautoperiod', 'kmax')
+            if check: Cmpi.convertPyTree2File(t, '3Dmesh.cgns')
 
     # ReferenceState 
     C._addState(t, state=refstate)
     C._addState(t, 'GoverningEquations', model)
     C._addState(t, 'EquationDimension', dimPb)
+
+    # Balancing
+    if balancing:
+        test.printMem(">>> balancing [start]")
+        Cmpi.convertPyTree2File(t, t_out)
+        # Need to wait for all the procs to write their parts before the new distribution
+        comm.Barrier()
+        ts = Cmpi.convertFile2SkeletonTree(t_out)
+        D2._distribute(ts, Cmpi.size, algorithm='graph')
+        t = Cmpi.readZones(ts, t_out, rank=rank)
+        t = Cmpi.convert2PartialTree(t)
+        zones = Internal.getZones(t)
+        for z in zones: z[0] = z[0] + 'X%d'%rank
+        del ts
+        test.printMem(">>> balancing [end]")
 
     # Distance a la paroi    
     test.printMem(">>> Wall distance [start]")
@@ -307,8 +400,9 @@ def prepare1(t_case, t_out, tc_out, tbox=None, snears=0.01, snearsf=None, dfar=1
     
     test.printMem(">>> Blanking [start]")
     t = TIBM.blankByIBCBodies(t, tb, 'centers', dimPb)
+
+    if inv: C._initVars(t,'{centers:cellNIBC}=1-{centers:cellN}') 
     if not inv: C._initVars(t, '{centers:cellNIBC}={centers:cellN}')
-    else: C._initVars(t,'{centers:cellNIBC}=1-{centers:cellN}') # ecoulement interne
     TIBM._signDistance(t)
 
     C._initVars(t,'{centers:cellN}={centers:cellNIBC}')
@@ -435,17 +529,110 @@ def prepare1(t_case, t_out, tc_out, tbox=None, snears=0.01, snearsf=None, dfar=1
     # propager cellNVariable='cellNFront'
     Xmpi._setInterpTransfers(t,tc,variables=['cellNFront'], cellNVariable='cellNFront', compact=0)
 
-    #============================================================================
-    if frontType==2 or frontType==3:
-        Cmpi._addXZones(tc, graph, cartesian=True)
-        TIBM._pushBackImageFront2(t, tc, tbbc, interpDataType=0)
+    ############################################################
+    # Specific treatment for front 2
+    ############################################################
+    if frontType==2:
+        test.printMem(">>> pushBackImageFront2 [start]")
+
+        # bboxDict needed for optimised AddXzones (i.e. "layers" not None)
+        # Return a dict with the zones of t as keys and their specific bboxes as key values
+        bboxDict = Cmpi.createBboxDict(t)
+        tbbc = Cmpi.createBBoxTree(tc)
+        interDict = X.getIntersectingDomains(tbbc)
+        graph = Cmpi.computeGraph(tbbc, type='bbox', intersectionsDict=interDict, reduction=False)
+
+        # if subr, the tree subregions are kept during the exchange 
+        # if layers not None, only communicate the desired number of layers
+        Cmpi._addXZones(tc, graph, variables=['cellNIBC','cellNChim'], cartesian=True, interDict=interDict, bboxDict=bboxDict, layers=4, subr=False)
+        Cmpi._addXZones(t, graph,variables=['centers:cellNIBC', 'centers:cellNChim'], cartesian=True, interDict=interDict, bboxDict=bboxDict, layers=4, subr=False)
+
+        # Zones of tc are modified after addXZones, new tbbc, interDict and intersectionDict
+        tbbcx = Cmpi.createBBoxTree(tc)
+        interDict = X.getIntersectingDomains(tbbcx)
+        intersectionsDict = X.getIntersectingDomains(tbbcx, method='AABB', taabb=tbbcx)
+        
+        # Reconstruction of cellNFront and cellN from cellNIBC (reduce the communications)
+        # cellNFront_origin and cellNIBC_origin are initialised to store the Data of cellNFront and cellNIBC before the transfers 
+        C._initVars(t,'{centers:cellNFront}=({centers:cellNIBC}==1.)')
+        C._initVars(t,'{centers:cellN}={centers:cellNIBC}')
+        C._initVars(t,'{centers:cellNFront_origin}={centers:cellNFront}') 
+        C._initVars(t,'{centers:cellNIBC_origin}={centers:cellNIBC}')
+        C._initVars(t,'{centers:cellN_interp}=maximum(0.,{centers:cellNChim})')
+
+        C._cpVars(t,'centers:cellNFront',tc,'cellNFront')
+        C._cpVars(t,'centers:cellNIBC',tc,'cellNIBC')
+        C._cpVars(t,'centers:cellN',tc,'cellN')
+        C._cpVars(t,'centers:cellN_interp',tc,'cellN_interp')
+        C._cpVars(t,'centers:cellNFront_origin',tc,'cellNFront_origin')
+        C._cpVars(t,'centers:cellNIBC_origin',tc,'cellNIBC_origin')
+
+        # Find each zone that require the specific treatment 
+        C._initVars(t,'{centers:cellNFront2}=1.-({centers:cellNFront}<1.)*(abs({centers:cellNChim})>1.)')
+        # i.e. if cellNFront_origin == 2 and cellNFront == 1 ou -3 => cellNFront2 = 1
+
+        # Transfers the information at each grid connection
+        for z in Internal.getZones(t):
+            cellNFront = Internal.getNodeFromName2(z,'cellNFront2')
+            if cellNFront != []:
+                cellNFront = cellNFront[1]
+                sizeTot = cellNFront.shape[0]*cellNFront.shape[1]*cellNFront.shape[2]
+                sizeOne =  int(numpy.sum(cellNFront))
+                if sizeOne < sizeTot:
+                    X._setHoleInterpolatedPoints(z, depth=1, dir=0, loc='centers',cellNName='cellNFront2',addGC=False)
+                    res = X.getInterpolatedPoints(z,loc='centers', cellNName='cellNFront2') # indices,X,Y,Z
+                    if res is not None:
+                        indicesI = res[0]
+                        XI = res[1]; YI = res[2]; ZI = res[3]
+                        allInterpFields=[]
+                        for zc in Internal.getZones(tc):
+                            if zc[0] in intersectionsDict[z[0]]:
+                                C._cpVars(zc,'cellN_interp',zc,'cellN')
+                                fields = X.transferFields(zc, XI, YI, ZI, hook=None, variables=['cellNFront_origin','cellNIBC_origin'], interpDataType=0,nature=1)
+                                allInterpFields.append(fields)
+                        if allInterpFields!=[]:
+                            C._filterPartialFields(z, allInterpFields, indicesI, loc='centers', startFrom=0, filterName='donorVol',verbose=False)
+
         Cmpi._rmXZones(tc)
+        Cmpi._rmXZones(t)
+
+        # Update the cellNFront, cellNIBC and cellNIBCDnr fields
+        for z in Internal.getZones(t):
+            cellNFront = Internal.getNodeFromName2(z,'cellNFront2')
+            if cellNFront != []:
+                cellNFront = cellNFront[1]
+                sizeTot = cellNFront.shape[0]*cellNFront.shape[1]*cellNFront.shape[2]
+                sizeOne =  int(numpy.sum(cellNFront))
+                if sizeOne < sizeTot:
+                    C._initVars(z,'{centers:cellNFront}={centers:cellNFront}*({centers:cellNFront_origin}>0.5)') # Modification du Front uniquement lorsque celui-ci est repousse
+                    # i.e. if cellNFront_origin == 0 and cellNFront == 1 => cellNfront = 0
+
+                    C._initVars(z,'{centers:cellNIBC}={centers:cellNIBC}*(1.-({centers:cellNChim}==1.)*({centers:cellNIBC_origin}>1.5)*({centers:cellNIBC_origin}<2.5)) \
+                        + 2.*({centers:cellNChim}==1.)*({centers:cellNIBC_origin}>1.5)*({centers:cellNIBC_origin}<2.5)')
+                    # i.e. if cellNChim == 1 and cellNIBC_origin == 2 => cellNIBC = 2
+
+                    C._initVars(z,'{centers:cellNIBCDnr}={centers:cellNIBCDnr}*(1.-({centers:cellNChim}==1.)*({centers:cellNIBC_origin}>1.5)*({centers:cellNIBC_origin}<2.5)) \
+                        + 2.*({centers:cellNChim}==1.)*({centers:cellNIBC_origin}>1.5)*({centers:cellNIBC_origin}<2.5)')
+
+        C._cpVars(t,'centers:cellNIBC',tc,'cellNIBC')
+        C._cpVars(t,'centers:cellNIBC',t,'centers:cellN')
+        C._cpVars(t,'centers:cellN',tc,'cellN')
+
+        C._rmVars(t,['centers:cellNFront2'])
+        C._rmVars(t,['centers:cellNFront_origin'])
+        C._rmVars(t,['centers:cellNIBC_origin'])
+        C._rmVars(t,['centers:cellN_interp'])
+
+        # Smooth the front in case of a local refinement - only work in 2D
+        if smoothing and dimPb==2: 
+            TIBM._smoothImageFront(t, tc)
+
+        C._cpVars(t,'centers:cellNFront',tc,'cellNFront')
+
         Xmpi._setInterpTransfers(t,tc,variables=['cellNFront'], cellNVariable='cellNFront', compact=0)
         test.printMem(">>> pushBackImageFront2 [end]")
-        
-    #============================================================================
+    ############################################################
 
-    C._cpVars(t,'centers:cellNFront',tc,'cellNFront')
     C._rmVars(t,['centers:cellNFront'])
     C._cpVars(t,'centers:TurbulentDistance',tc,'TurbulentDistance')
 
@@ -520,7 +707,8 @@ def prepare1(t_case, t_out, tc_out, tbox=None, snears=0.01, snearsf=None, dfar=1
                 graph[k][j] = list(set(graph[k][j])) # pas utile?
 
     test.printMem(">>> Interpolating IBM [start]")
-    Cmpi._addXZones(tc, graph, variables=['cellN'], cartesian=True)
+    # keyword subr=False to avoid memory overflow
+    Cmpi._addXZones(tc, graph, variables=['cellN'], cartesian=True, subr=False)
     test.printMem(">>> Interpolating IBM [after addXZones]")
 
     ReferenceState = Internal.getNodeFromType2(t, 'ReferenceState_t')
@@ -590,6 +778,7 @@ def prepare1(t_case, t_out, tc_out, tbox=None, snears=0.01, snearsf=None, dfar=1
             if IBCDs != []:
                 zD = Internal.getNodeFromName2(tc, zname)
                 zD[2] += IBCDs
+
     datas = {}; graph = {}
 
     C._initVars(t,'{centers:cellN}=minimum({centers:cellNChim}*{centers:cellNIBCDnr},2.)')
@@ -598,22 +787,30 @@ def prepare1(t_case, t_out, tc_out, tbox=None, snears=0.01, snearsf=None, dfar=1
     C._rmVars(t, varsRM)
     test.printMem(">>> Saving [start]")
 
-    #============================================================================
+    # Sauvegarde des infos IBM
     if check:
+        test.printMem(">>> Saving IBM infos [start]")
         tibm = TIBM.extractIBMInfo(tc)
-        for z in Internal.getZones(tibm): z[0] += '_'+str(Cmpi.rank)
-        #tibm = Cmpi.allgatherTree(tibm)
-        #if rank==0: C.convertPyTree2File(tibm, 'IBMInfo.cgns')
+
+        # Avoid that two procs write the same information
+        for z in Internal.getZones(tibm):
+           if int(z[0][-1]) != rank:
+              Internal._rmNodesByName(tibm, z[0])
+
         Cmpi.convertPyTree2File(tibm, 'IBMInfo.cgns')
+        test.printMem(">>> Saving IBM infos [end]")
         del tibm
-    #============================================================================
 
     # distribution par defaut (sur NP)
     tbbc = Cmpi.createBBoxTree(tc)
-    if NP == 0: NP = Cmpi.size
-    stats = D2._distribute(tbbc, NP, algorithm='graph', useCom='ID')
-    D2._copyDistribution(tc, tbbc)
-    D2._copyDistribution(t, tbbc)
+    
+    # Perform the finale distribution
+    if distrib:
+        if NP == 0: NP = Cmpi.size
+        stats = D2._distribute(tbbc, NP, algorithm='graph', useCom='ID')
+        D2._copyDistribution(tc, tbbc)
+        D2._copyDistribution(t, tbbc)
+
     del tbbc
 
     # Save tc
@@ -785,7 +982,8 @@ def loads(t_case, tc_in, wall_out, alpha=0., beta=0., Sref=None):
     #====================================
     zw = TIBM.extractIBMWallFields(tc, tb=tb)
 
-    if dimPb == 2: zw = T.addkplane(zw)
+    if dimPb == 2:
+        zw = T.addkplane(zw)
 
     zw = C.convertArray2Tetra(zw)
     zw = T.reorderAll(zw, 1)
@@ -855,7 +1053,6 @@ def loads(t_case, tc_in, wall_out, alpha=0., beta=0., Sref=None):
     vars = ['centers:sx','centers:sy','centers:sz','centers:tx','centers:ty','centers:tz','centers:tauxx','centers:tauyy','centers:tauzz','centers:tauxy','centers:tauxz',
 'centers:tauyz','centers:Fricx','centers:Fricy','centers:Fricz','centers:Fx','centers:Fy','centers:Fz']
     zw = C.rmVars(zw, vars)
-
     if dimPb == 2: # reextrait en 2D
         zw = P.isoSurfMC(zw, "CoordinateZ", 0.)
         nodes = Internal.getNodesFromName(zw, 'CoordinateX')

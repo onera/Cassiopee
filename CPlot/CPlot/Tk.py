@@ -215,7 +215,7 @@ def getModule(app):
 def openApp(app):
   global TKMODULES
   module = getModule(app)
-  module.showApp()
+  if module is not None: module.showApp()
 
 #==============================================================================
 # Extrait des arrays de a pour les envoyer au plotter

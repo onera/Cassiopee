@@ -846,9 +846,12 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
     for (E_Int noind = 0; noind < ifin-ideb; noind++)
     {
       indR = rcvPts[noind+ideb];
-      //printf("ro,p stored %f %f\n", densPtr[noind+ideb], pressPtr[noind+ideb]);
-      //printf("u,y stored %f %f\n", utauPtr[noind+ideb], yplusPtr[noind+ideb]);
-      //printf("state: %f %f %f %f %f\n", d1[noind+ideb], d2[noind+ideb], d3[noind+ideb], d4[noind+ideb], d5[noind+ideb]);
+      // std::cout<< "********************************************************************" << std::endl;
+      // printf("ro,p stored %f %f\n", densPtr[noind+ideb], pressPtr[noind+ideb]);
+      // printf("u, v, w: %f %f %f\n", vxPtr[noind+ideb], vyPtr[noind+ideb], vzPtr[noind+ideb]);
+      // printf("u,y stored %f %f\n", utauPtr[noind+ideb], yplusPtr[noind+ideb]);
+      // printf("state: %f %f %f %f %f\n", d1[noind+ideb], d2[noind+ideb], d3[noind+ideb], d4[noind+ideb], d5[noind+ideb]);
+      // std::cout<< "********************************************************************" << std::endl;
       d0x = d3[noind+ideb];
       d0y = d4[noind+ideb];
       d0z = d5[noind+ideb];
@@ -966,8 +969,9 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
       // update des grandeurs pour post
       densPtr[noind+ideb] = rog;
       pressPtr[noind+ideb] = pg;
-      //printf("tnx %f %f %f - %g\n", tnx,tny,tnz,residug);
-      //printf("roOut  %f %f %f %f %f\n", roOut[indR], uOut[indR], vOut[indR], wOut[indR], tOut[indR]);
+      vxPtr[noind+ideb] = uOut[indR];
+      vyPtr[noind+ideb] = vOut[indR];
+      vzPtr[noind+ideb] = wOut[indR];
     }
   }
   else if (bctype == 6) // TBLE
