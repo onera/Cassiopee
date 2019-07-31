@@ -19,20 +19,20 @@ def deltaInterpolations(interpData, ref, loc='cell'):
     #  2: existing point with other coefficients (storage of coefficients)
     newRcvIndices = interpData[0]
     newDonorIndices = interpData[1]
-    newPeriodicity=interpData[2]
-    coefs=interpData[3]
+    newPeriodicity = interpData[2]
+    coefs = interpData[3]
     oldRcvIndices = ref[0]
     oldDonorIndices = ref[1]
     oldPeriodicity = ref[2]
-    oldCoefs=ref[3]
+    oldCoefs = ref[3]
     if loc == 'face':
         newFaceDir = interpData[4]
         oldFaceDir = ref[4]
     else:
         newFaceDir = None
-    r1 = numpy.in1d(newRcvIndices,oldRcvIndices)
-    r2 = numpy.in1d(newRcvIndices,oldRcvIndices, invert=True)
-    r3 = numpy.in1d(oldRcvIndices,newRcvIndices, invert=True)
+    r1 = numpy.in1d(newRcvIndices, oldRcvIndices)
+    r2 = numpy.in1d(newRcvIndices, oldRcvIndices, invert=True)
+    r3 = numpy.in1d(oldRcvIndices, newRcvIndices, invert=True)
     alreadyExistingIndices = newRcvIndices[r1] # indices in oldRcvIndices and newRcvIndices
     newIndices = newRcvIndices[r2]             # indices in newRcvIndices but not in oldRcvIndices
     indicesToDelete = oldRcvIndices[r3]        # indices in oldRcvIndices but not in newRcvIndices
@@ -96,13 +96,13 @@ def deltaInterpolations(interpData, ref, loc='cell'):
     return storedInterpData
 
 def container__(flag, newPos, indDonor, periodicity, coefs, faceDir):
-    if flag == 0 and faceDir == None: return [flag,(int)(indDonor),(int)(periodicity[newPos])]+[(float)(c) for c in coefs[newPos]]
+    if flag == 0 and faceDir is None: return [flag,(int)(indDonor),(int)(periodicity[newPos])]+[(float)(c) for c in coefs[newPos]]
     elif flag == 0: return [flag,(int)(indDonor),(int)(periodicity[newPos])]+[(float)(c) for c in coefs[newPos]]+[(int)(faceDir[newPos])]
-    elif flag == 1 and faceDir == None: return [flag]+[(float)(c) for c in coefs[newPos]]
+    elif flag == 1 and faceDir is None: return [flag]+[(float)(c) for c in coefs[newPos]]
     elif flag == 1: return [flag]+[(float)(c) for c in coefs[newPos]]+[(int)(faceDir[newPos])]
-    elif flag == 2 and faceDir == None: return [flag,(int)(periodicity[newPos])]+[(float)(c) for c in coefs[newPos]]
+    elif flag == 2 and faceDir is None: return [flag,(int)(periodicity[newPos])]+[(float)(c) for c in coefs[newPos]]
     elif flag == 2: return [flag,(int)(periodicity[newPos])]+[(float)(c) for c in coefs[newPos]]+[(int)(faceDir[newPos])]
-    elif flag == 3 and faceDir == None: return [flag,(int)(indDonor)]+[(float)(c) for c in coefs[newPos]]
+    elif flag == 3 and faceDir is None: return [flag,(int)(indDonor)]+[(float)(c) for c in coefs[newPos]]
     elif flag == 3: return [flag,(int)(indDonor)]+[(float)(c) for c in coefs[newPos]]+[(int)(faceDir[newPos])]
     elif flag == 5: return [flag]+[(float)(c) for c in coefs[newPos]]+[(int)(faceDir[newPos])] # only for 'face'
     elif flag == 6: return [flag,(int)(periodicity[newPos])]+[(float)(c) for c in coefs[newPos]]+[(int)(faceDir[newPos])] # only for 'face'
@@ -110,27 +110,26 @@ def container__(flag, newPos, indDonor, periodicity, coefs, faceDir):
 #------------------------------------------------------------------------------
 # writeUnsteadyCoefs
 #------------------------------------------------------------------------------
-def writeUnsteadyCoefs(iteration, indices, filename, loc,format="b"):
-    """write interpolation coefficients for unsteady computation."""
-    Compressor.writeUnsteadyCoefs(iteration, indices, filename,loc,format)
+def writeUnsteadyCoefs(iteration, indices, filename, loc, format="b"):
+    """write interpolation coefficients for unsteady computations."""
+    Compressor.writeUnsteadyCoefs(iteration, indices, filename, loc, format)
     
 # Remplace les coordonnees d'une grille cartesienne par un noeud CartesianData
 #
 # if layers not None, only communicate the desired number of layers
 # bboxDict is dict with the zones of t as keys and their specific bboxes as key values, used when layers not None
 # if subr, the tree subregions are kept during the exchange 
-def compressCartesian(t,bbox=[],layers=None,subr=True):
-    """Replace Grid Coordinates with a UserDefined CartesianData node of zone is cartesian."""
+def compressCartesian(t, bbox=[], layers=None, subr=True):
+    """Replace Grid Coordinates with a UserDefined CartesianData node if zone is cartesian."""
     tp = Internal.copyRef(t)
-    _compressCartesian(tp,bbox=bbox,layers=layers,subr=subr)
+    _compressCartesian(tp, bbox=bbox, layers=layers, subr=subr)
     return tp
 
 # Si la zone est cartesienne :
 # Ajoute un noeud CartesianData a la zone
 # remplace Coordinates par des noeuds avec des champs de taille 10
-def _compressCartesian(t,bbox=[],layers=None,subr=True):
+def _compressCartesian(t, bbox=[], layers=None, subr=True):
     zones = Internal.getZones(t)
-    vars  = C.getVarNames(t, excludeXYZ=True)[0]
     for z in zones:
         ztype = Internal.getZoneDim(z)
         if ztype[0] == 'Unstructured': continue
@@ -167,6 +166,7 @@ def _compressCartesian(t,bbox=[],layers=None,subr=True):
             if abs(yp[ni*nj] - y0) > 1.e-10: cartesian = False
 
         if cartesian and layers is not None:
+            vars  = C.getVarNames(z, excludeXYZ=True)
             # align bbox with the gridzone
             bbox[0] = numpy.round((bbox[0]-x0)/hi)*hi+x0
             bbox[3] = numpy.round((bbox[3]-x0)/hi)*hi+x0
@@ -204,7 +204,6 @@ def _compressCartesian(t,bbox=[],layers=None,subr=True):
                         # if the data are stored in nodes, we need to go one step further for the numpy slices
                         var = Internal.getNodeFromName(z, var)
                         Internal.setValue(var, numpy.array(var[1][xmin:xmax+1,ymin:ymax+1,zmin:zmax+1],order='F'))
-
             else:
                 for var in vars:
                     if 'centers:' in var:
@@ -220,13 +219,13 @@ def _compressCartesian(t,bbox=[],layers=None,subr=True):
             z[1][1,0] = ymax-ymin+1
             if nk > 1: z[1][2,0] = zmax-zmin+1
 
-
         if cartesian:
             Internal.createUniqueChild(gc, 'CoordinateX', 'DataArray_t', value=[0.]*10) # important for skeleton read
             Internal.createUniqueChild(gc, 'CoordinateY', 'DataArray_t', value=[0.]*10)
             Internal.createUniqueChild(gc, 'CoordinateZ', 'DataArray_t', value=[0.]*10)
-            if not subr: Internal._rmNodesByType(z, 'ZoneSubRegion_t') # delete subregions (e.g. ID in tc)
             Internal.createChild(z, 'CartesianData', 'DataArray_t', value=[x0,y0,z0,hi,hj,hk])
+            if not subr: Internal._rmNodesByType(z, 'ZoneSubRegion_t') # delete subregions (e.g. ID, IBCD in tc)
+
     return None
     
 # uncompress Cartesian
@@ -258,7 +257,7 @@ def _uncompressCartesian(t):
         gct = Internal.getNodeFromName1(tmp, Internal.__GridCoordinates__)
         if gc is None: Internal._addChild(z, gct)
         else: 
-            Internal._rmNodesFromName(z, Internal.__GridCoordinates__)
+            Internal._rmNodesFromName1(z, Internal.__GridCoordinates__)
             Internal._addChild(z, gct)
-        Internal._rmNodesFromName(z, 'CartesianData')
+        Internal._rmNodesFromName1(z, 'CartesianData')
     return None

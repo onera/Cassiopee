@@ -424,7 +424,7 @@ def _addExternalBCs(t, bbox, DEPTH=2, externalBCType='BCFarfield', dimPb=3):
 # to : maillage octree, si not None : on le prend comme squelette 
 #--------------------------------------------------------------------------
 def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None, tbox=None, snearsf=None, 
-                dimPb=3, vmin=15, balancing=2, symmetry=0, fileout=None, rank=0, expand=2):
+                dimPb=3, vmin=15, balancing=2, symmetry=0, fileout=None, rank=0, expand=1):
     i = 0; surfaces=[]; snearso=[] # pas d'espace sur l'octree
     bodies = Internal.getZones(tb)
     if not isinstance(snears, list): snears = len(bodies)*[snears]
@@ -495,7 +495,9 @@ def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None,
             octreeA = Generator.adaptOctree(octreeA, indic, balancing=2)
             o = C.convertArrays2ZoneNode(o[0], [octreeA])
 
-        if expand == 2:
+        if expand == 2 or expand == 3:
+            corner = 0
+            if expand == 3: corner = 1
             to = C.newPyTree(['Base',o])
             to = blankByIBCBodies(to, tb, 'centers', dimPb)
             C._initVars(o, "centers:indicator", 0.)
@@ -503,7 +505,7 @@ def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None,
             octreeA = C.getFields(Internal.__GridCoordinates__, o)[0]
             indic = C.getField("centers:indicator", o)[0]
             indic = Converter.addVars([indic,cellN])
-            indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic, 0, 1, 3)                                                                              
+            indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic, 0, corner, 3)                                                                              
             octreeA = Generator.adaptOctree(octreeA, indic, balancing=2)
             o = C.convertArrays2ZoneNode(o[0], [octreeA])
 
@@ -612,7 +614,7 @@ def addRefinementZones(o, tb, tbox, snearsf, vmin, dim):
         end = 1
         C._initVars(to,'{centers:indicator}={centers:indicator}*({centers:cellNBody}>0.)*({centers:vol}>%g)'%volmin0)
 
-        if  C.getMaxValue(to,'centers:indicator') == 1.: 
+        if  C.getMaxValue(to, 'centers:indicator') == 1.: 
             end = 0
             # Maintien du niveau de raffinement le plus fin
             o = Internal.getZones(to)[0]

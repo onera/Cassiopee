@@ -26,7 +26,8 @@ using namespace std;
   checkType = 0 : none
   checkType = 1 : check blanking of neighbouring cells
   checkType = 2 : check spacing of neighbouring cells
-  checkType = 3 : algorithme different
+  checkType = 3 : raffine si un voisin est masque et la cellule voisine masquee
+  est plus fine que la cellule courante.
 */
 //=============================================================================
 PyObject* K_GENERATOR::modifyIndicToExpandLayer(PyObject* self, PyObject* args)
@@ -203,8 +204,7 @@ PyObject* K_GENERATOR::modifyIndicToExpandLayer(PyObject* self, PyObject* args)
   if (resi == 1) 
     tpl = K_ARRAY::buildArray(*fi, varStringi, nii, nji, nki);
   else 
-    tpl = K_ARRAY::buildArray(*fi, varStringi, *cni, -1, eltTypei, 
-                              false);
+    tpl = K_ARRAY::buildArray(*fi, varStringi, *cni, -1, eltTypei, false);
   RELEASESHAREDB(resi, indicator, fi, cni);
   return tpl;
 }

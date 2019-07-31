@@ -23,26 +23,30 @@ except: pass
 # NP is the target number of processors for computation 
 # (maybe different from the number of processors the prep is run on)
 #================================================================================ 
-def prepare(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21, check=False, 
-            NP=0, format='single',
+def prepare(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
+            tbox=None, snearsf=None,            
+            vmin=21, check=False, NP=0, format='single',
             frontType=1, inv=False):
     import Converter.Mpi as Cmpi
     rank = Cmpi.rank; size = Cmpi.size
     ret = None
     # sequential prep
-    if size == 1: ret = prepare0(t_case, t_out, tc_out, snears=snears, dfar=dfar, dfarList=dfarList, vmin=vmin, 
-                                 check=check, NP=NP, format=format, frontType=frontType, inv=inv)
+    if size == 1: ret = prepare0(t_case, t_out, tc_out, snears=snears, dfar=dfar, dfarList=dfarList, 
+                                 tbox=tbox, snearsf=snearsf,
+                                 vmin=vmin, check=check, NP=NP, format=format, frontType=frontType, inv=inv)
     # parallel prep
-    else: ret = prepare1(t_case, t_out, tc_out, snears=snears, dfar=dfar, dfarList=dfarList, vmin=vmin, 
-                         check=check, NP=NP, format=format, frontType=frontType, inv=inv)
+    else: ret = prepare1(t_case, t_out, tc_out, snears=snears, dfar=dfar, dfarList=dfarList, 
+                         tbox=tbox, snearf=snearsf,
+                         vmin=vmin, check=check, NP=NP, format=format, frontType=frontType, inv=inv)
     
     return ret
 
 #================================================================================
 # IBM prepare - seq
 #================================================================================
-def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21, check=False, 
-             NP=0, format='single',
+def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
+             tbox=None, snearsf=None,
+             vmin=21, check=False, NP=0, format='single',
              frontType=1, inv=False):
     import KCore.test as test
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
@@ -61,13 +65,17 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
     # Refinement surfaces in the fluid
     #-------------------------------------------------------
     # snearsf: list of spacing required in the refinement surfaces
-    snearsf = None    
-    tbox = None
-    # refinementSurfFile: surface meshes describing refinement zones
-    #refinementSurfFile = 'refinementBody.cgns'
-    #try: tbox = C.convertFile2PyTree(refinementSurfFile)
-    #except: tbox=None # no refinement surface
-
+    if tbox is not None:
+        if isinstance(tbox, str): tbox = C.convertFile2PyTree(tbox)
+        else: tbox = tbox
+        if snearsf is None:
+            snearsf = []
+            zones = Internal.getZones(tbox)
+            for z in zones:
+                sn = Internal.getNodeFromName2(z, 'snear')
+                if sn is not None: snearsf.append(Internal.getValue(sn))
+                else: snearf.append(1.)
+    
     #--------------------------------------------------------
     # Get Reference State and model from body pyTree
     model = Internal.getNodeFromName(tb, 'GoverningEquations')
@@ -159,7 +167,9 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21,
 # balancing ; balance the entire distribution after the octree generation, useful for symetries
 # distrib : new distribution at the end of prepare1
 #================================================================================
-def prepare1(t_case, t_out, tc_out, tbox=None, snears=0.01, snearsf=None, dfar=10., dfarList=[], vmin=21, check=False, NP=0, format='single',
+def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
+             tbox=None, snearsf=None,  
+             vmin=21, check=False, NP=0, format='single',
              frontType=1, extrusion=False, smoothing=False, inv=False, balancing=False, distrib=True):
     import Generator
     import Converter
@@ -170,12 +180,12 @@ def prepare1(t_case, t_out, tc_out, tbox=None, snears=0.01, snearsf=None, dfar=1
     import Connector.OversetData as XOD
     import KCore.test as test
     from mpi4py import MPI
-    import numpy as numpy
+    import numpy
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
     else: tb = t_case
 
     rank = Cmpi.rank
-    comm = MPI.COMM_WORLD
+    comm = Cmpi.COMM_WORLD
 
     # list of dfars
     if dfarList == []:
@@ -185,11 +195,6 @@ def prepare1(t_case, t_out, tc_out, tbox=None, snears=0.01, snearsf=None, dfar=1
             n = Internal.getNodeFromName2(z, 'dfar')
             if n is not None: dfarList[c] = Internal.getValue(n)*1.
 
-    # refinementBody
-    if tbox is not None:
-        if isinstance(tbox, str): tbox = C.convertFile2PyTree(tbox)
-        else: tb = tbox
-
     # a mettre dans la classe ou en parametre de prepare1 ??? 
     to = None
 
@@ -197,7 +202,14 @@ def prepare1(t_case, t_out, tc_out, tbox=None, snears=0.01, snearsf=None, dfar=1
     if tbox is not None:
         if isinstance(tbox, str): tbox = C.convertFile2PyTree(tbox)
         else: tbox = tbox
-
+        if snearsf is None:
+            snearsf = []
+            zones = Internal.getZones(tbox)
+            for z in zones:
+                sn = Internal.getNodeFromName2(z, 'snear')
+                if sn is not None: snearsf.append(Internal.getValue(sn))
+                else: snearf.append(1.)
+    
     symmetry = 0
     fileout = None
     if check: fileout = 'octree.cgns'
@@ -234,8 +246,8 @@ def prepare1(t_case, t_out, tc_out, tbox=None, snears=0.01, snearsf=None, dfar=1
                          dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=None, rank=rank)
 
 
-    if rank==0 and check:
-        C.convertPyTree2File(o,fileout)
+    if rank==0 and check: C.convertPyTree2File(o, fileout)
+
     # build parent octree 3 levels higher
     # returns a list of 4 octants of the parent octree in 2D and 8 in 3D
     parento = TIBM.buildParentOctrees__(o, tb, snears=snears, snearFactor=4., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf,
@@ -281,16 +293,16 @@ def prepare1(t_case, t_out, tc_out, tbox=None, snears=0.01, snearsf=None, dfar=1
     coords = None; zones = None
     test.printMem(">>> extended cart grids (after rmXZones) [end]")
     
-    if extrusion==False:
+    if not extrusion:
         TIBM._addBCOverlaps(t, bbox=bb)
         TIBM._addExternalBCs(t, bbox=bb, dimPb=dimPb)
 
     dz = 0.01
     if dimPb == 2:
-        if extrusion == False:
+        if not extrusion:
             T._addkplane(t)
             T._contract(t, (0,0,0), (1,0,0), (0,1,0), dz)
-        if extrusion == True:
+        if extrusion:
             chord = 1.
             NSplit = 1
             NPas = 200
@@ -401,8 +413,9 @@ def prepare1(t_case, t_out, tc_out, tbox=None, snears=0.01, snearsf=None, dfar=1
     test.printMem(">>> Blanking [start]")
     t = TIBM.blankByIBCBodies(t, tb, 'centers', dimPb)
 
-    if inv: C._initVars(t,'{centers:cellNIBC}=1-{centers:cellN}') 
     if not inv: C._initVars(t, '{centers:cellNIBC}={centers:cellN}')
+    else: C._initVars(t,'{centers:cellNIBC}=1-{centers:cellN}') 
+    
     TIBM._signDistance(t)
 
     C._initVars(t,'{centers:cellN}={centers:cellNIBC}')
@@ -535,7 +548,7 @@ def prepare1(t_case, t_out, tc_out, tbox=None, snears=0.01, snearsf=None, dfar=1
     if frontType==2:
         test.printMem(">>> pushBackImageFront2 [start]")
 
-        # bboxDict needed for optimised AddXzones (i.e. "layers" not None)
+        # bboxDict needed for optimised AddXZones (i.e. "layers" not None)
         # Return a dict with the zones of t as keys and their specific bboxes as key values
         bboxDict = Cmpi.createBboxDict(t)
         tbbc = Cmpi.createBBoxTree(tc)
@@ -973,7 +986,7 @@ def loads(t_case, tc_in, wall_out, alpha=0., beta=0., Sref=None):
     alpha = math.radians(alpha)
     beta = math.radians(beta)
 
-    dimPb = Internal.getValue(Internal.getNodeFromName(tb,'EquationDimension'))
+    dimPb = Internal.getValue(Internal.getNodeFromName(tb, 'EquationDimension'))
 
     q = 0.5*RoInf*(MInf*math.sqrt(Gamma*PInf/RoInf))**2
 
@@ -982,8 +995,7 @@ def loads(t_case, tc_in, wall_out, alpha=0., beta=0., Sref=None):
     #====================================
     zw = TIBM.extractIBMWallFields(tc, tb=tb)
 
-    if dimPb == 2:
-        zw = T.addkplane(zw)
+    if dimPb == 2: zw = T.addkplane(zw)
 
     zw = C.convertArray2Tetra(zw)
     zw = T.reorderAll(zw, 1)
@@ -1199,12 +1211,14 @@ class IBM(Common):
         self.cartesian = True
         
     # Prepare 
-    def prepare(self, t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], vmin=21, check=False, 
-                frontType=1, inv=False, NP=None):
+    def prepare(self, t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], 
+                tbox=None, snearsf=None,
+                vmin=21, check=False, frontType=1, inv=False, NP=None):
         if NP is None: NP = Cmpi.size
         if NP == 0: print('Preparing for a sequential computation.')
         else: print('Preparing for a computation on %d processors.'%NP)
-        ret = prepare(t_case, t_out, tc_out, snears=snears, dfar=dfar, dfarList=dfarList, 
+        ret = prepare(t_case, t_out, tc_out, snears=snears, dfar=dfar, dfarList=dfarList,
+                      tbox=tbox, snearsf=snearsf,
                       vmin=vmin, check=check, NP=NP, format=self.data['format'], frontType=frontType, inv=inv)
         return ret
 
