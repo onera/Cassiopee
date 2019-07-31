@@ -40,6 +40,8 @@ PyObject* K_GENERATOR::modifyIndicToExpandLayer(PyObject* self, PyObject* args)
 #endif
   if (level < 0) {printf("Warning: expandLayer: level is set to 0.\n"); level = 0;}
 
+  printf("expanding=%d\n", checkType);
+
   // Verif octree HEXA/QUAD
   E_Int ni, nj, nk;
   K_FLD::FldArrayF* f; K_FLD::FldArrayI* cn;
@@ -184,11 +186,14 @@ PyObject* K_GENERATOR::modifyIndicToExpandLayer(PyObject* self, PyObject* args)
         for (size_t nov = 0; nov < voisins.size(); nov++)
         {
           etv = voisins[nov];
-          if (cellNp[etv] == 0.) voisinBlanked = true;
-          E_Float dhetv = dhtp[etv];
-          if (dhetv < voisinStep) voisinStep = dhetv;
+          if (cellNp[etv] == 0.) 
+          {
+            voisinBlanked = true;
+            E_Float dhetv = dhtp[etv];
+            if (dhetv < voisinStep) voisinStep = dhetv;
+          }
         }
-        if (voisinBlanked && voisinStep < dhleps) indict[et] = 1.;
+        if (voisinBlanked && voisinStep < dhet-eps) indict[et] = 1.;
       }
     }
   }

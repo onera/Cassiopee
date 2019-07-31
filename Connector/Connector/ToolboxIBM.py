@@ -307,7 +307,7 @@ def buildParentOctrees__(o, tb, snears=None, snearFactor=4., dfar=10., dfarList=
     ymino=bbo[1]; ymaxo=bbo[4]; ymeano=0.5*(ymino+ymaxo)
     zmino=bbo[2]; zmaxo=bbo[5]; zmeano=0.5*(zmino+zmaxo)
     dx = xmeano-xmino; dy = ymeano-ymino; dz = zmeano-zmino
-    eps=1.e-10
+    eps = 1.e-10
     
     OCTREEPARENTS = None
 
@@ -424,7 +424,7 @@ def _addExternalBCs(t, bbox, DEPTH=2, externalBCType='BCFarfield', dimPb=3):
 # to : maillage octree, si not None : on le prend comme squelette 
 #--------------------------------------------------------------------------
 def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None, tbox=None, snearsf=None, 
-                dimPb=3, vmin=15, balancing=2, symmetry=0, fileout=None, rank=0, expand=1):
+                dimPb=3, vmin=15, balancing=2, symmetry=0, fileout=None, rank=0, expand=2):
     i = 0; surfaces=[]; snearso=[] # pas d'espace sur l'octree
     bodies = Internal.getZones(tb)
     if not isinstance(snears, list): snears = len(bodies)*[snears]
@@ -479,8 +479,7 @@ def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None,
                 indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic,0,0, 2)
                 indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic,1,0, 2) # CB
                 indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic,2,0, 2) # CB
-                indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic,3,0, 2) # CB
-                                                                                          
+                indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic,3,0, 2) # CB                                                   
                 indic = Converter.addVars([indic,cellN])
                 indic = Converter.initVars(indic, "{indicator}={indicator}*({cellN}>0.)")
                 octreeA = Generator.adaptOctree(octreeA, indic, balancing=2)
@@ -491,7 +490,7 @@ def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None,
             indic = C.getField("centers:cellN",to)[0]
             octreeA = C.getFields(Internal.__GridCoordinates__, o)[0]
             indic = Converter.initVars(indic, 'indicator', 0.)
-            indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic,0,0,1)
+            indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic, 0,0,1)
             indic = Converter.extractVars(indic, ["indicator"])
             octreeA = Generator.adaptOctree(octreeA, indic, balancing=2)
             o = C.convertArrays2ZoneNode(o[0], [octreeA])
@@ -503,7 +502,8 @@ def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None,
             cellN = C.getField("centers:cellN", to)[0]
             octreeA = C.getFields(Internal.__GridCoordinates__, o)[0]
             indic = C.getField("centers:indicator", o)[0]
-            indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic, 0, 0, 3)                                                                              
+            indic = Converter.addVars([indic,cellN])
+            indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic, 0, 1, 3)                                                                              
             octreeA = Generator.adaptOctree(octreeA, indic, balancing=2)
             o = C.convertArrays2ZoneNode(o[0], [octreeA])
 
@@ -557,7 +557,7 @@ def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., dfarList=[], DEPTH=2, tb
                              check=check, symmetry=symmetry, externalBCType=externalBCType)
     return res
 
-def _removeBlankedGrids(t,loc='centers'):
+def _removeBlankedGrids(t, loc='centers'):
     vari = 'cellNIBC'
     varc = 'cellNChim'
     flag = 'flag'
@@ -1111,13 +1111,13 @@ def doInterp2(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=
         
         dico_dx[z[0]] = dxx
         dico_dy[z[0]] = dyy
-        if (dimPb == 2):dico_dz[z[0]] = 1
+        if dimPb == 2:dico_dz[z[0]] = 1
         else : dico_dz[z[0]] = dzz
 
-        if (dimPb == 2):dzz=max(dxx,dyy)
+        if dimPb == 2:dzz=max(dxx,dyy)
 
         dx = min(dxx,dyy,dzz)
-        if (dx > dxmax):dxmax=dx
+        if dx > dxmax:dxmax=dx
 
     niveaux_temps = {} 
 
@@ -1131,7 +1131,7 @@ def doInterp2(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=
         dyy  = abs(coordy[0,1,0]   - coordy[0,0,0])
         dzz  = abs(coordz[0,0,1]   - coordz[0,0,0])
 
-        if (dimPb == 2):dzz=max(dxx,dyy)
+        if dimPb == 2:dzz=max(dxx,dyy)
 
         
         dx = min(dxx,dyy,dzz)
@@ -1232,7 +1232,7 @@ def doInterp2(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=
                 info = dnrZones[nod][2][len(dnrZones[nod][2])-1]
                 info[2].append(['PointRange', prangebis , [], 'IndexArray_t'])
 
-                transfo=XOD.getTransfo(dnrZones[nod],zrcv)
+                transfo = XOD.getTransfo(dnrZones[nod],zrcv)
 
                 connector.indiceToCoord2(plist,prangedonor,transfo,profondeur,dirD,typ,dirR,plist.size,dim__[1]+1,dim__[2]+1,dim__[3]+1)
 
@@ -1266,6 +1266,9 @@ def doInterp2(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=
         print('Building the IBM front.')
 
         front = getIBMFront(tc, 'cellNFront', dim, frontType)
+        # Sortie du front pour debug
+        C.convertPyTree2File(front, 'front.cgns')
+
         res = getAllIBMPoints(zonesRIBC, loc='centers',tb=tb, tfront=front, frontType=frontType, \
                               cellNName='cellNIBC', depth=depth, IBCType=IBCType)
         nbZonesIBC = len(zonesRIBC)
