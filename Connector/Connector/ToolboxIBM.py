@@ -132,7 +132,7 @@ def adaptIBMMesh(t, tb, vmin, sensor, factor=1.2, DEPTH=2, sizeMax=4000000,
     #C._initVars(t2,"centers:TurbulentSANuTilde=%g"%(Internal.getValue(Internal.getNodeFromName(refstate,'TurbulentSANuTildeDensity'))/Internal.getValue(Internal.getNodeFromName(refstate,'Density'))))
 
     # interpolate the solution on the new mesh
-    P._extractMesh(t,t2,3, mode='accurate')
+    P._extractMesh(t, t2, 3, mode='accurate')
     return t2
 
 def mergeByParent__(zones, parent, sizeMax):
@@ -424,7 +424,7 @@ def _addExternalBCs(t, bbox, DEPTH=2, externalBCType='BCFarfield', dimPb=3):
 # to : maillage octree, si not None : on le prend comme squelette 
 #--------------------------------------------------------------------------
 def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None, tbox=None, snearsf=None, 
-                dimPb=3, vmin=15, balancing=2, symmetry=0, fileout=None, rank=0, expand=1):
+                dimPb=3, vmin=15, balancing=2, symmetry=0, fileout=None, rank=0, expand=2):
     i = 0; surfaces=[]; snearso=[] # pas d'espace sur l'octree
     bodies = Internal.getZones(tb)
     if not isinstance(snears, list): snears = len(bodies)*[snears]
@@ -466,8 +466,15 @@ def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None,
             elif symmetry== 3: o = P.selectCells(o,'{CoordinateZ}>%g'%(zmoy-TOLDIST))
             elif symmetry==-3: o = P.selectCells(o,'{CoordinateZ}<%g'%(zmoy+TOLDIST))  
 
-        vmint = 31
+        # Adaptation avant expandLayer (pour corriger eventuellement les sauts de maille)
+        if tbox is not None and snearsf is not None:
+            o = addRefinementZones(o, tb, tbox, snearsf, vmin, dimPb)
+            C._rmVars(o, ['centers:indicator', 'centers:cellN', 'centers:vol', 'centers:cellNBody'])
+
+        #if expand > 0: C.convertPyTree2File(o, 'startOctree.cgns')
+
         if expand == 1:
+            vmint = 31
             if vmin < vmint:
                 if rank==0: print('buildOctree: octree finest level expanded (expandLayer activated).')
                 to = C.newPyTree(['Base',o])
@@ -495,9 +502,8 @@ def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None,
             octreeA = Generator.adaptOctree(octreeA, indic, balancing=2)
             o = C.convertArrays2ZoneNode(o[0], [octreeA])
 
-        if expand == 2 or expand == 3:
+        if expand == 2:
             corner = 0
-            if expand == 3: corner = 1
             to = C.newPyTree(['Base',o])
             to = blankByIBCBodies(to, tb, 'centers', dimPb)
             C._initVars(o, "centers:indicator", 0.)
@@ -509,14 +515,11 @@ def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None,
             octreeA = Generator.adaptOctree(octreeA, indic, balancing=2)
             o = C.convertArrays2ZoneNode(o[0], [octreeA])
 
+        #if expand > 0: C.convertPyTree2File(o, 'endOctree.cgns')
         G._getVolumeMap(o); volmin = C.getMinValue(o, 'centers:vol')
         C._rmVars(o, 'centers:vol')
-
         dxmin = (volmin)**(1./dimPb)
         if rank == 0: print('Minimum spacing of Cartesian mesh= %f (targeted %f)'%(dxmin/(vmin-1),dxmin0/(vmin-1)))
-
-        if tbox is not None and snearsf is not None:
-            o = addRefinementZones(o, tb, tbox, snearsf, vmin, dimPb)
 
         nelts = Internal.getZoneDim(o)[2] 
         if nelts > 20000: 

@@ -144,40 +144,53 @@ PyObject* K_GENERATOR::modifyIndicToExpandLayer(PyObject* self, PyObject* args)
   // detection des elements de niveau l 
   E_Float eps = 1.e-10; E_Float dhl = pow(2.,level) * dhmin;
   
-  E_Int etv;
+  E_Int etv; E_Float dhet; E_Float dhetv;
   E_Float dhleps = dhl + eps;
-  for (E_Int et = 0; et < nelts; et++)
+
+  if (checkType == 1) // check blanking only
   {
-    E_Float dhet = dhtp[et];
-    if (checkType == 1 && cellNp[et] == 0.)// check blanking only
+    for (E_Int et = 0; et < nelts; et++)
     {
-      vector<E_Int>& voisins = cEEN[et];
-      for (size_t nov = 0; nov < voisins.size(); nov++)
+      dhet = dhtp[et];
+      if (cellNp[et] == 0.)
       {
-        etv = voisins[nov];
-        E_Float dhetv = dhtp[etv];
-        if (cellNp[etv]==1.)
+        vector<E_Int>& voisins = cEEN[et];
+        for (size_t nov = 0; nov < voisins.size(); nov++)
         {
-          if (dhet > dhetv+eps) indict[et]=1.;           
-          else if (dhetv > dhet+eps) indict[etv]=1.;  
+          etv = voisins[nov];
+          dhetv = dhtp[etv];
+          if (cellNp[etv]==1.)
+          {
+            if (dhet > dhetv+eps) indict[et]=1.;           
+            else if (dhetv > dhet+eps) indict[etv]=1.;  
+          }
         }
       }
     }
-    else if (checkType == 2) //compare sizes of neighbouring cells
+  }
+  else if (checkType == 2)
+  {
+    for (E_Int et = 0; et < nelts; et++)
     {
+      dhet = dhtp[et];
       if (K_FUNC::fEqualZero(dhet-dhl,eps) == true) // niveau l?
       {
         vector<E_Int>& voisins = cEEN[et];
         for (size_t nov = 0; nov < voisins.size(); nov++)
         {
           etv = voisins[nov];
-          E_Float dhetv = dhtp[etv];
+          dhetv = dhtp[etv];
           if (dhetv > dhleps) indict[etv] = 1.; // raffine le voisin si niveau du voisin plus grand
         }
       }
     }
-    else if (checkType == 3)
+  }
+  else if (checkType == 3) // 
+  {
+    // premiere passe pour les points non masques
+    for (E_Int et = 0; et < nelts; et++)
     {
+      dhet = dhtp[et];
       if (cellNp[et] > 0.1) // pas masque
       {
         // voisine masquee?
@@ -190,11 +203,35 @@ PyObject* K_GENERATOR::modifyIndicToExpandLayer(PyObject* self, PyObject* args)
           if (cellNp[etv] == 0.) 
           {
             voisinBlanked = true;
-            E_Float dhetv = dhtp[etv];
+            dhetv = dhtp[etv];
             if (dhetv < voisinStep) voisinStep = dhetv;
           }
         }
         if (voisinBlanked && voisinStep < dhet-eps) indict[et] = 1.;
+      }
+    }
+    // deuxieme passe pour les points masques
+    for (E_Int et = 0; et < nelts; et++)
+    {
+      dhet = dhtp[et];
+      if (cellNp[et] == 0.) // masque
+      {      
+        // voisine non masquee?
+        E_Boolean voisinNonBlanked = false;
+        E_Float voisinStep = K_CONST::E_MAX_FLOAT;
+        vector<E_Int>& voisins = cEEN[et];
+        for (size_t nov = 0; nov < voisins.size(); nov++)
+        {
+          etv = voisins[nov];
+          if (cellNp[etv] > 0.1) 
+          {
+            dhetv = dhtp[etv];
+            if (indict[etv] == 1) dhetv = dhetv*0.5;
+            voisinNonBlanked = true;
+            if (dhetv < voisinStep) voisinStep = dhetv;
+          }
+        }      
+        if (voisinNonBlanked && voisinStep < dhet-eps) indict[et] = 1.;
       }
     }
   }

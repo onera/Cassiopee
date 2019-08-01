@@ -168,7 +168,7 @@ def writeSetupFile():
     node = Internal.getNodeFromName(state, 'VelocityZ')
     if node is not None: WInf = Internal.getValue(node)
     else: WInf = 0.
-    if (UInf != 0.):
+    if UInf != 0.:
         aly = math.atan(WInf/UInf)
         alz = math.atan( math.cos(aly)*VInf/UInf )
     else:
@@ -206,6 +206,40 @@ def generate():
     #generateT()
     #generateTD()
     return
+
+#==============================================================================
+# A partir de CTK.t considere comme les bodies
+def prepare():
+    if CTK.t == []: return
+
+    import Apps.Fast.IBM as App
+    myApp = App.IBM(format='single')
+    myApp.prepare(CTK.t, t_out='t.cgns', tc_out='tc.cgns', vmin=21, check=False)
+
+#==============================================================================
+def compute():
+    import Apps.Fast.IBM as App
+    import Converter.Internal as Internal
+    import Converter.PyTree as C
+
+    myApp = App.IBM(format='single')
+    myApp.set(numb={
+    "temporal_scheme": VARS[0].get(),
+    "ss_iteration":3,
+    "omp_mode":1,
+    "modulo_verif": 200
+    })
+    myApp.set(numz={
+    "time_step": float(VARS[5].get()),
+    "scheme":VARS[4].get(),
+    #"time_step_nature":"local",
+    "time_step_nature":"global",
+    #"cfl":4.
+    })
+
+    # Compute
+    myApp.compute('t.cgns', 'tc.cgns', t_out='restart.cgns', tc_out='tc_restart.cgns', nit=6000)
+
 
 #==============================================================================
 # Create app widgets
@@ -328,9 +362,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
 
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)
