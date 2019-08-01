@@ -76,7 +76,7 @@ nIBC    = coordX_PW.shape[0]
 nbPts   = int(distance/snear) #Le nombre de points de chaque ligne est calcule a partir du plus petit snear
 
 for i in range(0,nIBC,modulo):
-    print '****', i, '/',nIBC
+    print('****', i, '/',nIBC)
 
     # Les normes sont recalculees a partir des points wall et images
     nx = coordX_PI[i]-coordX_PW[i]
