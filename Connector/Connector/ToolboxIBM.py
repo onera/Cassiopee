@@ -594,7 +594,7 @@ def addRefinementZones(o, tb, tbox, snearsf, vmin, dim):
     BM = numpy.ones((1,1),numpy.int32)
     end = 0
     G._getVolumeMap(to)
-    volmin0 = C.getMinValue(to,'centers:vol')
+    volmin0 = C.getMinValue(to, 'centers:vol')
     # volume minimum au dela duquel on ne peut pas raffiner
     volmin0 = 1.*volmin0
     while end == 0:
@@ -607,7 +607,8 @@ def addRefinementZones(o, tb, tbox, snearsf, vmin, dim):
         for box in boxes:
             volmin2 = 1.09*(snearsf[nob]*(vmin-1))**(dim)
             C._initVars(to,'centers:cellN',1.)
-            to = X.blankCells(to, [box], BM, blankingType='center_in', dim=dim, delta=1.e-10, tol=1.e-8)
+            #to = X.blankCells(to, [box], BM, blankingType='center_in', dim=dim, delta=1.e-10, tol=1.e-8)
+            to = blankByIBCBodies(to, tbox, 'centers', dim)
             C._initVars(to,'{centers:indicator}=({centers:indicator}>0.)+({centers:indicator}<1.)*logical_and({centers:cellN}<0.001, {centers:vol}>%f)'%volmin2)
             nob += 1
 
@@ -621,7 +622,7 @@ def addRefinementZones(o, tb, tbox, snearsf, vmin, dim):
             o = G.adaptOctree(o, 'centers:indicator', balancing=2)
             to[2][1][2] = [o]
             G._getVolumeMap(to)
-            volminloc = C.getMinValue(to,'centers:vol')
+            volminloc = C.getMinValue(to, 'centers:vol')
     return Internal.getNodeFromType2(to, 'Zone_t')
 
 # =============================================================================
