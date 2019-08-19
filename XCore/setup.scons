@@ -27,8 +27,8 @@ installPath = Dist.getInstallPath(prefix)
 from KCore.config import *
 
 # Test if libmpi exists ======================================================
-(mpi, mpiIncDir, mpiLibDir) = Dist.checkMpi(additionalLibPaths,
-                                            additionalIncludePaths)
+(mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi(additionalLibPaths,
+                                                     additionalIncludePaths)
 (mpi4py, mpi4pyIncDir, mpi4pyLibDir) = Dist.checkMpi4py(additionalLibPaths,
                                                         additionalIncludePaths)
 
@@ -43,9 +43,7 @@ if mpi and mpi4py:
     includeDirs.append(mpiIncDir)
     includeDirs.append(mpi4pyIncDir)
     ADDITIONALCPPFLAGS = ['-D_MPI']
-if mpi:
-    if Dist.getSystem()[0] == 'mingw': libraries.append('msmpi')
-    else: libraries.append('mpi')
+if mpi: libraries += mpiLibs
 
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs

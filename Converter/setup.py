@@ -32,8 +32,8 @@ from KCore.config import *
                                             additionalIncludePaths)
 
 # Test if libmpi exists ======================================================
-(mpi, mpiIncDir, mpiLibDir) = Dist.checkMpi(additionalLibPaths,
-                                            additionalIncludePaths)
+(mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi(additionalLibPaths,
+                                                     additionalIncludePaths)
 (mpi4py, mpi4pyIncDir, mpi4pyLibDir) = Dist.checkMpi4py(additionalLibPaths,
                                                         additionalIncludePaths)
 
@@ -65,7 +65,7 @@ if mpi4py:
     includeDirs.append(mpi4pyIncDir)
 if hdf: libraries.append('hdf5')
 if png: libraries.append('png')
-if mpi: libraries.append('mpi')
+if mpi: libraries += mpiLibs
 (ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)

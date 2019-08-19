@@ -105,7 +105,7 @@ def checkAll(summary=True):
     (ok, mpegIncDir, mpegLibDir) = checkMpeg(additionalLibPaths, additionalIncludePaths)
     if ok: out += ['mpeg: OK (%s, %s).'%(mpegIncDir, mpegLibDir)]
     else: out += ['mpeg: missing (%s, %s).'%(mpegIncDir, mpegLibDir)]
-    (ok, mpiIncDir, mpiLibDir) = checkMpi(additionalLibPaths, additionalIncludePaths)
+    (ok, mpiIncDir, mpiLibDir, mpiLibs) = checkMpi(additionalLibPaths, additionalIncludePaths)
     if ok: out += ['mpi: OK (%s, %s).'%(mpiIncDir, mpiLibDir)]
     else: out += ['mpi: missing (%s %s).'%(mpiIncDir, mpiLibDir)]
     (ok, mpi4pyIncDir, mpi4pyLibDir) = checkMpi4py(additionalLibPaths, additionalIncludePaths)
@@ -652,9 +652,9 @@ def sortFileListByUse(files):
         # tri
         files = sorted(files, key=lambda x: nbs[x])
     if lf > 0: out += files
-    #print 'MODULES'
+    #print('MODULES')
     #for f in out:
-    #    if len(defmods[f])>0: print f, defmods[f], nbs[f], '->', mods[f]
+    #    if len(defmods[f])>0: print(f, defmods[f], nbs[f], '->', mods[f])
     return out
 
 #==============================================================================
@@ -1003,12 +1003,12 @@ def checkElsa():
     a2 = os.access(kvar+"/Kernel/lib/"+pvar+'/elsA.x', os.F_OK)
     b1 = os.access(kvar+"/Dist/include", os.F_OK)
     b2 = os.access(kvar+"/Dist/bin/"+pvar+'/elsA.x', os.F_OK)
-    if (a1 and a2):
+    if a1 and a2:
         elsA = True
         elsAIncDir = kvar + "/Kernel/include"
         elsALibDir = kvar + "/Kernel/lib/" + pvar
 
-    elif (b1 and b2):
+    elif b1 and b2:
         elsA = True
         elsAIncDir = kvar + "/Dist/include"
         elsALibDir = kvar + "/Dist/bin/" + pvar
@@ -1226,27 +1226,36 @@ def checkHdf(additionalLibPaths=[], additionalIncludePaths=[]):
 #=============================================================================
 # Check for Mpi
 # additionalPaths: chemins d'installation non standards : ['/home/toto',...]
-# Retourne: (True/False, chemin des includes, chemin de la librairie)
+# Retourne: (True/False, chemin des includes, chemin de la librairie, nom des libs)
 #=============================================================================
 def checkMpi(additionalLibPaths=[], additionalIncludePaths=[]):
+    libnames = []
     l = checkLibFile__('libmpi.so', additionalLibPaths)
-    if l is None:
+    if l is not None: libnames.append('mpi')
+    if l is None: 
         l = checkLibFile__('libmpi.a', additionalLibPaths)
-    if l is None:
+        if l is not None: libnames.append('mpi')
+    if l is None: 
         l = checkLibFile__('msmpi.lib', additionalLibPaths)
+        if l is not None: libnames.append('msmpi')
+    # pour open mpi
+    o = checkLibFile__('libmpi_cxx.so', additionalLibPaths)
+    if o is not None: libnames.append('mpi_cxx')
+
     i = checkIncFile__('mpi.h', additionalIncludePaths)
+
     if i is not None and l is not None:
         print('Info: Mpi detected at %s.'%l)
-        return (True, i, l)
+        return (True, i, l, libnames)
     elif l is None and i is not None:
         print('Info: libmpi/msmpi was not found on your system. No Mpi support.')
-        return (False, i, l)
+        return (False, i, l, libnames)
     elif l is not None and i is None:
         print('Info: mpi.h was not found on your system. No Mpi support.')
-        return (False, i, l)
+        return (False, i, l, libnames)
     else:
         print('Info: libmpi/msmpi or mpi.h was not found on your system. No Mpi support.')
-        return (False, i, l)
+        return (False, i, l, libnames)
 
 #=============================================================================
 # Check for Mpi4py
@@ -1640,8 +1649,8 @@ def writeBuildInfo():
      else: dict['hdf'] = "None"
 
      # Check mpi
-     (mpi, mpiIncDir, mpiLib) = checkMpi(config.additionalLibPaths,
-                                         config.additionalIncludePaths)
+     (mpi, mpiIncDir, mpiLib, mpiLibs) = checkMpi(config.additionalLibPaths,
+                                                  config.additionalIncludePaths)
      if mpi: dict['mpi'] = mpiLib
      else: dict['mpi'] = "None"
 

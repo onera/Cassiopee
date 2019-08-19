@@ -1,6 +1,6 @@
 import KCore.Dist as Dist
 from KCore.config import *
-mpi, mpiIndDic, mpiLibDir = Dist.checkMpi(additionalLibPaths, additionalIncludePaths)
+mpi, mpiIndDic, mpiLibDir, mpiLibs = Dist.checkMpi(additionalLibPaths, additionalIncludePaths)
 #==============================================================================
 # Fichiers C++
 #==============================================================================
@@ -57,7 +57,7 @@ cpp_srcs = ['Connector/KInterp/BlkInterp.cpp',
             "Connector/indiceToCoord2.cpp",
             "Connector/correctCoeffList.cpp"
              ]
-if mpi is True:
+if mpi:
     cpp_srcs  += [
             "Connector/CMP/src/recv_buffer.cpp", 
             "Connector/CMP/src/send_buffer.cpp"
