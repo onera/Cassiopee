@@ -60,7 +60,6 @@ opt1 += ['-DSCOTCH_PTSCOTCH']
 opt2 = ['-IXCore/paradigma','-IXCore/paradigma/mpi_wrapper','-IXCore/paradigma/mesh','-IXCore/paradigma/util','-IXCore/paradigma/io','-IXCore/paradigma/ppart','-IXCore/paradigma/struct','-IXCore/paradigma/pario','-IXCore/paradigma/ext_wrapper']
 opt2 += ['-std=c99']
 #opt2 +=['-DPDM_HAVE_PTSCOTCH','-DPDM_ENABLE_ANISO_AGGLO=0']
-if Dist.getSystem()[0] == 'mingw': opt2 += ['-D__int64=long']#, '-Dint32_t=int']
 
 ADDITIONALCPPFLAGS += opt1
 ADDITIONALCFLAGS = ADDITIONALCPPFLAGS+opt2

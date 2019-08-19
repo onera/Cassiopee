@@ -22,9 +22,6 @@ Dist.writeSetupCfg()
 
 from KCore.config import *
 
-# Test if libmpi exists ======================================================
-(mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi(additionalLibPaths, additionalIncludePaths)
-
 # Compilation des fortrans ===================================================
 prod = os.getenv("ELSAPROD")
 if prod is None: prod = 'xx'
@@ -38,11 +35,6 @@ libraryDirs += paths; libraries += libs
 libraryDirs += paths; libraries += libs
 includeDirs = [numpyIncDir, kcoreIncDir]
 ADDITIONALCPPFLAGS=[]
-if mpi:
-    libraryDirs.append(mpiLibDir)
-    includeDirs.append(mpiIncDir)
-    ADDITIONALCPPFLAGS = ['-D_MPI']
-    libraries += mpiLibs
 
 # setup =======================================================================
 listExtensions = []

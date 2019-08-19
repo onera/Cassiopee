@@ -861,7 +861,7 @@ def checkLdLibraryPath():
               print("Warning: to use the module, please add: %s to your LD_LIBRARY_PATH (unix) or PATH (windows)."%libPath)
 
 #=============================================================================
-# Check for KCore
+# Check for KCore (Cassiopee core)
 #=============================================================================
 def checkKCore():
     try:
@@ -874,6 +874,22 @@ def checkKCore():
 
     except ImportError:
         raise SystemError("Error: kcore library is required for the compilation of this module.")
+
+#=============================================================================
+# Check for XCore (Parallel core)
+#=============================================================================
+def checkXCore():
+    try:
+        import XCore
+        import KCore.installPath
+        xcoreIncDir = KCore.installPath.includePath
+        xcoreIncDir = os.path.dirname(xcoreIncDir)
+        xcoreIncDir = os.path.join(xcoreIncDir, 'XCore/XCore')
+        xcoreLibDir = KCore.installPath.libPath
+        return (XCore.__version__, xcoreIncDir, xcoreLibDir)
+
+    except ImportError:
+        raise SystemError("Error: xcore library is required for the compilation of this module.")
 
 #=============================================================================
 # Check for Generator

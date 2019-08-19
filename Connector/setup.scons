@@ -22,9 +22,6 @@ installPath = Dist.getInstallPath(prefix)
 # Test if numpy exists =======================================================
 (numpyVersion, numpyIncDir, numpyLibDir) = Dist.checkNumpy()
 
-# Test if libmpi exists ======================================================
-(mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi(additionalLibPaths, additionalIncludePaths)
-
 # Test if kcore exists =======================================================
 (kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
 
@@ -36,13 +33,8 @@ libraries = ["kcore"]
 libraryDirs += paths; libraries += libs
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
-if mpi:
-    libraryDirs.append(mpiLibDir)
-    includeDirs.append(mpiIncDir)
-    libraries += mpiLibs
-    ADDITIONALCPPFLAGS = ['-D_MPI']
-else:	       
-    ADDITIONALCPPFLAGS = []
+
+ADDITIONALCPPFLAGS = []
 
 # Env =========================================================================
 import srcs

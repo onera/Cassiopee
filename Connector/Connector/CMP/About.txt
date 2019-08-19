@@ -1,2 +1,0 @@
-CMP : Champion's Message Passing
-

@@ -1,4 +1,4 @@
-FREEMODULES='KCore Converter Geom Transform Generator Post Initiator Connector Distributor2 Dist2Walls RigidMotion Compressor Modeler Intersector Apps CPlot'
+FREEMODULES='KCore XCore Converter Geom Transform Generator Post Initiator Connector Distributor2 Dist2Walls RigidMotion Compressor Modeler Intersector Apps CPlot'
 export FREEMODULES
 FULLMODULES=$FREEMODULES''
 export FULLMODULES

@@ -23,16 +23,6 @@
 using namespace std;
 using namespace K_FLD;
 
-#undef TimeShow
-
-#ifdef TimeShow
-#ifdef _MPI
-#include <mpi.h>
-#endif
-E_Float time_in_D;
-E_Float time_out_D;
-#endif
-
 //=============================================================================
 /* Transfert de champs sous forme de numpy */
 //=============================================================================
@@ -323,38 +313,12 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
     E_Int     vartype, type_transfert, no_transfert, It_target;
     E_Int     nstep, nitmax, rk, exploc, num_passage;
     E_Float   gamma, cv, muS, Cs, Ts, Pr;
-#ifdef TimeShow    
-    PyObject  *timecount;
-
-    if ( !PYPARSETUPLE( args, "OOOOOlllllllllO", "OOOOOiiiiiiiiiO", "OOOOOlllllllllO", "OOOOOiiiiiiiiiO", &zonesR,
-                        &zonesD, &pyVariables, &pyParam_int, &pyParam_real, &It_target, &vartype, &type_transfert,
-                        &no_transfert, &nstep, &nitmax, &rk, &exploc, &num_passage, &timecount ) ) {
-        return NULL;
-    }
-#else
 
     if ( !PYPARSETUPLE( args, "OOOOOlllllllll", "OOOOOiiiiiiiii", "OOOOOlllllllll", "OOOOOiiiiiiiii", &zonesR,
                         &zonesD, &pyVariables, &pyParam_int, &pyParam_real, &It_target, &vartype, &type_transfert,
                         &no_transfert, &nstep, &nitmax, &rk, &exploc, &num_passage  ) ) {
         return NULL;
     }
-#endif    
-
-#ifdef TimeShow
- E_Int rank=0;
- FldArrayF* timecnt;
- K_NUMPY::getFromNumpyArray(timecount, timecnt, true);
- E_Float* ipt_timecount = NULL;
- ipt_timecount = timecnt->begin();
-
-#ifdef _MPI
-  MPI_Comm_rank (MPI_COMM_WORLD, &rank);  
-#endif
- if (rank == 0)
- {
-   time_in_D = omp_get_wtime();
- }
-#endif
 
     E_Int varType  = E_Int( vartype );
     E_Int it_target= E_Int(It_target);
@@ -853,15 +817,6 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
 #pragma omp barrier
         }  // pass
     }      // omp
-    
-#ifdef TimeShow
-    if ( rank == 0 )
-    {
-      time_out_D = omp_get_wtime();
-      ipt_timecount[1]  = ipt_timecount[1] + time_out_D - time_in_D;
-      time_in_D = omp_get_wtime();
-    }
-#endif    
 
     PyObject* infos = PyList_New( 0 );
 
@@ -923,7 +878,6 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
     
     //cout << "taille liste= "<< size_list << endl;
  
-    
     delete[] ipt_param_intD; delete[] ipt_param_realD;
     delete[] list_tpl;
     delete[] frp; 
@@ -934,15 +888,6 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
     RELEASESHAREDZ( hook, (char*)NULL, (char*)NULL );
     RELEASESHAREDN( pyParam_int, param_int );
     RELEASESHAREDN( pyParam_real, param_real );
-
-#ifdef TimeShow
-
-    if ( rank == 0 )
-    {
-      time_out_D = omp_get_wtime();
-      ipt_timecount[0]    =  ipt_timecount[0] + time_out_D - time_in_D ;
-    }
-#endif
 
     return infos;
       

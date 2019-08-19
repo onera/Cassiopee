@@ -23,17 +23,6 @@
 using namespace std;
 using namespace K_FLD;
 
-#undef TimeShowsetinterp
-
-#ifdef TimeShowsetinterp
-#ifdef _MPI
-#include <mpi.h>
-#endif
-E_Float time_in_0;
-E_Float time_out_0;
-E_Int rank_intp;
-#endif
-
 //=============================================================================
 /* Effectue les transferts par interpolation */
 //=============================================================================
@@ -792,53 +781,14 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
   E_Int rk, exploc, num_passage;
   E_Float gamma, cv, muS, Cs, Ts, Pr;
 
-#ifdef TimeShowsetinterp  
-PyObject *timecount;
-      if (!PYPARSETUPLE(args,
-                        "OOOOOlllllllllO", "OOOOOiiiiiiiiiO",
-                        "OOOOOlllllllllO", "OOOOOiiiiiiiiiO",
-                        &zonesR, &zonesD, &pyVariables, &pyParam_int,  &pyParam_real, &It_target, &vartype,
-                        &type_transfert, &no_transfert, &nstep, &nitmax, &rk, &exploc, &num_passage, &timecount))
-      {
-          return NULL;
-      }
-
-#else
-      if (!PYPARSETUPLE(args,
-                        "OOOOOlllllllll", "OOOOOiiiiiiiii",
-                        "OOOOOlllllllll", "OOOOOiiiiiiiii",
-                        &zonesR, &zonesD, &pyVariables, &pyParam_int,  &pyParam_real, &It_target, &vartype,
-                        &type_transfert, &no_transfert, &nstep, &nitmax, &rk, &exploc, &num_passage))
-      {
-          return NULL;
-      }
-#endif
-
-  
-  //E_Int init=0;
-
-#ifdef TimeShowsetinterp
-  FldArrayF* timecnt;
-  E_Float* ipt_timecount = NULL;
-  K_NUMPY::getFromNumpyArray(timecount, timecnt, true);
-  ipt_timecount = timecnt->begin();
-
-#ifdef _MPI
-  MPI_Initialized( &init );
-  if(init)
+  if (!PYPARSETUPLE(args,
+                    "OOOOOlllllllll", "OOOOOiiiiiiiii",
+                    "OOOOOlllllllll", "OOOOOiiiiiiiii",
+                    &zonesR, &zonesD, &pyVariables, &pyParam_int,  &pyParam_real, &It_target, &vartype,
+                    &type_transfert, &no_transfert, &nstep, &nitmax, &rk, &exploc, &num_passage))
   {
-    MPI_Comm_rank (MPI_COMM_WORLD, &rank_intp);  
+    return NULL;
   }
-#endif
-#endif
-
-
-#ifdef TimeShowsetinterp
- if ( rank_intp == 0)
- {
-   time_in_0 = omp_get_wtime();
- }
-#endif
 
   E_Int it_target= E_Int(It_target);
 
@@ -1285,14 +1235,6 @@ PyObject *timecount;
   RELEASESHAREDN(pyParam_real   , param_real   );
 
   Py_INCREF(Py_None);
-
-#ifdef TimeShowsetinterp  
-if ( rank_intp == 0)
-    {
-      time_out_0 = omp_get_wtime();
-      ipt_timecount[2]  =  ipt_timecount[2] + time_out_0 - time_in_0;
-    }
-#endif
 
   return Py_None;
 }
