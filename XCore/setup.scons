@@ -81,8 +81,9 @@ env = Environment(tools=tools, CC=cc, CXX=cxx, AR=AR, CPPFLAGS=[],
             
 import srcs
 import srcs_scotch
+import srcs_paradigma
 myMod = env.StaticLibrary('xcore', srcs.cpp_srcs)
-myMod2 = env.StaticLibrary('paradigma', srcs.cpp_srcs2)
+myMod2 = env.StaticLibrary('paradigma', srcs_paradigma.cpp_srcs)
 myMod3 = env.StaticLibrary('scotch', srcs_scotch.cpp_srcs1)
 myMod4 = env.StaticLibrary('ptscotch', srcs_scotch.cpp_srcs2)
 
