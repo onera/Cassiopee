@@ -8,6 +8,7 @@ import Transform.PyTree as T
 import CPlot.PyTree as CPlot
 from operator import itemgetter
 import math
+import time
 
 class Animator2D:
     def __init__(self):
@@ -15,6 +16,8 @@ class Animator2D:
         self.images = {}
         self.nimages = 0
         self.line = []
+        self.firstFit = False
+        self.createKeyState()
 
     # tri t suivant zpos
     # normalement, cette fonction ne devrait pas etre appelee
@@ -46,7 +49,7 @@ class Animator2D:
     # Return [0.,2] from key
     def getShaderNo(self, key):
         n = self.images[key][3]
-        sp = (n+1)/(self.nimages*0.5)
+        sp = n*1.9/max(self.nimages-1,1)+0.1
         sp = max(sp, 0.1)
         sp = min(sp, 2.)
         return sp
@@ -61,7 +64,7 @@ class Animator2D:
         zones = Internal.getZones(self.t)
         for z in zones:
             param = Internal.getNodeFromName(z, 'ShaderParameters')
-            print(z[0], self.getShaderNo(z[0]))
+            #print(z[0], self.getShaderNo(z[0]))
             param[1][1] = self.getShaderNo(z[0])
             
     # display all t
@@ -151,14 +154,19 @@ class Animator2D:
         zones = Internal.getZones(self.t)
         noz = self.getNozOfZPos(pos[2], zones)
         CPlot.add(self.t, 1, noz, a)
+        if not self.firstFit: self.fitView()
         if render: CPlot.render()
 
     # draw multiple time the same image in one key
     def drawMultipleImage(self, key, imageKey=None, pos=[(0,0,0)], scale=1., render=True):
         if imageKey is None: imageKey = key
-        a = D.polyline(pos)
-        a = C.convertArray2Hexa(a)
+        #a = D.polyline(pos)
+        #a = C.convertArray2Hexa(a)
         #a = C.convertArray2Node(a)
+        a = []
+        for i in pos: a.append(D.point(i))
+        a =  T.join(a)
+          
         CPlot._addRender2Zone(a, material='Sphere', shaderParameters=[30.*scale,self.getShaderNo(imageKey)])
         a[0] = key
         C._initVars(a, 'TBB__', 0.)
@@ -167,6 +175,7 @@ class Animator2D:
         zones = Internal.getZones(self.t)
         noz = self.getNozOfZPos(pos[0][2], zones)
         CPlot.add(self.t, 1, noz, a)
+        if not self.firstFit: self.fitView()
         if render: CPlot.render()        
 
     # draw a particle system from a point
@@ -194,6 +203,7 @@ class Animator2D:
         zones = Internal.getZones(self.t)
         noz = self.getNozOfZPos(pos[2], zones)
         CPlot.add(self.t, 1, noz, a)
+        if not self.firstFit: self.fitView()
         if render: CPlot.render()        
 
     # draw a text
@@ -212,6 +222,7 @@ class Animator2D:
         CPlot._addRender2Zone(a, color=color)
         Internal._createChild(a, 'zpos', 'DataArray_t', value=pos[2])
         CPlot.add(self.t, 1, -1, a)
+        if not self.firstFit: self.fitView()
         if render: CPlot.render()
 
     # draw a selector
@@ -229,12 +240,13 @@ class Animator2D:
         CPlot._addRender2Zone(a, color=color)
         Internal._createChild(a, 'zpos', 'DataArray_t', value=pos[2])
         CPlot.add(self.t, 1, -1, a)
+        if not self.firstFit: self.fitView()
         if render: CPlot.render()
 
     # erase a key
     def erase(self, key, render=True):
         # Replace par un point hors cadre
-        a = D.point((0,0,0))
+        a = D.point((-100,-100,0))
         zones = Internal.getZones(self.t)
         noz = self.getNozOfKey(key, zones)
         CPlot.replace(self.t, 1, noz, a)
@@ -298,3 +310,44 @@ class Animator2D:
         self.line += [im[0],im[1],im[2]]
         self.nimages += 1
         CPlot.add(self.t, 1, -1, b)  
+
+    # forcefitView
+    # A appeler eventuellement si openDisplay est appele sans aucune image
+    # et si certains bitmaps ne s'affichent pas
+    def fitView(self, pos=(0,0), render=True):
+        CPlot.fitView()
+        CPlot.setState(posCam=(pos[0],pos[1],1),posEye=(pos[0],pos[1],0),dirCam=(0,1,0))
+        self.firstFit = True
+        if render: CPlot.render()
+
+    # Equivalent de time sleep
+    def sleep(self, seconds):
+        time.sleep(seconds)
+
+    # - create keyState -
+    def createKeyState(self):
+        self.keyState = {'up':0, 'down':0, 'left':0, 'right':0, 'space':0, 'escape':0}
+
+    # - getkeys -
+    # Modifie le key state en fonction des touches pressees ou relachees
+    def getKeys(self):
+        state = self.keyState
+        key = CPlot.getKeyboard()
+        if len(key) == 0: return
+        CPlot.resetKeyboard()
+        for k in range(len(key)):
+            try: v = ord(key[k])
+            except: v = key
+            if v == 1: state['up']=1
+            elif v == 5: state['up']=0
+            elif v == 2: state['down']=1
+            elif v == 6: state['down']=0
+            elif v == 3: state['left']=1
+            elif v == 7: state['left']=0
+            elif v == 4: state['right']=1
+            elif v == 8: state['right']=0
+            elif v == 32: state['space']=1
+            elif v == 27: state['escape']=1
+
+
+

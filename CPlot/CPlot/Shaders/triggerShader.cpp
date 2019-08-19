@@ -198,8 +198,8 @@ void Data::triggerShader(Zone& z, int material, float scale, float* color)
       }
       else if (z.shaderParam2 >= 0.1) // texture billboards
       {
-        int type = (int)( (z.shaderParam2)*(_nBillBoards*0.5) );
-        int t = type-1;
+        int type = floor( (z.shaderParam2-0.1)*(_nBillBoards-1)/1.9 +0.5 );
+        int t = type;
         t = std::max(t, 0);
         t = std::min(t, _nBillBoards-1);
         if (_billBoardTexs[t] == 0) 
