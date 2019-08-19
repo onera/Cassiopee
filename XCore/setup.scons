@@ -62,7 +62,8 @@ opt2 += ['-std=c99']
 #opt2 +=['-DPDM_HAVE_PTSCOTCH','-DPDM_ENABLE_ANISO_AGGLO=0']
 if Dist.getSystem()[0] == 'mingw': opt2 += ['-D__int64=long']#, '-Dint32_t=int']
 
-ADDITIONALCPPFLAGS += opt1+opt2
+ADDITIONALCPPFLAGS += opt1
+ADDITIONALCFLAGS = ADDITIONALCPPFLAGS+opt2
 
 # Env =========================================================================
 if Dist.getSystem()[0] == 'mingw': tools = ['mingw']
@@ -75,9 +76,9 @@ env = Environment(tools=tools, CC=cc, CXX=cxx, AR=AR, CPPFLAGS=[],
                   SHLIBSUFFIX=so_ext, SHLIBPREFIX='',
                   LINKFLAGS=Dist.getLinkArgs(),
                   ENV=Dist.getEnvForScons(),
-                  CPPPATH=["XCore"]+additionalIncludePaths+includeDirs,
+                  CPPPATH=["XCore","XCore/CMP/include"]+additionalIncludePaths+includeDirs,
                   CXXFLAGS=Dist.getCppArgs()+ADDITIONALCPPFLAGS,
-                  CFLAGS=Dist.getCArgs()+ADDITIONALCPPFLAGS)
+                  CFLAGS=Dist.getCArgs()+ADDITIONALCFLAGS)
             
 import srcs
 import srcs_scotch
