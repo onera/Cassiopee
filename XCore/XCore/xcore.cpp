@@ -18,13 +18,14 @@
 */
 #define K_ARRAY_UNIQUE_SYMBOL
 #include "xcore.h"
-
+#include "test/xmpi_t1.hpp"
 // ============================================================================
 /* Dictionnary of all functions of the python module */
 // ============================================================================
 static PyMethodDef Pyxcore [] =
 {
   //{"xxx", K_CONVERTER::xxx, METH_VARARGS},
+  {"test_all", xcore::test_all, METH_VARARGS},
   {NULL, NULL}
 };
 

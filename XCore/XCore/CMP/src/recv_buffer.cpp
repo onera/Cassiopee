@@ -4,7 +4,7 @@
 #include <cassert>
 
 namespace CMP {
-#if defined(_MPI)
+//#if defined(_MPI)
     // Déclaration de la réalisation du buffer de réception
     // ================================================================================================
     class RecvBuffer::Implementation {
@@ -131,8 +131,8 @@ namespace CMP {
         m_cur_iterator += sz;
         return data;
     }
-#else
-#endif
+//#else
+//#endif
     // Définition du buffer de réception
     // ================================================================================================
     RecvBuffer::RecvBuffer( int source, int id_tag, const MPI_Comm& comm )
