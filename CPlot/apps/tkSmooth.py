@@ -266,7 +266,7 @@ def createApp(win):
     # - Project on surface
     B = TTK.Checkbutton(Frame, text='PJ', variable=VARS[7])
     B.grid(row=1, column=3, columnspan=1, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Project on surface.')
+    BB = CTK.infoBulle(parent=B, text='Project on surafce.')
 
     # - Sharp edges detection
     B = TTK.Entry(Frame, textvariable=VARS[6], background='White', width=4)

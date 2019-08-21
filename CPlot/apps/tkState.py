@@ -258,7 +258,7 @@ def createApp(win):
     # -0- Pb dim -
     V = TK.StringVar(win); V.set('3D'); VARS.append(V)
     # -1- Model -
-    V = TK.StringVar(win); V.set('Euler'); VARS.append(V)
+    V = TK.StringVar(win); V.set('NSLaminar'); VARS.append(V)
     # -2- Mach -
     V = TK.StringVar(win); V.set('0.5'); VARS.append(V)
     # -3- Reinf -

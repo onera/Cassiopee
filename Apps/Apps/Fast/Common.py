@@ -131,12 +131,13 @@ def setup(t_in, tc_in, numb, numz, format='single'):
 # format: "single" ou "multiple"
 # cartesian: si True, compress le fichier pour le cartesien
 # ===========================================================================
-def finalize(t, t_out, it0=None, time0=None, format='single', cartesian=False):
+def finalize(t, t_out=None, it0=None, time0=None, format='single', cartesian=False):
     if it0 is not None:
         Internal.createUniqueChild(t, 'Iteration', 'DataArray_t', value=it0)
     if time0 is not None:
         Internal.createUniqueChild(t, 'Time', 'DataArray_t', value=time0)
-    Fast.save(t, t_out, split=format, NP=Cmpi.size, cartesian=cartesian)
+    if t_out is not None and isinstance(t_out, str):
+        Fast.save(t, t_out, split=format, NP=Cmpi.size, cartesian=cartesian)
 
 #=====================================================================================
 # IN: t_in : nom du fichier t input ou arbre input
@@ -189,8 +190,10 @@ def compute(t_in, tc_in,
     # time stamp
     Internal.createUniqueChild(t, 'Iteration', 'DataArray_t', value=it0+NIT)
     Internal.createUniqueChild(t, 'Time', 'DataArray_t', value=time0)
-    Fast.save(t, t_out, split=format, NP=Cmpi.size, cartesian=cartesian)
-    if tc_out is not None: Fast.save(tc, tc_out, split=format, NP=Cmpi.size)
+    if t_out is not None and isinstance(t_out,str):
+        Fast.save(t, t_out, split=format, NP=Cmpi.size, cartesian=cartesian)
+    if tc_out is not None and isinstance(tc_out,str): 
+        Fast.save(tc, tc_out, split=format, NP=Cmpi.size)
     if Cmpi.size > 1: Cmpi.barrier()
     return t, tc
 
@@ -228,7 +231,7 @@ class Common(App):
         return setup(t_in, tc_in, numb, numz, self.data['format'])
 
     # Ecrit le fichier de sortie
-    def finalize(self, t_out, it0=None, time0=None):
+    def finalize(self, t_out=None, it0=None, time0=None):
         finalize(t_out, it0, time0, self.data['format'])
 
     # distribue fichiers ou en memoire

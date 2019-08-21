@@ -12,10 +12,31 @@ import os, math, os.path
 # local widgets list
 WIDGETS = {}; VARS = []
 
+BODY = None
+
+#==============================================================================
+def changeMode(event=None):
+    global BODY
+    mode = VARS[10].get()
+    if mode == 'Body':
+        if BODY is not None: 
+            CTK.t = BODY
+            (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+            CTK.TKTREE.updateApp()
+            CTK.display(CTK.t)
+        print('Setting body mode')
+    else: 
+        print('Setting main mode')
+
+#==============================================================================
+# Set data in selected zones
 #==============================================================================
 def setData():
+    global BODY
     if CTK.t == []: return
-    
+    mode = VARS[10].get()
+    if mode == 'Body': BODY = Internal.copyRef(CTK.t)
+
     temporal_scheme = VARS[0].get()
     ss_iteration = int(VARS[1].get())
     scheme = VARS[4].get()
@@ -56,6 +77,8 @@ def setData():
     CTK.TXT.insert('START', 'Solver data set.\n')
     
 #==============================================================================
+# Get data from selected zone
+#==============================================================================
 def getData():
     if CTK.t == []: return
     nzs = CPlot.getSelectedZones()
@@ -93,6 +116,112 @@ def getData():
         if n is not None:
             val = Internal.getValue(n)
             VARS[4].set(val)
+
+#==============================================================================
+def run(event=None):
+    mode = VARS[10].get()
+    if mode == 'Body':
+        global BODY
+        BODY = Internal.copyRef(CTK.t)
+        prepare() # save t, tc
+        VARS[10].set('Main')
+        CTK.t = CTK.upgradeTree(CTK.t)
+        (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+        CTK.TKTREE.updateApp()
+        CTK.display(CTK.t)
+    
+    # Set CPlot to scalar mode to monitor solution
+    if CPlot.getState('mode') == 0: # mesh
+        CPlot.setState(mode=3, scalarField='Density')
+
+    compute()
+    CTK.display(CTK.t)
+
+#==============================================================================
+# A partir de CTK.t considere comme les bodies
+def prepare():
+    if CTK.t == []: return
+
+    # Save preventif
+    C.convertPyTree2File(CTK.t, 'body.cgns')
+
+    # Recupere la base REFINE
+    b = Internal.getNodeFromName1(CTK.t, 'REFINE')
+    if b is not None:
+        tbox = C.newPyTree()
+        tbox[2].append(b)
+        Internal._rmNodesFromName1(CTK.t, 'REFINE')
+    else: tbox = None
+
+    import Apps.Fast.IBM as App
+    myApp = App.IBM(format='single')
+    CTK.t, tc = myApp.prepare(CTK.t, t_out='t.cgns', tc_out='tc.cgns', vmin=21, tbox=tbox, check=False)
+    return None
+
+#==============================================================================
+# Lance des iterations
+def compute():
+    if CTK.t == []: return
+
+    import Apps.Fast.IBM as App
+    import Converter.Internal as Internal
+    import Converter.PyTree as C
+
+    # Save preventif
+    C.convertPyTree2File(CTK.t, 'restart.cgns')
+
+    temporal_scheme = VARS[0].get()
+    scheme = VARS[4].get()
+    a = VARS[11].get()
+    if a == 'cfl': time_step_nature = 'local'
+    else: time_step_nature = 'global'
+    val = float(VARS[5].get())
+    if time_step_nature == 'local': ss_iteration = 3
+    else: ss_iteration = 30
+
+    myApp = App.IBM(format='single')
+    myApp.set(numb={
+    "temporal_scheme": temporal_scheme,
+    "ss_iteration": ss_iteration,
+    "omp_mode": 1,
+    "modulo_verif": 50
+    })
+
+    myApp.set(numz={
+    "time_step": val,
+    "scheme": scheme,
+    "time_step_nature": time_step_nature,
+    "cfl": val
+    })
+
+    nit = VARS[9].get()
+
+    # Compute
+    #CTK.t, tc = myApp.compute('restart.cgns', 'tc.cgns', t_out=None, tc_out='tc_restart.cgns', nit=nit)
+    
+    # open compute
+    CTK.t, tc, ts, metrics, graph = myApp.setup('restart.cgns', 'tc.cgns')
+
+    import FastS.PyTree as FastS
+    
+    it0 = 0; time0 = 0.
+    first = Internal.getNodeFromName1(CTK.t, 'Iteration')
+    if first is not None: it0 = Internal.getValue(first)
+    first = Internal.getNodeFromName1(CTK.t, 'Time')
+    if first is not None: time0 = Internal.getValue(first)
+    time_step = Internal.getNodeFromName(CTK.t, 'time_step')
+    time_step = Internal.getValue(time_step)
+
+    for it in range(nit):
+        FastS._compute(CTK.t, metrics, it, tc, graph)
+        if it%50 == 0:
+            CTK.TXT.insert('START', '%d / %d - %f\n'%(it+it0,it0+nit,time0))
+            #CTK.display(CTK.t)
+        time0 += time_step
+    Internal.createUniqueChild(CTK.t, 'Iteration', 'DataArray_t', value=it0+nit)
+    Internal.createUniqueChild(CTK.t, 'Time', 'DataArray_t', value=time0)
+    
+    return None
 
 #==============================================================================
 # Write setup file
@@ -192,56 +321,6 @@ def writeSetupFile():
     f.close()
 
 #==============================================================================
-# IN: le maillage
-# IN: les BCs (match + autres)
-# IN: Distribution (option)
-# IN: Condition initiale (option)
-# Genere les fichiers :  
-# - setup.py (script de calcul)
-# - t.cgns : maillage + solution initiale + 
-# - tD.cgns: donneurs
-#==============================================================================
-def generate():
-    writeSetupFile()
-    #generateT()
-    #generateTD()
-    return
-
-#==============================================================================
-# A partir de CTK.t considere comme les bodies
-def prepare():
-    if CTK.t == []: return
-
-    import Apps.Fast.IBM as App
-    myApp = App.IBM(format='single')
-    myApp.prepare(CTK.t, t_out='t.cgns', tc_out='tc.cgns', vmin=21, check=False)
-
-#==============================================================================
-def compute():
-    import Apps.Fast.IBM as App
-    import Converter.Internal as Internal
-    import Converter.PyTree as C
-
-    myApp = App.IBM(format='single')
-    myApp.set(numb={
-    "temporal_scheme": VARS[0].get(),
-    "ss_iteration":3,
-    "omp_mode":1,
-    "modulo_verif": 200
-    })
-    myApp.set(numz={
-    "time_step": float(VARS[5].get()),
-    "scheme":VARS[4].get(),
-    #"time_step_nature":"local",
-    "time_step_nature":"global",
-    #"cfl":4.
-    })
-
-    # Compute
-    myApp.compute('t.cgns', 'tc.cgns', t_out='restart.cgns', tc_out='tc_restart.cgns', nit=6000)
-
-
-#==============================================================================
 # Create app widgets
 #==============================================================================
 def createApp(win):
@@ -273,23 +352,65 @@ def createApp(win):
     # -3- restart_fields -
     V = TK.StringVar(win); V.set('1');VARS.append(V)
     # -4- scheme -
-    V = TK.StringVar(win); V.set('roe_min'); VARS.append(V)
+    V = TK.StringVar(win); V.set('senseur'); VARS.append(V)
     # -5- Time step -
-    V = TK.DoubleVar(win); V.set(0.002); VARS.append(V)
+    V = TK.DoubleVar(win); V.set(0.004); VARS.append(V)
     # -6- Snear -
     V = TK.DoubleVar(win); V.set(0.01); VARS.append(V)
     # -7- IBC type -
     V = TK.StringVar(win); V.set('Musker'); VARS.append(V)
     # -8- dfar local -
-    V = TK.DoubleVar(win); V.set(-1.); VARS.append(V)
+    V = TK.DoubleVar(win); V.set(20.); VARS.append(V)
+    # -9- nbre d'iterations -
+    V = TK.IntVar(win); V.set(100); VARS.append(V)
+    # -10 - body or main mode
+    V = TK.StringVar(win); V.set('Body'); VARS.append(V)
+    # -11- time_step or cfl
+    V = TK.StringVar(win); V.set('time_step'); VARS.append(V)
 
+    #- Mode -
+    B = TTK.Label(Frame, text="Mode")
+    B.grid(row=0, column=0, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Currently viewed tree.\nIn body mode:\nOne Base per body\nBase REFINE for refinement zones.')
+    B = TTK.OptionMenu(Frame, VARS[10], 'Body', 'Main', command=changeMode)
+    B.grid(row=0, column=1, columnspan=2, sticky=TK.EW)
+
+    #- Snear settings  -
+    B = TTK.Label(Frame, text="snear")
+    B.grid(row=1, column=0, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='The generated grid spacing for selected curve.')
+    B = TTK.Entry(Frame, textvariable=VARS[6])
+    B.grid(row=1, column=1, columnspan=2, sticky=TK.EW)
+    
+    #- dfar settings  -
+    B = TTK.Label(Frame, text="dfar")
+    B.grid(row=2, column=0, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='The distance to the far boundary.\nCan be set to -1.')
+    B = TTK.Entry(Frame, textvariable=VARS[8])
+    B.grid(row=2, column=1, columnspan=2, sticky=TK.EW)
+
+    # - IBC type -
+    B = TTK.Label(Frame, text="IBC type")
+    B.grid(row=3, column=0, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Type of Immersed boundary condition.')
+    B = TTK.OptionMenu(Frame, VARS[7], 'slip', 'noslip', 'Log', 'Musker', 'outpress', 'inj', 'TBLE')
+    B.grid(row=3, column=1, columnspan=2, sticky=TK.EW)
+
+    # - Set data -
+    B = TTK.Button(Frame, text="Set data", command=setData)
+    BB = CTK.infoBulle(parent=B, text='Set data into selected zone.')
+    B.grid(row=4, column=0, columnspan=2, sticky=TK.EW)
+    B = TTK.Button(Frame, command=getData,
+                   image=iconics.PHOTO[8], padx=0, pady=0, compound=TK.RIGHT)
+    BB = CTK.infoBulle(parent=B, text='Get data from selected zone.')
+    B.grid(row=4, column=2, sticky=TK.EW)
 
     # - temporal scheme -
-    B = TTK.Label(Frame, text="temporal_scheme")
-    B.grid(row=0, column=0, sticky=TK.EW)
+    B = TTK.Label(Frame, text="time_scheme")
+    B.grid(row=5, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Time integration.')
     B = TTK.OptionMenu(Frame, VARS[0], 'explicit', 'implicit', 'implicit_local')
-    B.grid(row=0, column=1, columnspan=2, sticky=TK.EW)
+    B.grid(row=5, column=1, columnspan=2, sticky=TK.EW)
 
     # - ss_iteration -
     #B = TTK.Label(Frame, text="ss_iteration")
@@ -300,45 +421,24 @@ def createApp(win):
 
     # - scheme -
     B = TTK.Label(Frame, text="scheme")
-    B.grid(row=2, column=0, sticky=TK.EW)
+    B.grid(row=6, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Numerical scheme.')
     B = TTK.OptionMenu(Frame, VARS[4], 'roe_min', 'ausmpred', 'senseur')
-    B.grid(row=2, column=1, columnspan=2, sticky=TK.EW)
-
-    # - time_step -
-    B = TTK.Label(Frame, text="time_step")
-    B.grid(row=3, column=0, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Time step.')
-    B = TTK.Entry(Frame, textvariable=VARS[5])
-    B.grid(row=3, column=1, columnspan=2, sticky=TK.EW)
-    
-    #- Snear settings  -
-    B = TTK.Label(Frame, text="snear")
-    B.grid(row=4, column=0, sticky=TK.EW)
-    B = TTK.Entry(Frame, textvariable=VARS[6])
-    B.grid(row=4, column=1, columnspan=2, sticky=TK.EW)
-    
-    #- dfar settings  -
-    B = TTK.Label(Frame, text="dfar")
-    B.grid(row=5, column=0, sticky=TK.EW)
-    B = TTK.Entry(Frame, textvariable=VARS[8])
-    B.grid(row=5, column=1, columnspan=2, sticky=TK.EW)
-
-    # - IBC type -
-    B = TTK.Label(Frame, text="IBC type")
-    B.grid(row=6, column=0, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Type of IBC.')
-    B = TTK.OptionMenu(Frame, VARS[7], 'slip', 'noslip', 'Log', 'Musker', 'outpress', 'inj', 'TBLE')
     B.grid(row=6, column=1, columnspan=2, sticky=TK.EW)
 
-    # - Set data -
-    B = TTK.Button(Frame, text="Set data", command=setData)
-    BB = CTK.infoBulle(parent=B, text='Set data into selected zone.')
-    B.grid(row=7, column=0, columnspan=2, sticky=TK.EW)
-    B = TTK.Button(Frame, command=getData,
-                   image=iconics.PHOTO[8], padx=0, pady=0, compound=TK.RIGHT)
-    BB = CTK.infoBulle(parent=B, text='Get data from selected zone.')
-    B.grid(row=7, column=2, sticky=TK.EW)
+    # - time_step -
+    B = TTK.OptionMenu(Frame, VARS[11], "time_step", "cfl")
+    B.grid(row=7, column=0, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Time step.')
+    B = TTK.Entry(Frame, textvariable=VARS[5])
+    B.grid(row=7, column=1, columnspan=2, sticky=TK.EW)
+
+    # - compute -
+    B = TTK.Button(Frame, text="Compute", command=run)
+    BB = CTK.infoBulle(parent=B, text='Launch computation.')
+    B.grid(row=8, column=0, sticky=TK.EW)
+    B = TTK.Entry(Frame, textvariable=VARS[9])
+    B.grid(row=8, column=1, columnspan=2, sticky=TK.EW)
 
 #==============================================================================
 # Called to display widgets

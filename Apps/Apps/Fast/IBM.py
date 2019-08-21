@@ -1125,7 +1125,7 @@ def _distribute(t_in, tc_in, NP):
     return None
 
 #====================================================================================
-# Prend les snear dans t, les multiplie par factor
+# Prend les snears dans t, les multiplie par factor
 def snearFactor(t, factor=1.):
     tp = Internal.copyRef(t)
     _snearFactor(t, value)
