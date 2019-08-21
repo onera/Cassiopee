@@ -36,7 +36,7 @@ def prepare(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
                                  vmin=vmin, check=check, NP=NP, format=format, frontType=frontType, inv=inv)
     # parallel prep
     else: ret = prepare1(t_case, t_out, tc_out, snears=snears, dfar=dfar, dfarList=dfarList, 
-                         tbox=tbox, snearf=snearsf,
+                         tbox=tbox, snearsf=snearsf,
                          vmin=vmin, check=check, NP=NP, format=format, frontType=frontType, inv=inv)
     
     return ret

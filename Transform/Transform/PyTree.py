@@ -1343,7 +1343,7 @@ def splitSizeUpR__(t, N, R, multigrid, dirs, minPtsPerDir):
     while len(SP) > 0:
         SP = sorted(SP, key=itemgetter(0), reverse=True)
         Rs = sorted(Rs)
-        #print 'ress', Rs[0], C.getNCells(SP[0][1])
+        #print('ress', Rs[0], C.getNCells(SP[0][1]))
         a = SP[0][1] # le plus gros
         base = SP[0][2]
         dim = Internal.getZoneDim(a)
@@ -1379,15 +1379,15 @@ def splitSizeUpR__(t, N, R, multigrid, dirs, minPtsPerDir):
             delta3 = abs(ni1*nj1*(ns-1) - Nr)/nij
             deltak = delta3-delta1-delta2
             dirl = 1
-            if (deltai <= deltaj  and deltai <= deltak):
+            if deltai <= deltaj  and deltai <= deltak:
                 if (1 in dirs): dirl = 1
                 elif (deltaj <= deltak and 2 in dirs): dirl = 2
                 elif (3 in dirs): dirl = 3
-            elif (deltaj <= deltai and deltaj <= deltak):
+            elif deltaj <= deltai and deltaj <= deltak:
                 if (2 in dirs): dirl = 2
                 elif (deltai <= deltak and 1 in dirs): dirl = 1
                 elif (3 in dirs): dirl = 3
-            elif (deltak <= deltai and deltak <= deltaj):
+            elif deltak <= deltai and deltak <= deltaj:
                 if (3 in dirs): dirl = 3
                 elif (deltai <= deltaj and 1 in dirs): dirl = 1
                 elif (2 in dirs): dirl = 2
@@ -1396,7 +1396,7 @@ def splitSizeUpR__(t, N, R, multigrid, dirs, minPtsPerDir):
             if dirl == 1:
                 nc = int(round(Nr*1./njk,0))+1
                 ns = Transform.findMGSplitUp__(ni, nc, level=multigrid)
-                if (ns-1 >= mins and ni-ns >= mins):
+                if ns-1 >= mins and ni-ns >= mins:
                     a1 = subzone(a, (1,1,1), (ns,nj,nk))
                     a2 = subzone(a, (ns,1,1), (ni,nj,nk))
                     SP[0] = (getNCells(a2), a2, base)
@@ -1405,7 +1405,7 @@ def splitSizeUpR__(t, N, R, multigrid, dirs, minPtsPerDir):
             elif dirl == 2:
                 nc = int(round(Nr*1./nik,0))+1
                 ns = Transform.findMGSplitUp__(nj, nc, level=multigrid)
-                if (ns-1 >= mins and nj-ns >= mins):
+                if ns-1 >= mins and nj-ns >= mins:
                     a1 = subzone(a, (1,1,1), (ni,ns,nk))
                     a2 = subzone(a, (1,ns,1), (ni,nj,nk))
                     SP[0] = (getNCells(a2), a2, base)
@@ -1414,7 +1414,7 @@ def splitSizeUpR__(t, N, R, multigrid, dirs, minPtsPerDir):
             elif dirl == 3:
                 nc = int(round(Nr*1./nij,0))+1
                 ns = Transform.findMGSplitUp__(nk, nc, level=multigrid)
-                if (ns-1 >= mins and nk-ns >= mins):
+                if ns-1 >= mins and nk-ns >= mins:
                     a1 = subzone(a, (1,1,1), (ni,nj,ns))
                     a2 = subzone(a, (1,1,ns), (ni,nj,nk))
                     SP[0] = (getNCells(a2), a2, base)
@@ -1439,10 +1439,10 @@ def splitSizeUpR__(t, N, R, multigrid, dirs, minPtsPerDir):
         base = out[2*i+1]
         base[2] += [zone]
 
-    #print 'ress:', Rs
+    #print('ress:', Rs)
     #Tot = 0
     #for i in Rs: Tot += i
-    #print 'Tot', Tot
+    #print('Tot', Tot)
     return t
 
 # Split size decentre avec ressources
@@ -1548,7 +1548,7 @@ def splitSizeUpR_OMP__(t, N, R, multigrid, dirs, minPtsPerDir):
             if dirl == 3:
                 nc = int(round(Nr*1./nij,0))+1
                 ns = Transform.findMGSplitUp__(nk, nc, level=multigrid)
-                if (ns-1 >= mins and nk-ns >= mins):
+                if ns-1 >= mins and nk-ns >= mins:
                     #a1 = subzone(a, (1,1,1), (ni,nj,ns))
                     #a2 = subzone(a, (1,1,ns), (ni,nj,nk))
                     a1 = ["leafl"+str(('%05d' % nbl)),[ni,nj,ns]]
@@ -1562,7 +1562,7 @@ def splitSizeUpR_OMP__(t, N, R, multigrid, dirs, minPtsPerDir):
             elif dirl == 2:
                 nc = int(round(Nr*1./nik,0))+1
                 ns = Transform.findMGSplitUp__(nj, nc, level=multigrid)
-                if (ns-1 >= mins and nj-ns >= mins):
+                if ns-1 >= mins and nj-ns >= mins:
                     #a1 = subzone(a, (1,1,1), (ni,ns,nk))
                     #a2 = subzone(a, (1,ns,1), (ni,nj,nk))
                     #SP[0] = (getNCells(a2), a2, base)
@@ -1577,7 +1577,7 @@ def splitSizeUpR_OMP__(t, N, R, multigrid, dirs, minPtsPerDir):
             elif dirl == 1:
                 nc = int(round(Nr*1./njk,0))+1
                 ns = Transform.findMGSplitUp__(ni, nc, level=multigrid)
-                if (ns-1 >= mins and ni-ns >= mins):
+                if ns-1 >= mins and ni-ns >= mins:
                     #a1 = subzone(a, (1,1,1), (ns,nj,nk))
                     #a2 = subzone(a, (ns,1,1), (ni,nj,nk))
                     #SP[0] = (getNCells(a2), a2, base)
@@ -1685,7 +1685,7 @@ def splitSizeUpR_OMP__(t, N, R, multigrid, dirs, minPtsPerDir):
 
 
 def splitNParts__(zones, N, multigrid, dirs, recoverBC, splitDict={}):
-    # Fait des paquets de zones structurees et NGON
+    # Fait des paquets de zones structurees et non structurees
     zonesS = []; zonesN = []
     NpS = []; NpN = [] # nbre de points
     NeS = []; NeN = [] # nbre de cellules
@@ -1752,7 +1752,7 @@ def splitNParts__(zones, N, multigrid, dirs, recoverBC, splitDict={}):
 
 def splitNParts(t, N, multigrid=0, dirs=[1,2,3], recoverBC=True, splitDict={}):
     """Split zones in t in N parts.
-    Usage: splitNParts(t, N, multigrid, dirs)"""
+    Usage: splitNParts(t, N, multigrid, dirs, recoverBC)"""
     tp = Internal.copyRef(t)
     if recoverBC:
         C._deleteGridConnectivity__(tp, type='BCMatch')

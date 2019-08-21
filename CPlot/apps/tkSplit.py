@@ -157,12 +157,12 @@ def split():
         z = CTK.t[2][nob][2][noz]
         dims = Internal.getZoneDim(z)
         try:
-            if (dims[0] == 'Structured'):
+            if dims[0] == 'Structured':
                 ni = dims[1]; nj = dims[2]; nk = dims[3]
-                if (VARS[1].get() == 'i-indices'):
+                if VARS[1].get() == 'i-indices':
                     z1 = T.subzone(z, (1,1,1), (i1,nj,nk))
                     z2 = T.subzone(z, (i1,1,1), (ni,nj,nk))
-                elif (VARS[1].get() == 'j-indices'):
+                elif VARS[1].get() == 'j-indices':
                     z1 = T.subzone(z, (1,1,1), (ni,j1,nk))
                     z2 = T.subzone(z, (1,j1,1), (ni,nj,nk))
                 else:
@@ -170,7 +170,7 @@ def split():
                     z2 = T.subzone(z, (1,1,k1), (ni,nj,nk))
                 CTK.replace(CTK.t, nob, noz, z1)
                 CTK.add(CTK.t, nob, -1, z2)
-            elif (dims[0] == 'Unstructured' and dims[3] == 'BAR'):
+            elif dims[0] == 'Unstructured' and dims[3] == 'BAR':
                 B = T.splitBAR(z, ind[0])
                 if len(B) == 1: CTK.replace(CTK.t, nob, noz, B[0])
                 else:
@@ -314,8 +314,8 @@ def splitNParts(event=None):
 # OUT: t modifie et affiche
 #==============================================================================
 def splitMultiplePoints():
-    if (CTK.t == []): return
-    if (CTK.__MAINTREE__ <= 0):
+    if CTK.t == []: return
+    if CTK.__MAINTREE__ <= 0:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     node = Internal.getNodeFromName(CTK.t, 'EquationDimension')
@@ -342,12 +342,12 @@ def splitMultiplePoints():
 # OUT: t modifie et affiche
 #==============================================================================
 def splitConnexity():
-    if (CTK.t == []): return
-    if (CTK.__MAINTREE__ <= 0):
+    if CTK.t == []: return
+    if CTK.__MAINTREE__ <= 0:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     nzs = CPlot.getSelectedZones()
-    if (nzs == []):
+    if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
@@ -365,7 +365,7 @@ def splitConnexity():
         except Exception as e:
             fail = True; errors += [0,str(e)]
 
-    if (fail == False):
+    if not fail:
         CTK.TXT.insert('START', 'splitConnexity done.\n')
     else:
         Panels.displayErrors(errors, header='Error: splitConnexity')
@@ -381,12 +381,12 @@ def splitConnexity():
 # OUT: t modifie et affiche
 #==============================================================================
 def splitManifold():
-    if (CTK.t == []): return
-    if (CTK.__MAINTREE__ <= 0):
+    if CTK.t == []: return
+    if CTK.__MAINTREE__ <= 0:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     nzs = CPlot.getSelectedZones()
-    if (nzs == []):
+    if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
@@ -404,7 +404,7 @@ def splitManifold():
         except Exception as e:
             fail = True; errors += [0,str(e)]
 
-    if (fail == False):
+    if not fail:
         CTK.TXT.insert('START', 'splitManifold done.\n')
     else:
         Panels.displayErrors(errors, header='Error: splitManifold')
@@ -413,6 +413,16 @@ def splitManifold():
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
+
+# Split suivant les sharpEdges + distance
+def splitSharpEdgesWithDelta__(a, alphaRef, deltaRef):
+    try: import Post.PyTree as P; import Dist2Walls.PyTree as Dist2Walls
+    except: raise ImportError("splitSharpEdges: requires Post, Dist2Walls modules.")
+    e = P.sharpEdges(a, alphaRef)
+    b = Dist2Walls.distance2Walls(a, e, loc='centers')
+    a1 = P.selectCells(b, '{centers:TurbulentDistance}<%g'%deltaRef)
+    a2 = P.selectCells(b, '{centers:TurbulentDistance}>=%g'%deltaRef)
+    return [a1,a2]
 
 #=========================================================================
 # splitSharpAngles
@@ -425,13 +435,18 @@ def splitSharpAngles():
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     alphaRef = CTK.varsFromWidget(VARS[3].get(), type=1)
-    if (len(alphaRef) != 1):
+    if len(alphaRef) != 1:
         CTK.TXT.insert('START', 'Split angle is incorrect.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     alphaRef = alphaRef[0]
-    
+    deltaRef = CTK.varsFromWidget(VARS[8].get(), type=1)
+    if len(deltaRef) != 1:
+        CTK.TXT.insert('START', 'Distance to sharp edges is incorrect.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+    deltaRef = deltaRef[0]
+
     nzs = CPlot.getSelectedZones()
-    if (nzs == []):
+    if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
@@ -443,17 +458,18 @@ def splitSharpAngles():
         z = CTK.t[2][nob][2][noz]
         z = G.close(z)
         try:
-            splits = T.splitSharpEdges(z, alphaRef)
+            if deltaRef <= 0.: splits = T.splitSharpEdges(z, alphaRef)
+            else: splits = splitSharpEdgesWithDelta__(z, alphaRef, deltaRef)
             CTK.replace(CTK.t, nob, noz, splits[0])
             for i in splits[1:]: CTK.add(CTK.t, nob, -1, i)
         except Exception as e:
             fail = True; errors += [0,str(e)]
 
-    if (fail == False):
+    if not fail:
         CTK.TXT.insert('START', 'splitSharpEdges done.\n')
     else:
         Panels.displayErrors(errors, header='Error: splitSharpEdges')
-        CTK.TXT.insert('START', 'NGon conversion fails for at least one zone.\n')
+        CTK.TXT.insert('START', 'SplitSharpEdges fails for at least one zone.\n')
         CTK.TXT.insert('START', 'Warning: ', 'Warning')
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
@@ -514,6 +530,8 @@ def createApp(win):
     V = TK.StringVar(win); V.set('0'); VARS.append(V)
     if 'tkSplitNPartsMultigrid' in CTK.PREFS: 
         V.set(CTK.PREFS['tkSplitNPartsMultigrid'])
+    # -9- distance for splitSharpEdges
+    V = TK.StringVar(win); V.set('0.'); VARS.append(V)
 
     # - Buttons -
     # - split (subzone) -
@@ -568,8 +586,11 @@ def createApp(win):
     B.grid(row=4, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Split a mesh into smooth parts.\nTree is modified.')
     B = TTK.Entry(Frame, textvariable=VARS[3], background='White', width=4)
-    B.grid(row=4, column=1, columnspan=2, sticky=TK.EW)
+    B.grid(row=4, column=1, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Angle of split.')
+    B = TTK.Entry(Frame, textvariable=VARS[8], background='White', width=4)
+    B.grid(row=4, column=2, columnspan=1, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Distance to sharp edges.')
 
     # - Join selection -
     B = TTK.Button(Frame, text="Join", command=join)
@@ -641,7 +662,7 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
     
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
     if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]

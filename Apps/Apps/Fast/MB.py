@@ -104,11 +104,14 @@ def prepare0(t_case, t_out, tc_out, NP=0, format='single'):
     tc = X.setInterpData(t, tc, nature=1, loc='centers', storage='inverse', 
                          sameName=1, dim=dim)
     C._rmVars(tc, 'FlowSolution')
-    
+    C._rmVars(tc, 'GridCoordinates')
+
     if isinstance(tc_out, str):
-        Fast.save(tc, tc_out, split=format, NP=-NP)
+        #Fast.save(tc, tc_out, split=format, NP=-NP)
+        C.convertPyTree2File(tc, tc_out) # pour eviter l'ecriture parallele
     if isinstance(t_out, str):
-        Fast.save(t, t_out, split=format, NP=-NP)
+        #Fast.save(t, t_out, split=format, NP=-NP)
+        C.convertPyTree2File(t, t_out) # pour eviter l'ecriture parallele
     return t, tc
 
 #================================================================================
@@ -197,7 +200,8 @@ def prepare1(t_case, t_out, tc_out, NP=0, format='single'):
     tc = X.setInterpData(t, tc, nature=1, loc='centers', storage='inverse', 
                          sameName=1, dim=dim)
     C._rmVars(tc, 'FlowSolution')
-    
+    C._rmVars(tc, 'GridCoordinates')
+
     if isinstance(tc_out, str):
         Fast.save(tc, tc_out, split=format, NP=-NP)
     if isinstance(t_out, str):

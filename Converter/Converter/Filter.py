@@ -704,6 +704,12 @@ class Handle:
     return None
 
   # Charge completement toutes les zones de a ou de chemin fourni
+  def loadZones(self, a, znp=None):
+    """Fully load zones."""
+    b = Internal.copyRef(a)
+    self._loadZones(b, znp)
+    return b
+
   def _loadZones(self, a, znp=None):
     """Fully load zones."""
     if znp is None: znp = self.getZonePaths(a)

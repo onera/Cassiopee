@@ -114,7 +114,7 @@ Low level layer
 
     Partially read nodes specified by a filter.
     Filter is a dictionary for each path to be read.
-    For structured grids: [[imin,jmin,kmin], [1,1,1], [imax,jmax,kmax], [1,1,1]]
+    For structured grids: [[imin,jmin,kmin], [1,1,1], [imax,jmax,kmax], [1,1,1]].
     For unstructured grids: [[istart], [1], [iend], [1]].
     Only for HDFfile format.
 

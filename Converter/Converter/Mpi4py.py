@@ -6,7 +6,7 @@ from . import Distributed
 # Acces a Distributed
 from .Distributed import readZones, writeZones, convert2PartialTree, convert2SkeletonTree, readNodesFromPaths, readPyTreeFromPaths, writeNodesFromPaths
 
-__all__ = ['rank', 'size', 'KCOMM', 'COMM_WORLD', 'setCommunicator', 'barrier', 'send', 'recv', 'sendRecv', 'sendRecv2', 
+__all__ = ['rank', 'size', 'KCOMM', 'COMM_WORLD', 'setCommunicator', 'barrier', 'send', 'recv', 'sendRecv',
     'bcast', 'Bcast', 'bcastZone', 'allgatherZones', 
     'allgather', 'readZones', 'writeZones', 'convert2PartialTree', 'convert2SkeletonTree', 'convertFile2DistributedPyTree', 
     'readNodesFromPaths', 'readPyTreeFromPaths', 'writeNodesFromPaths',
@@ -62,37 +62,19 @@ def recv(source=None):
 def sendRecv(datas, graph):
     if graph == {}: return {}
     reqs = []
+    
     if rank in graph:
         g = graph[rank] # graph du proc courant
         for oppNode in g:
             # Envoie les datas necessaires au noeud oppose
-            #print '%d: On envoie a %d: %s'%(rank,oppNode,g[oppNode])
+            #print('%d: On envoie a %d: %s'%(rank,oppNode,g[oppNode]))
             s = KCOMM.isend(datas[oppNode], dest=oppNode)
             reqs.append(s)
     rcvDatas={}
     for node in graph:
-        #print rank, graph[node].keys()
+        #print(rank, graph[node].keys())
         if rank in graph[node]:
-            #print '%d: On doit recevoir de %d: %s'%(rank,node,graph[node][rank])
-            rcvDatas[node] = KCOMM.recv(source=node)
-    MPI.Request.Waitall(reqs)
-    return rcvDatas
-
-def sendRecv2(datas, graph):
-    if graph == {}: return {}
-    reqs = []
-    if rank in graph:
-        g = graph[rank] # graph du proc courant
-        for oppNode in g:
-            # Envoie les datas necessaires au noeud oppose
-            print('%d: On envoie a %d: %s'%(rank,oppNode,g[oppNode]))
-            s = KCOMM.isend(datas[oppNode], dest=oppNode)
-            reqs.append(s)
-    rcvDatas={}
-    for node in graph:
-        #print rank, graph[node].keys()
-        if rank in graph[node]:
-            print('%d: On doit recevoir de %d: %s'%(rank,node,graph[node][rank]))
+            #print('%d: On doit recevoir de %d: %s'%(rank,node,graph[node][rank]))
             rcvDatas[node] = KCOMM.recv(source=node)
     MPI.Request.Waitall(reqs)
     return rcvDatas

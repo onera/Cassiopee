@@ -112,8 +112,8 @@ def _setInterpTransfers(aR, aD, variables=[], cellNVariable='',
 # __setInterpTransfers  version optimiser de _setInterpTransfers: arbre t et tc compact, moins de python + de C
 #
 # Warning: inverse storage!
-# IN: zones: list zone receveurs
-# IN: zoneD: list zone donneurs
+# IN: zones: list zones receveurs
+# IN: zoneD: list zones donneurs
 # IN: type: ID: interpolation, IBCD: IBCs, ALLD: interp+IBCs
 # IN: bcType  0: glissement
 #             1: adherence
@@ -139,21 +139,20 @@ def __setInterpTransfers(zones, zonesD, vars, param_int, param_real, type_transf
 
         no_transfert = comm_P2P
         if dest == Cmpi.rank: #transfert intra_processus
-            #print 'transfert local', type_transfert
+            #print('transfert local', type_transfert)
             connector.___setInterpTransfers(zones, zonesD, vars, param_int, param_real, nitrun, varType,
-                                            type_transfert, no_transfert,  nstep, nitmax, rk, exploc, num_passage)
+                                            type_transfert, no_transfert, nstep, nitmax, rk, exploc, num_passage)
 
         else:
-            #print 'transfert global', type_transfert
+            #print('transfert global', type_transfert)
             infos = connector.__setInterpTransfersD(zones, zonesD, vars, param_int, param_real, nitrun, varType,
-                                                    type_transfert, no_transfert,  nstep, nitmax, rk, exploc, num_passage) 
+                                                    type_transfert, no_transfert, nstep, nitmax, rk, exploc, num_passage) 
             if infos != []:
                for n in infos:
                   rcvNode = dest
-                  #print Cmpi.rank, 'envoie a ',rcvNode, ' le paquet : ', n
+                  #print(Cmpi.rank, 'envoie a ',rcvNode, ' le paquet : ', n)
                   if rcvNode not in datas: datas[rcvNode] = [n]
                   else: datas[rcvNode] += [n]
-                  #print datas
     
     # Envoie des numpys suivant le graph
     rcvDatas = Cmpi.sendRecv(datas, graph)

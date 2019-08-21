@@ -3198,6 +3198,7 @@ def getZoneDim(zone):
 # Retourne 0 sinon.
 # Cette routine est plus rapide que getZoneDim
 def getZoneType(zone):
+    """Return 1 for Structured zones, 2 for unstructured zones."""
     info = zone[2]
     for i in info:
         if i[3] == 'ZoneType_t':
