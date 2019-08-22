@@ -3,7 +3,6 @@ import Converter.PyTree as C
 import Connector.PyTree as X
 import Generator.PyTree as G
 import Geom.PyTree as D
-import Transform.PyTree as T
 import Converter.elsAProfile as elsAProfile
 import KCore.test as test
 LOCAL = test.getLocal()

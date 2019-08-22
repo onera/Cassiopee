@@ -26,7 +26,7 @@ static PyMethodDef Pyxcore [] =
 {
   //{"xxx", K_CONVERTER::xxx, METH_VARARGS},
   {"test_all", xcore::test_all, METH_VARARGS},
-  {NULL, NULL}
+  {NULL, NULL} 
 };
 
 #if PY_MAJOR_VERSION >= 3

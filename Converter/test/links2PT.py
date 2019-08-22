@@ -2,7 +2,6 @@
 import Generator.PyTree as G
 import Converter.PyTree as C
 import Converter.Internal as Internal
-import Converter.Filter as Filter
 
 a = G.cart((0,0,0),(1,1,1),(50,50,50))
 C._initVars(a, 'Density=1.')

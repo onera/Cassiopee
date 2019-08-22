@@ -5,16 +5,11 @@
 #--------------------------------------------------
 import Converter.PyTree as C
 import Post.PyTree as P
-import Transform.PyTree as T
-import Connector.PyTree as X
 import Connector.ToolboxIBM as IBM
 import Converter.Internal as Internal
 import Converter.Filter as Filter
 import Generator.PyTree as G
 import Geom.PyTree as D
-import KCore.test as test
-import Fast.Utils
-import os
 from math import *
 import numpy
 

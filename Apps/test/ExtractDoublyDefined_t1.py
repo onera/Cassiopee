@@ -2,10 +2,7 @@
 import Apps.Chimera.ExtractDoublyDefined as App
 
 import Converter.PyTree as C
-import Connector.PyTree as X
 import Generator.PyTree as G
-import Transform.PyTree as T
-import Post.PyTree as P
 import Converter.Internal as Internal
 
 # Le gros bloc

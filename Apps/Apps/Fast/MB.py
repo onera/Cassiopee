@@ -6,7 +6,6 @@
 
 import Fast.PyTree as Fast
 import Converter.PyTree as C
-import Generator.PyTree as G
 import Transform.PyTree as T
 import Converter.Internal as Internal
 import Connector.PyTree as X
@@ -222,7 +221,6 @@ def post(t_in, t_out, wall_out, format='single'):
 #====================================================================================
 def post0(t_in, t_out, wall_out, format='single'):
     import Transform.PyTree as T
-    import Post.PyTree as P
     from math import sqrt
 
     # Use filter load here!

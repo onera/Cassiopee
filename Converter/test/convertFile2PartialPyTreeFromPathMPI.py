@@ -2,11 +2,8 @@
 
 # ------------------------------------------------------------------------
 # 1/ Import section
-import Converter.PyTree   as C
-import Converter.Internal as I
-
-from   mpi4py             import MPI
-import numpy              as     NPY
+import Converter.PyTree as C
+from mpi4py import MPI
 
 # ------------------------------------------------------------------------
 # 2/ Initilise MPI

@@ -1,9 +1,7 @@
 # Class common to all types of FAST simulations
 import Fast.PyTree as Fast
 import Converter.PyTree as C
-import Transform.PyTree as T
 import Converter.Internal as Internal
-import Connector.PyTree as X
 from Apps.App import App
 import Converter.Filter as Filter
 import Converter.Mpi as Cmpi

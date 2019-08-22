@@ -172,7 +172,6 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
              vmin=21, check=False, NP=0, format='single',
              frontType=1, extrusion=False, smoothing=False, inv=False, balancing=False, distrib=True):
     import Generator
-    import Converter
     import Connector.connector as connector
     import Connector.Mpi as Xmpi
     import Post.PyTree as P

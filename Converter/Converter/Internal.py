@@ -226,7 +226,9 @@ def setValue(node, value=None):
         else: raise TypeError("setValue: CGNSLibraryVersion node value should be a float.")
     else:
         if value is None: node[1] = None
-        elif isinstance(value, numpy.ndarray): node[1] = value
+        elif isinstance(value, numpy.ndarray): 
+            if numpy.isfortran(value): node[1] = value
+            else: node[1] = numpy.asfortranarray(value)
         elif isinstance(value, int) or isinstance(value, numpy.int32) or isinstance(value,numpy.int64): node[1] = numpy.array([value],'i')
         elif isinstance(value, float) or isinstance(value, numpy.float32) or isinstance(value, numpy.float64): node[1] = numpy.array([value],'d')
         elif isinstance(value, str): node[1] = numpy.array([c for c in value],'c')

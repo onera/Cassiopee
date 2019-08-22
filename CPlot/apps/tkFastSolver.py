@@ -223,101 +223,92 @@ def compute():
     
     return None
 
+#===============================================================
+def writeFiles():
+    writePrepFile()
+    writeComputeFile()
+    return None
+
 #==============================================================================
-# Write setup file
+# Write prep file
 #==============================================================================
-def writeSetupFile():
+def writePrepFile():
     if CTK.t == []: return
-    
-    # EquationDimension
-    node = Internal.getNodeFromName(CTK.t, 'EquationDimension')
-    if node is not None: dim = Internal.getValue(node)
-    else:
-        CTK.TXT.insert('START', 'EquationDimension not found (tkState). Using 3D.\n')
-        CTK.TXT.insert('START', 'Warning: ', 'Warning'); dim = 3
 
-    # GoverningEquations
-    nodes = Internal.getNodesFromName(CTK.t, 'GoverningEquations')
-    if nodes != []:
-        equations = Internal.getValue(nodes[0])
-        if equations == 'Euler': model = 'euler'
-        if equations == 'NSLaminar': model = 'nslam'
-        if equations == 'NSTurbulent': model = 'nstur'
-    else:
-        CTK.TXT.insert('START', 'GoverningEquations is missing (tkState).\n')
-        CTK.TXT.insert('START', 'Error: ', 'Error')
-        return
+    mode = VARS[10].get()
+    if mode == 'Body': tbody = CTK.t
+    elif BODY is not None: tbody = BODY
 
-    # Turbulence model
-    if model == 'nstur':
-        nodes = Internal.getNodesFromName(CTK.t, 'TurbulenceModel')
-        if nodes != []:
-            tm = Internal.getValue(nodes[0])
-            if tm == 'OneEquation_SpalartAllmaras': model += '_sa'
-            elif tm == 'TwoEquation_Wilcox': model += '_kw'
-            elif tm == 'TwoEquation_MenterSST': model += '_kw'
-            else:
-                CTK.TXT.insert('START', 'This turbulence model is not accepted by Cassiopee solver.\n')
-                CTK.TXT.insert('START', 'Error: ', 'Error')
-                return
+    # Recupere la base REFINE si presente
+    b = Internal.getNodeFromName1(tbody, 'REFINE')
+    if b is not None:
+        tbox = C.newPyTree()
+        tbox[2].append(b)
+        tbody = Internal.rmNodesFromName1(tbody, 'REFINE')
+    else: tbox = None
     
-    # ReferenceState
-    nodes = Internal.getNodesFromName(CTK.t, 'ReferenceState')
-    if nodes == []:
-        CTK.TXT.insert('START', 'Reference state is missing (tkState).\n')
-        CTK.TXT.insert('START', 'Error: ', 'Error')
-        return
-    state = nodes[0]
 
-    # Mach
-    nodes = Internal.getNodesFromName(state, 'Mach')
-    if nodes != []: Mach = Internal.getValue(nodes[0])
-    else:
-        CTK.TXT.insert('START', 'Mach is missing (tkState).\n')
-        CTK.TXT.insert('START', 'Error: ', 'Error')
-        return
+    # Save preventif
+    C.convertPyTree2File(tbody, 'body.cgns')
+    C.convertPyTree2File(tbox, 'tbox.cgns')
     
-    # Reynolds
-    nodes = Internal.getNodesFromName(state, 'Reynolds')
-    if nodes != []: Reynolds = Internal.getValue(nodes[0])
-    elif equations == 'NSLaminar' or equations == 'NSTurbulent':
-        CTK.TXT.insert('START', 'Reynolds is missing (tkState).\n')
-        CTK.TXT.insert('START', 'Error: ', 'Error')
-        return
-    else: Reynolds = 1.
-    if Reynolds <= 0.: Reynolds = 1.
+    f = open('prep.py', 'w')
     
-    # Incidences
-    node = Internal.getNodeFromName(state, 'VelocityX')
-    if node is not None: UInf = Internal.getValue(node)
-    else: UInf = 0.
-    node = Internal.getNodeFromName(state, 'VelocityY')
-    if node is not None: VInf = Internal.getValue(node)
-    else: VInf = 0.
-    node = Internal.getNodeFromName(state, 'VelocityZ')
-    if node is not None: WInf = Internal.getValue(node)
-    else: WInf = 0.
-    if UInf != 0.:
-        aly = math.atan(WInf/UInf)
-        alz = math.atan( math.cos(aly)*VInf/UInf )
-    else:
-        aly = 0.; alz = 0.
-    alphaZ = alz*180./math.pi
-    alphaY = aly*180./math.pi
-    
-    # tree file
-    treeFile = os.path.splitext(CTK.FILE)[0]+'.cgns'
-    
-    f = open('setup.py', 'w')
-    
-    text = [
-'import Converter.PyTree as C\n',
-'import Fast.PyTree as Fast\n',
-'import FastS.PyTree as FastS\n',
-]
+    text= """
+import Apps.Fast.IBM as App
+myApp = App.IBM(format='single')
+"""
+
+    if tbox is None: text +="myApp.prepare('body.cgns', t_out='t.cgns', tc_out='tc.cgns', check=False)"
+    else: text += "myApp.prepare('body.cgns', t_out='t.cgns', tbox='tbox.cgns', tc_out='tc.cgns', check=False)"
 
     f.write(text)
-    CTK.TXT.insert('START', 'File setup.py written.\n')
+    CTK.TXT.insert('START', 'File prep.py written.\n')
+    f.close()
+
+#==============================================================================
+# Write compute file
+#==============================================================================
+def writeComputeFile():
+    if CTK.t == []: return
+            
+    temporal_scheme = VARS[0].get()
+    scheme = VARS[4].get()
+    a = VARS[11].get()
+    if a == 'cfl': time_step_nature = 'local'
+    else: time_step_nature = 'global'
+    val = float(VARS[5].get())
+    if time_step_nature == 'global': time_step = val; cfl = 4.
+    else: time_step = 0.1; cfl = val
+    if time_step_nature == 'local': ss_iteration = 3
+    else: ss_iteration = 30
+    nit = VARS[9].get()
+
+    f = open('compute.py', 'w')
+    
+    text= """
+import Apps.Fast.IBM as App
+
+myApp = App.IBM(format='single')
+myApp.set(numb={
+    "temporal_scheme": "%s",
+    "ss_iteration": %d,
+    "omp_mode": 1,
+    "modulo_verif": 50
+})
+myApp.set(numz={
+    "time_step": %g,
+    "scheme": "%s",
+    "time_step_nature": "%s",
+    "cfl": %g,
+})
+
+# Compute
+myApp.compute('t.cgns', 'tc.cgns', t_out='restart.cgns', tc_out='tc_restart.cgns', nit=%d)
+"""%(temporal_scheme, ss_iteration, time_step, scheme, time_step_nature, cfl, nit)
+
+    f.write(text)
+    CTK.TXT.insert('START', 'File compute.py written.\n')
     f.close()
 
 #==============================================================================
@@ -438,7 +429,11 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='Launch computation.')
     B.grid(row=8, column=0, sticky=TK.EW)
     B = TTK.Entry(Frame, textvariable=VARS[9])
-    B.grid(row=8, column=1, columnspan=2, sticky=TK.EW)
+    B.grid(row=8, column=1, columnspan=1, sticky=TK.EW)
+    B = TTK.Button(Frame, text="Files", command=writeFiles)
+    BB = CTK.infoBulle(parent=B, text='Write files to run elsewhere.')
+    B.grid(row=8, column=2, sticky=TK.EW)
+    
 
 #==============================================================================
 # Called to display widgets

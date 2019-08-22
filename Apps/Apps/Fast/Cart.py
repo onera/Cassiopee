@@ -1,6 +1,5 @@
 import Generator
 import Generator.PyTree as G
-import Converter
 import Converter.Distributed as Distributed
 import KCore.test as test
 import Converter.PyTree as C

@@ -127,3 +127,4 @@ namespace xcore
     	return PyBool_FromLong(long(flag));
 	}
 }
+ 
