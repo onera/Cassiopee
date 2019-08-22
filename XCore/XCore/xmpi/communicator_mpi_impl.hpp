@@ -58,6 +58,8 @@ namespace xcore
         }
         // ...............................................................................................
         ~Implementation() { MPI_Comm_free( &m_communicator ); }
+        // ...............................................................................................
+        Implementation& operator = ( const Implementation& com ) = delete;
         // -----------------------------------------------------------------------------------------------
         int getRank() const
         {
@@ -87,13 +89,6 @@ namespace xcore
         }
         // ...............................................................................................
         const MPI_Comm& get_ext_comm() const { return m_communicator; }
-        // ...............................................................................................
-        status probe( int src, int tag ) const
-        {
-            status st;
-            MPI_Probe( src, tag, m_communicator, &st.mpi_status );
-            return st;
-        }
         // ===============================================================================================
         // For communication, we handle container in special functions. The flag
         // here tells if the object
@@ -113,13 +108,24 @@ namespace xcore
             // .......................................................................................
             static request isend( const MPI_Comm &com, const K &snd_obj, int dest, int tag )
             {
-                MPI_Request m_req;
+                request req;
                 if ( Type_MPI<K>::must_be_packed() ) {
-                    MPI_Isend( &snd_obj, sizeof( K ), MPI_BYTE, dest, tag, com, &m_req );
+                    MPI_Isend( &snd_obj, sizeof( K ), MPI_BYTE, dest, tag, com, req.m_req.get() );
                 } else {
-                    MPI_Isend( &snd_obj, 1, Type_MPI<K>::mpi_type(), dest, tag, com, &m_req );
+                    MPI_Isend( &snd_obj, 1, Type_MPI<K>::mpi_type(), dest, tag, com, req.m_req.get() );
                 }
-                return request( m_req );
+                return req;
+            }
+            // .......................................................................................
+            static request issend( const MPI_Comm &com, const K &snd_obj, int dest, int tag )
+            {
+                request req;
+                if ( Type_MPI<K>::must_be_packed() ) {
+                    MPI_Issend( &snd_obj, sizeof( K ), MPI_BYTE, dest, tag, com, req.m_req.get() );
+                } else {
+                    MPI_Issend( &snd_obj, 1, Type_MPI<K>::mpi_type(), dest, tag, com, req.m_req.get() );
+                }
+                return req;
             }
             // .......................................................................................
             static status recv( const MPI_Comm &com, K &rcvobj, int sender, int tag )
@@ -135,13 +141,13 @@ namespace xcore
             // .......................................................................................
             static request irecv( const MPI_Comm &com, K &rcvobj, int sender, int tag )
             {
-                MPI_Request req;
+                request req;
                 if ( Type_MPI<K>::must_be_packed() ) {
-                    MPI_Irecv( &rcvobj, sizeof( K ), MPI_BYTE, sender, tag, com, &req );
+                    MPI_Irecv( &rcvobj, sizeof( K ), MPI_BYTE, sender, tag, com, req.m_req.get() );
                 } else {
-                    MPI_Irecv( &rcvobj, 1, Type_MPI<K>::mpi_type(), sender, tag, com, &req );
+                    MPI_Irecv( &rcvobj, 1, Type_MPI<K>::mpi_type(), sender, tag, com, req.m_req.get() );
                 }
-                return request( req );
+                return req;
             }
             // .......................................................................................
             static void broadcast( const MPI_Comm &com, const K *obj_snd, K &obj_rcv, int root )
@@ -195,19 +201,47 @@ namespace xcore
         template <typename K>
         request isend( std::size_t nbItems, const K *sndbuff, int dest, int tag ) const
         {
-            MPI_Request m_req;
+            request req;
             if ( Type_MPI<K>::must_be_packed() ) {
-                MPI_Isend( sndbuff, nbItems * sizeof( K ), MPI_BYTE, dest, tag, m_communicator, &m_req );
+                MPI_Isend( sndbuff, nbItems * sizeof( K ), MPI_BYTE, dest, tag, m_communicator, req.m_req.get() );
             } else {
-                MPI_Isend( sndbuff, nbItems, Type_MPI<K>::mpi_type(), dest, tag, m_communicator, &m_req );
+                MPI_Isend( sndbuff, nbItems, Type_MPI<K>::mpi_type(), dest, tag, m_communicator, req.m_req.get() );
             }
-            return request( m_req );
+            return req;
         }
         // .........................................................................................
         template <typename K>
         request isend( const K &snd, int dest, int tag ) const
         {
             request req = Communication<K, is_container<K>::value>::isend( m_communicator, snd, dest, tag );
+            return req;
+        }
+        // -------------------------------------------------------------------------------------------
+        template <typename K>
+        request issend( std::size_t nbItems, const K *sndbuff, int dest, int tag ) const
+        {
+            int ierr;
+            request req;
+            if ( Type_MPI<K>::must_be_packed() ) {
+                ierr = MPI_Issend( sndbuff, nbItems * sizeof( K ), MPI_BYTE, dest, tag, m_communicator, req.m_req.get() );
+            } else {
+                ierr = MPI_Issend( sndbuff, nbItems, Type_MPI<K>::mpi_type(), dest, tag, m_communicator, req.m_req.get() );
+            }
+            if ( ierr != MPI_SUCCESS ) {
+                char errMsg[1024];
+                int  lenStr;
+                MPI_Error_string( ierr, errMsg, &lenStr );
+                std::cerr << __PRETTY_FUNCTION__ << " : Erreur " << errMsg << std::endl;
+                MPI_Abort( MPI_COMM_WORLD, ierr );
+                exit( EXIT_FAILURE );
+            }
+            return req;
+        }
+        // .........................................................................................
+        template <typename K>
+        request issend( const K &snd, int dest, int tag ) const
+        {
+            request req = Communication<K, is_container<K>::value>::issend( m_communicator, snd, dest, tag );
             return req;
         }
         // -------------------------------------------------------------------------------------------
@@ -234,13 +268,13 @@ namespace xcore
         template <typename K>
         request irecv( std::size_t nbItems, K *rcvbuff, int sender, int tag ) const
         {
-            MPI_Request req;
+            request req;
             if ( Type_MPI<K>::must_be_packed() ) {
-                MPI_Irecv( rcvbuff, nbItems * sizeof( K ), MPI_BYTE, sender, tag, m_communicator, &req );
+                MPI_Irecv( rcvbuff, nbItems * sizeof( K ), MPI_BYTE, sender, tag, m_communicator, req.m_req.get() );
             } else {
-                MPI_Irecv( rcvbuff, nbItems, Type_MPI<K>::mpi_type(), sender, tag, m_communicator, &req );
+                MPI_Irecv( rcvbuff, nbItems, Type_MPI<K>::mpi_type(), sender, tag, m_communicator, req.m_req.get() );
             }
-            return request( req );
+            return req;
         }
         // .........................................................................................
         template <typename K>
@@ -294,17 +328,33 @@ namespace xcore
             MPI_Barrier( m_communicator );
         }
         // ----------------------------------------------------------------------------------------------------
-        status probe( int source, int tag )
+        status probe( int source, int tag ) const
         {
             status status;
-            MPI_Probe( source, tag, m_communicator, &status.mpi_status );
+            int ierr = MPI_Probe( source, tag, m_communicator, &status.mpi_status );
+            if ( ierr != MPI_SUCCESS ) {
+                char errMsg[1024];
+                int  lenStr;
+                MPI_Error_string( ierr, errMsg, &lenStr );
+                 std::cerr << __PRETTY_FUNCTION__ << " : Erreur " << errMsg << std::endl;
+                MPI_Abort( MPI_COMM_WORLD, ierr );
+                exit( EXIT_FAILURE );
+            }
             return status;
         }
         // ----------------------------------------------------------------------------------------------------
-        bool iprobe( int source, int tag, status &st )
+        bool iprobe( int source, int tag, status &st ) const
         {
-            int flag;
-            MPI_Iprobe( source, tag, m_communicator, &flag, &st.mpi_status );
+            int flag, ierr;
+            ierr = MPI_Iprobe( source, tag, m_communicator, &flag, &st.mpi_status );
+            if ( ierr != MPI_SUCCESS ) {
+                char errMsg[1024];
+                int  lenStr;
+                MPI_Error_string( ierr, errMsg, &lenStr );
+                 std::cerr << __PRETTY_FUNCTION__ << " : Erreur " << errMsg << std::endl;
+                MPI_Abort( MPI_COMM_WORLD, ierr );
+                exit( EXIT_FAILURE );
+            }
             return ( flag != 0 );
         }
         // -----------------------------------------------------------------------------------------
@@ -476,19 +526,42 @@ namespace xcore
                 snd = new std::vector<typename K::value_type, typename K::allocator_type>( snd_obj.size() );
                 std::copy( snd_obj.begin(), snd_obj.end(), snd->begin() );
             }
-
-            MPI_Request m_req;
+            request req;
             if ( Type_MPI<typename K::value_type>::must_be_packed() ) {
                 MPI_Isend( snd->data(), snd->size() * sizeof( typename K::value_type ), MPI_BYTE, dest, tag, com,
-                           &m_req );
+                           req.m_req.get() );
             } else {
                 MPI_Isend( snd->data(), snd->size(), Type_MPI<typename K::value_type>::mpi_type(), dest, tag, com,
-                           &m_req );
+                           req.m_req.get() );
             }
             if ( !std::is_base_of<std::vector<typename K::value_type, typename K::allocator_type>, K>::value ) {
                 delete snd;
             }
-            return request( m_req );
+            return req;
+        }
+        // .......................................................................................
+        static request issend( const MPI_Comm &com, const K &snd_obj, int dest, int tag )
+        {
+            std::vector<typename K::value_type, typename K::allocator_type> *snd;
+            if ( std::is_base_of<std::vector<typename K::value_type, typename K::allocator_type>, K>::value ) {
+                snd = (std::vector<typename K::value_type, typename K::allocator_type> *)&snd_obj;
+            } else {
+                snd = new std::vector<typename K::value_type, typename K::allocator_type>( snd_obj.size() );
+                std::copy( snd_obj.begin(), snd_obj.end(), snd->begin() );
+            }
+
+            request req;
+            if ( Type_MPI<typename K::value_type>::must_be_packed() ) {
+                MPI_Issend( snd->data(), snd->size() * sizeof( typename K::value_type ), MPI_BYTE, dest, tag, com,
+                           req.m_req.get() );
+            } else {
+                MPI_Issend( snd->data(), snd->size(), Type_MPI<typename K::value_type>::mpi_type(), dest, tag, com,
+                           req.m_req.get() );
+            }
+            if ( !std::is_base_of<std::vector<typename K::value_type, typename K::allocator_type>, K>::value ) {
+                delete snd;
+            }
+            return req;
         }
         // .......................................................................................
         static status recv( const MPI_Comm &com, K &rcvobj, int sender, int tag )
@@ -530,13 +603,13 @@ namespace xcore
                 rcv = new std::vector<typename K::value_type, typename K::allocator_type>( rcvobj.size() );
             }
 
-            MPI_Request req;
+            request req;
             if ( Type_MPI<typename K::value_type>::must_be_packed() ) {
                 MPI_Irecv( rcv->data(), rcv->size() * sizeof( typename K::value_type ), MPI_BYTE, sender, tag, com,
-                           &req );
+                           req.m_req.get() );
             } else {
                 MPI_Irecv( rcv->data(), rcv->size(), Type_MPI<typename K::value_type>::mpi_type(), sender, tag, com,
-                           &req );
+                           req.m_req.get() );
             }
 
             if ( !std::is_base_of<std::vector<typename K::value_type, typename K::allocator_type>, K>::value ) {
@@ -544,7 +617,7 @@ namespace xcore
                 delete rcv;
             }
 
-            return request( req );
+            return req;
         }
         // .......................................................................................
         static void broadcast( const MPI_Comm &com, const K *obj_snd, K &obj_rcv, int root )

@@ -52,8 +52,22 @@ namespace xcore
             (K*)m_pt_sendbuffer = &obj;
             return request{};
         }
+        // .................................................................
+        template <typename K>
+        request issend( const K& obj, int dest, int tag ) const {
+            (K*)m_pt_sendbuffer = &obj;
+            return request{};
+        }
         // .............................................................
         template<typename K> request isend( std::size_t nbItems, const K* sndbuff,
+                                            int dest, int tag ) const
+        {
+            m_nbItems = nbItems;
+            m_pt_sendbuffer = sndbuff;
+            return request();
+        }
+        // .............................................................
+        template<typename K> request issend( std::size_t nbItems, const K* sndbuff,
                                             int dest, int tag ) const
         {
             m_nbItems = nbItems;
@@ -181,7 +195,7 @@ namespace xcore
             tr_ranks[0] = ranks[0];
         }
         // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
-        bool iprobe( int source, int tag, status &st )
+        bool iprobe( int source, int tag, status &st ) const
         {
             return true;
         }
@@ -192,5 +206,4 @@ namespace xcore
     };
     // -----------------------------------------------------------------
   }    
-}
 #endif

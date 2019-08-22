@@ -30,5 +30,12 @@ namespace xmpi
         if ( pt_global_com == nullptr ) pt_global_com = new communicator;
         return *pt_global_com;
     }
+    // ...............................................................................................
+    K_LOGGER::logger context::logger()
+    {
+        K_LOGGER::logger logg;
+        logg.subscribe(new K_LOGGER::log_from_distributed_file(K_LOGGER::logger::listener::listen_for_all, "XMPI_Output", 0));
+        return logg;
+    }
 }
 #endif

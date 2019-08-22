@@ -1,18 +1,24 @@
 #if defined (_MPI)
 #include "xmpi/x_mpi.h"
 #include "xmpi/context.hpp"
+#include "Logger/log_from_distributed_file.hpp"
 
 namespace xcore
 {
     communicator *context::pt_global_com = nullptr;
+    K_LOGGER::logger*  pt_xmpi_logg = nullptr;
 
     context::context()
     {
         int provided;
         int initialized;
+        has_initialized_parallel = true;
         MPI_Initialized(&initialized);
-        if ( not initialized ) 
+        if ( not initialized )
+        {
             MPI_Init_thread(NULL,NULL, MPI_THREAD_MULTIPLE, &provided);
+            has_initialized_parallel = false;
+        }
         else
             MPI_Query_thread( &provided );
         switch ( provided ) {
@@ -38,9 +44,11 @@ namespace xcore
     context::context( int &nargc, char *argv[], context::thread_support thread_level_support )
         : m_provided( thread_level_support ) {
         int initialized;
+        has_initialized_parallel = true;
         MPI_Initialized(&initialized);
         if ( initialized ) // MPI a deja ete initialise auparavant
         {
+            has_initialized_parallel = false;
             int provided;
             MPI_Query_thread( &provided );
             if ( provided < thread_level_support )
@@ -98,11 +106,22 @@ namespace xcore
         }
     }
     // ...............................................................................................
-    context::~context( ) { MPI_Finalize( ); }
+    context::~context( ) { if (has_initialized_parallel)  MPI_Finalize( ); }
     // ...............................................................................................
     communicator &context::globalCommunicator( ) {
         if ( pt_global_com == nullptr ) pt_global_com = new communicator;
         return *pt_global_com;
+    }
+    // ...............................................................................................
+    K_LOGGER::logger& context::logger()
+    {
+        if ( pt_xmpi_logg == nullptr ) 
+        {
+            pt_xmpi_logg = new K_LOGGER::logger;
+            pt_xmpi_logg->subscribe(new K_LOGGER::log_from_distributed_file(K_LOGGER::logger::listener::listen_for_all, 
+                                                                            "XMPI_Output", globalCommunicator( ).rank));
+        }
+        return *pt_xmpi_logg;
     }
 }
 #endif

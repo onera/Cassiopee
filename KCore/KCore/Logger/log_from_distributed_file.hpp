@@ -2,6 +2,7 @@
 # define _KCORE_LOGGER_LOG_FROM_DISTRIBUTED_FILE_HPP_
 # include <fstream>
 # include <cassert>
+#include <string>
 # include "Logger/logger.hpp"
 # include "Logger/log_to_file.hpp"
 # include "Memory/shared_ptr.hpp"

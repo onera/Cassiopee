@@ -1,6 +1,7 @@
 #ifndef _XCORE_XMPI_CONTEXT_HPP_
 #define _XCORE_XMPI_CONTEXT_HPP_
 
+#include "Logger/logger.hpp"
 #include "xmpi/communicator.hpp"
 /*!  \namespace xcore
  *
@@ -79,8 +80,9 @@ namespace xcore
 
             // The global communicator
             static communicator &globalCommunicator();
-
+            static K_LOGGER::logger& logger();
         private:
+            bool has_initialized_parallel; /*!< Has context initialize the parallel context ? */
             thread_support m_provided; /*!< Actual multithread level support */
             static communicator *pt_global_com;
         };

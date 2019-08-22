@@ -85,7 +85,7 @@ namespace xcore
         template <>
         struct Type_MPI<unsigned char> {
             static bool must_be_packed() { return false; }
-            static MPI_Datatype mpi_type() { return MPI_UNSIGNED_CHAR; }
+            static MPI_Datatype mpi_type() { return MPI_BYTE; }
         };
         //
         template <>

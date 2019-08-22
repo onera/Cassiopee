@@ -197,6 +197,37 @@ namespace xcore
             request isend( size_t nbItems, const K *obj, int dest, int tag = 0 ) const;
             // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
             /*!
+   *    \brief Perform an asynchonous send on an object to another process
+   *
+   *    The method isend starts a standard-mode asynchronous send and return
+   *    a request object which can be used later to query the status of the
+   *    communication or wait for the completion of the send.
+   *
+   *    \param obj  The object to send
+   *    \param dest The destination rank
+   *    \param tag  The message tag
+   *    \return     The request object associated at the send call
+   */
+            template <typename K>
+            request issend( const K &obj, int dest, int tag = 0 ) const;
+            /*!
+   *    \brief Perform an asynchonous send on a buffer of objects to another
+   * process
+   *
+   *    The method isend starts a standard-mode asynchronous send and return
+   *    a request object which can be used later to query the status of the
+   *    communication or wait for the completion of the send.
+   *
+   *    \param nbItems The number of items stored in the buffer
+   *    \param obj     The buffer to send
+   *    \param dest    The destination rank
+   *    \param tag     The message tag
+   *    \return        The request object associated at the send call
+   */
+            template <typename K>
+            request issend( size_t nbItems, const K *obj, int dest, int tag = 0 ) const;            
+            // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+            /*!
    *    \brief Perform a blocking receive to receive an object sended by another
    * process
    *
@@ -546,11 +577,11 @@ namespace xcore
             template<typename K> void gather( const K &obj, K* arr_of_objs = nullptr, int root = 0 ) const;
             template<typename K> void gather( std::size_t nb_objs_to_send, const K* objs, K* arr_of_revc_objs = nullptr, int root = 0 );
             // ===================================================================
-            status probe( int source = any_source, int tag = any_tag );
+            status probe( int source = any_source, int tag = any_tag ) const;
             // Return status with  if none message with specified source and tag is
             // available
             // else return the matching status.
-            bool iprobe( status &status, int source = any_source, int tag = any_tag );
+            bool iprobe( status &status, int source = any_source, int tag = any_tag ) const;
         private:
             struct Implementation;
             Implementation *m_impl;

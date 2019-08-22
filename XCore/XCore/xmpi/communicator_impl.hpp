@@ -31,6 +31,16 @@ namespace xcore {
     }
     // .................................................................
     template <typename K>
+    request communicator::issend( const K& obj, int dest, int tag ) const {
+        return m_impl->issend( obj, dest, tag );
+    }
+    // .................................................................
+    template <typename K>
+    request communicator::issend( std::size_t nbItems, const K* obj, int dest, int tag ) const {
+        return m_impl->issend( nbItems, obj, dest, tag );
+    }
+    // .................................................................
+    template <typename K>
     status communicator::recv( K& obj, int sender, int tag ) const {
         return m_impl->recv( obj, sender, tag );
     }

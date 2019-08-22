@@ -60,7 +60,7 @@
 
 #ifndef SCOTCH_H
 #define SCOTCH_H
-
+#include <stdint.h>
 /*
 **  The type and structure definitions.
 */

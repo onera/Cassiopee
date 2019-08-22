@@ -67,7 +67,7 @@ namespace xcore
     // =============================================================================
     void communicator::barrier() const { m_impl->barrier(); }
     // ========================================================================
-    status communicator::probe( int source, int tag ) { return m_impl->probe( source, tag ); }
+    status communicator::probe( int source, int tag ) const { return m_impl->probe( source, tag ); }
     // ------------------------------------------------------------------------------------
-    bool communicator::iprobe( status &status, int source, int tag ) { return m_impl->iprobe( source, tag, status ); }
+    bool communicator::iprobe( status &status, int source, int tag ) const { return m_impl->iprobe( source, tag, status ); }
 }  // namespace xcore
