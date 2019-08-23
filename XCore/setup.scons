@@ -89,7 +89,6 @@ if mpi:
   src_paradigma = [x for x in srcs_paradigma.cpp_srcs if not 'mpi_wrapper/no_mpi' in x]
 else:
   src_paradigma = [x for x in srcs_paradigma.cpp_srcs if not 'mpi_wrapper/mpi' in x]
-print(src_paradigma)
 
 myMod = env.StaticLibrary('xcore', srcs.cpp_srcs)
 myMod2 = env.StaticLibrary('paradigma', src_paradigma)

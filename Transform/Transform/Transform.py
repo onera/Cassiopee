@@ -833,6 +833,20 @@ def subzone(array, minIndex, maxIndex=None, type=None):
             raise TypeError("subzone with two ranges is not valid for unstructured arrays.")
         return transform.subzoneStruct(array, minIndex, maxIndex)
 
+def split(a, dir, index):
+    """Split a structured zone in two zones following dir and index."""
+    ni = a[2]; nj = a[3]; nk = a[4]
+    if dir == 1: # direction i
+        a1 = subzone(a, (1,1,1), (index,nj,nk))
+        a2 = subzone(a, (index,1,1), (ni,nj,nk))
+    elif dir == 2: # direction j
+        a1 = subzone(a, (1,1,1), (ni,index,nk))
+        a2 = subzone(a, (1,index,1), (ni,nj,nk))
+    elif dir == 3: # direction k
+        a1 = subzone(a, (1,1,1), (ni,nj,index))
+        a2 = subzone(a, (1,1,index), (ni,nj,nk))
+    return a1, a2
+
 def reorder(a, order):
     """Reorder the numerotation of mesh.
     Usage: reorder(a, (2,1,-3))"""

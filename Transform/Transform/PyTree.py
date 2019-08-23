@@ -305,12 +305,12 @@ def _oneovernBC__(t, N):
             j2n = math.floor(1.*(j2-1)/N[1])+1
             k1n = math.floor(1.*(k1-1)/N[2])+1
             k2n = math.floor(1.*(k2-1)/N[2])+1
-            if (i1 - i1n*N[0] != 1-N[0]): addi1 = 1
-            if (i2 - i2n*N[0] != 1-N[0]): addi2 = 1
-            if (j1 - j1n*N[1] != 1-N[1]): addj1 = 1
-            if (j2 - j2n*N[1] != 1-N[1]): addj2 = 1
-            if (k1 - k1n*N[2] != 1-N[2]): addk1 = 1
-            if (k2 - k2n*N[2] != 1-N[2]): addk2 = 1
+            if i1 - i1n*N[0] != 1-N[0]: addi1 = 1
+            if i2 - i2n*N[0] != 1-N[0]: addi2 = 1
+            if j1 - j1n*N[1] != 1-N[1]: addj1 = 1
+            if j2 - j2n*N[1] != 1-N[1]: addj2 = 1
+            if k1 - k1n*N[2] != 1-N[2]: addk1 = 1
+            if k2 - k2n*N[2] != 1-N[2]: addk2 = 1
             i1n+=addi1;i2n+=addi2;j1n+=addj1;j2n+=addj2;k1n+=addk1;k2n+=addk2
             range0 = [int(i1n),int(i2n),int(j1n),int(j2n),int(k1n),int(k2n)]
             r2 = Internal.window2Range(range0)
@@ -331,12 +331,12 @@ def _oneovernBC__(t, N):
                 j2n = math.floor(1.*(j2-1)/N[1])+1
                 k1n = math.floor(1.*(k1-1)/N[2])+1
                 k2n = math.floor(1.*(k2-1)/N[2])+1
-                if (i1 - i1n*N[0] != 1-N[0]): addi1 = 1
-                if (i2 - i2n*N[0] != 1-N[0]): addi2 = 1
-                if (j1 - j1n*N[1] != 1-N[1]): addj1 = 1
-                if (j2 - j2n*N[1] != 1-N[1]): addj2 = 1
-                if (k1 - k1n*N[2] != 1-N[2]): addk1 = 1
-                if (k2 - k2n*N[2] != 1-N[2]): addk2 = 1
+                if i1 - i1n*N[0] != 1-N[0]: addi1 = 1
+                if i2 - i2n*N[0] != 1-N[0]: addi2 = 1
+                if j1 - j1n*N[1] != 1-N[1]: addj1 = 1
+                if j2 - j2n*N[1] != 1-N[1]: addj2 = 1
+                if k1 - k1n*N[2] != 1-N[2]: addk1 = 1
+                if k2 - k2n*N[2] != 1-N[2]: addk2 = 1
                 i1n+=addi1;i2n+=addi2;j1n+=addj1;j2n+=addj2;k1n+=addk1;k2n+=addk2
                 range0 = [int(i1n),int(i2n),int(j1n),int(j2n),int(k1n),int(k2n)]
                 r2 = Internal.window2Range(range0)
@@ -372,25 +372,25 @@ def getBCRange__(w, imin, imax, jmin, jmax, kmin, kmax):
     i2 = w[0,1]; j2 = w[1,1]; k2 = w[2,1]
     io1 = i1; io2 = i2; jo1 = j1; jo2 = j2; ko1 = k1; ko2 = k2
     i1=min(io1,io2); i2=max(io1,io2);j1=min(jo1,jo2);j2=max(jo1,jo2);k1=min(ko1,ko2);k2=max(ko1,ko2)
-    if (imin >= i1 and imax <= i2): io1 = 1; io2 = imax-imin+1
-    elif (imin >= i1 and imin <= i2): io1 = 1; io2 = i2-imin+1
-    elif (imax >= i1 and imax <= i2): io2 = imax
-    if (imin < i1): io1 = i1-imin+1; io2 = io2-imin + 1
+    if imin >= i1 and imax <= i2: io1 = 1; io2 = imax-imin+1
+    elif imin >= i1 and imin <= i2: io1 = 1; io2 = i2-imin+1
+    elif imax >= i1 and imax <= i2: io2 = imax
+    if imin < i1: io1 = i1-imin+1; io2 = io2-imin + 1
 
-    if (jmin >= j1 and jmax <= j2): jo1 = 1; jo2 = jmax-jmin+1
-    elif (jmin >= j1 and jmin <= j2): jo1 = 1; jo2 = j2-jmin+1
-    elif (jmax >= j1 and jmax <= j2): jo2 = jmax
-    if (jmin < j1): jo1 = j1-jmin+1; jo2 = jo2-jmin+1
+    if jmin >= j1 and jmax <= j2: jo1 = 1; jo2 = jmax-jmin+1
+    elif jmin >= j1 and jmin <= j2: jo1 = 1; jo2 = j2-jmin+1
+    elif jmax >= j1 and jmax <= j2: jo2 = jmax
+    if jmin < j1: jo1 = j1-jmin+1; jo2 = jo2-jmin+1
 
-    if (kmin >= k1 and kmax <= k2): ko1 = 1; ko2 = kmax-kmin+1
-    elif (kmin >= k1 and kmin <= k2): ko1 = 1; ko2 = k2-kmin+1
-    elif (kmax >= k1 and kmax <= k2): ko2 = kmax
+    if kmin >= k1 and kmax <= k2: ko1 = 1; ko2 = kmax-kmin+1
+    elif kmin >= k1 and kmin <= k2: ko1 = 1; ko2 = k2-kmin+1
+    elif kmax >= k1 and kmax <= k2: ko2 = kmax
     if kmin < k1: ko1 = k1-kmin+1; ko2 = ko2-kmin+1
     if i1 == i2:
         if i1 >= imax: io1 = imax-imin+1; io2 = imax-imin+1
         elif i1 < imin: io1 = 1; io2 = 1
     if j1 == j2:
-        if (j1 >= jmax): jo1 = jmax-jmin+1; jo2 = jmax-jmin+1
+        if j1 >= jmax: jo1 = jmax-jmin+1; jo2 = jmax-jmin+1
         elif j1 < jmin: jo1 = 1; jo2 = 1
     if k1 == k2:
         if k1 >= kmax: ko1 = kmax-kmin+1; ko2 = kmax-kmin+1
@@ -421,7 +421,7 @@ def isWindowInSubzone__(w, dim, imin, imax, jmin, jmax, kmin, kmax,
             (k1 == k2 and k1 == nk0 and kmax < nk0)):
             isout = 1
 
-    if (imax < i1 or imin > i2 or jmax < j1 or jmin > j2 or kmax < k1 or kmin > k2): isout = 1
+    if imax < i1 or imin > i2 or jmax < j1 or jmin > j2 or kmax < k1 or kmin > k2: isout = 1
     return isout
 
 # subzone les BC de z de l'arbre t
@@ -601,6 +601,273 @@ def subzoneStruct__(t, minIndex, maxIndex):
         else: t2 = z2
     
     return t2
+
+# intersection de fenetres
+# win1 = fenetre par rapport a un bloc B
+# win2 = fenetre par rapport a un bloc B
+# si ret=0: retourne fenetre commune par rapport a B
+# si ret=1: retourne fenetre commune par rapport a win1
+def intersection__(win1, win2, dir, ret=0):
+    fi1,fi2,fj1,fj2,fk1,fk2 = win1
+    si1,si2,sj1,sj2,sk1,sk2 = win2
+    if fi2 < si1: return None
+    if si2 < fi1: return None
+    if fj2 < sj1: return None
+    if sj2 < fj1: return None
+    if fk2 < sk1: return None
+    if sk2 < fk1: return None
+    oi1 = max(fi1,si1)
+    oi2 = min(fi2,si2)
+    oj1 = max(fj1,sj1)
+    oj2 = min(fj2,sj2)
+    ok1 = max(fk1,sk1)
+    ok2 = min(fk2,sk2)
+    if dir == 1 and oi1 == oi2: return None # avoid degenerated windows
+    if dir == 2 and oj1 == oj2: return None # avoid degenerated windows
+    if dir == 3 and ok1 == ok2: return None # avoid degenerated windows
+    if ret == 0: return [oi1,oi2,oj1,oj2,ok1,ok2]
+    else: return [oi1-fi1+1,oi2-fi1+1,oj1-fj1+1,oj2-fj1+1,ok1-fk1+1,ok2-fk1+1]
+
+# composition de fenetres
+# win1 est une fenetre par rapport a win2
+# win2 est une fenetre par rapport a B
+# Retourne la fenetre 1 par rapport a B
+def composition__(win1, win2):
+    fi1,fi2,fj1,fj2,fk1,fk2 = win1
+    si1,si2,sj1,sj2,sk1,sk2 = win2
+    return [si1+fi1-1,si2+fi1-1,sj1+fj1-1,sj2+fj1-1,sk1+fk1-1,sk2+fk1-1]
+
+# Transforme un trirac en shift matrix
+def shiftMatrix__(trirac):
+    m = numpy.zeros((9), dtype=numpy.float64)
+    s = trirac.size
+    for c in range(s):
+        if trirac[c] == 1: m[0+3*c] = 1
+        elif trirac[c] == -1: m[0+3*c] = -1
+        elif trirac[c] == 2: m[1+3*c] = 1
+        elif trirac[c] == -2: m[1+3*c] = -1
+        elif trirac[c] == 3: m[2+3*c] = 1
+        elif trirac[c] == -3: m[2+3*c] = -1
+    if s == 2: m[2+3*2] = 1
+    return m
+
+# Retourne un indice sur le donneur
+# win: fenetre sur B (raccord match)
+# winDonor : fenetre correspondante a win1 sur opp(B)
+# i,j,k : indices sur B
+# retourne : indices de ijk sur opp(B)
+def donorIndex__(win,winDonor,trirac,(i,j,k)):
+    m = shiftMatrix__(trirac)
+    fi1,fi2,fj1,fj2,fk1,fk2 = win
+    si1,si2,sj1,sj2,sk1,sk2 = winDonor
+    ip = si1+m[0+3*0]*(i-fi1)+m[0+3*1]*(j-fj1)+m[0+3*2]*(k-fk1)
+    jp = sj1+m[1+3*0]*(i-fi1)+m[1+3*1]*(j-fj1)+m[1+3*2]*(k-fk1)
+    kp = sk1+m[2+3*0]*(i-fi1)+m[2+3*1]*(j-fj1)+m[2+3*2]*(k-fk1)
+    return (ip,jp,kp)
+
+#=====================================================================
+# Retourne les raccords matchs d'une zone z
+# Si donorName est specifie, retourne les raccords matchs correspondants
+# uniquement a ce donneur
+#=====================================================================
+def getBCMatchs__(z, donorName=None):
+    bcs = []
+    gc = Internal.getNodeFromType1(z, 'ZoneGridConnectivity_t')
+
+    if donorName is None: # return all BCMatchs
+        if gc is not None:
+            bcs = Internal.getNodesFromType1(gc, 'GridConnectivity1to1_t')
+        return bcs
+
+    # Return BCMatchs with given donorName
+    if gc is not None:
+        l = Internal.getNodesFromType1(gc, 'GridConnectivity1to1_t')
+        for bc in l:
+            oppBlock = Internal.getValue(bc)
+            if oppBlock == donorName: bcs.append(bc)
+    return bcs
+
+#=====================================================================
+# Retourne les datas d'un BCMatch : oppBlockName, range, donorRange, trf
+#=====================================================================
+def getBCMatchData__(bc):
+    oppBlock = Internal.getValue(bc)
+    rnge = Internal.getNodeFromName1(bc, 'PointRange')
+    rnge = Internal.range2Window(rnge[1])
+    donor = Internal.getNodeFromName1(bc, 'PointRangeDonor')
+    donor = Internal.range2Window(donor[1])
+    trf = Internal.getNodeFromName1(bc, 'Transform')
+    trf = Internal.getValue(trf)
+    if trf.size == 2: # met toujours le transform en 3D
+        trf2 = numpy.empty(3, dtype=numpy.int32)
+        trf2[0:2] = trf[0:2]; trf2[2] = 3
+        trf = trf2
+    return (oppBlock, rnge, donor, trf)
+
+# Cree le match interne entre z1 et z2 pour un split en dir
+def _createInternalBCMatch(z1, z2, dir):
+    if dir == 1:
+        C._addBC2Zone(z1, 'match', 'BCMatch', 'imax', z2, 'imin', [1,2,3])
+        C._addBC2Zone(z2, 'match', 'BCMatch', 'imin', z2, 'imax', [1,2,3])
+    elif dir == 2:
+        C._addBC2Zone(z1, 'match', 'BCMatch', 'jmax', z2, 'jmin', [1,2,3])
+        C._addBC2Zone(z2, 'match', 'BCMatch', 'jmin', z2, 'jmax', [1,2,3])
+    else:
+        C._addBC2Zone(z1, 'match', 'BCMatch', 'kmax', z2, 'kmin', [1,2,3])
+        C._addBC2Zone(z2, 'match', 'BCMatch', 'kmin', z2, 'kmax', [1,2,3])
+    return None
+
+# Delete dans t les BCs match referencant zname
+def _deleteBCMatchRef(t, zname):
+    zones = Internal.getZones(t)
+    for zp in zones:
+        bcs = getBCMatchs__(zp, zname)
+        for b in bcs:
+            Internal._rmNode(zp, b)
+    return None
+
+def _replaceZoneWithSplit(t, zname, z1, z2):
+    zones = Internal.getZones(t)
+    for z in zones:
+        if z[0] == zname:
+            p,c = Internal.getParentOfNode(t,z)
+            p[2][c] = z1
+            p[2].append(z2)
+    return None
+
+# Reporte les BC match de z sur z1 et z2 (et modifie t)
+def _adaptBCMatch(z, z1, z2, dir, splitDict, t=None):
+    bcs = getBCMatchs__(z)
+    for b in bcs:
+        d = getBCMatchData__(b)
+        (oppBlock, winz, winDonor, trirac) = d
+
+        # Reporte cette BC sur z1
+        winz1 = splitDict[z1[0]][1:]
+        wini1 = intersection__(winz1, winz, dir, ret=0)
+        wini = intersection__(winz1, winz, dir, ret=1)
+        
+        if wini is not None:
+            ind0 = donorIndex__(winz,winDonor,trirac,(wini1[0],wini1[2],wini1[4]))
+            ind1 = donorIndex__(winz,winDonor,trirac,(wini1[1],wini1[3],wini1[5]))
+            winopp = [ind0[0],ind1[0],ind0[1],ind1[1],ind0[2],ind1[2]]
+            C._addBC2Zone(z1, 'match', 'BCMatch', wini, oppBlock, winopp, trirac)
+            if t is not None:
+                zopp = Internal.getNodeFromName2(t, oppBlock)
+                C._addBC2Zone(zopp, 'match', 'BCMatch', winopp, z1[0], wini, trirac)
+
+        # Reporte cette BC sur z2
+        winz2 = splitDict[z2[0]][1:]
+        wini1 = intersection__(winz2, winz, dir, ret=0)
+        wini = intersection__(winz2, winz, dir, ret=1)
+        if wini is not None:
+            ind0 = donorIndex__(winz,winDonor,trirac,(wini1[0],wini1[2],wini1[4]))
+            ind1 = donorIndex__(winz,winDonor,trirac,(wini1[1],wini1[3],wini1[5]))
+            winopp = [ind0[0],ind1[0],ind0[1],ind1[1],ind0[2],ind1[2]]
+            C._addBC2Zone(z2, 'match', 'BCMatch', wini, oppBlock, winopp, trirac)
+            if t is not None:
+                zopp = Internal.getNodeFromName2(t, oppBlock)
+                C._addBC2Zone(zopp, 'match', 'BCMatch', winopp, z2[0], wini, trirac)
+
+    if t is not None: _deleteBCMatchRef(t, z[0])
+    return None
+
+# split (z)
+# z: zone ou zone skeleton
+# Retourne deux zones avec les BCs + BCMatchs OK
+# Si t est donne, t est modifie
+# si splitDict est fourni, renvoie l'historique de split
+def split(z, dir=1, index=1, t=None, splitDict={}):
+    dimz = Internal.getZoneDim(z)
+    ni = dimz[1]; nj = dimz[2]; nk = dimz[3]
+    if dir == 1: # direction i
+        z1 = subzone(z, (1,1,1), (index,-1,-1))
+        z2 = subzone(z, (index,1,1), (-1,-1,-1))
+        z1[0] = z[0]+'A'; z2[0] = z[0]+'B'
+        splitDict[z1[0]] = [z[0],1,index,1,nj,1,nk]
+        splitDict[z2[0]] = [z[0],index,ni,1,nj,1,nk]
+    elif dir == 2: # direction j
+        z1 = subzone(z, (1,1,1), (-1,index,-1))
+        z2 = subzone(z, (1,index,1), (-1,-1,-1))
+        z1[0] = z[0]+'A'; z2[0] = z[0]+'B'
+        splitDict[z1[0]] = [z[0],1,ni,1,index,1,nk]
+        splitDict[z2[0]] = [z[0],1,ni,index,nj,1,nk]
+    elif dir == 3: # direction k
+        z1 = subzone(z, (1,1,1), (-1,-1,index))
+        z2 = subzone(z, (1,1,index), (-1,-1,-1))
+        z1[0] = z[0]+'A'; z2[0] = z[0]+'B'
+        splitDict[z1[0]] = [z[0],1,ni,1,nj,1,index]
+        splitDict[z2[0]] = [z[0],1,ni,1,nj,index,nk]
+    _createInternalBCMatch(z1, z2, dir)
+    _adaptBCMatch(z, z1, z2, dir, splitDict, t)
+    if t is not None: _replaceZoneWithSplit(t, z[0], z1, z2)
+    return z1, z2
+
+#=====================================================================
+# IN: window: [imin,imax,jmin,jmax,kmin,kmax]
+# Retourne 1, 2, 3
+#=====================================================================
+def getWinDir2__(win):
+    if win[0] == win[1]: return 1
+    if win[2] == win[3]: return 2
+    if win[4] == win[5]: return 3
+    return -1
+
+#=====================================================================
+# Casse les zones structurees pour que les raccords soient
+# sur des faces pleines
+#=====================================================================
+def _splitFullMatch(t):
+    zones = Internal.getZones(t)
+    stack = []
+    for z in zones:
+        dim = Internal.getZoneDim(z)
+        if dim[0] == 'Structured': stack.append(z)
+
+    while len(stack) > 0:
+        z = stack.pop(0)
+        splitFullMatch__(z, stack, t)
+
+    return None
+
+def splitFullMatch__(z, stack, t):
+    dim = Internal.getZoneDim(z)
+    ni = dim[1]; nj = dim[2]; nk = dim[3]
+    bcs = getBCMatchs__(z)
+    for bc in bcs:
+        (oppBlock, rnge, donor, trf) = getBCMatchData__(bc)
+        dir = getWinDir2__(rnge)
+
+        # verifie si la fenetre est full
+        if (dir == 2 or dir == 3) and rnge[0] > 1:
+            z1,z2 = split(z, 1, rnge[0], t)
+            stack.append(z1); stack.append(z2)
+            return
+
+        if (dir == 2 or dir == 3) and rnge[1] < ni:
+            z1,z2 = split(z, 1, rnge[1], t)
+            stack.append(z1); stack.append(z2)
+            return
+
+        if (dir == 1 or dir == 3) and rnge[2] > 1: # need split, stack
+            z1,z2 = split(z, 2, rnge[2], t)
+            stack.append(z1); stack.append(z2)
+            return
+
+        if (dir == 1 or dir == 3) and rnge[3] < nj: # need split, stack
+            z1,z2 = split(z, 2, rnge[3], t)
+            stack.append(z1); stack.append(z2)
+            return
+
+        if (dir == 1 or dir == 2) and rnge[4] > 1: # need split, stack
+            z1,z2 = split(z, 3, rnge[4], t)
+            stack.append(z1); stack.append(z2)
+            return
+
+        if (dir == 1 or dir == 2) and rnge[5] < nk: # need split, stack
+            z1,z2 = split(z, 3, rnge[5], t)
+            stack.append(z1); stack.append(z2)
+            return
 
 #======================================
 # reorder the numerotation of the mesh
@@ -840,7 +1107,7 @@ def _reorderBCMatch__(a, order, zoneNames):
                         transfos = Internal.getNodesFromName1(cn, 'Transform')
                         for transfo in transfos:
                             (parent, d) = Internal.getParentOfNode(cn, transfo)
-                            trirac=reorderTrirac__(transfo[1],order)
+                            trirac = reorderTrirac__(transfo[1],order)
                             parent[2][d][1] = trirac
                         break
 
@@ -872,7 +1139,7 @@ def _reorderGC__(t, order):
     nodes = Internal.getZones(t)
     for z in nodes:
         dim = Internal.getZoneDim(z)
-        if (dim[0] == 'Structured' and len(order) == 3):
+        if dim[0] == 'Structured' and len(order) == 3:
             oi = order[0]; oj = order[1]; ok = order[2]
             connect = Internal.getNodesFromType1(z, 'ZoneGridConnectivity_t')
             for cn in connect:
@@ -1118,7 +1385,7 @@ def _addkplane(t, N=1):
 
         # Coordinates + fields located at nodes
         if fn != []:
-            if (nodes == []): nodes = fn
+            if nodes == []: nodes = fn
             else: nodes = Converter.addVars([nodes, fn])
 
         nodesN = Transform.addkplane(nodes, N=N)
@@ -1469,7 +1736,7 @@ def splitSizeUpR_OMP__(t, N, R, multigrid, dirs, minPtsPerDir):
 
     # Init le vecteur des ressources
     Rs = [0]*R
-    Thread_z=[([0],1,[])]
+    Thread_z = [([0],1,[])]
     for ith in range(2,R+1): Thread_z.append(([0],ith,[])) # Thread_z = [Nbpoints,ithread,corresponding work]
 
     mins = minPtsPerDir-1 # nbre de cellules mini des blocs par direction
@@ -1489,11 +1756,11 @@ def splitSizeUpR_OMP__(t, N, R, multigrid, dirs, minPtsPerDir):
         nik = ni1*nk1; njk = nj1*nk1; nij = ni1*nj1
         Nr = min(N, N-Rs[0])
         ncells = ni1*nj1*nk1
-        if (ncells > Nr):
+        if ncells > Nr:
             # Calcul le meilleur split
             nc = int(round(Nr*1./njk,0))+1
             ns = Transform.findMGSplitUp__(ni, nc, level=multigrid)
-            if (ns-1 < mins): ns = 5
+            if ns-1 < mins: ns = 5
             delta1 = ns-1
             delta2 = ni-ns
             if delta2 < mins: delta2 -= 1.e6
@@ -1501,7 +1768,7 @@ def splitSizeUpR_OMP__(t, N, R, multigrid, dirs, minPtsPerDir):
             deltai = delta3-delta1-delta2
             nc = int(round(Nr*1./nik,0))+1
             ns = Transform.findMGSplitUp__(nj, nc, level=multigrid)
-            if (ns-1 < mins): ns = 5
+            if ns-1 < mins: ns = 5
             delta1 = ns-1
             delta2 = nj-ns
             if delta2 < mins: delta2 -= 1.e6
@@ -1509,7 +1776,7 @@ def splitSizeUpR_OMP__(t, N, R, multigrid, dirs, minPtsPerDir):
             deltaj = delta3-delta1-delta2
             nc = int(round(Nr*1./nij,0))+1
             ns = Transform.findMGSplitUp__(nk, nc, level=multigrid)
-            if (ns-1 < mins): ns = 5
+            if ns-1 < mins: ns = 5
             delta1 = ns-1
             delta2 = nk-ns
             if delta2 < mins: delta2 -= 1.e6
@@ -1529,19 +1796,18 @@ def splitSizeUpR_OMP__(t, N, R, multigrid, dirs, minPtsPerDir):
 #                elif (deltai <= deltaj and 1 in dirs): dirl = 1
 #                elif (2 in dirs): dirl = 2
 #
-            if (deltak <= deltai and deltak <= deltaj):            # Favor k split over j and i
+            if deltak <= deltai and deltak <= deltaj:            # Favor k split over j and i
                 if (3 in dirs): dirl = 3
                 elif (deltai <= deltaj and 1 in dirs): dirl = 1
                 elif (2 in dirs): dirl = 2
-            elif (deltaj <= deltai and deltaj <= deltak):          # then try j split
+            elif deltaj <= deltai and deltaj <= deltak:          # then try j split
                 if (2 in dirs): dirl = 2
-                elif (deltai <= deltak and 1 in dirs): dirl = 1
+                elif deltai <= deltak and 1 in dirs: dirl = 1
                 elif (3 in dirs): dirl = 3
-            elif (deltai <= deltaj  and deltai <= deltak):         # and i split if needed
+            elif deltai <= deltaj  and deltai <= deltak:         # and i split if needed
                 if (1 in dirs): dirl = 1
-                elif (deltaj <= deltak and 2 in dirs): dirl = 2
+                elif deltaj <= deltak and 2 in dirs: dirl = 2
                 elif (3 in dirs): dirl = 3
-
 
             trynext = 1
 
@@ -1890,7 +2156,7 @@ def _deleteInconsistentBCMatch__(t, zoneName):
         nodes = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
         for i in nodes:
             donorName = Internal.getValue(i)
-            if (donorName == zoneName):
+            if donorName == zoneName:
                 (parent, d) = Internal.getParentOfNode(z, i)
                 del parent[2][d]
     return None

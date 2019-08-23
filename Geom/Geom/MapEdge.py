@@ -19,7 +19,7 @@ def checkImport():
 
 # uniformize a 1D mesh (regular step) - OK
 def uniformize(a, N=100, h=-1., factor=-1, density=-1., sharpAngle=30.):
-    """Unformize the distribution of points on a 1D-mesh."""
+    """Uniformize the distribution of points on a 1D-mesh."""
     if checkImport is None: return None
     if isinstance(a[0], list):
         b = []

@@ -285,7 +285,6 @@ def createApp(win):
     F = TTK.Frame(Frame, borderwidth=2, relief=CTK.FRAMESTYLE)
     F.columnconfigure(0, weight=1)
     F.columnconfigure(1, weight=2)
-    F.columnconfigure(1, weight=2)
     B = TTK.Label(F, text="Pb dim")
     B.grid(row=0, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Dimension of the problem.')

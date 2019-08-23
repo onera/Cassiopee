@@ -370,14 +370,14 @@ def createApp(win):
     B = TTK.Label(Frame, text="snear")
     B.grid(row=1, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='The generated grid spacing for selected curve.')
-    B = TTK.Entry(Frame, textvariable=VARS[6])
+    B = TTK.Entry(Frame, textvariable=VARS[6], width=4, background="White")
     B.grid(row=1, column=1, columnspan=2, sticky=TK.EW)
     
     #- dfar settings  -
     B = TTK.Label(Frame, text="dfar")
     B.grid(row=2, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='The distance to the far boundary.\nCan be set to -1.')
-    B = TTK.Entry(Frame, textvariable=VARS[8])
+    B = TTK.Entry(Frame, textvariable=VARS[8], width=4, background="White")
     B.grid(row=2, column=1, columnspan=2, sticky=TK.EW)
 
     # - IBC type -
@@ -421,14 +421,14 @@ def createApp(win):
     B = TTK.OptionMenu(Frame, VARS[11], "time_step", "cfl")
     B.grid(row=7, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Time step.')
-    B = TTK.Entry(Frame, textvariable=VARS[5])
+    B = TTK.Entry(Frame, textvariable=VARS[5], background='White')
     B.grid(row=7, column=1, columnspan=2, sticky=TK.EW)
 
     # - compute -
     B = TTK.Button(Frame, text="Compute", command=run)
     BB = CTK.infoBulle(parent=B, text='Launch computation.')
     B.grid(row=8, column=0, sticky=TK.EW)
-    B = TTK.Entry(Frame, textvariable=VARS[9])
+    B = TTK.Entry(Frame, textvariable=VARS[9], width=5, background='White')
     B.grid(row=8, column=1, columnspan=1, sticky=TK.EW)
     B = TTK.Button(Frame, text="Files", command=writeFiles)
     BB = CTK.infoBulle(parent=B, text='Write files to run elsewhere.')

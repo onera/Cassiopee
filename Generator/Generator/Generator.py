@@ -497,6 +497,7 @@ def map2d(array, d):
 
 # Map un maillage structure suivant sa courbure
 def mapCurvature(array, N, power, dir):
+    """Remesh with a step proportional to curvature."""
     if isinstance(array[0], list):
         b = []
         for i in array:
@@ -622,6 +623,7 @@ def refinePerDir__(a, power, dir):
 # OUT: i-array avec la nouvelle discretisation
 #==============================================================================
 def densify(array, h):
+    """Densify a mesh."""
     if isinstance(array[0], list):
         l = []
         for i in array:
