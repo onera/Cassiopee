@@ -33,7 +33,7 @@ namespace xcore
         // .................................................................
         template <typename K>
         error send( const K& obj, int dest, int tag ) const {
-            (K*)m_pt_sendbuffer = &obj;
+            m_pt_sendbuffer = (void*)&obj;
             return error{};
         }
         // .............................................................
@@ -71,7 +71,7 @@ namespace xcore
                                             int dest, int tag ) const
         {
             m_nbItems = nbItems;
-            m_pt_sendbuffer = sndbuff;
+            m_pt_sendbuffer = (void*)sndbuff;
             return request();
         }
         // .............................................................
@@ -158,6 +158,12 @@ namespace xcore
         void reduce( std::size_t nbItems, const K *objs, K *res, Operation op, int root )
         {
         }
+        // .............................................................
+        template <typename K, typename F>
+        void reduce( const K &loc, K *glob, const F &fct, bool is_commuting, int root ) const
+        {
+            if (glob) *glob = loc;
+        }
         // .........................................................................................
         template <typename K>
         void allreduce( const K &loc, K *glob, const Operation &op ) const
@@ -202,7 +208,7 @@ namespace xcore
         // .............................................................
     private:
         mutable std::size_t m_nbItems;
-        mutable const void* m_pt_sendbuffer;
+        mutable void* m_pt_sendbuffer;
     };
     // -----------------------------------------------------------------
   }    

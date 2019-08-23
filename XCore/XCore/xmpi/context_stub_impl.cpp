@@ -1,10 +1,12 @@
 #ifndef _MPI
 
+#include "Logger/log_from_distributed_file.hpp"
 #include "xmpi/context.hpp"
 
-namespace xmpi
+namespace xcore
 {
     communicator *context::pt_global_com = nullptr;
+    K_LOGGER::logger*  pt_xmpi_logg = nullptr;
 
     context::context() : m_provided(context::thread_support::Single)
     {}
@@ -31,11 +33,15 @@ namespace xmpi
         return *pt_global_com;
     }
     // ...............................................................................................
-    K_LOGGER::logger context::logger()
+    K_LOGGER::logger& context::logger()
     {
-        K_LOGGER::logger logg;
-        logg.subscribe(new K_LOGGER::log_from_distributed_file(K_LOGGER::logger::listener::listen_for_all, "XMPI_Output", 0));
-        return logg;
+        if ( pt_xmpi_logg == nullptr ) 
+        {
+            pt_xmpi_logg = new K_LOGGER::logger;
+            pt_xmpi_logg->subscribe(new K_LOGGER::log_from_distributed_file(K_LOGGER::logger::listener::listen_for_all, 
+                                                                            "XMPI_Output", 0));
+        }
+        return *pt_xmpi_logg;
     }
 }
 #endif

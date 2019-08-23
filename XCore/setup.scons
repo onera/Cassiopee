@@ -83,15 +83,28 @@ env = Environment(tools=tools, CC=cc, CXX=cxx, AR=AR, CPPFLAGS=[],
 import srcs
 import srcs_scotch
 import srcs_paradigma
+
+# suppression mpi ou no_mpi pour paradigma
+if mpi:
+  src_paradigma = [x for x in srcs_paradigma.cpp_srcs if not 'mpi_wrapper/no_mpi' in x]
+else:
+  src_paradigma = [x for x in srcs_paradigma.cpp_srcs if not 'mpi_wrapper/mpi' in x]
+print(src_paradigma)
+
 myMod = env.StaticLibrary('xcore', srcs.cpp_srcs)
-myMod2 = env.StaticLibrary('paradigma', srcs_paradigma.cpp_srcs)
+myMod2 = env.StaticLibrary('paradigma', src_paradigma)
 myMod3 = env.StaticLibrary('scotch', srcs_scotch.cpp_srcs1)
-myMod4 = env.StaticLibrary('ptscotch', srcs_scotch.cpp_srcs2)
 
 modDir = installPath+'/XCore/'
 dp1 = env.Install(modDir, myMod)
 dp2 = env.Install(modDir, myMod2)
 dp3 = env.Install(modDir, myMod3)
-dp4 = env.Install(modDir, myMod4)
 dp5 = env.Install(modDir, Glob('XCore/*.py'))
-env.Alias(target="install", source=[dp1,dp2,dp4,dp5])
+
+if mpi: 
+  myMod4 = env.StaticLibrary('ptscotch', srcs_scotch.cpp_srcs2)
+  dp4 = env.Install(modDir, myMod4)
+  env.Alias(target="install", source=[dp1,dp2,dp4,dp5])
+else:
+  env.Alias(target="install", source=[dp1,dp2,dp5])
+
