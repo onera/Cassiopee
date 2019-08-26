@@ -44,6 +44,7 @@ def setData():
     snear = VARS[6].get()
     ibctype = VARS[7].get()
     dfar = VARS[8].get()
+    inv = int(VARS[12].get())
 
     numb = {'temporal_scheme':temporal_scheme,
             'ss_iteration':ss_iteration}
@@ -60,6 +61,7 @@ def setData():
             Internal.createUniqueChild(n, 'snear', 'DataArray_t', value=snear)
             Internal.createUniqueChild(n, 'ibctype', 'DataArray_t', value=ibctype)
             Internal.createUniqueChild(n, 'dfar', 'DataArray_t', value=dfar)
+            Internal.createUniqueChild(n, 'inv', 'DataArray_t', value=inv)
 
     else:
         for nz in nzs:
@@ -73,6 +75,7 @@ def setData():
             Internal.createUniqueChild(n, 'snear', 'DataArray_t', snear)
             Internal.createUniqueChild(n, 'ibctype', 'DataArray_t', ibctype)
             Internal.createUniqueChild(n, 'dfar', 'DataArray_t', value=dfar)
+            Internal.createUniqueChild(n, 'inv', 'DataArray_t', value=inv)
 
     CTK.TXT.insert('START', 'Solver data set.\n')
     
@@ -106,6 +109,10 @@ def getData():
         if n is not None:
             val = Internal.getValue(n)
             VARS[8].set(val)
+        n = Internal.getNodeFromPath(zone, '.Solver#define/inv')
+        if n is not None:
+            val = Internal.getValue(n)
+            VARS[12].set(val)
 
         d, c = Internal.getParentOfNode(CTK.t, zone)
         n = Internal.getNodeFromPath(d, '.Solver#define/temporal_scheme')
@@ -358,6 +365,8 @@ def createApp(win):
     V = TK.StringVar(win); V.set('Body'); VARS.append(V)
     # -11- time_step or cfl
     V = TK.StringVar(win); V.set('time_step'); VARS.append(V)
+    # -12- inv -
+    V = TK.DoubleVar(win); V.set(0); VARS.append(V)
 
     #- Mode -
     B = TTK.Label(Frame, text="Mode")
@@ -387,21 +396,27 @@ def createApp(win):
     B = TTK.OptionMenu(Frame, VARS[7], 'slip', 'noslip', 'Log', 'Musker', 'outpress', 'inj', 'TBLE')
     B.grid(row=3, column=1, columnspan=2, sticky=TK.EW)
 
+    #- inv settings  -
+    B = TTK.Label(Frame, text="inv")
+    B.grid(row=4, column=0, sticky=TK.EW)
+    B = TTK.OptionMenu(Frame, VARS[12], 0, 1)
+    B.grid(row=4, column=1, columnspan=2, sticky=TK.EW)
+
     # - Set data -
     B = TTK.Button(Frame, text="Set data", command=setData)
     BB = CTK.infoBulle(parent=B, text='Set data into selected zone.')
-    B.grid(row=4, column=0, columnspan=2, sticky=TK.EW)
+    B.grid(row=5, column=0, columnspan=2, sticky=TK.EW)
     B = TTK.Button(Frame, command=getData,
                    image=iconics.PHOTO[8], padx=0, pady=0, compound=TK.RIGHT)
     BB = CTK.infoBulle(parent=B, text='Get data from selected zone.')
-    B.grid(row=4, column=2, sticky=TK.EW)
+    B.grid(row=5, column=2, sticky=TK.EW)
 
     # - temporal scheme -
     B = TTK.Label(Frame, text="time_scheme")
-    B.grid(row=5, column=0, sticky=TK.EW)
+    B.grid(row=6, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Time integration.')
     B = TTK.OptionMenu(Frame, VARS[0], 'explicit', 'implicit', 'implicit_local')
-    B.grid(row=5, column=1, columnspan=2, sticky=TK.EW)
+    B.grid(row=6, column=1, columnspan=2, sticky=TK.EW)
 
     # - ss_iteration -
     #B = TTK.Label(Frame, text="ss_iteration")
@@ -412,27 +427,27 @@ def createApp(win):
 
     # - scheme -
     B = TTK.Label(Frame, text="scheme")
-    B.grid(row=6, column=0, sticky=TK.EW)
+    B.grid(row=7, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Numerical scheme.')
     B = TTK.OptionMenu(Frame, VARS[4], 'roe_min', 'ausmpred', 'senseur')
-    B.grid(row=6, column=1, columnspan=2, sticky=TK.EW)
+    B.grid(row=7, column=1, columnspan=2, sticky=TK.EW)
 
     # - time_step -
     B = TTK.OptionMenu(Frame, VARS[11], "time_step", "cfl")
-    B.grid(row=7, column=0, sticky=TK.EW)
+    B.grid(row=8, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Time step.')
     B = TTK.Entry(Frame, textvariable=VARS[5], background='White')
-    B.grid(row=7, column=1, columnspan=2, sticky=TK.EW)
+    B.grid(row=8, column=1, columnspan=2, sticky=TK.EW)
 
     # - compute -
     B = TTK.Button(Frame, text="Compute", command=run)
     BB = CTK.infoBulle(parent=B, text='Launch computation.')
-    B.grid(row=8, column=0, sticky=TK.EW)
+    B.grid(row=9, column=0, sticky=TK.EW)
     B = TTK.Entry(Frame, textvariable=VARS[9], width=5, background='White')
-    B.grid(row=8, column=1, columnspan=1, sticky=TK.EW)
+    B.grid(row=9, column=1, columnspan=1, sticky=TK.EW)
     B = TTK.Button(Frame, text="Files", command=writeFiles)
     BB = CTK.infoBulle(parent=B, text='Write files to run elsewhere.')
-    B.grid(row=8, column=2, sticky=TK.EW)
+    B.grid(row=9, column=2, sticky=TK.EW)
     
 
 #==============================================================================

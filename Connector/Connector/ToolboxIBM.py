@@ -917,11 +917,13 @@ def blankByIBCBodies(t, tb, loc, dim):
     bodies = []
     for b in Internal.getBases(tb):
         wallsl = Internal.getNodesFromType1(b, 'Zone_t')
+        soldef = Internal.getNodeFromName(wallsl,'.Solver#define')
         if wallsl != []:
             try:
                 wallsl = C.convertArray2Tetra(wallsl)
                 wallsl = T.join(wallsl)
                 wallsl = G.close(wallsl)
+                Internal.addChild(wallsl,soldef)
                 if DIM == 3:
                     try: P.exteriorFaces(wallsl)
                     except: bodies.append([wallsl])
@@ -938,6 +940,15 @@ def blankByIBCBodies(t, tb, loc, dim):
     else: typeb = 'node_in'
     nbases = len(Internal.getBases(t))
     
+    bodiesInv=[]
+    for body in bodies:
+        inv = Internal.getNodeFromName(body,'inv')
+        if inv is not None: inv = Internal.getValue(inv)
+        else: inv = 0
+        if inv==1:
+            bodies.remove(body)
+            bodiesInv.append(body)
+
     if blankalgo == 'xray' or DIM == 2:
         BM = numpy.ones((nbases,nbodies),dtype=numpy.int32)
         dh_min = getMinimumCartesianSpacing(t)
@@ -957,10 +968,13 @@ def blankByIBCBodies(t, tb, loc, dim):
         else:
             t = X.blankCells(t, bodies, BM, blankingType=typeb,delta=TOLDIST,XRaydim1=XRAYDIM1,XRaydim2=XRAYDIM2,dim=DIM)
     else:
-        BM = numpy.ones((nbases,nbodies),dtype=numpy.int32)    
-        # t = X.blankCellsTri(t,bodies,BM,blankingType=typeb)
         BM2 = numpy.ones((nbases,1),dtype=numpy.int32)
-        for body in bodies: t = X.blankCellsTri(t,[body],BM2,blankingType=typeb)
+        for body in bodiesInv:
+            print('Blanking inversed for body') 
+            t = X.blankCellsTri(t,[body],BM2,blankingType=typeb)
+            C._initVars(t,'{centers:cellN}=1-{centers:cellN}') # ecoulement interne
+        for body in bodies: 
+            t = X.blankCellsTri(t,[body],BM2,blankingType=typeb)
     return t
 
 #=============================================================================
@@ -1371,7 +1385,7 @@ def doInterp2(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=
 # interpDataType = 0 : interpolation optimisees sur grilles cartesiennes
 # frontType 0, 1, 2
 #=============================================================================
-def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, inv=False, interpDataType=0, smoothing=False):
+def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interpDataType=0, smoothing=False):
     tb =  Internal.copyRef(tbody)
 
     # tb: fournit model et dimension
@@ -1412,8 +1426,7 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, inv=False, int
         T._contract(tb, (0,0,0), (1,0,0), (0,1,0), dz)
 
     t = blankByIBCBodies(t,tb,'centers',dimPb)
-    if not inv: C._initVars(t,'{centers:cellNIBC}={centers:cellN}')
-    if inv: C._initVars(t,'{centers:cellNIBC}=1-{centers:cellN}') # ecoulement interne
+    C._initVars(t,'{centers:cellNIBC}={centers:cellN}')
 
     #-----------------------------------------
     # calcul de la normale et distance signee

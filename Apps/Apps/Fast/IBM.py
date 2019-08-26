@@ -26,18 +26,18 @@ except: pass
 def prepare(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
             tbox=None, snearsf=None,            
             vmin=21, check=False, NP=0, format='single',
-            frontType=1, inv=False):
+            frontType=1):
     import Converter.Mpi as Cmpi
     rank = Cmpi.rank; size = Cmpi.size
     ret = None
     # sequential prep
     if size == 1: ret = prepare0(t_case, t_out, tc_out, snears=snears, dfar=dfar, dfarList=dfarList, 
                                  tbox=tbox, snearsf=snearsf,
-                                 vmin=vmin, check=check, NP=NP, format=format, frontType=frontType, inv=inv)
+                                 vmin=vmin, check=check, NP=NP, format=format, frontType=frontType)
     # parallel prep
     else: ret = prepare1(t_case, t_out, tc_out, snears=snears, dfar=dfar, dfarList=dfarList, 
                          tbox=tbox, snearsf=snearsf,
-                         vmin=vmin, check=check, NP=NP, format=format, frontType=frontType, inv=inv)
+                         vmin=vmin, check=check, NP=NP, format=format, frontType=frontType)
     
     return ret
 
@@ -47,7 +47,7 @@ def prepare(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
 def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
              tbox=None, snearsf=None,
              vmin=21, check=False, NP=0, format='single',
-             frontType=1, inv=False):
+             frontType=1):
     import KCore.test as test
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
     else: tb = t_case
@@ -136,7 +136,7 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
     #----------------------------------------
     # Create IBM info
     #----------------------------------------
-    t,tc = TIBM.prepareIBMData(t, tb, frontType=frontType, interpDataType=0, inv=inv)
+    t,tc = TIBM.prepareIBMData(t, tb, frontType=frontType, interpDataType=0)
     test.printMem(">>> ibm data [end]")
 
     # arbre donneur
@@ -170,7 +170,7 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
 def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
              tbox=None, snearsf=None,  
              vmin=21, check=False, NP=0, format='single',
-             frontType=1, extrusion=False, smoothing=False, inv=False, balancing=False, distrib=True):
+             frontType=1, extrusion=False, smoothing=False, balancing=False, distrib=True):
     import Generator
     import Connector.connector as connector
     import Connector.Mpi as Xmpi
@@ -411,9 +411,7 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
     
     test.printMem(">>> Blanking [start]")
     t = TIBM.blankByIBCBodies(t, tb, 'centers', dimPb)
-
-    if not inv: C._initVars(t, '{centers:cellNIBC}={centers:cellN}')
-    else: C._initVars(t,'{centers:cellNIBC}=1-{centers:cellN}') 
+    C._initVars(t,'{centers:cellNIBC}={centers:cellN}')
     
     TIBM._signDistance(t)
 
@@ -1212,13 +1210,13 @@ class IBM(Common):
     # Prepare 
     def prepare(self, t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], 
                 tbox=None, snearsf=None,
-                vmin=21, check=False, frontType=1, inv=False, NP=None):
+                vmin=21, check=False, frontType=1, NP=None):
         if NP is None: NP = Cmpi.size
         if NP == 0: print('Preparing for a sequential computation.')
         else: print('Preparing for a computation on %d processors.'%NP)
         ret = prepare(t_case, t_out, tc_out, snears=snears, dfar=dfar, dfarList=dfarList,
                       tbox=tbox, snearsf=snearsf,
-                      vmin=vmin, check=check, NP=NP, format=self.data['format'], frontType=frontType, inv=inv)
+                      vmin=vmin, check=check, NP=NP, format=self.data['format'], frontType=frontType)
         return ret
 
     # post-processing: extrait la solution aux noeuds + le champs sur les surfaces
