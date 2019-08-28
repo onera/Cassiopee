@@ -607,7 +607,7 @@ def subzoneStruct__(t, minIndex, maxIndex):
 # win2 = fenetre par rapport a un bloc B
 # si ret=0: retourne fenetre commune par rapport a B
 # si ret=1: retourne fenetre commune par rapport a win1
-def intersection__(win1, win2, dir, ret=0):
+def intersectWins__(win1, win2, ret=0):
     fi1,fi2,fj1,fj2,fk1,fk2 = win1
     si1,si2,sj1,sj2,sk1,sk2 = win2
     if fi2 < si1: return None
@@ -622,9 +622,18 @@ def intersection__(win1, win2, dir, ret=0):
     oj2 = min(fj2,sj2)
     ok1 = max(fk1,sk1)
     ok2 = min(fk2,sk2)
-    if dir == 1 and oi1 == oi2: return None # avoid degenerated windows
-    if dir == 2 and oj1 == oj2: return None # avoid degenerated windows
-    if dir == 3 and ok1 == ok2: return None # avoid degenerated windows
+    dim1 = 2
+    if fk1 != fk2: dim1 = 3
+    dim2 = 2
+    if sk1 != sk2: dim2 == 3
+    dim = max(dim1, dim2)
+    if dim == 2: # avoid degenerated windows in 2D
+        if oi1 == oi2 and oj1 == oj2 and ok1 == ok2: return None
+    if dim == 3: # avoid degenerated windows in 3D
+        if oi1 == oi2 and oj1 == oj2: return None
+        if oi1 == oi2 and ok1 == ok2: return None
+        if oj1 == oj2 and ok1 == ok2: return None
+        
     if ret == 0: return [oi1,oi2,oj1,oj2,ok1,ok2]
     else: return [oi1-fi1+1,oi2-fi1+1,oj1-fj1+1,oj2-fj1+1,ok1-fk1+1,ok2-fk1+1]
 
@@ -632,7 +641,7 @@ def intersection__(win1, win2, dir, ret=0):
 # win1 est une fenetre par rapport a win2
 # win2 est une fenetre par rapport a B
 # Retourne la fenetre 1 par rapport a B
-def composition__(win1, win2):
+def composeWins__(win1, win2):
     fi1,fi2,fj1,fj2,fk1,fk2 = win1
     si1,si2,sj1,sj2,sk1,sk2 = win2
     return [si1+fi1-1,si2+fi1-1,sj1+fj1-1,sj2+fj1-1,sk1+fk1-1,sk2+fk1-1]
@@ -658,11 +667,18 @@ def shiftMatrix__(trirac):
 # retourne : indices de ijk sur opp(B)
 def donorIndex__(win,winDonor,trirac,(i,j,k)):
     m = shiftMatrix__(trirac)
+    #print(m.reshape(3,3))
     fi1,fi2,fj1,fj2,fk1,fk2 = win
     si1,si2,sj1,sj2,sk1,sk2 = winDonor
-    ip = si1+m[0+3*0]*(i-fi1)+m[0+3*1]*(j-fj1)+m[0+3*2]*(k-fk1)
-    jp = sj1+m[1+3*0]*(i-fi1)+m[1+3*1]*(j-fj1)+m[1+3*2]*(k-fk1)
-    kp = sk1+m[2+3*0]*(i-fi1)+m[2+3*1]*(j-fj1)+m[2+3*2]*(k-fk1)
+
+    x0 = si1; y0 = sj1; z0 = sk1
+    if m[0+3*0]<-0.5 or m[1+3*0]<-0.5 or m[2+3*0]<-0.5: x0 = si2
+    if m[0+3*1]<-0.5 or m[1+3*1]<-0.5 or m[2+3*1]<-0.5: y0 = sj2
+    if m[0+3*2]<-0.5 or m[1+3*2]<-0.5 or m[2+3*2]<-0.5: z0 = sk2
+
+    ip = x0+m[0+3*0]*(i-fi1)+m[0+3*1]*(j-fj1)+m[0+3*2]*(k-fk1)
+    jp = y0+m[1+3*0]*(i-fi1)+m[1+3*1]*(j-fj1)+m[1+3*2]*(k-fk1)
+    kp = z0+m[2+3*0]*(i-fi1)+m[2+3*1]*(j-fj1)+m[2+3*2]*(k-fk1)
     return (ip,jp,kp)
 
 #=====================================================================
@@ -708,13 +724,13 @@ def getBCMatchData__(bc):
 def _createInternalBCMatch(z1, z2, dir):
     if dir == 1:
         C._addBC2Zone(z1, 'match', 'BCMatch', 'imax', z2, 'imin', [1,2,3])
-        C._addBC2Zone(z2, 'match', 'BCMatch', 'imin', z2, 'imax', [1,2,3])
+        C._addBC2Zone(z2, 'match', 'BCMatch', 'imin', z1, 'imax', [1,2,3])
     elif dir == 2:
         C._addBC2Zone(z1, 'match', 'BCMatch', 'jmax', z2, 'jmin', [1,2,3])
-        C._addBC2Zone(z2, 'match', 'BCMatch', 'jmin', z2, 'jmax', [1,2,3])
+        C._addBC2Zone(z2, 'match', 'BCMatch', 'jmin', z1, 'jmax', [1,2,3])
     else:
         C._addBC2Zone(z1, 'match', 'BCMatch', 'kmax', z2, 'kmin', [1,2,3])
-        C._addBC2Zone(z2, 'match', 'BCMatch', 'kmin', z2, 'kmax', [1,2,3])
+        C._addBC2Zone(z2, 'match', 'BCMatch', 'kmin', z1, 'kmax', [1,2,3])
     return None
 
 # Delete dans t les BCs match referencant zname
@@ -736,34 +752,35 @@ def _replaceZoneWithSplit(t, zname, z1, z2):
     return None
 
 # Reporte les BC match de z sur z1 et z2 (et modifie t)
-def _adaptBCMatch(z, z1, z2, dir, splitDict, t=None):
+def _adaptBCMatch(z, z1, z2, winz1, winz2, t=None):
     bcs = getBCMatchs__(z)
     for b in bcs:
         d = getBCMatchData__(b)
         (oppBlock, winz, winDonor, trirac) = d
 
         # Reporte cette BC sur z1
-        winz1 = splitDict[z1[0]][1:]
-        wini1 = intersection__(winz1, winz, dir, ret=0)
-        wini = intersection__(winz1, winz, dir, ret=1)
-        
+        wini1 = intersectWins__(winz1, winz, ret=0)
+        wini = intersectWins__(winz1, winz, ret=1)
+
         if wini is not None:
             ind0 = donorIndex__(winz,winDonor,trirac,(wini1[0],wini1[2],wini1[4]))
             ind1 = donorIndex__(winz,winDonor,trirac,(wini1[1],wini1[3],wini1[5]))
-            winopp = [ind0[0],ind1[0],ind0[1],ind1[1],ind0[2],ind1[2]]
+            winopp = [min(ind0[0],ind1[0]),max(ind0[0],ind1[0]),
+            min(ind0[1],ind1[1]),max(ind0[1],ind1[1]),min(ind0[2],ind1[2]),max(ind0[2],ind1[2])]
             C._addBC2Zone(z1, 'match', 'BCMatch', wini, oppBlock, winopp, trirac)
             if t is not None:
                 zopp = Internal.getNodeFromName2(t, oppBlock)
                 C._addBC2Zone(zopp, 'match', 'BCMatch', winopp, z1[0], wini, trirac)
 
         # Reporte cette BC sur z2
-        winz2 = splitDict[z2[0]][1:]
-        wini1 = intersection__(winz2, winz, dir, ret=0)
-        wini = intersection__(winz2, winz, dir, ret=1)
+        wini1 = intersectWins__(winz2, winz, ret=0)
+        wini = intersectWins__(winz2, winz, ret=1)
+
         if wini is not None:
             ind0 = donorIndex__(winz,winDonor,trirac,(wini1[0],wini1[2],wini1[4]))
             ind1 = donorIndex__(winz,winDonor,trirac,(wini1[1],wini1[3],wini1[5]))
-            winopp = [ind0[0],ind1[0],ind0[1],ind1[1],ind0[2],ind1[2]]
+            winopp = [min(ind0[0],ind1[0]),max(ind0[0],ind1[0]),
+            min(ind0[1],ind1[1]),max(ind0[1],ind1[1]),min(ind0[2],ind1[2]),max(ind0[2],ind1[2])]
             C._addBC2Zone(z2, 'match', 'BCMatch', wini, oppBlock, winopp, trirac)
             if t is not None:
                 zopp = Internal.getNodeFromName2(t, oppBlock)
@@ -773,33 +790,67 @@ def _adaptBCMatch(z, z1, z2, dir, splitDict, t=None):
     return None
 
 # split (z)
+# Split une zone suivant une direction et un index
 # z: zone ou zone skeleton
 # Retourne deux zones avec les BCs + BCMatchs OK
 # Si t est donne, t est modifie
-# si splitDict est fourni, renvoie l'historique de split
-def split(z, dir=1, index=1, t=None, splitDict={}):
+def split(z, dir=1, index=1, t=None):
     dimz = Internal.getZoneDim(z)
     ni = dimz[1]; nj = dimz[2]; nk = dimz[3]
     if dir == 1: # direction i
         z1 = subzone(z, (1,1,1), (index,-1,-1))
         z2 = subzone(z, (index,1,1), (-1,-1,-1))
         z1[0] = z[0]+'A'; z2[0] = z[0]+'B'
-        splitDict[z1[0]] = [z[0],1,index,1,nj,1,nk]
-        splitDict[z2[0]] = [z[0],index,ni,1,nj,1,nk]
+        winz1 = [1,index,1,nj,1,nk]
+        winz2 = [index,ni,1,nj,1,nk]
+        w1 = winz1; dim = [ni,nj,nk]
+        w2 = winz2; source = z[0]
+        src, loc2glob =  Internal.getLoc2Glob(z)
+        if loc2glob is not None:
+            ws = list(loc2glob[0:6]); dim = list(loc2glob[6:9])
+            w1 = composeWins__(w1, ws)
+            w2 = composeWins__(w2, ws)
+            source = src 
+        Internal.setLoc2Glob(z1, source, w1, dim)
+        Internal.setLoc2Glob(z2, source, w2, dim)
+        
     elif dir == 2: # direction j
         z1 = subzone(z, (1,1,1), (-1,index,-1))
         z2 = subzone(z, (1,index,1), (-1,-1,-1))
         z1[0] = z[0]+'A'; z2[0] = z[0]+'B'
-        splitDict[z1[0]] = [z[0],1,ni,1,index,1,nk]
-        splitDict[z2[0]] = [z[0],1,ni,index,nj,1,nk]
+        winz1 = [1,ni,1,index,1,nk]
+        winz2 = [1,ni,index,nj,1,nk]
+        
+        src, loc2glob =  Internal.getLoc2Glob(z)
+        w1 = winz1; dim = [ni,nj,nk]
+        w2 = winz2; source = z[0]
+        if loc2glob is not None:
+            ws = list(loc2glob[0:6]); dim = list(loc2glob[6:9])
+            w1 = composeWins__(w1, ws)
+            w2 = composeWins__(w2, ws)
+            source = src
+        Internal.setLoc2Glob(z1, source, w1, dim)
+        Internal.setLoc2Glob(z2, source, w2, dim)
+
     elif dir == 3: # direction k
         z1 = subzone(z, (1,1,1), (-1,-1,index))
         z2 = subzone(z, (1,1,index), (-1,-1,-1))
         z1[0] = z[0]+'A'; z2[0] = z[0]+'B'
-        splitDict[z1[0]] = [z[0],1,ni,1,nj,1,index]
-        splitDict[z2[0]] = [z[0],1,ni,1,nj,index,nk]
+        winz1 = [1,ni,1,nj,1,index]
+        winz2 = [1,ni,1,nj,index,nk]
+        source, loc2glob =  Internal.getLoc2Glob(z)
+        w1 = winz1; dim = [ni,nj,nk]
+        w2 = winz2; source = z[0]
+        if loc2glob is not None:
+            ws = list(loc2glob[0:6]); dim = list(loc2glob[6:9])
+            w1 = composeWins__(w1, ws)
+            w2 = composeWins__(w2, ws)
+            source = src
+        Internal.setLoc2Glob(z1, source, w1, dim)
+        Internal.setLoc2Glob(z2, source, w2, dim)
+
     _createInternalBCMatch(z1, z2, dir)
-    _adaptBCMatch(z, z1, z2, dir, splitDict, t)
+    _adaptBCMatch(z, z1, z2, winz1, winz2, t)
     if t is not None: _replaceZoneWithSplit(t, z[0], z1, z2)
     return z1, z2
 
@@ -827,7 +878,6 @@ def _splitFullMatch(t):
     while len(stack) > 0:
         z = stack.pop(0)
         splitFullMatch__(z, stack, t)
-
     return None
 
 def splitFullMatch__(z, stack, t):
@@ -841,31 +891,37 @@ def splitFullMatch__(z, stack, t):
         # verifie si la fenetre est full
         if (dir == 2 or dir == 3) and rnge[0] > 1:
             z1,z2 = split(z, 1, rnge[0], t)
+            print('split',z[0],1,rnge[0])
             stack.append(z1); stack.append(z2)
             return
 
         if (dir == 2 or dir == 3) and rnge[1] < ni:
             z1,z2 = split(z, 1, rnge[1], t)
+            print('split',z[0],1,rnge[1])
             stack.append(z1); stack.append(z2)
             return
 
         if (dir == 1 or dir == 3) and rnge[2] > 1: # need split, stack
             z1,z2 = split(z, 2, rnge[2], t)
+            print('split',z[0],2,rnge[2])
             stack.append(z1); stack.append(z2)
             return
 
         if (dir == 1 or dir == 3) and rnge[3] < nj: # need split, stack
             z1,z2 = split(z, 2, rnge[3], t)
+            print('split',z[0],2,rnge[3])
             stack.append(z1); stack.append(z2)
             return
 
         if (dir == 1 or dir == 2) and rnge[4] > 1: # need split, stack
             z1,z2 = split(z, 3, rnge[4], t)
+            print('split',z[0],3,rnge[4])
             stack.append(z1); stack.append(z2)
             return
 
         if (dir == 1 or dir == 2) and rnge[5] < nk: # need split, stack
             z1,z2 = split(z, 3, rnge[5], t)
+            print('split',z[0],3,rnge[5])
             stack.append(z1); stack.append(z2)
             return
 
@@ -1161,7 +1217,7 @@ def reorder(t, order, topTree=[]):
 
 # If topTree is given, must be used in place!
 def _reorder(t, order, topTree=[]):
-    if len(order)==3: _reorderStruct__(t, order, topTree)
+    if len(order) == 3: _reorderStruct__(t, order, topTree)
     else: _reorderUnstruct__(t, order)
     return None
 
@@ -1172,7 +1228,7 @@ def _reorderStruct__(t, order, topTree):
         _reorderBC__(t, order)
         _reorderBCOverlap__(t, order)
         zones = Internal.getZones(t)
-        zoneNames=[]# zones dont le PointRange est a modifier ou en tant que PointRangeDonor si c'est la zoneDonor
+        zoneNames=[] # zones dont le PointRange est a modifier ou en tant que PointRangeDonor si c'est la zoneDonor
         for z in zones: zoneNames.append(z[0])
         _reorderBCMatch__(t, order, zoneNames)
         _reorderBCNearMatch__(t, order, zoneNames)
@@ -1220,10 +1276,10 @@ def reorderAll(t, dir=1):
         coords.append(C.getFields(Internal.__GridCoordinates__, z)[0])
         fnz = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
         if fnz == []: indirn.append(0)
-        else: indirn.append(1); nofan+=1
+        else: indirn.append(1); nofan += 1
         fcz = C.getFields(Internal.__FlowSolutionCenters__, z)[0]
         if fcz == []: indirc.append(0)
-        else: indirc.append(1); nofac+=1
+        else: indirc.append(1); nofac += 1
         fn.append(fnz); fc.append(fcz)
 
     if nofan == 0 and nofac == 0: # pas de champs en centres et noeuds
@@ -1835,7 +1891,7 @@ def splitSizeUpR_OMP__(t, N, R, multigrid, dirs, minPtsPerDir):
                     a1 = ["leafl"+str(('%05d' % nbl)),[ni,ns,nk]]
                     a2 = ["leafr"+str(('%05d' % nbl)),[ni,nj-ns+1,nk]]
                     SP[0] = ((ni-1)*(nj-ns)*(nk-1),a2)
-                    nbl=nbl+1
+                    nbl += 1
                     Rs[0] += (ni-1)*(ns-1)*(nk-1)
                     Thread_z[0][0][0] += (ni-1)*(ns-1)*(nk-1)
                     Thread_z[0][2].append(a1[0])
@@ -1850,19 +1906,19 @@ def splitSizeUpR_OMP__(t, N, R, multigrid, dirs, minPtsPerDir):
                     a1 = ["leafl"+str(('%05d' % nbl)),[ns,nj,nk]]
                     a2 = ["leafr"+str(('%05d' % nbl)),[ni-ns+1,nj,nk]]
                     SP[0] = ((ni-ns)*(nj-1)*(nk-1),a2)
-                    nbl=nbl+1
+                    nbl += 1
                     Rs[0] += (ns-1)*(nj-1)*(nk-1);
                     Thread_z[0][0][0] += (ns-1)*(nj-1)*(nk-1)
                     Thread_z[0][2].append(a1[0])
                     trynext = 0
 
-            if ((dirl>=1)&(trynext==0)):
+            if (dirl>=1)&(trynext==0):
                 test=[s for s in zsplit if a[0] in s]
 
                 dima1=a1[1]
                 dima2=a2[1]
 
-                if(test != []):
+                if test != []:
 
                     indexleft  = numpy.zeros(6, numpy.int32)
                     indexright = numpy.zeros(6, numpy.int32)

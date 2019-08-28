@@ -330,12 +330,12 @@ else if ($MAC == "giulia") then
         foreach x (`(echo "" ; module -t list) | & grep intel`)
             module unload $x
         end
-        #module load gcc/5.2
-        module load intel/17.0.4
+        module load gcc/5.2
         module load python/2.7.8
+        module load intel/17.0.4
+        module load impi/16
         module unload hdf5/1.8.8
         module load hdf5/1.8.8-intel-16.impi
-        module load impi/16
         set path=($path $CASSIOPEE/Dist/bin)
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
         setenv LD_LIBRARY_PATHL /usr/lib64:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib

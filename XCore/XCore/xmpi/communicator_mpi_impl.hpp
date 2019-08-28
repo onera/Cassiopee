@@ -9,7 +9,7 @@
 // Communicator for MPI
 #include "xmpi/constantes.hpp"
 #include "xmpi/status.hpp"
-#include "xmpi/type_traits.hpp"
+#include "xmpi/xtype_traits.hpp"
 
 namespace xcore
 {

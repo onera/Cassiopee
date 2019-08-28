@@ -185,14 +185,14 @@ namespace CMP {
     // ===========================================================================================
     // Définition du buffer d'envoi
     SendBuffer::SendBuffer( int recv_rank, int id_tag )
-        : m_pt_implementation( nullptr ) 
+        : m_pt_implementation( ) 
     {
 #       if defined(CMP_DEBUG) 
         auto& logg = xcore::context::logger();
         logg << LogTrace << std::endl;
 #       endif
         xcore::communicator& comm = xcore::context::globalCommunicator();
-        m_pt_implementation =  std::make_shared<SendBuffer::Implementation>( recv_rank, id_tag, comm );
+        m_pt_implementation = std::make_shared<SendBuffer::Implementation>( recv_rank, id_tag, comm );
     }
     SendBuffer::SendBuffer( int recv_rank, int id_tag, const xcore::communicator& comm )
         : m_pt_implementation( new SendBuffer::Implementation( recv_rank, id_tag, comm ) ) 

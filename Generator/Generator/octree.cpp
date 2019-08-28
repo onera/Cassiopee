@@ -101,13 +101,13 @@ PyObject* octree(PyObject* self, PyObject* args)
     return NULL;
   }
   E_Int ndfars = PyList_Size(listOfDfars);
-  if ( ndfars == 0 && dfar < __DFARTOL__)
+  if (ndfars == 0 && dfar < __DFARTOL__)
   {
     PyErr_SetString(PyExc_TypeError, 
                     "octree: you must set a global dfar as a positive value or define a list of dfars.");
     return NULL;
   }
-  if ( ndfars > 0 && dfar > __DFARTOL__)
+  if (ndfars > 0 && dfar > __DFARTOL__)
   {
     printf("octree: both dfar and listOfDfars are defined; the list of dfars is taken into account.\n");
   }
@@ -194,7 +194,7 @@ PyObject* octree(PyObject* self, PyObject* args)
     return NULL;
   }    
   // recuperation des dfars
-  if ( ndfars > 0 && ndfars != nzones)
+  if (ndfars > 0 && ndfars != nzones)
   {
     for (E_Int no = 0; no < nzones; no++)
       RELEASESHAREDU(objut[no], unstrF[no], cnt[no]);
@@ -203,7 +203,7 @@ PyObject* octree(PyObject* self, PyObject* args)
     return NULL;
   }
   vector<E_Float> vectOfDfars;
-  if ( ndfars > 0)
+  if (ndfars > 0)
   {
     PyObject* tpl0 = NULL;
 
@@ -231,9 +231,8 @@ PyObject* octree(PyObject* self, PyObject* args)
     tpl = PyList_GetItem(listOfSnears, i);
     if (PyFloat_Check(tpl) == 0)
     {
-        for (E_Int no = 0; no < nzones; no++)
-          RELEASESHAREDU(objut[no], unstrF[no], cnt[no]);
-      PyErr_SetString(PyExc_TypeError, 
+      for (E_Int no = 0; no < nzones; no++) RELEASESHAREDU(objut[no], unstrF[no], cnt[no]);
+      PyErr_SetString(PyExc_TypeError,
                       "octree: not a valid value for snear.");
       return NULL;
     }
@@ -243,7 +242,7 @@ PyObject* octree(PyObject* self, PyObject* args)
   typedef K_SEARCH::BoundingBox<3>  BBox3DType;
   vector<K_SEARCH::BbTree3D*> bboxtrees(nzones);
   vector< vector<BBox3DType*> > vectOfBBoxes;// pour etre detruit a la fin
-  E_Float minB[3];  E_Float maxB[3];
+  E_Float minB[3]; E_Float maxB[3];
   E_Int posx2, posy2, posz2, nelts2;
   vector<E_Float> xminZ(nzones);
   vector<E_Float> yminZ(nzones);
@@ -275,13 +274,13 @@ PyObject* octree(PyObject* self, PyObject* args)
       boxes[et] = new BBox3DType(minB, maxB);
       xminl = K_FUNC::E_min(minB[0],xminl); xmaxl = K_FUNC::E_max(maxB[0],xmaxl);
       yminl = K_FUNC::E_min(minB[1],yminl); ymaxl = K_FUNC::E_max(maxB[1],ymaxl);
-      if ( dim == 3) {zminl = K_FUNC::E_min(minB[2],zminl); zmaxl = K_FUNC::E_max(maxB[2],zmaxl);}
+      if (dim == 3) {zminl = K_FUNC::E_min(minB[2],zminl); zmaxl = K_FUNC::E_max(maxB[2],zmaxl);}
       else {zminl= 0.; zmaxl=0.;}
     }
     // Build the box tree
     bboxtrees[v] = new K_SEARCH::BbTree3D(boxes);
     vectOfBBoxes.push_back(boxes);
-    //bbox de la surface noz 
+    // bbox de la surface noz 
     xminZ[v]=xminl; yminZ[v]=yminl; zminZ[v]=zminl;  
     xmaxZ[v]=xmaxl; ymaxZ[v]=ymaxl; zmaxZ[v]=zmaxl;
   }
@@ -290,7 +289,7 @@ PyObject* octree(PyObject* self, PyObject* args)
 
   // calcul du dfar reel a partir de la bbox des bbox
   E_Float xmino, ymino, zmino, xmaxo, ymaxo, zmaxo;
-  if ( ndfars == 0)// starts from the global dfar
+  if (ndfars == 0)// starts from the global dfar
   {
     E_Float dfxm = dfar; E_Float dfym = dfar; E_Float dfzm = dfar;
     E_Float dfxp = dfar; E_Float dfyp = dfar; E_Float dfzp = dfar;  
@@ -303,7 +302,7 @@ PyObject* octree(PyObject* self, PyObject* args)
     ymaxo = -K_CONST::E_MAX_FLOAT;
     zmaxo = -K_CONST::E_MAX_FLOAT;
     if (dim == 2) {zmino = 0.; zmaxo= 0.;}
-    for ( E_Int v = 0; v < nzones; v++)
+    for (E_Int v = 0; v < nzones; v++)
     {
       xmino = K_FUNC::E_min(xminZ[v],xmino); xmaxo = K_FUNC::E_max(xmaxZ[v],xmaxo);
       ymino = K_FUNC::E_min(yminZ[v],ymino); ymaxo = K_FUNC::E_max(ymaxZ[v],ymaxo);
@@ -329,21 +328,35 @@ PyObject* octree(PyObject* self, PyObject* args)
     vector<E_Float> xmint; vector<E_Float> xmaxt;
     vector<E_Float> ymint; vector<E_Float> ymaxt;
     vector<E_Float> zmint; vector<E_Float> zmaxt;    
-    //calcul de la bbox etendue de dfar local pour ttes les surfaces sauf celles tq dfarloc=-1
-    for ( E_Int v = 0; v < nzones; v++)
+    // calcul de la bbox etendue de dfar local pour ttes les surfaces sauf celles tq dfarloc=-1
+    for (E_Int v = 0; v < nzones; v++)
     {
       E_Float dfarloc = vectOfDfars[v];
-      if ( dfarloc > __DFARTOL__)
+      if (dfarloc > __DFARTOL__)
       {
         // extensions non isotropes
         E_Float Delta = dfarloc;
+        
         E_Float xc = 0.5*(xminZ[v]+xmaxZ[v]);
         E_Float yc = 0.5*(yminZ[v]+ymaxZ[v]);
         E_Float zc = 0.5*(zminZ[v]+zmaxZ[v]);
         xmint.push_back(xc-Delta); xmaxt.push_back(xc+Delta); 
         ymint.push_back(yc-Delta); ymaxt.push_back(yc+Delta); 
         if (dim == 3) { zmint.push_back(zc-Delta); zmaxt.push_back(zc+Delta);}
-        else { zmint.push_back(0.); zmaxt.push_back(0.);}    
+        else { zmint.push_back(0.); zmaxt.push_back(0.);}
+        
+        /* Distance with BBOX of zone
+        E_Float xmin = xminZ[v]-Delta;
+        E_Float xmax = xmaxZ[v]+Delta;
+        E_Float ymin = yminZ[v]-Delta;
+        E_Float ymax = ymaxZ[v]+Delta;
+        E_Float zmin = zminZ[v]-Delta;
+        E_Float zmax = zmaxZ[v]+Delta;
+        xmint.push_back(xmin); xmaxt.push_back(xmax); 
+        ymint.push_back(ymin); ymaxt.push_back(ymax); 
+        if (dim == 3) { zmint.push_back(zmax); zmaxt.push_back(zmin);}
+        else { zmint.push_back(0.); zmaxt.push_back(0.);}
+        */
       }
     }
     // les extensions locales sont toutes calculees, on prend la boite englobante
@@ -366,6 +379,7 @@ PyObject* octree(PyObject* self, PyObject* args)
       }
       else { zmino = 0.; zmaxo = 0.;}
     }
+    
     // calcul du centre de la boite englobante
     E_Float xc = (xmino+xmaxo)*0.5;
     E_Float yc = (ymino+ymaxo)*0.5;

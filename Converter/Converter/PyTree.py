@@ -254,8 +254,7 @@ def getVarNames(t, excludeXYZ=False, loc='both', mode=0):
           else: d[v] = 1
       out = []
       for k in d:
-        if d[k] == len(allvars):
-          out.append(k)        
+        if d[k] == len(allvars): out.append(k)
       allvars = [out]
   return allvars
 
@@ -772,7 +771,7 @@ def _deleteBCOverlapWithoutDonorZone__(a):
       r = Internal.getNodeFromType1(i, 'GridConnectivityType_t')
       if r is not None:
         val = Internal.getValue(r)
-        if (val == 'Overset' and zoneName == donorName):
+        if val == 'Overset' and zoneName == donorName:
           (parent, d) = Internal.getParentOfNode(z, i)
           del parent[2][d]
   return None
@@ -790,7 +789,7 @@ def _deleteBCOverlapWithDonorZone__(a, removeDnrZones=True, removeDnrFam=True):
       r = Internal.getNodeFromType1(i, 'GridConnectivityType_t')
       if r is not None:
         val = Internal.getValue(r)
-        if (val == 'Overset' and zoneName != donorName): # no auto attach
+        if val == 'Overset' and zoneName != donorName: # no auto attach
           removeGC = False
 
           typeOfDnr = 0 # 1 : zone, 2 : family
@@ -872,7 +871,7 @@ def _deleteEmptyZones(t):
       if dim[1]*dim[2]*dim[3] == 0: removeZ = True
     else:
       if dim[3]=='NODE':
-        if dim[1]==0: removeZ = True
+        if dim[1] == 0: removeZ = True
       else: 
         if dim[1]*dim[2] == 0: removeZ = True
 
@@ -1606,7 +1605,7 @@ def convertPyTree2Array(path, tree):
     elif a[3] == 'FlowSolution_t':
       loc = 0
       locf = Internal.getNodeFromType1(a, 'GridLocation_t')
-      if (locf is not None and Internal.getValue(locf) == 'CellCenter'): loc = 1
+      if locf is not None and Internal.getValue(locf) == 'CellCenter': loc = 1
       info = a[2]; out = []
       for i in info:
         if i[3] == 'DataArray_t':
@@ -1635,7 +1634,7 @@ def convertPyTree2Array(path, tree):
         if i[3] == 'FlowSolution_t':
           loc = 0
           locf = Internal.getNodeFromType1(i, 'GridLocation_t')
-          if (locf is not None and Internal.getValue(locf) == 'CellCenter'): loc = 1
+          if locf is not None and Internal.getValue(locf) == 'CellCenter': loc = 1
           info2 = i[2]
           for j in info2:
             if j[3] == 'DataArray_t':
@@ -1906,7 +1905,7 @@ def _TZAGC(t, locin, locout, writeDim, F, Fc, *args):
         st = fp[0].split(',')
         vars = []
         for i in st:
-          if (i != 'CoordinateX' and i != 'CoordinateY' and i != 'CoordinateZ'):
+          if i != 'CoordinateX' and i != 'CoordinateY' and i != 'CoordinateZ':
             vars.append(i)
         if vars != []:
           fp = Converter.extractVars(fp, vars)

@@ -439,8 +439,8 @@ def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None,
                 snearl = Internal.getValue(snearl)
                 snears[i] = snearl*snearFactor
         dhloc = snears[i]*(vmin-1)
-        surfaces+=[s]; snearso+=[dhloc]
-        dxmin0 = min(dxmin0,dhloc)
+        surfaces += [s]; snearso += [dhloc]
+        dxmin0 = min(dxmin0, dhloc)
         i += 1
 
     if to is not None:
@@ -554,7 +554,7 @@ def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., dfarList=[], DEPTH=2, tb
 
     if check: C.convertPyTree2File(o, "octree.cgns")
 
-    # retourne les 4 quarts (en 2D) de l'octree parent 2 niveaux plus haut 
+# retourne les 4 quarts (en 2D) de l'octree parent 2 niveaux plus haut 
     # et les 8 octants en 3D sous forme de listes de zones non structurees
     parento = buildParentOctrees__(o, tb, snears=snears, snearFactor=4., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf, 
                                    dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=None, rank=0)
@@ -963,10 +963,16 @@ def blankByIBCBodies(t, tb, loc, dim):
 
         if loc == 'centers':
             tc = C.node2Center(t)
-            tc = X.blankCells(tc, bodies, BM, blankingType='node_in',XRaydim1=XRAYDIM1,XRaydim2=XRAYDIM2,dim=DIM)
+            for body in bodiesInv:
+                print('Blanking inversed for body')
+                tc = X.blankCells(tc, [body], BM, blankingType='node_in', XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2, dim=DIM)
+                C._initVars(tc,'{cellN}=1.-{cellN}') # ecoulement interne
+            for body in bodies:
+                tc = X.blankCells(tc, [body], BM, blankingType='node_in', XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2, dim=DIM)
             C._cpVars(tc,'cellN',t,'centers:cellN')
         else:
-            t = X.blankCells(t, bodies, BM, blankingType=typeb,delta=TOLDIST,XRaydim1=XRAYDIM1,XRaydim2=XRAYDIM2,dim=DIM)
+            t = X.blankCells(t, bodies, BM, blankingType=typeb, delta=TOLDIST, XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2, dim=DIM)
+
     else:
         BM2 = numpy.ones((nbases,1),dtype=numpy.int32)
         for body in bodiesInv:

@@ -762,28 +762,32 @@ class Node:
             if isinstance(v, numpy.ndarray):
                 if v.dtype == 'c': txt = v.tostring()
                 else:
+                    pt = v.ravel('k'); size = pt.size
                     txt += str(v.shape)+': '
-                    if v.shape[0] > 0: txt += str(v[0])
-                    if v.shape[0] > 1: txt += ',' + str(v[1])
-                    if v.shape[0] > 2: txt += ',' + str(v[2])
-                    if v.shape[0] > 3: txt += '...'
+                    if size > 0: txt += str(pt[0])
+                    if size > 1: txt += ',' + str(pt[1])
+                    if size > 2: txt += ',' + str(pt[2])
+                    if size > 3: txt += ',' + str(pt[3])
+                    if size > 4: txt += ',' + str(pt[4])
+                    if size > 5: txt += ',' + str(pt[5])
+                    if size > 6: txt += '...'
             else: txt += str(v)
             CTK.TXT.insert('START', txt+'\n')
             ret = Internal.getParentOfNode(CTK.t, pid)
-            if (ret[0][3] == 'FlowSolution_t' and
-                (ret[0][0] == Internal.__FlowSolutionNodes__ or
-                 ret[0][0] == Internal.__FlowSolutionCenters__)):
+            if ret[0][3] == 'FlowSolution_t' and \
+                (ret[0][0] == Internal.__FlowSolutionNodes__ or \
+                ret[0][0] == Internal.__FlowSolutionCenters__):
                 field = pid[0]
                 if ret[0][0] == Internal.__FlowSolutionCenters__:
                     field = 'centers:'+field
                 vars = C.getVarNames(CTK.t)[0]
                 ifield = 0; lenvars = 0
                 for i in vars:
-                    if (i != 'CoordinateX' and i != 'CoordinateY' and i != 'CoordinateZ'):
+                    if i != 'CoordinateX' and i != 'CoordinateY' and i != 'CoordinateZ':
                         lenvars += 1
                 for i in vars:
                     if i == field: break
-                    if (i != 'CoordinateX' and i != 'CoordinateY' and i != 'CoordinateZ'):
+                    if i != 'CoordinateX' and i != 'CoordinateY' and i != 'CoordinateZ':
                         ifield += 1
                 CPlot.setState(mode=3, scalarField=ifield)
                 

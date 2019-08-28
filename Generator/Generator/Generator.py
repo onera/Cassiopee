@@ -1526,8 +1526,8 @@ def octree(stlArrays, snearList=[], dfarList=[], dfar=-1., balancing=0, levelMax
     if ratio == 2:
         o = generator.octree(s, snearList, dfarList, dfar, levelMax, octant)
         if balancing == 0: return o
-        elif balancing==1: return balanceOctree__(o, 2, corners=0)
-        elif balancing==2: return balanceOctree__(o, 2, corners=1)
+        elif balancing == 1: return balanceOctree__(o, 2, corners=0)
+        elif balancing == 2: return balanceOctree__(o, 2, corners=1)
     else: #27-tree
         o = generator.octree3(s, snearList, dfar, levelMax, octant)
         if balancing == 0: return o

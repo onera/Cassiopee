@@ -24,9 +24,19 @@ def changeMode(event=None):
             (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
             CTK.TKTREE.updateApp()
             CTK.display(CTK.t)
-        print('Setting body mode')
-    else: 
-        print('Setting main mode')
+        CTK.TXT.insert('START', 'Revert to body tree.\n')
+    elif mode == 'PrevStep':
+        # Reload from restart.cgns
+        try: 
+            CTK.t = C.convertFile2PyTree('restart.cgns')
+            (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+            CTK.TKTREE.updateApp()
+            CTK.display(CTK.t)
+            CTK.TXT.insert('START', 'Revert to previous solution step.\n')
+        except: pass
+        VARS[10].set('Main')
+    else:
+        CTK.TXT.insert('START', 'Display main computation tree.\n')
 
 #==============================================================================
 # Set data in selected zones
@@ -44,8 +54,9 @@ def setData():
     snear = VARS[6].get()
     ibctype = VARS[7].get()
     dfar = VARS[8].get()
-    inv = int(VARS[12].get())
-
+    if VARS[12].get() == 'out': inv = 0
+    else: inv = 1
+    
     numb = {'temporal_scheme':temporal_scheme,
             'ss_iteration':ss_iteration}
     numz = {'scheme':scheme, 'time_step':time_step}
@@ -112,7 +123,8 @@ def getData():
         n = Internal.getNodeFromPath(zone, '.Solver#define/inv')
         if n is not None:
             val = Internal.getValue(n)
-            VARS[12].set(val)
+            if val == 0: VARS[12].set('out')
+            else: VARS[12].set('in')
 
         d, c = Internal.getParentOfNode(CTK.t, zone)
         n = Internal.getNodeFromPath(d, '.Solver#define/temporal_scheme')
@@ -202,6 +214,7 @@ def compute():
     })
 
     nit = VARS[9].get()
+    moduloVerif = 50
 
     # Compute
     #CTK.t, tc = myApp.compute('restart.cgns', 'tc.cgns', t_out=None, tc_out='tc_restart.cgns', nit=nit)
@@ -223,6 +236,8 @@ def compute():
         FastS._compute(CTK.t, metrics, it, tc, graph)
         if it%50 == 0:
             CTK.TXT.insert('START', '%d / %d - %f\n'%(it+it0,it0+nit,time0))
+        if it%moduloVerif == 0:
+            FastS.display_temporal_criteria(CTK.t, metrics, it, format='double')
             #CTK.display(CTK.t)
         time0 += time_step
     Internal.createUniqueChild(CTK.t, 'Iteration', 'DataArray_t', value=it0+nit)
@@ -234,6 +249,7 @@ def compute():
 def writeFiles():
     writePrepFile()
     writeComputeFile()
+    CTK.TXT.insert('START', 'Write prep.py and compute.py.\n')
     return None
 
 #==============================================================================
@@ -254,7 +270,6 @@ def writePrepFile():
         tbody = Internal.rmNodesFromName1(tbody, 'REFINE')
     else: tbox = None
     
-
     # Save preventif
     C.convertPyTree2File(tbody, 'body.cgns')
     C.convertPyTree2File(tbox, 'tbox.cgns')
@@ -365,14 +380,14 @@ def createApp(win):
     V = TK.StringVar(win); V.set('Body'); VARS.append(V)
     # -11- time_step or cfl
     V = TK.StringVar(win); V.set('time_step'); VARS.append(V)
-    # -12- inv -
-    V = TK.DoubleVar(win); V.set(0); VARS.append(V)
+    # -12- mask inv or not -
+    V = TK.StringVar(win); V.set('out'); VARS.append(V)
 
     #- Mode -
     B = TTK.Label(Frame, text="Mode")
     B.grid(row=0, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Currently viewed tree.\nIn body mode:\nOne Base per body\nBase REFINE for refinement zones.')
-    B = TTK.OptionMenu(Frame, VARS[10], 'Body', 'Main', command=changeMode)
+    B = TTK.OptionMenu(Frame, VARS[10], 'Body', 'Main', 'PrevStep', command=changeMode)
     B.grid(row=0, column=1, columnspan=2, sticky=TK.EW)
 
     #- Snear settings  -
@@ -385,7 +400,7 @@ def createApp(win):
     #- dfar settings  -
     B = TTK.Label(Frame, text="dfar")
     B.grid(row=2, column=0, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='The distance to the far boundary.\nCan be set to -1.')
+    BB = CTK.infoBulle(parent=B, text='The distance from the center of object to the far boundary.\nIf set to -1, not taken into account.')
     B = TTK.Entry(Frame, textvariable=VARS[8], width=4, background="White")
     B.grid(row=2, column=1, columnspan=2, sticky=TK.EW)
 
@@ -396,10 +411,10 @@ def createApp(win):
     B = TTK.OptionMenu(Frame, VARS[7], 'slip', 'noslip', 'Log', 'Musker', 'outpress', 'inj', 'TBLE')
     B.grid(row=3, column=1, columnspan=2, sticky=TK.EW)
 
-    #- inv settings  -
-    B = TTK.Label(Frame, text="inv")
+    #- Mask settings (in or out)  -
+    B = TTK.Label(Frame, text="Fluid")
     B.grid(row=4, column=0, sticky=TK.EW)
-    B = TTK.OptionMenu(Frame, VARS[12], 0, 1)
+    B = TTK.OptionMenu(Frame, VARS[12], 'out', 'in')
     B.grid(row=4, column=1, columnspan=2, sticky=TK.EW)
 
     # - Set data -

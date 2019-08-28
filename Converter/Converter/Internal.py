@@ -4578,3 +4578,64 @@ def fixVarName(var):
     if len(varS) == 1: return var, 0
     if varS[0] == 'centers': return varS[1], 1
     return varS[1], 0
+
+#===============================================================================
+# set Loc 2 Glob information in zone
+# A appeler pour la zone decoupee, source est la zone pere
+# Structured zones: zone source name, winLoc/glob, dim of source zone
+# IN: soit loc2glob : numpy de 9 entiers
+# IN: soit winloc2glob+sourceDim en listes 6 + 3 entiers
+# Unstructured zones: zone source name, index loc/glob
+def setLoc2Glob(z, source, loc2glob=None, win=None, sourceDim=None):
+    zp = copyRef(z)
+    _setLoc2Glob(z, source, loc2glob, win, sourceDim)
+    return zp
+
+def _setLoc2Glob(z, source, loc2glob=None, win=None, sourceDim=None):
+    p = createUniqueChild(z, '.Solver#Param', 'UserDefinedData_t', value=None)
+    createUniqueChild(p, 'source', 'UserDefinedData_t', value=source)
+    if loc2glob is not None:
+        createUniqueChild(p, 'loc2glob', 'DataArray_t', value=loc2glob)
+    else: 
+        if win is not None:
+            if isinstance(win, list) and sourceDim is not None:
+                createUniqueChild(p, 'loc2glob', 'DataArray_t', value=win+sourceDim)
+            elif isinstance(win, list) and sourceDim is None:
+                createUniqueChild(p, 'loc2glob', 'DataArray_t', value=win)
+            else:
+                createUniqueChild(p, 'loc2glob', 'DataArray_t', value=win)
+    return None
+
+def setGlob2Loc(z, source, glob2loc=None, win=None, sourceDim=None):
+        zp = copyRef(z)
+        _setGlob2Loc(z, source, glob2loc, win, sourceDim)
+        return zp
+    
+def _setGlob2Loc(z, source, glob2loc=None, win=None, sourceDim=None):
+    p = createUniqueChild(z, '.Solver#Param', 'UserDefinedData_t', value=None)
+    createUniqueChild(p, 'source', 'UserDefinedData_t', value=source)
+    if glob2loc is not None:
+        createUniqueChild(p, 'glob2loc', 'DataArray_t', value=glob2loc)
+    else: 
+        if win is not None:
+            if isinstance(win, list) and sourceDim is not None:
+                createUniqueChild(p, 'glob2loc', 'DataArray_t', value=win+sourceDim)
+            elif isinstance(win, list) and sourceDim is None:
+                createUniqueChild(p, 'glob2loc', 'DataArray_t', value=win)
+            else:
+                createUniqueChild(p, 'glob2loc', 'DataArray_t', value=win)
+    return None
+
+def getLoc2Glob(z):
+    a = getNodeFromName2(z, 'loc2glob')
+    b = getNodeFromName2(z, 'source')
+    if a is not None: a = getValue(a)
+    if b is not None: b = getValue(b)
+    return b, a
+
+def getGlob2Loc(z):
+    a = getNodeFromName2(z, 'glob2loc')
+    b = getNodeFromName2(z, 'source')
+    if a is not None: a = getValue(a)
+    if b is not None: b = getValue(b)
+    return b, a

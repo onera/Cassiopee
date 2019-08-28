@@ -231,7 +231,6 @@ PyObject* K_KCORE::tester(PyObject* self, PyObject* args)
 #endif
 
 #if TESTHIGHORDER == 2
-  printf("test 2\n");
   // Construction vide
   PyObject* o = K_ARRAY::buildArray2(3, "x,y,z", 6, 1, -1, "TRI_6", false, 0, 0, 0, 2);
   // Recuperation des pointeurs

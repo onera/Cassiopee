@@ -16,14 +16,15 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
+#define CPPVERSION 2011
+
 #ifndef _KCORE_SHARED_PTR_HPP_
 #define _KCORE_SHARED_PTR_HPP_
-#if __cplusplus >= 201103L && ! defined (__PGI)
+#if  CPPVERSION >= 2011 && ! defined (__PGI)
 # include <memory>
 namespace K_MEMORY {
     template<typename K>
     using shared_ptr = std::shared_ptr<K>;
-    //using std::shared_ptr;
 }
 #else
 namespace K_MEMORY

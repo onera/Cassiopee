@@ -68,7 +68,7 @@ cpp_srcs = ["Post/coarsen.cpp",
             "Post/sharpEdges.cpp",
             "Post/silhouette.cpp"]
 
-if USURP == True and f90compiler != "None" and os.access(dirName+'/usurp', os.F_OK) == True:
+if USURP and f90compiler != "None" and os.access(dirName+'/usurp', os.F_OK):
     cpp_srcs.append("Post/usurp.cpp")
     cpp_srcs += ["Post/usurp/Ctype.cpp",
                  "Post/usurp/Gpc.cpp",
@@ -116,7 +116,7 @@ for_srcs = ['Post/Fortran/IntegStructF.for',
             'Post/zipper/ConstrConnectF.for']
 
 f90_srcs = []
-if (USURP == True and f90compiler != "None" and os.access(dirName+'/usurp', os.F_OK) == True):
+if USURP and f90compiler != "None" and os.access(dirName+'/usurp', os.F_OK):
     f90_srcs = ['Post/usurp/IntrTypeM.f90',
                 'Post/usurp/VertexDataM.f90',
                 'Post/usurp/TypesM.f90',

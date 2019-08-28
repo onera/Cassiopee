@@ -29,7 +29,7 @@ args = Dist.getForArgs(); opt = ''
 for c, v in enumerate(args): opt += 'FOPT'+str(c)+'='+v+' '
 os.system("make -e FC="+f77compiler+" F90=true WDIR=Post/Fortran "+opt)
 os.system("make -e FC="+f77compiler+" F90=true WDIR=Post/zipper "+opt)
-if f90compiler != "None" and os.access('Post/usurp', os.F_OK) == True:
+if f90compiler != "None" and os.access('Post/usurp', os.F_OK):
     os.system("(cd Post/usurp; make -e FC="+f77compiler+" F90="+f90compiler+" "+opt+")")
 prod = os.getenv("ELSAPROD")
 if prod is None: prod = 'xx'
@@ -42,7 +42,7 @@ libraryDirs += paths; libraries += libs
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 
-if f90compiler != "None" and os.access('Post/usurp', os.F_OK) == True: libraries.append("UsurpF")
+if f90compiler != "None" and os.access('Post/usurp', os.F_OK): libraries.append("UsurpF")
 
 import srcs
 

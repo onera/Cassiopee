@@ -173,7 +173,7 @@ namespace CMP {
     // Définition du buffer de réception
     // ================================================================================================
     RecvBuffer::RecvBuffer( int source, int id_tag )
-        : m_pt_implementation( nullptr) 
+        : m_pt_implementation( ) 
     {
 #       if defined(CMP_DEBUG)
         auto& logg = xcore::context::logger();
