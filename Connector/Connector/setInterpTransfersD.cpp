@@ -349,10 +349,9 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
     E_Int   kmd, cnNfldD, nvars, ndimdxD, meshtype;
     E_Float* iptroD;
 
-    if ( vartype <= 3 && vartype >= 1 )
-        nvars = 5;
-    else
-        nvars = 6;
+    if     ( vartype <= 3 &&  vartype >= 1) nvars =5;
+    else if( vartype == 4 ) nvars =27;    // on majore pour la LBM, car nvar sert uniquememnt a dimensionner taille vector
+    else                    nvars =6;
 
     E_Int nidomD = PyList_Size( zonesD );
 
@@ -536,22 +535,28 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
                 continue;
             }
 
-
-            E_Int Rans                 = ipt_param_int[shift_rac + nrac * 13 + 1];  // flag raccord rans/LES
-            E_Int nvars_loc            = nvars;
-            if ( Rans == 1 ) nvars_loc = 5;
+            E_Int nvars_loc            = ipt_param_int[shift_rac + nrac * 13 + 1];  //nbre variable a transferer pour rans/LES
 
             if ( strcmp( varname, "Density" ) == 0 ) {
                 if ( nvars_loc == 5 )
                     strcpy( varStringOut, "Density,VelocityX,VelocityY,VelocityZ,Temperature" );
                 else
                     strcpy( varStringOut, "Density,VelocityX,VelocityY,VelocityZ,Temperature,TurbulentSANuTilde" );
-            } else {
+            } 
+            else if ( strcmp( varname, "Density_P1" ) == 0 ) {
                 if ( nvars_loc == 5 )
                     strcpy( varStringOut, "Density_P1,VelocityX_P1,VelocityY_P1,VelocityZ_P1,Temperature_P1" );
                 else
                     strcpy( varStringOut,
                             "Density_P1,VelocityX_P1,VelocityY_P1,VelocityZ_P1,Temperature_P1,TurbulentSANuTilde_P1" );
+            }
+            else { //LBM
+                if ( nvars_loc == 9 )
+                    strcpy( varStringOut, "Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9" );
+                else if ( nvars_loc == 19 )
+                    strcpy( varStringOut, "Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,Q10,Q11,Q12,Q13,Q14,Q15,Q16,Q17,Q18,Q19" );
+                else if ( nvars_loc == 27 )
+                    strcpy( varStringOut, "Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,Q10,Q11,Q12,Q13,Q14,Q15,Q16,Q17,Q18,Q19,Q20,Q21,Q22,Q23,Q24,Q25,Q26,Q27" );
             }
 
             list_tpl[count_rac] = K_ARRAY::buildArray( nvars_loc, varStringOut, nbRcvPts, 1, 1 );

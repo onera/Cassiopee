@@ -611,8 +611,13 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
        #if a is not None: model = Internal.getValue(a)
 
        #print 'model=',model,'zoneR',zones_tc[param_int[ iadr +rac[pos]*11  ]][0], 'NoR=', param_int[ iadr +rac[pos]*11  ], 'NoD=', c
-       if model=='NSTurbulent': neq_loc = 6
-       else                   : neq_loc = 5
+       if model=='NSTurbulent':
+           neq_loc = 6
+       elif model=='LBMLaminar':
+           neq_loc = Internal.getNodeFromName2(zones[0] , 'Parameter_int')[1][86]
+           print("Warning:", neq_loc, "variables LBM a transferer sur zone", zRname)
+       else: 
+           neq_loc = 5
             
        tmp =  Internal.getNodeFromName1(s , 'RANSLES')
        if tmp is not None: param_int[ iadr +rac[pos]*13  ] = min (5, neq_loc)   # RANSLES

@@ -798,7 +798,8 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
      2  : (ro,u,v,w,t)
      21 : (ro,u,v,w,t) + ronutildeSA 
      3  : (ro,u,v,w,p)     
-     31 : (ro,u,v,w,p) + ronutildeSA */
+     31 : (ro,u,v,w,p) + ronutildeSA 
+     4  : (Q1,..., QN)   LBM  */     
   E_Int varType = E_Int(vartype); 
 
   //gestion nombre de pass pour ID et/ou IBC
@@ -813,8 +814,9 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
   
   E_Int kmd, cnNfldD, nvars, meshtype;
 
-  if( vartype <= 3 &&  vartype >= 1) nvars =5;
-  else                               nvars =6;
+  if     ( vartype <= 3 &&  vartype >= 1) nvars =5;
+  else if( vartype == 4 ) nvars =27;    // on majore pour la LBM, car nvar sert uniquememnt a dimensionner taille vector
+  else                    nvars =6;
 
   E_Int nidomR   = PyList_Size(zonesR);
   E_Int nidomD   = PyList_Size(zonesD);
@@ -962,6 +964,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
 	}
     }
 
+
   E_Int size = (nbRcvPts_mx/threadmax_sdm)+1; // on prend du gras pour gerer le residus
   E_Int r =  size % 8;
   if (r != 0) size  = size + 8 - r;           // on rajoute du bas pour alignememnt 64bits
@@ -1028,6 +1031,8 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
       E_Int NoR      =  ipt_param_int[ shift_rac + nrac*11 +1 ];
       E_Int nvars_loc=  ipt_param_int[ shift_rac + nrac*13 +1 ]; //neq fonction raccord rans/LES
       E_Int rotation =  ipt_param_int[ shift_rac + nrac*14 +1 ]; //flag pour periodicite azimutale
+
+      //printf("irac=  %d, nvar_loc= %d,  ithread= %d \n",irac , nvars_loc, ithread );
 
       E_Int meshtype = ipt_ndimdxD[NoD + nidomD*6];
       E_Int cnNfldD  = ipt_ndimdxD[NoD + nidomD*7];
@@ -1137,9 +1142,10 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
 //        if (nd  <  r) { pt_deb = ideb + nd*(chunk+1)               ; pt_fin = pt_deb + (chunk+1); }  
 //        else          { pt_deb = ideb +    (chunk+1)*r+(nd-r)*chunk; pt_fin = pt_deb +  chunk;    }
 
-      //printf(" irac= %d, NoR= %d, nvar=  %d, NoD= %d, Rans=  %d, rot= %d, fin= %d, ithread= %d \n", irac, NoR, nvars_loc, NoD, pass_inst ,rotation, pt_fin , ithread );
+      //printf(" irac= %d, NoR= %d, nvar=  %d, NoD= %d, Rans=  %d, rot= %d, fin= %d, type= %d, ithread= %d \n", irac, NoR, nvars_loc, NoD, pass_inst ,rotation, pt_fin , type,  ithread );
       //if(ithread <=8 && NoD==83 )  printf(" shift %d  %d %d %d  %d %d %d  %d \n", irac, NoR,NoD, ntype[ 1 + ndtyp],pt_deb,pt_fin  , type, ithread );
       //if(ithread <=8 && NoR==114 )  printf(" new   %d  %d %d %d  %d %d %d  %d \n", irac, NoR,NoD, ntype[ 1 + ndtyp],pt_deb,pt_fin  , type, ithread );
+
 
           noi       = shiftDonor;                             // compteur sur le tableau d indices donneur
           indCoef   = (pt_deb-ideb)*sizecoefs +  shiftCoef;
@@ -1155,7 +1161,8 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
           {
 #           include "commonInterpTransfers_reorder_neq.h"
           }
-           
+      
+     
           // Prise en compte de la periodicite par rotation
           if (rotation == 1)
           {
@@ -1212,12 +1219,13 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
                                         ipt_tmp, size,
                                         gamma, cv, muS, Cs, Ts, Pr,
                                         vectOfDnrFields, vectOfRcvFields);
-          }//ibc          
+          }//ibc   
   //*
   //        } //chunk
   //*/
+
           ideb       = ideb + ifin;
-          shiftCoef  = shiftCoef   +  ntype[1+ndtyp]*sizecoefs; //shift coef   entre 2 types successif
+          shiftCoef  = shiftCoef  +  ntype[1+ndtyp]*sizecoefs; //shift coef   entre 2 types successif
           shiftDonor = shiftDonor +  ntype[1+ndtyp];           //shift donor entre 2 types successif
        }// type 
       }// autorisation transfert
