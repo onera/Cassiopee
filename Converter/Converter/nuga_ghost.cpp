@@ -172,6 +172,7 @@ void add_n_topo_layers(std::vector<zone_type>& zones, E_Int i0, E_Int NLAYERS, i
 
     std::vector<E_Int> PGcolors, PHcolors;
     Zi0.color_ranges(PGcolors, PHcolors);
+    Zi0.sort_pointLists();
   }
 
 }
@@ -412,22 +413,20 @@ PyObject* K_CONVERTER::addGhostCellsNG(PyObject* self, PyObject* args)
       
       add_n_topo_layers(tmp_zones, i, NLAYERS, 3/*add degen gost cells on bcs whith top creation*/); //0 : no ghost / 1: ghost with only one PG / 2: degen ghost / 3 : degen ghost with top creation
       zone_type& Zghost = tmp_zones[i];
-/*
-std::vector<E_Int> PGcolors, PHcolors;
-Zghost.color_ranges(PGcolors, PHcolors);
 
-E_Int nb_colors = PHcolors.size(); 
+      std::vector<E_Int> PGcolors, PHcolors;
+      Zghost.color_ranges(PGcolors, PHcolors);
 
-for (E_Int p=0; p < nb_colors - 1; ++p)
-{
-    E_Int current_start = PHcolors[p];  //indice de debut de la couleur courante
-    E_Int current_type = Zghost._ng.PHs._type[current_start ];  //couleur : -1(interne), 1(couche 1) , 99(ghost sur BC), 2(couche 2), ...
-    E_Int current_range = PHcolors[p+1] - PHcolors[p]; // nombre d'élément portant cette couleur
-    printf("current_start: %d , current_type: %d , current_range: %d, colors_i: %d \n", current_start,current_type,current_range, p);
-}
-*/
+       /*E_Int nb_colors = PHcolors.size();
+       for (E_Int ii=0; ii < nb_colors - 1; ++ii)
+       {
+         E_Int start = PHcolors[ii];  //indice de debut de la couleur courante
+         E_Int current_type = Zghost._ng.PHs._type[start];  //couleur : -1(interne), 1(couche 1) , 99(ghost sur BC), 2(couche 2), ...
+         E_Int current_range =PHcolors[ii+1] - PHcolors[ii]; // nombre d'élément portant cette couleur
+         std::cout << "range : " << ii << " start : " << start << " : type : " << current_type << " and range : " << current_range << std::endl;
+       }*/
 
-      size_t nb_phs = Zghost._ng.PHs.size();
+      E_Int nb_phs = Zghost._ng.PHs.size();
       for (size_t l=0; l < nb_phs; ++l)
       {
          //CALCUL nb ELEMENT COUCHE ZERO
@@ -452,7 +451,7 @@ for (E_Int p=0; p < nb_colors - 1; ++p)
       }
       printf("ELts0 = %d, ELts1 = %d, ELts2 = %d %d %d \n", Elt[0],Elt[1],Elt[2],Elt[3],Elt[4]);
 
-      size_t nb_pgs = Zghost._ng.PGs.size();
+      E_Int nb_pgs = Zghost._ng.PGs.size();
       for (size_t l=0; l < nb_pgs; ++l) {
        if(Zghost._ng.PGs._type[l]==PG_INNER_COL  ) Face[0]=l+1;
        if(Zghost._ng.PGs._type[l]==PG_JOIN_COL   ) Face[1]=l-Face[0]+1;

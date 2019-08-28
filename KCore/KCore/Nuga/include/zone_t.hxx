@@ -182,6 +182,8 @@ class zone_t
     void update_boundaries(const Vector_t<E_Int>& pgnids, E_Int idx_start);
     
     void add_boundary(E_Int obcid, const E_Int* ids, E_Int n);
+
+    void sort_pointLists();
     
     void set_pg_colors();
     
@@ -705,6 +707,23 @@ void zone_t<crd_t, ngo_t>::update_boundaries(const Vector_t<E_Int>& pgnids, E_In
     _joins.erase(to_remove[i]);
 }
 
+///
+template <typename crd_t, typename ngo_t>
+void zone_t<crd_t, ngo_t>::sort_pointLists()
+{
+  for (auto& b : _bcs)
+  {
+     std::vector<E_Int>& ids = b.second;
+     std::sort(ids.begin(), ids.end());
+
+  }
+  for (auto j : _joins)
+  {
+    std::vector<E_Int>& ids = j.second.second;
+    std::sort(ids.begin(), ids.end());
+  }
+}
+
 
 ///
 template <typename crd_t, typename ngo_t>
@@ -975,9 +994,8 @@ void zone_t<crd_t, ngo_t>::sort_by_type()
 }
 
 template <typename crd_t, typename ngo_t>
-void zone_t<crd_t, ngo_t>::insert_ghosts_on_bcs(E_Int type, E_Int nb_layers) //type 1 : single-PG host, 2: degen ghost
+void zone_t<crd_t, ngo_t>::insert_ghosts_on_bcs(E_Int type, E_Int nb_layers) //type 1 : single-PG host, 2: degen ghost, 3 : degen ghost with top creation (rather than bot duplication)
 {
-  if (type != 1 && type != 2) return;
 
   // first shift types to make room for BC ghost (just before 2nd layer)
   size_t nb_phs = _ng.PHs.size();
@@ -1014,7 +1032,7 @@ void zone_t<crd_t, ngo_t>::insert_ghosts_on_bcs(E_Int type, E_Int nb_layers) //t
     nb_phs = _ng.PHs.size();
     _ng.PHs._type.resize(nb_phs, 2); // set GHOST cells color
   }
-  else if (type == 2)
+  else if (type == 2 || type == 3)
   {
     std::vector<E_Int> pglist;
     for (size_t i=0; i < nb_pgs; ++i)
@@ -1026,7 +1044,7 @@ void zone_t<crd_t, ngo_t>::insert_ghosts_on_bcs(E_Int type, E_Int nb_layers) //t
       if (ad)
         pglist.push_back(i);
     }
-    ngon_type::add_flat_ghosts(_ng, pglist);
+    ngon_type::add_flat_ghosts(_ng, pglist, (type == 3));
     //replace temporarily to put ghost at the right position
     nb_phs = _ng.PHs.size();
     for (size_t i = 0; i < nb_phs; ++i)

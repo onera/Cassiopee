@@ -4277,7 +4277,7 @@ static E_Int extrude_faces
 }
 
 ///
-static E_Int add_flat_ghosts(ngon_t& wNG, const Vector_t<E_Int>& PGlist)
+static E_Int add_flat_ghosts(ngon_t& wNG, const Vector_t<E_Int>& PGlist, bool create_tops)
 {
   
   if (PGlist.empty()) return 0;
@@ -4330,6 +4330,17 @@ static E_Int add_flat_ghosts(ngon_t& wNG, const Vector_t<E_Int>& PGlist)
 #endif
   }
   
+  E_Int top_shift=wNG.PGs.size();
+  if (create_tops)
+  {
+    for (size_t i=0; i < PGlist.size(); ++i)
+    {
+      const E_Int* faces = wNG.PGs.get_facets_ptr(PGlist[i]);
+      E_Int str = wNG.PGs.stride(PGlist[i]);
+      wNG.PGs.add(str, faces);
+    }
+  }
+  
   wNG.PGs._type.resize(wNG.PGs.size(), 99/*PG_GHOST*/);
   wNG.PGs._ancEs.resize(2, wNG.PGs.size(), E_IDX_NONE);
   
@@ -4348,7 +4359,10 @@ static E_Int add_flat_ghosts(ngon_t& wNG, const Vector_t<E_Int>& PGlist)
     buff.clear();
     buff.insert(buff.end(), pgs, pgs + nb_pgs); // adding bulkheads
     buff.push_back(obids[i] + 1);               // adding bottom
-    buff.push_back(obids[i] + 1);               // adding "top"
+    if (!create_tops)
+      buff.push_back(obids[i] + 1);               // adding "top"
+    else
+      buff.push_back(i+top_shift+1);
     
     wNG.PHs.add(buff.size()/*nb_pgs + 2*/, &buff[0]);
   }
