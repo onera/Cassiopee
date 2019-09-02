@@ -451,13 +451,6 @@ PyObject* K_IO::GenIOHdf::createNodePartial(hid_t& node)
   H5Sclose(mid);
   H5Sclose(sid);
 
-  /** Verbose **/
-  // int* ptr = (int*) PyArray_DATA((PyArrayObject * ) v);
-  // for(int n=0; n<24; n++)
-  // {
-  //   printf("data[%d] : %d \n", n , ptr[n]);
-  // }
-
   //if (tid != 0) H5Tclose(tid);
   // PyObject* s = Py_BuildValue("[sOOs]", _name, v, Py_None, _type);
   PyObject* s = Py_BuildValue("[sOOs]", _path, v, Py_None, _type);
@@ -534,7 +527,7 @@ PyObject* K_IO::GenIOHdf::createNodePartialContigous(hid_t&    node,
     // To doux : Flags for array order C or Fortran ?
     // for (d = 0; d < dim; d++) _dims[d] = _dims2[dim-d-1]*nField;
 
-    if(DataSpace.Flags[0] == 0)  /** Contigous **/
+    if (DataSpace.Flags[0] == 0)  /** Contigous **/
     {
       /** Contigous Fortran == Interlaced C
        *   So we put at the end the nField to made contigous (in fortran sens )
@@ -576,7 +569,7 @@ PyObject* K_IO::GenIOHdf::createNodePartialContigous(hid_t&    node,
       for (d = 0; d < CGNSMAXDIM; d++) _dims[d]  = _tmp[d];
 
       /** ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: **/
-      /** On rajoute une dimension au dataSpace au début (Car HDF est C order -_- ) **/
+      /** On rajoute une dimension au dataSpace au debut (Car HDF est C order -_- ) **/
       DataSpace.Src_Offset[dim-1] = (hsize_t) iField;
       DataSpace.Src_Count[dim-1]  = 1;
       DataSpace.Src_Stride[dim-1] = (hsize_t) nField;

@@ -1431,7 +1431,7 @@ def setFields(arrays, t, loc, writeDim=True):
     z = nodes[c] # zone
     info = z[2]
 
-    if writeDim == True and loc == 'nodes' and a != []:
+    if writeDim and loc == 'nodes' and a != []:
       d = Internal.array2PyTreeDim(a)
       cellDim = d.shape[0]
     else:
@@ -1494,7 +1494,7 @@ def setFields(arrays, t, loc, writeDim=True):
       p += 1
 
     # update les dimensions si necessaire
-    if writeDim == True and loc == 'nodes' and vars != []:
+    if writeDim and loc == 'nodes' and vars != []:
       z[1] = Internal.array2PyTreeDim(a)
       if len(a) == 5: # structure
         typeNodes = Internal.getNodesFromType1(z, 'ZoneType_t')

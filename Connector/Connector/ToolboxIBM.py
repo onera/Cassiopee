@@ -511,7 +511,7 @@ def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None,
             octreeA = C.getFields(Internal.__GridCoordinates__, o)[0]
             indic = C.getField("centers:indicator", o)[0]
             indic = Converter.addVars([indic,cellN])
-            indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic, 0, corner, 3)                                                                              
+            indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic, 0, corner, 3)                                                                          
             octreeA = Generator.adaptOctree(octreeA, indic, balancing=2)
             o = C.convertArrays2ZoneNode(o[0], [octreeA])
 

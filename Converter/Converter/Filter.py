@@ -16,7 +16,7 @@ def expand(fileName):
   return files
 
 #==============================================================================
-# Lit seulement une partie des noeuds a partir de la definition d'un filtre.
+# Lit seulement une partie des tableaux d'un fichier a partir de la definition d'un filtre.
 # filter est un dictionnaire pour chaque path
 # pour les grilles structurees : [[imin,jmin,kmin], [1,1,1], [imax,jmax,kmax], [1,1,1]]
 # pour les grilles non structurees : [[istart], [1], [iend], [1]]
@@ -98,35 +98,67 @@ def _loadContainer(a, fileName, znp, cont, format=None):
         _readPyTreeFromPaths(a, fileName, paths, format)
     return None
 
-def _loadContainerPartial(a, fileName, znp, cont, format=None):
-    if isinstance(cont, list): conts = cont
-    else: conts = [cont]
+# variablesN = ['GridCoordinates/CoordinateX',...]
+# variablesC = ['FlowSolution#Centers/Density',...]
+def _loadContainerPartial(a, fileName, znp, variablesN=[], variablesC=[], format=None):
+    
     if isinstance(znp, list): znps = znp
     else: znps = [znp]
     for p in znps:
+      f = {}
+      spl = p.rsplit('/',1)
+      zname = spl[1]
+      bname = spl[0].rsplit('/',1)[1]
+      # Get loc2Glob
+      zone = Internal.getNodeFromPath(a, p)
+      src = None
+      if zone is not None: 
+        src, loc2glob = Internal.getLoc2Glob(zone)
+      if src is None: continue
+
+      j = loc2glob
+      pname = src
+
+      # Variables aux noeuds
       paths = []
-      zname = p.rsplit('/',1)[0]
-      j = self.splitDict[zname]
-      pname = j[0] 
-      path = ['/%s/%s/GridCoordinates/CoordinateX'%(bname, pname),
-      '/%s/%s/GridCoordinates/CoordinateY'%(bname, pname),
-      '/%s/%s/GridCoordinates/CoordinateZ'%(bname, pname)]
-    
-      DataSpaceMMRY = [[0,0,0], [1,1,1], [j[2]-j[1]+1,j[4]-j[3]+1,j[6]-j[5]+1], [1,1,1]]
-      DataSpaceFILE = [[j[1]-1,j[3]-1,j[5]-1], [1,1,1], [j[2]-j[1]+1,j[4]-j[3]+1,j[6]-j[5]+1], [1,1,1]]
+      for v in variablesN: paths.append('/%s/%s/%s'%(bname, pname, v))
+
+      DataSpaceMMRY = [[0,0,0], [1,1,1], [j[1]-j[0]+1,j[3]-j[2]+1,j[5]-j[4]+1], [1,1,1]]
+      DataSpaceFILE = [[j[0]-1,j[2]-1,j[4]-1], [1,1,1], [j[1]-j[0]+1,j[3]-j[2]+1,j[5]-j[4]+1], [1,1,1]]
       DataSpaceGLOB = [[0]]
     
-      f = {}
-      for p in path:
-        f[p] = DataSpaceMMRY+DataSpaceFILE+DataSpaceGLOB
+      for p in paths: f[p] = DataSpaceMMRY+DataSpaceFILE+DataSpaceGLOB
 
-    r = readNodesFromFilter(fileName, f)
+      # Variables aux centres
+      paths = []
+      for v in variablesC: paths.append('/%s/%s/%s'%(bname, pname, v))
 
-    # Repositionne les chemins
-    for k in r:
-      k2 = k.replace(pname, zname)
-      n = Internal.getNodeFromPath(b, k2)
-      n[1] = r[k]
+      DataSpaceMMRYC = [[0,0,0], [1,1,1], [max(j[1]-j[0],1),max(j[3]-j[2],1),max(j[5]-j[4],1)], [1,1,1]]
+      DataSpaceFILEC = [[j[0]-1,j[2]-1,j[4]-1], [1,1,1], [max(j[1]-j[0],1),max(j[3]-j[2],1),max(j[5]-j[4],1)], [1,1,1]]
+      DataSpaceGLOBC = [[0]]
+
+      for p in paths: f[p] = DataSpaceMMRYC+DataSpaceFILEC+DataSpaceGLOBC
+
+      r = readNodesFromFilter(fileName, f)
+
+      # Repositionne les chemins dans la zone
+      for k in r:
+        k2 = k.replace(pname, zname)
+        spl = k2.rsplit('/',1)
+        varName = spl[1]
+        contName = spl[0].rsplit('/',1)[1]
+        n = Internal.getNodeFromPath(a, k2)
+        if n is None:
+          parent = k2.rsplit('/',1)[0]
+          parent = Internal.getNodeFromPath(a, parent)
+          if parent is not None:
+            Internal.createChild(parent, varName, 'DataArray_t', value=r[k])
+            loc = Internal.getNodeFromType1(parent, 'GridLocation_t')
+            if loc is None and contName+'/'+varName in variablesC:
+              Internal.newGridLocation(value='CellCenter', parent=parent)
+          else: print('Cannot set %s.'%k2)
+        else: n[1] = r[k]
+    
     return None
 
 #=========================================================================
@@ -369,8 +401,11 @@ def loadAndSplit(fileName, NParts=None, noz=None, NProc=None, rank=None, variabl
   import Transform.PyTree as T
   a = convertFile2SkeletonTree(fileName)
   # split on skeleton
-  splitDict={}
-  b = T.splitNParts(a, N=NParts, splitDict=splitDict)
+  T._splitNParts(a, N=NParts)
+  # distribute skeleton
+  import Distributor2.PyTree as D2   
+  D2._distribute(a, NProc)
+  # a finir
 
   zones = Internal.getZones(b)
   if rank is not None:
@@ -552,7 +587,6 @@ class Handle:
     self.bary = None # Barycentres zones du fichier
     self.bbox = None # BBox zones du fichier
     self.hmoy = None # pas moyen des zones du fichier
-    self.splitDict = None # dictionnaire de split si on a load le squelette avec loadAndSplit
     self.format = Converter.checkFileType(fileName) # Real format of file
     
   # Retourne les chemins des zones de a
@@ -618,28 +652,14 @@ class Handle:
     a = self.loadSkeleton()    
     import Transform.PyTree as T
     # split on skeleton
-    splitDict={}
     if NParts is not None:
-      b = T.splitNParts(a, N=NParts, splitDict=splitDict)
+      T._splitNParts(a, N=NParts)
     else:
-      b = T.splitNParts(a, N=NProc, splitDict=splitDict)
-    self.splitDict = splitDict
+      T._splitNParts(a, N=NProc)
 
-    zones = Internal.getZones(b)
     if NProc is not None:
       import Distributor2.PyTree as D2   
-      D2._distribute(b, NProc)
-
-    # Correction dims en attendant que subzone fonctionne sur un skel
-    for z in zones:
-      j = splitDict[z[0]]
-      ni = j[2]-j[1]+1; nj = j[4]-j[3]+1; nk = j[6]-j[5]+1
-      d = numpy.empty((3,3), numpy.int32, order='Fortran')
-      d[0,0] = ni;   d[1,0] = nj;   d[2,0] = nk
-      d[0,1] = ni-1; d[1,1] = nj-1; d[2,1] = nk-1
-      d[0,2] = 0;    d[1,2] = 0;    d[2,2] = 0
-      z[1] = d
-      # END correction      
+      D2._distribute(a, NProc)
     return a
 
   # Calcul et stocke des infos geometriques sur les zones
@@ -778,6 +798,12 @@ class Handle:
     _loadContainer(a, self.fileName, znp, cont, self.format)
     return None
 
+  # Charge le container "cont" en partiel (si la zone a loc2glob)
+  def _loadContainerPartial(self, a, variablesN=[], variablesC=[], znp=None):
+    if znp is None: znp = self.getZonePaths(a)
+    _loadContainerPartial(a, self.fileName, znp, variablesN, variablesC, self.format)
+    return None
+   
   def loadVariables(self, a, var, znp=None):
     """Load specified variables."""
     b = Internal.copyRef(a)

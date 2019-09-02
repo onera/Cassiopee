@@ -195,8 +195,8 @@ def compute():
     if a == 'cfl': time_step_nature = 'local'
     else: time_step_nature = 'global'
     val = float(VARS[5].get())
-    if time_step_nature == 'local': ss_iteration = 3
-    else: ss_iteration = 30
+    if time_step_nature == 'local': ss_iteration = 1
+    else: ss_iteration = 20
 
     myApp = App.IBM(format='single')
     myApp.set(numb={

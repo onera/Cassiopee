@@ -11,8 +11,9 @@ import numpy
 # Helpers
 #=====================================================================
 # Retourne les raccords matchs d'une zone z
-# Si donorName est specifie, retourne les raccords matchs correspondants 
+# Si donorName est specifie, retourne les raccords matchs correspondants
 # uniquement a ce donneur
+#=====================================================================
 def getBCMatchs(z, donorName=None):
     bcs = []
     gc = Internal.getNodeFromType1(z, 'ZoneGridConnectivity_t')
@@ -30,7 +31,9 @@ def getBCMatchs(z, donorName=None):
             if oppBlock == donorName: bcs.append(bc)
     return bcs
 
+#=====================================================================
 # Retourne les datas d'un BCMatch : oppBlockName, range, donorRange, trf
+#=====================================================================
 def getBCMatchData(bc):
     oppBlock = Internal.getValue(bc)
     rnge = Internal.getNodeFromName1(bc, 'PointRange')
@@ -45,8 +48,10 @@ def getBCMatchData(bc):
         trf = trf2
     return (oppBlock, rnge, donor, trf)
 
+#=====================================================================
 # IN: rac = 1,2,3,4,5,6,-1,-2,-3,-4,-5,-6
 # OUT: rac = 1,2,3
+#=====================================================================
 def getRac(rac):
     racl = abs(rac)
     if racl == 1: return 1
@@ -56,9 +61,11 @@ def getRac(rac):
     elif racl == 5: return 3
     else: return 3
 
+#=====================================================================
 # Retourne la direction de la fenetre :
 # "imin", "imax", "jmin", "jmax", "kmin", "kmax"
 # La fenetre est supposee full
+#=====================================================================
 def getWinDir(win):
     if win[0] == win[1] and win[0] == 1: return 'imin'
     elif win[0] == win[1]: return 'imax'
@@ -67,17 +74,21 @@ def getWinDir(win):
     if win[4] == win[5] and win[4] == 1: return 'kmin'
     elif win[4] == win[5]: return 'kmax'
 
+#=====================================================================
 # IN: window: [imin,imax,jmin,jmax,kmin,kmax]
 # Retourne 1, 2, 3
+#=====================================================================
 def getWinDir2(win):
     if win[0] == win[1]: return 1
     if win[2] == win[3]: return 2
     if win[4] == win[5]: return 3
     return -1
 
+#=====================================================================
 # IN: oppRac de transform (1,2,3 ou -1,-2,-3)
 # IN: window donor
 # OUT: oppRac suivant minmax donor (1,2,3,4,5 ou -1,...)
+#=====================================================================
 def getOppRac(oppRac, donor):
     if oppRac == 1:
         if donor[0] == 1: oppRac = 1
@@ -112,46 +123,28 @@ def trfIndex(ind, rnge, donor, trf):
     (i,j,k) = ind
 
     # indice i
-    if trfi == 1:
-        ip = i-imin1+imin2
-    elif trfi == -1:
-        ip = imax1-i+imin2
-    elif trfj == 1:
-        ip = j-jmin1+jmin2
-    elif trfj == -1:
-        ip = jmax1-j+jmin2
-    elif trfk == 1:
-        ip = k-kmin1+kmin2
-    elif trfk == -1:
-        ip = kmax1-k+kmin2
+    if trfi == 1: ip = i-imin1+imin2
+    elif trfi == -1: ip = imax1-i+imin2
+    elif trfj == 1: ip = j-jmin1+jmin2
+    elif trfj == -1: ip = jmax1-j+jmin2
+    elif trfk == 1: ip = k-kmin1+kmin2
+    elif trfk == -1: ip = kmax1-k+kmin2
 
     # indice j
-    if trfi == 2:
-        jp = i-imin1+imin2
-    elif trfi == -2:
-        jp = imax1-i+imin2
-    elif trfj == 2:
-        jp = j-jmin1+jmin2
-    elif trfj == -2:
-        jp = jmax1-j+jmin2
-    elif trfk == 2:
-        jp = k-kmin1+kmin2
-    elif trfk == -2:
-        jp = kmax1-k+kmin2
-    
+    if trfi == 2: jp = i-imin1+imin2
+    elif trfi == -2: jp = imax1-i+imin2
+    elif trfj == 2: jp = j-jmin1+jmin2
+    elif trfj == -2: jp = jmax1-j+jmin2
+    elif trfk == 2: jp = k-kmin1+kmin2
+    elif trfk == -2: jp = kmax1-k+kmin2
+
     # indice k
-    if trfi == 3:
-        kp = i-imin1+imin2
-    elif trfi == -3:
-        kp = imax1-i+imin2
-    elif trfj == 3:
-        kp = j-jmin1+jmin2
-    elif trfj == -3:
-        kp = jmax1-j+jmin2
-    elif trfk == 3:
-        kp = k-kmin1+kmin2
-    elif trfk == -3:
-        kp = kmax1-k+kmin2
+    if trfi == 3: kp = i-imin1+imin2
+    elif trfi == -3:kp = imax1-i+imin2
+    elif trfj == 3: kp = j-jmin1+jmin2
+    elif trfj == -3: kp = jmax1-j+jmin2
+    elif trfk == 3: kp = k-kmin1+kmin2
+    elif trfk == -3: kp = kmax1-k+kmin2
 
     return (ip,jp,kp)
 
@@ -171,19 +164,19 @@ def reverseTrf(trf):
     if trfj == -2: trfj2 = -2
     if trfk == 2: trfj2 = 3
     if trfk == -2: trfj2 = -3
-    
+
     if trfi == 3: trfk2 = 1
     elif trfi == -3: trfk2 = -1
     elif trfj == 3: trfk2 = 2
     elif trfj == -3: trfk2 = -2
     elif trfk == 3: trfk2 = 3
     elif trfk == -3: trfk2 = -3
-    
+
     return (trfi2,trfj2,trfk2)
 
 def trfDir(dir, trf):
     return trf[dir-1]
-    
+
 #=====================================================================
 # Casse les conditions aux limites pour que les raccords soient
 # sur des faces pleines
@@ -196,7 +189,7 @@ def breakBCs(t):
 
     while len(stack) > 0:
         z = stack.pop(0)
-        break__(z, stack, final)
+        break__(z, stack, final, t)
         # DBG
         #count += 1
         #if count > 1: final += stack; break
@@ -205,7 +198,7 @@ def breakBCs(t):
     t = C.newPyTree(['Base', final])
     return t
 
-def break__(z, stack, final):
+def break__(z, stack, final, t):
     allzones = stack+final
     dim = Internal.getZoneDim(z)
     if dim[0] == 'Unstructured': final.append(z); return
@@ -213,61 +206,61 @@ def break__(z, stack, final):
     bcs = getBCMatchs(z)
     for bc in bcs:
         (oppBlock, rnge, donor, trf) = getBCMatchData(bc)
-        print z[0], rnge, ni, nj, nk
+        print(z[0], rnge, ni, nj, nk)
         dir = getWinDir2(rnge)
 
         # verifie si la fenetre est full
         if (dir == 2 or dir == 3) and rnge[0] > 1:
-            print 'split1'
+            print('split1')
             z1 = T.subzone(z, (1,1,1), (rnge[0],nj,nk))
             z2 = T.subzone(z, (rnge[0],1,1), (ni,nj,nk))
-            adaptBCMatch(z, allzones, z1, z2, splitDir=1, splitIndex=rnge[0])
+            z1,z2 = T.split(z, dir, rnge[0], t)
+            #adaptBCMatch(z, allzones, z1, z2, splitDir=1, splitIndex=rnge[0])
             stack.append(z1); stack.append(z2)
             return
 
         if (dir == 2 or dir == 3) and rnge[1] < ni:
-            print 'split2'
+            print('split2')
             z1 = T.subzone(z, (1,1,1), (rnge[1],nj,nk))
             z2 = T.subzone(z, (rnge[1],1,1), (ni,nj,nk))
-            adaptBCMatch(z, allzones, z1, z2, splitDir=1, splitIndex=rnge[1])
+            #adaptBCMatch(z, allzones, z1, z2, splitDir=1, splitIndex=rnge[1])
             stack.append(z1); stack.append(z2)
             return
 
         if (dir == 1 or dir == 3) and rnge[2] > 1: # need split, stack
-            print 'split3'
+            print('split3')
             z1 = T.subzone(z, (1,1,1), (ni,rnge[2],nk))
             z2 = T.subzone(z, (1,rnge[2],1), (ni,nj,nk))
-            adaptBCMatch(z, allzones, z1, z2, splitDir=2, splitIndex=rnge[2])
+            #adaptBCMatch(z, allzones, z1, z2, splitDir=2, splitIndex=rnge[2])
             stack.append(z1); stack.append(z2)
             return
 
         if (dir == 1 or dir == 3) and rnge[3] < nj: # need split, stack
-            print 'split4'
+            print('split4')
             z1 = T.subzone(z, (1,1,1), (ni,rnge[3],nk))
             z2 = T.subzone(z, (1,rnge[3],1), (ni,nj,nk))
-            adaptBCMatch(z, allzones, z1, z2, splitDir=2, splitIndex=rnge[3])
+            #adaptBCMatch(z, allzones, z1, z2, splitDir=2, splitIndex=rnge[3])
             stack.append(z1); stack.append(z2)
             return
-        
+
         if (dir == 1 or dir == 2) and rnge[4] > 1: # need split, stack
-            print 'split5'
+            print('split5')
             z1 = T.subzone(z, (1,1,1), (ni,nj,rnge[4]))
             z2 = T.subzone(z, (1,1,rnge[4]), (ni,nj,nk))
-            adaptBCMatch(z, allzones, z1, z2, splitDir=3, splitIndex=rnge[4])
+            #adaptBCMatch(z, allzones, z1, z2, splitDir=3, splitIndex=rnge[4])
             stack.append(z1); stack.append(z2)
             return
-        
+
         if (dir == 1 or dir == 2) and rnge[5] < nk: # need split, stack
-            print 'split6'
+            print('split6')
             z1 = T.subzone(z, (1,1,1), (ni,nj,rnge[5]))
             z2 = T.subzone(z, (1,1,rnge[5]), (ni,nj,nk))
-            adaptBCMatch(z, allzones, z1, z2, splitDir=3, splitIndex=rnge[5])
+            #adaptBCMatch(z, allzones, z1, z2, splitDir=3, splitIndex=rnge[5])
             stack.append(z1); stack.append(z2)
             return
 
-    print 'only append', z[0]
+    print('only append', z[0])
     final.append(z)
-
 
 # adapte toutes les BCMatchs quand z est splitte en z1+z2
 def adaptBCMatch(z, allzones, z1, z2, splitDir=1, splitIndex=1):
@@ -289,7 +282,7 @@ def adaptBCMatch(z, allzones, z1, z2, splitDir=1, splitIndex=1):
     for a in allOppBlocks:
         zp = Internal.getNodeFromName(allzones, a)
         if zp is None:
-            print 'Warning: can not find %s in allzones'%a
+            print('Warning: can not find %s in allzones'%a)
             bcs = []
         else:
             bcs = getBCMatchs(zp, z[0])
@@ -297,11 +290,11 @@ def adaptBCMatch(z, allzones, z1, z2, splitDir=1, splitIndex=1):
             (oppBlock, rnge, donor, trf) = getBCMatchData(bc)
             if oppBlock == z[0]: Internal._rmNode(zp, bc)
             if zp not in pool: pool.append(zp)
-    
+
     pool += [z1,z2]
-    print 'pool'
-    for i in pool: print i[0]
-    print 'end pool'
+    print('pool')
+    for i in pool: print(i[0])
+    print('end pool')
     pool = X.connectMatch(pool, dim=dim[4])
 
 #====================================================================
@@ -324,12 +317,12 @@ def stackIt(B0, dir0s, dir1, graph, treated, stack):
 #============================================================================
 # Construit le graph de connection
 # Pour chaque bloc : 1=imin, 2=imax, 3=jmin, 4=jmax, 5=kmin, 6=kmax
-# renvoit le bloc oppose, le raccord correspondant sur le bloc oppose 
+# renvoit le bloc oppose, le raccord correspondant sur le bloc oppose
 # et le trf
 #============================================================================
 def getGraph(t):
     graph = {}
-    zones = Internal.getZones(t)    
+    zones = Internal.getZones(t)
     for z in zones:
         neigh = [None, None, None, None, None, None, None]
         dim = Internal.getZoneDim(z)
@@ -338,22 +331,22 @@ def getGraph(t):
         for bc in bcs:
             (oppBlock, rnge, donor, trf) = getBCMatchData(bc)
             racc = 0
-            if rnge[0] == rnge[1] and rnge[0] == 1: 
+            if rnge[0] == rnge[1] and rnge[0] == 1:
                 racc = 1
                 oppRacc = getOppRac(trf[0], donor)
-            elif rnge[0] == rnge[1] and rnge[0] == dim[1]: 
+            elif rnge[0] == rnge[1] and rnge[0] == dim[1]:
                 racc = 2
                 oppRacc = getOppRac(trf[0], donor)
-            elif rnge[2] == rnge[3] and rnge[2] == 1: 
+            elif rnge[2] == rnge[3] and rnge[2] == 1:
                 racc = 3
                 oppRacc = getOppRac(trf[1], donor)
-            elif rnge[2] == rnge[3] and rnge[2] == dim[2]: 
+            elif rnge[2] == rnge[3] and rnge[2] == dim[2]:
                 racc = 4
                 oppRacc = getOppRac(trf[1], donor)
-            elif rnge[4] == rnge[5] and rnge[4] == 1: 
+            elif rnge[4] == rnge[5] and rnge[4] == 1:
                 racc = 5
                 oppRacc = getOppRac(trf[2], donor)
-            elif rnge[4] == rnge[5] and rnge[4] == dim[3]: 
+            elif rnge[4] == rnge[5] and rnge[4] == dim[3]:
                 racc = 6
                 oppRacc = getOppRac(trf[2], donor)
 
@@ -389,14 +382,14 @@ def _reportBCMatchs(zo, zi, t):
             donorWin = [1, nio, 1, 1, 1, nko]
         elif donorDir == 'jmax':
             donorWin = [1, nio, njopp, njopp, 1, nko]
-        elif donorDir == 'kmin': 
+        elif donorDir == 'kmin':
             donorWin = [1, nio, 1, njo, 1, 1]
         elif donorDir == 'kmax':
             donorWin = [1, nio, 1, njo, nkopp, nkopp]
 
         print("Adding bcmatch", getWinDir(rnge), oppBlock, donorWin)
-        
-        C._addBC2Zone(zo, 'match1', 'BCMatch', getWinDir(rnge), 
+
+        C._addBC2Zone(zo, 'match1', 'BCMatch', getWinDir(rnge),
                       zoneDonor=oppBlock, rangeDonor=donorWin, trirac=trf)
     #Internal.printTree(zo)
 
@@ -420,11 +413,11 @@ def _adaptRanges(t, zo):
                     donorWin = [1, 1, 1, njo, 1, nko]
                 elif donorDir == 'imax':
                     donorWin = [nio, nio, 1, njo, 1, nko]
-                elif donorDir == 'jmin': 
+                elif donorDir == 'jmin':
                     donorWin = [1, nio, 1, 1, 1, nko]
                 elif donorDir == 'jmax':
                     donorWin = [1, nio, njo, njo, 1, nko]
-                elif donorDir == 'kmin': 
+                elif donorDir == 'kmin':
                     donorWin = [1, nio, 1, njo, 1, 1]
                 elif donorDir == 'kmax':
                     donorWin = [1, nio, 1, njo, nko, nko]
@@ -438,7 +431,7 @@ def _adaptRanges(t, zo):
 # dir0: direction du remaillage sur B0 (1,2,3,4,5,6,-1,-2,-3,-4,-5,-6)
 #======================================================================
 def _propagate(t, graph, stack, treated):
- 
+
     # dir0 est la direction du traitement a appliquer
     # peut-etre : 1,2,3,4,5,6,-1,-2,-3,-4,-5,-6
     (B0, dir0) = stack.pop(0)
@@ -450,7 +443,7 @@ def _propagate(t, graph, stack, treated):
     else: l = linelet
 
     # traitement
-    print(">> Je traite %s (dir=%d)\n"%(B0,dir0))    
+    print(">> Je traite %s (dir=%d)\n"%(B0,dir0))
     dir0s = getRac(dir0)
     zp = G.map(zB0, linelet, dir=dir0s)
     # zp a le meme nom, il faut reporter les matchs de zB0 full face sur zp
@@ -535,96 +528,98 @@ def buildDistrib(t, block, dir, h1, h2, N):
 #======================================================
 # Main
 #======================================================
+if __name__ == "__main__":
+    # Remesh case1.cgns - OK
+    """
+    FILE = 'case1.cgns'
+    block = 'cart.0'
+    dir = 2
+    h1 = 0.001
+    h2 = 1.
+    N = 140
+    """
 
-# Remesh case1.cgns - OK
-"""
-FILE = 'case1.cgns'
-block = 'cart.0' 
-dir = 2
-h1 = 0.001
-h2 = 1.
-N = 140
-"""
+    # Remesh case2.cgns - OK
+    """
+    FILE = 'case2.cgns'
+    block = 'cart.0'
+    dir = 2
+    h1 = 0.001
+    h2 = 1.
+    N = 140
+    """
 
-# Remesh case2.cgns - OK
-"""
-FILE = 'case2.cgns'
-block = 'cart.0' 
-dir = 2
-h1 = 0.001
-h2 = 1.
-N = 140
-"""
+    # Remesh naca2.cgns - OK
 
-# Remesh naca2.cgns - OK
-"""
-FILE = 'naca2.cgns'
-block = 'StructZone0.16' 
-dir = 2
-h1 = 0.0001
-h2 = 2.
-N = 100
-"""
+    FILE = 'naca.cgns'
+    block = 'StructZone0.16'
+    dir = 2
+    h1 = 0.0001
+    h2 = 2.
+    N = 100
 
-# Remesh m6.cgns - OK
-FILE = 'm6.cgns'
-block = 'm6wing.gfmt:3' 
-dir = 2
-h1 = 0.004
-h2 = 3
-N = 40
 
-# Remesh asf2.cgns - OK
-"""
-FILE = 'asf2.cgns'
-block = 'blk-1-split-3.51' 
-dir = 3
-h1 = 0.02
-h2 = 0.001
-N = 50
-"""
+    # Remesh m6.cgns - OK
+    """
+    FILE = 'm6.cgns'
+    block = 'm6wing.gfmt:3'
+    dir = 2
+    h1 = 0.004
+    h2 = 3
+    N = 40
+    """
 
-t = C.convertFile2PyTree(FILE)
+    # Remesh asf2.cgns - OK
+    """
+    FILE = 'asf2.cgns'
+    block = 'blk-1-split-3.51'
+    h1 = 0.02
+    dir = 3
+    h2 = 0.001
+    N = 50
+    """
 
-# Break les conditions aux limites matchs
-print("== Exploding...")
-t = breakBCs(t)
-C.convertPyTree2File(t, 'split.cgns')
-#import sys; sys.exit()
+    t = C.convertFile2PyTree(FILE)
 
-# Construit le graph des raccords match
-print("== Computing match graph...")
-g = getGraph(t)
-print(g)
+    # Break les conditions aux limites matchs
+    print("== Exploding...")
+    t = breakBCs(t)
+    C.convertPyTree2File(t, 'split.cgns')
+    import sys; sys.exit()
 
-# linelet reguliere
-#Npts = 10
-#linelet = G.cart((0,0,0), (1./(Npts-1),1,1), (Npts,1,1))
+    # Construit le graph des raccords match
+    print("== Computing match graph...")
+    g = getGraph(t)
+    print(g)
 
-# linelet irreguliere
-#Npts = 5
-#linelet1 = G.cart((0.3,0,0), (0.7/(Npts-1),1,1), (Npts,1,1))
-#linelet2 = G.cart((0,0,0), (0.3,1,1), (2,1,1))
-#linelet = T.join(linelet2, linelet1)
-#C.convertPyTree2File(linelet, 'line.plt')
+    # linelet reguliere
+    #Npts = 10
+    #linelet = G.cart((0,0,0), (1./(Npts-1),1,1), (Npts,1,1))
 
-# linelet avec resserement
-#linelet = G.enforceMoinsX(linelet, 0.1, (5,5))
+    # linelet irreguliere
+    #Npts = 5
+    #linelet1 = G.cart((0.3,0,0), (0.7/(Npts-1),1,1), (Npts,1,1))
+    #linelet2 = G.cart((0,0,0), (0.3,1,1), (2,1,1))
+    #linelet = T.join(linelet2, linelet1)
+    #C.convertPyTree2File(linelet, 'line.plt')
 
-# specification du resserement (dir=1,2,3)
+    # linelet avec resserement
+    #linelet = G.enforceMoinsX(linelet, 0.1, (5,5))
 
-# Determine la distribution
-print("== Computing linelet...")
-linelet = buildDistrib(t, block, dir, h1, h2, N)
+    # specification du resserement (dir=1,2,3)
 
-if dir == 2: dir = 3;
-elif dir == 3: dir = 5;
-stack = [(block, dir)]
+    # Determine la distribution
+    print("== Computing linelet...")
+    linelet = buildDistrib(t, block, dir, h1, h2, N)
 
-# Run
-print("== Running propagate...")
-treated = []
-_propagate(t, g, stack, treated)
+    if dir == 2: dir = 3;
+    elif dir == 3: dir = 5;
+    stack = [(block, dir)]
 
-#Internal.printTree(t)
-C.convertPyTree2File(t, 'out.cgns')
+    # Run
+    print("== Running propagate...")
+    treated = []
+    _propagate(t, g, stack, treated)
+
+    #Internal.printTree(t)
+    C.convertPyTree2File(t, 'out.cgns')

@@ -112,8 +112,9 @@ Low level layer
 
 .. py:function:: Converter.Filter.readNodesFromFilter(fileName, filter, format='bin_hdf', com=None)
 
-    Partially read nodes specified by a filter.
+    Partially read nodes from a file specified by a filter.
     Filter is a dictionary for each path to be read.
+    It specifies the slice of array you want to load.
     For structured grids: [[imin,jmin,kmin], [1,1,1], [imax,jmax,kmax], [1,1,1]].
     For unstructured grids: [[istart], [1], [iend], [1]].
     Only for HDFfile format.

@@ -4596,7 +4596,7 @@ def _setLoc2Glob(z, source, loc2glob=None, win=None, sourceDim=None):
     createUniqueChild(p, 'source', 'UserDefinedData_t', value=source)
     if loc2glob is not None:
         createUniqueChild(p, 'loc2glob', 'DataArray_t', value=loc2glob)
-    else: 
+    else:
         if win is not None:
             if isinstance(win, list) and sourceDim is not None:
                 createUniqueChild(p, 'loc2glob', 'DataArray_t', value=win+sourceDim)

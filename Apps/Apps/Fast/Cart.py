@@ -123,7 +123,7 @@ def setSnear(t, value):
 def _setSnear(z, value):
     zones = Internal.getZones(z)
     for z in zones:
-        Internal._createUniqueChild(z, '.Solver#define', 'UseDefinedData_t')
+        Internal._createUniqueChild(z, '.Solver#define', 'UserDefinedData_t')
         n = Internal.getNodeFromName1(z, '.Solver#define')
         Internal._createUniqueChild(n, 'snear', 'DataArray_t', value)
     return None
@@ -137,7 +137,7 @@ def setDfar(t, value):
 def _setDfar(z, value):
     zones = Internal.getZones(z)
     for z in zones:
-        Internal._createUniqueChild(z, '.Solver#define', 'UseDefinedData_t')
+        Internal._createUniqueChild(z, '.Solver#define', 'UserDefinedData_t')
         n = Internal.getNodeFromName1(z, '.Solver#define')
         Internal._createUniqueChild(n, 'dfar', 'DataArray_t', value)
     return None

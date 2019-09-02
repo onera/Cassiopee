@@ -599,7 +599,6 @@ def subzoneStruct__(t, minIndex, maxIndex):
             if Internal.isStdNode(t2) == 0: parent[nb] = z2
             else: parent[2][nb] = z2
         else: t2 = z2
-    
     return t2
 
 # intersection de fenetres
@@ -644,7 +643,7 @@ def intersectWins__(win1, win2, ret=0):
 def composeWins__(win1, win2):
     fi1,fi2,fj1,fj2,fk1,fk2 = win1
     si1,si2,sj1,sj2,sk1,sk2 = win2
-    return [si1+fi1-1,si2+fi1-1,sj1+fj1-1,sj2+fj1-1,sk1+fk1-1,sk2+fk1-1]
+    return [si1+fi1-1,si1+fi2-1,sj1+fj1-1,sj1+fj2-1,sk1+fk1-1,sk1+fk2-1]
 
 # Transforme un trirac en shift matrix
 def shiftMatrix__(trirac):
@@ -665,21 +664,23 @@ def shiftMatrix__(trirac):
 # winDonor : fenetre correspondante a win1 sur opp(B)
 # i,j,k : indices sur B
 # retourne : indices de ijk sur opp(B)
-def donorIndex__(win,winDonor,trirac,(i,j,k)):
+def donorIndex__(win, winDonor, trirac, tupleIJK):
     m = shiftMatrix__(trirac)
     #print(m.reshape(3,3))
+    (i,j,k) = tupleIJK
     fi1,fi2,fj1,fj2,fk1,fk2 = win
     si1,si2,sj1,sj2,sk1,sk2 = winDonor
 
     x0 = si1; y0 = sj1; z0 = sk1
-    if m[0+3*0]<-0.5 or m[1+3*0]<-0.5 or m[2+3*0]<-0.5: x0 = si2
-    if m[0+3*1]<-0.5 or m[1+3*1]<-0.5 or m[2+3*1]<-0.5: y0 = sj2
-    if m[0+3*2]<-0.5 or m[1+3*2]<-0.5 or m[2+3*2]<-0.5: z0 = sk2
+    if m[0+3*0]<-0.5 or m[0+3*1]<-0.5 or m[0+3*2]<-0.5: x0 = si2
+    if m[1+3*0]<-0.5 or m[1+3*1]<-0.5 or m[1+3*2]<-0.5: y0 = sj2
+    if m[2+3*0]<-0.5 or m[2+3*1]<-0.5 or m[2+3*2]<-0.5: z0 = sk2
 
     ip = x0+m[0+3*0]*(i-fi1)+m[0+3*1]*(j-fj1)+m[0+3*2]*(k-fk1)
     jp = y0+m[1+3*0]*(i-fi1)+m[1+3*1]*(j-fj1)+m[1+3*2]*(k-fk1)
     kp = z0+m[2+3*0]*(i-fi1)+m[2+3*1]*(j-fj1)+m[2+3*2]*(k-fk1)
-    return (ip,jp,kp)
+
+    return (int(ip),int(jp),int(kp))
 
 #=====================================================================
 # Retourne les raccords matchs d'une zone z
@@ -751,7 +752,7 @@ def _replaceZoneWithSplit(t, zname, z1, z2):
             p[2].append(z2)
     return None
 
-# Reporte les BC match de z sur z1 et z2 (et modifie t)
+# Reporte les BC matchs de z sur z1 et z2 (et modifie t)
 def _adaptBCMatch(z, z1, z2, winz1, winz2, t=None):
     bcs = getBCMatchs__(z)
     for b in bcs:
@@ -767,6 +768,7 @@ def _adaptBCMatch(z, z1, z2, winz1, winz2, t=None):
             ind1 = donorIndex__(winz,winDonor,trirac,(wini1[1],wini1[3],wini1[5]))
             winopp = [min(ind0[0],ind1[0]),max(ind0[0],ind1[0]),
             min(ind0[1],ind1[1]),max(ind0[1],ind1[1]),min(ind0[2],ind1[2]),max(ind0[2],ind1[2])]
+            print(z1[0], wini, oppBlock, winopp)
             C._addBC2Zone(z1, 'match', 'BCMatch', wini, oppBlock, winopp, trirac)
             if t is not None:
                 zopp = Internal.getNodeFromName2(t, oppBlock)
@@ -781,6 +783,7 @@ def _adaptBCMatch(z, z1, z2, winz1, winz2, t=None):
             ind1 = donorIndex__(winz,winDonor,trirac,(wini1[1],wini1[3],wini1[5]))
             winopp = [min(ind0[0],ind1[0]),max(ind0[0],ind1[0]),
             min(ind0[1],ind1[1]),max(ind0[1],ind1[1]),min(ind0[2],ind1[2]),max(ind0[2],ind1[2])]
+            print(z1[0], wini, oppBlock, winopp)
             C._addBC2Zone(z2, 'match', 'BCMatch', wini, oppBlock, winopp, trirac)
             if t is not None:
                 zopp = Internal.getNodeFromName2(t, oppBlock)
@@ -797,57 +800,75 @@ def _adaptBCMatch(z, z1, z2, winz1, winz2, t=None):
 def split(z, dir=1, index=1, t=None):
     dimz = Internal.getZoneDim(z)
     ni = dimz[1]; nj = dimz[2]; nk = dimz[3]
+    zoneName = z[0]
+
+    # force loc2glob on z
+    src, loc2glob = Internal.getLoc2Glob(z)
+    if src is None:
+        Internal._setLoc2Glob(z, z[0], win=[1,ni,1,nj,1,nk], sourceDim=[ni,nj,nk])
+
     if dir == 1: # direction i
         z1 = subzone(z, (1,1,1), (index,-1,-1))
+        z1[0] = C.getZoneName(zoneName)
         z2 = subzone(z, (index,1,1), (-1,-1,-1))
-        z1[0] = z[0]+'A'; z2[0] = z[0]+'B'
+        z2[0] = C.getZoneName(zoneName)
+        z1[1] = Internal.array2PyTreeDim([None,None,index,nj,nk])
+        z2[1] = Internal.array2PyTreeDim([None,None,ni-index+1,nj,nk])
+        #z1[0] = z[0]+'A'; z2[0] = z[0]+'B'
         winz1 = [1,index,1,nj,1,nk]
         winz2 = [index,ni,1,nj,1,nk]
         w1 = winz1; dim = [ni,nj,nk]
         w2 = winz2; source = z[0]
-        src, loc2glob =  Internal.getLoc2Glob(z)
+        src, loc2glob = Internal.getLoc2Glob(z)
         if loc2glob is not None:
             ws = list(loc2glob[0:6]); dim = list(loc2glob[6:9])
             w1 = composeWins__(w1, ws)
             w2 = composeWins__(w2, ws)
             source = src 
-        Internal.setLoc2Glob(z1, source, w1, dim)
-        Internal.setLoc2Glob(z2, source, w2, dim)
+        Internal._setLoc2Glob(z1, source, win=w1, sourceDim=dim)
+        Internal._setLoc2Glob(z2, source, win=w2, sourceDim=dim)
         
     elif dir == 2: # direction j
         z1 = subzone(z, (1,1,1), (-1,index,-1))
+        z1[0] = C.getZoneName(zoneName)
         z2 = subzone(z, (1,index,1), (-1,-1,-1))
-        z1[0] = z[0]+'A'; z2[0] = z[0]+'B'
+        z2[0] = C.getZoneName(zoneName)
+        z1[1] = Internal.array2PyTreeDim([None,None,1,index,nk])
+        z2[1] = Internal.array2PyTreeDim([None,None,ni,nj-index+1,nk])
+        #z1[0] = z[0]+'A'; z2[0] = z[0]+'B'
         winz1 = [1,ni,1,index,1,nk]
         winz2 = [1,ni,index,nj,1,nk]
-        
-        src, loc2glob =  Internal.getLoc2Glob(z)
         w1 = winz1; dim = [ni,nj,nk]
         w2 = winz2; source = z[0]
+        src, loc2glob =  Internal.getLoc2Glob(z)
         if loc2glob is not None:
             ws = list(loc2glob[0:6]); dim = list(loc2glob[6:9])
             w1 = composeWins__(w1, ws)
             w2 = composeWins__(w2, ws)
             source = src
-        Internal.setLoc2Glob(z1, source, w1, dim)
-        Internal.setLoc2Glob(z2, source, w2, dim)
+        Internal._setLoc2Glob(z1, source, win=w1, sourceDim=dim)
+        Internal._setLoc2Glob(z2, source, win=w2, sourceDim=dim)
 
     elif dir == 3: # direction k
         z1 = subzone(z, (1,1,1), (-1,-1,index))
+        z1[0] = C.getZoneName(zoneName)
         z2 = subzone(z, (1,1,index), (-1,-1,-1))
-        z1[0] = z[0]+'A'; z2[0] = z[0]+'B'
+        z2[0] = C.getZoneName(zoneName)
+        z1[1] = Internal.array2PyTreeDim([None,None,ni,nj,index]) # force dim (skel)
+        z2[1] = Internal.array2PyTreeDim([None,None,ni,nj,nk-index+1])
+        #z1[0] = z[0]+'A'; z2[0] = z[0]+'B'
         winz1 = [1,ni,1,nj,1,index]
         winz2 = [1,ni,1,nj,index,nk]
-        source, loc2glob =  Internal.getLoc2Glob(z)
         w1 = winz1; dim = [ni,nj,nk]
         w2 = winz2; source = z[0]
+        src, loc2glob = Internal.getLoc2Glob(z)
         if loc2glob is not None:
             ws = list(loc2glob[0:6]); dim = list(loc2glob[6:9])
             w1 = composeWins__(w1, ws)
             w2 = composeWins__(w2, ws)
             source = src
-        Internal.setLoc2Glob(z1, source, w1, dim)
-        Internal.setLoc2Glob(z2, source, w2, dim)
+        Internal._setLoc2Glob(z1, source, win=w1, sourceDim=dim)
+        Internal._setLoc2Glob(z2, source, win=w2, sourceDim=dim)
 
     _createInternalBCMatch(z1, z2, dir)
     _adaptBCMatch(z, z1, z2, winz1, winz2, t)
@@ -1583,6 +1604,68 @@ def splitSize__(z, N, zoneName, multigrid, dirs):
             return l1+l2
         else: return [z]
 
+# Split au milieu
+def _splitSize__(z, N, multigrid, dirs, t, stack):
+    dim = Internal.getZoneDim(z)
+    if dim[0] == 'Unstructured':
+        print('Warning: splitSize: unstructured zone not treated.')
+        return
+    ni = dim[1]; nj = dim[2]; nk = dim[3]
+    if ni*nj*nk > N:
+        dirl = Transform.getSplitDir__(ni, nj, nk, dirs)
+        if dirl == 1:
+            ns = Transform.findMGSplit__(ni, level=multigrid)
+            if ns > 0:
+                z1, z2 = split(z, 1, ns, t)
+                stack.append(z1); stack.append(z2)
+        elif dirl == 2:
+            ns = Transform.findMGSplit__(nj, level=multigrid)
+            if ns > 0:
+                z1, z2 = split(z, 2, ns, t)
+                stack.append(z1); stack.append(z2)
+        elif dirl == 3:
+            ns = Transform.findMGSplit__(nk, level=multigrid)
+            if ns > 0:
+                z1, z2 = split(z, 3, ns, t)
+                stack.append(z1); stack.append(z2)
+        else:
+            ns = Transform.findMGSplit__(ni, level=multigrid)
+            if ns > 0:
+                z1, z2 = split(z, 1, ns, t)
+                stack.append(z1); stack.append(z2)
+
+# Split decentre
+def _splitSizeUp__(z, N, multigrid, dirs, t, stack):
+    dim = Internal.getZoneDim(z)
+    if dim[0] == 'Unstructured':
+        print('Warning: splitSize: unstructured zone not treated.')
+        return
+
+    ni = dim[1]; nj = dim[2]; nk = dim[3]
+    nij = ni*nj; nik = ni*nk; njk = nj*nk
+    if ni*nj*nk > N:
+        dirl = Transform.getSplitDir__(ni, nj, nk, dirs)
+        if dirl == 1:
+            ns = Transform.findMGSplitUp__(ni, int(N/njk), level=multigrid)
+            if ns > 0:
+                z1, z2 = split(z, 1, ns, t)
+                stack.append(z1); stack.append(z2)
+        elif dirl == 2:
+            ns = Transform.findMGSplitUp__(nj, int(N/nik), level=multigrid)
+            if ns > 0:
+                z1, z2 = split(z, 2, ns, t)
+                stack.append(z1); stack.append(z2)
+        elif dirl == 3:
+            ns = Transform.findMGSplitUp__(nk, int(N/nij), level=multigrid)
+            if ns > 0:
+                z1, z2 = split(z, 3, ns, t)
+                stack.append(z1); stack.append(z2)
+        else:
+            ns = Transform.findMGSplitUp__(ni, int(N/njk), level=multigrid)
+            if ns > 0:
+                z1, z2 = split(z, 1, ns, t)
+                stack.append(z1); stack.append(z2)
+
 # Split decentre
 def splitSizeUp__(z, N, zoneName, multigrid, dirs):
     dim = Internal.getZoneDim(z)
@@ -1767,6 +1850,110 @@ def splitSizeUpR__(t, N, R, multigrid, dirs, minPtsPerDir):
     #for i in Rs: Tot += i
     #print('Tot', Tot)
     return t
+
+# Split size decentre avec ressources
+def _splitSizeUpR__(t, N, R, multigrid, dirs, minPtsPerDir):
+    bases = Internal.getBases(t)
+    SP = []; Nl = 0
+    for b in bases:
+        zones = Internal.getNodesFromType1(b, 'Zone_t')
+        for z in zones:
+            dim = Internal.getZoneDim(z)
+            if dim[0] == 'Unstructured':
+                print('Warning: splitSize: unstructured zone not treated.')
+            if dim[0] == 'Structured':
+                ni = dim[1]; nj = dim[2]; nk = dim[3]
+                ni1 = max(1, ni-1); nj1 = max(1, nj-1); nk1 = max(1, nk-1)
+                SP.append((ni1*nj1*nk1,z,b)); Nl += ni1*nj1*nk1
+    if N == 0: N = Nl*1. / R
+    from operator import itemgetter
+
+    # Init le vecteur des ressources
+    Rs = [0]*R
+    mins = minPtsPerDir-1 # nbre de cellules mini des blocs par direction
+
+    while len(SP) > 0:
+        SP = sorted(SP, key=itemgetter(0), reverse=True)
+        Rs = sorted(Rs)
+        #print('ress', Rs[0], C.getNCells(SP[0][1]))
+        a = SP[0][1] # le plus gros
+        base = SP[0][2]
+        dim = Internal.getZoneDim(a)
+        ni = dim[1]; nj = dim[2]; nk = dim[3]
+        ni1 = max(1, ni-1); nj1 = max(1, nj-1); nk1 = max(1, nk-1)
+        nik = ni1*nk1; njk = nj1*nk1; nij = ni1*nj1
+        Nr = min(N, N-Rs[0])
+        ncells = ni1*nj1*nk1
+        if ncells > Nr:
+            # Calcul le meilleur split
+            nc = int(round(Nr*1./njk,0))+1
+            ns = Transform.findMGSplitUp__(ni, nc, level=multigrid)
+            if ns-1 < mins: ns = 5
+            delta1 = ns-1
+            delta2 = ni-ns
+            if delta2 < mins: delta2 -= 1.e6
+            delta3 = abs((ns-1)*njk - Nr)/njk
+            deltai = delta3-delta1-delta2
+            nc = int(round(Nr*1./nik,0))+1
+            ns = Transform.findMGSplitUp__(nj, nc, level=multigrid)
+            if ns-1 < mins: ns = 5
+            delta1 = ns-1
+            delta2 = nj-ns
+            if delta2 < mins: delta2 -= 1.e6
+            delta3 = abs(ni1*(ns-1)*nk1 - Nr)/nik
+            deltaj = delta3-delta1-delta2
+            nc = int(round(Nr*1./nij,0))+1
+            ns = Transform.findMGSplitUp__(nk, nc, level=multigrid)
+            if ns-1 < mins: ns = 5
+            delta1 = ns-1
+            delta2 = nk-ns
+            if delta2 < mins: delta2 -= 1.e6
+            delta3 = abs(ni1*nj1*(ns-1) - Nr)/nij
+            deltak = delta3-delta1-delta2
+            dirl = 1
+            if deltai <= deltaj  and deltai <= deltak:
+                if 1 in dirs: dirl = 1
+                elif deltaj <= deltak and 2 in dirs: dirl = 2
+                elif 3 in dirs: dirl = 3
+            elif deltaj <= deltai and deltaj <= deltak:
+                if 2 in dirs: dirl = 2
+                elif deltai <= deltak and 1 in dirs: dirl = 1
+                elif 3 in dirs: dirl = 3
+            elif deltak <= deltai and deltak <= deltaj:
+                if 3 in dirs: dirl = 3
+                elif deltai <= deltaj and 1 in dirs: dirl = 1
+                elif 2 in dirs: dirl = 2
+
+            trynext = 1
+            if dirl == 1:
+                nc = int(round(Nr*1./njk,0))+1
+                ns = Transform.findMGSplitUp__(ni, nc, level=multigrid)
+                if ns-1 >= mins and ni-ns >= mins:
+                    a1, a2 = split(a, 1, ns, t)
+                    SP[0] = (getNCells(a2), a2, base)
+                    Rs[0] += getNCells(a1)
+                    trynext = 0
+            elif dirl == 2:
+                nc = int(round(Nr*1./nik,0))+1
+                ns = Transform.findMGSplitUp__(nj, nc, level=multigrid)
+                if ns-1 >= mins and nj-ns >= mins:
+                    a1, a2 = split(a, 2, ns, t)
+                    SP[0] = (getNCells(a2), a2, base)
+                    Rs[0] += getNCells(a1)
+                    trynext = 0
+            elif dirl == 3:
+                nc = int(round(Nr*1./nij,0))+1
+                ns = Transform.findMGSplitUp__(nk, nc, level=multigrid)
+                if ns-1 >= mins and nk-ns >= mins:
+                    a1, a2 = split(a, 3, ns, t) 
+                    SP[0] = (getNCells(a2), a2, base)
+                    Rs[0] += getNCells(a1)
+                    trynext = 0
+            if trynext == 1:
+                Rs[0] += getNCells(a); del SP[0]
+        else:
+            Rs[0] += getNCells(a); del SP[0]
+    return None
 
 # Split size decentre avec ressources
 def splitSizeUpR_OMP__(t, N, R, multigrid, dirs, minPtsPerDir):
@@ -1971,8 +2158,8 @@ def splitSizeUpR_OMP__(t, N, R, multigrid, dirs, minPtsPerDir):
             zomp_threads[zind[0][4]][ith+1].append((zleaf[1],zind[0][0]))
 
 
-    t=C.addVars(t,'centers:thread_number')
-    t=C.addVars(t,'centers:thread_subzone')
+    t = C.addVars(t,'centers:thread_number')
+    t = C.addVars(t,'centers:thread_subzone')
     bases = Internal.getBases(t)
     for b in bases:
         zones = Internal.getNodesFromType1(b, 'Zone_t')
@@ -2072,6 +2259,128 @@ def splitNParts__(zones, N, multigrid, dirs, recoverBC, splitDict={}):
         outS.append(outL)
     return outS+outN+outO
 
+def _splitNParts(t, N, multigrid=0, dirs=[1,2,3]):
+    zones = Internal.getZones(t)
+    # Fait des paquets de zones structurees et non structurees
+    zonesS = []; zonesN = []
+    NpS = []; NpN = [] # nbre de points
+    NeS = []; NeN = [] # nbre de cellules
+    outO = []
+    for z in zones:
+        dim = Internal.getZoneDim(z)
+        if dim[0] == 'Structured':
+            zonesS.append(z)
+            NpS.append(dim[1]*dim[2]*dim[3])
+            NeS.append(max(dim[1]-1,1)*max(dim[2]-1,1)*max(dim[3]-1,1))
+        else:
+            zonesN.append(z)
+            NpN.append(dim[1])
+            NeN.append(dim[2])
+
+    SumS = 0.; SumN = 0.
+    for i in NeS: SumS += i
+    for i in NeN: SumN += i
+    if SumS+SumN < 0.01: return outO
+    alpha = N*1./(SumS+SumN)
+    NbN = len(NeN) # nbre de grilles non structurees
+    NPart = [0]*(NbN+1); Nt = 0
+    for i in range(NbN): NPart[i] = max(int(alpha*NeN[i]),1); Nt += NPart[i]
+    if SumS != 0: NPart[NbN] = max(N-Nt,1)
+    else: NPart[NbN-1] = max(N-Nt+NPart[NbN-1], 1)
+
+    # Blocs non structures
+    # ...
+
+    # Blocs structures
+    l = len(zonesS)
+    if l == 0: return None
+    NPa = NPart[NbN]
+    Ns = Transform.findNsi__(l, NPa, NpS)
+
+    for i in range(l):
+        a = zonesS[i]
+        dimL = Internal.getZoneDim(a)
+        ni = dimL[1]; nj = dimL[2]; nk = dimL[3]
+        splits = Transform.findSplits__(ni, nj, nk, Ns[i], dirs, multigrid)
+        # Find split direction in splits
+        
+        size = len(splits)
+        nks = []
+        k = 0
+        while k < size-1:
+            (i1,i2,j1,j2,k1,k2) = splits[k]
+            (ip1,ip2,jp1,jp2,kp1,kp2) = splits[k+1]
+            if i1 == ip1 and i2 == ip2 and j1 == jp1 and j2 == jp2: dir = 3
+            elif i1 == ip1 and i2 == ip2 and k1 == kp1 and k2 == kp2: dir = 2
+            elif j1 == jp1 and k1 == kp1 and j2 == jp2 and k2 == kp2: dir = 1
+            else: dir = 4
+            if dir == 3: nks.append(k2)
+            else: break
+            k += 1
+        nk = len(nks); nk1 = nk+1
+        njs = []
+        k = 0
+        while k < size//nk1-1:
+            (i1,i2,j1,j2,k1,k2) = splits[k*nk1]
+            (ip1,ip2,jp1,jp2,kp1,kp2) = splits[k*nk1+nk1]
+            if i1 == ip1 and i2 == ip2 and j1 == jp1 and j2 == jp2: dir = 3
+            elif i1 == ip1 and i2 == ip2 and k1 == kp1 and k2 == kp2: dir = 2
+            elif j1 == jp1 and k1 == kp1 and j2 == jp2 and k2 == kp2: dir = 1
+            else: dir = 4
+            if dir == 2: njs.append(j2)
+            else: break
+            k += 1
+        nj = len(njs); nj1 = nj+1
+        nis = []
+        k = 0
+        while k < size//(nj1*nk1)-1:
+            (i1,i2,j1,j2,k1,k2) = splits[k*nj1*nk1]
+            (ip1,ip2,jp1,jp2,kp1,kp2) = splits[k*nj1*nk1+nj1*nk1]
+            if i1 == ip1 and i2 == ip2 and j1 == jp1 and j2 == jp2: dir = 3
+            elif i1 == ip1 and i2 == ip2 and k1 == kp1 and k2 == kp2: dir = 2
+            elif j1 == jp1 and k1 == kp1 and j2 == jp2 and k2 == kp2: dir = 1
+            else: dir = 4
+            if dir == 1: nis.append(i2)
+            else: break
+            k += 1
+        ni = len(nis)
+        # decalage des nis,njs,nks
+        prev = 0
+        for e, i in enumerate(nis):
+            nis[e] = nis[e]-prev
+            prev += nis[e]
+        prev = 0
+        for e, i in enumerate(njs):
+            njs[e] = njs[e]-prev
+            prev += njs[e]
+        prev = 0
+        for e, i in enumerate(nks):
+            nks[e] = nks[e]-prev
+            prev += nks[e]
+        
+        store = []
+        ap = a
+        for e, i in enumerate(nis):
+            a1,a2 = split(ap, 1, i, t)
+            store.append(a1)
+            if e == len(nis)-1: store.append(a2)
+            ap = a2
+        if len(nis) == 0: store = [a]
+        store2 = []
+        for ap in store:
+            for e, j in enumerate(njs):
+                a1,a2 = split(ap, 2, j, t)
+                store2.append(a1)
+                if e == len(njs)-1: store2.append(a2)
+                ap = a2
+        if len(njs) == 0: store2 = store
+        for ap in store2:
+            for e, k in enumerate(nks):
+                a1,a2 = split(ap, 3, k, t)
+                ap = a2
+        
+    return None
+
 def splitNParts(t, N, multigrid=0, dirs=[1,2,3], recoverBC=True, splitDict={}):
     """Split zones in t in N parts.
     Usage: splitNParts(t, N, multigrid, dirs, recoverBC)"""
@@ -2136,6 +2445,26 @@ def splitSize(t, N=0, multigrid=0, dirs=[1,2,3], type=0, R=None,
         tp = Internal.pyTree2Node(tpp, typen)
         if Internal.typeOfNode(tp) == 1: tp = [tp]
     return tp
+
+def _splitSize(t, N=0, multigrid=0, dirs=[1,2,3], type=0, R=None,
+               minPtsPerDir=5):
+    minPtsPerDir = max(minPtsPerDir, 2**(multigrid+1)+1)
+    if R is not None: type = 2
+    
+    if type == 0:
+       stack = []
+       for z in Internal.getZones(t): stack.append(z)
+       while len(stack)>0:
+        z = stack.pop()
+        _splitSize__(z, N, multigrid, dirs, t, stack)
+    elif type == 1:
+       stack = []
+       for z in Internal.getZones(t): stack.append(z)
+       while len(stack)>0:
+        z = stack.pop()
+        _splitSizeUp__(z, N, multigrid, dirs, t, stack)
+    elif type == 2: _splitSizeUpR__(t, N, R, multigrid, dirs, minPtsPerDir)
+    return None
 
 def splitCurvatureAngle(t, sensibility):
     """Split a curve following curvature angle.

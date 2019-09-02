@@ -1387,13 +1387,13 @@ def findSplits__(ni, nj, nk, N, dirs, multigrid):
             r2 = (ni-N2*ns2*plev)/plev
             c1 = 1
             for j in range(N2): # tous les splits en 2
-                if (r2 > 0): c2 = c1+plev*(ns2+1); r2 -= 1
-                elif (r2 < 0): c2 = c1+plev*(ns2-1); r2 += 1
+                if r2 > 0: c2 = c1+plev*(ns2+1); r2 -= 1
+                elif r2 < 0: c2 = c1+plev*(ns2-1); r2 += 1
                 else: c2 = c1+plev*ns2
-                if (dirs[1] == 1): 
+                if dirs[1] == 1: 
                     i1 = c1; i2 = c2
                     if j == N2-1: i2 = ni
-                elif (dirs[1] == 2): 
+                elif dirs[1] == 2: 
                     j1 = c1; j2 = c2
                     if j == N2-1: j2 = nj
                 else: 
@@ -1422,14 +1422,14 @@ def findSplits__(ni, nj, nk, N, dirs, multigrid):
                                 sl = min(ns2, ns3)
                                 sb = min(ng2/best[1], ng3/best[2])
                                 if sl > sb: best = [N1,N2,N3]
-                            elif (N2 == best[1]): # discrimine suivant 1/3
+                            elif N2 == best[1]: # discrimine suivant 1/3
                                 sl = min(ns1, ns3)
                                 sb = min(ng1/best[0], ng3/best[2])
-                                if (sl > sb): best = [N1,N2,N3]
+                                if sl > sb: best = [N1,N2,N3]
                             else:  # discrimine suivant 1/2
                                 sl = min(ns1, ns2)
                                 sb = min(ng1/best[0], ng2/best[1])
-                                if (sl > sb): best = [N1,N2,N3]
+                                if sl > sb: best = [N1,N2,N3]
 
         N1 = best[0]; N2 = best[1]; N3 = best[2]
         #ns1 = ng1/N1; ns2 = ng2/N2; ns3 = ng3/N3
