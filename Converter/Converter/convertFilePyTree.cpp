@@ -184,29 +184,24 @@ PyObject* K_CONVERTER::convertFile2PartialPyTree(PyObject* self, PyObject* args)
 PyObject* K_CONVERTER::convertPyTree2FilePartial(PyObject* self, PyObject* args)
 {
   /* ***************************************************** */
-  /* Declaration */
   char*     fileName;
   char*     format;
   int       skeleton;
   PyObject* mpi4pyObj;
   PyObject* Filter;
   PyObject* t;
-
   PyObject* skeletonData;
-  /* ***************************************************** */
-
   if (!PyArg_ParseTuple(args, "OssOOO", &t, &fileName, &format, &skeletonData, &mpi4pyObj, &Filter)) return NULL;
 
   printf("Writing %s (%s)...", fileName, format);
   fflush(stdout); 
 
-  if(skeletonData != Py_None){skeleton = 0;}
-  else{skeleton = 1;}
+  if (skeletonData != Py_None) {skeleton = 0;}
+  else {skeleton = 1;}
 
 #ifdef _MPI
-  void*     pt_comm;
-  // > Transform in C form
-  pt_comm       = (void*)&(((PyMPICommObject*)mpi4pyObj)->ob_mpi);
+  void* pt_comm;
+  pt_comm = (void*)&(((PyMPICommObject*)mpi4pyObj)->ob_mpi);
   MPI_Comm comm = *((MPI_Comm *) pt_comm);
   // int nRank, myRank;
   // MPI_Comm_size(comm, &nRank);
@@ -214,13 +209,13 @@ PyObject* K_CONVERTER::convertPyTree2FilePartial(PyObject* self, PyObject* args)
   // printf("Converter:: Rank   : %d \n", nRank );
   // printf("Converter:: myRank : %d \n", myRank);
 
-  /** Dans le cas MPI on creer les dataSpace en parallèle - Pas besoin de Skelette **/
+  /** Dans le cas MPI on cree les dataSpaces en parallele - Pas besoin de Skelette **/
   skeleton = 0;
   K_IO::GenIO::getInstance()->hdfcgnsWritePathsPartial(fileName, t, Filter, skeleton, &comm);
 
 #else
   E_Int comm = 0; // dummy
-  /* En sequentielle */
+  /* En sequentiel */
   // skeleton = 1;
   K_IO::GenIO::getInstance()->hdfcgnsWritePathsPartial(fileName, t, Filter, skeleton, &comm);
 #endif

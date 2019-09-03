@@ -1111,8 +1111,7 @@ def convertFile2PartialPyTreeFromPath(fileName, Filter, comm=None,
 
 # Fonction utilisee dans PPart
 def convertPyTree2FilePartial(t, fileName, comm, Filter, ParallelHDF=False,
-                              format=None, isize=4, rsize=8,
-                              endian='big', colormap=0, dataFormat='%.9e '):
+                              format=None):
     """Convert a pyTree to a file.
     Usage: convertPyTree2File(t, fileName, format, options)"""
   
@@ -1122,7 +1121,7 @@ def convertPyTree2FilePartial(t, fileName, comm, Filter, ParallelHDF=False,
   
     if not ParallelHDF:
       # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-      # > Write Tree Data execpt Data in Filter
+      # > Write Tree Data except Data in Filter
       SkeletonTree = Internal.copyRef(t)
       for path in Filter:
         print(path)
@@ -1131,7 +1130,7 @@ def convertPyTree2FilePartial(t, fileName, comm, Filter, ParallelHDF=False,
       # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
   
       # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-      # > Si MPI Mode Off (HDF Not Parralel)
+      # > Si MPI Mode Off (HDF Not Parallel)
       if comm.Get_rank() == 0:
         convertPyTree2File(SkeletonTree, fileName, format)
         # > Fill up Dimension
@@ -1159,7 +1158,7 @@ def convertPyTree2FilePartial(t, fileName, comm, Filter, ParallelHDF=False,
   
     else:  # > Si MPI Mode Off (HDF Not Parallel)
       # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-      # > Write Tree Data execpt Data in Filter
+      # > Write Tree Data except Data in Filter
       SkeletonTree = Internal.copyRef(t)
       for path in Filter:
         Node = Internal.getNodeFromPath(SkeletonTree, path)
@@ -1175,8 +1174,8 @@ def convertPyTree2FilePartial(t, fileName, comm, Filter, ParallelHDF=False,
       comm.barrier()
   
       # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-      # > Write data in filter in file (With creation of DataSpace )
-      skeletonData = None  # Skeleton Data is inecfective (Normaly)
+      # > Write data in filter in file (With creation of DataSpace)
+      skeletonData = None  # Skeleton Data is inefective (Normaly)
       Converter.converter.convertPyTree2FilePartial(t, fileName, format, skeletonData, comm, Filter)
       # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 

@@ -14,6 +14,7 @@ path = ['/Base/cart/GridCoordinates/CoordinateX',
         '/Base/cart/GridCoordinates/CoordinateY']
 
 # start/stride/count (nbre d'entrees)/block
+# Read 2x2x2 data from file, starting from 1,1,1
 DataSpaceMMRY = [[0,0,0], [1,1,1], [2,2,2], [1,1,1]]
 DataSpaceFILE = [[1,1,1], [1,1,1], [2,2,2], [1,1,1]]
 DataSpaceGLOB = [[0]]
@@ -24,5 +25,5 @@ f[path[1]] = DataSpaceMMRY+DataSpaceFILE+DataSpaceGLOB
 
 # Lit seulement les chemins fournis, retourne un dictionnaire des chemins lus
 a = Filter.readNodesFromFilter('test.hdf', f)
-print a[path[0]].ravel('k')
-
+print(a[path[0]])
+#>> [1. 2. 1. 2. 1. 2. 1. 2.]

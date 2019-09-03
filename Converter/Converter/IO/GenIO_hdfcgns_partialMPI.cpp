@@ -681,7 +681,7 @@ E_Int K_IO::GenIO::hdfcgnsWritePathsPartial(char* file, PyObject* tree,
   /* Check */
   if (PyDict_Check(Filter) == false)
   {
-    PyErr_SetString(PyExc_TypeError, "hdfread: Filter must be a dict of paths.");
+    PyErr_SetString(PyExc_TypeError, "hdfwrite: Filter must be a dict of paths.");
     return 0;
   }
 
@@ -719,7 +719,7 @@ E_Int K_IO::GenIO::hdfcgnsWritePathsPartial(char* file, PyObject* tree,
   fid = H5Fopen(file, H5F_ACC_RDWR, fapl); 
   if (fid < 0)
   {
-    PyErr_SetString(PyExc_TypeError, "hdfwritepartial: can not open file.");
+    PyErr_SetString(PyExc_TypeError, "hdfwrite: can not open file.");
     return 1;
   }
   H5Pclose(fapl);
@@ -745,18 +745,18 @@ E_Int K_IO::GenIO::hdfcgnsWritePathsPartial(char* file, PyObject* tree,
 #endif
     if (isKeyString == false)
     {
-      PyErr_SetString(PyExc_TypeError, "hdfread: paths must be a list of strings.");
+      PyErr_SetString(PyExc_TypeError, "hdfwrite: paths must be a list of strings.");
       return 0;
     }
     /* Check if key is String values */
     if (PyList_Check(DataSpaceDIM) == false)
     {
-      PyErr_SetString(PyExc_TypeError, "hdfread: DataSpaceDIM must be a list of numbers.");
+      PyErr_SetString(PyExc_TypeError, "hdfwrite: DataSpaceDIM must be a list of numbers.");
       return 0;
     }
-    if(FilterSize != 9)
+    if (FilterSize != 9)
     {
-      PyErr_SetString(PyExc_TypeError, "hdfread: FilterSize must be a list of 9 numbers.");
+      PyErr_SetString(PyExc_TypeError, "hdfwrite: FilterSize must be a list of 9 numbers.");
       return 0;
     }
     /* ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo */
@@ -1035,7 +1035,7 @@ hid_t K_IO::GenIOHdf::setArrayPartial(hid_t node, void* data, int idim, int* idi
   /* > Begin */
   // printf("setArrayPartial\n");
   /* TODO : */
-  /* A nettoyer idims et LocalDataSetDim c'est pareil */
+  /* A nettoyer idims et LocalDataSetDim datas'est pareil */
 
   dim = idim; dims = (hsize_t*)malloc(sizeof(hsize_t)*dim);
   for (E_Int i = 0; i < idim; i++) {dims[i] = idims[i];}
@@ -1047,11 +1047,11 @@ hid_t K_IO::GenIOHdf::setArrayPartial(hid_t node, void* data, int idim, int* idi
   /* -------------------------------------------------------------- */
   /* Creation du dataset FICHIER collectif */
   sid = H5Screate_simple(dim, DataSpace.GlobDataSetDim, NULL);
-  if (sid < 0) {printf("Fail in setArrayPartial::H5Screate_simple\n");}
+  if (sid < 0) {printf("Fail in setArrayPartial::H5Screate_simple (file)\n");}
 
 #if defined(_MPI) && defined(H5_HAVE_PARALLEL)
   /* Create a dataset collectively */
-  dataset   = H5Dcreate2(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+  dataset = H5Dcreate2(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
   if (dataset < 0) {printf("Fail in setArrayPartial::H5Dcreate2\n");}
 #else
   // printf("setArrayPartial Sequential \n");
@@ -1059,7 +1059,7 @@ hid_t K_IO::GenIOHdf::setArrayPartial(hid_t node, void* data, int idim, int* idi
   if (_skeleton == 1)
   {
     // printf("setArrayPartial Sequential Skeleton \n");
-    dataset   = H5Dcreate2(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    dataset = H5Dcreate2(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     if (dataset < 0) {printf("Fail in setArrayPartial::H5Dcreate2\n");}
     ret = H5Dclose(dataset);
     H5Sclose(sid);
@@ -1067,9 +1067,9 @@ hid_t K_IO::GenIOHdf::setArrayPartial(hid_t node, void* data, int idim, int* idi
   }
   else   /* No Skeleton */
   {
-    /* Open DataSet previously create with Skeleton */
+    /* Open DataSet previously created with Skeleton */
     // printf("setArrayPartial Sequential Open \n");
-    dataset   = H5Dopen2(node, L3S_DATA, H5P_DEFAULT);
+    dataset = H5Dopen2(node, L3S_DATA, H5P_DEFAULT);
   }
 
 #endif
@@ -1089,7 +1089,7 @@ hid_t K_IO::GenIOHdf::setArrayPartial(hid_t node, void* data, int idim, int* idi
   /* -------------------------------------------------------------- */
   /* create a memory dataspace independently */
   mem_dataspace = H5Screate_simple(dim, dims, NULL);
-  if (mem_dataspace < 0) {printf("Fail in setArrayPartial::H5Screate_simple\n");}
+  if (mem_dataspace < 0) {printf("Fail in setArrayPartial::H5Screate_simple (mem)\n");}
 
   ret = H5Sselect_hyperslab(mem_dataspace, H5S_SELECT_SET,
                             DataSpace.Src_Offset, DataSpace.Src_Stride,
@@ -1185,7 +1185,7 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilter(PyObject* Filter)
       DataSpace.Src_Count[i]  = DataSpaceSave.Src_Count[L3C_MAX_DIMS-n-1];
       DataSpace.Src_Stride[i] = DataSpaceSave.Src_Stride[L3C_MAX_DIMS-n-1];
       DataSpace.Src_Block[i]  = DataSpaceSave.Src_Block[L3C_MAX_DIMS-n-1];
-      DataSpace.GlobDataSetDim[i]  = DataSpaceSave.GlobDataSetDim[L3C_MAX_DIMS-n-1];
+      DataSpace.GlobDataSetDim[i] = DataSpaceSave.GlobDataSetDim[L3C_MAX_DIMS-n-1];
       i++;
     }
   }

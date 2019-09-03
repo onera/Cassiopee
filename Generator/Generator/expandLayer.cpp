@@ -232,6 +232,27 @@ PyObject* K_GENERATOR::modifyIndicToExpandLayer(PyObject* self, PyObject* args)
         if (voisinNonBlanked && voisinStep < dhet-eps) indict[et] = 1.;
       }
     }
+    // Troisieme passe : repropage indic si voisine non masquee et d'indic=1
+    /*
+    for (E_Int et = 0; et < nelts; et++)
+    {
+      if (cellNp[et] > 0.1) // pas masque
+      {
+        // voisine masquee?
+        E_Boolean voisinIndic = false;
+        vector<E_Int>& voisins = cEEN[et];
+        for (size_t nov = 0; nov < voisins.size(); nov++)
+        {
+          etv = voisins[nov];
+          if (indict[etv] == 1.) 
+          {
+            voisinIndic = true;
+          }
+        }
+        if (voisinIndic) indict[et] = 1.;
+      }
+    }
+    */
   }
 
   /*-----------CONSTRUCTION ARRAY DE SORTIE ------------------*/

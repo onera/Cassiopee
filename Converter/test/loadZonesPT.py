@@ -14,8 +14,8 @@ h = Filter.Handle('file.hdf')
 # Load skeleton
 a = h.loadSkeleton()
 
-# Load all zones without variable
-h._loadZones(a, znp='Base/cart')
+# Fully load all zones
+h._loadZones(a)
 
-# Load one zone without variable
+# Fully load two zones
 h._loadZones(a, znp=['Base/cart', 'Base/cart.0'])

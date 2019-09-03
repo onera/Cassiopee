@@ -27,6 +27,8 @@ List of functions
    Converter.Filter.readNodesFromFilter
    Converter.Filter.readPyTreeFromPaths
    Converter.Filter.writeNodesFromPaths
+   Converter.Filter.writePyTreeFromPaths
+   Converter.Filter.writePyTreeFromFilter
    Converter.Filter.deletePaths
 
 **-- High level layer**
@@ -71,9 +73,9 @@ Low level layer
 
     *Example of use:*
 
-    * `Read skeleton tree (pyTree) <Examples/Converter/convertFile2SkeletonTreePT.py>`_:
+    * `Read skeleton tree (pyTree) <Examples/Converter/convertFile2SkeletonTreeFPT.py>`_:
 
-    .. literalinclude:: ../build/Examples/Converter/convertFile2SkeletonTreePT.py
+    .. literalinclude:: ../build/Examples/Converter/convertFile2SkeletonTreeFPT.py
 
 
 ---------------------------------------------------------------------------
@@ -114,9 +116,17 @@ Low level layer
 
     Partially read nodes from a file specified by a filter.
     Filter is a dictionary for each path to be read.
-    It specifies the slice of array you want to load.
-    For structured grids: [[imin,jmin,kmin], [1,1,1], [imax,jmax,kmax], [1,1,1]].
-    For unstructured grids: [[istart], [1], [iend], [1]].
+    It specifies the slice of array you want to load from file and write to memory.
+    Each slice information is made of [ offset, stride, count, block ].
+    Offset specifies the starting index of slice.
+    Stride specifies the stride of slice (for example 1 means all elements, 2 means one over two, ...).
+    Count is the number of element to read.
+    Block is always 1.
+
+    For example, for structured grids: [[imin,jmin,kmin], [1,1,1], [imax-imin+1,jmax-jmin+1,kmax-kmin+1], [1,1,1]].
+
+    For example, for unstructured grids: [[istart], [1], [iend-imax+1], [1]].
+    
     Only for HDFfile format.
 
     :param fileName: file name to read from
@@ -125,9 +135,9 @@ Low level layer
     :type filter: dictionary of lists
     :param format: bin_hdf
     :type format: string
-    :param com: communicator if run with mpi
+    :param com: communicator if run with mpi within a communicator
     :type com: int
-    :return: dictionary of read nodes
+    :return: dictionary of read node data
     :rtype: dictionary of numpys
 
     *Example of use:*
@@ -198,6 +208,51 @@ Low level layer
 
 ---------------------------------------------------------------------------
 
+.. py:function:: Converter.Filter.writePyTreeFromPaths(t, fileName, paths, format=None, maxDepth=-1)
+
+    Write given paths of tree to the same specified paths in file.
+
+    :param t: input pyTree
+    :type t: pyTree node
+    :param fileName: file name to write to
+    :type fileName: string
+    :param paths: paths to write to
+    :type paths: list of strings
+    :param format: bin_cgns, bin_adf, bin_hdf (optional)
+    :type format: string
+    :param maxDepth: max depth to write
+    :type maxDepth: int
+
+    *Example of use:*
+
+    * `Write pyTree from paths (pyTree) <Examples/Converter/writePyTreeFromPathsPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/writePyTreeFromPathsPT.py
+
+---------------------------------------------------------------------------
+
+.. py:function:: Converter.Filter.writePyTreeFromFilter(t, fileName, filter, format='bin_hdf', com=None)
+
+    Write partial data from tree t to file specified by a filter.
+
+    :param t: input pyTree
+    :type t: pyTree node
+    :param fileName: file name to write to
+    :type fileName: string
+    :param filter: paths and indices to be read 
+    :type filter: dictionary of lists
+    :param format: bin_cgns, bin_adf, bin_hdf (optional)
+    :type format: string
+    :param com: communicator if run with mpi within a communicator
+    :type com: int
+    
+    *Example of use:*
+
+    * `Write pyTree from filter (pyTree) <Examples/Converter/writePyTreeFromFilterPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/writePyTreeFromFilterPT.py
+
+---------------------------------------------------------------------------
 
 
 .. py:function:: Converter.Filter.deletePaths(fileName, paths, format=None)

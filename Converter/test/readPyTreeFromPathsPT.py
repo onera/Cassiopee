@@ -14,5 +14,4 @@ t = Filter.convertFile2SkeletonTree('test.hdf', maxDepth=3)
 
 # Complete t par leur paths
 Filter._readPyTreeFromPaths(t, 'test.hdf', ['/Base/cart/GridCoordinates', 'Base/cart.0/GridCoordinates'])
-Internal.printTree(t)
 C.convertPyTree2File(t, 'out.hdf')

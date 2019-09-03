@@ -28,6 +28,14 @@ def readNodesFromFilter(fileName, filter, format='bin_hdf', com=None):
   ret = Converter.converter.convertFile2PartialPyTree(fileName, format, None, com, filter)
   return ret
 
+# Ecrit des tableaux ou des morceaux de tableau a certains endroits du fichier
+# definit par filter
+# t: pyTree avec les memes chemins
+def writePyTreeFromFilter(t, fileName, filter, format='bin_hdf', com=None, skelData=None):
+  """Write nodes to file given a filter."""
+  Converter.converter.convertPyTree2FilePartial(t, fileName, format, skelData, com, filter)
+  return None
+
 #============================================================================
 # Lecture des noms Base/Zones + dims
 # Retourne un squelette (depth=3) + la liste des zones path names (znp)

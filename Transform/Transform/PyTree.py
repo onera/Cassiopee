@@ -833,7 +833,7 @@ def split(z, dir=1, index=1, t=None):
         z1[0] = C.getZoneName(zoneName)
         z2 = subzone(z, (1,index,1), (-1,-1,-1))
         z2[0] = C.getZoneName(zoneName)
-        z1[1] = Internal.array2PyTreeDim([None,None,1,index,nk])
+        z1[1] = Internal.array2PyTreeDim([None,None,ni,index,nk])
         z2[1] = Internal.array2PyTreeDim([None,None,ni,nj-index+1,nk])
         #z1[0] = z[0]+'A'; z2[0] = z[0]+'B'
         winz1 = [1,ni,1,index,1,nk]
@@ -2303,7 +2303,6 @@ def _splitNParts(t, N, multigrid=0, dirs=[1,2,3]):
         ni = dimL[1]; nj = dimL[2]; nk = dimL[3]
         splits = Transform.findSplits__(ni, nj, nk, Ns[i], dirs, multigrid)
         # Find split direction in splits
-        
         size = len(splits)
         nks = []
         k = 0
@@ -2347,17 +2346,16 @@ def _splitNParts(t, N, multigrid=0, dirs=[1,2,3]):
         # decalage des nis,njs,nks
         prev = 0
         for e, i in enumerate(nis):
-            nis[e] = nis[e]-prev
-            prev += nis[e]
+            nis[e] -= prev
+            prev += nis[e]-1
         prev = 0
         for e, i in enumerate(njs):
-            njs[e] = njs[e]-prev
-            prev += njs[e]
+            njs[e] -= prev
+            prev += njs[e]-1
         prev = 0
         for e, i in enumerate(nks):
-            nks[e] = nks[e]-prev
-            prev += nks[e]
-        
+            nks[e] -= prev
+            prev += nks[e]-1
         store = []
         ap = a
         for e, i in enumerate(nis):

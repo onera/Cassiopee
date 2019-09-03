@@ -87,13 +87,20 @@ def writeNodesFromPaths(fileName, paths, nodes, format=None, maxDepth=-1, mode=0
   Converter.converter.writePyTreePaths(fileName, n, p, format, maxDepth, mode, None)
   return None
 
-def writePyTreeFromPaths(fileName, paths, t, format=None, maxDepth=-1):
-  """Write some nodes of the pyTree given their path."""
+def writePyTreeFromPaths(t, fileName, paths, format=None, maxDepth=-1):
+  """Write some nodes of the pyTree given their paths."""
   nodes = []
+  if not isinstance(paths, list): p = [paths]
+  else: p = paths
+  paths = fixPaths__(p)
+  opaths = []
   for p in paths:
     n = Internal.getNodeFromPath(t, p)
-    if n is not None: nodes.append(n)
-  writeNodesFromPaths(fileName, paths, nodes, format, maxDepth)
+    if n is not None: 
+      nodes.append(n)
+      opaths.append(p.rsplit('/',1)[0])
+    else: print('Warning: write: path %s not found.'%p)
+  writeNodesFromPaths(fileName, opaths, nodes, format, maxDepth, mode=0)
   return None
 
 #========================================================================

@@ -483,10 +483,10 @@ def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None,
                 cellN = C.getField("centers:cellN", to)[0]
                 octreeA = C.getFields(Internal.__GridCoordinates__, o)[0]
                 indic = C.getField("centers:indicator", o)[0]
-                indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic,0,0, 2)
-                indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic,1,0, 2) # CB
-                indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic,2,0, 2) # CB
-                indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic,3,0, 2) # CB                                                   
+                indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic, 0, 0, 2)
+                indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic, 1, 0, 2) # CB
+                indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic, 2, 0, 2) # CB
+                indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic, 3, 0, 2) # CB                                                   
                 indic = Converter.addVars([indic,cellN])
                 indic = Converter.initVars(indic, "{indicator}={indicator}*({cellN}>0.)")
                 octreeA = Generator.adaptOctree(octreeA, indic, balancing=2)
