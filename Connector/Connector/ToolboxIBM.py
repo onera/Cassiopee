@@ -502,7 +502,7 @@ def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None,
             octreeA = Generator.adaptOctree(octreeA, indic, balancing=2)
             o = C.convertArrays2ZoneNode(o[0], [octreeA])
 
-        if expand == 2:
+        if expand == 2: # expand minimum
             corner = 0
             to = C.newPyTree(['Base',o])
             to = blankByIBCBodies(to, tb, 'centers', dimPb)
@@ -511,9 +511,38 @@ def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None,
             octreeA = C.getFields(Internal.__GridCoordinates__, o)[0]
             indic = C.getField("centers:indicator", o)[0]
             indic = Converter.addVars([indic,cellN])
-            indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic, 0, corner, 3)                                                                          
+            indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic, 0, corner, 3)          
             octreeA = Generator.adaptOctree(octreeA, indic, balancing=2)
             o = C.convertArrays2ZoneNode(o[0], [octreeA])
+            
+        if expand == 3: # expand minimum + 1 couche propagee
+            C.convertPyTree2File(o, 'octree1.cgns')
+            corner = 0
+            to = C.newPyTree(['Base',o])
+            to = blankByIBCBodies(to, tb, 'centers', dimPb)
+            C._initVars(o, "centers:indicator", 0.)
+            cellN = C.getField("centers:cellN", to)[0]
+            octreeA = C.getFields(Internal.__GridCoordinates__, o)[0]
+            indic = C.getField("centers:indicator", o)[0]
+            indic = Converter.addVars([indic,cellN])
+            indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic, 0, corner, 3)          
+            octreeA = Generator.adaptOctree(octreeA, indic, balancing=2)
+            o = C.convertArrays2ZoneNode(o[0], [octreeA])
+            C.convertPyTree2File(o, 'octree2.cgns')
+            
+            # passe 2
+            to = C.newPyTree(['Base',o])
+            to = blankByIBCBodies(to, tb, 'centers', dimPb)
+            C._initVars(o, "centers:indicator", 0.)
+            cellN = C.getField("centers:cellN", to)[0]
+            octreeA = C.getFields(Internal.__GridCoordinates__, o)[0]
+            indic = C.getField("centers:indicator", o)[0]
+            indic = Converter.addVars([indic,cellN])
+            indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic, 0, corner, 4)                                                                          
+            octreeA = Generator.adaptOctree(octreeA, indic, balancing=2)
+            o = C.convertArrays2ZoneNode(o[0], [octreeA])
+            C.convertPyTree2File(o, 'octree3.cgns')
+            # fin passe 2
 
         #if expand > 0: C.convertPyTree2File(o, 'endOctree.cgns')
         G._getVolumeMap(o); volmin = C.getMinValue(o, 'centers:vol')
@@ -531,7 +560,7 @@ def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None,
 def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., dfarList=[], DEPTH=2, tbox=None, 
                     snearsf=None, check=True, sizeMax=4000000, 
                     symmetry=0, externalBCType='BCFarfield', to=None, 
-                    fileo=None):
+                    fileo=None, expand=2):
     dimPb = Internal.getNodeFromName(tb, 'EquationDimension')
     if dimPb is None: raise ValueError('generateIBMMesh: EquationDimension is missing in input body tree.')
     dimPb = Internal.getValue(dimPb)
@@ -550,7 +579,8 @@ def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., dfarList=[], DEPTH=2, tb
                     raise ValueError("In tb: governing equations (Euler) not consistent with ibc type (%s)"%(ibctype))
 
     o = buildOctree(tb, snears=snears, snearFactor=1., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf, 
-                    dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=fileo, rank=0)
+                    dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=fileo, rank=0,
+                    expand=expand)
 
     if check: C.convertPyTree2File(o, "octree.cgns")
 

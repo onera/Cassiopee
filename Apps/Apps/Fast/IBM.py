@@ -26,18 +26,20 @@ except: pass
 def prepare(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
             tbox=None, snearsf=None,            
             vmin=21, check=False, NP=0, format='single',
-            frontType=1):
+            frontType=1, expand=2):
     import Converter.Mpi as Cmpi
     rank = Cmpi.rank; size = Cmpi.size
     ret = None
     # sequential prep
     if size == 1: ret = prepare0(t_case, t_out, tc_out, snears=snears, dfar=dfar, dfarList=dfarList, 
                                  tbox=tbox, snearsf=snearsf,
-                                 vmin=vmin, check=check, NP=NP, format=format, frontType=frontType)
+                                 vmin=vmin, check=check, NP=NP, format=format, frontType=frontType,
+                                 expand=expand)
     # parallel prep
     else: ret = prepare1(t_case, t_out, tc_out, snears=snears, dfar=dfar, dfarList=dfarList, 
                          tbox=tbox, snearsf=snearsf,
-                         vmin=vmin, check=check, NP=NP, format=format, frontType=frontType)
+                         vmin=vmin, check=check, NP=NP, format=format, frontType=frontType,
+                         expand=expand)
     
     return ret
 
@@ -47,7 +49,7 @@ def prepare(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
 def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
              tbox=None, snearsf=None,
              vmin=21, check=False, NP=0, format='single',
-             frontType=1):
+             frontType=1, expand=2):
     import KCore.test as test
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
     else: tb = t_case
@@ -102,7 +104,8 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
     #--------------------------------------------------------
     # Generates the full Cartesian mesh
     t = TIBM.generateIBMMesh(tb, vmin=vmin, snears=snears, dfar=dfar, dfarList=dfarList, DEPTH=2,
-                             tbox=tbox, snearsf=snearsf, check=check, sizeMax=1000000)
+                             tbox=tbox, snearsf=snearsf, check=check, sizeMax=1000000,
+                             expand=expand)
     test.printMem(">>> Build octree full [end]")
     
     #------------------------------------------------------
@@ -170,7 +173,8 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
 def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
              tbox=None, snearsf=None,  
              vmin=21, check=False, NP=0, format='single',
-             frontType=1, extrusion=False, smoothing=False, balancing=False, distrib=True):
+             frontType=1, extrusion=False, smoothing=False, balancing=False, 
+             distrib=True, expand=2):
     import Generator
     import Connector.connector as connector
     import Connector.Mpi as Xmpi
@@ -242,8 +246,8 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
     test.printMem('>>> Octree unstruct [start]')
 
     o = TIBM.buildOctree(tb, snears=snears, snearFactor=1., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf,
-                         dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=None, rank=rank)
-
+                         dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=None, rank=rank,
+                         expand=expand)
 
     if rank==0 and check: C.convertPyTree2File(o, fileout)
 

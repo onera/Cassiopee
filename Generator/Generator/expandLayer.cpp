@@ -232,27 +232,70 @@ PyObject* K_GENERATOR::modifyIndicToExpandLayer(PyObject* self, PyObject* args)
         if (voisinNonBlanked && voisinStep < dhet-eps) indict[et] = 1.;
       }
     }
-    // Troisieme passe : repropage indic si voisine non masquee et d'indic=1
-    /*
+  }
+  else if (checkType == 4) // 
+  {
+    for (E_Int et = 0; et < nelts; et++) indict[et] = K_CONST::E_MAX_FLOAT;
+    
+    // propage h pour les cellules voisines des pts masques
     for (E_Int et = 0; et < nelts; et++)
     {
-      if (cellNp[et] > 0.1) // pas masque
+      dhet = dhtp[et];
+      if (cellNp[et] > 0.5) // non masque
       {
         // voisine masquee?
-        E_Boolean voisinIndic = false;
+        E_Boolean voisinBlanked = false;
+        E_Float voisinStep = K_CONST::E_MAX_FLOAT;
         vector<E_Int>& voisins = cEEN[et];
         for (size_t nov = 0; nov < voisins.size(); nov++)
         {
           etv = voisins[nov];
-          if (indict[etv] == 1.) 
+          if (cellNp[etv] == 0.) 
           {
-            voisinIndic = true;
+            dhetv = dhtp[etv];
+            voisinBlanked = true;
+            if (dhetv < voisinStep) voisinStep = dhetv;
           }
         }
-        if (voisinIndic) indict[et] = 1.;
+        if (voisinBlanked) indict[et] = min(indict[et],voisinStep);
       }
     }
-    */
+    // propage voisin du voisin
+    E_Float* h2 = new E_Float [nelts];
+    for (E_Int et = 0; et < nelts; et++) h2[et] = indict[et];
+    
+    for (E_Int et = 0; et < nelts; et++)
+    {
+      dhet = dhtp[et];
+      if (cellNp[et] > 0.5) // non masque
+      {
+        // voisine non masquee?
+        E_Boolean voisinNonBlanked = false;
+        E_Float voisinStep = 1.e10;
+        vector<E_Int>& voisins = cEEN[et];
+        for (size_t nov = 0; nov < voisins.size(); nov++)
+        {
+          etv = voisins[nov];
+          if (cellNp[etv] > 0.1 && indict[etv] < 1.e+10) 
+          {
+            dhetv = indict[etv];
+            voisinNonBlanked = true;
+            if (dhetv < voisinStep) voisinStep = dhetv;
+          }
+        }
+        if (voisinNonBlanked) h2[et] = min(indict[et],voisinStep);
+      }
+    }
+    // Raffine si la cellule est plus grande que la valeur contenue, qui
+    // correspond a la taille de la cellule paroi la plus proche
+    for (E_Int et = 0; et < nelts; et++)
+    {
+      dhet = dhtp[et];
+      if (h2[et] < 1.e+10 && dhet > h2[et]*1.1) indict[et] = 1.;
+      else indict[et] = 0.;
+      //indict[et] = 0.;
+    }
+    delete [] h2;
   }
 
   /*-----------CONSTRUCTION ARRAY DE SORTIE ------------------*/
