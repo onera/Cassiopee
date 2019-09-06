@@ -7,7 +7,6 @@ from . import Internal
 import Connector.PyTree as X
 from . import Converter
 import numpy
-import string
 import math
 
 __CONSERVATIVE__=["Density", "MomentumX", "MomentumY", "MomentumZ", "EnergyStagnationDensity"]

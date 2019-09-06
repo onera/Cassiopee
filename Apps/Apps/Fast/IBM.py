@@ -26,7 +26,7 @@ except: pass
 def prepare(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
             tbox=None, snearsf=None,            
             vmin=21, check=False, NP=0, format='single',
-            frontType=1, expand=2):
+            frontType=1, expand=3):
     import Converter.Mpi as Cmpi
     rank = Cmpi.rank; size = Cmpi.size
     ret = None

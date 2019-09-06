@@ -232,14 +232,15 @@ def compute():
     time_step = Internal.getNodeFromName(CTK.t, 'time_step')
     time_step = Internal.getValue(time_step)
 
-    for it in range(nit):
+    for it in range(1,nit+1):
         FastS._compute(CTK.t, metrics, it, tc, graph)
+        time0 += time_step
         if it%50 == 0:
             CTK.TXT.insert('START', '%d / %d - %f\n'%(it+it0,it0+nit,time0))
+            CTK.TXT.update()
         if it%moduloVerif == 0:
-            FastS.display_temporal_criteria(CTK.t, metrics, it, format='double')
+            FastS.display_temporal_criteria(CTK.t, metrics, it, format='single')
             #CTK.display(CTK.t)
-        time0 += time_step
     Internal.createUniqueChild(CTK.t, 'Iteration', 'DataArray_t', value=it0+nit)
     Internal.createUniqueChild(CTK.t, 'Time', 'DataArray_t', value=time0)
     
