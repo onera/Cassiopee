@@ -154,17 +154,23 @@ void Pyramid::reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i)
   std::map<E_Int,E_Int> glmap; 
   E_Int nb_faces = ng.PHs.stride(i); 
   E_Int* faces = ng.PHs.get_facets_ptr(i);
-  E_Int PGi = faces[0] - 1;
+  E_Int BOT = E_IDX_NONE;
 
-  E_Int l(0);
-  for (int i=0; i< nb_faces; i++){
-    if (ng.PGs.stride(PGi)!=4){
-        PGi= faces[i] - 1;
-        l=i;
-    }
+  E_Int ibot(0);
+  for (int i=0; i< nb_faces; i++)
+  {
+    if (ng.PGs.stride(faces[i] - 1)!=4) // BOTTOM is the QUAD
+      continue;
+    
+    assert (BOT == E_IDX_NONE); // one QUAD only
+    
+    BOT = faces[i] - 1;
+    ibot = i;
   }
   
-  E_Int* pN = ng.PGs.get_facets_ptr(PGi);
+  assert (BOT != E_IDX_NONE);
+  
+  E_Int* pN = ng.PGs.get_facets_ptr(BOT);
 
   
   glmap[*pN] = 0; // PHi(0,0) -> 0  
@@ -173,7 +179,7 @@ void Pyramid::reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i)
   glmap[*(pN+3)] = 3;
 
 
-  if (F2E(1,PGi) != i) // for BOT, PH is the right element. if not, wrong orientation => swap of 1 and 3
+  if (F2E(1,BOT) != i) // for BOT, PH is the right element. if not, wrong orientation => swap of 1 and 3
   { 
     glmap[*(pN+1)] = 3;
     glmap[*(pN+3)] = 1;
@@ -181,11 +187,14 @@ void Pyramid::reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i)
 
   E_Int F1Id(E_IDX_NONE), F2Id(E_IDX_NONE), F3Id(E_IDX_NONE), F4Id(E_IDX_NONE);
 
+  std::vector<bool> commonNodes;
   for (int k = 1; k < nb_faces; ++k)
   {
     int count = 0;
-    std::vector<bool> commonNodes(4,false);
-    E_Int testedPG = faces[(k+l) % nb_faces]-1;
+    commonNodes.clear();
+    commonNodes.resize(4,false);
+    
+    E_Int testedPG = faces[(k+ibot) % nb_faces]-1;
     E_Int* pNode = ng.PGs.get_facets_ptr(testedPG);
     for (int j = 0; j < 3; ++j)
     {
@@ -203,16 +212,15 @@ void Pyramid::reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i)
     else if (commonNodes[2] && commonNodes[3])
       F3Id = k;
     else if (commonNodes[3] && commonNodes[0])
-      F4Id = k;    
-    }
+      F4Id = k;
+  }
+  
+  assert (F1Id != E_IDX_NONE);
+  assert (F2Id != E_IDX_NONE);
+  assert (F3Id != E_IDX_NONE);
+  assert (F4Id != E_IDX_NONE);
 
-  E_Int mol[5];
-
-  mol[0] = faces[0];
-  mol[1] = faces[F1Id];
-  mol[2] = faces[F2Id];
-  mol[3] = faces[F3Id];
-  mol[4] = faces[F4Id];
+  E_Int mol[] = {faces[ibot], faces[F1Id], faces[F2Id], faces[F3Id], faces[F4Id]};
 
   for (int i = 0; i < nb_faces; ++i)
     faces[i] = mol[i];
