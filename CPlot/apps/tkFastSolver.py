@@ -13,6 +13,8 @@ import os, math, os.path
 WIDGETS = {}; VARS = []
 
 BODY = None
+CFL = 0.7
+TIMESTEP = 0.002
 
 #==============================================================================
 def changeMode(event=None):
@@ -223,7 +225,7 @@ def compute():
     CTK.t, tc, ts, metrics, graph = myApp.setup('restart.cgns', 'tc.cgns')
 
     import FastS.PyTree as FastS
-    
+
     it0 = 0; time0 = 0.
     first = Internal.getNodeFromName1(CTK.t, 'Iteration')
     if first is not None: it0 = Internal.getValue(first)
@@ -252,6 +254,17 @@ def writeFiles():
     writeComputeFile()
     CTK.TXT.insert('START', 'Write prep.py and compute.py.\n')
     return None
+
+#===============================================================
+def changeCflTimeStep(event=None):
+    global TIMESTEP, CFL
+    ntype = VARS[11].get() # nouveau type?
+    v = VARS[5].get()
+    # Save previous (not sure)
+    if ntype == 'time_step': CFL = v
+    else: TIMESTEP = v
+    if ntype == 'time_step': VARS[5].set(TIMESTEP)
+    else: VARS[5].set(CFL)
 
 #==============================================================================
 # Write prep file
@@ -367,8 +380,8 @@ def createApp(win):
     V = TK.StringVar(win); V.set('1');VARS.append(V)
     # -4- scheme -
     V = TK.StringVar(win); V.set('senseur'); VARS.append(V)
-    # -5- Time step -
-    V = TK.DoubleVar(win); V.set(0.004); VARS.append(V)
+    # -5- Time step or cfl -
+    V = TK.DoubleVar(win); V.set(TIMESTEP); VARS.append(V)
     # -6- Snear -
     V = TK.DoubleVar(win); V.set(0.01); VARS.append(V)
     # -7- IBC type -
@@ -449,7 +462,7 @@ def createApp(win):
     B.grid(row=7, column=1, columnspan=2, sticky=TK.EW)
 
     # - time_step -
-    B = TTK.OptionMenu(Frame, VARS[11], "time_step", "cfl")
+    B = TTK.OptionMenu(Frame, VARS[11], "time_step", "cfl", command=changeCflTimeStep)
     B.grid(row=8, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Time step.')
     B = TTK.Entry(Frame, textvariable=VARS[5], background='White')

@@ -91,7 +91,7 @@ PyObject* K_GENERATOR::modifyIndicToExpandLayer(PyObject* self, PyObject* args)
     return indicator;
   }
   posi++;
-  if (fi->getSize() != cn->getSize()) 
+  if (fi->getSize() != cn->getSize())
   {
     RELEASESHAREDB(resi, indicator, fi, cni); RELEASESHAREDU(octree, f, cn); 
     printf("Warning: expandLayer: refinement indicator size must be equal to the number of elements. Nothing done."); 
@@ -186,6 +186,7 @@ PyObject* K_GENERATOR::modifyIndicToExpandLayer(PyObject* self, PyObject* args)
   else if (checkType == 3) // 
   {
     // premiere passe pour les points non masques
+    // on les raffine si la cellule est plus grossiere qu'une cellule de corps voisine
     for (E_Int et = 0; et < nelts; et++)
     {
       dhet = dhtp[et];
@@ -212,8 +213,8 @@ PyObject* K_GENERATOR::modifyIndicToExpandLayer(PyObject* self, PyObject* args)
     for (E_Int et = 0; et < nelts; et++)
     {
       dhet = dhtp[et];
-      if (cellNp[et] == 0.) // masque
-      {      
+      if (K_FUNC::E_abs(cellNp[et]) < eps) // masque
+      {
         // voisine non masquee?
         E_Boolean voisinNonBlanked = false;
         E_Float voisinStep = K_CONST::E_MAX_FLOAT;
@@ -228,16 +229,16 @@ PyObject* K_GENERATOR::modifyIndicToExpandLayer(PyObject* self, PyObject* args)
             voisinNonBlanked = true;
             if (dhetv < voisinStep) voisinStep = dhetv;
           }
-        }      
+        }
         if (voisinNonBlanked && voisinStep < dhet-eps) indict[et] = 1.;
       }
     }
   }
-  else if (checkType == 4) // 
+  else if (checkType == 4) // extension au deuxieme niveau
   {
     for (E_Int et = 0; et < nelts; et++) indict[et] = K_CONST::E_MAX_FLOAT;
     
-    // propage h pour les cellules voisines des pts masques
+    // propage h dans indict pour les cellules voisines des pts masques
     for (E_Int et = 0; et < nelts; et++)
     {
       dhet = dhtp[et];
@@ -270,7 +271,7 @@ PyObject* K_GENERATOR::modifyIndicToExpandLayer(PyObject* self, PyObject* args)
       if (cellNp[et] > 0.5) // non masque
       {
         // voisine non masquee?
-        E_Boolean voisinNonBlanked = false;
+        E_Boolean voisinBlanked = false;
         E_Float voisinStep = 1.e10;
         vector<E_Int>& voisins = cEEN[et];
         for (size_t nov = 0; nov < voisins.size(); nov++)
@@ -279,11 +280,11 @@ PyObject* K_GENERATOR::modifyIndicToExpandLayer(PyObject* self, PyObject* args)
           if (cellNp[etv] > 0.1 && indict[etv] < 1.e+10) 
           {
             dhetv = indict[etv];
-            voisinNonBlanked = true;
             if (dhetv < voisinStep) voisinStep = dhetv;
           }
+          if (K_FUNC::E_abs(cellNp[etv]) < eps) voisinBlanked = true;
         }
-        if (voisinNonBlanked) h2[et] = min(indict[et],voisinStep);
+        if (voisinBlanked == false) h2[et] = min(indict[et],voisinStep);
       }
     }
     // Raffine si la cellule est plus grande que la valeur contenue, qui
@@ -296,6 +297,36 @@ PyObject* K_GENERATOR::modifyIndicToExpandLayer(PyObject* self, PyObject* args)
       //indict[et] = 0.;
     }
     delete [] h2;
+  }
+
+  else if (checkType == 5) // pure verification que les voisins des pts masque ont bien le meme niveau
+  {
+    E_Int pb = 0;
+    for (E_Int et = 0; et < nelts; et++)
+    {
+      dhet = dhtp[et];
+      if (cellNp[et] > 0.5) // non masque
+      {
+        E_Boolean voisinBlanked = false;
+        vector<E_Int>& voisins = cEEN[et];
+        for (size_t nov = 0; nov < voisins.size(); nov++)
+        {
+          etv = voisins[nov];
+          if (K_FUNC::E_abs(cellNp[etv]) < eps) // voisin non masque doit avoir la meme taille de maille 
+          {
+            dhetv = dhtp[etv];
+            if (dhetv < dhet-eps) pb++;
+            if (dhetv > dhet+eps) pb++;
+            if (dhetv < dhet-eps || dhetv > dhet+eps)
+            {
+              E_Int ind1 = cn1[et]-1;
+              printf("%g %g %g -> point %g %g %g\n", dhet, dhetv, cellNp[etv], xt[ind1], yt[ind1], zt[ind1]);
+            }
+          }
+        }
+      }
+    }
+    printf("==> Pbs: %d\n", pb);
   }
 
   /*-----------CONSTRUCTION ARRAY DE SORTIE ------------------*/

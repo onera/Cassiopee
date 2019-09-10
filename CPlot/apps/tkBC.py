@@ -685,7 +685,7 @@ def createApp(win):
     # -9- Periodicity? in connectMatch
     V = TK.StringVar(win); V.set('Not periodic'); VARS.append(V)
     # -10- Periodicity field (0;0;0...)
-    V = TK.StringVar(win); V.set('0;0;0;0;0;0'); VARS.append(V)
+    V = TK.StringVar(win); V.set('0.;0.;0.;0.;0.;0.'); VARS.append(V)
     if 'tkBCMatchPer' in CTK.PREFS: V.set(CTK.PREFS['tkBCMatchPer'])
 
     # - View mesh -
@@ -698,7 +698,6 @@ def createApp(win):
     B = TTK.Checkbutton(Frame, text='Edges', variable=VARS[7])
     BB = CTK.infoBulle(parent=B, text='Show edges of zones of the tree.')
     B.grid(row=0, column=1, sticky=TK.EW)    
-
 
     # - View type de BC -
     B = TTK.Button(Frame, text="View BC", command=view)

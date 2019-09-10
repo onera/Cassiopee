@@ -108,9 +108,11 @@ def _distributeOptFile(t_in, tc_in, corePerNode=28, nptMaxPerCore=4.e6):
 def setup(t_in, tc_in, numb, numz, format='single'):
     if Cmpi.size > 1:
         import FastS.Mpi as FastS
+        FastS.PyTree.HOOK = None
         rank = Cmpi.rank; size = Cmpi.size
     else:
         import FastS.PyTree as FastS
+        FastS.HOOK = None
         rank = 0; size = 1
 
     t,tc,ts,graph = Fast.load(t_in, tc_in, split=format)

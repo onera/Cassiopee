@@ -49,7 +49,7 @@ def prepare(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
 def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
              tbox=None, snearsf=None,
              vmin=21, check=False, NP=0, format='single',
-             frontType=1, expand=2):
+             frontType=1, expand=3):
     import KCore.test as test
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
     else: tb = t_case
@@ -174,7 +174,7 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
              tbox=None, snearsf=None,  
              vmin=21, check=False, NP=0, format='single',
              frontType=1, extrusion=False, smoothing=False, balancing=False, 
-             distrib=True, expand=2):
+             distrib=True, expand=3):
     import Generator
     import Connector.connector as connector
     import Connector.Mpi as Xmpi
@@ -1119,7 +1119,7 @@ def _distribute(t_in, tc_in, NP):
     for i in range(NP):
         NPTS = 0
         for z in Internal.getZones(ts):
-            if Cmpi.getProc(z)==i: NPTS += C.getNPts(z)
+            if Cmpi.getProc(z) == i: NPTS += C.getNPts(z)
         NptsTot += NPTS
         print('Rank %d has %d points'%(i,NPTS))
     print('All points: %d million points'%(NptsTot/1.e6))
@@ -1214,13 +1214,14 @@ class IBM(Common):
     # Prepare 
     def prepare(self, t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], 
                 tbox=None, snearsf=None,
-                vmin=21, check=False, frontType=1, NP=None):
+                vmin=21, check=False, frontType=1, NP=None, expand=3):
         if NP is None: NP = Cmpi.size
         if NP == 0: print('Preparing for a sequential computation.')
         else: print('Preparing for a computation on %d processors.'%NP)
         ret = prepare(t_case, t_out, tc_out, snears=snears, dfar=dfar, dfarList=dfarList,
                       tbox=tbox, snearsf=snearsf,
-                      vmin=vmin, check=check, NP=NP, format=self.data['format'], frontType=frontType)
+                      vmin=vmin, check=check, NP=NP, format=self.data['format'], 
+                      frontType=frontType, expand=expand)
         return ret
 
     # post-processing: extrait la solution aux noeuds + le champs sur les surfaces

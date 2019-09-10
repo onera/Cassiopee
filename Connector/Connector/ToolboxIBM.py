@@ -281,7 +281,7 @@ def octree2StructLoc__(o, parento=None, vmin=21, ext=0, optimized=0, sizeMax=4e6
         C.setFields(coords, zones, 'nodes')
     # Creation des zones du pyTree
     for z in zones: z[0] = C.getZoneName('cart')
-    if ext==0:
+    if ext == 0:
         if dimPb == 3: ratios = [[2,2,2],[4,4,4],[8,8,8],[16,16,16]]
         else: ratios = [[2,2,1],[4,4,1],[8,8,1],[16,16,1]]
         zones = X.connectMatch(zones, dim=dimPb)
@@ -515,8 +515,19 @@ def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None,
             octreeA = Generator.adaptOctree(octreeA, indic, balancing=2)
             o = C.convertArrays2ZoneNode(o[0], [octreeA])
             
+            # Check
+            #to = C.newPyTree(['Base',o])
+            #to = blankByIBCBodies(to, tb, 'centers', dimPb)
+            #C._initVars(o, "centers:indicator", 0.)
+            #cellN = C.getField("centers:cellN", to)[0]
+            #octreeA = C.getFields(Internal.__GridCoordinates__, o)[0]
+            #indic = C.getField("centers:indicator", o)[0]
+            #indic = Converter.addVars([indic,cellN])
+            #indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic, 0, corner, 5)
+            # FIN CHECK
+            
         if expand == 3: # expand minimum + 1 couche propagee
-            C.convertPyTree2File(o, 'octree1.cgns')
+            #C.convertPyTree2File(o, 'octree1.cgns')
             corner = 0
             to = C.newPyTree(['Base',o])
             to = blankByIBCBodies(to, tb, 'centers', dimPb)
@@ -528,7 +539,7 @@ def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None,
             indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic, 0, corner, 3)          
             octreeA = Generator.adaptOctree(octreeA, indic, balancing=2)
             o = C.convertArrays2ZoneNode(o[0], [octreeA])
-            C.convertPyTree2File(o, 'octree2.cgns')
+            #C.convertPyTree2File(o, 'octree2.cgns')
             
             # passe 2
             to = C.newPyTree(['Base',o])
@@ -541,8 +552,19 @@ def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None,
             indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic, 0, corner, 4)                                                                          
             octreeA = Generator.adaptOctree(octreeA, indic, balancing=2)
             o = C.convertArrays2ZoneNode(o[0], [octreeA])
-            C.convertPyTree2File(o, 'octree3.cgns')
+            #C.convertPyTree2File(o, 'octree3.cgns')
             # fin passe 2
+
+            # Check
+            #to = C.newPyTree(['Base',o])
+            #to = blankByIBCBodies(to, tb, 'centers', dimPb)
+            #C._initVars(o, "centers:indicator", 0.)
+            #cellN = C.getField("centers:cellN", to)[0]
+            #octreeA = C.getFields(Internal.__GridCoordinates__, o)[0]
+            #indic = C.getField("centers:indicator", o)[0]
+            #indic = Converter.addVars([indic,cellN])
+            #indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic, 0, corner, 5)
+            # FIN CHECK
 
         #if expand > 0: C.convertPyTree2File(o, 'endOctree.cgns')
         G._getVolumeMap(o); volmin = C.getMinValue(o, 'centers:vol')
