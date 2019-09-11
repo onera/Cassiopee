@@ -54,10 +54,10 @@ char* installPath()
 char* getHome()
 {
   Py_Initialize();
-  //PyObject* pName = PyString_FromString("os.path");
-  //PyObject* pModule = PyImport_Import(pName);
-  //Py_DECREF(pName);
-  PyObject* pModule = PyImport_ImportModule("KCore.installPath");
+  PyObject* pName = PyString_FromString("os.path");
+  PyObject* pModule = PyImport_Import(pName);
+  Py_DECREF(pName);
+  //PyObject* pModule = PyImport_ImportModule("KCore.installPath");
   char* answer = NULL;
   if (pModule != NULL)
   {

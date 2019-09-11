@@ -312,14 +312,15 @@ def readKeyFile(file):
 
 def submitKey(event=None):
     key = AVARS[1].get()
+    key = key.split(':')
+    if len(key) == 2: name = key[0]; key = key[1]
+    else: name = '0'; key = key[0]
+    
     import KCore.installPath
     path = KCore.installPath.libPath
     # Essai dans installPath/.CassiopeKey
     file = path+'/.CassiopeeKey'
     d = readKeyFile(file)
-    key = key.split(':')
-    if len(key) == 2: name = key[0]; key = key[1]
-    else: name = '0'; key = key[0]
     d[name] = key
     fail = False
     try:
@@ -339,9 +340,6 @@ def submitKey(event=None):
     path = os.path.expanduser('~')    
     file = path+'/.CassiopeeKey'
     d = readKeyFile(file)
-    key = key.split(':')
-    if len(key) == 2: name = key[0]; key = key[1]
-    else: name = '0'; key = key[0]
     d[name] = key
     try:
         f = open(path+'/.CassiopeeKey', 'w')
