@@ -41,6 +41,27 @@ extern "C"
                              const E_Float* zt, E_Float& vol);
 }
 
+
+E_Int K_INTERP::extractADTFromHooks(PyObject* allHooks, vector<K_INTERP::InterpData*>& interpDatas)
+{
+  E_Int nHooks = PyList_Size(allHooks);
+  for (E_Int noh = 0; noh < nHooks; noh++)
+  {
+    PyObject* hook = PyList_GetItem(allHooks,noh);
+#if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
+      void** packet = (void**) PyCObject_AsVoidPtr(hook);
+#else
+      void** packet = (void**) PyCapsule_GetPointer(hook, NULL);
+#endif
+
+    E_Int* type = (E_Int*)packet[0];
+    if (type[0] != 1) return -1;// hook must define an ADT
+    if (type[1] != 1) return -2;// one ADT per hook
+    interpDatas.push_back((K_INTERP::InterpAdt*)(packet[1])); 
+  }
+  if ( interpDatas.size()==0 ) return 0;
+  return 1;
+}
 //=============================================================================
 /* IN: x,y,z: point a interpoler.
    IN: InterpDatas: les InterpData des domaines donneurs

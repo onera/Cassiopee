@@ -98,6 +98,7 @@ def projectCloudSolution(cloud, surf, dim=3):
         C.setFields([res], zones[noz], 'nodes')
     return surf2
 
+# hook is a list of pointers on ADT for donor zones of t - created by C.createHook(a,'extractMesh')
 def extractMesh(t, extractionMesh, order=2, extrapOrder=1,
                 constraint=40., tol=1.e-6, hook=None, mode='robust'):
     """Extract the solution on a given mesh.
@@ -110,13 +111,32 @@ def _extractMesh(t, extractionMesh, order=2, extrapOrder=1,
                  constraint=40., tol=1.e-6, hook=None, mode='robust'):
     """Extract the solution on a given mesh.
     Usage: extractMesh(t, extractMesh, order, extrapOrder, constraint, tol, hook)"""
-    if mode == 'robust': # copie les champs aux centres aux noeuds + extract en noeuds
+    # we sort structured then unstructured
+    orderedZones=[]
+    for i,z in enumerate(Internal.getZones(extractionMesh)):
+        if Internal.getZoneType(z)==1: orderedZones.append(i)
+    nzoness = len(orderedZones)
+    for i,z in enumerate(Internal.getZones(extractionMesh)):
+        if Internal.getZoneType(z)==2: orderedZones.append(i)        
+
+    if mode == 'robust':        
         tc = C.center2Node(t, Internal.__FlowSolutionCenters__)
+        if hook is not None:
+            if not isinstance(hook,list): raise TypeError("_extractMesh: hook must be a list of hooks on ADTs.") 
         fa = C.getAllFields(tc, 'nodes')
+        del tc
         an = C.getFields(Internal.__GridCoordinates__, extractionMesh)
-        res = Post.extractMesh(fa, an, order, extrapOrder, constraint,
-                               tol, hook)
-        C.setFields(res, extractionMesh, 'nodes')
+        res = Post.extractMesh(fa, an, order, extrapOrder, constraint, tol, hook)
+        if len(res) != len(orderedZones):
+            raise ValueError("_extractMesh: invalid number of zones.")
+        nor = 0
+        for r in res:
+            nozorig=orderedZones[nor]
+            z = Internal.getZones(extractionMesh)[nozorig]
+            C.setFields([r], z, 'nodes')
+            nor+=1
+
+
     else: # accurate: extract les centres sur le maillage en centres
         varsC = C.getVarNames(t, excludeXYZ=True, loc='centers')
         varsN = C.getVarNames(t, excludeXYZ=True, loc='nodes')
@@ -124,22 +144,24 @@ def _extractMesh(t, extractionMesh, order=2, extrapOrder=1,
         varsC = varsC[0]; varsN = varsN[0]
         zones = Internal.getZones(extractionMesh)
         if len(varsN) != 0:
-            an = C.getFields(Internal.__GridCoordinates__, zones)
-            fc = C.getFields(Internal.__GridCoordinates__, t)
-            fa = C.getFields(Internal.__FlowSolutionNodes__, t)
-            allf = []
-            nzones = len(fc)
-            for i in range(nzones):
-                if fc[i] != [] and fa[i] != 0:
-                    allf.append(Converter.addVars([fc[i], fa[i]]))
-                elif fa[i] != []: allf.append(fa[i])
-                elif fc[i] != []: allf.append(fc[i])
+            an = C.getFields(Internal.__GridCoordinates__, zones,api=1)
+            allf = C.getAllFields(t, 'nodes', api=1)
             if allf != []:
                 res = Post.extractMesh(allf, an, order, extrapOrder,
-                                       constraint, tol, hook)
-                zones = C.setFields(res, zones, 'nodes')
+                                       constraint, tol)
+                if len(res) != len(orderedZones):
+                    raise ValueError("_extractMesh: invalid number of zones.")
+                nor = 0
+                for r in res:
+                    nozorig=orderedZones[nor]
+                    z = Internal.getZones(extractionMesh)[nozorig]
+                    C.setFields([r], z, 'nodes')
+                    nor+=1
+
 
         if len(varsC) != 0:
+            if hook is not None:
+                print("Warning: _extractMesh: hook is not used in 'accurate' mode.")
             tp = Internal.addGhostCells(t, t, 1)
             an = C.getFields(Internal.__GridCoordinates__, zones)
             ac = Converter.node2Center(an)
@@ -152,6 +174,7 @@ def _extractMesh(t, extractionMesh, order=2, extrapOrder=1,
                     fc[i] = Transform.dual(fc[i], extraPoints=0)
                 else: fc[i] = Converter.node2Center(fc[i])
             fa = C.getFields(Internal.__FlowSolutionCenters__, tp)
+            del tp
             allf = []
             nzones = len(fc)
             for i in range(nzones):
@@ -161,9 +184,16 @@ def _extractMesh(t, extractionMesh, order=2, extrapOrder=1,
                 elif fc[i] != []: allf.append(fc[i])
             if allf != []:
                 res = Post.extractMesh(allf, ac, order, extrapOrder,
-                                       constraint, tol, hook)
+                                       constraint, tol)
                 res = Converter.rmVars(res, ['CoordinateX','CoordinateY','CoordinateZ'])
-                zones = C.setFields(res, zones, 'centers')
+                if len(res) != len(orderedZones):
+                    raise ValueError("_extractMesh: invalid number of zones.")
+                nor = 0
+                for r in res:
+                    nozorig=orderedZones[nor]
+                    z = Internal.getZones(extractionMesh)[nozorig]
+                    C.setFields([r], z, 'centers')
+                    nor+=1
     return None
 
 def coarsen(t, indicName='indic', argqual=0.1, tol=1.e6):

@@ -12,8 +12,8 @@ import KCore.test as test
 if Cmpi.rank == 0:
     ni = 100; nj = 100; nk = 100
     m = G.cart((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,nk))
-    m = C.initVars(m, 'Density', 2.)
-    m = C.initVars(m, 'centers:cellN', 1)
+    C._initVars(m, 'Density', 2.)
+    C._initVars(m, 'centers:cellN', 1)
     m = T.splitNParts(m, 4)
     C.convertPyTree2File(m, 'in.cgns')
 
@@ -25,11 +25,11 @@ Cmpi.barrier()
 
 # Extract solution on extraction mesh
 m = Cmpi.convertFile2SkeletonTree('in.cgns')
-(m, dic) = Distributor2.distribute(m, NProc=Cmpi.size, algorithm='fast')
+dic = Distributor2._distribute(m, NProc=Cmpi.size, algorithm='fast')
 m = Cmpi.readZones(m, 'in.cgns', rank=Cmpi.rank)
 
 a = Cmpi.convertFile2SkeletonTree('in2.cgns')
-(a, dic) = Distributor2.distribute(a, NProc=Cmpi.size, algorithm='fast')
+dic = Distributor2._distribute(a, NProc=Cmpi.size, algorithm='fast')
 a = Cmpi.readZones(a, 'in2.cgns', rank=Cmpi.rank)
 
 a = Pmpi.extractMesh(m, a)

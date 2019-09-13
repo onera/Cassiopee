@@ -37,6 +37,12 @@
 namespace K_INTERP
 {
 
+  /* IN : a Python object defining a list of hooks on ADTs
+  OUT  1 : success
+  OUT -1: one hook does not define a pointer on an ADT
+  OUT -2: one ADT per hook condition is not respected */
+  E_Int extractADTFromHooks(PyObject* allHooks, std::vector<K_INTERP::InterpData*>& interpDatas);
+
 /* IN: x,y,z: point a interpoler.
    IN: interpDatas: les interpData des domaines donneurs
    IN: fields: des champs des domaines donneurs

@@ -25,6 +25,6 @@ for i in [2,3,5]:
 # With a hook
 hook = C.createHook([m], function='extractMesh')
 for i in [2,3,5]:
-    a2 = P.extractMesh([m], a, i, hook=hook)
+    a2 = P.extractMesh([m], a, i, hook=[hook])
     test.testA([m,a2], i)
 C.freeHook(hook)

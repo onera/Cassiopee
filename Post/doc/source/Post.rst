@@ -947,8 +947,8 @@ Solution extraction
     If mode='accurate', extract node solution from node mesh and center solution
     from center mesh (variables don't change location).
 
-    A preconditioning tree for the interpolation cell search can be built prior to extractMesh
-    (if is used several times for instance) and is stored in a hook. It can be created and deleted by C.createHook and C.freeHook (see Converter module userguide).
+    The interpolation cell search can be preconditioned if extractMesh is applied several times using the same donor mesh.
+    Parameter hook is only used in 'robust' mode and is a list of ADT (one per donor zone), each of them must be created and deleted by C.createHook and C.freeHook (see Converter module userguide).
 
 
     *Example of use:*

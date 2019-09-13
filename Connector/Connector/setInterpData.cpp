@@ -252,54 +252,40 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
   }
   else //hook fourni pour chq donneur
   {
-    if (PyList_Check(allHooks) == false)
+    E_Int oki = 1;
+    if (PyList_Check(allHooks) == false) 
     {
-      RELEASESHAREDB(resr, receiverArray, fr, cnr); 
-      for (E_Int no = 0; no < nzones; no++)
-        RELEASESHAREDA(resl[no],objs[no],fields[no],a2[no],a3[no],a4[no]);  
+      oki = 0;
       PyErr_SetString(PyExc_TypeError, 
                       "setInterpData: hook must be a list of hooks.");
-      return NULL;
     }
     E_Int nHooks = PyList_Size(allHooks);
     E_Int nDonorZones = fields.size();
-    if (nHooks != nDonorZones)
+    if (nHooks != nDonorZones) 
     {
-      RELEASESHAREDB(resr, receiverArray, fr, cnr); 
-      for (E_Int no = 0; no < nzones; no++)
-        RELEASESHAREDA(resl[no],objs[no],fields[no],a2[no],a3[no],a4[no]);   
+      oki = 0;
       PyErr_SetString(PyExc_TypeError,
                       "setInterpData: size of list of hooks must be equal to the number of donor zones.");
-      return NULL;
     }
-    for (E_Int noh = 0; noh < nHooks; noh++)
+    oki = K_INTERP::extractADTFromHooks(allHooks, interpDatas);
+
+    if ( oki<1 ) 
     {
-      PyObject* hook = PyList_GetItem(allHooks,noh);
-#if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
-      void** packet = (void**) PyCObject_AsVoidPtr(hook);
-#else
-      void** packet = (void**) PyCapsule_GetPointer(hook, NULL);
-#endif
-      E_Int* type = (E_Int*)packet[0];
-      if (type[0] != 1) 
+      if ( oki==-1)
       {
-        RELEASESHAREDB(resr, receiverArray, fr, cnr); 
-        for (E_Int no = 0; no < nzones; no++)
-          RELEASESHAREDA(resl[no],objs[no],fields[no],a2[no],a3[no],a4[no]);   
         PyErr_SetString(PyExc_TypeError,
                         "setInterpData: hook must define an ADT.");
-        return NULL;
       }
-      if (type[1] != 1) 
+      else if (oki == -2)
       {
-        RELEASESHAREDB(resr, receiverArray, fr, cnr); 
-        for (E_Int no = 0; no < nzones; no++)
-          RELEASESHAREDA(resl[no],objs[no],fields[no],a2[no],a3[no],a4[no]);   
         PyErr_SetString(PyExc_TypeError,
-                        "setInterpData: one ADT must be defined per hook.");
-        return NULL;
+                        "setInterpData: one ADT per hook only.");
       }
-      interpDatas.push_back((K_INTERP::InterpAdt*)(packet[1])); 
+
+      RELEASESHAREDB(resr, receiverArray, fr, cnr); 
+      for (E_Int no = 0; no < nzones; no++)
+        RELEASESHAREDA(resl[no],objs[no],fields[no],a2[no],a3[no],a4[no]);  
+      return NULL;
     }
   }
    // cas seulement non structure : ncf a 4 (minimum)

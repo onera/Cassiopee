@@ -502,7 +502,7 @@ def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None,
             octreeA = Generator.adaptOctree(octreeA, indic, balancing=2)
             o = C.convertArrays2ZoneNode(o[0], [octreeA])
 
-        if expand == 2: # expand minimum
+        elif expand == 2: # expand minimum
             corner = 0
             to = C.newPyTree(['Base',o])
             to = blankByIBCBodies(to, tb, 'centers', dimPb)
@@ -526,7 +526,7 @@ def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None,
             #indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic, 0, corner, 5)
             # FIN CHECK
             
-        if expand == 3: # expand minimum + 1 couche propagee
+        elif expand == 3: # expand minimum + 1 couche propagee
             #C.convertPyTree2File(o, 'octree1.cgns')
             corner = 0
             to = C.newPyTree(['Base',o])

@@ -47,11 +47,11 @@ PyObject* K_POST::extractMesh(PyObject* self, PyObject* args)
   E_Int interpOrder;
   E_Int extrapOrder;
   E_Float constraint;
-  PyObject* hook;
+  PyObject* allHooks;
   if (!PYPARSETUPLE(args,
                     "OOlldO", "OOiidO",
                     "OOllfO", "OOiifO",
-                    &listFields, &arrays, &interpOrder, &extrapOrder, &constraint, &hook))
+                    &listFields, &arrays, &interpOrder, &extrapOrder, &constraint, &allHooks))
   {
       return NULL;
   }
@@ -203,7 +203,7 @@ PyObject* K_POST::extractMesh(PyObject* self, PyObject* args)
   vector<FldArrayI*> cnt;
   vector<K_INTERP::InterpData*> interpDatas;
   // creation des interpDatas
-  if (hook == Py_None)
+  if (allHooks == Py_None)
   {
     E_Int isBuilt;
     for (E_Int no = 0; no < nzones; no++)
@@ -231,30 +231,36 @@ PyObject* K_POST::extractMesh(PyObject* self, PyObject* args)
       }
     }
   }
-  else //if (hook != Py_None) // hook fourni
+  else //if (hook != Py_None) // hook on ADT provided for each donor zone
   {
-#if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
-    void** packet = (void**) PyCObject_AsVoidPtr(hook);
-#else
-    void** packet = (void**) PyCapsule_GetPointer(hook, NULL);
-#endif
-    E_Int s1 = fields.size();
-    for (E_Int i = 0; i < s1; i++) 
-      interpDatas.push_back((K_INTERP::InterpAdt*)(packet[i+1])); 
+    E_Int oki = 1;
+    if (PyList_Check(allHooks) == false) 
+    {
+      oki = 0;
+      PyErr_SetString(PyExc_TypeError, 
+                      "extractMesh: hook must be a list of hooks.");
+    }
+    E_Int nHooks = PyList_Size(allHooks);
+    if (nHooks != nzones) 
+    {
+      oki = 0;
+      PyErr_SetString(PyExc_TypeError,
+                      "extractMesh: size of list of hooks must be equal to the number of donor zones.");
+    }
+    oki = K_INTERP::extractADTFromHooks(allHooks, interpDatas);
+    if ( oki < 1)
+    {
+      for (E_Int nos = 0; nos < ns0; nos++)
+        RELEASESHAREDS(objst0[nos], structF0[nos]);
+      for (E_Int nos = 0; nos < nu0; nos++)
+        RELEASESHAREDU(objut0[nos], unstrF0[nos], cnt0[nos]);
+      for (E_Int no = 0; no < nzones; no++)
+        RELEASESHAREDA(resl[no],objs[no],fields[no],a2[no],a3[no],a4[no]); 
+      PyErr_SetString(PyExc_TypeError,
+                      "extractMesh: no ADT built.");
+      return NULL;
+    }
   }
-  if (interpDatas.size() == 0)
-  {
-    for (E_Int nos = 0; nos < ns0; nos++)
-      RELEASESHAREDS(objst0[nos], structF0[nos]);
-    for (E_Int nos = 0; nos < nu0; nos++)
-      RELEASESHAREDU(objut0[nos], unstrF0[nos], cnt0[nos]);
-    for (E_Int no = 0; no < nzones; no++)
-      RELEASESHAREDA(resl[no],objs[no],fields[no],a2[no],a3[no],a4[no]); 
-    PyErr_SetString(PyExc_TypeError,
-                    "extractMesh: no ADT built.");
-    return NULL;
-  }
-
   // cas seulement non structure: ncf a 4 (minimum)
   if (nzonesU != 0)
   {
@@ -381,7 +387,7 @@ PyObject* K_POST::extractMesh(PyObject* self, PyObject* args)
   }
   for (E_Int no = 0; no < nzones; no++)
   {
-    if (hook == Py_None) delete interpDatas[no];
+    if (allHooks == Py_None) delete interpDatas[no];
     RELEASESHAREDA(resl[no],objs[no],fields[no],a2[no],a3[no],a4[no]);     
   }
  
