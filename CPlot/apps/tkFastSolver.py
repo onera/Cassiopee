@@ -12,8 +12,13 @@ import os, math, os.path
 # local widgets list
 WIDGETS = {}; VARS = []
 
+# Store body tree
 BODY = None
+# tkSlice module
+TKSLICE = None
+# CFL
 CFL = 0.7
+# TIMESTEP
 TIMESTEP = 0.002
 
 #==============================================================================
@@ -140,6 +145,12 @@ def getData():
 
 #==============================================================================
 def run(event=None):
+    dim = Internal.getNodeFromName2(CTK.t, 'FlowEquationSet')
+    if dim is not None:
+        dim = Internal.getNodeFromName1(dim, 'EquationDimension')
+        dim = Internal.getValue(dim)
+    else: dim = 3
+    
     mode = VARS[10].get()
     if mode == 'Body':
         global BODY
@@ -149,14 +160,17 @@ def run(event=None):
         CTK.t = CTK.upgradeTree(CTK.t)
         (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
         CTK.TKTREE.updateApp()
-        CTK.display(CTK.t)
-    
+        if dim == 2: CTK.display(CTK.t)
+        else: displaySlices()
+        
     # Set CPlot to scalar mode to monitor solution
     if CPlot.getState('mode') == 0: # mesh
         CPlot.setState(mode=3, scalarField='Density')
 
     compute()
-    CTK.display(CTK.t)
+    
+    if dim == 2: CTK.display(CTK.t)
+    else: displaySlices()
 
 #==============================================================================
 # A partir de CTK.t considere comme les bodies
@@ -347,6 +361,21 @@ myApp.compute('t.cgns', 'tc.cgns', t_out='restart.cgns', tc_out='tc_restart.cgns
     CTK.TXT.insert('START', 'File compute.py written.\n')
     f.close()
 
+#==============================================================================
+def displaySlices():
+    global TKSLICE
+    if TKSLICE is None:
+        win = CTK.WIDGETS['masterWin']
+        try: TKSLICE = __import__('tkSlice'); TKSLICE.createApp(win)
+        except: TKSLICE = None
+    if TKSLICE is not None:
+        TKSLICE.VARS[0].set('X')
+        TKSLICE.VARS[1].set(TKSLICE.XVALUE)
+        TKSLICE.view()
+        TKSLICE.VARS[0].set('Y')
+        TKSLICE.VARS[1].set(TKSLICE.YVALUE)
+        TKSLICE.view()
+    
 #==============================================================================
 # Create app widgets
 #==============================================================================

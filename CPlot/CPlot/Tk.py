@@ -14,6 +14,7 @@ from . import PyTree as CPlot
 from . import cplot
 from . import Panels
 import os, os.path
+from sys import version_info
 
 try: range = xrange
 except: pass
@@ -487,8 +488,8 @@ def fixFileString__(files, initFile=None):
           if len(files) == 0: out = [initFile]
           else: out = files[1:]
         else: out = files
-    # Force utf-8
-    out = [o.encode('utf-8') for o in out]
+    if version_info[0] == 2:
+      out = [o.encode('utf-8') for o in out] # Force utf-8
     return out
 
 #==============================================================================
@@ -502,9 +503,9 @@ def fixFileString2__(file):
     #    s = file.encode(encoding)
     #    return s
     #else: return file
-    # Force utf-8
-    return file.encode('utf-8')
-
+    if version_info[0] == 2: return file.encode('utf-8')
+    else: return file
+    
 #==============================================================================
 # Load a file par un dialog
 # OUT: FILE: nom du fichier choisi
