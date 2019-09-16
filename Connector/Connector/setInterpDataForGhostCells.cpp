@@ -22,7 +22,7 @@ using namespace K_FLD;
 
 //=============================================================================
 /* Returns the indices of ghost points (cells or nodes) and the indices of 
-   donor points according to the 1-to-1 grid connectivity */
+   donor points according to the 1-to-1 grid connectivity for structured grids */
 //=============================================================================
 PyObject* K_CONNECTOR::setInterpDataForGC(PyObject* self, PyObject* args)
 {

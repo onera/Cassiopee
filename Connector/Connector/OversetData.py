@@ -1690,7 +1690,6 @@ def _setInterpDataForGhostCells__(aR, aD, storage='direct',loc="nodes"):
                 if locR == 1: imr=imr-1; jmr=jmr-1; kmr=kmr-1
                 listofjoins = Internal.getNodesFromType2(zp, 'GridConnectivity1to1_t')
                 for join in listofjoins:
-                    #print 'coucou'
                     # receptor window ranges
                     prange = Internal.getNodeFromName1(join,'PointRange')[1]
                     # donor window ranges

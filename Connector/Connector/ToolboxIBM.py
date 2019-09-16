@@ -115,7 +115,7 @@ def adaptIBMMesh(t, tb, vmin, sensor, factor=1.2, DEPTH=2, sizeMax=4000000,
                 if v not in variables: C._rmVars(z, v)
 
     # adaptation
-    if len(res)==3: to = res[0]
+    if len(res) == 3: to = res[0]
     o = Internal.getZones(to)[0]
     o = G.adaptOctree(o, balancing=2)
     C.convertPyTree2File(o, fileo)

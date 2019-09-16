@@ -546,7 +546,7 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
     ############################################################
     # Specific treatment for front 2
     ############################################################
-    if frontType==2:
+    if frontType == 2:
         test.printMem(">>> pushBackImageFront2 [start]")
 
         # bboxDict needed for optimised AddXZones (i.e. "layers" not None)

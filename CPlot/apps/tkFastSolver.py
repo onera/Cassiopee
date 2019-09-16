@@ -247,6 +247,9 @@ def compute():
     if first is not None: time0 = Internal.getValue(first)
     time_step = Internal.getNodeFromName(CTK.t, 'time_step')
     time_step = Internal.getValue(time_step)
+    time_step_nature = Internal.getNodeFromName(CTK.t, 'time_step_nature')
+    time_step_nature = Internal.getValue(time_step_nature)
+    if time_step_nature == 'local': time_step = 0.
 
     for it in range(1,nit+1):
         FastS._compute(CTK.t, metrics, it, tc, graph)

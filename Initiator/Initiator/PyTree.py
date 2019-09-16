@@ -55,6 +55,30 @@ def _initConst(t, adim='adim1', MInf=None, alphaZ=0., alphaY=0., ReInf=1.e8,
                 raise ValueError("initConst: wrong location: %s."%loc)
     return None
 
+# Initialise a partir d'un ReferenceState les grandeurs conservatives
+# La vitesse est proportionelle a la distance
+def _initDist(t, adim='adim1', loc='nodes'):
+    eq = Internal.getNodeFromName(t, 'GoverningEquations')
+    state = Internal.getNodeFromName(t, 'ReferenceState')
+    if state is None: raise ValueError("initConst: no reference state and no argument.")
+    vars0 = ['Density', 'MomentumX', 'MomentumY', 'MomentumZ', 
+             'EnergyStagnationDensity']
+    if eq is not None and Internal.getValue(eq) == 'NSTurbulent':
+        vars0 += ['TurbulentSANuTildeDensity', 'TurbulentEnergyKineticDensity', 'TurbulentDissipationDensity']
+    for v in vars0:
+        node = Internal.getNodeFromName(state, v)
+        if node is not None:
+            val = Internal.getValue(node)
+            C._initVars(t, loc+':'+v, val)
+    maxd = C.getMaxValue(t, '%s:TurbulentDistance'%loc)
+    mind = C.getMinValue(t, '%s:TurbulentDistance'%loc)
+    print(mind,maxd)
+
+    C._initVars(t, '{%s:MomentumX}={%s:MomentumX}*{%s:TurbulentDistance}/%g'%(loc,loc,loc,maxd))
+    C._initVars(t, '{%s:MomentumY}={%s:MomentumY}*{%s:TurbulentDistance}/%g'%(loc,loc,loc,maxd))
+    C._initVars(t, '{%s:MomentumZ}={%s:MomentumZ}*{%s:TurbulentDistance}/%g'%(loc,loc,loc,maxd))
+    return None
+
 def initLamb(t, position=(0.,0.), Gamma=2., MInf=0.5, loc='nodes'):
     """Init the pyTree with a Lamb vortex of
     intensity Gamma and position (x0,y0).

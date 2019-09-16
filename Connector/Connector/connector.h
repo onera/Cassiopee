@@ -676,6 +676,7 @@ namespace K_CONNECTOR
   PyObject* setInterpData(PyObject* self, PyObject* args);
   PyObject* setInterpDataDW(PyObject* self, PyObject* args);
   PyObject* setInterpDataForGC(PyObject* self, PyObject* args);
+  PyObject* setInterpDataForGCNGon(PyObject* self, PyObject* args);
   PyObject* setInterpDataLS(PyObject* self, PyObject* args);
   PyObject* setInterpDataCons(PyObject* self, PyObject* args);
   PyObject* writeCoefs(PyObject* self, PyObject* args);

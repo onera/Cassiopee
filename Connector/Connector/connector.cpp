@@ -53,6 +53,7 @@ static PyMethodDef Pyconnector [] =
   {"setInterpData", K_CONNECTOR::setInterpData, METH_VARARGS},
   {"setInterpDataDW", K_CONNECTOR::setInterpDataDW, METH_VARARGS},
   {"setInterpDataForGC", K_CONNECTOR::setInterpDataForGC, METH_VARARGS},
+  {"setInterpDataForGCNGon", K_CONNECTOR::setInterpDataForGCNGon, METH_VARARGS},
   {"setInterpDataLS", K_CONNECTOR::setInterpDataLS, METH_VARARGS},
   {"setInterpDataCons", K_CONNECTOR::setInterpDataCons, METH_VARARGS},
   {"setInterpTransfers", K_CONNECTOR::setInterpTransfers, METH_VARARGS},

@@ -665,6 +665,7 @@ def newBC(name='BC', pointRange=None, pointList=None,
                 'BCFarfield', 'BCInflow', 'BCOutflow']
     if btype not in BCType_l:
         raise ValueError('newBC: btype must be in %s.'%str(BCType_l))
+    if family is not None: btype = 'FamilySpecified'
     if parent is None:
         node = createNode(name, 'BC_t', value=btype)
     else: node = createUniqueChild(parent, name, 'BC_t', value=btype)
@@ -3702,7 +3703,7 @@ def getElementRange(z, name=None, type=None, number=None):
                     r = getNodeFromName1(e, 'ElementRange')
                     if r is not None: return [r[1][0], r[1][1]]
         elif number is not None:
-            if (number < 0 or number > len(elts)-1): return None
+            if number < 0 or number > len(elts)-1: return None
             e = elts[number]
             r = getNodeFromName1(e, 'ElementRange')
             if r is not None: return [r[1][0], r[1][1]]
