@@ -15,16 +15,7 @@ PyObject* K_KCORE::activation(PyObject* self, PyObject* args)
 //=============================================================================
 char* installPath()
 {
-  Py_Initialize();
-  
-//#if PY_VERSION_HEX >= 0x03000000
-//  PyObject* pName = PyUnicode_FromString("KCore.installPath");
-//#else
-//  PyObject* pName = PyString_FromString("KCore.installPath");
-//#endif
-  //pName = Py_BuildValue("s", "KCore");
-  //PyObject* pModule = PyImport_Import(pName);
-  //Py_DECREF(pName);
+  Py_Initialize();  
   PyObject* pModule = PyImport_ImportModule("KCore.installPath");
   if (pModule != NULL)
   {
@@ -54,10 +45,7 @@ char* installPath()
 char* getHome()
 {
   Py_Initialize();
-  PyObject* pName = PyString_FromString("os.path");
-  PyObject* pModule = PyImport_Import(pName);
-  Py_DECREF(pName);
-  //PyObject* pModule = PyImport_ImportModule("KCore.installPath");
+  PyObject* pModule = PyImport_ImportModule("os.path");
   char* answer = NULL;
   if (pModule != NULL)
   {
@@ -952,7 +940,7 @@ int K_KCORE::activation(const char* name)
     }
     fclose(f);
   }
-
+  
   // try to open installPath/.CassiopeeKey
   char* path = installPath();
   if (path == NULL) return 0; // FAIL

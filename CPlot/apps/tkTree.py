@@ -760,7 +760,7 @@ class Node:
             v = pid[1]
             txt = ''
             if isinstance(v, numpy.ndarray):
-                if v.dtype == 'c': txt = v.tostring()
+                if v.dtype == 'c': txt = Internal.getValue(pid)
                 else:
                     pt = v.ravel('k'); size = pt.size
                     txt += str(v.shape)+': '

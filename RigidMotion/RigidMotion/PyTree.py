@@ -15,7 +15,7 @@ except:
 import numpy
 import math
 from math import cos, sin, sqrt, pi
-# Stocke les function deja definies
+# Stocke les functions deja definies
 DEFINEDMOTIONS = {}
 
 __DEG2RAD__= pi/180.
@@ -31,10 +31,11 @@ __RAD2DEG__= 180./pi
 def setPrescribedMotion1(t, name, tx="0", ty="0", tz="0",
                          cx="0", cy="0", cz="0",
                          ex="0", ey="0", ez="1", angle="0"):
-    tp = Internal.copyRef(t)
-    _setPrescribedMotion1(tp, name, tx=tx, ty=ty, tz=tz, cx=cx, cy=cy, cz=cz, 
-                          ex=ex, ey=ey, ez=ez, angle=angle)
-    return tp
+  """Define a motion into zones."""
+  tp = Internal.copyRef(t)
+  _setPrescribedMotion1(tp, name, tx=tx, ty=ty, tz=tz, cx=cx, cy=cy, cz=cz, 
+                        ex=ex, ey=ey, ez=ez, angle=angle)
+  return tp
 
 def _setPrescribedMotion1(t, name, tx="0", ty="0", tz="0",
                          cx="0", cy="0", cz="0",
@@ -65,6 +66,7 @@ def _setPrescribedMotion1(t, name, tx="0", ty="0", tz="0",
         motion[2].append(['ey', numpy.fromstring(ey, 'c'), [], 'DataArray_t'])
         motion[2].append(['ez', numpy.fromstring(ez, 'c'), [], 'DataArray_t'])
         motion[2].append(['angle', numpy.fromstring(angle, 'c'), [], 'DataArray_t'])
+        
     return None
 
 #=============================================================================
@@ -252,7 +254,7 @@ def _setPrescribedMotion3(t, name,
 #==============================================================================
 def evalTimeString__(m, string, time):
     st = Internal.getNodeFromName1(m, string)
-    st = st[1].tostring()
+    st = Internal.getValue(st)
     st = st.replace('{t}', str(time))
     tx = eval(st)
     return tx
@@ -285,7 +287,7 @@ def moveZone__(z, time):
                 ez = evalTimeString__(m, 'ez', time)
                 angle = evalTimeString__(m, 'angle', time)
                 z = T.translate(z, (tx,ty,tz))
-                if (angle != 0):
+                if angle != 0:
                     z = T.rotate(z, (cx,cy,cz), (ex-cx,ey-cy,ez-cz), angle)
             elif dtype == 2: # type 2: rotation motion CassiopeeSolver
                 try: 
@@ -641,8 +643,7 @@ def _evalPosition___(a, time, F):
 def evalPosition(a, time, F=None):
     import Generator.PyTree as G
     if F is None: return evalPosition__(a, time)
-    else: 
-        return evalPosition___(a, time, F)
+    else: return evalPosition___(a, time, F)
 
 def _evalPosition(a, time, F=None):
   if F is None: return _evalPosition__(a, time)
