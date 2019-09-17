@@ -16,6 +16,8 @@ WIDGETS = {}; VARS = []
 BODY = None
 # tkSlice module
 TKSLICE = None
+# WALL extract
+WALL = None
 # CFL
 CFL = 0.7
 # TIMESTEP
@@ -96,7 +98,26 @@ def setData():
             Internal.createUniqueChild(n, 'inv', 'DataArray_t', value=inv)
 
     CTK.TXT.insert('START', 'Solver data set.\n')
+
+#=============================================================================
+# Modifie le body
+#=============================================================================
+def updateBody():
+    global BODY
+    if BODY is None: return
+    # Creation de l'arbre de reprise
+    tr = CTK.t
+    vars = ['centers:Density_M1', 'centers:VelocityX_M1', 'centers:VelocityY_M1', 'centers:VelocityZ_M1', 'centers:Temperature_M1']
+    vars += ['centers:Density_P1', 'centers:VelocityX_P1', 'centers:VelocityY_P1', 'centers:VelocityZ_P1', 'centers:Temperature_P1']
+    vars += ['centers:TurbulentDistance', 'centers:cellN']
+    C._rmVars(tr, vars)
+    CTK.t = None
+
+    # Apply motion or something to body
+
+    # Regenere le prep
     
+
 #==============================================================================
 # Get data from selected zone
 #==============================================================================
@@ -232,14 +253,10 @@ def compute():
     nit = VARS[9].get()
     moduloVerif = 50
 
-    # Compute
-    #CTK.t, tc = myApp.compute('restart.cgns', 'tc.cgns', t_out=None, tc_out='tc_restart.cgns', nit=nit)
-    
     # open compute
     CTK.t, tc, ts, metrics, graph = myApp.setup('restart.cgns', 'tc.cgns')
 
     import FastS.PyTree as FastS
-
     it0 = 0; time0 = 0.
     first = Internal.getNodeFromName1(CTK.t, 'Iteration')
     if first is not None: it0 = Internal.getValue(first)
@@ -262,7 +279,13 @@ def compute():
             #CTK.display(CTK.t)
     Internal.createUniqueChild(CTK.t, 'Iteration', 'DataArray_t', value=it0+nit)
     Internal.createUniqueChild(CTK.t, 'Time', 'DataArray_t', value=time0)
-    
+
+    # Wall extraction
+    import Connector.ToolboxIBM as TIBM
+    global WALL
+    WALL = TIBM.extractIBMWallFields(tc, tb=BODY)
+    WALL = Internal.getZones(WALL)
+
     return None
 
 #===============================================================
@@ -368,17 +391,21 @@ myApp.compute('t.cgns', 'tc.cgns', t_out='restart.cgns', tc_out='tc_restart.cgns
 def displaySlices():
     global TKSLICE
     if TKSLICE is None:
-        win = CTK.WIDGETS['masterWin']
-        try: TKSLICE = __import__('tkSlice'); TKSLICE.createApp(win)
+        frame = CTK.TKMODULEFRAMES['tkSlice']
+        try: TKSLICE = __import__('tkSlice'); TKSLICE.createApp(frame)
         except: TKSLICE = None
     if TKSLICE is not None:
+        if WALL is not None: TKSLICE.WALL = WALL
+        zones = Internal.getZones(CTK.t)
+        CTK.__MAINACTIVEZONES__ = range(len(zones))
+        TKSLICE.NODE2CENTER = True
         TKSLICE.VARS[0].set('X')
         TKSLICE.VARS[1].set(TKSLICE.XVALUE)
         TKSLICE.view()
         TKSLICE.VARS[0].set('Y')
         TKSLICE.VARS[1].set(TKSLICE.YVALUE)
         TKSLICE.view()
-    
+        
 #==============================================================================
 # Create app widgets
 #==============================================================================

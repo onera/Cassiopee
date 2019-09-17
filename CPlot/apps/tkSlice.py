@@ -20,6 +20,10 @@ XVALUE = 0.; YVALUE = 0.; ZVALUE = 0.
 DELTA = 0.1
 # Conservation des zones slicees (Slice1 et Slice=)
 XDATA = None; YDATA = None; ZDATA = None
+# Si not None, WALL a afficher dans View (liste de zones)
+WALL = None
+# Si true, fait un passage en centres sur les coords avant la slice
+NODE2CENTER = False
 
 #==============================================================================
 # Trouve la position moyenne et un step moyen a partir de la selection
@@ -66,17 +70,17 @@ def fit():
         VARS[1].set(str(z))
 
 #==============================================================================
-# Clear other slice planes data
+# Clear other slice planes data and wall data
 def clear():
-    global XDATA, YDATA, ZDATA;
-    XDATA = None; YDATA = None; ZDATA = None
+    global XDATA, YDATA, ZDATA, WALL;
+    XDATA = None; YDATA = None; ZDATA = None; WALL = None
     view()
 
 #==============================================================================
 def movePlus():
     pos = float(VARS[1].get())
     delta = float(VARS[4].get())
-    pos = pos + delta
+    pos += delta
     VARS[1].set(str(pos))
     view()
 
@@ -84,7 +88,7 @@ def movePlus():
 def moveMoins():
     pos = float(VARS[1].get())
     delta = float(VARS[4].get())
-    pos = pos - delta
+    pos -= delta
     VARS[1].set(str(pos))
     view()
     
@@ -97,8 +101,8 @@ def view(event=None):
     if CTK.t == []: return
     plane = VARS[0].get()
     pos = float(VARS[1].get())
-    global XVALUE, YVALUE, ZVALUE;
-    global XDATA, YDATA, ZDATA;
+    global XVALUE, YVALUE, ZVALUE
+    global XDATA, YDATA, ZDATA
     if plane == 'X': XVALUE = pos
     elif plane == 'Y': YVALUE = pos
     elif plane == 'Z': ZVALUE = pos
@@ -127,6 +131,7 @@ def view(event=None):
         for z in CTK.__MAINACTIVEZONES__: active.append(tp[2][CTK.Nb[z]+1][2][CTK.Nz[z]])
 
         temp = C.newPyTree(['Base']); temp[2][1][2] += active
+        if NODE2CENTER: temp = C.node2Center(temp)
         if plane == 'X' and algo == 'Slice1':
             p = P.isoSurfMC(temp, 'CoordinateX', pos); XDATA = p
         elif plane == 'Y' and algo == 'Slice1':
@@ -170,6 +175,7 @@ def view(event=None):
         elif plane == 'Z':
             if XDATA is not None: CTK.dt[2][1][2] += XDATA
             if YDATA is not None: CTK.dt[2][1][2] += YDATA
+        if WALL is not None: CTK.dt[2][1][2] += WALL
         CTK.display(CTK.dt, mainTree=CTK.SLICE)
         if CTK.TKPLOTXY is not None: CTK.TKPLOTXY.updateApp()
     except ValueError:
@@ -211,6 +217,7 @@ def extract(event=None):
         zones = Internal.getZones(CTK.t)
         for z in CTK.__MAINACTIVEZONES__: active.append(zones[z])
         temp = C.newPyTree(['Base']); temp[2][1][2] += active
+        if NODE2CENTER: temp = C.node2Center(temp)
         if plane == 'X' and algo == 'Slice1':
             p = P.isoSurfMC(temp, 'CoordinateX', pos)
         elif plane == 'Y' and algo == 'Slice1':

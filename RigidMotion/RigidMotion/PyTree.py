@@ -31,7 +31,7 @@ __RAD2DEG__= 180./pi
 def setPrescribedMotion1(t, name, tx="0", ty="0", tz="0",
                          cx="0", cy="0", cz="0",
                          ex="0", ey="0", ez="1", angle="0"):
-  """Define a motion into zones."""
+  """Define a motion of type 1 into zones."""
   tp = Internal.copyRef(t)
   _setPrescribedMotion1(tp, name, tx=tx, ty=ty, tz=tz, cx=cx, cy=cy, cz=cz, 
                         ex=ex, ey=ey, ez=ez, angle=angle)
@@ -85,7 +85,7 @@ def setPrescribedMotion2(t, name,
                          span_vct=(1.,0.,0.),
                          pre_lag_pnt=(0.,0.,0.), pre_lag_vct=(1.,0.,0.), pre_lag_ang=0.,
                          pre_con_pnt=(0.,0.,0.), pre_con_vct=(1.,0.,0.), pre_con_ang=0.):
-    
+    """Define a motion of type 2 into zones."""
     tp = Internal.copyRef(t)
     _setPrescribedMotion2(tp, name, transl_speed=transl_speed, psi0=psi0, psi0_b=psi0_b,
                           alp_pnt=alp_pnt, alp_vct=pl_vct, alp0=alp0,
@@ -209,10 +209,11 @@ def setPrescribedMotion3(t, name,
                          transl_speed=(0.,0.,0.),
                          axis_pnt=(0.,0.,0.), axis_vct=(0.,0.,0.),
                          omega=0.):
-    tp = Internal.copyRef(t)
-    _setPrescribedMotion3(tp, name, transl_speed=transl_speed, axis_pnt=axis_pnt,
-                          axis_vct=axis_vct, omega=omega)
-    return tp
+  """Define a motion of type 3 into zones."""
+  tp = Internal.copyRef(t)
+  _setPrescribedMotion3(tp, name, transl_speed=transl_speed, axis_pnt=axis_pnt,
+                        axis_vct=axis_vct, omega=omega)
+  return tp
 
 def _setPrescribedMotion3(t, name,
                          transl_speed=(0.,0.,0.),
@@ -616,9 +617,10 @@ def _evalPosition__(a, time):
     return None
 
 def evalPosition__(t, time):
-    a = Internal.copyRef(t)
-    _evalPosition__(a, time)
-    return a
+  """Compute Coordinates to match time t."""
+  a = Internal.copyRef(t)
+  _evalPosition__(a, time)
+  return a
 
 #==============================================================================
 # Evalue la position reelle de la zone a l'instant t

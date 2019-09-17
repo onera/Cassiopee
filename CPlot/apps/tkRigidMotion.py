@@ -124,14 +124,14 @@ def getVars1(event=None):
     z = CTK.t[2][nob][2][noz]
         
     cont = Internal.getNodesFromName1(z, 'TimeMotion')
-    if (cont == []):
+    if cont == []:
         CTK.TXT.insert('START', 'No motion in this zone.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
     name = VARS[0].get()
 
     motion = Internal.getNodesFromName1(cont[0], name)
-    if (motion == []):
+    if motion == []:
         CTK.TXT.insert('START', 'No motion named '+name+' in this zone.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
@@ -172,13 +172,13 @@ def getVars2(event=None):
     z = CTK.t[2][nob][2][noz]
         
     cont = Internal.getNodesFromName1(z, 'TimeMotion')
-    if (cont == []):
+    if cont == []:
         CTK.TXT.insert('START', 'No motion in this zone.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
     name = VARS[0].get()
     motion = Internal.getNodesFromName1(cont[0], name)
-    if (motion == []):
+    if motion == []:
         CTK.TXT.insert('START', 'No motion named '+name+' in this zone.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
@@ -258,7 +258,7 @@ def getVars2(event=None):
 #==============================================================================
 def getVars3(event=None):
     nzs = CPlot.getSelectedZones()
-    if (nzs == []):
+    if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
@@ -267,14 +267,14 @@ def getVars3(event=None):
     z = CTK.t[2][nob][2][noz]
         
     cont = Internal.getNodesFromName1(z, 'TimeMotion')
-    if (cont == []):
+    if cont == []:
         CTK.TXT.insert('START', 'No motion in this zone.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
     name = VARS[0].get()
 
     motion = Internal.getNodesFromName1(cont[0], name)
-    if (motion == []):
+    if motion == []:
         CTK.TXT.insert('START', 'No motion named '+name+' in this zone.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
@@ -290,17 +290,17 @@ def getVars3(event=None):
     
 #==============================================================================
 def setVars(event=None):
-    type = getMotionType()
-    if (type == 1): setVars1()
-    elif (type == 2): setVars2()
-    elif (type == 3): setVars3()
+    ntype = getMotionType()
+    if ntype == 1: setVars1()
+    elif ntype == 2: setVars2()
+    elif ntype == 3: setVars3()
     
 #==============================================================================
 # set vars pour le motion type 1
 #==============================================================================
 def setVars1(event=None):
     nzs = CPlot.getSelectedZones()
-    if (nzs == []):
+    if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
@@ -326,7 +326,7 @@ def setVars1(event=None):
 #==============================================================================
 def setVars2(event=None):
     nzs = CPlot.getSelectedZones()
-    if (nzs == []):
+    if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
@@ -405,7 +405,7 @@ def setVars2(event=None):
 #==============================================================================
 def setVars3(event=None):
     nzs = CPlot.getSelectedZones()
-    if (nzs == []):
+    if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
@@ -430,15 +430,15 @@ def setVars3(event=None):
     
 #==============================================================================
 def changeMotionType(event=None):
-    type = getMotionType()
+    ntype = getMotionType()
     WIDGETS['frame1'].grid_forget()
     WIDGETS['frame2'].grid_forget()
     WIDGETS['frame3'].grid_forget()
-    if (type == 1):
+    if ntype == 1:
         WIDGETS['frame1'].grid(row=2, column=0, columnspan=3, sticky=TK.EW)
-    elif (type == 2):
+    elif ntype == 2:
         WIDGETS['frame2'].grid(row=2, column=0, columnspan=3, sticky=TK.EW)
-    elif (type == 3):
+    elif ntype == 3:
         WIDGETS['frame3'].grid(row=2, column=0, columnspan=3, sticky=TK.EW)
     return
 

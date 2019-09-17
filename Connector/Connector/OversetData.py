@@ -164,13 +164,13 @@ def getIntersectingDomains(t, t2=None, method='AABB', taabb=None, tobb=None,
                     obb2 = Internal.getNodeFromName(obb2,z2)
                     aabb2 = Internal.getZones(taabb2)
                     aabb2 = Internal.getNodeFromName(aabb2,z2)
-                    if (G.bboxIntersection(obb1, obb2, isBB=True,method='OBB') == 0):
+                    if G.bboxIntersection(obb1, obb2, isBB=True,method='OBB') == 0:
                         continue
-                    elif (G.bboxIntersection(aabb1, aabb2, tol=1.e-10, isBB=True,method='AABB') == 0):
+                    elif G.bboxIntersection(aabb1, aabb2, tol=1.e-10, isBB=True,method='AABB') == 0:
                         continue
-                    elif (G.bboxIntersection(aabb1, obb2, isBB=True,method='AABBOBB') == 0):
+                    elif G.bboxIntersection(aabb1, obb2, isBB=True,method='AABBOBB') == 0:
                         continue
-                    elif (G.bboxIntersection(aabb2, obb1, isBB=True,method='AABBOBB') == 0):
+                    elif G.bboxIntersection(aabb2, obb1, isBB=True,method='AABBOBB') == 0:
                         continue
                     else:
                         IntDict[z1].append(z2) # saves the intersected zones names
@@ -201,7 +201,7 @@ def getCEBBIntersectingDomains(basis0, bases0, sameBase=0):
 
     for b in bases:
         basename2 = b[0]
-        if ((sameBase == 1) or (sameBase == 0 and basename1 != basename2)):
+        if (sameBase == 1) or (sameBase == 0 and basename1 != basename2):
             [xmin2,ymin2,zmin2,xmax2,ymax2,zmax2] = G.bbox(b)
             if (xmax1  > xmin2-tol and xmin1 < xmax2+tol and
                 ymax1  > ymin2-tol and ymin1 < ymax2+tol and
@@ -217,7 +217,7 @@ def getCEBBIntersectingDomains(basis0, bases0, sameBase=0):
         for b2 in bases2:
             basename2 = b2[0]
             zones2 = Internal.getNodesFromType1(b2, 'Zone_t')
-            if (sameBase == 1 and basename1 == basename2):
+            if sameBase == 1 and basename1 == basename2:
                 for z2 in zones2:
                     name2 = z2[0]
                     if name1 != name2:
@@ -641,9 +641,8 @@ def setInterpData(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
     _setInterpData(aR, aD, double_wall=double_wall, order=order, penalty=penalty, nature=nature,
                    method=method, loc=loc, storage=storage, interpDataType=interpDataType,
                    hook=hook, topTreeRcv=topTreeRcv, topTreeDnr=topTreeDnr, sameName=sameName, dim=dim, itype=itype)
-    if storage=='direct': return aR
+    if storage == 'direct': return aR
     else: return aD
-   
 
 def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
                    method='lagrangian', loc='nodes', storage='direct',
@@ -680,7 +679,7 @@ def _setInterpDataChimera(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
 
     # Si pas de cellN receveur, on retourne
     if loc == 'nodes': cellNPresent = C.isNamePresent(aR, 'cellN')
-    elif loc=='centers': cellNPresent = C.isNamePresent(aR, 'centers:cellN')
+    elif loc == 'centers': cellNPresent = C.isNamePresent(aR, 'centers:cellN')
     else: 
         raise ValueError("setInterpData: invalid loc provided.")
     if cellNPresent == -1 or itype == 'abutting': return None
@@ -996,7 +995,7 @@ def _setInterpDataConservative__(aR, aD, storage='direct'):
                 extrapPts = numpy.array([],numpy.int32)
                 EXdir = numpy.array([],numpy.int32)                   
 
-                # 3. stockage dans l arbre                            
+                # 3. stockage dans l'arbre                            
                 # on recupere les bons indices de pts interpoles (indcell ds interpPts)
                 for noz in range(nzonesDnr):
                     dnrname=donorZoneNames[noz]
@@ -1920,7 +1919,7 @@ def _adaptForRANSLES__(tR, tD):
                 a = Internal.getNodeFromName2(zd, 'GoverningEquations')
                 if a is not None: model_z2 = Internal.getValue(a)
 
-                if ((model_z2=='NSTurbulent' or model_z1=='NSTurbulent') and  model_z1 != model_z2):
+                if (model_z2=='NSTurbulent' or model_z1=='NSTurbulent') and  model_z1 != model_z2:
                    datap = numpy.ones(1, numpy.int32)
                    Internal.createUniqueChild(s, 'RANSLES', 'DataArray_t', datap)
             except: pass
@@ -2240,32 +2239,6 @@ def setInterpDataForGhostCells2__(tR, tD, storage='direct', loc='nodes'):
     if storage == 'direct': return aR
     else: return aD
 
-# Adapt aD pour RANS/LES
-def _adaptForRANSLES__(tR, aD):
-    zrdict = {}
-    zones = Internal.getNodesFromType2(tR, 'Zone_t')
-    for z in zones: zrdict[z[0]] = z
-
-    zonesD = Internal.getNodesFromType2(aD, 'Zone_t')
-    for zd in zonesD:
-        subRegions = Internal.getNodesFromType1(zd, 'ZoneSubRegion_t')
-        for s in subRegions:
-            zrcvname = Internal.getValue(s)
-            try:
-                zr = zrdict[zrcvname]
-                model_z1 = 'Euler'; model_z2 = 'Euler'
-                a = Internal.getNodeFromName2(zr, 'GoverningEquations')
-                if a is not None: model_z1 = Internal.getValue(a)
-                a = Internal.getNodeFromName2(zd, 'GoverningEquations')
-                if a is not None: model_z2 = Internal.getValue(a)
-
-                if (model_z2=='NSTurbulent' or model_z1=='NSTurbulent') and  model_z1 != model_z2:
-                   datap = numpy.ones(1, numpy.int32)
-                   Internal.createUniqueChild(s, 'RANSLES', 'DataArray_t', datap)
-            except: pass
-    return None
-
-
 #===============================================================================================================
 #===============================================================================================================
 #===============================================================================================================
@@ -2276,7 +2249,7 @@ def _createInterpRegion__(z, zname, pointlist, pointlistdonor, interpCoef, inter
     if prefix is None:
         if itype == 'chimera': nameSubRegion = 'ID_'+zname
         elif itype == 'abutting': nameSubRegion = 'ID_'+zname
-        elif itype=='ibc': nameSubRegion='IBCD_'+zname
+        elif itype == 'ibc': nameSubRegion='IBCD_'+zname
     else: nameSubRegion=prefix+zname
 
     if RotationAngle is not None: RotationAngle[2]=[] # remove DimensionalUnits child node
@@ -2684,7 +2657,7 @@ def __setInterpTransfers(aR, topTreeD,
                          Cs=0.3831337844872463, Ts=1.0):
 
     # Recup des donnees a partir des zones receveuses    
-    if (storage != 1 or compact==0):
+    if storage != 1 or compact == 0:
         raise ValueError("__setInterpTransfers: stockage chez le receveur non code. Mode compact obligatoire: compact=1 a imposer dans Fast.warmup.")
 
     #test pour savoir si appel transfert ou ibc
@@ -2826,7 +2799,7 @@ def getUnsteadyConnectInfos(t):
             else:
                 inst[ numero_iter ]= [ [c] ]
 
-         TimeLevelNumber=  len(inst)
+         TimeLevelNumber = len(inst)
 
     return [ TimeLevelNumber, numero_min, numero_max ]
 
@@ -3036,9 +3009,7 @@ def oversetCellRatio__(aR, topTreeD):
                         volrl = volRcv[0,ListRcv[noind]]
                         cr = max(voldl/volrl,volrl/voldl)
                         field[1][0,noind] = cr
-                    zr = C.setPartialFields(zr, [field], [ListRcv], loc=locr)   
-        #
-        # parentr[2][dr] = zr
+                    zr = C.setPartialFields(zr, [field], [ListRcv], loc=locr)
 
     # 2nd pass : inverse storage 
     zones = Internal.getZones(tD)
@@ -3174,7 +3145,7 @@ def oversetDonorAspect__(aR, topTreeD):
                     if location == 'CellCenter': locr = 'centers'
                     ListRcv = Internal.getNodesFromName1(s,'PointListDonor')[0][1]       
                     ListDnr = Internal.getNodesFromName1(s,'PointList')[0][1]
-                    #
+
                     nindI = ListDnr.size
                     if nindI > 0:
                         field = Converter.array('donorAspect',nindI,1,1)
@@ -3182,7 +3153,7 @@ def oversetDonorAspect__(aR, topTreeD):
                             field[1][0,noind] = ER[0,ListDnr[noind]]
                         zr = C.setPartialFields(zr, [field], [ListRcv], loc=locr)  
                         # parentr[2][dr] = zr
-    #
+
     C._rmVars(tD,'EdgeRatio')
     return tR
 
