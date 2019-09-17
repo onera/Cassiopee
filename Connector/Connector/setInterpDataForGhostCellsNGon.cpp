@@ -61,7 +61,7 @@ PyObject* K_CONNECTOR::setInterpDataForGCNGon(PyObject* self, PyObject* args)
   if (res == 0)
   {    
     PyErr_SetString(PyExc_TypeError, 
-                    "setInterpDataForGhostCells: 2eme arg is not a valid numpy array.");
+                    "setInterpDataForGhostCells: 2nd arg is not a valid numpy array.");
     return NULL;
   }
   E_Int* FLDonorp = FLDonorI->begin();
@@ -72,7 +72,7 @@ PyObject* K_CONNECTOR::setInterpDataForGCNGon(PyObject* self, PyObject* args)
   if (res == 0 || res == 1 || strcmp(eltType, "NGON") != 0)
   {    
     PyErr_SetString(PyExc_TypeError, 
-                    "setInterpDataForGhostCells: 5eme arg must be a NGON array.");
+                    "setInterpDataForGhostCells: 5th arg must be a NGON array.");
     return NULL;
   }
   E_Int* nface = c->getNFace();
@@ -84,7 +84,7 @@ PyObject* K_CONNECTOR::setInterpDataForGCNGon(PyObject* self, PyObject* args)
   if (res == 0 || res == 1 || strcmp(eltTyped, "NGON") != 0)
   {    
     PyErr_SetString(PyExc_TypeError, 
-                    "setInterpDataForGhostCells: 6eme arg must be a NGON array.");
+                    "setInterpDataForGhostCells: 6th arg must be a NGON array.");
     return NULL;
   }
   E_Int* nfaceDonor = cd->getNFace();
@@ -95,7 +95,7 @@ PyObject* K_CONNECTOR::setInterpDataForGCNGon(PyObject* self, PyObject* args)
   if (res == 0) 
   {    
     PyErr_SetString(PyExc_TypeError, 
-                    "setInterpDataForGhostCells: 7eme arg is not a valid numpy array.");
+                    "setInterpDataForGhostCells: 7th arg is not a valid numpy array.");
     return NULL;
   }
   E_Int* PEp1 = PEI->begin(1);
@@ -105,7 +105,7 @@ PyObject* K_CONNECTOR::setInterpDataForGCNGon(PyObject* self, PyObject* args)
   if (res == 0) 
   {    
     PyErr_SetString(PyExc_TypeError, 
-                    "setInterpDataForGhostCells: 8eme arg is not a valid numpy array.");
+                    "setInterpDataForGhostCells: 8th arg is not a valid numpy array.");
     return NULL;
   }
   E_Int* PEDonorp1 = PEDonorI->begin(1);
@@ -118,30 +118,28 @@ PyObject* K_CONNECTOR::setInterpDataForGCNGon(PyObject* self, PyObject* args)
   E_Int indf, ne1, ne2, e2g, indfd, ne1d, ne2d, e2oppg;
   for (E_Int i = 0; i < FLI->getSize(); i++)
   {
-    ind = FLp[i];
-    indopp = FLDonorp[i];
+    ind = FLp[i]-1;//FL starts from 1 
+    indopp = FLDonorp[i]-1;
     e1 = PEp1[ind]; e2 = PEp2[ind];
     eopp1 = PEDonorp1[indopp]; eopp2 = PEDonorp2[indopp];
-
-    e1g = -1;
-    if (e1 >= 0 && e1 > rindElt) e1g = e1;
-    if (e2 >= 0 && e2 > rindElt) e1g = e2;
-    if (eopp1 >= 0 && eopp1 > rindEltDonor) e1oppg = eopp1;
-    if (eopp2 >= 0 && eopp2 > rindEltDonor) e1oppg = eopp2;
-    if (e1g >= 0) map[e1g] = e1oppg;
-
-    E_Int* pt = &(nface[indPH[e1g]]);
-    E_Int* ptd = &(nfaceDonor[indPHDonor[e1oppg]]);
+    e1g = -1; e1oppg = -1;
+    if (e1 > 0 && e1 > rindElt) e1g = e1;
+    if (e2 > 0 && e2 > rindElt) e1g = e2;
+    if (eopp1 > 0 && eopp1 <= rindEltDonor) e1oppg = eopp1;
+    if (eopp2 > 0 && eopp2 <= rindEltDonor) e1oppg = eopp2;
+    if (e1g > 0) map[e1g] = e1oppg;//both start from 1
+    E_Int* pt = &(nface[indPH[e1g-1]]);
+    E_Int* ptd = &(nfaceDonor[indPHDonor[e1oppg-1]]);
 
     E_Int nf = pt[0];
     for (E_Int j = 0; j < nf; j++) 
     {
-      indf = pt[j+1];
+      indf = pt[j+1]-1;
       ne1 = PEp1[indf]; ne2 = PEp2[indf];
       if (ne1 == e1g) e2g = ne2;
       else e2g = ne1;
 
-      indfd = ptd[j+1];
+      indfd = ptd[j+1]-1;
       ne1d = PEDonorp1[indfd]; ne2d = PEDonorp2[indfd];
       if (ne1d == e1oppg) e2oppg = ne2d;
       else e2oppg = ne1d;
@@ -173,8 +171,8 @@ PyObject* K_CONNECTOR::setInterpDataForGCNGon(PyObject* self, PyObject* args)
   {
     E_Int k = elt.first;
     E_Int ind = elt.second;
-    PLp[cpt] = k;
-    PLDp[cpt] = ind;
+    PLp[cpt] = k-1;
+    PLDp[cpt] = ind-1;
     cpt++;
   }
 

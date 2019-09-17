@@ -1921,8 +1921,7 @@ def adapt2FastP2(t, nlayers=2):
 #===============================================================================
 def addGhostCellsNG(t, nlayers=2):
 
-    bases = Internal.getNodesFromType1(t     , 'CGNSBase_t') 
-
+    bases = Internal.getBases(t) 
     zones = Internal.getZones(t)
     nbz = len(zones)
     #print "nb zones :",nbz
@@ -1952,21 +1951,20 @@ def addGhostCellsNG(t, nlayers=2):
     bc_PointLists = []
     bc_ptL_sizes = []
 
-    for z in zones :
-
+    for z in zones:
       zname = z[0]
       znames.append(zname)
 
       m = PyTree.getFields(Internal.__GridCoordinates__, z)[0]
       zone_ngons.append(m)
 
-      F2Esep = Internal.getNodeFromName(z, 'ParentElements')
+      F2Esep = Internal.getNodeFromName2(z, 'ParentElements')
       if F2Esep is not None: F2Esep=F2Esep[1]
 
       #print F2Esep
       F2Es.append(F2Esep)
 
-      raccords = Internal.getNodesFromType(z, 'GridConnectivity_t')
+      raccords = Internal.getNodesFromType2(z, 'GridConnectivity_t')
       nb_racs = len(raccords)
 
       bcs = Internal.getNodesFromType2(z, 'BC_t')

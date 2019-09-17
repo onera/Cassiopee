@@ -649,17 +649,34 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
                    method='lagrangian', loc='nodes', storage='direct',
                    interpDataType=1, hook=None,
                    topTreeRcv=None, topTreeDnr=None, sameName=1, dim=3, itype='both'):
-    locR = loc
+    
     # Recherche pour les pts coincidents (base sur les GridConnectivity)
     if itype != 'chimera':
         if storage == 'direct': 
-            _setInterpDataForGhostCells__(aR,aD,storage,loc)
+            _setInterpDataForGhostCellsStruct__(aR,aD,storage,loc)
         else: 
-            _setInterpDataForGhostCells__(aR,aD,storage,loc)
+            _setInterpDataForGhostCellsStruct__(aR,aD,storage,loc)
+            _setInterpDataForGhostCellsNGon__(aR,aD,storage,loc)
 
             # Determination du model pour RANS/LES
             #if itype == 'abutting': # SP : a mettre non ? sinon on le refait 2 fois
             _adaptForRANSLES__(aR, aD)
+
+    if itype != 'abutting':
+        _setInterpDataChimera(aR, aD, double_wall=double_wall, order=order, penalty=penalty, nature=nature,
+                              method=method, loc=loc, storage=storage, interpDataType=interpDataType, hook=hook,
+                              topTreeRcv=topTreeRcv, topTreeDnr=topTreeDnr, sameName=sameName, dim=dim, itype=itype)
+
+    # SP : pour l instant adaptForRANSLES est appele 2 fois : pour les ghost cells et pour le chimere
+    # peut on ne le mettre qu ici ?
+    #if storage=='inverse': _adaptForRANSLES__(aR, aD)
+    return None
+
+def _setInterpDataChimera(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
+                          method='lagrangian', loc='nodes', storage='direct',
+                          interpDataType=1, hook=None,
+                          topTreeRcv=None, topTreeDnr=None, sameName=1, dim=3, itype='both'):
+    locR = loc
 
     # Si pas de cellN receveur, on retourne
     if loc == 'nodes': cellNPresent = C.isNamePresent(aR, 'cellN')
@@ -1647,19 +1664,89 @@ def getTransfo(zdonor,zrcv):
 # IN: 'storage'='direct' or 'inverse'
 # OUT: t: with interpolation data stored in ZoneSubRegion_t nodes of name 'ID*'
 #===============================================================================
-def setInterpDataForGhostCells__(tR, tD, storage='direct', loc='nodes'):
-    
-    aR = Internal.copyRef(tR)
-    aD = Internal.copyRef(tD)
-    _setInterpDataForGhostCells__(aR, aD, storage=storage, loc=loc)
+def _setInterpDataForGhostCellsNGon__(aR, aD, storage='inverse', loc='centers'):
+    if loc != 'centers':
+        print("WARNING: Connector.OversetData.__setInterpDataForGhostCellsNGon__: only valid for loc='centers'.")
+    if storage!='inverse':
+        print("WARNING: Connector.OversetData.__setInterpDataForGhostCellsNGon__: only valid for storage='inverse'.")
 
-    if storage=='direct': return aR
-    else: return aD
+    indicesExtrap = numpy.array([],numpy.int32)
+    indicesOrphan = numpy.array([],numpy.int32)
+    vols =  numpy.array([],numpy.float64)
+    EXdir = numpy.array([],numpy.int32)
+    prefix = 'ID_'
+    for zp in Internal.getZones(aR):
+        zname = zp[0]
+        zoneDimR = Internal.getZoneDim(zp)
+        if zoneDimR[0] == 'Structured': 
+            continue
+        
+        rind = -1
+        nodes = Internal.getNodesFromType1(zp, 'Elements_t')
+        for n in nodes:
+            if n[1][0] == 23: 
+                p = Internal.getNodeFromName1(n, 'IntExt')
+                rind = p[1][0]
+                break
 
-def _setInterpDataForGhostCells__(aR, aD, storage='direct',loc="nodes"):
+        if rind != -1: # rind indices exist : ghost cell data to be computed
+            # Array2
+            a1 = C.getFields('GridCoordinates', zp, api=2)[0]
+            # PE
+            PE = Internal.getNodeFromName2(zp, 'ParentElements')[1]
+            #
+            for gcn in Internal.getNodesFromType2(zp,"GridConnectivity_t"):
+                ctype = Internal.getNodeFromType1(gcn,'GridConnectivityType_t')
+                if Internal.getValue(ctype)=='Abutting1to1':
+                    FL = Internal.getNodeFromName1(gcn, 'PointList')[1]
+                    FLd = Internal.getNodeFromName1(gcn, 'PointListDonor')[1]
+                    zdonorname = Internal.getValue(gcn)
+                    zdonor = Internal.getNodeFromNameAndType(aR, zdonorname, 'Zone_t')
+                    if zdonor is None:
+                        raise ValueError("setInterpDataForGhostCellsNGon: donor zone not found in aR.")
+
+                    zdonorp = Internal.getNodeFromNameAndType(aD, zdonorname, 'Zone_t')
+                    if zdonorp is None:
+                        raise ValueError("setInterpDataForGhostCellsNGon: donor zone not found in aD.")
+
+                    Periodic = Internal.getNodeFromType2(gcn,'Periodic_t')
+                    RotationAngle=None; RotationCenter=None
+                    if Periodic is not None:
+                        RotationAngle = Internal.getNodeFromName1(Periodic,'RotationAngle')
+                        RotationCenter = Internal.getNodeFromName1(Periodic,'RotationCenter')
+                        if RotationAngle is not None:
+                           RotationAngle[1][0]=-RotationAngle[1][0]
+                           RotationAngle[1][1]=-RotationAngle[1][1]
+                           RotationAngle[1][2]=-RotationAngle[1][2]
+
+                    a2 = C.getFields('GridCoordinates', zdonor, api=2)[0]
+
+                    # PE donor
+                    PEd = Internal.getNodeFromName2(zdonor, 'ParentElements')[1]
+
+                    # Rind donor
+                    rindd = -1
+                    nodes = Internal.getNodesFromType1(zdonor, 'Elements_t')
+                    for n in nodes:
+                        if n[1][0] == 23:
+                            p = Internal.getNodeFromName1(n, 'IntExt')
+                            rindd = p[1][0]
+                            break
+                            
+                    ret = connector.setInterpDataForGCNGon(FL, FLd, rind, rindd, a1, a2, PE, PEd)
+                    # Stockage    
+                    _createInterpRegion__(zdonorp, zp[0], ret[1], ret[0], ret[3], ret[2], vols, indicesExtrap,\
+                                          indicesOrphan, tag = 'Donor',loc='centers', EXDir=EXdir, 
+                                          itype='abutting', prefix=prefix,\
+                                          RotationAngle=RotationAngle, RotationCenter=RotationCenter)
+
+    return None
+
+
+def _setInterpDataForGhostCellsStruct__(aR, aD, storage='direct',loc="nodes"):
 
     try: import Converter.GhostCells as GhostCells
-    except: raise ImportError("setInterpDataForGhostCells__ requires Converter.GhostCells module.")
+    except: raise ImportError("setInterpDataForGhostCellsStruct__ requires Converter.GhostCells module.")
     # empty numpy arrays for zonesubregion nodes
     indicesExtrap = numpy.array([],numpy.int32)
     indicesOrphan = numpy.array([],numpy.int32)
@@ -1673,7 +1760,7 @@ def _setInterpDataForGhostCells__(aR, aD, storage='direct',loc="nodes"):
         zname = zp[0]
         zoneDimR = Internal.getZoneDim(zp)
         if zoneDimR[0] == 'Unstructured':
-            print('Warning: setInterpDataForGC not yet implemented for unstructured zones.')
+            continue
         else: # Structured
             dimPb = zoneDimR[4]
             rindnode = Internal.getNodeFromType1(zp, 'Rind_t')
@@ -1798,7 +1885,6 @@ def _setInterpDataForGhostCells__(aR, aD, storage='direct',loc="nodes"):
                     res = connector.setInterpDataForGC(arrayOfIndicesR, listOfIndicesD, \
                                                                      dimPb, locR, depth, incrR, incrD)
                     # Stockage
-                    vol = numpy.array([],numpy.float64)
                     prefix = 'ID_'
                     if RotationAngle is not None:
                         val = Internal.getValue(RotationAngle)

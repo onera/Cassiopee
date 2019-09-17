@@ -121,10 +121,11 @@ short K_POST::computeStructIntersectionWithPlane(
     break;
     
     case 3:
-#pragma omp parallel default(shared) if (nkc > __MIN_SIZE_MEAN__)
-  {
+
+//#pragma omp parallel default(shared) if (nkc > __MIN_SIZE_MEAN__)
+  {    
       E_Int indv, indv1, indv2, indv3, indv4, indv5, indv6, indv7, indv8;
-#pragma omp for
+//#pragma omp for
       for (E_Int k = 0; k < nkc; k++)
         for (E_Int j = 0; j < njc; j++)
           for (E_Int i = 0; i < nic; i++)
@@ -141,6 +142,8 @@ short K_POST::computeStructIntersectionWithPlane(
               indv7 = indv3 + ninj;  
               indv8 = indv4 + ninj;  
               
+              //Warning: cnt is a counter that is modified !!!
+              // OpenMP algorithm must be adapted
               // Plan k 
               searchStructIntersectForSegment(interpData, interpType,
                                               coefa, coefb, coefc, coefd,
