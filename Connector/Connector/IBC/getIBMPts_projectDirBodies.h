@@ -18,7 +18,7 @@ for(E_Int nos = 0; nos < nbodies; nos++)
                                        xs, ys, zs, indicesBB, *cnb[nos], 
                                        xi0, yi0, zi0, oriented);                
         indicesBB.clear();
-        if ( notri > -1)
+        if (notri > -1)
         {
             distl = (xc0-xi0)*(xc0-xi0)+(yc0-yi0)*(yc0-yi0)+(zc0-zi0)*(zc0-zi0);
             if (distl < dist2) 

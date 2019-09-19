@@ -56,7 +56,8 @@ def setTime(event=None):
     else: temp = RM.evalPosition(CTK.t, time)
     
     WIDGETS['slider'].set((time-t0)/step); WIDGETS['slider'].update()
-    CTK.display(temp, mainTree=CTK.TIME)
+    if time == 0.: CTK.display(CTK.t, mainTree=CTK.MAIN)
+    else: CTK.display(temp, mainTree=CTK.TIME)
 
 #==============================================================================
 def playForward(event=None):
@@ -70,15 +71,15 @@ def playForward(event=None):
     if CTK.__MAINTREE__ == 1:
         CTK.__MAINACTIVEZONES__ = CPlot.getActiveZones()
 
-    if (walls == '1' and CTK.dt == []):
+    if walls == '1' and CTK.dt == []:
         zones = Internal.getNodesFromType(CTK.t, 'Zone_t')
         Z = buildWalls(zones)
         CTK.dt = C.newPyTree(['Base']); CTK.dt[2][1][2] += Z
 
     CTK.__BUSY__ = True
     CPlot.setState(cursor=2)
-    while (time < tf and CTK.__BUSY__):
-        if (walls == '1'):  temp = RM.evalPosition(CTK.dt, time)
+    while time < tf and CTK.__BUSY__:
+        if walls == '1': temp = RM.evalPosition(CTK.dt, time)
         else: temp = RM.evalPosition(CTK.t, time)
         CTK.display(temp, mainTree=CTK.TIME)
         time += step; VARS[1].set(str(time))
@@ -99,15 +100,15 @@ def playBackward(event=None):
     if CTK.__MAINTREE__ == 1:
         CTK.__MAINACTIVEZONES__ = CPlot.getActiveZones()
 
-    if (walls == '1' and CTK.dt == []):
+    if walls == '1' and CTK.dt == []:
         zones = Internal.getNodesFromType(CTK.t, 'Zone_t')
         Z = buildWalls(zones)
         CTK.dt = C.newPyTree(['Base']); CTK.dt[2][1][2] += Z
 
     CTK.__BUSY__ = True
     CPlot.setState(cursor=2)
-    while (time > t0 and CTK.__BUSY__):
-        if (walls == '1'):  temp = RM.evalPosition(CTK.dt, time)
+    while time > t0 and CTK.__BUSY__:
+        if walls == '1':  temp = RM.evalPosition(CTK.dt, time)
         else: temp = RM.evalPosition(CTK.t, time)
         CTK.display(temp, mainTree=CTK.TIME)
         time -= step; VARS[1].set(str(time))
@@ -154,7 +155,7 @@ def createApp(win):
     V = TK.StringVar(win); V.set('0.'); VARS.append(V)
     if 'tkTimeT0' in CTK.PREFS: V.set(CTK.PREFS['tkTimeT0'])
     # -1- t -
-    V = TK.StringVar(win); V.set('0.5'); VARS.append(V)
+    V = TK.StringVar(win); V.set('0.'); VARS.append(V)
     # -2- tf -
     V = TK.StringVar(win); V.set('1.'); VARS.append(V)
     if 'tkTimeTF' in CTK.PREFS: V.set(CTK.PREFS['tkTimeTF'])

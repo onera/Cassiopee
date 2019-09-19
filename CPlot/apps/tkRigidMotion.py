@@ -15,10 +15,10 @@ WIDGETS = {}; VARS = []
 # Retourne le no du motion (1,2,..) suivant VARS[11]
 #==============================================================================
 def getMotionType():
-    type = VARS[11].get()
-    if type == '1:MotionStrings': return 1
-    elif type == '2:KMotionRotor': return 2
-    elif type == '3:ConstantMotion': return 3
+    ntype = VARS[11].get()
+    if ntype == '1:MotionStrings': return 1
+    elif ntype == '2:KMotionRotor': return 2
+    elif ntype == '3:ConstantMotion': return 3
 
 #==============================================================================
 def setTransOrigin():
@@ -40,9 +40,9 @@ def setCenterRotation():
 def set2Axis():
     point = CPlot.getActivePoint()
     if point != []:
-        VARS[7].set( str(point[0]) )
-        VARS[8].set( str(point[1]) )
-        VARS[9].set( str(point[2]) )
+        VARS[7].set(str(point[0]))
+        VARS[8].set(str(point[1]))
+        VARS[9].set(str(point[2]))
 
 #==============================================================================
 def resetVars():
@@ -100,13 +100,13 @@ def getVars(event=None):
 
     motion = motion[0]
     t = Internal.getNodesFromName1(motion, 'MotionType')
-    type = t[0][1][0]
+    ntype = t[0][1][0]
     
-    if type == 1:
+    if ntype == 1:
         VARS[11].set('1:MotionStrings'); changeMotionType(); getVars1()
-    elif type == 2:
+    elif ntype == 2:
         VARS[11].set('2:KMotionRotor'); changeMotionType(); getVars2()
-    elif type == 3:
+    elif ntype == 3:
         VARS[11].set('3:ConstantMotion'); changeMotionType(); getVars3()
     
 #==============================================================================
@@ -639,7 +639,7 @@ def createApp(win):
 
     B = TTK.Button(Frame1, text="Set", command=setTransOrigin)
     B.grid(row=1, column=2, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Set trans origin from mouse.')
+    BB = CTK.infoBulle(parent=B, text='Set translation of origin from mouse.')
 
     B = TTK.Label(Frame1, text="cx:")
     BB = CTK.infoBulle(parent=B,
@@ -709,11 +709,11 @@ def createApp(win):
     
     B = TTK.Label(Frame1, text="angle:")
     BB = CTK.infoBulle(parent=B,
-                       text='Rotation angle.\Can depend on {t}. In degrees.')
+                       text='Rotation angle.\nCan depend on {t}. In degrees.')
     B.grid(row=10, column=0, sticky=TK.EW)
     B = TTK.Entry(Frame1, textvariable=VARS[10], background='White')
     BB = CTK.infoBulle(parent=B,
-                       text='Rotation angle.\Can depend on {t}. In degrees.')
+                       text='Rotation angle.\nCan depend on {t}. In degrees.')
     B.grid(row=10, column=1, sticky=TK.EW)
     B.bind('<Return>', setVars1)
 

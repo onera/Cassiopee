@@ -2,7 +2,6 @@
 import Converter as C
 import Connector as X
 import Generator as G
-import Geom as D
 
 # Tet mask
 mT4 = G.cart((0.,0.,0.), (0.1,0.1,0.2), (10,10,10))
@@ -10,7 +9,6 @@ mT4 = C.convertArray2Tetra(mT4)
 #C.convertArrays2File([mT4], 'maskT4.plt', 'bin_tp')
 
 # Mesh to blank
-
 a = G.cart((-5.,-5.,-5.), (0.5,0.5,0.5), (100,100,100))
 #C.convertArrays2File([a], 'bgm.plt')
 

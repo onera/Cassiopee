@@ -247,7 +247,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar1(
       }
       else //5eq 
       {
-        // mise a jour des variable
+        // mise a jour des variables
 #ifdef _OPENMP4
          #pragma omp simd
 #endif 
@@ -389,7 +389,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar1(
       }
     }
     else //5eq 
-    { // mise a jour des variable
+    { // mise a jour des variables
 #ifdef _OPENMP4
       #pragma omp simd
 #endif 
@@ -694,7 +694,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
       }
     else //5eq 
       {
-        // mise a jour des variable
+        // mise a jour des variables
 #ifdef _OPENMP4
        #pragma omp simd
 #endif 
@@ -705,7 +705,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
          roOut[indR]= press_vec[noind ]/tcible_vec[noind]*cvgaminv; 
 
          uOut[indR] = ucible_vec[noind]; vOut[indR] = vcible_vec[noind]; wOut[indR] = wcible_vec[noind];
-         tOut[indR]     = tcible_vec[noind];
+         tOut[indR] = tcible_vec[noind];
 
          vxPtr[noind+ideb] = uOut[indR];
          vyPtr[noind+ideb] = vOut[indR];
@@ -758,7 +758,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
 #if NUTILDE_FERRARI == 0
 #       include "IBC/nutildeSA_Newton.h" 
 #endif
-        // mise a jour des variable
+        // mise a jour des variables
 #ifdef _OPENMP4
        #pragma omp simd
 #endif 
@@ -1183,7 +1183,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
         }
 
 
-        // mise a jour des variable
+        // mise a jour des variables
 #ifdef _OPENMP4
        #pragma omp simd
 #endif 
@@ -1320,7 +1320,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
       }
     else //5eq 
       {
-        // mise a jour des variable
+        // mise a jour des variables
 #ifdef _OPENMP4
        #pragma omp simd
 #endif 
@@ -1528,7 +1528,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar3(
          pressPtr[noind+ideb]= press_vec[noind ];
 
          roOut[indR]    = press_vec[noind ]/tcible_vec[noind]*cvgaminv;   
-         uOut[indR]     = ucible_vec[noind]; vOut[indR] = vcible_vec[noind]; wOut[indR]  = wcible_vec[noind];
+         uOut[indR]     = ucible_vec[noind]; vOut[indR] = vcible_vec[noind]; wOut[indR] = wcible_vec[noind];
          varSAOut[indR] = aa_vec[noind]*sign_vec[noind]*uext_vec[noind];                                         //nutilde*signibc    
 
          vxPtr[noind+ideb] = uOut[indR];
@@ -1552,7 +1552,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar3(
          densPtr[noind+ideb] = press_vec[noind ]/twall*cvgaminv;
          pressPtr[noind+ideb]= press_vec[noind ];
 
-         roOut[indR]    = press_vec[noind ]/tcible_vec[noind]*cvgaminv; 
+         roOut[indR] = press_vec[noind ]/tcible_vec[noind]*cvgaminv; 
          uOut[indR] = ucible_vec[noind]; vOut[indR] = vcible_vec[noind]; wOut[indR] = wcible_vec[noind];
 
          vxPtr[noind+ideb] = uOut[indR];
@@ -1611,7 +1611,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar3(
         {
          E_Int indR = rcvPts[noind+ideb];
 
-         uOut[indR]     = ucible_vec[noind]; vOut[indR] = vcible_vec[noind]; wOut[indR]  = wcible_vec[noind];
+         uOut[indR]     = ucible_vec[noind]; vOut[indR] = vcible_vec[noind]; wOut[indR] = wcible_vec[noind];
          varSAOut[indR] = aa_vec[noind]*sign_vec[noind]*uext_vec[noind];                                         //nutilde*signibc    
         }
     }

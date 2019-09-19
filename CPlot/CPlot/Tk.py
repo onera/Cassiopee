@@ -1794,6 +1794,7 @@ def tkLoadFile(files, mode='full'):
     import Converter.Filter as Filter
     HANDLE = Filter.Handle(files[0])
     t = HANDLE.loadSkeleton()
+    HANDLE._loadTreeExtras(t)
     Filter._convert2PartialTree(t)
     HANDLE.getVariables()
     

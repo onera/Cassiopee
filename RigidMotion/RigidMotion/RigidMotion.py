@@ -32,7 +32,7 @@ def _evalPosition(array, time, F):
             r = numpy.transpose(r0)
         else:
             f = F(time)
-            if (len(f) != 3):
+            if len(f) != 3:
                 raise ValueError("evalPosition: f must be a 3D function.")
             d = f[0]; c = f[1]; r = f[2]
     else: d = F[0]; c = F[1]; r = F[2]

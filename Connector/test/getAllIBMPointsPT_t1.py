@@ -10,7 +10,7 @@ a = G.cart((0,0,0),(1,1,1),(N,N,N))
 C._initVars(a,'{centers:TurbulentDistance}={centers:CoordinateZ}')
 C._initVars(a,'{centers:cellN}=({centers:CoordinateZ}>0.8)*1.+({centers:CoordinateZ}<0.8)*2.')
 a = P.computeGrad(a,'centers:TurbulentDistance')
-res=IBM.getAllIBMPoints(a, loc='centers',hi=0.,he=2.,tb=None)
+res = IBM.getAllIBMPoints(a, loc='centers',hi=0.,he=2.,tb=None)
 correctedPts=list(res[0].values())[0]; wallPts=list(res[1].values())[0]; interpPts=list(res[2].values())[0]
 test.testA(correctedPts+wallPts)
 test.testA(interpPts,12)

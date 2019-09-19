@@ -1,4 +1,3 @@
-import KCore.Dist as Dist
 from KCore.config import *
 
 #==============================================================================

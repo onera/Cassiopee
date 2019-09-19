@@ -4,7 +4,6 @@ import Connector as X
 import Generator as G
 import Geom as D
 import KCore.test as test
-import sys
 
 # Test 1
 # Tet mask

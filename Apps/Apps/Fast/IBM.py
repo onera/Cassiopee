@@ -20,13 +20,22 @@ except: pass
 
 #================================================================================
 # IBM prepare
-# NP is the target number of processors for computation 
+# IN: t_case: fichier ou arbre body
+# OUT: t_out, tc_out : fichier ou arbres de sorties
+# snears: liste des snear, mais c'est mieux si ils sont dans t_case
+# dfar, dfarList: liste des dfars, mais c'est mieux si ils sont dans t_case
+# tbox: arbre de raffinement
+# check: si true, fait des sorties
+# NP: is the target number of processors for computation
 # (maybe different from the number of processors the prep is run on)
+# frontType=1,2,3: type de front
+# expand=1,2,3: sorte d'expand des niveaux (1:classque,2:minimum,3:deux niveaux)
+# tinit: arbre de champ d'avant pour la reprise 
 #================================================================================ 
 def prepare(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
             tbox=None, snearsf=None,            
             vmin=21, check=False, NP=0, format='single',
-            frontType=1, expand=3):
+            frontType=1, expand=3, tinit=None):
     import Converter.Mpi as Cmpi
     rank = Cmpi.rank; size = Cmpi.size
     ret = None
@@ -34,12 +43,12 @@ def prepare(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
     if size == 1: ret = prepare0(t_case, t_out, tc_out, snears=snears, dfar=dfar, dfarList=dfarList, 
                                  tbox=tbox, snearsf=snearsf,
                                  vmin=vmin, check=check, NP=NP, format=format, frontType=frontType,
-                                 expand=expand)
+                                 expand=expand, tinit=tinit)
     # parallel prep
     else: ret = prepare1(t_case, t_out, tc_out, snears=snears, dfar=dfar, dfarList=dfarList, 
                          tbox=tbox, snearsf=snearsf,
                          vmin=vmin, check=check, NP=NP, format=format, frontType=frontType,
-                         expand=expand)
+                         expand=expand, tinit=tinit)
     
     return ret
 
@@ -49,7 +58,7 @@ def prepare(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
 def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
              tbox=None, snearsf=None,
              vmin=21, check=False, NP=0, format='single',
-             frontType=1, expand=3):
+             frontType=1, expand=3, tinit=None):
     import KCore.test as test
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
     else: tb = t_case
@@ -154,9 +163,27 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
         C.convertPyTree2File(tibm, 'IBMInfo.cgns')
         del tibm
 
-    # arbre de calcul
-    I._initConst(t, loc='centers')
-    if model != "Euler": C._initVars(t, 'centers:ViscosityEddy', 0.)
+    # Initialisation
+    if tinit is None: 
+        I._initConst(t, loc='centers')
+        if model != "Euler": C._initVars(t, 'centers:ViscosityEddy', 0.)
+    else:
+       import Post.PyTree as P
+       P._extractMesh(tinit, t, mode='accurate', constraint=40.)
+       RefState = Internal.getNodeFromType(t, 'ReferenceState_t')
+       ronutildeInf = Internal.getValue(Internal.getNodeFromName(RefState, 'TurbulentSANuTildeDensity'))
+       vxInf = Internal.getValue(Internal.getNodeFromName(RefState, 'VelocityX'))
+       vyInf = Internal.getValue(Internal.getNodeFromName(RefState, 'VelocityY'))
+       vzInf = Internal.getValue(Internal.getNodeFromName(RefState, 'VelocityZ'))
+       RhoInf = Internal.getValue(Internal.getNodeFromName(RefState, 'Density'))
+       TInf = Internal.getValue(Internal.getNodeFromName(RefState, 'Temperature'))
+       C._initVars(t,"{centers:VelocityX}=({centers:Density}<0.01)*%g+({centers:Density}>0.01)*{centers:VelocityX}"%vxInf)
+       C._initVars(t,"{centers:VelocityY}=({centers:Density}<0.01)*%g+({centers:Density}>0.01)*{centers:VelocityY}"%vyInf)
+       C._initVars(t,"{centers:VelocityZ}=({centers:Density}<0.01)*%g+({centers:Density}>0.01)*{centers:VelocityZ}"%vzInf)
+       C._initVars(t,"{centers:Temperature}=({centers:Density}<0.01)*%g+({centers:Density}>0.01)*{centers:Temperature}"%TInf)
+       C._initVars(t,"{centers:Density}=({centers:Density}<0.01)*%g+({centers:Density}>0.01)*{centers:Density}"%RhoInf)
+       #C._initVars(t,"{centers:TurbulentSANuTildeDensity}=%g"%(ronutildeInf))
+
     if isinstance(t_out, str): Fast.save(t, t_out, split=format, NP=-NP, cartesian=True)
     return t, tc
 
@@ -174,14 +201,14 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
              tbox=None, snearsf=None,  
              vmin=21, check=False, NP=0, format='single',
              frontType=1, extrusion=False, smoothing=False, balancing=False, 
-             distrib=True, expand=3):
+             distrib=True, expand=3, tinit=None):
     import Generator
     import Connector.connector as connector
     import Connector.Mpi as Xmpi
-    import Post.PyTree as P
     import Converter.Distributed as Distributed
     import Connector.OversetData as XOD
     import KCore.test as test
+    import Post.PyTree as P
     from mpi4py import MPI
     import numpy
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
@@ -327,7 +354,7 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
                 for line in Internal.getZones(b):
                     closure = G.tetraMesher(line, algo=1)
                     tb = Internal.append(tb, closure, name)
-            if rank==0: C.convertPyTree2File(tb, '3Dcase.cgns')
+            if rank == 0: C.convertPyTree2File(tb, '3Dcase.cgns')
             # create new 3D tree
             t = T.subzone(t, (1,1,1), (-1,-1,1))
             bbox = G.bbox(t); bbox = [round(i,1) for i in bbox]
@@ -485,7 +512,7 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
     test.printMem(">>> Interpdata [after addXZones]")
     
     procDict = Cmpi.getProcDict(tc)
-    datas={}
+    datas = {}
     for zrcv in Internal.getZones(t):
         zrname = zrcv[0]
         dnrZones = []
@@ -638,8 +665,7 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
         C._rmVars(t,['centers:cellN_interp'])
 
         # Smooth the front in case of a local refinement - only work in 2D
-        if smoothing and dimPb==2: 
-            TIBM._smoothImageFront(t, tc)
+        if smoothing and dimPb == 2: TIBM._smoothImageFront(t, tc)
 
         C._cpVars(t,'centers:cellNFront',tc,'cellNFront')
 
@@ -829,7 +855,12 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
 
     # Save tc
     if isinstance(tc_out, str): Cmpi.convertPyTree2File(tc, tc_out, ignoreProcNodes=True)
-    I._initConst(t, loc='centers')
+    
+    # Initialisation
+    if tinit is None: I._initConst(t, loc='centers')
+    else: 
+        import Post.PyTree as Pmpi
+        t = Pmpi.extractMesh(tinit, t, mode='accurate')
     if model != "Euler": C._initVars(t, 'centers:ViscosityEddy', 0.)
     # Save t
     if isinstance(t_out, str):
@@ -1214,14 +1245,14 @@ class IBM(Common):
     # Prepare 
     def prepare(self, t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[], 
                 tbox=None, snearsf=None,
-                vmin=21, check=False, frontType=1, NP=None, expand=3):
+                vmin=21, check=False, frontType=1, NP=None, expand=3, tinit=None):
         if NP is None: NP = Cmpi.size
         if NP == 0: print('Preparing for a sequential computation.')
         else: print('Preparing for a computation on %d processors.'%NP)
         ret = prepare(t_case, t_out, tc_out, snears=snears, dfar=dfar, dfarList=dfarList,
                       tbox=tbox, snearsf=snearsf,
                       vmin=vmin, check=check, NP=NP, format=self.data['format'], 
-                      frontType=frontType, expand=expand)
+                      frontType=frontType, expand=expand, tinit=tinit)
         return ret
 
     # post-processing: extrait la solution aux noeuds + le champs sur les surfaces

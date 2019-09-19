@@ -685,7 +685,7 @@ def addRefinementZones(o, tb, tbox, snearsf, vmin, dim):
 # =============================================================================
 def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, 
                     frontType=0, cellNName='cellN', IBCType=1, depth=2):
-    if IBCType==-1: signOfDistCorrected = -1
+    if IBCType == -1: signOfDistCorrected = -1
     else: signOfDistCorrected=1 # signe de la distance aux points corriges
 
     allCorrectedPts = []; allWallPts = []; allInterpPts = []

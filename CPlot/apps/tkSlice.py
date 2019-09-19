@@ -131,7 +131,7 @@ def view(event=None):
         for z in CTK.__MAINACTIVEZONES__: active.append(tp[2][CTK.Nb[z]+1][2][CTK.Nz[z]])
 
         temp = C.newPyTree(['Base']); temp[2][1][2] += active
-        if NODE2CENTER: temp = C.node2Center(temp)
+        if CTK.__LOCATION__ == 'centers' or NODE2CENTER: temp = C.node2Center(temp)
         if plane == 'X' and algo == 'Slice1':
             p = P.isoSurfMC(temp, 'CoordinateX', pos); XDATA = p
         elif plane == 'Y' and algo == 'Slice1':
@@ -217,7 +217,7 @@ def extract(event=None):
         zones = Internal.getZones(CTK.t)
         for z in CTK.__MAINACTIVEZONES__: active.append(zones[z])
         temp = C.newPyTree(['Base']); temp[2][1][2] += active
-        if NODE2CENTER: temp = C.node2Center(temp)
+        if CTK.__LOCATION__ == 'centers' or NODE2CENTER: temp = C.node2Center(temp)
         if plane == 'X' and algo == 'Slice1':
             p = P.isoSurfMC(temp, 'CoordinateX', pos)
         elif plane == 'Y' and algo == 'Slice1':

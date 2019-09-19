@@ -100,23 +100,37 @@ def setData():
     CTK.TXT.insert('START', 'Solver data set.\n')
 
 #=============================================================================
-# Modifie le body
+# Modifie le body, met le body modifie dans CTK.t
 #=============================================================================
-def updateBody():
+def updateBodyAndPrepare():
+    import RigidMotion.PyTree as RigidMotion
+
+    bodyTime = VARS[13].get()
+    steps = VARS[14].get()
+    delta = (1.-0.)/steps
+    bodyTime += delta
+    VARS[13].set(bodyTime)
+    print(bodyTime)
+
     global BODY
     if BODY is None: return
     # Creation de l'arbre de reprise
-    tr = CTK.t
+    tinit = CTK.t
     vars = ['centers:Density_M1', 'centers:VelocityX_M1', 'centers:VelocityY_M1', 'centers:VelocityZ_M1', 'centers:Temperature_M1']
     vars += ['centers:Density_P1', 'centers:VelocityX_P1', 'centers:VelocityY_P1', 'centers:VelocityZ_P1', 'centers:Temperature_P1']
-    vars += ['centers:TurbulentDistance', 'centers:cellN']
-    C._rmVars(tr, vars)
+    vars += ['centers:TurbulentDistance', 'centers:cellN', 'centers:ViscosityEddy']
+    C._rmVars(tinit, vars)
     CTK.t = None
 
     # Apply motion or something to body
+    CTK.t = RigidMotion.evalPosition(BODY, bodyTime)
 
-    # Regenere le prep
-    
+    # Regenere le prep de CTK.t
+    prepare(tinit)
+
+    dim = getDim(CTK.t)
+    if dim == 2: CPlot.display(CTK.t)
+    else: displaySlices()
 
 #==============================================================================
 # Get data from selected zone
@@ -164,14 +178,17 @@ def getData():
             val = Internal.getValue(n)
             VARS[4].set(val)
 
-#==============================================================================
-def run(event=None):
-    dim = Internal.getNodeFromName2(CTK.t, 'FlowEquationSet')
+def getDim(t):
+    dim = Internal.getNodeFromName2(t, 'FlowEquationSet')
     if dim is not None:
         dim = Internal.getNodeFromName1(dim, 'EquationDimension')
         dim = Internal.getValue(dim)
     else: dim = 3
-    
+    return dim
+
+#==============================================================================
+def run(event=None):
+    dim = getDim(CTK.t)
     mode = VARS[10].get()
     if mode == 'Body':
         global BODY
@@ -195,7 +212,8 @@ def run(event=None):
 
 #==============================================================================
 # A partir de CTK.t considere comme les bodies
-def prepare():
+# tinit est un arbre de reprise eventuel
+def prepare(tinit=None):
     if CTK.t == []: return
 
     # Save preventif
@@ -211,7 +229,7 @@ def prepare():
 
     import Apps.Fast.IBM as App
     myApp = App.IBM(format='single')
-    CTK.t, tc = myApp.prepare(CTK.t, t_out='t.cgns', tc_out='tc.cgns', vmin=21, tbox=tbox, check=False)
+    CTK.t, tc = myApp.prepare(CTK.t, t_out='t.cgns', tc_out='tc.cgns', vmin=21, tbox=tbox, check=False, tinit=tinit)
     return None
 
 #==============================================================================
@@ -283,9 +301,9 @@ def compute():
     # Wall extraction
     import Connector.ToolboxIBM as TIBM
     global WALL
-    WALL = TIBM.extractIBMWallFields(tc, tb=BODY)
+    WALL = TIBM.extractIBMWallFields(tc, tb=BODY) # avec surface
+    #WALL = TIBM.extractIBMWallFields(tc) # seulement en node
     WALL = Internal.getZones(WALL)
-
     return None
 
 #===============================================================
@@ -455,6 +473,10 @@ def createApp(win):
     V = TK.StringVar(win); V.set('time_step'); VARS.append(V)
     # -12- mask inv or not -
     V = TK.StringVar(win); V.set('out'); VARS.append(V)
+    # -13- body time
+    V = TK.DoubleVar(win); V.set(0.); VARS.append(V)
+    # -14- body time steps
+    V = TK.DoubleVar(win); V.set(10); VARS.append(V)
 
     #- Mode -
     B = TTK.Label(Frame, text="Mode")
@@ -501,10 +523,10 @@ def createApp(win):
 
     # - temporal scheme -
     B = TTK.Label(Frame, text="time_scheme")
-    B.grid(row=6, column=0, sticky=TK.EW)
+    B.grid(row=7, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Time integration.')
     B = TTK.OptionMenu(Frame, VARS[0], 'explicit', 'implicit', 'implicit_local')
-    B.grid(row=6, column=1, columnspan=2, sticky=TK.EW)
+    B.grid(row=7, column=1, columnspan=2, sticky=TK.EW)
 
     # - ss_iteration -
     #B = TTK.Label(Frame, text="ss_iteration")
@@ -515,28 +537,39 @@ def createApp(win):
 
     # - scheme -
     B = TTK.Label(Frame, text="scheme")
-    B.grid(row=7, column=0, sticky=TK.EW)
+    B.grid(row=8, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Numerical scheme.')
     B = TTK.OptionMenu(Frame, VARS[4], 'roe_min', 'ausmpred', 'senseur')
-    B.grid(row=7, column=1, columnspan=2, sticky=TK.EW)
+    B.grid(row=8, column=1, columnspan=2, sticky=TK.EW)
 
     # - time_step -
     B = TTK.OptionMenu(Frame, VARS[11], "time_step", "cfl", command=changeCflTimeStep)
-    B.grid(row=8, column=0, sticky=TK.EW)
+    B.grid(row=9, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Time step.')
     B = TTK.Entry(Frame, textvariable=VARS[5], background='White')
-    B.grid(row=8, column=1, columnspan=2, sticky=TK.EW)
+    B.grid(row=9, column=1, columnspan=2, sticky=TK.EW)
 
     # - compute -
     B = TTK.Button(Frame, text="Compute", command=run)
     BB = CTK.infoBulle(parent=B, text='Launch computation.')
-    B.grid(row=9, column=0, sticky=TK.EW)
+    B.grid(row=10, column=0, sticky=TK.EW)
     B = TTK.Entry(Frame, textvariable=VARS[9], width=5, background='White')
-    B.grid(row=9, column=1, columnspan=1, sticky=TK.EW)
+    B.grid(row=10, column=1, columnspan=1, sticky=TK.EW)
     B = TTK.Button(Frame, text="Files", command=writeFiles)
     BB = CTK.infoBulle(parent=B, text='Write files to run elsewhere.')
-    B.grid(row=9, column=2, sticky=TK.EW)
-    
+    B.grid(row=10, column=2, sticky=TK.EW)
+
+    # - Body time -
+    B = TTK.Button(Frame, text="Step", command=updateBodyAndPrepare)
+    BB = CTK.infoBulle(parent=B, text='Apply one motion step to body.')
+    B.grid(row=11, column=0, columnspan=1, sticky=TK.EW)
+    B = TTK.Entry(Frame, textvariable=VARS[13], width=4, background="White")
+    B.grid(row=11, column=1, columnspan=1, sticky=TK.EW)
+    B.bind('<Return>', updateBodyAndPrepare)
+    BB = CTK.infoBulle(parent=B, text='Current body time.')
+    B = TTK.Entry(Frame, textvariable=VARS[14], width=4, background="White")
+    B.grid(row=11, column=2, columnspan=1, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Number of steps to reach body time 1.')
 
 #==============================================================================
 # Called to display widgets

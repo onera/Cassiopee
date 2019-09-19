@@ -4,11 +4,11 @@ pr1[2] = zc0; pr2[2]=zc0+dirz0;
 dist2 = K_CONST::E_MAX_FLOAT;
 xsav = xc0; ysav = yc0; zsav = zc0; 
 ok = -1;
-for(E_Int nos = 0; nos < nfronts; nos++)
+for (E_Int nos = 0; nos < nfronts; nos++)
 {
     K_SEARCH::BbTree3D* bbtree = vectOfFrontBBTrees[nos];
     bbtree->getIntersectingBoxes(pr1, pr2, indicesBB, tol);
-    if ( indicesBB.size() != 0) 
+    if (indicesBB.size() != 0) 
     { 
         E_Float* xs = unstrfF[nos]->begin(posxf[nos]);
         E_Float* ys = unstrfF[nos]->begin(posyf[nos]);

@@ -4,7 +4,6 @@ import Connector.PyTree as X
 import Generator.PyTree as G
 import Geom.PyTree as D
 import KCore.test as test
-import sys
 
 # Test 1
 # Tet mask
