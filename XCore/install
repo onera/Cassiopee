@@ -41,6 +41,7 @@ if [ $? -eq 0 ]; then
     [ $? != 0 ] && exit;
     #touch KCore/xcore.cpp
     rm -f build/lib.*/XCore/xcore.*
+    rm -f build/lib.*/XCore/xcore-*.*
     python setupScons.py install --prefix="$INSTALLPATH"
 else
     python setup.py install --prefix="$INSTALLPATH"

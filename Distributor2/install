@@ -39,6 +39,7 @@ if [ $? -eq 0 ]; then
     [ $? != 0 ] && exit;
     #touch Distributor2/distributor2.cpp
     rm -f build/lib.*/Distributor2/distributor2.*
+    rm -f build/lib.*/Distributor2/distributor2-*.*
     python setupScons.py install --prefix="$INSTALLPATH"
 else
     python setup.py install --prefix="$INSTALLPATH"

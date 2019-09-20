@@ -44,6 +44,7 @@ if [ $? -eq 0 ]; then
     [ $? != 0 ] && exit;
     #touch Post/post.cpp
     rm -f build/lib.*/Post/post.*
+    rm -f build/lib.*/Post/post-*.*
     python setupScons.py install --prefix="$INSTALLPATH"
 else
     python setup.py install --prefix="$INSTALLPATH"

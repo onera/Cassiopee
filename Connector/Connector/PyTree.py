@@ -11,6 +11,7 @@ try: range = xrange
 except: pass
 
 from .OversetData import *
+from .OversetDataDtlocal import *
 from .OversetData import _setInterpTransfers, __setInterpTransfers, _addCellN__, _setInterpData
 from .OversetDataElsA import _chimeraInfo, setInterpolations, chimeraInfo, chimeraTransfer
 from .compactTransfers import ___setInterpTransfers, miseAPlatDonorTree__

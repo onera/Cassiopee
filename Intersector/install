@@ -39,6 +39,7 @@ if [ $? -eq 0 ]; then
     [ $? != 0 ] && exit;
     #touch Intersector/intersector.cpp
     rm -f build/lib.*/Intersector/intersector.*
+    rm -f build/lib.*/Intersector/intersector-*.*
     python setupScons.py install --prefix="$INSTALLPATH"
 else
     python setup.py install --prefix="$INSTALLPATH"

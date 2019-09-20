@@ -39,6 +39,7 @@ if [ $? -eq 0 ]; then
     [ $? != 0 ] && exit;
     #touch Geom/geom.cpp
     rm -f build/lib.*/Geom/geom.*
+    rm -f build/lib.*/Geom/geom-*.*
     python setupScons.py install --prefix="$INSTALLPATH"
 else
     python setup.py install --prefix="$INSTALLPATH"

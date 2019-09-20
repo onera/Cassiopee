@@ -36,6 +36,7 @@ if [ $? -eq 0 ]; then
     [ $? != 0 ] && exit;
     #touch Dist2Walls/dist2walls.cpp
     rm -f build/lib.*/Dist2Walls/dist2walls.*
+    rm -f build/lib.*/Dist2Walls/dist2walls-*.*
     python setupScons.py install --prefix="$INSTALLPATH"
 else
     python setup.py install --prefix="$INSTALLPATH"
