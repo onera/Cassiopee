@@ -484,7 +484,7 @@ def getVersion(compiler):
                              stderr=subprocess.PIPE)
      out = ''
      while True:
-          line = proc.stdout.readline()#.decode('utf-8')
+          line = proc.stdout.readline().decode()
           if line != '': out += line
           else: break
      out = out.split('\n')

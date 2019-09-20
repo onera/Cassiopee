@@ -30,7 +30,12 @@ else
     exit
 fi
 
+if [ "$PYTHONEXE" != "" ]; then
+    alias python=$PYTHONEXE
+fi
+
 # Compilation et installation
+sconsf=`which scons`
 which scons &>/dev/null
 if [ $? -eq 0 ]; then
     if [ "$OMP_NUM_THREADS" != "" ]; then
@@ -40,7 +45,7 @@ if [ $? -eq 0 ]; then
     fi
     # force a cause de usurp: on doit compiler dans l'ordre
     # export SCONSOPT=""
-    scons install prefix="$INSTALLPATH" "$SCONSOPT"
+    python $sconsf install prefix="$INSTALLPATH" "$SCONSOPT"
     [ $? != 0 ] && exit;
     #touch Post/post.cpp
     rm -f build/lib.*/Post/post.*

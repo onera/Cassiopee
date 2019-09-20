@@ -3,7 +3,7 @@
 
 # Preliminary checks
 if ($?CASSIOPEE == 0) then
-    echo "You must specify a CASSIOPEE variablE in your environment."
+    echo "You must specify a CASSIOPEE variable in your environment."
     echo "This variable specifies the installation path of *Cassiopee*."
     exit
 endif
@@ -73,12 +73,15 @@ if ($MAC == "ld_pgi") then
 
 else if ($MAC == "ld_python3") then
 #-------------------------- ld centos 7 + python 3 -----------------------------
-        setenv ELSAPROD py3_r8
+        setenv ELSAPROD x86_r8
         # Modules
         foreach x (`(echo "" ; module -t list) | & grep intel`)
             module unload $x
         end
         module load python/3.6.1
+        # Set next two lines only if python is not python
+        setenv PYTHONEXE python3
+        alias python python3
         module load intel/17.0.4
         module load impi/17
         module load hdf5/1.8.8-intel-15
@@ -89,7 +92,7 @@ else if ($MAC == "ld_python3") then
         set path=($path $CASSIOPEE/Dist/bin)
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
         setenv LD_LIBRARY_PATHL /usr/lib64:/home/benoit/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
-        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"ELSAPROD"/lib/python3.6/site-packages
+        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.6/site-packages
         
 else if ($MAC == "ld") then
 #----------------------------- ld centos 7 -------------------------------------
@@ -157,7 +160,6 @@ else if ($MAC == "eos") then
 
 else if ($MAC == "macosx") then
 #----------------------------- Mac OSX-----------------------------------------
-        
     setenv ELSAPROD macosx_r8
 	setenv OMP_NUM_THREADS 2
 	set path=($path $CASSIOPEE/Dist/bin/macosx_r8)

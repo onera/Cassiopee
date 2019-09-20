@@ -9,6 +9,10 @@ then
     exit 1
 fi
 
+if [ "$PYTHONEXE" != "" ]; then
+    alias python=$PYTHONEXE
+fi
+
 # OMP_NUM_THREADS init
 if [ -z "$OMP_NUM_THREADS" ]
 then

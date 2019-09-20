@@ -345,7 +345,7 @@ def runSingleUnitaryTest(no, module, test):
     m1 = expTest1.search(test) # seq ou distribue
 
     if sys.version_info[0] == 3: pythonExec = 'python3'
-    else: pythonExec = 'python' 
+    else: pythonExec = 'python'
 
     if mySystem == 'mingw' or mySystem == 'windows':
         # Commande Dos (sans time)

@@ -24,7 +24,12 @@ else
     exit
 fi
 
+if [ "$PYTHONEXE" != "" ]; then
+    alias python=$PYTHONEXE
+fi
+
 # Compilation et installation
+sconsf=`which scons`
 which scons &>/dev/null
 if [ $? -eq 0 ]; then
     if [ "$OMP_NUM_THREADS" != "" ]; then
@@ -32,7 +37,7 @@ if [ $? -eq 0 ]; then
     else
         export SCONSOPT=""
     fi
-    scons install prefix="$INSTALLPATH" "$SCONSOPT"
+    python $sconsf install prefix="$INSTALLPATH" "$SCONSOPT"
     [ $? != 0 ] && exit;
     #touch RigidMotion/rigidMotion.cpp
     rm -f build/lib.*/RigidMotion/rigidMotion.*
