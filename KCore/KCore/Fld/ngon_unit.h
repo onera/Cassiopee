@@ -64,6 +64,13 @@ class ngon_unit
     void reserve (E_Int sz){_NGON.reserve(sz); _facet.reserve(sz); _type.reserve(sz); _ancEs.reserve(2, sz);} //fixme : wrong for _NGON
     
     void expand_n_fixed_stride (E_Int n, E_Int strd){
+
+      if (_NGON.empty())
+      {
+        _NGON.resize(2, 0);
+        _dirty = true;
+      }
+
       E_Int sz0 = _facet.size();
       _NGON.resize(_NGON.size() + n*(strd+1), strd) ; _facet.resize(sz0 + n) ; 
       if (!_type.empty()) _type.resize(_type.size() + n) ;
@@ -79,6 +86,43 @@ class ngon_unit
       _dirty=true;
       updateFacets();
     }
+
+    // warning : pregnant as non-zero vals
+    void expand_variable_stride(E_Int n, const E_Int* pregnant)
+    {
+      if (_NGON.empty())
+      {
+        _NGON.resize(2, 0);
+        _dirty = true;
+      }
+
+      E_Int sz0 = _facet.size();
+
+      E_Int nb_tot_child = 0;
+      for (size_t i = 0; i < n; ++i)nb_tot_child += pregnant[i];
+      
+      E_Int pos = _NGON.size();
+      _NGON.resize(pos + nb_tot_child + n, E_IDX_NONE); 
+      _facet.resize(sz0 + nb_tot_child);
+
+      //put the nb_facets
+      for (size_t i = 0; i < n; ++i)
+      {
+        _NGON[pos] = pregnant[i];
+        pos += pregnant[i] + 1;
+      }
+
+      if (!_type.empty()) _type.resize(_type.size() + nb_tot_child);
+      if (_ancEs.cols() != 0) _ancEs.resize(2, _ancEs.cols() + nb_tot_child);
+
+      _NGON[0] += nb_tot_child;
+      _NGON[1] = _NGON.size() - 2;
+
+      _dirty = true;
+      updateFacets();
+
+    }
+
     E_Int capacity(){return _NGON.capacity();}
     // Interrogations
     /// Returns the number of facets for the i-th PH(PG)  (ArrayAccessor interface)

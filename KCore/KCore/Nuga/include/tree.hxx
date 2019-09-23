@@ -251,30 +251,13 @@ class array_trait<ngon_unit>
   
   static void resize_for_children(ngon_unit& arr, E_Int stride, E_Int nb_new_children) //fixed strride
   {
-    //fixme : to optimize
-    E_Int children[stride];
-    for (int j=0; j< stride; j++)
-        children[j]= E_IDX_NONE ;
-
-    for (int i=0; i< nb_new_children; i++)//alexis : set _type for children
-      arr.add(stride,children);  
-
-    arr.updateFacets();
+    arr.expand_n_fixed_stride(nb_new_children, stride);
   }
   
   // variable stride
   static void resize_for_children(ngon_unit& arr, const Vector_t<E_Int>& pregnant)
   {
-    //assert(false);
-    E_Int len = pregnant.size();
-    for (int i=0; i< len; i++){
-      E_Int children[pregnant[i]];
-      for (int j=0; j< pregnant[i]; j++){
-        children[j]= E_IDX_NONE ;
-      }
-      arr.add(pregnant[i],children);  //alexis : set _type for children
-    }
-    arr.updateFacets();
+    arr.expand_variable_stride(pregnant.size(), &pregnant[0]);
   }
 };
 

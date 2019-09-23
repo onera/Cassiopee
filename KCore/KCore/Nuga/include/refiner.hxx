@@ -1778,9 +1778,11 @@ void refiner<K_MESH::Hexahedron, eSUBDIV_TYPE::ISO>::refine_PHs
 (const Vector_t<E_Int> &adap_incr, 
  ngon_type& ng, tree<arr_t> & PGtree, tree<arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
 {
+  assert(adap_incr.size() <= ng.PHs.size());
+
   //alexis : fixme : remplacer l'appel ais_HX8 pour l'emploi de ng.PHs.type
   std::vector<E_Int> PHadap;
-  for (size_t i = 0; i < ng.PHs.size(); ++i)
+  for (size_t i = 0; i < adap_incr.size(); ++i)
     if (adap_incr[i] > 0 && PHtree.is_enabled(i) && (K_MESH::Polyhedron<0>::is_HX8(ng.PGs, ng.PHs.get_facets_ptr(i), ng.PHs.stride(i))))
       PHadap.push_back(i);
   
@@ -1889,9 +1891,11 @@ void refiner<K_MESH::Tetrahedron, eSUBDIV_TYPE::ISO>::refine_PHs
 (const Vector_t<E_Int> &adap_incr, 
 ngon_type& ng, tree<arr_t> & PGtree, tree<arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
 {
+  assert(adap_incr.size() <= ng.PHs.size());
+
   //alexis : fixme : remplacer l'appel ais_HX8 pour l'emploi de ng.PHs.type
   std::vector<E_Int> PHadap;
-  for (size_t i = 0; i < ng.PHs.size(); ++i)
+  for (size_t i = 0; i < adap_incr.size(); ++i)
     if (adap_incr[i] > 0 && PHtree.is_enabled(i) && (K_MESH::Polyhedron<0>::is_TH4(ng.PGs, ng.PHs.get_facets_ptr(i), ng.PHs.stride(i))))
       PHadap.push_back(i);
   
@@ -2072,9 +2076,11 @@ void refiner<K_MESH::Pyramid, eSUBDIV_TYPE::ISO>::refine_PHs
 (const Vector_t<E_Int> &adap_incr, 
  ngon_type& ng, tree<arr_t> & PGtree, tree<arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
 {
+  assert(adap_incr.size() <= ng.PHs.size());
+
   //alexis : fixme : remplacer l'appel is_PY5 pour l'emploi de ng.PHs.type
   std::vector<E_Int> PHadap;
-  for (size_t i = 0; i < ng.PHs.size(); ++i)
+  for (size_t i = 0; i < adap_incr.size(); ++i)
     if (adap_incr[i] > 0 && PHtree.is_enabled(i) && (K_MESH::Polyhedron<0>::is_PY5(ng.PGs, ng.PHs.get_facets_ptr(i), ng.PHs.stride(i))))
       PHadap.push_back(i);
   
@@ -2222,9 +2228,11 @@ void refiner<K_MESH::Prism, eSUBDIV_TYPE::ISO>::refine_PHs
 (const Vector_t<E_Int> &adap_incr, 
  ngon_type& ng, tree<arr_t> & PGtree, tree<arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
 {
+  assert(adap_incr.size() <= ng.PHs.size());
+
   //alexis : fixme : remplacer l'appel is_PR6 pour l'emploi de ng.PHs.type
   std::vector<E_Int> PHadap;
-  for (size_t i = 0; i < ng.PHs.size(); ++i)
+  for (size_t i = 0; i < adap_incr.size(); ++i)
     if (adap_incr[i] > 0 && PHtree.is_enabled(i) && (K_MESH::Polyhedron<0>::is_PR6(ng.PGs, ng.PHs.get_facets_ptr(i), ng.PHs.stride(i))))
       PHadap.push_back(i);
   
@@ -2338,6 +2346,8 @@ void refiner<K_MESH::Basic, eSUBDIV_TYPE::ISO>::refine_PHs
 (const output_type &adap_incr, 
  ngon_type& ng, tree<arr_t> & PGtree, tree<arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
 {  
+  assert(adap_incr.size() <= ng.PHs.size());
+
   refiner<K_MESH::Hexahedron, eSUBDIV_TYPE::ISO>::refine_PHs(adap_incr, ng, PGtree, PHtree, crd, F2E);
 
   refiner<K_MESH::Tetrahedron, eSUBDIV_TYPE::ISO>::refine_PHs(adap_incr, ng, PGtree, PHtree, crd, F2E);
