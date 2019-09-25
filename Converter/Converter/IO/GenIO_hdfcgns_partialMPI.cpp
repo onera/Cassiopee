@@ -767,7 +767,7 @@ E_Int K_IO::GenIO::hdfcgnsWritePathsPartial(char* file, PyObject* tree,
 #if PY_VERSION_HEX >= 0x03000000
     else if (PyUnicode_Check(key)) path = PyBytes_AsString(PyUnicode_AsUTF8String(key));
 #endif
-    // printf("path to write ...  %s\n", path);
+    //printf("path to write ...  %s\n", path);
 
     /* Open group in HDF corresponding to path */
     hid_t gid = HDF.openGroupWithLinks(fid, path);  
@@ -1054,7 +1054,6 @@ hid_t K_IO::GenIOHdf::setArrayPartial(hid_t node, void* data, int idim, int* idi
   dataset = H5Dcreate2(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
   if (dataset < 0) {printf("Fail in setArrayPartial::H5Dcreate2\n");}
 #else
-  // printf("setArrayPartial Sequential \n");
   /* Create a dataset at skeleton write */
   if (_skeleton == 1)
   {

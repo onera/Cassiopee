@@ -12,7 +12,7 @@ def convertPyTree2FileMPI(t, fileName, comm, SkeletonTree, ParallelHDF=False,
   format = 'bin_hdf'
 
   # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-  # > First step : Prepare a dictonary of Filter and a dictionnary of Property
+  # > First step : Prepare a dictionary of Filter and a dictionnary of Property
   #   in order to prepare for each procs the data to write ...
   Filter = dict()
   Proper = dict()
@@ -99,7 +99,7 @@ def convertPyTree2FileMPI(t, fileName, comm, SkeletonTree, ParallelHDF=False,
   # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
   # > Perform sort of the receive dictionnary
   for path in Filter:
-    if(Proper[path]['ProcNumber'] != comm.Get_rank()):
+    if Proper[path]['ProcNumber'] != comm.Get_rank():
        # > Change the global size
        TMP    = Filter[path]
        DataSpaceGLOB = TMP[2]
@@ -189,10 +189,9 @@ def convertPyTree2FilePartial(t, fileName, comm, Filter, ParallelHDF=False,
 
   if not ParallelHDF:
     # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-    # > Write Tree Data execpt Data in Filter
+    # > Write Tree Data except Data in Filter
     SkeletonTree = Internal.copyRef(t)
     for path in Filter:
-      print(path)
       Node = Internal.getNodeFromPath(SkeletonTree, path)
       Node[1] = None
     # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -224,9 +223,9 @@ def convertPyTree2FilePartial(t, fileName, comm, Filter, ParallelHDF=False,
       comm.barrier()
     # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-  else:  # > Si MPI Mode Off (HDF Not Parallel)
+  else:  # > Si MPI Mode ON (HDF Parallel)
     # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-    # > Write Tree Data execpt Data in Filter
+    # > Write Tree Data except Data in Filter
     SkeletonTree = Internal.copyRef(t)
     for path in Filter:
       Node = Internal.getNodeFromPath(SkeletonTree, path)
@@ -243,7 +242,7 @@ def convertPyTree2FilePartial(t, fileName, comm, Filter, ParallelHDF=False,
 
     # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     # > Write data in filter in file (With creation of DataSpace )
-    skeletonData = None  # Skeleton Data is inefective (Normaly)
+    skeletonData = None  # SkeletonData is ineffective (Normaly)
     Converter.converter.convertPyTree2FilePartial(t, fileName, format, skeletonData, comm, Filter)
     # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 

@@ -99,14 +99,14 @@ class ngon_unit
       E_Int sz0 = _facet.size();
 
       E_Int nb_tot_child = 0;
-      for (size_t i = 0; i < n; ++i)nb_tot_child += pregnant[i];
+      for (E_Int i = 0; i < n; ++i) nb_tot_child += pregnant[i];
       
       E_Int pos = _NGON.size();
       _NGON.resize(pos + nb_tot_child + n, E_IDX_NONE); 
       _facet.resize(sz0 + nb_tot_child);
 
       //put the nb_facets
-      for (size_t i = 0; i < n; ++i)
+      for (E_Int i = 0; i < n; ++i)
       {
         _NGON[pos] = pregnant[i];
         pos += pregnant[i] + 1;

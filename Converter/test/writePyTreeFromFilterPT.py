@@ -13,11 +13,12 @@ C.convertPyTree2File(t, 'out.hdf')
 # Prend une subzone et la remplace dans le fichier
 t = C.newPyTree(['Base'])
 b = T.subzone(a, (2,2,2), (5,5,5)); b[0] = 'cart'
+C._initVars(b, 'CoordinateX', 1.)
 t[2][1][2] += [b]
 
 DataSpaceMMRY = [[0,0,0], [1,1,1], [4,4,4], [1,1,1]]
 DataSpaceFILE = [[2,2,2], [1,1,1], [4,4,4], [1,1,1]]
-DataSpaceGLOB = [[0]]
+DataSpaceGLOB = [[10,10,10]]
 
 f = {}
 f['/Base/cart/GridCoordinates/CoordinateX'] = DataSpaceMMRY+DataSpaceFILE+DataSpaceGLOB

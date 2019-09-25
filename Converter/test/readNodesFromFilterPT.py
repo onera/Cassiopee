@@ -17,7 +17,7 @@ path = ['/Base/cart/GridCoordinates/CoordinateX',
 # Read 2x2x2 data from file, starting from 1,1,1
 DataSpaceMMRY = [[0,0,0], [1,1,1], [2,2,2], [1,1,1]]
 DataSpaceFILE = [[1,1,1], [1,1,1], [2,2,2], [1,1,1]]
-DataSpaceGLOB = [[0]]
+DataSpaceGLOB = [[10,10,10]]
 
 f = {}
 f[path[0]] = DataSpaceMMRY+DataSpaceFILE+DataSpaceGLOB

@@ -3914,7 +3914,7 @@ class GraphTK(TK.Toplevel):
             newaxis = self.fig.getAxis(iCurSubGraph,ind=newind)
             newaxis.ind = newind
             return newaxis
-        elif ((shared == 'y') or (shared == 'Y')):
+        elif (shared == 'y') or (shared == 'Y'):
             self.fig.subGraph[iCurSubGraph].addAxisTwinY(axis_to_twin)
             newind = len(self.fig.subGraph[iCurSubGraph].axis)-1
             newaxis = self.fig.getAxis(iCurSubGraph,ind=newind)

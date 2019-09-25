@@ -456,7 +456,7 @@ def fixFileString__(files, initFile=None):
       system = platform.uname()[0]
     except: system = 'unix'
 
-    if isinstance(files, unicode): # windows old bug (single unicode)
+    if version_info[0] == 2 and isinstance(files, unicode): # windows old bug (single unicode)
         import sys
         encoding = sys.getfilesystemencoding()
         # try to find { and }

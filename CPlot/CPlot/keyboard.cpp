@@ -210,13 +210,13 @@ void Data::keyboard(unsigned char key, int x, int y)
       {
         case 3:
           ptrState->dim = 2;
-	  freeGPUResources( -1, 0, _numberOfZones-1, 0 );
+          freeGPUResources( -1, 0, _numberOfZones-1, 0 );
           roll3Dto2D();
           break;
 
         case 2:
           ptrState->dim = 3;
-	  freeGPUResources( -1, 0, _numberOfZones-1, 0 );
+          freeGPUResources( -1, 0, _numberOfZones-1, 0 );
           roll2Dto3D();
           break;
           
@@ -238,13 +238,13 @@ void Data::keyboard(unsigned char key, int x, int y)
 
         case 2:
           ptrState->dim = 3;
-	  freeGPUResources( -1, 0, _numberOfZones-1, 0 );
+          freeGPUResources( -1, 0, _numberOfZones-1, 0 );
           roll2Dto3D();
           break;
           
         case 3:
           ptrState->dim = 2;
-	  freeGPUResources( -1, 0, _numberOfZones-1, 0 );
+          freeGPUResources( -1, 0, _numberOfZones-1, 0 );
           roll3Dto2D();
           break;
       }
@@ -667,9 +667,28 @@ void Data::moveRight(double alpha, double dx, double dy, double dz, double d,
 {
   if (ptrState->dim == 3)
   {
+    /*
     _view.xcam = _view.xcam + dy*dirz - dz*diry;
     _view.ycam = _view.ycam - dx*dirz + dz*dirx;
-    _view.zcam = _view.zcam + dx*diry - dy*dirx; 
+    _view.zcam = _view.zcam + dx*diry - dy*dirx;
+    */
+    double P1x,P1y,P1z,P1ex,P1ey,P1ez,P0ex,P0ey,P0ez,nP1e,nP0e,k;
+    P1x = _view.xcam + dy*dirz - dz*diry;
+    P1y = _view.ycam - dx*dirz + dz*dirx;
+    P1z = _view.zcam + dx*diry - dy*dirx;
+    P1ex = P1x - _view.xeye;
+    P1ey = P1y - _view.yeye;
+    P1ez = P1z - _view.zeye;
+    P0ex = _view.xcam - _view.xeye;
+    P0ey = _view.ycam - _view.yeye;
+    P0ez = _view.zcam - _view.zeye;
+    nP1e = P1ex*P1ex+P1ey*P1ey+P1ez*P1ez;
+    nP0e = P0ex*P0ex+P0ey*P0ey+P0ez*P0ez;
+    if (nP1e > 1.e-10) k = sqrt(nP0e / nP1e);
+    else k = 0.;
+    _view.xcam = _view.xeye + k*P1ex;
+    _view.ycam = _view.yeye + k*P1ey;
+    _view.zcam = _view.zeye + k*P1ez;
   }
   else if (ptrState->dim == 2)
   {
@@ -878,9 +897,28 @@ void Data::moveLeft(double alpha, double dx, double dy, double dz, double d,
 {
   if (ptrState->dim == 3)
   {
+    /*
     _view.xcam = _view.xcam - dy*dirz + dz*diry;
     _view.ycam = _view.ycam + dx*dirz - dz*dirx;
     _view.zcam = _view.zcam - dx*diry + dy*dirx;
+    */
+    double P1x,P1y,P1z,P1ex,P1ey,P1ez,P0ex,P0ey,P0ez,nP1e,nP0e,k;
+    P1x = _view.xcam - dy*dirz + dz*diry;
+    P1y = _view.ycam + dx*dirz - dz*dirx;
+    P1z = _view.zcam - dx*diry + dy*dirx;
+    P1ex = P1x - _view.xeye;
+    P1ey = P1y - _view.yeye;
+    P1ez = P1z - _view.zeye;
+    P0ex = _view.xcam - _view.xeye;
+    P0ey = _view.ycam - _view.yeye;
+    P0ez = _view.zcam - _view.zeye;
+    nP1e = P1ex*P1ex+P1ey*P1ey+P1ez*P1ez;
+    nP0e = P0ex*P0ex+P0ey*P0ey+P0ez*P0ez;
+    if (nP1e > 1.e-10) k = sqrt(nP0e / nP1e);
+    else k = 0.;
+    _view.xcam = _view.xeye + k*P1ex;
+    _view.ycam = _view.yeye + k*P1ey;
+    _view.zcam = _view.zeye + k*P1ez;
   }
   else if (ptrState->dim == 2)
   {

@@ -871,7 +871,8 @@ def renderSelect(event=None):
 
 def setColorVar(l):
     if l == 'Custom>':
-        import tkColorChooser
+        try: import tkColorChooser
+        except: import tkinter.colorchooser as tkColorChooser
         ret = tkColorChooser.askcolor()
         l = ret[1]
     VARS[1].set(l); setColor()

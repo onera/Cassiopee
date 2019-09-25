@@ -123,15 +123,15 @@ def createApp(win):
     B.grid(row=0, column=1, sticky=TK.EW)
     F.grid(row=0, column=0, sticky=TK.EW)
     
-    B = TTK.Button(Frame, text="Add billboard", command=addBillboardFile)
+    B = TTK.Button(Frame, text="Add as billboard", command=addBillboardFile)
     B.grid(row=1, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B,
                        text='Add file name as billboard file to be referenced\n in Sphere material of tkRenderSet.')
-    B = TTK.Button(Frame, text="Add Texture", command=addTextureFile)
+    B = TTK.Button(Frame, text="Add as Texture", command=addTextureFile)
     B.grid(row=2, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B,
                        text='Add file name as texture file to be referenced\n in Texmat material of tkRenderSet..')
-    B = TTK.Button(Frame, text="Add BumpMap", command=addBumpMapFile)
+    B = TTK.Button(Frame, text="Add as BumpMap", command=addBumpMapFile)
     B.grid(row=3, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B,
                        text='Add file name as bumpmap file to be referenced\n in Texmat material of tkRenderSet..')
@@ -158,7 +158,7 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
 
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
     if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]

@@ -19,7 +19,8 @@ MATERIALS = ['Solid', 'Flat', 'Glass', 'Chrome',
 # Appele quand une couleur est selectionnee (optionMenu)
 def setColorVar(l):
     if l == 'Custom>':
-        import tkColorChooser
+        try: import tkColorChooser
+        except: import tkinter.colorchooser as tkColorChooser
         ret = tkColorChooser.askcolor()
         l = ret[1]
     VARS[1].set(l)
@@ -29,7 +30,8 @@ def setColorVar(l):
 def setColorVar2(event=None):
     l = VARS[1].get()
     if l == 'Custom>':
-        import tkColorChooser
+        try: import tkColorChooser
+        except: import tkinter.colorchooser as tkColorChooser
         ret = tkColorChooser.askcolor()
         l = ret[1]
         VARS[1].set(l)

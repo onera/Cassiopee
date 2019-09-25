@@ -193,12 +193,12 @@ PyObject* K_CONVERTER::convertPyTree2FilePartial(PyObject* self, PyObject* args)
   PyObject* skeletonData;
   if (!PyArg_ParseTuple(args, "OssOOO", &t, &fileName, &format, &skeletonData, &mpi4pyObj, &Filter)) return NULL;
 
-  printf("Writing %s (%s)...", fileName, format);
-  fflush(stdout); 
+  //printf("Writing %s (%s)...", fileName, format);
+  //fflush(stdout); 
 
   if (skeletonData != Py_None) {skeleton = 0;}
   else {skeleton = 1;}
-
+  
 #ifdef _MPI
   void* pt_comm;
   pt_comm = (void*)&(((PyMPICommObject*)mpi4pyObj)->ob_mpi);
@@ -209,8 +209,11 @@ PyObject* K_CONVERTER::convertPyTree2FilePartial(PyObject* self, PyObject* args)
   // printf("Converter:: Rank   : %d \n", nRank );
   // printf("Converter:: myRank : %d \n", myRank);
 
-  /** Dans le cas MPI on cree les dataSpaces en parallele - Pas besoin de Skelette **/
+  // CB: Je conserve l'option skeleton si compile avec MPI mais sans HDF parallele
+#if defined(H5_HAVE_PARALLEL)
+  /** Dans le cas MPI+HDF parallele, on cree les dataSpaces en parallele - Pas besoin de Skelette **/
   skeleton = 0;
+#endif
   K_IO::GenIO::getInstance()->hdfcgnsWritePathsPartial(fileName, t, Filter, skeleton, &comm);
 
 #else

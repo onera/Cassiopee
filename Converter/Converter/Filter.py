@@ -413,9 +413,8 @@ def loadAndSplit(fileName, NParts=None, noz=None, NProc=None, rank=None, variabl
   # distribute skeleton
   import Distributor2.PyTree as D2   
   D2._distribute(a, NProc)
-  # a finir
 
-  zones = Internal.getZones(b)
+  zones = Internal.getZones(a)
   if rank is not None:
     import Distributor2.PyTree as D2   
     D2._distribute(b, NProc)
@@ -459,7 +458,7 @@ def loadAndSplit(fileName, NParts=None, noz=None, NProc=None, rank=None, variabl
     
     DataSpaceMMRY = [[0,0,0], [1,1,1], [ni,nj,nk], [1,1,1]]
     DataSpaceFILE = [[j[1]-1,j[3]-1,j[5]-1], [1,1,1], [ni,nj,nk], [1,1,1]]
-    DataSpaceGLOB = [[0]]
+    DataSpaceGLOB = [[ni,nj,nk]]
     
     for p in path:
       f[p] = DataSpaceMMRY+DataSpaceFILE+DataSpaceGLOB
@@ -474,7 +473,7 @@ def loadAndSplit(fileName, NParts=None, noz=None, NProc=None, rank=None, variabl
     
     DataSpaceMMRY = [[0,0,0], [1,1,1], [ni1,nj1,nk1], [1,1,1]]
     DataSpaceFILE = [[j[1]-1,j[3]-1,j[5]-1], [1,1,1], [ni1,nj1,nk1], [1,1,1]]
-    DataSpaceGLOB = [[0]]
+    DataSpaceGLOB = [[ni1,nj1,nk1]]
 
     for p in path:
       f[p] = DataSpaceMMRY+DataSpaceFILE+DataSpaceGLOB
@@ -657,19 +656,29 @@ class Handle:
   # Charge le squelette, le split et conserve les infos de split
   def loadAndSplitSkeleton(self, NParts=None, NProc=None):
     """Load and split skeleton."""
-    a = self.loadSkeleton()    
+    a = self.loadSkeleton()
     import Transform.PyTree as T
     # split on skeleton
-    if NParts is not None:
-      T._splitNParts(a, N=NParts)
-    else:
-      T._splitNParts(a, N=NProc)
+    if NParts is not None: T._splitNParts(a, N=NParts)
+    else: T._splitNParts(a, N=NProc)
 
     if NProc is not None:
       import Distributor2.PyTree as D2   
       D2._distribute(a, NProc)
     return a
 
+  def loadAndSplit(self, NParts=None, NProc=None):
+    """Load and split a file."""
+    a = self.loadAndSplitSkeleton(NParts, NProc)
+    varsN = ['%s/CoordinateX'%Internal.__GridCoordinates__,
+             '%s/CoordinateY'%Internal.__GridCoordinates__,
+             '%s/CoordinateZ'%Internal.__GridCoordinates__]
+    #varsN += self.getVariables(cont=Internal.__FlowSolutionNodes__)
+    #varsC = self.getVariables(cont=Internal.__FlowSolutionCenters__)
+    varsC = []
+    self._loadContainerPartial(a, variablesN=varsN, variablesC=varsC)
+    return a
+    
   # Calcul et stocke des infos geometriques sur les zones
   def geomProp(self, znp=None):
     """Store some zone properties."""
