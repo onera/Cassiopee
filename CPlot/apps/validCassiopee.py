@@ -344,8 +344,9 @@ def runSingleUnitaryTest(no, module, test):
 
     m1 = expTest1.search(test) # seq ou distribue
 
-    if sys.version_info[0] == 3: pythonExec = 'python3'
-    else: pythonExec = 'python'
+    #if sys.version_info[0] == 3: pythonExec = 'python3'
+    #else: pythonExec = 'python'
+    pythonExec = os.getenv('PYTHONEXE', 'python')
 
     if mySystem == 'mingw' or mySystem == 'windows':
         # Commande Dos (sans time)
@@ -449,9 +450,13 @@ def runSingleCFDTest(no, module, test):
     try:
         if mySystem == 'mingw' or mySystem == 'windows':
             output1 = check_output(cmd2, shell=True, stderr=subprocess.STDOUT)
+            output1 = output1.decode()
         output = check_output(cmd, shell=True, stderr=subprocess.STDOUT)
+        output = output.decode()
         if mySystem == 'mingw' or mySystem == 'windows':
             output2 = check_output(cmd2, shell=True, stderr=subprocess.STDOUT)
+            output2 = output2.decode()
+        
         print(output)
 
         # Recupere success/failed

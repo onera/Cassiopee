@@ -47,7 +47,7 @@ static struct PyModuleDef moduledef = {
         "occ",
         NULL,
         sizeof(struct module_state),
-        Pyconverter,
+        Pyocc,
         NULL,
         myextension_traverse,
         myextension_clear,

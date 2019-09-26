@@ -1184,7 +1184,7 @@ def _addNeighbours__(t, sameBase=0):
                 if FDD != []:
                     listVal="";domsDD=""
                     if isinstance(gc[k][1], numpy.ndarray):
-                        val = gc[k][1].tostring()
+                        val = gc[k][1].tostring().decode()
                         listVal = val.split(",")
                     for vi in range(len(listVal)):
                         nvi = (Internal.getNodesFromName(t,listVal[vi]))[0]
@@ -1279,9 +1279,8 @@ def buildBCOverlap(t):
                   if prange != []: # corresponds to a BCOverlap
                       gct = Internal.getNodesFromType3(gc[k],'GridConnectivityType_t')
                       for o in gct:
-                          if o != []: val=o[1]
-                          if isinstance(val, numpy.ndarray):
-                              val = val.tostring()
+                          val = Internal.getValue(o)
+                          
                           if val == 'Overset':
                               # Recuperation des donnees necessaires a la creation d'un noeud ZoneBC_t
                               #   range
@@ -1339,7 +1338,7 @@ def addBaseToDonorZone__(t):
             sname = s[0]
             if sname.split('_')[0] == 'ID': interpSubRegions.append(s)
         for s in interpSubRegions:
-            donorname = s[1].tostring()
+            donorname = s[1].tostring().decode()
             donorzone = Internal.getNodeFromName(tp, donorname)
             base,pos = Internal.getParentOfNode(tp, donorzone)
             s[1] = numpy.fromstring(base[0]+"/"+donorname,'c')
@@ -1358,7 +1357,7 @@ def removeExtraFamily__(t, listOfNodes):
             familyName = families[j][0]
             path="%s/%s"%(baseName,familyName)
             # Checking if the family is not needed  if it is a default family with just a familyBC_t node of type UserDefined
-            if path not in listOfNodes and len(families[j][2]) == 1 and families[j][2][0][2] == [] and families[j][2][0][1].tostring() == 'UserDefined':
+            if path not in listOfNodes and len(families[j][2]) == 1 and families[j][2][0][2] == [] and families[j][2][0][1].tostring().decode() == 'UserDefined':
                 Internal._rmNode(tp,families[j])
                 toDelete.append(path)
 
@@ -1370,13 +1369,13 @@ def removeExtraFamily__(t, listOfNodes):
             for k in range(len(familyNameNodes)):
                 familyName = familyNameNodes[k][1]
                 if type(familyName) == 'numpy.ndarray':
-                    familyName = familyName.tostring()
+                    familyName = familyName.tostring().decode()
                 familyPath = "%s/%s"%(baseName,familyName)
                 if familyPath in toDelete:
                     Internal._rmNode(tp, familyNameNodes[k])
 
             for k in range(len(additionalFamilyNameNodes)):
-                familyName = additionalFamilyNameNodes[k][1].tostring()
+                familyName = additionalFamilyNameNodes[k][1].tostring().decode()
                 familyPath = "%s/%s"%(baseName,familyName)
                 if familyPath in toDelete:
                     Internal._rmNode(tp, additionalFamilyNameNodes[k])
@@ -1423,7 +1422,7 @@ def addMergedFamily__(t, equivalenceNodes):
                 NeighbourList = Internal.getNodesFromName(Ovlp[k], 'NeighbourList')
                 nl =  NeighbourList[0][1]
                 if nl is not None:# can be None for doubly defined BCs
-                    nl = nl.tostring().split()
+                    nl = nl.tostring().decode().split()
                     for e in sorted(equivalenceNodes.keys()):
                         if equivalenceNodes[e] <= set(nl):
                             familyNodes = Internal.getNodesFromName(bases[i],e)
@@ -1442,7 +1441,7 @@ def addMergedFamily__(t, equivalenceNodes):
             for k in range(len(familyNameNodes)):
                 familyName = familyNameNodes[k][1]
                 if type(familyName) == 'numpy.ndarray':
-                    familyName = familyName.tostring()
+                    familyName = familyName.tostring().decode()
                 familyPath = "%s/%s"%(baseName,familyName)
                 for e in sorted(equivalenceNodes.keys()):
                     if familyPath in equivalenceNodes[e]:
@@ -1450,7 +1449,7 @@ def addMergedFamily__(t, equivalenceNodes):
 
             # Updating AdditionalFamilyName_t for Zone_t
             for k in range(len(additionalFamilyNameNodes)):
-                familyName = additionalFamilyNameNodes[k][1].tostring()
+                familyName = additionalFamilyNameNodes[k][1].tostring().decode()
                 familyPath = "%s/%s"%(baseName,familyName)
                 for e in sorted(equivalenceNodes.keys()):
                     if familyPath in equivalenceNodes[e]:
@@ -1461,10 +1460,10 @@ def addMergedFamily__(t, equivalenceNodes):
             for k in range(len(zonebcs)):
                 bcs = Internal.getNodesFromType1(zonebcs[k], 'BC_t')
                 for l in range(len(bcs)):
-                    if bcs[l][1].tostring() == 'FamilySpecified':
+                    if bcs[l][1].tostring().decode() == 'FamilySpecified':
                         familyNameNodes = Internal.getNodesFromType1(bcs[l], 'FamilyName_t')
                         additionalFamilyNameNodes = Internal.getNodesFromType1(bcs[l], 'AdditionalFamilyName_t')
-                        familyName = familyNameNodes[0][1].tostring()
+                        familyName = familyNameNodes[0][1].tostring().decode()
                         familyPath = "%s/%s"%(baseName,familyName)
                         for e in sorted(equivalenceNodes.keys()):
                             if familyPath in equivalenceNodes[e]:
@@ -1472,7 +1471,7 @@ def addMergedFamily__(t, equivalenceNodes):
 
                         # Updating AdditionalFamilyName_t for Zone_t
                         for k in range(len(additionalFamilyNameNodes)):
-                            familyName = additionalFamilyNameNodes[k][1].tostring()
+                            familyName = additionalFamilyNameNodes[k][1].tostring().decode()
                             familyPath = "%s/%s"%(baseName,familyName)
                             for e in sorted(equivalenceNodes.keys()):
                                 if familyPath in equivalenceNodes[e]:
@@ -1499,7 +1498,7 @@ def buildGraph__(t):
                 NeighbourList = Internal.getNodesFromName(Ovlp[k], 'NeighbourList')
                 nl = NeighbourList[0][1]
                 if nl is not None: # can be None for doubly defined BCs
-                    nl = nl.tostring().split()
+                    nl = nl.tostring().decode().split()
                     g[path].update(nl)
                     for elt in nl:
                         if elt not in g: g[elt] = set()

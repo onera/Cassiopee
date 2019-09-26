@@ -275,7 +275,7 @@ def checkNode__(node, parent, errors):
             # si node[1] est une string -> strip
             if isinstance(node[1], str): node[1] = node[1].strip()
             if isinstance(node[1], numpy.ndarray) and (node[1].dtype.kind == 'S' or node[1].dtype.kind == 'a'):
-                val = node[1].tostring(); val = val.strip()
+                val = node[1].tostring().decode(); val = val.strip()
                 node[1] = numpy.fromstring(val, 'c')
             
             # node[0] (nom) est un string ou None
@@ -601,7 +601,7 @@ def checkOppositRanges(t, ntype):
                 mtype = Internal.getNodeFromName1(n, 'GridConnectivityType')
                 if mtype is not None:
                     mtype = mtype[1]
-                    if isinstance(mtype, numpy.ndarray): mtype = mtype.tostring()
+                    if isinstance(mtype, numpy.ndarray): mtype = mtype.tostring().decode()
                 else: mtype = 'Match'
                 zdonorname = Internal.getValue(n)
                 zdonor = Internal.getNodesFromName2(t, zdonorname)
@@ -628,11 +628,11 @@ def checkOppositRanges(t, ntype):
                                 mtypeopp = Internal.getNodeFromName1(nopp, 'GridConnectivityType')
                                 if mtypeopp is not None:
                                     mtypeopp = mtypeopp[1]
-                                    if isinstance(mtypeopp, numpy.ndarray): mtypeopp = mtypeopp.tostring()
+                                    if isinstance(mtypeopp, numpy.ndarray): mtypeopp = mtypeopp.tostring().decode()
                                 else: mtypeopp = 'Match'
                                 zoppdonorname = nopp[1]
                                 if isinstance(zoppdonorname, numpy.ndarray): 
-                                    zoppdonorname = zoppdonorname.tostring()
+                                    zoppdonorname = zoppdonorname.tostring().decode()
                                 if zoppdonorname == zname and mtype == mtypeopp:
                                     # current zone
                                     rangez = Internal.range2Window(prange[0][1]) 

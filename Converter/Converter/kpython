@@ -9,8 +9,8 @@ then
     exit 1
 fi
 
-if [ "$PYTHONEXE" != "" ]; then
-    alias python=$PYTHONEXE
+if [ "$PYTHONEXE" = "" ]; then
+    PYTHONEXE=python
 fi
 
 # OMP_NUM_THREADS init
@@ -69,7 +69,7 @@ if test $NPROCS -eq 0
 then
     export MPIRUN=0
     export OMP_NUM_THREADS=$NTHREADS
-    python $SCRIPT
+    $PYTHONEXE $SCRIPT
     export OMP_NUM_THREADS=$OMPNUMTHREADSINIT
     unset MPIRUN
 else
@@ -79,9 +79,9 @@ else
     then
         set -x
         # openMpi
-        #mpirun $ARGS -x OMP_NUM_THREADS=$NTHREADS -np $NPROCS python $SCRIPT $NPROCS
+        #mpirun $ARGS -x OMP_NUM_THREADS=$NTHREADS -np $NPROCS $PYTHONEXE $SCRIPT $NPROCS
         # intelMpi
-        mpirun $ARGS -n $NPROCS -genv OMP_NUM_THREADS=$NTHREADS -l python $SCRIPT $NPROCS
+        mpirun $ARGS -n $NPROCS -genv OMP_NUM_THREADS=$NTHREADS -l $PYTHONEXE $SCRIPT $NPROCS
         set +x
     elif [ $ELSAPROD == 'aus_r8' ] # austri
     then
@@ -93,29 +93,29 @@ else
     then
         set -x
         # intelMpi
-        mpirun $ARGS -n $NPROCS -genv OMP_NUM_THREADS=$NTHREADS -l python $SCRIPT $NPROCS
+        mpirun $ARGS -n $NPROCS -genv OMP_NUM_THREADS=$NTHREADS -l $PYTHONEXE $SCRIPT $NPROCS
         set +x
     elif [ $ELSAPROD == 'stv_r8' ] # stelvio
     then
         set -x
         # intelMpi
-        mptrun $ARGS -omp $NTHREADS -np $NPROCS python $SCRIPT $NPROCS
+        mptrun $ARGS -omp $NTHREADS -np $NPROCS $PYTHONEXE $SCRIPT $NPROCS
         set +x
     elif [ $ELSAPROD == 'msys64' ] # MSYS 2 With Win64 production
     then
         set -x
 	# MSMPI
-	mpiexec $ARGS -np $NPROCS python $SCRIPT $NPROCS
+	mpiexec $ARGS -np $NPROCS $PYTHONEXE $SCRIPT $NPROCS
         set +x
     elif [ $ELSAPROD == 'msys64p3' ] # MSYS 2 With Win64 production
     then
         set -x
 	# MSMPI
-	mpiexec $ARGS -np $NPROCS python $SCRIPT $NPROCS
+	mpiexec $ARGS -np $NPROCS $PYTHONEXE $SCRIPT $NPROCS
         set +x
     else
         set -x
-        mpirun $ARGS -np $NPROCS python $SCRIPT $NPROCS
+        mpirun $ARGS -np $NPROCS $PYTHONEXE $SCRIPT $NPROCS
         set +x
     fi
     unset MPIRUN

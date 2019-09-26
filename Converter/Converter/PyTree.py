@@ -979,7 +979,9 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
     print('Reading %s (bin_pickle)...'%fileName, end='')
     try:
       file = open(fileName, 'rb')
-      a = pickle.load(file)
+      oldData = False
+      if oldData: a = pickle.load(file, encoding='latin1')
+      else: a = pickle.load(file)
       file.close()
     except:
       raise TypeError("convertFile2PyTree: file %s can not be read."%fileName)

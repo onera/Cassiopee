@@ -8,6 +8,7 @@ __author__ = "Stephanie Peron, Christophe Benoit, Gaelle Jeanfaivre, Pascal Raud
 from . import transform
 try: import Converter 
 except: raise ImportError("Transform: requires Converter module.")
+import numpy
 
 try: range = xrange
 except: pass
@@ -1194,7 +1195,7 @@ def splitSizeUpR__(A, N, R, multigrid, dirs, minPtsPerDir):
         ncells = Converter.getNCells(a)
         if ncells > Nr:
             # Calcul le meilleur split
-            nc = int(round(Nr*1./njk,0))+1
+            nc = int(kround(Nr*1./njk))+1
             ns = findMGSplitUp__(ni, nc, level=multigrid)
             if ns-1 < mins: ns = 5
             delta1 = ns-1
@@ -1202,7 +1203,7 @@ def splitSizeUpR__(A, N, R, multigrid, dirs, minPtsPerDir):
             if delta2 < mins: delta2 -= 1.e6
             delta3 = abs((ns-1)*njk - Nr)/njk
             deltai = delta3-delta1-delta2
-            nc = int(round(Nr*1./nik,0))+1
+            nc = int(kround(Nr*1./nik))+1
             ns = findMGSplitUp__(nj, nc, level=multigrid)
             if ns-1 < mins: ns = 5
             delta1 = ns-1
@@ -1210,9 +1211,9 @@ def splitSizeUpR__(A, N, R, multigrid, dirs, minPtsPerDir):
             if delta2 < mins: delta2 -= 1.e6
             delta3 = abs(ni1*(ns-1)*nk1 - Nr)/nik
             deltaj = delta3-delta1-delta2
-            nc = int(round(Nr*1./nij,0))+1
+            nc = int(kround(Nr*1./nij))+1
             ns = findMGSplitUp__(nk, nc, level=multigrid)
-            if (ns-1 < mins): ns = 5
+            if ns-1 < mins: ns = 5
             delta1 = ns-1
             delta2 = nk-ns
             if delta2 < mins: delta2 -= 1.e6
@@ -1234,7 +1235,7 @@ def splitSizeUpR__(A, N, R, multigrid, dirs, minPtsPerDir):
 
             trynext = 1
             if dirl == 1:
-                nc = int(round(Nr*1./njk,0))+1
+                nc = int(kround(Nr*1./njk))+1
                 ns = findMGSplitUp__(ni, nc, level=multigrid)
                 if ns-1 >= mins and ni-ns >= mins:
                     a1 = subzone(a, (1,1,1), (ns,nj,nk))
@@ -1243,7 +1244,7 @@ def splitSizeUpR__(A, N, R, multigrid, dirs, minPtsPerDir):
                     out += [a1]; Rs[0] += Converter.getNCells(a1)
                     trynext = 0
             elif dirl == 2:
-                nc = int(round(Nr*1./nik,0))+1
+                nc = int(kround(Nr*1./nik))+1
                 ns = findMGSplitUp__(nj, nc, level=multigrid)
                 if ns-1 >= mins and nj-ns >= mins:
                     a1 = subzone(a, (1,1,1), (ni,ns,nk))
@@ -1252,7 +1253,7 @@ def splitSizeUpR__(A, N, R, multigrid, dirs, minPtsPerDir):
                     out += [a1]; Rs[0] += Converter.getNCells(a1)
                     trynext = 0
             elif dirl == 3:
-                nc = int(round(Nr*1./nij,0))+1
+                nc = int(kround(Nr*1./nij))+1
                 ns = findMGSplitUp__(nk, nc, level=multigrid)
                 if ns-1 >= mins and nk-ns >= mins:
                     a1 = subzone(a, (1,1,1), (ni,nj,ns))
@@ -1292,7 +1293,17 @@ def splitSize(array, N=0, multigrid=0, dirs=[1,2,3], type=0, R=None,
         if isinstance(array[0], list):
             return splitSizeUpR__(array, N, R, multigrid, dirs, minPtsPerDir)
         else: return splitSizeUpR__([array], N, R, multigrid, dirs)
-        
+
+# kround identique a round en python2
+def kround(r):
+    k = int(r)
+    if r >= 0:
+        if r-k >= 0.5: return k+1
+        else: return k
+    else:
+        if k-r >= 0.5: return k-1
+        else: return k
+
 #==============================================================================
 # find splits pour splitNParts
 # IN: ni,nj,nk de l'array a decouper
@@ -1309,10 +1320,8 @@ def findSplits__(ni, nj, nk, N, dirs, multigrid):
     out = []
     if ldir == 1: # pas le choix
         if dirs[0] == 1:
-            #ns = nig/N
-            ns = round(nig*1./N, 0); ns = int(ns)
-            r = (ni-N*ns*plev)/plev
-            #print ns, ni-(N-1)*ns*plev
+            ns = kround(nig*1./N); ns = int(ns)
+            r = (ni-N*ns*plev)//plev
             b1 = 1
             for j in range(N):
                 if r > 0: b2 = b1+plev*(ns+1); r -= 1
@@ -1323,8 +1332,8 @@ def findSplits__(ni, nj, nk, N, dirs, multigrid):
                 b1 = b2
   
         elif dirs[0] == 2: 
-            ns = round(njg/N, 0); ns = int(ns)
-            r = (nj-N*ns*plev)/plev
+            ns = kround(njg*1./N); ns = int(ns)
+            r = (nj-N*ns*plev)//plev
             b1 = 1
             for j in range(N):
                 if r > 0: b2 = b1+plev*(ns+1); r -= 1
@@ -1334,8 +1343,8 @@ def findSplits__(ni, nj, nk, N, dirs, multigrid):
                 out.append((1,ni,b1,b2,1,nk))
                 b1 = b2
         else: 
-            ns = round(nkg/N, 0); ns = int(ns)
-            r = (nk-N*ns*plev)/plev
+            ns = kround(nkg*1./N); ns = int(ns)
+            r = (nk-N*ns*plev)//plev
             b1 = 1
             for j in range(N):
                 if r > 0: b2 = b1+plev*(ns+1); r -= 1
@@ -1362,10 +1371,10 @@ def findSplits__(ni, nj, nk, N, dirs, multigrid):
                     if s > size: best = [N1,N2]; size = s
         N1 = best[0]; N2 = best[1]
         #ns1 = ng1/N1; ns2 = ng2/N2
-        ns1 = round(ng1*1./N1, 0); ns1 = int(ns1)
-        ns2 = round(ng2*1./N2, 0); ns2 = int(ns2)
-        r1 = (ni-N1*ns1*plev)/plev
-        r2 = (nj-N2*ns2*plev)/plev
+        ns1 = kround(ng1*1./N1); ns1 = int(ns1)
+        ns2 = kround(ng2*1./N2); ns2 = int(ns2)
+        r1 = (ni-N1*ns1*plev)//plev
+        r2 = (nj-N2*ns2*plev)//plev
         i1 = 1; i2 = ni
         j1 = 1; j2 = nj
         k1 = 1; k2 = nk
@@ -1384,7 +1393,7 @@ def findSplits__(ni, nj, nk, N, dirs, multigrid):
                 k1 = b1; k2 = b2     
                 if i == N1-1: k2 = nk
 
-            r2 = (ni-N2*ns2*plev)/plev
+            r2 = (ni-N2*ns2*plev)//plev
             c1 = 1
             for j in range(N2): # tous les splits en 2
                 if r2 > 0: c2 = c1+plev*(ns2+1); r2 -= 1
@@ -1404,41 +1413,41 @@ def findSplits__(ni, nj, nk, N, dirs, multigrid):
             b1 = b2
             
     else: # ldir == 3
-        ns1 = ni; bs1 = ni; ng1 = (ni-1)/plev+1
-        ns2 = nj; bs2 = nj; ng2 = (nj-1)/plev+1
-        ns3 = nk; bs3 = nk; ng3 = (nk-1)/plev+1
+        ns1 = ni; bs1 = ni; ng1 = (ni-1)//plev+1
+        ns2 = nj; bs2 = nj; ng2 = (nj-1)//plev+1
+        ns3 = nk; bs3 = nk; ng3 = (nk-1)//plev+1
         best = [1,1,1]
         size = -1
         for N1 in range(1,N+1):
             for N2 in range(1,N+1):
                 for N3 in range(1,N+1):
                     if N1*N2*N3 == N:          
-                        ns1 = ng1/N1; ns2 = ng2/N2; ns3 = ng3/N3
+                        ns1 = ng1//N1; ns2 = ng2//N2; ns3 = ng3//N3
                         s = min(ns1, ns2, ns3)
                         if s > size:
                             best = [N1,N2,N3]; size = s
                         elif s == size:
                             if N1 == best[0]: # discrimine suivant 2/3
                                 sl = min(ns2, ns3)
-                                sb = min(ng2/best[1], ng3/best[2])
+                                sb = min(ng2//best[1], ng3//best[2])
                                 if sl > sb: best = [N1,N2,N3]
                             elif N2 == best[1]: # discrimine suivant 1/3
                                 sl = min(ns1, ns3)
-                                sb = min(ng1/best[0], ng3/best[2])
+                                sb = min(ng1//best[0], ng3//best[2])
                                 if sl > sb: best = [N1,N2,N3]
                             else:  # discrimine suivant 1/2
                                 sl = min(ns1, ns2)
-                                sb = min(ng1/best[0], ng2/best[1])
+                                sb = min(ng1//best[0], ng2//best[1])
                                 if sl > sb: best = [N1,N2,N3]
 
         N1 = best[0]; N2 = best[1]; N3 = best[2]
         #ns1 = ng1/N1; ns2 = ng2/N2; ns3 = ng3/N3
-        ns1 = round(ng1*1./N1, 0); ns1 = int(ns1)
-        ns2 = round(ng2*1./N2, 0); ns2 = int(ns2)
-        ns3 = round(ng3*1./N3, 0); ns3 = int(ns3)
-        r1 = (ni-N1*ns1*plev)/plev
-        r2 = (nj-N2*ns2*plev)/plev
-        r3 = (nk-N3*ns3*plev)/plev
+        ns1 = kround(ng1*1./N1); ns1 = int(ns1)
+        ns2 = kround(ng2*1./N2); ns2 = int(ns2)
+        ns3 = kround(ng3*1./N3); ns3 = int(ns3)
+        r1 = (ni-N1*ns1*plev)//plev
+        r2 = (nj-N2*ns2*plev)//plev
+        r3 = (nk-N3*ns3*plev)//plev
         b1 = 1
         for i in range(N1): # tous les splits en i
             if r1 > 0: b2 = b1+plev*(ns1+1); r1 -= 1
@@ -1446,7 +1455,7 @@ def findSplits__(ni, nj, nk, N, dirs, multigrid):
             else: b2 = b1+plev*ns1
             i1 = b1; i2 = b2
             if i == N1-1: i2 = ni
-            r2 = (nj-N2*ns2*plev)/plev
+            r2 = (nj-N2*ns2*plev)//plev
             c1 = 1
             for j in range(N2): # tous les splits en j
                 if r2 > 0: c2 = c1+plev*(ns2+1); r2 -= 1
@@ -1454,7 +1463,7 @@ def findSplits__(ni, nj, nk, N, dirs, multigrid):
                 else: c2 = c1+plev*ns2
                 j1 = c1; j2 = c2
                 if j == N2-1: j2 = nj
-                r3 = (nk-N3*ns3*plev)/plev
+                r3 = (nk-N3*ns3*plev)//plev
                 d1 = 1
                 for k in range(N3): # tous les splits en k                    
                     if r3 > 0: d2 = d1+plev*(ns3+1); r3 -= 1
@@ -1484,7 +1493,7 @@ def findNsi__(l, N, Np):
     for i in range(l): Ns[i] = Np[i]*1. / Nm
     # Passage en entier
     for i in range(l):
-        val = round(Ns[i], 0)
+        val = kround(Ns[i])
         if val == 0: Ns[i] = 1
         else: Ns[i] = int(val)
         Er[i] = (Ns[i]*Nm - Np[i],i)

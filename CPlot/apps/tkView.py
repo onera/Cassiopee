@@ -330,11 +330,11 @@ def loadSlot():
     pos = Internal.getNodeFromName(slot, 'scalarField')
     if pos is not None:
         n = pos[1]
-        VARS[18].set(n.tostring())
+        VARS[18].set(n.tostring().decode())
     pos = Internal.getNodeFromName(slot, 'mode')
     if pos is not None:
         n = pos[1]
-        VARS[6].set(n.tostring())
+        VARS[6].set(n.tostring().decode())
         setMode()
     pos = Internal.getNodeFromName(slot, 'niso')
     if pos is not None:
@@ -353,7 +353,7 @@ def loadSlot():
     pos = Internal.getNodeFromName(slot, 'colormap')
     if pos is not None:
         n = pos[1]
-        VARS[4].set(n.tostring())
+        VARS[4].set(n.tostring().decode())
     setColormapLight()
     displayField()
     pos = Internal.getNodeFromName(slot, 'isoScales')

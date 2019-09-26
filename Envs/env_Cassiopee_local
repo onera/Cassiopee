@@ -71,7 +71,7 @@ if ($MAC == "ld_pgi") then
         setenv LD_LIBRARY_PATHL /usr/lib64:/home/benoit/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/pgi_r8/lib:/usr/lib64/openmpi/lib:/d/juvigny/Logiciels/linux86-64/2018/lib
         setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/pgi_r8:$CASSIOPEE/Dist/bin/pgi_r8/lib/python2.7/site-packages
 
-else if ($MAC == "ld_python3") then
+else if ($MAC == "ld") then
 #-------------------------- ld centos 7 + python 3 -----------------------------
         setenv ELSAPROD x86_r8
         # Modules
@@ -94,7 +94,7 @@ else if ($MAC == "ld_python3") then
         setenv LD_LIBRARY_PATHL /usr/lib64:/home/benoit/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
         setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.6/site-packages
         
-else if ($MAC == "ld") then
+else if ($MAC == "ld_python2") then
 #----------------------------- ld centos 7 -------------------------------------
         setenv ELSAPROD x86_r8
         # Modules

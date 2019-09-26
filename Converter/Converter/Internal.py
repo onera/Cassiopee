@@ -139,7 +139,7 @@ def isType(node, ntype):
 # IN: node: pyTree node
 def isName(node, name):
     """Return True if node has given name."""
-    if isinstance(name, numpy.ndarray): sname = name.tostring()
+    if isinstance(name, numpy.ndarray): sname = name.tostring().decode()
     else: sname = str(name)
     snode = node[0]
     if ('*' in sname)|('?' in sname)|('[' in sname): return fnmatch.fnmatch(snode, sname)
@@ -173,7 +173,7 @@ def isValue(node, value):
         nodeValue = getValue(node) 
         isNStrNode = isinstance(nodeValue, str)
         if not isNStrNode: return False        
-        if isNStrValue: value = value.tostring()
+        if isNStrValue: value = value.tostring().decode()
         if isByteValue: value = value.decode()
         # Comparison
         if ('*' in value)|('?' in value)|('[' in value): res = fnmatch.fnmatch(nodeValue, value)
@@ -285,8 +285,8 @@ def setName(node, name):
     """Set name in node."""
     if isinstance(name, str): node[0] = name
     elif isinstance(name, numpy.ndarray):
-        if name.dtype.char == 'S': node[0] = name.tostring()
-        elif name.dtype.char == 'c': node[0] = name.tostring()
+        if name.dtype.char == 'S': node[0] = name.tostring().decode()
+        elif name.dtype.char == 'c': node[0] = name.tostring().decode()
         else:
             raise TypeError("setName: name of node must be a string(%s)"%(name.__repr__()[:min(len(name.__repr__()),60)]))
     else: raise TypeError("setName: name of node must be a string(%s)"%(name.__repr__()[:min(len(name.__repr__()),60)]))
@@ -1577,7 +1577,8 @@ def getZonesPerIteration(t, iteration=None, time=None):
     if iteration is not None:
         zoneNames = []
         for nbz in range(nbOfZones[iteration]):
-            zoneName = zonePtrs[:, nbz, iteration].tostring().strip()
+            zoneName = zonePtrs[:, nbz, iteration]
+            zoneName = zoneName.tostring().decode().strip()
             zoneNames.append(zoneName)
         return [getNodeFromName2(t,z) for z in zoneNames]
 
@@ -1587,7 +1588,8 @@ def getZonesPerIteration(t, iteration=None, time=None):
         for i in range(nbOfZones.shape[0]):
             if time == timeValues[i]:
                 for nbz in range(nbOfZones[i]):
-                    zoneName = zonePtrs[:, nbz, i].tostring().strip()
+                    zoneName = zonePtrs[:, nbz, i]
+                    zoneName = zoneName.tostring().decode().strip()
                     zoneNames.append(zoneName)
         return [getNodeFromName2(t,z) for z in zoneNames]
 
@@ -1595,7 +1597,7 @@ def getZonesPerIteration(t, iteration=None, time=None):
     for i in range(nbOfZones.shape[0]):
         zones = []
         for nbz in range(nbOfZones[i]):
-            zoneName = zonePtrs[:, nbz, i].tostring().strip()
+            zoneName = zonePtrs[:, nbz, i].tostring().decode().strip()
             zones.append(getNodeFromName2(t,zoneName))
         zonesPerIteration.append(zones)
     return zonesPerIteration
@@ -2784,7 +2786,7 @@ def convertDataNode2Array(node, dim, connects, loc=-1):
         ar2[:] = ar
         ar = ar2
 
-    if isinstance(gtype, numpy.ndarray): gtype = gtype.tostring()
+    if isinstance(gtype, numpy.ndarray): gtype = gtype.tostring().decode()
     if gtype == 'Structured':
         ni = dim[1]; nj = dim[2]; nk = dim[3]
         ni1 = max(ni-1,1); nj1 = max(nj-1,1); nk1 = max(nk-1,1)
@@ -2836,7 +2838,7 @@ def convertDataNode2Array2(node, dim, connects, loc=-1):
         ar2[:] = ar
         ar = ar2
 
-    if isinstance(gtype, numpy.ndarray): gtype = gtype.tostring()
+    if isinstance(gtype, numpy.ndarray): gtype = gtype.tostring().decode()
     if gtype == 'Structured':
         ni = dim[1]; nj = dim[2]; nk = dim[3]
         ni1 = max(ni-1,1); nj1 = max(nj-1,1); nk1 = max(nk-1,1)

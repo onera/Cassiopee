@@ -171,7 +171,13 @@ def checkObject_(a, b, reference):
 # Verifie que l'objet python est identique a celui stocke dans le
 # fichier de reference
 #=============================================================================
-def testO(objet, number=1):    
+def testO(objet, number=1):
+
+    # perform some sort on dict to be predictible
+    if isinstance(objet, dict):
+        from collections import OrderedDict
+        objet = OrderedDict(sorted(objet.items(), key=lambda t: t[0]))
+
     # Check Data directory
     a = os.access('Data', os.F_OK)
     if not a:
@@ -202,7 +208,9 @@ def testO(objet, number=1):
         try: import cPickle as pickle
         except: import pickle
         file = open(reference, 'rb')
-        a = pickle.load(file)
+        oldData = False
+        if oldData: a = pickle.load(file, encoding='latin1')
+        else: a = pickle.load(file)
         file.close()
         print("Reading '"+reference+"'... done.")
         if isinstance(a, str) and a == 'Undumpable object': return True
@@ -278,7 +286,7 @@ def testO(objet, number=1):
             print("DIFF: object differs from "+reference+'.')
             return False
         else: return True
-        
+
 #=============================================================================
 # Verifie que les arbres t1 et t2 sont identiques
 # t1: courant; t2: reference

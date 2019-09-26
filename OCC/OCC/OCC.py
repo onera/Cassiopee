@@ -3,7 +3,7 @@
 __version__ = '3.0'
 __author__ = "Sam Landier"
 
-import occ
+from . import occ
 
 def convertIGES2Arrays(fileName, h=0., chordal_err=0., growth_ratio=0.):
     """Read file and create arrays containing file data.

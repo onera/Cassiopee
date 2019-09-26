@@ -521,7 +521,9 @@ def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
         print('Reading \''+fileName+'\'...'),
         try:
             file = open(fileName, 'rb')
-            a = pickle.load(file)
+            oldData = False
+            if oldData: a = pickle.load(file, encoding='latin1')
+            else: a = pickle.load(file)
             file.close()
         except:
             raise TypeError("convertFile2Arrays: file %s can not be read."%fileName)

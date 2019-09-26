@@ -647,7 +647,7 @@ def _addPeriodicInfo__(gcnodes,rotationCenter,rotationAngle,translation,signT,si
     for info in gcnodes:
         if len(info[1]) > 8:
             donorNamePref = info[1][0:7]; donorName = info[1][7:]
-            if isinstance(donorNamePref, numpy.ndarray): donorNamePref = donorNamePref.tostring()
+            if isinstance(donorNamePref, numpy.ndarray): donorNamePref = donorNamePref.tostring().decode()
             if donorNamePref == dupname: # cas periodique
                 info[1] = donorName
                 rotationAngleS=[v*signR for v in rotationAngle]
@@ -1820,9 +1820,9 @@ def setDoublyDefinedBC(t, depth=2):
                     if val == 'Overset':
                         userDef = Internal.getNodeFromName1(o, 'UserDefinedData')
                         if userDef is not None:
-                            if (len(userDef) == 4):
+                            if len(userDef) == 4:
                                 info = userDef[2][0]
-                                if (Internal.getName(info) == 'doubly_defined'):
+                                if Internal.getName(info) == 'doubly_defined':
                                     r = Internal.getNodeFromType1(o,'IndexRange_t')
                                     win = Internal.range2Window(Internal.getValue(r))
                                     # recuperation des zones donneuses : a  partir de o[1] ou d une famille
