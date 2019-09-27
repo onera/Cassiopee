@@ -941,6 +941,94 @@ PyObject* K_INTERSECTOR::reorientExternalFaces(PyObject* self, PyObject* args)
 }
 
 //=============================================================================
+/* reorient specified polygons. */
+//=============================================================================
+PyObject* K_INTERSECTOR::reorientSpecifiedFaces(PyObject* self, PyObject* args)
+{
+  PyObject *arr, *py_pgs;
+  E_Int dir(1); //1 : outward -1 : inward
+
+  if (!PYPARSETUPLEI(args, "OOl", "OOi", &arr, &py_pgs, &dir)) return NULL;
+
+  if (dir != -1 && dir != 1) dir = 1;
+
+  K_FLD::FloatArray* f(0);
+  K_FLD::IntArray* cn(0);
+  char* varString, *eltType;
+  // Check array # 1
+  E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
+  if (err) return NULL;
+    
+  K_FLD::FloatArray & crd = *f;
+  K_FLD::IntArray & cnt = *cn;
+
+  std::cout << "before numpy" << std::endl;
+
+  E_Int res=0;
+  E_Int* pgsList=NULL;
+  E_Int size, nfld;
+  if (py_pgs != Py_None)
+    res = K_NUMPY::getFromNumpyArray(py_pgs, pgsList, size, nfld, true/*shared*/, 0);
+
+  std::cout << "after numpy" << std::endl;
+
+  std::cout << res << std::endl;
+
+  if (res != 1) return NULL;
+  
+  //std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
+  //std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
+  
+  typedef ngon_t<K_FLD::IntArray> ngon_type;
+  
+  ngon_type ngio(cnt);
+
+  std::cout << "after ngio construct" << std::endl;
+
+  std::vector<E_Int> plist, oids;
+  plist.insert(plist.end(), pgsList, pgsList+size);
+
+  std::cout << "after insert" << std::endl;
+  //K_CONNECT::IdTool::shift(plist, -1);
+
+  std::cout << "min pg specified : " << *std::min_element(pgsList, pgsList+size) << std::endl;
+  std::cout << "max pg specified : " << *std::max_element(pgsList, pgsList+size) << std::endl;
+
+  ngon_unit pgs;
+  ngio.PGs.extract(plist, pgs, oids);
+
+  std::vector<E_Int> orient;
+  ngon_type::reorient_connex_PGs(pgs, (dir==-1), orient);
+
+  // replace reverted polygons
+  E_Int count(0);
+  E_Int nb_pgs = pgs.size();
+  for (E_Int i=0; i < nb_pgs; ++i)
+  {
+    if (orient[i] == 1) continue;
+
+    ++count;
+    
+    E_Int PGi = oids[i];
+
+    E_Int s = ngio.PGs.stride(PGi);
+    E_Int* p = ngio.PGs.get_facets_ptr(PGi);
+    std::reverse(p, p + s);
+  }
+
+  std::cout << "nb of reoriented : "  << count  << " over " << size << " in pglist"<< std::endl;
+    
+  K_FLD::IntArray cnto;
+  ngio.export_to_array(cnto);
+  
+  // pushing out the mesh
+  PyObject *tpl = K_ARRAY::buildArray(crd, varString, cnto, -1, eltType, false);   
+  
+  delete f; delete cn;
+  return tpl;
+}
+
+//=============================================================================
 /* XXX */
 //=============================================================================
 PyObject* K_INTERSECTOR::diffMesh(PyObject* self, PyObject* args)
@@ -1548,4 +1636,101 @@ PyObject* K_INTERSECTOR::getOverlappingFaces(PyObject* self, PyObject* args)
   return l;
 
 }
+
+//=============================================================================
+/* XXX */
+//=============================================================================
+PyObject* K_INTERSECTOR::merge(PyObject* self, PyObject* args)
+{
+
+  PyObject *arr1, *arr2;
+  E_Float tolerance(1.e-15);
+  if (!PYPARSETUPLEF(args, "OOd", "OOf", &arr1, &arr2, &tolerance)) return NULL;
+
+  char *varString, *eltType;
+  E_Int ni, nj, nk;
+  K_FLD::FloatArray *f1(0), *f2(0);
+  K_FLD::IntArray *cn1(0);
+  
+  E_Int res = K_ARRAY::getFromArray(arr1, varString, f1, ni, nj, nk, cn1, eltType);
+
+  // if (strcmp(eltType, "NODE") != 0)
+  // {
+  //   PyErr_SetString(PyExc_TypeError, "input error : invalid array, must be a NODE array.");
+  //   delete f1; delete cn1;
+  //   return nullptr;
+  // }
+
+  res = K_ARRAY::getFromArray(arr2, varString, f2, ni, nj, nk, cn1, eltType);
+
+  // if (strcmp(eltType, "NODE") != 0)
+  // {
+  //   PyErr_SetString(PyExc_TypeError, "input error : invalid array, must be a NODE array.");
+  //   delete f1, delete f2; delete cn1;
+  //   return nullptr;
+  // }
+ 
+  K_FLD::FloatArray crd = *f1;
+  crd.pushBack(*f2);
+
+  K_FLD::ArrayAccessor<K_FLD::FloatArray> ca(crd);
+  Vector_t<E_Int> nids;
+  E_Int nb_merges = ::merge(ca, tolerance, nids);
+
+  E_Int sz = f2->cols();
+  Vector_t<E_Int> nids_for_2(sz);
+  for (E_Int i=0; i < sz; ++i)
+  {
+    nids_for_2[i] = nids[i+sz];
+  }
+
+  PyObject*tpl = K_NUMPY::buildNumpyArray(&nids_for_2[0], sz, 1, 0);
+  delete f1, delete f2; delete cn1;
+
+  return tpl;
+}
+
+//=============================================================================
+/* XXX */
+//=============================================================================
+PyObject* K_INTERSECTOR::oneph(PyObject* self, PyObject* args)
+{
+  PyObject *arr;
+
+  if (!PyArg_ParseTuple(args, "O", &arr)) return NULL;
+
+  char *varString, *eltType;
+  E_Int ni, nj, nk;
+  K_FLD::FloatArray *f(0);
+  K_FLD::IntArray *cn(0);
+  
+  E_Int res = K_ARRAY::getFromArray(arr, varString, f, ni, nj, nk, cn, eltType);
+  if ( (strcmp(eltType, "TRI") != 0) && (strcmp(eltType, "QUAD") != 0) )
+  {
+    PyErr_SetString(PyExc_TypeError, "input error : invalid array, must be a TRI or QUAD array.");
+    delete f; delete cn;
+    return nullptr;
+  }
+
+  //K_FLD::FloatArray & crd = *f;
+  K_FLD::IntArray & cnt = *cn;
+  K_FLD::FloatArray& crd = *f;
+
+  ngon_unit pgs;
+  ngon_unit::convert_fixed_stride_to_ngon_unit(cnt, 1, pgs);
+ 
+  typedef ngon_t<K_FLD::IntArray> ngon_type;
+  
+  ngon_type ng(pgs, 1);
+  //ngon_type::clean_connectivity(ng, crd);
+
+  K_FLD::IntArray cnto;
+  ng.export_to_array(cnto);
+  
+  PyObject* tpl = K_ARRAY::buildArray(crd, varString, cnto, 8, "NGON", false);
+  
+  delete f; delete cn;
+  return tpl;
+}
+
 //=======================  Intersector/PolyMeshTools/utils.cpp ====================

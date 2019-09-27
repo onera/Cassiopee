@@ -25,6 +25,9 @@ class localizer
   public:
   
   localizer(Tree_t& tree, E_Float tolerance):_tree(&tree), _owner(false), _tolerance(tolerance){_tree->_tolerance = _tolerance;}
+
+  // tree owner version
+  localizer(Tree_t* tree, E_Float tolerance):_tree(tree), _owner(true), _tolerance(tolerance){_tree->_tolerance = _tolerance;}
   
   localizer(const acrd_t& coords, const acnt_t& connect, E_Float tolerance):_owner(true), _tolerance(tolerance){__create_tree(coords, connect);}
   

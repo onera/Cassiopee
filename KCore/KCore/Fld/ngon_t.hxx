@@ -213,7 +213,7 @@ struct ngon_t
   }
   
   // Converts a SURFACE formatted as Edges/PGs into a ngon_unit (PHs is cleared) representing the PGs
-  // WARNING : inconsistent orientation of the surface upon exit
+  // ORIENTATION IS PRESERVED IF POSSIBLE : consitent with the first PG
   E_Int export_surfacic_view(Connectivity_t& c)
   {
     c.clear();
@@ -243,24 +243,58 @@ struct ngon_t
       if (nb_edges < 3) continue; //degen
 
       const E_Int* pEs = polys.get_facets_ptr(i);
-      
-      cB.clear();
-      for (E_Int j=0; j < nb_edges; ++j)
+
+      bool edges_are_sorted = true;
+      snodes.clear();
+
+      for (E_Int j=0; (j<nb_edges-1) && edges_are_sorted; ++j) //assume first edge are sorted
       {
         E_Int Ej = pEs[j]-1;
-        const E_Int* pN = edges.get_facets_ptr(Ej);
-        cB.pushBack(pN, pN+2);
+        E_Int Ejp1 = pEs[j+1]-1;
+        const E_Int* pNj = edges.get_facets_ptr(Ej);
+        const E_Int* pNjp1 = edges.get_facets_ptr(Ejp1);
+
+        edges_are_sorted = (pNj[0] == pNjp1[0] || pNj[0] == pNjp1[1] || pNj[1] == pNjp1[0] || pNj[1] == pNjp1[1]); //consecutive edge sharing a node
+        if (!edges_are_sorted) break;
+
+        E_Int ej[] = {pNj[0], pNj[1]};
+        E_Int ejp1[] = {pNjp1[0], pNjp1[1]};
+
+        if (ej[0] == ejp1[0] || ej[0] == ejp1[1])
+          std::swap(ej[0], ej[1]);
+        else if (ej[1] == ejp1[1])
+          std::swap(ejp1[0], ejp1[1]);
+        
+        if (j==0)
+        {
+          snodes.push_back(ej[0]);
+          //std::cout << "s0 : " << pNj[0] << std::endl;
+        }
+
+        assert (ej[1] == ejp1[0]);
+        snodes.push_back(ej[1]);
+        //std::cout << "s1 : " << pNj[1] << std::endl;
+      }
+
+      if (!edges_are_sorted)
+      {
+        cB.clear();
+        for (E_Int j=0; j < nb_edges; ++j)
+        {
+          E_Int Ej = pEs[j]-1;
+          const E_Int* pN = edges.get_facets_ptr(Ej);
+          cB.pushBack(pN, pN+2);
+        }
+        // sort the nodes
+        BARSplitter::getSortedNodes(cB, snodes);
       }
       
       molec.clear();
       molec.push_back(nb_edges);// stride : nb_edges = nb nodes
       
-      // sort the nodes
-      BARSplitter::getSortedNodes(cB, snodes);
-      
       if (snodes.size() != (size_t)nb_edges) //degen
       {
-        //std::cout << cB << std::endl;
+        //std::cout << "degen : " << snodes.size() << "/" << nb_edges << std::endl;
         continue;
       }
       
@@ -275,6 +309,14 @@ struct ngon_t
     
     c[0]=nb_polys;
     c[1]=c.getSize()-2;
+
+    ngon_unit pgs(&c[0]);
+    reorient_connex_PGs(pgs, false/*i.e. trust first PG orientation*/);
+    
+    c.clear();
+    ngon_t<Connectivity_t> ngo(pgs, true);
+    ngo.export_to_array(c);
+
     
     return 0;
     
@@ -3300,6 +3342,27 @@ static E_Int reorient_connex_PGs(ngon_unit& PGs, bool reverse_first)
       std::reverse(p, p + s);
     }
   }
+  
+  return 0;
+}
+
+static E_Int reorient_connex_PGs(ngon_unit& PGs, bool reverse_first, Vector_t<E_Int>& orient)
+{
+  // WARNING : use the first Polygon as the reference. Caller can reverse it if required.
+   
+  std::cout << "passed list : " << PGs.size() << std::endl;
+  PGs.updateFacets();
+  
+  orient.clear(); 
+  orient.resize(PGs.size(), 1);
+  
+  if (reverse_first)
+    orient[0]=-1;
+  
+  ngon_unit neighbors;
+  K_MESH::Polygon::build_pg_neighborhood(PGs, neighbors);
+  
+  K_CONNECT::EltAlgo<K_MESH::Polygon>::reversi_connex(PGs, neighbors, 0/*reference PG*/, orient);
   
   return 0;
 }

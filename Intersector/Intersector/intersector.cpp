@@ -36,6 +36,7 @@ static PyMethodDef Pyintersector [] =
   {"booleanModifiedSolid", K_INTERSECTOR::booleanModifiedSolid, METH_VARARGS},
   {"DiffSurf", K_INTERSECTOR::DiffSurf, METH_VARARGS},
   {"XcellN", K_INTERSECTOR::XcellN, METH_VARARGS},
+  {"unify", K_INTERSECTOR::unify, METH_VARARGS},
   {"P1ConservativeChimeraCoeffs", K_INTERSECTOR::P1ConservativeChimeraCoeffs, METH_VARARGS},
   {"selfX", K_INTERSECTOR::selfX, METH_VARARGS},
   {"triangulateExteriorFaces", K_INTERSECTOR::triangulateExteriorFaces, METH_VARARGS},
@@ -84,12 +85,15 @@ static PyMethodDef Pyintersector [] =
   { "extrudeUserDefinedBC", K_INTERSECTOR::extrudeUserDefinedBC, METH_VARARGS },
 
   { "reorientExternalFaces", K_INTERSECTOR::reorientExternalFaces, METH_VARARGS },
+  { "reorientSpecifiedFaces", K_INTERSECTOR::reorientSpecifiedFaces, METH_VARARGS },
 
   { "convertNGON2DToNGON3D", K_INTERSECTOR::convertNGON2DToNGON3D, METH_VARARGS },
+  { "oneph", K_INTERSECTOR::oneph, METH_VARARGS },
 
   /////////// syncronizing the tree ///////////
   { "updatePointLists", K_INTERSECTOR::updatePointLists, METH_VARARGS },
   /////////////////////////////////////////////
+  { "merge", K_INTERSECTOR::merge, METH_VARARGS },
 
   {NULL, NULL}
 };

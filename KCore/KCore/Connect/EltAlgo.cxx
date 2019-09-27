@@ -315,6 +315,100 @@ K_CONNECT::EltAlgo<ElementType>::coloring (const ngon_unit& neighbors, int_vecto
   }
 }
 
+// color iff the fontier is of the same color
+template <typename ElementType>
+template<typename T>
+inline bool
+K_CONNECT::EltAlgo<ElementType>::coloring_one_connex_homogeneous (const ngon_unit& neighbors, std::vector<T>& colors, size_t Kseed, T UNSET_COL, T color, T FRONT_COL, T& bad_col)
+{
+  std::vector<T> colors_cpy(colors);//in case of invalid domain (i.e multiple color fronteer)
+  bool good_dom = true;
+  
+  int_vector_type cpool;
+  cpool.push_back(Kseed);
+  
+  K_FLD::IntArray neighs;
+  
+  while (!cpool.empty() && good_dom)
+  {
+    E_Int K = cpool.back();
+    cpool.pop_back();
+
+    if (colors[K] != UNSET_COL)
+      continue;
+
+    colors[K] = color;
+
+    E_Int sz = neighbors.stride(K);
+    neighs.reserve(1, sz);
+    neighbors.getEntry(K, neighs.begin());
+    E_Int* ptr = neighs.begin();
+    for (size_t i = 0; i < sz; ++i)
+    {
+      E_Int Kn = *(ptr++);
+      
+      if ( (Kn != E_IDX_NONE) && (colors[Kn] != UNSET_COL) && (colors[Kn] != color) && (colors[Kn] != FRONT_COL) )
+      {
+        good_dom = false; //other fronteer than the one expected (FRONT_COL)
+        bad_col = colors[Kn];
+        break;
+      }
+
+      if ((Kn != E_IDX_NONE) && (colors[Kn] == UNSET_COL)) // Not colored.
+        cpool.push_back(Kn);
+    }
+  }
+  if (!good_dom) //revert colors
+  {
+    colors = colors_cpy;
+  }
+  return good_dom;
+}
+
+// color a connex part surrounded by multiple color frontier
+template <typename ElementType>
+template<typename T>
+inline void
+K_CONNECT::EltAlgo<ElementType>::coloring_one_connex_heterogeneous (const ngon_unit& neighbors, std::vector<T>& colors, size_t Kseed, T UNSET_COL, T color)
+{
+  int_vector_type cpool;
+  cpool.push_back(Kseed);
+  
+  K_FLD::IntArray neighs;
+  
+  //std::set<E_Int> encountered_cols;
+
+  while (!cpool.empty())
+  {
+    E_Int K = cpool.back();
+    cpool.pop_back();
+    
+    //encountered_cols.insert(colors[K]);
+
+    if (colors[K] != UNSET_COL)
+      continue;
+
+    colors[K] = color;
+
+    E_Int sz = neighbors.stride(K);
+    neighs.reserve(1, sz);
+    neighbors.getEntry(K, neighs.begin());
+    E_Int* ptr = neighs.begin();
+    for (size_t i = 0; i < sz; ++i)
+    {
+      E_Int Kn = *(ptr++);
+
+      if ((Kn != E_IDX_NONE) && (colors[Kn] == UNSET_COL)) // Not colored.
+        cpool.push_back(Kn);
+      //encountered_cols.insert(colors[K]);
+    }
+  }
+  
+//  std::cout << "ENCOUNTERED COLORS : " ;
+//  for (auto i = encountered_cols.begin(); i != encountered_cols.end(); ++i) std::cout << *i << "/" ;
+//  std::cout << std::endl;
+}
+
 template <typename ElementType>
 template<typename T>
 inline void
@@ -322,10 +416,7 @@ K_CONNECT::EltAlgo<ElementType>::coloring (const ngon_unit& neighbors, std::vect
 {
   // WARNING : colors are not cleared and suppose that contains coloured elements.
 
-  size_t K, Kn, Kseed(0), sz, NB_ELTS(neighbors.size());
-  int_vector_type                  cpool;
-  K_FLD::IntArray neighs;
-  
+  size_t Kseed(0), NB_ELTS(neighbors.size());
   T color(FIRST_COL);
   
   assert (colors.size() >= NB_ELTS);
@@ -336,32 +427,7 @@ K_CONNECT::EltAlgo<ElementType>::coloring (const ngon_unit& neighbors, std::vect
     if (NB_ELTS-1 < Kseed)
       return;
     
-    cpool.push_back(Kseed);
-
-    while (!cpool.empty())
-    {
-      K = cpool.back();
-      cpool.pop_back();
-      
-      if (colors[K] != UNSET_COL)
-        continue;
-
-      colors[K] = color;
-
-      sz = neighbors.stride(K);
-      neighs.reserve(1, sz);
-      neighbors.getEntry(K, neighs.begin());
-      E_Int* ptr = neighs.begin();
-      for (size_t i = 0; i < sz; ++i)
-      {
-        Kn = *(ptr++);
-
-        if ((Kn != E_IDX_NONE) && (colors[Kn] == UNSET_COL)) // Not colored.
-          cpool.push_back(Kn);
-      }
-    }
-
-    ++color;
+    coloring_one_connex_heterogeneous (neighbors, colors, Kseed, UNSET_COL, color++);
   }
 }
 

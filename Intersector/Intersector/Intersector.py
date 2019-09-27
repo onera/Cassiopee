@@ -1,7 +1,7 @@
-"""Grid generation module.
+"""Intersections module.
 """
 __version__ = '3.0'
-__author__ = "Sam Landier, Christophe Benoit, Stephanie Peron, Luis Bernardos"
+__author__ = "Sam Landier"
 # 
 # Python Interface to create arrays defining meshes
 #
@@ -115,6 +115,13 @@ def XcellN(coords, cellnfields, maskingMesh, wall_pgl=[], ghost_pgl=[]):
     return cellnt
     
 #==============================================================================
+# unify
+# IN: coords: 3D structured or unstructured mesh
+# OUT: returns the cellnfields, 0 for fully inside, 1 for fully outside, in between when intersecting
+#==============================================================================
+def unify(coords, basenum, masks, priorities, walls = None):
+    return intersector.unify(coords, basenum, masks, priorities)
+#==============================================================================
 # P1ConservativeChimeraCoeffs
 # IN: aR: receiver mesh
 # IN: cellnR: receiver cellN (only cells with value equal to 2 will be considered)
@@ -158,6 +165,26 @@ def reorientExternalFaces(a):
     """Reorients outward the external polygons of a mesh.
     Usage: reorientExternalFaces(a)"""
     return intersector.reorientExternalFaces(a)
+
+#==============================================================================
+# reorientSpecifiedFaces
+# IN: 
+# OUT: 
+#==============================================================================
+def reorientSpecifiedFaces(a, pgs, dir):
+    """Reorients outward (dir = 1) or inward (dir=-1) the specified polygons of a mesh.
+    Usage: reorientExternalFaces(a)"""
+    return intersector.reorientSpecifiedFaces(a, pgs, dir)
+
+#==============================================================================
+# reorientBC
+# IN: 
+# OUT: 
+#==============================================================================
+def reorientBC(a, pgs, dir):
+    """Reorients outward (dir = 1) or inward (dir=-1) the specified polygons of a mesh.
+    Usage: reorientExternalFaces(a)"""
+    return intersector.reorientSpecifiedFaces(a, pgs, dir)
     
 #==============================================================================
 # convexifyFaces
@@ -407,6 +434,11 @@ def checkForDegenCells(a):
     return intersector.checkForDegenCells(a)
 
 #==============================================================================
+# oneph : XXX
+#==============================================================================
+def oneph(a):
+    return intersector.oneph(a)
+#==============================================================================
 # edgeLengthExtrema : returns min and max edge lengths
 #==============================================================================
 def edgeLengthExtrema(a):
@@ -483,3 +515,6 @@ def convertNGON2DToNGON3D(a):
     
 def centroids(a):
     return intersector.centroids(a)
+
+def merge(a, s, tol = 1.e-15): #target arr, source arr
+    return intersector.merge(a, s, tol)

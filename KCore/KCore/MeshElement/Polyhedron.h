@@ -1881,7 +1881,7 @@ static bool is_PR6(const ngon_unit& PGs, const E_Int* firstPG, E_Int nb_pgs)
  
 }
 
- void compact(const K_FLD::FloatArray& crdi, ngon_unit& pgs, K_FLD::FloatArray&crd)
+ void compact(const K_FLD::FloatArray& crdi, ngon_unit& pgs, K_FLD::FloatArray&crd, std::vector<E_Int>* poids = nullptr)
  {
    crd.clear();
    pgs.clear();
@@ -1889,24 +1889,39 @@ static bool is_PR6(const ngon_unit& PGs, const E_Int* firstPG, E_Int nb_pgs)
    std::vector<E_Int> nodes;
    unique_nodes(*_pgs, _faces, _nb_faces, nodes);
    //std::sort(unodes.begin(), unodes.end());
+   if (poids != nullptr){
+     poids->clear();
+     poids->resize(nodes.size());
+   }
    
-   for (size_t i=0; i < nodes.size(); ++i)
+   for (size_t i=0; i < nodes.size(); ++i){
      crd.pushBack(crdi.col(nodes[i]-1), crdi.col(nodes[i]-1)+3);
+     if (poids != nullptr)(*poids)[i] = nodes[i]-1;
+   }
    
    std::map<E_Int, E_Int> gid_to_lid;
    for (size_t i=0; i < nodes.size(); ++i)
      gid_to_lid[nodes[i]] = i+1;
    
+   bool has_type = (!_pgs->_type.empty());
+   
+   if (has_type)
+     pgs._type.resize(_nb_faces);
+   
    for (size_t i=0; i < _nb_faces; ++i)
    {
-     const E_Int* pN = _pgs->get_facets_ptr(_faces[i]-1);
-     E_Int nb_nodes = _pgs->stride(_faces[i]-1);
+     E_Int Fi = _faces[i]-1;
+     const E_Int* pN = _pgs->get_facets_ptr(Fi);
+     E_Int nb_nodes = _pgs->stride(Fi);
      //pass to local
      nodes.clear();
      for (size_t j=0; j < nb_nodes; ++j)
        nodes[j] = gid_to_lid[pN[j]];
      
      pgs.add(nb_nodes, &nodes[0]);
+     
+     if (has_type)
+       pgs._type[i] = _pgs->_type[Fi];
    }
  }
 

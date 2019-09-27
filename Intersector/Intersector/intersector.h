@@ -33,6 +33,7 @@ namespace K_INTERSECTOR
   PyObject* booleanModifiedSolid(PyObject* self, PyObject* args);
   PyObject* DiffSurf(PyObject* self, PyObject* args);
   PyObject* XcellN(PyObject* self, PyObject* args);
+  PyObject* unify(PyObject* self, PyObject* args);
   PyObject* P1ConservativeChimeraCoeffs(PyObject* self, PyObject* args);
 
   PyObject* selfX(PyObject* self, PyObject* args);
@@ -81,7 +82,10 @@ namespace K_INTERSECTOR
   PyObject* checkCellsClosure(PyObject* self, PyObject* args);
   PyObject* checkForDegenCells(PyObject* self, PyObject* args);
   PyObject* edgeLengthExtrema(PyObject* self, PyObject* args);
+  
   PyObject* reorientExternalFaces(PyObject* self, PyObject* args);
+  PyObject* reorientSpecifiedFaces(PyObject* self, PyObject* args);
+
   PyObject* removeBaffles(PyObject* self, PyObject* args);
 
   PyObject* convert2Polyhedron(PyObject* self, PyObject* args);
@@ -89,11 +93,14 @@ namespace K_INTERSECTOR
 
   PyObject* extrudeUserDefinedBC(PyObject* self, PyObject* args);
 
-  PyObject* convertNGON2DToNGON3D(PyObject* self, PyObject* args);  
+  PyObject* convertNGON2DToNGON3D(PyObject* self, PyObject* args);
+  PyObject* oneph(PyObject* self, PyObject* args);  
 
   /////////// syncronizing the tree ///////////
   PyObject* updatePointLists(PyObject* self, PyObject* args);
   /////////////////////////////////////////////
+
+  PyObject* merge(PyObject* self, PyObject* args);
   
   E_Int check_is_NGON(PyObject* arr, K_FLD::FloatArray*& f1, K_FLD::IntArray*& cn1, char*& varString, char*& eltType);
   

@@ -25,6 +25,9 @@
 #include "Nuga/Boolean/NGON_debug.h"
 using NGDBG = NGON_debug<K_FLD::FloatArray, K_FLD::IntArray>;
 #endif
+//#include "medit.hxx"
+
+enum ePGType { ANY=-8, BCWALL=1, WALL1 = 7};
 
 #define THIRD_NODE_POS(pS, E0, E1) ( (*pS != E0 && *pS != E1) ? 0 : (*(pS+1) != E0 && *(pS+1) != E1) ? 1 : 2) 
 
@@ -39,7 +42,7 @@ namespace NUGA
     {
       ngon_unit pgs;
       K_FLD::FloatArray crdx;
-      std::vector<E_Int> faces;
+      std::vector<E_Int> faces, poids/*node history*/;
 //      PH_t() = default;
 //      PH_t(const PH_t&r):phx(r.phx), crdx(r.crdx){};
       
@@ -121,7 +124,7 @@ namespace NUGA
         }
       }
       
-        K_CONNECT::IdTool::compact (oe2.faces(), oe2.nb_faces(), keep.get()/*, Vector2& new_Ids*/);
+      K_CONNECT::IdTool::compact (oe2.faces(), oe2.nb_faces()/*IO!*/, keep.get()/*, Vector2& new_Ids*/);
 
 #ifdef DEBUG_UNIFY
 //        {
@@ -138,7 +141,7 @@ namespace NUGA
     E_Int isolated_clip(const acrd_t& acrd1, ELT1& oe1, bool inward1, const acrd_t& acrd2, ELT2& oe2, E_Float ps_min, E_Float RTOL, PH_t& res, E_Int& contact, bool dbg)
     {
       E_Int err(0);
-              
+         
       using PG1_t = typename ELT1::boundary_type;
       using PG2_t = typename ELT2::boundary_type;
 
@@ -170,14 +173,15 @@ namespace NUGA
 
       K_FLD::IntArray cT3;
       E_Int T[3];
-      for (E_Int i=0; i < oe1.nb_tris(); ++i)
+      E_Int nb_tris1 = oe1.nb_tris();
+      for (E_Int i=0; i < nb_tris1; ++i)
       {
         oe1.triangle(i, T); //watchme : base ?
         cT3.pushBack(T, T+3);
       }
-      E_Int nb_tris1 = cT3.cols();
+      E_Int nb_tris2 = oe2.nb_tris();
       
-      for (E_Int i=0; i < oe2.nb_tris(); ++i)
+      for (E_Int i=0; i < nb_tris2; ++i)
       {
         
         oe2.triangle(i, T); //watchme : base ?
@@ -187,17 +191,24 @@ namespace NUGA
         cT3.pushBack(T, T+3);
       }
       
-      // history
-      std::vector<E_Int> ancPG, ancPG1, ancPG2;
+      // type transmission
+
+      std::vector<E_Int> type(oe1.nb_tris() + oe2.nb_tris(), ANY);
+      std::vector<E_Int> ancPG1, ancPG2;
       oe1.get_triangle_oids(ancPG1);
       oe2.get_triangle_oids(ancPG2);
-      ancPG.insert(ancPG.end(), ALL(ancPG1));
-      ancPG.insert(ancPG.end(), ALL(ancPG2));
-      K_CONNECT::IdTool::shift(ancPG, nb_tris1/*from*/, nb_tris1/*shift*/);
       
+      if (!oe1._pgs->_type.empty())
+        for (E_Int i=0; i<nb_tris1; ++i)
+          type[i] = oe1._pgs->_type[ancPG1[i]];
+      if (!oe2._pgs->_type.empty())
+        for (E_Int i=0; i<nb_tris2; ++i)
+          type[nb_tris1 + i] = oe2._pgs->_type[ancPG2[i]];
+      
+      //medith::write("triangles.mesh", crd, cT3, "TRI");
 #ifdef DEBUG_UNIFY
       if (dbg){
-        MIO::write("triangles.mesh", crd, cT3, "TRI", 0, &ancPG);
+        MIO::write("triangles.mesh", crd, cT3, "TRI");
         std::cout << crd << std::endl;
         std::cout << cT3 << std::endl;
       }
@@ -210,7 +221,7 @@ namespace NUGA
 
       // conformize this cloud
       std::vector<E_Int> ancT3;
-      TRI_Conformizer<3> conformizer(true/* keep track of nodes history*/);//fixme : required option ?
+      TRI_Conformizer<3> conformizer(true/* keep track of nodes history*/);
       conformizer._split_swap_afterwards = false;
 
 #ifdef DEBUG_UNIFY
@@ -218,16 +229,32 @@ namespace NUGA
 #else
       conformizer._silent_errors = true;
 #endif
+      
       E_Int nb_tris0 = cT3.cols();
+      //medith::write("/home/slandier/projects/xcelln/CRM2/conferr.mesh", crd, cT3, "TRI");
+//      std::cout << "abstol : " << abstol << std::endl;
+//      std::cout << "nb_tris1 : " << nb_tris1 << std::endl;
+//      std::cout << "iso : 9" << std::endl;
       err = conformizer.run(crd, cT3, ancT3, nullptr/*&priority*/, abstol, nb_tris1, 1 /*one iter only*/);
       if (err)
         return err;
+
       if (cT3.cols() == nb_tris0) return 0 ;// no intersections => fully visible or hidden
+
 #ifdef DEBUG_UNIFY
       if (dbg)
         MIO::write("conformized.mesh", crd, cT3, "TRI", 0, &ancT3);
 #endif
 
+      // update type
+      {
+        E_Int nbt3 = cT3.cols();
+        std::vector<E_Int> new_type(nbt3, ANY);
+        for (E_Int i=0; i <nbt3; ++i)
+          new_type[i] = type[ancT3[i]];
+        type = new_type;
+      }
+      
       // keep relevant pieces
       K_FLD::IntArray neighbors, neighbors_cpy;
       err = K_CONNECT::EltAlgo<K_MESH::Triangle>::getNeighbours (cT3, neighbors, false/*means put somthing on manifolds to distinguish them from free edges*/);
@@ -240,6 +267,7 @@ namespace NUGA
       
       std::vector<E_Int> nonmfld_bits;
       K_CONNECT::EltAlgo<K_MESH::Triangle>::coloring_pure (neighbors, nonmfld_bits);
+      
       //
       E_Int nb_nonmfld_bits = *std::max_element(ALL(nonmfld_bits))+1;
       //
@@ -250,24 +278,29 @@ namespace NUGA
         for (E_Int j=0; j < 3; ++j)
           if (neighbors_cpy(j,i) == E_IDX_NONE) good_col[nonmfld_bits[i]]=false;
         
+      
       E_Int nb_t3 = cT3.cols();
       STACK_ARRAY(bool, nb_t3, keepT3);
       for (E_Int i=0; i < nb_t3; ++i)
         keepT3[i]= good_col[nonmfld_bits[i]] ? true : false;
-      
-     // for (size_t i=0; i < 111; ++i)std::cout << keepT3[i] << std::endl;
+
+      // for (size_t i=0; i < 111; ++i)std::cout << keepT3[i] << std::endl;
       
       K_CONNECT::keep2<bool> pred(keepT3.get(), nb_t3);
       std::vector<E_Int> nids;
       K_CONNECT::IdTool::compress(cT3, pred, nids);
-      K_CONNECT::IdTool::compress(ancT3, pred);
+      K_CONNECT::IdTool::compress(type, pred);
+
       // update also neighbors_cpy
       K_CONNECT::IdTool::compress(neighbors, pred); //contains E_IDX_NONE at non-manfold edges
       K_FLD::IntArray::changeIndices(neighbors, nids);
 
       //std::cout << neighbors << std::endl;
 #ifdef DEBUG_UNIFY
-      if (dbg) MIO::write("reduced.mesh", crd, cT3, "TRI", 0, &ancT3);
+      if (dbg){
+        K_CONNECT::IdTool::compress(ancT3, pred);
+        MIO::write("reduced.mesh", crd, cT3, "TRI", 0, &ancT3);
+      }
 #endif
 
       // compute (or transfer when degen) normals to triangles
@@ -364,35 +397,35 @@ namespace NUGA
         E_Int sz = (E_Int)palmares.size();
         
 #if defined (DEBUG_UNIFY)
-if (err)  
-  {  
-    K_FLD::IntArray sorted_cnt;
-    Vector_t<E_Int> colors;
-    Vector_t<bool> keep(cT3.cols(), false);
-    sorted_cnt.reserve(3, T3s.size());
-    colors.resize(T3s.size(), 1);
+        if (err)  
+        {  
+          K_FLD::IntArray sorted_cnt;
+          Vector_t<E_Int> colors;
+          Vector_t<bool> keep(cT3.cols(), false);
+          sorted_cnt.reserve(3, T3s.size());
+          colors.resize(T3s.size(), 1);
 
-    std::vector<E_Int> PGs;
-    for (size_t i = 0; i < T3s.size(); ++i)
-    {
-      sorted_cnt.pushBack(cT3.col(T3s[i]), cT3.col(T3s[i])+3);
-      keep[T3s[i]]=true;
-      std::cout << "Triangle : " << T3s[i] << std::endl;
-      if (i > 0)colors[i] = 0;
-    }
+          std::vector<E_Int> PGs;
+          for (size_t i = 0; i < T3s.size(); ++i)
+          {
+            sorted_cnt.pushBack(cT3.col(T3s[i]), cT3.col(T3s[i])+3);
+            keep[T3s[i]]=true;
+            std::cout << "Triangle : " << T3s[i] << std::endl;
+            if (i > 0)colors[i] = 0;
+          }
 
-    {
-      std::ostringstream o;
-      o << "sorted_on_edge_" << E0 << "_" << E1 << ".mesh";
-      MIO::write(o.str().c_str(), crd, sorted_cnt, "TRI", 0, &colors);
-    }
+          {
+            std::ostringstream o;
+            o << "sorted_on_edge_" << E0 << "_" << E1 << ".mesh";
+            MIO::write(o.str().c_str(), crd, sorted_cnt, "TRI", 0, &colors);
+          }
 
-    {
-      std::ostringstream o;
-      o << "Wsorted_on_edge_" << E0 << "_" << E1 << ".mesh";
-      TRI_debug::write_wired(o.str().c_str(), crd, cT3, normals, 0, &keep,true);
-    }
-  }
+          {
+            std::ostringstream o;
+            o << "Wsorted_on_edge_" << E0 << "_" << E1 << ".mesh";
+            TRI_debug::write_wired(o.str().c_str(), crd, cT3, normals, 0, &keep,true);
+          }
+        }
 #endif
         if (err) return err;
         
@@ -456,13 +489,25 @@ if (err)
     {
       K_CONNECT::keep2<bool> pred(keepT3.get(), nb_t3);
       K_CONNECT::IdTool::compress(cT3, pred, nids);
+      K_CONNECT::IdTool::compress(type, pred);
     }
-      
+      nb_t3 = cT3.cols();
+
       res.crdx = crd;
       if (dbg) std::cout << crd << std::endl;
+      //std::cout << cT3 << std::endl;
+      
+      const std::vector<E_Int>& xpoids = conformizer.get_node_history();
+      res.poids = xpoids;
+      res.poids.resize(crd.cols(), E_IDX_NONE);//fixme : ?????
+      
+      //medith::write("/home/slandier/tmp/cutT3.mesh", crd, cT3, "TRI");
     
       ngon_unit::convert_fixed_stride_to_ngon_unit(cT3, 1, res.pgs);
       
+      assert(type.size() == res.pgs.size());
+      res.pgs._type = type;
+  
       K_CONNECT::IdTool::init_inc(res.faces, res.pgs.size());
       K_CONNECT::IdTool::shift(res.faces, 1);
     

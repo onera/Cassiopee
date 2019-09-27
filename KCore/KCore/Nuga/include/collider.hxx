@@ -41,7 +41,7 @@ namespace NUGA
       E_Float P0[DIM], P1[DIM], P2[DIM], Q0[DIM], Q1[DIM], Q2[DIM];
       
       DELAUNAY::Triangulator dt;
-      
+
       e1.triangulate(dt, acrd1);
       e2.triangulate(dt, acrd2);
 

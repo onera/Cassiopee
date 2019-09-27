@@ -189,6 +189,8 @@ E_Int iodata::read(const char* filename, DELAUNAY::MeshData& data)
   keys.insert("MASK");
   keys.insert("End");
   
+  K_FLD::IntArray* cb = const_cast<K_FLD::IntArray*>(data.connectB);
+  
   while (std::getline (file, line))
   {
     if (line.empty())
@@ -216,8 +218,8 @@ E_Int iodata::read(const char* filename, DELAUNAY::MeshData& data)
       }
       else if (entity == "CONNECTB")
       {
-        //fixme data.connectB->clear();
-        //fixme data.connectB->reserve(rows, cols);
+        cb->clear();
+        cb->reserve(rows, cols);
       }
       else if (entity == "HARDNODES")
       {
@@ -266,7 +268,8 @@ E_Int iodata::read(const char* filename, DELAUNAY::MeshData& data)
     {
       for (i = 0; i < 2; ++i)
         P[i] = atoi(words[i].c_str());
-      //fixme data.connectB->pushBack(P, P+2);
+      
+      cb->pushBack(P, P+2);
     }
     else if (entity == "HARDNODES")
     {

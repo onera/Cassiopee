@@ -62,6 +62,9 @@ public:
   inline static void coloring (const K_FLD::IntArray& neighbors, int_vector_type& colors);
   inline static void coloring (const ngon_unit& neighbors, int_vector_type& colors);
   
+  template<typename T> inline static void coloring_one_connex_heterogeneous (const ngon_unit& neighbors, std::vector<T>& colors, size_t Kseed, T UNSET_COL, T color);
+  template<typename T> inline static bool coloring_one_connex_homogeneous (const ngon_unit& neighbors, std::vector<T>& colors, size_t Kseed, T UNSET_COL, T color, T FRONT_COL, T& bad_col);
+  
   template<typename T> inline static void coloring (const ngon_unit& neighbors, std::vector<T>& colors, T UNSET_COL, T FIRST_COL);
   
   inline static void extrapolate (const ngon_unit& neighbors, K_FLD::IntArray& properties);

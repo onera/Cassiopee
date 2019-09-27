@@ -288,6 +288,178 @@ def XcellN(t, prioritaryMesh, blankingMatrix=[]):
         C.setFields(cellN, b, loc, False)
     return a
 
+
+#==============================================================================
+# unify
+# IN: t: background Mesh (NGON 3D)
+# IN: priorities: XXX
+# OUT: XXX
+#==============================================================================
+def unify(t, priorities):
+     
+    tp = Internal.copyRef(t)
+    _unify(tp, priorities)
+    return tp
+
+def _unify(t, priorities):
+
+    try: import Transform.PyTree as T
+    except: raise ImportError("unify: requires Transform module.")
+    try: import Post.PyTree as P
+    except: raise ImportError("unify: requires Post module.")
+    try: import Converter.Internal as I
+    except: raise ImportError("unify: requires Post module.")
+    try: import Converter.PyTree as C
+    except: raise ImportError("unify: requires Converter module.")
+    try: import Generator.PyTree as G
+    except: raise ImportError("unify: requires Generator module.")
+
+    # create the masks and flag the walls
+    print('unify : prepare masks...')
+
+    # get walls in STRUCT from STRUCt tree (because convertArray2Hexa does not preserve walls)
+    walls = []
+    bs = I.getBases(t)
+    for b in bs:
+        # walls (BEFORE NGON CONVERSION)
+        ws = extractBaseWalls(b) # QUAD
+        #print ws
+        if (ws != []):
+          ws = C.convertArray2NGon(ws)
+          ws = T.join(ws)
+          ws = G.close(ws) #ficme : necessary ?
+          ws = convertNGON2DToNGON3D(ws)
+
+        walls.append(ws)
+
+    # build mask and associate walls
+    masks = []
+    basewallfaces = []
+    thx8 = C.convertArray2Hexa(t) #FIXME : enable if structured
+    C._deleteFlowSolutions__(thx8)
+    bs = I.getBases(thx8)
+    ib=0
+    #ms = []
+    for b in bs:
+     
+        # mask ORIENTED OUTWARD
+        b = T.join(b); b = G.close(b)
+        b = C.convertArray2NGon(b)
+        b = reorientExternalFaces(b)
+        b = P.exteriorFaces(b)
+        m = convertNGON2DToNGON3D(b)
+        #m = simplifyCells(m, 1, 5.e-4)
+        #C.convertPyTree2File(m, "m.cgns")
+                
+        c = C.getFields(Internal.__GridCoordinates__, m)[0]
+        masks.append(c)
+        #ms.append(m)
+
+        wallf = []
+        if (walls[ib] != []):
+          hook = C.createHook(m, function='faceCenters')
+          wallf = C.identifyFaces(hook, walls[ib]) # wallf are ids in m
+          #print(wallf)
+        basewallfaces.append(wallf)
+        ib = ib+1
+
+    #C.convertPyTree2File(ms, "masks.cgns")
+    
+    # compute
+    print('unify : compute celln...')
+    C._initVars(t, 'centers:xcelln', 1.)
+
+    tNG = C.convertArray2NGon(t)
+    tNG = G.close(tNG, tol=1.e-15)
+
+    bases = I.getBases(tNG)
+    i=0;
+    for b in bases:
+ 
+        print("unify :    for component %d over %d ..."%(i+1, len(bases)))
+
+        zones = I.getZones(b)
+        ngons = []
+        basenum = []
+        for z in zones:
+            c = C.getFields(Internal.__GridCoordinates__, z)[0]
+            ngons.append(c)
+            basenum.append(i)
+
+        xcellns = intersector.unify(ngons, basenum, masks, priorities, basewallfaces)
+        C.setFields(xcellns, b, 'centers', False)
+        i = i+1
+    
+    
+    # back to STRUCT
+    print('unify : back to STRUCT...')
+    mc = C.node2Center(tNG)
+    hookC = C.createGlobalHook([mc], 'nodes')
+    hookN = C.createGlobalHook([tNG], 'nodes')
+
+    C._identifySolutions(t, tNG, hookN, hookC, tol=1000.)
+    C.freeHook(hookC)
+    C.freeHook(hookN)
+
+    #C.convertPyTree2File(tNG, 'tNG.cgns')
+    #C.convertPyTree2File(t, 't.cgns')
+
+def extractBaseWalls(b):
+    try: import Transform.PyTree as T
+    except: raise ImportError("unify: requires Transform module.")
+    try: import Converter.Internal as I
+    except: raise ImportError("unify: requires Post module.")
+    try: import Converter.PyTree as C
+    except: raise ImportError("unify: requires Converter module.")
+    walls = []
+    zbc = C.extractBCOfType(b, 'BCWall')
+    for zb in zbc:
+      if (zb == []) : continue 
+      walls.append(zb)
+
+    zbc = C.extractBCOfType(b, 'BCWallInviscid')
+    for zb in zbc:
+      if (zb == []) : continue 
+      walls.append(zb)
+
+    zbc = C.extractBCOfType(b, 'BCWallViscous')
+    for zb in zbc:
+      if (zb == []) : continue 
+      walls.append(zb)
+
+    return walls
+
+# def getWallsCentroids(t):
+#     try: import Transform.PyTree as T
+#     except: raise ImportError("unify: requires Transform module.")
+#     try: import Converter.Internal as I
+#     except: raise ImportError("unify: requires Post module.")
+#     try: import Converter.PyTree as C
+#     except: raise ImportError("unify: requires Converter module.")
+#     cloud = []
+#     bs = I.getBases(t)
+#     for b in bs:
+#         zbc = C.extractBCOfType(b, 'BCWall')
+#         if (zbc == []) : continue 
+#         for zb in zbc:
+#             if (zb == []) : continue 
+#             zb = C.node2Center(zb)
+#             cloud.append(zb)
+#         zbc = C.extractBCOfType(b, 'BCWallInviscid')
+#         if (zbc == []) : continue 
+#         for zb in zbc:
+#             if (zb == []) : continue 
+#             zb = C.node2Center(zb)
+#             cloud.append(zb)
+#         zbc = C.extractBCOfType(b, 'BCWallViscous')
+#         if (zbc == []) : continue 
+#         for zb in zbc:
+#             if (zb == []) : continue 
+#             zb = C.node2Center(zb)
+#             cloud.append(zb)
+#     #cloud = C.convertArray2Node(cloud)
+#     #cloud = T.join(cloud)
+#     return cloud
 #==============================================================================
 # triangulateExteriorFaces
 # IN: mesh: 3D NGON mesh
@@ -400,10 +572,85 @@ def convexifyFaces(t, convexity_TOL=1.e-8):
 def reorientExternalFaces(t):
     """Reorients outward the external polygons of a mesh.
     Usage: reorientExternalFaces(t)"""
-    m = C.getFields(Internal.__GridCoordinates__, t)[0]
-    m = XOR.reorientExternalFaces(m)
-    return C.convertArrays2ZoneNode('oriented', [m])
-    
+    return C.TZA(t, 'nodes', 'nodes', XOR.reorientExternalFaces, t)
+
+def _reorientExternalFaces(t):
+    return C._TZA(t, 'nodes', 'nodes', XOR.reorientExternalFaces, t)
+
+#==============================================================================
+# triangulateBC
+# IN: t: 3D NGON mesh
+# IN : btype : boundary type to reorient
+# OUT: returns a 3D NGON mesh with all the external faces triangulated
+#==============================================================================
+def reorientBC(t, bctype, dir):
+     
+    tp = Internal.copyRef(t)
+    _reorientBC(tp,bctype, dir)
+    return tp
+#==============================================================================
+# _reorientBC
+# IN: t: 3D NGON mesh
+# IN : btype : boundary type to reorient
+# OUT: returns a 3D NGON mesh with all the external faces triangulated
+#==============================================================================
+def _reorientBC(t, bctype, dir):
+     
+    zones = Internal.getZones(t)
+   
+    for z in zones:
+        
+        coords = C.getFields(Internal.__GridCoordinates__, z)[0]
+        if coords == []: continue
+
+        coords = Converter.convertArray2NGon(coords)
+
+        bnds = Internal.getNodesFromType(z, 'BC_t')
+
+        bcpgs = []
+        for bb in bnds :
+          if (Internal.isValue(bb, bctype) == False) : continue
+          bcpgs.append(bb[2][1][1][0]) # POINTLIST NUMPY
+
+        if bcpgs == []: continue 
+        bcpgs = numpy.concatenate(bcpgs) # create a single list
+        bcpgs = bcpgs -1
+
+        res = XOR.reorientSpecifiedFaces(coords, bcpgs, dir)
+
+        mesh = res[0]
+        pg_oids=res[1]
+
+        # MAJ du maillage de la zone
+        C.setFields([mesh], z, 'nodes') 
+
+    return t
+
+#==============================================================================
+# reorientSpecifiedFaces 
+# IN: a: 3D NGON mesh
+# IN: pgs : list of polygons
+# OUT: returns a 3D NGON Mesh with consistent orientation for specified polygons
+#==============================================================================
+def reorientSpecifiedFaces(t, pgs, dir):
+     
+    tp = Internal.copyRef(t)
+    _reorientSpecifiedFaces(tp,pgs, dir)
+    return tp
+
+def _reorientSpecifiedFaces(t, pgs, dir):
+
+    zones = Internal.getZones(t)
+    if (len(pgs) != len(zones)) :
+        print('reorientSpecifiedFaces: input error: nb of polygons packs differ from nb of zones.')
+        return None
+
+    i=0
+    for z in zones:
+      m = C.getFields(Internal.__GridCoordinates__, z)[0]
+      m = XOR.reorientSpecifiedFaces(m, pgs[i], dir)
+      C.setFields([m], z, 'nodes') # replace the mesh in the zone
+      i = i+1
 #==============================================================================
 # prepareCellsSplit
 # IN : t            : 3D NGON mesh
@@ -973,6 +1220,13 @@ def checkForDegenCells(t):
     return XOR.checkForDegenCells(m)
 
 #==============================================================================
+# oneph : XXX
+#==============================================================================
+def oneph(t):
+    m = C.getFields(Internal.__GridCoordinates__, t)[0]
+    return XOR.oneph(m)
+
+#==============================================================================
 # edgeLengthExtrema : XXX
 #==============================================================================
 def edgeLengthExtrema(t):
@@ -1084,6 +1338,13 @@ def centroids(t):
     c = XOR.centroids(m)
     return C.convertArrays2ZoneNode('centroids', [c])
 
+def merge(tz, sz, tol = 1.e-15): #target zone, list source zones
+    m = C.getFields(Internal.__GridCoordinates__, tz)[0]
+    #print m
+    s = C.getFields(Internal.__GridCoordinates__, sz)[0]
+    #print s
+    return XOR.merge(m, s, tol)
+  
 #~ def conservativeTransfer(a1, a2, tol=0., reconstruction_type=0):
     #~ 
     #~ s1 = C.getFields(Internal.__GridCoordinates__, a1)[0]
