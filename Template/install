@@ -37,8 +37,10 @@ if [ $? -eq 0 ]; then
     #touch Template/template.cpp
     rm -f build/lib.*/Template/template.*
     python setupScons.py install --prefix="$INSTALLPATH"
+    [ $? != 0 ] && exit;
 else
     python setup.py install --prefix="$INSTALLPATH"
+    [ $? != 0 ] && exit;
 fi
 
 # Check installation

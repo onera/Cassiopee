@@ -51,8 +51,10 @@ if [ $? -eq 0 ]; then
     #touch OCC/occ.cpp
     rm -f build/lib.*/OCC/occ.*
     python setupScons.py install --prefix="$INSTALLPATH"
+    [ $? != 0 ] && exit;
 else
     python setup.py install --prefix="$INSTALLPATH"
+    [ $? != 0 ] && exit;
 fi
 
 # remove

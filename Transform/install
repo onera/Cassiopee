@@ -45,8 +45,10 @@ if [ $? -eq 0 ]; then
     rm -f build/lib.*/Transform/transform.*
     rm -f build/lib.*/Transform/transform-*.*
     python setupScons.py install --prefix="$INSTALLPATH"
+    [ $? != 0 ] && exit;
 else
     python setup.py install --prefix="$INSTALLPATH"
+    [ $? != 0 ] && exit;
 fi
 
 # Test de l'installation

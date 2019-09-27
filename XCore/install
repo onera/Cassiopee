@@ -48,8 +48,10 @@ if [ $? -eq 0 ]; then
     rm -f build/lib.*/XCore/xcore.*
     rm -f build/lib.*/XCore/xcore-*.*
     python setupScons.py install --prefix="$INSTALLPATH"
+    [ $? != 0 ] && exit;
 else
     python setup.py install --prefix="$INSTALLPATH"
+    [ $? != 0 ] && exit;
 fi
 
 # Install libxcore

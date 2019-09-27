@@ -42,8 +42,10 @@ if [ $? -eq 0 ]; then
     rm -f build/lib.*/Compressor/compressor.*
     rm -f build/lib.*/Compressor/compressor-*.*
     python setupScons.py install --prefix="$INSTALLPATH"
+    [ $? != 0 ] && exit;
 else
     python setup.py install --prefix="$INSTALLPATH"
+    [ $? != 0 ] && exit;
 fi
 
 # Test l'installation

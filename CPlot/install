@@ -43,8 +43,10 @@ if [ $? -eq 0 ]; then
     rm -f build/lib.*/CPlot/cplot.*
     rm -f build/lib.*/CPlot/cplot-*.*
     python setupScons.py install --prefix="$INSTALLPATH"
+    [ $? != 0 ] && exit;
 else
     python setup.py install --prefix="$INSTALLPATH"
+    [ $? != 0 ] && exit;
 fi
 cp test/cplot "$INSTALLPATH"
 cp test/cplot.py "$INSTALLPATH"

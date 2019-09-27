@@ -46,8 +46,10 @@ if [ $? -eq 0 ]; then
     rm -f build/lib.*/Initiator/initiator.*
     rm -f build/lib.*/Initiator/initiator-*.*
     python setupScons.py install --prefix="$INSTALLPATH"
+    [ $? != 0 ] && exit;
 else
     python setup.py install --prefix="$INSTALLPATH"
+    [ $? != 0 ] && exit;
 fi
 
 # Test installation

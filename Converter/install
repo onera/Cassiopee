@@ -46,8 +46,10 @@ if [ $? -eq 0 ]; then
     rm -f build/lib.*/Converter/converter-*.*
     rm -f build/lib.*/Converter/expression.*
     python setupScons.py install --prefix="$INSTALLPATH"
+    [ $? != 0 ] && exit;
 else
     python setup.py install --prefix="$INSTALLPATH"
+    [ $? != 0 ] && exit;
 fi
 cp test/ediff "$INSTALLPATH"
 cp test/ediff.py "$INSTALLPATH"

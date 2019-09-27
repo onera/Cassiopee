@@ -30,6 +30,7 @@ fi
 
 # Compilation et installation
 python setup.py install --prefix="$INSTALLPATH"
+[ $? != 0 ] && exit;
 
 # Check installation
 python test/t1.py

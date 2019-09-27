@@ -46,13 +46,15 @@ if [ $? -eq 0 ]; then
     fi
     python $sconsf install prefix="$INSTALLPATH" "$SCONSOPT"
     [ $? != 0 ] && exit;
-    #touch KCore/kcore.cpp
+    #Touch KCore/kcore.cpp
     rm -f build/lib.*/KCore/kcore.*
     rm -f build/lib.*/KCore/kcore-*.*
     python -c "import Dist; Dist.symLinks()"
     python setupScons.py install --prefix="$INSTALLPATH"
+    [ $? != 0 ] && exit;
 else
     python setup.py install --prefix="$INSTALLPATH"
+    [ $? != 0 ] && exit;
 fi
 
 # Install libkcore
