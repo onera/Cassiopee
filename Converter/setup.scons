@@ -79,6 +79,9 @@ env = Environment(tools=tools, CC=cc, CXX=cxx, AR=AR, CPPFLAGS=[],
                   SHLIBSUFFIX=so_ext, SHLIBPREFIX='',
                   LINKFLAGS=Dist.getLinkArgs(),
                   ENV=Dist.getEnvForScons())
+
+ELSAPROD = os.environ.get('ELSAPROD', 'x86_r8')
+env.SConsignFile('build/'+ELSAPROD+'/.sconsign.dblite')
 env.Replace(CPPPATH=["Converter"]+additionalIncludePaths+includeDirs)
 env.Replace(CXXFLAGS=Dist.getCppArgs()+ADDITIONALCPPFLAGS)
 env.Replace(CFLAGS=Dist.getCArgs()+ADDITIONALCPPFLAGS)

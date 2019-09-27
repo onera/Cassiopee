@@ -1246,10 +1246,11 @@ def loadZones(event=None):
         WIDGETS['LBZONES'].delete(s)
         WIDGETS['LBZONES'].insert(s, tname)
         i = getNumber(OVARS[4], v, tname)
-        v = v.encode('utf-8') # Cedre!!
+        #v = v.encode('utf-8') # Cedre!!
         OVARS[4][i] = tname
         zList.append(v)
     # Charge les GC+GC+BC pour les zones selectionnees + variables deja dans t
+    print(zList)
     CTK.HANDLE._loadZonesWoVars(CTK.t, zList)
     vars = C.getVarNames(CTK.t, excludeXYZ=True)
     if len(vars)>1:

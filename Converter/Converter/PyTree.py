@@ -4457,7 +4457,7 @@ def getEmptyBCForBEZone__(z, dims, pbDim, splitFactor):
     erange = Internal.getNodeFromName1(bc, Internal.__ELEMENTRANGE__)
     if erange is not None:
       r = erange[1]
-      defined.append(_selectOneConnectivity(zp, irange=[r[0,0],r[0,1]]))
+      defined.append(selectOneConnectivity(zp, irange=[r[0,0],r[0,1]]))
 
   hook = createHook(f, 'elementCenters')
   if defined != []:
@@ -6485,7 +6485,7 @@ def selectOneConnectivity(z, name=None, number=None, irange=None):
   _selectOneConnectivity(zp, name=name, number=number, irange=irange)
   return zp
 
-def _selectOneConnectivity(z, name=None, number=None, irange=None):
+def _selectOneConnectivity(zp, name=None, number=None, irange=None):
   elts = Internal.getNodesFromType1(zp, 'Elements_t')
 
   if name is not None:

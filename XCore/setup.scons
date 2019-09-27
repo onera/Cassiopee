@@ -79,6 +79,9 @@ env = Environment(tools=tools, CC=cc, CXX=cxx, AR=AR, CPPFLAGS=[],
                   CPPPATH=["XCore","XCore/CMP/include"]+additionalIncludePaths+includeDirs,
                   CXXFLAGS=Dist.getCppArgs()+ADDITIONALCPPFLAGS,
                   CFLAGS=Dist.getCArgs()+ADDITIONALCFLAGS)
+
+ELSAPROD = os.environ.get('ELSAPROD', 'x86_r8')
+env.SConsignFile('build/'+ELSAPROD+'/.sconsign.dblite')
             
 import srcs
 import srcs_scotch

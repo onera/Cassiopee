@@ -160,14 +160,14 @@ else if ($MAC == "eos") then
 
 else if ($MAC == "macosx") then
 #----------------------------- Mac OSX-----------------------------------------
-    setenv ELSAPROD macosx_r8
-	setenv OMP_NUM_THREADS 2
-	set path=($path $CASSIOPEE/Dist/bin/macosx_r8)
-        setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:/opt/intel/composer_xe_2015/lib
-        unsetenv BUNDLE
-        setenv MACOSX_DEPLOYMENT_TARGET 10.10
-        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
-	setenv DYLD_LIBRARY_PATH $LD_LIBRARY_PATHL
+       setenv ELSAPROD macosx_r8
+       setenv OMP_NUM_THREADS 2
+       set path=($path $CASSIOPEE/Dist/bin/macosx_r8)
+       setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:/opt/intel/composer_xe_2015/lib
+       unsetenv BUNDLE
+       setenv MACOSX_DEPLOYMENT_TARGET 10.10
+       setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
+       setenv DYLD_LIBRARY_PATH $LD_LIBRARY_PATHL
 
 else if ($MAC == "sgi") then
 #-------------------------------- SGI -----------------------------------------
@@ -198,11 +198,11 @@ else if ($MAC == "ubuntu") then
 else if ($MAC == "fulvio") then
 #------------------------------- fulvio ---------------------------------------
         setenv ELSAPROD flv_r8
-	foreach x (`(echo "" ; module -t list) | & grep intel`)
+        foreach x (`(echo "" ; module -t list) | & grep intel`)
             module unload $x
         end
         module load   intel/15.0.6
-	#module load   impi/15
+        #module load   impi/15
         # Nombre de threads
         setenv OMP_NUM_THREADS 8
         # Chemin de python
@@ -220,6 +220,27 @@ else if ($MAC == "daapuv") then
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
         setenv LD_LIBRARY_PATHL $CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/uv_r8/lib:/usr/local/hdf5-1.8.7/lib
         setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/uv_r8:$CASSIOPEE/Dist/bin/uv_r8/lib/python2.6/site-packages
+
+else if ($MAC == "visio_python3") then
+#------------------------------- visio ---------------------------------------
+        setenv ELSAPROD vis_r8
+        foreach x (`(echo "" ; module -t list) | & grep intel`)
+            module unload $x
+        end
+        module load python/3.6.1
+        # Set next two lines only if python is not python
+        setenv PYTHONEXE python3
+        alias python python3
+        module load intel/15.0.6
+        #module load impi/15
+        # Nombre de threads
+        setenv OMP_NUM_THREADS 16
+        #setenv KMP_AFFINITY "verbose,granularity=fine,proclist=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],explicit"
+        # Chemin de python
+        set path=($path $CASSIOPEE/Dist/bin)
+        set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
+        setenv LD_LIBRARY_PATHL $CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/vis_r8/lib:/usr/local/hdf5-intel-1.8.8/lib:/usr/local/lib64:/usr/lib64
+        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/vis_r8:$CASSIOPEE/Dist/bin/vis_r8/lib/python2.7/site-packages
 
 else if ($MAC == "visio") then
 #------------------------------- visio ---------------------------------------
@@ -409,6 +430,23 @@ else if ($MAC == "xdaap") then
         setenv LD_LIBRARY_PATHL /usr/lib64/:$CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/xdaap_r8/lib:/usr/local/hdf5-intel-1.8.8/lib:/usr/local/lib64
         setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
 
+else if ($MAC == "spiro_python3") then
+#------------------------------- spiro --------------------------------------
+        setenv ELSAPROD spiro_r8
+        module load python/3.6.1-intel-17
+        # Set next two lines only if python is not python
+        setenv PYTHONEXE python3
+        alias python python3
+        module load intel/17.0.4
+        module load impi/17
+        module load hdf5/1.8.17-intel-17
+        # Number of threads
+        setenv OMP_NUM_THREADS 24
+        set path=($path $CASSIOPEE/Dist/bin)
+        set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
+        setenv LD_LIBRARY_PATHL /usr/lib64/:$CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:/usr/local/hdf5-intel-1.8.17/lib:/usr/local/lib64
+        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.6/site-packages
+
 else if ($MAC == "spiro") then
 #------------------------------- spiro --------------------------------------
         setenv ELSAPROD spiro_r8
@@ -420,9 +458,33 @@ else if ($MAC == "spiro") then
         setenv LD_LIBRARY_PATHL /usr/lib64/:$CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:/usr/local/hdf5-intel-1.8.8/lib:/usr/local/lib64
         setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
 
+else if ($MAC == "sator_python3") then
+#------------------------------- sator --------------------------------------
+        setenv ELSAPROD sat_r8
+        echo "ELSAPROD="$ELSAPROD
+        echo "pour compiler sur skylake, setenv MACHINE sator_sky, puis sourcer env_Cassiopee_r8"
+
+        module unload intel/11.1.073
+        module load python/3.6.1-intel-17
+        # Set next two lines only if python is not python
+        setenv PYTHONEXE python3
+        alias python python3
+        module load intel/17.0.4
+        module load impi/17
+        #module load hdf5/1.8.17-intel-17
+        # HDF para (deja dans le socle)
+        module load hdf5/1.8.17-intel-17.impi
+        
+        # Number of threads
+        setenv OMP_NUM_THREADS 28
+        set path=($path $CASSIOPEE/Dist/bin)
+        set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
+        #setenv LD_LIBRARY_PATHL $CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/stv_r8/lib:/tmp_user/stelvio/benoit/sator/lib
+        setenv LD_LIBRARY_PATHL $CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:
+        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
+
 else if ($MAC == "sator") then
 #------------------------------- sator --------------------------------------
-# En dernier a cause de 'n'
         setenv ELSAPROD sat_r8
         echo "ELSAPROD="$ELSAPROD
         echo "pour compiler sur skylake, setenv MACHINE sator_sky, puis sourcer env_Cassiopee_r8"
@@ -444,7 +506,6 @@ else if ($MAC == "sator") then
 
 else if ($MAC == "sator_sky") then
 #------------------------------- sator skylake ------------------------------------
-# En dernier a cause de 'n'
         setenv ELSAPROD sat_sky_r8
         module unload intel/11.1.073
         module load CFD/4.0-intel-17.impi

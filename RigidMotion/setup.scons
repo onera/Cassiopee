@@ -49,6 +49,9 @@ env = Environment(tools=tools, CC=cc, CXX=cxx, AR=AR, CPPFLAGS=[],
 env.Replace(CFLAGS=Dist.getCArgs())
 env.Replace(CXXFLAGS=Dist.getCppArgs())
 
+ELSAPROD = os.environ.get('ELSAPROD', 'x86_r8')
+env.SConsignFile('build/'+ELSAPROD+'/.sconsign.dblite')
+
 #==============================================================================
 
 myMod = env.StaticLibrary('rigidMotion', srcs.cpp_srcs)
