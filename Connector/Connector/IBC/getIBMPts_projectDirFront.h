@@ -2,7 +2,7 @@ pr1[0] = xc0; pr2[0]=xc0+dirx0;
 pr1[1] = yc0; pr2[1]=yc0+diry0; 
 pr1[2] = zc0; pr2[2]=zc0+dirz0;
 dist2 = K_CONST::E_MAX_FLOAT;
-xsav = xc0; ysav = yc0; zsav = zc0; 
+xsf = xc0; ysf= yc0; zsf = zc0; 
 ok = -1;
 for (E_Int nos = 0; nos < nfronts; nos++)
 {
@@ -27,20 +27,8 @@ for (E_Int nos = 0; nos < nfronts; nos++)
             if (distl < dist2) 
             {
                 dist2 = distl;
-                xsav = xi0; ysav = yi0; zsav = zi0;            
+                xsf = xi0; ysf = yi0; zsf = zi0;            
                 ok = 1;//one projection found
-
-                // indvert1 = cnVert1[notri]-1;
-                // indvert2 = cnVert2[notri]-1;
-                // indvert3 = cnVert3[notri]-1;
-                // edgeLen1 = (xs[indvert1]-xs[indvert2])*(xs[indvert1]-xs[indvert2])+
-                // (ys[indvert1]-ys[indvert2])*(ys[indvert1]-ys[indvert2])+
-                // (zs[indvert1]-zs[indvert2])*(zs[indvert1]-zs[indvert2]);
-
-                // edgeLen2 = (xs[indvert3]-xs[indvert2])*(xs[indvert3]-xs[indvert2])+
-                // (ys[indvert3]-ys[indvert2])*(ys[indvert3]-ys[indvert2])+
-                // (zs[indvert3]-zs[indvert2])*(zs[indvert3]-zs[indvert2]);
-                // snearloc0 = K_FUNC::E_max(edgeLen1, edgeLen2);
             }
         }         
     }

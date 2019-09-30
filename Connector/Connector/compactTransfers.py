@@ -13,9 +13,6 @@ except: pass
 # fonctionne avec ___setInterpTransfer
 #==============================================================================
 def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
-    try: import Converter.GhostCells as GhostCells
-    except: raise ImportError("setInterpDataForGhostCells__ requires Converter.GhostCells module.")
-
     if graph is not None :
         # Suppose mpirun
         procDict  = graph['procDict']

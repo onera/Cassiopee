@@ -1496,8 +1496,9 @@ def setInterpTransfers(aR, topTreeD, variables=[], cellNVariable='cellN',
 # setIBCData
 # loc='nodes','centers' defines the location in aR of transferred values
 # IN: variablesI =['var1','var2',...]: variables to be used in Chimera transfers
-#                = None: the whole FlowSolutionNodes variables in topTreeD are transferred
+#                =[]: the whole FlowSolutionNodes variables in topTreeD are transferred
 # IN: variablesIBC=['var1','var2',...,'var5']: variables used in IBC transfers
+# NB : if variables and/or variablesIBC are None, then no transfer (interp or IBC) is done
 # IN: bcType (IBC only) 0: glissement
 #                       1: adherence
 #                       2: loi de paroi log
@@ -1512,7 +1513,7 @@ def setInterpTransfers(aR, topTreeD, variables=[], cellNVariable='cellN',
 # IN: storage=-1/0/1: unknown/direct/inverse
 # Pour les IBCs avec loi de paroi, il faut specifier Gamma, Cv, MuS, Cs, Ts
 #===============================================================================
-def _setInterpTransfers(aR, topTreeD, variables=[],  cellNVariable='',
+def _setInterpTransfers(aR, topTreeD, variables=[], cellNVariable='',
                         variablesIBC=['Density','MomentumX','MomentumY','MomentumZ','EnergyStagnationDensity'], 
                         bcType=0, varType=1, storage=-1, compact=0,
                         Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08,Cs=0.3831337844872463, Ts=1.0):

@@ -298,7 +298,8 @@ PyObject* K_CONNECTOR::getIBMPtsWithoutFront(PyObject* self, PyObject* args)
     // projectDir of all the points onto the bodies-> wall pts
     /*--------------------------------------------------------*/    
     E_Float tol = K_CONST::E_GEOM_CUTOFF;
-    E_Float dirn, dirx0, diry0, dirz0, xsav, ysav, zsav;
+    E_Float dirn, dirx0, diry0, dirz0;
+    E_Float xsb, ysb, zsb, xsf, ysf, zsf;
     E_Float dist0, xc0, yc0, zc0, xw0, yw0, zw0, xi0, yi0, zi0;
     E_Float dist2, distl;
     vector<E_Int> indicesBB; 
@@ -352,7 +353,7 @@ PyObject* K_CONNECTOR::getIBMPtsWithoutFront(PyObject* self, PyObject* args)
             if ( ok == -1) goto projectOrthoBody;
             else 
             {
-                ptrXW[ind] = xsav; ptrYW[ind] = ysav; ptrZW[ind] = zsav;
+                ptrXW[ind] = xsb; ptrYW[ind] = ysb; ptrZW[ind] = zsb;
                 goto endofwpt;
             }
             /*----------------------------------------*/
@@ -368,10 +369,10 @@ PyObject* K_CONNECTOR::getIBMPtsWithoutFront(PyObject* self, PyObject* args)
 
             if (ok==-1) //closest pt
             {
-                xsav = xb2[indp]; ysav = yb2[indp]; zsav = zb2[indp];
+                xsb = xb2[indp]; ysb = yb2[indp]; zsb = zb2[indp];
             }
 
-            ptrXW[ind] = xsav; ptrYW[ind] = ysav; ptrZW[ind] = zsav;
+            ptrXW[ind] = xsb; ptrYW[ind] = ysb; ptrZW[ind] = zsb;
             endofwpt:;            
             /*----------------------------------------*/
             /* STEP3/ determination of image pts      */

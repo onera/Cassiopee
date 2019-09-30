@@ -203,20 +203,18 @@ def _setPrescribedMotion2(t, name,
     return None
 
 #=============================================================================
-# Permet de definir un mouvement de translation + rotation constant
+# Permet de definir un mouvement de rotation constant
 #=============================================================================
 def setPrescribedMotion3(t, name,
-                         transl_speed=(0.,0.,0.),
                          axis_pnt=(0.,0.,0.), axis_vct=(0.,0.,0.),
                          omega=0.):
-  """Define a motion of type 3 into zones."""
+  """Define a motion of type 3 (rotation) into zones."""
   tp = Internal.copyRef(t)
-  _setPrescribedMotion3(tp, name, transl_speed=transl_speed, axis_pnt=axis_pnt,
+  _setPrescribedMotion3(tp, name, axis_pnt=axis_pnt,
                         axis_vct=axis_vct, omega=omega)
   return tp
 
 def _setPrescribedMotion3(t, name,
-                         transl_speed=(0.,0.,0.),
                          axis_pnt=(0.,0.,0.), axis_vct=(0.,0.,0.),
                          omega=0.):
 
@@ -236,8 +234,6 @@ def _setPrescribedMotion3(t, name,
         # Set it
         motion[2] = []
         motion[2].append(['MotionType', numpy.array([3], numpy.int32),
-                          [], 'DataArray_t'])
-        motion[2].append(['transl_speed', numpy.array([transl_speed[0], transl_speed[1], transl_speed[2]], numpy.float64),
                           [], 'DataArray_t'])
         motion[2].append(['axis_pnt', numpy.array([axis_pnt[0], axis_pnt[1], axis_pnt[2]], numpy.float64),
                           [], 'DataArray_t'])
@@ -415,23 +411,21 @@ def _moveZone__(z, time):
                 M = KBridge.evalKDesFunction(Func1, time)
                 _evalPosition___(z, None, M)
                 T._translate(z, (transl_speed[0]*time,transl_speed[1]*time,transl_speed[2]*time))
-            elif dtype == 3: # type 3: constant transl + rotation
-                transl_speed = getNodeValue__(m, 'transl_speed')
+            elif dtype == 3: # type 3: rotation
                 axis_pnt = getNodeValue__(m, 'axis_pnt')
                 axis_vct = getNodeValue__(m, 'axis_vct')
-                omega = getNodeValue__(m, 'omega')
-                tx = transl_speed[0]*time
-                ty = transl_speed[1]*time
-                tz = transl_speed[2]*time
-                T._translate(z, (tx,ty,tz))
-                cx = axis_pnt[0]+tx
-                cy = axis_pnt[1]+ty
-                cz = axis_pnt[2]+tz
+                omega = getNodeValue__(m, 'omega')               
+                cx = axis_pnt[0]#+tx
+                cy = axis_pnt[1]#+ty
+                cz = axis_pnt[2]#+tz
                 ex = axis_vct[0]
                 ey = axis_vct[1]
                 ez = axis_vct[2]
                 angle = omega[0]*time*__RAD2DEG__
-                T._rotate(z, (cx,cy,cz), (ex-cx,ey-cy,ez-cz), angle)
+                #T._rotate(z, (cx,cy,cz), (ex-cx,ey-cy,ez-cz), angle)
+                T._rotate(z, (cx,cy,cz), (ex,ey,ez), angle)
+            else:
+                print("Motion type not found. Nothing done.")
     return None
     
 #==============================================================================
@@ -514,22 +508,22 @@ def getMotionMatrixForZone(z, time, F=None):
                 return getRotationMatrix__(cx,cy,cz,ex,ey,ez,theta)
 
             elif dtype == 3: # type 3: constant transl + rotation
-                transl_speed = getNodeValue__(m, 'transl_speed')
                 axis_pnt = getNodeValue__(m, 'axis_pnt')
                 axis_vct = getNodeValue__(m, 'axis_vct')
                 omega = getNodeValue__(m, 'omega')
-                tx = transl_speed[0]*time
-                ty = transl_speed[1]*time
-                tz = transl_speed[2]*time
-                cx = axis_pnt[0]+tx
-                cy = axis_pnt[1]+ty
-                cz = axis_pnt[2]+tz
+                cx = axis_pnt[0]
+                cy = axis_pnt[1]
+                cz = axis_pnt[2]
                 ex = axis_vct[0]
                 ey = axis_vct[1]
                 ez = axis_vct[2]
                 theta = omega[0]*time
                 # getRotationMatrix : theta en radians
                 return getRotationMatrix__(cx,cy,cz,ex,ey,ez,theta)
+            elif dtype==4:
+                Rot = numpy.zeros((3,3), numpy.float64)
+                Rot[0,0]=1.; Rot[1,1]=1.;Rot[2,2]=1.
+                return Rot
             else:
                 raise ValueError("getMotionMatrixForZone: MotionType not valid.")
     else:
@@ -575,9 +569,7 @@ def getRotationMatrix__(cx,cy,cz,ex,ey,ez,theta):
   print('Matrice de rotation de RigidMotion en x: ', Rot[0,:])
   print('Matrice de rotation de RigidMotion en y: ', Rot[1,:])
   print('Matrice de rotation de RigidMotion en z: ', Rot[2,:])
-
   return Rot
-
 
 # Applique la formule XP=d+r*(XN-c) sur des numpys de coordonnees
 # in place

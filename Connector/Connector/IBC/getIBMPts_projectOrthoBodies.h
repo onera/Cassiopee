@@ -23,9 +23,9 @@ for(E_Int nos = 0; nos < nbodies; nos++)
             if (distl < dist2) 
             {
                 dist2 = distl;
-                xsav = xw0; ysav = yw0; zsav = zw0;            
+                xsb = xw0; ysb = yw0; zsb = zw0;            
                 ok = 1;//one projection found
-                noibctype = nos;
+                noibctype = nos;                
             }
         } 
     }

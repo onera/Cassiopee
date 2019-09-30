@@ -26,7 +26,7 @@ for(E_Int nos = 0; nos < nfronts; nos++)
             if (distl < dist2) 
             {
                 dist2 = distl;
-                xsav = xw0; ysav = yw0; zsav = zw0;            
+                xsf = xw0; ysf = yw0; zsf = zw0;            
                 ok = 1;//one projection found
 
                 indvert1 = cnVert1[notri]-1;

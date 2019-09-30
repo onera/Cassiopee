@@ -2,7 +2,7 @@ pr1[0]=xc0; pr2[0]=xc0+dirx0;
 pr1[1]=yc0; pr2[1]=yc0+diry0; 
 pr1[2]=zc0; pr2[2]=zc0+dirz0;
 dist2 = K_CONST::E_MAX_FLOAT;
-xsav = xc0; ysav = yc0; zsav = zc0; 
+xsb = xc0; ysb = yc0; zsb = zc0; 
 ok = -1;
 
 for(E_Int nos = 0; nos < nbodies; nos++)
@@ -24,7 +24,7 @@ for(E_Int nos = 0; nos < nbodies; nos++)
             if (distl < dist2) 
             {
                 dist2 = distl;
-                xsav = xi0; ysav = yi0; zsav = zi0;            
+                xsb = xi0; ysb = yi0; zsb = zi0;            
                 ok = 1;//one projection found
                 noibctype = nos;
             }

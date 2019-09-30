@@ -88,12 +88,12 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
     //tolerance of distance between corrected pts and wall/image to control projection
     //distance max for image pt to its corrected pt : (depth+1)*sqrt(2)*snearloc 
     E_Float toldistFactorImage;
-    if (signOfDist==-1)// Euler : we move away the front from one additional layer
-        toldistFactorImage = (depth+2)*(depth+2)*2.;
+    if (signOfDist==-1) // interior points:  we move away the front from one additional layer
+        toldistFactorImage = (depth+2)*(depth+2)*3.;
     else 
-        toldistFactorImage = (depth+1)*(depth+1)*2.;
-    //distance max for wall pt to its corrected pt ( depth)*sqrt(2)*snearloc
-    E_Float toldistFactorWall = (depth+1)*(depth+1)*2.;
+        toldistFactorImage = (depth+1)*(depth+1)*3.;
+    //distance max for wall pt to its corrected pt ( depth)*sqrt(3)*snearloc
+    E_Float toldistFactorWall = (depth+1)*(depth+1)*3.;
 
     // Check normal components
     if (PyList_Check(normalNames) == 0)
@@ -404,12 +404,13 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
 
     ArrayAccessor<FldArrayF> coordAccF(*frontSurfacesPts, 1,2,3);
     KdTree<FldArrayF> kdtf(coordAccF, E_EPSILON);
+
     /*--------------------------------------------------------*/
     // projectDir of all the points onto the bodies-> wall pts
     // projectDir of all the points onto the front -> image pts
     /*--------------------------------------------------------*/    
     E_Float tol = K_CONST::E_GEOM_CUTOFF;
-    E_Float dirx0, diry0, dirz0, xsav, ysav, zsav;
+    E_Float dirx0, diry0, dirz0, xsf, ysf, zsf, xsb, ysb, zsb;
     E_Float xc0, yc0, zc0, xw0, yw0, zw0, xi0, yi0, zi0;
     E_Float dist2, distl;
     vector<E_Int> indicesBB; 
@@ -421,13 +422,11 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
     //distance of corrected pts to wall pts and image pts 
     E_Float delta1, delta2;
     //Corresponding directions
-    //E_Float nx, ny, nz;
     E_Float nxp, nyp, nzp, nxs, nys, nzs;
     E_Int *cnVert1, *cnVert2, *cnVert3;
     E_Float edgeLen1, edgeLen2;
-    E_Int foundw, foundi, valid;
     PyObject* PyListIndicesByIBCType = PyList_New(0);
-
+    E_Float xf_ortho, yf_ortho, zf_ortho, xb_ortho, yb_ortho, zb_ortho;
     for (E_Int noz = 0; noz < nzones; noz++)
     {   
         FldArrayF* correctedPts = unstrF[noz];
@@ -446,6 +445,8 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
         E_Float* ptrZI = zit[noz];
         E_Float snearloc = vectOfSnearsLoc[noz];        
         snearloc = snearloc*snearloc;
+        E_Float distMaxF2 = toldistFactorImage*snearloc;// distance au carre maximale des pts cibles au front
+        E_Float distMaxB2 = toldistFactorWall*snearloc;// distance au carre maximale des pts cibles au projete paroi
 
         vector<FldArrayI*> vectOfIndicesByIBCType(nbodies);
         vector<E_Int> nPtsPerIBCType(nbodies);//nb de pts projetes sur la surface paroi de type associe 
@@ -457,205 +458,128 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
         }
         for (E_Int ind = 0; ind < npts; ind++)
         {
-            foundw = 0; foundi = 0; 
             E_Int noibctype = -1;
             xc0 = ptrXC[ind]; yc0 = ptrYC[ind]; zc0 = ptrZC[ind];
+            E_Int okf1=0, okf2=0, okf3=0, okb1=0, okb2=0, okb3=0;
+            E_Float distF1 = -1.; E_Float distB1 = -1.;
+            E_Float distF2 = -1.; E_Float distB2 = -1.;
+            E_Float distF3 = -1.; E_Float distB3 = -1.;
             /*-----------------------------------------------------------------------------------------------------*/
             /* Step 1: projection  onto the front and bodies following normals -> snearloc resolution for the front*/
             /*-----------------------------------------------------------------------------------------------------*/
-            valid = 1;
-            dirx0 = ptrNX[ind];
-            diry0 = ptrNY[ind];
-            dirz0 = ptrNZ[ind];
-            //nx = dirx0; ny = diry0; nz = dirz0; //normals towards the outside
+            E_Int found = 0;
 
+            dirx0 = ptrNX[ind]; diry0 = ptrNY[ind]; dirz0 = ptrNZ[ind];
 #  include "IBC/getIBMPts_projectDirFront.h"
 
-            if (ok == -1) {valid=0; goto projectOrthoBody;}//projectDir on front failed
-                        
-            //check if projected pts  are close enough - snearloc has been computed more accurately
-            delta2 = (xsav-ptrXC[ind])*(xsav-ptrXC[ind])+(ysav-ptrYC[ind])*(ysav-ptrYC[ind])+(zsav-ptrZC[ind])*(zsav-ptrZC[ind]);
-            if (delta2 < toldistFactorImage*snearloc)  
+            if ( ok > -1) // projection found
             {
-                foundi = 1;
-                ptrXI[ind] = xsav; ptrYI[ind] = ysav; ptrZI[ind] = zsav;
-            }
-            else valid = 0;
+                okf1 = 1; 
+                distF1 = (xsf-xc0)*(xsf-xc0)+(ysf-yc0)*(ysf-yc0)+(zsf-zc0)*(zsf-zc0);            
 
-            // projectDir for pt onto the bodies
-            dirx0 = sign*dirx0; 
-            diry0 = sign*diry0; 
-            dirz0 = sign*dirz0;
+                // projectDir for pt onto the bodies
+                dirx0 = sign*dirx0; 
+                diry0 = sign*diry0; 
+                dirz0 = sign*dirz0;
 
-# include "IBC/getIBMPts_projectDirBodies.h"
+                # include "IBC/getIBMPts_projectDirBodies.h"
 
-            if (ok == -1) {valid = 0; goto projectOrthoBody;}
-                        
-            delta1 = (xsav-ptrXC[ind])*(xsav-ptrXC[ind])+(ysav-ptrYC[ind])*(ysav-ptrYC[ind])+(zsav-ptrZC[ind])*(zsav-ptrZC[ind]);
-            if (delta1 < toldistFactorWall*snearloc)  
-            {
-                foundw = 1;
-                ptrXW[ind] = xsav; ptrYW[ind] = ysav; ptrZW[ind] = zsav;
-            }
-            else valid = 0;
-
-            if (valid == 1) goto endofpt;//success
-
-            /*--------------------------------------------------------------------------------------*/
-            /* Step 2: ortho projection on the bodies + new normals for projectDir on the front     */
-            /*--------------------------------------------------------------------------------------*/
-            projectOrthoBody:;
-            //printf("Step1 failed: ortho projection on bodies.\n");
-
-            valid = 1;
-            // ortho projection of target pt onto bodies
-            pt[0] = xc0; pt[1] = yc0; pt[2] = zc0;
-            indp = kdt.getClosest(pt);
-
-# include "IBC/getIBMPts_projectOrthoBodies.h"
-            if (ok == -1)  {valid = 0; goto projectOrthoFront;}
-
-            delta1 = (xsav-ptrXC[ind])*(xsav-ptrXC[ind])+(ysav-ptrYC[ind])*(ysav-ptrYC[ind])+(zsav-ptrZC[ind])*(zsav-ptrZC[ind]);
-            if ( delta1 < toldistFactorWall*snearloc )  
-            {
-                ptrXW[ind] = xsav; ptrYW[ind] = ysav; ptrZW[ind] = zsav;
-                foundw = 1;
-            }
-            else valid = 0;
-        
-            // projectDir for pt onto front surfaces using the new direction 
-            dirx0 = sign*(xsav-xc0); //sign =1 (internal): follows vector CW
-            diry0 = sign*(ysav-yc0); //sign=-1 (external): follows vector WC
-            dirz0 = sign*(zsav-zc0);
-            nxp = dirx0; nyp = diry0; nzp = dirz0; //normale orientee vers l'exterieur
-
-#  include "IBC/getIBMPts_projectDirFront.h"
-            if (ok == -1) { valid=0; goto projectOrthoFront;}
-                                 
-            delta2 = (xsav-ptrXC[ind])*(xsav-ptrXC[ind])+(ysav-ptrYC[ind])*(ysav-ptrYC[ind])+(zsav-ptrZC[ind])*(zsav-ptrZC[ind]);
-            if (delta2 < toldistFactorImage*snearloc)  
-            {
-                foundi = 1;
-                ptrXI[ind] = xsav; ptrYI[ind] = ysav; ptrZI[ind] = zsav;
-            }
-            else valid = 0;
-
-            if (valid == 1) goto endofpt; // both pts are valid: success
-            
-            /*---------------------------------------------------------------------------------------------*/
-            /* Step 3: ortho projection onto the front + dir onto the obstacle using the ortho direction  */
-            /*---------------------------------------------------------------------------------------------*/
-            projectOrthoFront:;
-            //printf("Step2 failed: ortho projection on front.\n");
-            valid = 1;
-
-            // Projection orthogonale du pt cible sur le front
-            pt[0] = xc0; pt[1] = yc0; pt[2] = zc0;
-            indp = kdtf.getClosest(pt);
-
-# include "IBC/getIBMPts_projectOrthoFront.h"
-
-            if (ok == -1) { valid=0; goto blended; } // nxs non initialise!!
-        
-            //check if projected pts are close enough
-            delta2 = (xsav-ptrXC[ind])*(xsav-ptrXC[ind])+(ysav-ptrYC[ind])*(ysav-ptrYC[ind])+(zsav-ptrZC[ind])*(zsav-ptrZC[ind]);
-
-            if ( delta2 < toldistFactorImage*snearloc )  
-            {
-                foundi = 1;
-                ptrXI[ind] = xsav; ptrYI[ind] = ysav; ptrZI[ind] = zsav;
-            }
-            else valid = 0;
-
-            //projection to get wall pt
-            dirx0 = xc0-xsav; 
-            diry0 = yc0-ysav;
-            dirz0 = zc0-zsav;
-            nxs = -dirx0; nys = -diry0; nzs = -dirz0; //normale orientee vers l'exterieur
-
-# include "IBC/getIBMPts_projectDirBodies.h"
-
-            if (ok == -1) { valid=0; goto blended;}
-
-            delta1 = (xsav-ptrXC[ind])*(xsav-ptrXC[ind])+(ysav-ptrYC[ind])*(ysav-ptrYC[ind])+(zsav-ptrZC[ind])*(zsav-ptrZC[ind]);
-            if ( delta1 < toldistFactorWall*snearloc )  
-            {
-                ptrXW[ind] = xsav; ptrYW[ind] = ysav; ptrZW[ind] = zsav;
-                foundw = 1;
-            }
-            else valid = 0;
-
-            //check if projected pts  are close enough
-            if ( valid == 1 ) goto endofpt; // both pts are valid
-
-            /*------------------------------------------------------------*/
-            /*   BLEND OF BOTH DIRECTIONS                                 */
-            /*------------------------------------------------------------*/
-            blended:;
-            //printf("Step 3 failed: blending normals...\n");
-            valid = 1;
-
-            // projection onto the front
-            dirx0 = 0.5*(nxp+nxs);
-            diry0 = 0.5*(nyp+nys);
-            dirz0 = 0.5*(nzp+nzs);
-#  include "IBC/getIBMPts_projectDirFront.h"
-            err = 0;
-            if (ok == -1) err = 1;
-            else 
-            {
-                delta2 = (xsav-ptrXC[ind])*(xsav-ptrXC[ind])+(ysav-ptrYC[ind])*(ysav-ptrYC[ind])+(zsav-ptrZC[ind])*(zsav-ptrZC[ind]);
-                if ( delta2 < toldistFactorImage*snearloc )  
+                if ( ok > -1) 
                 {
-                    foundi = 1;
-                    ptrXI[ind] = xsav; ptrYI[ind] = ysav; ptrZI[ind] = zsav;
+                    okb1 = 1; 
+                    distB1 = (xsb-xc0)*(xsb-xc0)+(ysb-yc0)*(ysb-yc0)+(zsb-zc0)*(zsb-zc0);
+
+                    //check distance
+                    if (distB1 <= distMaxB2 && distF1 <= distMaxF2)
+                    {
+                        found = 1;
+                        ptrXW[ind] = xsb; ptrYW[ind] = ysb; ptrZW[ind] = zsb;
+                        ptrXI[ind] = xsf; ptrYI[ind] = ysf; ptrZI[ind] = zsf;
+                        goto end;
+                    }
                 }
-                else valid = 0;
             }
 
-            //projection onto bodies
-            dirx0 = sign*dirx0;
-            diry0 = sign*diry0;
-            dirz0 = sign*dirz0;
-
-# include "IBC/getIBMPts_projectDirBodies.h"
-            if (ok == -1) err = 1;
-            else
+            // found = 1 : image and wall IBM points have been found and set 
+            if (found == 0)
             {
-                delta1 = (xsav-ptrXC[ind])*(xsav-ptrXC[ind])+(ysav-ptrYC[ind])*(ysav-ptrYC[ind])+(zsav-ptrZC[ind])*(zsav-ptrZC[ind]);
-                if ( delta1 < toldistFactorWall*snearloc )  
-                {
-                    ptrXW[ind] = xsav; ptrYW[ind] = ysav; ptrZW[ind] = zsav;
-                    foundw = 1;
-                }
-                else valid = 0;
-
-                //check if projected pts  are close enough 
-                if (valid == 0) err = 1;
-                else goto endofpt;
-            }
-            if ( err == 1 )
-            {
-                printf("Warning: all the projections onto the front failed for corrected point %d of zone %d of coordinates (%g,%g,%g).\n", ind, noz, xc0, yc0, zc0);
+                /*--------------------------------------------------------------------------------------*/
+                /* Step 2: ortho projection on the bodies + new normals for projectDir on the front     */
+                /*--------------------------------------------------------------------------------------*/
+                // ortho projection of target pt onto bodies
                 pt[0] = xc0; pt[1] = yc0; pt[2] = zc0;
-                if (foundw == 0)
-                {
-                    printf("Wall point is set to closest point in body.\n");
-                    indp = kdt.getClosest(pt);
-                    ptrXW[ind] = xb2[indp]; ptrYW[ind] = yb2[indp]; ptrZW[ind] = zb2[indp];
+                indp = kdt.getClosest(pt);
+                # include "IBC/getIBMPts_projectOrthoBodies.h"
+
+                if ( ok == 1 )
+                { 
+                    okb2 = 1;
+                    distB2 = (xsb-xc0)*(xsb-xc0)+(ysb-yc0)*(ysb-yc0)+(zsb-zc0)*(zsb-zc0);
+
+                    xb_ortho = xsb; yb_ortho = ysb; zb_ortho=zsb;
+
+                    // projectDir for pt onto front surfaces using the new direction 
+                    dirx0 = sign*(xsb-xc0); //sign =1 (internal): follows vector CW
+                    diry0 = sign*(ysb-yc0); //sign=-1 (external): follows vector WC
+                    dirz0 = sign*(zsb-zc0);
+                    nxp = dirx0; nyp = diry0; nzp = dirz0; //normale orientee vers l'exterieur
+                    #  include "IBC/getIBMPts_projectDirFront.h"
+
+                    if ( ok == 1 )
+                    {
+                        distF2 = (xsf-xc0)*(xsf-xc0)+(ysf-yc0)*(ysf-yc0)+(zsf-zc0)*(zsf-zc0);
+                        okf2 = 1;
+                        if ( distF2  <= distMaxF2 && distB2 <= distMaxB2) 
+                        {
+                            ptrXW[ind] = xsb; ptrYW[ind] = ysb; ptrZW[ind] = zsb;
+                            ptrXI[ind] = xsf; ptrYI[ind] = ysf; ptrZI[ind] = zsf;
+                            goto end;
+                        }
+                    }
                 }
-                if (foundi == 0)
+                else {printf("WARNING: getIBMPtsWithFront: projectOrthoBodies FAILED !!!\n");}
+                /*---------------------------------------------------------------------------------------------*/
+                /* Step 3: ortho projection onto the front + dir onto the obstacle using the ortho direction  */
+                /*---------------------------------------------------------------------------------------------*/
+                pt[0] = xc0; pt[1] = yc0; pt[2] = zc0;
+                indp = kdtf.getClosest(pt);
+                # include "IBC/getIBMPts_projectOrthoFront.h"
+                if ( ok == 1 )
                 {
-                    printf("Image point is set to the closest point in front.\n");
-                    indp = kdtf.getClosest(pt);
-                    ptrXI[ind] = xf2[indp]; ptrYI[ind] = yf2[indp]; ptrZI[ind] = zf2[indp];
+                    okf3 = 1;
+                    distF3 = (xsf-xc0)*(xsf-xc0)+(ysf-yc0)*(ysf-yc0)+(zsf-zc0)*(zsf-zc0);
+                    xf_ortho=xsf; yf_ortho=ysf; zf_ortho=zsf;
+
+                    //projectDir to get wall pt
+                    dirx0 = xc0-xsf; diry0 = yc0-ysf; dirz0 = zc0-zsf;
+                    nxs = -dirx0; nys = -diry0; nzs = -dirz0; //normale orientee vers l'exterieur
+                    # include "IBC/getIBMPts_projectDirBodies.h"
+                    if ( ok == 1)
+                    {
+                        distB3 = (xsb-xc0)*(xsb-xc0)+(ysb-yc0)*(ysb-yc0)+(zsb-zc0)*(zsb-zc0);
+                        okb3 = 1;
+                        if ( distF3  <= distMaxF2 && distB3 <= distMaxB2) 
+                        {
+                            ptrXW[ind] = xsb; ptrYW[ind] = ysb; ptrZW[ind] = zsb;
+                            ptrXI[ind] = xsf; ptrYI[ind] = ysf; ptrZI[ind] = zsf;
+                            goto end;
+                        }
+                    }
                 }
-            }
-            
-            /*------------------------------------------------------------*/
-            /*   HOPEFULLY ALL THE CASES ARE VALID NOW */
-            /*------------------------------------------------------------*/
-            endofpt:;
+                else {printf("WARNING: getIBMPtsWithFront: projectOrthoFront FAILED !!!\n");}
+
+               /*---------------------------------------------------------------------------------------------*/
+               /* Step  4:  no valid projection found. Minimum distance chosen (projectOrtho)*/
+               /*---------------------------------------------------------------------------------------------*/
+                printf("Warning: minimum distance chosen for point of indice %d of zone %d.\n",ind,noz);
+                // printf(" xc = %g,%g,%g \n", xc0, yc0, zc0);
+                // printf(" xw = %g,%g,%g \n", xb_ortho, yb_ortho, zb_ortho);
+                // printf(" xi = %g,%g,%g \n", xf_ortho, yf_ortho, zf_ortho);
+
+                ptrXW[ind] = xb_ortho; ptrYW[ind] = yb_ortho; ptrZW[ind] = zb_ortho;
+                ptrXI[ind] = xf_ortho; ptrYI[ind] = yf_ortho; ptrZI[ind] = zf_ortho;
+            }// found CAS 1 = 0         
+            end:;
 
             E_Int& nptsByType = nPtsPerIBCType[noibctype];
             E_Int* indicesForIBCType = vectOfIndicesByIBCType[noibctype]->begin();
