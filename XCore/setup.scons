@@ -38,11 +38,12 @@ includeDirs = [numpyIncDir, kcoreIncDir, pythonIncDir]
 libraries = ["xcore"]
 
 ADDITIONALCPPFLAGS = []
-if mpi and mpi4py:
+if mpi:
     libraryDirs.append(mpiLibDir)
     includeDirs.append(mpiIncDir)
-    includeDirs.append(mpi4pyIncDir)
     ADDITIONALCPPFLAGS = ['-D_MPI']
+if mpi4py:
+    includeDirs.append(mpi4pyIncDir)
 if mpi: libraries += mpiLibs
 
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)

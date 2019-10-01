@@ -1377,7 +1377,7 @@ def getLayer(zD, zR, elts_old, mask, xyz0, no_layer, faceListD=None, faceListR=N
     coordyD = Internal.getNodeFromPath(zD, 'GridCoordinates/CoordinateY')[1]
     coordzD = Internal.getNodeFromPath(zD, 'GridCoordinates/CoordinateZ')[1]
 
-    if (no_layer > 1):
+    if no_layer > 1:
       NG_PE_R = Internal.getNodeFromPath(zR, 'NGonElements/ParentElements')[1]    
       NG_EC_R = Internal.getNodeFromPath(zR, 'NGonElements/ElementConnectivity')[1]    
       NG_IDX_R= Internal.getNodeFromPath(zR, 'NGonElements/FaceIndex')[1]    
@@ -1395,17 +1395,19 @@ def getLayer(zD, zR, elts_old, mask, xyz0, no_layer, faceListD=None, faceListR=N
     ptFaceD = faceListD.flat
     ptFaceR = faceListR.flat
 
-    elts  = set()
+    one = numpy.int32(1)
+
+    elts = set()
     for i in range(n):
         faceD = ptFaceD[i]-1
         if no_layer == 1:
-              if NG_PE_D[ faceD, 0] == 0:  e1D = NG_PE_D[faceD,1]
-              else: e1D = NG_PE_D[faceD,0] 
-              elts.add(e1D-1)
+              if NG_PE_D[ faceD, 0] == 0: e1D = NG_PE_D[faceD,1]
+              else: e1D = NG_PE_D[faceD,0]
+              elts.add(e1D-one)
 
               # calcul centre maille
               x0 = 0.; y0 = 0.; z0 = 0.
-              eltD =  FA_IDX_D[e1D-1]
+              eltD = FA_IDX_D[e1D-1]
               for face in range( 1, FA_EC_D[eltD ]+1):
                  f       = FA_EC_D[ eltD  + face] -1
                  ind_f   = NG_IDX_D[ f] 
@@ -1424,7 +1426,7 @@ def getLayer(zD, zR, elts_old, mask, xyz0, no_layer, faceListD=None, faceListR=N
               if (NG_PE_D[ faceD, 0] > NG_PE_D[ faceD, 1]):  e1D = NG_PE_D[faceD,1]
               else:                                          e1D = NG_PE_D[faceD,0] 
               #recuperation adresse element dans ElementConnectivity pour recuperer faces de l'element
-              ind_e1D =  FA_IDX_D[e1D-1]
+              ind_e1D = FA_IDX_D[e1D-1]
 
               #print 'e1',e1D, faceD+1, mask
               #print 'GD',NG_PE_D[faceD,1],NG_PE_D[faceD,0]
@@ -1458,7 +1460,7 @@ def getLayer(zD, zR, elts_old, mask, xyz0, no_layer, faceListD=None, faceListR=N
                            code = x0 + 1000000.*y0 + 1.e12*z0
                            xyz0.add(code)
                            size2_xyz = len( xyz0)
-                           if size2_xyz > size1_xyz: elts.add(e3D-1)
+                           if size2_xyz > size1_xyz: elts.add(e3D-one)
  
                        elif e4D < mask[0] or e4D > mask[1]: 
                            #calcul centre maille
@@ -1478,7 +1480,7 @@ def getLayer(zD, zR, elts_old, mask, xyz0, no_layer, faceListD=None, faceListR=N
                            code = x0 + 1000000.*y0 + 1.e12*z0
                            xyz0.add(code)
                            size2_xyz = len(xyz0)
-                           if size2_xyz > size1_xyz: elts.add(e4D-1)
+                           if size2_xyz > size1_xyz: elts.add(e4D-one)
                     else:
                        #on cherche le matching entre la face BC dans donneur et receveur
                        faceR= ptFaceR[i]-1
@@ -1574,6 +1576,7 @@ def getLayer(zD, zR, elts_old, mask, xyz0, no_layer, faceListD=None, faceListR=N
 
     #print('zoneD=', zD[0], 'elts new ', elts,'elts old ', elts_old)
     elts = elts-elts_old
+
     #print('layer=', no_layer, elts)
     b = T.subzone(zD, list(elts), type='elements')
     
@@ -1908,9 +1911,9 @@ def adapt2FastP2(t, nlayers=2):
         node =  Internal.getNodeFromName1(z, 'NFaceElements')
         Internal.createUniqueChild(node, 'IntExt', 'DataArray_t', data_nf)
 
-        print 'zone=', z[0], 'Elts0=', data_nf[0], 'Elts1=', data_nf[1],'Elts2=', data_nf[2]
+        print('zone=', z[0], 'Elts0=', data_nf[0], 'Elts1=', data_nf[1],'Elts2=', data_nf[2])
         '''
-        c +=1
+        c += 1
 
     return t
 
@@ -1924,7 +1927,6 @@ def addGhostCellsNG(t, nlayers=2):
     bases = Internal.getBases(t) 
     zones = Internal.getZones(t)
     nbz = len(zones)
-    #print "nb zones :",nbz
 
     ozones = []
     znames = []
@@ -1936,10 +1938,10 @@ def addGhostCellsNG(t, nlayers=2):
 
     # zone name to id
     name2id = dict()
-    i=0
+    i = 0
     for z in zones :
         name2id[z[0]] = i
-        i=i+1
+        i += 1
 
     zone_ngons = []
     F2Es = []

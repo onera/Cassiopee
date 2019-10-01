@@ -3,7 +3,6 @@ import Generator.PyTree as G
 import Converter.PyTree as C
 import Geom.PyTree as D
 import Converter.Internal as Internal
-import Connector.PyTree as X
 import KCore.test as test
 
 # 3D sur une zone

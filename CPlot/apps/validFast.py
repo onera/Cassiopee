@@ -16,8 +16,8 @@ ttk = CTK.importTtk()
 
 # CASSIOPEE var
 CASSIOPEE = os.getenv('CASSIOPEE')
-if (CASSIOPEE == ''):
-    print 'Error: CASSIOPEE must be present in your environement.'
+if CASSIOPEE == '':
+    print('Error: CASSIOPEE must be present in your environement.')
     sys.exit()
 
 # Systeme
@@ -97,9 +97,9 @@ def setThreads(event=None):
     try:
         nti = int(nt)
         KCore.kcore.setOmpMaxThreads(nti)
-        print 'Num threads set to %d.\n'%nti
+        print('Num threads set to %d.\n'%nti)
     except:
-        print 'Bad thread number.\n'
+        print('Bad thread number.\n')
     return
 
 #==============================================================================

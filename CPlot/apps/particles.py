@@ -14,14 +14,14 @@ sol = C.convertFile2Arrays('output.plt')
 CPlot.display(sol, dim=2)
 
 # Entree du point d'emission
-print "Cliquez pour definir le point d'emission..."
+print("Cliquez pour definir le point d'emission...")
 
 Point = []
 while Point == []:
     Point = CPlot.getActivePoint()
 
 # Point d'emission
-print "Point d'emission :", Point
+print("Point d'emission :", Point)
 
 # Particules
 np = 20; nq = 20

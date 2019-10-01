@@ -3,7 +3,6 @@ import Transform.PyTree as T
 import Generator.PyTree as G
 import Converter.PyTree as C
 import Geom.PyTree as D
-import Converter.Internal as Internal
 import KCore.test as test
 
 def dens(x,y): return 3*x*y

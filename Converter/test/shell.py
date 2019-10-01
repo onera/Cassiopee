@@ -14,9 +14,9 @@ def conv(fmttpFile, bintpFile):
   C.convertArrays2File(a, bintpFile, "bin_tp")
 
 # Then write a main function calling the previous function:
-if (__name__ == "__main__"):
+if __name__ == "__main__":
   import sys
-  if (len(sys.argv) < 3):
-    print "Two arguments are needed!"
+  if len(sys.argv) < 3:
+    print("Two arguments are needed!")
   else:
     conv(sys.argv[1], sys.argv[2])

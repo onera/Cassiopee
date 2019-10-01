@@ -37,14 +37,29 @@ E_Int K_ARRAY::getFromList(PyObject* o, FldArrayI& out)
     if (n == 0) return 0; // nothing in list
     out.malloc(n);
     PyObject* first = PyList_GetItem(o, 0);
-    if (PyLong_Check(first) == false &&
-        PyInt_Check(first) == false) return 0;
-    for (E_Int i = 0; i < n; i++)
+
+    if (PyLong_Check(first) == true ||
+        PyInt_Check(first) == true)
     {
-      val = PyLong_AsLong(PyList_GetItem(o, i));
-      out[i] = val;
+      for (E_Int i = 0; i < n; i++)
+      {
+        val = PyLong_AsLong(PyList_GetItem(o, i));
+        out[i] = val;
+      }
+      return 1;
     }
-    return 1;
+    
+    val = PyArray_PyIntAsInt(first);
+    if ((val != -1) || (not PyErr_Occurred()))
+    {
+      for (E_Int i = 0; i < n; i++)
+      {
+        val = PyArray_PyIntAsInt(PyList_GetItem(o, i));
+        out[i] = val;
+      }
+      return 1;
+    }
+    return 0;
   }
   else if (PyArray_Check(o) == true)
   {

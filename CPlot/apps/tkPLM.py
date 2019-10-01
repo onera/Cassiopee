@@ -23,15 +23,15 @@ def generatePLM():
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     
     hf = CTK.varsFromWidget(VARS[1].get(), type=1)
-    if (len(hf) != 1):
+    if len(hf) != 1:
         CTK.TXT.insert('START', 'First cell height is incorrect.\n'); return
     hf = hf[0]
     h = CTK.varsFromWidget(VARS[0].get(), type=1)
-    if (len(h) != 1):
+    if len(h) != 1:
         CTK.TXT.insert('START', 'Mesh height is incorrect.\n'); return
     h = h[0]
     density = CTK.varsFromWidget(VARS[2].get(), type=1)
-    if (len(density) != 1):
+    if len(density) != 1:
         CTK.TXT.insert('START', 'Grid point density is incorrect.\n'); return
     density = density[0]
      
@@ -50,7 +50,7 @@ def generatePLM():
         (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
         CTK.TKTREE.updateApp()
         CPlot.render()
-    except Exception, e:
+    except Exception as e:
         Panels.displayErrors([0,str(e)], header='Error: PLM')
         CTK.TXT.insert('START', 'PLM mesh failed.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error')

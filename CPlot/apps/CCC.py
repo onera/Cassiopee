@@ -16,7 +16,7 @@ ttk = CTK.importTtk()
 # CASSIOPEE var
 CASSIOPEE = os.getenv('CASSIOPEE')
 if CASSIOPEE == '':
-    prin() 'Error: CASSIOPEE must be present in your environement.')
+    print('Error: CASSIOPEE must be present in your environement.')
     sys.exit()
 
 # Systeme

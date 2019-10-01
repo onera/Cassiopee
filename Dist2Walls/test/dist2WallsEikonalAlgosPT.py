@@ -9,7 +9,7 @@ import time
 
 alg = DTW.fim
 
-print "Preparation de test"
+print("Preparation de test")
 beg = time.time()
 DEPTH = 2
 # Bloc cartesien
@@ -27,12 +27,12 @@ t = X.blankCellsTri(t, [[sphere]], numpy.array([[1]]), blankingType='node_in')
 t = X.setHoleInterpolatedPoints(t,depth=1,loc='nodes')
 C._initVars(t,'{flag}=({cellN}>1.)')
 end = time.time()
-print "Temps preparation test : {} secondes".format(end-beg)
-print "Fin preparation du test. Appel solveur Eikonal"
+print("Temps preparation test : {} secondes".format(end-beg))
+print("Fin preparation du test. Appel solveur Eikonal")
 beg =time.time()
 t = DTW.distance2WallsEikonal(t,sphere,DEPTH=DEPTH,nitmax=10,algo=alg)
 end = time.time()
-print "Temps passe par python pour solveur Eikonal : {} secondes".format(end-beg)
+print("Temps passe par python pour solveur Eikonal : {} secondes".format(end-beg))
 C.convertPyTree2File(t, 'out.cgns')
 
 # Bloc cartesien N=64

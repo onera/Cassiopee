@@ -28,5 +28,9 @@ else
     exit
 fi
 
+if [ "$PYTHONEXE" != "" ]; then
+    alias python=$PYTHONEXE
+fi
+
 # installation
 python setup.py install --prefix="$INSTALLPATH"

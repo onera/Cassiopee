@@ -13,32 +13,32 @@ WIDGETS = {}; VARS = []
 
 #==============================================================================
 def generatePC1M():
-    if (CTK.t == []): return
-    if (CTK.__MAINTREE__ <= 0):
+    if CTK.t == []: return
+    if CTK.__MAINTREE__ <= 0:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     nzs = CPlot.getSelectedZones()
-    if (len(nzs) == 0):
+    if len(nzs) == 0:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     
     hf = CTK.varsFromWidget(VARS[1].get(), type=1)
-    if (len(hf) != 1):
+    if len(hf) != 1:
         CTK.TXT.insert('START', 'First cell height is incorrect.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     hf = hf[0]
     h = CTK.varsFromWidget(VARS[0].get(), type=1)
-    if (len(h) != 1):
+    if len(h) != 1:
         CTK.TXT.insert('START', 'Mesh height is incorrect.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     h = h[0]
     density = CTK.varsFromWidget(VARS[2].get(), type=1)
-    if (len(density) != 1):
+    if len(density) != 1:
         CTK.TXT.insert('START', 'Grid point density is incorrect.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     density = density[0]
     splitCrit = CTK.varsFromWidget(VARS[3].get(), type=1)
-    if (len(splitCrit) != 1):
+    if len(splitCrit) != 1:
         CTK.TXT.insert('START', 'Split radius is incorrect.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     splitCrit = splitCrit[0]
@@ -58,7 +58,7 @@ def generatePC1M():
         (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
         CTK.TKTREE.updateApp()
         CPlot.render()
-    except Exception, e:
+    except Exception as e:
         Panels.displayErrors([0,str(e)], header='Error: PC1M')
         CTK.TXT.insert('START', 'PC1M mesh failed.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error')

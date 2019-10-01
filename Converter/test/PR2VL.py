@@ -14,10 +14,6 @@ inds = Converter.converter.PR2VL(n, 10, 10, 1)
 array2 = C.getFields('coords', a, api=2)[0]
 sub = Converter.converter.extractFields(array2, inds)
 
-
-
-
-
 a = G.cart((0,0,0), (1,1,1), (10,10,1)); a[0] = 'cart1'
 b = G.cart((9,0,0), (1,1,1), (10,10,1)); b[0] = 'cart2'
 C._initVars(a, '{ux}=0.')
@@ -38,8 +34,8 @@ trf = Internal.getNodeFromName(r, 'Transform')[1]
 
 # Recupere les indices des raccords
 inds, donors = Converter.converter.PR2VL(n, 10, 10, 1, nd, trf, 10, 10, 1)
-print inds
-print donors
+print(inds)
+print(donors)
 
 array1 = C.getFields('nodes', a, api=2, vars=['ux'])[0]
 array2 = C.getFields('nodes', b, api=2, vars=['ux'])[0]
@@ -47,10 +43,10 @@ array2 = C.getFields('nodes', b, api=2, vars=['ux'])[0]
 # Recupere les champs correspondant aux indices
 sub1 = Converter.converter.extractFields(array1, inds)
 sub2 = Converter.converter.extractFields(array2, donors)
-#print sub2
+#print(sub2)
 
 # Reimporte
 Converter.converter._setPartialFieldsAverage(array1, [inds], [sub2])
-print array1
+print(array1)
 
 C.convertPyTree2File(t, 'out.cgns')

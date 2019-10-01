@@ -6,8 +6,8 @@ import Intersector.PyTree as XOR
 import numpy
 
 
-if len(sys.argv) is not 2 :
-    print "ARG ERROR : 1 argument to provide : mesh to adapt"
+if len(sys.argv) is not 2:
+    print("ARG ERROR : 1 argument to provide : mesh to adapt")
     sys.exit()
 
 ifile1=sys.argv[1] # mesh to adapt in NGON format

@@ -2,7 +2,6 @@
 import Converter.PyTree as C
 import Connector.PyTree as X
 import Generator.PyTree as G
-import Geom.PyTree as D
 
 # Tet mask
 mT4 = G.cart((0.,0.,0.), (0.1,0.1,0.2), (10,10,10))

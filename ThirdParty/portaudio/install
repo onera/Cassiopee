@@ -28,13 +28,18 @@ else
     exit
 fi
 
+if [ "$PYTHONEXE" != "" ]; then
+    alias python=$PYTHONEXE
+fi
+
 # installation
 if [ "$OMP_NUM_THREADS" != "" ]; then
     export SCONSOPT="-j $OMP_NUM_THREADS"
 else
     export SCONSOPT=""
 fi
-scons install prefix="$INSTALLPATH" "$SCONSOPT"
+sconsf=`which scons`
+python $sconsf install prefix="$INSTALLPATH" "$SCONSOPT"
 
 # Test installation
 #kpython -n 2 -t 1 test/t1.py

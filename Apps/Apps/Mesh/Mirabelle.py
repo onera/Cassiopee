@@ -193,7 +193,7 @@ def breakBCs(t):
         # DBG
         #count += 1
         #if count > 1: final += stack; break
-        print len(stack), len(final)
+        print(len(stack), len(final))
 
     t = C.newPyTree(['Base', final])
     return t
@@ -264,7 +264,7 @@ def break__(z, stack, final, t):
 
 # adapte toutes les BCMatchs quand z est splitte en z1+z2
 def adaptBCMatch(z, allzones, z1, z2, splitDir=1, splitIndex=1):
-    print 'Adapting BC of %s because of split'%z[0]
+    print('Adapting BC of %s because of split'%z[0])
     dim = Internal.getZoneDim(z)
     ni = dim[1]; nj = dim[2]; nk = dim[3]
 
@@ -275,7 +275,7 @@ def adaptBCMatch(z, allzones, z1, z2, splitDir=1, splitIndex=1):
         oppBlock = Internal.getValue(bc)
         allOppBlocks.append(oppBlock)
 
-    print allOppBlocks
+    print(allOppBlocks)
 
     # Pour tous les blocs opposes au bloc splitte
     pool = []
@@ -512,7 +512,7 @@ def buildDistrib(t, block, dir, h1, h2, N):
         l = T.subzone(z, (1,1,1), (1,1,nk))
         l = T.reorder(l, (2,3,1))
         ind1 = 0; ind2 = nk-1
-    print h1,h2,ind1,ind2
+    print(h1,h2,ind1,ind2)
     D.setH(l, ind1, h1)
     D.setH(l, ind2, h2)
 

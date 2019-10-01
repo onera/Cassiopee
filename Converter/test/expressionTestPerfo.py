@@ -80,6 +80,6 @@ z = crds[1][2, :]
 tc1 = time.time()
 nrm = (x > 0.7) * x + (y < 0.5) * y + (z > 0.1) * z - x * y - x * z - y * z  # x * x + y * y + z * z - (x * y + x * z + y * z)
 tc2 = time.time()
-print nrm[: 10]
-print nrm[-10:]
-print "Temps pris par numpy : {}".format(tc2 - tc1)
+print(nrm[: 10])
+print(nrm[-10:])
+print("Temps pris par numpy : {}".format(tc2 - tc1))

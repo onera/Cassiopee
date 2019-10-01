@@ -2646,7 +2646,7 @@ Client/server to exchange arrays/pyTrees
 
     Listen for client sends.
 
-    :param sockets: sockets (crated with createSockets)
+    :param sockets: sockets (created with createSockets)
     :type sockets: sockets
     :return: arrays or pyTrees
 

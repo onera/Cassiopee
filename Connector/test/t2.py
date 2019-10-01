@@ -11,6 +11,6 @@ except: pass
 try:
     import Connector.Cassiopee
     print("Connector.Cassiopee correctly installed.")
-except Exception, inst:
+except Exception as inst:
     print("FAILED:",inst)
     print("FAILED: Connector.Cassiopee badly installed.")
