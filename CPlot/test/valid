@@ -1,4 +1,7 @@
 #! /bin/sh
+if [ "$PYTHONEXE" != "" ]; then
+    alias python=$PYTHONEXE
+fi
 echo '======================================================================='
 echo '> Testing CPlot '
 echo '> date: '`date`
