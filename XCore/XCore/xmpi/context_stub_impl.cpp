@@ -2,11 +2,12 @@
 
 #include "Logger/log_from_distributed_file.hpp"
 #include "xmpi/context.hpp"
+#include "Logger/log_from_distributed_file.hpp"
 
 namespace xcore
 {
     communicator *context::pt_global_com = nullptr;
-    K_LOGGER::logger*  pt_xmpi_logg = nullptr;
+    K_LOGGER::logger*       pt_xmpi_logg = nullptr;
 
     context::context() : m_provided(context::thread_support::Single)
     {}

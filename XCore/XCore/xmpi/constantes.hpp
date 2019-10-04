@@ -8,6 +8,7 @@
 namespace xcore
 {
 #if defined( _MPI )
+        using Communicator_ext_t = MPI_Comm;
         const int any_tag = MPI_ANY_TAG;
         const int any_source = MPI_ANY_SOURCE;
         const int undefined = MPI_UNDEFINED;
@@ -117,6 +118,7 @@ namespace xcore
             static MPI_Datatype mpi_type() { return MPI_DOUBLE_COMPLEX; }
         };
 #else
+        using Communicator_ext_t = int;
         const int any_tag = -1;    /*!< Constant to receive from any tag */
         const int any_source = -1; /*!< Constant to receive from any source */
         const int undefined = -1;  /*!< Constant for undefined parameter */

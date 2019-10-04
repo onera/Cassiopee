@@ -9,10 +9,8 @@
 #include "xmpi/request.hpp"
 #include "xmpi/status.hpp"
 
-
-namespace xcore
-{
-        /*!   \class communicator
+namespace xcore {
+/*!   \class communicator
  *    \brief This class manages the data message exchanges ( point to point or
  * collective )
  *           inside a communication group.
@@ -28,17 +26,16 @@ namespace xcore
  *    services to create new groups.
  *
  */
-        class communicator
-        {
-        public:
-            /*!
+class communicator {
+ public:
+  /*!
    *   \brief Default constructor : instance a global communicator
    *
    *   The default constructor build an instance which contains all
    *   processes executed for the parallel session.
    */
-            communicator();
-            /*!
+  communicator();
+  /*!
    *   \brief Split a communicator into a groupe of sub-communicators
    *
    *   This constructor instances a new communicator by splitting
@@ -63,18 +60,16 @@ namespace xcore
    *                communicator will be first.
    *
    */
-            communicator( const communicator &com, int color, int key );
-# if defined(_MPI)
-            /*!
+  communicator(const communicator &com, int color, int key);
+  /*!*
    *  \brief Convert a communicator coming from external library used
    *         for Parallel library in Parallel communicator.
    *
    *  \param com  The external communicator coming from library used
    *              for implementation
    */
-            communicator( const MPI_Comm &com );
-# endif            
-            /*!
+  communicator(const Communicator_ext_t &com);
+  /*!
    *   \brief Duplicate a communicator in a new instance.
    *
    *   This constructor is used to create a new communicator that has a new
@@ -83,33 +78,36 @@ namespace xcore
    *
    *   \param com communicator to be duplicated
    */
-            communicator( const communicator &com );
+  communicator(const communicator &com);
 
-            communicator( communicator &&com ) = delete;
-            /*!
+  communicator(communicator &&com) = delete;
+  /*!
    *    Destructor. Destroy the communicator in the parallel context.
    */
-            ~communicator();
+  ~communicator();
 
-            communicator &operator=( const communicator &com ) = delete;
-            communicator &operator=( communicator &&com ) = delete;
+  communicator &operator=(const communicator &com) = delete;
+  communicator &operator=(communicator &&com) = delete;
 
-            // ===============================================================================================
-            //                               Context of the communicator
-            int rank; /*!< Rank of the current process inside the communicator instance */
-            int size; /*!< Size of the communicator instance ( a.k.a number of processes
-      included in the communicator ) */
+  Communicator_ext_t &get_implementation();
+  const Communicator_ext_t &get_implementation() const;
 
-            /**
+  // ===============================================================================================
+  //                               Context of the communicator
+  int rank; /*!< Rank of the current process inside the communicator instance */
+  int size; /*!< Size of the communicator instance ( a.k.a number of processes
+included in the communicator ) */
+
+  /**
    * @brief      Gets the translated rank in other_com.
    *
    * @param[in]  other_com  An other communicator
    *
    * @return     The rank in the other_com communicator
    */
-            int translateRank( const communicator &other_com ) const;
+  int translateRank(const communicator &other_com) const;
 
-            /**
+  /**
    * @brief      Translate the rank rk for othercom communicator
    *
    * @param[in]  othercom  An other communicator
@@ -117,9 +115,9 @@ namespace xcore
    *
    * @return     The translated rank
    */
-            int translateRank( const communicator &othercom, int rk ) const;
+  int translateRank(const communicator &othercom, int rk) const;
 
-            /**
+  /**
    * @brief      Translate an array of ranks
    *
    * @param[in]  othercom          An other communicator
@@ -127,11 +125,11 @@ namespace xcore
    *
    * @return     The translated ranks
    */
-            std::vector<int> translateRanks( const communicator &othercom,
-                                             const std::vector<int> &ranksToTranslate );
-            // ===============================================================================================
-            //                               Point to point communication
-            /*!
+  std::vector<int> translateRanks(const communicator &othercom,
+                                  const std::vector<int> &ranksToTranslate);
+  // ===============================================================================================
+  //                               Point to point communication
+  /*!
    *    \brief Perform a blocking send to send an object to another process
    *
    *    This method send an object \ref obj to a process \ref dest with
@@ -146,9 +144,9 @@ namespace xcore
    *    \param dest The rank of the destination
    *    \param tag  The message tag ( value default is zero )
    */
-            template <typename K>
-            void send( const K &obj, int dest, int tag = 0 ) const;
-            /*!
+  template <typename K>
+  void send(const K &obj, int dest, int tag = 0) const;
+  /*!
    *    \brief Perform a blocking send for a buffer of objects to another
    * process
    *
@@ -162,10 +160,10 @@ namespace xcore
    *    \param dest   The rank of the destination
    *    \param tag    The message tag ( value default is zero )
    */
-            template <typename K>
-            void send( std::size_t nbObjs, const K *buff, int dest, int tag = 0 ) const;
-            // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-            /*!
+  template <typename K>
+  void send(std::size_t nbObjs, const K *buff, int dest, int tag = 0) const;
+  // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+  /*!
    *    \brief Perform an asynchonous send on an object to another process
    *
    *    The method isend starts a standard-mode asynchronous send and return
@@ -177,9 +175,9 @@ namespace xcore
    *    \param tag  The message tag
    *    \return     The request object associated at the send call
    */
-            template <typename K>
-            request isend( const K &obj, int dest, int tag = 0 ) const;
-            /*!
+  template <typename K>
+  request isend(const K &obj, int dest, int tag = 0) const;
+  /*!
    *    \brief Perform an asynchonous send on a buffer of objects to another
    * process
    *
@@ -193,10 +191,10 @@ namespace xcore
    *    \param tag     The message tag
    *    \return        The request object associated at the send call
    */
-            template <typename K>
-            request isend( size_t nbItems, const K *obj, int dest, int tag = 0 ) const;
-            // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-            /*!
+  template <typename K>
+  request isend(size_t nbItems, const K *obj, int dest, int tag = 0) const;
+  // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+  /*!
    *    \brief Perform an asynchonous send on an object to another process
    *
    *    The method isend starts a standard-mode asynchronous send and return
@@ -208,9 +206,9 @@ namespace xcore
    *    \param tag  The message tag
    *    \return     The request object associated at the send call
    */
-            template <typename K>
-            request issend( const K &obj, int dest, int tag = 0 ) const;
-            /*!
+  template <typename K>
+  request issend(const K &obj, int dest, int tag = 0) const;
+  /*!
    *    \brief Perform an asynchonous send on a buffer of objects to another
    * process
    *
@@ -224,10 +222,10 @@ namespace xcore
    *    \param tag     The message tag
    *    \return        The request object associated at the send call
    */
-            template <typename K>
-            request issend( size_t nbItems, const K *obj, int dest, int tag = 0 ) const;            
-            // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-            /*!
+  template <typename K>
+  request issend(size_t nbItems, const K *obj, int dest, int tag = 0) const;
+  // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+  /*!
    *    \brief Perform a blocking receive to receive an object sended by another
    * process
    *
@@ -241,9 +239,9 @@ namespace xcore
    *    \param tag    The excepted message tag ( default value any_tag )
    *    \return Status The status of the received message.
    */
-            template <typename K>
-            status recv( K &obj, int sender = any_source, int tag = any_tag ) const;
-            /*!
+  template <typename K>
+  status recv(K &obj, int sender = any_source, int tag = any_tag) const;
+  /*!
    *    \brief Perform a blocking receive for a buffer of objects.
    *
    *    This method performs a receive Operation to receive a buffer of objects
@@ -256,11 +254,11 @@ namespace xcore
    *    \param tag     The excepted message tag ( default value any_tag )
    *    \return Status The status of the received message.
    */
-            template <typename K>
-            status recv( std::size_t nbObjs, K *buff, int sender = any_source,
-                         int tag = any_tag ) const;
-            // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-            /*!
+  template <typename K>
+  status recv(std::size_t nbObjs, K *buff, int sender = any_source,
+              int tag = any_tag) const;
+  // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+  /*!
    *    \brief Perform a asynchronous receive for an object
    *
    *    This method performs a asynchronous receive operation. This method
@@ -274,9 +272,9 @@ namespace xcore
    *    \param tag    Message tag.
    *    \return       The request object associated at the receive message.
    */
-            template <typename K>
-            request irecv( K &obj, int sender = any_source, int tag = any_tag ) const;
-            /*!
+  template <typename K>
+  request irecv(K &obj, int sender = any_source, int tag = any_tag) const;
+  /*!
    *    \brief Perform a asynchronous receive for a buffer of objects.
    *
    *    This method performs a asynchronous receive operation. This method
@@ -291,12 +289,12 @@ namespace xcore
    *    \param tag     Message tag.
    *    \return        The request object associated at the receive message.
    */
-            template <typename K>
-            request irecv( std::size_t nbItems, K *obj, int sender = any_source,
-                           int tag = any_tag ) const;
-            // ===============================================================================================
-            //                                     Collective communication
-            /*!
+  template <typename K>
+  request irecv(std::size_t nbItems, K *obj, int sender = any_source,
+                int tag = any_tag) const;
+  // ===============================================================================================
+  //                                     Collective communication
+  /*!
    *    \brief Perform a broadcast from a process to other processes.
    *
    *    This method performs a broadcast from the root process to
@@ -306,9 +304,9 @@ namespace xcore
    *    \param o_rcv The object where receive the broadcasted object.
    *    \param root  The rank of the root process
    */
-            template <typename K>
-            void bcast( const K &o_snd, K &o_rcv, int root = 0 ) const;
-            /*!
+  template <typename K>
+  void bcast(const K &o_snd, K &o_rcv, int root = 0) const;
+  /*!
    *    \brief Perform a broadcast from a process to other processes.
    *
    *    This method performs a broadcast from the root process to
@@ -317,9 +315,9 @@ namespace xcore
    *    \param o_rcv The object where receive the broadcasted object.
    *    \param root  The rank of the root process
    */
-            template <typename K>
-            void bcast( K &o_rcv, int root = 0 ) const;
-            /*!
+  template <typename K>
+  void bcast(K &o_rcv, int root = 0) const;
+  /*!
    *    \brief Perform a broadcast from a process to other processes.
    *
    *    This method performs a broadcast from the root process to
@@ -332,9 +330,9 @@ namespace xcore
    *                 before the call of this method )
    *    \param root  The rank of the root process
    */
-            template <typename K>
-            void bcast( std::size_t nbObjs, const K *b_snd, K *b_rcv, int root = 0 ) const;
-            /*!
+  template <typename K>
+  void bcast(std::size_t nbObjs, const K *b_snd, K *b_rcv, int root = 0) const;
+  /*!
    *    \brief Perform a broadcast from a process to other processes.
    *
    *    This method performs a broadcast from the root process to
@@ -346,10 +344,10 @@ namespace xcore
    *                 before the call of this method )
    *    \param root  The rank of the root process
    */
-            template <typename K>
-            void bcast( std::size_t nbObjs, K *b_rcv, int root = 0 ) const;
-            // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-            /*!
+  template <typename K>
+  void bcast(std::size_t nbObjs, K *b_rcv, int root = 0) const;
+  // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+  /*!
    *    \brief Blocks until all processor inside the communicator have reached
    * this routine.
    *
@@ -358,9 +356,9 @@ namespace xcore
    *    this routine.
    *
    */
-            void barrier() const;
-            // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-            /*!
+  void barrier() const;
+  // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+  /*!
    *   \brief Reduce values on all processes within current communicator
    *
    *   This method performs a global reduce Operation ( such as sum, max,
@@ -381,9 +379,9 @@ namespace xcore
    *   \param root  The rank of the process where store the result of the
    * reduction operation
    */
-            template <typename K>
-            void reduce( const K &obj, K &res, const Operation &op, int root = 0 ) const;
-            /*!
+  template <typename K>
+  void reduce(const K &obj, K &res, const Operation &op, int root = 0) const;
+  /*!
    *   \brief Reduce values on all processes within current communicator
    *
    *   This method performs a global reduce Operation ( such as sum, max,
@@ -403,10 +401,10 @@ namespace xcore
    *   \param root  The rank of the process where store the result of the
    * reduction operation
    */
-            template <typename K>
-            void reduce( const K &obj, const Operation &op, int root = 0 ) const;
-            // ----------------------------------------------------------------------------------
-            /*!
+  template <typename K>
+  void reduce(const K &obj, const Operation &op, int root = 0) const;
+  // ----------------------------------------------------------------------------------
+  /*!
    *   \brief Reduce values on all processes within current communicator
    *
    *   This method performs a global reduce Operation ( such as sum, max,
@@ -428,10 +426,10 @@ namespace xcore
    *   \param root    The rank of the process where store the result of the
    * reduction operation
    */
-            template <typename K>
-            void reduce( std::size_t nbObjs, const K *b_objs, K *b_res, Operation op,
-                         int root = 0 ) const;
-            /*!
+  template <typename K>
+  void reduce(std::size_t nbObjs, const K *b_objs, K *b_res, Operation op,
+              int root = 0) const;
+  /*!
    *   \brief Reduce values on all processes within current communicator
    *
    *   This method performs a global reduce Operation ( such as sum, max,
@@ -452,11 +450,11 @@ namespace xcore
    *   \param root    The rank of the process where store the result of the
    * reduction operation
    */
-            template <typename K>
-            void reduce( std::size_t nbObjs, const K *b_objs, Operation op,
-                         int root = 0 ) const;
-            // ...............................................................................................
-            /*!
+  template <typename K>
+  void reduce(std::size_t nbObjs, const K *b_objs, Operation op,
+              int root = 0) const;
+  // ...............................................................................................
+  /*!
    *   \brief Reduce values on all processes within current communicator
    *
    *   This method performs a global reduce Operation ( such as sum, max,
@@ -479,10 +477,10 @@ namespace xcore
    *   \param root          The rank of the process where store the result of
    * the reduction operation
    */
-            template <typename K, typename Func>
-            void reduce( const K &obj, K &res, const Func &op, bool is_commutable = false,
-                         int root = 0 ) const;
-            /*!
+  template <typename K, typename Func>
+  void reduce(const K &obj, K &res, const Func &op, bool is_commutable = false,
+              int root = 0) const;
+  /*!
    *   \brief Reduce values on all processes within current communicator
    *
    *   This method performs a global reduce Operation ( such as sum, max,
@@ -504,38 +502,36 @@ namespace xcore
    *   \param root          The rank of the process where store the result of
    * the reduction operation
    */
-            template <typename K, typename Func>
-            void reduce( const K &obj, const Func &op, bool commute = false,
-                         int root = 0 ) const;
-            // ...............................................................................................
-            /*!
+  template <typename K, typename Func>
+  void reduce(const K &obj, const Func &op, bool commute = false,
+              int root = 0) const;
+  // ...............................................................................................
+  /*!
    *   \brief Reduce values on all processes within current communicator
- *
- *   This method performs a global reduce Operation ( such as sum, max, logical
- * AND, etc. ) across all members of
- * the
- *   current communicator. The reduction Operation must be here one of
- * predefined list of Operations.
- *
- *   This method combine the element provided by each process in the
- * communicator, using the Operation op, and
- * returns the
- *   combined value for the root process.
- *
- *   \param nbItems       The number of the objects in the buffer
- *   \param obj           A buffer used in the reduction operation
- *   \param res           The result buffer computed in the root process (
- * significant only on root process )
- *   \param op            An functor on two objects
- *   \param is_commutable A boolean to say if the function as commutable
- * parameters ( a.k.a op(x,y) = op(y,x) )
- *   \param root          The rank of the process where store the result of the
- * reduction operation
- */
-            template <typename K, typename Func>
-            void reduce( std::size_t nbObjs, const K *b_objs, K *b_res, const Func &op,
-                         bool is_commutable, int root = 0 ) const;
-            /*!
+   *
+   *   This method performs a global reduce Operation ( such as sum, max,
+   * logical AND, etc. ) across all members of the current communicator. The
+   * reduction Operation must be here one of predefined list of Operations.
+   *
+   *   This method combine the element provided by each process in the
+   * communicator, using the Operation op, and
+   * returns the
+   *   combined value for the root process.
+   *
+   *   \param nbItems       The number of the objects in the buffer
+   *   \param obj           A buffer used in the reduction operation
+   *   \param res           The result buffer computed in the root process (
+   * significant only on root process )
+   *   \param op            An functor on two objects
+   *   \param is_commutable A boolean to say if the function as commutable
+   * parameters ( a.k.a op(x,y) = op(y,x) )
+   *   \param root          The rank of the process where store the result of
+   * the reduction operation
+   */
+  template <typename K, typename Func>
+  void reduce(std::size_t nbObjs, const K *b_objs, K *b_res, const Func &op,
+              bool is_commutable, int root = 0) const;
+  /*!
    *   \brief Reduce values on all processes within current communicator
    *
    *   This method performs a global reduce Operation ( such as sum, max,
@@ -558,34 +554,38 @@ namespace xcore
    *   \param root          The rank of the process where store the result of
    * the reduction operation
    */
-            template <typename K, typename Func>
-            void reduce( std::size_t nbObjs, const K *b_objs, const Func &op,
-                         bool is_commutable, int root = 0 ) const;
-            // ====================================================================================================
-            template <typename K>
-            void allreduce( const K &obj, K &res, const Operation &op ) const;
-            template <typename K>
-            void allreduce( std::size_t nbObjs, const K *b_objs, K *b_res,
-                            Operation op ) const;
-            template <typename K, typename Func>
-            void allreduce( const K &obj, K &res, const Func &op,
-                            bool is_commutable = false ) const;
-            template <typename K, typename Func>
-            void allreduce( std::size_t nbObjs, const K *b_objs, K *b_res, const Func &op,
-                            bool is_commutable = false ) const;
-            // ===================================================================
-            template<typename K> void gather( const K &obj, K* arr_of_objs = nullptr, int root = 0 ) const;
-            template<typename K> void gather( std::size_t nb_objs_to_send, const K* objs, K* arr_of_revc_objs = nullptr, int root = 0 );
-            // ===================================================================
-            status probe( int source = any_source, int tag = any_tag ) const;
-            // Return status with  if none message with specified source and tag is
-            // available
-            // else return the matching status.
-            bool iprobe( status &status, int source = any_source, int tag = any_tag ) const;
-        private:
-            struct Implementation;
-            Implementation *m_impl;
-        };
+  template <typename K, typename Func>
+  void reduce(std::size_t nbObjs, const K *b_objs, const Func &op,
+              bool is_commutable, int root = 0) const;
+  // ====================================================================================================
+  template <typename K>
+  void allreduce(const K &obj, K &res, const Operation &op) const;
+  template <typename K>
+  void allreduce(std::size_t nbObjs, const K *b_objs, K *b_res,
+                 Operation op) const;
+  template <typename K, typename Func>
+  void allreduce(const K &obj, K &res, const Func &op,
+                 bool is_commutable = false) const;
+  template <typename K, typename Func>
+  void allreduce(std::size_t nbObjs, const K *b_objs, K *b_res, const Func &op,
+                 bool is_commutable = false) const;
+  // ===================================================================
+  template <typename K>
+  void gather(const K &obj, K *arr_of_objs = nullptr, int root = 0) const;
+  template <typename K>
+  void gather(std::size_t nb_objs_to_send, const K *objs,
+              K *arr_of_revc_objs = nullptr, int root = 0);
+  // ===================================================================
+  status probe(int source = any_source, int tag = any_tag) const;
+  // Return status with  if none message with specified source and tag is
+  // available
+  // else return the matching status.
+  bool iprobe(status &status, int source = any_source, int tag = any_tag) const;
+
+ private:
+  struct Implementation;
+  Implementation *m_impl;
+};
 }  // namespace xcore
-# include "xmpi/communicator_impl.hpp"
+#include "xmpi/communicator_impl.hpp"
 #endif

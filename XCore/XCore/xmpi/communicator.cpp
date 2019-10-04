@@ -31,16 +31,24 @@ namespace xcore
         size = m_impl->getSize();
     }
     // .............................................................................
-# if defined(_MPI)
-    communicator::communicator( const MPI_Comm &excom )
+    communicator::communicator( const Communicator_ext_t& excom )
         : m_impl( new communicator::Implementation( excom ) )
     {
         rank = m_impl->getRank();
         size = m_impl->getSize();
     }
-# endif
     // .............................................................................
     communicator::~communicator() { delete m_impl; }
+    // .............................................................................
+    Communicator_ext_t& communicator::get_implementation()
+    {
+        return m_impl->get_ext_comm();
+    }
+    // .............................................................................
+    const Communicator_ext_t& communicator::get_implementation() const
+    {
+        return m_impl->get_ext_comm();
+    }
     // =============================================================================
     int communicator::translateRank( const communicator &other_com ) const
     {
