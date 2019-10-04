@@ -54,8 +54,8 @@ opt1 =['-DCOMMON_FILE_COMPRESS_GZ','-DCOMMON_PTHREAD','-DCOMMON_RANDOM_FIXED_SEE
        '-DSCOTCH_RENAME','-DIDXSIZE64',
        '-DSCOTCH_VERSION_NUM=6','-DSCOTCH_RELEASE_NUM=0','-DSCOTCH_PATCHLEVEL_NUM=6']
 opt1_1 = ['-DSCOTCH_PTSCOTCH']
-#if cc == 'gcc': opt1 += ['-Wrestrict']
-#else: opt1 += ['-restrict']
+if cc == 'gcc': opt1 += ['-Wrestrict']
+else: opt1 += ['-restrict']
 
 # Options for paradigma
 opt2 = ['-IXCore/paradigma','-IXCore/paradigma/mpi_wrapper','-IXCore/paradigma/mesh','-IXCore/paradigma/util','-IXCore/paradigma/io','-IXCore/paradigma/ppart','-IXCore/paradigma/struct','-IXCore/paradigma/pario','-IXCore/paradigma/ext_wrapper']
@@ -104,17 +104,7 @@ dp3 = env.Install(modDir, myMod3)
 dp5 = env.Install(modDir, Glob('XCore/*.py'))
 
 if mpi:
-  env_pt = env.Copy(CXXFLAGS=Dist.getCppArgs()+ADDITIONALCPPFLAGS+opt1_1, CFLAGS=Dist.getCArgs()+ADDITIONALCPPFLAGS+opt1_1)
-
-  #env_pt = Environment(tools=tools, CC=cc, CXX=cxx, AR=AR, CPPFLAGS=[],
-  #                     LIBPATH=additionalLibPaths+libraryDirs,
-  #                     LIBS=libraries+additionalLibs,
-  #                     SHLIBSUFFIX=so_ext, SHLIBPREFIX='',
-  #                     LINKFLAGS=Dist.getLinkArgs(),
-  #                     ENV=Dist.getEnvForScons(),
-  #                     CPPPATH=["XCore","XCore/CMP/include"]+additionalIncludePaths+includeDirs,
-  #                     CXXFLAGS=Dist.getCppArgs()+ADDITIONALCPPFLAGS+opt1_1,
-  #                     CFLAGS=Dist.getCArgs()+ADDITIONALCFLAGS+opt1_1)
+  env_pt = env.Clone(CXXFLAGS=Dist.getCppArgs()+ADDITIONALCPPFLAGS+opt1_1, CFLAGS=Dist.getCArgs()+ADDITIONALCPPFLAGS+opt1_1)
   dp2 = env_pt.Install(modDir, myMod2)
   myMod4 = env_pt.StaticLibrary('ptscotch', srcs_scotch.cpp_srcs2)
   dp4 = env.Install(modDir, myMod4)

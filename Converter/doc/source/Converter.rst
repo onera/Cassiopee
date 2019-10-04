@@ -335,7 +335,7 @@ Array creation and manipulations
 
     :param array: input array
     :type array: array
-    :param ind: index 
+    :param ind: index
     :type  ind: int or tuple of int
     :param values: values of field to set in this point
     :type values: list of floats

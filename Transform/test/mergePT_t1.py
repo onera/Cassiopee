@@ -20,10 +20,10 @@ t = C.initVars(t, 'F', 1.); t = C.initVars(t, 'centers:G', 2.)
 t[2][1][2][0] = C.addBC2Zone(t[2][1][2][0],'overlap','BCOverlap','imin')
 t = C.fillEmptyBCWith(t,'wall','BCWall',dim=2)
 b = T.merge(t)
-t2 = C.newPyTree(['Surface', 2]); t2[2][1][2] += b
+t2 = C.newPyTree(['Surface', 2, b])
 test.testT(t2,1)
 b = T.merge(t, alphaRef=45.)
-t2 = C.newPyTree(['Surface', 2]); t2[2][1][2] = b
+t2 = C.newPyTree(['Surface', 2, b])
 test.testT(t2,2)
 
 #

@@ -869,7 +869,12 @@ Mesh splitting and merging
     .. A1.O0.D0
     
     Split a set of M grids into N parts of same size roughly, provided M < N. 
+
     Argument multigrid enables to ensure the multigrid level by the splitting, provided the input grids are of that multigrid level.
+
+    For the pyTree version, boundary conditions and matching connectivity are split.
+
+    Exists also as in place version (_splitNParts) that modifies a and returns None. In this case, a must be a pyTree.
 
     :param a:  list of grids
     :type  a:  [list of arrays] or [list of zones, base, pyTree]
@@ -906,7 +911,9 @@ Mesh splitting and merging
 
     Argument multigrid enables to ensure the multigrid level by the splitting, provided the input grids are of that multigrid level.
 
-    For the pyTree version, boundary conditions are split, but grid connectivity is removed.
+    For the pyTree version, boundary conditions and matching connectivity are split.
+
+    Exists also as in place version (_splitSize) that modifies a and returns None. In this case, a must be a pyTree.
 
     :param a:  list of grids
     :type  a:  [list of arrays] or [list of zones, base, pyTree]

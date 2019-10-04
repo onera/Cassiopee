@@ -23,11 +23,12 @@
 #include <map>
 
 // For now, force output of v1.8 of HDF
-#if H5_VERSION_GE(1,10,2)
-#define KHDFVERSION H5F_LIBVER_V18
-#else
+//#if H5_VERSION_GE(1,10,2)
+//#define KHDFVERSION H5F_LIBVER_V18
+//#else
+//#define KHDFVERSION H5F_LIBVER_LATEST
+//#endif
 #define KHDFVERSION H5F_LIBVER_LATEST
-#endif
 
 //# define CGNSMAXLABEL 33
 # define CGNSMAXLABEL 128

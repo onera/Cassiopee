@@ -666,7 +666,6 @@ def shiftMatrix__(trirac):
 # retourne : indices de ijk sur opp(B)
 def donorIndex__(win, winDonor, trirac, tupleIJK):
     m = shiftMatrix__(trirac)
-    #print(m.reshape(3,3))
     (i,j,k) = tupleIJK
     fi1,fi2,fj1,fj2,fk1,fk2 = win
     si1,si2,sj1,sj2,sk1,sk2 = winDonor
@@ -747,9 +746,10 @@ def _replaceZoneWithSplit(t, zname, z1, z2):
     zones = Internal.getZones(t)
     for z in zones:
         if z[0] == zname:
-            p,c = Internal.getParentOfNode(t,z)
+            p,c = Internal.getParentOfNode(t, z)
             p[2][c] = z1
-            p[2].append(z2)
+            if len(z2) == 4 and z2[3] == 'Zone_t': p[2].append(z2)
+            else: p[2] += z2            
     return None
 
 # Reporte les BC matchs de z sur z1 et z2 (et modifie t)
@@ -768,7 +768,6 @@ def _adaptBCMatch(z, z1, z2, winz1, winz2, t=None):
             ind1 = donorIndex__(winz,winDonor,trirac,(wini1[1],wini1[3],wini1[5]))
             winopp = [min(ind0[0],ind1[0]),max(ind0[0],ind1[0]),
             min(ind0[1],ind1[1]),max(ind0[1],ind1[1]),min(ind0[2],ind1[2]),max(ind0[2],ind1[2])]
-            print(z1[0], wini, oppBlock, winopp)
             C._addBC2Zone(z1, 'match', 'BCMatch', wini, oppBlock, winopp, trirac)
             if t is not None:
                 zopp = Internal.getNodeFromName2(t, oppBlock)
@@ -783,7 +782,6 @@ def _adaptBCMatch(z, z1, z2, winz1, winz2, t=None):
             ind1 = donorIndex__(winz,winDonor,trirac,(wini1[1],wini1[3],wini1[5]))
             winopp = [min(ind0[0],ind1[0]),max(ind0[0],ind1[0]),
             min(ind0[1],ind1[1]),max(ind0[1],ind1[1]),min(ind0[2],ind1[2]),max(ind0[2],ind1[2])]
-            print(z1[0], wini, oppBlock, winopp)
             C._addBC2Zone(z2, 'match', 'BCMatch', wini, oppBlock, winopp, trirac)
             if t is not None:
                 zopp = Internal.getNodeFromName2(t, oppBlock)
@@ -912,37 +910,31 @@ def splitFullMatch__(z, stack, t):
         # verifie si la fenetre est full
         if (dir == 2 or dir == 3) and rnge[0] > 1:
             z1,z2 = split(z, 1, rnge[0], t)
-            print('split',z[0],1,rnge[0])
             stack.append(z1); stack.append(z2)
             return
 
         if (dir == 2 or dir == 3) and rnge[1] < ni:
             z1,z2 = split(z, 1, rnge[1], t)
-            print('split',z[0],1,rnge[1])
             stack.append(z1); stack.append(z2)
             return
 
         if (dir == 1 or dir == 3) and rnge[2] > 1: # need split, stack
             z1,z2 = split(z, 2, rnge[2], t)
-            print('split',z[0],2,rnge[2])
             stack.append(z1); stack.append(z2)
             return
 
         if (dir == 1 or dir == 3) and rnge[3] < nj: # need split, stack
             z1,z2 = split(z, 2, rnge[3], t)
-            print('split',z[0],2,rnge[3])
             stack.append(z1); stack.append(z2)
             return
 
         if (dir == 1 or dir == 2) and rnge[4] > 1: # need split, stack
             z1,z2 = split(z, 3, rnge[4], t)
-            print('split',z[0],3,rnge[4])
             stack.append(z1); stack.append(z2)
             return
 
         if (dir == 1 or dir == 2) and rnge[5] < nk: # need split, stack
             z1,z2 = split(z, 3, rnge[5], t)
-            print('split',z[0],3,rnge[5])
             stack.append(z1); stack.append(z2)
             return
 
@@ -1107,7 +1099,7 @@ def _reorderBCNearMatch__(a, order, zoneNames):
     nodes = Internal.getZones(a)
     for z in nodes:
         dim = Internal.getZoneDim(z)
-        if (dim[0] == 'Structured' and len(order) == 3):
+        if dim[0] == 'Structured' and len(order) == 3:
             oi = order[0]; oj = order[1]; ok = order[2]
             connect = Internal.getNodesFromType(z, 'GridConnectivity_t')
             for cn in connect:
@@ -1167,7 +1159,7 @@ def _reorderBCMatch__(a, order, zoneNames):
     nodes = Internal.getZones(a)
     for z in nodes:
         dim = Internal.getZoneDim(z)
-        if (dim[0] == 'Structured' and len(order) == 3):
+        if dim[0] == 'Structured' and len(order) == 3:
             oi = order[0]; oj = order[1]; ok = order[2]
             connect = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
 
@@ -1419,7 +1411,7 @@ def _makeDirect(t):
             ip1 = i+1; jp1 = j+1; kp1 = k+1
             ip1 = min(ip1,dim[1]); jp1 = min(jp1,dim[2]); kp1 = min(kp1,dim[3])
 
-            P0 = [] ; P1 = [] ; P2 = [] ; P3 = []
+            P0 = []; P1 = []; P2 = []; P3 = []
 
             x0 = C.getValue(z,'CoordinateX',(i,j,k)) ; P0.append(x0)
             y0 = C.getValue(z,'CoordinateY',(i,j,k)) ; P0.append(y0)
@@ -1558,6 +1550,7 @@ def _projectRay(t1, t2, Pt): # t1 is modified
     return None
 
 # Split au milieu
+"""
 def splitSize__(z, N, zoneName, multigrid, dirs):
     dim = Internal.getZoneDim(z)
     if dim[0] == 'Unstructured':
@@ -1603,6 +1596,7 @@ def splitSize__(z, N, zoneName, multigrid, dirs):
             l2 = splitSize__(z2, N, zoneName, multigrid, dirs)
             return l1+l2
         else: return [z]
+"""
 
 # Split au milieu
 def _splitSize__(z, N, multigrid, dirs, t, stack):
@@ -1667,6 +1661,7 @@ def _splitSizeUp__(z, N, multigrid, dirs, t, stack):
                 stack.append(z1); stack.append(z2)
 
 # Split decentre
+"""
 def splitSizeUp__(z, N, zoneName, multigrid, dirs):
     dim = Internal.getZoneDim(z)
     if dim[0] == 'Unstructured':
@@ -1714,6 +1709,7 @@ def splitSizeUp__(z, N, zoneName, multigrid, dirs):
             l2 = splitSizeUp__(z2, N, zoneName, multigrid, dirs)
             return l1+l2
         else: return [z]
+"""
 
 # Return the number of cells in zone
 def getNCells(z):
@@ -1725,6 +1721,7 @@ def getNCells(z):
         return ni1*nj1*nk1
 
 # Split size decentre avec ressources
+"""
 def splitSizeUpR__(t, N, R, multigrid, dirs, minPtsPerDir):
     bases = Internal.getBases(t)
     SP = []; Nl = 0
@@ -1850,6 +1847,7 @@ def splitSizeUpR__(t, N, R, multigrid, dirs, minPtsPerDir):
     #for i in Rs: Tot += i
     #print('Tot', Tot)
     return t
+"""
 
 # Split size decentre avec ressources
 def _splitSizeUpR__(t, N, R, multigrid, dirs, minPtsPerDir):
@@ -2192,7 +2190,7 @@ def splitSizeUpR_OMP__(t, N, R, multigrid, dirs, minPtsPerDir):
     print ("Imbalance",min(Rs)/(max(Rs)*1.0))
     return t
 
-
+"""
 def splitNParts__(zones, N, multigrid, dirs, recoverBC, splitDict={}):
     # Fait des paquets de zones structurees et non structurees
     zonesS = []; zonesN = []
@@ -2258,8 +2256,9 @@ def splitNParts__(zones, N, multigrid, dirs, recoverBC, splitDict={}):
             outL.append(a1)
         outS.append(outL)
     return outS+outN+outO
+"""
 
-def _splitNParts(t, N, multigrid=0, dirs=[1,2,3]):
+def _splitNParts(t, N, multigrid=0, dirs=[1,2,3], recoverBC=True):
     zones = Internal.getZones(t)
     # Fait des paquets de zones structurees et non structurees
     zonesS = []; zonesN = []
@@ -2289,7 +2288,21 @@ def _splitNParts(t, N, multigrid=0, dirs=[1,2,3]):
     else: NPart[NbN-1] = max(N-Nt+NPart[NbN-1], 1)
 
     # Blocs non structures
-    # ...
+    for i in range(len(zonesN)):
+        z = zonesN[i]
+        dim = Internal.getZoneDim(z)
+        a = C.getFields(Internal.__GridCoordinates__, z)[0]
+        zlist = []
+        if NPart[i] > 1:
+            if recoverBC: bcs = C.getBCs(z)
+            if dim[3] == 'NGON':
+                elts = transform.splitNGon(a, NPart[i])
+            else: elts = transform.splitElement(a, NPart[i])
+            for e in elts:
+                zL = subzone(z, e, type='elements')
+                if recoverBC: C._recoverBCs(zL, bcs)
+                zlist.append(zL)
+            _replaceZoneWithSplit(t, z[0], zlist[0], zlist[1:])
 
     # Blocs structures
     l = len(zonesS)
@@ -2379,9 +2392,17 @@ def _splitNParts(t, N, multigrid=0, dirs=[1,2,3]):
         
     return None
 
-def splitNParts(t, N, multigrid=0, dirs=[1,2,3], recoverBC=True, splitDict={}):
-    """Split zones in t in N parts.
+def splitNParts(t, N, multigrid=0, dirs=[1,2,3], recoverBC=True):
+    """Split zones in t in N parts. 
     Usage: splitNParts(t, N, multigrid, dirs, recoverBC)"""
+    tp = Internal.copyRef(t)
+    tpp, typen = Internal.node2PyTree(tp)
+    _splitNParts(tpp, N, multigrid, dirs, recoverBC)
+    tp = Internal.pyTree2Node(tpp, typen)
+    return tp
+
+"""
+def splitNParts(t, N, multigrid=0, dirs=[1,2,3], recoverBC=True, splitDict={}):
     tp = Internal.copyRef(t)
     if recoverBC:
         C._deleteGridConnectivity__(tp, type='BCMatch')
@@ -2410,7 +2431,18 @@ def splitNParts(t, N, multigrid=0, dirs=[1,2,3], recoverBC=True, splitDict={}):
         noc += nzonesL
     tp = Internal.pyTree2Node(tpp, typen)
     return tp
+"""
 
+def splitSize(t, N=0, multigrid=0, dirs=[1,2,3], type=0, R=None,
+              minPtsPerDir=5):
+    """Split zones following size."""
+    tp = Internal.copyRef(t)
+    tpp, typen = Internal.node2PyTree(tp)
+    _splitSize(tpp, N, multigrid, dirs, type, R, minPtsPerDir)
+    tp = Internal.pyTree2Node(tpp, typen)
+    return tp
+
+"""
 def splitSize(t, N=0, multigrid=0, dirs=[1,2,3], type=0, R=None,
               minPtsPerDir=5):
     minPtsPerDir = max(minPtsPerDir, 2**(multigrid+1)+1)
@@ -2443,6 +2475,7 @@ def splitSize(t, N=0, multigrid=0, dirs=[1,2,3], type=0, R=None,
         tp = Internal.pyTree2Node(tpp, typen)
         if Internal.typeOfNode(tp) == 1: tp = [tp]
     return tp
+"""
 
 def _splitSize(t, N=0, multigrid=0, dirs=[1,2,3], type=0, R=None,
                minPtsPerDir=5):
@@ -2493,7 +2526,7 @@ def breakElements(t):
     A = Transform.breakElements(a)
     zones = []
     for i in A:
-        if (len(i) == 5): name = 'Struct'
+        if len(i) == 5: name = 'Struct'
         else: name = i[3]
         zone = C.convertArrays2ZoneNode(name, [i])
         zones.append(zone)

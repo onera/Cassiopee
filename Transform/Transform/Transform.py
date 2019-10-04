@@ -659,8 +659,7 @@ def deformMeshStruct2__(arrayi, surfDelta, beta):
 def computeDeformationVector(array, surfDelta, beta=4.):
     """Computes a deformation vector for each border of a mesh
     Usage: computeDeformationVector(array, delta)"""
-    try:
-        surfDelta = Converter.convertArray2Tetra(surfDelta)
+    try: surfDelta = Converter.convertArray2Tetra(surfDelta)
     except: pass
     if not isinstance(surfDelta[0], list): surfDelta = [surfDelta]
     if isinstance(array[0], list):
@@ -969,7 +968,7 @@ def makeDirect__(a):
     pz = KCore.isNamePresent(a, 'z')
     if px == -1 or py == -1 or pz == -1: return Converter.copy(a)
     ni = a[2]; nj = a[3]; nk = a[4]; p = a[1]
-    i = ni/2; j = nj/2; k = nk/2
+    i = ni//2; j = nj//2; k = nk//2
     ip1 = max(i+1,ni-1); jp1 = max(j+1,nj-1); kp1 = max(k+1,nk-1)
     ind = int(i + j*ni + k*ni*nj)
     P0 = [ p[px,ind], p[py,ind], p[pz,ind] ]
@@ -1265,10 +1264,10 @@ def splitSizeUpR__(A, N, R, multigrid, dirs, minPtsPerDir):
                 out += [a]; Rs[0] += Converter.getNCells(a); del SP[0]
         else:
             out += [a]; Rs[0] += Converter.getNCells(a); del SP[0]
-    #print 'ress:', Rs
+    #print('ress:', Rs)
     #Tot = 0
     #for i in Rs: Tot += i
-    #print 'Tot', Tot
+    #print('Tot', Tot)
     return out
 
 def splitSize(array, N=0, multigrid=0, dirs=[1,2,3], type=0, R=None, 
@@ -1687,12 +1686,12 @@ def splitCurvatureAngle(array, sensibility):
 
     while ispl > 0:
         im = array3[2]; jm = array3[3]; km = array3[4]
-        ispl = transform.splitCurvatureAngle( array3, sensibility )
-        if (ispl == 0 or ispl == im):
+        ispl = transform.splitCurvatureAngle(array3, sensibility)
+        if ispl == 0 or ispl == im:
             try:
                 f = join(array3, out[0])
                 ispl = transform.splitCurvatureAngle( f, sensibility )
-                if (ispl == 0 or ispl == f[2]): out[0] = f
+                if ispl == 0 or ispl == f[2]: out[0] = f
                 else: out.append(array3)
             except:
                 out.append(array3)

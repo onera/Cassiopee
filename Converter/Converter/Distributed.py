@@ -30,11 +30,11 @@ def convertFile2SkeletonTree(fileName, format=None, maxFloatSize=5,
 #==============================================================================
 def readNodesFromPaths(fileName, paths, format=None, maxFloatSize=-1, maxDepth=-1, skipTypes=None):
   """Read nodes from file given their paths."""
-  if format is None:
-    format = Converter.convertExt2Format__(fileName)
+  if format is None: format = Converter.convertExt2Format__(fileName)
   if not isinstance(paths, list): p = [paths]
   else: p = paths
   p = fixPaths__(p)
+  if skipTypes is not None and isinstance(skiptTypes, str): skipTypes = [skipTypes]
   ret = Converter.converter.readPyTreeFromPaths(fileName, p, format, maxFloatSize, maxDepth, skipTypes)
   if not isinstance(paths, list): return ret[0]
   else: return ret 

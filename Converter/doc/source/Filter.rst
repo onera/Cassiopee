@@ -71,6 +71,8 @@ Low level layer
     :return: Skeleton tree
     :rtype: pyTree node
 
+    For documentation on links, see Converter read options. 
+
     *Example of use:*
 
     * `Read skeleton tree (pyTree) <Examples/Converter/convertFile2SkeletonTreeFPT.py>`_:
@@ -87,7 +89,7 @@ Low level layer
     only if the number of elements is lower that maxFloatSize.
     If maxDepth=-1, the read is fully recursive. Otherwise, load is limited
     to maxDepth levels.
-    If skipTypes is specified, load is stopped when given node type is met (HDF only).
+    If skipTypes is specified, children of nodes of given type are not loaded (HDF only).
 
     :param fileName: file name to read from
     :type fileName: string

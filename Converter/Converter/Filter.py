@@ -3,7 +3,7 @@ from . import Internal
 from . import PyTree
 from . import Converter
 from .Distributed import convert2PartialTree, _convert2PartialTree, convert2SkeletonTree, _convert2SkeletonTree, convertFile2SkeletonTree, _readPyTreeFromPaths, readPyTreeFromPaths, _readZones, \
-_convert2SkeletonTree, readNodesFromPaths, writeNodesFromPaths, writePyTreeFromPaths, deletePaths
+_convert2SkeletonTree, readNodesFromPaths, writeNodesFromPaths, writePyTreeFromPaths, deletePaths, fixPaths__
 import numpy
 
 # Prend un fileName, si c'est toto/*, rend la liste des fichiers
@@ -25,14 +25,22 @@ def expand(fileName):
 #==============================================================================
 def readNodesFromFilter(fileName, filter, format='bin_hdf', com=None):
   """Read nodes from file given a filter."""
+  for i in filter:
+    b = fixPaths__([i])[0]
+    val = filter.pop(i)
+    filter[b] = val
   ret = Converter.converter.convertFile2PartialPyTree(fileName, format, None, com, filter)
   return ret
 
 # Ecrit des tableaux ou des morceaux de tableau a certains endroits du fichier
-# definit par filter
+# definis par filter
 # t: pyTree avec les memes chemins
 def writePyTreeFromFilter(t, fileName, filter, format='bin_hdf', com=None, skelData=None):
   """Write nodes to file given a filter."""
+  for i in filter:
+    b = fixPaths__([i])[0]
+    val = filter.pop(i)
+    filter[b] = val
   Converter.converter.convertPyTree2FilePartial(t, fileName, format, skelData, com, filter)
   return None
 
