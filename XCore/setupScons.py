@@ -33,7 +33,7 @@ if prod is None: prod = 'xx'
 # Setting libraryDirs, include dirs and libraries =============================
 libraryDirs = ["build/"+prod, kcoreLibDir]
 includeDirs = [numpyIncDir, kcoreIncDir]
-libraries = ["xcore", "paradigma", "ptscotch", "scotch", "kcore"]
+libraries = ["xcore", "paradigma", "ptscotch", "scotch1", "scotch2", "kcore"]
 
 ADDITIONALCPPFLAGS = []
 if mpi:

@@ -96,11 +96,13 @@ else:
 
 myMod = env.StaticLibrary('xcore', srcs.cpp_srcs)
 myMod2 = env.StaticLibrary('paradigma', src_paradigma)
-myMod3 = env.StaticLibrary('scotch', srcs_scotch.cpp_srcs1)
+myMod3 = env.StaticLibrary('scotch1', srcs_scotch.cpp_srcs1[0:99])
+myMod3b = env.StaticLibrary('scotch2', srcs_scotch.cpp_srcs1[99:])
 
 modDir = installPath+'/XCore/'
 dp1 = env.Install(modDir, myMod)
 dp3 = env.Install(modDir, myMod3)
+dp3b = env.Install(modDir, myMod3b)
 dp5 = env.Install(modDir, Glob('XCore/*.py'))
 
 if mpi:
@@ -108,8 +110,8 @@ if mpi:
   dp2 = env_pt.Install(modDir, myMod2)
   myMod4 = env_pt.StaticLibrary('ptscotch', srcs_scotch.cpp_srcs2)
   dp4 = env.Install(modDir, myMod4)
-  env.Alias(target="install", source=[dp1,dp2,dp3,dp4,dp5])
+  env.Alias(target="install", source=[dp1,dp2,dp3,dp3b,dp4,dp5])
 else:
   dp2 = env.Install(modDir, myMod2)
-  env.Alias(target="install", source=[dp1,dp2,dp3,dp5])
+  env.Alias(target="install", source=[dp1,dp2,dp3,dp3b,dp5])
 

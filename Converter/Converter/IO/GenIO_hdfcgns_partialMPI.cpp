@@ -64,7 +64,7 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPathsPartial(char* file,
      MPI_Info info   = MPI_INFO_NULL;
      ret             = H5Pset_fapl_mpio(fapl, *comm2, info);
    }
-#endif  
+#endif
 
   /* File Level */
   fid = H5Fopen(file, H5F_ACC_RDONLY, fapl);
@@ -78,10 +78,10 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPathsPartial(char* file,
   H5Pclose(fapl);
     
 #if defined(_MPI) && defined(H5_HAVE_PARALLEL)
-  int nRank, myRank;
-  MPI_Comm* comm2 = (MPI_Comm*)comm;
-  MPI_Comm_size(*comm2, &nRank);
-  MPI_Comm_rank(*comm2, &myRank);
+  //int nRank, myRank;
+  //MPI_Comm* comm2 = (MPI_Comm*)comm;
+  //MPI_Comm_size(*comm2, &nRank);
+  //MPI_Comm_rank(*comm2, &myRank);
   // printf("[%d] - open Avant =%d\n",myRank, H5Fget_obj_count(fid, H5F_OBJ_ALL));
 #endif
   
@@ -99,15 +99,13 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPathsPartial(char* file,
     {
       E_Int FilterSize = PyList_Size(DataSpaceDIM);
       /* ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo */
-      /* Check if key is String values */
-      
-      /* Check if key is String values */
+      /* Check if key is String values */      
       if (PyList_Check(DataSpaceDIM) == false)
       {
         PyErr_SetString(PyExc_TypeError, "hdfread: DataSpaceDIM must be a list of numbers.");
         return NULL;
       }
-      if (FilterSize < 9)  /** Dans le cas particulier Contigous with only one path **/
+      if (FilterSize < 9)  /** Dans le cas particulier Contiguous with only one path **/
       {
         printf("FilterSize: %d \n", FilterSize);
         PyErr_SetString(PyExc_TypeError, "hdfread: FilterSize must be a list of 9 numbers.");
@@ -423,7 +421,7 @@ PyObject* K_IO::GenIOHdf::createNodePartial(hid_t& node)
     if (dim == 1)
     {
       E_Int l = strlen(s); npy_dim_vals2[0] = l;
-      v = PyArray_EMPTY(1, npy_dim_vals2, NPY_CHAR, 1);
+      v = PyArray_EMPTY(1, npy_dim_vals2, NPY_STRING, 1);
       memcpy(PyArray_DATA((PyArrayObject*)v), s, l*sizeof(char));
       free(s);
     }
@@ -433,7 +431,7 @@ PyObject* K_IO::GenIOHdf::createNodePartial(hid_t& node)
       E_Int l = 1;
       for (E_Int i = 0; i < dim; i++) 
       { npy_dim_vals[i] = _dims[i]; l = l*_dims[i]; } 
-      v = PyArray_EMPTY(dim, npy_dim_vals, NPY_CHAR, 1);
+      v = PyArray_EMPTY(dim, npy_dim_vals, NPY_STRING, 1);
       memcpy(PyArray_DATA((PyArrayObject*)v), s, l*sizeof(char));
       free(s); delete [] npy_dim_vals;
     }
@@ -725,10 +723,10 @@ E_Int K_IO::GenIO::hdfcgnsWritePathsPartial(char* file, PyObject* tree,
   H5Pclose(fapl);
 
 #if defined(_MPI) && defined(H5_HAVE_PARALLEL)
-  int nRank, myRank;
-  MPI_Comm* comm2 = (MPI_Comm*)comm;
-  MPI_Comm_size(*comm2, &nRank);
-  MPI_Comm_rank(*comm2, &myRank);
+  //int nRank, myRank;
+  //MPI_Comm* comm2 = (MPI_Comm*)comm;
+  //MPI_Comm_size(*comm2, &nRank);
+  //MPI_Comm_rank(*comm2, &myRank);
   // printf("[%d] - open Avant =%d\n",myRank, H5Fget_obj_count(fid, H5F_OBJ_ALL));
 #endif
   
@@ -898,11 +896,10 @@ hid_t K_IO::GenIOHdf::writeNodePartial(hid_t     node,
           setSingleI8(node, ptr[0]);
         }
       }
-      else if (typeNum == NPY_CHAR ||
-               typeNum == NPY_STRING ||
+      else if (typeNum == NPY_STRING ||
                typeNum == NPY_BYTE ||
                //typeNum == NPY_SBYTE ||
-               typeNum == NPY_UBYTE )
+               typeNum == NPY_UBYTE)
       {
         E_Int diml = PyArray_DIMS(ar)[0];
         char* buf = new char [diml+1];
@@ -967,11 +964,10 @@ hid_t K_IO::GenIOHdf::writeNodePartial(hid_t     node,
                                  _NATIVE_LONG, (char*)L3T_I8);
         }
       }
-      else if (typeNum == NPY_CHAR ||
-               typeNum == NPY_STRING ||
+      else if (typeNum == NPY_STRING ||
                typeNum == NPY_BYTE ||
                //typeNum == NPY_SBYTE ||
-               typeNum == NPY_UBYTE )
+               typeNum == NPY_UBYTE)
       {
         E_Int diml = PyArray_DIMS(ar)[0];
         char* buf = new char [diml+1];

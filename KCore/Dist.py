@@ -410,9 +410,9 @@ def getDistUtilsCompilers():
 
     (cc, cxx, opt, basecflags, ccshared, ldshared, so_ext) = vars
     cc = cc.split(' ') # enleve les options si mises dans cc
-    if len(cc) > 1: cc = cc[0]
+    cc = cc[0]
     cxx = cxx.split(' ')
-    if len(cxx) > 1: cxx = cxx[0]
+    cxx = cxx[0]
     return (cc, cxx, opt, basecflags, ccshared, ldshared, so_ext)
 
 #==============================================================================

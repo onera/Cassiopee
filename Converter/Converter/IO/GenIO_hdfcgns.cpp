@@ -767,8 +767,8 @@ PyObject* K_IO::GenIOHdf::getArrayContigous(hid_t     node,
                                             PyObject* data)
 {
   IMPORTNUMPY;
-  vector<npy_intp>  npy_dim_vals(dim);
-  hid_t             did, yid;
+  vector<npy_intp> npy_dim_vals(dim);
+  hid_t            did, yid;
 
   // Create numpy: No cast 
   if (data == NULL)
@@ -784,7 +784,7 @@ PyObject* K_IO::GenIOHdf::getArrayContigous(hid_t     node,
 
   // printf("K_IO::GenIOHdf::getArrayContigous \n ");
 #if defined(_MPI) && defined(H5_HAVE_PARALLEL)
-  if(_ismpi == 1)    /** HDF is executed in parallel context and compiled in MPI **/
+  if (_ismpi == 1) /** HDF is executed in parallel context and compiled in MPI **/
   {
    // printf("getArrayContigous H5_HAVE_PARALLEL / _ismpi ON \n ");
    hid_t xfer_plist = H5Pcreate(H5P_DATASET_XFER);
@@ -960,7 +960,8 @@ hid_t K_IO::GenIOHdf::openGroupWithLinks(hid_t start, char* path)
 //=============================================================================
 PyObject* K_IO::GenIO::hdfcgnsReadFromPaths(char* file, PyObject* paths,
                                             E_Int maxFloatSize, E_Int maxDepth,
-                                            PyObject* skipTypes)
+                                            PyObject* skipTypes,
+                                            void* comm)
 {
   if (PyList_Check(paths) == false)
   {
@@ -1002,6 +1003,22 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPaths(char* file, PyObject* paths,
       HDF._skipTypes[string(typeToSkip)] = true;
     }
   }
+
+/*
+#if defined(_MPI) && defined(H5_HAVE_PARALLEL)
+  HDF._ismpi = 1;
+#else
+  HDF._ismpi = 0;
+#endif
+
+#if defined(_MPI) && defined(H5_HAVE_PARALLEL)
+  if (HDF._ismpi == 1){
+     MPI_Comm* comm2 = (MPI_Comm*)comm;
+     MPI_Info info   = MPI_INFO_NULL;
+     ret             = H5Pset_fapl_mpio(fapl, *comm2, info);
+   }
+#endif
+*/
 
   for (E_Int i = 0; i < size; i++)
   {
@@ -1232,7 +1249,7 @@ PyObject* K_IO::GenIOHdf::createNode(hid_t& node, PyObject* dataShape, PyObject*
     if (dim == 1)
     {
       E_Int l = strlen(s); npy_dim_vals2[0] = l;
-      v = PyArray_EMPTY(1, npy_dim_vals2, NPY_CHAR, 1);
+      v = PyArray_EMPTY(1, npy_dim_vals2, NPY_STRING, 1);
       memcpy(PyArray_DATA((PyArrayObject*)v), s, l*sizeof(char));
       free(s);
     }
@@ -1242,7 +1259,7 @@ PyObject* K_IO::GenIOHdf::createNode(hid_t& node, PyObject* dataShape, PyObject*
       E_Int l = 1;
       for (E_Int i = 0; i < dim; i++) 
       { npy_dim_vals[i] = _dims[i]; l = l*_dims[i]; } 
-      v = PyArray_EMPTY(dim, npy_dim_vals, NPY_CHAR, 1);
+      v = PyArray_EMPTY(dim, npy_dim_vals, NPY_STRING, 1);
       memcpy(PyArray_DATA((PyArrayObject*)v), s, l*sizeof(char));
       free(s); delete [] npy_dim_vals;
     }
@@ -1388,7 +1405,6 @@ E_Int K_IO::GenIO::hdfcgnswrite(char* file, PyObject* tree, PyObject* links)
     else if (PyUnicode_Check(l)) cur_path = PyBytes_AsString(PyUnicode_AsUTF8String(l));
 #endif
     else cur_path = NULL;
-    
     
     // > Dramatic verbose 
     // printf(" tgt_dire : %s \n", tgt_dire);
@@ -1731,11 +1747,10 @@ hid_t K_IO::GenIOHdf::writeNode(hid_t node, PyObject* tree)
           setSingleI8(child, ptr[0]);
         }
       }
-      else if (typeNum == NPY_CHAR ||
-               typeNum == NPY_STRING ||
+      else if (typeNum == NPY_STRING ||
                typeNum == NPY_BYTE ||
                //typeNum == NPY_SBYTE ||
-               typeNum == NPY_UBYTE )
+               typeNum == NPY_UBYTE)
       {
         E_Int diml = PyArray_DIMS(ar)[0];
         char* buf = new char [diml+1];
@@ -1799,11 +1814,10 @@ hid_t K_IO::GenIOHdf::writeNode(hid_t node, PyObject* tree)
          setArrayI8(child, (E_LONG*)PyArray_DATA(ar), dim, dims);
        }
       }
-      else if (typeNum == NPY_CHAR ||
-               typeNum == NPY_STRING ||
+      else if (typeNum == NPY_STRING ||
                typeNum == NPY_BYTE ||
                //typeNum == NPY_SBYTE ||
-               typeNum == NPY_UBYTE )
+               typeNum == NPY_UBYTE)
       {
         if (dim == 1)
         {

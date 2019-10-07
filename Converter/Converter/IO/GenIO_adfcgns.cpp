@@ -233,7 +233,7 @@ PyObject* K_IO::GenIOAdf::createNode(double node)
     /*
     char* s = getArrayC1(node);
     E_Int l = strlen(s); npy_dim_vals2[0] = l;
-    v = (PyObject*)PyArray_EMPTY(1, npy_dim_vals2, NPY_CHAR, 1);
+    v = (PyObject*)PyArray_EMPTY(1, npy_dim_vals2, NPY_STRING, 1);
     memcpy(PyArray_DATA((PyArrayObject*)v), s, l*sizeof(char));
     free(s);
   */
@@ -483,7 +483,7 @@ PyObject* K_IO::GenIOAdf::getArrayC1(double node, int force)
     ADF_Read_All_Data(node, (char*)s, &_errorFlag);
     s[(sizem*sizeof(char))] = '\0'; // C arrays starts at zero
     E_Int l = strlen(s); npy_dim_vals[0] = l;                            
-    PyObject* v = (PyObject*)PyArray_EMPTY(1, npy_dim_vals, NPY_CHAR, 1);
+    PyObject* v = (PyObject*)PyArray_EMPTY(1, npy_dim_vals, NPY_STRING, 1);
     memcpy(PyArray_DATA((PyArrayObject*)v), s, l*sizeof(char));
     free(s);
     return v;
@@ -493,7 +493,7 @@ PyObject* K_IO::GenIOAdf::getArrayC1(double node, int force)
     char* s = (char*)::malloc((sizem*sizeof(char))+1);
     ADF_Read_All_Data(node, (char*)s, &_errorFlag);
     npy_dim_vals[0] = _dims[0]; npy_dim_vals[1] = _dims[1];      
-    PyObject* v = (PyObject*)PyArray_EMPTY(dim, npy_dim_vals, NPY_CHAR, 1);
+    PyObject* v = (PyObject*)PyArray_EMPTY(dim, npy_dim_vals, NPY_STRING, 1);
     memcpy(PyArray_DATA((PyArrayObject*)v), s, sizem*sizeof(char));
     free(s);
     return v;
@@ -671,11 +671,10 @@ double K_IO::GenIOAdf::writeNode(double node, PyObject* tree, double child)
           setSingleI8(child, ptr[0]);
         }
       }
-      else if (typeNum == NPY_CHAR ||
-               typeNum == NPY_STRING ||
+      else if (typeNum == NPY_STRING ||
                typeNum == NPY_BYTE ||
                //typeNum == NPY_SBYTE ||
-               typeNum == NPY_UBYTE )
+               typeNum == NPY_UBYTE)
       {
 	      E_Int diml = PyArray_DIMS(ar)[0];
         char* buf = new char [diml+1];
@@ -734,11 +733,10 @@ double K_IO::GenIOAdf::writeNode(double node, PyObject* tree, double child)
           setArrayI8(child, (E_LONG*)PyArray_DATA(ar), dim, dims);
         }
       }
-      else if (typeNum == NPY_CHAR ||
-               typeNum == NPY_STRING ||
+      else if (typeNum == NPY_STRING ||
                typeNum == NPY_BYTE ||
                //typeNum == NPY_SBYTE ||
-               typeNum == NPY_UBYTE )
+               typeNum == NPY_UBYTE)
       {
         if (dim == 1) // one string
         {
