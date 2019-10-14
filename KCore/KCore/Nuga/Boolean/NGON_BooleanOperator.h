@@ -5496,12 +5496,12 @@ E_Int NGON_BOOLEAN_CLASS::__check_PHT3s_closure
     sz = T3s.size();
     if (sz < 4) //cannot be a closed PHT3s shape, so 
     {
-#ifdef DEBUG_BOOLEAN
+//#ifdef DEBUG_BOOLEAN
       unclosed_PHT3s.push_back(PHi); // store it in debug
       continue;
-#else
-      return PHi; // return an error in release
-#endif
+// #else
+//       return PHi; // return an error in release
+// #endif
     }
     
     for (E_Int j = 0; j < sz; ++j)
