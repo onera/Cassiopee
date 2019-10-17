@@ -24,6 +24,14 @@
 #include "kcore.h"
 #include "IO/GenIO.h"
 
+#ifdef _MPI
+#if defined(_WIN64)
+#define __int64 long long
+#endif
+#include "mpi.h"
+#include "mpi4py/mpi4py.h"
+#endif
+
 using namespace std;
 using namespace K_FLD;
 
@@ -854,17 +862,17 @@ E_Int K_CONVERTER::getElementTypeId(const char* eltType)
 PyObject* K_CONVERTER::readPyTreeFromPaths(PyObject* self, PyObject* args)
 {
   char* fileName; char* format; E_Int maxFloatSize; E_Int maxDepth; 
-  PyObject* paths; PyObject* skipTypes;
-  if (!PYPARSETUPLEI(args, "sOsllO", "sOsiiO", 
+  PyObject* paths; PyObject* skipTypes; PyObject* mpi4pyCom;
+  if (!PYPARSETUPLEI(args, "sOsllOO", "sOsiiOO", 
                      &fileName, &paths, &format, 
-                     &maxFloatSize, &maxDepth, &skipTypes)) return NULL;
+                     &maxFloatSize, &maxDepth, &skipTypes, &mpi4pyCom)) return NULL;
   
   if (skipTypes == Py_None) skipTypes = NULL;
   PyObject* ret = NULL;
   if (K_STRING::cmp(format, "bin_cgns") == 0)
-    ret = K_IO::GenIO::getInstance()->hdfcgnsReadFromPaths(fileName, paths, maxFloatSize, maxDepth, skipTypes);
+    ret = K_IO::GenIO::getInstance()->hdfcgnsReadFromPaths(fileName, paths, maxFloatSize, maxDepth, skipTypes, mpi4pyCom);
   else if (K_STRING::cmp(format, "bin_hdf") == 0)
-    ret = K_IO::GenIO::getInstance()->hdfcgnsReadFromPaths(fileName, paths, maxFloatSize, maxDepth, skipTypes);
+    ret = K_IO::GenIO::getInstance()->hdfcgnsReadFromPaths(fileName, paths, maxFloatSize, maxDepth, skipTypes, mpi4pyCom);
   else if (K_STRING::cmp(format, "bin_adf") == 0)
     ret = K_IO::GenIO::getInstance()->adfcgnsReadFromPaths(fileName, paths, maxFloatSize, maxDepth);
   else

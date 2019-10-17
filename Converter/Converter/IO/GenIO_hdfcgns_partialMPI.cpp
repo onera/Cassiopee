@@ -20,7 +20,7 @@
 // Lecture partielle des noeuds decrits dans Filter (chemins et filtre)
 PyObject* K_IO::GenIO::hdfcgnsReadFromPathsPartial(char* file,
                                                    PyObject* Filter,
-                                                   void* comm)
+                                                   PyObject* mpi4pyCom)
 {
   hid_t fapl, fid, ret;
 
@@ -46,23 +46,24 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPathsPartial(char* file,
   /* Open file */
   fapl = H5Pcreate(H5P_FILE_ACCESS);
 
-  // H5Pset_fclose_degree(fapl, H5F_CLOSE_STRONG);
   /* Group Level */
   GenIOHdf HDF;
   HDF._skeleton = 0;
 
 #if defined(_MPI) && defined(H5_HAVE_PARALLEL)
-  HDF._ismpi = 1;
+  if (mpi4pyCom != Py_None && mpi4pyCom != NULL) HDF._ismpi = 1;
+  else HDF._ismpi = 0;
 #else
   HDF._ismpi = 0;
 #endif
 
 #if defined(_MPI) && defined(H5_HAVE_PARALLEL)
-  if (HDF._ismpi == 1){
-     /* Mpi context */
-     MPI_Comm* comm2 = (MPI_Comm*)comm;
-     MPI_Info info   = MPI_INFO_NULL;
-     ret             = H5Pset_fapl_mpio(fapl, *comm2, info);
+  if (HDF._ismpi == 1)
+  {
+    void* pt_comm = (void*)&(((PyMPICommObject*)mpi4pyCom)->ob_mpi);
+    MPI_Comm comm = *((MPI_Comm*) pt_comm);
+    MPI_Info info   = MPI_INFO_NULL;
+    ret             = H5Pset_fapl_mpio(fapl, comm, info);
    }
 #endif
 
@@ -74,17 +75,8 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPathsPartial(char* file,
     printf("Warning: hdfcgnsReadFromPathsPartial: can not open file %s.\n", file);
     return Py_None;
   }
-  
   H5Pclose(fapl);
     
-#if defined(_MPI) && defined(H5_HAVE_PARALLEL)
-  //int nRank, myRank;
-  //MPI_Comm* comm2 = (MPI_Comm*)comm;
-  //MPI_Comm_size(*comm2, &nRank);
-  //MPI_Comm_rank(*comm2, &myRank);
-  // printf("[%d] - open Avant =%d\n",myRank, H5Fget_obj_count(fid, H5F_OBJ_ALL));
-#endif
-  
   PyObject* node;
 
   while (PyDict_Next(Filter, &pos, &key, &DataSpaceDIM))
@@ -119,8 +111,7 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPathsPartial(char* file,
 #if PY_VERSION_HEX >= 0x03000000
       else if (PyUnicode_Check(key)) path = PyBytes_AsString(PyUnicode_AsUTF8String(key)); 
 #endif
-      // printf("path 1 ...  %s\n", path);
-
+      
       HDF._path = path;
 
       /* Open group in HDF corresponding to path */
@@ -140,7 +131,7 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPathsPartial(char* file,
         Py_DECREF(node);
       }
     }
-    else if (PyTuple_Check(key) == true && PyList_Check(DataSpaceDIM) == true)  /** Contigous or Interlaced of field of same size **/
+    else if (PyTuple_Check(key) == true && PyList_Check(DataSpaceDIM) == true)  /** Contiguous or Interlaced of field of same size **/
     {
       E_Int FilterSize = PyList_Size(DataSpaceDIM);
       /* ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo */
@@ -664,9 +655,9 @@ PyObject* K_IO::GenIOHdf::createNodePartialContigous(hid_t&    node,
 */
 //=============================================================================
 E_Int K_IO::GenIO::hdfcgnsWritePathsPartial(char* file, PyObject* tree,
-                                                        PyObject* Filter,
-                                                        int skeleton,
-                                                        void* comm)
+                                            PyObject* Filter,
+                                            int skeleton,
+                                            PyObject* mpi4pyCom)
 {
   /* ***************************************************** */
   /* Declaration */
@@ -698,6 +689,7 @@ E_Int K_IO::GenIO::hdfcgnsWritePathsPartial(char* file, PyObject* tree,
   HDF._skeleton = skeleton;
 
 #if defined(_MPI) && defined(H5_HAVE_PARALLEL)
+  if (mpi4pyCom != Py_None && mpi4pyCom != NULL)
   HDF._ismpi = 1;
 #else
   HDF._ismpi = 0;
@@ -706,12 +698,12 @@ E_Int K_IO::GenIO::hdfcgnsWritePathsPartial(char* file, PyObject* tree,
 #if defined(_MPI) && defined(H5_HAVE_PARALLEL)
   if (HDF._ismpi == 1)
   {
-     /* Mpi context */
-     MPI_Comm* comm2 = (MPI_Comm*)comm;
-     MPI_Info info   = MPI_INFO_NULL;
-     ret             = H5Pset_fapl_mpio(fapl, *comm2, info);
+    void* pt_comm = (void*)&(((PyMPICommObject*)mpi4pyCom)->ob_mpi);
+    MPI_Comm comm = *((MPI_Comm*) pt_comm);
+    MPI_Info info   = MPI_INFO_NULL;
+    ret             = H5Pset_fapl_mpio(fapl, comm, info);
   }
-#endif  
+#endif
    
   /* Access to the file collectively */
   fid = H5Fopen(file, H5F_ACC_RDWR, fapl); 
@@ -721,15 +713,6 @@ E_Int K_IO::GenIO::hdfcgnsWritePathsPartial(char* file, PyObject* tree,
     return 1;
   }
   H5Pclose(fapl);
-
-#if defined(_MPI) && defined(H5_HAVE_PARALLEL)
-  //int nRank, myRank;
-  //MPI_Comm* comm2 = (MPI_Comm*)comm;
-  //MPI_Comm_size(*comm2, &nRank);
-  //MPI_Comm_rank(*comm2, &myRank);
-  // printf("[%d] - open Avant =%d\n",myRank, H5Fget_obj_count(fid, H5F_OBJ_ALL));
-#endif
-  
 
   while(PyDict_Next(Filter, &pos, &key, &DataSpaceDIM))
   {

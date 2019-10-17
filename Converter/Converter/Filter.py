@@ -2,6 +2,7 @@
 from . import Internal
 from . import PyTree
 from . import Converter
+from . import Mpi as Cmpi
 from .Distributed import convert2PartialTree, _convert2PartialTree, convert2SkeletonTree, _convert2SkeletonTree, convertFile2SkeletonTree, _readPyTreeFromPaths, readPyTreeFromPaths, _readZones, \
 _convert2SkeletonTree, readNodesFromPaths, writeNodesFromPaths, writePyTreeFromPaths, deletePaths, fixPaths__
 import numpy
@@ -47,13 +48,16 @@ def writePyTreeFromFilter(t, fileName, filter, format='bin_hdf', com=None, skelD
 #============================================================================
 # Lecture des noms Base/Zones + dims
 # Retourne un squelette (depth=3) + la liste des zones path names (znp)
-# si baseNames: retourne les znp pour la base donnee
+# si baseNames: retourne les znp pour les bases donnees
 # si familyZoneNames: retourne les znp des zones de famille donnee
 # si BCType: retourne les znp des zones contenant une BC de type BCType
 # ou de famille 'familySpecified:WALL'
+# maxDepth: peut-etre mis a 2 ou 3 suivant l'utilisant que l'on veut faire du squelette
+# readProcNode: si True, ajoute le procNode (pas lu si depth < 4)
 #============================================================================
-def readZoneHeaders(fileName, format=None, baseNames=None, familyZoneNames=None, BCType=None):
-    a = convertFile2SkeletonTree(fileName, format, maxDepth=3, maxFloatSize=6)
+def readZoneHeaders(fileName, format=None, baseNames=None, familyZoneNames=None, BCType=None,
+                    maxDepth=3, readProcNode=False):
+    a = convertFile2SkeletonTree(fileName, format, maxDepth=maxDepth, maxFloatSize=6)
     # filter by base names
     if baseNames is not None:
         if not isinstance(baseNames, list): baseNames = [baseNames]
@@ -89,13 +93,25 @@ def readZoneHeaders(fileName, format=None, baseNames=None, familyZoneNames=None,
             zones = Internal.getZones(b)
             for z in zones:
                 path = '/'+b[0]+'/'+z[0]
-                _readPyTreeFromPaths(a, fileName, path+'/ZoneBC')
+                _readPyTreeFromPaths(a, fileName, path+'/ZoneBC', format)
                 nodes = Internal.getNodesFromValue(z, BCType)
                 nodes += PyTree.getFamilyBCs(z, families)
                 #_convert2SkeletonTree(z)
                 if nodes != []: znp.append(path)
     else:
         znp = Internal.getZonePaths(a, pyCGNSLike=True)
+    if readProcNode:
+      if maxDepth < 2: raise ValueError('loadSkeleton: maxDepth must be >= 2 for use with readProcNode.')
+      paths = []
+      bases = Internal.getBases(a)
+      for b in bases:
+        zones = Internal.getZones(b)
+        for z in zones:
+          path = '/'+b[0]+'/'+z[0]+'/.Solver#Param/proc'
+          paths.append(path)
+        for z in zones:
+          Internal._createUniqueChild(z, '.Solver#Param', 'UserDefinedData_t')
+      _readPyTreeFromPaths(a, fileName, paths, format)
     return a, znp
 
 #========================================================================
@@ -117,7 +133,6 @@ def _loadContainer(a, fileName, znp, cont, format=None):
 # variablesN = ['GridCoordinates/CoordinateX',...]
 # variablesC = ['FlowSolution#Centers/Density',...]
 def _loadContainerPartial(a, fileName, znp, variablesN=[], variablesC=[], format=None):
-    
     if isinstance(znp, list): znps = znp
     else: znps = [znp]
     for p in znps:
@@ -155,7 +170,7 @@ def _loadContainerPartial(a, fileName, znp, variablesN=[], variablesC=[], format
 
       for p in paths: f[p] = DataSpaceMMRYC+DataSpaceFILEC+DataSpaceGLOBC
 
-      r = readNodesFromFilter(fileName, f)
+      r = readNodesFromFilter(fileName, f, format)
 
       # Repositionne les chemins dans la zone
       for k in r:
@@ -191,6 +206,14 @@ def _loadConnectivity(a, fileName, znp, format=None):
         for e in elts: paths.append(p+'/'+e[0])
         _readPyTreeFromPaths(a, fileName, paths, format)    
     return None
+
+# force le proc node des zones au processeur courant
+def _enforceProcNode(a):
+  zones = Internal.getZones(a)
+  for z in zones:
+    p = Internal.createUniqueChild(z, '.Solver#Param', 'UserDefinedData_t')
+    Internal.createUniqueChild(p, 'proc', 'DataArray_t', value=Cmpi.rank)
+  return None
 
 #==========================================================================
 # Load par variables
@@ -377,7 +400,7 @@ def bboxTree(fileName):
     return None
 
 # Load only zones that match a bbox
-def isInBBox(a, fileName, bbox, znp):
+def isInBBox(a, fileName, format, bbox, znp):
     xmin = bbox[0]; ymin = bbox[1]; zmin = bbox[2]
     xmax = bbox[3]; ymax = bbox[4]; zmax = bbox[5]
     if isinstance(znp, list): znps = znp
@@ -386,21 +409,21 @@ def isInBBox(a, fileName, bbox, znp):
     for p in znps:
        z = Internal.getNodeFromPath(a, p)
        path = ['%s/GridCoordinates/CoordinateX'%p]
-       _readPyTreeFromPaths(a, fileName, path)
+       _readPyTreeFromPaths(a, fileName, path, format)
        pt = Internal.getNodeFromName2(z, 'CoordinateX')
        vmin = numpy.min(pt[1])
        vmax = numpy.max(pt[1])
        pt[1] = None
        if vmax < xmin or vmin > xmax: out.append(False); continue
        path = ['%s/GridCoordinates/CoordinateY'%p]
-       _readPyTreeFromPaths(a, fileName, path)
+       _readPyTreeFromPaths(a, fileName, path, format)
        pt = Internal.getNodeFromName2(z, 'CoordinateY')
        vmin = numpy.min(pt[1])
        vmax = numpy.max(pt[1])
        pt[1] = None
        if vmax < ymin or vmin > ymax: out.append(False); continue
        path = ['%s/GridCoordinates/CoordinateZ'%p]
-       _readPyTreeFromPaths(a, fileName, path)
+       _readPyTreeFromPaths(a, fileName, path, format)
        pt = Internal.getNodeFromName2(z, 'CoordinateZ')
        vmin = numpy.min(pt[1])
        vmax = numpy.max(pt[1])
@@ -416,6 +439,7 @@ def loadAndSplit(fileName, NParts=None, noz=None, NProc=None, rank=None, variabl
   if NProc is None: NProc = NParts
   import Transform.PyTree as T
   a = convertFile2SkeletonTree(fileName)
+
   # split on skeleton
   T._splitNParts(a, N=NParts)
   # distribute skeleton
@@ -486,7 +510,7 @@ def loadAndSplit(fileName, NParts=None, noz=None, NProc=None, rank=None, variabl
     for p in path:
       f[p] = DataSpaceMMRY+DataSpaceFILE+DataSpaceGLOB
 
-    r = readNodesFromFilter(fileName, f)
+    r = readNodesFromFilter(fileName, f, format)
 
     # Repositionne les chemins
     for k in r:
@@ -646,38 +670,48 @@ class Handle:
 
   # Charge un squelette, stocke les chemins des zones du fichier (znp)
   # Stocke le nombre de pts de chaque zone
-  def loadSkeleton(self):
+  def loadSkeleton(self, maxDepth=3, readProcNode=False):
     """Load a skeleton tree."""
-    a, self.znp = readZoneHeaders(self.fileName, self.format)
-    # evaluation taille des zones
-    self.size = {}
-    for zn in self.znp:
-      z = Internal.getNodeFromPath(a, zn)
-      if z[1] is not None:
-        pt = z[1].ravel('k')
-        if pt[2] == 0: s = pt[0]
-        else: s = pt[0]*pt[1]*pt[2]
-      else: s = 0
-      self.size[zn] = s
+    if Cmpi.rank == 0:
+      a, self.znp = readZoneHeaders(self.fileName, self.format, maxDepth=maxDepth, readProcNode=readProcNode)
+      # evaluation taille des zones
+      self.size = {}
+      for zn in self.znp:
+        z = Internal.getNodeFromPath(a, zn)
+        if z[1] is not None:
+          pt = z[1].ravel('k')
+          if pt[2] == 0: s = pt[0]
+          else: s = pt[0]*pt[1]*pt[2]
+        else: s = 0
+        self.size[zn] = s
+    else: a = None
+    a = Cmpi.bcast(a)
     return a
 
   # Charge le squelette, le split et conserve les infos de split
-  def loadAndSplitSkeleton(self, NParts=None, NProc=None):
+  def loadAndSplitSkeleton(self, NParts=None, NProc=Cmpi.size):
     """Load and split skeleton."""
-    a = self.loadSkeleton()
-    import Transform.PyTree as T
-    # split on skeleton
-    if NParts is not None: T._splitNParts(a, N=NParts)
-    else: T._splitNParts(a, N=NProc)
-
-    if NProc is not None:
-      import Distributor2.PyTree as D2   
-      D2._distribute(a, NProc)
+    if Cmpi.rank == 0:
+      a, self.znp = readZoneHeaders(self.fileName, self.format)
+      # force loc2glob to himself from himself
+      for z in Internal.getZones(a):
+        dim = Internal.getZoneDim(z)
+        Internal._setLoc2Glob(z, z[0], win=[1,dim[1],1,dim[2],1,dim[3]], sourceDim=dim[1:])
+      import Transform.PyTree as T
+      # split on skeleton
+      if NParts is not None: T._splitNParts(a, N=NParts)
+      else: T._splitNParts(a, N=NProc)
+      if NProc is not None:
+        import Distributor2.PyTree as D2   
+        D2._distribute(a, NProc)
+    else: a = None
+    a = Cmpi.bcast(a)
     return a
 
-  def loadAndSplit(self, NParts=None, NProc=None):
+  def loadAndSplit(self, NParts=None, NProc=Cmpi.size):
     """Load and split a file."""
     a = self.loadAndSplitSkeleton(NParts, NProc)
+    _convert2PartialTree(a, rank=Cmpi.rank)
     varsN = ['%s/CoordinateX'%Internal.__GridCoordinates__,
              '%s/CoordinateY'%Internal.__GridCoordinates__,
              '%s/CoordinateZ'%Internal.__GridCoordinates__]
@@ -687,6 +721,59 @@ class Handle:
     self._loadContainerPartial(a, variablesN=varsN, variablesC=varsC)
     return a
     
+  def loadFromProc(self, rank):
+    """Load and distribute zones from proc node."""
+    if Cmpi.rank == 0:
+      t = convertFile2SkeletonTree(self.fileName, self.format, maxDepth=2, maxFloatSize=6)
+      zones = Internal.getZones(t)
+      paths = []
+      for z in zones:
+        p = Internal.getPath(t, z)+'/.Solver#Param/proc'
+        paths.append(p)
+      for z in zones:
+        p = Internal._createUniqueChild(z, '.Solver#Param', 'UserDefinedData_t')
+      _readPyTreeFromPaths(t, self.fileName, paths)
+      self._loadTreeExtras(t)
+    else: t = None
+    t = Cmpi.bcast(t)
+    paths = []
+    zones = Internal.getZones(t)
+    for z in zones:
+      proc = Internal.getNodeFromName2(z, 'proc')
+      if Internal.getValue(proc) == Cmpi.rank:
+        paths.append(Internal.getPath(t, z))
+      else:
+        Internal._rmNode(t, z)
+    if paths != []: _readPyTreeFromPaths(t, self.fileName, paths)
+    return t
+
+  def loadAndDistribute(self):
+    """Load and distribute zones."""
+    if Cmpi.rank == 0:
+      t = convertFile2SkeletonTree(self.fileName, self.format, maxDepth=2, maxFloatSize=6)
+      zones = Internal.getZones(t)
+      paths = []
+      for z in zones:
+        p = Internal.getPath(t, z)+'/ZoneType'
+        paths.append(p)
+      _readPyTreeFromPaths(t, self.fileName, paths, self.format)
+      self._loadTreeExtras(t)
+      import Distributor2.PyTree as D2
+      D2._distribute(t, Cmpi.size)
+    else: t = None
+    t = Cmpi.bcast(t)
+    paths = []
+    zones = Internal.getZones(t)
+    for z in zones:
+      proc = Internal.getNodeFromName2(z, 'proc')
+      if Internal.getValue(proc) == Cmpi.rank:
+        paths.append(Internal.getPath(t, z))
+      else:
+        Internal._rmNode(t, z)
+    if paths != []: _readPyTreeFromPaths(t, self.fileName, paths, self.format)
+    _enforceProcNode(t)
+    return t
+
   # Calcul et stocke des infos geometriques sur les zones
   def geomProp(self, znp=None):
     """Store some zone properties."""
@@ -844,7 +931,7 @@ class Handle:
   
   def isInBBox(self, a, bbox, znp=None):
     if znp is None: znp = self.getZonePaths(a)
-    return isInBBox(a, self.fileName, bbox, znp)
+    return isInBBox(a, self.fileName, self.format, bbox, znp)
 
   # Ecrit des zones
   def writeZones(self, a, znp=None):

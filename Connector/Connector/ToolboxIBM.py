@@ -1855,9 +1855,10 @@ def extractIBMWallFields(tc, tb=None):
             b = td[2][nob]
             if b[3] == 'CGNSBase_t':                
                 zones = Internal.getNodesFromType1(b, 'Zone_t')
-                zones = C.convertArray2Tetra(zones)
-                zones = T.join(zones); zones = G.close(zones)
-                b[2] = [zones]
+                if zones != []:
+                    zones = C.convertArray2Tetra(zones)
+                    zones = T.join(zones); zones = G.close(zones)
+                    b[2] = [zones]
         C._initVars(td,"CoordinateX_PI",0.)     
         C._initVars(td,"CoordinateY_PI",0.)     
         C._initVars(td,"CoordinateZ_PI",0.)        

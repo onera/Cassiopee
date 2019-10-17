@@ -28,14 +28,14 @@ def convertFile2SkeletonTree(fileName, format=None, maxFloatSize=5,
 #==============================================================================
 # Lit seulement un noeud de l'arbre ou ses enfants (suivant maxDepth)
 #==============================================================================
-def readNodesFromPaths(fileName, paths, format=None, maxFloatSize=-1, maxDepth=-1, skipTypes=None):
+def readNodesFromPaths(fileName, paths, format=None, maxFloatSize=-1, maxDepth=-1, skipTypes=None, comm=None):
   """Read nodes from file given their paths."""
   if format is None: format = Converter.convertExt2Format__(fileName)
   if not isinstance(paths, list): p = [paths]
   else: p = paths
   p = fixPaths__(p)
   if skipTypes is not None and isinstance(skiptTypes, str): skipTypes = [skipTypes]
-  ret = Converter.converter.readPyTreeFromPaths(fileName, p, format, maxFloatSize, maxDepth, skipTypes)
+  ret = Converter.converter.readPyTreeFromPaths(fileName, p, format, maxFloatSize, maxDepth, skipTypes, comm)
   if not isinstance(paths, list): return ret[0]
   else: return ret 
 
@@ -43,14 +43,14 @@ def readNodesFromPaths(fileName, paths, format=None, maxFloatSize=-1, maxDepth=-
 # Lit un noeud de l'arbre ou ses enfants (suivant maxDepth)
 # et complete t
 #==============================================================================
-def readPyTreeFromPaths(t, fileName, paths, format=None, maxFloatSize=-1, maxDepth=-1, setOnlyValue=True, skipTypes=None):
+def readPyTreeFromPaths(t, fileName, paths, format=None, maxFloatSize=-1, maxDepth=-1, setOnlyValue=True, skipTypes=None, comm=None):
   """Read nodes from file given their path and complete t."""
   tp = Internal.copyRef(t)
-  _readPyTreeFromPaths(tp, fileName, paths, format, maxFloatSize, maxDepth, setOnlyValue, skipTypes)
+  _readPyTreeFromPaths(tp, fileName, paths, format, maxFloatSize, maxDepth, setOnlyValue, skipTypes, comm)
   return tp
 
-def _readPyTreeFromPaths(t, fileName, paths, format=None, maxFloatSize=-1, maxDepth=-1, setOnlyValue=True, skipTypes=None):
-  nodes = readNodesFromPaths(fileName, paths, format, maxFloatSize, maxDepth, skipTypes)
+def _readPyTreeFromPaths(t, fileName, paths, format=None, maxFloatSize=-1, maxDepth=-1, setOnlyValue=True, skipTypes=None, comm=None):
+  nodes = readNodesFromPaths(fileName, paths, format, maxFloatSize, maxDepth, skipTypes, comm)
   if not isinstance(paths, list): nodes = [nodes]; paths = [paths]
   if len(paths) != len(nodes):
     print("Warning: readPyTreeFromPaths: some paths can not be loaded. Nothing added to pyTree.")
@@ -256,7 +256,7 @@ def _readZones(t, fileName, format=None, rank=None, zoneNames=None):
   if format is None: format = Converter.convertExt2Format__(fileName)
   if format == 'bin_cgns' or format == 'unknown': format = Converter.checkFileType(fileName)
 
-  loadedZones = Converter.converter.readPyTreeFromPaths(fileName, paths, format, -1, -1, None)
+  loadedZones = Converter.converter.readPyTreeFromPaths(fileName, paths, format, -1, -1, None, None)
 
   # Replace/add now loaded zones
   m = 0
@@ -327,7 +327,6 @@ def writeZones(t, fileName, format=None, proc=None, zoneNames=None, links=None):
             if paths[c][0] != '/': paths[c] = '/'+paths[c]
             path[c] = Internal.getPathAncestor(path[c])
 
-    #print 'Writing '+fileName+' '+str(paths)+'...',
     print('Writing %s [%d zones]...'%(fileName,len(paths))),
     if format is None: format = Converter.convertExt2Format__(fileName)
     Converter.converter.writePyTreePaths(fileName, nodes, paths, format, -1, 0, links)
@@ -552,24 +551,24 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
                     idn = Internal.getNodesFromName1(s,'InterpolantsDonor')
                     cycl = nssiter/levdnr
                     if levdnr > levrcv and ssiter <= nssiter:
-                        if ssiter%cycl==cycl-1 or ssiter%cycl==cycl/2 and (ssiter/cycl)%2==1: 
+                        if ssiter%cycl==cycl-1 or ssiter%cycl==cycl//2 and (ssiter/cycl)%2==1: 
                             if idn != []: # la subRegion decrit des interpolations
                                 popp = getProcGlobal__(donor, t, procDict)
                                 updateGraph__(graph_, proc, popp, z[0])     
                     if levdnr < levrcv and ssiter <= nssiter:
-                        if (ssiter%cycl==1 or ssiter%cycl==cycl/4 or ssiter%cycl==cycl/2-1 or ssiter%cycl==cycl/2+1 or ssiter%cycl==cycl/2+cycl/4 or ssiter%cycl==cycl-1): 
+                        if (ssiter%cycl==1 or ssiter%cycl==cycl//4 or ssiter%cycl==cycl//2-1 or ssiter%cycl==cycl//2+1 or ssiter%cycl==cycl//2+cycl//4 or ssiter%cycl==cycl-1): 
                             if idn != []: # la subRegion decrit des interpolations
                                 popp = getProcGlobal__(donor, t, procDict)
                                 updateGraph__(graph_, proc, popp, z[0])          
                     if levdnr == levrcv and ssiter <= nssiter:
-                        if (ssiter%cycl==cycl/2-1 or (ssiter%cycl==cycl/2 and (ssiter/cycl)%2==0) or ssiter%cycl==cycl-1): 
+                        if (ssiter%cycl==cycl/2-1 or (ssiter%cycl==cycl//2 and (ssiter//cycl)%2==0) or ssiter%cycl==cycl-1): 
                             if idn != []: # la subRegion decrit des interpolations
                                 popp = getProcGlobal__(donor, t, procDict)
                                 updateGraph__(graph_, proc, popp, z[0])
                     if levdnr == levrcv and ssiter > nssiter:
                         #if (ssiter%8==6): 
                         ssiter_ = ssiter - nssiter
-                        if ssiter_%2==0 and ssiter_%cycl==cycl/2 and (ssiter_/cycl)%2==1: 
+                        if ssiter_%2==0 and ssiter_%cycl==cycl/2 and (ssiter_//cycl)%2==1:
                             if idn != []: # la subRegion decrit des interpolations
                                 popp = getProcGlobal__(donor, t, procDict)
                                 updateGraph__(graph_, proc, popp, z[0])

@@ -82,9 +82,12 @@ def _distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='match',
         a = C.getFields(Internal.__GridCoordinates__, z, api=2)
         if a == [[]]: # no coord present in z
             dim = Internal.getZoneDim(z)
+            print(dim)
             if dim[0] == 'Structured':
                 ar = Converter.array('x', dim[1], dim[2], dim[3], api=2)
             elif dim[3] == 'NGON':
+                ar = Converter.array('x', dim[1], dim[2], 'HEXA', api=2) # hack
+            elif dim[3] == 'UNKNOWN':
                 ar = Converter.array('x', dim[1], dim[2], 'HEXA', api=2) # hack
             else:
                 ar = Converter.array('x', dim[1], dim[2], dim[3], api=2)

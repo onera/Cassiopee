@@ -44,6 +44,10 @@ List of functions
     Converter.Filter.Handle.writeZones
     Converter.Filter.Handle.writeZonesWoVars
     Converter.Filter.Handle.writeVariables
+    Converter.Filter.Handle.loadFromProc
+    Converter.Filter.Handle.loadAndDistribute
+    Converter.Filter.Handle.loadAndSplit
+    
 
 Contents
 #########
@@ -183,7 +187,8 @@ Low level layer
 .. py:function:: Converter.Filter.writeNodesFromPaths(fileName, paths, nodes, format=None, maxDepth=-1, mode=0)
 
     Write given nodes to specified paths in file.
-    If mode=0 (append), nodes are appened to path location.
+    If mode=0 (append), nodes are appened to path location. Nevertheless, if a node with identical name already 
+    exists in the path node children, it will be replaced by the appended ones.
     If mode=1 (replace), nodes are replaced to path location. 
     If maxDepth>0, replace mode kill children of replaced node.
     If maxDepth=0, replace mode replaces value and type of node (not the name).
@@ -295,11 +300,15 @@ High level layer
 
 ---------------------------------------------------------------------------
 
-.. py:function:: Converter.Filter.Handle.loadSkeleton()
+.. py:function:: Converter.Filter.Handle.loadSkeleton(maxDepth=3, readProcNode=False)
 
-    Load a skeleton tree from file (a tree where no data are loaded).
+    Load a skeleton tree from file (a tree of depth maxDepth where no data are loaded).
 
-    :rtype: a skeleton pyTree     
+    :param maxDepth: the depth you want to load (-1 means all tree)
+    :type maxDepth: int
+    :param readProcNode: if true, force reading of proc node. Usefull for maxDepth <= 4.
+    :type readProcNode: boolean
+    :rtype: a skeleton pyTree
 
     *Example of use:*
 
@@ -312,10 +321,10 @@ High level layer
 
 .. py:function:: Converter.Filter.Handle.getVariables()
 
-    Get the variables contained in file. This function minimal reads from file
-    and store variable names in handle. This function must be called after loadSkeleton.
+    Get the names of variables contained in file. 
+    This function must be called after loadSkeleton.
 
-    :return: list of variables contained in file
+    :return: list of variable names contained in file
     :rtype: list of strings
 
     *Example of use:*
@@ -333,7 +342,7 @@ High level layer
 
     :param a: modified pyTree 
     :type a: pyTree
-    :param znp: path of zones to load from (starting from top)
+    :param znp: paths of zones to load (must be a list of 'BaseName/ZoneName')
     :type znp: list of strings
     
     *Example of use:*
@@ -436,6 +445,53 @@ High level layer
     * `Write variables (pyTree) <Examples/Converter/writeVariablesPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/writeVariablesPT.py
+
+
+
+---------------------------------------------------------------------------
+
+.. py:function:: Converter.Filter.Handle.loadFromProc()
+
+    Load on each processor the zones with the corresponding proc node.
+    The zones in File must have a .Solver#Param/proc node.
+
+    :rtype t: partial tree on each processor
+
+    *Example of use:*
+
+    * `Load tree from proc node (pyTree) <Examples/Converter/loadFromProcPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/loadFromProcPT.py
+
+
+---------------------------------------------------------------------------
+
+.. py:function:: Converter.Filter.Handle.loadAndDistribute()
+
+    Load and distribute zones of file on the different processors.
+    
+    :rtype t: partial tree on each processor
+
+    *Example of use:*
+
+    * `Load and distribute tree (pyTree) <Examples/Converter/loadAndDistributePT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/loadAndDistributePT.py
+
+
+---------------------------------------------------------------------------
+
+.. py:function:: Converter.Filter.Handle.loadAndSplit()
+
+    Load and split zones of file on the different processors (only for structured zones)
+    
+    :rtype t: partial tree on each processor
+
+    *Example of use:*
+
+    * `Load and split tree (pyTree) <Examples/Converter/loadAndSplitPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/loadAndSplitPT.py
 
 
 

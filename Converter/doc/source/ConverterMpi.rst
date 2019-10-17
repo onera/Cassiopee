@@ -58,11 +58,7 @@ List of functions
    Converter.Mpi.convertFile2PyTree
    Converter.Mpi.readZones
    Converter.Mpi.writeZones
-   Converter.Mpi.readNodesFromPaths
-   Converter.Mpi.readPyTreeFromPaths
-   Converter.Mpi.writeNodesFromPaths
    Converter.Mpi.convertPyTree2File
- 
 
 **-- Conversion**
 
@@ -234,94 +230,6 @@ Input/output
 
    .. literalinclude:: ../build/Examples/Converter/convertPyTree2FileMPI.py
 
----------------------------------------------------------------------------
-
-.. py:function:: Converter.Mpi.readNodesFromPaths(fileName, paths, format=None, maxFloatSize=-1, maxDepth=-1, skipTypes=None)
-
-   Read nodes from a file (adf or hdf).
-   If maxFloatSize=-1, all data are loaded, otherwise data are loaded
-   only if the number of elements is lower that maxFloatSize.
-   If maxDepth=-1, the read is fully recursive. Otherwise, load is limited
-   to maxDepth levels.
-   If skipTypes is specified, load is stopped when given node type is met (HDF only).
-
-   :param fileName: file name to write to
-   :type fileName: string
-   :param paths: path of list of paths
-   :type paths: string or list of strings
-   :param format: bin_cgns, bin_adf, bin_hdf (optional)
-   :type format: string
-   :param maxFloatSize: the maxSize of float array to load
-   :type maxDepth: int
-   :param maxDepth: max depth of load
-   :type maxDepth: int
-   :param skipTypes: list of CGNS types to skip
-   :type skipTypes: None or list of strings
-   :return: read nodes
-   :rtype: pyTree node list
-
-   *Example of use:*
-
-   * `Read nodes from file (pyTree) <Examples/Converter/readNodesFromPathsPT.py>`_:
-
-   .. literalinclude:: ../build/Examples/Converter/readNodesFromPathsPT.py
-
-   .. note:: new in version 2.6
-
----------------------------------------------------------------------------
-
-.. py:function:: Converter.Mpi.readPyTreeFromPaths(t, fileName, paths, format=None, maxFloatSize=-1, maxDepth=-1)
-
-   Read nodes from a file (adf or hdf) and put them in pyTree.
-   If maxFloatSize=-1, all data are loaded, otherwise data are loaded
-   only if the number of elements is lower that maxFloatSize.
-   If maxDepth=-1, the read is fully recursive. Otherwise, load is limited
-   to maxDepth levels.
-   Exists also as in place (_readPyTreeFromPaths) function that 
-   modifies t and returns None.
-
-   :param t: input data
-   :type t: [pyTree]
-   :param fileName: file name to write to
-   :type fileName: string
-   :param paths: path of list of paths
-   :type paths: string or list of strings
-   :param format: bin_cgns, bin_adf, bin_hdf (optional)
-   :type format: string
-   :param maxFloatSize: the maxSize of float array to load
-   :type maxDepth: int
-   :param maxDepth: max depth of load
-   :type maxDepth: int
-    
-   *Example of use:*
-
-   * `Read nodes from file and put them to tree (pyTree) <Examples/Converter/readPyTreeFromPathsPT.py>`_:
-
-   .. literalinclude:: ../build/Examples/Converter/readPyTreeFromPathsPT.py
-
-   .. note:: new in version 2.6
-
----------------------------------------------------------------------------
-
-.. py:function:: Converter.Mpi.writeNodesFromPaths(fileName, paths, nodes, format=None)
-
-   Write nodes to a file (adf or hdf).
-
-   :param fileName: file name to write to
-   :type fileName: string
-   :param paths: path of list of paths
-   :type paths: string or list of strings
-   :param nodes: node or list of nodes
-   :type nodes: pyTree node or list of pyTree nodes
-   :param format: bin_cgns, bin_adf, bin_hdf (optional)
-    
-   *Example of use:*
-
-   * `Write nodes from file (pyTree) <Examples/Converter/writeNodesFromPathsPT.py>`_:
-
-   .. literalinclude:: ../build/Examples/Converter/writeNodesFromPathsPT.py
-
-   .. note:: new in version 2.6
 
 ---------------------------------------------------------------------------
 
@@ -352,7 +260,7 @@ Conversions
 
     Convert a loaded skeleton tree (**LS**) to a partial tree (**P**). 
     If rank=-1, all skeleton zones are suppressed.
-    If rank>=0, zones of given rank are suppressed.
+    If rank>=0, zones with proc != rank are suppressed.
 
     Exists also as in place version (_convert2PartialTree) that modifies t
     and returns None.

@@ -23,6 +23,7 @@
 # define __int64 long long
 #endif
 # include "mpi.h"
+# include "mpi4py/mpi4py.h"
 #else
 #define MPI_Comm void
 #endif
@@ -782,7 +783,6 @@ PyObject* K_IO::GenIOHdf::getArrayContigous(hid_t     node,
   did = H5Dopen2(node, L3S_DATA, H5P_DEFAULT);
   yid = H5Tget_native_type(tid, H5T_DIR_ASCEND);
 
-  // printf("K_IO::GenIOHdf::getArrayContigous \n ");
 #if defined(_MPI) && defined(H5_HAVE_PARALLEL)
   if (_ismpi == 1) /** HDF is executed in parallel context and compiled in MPI **/
   {
@@ -961,7 +961,7 @@ hid_t K_IO::GenIOHdf::openGroupWithLinks(hid_t start, char* path)
 PyObject* K_IO::GenIO::hdfcgnsReadFromPaths(char* file, PyObject* paths,
                                             E_Int maxFloatSize, E_Int maxDepth,
                                             PyObject* skipTypes,
-                                            void* comm)
+                                            PyObject* mpi4pyCom)
 {
   if (PyList_Check(paths) == false)
   {
@@ -974,14 +974,7 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPaths(char* file, PyObject* paths,
   /* Open file */
   hid_t fapl, fid;
   fapl = H5Pcreate(H5P_FILE_ACCESS);
-  //H5Pset_fclose_degree(fapl, H5F_CLOSE_STRONG);
-  fid = H5Fopen(file, H5F_ACC_RDONLY, fapl);
-  if (fid < 0)
-  {
-    PyErr_SetString(PyExc_TypeError, "hdfread: cannot open file.");
-    return NULL;
-  }
-
+  
   PyObject* ret = PyList_New(0);
   GenIOHdf HDF;
   HDF._ismpi = 0;
@@ -1004,21 +997,30 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPaths(char* file, PyObject* paths,
     }
   }
 
-/*
 #if defined(_MPI) && defined(H5_HAVE_PARALLEL)
-  HDF._ismpi = 1;
+  if (mpi4pyCom != Py_None && mpi4pyCom != NULL) HDF._ismpi = 1;
+  else HDF._ismpi = 0;
 #else
   HDF._ismpi = 0;
 #endif
 
 #if defined(_MPI) && defined(H5_HAVE_PARALLEL)
-  if (HDF._ismpi == 1){
-     MPI_Comm* comm2 = (MPI_Comm*)comm;
-     MPI_Info info   = MPI_INFO_NULL;
-     ret             = H5Pset_fapl_mpio(fapl, *comm2, info);
+  if (HDF._ismpi == 1)
+  {
+    void* pt_comm = (void*)&(((PyMPICommObject*)mpi4pyCom)->ob_mpi);
+    MPI_Comm comm = *((MPI_Comm*) pt_comm);
+    MPI_Info info   = MPI_INFO_NULL;
+    H5Pset_fapl_mpio(fapl, comm, info);
    }
 #endif
-*/
+
+  fid = H5Fopen(file, H5F_ACC_RDONLY, fapl);
+  if (fid < 0)
+  {
+    PyErr_SetString(PyExc_TypeError, "hdfread: cannot open file.");
+    return NULL;
+  }
+  H5Pclose(fapl);
 
   for (E_Int i = 0; i < size; i++)
   {

@@ -12,18 +12,20 @@ import shlex
 from collections import OrderedDict
 import imp
 
-try: xrange= range
+try: xrange = range
 except: pass
 
 # Import Tkinter
 IMPORTOK = True
 try: import Tkinter as TK
-except: 
+except:
     try: import tkinter as TK
     except: IMPORTOK = False
     
 try: import ttk as cttk
-except: IMPORTOK = False
+except: 
+    try: import tkinter.ttk as cttk
+    except: IMPORTOK = False
 
 try:
     # from tkColorChooser import askcolor
@@ -32,7 +34,7 @@ try:
 except:
     try:
         import tkinter.filedialog as tkFileDialog
-        import tkinter.messageBox as tkMessageBox
+        import tkinter.messagebox as tkMessageBox
     except: IMPORTOK = False
 
 # Import matplotlib
@@ -41,7 +43,7 @@ try:
     import matplotlib
     # Fit matplotlib usage
     matplotlib.use('TkAgg')
-    from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
+    from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 #
 #    from matplotlib.backends.backend_tkagg import ToolTip
 #    from matplotlib.backends.backend_tkagg import ToolTip,cursord
@@ -66,7 +68,7 @@ except:
     pltBottom = 0
     pltWSpace = 0
     pltHSpace = 0
-    class NavigationToolbar2TkAgg:
+    class NavigationToolbar2Tk:
         def __init__(self): return
 
 # Cassiopee import
@@ -849,7 +851,7 @@ class HFrame(TK.Canvas):
 
         for i in range(limit):
             nbColor = self.controler.Nstep
-            ii = nbColor*i/limit
+            ii = nbColor*i//limit
 
             nr = int(self.rgb_l[ii][0])
             ng = int(self.rgb_l[ii][1])
@@ -3844,7 +3846,7 @@ class GraphTK(TK.Toplevel):
         # Toolbar
         toolbar_frame = TTK.Frame(self)
         toolbar_frame.grid(row=1,column=0,sticky='W')
-#        toolbar = NavigationToolbar2TkAgg(self.canvas,toolbar_frame)
+#        toolbar = NavigationToolbar2Tk(self.canvas,toolbar_frame)
         toolbar = CustomToolbar(self.canvas,toolbar_frame,self)
         toolbar.update()
 
@@ -3921,7 +3923,7 @@ class GraphTK(TK.Toplevel):
             newaxis.ind = newind
             return newaxis
         else:
-            print('''### Error : value used for 'shared' is unknown, must be in [None, 'x', 'X', 'y', 'Y'].''')
+            print('''### Error: value used for 'shared' is unknown, must be in [None, 'x', 'X', 'y', 'Y'].''')
     # ---------------------------------------------------------------- getLegend
     def getLegend(self,iCurSubGraph):
         return self.fig.getLegend(iCurSubGraph)
@@ -6485,7 +6487,7 @@ class DesktopFrameTK(TK.Frame):
         if zoneName in d:
             self.data[zoneName]=d[zoneName]
         else:
-            print('''### Can not find zone %s in submitted data.'''%newZoneName)
+            print('''### Warning: Can not find zone %s in submitted data.'''%newZoneName)
     # ------------------------------------------------------- deleteZoneFromData
     def deleteZoneFromData(self,zoneName,oldBaseName=""):
         for k in self.data:
@@ -6810,7 +6812,7 @@ class DesktopFrameTK(TK.Frame):
         lblframe.grid_rowconfigure(0,weight=1)
         #
         try:
-            self.positionList = self.graphWdwL[self.activeGraph.val].subGraph.keys()
+            self.positionList = list(self.graphWdwL[self.activeGraph.val].subGraph.keys())
         except IndexError:
             self.positionList = ['']
         except TypeError:
@@ -7157,7 +7159,7 @@ class DesktopFrameTK(TK.Frame):
         # Changes the values available for position according to the graph id selected
         graphId = self.activeGraph.val
         try:
-            self.positionList = self.graphWdwL[graphId].fig.subGraph.keys()
+            self.positionList = list(self.graphWdwL[graphId].fig.subGraph.keys())
         except IndexError:
             self.positionList = ['']
         except TypeError:
@@ -7213,7 +7215,7 @@ class DesktopFrameTK(TK.Frame):
             if val<len(self.graphWdwL):
                 # Save active graph
                 self.graphWdwL[val].save(filename)
-                print('Wrote file %s.'%filename)
+                print('Info: Wrote file %s.'%filename)
                 return True
         except ValueError: return False
 
@@ -7325,7 +7327,6 @@ class DesktopFrameTK(TK.Frame):
                 self.data = self.queue.get(0)
                 # Check contents of message and do what it says
                 # As a test, we simply print it
-                print("From client thread, msg = ")
                 self.updateAllGraph()
             except Queue.Empty:
                 pass
@@ -7514,7 +7515,7 @@ class Desktop():
         if zoneName in d:
             self.data[zoneName]=d[zoneName]
         else:
-            print('''### Can not find zone %s in submitted data.'''%newZoneName)
+            print('''### Wanring: Can not find zone %s in submitted data.'''%newZoneName)
     # ------------------------------------------------------- deleteZoneFromData
     def deleteZoneFromData(self,zoneName,oldBaseName=""):
         """
@@ -8011,7 +8012,6 @@ class Desktop():
                 self.data = self.queue.get(0)
                 # Check contents of message and do what it says
                 # As a test, we simply print it
-                print("From client thread, msg = ")
                 self.updateAllGraph()
             except Queue.Empty:
                 pass
@@ -9221,7 +9221,6 @@ class Movie(object):
 
     def activate(self):
         width, height = self.fig.canvas.get_width_height()
-        print("width = ",width,", height = ",height)
 
 ############################################################################################################
 #BERTRAND :
@@ -9275,7 +9274,7 @@ class Movie(object):
 # ==============================================================================
 # ==============================================================================
 # --------------------------------------------------
-class CustomToolbar(NavigationToolbar2TkAgg):
+class CustomToolbar(NavigationToolbar2Tk):
     def __init__(self,canvas,parent,graph):
         self.toolitems = (
         ('Home', 'Reset original view', 'initial', 'home'),
@@ -9291,7 +9290,7 @@ class CustomToolbar(NavigationToolbar2TkAgg):
         self.graph = graph
         #
         self.button_dict = {}
-        NavigationToolbar2TkAgg.__init__(self,canvas,parent)
+        NavigationToolbar2Tk.__init__(self,canvas,parent)
 
     def _Button(self, text, file, command, extension='.ppm'):
         fileimage=file
@@ -9432,18 +9431,15 @@ class GraphEditor():
 
 
     def __enter__(self,display):
-        print("Enter")
         return self.desktop
 
 
     def __exit__(self, type, value, traceback):
-        print("Exit")
         for graph in self.desktop.graphWdwL:
             graph.quit()
 
 
     def close(self):
-        print("Close")
         for graph in self.desktop.graphWdwL:
             graph.quit()
 

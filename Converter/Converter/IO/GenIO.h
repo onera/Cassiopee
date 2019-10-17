@@ -626,16 +626,16 @@ class GenIO
     /* Lecture a partir de chemins donnes */
     PyObject* hdfcgnsReadFromPaths(char* file, PyObject* paths,
                                    E_Int maxFloatSize=1.e6, E_Int maxDepth=-1,
-                                   PyObject* skipTypes=NULL, void* comm=NULL);
+                                   PyObject* skipTypes=NULL, PyObject* mpi4pyCom=NULL);
     PyObject* hdfcgnsReadFromPathsPartial(char* file, PyObject* Filters,
-                                          void* comm=NULL);
+                                          PyObject* mpi4pyCom=NULL);
     /* Ecrit des parties d'un arbre python */
     E_Int hdfcgnsWritePaths(char* file, PyObject* nodeList, PyObject* paths, PyObject* links=NULL, 
                             E_Int maxDepth=-1, E_Int mode=0);
     E_Int hdfcgnsWritePathsPartial(char* file, PyObject* tree,
                                    PyObject* Filter,
                                    int skeleton=0,
-                                   void* comm=NULL);
+                                   PyObject* mpi4pyCom=NULL);
     E_Int hdfcgnsDeletePaths(char* file, PyObject* paths);
     void ripEndOfPath(char* path, char*& startPath);
     void getEndOfPath(char* path, char*& startPath);
