@@ -948,7 +948,7 @@ namespace DELAUNAY{
   {
     tmpNodes.clear();
     E_Float   d = length(Ni, Nj, threshold, tmpNodes);
-    size_type n = std::max(size_type(d), 1);
+    size_type n = std::max(size_type(d), size_type(1));
 
     if ((n * (n + 1)) < (d * d))
       ++n;

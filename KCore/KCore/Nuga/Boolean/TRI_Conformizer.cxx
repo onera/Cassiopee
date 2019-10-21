@@ -525,13 +525,13 @@ TRI_Conformizer<DIM>::__iterative_run
 
   // Multiple attempts : do not shuffle first, and then do shuffle
   E_Int railing = -1;
-  E_Int nb_attemps = std::min(cB.cols(), 6);//to test all RTOL2 values in range [1.e-8, 1.e-3]
+  E_Int nb_attemps = std::min(cB.cols(), (E_Int)6);//to test all RTOL2 values in range [1.e-8, 1.e-3]
   E_Int k = 9;
   while (railing++ < nb_attemps)
   {
     //if (err) std::cout << "atempt " << railing << " return error : " << err << std::endl;
     
-    k = std::max(3, k-1);
+    k = std::max((E_Int)3, k-1);
     E_Float RTOL2 = ::pow(10., -k);
     
     data.clear(); //reset containers

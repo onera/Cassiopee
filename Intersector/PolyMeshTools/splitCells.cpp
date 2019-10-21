@@ -743,6 +743,35 @@ PyObject* K_INTERSECTOR::adaptCellsNodal(PyObject* self, PyObject* args)
   char* varString, *eltType, *varString2, *eltType2;
   // Check the mesh (NGON)
   E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
+  //// Gestion interne HEXA/TETRA format : Commente car resultat different lorsque fait dans le python
+  // E_Int ni, nj, nk;
+  
+  // E_Int res = K_ARRAY::getFromArray(arr, varString, f, ni, nj, nk,
+  //                                   cn, eltType);
+     
+  // bool err = (res !=2);
+  // bool is_TH4 = (strcmp(eltType, "TETRA") == 0);
+  // bool is_HX8 = (strcmp(eltType, "HEXA") == 0);
+  // err |= (strcmp(eltType, "NGON") != 0) && !is_TH4 && !is_HX8;
+  // if (err)
+  // { 
+  //   PyErr_SetString(PyExc_TypeError, "input error : invalid array, must be a unstructured NGON, HEXA or TETRA array.");//fixme triangulateExteriorFaces : PASS A STRING AS INPUT
+  //   delete f; delete cn;
+  //   return NULL;
+  // }
+
+  // // Check coordinates.
+  // E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
+  // E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
+  // E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
+
+  // if ((posx == -1) || (posy == -1) || (posz == -1))
+  // {
+  //   PyErr_SetString(PyExc_TypeError, "input error : can't find coordinates in array.");//fixme  conformUnstr
+  //   delete f; delete cn;
+  //   return NULL;
+  // }
+
   std::unique_ptr<K_FLD::FloatArray> afmesh(f);  // to avoid to call explicit delete at several places in the code.
   std::unique_ptr<K_FLD::IntArray> acmesh(cn); // to avoid to call explicit delete at several places in the code.
   if (err)
@@ -788,12 +817,25 @@ PyObject* K_INTERSECTOR::adaptCellsNodal(PyObject* self, PyObject* args)
   for (E_Int i=0; i < imax; ++i)
   {
       E_Int v = nodv[i];
-      v = std::max(0,v); //disable agglo currently
+      v = std::max((E_Int)0,v); //disable agglo currently
       nodal_data[i] = v;
   }
 
   typedef ngon_t<K_FLD::IntArray> ngon_type;
-  ngon_type ngi(cnt);
+  ngon_type ngi;
+  // Gestion interne HEXA/TETRA format : Commente car resultat different lorsque fait dans le python
+  // if (is_TH4)
+  // {
+  //   ngon_type::convert<K_MESH::Tetrahedron>(cnt, ngi);
+  //   ngon_type::clean_connectivity(ngi, *f, 3, 0./*tol : to avoid unecessary points merge*/);
+  // }
+  // else if (is_HX8)
+  // {
+  // 	ngon_type::convert<K_MESH::Tetrahedron>(cnt, ngi);
+  //   ngon_type::clean_connectivity(ngi, *f, 3, 0./*tol : to avoid unecessary points merge*/);
+  // }
+  // else
+    ngi = ngon_type(cnt);
 
   PyObject *l(PyList_New(0));
 

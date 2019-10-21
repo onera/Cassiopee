@@ -170,7 +170,7 @@ E_Int Conformizer<DIM, Element_t>::run
     xnb = this->__run(pos, connect, ancestors, xc, _tolerance);
     
     if (_needs_another_iter)
-    { ++_itermax; _itermax = std::min(10, _itermax);} // max thershold set to 10.
+    { ++_itermax; _itermax = std::min((E_Int)10, _itermax);} // max thershold set to 10.
     
 #ifdef FLAG_STEP
     if (chrono::verbose > 1) std::cout << "Conformizer::run : __run : " << c.elapsed() << std::endl;

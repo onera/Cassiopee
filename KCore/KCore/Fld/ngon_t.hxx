@@ -66,7 +66,8 @@ struct ngon_t
   ngon_t(const Connectivity_t& cNGON) :PGs(cNGON.begin() + STARTFACE), PHs(cNGON.begin() + STARTELTS(cNGON)){ PGs.updateFacets(); PHs.updateFacets(); }
   ///
   ngon_t(const ngon_t& ngt) :PGs(ngt.PGs), PHs(ngt.PHs){ PGs.updateFacets(); PHs.updateFacets(); }
-  ///
+
+  /// WARNING : need a call to clean_connectivity
   template <typename ELT>
   static void convert(const K_FLD::IntArray& cnt,ngon_t& ng)
   {
@@ -93,6 +94,8 @@ struct ngon_t
       
       ng.PHs.add(ELT::NB_BOUNDS, molec);
     }
+    ng.PGs.updateFacets();
+    ng.PHs.updateFacets();
   }
   /// 
   ngon_t(const E_Int* cNGon, E_Int sz1, E_Int nb_pgs, const E_Int* cNFace, E_Int sz2, E_Int nb_phs) :PGs(cNGon, sz1, nb_pgs), PHs(cNFace, sz2, nb_phs){ PGs.updateFacets(); PHs.updateFacets(); }
@@ -194,21 +197,19 @@ struct ngon_t
   ///
   void export_to_array (Connectivity_t& c) const { 
     c.clear();
-    //if (!PGs.size())
-    //  return;
-    //
-    //c.pushBack(PGs._NGON);
+    c.reserve(1, PGs._NGON.size() + PHs._NGON.size());
+
     if (PGs.size())
       c.pushBack(PGs._NGON);
     else
-      c.resize(1, 2, 0);
+      c.resize((E_Int)1, (E_Int)2, (E_Int)0);
 
     if (PHs.size())
       c.pushBack(PHs._NGON);
     else
     {
       const E_Int& sizeFN = c[1];
-      c.resize(1, sizeFN+4, 0);
+      c.resize((E_Int)1, E_Int(sizeFN+4), (E_Int)0);
     }
   }
   
@@ -227,7 +228,7 @@ struct ngon_t
         return 1;
     }
     
-    c.resize(1, 2, 0);
+    c.resize((E_Int)1, (E_Int)2, (E_Int)0);
      
     E_Int nb_polys=0;
     std::vector<E_Int> molec,snodes;
@@ -1008,7 +1009,7 @@ struct ngon_t
     }
 
     if (zerobased)
-      ngon_unit::shift(indices, -1);
+      ngon_unit::shift(indices, (E_Int)-1);
 
     return 0;
   }

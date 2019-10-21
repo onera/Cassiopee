@@ -194,7 +194,7 @@ PyObject* K_INTERSECTOR::triangulateSpecifiedFaces(PyObject* self, PyObject* arg
   ngon_type ngi(cnt), ngo;
 
   // enable history
-  ngi.PGs._ancEs.resize(2, ngi.PGs.size(), 0);
+  ngi.PGs._ancEs.resize((E_Int)2, (E_Int)ngi.PGs.size(), (E_Int)0);
   for (size_t i=0; i < ngi.PGs.size(); ++i) ngi.PGs._ancEs(0,i)=i;
 
   Splitter::triangulate_specified_pgs<DELAUNAY::Triangulator>(crd, ngi, pgsList, size, ngo);
