@@ -21,7 +21,7 @@
 #ifndef __TRI_DEBUG_H__
 #define	__TRI_DEBUG_H__
 
-#include "IO/io.h"
+#include "Fld/DynArray.h"
 #include <sstream>
 
 

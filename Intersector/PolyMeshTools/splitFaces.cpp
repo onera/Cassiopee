@@ -30,7 +30,7 @@
 using namespace std;
 using namespace NUGA;
 
-E_Int K_INTERSECTOR::check_is_NGON(PyObject* arr, K_FLD::FloatArray*& f1, K_FLD::IntArray*& cn1, char*& varString, char*& eltType)
+E_Int K_INTERSECTOR::check_is_of_type(const std::vector<std::string>& types, PyObject* arr, K_FLD::FloatArray*& f1, K_FLD::IntArray*& cn1, char*& varString, char*& eltType)
 {
   E_Int ni, nj, nk;
   
@@ -38,10 +38,19 @@ E_Int K_INTERSECTOR::check_is_NGON(PyObject* arr, K_FLD::FloatArray*& f1, K_FLD:
                                     cn1, eltType);
      
   bool err = (res !=2);
-  err |= (strcmp(eltType, "NGON") != 0);
+
+  for (size_t i=0; i < types.size(); ++i)
+    err |= (strcmp(eltType, types[i].c_str()) != 0);
+
   if (err)
   {
-    PyErr_SetString(PyExc_TypeError, "input error : invalid array, must be a unstructured NGON array.");//fixme triangulateExteriorFaces : PASS A STRING AS INPUT
+    std::stringstream o;
+    o << "input error : invalid array, must be a ";
+    for (size_t i=0; i < types.size()-1; ++i){
+      o << types[i] << ",";
+    }
+    o << types[types.size()-1] << "array." ;
+    PyErr_SetString(PyExc_TypeError, o.str().c_str());//fixme triangulateExteriorFaces : PASS A STRING AS INPUT
     delete f1; delete cn1;
     return 1;
   }
@@ -59,6 +68,28 @@ E_Int K_INTERSECTOR::check_is_NGON(PyObject* arr, K_FLD::FloatArray*& f1, K_FLD:
   }
   
   return 0;
+}
+
+E_Int K_INTERSECTOR::check_is_NGON(PyObject* arr, K_FLD::FloatArray*& f1, K_FLD::IntArray*& cn1, char*& varString, char*& eltType)
+{
+  std::vector<std::string> types;
+  types.push_back("NGON");
+  return check_is_of_type(types, arr, f1, cn1, varString, eltType);
+}
+
+E_Int K_INTERSECTOR::check_is_BAR(PyObject* arr, K_FLD::FloatArray*& f1, K_FLD::IntArray*& cn1, char*& varString, char*& eltType)
+{
+  std::vector<std::string> types;
+  types.push_back("BAR");
+  return check_is_of_type(types, arr, f1, cn1, varString, eltType);
+}
+
+E_Int K_INTERSECTOR::check_is_BASICF(PyObject* arr, K_FLD::FloatArray*& f1, K_FLD::IntArray*& cn1, char*& varString, char*& eltType)
+{
+  std::vector<std::string> types;
+  types.push_back("TRI");
+  types.push_back("QUAD");
+  return check_is_of_type(types, arr, f1, cn1, varString, eltType);
 }
 
 // update the point list according to a split expressed by oids

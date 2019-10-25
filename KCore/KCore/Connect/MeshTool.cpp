@@ -452,6 +452,43 @@ K_CONNECT::MeshTool::computeNodeNormals
   return idmax;
 }
 
+// assume z is (0,0,1)
+E_Int K_CONNECT::MeshTool::computeNodeRadiusAndAngles
+(K_FLD::FloatArray& coord, const ngon_unit& pgs, E_Float x0, E_Float y0, 
+  std::vector<E_Float>& radius, std::vector<E_Float>& angles)
+{
+  radius.clear();
+  radius.resize(coord.cols(), K_CONST::E_MAX_FLOAT);
+  angles.clear();
+  angles.resize(coord.cols(), K_CONST::E_MAX_FLOAT);
+
+  for (E_Int i = 0; i < pgs.size(); ++i)
+  {
+    const E_Int* nodes = pgs.get_facets_ptr(i);
+    E_Int nnodes = pgs.stride(i);
+
+    for (E_Int n = 0; n < nnodes; ++n)
+    {
+      E_Int Ni = nodes[n] - 1;
+      const E_Float* pt = coord.col(Ni);
+
+      radius[Ni] = ::sqrt( ((pt[0] - x0)*(pt[0] - x0)) + ((pt[1] - y0)*(pt[1] - y0)) );
+
+      E_Float c = pt[0]/radius[Ni];
+      E_Float s = pt[1]/radius[Ni];
+
+      angles[Ni] = ::atan2(s, c); 
+
+    }
+  }
+
+  E_Int nb_computed_pts(0);
+  for (size_t i=0; i < coord.cols(); ++i) if (radius[i] != K_CONST::E_MAX_FLOAT) ++nb_computed_pts;
+
+  return nb_computed_pts;
+
+}
+
 E_Int K_CONNECT::MeshTool::smoothNodeNormals(const ngon_unit& pgs, K_FLD::FloatArray& normals, E_Int smooth_iters)
 {
   if (smooth_iters <= 0) return 0;
@@ -1388,6 +1425,96 @@ void K_CONNECT::MeshTool::computeIncidentEdgesSqrLengths
       
       L(0, Ni) = (l < L(0, Ni)) ? l : L(0, Ni);
       L(1, Ni) = (l > L(1, Ni)) ? l : L(1, Ni);
+    }
+  }
+}
+
+void K_CONNECT::MeshTool::extrude_line
+(K_FLD::FloatArray& crd, const K_FLD::IntArray& cntE, const double* dir, double H, K_FLD::IntArray& cntQ4)
+{
+  int nbe = cntE.cols();
+  int nbp = crd.cols();
+
+  // 1. EDGE NORMALS
+  K_FLD::FloatArray normE(3, nbe);
+  double Lmean(0.);
+  for (int i = 0; i < nbe; ++i)
+  {
+    double Ei[3], ni[3];
+    K_FUNC::diff<3>(crd.col(cntE(1, i)), crd.col(cntE(0, i)), Ei);
+    K_FUNC::crossProduct<3>(Ei, dir, ni);//ni is normal to plane(Ei, dir)
+    K_FUNC::crossProduct<3>(ni, Ei, normE.col(i));
+
+    K_FUNC::normalize<3>(normE.col(i));
+
+    // min edge length
+    double L = K_FUNC::sqrNorm<3>(Ei);
+    Lmean += ::sqrt(L);
+  }
+
+  /*{
+    K_FLD::FloatArray crdt = crd;
+    for (int i = 0; i < nbe; ++i) {
+      double P[3];
+      K_FUNC::sum<3>(crd.col(cntE(0, i)), normE.col(i), P);
+      crdt.pushBack(P, P + 3);
+    }
+
+    K_FLD::IntArray tmp(2, 1, 0);
+    tp::write("D:\\slandier\\DATA\\tmp\\normE.tp", crdt, tmp, "BAR");
+  }*/
+
+  Lmean /= nbe;
+
+  // 2. NODES NORMALS
+  K_FLD::FloatArray normN(3, nbp, 0.);
+  for (int i = 0; i < nbe; ++i)
+  {
+    int Ni = cntE(0, i);
+    int Nj = cntE(1, i);
+    K_FUNC::sum<3>(normN.col(Ni), normE.col(i), normN.col(Ni));
+    K_FUNC::sum<3>(normN.col(Nj), normE.col(i), normN.col(Nj));
+  }
+  for (int i = 0; i < nbp; ++i)
+    K_FUNC::normalize<3>(normN.col(i));
+
+  // 3. NEW POINTS (stored line by line)
+  int nbr = int(H / Lmean) + 2; // greater than one
+                                // add space to crd
+  crd.resize(3, nbp*nbr);
+
+  double k = H / nbr;
+  for (int r = 0; r < nbr - 1; ++r)
+  {
+    for (int i = 0; i < nbp; ++i)
+    {
+      double* Pi = crd.col(i + r * nbp);
+      double* newPi = crd.col(i + (r + 1)*nbp);
+      K_FUNC::sum<3>(k, normN.col(i), Pi, newPi);
+    }
+  }
+
+  //K_FLD::IntArray tmp(2, 1, 0);
+  //tp::write("D:\\slandier\\DATA\\tmp\\toto.tp", crd, tmp, "BAR");
+
+  // 4. output QUAD connectivity
+  cntQ4.clear();
+  cntQ4.reserve(4, nbr*nbe);
+
+  for (int r = 0; r < nbr - 1; ++r)
+  {
+    for (int i = 0; i < nbe; ++i)
+    {
+      int bi = cntE(0, i);
+      int bj = cntE(1, i);
+
+      int Ni = bi + r * nbp;
+      int Nj = bj + r * nbp;
+      int Njp1 = Nj + nbp;
+      int Nip1 = Ni + nbp;
+
+      int Q4[] = { Ni, Nj, Njp1, Nip1 };
+      cntQ4.pushBack(Q4, Q4 + 4);
     }
   }
 }

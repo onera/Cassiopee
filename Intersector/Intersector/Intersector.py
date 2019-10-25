@@ -67,6 +67,12 @@ def booleanUnion(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, im
       c = intersector.booleanUnion(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_conformal_cloud_qual, extrude_pgs)
       return c #close is done inside
 
+def booleanUnionMZ(a1, a2, xtol=0., jtol = 0., agg_mode=1, improve_conformal_cloud_qual=False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
+    """Computes the union between two volume meshes.
+    Usage for volumes: booleanUnionMZ(a1, a2, tol, agg_mode)"""
+    c = intersector.booleanUnionMZ(a1, a2, xtol, jtol, agg_mode, improve_conformal_cloud_qual)
+    return c #close is done inside
+
 def booleanMinus(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_conformal_cloud_qual=False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     """Computes the difference between two closed-surface or two volume meshes.
     Usage for surfaces or bars: booleanMinus(a1, a2, tol)
@@ -177,6 +183,13 @@ def reorientSpecifiedFaces(a, pgs, dir):
     return intersector.reorientSpecifiedFaces(a, pgs, dir)
 
 #==============================================================================
+# reorientSpecifiedFaces
+# IN: 
+# OUT: 
+#==============================================================================
+def reorientSurf(a, dir):
+	return intersector.reorientSurf(a, dir)
+#==============================================================================
 # reorientBC
 # IN: 
 # OUT: 
@@ -234,6 +247,17 @@ def simplifyCells(a, treat_externals, angular_threshold = 1.e-12):
     """Simplifies over-defined polyhedral cells (agglomerate some elligible polygons).
     Usage: simplifyCells(a, treat_externals, angular_threshold)"""
     return intersector.simplifyCells(a, treat_externals, angular_threshold)
+
+#==============================================================================
+# simplifySurf : agglomerate superfluous polygons that overdefine cells
+# IN: a                 : 3D NGON mesh
+# IN: angular_threshold : should be as small as possible to avoid introducing degeneracies
+# OUT: returns a 3D NGON Mesh with less polygons (but same shape)
+#==============================================================================
+def simplifySurf(a, angular_threshold = 1.e-12):
+    """Simplifies over-defined surfaces (agglomerate some elligible polygons).
+    Usage: simplifySurf(a, angular_threshold)"""
+    return intersector.simplifySurf(a, angular_threshold)
 
 #==============================================================================
 # agglomerateSmallCells : agglomerate prescribed cells
@@ -398,6 +422,19 @@ def getOverlappingFaces(a1, a2, RTOL = 0.1, ps_min = 0.95, dir2=(0.,0.,0.)):
     return intersector.getOverlappingFaces(a1,a2, RTOL, ps_min, dir2)
 
 #==============================================================================
+# getAnisoInnerFaces   : returns the list of polygons in a1 that are connecting 2 aniso elements.
+# IN : a1:              : NGON mesh (surface or volume).
+# IN : aniso_ratio:            : xxx
+
+# OUT: 1 list of elected polygons
+#==============================================================================
+def getAnisoInnerFaces(a1, aniso_ratio=0.05):
+    """ Returns the list of polygons in a1 that are connecting 2 aniso elements.
+    Usage: getAnisoInnerFaces(a1, aniso_ratio)"""
+    return intersector.getAnisoInnerFaces(a1,aniso_ratio)
+
+
+#==============================================================================
 # selfX : Checks self-intersections in a mesh
 # IN: a:               : 3D NGON mesh
 # OUT: Returns the first two cell ids that collide.
@@ -458,10 +495,22 @@ def computeAspectRatio(a, vmin=0.):
 
 
 #==============================================================================
-# extrudeUserDefinedBC : XXX
+# extrudeBC : XXX
 #==============================================================================
-def extrudeUserDefinedBC(a, extrude_pgs=[], height = 0.25, mean_or_min = 1, create_ghost=1):
-    return intersector.extrudeUserDefinedBC(a, extrude_pgs, height, mean_or_min, create_ghost)
+def extrudeBC(a, extrude_pgs=[], height = 0.25, mean_or_min = 1, create_ghost=1):
+    return intersector.extrudeBC(a, extrude_pgs, height, mean_or_min, create_ghost)
+
+#==============================================================================
+# extrudeSurf : XXX
+#==============================================================================
+def extrudeSurf(a, layer_height, nlayers = 1, strategy = 1):
+    return intersector.extrudeSurf(a, layer_height, nlayers, strategy)
+
+#==============================================================================
+# extrudeRevolSurf : XXX
+#==============================================================================
+def extrudeRevolSurf(a, ax_pt, ax_dir, nlayers = 1):
+    return intersector.extrudeRevolSurf(a, ax_pt, ax_dir, nlayers)
 
 #==============================================================================
 # statsUncomputableFaces : XXX
@@ -505,6 +554,16 @@ def convertNGON2DToNGON3D(a):
     Usage: convertNGON2DToNGON3D(a)"""
   return intersector.convertNGON2DToNGON3D(a)
 
+#==============================================================================
+# convertBasic2NGONFaces : Converts a Basic (TRI,QUAD) surface to a NGON nuga Format.
+# IN: a    : Surface mesh
+# OUT: Converts a Basic (TRI,QUAD) surface to a NGON nuga Format.
+#==============================================================================
+def convertBasic2NGONFaces(a):
+  """ Converts a Basic (TRI,QUAD) surface to a NGON nuga Format.
+    Usage: convertBasic2NGONFaces(a)"""
+  return intersector.convertBasic2NGONFaces(a)
+
 #~ def conservativeTransfer(a1, flowsol, a2, tol=0., reconstruction_type=0):
     #~ c = intersector.conservative_transfer(a1, flowsol, a2, tol, reconstruction_type)
     #~ return c
@@ -518,3 +577,6 @@ def centroids(a):
 
 def merge(a, s, tol = 1.e-15): #target arr, source arr
     return intersector.merge(a, s, tol)
+
+def concatenate(la, tol = 1.e-15):
+    return intersector.concatenate(la, tol)

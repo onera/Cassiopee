@@ -28,11 +28,11 @@ namespace K_INTERSECTOR
   
   PyObject* booleanIntersection(PyObject* self, PyObject* args);
   PyObject* booleanUnion(PyObject* self, PyObject* args);
+  PyObject* booleanUnionMZ(PyObject* self, PyObject* args);
   PyObject* booleanMinus(PyObject* self, PyObject* args);
   PyObject* booleanIntersectionBorder(PyObject* self, PyObject* args);
   PyObject* booleanModifiedSolid(PyObject* self, PyObject* args);
   PyObject* DiffSurf(PyObject* self, PyObject* args);
-  PyObject* XcellN(PyObject* self, PyObject* args);
   PyObject* unify(PyObject* self, PyObject* args);
   PyObject* P1ConservativeChimeraCoeffs(PyObject* self, PyObject* args);
 
@@ -48,6 +48,7 @@ namespace K_INTERSECTOR
   PyObject* prepareCellsSplit(PyObject* self, PyObject* args);
   PyObject* splitNonStarCells(PyObject* self, PyObject* args);
   PyObject* simplifyCells(PyObject* self, PyObject* args);
+  PyObject* simplifySurf(PyObject* self, PyObject* args);
 
   PyObject* agglomerateSmallCells(PyObject* self, PyObject* args);
   PyObject* agglomerateNonStarCells(PyObject* self, PyObject* args);
@@ -55,6 +56,7 @@ namespace K_INTERSECTOR
   PyObject* agglomerateCellsWithSpecifiedFaces(PyObject* self, PyObject* args);
 
   PyObject* getOverlappingFaces(PyObject* self, PyObject* args);
+  PyObject* getAnisoInnerFaces(PyObject* self, PyObject* args);
 
   PyObject* adaptCells(PyObject* self, PyObject* args);
   PyObject* adaptCellsNodal(PyObject* self, PyObject* args);
@@ -85,15 +87,19 @@ namespace K_INTERSECTOR
   
   PyObject* reorientExternalFaces(PyObject* self, PyObject* args);
   PyObject* reorientSpecifiedFaces(PyObject* self, PyObject* args);
+  PyObject* reorientSurf(PyObject* self, PyObject* args);
 
   PyObject* removeBaffles(PyObject* self, PyObject* args);
 
   PyObject* convert2Polyhedron(PyObject* self, PyObject* args);
   PyObject* oneZonePerCell(PyObject* self, PyObject* args);
 
-  PyObject* extrudeUserDefinedBC(PyObject* self, PyObject* args);
+  PyObject* extrudeBC(PyObject* self, PyObject* args);
+  PyObject* extrudeSurf(PyObject* self, PyObject* args);
+  PyObject* extrudeRevolSurf(PyObject* self, PyObject* args);
 
   PyObject* convertNGON2DToNGON3D(PyObject* self, PyObject* args);
+  PyObject* convertBasic2NGONFaces(PyObject* self, PyObject* args);
   PyObject* oneph(PyObject* self, PyObject* args);  
 
   /////////// syncronizing the tree ///////////
@@ -101,8 +107,12 @@ namespace K_INTERSECTOR
   /////////////////////////////////////////////
 
   PyObject* merge(PyObject* self, PyObject* args);
+  PyObject* concatenate(PyObject* self, PyObject* args);
   
+  E_Int check_is_of_type(const std::vector<std::string>& types, PyObject* arr, K_FLD::FloatArray*& f1, K_FLD::IntArray*& cn1, char*& varString, char*& eltType);
   E_Int check_is_NGON(PyObject* arr, K_FLD::FloatArray*& f1, K_FLD::IntArray*& cn1, char*& varString, char*& eltType);
+  E_Int check_is_BAR(PyObject* arr, K_FLD::FloatArray*& f1, K_FLD::IntArray*& cn1, char*& varString, char*& eltType);
+  E_Int check_is_BASICF(PyObject* arr, K_FLD::FloatArray*& f1, K_FLD::IntArray*& cn1, char*& varString, char*& eltType);
   
   /*PyObject* conservative_transfer(PyObject* self, PyObject* args);
   PyObject* total_mass(PyObject* self, PyObject* args);

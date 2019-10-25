@@ -24,7 +24,7 @@
 //#define DEBUG_EXTRACT
 //#define DEBUG_W_PYTHON_LAYER
 //#define DEBUG_MESHER
-//#define MANUAL
+//#define DEBUG_BOOLEAN
 
 #include "Fld/ngon_t.hxx"
 #include "Search/BbTree.h"
@@ -52,12 +52,9 @@
 #include <fstream>
 #include <sstream>
 #endif
-#ifdef DEBUG_LIGHT
-#include "medit.hxx"
-#endif
 
-#if defined(DEBUG_BOOLEAN) && !defined(MANUAL)
-#include "TRI_debug.h"
+#if defined(DEBUG_BOOLEAN)
+#include "medit.hxx"
 #include "NGON_debug.h"
 #include <fstream>
 //#include "TRI_BooleanOperator.h"
@@ -195,9 +192,6 @@ public:
   E_Int chim_conservative_transfer(E_Int rec_op /*0 or 1*/, const K_FLD::FloatArray& fields_don, K_FLD::FloatArray& fields_rec, E_Int field = -1/*-1 means all*/);
   ///
   E_Int total_mass(const K_FLD::FloatArray& crd, const K_FLD::IntArray& ng_cnt, const K_FLD::FloatArray& fields, const std::vector<E_Float>& vols, std::vector<E_Float>& masses);
-  
-  ///
-  E_Int XcellN (std::vector<E_Float>& cellN);
 
   void print_state();
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -378,7 +372,7 @@ private:
                   connectM.pushBack(connectT3.col(T3s[i]), connectT3.col(T3s[i])+3);  
                 std::ostringstream o;
                 o << "pgt3_" << PGi << ".mesh";
-                MIO::write(o.str().c_str(), _coord, connectM, "TRI");
+                medith::write(o.str().c_str(), _coord, connectM, "TRI");
                 cT3.pushBack(connectM);
                 colors.resize(cT3.cols(), PGi);
               }*/
@@ -400,7 +394,7 @@ private:
                   ACoordinate_t ac(_coord);
                   std::ostringstream o;
                   o << "pgagg_" << PGi;
-                  NGON_DBG::write(o.str().c_str(), ac, pgsi);
+                  medith::write(o.str().c_str(), ac, pgsi);
                 }*/
 #endif
 
@@ -444,7 +438,7 @@ private:
          {
            std::ostringstream o;
            o<< "pht3_" << PHi << ".mesh";
-		   MIO::write(o.str().c_str(), _coord, cT3, "TRI", 0, &colors);
+		   medith::write(o.str().c_str(), _coord, cT3, "TRI", 0, &colors);
 		 }*/
 #endif
           molec_ph.push_front(molec_ph.size());// this is now a real PH molecule.
@@ -499,7 +493,7 @@ private:
         //NGON_DBG::draw_PH("pho.plt", _coord, ngout, i);
 
         std::cout << i << "-th PH is not closed !" << std::endl;
-			  NGON_DBG::draw_PH("pho.tp", _coord, ngout, i);
+        medith::write("pho.mesh", _coord, ngout, i);
         //if (i == 16)
         //{
         //  for (size_t j = 0; j < ngout.PHs.stride(i); ++j)
@@ -516,7 +510,7 @@ private:
             connectE.pushBack(e.begin(), e.end());
           }
           connectE.shift(-1);
-          MIO::write("free_edges.mesh", _coord, connectE, "BAR");
+          medith::write("free_edges.mesh", _coord, connectE, "BAR");
         }
 #endif
 		  }
@@ -530,7 +524,7 @@ private:
 	  //  K_FLD::FloatArray & crd = _coord;
 	  //  K_FLD::ArrayAccessor<Coordinate_t> ac(_coord);
 	  //#endif    
-	  //  NGON_DBG::write("aggregated", ac, ngout);  
+	  //  medith::write("aggregated", ac, ngout);  
 	  //*/
 #endif
       
@@ -840,32 +834,30 @@ E_Int NGON_BOOLEAN_CLASS::Intersection
 #ifdef DEBUG_BOOLEAN
   /*{
     E_Int nb_phs = _ngXs.PHs.size();
-    K_FLD::IntArray connect;
     for (size_t i=0; i < nb_phs; ++i)
     {
       ngon_type ngo;
       Vector_t<bool> keep(nb_phs, false);
       keep[i]=true;
       ngon_type::select_phs(_ngXs, keep, ngo);
-      connect.clear();
-      ngo.export_to_array(connect);
+    
       std::ostringstream o;
       o << "e_" << i << ".plt";
-      MIO::write(o.str().c_str(), coord, connect, "NGON");
+      medith::write(o.str().c_str(), coord, ngo);
     }
   }*/
   
   /*std::cout << _ngXs.PHs.size() << std::endl;
   std::cout << _ngXs.PGs.size() << std::endl;
-  NGON_DBG::draw_PGT3s(coord, _ngXs.PGs);*/
+  medith::write("toto.mesh", coord, _ngXs.PGs);*/
   
   if (ret != ERROR)
   {
     std::ostringstream o;
     o << "I";
     if (XPol == SOLID_RIGHT) o << "1";
-    o << ".plt";
-    MIO::write(o.str().c_str(), coord, connect, "NGON");
+    o << ".mesh";
+    medith::write(o.str().c_str(), coord, _ngXs);
     std::cout << "total number of elements " << connect(0, 0) << std::endl;
   }
   else
@@ -929,7 +921,7 @@ E_Int NGON_BOOLEAN_CLASS::Diff
 #ifdef DEBUG_BOOLEAN
   if (ret == EMPTY_X || ret == OK)
   {
-    MIO::write("D12.plt", coord, connect, "NGON");
+    medith::write("D12.mesh", coord, _ng1);
     std::cout << "total number of elements " << connect(0, 0) << std::endl;
   }
   else if (ret == ERROR)
@@ -983,7 +975,7 @@ E_Int NGON_BOOLEAN_CLASS::Diffsurf
  
   
 #ifdef DEBUG_BOOLEAN
-  MIO::write("D12.plt", coord, connect, "NGON");
+  medith::write("D12.mesh", coord, _ng1);
 #endif
   
 #ifdef FLAG_STEP
@@ -1032,17 +1024,7 @@ E_Int NGON_BOOLEAN_CLASS::Union
         E_Int err = __classify_soft();
         if (err)
           return err;
-        
-#ifdef MANUAL
-        {
-          K_FLD::FloatArray coord=_coord;
-          __compact_and_join(_ngXh, coord);
-          K_FLD::IntArray connect;
-          _ngXh.export_to_array(connect);
-          MIO::write("subL.plt", coord, connect, "NGON");
-        }
-#endif
-          
+  
 #ifdef DEBUG_BOOLEAN 
         std::cout << "nb hards : " << _ngXh.PHs.size() << std::endl;
         std::cout << "nb types : " << _ngXh.PHs._type.size() << std::endl;
@@ -1086,11 +1068,7 @@ E_Int NGON_BOOLEAN_CLASS::Union
     _ngoper->export_to_array(connect);
 
 #ifdef DEBUG_BOOLEAN 
-#ifndef WIN32
-    MIO::write("U.plt", coord, connect, "NGON");
-#else
-    MIO::write("U.tp", coord, connect, "NGON");
-#endif
+    medith::write("U.mesh", coord, *_ngoper);
     std::cout << "total number of polygons " << connect(0, 0) << std::endl;
     
     std::cout << "final check : " << std::endl;
@@ -1128,6 +1106,7 @@ E_Int NGON_BOOLEAN_CLASS::Union
 
 #ifdef FLAG_STEP
   E_Int sz = (connect.cols() == 0)  ? 0 : connect[2+connect[1]];
+  std::cout << "NGON Boolean : return value : "  << ret << std::endl;
   std::cout << "NGON Boolean : nb final PHs : "  << sz << std::endl;
   std::cout << "NGON Boolean : total CPU : " << c.elapsed() << std::endl;
 #endif
@@ -1163,7 +1142,7 @@ E_Int NGON_BOOLEAN_CLASS::Union
        std::ostringstream o;
        o << "map_" << c;
     
-       NGON_DBG::write(o.str().c_str(), ACoordinate_t(coord), _ngXs, &flag);
+       medith::write(o.str().c_str(), ACoordinate_t(coord), _ngXs, &flag);
       }
      }
 #endif
@@ -1191,7 +1170,7 @@ E_Int NGON_BOOLEAN_CLASS::Modified_Solid
   _ngXh.export_to_array(connect);
   
 #ifdef DEBUG_BOOLEAN
-  MIO::write("Solid.plt", coord, connect, "NGON");
+  medith::write("Solid.mesh", coord, _ngXh);
 #endif
   
   return err;
@@ -1755,209 +1734,6 @@ E_Int NGON_BOOLEAN_CLASS::total_mass(const K_FLD::FloatArray& crd, const K_FLD::
 
 ///
 TEMPLATE_COORD_CONNECT
-E_Int NGON_BOOLEAN_CLASS::XcellN (std::vector<E_Float>& xcellN)
-{
-  // WARNING : second operand (_cNGON2) hides the first one => so we compute only cellN on the first one
-  
-  xcellN.clear();
-  
-  const ngon_type ng1 = _cNGON1;
-  const ngon_type ng2 = _cNGON2;
-  const K_FLD::FloatArray & crd1 = _aCoords1.array();
-  //const K_FLD::FloatArray & crd2 = _crd2;
-
-  //
-  Coordinate_t coord;
-  Connectivity_t connect;
-  E_Int ret = Diff(coord, connect, SOLID_RIGHT, PRESERVE_RIGHT);
-  
-#ifdef DEBUG_BOOLEAN
-  switch (ret)
-  {
-    case OK : std::cout << "diff returned OK" << std::endl; break;
-    case EMPTY_X : std::cout << "diff returned EMPTY_X" << std::endl; break;
-    case ERROR : std::cout << "diff returned ERROR" << std::endl; break;
-    case IMMERSED_1 : std::cout << "diff returned IMMERSED_1" << std::endl; break;
-  }
-
-  if (connect.cols())
-  {
-    ngon_t<K_FLD::IntArray> ngo(connect);  
-    K_FLD::IntArray cnto;
-    ngo.export_to_array(cnto);
-    MIO::write("diff.plt", coord, cnto, "NGON");
-  }
-#endif
-  
-  if ( (ret == EMPTY_X) || (ret == IMMERSED_1) )
-  {
-    E_Float VAL = (ret == EMPTY_X) ? VISIBLE : BLANKED; // in case of full immersion all the initial cells are blanked
-    xcellN.resize(ng1.PHs.size(), VAL); //the prioritized mesh is outside the bgm
-    return 0;
-  }
-  
-  // initialize to all masked because
-  // we use DIFF (rather than UNION for hpc)
-  // so some element in 1 are missing, meaning that they are hidden.
-  // they won't be in ngoper so we set everything to 0.
-  xcellN.resize(ng1.PHs.size(), BLANKED); 
-  
-  
-  if (!_ngoper)
-  {
-    std::cout << "Supermesh is missing" << std::endl;
-    return 1;
-  }
-  
-  // simplify supermesh (to avoid triangulation error when computing volumes)
-  {
-#ifdef FLAG_STEP
-    std::cout << "Simplifying Supermesh polygons (by removing superlfuous nodes)..." << std::endl;
-#endif
-    
-    ngon_type::simplify_pgs(*_ngoper, coord);
-
-#ifdef FLAG_STEP
-    std::cout << "Simplifying Supermesh : done" << std::endl;
-    std::cout << "Computing XcellN values..." << std::endl;
-#endif 
-  }
-
-#ifdef DEBUG_BOOLEAN
-//  {
-//  E_Int anc0 = ng1.anc_PH(0,0);
-//  std::cout << "ancestor de 0 : " <<  anc0 << std::endl;
-//  NGON_DBG::draw_PH("focus0.plt", crd1, ng1, 0);
-//  NGON_DBG::draw_PH("ancestorde0.plt", _aCoords1.array(), wNG1initial, anc0);
-//  }
-  K_FLD::FloatArray crdG=coord;
-  E_Int shft=crdG.cols();
-  crdG.pushBack(crd1);
-#endif
-  
-  ng1.PGs.updateFacets();
-  ng1.PHs.updateFacets();
-  _ngoper->PGs.updateFacets();
-  _ngoper->PHs.updateFacets();
-
-  E_Int nb_phs = _ngoper->PHs.size();
-  if (nb_phs == 0)  // Empty intersection.
-    return 0;
-  
-  if (_ngoper->PHs._ancEs.cols() != nb_phs)
-  {
-    std::cout << "PH history is inconsistent" << std::endl;
-    return 1;
-  }
-  
-  DELAUNAY::Triangulator dt;
-
-  std::vector<bool> keeinope(nb_phs, false);
-  //
-  for (E_Int PHi=0; PHi < nb_phs; ++PHi)
-  {
-    const E_Int& ancPH1i = _ngoper->PHs._ancEs(0, PHi);     
-    assert (ancPH1i != E_IDX_NONE);
-    
-    bool unused = (_ngoper->PHs._type[PHi] == UNUSED);
-    
-    if (unused)
-    {
-      xcellN[ancPH1i] = VISIBLE;
-      continue;
-    }
-    keeinope[PHi]=true;
-    
-    // the piece has 2 ancestors so it's a cutted cell
-    // so compute the ratio
-    E_Float vold, Gdum[3];
-    /*E_Int err = */K_MESH::Polyhedron<STAR_SHAPED>::metrics2<DELAUNAY::Triangulator>(dt, crd1, ng1.PGs, ng1.PHs.get_facets_ptr(ancPH1i), ng1.PHs.stride(ancPH1i), vold, Gdum, true/*supposed cvx*/);
-
-    E_Float vnew;
-    /*err = */K_MESH::Polyhedron<STAR_SHAPED>::metrics2<DELAUNAY::Triangulator>(dt, coord, _ngoper->PGs, _ngoper->PHs.get_facets_ptr(PHi), _ngoper->PHs.stride(PHi), vnew, Gdum, true/* made cvx*/);
-    
-    xcellN[ancPH1i] = ::fabs(vnew/vold);
-    if (xcellN[ancPH1i] > 1. - 1.e-15) xcellN[ancPH1i] = VISIBLE; // cutoff to 1.
-
-#ifdef DEBUG_BOOLEAN
-
-    if (xcellN[ancPH1i] > BLANKED && xcellN[ancPH1i] < VISIBLE)
-    {
-      std::cout << "one partial value : " << xcellN[ancPH1i] << std::endl;
-      ngon_type ng;
-      ng.addPH(ng1, ancPH1i, true);
-      ng.PGs.shift(shft);
-      ng.addPH(*_ngoper, PHi, true);
-      
-      K_FLD::IntArray cnto;
-      ng.export_to_array(cnto);
-      
-      //std::ostringstream o;
-      //o << "fraction_" << PHi << ".plt";
-      //MIO::write(o.str().c_str(), crdG, cnto, "NGON");
-    }
-#endif
-  }
-  
-#ifdef DEBUG_BOOLEAN
-// Fully hidden
-  size_t sz = xcellN.size();
-  std::vector<bool> keep(xcellN.size(), false);
-  for (size_t i=0; i < xcellN.size(); ++i)
-  {
-    keep[i] = (0. == xcellN[i]);
-  }
-  assert(ng1.PHs.size() == xcellN.size());
-  ngon_t<K_FLD::IntArray> bngo;
-  Vector_t<E_Int> npgids;
-  ng1.select_phs(ng1, keep, npgids, bngo);
-  
-  ngon_t<K_FLD::IntArray> ngo;
-  ngo.PHs=bngo.PHs;
-  ngo.PGs = bngo.PGs;
-  
-//  K_FLD::IntArray cnto;
-//  ngo.export_to_array(cnto);
-//  MIO::write("fully_hidden.plt", crd1, cnto, "NGON");
-  
-  bool use_old_algo = false;
-  
-  std::vector<E_Float> vols1;
-  ngon_type::template volumes<DELAUNAY::Triangulator>(crd1, ng1, vols1, !use_old_algo);
-  E_Float vol1 = 0.;
-  for (size_t i=0; i< vols1.size(); ++i) vol1 += vols1[i];
-  
-  std::vector<E_Float> vols2;
-  ngon_type::template volumes<DELAUNAY::Triangulator>(crd2, ng2, vols2, !use_old_algo);
-  E_Float vol2 = 0.;
-  for (size_t i=0; i< vols2.size(); ++i) vol2 += vols2[i];
-  
-  double hidden_vol(0.);
-  for (size_t i=0; i < xcellN.size(); ++i)
-  {
-    if (xcellN[i] >= 1. ) continue;
-    E_Float vold, Gdum[3];
-    if (use_old_algo)
-      K_MESH::Polyhedron<STAR_SHAPED>::metrics<DELAUNAY::Triangulator>(dt, crd1, ng1.PGs, ng1.PHs.get_facets_ptr(i), ng1.PHs.stride(i), vold, Gdum);
-    else
-      K_MESH::Polyhedron<STAR_SHAPED>::metrics2<DELAUNAY::Triangulator>(dt, crd1, ng1.PGs, ng1.PHs.get_facets_ptr(i), ng1.PHs.stride(i), vold, Gdum);
-    
-    hidden_vol += (1. - xcellN[i]) * ::fabs(vold);
-  }
-  
-  E_Int nb_phs1 = ng1.PHs.size();
-  E_Int nb_phs2 = ng2.PHs.size();
-  
-  E_Float error_xcelln = ::fabs((vol2 - hidden_vol) / vol2) ;
-  std::cout << "XCELLN RELATIVE ERROR ON VOLUMES : " << error_xcelln << std::endl;
-  
-#endif
-
-  return 0;
-}
-
-///
-TEMPLATE_COORD_CONNECT
 void NGON_BOOLEAN_CLASS::__init(eInterPolicy XPol, eMergePolicy MPol, eOperation Op)
 {
   if ( (_XPol != XPol) || (_MPol != MPol)) _processed = false;
@@ -2038,10 +1814,10 @@ NGON_BOOLEAN_CLASS::__get_working_PGs
 #endif
   
   // Initialize history structures
-  wNG1.PGs._ancEs.resize(2, 1);
-  wNG1.PHs._ancEs.resize(2, 1);
-  wNG2.PGs._ancEs.resize(2, 1);
-  wNG2.PHs._ancEs.resize(2, 1);
+  wNG1.PGs._ancEs.resize(2, wNG1.PGs.size(), E_IDX_NONE);
+  wNG1.PHs._ancEs.resize(2, wNG1.PHs.size(), E_IDX_NONE);
+  wNG2.PGs._ancEs.resize(2, wNG2.PGs.size(), E_IDX_NONE);
+  wNG2.PHs._ancEs.resize(2, wNG2.PHs.size(), E_IDX_NONE);
   K_CONNECT::IdTool::init_inc(wNG1.PGs._ancEs, 0, wNG1.PGs.size());
   K_CONNECT::IdTool::init_inc(wNG1.PHs._ancEs, 0, wNG1.PHs.size());
   K_CONNECT::IdTool::init_inc(wNG2.PGs._ancEs, 1, wNG2.PGs.size());
@@ -2112,7 +1888,7 @@ NGON_BOOLEAN_CLASS::__get_working_PGs
     ngon_unit expgs;
     Vector_t<E_Int> obids; //initial bottom ids  : for indirection when building ghost cells at the end
     wNG2.PGs.extract(_pglist2[1], expgs, obids);
-    NGON_DBG::write("bottoms0", K_FLD::ArrayAccessor<K_FLD::FloatArray>(_crd2), expgs);
+    medith::write("bottoms0.mesh", _crd2, expgs);
     }
 #endif
     
@@ -2207,9 +1983,9 @@ if (_XPol != BOTH_SURFACE)
     return err;
   
 #ifdef DEBUG_BOOLEAN
-  extract_pgs_of_type(INITIAL_SKIN, "after_focus_walls", wNG2, _crd2);
-  extract_pgs_of_type(CONNEXION_SKIN, "after_focus_connexion", wNG2, _crd2);
-  extract_pgs_of_type(INNER, "after_focus_inner", wNG2, _crd2);
+  extract_pgs_of_type(INITIAL_SKIN, "after_focus_walls.mesh", wNG2, _crd2);
+  extract_pgs_of_type(CONNEXION_SKIN, "after_focus_connexion.mesh", wNG2, _crd2);
+  extract_pgs_of_type(INNER, "after_focus_inner.mesh", wNG2, _crd2);
 #endif
   
 #ifdef FLAG_STEP
@@ -2223,16 +1999,6 @@ if (_XPol != BOTH_SURFACE)
   std::cout << "apres focus _ng2" << std::endl;
   nb_ghost(_ng2);
 #endif
-  
-  
-  // to accelerate usage of mapping : good to know if a cell has not been involved (e.g. cellN =1 straitforwardly)
-  if (!has_ghosts) // fixme : better way to catch that we are in assembly mode
-  {
-    _ng1.PHs._type.clear();
-    _ng1.PHs._type.resize(_ng1.PHs.size(), UNUSED);
-    _ng2.PHs._type.clear();
-    _ng2.PHs._type.resize(_ng2.PHs.size(), UNUSED);
-  }
 
   // reduce F2E to the working sets
   if (nb_pg10 != wNG1.PGs.size())
@@ -2271,17 +2037,17 @@ if (_XPol != BOTH_SURFACE)
 
 #ifdef DEBUG_BOOLEAN
 {
-  const char* fname1 = "working1";
-  NGON_DBG::write(fname1, _aCoords1, wNG1);
-  const char* fname2 = "left1";
-  NGON_DBG::write(fname2, _aCoords1, _ng1);
-  fname1 = "working2";
-  NGON_DBG::write(fname1, K_FLD::ArrayAccessor<K_FLD::FloatArray>(_crd2), wNG2);
-  fname2 = "left2";
-  NGON_DBG::write(fname2, K_FLD::ArrayAccessor<K_FLD::FloatArray>(_crd2), _ng2);
+  const char* fname1 = "working1.mesh";
+  medith::write(fname1, _aCoords1.array(), wNG1);
+  const char* fname2 = "left1.mesh";
+  medith::write(fname2, _aCoords1.array(), _ng1);
+  fname1 = "working2.mesh";
+  medith::write(fname1, _crd2, wNG2);
+  fname2 = "left2.mesh";
+  medith::write(fname2, _crd2, _ng2);
  
-  NGON_DBG::draw_PGT3s(_aCoords1.array(), wNG1.PGs);
-  NGON_DBG::draw_PGT3s(_crd2, wNG2.PGs);
+  //medith::write("toto.mesh", _aCoords1.array(), wNG1.PGs);
+  //medith::write("toto.mesh", _crd2, wNG2.PGs);
 }
 #endif
   
@@ -2353,17 +2119,17 @@ if (_XPol != BOTH_SURFACE)
 #ifdef DEBUG_BOOLEAN
 //{
 //  K_FLD::ArrayAccessor<Coordinate_t> ac(_coord);
-//  char* fname1 = "working1g";
-//  NGON_DBG::write(fname1, ac, wNG1);
-//  char* fname2 = "left1g";
-//  NGON_DBG::write(fname2, ac, _ng1);
-//  fname1 = "working2g";
-//  NGON_DBG::write(fname1, ac, wNG2);
-//  fname2 = "left2g";
-//  NGON_DBG::write(fname2, ac, _ng2);
+//  char* fname1 = "working1g.mesh";
+//  medith::write(fname1, ac, wNG1);
+//  char* fname2 = "left1g.mesh";
+//  medith::write(fname2, ac, _ng1);
+//  fname1 = "working2g.mesh";
+//  medith::write(fname1, ac, wNG2);
+//  fname2 = "left2g.mesh";
+//  medith::write(fname2, ac, _ng2);
 //
-//  //NGON_DBG::draw_PGT3s(_coord, wNG1.PGs);
-//  //NGON_DBG::draw_PGT3s(_coord, wNG2.PGs);
+//  //medith::write(_coord, wNG1.PGs);
+//  //medith::write(_coord, wNG2.PGs);
 //}
 #endif
   
@@ -2376,17 +2142,17 @@ if (_XPol != BOTH_SURFACE)
 #ifdef DEBUG_BOOLEAN
 //  {
 //  K_FLD::ArrayAccessor<Coordinate_t> ac(_coord);
-//  char* fname1 = "working1h";
-//  NGON_DBG::write(fname1, ac, wNG1);
-//  char* fname2 = "left1h";
-//  NGON_DBG::write(fname2, ac, _ng1);
-//  fname1 = "working2h";
-//  NGON_DBG::write(fname1, ac, wNG2);
-//  fname2 = "left2h";
-//  NGON_DBG::write(fname2, ac, _ng2);
+//  char* fname1 = "working1h.mesh";
+//  medith::write(fname1, ac, wNG1);
+//  char* fname2 = "left1h.mesh";
+//  medith::write(fname2, ac, _ng1);
+//  fname1 = "working2h.mesh";
+//  medith::write(fname1, ac, wNG2);
+//  fname2 = "left2h.mesh";
+//  medith::write(fname2, ac, _ng2);
 //
-//  //NGON_DBG::draw_PGT3s(_coord, wNG1.PGs);
-//  //NGON_DBG::draw_PGT3s(_coord, wNG2.PGs);
+//  //medith::write(_coord, wNG1.PGs);
+//  //medith::write(_coord, wNG2.PGs);
 //  }
 #endif
   
@@ -2458,15 +2224,14 @@ if (_XPol != BOTH_SURFACE)
 
 #ifdef DEBUG_BOOLEAN
 {
-  const char* fname1 = "working";
-  K_FLD::ArrayAccessor<Coordinate_t> ac(_coord);
-  NGON_DBG::write(fname1, ac, wPGs);
-  const char* fname11 = "extra";
-  NGON_DBG::write(fname11, ac, extrawPGs);
-  const char* fname2 = "left1";
-  NGON_DBG::write(fname2, ac, _ng1);
-  fname2 = "left2";
-  NGON_DBG::write(fname2, ac, _ng2);
+  const char* fname1 = "working.mesh";
+  medith::write(fname1, _coord, wPGs);
+  const char* fname11 = "extra.mesh";
+  medith::write(fname11, _coord, extrawPGs);
+  const char* fname2 = "left1.mesh";
+  medith::write(fname2, _coord, _ng1);
+  fname2 = "left2.mesh";
+  medith::write(fname2, _coord, _ng2);
 }
 #endif
   
@@ -2513,7 +2278,7 @@ E_Int NGON_BOOLEAN_CLASS::__conformize
 #ifdef DEBUG_BOOLEAN
   {
     //const char* fname = "conformized.mesh";
-    //MIO::write(fname, coord, connectT3, "TRI");
+    //medith::write(fname, coord, connectT3, "TRI");
   }
 #endif
 #ifdef DEBUG_W_PYTHON_LAYER
@@ -2571,7 +2336,7 @@ NGON_BOOLEAN_CLASS::__compute()
         for (E_Int i = 0; i < priority.size(); ++i)
           colors[priority[i]] = 4+::abs(is_skin[priority[i]]);
       }
-      MIO::write("all_skins.mesh", _coord, connectT3, "TRI", 0, &colors);
+      medith::write("all_skins.mesh", _coord, connectT3, "TRI", 0, &colors);
 
       K_FLD::IntArray cT3;
       colors.clear();
@@ -2581,7 +2346,7 @@ NGON_BOOLEAN_CLASS::__compute()
           cT3.pushBack(connectT3.col(i), connectT3.col(i) + 3);
           colors.push_back(is_skin[i]);
         }
-      MIO::write("init_skins.mesh", _coord, cT3, "TRI", 0, &colors);
+      medith::write("init_skins.mesh", _coord, cT3, "TRI", 0, &colors);
     }    
 #endif
 
@@ -2635,7 +2400,7 @@ NGON_BOOLEAN_CLASS::__compute()
   }
 
 #ifdef DEBUG_BOOLEAN
-  NGON_DBG::write("ngXs", ACoordinate_t(_coord), _ngXs);
+  medith::write("ngXs.mesh", _coord, _ngXs);
 #endif
 
   if (_build_hard)
@@ -2650,7 +2415,7 @@ NGON_BOOLEAN_CLASS::__compute()
 
 #ifdef DEBUG_BOOLEAN
     //is_skin[0] = 1;
-    MIO::write("connectHard.mesh", _coord, connectHard, "TRI", 0, &is_skin);
+    medith::write("connectHard.mesh", _coord, connectHard, "TRI", 0, &is_skin);
 #endif
     
     // Duplicate the T3s to have both orientations
@@ -2685,9 +2450,9 @@ NGON_BOOLEAN_CLASS::__compute()
 #endif
     
 #ifdef DEBUG_BOOLEAN
-  NGON_DBG::write("ngXh", ACoordinate_t(_coord), _ngXh);
-  NGON_DBG::write("_ng1", ACoordinate_t(_coord), _ng1);
-  NGON_DBG::write("_ngXsraw", ACoordinate_t(_coord), _ngXs);
+  medith::write("ngXh.mesh", _coord, _ngXh);
+  medith::write("_ng1.mesh", _coord, _ng1);
+  medith::write("_ngXsraw.mesh", _coord, _ngXs);
 #endif
   }
   
@@ -2712,8 +2477,8 @@ NGON_BOOLEAN_CLASS::__compute()
   ngon_type::clean_connectivity(_ngXh, _coord, 3); //glue and clean the soft part :  required for classification
   
 #ifdef DEBUG_BOOLEAN
-  NGON_DBG::write("ngXs1", ACoordinate_t(_coord), _ngXs);
-   NGON_DBG::write("ngXh1", ACoordinate_t(_coord), _ngXh);
+  medith::write("ngXs1.mesh", _coord, _ngXs);
+  medith::write("ngXh1.mesh", _coord, _ngXh);
 #endif
 
 #ifdef FLAG_STEP
@@ -2721,12 +2486,12 @@ NGON_BOOLEAN_CLASS::__compute()
 #endif
 
 #ifdef DEBUG_BOOLEAN
-  NGON_DBG::write("ngXsG", ACoordinate_t(_coord), _ngXs);
-  NGON_DBG::write("ngXhG", ACoordinate_t(_coord), _ngXh);
-  NGON_DBG::write_external_phs("ngXsG_ex.plt", ACoordinate_t(_coord), _ngXs);
-  std::vector<bool> keep(_ngXs.PHs.size(), true);
-  for (size_t i=0; i < _ngXs.PHs.size(); ++i) keep[i]=(_ngXs.PHs._type[i] != INITIAL_SKIN);
-  NGON_DBG::write("ngXsGin", ACoordinate_t(_coord), _ngXs, &keep);
+  medith::write("ngXsG.mesh", _coord, _ngXs);
+  medith::write("ngXhG.mesh", _coord, _ngXh);
+  medith::write2("ngXsG_ex.mesh", _coord, _ngXs, INITIAL_SKIN);
+  std::vector<E_Int> toprocess;
+  for (size_t i=0; i < _ngXs.PHs.size(); ++i) if(_ngXs.PHs._type[i] != INITIAL_SKIN)toprocess.push_back(i);
+  medith::write("ngXsGin.mesh", _coord, _ngXs, toprocess);
 #endif
   
   return OK;
@@ -2756,6 +2521,7 @@ NGON_BOOLEAN_CLASS::__process_intersections
   
 #ifdef FLAG_STEP
   std::cout << "NGON Boolean : __get_working_PGs : " << c.elapsed() << std::endl;
+  std::cout << "NGON Boolean : __triangulate (do_not shuffle ? :" << _triangulator_do_not_shuffle << " . improve qual ? : " << _triangulator_improve_qual_by_swap << ")..." << std::endl;
   c.start();
 #endif
 
@@ -2830,10 +2596,10 @@ NGON_BOOLEAN_CLASS::__process_intersections
         colors.push_back((oT3_to_PG[Ti] < nb_pgs1) ? 0 : 1);
       }
     }
-    MIO::write("rawT3skin.mesh", _coord, cT3, "TRI", 0, &colors);
-    NGON_DBG::write_wired("wired.mesh", _coord, cT3, true);
+    medith::write("rawT3skin.mesh", _coord, cT3, "TRI", 0, &colors);
+    medith::write_wired("wired.mesh", _coord, cT3, true);
   }*/
-  MIO::write("allT3.mesh", _coord, connectT3, "TRI", 0, &oT3_to_PG);
+  medith::write("allT3.mesh", _coord, connectT3, "TRI", 0, &oT3_to_PG);
 }
 #endif
     
@@ -2920,21 +2686,21 @@ NGON_BOOLEAN_CLASS::__process_intersections
       partCol.push_back((nT3_to_PG[Ti] < nb_pgs1) ? 0 : 1);
       PGCol.push_back(nT3_to_PG[Ti]);
     }
-    MIO::write("conformized_partcol.mesh", _coord, connectT3, "TRI", 0, &partCol);
-    MIO::write("conformized_PGcol.mesh", _coord, connectT3, "TRI", 0, &PGCol);
+    medith::write("conformized_partcol.mesh", _coord, connectT3, "TRI", 0, &partCol);
+    medith::write("conformized_PGcol.mesh", _coord, connectT3, "TRI", 0, &PGCol);
   }
 #endif
   
 #ifdef DEBUG_BOOLEAN
   {
-  //NGON_DBG::draw_PGT3s(_coord, extrawPGs);
-  //NGON_DBG::draw_PGT3s(_coord, wPGs);
+  //medith::write(_coord, extrawPGs);
+  //medith::write(_coord, wPGs);
   //NGON_DBG::draw_PG_to_T3(886, nT3_to_PG, _coord, connectT3);
   /*E_Int PGi = 5080;
   NGON_DBG::draw_PGT3(_coord, wPGs, PGi);
   std::vector<bool> flag(connectT3.cols(), false);
   for (size_t i=0; i < connectT3.cols(); ++i)flag[i]=(nT3_to_PG[i]==PGi);
-  MIO::write("PGi.mesh", _coord, connectT3, "TRI", &flag);*/
+  medith::write("PGi.mesh", _coord, connectT3, "TRI", &flag);*/
   //TRI_debug::draw_connected_to_T3(_coord, connectT3, 12330, 12409, 7205);
   //E_Int Ti = TRI_DBG::get_T3_index(connectT3, TRUPLE);
   //E_Int a = (Ti != E_IDX_NONE) ? nT3_to_oT3[Ti] : E_IDX_NONE;
@@ -2980,7 +2746,7 @@ E_Int NGON_BOOLEAN_CLASS::__process_duplicates(const ngon_unit&wPGs, K_FLD::IntA
   Vector_t<bool> keep(connectT3.cols(), false);
   for (size_t i=0; i < dupIds.size(); ++i)
     keep[i]=(dupIds[i] != i);
-  MIO::write("dups.mesh", _coord, connectT3, "TRI", &keep);
+  medith::write("dups.mesh", _coord, connectT3, "TRI", &keep);
   TRI_debug::write_wired("dupnorms.mesh", _coord, connectT3, true, 0, &keep);
 #endif
 
@@ -3030,7 +2796,7 @@ E_Int NGON_BOOLEAN_CLASS::__process_duplicates(const ngon_unit&wPGs, K_FLD::IntA
     tmp.pushBack(connectT3.col(Ki),connectT3.col(Ki)+3);
     colors.push_back(nT3_to_PG[Ki]);
   }
-  MIO::write("ambiguousPGs.mesh", _coord, tmp, "TRI", 0, &colors);
+  medith::write("ambiguousPGs.mesh", _coord, tmp, "TRI", 0, &colors);
   TRI_debug::write_wired("dupnorms.mesh", _coord, tmp, true);
 #endif
   return 0;
@@ -3081,7 +2847,7 @@ E_Int NGON_BOOLEAN_CLASS::__build_connect_hard
     is_skin.resize(connectHard.cols(), 2);
     
 #ifdef DEBUG_BOOLEAN
-    MIO::write("solid_skin.mesh", _coord, connectHard, "TRI", 0, &nT3_to_PG);
+    medith::write("solid_skin.mesh", _coord, connectHard, "TRI", 0, &nT3_to_PG);
     {
     K_FLD::IntArray conedges;
     Vector_t<E_Int> colors;
@@ -3099,7 +2865,7 @@ E_Int NGON_BOOLEAN_CLASS::__build_connect_hard
           colors.push_back(0);
       }
     }
-    MIO::write("wired_soft.mesh", _coord, conedges, "BAR", 0, &colors);
+    medith::write("wired_soft.mesh", _coord, conedges, "BAR", 0, &colors);
     }
 #endif
     
@@ -3127,7 +2893,7 @@ E_Int NGON_BOOLEAN_CLASS::__build_connect_hard
     K_CONNECT::EltAlgo<K_MESH::Triangle>::coloring_pure(neighbors, soft_colors);
     
 #ifdef DEBUG_BOOLEAN
-    //MIO::write("solid_skin_with_soft.mesh", _coord, connectHard, "TRI", 0, &soft_colors);
+    //medith::write("solid_skin_with_soft.mesh", _coord, connectHard, "TRI", 0, &soft_colors);
 #endif
   }
   
@@ -3136,7 +2902,7 @@ E_Int NGON_BOOLEAN_CLASS::__build_connect_hard
   extrawPGs.remove_consecutive_duplicated();//consecutive version to preserve PGs topology
 
 #ifdef DEBUG_BOOLEAN
-  //NGON_DBG::draw_PGT3s(_coord, extrawPGs);
+  //medith::write(_coord, extrawPGs);
   //E_Int Tj = TRI_debug::get_T3_index(cT3, 20389, 17508,17522);
   //NGON_DBG::draw_PG(_coord, extrawPGs, 8);
 #endif
@@ -3151,7 +2917,7 @@ E_Int NGON_BOOLEAN_CLASS::__build_connect_hard
   if (err) return err;
 
 #ifdef DEBUG_BOOLEAN
-  MIO::write("refined_open_layer.mesh", _coord, cT3, "TRI", 0, &oT3_to_PG);
+  medith::write("refined_open_layer.mesh", _coord, cT3, "TRI", 0, &oT3_to_PG);
 #endif
     
   // Transfer skin info to the triangles
@@ -3199,7 +2965,7 @@ E_Int NGON_BOOLEAN_CLASS::__build_connect_hard
   nT3_to_PG = oT3_to_PG;
     
 #ifdef DEBUG_BOOLEAN
-  MIO::write("tapped_layer.mesh", _coord, connectHard, "TRI", 0, &nT3_to_PG);
+  medith::write("tapped_layer.mesh", _coord, connectHard, "TRI", nullptr, &nT3_to_PG);
 #endif
   return 0;
 }
@@ -3257,7 +3023,7 @@ void NGON_BOOLEAN_CLASS::__refine_open_PGs
     connectPG.append_selection(connectT3, itC->second);
     
 #ifdef DEBUG_BOOLEAN
-    //MIO::write("connectPG.mesh", _coord, connectPG, "TRI");
+    //medith::write("connectPG.mesh", _coord, connectPG, "TRI");
 #endif
     
     //Build the neighbourhood matrix.
@@ -3393,8 +3159,8 @@ void NGON_BOOLEAN_CLASS::__refine_open_PGs
           bool b = (edge_to_refined_edge[E].size() < polyLine.size());
           if (a&&!b || b && !a)
           {
-            MIO::write("pL1.mesh", _coord, cnt1, "TRI");
-            MIO::write("pL2.mesh", _coord, cnt2, "TRI");
+            medith::write("pL1.mesh", _coord, cnt1, "TRI");
+            medith::write("pL2.mesh", _coord, cnt2, "TRI");
           }
 #endif
           
@@ -3415,7 +3181,7 @@ void NGON_BOOLEAN_CLASS::__refine_open_PGs
   ngon_type::refine_pgs(edge_to_refined_edge, extrawPGs);
 }
 
-// skin and conenction skin
+// skin and connection skin
 TEMPLATE_COORD_CONNECT
 typename NGON_BOOLEAN_CLASS::eRetCode
 NGON_BOOLEAN_CLASS::__reorient_externals(eInterPolicy XPol, ngon_type& wNG1, ngon_type& wNG2)
@@ -3569,8 +3335,8 @@ NGON_BOOLEAN_CLASS::__focus_on_intersection_zone
 
 #ifdef DEBUG_BOOLEAN
 {
-  NGON_DBG::write("working2_E1", acrd2, wNG2);
-  NGON_DBG::write("left2_E1", acrd2, _ng2);
+  medith::write("working2_E1.mesh", _crd2, wNG2);
+  medith::write("left2_E1.mesh", _crd2, _ng2);
 }
 #endif
   }
@@ -3758,10 +3524,10 @@ NGON_BOOLEAN_CLASS::__focus_on_intersection_zone
 
 #ifdef DEBUG_BOOLEAN
   {
-	NGON_DBG::write("working1_E3", _aCoords1, wNG1);
-	NGON_DBG::write("left1_E3", _aCoords1, _ng1);
-	NGON_DBG::write("working2_E3", acrd2, wNG2);
-	NGON_DBG::write("left2_E3", acrd2, _ng2);
+    medith::write("working1_E3.mesh", _aCoords1.array(), wNG1);
+    medith::write("left1_E3.mesh", _aCoords1.array(), _ng1);
+    medith::write("working2_E3.mesh", _crd2, wNG2);
+    medith::write("left2_E3.mesh", _crd2, _ng2);
   }
 #endif
 
@@ -4109,9 +3875,7 @@ E_Int NGON_BOOLEAN_CLASS::__discard_prescribed_polygons(const K_FLD::FloatArray&
   wNG.flag_external_phs(INITIAL_SKIN);//update consistently PHs flags
   
 #if defined(DEBUG_BOOLEAN)
-  K_FLD::ArrayAccessor<Coordinate_t> ac(coord);
-  NGON_DBG::write( "disabled", ac, pgs);
-  NGON_DBG::draw_PGT3s(coord, pgs);
+  medith::write( "disabled.mesh", coord, pgs);
 #endif
   
 #if defined(DEBUG_BOOLEAN) || defined(DEBUG_W_PYTHON_LAYER)
@@ -4235,7 +3999,7 @@ E_Int NGON_BOOLEAN_CLASS::__sort_T3_sharing_an_edge
     }
   }
 
-#if defined (DEBUG_BOOLEAN) || defined(DEBUG_LIGHT)
+#ifdef DEBUG_BOOLEAN
   if ( err )
   {  
     K_FLD::IntArray sorted_cnt;
@@ -4257,20 +4021,17 @@ E_Int NGON_BOOLEAN_CLASS::__sort_T3_sharing_an_edge
       E_Int tid = (T3indices[i] < shift) ? T3indices[i] : T3indices[i] - shift;
       PGs.push_back(_nT3_to_oPG[tid]);
     }
-#ifdef DEBUG_LIGHT
+
     {
       std::ostringstream o;
       o << "sorted_on_edge_" << E0 << "_" << E1 << ".mesh";
       medith::write(o.str().c_str(), coord, sorted_cnt, "TRI", 0, &colors);
     }
-#endif
-#ifdef DEBUG_BOOLEAN
     {
       std::ostringstream o;
       o << "Wsorted_on_edge_" << E0 << "_" << E1 << ".mesh";
       TRI_debug::write_wired(o.str().c_str(), coord, connectT3, normals, 0, &keep,true);
     }
-#endif
   }
 #endif
 
@@ -4365,7 +4126,7 @@ E_Int NGON_BOOLEAN_CLASS::__sort_T3_sharing_an_edge
   }
   std::ostringstream o;
   o << "sorted_on_edge_" << E0 << "_" << E1 << ".mesh";
-  MIO::write(o.str().c_str(), coord, sorted_cnt, "TRI", 0, &colors);
+  medith::write(o.str().c_str(), coord, sorted_cnt, "TRI", 0, &colors);
   o.str("");
   o << "Wsorted_on_edge_" << E0 << "_" << E1 << ".mesh";
   TRI_debug::write_wired(o.str().c_str(), coord, connectT3, normals, 0, &keep,true);
@@ -4457,7 +4218,7 @@ E_Int NGON_BOOLEAN_CLASS::__build_PHT3s
   //NGON_DBG::remove_T3(crd, cnt, 3157, 5256, 3445);
   //NGON_DBG::remove_T3(crd, cnt, 3440, 3445, 5256);
   //NGON_DBG::remove_T3(crd, cnt, 5256, 3450, 6586);
-  //MIO::write("c1.mesh", crd, cnt, "TRI");
+  //medith::write("c1.mesh", crd, cnt, "TRI");
   //TRI_DBG::get_T3_neighbors("neighx.mesh", Ti, coord, connectT3o, neighbors, true);
 #endif
  
@@ -4515,7 +4276,8 @@ E_Int NGON_BOOLEAN_CLASS::__build_PHT3s
   // Remove parasites PHs (those having only SKIN (initial and new) triangle : most external and those due to holes
 
   E_Int PHierr = __remove_parasite_PHT3s(is_skin, PHT3s, connectT3o);
-  if (PHierr != -2) //error
+  err = (PHierr != -2);
+  if (err)
   {
 #ifdef FLAG_STEP
   if (chrono::verbose > 0) std::cout << "NGON Boolean : ERROR in __remove_parasite_PHT3s : " << c1.elapsed() << std::endl;
@@ -4686,10 +4448,10 @@ E_Int NGON_BOOLEAN_CLASS::__build_PHs
     ph_colors.resize(cT3.cols(), ph_count++);
     //std::ostringstream o;
     //o << "PHT3_" << phi << ".mesh";
-    //MIO::write(o.str().c_str(), _coord, cT3, "TRI", 0, "&pg_colors);
+    //medith::write(o.str().c_str(), _coord, cT3, "TRI", 0, "&pg_colors);
   }
-  MIO::write("PH_toPGT3s_pgcol.mesh", _coord, cT3, "TRI", 0, &pg_colors);
-  MIO::write("PH_toPGT3s_phcol.mesh", _coord, cT3, "TRI", 0, &ph_colors);
+  medith::write("PH_toPGT3s_pgcol.mesh", _coord, cT3, "TRI", 0, &pg_colors);
+  medith::write("PH_toPGT3s_phcol.mesh", _coord, cT3, "TRI", 0, &ph_colors);
 }*/
 #endif
   
@@ -4708,10 +4470,10 @@ E_Int NGON_BOOLEAN_CLASS::__build_PHs
   
 #ifdef DEBUG_BOOLEAN
   /*
-  NGON_DBG::write_external_phs("external_PHs.plt", ACoordinate_t(_coord), ngout);
+  medith::write_external_phs("external_PHs.plt", ACoordinate_t(_coord), ngout);
   ngon_type tmp = ngout;
   K_CONNECT::IdTool::negative(tmp.PHs._external);
-  NGON_DBG::write_external_phs("internal_PHs.plt", ACoordinate_t(_coord), tmp);
+  medith::write_external_phs("internal_PHs.plt", ACoordinate_t(_coord), tmp);
   */
 #endif
   
@@ -4836,7 +4598,7 @@ E_Int NGON_BOOLEAN_CLASS::__classify_soft()
   _ngXs.PGs.flag_indices_of_type(INITIAL_SKIN, wall);
 
 #ifdef DEBUG_BOOLEAN
-  extract_pgs_of_type(INITIAL_SKIN, "walls", _ngXs, _coord);
+  extract_pgs_of_type(INITIAL_SKIN, "walls.mesh", _ngXs, _coord);
 #endif
   
   _ngXs.build_ph_neighborhood(neighbors, wall);
@@ -4861,7 +4623,7 @@ E_Int NGON_BOOLEAN_CLASS::__classify_soft()
     }
   }
     
-  NGON_DBG::draw_PGT3s(_coord, _ngXs.PGs);
+  medith::write(_coord, _ngXs.PGs);
   
   size_t sz = neighbors.size();
   std::vector<bool> external(sz, false);
@@ -4878,15 +4640,15 @@ E_Int NGON_BOOLEAN_CLASS::__classify_soft()
       }
     }
   }
-  NGON_DBG::write("ext_from_neigh", ACoordinate_t(_coord), _ngXs, &external);
+  medith::write("ext_from_neigh", ACoordinate_t(_coord), _ngXs, &external);
   K_CONNECT::IdTool::negative(external);
-  NGON_DBG::write("in_from_neigh", ACoordinate_t(_coord), _ngXs, &external);
+  medith::write("in_from_neigh", ACoordinate_t(_coord), _ngXs, &external);
   
   // check is external PGs are OK
   ngon_unit pgex;
   std::vector<E_Int> oids;
   _ngXs.PGs.extract_of_type(INITIAL_SKIN, pgex, oids);
-  NGON_DBG::write("pgex", ACoordinate_t(_coord), pgex);
+  medith::write("pgex", ACoordinate_t(_coord), pgex);
   */
 #endif
     
@@ -4902,16 +4664,16 @@ E_Int NGON_BOOLEAN_CLASS::__classify_soft()
   
 #ifdef DEBUG_BOOLEAN
 {
-  Vector_t<bool> flag(colors.size());  
   for (size_t c=0; c < colmax; ++c)
   {
+    Vector_t<E_Int> toprocess;
     for (size_t i=0; i < colors.size(); ++i)
-      flag[i]=(colors[i]==c);
+      if(colors[i]==c)toprocess.push_back(i);
     
     std::ostringstream o;
-    o << "zc_" << c ;
+    o << "zc_" << c << ".mesh";
     
-    NGON_DBG::write(o.str().c_str(), ACoordinate_t(_coord), _ngXs, &flag);
+    medith::write(o.str().c_str(), _coord, _ngXs, toprocess);
   }
 }
 #endif
@@ -4940,7 +4702,7 @@ E_Int NGON_BOOLEAN_CLASS::__classify_soft()
   std::cout << K_CONNECT::EltAlgo<K_MESH::Triangle>::_pool.size() << std::endl;
   for (std::set<E_Int>::const_iterator i=K_CONNECT::EltAlgo<K_MESH::Triangle>::_pool.begin(); i!=K_CONNECT::EltAlgo<K_MESH::Triangle>::_pool.end(); ++i)
   {if (*i == 1213)keep[*i]=true;std::cout << *i << std::endl;}
-  NGON_DBG::write("toto", ACoordinate_t(_coord), _ngXs, &keep);
+  medith::write("toto", ACoordinate_t(_coord), _ngXs, &keep);
 }
 */
 #endif
@@ -4948,7 +4710,7 @@ E_Int NGON_BOOLEAN_CLASS::__classify_soft()
 
   
 #ifdef DEBUG_BOOLEAN
-  std::vector<bool> keep(_ngXs.PHs.size(), false);
+  std::vector<E_Int> toprocess;
 #endif
   
   //Interpret colors as zones
@@ -4972,8 +4734,8 @@ E_Int NGON_BOOLEAN_CLASS::__classify_soft()
 #ifdef DEBUG_BOOLEAN
       if (col_to_z[ci] != zi)
       {
-        //std::cout << "i/zi/ci/col_to_z : " << i << "/" << zi << "/" << ci << "/" <<  col_to_z[ci] << std::endl;
-        keep[i]=true;
+        std::cout << "i/zi/ci/col_to_z : " << i << "/" << zi << "/" << ci << "/" <<  col_to_z[ci] << std::endl;
+        toprocess.push_back(i);
       }
 #else
       assert (col_to_z[ci] == zi);
@@ -4985,7 +4747,7 @@ E_Int NGON_BOOLEAN_CLASS::__classify_soft()
   }
   
 #ifdef DEBUG_BOOLEAN
-  //NGON_DBG::write("wrong_col", ACoordinate_t(_coord), _ngXs, &keep);
+  if (!toprocess.empty()) medith::write("wrong_col.mesh", _coord, _ngXs, toprocess);
 #endif
   
   // Now update missing zones (Z_NONE)
@@ -5030,11 +4792,11 @@ E_Int NGON_BOOLEAN_CLASS::__classify_soft()
  
 #ifdef DEBUG_BOOLEAN
     if (Zi== Z_1)
-      NGON_DBG::write("first", ACoordinate_t(_coord), *ngi);
+      medith::write("first.mesh", _coord, *ngi);
     else if (Zi == Z_2)
-      NGON_DBG::write("second", ACoordinate_t(_coord), *ngi);
+      medith::write("second.mesh", _coord, *ngi);
     else if (Zi == Z_IN)
-      NGON_DBG::write("in", ACoordinate_t(_coord), *ngi);
+      medith::write("in.mesh", _coord, *ngi);
 
 #endif
   }
@@ -5143,14 +4905,14 @@ E_Int NGON_BOOLEAN_CLASS::__build_neighbors_table
         colors[j]=1;
       }
   //std::cout << "found ? : " << found << std::endl;
-  MIO::write("neihbors.mesh", coord, connectT3o, "TRI", 0, &colors);
+  medith::write("neihbors.mesh", coord, connectT3o, "TRI", 0, &colors);
   
   K_FLD::IntArray ctmp;
   E_Int N0 = 3549;
   ctmp.pushBack(connectT3o.col(N0), connectT3o.col(N0)+3);
   for (size_t i = 0; i < neighbors.rows(); ++i)
     ctmp.pushBack(connectT3o.col(neighbors(i, N0)), connectT3o.col(neighbors(i, N0))+3);
-  MIO::write("Neigi.mesh", coord, ctmp, "TRI");*/
+  medith::write("Neigi.mesh", coord, ctmp, "TRI");*/
 #endif
 
   return 0;
@@ -5317,7 +5079,7 @@ E_Int NGON_BOOLEAN_CLASS::__assemble_PHT3s
   K_CONNECT::EltAlgo<K_MESH::Triangle>::coloring(neighbors, T3_to_PHT3);
   
 #ifdef DEBUG_BOOLEAN
-  //MIO::write("PHT3.mesh", coord, connectT3o, "TRI", 0, &T3_to_PHT3);
+  //medith::write("PHT3.mesh", coord, connectT3o, "TRI", 0, &T3_to_PHT3);
 #endif
   
   PHT3s.clear();
@@ -5344,7 +5106,7 @@ E_Int NGON_BOOLEAN_CLASS::__remove_parasite_PHT3s
   std::map<E_Int, Vector_t<E_Int> >::iterator it(PHT3s.begin()), itEnd(PHT3s.end());
   
 #ifdef DEBUG_BOOLEAN
-  std::vector<E_Int> faulty_PHT3, faulty_colors;
+  std::vector<E_Int> faulty_T3s, faulty_colors;
   //get the biggest one (supposed to be the envelop parasite)
   E_Int PHi = -1, maxT = -1, nb_T3s;
   for (std::map<E_Int, Vector_t<E_Int> >::const_iterator it1 = PHT3s.begin(); it1 != PHT3s.end(); ++it1)
@@ -5360,46 +5122,34 @@ E_Int NGON_BOOLEAN_CLASS::__remove_parasite_PHT3s
 #endif
     
   _tmp_vec.clear();
-  Vector_t<bool> treat;
-  
-  bool pure_skin;
+
   for (; it!=itEnd; ++it)
   {
     Vector_t<E_Int>& pht3i = it->second;
     E_Int sz = pht3i.size();
-    //remove baffles (they disturb the logic)
+    //new logic : any PHT3s having baffles is a parasite
     _tmp_set_int.clear();
-    treat.clear();
-    treat.resize(sz);
-    for (E_Int i = 0; i < sz; ++i)
+    bool has_baffles = false;
+   
+    for (E_Int i = 0; (i < sz) && !has_baffles; ++i)
     {
       const E_Int& Ti = pht3i[i];
       oTi = (Ti < shift) ? Ti : Ti-shift;
-      if (!_tmp_set_int.insert(oTi).second)
-        _tmp_set_int.erase(oTi);
-    }
-    for (E_Int i = 0; i < sz; ++i)
-    {
-      const E_Int& Ti = pht3i[i];
-      oTi = (Ti < shift) ? Ti : Ti-shift;
-      treat[i] = (_tmp_set_int.find(oTi) != _tmp_set_int.end());
+      has_baffles = (!_tmp_set_int.insert(oTi).second);
     }
     
 #ifdef DEBUG_BOOLEAN
-    faulty_PHT3.clear();
+    faulty_T3s.clear();
 #endif
     
-    pure_skin = true;
-    for (E_Int i = 0; (i < sz)
+    bool pure_skin = true;
+    for (E_Int i = 0; (i < sz) && !has_baffles
             
 #ifndef DEBUG_BOOLEAN
             && pure_skin
 #endif
             ; ++i)
     {
-      if (!treat[i])
-        continue;
-
       const E_Int& Ti = pht3i[i];
       //const E_Int& isk = is_skin[(Ti < shift) ? Ti : Ti - shift];
       pure_skin &= (Ti < shift) ? (is_skin[Ti] != 0) : (is_skin[Ti-shift] == 3) || (is_skin[Ti-shift] < 0); // only skin ans if not original must be 3 (for inital skin, must be oriented toward exterior)
@@ -5416,13 +5166,13 @@ E_Int NGON_BOOLEAN_CLASS::__remove_parasite_PHT3s
         else //regular
           Ci=10;
         
-        faulty_PHT3.push_back(Ti);
+        faulty_T3s.push_back(Ti);
         faulty_colors.push_back(Ci);
       }
 #endif
     }
     
-    if (pure_skin) //parasite
+    if (pure_skin || has_baffles) //parasite
       _tmp_vec.push_back(it->first);
 #ifdef DEBUG_BOOLEAN
     else
@@ -5430,7 +5180,7 @@ E_Int NGON_BOOLEAN_CLASS::__remove_parasite_PHT3s
       //
       bool is_closed, is_manifold;
       //separate analysis by zone
-      bool healthy = TRI_DBG::analyze_T3_set(PHi, _coord, connectT3o, faulty_PHT3, is_manifold, is_closed, &faulty_colors);
+      bool healthy = TRI_DBG::analyze_T3_set(PHi, _coord, connectT3o, faulty_T3s, is_manifold, is_closed, &faulty_colors);
       if (!healthy)
         std::cout << "PHi " << PHi << " is not healthy." << std::endl;
       // analyze the PHT3 (except no treat parts) as a whole
@@ -5561,7 +5311,7 @@ E_Int NGON_BOOLEAN_CLASS::__check_PHT3s_closure
 #ifdef DEBUG_BOOLEAN
       K_FLD::IntArray tmp;
       tmp.append_selection(connectT3o, T3s);
-      MIO::write("unclosed_PH.mesh", coord, tmp, "TRI", 0, &colors);
+      medith::write("unclosed_PH.mesh", coord, tmp, "TRI", 0, &colors);
 #endif
       
       unclosed_PHT3s.push_back(PHi);
@@ -5673,7 +5423,7 @@ E_Int NGON_BOOLEAN_CLASS::__split_non_connex_PGT3s
         continue;
       
 #ifdef DEBUG_BOOLEAN
-        //MIO::write("nonconnex.mesh", _coord, cT3, "TRI");
+        //medith::write("nonconnex.mesh", _coord, cT3, "TRI");
 #endif
       
       //Split
@@ -5978,7 +5728,7 @@ E_Int  NGON_BOOLEAN_CLASS::__aggregate_convex
     std::ostringstream o;
     o << "cM" << count++ << ".mesh";
     if (_enabled)
-      MIO::write(o.str().c_str(), _coord, connectMi, "TRI");
+      medith::write(o.str().c_str(), _coord, connectMi, "TRI");
 #endif
         
     //Build the neighbourhood matrix.
@@ -6131,7 +5881,7 @@ E_Int NGON_BOOLEAN_CLASS::__cut_mesh_convex_line
   if (colmax != 1)
   {
 #ifdef DEBUG_BOOLEAN
-    //MIO::write("part.plt", _coord, connectT3, "TRI");
+    //medith::write("part.mesh", _coord, connectT3, "TRI");
 #endif
     return 1;
   }
@@ -6289,7 +6039,7 @@ void NGON_BOOLEAN_CLASS::__set_skin_PHT3s_zones
       keep[it->second[j]]=true;
   }
   
-  MIO::write("Z_2.mesh", _coord, connectT3o, "TRI", &keep);
+  medith::write("Z_2.mesh", _coord, connectT3o, "TRI", &keep);
 }
 #endif
 
@@ -6307,7 +6057,7 @@ void NGON_BOOLEAN_CLASS::__set_skin_PHT3s_zones
       keep[it->second[j]]=true;
     }
   }
-  MIO::write("Z_1.mesh", _coord, connectT3o, "TRI", &keep);
+  medith::write("Z_1.mesh", _coord, connectT3o, "TRI", &keep);
 }
 {
   K_FLD::IntArray cT3;
@@ -6316,7 +6066,7 @@ void NGON_BOOLEAN_CLASS::__set_skin_PHT3s_zones
     {
       cT3.pushBack(connectT3o.col(i), connectT3o.col(i) + 3);
     }
-  MIO::write("T3z.mesh", _coord, cT3, "TRI");
+  medith::write("T3z.mesh", _coord, cT3, "TRI");
 }
 #endif
 
@@ -6332,7 +6082,7 @@ void NGON_BOOLEAN_CLASS::__set_skin_PHT3s_zones
     for (size_t j=0; j < it->second.size(); ++j)
       keep[it->second[j]]=true;
   }
-  MIO::write("Z_IN.mesh", _coord, connectT3o, "TRI", &keep);
+  medith::write("Z_IN.mesh", _coord, connectT3o, "TRI", &keep);
 }
 #endif
   
@@ -6495,7 +6245,7 @@ E_Int NGON_BOOLEAN_CLASS::__set_PH_history
           ct.pushBack(connectT3o.col(t), connectT3o.col(t)+3);
           o.str("");
           o << "wrong_T_" << t << ".mesh";
-          MIO::write(o.str().c_str(), _coord, ct, "TRI");
+          medith::write(o.str().c_str(), _coord, ct, "TRI");
           
           assert(hPH01 == hPH);
 #endif
@@ -6536,7 +6286,7 @@ E_Int NGON_BOOLEAN_CLASS::__set_PH_history
           ct.pushBack(connectT3o.col(t), connectT3o.col(t)+3);
           o.str("");
           o << "wrong_T_" << t << ".mesh";
-          MIO::write(o.str().c_str(), _coord, ct, "TRI");
+          medith::write(o.str().c_str(), _coord, ct, "TRI");
 
           assert(hPH02 == hPH);
 #endif
@@ -6579,8 +6329,7 @@ void NGON_BOOLEAN_CLASS::extract_pgs_of_type(E_Int type, const char* fname, cons
   Vector_t<E_Int> oids;
   //
   ng.PGs.extract_of_type(type, pg_ext, oids);
-  NGON_DBG::write(fname, ACoordinate_t(crd), pg_ext);
-  NGON_DBG::draw_PGT3s(crd, pg_ext);
+  medith::write(fname, crd, pg_ext);
 }
 #endif
 
@@ -6590,7 +6339,8 @@ bool NGON_BOOLEAN_CLASS::__is_untouched_PH
 (const K_FLD::FloatArray& coord, const K_FLD::IntArray& connectT3, const std::map<E_Int, Vector_t<E_Int> >& PHT3s, E_Int PHi,
  E_Int shift, E_Int nb_pgs1, const K_FLD::IntArray& F2E, std::vector<E_Int>&nT3_to_oPG)
 {
-  //
+  //fixme : weird logic ! find a better way to deal with untouch.
+
   typedef std::map<E_Int, Vector_t<E_Int> > map_t;
   typedef Vector_t<E_Int> vec_t;
   
@@ -6617,6 +6367,8 @@ bool NGON_BOOLEAN_CLASS::__is_untouched_PH
     PH = (PH == E_IDX_NONE) ? F2E(I, wPG) : PH;
     untouched = (F2E(I, wPG) == PH);
   }
+
+  if (PH == E_IDX_NONE) return false; //this is added in case the considered parasite is the hull parasite
   
   return untouched;
 }

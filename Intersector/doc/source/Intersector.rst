@@ -40,7 +40,6 @@ List of functions
    Intersector.booleanMinus
    Intersector.diffSurf
    Intersector.intersection
-   Intersector.XcellN
 .. Intersector.booleanModifiedSolid
 .. Intersector.P1ConservativeChimeraCoeffs 
 
@@ -154,7 +153,7 @@ Main Functions
 ---------------------------------------
 
 
-.. py:function:: Intersector.booleanUnion(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, extrude_pgs=[])
+.. py:function:: Intersector.booleanUnion(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, extrude_pgs=[], multi_zone=False)
 
     Creates a conformal union between two components, either TRI surfaces or Polyhedral volumes. 
 
@@ -172,6 +171,8 @@ Main Functions
     :type  agg_mode: 0,1 or 2.
     :param extrude_pgs: Optional list of polygons to extrude.
     :type  extrude_pgs: list of int
+    :param multi_zone: If set to True, preserve inpu zoning of a1 and a2 upon exit.
+    :type  multi_zone: True or False
 
     
     **Prerequisites :**
@@ -328,43 +329,6 @@ Main Functions
     * `Cut-cell mesh with an octree and a sphere (pyTree) <Examples/Intersector/diffSurfPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Intersector/diffSurfPT.py
-
----------------------------------------
-
-
-.. py:function:: Intersector.XcellN(a, cellnfields, maskingMesh, wall_pgl=[], ghost_pgl=[])
-
-    Computes the cell nature field of a background mesh (a) in an overset configuration : similarly to the blankCells functions, the input maskingMesh are volume meshes that hide a.
-    
-    The computed celln is accurate, giving a floating value ranging from 0 (fully masked) to 1 (fully visible).
-
-    The input grids (a and makingMesh) are defined by coordinates located at nodes as a list of arrays.
-
-    :param           a:  Mesh where to compute XcellN
-    :type            a:  [array, list of arrays] or [pyTree, base, zone, list of zones]
-    :param cellnfields:   celln array for a
-    :type  cellnfields:   [array, list of arrays]
-    :param           maskingMesh:  Prioritized mesh that hides a
-    :type            maskingMesh:  [array, list of arrays] or [pyTree, base, zone, list of zones]
-    :param wall_pgl:   Optional list of polygons to treat as walls.
-    :type  wall_pgl:   list of int
-    :param ghost_pgl:   Optional list of polygons to extrude.
-    :type  ghost_pgl:   list of int
-
-    *Tips and Notes:*
-
-    * Warning: location of celln must be located at centers.
-    * Warning: In order to set the celln to 0. inside blanking bodies, you need to create BCWall type boundaries on the body faces.
-
-    *Example of use:*
-
-    * `Computing an accurate cellN (array) <Examples/Intersector/XcellN.py>`_:
-
-    .. literalinclude:: ../build/Examples/Intersector/XcellN.py
-
-    * `Computing an accurate cellN (pyTree) <Examples/Intersector/XcellNPT.py>`_:
-
-    .. literalinclude:: ../build/Examples/Intersector/XcellNPT.py
 
 ---------------------------------------
 

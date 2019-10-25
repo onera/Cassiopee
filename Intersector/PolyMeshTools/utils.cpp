@@ -752,8 +752,8 @@ PyObject* K_INTERSECTOR::edgeLengthExtrema(PyObject* self, PyObject* args)
 
   ngon_type::edge_length_extrema(ngi.PGs, crd, Lmin, imin, Lmax, imax);
 
-  std::cout << "Minimum Edge Length : " << Lmin << " reached at PG : " << imin << std::endl;
-  std::cout << "Maximum Edge Length : " << Lmax << " reached at PG : " << imax << std::endl;
+  //std::cout << "Minimum Edge Length : " << Lmin << " reached at PG : " << imin << std::endl;
+  //std::cout << "Maximum Edge Length : " << Lmax << " reached at PG : " << imax << std::endl;
 
   delete f; delete cn;
 
@@ -810,7 +810,7 @@ PyObject* K_INTERSECTOR::computeAspectRatio(PyObject* self, PyObject* args)
 //=============================================================================
 /* XXX */
 //=============================================================================
-PyObject* K_INTERSECTOR::extrudeUserDefinedBC(PyObject* self, PyObject* args)
+PyObject* K_INTERSECTOR::extrudeBC(PyObject* self, PyObject* args)
 {
   PyObject *arr, *pgs;
   E_Float height(0.25);
@@ -887,6 +887,134 @@ PyObject* K_INTERSECTOR::extrudeUserDefinedBC(PyObject* self, PyObject* args)
   
   delete f; delete cn;
 
+  return tpl;
+}
+
+//=============================================================================
+/* XXX */
+//=============================================================================
+PyObject* K_INTERSECTOR::extrudeSurf(PyObject* self, PyObject* args)
+{
+  PyObject *arr;
+  E_Float layer_height(0.25);
+  E_Int   strategy(0), nlayers(1);   // 0 : CST_ABS , 1 : CST_REL_MEAN, 2 : CST_REL_MIN, 3 : VAR_REL_MEAN, 4 : VAR_REL_MIN
+ 
+  if (!PYPARSETUPLE(args, "Odll", "Odii", "Ofll", "Ofii", &arr, &layer_height, &nlayers, &strategy)) return NULL;
+
+  K_FLD::FloatArray* f(0);
+  K_FLD::IntArray* cn(0);
+  char* varString, *eltType;
+  // Check array # 1
+  E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
+  if (err) return NULL;
+
+  K_FLD::FloatArray & crd = *f;
+  K_FLD::IntArray & cnt = *cn;
+
+  //~ std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
+  //~ std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
+
+  typedef ngon_t<K_FLD::IntArray> ngon_type;
+  ngon_type ngio(cnt);
+
+  ngio.PHs.clear();
+
+  std::vector<int> pglist;
+  K_CONNECT::IdTool::init_inc(pglist, ngio.PGs.size());
+
+  ngon_type::eExtrudeStrategy strat = (ngon_type::eExtrudeStrategy)strategy;
+
+  std::vector<int> tops;
+  int smooth_iters = 0;
+
+  for (int l = 0; l < nlayers; ++l)
+  {
+    tops.clear();
+    ngon_type::extrude_faces(crd, ngio, pglist, layer_height, true, strat, smooth_iters, &tops);
+    pglist.clear();
+    pglist.insert(pglist.end(), tops.begin(), tops.end());
+  }
+
+  PyObject* tpl = NULL;
+
+  if (!err)
+  {
+    K_FLD::IntArray cnto;
+    ngio.export_to_array(cnto);
+    tpl = K_ARRAY::buildArray(crd, varString, cnto, 8, "NGON", false);
+  }
+  
+  delete f; delete cn;
+
+  return tpl;
+}
+
+//=============================================================================
+/* XXX */
+//=============================================================================
+PyObject* K_INTERSECTOR::extrudeRevolSurf(PyObject* self, PyObject* args)
+{
+  PyObject *arr;
+  E_Float pt[3], dir[3];
+  E_Int   nlayers(1);   // 0 : CST_ABS , 1 : CST_REL_MEAN, 2 : CST_REL_MIN, 3 : VAR_REL_MEAN, 4 : VAR_REL_MIN
+
+  std::cout << "extrudeRevolSurf : 1" << std::endl;
+ 
+  if (!PYPARSETUPLE(args, "O(ddd)(ddd)l", "O(ddd)(ddd)i", "O(fff)(fff)l", "O(fff)(fff)i", &arr, &pt[0], &pt[1], &pt[2], &dir[0], &dir[1], &dir[2], &nlayers)) return NULL;
+
+  std::cout << "extrudeRevolSurf : 2" << std::endl;
+
+  K_FLD::FloatArray* f(0);
+  K_FLD::IntArray* cn(0);
+  char* varString, *eltType;
+  // Check array # 1
+  E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
+  if (err) return NULL;
+
+  K_FLD::FloatArray & crd = *f;
+  K_FLD::IntArray & cnt = *cn;
+
+  //~ std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
+  //~ std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
+
+  typedef ngon_t<K_FLD::IntArray> ngon_type;
+  ngon_type ngio(cnt);
+
+  ngio.PHs.clear();
+
+  std::vector<int> pglist;
+  K_CONNECT::IdTool::init_inc(pglist, ngio.PGs.size());
+
+  std::vector<int> tops;
+
+  E_Float angle = K_FUNC::normalize<3>(dir);
+
+  std::cout << "extrudeRevolSurf : 3 : angle : " << angle << std::endl;
+
+  for (int l = 0; l < nlayers; ++l)
+  {
+    std::cout << "extrudeRevolSurf : layer : " << l << std::endl;
+    tops.clear();
+    ngon_type::extrude_revol_faces(crd, ngio, pglist, dir, pt, angle, &tops);
+
+    pglist.clear();
+    pglist.insert(pglist.end(), tops.begin(), tops.end());
+  }
+
+  std::cout << "extrudeRevolSurf : 4" << std::endl;
+
+  PyObject* tpl = NULL;
+
+  if (!err)
+  {
+    K_FLD::IntArray cnto;
+    ngio.export_to_array(cnto);
+    tpl = K_ARRAY::buildArray(crd, varString, cnto, 8, "NGON", false);
+  }
+
+  std::cout << "extrudeRevolSurf : 5" << std::endl;
+  
+  delete f; delete cn;
   return tpl;
 }
 
@@ -1017,6 +1145,61 @@ PyObject* K_INTERSECTOR::reorientSpecifiedFaces(PyObject* self, PyObject* args)
   }
 
   std::cout << "nb of reoriented : "  << count  << " over " << size << " in pglist"<< std::endl;
+    
+  K_FLD::IntArray cnto;
+  ngio.export_to_array(cnto);
+  
+  // pushing out the mesh
+  PyObject *tpl = K_ARRAY::buildArray(crd, varString, cnto, -1, eltType, false);   
+  
+  delete f; delete cn;
+  return tpl;
+}
+
+PyObject* K_INTERSECTOR::reorientSurf(PyObject* self, PyObject* args)
+{
+  PyObject *arr;
+  E_Int dir(1); //1 : outward -1 : inward
+
+  if (!PYPARSETUPLEI(args, "Ol", "Oi", &arr, &dir)) return NULL;
+
+  if (dir != -1 && dir != 1) dir = 1;
+
+  K_FLD::FloatArray* f(0);
+  K_FLD::IntArray* cn(0);
+  char* varString, *eltType;
+  // Check array # 1
+  E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
+  if (err) return NULL;
+    
+  K_FLD::FloatArray & crd = *f;
+  K_FLD::IntArray & cnt = *cn;
+  
+  //std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
+  //std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
+  
+  typedef ngon_t<K_FLD::IntArray> ngon_type;
+  
+  ngon_type ngio(cnt);
+
+  std::vector<E_Int> orient;
+  ngon_type::reorient_connex_PGs(ngio.PGs, (dir==-1), orient);
+
+  // replace reverted polygons
+  E_Int count(0);
+  E_Int nb_pgs = ngio.PGs.size();
+  for (E_Int i=0; i < nb_pgs; ++i)
+  {
+    if (orient[i] == 1) continue;
+
+    ++count;
+    
+    E_Int PGi =i;
+
+    E_Int s = ngio.PGs.stride(PGi);
+    E_Int* p = ngio.PGs.get_facets_ptr(PGi);
+    std::reverse(p, p + s);
+  }
     
   K_FLD::IntArray cnto;
   ngio.export_to_array(cnto);
@@ -1450,6 +1633,42 @@ PyObject* K_INTERSECTOR::convertNGON2DToNGON3D(PyObject* self, PyObject* args)
 }
 
 //=============================================================================
+/* Converts a surfacic Basic to NGON nuga format*/
+//=============================================================================
+PyObject* K_INTERSECTOR::convertBasic2NGONFaces(PyObject* self, PyObject* args)
+{
+  PyObject *arr;
+
+  if (!PyArg_ParseTuple(args, "O", &arr)) return NULL;
+
+  K_FLD::FloatArray* f(0);
+  K_FLD::IntArray* cn(0);
+  char* varString, *eltType;
+  // Check array # 1
+  E_Int err = check_is_BASICF(arr, f, cn, varString, eltType);
+  if (err) return NULL;
+
+  K_FLD::FloatArray & crd = *f;
+  K_FLD::IntArray & cntQ4 = *cn;
+
+  ngon_type wNG;
+  ngon_unit::convert_fixed_stride_to_ngon_unit(cntQ4, 1, wNG.PGs);
+
+  PyObject* tpl = NULL;
+
+  if (wNG.PGs.size() != 0)
+  {
+    K_FLD::IntArray cnto;
+    wNG.export_to_array(cnto);
+    tpl = K_ARRAY::buildArray(crd, varString, cnto, 8, "NGON", false);
+  }
+
+  delete f; delete cn;
+
+  return tpl;
+}
+
+//=============================================================================
 /* remove any cell contributing to a non-manifold boundary */
 //=============================================================================
 PyObject* K_INTERSECTOR::removeNonManifoldExternalCells(PyObject* self, PyObject* args)
@@ -1638,6 +1857,61 @@ PyObject* K_INTERSECTOR::getOverlappingFaces(PyObject* self, PyObject* args)
 }
 
 //=============================================================================
+/* retrieves any polygon that are connecting 2 aniso HEXA */
+//=============================================================================
+PyObject* K_INTERSECTOR::getAnisoInnerFaces(PyObject* self, PyObject* args)
+{
+  PyObject *arr;
+  E_Float aniso_ratio(0.05);
+  
+  if (!PYPARSETUPLEF(args, "Od", "Of", &arr, &aniso_ratio)) return NULL;
+
+  K_FLD::FloatArray *f(0);
+  K_FLD::IntArray *cn(0);
+  char *varString, *eltType;
+  // Check array # 1
+  E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
+  if (err) return NULL;
+
+  std::unique_ptr<K_FLD::FloatArray> pf(f);   //for memory cleaning
+  std::unique_ptr<K_FLD::IntArray> pcn(cn); //for memory cleaning
+
+  K_FLD::FloatArray & crd = *f;
+  K_FLD::IntArray & cnt = *cn;
+  
+  typedef ngon_t<K_FLD::IntArray> ngon_type;
+  
+  ngon_type ng(cnt);
+
+  E_Int nb_pgs = ng.PGs.size();
+  std::vector<E_Int> flag(nb_pgs, 0);
+  E_Int nb_phs = ng.PHs.size();
+  E_Int bot, top;
+  for (E_Int i=0; i < nb_phs; ++i)
+  {
+    const E_Int* faces = ng.PHs.get_facets_ptr(i);
+    if (K_MESH::Polyhedron<0>::is_aniso_HX8(crd, ng.PGs, faces, ng.PHs.stride(i), aniso_ratio, bot, top))
+    {
+      ++flag[*(faces+bot)-1];
+      ++flag[*(faces+top)-1];
+    }
+  }
+  std::vector<E_Int> pgids;
+  for (E_Int i=0; i < nb_pgs; ++i)
+  {
+    if (flag[i] == 2) //inner
+      pgids.push_back(i);
+  }
+
+  std::cout << "getAnisoInnerFaces : " << pgids.size() << std::endl;
+
+  PyObject* tpl = K_NUMPY::buildNumpyArray(&pgids[0], pgids.size(), 1, 0);
+
+  return tpl;
+
+}
+
+//=============================================================================
 /* XXX */
 //=============================================================================
 PyObject* K_INTERSECTOR::merge(PyObject* self, PyObject* args)
@@ -1732,5 +2006,80 @@ PyObject* K_INTERSECTOR::oneph(PyObject* self, PyObject* args)
   delete f; delete cn;
   return tpl;
 }
+
+
+PyObject* K_INTERSECTOR::concatenate(PyObject* self, PyObject* args)
+{
+
+  E_Float tol(1.e-15);
+  PyObject* arrs;
+
+  if (!PYPARSETUPLEF(args, "Od", "Of", &arrs, &tol))
+  {
+    PyErr_SetString(PyExc_TypeError, "concatenate : wrong args");
+    return false;
+  }
+
+  E_Int nb_zones = PyList_Size(arrs);
+  
+
+  std::vector<K_FLD::FloatArray*> crds(nb_zones, nullptr);
+  std::vector<K_FLD::IntArray*>   cnts(nb_zones, nullptr);
+  char* varString, *eltType;
+  PyObject *l(PyList_New(0));
+
+  // get the zones
+  for (E_Int i=0; i < nb_zones; ++i)
+  {
+    //std::cout << "getting zone in list : " << i << std::endl;
+    PyObject* py_zone = PyList_GetItem(arrs, i);
+    
+    E_Int err = check_is_NGON(py_zone, crds[i], cnts[i], varString, eltType);
+    if (err)
+    {
+      for (E_Int i=0; i < nb_zones; ++i)
+      {
+        delete crds[i];
+        delete cnts[i];
+      }
+      return NULL;
+    }
+
+    //std::cout << "zone sizes : " << crd1s[i]->cols() << " points" << std::endl;
+    //std::cout << "zone sizes : " << cnt1s[i]->cols() << " cells" << std::endl;
+  }
+
+  // join and close
+
+  ngon_type ng;
+  K_FLD::FloatArray crd;
+  for (size_t i=0; i < cnts.size(); ++i)
+  {
+    //std::cout << "appending" << std::endl;
+    ngon_type ngt(*cnts[i]);
+    ngt.PGs.shift(crd.cols());
+    ng.append(ngt);
+    crd.pushBack(*crds[i]);
+  }
+
+  //std::cout << "before clean : nb_phs/phs/crd : " << ng.PHs.size() << "/" << ng.PGs.size() << "/" << crd.cols() << std::endl;
+
+  ngon_type::clean_connectivity(ng, crd, -1, tol);
+
+  //std::cout << "after clean : nb_phs/phs/crd : " << ng.PHs.size() << "/" << ng.PGs.size() << "/" << crd.cols() << std::endl;
+ 
+
+  K_FLD::IntArray cnto;
+  ng.export_to_array(cnto);
+  
+  PyObject* tpl = K_ARRAY::buildArray(crd, varString, cnto, 8, "NGON", false);
+  
+  for (E_Int i=0; i < nb_zones; ++i)
+  {
+    delete crds[i];
+    delete cnts[i];
+  }
+  return tpl;
+  }
 
 //=======================  Intersector/PolyMeshTools/utils.cpp ====================

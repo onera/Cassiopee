@@ -176,6 +176,9 @@ class MeshTool
     template <typename IntCONT>
     static inline void get_farthest_point_to_edge (const K_FLD::FloatArray& crd, E_Int Ni, E_Int Nj, const IntCONT& list, E_Int& Nf, E_Float& d2);
     
+    static void extrude_line (K_FLD::FloatArray& crd, const K_FLD::IntArray& cntE, const double* dir, double H, K_FLD::IntArray& cntQ4);
+    static E_Int computeNodeRadiusAndAngles(K_FLD::FloatArray& coord, const ngon_unit& pgs, E_Float x0, E_Float y0, 
+                                            std::vector<E_Float>& radius, std::vector<E_Float>& angles);
 private:
 
   E_Int __getContainingElement(const E_Float* point, const K_FLD::FloatArray& pos, const K_FLD::IntArray& connect,

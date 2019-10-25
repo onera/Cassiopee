@@ -141,6 +141,13 @@ E_Int Conformizer<DIM, Element_t>::run
     pos.resize(DIM, pos.cols());
   }
   
+#ifdef FLAG_STEP
+    if (chrono::verbose > 0) std::cout << "Conformizer::__initialize : X0 "        << X0 << std::endl;
+    if (chrono::verbose > 0) std::cout << "Conformizer::__initialize : tolerance " << tolerance << std::endl;
+    if (chrono::verbose > 0) std::cout << "Conformizer::__initialize : nb elts "   << connect.cols() << std::endl;
+    if (chrono::verbose > 0) std::cout << "Conformizer::__initialize : xc size "   << xc.size() << std::endl;
+#endif
+
   this->__initialize(pos, connect, tolerance, ancestors, xc, X0);
 
   do
@@ -416,6 +423,11 @@ E_Int Conformizer<DIM, Element_t>::__run
 
 #ifdef FLAG_STEP
   if (chrono::verbose > 0) std::cout << "Conformizer : get x pairs : " << tt.elapsed() << std::endl;
+  if (chrono::verbose > 0) std::cout << "Conformizer : nb pts : " << pos.cols() << std::endl;
+  if (chrono::verbose > 0) std::cout << "Conformizer : nb_elts : " << connect.cols() << std::endl;
+  if (chrono::verbose > 0) std::cout << "Conformizer : xc size : " << xc.size() << std::endl;
+  if (chrono::verbose > 0) std::cout << "Conformizer : tol_x :  " << _tol_x << std::endl;
+
   tt.start();
 #endif
   
@@ -437,7 +449,8 @@ E_Int Conformizer<DIM, Element_t>::__run
   _nbX = nbX;
   std::ostringstream o;
   o << "allX_" << _iter << ".mesh";
-  MIO::write(o.str().c_str(), pos, connect, 0/*elt type*/, &xc);
+  //MIO::write(o.str().c_str(), pos, connect, 0/*elt type*/, &xc);
+  medith::write(o.str().c_str(), pos, connect, "TRI");
 #endif
   
 

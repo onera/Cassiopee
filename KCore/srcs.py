@@ -154,6 +154,7 @@ if NUGA:
                  "KCore/Nuga/Boolean/BooleanOperator.cpp",
                  "KCore/Nuga/Boolean/TRI_BooleanOperator.cpp",
                  "KCore/Nuga/Boolean/BAR_BooleanOperator.cpp",
+                 #"KCore/Nuga/Boolean/TRI_debug.cpp",
                  "KCore/Nuga/Boolean/SwapperT3.cpp"]
 if METIS:
     cpp_srcs += ['KCore/Metis/auxapi.c',

@@ -160,12 +160,26 @@ def booleanIntersection(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mod
     s = XOR.booleanIntersection(s1, s2, tol, preserve_right, solid_right, agg_mode, improve_conformal_cloud_qual)
     return C.convertArrays2ZoneNode('inter', [s])
 
-def booleanUnion(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_conformal_cloud_qual=False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
+def booleanUnion(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_conformal_cloud_qual=False, multi_zone=False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     """Computes the union between two closed-surface or two volume meshes.
     Usage for surfaces or bars: booleanUnion(a1, a2, tol)
     Usage for volumes: booleanUnion(a1, a2, tol, preserve_right, solid_right)"""
+
     s1 = C.getFields(Internal.__GridCoordinates__, a1)[0]
     s2 = C.getFields(Internal.__GridCoordinates__, a2)[0]
+
+    if multi_zone == True :
+        typzone1 = s1[3]
+        typzone2 = s2[3]
+        if typzone1 == 'NGON' and typzone2 == 'NGON': # only for Volume/Volume
+          # compute the join tolerance
+          L1 = edgeLengthExtrema(a1)
+          L2 = edgeLengthExtrema(a2)
+          jtol = 0.1*min(L1,L2)
+
+          return booleanUnionMZ(a1, a2, tol, jtol, agg_mode, improve_conformal_cloud_qual)
+
+    #multi_zone option is ignored from here
 
     cur_shift=0
     extrudepgs=[]
@@ -190,6 +204,53 @@ def booleanUnion(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, im
       if len(res[i][0][1]) != 0: ozones.append(C.convertArrays2ZoneNode(res[i][1], [res[i][0]])) #(zname, array)
     
     return ozones
+
+def booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_conformal_cloud_qual = False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
+    """Computes the union between two closed volume meshes.
+    Usage for volumes: booleanUnion2(a1, a2, tol, agg_mode)"""
+    m1s = []
+    z1s = Internal.getZones(t1)
+    for z in z1s:
+      m1s.append(C.getFields(Internal.__GridCoordinates__, z)[0])
+    m2s = []
+    z2s = Internal.getZones(t2)
+    for z in z2s:
+      m2s.append(C.getFields(Internal.__GridCoordinates__, z)[0])
+
+    res = XOR.booleanUnionMZ(m1s, m2s, xtol, jtol, agg_mode, improve_conformal_cloud_qual)
+
+    i=0
+    zs = []
+    for z in z1s:
+        mesh = res[i]
+        pg_oids=res[i+1]
+
+        #print mesh
+
+        # MAJ du maillage de la zone
+        C.setFields([mesh], z, 'nodes') 
+
+        # MAJ POINT LISTS #
+        #updatePointLists(z, z1s, pg_oids)
+        i=i+2
+        zs.append(z)
+
+    for z in z2s:
+        mesh = res[i]
+        pg_oids=res[i+1]
+
+        # MAJ du maillage de la zone
+        C.setFields([mesh], z, 'nodes') 
+
+        # MAJ POINT LISTS #
+        #updatePointLists(z, z2s, pg_oids)
+        i=i+2
+        zs.append(z)
+
+    #t = C.newPyTree(['Base1',z1s], ['Base2',z2s])
+    t = C.newPyTree(['Base',zs])
+    return t
+      
 
 def booleanMinus(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_conformal_cloud_qual=False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     """Computes the difference between two closed-surface or two volume meshes.
@@ -651,6 +712,28 @@ def _reorientSpecifiedFaces(t, pgs, dir):
       m = XOR.reorientSpecifiedFaces(m, pgs[i], dir)
       C.setFields([m], z, 'nodes') # replace the mesh in the zone
       i = i+1
+
+#==============================================================================
+# reorientSurf
+# IN: a: 3D NGON mesh
+# IN: pgs : list of polygons
+# OUT: returns a 3D NGON Mesh with consistent orientation for specified polygons
+#==============================================================================
+def reorientSurf(t, dir):
+     
+    tp = Internal.copyRef(t)
+    _reorientSurf(tp, dir)
+    return tp
+
+def _reorientSurf(t, dir):
+
+    zones = Internal.getZones(t)
+    
+    for z in zones:
+      m = C.getFields(Internal.__GridCoordinates__, z)[0]
+      m = XOR.reorientSurf(m, dir)
+      C.setFields([m], z, 'nodes') # replace the mesh in the zone
+
 #==============================================================================
 # prepareCellsSplit
 # IN : t            : 3D NGON mesh
@@ -695,6 +778,19 @@ def simplifyCells(t, treat_externals, angular_threshold = 1.e-12):
     m = C.getFields(Internal.__GridCoordinates__, t)[0]
     m = XOR.simplifyCells(m, treat_externals, angular_threshold)
     return C.convertArrays2ZoneNode('simplifiedCells', [m])
+
+#==============================================================================
+# simplifySurf : agglomerate superfluous polygons that overdefine the surface
+# IN: mesh: 3D NGON mesh
+# IN: angular_threshold : should be as small as possible to avoid introducing degeneracies
+# OUT: returns a 3D NGON Mesh with less polygons (but same shape)
+#==============================================================================
+def simplifySurf(t, angular_threshold = 1.e-12):
+    """Simplifies over-defined surfaces (agglomerate some elligible polygons).
+    Usage: simplifySurf(t, angular_threshold)"""
+    m = C.getFields(Internal.__GridCoordinates__, t)[0]
+    m = XOR.simplifySurf(m, angular_threshold)
+    return C.convertArrays2ZoneNode('simplifiedSurf', [m])
 
 #==============================================================================
 # agglomerateSmallCells : agglomerate prescribed cells
@@ -1137,7 +1233,7 @@ def removeNthCell(t, nth):
     return C.convertArrays2ZoneNode('mes_wo_%d'%(nth), [m])
 
 
- #==============================================================================
+#==============================================================================
 # getOverlappingFaces   : returns the list of polygons in a1 and a2 that are overlapping.
 # IN : t1:              : NGON mesh (surface or volume).
 # IN : t2:              : NGON mesh (surface or volume).
@@ -1166,6 +1262,34 @@ def getOverlappingFaces(t1, t2, RTOL = 0.1, ps_min = 0.95, dir2=(0.,0.,0.)):
      if m1 == []: continue
 
      pgids.append(XOR.getOverlappingFaces(m1,m2, RTOL, ps_min, dir2))
+
+   return pgids
+
+#==============================================================================
+# getAnisoInnerFaces   : returns the list of polygons in a1 that are connecting 2 aniso elements.
+# IN : t1:              : NGON mesh (surface or volume).
+# IN : RTOL:            : Relative tolerance (in ]0., 1.[).
+# IN: ps_min            : minimal value for the dot product of the normals of each pair of colliding polygons. A value of 1. means pure parallelism.
+# IN: dir2              : if specified, direction vector used for all a2's polygons instead of their own normals.
+# OUT: 2 lists of overlapping polygons, the first one for a1, the seoncd one for a2.
+#==============================================================================
+def getAnisoInnerFaces(t1, aniso_ratio = 0.05):
+   """ Returns the list of polygons in a1 that are connecting 2 aniso elements.
+   Usage: getAnisoInnerFaces(t1, aniso_ratio)"""
+
+   try: import Transform as T
+   except: raise ImportError("getAnisoInnerFaces: requires Transform module.")
+
+   zones = Internal.getZones(t1)
+   
+   pgids = []
+   
+   for z in zones:
+        
+     m = C.getFields(Internal.__GridCoordinates__, z)[0]
+     if m == []: continue
+
+     pgids.append(XOR.getAnisoInnerFaces(m, aniso_ratio))
 
    return pgids
 
@@ -1231,12 +1355,12 @@ def oneph(t):
 #==============================================================================
 def edgeLengthExtrema(t):
     zones = Internal.getZones(t)
-    Lmin = 100000
+    Lmin = 10000000
     for z in zones:
         coords = C.getFields(Internal.__GridCoordinates__, z)[0]
         L = XOR.edgeLengthExtrema(coords)
         Lmin = min(L, Lmin)
-    print('min over zones is ', Lmin)
+    #print('min over zones is ', Lmin)
     return Lmin
 
 #==============================================================================
@@ -1257,19 +1381,41 @@ def computeAspectRatio(t, vmin=0.):
 #==============================================================================
 # extrudeUserDefinedBC : XXX
 #==============================================================================
-def extrudeUserDefinedBC(t, height = 0.25, mean_or_min = 1, create_ghost = 1):
+def extrudeBC(t, height = 0.25, mean_or_min = 1, create_ghost = 1, bndType = 'UserDefined'):
     m = C.getFields(Internal.__GridCoordinates__, t)[0]
     cur_shift=0
     extrudepgs=[]
     zones = Internal.getZones(t)
     #print("nb of zones %d"%(len(zones)))
-    (extrudepgs, cur_shift) = concatenateBC('UserDefined', [zones], extrudepgs, cur_shift)
+    (extrudepgs, cur_shift) = concatenateBC(bndType, [zones], extrudepgs, cur_shift)
     if (extrudepgs != []) : extrudepgs = numpy.concatenate(extrudepgs) # create a single list
+    else : return t
     #print("nb of pgs to pass : %s" %(len(extrudepgs)))
 
-    mo = XOR.extrudeUserDefinedBC(m, extrudepgs, height, mean_or_min, create_ghost)
 
-    return C.convertArrays2ZoneNode('union', [mo])
+    mo = XOR.extrudeBC(m, extrudepgs, height, mean_or_min, create_ghost)
+
+    return C.convertArrays2ZoneNode('extruded', [mo])
+
+#==============================================================================
+# extrudeSurf : XXX
+#==============================================================================
+def extrudeSurf(t, layer_height, nlayers = 1, strategy = 1):
+    """XXX"""
+    return C.TZA(t, 'nodes', 'nodes', XOR.extrudeSurf, t, layer_height, nlayers, strategy)
+
+def _extrudeSurf(t, layer_height, nlayers = 1, strategy = 1):
+    return C._TZA(t, 'nodes', 'nodes', XOR.extrudeSurf, t, layer_height, nlayers, strategy)
+
+#==============================================================================
+# extrudeRevolSurf : XXX
+#==============================================================================
+def extrudeRevolSurf(t, ax_pt, ax_dir, nlayers = 1):
+    """XXX"""
+    return C.TZA(t, 'nodes', 'nodes', XOR.extrudeRevolSurf, t, ax_pt, ax_dir, nlayers)
+
+def _extrudeRevolSurf(t, ax_pt, ax_dir, nlayers = 1):
+    return C._TZA(t, 'nodes', 'nodes', XOR.extrudeRevolSurf, t, ax_pt, ax_dir, nlayers)
 
 #==============================================================================
 # statsUncomputableFaces : XXX
@@ -1327,11 +1473,34 @@ def oneZonePerCell(t):
 # OUT: Converts a Cassiopee NGON Format for polygons (Face/Edge) to a Face/Node Format.
 #==============================================================================
 def convertNGON2DToNGON3D(t):
+    tp = Internal.copyRef(t)
+    _convertNGON2DToNGON3D(tp)
+    return tp
+
+def _convertNGON2DToNGON3D(t):
     """ Converts a Cassiopee NGON Format for polygons (Face/Edge) to a Face/Node Format.
     Usage: convertNGON2DToNGON3D(t)"""
-    m = C.getFields(Internal.__GridCoordinates__, t)[0]
-    m = XOR.convertNGON2DToNGON3D(m)
-    return C.convertArrays2ZoneNode('nuga', [m])
+    zones = Internal.getZones(t)
+    zo = []
+    for z in zones:
+        m = C.getFields(Internal.__GridCoordinates__, z)[0]
+        m = XOR.convertNGON2DToNGON3D(m)
+        C.setFields([m], z, 'nodes')
+
+def convertBasic2NGONFaces(t):
+    tp = Internal.copyRef(t)
+    _convertBasic2NGONFaces(tp)
+    return tp
+
+def _convertBasic2NGONFaces(t):
+    """ Converts a Basci type format for faces (QUAD or TRI) to nuga Face/Node Format.
+    Usage: _convertBasic2NGONFaces(t)"""
+    zones = Internal.getZones(t)
+    zo = []
+    for z in zones:
+        m = C.getFields(Internal.__GridCoordinates__, z)[0]
+        m = XOR.convertBasic2NGONFaces(m)
+        C.setFields([m], z, 'nodes')
 
 def centroids(t):
     m = C.getFields(Internal.__GridCoordinates__, t)[0]
@@ -1344,6 +1513,15 @@ def merge(tz, sz, tol = 1.e-15): #target zone, list source zones
     s = C.getFields(Internal.__GridCoordinates__, sz)[0]
     #print s
     return XOR.merge(m, s, tol)
+
+def concatenate(zones, tol = 1.e-15):
+    ms = []
+    for z in zones:
+        m = C.getFields(Internal.__GridCoordinates__, z)[0]
+        ms.append(m)
+    m = XOR.concatenate(ms, tol)
+    return C.convertArrays2ZoneNode('assembly', [m])
+
   
 #~ def conservativeTransfer(a1, a2, tol=0., reconstruction_type=0):
     #~ 

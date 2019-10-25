@@ -75,6 +75,46 @@ PyObject* K_INTERSECTOR::simplifyCells(PyObject* self, PyObject* args)
   return tpl;
 }
 
+//=============================================================================
+/* Agglomerate superfuous faces (overdefined polyhedra) */
+//=============================================================================
+PyObject* K_INTERSECTOR::simplifySurf(PyObject* self, PyObject* args)
+{
+  PyObject *arr;
+  E_Float angular_threshold(0.);
+
+  if (!PYPARSETUPLEF(args, "Od", "Of", &arr, &angular_threshold)) return NULL;
+
+  K_FLD::FloatArray* f(0);
+  K_FLD::IntArray* cn(0);
+  char* varString, *eltType;
+  // Check array # 1
+  E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
+  if (err) return NULL;
+    
+  K_FLD::FloatArray & crd = *f;
+  K_FLD::IntArray & cnt = *cn;
+  
+  //~ std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
+  //~ std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
+  
+  typedef ngon_t<K_FLD::IntArray> ngon_type;
+  ngon_type ngi(cnt);
+  std::vector<E_Int> nids, orient(ngi.PGs.size(), 1);
+  ngon_unit agglo_pgs;
+
+  K_MESH::Polygon::full_agglomerate(crd, ngi.PGs, ngi.PGs.get_facets_ptr(0), ngi.PGs.size(), angular_threshold, &orient[0], agglo_pgs, nids);
+  
+  ngon_type ngo(agglo_pgs, true);
+  K_FLD::IntArray cnto;
+  ngo.export_to_array(cnto);
+  
+  PyObject* tpl = K_ARRAY::buildArray(crd, varString, cnto, -1, eltType, false);;
+
+  delete f; delete cn;
+  return tpl;
+}
+
 PyObject* K_INTERSECTOR::collapseUncomputableFaces(PyObject* self, PyObject* args)
 {
   PyObject *arr;

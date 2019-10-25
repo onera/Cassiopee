@@ -34,7 +34,7 @@
 #include "Connect/EltAlgo.h"
 #include "Connect/BARSplitter.h"
 #include "Connect/MeshTool.h"
-
+#include "Nuga/GapFixer/FittingBox.h"
 #include "Nuga/include/macros.h"
 
 #ifdef DEBUG_NGON_T
@@ -3540,7 +3540,7 @@ build_noF2E(K_FLD::IntArray& F2E) const
 template <typename TriangulatorType>
 static E_Int build_orientation_ngu(const K_FLD::FloatArray& crd, ngon_t& ng, ngon_unit& orient)
 {
-  // WARNING : type are lost (UNUSED...) fixme
+  // WARNING : type are lost : fixme
   
   ng.flag_externals(1);
   TriangulatorType dt;
@@ -4304,6 +4304,197 @@ static E_Int extrude_faces
     
     wNG.PHs.add(buff.size()/*nb_pgs + 2*/, &buff[0]);
   }
+  //std::cout << "size before adding ghost : " << wNG.PHs._type.size() << std::endl;
+  wNG.PHs._type.resize(wNG.PHs.size(), INITIAL_SKIN);
+  wNG.PHs._ancEs.resize(2, wNG.PHs.size(), E_IDX_NONE);
+  //std::cout << "nb of added ghost : " << nb_cells << std::endl;
+  
+#ifdef DEBUG_NGON_T
+  {
+    ngon_t just_tops(tops, false);
+    K_FLD::IntArray cnto;
+    just_tops.export_to_array(cnto);
+    MIO::write("tops.plt", coord, cnto, "NGON");
+  }
+  
+  {
+    ngon_t just_bulks(bulks, false);
+    just_bulks.PGs.updateFacets();
+    just_bulks.PHs.updateFacets();
+    K_FLD::IntArray cnto;
+    just_bulks.export_to_array(cnto);
+    MIO::write("bulks.plt", coord, cnto, "NGON");
+  }
+  
+  {
+    K_FLD::IntArray cnto;
+    wNG.export_to_array(cnto);
+    MIO::write("ghost.plt", coord, cnto, "NGON");
+  }
+  
+#endif
+
+  wNG.PGs.updateFacets();
+  wNG.PHs.updateFacets();
+
+  return 0;
+}
+
+static E_Int extrude_revol_faces
+(K_FLD::FloatArray& coord, ngon_t& wNG, const Vector_t<E_Int>& PGlist, const E_Float* ax, const E_Float* ax_pt,
+  E_Float angle, Vector_t<E_Int>* topPGlist = 0)
+{
+  if (PGlist.empty()) return 0;
+
+  E_Float axis[] = {0., 0., 1.};
+  E_Float* axis_pt = nullptr;
+  
+#ifdef DEBUG_NGON_T
+  E_Int minid = *std::min_element(PGlist.begin(), PGlist.end());
+  E_Int maxid = *std::max_element(PGlist.begin(), PGlist.end());
+  E_Int nb_pgs = wNG.PGs.size();
+  assert (minid >= 0);
+  assert (maxid < nb_pgs);
+
+  std::cout << "input angle : " << height_factor << std::endl;
+#endif
+
+  coord.pushBack(ax_pt, ax_pt+3); // to embark it in the transfo
+
+  K_FLD::FloatArray P(3,3), iP(3,3);
+  FittingBox::computeAFrame(ax, P);
+  iP = P;
+  K_FLD::FloatArray::inverse3(iP);
+  FittingBox::transform(coord, iP);// Now we are in the reference cylindrical coordinate system.
+
+  axis_pt = coord.col(coord.cols()-1);
+  
+  // 1.
+
+  ngon_unit ghost_pgs;
+  Vector_t<E_Int> obids; //initial bottom ids  : for indirection when building ghost cells at the end
+  wNG.PGs.extract(PGlist, ghost_pgs, obids);
+
+  E_Float x0 = axis_pt[0];
+  E_Float y0 = axis_pt[1];
+  std::vector<E_Float> angles, radius;
+  E_Int nb_new_points = K_CONNECT::MeshTool::computeNodeRadiusAndAngles(coord, ghost_pgs, x0, y0, radius, angles);
+
+  // a. conversion NGON3D -> NGON2D
+  ngon_t ng2D;
+  ngon_t::export_surfacic_FN_to_EFN(ghost_pgs, ng2D);
+
+  // sync with wNG for future bulks appending
+  E_Int shft = wNG.PGs.size();
+  ng2D.PHs.shift(shft);
+
+  // b. image points
+  E_Int nb_points = coord.cols();
+  coord.resize(3, nb_points + nb_new_points);
+  Vector_t<E_Int> img(coord.cols(), E_IDX_NONE);
+  E_Int nid(nb_points);
+  
+  for (E_Int i = 0; i < nb_points; ++i)
+  {
+    E_Float& a = angles[i];
+    if (a == K_CONST::E_MAX_FLOAT) continue; // not a point to be rotated
+    a += angle;
+
+    const E_Float* p = coord.col(i);
+
+    E_Float* newp = coord.col(nid);
+
+    newp[0] = radius[i] * ::cos(a);
+    newp[1] = radius[i] * ::sin(a);
+    newp[2] = p[2];
+
+    img[i] = nid++;
+  }
+
+  FittingBox::transform(coord, P); // back to original ref frame  
+  
+#ifdef DEBUG_NGON_T
+  ngon_unit bulks;
+#endif
+
+  // c. Q4 bulkheads
+  E_Int nb_bulks = ng2D.PGs.size(); // for each edge, a bulk
+  std::cout << "nb bulks : " << nb_bulks << std::endl;
+  E_Int bulk[4];
+  for (E_Int i = 0; i < nb_bulks; ++i)
+  {
+    const E_Int* nodes = ng2D.PGs.get_facets_ptr(i);
+    E_Int nnodes = ng2D.PGs.stride(i);
+
+    if (nnodes != 2)
+    {
+
+    //std::cout << "bulk : " << i << "nnode : " << nnodes << std::endl;
+    //std::cout << "nodes[0] : " << nodes[0] << std::endl;
+    //std::cout << "nodes[1] : " << nodes[1] << std::endl;
+    return 1;
+  }
+
+    bulk[0]=nodes[0];
+    bulk[1]=nodes[1];
+    
+#ifdef DEBUG_NGON_T
+    assert ( (img[nodes[0]-1] != E_IDX_NONE) && (img[nodes[1]-1] != E_IDX_NONE) );
+#endif
+    
+    bulk[2] = img[nodes[1]-1] + 1;
+    bulk[3] = img[nodes[0]-1] + 1;
+    
+    wNG.PGs.add(4, &bulk[0]); // this PG id is sync with ng2D (due to previous shift)
+    
+    //wNG.PGs._type.push_back(ng2D.PGs._type[i]);
+    
+#ifdef DEBUG_NGON_T
+    bulks.add(4, &bulk[0]);   // this PG id is sync with ng2D (due to previous shift)
+#endif
+  }
+  
+  wNG.PGs._type.resize(wNG.PGs.size(), 0);
+  wNG.PGs._ancEs.resize(2, wNG.PGs.size(), E_IDX_NONE);
+  
+  // d. TOPs
+  ngon_unit tops = ghost_pgs;
+  tops.change_indices(img, true/*zero based*/);
+  shft = wNG.PGs.size(); // for top indirection when building ghost cells at the end
+  
+  tops._type.resize(ghost_pgs.size(), INITIAL_SKIN);
+  tops._ancEs.resize(2, ghost_pgs.size(), E_IDX_NONE);
+  
+  if (topPGlist)
+  {
+    E_Int PGb = wNG.PGs.size();    
+    for (E_Int k=0; k < tops.size(); ++k)
+      topPGlist->push_back(PGb+k);
+  }
+  
+  wNG.PGs.append(tops);
+#ifdef DEBUG_NGON_T
+  assert(wNG.PGs.attributes_are_consistent());
+#endif
+
+  // e. PHs
+  E_Int nb_cells = ghost_pgs.size();
+  Vector_t<E_Int> buff;
+
+  //
+  for (E_Int i = 0 ; i < nb_cells; ++i)
+  {
+    const E_Int* pgs = ng2D.PHs.get_facets_ptr(i);
+    E_Int nb_pgs = ng2D.PHs.stride(i);
+    
+    buff.clear();
+    buff.insert(buff.end(), pgs, pgs + nb_pgs); // adding bulkheads
+    buff.push_back(obids[i] + 1);               // adding bottom
+    buff.push_back(i + shft + 1);               // adding top
+    
+    wNG.PHs.add(buff.size()/*nb_pgs + 2*/, &buff[0]);
+  }
+
   //std::cout << "size before adding ghost : " << wNG.PHs._type.size() << std::endl;
   wNG.PHs._type.resize(wNG.PHs.size(), INITIAL_SKIN);
   wNG.PHs._ancEs.resize(2, wNG.PHs.size(), E_IDX_NONE);

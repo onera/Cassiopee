@@ -19,6 +19,7 @@
 //Author : Sâm Landier (sam.landier@onera.fr)
 
 #include "TRI_debug.h"
+#include "medit.hxx"
 #include "MeshElement/Triangle.h"
 #include "MeshElement/Edge.h"
 #include "Connect/MeshTool.h"
@@ -44,7 +45,7 @@ void TRI_debug::draw_connected_to_node_T3s
   }
   std::ostringstream o;
   o << "T3_connected_to_" << Ni << "_toT3.mesh";
-  MIO::write(o.str().c_str(), coord, tmp, "TRI");
+  medith::write(o.str().c_str(), coord, tmp, "TRI");
 }
 
 ///
@@ -104,7 +105,7 @@ void TRI_debug::draw_connected_to_T3
   //
   std::ostringstream o;
   o << "connected_to_T3_" << Ti << ".mesh";
-  MIO::write(o.str().c_str(), coord, tmp, "TRI", 0, &colors);
+  medith::write(o.str().c_str(), coord, tmp, "TRI", 0, &colors);
 }
 
 ///
@@ -119,7 +120,7 @@ void TRI_debug::draw_connected_to_T3
   //
   std::ostringstream o;
   o << "connected_to_T3.mesh" ;
-  MIO::write(o.str().c_str(), coordOut, connOut, "TRI", 0, &colors);
+  medith::write(o.str().c_str(), coordOut, connOut, "TRI", 0, &colors);
 }
 
 ///
@@ -233,7 +234,7 @@ void TRI_debug::draw_connected_to_E2
          (connectT3(0,i) == Nj || connectT3(1,i) == Nj || connectT3(2,i) == Nj) )
       tmp.pushBack(connectT3.col(i), connectT3.col(i)+3); 
   }
-  MIO::write("attached_toE.mesh", coord, tmp, "TRI");
+  medith::write("attached_toE.mesh", coord, tmp, "TRI");
 }
 
 ///
@@ -309,7 +310,7 @@ void TRI_debug::get_T3_neighbors
       colors.resize(colors.size()+1,COL_NEXT2);
     }
   }
-  MIO::write(fname, coord, connect, "TRI", 0, &colors);
+  medith::write(fname, coord, connect, "TRI", 0, &colors);
 }
 
 void TRI_debug::coloring_frames
@@ -347,7 +348,7 @@ void TRI_debug::coloring_frames
     o << "frame_";
     if (count < 10) o << "0";
     o << count++ << ".mesh";
-    MIO::write(o.str().c_str(), coord, connectT3, "TRI", &keep/*, &colors*/);
+    medith::write(o.str().c_str(), coord, connectT3, "TRI", &keep/*, &colors*/);
     
     for (size_t i = 0; i < 3; ++i)
     {
@@ -383,7 +384,7 @@ void TRI_debug::draw_same_ancestor_T3s
   K_FLD::IntArray tmp;
   tmp.append_selection(connectT3, oids);
   
-  MIO::write(o.str().c_str(), coord, tmp, "TRI");
+  medith::write(o.str().c_str(), coord, tmp, "TRI");
   
 }
 
@@ -438,7 +439,7 @@ void TRI_debug::write_wired(const char* fname, const K_FLD::FloatArray& coord, c
   if (T3colors)
     colors=&E2colors;
   
-  MIO::write(fname, crd, connectE, "BAR", 0, colors);
+  medith::write(fname, crd, connectE, "BAR", 0, colors);
 }
 
 ///
@@ -491,7 +492,7 @@ void TRI_debug::write_wired(const char* fname, const K_FLD::FloatArray& coord, c
     if (colors) K_CONNECT::IdTool::compact(*colors, nids);
   }
   
-  MIO::write(fname, *pCrd, connectE, "BAR", 0, colors);
+  medith::write(fname, *pCrd, connectE, "BAR", 0, colors);
 }
 
 ///
@@ -512,7 +513,7 @@ bool TRI_debug::analyze_T3_set(E_Int setid, const K_FLD::FloatArray& crd, const 
     if (tmp.cols())
     {
       o << "faulty_parasite_" << setid << ".mesh";
-      MIO::write(o.str().c_str(), crd, tmp, "TRI", 0, colors);
+      medith::write(o.str().c_str(), crd, tmp, "TRI", 0, colors);
     }
     else
       return healthy;
@@ -571,7 +572,7 @@ bool TRI_debug::analyze_T3_set(E_Int setid, const K_FLD::FloatArray& crd, const 
     o << "frees_for_col_" << color << ".mesh";
     K_FLD::FloatArray tmpCrd=crd;
     K_CONNECT::MeshTool::compact_to_mesh(tmpCrd, cB_Free, nids);
-    MIO::write(o.str().c_str(), tmpCrd, cB_Free, "BAR");
+    medith::write(o.str().c_str(), tmpCrd, cB_Free, "BAR");
     
     is_closed = (cB_Free.cols()==0);
  
@@ -580,7 +581,7 @@ bool TRI_debug::analyze_T3_set(E_Int setid, const K_FLD::FloatArray& crd, const 
     o << "non_mnfld_for_col_" << color << ".mesh";
     tmpCrd=crd;
     K_CONNECT::MeshTool::compact_to_mesh(tmpCrd, cB_NMnfld, nids);
-    MIO::write(o.str().c_str(), tmpCrd, cB_NMnfld, "BAR");
+    medith::write(o.str().c_str(), tmpCrd, cB_NMnfld, "BAR");
     
     is_manifold = (cB_NMnfld.cols()==0);
 

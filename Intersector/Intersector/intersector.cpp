@@ -31,11 +31,11 @@ static PyMethodDef Pyintersector [] =
   
   {"booleanIntersection", K_INTERSECTOR::booleanIntersection, METH_VARARGS},
   {"booleanUnion", K_INTERSECTOR::booleanUnion, METH_VARARGS},
+  {"booleanUnionMZ", K_INTERSECTOR::booleanUnionMZ, METH_VARARGS},
   {"booleanMinus", K_INTERSECTOR::booleanMinus, METH_VARARGS},
   {"booleanIntersectionBorder", K_INTERSECTOR::booleanIntersectionBorder, METH_VARARGS},
   {"booleanModifiedSolid", K_INTERSECTOR::booleanModifiedSolid, METH_VARARGS},
   {"DiffSurf", K_INTERSECTOR::DiffSurf, METH_VARARGS},
-  {"XcellN", K_INTERSECTOR::XcellN, METH_VARARGS},
   {"unify", K_INTERSECTOR::unify, METH_VARARGS},
   {"P1ConservativeChimeraCoeffs", K_INTERSECTOR::P1ConservativeChimeraCoeffs, METH_VARARGS},
   {"selfX", K_INTERSECTOR::selfX, METH_VARARGS},
@@ -44,6 +44,7 @@ static PyMethodDef Pyintersector [] =
   {"convexifyFaces", K_INTERSECTOR::convexifyFaces, METH_VARARGS},
   {"prepareCellsSplit", K_INTERSECTOR::prepareCellsSplit, METH_VARARGS},
   {"simplifyCells", K_INTERSECTOR::simplifyCells, METH_VARARGS},
+  {"simplifySurf", K_INTERSECTOR::simplifySurf, METH_VARARGS},
   {"splitNonStarCells", K_INTERSECTOR::splitNonStarCells, METH_VARARGS},
   {"collapseUncomputableFaces", K_INTERSECTOR::collapseUncomputableFaces, METH_VARARGS},
   {"removeNonManifoldExternalCells", K_INTERSECTOR::removeNonManifoldExternalCells, METH_VARARGS},
@@ -66,6 +67,7 @@ static PyMethodDef Pyintersector [] =
   {"removeNthCell", K_INTERSECTOR::removeNthCell, METH_VARARGS},
 
   {"getOverlappingFaces", K_INTERSECTOR::getOverlappingFaces, METH_VARARGS},
+  {"getAnisoInnerFaces", K_INTERSECTOR::getAnisoInnerFaces, METH_VARARGS},
 
   {"statsUncomputableFaces", K_INTERSECTOR::statsUncomputableFaces, METH_VARARGS},
   {"statsSize", K_INTERSECTOR::statsSize, METH_VARARGS},
@@ -82,18 +84,23 @@ static PyMethodDef Pyintersector [] =
   { "convert2Polyhedron", K_INTERSECTOR::convert2Polyhedron, METH_VARARGS },
   { "oneZonePerCell", K_INTERSECTOR::oneZonePerCell, METH_VARARGS },
   
-  { "extrudeUserDefinedBC", K_INTERSECTOR::extrudeUserDefinedBC, METH_VARARGS },
+  { "extrudeBC", K_INTERSECTOR::extrudeBC, METH_VARARGS },
+  { "extrudeSurf", K_INTERSECTOR::extrudeSurf, METH_VARARGS },
+  { "extrudeRevolSurf", K_INTERSECTOR::extrudeRevolSurf, METH_VARARGS },
 
   { "reorientExternalFaces", K_INTERSECTOR::reorientExternalFaces, METH_VARARGS },
   { "reorientSpecifiedFaces", K_INTERSECTOR::reorientSpecifiedFaces, METH_VARARGS },
+  { "reorientSurf", K_INTERSECTOR::reorientSurf, METH_VARARGS },
 
   { "convertNGON2DToNGON3D", K_INTERSECTOR::convertNGON2DToNGON3D, METH_VARARGS },
+  { "convertBasic2NGONFaces", K_INTERSECTOR::convertBasic2NGONFaces, METH_VARARGS },
   { "oneph", K_INTERSECTOR::oneph, METH_VARARGS },
 
   /////////// syncronizing the tree ///////////
   { "updatePointLists", K_INTERSECTOR::updatePointLists, METH_VARARGS },
   /////////////////////////////////////////////
   { "merge", K_INTERSECTOR::merge, METH_VARARGS },
+  { "concatenate", K_INTERSECTOR::concatenate, METH_VARARGS },
 
   {NULL, NULL}
 };

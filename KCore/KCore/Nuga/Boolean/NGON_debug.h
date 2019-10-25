@@ -22,7 +22,6 @@
 #define	__NGON_DEBUG_H__
 
 #include "Fld/ngon_t.hxx"
-#include "IO/io.h"
 #include <sstream>
 #include "Nuga/Delaunay/Triangulator.h"
 #include "Connect/MeshTool.h"
@@ -49,7 +48,6 @@ public:
 public:
   static void write(const char* fname, const ACoordinate_t& coord, const ngon_type& ng, const std::vector<bool>*keep=0, bool clean=false);
   static void write_external_phs(const char* fname, const ACoordinate_t& coord, const ngon_type& ng);
-  static void write(const char* fname, const ACoordinate_t& coord, const ngon_unit& pgs);
   
   static void enabling_write(const char* fname, const K_FLD::FloatArray& coord, const K_FLD::IntArray& connect, const char* elt_type);
   
@@ -57,7 +55,6 @@ public:
   static void draw_PHT3(const K_FLD::FloatArray& coord, const K_FLD::IntArray& connectT3, const std::map<E_Int, Vector_t<E_Int> >& PHT3s, E_Int PHi, bool localid=false);
   static void draw_PHT3(const K_FLD::FloatArray& coord, const K_FLD::IntArray& connectT3, const std::map<E_Int, std::map<E_Int, Vector_t<E_Int> > >& PH_to_PGT3, E_Int PHi);
   static void draw_PHT3s(const char* fname, const K_FLD::FloatArray& coord, const K_FLD::IntArray& connectT3, const std::map<E_Int, Vector_t<E_Int> >& PHT3s, Vector_t<E_Int>& colors, const Vector_t<bool>* flag=0);
-  static void draw_PGT3s(const K_FLD::FloatArray& coord,const ngon_unit& PGs);
   static void draw_PGT3(const char* fname, const K_FLD::FloatArray& coord,const ngon_unit& PGs, E_Int PGi, K_FLD::FloatArray* PGnormals=0);
   static void draw_PH(const char* fname, const K_FLD::FloatArray& coord, const ngon_type& ng, E_Int i);
   static void draw_wired_PH(const char* fname, const K_FLD::FloatArray& crd, const ngon_type& ng, E_Int ith, E_Int index_start);
@@ -95,7 +92,6 @@ void NGON_DBG_CLASS::write
   if (ng.PGs.size() == 0)
     return;
 
-  Connectivity_t cNGON;
   ngon_type ngtmp = ng;
   Coordinate_t crd(coord.array());
   if (clean)
@@ -104,145 +100,22 @@ void NGON_DBG_CLASS::write
     ngon_type::compact_to_used_nodes(ngtmp.PGs, crd);
   }
 
-  if (keep == 0)
-  {
-    cNGON.pushBack(ngtmp.PGs._NGON);
-    cNGON.pushBack(ngtmp.PHs._NGON);
-  }
-  else
+  if (keep != 0)
   {
     ngon_type NGout;
     Vector_t<E_Int> npgids;
     ngtmp.select_phs(ngtmp, *keep, npgids, NGout);//fixme : ngtmp is refered as object AND argument
-    cNGON.pushBack(NGout.PGs._NGON);
-    cNGON.pushBack(NGout.PHs._NGON);
   }
 
-  if (cNGON.getSize() == 0)
-    return;
-
-  //std::cout << cNGON << std::endl;
+ 
 
   std::ostringstream fullname;
   fullname << fname;
 
-#ifdef WIN32
-  fullname << ".tp";
-#else
-  fullname << ".plt";
-#endif
+  fullname << ".mesh";
   
-  MIO::write(fullname.str().c_str(), crd, cNGON, "NGON");
+  medith::write(fullname.str().c_str(), crd, ngtmp);
 }
-
-///
-TEMPLATE_COORD_CONNECT
-void NGON_DBG_CLASS::write_external_phs
-(const char* fname, const ACoordinate_t& coord, const ngon_type& ng)
-{
-  ngon_unit PHex;
-  std::vector<E_Int> oIds;
-  ng.PHs.extract_of_type(INITIAL_SKIN, PHex, oIds);
-  
-  if (oIds.empty()) return;
-  
-  ngon_type ngex;
-  ngex.PHs=PHex;
-  ngex.PGs=ng.PGs;
-  
-  Connectivity_t cNGON; 
-  cNGON.pushBack(ngex.PGs._NGON);
-  cNGON.pushBack(ngex.PHs._NGON);
-  
-  if (cNGON.getSize() == 0)
-    return;
-  
-  //std::cout << cNGON << std::endl;
-  
-  MIO::write(fname, coord.array(), cNGON, "NGON");
-}
-  
-///
-TEMPLATE_COORD_CONNECT
-void NGON_DBG_CLASS::write
-(const char* fname, const ACoordinate_t& coord, const ngon_unit& pgs)
-{
-  if (pgs._NGON.size() == 0)
-  {
-    std::cout << "input pgs is empty !!!" << std::endl;
-    return;
-  }
-  
-  pgs.updateFacets();
-  
-  Connectivity_t cNGON; 
-  cNGON.pushBack(pgs._NGON);
-    
-  if (cNGON.getSize() == 0)
-    return;
-  size_t sz = pgs.size();
-  // create fictive elements, 1 by pgs
-  Vector_t<E_Int> PHs(2, 0);
-  PHs[0]=pgs.size();
-  for (size_t i = 0; i < sz; ++i)
-  {
-    PHs.push_back(1);
-    PHs.push_back(i+1);
-  }
-  PHs[1]=PHs.size();
-  
-  cNGON.pushBack(PHs);
-  
-  //std::cout << cNGON << std::endl;
-  
-  std::ostringstream fullname;
-  fullname << fname;
-
-#ifdef WIN32
-  fullname << ".tp";
-#else
-  fullname << ".plt";
-#endif
-  
-  MIO::write(fullname.str().c_str(), coord.array(), cNGON, "NGON");
-}
-
-/*
-///
-TEMPLATE_COORD_CONNECT
-void NGON_DBG_CLASS::write
-(const char* fname, const ACoordinate_t& coord, const ngon_type& ng, const Vector_t<bool>& face_flag)
-{
-  Connectivity_t cNGON;
-  
-  ngon_unit pgs;
-  //fictive elements (1pg -> 1 element) to make the IO work
-  Vector_t<E_Int> phs(2,0);
-  
-  size_t sz = ng.PGs.size();
-  for (size_t i = 0; i < sz; ++i)
-  {
-    if (face_flag[i])
-      pgs.add(ng.PGs, i);
-  }
-  
-  sz = pgs.size();
-  for (size_t i = 0; i < sz; ++i)
-  {
-    phs.push_back(1);
-    phs.push_back(i+1);
-  }
-  
-  phs[0]=sz;
-  phs[1]=phs.size()-2;
-      
-  cNGON.pushBack(pgs._NGON);
-  cNGON.pushBack(phs);
-  
-  size_t z = pgs.size();
-  
-  MIO::write(fname, coord.array(), cNGON, "NGON");
-}*/
 
 ///
 TEMPLATE_COORD_CONNECT
@@ -281,10 +154,10 @@ void NGON_DBG_CLASS::draw_PHT3
     std::vector<E_Int> nids;
     K_CONNECT::MeshTool::compact_to_mesh(tmpCrd, tmpCnt, nids);
     
-    MIO::write(o.str().c_str(), tmpCrd, tmpCnt, "TRI");
+    medith::write(o.str().c_str(), tmpCrd, tmpCnt, "TRI");
   }
   else
-    MIO::write(o.str().c_str(), coord, cT3, "TRI");
+    medith::write(o.str().c_str(), coord, cT3, "TRI");
 }
 
 ///
@@ -308,7 +181,7 @@ void NGON_DBG_CLASS::draw_PHT3
   
   std::ostringstream o;
   o << "PHT3col_" << PHi << ".mesh";
-  MIO::write(o.str().c_str(), coord, cT3, "TRI", 0, &colors);
+  medith::write(o.str().c_str(), coord, cT3, "TRI", 0, &colors);
   
 }
 
@@ -329,7 +202,7 @@ void NGON_DBG_CLASS::draw_PHT3 (const K_FLD::FloatArray& coord, const ngon_type&
   
   std::ostringstream o;
   o << "PHT3ized_" << PHi << ".mesh";
-  MIO::write(o.str().c_str(), coord, connectT3, "TRI");
+  medith::write(o.str().c_str(), coord, connectT3, "TRI");
 }
 
 
@@ -355,29 +228,7 @@ void NGON_DBG_CLASS::draw_PHT3s
     cols.resize(cT3.cols(), colors[count]);
   }
   
-  MIO::write(fname, coord, cT3, "TRI", 0, &cols);
-}
-
-///
-TEMPLATE_COORD_CONNECT
-void NGON_DBG_CLASS::draw_PGT3s(const K_FLD::FloatArray& coord,const ngon_unit& PGs)
-{
-  K_FLD::IntArray connectT3;
-  Vector_t<E_Int> T3_to_nPG;
-  E_Int err = ngon_type::template triangulate_pgs<DELAUNAY::Triangulator>(PGs, coord, connectT3, T3_to_nPG, true, false);
-  if (err) std::cout << "failed on draw_PGT3s" << std::endl;
-  if (err) return;
-  Vector_t<E_Int> colors = T3_to_nPG;
-  for (size_t i = 0; i< colors.size(); ++i)colors[i]+=1;//to use 0 for distinguish externals
-  
-  for (size_t i = 0; i < T3_to_nPG.size(); ++i)
-  {
-    E_Int pg = T3_to_nPG[i];
-    if (!PGs._type.empty() && PGs._type[pg] == INITIAL_SKIN)
-      colors[i]=0;
-  }
-  Vector_t<bool> keep(colors.size(), true);
-  MIO::write("ngT3.mesh", coord, connectT3, "TRI", &keep, &colors);
+  medith::write(fname, coord, cT3, "TRI", 0, &cols);
 }
 
 ///
@@ -391,7 +242,7 @@ void NGON_DBG_CLASS::draw_PGT3
   DELAUNAY::Triangulator t;
   t.run(coord, PGs.get_facets_ptr(PGi), PGs.stride(PGi), 1, connectT3, true/*do ot shuffle*/, false);
      
-  MIO::write(fname, coord, connectT3, "TRI");
+  medith::write(fname, coord, connectT3, "TRI");
   
   if (PGnormals)
   {
@@ -414,8 +265,6 @@ void NGON_DBG_CLASS::draw_PG
   pg.add(PGs.stride(PGi), PGs.get_facets_ptr(PGi));
 
   ngon_type ng(pg);
-  K_FLD::IntArray cnt;
-  ng.export_to_array(cnt);
 
   const K_FLD::FloatArray *pCrd(&crd);
   K_FLD::FloatArray tmpCrd;
@@ -427,12 +276,9 @@ void NGON_DBG_CLASS::draw_PG
   //}
 
   std::ostringstream o;
-#ifndef WIN32
-  o << "one_pg_" << PGi << ".plt";
-#else
-  o << "one_pg_" << PGi << ".tp";
-#endif
-  MIO::write(o.str().c_str(), *pCrd, cnt, "NGON");
+  o << "one_pg_" << PGi << ".mesh";
+
+  medith::write(o.str().c_str(), *pCrd, ng);
 }
 
 ///
@@ -444,24 +290,18 @@ void NGON_DBG_CLASS::draw_PGs(const char* fname, const K_FLD::FloatArray& crd, c
     pg.add(PGs.stride(PGis[i]), PGs.get_facets_ptr(PGis[i]));
     
   ngon_type ng(pg);
-  K_FLD::IntArray cnt;
-  ng.export_to_array(cnt);
-  std::ostringstream o;
-#ifndef WIN32
-  o << fname  << ".plt";
-#else
-  o << fname << ".tp";
-#endif
   
-  MIO::write(o.str().c_str(), crd, cnt, "NGON");
+  std::ostringstream o;
+  o << fname  << ".mesh";
+  
+  medith::write(o.str().c_str(), crd, ng);
 }
 ///
 TEMPLATE_COORD_CONNECT
 void NGON_DBG_CLASS::draw_PGs(const char* fname, const K_FLD::FloatArray& crd, const ngon_unit& PGs, bool localid)
 {    
   ngon_type ng(PGs);
-  K_FLD::IntArray cnt;
-  ng.export_to_array(cnt);
+  
   std::ostringstream o;
   
 #ifndef WIN32
@@ -470,46 +310,8 @@ void NGON_DBG_CLASS::draw_PGs(const char* fname, const K_FLD::FloatArray& crd, c
   o << fname << ".tp";
 #endif
   
-  MIO::write(o.str().c_str(), crd, cnt, "NGON");
+  medith::write(o.str().c_str(), crd, ng);
 }
-/*
-///
-TEMPLATE_COORD_CONNECT
-void NGON_DBG_CLASS::draw_PH
-(const char* fname, const K_FLD::FloatArray& coord, const ngon_type& ng, E_Int i)
-{
-  ng.PGs.updateFacets();
-  ng.PHs.updateFacets();
-  
-  E_Int nbf = ng.PHs.stride(i);
-  const E_Int* pt = ng.PHs.get_facets_ptr(i);
-  
-  Vector_t<E_Int> indices, oIds;
-  indices.insert(indices.end(), pt, pt+nbf);
-  for (size_t i=0; i < indices.size(); ++i)indices[i]-=1;
-  
-  ngon_unit pgs, ph;
-  ng.PGs.extract(indices, pgs, oIds);
-  
-  Vector_t<E_Int> molec_ph;
-  molec_ph.push_back(nbf);
-  for (size_t i=0; i < nbf; ++i)
-    molec_ph.push_back(i+1);
-  
-  ph.add(molec_ph);
-  
-  Connectivity_t cNGON; 
-  cNGON.pushBack(pgs._NGON);
-  cNGON.pushBack(ph._NGON);
-  
-  if (cNGON.getSize() == 0)
-    return;
-  
-  //std::cout << cNGON << std::endl;
-  
-  MIO::write(fname, coord, cNGON, "NGON");
-  
-}*/
 
 ///
 TEMPLATE_COORD_CONNECT
@@ -529,10 +331,7 @@ void NGON_DBG_CLASS::draw_PH
   Coordinate_t crd(coord);
   ngon_type::compact_to_used_nodes(one_ph.PGs, crd);
   
-  Connectivity_t cnt;
-  one_ph.export_to_array(cnt);
-  
-  MIO::write(fname, crd, cnt, "NGON");
+  medith::write(fname, crd, one_ph);
   
 }
 
@@ -561,7 +360,7 @@ void NGON_DBG_CLASS::draw_wired_PH
   }
   
   
-  MIO::write(fname, crd, cnt, "BAR");
+  medith::write(fname, crd, cnt, "BAR");
   
 }
 
@@ -601,7 +400,7 @@ void NGON_DBG_CLASS::draw_wired_PG(const char* fname, const K_FLD::FloatArray& c
   E[1]=crd.cols()-1;
   connectE.pushBack(E, E+2);
   
-  MIO::write(fname, crd, connectE, "BAR");
+  medith::write(fname, crd, connectE, "BAR");
 }
 
 ///
@@ -626,10 +425,7 @@ void NGON_DBG_CLASS::draw_PHs(const char* prefixname, const K_FLD::FloatArray& c
   Coordinate_t crd(coord);
   ngon_type::compact_to_used_nodes(phs.PGs, crd);
   
-  Connectivity_t cnt;
-  phs.export_to_array(cnt);
-  
-  MIO::write(prefixname, crd, cnt, "NGON"); 
+  medith::write(prefixname, crd, phs); 
 }
 
 ///
@@ -659,7 +455,7 @@ void NGON_DBG_CLASS::highlight_PH
         colors[i]=COL_RED;
     }
   }
-  MIO::write("higlightPH.mesh", coord, connectT3, "TRI", 0, &colors);
+  medith::write("higlightPH.mesh", coord, connectT3, "TRI", 0, &colors);
 }
 
 ///
@@ -699,7 +495,7 @@ void NGON_DBG_CLASS::draw_PG_to_T3
   
   std::ostringstream o;
   o << "PG_" << PGi << "_toT3.mesh";
-  MIO::write(o.str().c_str(), coord, connect, "TRI");
+  medith::write(o.str().c_str(), coord, connect, "TRI");
 }
 
 ///

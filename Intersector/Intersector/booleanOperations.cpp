@@ -41,7 +41,7 @@ E_Int chrono::verbose=1;
 #endif
 
 //=============================================================================
-/* Factorisation de la récupération et de la validation des arguments. */
+/* Factorisation de la rÃ©cupÃ©ration et de la validation des arguments. */
 //=============================================================================
 
 enum eOperation {INTERSECTION, UNION, MINUS12, INTERSECTION_BORDER, MODIFIED_SOLID, DIFFSURF};
@@ -311,7 +311,7 @@ bool getUnionArgs(PyObject* args,
 }
 
 //=============================================================================
-/* Factorisation des opérations booléennes. */
+/* Factorisation des opÃ©rations boolÃ©ennes. */
 //=============================================================================
 typedef E_Int (BooleanOperator::* operation)(K_FLD::FloatArray& coord, K_FLD::IntArray& connect, std::vector<E_Int>& colors);
 
@@ -492,7 +492,7 @@ PyObject* call_union(PyObject* args)
     if (!ghost_pgs.empty())
       BO.passPGs(1, ghost_pgs);
 
-    //BO.setTriangulatorParams(/*do not shuffle : */true, /*improve quality:*/false);
+    if (improve_conformal_cloud_qual) BO.setTriangulatorParams(/*do not shuffle : */false, /*improve quality:*/true);
 
     K_FLD::IntArray cnt;
     K_FLD::FloatArray crd;
@@ -611,12 +611,6 @@ PyObject* call_union(PyObject* args)
         Py_DECREF(tpl);
       }
     }
-    if (err != 1)
-    {
-      std::ostringstream o;
-      o << "Union : failed to proceed.";
-      PyErr_SetString(PyExc_TypeError, o.str().c_str());
-    }
   }
     
   return l;
@@ -640,6 +634,241 @@ PyObject* K_INTERSECTOR::booleanUnion(PyObject* self, PyObject* args)
   return call_union(args);
 }
 
+PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
+{
+  E_Int agg_mode(2), improve_qual(0);
+  E_Float xtol(0.), closetol(0.);
+  PyObject* arr1s, *arr2s;
+
+  if (!PYPARSETUPLE(args, 
+                    "OOddll", "OOddii", "OOffll", "OOffii", &arr1s, &arr2s, &xtol, &closetol, &agg_mode, &improve_qual))
+  {
+    PyErr_SetString(PyExc_TypeError, "booleanUnion2 : wrong args");
+    return false;
+  }
+
+  E_Int nb_zones1 = PyList_Size(arr1s);
+  E_Int nb_zones2 = PyList_Size(arr2s);
+
+  std::vector<K_FLD::FloatArray*> crd1s(nb_zones1, nullptr), crd2s(nb_zones2, nullptr);
+  std::vector<K_FLD::IntArray*>   cnt1s(nb_zones1, nullptr), cnt2s(nb_zones2, nullptr);
+  char* varString, *eltType;
+  PyObject *l(PyList_New(0));
+
+  // get the zones
+  for (E_Int i=0; i < nb_zones1; ++i)
+  {
+    //std::cout << "getting zone in list : " << i << std::endl;
+    PyObject* py_zone = PyList_GetItem(arr1s, i);
+    
+    E_Int err = check_is_NGON(py_zone, crd1s[i], cnt1s[i], varString, eltType);
+    if (err)
+    {
+      for (E_Int i=0; i < nb_zones1; ++i)
+      {
+        delete crd1s[i];
+        delete cnt1s[i];
+      }
+      return NULL;
+    }
+
+    //std::cout << "zone sizes : " << crd1s[i]->cols() << " points" << std::endl;
+    //std::cout << "zone sizes : " << cnt1s[i]->cols() << " cells" << std::endl;
+  }
+  for (E_Int i=0; i < nb_zones2; ++i)
+  {
+    //std::cout << "getting zone in list : " << i << std::endl;
+    PyObject* py_zone = PyList_GetItem(arr2s, i);
+    
+    E_Int err = check_is_NGON(py_zone, crd2s[i], cnt2s[i], varString, eltType);
+    if (err)
+    {
+      for (E_Int i=0; i < nb_zones2; ++i)
+      {
+        delete crd2s[i];
+        delete cnt2s[i];
+      }
+      return NULL;
+    }
+
+    //std::cout << "zone sizes : " << crd1s[i]->cols() << " points" << std::endl;
+    //std::cout << "zone sizes : " << cnt1s[i]->cols() << " cells" << std::endl;
+  }
+
+  // join and close as 2 operands but keeping track of zones
+  std::vector<E_Int> zoneids1, zoneids2;
+
+  ngon_type ng1;
+  K_FLD::FloatArray crd1;
+  for (size_t i=0; i < cnt1s.size(); ++i)
+  {
+    ngon_type ng(*cnt1s[i]);
+    ng.PGs.shift(crd1.cols());
+    ng1.append(ng);
+    zoneids1.resize(ng1.PHs.size(),i);
+    crd1.pushBack(*crd1s[i]);
+  }
+
+  ngon_type ng2;
+  K_FLD::FloatArray crd2;
+  for (size_t i=0; i < cnt2s.size(); ++i)
+  {
+    ngon_type ng(*cnt2s[i]);
+    ng.PGs.shift(crd2.cols());
+    ng2.append(ng);
+    zoneids2.resize(ng2.PHs.size(),i);
+    crd2.pushBack(*crd2s[i]);
+  }
+
+  ngon_type::clean_connectivity(ng1, crd1, -1, closetol);
+  ngon_type::clean_connectivity(ng2, crd2, -1, closetol);
+
+  K_FLD::IntArray cnt1, cnt2;
+  ng1.export_to_array(cnt1);
+  ng2.export_to_array(cnt2);
+
+  using bo_t = NGON_BooleanOperator<K_FLD::FloatArray, K_FLD::IntArray>;
+
+  // a activer  : if (improve_conformal_cloud_qual) BO.setTriangulatorParams(/*do not shuffle : */false, /*improve quality:*/true);
+    
+  bo_t::eAggregation AGG=bo_t::CONVEX;
+  if (agg_mode == 0) // NONE
+  {
+    //AGG = bo_t::NONE; fixme : not working because of new_skin PG triangulation : diconnexion between modified and unlodified parts
+  }
+  else if (agg_mode == 2)
+    AGG = bo_t::FULL;
+  
+  bo_t BO(crd1, cnt1, crd2, cnt2, xtol, AGG);
+
+  if (improve_qual)
+  {
+    BO.setConformizerParams(true);
+    BO.setTriangulatorParams(/*do not shuffle : */false, /*improve quality:*/true);
+  } 
+  
+  K_FLD::IntArray cnt;
+  K_FLD::FloatArray crd;
+  E_Int err=BO.Union(crd, cnt, bo_t::eInterPolicy::SOLID_RIGHT, bo_t::eMergePolicy::PRESERVE_RIGHT);
+  
+  if (err) return NULL;
+
+  ngon_type & ngo = *BO._ngoper;
+
+  std::vector<K_FLD::FloatArray> crd1so(crd1s.size()), crd2so(crd2s.size());
+  std::vector<ngon_type> ng1so(cnt1s.size()), ng2so(cnt2s.size());
+
+  // Retrieve zones and pg oids
+  E_Int nb_phs = ngo.PHs.size();
+  //std::cout << "bool status and nb phs : " << err << "/" << nb_phs << std::endl;
+  for (E_Int i=0; i < nb_phs; ++i)
+  {
+    //std::cout << "ngoper : i" << i << std::endl;
+    //if (i >= ngo.PHs._ancEs.cols() ) std::cout << "wrong abc size !!!!!!!!!!!!!!!!!!" << std::endl;
+    E_Int ancPH1 = ngo.PHs._ancEs(0,i);
+    E_Int ancPH2 = ngo.PHs._ancEs(1,i);
+    //if (ancPH1 < 0 || ancPH2 < 0) std::cout << "neg val !!!!!!!!!!!!!!!!!!" << std::endl;
+
+    // exclusive OR : coming from op1 OR op2
+    assert ((ancPH1 != E_IDX_NONE) || (ancPH2 != E_IDX_NONE));
+    assert ((ancPH1 == E_IDX_NONE) || (ancPH2 == E_IDX_NONE));
+
+    const E_Int* faces = ngo.PHs.get_facets_ptr(i);
+    E_Int nb_faces = ngo.PHs.stride(i);
+
+    if (ancPH2 == E_IDX_NONE) // comes from op1
+    {
+
+      // if (ancPH1 >= zoneids1.size()) std::cout << "wrong ancPH1 or zoneids1 : " <<  ancPH1 << "/" << zoneids1.size() << std::endl;
+
+      E_Int zid = zoneids1[ancPH1];
+      ng1so[zid].PHs.add(nb_faces, faces);
+    }
+    else  // comes from op2
+    {
+      //std::cout << ancPH2 << "/" << zoneids2.size() << std::endl;
+      if (ancPH2 >= zoneids2.size()){
+        // std::cout << "PHi : " << i << std::endl;
+        // std::cout << "wrong ancPH2 or zoneids2 : " <<  ancPH2 << "/" << zoneids2.size() << std::endl;
+        // std::cout << "zoneids1 : " << zoneids1.size() << std::endl;
+        // std::cout << "ancPH1 : " << ancPH1 << std::endl;
+      } 
+
+      E_Int zid = zoneids2[ancPH2];
+      ng2so[zid].PHs.add(nb_faces, faces);
+    }
+  }
+
+  for (size_t i=0; i < ng1so.size(); ++i)
+  {
+
+    crd1so[i] = crd;
+    ng1so[i].PGs = ngo.PGs;
+    Vector_t<E_Int> pgnids, phnids;
+    ng1so[i].remove_unreferenced_pgs(pgnids, phnids);
+
+    ngon_type::compact_to_used_nodes(ng1so[i].PGs, crd1so[i]);
+
+    // std::cout << " what is in ouput zone 1 : " << i << " ? : " << ng1so[i].PHs.size() << " elts" << std::endl;
+
+    K_FLD::IntArray cnto;
+    ng1so[i].export_to_array(cnto);
+  
+    // pushing out the mesh
+    PyObject *tpl = K_ARRAY::buildArray(crd1so[i], varString, cnto, -1, "NGON", false);
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
+
+    // pushing out PG history
+    std::vector<E_Int> oids(ng1so[i].PHs.size(), E_IDX_NONE);//fixme
+    tpl = K_NUMPY::buildNumpyArray(&oids[0], oids.size(), 1, 0);
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
+
+  }
+
+  for (size_t i=0; i < ng2so.size(); ++i)
+  {
+    crd2so[i] = crd;
+    ng2so[i].PGs = ngo.PGs;
+    Vector_t<E_Int> pgnids, phnids;
+    ng2so[i].remove_unreferenced_pgs(pgnids, phnids);
+
+    ngon_type::compact_to_used_nodes(ng2so[i].PGs, crd2so[i]);
+
+    // std::cout << " what is in ouput zone 2 : " << i << " ? : " << ng2so[i].PHs.size() << " elts" << std::endl;
+
+    K_FLD::IntArray cnto;
+    ng2so[i].export_to_array(cnto);
+  
+    // pushing out the mesh
+    PyObject *tpl = K_ARRAY::buildArray(crd2so[i], varString, cnto, -1, "NGON", false);
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
+
+    // pushing out PG history
+    std::vector<E_Int> oids(ng2so[i].PHs.size(), E_IDX_NONE);//fixme
+    tpl = K_NUMPY::buildNumpyArray(&oids[0], oids.size(), 1, 0);
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
+
+  }
+
+  for (E_Int i=0; i < nb_zones1; ++i)
+  {
+    delete crd1s[i];
+    delete cnt1s[i];
+  }
+
+  for (E_Int i=0; i < nb_zones2; ++i)
+  {
+    delete crd2s[i];
+    delete cnt2s[i];
+  }
+
+  return l;
+}
+
 //=============================================================================
 /* Difference de 2 surfaces. */
 //=============================================================================
@@ -648,7 +877,7 @@ PyObject* K_INTERSECTOR::booleanMinus(PyObject* self, PyObject* args)
   return call_operation(args, MINUS12);
 }
 //=============================================================================
-/* Contour de l'intersection de 2 surfaces fermées. Le resultat est de 
+/* Contour de l'intersection de 2 surfaces fermÃ©es. Le resultat est de 
    type BAR */
 //=============================================================================
 PyObject* K_INTERSECTOR::booleanIntersectionBorder(PyObject* self, PyObject* args)
@@ -657,7 +886,7 @@ PyObject* K_INTERSECTOR::booleanIntersectionBorder(PyObject* self, PyObject* arg
 }
 
 //=============================================================================
-/* Modification d'un maillage volumique après résolution de l'intersection de sa peau 
+/* Modification d'un maillage volumique aprÃ¨s rÃ©solution de l'intersection de sa peau 
    avec un autre maillage volumique.*/
 //=============================================================================
 PyObject* K_INTERSECTOR::booleanModifiedSolid(PyObject* self, PyObject* args)

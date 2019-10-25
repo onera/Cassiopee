@@ -1794,8 +1794,8 @@ static bool is_prismN(const ngon_unit& PGS, const E_Int* first_pg, E_Int nb_pgs,
     //O is opposite to ?
     for (E_Int i = 1; i < nb_pgs; ++i)
       if (HX6opposites[i] == E_IDX_NONE){
-        HX6opposites[0] = HX6opposites[i];
-        HX6opposites[i] = HX6opposites[0];
+        HX6opposites[0] = i;
+        HX6opposites[i] = 0;
       break;
     }
 
@@ -1836,6 +1836,106 @@ static bool is_HX8(const ngon_unit& PGs, const E_Int* firstPG, E_Int nb_pgs)
       return false;
 
   return true;
+}
+
+static bool is_aniso_HX8(const K_FLD::FloatArray& crd, const ngon_unit& PGS, const E_Int* first_pg, E_Int nb_pgs, E_Float aniso_ratio, E_Int& bot, E_Int& top)
+{
+  if (!is_HX8(PGS, first_pg, nb_pgs)) return false;
+
+  //std::cout << "is HX8 !!" << std::endl;
+
+  E_Int generators[2], HX6opposites[6];
+  E_Int* pg = generators;
+  E_Int* hx = HX6opposites;
+  
+  bool is_primsatic = is_prismN(PGS, first_pg, nb_pgs, pg, hx);
+  if (is_primsatic)
+  {
+    //std::cout << "is primsatic !!" << std::endl;
+    if (generators[0] != E_IDX_NONE)
+    {
+      for (E_Int i=0; i < 6; ++i)
+      {
+        if (i == generators[0] || i == generators[1]) continue;
+        //compute the aniso ratio
+        const E_Int * nodes = PGS.get_facets_ptr(first_pg[i] - 1);
+        E_Int nnodes = PGS.stride(first_pg[i] - 1);
+
+        E_Float Lmin(K_CONST::E_MAX_FLOAT), Lmax=-1.;
+        for (E_Int n=0; n < 4; ++n)
+        {
+          E_Float L = K_FUNC::sqrDistance(crd.col(nodes[n]-1), crd.col(nodes[(n+1)%nnodes]-1), 3);
+          Lmin = std::min(L, Lmin);
+          Lmax = std::max(L, Lmax);
+        }
+        if (Lmin >= aniso_ratio*aniso_ratio*Lmax) return false;
+      }
+
+      bot = generators[0];
+      top = generators[1];
+      return true;
+    }
+    else 
+    {
+      bool is_aniso[] = {false,false,false,false,false,false};
+      E_Int two_top_pts[12];
+      for (E_Int i=0;i<12; ++i)two_top_pts[i]=-1;
+      for (E_Int i=0; i < 6; ++i)
+      {
+        //compute the aniso ratio
+        const E_Int * nodes = PGS.get_facets_ptr(first_pg[i] - 1);
+        E_Int nnodes = PGS.stride(first_pg[i] - 1);
+
+        E_Float L0 = K_FUNC::sqrDistance(crd.col(nodes[0]-1), crd.col(nodes[1]-1), 3);
+        E_Float L1 = K_FUNC::sqrDistance(crd.col(nodes[1]-1), crd.col(nodes[2]-1), 3);
+
+        E_Float Lmin = std::min(L0,L1);
+        E_Float Lmax = std::max(L0,L1);
+
+        if (Lmin < aniso_ratio*aniso_ratio*Lmax){ //aniso
+          is_aniso[i] = true;
+          if (Lmax == L0)
+          {
+            two_top_pts[2*i] = nodes[0]-1;
+            two_top_pts[(2*i)+1] = nodes[1]-1;
+          }
+          else
+          {
+            two_top_pts[2*i] = nodes[1]-1;
+            two_top_pts[(2*i)+1] = nodes[2]-1;
+          }
+        }
+      }
+
+      for (E_Int i=0; i < 6; ++i)
+      {
+        if (is_aniso[i] && is_aniso[hx[i]]) //to aniso opposite side => detect bot/top
+        {
+          for (E_Int j=0; j < 6; ++j)//fixme : not nice to reloop on faces here
+          {
+            if (i==j || j == hx[i]) continue;
+            const E_Int * nodes = PGS.get_facets_ptr(first_pg[j] - 1);
+            E_Int nnodes = PGS.stride(first_pg[j] - 1);
+            for (E_Int n=0; n < 4; ++n)
+            {
+              E_Int Ni = nodes[n]-1;
+              E_Int Nip1 = nodes[(n+1)%nnodes]-1;
+              //std::cout << "Ni/Nip1/topi/topip1 : " << Ni << "/" << Nip1 << "/" << two_top_pts[2*j] << "/" << two_top_pts[(2*j)+1] << std::endl;
+              if ( (two_top_pts[2*i] == Ni && two_top_pts[(2*i)+1] == Nip1) ||
+                    (two_top_pts[2*i] == Nip1 && two_top_pts[(2*i)+1] == Ni) )
+              {
+                //std::cout << "found bot/tp" << std::endl;
+                bot = j;
+                top = HX6opposites[j];
+                return true;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  return false;
 }
 
 static bool is_TH4(const ngon_unit& PGs, const E_Int* firstPG, E_Int nb_pgs)
