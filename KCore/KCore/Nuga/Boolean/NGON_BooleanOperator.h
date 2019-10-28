@@ -1878,7 +1878,7 @@ NGON_BOOLEAN_CLASS::__get_working_PGs
   // Add ghost cells for prioritized overlapping PGs
   // fixme : HACK _pglist2 is used both for body walls (BdnWall) and here to extrude ghost cells on BndUser
   // MUST BE PRECEEDED BY REORIENT EXTERNALS (to create the ghost layer consistently)
-  bool has_ghosts = false;
+  //bool has_ghosts = false;
   E_Int nb_pgs2 = 0;
   if (XPol==SOLID_RIGHT && !_pglist2[1].empty())
   {
@@ -1913,7 +1913,7 @@ NGON_BOOLEAN_CLASS::__get_working_PGs
     std::cout << "GHOST creation : " << std::endl;
     nb_ghost(wNG2);
 #endif  
-    has_ghosts = true;
+    //has_ghosts = true;
     wNG1.flag_externals(INITIAL_SKIN); // do it again to reflect ghost presence
     wNG2.flag_externals(INITIAL_SKIN);
     eRetCode er = __reorient_externals(XPol, wNG1, wNG2);

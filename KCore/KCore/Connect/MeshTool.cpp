@@ -483,7 +483,7 @@ E_Int K_CONNECT::MeshTool::computeNodeRadiusAndAngles
   }
 
   E_Int nb_computed_pts(0);
-  for (size_t i=0; i < coord.cols(); ++i) if (radius[i] != K_CONST::E_MAX_FLOAT) ++nb_computed_pts;
+  for (E_Int i=0; i < coord.cols(); ++i) if (radius[i] != K_CONST::E_MAX_FLOAT) ++nb_computed_pts;
 
   return nb_computed_pts;
 

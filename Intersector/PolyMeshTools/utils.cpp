@@ -2017,7 +2017,7 @@ PyObject* K_INTERSECTOR::concatenate(PyObject* self, PyObject* args)
   if (!PYPARSETUPLEF(args, "Od", "Of", &arrs, &tol))
   {
     PyErr_SetString(PyExc_TypeError, "concatenate : wrong args");
-    return false;
+    return NULL;
   }
 
   E_Int nb_zones = PyList_Size(arrs);

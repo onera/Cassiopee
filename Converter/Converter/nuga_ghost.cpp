@@ -427,7 +427,7 @@ PyObject* K_CONVERTER::addGhostCellsNG(PyObject* self, PyObject* args)
        }*/
 
       E_Int nb_phs = Zghost._ng.PHs.size();
-      for (size_t l=0; l < nb_phs; ++l)
+      for (E_Int l=0; l < nb_phs; ++l)
       {
          //CALCUL nb ELEMENT COUCHE ZERO
          if(Zghost._ng.PHs._type[l]==-1) Elt[0]+=1;
@@ -452,7 +452,7 @@ PyObject* K_CONVERTER::addGhostCellsNG(PyObject* self, PyObject* args)
       printf("ELts0 = %d, ELts1 = %d, ELts2 = %d %d %d \n", Elt[0],Elt[1],Elt[2],Elt[3],Elt[4]);
 
       E_Int nb_pgs = Zghost._ng.PGs.size();
-      for (size_t l=0; l < nb_pgs; ++l) {
+      for (E_Int l=0; l < nb_pgs; ++l) {
        if(Zghost._ng.PGs._type[l]==PG_INNER_COL  ) Face[0]=l+1;
        if(Zghost._ng.PGs._type[l]==PG_JOIN_COL   ) Face[1]=l-Face[0]+1;
        if(Zghost._ng.PGs._type[l]==PG_LAY1_IN_COL) Face[2]=l-Face[0]-Face[1]+1;

@@ -595,7 +595,7 @@ namespace NUGA
       
       newPGlist.clear();
       
-      for (size_t i=0; i < sz; ++i)
+      for (E_Int i=0; i < sz; ++i)
       {
         E_Int PGi = pPGlist[i];
 

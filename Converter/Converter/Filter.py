@@ -721,7 +721,7 @@ class Handle:
     self._loadContainerPartial(a, variablesN=varsN, variablesC=varsC)
     return a
     
-  def loadFromProc(self, rank):
+  def loadFromProc(self):
     """Load and distribute zones from proc node."""
     if Cmpi.rank == 0:
       t = convertFile2SkeletonTree(self.fileName, self.format, maxDepth=2, maxFloatSize=6)
@@ -747,19 +747,32 @@ class Handle:
     if paths != []: _readPyTreeFromPaths(t, self.fileName, paths)
     return t
 
-  def loadAndDistribute(self):
+  def loadAndDistribute(self, useCom=None):
     """Load and distribute zones."""
     if Cmpi.rank == 0:
-      t = convertFile2SkeletonTree(self.fileName, self.format, maxDepth=2, maxFloatSize=6)
-      zones = Internal.getZones(t)
-      paths = []
-      for z in zones:
-        p = Internal.getPath(t, z)+'/ZoneType'
-        paths.append(p)
-      _readPyTreeFromPaths(t, self.fileName, paths, self.format)
+      
+      if useCom == 'match':
+        t = convertFile2SkeletonTree(self.fileName, self.format, maxDepth=3, maxFloatSize=6)
+        paths = []
+        zones = Internal.getZones(t)
+        for z in zones:
+          pz = Internal.getPath(t, z)
+          gcs = Internal.getNodesFromType1(z, 'ZoneGridConnectivity_t')
+          for gc in gcs:
+            p = pz+'/%s'%gc[0]
+            paths.append(p)
+        if paths != []: _readPyTreeFromPaths(t, self.fileName, paths, self.format)
+      else:
+        t = convertFile2SkeletonTree(self.fileName, self.format, maxDepth=2, maxFloatSize=6)
+        paths = []
+        zones = Internal.getZones(t)
+        for z in zones:
+          p = Internal.getPath(t, z)+'/ZoneType'
+          paths.append(p)
+        _readPyTreeFromPaths(t, self.fileName, paths, self.format)  
       self._loadTreeExtras(t)
       import Distributor2.PyTree as D2
-      D2._distribute(t, Cmpi.size)
+      D2._distribute(t, Cmpi.size, useCom=useCom)
     else: t = None
     t = Cmpi.bcast(t)
     paths = []
@@ -950,3 +963,19 @@ class Handle:
     """Write specified variables."""
     if znp is None: znp = self.getZonePaths(a)  
     writeVariables(a, self.fileName, var, znp, self.format)
+
+  # save zones + field
+  # mode 0: parallele, 1: écriture chacun son tour
+  def save(self, a, fileName=None, mode=0):
+    if fileName is None: fileName = self.fileName
+    if mode == 0: self.writeZones(a)
+    else: Cmpi.convertPyTree2File(a, self.fileName, self.format, ignoreProcNode=True)
+    
+  def mergeAndSave(self, a, fileName=None):
+    if fileName is None: fileName = self.fileName
+    zones = Internal.getZones(a)
+    # write skeleton data corresponding to a
+    for z in zones:
+      p = Internal.getPath(a, z)
+      
+      

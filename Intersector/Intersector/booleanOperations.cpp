@@ -644,7 +644,7 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
                     "OOddll", "OOddii", "OOffll", "OOffii", &arr1s, &arr2s, &xtol, &closetol, &agg_mode, &improve_qual))
   {
     PyErr_SetString(PyExc_TypeError, "booleanUnion2 : wrong args");
-    return false;
+    return NULL;
   }
 
   E_Int nb_zones1 = PyList_Size(arr1s);

@@ -11,7 +11,7 @@ __all__ = ['rank', 'size', 'KCOMM', 'COMM_WORLD', 'setCommunicator', 'barrier', 
     'allgather', 'readZones', 'writeZones', 'convert2PartialTree', 'convert2SkeletonTree', 'convertFile2DistributedPyTree', 
     'readNodesFromPaths', 'readPyTreeFromPaths', 'writeNodesFromPaths',
     'allgatherTree', 'convertFile2SkeletonTree', 'convertFile2PyTree', 'convertPyTree2File', 'seq', 'print0', 'printA',
-    'createBBoxTree', 'createBboxDict', 'computeGraph', 'addXZones', '_addXZones', 'rmXZones', '_rmXZones', 'getProcDict', 
+    'createBBoxTree', 'createBboxDict', 'computeGraph', 'addXZones', '_addXZones', '_addMXZones', 'rmXZones', '_rmXZones', 'getProcDict', 
     'getProc', 'setProc', '_setProc']
 
 from mpi4py import MPI
@@ -452,6 +452,61 @@ def _addXZones(t, graph, variables=None, cartesian=False, interDict=[], bboxDict
                     bases[0][2].append(z)
     MPI.Request.Waitall(reqs)
     return t
+
+# Recupere les sous-zones de match de z correspondant a oppNode
+def getMatchSubZones__(z, procDict, oppNode, depth=2):
+    import Transform.PyTree as T
+    out = []
+    gcs = Internal.getNodesFromType1(z, 'ZoneGridConnectivity_t')
+    for g in gcs:
+        nodes = Internal.getNodesFromType1(g, 'GridConnectivity1to1_t')
+        for n in nodes:
+            oppZoneName = Internal.getValue(n)
+            oppNodeHere = procDict[oppZoneName]
+            if oppNodeHere == oppNode:
+                prange = Internal.getNodeFromName1(n, 'PointRange')
+                prange = Internal.getValue(prange)
+                imin = prange[0][0]
+                jmin = prange[1][0]
+                kmin = prange[2][0]
+                imax = prange[0][1]
+                jmax = prange[1][1]
+                kmax = prange[2][1]
+                if imin == imax and imin == 1: imax = 1+depth
+                elif imin == imax: imin = imax-depth
+                elif jmin == jmax and jmin == 1: jmax = 1+depth
+                elif jmin == jmax: jmin = jmax-depth
+                elif kmin == kmax and kmin == 1: kmax = 1+depth
+                elif kmin == kmax: kmin = kmax-depth
+                print((imin,jmin,kmin),(imax,jmax,kmax))
+                oppZone = T.subzone(z, (imin,jmin,kmin), (imax,jmax,kmax))
+                oppZone[0] = C.getZoneName(z[0]+'_MX')
+                out.append(oppZone)
+    return out
+
+# Ajoute des sous-zones correspondant aux raccords sur un arbre distribue
+def _addMXZones(a):
+    graph = computeGraph(a, type='match')
+    procDict = getProcDict(a)
+    zones = Internal.getZones(a)
+    reqs = []
+    if rank in graph:
+        g = graph[rank] # graph du proc courant
+        for oppNode in g:
+            data = []
+            for z in zones:
+                zs = getMatchSubZones__(z, procDict, oppNode)
+                data += zs
+            s = KCOMM.isend(data, dest=oppNode)
+            reqs.append(s)
+
+    for node in graph:
+        if rank in graph[node]:
+            data = KCOMM.recv(source=node)
+            for z in data: 
+                Internal.createChild(z, 'XZone', 'UserDefinedData_t') 
+            a[2][1][2] += data
+    MPI.Request.Waitall(reqs)
 
 #==============================================================================
 # Supprime les zones ajoutees par addXZones

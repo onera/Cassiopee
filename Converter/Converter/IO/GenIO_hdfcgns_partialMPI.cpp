@@ -759,7 +759,7 @@ E_Int K_IO::GenIO::hdfcgnsWritePathsPartial(char* file, PyObject* tree,
     /* Fill data space */
     HDF.fillDataSpaceWithFilter(DataSpaceDIM);
 
-    hid_t did = HDF.writeNodePartial(gid, node);
+    HDF.writeNodePartial(gid, node);
 
     H5Gclose(gid); // did is gidp
   }
