@@ -585,17 +585,16 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
 
         # if subr, the tree subregions are kept during the exchange 
         # if layers not None, only communicate the desired number of layers
-        Cmpi._addXZones(tc, graph, variables=['cellNIBC','cellNChim'], cartesian=True, interDict=interDict, bboxDict=bboxDict, layers=4, subr=False)
-        Cmpi._addXZones(t, graph,variables=['centers:cellNIBC', 'centers:cellNChim'], cartesian=True, interDict=interDict, bboxDict=bboxDict, layers=4, subr=False)
+        Cmpi._addXZones(tc, graph, variables=['cellNIBC','cellNChim','cellNFront'], cartesian=True, interDict=interDict, bboxDict=bboxDict, layers=4, subr=False)
+        Cmpi._addXZones(t, graph,variables=['centers:cellNIBC', 'centers:cellNChim', 'centers:cellNFront'], cartesian=True, interDict=interDict, bboxDict=bboxDict, layers=4, subr=False)
 
         # Zones of tc are modified after addXZones, new tbbc, interDict and intersectionDict
-        tbbcx = Cmpi.createBBoxTree(tc)
+        tbbcx = G.BB(tc)
         interDict = X.getIntersectingDomains(tbbcx)
         intersectionsDict = X.getIntersectingDomains(tbbcx, method='AABB', taabb=tbbcx)
         
         # Reconstruction of cellNFront and cellN from cellNIBC (reduce the communications)
         # cellNFront_origin and cellNIBC_origin are initialised to store the Data of cellNFront and cellNIBC before the transfers 
-        C._initVars(t,'{centers:cellNFront}=({centers:cellNIBC}==1.)')
         C._initVars(t,'{centers:cellN}={centers:cellNIBC}')
         C._initVars(t,'{centers:cellNFront_origin}={centers:cellNFront}') 
         C._initVars(t,'{centers:cellNIBC_origin}={centers:cellNIBC}')
@@ -629,7 +628,7 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
                         for zc in Internal.getZones(tc):
                             if zc[0] in intersectionsDict[z[0]]:
                                 C._cpVars(zc,'cellN_interp',zc,'cellN')
-                                fields = X.transferFields(zc, XI, YI, ZI, hook=None, variables=['cellNFront_origin','cellNIBC_origin'], interpDataType=0,nature=1)
+                                fields = X.transferFields(zc, XI, YI, ZI, hook=None, variables=['cellNFront_origin','cellNIBC_origin'], interpDataType=0, nature=1)
                                 allInterpFields.append(fields)
                         if allInterpFields!=[]:
                             C._filterPartialFields(z, allInterpFields, indicesI, loc='centers', startFrom=0, filterName='donorVol',verbose=False)
@@ -1110,11 +1109,11 @@ def loads(t_case, tc_in, wall_out, alpha=0., beta=0., Sref=None):
 #====================================================================================
 # Redistrib on NP processors
 #====================================================================================
-def _distribute(t_in, tc_in, NP):
+def _distribute(t_in, tc_in, NP, algorithm='graph'):
     if isinstance(tc_in, str):
         tcs = Cmpi.convertFile2SkeletonTree(tc_in, maxDepth=3)
     else: tcs = tc_in
-    stats = D2._distribute(tcs, NP, algorithm='graph', useCom='ID')
+    stats = D2._distribute(tcs, NP, algorithm=algorithm, useCom='ID')
     print(stats)
     if isinstance(tc_in, str):
         paths = []; ns = []
@@ -1152,8 +1151,8 @@ def _distribute(t_in, tc_in, NP):
         for z in Internal.getZones(ts):
             if Cmpi.getProc(z) == i: NPTS += C.getNPts(z)
         NptsTot += NPTS
-        print('Rank %d has %d points'%(i,NPTS))
-    print('All points: %d million points'%(NptsTot/1.e6))
+        print('Rank {} has {} points'.format(i,NPTS))
+    print('All points: {} million points'.format(NptsTot/1.e6))
     return None
 
 #====================================================================================
