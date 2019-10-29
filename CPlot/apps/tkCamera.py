@@ -58,7 +58,7 @@ def createApp(win):
     # -0- posCam -
     V = TK.StringVar(win); V.set('(0., 0., 0.)'); VARS.append(V)
     # -1- posEye -
-    V = TK.StringVar(win); V.set('(0., 0.; 0.)'); VARS.append(V)
+    V = TK.StringVar(win); V.set('(0., 0., 0.)'); VARS.append(V)
     # -2- dirCam -
     V = TK.StringVar(win); V.set('(0., 0., 0.)'); VARS.append(V)
     

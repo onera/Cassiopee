@@ -163,6 +163,28 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
         C.convertPyTree2File(tibm, 'IBMInfo.cgns')
         del tibm
 
+    #-----------------------------------------
+    # Computes distance field for Musker only
+    #-----------------------------------------
+    ibctypes = set()
+    for node in Internal.getNodesFromName(tb,'ibctype'):
+        ibctypes.add(Internal.getValue(node))
+    if 'outpress' in ibctypes or 'inj' in ibctypes or 'slip' in ibctypes:
+        test.printMem(">>> wall distance for wall only [start]")
+        for z in Internal.getZones(tb):
+            ibc = Internal.getNodeFromName(z,'ibctype')
+            if Internal.getValue(ibc)=='outpress' or Internal.getValue(ibc)=='inj' or Internal.getValue(ibc)=='slip':
+                Internal.rmNode(tb,z)
+
+        if dimPb == 2:
+            z0 = Internal.getZones(t)
+            bb = G.bbox(z0); dz = bb[5]-bb[2]
+            tb2 = C.initVars(tb, 'CoordinateZ', dz*0.5)
+            DTW._distance2Walls(t,tb2,type='ortho', signed=0, dim=dimPb, loc='centers')
+        else:
+            DTW._distance2Walls(t,tb,type='ortho', signed=0, dim=dimPb, loc='centers')
+        test.printMem(">>> wall distance for wall only [end]")
+    
     # Initialisation
     if tinit is None: 
         I._initConst(t, loc='centers')
@@ -820,6 +842,29 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
 
     datas = {}; graph = {}
 
+    #-----------------------------------------
+    # Computes distance field for Musker only
+    #-----------------------------------------
+    ibctypes = set()
+    for node in Internal.getNodesFromName(tb,'ibctype'):
+        ibctypes.add(Internal.getValue(node))
+    ibctypes = list(ibctypes)
+    if 'outpress' in ibctypes or 'inj' in ibctypes or 'slip' in ibctypes:
+        test.printMem(">>> wall distance for wall only [start]")
+        for z in Internal.getZones(tb):
+            ibc = Internal.getNodeFromName(z,'ibctype')
+            if Internal.getValue(ibc)=='outpress' or Internal.getValue(ibc)=='inj' or Internal.getValue(ibc)=='slip':
+                Internal.rmNode(tb,z)
+
+        if dimPb == 2:
+            z0 = Internal.getZones(t)
+            bb = G.bbox(z0); dz = bb[5]-bb[2]
+            tb2 = C.initVars(tb, 'CoordinateZ', dz*0.5)
+            DTW._distance2Walls(t,tb2,type='ortho', signed=0, dim=dimPb, loc='centers')
+        else:
+            DTW._distance2Walls(t,tb,type='ortho', signed=0, dim=dimPb, loc='centers')
+        test.printMem(">>> wall distance for Musker only [end]")
+
     C._initVars(t,'{centers:cellN}=minimum({centers:cellNChim}*{centers:cellNIBCDnr},2.)')
     varsRM = ['centers:cellNChim','centers:cellNIBCDnr']
     if model == 'Euler': varsRM += ['centers:TurbulentDistance']
@@ -1094,7 +1139,7 @@ def loads(t_case, tc_in, wall_out, alpha=0., beta=0., Sref=None):
     print("Skin friction loads", cd, cl)
 
     vars = ['centers:sx','centers:sy','centers:sz','centers:tx','centers:ty','centers:tz','centers:tauxx','centers:tauyy','centers:tauzz','centers:tauxy','centers:tauxz',
-'centers:tauyz','centers:Fricx','centers:Fricy','centers:Fricz','centers:Fx','centers:Fy','centers:Fz']
+'centers:tauyz']
     zw = C.rmVars(zw, vars)
     if dimPb == 2: # reextrait en 2D
         zw = P.isoSurfMC(zw, "CoordinateZ", 0.)

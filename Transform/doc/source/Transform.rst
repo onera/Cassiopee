@@ -358,20 +358,20 @@ Mesh positioning
 
     Rotation parameters can be specified either by:
 
-    - a rotation axis (arg1) and a rotation angle (arg2)
+    - a rotation axis (arg1) and a rotation angle in degrees (arg2)
 
     - two axes (arg1 and arg2): axis arg1 is rotated into axis arg2 
 
-    - three Euler angles arg1=(alpha, beta, gamma). alpha is a rotation along X (Ox->Ox, Oy->Oy1, Oz->Oz1), beta is a rotation along Y (Ox1->Ox2, Oy1->Oy1, Oz1->Oz2), gamma is a rotation along Z (Ox2->Ox3, Oy2->Oy3, Oz2->Oz2):
+    - three Euler angles in degrees arg1=(alpha, beta, gamma). alpha is a rotation along X (Ox->Ox, Oy->Oy1, Oz->Oz1), beta is a rotation along Y (Ox1->Ox2, Oy1->Oy1, Oz1->Oz2), gamma is a rotation along Z (Ox2->Ox3, Oy2->Oy3, Oz2->Oz2):
 
 
     :param a: mesh
     :type a: [array, list of arrays] or [zone, list of zones, base, pyTree]
     :param C: center of rotation
     :type C: 3-tuple of floats
-    :param arg1: rotation axis or original axis or rotation angles 
+    :param arg1: rotation axis or original axis or rotation angles (in degrees)
     :type arg1: 3-tuple of floats or 3-tuple of 3-tuple of floats
-    :param arg2: angle of rotation or destination axis or None 
+    :param arg2: angle of rotation (in degrees) or destination axis or None 
     :type arg2: float or 3-tuple of floats or None
     :param vectors: for each vector, list of the names of the vector components
     :type vectors: [list of list of strings]

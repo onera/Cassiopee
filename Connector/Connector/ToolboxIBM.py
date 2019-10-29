@@ -1850,7 +1850,9 @@ def extractIBMWallFields(tc, tb=None):
             dimPb = 3
         else:
             dimPb = Internal.getValue(dimPb)
-        td = Internal.copyRef(tb)
+        # td = Internal.copyRef(tb)
+        # Force toutes les zones dans une seule base
+        td = C.newPyTree(['Wall',Internal.getZones(tb)])
         for nob in range(len(td[2])):
             b = td[2][nob]
             if b[3] == 'CGNSBase_t':                
