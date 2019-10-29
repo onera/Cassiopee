@@ -19,12 +19,14 @@
 #define K_ARRAY_UNIQUE_SYMBOL
 #include "xcore.h"
 #include "test/xmpi_t1.hpp"
+#include "SplitElement/splitter.h"
 // ============================================================================
 /* Dictionnary of all functions of the python module */
 // ============================================================================
 static PyMethodDef Pyxcore [] =
 {
   //{"xxx", K_CONVERTER::xxx, METH_VARARGS},
+  {"split_elements", split_elements, METH_VARARGS},
   {"test_all", xcore::test_all, METH_VARARGS},
   {NULL, NULL} 
 };

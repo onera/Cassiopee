@@ -16,9 +16,9 @@ installDict = {
 True, # useOMP
 False, # static
 False, # CPlotOffScreen
-[], # additionalIncludePaths
+['/usr/include/mpi', '/usr/include/hdf5/serial'], # additionalIncludePaths
 ['gfortran', 'gomp', 'pthread'], # additionalLibs
-[] # additionalLibPaths
+['/usr/lib/x86_64-linux-gnu'] # additionalLibPaths
 ],
 ###############################################################################
 'WDSNA81OZ': [ 'Machine de production win32 (Onera)',

@@ -6,6 +6,7 @@
 #include "xmpi/communicator_mpi_impl.hpp"
 #else
 #include "xmpi/communicator_stub_impl.hpp"
+int xcore::communicator::Implementation::comm_world = 1;
 #endif
 
 namespace xcore

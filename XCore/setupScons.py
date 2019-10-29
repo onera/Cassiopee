@@ -33,13 +33,18 @@ if prod is None: prod = 'xx'
 # Setting libraryDirs, include dirs and libraries =============================
 libraryDirs = ["build/"+prod, kcoreLibDir]
 includeDirs = [numpyIncDir, kcoreIncDir]
-libraries = ["xcore", "paradigma", "ptscotch", "scotch1", "scotch2", "kcore"]
+libraries = ["xcore", "paradigma", "scotch1", "scotch2", "kcore"]
+
+mySystem = Dist.getSystem()
+if mySystem[0] == 'mingw': 
+  libraries += ["wsock32"]
 
 ADDITIONALCPPFLAGS = []
 if mpi:
     libraryDirs.append(mpiLibDir)
     includeDirs.append(mpiIncDir)
     ADDITIONALCPPFLAGS += ['-D_MPI']
+    libraries += ["ptscotch", "scotch1", "scotch2", "scotch1"]
 if mpi4py:
     includeDirs.append(mpi4pyIncDir)
 if mpi: libraries += mpiLibs

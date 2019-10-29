@@ -1,8 +1,9 @@
-#ifndef _HMATRIX_PARALLEL_COMMUNICATOR_COMMUNICATOR_IMPL_STUB_HPP_
-#define _HMATRIX_PARALLEL_COMMUNICATOR_COMMUNICATOR_IMPL_STUB_HPP_
+#ifndef _XCORE_XMPI_COMMUNICATOR_IMPL_STUB_HPP_
+#define _XCORE_XMPI_COMMUNICATOR_IMPL_STUB_HPP_
 #include <algorithm>
 #include <iostream>
 
+#include "xmpi/communicator.hpp"
 #include "xmpi/constantes.hpp"
 #include "xmpi/status.hpp"
 

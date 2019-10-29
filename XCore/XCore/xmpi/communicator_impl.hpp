@@ -3,6 +3,7 @@
 
 #include <cassert>
 
+#include "xmpi/communicator.hpp"
 #if defined( _MPI )
 #  include "xmpi/communicator_mpi_impl.hpp"
 #else
