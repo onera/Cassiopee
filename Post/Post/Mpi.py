@@ -20,8 +20,9 @@ def extractMesh(t, extractionMesh, order=2, extrapOrder=1,
     tl = Cmpi.convert2PartialTree(tl)
     ext = Cmpi.convert2PartialTree(extractionMesh)
     # print info
-    zones = Internal.getZones(tl)
-    print ('Rank %d has %d source zones.'%(Cmpi.rank, len(zones)))
+    nztl = len(Internal.getZones(tl))
+    nzext = len(Internal.getZones(ext))
+    print ('Rank %d has %d source zones and %d destination zones.'%(Cmpi.rank, nztl, nzext))
     ext = P.extractMesh(tl, ext, order=order, extrapOrder=extrapOrder, constraint=constraint, tol=tol, mode=mode,
                         hook=hook)
     return ext

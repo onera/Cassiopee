@@ -747,10 +747,9 @@ class Handle:
     if paths != []: _readPyTreeFromPaths(t, self.fileName, paths)
     return t
 
-  def loadAndDistribute(self, useCom=None):
+  def loadAndDistribute(self, useCom=None, cartesian=False):
     """Load and distribute zones."""
     if Cmpi.rank == 0:
-      
       if useCom == 'match':
         t = convertFile2SkeletonTree(self.fileName, self.format, maxDepth=3, maxFloatSize=6)
         paths = []
@@ -785,6 +784,10 @@ class Handle:
         Internal._rmNode(t, z)
     if paths != []: _readPyTreeFromPaths(t, self.fileName, paths, self.format)
     _enforceProcNode(t)
+    if cartesian: 
+      import Compressor.PyTree as Compressor
+      Compressor._uncompressCartesian(t)
+    
     return t
 
   # Calcul et stocke des infos geometriques sur les zones
@@ -966,10 +969,13 @@ class Handle:
 
   # save zones + field
   # mode 0: parallele, 1: écriture chacun son tour
-  def save(self, a, fileName=None, mode=0):
-    if fileName is None: fileName = self.fileName
-    if mode == 0: self.writeZones(a)
-    else: Cmpi.convertPyTree2File(a, self.fileName, self.format, ignoreProcNode=True)
+  def save(self, a, fileName=None, cartesian=False):
+    a2 = Internal.copyRef(a)
+    if cartesian: 
+        import Compressor.PyTree as Compressor
+        Compressor._compressCartesian(a2)
+    if fileName is not None:
+      Cmpi.convertPyTree2File(a2, fileName, self.format, ignoreProcNodes=True)
     
   def mergeAndSave(self, a, fileName=None):
     if fileName is None: fileName = self.fileName
