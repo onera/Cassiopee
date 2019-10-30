@@ -143,7 +143,7 @@ def _loadContainerPartial(a, fileName, znp, variablesN=[], variablesC=[], format
       # Get loc2Glob
       zone = Internal.getNodeFromPath(a, p)
       src = None
-      if zone is not None: 
+      if zone is not None:
         src, loc2glob = Internal.getLoc2Glob(zone)
       if src is None: continue
 
@@ -336,7 +336,7 @@ def _loadZoneExtras(a, fileName, znp, format=None, uncompress=True):
         for j in i[2]:
           if i[3] == 'DataArray_t': paths.append(p+'/'+i[0]+'/'+j[0])
   if paths != []: _readPyTreeFromPaths(a, fileName, paths, format)
-  # Decompression cartesien evetuellement
+  # Decompression cartesien eventuellement
   if uncompress:
     for p in znps:
       n = Internal.getNodeFromPath(a, p)
@@ -950,22 +950,25 @@ class Handle:
     return isInBBox(a, self.fileName, self.format, bbox, znp)
 
   # Ecrit des zones
-  def writeZones(self, a, znp=None):
+  def writeZones(self, a, fileName=None, znp=None):
     """Write specified zones."""
     if znp is None: znp = self.getZonePaths(a)
-    writeZones(a, self.fileName, znp, self.format)
+    if fileName is None: fileName = self.fileName
+    writeZones(a, fileName, znp, self.format)
 
   # Ecrit des zones sans les FlowSolution_t
-  def writeZonesWoVars(self, a, znp=None):
+  def writeZonesWoVars(self, a, fileName=None, znp=None):
     """Write specified zones without variables."""
     if znp is None: znp = self.getZonePaths(a)
-    writeZonesWoVars(a, self.fileName, znp, self.format)
+    if fileName is None: fileName = self.fileName    
+    writeZonesWoVars(a, fileName, znp, self.format)
   
   # Ecrit des variables
-  def writeVariables(self, a, var, znp=None):
+  def writeVariables(self, a, var, fileName=None, znp=None):
     """Write specified variables."""
-    if znp is None: znp = self.getZonePaths(a)  
-    writeVariables(a, self.fileName, var, znp, self.format)
+    if znp is None: znp = self.getZonePaths(a)
+    if fileName is None: fileName = self.fileName
+    writeVariables(a, fileName, var, znp, self.format)
 
   # save zones + field
   # mode 0: parallele, 1: écriture chacun son tour
@@ -978,10 +981,17 @@ class Handle:
       Cmpi.convertPyTree2File(a2, fileName, self.format, ignoreProcNodes=True)
     
   def mergeAndSave(self, a, fileName=None):
-    if fileName is None: fileName = self.fileName
-    zones = Internal.getZones(a)
-    # write skeleton data corresponding to a
-    for z in zones:
-      p = Internal.getPath(a, z)
+    if fileName is not None:
+      # write data without zones
+      ap = Internal.copyRef(a)
+      bases = Internal.getBases(ap)
+      for b in bases: b[2] = []
+      ap = Cmpi.allgatherTree(ap)
+      if Cmpi.rank == 0: C.convertPyTree2File(ap, fileName)
+      Cmpi.barrier()
+      # Ecrit les zones partiellement
+      fr = {}
+      zones = Internal.getZones(a)
       
+      writePyTreeFromFilter(t, fileName, fr, skelData=[])
       

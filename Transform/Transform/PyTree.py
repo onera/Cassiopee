@@ -822,7 +822,7 @@ def split(z, dir=1, index=1, t=None):
             ws = list(loc2glob[0:6]); dim = list(loc2glob[6:9])
             w1 = composeWins__(w1, ws)
             w2 = composeWins__(w2, ws)
-            source = src 
+            source = src
         Internal._setLoc2Glob(z1, source, win=w1, sourceDim=dim)
         Internal._setLoc2Glob(z2, source, win=w2, sourceDim=dim)
         

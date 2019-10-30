@@ -194,8 +194,7 @@ def getModules():
 def getTests(module):
     a = []
     if module == 'CFDBase': a += getCFDBaseTests()
-    else:
-        a += getUnitaryTests(module)
+    else: a += getUnitaryTests(module)
     return a
 
 #==============================================================================

@@ -508,6 +508,16 @@ def _addMXZones(a):
             a[2][1][2] += data
     MPI.Request.Waitall(reqs)
 
+def _addBXZones(a):
+    # Calcul les bbox des zones de a (local)
+    zones = Internal.getZones(a)
+    bbzs = []
+    for z in zones: bbs.append(G.bbox(z))
+    # Calcul les subzones
+    subzs = []; bbsubzs = []
+    for z in zones:
+        z1 = T.subzone(z, (1,1,1), ())
+
 #==============================================================================
 # Supprime les zones ajoutees par addXZones
 #==============================================================================

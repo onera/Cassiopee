@@ -12,6 +12,5 @@ t = C.newPyTree(['Base'])
 C.convertPyTree2File(t, 'out.hdf')
 
 h = Filter.Handle('out.hdf')
-
-h.writeZonesWoVars(a, 'Base/cart')
+h.writeZonesWoVars(a, znp='Base/cart')
 h.writeVariables(a, 'centers:Density', znp='Base/cart')

@@ -395,12 +395,14 @@ High level layer
 
 ---------------------------------------------------------------------------
 
-.. py:function:: Converter.Filter.Handle.writeZones(a, znp=None)
+.. py:function:: Converter.Filter.Handle.writeZones(a, fileName=None, znp=None)
 
     Fully write specified zones (coordinates, fields, grid connectivity, boundary conditions) in file.
     
     :param a: input pyTree 
     :type a: pyTree or list of zones
+    :param fileName: file name if different of handle name
+    :type fileName: string
     :param znp: path of zones to write to in file (starting from root)
     :type znp: list of strings
     
@@ -412,12 +414,14 @@ High level layer
 
 ---------------------------------------------------------------------------
 
-.. py:function:: Converter.Filter.Handle.writeZonesWoVars(a, znp=None)
+.. py:function:: Converter.Filter.Handle.writeZonesWoVars(a, fileName=None, znp=None)
 
     Write specified zones without fields (coordinates, grid connectivity, boundary conditions) in file.
     
     :param a: input pyTree 
     :type a: pyTree or list of zones
+    :param fileName: file name if different of handle name
+    :type fileName: string
     :param znp: path of zones to write to in file (starting from root)
     :type znp: list of strings
     
@@ -429,7 +433,7 @@ High level layer
 
 ---------------------------------------------------------------------------
 
-.. py:function:: Converter.Filter.Handle.writeVariables(a, var, znp=None)
+.. py:function:: Converter.Filter.Handle.writeVariables(a, var, fileName=None, znp=None)
 
     Write specified variables in file.
     
@@ -437,6 +441,8 @@ High level layer
     :type a: pyTree or list of zones
     :param var: variables to write
     :type var: string or list of strings
+    :param fileName: file name if different of handle name
+    :type fileName: string
     :param znp: path of zones to write to in file (starting from root)
     :type znp: list of strings
     
@@ -445,8 +451,6 @@ High level layer
     * `Write variables (pyTree) <Examples/Converter/writeVariablesPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/writeVariablesPT.py
-
-
 
 ---------------------------------------------------------------------------
 

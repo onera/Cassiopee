@@ -31,4 +31,4 @@ Filter.writePyTreeFromFilter(t, 'out.hdf', fr, skelData=None)
 # Ecriture de la data partielle effective (skelData=[])
 Filter.writePyTreeFromFilter(t, 'out.hdf', fr, skelData=[])
 
-# Si HDF parallele, nous ne sommes pas obklige de dimensionner.
+# Si HDF parallele, nous ne sommes pas oblige de dimensionner.
