@@ -313,6 +313,12 @@ E_Int K_GENERATOR::getNeighbourQuads2(
     }// fin et2
   }// fin et1
   }
+
+  for (E_Int et = 0; et < nelts; et++)
+  {
+    delete boxes[et];
+  }
+
   delete bbtree;
   return 1;
 }

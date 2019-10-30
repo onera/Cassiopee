@@ -239,7 +239,14 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
     E_Float x0 = xt[0]; E_Float y0 = yt[0]; E_Float z0 = zt[0];
     E_Float hi = xt[1]-xt[0];
     E_Float hj = yt[imd]-yt[0];
-    E_Float hk = zt[imd*jmd]-zt[0];
+    E_Float hk;
+
+    //Cas 2D
+    if ( kmd == 1 )
+      hk = 1;
+    else
+      hk = zt[imd*jmd]-zt[0];
+
     interpData = new K_INTERP::InterpCart(imd,jmd,kmd,hi,hj,hk,x0,y0,z0);
   }
 
@@ -301,10 +308,11 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
     return NULL;
   }
   E_Int nvars = listOfVars.size();
-  lenVarString += nvars+strlen("donorVol");// les virgules
+  lenVarString += nvars+strlen(",donorVol")+1;// les virgules
+
   char* varStringOut = new char[lenVarString];
 
-  for (size_t nov = 0; nov < listOfVars.size(); nov++)
+  for (size_t nov = 0; nov < nvars; nov++)
   {
     char*& varname = listOfVars[nov];
     if (nov > 0) 
@@ -378,5 +386,18 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
   }
   RELEASEDATA;
   delete [] varStringOut;
+
+if ( InterpDataType == 1 )
+{
+  if ( hookADT == Py_None )
+  {
+    delete interpData;
+  }
+}
+else
+{
+  delete interpData;
+}
+
   return tpl; 
 }

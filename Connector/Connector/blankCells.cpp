@@ -1167,6 +1167,7 @@ PyObject* K_CONNECTOR::blankCells(PyObject* self, PyObject* args)
       tpl = K_ARRAY::buildArray(*cellnout, cellNName, *cnout, -1, eltTypec[0], 
                                 false);
       delete cellnu[iu];
+      delete cnout;
       PyList_Append(l, tpl); Py_DECREF(tpl);
       delete cellnout;
       RELEASESHAREDU(obju[iu], unstrF[iu], cnt[iu]);

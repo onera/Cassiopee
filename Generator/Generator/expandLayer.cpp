@@ -128,6 +128,8 @@ PyObject* K_GENERATOR::modifyIndicToExpandLayer(PyObject* self, PyObject* args)
   }
   for (E_Int i = 0; i < nthreads; i++) dhmin = K_FUNC::E_min(dhmin, dhminl[i]);
 
+  delete [] dhminl;
+
   vector< vector<E_Int> > cEEN(nelts);
   getNeighbourElts(npts, xt, yt, zt, *cn, cEEN, corners, dhmin); 
   E_Float* indict = fi->begin(posi);

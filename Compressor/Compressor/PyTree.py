@@ -166,7 +166,7 @@ def _compressCartesian(t, bbox=[], layers=None, subr=True):
             if abs(yp[ni*nj] - y0) > 1.e-10: cartesian = False
 
         if cartesian and layers is not None:
-            vars  = C.getVarNames(z, excludeXYZ=True)
+            vars  = C.getVarNames(z, excludeXYZ=True)[0]
             # align bbox with the gridzone
             bbox[0] = numpy.round((bbox[0]-x0)/hi)*hi+x0
             bbox[3] = numpy.round((bbox[3]-x0)/hi)*hi+x0

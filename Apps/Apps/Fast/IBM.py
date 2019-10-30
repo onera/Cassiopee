@@ -620,7 +620,7 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
         C._initVars(t,'{centers:cellN}={centers:cellNIBC}')
         C._initVars(t,'{centers:cellNFront_origin}={centers:cellNFront}') 
         C._initVars(t,'{centers:cellNIBC_origin}={centers:cellNIBC}')
-        C._initVars(t,'{centers:cellN_interp}=maximum(0.,{centers:cellNChim})')
+        C._initVars(t,'{centers:cellN_interp}=maximum(0.,{centers:cellNChim})') # Second way of building the cellN field, see above
 
         C._cpVars(t,'centers:cellNFront',tc,'cellNFront')
         C._cpVars(t,'centers:cellNIBC',tc,'cellNIBC')
