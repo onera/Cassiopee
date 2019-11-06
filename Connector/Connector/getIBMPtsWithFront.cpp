@@ -89,11 +89,11 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
     //distance max for image pt to its corrected pt : (depth+1)*sqrt(2)*snearloc 
     E_Float toldistFactorImage;
     if (signOfDist==-1) // interior points:  we move away the front from one additional layer
-        toldistFactorImage = (depth+2)*(depth+2)*3.;
+        toldistFactorImage = ((depth+1)*1.1)*((depth+1)*1.1)*3.;
     else 
-        toldistFactorImage = (depth+1)*(depth+1)*3.;
+        toldistFactorImage = (depth*1.1)*(depth*1.1)*3.;
     //distance max for wall pt to its corrected pt ( depth)*sqrt(3)*snearloc
-    E_Float toldistFactorWall = (depth+1)*(depth+1)*3.;
+    E_Float toldistFactorWall = (depth*1.1)*(depth*1.1)*3.;
 
     // Check normal components
     if (PyList_Check(normalNames) == 0)
@@ -456,6 +456,8 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
             vectOfIndicesByIBCType[notype] = indicesByIBCType;
             nPtsPerIBCType[notype] = 0;
         }
+        FldArrayI typeProj(npts); typeProj.setAllValuesAtNull();
+        E_Int nType1=0, nType2=0, nType3=0,nType4=0;
         for (E_Int ind = 0; ind < npts; ind++)
         {
             E_Int noibctype = -1;
@@ -471,7 +473,6 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
 
             dirx0 = ptrNX[ind]; diry0 = ptrNY[ind]; dirz0 = ptrNZ[ind];
 #  include "IBC/getIBMPts_projectDirFront.h"
-
             if ( ok > -1) // projection found
             {
                 okf1 = 1; 
@@ -483,7 +484,6 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
                 dirz0 = sign*dirz0;
 
                 # include "IBC/getIBMPts_projectDirBodies.h"
-
                 if ( ok > -1) 
                 {
                     okb1 = 1; 
@@ -495,6 +495,7 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
                         found = 1;
                         ptrXW[ind] = xsb; ptrYW[ind] = ysb; ptrZW[ind] = zsb;
                         ptrXI[ind] = xsf; ptrYI[ind] = ysf; ptrZI[ind] = zsf;
+                        typeProj[ind]=1; nType1+=1;
                         goto end;
                     }
                 }
@@ -533,6 +534,7 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
                         {
                             ptrXW[ind] = xsb; ptrYW[ind] = ysb; ptrZW[ind] = zsb;
                             ptrXI[ind] = xsf; ptrYI[ind] = ysf; ptrZI[ind] = zsf;
+                            typeProj[ind]=2; nType2+=1;
                             goto end;
                         }
                     }
@@ -562,6 +564,7 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
                         {
                             ptrXW[ind] = xsb; ptrYW[ind] = ysb; ptrZW[ind] = zsb;
                             ptrXI[ind] = xsf; ptrYI[ind] = ysf; ptrZI[ind] = zsf;
+                            typeProj[ind]=3; nType3+=1;
                             goto end;
                         }
                     }
@@ -571,10 +574,11 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
                /*---------------------------------------------------------------------------------------------*/
                /* Step  4:  no valid projection found. Minimum distance chosen (projectOrtho)*/
                /*---------------------------------------------------------------------------------------------*/
-                printf("Warning: minimum distance chosen for point of indice %d of zone %d.\n",ind,noz);
+                // printf("Warning: minimum distance chosen for point of indice %d of zone %d.\n",ind,noz);
                 // printf(" xc = %g,%g,%g \n", xc0, yc0, zc0);
                 // printf(" xw = %g,%g,%g \n", xb_ortho, yb_ortho, zb_ortho);
                 // printf(" xi = %g,%g,%g \n", xf_ortho, yf_ortho, zf_ortho);
+                typeProj[ind]=4; nType4+=1;
 
                 ptrXW[ind] = xb_ortho; ptrYW[ind] = yb_ortho; ptrZW[ind] = zb_ortho;
                 ptrXI[ind] = xf_ortho; ptrYI[ind] = yf_ortho; ptrZI[ind] = zf_ortho;
@@ -585,7 +589,9 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
             E_Int* indicesForIBCType = vectOfIndicesByIBCType[noibctype]->begin();
             indicesForIBCType[nptsByType] = ind+1; 
             nptsByType += 1;
+            // BILAN 
         }// ind in zone
+        // printf(" ZONE %d Nb de type 1 : %d, type2 = %d, type3 = %d, type4 = %d\n", noz, nType1, nType2,nType3,nType4);
 
         PyObject* PyListIndicesByIBCTypeForZone = PyList_New(0);
         for (E_Int noibctype = 0; noibctype < nbodies; noibctype++)

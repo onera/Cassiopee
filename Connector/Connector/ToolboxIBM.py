@@ -21,7 +21,7 @@ try:
     import Converter.GhostCells as CGC
     import KCore
     import numpy
-    import math
+    import math  
 except:
     raise ImportError("Connector.ToolboxIBM requires Converter, Generator, Transform, Dist2Walls and Post modules.")
 
@@ -118,8 +118,7 @@ def adaptIBMMesh(t, tb, vmin, sensor, factor=1.2, DEPTH=2, sizeMax=4000000,
     if len(res) == 3: to = res[0]
     o = Internal.getZones(to)[0]
     o = G.adaptOctree(o, balancing=2)
-    C.convertPyTree2File(o, fileo)
-
+    if mpisize==1: C.convertPyTree2File(o, fileo)
     t2 = generateCartMesh__(o, dimPb=dimPb, vmin=vmin, DEPTH=DEPTH,
                             sizeMax=sizeMax, check=check, symmetry=symmetry, 
                             externalBCType=externalBCType)
@@ -576,7 +575,8 @@ def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None,
         if nelts > 20000: 
             print('Warning: number of zones (%d) on rank %d is high (block merging might last a long time).'%(nelts, rank))
 
-    if fileout is not None: C.convertPyTree2File(o, fileout)
+    if fileout is not None: 
+        if mpisize==1: C.convertPyTree2File(o, fileout)
     return o
 
 def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., dfarList=[], DEPTH=2, tbox=None, 
@@ -605,8 +605,7 @@ def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., dfarList=[], DEPTH=2, tb
                     expand=expand)
 
     if check: C.convertPyTree2File(o, "octree.cgns")
-
-# retourne les 4 quarts (en 2D) de l'octree parent 2 niveaux plus haut 
+    # retourne les 4 quarts (en 2D) de l'octree parent 2 niveaux plus haut 
     # et les 8 octants en 3D sous forme de listes de zones non structurees
     parento = buildParentOctrees__(o, tb, snears=snears, snearFactor=4., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf, 
                                    dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=None, rank=0)
@@ -969,22 +968,23 @@ def blankByIBCBodies(t, tb, loc, dim):
     bodies = []
     for b in Internal.getBases(tb):
         wallsl = Internal.getNodesFromType1(b, 'Zone_t')
-        soldef = Internal.getNodeFromName(wallsl,'.Solver#define')
-        if wallsl != []:
-            try:
-                wallsl = C.convertArray2Tetra(wallsl)
-                wallsl = T.join(wallsl)
-                wallsl = G.close(wallsl)
-                Internal.addChild(wallsl,soldef)
-                if DIM == 3:
-                    try: P.exteriorFaces(wallsl)
-                    except: bodies.append([wallsl])
-                else: bodies.append([wallsl])
-            except: bodies.append(wallsl)
-            wallsl = C.convertArray2Tetra(wallsl)
-            #wallsl = T.join(wallsl)
-            #wallsl = G.close(wallsl)
-            #P.exteriorFaces(wallsl)
+        #soldef = Internal.getNodeFromName(wallsl,'.Solver#define')
+        bodies.append(wallsl)
+        # if wallsl != []:
+        #     try:
+        #         wallsl = C.convertArray2Tetra(wallsl)
+        #         wallsl = T.join(wallsl)
+        #         wallsl = G.close(wallsl)
+        #         Internal.addChild(wallsl,soldef)
+        #         bodies.append([wallsl])
+        #         # if DIM == 3:
+        #         #     try: P.exteriorFaces(wallsl)
+        #         #     except: pass
+        #         #     bodies.append([wallsl])
+        #         # else: bodies.append([wallsl])
+        #     except: 
+        #         wallsl = C.convertArray2Tetra(wallsl)
+        #         bodies.append(wallsl)
 
     nbodies = len(bodies)
     print('Blanking mesh by %d immersed bodies'%nbodies)
@@ -1626,6 +1626,7 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interpDataType
     print('Building the IBM front.')
     front = getIBMFront(tc, 'cellNFront', dimPb, frontType)
     C.convertPyTree2File(front, 'front.cgns')
+
     print('Interpolations IBM')
     tc = doInterp(t,tc,tbb, tb=tb,typeI='IBCD',dim=dimPb, dictOfADT=None, front=front, frontType=frontType, depth=DEPTH, IBCType=IBCType, interpDataType=interpDataType)
 

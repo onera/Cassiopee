@@ -289,113 +289,89 @@ PyObject* octree(PyObject* self, PyObject* args)
 
   // calcul du dfar reel a partir de la bbox des bbox
   E_Float xmino, ymino, zmino, xmaxo, ymaxo, zmaxo;
+  E_Float xc, yc, zc, Delta, Deltax, Deltay, Deltaz;
   if (ndfars == 0)// starts from the global dfar
   {
     E_Float dfxm = dfar; E_Float dfym = dfar; E_Float dfzm = dfar;
     E_Float dfxp = dfar; E_Float dfyp = dfar; E_Float dfzp = dfar;  
     if (dim == 2) { dfzp = 0.; dfzm = 0.; }
 
-    xmino =  K_CONST::E_MAX_FLOAT;
-    ymino =  K_CONST::E_MAX_FLOAT;
-    zmino =  K_CONST::E_MAX_FLOAT;
-    xmaxo = -K_CONST::E_MAX_FLOAT;
-    ymaxo = -K_CONST::E_MAX_FLOAT;
-    zmaxo = -K_CONST::E_MAX_FLOAT;
+    xmino =  K_CONST::E_MAX_FLOAT; xmaxo = -K_CONST::E_MAX_FLOAT;
+    ymino =  K_CONST::E_MAX_FLOAT; ymaxo = -K_CONST::E_MAX_FLOAT;
+    zmino =  K_CONST::E_MAX_FLOAT; zmaxo = -K_CONST::E_MAX_FLOAT;
     if (dim == 2) {zmino = 0.; zmaxo= 0.;}
     for (E_Int v = 0; v < nzones; v++)
     {
       xmino = K_FUNC::E_min(xminZ[v],xmino); xmaxo = K_FUNC::E_max(xmaxZ[v],xmaxo);
       ymino = K_FUNC::E_min(yminZ[v],ymino); ymaxo = K_FUNC::E_max(ymaxZ[v],ymaxo);
-      zmino = K_FUNC::E_min(zminZ[v],zmino); zmaxo = K_FUNC::E_max(zmaxZ[v],zmaxo);
+      if ( dim == 3)
+      {
+        zmino = K_FUNC::E_min(zminZ[v],zmino); zmaxo = K_FUNC::E_max(zmaxZ[v],zmaxo);
+      }
     }
     if (dim == 2) {zmino = 0.; zmaxo = 0.;}
 
-    E_Float Deltax = xmaxo+dfxp-xmino+dfxm;
-    E_Float Deltay = ymaxo+dfyp-ymino+dfym;
-    E_Float Deltaz = zmaxo+dfzp-zmino+dfzm;
-    E_Float Delta = K_FUNC::E_max(Deltax, Deltay); 
+    Deltax = xmaxo+dfxp-xmino+dfxm;
+    Deltay = ymaxo+dfyp-ymino+dfym;
+    Deltaz = zmaxo+dfzp-zmino+dfzm;
+    Delta = K_FUNC::E_max(Deltax, Deltay); 
     if (dim == 3) Delta = K_FUNC::E_max(Delta, Deltaz);
     Delta = 0.5*Delta;
-    E_Float xc = 0.5*(xmaxo+dfxp+xmino-dfxm);
-    E_Float yc = 0.5*(ymaxo+dfyp+ymino-dfym);
-    E_Float zc = 0.5*(zmaxo+dfzp+zmino-dfzm);
+    xc = 0.5*(xmaxo+dfxp+xmino-dfxm);
+    yc = 0.5*(ymaxo+dfyp+ymino-dfym);
+    zc = 0.5*(zmaxo+dfzp+zmino-dfzm);
     zmino = 0.; zmaxo = 0.;
     xmino = xc-Delta; ymino = yc-Delta; if (dim == 3) zmino = zc-Delta;
     xmaxo = xc+Delta; ymaxo = yc+Delta; if (dim == 3) zmaxo = zc+Delta;
   }
-  else 
+  else// if (ndfars > 0)// local dfar
   {
-    vector<E_Float> xmint; vector<E_Float> xmaxt;
-    vector<E_Float> ymint; vector<E_Float> ymaxt;
-    vector<E_Float> zmint; vector<E_Float> zmaxt;    
     // calcul de la bbox etendue de dfar local pour ttes les surfaces sauf celles tq dfarloc=-1
+    xmino = K_CONST::E_MAX_FLOAT; xmaxo =-K_CONST::E_MAX_FLOAT;
+    ymino = K_CONST::E_MAX_FLOAT; ymaxo =-K_CONST::E_MAX_FLOAT;
+    zmino = K_CONST::E_MAX_FLOAT; zmaxo =-K_CONST::E_MAX_FLOAT;
+    if (dim == 2) {zmino = 0.; zmaxo= 0.;}
+
     for (E_Int v = 0; v < nzones; v++)
     {
       E_Float dfarloc = vectOfDfars[v];
-      if (dfarloc > __DFARTOL__)
+      if (dfarloc > __DFARTOL__)//extensions non isotropes
       {
-        // extensions non isotropes
-        E_Float Delta = dfarloc;
-        
-        E_Float xc = 0.5*(xminZ[v]+xmaxZ[v]);
-        E_Float yc = 0.5*(yminZ[v]+ymaxZ[v]);
-        E_Float zc = 0.5*(zminZ[v]+zmaxZ[v]);
-        xmint.push_back(xc-Delta); xmaxt.push_back(xc+Delta); 
-        ymint.push_back(yc-Delta); ymaxt.push_back(yc+Delta); 
-        if (dim == 3) { zmint.push_back(zc-Delta); zmaxt.push_back(zc+Delta);}
-        else { zmint.push_back(0.); zmaxt.push_back(0.);}
-        
-        /* Distance with BBOX of zone
-        E_Float xmin = xminZ[v]-Delta;
-        E_Float xmax = xmaxZ[v]+Delta;
-        E_Float ymin = yminZ[v]-Delta;
-        E_Float ymax = ymaxZ[v]+Delta;
-        E_Float zmin = zminZ[v]-Delta;
-        E_Float zmax = zmaxZ[v]+Delta;
-        xmint.push_back(xmin); xmaxt.push_back(xmax); 
-        ymint.push_back(ymin); ymaxt.push_back(ymax); 
-        if (dim == 3) { zmint.push_back(zmax); zmaxt.push_back(zmin);}
-        else { zmint.push_back(0.); zmaxt.push_back(0.);}
-        */
-      }
-    }
-    // les extensions locales sont toutes calculees, on prend la boite englobante
-    xmino =  K_CONST::E_MAX_FLOAT;
-    ymino =  K_CONST::E_MAX_FLOAT;
-    zmino =  K_CONST::E_MAX_FLOAT;
-    xmaxo = -K_CONST::E_MAX_FLOAT;
-    ymaxo = -K_CONST::E_MAX_FLOAT;
-    zmaxo = -K_CONST::E_MAX_FLOAT;
-    for (size_t v = 0; v < xmint.size(); v++)
-    {
-      xmino = K_FUNC::E_min(xmino, xmint[v]);
-      ymino = K_FUNC::E_min(ymino, ymint[v]);
-      xmaxo = K_FUNC::E_max(xmaxo, xmaxt[v]);
-      ymaxo = K_FUNC::E_max(ymaxo, ymaxt[v]);
-      if (dim == 3)
-      {
-        zmino = K_FUNC::E_min(zmino, zmint[v]);
-        zmaxo = K_FUNC::E_max(zmaxo, zmaxt[v]);
-      }
-      else { zmino = 0.; zmaxo = 0.;}
-    }
-    
-    // calcul du centre de la boite englobante
-    E_Float xc = (xmino+xmaxo)*0.5;
-    E_Float yc = (ymino+ymaxo)*0.5;
-    E_Float zc = 0.;
-    if (dim == 3) zc = (zmino+zmaxo)*0.5;
+        E_Float xminl = xminZ[v]; E_Float xmaxl = xmaxZ[v];
+        E_Float yminl = yminZ[v]; E_Float ymaxl = ymaxZ[v];
+        E_Float zminl = zminZ[v]; E_Float zmaxl = zmaxZ[v];
 
-    // calcul de l'extension max entre les 3 directions pour faire avoir un octree cubique
-    E_Float Deltax = xmaxo-xmino;
-    E_Float Deltay = ymaxo-ymino;
-    E_Float Deltaz = zmaxo-zmino;
-    E_Float Delta = K_FUNC::E_max(Deltax, Deltay); 
-    if (dim == 3) Delta = K_FUNC::E_max(Delta, Deltaz);
-    Delta = 0.5*Delta;
-    xmino = xc-Delta; ymino = yc-Delta; if (dim == 3) zmino = zc-Delta;
-    xmaxo = xc+Delta; ymaxo = yc+Delta; if (dim == 3) zmaxo = zc+Delta;
-  }
+        Deltax = xmaxl-xminl+2*dfarloc;
+        Deltay = ymaxl-yminl+2*dfarloc;
+        Delta = K_FUNC::E_max(Deltax, Deltay); 
+        if ( dim == 3) 
+        {
+          Deltaz=zmaxl-zminl+2*dfarloc;
+          Delta = K_FUNC::E_max(Delta, Deltaz);
+        }
+        Delta = 0.5*Delta;
+        xc = 0.5*(xmaxl+xminl);
+        yc = 0.5*(ymaxl+yminl);
+        xminl=xc-Delta; yminl=yc-Delta; 
+        xmaxl=xc+Delta; ymaxl=yc+Delta; 
+
+        if ( dim == 2) 
+        {zc = 0.; zminl = 0.; zmaxl = 0.;}
+        else 
+        {
+          zc = 0.5*(zmaxl+zminl);
+          zminl=zc-Delta; zmaxl=zc+Delta;
+        }
+        xmino = K_FUNC::E_min(xmino,xminl);xmaxo = K_FUNC::E_max(xmaxo,xmaxl);
+        ymino = K_FUNC::E_min(ymino,yminl);ymaxo = K_FUNC::E_max(ymaxo,ymaxl);
+        if (dim==3)
+        {
+          zmino = K_FUNC::E_min(zmino,zminl);zmaxo = K_FUNC::E_max(zmaxo,zmaxl);
+        }        
+      }//only zones with dfar > -1
+    }// loop on all zones
+  }// list of dfars
+
   // construction de l'octree (octant)
   // si octant est present, ecrase xmino,...
   if (octant != Py_None && PyList_Check(octant) == true)

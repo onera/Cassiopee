@@ -28,15 +28,14 @@ switch (type)
     break;
 
   case 1:
-    for (E_Int ne    = 0     ; ne    < nvars_loc ; ne++)
+    for (E_Int ne = 0; ne< nvars_loc ; ne++)
     {
-     for (E_Int noind = pt_deb; noind < pt_fin; noind++)
-     {
-      indR   = rcvPts[noind];
-      indD0  = donorPts[noind];  //car type 0 est toujour traite en dernier. Sinon noind pas valable
-    
-      vectOfRcvFields[ne][indR] = vectOfDnrFields[ne][indD0];
-     }
+      for (E_Int noind = pt_deb; noind < pt_fin; noind++)
+      {
+        indR   = rcvPts[noind];
+        indD0  = donorPts[noind];  //car type 0 est toujours traite en dernier. Sinon noind pas valable
+        vectOfRcvFields[ne][indR] = vectOfDnrFields[ne][indD0];
+      }
     }
     break;
     

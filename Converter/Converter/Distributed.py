@@ -34,7 +34,7 @@ def readNodesFromPaths(fileName, paths, format=None, maxFloatSize=-1, maxDepth=-
   if not isinstance(paths, list): p = [paths]
   else: p = paths
   p = fixPaths__(p)
-  if skipTypes is not None and isinstance(skiptTypes, str): skipTypes = [skipTypes]
+  if skipTypes is not None and isinstance(skipTypes, str): skipTypes = [skipTypes]
   ret = Converter.converter.readPyTreeFromPaths(fileName, p, format, maxFloatSize, maxDepth, skipTypes, comm)
   if not isinstance(paths, list): return ret[0]
   else: return ret 
