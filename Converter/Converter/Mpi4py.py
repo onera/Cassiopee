@@ -11,7 +11,8 @@ __all__ = ['rank', 'size', 'KCOMM', 'COMM_WORLD', 'setCommunicator', 'barrier', 
     'allgather', 'readZones', 'writeZones', 'convert2PartialTree', 'convert2SkeletonTree', 'convertFile2DistributedPyTree', 
     'readNodesFromPaths', 'readPyTreeFromPaths', 'writeNodesFromPaths',
     'allgatherTree', 'convertFile2SkeletonTree', 'convertFile2PyTree', 'convertPyTree2File', 'seq', 'print0', 'printA',
-    'createBBoxTree', 'createBboxDict', 'computeGraph', 'addXZones', '_addXZones', '_addMXZones', 'rmXZones', '_rmXZones', 'getProcDict', 
+    'createBBoxTree', 'createBboxDict', 'computeGraph', 'addXZones', '_addXZones', '_addMXZones', '_addBXZones',
+    'rmXZones', '_rmXZones', 'getProcDict', 
     'getProc', 'setProc', '_setProc']
 
 from mpi4py import MPI
@@ -105,8 +106,7 @@ def Bcast(data, root=0):
 def bcastTree(t, root=0):
     if t is not None:
         zones = Internal.getZones(t)
-        for z in zones:
-            z = bcastZone(z)
+        for z in zones: z = bcastZone(z)
     return t
 
 # data=zone
@@ -508,16 +508,79 @@ def _addMXZones(a):
             a[2][1][2] += data
     MPI.Request.Waitall(reqs)
 
-def _addBXZones(a):
-    # Calcul les bbox des zones de a (local)
-    zones = Internal.getZones(a)
-    bbzs = []
-    for z in zones: bbs.append(G.bbox(z))
-    # Calcul les subzones
-    subzs = []; bbsubzs = []
-    for z in zones:
-        z1 = T.subzone(z, (1,1,1), ())
+# IN: bb0 et bb1: [xmin,ymin,zmin,xmax,ymax,zmax]
+# Retourne true si les bbox s'intersectent
+def inters(bb0, bb1):
+    if bb0[3] < bb1[0] or bb0[0] > bb1[3]: return False
+    if bb0[4] < bb1[1] or bb0[1] > bb1[4]: return False
+    if bb0[5] < bb1[2] or bb0[2] > bb1[5]: return False
+    return True
 
+# creation de la bandelette
+def subzone(a, indMin, indMax, supp):
+    import Transform.PyTree as T
+    dim = Internal.getZoneDim(a)
+    (imin,jmin,kmin) = (indMin[0],indMin[1],indMin[2])
+    (imax,jmax,kmax) = (indMax[0],indMax[1],indMax[2])
+    ap = T.subzone(a, indMin, indMax)
+    ap[0] = a[0] + supp
+    Internal.createChild(ap, 'XZone', 'UserDefinedData_t')
+    Internal._setLoc2Glob(ap, a[0], win=[imin,imax,jmin,jmax,kmin,kmax], sourceDim=[dim[1],dim[2],dim[3]])
+    return ap
+    
+# Ajoute les bandelettes des autres procs sur le procs locaux
+def _addBXZones(a):
+    import Generator.PyTree as G
+    # Calcul des bbox des zones locales
+    zones = Internal.getZones(a)
+    bbz = {}
+    for z in zones:
+        bb = G.bbox(z)
+        bbz[z[0]] = bb
+
+    # Calcul des bandelettes et de leur bbox
+    bbsz = {}; sz = {}
+    for z in zones:
+        dim = Internal.getZoneDim(z)
+        ni = dim[1]; nj = dim[2]; nk = dim[3]
+        b1 = subzone(z, (1,1,1), (2,nj,nk), 'S1')
+        b2 = subzone(z, (ni-1,1,1), (ni,nj,nk), 'S2')
+        b3 = subzone(z, (1,1,1), (ni,2,nk), 'S3')
+        b4 = subzone(z, (1,nj-1,1), (ni,nj,nk), 'S4')
+        b5 = subzone(z, (1,1,1), (ni,nj,2), 'S5')
+        b6 = subzone(z, (1,1,nk-1), (ni,nj,nk), 'S6')
+        sz[b1[0]] = b1
+        sz[b2[0]] = b2
+        sz[b3[0]] = b3
+        sz[b4[0]] = b4
+        sz[b5[0]] = b5
+        sz[b6[0]] = b6
+        bbsz[b1[0]] = G.bbox(b1)
+        bbsz[b2[0]] = G.bbox(b2)
+        bbsz[b3[0]] = G.bbox(b3)
+        bbsz[b4[0]] = G.bbox(b4)
+        bbsz[b5[0]] = G.bbox(b5)
+        bbsz[b6[0]] = G.bbox(b6)
+
+    # allgather des bbox des bandelettes
+    bboxes = allgather(bbz)
+
+    # Echange par alltoall
+    data = []
+    for i in range(size):
+        data_i = {}
+        if i != rank:
+            for bb in bboxes[i]:
+                for k in bbsz:
+                    if inters(bbsz[k],bboxes[i][bb]):
+                        data_i[k]=sz[k]
+        data.append(data_i)
+    data_r = COMM_WORLD.alltoall(data)
+    for p in data_r:
+        for q in p:
+            a[2][1][2].append(p[q])
+    return None
+    
 #==============================================================================
 # Supprime les zones ajoutees par addXZones
 #==============================================================================

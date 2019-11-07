@@ -78,10 +78,13 @@ def distribute(arrays, NProc, prescribed=[], perfo=[], weight=[], com=[],
     # Liste des poids du solveur pour chaque bloc
     Nb = len(arrays)
     if weight == []: weight = [1]*Nb
-        
+                
     # Matrice du volume des coms
     if com == []: volCom = numpy.zeros((Nb, Nb), numpy.int32)
+    elif isinstance(com, list): volCom = numpy.array(com)
     else: volCom = com
+    # Si algo=graph et pas de com, force algo=fast
+    if algorithm == 'graph' and numpy.amax(volCom) <= 0: algorithm = 'fast'
     
     # Distribution
     out = distributor2.distribute(nbPts, setArrays, perfProcs, weight,

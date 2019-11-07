@@ -48,7 +48,7 @@ print('utau', utau)
 deltapp = 0.16*xsurL*LRef/pow(ReInf*xsurL, 1./7.)
 print('deltapp', deltapp)
 
-# hauteur de la premier maille en 
+# hauteur de la premiere maille 
 y = muInf * yplus / roInf / utau
 print('y', y)
 
@@ -64,7 +64,7 @@ print('Cf', Cf)
 utau = math.sqrt(roInf*Cf*uInf*uInf*0.5/roWall)
 print('utau', utau)
 
-# hauteur de la premier maille en 
+# hauteur de la premiere maille 
 y = muInf * yplus / roInf / utau
 print('y', y)
 
@@ -73,7 +73,7 @@ print('------------------')
 # Turbulent adimensionne
 #==============================================================================
 # Frottement
-Cf = 0.058*math.pow( ReInf*xsurL, -0.2) * Correction
+Cf = 0.058*math.pow(ReInf*xsurL, -0.2) * Correction
 print('Cf', Cf)
 
 # Vitesse de frottement
@@ -84,7 +84,7 @@ print('utau', utau)
 deltapp = 0.16*xsurL/pow(ReInf*xsurL, 1./7.)
 print('deltapp', deltapp)
 
-# hauteur de la premier maille en 
+# hauteur de la premiere maille 
 y = (1./ReInf) * yplus / utau
 print('y', y)
 
@@ -101,12 +101,8 @@ print('Cf', Cf)
 utau = math.sqrt(Cf*0.5)
 print('utau', utau)
 
-# hauteur de la premier maille en 
+# hauteur de la premiere maille 
 y = (1./ReInf) * yplus / utau
 print('y', y)
 
 print('------------------')
-
-
-
-
