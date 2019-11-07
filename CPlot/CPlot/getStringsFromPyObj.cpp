@@ -40,7 +40,7 @@ int getStringsFromPyObj(PyObject* obj, std::vector<char*>& strings)
     else if (PyUnicode_Check(o))
     {
       char* s = new char[128];
-      strcpy(s, PyBytes_AsString(PyUnicode_AsUTF8String(o)));
+      strcpy(s, PyUnicode_AsUTF8(o));
       strings.push_back(s);
     }
 #endif
@@ -65,7 +65,7 @@ int getStringFromPyObj(PyObject* obj, char*& string)
   else if (PyUnicode_Check(obj))
   {
     char* s = new char[128];
-    strcpy(s, PyBytes_AsString(PyUnicode_AsUTF8String(obj)));
+    strcpy(s, PyUnicode_AsUTF8(obj));
     string = s;
     return 1;
   }

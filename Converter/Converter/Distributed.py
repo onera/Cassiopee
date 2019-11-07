@@ -374,10 +374,16 @@ def updateGraph__(graph, proc, popp, zoneName):
                     graph[proc][popp].append(zoneName)
     return graph
 
+def updateGraphSet__(graph, proc, popp, zoneName):
+    if popp != proc:
+        if proc not in graph: graph[proc] = {popp:set()}
+        graph[proc][popp].add(zoneName)
+    return graph
+
 #==============================================================================
-# Retourne le proc de z si z est local
+# Retourne le proc de z si z est local ou dans le procDict si il existe
 #==============================================================================
-def getProcLocal__(z, procDict):
+def getProcLocal__(z, procDict=None):
     if procDict is not None: return procDict[z[0]]
     else:
         proc = Internal.getNodeFromName2(z, 'proc')
@@ -385,9 +391,9 @@ def getProcLocal__(z, procDict):
         return proc
         
 #==============================================================================
-# Retourne le proc de z si z est global
+# Retourne le proc de z si z est global ou dans le procDict si il existe
 #==============================================================================
-def getProcGlobal__(zoneName, t, procDict):
+def getProcGlobal__(zoneName, t, procDict=None):
     if procDict is not None: return procDict[zoneName]
     else:
         z = Internal.getNodeFromName2(t, zoneName)
@@ -421,7 +427,7 @@ def getProcGlobal__(zoneName, t, procDict):
 # attend ensuite les zones graph[opp][rank] pour tout opp.
 #==============================================================================
 def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
-                 intersectionsDict=None, exploc=False):
+                 intersectionsDict=None, exploc=False, procDict2=None):
     """Return the communication graph for different block relation types."""
     zones = Internal.getZones(t)
     graph = {}
@@ -494,8 +500,11 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
             proc = getProcLocal__(z, procDict)
             for z2 in zones2:
                 if z2[0] in intersectionsDict[z[0]]:
-                    popp = getProcGlobal__(z2[0], t2, None)
+                    popp = getProcGlobal__(z2[0], t2, procDict2)
                     updateGraph__(graph, proc, popp, z[0])
+                    #updateGraphSet__(graph, proc, popp, z[0])
+        #for p in graph:
+        #  for opp in graph[p]: graph[p][opp] = list(graph[p][opp])
         #import Connector.PyTree as X
         #for z in zones:
         #    proc = getProcLocal__(z, procDict)
@@ -503,6 +512,7 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
         #    for d in doms:
         #        popp = getProcGlobal__(d[0], t2, None)
         #        updateGraph__(graph, proc, popp, z[0])
+      
 
     elif type == 'ID': # base sur les interpolations data
       if not exploc:

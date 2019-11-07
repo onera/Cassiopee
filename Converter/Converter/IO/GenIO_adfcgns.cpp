@@ -584,12 +584,12 @@ double K_IO::GenIOAdf::writeNode(double node, PyObject* tree, double child)
   char* name; char* label;
   if (PyString_Check(pname)) name = PyString_AsString(pname);
 #if PY_VERSION_HEX >= 0x03000000
-  else if (PyUnicode_Check(pname)) name = PyBytes_AsString(PyUnicode_AsUTF8String(pname));
+  else if (PyUnicode_Check(pname)) name = PyUnicode_AsUTF8(pname);
 #endif
   else name = NULL;
   if (PyString_Check(plabel)) label = PyString_AsString(plabel);
 #if PY_VERSION_HEX >= 0x03000000
-  else if (PyUnicode_Check(plabel)) label = PyBytes_AsString(PyUnicode_AsUTF8String(plabel));
+  else if (PyUnicode_Check(plabel)) label = PyUnicode_AsUTF8(plabel);
 #endif
   else label = NULL;
   blankAndCopy(s1, name, CGNSMAXLABEL);
@@ -614,7 +614,7 @@ double K_IO::GenIOAdf::writeNode(double node, PyObject* tree, double child)
 #if PY_VERSION_HEX >= 0x03000000
   else if (PyUnicode_Check(v))
   {
-    setArrayC1(child, PyBytes_AsString(PyUnicode_AsUTF8String(v)));
+    setArrayC1(child, PyUnicode_AsUTF8(v));
   }
 #endif
   else if (PyInt_Check(v))
@@ -977,7 +977,7 @@ PyObject* K_IO::GenIO::adfcgnsReadFromPaths(char* file, PyObject* paths,
     l = PyList_GetItem(paths, i);
     if (PyString_Check(l)) path = PyString_AsString(l);
 #if PY_VERSION_HEX >= 0x03000000
-    else if (PyUnicode_Check(l)) path = PyBytes_AsString(PyUnicode_AsUTF8String(l));
+    else if (PyUnicode_Check(l)) path = PyUnicode_AsUTF8(l);
 #endif
     else 
     {
@@ -1074,7 +1074,7 @@ E_Int K_IO::GenIO::adfcgnsWritePaths(char* file, PyObject* treeList,
     l = PyList_GetItem(paths, i);
     if (PyString_Check(l)) path = PyString_AsString(l);
 #if PY_VERSION_HEX >= 0x03000000
-    else if (PyUnicode_Check(l)) path = PyBytes_AsString(PyUnicode_AsUTF8String(l));
+    else if (PyUnicode_Check(l)) path = PyUnicode_AsUTF8(l);
 #endif
     else 
     {
@@ -1125,7 +1125,7 @@ E_Int K_IO::GenIO::adfcgnsWritePaths(char* file, PyObject* treeList,
         l = PyList_GetItem(node,0);
         if (PyString_Check(l)) nodeName = PyString_AsString(l);
 #if PY_VERSION_HEX >= 0x03000000
-        else if (PyUnicode_Check(l)) nodeName = PyBytes_AsString(PyUnicode_AsUTF8String(l));
+        else if (PyUnicode_Check(l)) nodeName = PyUnicode_AsUTF8(l);
 #endif
         else nodeName = NULL;
         found = 0;
@@ -1212,7 +1212,7 @@ E_Int K_IO::GenIO::adfcgnsDeletePaths(char* file,
     l = PyList_GetItem(paths, i);
     if (PyString_Check(l)) path = PyString_AsString(l);
 #if PY_VERSION_HEX >= 0x03000000
-    else if (PyUnicode_Check(l)) path = PyBytes_AsString(PyUnicode_AsUTF8String(l));
+    else if (PyUnicode_Check(l)) path = PyUnicode_AsUTF8(l);
 #endif
     else
     {

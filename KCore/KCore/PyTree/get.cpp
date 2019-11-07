@@ -38,9 +38,9 @@ PyObject* K_PYTREE::getNodeFromName1(PyObject* o, const char* name)
     node = PyList_GetItem(l, 0);
     if (PyString_Check(node)) str = PyString_AsString(node);
 #if PY_VERSION_HEX >= 0x03000000
-    else if (PyUnicode_Check(node)) str = PyBytes_AsString(PyUnicode_AsUTF8String(node)); 
+    else if (PyUnicode_Check(node)) str = PyUnicode_AsUTF8(node);
 #endif
-    if (K_STRING::cmp(str, name) == 0) return l;
+    if (K_STRING::cmp(str, name) == 0) { return l; }  
   }
   return NULL;
 }
@@ -63,7 +63,7 @@ void K_PYTREE::getNodesFromType1(PyObject* o, const char* type,
     node = PyList_GetItem(l, 3);
     if (PyString_Check(node)) str = PyString_AsString(node);
 #if PY_VERSION_HEX >= 0x03000000
-    else if (PyUnicode_Check(node)) str = PyBytes_AsString(PyUnicode_AsUTF8String(node)); 
+    else if (PyUnicode_Check(node)) str = PyUnicode_AsUTF8(node); 
 #endif
     if (K_STRING::cmp(str, type) == 0) out.push_back(l);
   }
@@ -82,7 +82,7 @@ char* K_PYTREE::getNodeName(PyObject* o, vector<PyArrayObject*>& hook)
   { char* r = PyString_AsString(v); return r; }
 #if PY_VERSION_HEX >= 0x03000000
   else if (PyUnicode_Check(v))
-  { char* r = PyBytes_AsString(PyUnicode_AsUTF8String(v)); return r; }
+  { char* r = PyUnicode_AsUTF8(v); return r; }
 #endif
   return NULL;
 }
@@ -100,7 +100,7 @@ char* K_PYTREE::getNodeType(PyObject* o, vector<PyArrayObject*>& hook)
   { char* r = PyString_AsString(v); return r; }
 #if PY_VERSION_HEX >= 0x03000000
   else if (PyUnicode_Check(v))
-  { char* r = PyBytes_AsString(PyUnicode_AsUTF8String(v)); return r; }
+  { char* r = PyUnicode_AsUTF8(v); return r; }
 #endif
   return NULL;
 }
@@ -119,7 +119,7 @@ char* K_PYTREE::getValueS(PyObject* o, vector<PyArrayObject*>& hook)
   PyObject* v = PyList_GetItem(o, 1);
   if (PyString_Check(v)) return PyString_AsString(v);
 #if PY_VERSION_HEX >= 0x03000000
-  else if (PyUnicode_Check(v)) return PyBytes_AsString(PyUnicode_AsUTF8String(v));
+  else if (PyUnicode_Check(v)) return PyUnicode_AsUTF8(v);
 #endif
   PyArrayObject* ac = (PyArrayObject*)v; Py_INCREF(ac);
   char* d = (char*)PyArray_DATA(ac);
@@ -143,7 +143,7 @@ char* K_PYTREE::getValueS(PyObject* o, E_Int& s, vector<PyArrayObject*>& hook)
   { char* r = PyString_AsString(v); s = strlen(r); return r; }
 #if PY_VERSION_HEX >= 0x03000000
   else if (PyUnicode_Check(v))
-  { char* r = PyBytes_AsString(PyUnicode_AsUTF8String(v)); return r; }
+  { char* r = PyUnicode_AsUTF8(v); return r; }
 #endif
   PyArrayObject* ac = (PyArrayObject*)v; Py_INCREF(ac);
   char* d = (char*)PyArray_DATA(ac);
@@ -288,7 +288,7 @@ PyObject* K_PYTREE::getNodeFromPath(PyObject* o, const char* path)
       node = PyList_GetItem(l, 0);
       if (PyString_Check(node)) str = PyString_AsString(node);
 #if PY_VERSION_HEX >= 0x03000000
-      else if (PyUnicode_Check(node)) str = PyBytes_AsString(PyUnicode_AsUTF8String(node)); 
+      else if (PyUnicode_Check(node)) str = PyUnicode_AsUTF8(node); 
 #endif
       // printf("comparing %s %s %c\n", str, name, *pt);
       if (K_STRING::cmp(str, name) == 0) { next = l; found = true; break; }

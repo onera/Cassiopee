@@ -88,14 +88,14 @@ PyObject* K_CONVERTER::extractBCFields(PyObject* self, PyObject* args)
         PyObject* tpl0 = PyList_GetItem(pyVariables, i);
         if (PyString_Check(tpl0)) 
         {
-          char* varname = PyString_AsString(tpl0);        
+          char* varname = PyString_AsString(tpl0);
           posvar = K_ARRAY::isNamePresent(varname, varString);      
           if (posvar != -1 ) posvars.push_back(posvar);  
         }
 #if PY_VERSION_HEX >= 0x03000000
         else if (PyUnicode_Check(tpl0))
         {
-           char* varname = PyBytes_AsString(PyUnicode_AsUTF8String(tpl0));
+           char* varname = PyUnicode_AsUTF8(tpl0);
            posvar = K_ARRAY::isNamePresent(varname, varString);
            if (posvar != -1 ) posvars.push_back(posvar);  
         }

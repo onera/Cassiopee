@@ -7,7 +7,7 @@
          char* varname  = NULL;
          if (PyString_Check(tpl0)) varname = PyString_AsString(tpl0);
 #if PY_VERSION_HEX >= 0x03000000
-         else if (PyUnicode_Check(tpl0)) varname = PyBytes_AsString(PyUnicode_AsUTF8String(tpl0)); 
+         else if (PyUnicode_Check(tpl0)) varname = PyUnicode_AsUTF8(tpl0); 
 #endif
          strcpy(varStringOut, varname);
          for (int i = 1; i < nvariables; i++)
@@ -16,7 +16,7 @@
             char* varname = NULL;
             if (PyString_Check(tpl0)) varname = PyString_AsString(tpl0);
 #if PY_VERSION_HEX >= 0x03000000
-            else if (PyUnicode_Check(tpl0)) varname = PyBytes_AsString(PyUnicode_AsUTF8String(tpl0)); 
+            else if (PyUnicode_Check(tpl0)) varname = PyUnicode_AsUTF8(tpl0); 
 #endif
             strcat(varStringOut,","); strcat(varStringOut,varname);
           }

@@ -166,7 +166,7 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
       char* file = NULL;
       if (PyString_Check(o)) file = PyString_AsString(o);
 #if PY_VERSION_HEX >= 0x03000000
-      else if (PyUnicode_Check(o)) file = PyBytes_AsString(PyUnicode_AsUTF8String(o)); 
+      else if (PyUnicode_Check(o)) file = PyUnicode_AsUTF8(o); 
 #endif
       o = PyList_GetItem(billBoards, 3*i+1);
       int ni = PyLong_AsLong(o);
@@ -210,7 +210,7 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
       char* file = NULL;
       if (PyString_Check(o)) file = PyString_AsString(o);
 #if PY_VERSION_HEX >= 0x03000000
-      else if (PyUnicode_Check(o)) file = PyBytes_AsString(PyUnicode_AsUTF8String(o)); 
+      else if (PyUnicode_Check(o)) file = PyUnicode_AsUTF8(o); 
 #endif
       d->_materialFiles[i] = new char [128];  
       strcpy(d->_materialFiles[i], file);
@@ -247,7 +247,7 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
         char* file = NULL;
         if (PyString_Check(o)) file = PyString_AsString(o);
 #if PY_VERSION_HEX >= 0x03000000
-        else if (PyUnicode_Check(o)) file = PyBytes_AsString(PyUnicode_AsUTF8String(o)); 
+        else if (PyUnicode_Check(o)) file = PyUnicode_AsUTF8(o); 
 #endif
         d->_bumpMapFiles[i] = new char [128];  
         strcpy(d->_bumpMapFiles[i], file);
@@ -775,7 +775,7 @@ PyObject* K_CPLOT::setZoneNames(PyObject* self, PyObject* args)
     PyObject* l = PyTuple_GetItem(tpl, 1);
     if (PyString_Check(l)) name = PyString_AsString(l);
 #if PY_VERSION_HEX >= 0x03000000
-    else if (PyUnicode_Check(l)) name = PyBytes_AsString(PyUnicode_AsUTF8String(l)); 
+    else if (PyUnicode_Check(l)) name = PyUnicode_AsUTF8(l); 
 #endif
     
     if (noz < 0 || noz > d->_numberOfZones-1)

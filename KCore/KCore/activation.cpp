@@ -23,7 +23,7 @@ char* installPath()
 
 #if PY_VERSION_HEX >= 0x03000000    
     PyObject* o = PyDict_GetItem(dict, PyUnicode_FromString("libPath"));
-    char* retChar = PyBytes_AsString(PyUnicode_AsUTF8String(o));
+    char* retChar = PyUnicode_AsUTF8(o);
 #else
     PyObject* o = PyDict_GetItem(dict, PyString_FromString("libPath"));
     char* retChar = PyString_AsString(o);
@@ -66,7 +66,7 @@ char* getHome()
         if (rslt)
         {
 #if PY_VERSION_HEX >= 0x03000000
-          answer = PyBytes_AsString(PyUnicode_AsUTF8String(rslt));
+          answer = PyUnicode_AsUTF8(rslt);
 #else 
           answer = PyString_AsString(rslt);
 #endif

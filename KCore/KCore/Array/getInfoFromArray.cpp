@@ -111,7 +111,7 @@ E_Int K_ARRAY::getInfoFromArray(PyObject* o, char*& varString,
 #if PY_VERSION_HEX >= 0x03000000
     else if (PyUnicode_Check(l))
     {
-      varString = PyBytes_AsString(PyUnicode_AsUTF8String(l)); 
+      varString = PyUnicode_AsUTF8(l); 
     }
     else
     {
@@ -136,7 +136,7 @@ E_Int K_ARRAY::getInfoFromArray(PyObject* o, char*& varString,
 #if PY_VERSION_HEX >= 0x03000000
       else if (PyUnicode_Check(l))
       {
-        varString = PyBytes_AsString(PyUnicode_AsUTF8String(l)); 
+        varString = PyUnicode_AsUTF8(l); 
       }
 #endif
     //varString = PyString_AsString(PyList_GetItem(o,0));
@@ -156,7 +156,7 @@ E_Int K_ARRAY::getInfoFromArray(PyObject* o, char*& varString,
 #if PY_VERSION_HEX >= 0x03000000
     else if (PyUnicode_Check(l))
     {
-      eltType = PyBytes_AsString(PyUnicode_AsUTF8String(e)); 
+      eltType = PyUnicode_AsUTF8(e); 
     }
 #endif
     else

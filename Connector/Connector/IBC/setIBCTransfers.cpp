@@ -1917,7 +1917,7 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
 #if PY_VERSION_HEX >= 0x03000000
         else if (PyUnicode_Check(tpl0)) 
         {
-          char* varname = PyBytes_AsString(PyUnicode_AsUTF8String(tpl0));
+          char* varname = PyUnicode_AsUTF8(tpl0);
           posvd = K_ARRAY::isNamePresent(varname, varStringD);      
           posvr = K_ARRAY::isNamePresent(varname, varStringR);      
           if (posvd != -1 && posvr != -1) 
@@ -2171,7 +2171,7 @@ PyObject* K_CONNECTOR::_setIBCTransfers(PyObject* self, PyObject* args)
 #if PY_VERSION_HEX >= 0x03000000
             else if (PyUnicode_Check(tpl0))
             {
-              char* varname = PyBytes_AsString(PyUnicode_AsUTF8String(tpl0));
+              char* varname = PyUnicode_AsUTF8(tpl0);
               posvd = K_ARRAY::isNamePresent(varname, varStringD);      
               posvr = K_ARRAY::isNamePresent(varname, varStringR);      
               if (posvd != -1 && posvr != -1) 

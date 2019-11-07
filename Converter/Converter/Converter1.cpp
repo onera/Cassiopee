@@ -475,7 +475,7 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
 #if PY_VERSION_HEX >= 0x03000000
     else if (PyUnicode_Check(tplz))
     {
-      char* str = PyBytes_AsString(PyUnicode_AsUTF8String(tplz));
+      char* str = PyUnicode_AsUTF8(tplz);
       zoneNames.push_back(str);  
     }
 #endif  

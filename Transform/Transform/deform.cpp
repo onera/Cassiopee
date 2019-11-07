@@ -73,7 +73,7 @@ PyObject* K_TRANSFORM::deform(PyObject* self, PyObject* args)
 #if PY_VERSION_HEX >= 0x03000000
     else if (PyUnicode_Check(tpl0))
     {
-      vects = PyBytes_AsString(PyUnicode_AsUTF8String(tpl0)); 
+      vects = PyUnicode_AsUTF8(tpl0); 
     }
 #endif
     else

@@ -228,7 +228,7 @@ E_Int checkPathInLinks(const char* path, PyObject* links)
     char* s;
     if (PyString_Check(d)) s = PyString_AsString(d);
 #if PY_VERSION_HEX >= 0x03000000
-    else if (PyUnicode_Check(d)) s = PyBytes_AsString(PyUnicode_AsUTF8String(d));
+    else if (PyUnicode_Check(d)) s = PyUnicode_AsUTF8(d);
 #endif
     else s = NULL;
     //printf("path=%s links=%s\n", path, s);
@@ -845,7 +845,7 @@ E_Int K_IO::GenIO::hdfcgnsread(char* file, PyObject*& tree, PyObject* dataShape,
       PyObject* l = PyList_GetItem(skipTypes, i);
       if (PyString_Check(l)) typeToSkip = PyString_AsString(l);
 #if PY_VERSION_HEX >= 0x03000000
-      else if (PyUnicode_Check(l)) typeToSkip = PyBytes_AsString(PyUnicode_AsUTF8String(l)); 
+      else if (PyUnicode_Check(l)) typeToSkip = PyUnicode_AsUTF8(l); 
 #endif
       HDF._skipTypes[string(typeToSkip)] = true;
     }
@@ -991,7 +991,7 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPaths(char* file, PyObject* paths,
       PyObject* l = PyList_GetItem(skipTypes, i);
       if (PyString_Check(l)) typeToSkip = PyString_AsString(l);
 #if PY_VERSION_HEX >= 0x03000000
-      else if (PyUnicode_Check(l)) typeToSkip = PyBytes_AsString(PyUnicode_AsUTF8String(l)); 
+      else if (PyUnicode_Check(l)) typeToSkip = PyUnicode_AsUTF8(l); 
 #endif
       HDF._skipTypes[string(typeToSkip)] = true;
     }
@@ -1028,7 +1028,7 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPaths(char* file, PyObject* paths,
     l = PyList_GetItem(paths, i);
     if (PyString_Check(l)) path = PyString_AsString(l);
 #if PY_VERSION_HEX >= 0x03000000
-    else if (PyUnicode_Check(l)) path = PyBytes_AsString(PyUnicode_AsUTF8String(l));
+    else if (PyUnicode_Check(l)) path = PyUnicode_AsUTF8(l);
 #endif
     else
     {
@@ -1392,19 +1392,19 @@ E_Int K_IO::GenIO::hdfcgnswrite(char* file, PyObject* tree, PyObject* links)
     PyObject* l = PyList_GetItem(llink, 1);
     if (PyString_Check(l)) tgt_file = PyString_AsString(l);
 #if PY_VERSION_HEX >= 0x03000000
-    else if (PyUnicode_Check(l)) tgt_file = PyBytes_AsString(PyUnicode_AsUTF8String(l));
+    else if (PyUnicode_Check(l)) tgt_file = PyUnicode_AsUTF8(l);
 #endif
     else tgt_file = NULL;
     l = PyList_GetItem(llink, 2);
     if (PyString_Check(l)) tgt_path = PyString_AsString(l);
 #if PY_VERSION_HEX >= 0x03000000
-    else if (PyUnicode_Check(l)) tgt_path = PyBytes_AsString(PyUnicode_AsUTF8String(l));
+    else if (PyUnicode_Check(l)) tgt_path = PyUnicode_AsUTF8(l);
 #endif
     else tgt_path = NULL;
     l = PyList_GetItem(llink, 3);
     if (PyString_Check(l)) cur_path = PyString_AsString(l);
 #if PY_VERSION_HEX >= 0x03000000
-    else if (PyUnicode_Check(l)) cur_path = PyBytes_AsString(PyUnicode_AsUTF8String(l));
+    else if (PyUnicode_Check(l)) cur_path = PyUnicode_AsUTF8(l);
 #endif
     else cur_path = NULL;
     
@@ -1518,7 +1518,7 @@ E_Int K_IO::GenIO::hdfcgnsWritePaths(char* file, PyObject* treeList,
     l = PyList_GetItem(paths, i);
     if (PyString_Check(l)) path = PyString_AsString(l);
 #if PY_VERSION_HEX >= 0x03000000
-    else if (PyUnicode_Check(l)) path = PyBytes_AsString(PyUnicode_AsUTF8String(l));
+    else if (PyUnicode_Check(l)) path = PyUnicode_AsUTF8(l);
 #endif
     else
     {
@@ -1540,7 +1540,7 @@ E_Int K_IO::GenIO::hdfcgnsWritePaths(char* file, PyObject* treeList,
         l = PyList_GetItem(node,0);
         if (PyString_Check(l)) nodeName = PyString_AsString(l);
 #if PY_VERSION_HEX >= 0x03000000
-        else if (PyUnicode_Check(l)) nodeName = PyBytes_AsString(PyUnicode_AsUTF8String(l));
+        else if (PyUnicode_Check(l)) nodeName = PyUnicode_AsUTF8(l);
 #endif
         else nodeName = NULL;
         char spath[512];
@@ -1605,7 +1605,7 @@ PyObject* K_IO::GenIOHdf::dumpOne(PyObject* tree, int depth, PyObject* links)
     char* name;
     if (PyString_Check(pname)) name = PyString_AsString(pname);
     #if PY_VERSION_HEX >= 0x03000000
-    else if (PyUnicode_Check(pname)) name = PyBytes_AsString(PyUnicode_AsUTF8String(pname));
+    else if (PyUnicode_Check(pname)) name = PyUnicode_AsUTF8(pname);
 #endif
     else name = NULL;
     std::string path = _stringStack.front();
@@ -1650,12 +1650,12 @@ hid_t K_IO::GenIOHdf::writeNode(hid_t node, PyObject* tree)
   char* name; char* label;
   if (PyString_Check(pname)) name = PyString_AsString(pname);
 #if PY_VERSION_HEX >= 0x03000000
-  else if (PyUnicode_Check(pname)) name = PyBytes_AsString(PyUnicode_AsUTF8String(pname));
+  else if (PyUnicode_Check(pname)) name = PyUnicode_AsUTF8(pname);
 #endif
   else name = NULL;
   if (PyString_Check(plabel)) label = PyString_AsString(plabel);
 #if PY_VERSION_HEX >= 0x03000000
-  else if (PyUnicode_Check(plabel)) label = PyBytes_AsString(PyUnicode_AsUTF8String(plabel));
+  else if (PyUnicode_Check(plabel)) label = PyUnicode_AsUTF8(plabel);
 #endif
   else label = NULL;
   strcpy(s1, name); strcpy(s2, label);
@@ -1691,7 +1691,7 @@ hid_t K_IO::GenIOHdf::writeNode(hid_t node, PyObject* tree)
 #if PY_VERSION_HEX >= 0x03000000
   else if (PyUnicode_Check(v))
   {
-    setArrayC1(child, PyBytes_AsString(PyUnicode_AsUTF8String(v)));
+    setArrayC1(child, PyUnicode_AsUTF8(v));
     HDF_Add_Attribute_As_String(child, L3S_DTYPE, L3T_C1);
   }
 #endif
@@ -1880,13 +1880,13 @@ hid_t K_IO::GenIOHdf::modifyNode(hid_t node, PyObject* tree)
   char* name = NULL;
   if (PyString_Check(pname)) name = PyString_AsString(pname);
 #if PY_VERSION_HEX >= 0x03000000
-    else if (PyUnicode_Check(pname)) name = PyBytes_AsString(PyUnicode_AsUTF8String(pname));
+    else if (PyUnicode_Check(pname)) name = PyUnicode_AsUTF8(pname);
 #endif
   PyObject* plabel = PyList_GetItem(tree, 3);
   char* label = NULL;
   if (PyString_Check(plabel)) label = PyString_AsString(plabel);
 #if PY_VERSION_HEX >= 0x03000000
-    else if (PyUnicode_Check(plabel)) label = PyBytes_AsString(PyUnicode_AsUTF8String(plabel));
+    else if (PyUnicode_Check(plabel)) label = PyUnicode_AsUTF8(plabel);
 #endif
   strcpy(s1, name); strcpy(s2, label);
 
@@ -2151,7 +2151,7 @@ E_Int K_IO::GenIO::hdfcgnsDeletePaths(char* file,
     char* path = NULL;
     if (PyString_Check(o)) path = PyString_AsString(o);
 #if PY_VERSION_HEX >= 0x03000000
-      else if (PyUnicode_Check(o)) path = PyBytes_AsString(PyUnicode_AsUTF8String(o));
+      else if (PyUnicode_Check(o)) path = PyUnicode_AsUTF8(o);
 #endif
     hid_t gidp = H5Gopen(fid, path, H5P_DEFAULT);
     

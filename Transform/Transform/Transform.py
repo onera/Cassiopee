@@ -1024,7 +1024,7 @@ def addkplaneCenters(arrayC, arrayK, N=1):
             b.append(c)
         return b
     else:
-        return transform.addkplaneCenters(arrayC, arrayK,N)
+        return transform.addkplaneCenters(arrayC, arrayK, N)
 
 # Essaie de couper en 2 en respectant level niveaux de multigrille
 def findMGSplit__(n, level):
@@ -1363,11 +1363,11 @@ def findSplits__(ni, nj, nk, N, dirs, multigrid):
         best = [1,1,1]
         size = -1
         for N1 in range(1,N+1):
-            for N2 in range(1,N+1):
-                if N1*N2 == N:
-                    ns1 = ng1//N1; ns2 = ng2//N2
-                    s = min(ns1, ns2)
-                    if s > size: best = [N1,N2]; size = s
+            N2 = N // N1; rest = N2 - N*1. / N1
+            if rest == 0.:
+                ns1 = ng1//N1; ns2 = ng2//N2
+                s = min(ns1, ns2)
+                if s > size: best = [N1,N2]; size = s
         N1 = best[0]; N2 = best[1]
         #ns1 = ng1/N1; ns2 = ng2/N2
         ns1 = kround(ng1*1./N1); ns1 = int(ns1)
@@ -1419,25 +1419,25 @@ def findSplits__(ni, nj, nk, N, dirs, multigrid):
         size = -1
         for N1 in range(1,N+1):
             for N2 in range(1,N+1):
-                for N3 in range(1,N+1):
-                    if N1*N2*N3 == N:          
-                        ns1 = ng1//N1; ns2 = ng2//N2; ns3 = ng3//N3
-                        s = min(ns1, ns2, ns3)
-                        if s > size:
-                            best = [N1,N2,N3]; size = s
-                        elif s == size:
-                            if N1 == best[0]: # discrimine suivant 2/3
-                                sl = min(ns2, ns3)
-                                sb = min(ng2//best[1], ng3//best[2])
-                                if sl > sb: best = [N1,N2,N3]
-                            elif N2 == best[1]: # discrimine suivant 1/3
-                                sl = min(ns1, ns3)
-                                sb = min(ng1//best[0], ng3//best[2])
-                                if sl > sb: best = [N1,N2,N3]
-                            else:  # discrimine suivant 1/2
-                                sl = min(ns1, ns2)
-                                sb = min(ng1//best[0], ng2//best[1])
-                                if sl > sb: best = [N1,N2,N3]
+                N3 = N // (N1*N2) ; rest = N3 - N*1. / (N1*N2)
+                if rest == 0.:
+                    ns1 = ng1//N1; ns2 = ng2//N2; ns3 = ng3//N3
+                    s = min(ns1, ns2, ns3)
+                    if s > size:
+                        best = [N1,N2,N3]; size = s
+                    elif s == size:
+                        if N1 == best[0]: # discrimine suivant 2/3
+                            sl = min(ns2, ns3)
+                            sb = min(ng2//best[1], ng3//best[2])
+                            if sl > sb: best = [N1,N2,N3]
+                        elif N2 == best[1]: # discrimine suivant 1/3
+                            sl = min(ns1, ns3)
+                            sb = min(ng1//best[0], ng3//best[2])
+                            if sl > sb: best = [N1,N2,N3]
+                        else:  # discrimine suivant 1/2
+                            sl = min(ns1, ns2)
+                            sb = min(ng1//best[0], ng2//best[1])
+                            if sl > sb: best = [N1,N2,N3]
 
         N1 = best[0]; N2 = best[1]; N3 = best[2]
         #ns1 = ng1/N1; ns2 = ng2/N2; ns3 = ng3/N3
@@ -1590,11 +1590,11 @@ def splitNParts(arrays, N, multigrid=0, dirs=[1,2,3]):
 def splitCurvatureRadius__(array, Rs):
     out = transform.splitCurvatureRadius(array, Rs)
     n = len(out)-1
-    if (n >= 1):
+    if n >= 1:
         try:
             f = join(out[n], out[0])
             ret = transform.splitCurvatureRadius(f, Rs)
-            if (len(ret) == 1):
+            if len(ret) == 1:
                 out[0] = f; del out[n]
             return out
         except: return out

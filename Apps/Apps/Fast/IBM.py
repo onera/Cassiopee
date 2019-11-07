@@ -140,9 +140,9 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
         z0 = Internal.getZones(t)
         bb = G.bbox(z0); dz = bb[5]-bb[2]
         tb2 = C.initVars(tb, 'CoordinateZ', dz*0.5)
-        DTW._distance2Walls(t,tb2,type='ortho', signed=0, dim=dimPb, loc='centers')
+        DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dimPb, loc='centers')
     else:
-        DTW._distance2Walls(t,tb,type='ortho', signed=0, dim=dimPb, loc='centers')
+        DTW._distance2Walls(t, tb, type='ortho', signed=0, dim=dimPb, loc='centers')
     test.printMem(">>> wall distance [end]")
     
     #----------------------------------------

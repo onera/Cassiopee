@@ -95,7 +95,7 @@ PyObject* K_POST::computeDiv(PyObject* self,PyObject* args)
 #if PY_VERSION_HEX >= 0x03000000
     else if (PyUnicode_Check(tpl0)) 
     {
-      char* str = PyBytes_AsString(PyUnicode_AsUTF8String(tpl0));
+      char* str = PyUnicode_AsUTF8(tpl0);
       vars.push_back(str);
     }
 #endif

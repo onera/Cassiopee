@@ -100,7 +100,7 @@ PyObject* K_CONVERTER::extractBCMatchNG(PyObject* self, PyObject* args )
 #if PY_VERSION_HEX >= 0x03000000
         else if (PyUnicode_Check(tpl0))
         {
-          char* varname = PyBytes_AsString(PyUnicode_AsUTF8String(tpl0)); 
+          char* varname = PyUnicode_AsUTF8(tpl0); 
           if (varStringOut[0] == '\0' ) strcpy(varStringOut, varname);
           else
           {
@@ -1081,7 +1081,7 @@ PyObject* K_CONVERTER::buildBCMatchFieldNG(PyObject* self, PyObject* args )
 #if PY_VERSION_HEX >= 0x03000000
         else if (PyUnicode_Check(tpl0))
         {
-          char* varname = PyBytes_AsString(PyUnicode_AsUTF8String(tpl0)); 
+          char* varname = PyUnicode_AsUTF8(tpl0); 
           // Verif. presence variables a extraire dans le dict.
           E_Int verif = K_ARRAY::isNamePresent(varname, varStringOut);  
           if (verif == -1) 

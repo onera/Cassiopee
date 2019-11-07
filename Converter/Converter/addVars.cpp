@@ -50,7 +50,7 @@ PyObject* K_CONVERTER::addVar(PyObject* self, PyObject* args)
   {
     char* name;
     if (PyString_Check(additional)) name = PyString_AsString(additional);
-    else name = PyBytes_AsString(PyUnicode_AsUTF8String(additional));
+    else name = PyUnicode_AsUTF8(additional);
 #else
   if (PyString_Check(additional))
   {
@@ -284,7 +284,7 @@ PyObject* K_CONVERTER::addVars(PyObject* self, PyObject* args)
     tpl = PyList_GetItem(array,0);
     if (PyString_Check(tpl)) varString = PyString_AsString(tpl);
 #if PY_VERSION_HEX >= 0x03000000
-    else if (PyUnicode_Check(tpl)) varString = PyBytes_AsString(PyUnicode_AsUTF8String(tpl));
+    else if (PyUnicode_Check(tpl)) varString = PyUnicode_AsUTF8(tpl);
 #endif
     varStringL += strlen(varString)+4;
   }

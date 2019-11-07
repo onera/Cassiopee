@@ -45,7 +45,7 @@ E_Int getMode(PyObject* modeObject)
 #if PY_VERSION_HEX >= 0x03000000
   else if (PyUnicode_Check(modeObject))
   {
-    char* m = PyBytes_AsString(PyUnicode_AsUTF8String(modeObject));
+    char* m = PyUnicode_AsUTF8(modeObject);
     if (strcmp(m, "mesh")==0 || strcmp(m,"MESH")==0 || strcmp(m,"Mesh")==0) mode=0;
     if (strcmp(m, "solid")==0 || strcmp(m,"SOLID")==0 || strcmp(m,"Solid")==0) mode=1;
     if (strcmp(m, "render")==0 || strcmp(m,"RENDER")==0 || strcmp(m,"Render")==0) mode=2;
@@ -99,7 +99,7 @@ E_Int getScalarField(PyObject* scalarFieldObject)
 #if PY_VERSION_HEX >= 0x03000000
   else if (PyUnicode_Check(scalarFieldObject))
   {
-    char* m1 = PyBytes_AsString(PyUnicode_AsUTF8String(scalarFieldObject));
+    char* m1 = PyUnicode_AsUTF8(scalarFieldObject);
     char m [MAXSTRINGLENGTH];
     strcpy(m, m1);
     E_Int l = strlen(m);

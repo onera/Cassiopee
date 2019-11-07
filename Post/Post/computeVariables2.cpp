@@ -114,7 +114,7 @@ PyObject* K_POST::computeVariables2(PyObject* self, PyObject* args)
 #if PY_VERSION_HEX >= 0x03000000
       else if (PyUnicode_Check(tpl0)) 
       {
-        char* str = PyBytes_AsString(PyUnicode_AsUTF8String(tpl0));
+        char* str = PyUnicode_AsUTF8(tpl0);
         char tmpVarString[K_ARRAY::VARSTRINGLENGTH];
         short ok = checkAndExtractVariables(str, vars, tmpVarString);
         if (ok != 0) 
@@ -140,7 +140,7 @@ PyObject* K_POST::computeVariables2(PyObject* self, PyObject* args)
 #if PY_VERSION_HEX >= 0x03000000
     else if (PyUnicode_Check(vars0)) 
     {
-      char* str = PyBytes_AsString(PyUnicode_AsUTF8String(vars0));
+      char* str = PyUnicode_AsUTF8(vars0);
       checkAndExtractVariables(str, vars, varStringOut); 
     }
 #endif

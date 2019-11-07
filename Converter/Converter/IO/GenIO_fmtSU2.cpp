@@ -1117,7 +1117,7 @@ E_Int K_IO::GenIO::su2write(
         PyObject* o = PyList_GetItem(BCs, 2*j);
         if (PyString_Check(o)) name = PyString_AsString(o);
 #if PY_VERSION_HEX >= 0x03000000
-        else if (PyUnicode_Check(o)) name = PyBytes_AsString(PyUnicode_AsUTF8String(o));
+        else if (PyUnicode_Check(o)) name = PyUnicode_AsUTF8(o);
 #endif
         fprintf(ptrFile, "MARKER_TAG= %s\n", name);
         PyArrayObject* array = (PyArrayObject*)PyList_GetItem(BCs, 2*j+1);

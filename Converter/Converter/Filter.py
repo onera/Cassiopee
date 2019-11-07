@@ -433,94 +433,6 @@ def isInBBox(a, fileName, format, bbox, znp):
     if len(out) == 1: out = out[0]
     return out
 
-# Load only a split of zones of file
-def loadAndSplit(fileName, NParts=None, noz=None, NProc=None, rank=None, variables=[]):
-  if NParts is None: NParts = NProc
-  if NProc is None: NProc = NParts
-  import Transform.PyTree as T
-  a = convertFile2SkeletonTree(fileName)
-
-  # split on skeleton
-  T._splitNParts(a, N=NParts)
-  # distribute skeleton
-  import Distributor2.PyTree as D2   
-  D2._distribute(a, NProc)
-
-  zones = Internal.getZones(a)
-  if rank is not None:
-    import Distributor2.PyTree as D2   
-    D2._distribute(b, NProc)
-    noz = []
-    for i, z in enumerate(zones):
-      p = D2.getProc(z)
-      if p == rank: noz.append(i)
-
-  f = {}
-  for i in noz:
-    z = zones[i]
-    j = splitDict[z[0]]
-    # Correction de dimension en attendant que subzone fonctionne sur un skel
-    ni = j[2]-j[1]+1; nj = j[4]-j[3]+1; nk = j[6]-j[5]+1
-    ni1 = max(ni-1,1); nj1 = max(nj-1,1); nk1 = max(nk-1,1)
-    d = numpy.empty((3,3), numpy.int32, order='Fortran')
-    d[0,0] = ni;  d[1,0] = nj;  d[2,0] = nk
-    d[0,1] = ni1; d[1,1] = nj1; d[2,1] = nk1
-    d[0,2] = 0;   d[1,2] = 0;   d[2,2] = 0
-    z[1] = d
-    # END correction
-    
-    zname = z[0] # zone name in b
-    pname = zname.rsplit('.',1)[0] # parent name (guessed)
-    (base, c) = Internal.getParentOfNode(b, z)
-    bname = base[0]
-    
-    f = {}
-    # Node fields
-    path = []
-    cont = Internal.getNodeFromName2(z, Internal.__GridCoordinates__)
-    if cont is not None:
-      for c in cont[2]:
-        if c[3] == 'DataArray_t':
-          path += ['/%s/%s/%s/%s'%(bname, pname,cont[0],c[0])]
-    cont = Internal.getNodeFromName2(z, Internal.__FlowSolutionNodes__)
-    if cont is not None:
-      for c in cont[2]:
-        if c[3] == 'DataArray_t' and c[0] in variables:
-          path += ['/%s/%s/%s/%s'%(bname, pname,cont[0],c[0])]
-    
-    DataSpaceMMRY = [[0,0,0], [1,1,1], [ni,nj,nk], [1,1,1]]
-    DataSpaceFILE = [[j[1]-1,j[3]-1,j[5]-1], [1,1,1], [ni,nj,nk], [1,1,1]]
-    DataSpaceGLOB = [[ni,nj,nk]]
-    
-    for p in path:
-      f[p] = DataSpaceMMRY+DataSpaceFILE+DataSpaceGLOB
-
-    # Center fields
-    path = []
-    cont = Internal.getNodeFromName2(z, Internal.__FlowSolutionCenters__)
-    if cont is not None:
-      for c in cont[2]:
-        if c[3] == 'DataArray_t' and 'centers:'+c[0] in variables:
-          path += ['/%s/%s/%s/%s'%(bname, pname,cont[0],c[0])]
-    
-    DataSpaceMMRY = [[0,0,0], [1,1,1], [ni1,nj1,nk1], [1,1,1]]
-    DataSpaceFILE = [[j[1]-1,j[3]-1,j[5]-1], [1,1,1], [ni1,nj1,nk1], [1,1,1]]
-    DataSpaceGLOB = [[ni1,nj1,nk1]]
-
-    for p in path:
-      f[p] = DataSpaceMMRY+DataSpaceFILE+DataSpaceGLOB
-
-    r = readNodesFromFilter(fileName, f, format)
-
-    # Repositionne les chemins
-    for k in r:
-      k2 = k.replace(pname, zname)
-      n = Internal.getNodeFromPath(b, k2)
-      n[1] = r[k]
-
-  b = convert2PartialTree(b)
-  return b
-
 #==========================================================
 # a : must be a tree or a zone list coherent with znp
 # znp: is the full path from top
@@ -747,47 +659,50 @@ class Handle:
     if paths != []: _readPyTreeFromPaths(t, self.fileName, paths)
     return t
 
-  def loadAndDistribute(self, useCom=None, cartesian=False):
+  def loadAndDistribute(self, useCom=None, cartesian=False, algorithm='graph'):
     """Load and distribute zones."""
     if Cmpi.rank == 0:
       if useCom == 'match':
         t = convertFile2SkeletonTree(self.fileName, self.format, maxDepth=3, maxFloatSize=6)
         paths = []
-        zones = Internal.getZones(t)
-        for z in zones:
-          pz = Internal.getPath(t, z)
-          gcs = Internal.getNodesFromType1(z, 'ZoneGridConnectivity_t')
-          for gc in gcs:
-            p = pz+'/%s'%gc[0]
-            paths.append(p)
+        bases = Internal.getBases(t)
+        for b in bases:
+          zones = Internal.getZones(b)
+          for z in zones:
+            pz = '%s/%s'%(b[0],z[0])
+            gcs = Internal.getNodesFromType1(z, 'ZoneGridConnectivity_t')
+            for gc in gcs:
+              p = pz+'/%s'%gc[0]
+              paths.append(p)
         if paths != []: _readPyTreeFromPaths(t, self.fileName, paths, self.format)
       else:
         t = convertFile2SkeletonTree(self.fileName, self.format, maxDepth=2, maxFloatSize=6)
         paths = []
-        zones = Internal.getZones(t)
-        for z in zones:
-          p = Internal.getPath(t, z)+'/ZoneType'
-          paths.append(p)
+        bases = Internal.getBases(t)
+        for b in bases:
+          zones = Internal.getZones(b)
+          for z in zones:
+            p = '%s/%s/ZoneType'%(b[0],z[0])
+            paths.append(p)
         _readPyTreeFromPaths(t, self.fileName, paths, self.format)  
       self._loadTreeExtras(t)
       import Distributor2.PyTree as D2
-      D2._distribute(t, Cmpi.size, useCom=useCom)
+      D2._distribute(t, Cmpi.size, useCom=useCom, algorithm=algorithm)
     else: t = None
     t = Cmpi.bcast(t)
     paths = []
-    zones = Internal.getZones(t)
-    for z in zones:
-      proc = Internal.getNodeFromName2(z, 'proc')
-      if Internal.getValue(proc) == Cmpi.rank:
-        paths.append(Internal.getPath(t, z))
-      else:
-        Internal._rmNode(t, z)
+    bases = Internal.getBases(t)
+    for b in bases:
+      zones = Internal.getZones(b)
+      for z in zones:
+        proc = Internal.getNodeFromName2(z, 'proc')
+        if Internal.getValue(proc) == Cmpi.rank: paths.append("%s/%s"%(b[0],z[0]))
+        else: Internal._rmNodeByPath(t, "%s/%s"%(b[0],z[0]))
     if paths != []: _readPyTreeFromPaths(t, self.fileName, paths, self.format)
     _enforceProcNode(t)
     if cartesian: 
       import Compressor.PyTree as Compressor
       Compressor._uncompressCartesian(t)
-    
     return t
 
   # Calcul et stocke des infos geometriques sur les zones

@@ -85,8 +85,8 @@ def getBBIntersectingDomains(A, B, tol=1.e-6):
 #------------------------------------------------------------------------------
 def getIntersectingDomains(t, t2=None, method='AABB', taabb=None, tobb=None,
                            taabb2=None, tobb2=None):
-    """Returns the dictionary of zones that intersect.
-    Usage: getIntersectingDomains(t, t2,method,taabb, tobb, taabb2, tobb2)"""
+    """Returns the dictionary of intersecting zones.
+    Usage: getIntersectingDomains(t, t2, method, taabb, tobb, taabb2, tobb2)"""
     try: import Generator.PyTree as G
     except: raise ImportError("getIntersectingDomains: requires Generator module.")
     TotInter = 0
@@ -107,7 +107,7 @@ def getIntersectingDomains(t, t2=None, method='AABB', taabb=None, tobb=None,
         N2 = len(zonesNames2)
     # Preallocates Dictionnary
     IntDict = dict.fromkeys(zonesNames)
-
+    
     if method == 'AABB':
         if not taabb: taabb = G.BB(t)
         if not t2:
@@ -116,47 +116,45 @@ def getIntersectingDomains(t, t2=None, method='AABB', taabb=None, tobb=None,
             TotInter = 0
         else:
             if not taabb2: taabb2 = G.BB(t2)
-            for z1 in zonesNames:
-                aabb1 = Internal.getZones(taabb)            
-                aabb1 = Internal.getNodeFromName(aabb1,z1)
-                IntDict[z1] = []
-                for z2 in zonesNames2:
-                    if z1 != z2:
-                        aabb2 = Internal.getZones(taabb2)
-                        aabb2 = Internal.getNodeFromName(aabb2, z2)
-                        if G.bboxIntersection(aabb1, aabb2, tol=1.e-10, isBB=True, method='AABB') == 1:
-                            IntDict[z1].append(z2) # saves the intersected zones names
+            zones1 = Internal.getZones(taabb)
+            zones2 = Internal.getZones(taabb2)
+            for z1 in zones1:
+                IntDict[z1[0]] = []
+                for z2 in zones2:
+                    if z1[0] != z2[0]:
+                        if G.bboxIntersection(z1, z2, tol=1.e-10, isBB=True, method='AABB') == 1:
+                            IntDict[z1[0]].append(z2[0]) # saves the intersected zones names
                             TotInter += 1
-        
+
     elif method == 'OBB':
-        if not tobb: tobb = G.BB(t,method='OBB')
+        if not tobb: tobb = G.BB(t, method='OBB')
         if not t2: tobb2 = tobb
-        elif not tobb2: tobb2 = G.BB(t2,method='OBB')
+        elif not tobb2: tobb2 = G.BB(t2, method='OBB')
         for z1 in zonesNames:
             obb1 = Internal.getZones(tobb)
-            obb1 = Internal.getNodeFromName(obb1,z1)
+            obb1 = Internal.getNodeFromName(obb1, z1)
             IntDict[z1] = []
             for z2 in zonesNames2:
                 if z1 != z2:
                     obb2 = Internal.getZones(tobb2)
                     obb2 = Internal.getNodeFromName(obb2,z2)
-                    if (G.bboxIntersection(obb1, obb2, isBB=True, method='OBB') == 1):
+                    if G.bboxIntersection(obb1, obb2, isBB=True, method='OBB') == 1:
                         IntDict[z1].append(z2) # saves the intersected zones names
                         TotInter += 1
 
     elif method == 'hybrid':
         if not taabb: taabb = G.BB(t)
-        if not tobb: tobb = G.BB(t,method='OBB')
+        if not tobb: tobb = G.BB(t, method='OBB')
         if not t2:
             taabb2 = taabb
             tobb2 = tobb
         if not not t2 and not taabb2: taabb2 = G.BB(t2)
-        if not not t2 and not tobb2: tobb2 = G.BB(t2,method='OBB')
+        if not not t2 and not tobb2: tobb2 = G.BB(t2, method='OBB')
         for z1 in zonesNames:
             aabb1 = Internal.getZones(taabb)
-            aabb1 = Internal.getNodeFromName(aabb1,z1)
+            aabb1 = Internal.getNodeFromName(aabb1, z1)
             obb1 = Internal.getZones(tobb)
-            obb1 = Internal.getNodeFromName(obb1,z1)
+            obb1 = Internal.getNodeFromName(obb1, z1)
             IntDict[z1] = []
             for z2 in zonesNames2:
                 if z1 != z2:
@@ -176,11 +174,12 @@ def getIntersectingDomains(t, t2=None, method='AABB', taabb=None, tobb=None,
                         IntDict[z1].append(z2) # saves the intersected zones names
                         TotInter += 1
     else:
-        print('Warning getIntersectingDomains: method',method,'not implemented. Switched to AABB.')
+        print('Warning getIntersectingDomains: method %s not implemented. Switched to AABB.'%method)
         return getIntersectingDomains(t, method='AABB', taabb=taabb, tobb=tobb)
 
     #print('Total zone/zone intersections: %d.'%TotInter)
     return IntDict
+
 #------------------------------------------------------------------------------
 def getCEBBIntersectingDomains(basis0, bases0, sameBase=0):
     """Return the list of interpolation domains defined in bases for any zone in basis. 

@@ -605,6 +605,7 @@ def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., dfarList=[], DEPTH=2, tb
                     expand=expand)
 
     if check: C.convertPyTree2File(o, "octree.cgns")
+
     # retourne les 4 quarts (en 2D) de l'octree parent 2 niveaux plus haut 
     # et les 8 octants en 3D sous forme de listes de zones non structurees
     parento = buildParentOctrees__(o, tb, snears=snears, snearFactor=4., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf, 
@@ -1482,7 +1483,7 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interpDataType
         T._addkplane(tb)
         T._contract(tb, (0,0,0), (1,0,0), (0,1,0), dz)
 
-    t = blankByIBCBodies(t,tb,'centers',dimPb)
+    t = blankByIBCBodies(t, tb, 'centers', dimPb)
     C._initVars(t,'{centers:cellNIBC}={centers:cellN}')
 
     #-----------------------------------------
@@ -1492,7 +1493,7 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interpDataType
     if Internal.getNodeFromName(t, 'TurbulentDistance') is None: COMPDIST=True
     if COMPDIST:
         print('Computing distance field...')
-        DTW._distance2Walls(t,tb,loc='centers',type='ortho',signed=0)
+        DTW._distance2Walls(t, tb, loc='centers', type='ortho', signed=0)
     else: pass
     _signDistance(t)
 

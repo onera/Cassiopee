@@ -66,7 +66,7 @@ PyObject* K_CPLOT::deletez(PyObject* self, PyObject* args)
 #if PY_VERSION_HEX >= 0x03000000
       else if (PyUnicode_Check(tpl))
       {
-        char* name = PyBytes_AsString(PyUnicode_AsUTF8String(tpl));
+        char* name = PyUnicode_AsUTF8(tpl);
         for (E_Int j = 0; j < d->_numberOfZones; j++)
         {
           if (strcmp(d->_zones[j]->zoneName, name) == 0) 

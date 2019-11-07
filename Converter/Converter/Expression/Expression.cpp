@@ -363,7 +363,7 @@ namespace {
 #if PY_VERSION_HEX >= 0x03000000
         else if (PyUnicode_Check(py_name))
         {
-            outName = PyBytes_AsString(PyUnicode_AsUTF8String(py_name));
+            outName = PyUnicode_AsUTF8(py_name);
         }
 #endif
         else

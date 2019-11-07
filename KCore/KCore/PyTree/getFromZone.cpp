@@ -131,8 +131,7 @@ E_Int K_PYTREE::getFromZone(PyObject* o, E_Int xyz, E_Int loc,
     getNodesFromType1(o, "Elements_t", ln);
     E_Int* NGON=NULL; E_Int* NFACE=NULL; E_Int* BE=NULL;
     PyObject* NGONt=NULL;
-    E_Int size = ln.size();
-    for (E_Int i = 0; i < size; i++)
+    for (size_t i = 0; i < ln.size(); i++)
     {
       t = ln[i];
       E_Int* dtypep = getValueAI(t, hook);
@@ -276,7 +275,7 @@ E_Int K_PYTREE::getFromZone(PyObject* o, E_Int xyz, E_Int loc,
         node = PyList_GetItem(l, 3);
         if (PyString_Check(node)) str = PyString_AsString(node); // type
 #if PY_VERSION_HEX >= 0x03000000
-        else if (PyUnicode_Check(node)) str = PyBytes_AsString(PyUnicode_AsUTF8String(node)); 
+        else if (PyUnicode_Check(node)) str = PyUnicode_AsUTF8(node); 
 #endif
         else str = NULL;
         if (K_STRING::cmp(str, "DataArray_t") == 0)
@@ -284,7 +283,7 @@ E_Int K_PYTREE::getFromZone(PyObject* o, E_Int xyz, E_Int loc,
           node = PyList_GetItem(l, 0); // var name
           if (PyString_Check(node)) str = PyString_AsString(node);
 #if PY_VERSION_HEX >= 0x03000000
-        else if (PyUnicode_Check(node)) str = PyBytes_AsString(PyUnicode_AsUTF8String(node)); 
+        else if (PyUnicode_Check(node)) str = PyUnicode_AsUTF8(node); 
 #endif
           E_Float* f = getValueAF(l, hook);
           fields.push_back(f);
@@ -312,7 +311,7 @@ E_Int K_PYTREE::getFromZone(PyObject* o, E_Int xyz, E_Int loc,
         node = PyList_GetItem(l, 3);
         if (PyString_Check(node)) str = PyString_AsString(node); // type
 #if PY_VERSION_HEX >= 0x03000000
-        else if (PyUnicode_Check(node)) str = PyBytes_AsString(PyUnicode_AsUTF8String(node)); 
+        else if (PyUnicode_Check(node)) str = PyUnicode_AsUTF8(node);
 #endif
         else str = NULL;
         if (K_STRING::cmp(str, "DataArray_t") == 0)
@@ -320,7 +319,7 @@ E_Int K_PYTREE::getFromZone(PyObject* o, E_Int xyz, E_Int loc,
           node = PyList_GetItem(l, 0); // var name
           if (PyString_Check(node)) str = PyString_AsString(node);
 #if PY_VERSION_HEX >= 0x03000000
-        else if (PyUnicode_Check(node)) str = PyBytes_AsString(PyUnicode_AsUTF8String(node)); 
+        else if (PyUnicode_Check(node)) str = PyUnicode_AsUTF8(node); 
 #endif
           E_Float* f = getValueAF(l, hook);
           fields.push_back(f);

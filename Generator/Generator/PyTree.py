@@ -438,8 +438,8 @@ def CEBBIntersection(a1, a2, tol=1.e-10):
 def bboxIntersection(z1, z2, tol=1.e-6, isBB=False, method='AABB'):
     """Return 1 if bounding boxes of z1 and z2 intersect."""       
     if not isBB:
-        z1 = BB(z1,method)
-        z2 = BB(z2,method)
+        z1 = BB(z1, method)
+        z2 = BB(z2, method)
     if method == 'AABB':  # Computes the intersection between 2 AABB
         return generator._bboxIntersectionZ(z1, z2, tol, 
                                             Internal.__GridCoordinates__, 

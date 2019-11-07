@@ -124,7 +124,7 @@ PyObject* K_GENERATOR::_bboxIntersectionZ(PyObject* self, PyObject* args)
   char* GridCoordinates; char* FlowSolutionNodes; char* FlowSolutionCenters;
   PyObject* zone1; PyObject* zone2; E_Float tol;
   if (!PyArg_ParseTuple(args, "OOdsss", &zone1, &zone2, &tol,
-                        &GridCoordinates,  &FlowSolutionNodes, &FlowSolutionCenters)) return NULL;
+                        &GridCoordinates, &FlowSolutionNodes, &FlowSolutionCenters)) return NULL;
 
   // Checks coordinates of zone 1
   vector<PyArrayObject*> hook1;
@@ -132,7 +132,7 @@ PyObject* K_GENERATOR::_bboxIntersectionZ(PyObject* self, PyObject* args)
   char* varString1; char* eltType1;
   vector<E_Float*> fields1; vector<E_Int> locs1;
   vector<E_Int*> cn1;
-  K_PYTREE::getFromZone(zone1, 1, 0, varString1, fields1, locs1, im1, jm1, km1, 
+  K_PYTREE::getFromZone(zone1, 1, -1, varString1, fields1, locs1, im1, jm1, km1, 
                         cn1, cnSize1, cnNfld1, eltType1, hook1,
                         GridCoordinates, FlowSolutionNodes, FlowSolutionCenters);
   E_Int posx1 = K_ARRAY::isCoordinateXPresent(varString1);
@@ -146,14 +146,14 @@ PyObject* K_GENERATOR::_bboxIntersectionZ(PyObject* self, PyObject* args)
                     "bboxIntersection: cannot find coordinates in zone1.");
     return NULL;
   }
-  
+
   // Checks coordinates of zone 2
   vector<PyArrayObject*> hook2;
   E_Int im2, jm2, km2, cnSize2, cnNfld2;
   char* varString2; char* eltType2;
   vector<E_Float*> fields2; vector<E_Int> locs2;
   vector<E_Int*> cn2;
-  K_PYTREE::getFromZone(zone2, 1, 0, varString2, fields2, locs2, im2, jm2, km2, 
+  K_PYTREE::getFromZone(zone2, 1, -1, varString2, fields2, locs2, im2, jm2, km2, 
                         cn2, cnSize2, cnNfld2, eltType2, hook2,
                         GridCoordinates, FlowSolutionNodes, FlowSolutionCenters);
   E_Int posx2 = K_ARRAY::isCoordinateXPresent(varString2);
@@ -176,7 +176,7 @@ PyObject* K_GENERATOR::_bboxIntersectionZ(PyObject* self, PyObject* args)
   
   E_Float* xt2 = fields2[posx2]; 
   E_Float* yt2 = fields2[posy2]; 
-  E_Float* zt2 = fields2[posz2]; 
+  E_Float* zt2 = fields2[posz2];
   E_Int nt2 = im2 * jm2 * km2;
   
   // AABB of zone 1:
@@ -247,8 +247,7 @@ PyObject* K_GENERATOR::_bboxIntersectionZ(PyObject* self, PyObject* args)
   for (E_Int i=0; i < nt2; i++)
   {
      if (zt2[i] <= zmin2) {zmin2 = zt2[i];}
-  }    
-
+  }
 
   RELEASESHAREDZ(hook1, (char*)NULL, (char*)NULL);
   RELEASESHAREDZ(hook2, (char*)NULL, (char*)NULL);

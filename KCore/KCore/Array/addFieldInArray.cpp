@@ -39,7 +39,7 @@ void K_ARRAY::addFieldInArray(PyObject* array, char* varName)
   char* varString = NULL; 
   if (PyString_Check(o)) varString = PyString_AsString(o);
 #if PY_VERSION_HEX >= 0x03000000
-  else if (PyUnicode_Check(o)) varString = PyBytes_AsString(PyUnicode_AsUTF8String(o)); 
+  else if (PyUnicode_Check(o)) varString = PyUnicode_AsUTF8(o); 
 #endif
   E_Int pos = K_ARRAY::isNamePresent(varString, varName);
   if (pos != -1) return;
