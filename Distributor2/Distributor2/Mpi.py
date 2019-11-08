@@ -16,8 +16,8 @@ def redispatch(t, graph=None):
     # Enleve les zones envoyees
     zones = Internal.getZones(t)
     for z in zones:
-        tag = Internal.getNodesFromName1(z, 'XZone')
-        if len(tag) == 0:
+        tag = Internal.getNodeFromName1(z, 'XZone')
+        if tag is not None:
             if procs[z[0]] != Cmpi.rank:
                 (p, c) = Internal.getParentOfNode(t, z)
                 del p[2][c]

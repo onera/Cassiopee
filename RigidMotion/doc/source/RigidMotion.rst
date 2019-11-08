@@ -41,7 +41,6 @@ List of functions
 
    
 
-
 Contents
 #########
 
@@ -115,8 +114,6 @@ Contents
 
 ------------------------------------------------------------------------------------------------
 
-------------------------------------------------------------------------------------------------
-
 .. py:function:: RigidMotion.setPrescribedMotion3(a, motionName, transl_speed, axis_pnt, axis_vct, omega)
 
     Set a precribed motion defined by a constant speed rotation and translation. 
@@ -159,7 +156,7 @@ Contents
 General functions
 ---------------------
 
-.. py:function:: RigidMotion.PyTree.evalPosition(a, time)
+.. py:function:: RigidMotion.evalPosition(a, time)
 
     Evaluate the position at time t according to a motion.
     If the motion is defined in a with setPrescribedMotion. 

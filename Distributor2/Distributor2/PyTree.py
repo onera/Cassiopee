@@ -54,18 +54,18 @@ def computeBBoxes__(arrays, zoneNames):
 # IN: nghost: nbre de couches de ghost cells ajoutees
 #==============================================================================
 def distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='match', 
-               algorithm='graph', mode='nodes', nghost=0):
+               algorithm='graph', mode='nodes', nghost=0, tbb=None):
     """Distribute a pyTree over processors.
     Usage: distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='all', algorithm='graph', mode='nodes', nghost=0)"""
     tp = Internal.copyRef(t)
     out = _distribute(tp, NProc, prescribed=prescribed, perfo=perfo,
                       weight=weight, useCom=useCom, algorithm=algorithm,
-                      mode='nodes', nghost=nghost)
+                      mode='nodes', nghost=nghost, tbb=tbb)
     return tp, out
 
 # in place version
 def _distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='match', 
-                algorithm='graph', mode='nodes', nghost=0):
+                algorithm='graph', mode='nodes', nghost=0, tbb=None):
     """Distribute a pyTree over processors.
     Usage: _distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='all', algorithm='graph', mode='nodes', nghost=0)"""
     zones = Internal.getZones(t)
@@ -166,7 +166,20 @@ def _distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='match',
     if useCom == 'bbox':
         # Formation des coms - si les blocs se recouvrent
         tol = 1.e-12
-        bboxes = computeBBoxes__(arrays, zoneNames)
+        if tbb is None:
+            # Calcul les bbox a partir de l'arbre
+            bboxes = computeBBoxes__(arrays, zoneNames)
+        else:
+            # Calcul les bbox a partir d'un arbre de bbox global
+            bboxes = []
+            for z in Internal.getZones(tbb):
+                minx = C.getMinValue(z, 'CoordinateX')
+                miny = C.getMinValue(z, 'CoordinateY')
+                minz = C.getMinValue(z, 'CoordinateZ')
+                maxx = C.getMaxValue(z, 'CoordinateX')
+                maxy = C.getMaxValue(z, 'CoordinateY')
+                maxz = C.getMaxValue(z, 'CoordinateZ')
+                bboxes.append([xmin,ymin,zmin,xmax,ymax,zmax,z[0],True])
 
         c = 0
         zones = Internal.getZones(t)

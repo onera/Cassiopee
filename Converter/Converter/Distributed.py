@@ -177,7 +177,8 @@ def _convert2SkeletonTree(t):
     zones = Internal.getZones(t)
     for z in zones:
         nodes = Internal.getNodesFromType(z, 'DataArray_t')
-        for n in nodes: n[1] = None
+        for n in nodes: 
+          if n[1].size > 6: n[1] = None
     return None
 
 #==============================================================================
@@ -435,7 +436,7 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
         if not intersectionsDict:
             try: import Connector.PyTree as X
             except: raise ImportError("computeGraph: requires Connector module.")
-            intersectionsDict = X.getIntersectingDomains(t)        
+            intersectionsDict = X.getIntersectingDomains(t)       
         for z in zones:
             proc = getProcLocal__(z, procDict)
             for z2 in zones:

@@ -15,6 +15,7 @@ except: raise ImportError("RigidMotion: requires Converter module.")
 # si time est different de None, sinon des scalaires.
 #==============================================================================
 def evalPosition(array, time, F):
+    """Move the mesh with defined motion function to time t."""
     b = C.copy(array)
     _evalPosition(b, time, F)
     return b

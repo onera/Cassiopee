@@ -633,9 +633,10 @@ class Handle:
     self._loadContainerPartial(a, variablesN=varsN, variablesC=varsC)
     return a
     
-  def loadFromProc(self):
+  def loadFromProc(self, loadVariables=True, cartesian=False):
     """Load and distribute zones from proc node."""
     if Cmpi.rank == 0:
+      # Load le squelette niveau2 + les noeuds proc
       t = convertFile2SkeletonTree(self.fileName, self.format, maxDepth=2, maxFloatSize=6)
       zones = Internal.getZones(t)
       paths = []
@@ -648,21 +649,32 @@ class Handle:
       self._loadTreeExtras(t)
     else: t = None
     t = Cmpi.bcast(t)
+    # Lit les zones correspondant a proc
     paths = []
     zones = Internal.getZones(t)
     for z in zones:
       proc = Internal.getNodeFromName2(z, 'proc')
       if Internal.getValue(proc) == Cmpi.rank:
         paths.append(Internal.getPath(t, z))
-      else:
-        Internal._rmNode(t, z)
+      else: Internal._rmNode(t, z)
+    if loadVariables: skipTypes=None
+    else: skipTypes=['FlowSolution_t']
     if paths != []: _readPyTreeFromPaths(t, self.fileName, paths)
+    # Decompression cartesienne eventuelle
+    if cartesian: 
+      import Compressor.PyTree as Compressor
+      Compressor._uncompressCartesian(t)
     return t
 
-  def loadAndDistribute(self, useCom=None, cartesian=False, algorithm='graph'):
+  # useCom=strategie pour la distribution (match)
+  # algorithm=type d'algorithme pour la distribution
+  # cartesian=si True, decompresse les blocs lus (supposes Cartesien)
+  # loadVariables=True, charge toutes les variables sinon ne charge que les coords
+  def loadAndDistribute(self, useCom=None, algorithm='graph', loadVariables=True, cartesian=False):
     """Load and distribute zones."""
     if Cmpi.rank == 0:
       if useCom == 'match':
+        # Lit le squelette niveau 3 + les zoneGridConnectivity
         t = convertFile2SkeletonTree(self.fileName, self.format, maxDepth=3, maxFloatSize=6)
         paths = []
         bases = Internal.getBases(t)
@@ -676,6 +688,7 @@ class Handle:
               paths.append(p)
         if paths != []: _readPyTreeFromPaths(t, self.fileName, paths, self.format)
       else:
+        # Lit le squelette niveau 2 + les noeuds procs
         t = convertFile2SkeletonTree(self.fileName, self.format, maxDepth=2, maxFloatSize=6)
         paths = []
         bases = Internal.getBases(t)
@@ -685,11 +698,14 @@ class Handle:
             p = '%s/%s/ZoneType'%(b[0],z[0])
             paths.append(p)
         _readPyTreeFromPaths(t, self.fileName, paths, self.format)  
+      # Load les extras de l'arbre (autre que base)
       self._loadTreeExtras(t)
+      # Distribue
       import Distributor2.PyTree as D2
       D2._distribute(t, Cmpi.size, useCom=useCom, algorithm=algorithm)
     else: t = None
     t = Cmpi.bcast(t)
+    # Lit les zones affectees
     paths = []
     bases = Internal.getBases(t)
     for b in bases:
@@ -698,8 +714,11 @@ class Handle:
         proc = Internal.getNodeFromName2(z, 'proc')
         if Internal.getValue(proc) == Cmpi.rank: paths.append("%s/%s"%(b[0],z[0]))
         else: Internal._rmNodeByPath(t, "%s/%s"%(b[0],z[0]))
-    if paths != []: _readPyTreeFromPaths(t, self.fileName, paths, self.format)
+    if loadVariables: skipTypes=None
+    else: skipTypes=['FlowSolution_t']
+    if paths != []: _readPyTreeFromPaths(t, self.fileName, paths, self.format, skipTypes=skipTypes)
     _enforceProcNode(t)
+    # Decompression cartesienne eventuelle
     if cartesian: 
       import Compressor.PyTree as Compressor
       Compressor._uncompressCartesian(t)

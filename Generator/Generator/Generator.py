@@ -991,6 +991,7 @@ def addNormalLayers(surface, distrib, check=0, niter=0, eps=0.4):
 # nlvl[0]: niveau le plus grossier
 #-----------------------------------------------------------------------------
 def gencartmb(bodies, h, Dfar, nlvl):
+    """Generate a muliblock Cartesian mesh."""
     import KCore
     try: import Transform as T; import Converter as C
     except:

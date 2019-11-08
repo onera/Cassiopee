@@ -15,7 +15,7 @@ if Cmpi.rank == 0:
     C.convertPyTree2File(a, 'case1.cgns')
 Cmpi.barrier()
 
-H = Filter.Handle('case1.cgns')
+h = Filter.Handle('case1.cgns')
 a = h.loadFromProc()
 Internal.printTree(a)
 Cmpi.convertPyTree2File(a, 'out.cgns')

@@ -293,7 +293,7 @@ def createBboxDict(t):
     bboxDict = {}
     zones = Internal.getZones(t)
     for z in zones:
-        bboxDict[z[0]]=G.bbox(z)
+        bboxDict[z[0]] = G.bbox(z)
 
     b = KCOMM.allgather(bboxDict)
     bboxDict = {}
@@ -315,12 +315,11 @@ def createBboxDict(t):
 # computeGraph dans Distributed.py pour plus de details.
 #==============================================================================
 def computeGraph(t, type='bbox', t2=None, procDict=None, reduction=True, 
-                 intersectionsDict=None, exploc=False):
+                 intersectionsDict=None, exploc=False, procDict2=None):
     """Return the communication graph for different block relation types."""
     if not procDict: procDict = getProcDict(t)
-
     graph = Distributed.computeGraph(t, type, t2, procDict, rank, 
-                                     intersectionsDict, exploc)
+                                     intersectionsDict, exploc, procDict2)
 
     if reduction:
         # Assure que le graph est le meme pour tous les processeurs
@@ -613,13 +612,15 @@ def _rmXZones(t):
 # Retourne le dictionnaire proc pour chaque zoneName
 # IN: t: full/S/LS/Partial
 #==============================================================================
-def getProcDict(t):
+def getProcDict(t, reduction=True):
     """Return the dictionary proc['zoneName']."""
     d1 = Distributed.getProcDict(t)
-    d = KCOMM.allgather(d1)
-    items = []
-    for i in d: items += i.items()
-    procDict = dict(items)
+    if reduction:
+        d = KCOMM.allgather(d1)
+        items = []
+        for i in d: items += i.items()
+        procDict = dict(items)
+    else: procDict = d1
     return procDict
 
 #==============================================================================

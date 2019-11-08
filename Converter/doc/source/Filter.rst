@@ -457,9 +457,9 @@ High level layer
 .. py:function:: Converter.Filter.Handle.loadFromProc()
 
     Load on each processor the zones with the corresponding proc node.
-    The zones in File must have a .Solver#Param/proc node.
+    The zones in file must have a .Solver#Param/proc node.
 
-    :rtype t: partial tree on each processor
+    :rtype: partial tree on each processor
 
     *Example of use:*
 
@@ -474,7 +474,7 @@ High level layer
 
     Load and distribute zones of file on the different processors.
     
-    :rtype t: partial tree on each processor
+    :rtype: partial tree on each processor
 
     *Example of use:*
 
@@ -487,9 +487,9 @@ High level layer
 
 .. py:function:: Converter.Filter.Handle.loadAndSplit()
 
-    Load and split zones of file on the different processors (only for structured zones)
+    Load and split zones of file on the different processors (only for structured zones).
     
-    :rtype t: partial tree on each processor
+    :rtype: partial tree on each processor
 
     *Example of use:*
 
