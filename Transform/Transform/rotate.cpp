@@ -77,7 +77,7 @@ E_Int K_TRANSFORM::extractVectorComponents(char* varString,
 #if PY_VERSION_HEX >= 0x03000000
       else if (PyUnicode_Check(tpl1))
       {
-        vect = PyUnicode_AsUTF8(tpl1); 
+        vect = (char*)PyUnicode_AsUTF8(tpl1); 
       }
 #endif 
       else 

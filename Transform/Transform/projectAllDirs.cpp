@@ -120,7 +120,7 @@ PyObject* K_TRANSFORM::projectAllDirs(PyObject* self, PyObject* args)
 #if PY_VERSION_HEX >= 0x03000000
     else if (PyUnicode_Check(l))
     {
-      var = PyUnicode_AsUTF8(l);
+      var = (char*)PyUnicode_AsUTF8(l);
       for (E_Int no = 0; no < nprojectedZones; no++)
       {
         m = K_ARRAY::isNamePresent(var, varStringP[no]);

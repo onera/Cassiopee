@@ -122,7 +122,7 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
 #if PY_VERSION_HEX >= 0x03000000
         else if (PyUnicode_Check(l)) 
         {
-            var = PyUnicode_AsUTF8(l);
+            var = (char*)PyUnicode_AsUTF8(l);
             varsn.push_back(var);
         } 
 #endif

@@ -99,7 +99,7 @@ PyObject* K_POST::computeGrad(PyObject* self,PyObject* args)
   char* var = NULL;
   if (PyString_Check(varname)) var = PyString_AsString(varname);
 #if PY_VERSION_HEX >= 0x03000000
-  else if (PyUnicode_Check(varname)) var = PyUnicode_AsUTF8(varname);
+  else if (PyUnicode_Check(varname)) var = (char*)PyUnicode_AsUTF8(varname);
 #endif
   else
   {    

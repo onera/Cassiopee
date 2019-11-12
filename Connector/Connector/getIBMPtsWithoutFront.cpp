@@ -56,7 +56,7 @@ PyObject* K_CONNECTOR::getIBMPtsWithoutFront(PyObject* self, PyObject* args)
     char* distname;
     if (PyString_Check(distName)) distname = PyString_AsString(distName);
 #if PY_VERSION_HEX >= 0x03000000
-    else if (PyUnicode_Check(distName)) distname = PyUnicode_AsUTF8(distName);
+    else if (PyUnicode_Check(distName)) distname = (char*)PyUnicode_AsUTF8(distName);
 #endif
     else
     {    
@@ -92,7 +92,7 @@ PyObject* K_CONNECTOR::getIBMPtsWithoutFront(PyObject* self, PyObject* args)
 #if PY_VERSION_HEX >= 0x03000000
         else if (PyUnicode_Check(l)) 
         {
-            var = PyUnicode_AsUTF8(l);
+            var = (char*)PyUnicode_AsUTF8(l);
             varsn.push_back(var);
         } 
 #endif

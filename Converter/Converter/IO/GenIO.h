@@ -705,19 +705,19 @@ class GenIO
       std::vector<FldArrayF*>& geom);
     /* bin_tp: read data */
     E_Int readData108(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
-                      E_Int dataPacking,
+                      E_Int dataPacking, std::vector<E_Int>& loc,
                       FldArrayF& f);
     E_Int readData108(FILE* ptrFile,
-                      E_Int dataPacking, E_Int et,
+                      E_Int dataPacking, std::vector<E_Int>& loc, E_Int et,
                       E_Int numFaces, E_Int numFaceNodes,
                       E_Int numBoundaryFaces, E_Int numBoundaryConnections,
                       E_Int ne,
                       FldArrayF& f, FldArrayI& c);
     E_Int readData108CE(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
-                        E_Int dataPacking,
+                        E_Int dataPacking, std::vector<E_Int>& loc,
                         FldArrayF& f);
     E_Int readData108CE(FILE* ptrFile,
-                        E_Int dataPacking, E_Int et,
+                        E_Int dataPacking, std::vector<E_Int>& loc, E_Int et,
                         E_Int numFaces, E_Int numFaceNodes,
                         E_Int numBoundaryFaces, E_Int numBoundaryConnections,
                         E_Int ne,

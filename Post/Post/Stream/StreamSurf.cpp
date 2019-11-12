@@ -81,7 +81,7 @@ PyObject* K_POST::compStreamSurf(PyObject* self, PyObject* args)
 #if PY_VERSION_HEX >= 0x03000000
     else if (PyUnicode_Check(tpl0)) 
     {
-      char* str = PyUnicode_AsUTF8(tpl0);
+      char* str = (char*)PyUnicode_AsUTF8(tpl0);
       vnames.push_back(str);
     }
 #endif

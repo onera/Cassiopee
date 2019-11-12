@@ -57,7 +57,7 @@ E_Int K_ARRAY::getVarName(PyObject* varNames, char* varString)
 #if PY_VERSION_HEX >= 0x03000000
     else if (PyUnicode_Check(tpl))
     {
-      s = PyUnicode_AsUTF8(tpl); 
+      s = (char*)PyUnicode_AsUTF8(tpl); 
       strcat(varString, ",");
       strcat(varString, s);
     }

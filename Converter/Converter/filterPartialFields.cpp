@@ -186,7 +186,7 @@ PyObject* K_CONVERTER::filterPartialFields(PyObject* self, PyObject* args)
     char* zname = NULL;
     if (PyString_Check(v)) zname = PyString_AsString(v);
 #if PY_VERSION_HEX >= 0x03000000
-    else if (PyUnicode_Check(v)) zname = PyUnicode_AsUTF8(v); 
+    else if (PyUnicode_Check(v)) zname = (char*)PyUnicode_AsUTF8(v); 
 #endif
     
     if (verbose == 1) 

@@ -95,7 +95,7 @@ PyObject* K_CONVERTER::extractBCFields(PyObject* self, PyObject* args)
 #if PY_VERSION_HEX >= 0x03000000
         else if (PyUnicode_Check(tpl0))
         {
-           char* varname = PyUnicode_AsUTF8(tpl0);
+           const char* varname = PyUnicode_AsUTF8(tpl0);
            posvar = K_ARRAY::isNamePresent(varname, varString);
            if (posvar != -1 ) posvars.push_back(posvar);  
         }

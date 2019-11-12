@@ -383,11 +383,11 @@ E_Int K_IO::GenIO::tecread(
           if (_convertEndian == false)
             readData108(ptrFile, 
                         ni[zoneStruct], nj[zoneStruct], nk[zoneStruct], 
-                        dataPacking, f);
+                        dataPacking, loc, f);
           else
             readData108CE(ptrFile, 
                           ni[zoneStruct], nj[zoneStruct], nk[zoneStruct], 
-                          dataPacking, f);
+                          dataPacking, loc, f);
           break;
           
         default:;
@@ -413,13 +413,13 @@ E_Int K_IO::GenIO::tecread(
         case 111:
         case 112:
           if (_convertEndian == false)
-            readData108(ptrFile, dataPacking, etl[zone], 
+            readData108(ptrFile, dataPacking, loc, etl[zone], 
                         numFacesl[zoneUnstruct], numFaceNodesl[zoneUnstruct],
                         numBoundaryFacesl[zoneUnstruct],  
                         numBoundaryConnectionsl[zoneUnstruct],
                         neltsl[zoneUnstruct], f1, c1);
           else
-            readData108CE(ptrFile, dataPacking, etl[zone],
+            readData108CE(ptrFile, dataPacking, loc, etl[zone],
                           numFacesl[zoneUnstruct], numFaceNodesl[zoneUnstruct],
                           numBoundaryFacesl[zoneUnstruct],  
                           numBoundaryConnectionsl[zoneUnstruct],

@@ -42,7 +42,7 @@ E_Int K_ARRAY::getVarStringFromArray(PyObject* o, char*& varString)
   
   if (PyString_Check(l)) varString = PyString_AsString(l);  
 #if PY_VERSION_HEX >= 0x03000000
-  else if (PyUnicode_Check(l)) varString = PyUnicode_AsUTF8(l); 
+  else if (PyUnicode_Check(l)) varString = (char*)PyUnicode_AsUTF8(l); 
 #endif
   else
   {

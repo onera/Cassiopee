@@ -497,7 +497,7 @@ E_Int K_IO::GenIO::readZoneHeader108CE(
  */
 //=============================================================================
 E_Int K_IO::GenIO::readData108(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
-                               E_Int dataPacking,
+                               E_Int dataPacking, vector<E_Int>& loc,
                                FldArrayF& f)
 {
   float a;
@@ -508,6 +508,7 @@ E_Int K_IO::GenIO::readData108(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
   E_Int nfield = f.getNfld();
   E_Int si = sizeof(int);
   E_Int npts = ni*nj*nk;
+  E_Int nelts = K_FUNC::E_max((ni-1),1)*K_FUNC::E_max((nj-1),1)*K_FUNC::E_max((nk-1),1);
 
   // Read zone separator
   fread(&a, sizeof(float), 1, ptrFile); // 299.
@@ -521,10 +522,15 @@ E_Int K_IO::GenIO::readData108(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
 
   /* Passive variables */
   fread(&ib, si, 1, ptrFile);
+  E_Int* passive = new E_Int[nfield];
+  for (E_Int i = 0; i < nfield; i++) passive[i] = 0;
   if (ib != 0)
   {
-    for (E_Int i = 0; i < nfield; i++) fread(&ib, si, 1, ptrFile);
-    printf("Warning: this file has passive variables. Not supported.\n");
+    for (E_Int i = 0; i < nfield; i++)
+    { 
+      fread(&ib, si, 1, ptrFile);
+      passive[i] = ib;
+    }
   }
 
   /* Sharing variables */
@@ -539,24 +545,38 @@ E_Int K_IO::GenIO::readData108(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
   fread(&ib, si, 1, ptrFile);
   if (ib != -1)
   {
-    printf("This file has sharing variables. Not supported.\n");
+    printf("Warning: this file has sharing connectivity. Not supported.\n");
   }
 
   /* Min-Max since no sharing and no passive. */
   for (n = 0; n < nfield; n++)
   {
-    fread(&t, sizeof(double), 1, ptrFile);
-    fread(&t, sizeof(double), 1, ptrFile);
+    if (passive[n] == 0)
+    {
+      fread(&t, sizeof(double), 1, ptrFile);
+      fread(&t, sizeof(double), 1, ptrFile);
+    }
   }
 
   /* Read dump */
+  E_Int size;
   if (sizer == 4 && dataPacking == 0) // block
   {
     float* buf = new float[npts];
     for (n = 0; n < nfield; n++)
     {
-      fread(buf, sizeof(float), npts, ptrFile);
-      for (i = 0; i < npts; i++) f(i, n+1) = buf[i];
+      if (passive[n] == 0)
+      {
+        if (loc[n] == 1) size = nelts;
+        else size = npts;
+        fread(buf, sizeof(float), size, ptrFile);
+        for (i = 0; i < npts; i++) f(i, n+1) = buf[i];
+      }
+      else
+      {
+        E_Float* fp = f.begin(n+1);
+        for (E_Int i = 0; i < npts; i++) fp[i] = 0.; 
+      }
     }
     delete [] buf;
   }
@@ -564,7 +584,17 @@ E_Int K_IO::GenIO::readData108(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
   {
     for (n = 0; n < nfield; n++)
     {
-      fread(f.begin(n+1), sizeof(E_Float), npts, ptrFile);
+      if (passive[n] == 0)
+      {
+        if (loc[n] == 1) size = nelts;
+        else size = npts;
+        fread(f.begin(n+1), sizeof(E_Float), size, ptrFile);
+      }
+      else
+      {
+        E_Float* fp = f.begin(n+1);
+        for (E_Int i = 0; i < npts; i++) fp[i] = 0.; 
+      }
     }
   }
   else if (sizer == 4 && dataPacking == 1) // point
@@ -572,8 +602,15 @@ E_Int K_IO::GenIO::readData108(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
     float* buf = new float[nfield];
     for (n = 0; n < npts; n++)
     {
-      fread(buf, sizeof(float), nfield, ptrFile);
-      for (i = 0; i < nfield; i++) f(n, i+1) = buf[i];
+      if (passive[n] == 0)
+      {
+        fread(buf, sizeof(float), nfield, ptrFile);
+        for (i = 0; i < nfield; i++) f(n, i+1) = buf[i];
+      }
+      else
+      {
+        for (i = 0; i < nfield; i++) f(n, i+1) = 0.;
+      }  
     }
     delete [] buf;
   }
@@ -582,12 +619,19 @@ E_Int K_IO::GenIO::readData108(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
     double* buf = new double[nfield];
     for (n = 0; n < npts; n++)
     {
-      fread(buf, sizeof(E_Float), nfield, ptrFile);
-      for (i = 0; i < nfield; i++) f(n, i+1) = buf[i];
+      if (passive[n] == 0)
+      {
+        fread(buf, sizeof(E_Float), nfield, ptrFile);
+        for (i = 0; i < nfield; i++) f(n, i+1) = buf[i];
+      }
+      else
+      {
+        for (i = 0; i < nfield; i++) f(n, i+1) = 0.;
+      }  
     }
     delete [] buf;
   }
-
+  delete [] passive;
   return 0;
 }
 //=============================================================================
@@ -605,7 +649,7 @@ E_Int K_IO::GenIO::readData108(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
 //=============================================================================
 E_Int K_IO::GenIO::readData108(
   FILE* ptrFile,
-  E_Int dataPacking, E_Int et,
+  E_Int dataPacking, vector<E_Int>& loc, E_Int et,
   E_Int numFaces, E_Int numFaceNodes,
   E_Int numBoundaryFaces, E_Int numBoundaryConnections, E_Int ne,
   FldArrayF& f, FldArrayI& c)
@@ -635,10 +679,15 @@ E_Int K_IO::GenIO::readData108(
 
   /* Passive variables */
   fread(&ib, si, 1, ptrFile);
+  E_Int* passive = new E_Int[nfield];
+  for (E_Int i = 0; i < nfield; i++) passive[i] = 0;
   if (ib != 0)
   {
-    for (E_Int i = 0; i < nfield; i++) fread(&ib, si, 1, ptrFile);
-    printf("Warning: this file has passive variables. Not supported.\n");
+    for (E_Int i = 0; i < nfield; i++)
+    {
+      fread(&ib, si, 1, ptrFile);
+      passive[i] = ib;
+    }
   }
 
   /* Sharing variables */
@@ -656,52 +705,92 @@ E_Int K_IO::GenIO::readData108(
     printf("Warning: this file has sharing connectivity. Not supported.\n");
   }
 
-  /* Min-Max since no sharing and no passive. */
+  /* Min-Max for no sharing and no passive. */
   for (n = 0; n < nfield; n++)
   {
-    fread(&t, sizeof(double), 1, ptrFile);
-    fread(&t, sizeof(double), 1, ptrFile);
+    if (passive[n] == 0)
+    {
+      fread(&t, sizeof(double), 1, ptrFile);
+      fread(&t, sizeof(double), 1, ptrFile);
+    }
   }
 
   /* Read dump */
-  if (sizer == 4 && dataPacking == 0) // block
+  E_Int size;
+  if (sizer == 4 && dataPacking == 0) // block R4
   {
     float* buf = new float[npts];
+    E_Float* fp = f.begin(n+1);
     for (n = 0; n < nfield; n++)
     {
-      fread(buf, sizeof(float), npts, ptrFile);
-      for (i = 0; i < npts; i++) f(i, n+1) = buf[i];
+      if (passive[n] == 0)
+      {
+        if (loc[n] == 1) size = nelts;
+        else size = npts;
+        fread(buf, sizeof(float), size, ptrFile);
+        for (i = 0; i < npts; i++) fp[i] = buf[i];
+      }
+      else
+      {
+        E_Float* fp = f.begin(n+1);
+        for (E_Int i = 0; i < npts; i++) fp[i] = 0.; 
+      }
     }
     delete [] buf;
   }
-  else if (sizer == 8 && dataPacking == 0) // block
+  else if (sizer == 8 && dataPacking == 0) // block R8
   {
     for (n = 0; n < nfield; n++)
     {
-      fread(f.begin(n+1), sizeof(E_Float), npts, ptrFile);
+      if (passive[n] == 0)
+      {
+        if (loc[n] == 1) size = nelts;
+        else size = npts;
+        fread(f.begin(n+1), sizeof(E_Float), size, ptrFile);
+      }
+      else
+      {
+        E_Float* fp = f.begin(n+1);
+        for (E_Int i = 0; i < npts; i++) fp[i] = 0.; 
+      }
     }
   }
-  else if (sizer == 4 && dataPacking == 1) // point
+  else if (sizer == 4 && dataPacking == 1) // point R4
   {
     float* buf = new float[nfield];
     for (n = 0; n < npts; n++)
     {
-      fread(buf, sizeof(float), nfield, ptrFile);
-      for (i = 0; i < nfield; i++) f(n, i+1) = buf[i];
+      if (passive[n] == 0)
+      {
+        fread(buf, sizeof(float), nfield, ptrFile);
+        for (i = 0; i < nfield; i++) f(n, i+1) = buf[i];
+      }
+      else
+      {
+        for (i = 0; i < nfield; i++) f(n, i+1) = 0.;
+      }
     }
     delete [] buf;
   }
-  else if (sizer == 8 && dataPacking == 1) // point
+  else if (sizer == 8 && dataPacking == 1) // point R8
   {
     double* buf = new double[nfield];
     for (n = 0; n < npts; n++)
     {
-      fread(buf, sizeof(E_Float), nfield, ptrFile);
-      for (i = 0; i < nfield; i++) f(n, i+1) = buf[i];
+      if (passive[n] == 0)
+      {
+        fread(buf, sizeof(E_Float), nfield, ptrFile);
+        for (i = 0; i < nfield; i++) f(n, i+1) = buf[i];
+      }
+      else
+      {
+        for (i = 0; i < nfield; i++) f(n, i+1) = 0.;
+      }  
     }
     delete [] buf;
   }
-
+  delete [] passive;
+  
   // Connectivity
   if (et != 8) // elements basiques
   {
@@ -824,7 +913,7 @@ E_Int K_IO::GenIO::readData108(
  */
 //=============================================================================
 E_Int K_IO::GenIO::readData108CE(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
-                                 E_Int dataPacking,
+                                 E_Int dataPacking, vector<E_Int>& loc,
                                  FldArrayF& f)
 {
   float a;
@@ -834,6 +923,8 @@ E_Int K_IO::GenIO::readData108CE(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
   E_Int sizer = 8;
   E_Int nfield = f.getNfld();
   E_Int si = sizeof(int);
+  E_Int npts = ni*nj*nk;
+  E_Int nelts = K_FUNC::E_max((ni-1),1)*K_FUNC::E_max((nj-1),1)*K_FUNC::E_max((nk-1),1);
 
   // Read zone separator
   fread(&a, sizeof(float), 1, ptrFile); // 299.
@@ -848,10 +939,15 @@ E_Int K_IO::GenIO::readData108CE(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
 
   /* Passive variables */
   fread(&ib, si, 1, ptrFile); ib = IBE(ib);
+  E_Int* passive = new E_Int[nfield];
+  for (E_Int i = 0; i < nfield; i++) passive[i] = 0;
   if (ib != 0)
   {
-    for (E_Int i = 0; i < nfield; i++) fread(&ib, si, 1, ptrFile);
-    printf("Warning: this file has passive variables. NOT supported.\n");
+    for (E_Int i = 0; i < nfield; i++) 
+    {
+      fread(&ib, si, 1, ptrFile);
+      passive[i] = IBE(ib);
+    }
   }
 
   /* Sharing variables */
@@ -872,19 +968,32 @@ E_Int K_IO::GenIO::readData108CE(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
   /* Min-Max since no sharing and no passive. */
   for (n = 0; n < nfield; n++)
   {
-    fread(&t, sizeof(double), 1, ptrFile);
-    fread(&t, sizeof(double), 1, ptrFile);
+    if (passive[n] == 0)
+    {
+      fread(&t, sizeof(double), 1, ptrFile);
+      fread(&t, sizeof(double), 1, ptrFile);
+    }
   }
 
   /* Read dump */
-  E_Int npts = ni*nj*nk;
+  E_Int size;
   if (sizer == 4 && dataPacking == 0)
   {
     float* buf = new float[npts];
     for (n = 0; n < nfield; n++)
     {
-      fread(buf, sizeof(float), npts, ptrFile);
-      for (i = 0; i < npts; i++) f(i, n+1) = FBE(buf[i]);
+      if (passive[n] == 0)
+      {
+        if (loc[n] == 1) size = nelts;
+        else size = npts;
+        fread(buf, sizeof(float), size, ptrFile);
+        for (i = 0; i < npts; i++) f(i, n+1) = FBE(buf[i]);
+      }
+      else
+      {
+        E_Float* fp = f.begin(n+1);
+        for (E_Int i = 0; i < npts; i++) fp[i] = 0.; 
+      }
     }
     delete [] buf;
   }
@@ -892,7 +1001,17 @@ E_Int K_IO::GenIO::readData108CE(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
   {
     for (n = 0; n < nfield; n++)
     {
-      fread(f.begin(n+1), sizeof(E_Float), npts, ptrFile);
+      if (passive[n] == 0)
+      {
+        if (loc[n] == 1) size = nelts;
+        else size = npts;
+        fread(f.begin(n+1), sizeof(E_Float), size, ptrFile);
+      }
+      else
+      {
+        E_Float* fp = f.begin(n+1);
+        for (E_Int i = 0; i < npts; i++) fp[i] = 0.; 
+      }
     }
   }
   else if (sizer == 4 && dataPacking == 1)
@@ -900,8 +1019,15 @@ E_Int K_IO::GenIO::readData108CE(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
     vector<float> buf(nfield);
     for (n = 0; n < npts; n++)
     {
-      fread(&buf[0], sizeof(float), nfield, ptrFile);
-      for (i = 0; i < nfield; i++) f(n, i+1) = FBE(buf[i]);
+      if (passive[n] == 0)
+      {
+        fread(&buf[0], sizeof(float), nfield, ptrFile);
+        for (i = 0; i < nfield; i++) f(n, i+1) = FBE(buf[i]);
+      }
+      else
+      {
+        for (i = 0; i < nfield; i++) f(n, i+1) = 0.;
+      }
     }
   }
   else if (sizer == 8 && dataPacking == 1)
@@ -909,13 +1035,20 @@ E_Int K_IO::GenIO::readData108CE(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
     vector<double> buf(nfield);
     for (n = 0; n < npts; n++)
     {
-      fread(&buf[0], sizeof(E_Float), nfield, ptrFile);
-      for (i = 0; i < nfield; i++) f(n, i+1) = DBE(buf[i]);
+      if (passive[n] == 0)
+      {
+        fread(&buf[0], sizeof(E_Float), nfield, ptrFile);
+        for (i = 0; i < nfield; i++) f(n, i+1) = DBE(buf[i]);
+      }
+      else
+      {
+        for (i = 0; i < nfield; i++) f(n, i+1) = 0.;
+      }
     }
   }
-
+  delete [] passive;
+  
   if (sizer == 8 && dataPacking == 0) convertEndianField(f);
-
   return 0;
 }
 //=============================================================================
@@ -930,7 +1063,7 @@ E_Int K_IO::GenIO::readData108CE(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
 //=============================================================================
 E_Int K_IO::GenIO::readData108CE(
   FILE* ptrFile,
-  E_Int dataPacking, E_Int et,
+  E_Int dataPacking, vector<E_Int>& loc, E_Int et,
   E_Int numFaces, E_Int numFaceNodes,
   E_Int numBoundaryFaces, E_Int numBoundaryConnections,
   E_Int ne,
@@ -969,10 +1102,15 @@ E_Int K_IO::GenIO::readData108CE(
 
   /* Passive variables */
   fread(&ib, si, 1, ptrFile); ib = IBE(ib);
+  E_Int* passive = new E_Int[nfield];
+  for (E_Int i = 0; i < nfield; i++) passive[i] = 0;
   if (ib != 0)
   {
-    for (E_Int i = 0; i < nfield; i++) fread(&ib, si, 1, ptrFile);
-    printf("Warning: this file has passive variables. NOT supported.\n");
+    for (E_Int i = 0; i < nfield; i++) 
+    {
+      fread(&ib, si, 1, ptrFile);
+      passive[i] = IBE(ib);
+    }
   }
 
   /* Sharing variables */
@@ -987,31 +1125,55 @@ E_Int K_IO::GenIO::readData108CE(
   fread(&ib, si, 1, ptrFile);
   if (ib != -1)
   {
-    printf("This file has sharing variables. Not supported.\n");
+    printf("This file has sharing connectivity. Not supported.\n");
   }
 
   /* Min-Max since no sharing and no passive. */
   for (n = 0; n < nfield; n++)
   {
-    fread(&t, sizeof(double), 1, ptrFile);
-    fread(&t, sizeof(double), 1, ptrFile);
+    if (passive[n] == 0)
+    {
+      fread(&t, sizeof(double), 1, ptrFile);
+      fread(&t, sizeof(double), 1, ptrFile);
+    }
   }
 
   /* Read dump */
+  E_Int size;
   if (sizer == 4 && dataPacking == 0) // block
   {
     vector<float> buf(npts);
     for (n = 0; n < nfield; n++)
     {
-      fread(&buf[0], sizeof(float), npts, ptrFile);
-      for (i = 0; i < npts; i++) f(i, n+1) = FBE(buf[i]);
+      if (passive[n] == 0)
+      {
+        if (loc[n] == 1) size = nelts;
+        else size = npts;
+        fread(&buf[0], sizeof(float), size, ptrFile);
+        for (i = 0; i < size; i++) f(i, n+1) = FBE(buf[i]);
+      }
+      else
+      {
+        E_Float* fp = f.begin(n+1);
+        for (E_Int i = 0; i < npts; i++) fp[i] = 0.; 
+      }
     }
   }
   else if (sizer == 8 && dataPacking == 0) // block
   {
     for (n = 0; n < nfield; n++)
     {
-      fread(f.begin(n+1), sizeof(E_Float), npts, ptrFile);
+      if (passive[n] == 0)
+      {
+        if (loc[n] == 1) size = nelts;
+        else size = npts;
+        fread(f.begin(n+1), sizeof(E_Float), size, ptrFile);
+      }
+      else
+      {
+        E_Float* fp = f.begin(n+1);
+        for (E_Int i = 0; i < npts; i++) fp[i] = 0.; 
+      }
     }
   }
   else if (sizer == 4 && dataPacking == 1) // point
@@ -1019,8 +1181,15 @@ E_Int K_IO::GenIO::readData108CE(
     vector<float> buf(nfield);
     for (n = 0; n < npts; n++)
     {
-      fread(&buf[0], sizeof(float), nfield, ptrFile);
-      for (i = 0; i < nfield; i++) f(n, i+1) = FBE(buf[i]);
+      if (passive[n] == 0)
+      {
+        fread(&buf[0], sizeof(float), nfield, ptrFile);
+        for (i = 0; i < nfield; i++) f(n, i+1) = FBE(buf[i]);
+      }
+      else
+      {
+        for (i = 0; i < nfield; i++) f(n, i+1) = 0.;
+      }  
     }
   }
   else if (sizer == 8 && dataPacking == 1) // point
@@ -1028,11 +1197,19 @@ E_Int K_IO::GenIO::readData108CE(
     vector<double> buf(nfield);
     for (n = 0; n < npts; n++)
     {
-      fread(&buf[0], sizeof(E_Float), nfield, ptrFile);
-      for (i = 0; i < nfield; i++) f(n, i+1) = DBE(buf[i]);
+      if (passive[n] == 0)
+      {
+        fread(&buf[0], sizeof(E_Float), nfield, ptrFile);
+        for (i = 0; i < nfield; i++) f(n, i+1) = DBE(buf[i]);
+      }
+      else
+      {
+        for (i = 0; i < nfield; i++) f(n, i+1) = 0.;
+      }  
     }
   }
-
+  delete [] passive;
+  
   // Connectivity
   if (et != 8) // elements basiques
   {

@@ -93,7 +93,7 @@ PyObject* K_CONVERTER::magnitude(PyObject* self, PyObject* args)
 #if PY_VERSION_HEX >= 0x03000000
     else if (PyUnicode_Check(l))
     {
-      var = PyUnicode_AsUTF8(l);
+      var = (char*)PyUnicode_AsUTF8(l);
       m = K_ARRAY::isNamePresent(var, varString);
       if (m == -1)
         printf("Warning: magnitude: variable %d not present in array. Skipped...\n", v);

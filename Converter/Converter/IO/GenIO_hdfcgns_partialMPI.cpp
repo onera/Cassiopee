@@ -109,7 +109,7 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPathsPartial(char* file,
       char* path = NULL;
       if (PyString_Check(key)) path = PyString_AsString(key);
 #if PY_VERSION_HEX >= 0x03000000
-      else if (PyUnicode_Check(key)) path = PyUnicode_AsUTF8(key); 
+      else if (PyUnicode_Check(key)) path = (char*)PyUnicode_AsUTF8(key); 
 #endif
       
       HDF._path = path;
@@ -160,7 +160,7 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPathsPartial(char* file,
         char* path = NULL;
         if (PyString_Check(lpath)) path = PyString_AsString(lpath);
 #if PY_VERSION_HEX >= 0x03000000
-        else if (PyUnicode_Check(lpath)) path = PyUnicode_AsUTF8(lpath);
+        else if (PyUnicode_Check(lpath)) path = (char*)PyUnicode_AsUTF8(lpath);
 #endif
 
         /** Verbose **/
@@ -227,7 +227,7 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPathsPartial(char* file,
         char* path = NULL;
         if (PyString_Check(lpath)) path = PyString_AsString(lpath);
 #if PY_VERSION_HEX >= 0x03000000
-        else if (PyUnicode_Check(lpath)) path = PyUnicode_AsUTF8(lpath); 
+        else if (PyUnicode_Check(lpath)) path = (char*)PyUnicode_AsUTF8(lpath); 
 #endif
         /** Store the first path **/
         if (iField == 0){HDF._path = path;}
@@ -746,7 +746,7 @@ E_Int K_IO::GenIO::hdfcgnsWritePathsPartial(char* file, PyObject* tree,
     char* path = NULL;
     if (PyString_Check(key)) path = PyString_AsString(key);
 #if PY_VERSION_HEX >= 0x03000000
-    else if (PyUnicode_Check(key)) path = PyUnicode_AsUTF8(key);
+    else if (PyUnicode_Check(key)) path = (char*)PyUnicode_AsUTF8(key);
 #endif
     //printf("path to write ...  %s\n", path);
 
@@ -786,13 +786,13 @@ hid_t K_IO::GenIOHdf::writeNodePartial(hid_t     node,
   char* name = NULL;
   if (PyString_Check(pname)) name = PyString_AsString(pname);
 #if PY_VERSION_HEX >= 0x03000000
-  else if (PyUnicode_Check(pname)) name = PyUnicode_AsUTF8(pname);
+  else if (PyUnicode_Check(pname)) name = (char*)PyUnicode_AsUTF8(pname);
 #endif
   PyObject* plabel = PyList_GetItem(tree, 3);
   char* label = NULL;
   if (PyString_Check(plabel)) label = PyString_AsString(plabel);
 #if PY_VERSION_HEX >= 0x03000000
-  else if (PyUnicode_Check(plabel)) label = PyUnicode_AsUTF8(plabel);
+  else if (PyUnicode_Check(plabel)) label = (char*)PyUnicode_AsUTF8(plabel);
 #endif
   strcpy(s1, name); strcpy(s2, label);
 
@@ -821,7 +821,7 @@ hid_t K_IO::GenIOHdf::writeNodePartial(hid_t     node,
 #if PY_VERSION_HEX >= 0x03000000
   else if (PyUnicode_Check(v))
   {
-    setArrayC1(node, PyUnicode_AsUTF8(v));
+    setArrayC1(node, (char*)PyUnicode_AsUTF8(v));
     HDF_Add_Attribute_As_String(node, L3S_DTYPE, L3T_C1);
   }
 #endif

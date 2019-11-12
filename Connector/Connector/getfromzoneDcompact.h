@@ -6,7 +6,7 @@
        char* varname = NULL;
        if (PyString_Check(tpl0)) varname = PyString_AsString(tpl0);
 #if PY_VERSION_HEX >= 0x03000000
-       else if (PyUnicode_Check(tpl0)) varname = PyUnicode_AsUTF8(tpl0); 
+       else if (PyUnicode_Check(tpl0)) varname = (char*)PyUnicode_AsUTF8(tpl0); 
 #endif
        
        t             = K_PYTREE::getNodeFromName1(solD, varname );

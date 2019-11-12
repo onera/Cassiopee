@@ -429,7 +429,7 @@ E_Int K_IO::GenIO::cedrewrite(
           PyObject* o = PyList_GetItem(BCs, 2*j);
           if (PyString_Check(o)) name = PyString_AsString(o);
 #if PY_VERSION_HEX >= 0x03000000
-          else if (PyUnicode_Check(o)) name = PyUnicode_AsUTF8(o);
+          else if (PyUnicode_Check(o)) name = (char*)PyUnicode_AsUTF8(o);
 #endif
           PyArrayObject* array = (PyArrayObject*)PyList_GetItem(BCs, 2*j+1);
           int* ptr = (int*)PyArray_DATA(array);
