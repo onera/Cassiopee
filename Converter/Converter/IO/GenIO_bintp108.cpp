@@ -19,6 +19,8 @@
 
 // Binary tecplot v108 file support
 
+#define SENTINELLE -999.
+
 # include "GenIO.h"
 # include <stdio.h>
 # include <string.h>
@@ -166,10 +168,11 @@ E_Int K_IO::GenIO::readZoneHeader108(
 
   /* Var location */
   fread(&ib, si, 1, ptrFile);
+  loc.reserve(nfield);
+  for (E_Int i = 0; i < nfield; i++) loc[i] = 0;
   if (ib != 0)
   {
     // var location is specified
-    loc.reserve(nfield);
     E_Int center;
     for (E_Int i = 0; i < nfield; i++)
     {
@@ -387,10 +390,11 @@ E_Int K_IO::GenIO::readZoneHeader108CE(
 
   /* Var location */
   fread(&ib, si, 1, ptrFile); ib = IBE(ib);
+  loc.reserve(nfield);
+  for (E_Int i = 0; i < nfield; i++) loc[i] = 0;
   if (ib != 0)
   {
     // var location is specified
-    loc.reserve(nfield);
     E_Int center;
     for (E_Int i = 0; i < nfield; i++)
     {
@@ -560,41 +564,43 @@ E_Int K_IO::GenIO::readData108(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
 
   /* Read dump */
   E_Int size;
-  if (sizer == 4 && dataPacking == 0) // block
+  if (sizer == 4 && dataPacking == 0) // block R4
   {
     float* buf = new float[npts];
     for (n = 0; n < nfield; n++)
     {
+      E_Float* fp = f.begin(n+1);
+      if (loc[n] == 1) size = nelts;
+      else size = npts;  
       if (passive[n] == 0)
       {
-        if (loc[n] == 1) size = nelts;
-        else size = npts;
         fread(buf, sizeof(float), size, ptrFile);
-        for (i = 0; i < npts; i++) f(i, n+1) = buf[i];
+        for (i = 0; i < size; i++) fp[i] = buf[i];
       }
       else
       {
-        E_Float* fp = f.begin(n+1);
-        for (E_Int i = 0; i < npts; i++) fp[i] = 0.; 
+        for (E_Int i = 0; i < size; i++) fp[i] = 0.;
       }
+      for (i = size; i < npts; i++) fp[i] = SENTINELLE;
     }
     delete [] buf;
   }
-  else if (sizer == 8 && dataPacking == 0) // block
+  else if (sizer == 8 && dataPacking == 0) // block R8
   {
     for (n = 0; n < nfield; n++)
     {
+      E_Float* fp = f.begin(n+1);
+      if (loc[n] == 1) size = nelts;
+      else size = npts;  
       if (passive[n] == 0)
       {
-        if (loc[n] == 1) size = nelts;
-        else size = npts;
         fread(f.begin(n+1), sizeof(E_Float), size, ptrFile);
       }
       else
       {
-        E_Float* fp = f.begin(n+1);
-        for (E_Int i = 0; i < npts; i++) fp[i] = 0.; 
+        for (E_Int i = 0; i < size; i++) fp[i] = 0.;
       }
+      for (E_Int i = size; i < npts; i++) fp[i] = SENTINELLE;
     }
   }
   else if (sizer == 4 && dataPacking == 1) // point
@@ -720,21 +726,21 @@ E_Int K_IO::GenIO::readData108(
   if (sizer == 4 && dataPacking == 0) // block R4
   {
     float* buf = new float[npts];
-    E_Float* fp = f.begin(n+1);
     for (n = 0; n < nfield; n++)
     {
+      E_Float* fp = f.begin(n+1);
+      if (loc[n] == 1) size = nelts;
+      else size = npts;  
       if (passive[n] == 0)
       {
-        if (loc[n] == 1) size = nelts;
-        else size = npts;
         fread(buf, sizeof(float), size, ptrFile);
-        for (i = 0; i < npts; i++) fp[i] = buf[i];
+        for (i = 0; i < size; i++) fp[i] = buf[i];
       }
       else
       {
-        E_Float* fp = f.begin(n+1);
-        for (E_Int i = 0; i < npts; i++) fp[i] = 0.; 
+        for (E_Int i = 0; i < size; i++) fp[i] = 0.; 
       }
+      for (i = size; i < npts; i++) fp[i] = SENTINELLE;
     }
     delete [] buf;
   }
@@ -742,17 +748,18 @@ E_Int K_IO::GenIO::readData108(
   {
     for (n = 0; n < nfield; n++)
     {
+      E_Float* fp = f.begin(n+1);
+      if (loc[n] == 1) size = nelts;
+      else size = npts;
       if (passive[n] == 0)
       {
-        if (loc[n] == 1) size = nelts;
-        else size = npts;
         fread(f.begin(n+1), sizeof(E_Float), size, ptrFile);
       }
       else
       {
-        E_Float* fp = f.begin(n+1);
-        for (E_Int i = 0; i < npts; i++) fp[i] = 0.; 
+        for (E_Int i = 0; i < size; i++) fp[i] = 0.;
       }
+      for (E_Int i = size; i < npts; i++) fp[i] = SENTINELLE;
     }
   }
   else if (sizer == 4 && dataPacking == 1) // point R4
@@ -982,18 +989,19 @@ E_Int K_IO::GenIO::readData108CE(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
     float* buf = new float[npts];
     for (n = 0; n < nfield; n++)
     {
+      E_Float* fp = f.begin(n+1);
+      if (loc[n] == 1) size = nelts;
+      else size = npts;  
       if (passive[n] == 0)
       {
-        if (loc[n] == 1) size = nelts;
-        else size = npts;
         fread(buf, sizeof(float), size, ptrFile);
-        for (i = 0; i < npts; i++) f(i, n+1) = FBE(buf[i]);
+        for (i = 0; i < size; i++) fp[i] = FBE(buf[i]);
       }
       else
       {
-        E_Float* fp = f.begin(n+1);
-        for (E_Int i = 0; i < npts; i++) fp[i] = 0.; 
+        for (E_Int i = 0; i < size; i++) fp[i] = 0.; 
       }
+      for (i = size; i < npts; i++) fp[i] = SENTINELLE;
     }
     delete [] buf;
   }
@@ -1001,17 +1009,18 @@ E_Int K_IO::GenIO::readData108CE(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
   {
     for (n = 0; n < nfield; n++)
     {
+      E_Float* fp = f.begin(n+1);
+      if (loc[n] == 1) size = nelts;
+      else size = npts;  
       if (passive[n] == 0)
       {
-        if (loc[n] == 1) size = nelts;
-        else size = npts;
         fread(f.begin(n+1), sizeof(E_Float), size, ptrFile);
       }
       else
       {
-        E_Float* fp = f.begin(n+1);
-        for (E_Int i = 0; i < npts; i++) fp[i] = 0.; 
+        for (E_Int i = 0; i < size; i++) fp[i] = 0.; 
       }
+      for (E_Int i = size; i < npts; i++) fp[i] = SENTINELLE;
     }
   }
   else if (sizer == 4 && dataPacking == 1)
@@ -1140,40 +1149,42 @@ E_Int K_IO::GenIO::readData108CE(
 
   /* Read dump */
   E_Int size;
-  if (sizer == 4 && dataPacking == 0) // block
+  if (sizer == 4 && dataPacking == 0) // block R4
   {
     vector<float> buf(npts);
     for (n = 0; n < nfield; n++)
     {
+      E_Float* fp = f.begin(n+1);
+      if (loc[n] == 1) size = nelts;
+      else size = npts;  
       if (passive[n] == 0)
       {
-        if (loc[n] == 1) size = nelts;
-        else size = npts;
         fread(&buf[0], sizeof(float), size, ptrFile);
-        for (i = 0; i < size; i++) f(i, n+1) = FBE(buf[i]);
+        for (i = 0; i < size; i++) fp[i] = FBE(buf[i]);
       }
       else
       {
-        E_Float* fp = f.begin(n+1);
-        for (E_Int i = 0; i < npts; i++) fp[i] = 0.; 
+        for (E_Int i = 0; i < size; i++) fp[i] = 0.; 
       }
+      for (E_Int i = size; i < npts; i++) fp[i] = SENTINELLE;
     }
   }
-  else if (sizer == 8 && dataPacking == 0) // block
+  else if (sizer == 8 && dataPacking == 0) // block R8
   {
     for (n = 0; n < nfield; n++)
     {
+      E_Float* fp = f.begin(n+1);
+      if (loc[n] == 1) size = nelts;
+      else size = npts;  
       if (passive[n] == 0)
       {
-        if (loc[n] == 1) size = nelts;
-        else size = npts;
         fread(f.begin(n+1), sizeof(E_Float), size, ptrFile);
       }
       else
       {
-        E_Float* fp = f.begin(n+1);
-        for (E_Int i = 0; i < npts; i++) fp[i] = 0.; 
+        for (E_Int i = 0; i < size; i++) fp[i] = 0.;
       }
+      for (E_Int i = size; i < npts; i++) fp[i] = SENTINELLE;
     }
   }
   else if (sizer == 4 && dataPacking == 1) // point

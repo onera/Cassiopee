@@ -918,6 +918,38 @@ def _upgradeTree(t, uncompress=True):
     except: pass
   return None
 
+# Hack pour les arrays en centres avec sentinelle -999.
+# copie sur les champs
+def hackCenters(a):
+  varString = a[0].split(',')
+  np = a[1]
+  nfield = np.shape[0]; size = np.shape[1]
+  ncenterFields = 0
+  varStringN = ''; varStringC = ''
+  for n in range(nfield):
+    if np[n, size-1].astype(str) == '-999.0': # sentinelle for centers
+      ncenterFields += 1; varStringC += varString[n]+','
+    else: varStringN += varString[n]+','
+  if len(varStringC)>0: varStringC = varStringC[:-1]
+  if len(varStringN)>0: varStringN = varStringN[:-1]
+  if ncenterFields == 0: return a, []
+  if isinstance(a[3], str): 
+    npts = Converter.getNPts(a); nelts = Converter.getNCells(a)
+    a1 = [varStringN,numpy.zeros((nfield-ncenterFields,npts), numpy.float64),a[2],a[3]]
+    a2 = [varStringC,numpy.zeros((ncenterFields,nelts), numpy.float64),a[2],a[3]+'*']
+  else:
+    ni = a[2], nj = a[3]; nk = a[4]; npts = ni*nj*nk
+    ni1 = max(ni-1,1); nj1 = max(nj-1,1); nk1 = max(nk-1,1); nelts = ni1*nj1*nk1
+    a1 = Converter.array(varStringN,ni,nj,nk); a2 = Converter.array(varStringC,ni1,nj1,nk1)
+    
+  nn = 0; nc = 0
+  for n in range(nfield):
+    if np[n, size-1].astype(str) == '-999.0': # sentinelle for centers
+      a2[1][nc,0:nelts] = np[n,0:nelts]; nc += 1
+    else:
+      a1[1][nn,0:npts] = np[n,0:npts]; nn += 1
+  return a1, a2
+
 #==============================================================================
 # -- File / pyTree conversions --
 #==============================================================================
@@ -1007,11 +1039,13 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
   base1 = False; base2 = False; base3 = False; base = 1; c = 0
 
   for i in a:
+    a1, a2 = hackCenters(i)
+  
     if len(i) == 5: # Structure
       if i[3] == 1 and i[4] == 1:
         if not base1:
           t = addBase2PyTree(t, 'Base1', 1); base1 = base; base += 1
-        z = Internal.createZoneNode(getZoneName('Zone'), i, [],
+        z = Internal.createZoneNode(getZoneName('Zone'), a1, a2,
                                     Internal.__GridCoordinates__,
                                     Internal.__FlowSolutionNodes__,
                                     Internal.__FlowSolutionCenters__)
@@ -1019,7 +1053,7 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
       elif i[4] == 1:
         if not base2:
           t = addBase2PyTree(t, 'Base2', 2); base2 = base; base += 1
-        z = Internal.createZoneNode(getZoneName('Zone'), i, [],
+        z = Internal.createZoneNode(getZoneName('Zone'), a1, a2,
                                     Internal.__GridCoordinates__,
                                     Internal.__FlowSolutionNodes__,
                                     Internal.__FlowSolutionCenters__)
@@ -1027,7 +1061,7 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
       else:
         if not base3:
           t = addBase2PyTree(t, 'Base', 3); base3 = base; base += 1
-        z = Internal.createZoneNode(getZoneName('Zone'), i, [],
+        z = Internal.createZoneNode(getZoneName('Zone'), a1, a2,
                                     Internal.__GridCoordinates__,
                                     Internal.__FlowSolutionNodes__,
                                     Internal.__FlowSolutionCenters__)
@@ -1036,7 +1070,7 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
       if i[3] == 'BAR':
         if not base1:
           t = addBase2PyTree(t, 'Base1', 1); base1 = base; base += 1
-        z = Internal.createZoneNode(getZoneName('Zone'), i, [],
+        z = Internal.createZoneNode(getZoneName('Zone'), a1, a2,
                                     Internal.__GridCoordinates__,
                                     Internal.__FlowSolutionNodes__,
                                     Internal.__FlowSolutionCenters__)
@@ -1044,7 +1078,7 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
       elif i[3] == 'TRI' or i[3] == 'QUAD':
         if not base2:
           t = addBase2PyTree(t, 'Base2', 2); base2 = base; base += 1
-        z = Internal.createZoneNode(getZoneName('Zone'), i, [],
+        z = Internal.createZoneNode(getZoneName('Zone'), a1, a2,
                                     Internal.__GridCoordinates__,
                                     Internal.__FlowSolutionNodes__,
                                     Internal.__FlowSolutionCenters__)
@@ -1052,7 +1086,7 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
       else:
         if not base3:
           t = addBase2PyTree(t, 'Base', 3); base3 = base; base += 1
-        z = Internal.createZoneNode(getZoneName('Zone'), i, [],
+        z = Internal.createZoneNode(getZoneName('Zone'), a1, a2,
                                     Internal.__GridCoordinates__,
                                     Internal.__FlowSolutionNodes__,
                                     Internal.__FlowSolutionCenters__)

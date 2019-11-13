@@ -121,7 +121,7 @@ E_Int K_IO::GenIO::tpread(
   ZONETFound = 0; VARIABLESFound = 0;
   strcpy(data, keyword);
 
-  while (res == 0) // boucle sur le keywords
+  while (res == 0) // boucle sur les keywords
   {
     compressString(keyword);
 
@@ -131,7 +131,7 @@ E_Int K_IO::GenIO::tpread(
                              knownKeywords,
                              prevData, nextKeyword);
 
-    // Pour une zone avec des petites data, le ZONE_T, VARAIBLES ou
+    // Pour une zone avec des petites data, le ZONE_T, VARIABLES ou
     // DATAPACKING a deja ete trouve, mais les data non lues
     if (strcmp(nextKeyword, "TEXT") == 0) res=1;
     if (strcmp(nextKeyword, "ZONE") == 0 && ZONETFound == 1) res = 1;

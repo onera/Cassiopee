@@ -116,7 +116,7 @@ def readZoneHeaders(fileName, format=None, baseNames=None, familyZoneNames=None,
 
 #========================================================================
 # Load par containeurs
-# Load les containeurs "cont" dans a pour les znp donnes
+# Load les containeurs "cont" dans a pour les znp donnees
 # cont='GridCoordinates', 'FlowSolution'
 #========================================================================
 def _loadContainer(a, fileName, znp, cont, format=None):
