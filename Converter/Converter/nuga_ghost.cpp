@@ -265,13 +265,14 @@ PyObject* K_CONVERTER::addGhostCellsNG(PyObject* self, PyObject* args)
   for (E_Int i = 0; (i < nb_zones) && ok; ++i)
   {
   	  	
-    PyObject* pyo_j_ptLs = PyList_GetItem(z_j_ptlist, i);
-    PyObject* pyo_j_ptLs_sz = PyList_GetItem(z_j_ptlist_sizes, i);
+    PyObject* pyo_j_ptLs    = PyList_GetItem( z_j_ptlist      , i);
+    PyObject* pyo_j_ptLs_sz = PyList_GetItem( z_j_ptlist_sizes, i);
     
-    PyObject* pyo_j_ptLs_D = PyList_GetItem(z_j_ptlistD, i);
-    PyObject* pyo_j_donIds = PyList_GetItem(z_j_donnorIDs, i);
+    PyObject* pyo_j_ptLs_D  = PyList_GetItem( z_j_ptlistD     , i);
+    PyObject* pyo_j_donIds  = PyList_GetItem( z_j_donnorIDs   , i);
 
-    PyObject* pyo_bc_ptLs = PyList_GetItem(z_bc_ptlist, i);
+    PyObject* pyo_bc_ptLs   = PyList_GetItem( z_bc_ptlist     , i);
+
     //PyObject* pyo_bc_ptLs_sz = PyList_GetItem(z_bc_ptlist_sizes, i);
 
     E_Int r, c, *donIds;
@@ -297,7 +298,7 @@ PyObject* K_CONVERTER::addGhostCellsNG(PyObject* self, PyObject* args)
 
     //std::cout << "nb of joins in c side  (before): " << nb_joins << std::endl;
 
-    j_pointLists.reserve(j_pointLists.size() + nb_joins);
+    j_pointLists.reserve( j_pointLists.size()  + nb_joins);
     j_pointListsD.reserve(j_pointListsD.size() + nb_joins);
 
 
@@ -363,11 +364,13 @@ PyObject* K_CONVERTER::addGhostCellsNG(PyObject* self, PyObject* args)
         std::cout << "ERROR : could not get current point list" << std::endl; 
         break;
       }
+      //printf("ajout bc zone  %i, bc=% d %d \n", i,b,nb_ids );
+      //for (E_Int j=0; j < nb_ids; ++j) {printf("ptlistbc=% d %d \n", ptL[j],j );}
 
       zones[i]->add_boundary(bccount++, ptL, nb_ids);
     }
 
-  }
+  } // loop i (zones)
 
 
  
@@ -414,6 +417,8 @@ PyObject* K_CONVERTER::addGhostCellsNG(PyObject* self, PyObject* args)
       add_n_topo_layers(tmp_zones, i, NLAYERS, 3/*add degen gost cells on bcs whith top creation*/); //0 : no ghost / 1: ghost with only one PG / 2: degen ghost / 3 : degen ghost with top creation
       zone_type& Zghost = tmp_zones[i];
 
+
+
       std::vector<E_Int> PGcolors, PHcolors;
       Zghost.color_ranges(PGcolors, PHcolors);
 
@@ -449,24 +454,31 @@ PyObject* K_CONVERTER::addGhostCellsNG(PyObject* self, PyObject* args)
            if (PGi0 != PGi1) Elt[3]+=1;  //nbre d element couche 1 de type raccord
          }*/
       }
-      printf("ELts0 = %d, ELts1 = %d, ELts2 = %d %d %d \n", Elt[0],Elt[1],Elt[2],Elt[3],Elt[4]);
+      //printf("ELts0 = %d, ELts1 = %d, ELts2 = %d %d %d \n", Elt[0],Elt[1],Elt[2],Elt[3],Elt[4]);
 
       E_Int nb_pgs = Zghost._ng.PGs.size();
       for (E_Int l=0; l < nb_pgs; ++l) {
-       if(Zghost._ng.PGs._type[l]==PG_INNER_COL  ) Face[0]=l+1;
-       if(Zghost._ng.PGs._type[l]==PG_JOIN_COL   ) Face[1]=l-Face[0]+1;
-       if(Zghost._ng.PGs._type[l]==PG_LAY1_IN_COL) Face[2]=l-Face[0]-Face[1]+1;
-       if(Zghost._ng.PGs._type[l]==PG_LAY1_BC_COL) Face[3]=l-Face[0]-Face[1]-Face[2]+1;
-       if(Zghost._ng.PGs._type[l]==PG_BC         ) Face[4]=l-Face[0]-Face[1]-Face[2]-Face[3]+1;
-       if(Zghost._ng.PGs._type[l]==PG_LAY2_IN_COL) Face[5]=l-Face[0]-Face[1]-Face[2]-Face[3]-Face[4]+1;
+       if(Zghost._ng.PGs._type[l]==PG_INNER_COL  ) Face[0]+=1;
+       if(Zghost._ng.PGs._type[l]==PG_JOIN_COL   ) Face[1]+=1;
+       if(Zghost._ng.PGs._type[l]==PG_LAY1_IN_COL) Face[2]+=1;
+       if(Zghost._ng.PGs._type[l]==PG_LAY1_BC_COL) Face[3]+=1;
+       if(Zghost._ng.PGs._type[l]==PG_BC         ) Face[4]+=1;
+       if(Zghost._ng.PGs._type[l]==PG_LAY2_IN_COL) Face[5]+=1;
 
       //printf("face = %d %d \n", Zghost._ng.PGs._type[l], l);
       }
 
       Face[6] = nb_pgs;
-      printf("FACES= %d %d %d %d %d %d \n",Face[0],Face[1],Face[2],Face[3],Face[4],Face[5] );
+      printf("FACE IN0= %d, Face RAC0-1= %d, FACE IN1= %d , FACE BC1= %d,  FACE BC0= %d, FACE IN2=  %d \n",Face[0],Face[1],Face[2],Face[3],Face[4],Face[5] );
 
-      printf("ELts0 = %d, ELts1 RacTyp = %d, ELts2 RacTyp = %d, ELts BC1&2 %d \n", Elt[0],Elt[1],Elt[2],Elt[3]);
+      Elt[4]= Face[4];
+
+      printf("ELts0 = %d, ELts1 RacTyp = %d, ELts1 RacTyp = %d,  ELts2 RacTyp = %d, ELts BC1&2 %d \n", Elt[0],Elt[1],Elt[4],Elt[2],Elt[3]);
+
+      nb_pgs = Zghost._ng.PGs.size();
+      nb_phs = Zghost._ng.PHs.size();
+      std::cout << "nb cellules : " << nb_phs << std::endl;
+      std::cout << "nb faces: " << nb_pgs << std::endl;
 
       if (!err)
       {

@@ -1051,8 +1051,8 @@ def _setInterpDataForGhostCellsNGon__(aR, aD, storage='inverse', loc='centers'):
         nodes = Internal.getNodesFromType1(zp, 'Elements_t')
         for n in nodes:
             if n[1][0] == 23: 
-                p = Internal.getNodeFromName1(n, 'IntExt')
-                rind = p[1][0]
+                p = Internal.getNodeFromName1(n, 'IntExt')[1]
+                rind = p[0]
                 break
 
         if rind != -1: # rind indices exist : ghost cell data to be computed
@@ -1095,11 +1095,11 @@ def _setInterpDataForGhostCellsNGon__(aR, aD, storage='inverse', loc='centers'):
                     nodes = Internal.getNodesFromType1(zdonor, 'Elements_t')
                     for n in nodes:
                         if n[1][0] == 23:
-                            p = Internal.getNodeFromName1(n, 'IntExt')
-                            rindd = p[1][0]
+                            pd = Internal.getNodeFromName1(n, 'IntExt')[1]
+                            rindd = pd[0]
                             break
                             
-                    ret = connector.setInterpDataForGCNGon(FL, FLd, rind, rindd, a1, a2, PE, PEd)
+                    ret = connector.setInterpDataForGCNGon(FL, FLd, p, pd, a1, a2, PE, PEd )
                     # Stockage    
                     _createInterpRegion__(zdonorp, zp[0], ret[1], ret[0], ret[3], ret[2], vols, indicesExtrap,\
                                           indicesOrphan, tag = 'Donor',loc='centers', EXDir=EXdir, 
