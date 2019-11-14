@@ -26,11 +26,12 @@ def expand(fileName):
 #==============================================================================
 def readNodesFromFilter(fileName, filter, format='bin_hdf', com=None):
   """Read nodes from file given a filter."""
+  filter2 = {}
   for i in filter:
     b = fixPaths__([i])[0]
-    val = filter.pop(i)
-    filter[b] = val
-  ret = Converter.converter.convertFile2PartialPyTree(fileName, format, None, com, filter)
+    val = filter[i]
+    filter2[b] = val
+  ret = Converter.converter.convertFile2PartialPyTree(fileName, format, None, com, filter2)
   return ret
 
 # Ecrit des tableaux ou des morceaux de tableau a certains endroits du fichier
@@ -38,10 +39,11 @@ def readNodesFromFilter(fileName, filter, format='bin_hdf', com=None):
 # t: pyTree avec les memes chemins
 def writePyTreeFromFilter(t, fileName, filter, format='bin_hdf', com=None, skelData=None):
   """Write nodes to file given a filter."""
+  filter2 = {}
   for i in filter:
     b = fixPaths__([i])[0]
-    val = filter.pop(i)
-    filter[b] = val
+    val = filter[i]
+    filter2[b] = val
   Converter.converter.convertPyTree2FilePartial(t, fileName, format, skelData, com, filter)
   return None
 

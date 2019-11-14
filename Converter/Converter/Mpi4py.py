@@ -84,7 +84,19 @@ def sendRecv(datas, graph):
 # allgather
 #==============================================================================
 def allgather(data):
-    return KCOMM.allgather(data)
+    ret = KCOMM.allgather(data)
+    # Si dictionnaire de listes, on fusionne les listes
+    # Si dictionnaire d'autre chose, on append dans des listes
+    if isinstance(data, dict):
+        out = {}
+        for r in ret:
+            for k in r:
+                if k not in out: out[k] = r[k]
+                else:
+                    try: out[k] += r[k]
+                    except: out[k].append(r[k])
+        return out
+    else: return ret
 
 def allgatherTree(t):
     """Gather a distributed tree on all processors."""
