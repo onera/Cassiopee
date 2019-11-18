@@ -157,6 +157,8 @@ struct CPlotState {
     int   vector_projection; // Project ( 1 ) or not ( 0 ) the vector on the surface of the obstacle
     int   selectionStyle;  // style pour la selection (0: bleue, 1: alpha)
     int   colormap;        // colormap
+    double colormapR1, colormapG1, colormapB1; // starting color for bicolor colormaps
+    double colormapR2, colormapG2, colormapB2; // starting color for bicolor colormaps   
     int   isoLight;        // light ou pas light -> isoLight
     int   niso;            // nbre d'isos (global)
     float isoEdges;        // edge entre les isos

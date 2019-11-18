@@ -91,8 +91,8 @@ int blankStatus(Data* d, int p1, int blank, int zone);
 // Colormaps plugins (colormap.c)
 void colBlueToRed(Data* d, double f, float* r, float* g, float* b);
 void colGreenToRed(Data* d, double f, float* r, float* g, float* b);
-void colGrey(Data* d, double f, float* r, float* g, float* b);
-void colGrey2(Data* d, double f, float* r, float* g, float* b);
+void col2RGB(Data* d, double f, float* r, float* g, float* b);
+void col2HSV(Data* d, double f, float* r, float* g, float* b);
 void diverging(Data* d, double f, float* r, float* g, float* b);
 
 // Look-for plugins (lookfor.cpp)

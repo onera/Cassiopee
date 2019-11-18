@@ -101,22 +101,22 @@ void Data::loadPlugins()
   pd->f = colGreenToRed;
   pd->next = NULL;
 
-  // colGrey
+  // col2RGB
   pd->next =
     (struct chain_function_double*)malloc(sizeof(struct chain_function_double));
   pd = pd->next;
-  strcpy(pd->functionName, "Grey colormap");
+  strcpy(pd->functionName, "Bi-color RGB colormap");
   strcpy(pd->varName, "2");
-  pd->f = colGrey;
+  pd->f = col2RGB;
   pd->next = NULL;
 
-  // colGrey2
+  // col2HSV
   pd->next =
     (struct chain_function_double*)malloc(sizeof(struct chain_function_double));
   pd = pd->next;
-  strcpy(pd->functionName, "Reverse grey colormap");
+  strcpy(pd->functionName, "Bi-color HSV colormap");
   strcpy(pd->varName, "3");
-  pd->f = colGrey2;
+  pd->f = col2HSV;
   pd->next = NULL;
 
   // Diverging

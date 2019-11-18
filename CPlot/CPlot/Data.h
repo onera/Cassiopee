@@ -125,6 +125,7 @@ class Data
   GLuint _texBackground; // texture for background
   GLuint _texColormap; // texture for colormap
   int _texColormapType; // type stored in colormap
+  double _texColormapMinMax; // Min max of colormap stored 
   int _frameBufferSize; // size of frame buffer
   GLuint _texFrameBuffer; // texture for frame buffer
   GLuint _texEnviron1; // texture environnement 1
@@ -219,14 +220,19 @@ public:
 			 float dirx, float diry, float dirz,
 			 float viewAngle,
 			 int meshStyle, int solidStyle, 
-			 int scalarStyle, int vectorStyle, float vectorScale, float vectorDensity, int vectorNormalize,
+			 int scalarStyle, int vectorStyle, 
+       float vectorScale, float vectorDensity, int vectorNormalize,
        int vectorShowSurface, int vectorShape, int vector_projection,
-       int colormap, int niso, float isoEdges, PyObject* isoScales,
+       int colormap, char* colormapC1, char* colormapC2,
+       int niso, float isoEdges, PyObject* isoScales,
 			 int bgColor, int ghostifyDeactivatedZones,
 			 int edgifyActivatedZones, 
 			 int edgifyDeactivatedZones,
 			 int shadow, int dof,
 			 char* exportFile, char* exportResolution);
+  void rgb2hsv(double r, double g, double b, double& h, double& s, double& v);
+  void hsv2rgb(double h, double s, double v, double& r, double& g, double& b);
+  void colorString2RGB(char* color, double& colorR, double& colorG, double& colorB);
   void codeFromRenderTag(Zone& z, char* tag, 
 			 double& colorR, double& colorG, double& colorB,
 			 int& material, double& blending, int& meshOverlay,

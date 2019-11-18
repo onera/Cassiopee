@@ -108,28 +108,46 @@ void colGreenToRed(Data* d, double f, float* r, float* g, float* b)
 
 //============================================================================
 /*
-  Grey colormap
+  Bi-color colormap with RGB interpolation
 */
 //============================================================================
-void colGrey(Data* d, double f, float* r, float* g, float* b)
+void col2RGB(Data* d, double f, float* r, float* g, float* b)
 {
-  *r = f;
-  *g = f;
-  *b = f;
+  double r1 = d->ptrState->colormapR1;
+  double g1 = d->ptrState->colormapG1;
+  double b1 = d->ptrState->colormapB1;
+  double r2 = d->ptrState->colormapR2;
+  double g2 = d->ptrState->colormapG2;
+  double b2 = d->ptrState->colormapB2;
+  *r = (1.-f)*r1+f*r2;
+  *g = (1.-f)*g1+f*g2;
+  *b = (1.-f)*b1+f*b2;
 }
 
 //============================================================================
 /*
-  Grey colormap 2
+  Bi-color colormap with HSV interpolation
 */
 //============================================================================
-void colGrey2(Data* d, double f, float* r, float* g, float* b)
+void col2HSV(Data* d, double f, float* r, float* g, float* b)
 {
-  *r = 1.-f;
-  *g = 1.-f;
-  *b = 1.-f;
+  double r1 = d->ptrState->colormapR1;
+  double g1 = d->ptrState->colormapG1;
+  double b1 = d->ptrState->colormapB1;
+  double r2 = d->ptrState->colormapR2;
+  double g2 = d->ptrState->colormapG2;
+  double b2 = d->ptrState->colormapB2;
+  double h1,s1,v1,h2,v2,s2,h,s,v,ro,go,bo;
+  d->rgb2hsv(r1,g1,b1,h1,s1,v1);
+  d->rgb2hsv(r2,g2,b2,h2,s2,v2);
+  h = (1.-f)*h1+f*h2;
+  s = (1.-f)*s1+f*s2;
+  v = (1.-f)*v1+f*v2;
+  d->hsv2rgb(h,s,v,ro,go,bo);
+  *r = (float)ro;
+  *g = (float)go;
+  *b = (float)bo;
 }
-
 
 //=============================================================================
 /*

@@ -100,8 +100,8 @@ def trimesh(a1, a2, a3):
     
     # Verif de N
     Nt = N3-N2+N1+1
-    if (Nt/2-Nt*0.5 != 0): return [0, 'N3-N2+N1 must be odd.', 0]
-    N = Nt/2
+    if (Nt//2-Nt*0.5 != 0): return [0, 'N3-N2+N1 must be odd.', 0]
+    N = Nt//2
     if (N < 2): return [0, 'invalid number of points for this operation.', 0]
     if (N > N1-1): return [0, 'invalid number of points for this operation.',0]
     if (N > N2-1): return [0, 'invalid number of points for this operation.',0]
@@ -117,7 +117,7 @@ def trimesh(a1, a2, a3):
 def mono2mesh(a1, a2):
     N1 = a1[2]; N2 = a2[2]
     diff = N2-N1
-    if diff/2 != diff*0.5: return ['N1-N2 must be even.']
+    if diff//2 != diff*0.5: return ['N1-N2 must be even.']
     return TFIs.TFIMono(a1, a2)
 
 #==============================================================================
@@ -174,7 +174,7 @@ def OTFI():
 
     # Nombre de pts
     Nt = Internal.getZoneDim(a)[1]
-    if Nt/2 - Nt*0.5 == 0:
+    if Nt//2 - Nt*0.5 == 0:
         CTK.TXT.insert('START', 'Number of points of countour must be odd.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
@@ -248,10 +248,10 @@ def HOTFI():
     # Nombre de pts (tous les 2 pairs ou tous les 2 impairs)
     Nt1 = Internal.getZoneDim(zones[0])[1]  
     Nt2 = Internal.getZoneDim(zones[1])[1]
-    if Nt1/2 - Nt1*0.5 == 0 and Nt2/2 - Nt2*0.5 != 0:
+    if Nt1//2 - Nt1*0.5 == 0 and Nt2//2 - Nt2*0.5 != 0:
         CTK.TXT.insert('START', 'Number of points of countours must be all odd or all even.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-    if Nt1/2 - Nt1*0.5 != 0 and Nt2/2 - Nt2*0.5 == 0:
+    if Nt1//2 - Nt1*0.5 != 0 and Nt2//2 - Nt2*0.5 == 0:
         CTK.TXT.insert('START', 'Number of points of countours must be all odd or all even.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 

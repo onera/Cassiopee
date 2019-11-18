@@ -86,7 +86,7 @@ Low level layer
 
 ---------------------------------------------------------------------------
 
-.. py:function:: Converter.Filter.readNodesFromPaths(fileName, paths, format=None, maxFloatSize=-1, maxDepth=-1, skipTypes=None)
+.. py:function:: Converter.Filter.readNodesFromPaths(fileName, paths, format=None, maxFloatSize=-1, maxDepth=-1, skipTypes=None, com=None)
 
     Read nodes specified by their paths.
     If maxFloatSize=-1, all data are loaded, otherwise data are loaded
@@ -107,6 +107,8 @@ Low level layer
     :type maxDepth: int
     :param skipTypes: list of CGNS types to skip
     :type skipTypes: None or list of strings
+    :param com: optional MPI communicator. If set, triggers parallel IO
+    :type com: MPI communicator
     :return: read nodes
     :rtype: pyTree node list
 
@@ -141,8 +143,8 @@ Low level layer
     :type filter: dictionary of lists
     :param format: bin_hdf
     :type format: string
-    :param com: communicator if run with mpi within a communicator
-    :type com: int
+    :param com: optional MPI communicator. If set, tirggers parralel IO
+    :type com: MPI communicator
     :return: dictionary of read node data
     :rtype: dictionary of numpys
 
@@ -155,7 +157,7 @@ Low level layer
 
 ---------------------------------------------------------------------------
 
-.. py:function:: Converter.Filter.readPyTreeFromPaths(t, fileName, paths, format=None, maxFloatSize=-1, maxDepth=-1)
+.. py:function:: Converter.Filter.readPyTreeFromPaths(t, fileName, paths, format=None, maxFloatSize=-1, maxDepth=-1, com=None)
 
     Read nodes of t specified by their paths.
     Exists also as in place function (_readPyTreeFromPaths) that modifies t
@@ -173,6 +175,8 @@ Low level layer
     :type maxFloatSize: int
     :param maxDepth: max depth of load
     :type maxDepth: int
+    :param com: optional MPI communicator. If set, triggers parallel IO
+    :type com: MPI communicator
     :rtype: modified tree
 
     *Example of use:*
@@ -250,8 +254,8 @@ Low level layer
     :type filter: dictionary of lists
     :param format: bin_cgns, bin_adf, bin_hdf (optional)
     :type format: string
-    :param com: communicator if run with mpi within a communicator
-    :type com: int
+    :param com: optional MPI communicator. If set, triggers parallel IO
+    :type com: MPI communicator
     
     *Example of use:*
 
@@ -319,11 +323,12 @@ High level layer
 
 ---------------------------------------------------------------------------
 
-.. py:function:: Converter.Filter.Handle.getVariables()
+.. py:function:: Converter.Filter.Handle.getVariables(cont=None)
 
     Get the names of variables contained in file. 
     This function must be called after loadSkeleton.
 
+    :param cont: container name. Can be a CGNS name 'FlowSolution', ... or 'centers' or 'nodes'
     :return: list of variable names contained in file
     :rtype: list of strings
 
@@ -454,11 +459,13 @@ High level layer
 
 ---------------------------------------------------------------------------
 
-.. py:function:: Converter.Filter.Handle.loadFromProc()
+.. py:function:: Converter.Filter.Handle.loadFromProc(loadVariables=True)
 
     Load on each processor the zones with the corresponding proc node.
     The zones in file must have a .Solver#Param/proc node.
 
+    :param loadVariables: If true, load all variables in file. Otherwise load only coordinates
+    :type loadVariables: Boolean
     :rtype: partial tree on each processor
 
     *Example of use:*
@@ -470,10 +477,16 @@ High level layer
 
 ---------------------------------------------------------------------------
 
-.. py:function:: Converter.Filter.Handle.loadAndDistribute()
+.. py:function:: Converter.Filter.Handle.loadAndDistribute(strategy=None, algorithm='graph', loadVariables=True)
 
     Load and distribute zones of file on the different processors.
     
+    :param strategy: strategy for distribution. Can be None (only the number of points of block is considered), 'match' (use matching boundaries to optimize distribution)
+    :type  strategy: string
+    :param algorithm: algorithm for distribution. Can be 'graph', 'fast', 'gradient'. See Distributor2 documentation.
+    :type algorithm: string
+    :param loadVariables: If true, load all variables in file. Otherwise load only coordinates
+    :type loadVariables: Boolean
     :rtype: partial tree on each processor
 
     *Example of use:*

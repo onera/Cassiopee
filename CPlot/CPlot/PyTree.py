@@ -43,6 +43,8 @@ def display(t,
             vectorShape=-1,
             vectorProjection=-1,
             colormap=-1,
+            colormapC1="",
+            colormapC2="",
             niso=25,
             isoEdges=-0.5,
             isoScales=[],
@@ -75,7 +77,8 @@ def display(t,
                   displayIsoLegend, meshStyle,
                   solidStyle, scalarStyle, vectorStyle, vectorScale, vectorDensity, vectorNormalize,
                   vectorShowSurface, vectorShape, vectorProjection,
-                  colormap, niso, isoEdges, isoScales, win,
+                  colormap, colormapC1, colormapC2,
+                  niso, isoEdges, isoScales, win,
                   posCam, posEye, dirCam, viewAngle,
                   bgColor, shadow, dof, stereo, stereoDist,
                   export, exportResolution, 
@@ -237,6 +240,8 @@ def setState(dim=-1,
              vectorShape=-1,
              vectorProjection=-1,
              colormap=-1,
+             colormapC1="",
+             colormapC2="",
              niso=-1,
              isoEdges=-1,
              isoScales=[],
@@ -273,7 +278,8 @@ def setState(dim=-1,
                    vectorField3, displayBB, displayInfo, displayIsoLegend,
                    meshStyle, solidStyle, scalarStyle,
                    vectorStyle, vectorScale, vectorDensity, vectorNormalize, 
-                   vectorShowSurface, vectorShape, vectorProjection, colormap,
+                   vectorShowSurface, vectorShape, vectorProjection, 
+                   colormap, colormapC1, colormapC2,
                    niso, isoEdges, isoScales, win,
                    posCam, posEye, dirCam, viewAngle, lightOffset,
                    bgColor, shadow, dof, dofPower, gamma, sobelThreshold,
@@ -639,20 +645,23 @@ def _addRender2Zone(a, material=None, color=None, blending=None,
 def addRender2PyTree(t, slot=0, posCam=None, posEye=None, dirCam=None,
                      mode=None, scalarField=None, niso=None, isoScales=None,
                      isoEdges=None, isoLight=None,
-                     colormap=None, materials=None, bumpMaps=None, billBoards=None):
+                     colormap=None, colormapC1=None, colormapC2=None,
+                     materials=None, bumpMaps=None, billBoards=None):
   """Add a renderInfo node to a tree.
   Usage: addRender2PyTree(t, slot, renderInfo)"""
   a = Internal.copyRef(t)
   _addRender2PyTree(a, slot, posCam, posEye, dirCam,
                     mode, scalarField, niso, isoScales,
-                    isoEdges, isoLight, colormap, 
+                    isoEdges, isoLight, 
+                    colormap, colormapC1, colormapC2, 
                     materials, bumpMaps, billBoards)
   return a
 
 def _addRender2PyTree(a, slot=0, posCam=None, posEye=None, dirCam=None,
                      mode=None, scalarField=None, niso=None, isoScales=None,
                      isoEdges=None, isoLight=None,
-                     colormap=None, materials=None, bumpMaps=None, billBoards=None):
+                     colormap=None, colormapC1=None, colormapC2=None,
+                     materials=None, bumpMaps=None, billBoards=None):
   """Add a renderInfo node to a tree.
   Usage: addRender2PyTree(t, renderInfo)"""
   if a[3] != 'CGNSTree_t': return None
@@ -716,6 +725,10 @@ def _addRender2PyTree(a, slot=0, posCam=None, posEye=None, dirCam=None,
 
   if colormap is not None:
     rt = Internal.createUniqueChild(sl, 'colormap', 'DataArray_t', value=colormap)
+  if colormapC1 is not None:
+    rt = Internal.createUniqueChild(sl, 'colormapC1', 'DataArray_t', value=colormapC1)
+  if colormapC2 is not None:
+    rt = Internal.createUniqueChild(sl, 'colormapC2', 'DataArray_t', value=colormapC2)
 
   # Under .RenderInfo
   if materials is not None:
@@ -798,9 +811,15 @@ def loadView(t, slot=0):
         light = Internal.getValue(pos)
     else: light = 1
     pos = Internal.getNodeFromName1(slot, 'colormap')
-    if pos is not None:
-        colormap = Internal.getValue(pos)
+    if pos is not None: colormap = Internal.getValue(pos)
     else: colormap = 'Blue2Red'
+    pos = Internal.getNodeFromName1(slot, 'colormapC1')
+    if pos is not None: colormapC1 = Internal.getValue(pos)
+    else: colormapC1 = '#000000'
+    pos = Internal.getNodeFromName1(slot, 'colormapC2')
+    if pos is not None: colormapC2 = Internal.getValue(pos)
+    else: colormapC2 = '#FFFFFF'
+    
     style = 0
     if colormap == 'Blue2Red': style = 0
     elif colormap == 'Green2Red': style = 2

@@ -175,6 +175,32 @@ def updateVarNameList3_2(event=None):
     updateVarNameList2__(3)
 
 #==============================================================================
+# set starting color for bi-color colormaps
+def setC1Color(event=None):
+    try: import tkColorChooser
+    except: import tkinter.colorchooser as tkColorChooser
+    ret = tkColorChooser.askcolor()
+    color = ret[1]
+    if color is not None and len(color) == 7:
+        CPlot.setState(colormapC1=color)
+        WIDGETS['colormapC1'].config(bg=color)
+        WIDGETS['colormapC1'].config(activebackground=color)
+        setColormapLight()
+
+#==============================================================================
+# set ending color for bi-color colormaps
+def setC2Color(event=None):
+    try: import tkColorChooser
+    except: import tkinter.colorchooser as tkColorChooser
+    ret = tkColorChooser.askcolor()
+    color = ret[1]
+    if color is not None and len(color) == 7:
+        WIDGETS['colormapC2'].config(bg=color)
+        WIDGETS['colormapC2'].config(activebackground=color)
+        CPlot.setState(colormapC2=color)
+        setColormapLight()
+
+#==============================================================================
 def displayFieldl(v, l):
     v.set(l); displayField()
 
@@ -271,16 +297,11 @@ def displayVector1(event=None):
     index3 = -1
     lg = len(vars)
     for i in range(lg):
-        if vars[i] == field1:
-            index1 = i
-    if lg > index1:
-        index2 = index1+1
-    else:
-        index2 = index1
-    if lg > index2:
-        index3 = index2+1
-    else:
-        index3 = index2
+        if vars[i] == field1: index1 = i
+    if lg > index1: index2 = index1+1
+    else: index2 = index1
+    if lg > index2: index3 = index2+1
+    else: index3 = index2
     VARS[21].set(vars[index2])
     VARS[22].set(vars[index3])
     displayVector(event)
@@ -408,10 +429,18 @@ def setColormapLight(event=None):
     style = 0
     if colormap == 'Blue2Red': style = 0
     elif colormap == 'Green2Red': style = 2
-    elif colormap == 'Black2White': style = 4
-    elif colormap == 'White2Black': style = 6
+    elif colormap == 'BiColorRGB': style = 4
+    elif colormap == 'BiColorHSV': style = 6
     elif colormap == 'Diverging': style = 8
     if light == 'IsoLight on': style += 1
+    
+    if colormap == 'BiColorRGB' or colormap == 'BiColorHSV':
+        WIDGETS['colormapC1'].grid(row=6, column=1, sticky=TK.EW)
+        WIDGETS['colormapC2'].grid(row=6, column=2, sticky=TK.EW)
+    else: 
+        WIDGETS['colormapC1'].grid_forget()
+        WIDGETS['colormapC2'].grid_forget()
+
     CPlot.setState(colormap=style)
 
 #==============================================================================
@@ -990,13 +1019,13 @@ def createApp(win):
     B.grid(row=4, column=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Max of isos for this field.')
     
-    # - Colormap + light -
+    # - Legend + Colormap + light -
     B = TTK.Checkbutton(Scalar, text='Legend', variable=VARS[7],
                         command=setIsoLegend)
     B.grid(row=5, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Display color legend.')
     B = TTK.OptionMenu(Scalar, VARS[4], 'Blue2Red', 'Green2Red',
-                       'Black2White', 'White2Black', 'Diverging',
+                       'BiColorRGB', 'BiColorHSV', 'Diverging',
                        command=setColormapLight)
     B.grid(row=5, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Colormap type.')
@@ -1005,6 +1034,20 @@ def createApp(win):
     B.grid(row=5, column=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='IsoLight.')
 
+    # - Colormap start + end
+    B = TK.Button(Scalar, text="Min", command=setC1Color)
+    BB = CTK.infoBulle(parent=B, text='Starting color for bi-color colormaps.')
+    B.config(bg="#000000")
+    B.config(activebackground="#000000")
+    #B.grid(row=6, column=0, sticky=TK.EW)
+    WIDGETS['colormapC1'] = B
+    B = TK.Button(Scalar, text="Max", command=setC2Color)
+    BB = CTK.infoBulle(parent=B, text='Ending color for bi-color colormaps.')
+    B.config(bg="#FFFFFF")
+    B.config(activebackground="#FFFFFF")
+    #B.grid(row=6, column=1, sticky=TK.EW)
+    WIDGETS['colormapC2'] = B
+    
     # - Vector field frame -
     Vector = TTK.LabelFrame(Frame, borderwidth=0)
     Vector.columnconfigure(0, weight=0)

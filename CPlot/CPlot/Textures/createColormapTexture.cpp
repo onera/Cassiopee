@@ -38,6 +38,102 @@ int Data::createColormapTexture()
   return 1;
 }
 
+// rgb->hsv: rgb: entre 0 et 1, hsv h en degres,s,v entre 0 et 1
+void Data::rgb2hsv(double r, double g, double b, double& h, double& s, double& v)
+{
+    double min, max, delta;
+    min = r < g ? r : g;
+    min = min < b ? min : b;
+    max = r > g ? r : g;
+    max = max > b ? max : b;
+    v = max;
+    delta = max - min;
+    if (delta < 0.00001)
+    {
+      s = 0.; h = 0.; 
+      return;
+    }
+    if (max > 0.0) 
+    { 
+      s = (delta / max);  
+    } 
+    else 
+    {
+      // if max is 0, then r = g = b = 0              
+      // s = 0, h is undefined
+      s = 0.0;
+      h = 0.; 
+      return;
+    }
+    if (r >= max)                           // > is bogus, just keeps compilor happy
+      h = ( g - b ) / delta;        // between yellow & magenta
+    else
+    if (g >= max)
+      h = 2.0 + ( b - r ) / delta;  // between cyan & yellow
+    else
+      h = 4.0 + ( r - g ) / delta;  // between magenta & cyan
+
+    h *= 60.0;                              // degrees
+    if (h < 0.0) h += 360.0;
+}
+
+void Data::hsv2rgb(double h, double s, double v, double& r, double& g, double& b)
+{
+    double      hh, p, q, t, ff;
+    long        i;
+    
+    if (s <= 0.0) {       // < is bogus, just shuts up warnings
+        r = v;
+        g = v;
+        b = v;
+        return;
+    }
+    hh = h;
+    if (hh >= 360.0) hh = 0.0;
+    hh /= 60.0;
+    i = (long)hh;
+    ff = hh - i;
+    p = v * (1.0 - s);
+    q = v * (1.0 - (s * ff));
+    t = v * (1.0 - (s * (1.0 - ff)));
+
+    switch(i) {
+    case 0:
+        r = v;
+        g = t;
+        b = p;
+        break;
+    case 1:
+        r = q;
+        g = v;
+        b = p;
+        break;
+    case 2:
+        r = p;
+        g = v;
+        b = t;
+        break;
+
+    case 3:
+        r = p;
+        g = q;
+        b = v;
+        break;
+    case 4:
+        r = t;
+        g = p;
+        b = v;
+        break;
+    case 5:
+    default:
+        r = v;
+        g = p;
+        b = q;
+        break;
+    }
+    return;     
+}
+
 //=============================================================================
 /*
   Calcul la color map de type donne
@@ -47,7 +143,14 @@ int Data::createColormapTexture()
 #define clamp(a, b, c) MIN(MAX(a,b),c)
 void Data::fillColormapTexture(int type)
 {
-  if (type == _texColormapType) return; 
+  double r1 = ptrState->colormapR1;
+  double g1 = ptrState->colormapG1;
+  double b1 = ptrState->colormapB1;
+  double r2 = ptrState->colormapR2;
+  double g2 = ptrState->colormapG2;
+  double b2 = ptrState->colormapB2;
+  
+  if (type == _texColormapType and r1+g1+b1+r2+b2+g2 == _texColormapMinMax) return; 
 
   int w = 200; // discretisation
   float* image = new float[w * 3];
@@ -109,24 +212,33 @@ void Data::fillColormapTexture(int type)
       break;
     }
 
-    case 2: // grey 
+    case 2: // Bi-color interpolation R G B de c1, c2 
     {
       for (int i = 0; i < w; i++)
       {
         f = i*dx;
-        r = f; g = f; b = f;
+        r = (1.-f)*r1+f*r2;
+        g = (1.-f)*g1+f*g2;
+        b = (1.-f)*b1+f*b2;
         image[3*i] = r; image[3*i+1] = g; image[3*i+2] = b;
       }
       break;
     }
   
-    case 3: // revert grey
+    case 3: // Bi-color interpolation H S V de c1 a c2
     {
+      double h1,s1,v1,h2,v2,s2,h,s,v,ro,go,bo;
+      rgb2hsv(r1,g1,b1,h1,s1,v1);
+      rgb2hsv(r2,g2,b2,h2,s2,v2);
+      
       for (int i = 0; i < w; i++)
       {
         f = i*dx;
-        r = 1.-f; g = 1.-f; b = 1.-f;
-        image[3*i] = r; image[3*i+1] = g; image[3*i+2] = b;
+        h = (1.-f)*h1+f*h2;
+        s = (1.-f)*s1+f*s2;
+        v = (1.-f)*v1+f*v2;
+        hsv2rgb(h,s,v,ro,go,bo);
+        image[3*i] = (float)ro; image[3*i+1] = (float)go; image[3*i+2] = (float)bo;
       }
       break;
     }
@@ -328,5 +440,6 @@ void Data::fillColormapTexture(int type)
                GL_RGB, GL_FLOAT, image);
 
   _texColormapType = type;
+  _texColormapMinMax = r1+g1+b1+r2+b2+g2;
   delete [] image;
 }

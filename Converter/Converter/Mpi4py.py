@@ -574,7 +574,7 @@ def _addBXZones(a):
         bbsz[b6[0]] = G.bbox(b6)
 
     # allgather des bbox des bandelettes
-    bboxes = allgather(bbz)
+    bboxes = KCOMM.allgather(bbz)
 
     # Echange par alltoall
     data = []

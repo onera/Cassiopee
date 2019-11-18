@@ -283,6 +283,12 @@ void Data::initState()
   ptrState->vector_projection = 0;
   ptrState->selectionStyle = 0;
   ptrState->colormap = 0;
+  ptrState->colormapR1 = 0.; 
+  ptrState->colormapG1 = 0.; 
+  ptrState->colormapB1 = 0.; 
+  ptrState->colormapR2 = 1.; 
+  ptrState->colormapG2 = 1.; 
+  ptrState->colormapB2 = 1.;
   ptrState->isoLight = 1;
   ptrState->niso = 25;
   ptrState->isoEdges = -0.5;
@@ -744,7 +750,8 @@ void Data::enforceGivenData2(float xcam, float ycam, float zcam,
                              float viewAngle,
                              int meshStyle, int solidStyle, int scalarStyle,
                              int vectorStyle, float vectorScale, float vectorDensity, int vectorNormalize, 
-                             int vectorShowSurface, int vectorShape, int vector_projection, int colormap,
+                             int vectorShowSurface, int vectorShape, int vector_projection, 
+                             int colormap, char* colormapC1, char* colormapC2,
                              int niso, float isoEdges, PyObject* isoScales,
                              int bgColor, int ghostifyDeactivatedZones,
                              int edgifyActivatedZones,
@@ -777,6 +784,14 @@ void Data::enforceGivenData2(float xcam, float ycam, float zcam,
     }
     if (2*(colormap/2)-colormap != 0) ptrState->isoLight = 1;
   }
+  if (strlen(colormapC1) > 1)
+  {
+    colorString2RGB(colormapC1, ptrState->colormapR1, ptrState->colormapG1, ptrState->colormapB1);
+  }
+  if (strlen(colormapC2) > 1)
+  {
+    colorString2RGB(colormapC2, ptrState->colormapR2, ptrState->colormapG2, ptrState->colormapB2);
+  }
   if (scalarStyle != -1) ptrState->scalarStyle = scalarStyle;
   if (vectorStyle != -1) ptrState->vectorStyle = vectorStyle;
   if (vectorScale > 0.) ptrState->vectorScale = vectorScale;
@@ -784,7 +799,7 @@ void Data::enforceGivenData2(float xcam, float ycam, float zcam,
   if (vectorNormalize != -1) ptrState->vectorNormalize = vectorNormalize;
   if (vectorShowSurface != -1) ptrState->vectorShowSurface = vectorShowSurface;
   if ((vector_projection > -1) and (vector_projection < 2)) ptrState->vector_projection = vector_projection;
-  if (( vectorShape > -1) and (vectorShape < 3)) ptrState->vectorShape = vectorShape;
+  if ((vectorShape > -1) and (vectorShape < 3)) ptrState->vectorShape = vectorShape;
   if (niso != -1) ptrState->niso = niso;
   if (isoEdges != -1) ptrState->isoEdges = isoEdges;
 

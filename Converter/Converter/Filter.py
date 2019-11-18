@@ -668,14 +668,14 @@ class Handle:
       Compressor._uncompressCartesian(t)
     return t
 
-  # useCom=strategie pour la distribution (match)
+  # strategy=strategie pour la distribution (match)
   # algorithm=type d'algorithme pour la distribution
   # cartesian=si True, decompresse les blocs lus (supposes Cartesien)
   # loadVariables=True, charge toutes les variables sinon ne charge que les coords
-  def loadAndDistribute(self, useCom=None, algorithm='graph', loadVariables=True, cartesian=False):
+  def loadAndDistribute(self, strategy=None, algorithm='graph', loadVariables=True, cartesian=False):
     """Load and distribute zones."""
     if Cmpi.rank == 0:
-      if useCom == 'match':
+      if strategy == 'match':
         # Lit le squelette niveau 3 + les zoneGridConnectivity
         t = convertFile2SkeletonTree(self.fileName, self.format, maxDepth=3, maxFloatSize=6)
         paths = []
@@ -704,7 +704,7 @@ class Handle:
       self._loadTreeExtras(t)
       # Distribue
       import Distributor2.PyTree as D2
-      D2._distribute(t, Cmpi.size, useCom=useCom, algorithm=algorithm)
+      D2._distribute(t, Cmpi.size, useCom=strategy, algorithm=algorithm)
     else: t = None
     t = Cmpi.bcast(t)
     # Lit les zones affectees

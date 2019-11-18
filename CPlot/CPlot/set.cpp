@@ -36,6 +36,7 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
   int winx, winy;
   int displayBB, displayInfo, displayIsoLegend;
   int meshStyle, solidStyle, scalarStyle, vectorStyle, colormap, niso;
+  char* colormapC1; char* colormapC2;
   E_Float xcam, ycam, zcam, xeye, yeye, zeye, viewAngle, dirx, diry, dirz;
   E_Float isoEdges, vectorScale, vectorDensity;
   int vectorNormalize, vectorShowSurface, vectorShape, vectorProjection;
@@ -55,15 +56,15 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
   int timer; int selectionStyle;
   int continuousExport; int activateShortCuts;
   E_Float billBoardSize;
-  if (!PyArg_ParseTuple(
-        args, 
-	"iOOiiiiiiiiiiddiiiiiidO(ii)(ddd)(ddd)(ddd)d(dd)iiidddiiississidi(ii)iiiOdOO",
+  if (!PyArg_ParseTuple(args, 
+	      "iOOiiiiiiiiiiddiiiiissidO(ii)(ddd)(ddd)(ddd)d(dd)iiidddiiississidi(ii)iiiOdOO",
         &dim, &modeObject, &scalarFieldObject,
         &vectorField1, &vectorField2, &vectorField3,
         &displayBB, &displayInfo, &displayIsoLegend,
         &meshStyle, &solidStyle, &scalarStyle, 
         &vectorStyle, &vectorScale, &vectorDensity, &vectorNormalize, 
-        &vectorShowSurface, &vectorShape, &vectorProjection, &colormap,
+        &vectorShowSurface, &vectorShape, &vectorProjection, 
+        &colormap, &colormapC1, &colormapC2,
         &niso, &isoEdges, &isoScales,
         &winx, &winy, &xcam, &ycam, &zcam,
         &xeye, &yeye, &zeye, 
@@ -91,7 +92,8 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
                        dirx, diry, dirz, viewAngle,
                        meshStyle, solidStyle, scalarStyle, 
                        vectorStyle, vectorScale, vectorDensity, vectorNormalize,
-                       vectorShowSurface, vectorShape, vectorProjection, colormap, 
+                       vectorShowSurface, vectorShape, vectorProjection, 
+                       colormap, colormapC1, colormapC2, 
                        niso, isoEdges, isoScales, bgColor,
                        ghostifyDeactivatedZones, edgifyActivatedZones,
                        edgifyDeactivatedZones,
@@ -174,7 +176,6 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
       int nj = PyLong_AsLong(o);
       d->_billBoardFiles[i] = new char [128];  
       strcpy(d->_billBoardFiles[i], file);
-      //printf("%s %d %d\n", file, ni,nj);
       d->_billBoardTexs[i] = 0;
       d->_billBoardNis[i] = ni; d->_billBoardNjs[i] = nj;
     }

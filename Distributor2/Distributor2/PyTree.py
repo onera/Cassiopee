@@ -308,8 +308,8 @@ def getProcList(t, NProc=None, sort=False):
              vmax    = max(size_zone)
              pos_max = size_zone.index(vmax)
              new_zones.append(zones[pos_max])
-             size_zone.pop(pos_max) 
-             zones.pop(pos_max) 
+             size_zone.pop(pos_max)
+             zones.pop(pos_max)
 
            for z in new_zones:
              proc = Internal.getNodeFromName2(z, 'proc')
@@ -391,7 +391,7 @@ def printProcStats(t, stats=None, NProc=None):
         if NProc is None: NProc = max(dist)+1
         if len(list(set(dist))) != NProc:
             print ('Warning: some processors are empty!')
-            import sys;sys.exit()
+            import sys; sys.exit()
 
         zones = Internal.getZones(t)
         for proc in range(NProc):

@@ -154,7 +154,7 @@ Actions
     :type vectorShape: 0 (3D arrows), 1 (Flat arrows), 2 (Tetra arrows)
     :param vectorProjection: 1 of vectors are projected on surface
     :type vectorProjection: 0 or 1
-    :param colormap: 0: Blue2Red, 2: Green2Red, 4: Black2White, 6: White2Black, 8: Diverging (default: 0)
+    :param colormap: 0: Blue2Red, 2: Green2Red, 4: BiColorRGB, 6: BiColorHSV, 8: Diverging (default: 0)
     :type colormap: int
     :param niso: number of isos (default: 25)
     :type niso: int

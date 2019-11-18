@@ -21,6 +21,48 @@
 # include "cplot.h"
 
 //=============================================================================
+// transforme une color string en R,G,B
+// color peut etre "White", ... ou en HEXA "#FFFFFF"
+//=============================================================================
+void Data::colorString2RGB(char* color, double& colorR, double& colorG, double& colorB)
+{
+  // Hard coded colors
+  if (K_STRING::cmp(color, "White") == 0)
+  { colorR = 1.; colorG = 1.; colorB = 1.; }
+  else if (K_STRING::cmp(color, "Black") == 0)
+  { colorR = 0.; colorG = 0.; colorB = 0.; }
+  else if (K_STRING::cmp(color, "Grey") == 0)
+  { colorR = 0.69; colorG = 0.69; colorB = 0.69; }
+  else if (K_STRING::cmp(color, "Blue") == 0)
+  { colorR = 73./255.; colorG = 86./255.; colorB = 243./255.; }
+  else if (K_STRING::cmp(color, "Red") == 0)
+  { colorR = 1.; colorG = 28./255.; colorB = 28./255.; }
+  else if (K_STRING::cmp(color, "Green") == 0)
+  { colorR = 7./255.; colorG = 180./255.; colorB = 3./255.; }
+  else if (K_STRING::cmp(color, "Yellow") == 0)
+  { colorR = 1.; colorG = 250./255.; colorB = 36./255.; }
+  else if (K_STRING::cmp(color, "Orange") == 0)
+  { colorR = 249./255.; colorG = 112./255.; colorB = 6./255.; }
+  else if (K_STRING::cmp(color, "Magenta") == 0)
+  { colorR = 230./255.; colorG = 0.0; colorB = 143./255.; }
+  else if (K_STRING::cmp(color, "Brown") == 0)
+  { colorR = 0.588; colorG = 0.294; colorB = 0.; }
+  else if (color[0] == '#')  // par code hexa #aabbcc
+  {
+    char code[3]; int val;
+    code[0] = color[1]; code[1] = color[2]; code[2] = '\0';
+    sscanf(code, "%x", &val);
+    colorR = val/255.;
+    code[0] = color[3]; code[1] = color[4]; code[2] = '\0';
+    sscanf(code, "%x", &val);
+    colorG = val/255.;
+    code[0] = color[5]; code[1] = color[6]; code[2] = '\0';
+    sscanf(code, "%x", &val);
+    colorB = val/255.;
+  }
+}
+
+//=============================================================================
 // IN: tag: chaine du tag
 // OUT: parametres mis a jour a partir de la chaine tag
 //=============================================================================
@@ -133,46 +175,7 @@ void Data::codeFromRenderTag(Zone& z, char* tag,
   // Analyse couleur
   if (isoColor == 0) 
   {
-    // Hard coded colors
-    if (K_STRING::cmp(color, "White") == 0)
-    { colorR = 1.; colorG = 1.; colorB = 1.; }
-    else if (K_STRING::cmp(color, "Black") == 0)
-    { colorR = 0.; colorG = 0.; colorB = 0.; }
-    else if (K_STRING::cmp(color, "Grey") == 0)
-    { colorR = 0.69; colorG = 0.69; colorB = 0.69; }
-    else if (K_STRING::cmp(color, "Blue") == 0)
-      //{ colorR = 0; colorG = 0; colorB = 1; }
-    { colorR = 73./255.; colorG = 86./255.; colorB = 243./255.; }
-    else if (K_STRING::cmp(color, "Red") == 0)
-      //{ colorR = 1; colorG = 0; colorB = 0; }
-    { colorR = 1.; colorG = 28./255.; colorB = 28./255.; }
-    else if (K_STRING::cmp(color, "Green") == 0)
-      //{ colorR = 0; colorG = 1; colorB = 0; }
-    { colorR = 7./255.; colorG = 180./255.; colorB = 3./255.; }
-    else if (K_STRING::cmp(color, "Yellow") == 0)
-      //{ colorR = 1.; colorG = 1.; colorB = 0.; }
-    { colorR = 1.; colorG = 250./255.; colorB = 36./255.; }
-    else if (K_STRING::cmp(color, "Orange") == 0)
-      //{ colorR = 0.94; colorG = 0.737; colorB = 0.06; }
-    { colorR = 249./255.; colorG = 112./255.; colorB = 6./255.; }
-    else if (K_STRING::cmp(color, "Magenta") == 0)
-      //{ colorR = 1.; colorG = 0.0; colorB = 1.; }
-    { colorR = 230./255.; colorG = 0.0; colorB = 143./255.; }
-    else if (K_STRING::cmp(color, "Brown") == 0)
-    { colorR = 0.588; colorG = 0.294; colorB = 0.; }
-    else if (color[0] == '#')  // par code hexa #aabbcc
-    {
-      char code[3]; int val;
-      code[0] = color[1]; code[1] = color[2]; code[2] = '\0';
-      sscanf(code, "%x", &val);
-      colorR = val/255.;
-      code[0] = color[3]; code[1] = color[4]; code[2] = '\0';
-      sscanf(code, "%x", &val);
-      colorG = val/255.;
-      code[0] = color[5]; code[1] = color[6]; code[2] = '\0';
-      sscanf(code, "%x", &val);
-      colorB = val/255.;
-    }
+    colorString2RGB(color, colorR, colorG, colorB);
   }
   else
   { // iso color
