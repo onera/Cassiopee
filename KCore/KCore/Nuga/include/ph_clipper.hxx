@@ -17,7 +17,7 @@
 #include <memory>
 
 #include "Nuga/include/macros.h"
-#include "MeshElement/Polyhedron.h"
+#include "Nuga/include/polyhedron.hxx"
 #include "Nuga/include/collider.hxx"
 #include "Nuga/Boolean/TRI_Conformizer.h"
 
@@ -37,17 +37,7 @@ namespace NUGA
   {
     
     enum eOPER { INTERSECTION, DIFFERENCE, UNION };
-    
-    struct PH_t //compact
-    {
-      ngon_unit pgs;
-      K_FLD::FloatArray crdx;
-      std::vector<E_Int> faces, poids/*node history*/;
-//      PH_t() = default;
-//      PH_t(const PH_t&r):phx(r.phx), crdx(r.crdx){};
-      
-    };
-    
+        
     template <typename acrd_t, typename ELT1, typename ELT2>
     void discard_overlaps(const acrd_t& acrd1, ELT1& oe1, bool inward1, const acrd_t& acrd2, ELT2& oe2, E_Float RTOL, const K_FLD::FloatArray& L, E_Float ps_min, E_Int& contact, bool dbg)
     {
@@ -114,8 +104,8 @@ namespace NUGA
             }
           }*/
 #endif
-
-         bool ov = NUGA::COLLIDE::simplicial_colliding<acrd_t, 3>(acrd1, PG1, acrd2, PG2, K_MESH::Triangle::overlap2, abstol);
+         E_Int it1, it2;
+         bool ov = NUGA::COLLIDE::simplicial_colliding<acrd_t, 3>(acrd1, PG1, acrd2, PG2, K_MESH::Triangle::overlap2, abstol, it1, it2);
 
           if (ov)
             contact = ( (ps > 0. && inward1) || (ps < 0. && !inward1)) ? 1 : -1;
@@ -138,23 +128,22 @@ namespace NUGA
     
     ///
     template <typename acrd_t, typename ELT1, typename ELT2>
-    E_Int isolated_clip(const acrd_t& acrd1, ELT1& oe1, bool inward1, const acrd_t& acrd2, ELT2& oe2, E_Float ps_min, E_Float RTOL, PH_t& res, E_Int& contact, bool dbg)
+    E_Int isolated_clip(const acrd_t& acrd1, ELT1& subj, bool inward1, const acrd_t& acrd2, ELT2& cutter, E_Float ps_min, E_Float RTOL, NUGA::haPolyhedron<UNKNOWN>& result, E_Int& contact, bool dbg)
     {
       E_Int err(0);
-         
-      using PG1_t = typename ELT1::boundary_type;
-      using PG2_t = typename ELT2::boundary_type;
+      
+      result.clear();
 
       // for nodal tolerance
       K_FLD::FloatArray L;
-      K_CONNECT::MeshTool::computeIncidentEdgesSqrLengths(acrd1.array(), *oe1.pgs(), L);
+      K_CONNECT::MeshTool::computeIncidentEdgesSqrLengths(acrd1.array(), *subj.pgs(), L);
       if( L.cols() == 0) return 1;
 
-      E_Int nb_faces1 = oe1.nb_faces();
-      E_Int& nb_faces2 = oe2.nb_faces();
+      E_Int nb_faces1 = subj.nb_faces();
+      E_Int& nb_faces2 = cutter.nb_faces();
 
       if (ps_min > 0.) //discard any "overlapping" PG in e2 (the mode ps_min tends to 1, the more 'overlapping' has a meaning)
-        discard_overlaps(acrd1, oe1, inward1, acrd2, oe2, RTOL, L, ps_min, contact, dbg); //oe2 is filtered
+        discard_overlaps(acrd1, subj, inward1, acrd2, cutter, RTOL, L, ps_min, contact, dbg); //cutter is filtered
       
       if (contact != 0 && nb_faces2 == 0) // e2 was just in contact
       {
@@ -168,23 +157,23 @@ namespace NUGA
       
       // go to a triangle view 
       DELAUNAY::Triangulator dt;
-      oe1.triangulate(dt, acrd1);
-      oe2.triangulate(dt, acrd2);
+      subj.triangulate(dt, acrd1);
+      cutter.triangulate(dt, acrd2);
 
       K_FLD::IntArray cT3;
       E_Int T[3];
-      E_Int nb_tris1 = oe1.nb_tris();
+      E_Int nb_tris1 = subj.nb_tris();
       for (E_Int i=0; i < nb_tris1; ++i)
       {
-        oe1.triangle(i, T); //watchme : base ?
+        subj.triangle(i, T); //watchme : base ?
         cT3.pushBack(T, T+3);
       }
-      E_Int nb_tris2 = oe2.nb_tris();
+      E_Int nb_tris2 = cutter.nb_tris();
       
       for (E_Int i=0; i < nb_tris2; ++i)
       {
         
-        oe2.triangle(i, T); //watchme : base ?
+        cutter.triangle(i, T); //watchme : base ?
         T[0] += nb_pts1;
         T[1] += nb_pts1;
         T[2] += nb_pts1;
@@ -193,22 +182,22 @@ namespace NUGA
       
       // type transmission
 
-      std::vector<E_Int> type(oe1.nb_tris() + oe2.nb_tris(), ANY);
+      std::vector<E_Int> type(subj.nb_tris() + cutter.nb_tris(), ANY);
       std::vector<E_Int> ancPG1, ancPG2;
-      oe1.get_triangle_oids(ancPG1);
-      oe2.get_triangle_oids(ancPG2);
+      subj.get_triangle_oids(ancPG1);
+      cutter.get_triangle_oids(ancPG2);
       
-      if (!oe1._pgs->_type.empty())
+      if (!subj._pgs->_type.empty())
         for (E_Int i=0; i<nb_tris1; ++i)
-          type[i] = oe1._pgs->_type[ancPG1[i]];
-      if (!oe2._pgs->_type.empty())
+          type[i] = subj._pgs->_type[ancPG1[i]];
+      if (!cutter._pgs->_type.empty())
         for (E_Int i=0; i<nb_tris2; ++i)
-          type[nb_tris1 + i] = oe2._pgs->_type[ancPG2[i]];
+          type[nb_tris1 + i] = cutter._pgs->_type[ancPG2[i]];
       
       //medith::write("triangles.mesh", crd, cT3, "TRI");
 #ifdef DEBUG_UNIFY
       if (dbg){
-        MIO::write("triangles.mesh", crd, cT3, "TRI");
+        medith::write("triangles.mesh", crd, cT3, "TRI");
         std::cout << crd << std::endl;
         std::cout << cT3 << std::endl;
       }
@@ -243,7 +232,7 @@ namespace NUGA
 
 #ifdef DEBUG_UNIFY
       if (dbg)
-        MIO::write("conformized.mesh", crd, cT3, "TRI", 0, &ancT3);
+        medith::write("conformized.mesh", crd, cT3, "TRI", 0, &ancT3);
 #endif
 
       // update type
@@ -299,24 +288,24 @@ namespace NUGA
 #ifdef DEBUG_UNIFY
       if (dbg){
         K_CONNECT::IdTool::compress(ancT3, pred);
-        MIO::write("reduced.mesh", crd, cT3, "TRI", 0, &ancT3);
+        medith::write("reduced.mesh", crd, cT3, "TRI", 0, &ancT3);
       }
 #endif
 
       // compute (or transfer when degen) normals to triangles
 //      K_FLD::ArrayAccessor<K_FLD::IntArray> acnt1(cT31);
 //      K_FLD::FloatArray normals1;
-//      K_CONNECT::MeshTool::compute_or_transfer_normals(acrd1, acnt1, *oe1.pgs(), ancPG1, normals1);
+//      K_CONNECT::MeshTool::compute_or_transfer_normals(acrd1, acnt1, *subj.pgs(), ancPG1, normals1);
 //      K_FLD::ArrayAccessor<K_FLD::IntArray> acnt2(cT32);
 //      K_FLD::FloatArray normals2;
-//      K_CONNECT::MeshTool::compute_or_transfer_normals(acrd2, acnt2, *oe2.pgs(), ancPG2, normals2);
+//      K_CONNECT::MeshTool::compute_or_transfer_normals(acrd2, acnt2, *cutter.pgs(), ancPG2, normals2);
 //      K_FLD::FloatArray normals = normals1;
 //      normals.pushBack(normals2);
 //      K_CONNECT::IdTool::compress(normals, pred);
       K_FLD::FloatArray normals;
       K_FLD::ArrayAccessor<K_FLD::FloatArray> acrd(crd);
       K_FLD::ArrayAccessor<K_FLD::IntArray> acnt(cT3);
-      K_CONNECT::MeshTool::compute_or_transfer_normals(acrd, acnt, *oe2.pgs()/*fixme!!!!*/, ancPG2, normals);
+      K_CONNECT::MeshTool::compute_or_transfer_normals(acrd, acnt, *cutter.pgs()/*fixme!!!!*/, ancPG2, normals);
       
 #ifdef DEBUG_UNIFY
       if (dbg) TRI_debug::write_wired("oriented.mesh", crd, cT3, true);
@@ -417,7 +406,7 @@ namespace NUGA
           {
             std::ostringstream o;
             o << "sorted_on_edge_" << E0 << "_" << E1 << ".mesh";
-            MIO::write(o.str().c_str(), crd, sorted_cnt, "TRI", 0, &colors);
+            medith::write(o.str().c_str(), crd, sorted_cnt, "TRI", 0, &colors);
           }
 
           {
@@ -473,44 +462,47 @@ namespace NUGA
 //        NGDBG::draw_PHT3(crd, cT3, PHT3s, i->first);
 #endif
       
-    // remove open bits
-    //reuse good_col
-    for (E_Int i=0; i < nb_bits; ++i)good_col[i]=true;
-    // now use neighbors to check those with free edges to discard them 
-    for (E_Int i=0; i < neighbors.cols(); ++i)
-      for (E_Int j=0; j < 3; ++j)
-        if (neighbors(j,i) == E_IDX_NONE) good_col[T3_to_PHT3[i]]=false;
-        
-    nb_t3 = cT3.cols();
-    //reuse keepT3
-    for (E_Int i=0; i < nb_t3; ++i)
-      keepT3[i]= good_col[T3_to_PHT3[i]] ? true : false;
+      // remove open bits
+      //reuse good_col
+      for (E_Int i=0; i < nb_bits; ++i)good_col[i]=true;
+      // now use neighbors to check those with free edges to discard them 
+      for (E_Int i=0; i < neighbors.cols(); ++i)
+        for (E_Int j=0; j < 3; ++j)
+          if (neighbors(j,i) == E_IDX_NONE) good_col[T3_to_PHT3[i]]=false;
 
-    {
-      K_CONNECT::keep2<bool> pred(keepT3.get(), nb_t3);
-      K_CONNECT::IdTool::compress(cT3, pred, nids);
-      K_CONNECT::IdTool::compress(type, pred);
-    }
+      nb_t3 = cT3.cols();
+      //reuse keepT3
+      for (E_Int i=0; i < nb_t3; ++i)
+        keepT3[i]= good_col[T3_to_PHT3[i]] ? true : false;
+
+      {
+        K_CONNECT::keep2<bool> pred(keepT3.get(), nb_t3);
+        K_CONNECT::IdTool::compress(cT3, pred, nids);
+        K_CONNECT::IdTool::compress(type, pred);
+      }
+
       nb_t3 = cT3.cols();
 
-      res.crdx = crd;
+      result.m_crd = crd;
       if (dbg) std::cout << crd << std::endl;
       //std::cout << cT3 << std::endl;
-      
+
       const std::vector<E_Int>& xpoids = conformizer.get_node_history();
-      res.poids = xpoids;
-      res.poids.resize(crd.cols(), E_IDX_NONE);//fixme : ?????
-      
+      result.poids = xpoids;
+      result.poids.resize(crd.cols(), E_IDX_NONE);//fixme : ?????
+
       //medith::write("/home/slandier/tmp/cutT3.mesh", crd, cT3, "TRI");
-    
-      ngon_unit::convert_fixed_stride_to_ngon_unit(cT3, 1, res.pgs);
-      
-      assert(type.size() == res.pgs.size());
-      res.pgs._type = type;
-  
-      K_CONNECT::IdTool::init_inc(res.faces, res.pgs.size());
-      K_CONNECT::IdTool::shift(res.faces, 1);
-    
+
+      ngon_unit::convert_fixed_stride_to_ngon_unit(cT3, 1, result.m_pgs);
+
+      assert(type.size() == result.m_pgs.size());
+      result.m_pgs._type = type;
+
+      E_Int nb_pgs = result.m_pgs.size();
+      K_CONNECT::IdTool::init_inc(result.m_faces, nb_pgs, 1);
+      result._nb_faces = nb_pgs;
+      result.plug();
+
       return err;
     }
     

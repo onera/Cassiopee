@@ -85,7 +85,7 @@ public:
   
   ///
   template <typename T>
-  static bool equal_vec(Vector_t<T>& a, Vector_t<T>& b);
+  static bool equal_vec(const Vector_t<T>& a, const Vector_t<T>& b);
   
   ///
   static bool equal(const E_Int* p, const E_Int* q, E_Int n, bool permut_accepted, bool strict_orient);
@@ -139,7 +139,7 @@ inline void IdTool::shift<K_FLD::IntArray> (K_FLD::IntArray & arr, E_Int from, E
 
 ///
 template <typename T>
-bool IdTool::equal_vec(Vector_t<T>& a, Vector_t<T>& b)
+bool IdTool::equal_vec(const Vector_t<T>& a, const Vector_t<T>& b)
 {
   if (a.size() != b.size())
     return false;

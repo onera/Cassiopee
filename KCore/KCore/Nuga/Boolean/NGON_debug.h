@@ -26,6 +26,7 @@
 #include "Nuga/Delaunay/Triangulator.h"
 #include "Connect/MeshTool.h"
 #include "TRI_debug.h"
+#include "Nuga/include/medit.hxx"
 
 #define TEMPLATE_COORD_CONNECT template <typename Coordinate_t, typename Connectivity_t>
 #define NGON_DBG_CLASS NGON_debug<Coordinate_t,Connectivity_t>

@@ -11,6 +11,8 @@
 #ifndef __NUGA_MACROS_H__
 #define __NUGA_MACROS_H__
 
+#include<memory>
+
 #define ALL(c)  (c).begin(), (c).end()
 
 #define IS_IN(c,v) (c).find(v) != (c).end()

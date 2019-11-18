@@ -19,7 +19,7 @@
 //Author : Sâm Landier (sam.landier@onera.fr)
 
 #include "TRI_debug.h"
-#include "medit.hxx"
+#include "Nuga/include/medit.hxx"
 #include "MeshElement/Triangle.h"
 #include "MeshElement/Edge.h"
 #include "Connect/MeshTool.h"

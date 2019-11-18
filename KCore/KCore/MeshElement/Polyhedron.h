@@ -38,6 +38,8 @@
 #include "Nuga/Boolean/NGON_debug.h"
 #endif
 
+using ngon_type = ngon_t<K_FLD::IntArray>;
+
 namespace K_MESH
 {
 //static int level=0;
@@ -45,8 +47,6 @@ namespace K_MESH
 //enum TopoShape { UNKNOWN, STAR_SHAPED, CONVEX, CONCAVE};
 #define UNKNOWN 0
 #define STAR_SHAPED 7
-
-#define ZETOL 2.e-2
 
 template <int TopoShape>
 class Polyhedron
@@ -68,7 +68,9 @@ public:
   
   Polyhedron(ngon_unit* pgs, E_Int* faces, E_Int nb_faces):_pgs(pgs), _faces(faces), _nb_faces(nb_faces), _triangles(nullptr){}
   
-  void reset(ngon_unit* pgs, E_Int* faces, E_Int nb_faces){_pgs = pgs; _faces = faces; _nb_faces = nb_faces; if (_triangles != nullptr) {delete [] _triangles;_triangles = nullptr;}/*fixme : just set it as PGS is pure T3*/}
+  Polyhedron(ngon_type& ng, E_Int i):Polyhedron(&ng.PGs, ng.PHs.get_facets_ptr(i), ng.PHs.stride(i)){}
+
+  void set(ngon_unit* pgs, E_Int* faces, E_Int nb_faces){_pgs = pgs; _faces = faces; _nb_faces = nb_faces; if (_triangles != nullptr) {delete [] _triangles;_triangles = nullptr;}/*fixme : just set it as PGS is pure T3*/}
   
   ~Polyhedron(){ if (_triangles != nullptr) delete [] _triangles;}
   
@@ -230,6 +232,11 @@ public:
       E_Int* p = PGS.get_facets_ptr(Fi);
       std::reverse(p, p + s);
     }
+  }
+  
+  void reverse()
+  {
+    reverse(*_pgs, _faces, _nb_faces);
   }
   
   
@@ -1981,7 +1988,7 @@ static bool is_PR6(const ngon_unit& PGs, const E_Int* firstPG, E_Int nb_pgs)
  
 }
 
- void compact(const K_FLD::FloatArray& crdi, ngon_unit& pgs, K_FLD::FloatArray&crd, std::vector<E_Int>* poids = nullptr)
+ void compact(const K_FLD::FloatArray& crdi, ngon_unit& pgs, K_FLD::FloatArray&crd, std::vector<E_Int>* poids = nullptr) const
  {
    crd.clear();
    pgs.clear();

@@ -28,6 +28,7 @@
 #include "Nuga/include/localizer.hxx"
 #include "Nuga/Delaunay/Triangulator.h"
 #include "Nuga/include/ph_clipper.hxx"
+#include "Nuga/include/polyhedron.hxx"
 
 //#define FLAG_STEP
 //#define OUTPUT_XCELLN
@@ -47,6 +48,7 @@ int chrono::verbose = 2;
 #endif
 
 #ifdef DEBUG_UNIFY
+#include "medit.hxx"
 #include "Nuga/Boolean/NGON_debug.h"
 using NGDBG  = NGON_debug<K_FLD::FloatArray, K_FLD::IntArray>;
 #endif
@@ -56,8 +58,10 @@ enum eCellType { UNSET=-9, COLLIDE=-7, AMBIGUOUS=-1, IN_BODY=-5, IN=0, OUT=1};
 using ngon_type = ngon_t<K_FLD::IntArray>;
 
 using ELT1 = K_MESH::Polyhedron<UNKNOWN>;
+using aELT1 = NUGA::haPolyhedron<UNKNOWN>;
 using PG1_t = K_MESH::Polygon;//typename ELT1::boundary_type;
 using ELT2 = K_MESH::Polyhedron<UNKNOWN>;
+using aELT2 = NUGA::haPolyhedron<UNKNOWN>;
 using PG2_t = K_MESH::Polygon;//typename ELT2::boundary_type;
 using tree_t = K_SEARCH::BbTree3D;
 using bbox_t = K_SEARCH::BBox3D;
@@ -111,9 +115,9 @@ struct aIsLessThanb : std::binary_function<int, int, bool>
   prior_t _p;
 };
    
-void priorities_per_zone( E_Int nb_z, std::vector<std::pair<E_Int, E_Int>> & priority,  std::map<E_Int, std::vector<E_Int>> & prior_per_z)
+void comp_priorities(std::vector<std::pair<E_Int, E_Int>> & priority,  std::map<E_Int, std::vector<E_Int>> & prior_per_comp)
 {
-  prior_per_z.clear();
+  prior_per_comp.clear();
   
   std::set<std::pair<E_Int, E_Int>> upairs(priority.begin(), priority.end());
   priority.clear();
@@ -121,11 +125,11 @@ void priorities_per_zone( E_Int nb_z, std::vector<std::pair<E_Int, E_Int>> & pri
     
   for (size_t i = 0; i < priority.size(); ++i)
   {
-    prior_per_z[priority[i].first].push_back(priority[i].second);
+    prior_per_comp[priority[i].first].push_back(priority[i].second);
   }
   
-  aIsLessThanb pred(prior_per_z);
-  for (auto it = prior_per_z.begin(); it != prior_per_z.end(); ++it)
+  aIsLessThanb pred(prior_per_comp);
+  for (auto it = prior_per_comp.begin(); it != prior_per_comp.end(); ++it)
     std::sort(ALL(it->second), pred);
 }
 
@@ -283,6 +287,22 @@ eCellType cell_is_inside_mask(const K_FLD::FloatArray& crd1,const E_Int* unodes1
   return ret;
 }
 
+eCellType cell_is_inside_mask(const aELT1& ph, const K_FLD::FloatArray& mask_crd, const ngon_unit& mask_pgs, const tree_t* tree)
+{
+  eCellType ret = AMBIGUOUS; //-1 : cannot tell ; +1 is fully outside; 0 : is fully in
+
+  E_Int nb_pgs_mask = mask_pgs.size();
+  E_Float Gmask[3];
+  ///
+  for (E_Int n=0; n < nb_pgs_mask && (ret == AMBIGUOUS); ++n)
+  {
+    K_MESH::Polygon::centroid<3>(mask_crd, mask_pgs.get_facets_ptr(n), 3, 1, Gmask);
+    const E_Float* pt = ph.m_crd.col(n%ph.m_crd.cols()); // try different nodes on the input cell
+    ret = is_inside(pt, mask_crd, Gmask, tree, mask_pgs);
+  }
+  return ret;
+}
+
 void init(const std::vector<K_FLD::FloatArray*> &crds, const std::vector<K_FLD::IntArray*>& cnts,
           const std::vector<K_FLD::FloatArray*> &mask_crds, const std::vector<K_FLD::IntArray*>& mask_cnts,
           std::vector<ngon_type*>& ngs, std::vector<acrd_t*>& acrds, std::vector<ngon_unit*>& pgfs, 
@@ -393,8 +413,8 @@ bool compute_zone_blanking(const K_FLD::FloatArray& crd, ngon_type& ng,
       E_Int nb_faces2 = candsp.size();
       K_CONNECT::IdTool::shift(candsp, 1);
       ELT2 e2(skinp, &candsp[0], nb_faces2);
-      
-      bool is_x = NUGA::COLLIDE::simplicial_colliding<acrd_t, 3>(acrd1, e1, acrd2, e2, K_MESH::Triangle::fast_intersectT3<3>, -1.); //do not pass the tol as we use here a predicate
+      E_Int it1, it2;
+      bool is_x = NUGA::COLLIDE::simplicial_colliding<acrd_t, 3>(acrd1, e1, acrd2, e2, K_MESH::Triangle::fast_intersectT3<3>, -1., it1, it2); //do not pass the tol as we use here a predicate
       
       if (is_x)
       {
@@ -436,8 +456,8 @@ bool compute_zone_blanking(const K_FLD::FloatArray& crd, ngon_type& ng,
         K_FLD::IntArray cnt;
         ngbits[b].export_to_array(cnt);
         std::ostringstream o;
-        o << "bit_" << b << ".plt"; 
-        MIO::write(o.str().c_str(), crd, cnt, "NGON");
+        o << "bit_" << b << ".mesh"; 
+        medith::write(o.str().c_str(), crd, cnt, "NGON");
       }
     }
 #endif
@@ -505,12 +525,12 @@ bool compute_zone_blanking(const K_FLD::FloatArray& crd, ngon_type& ng,
       K_FLD::IntArray cnt;
       ng1.export_to_array(cnt);
       std::ostringstream o;
-      o << "update_0.plt"; 
-      MIO::write(o.str().c_str(), crd, cnt, "NGON");
+      o << "update_0.mesh"; 
+      medith::write(o.str().c_str(), crd, cnt, "NGON");
       ng2.export_to_array(cnt);
       o.str("");
-      o << "update_x.plt"; 
-      MIO::write(o.str().c_str(), crd, cnt, "NGON");
+      o << "update_x.mesh"; 
+      medith::write(o.str().c_str(), crd, cnt, "NGON");
     }
 #endif
 
@@ -533,14 +553,14 @@ void compute_zone_overlaps(NUGA::INTERSECT::eOPER oper, const K_FLD::FloatArray&
   
   E_Int nb_phs = ng.PHs.size();
   
-  std::vector<E_Int> FACES, candsp, candsp_cpy;
-    
-  K_FLD::FloatArray lcrd1, lcrd2, lcrd2_cpy; // local sets
-  ngon_unit         lpgs1,lpgs2, lpgs2_cpy;  // local sets
-  std::vector<E_Int> globoids, lxpoids;// global id :  nodes history (for interior blanking)
+  std::vector<E_Int> candsp;
+
+  std::vector<E_Int> lxpoids;// global id :  nodes history (for interior blanking)
   
   in_points.clear();
   in_points.resize(crd.cols(), false);
+  
+  aELT1 aPHcur, aPHclip, aPHcutter; // self_contained : current, clipped, open-cutter-cell
   
   ///  
   for (E_Int i = 0; i < nb_phs; ++i)
@@ -556,27 +576,22 @@ void compute_zone_overlaps(NUGA::INTERSECT::eOPER oper, const K_FLD::FloatArray&
 
     if (xcelln[i] != COLLIDE) continue;
 
-    E_Int* faces1 = ng.PHs.get_facets_ptr(i);
-    E_Int nb_faces1 = ng.PHs.stride(i);
+    ELT1 gPHi(ng,i);
 
-    ELT1 gPH1(&ng.PGs, faces1, nb_faces1); // global PH1
+    aPHcur.set(gPHi, crd); // self-contained with pt histo
     
-    // now go to compact view
-    gPH1.compact(crd, lpgs1, lcrd1, &globoids);
-        
-    E_Int nb_pts1 = lcrd1.cols();
+    E_Int nb_pts1 = aPHcur.m_crd.cols();
 
 #ifdef DEBUG_UNIFY
-     //NGDBG::draw_PGs("ecur", lcrd1, lpgs1);
+     //NGDBG::draw_PGs("ecur", aPHcur.m_crd, aPHcur.m_pgs);
 #endif
 
     // reorient
-    K_MESH::Polyhedron<UNKNOWN>::reorient(lpgs1);
+    aPHcur.reorient();
 
     // Compute initial volume
     E_Float V0;
-    K_CONNECT::IdTool::init_inc(FACES, nb_faces1, 1);
-    E_Int err = K_MESH::Polyhedron<UNKNOWN>::volume<DELAUNAY::Triangulator>(lcrd1, lpgs1, &FACES[0], nb_faces1, V0, false/*need reorient*/);
+    E_Int err = aPHcur.volume<DELAUNAY::Triangulator>(V0, false/*need reorient*/);
 
     bool inward1=false;
     if (V0 < 0.) //point inward => reverse
@@ -589,23 +604,21 @@ void compute_zone_overlaps(NUGA::INTERSECT::eOPER oper, const K_FLD::FloatArray&
     if (oper == NUGA::INTERSECT::eOPER::INTERSECTION || oper == NUGA::INTERSECT::eOPER::DIFFERENCE)
     {
       // RULE : inward normals
-      if (!inward1){
-        K_MESH::Polyhedron<UNKNOWN>::reverse(lpgs1, &FACES[0], nb_faces1);
+      if (!inward1)
+      {
+        aPHcur.reverse();
         inward1 = true;
       }
     }
 
     E_Float vcur = V0;
     E_Float coeff(1.);
-    NUGA::INTERSECT::PH_t x;
 
-    K_MESH::Polyhedron<UNKNOWN> e1;
-
-    K_FLD::FloatArray lcrd10=lcrd1;
+    K_FLD::FloatArray lcrd10=aPHcur.m_crd;
     acrd_t acrd10(lcrd10);
-    ngon_unit lpgs10=lpgs1;
+    ngon_unit lpgs10=aPHcur.m_pgs;
     std::vector<E_Int> FACES0;
-    K_CONNECT::IdTool::init_inc(FACES0, lpgs1.size(), 1);
+    K_CONNECT::IdTool::init_inc(FACES0, aPHcur.m_pgs.size(), 1);
     K_MESH::Polyhedron<UNKNOWN> e10(&lpgs10, &FACES0[0], lpgs10.size());
 
     ///
@@ -615,20 +628,15 @@ void compute_zone_overlaps(NUGA::INTERSECT::eOPER oper, const K_FLD::FloatArray&
       ngon_unit* skinp = mask_skins[m];
       const K_FLD::FloatArray& crdp = *mask_crds[m];
 
-      K_CONNECT::IdTool::init_inc(FACES, nb_faces1, 1);
-
-      e1.reset(&lpgs1, &FACES[0], nb_faces1);
-      acrd_t acrd1(lcrd1); //necessary to be in the loop as crd change
+      acrd_t acrdcur(aPHcur.m_crd); //necessary to be in the loop as crd change
 
       candsp.clear();
       locp->get_candidates(e10, acrd10, candsp); //0-BASED
       
       if (candsp.empty())
       {
-        std::vector<E_Int> unodes;
-        K_MESH::Polyhedron<UNKNOWN>::unique_nodes(lpgs1, &FACES[0], nb_faces1, unodes);
         
-        eCellType ret = cell_is_inside_mask(lcrd1, &unodes[0], unodes.size(), 1, crdp, *skinp, locp->get_tree());
+        eCellType ret = cell_is_inside_mask(aPHcur, crdp, *skinp, locp->get_tree());
         assert (ret != AMBIGUOUS);
         
         if (ret == IN)
@@ -636,9 +644,7 @@ void compute_zone_overlaps(NUGA::INTERSECT::eOPER oper, const K_FLD::FloatArray&
           coeff = 0.;
           break;
         }
-
-        continue;
-        
+        continue;        
       }
 
 #ifdef DEBUG_UNIFY
@@ -648,19 +654,16 @@ void compute_zone_overlaps(NUGA::INTERSECT::eOPER oper, const K_FLD::FloatArray&
       // gather the polygons as a single shape
       E_Int nb_faces2 = candsp.size();
       K_CONNECT::IdTool::shift(candsp, 1);//because it was 0-based
-      K_MESH::Polyhedron<UNKNOWN> open_s2(skinp, &candsp[0], nb_faces2); //watchme : 1-based
-
-      // now go to compact view
-      open_s2.compact(crdp, lpgs2, lcrd2);
-
-      acrd_t acrd2(lcrd2);
-      for (size_t k = 0; k< candsp.size(); ++k)candsp[k]=k+1;
-
+      ELT2 gPH2(skinp, &candsp[0], nb_faces2);
+      
+      aPHcutter.set(gPH2, crdp); // self-contained with pt histo
+      acrd_t acrd2(aPHcutter.m_crd);
+      
 #ifdef DEBUG_UNIFY
       if (i == badPH /*&& Z == badZ*/){
-        NGDBG::draw_PGs("ecur", lcrd1, lpgs1);
-        std::cout << "nbe2 : " << lpgs2.size() << std::endl;
-        NGDBG::draw_PGs("shape", lcrd2, lpgs2);    
+        NGDBG::draw_PGs("ecur", aPHcur.m_crd, aPHcur.m_pgs);
+        std::cout << "nbe2 : " << aPHclip.m_pgs.size() << std::endl;
+        NGDBG::draw_PGs("shape", aPHclip.m_crd, aPHclip.m_pgs);    
         //std::cout << "crd2 : " << std::endl;
         //std::cout << crd2 << std::endl;
       }
@@ -668,30 +671,19 @@ void compute_zone_overlaps(NUGA::INTERSECT::eOPER oper, const K_FLD::FloatArray&
 
       //outward at init (reorient skins) => nothing to do if DIFF or UNION (duplication)
       if (oper == NUGA::INTERSECT::eOPER::INTERSECTION)
-        K_MESH::Polyhedron<UNKNOWN>::reverse(lpgs2, &candsp[0], nb_faces2);
-
-      K_MESH::Polyhedron<UNKNOWN> e2(&lpgs2, &candsp[0], nb_faces2);
-
-      x.crdx.clear();
-      x.faces.clear();
-      x.pgs.clear();
-      x.poids.clear();
-      
-      lpgs2_cpy = lpgs2; //e2 can have some discarded faces by isolated_clip so keep it for the test "fully in or out "
-      candsp_cpy = candsp;
-      lcrd2_cpy = lcrd2;
+        aPHcutter.reverse();
 
       bool dbg = false;
-
 #ifdef DEBUG_UNIFY
       dbg = (i == badPH /*&& Z == badZ*/);
 #endif
+      
       E_Int err(0);
       E_Float RTOL=1.e-6;
       E_Float PS_MIN = PS_MIN0;
       E_Int contact; 
-      bool simplified_tried = false;
-      E_Float angular_tol = 1.e-12;
+      //bool simplified_tried = false;
+      //E_Float angular_tol = 1.e-12;
       
       do
       {
@@ -701,7 +693,7 @@ void compute_zone_overlaps(NUGA::INTERSECT::eOPER oper, const K_FLD::FloatArray&
         }
 
         contact = 0;
-        err = NUGA::INTERSECT::isolated_clip(acrd1, e1, inward1, acrd2, e2, PS_MIN, RTOL, x, contact, dbg);
+        err = NUGA::INTERSECT::isolated_clip(acrdcur, aPHcur, inward1, acrd2, aPHcutter, PS_MIN, RTOL, aPHclip, contact, dbg);
         RTOL *=10;
         PS_MIN -=0.01;
         
@@ -736,27 +728,18 @@ void compute_zone_overlaps(NUGA::INTERSECT::eOPER oper, const K_FLD::FloatArray&
         coeff = 0.;
         continue;
       }
-      else if (x.crdx.cols() == 0) //fully in or out ?
+      else if (aPHclip.m_crd.cols() == 0) //fully in or out ?
         empty = check_fully_in_or_out = true;
       else
       {
-        K_MESH::Polyhedron<UNKNOWN> phx(&x.pgs, &x.faces[0], x.pgs.size());
-        E_Int er = phx.volume<DELAUNAY::Triangulator>(x.crdx, v, false/*need reorient*/);
+        E_Int er = aPHclip.volume<DELAUNAY::Triangulator>(v, false/*need reorient*/);
         v = (v < 0.) ? -v : v;
         check_fully_in_or_out = (v/vcur >= 1. - E_EPSILON); // if the volume is the same => do the test in/out
       }
       
       if (check_fully_in_or_out)
-      {
-        const ngon_unit* pgs = empty ? e1._pgs : &x.pgs;
-        const E_Int* faces = empty ? e1._faces : &x.faces[0];
-        E_Int nbf = empty ? e1._nb_faces : x.pgs.size();
-        const K_FLD::FloatArray* e1crd = empty ? &lcrd1 : &x.crdx;
-        
-        std::vector<E_Int> unodes;
-        K_MESH::Polyhedron<UNKNOWN>::unique_nodes(*pgs, faces, nbf, unodes);
-        
-        eCellType ret = cell_is_inside_mask(*e1crd, &unodes[0], unodes.size(), 1/*1-based*/, crdp, *skinp, locp->get_tree());
+      {        
+        eCellType ret = cell_is_inside_mask(empty ? aPHcur : aPHclip, crdp, *skinp, locp->get_tree());
         assert (ret != AMBIGUOUS);
         
         v = (ret == IN) ? 0. : vcur;
@@ -766,25 +749,19 @@ void compute_zone_overlaps(NUGA::INTERSECT::eOPER oper, const K_FLD::FloatArray&
       // true clip      
       if (v < vcur /*&& 0. < v : to activate*/)
       {
-        // next patch
-        lcrd1 = x.crdx;
-        lpgs1 = x.pgs;
-        nb_faces1 = x.pgs.size();
-        K_CONNECT::IdTool::init_inc(FACES, nb_faces1, 1);
-
-        e1.reset(&lpgs1, &FACES[0], nb_faces1);
+        aPHcur = aPHclip;// next patch. checkme : required ? 
         
         if (lxpoids.empty())//first mask iteration
-          lxpoids = x.poids;
+          lxpoids = aPHclip.poids;
         else
         {
-          lxpoids.resize(x.crdx.cols(), E_IDX_NONE);
-          for (size_t u=0; u < x.crdx.cols(); ++u)
-            if (x.poids[u] != E_IDX_NONE) lxpoids[u] = lxpoids[x.poids[u]];
+          lxpoids.resize(aPHclip.m_crd.cols(), E_IDX_NONE);
+          for (size_t u=0; u < aPHclip.m_crd.cols(); ++u)
+            if (aPHclip.poids[u] != E_IDX_NONE) lxpoids[u] = lxpoids[aPHclip.poids[u]];
         }
   
 #ifdef DEBUG_UNIFY
-      NGDBG::draw_PGs("lastcut", lcrd1, lpgs1);
+      NGDBG::draw_PGs("lastcut", aPHcur.m_crd, aPHcur.m_pgs);
 #endif
         vcur = v;
       }
@@ -800,14 +777,14 @@ void compute_zone_overlaps(NUGA::INTERSECT::eOPER oper, const K_FLD::FloatArray&
     
     // check if the PH after the complete polyclip doesn't contain any mask wall (other wall are not taken into account )
     // if it does, flag any point from initial cell as "in"
-    if (!e1.pgs()->_type.empty())
+    if (!aPHcur.m_pgs._type.empty())
     {
       bool has_in_body_bits = false;
-      bool is_ambiguous = false; //ambiguous
+      //bool is_ambiguous = false; //ambiguous
       
-      for (E_Int f=0; f < e1.nb_faces(); ++f)
+      for (E_Int f=0; f < aPHcur.nb_faces(); ++f)
       {
-        if (e1.pgs()->_type[f] == BCWALL)
+        if (aPHcur.m_pgs._type[f] == BCWALL)
         {
           has_in_body_bits = true;
           //std::cout << "has_in_body_bits !!!!!!!!!!!" << std::endl;
@@ -819,7 +796,7 @@ void compute_zone_overlaps(NUGA::INTERSECT::eOPER oper, const K_FLD::FloatArray&
       {
         ngon_unit neighbors;
         std::vector<E_Int> colors;
-        K_MESH::Polygon::build_pg_neighborhood(*e1.pgs(), neighbors);
+        K_MESH::Polygon::build_pg_neighborhood(aPHcur.m_pgs, neighbors);
         K_CONNECT::EltAlgo<K_MESH::Polygon>::coloring (neighbors, colors);
         E_Int nb_connex = 1+*std::max_element(colors.begin(), colors.end());
         
@@ -832,9 +809,9 @@ void compute_zone_overlaps(NUGA::INTERSECT::eOPER oper, const K_FLD::FloatArray&
         }
         else //detect any IN_BODY bit
         {
-          for (E_Int f=0; f < e1.nb_faces(); ++f)
+          for (E_Int f=0; f < aPHcur.nb_faces(); ++f)
           {
-            if (e1.pgs()->_type[f] == BCWALL)
+            if (aPHcur.m_pgs._type[f] == BCWALL)
              is_wall_free[colors[f]] = false;
           }
           
@@ -847,12 +824,11 @@ void compute_zone_overlaps(NUGA::INTERSECT::eOPER oper, const K_FLD::FloatArray&
           else // compute the coef based on OUT pieces
           {
             std::vector<E_Int> facs;
-            for (size_t u=0; u < e1._nb_faces; ++u)
-              if (is_wall_free[colors[u]])facs.push_back(e1._faces[u]);
+            for (size_t u=0; u < aPHcur._nb_faces; ++u)
+              if (is_wall_free[colors[u]])facs.push_back(aPHcur._faces[u]);
             
-            K_MESH::Polyhedron<UNKNOWN> phx(&lpgs1, &facs[0], E_Int(facs.size()));
             E_Float v=0.;
-            phx.volume<DELAUNAY::Triangulator>(x.crdx, v, false/*need reorient*/);
+            aPHcur.volume<DELAUNAY::Triangulator>(v, false/*need reorient*/);
             v = (v < 0.) ? -v : v;
             coeff = v/V0;
             coeff = (coeff > 1.) ? 1. : coeff;
@@ -861,12 +837,12 @@ void compute_zone_overlaps(NUGA::INTERSECT::eOPER oper, const K_FLD::FloatArray&
         }
         
         // for NON AMBIGUOUS inside bits, flag orignal node to detect false OUT
-        const ngon_unit* pgs1 = e1.pgs();
+        const ngon_unit* pgs1 = &aPHcur.m_pgs;
         bool ambiguous = false;
-        for (E_Int u=0; (u < e1._nb_faces) && !ambiguous; ++u)
+        for (E_Int u=0; (u < aPHcur._nb_faces) && !ambiguous; ++u)
         {
           if (is_wall_free[colors[u]]) continue;
-          if (e1.pgs()->_type[u] == WALL1)
+          if (aPHcur.m_pgs._type[u] == WALL1)
           {
             ambiguous = true; break;
           }
@@ -874,11 +850,11 @@ void compute_zone_overlaps(NUGA::INTERSECT::eOPER oper, const K_FLD::FloatArray&
         
         //if (!ambiguous) std::cout << "good catch!!" << std::endl;
         
-        for (E_Int u=0; (u < e1._nb_faces) && !ambiguous; ++u)
+        for (E_Int u=0; (u < aPHcur._nb_faces) && !ambiguous; ++u)
         {
           if (is_wall_free[colors[u]]) continue;
 
-          E_Int Fi = e1._faces[u]-1;
+          E_Int Fi = aPHcur._faces[u]-1;
           E_Int nbn = pgs1->stride(Fi);
           const E_Int * nodes = pgs1->get_facets_ptr(Fi);
           for (E_Int n=0; n < nbn; ++n)
@@ -892,8 +868,7 @@ void compute_zone_overlaps(NUGA::INTERSECT::eOPER oper, const K_FLD::FloatArray&
             }
             
             //std::cout << "CAUGHT POINT : " << lid << std::endl;
-            
-            E_Int gpid = globoids[lid];
+            E_Int gpid = aPHcur.poids[lid];
             in_points[gpid] = true;
           }
         }
@@ -910,17 +885,17 @@ void compute_zone_overlaps(NUGA::INTERSECT::eOPER oper, const K_FLD::FloatArray&
 
     E_Int nb_pts = crdo.cols();
 
-    e1._pgs->shift(nb_pts);
+    aPHcur.m_pgs.shift(nb_pts);
     E_Int nb_pgs = ngo.PGs.size(); 
-    ngo.PGs.append(*e1._pgs);
-    assert (e1._pgs->size() == e1._nb_faces);
+    ngo.PGs.append(aPHcur.m_pgs);
+    assert (aPHcur.m_pgs.size() == aPHcur._nb_faces);
 
-    std::vector<E_Int> fs(e1._nb_faces);
-    for (size_t k=0; k < e1._nb_faces; ++k)
-      fs[k] = e1._faces[k] + nb_pgs;
+    std::vector<E_Int> fs(aPHcur._nb_faces);
+    for (size_t k=0; k < aPHcur._nb_faces; ++k)
+      fs[k] = aPHcur._faces[k] + nb_pgs;
 
-    crdo.pushBack(lcrd1);
-    ngo.PHs.add(e1._nb_faces, &fs[0]);
+    crdo.pushBack(aPHcur.m_crd);
+    ngo.PHs.add(aPHcur._nb_faces, &fs[0]);
     ngo.PHs.updateFacets();
     
     //std::cout << "coeff pour PH : " << i << " : " << coeff << std::endl;
@@ -960,7 +935,7 @@ void MOVLP_unify(const std::vector<K_FLD::FloatArray*> &crds, const std::vector<
   for (size_t i=0; i < nb_zones; ++i)xcelln[i].resize(ngs[i]->PHs.size(), UNSET);
 
   std::map<E_Int, std::vector<E_Int>> sorted_comps_per_comp;
-  priorities_per_zone(nb_comps, priority, sorted_comps_per_comp);
+  comp_priorities(priority, sorted_comps_per_comp);
   
 //  for (auto it = sorted_comps_per_comp.begin(); it != sorted_comps_per_comp.end(); ++it)
 //  {

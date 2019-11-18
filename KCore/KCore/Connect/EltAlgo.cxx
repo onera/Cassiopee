@@ -315,7 +315,7 @@ K_CONNECT::EltAlgo<ElementType>::coloring (const ngon_unit& neighbors, int_vecto
   }
 }
 
-// color iff the fontier is of the same color
+// color iff the fontier is of the same color : stop at first inconsistency and return that "bad color"
 template <typename ElementType>
 template<typename T>
 inline bool
@@ -362,6 +362,48 @@ K_CONNECT::EltAlgo<ElementType>::coloring_one_connex_homogeneous (const ngon_uni
   {
     colors = colors_cpy;
   }
+  return good_dom;
+}
+
+// color iff the fontier is of the same color : stop at first inconsistency and return that "bad color"
+template <typename ElementType>
+template<typename T>
+inline bool
+K_CONNECT::EltAlgo<ElementType>::coloring_one_connex_homogeneous (const ngon_unit& neighbors, std::vector<T>& colors, size_t Kseed, T UNSET_COL, T color, T FRONT_COL)
+{
+  bool good_dom = true;
+  
+  int_vector_type cpool;
+  cpool.push_back(Kseed);
+  
+  K_FLD::IntArray neighs;
+  
+  while (!cpool.empty())
+  {
+    E_Int K = cpool.back();
+    cpool.pop_back();
+
+    if (colors[K] != UNSET_COL)
+      continue;
+
+    colors[K] = color;
+
+    E_Int sz = neighbors.stride(K);
+    neighs.reserve(1, sz);
+    neighbors.getEntry(K, neighs.begin());
+    E_Int* ptr = neighs.begin();
+    for (size_t i = 0; i < sz; ++i)
+    {
+      E_Int Kn = *(ptr++);
+      
+      if ( (Kn != E_IDX_NONE) && (colors[Kn] != UNSET_COL) && (colors[Kn] != color) && (colors[Kn] != FRONT_COL) )
+        good_dom = false; //other fronteer than the one expected (FRONT_COL)
+
+      if ((Kn != E_IDX_NONE) && (colors[Kn] == UNSET_COL)) // Not colored.
+        cpool.push_back(Kn);
+    }
+  }
+  
   return good_dom;
 }
 
@@ -428,6 +470,40 @@ K_CONNECT::EltAlgo<ElementType>::coloring (const ngon_unit& neighbors, std::vect
       return;
     
     coloring_one_connex_heterogeneous (neighbors, colors, Kseed, UNSET_COL, color++);
+  }
+}
+
+template <typename ElementType>
+template<typename T>
+inline void
+K_CONNECT::EltAlgo<ElementType>::coloring_homogeneous_zones_only (const ngon_unit& neighbors, std::vector<T>& colors, T UNSET_COL, T FIRST_COL, T FRONT_COL)
+{
+  // WARNING : colors are not cleared and suppose that contains coloured elements.
+
+  size_t Kseed(0), NB_ELTS(neighbors.size());
+  T color(FIRST_COL);
+  
+  assert (colors.size() >= NB_ELTS);
+  
+  std::set<bool> bad_colors;
+  
+  while (1)
+  {
+    while ((Kseed < NB_ELTS) && (colors[Kseed] != UNSET_COL)) ++Kseed;
+    if (NB_ELTS-1 < Kseed)
+      return;
+
+    bool good_dom = coloring_one_connex_homogeneous (neighbors, colors, Kseed, UNSET_COL, color++, FRONT_COL);
+    if (!good_dom) bad_colors.insert(color-1);//tells if color is ok or not (fully surrounded by the same color)
+  }
+  
+  // reset any bad color
+  if (!bad_colors.empty())
+  {
+    for (size_t i=0; i < colors.size(); ++i)
+    {
+      if (bad_colors.find(colors[i]) != bad_colors.end())colors[i] = UNSET_COL;
+    }
   }
 }
 

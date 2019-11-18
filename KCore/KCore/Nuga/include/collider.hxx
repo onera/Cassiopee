@@ -34,11 +34,13 @@ namespace NUGA
     
     // Valid for any VOL or SURF elements
     template <typename acrd_t, int DIM, typename ELT1, typename ELT2>
-    bool simplicial_colliding(const acrd_t& acrd1, ELT1& e1, const acrd_t& acrd2, ELT2& e2, collision_func COLLIDING_FUNC, E_Float abstol)
+    bool simplicial_colliding(const acrd_t& acrd1, ELT1& e1, const acrd_t& acrd2, ELT2& e2, collision_func COLLIDING_FUNC, E_Float abstol, E_Int& t1, E_Int& t2)
     {
       //
       E_Int T1[3], T2[3] = {0};
       E_Float P0[DIM], P1[DIM], P2[DIM], Q0[DIM], Q1[DIM], Q2[DIM];
+      
+      t1=t2 = E_IDX_NONE;
       
       DELAUNAY::Triangulator dt;
 
@@ -87,7 +89,10 @@ namespace NUGA
 #endif
 
           if (COLLIDING_FUNC(P0, P1, P2, Q0, Q1, Q2, abstol))
+          {
+            t1=i; t2=j;
             return true;
+          }
         }
       }
       
@@ -195,8 +200,8 @@ namespace NUGA
         for (i1=0; (i1<cands1.size()) && !is_x2[i2]; ++i1) //fixme : logic seems wrong : if i2 is already colliding, it cannot be used to invalidate any i2
         {
           acnt1.getEntry(cands1[i1], e1);
-
-          is_x1[i1] = is_x2[i2] = simplicial_colliding<acrd_t, DIM>(acrd1, e1, acrd2, e2, K_MESH::Triangle::fast_intersectT3<3>, -1.); //do not pass the tol as we use here a predicate
+          E_Int t1,t2;
+          is_x1[i1] = is_x2[i2] = simplicial_colliding<acrd_t, DIM>(acrd1, e1, acrd2, e2, K_MESH::Triangle::fast_intersectT3<3>, -1., t1, t2); //do not pass the tol as we use here a predicate
         }
       }
     }
@@ -214,6 +219,7 @@ void compute_overlap(const K_FLD::FloatArray& crd1, const ngon_unit& PGs1,
   is_x2.clear();
   
   E_Int nb_pgs1 = PGs1.size();
+  E_Int it1, it2;
   
   is_x1.resize(nb_pgs1, 0);
   is_x2.resize(PGs2.size(), 0);
@@ -291,14 +297,14 @@ void compute_overlap(const K_FLD::FloatArray& crd1, const ngon_unit& PGs1,
       
       ELT2 PG2(nodes2, nb_nodes2, -1);
       
-      isx = NUGA::COLLIDE::simplicial_colliding<acrd_t, 3>(acrd1, PG1, acrd2, PG2, K_MESH::Triangle::overlap, abstol);
+      isx = NUGA::COLLIDE::simplicial_colliding<acrd_t, 3>(acrd1, PG1, acrd2, PG2, K_MESH::Triangle::overlap, abstol, it1, it2);
       
       if (swap && !isx) //deeper test
       {
         PG1.shuffle_triangulation();
         PG2.shuffle_triangulation();
         
-        isx = NUGA::COLLIDE::simplicial_colliding<acrd_t, 3>(acrd1, PG1, acrd2, PG2, K_MESH::Triangle::overlap, abstol);
+        isx = NUGA::COLLIDE::simplicial_colliding<acrd_t, 3>(acrd1, PG1, acrd2, PG2, K_MESH::Triangle::overlap, abstol, it1, it2);
       }
       //assert (i > -1 && i < is_x1.size());
       //assert (J > -1 && J < is_x2.size());
