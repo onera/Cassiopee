@@ -48,7 +48,7 @@ void Data::displayFrameTex(int mode, double sobelThreshold)
     _shaders[shader]->setUniform("leftEyeTexture", (int)0);
     _shaders[shader]->setUniform("rightEyeTexture", (int)1);
   }
-  else if (mode == 2) // DOF
+  else if (mode == 2) // DOF + sobel + gamma
   { 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, _texRight);

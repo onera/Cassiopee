@@ -82,11 +82,10 @@ void Data::hsv2rgb(double h, double s, double v, double& r, double& g, double& b
     double      hh, p, q, t, ff;
     long        i;
     
-    if (s <= 0.0) {       // < is bogus, just shuts up warnings
-        r = v;
-        g = v;
-        b = v;
-        return;
+    if (s <= 0.0) 
+    {       // < is bogus, just shuts up warnings
+      r = v; g = v; b = v;
+      return;
     }
     hh = h;
     if (hh >= 360.0) hh = 0.0;
@@ -99,36 +98,24 @@ void Data::hsv2rgb(double h, double s, double v, double& r, double& g, double& b
 
     switch(i) {
     case 0:
-        r = v;
-        g = t;
-        b = p;
+        r = v; g = t; b = p;
         break;
     case 1:
-        r = q;
-        g = v;
-        b = p;
+        r = q; g = v; b = p;
         break;
     case 2:
-        r = p;
-        g = v;
-        b = t;
+        r = p; g = v; b = t;
         break;
 
     case 3:
-        r = p;
-        g = q;
-        b = v;
+        r = p; g = q; b = v;
         break;
     case 4:
-        r = t;
-        g = p;
-        b = v;
+        r = t; g = p; b = v;
         break;
     case 5:
     default:
-        r = v;
-        g = p;
-        b = q;
+        r = v; g = p; b = q;
         break;
     }
     return;     
@@ -149,8 +136,11 @@ void Data::fillColormapTexture(int type)
   double r2 = ptrState->colormapR2;
   double g2 = ptrState->colormapG2;
   double b2 = ptrState->colormapB2;
+  double r3 = ptrState->colormapR3;
+  double g3 = ptrState->colormapG3;
+  double b3 = ptrState->colormapB3;
   
-  if (type == _texColormapType and r1+g1+b1+r2+b2+g2 == _texColormapMinMax) return; 
+  if (type == _texColormapType and r1+g1+b1+r2+b2+g2+r3+g3+b3 == _texColormapMinMax) return; 
 
   int w = 200; // discretisation
   float* image = new float[w * 3];
@@ -422,6 +412,53 @@ void Data::fillColormapTexture(int type)
       }
       break;
     }
+    case 5: // Tri-color interpolation R G B de c1, c3, c2 
+    {
+      for (int i = 0; i < w/2; i++)
+      {
+        f = i*dx*2.;
+        r = (1.-f)*r1+f*r3;
+        g = (1.-f)*g1+f*g3;
+        b = (1.-f)*b1+f*b3;
+        image[3*i] = r; image[3*i+1] = g; image[3*i+2] = b;
+      }
+      for (int i = w/2; i < w; i++)
+      {
+        f = i*dx*2.-1.;
+        r = (1.-f)*r3+f*r2;
+        g = (1.-f)*g3+f*g2;
+        b = (1.-f)*b3+f*b2;
+        image[3*i] = r; image[3*i+1] = g; image[3*i+2] = b;
+      }
+      break;
+    }
+    case 6: // Tri-color interpolation H S V de c1,c3 a c2
+    {
+      double h1,s1,v1,h2,v2,s2,h3,v3,s3,h,s,v,ro,go,bo;
+      rgb2hsv(r1,g1,b1,h1,s1,v1);
+      rgb2hsv(r2,g2,b2,h2,s2,v2);
+      rgb2hsv(r3,g3,b3,h3,s3,v3);
+      
+      for (int i = 0; i < w/2; i++)
+      {
+        f = i*dx*2.;
+        h = (1.-f)*h1+f*h3;
+        s = (1.-f)*s1+f*s3;
+        v = (1.-f)*v1+f*v3;
+        hsv2rgb(h,s,v,ro,go,bo);
+        image[3*i] = (float)ro; image[3*i+1] = (float)go; image[3*i+2] = (float)bo;
+      }
+      for (int i = w/2; i < w; i++)
+      {
+        f = i*dx*2.-1.;
+        h = (1.-f)*h3+f*h2;
+        s = (1.-f)*s3+f*s2;
+        v = (1.-f)*v3+f*v2;
+        hsv2rgb(h,s,v,ro,go,bo);
+        image[3*i] = (float)ro; image[3*i+1] = (float)go; image[3*i+2] = (float)bo;
+      }
+      break;
+    }
     default: // invalid colormap 
     {
       for (int i = 0; i < w; i++)
@@ -440,6 +477,6 @@ void Data::fillColormapTexture(int type)
                GL_RGB, GL_FLOAT, image);
 
   _texColormapType = type;
-  _texColormapMinMax = r1+g1+b1+r2+b2+g2;
+  _texColormapMinMax = r1+g1+b1+r2+b2+g2+r3+g3+b3;
   delete [] image;
 }

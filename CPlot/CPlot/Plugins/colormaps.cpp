@@ -371,3 +371,81 @@ void complementColor(float r, float g, float b,
   go = g1+m;
   bo = b1+m;
 }
+//============================================================================
+/*
+  Tri-color colormap with RGB interpolation
+*/
+//============================================================================
+void col3RGB(Data* d, double f, float* r, float* g, float* b)
+{
+  double r1 = d->ptrState->colormapR1;
+  double g1 = d->ptrState->colormapG1;
+  double b1 = d->ptrState->colormapB1;
+  double r2 = d->ptrState->colormapR2;
+  double g2 = d->ptrState->colormapG2;
+  double b2 = d->ptrState->colormapB2;
+  double r3 = d->ptrState->colormapR3;
+  double g3 = d->ptrState->colormapG3;
+  double b3 = d->ptrState->colormapB3;
+  
+  if (f < 0.5)
+  {
+    f = 2.*f;
+    *r = (1.-f)*r1+f*r3;
+    *g = (1.-f)*g1+f*g3;
+    *b = (1.-f)*b1+f*b3;
+  }
+  else
+  {
+    
+    f = 2.*f-1.;
+    *r = (1.-f)*r3+f*r2;
+    *g = (1.-f)*g3+f*g2;
+    *b = (1.-f)*b3+f*b2; 
+  }  
+}
+
+//============================================================================
+/*
+  Tri-color colormap with HSV interpolation
+*/
+//============================================================================
+void col3HSV(Data* d, double f, float* r, float* g, float* b)
+{
+  double r1 = d->ptrState->colormapR1;
+  double g1 = d->ptrState->colormapG1;
+  double b1 = d->ptrState->colormapB1;
+  double r2 = d->ptrState->colormapR2;
+  double g2 = d->ptrState->colormapG2;
+  double b2 = d->ptrState->colormapB2;
+  double r3 = d->ptrState->colormapR3;
+  double g3 = d->ptrState->colormapG3;
+  double b3 = d->ptrState->colormapB3;
+  double h1,s1,v1,h2,v2,s2,h3,v3,s3,h,s,v,ro,go,bo;
+  d->rgb2hsv(r1,g1,b1,h1,s1,v1);
+  d->rgb2hsv(r2,g2,b2,h2,s2,v2);
+  d->rgb2hsv(r3,g3,b3,h3,s3,v3);
+  
+  if (f < 0.5)
+  {
+    f = 2*f;
+    h = (1.-f)*h1+f*h3;
+    s = (1.-f)*s1+f*s3;
+    v = (1.-f)*v1+f*v3;
+    d->hsv2rgb(h,s,v,ro,go,bo);
+    *r = (float)ro;
+    *g = (float)go;
+    *b = (float)bo;
+  }
+  else
+  {
+    f = 2*f-1.;
+    h = (1.-f)*h3+f*h2;
+    s = (1.-f)*s3+f*s2;
+    v = (1.-f)*v3+f*v2;
+    d->hsv2rgb(h,s,v,ro,go,bo);
+    *r = (float)ro;
+    *g = (float)go;
+    *b = (float)bo; 
+  }
+}

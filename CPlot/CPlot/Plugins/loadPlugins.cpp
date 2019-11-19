@@ -128,6 +128,23 @@ void Data::loadPlugins()
   pd->f = diverging;
   pd->next = NULL;
 
+  // col3RGB
+  pd->next =
+    (struct chain_function_double*)malloc(sizeof(struct chain_function_double));
+  pd = pd->next;
+  strcpy(pd->functionName, "Tri-color RGB colormap");
+  strcpy(pd->varName, "5");
+  pd->f = col3RGB;
+  pd->next = NULL;
+
+  // col3HSV
+  pd->next =
+    (struct chain_function_double*)malloc(sizeof(struct chain_function_double));
+  pd = pd->next;
+  strcpy(pd->functionName, "Tri-color HSV colormap");
+  strcpy(pd->varName, "6");
+  pd->f = col3HSV;
+  pd->next = NULL;
 
   // -- Default screenDump functions -- 
   // RGB ppm screen dump

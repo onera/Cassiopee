@@ -51,6 +51,7 @@ Data::Data(CPlotState* ptState)
   _shadowMap = 0;
   _texColormap = 0;
   _texColormapType = -1;
+  _texColormapMinMax= -1;
   for (int i = 0; i < 16; i++) _bias[i] = 0.;
   _bias[0] = 0.5; _bias[5]= 0.5; _bias[10] = 0.5; _bias[12] = 0.5;
   _bias[13] = 0.5; _bias[14] = 0.5; _bias[15] = 1.;
@@ -289,6 +290,9 @@ void Data::initState()
   ptrState->colormapR2 = 1.; 
   ptrState->colormapG2 = 1.; 
   ptrState->colormapB2 = 1.;
+  ptrState->colormapR3 = 0.5; 
+  ptrState->colormapG3 = 0.5; 
+  ptrState->colormapB3 = 0.5;
   ptrState->isoLight = 1;
   ptrState->niso = 25;
   ptrState->isoEdges = -0.5;
@@ -751,7 +755,7 @@ void Data::enforceGivenData2(float xcam, float ycam, float zcam,
                              int meshStyle, int solidStyle, int scalarStyle,
                              int vectorStyle, float vectorScale, float vectorDensity, int vectorNormalize, 
                              int vectorShowSurface, int vectorShape, int vector_projection, 
-                             int colormap, char* colormapC1, char* colormapC2,
+                             int colormap, char* colormapC1, char* colormapC2, char* colormapC3,
                              int niso, float isoEdges, PyObject* isoScales,
                              int bgColor, int ghostifyDeactivatedZones,
                              int edgifyActivatedZones,
@@ -791,6 +795,10 @@ void Data::enforceGivenData2(float xcam, float ycam, float zcam,
   if (strlen(colormapC2) > 1)
   {
     colorString2RGB(colormapC2, ptrState->colormapR2, ptrState->colormapG2, ptrState->colormapB2);
+  }
+  if (strlen(colormapC3) > 1)
+  {
+    colorString2RGB(colormapC3, ptrState->colormapR3, ptrState->colormapG3, ptrState->colormapB3);
   }
   if (scalarStyle != -1) ptrState->scalarStyle = scalarStyle;
   if (vectorStyle != -1) ptrState->vectorStyle = vectorStyle;

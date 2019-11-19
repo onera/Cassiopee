@@ -94,6 +94,8 @@ void colGreenToRed(Data* d, double f, float* r, float* g, float* b);
 void col2RGB(Data* d, double f, float* r, float* g, float* b);
 void col2HSV(Data* d, double f, float* r, float* g, float* b);
 void diverging(Data* d, double f, float* r, float* g, float* b);
+void col3RGB(Data* d, double f, float* r, float* g, float* b);
+void col3HSV(Data* d, double f, float* r, float* g, float* b);
 
 // Look-for plugins (lookfor.cpp)
 void lookForActiveZone(Data* d);

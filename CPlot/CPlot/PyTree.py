@@ -45,6 +45,7 @@ def display(t,
             colormap=-1,
             colormapC1="",
             colormapC2="",
+            colormapC3="",
             niso=25,
             isoEdges=-0.5,
             isoScales=[],
@@ -77,7 +78,7 @@ def display(t,
                   displayIsoLegend, meshStyle,
                   solidStyle, scalarStyle, vectorStyle, vectorScale, vectorDensity, vectorNormalize,
                   vectorShowSurface, vectorShape, vectorProjection,
-                  colormap, colormapC1, colormapC2,
+                  colormap, colormapC1, colormapC2, colormapC3,
                   niso, isoEdges, isoScales, win,
                   posCam, posEye, dirCam, viewAngle,
                   bgColor, shadow, dof, stereo, stereoDist,
@@ -242,6 +243,7 @@ def setState(dim=-1,
              colormap=-1,
              colormapC1="",
              colormapC2="",
+             colormapC3="",
              niso=-1,
              isoEdges=-1,
              isoScales=[],
@@ -279,7 +281,7 @@ def setState(dim=-1,
                    meshStyle, solidStyle, scalarStyle,
                    vectorStyle, vectorScale, vectorDensity, vectorNormalize, 
                    vectorShowSurface, vectorShape, vectorProjection, 
-                   colormap, colormapC1, colormapC2,
+                   colormap, colormapC1, colormapC2, colormapC3,
                    niso, isoEdges, isoScales, win,
                    posCam, posEye, dirCam, viewAngle, lightOffset,
                    bgColor, shadow, dof, dofPower, gamma, sobelThreshold,
@@ -645,7 +647,7 @@ def _addRender2Zone(a, material=None, color=None, blending=None,
 def addRender2PyTree(t, slot=0, posCam=None, posEye=None, dirCam=None,
                      mode=None, scalarField=None, niso=None, isoScales=None,
                      isoEdges=None, isoLight=None,
-                     colormap=None, colormapC1=None, colormapC2=None,
+                     colormap=None, colormapC1=None, colormapC2=None, colormapC3=None,
                      materials=None, bumpMaps=None, billBoards=None):
   """Add a renderInfo node to a tree.
   Usage: addRender2PyTree(t, slot, renderInfo)"""
@@ -653,14 +655,14 @@ def addRender2PyTree(t, slot=0, posCam=None, posEye=None, dirCam=None,
   _addRender2PyTree(a, slot, posCam, posEye, dirCam,
                     mode, scalarField, niso, isoScales,
                     isoEdges, isoLight, 
-                    colormap, colormapC1, colormapC2, 
+                    colormap, colormapC1, colormapC2, colormapC3, 
                     materials, bumpMaps, billBoards)
   return a
 
 def _addRender2PyTree(a, slot=0, posCam=None, posEye=None, dirCam=None,
                      mode=None, scalarField=None, niso=None, isoScales=None,
                      isoEdges=None, isoLight=None,
-                     colormap=None, colormapC1=None, colormapC2=None,
+                     colormap=None, colormapC1=None, colormapC2=None, colormapC3=None,
                      materials=None, bumpMaps=None, billBoards=None):
   """Add a renderInfo node to a tree.
   Usage: addRender2PyTree(t, renderInfo)"""
@@ -729,6 +731,8 @@ def _addRender2PyTree(a, slot=0, posCam=None, posEye=None, dirCam=None,
     rt = Internal.createUniqueChild(sl, 'colormapC1', 'DataArray_t', value=colormapC1)
   if colormapC2 is not None:
     rt = Internal.createUniqueChild(sl, 'colormapC2', 'DataArray_t', value=colormapC2)
+  if colormapC3 is not None:
+    rt = Internal.createUniqueChild(sl, 'colormapC3', 'DataArray_t', value=colormapC3)
 
   # Under .RenderInfo
   if materials is not None:
@@ -819,13 +823,19 @@ def loadView(t, slot=0):
     pos = Internal.getNodeFromName1(slot, 'colormapC2')
     if pos is not None: colormapC2 = Internal.getValue(pos)
     else: colormapC2 = '#FFFFFF'
+    if pos is not None: colormapC3 = Internal.getValue(pos)
+    else: colormapC2 = '#777777'
+    
     
     style = 0
     if colormap == 'Blue2Red': style = 0
     elif colormap == 'Green2Red': style = 2
-    elif colormap == 'Black2White': style = 4
-    elif colormap == 'White2Black': style = 6
+    elif colormap == 'BiColorRGB': style = 4
+    elif colormap == 'BiColorHSV': style = 6
     elif colormap == 'Diverging': style = 8
+    elif colormap == 'TriColorRGB': style = 10
+    elif colormap == 'TriColorHSV': style = 12
+    
     if light == 1: style += 1
     CPlot.setState(colormap=style)
     pos = Internal.getNodeFromName1(slot, 'isoScales')

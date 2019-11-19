@@ -175,7 +175,7 @@ def updateVarNameList3_2(event=None):
     updateVarNameList2__(3)
 
 #==============================================================================
-# set starting color for bi-color colormaps
+# set starting color for bi/tri-color colormaps
 def setC1Color(event=None):
     try: import tkColorChooser
     except: import tkinter.colorchooser as tkColorChooser
@@ -185,10 +185,9 @@ def setC1Color(event=None):
         CPlot.setState(colormapC1=color)
         WIDGETS['colormapC1'].config(bg=color)
         WIDGETS['colormapC1'].config(activebackground=color)
-        setColormapLight()
-
+        
 #==============================================================================
-# set ending color for bi-color colormaps
+# set ending color for bi/tri-color colormaps
 def setC2Color(event=None):
     try: import tkColorChooser
     except: import tkinter.colorchooser as tkColorChooser
@@ -198,8 +197,19 @@ def setC2Color(event=None):
         WIDGETS['colormapC2'].config(bg=color)
         WIDGETS['colormapC2'].config(activebackground=color)
         CPlot.setState(colormapC2=color)
-        setColormapLight()
-
+        
+#==============================================================================
+# set mid color for tri-color colormaps
+def setC3Color(event=None):
+    try: import tkColorChooser
+    except: import tkinter.colorchooser as tkColorChooser
+    ret = tkColorChooser.askcolor()
+    color = ret[1]
+    if color is not None and len(color) == 7:
+        WIDGETS['colormapC3'].config(bg=color)
+        WIDGETS['colormapC3'].config(activebackground=color)
+        CPlot.setState(colormapC3=color)
+        
 #==============================================================================
 def displayFieldl(v, l):
     v.set(l); displayField()
@@ -424,6 +434,7 @@ def setIsoEdges(event=None):
 
 #==============================================================================
 def setColormapLight(event=None):
+    if CTK.t == []: return
     colormap = VARS[4].get()
     light = VARS[5].get()
     style = 0
@@ -432,15 +443,24 @@ def setColormapLight(event=None):
     elif colormap == 'BiColorRGB': style = 4
     elif colormap == 'BiColorHSV': style = 6
     elif colormap == 'Diverging': style = 8
+    elif colormap == 'TriColorRGB': style = 10
+    elif colormap == 'TriColorHSV': style = 12
+    
     if light == 'IsoLight on': style += 1
     
     if colormap == 'BiColorRGB' or colormap == 'BiColorHSV':
         WIDGETS['colormapC1'].grid(row=6, column=1, sticky=TK.EW)
         WIDGETS['colormapC2'].grid(row=6, column=2, sticky=TK.EW)
+        WIDGETS['colormapC3'].grid_forget()
+    elif colormap == 'TriColorRGB' or colormap == 'TriColorHSV':
+        WIDGETS['colormapC1'].grid(row=6, column=0, sticky=TK.EW)
+        WIDGETS['colormapC2'].grid(row=6, column=2, sticky=TK.EW)
+        WIDGETS['colormapC3'].grid(row=6, column=1, sticky=TK.EW)
     else: 
         WIDGETS['colormapC1'].grid_forget()
         WIDGETS['colormapC2'].grid_forget()
-
+        WIDGETS['colormapC3'].grid_forget()
+                
     CPlot.setState(colormap=style)
 
 #==============================================================================
@@ -1025,7 +1045,9 @@ def createApp(win):
     B.grid(row=5, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Display color legend.')
     B = TTK.OptionMenu(Scalar, VARS[4], 'Blue2Red', 'Green2Red',
-                       'BiColorRGB', 'BiColorHSV', 'Diverging',
+                       'BiColorRGB', 'BiColorHSV',
+                       'TriColorRGB', 'TriColorHSV',
+                       'Diverging',
                        command=setColormapLight)
     B.grid(row=5, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Colormap type.')
@@ -1034,19 +1056,22 @@ def createApp(win):
     B.grid(row=5, column=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='IsoLight.')
 
-    # - Colormap start + end
+    # - Colormap start + end + mid
     B = TK.Button(Scalar, text="Min", command=setC1Color)
-    BB = CTK.infoBulle(parent=B, text='Starting color for bi-color colormaps.')
+    BB = CTK.infoBulle(parent=B, text='Starting color for bi/tri-color colormaps.')
     B.config(bg="#000000")
     B.config(activebackground="#000000")
-    #B.grid(row=6, column=0, sticky=TK.EW)
     WIDGETS['colormapC1'] = B
     B = TK.Button(Scalar, text="Max", command=setC2Color)
-    BB = CTK.infoBulle(parent=B, text='Ending color for bi-color colormaps.')
+    BB = CTK.infoBulle(parent=B, text='Ending color for bi/tri-color colormaps.')
     B.config(bg="#FFFFFF")
     B.config(activebackground="#FFFFFF")
-    #B.grid(row=6, column=1, sticky=TK.EW)
     WIDGETS['colormapC2'] = B
+    B = TK.Button(Scalar, text="Mid", command=setC3Color)
+    BB = CTK.infoBulle(parent=B, text='Mid color for tri-color colormaps.')
+    B.config(bg="#777777")
+    B.config(activebackground="#777777")
+    WIDGETS['colormapC3'] = B
     
     # - Vector field frame -
     Vector = TTK.LabelFrame(Frame, borderwidth=0)

@@ -223,7 +223,7 @@ public:
 			 int scalarStyle, int vectorStyle, 
        float vectorScale, float vectorDensity, int vectorNormalize,
        int vectorShowSurface, int vectorShape, int vector_projection,
-       int colormap, char* colormapC1, char* colormapC2,
+       int colormap, char* colormapC1, char* colormapC2, char* colormapC3,
        int niso, float isoEdges, PyObject* isoScales,
 			 int bgColor, int ghostifyDeactivatedZones,
 			 int edgifyActivatedZones, 

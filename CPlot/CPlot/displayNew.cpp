@@ -59,7 +59,7 @@ PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
   int winx, winy;
   int displayBB, displayInfo, displayIsoLegend;
   int meshStyle, solidStyle, scalarStyle, vectorStyle, colormap, niso;
-  char* colormapC1; char* colormapC2;
+  char* colormapC1; char* colormapC2; char* colormapC3;
   E_Float xcam, ycam, zcam, xeye, yeye, zeye, dirx, diry, dirz, isoEdges;
   E_Float stereoDist, viewAngle, vectorScale, vectorDensity;
   int vectorNormalize, vectorShowSurface, vectorShape, vectorProjection;
@@ -68,14 +68,14 @@ PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
   PyObject* renderTagsObject;
   PyObject* isoScales;
   int bgColor, shadow, dof, offscreen, stereo;
-  if (!PyArg_ParseTuple(args, "OiOOOOOiiiiiiiddiiiiissidO(ii)(ddd)(ddd)(ddd)diiiidssOOi",
+  if (!PyArg_ParseTuple(args, "OiOOOOOiiiiiiiddiiiiisssidO(ii)(ddd)(ddd)(ddd)diiiidssOOi",
                         &arrays, &dim, &modeObject, &scalarFieldObject,
                         &vectorFieldObject1, &vectorFieldObject2, &vectorFieldObject3,
                         &displayBB, &displayInfo, &displayIsoLegend,
                         &meshStyle, &solidStyle, &scalarStyle,
                         &vectorStyle, &vectorScale, &vectorDensity, &vectorNormalize, 
                         &vectorShowSurface, &vectorShape, &vectorProjection, 
-                        &colormap, &colormapC1, &colormapC2,
+                        &colormap, &colormapC1, &colormapC2, &colormapC3,
                         &niso, &isoEdges, &isoScales,
                         &winx, &winy, &xcam, &ycam, &zcam,
                         &xeye, &yeye, &zeye,
@@ -168,7 +168,7 @@ PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
                        meshStyle, solidStyle, scalarStyle, 
                        vectorStyle, vectorScale, vectorDensity, vectorNormalize, vectorShowSurface,
                        vectorShape, vectorProjection, 
-                       colormap, colormapC1, colormapC2, 
+                       colormap, colormapC1, colormapC2, colormapC3, 
                        niso, isoEdges, isoScales, 
                        bgColor, -1, -1, -1, shadow, dof,
                        exportFile, exportResolution);

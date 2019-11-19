@@ -36,7 +36,7 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
   int winx, winy;
   int displayBB, displayInfo, displayIsoLegend;
   int meshStyle, solidStyle, scalarStyle, vectorStyle, colormap, niso;
-  char* colormapC1; char* colormapC2;
+  char* colormapC1; char* colormapC2; char* colormapC3;
   E_Float xcam, ycam, zcam, xeye, yeye, zeye, viewAngle, dirx, diry, dirz;
   E_Float isoEdges, vectorScale, vectorDensity;
   int vectorNormalize, vectorShowSurface, vectorShape, vectorProjection;
@@ -57,14 +57,14 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
   int continuousExport; int activateShortCuts;
   E_Float billBoardSize;
   if (!PyArg_ParseTuple(args, 
-	      "iOOiiiiiiiiiiddiiiiissidO(ii)(ddd)(ddd)(ddd)d(dd)iiidddiiississidi(ii)iiiOdOO",
+	      "iOOiiiiiiiiiiddiiiiisssidO(ii)(ddd)(ddd)(ddd)d(dd)iiidddiiississidi(ii)iiiOdOO",
         &dim, &modeObject, &scalarFieldObject,
         &vectorField1, &vectorField2, &vectorField3,
         &displayBB, &displayInfo, &displayIsoLegend,
         &meshStyle, &solidStyle, &scalarStyle, 
         &vectorStyle, &vectorScale, &vectorDensity, &vectorNormalize, 
         &vectorShowSurface, &vectorShape, &vectorProjection, 
-        &colormap, &colormapC1, &colormapC2,
+        &colormap, &colormapC1, &colormapC2, &colormapC3,
         &niso, &isoEdges, &isoScales,
         &winx, &winy, &xcam, &ycam, &zcam,
         &xeye, &yeye, &zeye, 
@@ -93,7 +93,7 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
                        meshStyle, solidStyle, scalarStyle, 
                        vectorStyle, vectorScale, vectorDensity, vectorNormalize,
                        vectorShowSurface, vectorShape, vectorProjection, 
-                       colormap, colormapC1, colormapC2, 
+                       colormap, colormapC1, colormapC2, colormapC3, 
                        niso, isoEdges, isoScales, bgColor,
                        ghostifyDeactivatedZones, edgifyActivatedZones,
                        edgifyDeactivatedZones,

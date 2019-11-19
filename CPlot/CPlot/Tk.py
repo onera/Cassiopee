@@ -288,6 +288,7 @@ def display(t, dim=-1,
             colormap=-1,
             colormapC1="",
             colormapC2="",
+            colormapC3="",
             niso=-1,
             isoEdges=-1,
             isoScales=[],
@@ -318,7 +319,7 @@ def display(t, dim=-1,
                vectorField3, displayBB, displayInfo, displayIsoLegend,
                meshStyle, solidStyle, scalarStyle, vectorStyle, vectorScale, vectorDensity, vectorNormalize,
                vectorShowSurface, vectorShape, vectorProjection,
-               colormap, colormapC1, colormapC2, 
+               colormap, colormapC1, colormapC2, colormapC3,
                niso, isoEdges, isoScales,
                win, posCam, posEye, dirCam, viewAngle,
                bgColor, shadow, dof, stereo, stereoDist,
@@ -782,9 +783,11 @@ def setPrefs():
         elif i == 'tkViewColormap':
             if val == 'Blue2Red': style = 0
             elif val == 'Green2Red': style = 2
-            elif val == 'Black2White': style = 4
-            elif val == 'White2Black': style = 6
+            elif val == 'BiColorRGB': style = 4
+            elif val == 'BiColorHSV': style = 6
             elif val == 'Diverging': style = 8
+            elif val == 'TriColorRGB': style = 10
+            elif val == 'TriColorHSV': style = 12
             else: style = 0
             if 'tkViewIsoLight' in PREFS:
                 if PREFS['tkViewIsoLight'] == 'IsoLight on': style += 1
@@ -1117,7 +1120,7 @@ class infoBulle(TK.Toplevel):
         if btype == 1: # menu
             if textVariable is not None:
                 l = TK.Label(self, textvariable=textVariable, bg="white",
-                              justify='right', takefocus=0)
+                             justify='right', takefocus=0)
             else:
                 l = TK.Label(self, text=text, bg="white", justify='right', 
                              takefocus=0)

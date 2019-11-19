@@ -154,8 +154,14 @@ Actions
     :type vectorShape: 0 (3D arrows), 1 (Flat arrows), 2 (Tetra arrows)
     :param vectorProjection: 1 of vectors are projected on surface
     :type vectorProjection: 0 or 1
-    :param colormap: 0: Blue2Red, 2: Green2Red, 4: BiColorRGB, 6: BiColorHSV, 8: Diverging (default: 0)
+    :param colormap: 0: Blue2Red, 2: Green2Red, 4: BiColorRGB, 6: BiColorHSV, 8: Diverging, 10: TriColorRGB, 12: TriColorHSV (default: 0)
     :type colormap: int
+    :param colormapC1: Hexa string for starting color of bi/tri colors colormaps (ex: #FFFFFF)
+    :type colormapC1: string
+    :param colormapC2: Hexa string for ending color of bi/tri colors colormaps (ex: #FFFFFF)
+    :type colormapC2: string
+    :param colormapC3: Hexa string for mid color of tri colors colormaps (ex: #FFFFFF)
+    :type colormapC3: string
     :param niso: number of isos (default: 25)
     :type niso: int
     :param isoEdges: width of iso edges for scalar display (default: -1)
