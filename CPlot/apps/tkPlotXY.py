@@ -43,7 +43,9 @@ try:
     import matplotlib
     # Fit matplotlib usage
     matplotlib.use('TkAgg')
-    from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
+    from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+    try: from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
+    except: from matplotlib.backends.backend_tkagg import NavigationToolbar2TkAgg as NavigationToolbar2Tk
 #
 #    from matplotlib.backends.backend_tkagg import ToolTip
 #    from matplotlib.backends.backend_tkagg import ToolTip,cursord

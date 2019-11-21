@@ -189,7 +189,6 @@ def _setHoleInterpolatedPoints(cellN,depth=2, dir=0, cellNName='cellN'):
             Converter._initVars(cellN,'{%s} = 1-{cellN}+({cellN}>1.5)*3'%cellNName)
         else: 
             _getOversetHolesInterpCellCenters__(cellN, depth, dir, cellNName)
-    
     return None
 
 def setHoleInterpolatedPoints(celln, depth=2, dir=0, cellNName='cellN'):

@@ -66,7 +66,7 @@ template <int TopoShape>
 aPolyhedron<TopoShape>::aPolyhedron(const ngon_unit& lpgs, const K_FLD::FloatArray& lcrd)
 {
   m_pgs = lpgs;
-  m_crd=crd;
+  m_crd = lcrd;
   
   m_faces.clear();
   K_CONNECT::IdTool::init_inc(m_faces, m_pgs.size(), 1);

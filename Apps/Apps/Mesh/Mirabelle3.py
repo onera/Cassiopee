@@ -169,7 +169,7 @@ def getGraph(t):
         if dim[0] == 'Unstructured': continue
         bcs = T.getBCMatchs__(z)
         for bc in bcs:
-            (oppBlock, rnge, donor, trf) = T.getBCMatchData__(bc)
+            (oppBlock, rnge, donor, trf, periodic) = T.getBCMatchData__(bc)
             racc = 0
             if rnge[0] == rnge[1] and rnge[0] == 1:
                 racc = 1
@@ -210,7 +210,7 @@ def _reportBCMatchs(zo, zi, t, dir0):
     if gc is None: return
     bcs = Internal.getNodesFromType1(gc, 'GridConnectivity1to1_t')
     for bc in bcs:
-        (oppBlock, rnge, donor, trf) = T.getBCMatchData__(bc)
+        (oppBlock, rnge, donor, trf, periodic) = T.getBCMatchData__(bc)
         donorWin = donor
         print("Adding bcmatch", getWinDir(rnge), oppBlock, donorWin)
 
@@ -229,7 +229,7 @@ def _adaptDonorRanges(t):
         if gc is None: continue
         bcs = Internal.getNodesFromType1(gc, 'GridConnectivity1to1_t')
         for bc in bcs:
-            (oppBlock, rnge, donor, trf) = T.getBCMatchData__(bc)
+            (oppBlock, rnge, donor, trf, periodic) = T.getBCMatchData__(bc)
             zopp = Internal.getNodeFromName2(t, oppBlock)
             dimOpp = Internal.getZoneDim(zopp)
             nio = dimOpp[1]; njo = dimOpp[2]; nko = dimOpp[3]

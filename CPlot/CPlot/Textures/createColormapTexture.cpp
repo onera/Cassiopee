@@ -79,8 +79,8 @@ void Data::rgb2hsv(double r, double g, double b, double& h, double& s, double& v
 
 void Data::hsv2rgb(double h, double s, double v, double& r, double& g, double& b)
 {
-    double      hh, p, q, t, ff;
-    long        i;
+    double hh, p, q, t, ff;
+    long   i;
     
     if (s <= 0.0) 
     {       // < is bogus, just shuts up warnings
@@ -218,8 +218,14 @@ void Data::fillColormapTexture(int type)
     case 3: // Bi-color interpolation H S V de c1 a c2
     {
       double h1,s1,v1,h2,v2,s2,h,s,v,ro,go,bo;
+      double delta, delta1, delta2;
       rgb2hsv(r1,g1,b1,h1,s1,v1);
       rgb2hsv(r2,g2,b2,h2,s2,v2);
+      delta = fabs(h2-h1);
+      delta1 = fabs(h2-h1-360.);
+      delta2 = fabs(h2-h1+360.);
+      if (delta1 < delta) h2 += -360.;
+      else if (delta2 < delta) h2 += 360.;
       
       for (int i = 0; i < w; i++)
       {
@@ -227,6 +233,8 @@ void Data::fillColormapTexture(int type)
         h = (1.-f)*h1+f*h2;
         s = (1.-f)*s1+f*s2;
         v = (1.-f)*v1+f*v2;
+        if (h < 0) h += 360.;
+        else if (h > 360.) h += -360.;
         hsv2rgb(h,s,v,ro,go,bo);
         image[3*i] = (float)ro; image[3*i+1] = (float)go; image[3*i+2] = (float)bo;
       }
@@ -435,25 +443,48 @@ void Data::fillColormapTexture(int type)
     case 6: // Tri-color interpolation H S V de c1,c3 a c2
     {
       double h1,s1,v1,h2,v2,s2,h3,v3,s3,h,s,v,ro,go,bo;
+      double delta, delta1, delta2,h3s;
       rgb2hsv(r1,g1,b1,h1,s1,v1);
       rgb2hsv(r2,g2,b2,h2,s2,v2);
       rgb2hsv(r3,g3,b3,h3,s3,v3);
-      
+
+      h3s = h3;
+      delta = fabs(h3-h1);
+      delta1 = fabs(h3-h1-360.);
+      delta2 = fabs(h3-h1+360.);
+      if (delta1 < delta) h3 += -360.;
+      else if (delta2 < delta) h3 += 360.;
+      //printf("%f %f %f->%f %f %f\n",r1,g1,b1,h1,s1,v1);
+      //printf("%f %f %f->%f %f %f\n",r3,g3,b3,h3,s3,v3);
+
       for (int i = 0; i < w/2; i++)
       {
         f = i*dx*2.;
         h = (1.-f)*h1+f*h3;
         s = (1.-f)*s1+f*s3;
         v = (1.-f)*v1+f*v3;
+        if (h < 0) h += 360.;
+        else if (h > 360.) h += -360.;
         hsv2rgb(h,s,v,ro,go,bo);
         image[3*i] = (float)ro; image[3*i+1] = (float)go; image[3*i+2] = (float)bo;
       }
+      h3 = h3s;
+      delta = fabs(h2-h3);
+      delta1 = fabs(h2-h3-360.);
+      delta2 = fabs(h2-h3+360.);
+      if (delta1 < delta) h2 += -360.;
+      else if (delta2 < delta) h2 += 360.;
+      //printf("%f %f %f->%f %f %f\n",r3,g3,b3,h3,s3,v3);
+      //printf("%f %f %f->%f %f %f\n",r2,g2,b2,h2,s2,v2);
+
       for (int i = w/2; i < w; i++)
       {
         f = i*dx*2.-1.;
         h = (1.-f)*h3+f*h2;
         s = (1.-f)*s3+f*s2;
         v = (1.-f)*v3+f*v2;
+        if (h < 0) h += 360.;
+        else if (h > 360.) h += -360.;
         hsv2rgb(h,s,v,ro,go,bo);
         image[3*i] = (float)ro; image[3*i+1] = (float)go; image[3*i+2] = (float)bo;
       }
