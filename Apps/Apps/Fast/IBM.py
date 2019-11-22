@@ -35,7 +35,7 @@ except: pass
 def prepare(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
             tbox=None, snearsf=None,            
             vmin=21, check=False, NP=0, format='single',
-            frontType=1, expand=3, tinit=None):
+            frontType=1, expand=3, tinit=None, initWithBBox=-1.):
     import Converter.Mpi as Cmpi
     rank = Cmpi.rank; size = Cmpi.size
     ret = None
@@ -43,12 +43,12 @@ def prepare(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
     if size == 1: ret = prepare0(t_case, t_out, tc_out, snears=snears, dfar=dfar, dfarList=dfarList, 
                                  tbox=tbox, snearsf=snearsf,
                                  vmin=vmin, check=check, NP=NP, format=format, frontType=frontType,
-                                 expand=expand, tinit=tinit)
+                                 expand=expand, tinit=tinit, initWithBBox=initWithBBox)
     # parallel prep
     else: ret = prepare1(t_case, t_out, tc_out, snears=snears, dfar=dfar, dfarList=dfarList, 
                          tbox=tbox, snearsf=snearsf,
                          vmin=vmin, check=check, NP=NP, format=format, frontType=frontType,
-                         expand=expand, tinit=tinit)
+                         expand=expand, tinit=tinit, initWithBBox=initWithBBox)
     
     return ret
 
@@ -58,7 +58,7 @@ def prepare(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
 def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
              tbox=None, snearsf=None,
              vmin=21, check=False, NP=0, format='single',
-             frontType=1, expand=3, tinit=None):
+             frontType=1, expand=3, tinit=None, initWithBBox=-1.):
     import KCore.test as test
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
     else: tb = t_case
@@ -206,6 +206,25 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
        C._initVars(t,"{centers:Density}=({centers:Density}<0.01)*%g+({centers:Density}>0.01)*{centers:Density}"%RhoInf)
        #C._initVars(t,"{centers:TurbulentSANuTildeDensity}=%g"%(ronutildeInf))
 
+    # Init with BBox
+    if initWithBBox>0.:
+        print('initialisation par bounding box')
+        import Geom.PyTree as D
+        bodybb = C.newPyTree(['Base'])
+        for base in Internal.getBases(tb):
+            bbox = G.bbox(base)
+            bodybbz = D.box(tuple(bbox[:3]),tuple(bbox[3:]), N=2, ntype='STRUCT')
+            Internal._append(bodybb,bodybbz,'Base')
+        T._scale(bodybb, factor=(initWithBBox,initWithBBox,initWithBBox))
+        tbb = G.BB(t)
+        interDict = X.getIntersectingDomains(tbb,bodybb,taabb=tbb,taabb2=bodybb)
+        for zone in Internal.getZones(t):
+            zname = Internal.getName(zone)
+            if interDict[zname] != []:
+                C._initVars(zone,'centers:MomentumX',0.)
+                C._initVars(zone,'centers:MomentumY',0.)
+                C._initVars(zone,'centers:MomentumZ',0.)
+
     if isinstance(t_out, str): Fast.save(t, t_out, split=format, NP=-NP, cartesian=True)
     return t, tc
 
@@ -223,7 +242,7 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
              tbox=None, snearsf=None,  
              vmin=21, check=False, NP=0, format='single',
              frontType=1, extrusion=False, smoothing=False, balancing=False, 
-             distrib=True, expand=3, tinit=None):
+             distrib=True, expand=3, tinit=None, initWithBBox=False):
     import Generator
     import Connector.connector as connector
     import Connector.Mpi as Xmpi
@@ -906,6 +925,26 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
         import Post.PyTree as Pmpi
         t = Pmpi.extractMesh(tinit, t, mode='accurate')
     if model != "Euler": C._initVars(t, 'centers:ViscosityEddy', 0.)
+    
+    # Init with BBox
+    if initWithBBox>0.:
+        print('initialisation par bounding box')
+        import Geom.PyTree as D
+        bodybb = C.newPyTree(['Base'])
+        for base in Internal.getBases(tb):
+            bbox = G.bbox(base)
+            bodybbz = D.box(tuple(bbox[:3]),tuple(bbox[3:]), N=2, ntype='STRUCT')
+            Internal._append(bodybb,bodybbz,'Base')
+        T._scale(bodybb, factor=(initWithBBox,initWithBBox,initWithBBox))
+        tbb = G.BB(t)
+        interDict = X.getIntersectingDomains(tbb,bodybb,taabb=tbb,taabb2=bodybb)
+        for zone in Internal.getZones(t):
+            zname = Internal.getName(zone)
+            if interDict[zname] != []:
+                C._initVars(zone,'centers:MomentumX',0.)
+                C._initVars(zone,'centers:MomentumY',0.)
+                C._initVars(zone,'centers:MomentumZ',0.)
+
     # Save t
     if isinstance(t_out, str):
         import Compressor.PyTree as Compressor
