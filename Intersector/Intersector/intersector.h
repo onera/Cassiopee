@@ -39,6 +39,7 @@ namespace K_INTERSECTOR
   PyObject* selfX(PyObject* self, PyObject* args);
   PyObject* triangulateExteriorFaces(PyObject* self, PyObject* args);
   PyObject* triangulateSpecifiedFaces(PyObject* self, PyObject* args);
+  PyObject* triangulateNFaces(PyObject* self, PyObject* args);
   PyObject* convexifyFaces(PyObject* self, PyObject* args);
   PyObject* closeOctalCells(PyObject* self, PyObject* args);
   

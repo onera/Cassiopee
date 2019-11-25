@@ -728,9 +728,6 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
   ng2.export_to_array(cnt2);
 
   using bo_t = NGON_BooleanOperator<K_FLD::FloatArray, K_FLD::IntArray>;
-
-  // a activer  : if (improve_conformal_cloud_qual) BO.setTriangulatorParams(/*do not shuffle : */false, /*improve quality:*/true);
-    
   bo_t::eAggregation AGG=bo_t::CONVEX;
   if (agg_mode == 0) // NONE
   {

@@ -24,6 +24,8 @@ namespace NUGA
     E_Float convexity_threshold; //between faces
     E_Float convexity_tol;       //between edges
 
+    bool improve_qual;
+
     std::set<E_Int> nodes;       //optional, used when starifying at specifed nodes
 
   };
@@ -60,10 +62,10 @@ namespace NUGA
       (transfo_func func, const K_FLD::FloatArray& crd, const ngon_type& ngi, E_Float convexity_tol, ngon_type& ngo, const Vector_t<E_Int>* PHlist = 0);
     ///
     template <typename TriangulatorType>
-    inline static E_Int triangulate_external_pgs(const K_FLD::FloatArray& crd, ngon_type& ngi, ngon_type& ngo, E_Int in_or_out); //in_or_out : 0(internal only), 1(extrnal only), 2(both)
+    inline static E_Int triangulate_external_pgs(const K_FLD::FloatArray& crd, ngon_type& ngi, E_Int in_or_out, const transfo_t& qual_param, ngon_type& ngo); //in_or_out : 0(internal only), 1(extrnal only), 2(both)
     ///
     template <typename TriangulatorType>
-    inline static E_Int triangulate_specified_pgs(const K_FLD::FloatArray& crd, ngon_type& ngi, const E_Int* PGlist, E_Int sz, ngon_type& ngo); 
+    inline static E_Int triangulate_specified_pgs(const K_FLD::FloatArray& crd, ngon_type& ngi, const E_Int* PGlist, E_Int sz, const transfo_t& qual_param, ngon_type& ngo); 
     ///
     template <typename TriangulatorType>
     inline static E_Int starify_pgs_at_chain_nodes
@@ -80,11 +82,11 @@ namespace NUGA
     /// Triangulates specified PGs
     template<typename TriangulatorType>
     inline static E_Int triangulate_pgs
-      (const ngon_unit& PGs, const K_FLD::FloatArray& crd, ngon_unit& tri_pgs, Vector_t<E_Int>& oids, const transfo_t& dummy, const Vector_t<bool>* to_process = 0);
+      (const ngon_unit& PGs, const K_FLD::FloatArray& crd, ngon_unit& tri_pgs, Vector_t<E_Int>& oids, const transfo_t& qual_param, const Vector_t<bool>* to_process = 0);
     ///
     template <typename TriangulatorType>
     inline static E_Int convexify_pgs
-      (const ngon_unit& PGs, const K_FLD::FloatArray& crd, ngon_unit& convex_pgs, Vector_t<E_Int>& colors, const transfo_t& params, const Vector_t<bool>* process = 0);
+      (const ngon_unit& PGs, const K_FLD::FloatArray& crd, ngon_unit& convex_pgs, Vector_t<E_Int>& colors, const transfo_t& angular_params, const Vector_t<bool>* process = 0);
     ///
     template <typename TriangulatorType>
     inline static E_Int starify_pgs_on_reflex
@@ -281,7 +283,7 @@ namespace NUGA
   /// Triangulates specified PGs
   template<typename TriangulatorType>
   E_Int NUGA::Splitter::triangulate_pgs
-    (const ngon_unit& PGs, const K_FLD::FloatArray& crd, ngon_unit& tri_pgs, Vector_t<E_Int>& oids, const transfo_t& dummy, const Vector_t<bool>* to_process)
+    (const ngon_unit& PGs, const K_FLD::FloatArray& crd, ngon_unit& tri_pgs, Vector_t<E_Int>& oids, const transfo_t& qual_param, const Vector_t<bool>* to_process)
   {
     tri_pgs.clear();
     oids.clear();
@@ -289,7 +291,11 @@ namespace NUGA
     // triangulate specified PGs
     TriangulatorType dt;
     K_FLD::IntArray connectT3;
-    E_Int err = ngon_type::triangulate_pgs<TriangulatorType>(PGs, crd, connectT3, oids, true, false, to_process);
+
+    bool shuffle = true;//qual_param.improve_qual ? true : false;
+    bool imp_qual = qual_param.improve_qual ? true : false;
+
+    E_Int err = ngon_type::triangulate_pgs<TriangulatorType>(PGs, crd, connectT3, oids, shuffle, imp_qual, to_process);
     // convert triangulation to ngon_unit
     ngon_unit::convert_fixed_stride_to_ngon_unit(connectT3, 1/*shift : convert to 1-based*/, tri_pgs);
     //update history
@@ -505,22 +511,21 @@ namespace NUGA
 
 ///
 template <typename TriangulatorType>
-E_Int NUGA::Splitter::triangulate_specified_pgs(const K_FLD::FloatArray& crd, ngon_type& ngi, const E_Int* PGlist, E_Int sz, ngon_type& ngo)
+E_Int NUGA::Splitter::triangulate_specified_pgs(const K_FLD::FloatArray& crd, ngon_type& ngi, const E_Int* PGlist, E_Int sz, const transfo_t& qual_param, ngon_type& ngo)
 {
   E_Int nb_pgs = ngi.PGs.size();
-  Vector_t<bool> toprocess(nb_pgs, false);
+  Vector_t<bool> toprocess(nb_pgs, (sz > 0) ? false : true);
   for (E_Int i = 0; i < sz; ++i)
     toprocess[PGlist[i]] = true;
   
   // triangulate any specified PG
-  transfo_t dummy;
   ngon_unit split_graph;
-  return __split_pgs(crd, ngi, ngo, split_graph, triangulate_pgs<TriangulatorType>, dummy, &toprocess);
+  return __split_pgs(crd, ngi, ngo, split_graph, triangulate_pgs<TriangulatorType>, qual_param, &toprocess);
 
 }
 
 template <typename TriangulatorType>
-E_Int NUGA::Splitter::triangulate_external_pgs(const K_FLD::FloatArray& crd, ngon_type& ngi, ngon_type& ngo, E_Int in_or_out)
+E_Int NUGA::Splitter::triangulate_external_pgs(const K_FLD::FloatArray& crd, ngon_type& ngi, E_Int in_or_out, const transfo_t& qual_param, ngon_type& ngo)
 {
   //detect exterior faces
   ngi.flag_external_pgs(INITIAL_SKIN);
@@ -538,9 +543,8 @@ E_Int NUGA::Splitter::triangulate_external_pgs(const K_FLD::FloatArray& crd, ngo
   //std::cout << "nb of remaining PG tp process : " << count << std::endl;
 
   // triangulate any specified PG
-  transfo_t dummy;
   ngon_unit split_graph;
-  __split_pgs(crd, ngi, ngo, split_graph, triangulate_pgs<TriangulatorType>, dummy, &toprocess);
+  __split_pgs(crd, ngi, ngo, split_graph, triangulate_pgs<TriangulatorType>, qual_param, &toprocess);
 
   return 0;
 }
@@ -834,7 +838,7 @@ E_Int NUGA::Splitter::__split_pgs
 
   // do the transform and produce the split pgs (and their history).
   Vector_t<E_Int> oids;
-  transFunc(ngi.PGs, crd, splitpgs, oids, params/*dummy for pure triangulation*/, to_process);
+  transFunc(ngi.PGs, crd, splitpgs, oids, params, to_process);
 
   // create the split graph using the history.
   E_Int nb_pgs = ngi.PGs.size();

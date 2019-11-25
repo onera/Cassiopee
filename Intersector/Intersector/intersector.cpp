@@ -41,6 +41,7 @@ static PyMethodDef Pyintersector [] =
   {"selfX", K_INTERSECTOR::selfX, METH_VARARGS},
   {"triangulateExteriorFaces", K_INTERSECTOR::triangulateExteriorFaces, METH_VARARGS},
   {"triangulateSpecifiedFaces", K_INTERSECTOR::triangulateSpecifiedFaces, METH_VARARGS},
+  {"triangulateNFaces", K_INTERSECTOR::triangulateNFaces, METH_VARARGS},
   {"convexifyFaces", K_INTERSECTOR::convexifyFaces, METH_VARARGS},
   {"prepareCellsSplit", K_INTERSECTOR::prepareCellsSplit, METH_VARARGS},
   {"simplifyCells", K_INTERSECTOR::simplifyCells, METH_VARARGS},

@@ -142,25 +142,36 @@ def P1ConservativeChimeraCoeffs(aR, cellnR, aD):
 # IN: coords: 3D NGON mesh
 # OUT: returns a 3D NGON Mesh with all the external faces triangulated
 #==============================================================================
-def triangulateExteriorFaces(a, in_or_out=2):
+def triangulateExteriorFaces(a, in_or_out=2, improve_qual=0):
     """Triangulates exterior polygons of a volume mesh.
     Usage: triangulateExteriorFaces(a, in_or_out)"""
-    return intersector.triangulateExteriorFaces(a, in_or_out)
+    return intersector.triangulateExteriorFaces(a, in_or_out, improve_qual)
 
 #==============================================================================
 # triangulateSpecifiedFaces
 # IN: coords: 3D NGON mesh
 # OUT: returns a 3D NGON Mesh with BC polygons triangulated
 #==============================================================================
-def triangulateSpecifiedFaces(a, pgs):
+def triangulateSpecifiedFaces(a, pgs, improve_qual=1):
     """Triangulates specified polygons of a volume mesh.
     Usage: triangulateExteriorFaces(a, in_or_out)"""
-    return intersector.triangulateSpecifiedFaces(a, pgs)
+    return intersector.triangulateSpecifiedFaces(a, pgs, improve_qual)
 #synonym
-def triangulateBC(a, pgs):
+def triangulateBC(a, pgs, improve_qual=1):
     """Triangulates specified polygons of a volume mesh.
     Usage: triangulateExteriorFaces(a, in_or_out)"""
-    return intersector.triangulateSpecifiedFaces(a, pgs)
+    return intersector.triangulateSpecifiedFaces(a, pgs, improve_qual)
+
+#==============================================================================
+# triangulateNFaces
+# IN: mesh: 3D NGON mesh
+# IN : quality improvement flag
+# OUT: returns a 3D NGON mesh with all the external faces triangulated
+#==============================================================================
+def triangulateNFaces(a, improve_qual=1, min_nvertices=5, discard_joins=True):
+    """Triangulates nob basic polygons of a volume mesh.
+    Usage: triangulateNFaces(t)"""
+    return intersector.triangulateNFaces(a, improve_qual, min_nvertices, discard_joins)
 
 #==============================================================================
 # reorientExternalFaces

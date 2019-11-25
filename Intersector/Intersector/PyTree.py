@@ -527,13 +527,13 @@ def extractBaseWalls(b):
 # IN : in_or_out : 0 means "ONLY INTERNALS", 1 means "ONLY EXTERNALS", any other value means "BOTH"
 # OUT: returns a 3D NGON mesh with all the external faces triangulated
 #==============================================================================
-def triangulateExteriorFaces(t, in_or_out=2):
+def triangulateExteriorFaces(t, in_or_out=2, improve_qual=0):
     """Triangulates exterior polygons of a volume mesh.
     Usage: triangulateExteriorFaces(t)"""
-    return C.TZA(t, 'nodes', 'nodes', XOR.triangulateExteriorFaces, t, in_or_out)
+    return C.TZA(t, 'nodes', 'nodes', XOR.triangulateExteriorFaces, t, in_or_out, improve_qual)
 
 def _triangulateExteriorFaces(t, in_or_out=2):
-    return C._TZA(t, 'nodes', 'nodes', XOR.triangulateExteriorFaces, t, in_or_out)
+    return C._TZA(t, 'nodes', 'nodes', XOR.triangulateExteriorFaces, t, in_or_out, improve_qual)
 
 
 #==============================================================================
@@ -542,13 +542,13 @@ def _triangulateExteriorFaces(t, in_or_out=2):
 # IN: pgs : list of polygons
 # OUT: returns a 3D NGON Mesh
 #==============================================================================
-def triangulateSpecifiedFaces(t, pgs):
+def triangulateSpecifiedFaces(t, pgs, improve_qual=1):
      
     tp = Internal.copyRef(t)
-    _triangulateSpecifiedFaces(tp,pgs)
+    _triangulateSpecifiedFaces(tp,pgs, improve_qual)
     return tp
 
-def _triangulateSpecifiedFaces(t, pgs):
+def _triangulateSpecifiedFaces(t, pgs, improve_qual=1):
 
     zones = Internal.getZones(t)
     if (len(pgs) != len(zones)) :
@@ -558,9 +558,69 @@ def _triangulateSpecifiedFaces(t, pgs):
     i=0
     for z in zones:
       m = C.getFields(Internal.__GridCoordinates__, z)[0]
-      m = XOR.triangulateSpecifiedFaces(m, pgs[i])
-      C.setFields([m], z, 'nodes') # replace the mesh in the zone
+      if m == []: continue
+      m = Converter.convertArray2NGon(coords)
+      m = XOR.triangulateSpecifiedFaces(m, pgs[i], improve_qual)
+      mesh = res[0]
+      pg_oids=res[1]
+
+      # MAJ du maillage de la zone
+      C.setFields([mesh], z, 'nodes') 
+
+      # MAJ POINT LISTS #
+      updatePointLists(z, zones, pg_oids)
       i = i+1
+
+#==============================================================================
+# triangulateNonBasicFaces
+# IN: mesh: 3D NGON mesh
+# IN : quality improvement flag
+# OUT: returns a 3D NGON mesh with all the external faces triangulated
+#==============================================================================
+def triangulateNFaces(t, improve_qual=1, min_nvertices=5, discard_joins= True):
+    """Triangulates nob basic polygons of a volume mesh.
+    Usage: triangulateNonBasicFaces(t)"""
+    tp = Internal.copyRef(t)
+    _triangulateNFaces(tp,improve_qual, min_nvertices, discard_joins)
+    return tp
+
+def _triangulateNFaces(t, improve_qual=1, min_nvertices=5, discard_joins=True):
+    
+    zones = Internal.getZones(t)
+   
+    for z in zones:
+        coords = C.getFields(Internal.__GridCoordinates__, z)[0]
+        if coords == []: continue
+
+        #coords = Converter.convertArray2NGon(coords)
+
+        ptLists=[]
+        if (discard_joins == True):
+            joins = Internal.getNodesFromType(z, 'GridConnectivity_t')
+            for j in joins :
+                ptl = Internal.getNodeFromName1(j, 'PointList')
+                ptLists.append(ptl[1])
+
+        if (ptLists != []):
+            #print ptLists
+            ptLists = numpy.concatenate(ptLists) # create a single list
+            ptLists = ptLists -1 # 0-based
+            ptLists = numpy.concatenate(ptLists) # create a single list
+            #print ptLists
+        else:
+            ptLists=None
+
+        res = XOR.triangulateNFaces(coords, improve_qual, min_nvertices, ptLists)
+
+        mesh = res[0]
+        pg_oids=res[1]
+
+        # MAJ du maillage de la zone
+        C.setFields([mesh], z, 'nodes') 
+
+        # MAJ POINT LISTS #
+        updatePointLists(z, zones, pg_oids)
+
 
 #==============================================================================
 # triangulateBC
