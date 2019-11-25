@@ -45,9 +45,9 @@ PyObject* K_CPLOT::displayAgain(PyObject* self, PyObject* args)
   PyObject* zoneNamesObject;
   PyObject* renderTagsObject;
   PyObject* isoScales;
-  int bgColor, shadow, dof, offscreen, stereo;
+  int bgColor, shadow, dof, offscreen, stereo, frameBuffer;
   if (!PyArg_ParseTuple(args, 
-                        "OiOOOOOiiiiiiiddiiiiisssidO(ii)(ddd)(ddd)(ddd)diiiidssOOi",
+                        "OiOOOOOiiiiiiiddiiiiisssidO(ii)(ddd)(ddd)(ddd)diiiidssOOii",
                         &arrays, &dim, &modeObject, &scalarFieldObject,
                         &vectorFieldObject1, &vectorFieldObject2, &vectorFieldObject3,
                         &displayBB, &displayInfo, &displayIsoLegend,
@@ -62,7 +62,7 @@ PyObject* K_CPLOT::displayAgain(PyObject* self, PyObject* args)
                         &bgColor, &shadow, &dof, &stereo, &stereoDist, 
                         &exportFile, &exportResolution,
                         &zoneNamesObject, &renderTagsObject,
-                        &offscreen))
+                        &frameBuffer, &offscreen))
   {
     return NULL;
   }
@@ -154,6 +154,7 @@ PyObject* K_CPLOT::displayAgain(PyObject* self, PyObject* args)
 
   // offscreen rendering?
   if (offscreen > 0) d->ptrState->offscreen = offscreen;
+  if (frameBuffer >= 0 && frameBuffer < 10) d->ptrState->frameBuffer = frameBuffer;
 
   if (d->ptrState->offscreen == 1) // MESA offscreen
   {
@@ -161,10 +162,10 @@ PyObject* K_CPLOT::displayAgain(PyObject* self, PyObject* args)
   //printf("Creating OS context...");
   OSMesaContext ctx; 
   ctx = OSMesaCreateContext(OSMESA_RGBA, NULL);
-  d->ptrState->offscreenBuffer = (char*)malloc(d->_view.w * d->_view.h * 4 * 
-                                               sizeof(GLubyte));
-  OSMesaMakeCurrent(ctx, d->ptrState->offscreenBuffer, GL_UNSIGNED_BYTE, 
-                    d->_view.w, d->_view.h);
+  d->ptrState->offscreenBuffer[ptrState->frameBuffer] = 
+  (char*)malloc(d->_view.w * d->_view.h * 4 * sizeof(GLubyte));
+  OSMesaMakeCurrent(ctx, d->ptrState->offscreenBuffer[ptrState->frameBuffer], 
+                    GL_UNSIGNED_BYTE, d->_view.w, d->_view.h);
 
   glShadeModel(GL_SMOOTH);
   glEnable(GL_DEPTH_TEST);
@@ -174,7 +175,7 @@ PyObject* K_CPLOT::displayAgain(PyObject* self, PyObject* args)
   d->display();
   d->exportFile();
   //printf("done.\n");
-  free(d->ptrState->offscreenBuffer);
+  free(d->ptrState->offscreenBuffer[ptrState->frameBuffer]);
   OSMesaDestroyContext(ctx);
 #else
   printf("Error: CPlot: MESA offscreen unavailable.\n");

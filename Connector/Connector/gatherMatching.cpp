@@ -752,7 +752,7 @@ void K_CONNECTOR::compTrirac(E_Int im1, E_Int jm1, E_Int im2, E_Int jm2,
     else if (incm1 == im2*jm2)  r2 =  3;
     else if (incm1 == -im2*jm2) r2 = -3;
   }
-  else if ( inc1 == im1*jm1 )
+  else if (inc1 == im1*jm1)
   {
     if (incm1 == 1)    r3 =  1;
     else if (incm1 == -1)   r3 = -1;
@@ -762,7 +762,7 @@ void K_CONNECTOR::compTrirac(E_Int im1, E_Int jm1, E_Int im2, E_Int jm2,
     else if (incm1 == -im2*jm2) r3 = -3;
   }
 
-  if ( inc2 == 1 )
+  if (inc2 == 1)
   {
     if (incm2 == 1)    r1 =  1;
     else if (incm2 == -1)   r1 = -1;
@@ -771,7 +771,7 @@ void K_CONNECTOR::compTrirac(E_Int im1, E_Int jm1, E_Int im2, E_Int jm2,
     else if (incm2 == im2*jm2)  r1 =  3;
     else if (incm2 == -im2*jm2) r1 = -3;
   }
-  else if ( inc2 == im1 )
+  else if (inc2 == im1)
   {
     if (incm2 == 1)    r2 =  1;
     else if (incm2 == -1)   r2 = -1;
@@ -780,7 +780,7 @@ void K_CONNECTOR::compTrirac(E_Int im1, E_Int jm1, E_Int im2, E_Int jm2,
     else if (incm2 == im2*jm2)  r2 =  3;
     else if (incm2 == -im2*jm2) r2 = -3;
   }
-  else if ( inc2 == im1*jm1 )
+  else if (inc2 == im1*jm1)
   {
     if (incm2 == 1)    r3 =  1;
     else if (incm2 == -1)   r3 = -1;

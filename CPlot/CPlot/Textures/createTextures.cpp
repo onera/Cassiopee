@@ -103,10 +103,10 @@ int Data::createNoise3DTexture(void)
 //=============================================================================
 int Data::createFrameBufferTexture(void)
 {
-  glGenTextures(1, &_texFrameBuffer);
-  glBindTexture(GL_TEXTURE_2D, _texFrameBuffer);
+  glGenTextures(1, &_texFrameBuffer[ptrState->frameBuffer]);
+  glBindTexture(GL_TEXTURE_2D, _texFrameBuffer[ptrState->frameBuffer]);
   glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, 0, 
-                   _frameBufferSize, _frameBufferSize, 0);
+                   _frameBufferSize[ptrState->frameBuffer], _frameBufferSize[ptrState->frameBuffer], 0);
   glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);

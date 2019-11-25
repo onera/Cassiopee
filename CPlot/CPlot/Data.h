@@ -126,8 +126,8 @@ class Data
   GLuint _texColormap; // texture for colormap
   int _texColormapType; // type stored in colormap
   double _texColormapMinMax; // Min max of colormap stored 
-  int _frameBufferSize; // size of frame buffer
-  GLuint _texFrameBuffer; // texture for frame buffer
+  int _frameBufferSize[10]; // size of frame buffer
+  GLuint _texFrameBuffer[10]; // texture for frame buffer
   GLuint _texEnviron1; // texture environnement 1
   int _voxelBufferSize; // size of voxel buffer
   GLuint _texVoxelBuffer; // texture pour le voxel buffer

@@ -43,7 +43,7 @@ void Data::triggerShader(Zone& z, int material, float scale, float* color)
       glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
       glActiveTexture(GL_TEXTURE1);
-      glBindTexture(GL_TEXTURE_2D, _texFrameBuffer); // refraction
+      glBindTexture(GL_TEXTURE_2D, _texFrameBuffer[ptrState->frameBuffer]); // refraction
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
       if (_shaders.currentShader() != shader) _shaders.activate(shader);
@@ -51,8 +51,8 @@ void Data::triggerShader(Zone& z, int material, float scale, float* color)
       _shaders[shader]->setUniform("MixRatio", (float)0.5*z.shaderParam1);
       // mix envmap et refraction
       _shaders[shader]->setUniform("MixRatio2", (float)0.4*z.shaderParam2);
-      _shaders[shader]->setUniform("FrameWidth", (float)_frameBufferSize);
-      _shaders[shader]->setUniform("FrameHeight", (float)_frameBufferSize);
+      _shaders[shader]->setUniform("FrameWidth", (float)_frameBufferSize[ptrState->frameBuffer]);
+      _shaders[shader]->setUniform("FrameHeight", (float)_frameBufferSize[ptrState->frameBuffer]);
       _shaders[shader]->setUniform("EnvMap", (int)0);
       _shaders[shader]->setUniform("RefractionMap", (int)1);
       break;

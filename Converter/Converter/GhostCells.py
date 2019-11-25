@@ -296,6 +296,7 @@ def getFieldsInContainer__(zp, modified, coords=True):
         else:
             if not isinstance(name, list): name = [name]
             for vname in name:
+                if vname not in PyTree.getVarNames(zp)[0]: continue
                 vars0 = vname.split(':')
                 if len(vars0) == 1: # nodes
                     if fieldsn == []: fieldsn = PyTree.getField(vname,zp)[0]
@@ -323,7 +324,7 @@ def _rmGhostCellsNGON__(zp, bp, d, stdNode, modified):
     #
     if fieldsc == [] and fieldsn == []:
         print('Warning: rmGhostCells: variables not found. No ghost cells removed.')
-    elif fieldsc == [] and fieldsn !=[]:
+    elif fieldsc == [] and fieldsn != []:
         out = Converter.converter.rmGhostCellsNGonNodes(fieldsn,d)
         #PyTree.setFields([out], zp, 'nodes', writeDim=True)
     elif fieldsc != [] and fieldsn == []:

@@ -62,6 +62,7 @@ def display(t,
             export="None",
             exportResolution="None",
             location='unchanged',
+            frameBuffer=-1,
             offscreen=0):
     """Display pyTrees.
     Usage: display(t)"""
@@ -83,7 +84,7 @@ def display(t,
                   posCam, posEye, dirCam, viewAngle,
                   bgColor, shadow, dof, stereo, stereoDist,
                   export, exportResolution, 
-                  zoneNames, renderTags, offscreen)
+                  zoneNames, renderTags, frameBuffer, offscreen)
 
 #==============================================================================
 def render():
@@ -273,7 +274,8 @@ def setState(dim=-1,
              activateShortCuts=-1,
              billBoards=None,
              billBoardSize=-1,
-             materials=None, bumpMaps=None):
+             materials=None, bumpMaps=None,
+             frameBuffer=-1):
     """Set CPlot state.
     Usage: setState(posCam=(12,0,0))"""
     CPlot.setState(dim, mode, scalarField, vectorField1, vectorField2,
@@ -291,7 +293,7 @@ def setState(dim=-1,
                    envmap, message,
                    stereo, stereoDist, cursor, gridSize, timer, selectionStyle,
                    activateShortCuts, billBoards, billBoardSize, 
-                   materials, bumpMaps)
+                   materials, bumpMaps, frameBuffer)
     
 def setMode(mode):
     """Set CPlot display mode.

@@ -63,6 +63,7 @@ def display(arrays,
             exportResolution="None",
             zoneNames=[],
             renderTags=[],
+            frameBuffer=-1,
             offscreen=0):
     """Display arrays.
     Usage: display(arrays)"""
@@ -81,7 +82,7 @@ def display(arrays,
                      posCam, posEye, dirCam, viewAngle, bgColor,
                      shadow, dof, stereo, stereoDist,
                      export, exportResolution, zoneNames, renderTags,
-                     offscreen)
+                     frameBuffer, offscreen)
     else:
         displayAgain__(arrays, dim, mode, scalarField, vectorField1,
                        vectorField2, vectorField3, displayBB, displayInfo,
@@ -93,7 +94,7 @@ def display(arrays,
                        posCam, posEye, dirCam, viewAngle, bgColor,
                        shadow, dof, stereo, stereoDist,
                        export, exportResolution,
-                       zoneNames, renderTags, offscreen)
+                       zoneNames, renderTags, frameBuffer, offscreen)
 
 #==============================================================================
 def render():
@@ -296,7 +297,8 @@ def setState(dim=-1,
              activateShortCuts=-1,
              billBoards=None,
              billBoardSize=-1,
-             materials=None, bumpMaps=None):
+             materials=None, bumpMaps=None,
+             frameBuffer=-1):
     """Set CPlot state.
     Usage: setState(posCam=(12,0,0))"""
     cplot.setState(dim, mode, scalarField, vectorField1, vectorField2,
@@ -314,7 +316,7 @@ def setState(dim=-1,
                    envmap, message,
                    stereo, stereoDist, cursor, gridSize, timer, selectionStyle,
                    activateShortCuts, billBoards, billBoardSize, 
-                   materials, bumpMaps)
+                   materials, bumpMaps, frameBuffer)
 
 def setMode(mode):
     """Set CPlot display mode.
@@ -623,7 +625,7 @@ def displayNew__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
                  niso, isoEdges, isoScales, win,
                  posCam, posEye, dirCam, viewAngle, bgColor,
                  shadow, dof, stereo, stereoDist,
-                 export, exportResolution, zoneNames, renderTags, offscreen):
+                 export, exportResolution, zoneNames, renderTags, frameBuffer, offscreen):
     global __slot__
     import threading
     a = threading.Thread(None, cplot.displayNew, None,
@@ -638,7 +640,7 @@ def displayNew__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
                           win, posCam, posEye, dirCam, viewAngle, bgColor,
                           shadow, dof, stereo, stereoDist,
                           export, exportResolution,
-                          zoneNames, renderTags, offscreen), {})
+                          zoneNames, renderTags, frameBuffer, offscreen), {})
     a.start()
     __slot__ = a
 
@@ -651,7 +653,7 @@ def displayAgain__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
                    niso, isoEdges, isoScales,
                    win, posCam, posEye, dirCam, viewAngle, bgColor,
                    shadow, dof, stereo, stereoDist,
-                   export, exportResolution, zoneNames, renderTags, offscreen):
+                   export, exportResolution, zoneNames, renderTags, frameBuffer, offscreen):
     cplot.displayAgain(arrays, dim, mode, scalarField, vectorField1,
                        vectorField2, vectorField3, displayBB, displayInfo,
                        displayIsoLegend,
@@ -663,5 +665,5 @@ def displayAgain__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
                        win, posCam, posEye, dirCam, viewAngle, bgColor,
                        shadow, dof, stereo, stereoDist,
                        export, exportResolution, zoneNames, renderTags,
-                       offscreen)
+                       frameBuffer, offscreen)
     time.sleep(__timeStep__)

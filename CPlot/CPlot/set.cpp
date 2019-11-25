@@ -53,11 +53,11 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
   int gridSizeI, gridSizeJ;
   E_Float lightOffsetX, lightOffsetY; 
   E_Float dofPower; E_Float gamma; E_Float sobelThreshold;
-  int timer; int selectionStyle;
+  int timer; int selectionStyle; int frameBuffer;
   int continuousExport; int activateShortCuts;
   E_Float billBoardSize;
   if (!PyArg_ParseTuple(args, 
-	      "iOOiiiiiiiiiiddiiiiisssidO(ii)(ddd)(ddd)(ddd)d(dd)iiidddiiississidi(ii)iiiOdOO",
+	      "iOOiiiiiiiiiiddiiiiisssidO(ii)(ddd)(ddd)(ddd)d(dd)iiidddiiississidi(ii)iiiOdOOi",
         &dim, &modeObject, &scalarFieldObject,
         &vectorField1, &vectorField2, &vectorField3,
         &displayBB, &displayInfo, &displayIsoLegend,
@@ -78,13 +78,14 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
         &stereo, &stereoDist, &cursor,
         &gridSizeI, &gridSizeJ, &timer, &selectionStyle,
         &activateShortCuts, &billBoards, &billBoardSize, 
-        &materials, &bumpMaps))
+        &materials, &bumpMaps, &frameBuffer))
   {
     return NULL;
   }
   Data* d = Data::getInstance();
   E_Int mode = getMode(modeObject);
   E_Int scalarField = getScalarField(scalarFieldObject);
+  if (frameBuffer >= 0 && frameBuffer < 10) d->ptrState->frameBuffer = frameBuffer;
   d->enforceGivenData(dim, mode, scalarField, vectorField1, vectorField2,
                       vectorField3, displayBB, displayInfo, displayIsoLegend);
   d->enforceGivenData2(xcam, ycam, zcam,

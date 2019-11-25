@@ -67,8 +67,8 @@ PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
   PyObject* zoneNamesObject;
   PyObject* renderTagsObject;
   PyObject* isoScales;
-  int bgColor, shadow, dof, offscreen, stereo;
-  if (!PyArg_ParseTuple(args, "OiOOOOOiiiiiiiddiiiiisssidO(ii)(ddd)(ddd)(ddd)diiiidssOOi",
+  int bgColor, shadow, dof, offscreen, stereo, frameBuffer;
+  if (!PyArg_ParseTuple(args, "OiOOOOOiiiiiiiddiiiiisssidO(ii)(ddd)(ddd)(ddd)diiiidssOOii",
                         &arrays, &dim, &modeObject, &scalarFieldObject,
                         &vectorFieldObject1, &vectorFieldObject2, &vectorFieldObject3,
                         &displayBB, &displayInfo, &displayIsoLegend,
@@ -82,7 +82,7 @@ PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
                         &dirx, &diry, &dirz, &viewAngle, &bgColor,
                         &shadow, &dof, &stereo, &stereoDist,
                         &exportFile, &exportResolution, 
-                        &zoneNamesObject, &renderTagsObject, &offscreen))
+                        &zoneNamesObject, &renderTagsObject, &frameBuffer, &offscreen))
   {
     return NULL;
   }
@@ -94,7 +94,6 @@ PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
   // Recuperation des tags de render (eventuellement)
   vector<char*> renderTags;
   getStringsFromPyObj(renderTagsObject, renderTags);
-
 
   // Lecture des arrays
   vector<E_Int> res;
@@ -178,6 +177,7 @@ PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
 
   // offscreen rendering?
   if (offscreen > 0) d->ptrState->offscreen = offscreen;
+  if (frameBuffer >= 0 && frameBuffer < 10) d->ptrState->frameBuffer = frameBuffer;
 
   // Assure la taille de la fenetre
   if (winx != -1) d->_view.w = winx;
@@ -211,17 +211,17 @@ PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
     //printf("Creating OS context..."); fflush(stdout);
     OSMesaContext ctx; 
     ctx = OSMesaCreateContext(OSMESA_RGBA, NULL);
-    d->ptrState->offscreenBuffer = (char*)malloc(d->_view.w * d->_view.h * 4 * 
-                                                 sizeof(GLubyte));
-    OSMesaMakeCurrent(ctx, d->ptrState->offscreenBuffer, GL_UNSIGNED_BYTE, 
-                      d->_view.w, d->_view.h);
+    d->ptrState->offscreenBuffer[ptrState->frameBuffer] = 
+    (char*)malloc(d->_view.w * d->_view.h * 4 * sizeof(GLubyte));
+    OSMesaMakeCurrent(ctx, d->ptrState->offscreenBuffer[ptrState->frameBuffer], 
+                      GL_UNSIGNED_BYTE, d->_view.w, d->_view.h);
     d->init();
     d->ptrState->farClip = 1;
     d->ptrState->render = 0;
     d->display();  
     d->exportFile();
     //printf("done.\n");
-    free(d->ptrState->offscreenBuffer);
+    free(d->ptrState->offscreenBuffer[ptrState->frameBuffer]);
     OSMesaDestroyContext(ctx);
 #else
     printf("Error: CPlot: mesa offscreen unavailable.\n");

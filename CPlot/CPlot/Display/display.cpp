@@ -295,10 +295,10 @@ void Data::display()
   {
     // Il faut normalement faire la photo sans les objets glass
     int w = _view.w; int h = _view.h;
-    w = w < _frameBufferSize ? w : (int) _frameBufferSize;
-    h = h < _frameBufferSize ? h : (int) _frameBufferSize;
+    w = w < _frameBufferSize[ptrState->frameBuffer] ? w : (int) _frameBufferSize[ptrState->frameBuffer];
+    h = h < _frameBufferSize[ptrState->frameBuffer] ? h : (int) _frameBufferSize[ptrState->frameBuffer];
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, _texFrameBuffer);
+    glBindTexture(GL_TEXTURE_2D, _texFrameBuffer[ptrState->frameBuffer]);
     //glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, w, h);
     glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, w, h, 0);
   }

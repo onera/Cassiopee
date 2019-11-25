@@ -68,9 +68,12 @@ struct CPlotState {
     int   texture;          // if 1, display textures
     int   menu;             // if 1, display bottom menu
     int   isoLegend;        // if 1, display iso legend
-    int   offscreen;        // 1 offscreen rendering with mesa, 2 with FBO
-    char* offscreenBuffer;  // buffer for rendering (offscreen)
-    float* offscreenDepthBuffer;// Depth buffer for offscreen rendering 3 et 4
+    int   offscreen;        // 1: offscreen rendering with mesa, 2: with FBO, 
+                            // 3: with FBO composite incomplete, 4: with FBO composite finalized
+    int frameBuffer;        // numero du frame buffer (0-9)
+    char* offscreenBuffer[10];  // buffer for rendering (offscreen)
+    float* offscreenDepthBuffer[10]; // Depth buffer storage for offscreen rendering 3 et 4
+
     // overlay message
     char* message;
 
@@ -170,10 +173,10 @@ struct CPlotState {
 
     CPlotState() : lock(0), _lockGPURes(0), _mustExport(0), _isExporting(0) {}
 
-    virtual ~CPlotState( ) { 
-        if (offscreenBuffer != NULL) free(offscreenBuffer); 
-        if (offscreenDepthBuffer != NULL) free(offscreenDepthBuffer);
-    }
+    virtual ~CPlotState( ) {
+        for (E_Int i = 0; i < 10; i++) {
+        if (offscreenBuffer[i] != NULL) free(offscreenBuffer[i]); 
+        if (offscreenDepthBuffer[i] != NULL) free(offscreenDepthBuffer[i]); } }
 
     // lock=1 pendant le display, les donnees ne doivent alors
     // pas etre modifiees!

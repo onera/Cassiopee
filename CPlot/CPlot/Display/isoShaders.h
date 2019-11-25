@@ -43,7 +43,7 @@ switch (zonep->material)
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, _texFrameBuffer); // refraction
+    glBindTexture(GL_TEXTURE_2D, _texFrameBuffer[ptrState->frameBuffer]); // refraction
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
@@ -77,8 +77,8 @@ switch (zonep->material)
   _shaders[shader]->setUniform("MixRatio", (float)0.6*zonep->shaderParam1);
   // mix reflection / refraction
   _shaders[shader]->setUniform("MixRatio2", (float)0.4*zonep->shaderParam2);
-  _shaders[shader]->setUniform("FrameWidth", (float)_frameBufferSize);
-  _shaders[shader]->setUniform("FrameHeight", (float)_frameBufferSize);
+  _shaders[shader]->setUniform("FrameWidth", (float)_frameBufferSize[ptrState->frameBuffer]);
+  _shaders[shader]->setUniform("FrameHeight", (float)_frameBufferSize[ptrState->frameBuffer]);
   _shaders[shader]->setUniform("EnvMap", (int)1);
   _shaders[shader]->setUniform("RefractionMap", (int)2);
   break;

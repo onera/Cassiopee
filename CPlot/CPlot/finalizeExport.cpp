@@ -54,10 +54,11 @@ PyObject* K_CPLOT::finalizeExport(PyObject* self, PyObject* args)
   d->ptrState->shootScreen = 0;
   d->ptrState->_mustExport = 0;
   d->ptrState->_isExporting = 0;
-  if ( finalizeType == 4 ) {
-    free(d->ptrState->offscreenBuffer);
-    d->ptrState->offscreenBuffer = NULL;
-    free(d->ptrState->offscreenDepthBuffer);
+  if (finalizeType == 4) 
+  {
+    free(d->ptrState->offscreenBuffer[d->ptrState->frameBuffer]);
+    d->ptrState->offscreenBuffer[d->ptrState->frameBuffer] = NULL;
+    free(d->ptrState->offscreenDepthBuffer[d->ptrState->frameBuffer]);
   }
   pthread_cond_signal(&d->ptrState->unlocked_export); // signal end of export
   pthread_mutex_unlock(&d->ptrState->export_mutex);

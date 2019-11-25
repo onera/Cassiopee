@@ -64,7 +64,7 @@ Data::Data(CPlotState* ptState)
   _view.angle = 50.;
 
   // frameBufferSize doit etre > taille du viewport
-  _frameBufferSize = 2048;
+  for (E_Int i = 0; i < 10; i++) _frameBufferSize[i] = 2048;
   // Nbre de voxels dans les voxels buffer
   _voxelBufferSize = 96;
   // Init variables
@@ -227,8 +227,9 @@ void Data::initState()
   ptrState->texture = 0;
   ptrState->isoLegend = 0;
   ptrState->offscreen = 0;
-  ptrState->offscreenBuffer = NULL;
-  ptrState->offscreenDepthBuffer = NULL;
+  ptrState->frameBuffer = 0; 
+  for (E_Int i = 0; i < 10; i++) ptrState->offscreenBuffer[i] = NULL;
+  for (E_Int i = 0; i < 10; i++) ptrState->offscreenDepthBuffer[i] = NULL;
 
   // overlay message
   ptrState->message = NULL;

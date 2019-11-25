@@ -196,7 +196,9 @@ Actions
     :type zoneNames: list of strings
     :param renderTags: optional list of render tags (same size as arrays, struct zones, then unstruct zones)
     :type renderTags: list of strings
-    :param offscreen: 1 means offscreen rendering (mesa), 2 means offscreen rendering (openGL) (default: 0)
+    :param frameBuffer: the number of the frame buffer we are rendering to for offscreen rendering
+    :type frameBuffer: int
+    :param offscreen: 1: offscreen rendering (mesa), 2: offscreen rendering (openGL), 3: partial composite offscreen rendering, 4: final composite offscreen rendering (default: 0)
     :type offscreen: int
 
     *Example of use:*
