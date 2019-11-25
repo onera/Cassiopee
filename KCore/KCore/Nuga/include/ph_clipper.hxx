@@ -482,6 +482,8 @@ namespace NUGA
       }
 
       nb_t3 = cT3.cols();
+      
+      // build the output ph
 
       result.m_crd = crd;
       if (dbg) std::cout << crd << std::endl;

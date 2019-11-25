@@ -44,11 +44,11 @@ int chrono::verbose = 2;
 
 #ifdef OUTPUT_XCELLN
 #include <sstream>
-#include "medit.hxx"
+#include "Nuga/include/medit.hxx"
 #endif
 
 #ifdef DEBUG_UNIFY
-#include "medit.hxx"
+#include "Nuga/include/medit.hxx"
 #include "Nuga/Boolean/NGON_debug.h"
 using NGDBG  = NGON_debug<K_FLD::FloatArray, K_FLD::IntArray>;
 #endif
@@ -539,12 +539,270 @@ bool compute_zone_blanking(const K_FLD::FloatArray& crd, ngon_type& ng,
   return true;
 }
 
-void compute_zone_overlaps(NUGA::INTERSECT::eOPER oper, const K_FLD::FloatArray& crd, ngon_type& ng, loc_t** mask_locs, ngon_unit** mask_skins, K_FLD::FloatArray** mask_crds, E_Int nb_masks, 
-                           std::vector<E_Float>& xcelln, K_FLD::FloatArray& crdo, ngon_type& ngo, std::vector<bool>& in_points)
+void build_current(ngon_type& ng, E_Int i, const K_FLD::FloatArray& crd, aELT1& aPHcur, E_Float& V0, bool is_inward1, bool make_inward1)
+{
+  aPHcur.set(ng,i, crd); // self-contained with pt histo
+  // make orientation consistent
+  aPHcur.reorient();
+
+  // Compute initial volume
+  E_Int err = aPHcur.volume<DELAUNAY::Triangulator>(V0, false/*need reorient*/);
+
+  is_inward1=false;
+  if (V0 < 0.) //point inward
+  {
+    is_inward1 = true;
+    V0 = -V0;
+  }
+
+  //classification based on operation
+  if (make_inward1 && !is_inward1)
+  {
+    aPHcur.reverse();
+    is_inward1 = true;
+  }
+  
+#ifdef DEBUG_UNIFY
+     //NGDBG::draw_PGs("ecur", aPHcur.m_crd, aPHcur.m_pgs);
+#endif
+}
+
+void build_cutter(ngon_unit* skinp, std::vector<E_Int>& candsp, const K_FLD::FloatArray& crdp, bool make_inward, aELT1& aPHcutter)
+{
+#ifdef DEBUG_UNIFY
+  //NGDBG::draw_PGs("shapeG", crdp,  *skinp, candsp);
+#endif
+
+  // gather the polygons as a single shape
+  K_CONNECT::IdTool::shift(candsp, 1);//because it was 0-based
+  ELT2 gPH2(skinp, &candsp[0], candsp.size());
+
+  aPHcutter.set(gPH2, crdp); // self-contained with pt histo
+  
+  //WARNING : supposed outward at init (reorient skins) => nothing to do if DIFF or UNION (duplication)
+   if (make_inward) aPHcutter.reverse();
+      
+#ifdef DEBUG_UNIFY
+  NGDBG::draw_PGs("cutter", aPHcutter.m_crd, aPHcutter.m_pgs);    
+#endif
+}
+
+E_Int robust_clip(acrd_t& acrdcur, aELT1& aPHcur, bool is_inward1, acrd_t& acrdcut, aELT2& aPHcutter, aELT1& aPHclip, bool dbg)
+{
+  E_Float PS_MIN0 = ::cos(0.1*K_CONST::E_1_PI/180.); // 0.1°
+  
+  E_Float RTOL=1.e-6;
+  E_Float PS_MIN = PS_MIN0;
+  E_Int err(0), contact; 
+
+  do
+  {
+    if (dbg) std::cout << "isolated_clip : PS_MIN/RTOL : " << PS_MIN << "/" << RTOL << std::endl;
+
+    contact = 0;
+    err = NUGA::INTERSECT::isolated_clip(acrdcur, aPHcur, is_inward1, acrdcut, aPHcutter, PS_MIN, RTOL, aPHclip, contact, dbg);
+
+    RTOL *=10;
+    PS_MIN -=0.01;   
+  }
+  while (err && RTOL <= 1.e-1);
+  
+  return err;
+  
+}
+
+bool update_volume(aELT1& aPHcur, const K_FLD::FloatArray&crdp, ngon_unit* skinp, const loc_t* locp, aELT1& aPHclip, E_Float& vcur, bool classify_geom)
+{
+  bool true_clip(true);
+  E_Float v;
+  if (!classify_geom) // non_empy polyclip answer
+  {
+    E_Int er = aPHclip.volume<DELAUNAY::Triangulator>(v, false/*need reorient*/);
+    v = (v < 0.) ? -v : v;
+    classify_geom = (v/vcur >= 1. - E_EPSILON); // if the volume is the same => do the test in/out
+  }
+
+  if (classify_geom)
+  {        
+    eCellType ret = cell_is_inside_mask(aPHcur, crdp, *skinp, locp->get_tree());
+    assert (ret != AMBIGUOUS);
+    v = (ret == IN) ? 0. : vcur;
+  }
+  
+  true_clip = !classify_geom;
+  if (true_clip) assert (v < vcur && 0. < v);
+  
+  vcur=v;
+  
+  return true_clip;
+}
+
+bool incremental_clip
+(ngon_unit* skinp, const K_FLD::FloatArray& crdp, const loc_t* locp, bool is_inward1, bool make_inward2, aELT1& aPHclip, aELT2& aPHcutter, aELT1& aPHcur, E_Float& vcur, bool dbg)
+{     
+  acrd_t acrdcur(aPHcur.m_crd); //necessary to be in the loop as crd change
+  
+  std::vector<E_Int> candsp, poids;
+  locp->get_candidates(aPHcur, acrdcur, candsp); //0-BASED
+
+  bool classify_geom = candsp.empty(); // no collision => fully in or out ?
+
+  E_Int err(0);
+  if (!classify_geom)
+  {
+    build_cutter(skinp, candsp, crdp, make_inward2, aPHcutter);
+    acrd_t acrdcut(aPHcutter.m_crd);
+    err = robust_clip(acrdcur, aPHcur, is_inward1, acrdcut, aPHcutter, aPHclip, dbg);
+    if (err)
+    {
+      vcur=0.;
+      return true;
+    }
+    classify_geom = (aPHclip.m_crd.cols() == 0); //empty answer
+  }
+
+  //update the current volume and tells if it was a true clipping
+  bool true_clip = update_volume(aPHcur, crdp, skinp, locp, aPHclip, vcur, classify_geom);
+
+  if (true_clip)
+  {
+    if (!aPHcur.poids.empty())
+      poids = aPHcur.poids; //sauvegrade avant excrasement (todo : spécialiser operator==
+
+    aPHcur = aPHclip;// next patch. checkme : required ? 
+
+    if (!poids.empty())
+    {
+      poids.resize(aPHclip.m_crd.cols(), E_IDX_NONE);
+      for (size_t u=0; u < aPHclip.m_crd.cols(); ++u)
+        if (aPHclip.poids[u] != E_IDX_NONE) poids[u] = poids[aPHclip.poids[u]];
+      aPHcur.poids = poids;
+    }
+
+#ifdef DEBUG_UNIFY
+  NGDBG::draw_PGs("lastcut", aPHcur.m_crd, aPHcur.m_pgs);
+#endif
+  }
+  
+  return false;
+}
+
+
+
+E_Float compute_coeff(aELT1& aPHcur, E_Int nb_pts0, E_Float vcur, E_Float V0, std::vector<bool>& in_points)
+{
+  E_Float coeff = vcur/V0;
+  E_Float TOL = 1.e-6;//1.e-4; //fixme
+  coeff = (coeff > 1. - TOL) ? OUT : coeff;
+  coeff = (coeff < TOL) ? IN : coeff;
+
+  // check if the PH after the complete polyclip doesn't contain any mask wall (other wall are not taken into account )
+  // if it does, flag any point from initial cell as "in"
+  if (aPHcur.m_pgs._type.empty())
+    return coeff;
+  
+  bool has_in_body_bits = false;
+
+  for (E_Int f=0; f < aPHcur.nb_faces(); ++f)
+  {
+    if (aPHcur.m_pgs._type[f] == BCWALL)
+    {
+      has_in_body_bits = true;
+      break;
+    }
+  }
+  
+  if (!has_in_body_bits)
+    return coeff;
+
+  // multi-bit, check which one is in-body. if some, modify the coeff, if all, coeff := IN_BODY
+
+  ngon_unit neighbors;
+  std::vector<E_Int> colors;
+  K_MESH::Polygon::build_pg_neighborhood(aPHcur.m_pgs, neighbors);
+  K_CONNECT::EltAlgo<K_MESH::Polygon>::coloring (neighbors, colors);
+  E_Int nb_connex = 1+*std::max_element(colors.begin(), colors.end());
+
+  std::vector<bool> is_wall_free(nb_connex, true);
+
+  if (nb_connex == 1)
+  {
+    coeff = IN_BODY;
+    is_wall_free[0]=false;
+  }
+  else //detect any IN_BODY bit
+  {
+    for (E_Int f=0; f < aPHcur.nb_faces(); ++f)
+    {
+      if (aPHcur.m_pgs._type[f] == BCWALL)
+       is_wall_free[colors[f]] = false;
+    }
+
+    bool has_good=false;
+    for (E_Int c=0; c < nb_connex; ++c)
+      has_good |= (is_wall_free[c] == true);
+
+    if (!has_good)
+      coeff = IN_BODY;
+    else // compute the coef based on OUT pieces
+    {
+      std::vector<E_Int> facs;
+      for (size_t u=0; u < aPHcur._nb_faces; ++u)
+        if (is_wall_free[colors[u]])facs.push_back(aPHcur._faces[u]);
+
+      E_Float v=0.;
+      aPHcur.volume<DELAUNAY::Triangulator>(v, false/*need reorient*/);
+      v = (v < 0.) ? -v : v;
+      coeff = v/V0;
+      coeff = (coeff > 1.) ? 1. : coeff;
+      coeff = (coeff < 0.) ? 0. : coeff;
+    }
+  }
+
+  // for NON AMBIGUOUS inside bits, flag orignal node to detect false OUT
+  const ngon_unit* pgs1 = &aPHcur.m_pgs;
+  bool ambiguous = false;
+  for (E_Int u=0; (u < aPHcur._nb_faces) && !ambiguous; ++u)
+  {
+    if (is_wall_free[colors[u]]) continue;
+    if (aPHcur.m_pgs._type[u] == WALL1)
+    {
+      ambiguous = true; break;
+    }
+  }
+
+  //if (!ambiguous) std::cout << "good catch!!" << std::endl;
+
+  for (E_Int u=0; (u < aPHcur._nb_faces) && !ambiguous; ++u)
+  {
+    if (is_wall_free[colors[u]]) continue;
+
+    E_Int Fi = aPHcur._faces[u]-1;
+    E_Int nbn = pgs1->stride(Fi);
+    const E_Int * nodes = pgs1->get_facets_ptr(Fi);
+    for (E_Int n=0; n < nbn; ++n)
+    {
+      E_Int Ni = nodes[n] - 1;
+      E_Int lid = aPHcur.poids[Ni];
+      if (lid >= nb_pts0) 
+      {
+        //std::cout << lid << " is greater than " << nb_pts1 << std::endl;
+        continue;
+      }
+
+      //std::cout << "CAUGHT POINT : " << lid << std::endl;
+      E_Int gpid = aPHcur.poids[lid];
+      in_points[gpid] = true;
+    }
+  }
+  
+  return coeff;
+}
+
+void compute_zone_overlaps(const K_FLD::FloatArray& crd, ngon_type& ng, loc_t** mask_locs, ngon_unit** mask_skins, K_FLD::FloatArray** mask_crds, E_Int nb_masks, 
+                           std::vector<E_Float>& xcelln, K_FLD::FloatArray& crdo, ngon_type& ngo, std::vector<bool>& in_points, bool make_inward1, bool make_inward2)
 {
   // per-cell loop / per-mask loop
-  
-  E_Float PS_MIN0 = ::cos(0.1*K_CONST::E_1_PI/180.); // 0.1°
   
 #ifdef DEBUG_UNIFY
     E_Int badPH = 102212;//102212;//618798;630963
@@ -552,11 +810,7 @@ void compute_zone_overlaps(NUGA::INTERSECT::eOPER oper, const K_FLD::FloatArray&
 #endif
   
   E_Int nb_phs = ng.PHs.size();
-  
-  std::vector<E_Int> candsp;
-
-  std::vector<E_Int> lxpoids;// global id :  nodes history (for interior blanking)
-  
+    
   in_points.clear();
   in_points.resize(crd.cols(), false);
   
@@ -572,308 +826,36 @@ void compute_zone_overlaps(NUGA::INTERSECT::eOPER oper, const K_FLD::FloatArray&
     //std::cout << "xcelln[PH] : " << xcelln[i] << std::endl;
 #endif
 
-    lxpoids.clear();
-
     if (xcelln[i] != COLLIDE) continue;
-
-    ELT1 gPHi(ng,i);
-
-    aPHcur.set(gPHi, crd); // self-contained with pt histo
     
+    E_Float V0;
+    bool is_inward1;
+    build_current(ng, i, crd, aPHcur, V0, is_inward1, make_inward1);
+        
     E_Int nb_pts1 = aPHcur.m_crd.cols();
 
+    bool dbg = false;
 #ifdef DEBUG_UNIFY
-     //NGDBG::draw_PGs("ecur", aPHcur.m_crd, aPHcur.m_pgs);
+    dbg = (i == badPH /*&& Z == badZ*/);
 #endif
 
-    // reorient
-    aPHcur.reorient();
-
-    // Compute initial volume
-    E_Float V0;
-    E_Int err = aPHcur.volume<DELAUNAY::Triangulator>(V0, false/*need reorient*/);
-
-    bool inward1=false;
-    if (V0 < 0.) //point inward => reverse
-    {
-      inward1 = true;
-      V0 = -V0;
-    }
-
-    //classification based on operation
-    if (oper == NUGA::INTERSECT::eOPER::INTERSECTION || oper == NUGA::INTERSECT::eOPER::DIFFERENCE)
-    {
-      // RULE : inward normals
-      if (!inward1)
-      {
-        aPHcur.reverse();
-        inward1 = true;
-      }
-    }
-
     E_Float vcur = V0;
-    E_Float coeff(1.);
-
-    K_FLD::FloatArray lcrd10=aPHcur.m_crd;
-    acrd_t acrd10(lcrd10);
-    ngon_unit lpgs10=aPHcur.m_pgs;
-    std::vector<E_Int> FACES0;
-    K_CONNECT::IdTool::init_inc(FACES0, aPHcur.m_pgs.size(), 1);
-    K_MESH::Polyhedron<UNKNOWN> e10(&lpgs10, &FACES0[0], lpgs10.size());
-
-    ///
-    for (E_Int m=0; (m < nb_masks) && (coeff > E_EPSILON); ++m)  // multi-overlap loop : by decsreasing priority (sorted by the caller)
+    /// incremental clipping
+    for (E_Int m=0; (m < nb_masks) && (vcur > E_EPSILON); ++m)  // multi-overlap loop : by decsreasing priority (sorted by the caller)
     {
       const loc_t* locp = mask_locs[m];
       ngon_unit* skinp = mask_skins[m];
       const K_FLD::FloatArray& crdp = *mask_crds[m];
 
-      acrd_t acrdcur(aPHcur.m_crd); //necessary to be in the loop as crd change
-
-      candsp.clear();
-      locp->get_candidates(e10, acrd10, candsp); //0-BASED
-      
-      if (candsp.empty())
-      {
-        
-        eCellType ret = cell_is_inside_mask(aPHcur, crdp, *skinp, locp->get_tree());
-        assert (ret != AMBIGUOUS);
-        
-        if (ret == IN)
-        {
-          coeff = 0.;
-          break;
-        }
-        continue;        
-      }
+      bool err = incremental_clip(skinp, crdp, locp, is_inward1, make_inward2, aPHclip, aPHcutter, aPHcur, vcur, dbg);
 
 #ifdef DEBUG_UNIFY
-      //NGDBG::draw_PGs("shapeG", crdp,  *skinp, candsp);
+      if (err) std::cout << "ERROR for PHS : " << i /*<< " in zone : " << z */<< std::endl;
 #endif
-
-      // gather the polygons as a single shape
-      E_Int nb_faces2 = candsp.size();
-      K_CONNECT::IdTool::shift(candsp, 1);//because it was 0-based
-      ELT2 gPH2(skinp, &candsp[0], nb_faces2);
-      
-      aPHcutter.set(gPH2, crdp); // self-contained with pt histo
-      acrd_t acrd2(aPHcutter.m_crd);
-      
-#ifdef DEBUG_UNIFY
-      if (i == badPH /*&& Z == badZ*/){
-        NGDBG::draw_PGs("ecur", aPHcur.m_crd, aPHcur.m_pgs);
-        std::cout << "nbe2 : " << aPHclip.m_pgs.size() << std::endl;
-        NGDBG::draw_PGs("shape", aPHclip.m_crd, aPHclip.m_pgs);    
-        //std::cout << "crd2 : " << std::endl;
-        //std::cout << crd2 << std::endl;
-      }
-#endif
-
-      //outward at init (reorient skins) => nothing to do if DIFF or UNION (duplication)
-      if (oper == NUGA::INTERSECT::eOPER::INTERSECTION)
-        aPHcutter.reverse();
-
-      bool dbg = false;
-#ifdef DEBUG_UNIFY
-      dbg = (i == badPH /*&& Z == badZ*/);
-#endif
-      
-      E_Int err(0);
-      E_Float RTOL=1.e-6;
-      E_Float PS_MIN = PS_MIN0;
-      E_Int contact; 
-      //bool simplified_tried = false;
-      //E_Float angular_tol = 1.e-12;
-      
-      do
-      {
-        if (dbg)
-        {
-          std::cout << "isolated_clip : PS_MIN/RTOL : " << PS_MIN << "/" << RTOL << std::endl;
-        }
-
-        contact = 0;
-        err = NUGA::INTERSECT::isolated_clip(acrdcur, aPHcur, inward1, acrd2, aPHcutter, PS_MIN, RTOL, aPHclip, contact, dbg);
-        RTOL *=10;
-        PS_MIN -=0.01;
-        
-//        in case we need to simplify the clipped PH        
-//        if (RTOL > 1.e-1 && err && !simplified_tried)
-//        {
-//          // try with simplified e1
-//          std::vector<E_Int> nids, orient(e1._nb_faces, 1);
-//          ngon_unit neighbors;
-//          K_MESH::Polygon::build_pg_neighborhood(*e1._pgs, neighbors);
-//          K_CONNECT::EltAlgo<K_MESH::Polygon>::reversi_connex(*e1._pgs, neighbors, 0, orient);
-//          K_MESH::Polygon::full_agglomerate(acrd1.array(), *e1._pgs, e1._faces, e1._nb_faces, angular_tol, &orient[0], lpgs1, nids);
-//          
-//          RTOL=1.e-6; //reset
-//          PS_MIN = PS_MIN0;
-//          simplified_tried = true;
-//        }
-        
-      }
-      while (err && RTOL <= 1.e-1);
-      
-      //compute the volume and update the coefficient
-      E_Float v(vcur);
-      bool check_fully_in_or_out = false;
-      bool empty=false;
-
-      if (err)
-      {
-#ifdef DEBUG_UNIFY
-        std::cout << "ERROR for PHS : " << i /*<< " in zone : " << z */<< std::endl;
-#endif
-        coeff = 0.;
-        continue;
-      }
-      else if (aPHclip.m_crd.cols() == 0) //fully in or out ?
-        empty = check_fully_in_or_out = true;
-      else
-      {
-        E_Int er = aPHclip.volume<DELAUNAY::Triangulator>(v, false/*need reorient*/);
-        v = (v < 0.) ? -v : v;
-        check_fully_in_or_out = (v/vcur >= 1. - E_EPSILON); // if the volume is the same => do the test in/out
-      }
-      
-      if (check_fully_in_or_out)
-      {        
-        eCellType ret = cell_is_inside_mask(empty ? aPHcur : aPHclip, crdp, *skinp, locp->get_tree());
-        assert (ret != AMBIGUOUS);
-        
-        v = (ret == IN) ? 0. : vcur;
-      }
-
-     
-      // true clip      
-      if (v < vcur /*&& 0. < v : to activate*/)
-      {
-        aPHcur = aPHclip;// next patch. checkme : required ? 
-        
-        if (lxpoids.empty())//first mask iteration
-          lxpoids = aPHclip.poids;
-        else
-        {
-          lxpoids.resize(aPHclip.m_crd.cols(), E_IDX_NONE);
-          for (size_t u=0; u < aPHclip.m_crd.cols(); ++u)
-            if (aPHclip.poids[u] != E_IDX_NONE) lxpoids[u] = lxpoids[aPHclip.poids[u]];
-        }
-  
-#ifdef DEBUG_UNIFY
-      NGDBG::draw_PGs("lastcut", aPHcur.m_crd, aPHcur.m_pgs);
-#endif
-        vcur = v;
-      }
-
-      coeff = v/V0;
-
-      E_Float TOL = 1.e-6;//1.e-4; //fixme
-
-      coeff = (coeff > 1. - TOL) ? OUT : coeff;
-      coeff = (coeff < TOL) ? IN : coeff;
-
     }
     
-    // check if the PH after the complete polyclip doesn't contain any mask wall (other wall are not taken into account )
-    // if it does, flag any point from initial cell as "in"
-    if (!aPHcur.m_pgs._type.empty())
-    {
-      bool has_in_body_bits = false;
-      //bool is_ambiguous = false; //ambiguous
-      
-      for (E_Int f=0; f < aPHcur.nb_faces(); ++f)
-      {
-        if (aPHcur.m_pgs._type[f] == BCWALL)
-        {
-          has_in_body_bits = true;
-          //std::cout << "has_in_body_bits !!!!!!!!!!!" << std::endl;
-          break;
-        }
-      }
-      
-      if (has_in_body_bits) // if multi-bit, check which one is in-body. if some, modify the coeff, if all, coeff := IN_BODY
-      {
-        ngon_unit neighbors;
-        std::vector<E_Int> colors;
-        K_MESH::Polygon::build_pg_neighborhood(aPHcur.m_pgs, neighbors);
-        K_CONNECT::EltAlgo<K_MESH::Polygon>::coloring (neighbors, colors);
-        E_Int nb_connex = 1+*std::max_element(colors.begin(), colors.end());
-        
-        std::vector<bool> is_wall_free(nb_connex, true);
-        
-        if (nb_connex == 1)
-        {
-          coeff = IN_BODY;
-          is_wall_free[0]=false;
-        }
-        else //detect any IN_BODY bit
-        {
-          for (E_Int f=0; f < aPHcur.nb_faces(); ++f)
-          {
-            if (aPHcur.m_pgs._type[f] == BCWALL)
-             is_wall_free[colors[f]] = false;
-          }
-          
-          bool has_good=false;
-          for (E_Int c=0; c < nb_connex; ++c)
-            has_good |= (is_wall_free[c] == true);
-          
-          if (!has_good)
-            coeff = IN_BODY;
-          else // compute the coef based on OUT pieces
-          {
-            std::vector<E_Int> facs;
-            for (size_t u=0; u < aPHcur._nb_faces; ++u)
-              if (is_wall_free[colors[u]])facs.push_back(aPHcur._faces[u]);
-            
-            E_Float v=0.;
-            aPHcur.volume<DELAUNAY::Triangulator>(v, false/*need reorient*/);
-            v = (v < 0.) ? -v : v;
-            coeff = v/V0;
-            coeff = (coeff > 1.) ? 1. : coeff;
-            coeff = (coeff < 0.) ? 0. : coeff;
-          }
-        }
-        
-        // for NON AMBIGUOUS inside bits, flag orignal node to detect false OUT
-        const ngon_unit* pgs1 = &aPHcur.m_pgs;
-        bool ambiguous = false;
-        for (E_Int u=0; (u < aPHcur._nb_faces) && !ambiguous; ++u)
-        {
-          if (is_wall_free[colors[u]]) continue;
-          if (aPHcur.m_pgs._type[u] == WALL1)
-          {
-            ambiguous = true; break;
-          }
-        }
-        
-        //if (!ambiguous) std::cout << "good catch!!" << std::endl;
-        
-        for (E_Int u=0; (u < aPHcur._nb_faces) && !ambiguous; ++u)
-        {
-          if (is_wall_free[colors[u]]) continue;
-
-          E_Int Fi = aPHcur._faces[u]-1;
-          E_Int nbn = pgs1->stride(Fi);
-          const E_Int * nodes = pgs1->get_facets_ptr(Fi);
-          for (E_Int n=0; n < nbn; ++n)
-          {
-            E_Int Ni = nodes[n] - 1;
-            E_Int lid = lxpoids[Ni];
-            if (lid >= nb_pts1) 
-            {
-              //std::cout << lid << " is greater than " << nb_pts1 << std::endl;
-              continue;
-            }
-            
-            //std::cout << "CAUGHT POINT : " << lid << std::endl;
-            E_Int gpid = aPHcur.poids[lid];
-            in_points[gpid] = true;
-          }
-        }
-      }
-    }
+    // compute the coeff
+    E_Float coeff = compute_coeff(aPHcur, nb_pts1, vcur, V0, in_points);
     
     if (coeff == OUT) coeff = UNSET; // reset any supposedly VISIBLE at this stage. might be a false and preturbate the logic for coloring IN_BODY zones.
 
@@ -1091,7 +1073,9 @@ void MOVLP_unify(const std::vector<K_FLD::FloatArray*> &crds, const std::vector<
 
     // MULTI POLYCLIP": IN, IN_BODY, true partial coeff 
     std::vector<bool> in_points;
-    compute_zone_overlaps(oper, crd, ng, hiding_locs.get(), hiding_skins.get(), hiding_crds.get(), sz, xcelln[z], crdo, ngo, in_points);
+    bool make_inward1 = (oper == NUGA::INTERSECT::eOPER::INTERSECTION || oper == NUGA::INTERSECT::eOPER::DIFFERENCE);
+    bool make_inward2 = (oper == NUGA::INTERSECT::eOPER::INTERSECTION);//outward at init (reorient skins) => nothing to do if DIFF or UNION (duplication)
+    compute_zone_overlaps(crd, ng, hiding_locs.get(), hiding_skins.get(), hiding_crds.get(), sz, xcelln[z], crdo, ngo, in_points, make_inward1, make_inward2);
 
 #ifdef OUTPUT_XCELLN
     std::ostringstream o;

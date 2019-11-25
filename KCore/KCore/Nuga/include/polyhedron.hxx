@@ -32,6 +32,10 @@ struct aPolyhedron : public K_MESH::Polyhedron<TopoShape>
   aPolyhedron(const ngon_unit& lpgs, const K_FLD::FloatArray& crd);
  
   aPolyhedron(const aPolyhedron& r):m_pgs(r.pgs), m_faces(r.m_faces), m_crd(r.m_crd){plug();}
+  
+    
+  aPolyhedron& operator=(const parent_type& rhs) = delete;
+  aPolyhedron& operator=(const aPolyhedron& rhs) = delete;
           
   void set(const parent_type& ph, const K_FLD::FloatArray& crd);
   
@@ -127,11 +131,24 @@ struct haPolyhedron : public aPolyhedron<TopoShape>
   
   haPolyhedron& operator=(const base_type& rhs) = delete; // crd must be also specified so disable this operation (permanent)
   haPolyhedron& operator=(const parent_type& rhs) = delete;// {set(rhs, rhs.m_crd);} delet until required
-  haPolyhedron& operator=(const haPolyhedron& rhs){set(rhs, rhs.m_crd);}
+  haPolyhedron& operator=(const haPolyhedron& rhs);
           
   void set(const base_type& ph, const K_FLD::FloatArray& crd);
+  void set(ngon_type& ng, E_Int PHi, const K_FLD::FloatArray& crd);
   
 };
+
+///
+template <int TopoShape>
+haPolyhedron<TopoShape>& haPolyhedron<TopoShape>::operator=(const haPolyhedron<TopoShape>& rhs)
+{
+  poids = rhs.poids;
+  parent_type::m_pgs = rhs.m_pgs;
+  parent_type::m_faces = rhs.m_faces;
+  parent_type::m_crd = rhs.m_crd;
+  
+  parent_type::plug();
+}
 
 ///
 template <int TopoShape>
@@ -142,6 +159,14 @@ void haPolyhedron<TopoShape>::set(const base_type& ph, const K_FLD::FloatArray& 
   K_CONNECT::IdTool::init_inc(parent_type::m_faces, parent_type::m_pgs.size(), 1);
   
   parent_type::plug();
+}
+
+///
+template <int TopoShape>
+void haPolyhedron<TopoShape>::set(ngon_type& ng, E_Int PHi, const K_FLD::FloatArray& crd)
+{
+  base_type e(ng,PHi);
+  set(e, crd);
 }
 
 }
