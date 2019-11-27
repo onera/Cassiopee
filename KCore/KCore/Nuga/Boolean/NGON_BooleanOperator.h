@@ -813,6 +813,7 @@ E_Int NGON_BOOLEAN_CLASS::Intersection
       return err;
 
     coord = _coord;
+    ngon_type::simplify_pgs(_ngXs, coord);
     __compact_and_join(_ngXs, coord);
     _ngXs.export_to_array(connect);
     if (connect.cols() == 0)ret =ERROR;
@@ -902,6 +903,7 @@ E_Int NGON_BOOLEAN_CLASS::Diff
       return err;
 
     coord = _coord;
+    ngon_type::simplify_pgs(_ng1, coord);
     __compact_and_join(_ng1, coord);
     _ng1.export_to_array(connect);
     _ngoper=&_ng1; // for mapping upon exit
@@ -969,11 +971,11 @@ E_Int NGON_BOOLEAN_CLASS::Diffsurf
   }
   
   coord=_coord;
+  ngon_type::simplify_pgs(_ng1, coord);
   __compact_and_join(_ng1, coord);
   _ng1.export_to_array(connect);
   _ngoper=&_ng1; // for mapping upon exit
- 
-  
+
 #ifdef DEBUG_BOOLEAN
   medith::write("D12.mesh", coord, _ng1);
 #endif
@@ -1166,6 +1168,7 @@ E_Int NGON_BOOLEAN_CLASS::Modified_Solid
   }
   
   coord=_coord;
+  ngon_type::simplify_pgs(_ngXh, coord);
   __compact_and_join(_ngXh, coord);
   _ngXh.export_to_array(connect);
   

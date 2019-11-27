@@ -2840,6 +2840,7 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
   
   static E_Int flag_manifold_nodes(const ngon_t& ng, const K_FLD::FloatArray& crd, Vector_t<bool>& mnfld_nodes)
   {
+    ng.PGs.updateFacets();
 
     Vector_t<link_t> links(crd.cols());
     
