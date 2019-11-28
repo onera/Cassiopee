@@ -387,7 +387,7 @@ PyObject* K_CPLOT::getActivePointIndex(PyObject* self, PyObject* args)
         }
         d->ptrState->activePointK = -v-1;
       }
-      else d->ptrState->activePointK = findFace(
+      else d->ptrState->activePointK = -findFace(
         posX, posY, posZ, indE, zz, dist);
     }
 

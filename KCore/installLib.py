@@ -26,25 +26,25 @@ installPathLocal = K.installPath
 # La librarie statique existe?
 a = os.access(installPathLocal+"/KCore/libkcore.a", os.F_OK)
 if a:
-    shutil.copy(installPathLocal+"/KCore/libkcore.a", libPath+"/libkcore.a")
+    shutil.copyfile(installPathLocal+"/KCore/libkcore.a", libPath+"/libkcore.a")
 else: # Essai en dynamique
     a = os.access(installPathLocal+"/KCore/kcore"+__EXTMODULE__, os.F_OK)
     if a:
-        shutil.copy(installPathLocal+"/KCore/kcore"+__EXTMODULE__,
-                    libPath+"/libkcore"+__EXTSHARED__) 
+        shutil.copyfile(installPathLocal+"/KCore/kcore"+__EXTMODULE__,
+                        libPath+"/libkcore"+__EXTSHARED__) 
     else:
         print("Error: kcore%s can not be found in %s."%(__EXTMODULE__,installPathLocal))
 
 # Copie aussi les .py
-shutil.copy("config.py", installPathLocal+"/KCore/config.py")
-shutil.copy("Dist.py", installPathLocal+"/KCore/Dist.py")
-shutil.copy("installPath.py", installPathLocal+"/KCore/installPath.py")
-shutil.copy("installBase.py", installPathLocal+"/KCore/installBase.py")
+shutil.copyfile("config.py", installPathLocal+"/KCore/config.py")
+shutil.copyfile("Dist.py", installPathLocal+"/KCore/Dist.py")
+shutil.copyfile("installPath.py", installPathLocal+"/KCore/installPath.py")
+shutil.copyfile("installBase.py", installPathLocal+"/KCore/installBase.py")
 
 # Ecrit les infos d'install
 import Dist
 Dist.writeBuildInfo()
-shutil.copy("buildInfo.py", installPathLocal+"/KCore/buildInfo.py")
+shutil.copyfile("buildInfo.py", installPathLocal+"/KCore/buildInfo.py")
 
 # Ecrit les fichiers d'environnement
 Dist.writeEnvs()

@@ -691,8 +691,8 @@ PyObject* K_IO::GenIOHdf::getArrayR8(hid_t node, hid_t tid, int dim, int* dims,
 {
   IMPORTNUMPY;
   PyArrayObject* r = NULL;
-  vector<npy_intp>       npy_dim_vals(dim);
-  hid_t          did, yid;
+  vector<npy_intp> npy_dim_vals(dim);
+  hid_t did, yid;
   // for (E_Int nn = 0; nn < dim; nn++) printf("getArrayR8 of dims :: %d \n", dims[nn]);
   // printf("K_IO::GenIOHdf::getArrayR8 \n ");
   // Create numpy: toujours en DOUBLE

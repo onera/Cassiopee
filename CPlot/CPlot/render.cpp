@@ -43,5 +43,6 @@ PyObject* K_CPLOT::render(PyObject* self, PyObject* args)
   }
 
   d->ptrState->render = 1;
+  if (d->ptrState->offscreen > 0) d->ptrState->shootScreen = 1;
   return Py_BuildValue("i", KSUCCESS);
 }

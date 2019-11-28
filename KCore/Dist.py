@@ -246,7 +246,7 @@ def writeEnvs():
      if cassiopee != '': p.write("export CASSIOPEE=%s\n"%cassiopee)
      if elsaprod != '': p.write("export ELSAPROD=%s\n"%elsaprod)
      p.write("export OMP_NUM_THREADS=%d\n"%mt)
-     p.write("export PATH=%s:%s/bin $PATH\n"%(cmdPath,cmdPath))
+     p.write("export PATH=%s:%s/bin:$PATH\n"%(cmdPath,cmdPath))
      p.write("if [ \"$PYTHONPATH\" = \"\" ]; then\n")
      p.write("      export PYTHONPATH=%s\n"%installPathLocal)
      p.write("else\n")

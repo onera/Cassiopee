@@ -55,13 +55,13 @@ def suppressCells():
         CPlot.setState(cursor=1)
         while CTK.__BUSY__:
             l = []
-            while (l == []):
+            while l == []:
                 nz = CPlot.getSelectedZone()
                 l = CPlot.getActivePointIndex()
                 CPlot.unselectAllZones()
                 time.sleep(CPlot.__timeStep__)
                 W.update()
-                if (CTK.__BUSY__ == False): break
+                if CTK.__BUSY__ == False: break
             if CTK.__BUSY__:
                 nob = CTK.Nb[nz]+1
                 noz = CTK.Nz[nz]
@@ -113,7 +113,7 @@ def refineCells():
                 z = CTK.t[2][nob][2][noz]
                 C._initVars(z, 'centers:__tag__', 0)
                 C.setValue(z, 'centers:__tag__', l[1], 1)
-                try: 
+                try:
                     z = P.refine(z, '__tag__')
                     CTK.replace(CTK.t, nob, noz, z)
                 except: pass

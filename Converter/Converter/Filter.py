@@ -238,9 +238,9 @@ def _loadVariables(a, fileName, znp, var, format):
         fvars.append(Internal.__FlowSolutionNodes__+'/'+s[1]); cont = Internal.__FlowSolutionNodes__
        else:
         s = v.split('/')
-        if len(s) == 2: 
-          fvars.append(s[0]+'/'+s[1]); cont = Internal.__FlowSolutionNodes__
-        else: 
+        if len(s) == 2:
+          fvars.append(s[0]+'/'+s[1]); cont = s[0]
+        else:
           fvars.append(Internal.__FlowSolutionNodes__+'/'+v); cont = Internal.__FlowSolutionNodes__
 
     for p in znps:

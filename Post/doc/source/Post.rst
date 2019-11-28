@@ -950,6 +950,7 @@ Solution extraction
     The interpolation cell search can be preconditioned if extractMesh is applied several times using the same donor mesh.
     Parameter hook is only used in 'robust' mode and is a list of ADT (one per donor zone), each of them must be created and deleted by C.createHook and C.freeHook (see Converter module userguide).
 
+    Exists also as in place version (_extractMesh) that modifies a and return None.
 
     *Example of use:*
 

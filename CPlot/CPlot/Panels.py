@@ -505,9 +505,11 @@ def sendMail(event=None):
     mailData['mailMe'] = mailData['meWidget'].get("1.0", TK.END)
     mailData['mailFriends'] = mailData['friendWidget'].get("1.0", TK.END)
     txt = mailData['titleWidget'].get("1.0", TK.END)
-    mailData['titleText'] = txt.encode('utf-8')
+    #mailData['titleText'] = txt.encode('utf-8')
+    mailData['titleText'] = txt
     txt = mailData['messageWidget'].get("1.0", TK.END)
-    mailData['messageText'] = txt.encode('utf-8')
+    #mailData['messageText'] = txt.encode('utf-8')
+    mailData['messageText'] = txt
     mailData['bugReport'] = False
     CTK.PREFS['mailMe'] = mailData['mailMe']
     if 'mailFriends' in CTK.PREFS:
@@ -524,9 +526,11 @@ def sendBug(event=None):
     mailData['mailMe'] = mailData['meWidget'].get("1.0", TK.END)
     mailData['mailFriends'] = mailData['friendWidget'].get("1.0", TK.END)
     txt = mailData['titleWidget'].get("1.0", TK.END)
-    mailData['titleText'] = txt.encode('utf-8')
+    #mailData['titleText'] = txt.encode('utf-8')
+    mailData['titleText'] = txt
     txt = mailData['messageWidget'].get("1.0", TK.END)
-    mailData['messageText'] = txt.encode('utf-8')
+    #mailData['messageText'] = txt.encode('utf-8')
+    mailData['messageText'] = txt
     mailData['bugReport'] = True
     CTK.PREFS['mailMe'] = mailData['mailMe']
     CTK.PREFS['mailFriends'] = mailData['mailFriends']
@@ -700,7 +704,8 @@ def writeDocument(event=None):
     docData['docText'] = docData['textWidget'].get("1.0", TK.END)
     docData['blog'] = False
     CTK.PREFS['docName'] = docData['docName']
-    s = docData['docText'].encode('base64', 'strict')
+    #s = docData['docText'].encode('base64', 'strict')
+    s = docData['docText']
     s = s.split('\n'); s = "".join(s)
     CTK.PREFS['docText'] = s
     CTK.savePrefFile()
@@ -713,7 +718,8 @@ def writeBlog(event=None):
     docData['docText'] = docData['textWidget'].get("1.0", TK.END)
     docData['blog'] = True
     CTK.PREFS['docName'] = docData['docName']
-    s = docData['docText'].encode('base64', 'strict')
+    #s = docData['docText'].encode('base64', 'strict')
+    s = docData['docText']
     s = s.split('\n'); s = "".join(s) 
     CTK.PREFS['docText'] = s
     CTK.savePrefFile()
@@ -768,7 +774,8 @@ def openDocWindow():
         B.grid(row=1, column=1, columnspan=2, sticky=TK.EW)
         docData['textWidget'] = B
         if 'docText' in CTK.PREFS:
-            s = CTK.PREFS['docText'].decode('base64', 'strict')
+            #s = CTK.PREFS['docText'].decode('base64', 'strict')
+            s = CTK.PREFS['docText']
             B.insert(TK.END, s)
         B = TTK.Button(DOCWINDOW, text="Cancel", command=cancelDocument)
         B.grid(row=2, column=0, sticky=TK.EW)    
@@ -1250,7 +1257,6 @@ def loadZones(event=None):
         OVARS[4][i] = tname
         zList.append(v)
     # Charge les GC+GC+BC pour les zones selectionnees + variables deja dans t
-    print(zList)
     CTK.HANDLE._loadZonesWoVars(CTK.t, zList)
     vars = C.getVarNames(CTK.t, excludeXYZ=True)
     if len(vars)>1:
@@ -1277,7 +1283,7 @@ def unloadZones(event=None):
         WIDGETS['LBZONES'].delete(s)
         WIDGETS['LBZONES'].insert(s, v)
         i = getNumber(OVARS[4], v, tname)
-        v = v.encode('utf-8') # Cedre!!
+        #v = v.encode('utf-8') # Cedre!!
         OVARS[4][i] = v
         zList.append(v)
     for p in zList:

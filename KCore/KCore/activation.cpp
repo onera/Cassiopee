@@ -21,7 +21,7 @@ char* installPath()
   {
     PyObject* dict = PyModule_GetDict(pModule);
 
-#if PY_VERSION_HEX >= 0x03000000    
+#if PY_VERSION_HEX >= 0x03000000
     PyObject* o = PyDict_GetItem(dict, PyUnicode_FromString("libPath"));
     char* retChar = (char*)PyUnicode_AsUTF8(o);
 #else

@@ -153,7 +153,7 @@ PyObject* K_CPLOT::displayAgain(PyObject* self, PyObject* args)
   if (stereoDist != -1.) d->ptrState->stereoDist = stereoDist;
 
   // offscreen rendering?
-  if (offscreen > 0) d->ptrState->offscreen = offscreen;
+  if (offscreen > 0) { d->ptrState->offscreen = offscreen; d->ptrState->shootScreen = 1; }
   if (frameBuffer >= 0 && frameBuffer < 10) d->ptrState->frameBuffer = frameBuffer;
 
   if (d->ptrState->offscreen == 1) // MESA offscreen

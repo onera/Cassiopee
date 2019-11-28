@@ -715,10 +715,10 @@ def _correctOppositRanges(t, ntype):
 # dans sa base
 #==============================================================================
 def checkZoneFamily(t):
-    zones = Internal.getZones(t)
     errors = []
     bases = Internal.getBases(t)
     for b in bases:
+        zones = Internal.getZones(b)
         for z in zones:
             f = Internal.getNodeFromType1(z, 'FamilyName_t')
             if f is not None: # zone taggee

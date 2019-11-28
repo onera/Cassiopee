@@ -20,11 +20,11 @@ installPathLocal = K.installPath
 # La librarie statique existe?
 a = os.access(installPathLocal+"/XCore/libxcore.a", os.F_OK)
 if a:
-    shutil.copy(installPathLocal+"/XCore/libxcore.a", libPath+"/libxcore.a")
+    shutil.copyfile(installPathLocal+"/XCore/libxcore.a", libPath+"/libxcore.a")
 else: # Essai en dynamique
     a = os.access(installPathLocal+"/XCore/xcore"+__EXTMODULE__, os.F_OK)
     if a:
-        shutil.copy(installPathLocal+"/XCore/xcore"+__EXTMODULE__,
-                    libPath+"/libxcore"+__EXTSHARED__) 
+        shutil.copyfile(installPathLocal+"/XCore/xcore"+__EXTMODULE__,
+                        libPath+"/libxcore"+__EXTSHARED__) 
     else:
         print("Error: xcore"+__EXTMODULE__+" can not be found.")

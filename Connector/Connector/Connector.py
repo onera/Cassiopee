@@ -59,13 +59,13 @@ def connectMatch(a1, a2, sameZone=0, tol=1.e-6, dim=3):
             indirBlkOfWins.append(1)
             typeOfWins.append(win2)
     
-    allWins = C.extractVars(allWins,['x','y','z'])
+    allWins = C.extractVars(allWins, ['x','y','z'])
     allTags = C.node2Center(allWins)
-    allTags = C.initVars(allTags,'tag1',-1.) # defines the opposite window
-    allTags = C.initVars(allTags,'tag2',-2.) # defines the opposite index in opposite window
+    allTags = C.initVars(allTags, 'tag1', -1.) # defines the opposite window
+    allTags = C.initVars(allTags, 'tag2', -2.) # defines the opposite index in opposite window
 
-    allTags = identifyMatching(allTags,tol)
-    allTags = C.extractVars(allTags,['tag1','tag2'])
+    allTags = identifyMatching(allTags, tol)
+    allTags = C.extractVars(allTags, ['tag1','tag2'])
 
     # Gather matching cells into structured patches [ [[noz1,noz2],[imin1,imax1,...],[imin2,imax2,...],trirac] ]
     infos = gatherMatching(allWins, allTags, typeOfWins, indirBlkOfWins, dimsI, dimsJ, dimsK, dim, tol)

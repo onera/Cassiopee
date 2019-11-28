@@ -7,7 +7,7 @@ __author__ = "Christophe Benoit, Stephanie Peron, Pascal Raud, Matthieu Soismier
 #
 from . import cplot
 import time
-__timeStep__ = 0.02
+__timeStep__ = 0.01
 __slot__ = None
 
 try: range = xrange
@@ -298,7 +298,8 @@ def setState(dim=-1,
              billBoards=None,
              billBoardSize=-1,
              materials=None, bumpMaps=None,
-             frameBuffer=-1):
+             frameBuffer=-1,
+             offscreen=0):
     """Set CPlot state.
     Usage: setState(posCam=(12,0,0))"""
     cplot.setState(dim, mode, scalarField, vectorField1, vectorField2,
@@ -316,7 +317,7 @@ def setState(dim=-1,
                    envmap, message,
                    stereo, stereoDist, cursor, gridSize, timer, selectionStyle,
                    activateShortCuts, billBoards, billBoardSize, 
-                   materials, bumpMaps, frameBuffer)
+                   materials, bumpMaps, frameBuffer, offscreen)
 
 def setMode(mode):
     """Set CPlot display mode.

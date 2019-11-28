@@ -19,11 +19,11 @@ installPathLocal = K.installPath
 # La librarie statique existe?
 a = os.access(installPathLocal+"/Connector/libconnector.a", os.F_OK)
 if a:
-    shutil.copy(installPathLocal+"/Connector/libconnector.a", libPath+"/libconnector.a")
+    shutil.copyfile(installPathLocal+"/Connector/libconnector.a", libPath+"/libconnector.a")
 else: # Essai en dynamique
     a = os.access(installPathLocal+"/Connector/connector"+__EXTMODULE__, os.F_OK)
     if a:
-        shutil.copy(installPathLocal+"/Connector/connector"+__EXTMODULE__,
-                    libPath+"/libconnector"+__EXTSHARED__) 
+        shutil.copyfile(installPathLocal+"/Connector/connector"+__EXTMODULE__,
+                        libPath+"/libconnector"+__EXTSHARED__) 
     else:
         print("Error: connector"+__EXTMODULE__+" can not be found.")

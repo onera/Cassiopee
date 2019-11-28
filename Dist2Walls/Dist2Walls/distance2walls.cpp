@@ -261,7 +261,7 @@ void K_DIST2WALLS::computeMininterf(
       if (cellnw0[i] == 1.)
       { xw2[c] = xw[i]; yw2[c] = yw[i]; zw2[c] = zw[i]; c++; }
     }
-  }//fin kdtree
+  } // fin kdtree
   if (c != wallpts->getSize()) wallpts->reAllocMat(c, 3);
 
   if (c == 0)

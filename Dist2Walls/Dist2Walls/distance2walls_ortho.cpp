@@ -252,7 +252,7 @@ void K_DIST2WALLS::computeOrthoDist(
 {
   E_Int nzones = fields.size();
   /* 1 - creation du kdtree et du bbtree */
-  typedef K_SEARCH::BoundingBox<3>  BBox3DType; 
+  typedef K_SEARCH::BoundingBox<3> BBox3DType; 
   E_Float minB[3]; E_Float maxB[3];
   vector< vector<BBox3DType*> > vectOfBoxes;// a detruire a la fin
   
@@ -367,7 +367,7 @@ void K_DIST2WALLS::computeOrthoDist(
       E_Float dist, dx, dy, dz, xp, yp, zp, rx, ry, rz, rad;
       E_Float distmin, prod;
       E_Int et, ind10;
-      if ( isFlagged==true && flagp[ind] == 0.) { ;}
+      if (isFlagged==true && flagp[ind] == 0.) { ;}
       else
       {
       indicesBB.clear(); candidates.clear();
