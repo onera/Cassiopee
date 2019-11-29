@@ -536,7 +536,7 @@ def deformNormals(array, alpha, niter=1):
             noi += 1
         return b
     
-    elif (not isinstance(array[0], list) and not isinstance(alpha[0], list)):
+    elif not isinstance(array[0], list) and not isinstance(alpha[0], list):
         if array[1].shape[1] != alpha[1].shape[1]: raise ValueError("deformNormals: array and alpha must be of same length.")
         npts = array[1].shape[1]
         alp = alpha[1][0]/niter

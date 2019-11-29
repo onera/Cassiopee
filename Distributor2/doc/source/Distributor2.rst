@@ -264,7 +264,7 @@ Various operations
 
 ----------------------------------------------------------------
 
-.. py:function:: Distributor2.redispatch(a)
+.. py:function:: Distributor2.Mpi.redispatch(a)
 
     Redispatch a tree where a new distribution is defined in the node 'proc'.
 

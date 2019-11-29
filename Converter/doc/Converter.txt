@@ -1,4 +1,19 @@
 ==============================================================================
+Converter 3.0 [12/2019]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.0
+Optional: libhdf5 > 1.8.6 (hdf file format)
+Optional: extractBCOfType, extractBCOfName requires Transform 3.0
+Optional: Mpi requires mpi4py
+- Internal: rmNodesFromType optimised
+- Internal: rmNodesFromType1,2
+- Filter: loadZones
+- Filter: writeZones
+- Filter: writeZonesWoVariables
+- Filter: writeVariables
+- Filter: writePyTreeFromPaths
+- Filter: writePyTreeFromFilter
+- bin_tp read with field in centers
+==============================================================================
 Converter 2.9 [06/2019]
 Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.9
 Optional: libhdf5 > 1.8.6 (hdf file format)

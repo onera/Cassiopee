@@ -602,10 +602,25 @@ def setBCWith():
 
     CTK.saveTree()
     wins = C.getEmptyBC(CTK.t, ndim, splitFactor)
+    
+    # calcul nzr : le nz dans la numerotation des fenetres emptys
+    nzr = {}
+    c = 0; cs = 0
+    for wb in wins:
+        for wz in wb:
+            for w in wz:
+                if isinstance(w, list): nzr[c] = cs; cs += 1
+                c += 1
+    c = 0; cu = 0
+    for wb in wins:
+        for wz in wb:
+            for w in wz:
+                if not isinstance(w, list): nzr[c] = cu+cs; cu += 1
+                c += 1
+
     bases = Internal.getBases(CTK.t)
     for nz in nzs: # pour chaque zone selectionnee
-        c = 0
-        nob = 0
+        c = 0; nob = 0
         for wb in wins: # par base
             b = bases[nob]
             zones = Internal.getNodesFromType1(b, 'Zone_t')
@@ -614,7 +629,7 @@ def setBCWith():
                 z = zones[noz]
                 dim = Internal.getZoneDim(z)
                 for w in wz:
-                    if c == nz:
+                    if nzr[c] == nz:
                         if dim[0] == 'Structured': # structure
                             C._addBC2Zone(z, nameBC, typeBC, w)
                         elif dim[0] == 'Unstructured' and dim[3] == 'NGON':
@@ -622,12 +637,12 @@ def setBCWith():
                         else: # BE + BCC
                             zp = T.subzone(z, w, type='faces')
                             zp[0] = C.getZoneName(zp[0])
-                            C._addBC2Zone(z, nameBC, typeBC,
-                                          subzone=zp)
+                            C._addBC2Zone(z, nameBC, typeBC, subzone=zp)
                     c += 1
                 noz += 1
             nob += 1
         #print 'BC is ', w, 'corresponding ', nob-1, noz-1
+
     CTK.TXT.insert('START', 'BCs set to %s.\n'%typeBC)
     CTK.TKTREE.updateApp()
     check()

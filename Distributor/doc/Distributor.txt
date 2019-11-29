@@ -1,4 +1,12 @@
 ===============================================================================
+Distributor 3.0 [12/2019]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.0
+Require: Cassiopee Kernel 3.0
+===============================================================================
+Distributor 2.9 [06/2019]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.9
+Require: Cassiopee Kernel 2.9
+===============================================================================
 Distributor 2.8 [12/2018]
 Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.8
 Require: Cassiopee Kernel 2.8

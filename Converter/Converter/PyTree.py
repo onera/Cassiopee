@@ -1121,8 +1121,8 @@ def convertPyTree2File(t, fileName, format=None, isize=4, rsize=8,
     pickle.dump(t, file, protocol=pickle.HIGHEST_PROTOCOL); file.close()
     print('done.')
   else:
-    _fillMissingVariables(t) # force all zones to have the same variables 
-    a = center2Node(t, Internal.__FlowSolutionCenters__)
+    tp = fillMissingVariables(t) # force all zones to have the same variables 
+    a = center2Node(tp, Internal.__FlowSolutionCenters__); tp = None
     a = getAllFields(a, 'nodes')
     a = Internal.clearList(a)
     zoneNames = getZoneNames(t, prefixByBase=False)
@@ -4373,7 +4373,7 @@ def _rmBCOfName(t, bndName):
 # -- getEmptyBC
 # Return the list of empty BCs:
 # return range (structured) or face list (unstructured) of undefined BCs
-# for any zone in any basis
+# for any zone in any bases
 # if t=tree: returns [winsBase1, winsBase2,...],
 # with winsBase=[winzone1Base1, winzone2Base1,...]
 # if all the BCs are defined for a zone, [] is returned for the zone

@@ -34,13 +34,15 @@ a = Cmpi.readZones(a, 'in.cgns', rank=Cmpi.rank)
                          useCom='match')
 
 a = D2mpi.redispatch(a)
+Internal._sortByName(a)
 if Cmpi.rank == 0: test.testT(a, 1)
 
 # force toutes les zones sur 0
-zones = Internal.getNodesFromType(a, 'Zone_t')
+zones = Internal.getZones(a)
 for z in zones:
-    nodes = Internal.getNodesFromName(z, 'proc')
-    Internal.setValue(nodes[0], 0)
+    node = Internal.getNodeFromName2(z, 'proc')
+    Internal.setValue(node, 0)
 
 a = D2mpi.redispatch(a)
+Internal._sortByName(a)
 if Cmpi.rank == 0: test.testT(a, 2)

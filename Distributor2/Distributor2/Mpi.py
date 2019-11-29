@@ -9,6 +9,7 @@ from . import PyTree as D2
 # IN: graph: graph 'proc'
 #==============================================================================
 def redispatch(t, graph=None):
+    """Redistribute tree from graph."""
     if graph is None:
         graph = Cmpi.computeGraph(t, type='proc')
     procs = D2.getProcDict(t)
