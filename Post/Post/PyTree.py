@@ -131,11 +131,10 @@ def _extractMesh(t, extractionMesh, order=2, extrapOrder=1,
             raise ValueError("_extractMesh: invalid number of zones.")
         nor = 0
         for r in res:
-            nozorig=orderedZones[nor]
+            nozorig = orderedZones[nor]
             z = Internal.getZones(extractionMesh)[nozorig]
-            C.setFields([r], z, 'nodes')
-            nor+=1
-
+            C.setFields([r], z, 'nodes', writeDim=False)
+            nor += 1
 
     else: # accurate: extract les centres sur le maillage en centres
         varsC = C.getVarNames(t, excludeXYZ=True, loc='centers')
@@ -144,7 +143,7 @@ def _extractMesh(t, extractionMesh, order=2, extrapOrder=1,
         varsC = varsC[0]; varsN = varsN[0]
         zones = Internal.getZones(extractionMesh)
         if len(varsN) != 0:
-            an = C.getFields(Internal.__GridCoordinates__, zones,api=1)
+            an = C.getFields(Internal.__GridCoordinates__, zones, api=1)
             allf = C.getAllFields(t, 'nodes', api=1)
             if allf != []:
                 res = Post.extractMesh(allf, an, order, extrapOrder,
@@ -153,10 +152,10 @@ def _extractMesh(t, extractionMesh, order=2, extrapOrder=1,
                     raise ValueError("_extractMesh: invalid number of zones.")
                 nor = 0
                 for r in res:
-                    nozorig=orderedZones[nor]
+                    nozorig = orderedZones[nor]
                     z = Internal.getZones(extractionMesh)[nozorig]
-                    C.setFields([r], z, 'nodes')
-                    nor+=1
+                    C.setFields([r], z, 'nodes', writeDim=False)
+                    nor += 1
 
 
         if len(varsC) != 0:
@@ -192,8 +191,8 @@ def _extractMesh(t, extractionMesh, order=2, extrapOrder=1,
                 for r in res:
                     nozorig=orderedZones[nor]
                     z = Internal.getZones(extractionMesh)[nozorig]
-                    C.setFields([r], z, 'centers')
-                    nor+=1
+                    C.setFields([r], z, 'centers', writeDim=False)
+                    nor += 1
     return None
 
 def coarsen(t, indicName='indic', argqual=0.1, tol=1.e6):

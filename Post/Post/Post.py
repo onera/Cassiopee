@@ -241,8 +241,8 @@ def exteriorFaces(a, indices=None):
     else:
         return exteriorFacesForOneArray__(a, indices)
 
-def exteriorFacesForOneArray__(a,indices):
-    if (len(a) == 4 and (a[3] == 'PENTA' or a[3] == 'PYRA')):
+def exteriorFacesForOneArray__(a, indices):
+    if len(a) == 4 and (a[3] == 'PENTA' or a[3] == 'PYRA'):
         try:
             import Generator
             a = Converter.convertArray2NGon(a)
@@ -359,7 +359,7 @@ def _computeVariables2(array, varname,
 
 def computeExtraVariable(array, varname, gamma=1.4, rgp=287.53,
                          Cs=110.4, mus=1.76e-5, Ts=273.15):
-    """Compute variables that requires a change of location."""
+    """Compute variables that require a change of location."""
     from . import extraVariables
     if varname == 'Vorticity':
         return extraVariables.computeVorticity(array)
@@ -481,7 +481,7 @@ def computeDiff(array, varname):
         for a in array:
             b =  Converter.extractVars(a,[varname])
             posc = KCore.isNamePresent(a, 'cellN')
-            if (posc != -1):
+            if posc != -1:
                 celln = Converter.extractVars(a, ['cellN'])
                 b = Converter.addVars([b,celln])
             A.append(b)
@@ -489,7 +489,7 @@ def computeDiff(array, varname):
         b = []
         for i in A:
             b0 = post.computeDiff(i, varname); b0[0] = 'diff'+b0[0]
-            b.append( b0)
+            b.append(b0)
         return b
     else:
         b = Converter.extractVars(array,[varname])
@@ -627,11 +627,11 @@ def buildTag1__(array, F, varStrings):
     tag = numpy.zeros(nsize, numpy.float64)
 
     if l == 0:
-        if (F() == True): tag[:] = 1
+        if F() == True: tag[:] = 1
     else:
         for i in range(nsize):
-            x = [ n[pos[j]-1,i] for j in range(l)]
-            if (F(*x) == True): tag[i] = 1
+            x = [n[pos[j]-1,i] for j in range(l)]
+            if F(*x) == True: tag[i] = 1
     tag = tag.reshape(1, tag.size)
     if len(array) == 5: out = ['__tag__', tag, array[2], array[3], array[4]]
     else: out = ['__tag__', tag, array[2], array[3]]

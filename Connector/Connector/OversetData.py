@@ -1870,6 +1870,7 @@ def getUnsteadyConnectInfos(t):
 # Compliant with setInterpData storage
 #=============================================================================
 def getOversetInfo(aR, topTreeD, loc='nodes', type='interpolated'):
+    """Return information on overset connectivities."""
     tR = Internal.copyRef(aR)
 
     if type == 'interpolated':
@@ -2231,6 +2232,7 @@ def globalIndex__(ni, nj, nk, pointList):
 # Cette fonction remplace le noeud oversetHoles
 #==============================================================================
 def cellN2OversetHoles(t, append=False):
+    """Create OversetHole nodes from cellN field."""
     if append:
         try: import Compressor
         except: raise ImportError("cellN2OversetHoles: requires Compressor module.")
