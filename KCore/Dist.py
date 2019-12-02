@@ -2,7 +2,7 @@
 import os, sys, distutils.sysconfig, platform, glob, subprocess
 
 # Toggle to True for compiling for debug (valgrind, inspector)
-DEBUG = False
+DEBUG = True
 
 #==============================================================================
 # Check module import
@@ -93,7 +93,7 @@ def checkAll(summary=True):
     (ok, FLibs, FLibPaths) = checkFortranLibs(additionalLibPaths, additionalIncludePaths)
     if ok: out += ['f77: OK (%s, %s).'%(FLibs, FLibPaths)]
     else: out += ['f77: Fail.']
-    (ok, hdfIncDir, hdfLibDir) = checkHdf(additionalLibPaths, additionalIncludePaths)
+    (ok, hdfIncDir, hdfLibDir,hdflibs) = checkHdf(additionalLibPaths, additionalIncludePaths)
     if ok: out += ['hdf: OK (%s, %s).'%(hdfIncDir, hdfLibDir)]
     else: out += ['hdf: missing (%s, %s).'%(hdfIncDir, hdfLibDir)]
     (ok, pngIncDir, pngLibDir) = checkPng(additionalLibPaths, additionalIncludePaths)
@@ -1222,22 +1222,31 @@ def checkAdf(additionalLibPaths=[], additionalIncludePaths=[]):
 # Retourne: (True/False, chemin des includes, chemin de la librairie)
 #=============================================================================
 def checkHdf(additionalLibPaths=[], additionalIncludePaths=[]):
+    libnames = []
     l = checkLibFile__('libhdf5.so', additionalLibPaths)
+    if l is not None : libnames.append('hdf5')
     if l is None:
         l = checkLibFile__('libhdf5.a', additionalLibPaths)
+        if l is not None : libnames.append('hdf5')
+    if l is None:
+        l = checkLibFile__('libhdf5_openmpi.so', additionalLibPaths)
+        if l is not None : libnames.append('hdf5_openmpi')
+    if l is None:
+        l = checkLibFile__('libhdf5_serial.so', additionalLibPaths)
+        if l is not None : libnames.append('hdf5_serial')
     i = checkIncFile__('hdf5.h', additionalIncludePaths)
     if i is not None and l is not None:
         print('Info: Hdf5 detected at %s.'%l)
-        return (True, i, l)
+        return (True, i, l,libnames)
     elif l is None and i is not None:
         print('Info: libhdf5 was not found on your system. No hdf5 support.')
-        return (False, i, l)
+        return (False, i, l,libnames)
     elif l is not None and i is None:
         print('Info: hdf5.h was not found on your system. No hdf5 support.')
-        return (False, i, l)
+        return (False, i, l,libnames)
     else:
         print('Info: libhdf5 or hdf5.h was not found on your system. No hdf5 support.')
-        return (False, i, l)
+        return (False, i, l,libnames)
 
 #=============================================================================
 # Check for Mpi
@@ -1659,8 +1668,8 @@ def writeBuildInfo():
      else: dict['mpeg'] = "None"
 
      # Check hdf5
-     (hdf, hdfIncDir, hdfLib) = checkHdf(config.additionalLibPaths,
-                                         config.additionalIncludePaths)
+     (hdf, hdfIncDir, hdfLib,hdflibname) = checkHdf(config.additionalLibPaths,
+                                                    config.additionalIncludePaths)
      if hdf: dict['hdf'] = hdfLib
      else: dict['hdf'] = "None"
 

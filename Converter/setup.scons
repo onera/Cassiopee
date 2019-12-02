@@ -28,8 +28,8 @@ installPath = Dist.getInstallPath(prefix)
 from KCore.config import *
 
 # Test if libhdf5 exists ======================================================
-(hdf, hdfIncDir, hdfLibDir) = Dist.checkHdf(additionalLibPaths,
-                                            additionalIncludePaths)
+(hdf, hdfIncDir, hdfLibDir,hdflibs) = Dist.checkHdf(additionalLibPaths,
+                                                    additionalIncludePaths)
 
 # Test if libpng exists ======================================================
 (png, pngIncDir, pngLibDir) = Dist.checkPng(additionalLibPaths,
@@ -57,7 +57,7 @@ if mpi and mpi4py:
     includeDirs.append(mpiIncDir)
     includeDirs.append(mpi4pyIncDir)
     ADDITIONALCPPFLAGS = ['-D_MPI']
-if hdf: libraries.append('hdf5')
+if hdf: libraries.append(hdflibs)
 if png: libraries.append('png')
 if mpi: libraries += mpiLibs
     

@@ -6,6 +6,7 @@ from . import Mpi as Cmpi
 from .Distributed import convert2PartialTree, _convert2PartialTree, convert2SkeletonTree, _convert2SkeletonTree, convertFile2SkeletonTree, _readPyTreeFromPaths, readPyTreeFromPaths, _readZones, \
 _convert2SkeletonTree, readNodesFromPaths, writeNodesFromPaths, writePyTreeFromPaths, deletePaths, fixPaths__
 import numpy
+from XCore import xcore
 
 # Prend un fileName, si c'est toto/*, rend la liste des fichiers
 def expand(fileName):
@@ -58,7 +59,7 @@ def writePyTreeFromFilter(t, fileName, filter, format='bin_hdf', com=None, skelD
 # readProcNode: si True, ajoute le procNode (pas lu si depth < 4)
 #============================================================================
 def readZoneHeaders(fileName, format=None, baseNames=None, familyZoneNames=None, BCType=None,
-                    maxDepth=3, readProcNode=False):
+                    maxDepth=3, readProcNode=False, readGridElementRange = False):
     a = convertFile2SkeletonTree(fileName, format, maxDepth=maxDepth, maxFloatSize=6)
     # filter by base names
     if baseNames is not None:
@@ -113,6 +114,17 @@ def readZoneHeaders(fileName, format=None, baseNames=None, familyZoneNames=None,
           paths.append(path)
         for z in zones:
           Internal._createUniqueChild(z, '.Solver#Param', 'UserDefinedData_t')
+      _readPyTreeFromPaths(a, fileName, paths, format)
+    if readGridElementRange:
+      paths = []
+      bases = Internal.getBases(a)
+      for b in bases:
+        zones = Internal.getZones(b)
+        for z in zones:
+          grelt = Internal.getNodesFromType1(z, 'Elements_t')
+          for e in grelt:
+            path = '/'+b[0]+'/'+z[0]+'/'+e[0]+'/ElementRange'
+            paths.append(path)
       _readPyTreeFromPaths(a, fileName, paths, format)
     return a, znp
 
@@ -725,6 +737,124 @@ class Handle:
       import Compressor.PyTree as Compressor
       Compressor._uncompressCartesian(t)
     return t
+
+  def distributedLoadAndSplitSkeleton(self, NParts=None, NProc=Cmpi.size):
+    """
+    Load mesh topology in a distributed way : each processus loads a partial data of the
+    connectivity, to have a partitionned data among the processes.
+
+    
+    :param      NParts:  The number of parts
+    :type       NParts:  Integer
+    :param      NProc:   The number of processes
+    :type       NProc:   Integer. Value by default : number  of processes runned with MPI
+    """
+    a = None
+    if Cmpi.rank == 0:
+      a, self.znp = readZoneHeaders(self.fileName, self.format, readGridElementRange=True)
+    a = Cmpi.bcast(a)
+    # force loc2glob to himself from himself
+    bases = Internal.getBases(a)
+    nb_tot_verts = 0
+    for z in Internal.getZones(a):
+      dim = Internal.getZoneDim(z)
+      nb_tot_verts                += dim[1]
+    f = {}
+    for b in bases:
+      for z in Internal.getZones(b):
+        connectivities = Internal.getElementNodes(z)
+        for c in connectivities:
+          eltName, nb_nodes_per_elt = Internal.eltNo2EltName(c[1][0])
+          rg = Internal.getNodeFromName(c, 'ElementRange')
+          nb_elts = rg[1][1]
+          #print(f"number of elements : {nb_elts}, element type name : {eltName}, number of nodes per element : {nb_nodes_per_elt}")
+          nb_loc_elts = nb_elts // Cmpi.size
+          reste_elts = nb_elts % Cmpi.size
+          if Cmpi.rank < reste_elts :
+            nb_loc_elts += 1
+          beg_elt = Cmpi.rank * nb_loc_elts
+          if Cmpi.rank >= reste_elts :
+            beg_elt += reste_elts
+          beg_elt *= nb_nodes_per_elt
+          nb_loc_elts *= nb_nodes_per_elt
+          f[b[0]+'/'+z[0]+'/' + c[0] + '/ElementConnectivity'] = [[0], [1], [nb_loc_elts], [1],
+                                                                  [beg_elt], [1], [nb_loc_elts], [1],
+                                                                  [nb_elts*nb_nodes_per_elt]]
+        dim = Internal.getZoneDim(z)
+        nb_verts = dim[1]
+        nb_loc_verts = nb_verts//Cmpi.size
+        reste_verts = nb_verts % Cmpi.size
+        if Cmpi.rank < reste_verts:
+          nb_loc_verts += 1
+        beg_verts = nb_loc_verts * Cmpi.rank
+        if Cmpi.rank >= reste_verts:
+          beg_verts += reste_verts
+        f[b[0]+'/'+z[0]+'/GridCoordinates/CoordinateX'] = [[0], [1], [nb_loc_verts], [1],
+                                                           [beg_verts],[1],[nb_loc_verts], [1], [nb_verts]]
+        f[b[0]+'/'+z[0]+'/GridCoordinates/CoordinateY'] = [[0], [1], [nb_loc_verts], [1],
+                                                           [beg_verts],[1],[nb_loc_verts], [1], [nb_verts]]
+        f[b[0]+'/'+z[0]+'/GridCoordinates/CoordinateZ'] = [[0], [1], [nb_loc_verts], [1],
+                                                           [beg_verts],[1],[nb_loc_verts], [1], [nb_verts]]
+    #print(f"f = {f}",flush=True)
+    dvars = readNodesFromFilter(self.fileName, f)
+    #print(f"dvars : {dvars}")
+    # Mis en donne par zone pour le decoupeur :
+    zones = []
+    for b in bases:
+      for z in Internal.getZones(b):
+        dim = Internal.getZoneDim(z)
+        nb_verts     = dim[1]
+        nb_glob_elts = dim[2]
+        coordinates = (dvars[b[0]+'/'+z[0]+'/GridCoordinates/CoordinateX'],
+                       dvars[b[0]+'/'+z[0]+'/GridCoordinates/CoordinateY'],
+                       dvars[b[0]+'/'+z[0]+'/GridCoordinates/CoordinateZ'])
+        zone = ([], coordinates, nb_verts, nb_glob_elts)
+        for c in connectivities:
+          eltName, nb_nodes_per_elt = Internal.eltNo2EltName(c[1][0])
+          zone[0].append((eltName,dvars[b[0]+'/'+z[0]+'/' + c[0] + '/ElementConnectivity']))
+        zones.append(zone)
+    #print(f"zones = {zones}")
+    splitted_data = xcore.split_elements(zones)
+    #print(f"splitted data : {splitted_data}",flush=True)
+
+    splitted_a = Internal.copyTree(a)
+    splitted_bases = Internal.getBases(splitted_a)
+    i_zone = 0
+    for b in splitted_bases:
+      for z in Internal.getZones(b):
+        vertexTag = splitted_data[0]["vertexTag"]
+        nbElts  = numpy.sum(splitted_data[0]["cellTag"] == i_zone)
+        nbVerts = numpy.sum(vertexTag == i_zone)
+        #nbElts = splitted_data[0]["cellLN2GN"].shape[0]
+        #nbVerts = splitted_data[0]["vertex"].shape[0]
+        z[1][0][0] = nbVerts
+        z[1][0][1] = nbElts
+        connectivities = Internal.getElementNodes(z)
+        for c in connectivities:
+          for type_elt in splitted_data[0]["cellVertex"]:
+            num_elt, nb_vertices_per_elt = Internal.eltName2EltNo(type_elt)
+            zone_tag, cellvertex = splitted_data[0]["cellVertex"][type_elt]
+            #print(f"zone tag : {zone_tag}, cellvertex : {cellvertex}, num_elt: {num_elt}")
+            if c[1][0] == num_elt:
+              #print(f"Rajout des connectivites")
+              connectivity = numpy.array([cellvertex[i] for i in range(0,nb_vertices_per_elt*zone_tag.shape[0]) if vertexTag[cellvertex[i]-1] == i_zone])
+              eltconnectivity = Internal.createNode('ElementConnectivity', 'DataArray_t', value=connectivity)
+              eltrange = Internal.createNode('ElementRange', 'IndexRange_t', value=numpy.array([1, connectivity.shape[0]]))
+              Internal.addChild(c, eltrange)
+              Internal.addChild(c, eltconnectivity)
+        grdcrd = Internal.getNodeFromName(z, 'GridCoordinates')
+        xcrds = numpy.array(splitted_data[0]["vertex"][:,0])
+        ycrds = numpy.array(splitted_data[0]["vertex"][:,1])
+        zcrds = numpy.array(splitted_data[0]["vertex"][:,2])
+        xcoords = Internal.createNode('CoordinateX', 'DataArray_t', value=xcrds)
+        ycoords = Internal.createNode('CoordinateY', 'DataArray_t', value=ycrds)
+        zcoords = Internal.createNode('CoordinateZ', 'DataArray_t', value=zcrds)
+        Internal.addChild(grdcrd, xcoords)
+        Internal.addChild(grdcrd, ycoords)
+        Internal.addChild(grdcrd, zcoords)
+
+    return splitted_a
+
 
   # Calcul et stocke des infos geometriques sur les zones
   def geomProp(self, znp=None):
