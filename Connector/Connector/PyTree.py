@@ -58,7 +58,7 @@ def _connectMatchNGON__(a, tol, dim, glob, allExtFaces=None, allExtIndices=None,
             zonesp.append(z)
             indirZones.append(noz)
         noz += 1
-    if len(zonesp)==0: return glob
+    if len(zonesp) == 0: return glob
 
     # Get undefined faces
     if allExtFaces is None or allExtIndices is None:
@@ -461,7 +461,7 @@ def connectMatchPeriodic(t, rotationCenter=[0.,0.,0.],
                          unitAngle=None):
     """Find periodic matching boundaries."""
     a = Internal.copyRef(t)
-    removeFSN=[]
+    removeFSN = []
     zones = Internal.getZones(a)
     for z in zones:
         if Internal.getNodeFromName(z,Internal.__FlowSolutionNodes__) is None: removeFSN.append(z[0])
@@ -1056,7 +1056,7 @@ def _blankCellsOpt(t, tb, blankingMatrix, depth=2, blankingType='cell_intersect'
 
                 nobase=0
                 for nob in range(len(t[2])):
-                    if t[2][nob][3]=='CGNSBase_t':
+                    if t[2][nob][3] == 'CGNSBase_t':
                         blanking = blankingMatrix[nobase,nobody]
                         if blanking == 1 or blanking==-1:
                             masknot = 0
@@ -1065,7 +1065,7 @@ def _blankCellsOpt(t, tb, blankingMatrix, depth=2, blankingType='cell_intersect'
                             allcoords=[]; allCellN = []
                             for noz in range(len(t[2][nob][2])):
                                 z = t[2][nob][2][noz]
-                                if z[3]=='Zone_t':
+                                if z[3] == 'Zone_t':
                                     for zb in Internal.getZones(tbBB[2][nos]):
                                         if G.bboxIntersection(tBB[2][nob][2][noz], zb,isBB=True)==1:
                                             coordsZ = C.getFields(Internal.__GridCoordinates__, z, api=2)[0]
@@ -1076,9 +1076,9 @@ def _blankCellsOpt(t, tb, blankingMatrix, depth=2, blankingType='cell_intersect'
                                 Connector._blankCells(allcoords, allCellN, bodies, blankingType=blankType, \
                                                       delta=delta, dim=dim, masknot=masknot, tol=tol,\
                                                       XRaydim1=XRaydim1, XRaydim2=XRaydim2, cellNName=cellNName)
-                        nobase+=1
+                        nobase += 1
 
-            nobody+=1
+            nobody += 1
     return None
 
 def _blankCells(a, bodies, blankingMatrix=[], depth=2,
@@ -1090,7 +1090,7 @@ def _blankCells(a, bodies, blankingMatrix=[], depth=2,
         print('Warning: blankCells: depth must be equal to 1 or 2. Set to default value (2).')
         depth = 2
     if blankingType== 'center_in':
-        print('Warning: _blankCells : cannot be applied yet with center_in.')
+        print('Warning: _blankCells: cannot be applied yet with center_in.')
         blankingType='cell_intersect'
 
     if (blankingType != 'cell_intersect' and \
@@ -1531,7 +1531,7 @@ def optimizeOverlap(t, double_wall=0, priorities=[], planarTol=0., intersections
                                 if isTempPeriodicZone2==0: parent2[2][d2] = z2
     # Delete duplicated periodic zones
     a = C.removeDuplicatedPeriodicZones__(a)
-    #
+    
     C._rmVars(a, 'centers:vol')
     # remise a jour du celln : de 3 passe a 2
     C._initVars(a,'{centers:cellN}=minimum(2.,{centers:cellN})')
@@ -1550,7 +1550,7 @@ def maximizeBlankedCells(t, depth=2, dir=1, loc='centers', cellNName='cellN'):
 
 def _maximizeBlankedCells(t, depth=2, dir=1, loc='centers', cellNName='cellN'):
     var = cellNName
-    if loc =='centers': var = 'centers:'+cellNName
+    if loc == 'centers': var = 'centers:'+cellNName
 
     ghost = Internal.getNodeFromName3(t, 'ZoneRind')
     if ghost is None: Internal._addGhostCells(t, t, depth, modified=[var])
@@ -1734,7 +1734,7 @@ def _setHoleInterpolatedPoints(a, depth=2, dir=0, loc='centers',
     _setHoleInterpolatedPoints__(a, depth, dir, count, loc, cellNName)
 
     if addGC:
-        count +=1    
+        count += 1
         ghost = Internal.getNodeFromName(a, 'ZoneRind')
         if ghost is None:
             if loc == 'centers': varcelln = 'centers:'+cellNName
@@ -1748,16 +1748,16 @@ def _setHoleInterpolatedPoints(a, depth=2, dir=0, loc='centers',
 # Retourne la liste des zones donneuses definies dans la CL doubly defined
 # ainsi que le cellN associe. Prend en compte les zones donneuses periodisees
 #=============================================================================
-def getDoublyDefinedDonorZones__(oversetgcnode,topTreeD):
+def getDoublyDefinedDonorZones__(oversetgcnode, topTreeD):
     listOfDnrZones=[]; listOfDnrCellN=[]
-    donorNames0=[]
+    donorNames0 = []
     DNS = Internal.getValue(oversetgcnode)
     if DNS is not None: donorNames0 = DNS.split(",")# liste de noms de zones ou de familles
     else: # nom de famille a la Cannelle
         DFN = Internal.getNodeFromName2(oversetgcnode,'DonorFamilyName')
         if DFN is not None: donorNames0 = Internal.getValue(DFN).split(",")
-    #
-    donorNames=[]
+    
+    donorNames = []
     for donorName in donorNames0:
         famZones = C.getFamilyZones(topTreeD,donorName)
         if famZones != []:
@@ -1795,7 +1795,7 @@ def getDoublyDefinedDonorZones__(oversetgcnode,topTreeD):
 def setDoublyDefinedBC(t, depth=2):
     a = Internal.copyRef(t)
     _addCellN__(a, loc='centers')
-    C._initVars(a,'centers:cellN_dd',1.)
+    C._initVars(a, 'centers:cellN_dd', 1.)
     #=======================================================================
     # 2 - Recherche des periodicites :
     #     duplication des blocs periodiques dans les bases associees

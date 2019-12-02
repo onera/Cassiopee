@@ -24,8 +24,8 @@ Dist.writeSetupCfg()
 from KCore.config import *
 
 # Test if libhdf5 exists ======================================================
-(hdf, hdfIncDir, hdfLibDir, hdflib) = Dist.checkHdf(additionalLibPaths,
-                                            additionalIncludePaths)
+(hdf, hdfIncDir, hdfLibDir, hdflibs) = Dist.checkHdf(additionalLibPaths,
+                                                     additionalIncludePaths)
 
 # Test if libpng exists ======================================================
 (png, pngIncDir, pngLibDir) = Dist.checkPng(additionalLibPaths,

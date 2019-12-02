@@ -75,6 +75,8 @@ Wall distance computation
     If loc='nodes', the distance field is stored as a 'TurbulentDistance' field located at nodes, and 
     if loc='centers', it is stored in nodes located at centers.
     
+    Exists also as an in-place version (_distance2Walls) that modifies a and returns None.
+
     *Example of use:*
 
     * `Compute distance to walls (array) <Examples/Dist2Walls/distance2Walls.py>`_:

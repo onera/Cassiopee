@@ -3919,17 +3919,17 @@ def getNMRatio__(win, winopp, trirac):
   rk = float(dkopp)/dko
   res = [1.,1.,1.]
 
-  if   (oi == 2 or oi ==-2): res[0] = rj
-  elif (oi == 3 or oi ==-3): res[0] = rk
-  elif (oi == 1 or oi ==-1): res[0] = ri
+  if   oi == 2 or oi ==-2: res[0] = rj
+  elif oi == 3 or oi ==-3: res[0] = rk
+  elif oi == 1 or oi ==-1: res[0] = ri
 
-  if   (oj == 1 or oj==-1): res[1] = ri
-  elif (oj == 3 or oj==-3): res[1] = rk
-  elif (oj == 2 or oj==-2): res[1] = rj
+  if   oj == 1 or oj==-1: res[1] = ri
+  elif oj == 3 or oj==-3: res[1] = rk
+  elif oj == 2 or oj==-2: res[1] = rj
 
-  if   (ok == 1 or ok ==-1): res[2] = ri
-  elif (ok == 2 or ok ==-2): res[2] = rj
-  elif (ok == 3 or ok ==-3): res[2] = rk
+  if   ok == 1 or ok ==-1: res[2] = ri
+  elif ok == 2 or ok ==-2: res[2] = rj
+  elif ok == 3 or ok ==-3: res[2] = rk
   return res
 
 # -- recoverBCs
@@ -4009,7 +4009,7 @@ def pushBC(t1, t2, type='F', tol=1.e-12, overwriteBC=True):
       if overwriteBC: _deleteZoneBC__(zp)
       dims = Internal.getZoneDim(zp)
       outBCC = 0
-      if (dims[0] == 'Unstructured' and dims[3] != 'NGON' and type != 'F'):
+      if dims[0] == 'Unstructured' and dims[3] != 'NGON' and type != 'F':
         outBCC = 1
       if outBCC == 0: KDT = createHook(zp, function='faceCenters')
 
@@ -4847,15 +4847,13 @@ def computeBCMatchField(z,allMatch,variables=None):
   # Liste des variables 
   # ====================
   if variables is not None:
-      if not isinstance(variables, list):
-          varList = [variables]
-      else:
-          varList = variables 
+      if not isinstance(variables, list): varList = [variables]
+      else: varList = variables 
   else:
       varList=[]
       FS = Internal.getNodeFromName1(z,Internal.__FlowSolutionCenters__)
       for fs in FS[2]:
-        if Internal.getType(fs)=='DataArray_t': 
+        if Internal.getType(fs) == 'DataArray_t': 
           varList.append(Internal.getName(fs))
 
   # Traitement pour maillage struture 
@@ -4875,7 +4873,7 @@ def computeBCMatchField(z,allMatch,variables=None):
           if fld != []:
               fields.append(fld)
 
-      if fields != [] :
+      if fields != []:
           fields = Internal.convertDataNodes2Array2(fields, dim, connects=[], loc=1)
 
       # Fields array in zdonor (stored in allMatch)
@@ -4889,7 +4887,7 @@ def computeBCMatchField(z,allMatch,variables=None):
       indR = None 
 
       for key in allMatch:
-        if ( key.split("/")[0] == z[0] ):
+        if key.split("/")[0] == z[0]:
           [indR1,fldD] = allMatch[key] 
  
           if fields != []:
@@ -4917,7 +4915,7 @@ def computeBCMatchField(z,allMatch,variables=None):
     fld  = []; indR = None
 
     for key in allMatch:
-      if ( key.split("/")[0] == z[0] ):
+      if key.split("/")[0] == z[0]:
         [indR1,fldD] = allMatch[key] 
           
         fld1 = Converter.converter.buildBCMatchFieldNG(z,indR1,fldD, varL, 
@@ -4966,25 +4964,21 @@ def extractBCMatch(zdonor,gc,dimzR,variables=None):
     if dim[0]=='Structured': zoneType=1
     else: 
       zoneType = 2; eltName = dim[3]
-      if eltName=='NGON': 
-        pass
-      else:
-        raise ValueError("extractBCMatch: not yet implement for basic elements.")
+      if eltName=='NGON': pass
+      else: raise ValueError("extractBCMatch: not yet implement for basic elements.")
 
     fields = []  
 
     # Liste des variables 
     # ====================
     if variables is not None:
-        if not isinstance(variables, list):
-             varList = [variables]
-        else:
-             varList = variables
+        if not isinstance(variables, list): varList = [variables]
+        else: varList = variables
     else:
-        varList=[]
+        varList = []
         FS = Internal.getNodeFromName1(zdonor,Internal.__FlowSolutionCenters__)
         for fs in FS[2]:
-          if Internal.getType(fs)=='DataArray_t': 
+          if Internal.getType(fs) == 'DataArray_t': 
             varList.append(Internal.getName(fs))
           
     # Traitement pour maillage struture 
@@ -5044,7 +5038,7 @@ def extractBCMatch(zdonor,gc,dimzR,variables=None):
             t1    = tri[0]
             t2    = tri[1]
 
-            if (len(tri) == 3):
+            if len(tri) == 3:
                 t3 = tri[2]
             else:
                 t3 = 0 
@@ -5113,10 +5107,8 @@ def extractBCFields(z, varList=None):
   if dimZone[0]=='Structured': zoneType=1
   else: 
     zoneType = 2; eltName = dimZone[3]
-    if eltName=='NGON': 
-      pass
-    else:
-      raise ValueError("extractBCFields: not yet implement for basic elements.")
+    if eltName == 'NGON': pass
+    else: raise ValueError("extractBCFields: not yet implement for basic elements.")
 
   bcnodes = Internal.getNodesFromType2(zp,'BC_t')
   allFields=[];allIndices=[]; allVars=[]
@@ -5148,7 +5140,7 @@ def extractBCFields(z, varList=None):
 
     #3. no BCDataSet or variable not in BCDataSet -> Oth order extrapolation
     if len(varsL) < len(varList):
-      varsE=[];
+      varsE=[]
       for var in varList:
         if var not in varsL: varsE.append(var)
 
@@ -5165,7 +5157,7 @@ def extractBCFields(z, varList=None):
                                                      Internal.__GridCoordinates__, 
                                                      Internal.__FlowSolutionNodes__,
                                                      Internal.__FlowSolutionCenters__)
-      varsL+=varsE
+      varsL += varsE
 
     #3. add to list of variables/fields
     allFields.append(fieldsL)

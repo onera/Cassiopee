@@ -740,10 +740,9 @@ class Handle:
 
   def distributedLoadAndSplitSkeleton(self, NParts=None, NProc=Cmpi.size):
     """
-    Load mesh topology in a distributed way : each processus loads a partial data of the
+    Load mesh topology in a distributed way: each processus loads a partial data of the
     connectivity, to have a partitionned data among the processes.
 
-    
     :param      NParts:  The number of parts
     :type       NParts:  Integer
     :param      NProc:   The number of processes

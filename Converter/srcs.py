@@ -2,8 +2,8 @@ import KCore.Dist as Dist
 from KCore.config import *
 EXPRESSION = False
 
-(hdf, hdfIncDir, hdfLibDir,hdflibs) = Dist.checkHdf(additionalLibPaths,
-                                                    additionalIncludePaths)
+(hdf, hdfIncDir, hdfLibDir, hdflibs) = Dist.checkHdf(additionalLibPaths,
+                                                     additionalIncludePaths)
 (png, pngIncDir, pngLibDir) = Dist.checkPng(additionalLibPaths,
                                             additionalIncludePaths)
 #==============================================================================

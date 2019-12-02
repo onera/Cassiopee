@@ -173,8 +173,8 @@ def check__(name):
     elif name == 'hdf':
         additionalLibPaths = eval(VadditionalLibPaths.get())
         additionalIncludePaths = eval(VadditionalIncludePaths.get())
-        (ok, hdfIncDir, hdfLib) = Dist.checkHdf(additionalLibPaths,
-                                                additionalIncludePaths)
+        (ok, hdfIncDir, hdfLib, hdflibs) = Dist.checkHdf(additionalLibPaths,
+                                                         additionalIncludePaths)
         if ok: out = ['hdf: OK']
         else: out = ['hdf: missing']
     return out
@@ -223,7 +223,7 @@ def checkAdf(event=None):
 def checkHdf(event=None):
     path = VhdfPath.get()
     entry = WIDGETS['hdfPath']
-    (ok, hdfIncDir, hdfLib) = Dist.checkHdf(path)
+    (ok, hdfIncDir, hdfLib, hdflibs) = Dist.checkHdf(path)
     if path == '': # guess
         if ok:
             hdfLib = os.path.split(hdfLib)
