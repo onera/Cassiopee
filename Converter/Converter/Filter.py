@@ -264,7 +264,7 @@ def _loadVariables(a, fileName, znp, var, format):
         fp = Internal.getNodeFromPath(a, paths[0])
         if zp is not None and fp is not None:
             c = Internal.getNodeFromName1(zp, cont)
-            if c is not None:
+            if c is not None and fp[1] is not None:
               if PyTree.getNPts(zp) != fp[1].size:
                 Internal.createUniqueChild(c, 'GridLocation', 'GridLocation_t', 'CellCenter')
     return None

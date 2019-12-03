@@ -50,7 +50,7 @@ def extractSurface(t_sol, t_pts=None, eq=(0.,0.,0.,0.), XC=(0.,0.,0.), AXIS=(1.,
         if DTheta>1e-3:
             Npts = Internal.getZoneDim(PtsXR)[1]
             CoordX=[];CoordY=[];CoordZ=[]
-            for i in [0, (Npts-1)/2, Npts-1]:
+            for i in [0, (Npts-1)//2, Npts-1]:
                 CoordX.append(C.getValue(PtsXR,'CoordinateX',i))
                 CoordY.append(C.getValue(PtsXR,'CoordinateY',i))
                 CoordZ.append(C.getValue(PtsXR,'CoordinateZ',i))
@@ -143,7 +143,7 @@ def extractIJSurface(t_sol, t_pts, XC=(0.,0.,0.), AXIS=(1.,0.,0.), loc='centers'
     #res = G.map(res,dhi,dir=1)
 
     ThetaMean = C.getMeanValue(res,'CoordinateZ')
-    print('ThetaMean = ', ThetaMean, C.getMeanValue(Pts,'CoordinateZ'), C.getMaxValue(Pts,'CoordinateZ')-C.getMinValue(Pts,'CoordinateZ'))
+    #print('ThetaMean = ', ThetaMean, C.getMeanValue(Pts,'CoordinateZ'), C.getMaxValue(Pts,'CoordinateZ')-C.getMinValue(Pts,'CoordinateZ'))
     # PLAN MERIDIEN Theta=ThetaMean
     PM = P.isoSurfMC(t,"CoordinateZ",ThetaMean)
     PM = T.join(PM); PM = T.splitConnexity(PM)

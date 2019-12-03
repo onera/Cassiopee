@@ -6606,16 +6606,26 @@ def selectConnectivity(z, name=None, number=None, irange=None):
 # Rm duplicated periodic zones in a according to the node 'TempPeriodicZone'
 #=============================================================================
 def removeDuplicatedPeriodicZones__(a):
+  t = Internal.copyRef(a)
+  _removeDuplicatedPeriodicZones__(t)
+  return t
+
+def _removeDuplicatedPeriodicZones__(a):
   for z in Internal.getZones(a):
     parent,d = Internal.getParentOfNode(a, z)
     isperiod = Internal.getNodeFromName1(z, 'TempPeriodicZone')
     if isperiod is not None: del parent[2][d]
-  return a
+  return None
 
 #=============================================================================
 # Extract periodic zone info and duplicate zone in same base
 #=============================================================================
 def addPeriodicZones__(a):
+  t = Internal.copyRef(a)
+  _addPeriodicZones__(t)
+  return t
+
+def _addPeriodicZones__(a):
     try: import Transform.PyTree as T
     except: raise ImportError("addPeriodicZones__: requires Transform module.")
     atype = Internal.typeOfNode(a)
@@ -6629,9 +6639,13 @@ def addPeriodicZones__(a):
     for z in zones:
       zname = Internal.getName(z)
       usd = Internal.getNodeFromName2(z,".Solver#Param")
+      periodicChimera = False
+      if usd is not None:
+        perdir = Internal.getNodeFromName1(usd,'periodic_dir')
+        if perdir is not None: periodicChimera=True
 
       # Periodic match info
-      if usd is None:
+      if not periodicChimera:
         gcmatch = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
         for gc in gcmatch:
           rotationData, translVect = Internal.getPeriodicInfo__(gc)
@@ -6663,14 +6677,14 @@ def addPeriodicZones__(a):
                   zonesdup.append(zddup)
               elif translated:
                 tvx = translVect[0]; tvy = translVect[1]; tvz = translVect[2]
-                zddup = T.translate(zd,(tvx,tvy,tvz))
+                zddup = T.translate(zd,(-tvx,-tvy,-tvz))
                 # creation du noeud temporaire le marquant comme periodique
                 zddup[0] = getZoneName(zddup[0]+'_dup')
                 Internal.createChild(zddup,'TempPeriodicZone','UserDefinedData_t',value=zdonorname,children=None)
                 zonesdup.append(zddup)
 
       # Chimere periodique: compatible avec elsA uniquement
-      if usd is not None:
+      elif periodChimera:
         print("Periodic Chimera for zone %s"%(z[0]))
         perdir = Internal.getNodeFromName1(usd,'periodic_dir')
         if perdir is not None:
@@ -6711,7 +6725,7 @@ def addPeriodicZones__(a):
               Internal.createChild(zdup,'TempPeriodicZone','UserDefinedData_t',value=zname,children=[rotationInfo])
               zonesdup.append(zdup)
     a[2] += zonesdup
-    return a
+    return None
 
 #==============================================================================
 def convertPyTree2FFD(zone, RefStat, FlowEq, nd):
