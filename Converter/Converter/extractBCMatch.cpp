@@ -197,6 +197,7 @@ PyObject* K_CONVERTER::extractBCMatchStruct(PyObject* self, PyObject* args )
 		              &niR, &njR, &nkR, 
                               &triI, &triJ, &triK )) return NULL;
 
+ 
   // Check array
   // ===========
   FldArrayF* FCenter; FldArrayI* cn;
@@ -227,9 +228,25 @@ PyObject* K_CONVERTER::extractBCMatchStruct(PyObject* self, PyObject* args )
   E_Int shift  ;
 
   // compute dim 
-  if ((niD == 1) or (njD == 1) or (nkD ==1)) 
-  { 
-    dim = 2; 
+  // Check match indice before looking for dimension (necessary when using 'addMXZones+depth=1')
+  // if ((iminD == imaxD) and (njD == 1) or (nkD ==1))
+  // {
+  //   dim = 2; 
+  // }
+
+  // if ((jminD == jmaxD) and (niD == 1) or (nkD ==1))
+  // {
+  //   dim = 2; 
+  // }
+
+  // if ((kminD == kmaxD) and (niD == 1) or (njD ==1))
+  // {
+  //   dim = 2; 
+  // }
+
+  if ( (niR == 0) or (njR == 0) or (nkR == 0) )
+  {
+    dim = 2 ;
   }
 
   // build output arrays 

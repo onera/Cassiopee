@@ -32,6 +32,148 @@ def optimizeOverlap(t, double_wall=0, priorities=[], graph=None,
     tl = Cmpi.rmXZones(tl)
     return tl
 
+#==============================================================================
+# connectMatch
+#==============================================================================
+def connectMatch(a, tol=1.e-6, dim=3):
+
+    # Ajout des bandelettes
+    Cmpi._addBXZones(a,depth=2)
+    
+    # Construction des raccords 
+    a = X.connectMatch(a)
+
+    # Suppression des XZones et correction des matchs 
+    Cmpi._rmBXZones(a)
+    
+    # Fusion des fenetres des raccords 
+    a = mergeWindows(a)
+
+    return a
+
+#==============================================================================
+def giveName2Window(p,zname,zopp):
+    if p[0]==p[1] :
+        if p[0]==1 :
+            pos = zname+'_imin_'+zopp
+        else : 
+            pos = zname+'_imax_'+zopp
+            
+    elif p[2]==p[3] :
+        if p[2]==1 :
+            pos = zname+'_jmin_'+zopp
+        else : 
+            pos = zname+'_jmax_'+zopp
+            
+    elif p[4]==p[5] :
+        if p[4]==1 :
+            pos = zname+'_kmin_'+zopp
+        else : 
+            pos = zname+'_kmax_'+zopp
+
+    return pos
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+def mergeWindows(t):
+    # Merge grid connectivities created after addBXZone
+    
+    zones = Internal.getZones(t)
+
+    for z in zones:
+        
+        xz = Internal.getNodeFromName1(z, 'XZone')
+        if xz is None:
+            # Construction du dictionnaire des matchs 
+            dico = {}
+            gcs   = Internal.getNodesFromType1(z, 'ZoneGridConnectivity_t')
+            for g in gcs:  
+                nodes = Internal.getNodesFromType(g, 'GridConnectivity1to1_t')
+                    
+                for n in nodes:
+                    pr    = Internal.getNodeFromName1(n, 'PointRange')
+                    p     = Internal.range2Window(pr[1])
+                    zopp  = Internal.getValue(n)
+                    pos   = giveName2Window(p,z[0],zopp)
+
+                    if pos not in dico.keys():
+                        dico[pos] = [n[0]]
+                    else:
+                        dico[pos].append(n[0])
+                        
+            # Test si match peuvent etre fusionnes
+            for match in dico.keys():
+                if len(dico[match]) > 1:
+                    sumSurf = 0
+                    pglob   = [None]*6
+                    for name in dico[match]:
+                        node    = Internal.getNodeFromName(z,name)
+                        pr      = Internal.getNodeFromName1(node, 'PointRange')
+                        p       = Internal.range2Window(pr[1])
+                        surf    = max(1, p[1]-p[0])*max(1, p[3]-p[2])*max(1, p[5]-p[4])
+                        sumSurf = sumSurf + surf
+
+                        if pglob[0] is None:
+                            pglob[0] = p[0] ; pglob[1] = p[1] ;
+                            pglob[2] = p[2] ; pglob[3] = p[3] ;
+                            pglob[4] = p[4] ; pglob[5] = p[5] ;
+                        else:
+                            if pglob[0] > p[0] : pglob[0] = p[0]
+                            if pglob[1] < p[1] : pglob[1] = p[1]
+                            if pglob[2] > p[2] : pglob[2] = p[2]
+                            if pglob[3] < p[3] : pglob[3] = p[3]                    
+                            if pglob[4] > p[4] : pglob[4] = p[4]
+                            if pglob[5] < p[5] : pglob[5] = p[5]
+
+                    surfMatch = max(1,(pglob[1]-pglob[0]))*max(1,(pglob[3]-pglob[2]))*max(1,(pglob[5]-pglob[4]))
+
+                    # Fusion des matchs 
+                    if (surfMatch == sumSurf):
+                        # Fenetre du match donneur
+                        pglobD   = [None]*6
+                        for name in dico[match]:
+                            node    = Internal.getNodeFromName(z,name)
+                            prd     = Internal.getNodeFromName1(node, 'PointRangeDonor')
+                            pd      = Internal.range2Window(prd[1])
+                        
+                            if pglobD[0] is None:
+                                pglobD[0] = pd[0] ; pglobD[1] = pd[1] ;
+                                pglobD[2] = pd[2] ; pglobD[3] = pd[3] ;
+                                pglobD[4] = pd[4] ; pglobD[5] = pd[5] ;
+                            else:
+                                if pglobD[0] > pd[0] : pglobD[0] = pd[0]
+                                if pglobD[1] < pd[1] : pglobD[1] = pd[1]
+                                if pglobD[2] > pd[2] : pglobD[2] = pd[2]
+                                if pglobD[3] < pd[3] : pglobD[3] = pd[3]                    
+                                if pglobD[4] > pd[4] : pglobD[4] = pd[4]
+                                if pglobD[5] < pd[5] : pglobD[5] = pd[5]
+                                
+                        # Modif du 1er match et suppression des autres 
+                        first    = True 
+                        for name in dico[match]:
+                            if first:
+                                first = False 
+                                modifMatch = dico[match][0]
+                                node    = Internal.getNodeFromName(z,modifMatch)
+                                pr      = Internal.getNodeFromName1(node, 'PointRange')
+                                prd     = Internal.getNodeFromName1(node, 'PointRangeDonor')
+                                pglob   = Internal.window2Range(pglob)
+                                pglobD  = Internal.window2Range(pglobD)
+                                Internal.setValue(pr,  pglob)
+                                Internal.setValue(prd, pglobD)
+                            else:
+                                Internal._rmNodesByName(z, name)
+
+                    else:
+                        print("Warning: fail to merge matches ", surfMatch, sumSurf)
+
+
+    return t
+
+
+
+
+
+
+
 #===============================================================================
 # setInterpTransfers
 # Warning: inverse storage!

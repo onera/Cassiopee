@@ -4821,7 +4821,8 @@ def extractAllBCMatch(t,varList=None):
           for gc in gcs:
               zname  = Internal.getValue(gc)
               zdonor = Internal.getNodeFromName(t,zname)
-              # convertPyTree2File(t,'toto.cgns')
+              # if zdonor == None:
+                # zdonor = Internal.getNodeFromName(t,zname+'_MX')
               # Extraction BCMatch pour la zone donneuse
               [indR,fldD]  = extractBCMatch(zdonor,gc,dim,varList)
               key          = z[0]+"/"+gc[0]
@@ -4949,13 +4950,12 @@ def computeBCMatchField(z,allMatch,variables=None):
 # fldFace  : champ de la zone donneuse extrapole sur les faces frontieres 
 
 def extractBCMatch(zdonor,gc,dimzR,variables=None):
-
     # On verifie que gc donne le raccord dans zdonor 
     # ==============================================
     # print("zdonor :", zdonor[0])
     # print("gc : ", gc)
-    if Internal.getValue(gc) != zdonor[0]:
-        raise ValueError("extractBCMatch: GridConnectivity doesn't match zdonor.")
+    # if Internal.getValue(gc) != zdonor[0]:
+        # raise ValueError("extractBCMatch: GridConnectivity doesn't match zdonor.")
 
     dim = Internal.getZoneDim(zdonor)
 
@@ -5008,7 +5008,6 @@ def extractBCMatch(zdonor,gc,dimzR,variables=None):
     #   if zoneType == 1: # Structured mesh
 
     #     fields = getAllFields(zdonor, 'centers')[0]
-
         if fields != []:
             # raise ValueError("extractBCMatch. Variable(s) not found:", variables)
 
@@ -5033,7 +5032,7 @@ def extractBCMatch(zdonor,gc,dimzR,variables=None):
 
             niR   = dimzR[1]-1 
             njR   = dimzR[2]-1
-            nkR   = dimzR[3]-1 
+            nkR   = dimzR[3]-1
 
             t1    = tri[0]
             t2    = tri[1]
@@ -5041,11 +5040,11 @@ def extractBCMatch(zdonor,gc,dimzR,variables=None):
             if len(tri) == 3:
                 t3 = tri[2]
             else:
-                t3 = 0 
-
+                t3 = 0
+                
             [indR,fldD]  = Converter.converter.extractBCMatchStruct(fields,(iminD,jminD,kminD,imaxD,jmaxD,kmaxD),
                                                                            (iminR,jminR,kminR,imaxR,jmaxR,kmaxR),
-                                                                           (niR,njR,nkR),(t1,t2,t3)) 
+                                                                           (niR,njR,nkR),(t1,t2,t3))
         else:
             fldD = None
             indR = None
