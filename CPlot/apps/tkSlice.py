@@ -349,7 +349,7 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='Get a step from selection.')
 
     # Slice algorithm
-    B = TTK.OptionMenu(Frame, VARS[5], 'Slice1', 'Slice2', 'Select+', 'Select-', 'Select=')
+    B = TTK.OptionMenu(Frame, VARS[5], 'Slice1', 'Select+', 'Select-', 'Select=')
     BB = CTK.infoBulle(parent=B, text='Type of slice.')
     B.grid(row=1, column=0, columnspan=1, sticky=TK.EW)
     

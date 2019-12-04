@@ -44,16 +44,6 @@ except:
 #==============================================================================
 def setInterpolations(t, loc='cell', double_wall=0, storage='inverse', prefixFile='',
                       sameBase=0, solver='elsA', nGhostCells=2, parallelDatas=[], cfMax=30., planarTol=0., check=True):
-    if storage != 'direct' and storage != 'inverse':
-        raise TypeError("setInterpolations: bad value for attribute 'storage'.")
-
-    if storage == 'direct':
-        if prefixFile == '':
-            print('Warning: setInterpolations: inverse storage is mandatory if no Chimera connectivity file is written.')
-        elif  parallelDatas != []:
-            print('Warning: setInterpolations: inverse storage is activated (mandatory in a distributed mode).')
-            storage='inverse'
-
     a = Internal.copyRef(t)
     _setInterpolations(a, loc=loc, double_wall=double_wall, storage=storage, prefixFile=prefixFile,
                        sameBase=sameBase, solver=solver, nGhostCells=nGhostCells, parallelDatas=parallelDatas, 
@@ -63,12 +53,12 @@ def setInterpolations(t, loc='cell', double_wall=0, storage='inverse', prefixFil
 def _setInterpolations(t, loc='cell', double_wall=0, storage='inverse', prefixFile='', sameBase=0, 
                        solver='elsA', nGhostCells=2, parallelDatas=[], cfMax=30., planarTol=0., check=True):
     if storage != 'direct' and storage != 'inverse':
-        raise TypeError("_setInterpolations: bad value for attribute 'storage'.")
+        raise TypeError("Warning: setInterpolations: bad value for attribute 'storage'.")
 
     if storage == 'direct':
         if prefixFile == '':
             print('Warning: _setInterpolations: inverse storage is mandatory if no Chimera connectivity files are written.')
-        elif  parallelDatas != []:
+        elif parallelDatas != []:
             print('Warning: _setInterpolations: inverse storage is activated (mandatory in a distributed mode).')
             storage='inverse'
 
@@ -278,7 +268,7 @@ def _setSeqInterpolations(a, depth=2, double_wall=0, storage='inverse', prefixFi
     #=======================================================================
     for nob in range(len(a[2])):
         if a[2][nob][3]=='CGNSBase_t':
-            a[2][nob] = C.addPeriodicZones__(a[2][nob])
+            C._addPeriodicZones__(a[2][nob])
     # initialisation de liste de parois et de surfaces pour le traitement 'double_wall'
     wallBndIndicesN=[]; surfacesExtC=[]; surfacesN=[]
 
@@ -430,7 +420,7 @@ def _setSeqInterpolations(a, depth=2, double_wall=0, storage='inverse', prefixFi
                     if depth == 1: info[2].append(['OrphanFaceList',numpy.unique(indicesOrphan) , [], 'DataArray_t'])
                     else: info[2].append(['OrphanPointList',numpy.unique(indicesOrphan) , [], 'DataArray_t'])
     # Delete duplicated periodic zones
-    a = C.removeDuplicatedPeriodicZones__(a)
+    C._removeDuplicatedPeriodicZones__(a)
 
     # -------------------------------
     # Ecriture dans un fichier "elsA"

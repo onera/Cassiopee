@@ -1331,8 +1331,8 @@ def optimizeOverlap(t, double_wall=0, priorities=[], planarTol=0., intersections
     #     creation d'un noeud fils au niveau de la zone dupliquee de nom 'TemporaryPeriodicZone'
     #=======================================================================
     for nob in range(len(a[2])):
-        if Internal.getType(a[2][nob])=='CGNSBase_t':
-            a[2][nob] = C.addPeriodicZones__(a[2][nob])
+        if Internal.getType(a[2][nob]) == 'CGNSBase_t':
+            C._addPeriodicZones__(a[2][nob])
 
     # Updates the intersection Dictionnary with new duplicated temporary zones:
     if not intersectionsDict:
@@ -1373,15 +1373,15 @@ def optimizeOverlap(t, double_wall=0, priorities=[], planarTol=0., intersections
     # 4-Donor cell search: bbox intersection + adt creation
     #=======================================================
     # on cree par zone de chq base la liste des noms des domaines intersectants
-    nobOfIntersectBasesAndZones = []; allHooks = []
+    nobOfIntersectBasesAndZones=[]; allHooks=[]
     for nob1 in range(nbases):
-        nobOfIntersectBasesAndZonesForBase1 = []
+        nobOfIntersectBasesAndZonesForBase1=[]
         allHooksForBase1 = []
         for noz1 in range(len(zones[nob1])):
             isIntersected = False
             nobOfIntersectBasesAndZonesForZone1=[]
             for nob2 in range(nbases):
-                if nob2 != nob1 :
+                if nob2 != nob1:
                     nobOfIntersectZonesOfBase2 = [] # numero des zones de base2 intersectant z1
                     for noz2 in range(len(zones[nob2])):
                         if zones[nob2][noz2][0] in intersectionsDict[zones[nob1][noz1][0]]:
@@ -1412,6 +1412,7 @@ def optimizeOverlap(t, double_wall=0, priorities=[], planarTol=0., intersections
                 isTempPeriodicZone1 = 0
                 if Internal.getNodeFromName1(z1,'TempPeriodicZone') is None:
                     r1 = Internal.getParentOfNode(a, z1); parent1 = r1[0]; d1 = r1[1]
+                    
                 else: isTempPeriodicZone1 = 1
                 ae1 = allExtCenters[nob1][noz1]
                 ac1 = allCenters[nob1][noz1]
@@ -1493,8 +1494,7 @@ def optimizeOverlap(t, double_wall=0, priorities=[], planarTol=0., intersections
                             vol2 = C.getField('centers:vol',z2)[0]
                             ac2 = Converter.addVars([ac2,sol2,vol2])
                             adt2 = allHooks[nob2][noz2]
-                            #
-                            isDW=0
+                            isDW = 0
                             firstWallCenters2 = firstWallCenters[nob2][noz2]
                             surfacesExtC2 = surfacesExtC[nob2][noz2]
                             if firstWallCenters1 != [] and firstWallCenters2 != []:
@@ -1530,7 +1530,7 @@ def optimizeOverlap(t, double_wall=0, priorities=[], planarTol=0., intersections
                                 if isTempPeriodicZone1==0: parent1[2][d1] = z1
                                 if isTempPeriodicZone2==0: parent2[2][d2] = z2
     # Delete duplicated periodic zones
-    a = C.removeDuplicatedPeriodicZones__(a)
+    C._removeDuplicatedPeriodicZones__(a)
     
     C._rmVars(a, 'centers:vol')
     # remise a jour du celln : de 3 passe a 2
@@ -1803,7 +1803,7 @@ def setDoublyDefinedBC(t, depth=2):
     #=======================================================================
     for nob in range(len(a[2])):
         if Internal.getType(a[2][nob])=='CGNSBase_t':
-            a[2][nob] = C.addPeriodicZones__(a[2][nob])
+            C._addPeriodicZones__(a[2][nob])
 
     zones = Internal.getZones(a)
     for z in zones:
@@ -1840,7 +1840,7 @@ def setDoublyDefinedBC(t, depth=2):
             #parent[2][d2] = z
 
     # Delete duplicated periodic zones
-    a = C.removeDuplicatedPeriodicZones__(a)
+    C._removeDuplicatedPeriodicZones__(a)
 
     C._initVars(a,'{centers:cellN}=minimum({centers:cellN}*{centers:cellN_dd},2.)')
     C._rmVars(a,['centers:cellN_dd'])
@@ -1855,5 +1855,3 @@ def maskXRay__(body, delta=0., dim=3, isNot=0, tol=1.e-8):
     surf = C.getFields(Internal.__GridCoordinates__, body)
     pts = Connector.maskXRay__(surf, delta, dim, isNot, tol)
     return C.convertArrays2ZoneNode('XRayPts', [pts])
-
-

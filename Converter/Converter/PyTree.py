@@ -2478,7 +2478,7 @@ def _nullifyBCDataSetVectors(t, bndType, loc='FaceCenter',
                                                               Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__,Internal.__FlowSolutionCenters__)
 
             elif PL is not None:
-              print("nullifyVectorAtBCDataSet: not implemented for PointList.")
+              print("Warning: nullifyVectorAtBCDataSet: not implemented for PointList.")
             Internal._createUniqueChild(d, vxname, 'DataArray_t', value=fxInt)
             Internal._createUniqueChild(d, vyname, 'DataArray_t', value=fyInt)
             Internal._createUniqueChild(d, vzname, 'DataArray_t', value=fzInt)
@@ -2556,7 +2556,7 @@ def _createBCDataSetOfType(t, bndType, loc='FaceCenter', update=True, vectors=[]
                                                               Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__,Internal.__FlowSolutionCenters__)
 
             elif PL is not None:
-              print("createBCDataSetOfType: extrapolation from interior cells not implemented for PointList. Fields are initialized by O in BCDataSet.")
+              print("Warning: createBCDataSetOfType: extrapolation from interior cells not implemented for PointList. Fields are initialized by O in BCDataSet.")
             Internal._createUniqueChild(d, varname, 'DataArray_t', value=fInt)
 
       else: # BCDataSet exists: add missing variables
@@ -3606,7 +3606,7 @@ def _addBC2NGonZone__(z, bndName, bndType, faceList, data, subzone,
     _addPeriodicInfoInGC__(info, rotationCenter, rotationAngle, translation, unitAngle=unitAngle)
 
   elif bndType1 == 'BCNearMatch':
-    print('addBC2Zone: BCNearMatch not valid for NGON zones.')
+    print('Warning: addBC2Zone: BCNearMatch not valid for NGON zones.')
 
   # elif bndType1 == 'BCOverlap':
   #   # Cree le noeud zoneGridConnectivity si besoin
@@ -3771,10 +3771,10 @@ def _addBC2UnstructZone__(z, bndName, bndType, elementList, elementRange,
     _addPeriodicInfoInGC__(info, rotationCenter, rotationAngle, translation, unitAngle=unitAngle)
 
   elif bndType1 == 'BCOverlap':
-    print('addBC2Zone: BCOverlap not valid for unstructured zones.')
+    print('Warning: addBC2Zone: BCOverlap not valid for unstructured zones.')
 
   elif bndType1 == 'BCNearMatch':
-    print('addBC2Zone: BCNearMatch not valid for unstructured zones.')
+    print('Warning: addBC2Zone: BCNearMatch not valid for unstructured zones.')
 
   elif (bndType1 == 'FamilySpecified' and fnmatch.fnmatch(bndType2, 'BCStage*')) or (bndType1 == 'BCStage'):
     _addFamilyOfStageGC__(z, bndName, bndType2, typeZone=2, elementRange=elementRange,
@@ -4608,7 +4608,6 @@ def getBC__(i, z, T, res, reorder=True):
     _deleteSolverNodes__(zp)
     # Get BCDataSet if any
     datas = Internal.getBCDataSet(z, i)
-    print(datas)
     if datas != []:
       f = Internal.createUniqueChild(zp, Internal.__FlowSolutionCenters__,
                                      'FlowSolution_t')
@@ -6277,7 +6276,7 @@ def mergeConnectivity(z1, z2, boundary=0):
   _mergeConnectivity(zout, z2, boundary)
   return zout
 
-def _mergeConnectivity(z1, z2, boundary=0):
+def _mergeConnectivity(z1, z2, boundary=0, shared=False):
   # Analyse zone z2
   dims = Internal.getZoneDim(z2)
   neb = dims[2] # nbre d'elts de z2
@@ -6291,8 +6290,9 @@ def _mergeConnectivity(z1, z2, boundary=0):
     m = r[1][1]
     maxElt = max(maxElt, m)
 
-  # Si boundary=0, on fusionne les coordonnees
-  if boundary == 0:
+  # Si boundary=0, connectivite volumique
+  if boundary == 0 and not shared:
+    # on fusionne les coordonnees
     import Transform.PyTree as T
     zn1 = convertArray2Node(z1)
     zn2 = convertArray2Node(z2)
@@ -6326,19 +6326,6 @@ def _mergeConnectivity(z1, z2, boundary=0):
 
     # on identifie les noeuds de z2 dans zn
     ids = identifyNodes(hook, z2)
-
-    # on cree un nouveau noeud connectivite dans z1 (avec le nom de la zone z2)
-    # elts = Internal.getNodesFromType2(z2, 'Elements_t'); c = 0
-    # for e in elts:
-    #   Internal.createUniqueChild(z1, z2[0]+'.'+str(c), 'Elements_t', value=[eltType,nebb])
-    #   node = Internal.getNodeFromName(z1, z2[0])
-    #   Internal.createUniqueChild(node, 'ElementRange', 'IndexRange_t',
-    #                               value=[maxElt+1,maxElt+neb])
-    #   oldc = Internal.getNodeFromName(e, 'ElementConnectivity')[1]
-    #   newc = numpy.copy(oldc)
-    #   newc[:] = ids[oldc[:]-1]
-    #   Internal.createUniqueChild(node, 'ElementConnectivity', 'DataArray_t', value=newc)
-    #   c += 1
     node = Internal.createUniqueChild(z1, z2[0], 'Elements_t', value=[eltType,nebb])
     Internal.createUniqueChild(node, 'ElementRange', 'IndexRange_t',
                                value=[maxElt+1,maxElt+neb])
@@ -6346,6 +6333,21 @@ def _mergeConnectivity(z1, z2, boundary=0):
     newc = numpy.copy(oldc)
     newc[:] = ids[oldc[:]-1]
     Internal.createUniqueChild(node, 'ElementConnectivity', 'DataArray_t', value=newc)
+
+  elif boundary == 0 and shared:
+    # on cree un nouveau noeud connectivite dans z1 (avec le nom de la zone z2)
+    elts = Internal.getNodesFromType2(z2, 'Elements_t')
+    z1[1][0,1] += neb # update le nbre d'elements de z1
+    nebb = 0
+    for e in elts:
+      r = Internal.getNodeFromName(e, 'ElementRange')[1]
+      nbe2 = r[1]-r[0]+1
+      e2 = Internal.createUniqueChild(z1, e[0], 'Elements_t', value=[eltType,0])
+      Internal.createUniqueChild(e2, 'ElementRange', 'IndexRange_t',
+                                 value=[maxElt+nebb+1,maxElt+nebb+nbe2])
+      newc = Internal.getNodeFromName(e, 'ElementConnectivity')[1]
+      Internal.createUniqueChild(e2, 'ElementConnectivity', 'DataArray_t', value=newc)
+      nebb += nbe2
 
   else: # connectivite boundary (subzone)
     # on identifie les noeuds de z2 dans z1
@@ -6415,7 +6417,7 @@ def breakConnectivity(t):
                 if N <= 1: break # une seule connectivite
                 if N == 2:
                   type1 = connects[0][1][0]; type2 = connects[1][1][0]
-                  if ((type1 == 22 and type2 == 23) or (type1 == 23 and type2 == 22)): # pur NGON
+                  if (type1 == 22 and type2 == 23) or (type1 == 23 and type2 == 22): # pur NGON
                     break;
 
                 iBE = []; iNGon = -1; iNFace = -1; i = 0
@@ -6436,6 +6438,7 @@ def breakConnectivity(t):
                   GEl = Internal.getNodesFromType1(zp, 'Elements_t')
                   GE = Internal.getNodeFromName1(zp, connects[i][0])
                   eltType, nf = Internal.eltNo2EltName(GE[1][0])
+                  # Nouveau nom de la zone
                   zp[0] = getZoneName(z[0]+'_'+eltType)
                   # Enleve toutes les connects a part la ieme
                   for GEj in GEl:
@@ -6464,7 +6467,7 @@ def breakConnectivity(t):
                   zp[0] = getZoneName(z[0]+'_NGON')
                   # Enleve toutes les connects a part la ieme
                   for GEj in GEl:
-                    if (GEj is not GE1 and GEj is not GE2): Internal._rmNodesByName(zp, GEj[0])
+                    if GEj is not GE1 and GEj is not GE2: Internal._rmNodesByName(zp, GEj[0])
                   # Renumerote la connectivite
                   r = Internal.getNodeFromName(GE1, 'ElementRange'); r = r[1]
                   start = r[0]; end = r[1]
@@ -6631,7 +6634,7 @@ def _addPeriodicZones__(a):
     if atype != 4:  # base
         print('Warning: addPeriodicZones__: input node must be a CGNS basis.')
         print('Skipped.')
-        return a
+        return None
 
     zones = Internal.getNodesFromType1(a, 'Zone_t')
     zonesdup = []
@@ -6683,8 +6686,8 @@ def _addPeriodicZones__(a):
                 zonesdup.append(zddup)
 
       # Chimere periodique: compatible avec elsA uniquement
-      elif periodChimera:
-        print("Periodic Chimera for zone %s"%(z[0]))
+      else:
+        print("Info: Periodic Chimera for zone %s"%(z[0]))
         perdir = Internal.getNodeFromName1(usd,'periodic_dir')
         if perdir is not None:
           perdir = Internal.getValue(perdir)

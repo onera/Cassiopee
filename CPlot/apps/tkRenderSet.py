@@ -11,9 +11,10 @@ import CPlot.iconics as iconics
 
 # local widgets list
 WIDGETS = {}; VARS = []
+# Supprime: light, smoke
 MATERIALS = ['Solid', 'Flat', 'Glass', 'Chrome',
              'Metal', 'Wood', 'Marble', 'Granite', 'Brick', 'XRay',
-             'Cloud', 'Gooch', 'Smoke', 'Sphere', 'Light', 'Texmat']
+             'Cloud', 'Gooch', 'Sphere', 'Texmat']
              
 #==============================================================================
 # Appele quand une couleur est selectionnee (optionMenu)
@@ -396,9 +397,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
 
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

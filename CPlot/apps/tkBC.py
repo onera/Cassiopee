@@ -641,7 +641,7 @@ def setBCWith():
                     c += 1
                 noz += 1
             nob += 1
-        #print 'BC is ', w, 'corresponding ', nob-1, noz-1
+        #print('BC is ', w, 'corresponding ', nob-1, noz-1)
 
     CTK.TXT.insert('START', 'BCs set to %s.\n'%typeBC)
     CTK.TKTREE.updateApp()
