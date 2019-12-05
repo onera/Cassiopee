@@ -6578,7 +6578,7 @@ def selectConnectivity(z, name=None, number=None, irange=None):
           Internal._rmNodesByName(zp, e[0])
         if r[0] == irange[0] and r[1] == irange[1]: # full
           e[1] = numpy.copy(e[1]); e[1][1] = 0 # force volumique
-        if (r[0] == irange[0] and r[1] < irange[1]): # full
+        if r[0] == irange[0] and r[1] < irange[1]: # full
           (name, nnodes) = Internal.eltNo2EltName(e[1][0])
           if name != 'NGON' and name != 'NFACE' and name != 'MIXED':
             e[1] = numpy.copy(e[1]); e[1][1] = 0 # force volumique
@@ -6589,7 +6589,7 @@ def selectConnectivity(z, name=None, number=None, irange=None):
             r = r[1]
             c[1] = c[1][nnodes*(r[0]-1):nnodes*(r[1])+1]
           else: print('Warning: selectConnectivity: slice impossible.')
-        if (r[0] > irange[0] and r[1] == irange[1]): # full
+        if r[0] > irange[0] and r[1] == irange[1]: # full
           (name, nnodes) = Internal.eltNo2EltName(e[1][0])
           if name != 'NGON' and name != 'NFACE' and name != 'MIXED':
             e[1] = numpy.copy(e[1]); e[1][1] = 0 # force volumique
