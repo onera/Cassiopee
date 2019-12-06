@@ -38,8 +38,6 @@
 #include "Nuga/Boolean/NGON_debug.h"
 #endif
 
-using ngon_type = ngon_t<K_FLD::IntArray>;
-
 namespace K_MESH
 {
 //static int level=0;
@@ -68,7 +66,8 @@ public:
   
   Polyhedron(ngon_unit* pgs, E_Int* faces, E_Int nb_faces):_pgs(pgs), _faces(faces), _nb_faces(nb_faces), _triangles(nullptr){}
   
-  Polyhedron(ngon_type& ng, E_Int i):Polyhedron(&ng.PGs, ng.PHs.get_facets_ptr(i), ng.PHs.stride(i)){}
+  template <typename ngon_t>
+  Polyhedron(ngon_t& ng, E_Int i):Polyhedron(&ng.PGs, ng.PHs.get_facets_ptr(i), ng.PHs.stride(i)){}
 
   void set(ngon_unit* pgs, E_Int* faces, E_Int nb_faces){_pgs = pgs; _faces = faces; _nb_faces = nb_faces; if (_triangles != nullptr) {delete [] _triangles;_triangles = nullptr;}/*fixme : just set it as PGS is pure T3*/}
   
