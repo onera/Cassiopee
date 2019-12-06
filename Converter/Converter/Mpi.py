@@ -13,6 +13,7 @@ else: # try import (may fail - core or hang)
         rank = 0; size = 1; KCOMM = None; COMM_WORLD = None
         from .Distributed import setProc, _setProc, getProc, getProcDict, convertFile2SkeletonTree, computeGraph
         def barrier(): return
+        def bcast(a, root=0): return a
         print("Warning: Converter:Mpi: mpi4py is not available. Sequential behaviour.")
 
 from .Distributed import _readZones, _convert2PartialTree, _convert2SkeletonTree, _readPyTreeFromPaths

@@ -54,8 +54,9 @@ opt1 =['-DCOMMON_FILE_COMPRESS_GZ','-DCOMMON_PTHREAD','-DCOMMON_RANDOM_FIXED_SEE
        '-DSCOTCH_RENAME','-DIDXSIZE64',
        '-DSCOTCH_VERSION_NUM=6','-DSCOTCH_RELEASE_NUM=0','-DSCOTCH_PATCHLEVEL_NUM=6']
 opt1_1 = ['-DSCOTCH_PTSCOTCH']
-if cc == 'gcc': opt1 += ['-Wrestrict']
+if cc == 'gcc': opt1 += [] # ['-Wrestrict']
 else: opt1 += ['-restrict']
+
 
 # Options for paradigma
 opt2 = ['-IXCore/paradigma','-IXCore/paradigma/mpi_wrapper','-IXCore/paradigma/mesh','-IXCore/paradigma/util','-IXCore/paradigma/io','-IXCore/paradigma/ppart','-IXCore/paradigma/struct','-IXCore/paradigma/pario','-IXCore/paradigma/ext_wrapper']
