@@ -635,6 +635,7 @@ def setInterpData(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
                   method='lagrangian', loc='nodes', storage='direct',
                   interpDataType=1, hook=None,
                   topTreeRcv=None, topTreeDnr=None, sameName=1, dim=3, itype='both'):
+    """Compute and store overset interpolation data."""
     aR = Internal.copyRef(tR)
     aD = Internal.copyRef(tD)
     _setInterpData(aR, aD, double_wall=double_wall, order=order, penalty=penalty, nature=nature,

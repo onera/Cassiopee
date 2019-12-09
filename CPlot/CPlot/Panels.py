@@ -249,6 +249,9 @@ ClbQghfEYAY1uEEOdtCDHwRhCEUIloAAADs=
     myText += " - glew (see Converter/GLEW/LICENSE).\n"
     myText += " - netgen (see Generator/Netgen/LICENSE).\n"
     myText += " - tetgen (see Generator/Tetgen/LICENSE).\n"
+    myText += " - metis (see KCore/Metis/LICENSE).\n"
+    myText += " - scotch (see XCore/scotch/LICENSE).\n"
+    
     textWidget.insert(TK.END, myText)
     return
 

@@ -89,10 +89,10 @@ else if ($MAC == "ld") then
         set ncpu=`cat /proc/cpuinfo |grep processor |cut -f2 -d: |tail -1`
         @ ncpu++
         setenv OMP_NUM_THREADS $ncpu
-        set path=($path $CASSIOPEE/Dist/bin)
+        set path=(/d/benoit/.local/bin $path $CASSIOPEE/Dist/bin)
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
         setenv LD_LIBRARY_PATHL /usr/lib64:/stck/benoit/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
-        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.6/site-packages
+        setenv PYTHONPATHL /d/benoit/.local/lib/python3.6/site-packages:$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.6/site-packages
         
 else if ($MAC == "ld_python2") then
 #----------------------------- ld centos 7 -------------------------------------

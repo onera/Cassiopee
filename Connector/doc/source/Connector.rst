@@ -62,14 +62,8 @@ List of functions
 
 .. autosummary::
 
-    Connector.PyTree.setInterpolations
-    Connector.PyTree.chimeraInfo
-
-**-- Immersed boundary connectivity**
-
-.. autosummary::
-
-    
+   Connector.PyTree.setInterpolations
+   Connector.PyTree.chimeraInfo
 
 
 Contents
@@ -785,7 +779,7 @@ Overset connectivity
 Overset grid connectivity for elsA solver
 ------------------------------------------
 
-.. py:function:: X.setInterpolations(t, loc='cell', double_wall=0, storage='inverse', prefixFile='', sameBase=0, solver='elsA', nGhostCells=2, parallelDatas=[], cfMax=30., planarTol=0., check=True)
+.. py:function:: X.PyTree.setInterpolations(t, loc='cell', double_wall=0, storage='inverse', prefixFile='', sameBase=0, solver='elsA', nGhostCells=2, parallelDatas=[], cfMax=30., planarTol=0., check=True)
 
     This function is specific to elsA solver.
     Set the Chimera connectivity (EX points and cell centers to be interpolated, index for donor interpolation cell and interpolation coefficients). 
@@ -802,8 +796,9 @@ Overset grid connectivity for elsA solver
     In a distributed mode, the storage must be necessarily 'inverse'. If the Chimera connectivity is read by elsA directly as CGNS ZoneSubRegion_t nodes, then the storage must be 'inverse' too. 
     prefixFile is the prefix for the name of the connectivity files generated for elsA solver (solver='elsA') or Cassiopee solver (solver='Cassiopee'). If prefixFile is not specified by the user, no Chimera connectivity file is dumped. 
 
-    nGhostCells is the number of ghost cells that are required by elsA solver when writing connectivity files. Can be greater than 2 only if elsA reads the Chimera connectivity files.<br>
-    cfMax is a threshold value for a valid extrapolation: if the sum of the extrapolated coefficients is greater than cfMax, then the cell is marked as orphan.<br>
+    nGhostCells is the number of ghost cells that are required by elsA solver when writing connectivity files. Can be greater than 2 only if elsA reads the Chimera connectivity files.
+    cfMax is a threshold value for a valid extrapolation: if the sum of the extrapolated coefficients is greater than cfMax, then the cell is marked as orphan.
+
     parallelDatas: used to perform setInterpolations in a distributed context : a list of communication information [graph, rank, interpPts], where interpPts is the list of interpolated cells/EX points. 
 
     Parameter check is a Boolean which displays the summary of interpolated, extrapolated and orphan points. 
@@ -818,9 +813,9 @@ Overset grid connectivity for elsA solver
 
 -----------------------------------------------------------------------------------------------------------------------------
 
-.. py:function:: X.chimeraTransfer(t, storage='direct', variables=[], loc='cell', mesh='extended')
+.. py:function:: X.PyTree.chimeraTransfer(t, storage='direct', variables=[], loc='cell', mesh='extended')
 
-    compute Chimera transfers. This function is compliant with the storage as it is defined for setInterpolations function.
+    Compute Chimera transfers. This function is compliant with the storage as it is defined for setInterpolations function.
 
     Parameter storage can be 'direct' or 'inverse' and must be consistent with the storage computed by setInterpolations
 
@@ -840,9 +835,9 @@ Overset grid connectivity for elsA solver
 
 -----------------------------------------------------------------------------------------------------------------------------
 
-.. py:function:: X.chimeraInfo(t, type='interpolated')
+.. py:function:: X.PyTree.chimeraInfo(t, type='interpolated')
 
-    set information on Chimera connectivity, i.e. interpolated, extrapolated or orphan cells, donor aspect ratio and ratio between
+    Set information on Chimera connectivity, i.e. interpolated, extrapolated or orphan cells, donor aspect ratio and ratio between
     volume of donor and receptor cells.
 
     This function is compliant with the storage as it is defined for setInterpolations function.

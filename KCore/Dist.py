@@ -1310,19 +1310,36 @@ def checkMpi4py(additionalLibPaths=[], additionalIncludePaths=[]):
         return (False, i, '')
 
 #=============================================================================
-# Check for paradigma
+# Check for paradigma python binding
 # additionalPaths: chemins d'installation non standards : ['/home/toto',...]
 # Retourne: (True/False, chemin des includes, chemin de la librairie)
 #=============================================================================
-def checkParadigma(additionalLibPaths=[], additionalIncludePaths=[]):
+def checkPyParadigma(additionalLibPaths=[], additionalIncludePaths=[]):
     try: import pyPdm
     except:
         print('Info: paradigma was not found on your system.')
         return (False, '', '')
 
-    i = mpi4py.__file__
+    i = pyPdm.__file__
     print('Info: paradigma detected at %s.'%i)
     return (True, i, '')
+
+#=============================================================================
+# Check for paradigma
+# additionalPaths: chemins d'installation non standards : ['/home/toto',...]
+# Retourne: (True/False, chemin des includes, chemin de la librairie)
+#=============================================================================
+def checkParadigma(additionalLibPaths=[], additionalIncludePaths=[]):
+    l = checkLibFile__('lipdm.so', additionalLibPaths)
+    if l is None:
+        l = checkLibFile__('libpdm.a', additionalLibPaths)
+    i = checkIncFile__('pdm.h', additionalIncludePaths)
+    if i is not None and l is not None:
+        #print('Info: Paradigma detected at %s.'%l)
+        return (True, i, l)
+    else:
+        #print('Info: libpdm or pdm.h was not found on your system. No paradigma support.')
+        return (False, i, l)
     
 #=============================================================================
 # Check for BLAS

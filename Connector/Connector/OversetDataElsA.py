@@ -44,6 +44,7 @@ except:
 #==============================================================================
 def setInterpolations(t, loc='cell', double_wall=0, storage='inverse', prefixFile='',
                       sameBase=0, solver='elsA', nGhostCells=2, parallelDatas=[], cfMax=30., planarTol=0., check=True):
+    """Compute interpolation data for chimera and for elsA solver."""
     a = Internal.copyRef(t)
     _setInterpolations(a, loc=loc, double_wall=double_wall, storage=storage, prefixFile=prefixFile,
                        sameBase=sameBase, solver=solver, nGhostCells=nGhostCells, parallelDatas=parallelDatas, 
