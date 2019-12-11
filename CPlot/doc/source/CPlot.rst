@@ -84,21 +84,22 @@ Contents
 Keys in CPlot window
 ---------------------------
 
-    Must be pressed when CPlot window is active.
+    Keys must be pressed when CPlot window is active.
 
     + **f**: fit view to data.
     + **Ctrl+f**: switch between full screen and windowed mode.
-    + **Arrows** or **left mouse**: move around.
-    + **Shift + Arrows** or **right mouse**: strafe.
+    + **Left/right Arrows** or **left mouse drag**: rotate model.
+    + **Up/down Arrows**: Zoom in/out.
+    + **Shift + Arrows** or **right mouse drag**: translate model.
     + **Ctrl + Arrows** or **Ctrl + left mouse**: move your head.
-    + **Ctrl + right mouse**: tilt your head.
-    + **Shift + left mouse**: select zone.
-    + **Shift + Ctrl + left mouse**: multiple select.
-    + **Ctrl + left mouse**: Accurate select (click on node)
-    + **Shift + right mouse**: deactivate zone.
-    + **Shift + double left mouse**: center view.
-    + **o** or **left mouse**: move up.
-    + **p** or **left mouse**: move down.
+    + **Ctrl + right mouse drag**: tilt model.
+    + **Shift + left mouse click**: select zone.
+    + **Shift + Ctrl + left mouse click**: multiple select.
+    + **Ctrl + left mouse click**: Accurate select (click on node)
+    + **Shift + right mouse click**: deactivate (hide) zone.
+    + **Shift + double left mouse click**: center view.
+    + **o** or **left mouse drag**: rotate model up.
+    + **p** or **left mouse drag**: rotate model down.
     + **1** or **Shift+1**: display fields (switch variable next and previous).
     + **Space bar**: display mesh.
     + **Shift+Space bar**: display solid.

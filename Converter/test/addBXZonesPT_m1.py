@@ -1,3 +1,4 @@
+# - addBXZones (pyTree) - 
 import Converter.PyTree as CP
 import Generator.PyTree as GP
 import Transform.PyTree as TP 
@@ -23,7 +24,7 @@ if Cmpi.rank == 0:
 h     = Filter.Handle('case.cgns')
 a     = h.loadAndDistribute()
 
-# # Ajout XZones 
+# Ajout XZones 
 Cmpi._addBXZones(a)
 
 # Test 

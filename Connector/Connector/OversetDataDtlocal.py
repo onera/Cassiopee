@@ -76,8 +76,8 @@ def setInterpData2(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
 
      # Si pas de cellN receveur, on retourne
     if loc == 'nodes': cellNPresent = C.isNamePresent(aR, 'cellN')
-    elif loc=='centers': cellNPresent = C.isNamePresent(aR, 'centers:cellN')
-    else: 
+    elif loc == 'centers': cellNPresent = C.isNamePresent(aR, 'centers:cellN')
+    else:
         raise ValueError("setInterpData: invalid loc provided.")
     if cellNPresent == -1 or itype == 'abutting':
         if storage == 'direct': return aR

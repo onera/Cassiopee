@@ -312,6 +312,7 @@ def getCEBBTimeIntersectingDomains(base0, func, bases0, funcs, \
 def setIBCData(tR, tD, order=2, penalty=0, nature=0,
                method='lagrangian', loc='nodes', storage='direct',
                interpDataType=1, hook=None, sameName=0, he=0., hi=0., dim=3, bcType=0):
+    """Compute Immersed Boundary data."""
     try: from . import ToolboxIBM as IBM
     except: raise ImportError("setIBCData: requires ToolboxIBM module.")
 
@@ -479,10 +480,10 @@ def _setIBCDataForZone__(z, zonesDnr, correctedPts, wallPts, interpPts, loc='nod
                 allWallPts[noz] = wallPtsL
                 allMirrorPts[noz] = mirrorPtsL
 
-        if len(resInterp[4])>0: # Sort extrapolated points wrt donor zones
+        if len(resInterp[4]) > 0: # Sort extrapolated points wrt donor zones
             for noz in range(nzonesDnr):
                 nextraploc = resInterp[4][noz].size
-                if nextraploc>0: # Extrapoles
+                if nextraploc > 0: # Extrapoles
                     for noi in range(nextraploc):
                         index = resInterp[4][noz][noi]
                         resInterp[4][noz][noi] = indcells[index]
@@ -701,7 +702,7 @@ def _setInterpDataChimera(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
     zonesRcv = Internal.getZones(aR); nzonesRcv = len(zonesRcv)
     zonesDnr = Internal.getZones(aD); nzonesDnr = len(zonesDnr)
 
-   #---------------------------------------------------------------------------
+    #---------------------------------------------------------------------------
     # CAS DOUBLE WALL
     # Extraction des parois de projection issues des zones donneuses
     # Extraction des premiers centres ou premiers noeuds (selon locR) des zones receveuses
@@ -803,7 +804,7 @@ def _setInterpDataChimera(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
             #-------------------------------------------
             # Etape 1: on recupere les pts a interpoler
             #-------------------------------------------
-            interpPts = [];
+            interpPts = []
             isdw = 0 # si double wall effectivement active, interpPts est une liste d'arrays
             if locR == 'nodes':
                 an = C.getFields(Internal.__GridCoordinates__, z)[0]
@@ -847,7 +848,7 @@ def _setInterpDataChimera(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
                 nbinterpolated = nbinterpolated-nbextrapolated-nborphan
 
                 print('Zone %s: interpolated=%d ; extrapolated=%d ; orphan=%d'%(z[0], nbinterpolated, nbextrapolated, nborphan))
-                if  nborphan>0: print('Warning: zone %s has %d orphan points !'%(z[0], nborphan))
+                if  nborphan > 0: print('Warning: zone %s has %d orphan points !'%(z[0], nborphan))
                 # on remet a une seule zone, attention si x,y,z sont necessaires ensuite
                 # les coordonnees peuvent etre fausses a cause du double walls
                 indcells=[]
@@ -1439,6 +1440,7 @@ def _createInterpRegion__(z, zname, pointlist, pointlistdonor, interpCoef, inter
 #=============================================================================
 def transferFields(z, interpXN, interpYN, interpZN, order=2, penalty=1, nature=0,
                    constraint=30., hook=None, variables=[], interpDataType=1):
+    """Transfer given fields once interpolation data has been computed."""
     return connector.transferFields(z, interpXN, interpYN, interpZN, 
                                     order, nature, penalty, constraint,
                                     hook, variables, interpDataType,
@@ -1476,6 +1478,7 @@ def setInterpTransfers(aR, topTreeD, variables=[], cellNVariable='cellN',
                        bcType=0, varType=1, storage=-1, 
                        Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08,
                        Cs=0.3831337844872463, Ts=1.0):
+    """Transfer variables once interpolation data has been computed."""
     if variablesIBC is not None:
         nvarIBC = len(variablesIBC)
         if nvarIBC != 5 and nvarIBC != 6:
@@ -1828,7 +1831,6 @@ def setInterpTransfersD(topTreeD, variables=[], cellNVariable='',
 #=============================================================================
 def getUnsteadyConnectInfos(t):
     """Return number of timelevel, min and max values present in the connectivity tree."""
-
     inst = {}
     numero_max =-100000000
     numero_min = 100000000
@@ -1958,7 +1960,7 @@ def oversetNatureOfCells__(aR,topTreeD,nature):
         subRegions = []
         for s in subRegions2:
             sname = s[0][0:2]
-            if sname=='ID': 
+            if sname == 'ID': 
                 idn = Internal.getNodesFromName1(s,'InterpolantsDonor')
                 if idn != []: # la subRegion decrit des interpolations
                     subRegions.append(s)
@@ -2084,7 +2086,7 @@ def oversetCellRatio__(aR, topTreeD):
                 zrcvname = Internal.getValue(s)
                 zreceivers = Internal.getNodesFromName2(tR,zrcvname)
                 zr = Internal.getNodesFromType1(zreceivers,'Zone_t')
-                if (zr != []): 
+                if zr != []:
                     zr = zr[0]                   
                     # parentr,dr = Internal.getParentOfNode(tR,zr) 
                     # interpolated node or cell ?
@@ -2119,14 +2121,11 @@ def oversetCellRatio__(aR, topTreeD):
 def oversetDonorAspect__(aR, topTreeD):
     try: import Generator.PyTree as G
     except: raise ImportError("oversetInfo: requires Generator module.")
-    # 
     tR = Internal.copyRef(aR)
-    #
     tD = Internal.copyRef(topTreeD)
     G._getEdgeRatio(tD)    
     tD = C.center2Node(tD,'centers:EdgeRatio')
     C._rmVars(tD,['centers:EdgeRatio'])
-    #
     # First pass : direct storage
     zones = Internal.getZones(tR)
     for zr in zones:
@@ -2134,7 +2133,7 @@ def oversetDonorAspect__(aR, topTreeD):
         subRegions = []
         for s in subRegions2:
             sname = s[0][0:2]
-            if sname=='ID': 
+            if sname == 'ID':
                 idn = Internal.getNodesFromName1(s,'InterpolantsDonor')
                 if idn != []: # la subRegion decrit des interpolations
                     subRegions.append(s)
@@ -2147,7 +2146,7 @@ def oversetDonorAspect__(aR, topTreeD):
                 # interpolated node or cell ?
                 location = Internal.getNodesFromName1(s, 'GridLocation')
                 if location != []: location = Internal.getValue(location[0])
-                locr = 'nodes';
+                locr = 'nodes'
                 if location == 'CellCenter': locr = 'centers'; 
               
                 # donor zone
@@ -2164,18 +2163,17 @@ def oversetDonorAspect__(aR, topTreeD):
                     field = Converter.array('donorAspect',nindI,1,1)
                     for noind in range(nindI):             
                         field[1][0,noind] = ER[0,ListDnr[noind]]
-                    zr = C.setPartialFields(zr, [field], [ListRcv],loc=locr)   
-        #
+                    zr = C.setPartialFields(zr, [field], [ListRcv],loc=locr)
         # parentr[2][dr] = zr
 
-    # 2nd pass : inverse storage 
+    # 2nd pass : inverse storage
     zones = Internal.getZones(tD)
     for zd in zones:
         subRegions2 = Internal.getNodesFromType1(zd,'ZoneSubRegion_t')
         subRegions = []
         for s in subRegions2:
             sname = s[0][0:2]
-            if sname=='ID': 
+            if sname == 'ID':
                 idn = Internal.getNodesFromName1(s,'InterpolantsDonor')
                 if idn != []: # la subRegion decrit des interpolations
                     subRegions.append(s)
@@ -2194,7 +2192,7 @@ def oversetDonorAspect__(aR, topTreeD):
                     # interpolated node or cell ?
                     location = Internal.getNodesFromName1(s, 'GridLocation')
                     if location != []: location = Internal.getValue(location[0])
-                    locr = 'nodes';
+                    locr = 'nodes'
                     if location == 'CellCenter': locr = 'centers'
                     ListRcv = Internal.getNodesFromName1(s,'PointListDonor')[0][1]       
                     ListDnr = Internal.getNodesFromName1(s,'PointList')[0][1]
@@ -2370,12 +2368,12 @@ def extractChimeraInfo(a,type='interpolated',loc='centers'):
     """Extract interpolated/extrapolated/orphan points as zones.
     Usage: extractChimeraInfo(a,type,loc)"""
     FSCont = Internal.__FlowSolutionCenters__
-    if loc=='nodes': FSCont=Internal.__FlowSolutionNodes__
+    if loc == 'nodes': FSCont = Internal.__FlowSolutionNodes__
     try: import Post.PyTree as P
     except: raise ImportError("extractChimeraInfo requires Post.PyTree module.") 
 
     typel = type.split('>')
-    if len(typel)==1: 
+    if len(typel) == 1:
         typel = type
         if typel == 'extrapolated': 
             var = typel; prefix='ExtrapPts'
@@ -2407,7 +2405,6 @@ def extractChimeraInfo(a,type='interpolated',loc='centers'):
                 Internal._rmNodesByType(chimPts,"ZoneSubRegion_t")
                 DIMS=Internal.getZoneDim(chimPts)
                 if DIMS[1] > 0: 
-                    #C._convertArray2Node(chimPts)
                     chimPts[0] = prefix+'_'+z[0]
                     allChimPts.append(chimPts)
 

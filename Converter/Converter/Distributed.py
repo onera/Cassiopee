@@ -339,7 +339,8 @@ def writeZones(t, fileName, format=None, proc=None, zoneNames=None, links=None):
 # Ex: [ [zonesDeProc0], [zonesDeProc1], ...]
 # IN: liste des zones a remplacer dans t
 # IN: size: nbre de processeurs
-# Met les zones dans l'arbre par identification des noms
+# Met les zones dans l'arbre par identification des noms des zones
+# Si le nom des zones est base/zone, essaie de retrouver la base
 #==============================================================================
 def setZonesInTree(t, zones):
     tp = Internal.copyRef(t)
@@ -352,14 +353,28 @@ def _setZonesInTree(t, zones):
         for j in range(len(zones[i])):
             zone = zones[i][j]
             zoneName = zone[0]
-            z = Internal.getNodeFromName2(t, zoneName)
-            if z is not None:
+            spl = zoneName.split('/', 1)
+            if len(spl) >= 2: # baseName/zoneName
+              baseName = spl[0]; zoneName = spl[1]
+              zone[0] = zoneName
+              base = Internal.getNodeFromName1(t, baseName)
+              if base is not None:
+                z = Internal.getNodeFromName1(base, zoneName)
+                if z is not None:
+                  (p, nb) = Internal.getParentOfNode(base, z)
+                  p[2][nb] = zone   
+                else:
+                  base = Internal.newCGNSBase(baseName, parent=t)
+                  base[2].append(zone)
+            else:    
+              z = Internal.getNodeFromName2(t, zoneName)
+              if z is not None:
                 (p, nb) = Internal.getParentOfNode(t, z)
                 p[2][nb] = zone
-            else:
-                # append to given base
+              else:
+                # append to first base
                 bases = Internal.getBases(t)
-                bases[0][2] += [zone]
+                bases[0][2].append(zone)
     return None
 
 #==============================================================================
@@ -560,7 +575,7 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
                     levrcv_ = Internal.getNodesFromName1(s,'LevelZRcv')
                     levrcv  = int(levrcv_[0][1][0])
                     idn = Internal.getNodesFromName1(s,'InterpolantsDonor')
-                    cycl = nssiter/levdnr
+                    cycl = nssiter//levdnr
                     if levdnr > levrcv and ssiter <= nssiter:
                         if ssiter%cycl==cycl-1 or ssiter%cycl==cycl//2 and (ssiter/cycl)%2==1: 
                             if idn != []: # la subRegion decrit des interpolations
@@ -631,7 +646,7 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
                     levrcv_ = Internal.getNodesFromName1(s,'LevelZRcv')
                     levrcv  = int(levrcv_[0][1][0])
                     idn = Internal.getNodesFromName1(s,'InterpolantsDonor')
-                    cycl = nssiter/levdnr
+                    cycl = nssiter//levdnr
                     if (levdnr > levrcv and ssiter <= nssiter):
                         if (ssiter%cycl==cycl-1 or ssiter%cycl==cycl/2 and (ssiter/cycl)%2==1): 
                             if idn != []: # la subRegion decrit des interpolations
