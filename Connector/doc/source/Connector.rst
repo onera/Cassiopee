@@ -549,7 +549,7 @@ Overset connectivity
 
     .. literalinclude:: ../build/Examples/Connector/maximizeBlankedCells.py
 
-    * `Optimize overlapping (pyTree) <Examples/Connector/maximizeBlankedCellsPT.py>`_:
+    * `Maximize blanked cells (pyTree) <Examples/Connector/maximizeBlankedCellsPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Connector/maximizeBlankedCellsPT.py
 
@@ -779,7 +779,7 @@ Overset connectivity
 Overset grid connectivity for elsA solver
 ------------------------------------------
 
-.. py:function:: X.PyTree.setInterpolations(t, loc='cell', double_wall=0, storage='inverse', prefixFile='', sameBase=0, solver='elsA', nGhostCells=2, parallelDatas=[], cfMax=30., planarTol=0., check=True)
+.. py:function:: Connector.PyTree.setInterpolations(t, loc='cell', double_wall=0, storage='inverse', prefixFile='', sameBase=0, solver='elsA', nGhostCells=2, parallelDatas=[], cfMax=30., planarTol=0., check=True)
 
     This function is specific to elsA solver.
     Set the Chimera connectivity (EX points and cell centers to be interpolated, index for donor interpolation cell and interpolation coefficients). 
@@ -813,7 +813,7 @@ Overset grid connectivity for elsA solver
 
 -----------------------------------------------------------------------------------------------------------------------------
 
-.. py:function:: X.PyTree.chimeraTransfer(t, storage='direct', variables=[], loc='cell', mesh='extended')
+.. py:function:: Connector.PyTree.chimeraTransfer(t, storage='direct', variables=[], loc='cell', mesh='extended')
 
     Compute Chimera transfers. This function is compliant with the storage as it is defined for setInterpolations function.
 
@@ -835,7 +835,7 @@ Overset grid connectivity for elsA solver
 
 -----------------------------------------------------------------------------------------------------------------------------
 
-.. py:function:: X.PyTree.chimeraInfo(t, type='interpolated')
+.. py:function:: Connector.PyTree.chimeraInfo(t, type='interpolated')
 
     Set information on Chimera connectivity, i.e. interpolated, extrapolated or orphan cells, donor aspect ratio and ratio between
     volume of donor and receptor cells.
@@ -865,7 +865,7 @@ Overset grid connectivity for elsA solver
 Immersed boundary (IBM) pre-processing
 ------------------------------------------
 
-.. py:function:: X.setIBCData(aR, aD, order=2, penalty=0, nature=0, method='lagrangian', loc='nodes', storage='direct', he=0., hi=0., dim=3)
+.. py:function:: Connector.PyTree.setIBCData(aR, aD, order=2, penalty=0, nature=0, method='lagrangian', loc='nodes', storage='direct', he=0., hi=0., dim=3)
 
     Compute and store IBM information (donor and receptor points, interpolation type, interpolation coefficients, coordinates of corrected, wall and interpolated points) given receptors defined by aR,
     donor zones given by aD.
@@ -903,7 +903,7 @@ Immersed boundary (IBM) pre-processing
 
 ------------------------------------------------------------------------------------------------
 
-.. py:function:: X.ToolboxIBM.prepareIBMData(t, tb, DEPTH=2, loc='centers', frontType=1)
+.. py:function:: Connector.ToolboxIBM.prepareIBMData(t, tb, DEPTH=2, loc='centers', frontType=1)
 
     Compute and store all the information required for IBM computations. 
     For Euler computations, corrected points are inside body, for viscous computations,
@@ -941,7 +941,7 @@ Immersed boundary (IBM) pre-processing
 
 ------------------------------------------------------------------------------------------------
 
-.. py:function:: X.ToolboxIBM.extractIBMInfo(a)
+.. py:function:: Connector.ToolboxIBM.extractIBMInfo(a)
 
     Extract the IBM particular points once the IBM data is computed and stored in a pyTree. These points are the IBM points that are marked
     as updated points for the IBM approach and the corresponding wall and interpolated (in fluid) points.
@@ -958,7 +958,7 @@ Immersed boundary (IBM) pre-processing
 
 ------------------------------------------------------------------------------------------------
 
-.. py:function:: X.ToolboxIBM.extractIBMWallFields(a,tb=None)
+.. py:function:: Connector.ToolboxIBM.extractIBMWallFields(a,tb=None)
 
     Extract the solution at walls. If IBM data is stored in donor pyTree tc, then a must be tc, else a is the pyTree t.
 
@@ -981,7 +981,7 @@ Overset and Immersed Boundary transfers with pyTrees
     The following function enables to update the solution at some points, marked as interpolated for overset and IBM approaches.
 
 
- .. py:function:: X.setInterpTransfers(aR, topTreeD, variables=None, variablesIBC=['Density', 'MomentumX', 'MomentumY', 'MomentumZ', 'EnergyStagnationDensity'], bcType=0, varType=1, storage='unknown')
+ .. py:function:: Connector.PyTree.setInterpTransfers(aR, topTreeD, variables=None, variablesIBC=['Density', 'MomentumX', 'MomentumY', 'MomentumZ', 'EnergyStagnationDensity'], bcType=0, varType=1, storage='unknown')
 
     General transfers from a set of donor zones defined by topTreeD to receptor zones defined in aR.
 

@@ -803,6 +803,7 @@ def inverseChimeraTransfer__(t, variables, locinterp='centers', mesh='extended')
 # Compliant with setInterpolations storage
 #=============================================================================
 def chimeraInfo(a, type='interpolated'):
+    """Extract Overset information when computed with setInterpolations."""
     t = Internal.copyRef(a)
     _chimeraInfo(t,type=type)
     return t

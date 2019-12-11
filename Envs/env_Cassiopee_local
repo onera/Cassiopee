@@ -69,7 +69,7 @@ if ($MAC == "ld_pgi") then
         set path=($CASSIOPEE/Dist/bin $path)
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
         setenv LD_LIBRARY_PATHL /usr/lib64:/stck/benoit/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/pgi_r8/lib:/usr/lib64/openmpi/lib:/d/juvigny/Logiciels/linux86-64/2018/lib
-        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/pgi_r8:$CASSIOPEE/Dist/bin/pgi_r8/lib/python2.7/site-packages
+        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
 
 else if ($MAC == "ld") then
 #-------------------------- ld centos 7 + python 3 -----------------------------
@@ -92,7 +92,7 @@ else if ($MAC == "ld") then
         set path=(/d/benoit/.local/bin $path $CASSIOPEE/Dist/bin)
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
         setenv LD_LIBRARY_PATHL /usr/lib64:/stck/benoit/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
-        setenv PYTHONPATHL /d/benoit/.local/lib/python3.6/site-packages:$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.6/site-packages
+        setenv PYTHONPATHL /d/benoit/.local/lib/python3.6/site-packages:$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.6/site-packages
         
 else if ($MAC == "ld_python2") then
 #----------------------------- ld centos 7 -------------------------------------
@@ -118,7 +118,7 @@ else if ($MAC == "ld_python2") then
             set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
             setenv LD_LIBRARY_PATHL /usr/lib64:/stck/benoit/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
             #setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
-            setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
+            setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
         else # elsA public
             set path=($ELSA/Dist/bin/eos-intel $path)
             setenv LD_LIBRARY_PATHL /usr/lib64:/stck/benoit/lib:$ELSA/Dist/bin/eos-intel:$ELSA/Dist/bin/eos-intel/lib:/usr/local/python/lib
@@ -149,7 +149,7 @@ else if ($MAC == "eos") then
         if ($?ELSA == 0) then # Cassiopee Kernel
             set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
             setenv LD_LIBRARY_PATHL /usr/lib64:/stck/benoit/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/x86_r8/lib:/usr/lib64/openmpi/lib
-            setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/x86_r8:$CASSIOPEE/Dist/bin/x86_r8/lib/python2.7/site-packages
+            setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
         else # elsA public
             set path=($ELSA/Dist/bin/eos-intel $path)
             setenv LD_LIBRARY_PATHL /usr/lib64:/stck/benoit/lib:$ELSA/Dist/bin/eos-intel:$ELSA/Dist/bin/eos-intel/lib:/usr/local/python/lib
@@ -180,7 +180,7 @@ else if ($MAC == "mangrove") then
         setenv OMP_NUM_THREADS 4
         set path=($path $CASSIOPEE/Dist/bin)
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
-        setenv LD_LIBRARY_PATHL /opt/intel/Compiler/11.0/083/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/man_r8/lib
+        setenv LD_LIBRARY_PATHL /opt/intel/Compiler/11.0/083/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
         setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/man_r8:$CASSIOPEE/Dist/bin/man_r8/lib/python2.6/site-packages
 
 else if ($MAC == "ubuntu") then
@@ -193,7 +193,7 @@ else if ($MAC == "ubuntu") then
         # Chemin de elsA.x
         set path=($path $CASSIOPEE/Dist/bin/$ELSAPROD)
         setenv LD_LIBRARY_PATHL $CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/ub_r8/lib
-        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/ub_r8:$CASSIOPEE/Dist/bin/ub_r8/lib/python2.5/site-packages
+        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.5/site-packages
 
 else if ($MAC == "fulvio") then
 #------------------------------- fulvio ---------------------------------------
@@ -210,7 +210,7 @@ else if ($MAC == "fulvio") then
         set path=($path $CASSIOPEE/Dist/bin)
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
         setenv LD_LIBRARY_PATHL $CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/flv_r8/lib:/usr/local/lib64:/usr/local/hdf5-intel-1.8.8/lib
-        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/flv_r8:$CASSIOPEE/Dist/bin/flv_r8/lib/python2.7/site-packages
+        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
 
 else if ($MAC == "daapuv") then
 #------------------------------- daapuv --------------------------------------
@@ -219,7 +219,7 @@ else if ($MAC == "daapuv") then
         set path=($path $CASSIOPEE/Dist/bin)
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
         setenv LD_LIBRARY_PATHL $CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/uv_r8/lib:/usr/local/hdf5-1.8.7/lib
-        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/uv_r8:$CASSIOPEE/Dist/bin/uv_r8/lib/python2.6/site-packages
+        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.6/site-packages
 
 else if ($MAC == "visio_python3") then
 #------------------------------- visio ---------------------------------------
@@ -240,7 +240,7 @@ else if ($MAC == "visio_python3") then
         set path=($path $CASSIOPEE/Dist/bin)
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
         setenv LD_LIBRARY_PATHL $CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/vis_r8/lib:/usr/local/hdf5-intel-1.8.8/lib:/usr/local/lib64:/usr/lib64
-        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/vis_r8:$CASSIOPEE/Dist/bin/vis_r8/lib/python2.7/site-packages
+        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
 
 else if ($MAC == "visio") then
 #------------------------------- visio ---------------------------------------
@@ -257,8 +257,8 @@ else if ($MAC == "visio") then
         set path=(/usr/local/python/bin $path)
         set path=($path $CASSIOPEE/Dist/bin)
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
-        setenv LD_LIBRARY_PATHL $CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/vis_r8/lib:/usr/local/hdf5-intel-1.8.8/lib:/usr/local/lib64:/usr/lib64
-        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/vis_r8:$CASSIOPEE/Dist/bin/vis_r8/lib/python2.7/site-packages
+        setenv LD_LIBRARY_PATHL $CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:/usr/local/hdf5-intel-1.8.8/lib:/usr/local/lib64:/usr/lib64
+        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
 
 else if ($MAC == "tiamat") then
 #------------------------------- tiamat ---------------------------------------
@@ -274,7 +274,7 @@ else if ($MAC == "tiamat") then
         set path=(/home/tools/local/tiamat/bin $path $CASSIOPEE/Dist/bin)
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
         setenv LD_LIBRARY_PATHL /home/tools/local/tiamat/lib:$CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/tia_r8/lib64:/stck/benoit/x86_64t/lib
-        setenv PYTHONPATHL /home/tools/local/tiamat/lib/python2.7:$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/tia_r8:$CASSIOPEE/Dist/bin/tia_r8/lib64/python2.7/site-packages
+        setenv PYTHONPATHL /home/tools/local/tiamat/lib/python2.7:$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib64/python2.7/site-packages
 
 else if ($MAC == "austri") then
 #------------------------------- austri ---------------------------------------
@@ -297,8 +297,8 @@ else if ($MAC == "austri") then
         module load hdf5/1.8.8-intel-11
         set path=($path $CASSIOPEE/Dist/bin)
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
-        setenv LD_LIBRARY_PATHL /stck/benoit/aus/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/aus_r8/lib
-        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/aus_r8:$CASSIOPEE/Dist/bin/aus_r8/lib/python2.7/site-packages
+        setenv LD_LIBRARY_PATHL /stck/benoit/aus/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
+        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
 
 else if ($MAC == "laura") then
 #------------------------------- laura ----------------------------------------
@@ -315,7 +315,7 @@ else if ($MAC == "laura") then
         set path=($path $CASSIOPEE/Dist/bin)
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
         setenv LD_LIBRARY_PATHL $CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/laura_r8/lib:/stck/benoit/laura/lib:/usr/local/lib64:/opt/intel/composerxe-2011.1.107/compiler/lib/intel64
-        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/laura_r8:$CASSIOPEE/Dist/bin/laura_r8/lib/python2.7/site-packages
+        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
 
 else if ($MAC == "linux64") then
 #------------------------------- linux64 ---------------------------------------
@@ -327,7 +327,7 @@ else if ($MAC == "linux64") then
         set path=($path $CASSIOPEE/Dist/bin)
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
         setenv LD_LIBRARY_PATHL /stck/benoit/lib:$CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/linux64/lib:/usr/local/python/lib:/usr/lib64/openmpi/lib
-        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/linux64:$CASSIOPEE/Dist/bin/linux64/lib/python2.7/site-packages
+        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
 
 else if ($MAC == "moloch") then
 #------------------------------- moloch ---------------------------------------
@@ -340,7 +340,7 @@ else if ($MAC == "moloch") then
         set path=(/usr/bin $path $CASSIOPEE/Dist/bin)
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
         setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/mol_r8/lib64
-        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/mol_r8:$CASSIOPEE/Dist/bin/mol_r8/lib64/python2.6/site-packages
+        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib64/python2.6/site-packages
 
 else if ($MAC == "giulia") then
 #------------------------------- giulia ---------------------------------------
@@ -407,7 +407,7 @@ else if ($MAC == "eos") then
         if ($?ELSA == 0) then # Cassiopee Kernel
             set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
             setenv LD_LIBRARY_PATHL /stck/benoit/lib:$CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/x86_r8/lib:/usr/local/python/lib:/usr/lib64/openmpi/lib
-            setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/x86_r8:$CASSIOPEE/Dist/bin/x86_r8/lib/python2.7/site-packages
+            setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
         else # elsA public
             set path=($ELSA/Dist/bin/eos-intel $path)
             setenv LD_LIBRARY_PATHL /stck/benoit/lib:$ELSA/Dist/bin/eos-intel:$ELSA/Dist/bin/eos-intel/lib:/usr/local/python/lib
@@ -433,7 +433,7 @@ else if ($MAC == "xdaap") then
 else if ($MAC == "spiro_python3") then
 #------------------------------- spiro --------------------------------------
         setenv ELSAPROD spiro_r8
-        module load python/3.6.1-intel-17
+        module load python/3.6.1
         # Set next two lines only if python is not python
         setenv PYTHONEXE python3
         alias python python3

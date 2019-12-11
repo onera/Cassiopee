@@ -38,7 +38,7 @@ def optimizeOverlap(t, double_wall=0, priorities=[], graph=None,
 def connectMatch(a, tol=1.e-6, dim=3):
 
     # Ajout des bandelettes
-    Cmpi._addBXZones(a,depth=2)
+    Cmpi._addBXZones(a, depth=2)
     
     # Construction des raccords 
     a = X.connectMatch(a)
@@ -52,17 +52,17 @@ def connectMatch(a, tol=1.e-6, dim=3):
     return a
 
 #==============================================================================
-def giveName2Window(p,zname,zopp):
-    if p[0]==p[1] :
-        if p[0]==1 :
+def giveName2Window(p, zname, zopp):
+    if p[0] == p[1]:
+        if p[0] == 1:
             pos = zname+'_imin_'+zopp
-        else : 
+        else: 
             pos = zname+'_imax_'+zopp
             
-    elif p[2]==p[3] :
-        if p[2]==1 :
+    elif p[2] == p[3]:
+        if p[2] == 1:
             pos = zname+'_jmin_'+zopp
-        else : 
+        else: 
             pos = zname+'_jmax_'+zopp
             
     elif p[4]==p[5] :
@@ -74,8 +74,7 @@ def giveName2Window(p,zname,zopp):
     return pos
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 def mergeWindows(t):
-    # Merge grid connectivities created after addBXZone
-    
+    # Merge grid connectivities created after addBXZones
     zones = Internal.getZones(t)
 
     for z in zones:
@@ -126,7 +125,7 @@ def mergeWindows(t):
                     surfMatch = max(1,(pglob[1]-pglob[0]))*max(1,(pglob[3]-pglob[2]))*max(1,(pglob[5]-pglob[4]))
 
                     # Fusion des matchs 
-                    if (surfMatch == sumSurf):
+                    if surfMatch == sumSurf:
                         # Fenetre du match donneur
                         pglobD   = [None]*6
                         for name in dico[match]:
