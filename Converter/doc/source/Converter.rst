@@ -556,7 +556,7 @@ pyTree creation and manipulation
     :rtype: Identical to input
 
 
-.. py:function:: Converter.PyTree.addState(a, adim='adim1', MInf=None, alphaZ=0., alphaY=0., ReInf=1.e8, UInf=None, TInf=None, PInf=None, RoInf=None, LInf=None, Mus=None, MutSMuInf=0.2, TurbLevelInf=1.e-4)
+.. py:function:: Converter.PyTree.addState(a, adim='adim1', MInf=None, alphaZ=0., alphaY=0., ReInf=1.e8, UInf=None, TInf=None, PInf=None, RoInf=None, LInf=None, Mus=None, MutSMuInf=0.2, TurbLevelInf=1.e-4, EquationDimension=None, GoverningEquations=None)
 
     Add a full reference state built from Adim. See Initiator documentation.
 

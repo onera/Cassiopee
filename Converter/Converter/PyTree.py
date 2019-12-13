@@ -5723,18 +5723,20 @@ def diffArrays(A, B):
 def addState(t, state=None, value=None, adim='adim1',
              MInf=None, alphaZ=0., alphaY=0., ReInf=1.e8,
              UInf=None, TInf=None, PInf=None, RoInf=None, LInf=None,
-             Mus=None, MutSMuInf=0.2, TurbLevelInf=1.e-4):
+             Mus=None, MutSMuInf=0.2, TurbLevelInf=1.e-4, 
+             EquationDimension=None, GoverningEquations=None):
   """Add single state value or a full reference state."""
   tp = Internal.copyRef(t)
   _addState(tp, state, value, adim,
             MInf, alphaZ, alphaY, ReInf, UInf, TInf, PInf, RoInf, LInf,
-            Mus, MutSMuInf, TurbLevelInf)
+            Mus, MutSMuInf, TurbLevelInf, EquationDimension, GoverningEquations)
   return tp
 
 def _addState(t, state=None, value=None, adim='adim1',
               MInf=0.5, alphaZ=0., alphaY=0., ReInf=1.e8,
               UInf=None, TInf=None, PInf=None, RoInf=None, LInf=None,
-              Mus=None, MutSMuInf=0.2, TurbLevelInf=1.e-4):
+              Mus=None, MutSMuInf=0.2, TurbLevelInf=1.e-4,
+              EquationDimension=None, GoverningEquations=None):
   ntype = Internal.typeOfNode(t)
   if state is not None and value is not None: # single state value
     addState2Node2__(t, ntype, state, value); return None
@@ -5805,6 +5807,12 @@ def _addState(t, state=None, value=None, adim='adim1',
   addState2Node2__(t, ntype, 'Cs', state[16])
   addState2Node2__(t, ntype, 'Ts', state[17])
   addState2Node2__(t, ntype, 'Pr', state[18])
+
+  if EquationDimension is not None:
+    addState2Node2__(t, ntype, 'EquationDimension', EquationDimension)
+  if GoverningEquations is not None:
+    addState2Node2__(t, ntype, 'GoverningEquations', GoverningEquations)
+
   return None
 
 # Ajoute un noeud state/value suivant le type de t (in place)

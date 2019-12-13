@@ -118,6 +118,7 @@ def adaptIBMMesh(t, tb, vmin, sensor, factor=1.2, DEPTH=2, sizeMax=4000000,
     if len(res) == 3: to = res[0]
     o = Internal.getZones(to)[0]
     o = G.adaptOctree(o, balancing=2)
+    if mpisize==1: C.convertPyTree2File(o, fileo)
     t2 = generateCartMesh__(o, dimPb=dimPb, vmin=vmin, DEPTH=DEPTH,
                             sizeMax=sizeMax, check=check, symmetry=symmetry, 
                             externalBCType=externalBCType)
@@ -575,7 +576,7 @@ def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None,
             print('Warning: number of zones (%d) on rank %d is high (block merging might last a long time).'%(nelts, rank))
 
     if fileout is not None: 
-        C.convertPyTree2File(o, fileout)
+        if mpisize==1: C.convertPyTree2File(o, fileout)
     return o
 
 def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., dfarList=[], DEPTH=2, tbox=None, 

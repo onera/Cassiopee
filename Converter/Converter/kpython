@@ -62,6 +62,10 @@ SCRIPT=$*
 if test $NTHREADS -eq 0
 then
     NTHREADS=`expr $ncpu / $NPROCS`
+    if test $NTHREADS -eq 0
+    then
+        NTHREADS=1
+    fi
 fi
 echo 'Running '$SCRIPT' with Nprocs='$NPROCS' and Nthreads='$NTHREADS
 

@@ -18,10 +18,10 @@
       color1[0] = r; color1[1] = g; color1[2] = b;
       if (b > 0.8 && r < 0.2 && g < 0.2)
       { color1[0] = r; color1[1] = b; color1[2] = g; }
-      color2[0] = 0.1;  color2[1] = 0.1;  color2[2] = 1;
+      color2[0] = 0.1;  color2[1] = 0.1;  color2[2] = 1.;
       // Ecrasement si render tag
       if (zonep->colorR != -1.)
-      {color1[0] = zonep->colorR; color1[1] = zonep->colorG; color1[2] = zonep->colorB;}
+      { color1[0] = zonep->colorR; color1[1] = zonep->colorG; color1[2] = zonep->colorB; }
       glLineWidth(1.);
       break;
 
@@ -61,7 +61,7 @@
 
     default:
       color1[0] = 0.95; color1[1] = 0.95; color1[2] = 1.;
-      color2[0] = 0.1;  color2[1] = 0.1;  color2[2] = 1;
+      color2[0] = 0.1;  color2[1] = 0.1;  color2[2] = 1.;
       glLineWidth(1.);
       break;
   }

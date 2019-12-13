@@ -613,21 +613,29 @@ def _addMXZones(a, depth=2):
     graph = computeGraph(a, type='match')
     procDict = getProcDict(a)
     reqs = []
-    zones = Internal.getZones(a)
-    if rank in graph:
-        g = graph[rank] # graph du proc courant
-        for oppNode in g:
-            data = []
-            for z in zones:
-                zs = getMatchSubZones__(z, procDict, oppNode, depth)
-                data += zs
-            s = KCOMM.isend(data, dest=oppNode)
-            reqs.append(s)
+    bases = Internal.getBases(a)
+    for b in bases:
+        zones = Internal.getZones(b)
+        if rank in graph:
+            g = graph[rank] # graph du proc courant
+            for oppNode in g:
+                data = []
+                for z in zones:
+                    zs = getMatchSubZones__(z, procDict, oppNode, depth)
+                    for zl in zs: zl[0] = b[0]+'/'+zl[0]
+                    data += zs
+                s = KCOMM.isend(data, dest=oppNode)
+                reqs.append(s)
 
     for node in graph:
         if rank in graph[node]:
             data = KCOMM.recv(source=node)
-            a[2][1][2] += data
+            for d in data:
+                (baseName, zoneName) = d[0].split('/',1)
+                d[0] = zoneName
+                b = Internal.getNodeFromName1(a, baseName)
+                if b is None: b = Internal.newCGNSBase(baseName, parent=a)
+                b[2].append(d)
     MPI.Request.Waitall(reqs)
 
     a = updateGridConnectivity(a)

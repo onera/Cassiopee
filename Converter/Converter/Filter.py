@@ -6,7 +6,6 @@ from . import Mpi as Cmpi
 from .Distributed import convert2PartialTree, _convert2PartialTree, convert2SkeletonTree, _convert2SkeletonTree, convertFile2SkeletonTree, _readPyTreeFromPaths, readPyTreeFromPaths, _readZones, \
 _convert2SkeletonTree, readNodesFromPaths, writeNodesFromPaths, writePyTreeFromPaths, deletePaths, fixPaths__
 import numpy
-from XCore import xcore
 
 # Prend un fileName, si c'est toto/*, rend la liste des fichiers
 def expand(fileName):
@@ -748,6 +747,7 @@ class Handle:
     :param      NProc:   The number of processes
     :type       NProc:   Integer. Value by default : number  of processes runned with MPI
     """
+    from XCore import xcore
     a = None
     if Cmpi.rank == 0:
       a, self.znp = readZoneHeaders(self.fileName, self.format, readGridElementRange=True)
