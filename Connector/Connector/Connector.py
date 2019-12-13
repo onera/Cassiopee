@@ -288,13 +288,12 @@ def blankIntersectingCells(a, cellN, tol=1.e-12):
 # IN: tol: geometric tolerance
 # OUT: returns the cellnfields, 0 for cells intersecting or inside the tet mesh
 #==============================================================================
-def blankCellsTetra(coords, cellnfields, meshT4, blankingType=1, tol = 1.e-12, cellnval=0, overwrite=0):
+def blankCellsTetra(coords, cellnfields, meshT4, blankingType=1, tol = 1.e-12, cellnval=0, overwrite=0, cellNName='cellN'):
     """Blank cells in coords (by setting the cellN to cellnval) falling inside a Tetra Mesh mask defined by meshT4.
     If overwrite is enabled (1), cells detected outside have a celln reset to 1.
     Usage: blankCellsTetra(coords, cellnfields, meshT4, connectT4, blankingType, tol, cellnval, overwrite)"""
     try: import Converter as C; import Transform as T; import Post as P
     except: raise ImportError("blankCellsTetra: requires Converter, Transform and Post  module.")
-    
     cellnt = []
     maskSkin = P.exteriorFaces(meshT4)
     maskSkin = T.reorderAll(maskSkin, 1) #orient outward
@@ -308,8 +307,7 @@ def blankCellsTetra(coords, cellnfields, meshT4, blankingType=1, tol = 1.e-12, c
       if blankingType == 2: # center_in: simplement un node_in sur les centres
         coords[i] = C.node2Center(coords[i])
         bt = 0
-      cellnt.append(connector.blankCellsTetra(coords[i], cellnfields[i], mask, bt, cellnval, overwrite))
-    
+      cellnt.append(connector.blankCellsTetra(coords[i], cellnfields[i], mask, bt, cellnval, overwrite, cellNName))
     connector.deleteTetraMask(mask);
     return cellnt
     
@@ -322,7 +320,7 @@ def blankCellsTetra(coords, cellnfields, meshT4, blankingType=1, tol = 1.e-12, c
 # OUT: returns the cellnfields, 0 for cells intersecting or inside the tet mesh
 #==============================================================================
 def blankCellsTri(coords, cellnfields, meshT3, blankingType=1, tol = 1.e-12, 
-                  cellnval=0, overwrite=0):
+                  cellnval=0, overwrite=0, cellNName='cellN'):
     """Blank cells in coords (by setting the cellN to cellnval) falling inside a Triangular surface mesh mask defined by meshT3.
     If overwrite is enabled (1), cells detected outside have a celln reset to 1.
     Usage: blankCellsTri(coords, cellnfields, meshT3, connectT4, blankingType, tol, cellnval, overwrite)"""
@@ -341,7 +339,7 @@ def blankCellsTri(coords, cellnfields, meshT3, blankingType=1, tol = 1.e-12,
       if blankingType == 2: # center_in: simplement un node_in sur les centres
         coords[i] = C.node2Center(coords[i])
         bt = 0
-      cellnt.append(connector.blankCellsTetra(coords[i], cellnfields[i], mask, bt, cellnval, overwrite))
+      cellnt.append(connector.blankCellsTetra(coords[i], cellnfields[i], mask, bt, cellnval, overwrite, cellNName))
     
     connector.deleteTriMask(mask);
     return cellnt
@@ -356,7 +354,7 @@ def getIntersectingDomainsAABB(arrays, tol=1.e-10):
 #=============================================================================
 def applyBCOverlapsNG__(a, faceList, depth, loc, val=2, cellNName='cellN'):
     if loc == 'nodes': locI = 0
-    elif loc == 'centers': locI = 1
+    elif loc == 'centers': locI = 1 
     else: raise ValueError("applyBCOverlapsUnstr: invalid location.")
     return connector.applyBCOverlapsNG(a, faceList, depth, locI, val, cellNName)
 

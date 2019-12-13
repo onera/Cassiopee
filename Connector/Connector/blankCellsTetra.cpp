@@ -284,6 +284,7 @@ E_Int do_the_blanking(E_Int blankingType, MaskEntity& maskE, const K_FLD::FldArr
 //============================================================================
 PyObject* K_CONNECTOR::blankCellsTetra(PyObject* self, PyObject* args)
 {
+  char* cellNName;
   PyObject* mesh;
   PyObject* celln;
   PyObject* maskHook;
@@ -294,8 +295,8 @@ PyObject* K_CONNECTOR::blankCellsTetra(PyObject* self, PyObject* args)
   K_FLD::FldArrayI *cmesh(0), *cC(0);
   
   if (!PYPARSETUPLEI(args,
-                    "OOOlll", "OOOiii",
-                    &mesh, &celln, &maskHook, &blankingType, &CELLNVAL, &overwrite))
+                    "OOOllls", "OOOiiis",
+                    &mesh, &celln, &maskHook, &blankingType, &CELLNVAL, &overwrite, &cellNName))
   {
       return NULL;
   }
@@ -367,14 +368,7 @@ PyObject* K_CONNECTOR::blankCellsTetra(PyObject* self, PyObject* args)
     return NULL;
   }
   bool struct_celln = (res == 1);
-  E_Int posc = K_ARRAY::isCellNatureField2Present(varStringC);
-  if (posc == -1)
-  {
-    PyErr_SetString(PyExc_TypeError,
-                      "blankCellsTetra: celln variable not found for one structured array.");
-    return NULL;
-  }
-  
+
   // Blanking
   K_CONNECTOR::maskGen* mask = (K_CONNECTOR::maskGen*)(packet[1]);
 
@@ -456,9 +450,9 @@ PyObject* K_CONNECTOR::blankCellsTetra(PyObject* self, PyObject* args)
   for (size_t i = 0; i < sz; ++i)cellnout[i]=E_Float(cN[i]);
   
   if (struct_celln)
-    return K_ARRAY::buildArray(cellnout, "cellN", ni, nj, nk);
+    return K_ARRAY::buildArray(cellnout, cellNName, ni, nj, nk);
   else
-    return K_ARRAY::buildArray(cellnout, "cellN", *cC, -1, eltTypeC, false);
+    return K_ARRAY::buildArray(cellnout, cellNName, *cC, -1, eltTypeC, false);
 }
 
 ///

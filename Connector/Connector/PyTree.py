@@ -1154,7 +1154,7 @@ def _blankCells(a, bodies, blankingMatrix=[], depth=2,
 # Masquage par Tetra
 #==============================================================================
 def blankCellsTetra(t, mT4, blankingMatrix=[], blankingType='node_in',
-                    tol=1.e-12, cellnval=0, overwrite=0):
+                    tol=1.e-12, cellnval=0, overwrite=0, cellNName='cellN'):
     try: import Transform as T
     except: raise ImportError("blankCells: requires Transform module.")
 
@@ -1172,7 +1172,7 @@ def blankCellsTetra(t, mT4, blankingMatrix=[], blankingType='node_in',
     # ajout du celln aux centres si n'existe pas pour une zone
     loc = 'centers'
     if blankType == 0: loc = 'nodes'
-    _addCellN__(a, loc=loc)
+    _addCellN__(a, loc=loc, cellNName=cellNName)
     bases = Internal.getBases(a)
     if bases == []: raise ValueError("blankCellsTetra: no basis found in input tree.")
 
@@ -1184,8 +1184,8 @@ def blankCellsTetra(t, mT4, blankingMatrix=[], blankingType='node_in',
 
         if len(coords[0]) == 5: coords = Converter.convertArray2Hexa(coords) # STRUCT -> HEXA
 
-        if loc == 'centers': cellN = C.getField('centers:cellN', b)
-        else: cellN = C.getField('cellN', b)
+        if loc == 'centers': cellN = C.getField('centers:'+cellNName, b)
+        else: cellN = C.getField(cellNName, b)
         bc = []
         for nb2 in range(len(mT4)):
             blanking = blankingMatrix[nb, nb2]
@@ -1203,8 +1203,8 @@ def blankCellsTetra(t, mT4, blankingMatrix=[], blankingType='node_in',
             #print 'Warning : nothing to mask for base %d'%(nb)
             continue
         bc = T.join(bc)
-        cellN = Connector.blankCellsTetra(
-                coords, cellN, bc, blankingType=blankType, tol=tol, cellnval=cellnval, overwrite=overwrite)
+        cellN = Connector.blankCellsTetra(coords, cellN, bc, blankingType=blankType, tol=tol, \
+                                          cellnval=cellnval, overwrite=overwrite, cellNName=cellNName)
         bc = None
         coords = None
         C.setFields(cellN, b, loc, False)
@@ -1214,7 +1214,7 @@ def blankCellsTetra(t, mT4, blankingMatrix=[], blankingType='node_in',
 # Masquage par Tri (surface Tri)
 #==============================================================================
 def blankCellsTri(t, mT3, blankingMatrix=[], blankingType='node_in',
-                    tol=1.e-12, cellnval=0, overwrite=0):
+                    tol=1.e-12, cellnval=0, overwrite=0, cellNName='cellN'):
     try: import Transform as T
     except: raise ImportError("blankCellsTri: requires Transform module.")
 
@@ -1232,7 +1232,7 @@ def blankCellsTri(t, mT3, blankingMatrix=[], blankingType='node_in',
     # ajout du celln aux centres si n'existe pas pour une zone
     loc = 'centers'
     if blankType == 0: loc = 'nodes'
-    _addCellN__(a, loc=loc)
+    _addCellN__(a, loc=loc,cellNName=cellNName)
     bases = Internal.getBases(a)
     if bases == []: raise ValueError("blankCellsTri: no basis found in input tree.")
 
@@ -1244,8 +1244,8 @@ def blankCellsTri(t, mT3, blankingMatrix=[], blankingType='node_in',
 
         if len(coords[0]) == 5: coords = Converter.convertArray2Hexa(coords) # STRUCT -> HEXA
 
-        if loc == 'centers': cellN = C.getField('centers:cellN', b)
-        else: cellN = C.getField('cellN', b)
+        if loc == 'centers': cellN = C.getField('centers:'+cellNName, b)
+        else: cellN = C.getField(cellNName, b)
         bc = []
         for nb2 in range(len(mT3)):
             blanking = blankingMatrix[nb, nb2]
@@ -1263,8 +1263,8 @@ def blankCellsTri(t, mT3, blankingMatrix=[], blankingType='node_in',
             #print 'Warning : nothing to mask for base %d'%(nb)
             continue
         bc = Converter.convertArray2Tetra(bc); bc = T.join(bc);
-        cellN = Connector.blankCellsTri(
-                coords, cellN, bc, blankingType=blankType, tol=tol, cellnval=cellnval, overwrite=overwrite)
+        cellN = Connector.blankCellsTri(coords, cellN, bc, blankingType=blankType, tol=tol, \
+                                        cellnval=cellnval, overwrite=overwrite, cellNName=cellNName)
         bc = None
         coords = None
         C.setFields(cellN, b, loc, False)

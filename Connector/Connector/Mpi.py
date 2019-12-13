@@ -41,7 +41,7 @@ def connectMatch(a, tol=1.e-6, dim=3):
     Cmpi._addBXZones(a, depth=2)
     
     # Construction des raccords 
-    a = X.connectMatch(a)
+    a = X.connectMatch(a, tol=tol, dim=dim)
 
     # Suppression des XZones et correction des matchs 
     Cmpi._rmBXZones(a)
