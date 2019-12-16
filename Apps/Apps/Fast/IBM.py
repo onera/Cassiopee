@@ -221,9 +221,9 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
         for zone in Internal.getZones(t):
             zname = Internal.getName(zone)
             if interDict[zname] != []:
-                C._initVars(zone,'centers:MomentumX',0.)
-                C._initVars(zone,'centers:MomentumY',0.)
-                C._initVars(zone,'centers:MomentumZ',0.)
+                C._initVars(zone, 'centers:MomentumX', 0.)
+                C._initVars(zone, 'centers:MomentumY', 0.)
+                C._initVars(zone, 'centers:MomentumZ', 0.)
 
     if isinstance(t_out, str): Fast.save(t, t_out, split=format, NP=-NP, cartesian=True)
     return t, tc
@@ -455,7 +455,7 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
     if dimPb == 2:
         z0 = Internal.getNodeFromType2(t, "Zone_t")
         bb0 = G.bbox(z0); dz = bb0[5]-bb0[2]
-        tb2 = C.initVars(tb,'CoordinateZ',dz*0.5)
+        tb2 = C.initVars(tb, 'CoordinateZ', dz*0.5)
         DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dimPb, loc='centers')
     else:
         DTW._distance2Walls(t, tb, type='ortho', signed=0, dim=dimPb, loc='centers')
@@ -467,8 +467,7 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
     # SetHoleInterpolated points
 
     C._initVars(t,'{centers:cellNChim}={centers:cellN}')
-
-    C._initVars(t,'centers:cellN',1.)
+    C._initVars(t, 'centers:cellN', 1.)
     if dimPb == 2:
         z0 = Internal.getNodeFromType2(t, 'Zone_t')
         dims = Internal.getZoneDim(z0)
@@ -483,7 +482,7 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
     
     test.printMem(">>> Blanking [start]")
     t = TIBM.blankByIBCBodies(t, tb, 'centers', dimPb)
-    C._initVars(t,'{centers:cellNIBC}={centers:cellN}')
+    C._initVars(t, '{centers:cellNIBC}={centers:cellN}')
     
     TIBM._signDistance(t)
 
@@ -511,7 +510,7 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
         npts += dims[1]*dims[2]*dims[3]
     print('Final number of points=%5.4f millions.'%(npts/1000000.))
 
-    C._initVars(t,'{centers:cellNIBC}={centers:cellN}')
+    C._initVars(t, '{centers:cellNIBC}={centers:cellN}')
 
     if IBCType==-1:
         #print('Points IBC interieurs: on repousse le front un peu plus loin.')
@@ -942,9 +941,9 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
         for zone in Internal.getZones(t):
             zname = Internal.getName(zone)
             if interDict[zname] != []:
-                C._initVars(zone,'centers:MomentumX',0.)
-                C._initVars(zone,'centers:MomentumY',0.)
-                C._initVars(zone,'centers:MomentumZ',0.)
+                C._initVars(zone, 'centers:MomentumX', 0.)
+                C._initVars(zone, 'centers:MomentumY', 0.)
+                C._initVars(zone, 'centers:MomentumZ', 0.)
 
     # Save t
     if isinstance(t_out, str):

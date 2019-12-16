@@ -3163,7 +3163,6 @@ def _convertArray2Node(t):
   _deleteFlowSolutions__(t, 'centers')
   _deleteZoneBC__(t)
   _deleteGridConnectivity__(t)
-  #_TZA(t, 'nodes', 'nodes', Converter.convertArray2Node, None)
   zones = Internal.getZones(t)
   for z in zones:
     n = Internal.getNodeFromName1(z, 'ZoneType')
@@ -6305,17 +6304,25 @@ def _mergeConnectivity(z1, z2, boundary=0, shared=False):
     zn1 = convertArray2Node(z1)
     zn2 = convertArray2Node(z2)
     zn = T.join(zn1, zn2)
-    # reset Coordinates in z1
-    _deleteFlowSolutions__(z1)
-    cont1 = Internal.getNodeFromName(z1, Internal.__GridCoordinates__)
-    contn = Internal.getNodeFromName(zn, Internal.__GridCoordinates__)
+    # reset Coordinates in z1 with merged zn coordinates
+    cont1 = Internal.getNodeFromName1(z1, Internal.__GridCoordinates__)
+    contn = Internal.getNodeFromName1(zn, Internal.__GridCoordinates__)
     for name in ['CoordinateX', 'CoordinateY', 'CoordinateZ']:
-      p1 = Internal.getNodeFromName(cont1, name)
-      pn = Internal.getNodeFromName(contn, name)
+      p1 = Internal.getNodeFromName1(cont1, name)
+      pn = Internal.getNodeFromName1(contn, name)
       p1[1] = pn[1]
+    # Reidentifie le container noeud
+    cont1 = Internal.getNodeFromName1(z1, Internal.__FlowSolutionNodes__)
+    contn = Internal.getNodeFromName1(zn, Internal.__FlowSolutionNodes__)
+    for n in contn[2]:
+      if n[3] == 'DataArray_t':
+        p1 = Internal.getNodeFromName1(cont1, n[0])
+        if p1 is not None: p1[1] = n[1]
+    
+    # Nouveau nbre de points dans z1
     np = Internal.getZoneDim(zn)[1]
     z1[1] = numpy.copy(z1[1])
-    z1[1][0,0] = np # nouveau nbre de pts
+    z1[1][0,0] = np
 
     # Reidentifie la connectivite de z1
     hook = createHook(zn, 'nodes')
@@ -6327,7 +6334,15 @@ def _mergeConnectivity(z1, z2, boundary=0, shared=False):
       newc = numpy.copy(oldc)
       newc[:] = ids[oldc[:]-1]
       node[1] = newc
-
+    
+    # Ajoute les FlowSolution en centres
+    cont1 = Internal.getNodeFromName1(z1, Internal.__FlowSolutionCenters__)
+    cont2 = Internal.getNodeFromName1(z2, Internal.__FlowSolutionCenters__)
+    for n in cont2[2]:
+      if n[3] == 'DataArray_t':
+        p1 = Internal.getNodeFromName1(cont1, n[0])
+        if p1 is not None: p1[1] = numpy.concatenate((p1[1],n[1]))
+    
     # Ajoute les connectivites de z2
     nebb = 0
     z1[1][0,1] += neb # nouveau nbre de cellules
@@ -6342,6 +6357,17 @@ def _mergeConnectivity(z1, z2, boundary=0, shared=False):
     newc[:] = ids[oldc[:]-1]
     Internal.createUniqueChild(node, 'ElementConnectivity', 'DataArray_t', value=newc)
 
+    # decale les ranges des zoneBC de z2
+    zbc1 = Internal.getNodeFromType1(z1, 'ZoneBC_t')
+    if zbc1 is None: zbc1 = Internal.newZoneBC(parent=z1)
+    zbc2 = Internal.getNodesFromType2(z2, 'BC_t')
+    for bc in zbc2:
+      rn = Internal.getNodeFromType1(bc, 'IndexRange_t')
+      r = Internal.getValue(rn); print(r)
+      r0 = r[0,0]+maxElt; r1 = r[0,1]+maxElt
+      n = Internal.createUniqueChild(zbc1, bc[0], 'BC_t', value=bc[1])
+      Internal.createUniqueChild(n, rn[0], rn[3], value=[[r0,r1]])
+      
   elif boundary == 0 and shared:
     # on cree un nouveau noeud connectivite dans z1 (avec le nom de la zone z2)
     elts = Internal.getNodesFromType2(z2, 'Elements_t')
