@@ -57,7 +57,7 @@ PyObject* K_CONNECTOR::applyBCOverlapStruct(PyObject* self, PyObject* args)
 
   // verif cellN 
   E_Int posc = K_ARRAY::isNamePresent(cellNName,varString);
-  if (posc == -1) 
+  if (posc == -1)
   {
     PyErr_SetString(PyExc_TypeError,
                     "applyBCOverlapStruct: 1st arg must contain cellN variable.");

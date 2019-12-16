@@ -1249,7 +1249,7 @@ def blankCellsTri(t, mT3, blankingMatrix=[], blankingType='node_in',
         bc = []
         for nb2 in range(len(mT3)):
             blanking = blankingMatrix[nb, nb2]
-            #if (mT3[nb2] == []): print 'empty'
+            #if (mT3[nb2] == []): print('empty')
             if (mT3[nb2] == [] or \
                 (blanking != 1 and blanking != -1)): continue
             i = 0
@@ -1262,7 +1262,7 @@ def blankCellsTri(t, mT3, blankingMatrix=[], blankingType='node_in',
         if bc == []:
             #print 'Warning : nothing to mask for base %d'%(nb)
             continue
-        bc = Converter.convertArray2Tetra(bc); bc = T.join(bc);
+        bc = Converter.convertArray2Tetra(bc); bc = T.join(bc)
         cellN = Connector.blankCellsTri(coords, cellN, bc, blankingType=blankType, tol=tol, \
                                         cellnval=cellnval, overwrite=overwrite, cellNName=cellNName)
         bc = None

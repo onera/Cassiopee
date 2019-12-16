@@ -839,7 +839,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
   ipt_roD_vert     = ipt_roD + nidomD;
 
 
-  vector<PyArrayObject*> hook ;
+  vector<PyArrayObject*> hook;
 
 
   /*-------------------------------------*/
@@ -996,8 +996,8 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
 
   for  (E_Int ipass_typ=pass_deb; ipass_typ< pass_fin; ipass_typ++)
   {
-   //1ere pass_inst: les raccord fixe
-   //2eme pass_inst: les raccord instationnaire
+   //1ere pass_inst: les raccords fixes
+   //2eme pass_inst: les raccords instationnaires
    for  (E_Int pass_inst=pass_inst_deb; pass_inst< pass_inst_fin; pass_inst++)
    {
     //printf("pass_inst = %d, level= %d \n",  pass_inst, nrac_inst_level );

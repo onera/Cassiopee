@@ -57,7 +57,6 @@ opt1_1 = ['-DSCOTCH_PTSCOTCH']
 if cc == 'gcc': opt1 += [] # ['-Wrestrict']
 else: opt1 += ['-restrict']
 
-
 # Options for paradigma
 opt2 = ['-IXCore/paradigma','-IXCore/paradigma/mpi_wrapper','-IXCore/paradigma/mesh','-IXCore/paradigma/util','-IXCore/paradigma/io','-IXCore/paradigma/ppart','-IXCore/paradigma/struct','-IXCore/paradigma/pario','-IXCore/paradigma/ext_wrapper']
 opt2 += ['-IXCore/scotch']
@@ -97,9 +96,16 @@ else:
 
 # Verifie si paradigma est deja installe, si oui, on prend la version installee de la lib
 (pdm, pdmIncDir, pdmLibDir) = Dist.checkParadigma(additionalLibPaths, additionalIncludePaths)
-if not pdm: myMod2 = env.StaticLibrary('pdm', src_paradigma)
-else: myMod2 = None
-
+if pdm: myMod2 = None
+else:
+  # Verifie si la bibliotheque a ete downloadee dans ThirdParty
+  paths1 = '../ThirdParty/paradigma/paradigm/src'
+  paths2 = 'XCore/paradigma' # local link
+  if os.path.exists(paths2): myMod2 = env.StaticLibrary('pdm', src_paradigma)
+  else:
+     if os.path.exists(paths1): os.symlink(paths1, paths2)
+     else: print('Warning: paradigma not present.'); myMod2 = None
+  
 myMod = env.StaticLibrary('xcore', srcs.cpp_srcs)
 myMod3 = env.StaticLibrary('scotch1', srcs_scotch.cpp_srcs1[0:99])
 myMod3b = env.StaticLibrary('scotch2', srcs_scotch.cpp_srcs1[99:])

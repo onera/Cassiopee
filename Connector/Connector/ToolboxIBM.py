@@ -614,6 +614,7 @@ def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., dfarList=[], DEPTH=2, tb
                              check=check, symmetry=symmetry, externalBCType=externalBCType)
     return res
 
+# Remove fully blanked grids considering cellNNIBC and cellNChim
 def _removeBlankedGrids(t, loc='centers'):
     vari = 'cellNIBC'
     varc = 'cellNChim'
@@ -961,7 +962,7 @@ def getMinimumCartesianSpacing(t):
 # masquage par les corps IBC
 # gridType = single or composite - composite means that an off body grid exists
 #==============================================================================
-def blankByIBCBodies(t, tb, loc, dim):
+def blankByIBCBodies(t, tb, loc, dim, cellNName='cellN'):
     DIM = dim
     blankalgo='tri'
     if DIM == 2: blankalgo = 'xray'
@@ -1018,22 +1019,21 @@ def blankByIBCBodies(t, tb, loc, dim):
             tc = C.node2Center(t)
             for body in bodiesInv:
                 print('Blanking inversed for body')
-                tc = X.blankCells(tc, [body], BM, blankingType='node_in', XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2, dim=DIM)
-                C._initVars(tc,'{cellN}=1.-{cellN}') # ecoulement interne
+                tc = X.blankCells(tc, [body], BM, blankingType='node_in', XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2, dim=DIM, cellNName=cellNName)
+                C._initVars(tc,'{%s}=1.-{%s}'%(cellNName,cellNName)) # ecoulement interne
             for body in bodies:
-                tc = X.blankCells(tc, [body], BM, blankingType='node_in', XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2, dim=DIM)
-            C._cpVars(tc,'cellN',t,'centers:cellN')
+                tc = X.blankCells(tc, [body], BM, blankingType='node_in', XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2, dim=DIM, cellNName=cellNName)
+            C._cpVars(tc,'%s'%cellNName,t,'centers:%s'%cellNName)
         else:
-            t = X.blankCells(t, bodies, BM, blankingType=typeb, delta=TOLDIST, XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2, dim=DIM)
-
+            t = X.blankCells(t, bodies, BM, blankingType=typeb, delta=TOLDIST, XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2, dim=DIM, cellNName=cellNName)
     else:
         BM2 = numpy.ones((nbases,1),dtype=numpy.int32)
         for body in bodiesInv:
             print('Blanking inversed for body') 
-            t = X.blankCellsTri(t,[body],BM2,blankingType=typeb)
-            C._initVars(t,'{centers:cellN}=1-{centers:cellN}') # ecoulement interne
+            t = X.blankCellsTri(t, [body], BM2, blankingType=typeb, cellNName=cellNName)
+            C._initVars(t,'{centers:%s}=1-{centers:%s}'%(cellNName,cellNName)) # ecoulement interne
         for body in bodies: 
-            t = X.blankCellsTri(t,[body],BM2,blankingType=typeb)
+            t = X.blankCellsTri(t, [body], BM2, blankingType=typeb, cellNName=cellNName)
     return t
 
 #=============================================================================

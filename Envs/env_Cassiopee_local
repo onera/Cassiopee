@@ -37,7 +37,6 @@ set MAC0=`echo $KC | grep 'sator'`; if ($%MAC0 != 0) set MAC="sator"
 set MAC0=`echo $KC | grep 'xdaap'`; if ($%MAC0 != 0) set MAC="xdaap"
 set MAC0=`echo $KC | grep 'spiro'`; if ($%MAC0 != 0) set MAC="spiro"
 set MAC0=`echo $KC | grep 'mangrove'`; if ($%MAC0 != 0) set MAC="mangrove"
-set MAC0=`echo $KC | grep 'ldmfn423z'`; if ($%MAC0 != 0) set MAC="ld"
 set MAC0=`echo $KC | grep 'node6.cluster'`; if ($%MAC0 != 0) set MAC="macosx"
 
 # force: sator_sky, ld_pgi en faisant setenv MACHINE sator_sky

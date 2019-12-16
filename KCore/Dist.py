@@ -1769,12 +1769,12 @@ def symLinks():
           ex2 = os.path.exists(libPath2)
           lex1 = os.path.lexists(libPath1)
           lex2 = os.path.lexists(libPath2)
-          if (not ex1 and lex1): # broken link 1
+          if not ex1 and lex1: # broken link 1
                os.remove(libPath1); ex1 = False
-          if (not ex2 and lex2): # broken link 2
+          if not ex2 and lex2: # broken link 2
                os.remove(libPath2); ex2 = False
-          if (ex1 and not ex2): os.symlink(libPath1, libPath2)
-          elif (not ex1 and ex2): os.symlink(libPath2, libPath1)
+          if ex1 and not ex2: os.symlink(libPath1, libPath2)
+          elif not ex1 and ex2: os.symlink(libPath2, libPath1)
 
 #==============================================================================
 # Cree les extensions d'un Module
