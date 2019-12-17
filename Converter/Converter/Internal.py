@@ -230,7 +230,7 @@ def setValue(node, value=None):
     else:
         if value is None: node[1] = None
         elif isinstance(value, numpy.ndarray): 
-            if numpy.isfortran(value): node[1] = value
+            if value.flags.f_contiguous: node[1] = value
             else: node[1] = numpy.asfortranarray(value)
         elif isinstance(value, int) or isinstance(value, numpy.int32) or isinstance(value,numpy.int64): node[1] = numpy.array([value],'i')
         elif isinstance(value, float) or isinstance(value, numpy.float32) or isinstance(value, numpy.float64): node[1] = numpy.array([value],'d')
@@ -4154,6 +4154,51 @@ def _unfixNGon(t, methodPE=0):
         for b in B:
             PyTree._mergeConnectivity(z, b, boundary=0)
     return None
+
+# Dans une zone z, tri les noeuds elements dans l'ordre des connectivites
+# volumiques, surfaciques et renumerote les ZoneBCs en consequence
+def _sortNodesInZone(z):
+  li = z[2]; lo = []
+  # ZoneType
+  for l in li:
+    if l[3] == 'ZoneType_t': lo.append(l)
+  # Containers
+  for l in li:
+    if l[3] == 'GridCoordinates_t' or l[3] == 'FlowSolution_t': lo.append(l)
+  # Connectivites volumiques
+  for l in li:
+    if l[3] == 'Elements_t' and l[1][1] == 0: lo.append(l)
+  # Connectivite surfaciques
+  for l in li:
+    if l[3] == 'Elements_t' and l[1][1] > 0: lo.append(l)
+  # ZoneBC
+  for l in li:
+    if l[3] == 'ZoneBC_t': lo.append(l)
+  # Les autres
+  for l in li:
+    if l[3] != 'ZoneType_t' and l[3] != 'GridCoordinates_t' and l[3] != 'FlowSolution_t' and l[3] != 'Elements_t' and l[3] != 'ZoneBC_t':
+      lo.append(l)
+  # Renumerote les GC et les zoneBCs
+  oranges = {}; nranges = {}
+  c = 1
+  for l in lo:
+    if l[3] == 'Elements_t':
+      r = getNodeFromType1(l, 'IndexRange_t')[1]
+      oranges[l[0]] = (r[0],r[1])
+      nr0 = c; nr1 = c+r[1]-r[0]
+      nranges[l[0]] = (nr0, nr1)
+      r[0] = nr0; r[1] = nr1
+      c += nr1-nr0+1
+  BCs = getNodesFromType2(z, 'BC_t')
+  for b in BCs:
+    r = getNodeFromType1(b, 'IndexRange_t')[1]
+    r = r.ravel('k')
+    for i in oranges:
+      if r[0] >= oranges[i][0] and r[1] <= oranges[i][1]:
+        r[0] = nranges[i][0]+r[0]-oranges[i][0]
+        r[1] = nranges[i][0]+r[1]-oranges[i][0]
+  z[2] = lo
+  return None
 
 #==============================================================================
 # Create :elsAHybrid node, add ParentElements

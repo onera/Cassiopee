@@ -43,7 +43,7 @@ class Zone
     };
 
     // Steal the implementation pointer !
-    Zone( CPlotState* states, ZoneImpl* impl );
+    Zone(CPlotState* states, ZoneImpl* impl);
     virtual ~Zone();
 
     CPlotState* ptrState;
@@ -90,7 +90,7 @@ class Zone
     ZoneImpl* ptr_impl;
     void setUseGPURessources()   { ptr_impl->_GPUResUse = 1; }
     void unsetUseGPURessources() { ptr_impl->_GPUResUse = 0; }
-    void freeGPURessources(bool useGPURessources = true, bool freeIso = true);
+    void freeGPURessources(bool useGPURessources=true, bool freeIso=true);
     void destroyGPUIsoField() { ptr_impl->destroyIsoField(); }
     unsigned char* _voxelArray; // array voxel pour les zones en rendu volumique
 };

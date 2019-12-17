@@ -24,8 +24,8 @@
 struct ZoneImpl {
     ZoneImpl( ) : _GPUResUse( 1 ) {}
     virtual ~ZoneImpl( ) {}
-    int          _GPUResUse;  // =1 si cette zone utilise les ressources internes du GPU ( Display Lists ou VBO )
-    virtual void freeGPURes( CPlotState* state, bool freeIso = true ) = 0;
+    int _GPUResUse; // =1 si cette zone utilise les ressources internes du GPU (Display Lists ou VBO)
+    virtual void freeGPURes(CPlotState* state, bool freeIso=true) = 0;
     virtual void destroyIsoField( ) = 0;
 };
 

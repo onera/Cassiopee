@@ -609,7 +609,7 @@ def checkArray(a,dienow=False,orNone=True):
   if (getValueType(a) is None):
     if (dienow): raise cgnsException(111)
     return False
-  if ((len(a.shape)>1) and not NPY.isfortran(a)):
+  if ((len(a.shape)>1) and not a.flags.f_contiguous):
     if (dienow): raise cgnsException(710)
     return False
   return True
@@ -884,7 +884,7 @@ def hasFortranFlag(node):
   if (type(node[1])==type('')): return True # link
   if (not node[1].shape):       return True
   if (len(node[1].shape)==1):   return True  
-  return NPY.isfortran(node[1])
+  return node[1].flags.f_contiguous
 
 # --------------------------------------------------
 def getValueShape(node):
@@ -2409,7 +2409,7 @@ def copyArray(a):
   """Copy a numpy.ndarray with flags"""
   if (a is None): return None
   if (a==[]):   return None
-  if (NPY.isfortran(a)):
+  if (a.flags.f_contiguous):
     b=NPY.array(a,order='Fortran',copy=True)
   else:
     b=NPY.array(a,copy=True)
@@ -2419,7 +2419,7 @@ def copyArray(a):
 def toStringValue(v):
   if (v is None): return None
   ao='C'
-  if (NPY.isfortran(v)): ao='F'
+  if (v.flags.f_contiguous): ao='F'
   at=v.dtype.char
   av=v.tolist()
   return "numpy.array(%s,dtype='%s',order='%s')"%(av,at,ao)

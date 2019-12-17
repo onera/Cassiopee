@@ -21,15 +21,14 @@
 #define _CPLOT_STRUCTZONE_H_
 
 #include "Zone.h"
-#include "kcore.h"
+//#include "kcore.h"
 
 /* Define a structured zone */
 class StructZone : public Zone
 {
   public:
-  StructZone( CPlotState* states, ZoneImpl* impl );
+    StructZone(CPlotState* states, ZoneImpl* impl);
     virtual ~StructZone();
-
     void compNorm();
       
   public:

@@ -20,29 +20,23 @@
 #ifndef _CPLOT_UNSTRUCTZONE_H_
 #define _CPLOT_UNSTRUCTZONE_H_
 
-//#define __SHADERS__ // A ENLEVER
-
 #include "Zone.h"
-//#if defined(__SHADERS__)
-//#  include "CPlot/Shaders/ShaderBufferObject.hpp"
-//#endif
 
 /* Define a unstructured zone */
 class UnstructZone : public Zone
 {
   public:
-  UnstructZone( CPlotState* states, ZoneImpl* impl );
+    UnstructZone(CPlotState* states, ZoneImpl* impl);
     virtual ~UnstructZone();
-
     void compNorm();
 
   public:
     int np;                       // number of points
     int ne;                       // number of elements
     enum enumType {
-      NODE = 0, BAR, TRI, QUAD, TETRA, PENTA, PYRA, HEXA, NGON, ENDTYPE
+      NODE=0, BAR, TRI, QUAD, TETRA, PENTA, PYRA, HEXA, NGON, ENDTYPE
     };
-    int eltType;                  // 0:   NODE
+    int eltType;                  // 0: NODE
                                   // 1: BAR
                                   // 2: TRI
                                   // 3: QUAD
