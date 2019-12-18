@@ -1,0 +1,85 @@
+Installation Instructions
+*************************
+
+Basic Installation
+==================
+
+cmake .
+make
+make install
+
+CMake general options
+=====================
+
+cmake . -D<option1_name>=<option1_value> ... -D<optionn_name>=<optionn_value>
+
+Prefix :
+    CMAKE_INSTALL_PREFIX=<prefix>
+
+Enable fortran interface :
+    PDM_ENABLE_Fortran=<ON | OFF> (default : OFF)
+
+Enable python interface :
+    PDM_ENABLE_PYTHON_BINDINGS=<ON | OFF> (default : OFF)
+      If a simple autodetection fails, you can use these options to find Python :
+        PYTHON_LIBRARY=<path>
+        PYTHON_INCLUDE_DIR=<path>
+      Refere to FindPython in the CMake documentation for more informations.
+      shared libraries are necessary for python interface (CWP_ENABLE_SHARED=ON)
+
+Enable shared libraries :
+    PDM_ENABLE_SHARED=<ON | OFF> (default : ON)
+
+Enable static libraries :
+    PDM_ENABLE_STATIC=<ON | OFF> (default : ON)
+
+Enable ParMETIS library (parallel graph partition) :
+    PDM_ENABLE_PARMETIS=<ON | OFF> (default : ON)
+      If a simple autodetection fails, you can use these options to find ParMETIS :
+        PARMETIS_DIR=<path>
+
+     To link shared libraries, ParMETIS has to be compiled with "-fPIC" option.
+
+     CMake looks for :
+        - parmetis.h and metis.h includes
+        - parmetis and metis libraries
+
+Enable PTSCOTCH library (parallel graph partition) :
+    PDM_ENABLE_PTSCOTCH=<ON | OFF> (default : ON)
+      If a simple autodetection fails, you can use these options to find ParMETIS :
+        PARMETIS_DIR=<path>
+
+     To link shared libraries, PTSCOTCH has to be compiled with "-fPIC" option.
+
+     CMake looks for :
+        - ptscotch.h include file
+        - scotch, scotcherr, ptscotch, ptscotcherr libraries
+
+Enable long global number
+     PDM_ENABLE_LONG_G_NUM= <ON | OFF> (default : ON)
+       - ON : PDM_g_num_t type is "long int"
+       - OFF : PDM_g_num_t type is "int"
+
+CMake compiler options
+======================
+
+CC=<C compiler> CXX=<CXX compiler> FC=<Fortran compiler> cmake ...
+
+or use the following cmake options
+    CMAKE_C_COMPILER=<C compiler>
+    CMAKE_CXX_COMPILER=<CXX compiler>
+    CMAKE_Fortran_COMPILER=<Fortran compiler>
+
+
+CMake MPI options
+=================
+
+    MPI_C_COMPILER=<C mpi wrapper>
+    MPI_CXX_COMPILER=<CXX mpi wrapper>
+    MPI_Fortran_COMPILER=<Fortran mpi wrapper>
+
+If a simple autodetection fails, you can use these options to find MPI :
+    MPI_<lang>_LIBRARIES
+    MPI_<lang>_INCLUDE_PATH
+
+Refere to FindMPI in the CMake documentation for more informations.
