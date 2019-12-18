@@ -167,7 +167,7 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPathsPartial(char* file,
         // printf("path contigous ...  %s\n", path);
 
         /** Store the first path **/
-        if (iField == 0) {HDF._path = path;}
+        if (iField == 0) { HDF._path = path; }
 
         /* Open group in HDF corresponding to path */              
         hid_t gid = HDF.openGroupWithLinks(fid, path);  
@@ -176,16 +176,8 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPathsPartial(char* file,
         HDF.fillDataSpaceWithFilter(DataSpaceDIM);
         data = HDF.createNodePartialContigous(gid, iField, nField, data);
 
-        /** Verbose **/
-        // double* ptr = (double *) PyArray_DATA((PyArrayObject * ) data);
-        // for(int n=0; n<24; n++)
-        // {
-        //   printf("data[%d] : %f \n", n , ptr[n]);
-        // }
-
         /* Close */
         H5Gclose(gid);
-
       }
 
       /** Build PyTree Node **/
@@ -527,7 +519,7 @@ PyObject* K_IO::GenIOHdf::createNodePartialContigous(hid_t&    node,
       for (d = 0; d < dim; d++) _dims[d] = _dims2[dim-d-1];
 
       /** ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: **/
-      /** On rajoute une dimension au dataSpace à la faim (Car HDF est C order -_- )**/
+      /** On rajoute une dimension au dataSpace à la fin (Car HDF est C order -_- )**/
       DataSpace_t DataSpaceSave = DataSpace;
 
       DataSpace.Src_Offset[0] = (hsize_t) iField;
@@ -535,7 +527,7 @@ PyObject* K_IO::GenIOHdf::createNodePartialContigous(hid_t&    node,
       DataSpace.Src_Stride[0] = (hsize_t) nField;
       DataSpace.Src_Block[0]  = 1;
 
-      for(int n=1;n<L3C_MAX_DIMS-1;n++)
+      for (int n=1;n<L3C_MAX_DIMS-1;n++)
       {
         DataSpace.Src_Offset[n] = DataSpaceSave.Src_Offset[n-1];
         DataSpace.Src_Count[n]  = DataSpaceSave.Src_Count[n-1] ;
@@ -593,7 +585,7 @@ PyObject* K_IO::GenIOHdf::createNodePartialContigous(hid_t&    node,
     }
     else
     {
-      printf("Flags not recognized : 0 = Contigous // 1 = Interlaced \n");
+      printf("Flags not recognized: 0 = Contigous // 1 = Interlaced \n");
     }
 
   }
@@ -629,7 +621,7 @@ PyObject* K_IO::GenIOHdf::createNodePartialContigous(hid_t&    node,
   }
   else if (strcmp(_dtype, L3T_C1) == 0)
   {
-    printf("Contigous load af char * not allowed ...\n");
+    printf("Contiguous load af char * not allowed ...\n");
     exit(1);
   }
   else if (strcmp(_dtype, L3T_MT) == 0)

@@ -3646,18 +3646,21 @@ def setElementConnectivity2(z, array):
           createUniqueChild(info2, 'ElementIndex', 'DataArray_t', array[2][3])
           _updateElementRange(z)
 
+# Met un nbre non nul dans les Elements_t presuppose frontieres
+# Sert de reference a Cassiopee pour savoir si un Elements_t est volumique ou non
+def _setElementDim(z):
+    GEl = getNodesFromType1(z, 'Elements_t')
+    if GEl == []: return []
+    dimElt = [dimFromEltNo(i[1][0]) for i in GEl]
+    maxdim = max(dimElt)
+    for c, GE in enumerate(GEl):
+       if dimElt[c] == maxdim: GE[1][1] = 0
+       else: GE[1][1] = 1
+    
 # -- Retourne une liste des noeuds Elements_t volumiques d'une zone
 # Retourne [] si il n'y en a pas.
 def getElementNodes(z):
     GEl = getNodesFromType1(z, 'Elements_t')
-    #if GEl == []: return []
-    #dimElt = [dimFromEltNo(i[1][0]) for i in GEl]
-    #maxdim = max(dimElt)
-    #c = 0; out = []
-    #for GE in GEl:
-    #    if dimElt[c] == maxdim: # connectivite volumique
-    #        out.append(GE)
-    #    c += 1
     out = []
     for GE in GEl:
         if GE[1][1] == 0: out.append(GE)
@@ -3667,14 +3670,6 @@ def getElementNodes(z):
 # Retourne [] si il n'y en a pas.
 def getElementBoundaryNodes(z):
     GEl = getNodesFromType1(z, 'Elements_t')
-    #if GEl == []: return []
-    #dimElt = [dimFromEltNo(i[1][0]) for i in GEl]
-    #maxdim = max(dimElt)
-    #c = 0; out = []
-    #for GE in GEl:
-    #    if dimElt[c] < maxdim: # connectivite BC
-    #        out.append(GE)
-    #    c += 1
     out = []
     for GE in GEl:
         if GE[1][1] > 0: out.append(GE)
@@ -3985,6 +3980,9 @@ def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
                     elif BE == -1: BE = no
                 no += 1
 
+            # si BE, tag les connectivites frontieres
+            if BE >= 0: _setElementDim(z)
+
             # si NFACE, abs face index
             if NFACE != -1:
                 c = getNodeFromName1(sons[NFACE], 'ElementConnectivity')
@@ -4191,12 +4189,23 @@ def _sortNodesInZone(z):
       c += nr1-nr0+1
   BCs = getNodesFromType2(z, 'BC_t')
   for b in BCs:
-    r = getNodeFromType1(b, 'IndexRange_t')[1]
-    r = r.ravel('k')
-    for i in oranges:
-      if r[0] >= oranges[i][0] and r[1] <= oranges[i][1]:
-        r[0] = nranges[i][0]+r[0]-oranges[i][0]
-        r[1] = nranges[i][0]+r[1]-oranges[i][0]
+    r = getNodeFromType1(b, 'IndexRange_t')
+    if r is not None:
+        r = r[1]
+        r = r.ravel('k')
+        for i in oranges:
+          if r[0] >= oranges[i][0] and r[1] <= oranges[i][1]:
+            r[0] = nranges[i][0]+r[0]-oranges[i][0]
+            r[1] = nranges[i][0]+r[1]-oranges[i][0]
+    r = getNodeFromType1(b, 'PointRange_t')
+    if r is not None:
+        r = r[1]
+        r = r.ravel('k')
+        rmin = r[0]; rmax = r[-1]
+        for i in oranges:
+          if rmin >= oranges[i][0] and rmax <= oranges[i][1]:
+            r[:] = nranges[i][0]+r[:]-oranges[i][0]
+
   z[2] = lo
   return None
 

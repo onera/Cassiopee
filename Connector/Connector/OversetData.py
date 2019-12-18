@@ -1111,7 +1111,7 @@ def _setInterpDataForGhostCellsNGon__(aR, aD, storage='inverse', loc='centers'):
     return None
 
 
-def _setInterpDataForGhostCellsStruct__(aR, aD, storage='direct',loc="nodes"):
+def _setInterpDataForGhostCellsStruct__(aR, aD, storage='direct', loc='nodes'):
 
     try: import Converter.GhostCells as GhostCells
     except: raise ImportError("setInterpDataForGhostCellsStruct__ requires Converter.GhostCells module.")
@@ -1180,7 +1180,7 @@ def _setInterpDataForGhostCellsStruct__(aR, aD, storage='direct',loc="nodes"):
                     zdonorp = Internal.getNodesFromType2(zdonorp, 'Zone_t')
                     if zdonorp == []:
                         raise ValueError("setInterpDataForGhostCells: donor zone not found in donor pyTree.")
-                    if len(zdonorp)  > 1 :
+                    if len(zdonorp)  > 1:
                         print('Warning: setInterpDataForGhostCells: zone name %s defined several times in donor pyTree.'%zdonorname)
                     zdonorp = zdonorp[0]
                     # donor zone dimensions
@@ -1715,7 +1715,7 @@ def __setInterpTransfers(aR, topTreeD,
     if storage != 1 or compact == 0:
         raise ValueError("__setInterpTransfers: stockage chez le receveur non code. Mode compact obligatoire: compact=1 a imposer dans Fast.warmup.")
 
-    #test pour savoir si appel transfert ou ibc
+    # test pour savoir si appel transfert ou ibc
     flagibc = 1
     if variables is not None: flagibc = 0
 

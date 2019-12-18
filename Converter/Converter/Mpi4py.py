@@ -585,11 +585,11 @@ def _revertBXGridConnectivity(a):
         if xz is None: zonesReal.append(z)
 
     for z in zonesReal:
-        gcs   = Internal.getNodesFromType1(z, 'ZoneGridConnectivity_t')
+        gcs = Internal.getNodesFromType1(z, 'ZoneGridConnectivity_t')
         for g in gcs:  
             nodes = Internal.getNodesFromType1(g, 'GridConnectivity1to1_t')
             for n in nodes:
-              # Recherche le nom de la bandelette en raccord 
+                # Recherche le nom de la bandelette en raccord 
                 oppName = Internal.getValue(n)
                 zopp    = Internal.getNodeFromName2(a, oppName)
                 xzopp   = Internal.getNodeFromName1(zopp, 'XZone')
@@ -678,14 +678,14 @@ def _addBXZones(a, depth=2):
         for z in zones:
             dim = Internal.getZoneDim(z)
             ni = dim[1]; nj = dim[2]; nk = dim[3]
-            b1 = subzone(z, (1,1,1), (depth,nj,nk), 'S1')
-            b2 = subzone(z, (ni-depth+1,1,1), (ni,nj,nk), 'S2')
-            b3 = subzone(z, (1,1,1), (ni,depth,nk), 'S3')
-            b4 = subzone(z, (1,nj-depth+1,1), (ni,nj,nk), 'S4')
-            b5 = subzone(z, (1,1,1), (ni,nj,depth), 'S5')
-            b6 = subzone(z, (1,1,nk-depth+1), (ni,nj,nk), 'S6')
+            b1 = subzone(z, (1,1,1), (min(depth,ni),nj,nk), 'S1')
+            b2 = subzone(z, (max(ni-depth+1,1),1,1), (ni,nj,nk), 'S2')
+            b3 = subzone(z, (1,1,1), (ni,min(depth,nj),nk), 'S3')
+            b4 = subzone(z, (1,max(nj-depth+1,1),1), (ni,nj,nk), 'S4')
+            b5 = subzone(z, (1,1,1), (ni,nj,min(depth,nk)), 'S5')
+            b6 = subzone(z, (1,1,max(nk-depth+1,1)), (ni,nj,nk), 'S6')
 
-            # Bandelettes non recouvrantes 
+            # Bandelettes non recouvrantes
             # b3 = subzone(z, (depth,1,1), (ni-depth+1,depth,nk), 'S3') # CW
             # b4 = subzone(z, (depth,nj-depth+1,1), (ni-depth+1,nj,nk), 'S4') # CW 
             # b5 = subzone(z, (depth,depth,1), (ni-depth+1,nj-depth+1,depth), 'S5') # CW

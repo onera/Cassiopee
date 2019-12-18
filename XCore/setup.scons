@@ -63,7 +63,7 @@ opt2 += ['-IXCore/scotch']
 opt2 += ['-std=c99', '-DSCOTCH_RENAME']
 #opt2 +=['-DPDM_HAVE_PTSCOTCH','-DPDM_ENABLE_ANISO_AGGLO=0']
 
-ADDITIONALCPPFLAGS += opt1 + ['-IXCore/paradigma','-IXCore/paradigma/mpi_wrapper','-IXCore/paradigma/mesh','-IXCore/paradigma/util','-IXCore/paradigma/io','-IXCore/paradigma/ppart','-IXCore/paradigma/struct','-IXCore/paradigma/pario','-IXCore/paradigma/ext_wrapper', '-IXCore/scotch']
+ADDITIONALCPPFLAGS += opt1 + ['-IXCore', '-IXCore/paradigma','-IXCore/paradigma/mpi_wrapper','-IXCore/paradigma/mesh','-IXCore/paradigma/util','-IXCore/paradigma/io','-IXCore/paradigma/ppart','-IXCore/paradigma/struct','-IXCore/paradigma/pario','-IXCore/paradigma/ext_wrapper', '-IXCore/scotch']
 ADDITIONALCFLAGS = ADDITIONALCPPFLAGS+opt2+['-DSCOTCH_RENAME']
 
 # Env =========================================================================
@@ -99,12 +99,9 @@ else:
 if pdm: myMod2 = None
 else:
   # Verifie si la bibliotheque a ete downloadee dans ThirdParty
-  paths1 = '../ThirdParty/paradigma/paradigm/src'
-  paths2 = 'XCore/paradigma' # local link
+  paths2 = '../../XCore/paradigma' # local link
   if os.path.exists(paths2): myMod2 = env.StaticLibrary('pdm', src_paradigma)
-  else:
-     if os.path.exists(paths1): os.symlink('../'+paths1, paths2)
-     else: print('Warning: paradigma not present.'); myMod2 = None
+  else: print('Warning: paradigma not present.'); myMod2 = None
   
 myMod = env.StaticLibrary('xcore', srcs.cpp_srcs)
 myMod3 = env.StaticLibrary('scotch1', srcs_scotch.cpp_srcs1[0:99])

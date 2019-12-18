@@ -10,4 +10,3 @@ cpp_srcs = ['XCore/CMP/src/recv_buffer.cpp',
             'XCore/xmpi/communicator.cpp',
             'XCore/SplitElement/splitter.cpp',
             'XCore/test/xmpi_t1.cpp']
-

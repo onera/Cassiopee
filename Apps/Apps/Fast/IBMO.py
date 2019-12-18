@@ -341,7 +341,7 @@ def prepare(t_case, t_out, tc_out,
     
     if check and rank == 0: C.convertPyTree2File(front, 'front.cgns')
 
-        zonesRIBC = []
+    zonesRIBC = []
     for zrcv in Internal.getZones(t):
         if C.getMaxValue(zrcv, 'centers:cellNIBC')==2.:
             zrcvname = zrcv[0]; zonesRIBC.append(zrcv)

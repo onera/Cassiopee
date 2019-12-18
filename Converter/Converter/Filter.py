@@ -58,7 +58,7 @@ def writePyTreeFromFilter(t, fileName, filter, format='bin_hdf', com=None, skelD
 # readProcNode: si True, ajoute le procNode (pas lu si depth < 4)
 #============================================================================
 def readZoneHeaders(fileName, format=None, baseNames=None, familyZoneNames=None, BCType=None,
-                    maxDepth=3, readProcNode=False, readGridElementRange = False):
+                    maxDepth=3, readProcNode=False, readGridElementRange=False):
     a = convertFile2SkeletonTree(fileName, format, maxDepth=maxDepth, maxFloatSize=6)
     # filter by base names
     if baseNames is not None:
@@ -167,9 +167,15 @@ def _loadContainerPartial(a, fileName, znp, variablesN=[], variablesC=[], format
       paths = []
       for v in variablesN: paths.append('/%s/%s/%s'%(bname, pname, v))
 
-      DataSpaceMMRY = [[0,0,0], [1,1,1], [j[1]-j[0]+1,j[3]-j[2]+1,j[5]-j[4]+1], [1,1,1]]
-      DataSpaceFILE = [[j[0]-1,j[2]-1,j[4]-1], [1,1,1], [j[1]-j[0]+1,j[3]-j[2]+1,j[5]-j[4]+1], [1,1,1]]
-      DataSpaceGLOB = [[0]]
+      dim = Internal.getZoneDim(zone)
+      if dim[3] == 1:
+        DataSpaceMMRY = [[0,0], [1,1], [j[1]-j[0]+1,j[3]-j[2]+1], [1,1]]
+        DataSpaceFILE = [[j[0]-1,j[2]-1], [1,1], [j[1]-j[0]+1,j[3]-j[2]+1], [1,1]]
+        DataSpaceGLOB = [[0]]
+      else:
+        DataSpaceMMRY = [[0,0,0], [1,1,1], [j[1]-j[0]+1,j[3]-j[2]+1,j[5]-j[4]+1], [1,1,1]]
+        DataSpaceFILE = [[j[0]-1,j[2]-1,j[4]-1], [1,1,1], [j[1]-j[0]+1,j[3]-j[2]+1,j[5]-j[4]+1], [1,1,1]]
+        DataSpaceGLOB = [[0]]
     
       for p in paths: f[p] = DataSpaceMMRY+DataSpaceFILE+DataSpaceGLOB
 
@@ -177,9 +183,14 @@ def _loadContainerPartial(a, fileName, znp, variablesN=[], variablesC=[], format
       paths = []
       for v in variablesC: paths.append('/%s/%s/%s'%(bname, pname, v))
 
-      DataSpaceMMRYC = [[0,0,0], [1,1,1], [max(j[1]-j[0],1),max(j[3]-j[2],1),max(j[5]-j[4],1)], [1,1,1]]
-      DataSpaceFILEC = [[j[0]-1,j[2]-1,j[4]-1], [1,1,1], [max(j[1]-j[0],1),max(j[3]-j[2],1),max(j[5]-j[4],1)], [1,1,1]]
-      DataSpaceGLOBC = [[0]]
+      if dim[3] == 1:
+        DataSpaceMMRYC = [[0,0], [1,1,1], [max(j[1]-j[0],1),max(j[3]-j[2],1)], [1,1]]
+        DataSpaceFILEC = [[j[0]-1,j[2]-1], [1,1,1], [max(j[1]-j[0],1),max(j[3]-j[2],1)], [1,1]]
+        DataSpaceGLOBC = [[0]]
+      else:
+        DataSpaceMMRYC = [[0,0,0], [1,1,1], [max(j[1]-j[0],1),max(j[3]-j[2],1),max(j[5]-j[4],1)], [1,1,1]]
+        DataSpaceFILEC = [[j[0]-1,j[2]-1,j[4]-1], [1,1,1], [max(j[1]-j[0],1),max(j[3]-j[2],1),max(j[5]-j[4],1)], [1,1,1]]
+        DataSpaceGLOBC = [[0]]
 
       for p in paths: f[p] = DataSpaceMMRYC+DataSpaceFILEC+DataSpaceGLOBC
 
@@ -546,6 +557,8 @@ class Handle:
     self.fileName = fileName
     self.fileVars = None # vars existing in file
     self.fileBCVars = None # BCDataSet vars existing in file
+    self.varsN = [] # Variable in nodes in file
+    self.varsC = [] # Variable in centers in file
     self.znp = None # zone paths existing in file
     self.size = None # size des zones du fichier
     self.bary = None # Barycentres zones du fichier
@@ -619,9 +632,36 @@ class Handle:
     if Cmpi.rank == 0:
       a, self.znp = readZoneHeaders(self.fileName, self.format)
       # force loc2glob to himself from himself
-      for z in Internal.getZones(a):
-        dim = Internal.getZoneDim(z)
-        Internal._setLoc2Glob(z, z[0], win=[1,dim[1],1,dim[2],1,dim[3]], sourceDim=dim[1:])
+      for b in Internal.getBases(a):
+        for z in Internal.getZones(b):
+          dim = Internal.getZoneDim(z)
+          Internal._setLoc2Glob(z, z[0], win=[1,dim[1],1,dim[2],1,dim[3]], sourceDim=dim[1:])
+      
+      # Lecture ZoneBC + ZoneGC necessaire pour le split
+      for b in Internal.getBases(a):
+        for z in Internal.getZones(b):
+          _readPyTreeFromPaths(a, self.fileName, [b[0]+'/'+z[0]+'/ZoneBC', b[0]+'/'+z[0]+'/ZoneGridConnectivity'])
+    
+      # Lecture des noms de variables
+      varsN = ['%s/CoordinateX'%Internal.__GridCoordinates__,
+      '%s/CoordinateY'%Internal.__GridCoordinates__,
+      '%s/CoordinateZ'%Internal.__GridCoordinates__]
+      varsC = []
+      for b in Internal.getBases(a):
+        for z in Internal.getZones(b):
+          if Internal.getNodeFromName1(z, Internal.__FlowSolutionNodes__) is not None:
+            node = readNodesFromPaths(self.fileName, b[0]+'/'+z[0]+'/'+Internal.__FlowSolutionNodes__, maxDepth=1, maxFloatSize=0)
+            for n in node[2]:
+              if n[3] == 'DataArray_t': varsN.append(Internal.__FlowSolutionNodes__+'/'+n[0])
+            break
+      for b in Internal.getBases(a):
+        for z in Internal.getZones(b):
+          if Internal.getNodeFromName1(z, Internal.__FlowSolutionCenters__) is not None:
+            node = readNodesFromPaths(self.fileName, b[0]+'/'+z[0]+'/'+Internal.__FlowSolutionCenters__, maxDepth=1, maxFloatSize=0)
+            for n in node[2]:
+              if n[3] == 'DataArray_t': varsC.append(Internal.__FlowSolutionCenters__+'/'+n[0])
+            break
+      
       import Transform.PyTree as T
       # split on skeleton
       if NParts is not None: T._splitNParts(a, N=NParts)
@@ -629,21 +669,20 @@ class Handle:
       if NProc is not None:
         import Distributor2.PyTree as D2   
         D2._distribute(a, NProc)
-    else: a = None
+    else: 
+      a = None; varsN = None; varsC = None
     a = Cmpi.bcast(a)
+    self.varsN = Cmpi.bcast(varsN); self.varsC = Cmpi.bcast(varsC)
+
     return a
 
   def loadAndSplit(self, NParts=None, NProc=Cmpi.size):
     """Load and split a file."""
     a = self.loadAndSplitSkeleton(NParts, NProc)
     _convert2PartialTree(a, rank=Cmpi.rank)
-    varsN = ['%s/CoordinateX'%Internal.__GridCoordinates__,
-             '%s/CoordinateY'%Internal.__GridCoordinates__,
-             '%s/CoordinateZ'%Internal.__GridCoordinates__]
-    #varsN += self.getVariables(cont=Internal.__FlowSolutionNodes__)
-    #varsC = self.getVariables(cont=Internal.__FlowSolutionCenters__)
-    varsC = []
-    self._loadContainerPartial(a, variablesN=varsN, variablesC=varsC)
+    print(self.varsN)
+    print(self.varsC)
+    self._loadContainerPartial(a, variablesN=self.varsN, variablesC=self.varsC)
     return a
     
   def loadFromProc(self, loadVariables=True, cartesian=False):

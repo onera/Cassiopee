@@ -121,34 +121,48 @@ def prepare1(t_case, t_out, tc_out, NP=0, format='single'):
 
     import Distributor2.PyTree as D2
     import Converter.Mpi as Cmpi
+    import Converter.Filter as Filter
+    import Connector.PyTree as X
 
-    t = Cmpi.convertFile2SkeletonTree(t_case)
-    allCells = C.getNCells(t)
-    graph = Cmpi.computeGraph(t, type='match')
-    t, stats = D2.distribute(t, Cmpi.size, useCom=None, algorithm='graph')
-    t = Cmpi.readZones(t, t_case, rank=Cmpi.rank)
-    Cmpi._convert2PartialTree(t)
-    #if Cmpi.rank == 0: Internal.printTree(t)
+    h = Filter.Handle(t_case)
+    t = h.loadAndSplit(NParts=max(NP, Cmpi.size))
 
     # Get dim
     dim = 3
     node = Internal.getNodeFromName(t, 'EquationDimension')
     if node is not None: dim = Internal.getValue(node)
 
-    # Charge du proc
-    ncells = C.getNCells(t)
-    print(Cmpi.rank, ncells, allCells)
-    #Cmpi.convertPyTree2File(t, 'test.cgns')
-    return
+    # Ajout des ghost-cells
+    C.addState2Node__(t, 'EquationDimension', dim)
+    # Je suis oblige d'enlever les raccords de t et de les reconstruire a cause que les raccords ne sont
+    # pas dans les BXZones
+    C._deleteGridConnectivity__(t)
+    Cmpi._addBXZones(t, depth=3)
+    t = X.connectMatch(t, dim=dim)
+    Internal._addGhostCells(t, t, 2, adaptBCs=1, fillCorner=0)
+    Cmpi._rmBXZones(t)
+    
+    # tc local
+    tc = C.node2Center(t)
 
-    # Split size
-    if NP > 0:
-        t = T.splitSize(t, R=NP, type=2, minPtsPerDir=9)
-        t = X.connectMatch(t, dim=dim)
-        perioInfo = Internal.getPeriodicInfo(t)
-        #print(perioInfo)
-        t, stats = D2.distribute(t, NP, useCom='match')
-        # redispatch
+    # Arbre des bbox sur t
+    tbb = Cmpi.createBBoxTree(t)
+    interDict = X.getIntersectingDomains(tbb)
+    graph = Cmpi.computeGraph(tbb, type='bbox', intersectionsDict=interDict, reduction=False)
+    del tbb
+    Cmpi._addXZones(t, graph, variables=[])
+    Cmpi._addXZones(tc, graph, variables=[])
+    X._setInterpData(t, tc, nature=1, loc='centers', storage='inverse', 
+                     sameName=1, dim=dim, itype='abutting')
+    Cmpi._rmXZones(t)
+    Cmpi._rmXZones(tc)
+
+    if dim == 2:
+        T._addkplane(t)
+        T._contract(t, (0,0,0), (1,0,0), (0,1,0), 0.01)
+        T._makeDirect(t)
+    Internal._rmNodesByName(tc, Internal.__FlowSolutionNodes__)
+    Internal._rmNodesByName(tc, Internal.__GridCoordinates__)
 
     # Solution initiale
     eqs = Internal.getNodeFromType(t, 'GoverningEquations_t')
@@ -160,8 +174,7 @@ def prepare1(t_case, t_out, tc_out, NP=0, format='single'):
         state = Internal.getNodeFromType(t, 'ReferenceState_t')
         if state is None:
             raise ValueError('Reference state is missing in input cgns.')
-        vars = ['Density', 'MomentumX', 'MomentumY', 'MomentumZ',
-        'EnergyStagnationDensity']
+        vars = ['Density', 'MomentumX', 'MomentumY', 'MomentumZ', 'EnergyStagnationDensity']
         for v in vars:
             node = Internal.getNodeFromName(state, v)
             if node is not None:
@@ -182,29 +195,16 @@ def prepare1(t_case, t_out, tc_out, NP=0, format='single'):
     if Model == 'NSTurbulent' and ret != 1: # Wall distance not present
         import Dist2Walls.PyTree as DTW
         walls = C.extractBCOfType(t, 'BCWall')
+        ret = Cmpi.allgather(walls)
+        walls = []
+        for i in ret: walls += i
         if walls != []:
             DTW._distance2Walls(t, walls, loc='centers', type='ortho')
         else: C._initVars(t, 'centers:TurbulentDistance', 1000000.)
 
-    # Ajout des ghost-cells
-    C.addState2Node__(t, 'EquationDimension', dim)
-    Internal._addGhostCells(t, t, 2, adaptBCs=1, fillCorner=0)
-    if dim == 2: 
-        T._addkplane(t)
-        T._contract(t, (0,0,0), (1,0,0), (0,1,0), 0.01)
-        T._makeDirect(t)
+    Cmpi.convertPyTree2File(t, t_out)
+    Cmpi.convertPyTree2File(tc, tc_out)
 
-    # Raccords
-    tc = C.node2Center(t)
-    tc = X.setInterpData(t, tc, nature=1, loc='centers', storage='inverse', 
-                         sameName=1, dim=dim)
-    C._rmVars(tc, 'FlowSolution')
-    C._rmVars(tc, 'GridCoordinates')
-
-    if isinstance(tc_out, str):
-        Fast.save(tc, tc_out, split=format, NP=-NP)
-    if isinstance(t_out, str):
-        Fast.save(t, t_out, split=format, NP=-NP)
     return t, tc
 
 #==========================================================================
