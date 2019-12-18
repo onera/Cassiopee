@@ -33,6 +33,9 @@ if [ "$PYTHONEXE" != "" ]; then
     alias python=$PYTHONEXE
 fi
 
+# Creation des liens
+python createLinks.py
+
 # Compilation et installation
 sconsf=`which scons`
 which scons &>/dev/null

@@ -103,7 +103,7 @@ else:
   paths2 = 'XCore/paradigma' # local link
   if os.path.exists(paths2): myMod2 = env.StaticLibrary('pdm', src_paradigma)
   else:
-     if os.path.exists(paths1): os.symlink(paths1, paths2)
+     if os.path.exists(paths1): os.symlink('../'+paths1, paths2)
      else: print('Warning: paradigma not present.'); myMod2 = None
   
 myMod = env.StaticLibrary('xcore', srcs.cpp_srcs)
