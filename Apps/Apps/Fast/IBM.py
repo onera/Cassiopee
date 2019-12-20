@@ -130,7 +130,7 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
     C._addState(t, state=refstate)
     C._addState(t, 'GoverningEquations', model)
     C._addState(t, 'EquationDimension', dimPb)
-    if check: C.convertPyTree2File(t, 'mesh1.cgns')
+    # if check: C.convertPyTree2File(t, 'mesh1.cgns')
 
     #----------------------------------------
     # Computes distance field
@@ -242,7 +242,7 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
              tbox=None, snearsf=None,  
              vmin=21, check=False, NP=0, format='single',
              frontType=1, extrusion=False, smoothing=False, balancing=False, 
-             distrib=True, expand=3, tinit=None, initWithBBox=False):
+             distrib=True, expand=3, tinit=None, initWithBBox=-1.):
     import Generator
     import Connector.connector as connector
     import Connector.Mpi as Xmpi
@@ -459,6 +459,7 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
         DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dimPb, loc='centers')
     else:
         DTW._distance2Walls(t, tb, type='ortho', signed=0, dim=dimPb, loc='centers')
+    test.printMem(">>> Wall distance [end]")
 
     X._applyBCOverlaps(t, depth=DEPTH, loc='centers', val=2, cellNName='cellN')
     
@@ -478,7 +479,6 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
         # Creation du corps 2D pour le preprocessing IBC
         T._addkplane(tb)
         T._contract(tb, (0,0,0), (1,0,0), (0,1,0), dz)
-    test.printMem(">>> Wall distance [end]")
     
     test.printMem(">>> Blanking [start]")
     t = TIBM.blankByIBCBodies(t, tb, 'centers', dimPb)
@@ -535,15 +535,15 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
     C._initVars(t,'{centers:cellN}=maximum(0.,{centers:cellNChim})')# vaut -3, 0, 1, 2 initialement
 
     # maillage donneur: on MET les pts IBC comme donneurs
-    tp = Internal.copyRef(t)
-    FSN = Internal.getNodesFromName3(tp, Internal.__FlowSolutionNodes__)
-    Internal._rmNodesByName(FSN, 'cellNFront')
-    Internal._rmNodesByName(FSN, 'cellNIBC')
-    Internal._rmNodesByName(FSN, 'TurbulentDistance')
+    # tp = Internal.copyRef(t)
+    # FSN = Internal.getNodesFromName3(tp, Internal.__FlowSolutionNodes__)
+    # Internal._rmNodesByName(FSN, 'cellNFront')
+    # Internal._rmNodesByName(FSN, 'cellNIBC')
+    # Internal._rmNodesByName(FSN, 'TurbulentDistance')
+    # tc = C.node2Center(tp); del tp
 
     test.printMem(">>> Interpdata [start]")
-    tc = C.node2Center(tp); del tp
-    
+    tc = C.node2Center(t)
     # setInterpData parallel pour le chimere
     tbbc = Cmpi.createBBoxTree(tc)
     interDict = X.getIntersectingDomains(tbbc)
@@ -860,34 +860,35 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
                 zD[2] += IBCDs
 
     datas = {}; graph = {}
-
-    #-----------------------------------------
-    # Computes distance field for Musker only
-    #-----------------------------------------
-    ibctypes = set()
-    for node in Internal.getNodesFromName(tb,'ibctype'):
-        ibctypes.add(Internal.getValue(node))
-    ibctypes = list(ibctypes)
-    if model != 'Euler' and ('outpress' in ibctypes or 'inj' in ibctypes or 'slip' in ibctypes):
-        test.printMem(">>> wall distance for wall only [start]")
-        for z in Internal.getZones(tb):
-            ibc = Internal.getNodeFromName(z,'ibctype')
-            if Internal.getValue(ibc)=='outpress' or Internal.getValue(ibc)=='inj' or Internal.getValue(ibc)=='slip':
-                Internal.rmNode(tb,z)
-
-        if dimPb == 2:
-            z0 = Internal.getZones(t)
-            bb = G.bbox(z0); dz = bb[5]-bb[2]
-            tb2 = C.initVars(tb, 'CoordinateZ', dz*0.5)
-            DTW._distance2Walls(t,tb2,type='ortho', signed=0, dim=dimPb, loc='centers')
-        else:
-            DTW._distance2Walls(t,tb,type='ortho', signed=0, dim=dimPb, loc='centers')
-        test.printMem(">>> wall distance for Musker only [end]")
-
     C._initVars(t,'{centers:cellN}=minimum({centers:cellNChim}*{centers:cellNIBCDnr},2.)')
     varsRM = ['centers:cellNChim','centers:cellNIBCDnr']
     if model == 'Euler': varsRM += ['centers:TurbulentDistance']
     C._rmVars(t, varsRM)
+
+    #-----------------------------------------
+    # Computes distance field for Musker only
+    #-----------------------------------------
+    if model != 'Euler':
+        ibctypes = set()
+        for node in Internal.getNodesFromName(tb,'ibctype'):
+            ibctypes.add(Internal.getValue(node))
+        ibctypes = list(ibctypes)
+        if model != 'Euler' and ('outpress' in ibctypes or 'inj' in ibctypes or 'slip' in ibctypes):
+            test.printMem(">>> wall distance for wall only [start]")
+            for z in Internal.getZones(tb):
+                ibc = Internal.getNodeFromName(z,'ibctype')
+                if Internal.getValue(ibc)=='outpress' or Internal.getValue(ibc)=='inj' or Internal.getValue(ibc)=='slip':
+                    Internal._rmNode(tb,z)
+
+            if dimPb == 2:
+                z0 = Internal.getZones(t)
+                bb = G.bbox(z0); dz = bb[5]-bb[2]
+                tb2 = C.initVars(tb, 'CoordinateZ', dz*0.5)
+                DTW._distance2Walls(t,tb2,type='ortho', signed=0, dim=dimPb, loc='centers')
+            else:
+                DTW._distance2Walls(t,tb,type='ortho', signed=0, dim=dimPb, loc='centers')
+            test.printMem(">>> wall distance for Musker only [end]")
+
     test.printMem(">>> Saving [start]")
 
     # Sauvegarde des infos IBM

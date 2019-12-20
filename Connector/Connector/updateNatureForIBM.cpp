@@ -107,17 +107,11 @@ PyObject* K_CONNECTOR::_updateNatureForIBM(PyObject* self, PyObject* args)
         if ( cellNIBC == 1 ) cellNIBC = -3.;//~ blanked
       }
 
-      if ( cellNFront != 0.)
-      {
-        if (cellNIBC == -3.) cellNFront = 0.;
-        //   if (cellNIBC == 3.)
-        //   {
-        //     if (cellNChim == 2.) cellNFront = 0.;
-        //     else cellNFront = 1.;
-        //   }
-        //  else if (cellNIBC == 1.) cellNFront = 1.;
-        //   else cellNFront = 0.;// cellNIBC = 2 ou 0 -> front=0
-      }
+      // c est commente : on suppose que les corps IBM n intersectent pas les corps Chimere
+      // if ( cellNFront != 0.)
+      // {
+      //   if (cellNIBC == -3.) cellNFront = 0.;
+      // }
     }
   }
   delete [] eltType;

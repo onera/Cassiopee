@@ -989,7 +989,8 @@ def blankByIBCBodies(t, tb, loc, dim, cellNName='cellN'):
         #         bodies.append(wallsl)
 
     nbodies = len(bodies)
-    print('Blanking mesh by %d immersed bodies'%nbodies)
+    if nbodies == 0: return t
+    print('Blanking mesh by %d bodies'%nbodies)
     if loc == 'centers': typeb = 'center_in'
     else: typeb = 'node_in'
     nbases = len(Internal.getBases(t))

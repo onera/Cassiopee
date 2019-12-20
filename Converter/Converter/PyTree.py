@@ -4181,6 +4181,12 @@ def tagDefinedBCForZone2D__(z):
     # BC match
     bnds = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
     for bc in bnds:
+      gl = Internal.getNodeFromType1(bc,'GridLocation_t')
+      isHybrid=False
+      if gl is not None:
+        gl = Internal.getValue(gl)
+        if gl=='FaceCenter': isHybrid=True
+      if not isHybrid:
         wrange = Internal.getNodeFromName1(bc, 'PointRange')
         r = wrange[1]
         wins.append(Internal.range2Window(r))
@@ -4231,9 +4237,15 @@ def tagDefinedBCForZone3D__(z):
   # BC match
   bnds = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
   for bc in bnds:
-      wrange = Internal.getNodeFromName1(bc, 'PointRange')
-      r = wrange[1]
-      wins.append(Internal.range2Window(r))
+      gl = Internal.getNodeFromType1(bc,'GridLocation_t')
+      isHybrid=False
+      if gl is not None:
+        gl = Internal.getValue(gl)
+        if gl=='FaceCenter': isHybrid=True
+      if not isHybrid:
+        wrange = Internal.getNodeFromName1(bc, 'PointRange')
+        r = wrange[1]
+        wins.append(Internal.range2Window(r))
   # BC Overlap
   bnds = Internal.getNodesFromType2(z, 'GridConnectivity_t')
   for bc in bnds:
