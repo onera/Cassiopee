@@ -554,8 +554,8 @@ PyObject* K_CONNECTOR::identifyMatching(PyObject* self, PyObject* args)
         if (tag1[ind] == -2. && tago1[indopp] == -2.)
           continue;
         
-        // if (tag1[ind] == -1. && tago1[indopp] == -1.)
         if (tag1[ind] <0. && tago1[indopp] <0.)
+	// if (tag1[ind] == -1. && tago1[indopp] == -1.)
         {
           tag1[ind] = nozopp; tag2[ind] = indopp;
           // update donor tags

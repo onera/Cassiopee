@@ -52,6 +52,30 @@ def connectMatch(a, tol=1.e-6, dim=3):
     return a
 
 #==============================================================================
+# connectMatchPeriodic 
+#==============================================================================
+def connectMatchPeriodic(a, rotationCenter=[0.,0.,0.],
+                         rotationAngle=[0.,0.,0.],
+                         translation=[0.,0.,0.], tol=1.e-6, dim=3,
+                         unitAngle=None):
+
+    # Ajout des bandelettes
+    Cmpi._addBXZones(a, depth=2,allB=True)
+ 
+    # Construction des raccords 
+    a = X.connectMatchPeriodic(a,rotationCenter,rotationAngle,translation,tol,dim,unitAngle)
+
+    # # Suppression des XZones et correction des matchs 
+    Cmpi._rmBXZones(a)
+
+    # # Fusion des fenetres des raccords 
+    a = mergeWindows(a)
+
+    return a 
+
+    
+
+#==============================================================================
 def giveName2Window(p, zname, zopp):
     if p[0] == p[1]:
         if p[0] == 1:
@@ -97,7 +121,7 @@ def mergeWindows(t):
                         dico[pos] = [n[0]]
                     else:
                         dico[pos].append(n[0])
-                        
+                  
             # Test si match peuvent etre fusionnes
             for match in dico.keys():
                 if len(dico[match]) > 1:
@@ -162,7 +186,7 @@ def mergeWindows(t):
                                 Internal._rmNodesByName(z, name)
 
                     else:
-                        print("Warning: fail to merge matches ", surfMatch, sumSurf)
+                        print("Warning: in zone ",z[0], " fail to merge matches: ", dico[match])
 
 
     return t

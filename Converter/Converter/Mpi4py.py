@@ -12,7 +12,8 @@ __all__ = ['rank', 'size', 'KCOMM', 'COMM_WORLD', 'setCommunicator', 'barrier', 
     'readNodesFromPaths', 'readPyTreeFromPaths', 'writeNodesFromPaths',
     'allgatherTree', 'convertFile2SkeletonTree', 'convertFile2PyTree', 'convertPyTree2File', 'seq', 'print0', 'printA',
     'createBBoxTree', 'createBboxDict', 'computeGraph', 'addXZones', '_addXZones', '_addMXZones', '_addBXZones',
-    'rmXZones', '_rmXZones', '_rmMXZones', '_rmBXZones', 'getProcDict', 'getProc', 'setProc', '_setProc']
+    'rmXZones', '_rmXZones', '_rmMXZones', '_rmBXZones', 'getProcDict', 
+           'getProc', 'setProc', '_setProc']
 
 from mpi4py import MPI
 import numpy
@@ -282,8 +283,6 @@ def createBBoxTree(t, method='AABB', weighting=0):
         for z in zones:
             if not Distributed.isZoneSkeleton__(z):
                 zbb = G.BB(z, method, weighting)
-                # ajoute baseName/zoneName
-                zbb[0] = b[0]+'/'+zbb[0]
                 # Clean up (zoneSubRegion)
                 Internal._rmNodesFromType(zbb, 'ZoneSubRegion_t')
                 zb.append(zbb)
@@ -516,7 +515,7 @@ def updateGridConnectivity(a):
 
     for z in zonesReal:
         gcs   = Internal.getNodesFromType1(z, 'ZoneGridConnectivity_t')
-        for g in gcs:
+        for g in gcs:  
             nodes = Internal.getNodesFromType1(g, 'GridConnectivity1to1_t')
             for n in nodes:
               # Recherche le nom de la bandelette en raccord 
@@ -542,7 +541,7 @@ def updateGridConnectivity(a):
                     pr     = Internal.getNodeFromName1(match, 'PointRange')
                     Internal.setValue(pr, p) 
                                   
-    return a
+    return a 
 
 def _revertMXGridConnectivity(a):
     # Restore grid connectivities with respect to real zone (after using addMXZones)
@@ -559,7 +558,7 @@ def _revertMXGridConnectivity(a):
             for n in nodes:
                 # Recherche le nom de la bandelette en raccord 
                 oppName = Internal.getValue(n)
-                zopp    = Internal.getNodeFromName2(a, oppName)
+                zopp    = Internal.getNodeFromName(a,oppName)
                 xzopp   = Internal.getNodeFromName1(zopp, 'XZone')
 
                 if xzopp is not None:
@@ -573,7 +572,8 @@ def _revertMXGridConnectivity(a):
                     p      = Internal.range2Window(prd[1])
                     p      = [p[0]+loc2glob[0]-1,p[1]+loc2glob[0]-1,p[2]+loc2glob[2]-1,p[3]+loc2glob[2]-1,p[4]+loc2glob[4]-1,p[5]+loc2glob[4]-1]
                     p      = Internal.window2Range(p)
-                    Internal.setValue(prd, p)         
+                    Internal.setValue(prd, p)
+                                  
     return None
 
 def _revertBXGridConnectivity(a):
@@ -589,27 +589,32 @@ def _revertBXGridConnectivity(a):
         for g in gcs:  
             nodes = Internal.getNodesFromType1(g, 'GridConnectivity1to1_t')
             for n in nodes:
+
                 # Recherche le nom de la bandelette en raccord 
                 oppName = Internal.getValue(n)
-                zopp    = Internal.getNodeFromName2(a, oppName)
-                xzopp   = Internal.getNodeFromName1(zopp, 'XZone')
+                zopp    = Internal.getNodeFromName(a,oppName)
+                if zopp is not None:
+                    xzopp   = Internal.getNodeFromName1(zopp, 'XZone')
 
-                if xzopp is not None:
-                    newName = oppName[:len(oppName)-2]
-                    Internal.setValue(n, newName)
+                    if xzopp is not None:
+                        newName = oppName[:len(oppName)-2]
+                        Internal.setValue(n, newName)
       
-                    src, loc2glob = Internal.getLoc2Glob(zopp)
+                        src, loc2glob = Internal.getLoc2Glob(zopp)
 
-                    # Update current zone
-                    prd    = Internal.getNodeFromName1(n, 'PointRangeDonor')
-                    p      = Internal.range2Window(prd[1])
-                    p      = [p[0]+loc2glob[0]-1,p[1]+loc2glob[0]-1,p[2]+loc2glob[2]-1,p[3]+loc2glob[2]-1,p[4]+loc2glob[4]-1,p[5]+loc2glob[4]-1]
-                    p      = Internal.window2Range(p)
-                    Internal.setValue(prd, p)         
+                        # Update current zone
+                        prd    = Internal.getNodeFromName1(n, 'PointRangeDonor')
+                        p      = Internal.range2Window(prd[1])
+                        p      = [p[0]+loc2glob[0]-1,p[1]+loc2glob[0]-1,p[2]+loc2glob[2]-1,p[3]+loc2glob[2]-1,p[4]+loc2glob[4]-1,p[5]+loc2glob[4]-1]
+                        p      = Internal.window2Range(p)
+                        Internal.setValue(prd, p)
+                                  
     return None
 
+    
 # Ajoute des sous-zones correspondant aux raccords sur un arbre distribue
 def _addMXZones(a, depth=2):
+
     graph = computeGraph(a, type='match')
     procDict = getProcDict(a)
     reqs = []
@@ -626,7 +631,6 @@ def _addMXZones(a, depth=2):
                     data += zs
                 s = KCOMM.isend(data, dest=oppNode)
                 reqs.append(s)
-
     for node in graph:
         if rank in graph[node]:
             data = KCOMM.recv(source=node)
@@ -639,13 +643,24 @@ def _addMXZones(a, depth=2):
     MPI.Request.Waitall(reqs)
 
     a = updateGridConnectivity(a)
+
+    
+
+
+
+    
+
     
 # IN: bb0 et bb1: [xmin,ymin,zmin,xmax,ymax,zmax]
 # Retourne true si les bbox s'intersectent
-def inters(bb0, bb1):
-    if bb0[3] < bb1[0] or bb0[0] > bb1[3] : return False
-    if bb0[4] < bb1[1] or bb0[1] > bb1[4] : return False
-    if bb0[5] < bb1[2] or bb0[2] > bb1[5] : return False
+def inters(bb0, bb1,tol=1.e-12):
+    # if bb0[3] - tol < bb1[0] or bb0[0] > bb1[3] + tol : return False
+    # if bb0[4] - tol < bb1[1] or bb0[1] > bb1[4] + tol : return False
+    # if bb0[5] - tol < bb1[2] or bb0[2] > bb1[5] + tol : return False
+    
+    if bb0[3]  < bb1[0] or bb0[0] > bb1[3]  : return False
+    if bb0[4]  < bb1[1] or bb0[1] > bb1[4]  : return False
+    if bb0[5]  < bb1[2] or bb0[2] > bb1[5]  : return False
     return True
 
 # creation de la bandelette
@@ -661,7 +676,8 @@ def subzone(a, indMin, indMax, supp):
     return ap
     
 # Ajoute les bandelettes des autres procs sur le procs locaux
-def _addBXZones(a, depth=2):
+def _addBXZones(a,depth=2,allB=False):
+    # si allB=True, les 6 bandelettes de chaque zone voisine sont ramenees (necessaire pour connectMatchPeriodic). 
     import Generator.PyTree as G
     # Calcul des bbox des zones locales
     zones = Internal.getZones(a)
@@ -672,6 +688,7 @@ def _addBXZones(a, depth=2):
 
     # Calcul des bandelettes et de leur bbox
     bbsz = {}; sz = {}
+
     bases = Internal.getBases(a)
     for b in bases:
         zones = Internal.getZones(b)
@@ -680,16 +697,16 @@ def _addBXZones(a, depth=2):
             ni = dim[1]; nj = dim[2]; nk = dim[3]
             b1 = subzone(z, (1,1,1), (min(depth,ni),nj,nk), 'S1')
             b2 = subzone(z, (max(ni-depth+1,1),1,1), (ni,nj,nk), 'S2')
-            b3 = subzone(z, (1,1,1), (ni,min(depth,nj),nk), 'S3')
-            b4 = subzone(z, (1,max(nj-depth+1,1),1), (ni,nj,nk), 'S4')
-            b5 = subzone(z, (1,1,1), (ni,nj,min(depth,nk)), 'S5')
-            b6 = subzone(z, (1,1,max(nk-depth+1,1)), (ni,nj,nk), 'S6')
+            # b3 = subzone(z, (1,1,1), (ni,min(depth,nj),nk), 'S3')
+            # b4 = subzone(z, (1,max(nj-depth+1,1),1), (ni,nj,nk), 'S4')
+            # b5 = subzone(z, (1,1,1), (ni,nj,min(depth,nk)), 'S5')
+            # b6 = subzone(z, (1,1,max(nk-depth+1,1)), (ni,nj,nk), 'S6')
 
             # Bandelettes non recouvrantes
-            # b3 = subzone(z, (depth,1,1), (ni-depth+1,depth,nk), 'S3') # CW
-            # b4 = subzone(z, (depth,nj-depth+1,1), (ni-depth+1,nj,nk), 'S4') # CW 
-            # b5 = subzone(z, (depth,depth,1), (ni-depth+1,nj-depth+1,depth), 'S5') # CW
-            # b6 = subzone(z, (depth,depth,nk-depth+1), (ni-depth+1,nj-depth+1,nk), 'S6') # CW
+            b3 = subzone(z, (depth,1,1), (ni-depth+1,depth,nk), 'S3') # CW
+            b4 = subzone(z, (depth,nj-depth+1,1), (ni-depth+1,nj,nk), 'S4') # CW 
+            b5 = subzone(z, (depth,depth,1), (ni-depth+1,nj-depth+1,depth), 'S5') # CW
+            b6 = subzone(z, (depth,depth,nk-depth+1), (ni-depth+1,nj-depth+1,nk), 'S6') # CW
                 
             sz[b1[0]] = b1
             sz[b2[0]] = b2
@@ -703,6 +720,7 @@ def _addBXZones(a, depth=2):
             bbsz[b4[0]] = G.bbox(b4)
             bbsz[b5[0]] = G.bbox(b5)
             bbsz[b6[0]] = G.bbox(b6)
+
             b1[0] = b[0]+'/'+b1[0]
             b2[0] = b[0]+'/'+b2[0]
             b3[0] = b[0]+'/'+b3[0]
@@ -710,19 +728,41 @@ def _addBXZones(a, depth=2):
             b5[0] = b[0]+'/'+b5[0]
             b6[0] = b[0]+'/'+b6[0]
 
+
+            
     # allgather des bbox des bandelettes
     bboxes = KCOMM.allgather(bbz)
 
     # Echange par alltoall
-    data = []
+    data   = []
+    zone_i = []
     for i in range(size):
-        datai = {}
+        data_i = {}
         if i != rank:
             for bb in bboxes[i]:
                 for k in bbsz:
                     if inters(bbsz[k],bboxes[i][bb]):
-                        datai[k] = sz[k]
-        data.append(datai)
+                        if not allB:
+                            data_i[k]=sz[k]
+                        else:
+                            zname = k[:len(k)-2] 
+                            if zname not in zone_i:
+                                zone_i.append(zname) 
+                                
+            if allB:                    
+                for z in zone_i:
+                    data_i[z+'S1'] = sz[z+'S1']
+                    data_i[z+'S2'] = sz[z+'S2']
+                    data_i[z+'S3'] = sz[z+'S3']
+                    data_i[z+'S4'] = sz[z+'S4']
+                    data_i[z+'S5'] = sz[z+'S5']
+                    data_i[z+'S6'] = sz[z+'S6']
+           
+        data.append(data_i)
+
+
+
+        
     datar = COMM_WORLD.alltoall(data)
     for p in datar:
         for q in p:
@@ -735,6 +775,7 @@ def _addBXZones(a, depth=2):
             b[2].append(z)
     
     return None
+
 
 #==============================================================================
 # Supprime les zones ajoutees par addXZones
