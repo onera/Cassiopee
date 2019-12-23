@@ -141,17 +141,20 @@ def prepare1(t_case, t_out, tc_out, NP=0, format='single'):
     t = X.connectMatch(t, dim=dim)
     Internal._addGhostCells(t, t, 2, adaptBCs=1, fillCorner=0)
     Cmpi._rmBXZones(t)
-    
+    #mergeWindows(a)
+
     # tc local
     tc = C.node2Center(t)
 
     # Arbre des bbox sur t
-    tbb = Cmpi.createBBoxTree(t)
-    interDict = X.getIntersectingDomains(tbb)
-    graph = Cmpi.computeGraph(tbb, type='bbox', intersectionsDict=interDict, reduction=False)
-    del tbb
-    Cmpi._addXZones(t, graph, variables=[])
-    Cmpi._addXZones(tc, graph, variables=[])
+    #tbb = Cmpi.createBBoxTree(t)
+    #interDict = X.getIntersectingDomains(tbb)
+    #graph = Cmpi.computeGraph(tbb, type='bbox', intersectionsDict=interDict, reduction=False)
+    #del tbb
+    graph = Cmpi.computeGraph(t, type='match', reduction=True) 
+
+    Cmpi._addXZones(t, graph, variables=[], noCoordinates=True)
+    Cmpi._addXZones(tc, graph, variables=[], noCoordinates=True)
     X._setInterpData(t, tc, nature=1, loc='centers', storage='inverse', 
                      sameName=1, dim=dim, itype='abutting')
     Cmpi._rmXZones(t)

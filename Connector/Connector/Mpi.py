@@ -73,27 +73,19 @@ def connectMatchPeriodic(a, rotationCenter=[0.,0.,0.],
 
     return a 
 
-    
-
 #==============================================================================
 def giveName2Window(p, zname, zopp):
     if p[0] == p[1]:
-        if p[0] == 1:
-            pos = zname+'_imin_'+zopp
-        else: 
-            pos = zname+'_imax_'+zopp
+        if p[0] == 1: pos = zname+'_imin_'+zopp
+        else: pos = zname+'_imax_'+zopp
             
     elif p[2] == p[3]:
-        if p[2] == 1:
-            pos = zname+'_jmin_'+zopp
-        else: 
-            pos = zname+'_jmax_'+zopp
+        if p[2] == 1: pos = zname+'_jmin_'+zopp
+        else: pos = zname+'_jmax_'+zopp
             
-    elif p[4]==p[5] :
-        if p[4]==1 :
-            pos = zname+'_kmin_'+zopp
-        else : 
-            pos = zname+'_kmax_'+zopp
+    elif p[4] == p[5]:
+        if p[4] == 1: pos = zname+'_kmin_'+zopp
+        else: pos = zname+'_kmax_'+zopp
 
     return pos
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -170,7 +162,7 @@ def mergeWindows(t):
                                 if pglobD[5] < pd[5] : pglobD[5] = pd[5]
                                 
                         # Modif du 1er match et suppression des autres 
-                        first    = True 
+                        first = True 
                         for name in dico[match]:
                             if first:
                                 first = False 
@@ -188,14 +180,7 @@ def mergeWindows(t):
                     else:
                         print("Warning: in zone ",z[0], " fail to merge matches: ", dico[match])
 
-
     return t
-
-
-
-
-
-
 
 #===============================================================================
 # setInterpTransfers

@@ -680,8 +680,6 @@ class Handle:
     """Load and split a file."""
     a = self.loadAndSplitSkeleton(NParts, NProc)
     _convert2PartialTree(a, rank=Cmpi.rank)
-    print(self.varsN)
-    print(self.varsC)
     self._loadContainerPartial(a, variablesN=self.varsN, variablesC=self.varsC)
     return a
     

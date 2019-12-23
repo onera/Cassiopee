@@ -11,9 +11,8 @@ __all__ = ['rank', 'size', 'KCOMM', 'COMM_WORLD', 'setCommunicator', 'barrier', 
     'allgather', 'readZones', 'writeZones', 'convert2PartialTree', 'convert2SkeletonTree', 'convertFile2DistributedPyTree', 
     'readNodesFromPaths', 'readPyTreeFromPaths', 'writeNodesFromPaths',
     'allgatherTree', 'convertFile2SkeletonTree', 'convertFile2PyTree', 'convertPyTree2File', 'seq', 'print0', 'printA',
-    'createBBoxTree', 'createBboxDict', 'computeGraph', 'addXZones', '_addXZones', '_addMXZones', '_addBXZones',
-    'rmXZones', '_rmXZones', '_rmMXZones', '_rmBXZones', 'getProcDict', 
-           'getProc', 'setProc', '_setProc']
+    'createBBoxTree', 'createBboxDict', 'computeGraph', 'addXZones', '_addXZones', '_addMXZones', '_addBXZones', '_addLXZones',
+    'rmXZones', '_rmXZones', '_rmMXZones', '_rmBXZones', 'getProcDict', 'getProc', 'setProc', '_setProc']
 
 from mpi4py import MPI
 import numpy
@@ -283,6 +282,8 @@ def createBBoxTree(t, method='AABB', weighting=0):
         for z in zones:
             if not Distributed.isZoneSkeleton__(z):
                 zbb = G.BB(z, method, weighting)
+                # ajoute baseName/zoneName
+                zbb[0] = b[0]+'/'+zbb[0]
                 # Clean up (zoneSubRegion)
                 Internal._rmNodesFromType(zbb, 'ZoneSubRegion_t')
                 zb.append(zbb)
@@ -358,28 +359,23 @@ def GetIntersectionBbox(bbox1, bbox2):
 
 #==============================================================================
 # Recupere les zones specifiees dans le graph, les ajoute a l'arbre local t
-#
-# if layers not None, only communicate the desired number of layers
-# bboxDict is dict with the zones of t as keys and their specific bboxes as key values, used when layers not None
-# if subr, the tree subregions are kept during the exchange 
+# if subr=True, the ZoneSubRegions are kept during the exchange 
 #==============================================================================
-def addXZones(t, graph, variables=None, cartesian=False, interDict=[], bboxDict={}, layers=None, subr=True):
+def addXZones(t, graph, variables=None, noCoordinates=False, cartesian=False, subr=True):
     """Add zones specified in graph on current proc."""
     tp = Internal.copyRef(t)
-    _addXZones(tp, graph, variables, cartesian, interDict, bboxDict, layers, subr)
+    _addXZones(tp, graph, variables, noCoordinates, cartesian, subr)
     return tp
 
-def _addXZones(t, graph, variables=None, cartesian=False, interDict=[], bboxDict={}, layers=None, subr=True):
+def _addXZones(t, graph, variables=None, noCoordinates=False, cartesian=False, subr=True):
     if not graph: return t
-    # create bboXDict if necessary
-    if layers is not None and not bboxDict: bboxDict = createBboxDict(t)
     reqs = []
     if cartesian: import Compressor.PyTree as Compressor 
     if rank in graph:
         g = graph[rank] # graph du proc courant
         for oppNode in g:
             # Envoie les zones necessaires au noeud oppose
-            #print '%d: On envoie a %d: %s'%(rank,oppNode,g[oppNode])
+            #print('%d: On envoie a %d: %s'%(rank,oppNode,g[oppNode]))
             names = g[oppNode]
             data = [] # data est une liste de zones
             for n in names:
@@ -387,42 +383,16 @@ def _addXZones(t, graph, variables=None, cartesian=False, interDict=[], bboxDict
                 if variables is not None:
                     v = C.getVarNames(zone, excludeXYZ=True)[0]
                     for i in variables: v.remove(i)
+                    if noCoordinates: v += ['CoordinateX', 'CoordinateY', 'CoordinateZ']
                     zonep = C.rmVars(zone, v)
                     if cartesian:
-                        if layers is None:
-                             zonepc = Compressor.compressCartesian(zonep,subr=subr)
-                             data.append(zonepc)
-                        else:
-                            # Each block will be cut and compressed before being sent
-                            # The information provided by bboxDict are crucial
-                            for ni in interDict[n]:
-                                if int(ni[-1]) == oppNode:
-                                    # bbox is the bbox of the overlapping between the two blocks
-                                    bbox = GetIntersectionBbox(bboxDict[n],bboxDict[ni])
-                                    # The copy is VERY important
-                                    zonepc = Internal.copyTree(zonep)
-                                    # call compressor with the right arguments
-                                    Compressor._compressCartesian(zonepc,bbox=bbox,layers=layers,subr=subr)
-                                    data.append(zonepc)
-                    else:
-                        data.append(zonep)
+                        zonepc = Compressor.compressCartesian(zonep, subr=subr)
+                        data.append(zonepc)
+                    else: data.append(zonep)
                 else:
                     if cartesian:
-                        if layers is None:
-                            zonep = Compressor.compressCartesian(zone)
-                            data.append(zonep)
-                        else:
-                            # Each block will be cut and compressed before being sent
-                            # The information provided by bboxDict are crucial
-                            for ni in interDict[n]:
-                                if int(ni[-1]) == oppNode:
-                                    # bbox is the bbox of the overlapping between the two blocks
-                                    bbox = GetIntersectionBbox(bboxDict[n],bboxDict[ni])
-                                    # The copy is VERY important
-                                    zonep = Internal.copyTree(zone)
-                                    # call compressor with the right arguments
-                                    Compressor._compressCartesian(zonep, bbox=bbox, layers=layers)
-                                    data.append(zonep)
+                        zonep = Compressor.compressCartesian(zone)
+                        data.append(zonep)
                     else: data.append(zone)
             s = KCOMM.isend(data, dest=oppNode)
             reqs.append(s)
@@ -433,18 +403,102 @@ def _addXZones(t, graph, variables=None, cartesian=False, interDict=[], bboxDict
         if rank in graph[node]:
             #print('%d: On doit recevoir de %d: %s'%(rank,node,graph[node][rank]))
             data = KCOMM.recv(source=node)
-            
             for z in data: # data est une liste de zones
                 if cartesian:
                     import Compressor.PyTree as Compressor
                     Compressor._uncompressCartesian(z)
-                #print '%d: recoit la zone %s.'%(rank,z[0])
-                # tag z
+                #print('%d: recoit la zone %s.'%(rank,z[0]))
                 Internal.createChild(z, 'XZone', 'UserDefinedData_t') 
                 # Existe deja? 
                 zone = Internal.getNodeFromName2(t, z[0])
                 if zone is not None: # replace
-                    if cartesian and layers is not None: # a cartesian block might be splitted into several parts...
+                    bases = Internal.getBases(t)
+                    for b in bases:
+                        c = Internal.getNodePosition(zone, b)
+                        if c != -1: b[2][c] = z
+                else: # append to first base
+                    bases = Internal.getBases(t)
+                    bases[0][2].append(z)
+    MPI.Request.Waitall(reqs)
+    return t
+
+#==============================================================================
+# Recupere les zones specifiees dans le graph, les ajoute a l'arbre local t
+# if layers not None, only communicate the desired number of layers
+# bboxDict is dict with the zones of t as keys and their specific bboxes as key values, used when layers not None
+# if subr=True, the ZoneSubRegions are kept during the exchange 
+#==============================================================================
+def addLXZones(t, graph, variables=None, cartesian=False, interDict=[], bboxDict={}, layers=2, subr=True):
+    """Add zones specified in graph on current proc."""
+    tp = Internal.copyRef(t)
+    _addLXZones(tp, graph, variables, cartesian, interDict, bboxDict, layers, subr)
+    return tp
+
+def _addLXZones(t, graph, variables=None, cartesian=False, interDict=[], bboxDict={}, layers=2, subr=True):
+    if not graph: return t
+    # create bboXDict if necessary
+    if not bboxDict: bboxDict = createBboxDict(t)
+    reqs = []
+    if cartesian: import Compressor.PyTree as Compressor 
+    if rank in graph:
+        g = graph[rank] # graph du proc courant
+        for oppNode in g:
+            # Envoie les zones necessaires au noeud oppose
+            #print('%d: On envoie a %d: %s'%(rank,oppNode,g[oppNode]))
+            names = g[oppNode]
+            data = [] # data est une liste de zones
+            for n in names:
+                zone = Internal.getNodeFromName2(t, n)
+                if variables is not None:
+                    v = C.getVarNames(zone, excludeXYZ=True)[0]
+                    for i in variables: v.remove(i)
+                    zonep = C.rmVars(zone, v)
+                    if cartesian:
+                        # Each block will be cut and compressed before being sent
+                        # The information provided by bboxDict are crucial
+                        for ni in interDict[n]:
+                            if int(ni[-1]) == oppNode:
+                                # bbox is the bbox of the overlapping between the two blocks
+                                bbox = GetIntersectionBbox(bboxDict[n],bboxDict[ni])
+                                # The copy is VERY important
+                                zonepc = Internal.copyTree(zonep)
+                                # call compressor with the right arguments
+                                Compressor._compressCartesian(zonepc,bbox=bbox,layers=layers,subr=subr)
+                                data.append(zonepc)
+                    else: data.append(zonep)
+                else:
+                    if cartesian:
+                        # Each block will be cut and compressed before being sent
+                        # The information provided by bboxDict are crucial
+                        for ni in interDict[n]:
+                            if int(ni[-1]) == oppNode:
+                                # bbox is the bbox of the overlapping between the two blocks
+                                bbox = GetIntersectionBbox(bboxDict[n], bboxDict[ni])
+                                # The copy is VERY important
+                                zonep = Internal.copyTree(zone)
+                                # call compressor with the right arguments
+                                Compressor._compressCartesian(zonep, bbox=bbox, layers=layers)
+                                data.append(zonep)
+                    else: data.append(zone)
+            s = KCOMM.isend(data, dest=oppNode)
+            reqs.append(s)
+
+    # Reception
+    for node in graph:
+        #print(rank, graph[node].keys())
+        if rank in graph[node]:
+            #print('%d: On doit recevoir de %d: %s'%(rank,node,graph[node][rank]))
+            data = KCOMM.recv(source=node)
+            for z in data: # data est une liste de zones
+                if cartesian:
+                    import Compressor.PyTree as Compressor
+                    Compressor._uncompressCartesian(z)
+                #print('%d: recoit la zone %s.'%(rank,z[0]))
+                Internal.createChild(z, 'XZone', 'UserDefinedData_t') 
+                # Existe deja? 
+                zone = Internal.getNodeFromName2(t, z[0])
+                if zone is not None: # replace
+                    if cartesian: # a cartesian block might be splitted into several parts...
                     # Hence the counter, to avoid two identical zone names in the tree
                         cpt = 1
                         z[0] = z[0][:-2]+'#'+str(cpt)+z[0][-2:]
@@ -462,7 +516,7 @@ def _addXZones(t, graph, variables=None, cartesian=False, interDict=[], bboxDict
                     bases = Internal.getBases(t)
                     bases[0][2].append(z)
     MPI.Request.Waitall(reqs)
-    return t
+    return None
 
 # Recupere les sous-zones de match de z correspondant a oppNode
 def getMatchSubZones__(z, procDict, oppNode, depth):
@@ -518,7 +572,7 @@ def updateGridConnectivity(a):
         for g in gcs:  
             nodes = Internal.getNodesFromType1(g, 'GridConnectivity1to1_t')
             for n in nodes:
-              # Recherche le nom de la bandelette en raccord 
+                # Recherche le nom de la bandelette en raccord 
                 oppName = Internal.getValue(n)
                 zopp    = Internal.getNodeFromName2(a, oppName+'_MX_'+z[0])
                 
@@ -558,7 +612,7 @@ def _revertMXGridConnectivity(a):
             for n in nodes:
                 # Recherche le nom de la bandelette en raccord 
                 oppName = Internal.getValue(n)
-                zopp    = Internal.getNodeFromName(a,oppName)
+                zopp    = Internal.getNodeFromName(a, oppName)
                 xzopp   = Internal.getNodeFromName1(zopp, 'XZone')
 
                 if xzopp is not None:
@@ -592,10 +646,9 @@ def _revertBXGridConnectivity(a):
 
                 # Recherche le nom de la bandelette en raccord 
                 oppName = Internal.getValue(n)
-                zopp    = Internal.getNodeFromName(a,oppName)
+                zopp    = Internal.getNodeFromName(a, oppName)
                 if zopp is not None:
-                    xzopp   = Internal.getNodeFromName1(zopp, 'XZone')
-
+                    xzopp = Internal.getNodeFromName1(zopp, 'XZone')
                     if xzopp is not None:
                         newName = oppName[:len(oppName)-2]
                         Internal.setValue(n, newName)
@@ -607,10 +660,8 @@ def _revertBXGridConnectivity(a):
                         p      = Internal.range2Window(prd[1])
                         p      = [p[0]+loc2glob[0]-1,p[1]+loc2glob[0]-1,p[2]+loc2glob[2]-1,p[3]+loc2glob[2]-1,p[4]+loc2glob[4]-1,p[5]+loc2glob[4]-1]
                         p      = Internal.window2Range(p)
-                        Internal.setValue(prd, p)
-                                  
+                        Internal.setValue(prd, p)                   
     return None
-
     
 # Ajoute des sous-zones correspondant aux raccords sur un arbre distribue
 def _addMXZones(a, depth=2):
@@ -643,24 +694,14 @@ def _addMXZones(a, depth=2):
     MPI.Request.Waitall(reqs)
 
     a = updateGridConnectivity(a)
-
-    
-
-
-
-    
-
+    return None
     
 # IN: bb0 et bb1: [xmin,ymin,zmin,xmax,ymax,zmax]
 # Retourne true si les bbox s'intersectent
-def inters(bb0, bb1,tol=1.e-12):
-    # if bb0[3] - tol < bb1[0] or bb0[0] > bb1[3] + tol : return False
-    # if bb0[4] - tol < bb1[1] or bb0[1] > bb1[4] + tol : return False
-    # if bb0[5] - tol < bb1[2] or bb0[2] > bb1[5] + tol : return False
-    
-    if bb0[3]  < bb1[0] or bb0[0] > bb1[3]  : return False
-    if bb0[4]  < bb1[1] or bb0[1] > bb1[4]  : return False
-    if bb0[5]  < bb1[2] or bb0[2] > bb1[5]  : return False
+def inters(bb0, bb1, tol=0.):
+    if bb0[3] < bb1[0]-tol or bb0[0] > bb1[3]+tol: return False
+    if bb0[4] < bb1[1]-tol or bb0[1] > bb1[4]+tol: return False
+    if bb0[5] < bb1[2]-tol or bb0[2] > bb1[5]+tol: return False
     return True
 
 # creation de la bandelette
@@ -676,8 +717,8 @@ def subzone(a, indMin, indMax, supp):
     return ap
     
 # Ajoute les bandelettes des autres procs sur le procs locaux
-def _addBXZones(a,depth=2,allB=False):
-    # si allB=True, les 6 bandelettes de chaque zone voisine sont ramenees (necessaire pour connectMatchPeriodic). 
+# si allB=True, les 6 bandelettes de chaque zone voisine sont ramenees (necessaire pour connectMatchPeriodic).
+def _addBXZones(a, depth=2, allB=False):
     import Generator.PyTree as G
     # Calcul des bbox des zones locales
     zones = Internal.getZones(a)
@@ -695,19 +736,21 @@ def _addBXZones(a,depth=2,allB=False):
         for z in zones:
             dim = Internal.getZoneDim(z)
             ni = dim[1]; nj = dim[2]; nk = dim[3]
-            b1 = subzone(z, (1,1,1), (min(depth,ni),nj,nk), 'S1')
-            b2 = subzone(z, (max(ni-depth+1,1),1,1), (ni,nj,nk), 'S2')
+            # b1 = subzone(z, (1,1,1), (min(depth,ni),nj,nk), 'S1')
+            # b2 = subzone(z, (max(ni-depth+1,1),1,1), (ni,nj,nk), 'S2')
             # b3 = subzone(z, (1,1,1), (ni,min(depth,nj),nk), 'S3')
             # b4 = subzone(z, (1,max(nj-depth+1,1),1), (ni,nj,nk), 'S4')
             # b5 = subzone(z, (1,1,1), (ni,nj,min(depth,nk)), 'S5')
             # b6 = subzone(z, (1,1,max(nk-depth+1,1)), (ni,nj,nk), 'S6')
 
             # Bandelettes non recouvrantes
-            b3 = subzone(z, (depth,1,1), (ni-depth+1,depth,nk), 'S3') # CW
-            b4 = subzone(z, (depth,nj-depth+1,1), (ni-depth+1,nj,nk), 'S4') # CW 
-            b5 = subzone(z, (depth,depth,1), (ni-depth+1,nj-depth+1,depth), 'S5') # CW
-            b6 = subzone(z, (depth,depth,nk-depth+1), (ni-depth+1,nj-depth+1,nk), 'S6') # CW
-                
+            b1 = subzone(z, (1,1,1), (min(depth,ni),nj,nk), 'S1')
+            b2 = subzone(z, (max(ni-depth+1,1),1,1), (ni,nj,nk), 'S2')
+            b3 = subzone(z, (min(depth,ni),1,1), (max(ni-depth+1,1),min(depth,nj),nk), 'S3') # CW
+            b4 = subzone(z, (min(depth,ni),max(nj-depth+1,1),1), (max(ni-depth+1,1),nj,nk), 'S4') # CW 
+            b5 = subzone(z, (min(depth,ni),min(depth,nj),1), (max(ni-depth+1,1),max(nj-depth+1,1),min(depth,nk)), 'S5') # CW
+            b6 = subzone(z, (min(depth,ni),min(depth,nj),max(nk-depth+1,1)), (max(ni-depth+1,1),max(nj-depth+1,1),nk), 'S6') # CW
+            
             sz[b1[0]] = b1
             sz[b2[0]] = b2
             sz[b3[0]] = b3
@@ -727,8 +770,6 @@ def _addBXZones(a,depth=2,allB=False):
             b4[0] = b[0]+'/'+b4[0]
             b5[0] = b[0]+'/'+b5[0]
             b6[0] = b[0]+'/'+b6[0]
-
-
             
     # allgather des bbox des bandelettes
     bboxes = KCOMM.allgather(bbz)
@@ -741,9 +782,9 @@ def _addBXZones(a,depth=2,allB=False):
         if i != rank:
             for bb in bboxes[i]:
                 for k in bbsz:
-                    if inters(bbsz[k],bboxes[i][bb]):
+                    if inters(bbsz[k], bboxes[i][bb]):
                         if not allB:
-                            data_i[k]=sz[k]
+                            data_i[k] = sz[k]
                         else:
                             zname = k[:len(k)-2] 
                             if zname not in zone_i:
@@ -759,9 +800,6 @@ def _addBXZones(a,depth=2,allB=False):
                     data_i[z+'S6'] = sz[z+'S6']
            
         data.append(data_i)
-
-
-
         
     datar = COMM_WORLD.alltoall(data)
     for p in datar:
@@ -775,7 +813,6 @@ def _addBXZones(a,depth=2,allB=False):
             b[2].append(z)
     
     return None
-
 
 #==============================================================================
 # Supprime les zones ajoutees par addXZones

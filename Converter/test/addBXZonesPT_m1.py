@@ -24,7 +24,7 @@ if Cmpi.rank == 0:
 h     = Filter.Handle('case.cgns')
 a     = h.loadAndDistribute()
 
-# Ajout XZones 
+# Ajout XZones
 Cmpi._addBXZones(a)
 
 # Test 
