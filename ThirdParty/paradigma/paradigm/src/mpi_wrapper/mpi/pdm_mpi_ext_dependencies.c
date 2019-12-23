@@ -2,6 +2,10 @@
  *  System headers
  *----------------------------------------------------------------------------*/
 
+#if defined(_WIN64)
+#define __int64 long long
+#endif
+
 #include <mpi.h>
 #include <stdlib.h>
 #include <stdio.h>
