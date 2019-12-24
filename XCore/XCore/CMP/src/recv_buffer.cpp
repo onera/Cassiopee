@@ -52,7 +52,7 @@ namespace CMP {
         xcore::request                    m_request ;
         const xcore::communicator&        m_ref_comm;
     };
-    // Définition de la réalisation du buffer de réception
+    // Definition de la realisation du buffer de reception
     // ================================================================================================
     int RecvBuffer::Implementation::irecv( ) {
 #       if defined(CMP_DEBUG)
