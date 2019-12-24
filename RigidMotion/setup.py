@@ -48,7 +48,7 @@ extensions = [
 # Setup ======================================================================
 setup(
     name="RigidMotion",
-    version="3.0",
+    version="3.1",
     description="Compute/define rigid motions.",
     author="Onera",
     package_dir={"":"."},

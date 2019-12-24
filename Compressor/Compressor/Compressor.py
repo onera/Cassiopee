@@ -1,6 +1,6 @@
 """Module for CFD solution compression.
 """
-__version__ = '3.0'
+__version__ = '3.1'
 __author__ = "Stephanie Peron, Christophe Benoit, Pascal Raud"
 
 from . import compressor

@@ -1,6 +1,6 @@
 """Plotter functions.
 """
-__version__ = '3.0'
+__version__ = '3.1'
 __author__ = "Christophe Benoit, Stephanie Peron, Pascal Raud, Matthieu Soismier, Bertrand Michel"
 #
 # Plotter for arrays

@@ -43,7 +43,7 @@ libraryDirs += paths; libraries += libs
 import srcs
 setup(
     name="Geom",
-    version="3.0",
+    version="3.1",
     description="Geometry definition for *Cassiopee* modules.",
     author="Onera",
     package_dir={"":"."},
