@@ -23,32 +23,32 @@ using namespace std;
 using namespace K_FLD;
 
 #define BLOCK1\
-  for (E_Int v2 =0; v2 < pyRcvIndices.size(); v2++)\
+  for (size_t v2 =0; v2 < pyRcvIndices.size(); v2++)\
     RELEASESHAREDN(pyRcvIndices[v2], FldRcvIndices[v2]);\
 
 #define BLOCK2\
   BLOCK1;  \
-  for (E_Int v2 =0; v2 < pyDnrIndices.size(); v2++)\
+  for (size_t v2 =0; v2 < pyDnrIndices.size(); v2++)\
     RELEASESHAREDN(pyDnrIndices[v2], FldDnrIndices[v2]);     \
 
 #define BLOCK3\
   BLOCK2; \
-  for (E_Int v2 =0; v2 < pyEXIndir.size(); v2++)\
+  for (size_t v2 =0; v2 < pyEXIndir.size(); v2++)\
     RELEASESHAREDN(pyEXIndir[v2], FldEXIndir[v2]);\
 
 # define BLOCK4 \
   BLOCK3; \
-  for (E_Int v2 = 0; v2 < pyDnrCoefs.size(); v2++)\
+  for (size_t v2 = 0; v2 < pyDnrCoefs.size(); v2++)\
     RELEASESHAREDN(pyDnrCoefs[v2], FldDnrCoefs[v2]);\
 
 # define BLOCK5\
   BLOCK4;\
-  for (E_Int v2 =0; v2 < pyTypes.size(); v2++)\
+  for (size_t v2 =0; v2 < pyTypes.size(); v2++)\
     RELEASESHAREDN(pyTypes[v2], FldTypes[v2]); \
 
 #define BLOCK6\
   BLOCK5; \
-  for (E_Int v2 = 0; v2 < pyCellN.size(); v2++)\
+  for (size_t v2 = 0; v2 < pyCellN.size(); v2++)\
     RELEASESHAREDS(pyCellN[v2], FldCellN[v2]);\
 
 //=============================================================================

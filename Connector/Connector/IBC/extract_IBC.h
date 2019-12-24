@@ -51,7 +51,7 @@
   E_Float* vy       = vyF->begin();
   E_Float* vz       = vzF->begin();
 
-  E_Int okU, okY;  E_Float* utau; E_Float* yplus;
+  E_Int okU, okY; E_Float* utau; E_Float* yplus;
 
   okU = K_NUMPY::getFromNumpyArray(pyArrayUtau , utauF , true);
   okY = K_NUMPY::getFromNumpyArray(pyArrayYplus, yplusF, true);

@@ -120,10 +120,9 @@ PyObject* K_INTERSECTOR::updatePointLists(PyObject* self, PyObject* args)
     new_ptl.clear();
     PyObject* o = PyList_GetItem(py_ptLists, i);
 
-    E_Float* fptl;
     E_Int ptl_sz;
     FldArrayI out;
-    E_Int ok = K_ARRAY::getFromList(o, out);
+    K_ARRAY::getFromList(o, out);
     ptl_sz = out.getSize();
 
     for (E_Int j=0; j < ptl_sz; ++j)
@@ -230,7 +229,7 @@ PyObject* K_INTERSECTOR::triangulateSpecifiedFaces(PyObject* self, PyObject* arg
 
   // enable history
   ngi.PGs._ancEs.resize((E_Int)2, (E_Int)ngi.PGs.size(), (E_Int)0);
-  for (size_t i=0; i < ngi.PGs.size(); ++i) ngi.PGs._ancEs(0,i)=i;
+  for (E_Int i=0; i < ngi.PGs.size(); ++i) ngi.PGs._ancEs(0,i)=i;
 
   NUGA::transfo_t qual_param;
   qual_param.improve_qual=improve_qual ? true : false;

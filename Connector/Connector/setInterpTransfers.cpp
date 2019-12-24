@@ -929,10 +929,10 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
 		// Le pas de temps de la zone donneuse est plus petit que celui de la zone receveuse   
 		if (levelD > levelR && num_passage == 1)		
 		  {
-		    if (nstep%cyclD==cyclD-1 or nstep%cyclD==cyclD/2 && (nstep/cyclD)%2==1)
-		      {
-			autorisation_transferts[pass_inst][irac_auto]=1;
-		      }
+		    if ( nstep%cyclD==cyclD-1 || nstep%cyclD==cyclD/2 && (nstep/cyclD)%2==1 )
+		    {
+			   autorisation_transferts[pass_inst][irac_auto]=1;
+		    }
 		    else {continue;}
 		  }
 		// Le pas de temps de la zone donneuse est plus grand que celui de la zone receveuse

@@ -147,8 +147,8 @@ PyObject* K_CONNECTOR::setInterpDataForGCNGon(PyObject* self, PyObject* args)
   E_Int cell_match2_deb = iptIntExt[ 0] + iptIntExt[ 1] + iptIntExt[3];    //EL2 rac
   E_Int cell_match2_fin = iptIntExt[ 0] + iptIntExt[ 1] + iptIntExt[3] + iptIntExt[ 2];
 
-  E_Int cell_match2_debD= iptIntExtD[ 0] + iptIntExtD[ 1] + iptIntExtD[3];    //EL2 rac
-  E_Int cell_match2_finD= iptIntExtD[ 0] + iptIntExtD[ 1] + iptIntExtD[3] + iptIntExtD[ 2];
+  //E_Int cell_match2_debD= iptIntExtD[ 0] + iptIntExtD[ 1] + iptIntExtD[3];    //EL2 rac
+  //E_Int cell_match2_finD= iptIntExtD[ 0] + iptIntExtD[ 1] + iptIntExtD[3] + iptIntExtD[ 2];
 
   printf("Elt0 = %d,  Elt1= %d, Elt2 = %d, Elt3= %d, Elt4= %d \n", iptIntExt[0], iptIntExt[1], iptIntExt[2], iptIntExt[3], iptIntExt[4] );
   //printf("match :  deb= %d,  fin= %d \n", cell_match2_deb, cell_match2_fin);

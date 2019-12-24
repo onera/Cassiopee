@@ -48,7 +48,7 @@ for (E_Int noind = 0; noind < ifin-ideb; noind++)
   E_Float p = -3*a*a/8.;
   E_Float q = -a*a*a/8.;
   E_Float r = -3*a*a*a*a/256.-b;
-  E_Float a_adim = a/(mu_vec[noind]/ro_vec[noind]);
+  //E_Float a_adim = a/(mu_vec[noind]/ro_vec[noind]);
 
   // equation 3eme degre
   E_Float ap = 8.;

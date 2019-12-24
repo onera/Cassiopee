@@ -90,7 +90,7 @@ PyObject* K_CONNECTOR::_updateNatureForIBM(PyObject* self, PyObject* args)
     {
       E_Float& cellNChim = ptrCellNChim[ind];
       E_Float& cellNIBC = ptrCellNIBC[ind];
-      E_Float& cellNFront = ptrCellNFront[ind];
+      //E_Float& cellNFront = ptrCellNFront[ind];
 
       if (cellNChim == 1.)
       {
