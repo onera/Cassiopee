@@ -3,8 +3,8 @@ from KCore.config import *
 #==============================================================================
 # Fichiers c++
 #==============================================================================
-cpp_srcs = ['XCore/CMP/src/recv_buffer.cpp', 
-            'XCore/CMP/src/send_buffer.cpp',
+cpp_srcs = ['XCore/CMP/recv_buffer.cpp', 
+            'XCore/CMP/send_buffer.cpp',
             'XCore/xmpi/context_mpi_impl.cpp',
             'XCore/xmpi/context_stub_impl.cpp',
             'XCore/xmpi/communicator.cpp',
