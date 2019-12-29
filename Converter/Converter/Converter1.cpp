@@ -267,6 +267,13 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
                                                 ufield, c, et, zoneNames,
                                                 BCFaces, BCNames);
   }
+  else if (K_STRING::cmp(fileFmt, "bin_arc") == 0)
+  {
+    // Formatted cedre read
+    ret = K_IO::GenIO::getInstance()->arcread(fileName, varString, field, 
+                                              im, jm, km, 
+                                              ufield, c, et, zoneNames);
+  }
   else if (K_STRING::cmp(fileFmt, "fmt_tgf") == 0)
   {
     // Formatted tgf read
@@ -820,6 +827,7 @@ E_Int K_CONVERTER::checkRecognisedFormat(char* fileFmt)
       K_STRING::cmp(fileFmt, "bin_3ds") == 0 ||
       K_STRING::cmp(fileFmt, "bin_ply") == 0 ||
       K_STRING::cmp(fileFmt, "fmt_cedre") == 0 ||
+      K_STRING::cmp(fileFmt, "bin_arc") == 0 ||
       K_STRING::cmp(fileFmt, "fmt_tgf") == 0 ||
       K_STRING::cmp(fileFmt, "fmt_su2") == 0)
   {

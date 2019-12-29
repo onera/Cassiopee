@@ -85,7 +85,12 @@ void main()
      float s = shadowCoordinateW.s;
      float t = shadowCoordinateW.t;      
      if (ShadowCoord.w > 0.0 && s > 0.001 && s < 0.999 && t > 0.001 && t < 0.999)
-       shadowValue = distanceFromLight < shadowCoordinateW.z ? 0.5 : 1.0;
+       {
+       //shadowValue = distanceFromLight < shadowCoordinateW.z ? 0.5 : 1.0;
+       if (distanceFromLight < shadowCoordinateW.z - 0.001) shadowValue = 0.5;
+       else if (distanceFromLight >= shadowCoordinateW.z) shadowValue = 1.;
+       else shadowValue = 500.*distanceFromLight-499.*shadowCoordinateW.z;
+       }
      }
 
     gl_FragColor = shadowValue * col;
