@@ -178,7 +178,7 @@ Actions
     :type dirCam: tuple of 3 floats
     :param viewAngle: camera angle in degrees (default: 50.)
     :type viewAngle: float
-    :param bgColor: background color. 0-10 (default: 0)
+    :param bgColor: background color. 0-13 (default: 0)
     :type bgColor: int
     :param shadow: display shadows. 0-1 (default: 0)
     :type shadow: int

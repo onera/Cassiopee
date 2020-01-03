@@ -33,6 +33,9 @@ def buildPrefs():
     elif v == 'Arch': va = '8'
     elif v == 'Jarvis': va = '9'
     elif v == 'Onera': va = '10'
+    elif v == 'Clouds': va = '11'
+    elif v == 'Blueprint': va = '12'
+    elif v == 'Custom': va = '13'
     CTK.PREFS['bgColor'] = va
     v = VARS[6].get()
     CTK.PREFS['envmap'] = v
@@ -73,6 +76,22 @@ def setBgColor(event=None):
     elif v == 'Arch': va = 8
     elif v == 'Jarvis': va = 9
     elif v == 'Onera': va = 10
+    elif v == 'Clouds': va = 11
+    elif v == 'Blueprint': va = 12
+    elif v == 'Custom':
+        try: import tkFileDialog
+        except: import tkinter.filedialog as tkFileDialog
+        if 'backgroundFile' in CTK.PREFS: initFile = CTK.PREFS['backgroundFile']
+        else: initFile = 'paperBackground1.png'
+        files = tkFileDialog.askopenfilenames(
+        filetypes=[('png image file', '*.png')], initialfile=initFile, multiple=0)
+        if files == '' or files is None or files == (): # user cancel
+            return
+        files = CTK.fixFileString__(files, initFile)
+        CPlot.setState(backgroundFile=files[0])
+        CTK.PREFS['backgroundFile'] = files[0]
+        va = 13
+        
     CPlot.setState(bgColor=va)
     CTK.PREFS['bgColor'] = str(va)
 
@@ -210,6 +229,10 @@ def createApp(win):
             elif k1 == '8': VARS[3].set('Arch')
             elif k1 == '9': VARS[3].set('Jarvis')
             elif k1 == '10': VARS[3].set('Onera')
+            elif k1 == '11': VARS[3].set('Clouds')
+            elif k1 == '12': VARS[3].set('Blueprint')
+            elif k1 == '13': VARS[3].set('Custom')
+        
         elif i == 'auto': VARS[4].set(k1)
         elif i == 'envmap': VARS[6].set(k1)
         elif i == 'selectionStyle': VARS[7].set(k1)
@@ -254,7 +277,8 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='Default background color or image.')
     B = TTK.OptionMenu(Frame, VARS[3], 'Black', 'White', 'Grey', 'Yellow',
                        'Blue', 'Red', 'Paper1', 'Paper2',
-                      'Arch', 'Jarvis', 'Onera', command=setBgColor)
+                       'Arch', 'Jarvis', 'Onera', 'Clouds',
+                       'Blueprint', 'Custom', command=setBgColor)
     B.grid(row=r, column=1, sticky=TK.EW)
     r += 1
 

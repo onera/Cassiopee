@@ -52,10 +52,10 @@ void Data::clearDisplay()
       glMatrixMode(GL_PROJECTION); glPushMatrix(); glLoadIdentity();
       glDisable(GL_DEPTH_TEST);
       glBegin(GL_QUADS);
-      glColor3f(0.60, 0.70, 1.);
+      glColor3f(14./255., 175./255., 250./255.);
       glVertex3i(-1, -1, -1); 
       glVertex3i(1, -1, -1); 
-      glColor3f(0.01, 0.20, 0.8);
+      glColor3f(93./255., 207./255., 236./255.);
       glVertex3i(1, 1, -1); 
       glVertex3i(-1, 1, -1); 
       glEnd();
@@ -85,7 +85,10 @@ void Data::clearDisplay()
     case 7:
     case 8:
     case 9:
-    case 10: 
+    case 10:
+    case 11:
+    case 12:
+    case 13: 
       glMatrixMode(GL_TEXTURE); glLoadIdentity(); glMatrixMode(GL_MODELVIEW);
       setOrthographicProjection();
       glPushMatrix(); glLoadIdentity();
@@ -196,6 +199,12 @@ void gdisplay()
        d->createPngTexture("paperBackground4.png", d->_texBackground, width, height, false);
       else if (d->ptrState->bgColor == 10)
        d->createPngTexture("paperBackground5.png", d->_texBackground, width, height, false);
+      else if (d->ptrState->bgColor == 11)
+       d->createPngTexture("paperBackground6.png", d->_texBackground, width, height, false);
+      else if (d->ptrState->bgColor == 12)
+       d->createPngTexture("paperBackground7.png", d->_texBackground, width, height, false);
+      else if (d->ptrState->bgColor == 13)
+       d->createPngTexture(d->ptrState->backgroundFile, d->_texBackground, width, height, false);
       else
        d->createPngTexture("paperBackground1.png", d->_texBackground, width, height, false);
       d->ptrState->updateBackground = 0;

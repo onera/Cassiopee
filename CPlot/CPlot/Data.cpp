@@ -324,6 +324,7 @@ void Data::initState()
   // Others
   ptrState->fullScreen = 0;
   ptrState->bgColor = 0;
+  strcpy(ptrState->backgroundFile, "paperBackground1.png");
   ptrState->autoblank = 1;
 
   // Textures
@@ -758,7 +759,7 @@ void Data::enforceGivenData2(float xcam, float ycam, float zcam,
                              int vectorShowSurface, int vectorShape, int vector_projection, 
                              int colormap, char* colormapC1, char* colormapC2, char* colormapC3,
                              int niso, float isoEdges, PyObject* isoScales,
-                             int bgColor, int ghostifyDeactivatedZones,
+                             int bgColor, char* backgroundFile, int ghostifyDeactivatedZones,
                              int edgifyActivatedZones,
                              int edgifyDeactivatedZones,
                              int shadow, int dof,
@@ -841,6 +842,9 @@ void Data::enforceGivenData2(float xcam, float ycam, float zcam,
   }
 
   if (bgColor != -1) ptrState->bgColor = bgColor;
+  if (strcmp(backgroundFile, "None") != 0) strcpy(ptrState->backgroundFile, backgroundFile);
+  if (bgColor >= 6) // requires a background texture
+    ptrState->updateBackground = 1;
 
   if (ghostifyDeactivatedZones != -1)
     ptrState->ghostifyDeactivatedZones = ghostifyDeactivatedZones;

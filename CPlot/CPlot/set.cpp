@@ -55,9 +55,10 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
   E_Float dofPower; E_Float gamma; E_Float sobelThreshold;
   int timer; int selectionStyle; int frameBuffer; int offscreen;
   int continuousExport; int activateShortCuts;
+  char* backgroundFile;
   E_Float billBoardSize;
   if (!PyArg_ParseTuple(args, 
-	      "iOOiiiiiiiiiiddiiiiisssidO(ii)(ddd)(ddd)(ddd)d(dd)iiidddiiississidi(ii)iiiOdOOii",
+	      "iOOiiiiiiiiiiddiiiiisssidO(ii)(ddd)(ddd)(ddd)d(dd)isiidddiiississidi(ii)iiiOdOOii",
         &dim, &modeObject, &scalarFieldObject,
         &vectorField1, &vectorField2, &vectorField3,
         &displayBB, &displayInfo, &displayIsoLegend,
@@ -70,7 +71,8 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
         &xeye, &yeye, &zeye, 
         &dirx, &diry, &dirz, &viewAngle,
         &lightOffsetX, &lightOffsetY,
-        &bgColor, &shadow, &dof, &dofPower, &gamma, &sobelThreshold,
+        &bgColor, &backgroundFile,
+        &shadow, &dof, &dofPower, &gamma, &sobelThreshold,
         &ghostifyDeactivatedZones, &edgifyActivatedZones,
         &edgifyDeactivatedZones,
         &exportFile, &exportResolution, &continuousExport,
@@ -96,7 +98,7 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
                        vectorStyle, vectorScale, vectorDensity, vectorNormalize,
                        vectorShowSurface, vectorShape, vectorProjection, 
                        colormap, colormapC1, colormapC2, colormapC3, 
-                       niso, isoEdges, isoScales, bgColor,
+                       niso, isoEdges, isoScales, bgColor, backgroundFile,
                        ghostifyDeactivatedZones, edgifyActivatedZones,
                        edgifyDeactivatedZones,
                        shadow, dof, exportFile, exportResolution);
@@ -106,10 +108,6 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
   {
     strcpy(d->ptrState->envmapFile, envmap);
     d->ptrState->updateEnvmap = 1;
-  }
-  if (bgColor >= 6) // requires a background texture
-  {
-    d->ptrState->updateBackground = 1;
   }
   if (K_STRING::cmp(message, "None") == 0) 
   {

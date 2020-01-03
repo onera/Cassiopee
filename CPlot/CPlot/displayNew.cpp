@@ -67,8 +67,9 @@ PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
   PyObject* zoneNamesObject;
   PyObject* renderTagsObject;
   PyObject* isoScales;
+  char* backgroundFile;
   int bgColor, shadow, dof, offscreen, stereo, frameBuffer;
-  if (!PyArg_ParseTuple(args, "OiOOOOOiiiiiiiddiiiiisssidO(ii)(ddd)(ddd)(ddd)diiiidssOOii",
+  if (!PyArg_ParseTuple(args, "OiOOOOOiiiiiiiddiiiiisssidO(ii)(ddd)(ddd)(ddd)disiiidssOOii",
                         &arrays, &dim, &modeObject, &scalarFieldObject,
                         &vectorFieldObject1, &vectorFieldObject2, &vectorFieldObject3,
                         &displayBB, &displayInfo, &displayIsoLegend,
@@ -79,7 +80,8 @@ PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
                         &niso, &isoEdges, &isoScales,
                         &winx, &winy, &xcam, &ycam, &zcam,
                         &xeye, &yeye, &zeye,
-                        &dirx, &diry, &dirz, &viewAngle, &bgColor,
+                        &dirx, &diry, &dirz, &viewAngle, 
+                        &bgColor, &backgroundFile,
                         &shadow, &dof, &stereo, &stereoDist,
                         &exportFile, &exportResolution, 
                         &zoneNamesObject, &renderTagsObject, &frameBuffer, &offscreen))
@@ -169,7 +171,8 @@ PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
                        vectorShape, vectorProjection, 
                        colormap, colormapC1, colormapC2, colormapC3, 
                        niso, isoEdges, isoScales, 
-                       bgColor, -1, -1, -1, shadow, dof,
+                       bgColor, backgroundFile, 
+                       -1, -1, -1, shadow, dof,
                        exportFile, exportResolution);
 
   if (stereo != -1) d->ptrState->stereo = stereo;

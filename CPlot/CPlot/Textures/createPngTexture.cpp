@@ -33,7 +33,6 @@ int Data::createPngTexture(const char* filename, GLuint &tex,
                            int &width, int &height, bool mipmap)
 {
   Data* d = Data::getInstance();
-
   //GLint mipMap = GL_FALSE;
   //if (mipmap == true) mipMap = GL_TRUE;
 
@@ -71,25 +70,25 @@ int Data::createPngTexture(const char* filename, GLuint &tex,
   png_byte header[8];    // 8 is the maximum size that can be checked
   fread(header, 1, 8, ptrFile);
   if (png_sig_cmp(header, 0, 8))
-  { printf("File %s is an invalid png file.\n", filename); 
+  { printf("Warning: file %s is an invalid png file.\n", filename); 
     fclose(ptrFile); return 1; }
   
   /* initialize stuff */
   png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 
   if (!png_ptr)
-  { printf("Can not create png structures.\n"); fclose(ptrFile); return 1; }
+  { printf("Warning: can not create png structures.\n"); fclose(ptrFile); return 1; }
   
   png_infop info_ptr = png_create_info_struct(png_ptr);
   if (!info_ptr)
-  { printf("Can not create png structures.\n"); fclose(ptrFile); return 1; }
+  { printf("Warning: can not create png structures.\n"); fclose(ptrFile); return 1; }
 
   png_infop end_info_ptr = png_create_info_struct(png_ptr);
   if (!end_info_ptr)
-  { printf("Can not create png structures.\n"); fclose(ptrFile); return 1; }
+  { printf("Warning: can not create png structures.\n"); fclose(ptrFile); return 1; }
 
   if (setjmp(png_jmpbuf(png_ptr)))
-  { printf("Can not create png structures.\n"); fclose(ptrFile); return 1; }
+  { printf("Warning: can not create png structures.\n"); fclose(ptrFile); return 1; }
               
   png_init_io(png_ptr, ptrFile);
   png_set_sig_bytes(png_ptr, 8);
@@ -102,7 +101,7 @@ int Data::createPngTexture(const char* filename, GLuint &tex,
   //printf("color type %d\n", color_type);
   if (color_type == 3)
   {
-    printf("Palette indexed colors is not supported.\n"); 
+    printf("Warning: palette indexed colors is not supported.\n"); 
     fclose(ptrFile); return 1;
   }
   if (color_type != PNG_COLOR_TYPE_RGB_ALPHA 
@@ -117,7 +116,7 @@ int Data::createPngTexture(const char* filename, GLuint &tex,
   //printf("bit depth %d\n", bit_depth);
   if (bit_depth != 8)
   {
-    printf("Color depth must be 8.\n"); 
+    printf("Warning: color depth must be 8.\n"); 
     fclose(ptrFile); return 1;
   }
 
@@ -126,7 +125,7 @@ int Data::createPngTexture(const char* filename, GLuint &tex,
 
   /* read file */
   if (setjmp(png_jmpbuf(png_ptr)))
-  { printf("Error during read of png image.\n"); fclose(ptrFile); return 1; }
+  { printf("Warning: error during read of png image.\n"); fclose(ptrFile); return 1; }
   
   png_bytepp rows = new png_bytep[height];
   png_bytep image = new png_byte[height * width * components];

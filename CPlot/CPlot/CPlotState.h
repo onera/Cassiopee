@@ -113,7 +113,7 @@ struct CPlotState {
 
     // Textures
     char shaderPath[1028];  // chemin pour les fichiers + shaders
-    char envmapFile[120];
+    char envmapFile[256];   // fichier image pour les envmaps
     int  updateEnvmap;      // dit a display d'updater l'envmap
     int  updateBackground;  // dit a displau d'updater la texture de background
 
@@ -259,6 +259,7 @@ struct CPlotState {
     // Others
     int fullScreen;  // 1: full screen, 0: window
     int bgColor;     // background color
+    char backgroundFile[256]; // image file name for background (bgColor=11)
     int autoblank;   // if 1, cplot try to set automatically the
                      // blanking plugin
 

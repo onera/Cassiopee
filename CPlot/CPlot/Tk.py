@@ -298,6 +298,7 @@ def display(t, dim=-1,
             dirCam=(-999,-999,-999),
             viewAngle=-1.,
             bgColor=-1,
+            backgroundFile="None",
             shadow=-1,
             dof=-1,
             stereo=-1,
@@ -322,7 +323,8 @@ def display(t, dim=-1,
                colormap, colormapC1, colormapC2, colormapC3,
                niso, isoEdges, isoScales,
                win, posCam, posEye, dirCam, viewAngle,
-               bgColor, shadow, dof, stereo, stereoDist,
+               bgColor, backgroundFile, 
+               shadow, dof, stereo, stereoDist,
                export, exportResolution,
                zoneNames, renderTags)
     if mainTree == 1 and __MAINTREE__ <= 0:
@@ -717,7 +719,7 @@ def loadPrefFile():
     list = list.split('\n')
     for i in list:
         if i != '':
-            a = i.split(':')
+            a = i.split(':',1)
             if len(a) == 2:
                 prefName = a[0]
                 val = a[1]
@@ -824,6 +826,8 @@ def setPrefs():
         elif i == 'bgColor':
             val = int(val)
             CPlot.setState(bgColor=val)
+        elif i == 'backgroundFile':
+            CPlot.setState(backgroundFile=val)
         elif i == 'envmap':
             CPlot.setState(envmap=val)
         elif i == 'fontType':
