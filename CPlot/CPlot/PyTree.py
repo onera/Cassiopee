@@ -704,28 +704,19 @@ def _addRender2PyTree(a, slot=0, posCam=None, posEye=None, dirCam=None,
   if niso is not None:
     rt = Internal.createUniqueChild(sl, 'niso', 'DataArray_t', value=niso)
 
-  if isoScales is not None: # must be a list
-    rt = Internal.getNodeFromName1(sl, 'isoScales')
-    n = len(isoScales)
-    
-    if rt is None:
-      v = numpy.empty((n), numpy.float64)
-      for i in range(n): v[i] = float(isoScales[i])
-      sl[2].append(['isoScales', v, [], 'DataArray_t'])
-    elif rt[1] is not None:
-      old = rt[1]
-      dict = {}
-      l = old.shape[0]
-      for i in range(0,l,4): dict[old[i]] = [old[i+1], old[i+2], old[i+3]]
-      for i in range(0,n,4): dict[isoScales[i]] = [isoScales[i+1], isoScales[i+2], isoScales[i+3]]
-      k = dict.keys(); l = len(k)
-      v = numpy.empty((4*l), numpy.float64)
-      c = 0
-      for i in k:
-        v[c] = i; v[c+1] = dict[i][0]; v[c+2] = dict[i][1]; v[c+3] = dict[i][2]
-        c += 4
-      rt[1] = v
-
+  if isoScales is not None: # must be a list or a list of list
+    if len(isoScales) > 0 and isinstance(isoScales[0], list): # list of list
+      for iso in isoScales:
+        n = len(iso)-1
+        v = numpy.empty(n, numpy.float64)
+        for i in range(n): v[i] = float(iso[i+1])
+        Internal.createUniqueChild(sl, 'isoScales[%s]'%str(iso[0]), 'DataArray_t', value=v)
+    else:
+      n = len(isoScales)-1
+      v = numpy.empty(n, numpy.float64)
+      for i in range(n): v[i] = float(isoScales[i+1])
+      Internal.createUniqueChild(sl, 'isoScales[%s]'%str(isoScales[0]), 'DataArray_t', value=v)
+      
   if isoEdges is not None:
     rt = Internal.createUniqueChild(sl, 'isoEdges', 'DataArray_t', value=isoEdges)
 
@@ -845,9 +836,18 @@ def loadView(t, slot=0):
     
     if light == 1: style += 1
     CPlot.setState(colormap=style)
-    pos = Internal.getNodeFromName1(slot, 'isoScales')
-    if pos is not None:
-        CPlot.setState(isoScales=pos[1].tolist())
+    pos = Internal.getNodesFromName1(slot, 'isoScales*')
+    scales = []
+    for p in pos:
+      name = p[0]
+      name = name.replace('isoScales[', '')
+      name = name[0:-2]
+      try: name = int(name)
+      except: pass
+      out = [name]+p[1].tolist()
+      scales.append(out)
+    if scales != []: CPlot.setState(isoScales=scales)
+        
     # RenderInfo
     pos = Internal.getNodeFromName1(renderInfo, 'materials')
     if pos is not None:

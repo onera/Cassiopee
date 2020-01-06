@@ -58,18 +58,23 @@ void DataDL::displaySIsoSolid()
       _shaders[s]->setUniform("niso", (float)ptrState->niso);
       _shaders[s]->setUniform("alpha", (float)1.);
       _shaders[s]->setUniform("beta", (float)0.);
+      _shaders[s]->setUniform("amin", (float)0.);
+      _shaders[s]->setUniform("amax", (float)1.);
     }
     else
     { 
       float rmin, rmax, alpha, beta;
       float deltai = MAX(maxf[nofield]-minf[nofield], 1.e-6);
-      rmin = (_isoMin[nofield] -minf[nofield])/deltai;
-      rmax = (_isoMax[nofield] -minf[nofield])/deltai;
-      deltai = MAX(rmax-rmin, 1.e-6);
-      alpha = 1./deltai; beta = -rmin*alpha;
+      rmin = (_isoMin[nofield] - minf[nofield])/deltai;
+      rmax = (_isoMax[nofield] - minf[nofield])/deltai;
+      alpha = 1./MAX(rmax-rmin, 1.e-6); beta = -rmin*alpha;
       _shaders[s]->setUniform("niso", (float)_niso[nofield]);
       _shaders[s]->setUniform("alpha", (float)alpha);
       _shaders[s]->setUniform("beta", (float)beta);
+      float amin = (_isoAlphaMin[nofield] - minf[nofield])/deltai;
+      float amax = (_isoAlphaMax[nofield] - minf[nofield])/deltai;
+      _shaders[s]->setUniform("amin", (float)amin);
+      _shaders[s]->setUniform("amax", (float)amax); 
     }
     _shaders[s]->setUniform("edgeStyle", (float)ptrState->isoEdges);
     _shaders[s]->setUniform("lightOn", (int)0);
@@ -104,7 +109,7 @@ void DataDL::displaySIsoSolid()
       if (_texColormap == 0) createColormapTexture();
       fillColormapTexture((int)_pref.colorMap->varName[0]-48);
       _shaders[s]->setUniform("colormap", (int)1);
-      if ( s == _shaders.shader_id(shader::vector_arrow) )
+      if (s == _shaders.shader_id(shader::vector_arrow))
       {
         _shaders[s]->setUniform("show_surface", ptrState->vectorShowSurface);
         _shaders[s]->setUniform("project_vectors", (int)ptrState->vector_projection);

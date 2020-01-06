@@ -110,6 +110,8 @@ class Data
   double* maxf;
   double* _isoMin; // min pour chaque champ (si specifie)
   double* _isoMax; // max pour chaque champ
+  double* _isoAlphaMin; // min pour alpha iso
+  double* _isoAlphaMax; // min pour alpha iso
   int* _niso; // nbre d'iso pour chaque champ (si specifie)
 
   double epsup;     // minimum up

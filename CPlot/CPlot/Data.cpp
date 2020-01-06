@@ -78,6 +78,8 @@ Data::Data(CPlotState* ptState)
   maxf = NULL;
   _isoMin = NULL;
   _isoMax = NULL;
+  _isoAlphaMin = NULL;
+  _isoAlphaMax = NULL;
   _niso = NULL;
 
   // billBoards settings
@@ -136,6 +138,9 @@ Data::~Data()
   if (maxf != NULL) delete [] maxf;
   if (_isoMin != NULL) delete [] _isoMin;
   if (_isoMax != NULL) delete [] _isoMax;
+  if (_isoAlphaMin != NULL) delete [] _isoAlphaMin;
+  if (_isoAlphaMax != NULL) delete [] _isoAlphaMax;
+  
   unsigned int ns = _slots1D.size();
   for (unsigned int i = 0; i < ns; i++) delete _slots1D[i];
   pthread_mutex_destroy(&ptrState->lock_mutex);
@@ -818,25 +823,71 @@ void Data::enforceGivenData2(float xcam, float ycam, float zcam,
     if (PyList_Check(isoScales) == true)
     {
       int size = PyList_Size(isoScales);
-      int cpt = 0;
-      while (cpt < size)
+      
+      // double liste (nouvelle methode)
+      if (size > 0 && PyList_Check(PyList_GetItem(isoScales, 0)) == true) 
       {
-        PyObject* f = PyList_GetItem(isoScales, cpt); // nfield
-        PyObject* n = PyList_GetItem(isoScales, cpt+1); // nombre d'isos
-        PyObject* min = PyList_GetItem(isoScales, cpt+2); // min of isos
-        PyObject* max = PyList_GetItem(isoScales, cpt+3); // max of isos
-        E_Int nfield = getScalarField(f);
-        if (nfield == -1) nfield = 0; // not found
-        int niso = 10;
-        if (PyLong_Check(n) == true) niso = PyLong_AsLong(n);
-        else niso = int(PyFloat_AsDouble(n));
-        if (_nfield > nfield)
+        for (E_Int i = 0; i < size; i++)
         {
-          _niso[nfield] = niso;
-          _isoMin[nfield] = PyFloat_AsDouble(min);
-          _isoMax[nfield] = PyFloat_AsDouble(max);
+          PyObject* l = PyList_GetItem(isoScales, i);
+          E_Int nelts = PyList_Size(l);
+          for (E_Int j = 0; j < nelts; j++)
+          {
+            PyObject* f = PyList_GetItem(l, 0); // nfield
+            PyObject* n = PyList_GetItem(l, 1); // nombre d'isos
+            PyObject* min = PyList_GetItem(l, 2); // min for isos
+            PyObject* max = PyList_GetItem(l, 3); // max for isos
+            E_Int nfield = getScalarField(f);
+            if (nfield == -1) nfield = 0; // not found
+            int niso = 10;
+            if (PyLong_Check(n) == true) niso = PyLong_AsLong(n);
+            else niso = int(PyFloat_AsDouble(n));
+            if (_nfield > nfield)
+            {
+              _niso[nfield] = niso;
+              _isoMin[nfield] = PyFloat_AsDouble(min);
+              _isoMax[nfield] = PyFloat_AsDouble(max);
+              if (nelts > 4)
+              {
+                PyObject* amin = PyList_GetItem(l, 4); // alpha min for isos
+                PyObject* amax = PyList_GetItem(l, 5); // alpha max for isos
+                _isoAlphaMin[nfield] = PyFloat_AsDouble(amin);
+                _isoAlphaMax[nfield] = PyFloat_AsDouble(amax);
+              }
+              else
+              {
+                _isoAlphaMin[nfield] = -1.e38;
+                _isoAlphaMax[nfield] = 1.e38;
+              }
+            }
+          }
+        } 
+      }
+      else
+      {
+        // liste a plat (ancienne methode)
+        int cpt = 0;
+        while (cpt < size)
+        {
+          PyObject* f = PyList_GetItem(isoScales, cpt); // nfield
+          PyObject* n = PyList_GetItem(isoScales, cpt+1); // nombre d'isos
+          PyObject* min = PyList_GetItem(isoScales, cpt+2); // min for isos
+          PyObject* max = PyList_GetItem(isoScales, cpt+3); // max for isos
+          E_Int nfield = getScalarField(f);
+          if (nfield == -1) nfield = 0; // not found
+          int niso = 10;
+          if (PyLong_Check(n) == true) niso = PyLong_AsLong(n);
+          else niso = int(PyFloat_AsDouble(n));
+          if (_nfield > nfield)
+          {
+            _niso[nfield] = niso;
+            _isoMin[nfield] = PyFloat_AsDouble(min);
+            _isoMax[nfield] = PyFloat_AsDouble(max);
+            _isoAlphaMin[nfield] = -1.e38;
+            _isoAlphaMax[nfield] = 1.e38;
+          }
+          cpt += 4;
         }
-        cpt += 4;
       }
     }
   }
@@ -954,7 +1005,15 @@ void Data::reallocNFieldArrays(int nfield)
     n = new double [nfield];
     if (_isoMax != NULL) delete [] _isoMax;
     _isoMax = n;
-
+    
+    n = new double [nfield];
+    if (_isoAlphaMin != NULL) delete [] _isoAlphaMin;
+    _isoAlphaMin = n;
+    
+    n = new double [nfield];
+    if (_isoAlphaMax != NULL) delete [] _isoAlphaMax;
+    _isoAlphaMax = n;
+    
     n = new double [nfield];
     for (int i = 0; i < nfield; i++) n[i] = 0.;
     if (ptrState->activePointF != NULL) delete [] ptrState->activePointF;

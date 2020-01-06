@@ -166,8 +166,8 @@ Actions
     :type niso: int
     :param isoEdges: width of iso edges for scalar display (default: -1)
     :type isoEdges: float
-    :param isoScales: list of min and max of a variable [varName, niso, min, max] (default: [])
-    :type isoScales: list of string, int, float, float
+    :param isoScales: list of min and max of a variable ([varName, niso, min, max] or [varName, niso, min, max, cutmin, cutmax])(default: [])
+    :type isoScales: list of [string, int, float, float] or [string, int, float, float, float, float]
     :param win: (sizeWinX, sizeWinY) window size (default: 700,700)
     :type win: tuple of 2 ints
     :param posCam: (x,y,z) camera position
@@ -846,6 +846,8 @@ Set rendering informations in pyTree
     :type posEye: list of 3 floats
     :param dirCam: camera direction
     :type dirCam: list of 3 floats
+    :param isoScales: list of min and max of a variable ([varName, niso, min, max] or [varName, niso, min, max, cutmin, cutmax])(default: [])
+    :type isoScales: list of [string, int, float, float] or [string, int, float, float, float, float]
     :type materials: list of image file names used for texture mapping
     :param materials: list of strings
     :type bumpMaps: list of image file names used for bump mapping

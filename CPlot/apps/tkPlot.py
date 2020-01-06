@@ -72,7 +72,7 @@ def display1D(event=None):
     try:
         gridPos = VARS[2].get()
         grids = gridPos.split(';')
-        if (len(grids) == 1): gridPos = (int(grids[0]),1)
+        if len(grids) == 1: gridPos = (int(grids[0]),1)
         else: gridPos = (int(grids[0]), int(grids[1]))
     except: gridPos = (0,0)
 
@@ -96,12 +96,12 @@ def display1D(event=None):
             z = CTK.t[2][nob][2][noz]
             selected = CTK.t[2][nob][0]+'/'+z[0]
             points.append(selected)
-    elif (dir == 'I' or dir == 'J' or dir == 'K'): # indice -> recupere les indices + la zone
-        if (CTK.__MAINTREE__ <= 0):
+    elif dir == 'I' or dir == 'J' or dir == 'K': # indice -> recupere les indices + la zone
+        if CTK.__MAINTREE__ <= 0:
             CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
             CTK.TXT.insert('START', 'Error: ', 'Error'); return
         nz = CPlot.getSelectedZone()
-        if (nz == -1):
+        if nz == -1:
             CTK.TXT.insert('START', 'Selection is empty.\n')
             CTK.TXT.insert('START', 'Error: ', 'Error'); return
         points = []

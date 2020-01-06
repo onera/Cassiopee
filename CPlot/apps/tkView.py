@@ -688,7 +688,25 @@ def scaleIsoMax(event=None):
     fmax = VARMIN + (VARMAX - VARMIN)*val/100.
     VARS[10].set(str(fmax))
     updateIsoPyTree()
+
+#==============================================================================
+def scaleCutoffMin(event=None):
+    if CTK.t == []: return
+    if VARNO < 0: return
+    val = WIDGETS['cutoffMin'].get()
+    fmin = VARMIN + (VARMAX - VARMIN)*val/100.
+    VARS[30].set(str(fmin))
+    updateIsoPyTree()
     
+#==============================================================================
+def scaleCutoffMax(event=None):
+    if CTK.t == []: return
+    if VARNO < 0: return
+    val = WIDGETS['cutoffMax'].get()
+    fmax = VARMIN + (VARMAX - VARMIN)*val/100.
+    VARS[31].set(str(fmax))
+    updateIsoPyTree()
+
 #==============================================================================
 # update iso widgets from pyTree and VARNO
 def updateIsoWidgets():
@@ -723,7 +741,9 @@ def updateIsoPyTree():
         niso = int(VARS[2].get())
         fmin = float(VARS[9].get())
         fmax = float(VARS[10].get())
-        list = [VARNO, niso, fmin, fmax]
+        cutMin = float(VARS[30].get())
+        cutMax = float(VARS[31].get())
+        list = [[VARNO, niso, fmin, fmax,cutMin,cutMax]]
         CPlot.setState(isoScales=list)
         slot = int(VARS[0].get())
         CPlot._addRender2PyTree(CTK.t, slot=slot, isoScales=list)
@@ -904,11 +924,16 @@ def createApp(win):
     V = TK.StringVar(win); V.set('3D arrows'); VARS.append(V)
     # -29- vector projection of arrow on surface
     V = TK.StringVar(win); V.set('0'); VARS.append(V)
+    # -30- cutOffMin for iso values
+    V = TK.StringVar(win); V.set('-1.e38'); VARS.append(V)
+    # -31- cutOffMax for iso values
+    V = TK.StringVar(win); V.set('1.e38'); VARS.append(V)
+    
     # - Dimension '2D ou 3D'
     B = TTK.OptionMenu(Frame, VARS[8], '3D', '2D',
                        command=setDim)
     B.grid(row=1, column=0, columnspan=1, sticky=TK.EW)
-
+    
     # - Choix du mode -
     F = TTK.Frame(Frame, borderwidth=0)
     F.columnconfigure(0, weight=1)
@@ -1039,21 +1064,35 @@ def createApp(win):
     B.grid(row=4, column=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Max of isos for this field.')
     
+    # Cutoffs for isovalues
+    B = TTK.Label(Scalar, text="cutoffs:")
+    B.grid(row=5, column=0, sticky=TK.EW)
+    B = TTK.Scale(Scalar, from_=0, to=100, orient=TK.HORIZONTAL,
+                  command=scaleCutoffMin, showvalue=0, value=0)
+    WIDGETS['cutoffMin'] = B
+    B.grid(row=5, column=1, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Cutoff min for this field.')
+    B = TTK.Scale(Scalar, from_=0, to=100, orient=TK.HORIZONTAL,
+                  command=scaleCutoffMax, showvalue=0, value=100)
+    WIDGETS['cutoffMax'] = B
+    B.grid(row=5, column=2, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Cutoff max for this field.')
+    
     # - Legend + Colormap + light -
     B = TTK.Checkbutton(Scalar, text='Legend', variable=VARS[7],
                         command=setIsoLegend)
-    B.grid(row=5, column=0, sticky=TK.EW)
+    B.grid(row=6, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Display color legend.')
     B = TTK.OptionMenu(Scalar, VARS[4], 'Blue2Red', 'Green2Red',
                        'BiColorRGB', 'BiColorHSV',
                        'TriColorRGB', 'TriColorHSV',
                        'Diverging',
                        command=setColormapLight)
-    B.grid(row=5, column=1, sticky=TK.EW)
+    B.grid(row=6, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Colormap type.')
     B = TTK.OptionMenu(Scalar, VARS[5], 'IsoLight off', 'IsoLight on',
                        command=setColormapLight)
-    B.grid(row=5, column=2, sticky=TK.EW)
+    B.grid(row=6, column=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='IsoLight.')
 
     # - Colormap start + end + mid

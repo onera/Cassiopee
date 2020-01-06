@@ -1077,7 +1077,7 @@ def openRenderPanel():
         B.grid(row=0, column=0, sticky=TK.W)
         B = TK.Button(F, text='A', padx=1, command=selectAll)
         BB = CTK.infoBulle(parent=B, text='Select all zones.')
-        import iconics
+        from . import iconics
         B.grid(row=0, column=1, sticky=TK.W)
         B = TK.Button(F, text='', image=iconics.PHOTO[8], 
                       padx=0, compound=TK.RIGHT, command=getSelection)
