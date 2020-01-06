@@ -624,6 +624,7 @@ def compIsoMin(event=None):
     try:
         varmin = C.getMinValue(zones, var)
         VARS[9].set(str(varmin))
+        VARS[30].set(str(varmin))
         delta = max(VARMAX-VARMIN, 1.e-12)
         s = 100*(varmin-VARMIN)/delta
         WIDGETS['min'].set(s)
@@ -653,6 +654,7 @@ def compIsoMax(event=None):
     try:
         varmax = C.getMaxValue(zones, var)
         VARS[10].set(str(varmax))
+        VARS[31].set(str(varmax))
         delta = max(VARMAX-VARMIN, 1.e-12)
         s = 100*(varmax-VARMIN)/delta
         WIDGETS['max'].set(s)
@@ -667,6 +669,18 @@ def setIsoMin(event=None):
     
 #==============================================================================
 def setIsoMax(event=None):
+    if CTK.t == []: return
+    if VARNO < 0: return
+    updateIsoPyTree()
+
+#==============================================================================
+def setCutoffMin(event=None):
+    if CTK.t == []: return
+    if VARNO < 0: return
+    updateIsoPyTree()
+    
+#==============================================================================
+def setCutoffMax(event=None):
     if CTK.t == []: return
     if VARNO < 0: return
     updateIsoPyTree()
@@ -1067,16 +1081,27 @@ def createApp(win):
     # Cutoffs for isovalues
     B = TTK.Label(Scalar, text="cutoffs:")
     B.grid(row=5, column=0, sticky=TK.EW)
-    B = TTK.Scale(Scalar, from_=0, to=100, orient=TK.HORIZONTAL,
-                  command=scaleCutoffMin, showvalue=0, value=0)
-    WIDGETS['cutoffMin'] = B
+    B = TTK.Entry(Scalar, textvariable=VARS[30], width=4, background='White')
+    B.bind('<Return>', setCutoffMin)
     B.grid(row=5, column=1, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Cutoff min for this field.')
-    B = TTK.Scale(Scalar, from_=0, to=100, orient=TK.HORIZONTAL,
-                  command=scaleCutoffMax, showvalue=0, value=100)
-    WIDGETS['cutoffMax'] = B
+    BB = CTK.infoBulle(parent=B, text='Cutoff min of isos for this field.')
+    #B = TTK.Scale(Scalar, from_=0, to=100, orient=TK.HORIZONTAL,
+    #              command=scaleCutoffMin, showvalue=0, value=0)
+    #WIDGETS['cutoffMin'] = B
+    #B.grid(row=5, column=2, sticky=TK.EW)
+    #BB = CTK.infoBulle(parent=B, text='Cutoff min for this field.')
+    
+    #B = TTK.Label(Scalar, text="max cut:")
+    #B.grid(row=6, column=0, sticky=TK.EW)
+    B = TTK.Entry(Scalar, textvariable=VARS[31], width=4, background='White')
+    B.bind('<Return>', setCutoffMax)
     B.grid(row=5, column=2, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Cutoff max for this field.')
+    BB = CTK.infoBulle(parent=B, text='Cutoff max of isos for this field.')
+    #B = TTK.Scale(Scalar, from_=0, to=100, orient=TK.HORIZONTAL,
+    #              command=scaleCutoffMax, showvalue=0, value=100)
+    #WIDGETS['cutoffMax'] = B
+    #B.grid(row=6, column=2, sticky=TK.EW)
+    #BB = CTK.infoBulle(parent=B, text='Cutoff max for this field.')
     
     # - Legend + Colormap + light -
     B = TTK.Checkbutton(Scalar, text='Legend', variable=VARS[7],

@@ -25,8 +25,15 @@ void main()
   float f, fs;
   int vali;
   f = color.r;
-  if (f > amax) discard;
-  if (f < amin) discard; 
+  if (amax > amin)
+  { 
+    if (f > amax) discard;
+    if (f < amin) discard;
+  }
+  else
+  {
+    if (f > amax && f < amin) discard;
+  }
   f = alpha*f + beta;
   f = clamp(f, 0.0f, 1.f-0.5/niso);
   

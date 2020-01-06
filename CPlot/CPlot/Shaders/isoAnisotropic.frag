@@ -15,6 +15,8 @@ uniform sampler1D colormap;
 uniform float niso;
 uniform float alpha; // colormap range
 uniform float beta;
+uniform float amin;
+uniform float amax;
 uniform float blend;
 uniform float edgeStyle;
 uniform int shadow;
@@ -24,7 +26,17 @@ void main()
 {
   float f, fs;
   int vali;
-  f = color.r; f = alpha*f + beta;
+  f = color.r; 
+  if (amax > amin)
+  { 
+    if (f > amax) discard;
+    if (f < amin) discard;
+  }
+  else
+  {
+    if (f > amax && f < amin) discard;
+  }
+  f = alpha*f + beta;
   fs = f;
   vali = int(f*niso);
   f = float(vali)/niso;
