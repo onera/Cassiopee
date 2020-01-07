@@ -1829,7 +1829,7 @@ class editLegendWindow(TK.Toplevel):
     # ------------------------------------------------------------ cb_visibility
     def cb_visibility(self,ind):
         CB = self.checkboxItem[ind]
-        self.subGraph.legend_property.setValue(CB.var,CB.val.get())
+        self.subGraph.legend_property.setValue(CB.var, CB.val.get())
         # Update Graph
         self.parent.graphWdwL[self.graph].updateGraph(self.zone)
     # ------------------------------------------------------------- bt_vaEtVient
@@ -3764,11 +3764,10 @@ class GraphTK(TK.Toplevel):
         self._event = None  # To store reference event during interaction
         self.scale_factor = 1.1 # scale factor
         self._cids = []
-        
-        #self.canvas.mpl_connect('scroll_event', self._onMouseWheel)
-        #self.canvas.mpl_connect('button_press_event', self._onMousePress)
-        #self.canvas.mpl_connect('button_release_event', self._onMouseRelease)
-        #self.canvas.mpl_connect('motion_notify_event', self._onMouseMotion)
+        self.canvas.mpl_connect('scroll_event', self._onMouseWheel)
+        self.canvas.mpl_connect('button_press_event', self._onMousePress)
+        self.canvas.mpl_connect('button_release_event', self._onMouseRelease)
+        self.canvas.mpl_connect('motion_notify_event', self._onMouseMotion)
 
         # Toolbar
         toolbar_frame = TTK.Frame(self)
@@ -7237,10 +7236,8 @@ class DesktopFrameTK(TK.Frame):
             self.editCurveWdw.initialize(self)
         # We can not merge the two if statements since initialize may set self.eidtCurveWdw to None
         for w in [self.editGridWdw,self.editLegendWdw,self.editAxisWdw]:
-            if w is not None:
-                w.initialize(self)
-            if w is not None:
-                w.reloadWindow()
+            if w is not None: w.initialize(self)
+            if w is not None: w.reloadWindow()
     # -------------------------------------------------------- updateactiveGraph
     def updateactiveGraph(self):
         self.graphNameList = [g.name for g in self.graphWdwL]
@@ -7288,11 +7285,9 @@ class DesktopFrameTK(TK.Frame):
         # We can not merge the two if statements since initialize may set self.editCurveWdw to None
         # for w in [self.editCurveWdw,self.editGridWdw,self.editLegendWdw,self.editAxisWdw,self.editGraphWdw,]:
         for w in [self.editGridWdw,self.editLegendWdw,self.editAxisWdw,self.editGraphWdw,]:
-            if w is not None:
-                w.initialize(self)
+            if w is not None: w.initialize(self)
         for w in [self.editGridWdw,self.editLegendWdw,self.editAxisWdw,self.editGraphWdw,]:
-            if w is not None:
-                w.reloadWindow()
+            if w is not None: w.reloadWindow()
     # ------------------------------------------------------ cmd_editCurvesGraph
     def cmd_editCurvesGraph(self,var,widget):
         try:
@@ -7337,8 +7332,7 @@ class DesktopFrameTK(TK.Frame):
                 if f is None: return (130,100)
                 else: return None
             else: return (130,100)
-        except:
-            return (130,100)
+        except: return (130,100)
 
     # ----------------------------------------------------------- cmd_closeGraph
     def cmd_closeGraph(self):
@@ -7358,8 +7352,7 @@ class DesktopFrameTK(TK.Frame):
             graph.index = ind
     # -------------------------------------------------------- cmd_closeAllGraph
     def cmd_closeAllGraph(self):
-        for graph in self.graphWdwL:
-            graph.destroy()
+        for graph in self.graphWdwL: graph.destroy()
         self.graphWdwL=[]
         self.editCurvesGraphSV.set('')
     # ------------------------------------------------------------- cmd_addGraph
@@ -7371,15 +7364,13 @@ class DesktopFrameTK(TK.Frame):
         else: dpi = int(self.entryResolution.get())
 
         sizeStr = self.entrySize.get()
-        if sizeStr == 'default':
-            figsize = None
+        if sizeStr == 'default': figsize = None
         else:
             sizeStrStrip = sizeStr[1:-1]
             figsize = (int(sizeStrStrip.split(',')[0]),int(sizeStrStrip.split(',')[1]))
         self.createGraph(self.entryAddName.get(),self.entryAddGraph.get(),dpi,figsize)
-        #
-        if len(self.graphWdwL)==1:
-            self.cmd_editCurves()
+
+        if len(self.graphWdwL)==1: self.cmd_editCurves()
     # -------------------------------------------------------------- createGraph
     def createGraph(self,name,conf,dpi=None,figsize=None):
         new_graph = GraphTK(self,name,conf,dpi,figsize)
@@ -7448,16 +7439,13 @@ class DesktopFrameTK(TK.Frame):
         self.addFrameAllMovie()
     # -------------------------------------------------------------- addAllMovie
     def addAllMovie(self):
-        for graph in self.graphWdwL:
-            graph.fig.addMovie(graph.name)
+        for graph in self.graphWdwL: graph.fig.addMovie(graph.name)
     # --------------------------------------------------------- addFrameAllMovie
     def addFrameAllMovie(self):
-        for graph in self.graphWdwL:
-            graph.fig.addFrameMovie()
+        for graph in self.graphWdwL: graph.fig.addFrameMovie()
     # ------------------------------------------------------------ closeAllMovie
     def closeAllMovie(self):
-        for graph in self.graphWdwL:
-            graph.fig.closeMovie()
+        for graph in self.graphWdwL: graph.fig.closeMovie()
 
 
 # ==============================================================================
@@ -7633,8 +7621,7 @@ class Desktop():
         """
         for k in self.data:
             re_str = oldBaseName+zoneName.replace('\\','\\\\') # replace \ by \\ for regular expression conversion
-            if re.match(re_str,k):
-                del self.data[k]
+            if re.match(re_str,k): del self.data[k]
         # Shouldn't we add a deleteZoneFromCurve ???????
         # Answer : no it has to be done after deletezonefromdata only if we don't replace the zone ...
 
@@ -7652,10 +7639,8 @@ class Desktop():
                 if not isinstance(data[k],dict): # then it is not zone oriented
                     isZoneOriented = False
                     break
-            if not isZoneOriented:
-                tmp[default_base]=data
-            else:
-                tmp = data
+            if not isZoneOriented: tmp[default_base]=data
+            else: tmp = data
             # replace zone according to a dict data
             self.replaceGroupZonesWithDict(data,oldZoneList)
     # ------------------------------------------------------ replaceGroupZonesWithTree
@@ -7846,10 +7831,8 @@ class Desktop():
             self.setDataWithDict(tmp)
             return
         # Here the dict of data is zone oriented
-        for k in self.data:
-            tmp[k]=self.data[k]
-        for k in d:
-            tmp[k]=d[k]
+        for k in self.data: tmp[k] = self.data[k]
+        for k in d: tmp[k] = d[k]
         # Order dict
         self.data = OrderedDict(sorted(tmp.items(),key=lambda t : t[0]))
 
@@ -7912,8 +7895,7 @@ class Desktop():
         self.thread=thread
     # ------------------------------------------------------------- killProgramm
     def killProgramm(self):
-        if self.thread:
-            self.thread.endApplication()
+        if self.thread: self.thread.endApplication()
         self.quit()
     # --------------------------------------------------------------- initialize
     def initialize(self):
@@ -8002,11 +7984,8 @@ class Desktop():
                 #
                 indsubgraph += 1
 
-
-
             indgraph += 1
 
-        #
         instance.write(lines)
         instance.close()
 
@@ -8074,13 +8053,12 @@ class Desktop():
     def cmd_closeGraph(self):
         try:
             val = self.activeGraph.val
-            if val<len(self.graphWdwL):
+            if val < len(self.graphWdwL):
                 self.graphWdwL[val].destroy()
                 del self.graphWdwL[val]
             self.renumberGraph()
 
-        except ValueError:
-            pass
+        except ValueError: pass
         self.updateactiveGraph()
     # ------------------------------------------------------------ renumberGraph
     def renumberGraph(self):
@@ -8089,8 +8067,7 @@ class Desktop():
             graph.index = ind
     # -------------------------------------------------------- cmd_closeAllGraph
     def cmd_closeAllGraph(self):
-        for graph in self.graphWdwL:
-            graph.destroy()
+        for graph in self.graphWdwL: graph.destroy()
         self.graphWdwL=[]
         self.editCurvesGraphSV.set('')
     # -------------------------------------------------------------- createGraph
@@ -8133,16 +8110,13 @@ class Desktop():
         self.addFrameAllMovie()
     # -------------------------------------------------------------- addAllMovie
     def addAllMovie(self):
-        for graph in self.graphWdwL:
-            graph.fig.addMovie(graph.name)
+        for graph in self.graphWdwL: graph.fig.addMovie(graph.name)
     # --------------------------------------------------------- addFrameAllMovie
     def addFrameAllMovie(self):
-        for graph in self.graphWdwL:
-            graph.fig.addFrameMovie()
+        for graph in self.graphWdwL: graph.fig.addFrameMovie()
     # ------------------------------------------------------------ closeAllMovie
     def closeAllMovie(self):
-        for graph in self.graphWdwL:
-            graph.fig.closeMovie()
+        for graph in self.graphWdwL: graph.fig.closeMovie()
 
 # ==============================================================================
 # ==============================================================================
@@ -8226,8 +8200,7 @@ class MatplotlibFigure():
     '''
     def deleteZoneInCurve(self,iCurSubGraph,zoneName):
         for c in self.subGraph[iCurSubGraph].curves:
-            if zoneName in c.zone:
-                c.zone.remove(zoneName)
+            if zoneName in c.zone: c.zone.remove(zoneName)
     # ----------------------------------------------------- updateGroupCurvesZoneName
     '''
     Determine if all the old zones are used for a given curve, if it is so, then
@@ -8237,11 +8210,9 @@ class MatplotlibFigure():
     def updateGroupCurvesZoneName(self,iCurSubGraph,oldZoneList,newZoneList):
         for c in self.subGraph[iCurSubGraph].curves:
             for zoneName in oldZoneList:
-                if zoneName not in c.zone:
-                    return
+                if zoneName not in c.zone: return
             for zoneName in newZoneList:
-                if zoneName not in c.zone:
-                    c.zone.append(zoneName)
+                if zoneName not in c.zone: c.zone.append(zoneName)
     # ----------------------------------------------------- updateCurvesZoneName
     def updateCurvesZoneName(self,iCurSubGraph,oldZoneName,newZoneName):
         for c in self.subGraph[iCurSubGraph].curves:
@@ -8270,7 +8241,6 @@ class MatplotlibFigure():
             yaxis_label = ""
             for c in self.subGraph[iCurSubGraph].curves:
                 if c.axis == iCurrentAxis:
-
                     if c.marker_sampling_step == '':
                         markingSampling = None
                     else:
@@ -8296,19 +8266,15 @@ class MatplotlibFigure():
                                         if len(self.parent.data[zone][c.varx])!=len(self.parent.data[zone][c.vary]):
                                             # print('#~'*50)
                                             continue
-                                    except TypeError:
-                                        continue
+                                    except TypeError: continue
             #                    except KeyError:
             #                        continue
                                 try:
-                                    if self.parent.data[zone][c.varx].shape[0]<2:
-                                        continue
+                                    if self.parent.data[zone][c.varx].shape[0]<2: continue
                                 except AttributeError:
                                     try:
-                                        if len(self.parent.data[zone][c.varx])<2:
-                                            continue
-                                    except TypeError:
-                                        continue
+                                        if len(self.parent.data[zone][c.varx])<2: continue
+                                    except TypeError: continue
 
 
                                 sortedData = self.sortData(self.parent.data[zone][c.varx],self.parent.data[zone][c.vary])
@@ -8399,11 +8365,6 @@ class MatplotlibFigure():
             # self.subGraph[iCurSubGraph].axis[iCurrentAxis].tick_params(axis='x',labelsize=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].minor.x.grid_tick_size,minor=True)
             self.subGraph[iCurSubGraph].axis[iCurrentAxis].tick_params(axis='y',labelsize=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].major.y.grid_tick_size)
             # self.subGraph[iCurSubGraph].axis[iCurrentAxis].tick_params(axis='y',labelsize=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].minor.y.grid_tick_size,minor=True)
-
-
-
-
-
 
 
 
@@ -8509,8 +8470,6 @@ class MatplotlibFigure():
                 self.subGraph[iCurSubGraph].axis[iCurrentAxis].get_yaxis().set_visible(True)
 
 
-
-
             ## set label
             if len(xaxis_label) > 0: xaxis_label = xaxis_label[:-1]
             if len(yaxis_label) > 0: yaxis_label = yaxis_label[:-1]
@@ -8587,7 +8546,6 @@ class MatplotlibFigure():
 #        return zip(*(sorted(zip(v1,v2), key=lambda d: d[0])))
 
 
-
 # ==============================================================================
 # ==============================================================================
 class DirAxis():
@@ -8659,9 +8617,8 @@ class Axis():
         if axis == 'x': self.x.setValue(variable,value)
         else: self.y.setValue(variable,value)
     
-    def write(self,axisobj):
+    def write(self, axisobj):
         lines =""
-
         if self.x.axis_logscale != default_values['Axis']['axis_x_logscale']    :
             lines +='''    %s.setValue('x','axis_logscale',%s)\n'''%(axisobj,bool(self.x.axis_logscale))
         if self.x.axis_autoscale != default_values['Axis']['axis_x_autoscale']    :
@@ -8746,38 +8703,22 @@ class Legend():
         self.legend_title_color             = legend_title_color
 
     def setValue(self,variable,value):
-        if variable == 'legend_display':
-            self.legend_display = value
-        elif variable == 'legend_title':
-            self.legend_title = value
-        elif variable == 'legend_border_width':
-            self.legend_border_width = value
-        elif variable == 'legend_border_color':
-            self.legend_border_color = value
-        elif variable == 'legend_background_color':
-            self.legend_background_color = value
-        elif variable == 'legend_background_color_active':
-            self.legend_background_color_active = value
-        elif variable == 'legend_position':
-            self.legend_position = value
-        elif variable == 'legend_ncol':
-            self.legend_ncol = value
-        elif variable == 'legend_label_weight':
-            self.legend_label_weight = value
-        elif variable == 'legend_label_style':
-            self.legend_label_style = value
-        elif variable == 'legend_label_size':
-            self.legend_label_size = value
-        elif variable == 'legend_label_color':
-            self.legend_label_color = value
-        elif variable == 'legend_title_weight':
-            self.legend_title_weight = value
-        elif variable == 'legend_title_style':
-            self.legend_title_style = value
-        elif variable == 'legend_title_size':
-            self.legend_title_size = value
-        elif variable == 'legend_title_color':
-            self.legend_title_color = value
+        if variable == 'legend_display': self.legend_display = value
+        elif variable == 'legend_title': self.legend_title = value
+        elif variable == 'legend_border_width': self.legend_border_width = value
+        elif variable == 'legend_border_color': self.legend_border_color = value
+        elif variable == 'legend_background_color': self.legend_background_color = value
+        elif variable == 'legend_background_color_active': self.legend_background_color_active = value
+        elif variable == 'legend_position': self.legend_position = value
+        elif variable == 'legend_ncol': self.legend_ncol = value
+        elif variable == 'legend_label_weight': self.legend_label_weight = value
+        elif variable == 'legend_label_style': self.legend_label_style = value
+        elif variable == 'legend_label_size': self.legend_label_size = value
+        elif variable == 'legend_label_color': self.legend_label_color = value
+        elif variable == 'legend_title_weight': self.legend_title_weight = value
+        elif variable == 'legend_title_style': self.legend_title_style = value
+        elif variable == 'legend_title_size': self.legend_title_size = value
+        elif variable == 'legend_title_color': self.legend_title_color = value
 
     def write(self,legendobj):
         lines = ""
@@ -9104,8 +9045,6 @@ class SubGraph:
 #            sp.set_visible(False)
 #        self.axis[-1].patch.set_alpha(0.)
 
-
-
     def addAxisTwinY(self,axis_to_twin):
         # Could use twiny() method ...
         self.axis.append(self.figure.add_axes(self.axis[axis_to_twin].get_position(), frameon=False,sharey=self.axis[axis_to_twin],label='%s'%len(self.axis)))
@@ -9203,14 +9142,12 @@ class SubPlotParams:
             if self.wspace != default_values['SubPlotParams']['wspace']:
                 string+=''''wspace':%s,'''%(self.wspace)
 
-
             line = '''    graph_%s.updateSubPlotParams({%s})\n'''%(indgraph,string[:-1])
         return line
 # ==============================================================================
 # ==============================================================================
 class EventResize:
     def __init__(self,data):
-
         self.width  = data[0]
         self.height = data[1]
 # ==============================================================================
@@ -9387,7 +9324,8 @@ class CustomToolbar(NavigationToolbar2Tk):
         toolfig.subplots_adjust(top=0.9)
         tool =  CustomSubplotTool(self.canvas.figure, toolfig)
         tool.graph = self.graph
-        canvas.show()
+        #canvas.show()
+        canvas.draw()
         canvas.get_tk_widget().pack(side=TK.TOP, fill=TK.BOTH, expand=1)
 
 
@@ -9442,7 +9380,12 @@ def main(data):
     desktop.setData(data)
     desktop.mainloop()
     desktop.quit()
-    print('end of program')
+
+def createTKDesktop():
+    CTK.loadPrefFile(); CTK.setPrefs()
+    (win, menu, file, tools) = CTK.minimal('tkPlotXY')
+    createApp(win); showApp()
+    return DESKTOP
 
 # ==============================================================================
 # ==============================================================================
