@@ -149,34 +149,6 @@ data = {
         'Debit':t*t
         }
 
-# data = {}
-
-#data = { 'tatatiti':{
-#                    'Iteration':t,
-#                    'Residual':np.sin(t),
-#                    'Cf':np.sin(t/2),
-##                    'Debit':t*t
-#                },
-#        'tatatutu':{
-#                    'Iteration':-t,
-##                    'Residual':np.sin(-t),
-#                    'Cf':np.sin(-t/2),
-##                    'Debit':t*t
-#                },
-#        'tititutu':{
-##                    'Iteration':t,
-##                    'Residual':np.sin(t),
-##                    'Cf':np.sin(t/2),
-#                    'Debit':t*t
-#                },
-#        'tatitatu':{
-#                    'Iteration':-t,
-#                    'Residual':np.sin(-t),
-#                    'Cf':np.sin(-t/2),
-#                    'Debit':t*t
-#                }
-#                    }
-
 # ==============================================================================
 # ==============================================================================
 default_values = {
@@ -297,24 +269,13 @@ import colorsys
 # RGB : convention entre 0 et 255 pour chaque composant
 # HSV : convention ?
 # HTML : #RGB avec R,G,B en hexadecimal
-#
 # colorsys renvoie entre 0 et 1
 #
-################################################################################
-
-# class Example(TTK.Frame):
-#     def __init__(self, parent,rgb_l):
-#         TTK.Frame.__init__(self, parent)
-#         f = HFrame(parent,rgb_l)
-#         f.pack(fill="both", expand=True)
-################################################################################
-
 ################################################################################
 class ColorControler(object):
     def __init__(self,parent,color="#3a65c6",colormapName='Set1',nbColorMap=8,colorHistoryList=None ):
         self.parent = parent
         self.color = color
-        #
         self.Nstep = 1530
         self.turnOnFlag2ChangeColor()
         # determine rgb value of self.color
@@ -541,38 +502,25 @@ class ColorControler(object):
         return (r,g,b)
 
     def getRvalue(self,h):
-        if h<255:
-            res = 255
-        elif h<510:
-            res = 510 - h
-        elif h<1020:
-            res = 0
-        elif h<1275:
-            res = h-1020
-        else:
-            res = 255
+        if h < 255: res = 255
+        elif h < 510: res = 510 - h
+        elif h < 1020: res = 0
+        elif h < 1275: res = h-1020
+        else: res = 255
         return res
 
     def getGvalue(self,h):
-        if h<255:
-            res = h
-        elif h<765:
-            res = 255
-        elif h<1020:
-            res = 1020 - h
-        else:
-            res = 0
+        if h < 255: res = h
+        elif h < 765: res = 255
+        elif h < 1020: res = 1020 - h
+        else: res = 0
         return res
 
-    def getBvalue(self,h):
-        if h<510:
-            res = 0
-        elif h<765:
-            res = h - 510
-        elif h<1275:
-            res = 255
-        else:
-            res = 1530 - h
+    def getBvalue(self, h):
+        if h < 510: res = 0
+        elif h < 765: res = h - 510
+        elif h < 1275: res = 255
+        else: res = 1530 - h
         return res
 
     def cancelButton(self):
@@ -624,14 +572,10 @@ class ColorControler(object):
             # Check the input value (should be integer between 0 and 255)
             for val in [r,g,b]:
                 val = val.strip()
-                if not re.match(re_pattern,val):
-                    return
-                if val =='':
-                    # val = 0
-                    return
+                if not re.match(re_pattern,val): return
+                if val =='': return
                 val = int(val)
-                if val<0 or val>255:
-                    return
+                if val < 0 or val > 255: return
         elif var == 'html':
             html = self.html_new.get()
 
@@ -642,8 +586,7 @@ class ColorControler(object):
             # Convert it to rgb
             hexa = html.lstrip('#')
             (r,g,b) = tuple(int(hexa[i:i+2], 16) for i in (0, 2 ,4))
-        else:
-            return
+        else: return
 
         # Convert to hsv
         (h,s,v)=colorsys.rgb_to_hsv(float(r)/255.,float(g)/255.,float(b)/255.)
@@ -676,10 +619,10 @@ class ColorControler(object):
             self.newcolorFrame.updateHSV(v=v)
         #
         self.updateNewColorInfo()
+
     def updateNewColorInfo(self):
         # if not self.flag2ChangeColor:
         #     return
-
         (r,g,b) = colorsys.hsv_to_rgb(self.svframe.hvalue,self.svframe.svalue,self.svframe.vvalue)
 
         self.r_new.set('%d'%(int(round(255.*r))))
@@ -688,7 +631,7 @@ class ColorControler(object):
         nr = int(round(r*255))
         ng = int(round(g*255))
         nb = int(round(b*255))
-        #
+
         self.html_new.set('#%02x%02x%02x' % (nr,ng,nb))
     def updateNewColor(self):
         self.newcolorFrame.update()
@@ -713,12 +656,9 @@ class SVFrame(TK.Canvas):
         self.bind("<Button-1>",self.left_bt_click)
 
     def updateHSV(self,h=None,s=None,v=None):
-        if h is not None:
-            self.hvalue = h
-        if s is not None:
-            self.svalue = s
-        if v is not None:
-            self.vvalue = v
+        if h is not None: self.hvalue = h
+        if s is not None: self.svalue = s
+        if v is not None: self.vvalue = v
 
     def left_bt_click(self,event):
         # Get the size of the window
@@ -728,9 +668,7 @@ class SVFrame(TK.Canvas):
         self.controler.turnOffFlag2ChangeColor()
         self.controler.updateHSV4Canvas(v=float(event.x)/float(width),s=float(event.y)/float(height))
         self.controler.turnOnFlag2ChangeColor()
-        #
         self._draw_lines()
-        #
         self.controler.updateNewColor()
 
     def _draw_all(self,event=None):
@@ -754,13 +692,9 @@ class SVFrame(TK.Canvas):
         self.create_line(v_line,0,v_line,height, tags=("horizontal2",), fill="#000000")
         self.create_line(0,s_line,width,s_line, tags=("vertical2",), fill="#000000")
 
-
-
-
     def _draw_gradient(self, event=None):
         '''Draw the gradient'''
-        if self.find_withtag('gradient2'):
-            self.delete(self.find_withtag('gradient2'))
+        if self.find_withtag('gradient2'): self.delete(self.find_withtag('gradient2'))
         #
         nValue = 50
         #
@@ -768,8 +702,7 @@ class SVFrame(TK.Canvas):
         height = self.winfo_height()
         #
         limit = height
-        i = 0.
-        j = 0.
+        i = 0.; j = 0.
         height_step = float(height)/float(nValue)
         width_step = float(width)/float(nValue)
         while i<height:
@@ -782,12 +715,10 @@ class SVFrame(TK.Canvas):
                 nr = int(round(r*255.))
                 ng = int(round(g*255.))
                 nb = int(round(b*255.))
-                #
                 color = "#%02x%02x%02x" % (nr,ng,nb)
                 self.create_rectangle(j,i,j+width_step,i+height_step, tags=("gradient2",), fill=color,width=0)
-                #
-                j = j + width_step
-            i = i + height_step
+                j += width_step
+            i += height_step
         self.lower("gradient2")
 
 class HFrame(TK.Canvas):
@@ -802,13 +733,9 @@ class HFrame(TK.Canvas):
         self.bind("<Button-1>",self.left_bt_click)
 
     def updateHSV(self,h=None,s=None,v=None):
-        if h is not None:
-            self.hvalue = h
-        if s is not None:
-            self.svalue = s
-        if v is not None:
-            self.vvalue = v
-
+        if h is not None: self.hvalue = h
+        if s is not None: self.svalue = s
+        if v is not None: self.vvalue = v
 
     def left_bt_click(self,event):
         # Get the size of the window
@@ -878,12 +805,9 @@ class ColorFrame(TK.Canvas):
         self._draw_all()
 
     def updateHSV(self,h=None,s=None,v=None):
-        if h is not None:
-            self.hvalue = h
-        if s is not None:
-            self.svalue = s
-        if v is not None:
-            self.vvalue = v
+        if h is not None: self.hvalue = h
+        if s is not None: self.svalue = s
+        if v is not None: self.vvalue = v
         self._draw_all()
 
     def _draw_all(self,event=None):
@@ -894,8 +818,7 @@ class ColorFrame(TK.Canvas):
         if self.find_withtag('color'):
             self.delete(self.find_withtag('color'))
         # width = self.winfo_width()
-        width = 80
-        height = 40
+        width = 80; height = 40
 
         (r,g,b) = colorsys.hsv_to_rgb(self.hvalue,self.svalue,self.vvalue)
 
@@ -905,7 +828,6 @@ class ColorFrame(TK.Canvas):
         color = "#%02x%02x%02x" % (nr,ng,nb)
 
         self.create_rectangle(0,0,width,height, tags=("color",), fill=color, width=0)
-
         self.lower("color")
 
 class SquareColor(TK.Canvas):
@@ -942,10 +864,6 @@ class SquareColor(TK.Canvas):
         color = "#%02x%02x%02x" % (nr,ng,nb)
         self.create_rectangle(0,0,width,height, tags=("colorsquare",), fill=color,width=0)
         self.lower("colorsquare")
-
-
-
-
 
 
 class color_dialogWindow(TK.Toplevel):
@@ -987,7 +905,6 @@ class color_dialogWindow(TK.Toplevel):
 
 
 
-
 ## END COLOR INTEGRATION
 ################################################################################
 
@@ -1010,8 +927,7 @@ class editAxisWindow(TK.Toplevel):
         self.zone  = self.parent.position.val
         self.ind_axis = 0
         # self.axis_to_twin = self.ind_axis
-        try:
-            self.subGraph = self.parent.graphWdwL[self.graph].fig.subGraph[self.zone]
+        try: self.subGraph = self.parent.graphWdwL[self.graph].fig.subGraph[self.zone]
         except TypeError: # Exit if no graph & zone available
             self.cmd_close()
             return
@@ -3770,15 +3686,13 @@ class list_dialogWindow(TK.Toplevel):
         self.lb.delete(0,TK.END)
         if widget.val.strip() =='':
             # display all list
-            for opt in self.optionList:
-                self.lb.insert(TK.END,opt)
+            for opt in self.optionList: self.lb.insert(TK.END,opt)
         else:
             # display list matching re
             re_filter = re.compile(widget.val)
             # self.unused_zones
             for opt in self.optionList:
-                if re.search(re_filter,opt):
-                    self.lb.insert(TK.END,opt)
+                if re.search(re_filter,opt): self.lb.insert(TK.END,opt)
     # ------------------------------------------------------- cmd_onSelectChange
     def cmd_onSelectChange(self,event):
         widget = event.widget
@@ -3834,30 +3748,42 @@ class GraphTK(TK.Toplevel):
         # Figure
         self.fig = MatplotlibFigure(self.parent,self,self.conf,self.dpi,self.figsize)
 
-
         # Canvas
         self.canvas = FigureCanvasTkAgg(self.fig.instance,self.frame)
+        
         self.canvas.get_tk_widget().grid_columnconfigure(0,weight=1)
         self.canvas.get_tk_widget().grid_rowconfigure(0,weight=1)
         self.canvas.get_tk_widget().grid(row=0,column=0,sticky="NSEW")
         self.canvas.draw()
         # ax click binding
-        self.canvas.mpl_connect('button_press_event',self.clickOnCanvas)
+        #self.canvas.mpl_connect('button_press_event',self.clickOnCanvas)
 
+        # interactive zoom/pan
+        self._pressed_button = None  # To store active button
+        self._axes = None  # To store x and y axes concerned by interaction
+        self._event = None  # To store reference event during interaction
+        self.scale_factor = 1.1 # scale factor
+        self._cids = []
+        
+        #self.canvas.mpl_connect('scroll_event', self._onMouseWheel)
+        #self.canvas.mpl_connect('button_press_event', self._onMousePress)
+        #self.canvas.mpl_connect('button_release_event', self._onMouseRelease)
+        #self.canvas.mpl_connect('motion_notify_event', self._onMouseMotion)
 
         # Toolbar
         toolbar_frame = TTK.Frame(self)
-        toolbar_frame.grid(row=1,column=0,sticky='W')
+        toolbar_frame.grid(row=1, column=0, sticky='W')
 #        toolbar = NavigationToolbar2Tk(self.canvas,toolbar_frame)
-        toolbar = CustomToolbar(self.canvas,toolbar_frame,self)
+        toolbar = CustomToolbar(self.canvas, toolbar_frame, self)
         toolbar.update()
 
         # Update Main window : graph name list
         self.parent.updateactiveGraph()
 
-
-
-        # Configure une zone graphique
+    def __del__(self):
+        for cid in self._cids:
+            self.canvas.mpl_disconnect(cid)
+    
     # ------------------------------------------------------------------ getFig
     def getFig(self):
         return self.fig.getFig()
@@ -3872,16 +3798,14 @@ class GraphTK(TK.Toplevel):
     def updateSubPlotParams(self,params):
         for var in params:
             self.subPlotParams.setValue(var,params[var])
-            if var == 'isActive':
-                self.tightLayout.setValue(var,not params[var])
+            if var == 'isActive': self.tightLayout.setValue(var,not params[var])
         # Update Figure
         self.applyViewSettings()
     # -------------------------------------------------------- updateTightLayout
     def updateTightLayout(self,params):
         for var in params:
             self.tightLayout.setValue(var,params[var])
-            if var == 'isActive':
-                self.subPlotParams.setValue(var,not params[var])
+            if var == 'isActive': self.subPlotParams.setValue(var,not params[var])
         # Update Figure
         self.applyViewSettings()
     # --------------------------------------------------------------- showFigure
@@ -3897,9 +3821,7 @@ class GraphTK(TK.Toplevel):
         self.fig.saveFigure(path,format=format)
     # ------------------------------------------------------------------ addGrid
     def getGrid(self,iCurSubGraph,ind=0,axis=None):
-        if axis:
-            ind = axis.getInd()
-        #
+        if axis: ind = axis.getInd()
         return self.fig.getGrid(iCurSubGraph,ind)
     # ------------------------------------------------------------------ addAxis
     def addAxis(self,iCurSubGraph,shared=None,ind=0,axis=None):
@@ -3912,7 +3834,7 @@ class GraphTK(TK.Toplevel):
             newaxis = self.fig.getAxis(iCurSubGraph,ind=newind)
             newaxis.ind = newind
             return newaxis
-        elif ((shared == 'x') or (shared == 'X')):
+        elif (shared == 'x') or (shared == 'X'):
             self.fig.subGraph[iCurSubGraph].addAxisTwinX(axis_to_twin)
             newind = len(self.fig.subGraph[iCurSubGraph].axis)-1
             newaxis = self.fig.getAxis(iCurSubGraph,ind=newind)
@@ -3924,8 +3846,7 @@ class GraphTK(TK.Toplevel):
             newaxis = self.fig.getAxis(iCurSubGraph,ind=newind)
             newaxis.ind = newind
             return newaxis
-        else:
-            print('''### Error: value used for 'shared' is unknown, must be in [None, 'x', 'X', 'y', 'Y'].''')
+        else: print('''### Error: value used for 'shared' is unknown, must be in [None, 'x', 'X', 'y', 'Y'].''')
     # ---------------------------------------------------------------- getLegend
     def getLegend(self,iCurSubGraph):
         return self.fig.getLegend(iCurSubGraph)
@@ -3945,15 +3866,213 @@ class GraphTK(TK.Toplevel):
             line += '''graph_%s.setValue('subgraph_background_alpha',%s)\n'''%(ind,self.subgraph_background_alpha)
         return line
     # ------------------------------------------------------------ clickOnCanvas
-    def clickOnCanvas(self,event):
+    def _axesToUpdate(self, event):
+        x_axes, y_axes = set(), set()
+        # Go through all axes to enable zoom for multiple axes subplots
+        for ax in self.fig.instance.axes:
+            if ax.contains(event)[0]:
+                # For twin x axes, makes sure the zoom is applied once
+                shared_x_axes = set(ax.get_shared_x_axes().get_siblings(ax))
+                if x_axes.isdisjoint(shared_x_axes): x_axes.add(ax)
+
+                # For twin y axes, makes sure the zoom is applied once
+                shared_y_axes = set(ax.get_shared_y_axes().get_siblings(ax))
+                if y_axes.isdisjoint(shared_y_axes): y_axes.add(ax)
+        return x_axes, y_axes
+
+    def _draw(self):
+        self.canvas.draw()
+    
+    @staticmethod
+    def _zoomRange(begin, end, center, scale_factor, scale):
+        if begin < end: min_, max_ = begin, end
+        else: min_, max_ = end, begin
+
+        if scale == 'linear': old_min, old_max = min_, max_
+        elif scale == 'log':
+            old_min = np.log10(min_ if min_ > 0. else np.nextafter(0, 1))
+            center = np.log10(center if center > 0. else np.nextafter(0, 1))
+            old_max = np.log10(max_) if max_ > 0. else 0.
+        else: return begin, end
+
+        offset = (center - old_min) / (old_max - old_min)
+        range_ = (old_max - old_min) / scale_factor
+        new_min = center - offset * range_
+        new_max = center + (1. - offset) * range_
+
+        if scale == 'log':
+            try: new_min, new_max = 10. ** float(new_min), 10. ** float(new_max)
+            except OverflowError:  # Limit case
+                new_min, new_max = min_, max_
+            if new_min <= 0. or new_max <= 0.:  # Limit case
+                new_min, new_max = min_, max_
+
+        if begin < end: return new_min, new_max
+        else: return new_max, new_min
+
+    @staticmethod
+    def _panUpdateLimits(ax, axis_id, event, last_event):
+        """Compute limits with applied pan."""
+        import math
+        assert axis_id in (0, 1)
+        if axis_id == 0:
+            lim = ax.get_xlim()
+            scale = ax.get_xscale()
+        else:
+            lim = ax.get_ylim()
+            scale = ax.get_yscale()
+
+        pixel_to_data = ax.transData.inverted()
+        data = pixel_to_data.transform_point((event.x, event.y))
+        last_data = pixel_to_data.transform_point((last_event.x, last_event.y))
+
+        if scale == 'linear':
+            delta = data[axis_id] - last_data[axis_id]
+            new_lim = lim[0] - delta, lim[1] - delta
+        elif scale == 'log':
+            try:
+                delta = math.log10(data[axis_id]) - math.log10(last_data[axis_id])
+                new_lim = [pow(10., (math.log10(lim[0]) - delta)),
+                           pow(10., (math.log10(lim[1]) - delta))]
+            except (ValueError, OverflowError):
+                new_lim = lim  # Keep previous limits
+        else: new_lim = lim
+        return new_lim
+
+    def _pan(self, event):
+        if event.name == 'button_press_event':  # begin pan
+            self._event = event
+
+        elif event.name == 'button_release_event':  # end pan
+            self._event = None
+
+        elif event.name == 'motion_notify_event':  # pan
+            if self._event is None: return
+
+            if event.x != self._event.x:
+                for ax in self._axes[0]:
+                    xlim = self._panUpdateLimits(ax, 0, event, self._event)
+                    ax.set_xlim(xlim)
+
+            if event.y != self._event.y:
+                for ax in self._axes[1]:
+                    ylim = self._panUpdateLimits(ax, 1, event, self._event)
+                    ax.set_ylim(ylim)
+
+            if event.x != self._event.x or event.y != self._event.y: self._draw()
+            self._event = event
+
+    def _zoomArea(self, event):
+        if event.name == 'button_press_event':  # begin drag
+            self._event = event
+            self._patch = plt.Rectangle(
+                xy=(event.xdata, event.ydata), width=0, height=0,
+                fill=False, linewidth=1., linestyle='solid', color='black')
+            self._event.inaxes.add_patch(self._patch)
+
+        elif event.name == 'button_release_event':  # end drag
+            self._patch.remove()
+            del self._patch
+
+            if abs(event.x - self._event.x) < 3 or abs(event.y - self._event.y) < 3:
+                return  # No zoom when points are too close
+
+            x_axes, y_axes = self._axes
+
+            for ax in x_axes:
+                pixel_to_data = ax.transData.inverted()
+                begin_pt = pixel_to_data.transform_point((event.x, event.y))
+                end_pt = pixel_to_data.transform_point((self._event.x, self._event.y))
+
+                min_ = min(begin_pt[0], end_pt[0])
+                max_ = max(begin_pt[0], end_pt[0])
+                if not ax.xaxis_inverted(): ax.set_xlim(min_, max_)
+                else: ax.set_xlim(max_, min_)
+
+            for ax in y_axes:
+                pixel_to_data = ax.transData.inverted()
+                begin_pt = pixel_to_data.transform_point((event.x, event.y))
+                end_pt = pixel_to_data.transform_point((self._event.x, self._event.y))
+                min_ = min(begin_pt[1], end_pt[1])
+                max_ = max(begin_pt[1], end_pt[1])
+                if not ax.yaxis_inverted(): ax.set_ylim(min_, max_)
+                else: ax.set_ylim(max_, min_)
+
+            self._event = None
+
+        elif event.name == 'motion_notify_event':  # drag
+            if self._event is None: return
+
+            if event.inaxes != self._event.inaxes: return  # Ignore event outside plot
+
+            self._patch.set_width(event.xdata - self._event.xdata)
+            self._patch.set_height(event.ydata - self._event.ydata)
+
+        self._draw()
+    
+    #def clickOnCanvas(self, event):
+    #    try:
+    #        ax = event.inaxes
+    #        self.parent.selectPositionByName(ax.name)
+    #    except AttributeError: # Click was not on an axe
+    #        return
+            
+    def _onMouseWheel(self, event):
+        if event.step > 0: scale_factor = self.scale_factor
+        else: scale_factor = 1. / self.scale_factor
+
+        # Go through all axes to enable zoom for multiple axes subplots
+        x_axes, y_axes = self._axesToUpdate(event)
+
+        for ax in x_axes:
+            transform = ax.transData.inverted()
+            xdata, ydata = transform.transform_point((event.x, event.y))
+
+            xlim = ax.get_xlim()
+            xlim = self._zoomRange(xlim[0], xlim[1],
+                                   xdata, scale_factor,
+                                   ax.get_xscale())
+            ax.set_xlim(xlim)
+
+        for ax in y_axes:
+            ylim = ax.get_ylim()
+            ylim = self._zoomRange(ylim[0], ylim[1],
+                                    ydata, scale_factor,
+                                    ax.get_yscale())
+            ax.set_ylim(ylim)
+
+        if x_axes or y_axes: self._draw()
+        
+    def _onMousePress(self, event):
         try:
             ax = event.inaxes
             self.parent.selectPositionByName(ax.name)
-        except AttributeError: # Click was not on an axe
-            return
+        except: pass            
+        if self._pressed_button is not None: return  
+
+        if event.button in (1, 3):  # Start
+            x_axes, y_axes = self._axesToUpdate(event)
+            if x_axes or y_axes:
+                self._axes = x_axes, y_axes
+                self._pressed_button = event.button
+
+                if self._pressed_button == 1:  self._pan(event)
+                elif self._pressed_button == 3:  self._zoomArea(event)
+        
+    def _onMouseRelease(self, event):
+        if self._pressed_button == event.button:
+            if self._pressed_button == 1:  self._pan(event)
+            elif self._pressed_button == 3: self._zoomArea(event)
+            self._pressed_button = None
+        
+    def _onMouseMotion(self, event):
+        if self._pressed_button == 1: self._pan(event)
+        elif self._pressed_button == 3: self._zoomArea(event)
+        
     # ------------------------------------------------------------ clickOnWindow
-    def clickOnWindow(self,event):
+    def clickOnWindow(self, event):
         self.parent.selectGraphByName(self.name)
+        
     # ----------------------------------------------------------------- soleName
     def soleName(self,name):
         graphNameList = [g.name for g in self.parent.graphWdwL]
@@ -4514,18 +4633,15 @@ class editCurvesWindow(TK.Toplevel):
         lblframeData.display = self.labelView[lblframeData.id]
         #
         lblframeData.title = "Data "
-        if lblframeData.display:
-            title = lblframeData.title + "v "
-        else:
-            title = lblframeData.title + "> "
+        if lblframeData.display: title = lblframeData.title + "v "
+        else: title = lblframeData.title + "> "
         lblframeData.config(text=title)
         #
         lblframeData.bind("<Button-1>",self.expandLblFrame)
         #
         frameData = TTK.Frame(lblframeData)
         frameData.grid(row=0,column=0,sticky='NSEW')
-        if not lblframeData.display:
-            frameData.grid_forget()
+        if not lblframeData.display: frameData.grid_forget()
         frameData.grid_columnconfigure(0,weight=1)
         frameData.grid_columnconfigure(1,weight=1)
         frameData.grid_columnconfigure(2,weight=1)
@@ -4668,8 +4784,7 @@ class editCurvesWindow(TK.Toplevel):
         #
         frameLine = TTK.Frame(lblframeLine)
         frameLine.grid(row=0,column=0,sticky='NSEW')
-        if not lblframeLine.display:
-            frameLine.grid_forget()
+        if not lblframeLine.display: frameLine.grid_forget()
         frameLine.grid_columnconfigure(0,weight=1)
         frameLine.grid_columnconfigure(1,weight=1)
         frameLine.grid_columnconfigure(2,weight=1)
@@ -4804,8 +4919,7 @@ class editCurvesWindow(TK.Toplevel):
         #
         frameSymbol = TTK.Frame(lblframeSymbol)
         frameSymbol.grid(row=0,column=0,sticky='NSEW')
-        if not lblframeSymbol.display:
-            frameSymbol.grid_forget()
+        if not lblframeSymbol.display: frameSymbol.grid_forget()
         frameSymbol.grid_columnconfigure(0,weight=1)
         frameSymbol.grid_columnconfigure(1,weight=1)
         frameSymbol.grid_columnconfigure(2,weight=1)
@@ -5004,10 +5118,8 @@ class editCurvesWindow(TK.Toplevel):
         lblframeSymbolSampling.display = self.labelView[lblframeSymbolSampling.id]
         #
         lblframeSymbolSampling.title = "Symb. Sampling "
-        if lblframeSymbolSampling.display:
-            title = lblframeSymbolSampling.title + "v "
-        else:
-            title = lblframeSymbolSampling.title + "> "
+        if lblframeSymbolSampling.display: title = lblframeSymbolSampling.title + "v "
+        else: title = lblframeSymbolSampling.title + "> "
         lblframeSymbolSampling.config(text=title)
         #
         lblframeSymbolSampling.bind("<Button-1>",self.expandLblFrame)
@@ -5135,10 +5247,8 @@ class editCurvesWindow(TK.Toplevel):
         lblframeLegend.display = self.labelView[lblframeLegend.id]
         #
         lblframeLegend.title = "Legend. "
-        if lblframeLegend.display:
-            title = lblframeLegend.title + "v "
-        else:
-            title = lblframeLegend.title + "> "
+        if lblframeLegend.display: title = lblframeLegend.title + "v "
+        else: title = lblframeLegend.title + "> "
         lblframeLegend.config(text=title)
         #
         lblframeLegend.bind("<Button-1>",self.expandLblFrame)
@@ -5383,8 +5493,8 @@ class editCurvesWindow(TK.Toplevel):
         var = TK.IntVar()
         CB = TTK.Checkbutton(lblframe,variable=var,command=lambda n=ind: self.cb_selection(n),state=TK.DISABLED)#, variable=var)
         CB.val = var
-        CB.ind=ind
-        CB.var='selection'
+        CB.ind = ind
+        CB.var = 'selection'
         CB.grid(row=ind,column=0,sticky='NSEW')
         CB.container = self.frame.selectionItem
         self.frame.selectionItem.append(CB)
@@ -5452,11 +5562,11 @@ class editCurvesWindow(TK.Toplevel):
         CB = TTK.Checkbutton(lblframe,variable=var,state=TK.DISABLED,command=lambda n=ind: self.cb_visibility(n))#, variable=var)
         CB.val = var
         CB.var = 'visible'
-        CB.ind=ind
+        CB.ind = ind
         CB.grid(row=ind,column=0,sticky='NSEW')
         CB.container = self.frame.visibilityItem
         self.frame.visibilityItem.append(CB)
-        lblframe.grid_rowconfigure(ind,weight=1)
+        lblframe.grid_rowconfigure(ind, weight=1)
         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Zone
         ### delete curve to add
         ind = len(self.subGraph.curves)-1
@@ -5498,7 +5608,7 @@ class editCurvesWindow(TK.Toplevel):
         B = TTK.Button(lblframe,text=None,command=lambda n=(ind,self.frame.varxItem): self.bt_click(n))
         B.ind = ind
         B.list = self.filterVarWithZone(B)
-        if len(B.list)!=0:
+        if len(B.list) != 0:
             B.config(text=B.list[0])
             B.val = B.list[0]
         else:
@@ -5509,7 +5619,7 @@ class editCurvesWindow(TK.Toplevel):
         B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
         B.container = self.frame.varxItem
         self.frame.varxItem.append(B)
-        lblframe.grid_rowconfigure(ind,weight=1)
+        lblframe.grid_rowconfigure(ind, weight=1)
         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& VarY
         ### delete curve to add
         ind = len(self.subGraph.curves)-1
@@ -5917,9 +6027,8 @@ class editCurvesWindow(TK.Toplevel):
     def switchCurve(self,indSelected,incr):
         self.geometry("")
         cm = plt.get_cmap(COLOR_MAP)
-        if (indSelected==0 and incr == -1):
-            return
-        if (indSelected==(len(self.frame.selectionItem)-1) and incr==1):
+        if indSelected==0 and incr == -1: return
+        if indSelected==(len(self.frame.selectionItem)-1) and incr==1:
             return
         ### Visual
         for action in [self.frame.selectionItem,self.frame.IdItem,self.frame.axisItem,
@@ -6020,10 +6129,8 @@ class editCurvesWindow(TK.Toplevel):
         tmp = {}
         for zone in self.frame.zoneItem[B.ind].val:
             for var in self.parent.data[zone]:
-                if not var in tmp:
-                    tmp[var]=1
-                else:
-                    tmp[var]+=1
+                if not var in tmp: tmp[var]=1
+                else: tmp[var]+=1
         #
         res = []
         nbzones = len(self.frame.zoneItem[B.ind].val)
@@ -7278,6 +7385,7 @@ class DesktopFrameTK(TK.Frame):
         new_graph = GraphTK(self,name,conf,dpi,figsize)
         self.lift()
         self.focus()
+        return new_graph
     # ------------------------------------------------------------- cmd_setGraph
     def cmd_setGraph(self):
         if not self.editGraphWdw:
@@ -7424,7 +7532,7 @@ class DesktopTK(TK.Tk):
         self.desktopFrameTK.confLoad(filename,withUI)
     # -------------------------------------------------------------- createGraph
     def createGraph(self,name,conf,dpi=None,figsize=None):
-        self.desktopFrameTK.createGraph(name,conf,dpi,figsize)
+        return self.desktopFrameTK.createGraph(name,conf,dpi,figsize)
     # ---------------------------------------------------------- processIncoming
     def processIncoming(self):
         self.desktopFrameTK.processIncoming()
@@ -7986,7 +8094,7 @@ class Desktop():
         self.graphWdwL=[]
         self.editCurvesGraphSV.set('')
     # -------------------------------------------------------------- createGraph
-    def createGraph(self,name,conf,dpi=None,figsize=None):
+    def createGraph(self, name, conf, dpi=None, figsize=None):
         """
         Create a window where the plots will be drawn. A matricial description is used to define this window. For instance, here are described some settings for 'conf' variable:
 
@@ -8000,7 +8108,7 @@ class Desktop():
 
         figsize and dpi can configured to adapt the size and the resolution of the graph window if needed. You can for instance use figsize=(12,3) to enlarge your image.
         """
-        new_graph = Graph(self,name,conf,dpi,figsize)
+        new_graph = Graph(self, name, conf, dpi, figsize)
         return new_graph
 
     # ---------------------------------------------------------- processIncoming
@@ -8051,15 +8159,12 @@ class MatplotlibFigure():
         # init movie
         self.movie = None
         # Get nl and nc
-        try:
-            val = [int(v) for v in (self.conf).split(':')]
-        except ValueError:
-            self.cmd_close()
-            return
+        try: val = [int(v) for v in (self.conf).split(':')]
+        except ValueError: self.cmd_close(); return
         self.nl = val[0]
         self.nc = val[1]
         # Figure
-        self.instance = plt.figure(facecolor="white",figsize=self.figsize,dpi=self.dpi)
+        self.instance = plt.figure(facecolor="white", figsize=self.figsize, dpi=self.dpi)
         # print('''##### Fig instance = ''',self.instance)
         # Ax
         self.subGraph = {}
@@ -8069,9 +8174,9 @@ class MatplotlibFigure():
                 self.subGraph['%s:%s'%(il+1,ic+1)] = SubGraph(self.instance,self.nl,self.nc,ind,il,ic)
 
     # --------------------------------------------------------------- saveFigure
-    def saveFigure(self,path,format=None):
+    def saveFigure(self, path, format=None):
         # self.instance.savefig(path,facecolor=self.instance.get_facecolor(),edgecolor='none',format=format)
-        self.instance.savefig(path,format=format)
+        self.instance.savefig(path, format=format)
     # ------------------------------------------------------------------- getFig
     def getFig(self):
         return self.instance
@@ -8246,9 +8351,9 @@ class MatplotlibFigure():
             ## auto scale
             count = 0
             if self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].x.axis_autoscale:
-                count = count + 1
+                count += 1
             if self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].y.axis_autoscale:
-                count = count + 2
+                count += 2
             conversion = [None,'x','y','both']
             if count == 0:
                 self.subGraph[iCurSubGraph].axis[iCurrentAxis].autoscale(enable=False)
@@ -8263,7 +8368,6 @@ class MatplotlibFigure():
                 self.subGraph[iCurSubGraph].axis[iCurrentAxis].invert_xaxis()
             if self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].y.axis_inverted:
                 self.subGraph[iCurSubGraph].axis[iCurrentAxis].invert_yaxis()
-
 
             ##Set Ticks
             xmin,xmax = self.subGraph[iCurSubGraph].axis[iCurrentAxis].get_xlim()
@@ -8295,7 +8399,6 @@ class MatplotlibFigure():
             # self.subGraph[iCurSubGraph].axis[iCurrentAxis].tick_params(axis='x',labelsize=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].minor.x.grid_tick_size,minor=True)
             self.subGraph[iCurSubGraph].axis[iCurrentAxis].tick_params(axis='y',labelsize=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].major.y.grid_tick_size)
             # self.subGraph[iCurSubGraph].axis[iCurrentAxis].tick_params(axis='y',labelsize=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].minor.y.grid_tick_size,minor=True)
-
 
 
 
@@ -8409,10 +8512,8 @@ class MatplotlibFigure():
 
 
             ## set label
-            if len(xaxis_label)>0:
-                xaxis_label = xaxis_label[:-1]
-            if len(yaxis_label)>0:
-                yaxis_label = yaxis_label[:-1]
+            if len(xaxis_label) > 0: xaxis_label = xaxis_label[:-1]
+            if len(yaxis_label) > 0: yaxis_label = yaxis_label[:-1]
             if self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].x.axis_label:
                 xaxis_label = self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].x.axis_label
             if self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].y.axis_label:
@@ -8506,26 +8607,16 @@ class DirAxis():
         self.axis_label_fontsize = axis_label_fontsize
 
     def setValue(self,variable,value):
-        if variable == 'axis_logscale':
-            self.axis_logscale = value
-        elif variable == 'axis_autoscale':
-            self.axis_autoscale = value
-        elif variable == 'axis_min':
-            self.axis_min = value
-        elif variable == 'axis_max':
-            self.axis_max = value
-        elif variable == 'axis_label':
-            self.axis_label = value
-        elif variable == 'axis_inverted':
-            self.axis_inverted = value
-        elif variable == 'axis_visible':
-            self.axis_visible = value
-        elif variable == 'axis_position':
-            self.axis_position = value
-        elif variable == 'axis_offset':
-            self.axis_offset = value
-        elif variable == 'axis_label_fontsize':
-            self.axis_label_fontsize = value
+        if variable == 'axis_logscale': self.axis_logscale = value
+        elif variable == 'axis_autoscale': self.axis_autoscale = value
+        elif variable == 'axis_min': self.axis_min = value
+        elif variable == 'axis_max': self.axis_max = value
+        elif variable == 'axis_label': self.axis_label = value
+        elif variable == 'axis_inverted': self.axis_inverted = value
+        elif variable == 'axis_visible': self.axis_visible = value
+        elif variable == 'axis_position': self.axis_position = value
+        elif variable == 'axis_offset': self.axis_offset = value
+        elif variable == 'axis_label_fontsize': self.axis_label_fontsize = value
 # ==============================================================================
 # ==============================================================================
 class Axis():
@@ -8565,10 +8656,9 @@ class Axis():
         return self.ind
 
     def setValue(self,axis,variable,value):
-        if axis == 'x':
-            self.x.setValue(variable,value)
-        else:
-            self.y.setValue(variable,value)
+        if axis == 'x': self.x.setValue(variable,value)
+        else: self.y.setValue(variable,value)
+    
     def write(self,axisobj):
         lines =""
 
@@ -8737,18 +8827,12 @@ class AxisGrid:
         self.grid_tick_number = grid_tick_number
         self.grid_tick_size = grid_tick_size
     def setValue(self,variable,value):
-        if variable == 'display':
-            self.display = value
-        elif variable == 'grid_color':
-            self.grid_color = value
-        elif variable == 'grid_style':
-            self.grid_style = value
-        elif variable == 'grid_width':
-            self.grid_width = value
-        elif variable == 'grid_tick_number':
-            self.grid_tick_number = value
-        elif variable == 'grid_tick_size':
-            self.grid_tick_size = value
+        if variable == 'display': self.display = value
+        elif variable == 'grid_color': self.grid_color = value
+        elif variable == 'grid_style': self.grid_style = value
+        elif variable == 'grid_width': self.grid_width = value
+        elif variable == 'grid_tick_number': self.grid_tick_number = value
+        elif variable == 'grid_tick_size': self.grid_tick_size = value
 
 # ==============================================================================
 # ==============================================================================
@@ -8758,10 +8842,8 @@ class LevelGrid():
         self.x = AxisGrid(x_display,x_grid_color,x_grid_style,x_grid_width,x_grid_tick_number,x_grid_tick_size)
         self.y = AxisGrid(y_display,y_grid_color,y_grid_style,y_grid_width,y_grid_tick_number,y_grid_tick_size)
     def setValue(self,direction,variable,value):
-        if direction == 'x':
-            self.x.setValue(variable,value)
-        else:
-            self.y.setValue(variable,value)
+        if direction == 'x': self.x.setValue(variable,value)
+        else: self.y.setValue(variable,value)
 # ==============================================================================
 # ==============================================================================
 class Grid:
@@ -8800,10 +8882,8 @@ class Grid:
         self.minor = LevelGrid(mx_display,mx_grid_color,mx_grid_style,mx_grid_width,mx_grid_tick_number,mx_grid_tick_size,
                                my_display,my_grid_color,my_grid_style,my_grid_width,my_grid_tick_number,my_grid_tick_size)
     def setValue(self,level,direction,variable,value):
-        if level == 'major':
-            self.major.setValue(direction,variable,value)
-        else:
-            self.minor.setValue(direction,variable,value)
+        if level == 'major': self.major.setValue(direction,variable,value)
+        else: self.minor.setValue(direction,variable,value)
     def write(self,gridobj):
         lines = ""
         if self.major.x.display != default_values['Grid']['Mx_display']    :
@@ -8900,10 +8980,8 @@ class Curve:
         self.legend_label          = legend_label
         self.legend_display        = legend_display
         #
-        if axis:
-            axis = axis.getInd()
-        else:
-            axis = ind_axis
+        if axis: axis = axis.getInd()
+        else: axis = ind_axis
         self.axis                  = axis
         self.visible               = visible
     # ------------------------------------------------------------- correctColor
@@ -8911,54 +8989,31 @@ class Curve:
         cm = plt.get_cmap(COLOR_MAP)
         color = cm(1.*(ind%NUM_COLORS)/NUM_COLORS)
         html_color = '#%02x%02x%02x' % (int(255*color[0]),int(255*color[1]),int(255*color[2]))
-        if self.line_color is None:
-            self.line_color = html_color
-        if self.marker_face_color is None:
-            self.marker_face_color = html_color
-        if self.marker_edge_color is None :
-            self.marker_edge_color = html_color
+        if self.line_color is None: self.line_color = html_color
+        if self.marker_face_color is None: self.marker_face_color = html_color
+        if self.marker_edge_color is None: self.marker_edge_color = html_color
 
     # ------------------------------------------------------------------- setVal
     def setValue(self,variable,value):
-        if   variable == 'zone':
-            self.zone = value
-        elif variable == 'varx':
-            self.varx = value
-        elif variable =='vary':
-            self.vary = value
-        elif variable =='line_color':
-            self.line_color = value
-        elif variable =='line_style':
-            self.line_style = value
-        elif variable =='line_width':
-            self.line_width = value
-        elif variable =='marker_style':
-            self.marker_style = value
-        elif variable =='marker_size':
-            self.marker_size = value
-        elif variable =='marker_edge_width':
-            self.marker_edge_width = value
-        elif variable =='marker_face_color':
-            self.marker_face_color = value
-        elif variable =='marker_edge_color':
-            self.marker_edge_color = value
-        elif variable =='marker_sampling_start':
-            self.marker_sampling_start = value
-        elif variable =='marker_sampling_end':
-            self.marker_sampling_end = value
-        elif variable =='marker_sampling_step':
-            self.marker_sampling_step = value
-        elif variable =='legend_label':
-            self.legend_label = value
-        elif variable =='legend_display':
-            self.legend_display = value
-        elif variable =='ind_axis':
-            self.axis = value
-        elif variable =='axis':
-            ind = value.getInd()
-            self.axis = ind
-        elif variable =='visible':
-            self.visible = value
+        if   variable == 'zone': self.zone = value
+        elif variable == 'varx': self.varx = value
+        elif variable =='vary': self.vary = value
+        elif variable =='line_color': self.line_color = value
+        elif variable =='line_style': self.line_style = value
+        elif variable =='line_width': self.line_width = value
+        elif variable =='marker_style': self.marker_style = value
+        elif variable =='marker_size': self.marker_size = value
+        elif variable =='marker_edge_width': self.marker_edge_width = value
+        elif variable =='marker_face_color': self.marker_face_color = value
+        elif variable =='marker_edge_color': self.marker_edge_color = value
+        elif variable =='marker_sampling_start': self.marker_sampling_start = value
+        elif variable =='marker_sampling_end': self.marker_sampling_end = value
+        elif variable =='marker_sampling_step': self.marker_sampling_step = value
+        elif variable =='legend_label': self.legend_label = value
+        elif variable =='legend_display': self.legend_display = value
+        elif variable =='ind_axis': self.axis = value
+        elif variable =='axis': self.axis = value.getInd()
+        elif variable =='visible': self.visible = value
     # -------------------------------------------------------------------- write
     def write(self,indgraph,iCurSubGraph,indsubgraph,indcurve):
         lines = '''    curve_%s = Curve(zone=%s,varx='%s',vary='%s' '''%(indcurve,self.zone,self.varx,self.vary)
@@ -9075,8 +9130,6 @@ class SubGraph:
 #            sp.set_visible(False)
 
 
-
-
     def addAxis(self):
         self.axis.append(self.figure.add_axes(self.axis[0].get_position(), frameon=False,label='%s'%len(self.axis)))
         self.axis[-1].type = ['new',None]
@@ -9112,33 +9165,26 @@ class SubPlotParams:
         if params['left'] is not None and params['right'] is not None:
             left = params['left']
             right = params['right']
-            if right<left:
+            if right < left:
                 tkMessageBox.showwarning('Configure SubPlotParams failed','Left Value must be smaller than right value')
                 isOk = False
         if params['bottom'] is not None and params['top'] is not None:
             bottom = params['bottom']
             top = params['top']
-            if  top<bottom:
+            if  top < bottom:
                 tkMessageBox.showwarning('Configure SubPlotParams failed','Bottom value must be smaller than top value')
                 isOk = False
         return isOk
 
     # ----------------------------------------------------------------- setValue
     def setValue(self,var,val):
-        if var == 'left':
-            self.left = val
-        elif var == 'right':
-            self.right = val
-        elif var == 'top':
-            self.top = val
-        elif var == 'bottom':
-            self.bottom = val
-        elif var == 'hspace':
-            self.hspace = val
-        elif var == 'wspace':
-            self.wspace = val
-        elif var == 'isActive':
-            self.isActive = val
+        if var == 'left': self.left = val
+        elif var == 'right': self.right = val
+        elif var == 'top': self.top = val
+        elif var == 'bottom': self.bottom = val
+        elif var == 'hspace': self.hspace = val
+        elif var == 'wspace': self.wspace = val
+        elif var == 'isActive': self.isActive = val
     # -------------------------------------------------------------------- write
     def write(self,indgraph):
         line = ""
@@ -9163,11 +9209,10 @@ class SubPlotParams:
 # ==============================================================================
 # ==============================================================================
 class EventResize:
-
     def __init__(self,data):
 
-        self.width        = data[0]
-        self.height       = data[1]
+        self.width  = data[0]
+        self.height = data[1]
 # ==============================================================================
 # ==============================================================================
 class TightLayout:
@@ -9182,17 +9227,13 @@ class TightLayout:
         self.pad        = pad
         self.hpad       = hpad
         self.wpad       = wpad
-        self.isActive    = isActive
+        self.isActive   = isActive
     # ----------------------------------------------------------------- setValue
     def setValue(self,var,val):
-        if var == 'pad':
-            self.pad = val
-        elif var == 'hpad':
-            self.hpad = val
-        elif var == 'wpad':
-            self.wpad = val
-        elif var == 'isActive':
-            self.isActive = val
+        if var == 'pad': self.pad = val
+        elif var == 'hpad': self.hpad = val
+        elif var == 'wpad': self.wpad = val
+        elif var == 'isActive': self.isActive = val
     # -------------------------------------------------------------------- write
     def write(self,indgraph):
         line = ""
@@ -9215,7 +9256,6 @@ class Movie(object):
     """
     Class Movie can be used to generate a movie in case of a dynamic plot (Co-processing for instance)
     """
-
     def __init__(self, fig, filename, fps=10):
         self.fig      = fig
         self.filename = filename
@@ -9246,8 +9286,9 @@ class Movie(object):
 
 #    def exit(self, type, value, traceback):
     def exit(self):
-        print("Finalize(exit) Movie = ",self.filename)
+        print("Finalize(exit) Movie %s."%self.filename)
         self.p.communicate()
+        
 # ==============================================================================
 # ==============================================================================
 # --------------------------------------------------
@@ -9290,16 +9331,13 @@ class CustomToolbar(NavigationToolbar2Tk):
         ('Save', 'Save the figure', 'filesave', 'save_figure'),
       )
         self.graph = graph
-        #
         self.button_dict = {}
         NavigationToolbar2Tk.__init__(self,canvas,parent)
 
     def _Button(self, text, file, command, extension='.ppm'):
-        fileimage=file
-
+        fileimage = file
         im = TK.PhotoImage(data=IMAGE_DICT[fileimage])
-        b = TK.Button(
-            master=self, text=text, padx=2, pady=2, image=im, command=command)
+        b = TK.Button(master=self, text=text, padx=2, pady=2, image=im, command=command)
         b._ntimage = im
         b._image = fileimage
         self.button_dict[fileimage]=b
@@ -9359,49 +9397,37 @@ class CustomToolbar(NavigationToolbar2Tk):
 class CustomSubplotTool(SubplotTool):
     def funcleft(self, val):
         self.targetfig.subplots_adjust(left=val)
-        if self.drawon:
-            self.targetfig.canvas.draw()
-        #
+        if self.drawon: self.targetfig.canvas.draw()
         self.graph.subPlotParams.isActive=True
         self.graph.subPlotParams.left=val
 
     def funcright(self, val):
         self.targetfig.subplots_adjust(right=val)
-        if self.drawon:
-            self.targetfig.canvas.draw()
-        #
+        if self.drawon: self.targetfig.canvas.draw()
         self.graph.subPlotParams.isActive=True
         self.graph.subPlotParams.right=val
 
     def funcbottom(self, val):
         self.targetfig.subplots_adjust(bottom=val)
-        if self.drawon:
-            self.targetfig.canvas.draw()
-        #
+        if self.drawon: self.targetfig.canvas.draw()
         self.graph.subPlotParams.isActive=True
         self.graph.subPlotParams.bottom=val
 
     def functop(self, val):
         self.targetfig.subplots_adjust(top=val)
-        if self.drawon:
-            self.targetfig.canvas.draw()
-        #
+        if self.drawon: self.targetfig.canvas.draw()
         self.graph.subPlotParams.isActive=True
         self.graph.subPlotParams.top=val
 
     def funcwspace(self, val):
         self.targetfig.subplots_adjust(wspace=val)
-        if self.drawon:
-            self.targetfig.canvas.draw()
-        #
+        if self.drawon: self.targetfig.canvas.draw()
         self.graph.subPlotParams.isActive=True
         self.graph.subPlotParams.wspace=val
 
     def funchspace(self, val):
         self.targetfig.subplots_adjust(hspace=val)
-        if self.drawon:
-            self.targetfig.canvas.draw()
-        #
+        if self.drawon: self.targetfig.canvas.draw()
         self.graph.subPlotParams.isActive=True
         self.graph.subPlotParams.hspace=val
 
@@ -9416,7 +9442,7 @@ def main(data):
     desktop.setData(data)
     desktop.mainloop()
     desktop.quit()
-    print('end of programm')
+    print('end of program')
 
 # ==============================================================================
 # ==============================================================================
@@ -9431,20 +9457,16 @@ class GraphEditor():
         self.desktop = Desktop()
         self.desktop.display = display
 
-
     def __enter__(self,display):
         return self.desktop
-
 
     def __exit__(self, type, value, traceback):
         for graph in self.desktop.graphWdwL:
             graph.quit()
 
-
     def close(self):
         for graph in self.desktop.graphWdwL:
             graph.quit()
-
 
 def openGraphEditor(display):
     """
@@ -9452,6 +9474,7 @@ def openGraphEditor(display):
     """
     editor = GraphEditor(display)
     return editor.desktop
+
 # ==============================================================================
 # ==============================================================================
 
@@ -9459,10 +9482,8 @@ def openGraphEditor(display):
 def filterInteger(string):
     res = ''
     for i in string:
-        if i in '0123456789':
-            res += i
+        if i in '0123456789': res += i
     return res
-
 
 #===============================================================================
 # Fonction permettant de pointer vers les zones 1D de l'arbre
@@ -9520,7 +9541,7 @@ def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
                            text='tkPlotXY', font=CTK.FRAMEFONT, takefocus=1)
-    #BB = CTK.infoBulle(parent=Frame, text='My personal applet.\nCtrl+c to close applet.', temps=0, btype=1)
+    #BB = CTK.infoBulle(parent=Frame, text='Plot 1D curves.\nCtrl+c to close applet.', temps=0, btype=1)
     Frame.bind('<Control-c>', hideApp)
     Frame.bind('<Control-u>', updateFromTree)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
@@ -9538,58 +9559,10 @@ def createApp(win):
     WIDGETS['frameMenu'] = FrameMenu
 
     desktopFrameTK = DesktopFrameTK(Frame)
-    desktopFrameTK.grid(row=0,column=0,sticky='NSEW')
-#   NEW CHRISTOPHE
+    desktopFrameTK.grid(row=0, column=0, sticky='NSEW')
     global DESKTOP
     DESKTOP = desktopFrameTK
-#   END NEW CHRISTOPHE
-
 #    desktopFrameTK.setData(CTK.t) # commente par CB pour l'instant
-
-##==============================================================================
-## Create app widgets
-##==============================================================================
-#def createApp(win):
-#
-#    # - Frame -
-#    Frame = TK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-#                          text='tkPlotXY', font=CTK.FRAMEFONT, takefocus=1)
-#    #BB = CTK.infoBulle(parent=Frame, text='My personal applet.\nCtrl+c to close applet.', temps=0, btype=1)
-#    Frame.bind('<Control-c>', hideApp)
-#    Frame.bind('<Button-3>', displayFrameMenu)
-#    Frame.columnconfigure(0, weight=1)
-#    Frame.columnconfigure(1, weight=0)
-#    Frame.rowconfigure(0, weight=1)
-#    WIDGETS['frame'] = Frame
-
-#    # - Frame menu -
-#    FrameMenu = TK.Menu(Frame, tearoff=0)
-#    FrameMenu.add_command(label='Close', accelerator='Ctrl+c', command=hideApp)
-#    FrameMenu.add_command(label='Save', command=saveApp)
-#    FrameMenu.add_command(label='Reset', command=resetApp)
-#    FrameMenu.add_command(label='Update', accelerator='Ctrl+u', command=updateFromTree)
-#    CTK.addPinMenu(FrameMenu, 'tkPlotXY')
-#    WIDGETS['frameMenu'] = FrameMenu
-
-#    desktopFrameTK = DesktopFrameTK(Frame)
-#    desktopFrameTK.grid(row=0,column=0,sticky='NSEW')
-#    #
-#    frameL = TK.Frame(Frame)
-#    frameL.columnconfigure(0,weight=0)
-#    frameL.rowconfigure(0,weight=0)
-#    frameL.rowconfigure(1,weight=1)
-#    frameL.grid(row=0,column=1,sticky='NSEW')
-#    closeCross = TK.Button(frameL,text='x',command=cmd_hideApp,height=1, width=1)
-#    closeCross.grid(row=0,column=1,sticky='N')
-#    blankFrame = TK.Frame(frameL)
-#    blankFrame.grid(row=1,column=0,sticky='NSEW')
-#
-##   NEW CHRISTOPHE
-#    global DESKTOP
-#    DESKTOP = desktopFrameTK
-##   END NEW CHRISTOPHE
-
-##    desktopFrameTK.setData(CTK.t) # commente par CB pour l'instant
 
 #==============================================================================
 # Called to display widgets
@@ -9665,7 +9638,6 @@ if __name__ == "__main__":
 
         # Main window
         (win, menu, file, tools) = CTK.minimal('tkPlotXY '+C.__version__)
-
         createApp(win); showApp()
 
         # - Main loop -
