@@ -455,8 +455,7 @@ class ColorControler(object):
         #
         classicalColorLblFrame = TTK.LabelFrame(pickUpColorFrame,text="Classical colors")
         classicalColorLblFrame.rowconfigure(0,weight=1)
-        for ind in range(nbColorMap):
-            classicalColorLblFrame.columnconfigure(ind,weight=1)
+        for ind in range(nbColorMap): classicalColorLblFrame.columnconfigure(ind,weight=1)
         classicalColorLblFrame.grid(row=0,column=0,sticky="NSEW")
         #
         for ind in range(len(self.colormapList)):
@@ -466,11 +465,11 @@ class ColorControler(object):
             (h,s,v) = colorsys.rgb_to_hsv(float(r)/255.,float(g)/255.,float(b)/255.)
             squareColor = SquareColor(classicalColorLblFrame,self,h,s,v)
             squareColor.grid(row=0,column=ind,sticky='NS')
-        #
+
         lastUsedColorLblFrame = TTK.LabelFrame(pickUpColorFrame,text="Last colors")
         lastUsedColorLblFrame.rowconfigure(0,weight=1)
         for ind in range(len(colorHistoryList)):
-            lastUsedColorLblFrame.columnconfigure(ind,weight=1)
+            lastUsedColorLblFrame.columnconfigure(ind, weight=1)
         lastUsedColorLblFrame.grid(row=0,column=1,sticky="NSEW")
         #
         for ind in range(len(colorHistoryList)):
@@ -785,7 +784,7 @@ class HFrame(TK.Canvas):
             nr = int(self.rgb_l[ii][0])
             ng = int(self.rgb_l[ii][1])
             nb = int(self.rgb_l[ii][2])
-            #
+
             color = "#%02x%02x%02x" % (nr,ng,nb)
             self.create_line(0,i,width,i, tags=("gradient",), fill=color)
         self.lower("gradient")
@@ -936,7 +935,6 @@ class editAxisWindow(TK.Toplevel):
         #
         self.grid_columnconfigure(0,weight=1)
         self.grid_rowconfigure(0,weight=1)
-        #
         self.createFrame()
     # -------------------------------------------------------------- createFrame
     def createFrame(self):
@@ -1327,8 +1325,7 @@ class editAxisWindow(TK.Toplevel):
         if self.parent.editCurveWdw is not None:
             self.parent.editCurveWdw.updateAxisList()
         for w in [self.parent.editGridWdw]:
-            if w is not None:
-                w.createFrame()
+            if w is not None: w.createFrame()
     # ----------------------------------------------------------- closeAllDialog
     def closeAllDialog(self):
         if self.list_dialog:
@@ -1345,8 +1342,7 @@ class editAxisWindow(TK.Toplevel):
             self.subGraph.axis_property[self.ind_axis].setValue(B.var[0],B.var[1],B.val)
             # Update Graph
             self.parent.graphWdwL[self.graph].updateGraph(self.zone)
-        except IndexError:
-            return
+        except IndexError: return
     # ----------------------------------------------------------------- bt_click
     def bt_click(self,ind):
         bt_list = ind[1]
@@ -1457,7 +1453,6 @@ class editLegendWindow(TK.Toplevel):
         #
         self.grid_columnconfigure(0,weight=1)
         self.grid_rowconfigure(0,weight=1)
-
         #
         self.createFrame()
     # -------------------------------------------------------------- createFrame
@@ -1778,15 +1773,12 @@ class editLegendWindow(TK.Toplevel):
         self.legend_position = ['best','upper left','upper center','upper right','center left','center','center right','lower left','lower center','lower right']
 
 
-
         cbox = cttk.Combobox(posFrame,values = self.legend_position,state='readonly')
         cbox.val = self.subGraph.legend_property.legend_position
         cbox.set(cbox.val)
         cbox.bind("<<ComboboxSelected>>",self.cmd_positionChange)
         cbox.grid(row=0,column=0,sticky="NSEW")
         cbox.var = 'legend_position'
-
-
 
         #
         activeFrame = TTK.LabelFrame(lblframe,text='Activate')
@@ -1852,8 +1844,7 @@ class editLegendWindow(TK.Toplevel):
             self.subGraph.legend_property.setValue(B.var,B.val)
             # Update Graph
             self.parent.graphWdwL[self.graph].updateGraph(self.zone)
-        except IndexError:
-            return
+        except IndexError: return
     # -------------------------------------------------------------- updateButon
     def updateButon(self,B,val):
         B.val = val
@@ -1862,8 +1853,7 @@ class editLegendWindow(TK.Toplevel):
             self.subGraph.legend_property.setValue(B.var,B.val)
             # Update Graph
             self.parent.graphWdwL[self.graph].updateGraph(self.zone)
-        except IndexError:
-            return
+        except IndexError: return
     # ------------------------------------------------------------- reloadWindow
     def reloadWindow(self):
         self.frame.destroy()
@@ -1883,8 +1873,7 @@ class editLegendWindow(TK.Toplevel):
                 self.subGraph.legend_property.setValue(B.var,B.val)
                 # Update Graph
                 self.parent.graphWdwL[self.graph].updateGraph(self.zone)
-            except IndexError:
-                return
+            except IndexError: return
     # ----------------------------------------------------------------- bt_click
     def bt_click(self,ind):
         bt_list = ind[1]
@@ -1918,8 +1907,7 @@ class editLegendWindow(TK.Toplevel):
         elif B.treatmentId==4:
             self.input_dialog = inputFloat_dialogWindow()
             self.input_dialog.initialize(self,B)
-        else:
-            return
+        else: return
             
 # ==============================================================================
 # ==============================================================================
@@ -2346,10 +2334,8 @@ class editGraphWindow(TK.Toplevel):
         val = CB.val.get()
         CB_other.val.set(abs(val-1)) ## Trick to set the proper value, not clean but still working
         # Update self.useSubPlotParams
-        if self.checkboxItem[0].val.get():
-            self.useSubPlotParams = True
-        else:
-            self.useSubPlotParams = False
+        if self.checkboxItem[0].val.get(): self.useSubPlotParams = True
+        else: self.useSubPlotParams = False
 #        self.subGraph.grid_property[self.ind_axis].setValue(CB.which[0],CB.which[1],'display',CB.val.get())
 #        # Update Graph
 #        self.parent.graphWdwL[self.graph].updateGraph(self.zone)
@@ -2443,8 +2429,7 @@ class editGraphWindow(TK.Toplevel):
                     #     axes.set_axis_bgcolor(B.val)
                 # Update Graph
                 self.parent.graphWdwL[self.graph].updateGraph(self.zone)
-            except IndexError:
-                return
+            except IndexError: return
     # ----------------------------------------------------------------- bt_click
     def bt_click(self,ind):
         bt_dict = ind[1]
@@ -2506,8 +2491,7 @@ class editGraphWindow(TK.Toplevel):
                 self.subGraph.grid_property[self.ind_axis].setValue(B.which[0],B.which[1],'grid_style',B.val)
                 # Update Graph
                 self.parent.graphWdwL[self.graph].updateGraph(self.zone)
-            except IndexError:
-                return
+            except IndexError: return
 
 # ==============================================================================
 # ==============================================================================
@@ -2534,7 +2518,6 @@ class editGridWindow(TK.Toplevel):
         #
         self.grid_columnconfigure(0,weight=1)
         self.grid_rowconfigure(0,weight=1)
-
         #
         self.ind_axis = 0
         self.createFrame()
@@ -3053,8 +3036,7 @@ class editGridWindow(TK.Toplevel):
                 self.subGraph.grid_property[self.ind_axis].setValue(B.which[0],B.which[1],'grid_color',B.val)
                 # Update Graph
                 self.parent.graphWdwL[self.graph].updateGraph(self.zone)
-            except IndexError:
-                return
+            except IndexError: return
     # ----------------------------------------------------------------- bt_click
     def bt_click(self,ind):
         bt_list = ind[1]
@@ -3071,8 +3053,7 @@ class editGridWindow(TK.Toplevel):
         elif B.treatmentId==3: # Pattern
             self.input_dialog = inputPattern_dialogWindow(B.pattern)
             self.input_dialog.initialize(self,B)
-        else:
-            return
+        else: return
     # ------------------------------------------------------------ cb_visibility
     def cb_visibility(self,ind):
         CB = self.visibilityItem[ind]
@@ -3096,8 +3077,7 @@ class editGridWindow(TK.Toplevel):
             self.subGraph.grid_property[self.ind_axis].setValue(B.which[0],B.which[1],B.var,B.val)
             # Update Graph
             self.parent.graphWdwL[self.graph].updateGraph(self.zone)
-        except IndexError:
-            return
+        except IndexError: return
     # # --------------------------------------------------------- updateButonWidth
     # def updateButonWidth(self,B,val):
     #     B.val = val
@@ -3121,8 +3101,7 @@ class editGridWindow(TK.Toplevel):
                 self.subGraph.grid_property[self.ind_axis].setValue(B.which[0],B.which[1],B.var,B.val)
                 # Update Graph
                 self.parent.graphWdwL[self.graph].updateGraph(self.zone)
-            except IndexError:
-                return
+            except IndexError: return
     # # --------------------------------------------------------- updateButon
     # def updateButon(self,B,val):
     #     B.val = val
@@ -3243,11 +3222,12 @@ class input_dialogSelectZoneWindow(TK.Toplevel):
         Button.grid(row=0,column=1,sticky='NSEW')
 
     # -------------------------------------------------------- getUnusedZoneList
-    def getUnusedZoneList(self,used,zones):
-        res = []
-        for zone in zones:
-            if not zone in used:
-                res.append(zone)
+    def getUnusedZoneList(self, used, zones):
+        #res = []
+        #for zone in zones:
+        #    if not zone in used: res.append(zone)
+        s = set(used)
+        res = [x for x in zones if x not in s]
         return res
     # --------------------------------------------------------- displayUsedZones
     def displayUsedZones(self,filter_value):
@@ -3285,10 +3265,8 @@ class input_dialogSelectZoneWindow(TK.Toplevel):
         # Add all unused to used list
         for zone in self.unused_zones.get(0,TK.END):
             # Find index in unused listbox
-            try:
-                index = self.unused_zones.list.index(zone)
-            except ValueError:
-                continue
+            try: index = self.unused_zones.list.index(zone)
+            except ValueError: continue
             self.used_zones.list.append(zone)
             del self.unused_zones.list[index]
         # Display listbox
@@ -3299,15 +3277,12 @@ class input_dialogSelectZoneWindow(TK.Toplevel):
     def cmd_addSelection(self):
         items = map(int, self.unused_zones.curselection())
         zones = []
-        for index in items:
-            zones.append(self.unused_zones.get(index))
-        #
+        for index in items: zones.append(self.unused_zones.get(index))
+        
         for zone in zones:
         # Find index in unused listbox
-            try:
-                index = self.unused_zones.list.index(zone)
-            except ValueError:
-                continue
+            try: index = self.unused_zones.list.index(zone)
+            except ValueError: continue
             self.used_zones.list.append(zone)
             del self.unused_zones.list[index]
         # Display listbox
@@ -3319,10 +3294,8 @@ class input_dialogSelectZoneWindow(TK.Toplevel):
         # Add all used to used list
         for zone in self.used_zones.get(0,TK.END):
         # Find index in used listbox
-            try:
-                index = self.used_zones.list.index(zone)
-            except ValueError:
-                continue
+            try: index = self.used_zones.list.index(zone)
+            except ValueError: continue
             self.unused_zones.list.append(zone)
             del self.used_zones.list[index]
         # Display listbox
@@ -3332,15 +3305,12 @@ class input_dialogSelectZoneWindow(TK.Toplevel):
     def cmd_removeSelection(self):
         items = map(int, self.used_zones.curselection())
         zones = []
-        for index in items:
-            zones.append(self.used_zones.get(index))
-        #
+        for index in items: zones.append(self.used_zones.get(index))
+
         for zone in zones:
         # Find index in used listbox
-            try:
-                index = self.used_zones.list.index(zone)
-            except ValueError:
-                continue
+            try: index = self.used_zones.list.index(zone)
+            except ValueError: continue
             self.unused_zones.list.append(zone)
             del self.used_zones.list[index]
         # Display listbox
@@ -3408,8 +3378,7 @@ class inputPattern_dialogWindow(TK.Toplevel):
         lblframe.grid_rowconfigure(0,weight=1)
         #
         self.entry = TK.Entry(lblframe)
-        if B.val is not None:
-            self.entry.insert(TK.END, B.val)
+        if B.val is not None: self.entry.insert(TK.END, B.val)
         self.entry.grid(row=0,column=0,columnspan=1,sticky="NSEW")
         #
         frame = TTK.Frame(self)
@@ -3436,8 +3405,7 @@ class inputPattern_dialogWindow(TK.Toplevel):
             self.cmd_close()
         else:
             self.entry.delete(0,TK.END)
-            if self.B.val is not None:
-                self.entry.insert(TK.END, self.B.val)
+            if self.B.val is not None: self.entry.insert(TK.END, self.B.val)
             return
     # ---------------------------------------------------------------- cmd_close
     def cmd_close(self):
@@ -3494,8 +3462,7 @@ class inputFloat_dialogWindow(TK.Toplevel):
             self.cmd_close()
         except ValueError:
             self.entry.delete(0,TK.END)
-            if self.B.val is not None:
-                self.entry.insert(TK.END, self.B.val)
+            if self.B.val is not None: self.entry.insert(TK.END, self.B.val)
             return
     # ---------------------------------------------------------------- cmd_close
     def cmd_close(self):
@@ -4501,8 +4468,7 @@ class editCurvesWindow(TK.Toplevel):
         lblframe.grid(row=0,column=0,sticky='NESW')
         #
         lblframe.grid_columnconfigure(0,weight=1)
-        for ind in range(len(self.subGraph.curves)+1):
-            lblframe.grid_rowconfigure(ind,weight=1)
+        for ind in range(len(self.subGraph.curves)+1): lblframe.grid_rowconfigure(ind,weight=1)
         #
         lblframelvl1.append(lblframe)
         #
@@ -6158,8 +6124,7 @@ class editCurvesWindow(TK.Toplevel):
                     # Update Graph
                     self.parent.graphWdwL[self.graph].updateGraph(self.zone)
 
-                except IndexError:
-                    return
+                except IndexError: return
     # ----------------------------------------------------------------- bt_click
     def bt_click(self,ind):
         bt_list = ind[1]
@@ -6222,13 +6187,11 @@ class editCurvesWindow(TK.Toplevel):
         # If line was selected, apply this modification to all other selected lines
         if self.frame.selectionItem[ind].val.get():
             for ind2 in range(len(self.frame.selectionItem)):
-                if ind!=ind2 and self.frame.selectionItem[ind2].val.get():
+                if ind != ind2 and self.frame.selectionItem[ind2].val.get():
                     CB = self.frame.visibilityItem[ind2]
                     CB.val.set(not initialValue)
-                    if initialValue:
-                        CB.state(['!selected'])
-                    else:
-                        CB.state(['selected'])
+                    if initialValue: CB.state(['!selected'])
+                    else: CB.state(['selected'])
                     self.subGraph.curves[ind2].setValue('visible',CB.val.get())
         # Update Graph
         self.parent.graphWdwL[self.graph].updateGraph(self.zone)
@@ -6241,13 +6204,11 @@ class editCurvesWindow(TK.Toplevel):
         # If line was selected, apply this modification to all other selected lines
         if self.frame.selectionItem[ind].val.get():
             for ind2 in range(len(self.frame.selectionItem)):
-                if ind!=ind2 and self.frame.selectionItem[ind2].val.get():
+                if ind != ind2 and self.frame.selectionItem[ind2].val.get():
                     CB = self.frame.legend_displayItem[ind2]
                     CB.val.set(not initialValue)
-                    if initialValue:
-                        CB.state(['!selected'])
-                    else:
-                        CB.state(['selected'])
+                    if initialValue: CB.state(['!selected'])
+                    else: CB.state(['selected'])
                     self.subGraph.curves[ind2].setValue('legend_display',CB.val.get())
         # Update Graph
         self.parent.graphWdwL[self.graph].updateGraph(self.zone)
@@ -6258,16 +6219,13 @@ class editCurvesWindow(TK.Toplevel):
     # ---------------------------------------------------------------cb_rmCurves
     def cmd_rmCurves(self):
         nbDeletion = 0
-
         deletionList = []
-        for ind in range(len(self.frame.selectionItem)):
-            select = self.frame.selectionItem[ind]
-            if select.val.get():
-                deletionList.append(ind)
+        for ind, select in enumerate(self.frame.selectionItem):
+            if select.val.get(): deletionList.append(ind)
         deletionList.sort()
         ind=0
         nbDeletion = len(deletionList)-1
-        while ind<=nbDeletion:
+        while ind <= nbDeletion:
             indRemove = deletionList[ind]
             del self.subGraph.curves[indRemove]
             self.popUpCurveLine(indRemove)
@@ -6306,7 +6264,7 @@ class editCurvesWindow(TK.Toplevel):
 
         ind = len(self.subGraph.curves)
 
-        c= Curve(
+        c = Curve(
         zone                   = self.frame.zoneItem[ind].val,
         varx                   = self.frame.varxItem[ind].val,
         vary                   = self.frame.varyItem[ind].val,
@@ -6338,11 +6296,8 @@ class editCurvesWindow(TK.Toplevel):
         self.createFrame()
     # ------------------------------------------------------ cmd_duplicateCurves
     def cmd_duplicateCurves(self):
-
-        for ind in range(len(self.frame.selectionItem)):
-            select = self.frame.selectionItem[ind]
+        for ind, select in enumerate(self.frame.selectionItem):            
             if select.val.get():
-
                 c= Curve(
                 zone                   = self.frame.zoneItem[ind].val,
                 varx                   = self.frame.varxItem[ind].val,
@@ -6376,19 +6331,18 @@ class editCurvesWindow(TK.Toplevel):
         self.destroy()
 
     # -------------------------------------------------------------- updateButon
-    def updateButon(self,B,val):
+    def updateButon(self, B, val):
 
         l_ind = [B.ind]
         containerOfB = B.container
         # If line is selected, apply the modification to all other selected lines
         if self.frame.selectionItem[B.ind].val.get():
-            for ind2 in range(len(self.frame.selectionItem)):
-                if B.ind!=ind2 and self.frame.selectionItem[ind2].val.get():
-                    l_ind.append(ind2)
+            for ind2, f in enumerate(self.frame.selectionItem):
+                if B.ind != ind2 and f.val.get(): l_ind.append(ind2)
         for ind in l_ind:
             B = containerOfB[ind]
             B.val = val
-            if isinstance(B.val,list):
+            if isinstance(B.val, list):
                 # In this very special case, the B.val is the list of zones to plot
                 B.config(text=len(B.val))
                 self.updateVarXYList(B.ind)
@@ -7109,21 +7063,21 @@ class DesktopFrameTK(TK.Frame):
                 #
                 # Create all axes
                 lines += '''%s######\n%s# Axis\n%s######\n'''%(space,space,space)
-                for ind_axis in range(len(subgraph.axis)):
-                    if subgraph.axis[ind_axis].type[0]=='main':
+                for ind_axis, f in enumerate(subgraph.axis):
+                    if f.type[0]=='main':
                         lines +='''    axis_%s_%s_%s = graph_%s.getAxis('%s',%s)\n'''%(indgraph,indsubgraph,ind_axis,indgraph,subgraph.name,ind_axis)
                         # lines +='''    indAxis_%s_%s_%s = 0\n'''%(indgraph,indsubgraph,ind_axis)
-                    elif subgraph.axis[ind_axis].type[0]=='twinx':
+                    elif f.type[0]=='twinx':
                         lines +='''    axis_%s_%s_%s = graph_%s.addAxis('%s',shared='x',axis=axis_%s_%s_%s)\n'''%(indgraph,indsubgraph,
                                                                                                                     ind_axis,indgraph,subgraph.name,
                                                                                                                     indgraph,indsubgraph,
-                                                                                                                    subgraph.axis[ind_axis].type[1])
-                    elif subgraph.axis[ind_axis].type[0]=='twiny':
+                                                                                                                    f.type[1])
+                    elif f.type[0]=='twiny':
                         lines +='''    axis_%s_%s_%s = graph_%s.addAxis('%s',shared='y',axis=axis_%s_%s_%s)\n'''%(indgraph,indsubgraph,
                                                                                                                     ind_axis,indgraph,subgraph.name,
                                                                                                                     indgraph,indsubgraph,
-                                                                                                                    subgraph.axis[ind_axis].type[1])
-                    elif subgraph.axis[ind_axis].type[0] == 'new':
+                                                                                                                    f.type[1])
+                    elif f.type[0] == 'new':
                         lines +='''    axis_%s_%s_%s = graph_%s.addAxis('%s')\n'''%(indgraph,indsubgraph,
                                                                                     ind_axis,indgraph,subgraph.name)
                 # Loop on curves
@@ -7256,9 +7210,8 @@ class DesktopFrameTK(TK.Frame):
     # ------------------------------------------------------- updateGraphName2Id
     def updateGraphName2Id(self):
         self.graphName2Id = {}
-        for ind in range(len(self.graphWdwL)):
-            graph = self.graphWdwL[ind]
-            self.graphName2Id[graph.name]=ind
+        for ind, graph in enumerate(self.graphWdwL):
+            self.graphName2Id[graph.name] = ind
 
     # ------------------------------------------------------- updatePositionList
     def updatePositionList(self):
@@ -7347,8 +7300,7 @@ class DesktopFrameTK(TK.Frame):
         self.updateactiveGraph()
     # ------------------------------------------------------------ renumberGraph
     def renumberGraph(self):
-        for ind in range(len(self.graphWdwL)):
-            graph = self.graphWdwL[ind]
+        for ind, graph in enumerate(self.graphWdwL):
             graph.index = ind
     # -------------------------------------------------------- cmd_closeAllGraph
     def cmd_closeAllGraph(self):
@@ -8045,8 +7997,7 @@ class Desktop():
     # ------------------------------------------------------- updateGraphName2Id
     def updateGraphName2Id(self):
         self.graphName2Id = {}
-        for ind in range(len(self.graphWdwL)):
-            graph = self.graphWdwL[ind]
+        for ind, graph in enumerate(self.graphWdwL):
             self.graphName2Id[graph.name]=ind
 
     # ----------------------------------------------------------- cmd_closeGraph
@@ -8062,8 +8013,7 @@ class Desktop():
         self.updateactiveGraph()
     # ------------------------------------------------------------ renumberGraph
     def renumberGraph(self):
-        for ind in range(len(self.graphWdwL)):
-            graph = self.graphWdwL[ind]
+        for ind, graph in enumerate(self.graphWdwL):
             graph.index = ind
     # -------------------------------------------------------- cmd_closeAllGraph
     def cmd_closeAllGraph(self):
@@ -8180,7 +8130,7 @@ class MatplotlibFigure():
             self.drawOneFigure(iCurSubGraph)
     # ------------------------------------------------------removeCurvesZoneName
     def removeCurvesZoneName(self,ax_name,zonename):
-        for ind in range(len(self.subGraph[ax_name].curves)):
+        for ind, c in enumerate(self.subGraph[ax_name].curves):
             c = self.subGraph[ax_name].curves[ind]
             if zonename in c.zone:
                 index = c.zone.index(zonename)
@@ -8218,13 +8168,11 @@ class MatplotlibFigure():
         for c in self.subGraph[iCurSubGraph].curves:
             if oldZoneName in c.zone:
                 index = c.zone.index(oldZoneName)
-                c.zone[index]=newZoneName
+                c.zone[index] = newZoneName
     # --------------------------------------------------------------- drawOneFigure
-    def drawOneFigure(self,iCurSubGraph):
+    def drawOneFigure(self, iCurSubGraph):
         curves = self.subGraph[iCurSubGraph].curves
-        iCurrentAxis = 0
-        for iCurrentAxis in range(len(self.subGraph[iCurSubGraph].axis)):
-            self.subGraph[iCurSubGraph].axis[iCurrentAxis].clear()
+        for f in self.subGraph[iCurSubGraph].axis: f.clear()
         ###
         legend_list = []
         legend_text = []
@@ -8303,7 +8251,6 @@ class MatplotlibFigure():
                                 legend_text.append(c.legend_label)
 
 
-
             ## ## Set Axis
             self.subGraph[iCurSubGraph].axis[iCurrentAxis].relim()
             ## logscale
@@ -8365,7 +8312,6 @@ class MatplotlibFigure():
             # self.subGraph[iCurSubGraph].axis[iCurrentAxis].tick_params(axis='x',labelsize=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].minor.x.grid_tick_size,minor=True)
             self.subGraph[iCurSubGraph].axis[iCurrentAxis].tick_params(axis='y',labelsize=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].major.y.grid_tick_size)
             # self.subGraph[iCurSubGraph].axis[iCurrentAxis].tick_params(axis='y',labelsize=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].minor.y.grid_tick_size,minor=True)
-
 
 
             ## Spine position
@@ -8457,15 +8403,13 @@ class MatplotlibFigure():
             if not self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].x.axis_visible:
                 self.subGraph[iCurSubGraph].axis[iCurrentAxis].get_xaxis().set_visible(False)
                 for loc in spines:
-                    if loc in ['top','bottom']:
-                        spines[loc].set_visible(False)
+                    if loc in ['top','bottom']: spines[loc].set_visible(False)
             else:
                 self.subGraph[iCurSubGraph].axis[iCurrentAxis].get_xaxis().set_visible(True)
             if not self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].y.axis_visible:
                 self.subGraph[iCurSubGraph].axis[iCurrentAxis].get_yaxis().set_visible(False)
                 for loc in spines:
-                    if loc in ['left','right']:
-                        spines[loc].set_visible(False)
+                    if loc in ['left','right']: spines[loc].set_visible(False)
             else:
                 self.subGraph[iCurSubGraph].axis[iCurrentAxis].get_yaxis().set_visible(True)
 
@@ -8534,11 +8478,9 @@ class MatplotlibFigure():
         ## ## LEGEND BACKGROUND
             if self.subGraph[iCurSubGraph].legend_property.legend_background_color_active:
                 legend.get_frame().set_facecolor(self.subGraph[iCurSubGraph].legend_property.legend_background_color)
-            else:
-                legend.get_frame().set_facecolor('none')
+            else: legend.get_frame().set_facecolor('none')
         #
 #        self.instance.tight_layout()
-
 
     # --------------------------------------------------------------------------
     def sortData(self,v1,v2):
@@ -9381,11 +9323,11 @@ def main(data):
     desktop.mainloop()
     desktop.quit()
 
-def createTKDesktop():
+def createTkDesktop():
     CTK.loadPrefFile(); CTK.setPrefs()
     (win, menu, file, tools) = CTK.minimal('tkPlotXY')
     createApp(win); showApp()
-    return DESKTOP
+    return DESKTOP, win
 
 # ==============================================================================
 # ==============================================================================

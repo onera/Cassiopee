@@ -62,7 +62,7 @@ void DataDL::displayUIsoSolid()
       float deltai = MAX(maxf[nofield]-minf[nofield], 1.e-6);
       rmin = (_isoMin[nofield] -minf[nofield])/deltai;
       rmax = (_isoMax[nofield] -minf[nofield])/deltai;
-      alpha = 1./MAX(rmax-rmin, 1.e-6); beta = -rmin/deltai;
+      alpha = 1./MAX(rmax-rmin, 1.e-6); beta = -rmin*alpha;
       _shaders[s]->setUniform("niso", (float)_niso[nofield]);
       _shaders[s]->setUniform("alpha", (float)alpha);
       _shaders[s]->setUniform("beta", (float)beta);

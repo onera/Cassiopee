@@ -387,8 +387,8 @@ def loadSlot():
         VARS[4].set(n.tostring().decode())
     setColormapLight()
     displayField()
-    pos = Internal.getNodeFromName(slot, 'isoScales')
-    if pos is not None:
+    pos = Internal.getNodesFromName(slot, 'isoScales*')
+    if pos != []:
         updateIsoWidgets(); updateIsoPyTree()
 
     pos = Internal.getNodeFromName1(renderInfo, 'materials')
@@ -728,6 +728,19 @@ def updateIsoWidgets():
     sl = Internal.getNodeFromName2(CTK.t, 'Slot'+slot)
     if sl is None:
         compIsoMin(); compIsoMax(); return
+    pos = Internal.getNodeFromName(sl, 'isoScales[%d]'%VARNO)
+    if pos is not None and pos[1] is not None:
+        n = pos[1]
+        VARS[2].set(str(int(n[0])))
+        VARS[9].set(str(n[1]))
+        VARS[10].set(str(n[2]))
+        delta = max(VARMAX-VARMIN, 1.e-12)
+        s = 100*(n[1]-VARMIN)/delta
+        WIDGETS['min'].set(s)
+        s = 100*(n[2]-VARMIN)/delta
+        WIDGETS['max'].set(s)
+        return
+
     pos = Internal.getNodeFromName(sl, 'isoScales')
     if pos is not None and pos[1] is not None:
         n = pos[1]; l = n.shape[0]
@@ -745,8 +758,9 @@ def updateIsoWidgets():
                 return
             c += 4
         compIsoMin(); compIsoMax()
-    else:
-        compIsoMin(); compIsoMax()
+        return
+    
+    compIsoMin(); compIsoMax()
 
 #==============================================================================
 # update pyTree from iso widgets; display; update tree
@@ -757,7 +771,7 @@ def updateIsoPyTree():
         fmax = float(VARS[10].get())
         cutMin = float(VARS[30].get())
         cutMax = float(VARS[31].get())
-        list = [[VARNO, niso, fmin, fmax,cutMin,cutMax]]
+        list = [[VARNO, niso, fmin, fmax, cutMin, cutMax]]
         CPlot.setState(isoScales=list)
         slot = int(VARS[0].get())
         CPlot._addRender2PyTree(CTK.t, slot=slot, isoScales=list)
