@@ -6476,8 +6476,7 @@ class DesktopFrameTK(TK.Frame):
                     flowsolutionname = Internal.getName(flowsolution)
                     for var in Internal.getChildren(flowsolution):
                         if Internal.getType(var)=='DataArray_t':
-                            if not basename+'/'+zonename in tmp:
-                                tmp[basename+'/'+zonename]={}
+                            if not basename+'/'+zonename in tmp: tmp[basename+'/'+zonename]={}
                             tmp[basename+'/'+zonename][Internal.getName(var)+'@'+flowsolutionname]=Internal.getValue(var)
                             newZoneList.append(basename+'/'+zonename)
 
@@ -6505,7 +6504,6 @@ class DesktopFrameTK(TK.Frame):
 
                 zone = Internal.getNodesFromName1(base, zoneName)[0]
                 zonename = zoneName
-                #
                 ## ## Get GridCoorinates nodes
                 try:
                     gridcoord = Internal.getNodesFromType2(zone,'GridCoordinates_t')[0]
@@ -6554,8 +6552,7 @@ class DesktopFrameTK(TK.Frame):
     def deleteZoneFromData(self,zoneName,oldBaseName=""):
         for k in self.data:
             re_str = oldBaseName+zoneName.replace('\\','\\\\') # replace \ by \\ for regular expression conversion
-            if re.match(re_str,k):
-                del self.data[k]
+            if re.match(re_str,k): del self.data[k]
     # -------------------------------------------------------------- replaceZone
     def replaceZone(self,data,oldZoneName,newZoneName,oldBaseName="",newBaseName=""):
         if isinstance(data,list):
@@ -6599,8 +6596,7 @@ class DesktopFrameTK(TK.Frame):
     # -------------------------------------------------------------- replaceData
     def setData(self,data):
         old_zones = []
-        if self.data is not None:
-            old_zones = self.data.keys()
+        if self.data is not None: old_zones = self.data.keys()
         self.data = {}
         if isinstance(data,list):
             # set data according to a tree
@@ -6653,10 +6649,8 @@ class DesktopFrameTK(TK.Frame):
             self.setDataWithDict(tmp)
             return
         # Here the dict of data is zone oriented
-        for k in self.data:
-            tmp[k]=self.data[k]
-        for k in d:
-            tmp[k]=d[k]
+        for k in self.data: tmp[k] = self.data[k]
+        for k in d: tmp[k] = d[k]
         # Order dict
         self.data = OrderedDict(sorted(tmp.items(),key=lambda t : t[0]))
     # ---------------------------------------------------------- setDataWithTree
@@ -6672,8 +6666,7 @@ class DesktopFrameTK(TK.Frame):
                 try:
                     gridcoord = Internal.getNodesFromType2(zone,'GridCoordinates_t')[0]
                     for child in Internal.getChildren(gridcoord):
-                        if not basename+'/'+zonename in tmp:
-                            tmp[basename+'/'+zonename]={}
+                        if not basename+'/'+zonename in tmp: tmp[basename+'/'+zonename]={}
                         tmp[basename+'/'+zonename][Internal.getName(child)]=Internal.getValue(child)
                 except IndexError: # No GridCoordinates node in this zone
                     # print('''gridcoord = Internal.getNodesFromType(zone,'GridCoordinates_t')[0] -----> Can not be loaded''')
@@ -6738,7 +6731,6 @@ class DesktopFrameTK(TK.Frame):
         self.editLegendWdw = None
         self.editAxisWdw   = None
         self.editGraphWdw  = None
-        #
 
         # # Configure grid for postionning for the main window
         self.grid_columnconfigure(0,weight=1)
@@ -6755,13 +6747,12 @@ class DesktopFrameTK(TK.Frame):
         # # Configure grid for postionning for the inside of the LabelFrame
         lblframeCreate.grid_columnconfigure(0,weight=1)
         lblframeCreate.grid_columnconfigure(1,weight=1)
-        #
         lblframeCreate.grid_rowconfigure(0,weight=1)
 
         # Add butons to the label frame
 
         # ROW 1
-        B = TTK.Button(lblframeCreate,text='Add Graph',command=self.cmd_addGraph)
+        B = TTK.Button(lblframeCreate, text='Add Graph', command=self.cmd_addGraph)
         B.grid(row=0,column=0,sticky="nsew")
         #
         frame = TTK.Frame(lblframeCreate)
@@ -6961,10 +6952,8 @@ class DesktopFrameTK(TK.Frame):
             self.editCurveWdw.initialize(self)
         # We can not merge the two if statements since initialize may set self.eidtCurveWdw to None
         for w in [self.editGridWdw,self.editLegendWdw,self.editAxisWdw]:
-            if w is not None:
-                w.initialize(self)
-            if w is not None:
-                w.reloadWindow()
+            if w is not None: w.initialize(self)
+            if w is not None: w.reloadWindow()
     # -------------------------------------------------------- selectGraphByName
     def selectGraphByName(self,name):
         ind = self.graphNameList.index(name)
@@ -7269,7 +7258,7 @@ class DesktopFrameTK(TK.Frame):
         # Get active graph
         try:
             val = self.activeGraph.val
-            if val<len(self.graphWdwL):
+            if val < len(self.graphWdwL):
                 # Save active graph
                 self.graphWdwL[val].save(filename)
                 print('Info: Wrote file %s.'%filename)
@@ -7279,7 +7268,7 @@ class DesktopFrameTK(TK.Frame):
     def getActiveGraphFigSize(self):
         try:
             val = self.activeGraph.val
-            if val<len(self.graphWdwL):
+            if val < len(self.graphWdwL):
                 # Save active graph
                 f = self.graphWdwL[val].figsize
                 if f is None: return (130,100)
@@ -7291,7 +7280,7 @@ class DesktopFrameTK(TK.Frame):
     def cmd_closeGraph(self):
         try:
             val = self.activeGraph.val
-            if val<len(self.graphWdwL):
+            if val < len(self.graphWdwL):
                 self.graphWdwL[val].destroy()
                 del self.graphWdwL[val]
             self.renumberGraph()
@@ -7300,8 +7289,7 @@ class DesktopFrameTK(TK.Frame):
         self.updateactiveGraph()
     # ------------------------------------------------------------ renumberGraph
     def renumberGraph(self):
-        for ind, graph in enumerate(self.graphWdwL):
-            graph.index = ind
+        for ind, graph in enumerate(self.graphWdwL): graph.index = ind
     # -------------------------------------------------------- cmd_closeAllGraph
     def cmd_closeAllGraph(self):
         for graph in self.graphWdwL: graph.destroy()
@@ -7309,9 +7297,9 @@ class DesktopFrameTK(TK.Frame):
         self.editCurvesGraphSV.set('')
     # ------------------------------------------------------------- cmd_addGraph
     def cmd_addGraph(self):
-        if CTK is not None:
-            if CTK.t == []: return
-
+        if DESKTOP is not None:
+            if DESKTOP.data is None: return
+        
         if self.entryResolution.get() == 'default': dpi = None
         else: dpi = int(self.entryResolution.get())
 
@@ -7321,8 +7309,8 @@ class DesktopFrameTK(TK.Frame):
             sizeStrStrip = sizeStr[1:-1]
             figsize = (int(sizeStrStrip.split(',')[0]),int(sizeStrStrip.split(',')[1]))
         self.createGraph(self.entryAddName.get(),self.entryAddGraph.get(),dpi,figsize)
-
         if len(self.graphWdwL)==1: self.cmd_editCurves()
+
     # -------------------------------------------------------------- createGraph
     def createGraph(self,name,conf,dpi=None,figsize=None):
         new_graph = GraphTK(self,name,conf,dpi,figsize)
@@ -7386,8 +7374,7 @@ class DesktopFrameTK(TK.Frame):
     # ----------------------------------------------------------- updateAllGraph
     def updateAllGraph(self):
         for graph in self.graphWdwL:
-            for ax_name in graph.fig.subGraph:
-                graph.updateGraph(ax_name)
+            for ax_name in graph.fig.subGraph: graph.updateGraph(ax_name)
         self.addFrameAllMovie()
     # -------------------------------------------------------------- addAllMovie
     def addAllMovie(self):
@@ -8523,29 +8510,28 @@ class Axis():
     """
     An Axis object contains the X-DirAxis and the Y-DirAxis of a given plot inside a Graph object. Multiple axis are available for a single plot.
     """
-    def __init__(self,ind=0,
-                    axis_x_logscale = default_values['Axis']['axis_x_logscale'],
-                    axis_y_logscale = default_values['Axis']['axis_y_logscale'],
-                    axis_x_autoscale = default_values['Axis']['axis_x_autoscale'],
-                    axis_y_autoscale = default_values['Axis']['axis_y_autoscale'],
-                    axis_x_min = default_values['Axis']['axis_x_min'],
-                    axis_x_max = default_values['Axis']['axis_x_max'],
-                    axis_y_min = default_values['Axis']['axis_y_min'],
-                    axis_y_max = default_values['Axis']['axis_y_max'],
-                    axis_x_label = default_values['Axis']['axis_x_label'],
-                    axis_y_label = default_values['Axis']['axis_y_label'],
-                    axis_x_inverted = default_values['Axis']['axis_x_inverted'],
-                    axis_y_inverted = default_values['Axis']['axis_y_inverted'],
-                    axis_x_visible = default_values['Axis']['axis_x_visible'],
-                    axis_y_visible = default_values['Axis']['axis_y_visible'],
-                    axis_x_position = default_values['Axis']['axis_x_position'],
-                    axis_y_position = default_values['Axis']['axis_y_position'],
-                    axis_x_offset = default_values['Axis']['axis_x_offset'],
-                    axis_y_offset = default_values['Axis']['axis_y_offset'],
-                    axis_x_label_fontsize = default_values['Axis']['axis_x_label_fontsize'],
-                    axis_y_label_fontsize = default_values['Axis']['axis_y_label_fontsize']):
-
-        self.ind = ind
+    def __init__(self, *args, **kwargs):
+        self.ind = kwargs.get('ind', 0)
+        axis_x_logscale = kwargs.get('axis_x_logscale', default_values['Axis']['axis_x_logscale'])
+        axis_y_logscale = kwargs.get('axis_y_logscale', default_values['Axis']['axis_y_logscale'])
+        axis_x_autoscale = kwargs.get('axis_x_autoscale', default_values['Axis']['axis_x_autoscale'])
+        axis_y_autoscale = kwargs.get('axis_y_autoscale', default_values['Axis']['axis_y_autoscale'])
+        axis_x_min = kwargs.get('axis_x_min', default_values['Axis']['axis_x_min'])
+        axis_x_max = kwargs.get('axis_x_max', default_values['Axis']['axis_x_max'])
+        axis_y_min = kwargs.get('axis_y_min', default_values['Axis']['axis_y_min'])
+        axis_y_max = kwargs.get('axis_y_max', default_values['Axis']['axis_y_max'])
+        axis_x_label = kwargs.get('axis_x_label', default_values['Axis']['axis_x_label'])
+        axis_y_label = kwargs.get('axis_y_label', default_values['Axis']['axis_y_label'])
+        axis_x_inverted = kwargs.get('axis_x_inverted', default_values['Axis']['axis_x_inverted'])
+        axis_y_inverted = kwargs.get('axis_y_inverted', default_values['Axis']['axis_y_inverted'])
+        axis_x_visible = kwargs.get('axis_x_visible', default_values['Axis']['axis_x_visible'])
+        axis_y_visible = kwargs.get('axis_y_visible', default_values['Axis']['axis_y_visible'])
+        axis_x_position = kwargs.get('axis_x_position', default_values['Axis']['axis_x_position'])
+        axis_y_position = kwargs.get('axis_y_position', default_values['Axis']['axis_y_position'])
+        axis_x_offset = kwargs.get('axis_x_offset', default_values['Axis']['axis_x_offset'])
+        axis_y_offset = kwargs.get('axis_y_offset', default_values['Axis']['axis_y_offset'])
+        axis_x_label_fontsize = kwargs.get('axis_x_label_fontsize', default_values['Axis']['axis_x_label_fontsize'])
+        axis_y_label_fontsize = kwargs.get('axis_y_label_fontsize', default_values['Axis']['axis_y_label_fontsize'])
 
         self.x = DirAxis(axis_x_logscale,axis_x_autoscale,axis_x_min,axis_x_max,axis_x_label,
                         axis_x_inverted,axis_x_visible,axis_x_position,axis_x_offset,axis_x_label_fontsize)
@@ -8609,40 +8595,23 @@ class Legend():
     """
     An object of class Legend configures the legend for a given plot inside a Graph window.
     """
-    def __init__(self,
-                    legend_display = default_values['Legend']['legend_display'],
-                    legend_title = default_values['Legend']['legend_title'],
-                    legend_border_width = default_values['Legend']['legend_border_width'],
-                    legend_border_color = default_values['Legend']['legend_border_color'],
-                    legend_background_color = default_values['Legend']['legend_background_color'],
-                    legend_background_color_active = default_values['Legend']['legend_background_color_active'],
-                    legend_position = default_values['Legend']['legend_position'],
-                    legend_ncol = default_values['Legend']['legend_ncol'],
-                    legend_label_weight = default_values['Legend']['legend_label_weight'],
-                    legend_label_style = default_values['Legend']['legend_label_style'],
-                    legend_label_size = default_values['Legend']['legend_label_size'],
-                    legend_label_color = default_values['Legend']['legend_label_color'],
-                    legend_title_weight = default_values['Legend']['legend_title_weight'],
-                    legend_title_style = default_values['Legend']['legend_title_style'],
-                    legend_title_size = default_values['Legend']['legend_title_size'],
-                    legend_title_color = default_values['Legend']['legend_title_color']):
-
-        self.legend_display                 = legend_display
-        self.legend_title                   = legend_title
-        self.legend_border_width            = legend_border_width
-        self.legend_border_color            = legend_border_color
-        self.legend_background_color        = legend_background_color
-        self.legend_background_color_active = legend_background_color_active
-        self.legend_position                = legend_position
-        self.legend_ncol                    = legend_ncol
-        self.legend_label_weight            = legend_label_weight
-        self.legend_label_style             = legend_label_style
-        self.legend_label_size              = legend_label_size
-        self.legend_label_color             = legend_label_color
-        self.legend_title_weight            = legend_title_weight
-        self.legend_title_style             = legend_title_style
-        self.legend_title_size              = legend_title_size
-        self.legend_title_color             = legend_title_color
+    def __init__(self, *args, **kwargs):
+        self.legend_display                 = kwargs.get('legend_display', default_values['Legend']['legend_display'])
+        self.legend_title                   = kwargs.get('legend_title', default_values['Legend']['legend_title'])
+        self.legend_border_width            = kwargs.get('legend_border_width', default_values['Legend']['legend_border_width'])
+        self.legend_border_color            = kwargs.get('legend_border_color', default_values['Legend']['legend_border_color'])
+        self.legend_background_color        = kwargs.get('legend_background_color', default_values['Legend']['legend_background_color'])
+        self.legend_background_color_active = kwargs.get('legend_background_color_active', default_values['Legend']['legend_background_color_active'])
+        self.legend_position                = kwargs.get('legend_position', default_values['Legend']['legend_position'])
+        self.legend_ncol                    = kwargs.get('legend_ncol', default_values['Legend']['legend_ncol'])
+        self.legend_label_weight            = kwargs.get('legend_label_weight', default_values['Legend']['legend_label_weight'])
+        self.legend_label_style             = kwargs.get('legend_label_style', default_values['Legend']['legend_label_style'])
+        self.legend_label_size              = kwargs.get('legend_label_size', default_values['Legend']['legend_label_size'])
+        self.legend_label_color             = kwargs.get('legend_label_color', default_values['Legend']['legend_label_color'])
+        self.legend_title_weight            = kwargs.get('legend_title_weight', default_values['Legend']['legend_title_weight'])
+        self.legend_title_style             = kwargs.get('legend_title_style', default_values['Legend']['legend_title_style'])
+        self.legend_title_size              = kwargs.get('legend_title_size', default_values['Legend']['legend_title_size'])
+        self.legend_title_color             = kwargs.get('legend_title_color', default_values['Legend']['legend_title_color'])
 
     def setValue(self,variable,value):
         if variable == 'legend_display': self.legend_display = value
@@ -8721,7 +8690,7 @@ class AxisGrid:
 # ==============================================================================
 class LevelGrid():
     def __init__(self,x_display,x_grid_color,x_grid_style,x_grid_width,x_grid_tick_number,x_grid_tick_size,
-                      y_display,y_grid_color,y_grid_style,y_grid_width,y_grid_tick_number,y_grid_tick_size):
+                 y_display,y_grid_color,y_grid_style,y_grid_width,y_grid_tick_number,y_grid_tick_size):
         self.x = AxisGrid(x_display,x_grid_color,x_grid_style,x_grid_width,x_grid_tick_number,x_grid_tick_size)
         self.y = AxisGrid(y_display,y_grid_color,y_grid_style,y_grid_width,y_grid_tick_number,y_grid_tick_size)
     def setValue(self,direction,variable,value):

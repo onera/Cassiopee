@@ -799,7 +799,7 @@ def loadView(t, slot=0):
         ifield = 0
         for i in vars:
             if i == field: break
-            if (i != 'CoordinateX' and i != 'CoordinateY' and i != 'CoordinateZ'):
+            if i != 'CoordinateX' and i != 'CoordinateY' and i != 'CoordinateZ':
                 ifield += 1
         CPlot.setState(scalarField=ifield)
     pos = Internal.getNodeFromName1(slot, 'niso')

@@ -728,6 +728,7 @@ def updateIsoWidgets():
     sl = Internal.getNodeFromName2(CTK.t, 'Slot'+slot)
     if sl is None:
         compIsoMin(); compIsoMax(); return
+
     pos = Internal.getNodeFromName(sl, 'isoScales[%d]'%VARNO)
     if pos is not None and pos[1] is not None:
         n = pos[1]
