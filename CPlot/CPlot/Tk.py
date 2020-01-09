@@ -1779,8 +1779,7 @@ def tkLoadFile(files, mode='full'):
   if mode == 'auto':
     try:
       size = 0
-      for f in files:
-        size += os.path.getsize(f) # en octets
+      for f in files: size += os.path.getsize(f) # en octets
     except: 
       print('Error: convertFile2PyTree: fail to read file %s.'%files[0])
       return

@@ -251,7 +251,7 @@ def run(t=None):
         CTK.t = Internal.correctPyTree(CTK.t, level=5)
         CTK.display(CTK.t)
         CTK.TKTREE.updateApp()
-
+        
     # - open load panel if partial load -
     if CTK.t != []:
         zones = Internal.getZones(CTK.t)
