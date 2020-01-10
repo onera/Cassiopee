@@ -941,7 +941,9 @@ void MOVLP_unify(const std::vector<K_FLD::FloatArray*> &crds, const std::vector<
   bool is_prior = true; // i.e. no mask is hiding it
 
   //
+#ifndef NETBEANSZ
 #pragma omp parallel for shared(process_overlap_pass) //private()
+#endif
   for (size_t z=0; z < nb_zones; ++z)
   {
     E_Int compid = comp_id[z];
@@ -1032,7 +1034,9 @@ void MOVLP_unify(const std::vector<K_FLD::FloatArray*> &crds, const std::vector<
   if (!is_prior){
     
   // compute fine blanking
+#ifndef NETBEANSZ
 #pragma omp parallel for shared(process_overlap_pass) //private()
+#endif
   for (size_t z=0; (z < nb_zones); ++z)
   {
     if (!process_overlap_pass[z]) continue; // zone is fully in or out => need a component wie coloration a posteriori

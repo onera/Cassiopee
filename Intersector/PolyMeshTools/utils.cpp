@@ -31,6 +31,7 @@ E_Int chrono::verbose=1;
 # include "Nuga/Delaunay/Triangulator.h"
 #include "Nuga/include/localizer.hxx"
 #include "Nuga/include/collider.hxx"
+#include "Nuga/include/mesh_t.hxx"
 
 //#include <iostream>
 #include <memory>
@@ -456,6 +457,111 @@ PyObject* K_INTERSECTOR::extractNthCell(PyObject* self, PyObject* args)
 //=============================================================================
 /* XXX */
 //=============================================================================
+PyObject* K_INTERSECTOR::extractBiggestCell(PyObject* self, PyObject* args)
+{
+
+  PyObject *arr;
+
+  if (!PyArg_ParseTuple(args, "O", &arr)) return NULL;
+
+  K_FLD::FloatArray* f(0);
+  K_FLD::IntArray* cn(0);
+  char* varString, *eltType;
+  // Check array # 1
+  E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
+  if (err) return NULL;
+    
+  K_FLD::FloatArray & crd = *f;
+  K_FLD::IntArray & cnt = *cn;
+  
+  //~ std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
+  //~ std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
+  
+  typedef ngon_t<K_FLD::IntArray> ngon_type;
+  ngon_type ngi(cnt);
+
+  K_FLD::ArrayAccessor<K_FLD::FloatArray> acrd(crd);
+
+  E_Int nth=-1;
+  E_Float dm(0.);
+  for (size_t i=0; i < ngi.PHs.size(); ++i)
+  {
+    K_SEARCH::BBox3D box;
+    K_MESH::Polyhedron<0> PH(&ngi.PGs, ngi.PHs.get_facets_ptr(i), ngi.PHs.stride(i));
+    PH.bbox(acrd, box);
+
+    E_Float dx0 = box.maxB[0]-box.minB[0];
+    E_Float dx1 = box.maxB[1]-box.minB[1];
+    E_Float dx2 = box.maxB[2]-box.minB[2];
+
+    if ( (dm < dx0) || (dm < dx1) || (dm < dx2))
+    {
+      dm = std::max(dx0, std::max(dx1,dx2));
+      nth = i;
+    }
+
+  }
+ 
+  std::cout << "biggest cell is : " << nth << std::endl;
+  
+  ngon_unit ph;
+  ph.add(ngi.PHs.stride(nth), ngi.PHs.get_facets_ptr(nth));
+
+  PyObject *l(PyList_New(0)), *tpl;
+  
+  // Extract the cell
+  {
+    ngon_type one_ph(ngi.PGs, ph);
+    std::vector<E_Int> pgnids, phnids;
+    one_ph.remove_unreferenced_pgs(pgnids, phnids);
+    K_FLD::FloatArray crdtmp(crd);//we need crd for the neighbor zone
+    ngon_type::compact_to_used_nodes(one_ph.PGs, crdtmp);
+
+    K_FLD::IntArray cnto;
+    one_ph.export_to_array(cnto);
+    tpl = K_ARRAY::buildArray(crdtmp, varString, cnto, 8, "NGON", false);
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
+  }
+  // Exract also its neighbors
+  {
+    std::vector<bool> keepPG(ngi.PGs.size(), false), keepPH;
+    E_Int nb_pgs = ngi.PHs.stride(nth);
+    E_Int* pgs = ngi.PHs.get_facets_ptr(nth);
+    for (E_Int p=0; p < nb_pgs; ++p) keepPG[*(pgs+p)-1] = true;
+    ngi.flag_PHs_having_PGs(keepPG, keepPH);
+
+    keepPH[nth] = false;
+    for (size_t i=0; i < keepPH.size(); ++i)
+      if (keepPH[i]) std::cout << "neighbor : " << i << std::endl;
+
+    ngon_type ngo;
+    std::vector<E_Int> pgnids, phnids;
+    ngon_type::select_phs(ngi, keepPH, pgnids, ngo);
+
+    ngo.remove_unreferenced_pgs(pgnids, phnids);
+    ngon_type::compact_to_used_nodes(ngo.PGs, crd);
+
+    for (E_Int i=0; i < ngo.PHs.size(); ++i)
+    {
+      ngon_type one_ph;
+      one_ph.addPH(ngo, i, true);
+
+      K_FLD::IntArray cnto;
+      one_ph.export_to_array(cnto);
+      tpl = K_ARRAY::buildArray(crd, varString, cnto, 8, "NGON", false);
+      PyList_Append(l, tpl);
+      Py_DECREF(tpl);
+    }
+  }
+
+  delete f; delete cn;
+  return l;
+}
+
+//=============================================================================
+/* XXX */
+//=============================================================================
 PyObject* K_INTERSECTOR::removeNthCell(PyObject* self, PyObject* args)
 {
 
@@ -502,6 +608,179 @@ PyObject* K_INTERSECTOR::removeNthCell(PyObject* self, PyObject* args)
   K_FLD::IntArray cnto;
   ng.export_to_array(cnto);
   PyObject* tpl = K_ARRAY::buildArray(crd, varString, cnto, 8, "NGON", false);
+  
+  delete f; delete cn;
+  return tpl;
+}
+
+//=============================================================================
+/* XXX */
+//=============================================================================
+PyObject* K_INTERSECTOR::detectIdenticalCells(PyObject* self, PyObject* args)
+{
+
+  std::cout << "detectIdenticalCells : begin" << std::endl;
+
+  PyObject *arr;
+  E_Int clean(0);
+  E_Float tol(1.e-15);
+
+  if (!PyArg_ParseTuple(args, "Odl", &arr, &tol, &clean)) return NULL;
+
+  std::cout << "detectIdenticalCells : after parse" << std::endl;
+
+  K_FLD::FloatArray* f(0);
+  K_FLD::IntArray* cn(0);
+  char* varString, *eltType;
+  // Check array # 1
+  E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
+  if (err) return NULL;
+    
+  K_FLD::FloatArray & crd = *f;
+  K_FLD::IntArray & cnt = *cn;
+  
+  //~ std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
+  //~ std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
+  
+  typedef ngon_t<K_FLD::IntArray> ngon_type;
+  ngon_type ngi(cnt);
+
+  E_Int nb_phs = ngi.PHs.size();
+
+  std::cout << "detectIdenticalCells : build iso point..." << std::endl;
+
+  // detection
+  K_FLD::FloatArray centroids(3, nb_phs, 0.);
+  //ngon_type::centroids<DELAUNAY::Triangulator>(ngi, crd, centroids);
+  std::vector<E_Int> unodes;
+  for (E_Int i = 0; i < nb_phs; ++i)
+  {
+    unodes.clear();
+    K_MESH::Polyhedron<0>::unique_nodes(ngi.PGs, ngi.PHs.get_facets_ptr(i), ngi.PHs.stride(i), unodes);
+    std::sort(unodes.begin(), unodes.end());
+
+    for (size_t n=0; n < unodes.size();++n)
+    {
+      centroids(0, i) += crd(0, unodes[n] - 1);
+      centroids(1, i) += crd(1, unodes[n] - 1);
+      centroids(2, i) += crd(2, unodes[n] - 1);
+    }
+  }
+
+  std::cout << "detectIdenticalCells : merge" << std::endl;
+
+
+  K_FLD::ArrayAccessor<K_FLD::FloatArray> ca(centroids);
+  Vector_t<E_Int> nids;
+  E_Int nb_merges = ::merge(ca, tol, nids);
+
+  //
+  std::cout << "detectIdenticalCells : check" << std::endl;
+
+  for (E_Int i = 0; i < nb_phs; ++i)
+  {
+    if (nids[i] != i)
+      std::cout << "detectIdenticalCells : " << i << " is identical to " << nids[i] << std::endl;
+  }
+
+  if (!clean)
+  {
+    delete f; delete cn;
+    return arr;
+  }
+
+  std::cout << "detectIdenticalCells : clean" << std::endl;
+
+  ngon_unit phs;
+  for (E_Int i = 0; i < nb_phs; ++i)
+  {
+    if (nids[i] != i) continue;
+    phs.add(ngi.PHs.stride(i), ngi.PHs.get_facets_ptr(i));
+  }
+
+  std::cout << "detectIdenticalCells : create output" << std::endl;
+  
+  ngon_type ng(ngi.PGs, phs);
+
+  std::vector<E_Int> pgnids, phnids;
+  ng.remove_unreferenced_pgs(pgnids, phnids);
+  ngon_type::compact_to_used_nodes(ng.PGs, crd);
+
+  std::cout << "detectIdenticalCells : build array" << std::endl;
+  
+  K_FLD::IntArray cnto;
+  ng.export_to_array(cnto);
+  PyObject* tpl = K_ARRAY::buildArray(crd, varString, cnto, 8, "NGON", false);
+
+
+  std::cout << "detectIdenticalCells : end" << std::endl;
+  
+  delete f; delete cn;
+  return tpl;
+}
+
+//=============================================================================
+/* XXX */
+//=============================================================================
+PyObject* K_INTERSECTOR::detectOverConnectedFaces(PyObject* self, PyObject* args)
+{
+
+  PyObject *arr;
+
+  if (!PyArg_ParseTuple(args, "O", &arr)) return NULL;
+
+  K_FLD::FloatArray* f(0);
+  K_FLD::IntArray* cn(0);
+  char* varString, *eltType;
+  // Check array # 1
+  E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
+  if (err) return NULL;
+    
+  K_FLD::FloatArray & crd = *f;
+  K_FLD::IntArray & cnt = *cn;
+  
+  //~ std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
+  //~ std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
+  
+  typedef ngon_t<K_FLD::IntArray> ngon_type;
+  ngon_type ngi(cnt);
+
+  E_Int nb_phs = ngi.PHs.size();
+
+  std::vector<E_Int> pgs_occurrences(ngi.PGs.size(), 0);
+  for (E_Int i=0; i < nb_phs; ++i)
+  {
+    const E_Int * faces = ngi.PHs.get_facets_ptr(i);
+    E_Int stride = ngi.PHs.stride(i);
+
+    for(E_Int n=0; n < stride; ++n)
+    {
+      E_Int PGi = *(faces+n)-1;
+      ++pgs_occurrences[PGi];
+    }
+  }
+
+  bool error = false;
+  for (size_t i=0; i < pgs_occurrences.size(); ++i)
+  {
+    if (pgs_occurrences[i] > 2)
+    {
+      std::cout << "multi PG : " << i << std::endl;
+      error = true;
+    }
+  }
+
+  if (!error)
+    std::cout << "OK : no multiple PGs" << std::endl;
+
+  std::cout << "detectMultipleCells : build array" << std::endl;
+  
+  K_FLD::IntArray cnto;
+  ngi.export_to_array(cnto);
+  PyObject* tpl = K_ARRAY::buildArray(crd, varString, cnto, 8, "NGON", false);
+
+
+  std::cout << "detectMultipleCells : end" << std::endl;
   
   delete f; delete cn;
   return tpl;
@@ -625,6 +904,86 @@ PyObject* K_INTERSECTOR::checkCellsClosure(PyObject* self, PyObject* args)
     return Py_BuildValue("l", long(err));
 #else
     return Py_BuildValue("i", err);
+#endif
+}
+
+PyObject* K_INTERSECTOR::volume(PyObject* self, PyObject* args)
+{
+  PyObject *arr, *axcelln;
+
+  if (!PyArg_ParseTuple(args, "OO", &arr, &axcelln)) return NULL;
+
+  K_FLD::FloatArray* f(0);
+  K_FLD::IntArray* cn(0);
+  char* varString, *eltType;
+  // Check array # 1
+  E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
+  if (err) return NULL;
+
+  // Check numpy (xcelln)
+  bool use_xcelln = false;
+
+  K_FLD::FloatArray* xcelln(nullptr);
+  K_FLD::IntArray *cn1(0);
+  char *varString1, *eltType1;
+  E_Int ni, nj, nk;
+  E_Int res = 0;
+  if (axcelln != Py_None) res = K_ARRAY::getFromArray(axcelln, varString1, xcelln, ni, nj, nk, cn1, eltType);
+  if (res == 1) use_xcelln = true;
+
+  //std::cout << py_xcelln << std::endl;
+
+  // E_Int res = 0;
+  // if (py_xcelln != Py_None)
+  // {
+  //   std::cout << "get numpy " << std::endl;
+
+  //   res = K_NUMPY::getFromNumpyArray(py_xcelln, xcelln, true);
+  //   std::cout << xcelln << std::endl;
+  //   if (res == 1) use_xcelln = true;
+  // }
+
+  K_FLD::FloatArray & crd = *f;
+  K_FLD::IntArray & cnt = *cn;
+
+  //~ std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
+  //~ std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
+
+  // std::cout << "use_xcelln ? " << use_xcelln << std::endl;
+  // std::cout << "xcelln ? " << xcelln << std::endl;
+  // std::cout << "res : " << res << std::endl;
+
+  typedef ngon_t<K_FLD::IntArray> ngon_type;
+  ngon_type ngi(cnt);
+
+  if (use_xcelln && (xcelln != nullptr) && (ngi.PHs.size() != xcelln->getSize()))
+  {
+    std::cout << "le champ xcelln ne correpsond pas au nb de polyedres => pas pris en compte" << std::endl;
+    std::cout << "nb phs : " << ngi.PHs.size() << std::endl;
+    std::cout << "taille xcelln : " << xcelln->getSize() << std::endl;
+    use_xcelln = false;
+  }
+
+  std::vector<E_Float> vols;
+  ngon_type::volumes<DELAUNAY::Triangulator>(crd, ngi, vols, true/*new algo*/);
+
+  //std::cout << "use_xcelln ?" << use_xcelln << std::endl;
+  E_Float V = 0.;
+  if (use_xcelln)
+  {
+    for (E_Int i = 0; i < vols.size(); ++i)
+      V += vols[i] * (*xcelln)[i];
+  }
+  else
+    for (E_Int i = 0; i < vols.size(); ++i)
+      V += vols[i];
+
+  delete f; delete cn;
+
+#ifdef E_DOUBLEREAL
+  return Py_BuildValue("d", V);
+#else
+    return Py_BuildValue("f", float(V));
 #endif
 }
 
@@ -1156,6 +1515,9 @@ PyObject* K_INTERSECTOR::reorientSpecifiedFaces(PyObject* self, PyObject* args)
   return tpl;
 }
 
+//=============================================================================
+/* XXX */
+//=============================================================================
 PyObject* K_INTERSECTOR::reorientSurf(PyObject* self, PyObject* args)
 {
   PyObject *arr;
@@ -2007,7 +2369,9 @@ PyObject* K_INTERSECTOR::oneph(PyObject* self, PyObject* args)
   return tpl;
 }
 
-
+//=============================================================================
+/* XXX */
+//=============================================================================
 PyObject* K_INTERSECTOR::concatenate(PyObject* self, PyObject* args)
 {
 
@@ -2080,6 +2444,60 @@ PyObject* K_INTERSECTOR::concatenate(PyObject* self, PyObject* args)
     delete cnts[i];
   }
   return tpl;
+}
+
+//=============================================================================
+/* XXX */
+//=============================================================================
+PyObject* K_INTERSECTOR::drawOrientation(PyObject* self, PyObject* args)
+{
+
+  PyObject *arr;
+
+  if (!PyArg_ParseTuple(args, "O", &arr)) return NULL;
+
+  K_FLD::FloatArray* f(0);
+  K_FLD::IntArray* cn(0);
+  char* varString, *eltType;
+  // Check array # 1
+  E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
+  if (err) return NULL;
+    
+  K_FLD::FloatArray & crd = *f;
+  K_FLD::IntArray & cnt = *cn;
+  
+  //~ std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
+  //~ std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
+  
+  typedef ngon_t<K_FLD::IntArray> ngon_type;
+  ngon_type ngi(cnt);
+
+  K_FLD::IntArray cntE;
+  K_FLD::FloatArray crdE;
+  for (size_t i=0; i < ngi.PGs.size(); ++i)
+  {
+    
+    const E_Int* nodes = ngi.PGs.get_facets_ptr(i);
+    E_Int nb_nodes = ngi.PGs.stride(i);
+
+    E_Float c[3], n[3], top[3];
+    K_MESH::Polygon::centroid<3>(crd, nodes, nb_nodes, 1, c);
+    K_MESH::Polygon::ndS<K_FLD::FloatArray, 3>(crd, nodes, nb_nodes, 1, n);
+    K_FUNC::sum<3>(c, n, top);
+
+    E_Int id = crdE.cols();
+    crdE.pushBack(c, c+3);
+    crdE.pushBack(top, top+3);
+
+    E_Int e[] = {id, id+1};
+    cntE.pushBack(e, e+2);
+
   }
+  
+  PyObject* tpl = K_ARRAY::buildArray(crdE, varString, cntE, -1, "BAR", false);
+  
+  delete f; delete cn;
+  return tpl;
+}
 
 //=======================  Intersector/PolyMeshTools/utils.cpp ====================

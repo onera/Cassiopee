@@ -65,6 +65,7 @@ static PyMethodDef Pyintersector [] =
   {"extractOuterLayers", K_INTERSECTOR::extractOuterLayers, METH_VARARGS},
   {"extractNthCell", K_INTERSECTOR::extractNthCell, METH_VARARGS},
   {"extractNthFace", K_INTERSECTOR::extractNthFace, METH_VARARGS},
+  {"extractBiggestCell", K_INTERSECTOR::extractBiggestCell, METH_VARARGS},
   {"removeNthCell", K_INTERSECTOR::removeNthCell, METH_VARARGS},
 
   {"getOverlappingFaces", K_INTERSECTOR::getOverlappingFaces, METH_VARARGS},
@@ -75,11 +76,14 @@ static PyMethodDef Pyintersector [] =
   
   {"computeAspectRatio", K_INTERSECTOR::computeAspectRatio, METH_VARARGS},
   {"centroids", K_INTERSECTOR::centroids, METH_VARARGS},
+  {"volume", K_INTERSECTOR::volume, METH_VARARGS},
   
   {"diffMesh", K_INTERSECTOR::diffMesh, METH_VARARGS},
 
   { "checkCellsClosure", K_INTERSECTOR::checkCellsClosure, METH_VARARGS },
   { "checkForDegenCells", K_INTERSECTOR::checkForDegenCells, METH_VARARGS },
+  { "detectIdenticalCells", K_INTERSECTOR::detectIdenticalCells, METH_VARARGS },
+  { "detectOverConnectedFaces", K_INTERSECTOR::detectOverConnectedFaces, METH_VARARGS },
   { "edgeLengthExtrema", K_INTERSECTOR::edgeLengthExtrema, METH_VARARGS },
   { "removeBaffles", K_INTERSECTOR::removeBaffles, METH_VARARGS },
   { "convert2Polyhedron", K_INTERSECTOR::convert2Polyhedron, METH_VARARGS },
@@ -96,6 +100,8 @@ static PyMethodDef Pyintersector [] =
   { "convertNGON2DToNGON3D", K_INTERSECTOR::convertNGON2DToNGON3D, METH_VARARGS },
   { "convertBasic2NGONFaces", K_INTERSECTOR::convertBasic2NGONFaces, METH_VARARGS },
   { "oneph", K_INTERSECTOR::oneph, METH_VARARGS },
+  { "drawOrientation", K_INTERSECTOR::drawOrientation, METH_VARARGS },
+
 
   /////////// syncronizing the tree ///////////
   { "updatePointLists", K_INTERSECTOR::updatePointLists, METH_VARARGS },

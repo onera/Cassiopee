@@ -55,6 +55,24 @@ public:
       }
     }
   }
+
+  ///
+  BoundingBox(const K_FLD::FloatArray& pos)
+  {
+    const E_Float* Pi;
+    for (E_Int i = 0; i < DIM; ++i)
+    {minB[i] = K_CONST::E_MAX_FLOAT; maxB[i] = -K_CONST::E_MAX_FLOAT;}
+
+    for (size_t i = 0; i < pos.cols(); ++i)
+    {
+      Pi = pos.col(i);
+      for (E_Int j = 0; j < DIM; ++j)
+      {
+        minB[j] = (minB[j] > Pi[j]) ? Pi[j] : minB[j];
+        maxB[j] = (maxB[j] < Pi[j]) ? Pi[j] : maxB[j];
+      }
+    }
+  }
   
   ///
   template<typename CoordinateArray_t>

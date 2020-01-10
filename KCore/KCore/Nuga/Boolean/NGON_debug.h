@@ -65,7 +65,7 @@ public:
   static void draw_PGs(const char* fname, const K_FLD::FloatArray& crd, const ngon_unit& PGs, bool localid = false);
   static void draw_PG_to_T3(E_Int PGi, const Vector_t<E_Int>& nT3_to_PG, const K_FLD::FloatArray& coord, const K_FLD::IntArray& connectT3);
   
-  static void draw_wired_PG(const char* fname, const K_FLD::FloatArray& coord, const ngon_unit& PGs, E_Int ith, E_Float *normal);
+  static void draw_wired_PG(const char* fname, const K_FLD::FloatArray& coord, const ngon_unit& PGs, E_Int ith, E_Float *normal = nullptr);
   
   template <typename Triangulator_t>
   static void highlight_PH(const ngon_type& ng, const K_FLD::FloatArray& coord, E_Int PHi);
@@ -393,6 +393,13 @@ void NGON_DBG_CLASS::draw_wired_PG(const char* fname, const K_FLD::FloatArray& c
   K_MESH::Polygon::iso_barycenter<acrd_t, 3 >(acrd, pNi, nb_nodes, 1, P0);
   
   K_FLD::FloatArray crd(coord);
+  
+  E_Float Norm[3];
+  if (normal == nullptr)
+  {
+    K_MESH::Polygon::normal<acrd_t, 3>(acrd, pNi, nb_nodes, 1, Norm);
+    normal = Norm;
+  }
   
   K_FUNC::sum<3>(1., P0, Lmin, normal, P1);
   crd.pushBack(P0, P0+3);

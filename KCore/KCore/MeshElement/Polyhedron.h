@@ -66,8 +66,8 @@ public:
   
   Polyhedron(ngon_unit* pgs, E_Int* faces, E_Int nb_faces):_pgs(pgs), _faces(faces), _nb_faces(nb_faces), _triangles(nullptr){}
   
-  template <typename ngon_t>
-  Polyhedron(ngon_t& ng, E_Int i):Polyhedron(&ng.PGs, ng.PHs.get_facets_ptr(i), ng.PHs.stride(i)){}
+  template <typename ngo_t>
+  Polyhedron(ngo_t& ng, E_Int i):_pgs(&ng.PGs), _faces(ng.PHs.get_facets_ptr(i)), _nb_faces(ng.PHs.stride(i)), _triangles(nullptr){}
 
   void set(ngon_unit* pgs, E_Int* faces, E_Int nb_faces){_pgs = pgs; _faces = faces; _nb_faces = nb_faces; if (_triangles != nullptr) {delete [] _triangles;_triangles = nullptr;}/*fixme : just set it as PGS is pure T3*/}
   
@@ -177,6 +177,19 @@ public:
       }
     }
   }
+
+  static inline void reorientAsFirst(const ngon_unit& PGS, const E_Int* first_pg, E_Int nb_pgs,  std::vector<E_Int>& orient)
+  {
+    // build PG neighborhood for that given PH
+    orient.clear();
+    
+    ngon_unit neighbors, opgs;
+    std::vector<E_Int> oids;
+    orient.resize(nb_pgs, 1);
+    PGS.extract(first_pg, nb_pgs, opgs, oids);
+    K_MESH::Polygon::build_pg_neighborhood(opgs, neighbors); 
+    K_CONNECT::EltAlgo<K_MESH::Polygon>::reversi_connex(opgs, neighbors, 0/*ref*/, orient);
+  }
   
   static inline void reorient(const ngon_unit& PGS, const E_Int* first_pg, E_Int nb_pgs, ngon_unit& opgs)
   {
@@ -272,6 +285,32 @@ public:
         std::swap(neighbors(1,k), neighbors(2,k));
       }
     return;
+  }
+
+  ///
+  E_Int flux(const K_FLD::FloatArray& crd, const E_Int* orient, E_Float* fluxVec)
+  {
+    fluxVec[0]=fluxVec[1]=fluxVec[2]=0.;
+
+    for (E_Int i=0; i < _nb_faces; ++i)
+    {
+      E_Int PGi = *(_faces + i) - 1;
+      E_Float o = orient[i];
+      const E_Int* nodes = _pgs->get_facets_ptr(PGi);
+      E_Int nb_nodes =  _pgs->stride(PGi);
+
+      // compute nds
+      E_Float nds[] = {0.,0.,0.};
+      K_MESH::Polygon::ndS<K_FLD::FloatArray, 3>(crd, nodes, nb_nodes, 1, nds);
+
+      fluxVec[0] += o * nds[0];
+      fluxVec[1] += o * nds[1];
+      fluxVec[2] += o * nds[2];
+
+    }
+
+    return 0;
+
   }
 
   /// Predicate on given element in a mesh
@@ -1700,22 +1739,15 @@ inline static void metrics(const K_FLD::FloatArray& crd, const K_FLD::IntArray& 
 //  } 
 //}
 
-static void get_orient(const ngon_unit& PHs, E_Int PHi, const K_FLD::IntArray& F2E, E_Int* PHi_orient)
-{    
-  E_Int nb_pgs = PHs.stride(PHi);
-  const E_Int* p = PHs.get_facets_ptr(PHi);
-  
-  for (int i = 0; i < nb_pgs; ++i)
-    PHi_orient[i] = (F2E(1,p[i]-1) == PHi) ? -1 : 1;
-}
 
 // fixme : valid for cvx only
-static bool pt_is_inside(const ngon_unit& PGS, const E_Int* first_pg, E_Int nb_pgs, const K_FLD::FloatArray& crd, const E_Int* PHi_orient, const E_Float* pt, E_Float tolerance)
+static bool pt_is_inside(E_Int PHi, const ngon_unit& PGS, const E_Int* first_pg, E_Int nb_pgs, const K_FLD::FloatArray& crd, const K_FLD::IntArray& F2E, const E_Float* pt, E_Float tolerance)
 {
-  
+
   for (int i = 0; i < nb_pgs; i++)
   {
-    const E_Int* pN = PGS.get_facets_ptr(first_pg[i]-1);
+    E_Int PGi = first_pg[i]-1;
+    const E_Int* pN = PGS.get_facets_ptr(PGi);
     E_Float det = K_FUNC::zzdet4(crd.col(pN[0]-1), crd.col(pN[1]-1), crd.col(pN[2]-1), pt); // approx : consider the first 3 nodes of the PG for defining the plane
         
     E_Int s = zSIGN(det,ZERO_M);
@@ -1735,9 +1767,12 @@ static bool pt_is_inside(const ngon_unit& PGS, const E_Int* first_pg, E_Int nb_p
         
       s = zSIGN(h,tolerance);
     }
+
+    bool outward_normal = (F2E(0,PGi) == PHi);
+
     // position will be known comparing the sign to the orientation of the PG
-    if ((PHi_orient[i] == 1) && (s == 1) ) return false;
-    else if ((PHi_orient[i] == -1) && (s == - 1) ) return false;      
+    if (outward_normal && (s == 1) ) return false;
+    else if (!outward_normal && (s == - 1) ) return false;      
 
   }
   return true;

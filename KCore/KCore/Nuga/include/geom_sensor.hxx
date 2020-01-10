@@ -394,11 +394,11 @@ void geom_sensor<mesh_t, crd_t>::locate_points(K_SEARCH::BbTree3D& tree, data_ty
   Vector_t<E_Int> ids;
 
   bool found=false;
-  
+  E_Float minB[3];
+  E_Float maxB[3];
+  //
   for (int i = 0; i < nb_src_pts; i++)
   {
-    E_Float minB[3];
-    E_Float maxB[3];
     E_Float* p = data.col(i);
     
     for (int j = 0; j < 3;j++)
@@ -413,9 +413,7 @@ void geom_sensor<mesh_t, crd_t>::locate_points(K_SEARCH::BbTree3D& tree, data_ty
     
     for (size_t j = 0; j < ids.size(); j++) // which of these boxes has the source point ?
     {
-      E_Int PHi_orient[ELT_t::NB_BOUNDS];
-      K_MESH::Polyhedron<UNKNOWN>::get_orient(_hmesh._ng->PHs, ids[j], _hmesh._F2E, PHi_orient);
-      if (K_MESH::Polyhedron<UNKNOWN>::pt_is_inside(_hmesh._ng->PGs, _hmesh._ng->PHs.get_facets_ptr(ids[j]), _hmesh._ng->PHs.stride(ids[j]), *_hmesh._crd, PHi_orient, p, tol))
+      if (K_MESH::Polyhedron<UNKNOWN>::pt_is_inside(ids[j], _hmesh._ng->PGs, _hmesh._ng->PHs.get_facets_ptr(ids[j]), _hmesh._ng->PHs.stride(ids[j]), *_hmesh._crd, _hmesh._F2E, p, tol))
       {
         if (_hmesh._PHtree.children(ids[j]) == nullptr) // if the cell has no children : source point i is in this cell
           _points_to_cell[i] = ids[j];
@@ -448,9 +446,7 @@ E_Int geom_sensor<mesh_t, crd_t>::get_higher_lvl_cell(E_Float* p, E_Int PHi)
     
   for (int j = 0; j < nb_children; ++j)
   {
-    E_Int PHi_orient[ELT_t::NB_BOUNDS];
-    K_MESH::Polyhedron<UNKNOWN>::get_orient(_hmesh._ng->PHs, q[j], _hmesh._F2E, PHi_orient);
-    if (K_MESH::Polyhedron<UNKNOWN>::pt_is_inside(_hmesh._ng->PGs, _hmesh._ng->PHs.get_facets_ptr(q[j]), _hmesh._ng->PHs.stride(q[j]), *_hmesh._crd, PHi_orient, p, 1.e-14)) // true when the point is located in a child
+    if (K_MESH::Polyhedron<UNKNOWN>::pt_is_inside(q[j], _hmesh._ng->PGs, _hmesh._ng->PHs.get_facets_ptr(q[j]), _hmesh._ng->PHs.stride(q[j]), *_hmesh._crd, _hmesh._F2E, p, 1.e-14)) // true when the point is located in a child
     {
       found = true;
       return q[j];
@@ -475,12 +471,10 @@ E_Int geom_sensor<mesh_t, crd_t>::get_highest_lvl_cell(E_Float* p, E_Int& PHi)
   
   E_Int* q = _hmesh._PHtree.children(PHi); // the children of PHi
   
-  E_Int PHi_orient[ELT_t::NB_BOUNDS];
   bool found = false;
   for (int j = 0; j < nb_children; ++j)
   {
-    K_MESH::Polyhedron<UNKNOWN>::get_orient(_hmesh._ng->PHs, q[j], _hmesh._F2E, PHi_orient);
-    if (K_MESH::Polyhedron<UNKNOWN>::pt_is_inside(_hmesh._ng->PGs, _hmesh._ng->PHs.get_facets_ptr(q[j]), _hmesh._ng->PHs.stride(q[j]), *_hmesh._crd, PHi_orient, p, 1.e-14)) // true when the point is located in a child
+    if (K_MESH::Polyhedron<UNKNOWN>::pt_is_inside(q[j], _hmesh._ng->PGs, _hmesh._ng->PHs.get_facets_ptr(q[j]), _hmesh._ng->PHs.stride(q[j]), *_hmesh._crd, _hmesh._F2E, p, 1.e-14)) // true when the point is located in a child
     {
       found = true;
       if (_hmesh._PHtree.children(q[j]) != nullptr)

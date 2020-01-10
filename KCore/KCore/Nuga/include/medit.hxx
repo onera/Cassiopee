@@ -1,5 +1,8 @@
 
 
+#ifndef MEDITH_HXX
+#define MEDITH_HXX
+
 #include <vector>
 #include <string>
 #include <iomanip>
@@ -14,9 +17,6 @@
 #include "MeshElement/Polygon.h"
 
 using ngon_type = ngon_t<K_FLD::IntArray>;
-
-#ifndef MEDITH_HXX
-#define MEDITH_HXX
 
 class medith
 {
@@ -310,28 +310,36 @@ public:
     }
     
     write(filename, crd, cT3, "TRI");
+    
+    return 0;
   }
   
-  static E_Int write(const char* filename, const K_FLD::FloatArray& crd, const ngon_type& ng, const std::vector<E_Int>& toprocess)
+  template <typename ngon_t>
+  static E_Int write(const char* filename, const K_FLD::FloatArray& crd, const ngon_t& ng, const std::vector<E_Int>& toprocess)
   {
     ngon_unit phs;
     Vector_t<E_Int> oids;
     ng.PHs.extract(toprocess, phs, oids);
     
-    ngon_type ngt(ng.PGs, phs);
+    ngon_t ngt(ng.PGs, phs);
     std::vector<E_Int> pgnids, phnids;
     ngt.remove_unreferenced_pgs(pgnids, phnids);
     
     write(filename, crd, ngt.PGs);
+    
+    return 0;
   }
   
-  static E_Int write(const char* filename, const K_FLD::FloatArray& crd, const ngon_type& ng)
+  template <typename ngo_t>
+  static E_Int write(const char* filename, const K_FLD::FloatArray& crd, const ngo_t& ng)
   {    
-    ngon_type ngt(ng);
+    ngo_t ngt(ng);
     std::vector<E_Int> pgnids, phnids;
     ngt.remove_unreferenced_pgs(pgnids, phnids);
     
     write(filename, crd, ngt.PGs);
+    
+    return 0;
   }
   
   ///
@@ -340,7 +348,7 @@ public:
     (const std::string& str_line, char delim, char** oWords)
   {
     //oWords.clear();
-    oWords[0]=oWords[1]=oWords[2]=oWords[3]=oWords[4]=oWords[5]=oWords[6]=oWords[7]=oWords[8]=oWords[9]="";
+    oWords[0] = oWords[1] = oWords[2] = oWords[3] = oWords[4] = oWords[5] = oWords[6] = oWords[7] = oWords[8] = oWords[9] = { 0 };
     
     char* buf = const_cast<char*>(str_line.c_str());
     char* pch = strtok(buf," ");

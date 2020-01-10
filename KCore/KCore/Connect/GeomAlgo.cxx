@@ -295,8 +295,10 @@ inline void GeomAlgo<K_MESH::Triangle>::reversi_chimera_skin
    //3. Reorient loop
    Vector_t<E_Int> Krefs, colors, orient;
    K_FLD::IntArray neighbors;
-   
+  
+#ifndef NETBEANSZ
 #pragma omp parallel for private(neighbors, orient, colors)
+#endif
    for (E_Int i=0; i< nb_zones; ++i)
    {
      //A. Get connex bits, so

@@ -401,22 +401,63 @@ def extractOuterLayers(a, N, discard_external=0):
     return intersector.extractOuterLayers(a, N, discard_external)
 
 #==============================================================================
-# XXX : XXX
+# extractNthCell : Extracts nth cell in a
+# IN: a          : 3D NGON mesh
+# IN: nth        : cell number
+# OUT: returns the cell and its neighbors
 #==============================================================================
 def extractNthCell(a, nth):
+    """ Extracts nth cell in a.
+    Usage: extractNthCell(a, nth)"""
     return intersector.extractNthCell(a, nth)
 
 #==============================================================================
-# XXX : XXX
+# extractBiggestCell : Extracts the biggest cell in a mesh
+# IN: a          : 3D NGON mesh
+# OUT: returns a single cell NGON mesh
+#==============================================================================
+def extractBiggestCell(a):
+    """ Extracts the biggest cell in a.
+    Usage: extractBiggestCell(a)"""
+    return intersector.extractBiggestCell(a)
+
+#==============================================================================
+# extractNthFace : Extracts the nth face in a NGON mesh
+# IN: a          : 3D NGON mesh
+# IN: nth        : face number
+# OUT: returns the face and its left and right cells
 #==============================================================================
 def extractNthFace(a, nth):
+    """ Extracts the nth face in a.
+    Usage: extractNthFace(a, nth)"""
     return intersector.extractNthFace(a, nth)
 
 #==============================================================================
-# XXX : XXX
+# removeNthCell : Remove the nth cell in a mesh
+# IN: a          : 3D NGON mesh
+# IN: nth        : cell number
+# OUT: returns the mesh without the prescribed cell
 #==============================================================================
 def removeNthCell(a, nth):
+    """ Removes the nth cell in a.
+    Usage: removeNthCell(a, nth)"""
     return intersector.removeNthCell(a, nth)
+
+#==============================================================================
+# detectIdenticalCells : detects (and optionally removes) geometrically identical cells
+# IN: a          : 3D NGON mesh
+# IN: nth        : cell number
+# OUT: returns the mesh without the prescribed cell
+#==============================================================================
+def detectIdenticalCells(a, TOL=1.e-15, clean=0):
+    return intersector.detectIdenticalCells(a, TOL, clean)
+
+#==============================================================================
+# detectOverConnectedFaces : detects Faces that belong to more than 2 cells in a mesh.
+#======================================================================
+def detectOverConnectedFaces(a):
+    """Detects Faces that belong to more than 2 cells in a mesh."""
+    return intersector.detectOverConnectedFaces(a)
 
 #==============================================================================
 # getOverlappingFaces   : returns the list of polygons in a1 and a2 that are overlapping.
@@ -553,8 +594,6 @@ def convert2Polyhedron(a):
 def oneZonePerCell(a):
   return intersector.oneZonePerCell(a)
 
-
-
 #==============================================================================
 # convertNGON2DToNGON3D : Converts a Cassiopee NGON Format for polygons (Face/Edge) to a Face/Node Format.
 # IN: a    : 3D NGON mesh
@@ -575,14 +614,6 @@ def convertBasic2NGONFaces(a):
     Usage: convertBasic2NGONFaces(a)"""
   return intersector.convertBasic2NGONFaces(a)
 
-#~ def conservativeTransfer(a1, flowsol, a2, tol=0., reconstruction_type=0):
-    #~ c = intersector.conservative_transfer(a1, flowsol, a2, tol, reconstruction_type)
-    #~ return c
-    #~ 
-#~ def totalMass(a1, flowsol):
-    #~ intersector.total_mass(a1, flowsol)
-    #~ return a1
-    
 def centroids(a):
     return intersector.centroids(a)
 
@@ -591,3 +622,31 @@ def merge(a, s, tol = 1.e-15): #target arr, source arr
 
 def concatenate(la, tol = 1.e-15):
     return intersector.concatenate(la, tol)
+
+#==============================================================================
+# volume : Computes the volume of a with an optional weighting
+# IN: a  : 3D NGON mesh
+# IN: xcelln : name of the weighting field (at centers)/
+# OUT: volume computed
+#==============================================================================
+def volume(a, xcelln = None):
+    """ Computes the volume of a with an optional weighting.
+    Usage: volume(a, xcelln)"""
+    return intersector.volume(a, xcelln)
+
+#==============================================================================
+# XXX
+#==============================================================================
+def drawOrientation(a):
+    """XXX
+    Usage: XXX"""
+    return intersector.drawOrientation(a)
+
+#~ def conservativeTransfer(a1, flowsol, a2, tol=0., reconstruction_type=0):
+    #~ c = intersector.conservative_transfer(a1, flowsol, a2, tol, reconstruction_type)
+    #~ return c
+    #~ 
+#~ def totalMass(a1, flowsol):
+    #~ intersector.total_mass(a1, flowsol)
+    #~ return a1
+

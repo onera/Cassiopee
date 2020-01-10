@@ -71,6 +71,7 @@ namespace K_INTERSECTOR
   PyObject* extractOuterLayers(PyObject* self, PyObject* args);
   PyObject* extractNthCell(PyObject* self, PyObject* args);
   PyObject* extractNthFace(PyObject* self, PyObject* args);
+  PyObject* extractBiggestCell(PyObject* self, PyObject* args);
   PyObject* removeNthCell(PyObject* self, PyObject* args);
 
   PyObject* statsUncomputableFaces(PyObject* self, PyObject* args);
@@ -79,11 +80,14 @@ namespace K_INTERSECTOR
   PyObject* computeAspectRatio(PyObject* self, PyObject* args);
 
   PyObject* centroids(PyObject* self, PyObject* args);
+  PyObject* volume(PyObject* self, PyObject* args);
 
   PyObject* diffMesh(PyObject* self, PyObject* args);
 
   PyObject* checkCellsClosure(PyObject* self, PyObject* args);
   PyObject* checkForDegenCells(PyObject* self, PyObject* args);
+  PyObject* detectIdenticalCells(PyObject* self, PyObject* args);
+  PyObject* detectOverConnectedFaces(PyObject* self, PyObject* args);
   PyObject* edgeLengthExtrema(PyObject* self, PyObject* args);
   
   PyObject* reorientExternalFaces(PyObject* self, PyObject* args);
@@ -102,6 +106,7 @@ namespace K_INTERSECTOR
   PyObject* convertNGON2DToNGON3D(PyObject* self, PyObject* args);
   PyObject* convertBasic2NGONFaces(PyObject* self, PyObject* args);
   PyObject* oneph(PyObject* self, PyObject* args);  
+  PyObject* drawOrientation(PyObject* self, PyObject* args);
 
   /////////// syncronizing the tree ///////////
   PyObject* updatePointLists(PyObject* self, PyObject* args);

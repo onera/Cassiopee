@@ -122,6 +122,7 @@ struct ngon_t
       for (E_Int i = 0; i < sz ; ++i) PHs._NGON.push_back(i+1);
       PHs._NGON[0] = 1;
       PHs._type.resize(1, INITIAL_SKIN);//only one PH => skin type
+      PGs._type.resize(sz, INITIAL_SKIN);//only one PH => skin type
     }
     else
     {
@@ -2978,6 +2979,12 @@ static E_Int __set_ref_PGs_for_orient(const K_FLD::FloatArray& coord, ngon_t& ng
 #ifdef DEBUG_NGON_T
   assert(ng.is_consistent(coord.cols()));
 #endif
+
+  if (ng.PHs._type.size() < ng.PHs.size())
+  {
+    std::cout << "__set_ref_PGs_for_orient : input PHs does not have type set (looking for INITIAL_SKIN or CONNEXION_SKIN)" << std::endl;
+    return 1;
+  }
   
   for (E_Int PHi = 0; (PHi < ng.PHs.size()) && (PGref == E_IDX_NONE) && !err; ++PHi)
     if ((ng.PHs._type[PHi] == INITIAL_SKIN) || (ng.PHs._type[PHi] == CONNEXION_SKIN))

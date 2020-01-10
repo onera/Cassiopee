@@ -607,6 +607,7 @@ E_Int Conformizer<DIM, Element_t>::__run
   {
     std::vector<E_Int> nids;
     K_CONNECT::MeshTool::compact_to_mesh(pos, connect, nids);
+
     if (_with_node_history)
       K_CONNECT::IdTool::propagate(nids, _node_history);
     K_FLD::IntArray::changeIndices(_connect0, nids);

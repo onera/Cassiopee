@@ -1292,6 +1292,46 @@ def removeNthCell(t, nth):
     m = XOR.removeNthCell(m, nth)
     return C.convertArrays2ZoneNode('mes_wo_%d'%(nth), [m])
 
+#==============================================================================
+# extractBiggestCell : XXX
+#==============================================================================
+def extractBiggestCell(t):
+    m = C.getFields(Internal.__GridCoordinates__, t)[0]
+    m = XOR.extractBiggestCell(m)
+
+    zones = []
+    nb_zones = len(m)-1
+
+    zones.append(C.convertArrays2ZoneNode('cell', [m[0]]))
+
+    if (nb_zones == 0) : return zones
+
+    # here it has neighbors 
+    for i in range(nb_zones):
+        zones.append(C.convertArrays2ZoneNode('neigh', [m[i+1]]))
+
+    return zones
+
+#==============================================================================
+# detectIdentitcalCells : detects (and optionally removes) geometrically identical cells 
+#======================================================================
+def detectIdenticalCells(t, TOL=1.e-15, clean=0):
+    """Detects (and optionannly removes) geometrically identical cells.
+    Usage: detectIdenticalCells(t)"""
+    return C.TZA(t, 'nodes', 'nodes', XOR.detectIdenticalCells, t, TOL, clean)
+
+def _detectIdenticalCells(t, TOL=1.e-15, clean=0):
+    return C._TZA(t, 'nodes', 'nodes', XOR.detectIdenticalCells, t, TOL, clean)
+
+#==============================================================================
+# detectOverConnectedFaces : detects Faces that belong to more than 2 cells in a mesh.
+#======================================================================
+def detectOverConnectedFaces(t):
+    """Detects Faces that belong to more than 2 cells in a mesh."""
+    return C.TZA(t, 'nodes', 'nodes', XOR.detectOverConnectedFaces, t)
+
+def _detectOverConnectedFaces(t, TOL=1.e-15, clean=0):
+    return C._TZA(t, 'nodes', 'nodes', XOR.detectOverConnectedFaces, t, TOL, clean)
 
 #==============================================================================
 # getOverlappingFaces   : returns the list of polygons in a1 and a2 that are overlapping.
@@ -1582,6 +1622,37 @@ def concatenate(zones, tol = 1.e-15):
     m = XOR.concatenate(ms, tol)
     return C.convertArrays2ZoneNode('assembly', [m])
 
+def drawOrientation(t):
+    zones = Internal.getZones(t)
+    zo = []
+    i=-1
+    for z in zones:
+        i+=1
+        m = C.getFields(Internal.__GridCoordinates__, z)[0]
+        d=XOR.drawOrientation(m)
+        zo.append(C.convertArrays2ZoneNode('z_'+str(i), [d]))
+    return zo
+  
+#
+def volume(t, fieldname=None):
+
+    try : import Generator.PyTree as G
+    except: raise ImportError("volume: requires Generator module.")
+
+    fldname = None
+    if fieldname != None: fldname = 'centers:'+fieldname
+
+    zones = Internal.getZones(t)
+    v = 0.
+    for z in zones:
+        xcelln = None
+        if fldname != None : xcelln = C.getField(fldname, z)
+        if xcelln != None : xcelln = xcelln[0]
+        
+        z = C.convertArray2NGon(z); z = G.close(z)
+        m = C.getFields(Internal.__GridCoordinates__, z)[0]
+        v += XOR.volume(m, xcelln)
+    return v
   
 #~ def conservativeTransfer(a1, a2, tol=0., reconstruction_type=0):
     #~ 
