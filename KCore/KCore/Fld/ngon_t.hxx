@@ -2535,7 +2535,7 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
   
   /// Warning : The coordinates are not cleaned, only the connectivity.
   static E_Int clean_connectivity
-  (ngon_t& NG, const K_FLD::FloatArray& f, E_Int ngon_dim=-1, E_Float tolerance = E_EPSILON)
+  (ngon_t& NG, const K_FLD::FloatArray& f, E_Int ngon_dim=-1, E_Float tolerance = E_EPSILON, bool remove_dup_phs=false)
   {
     E_Int nb_phs0(NG.PHs.size()), nb_pgs0(NG.PGs.size());
     
@@ -2592,9 +2592,19 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
     else
       NG.PHs.get_degenerated(toremove);
 
-    /*E_Int nb_degen_phs = */NG.PHs.remove_entities(toremove, phnids);
+    // 5- Elimination des elts doubles : WARNING : do not care of multiple occ in toremove as remove_entities handles it.
+    if (remove_dup_phs)
+    {
+      std::vector<E_Int> duphnids;
+      NG.detect_phs_with_same_centroid(f, duphnids);
+      for (size_t k = 0; k < duphnids.size(); ++k)
+      {
+        if (duphnids[k] != k)
+          toremove.push_back(duphnids[k]);
+      }
+    }
 
-    // 5- Elimination des elts doubles
+    /*E_Int nb_removed_phs = */NG.PHs.remove_entities(toremove, phnids);
   
     // 6- Suppression des faces non referencees
     /*E_Int nb_unrefs = */NG.remove_unreferenced_pgs(pgnids, phnids); //Important, sinon tecplot en ASCII (.tp) n'aime pas.

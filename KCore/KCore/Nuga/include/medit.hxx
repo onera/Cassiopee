@@ -341,6 +341,27 @@ public:
     
     return 0;
   }
+
+  template <typename ngo_t>
+  static E_Int write(const char* filename, const K_FLD::FloatArray& crd, const ngo_t& ng, E_Int i)
+  {
+    ng.PGs.updateFacets();
+    ng.PHs.updateFacets();
+
+    ngon_unit ph;
+    ph.add(ng.PHs.stride(i), ng.PHs.get_facets_ptr(i));
+
+    ngo_t one_ph(ng.PGs, ph);
+    Vector_t<E_Int> pgnids, phnids;
+    one_ph.remove_unreferenced_pgs(pgnids, phnids);
+
+    K_FLD::FloatArray crdl(crd);
+    ngo_t::compact_to_used_nodes(one_ph.PGs, crdl);
+
+    write(filename, crdl, one_ph.PGs);
+
+    return 0;
+  }
   
   ///
   static void

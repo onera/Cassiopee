@@ -54,7 +54,7 @@
 #endif
 
 #if defined(DEBUG_BOOLEAN)
-#include "medit.hxx"
+#include "Nuga/include/medit.hxx"
 #include "NGON_debug.h"
 #include <fstream>
 //#include "TRI_BooleanOperator.h"
@@ -2368,7 +2368,7 @@ NGON_BOOLEAN_CLASS::__compute()
 #ifdef DEBUG_BOOLEAN
     {
       std::vector<E_Int> colors(PHT3s.size(), 0);
-      NGON_DBG::draw_PHT3s("PHT3s.mesh", _coord, connectT3o, PHT3s, colors);
+      //NGON_DBG::draw_PHT3s("PHT3s.mesh", _coord, connectT3o, PHT3s, colors);
     }
 #endif
     
@@ -2475,9 +2475,9 @@ NGON_BOOLEAN_CLASS::__compute()
 
   _ng2.clear();
 
-  //
-  ngon_type::clean_connectivity(_ngXs, _coord, 3); //glue and clean the soft part :  required for classification
-  ngon_type::clean_connectivity(_ngXh, _coord, 3); //glue and clean the soft part :  required for classification
+  // glue and clean (including handling PH duplicates) : required for classification. 
+  ngon_type::clean_connectivity(_ngXs, _coord, 3, E_EPSILON, true/*remove dups*/); // soft part
+  ngon_type::clean_connectivity(_ngXh, _coord, 3); // hard part : no need for duplicates removal
   
 #ifdef DEBUG_BOOLEAN
   medith::write("ngXs1.mesh", _coord, _ngXs);
@@ -2491,7 +2491,7 @@ NGON_BOOLEAN_CLASS::__compute()
 #ifdef DEBUG_BOOLEAN
   medith::write("ngXsG.mesh", _coord, _ngXs);
   medith::write("ngXhG.mesh", _coord, _ngXh);
-  medith::write2("ngXsG_ex.mesh", _coord, _ngXs, INITIAL_SKIN);
+  medith::write("ngXsG_ex.mesh", _coord, _ngXs, INITIAL_SKIN);
   std::vector<E_Int> toprocess;
   for (size_t i=0; i < _ngXs.PHs.size(); ++i) if(_ngXs.PHs._type[i] != INITIAL_SKIN)toprocess.push_back(i);
   medith::write("ngXsGin.mesh", _coord, _ngXs, toprocess);
@@ -2750,7 +2750,7 @@ E_Int NGON_BOOLEAN_CLASS::__process_duplicates(const ngon_unit&wPGs, K_FLD::IntA
   for (size_t i=0; i < dupIds.size(); ++i)
     keep[i]=(dupIds[i] != i);
   medith::write("dups.mesh", _coord, connectT3, "TRI", &keep);
-  TRI_debug::write_wired("dupnorms.mesh", _coord, connectT3, true, 0, &keep);
+  //TRI_debug::write_wired("dupnorms.mesh", _coord, connectT3, true, 0, &keep);
 #endif
 
   std::vector<E_Int> priorityOut;
@@ -2800,7 +2800,7 @@ E_Int NGON_BOOLEAN_CLASS::__process_duplicates(const ngon_unit&wPGs, K_FLD::IntA
     colors.push_back(nT3_to_PG[Ki]);
   }
   medith::write("ambiguousPGs.mesh", _coord, tmp, "TRI", 0, &colors);
-  TRI_debug::write_wired("dupnorms.mesh", _coord, tmp, true);
+  //TRI_debug::write_wired("dupnorms.mesh", _coord, tmp, true);
 #endif
   return 0;
 }
@@ -4030,11 +4030,11 @@ E_Int NGON_BOOLEAN_CLASS::__sort_T3_sharing_an_edge
       o << "sorted_on_edge_" << E0 << "_" << E1 << ".mesh";
       medith::write(o.str().c_str(), coord, sorted_cnt, "TRI", 0, &colors);
     }
-    {
+    /*{
       std::ostringstream o;
       o << "Wsorted_on_edge_" << E0 << "_" << E1 << ".mesh";
       TRI_debug::write_wired(o.str().c_str(), coord, connectT3, normals, 0, &keep,true);
-    }
+    }*/
   }
 #endif
 
@@ -4285,10 +4285,10 @@ E_Int NGON_BOOLEAN_CLASS::__build_PHT3s
 #ifdef FLAG_STEP
   if (chrono::verbose > 0) std::cout << "NGON Boolean : ERROR in __remove_parasite_PHT3s : " << c1.elapsed() << std::endl;
 #endif
-#ifdef DEBUG_BOOLEAN
-    if (PHierr > -1)
-      TRI_DBG::coloring_frames(coord, connectT3o, neighbors, PHT3s[PHierr][0]);
-#endif
+//#ifdef DEBUG_BOOLEAN
+//    if (PHierr > -1)
+//      TRI_DBG::coloring_frames(coord, connectT3o, neighbors, PHT3s[PHierr][0]);
+//#endif
     return err;
   }
   
@@ -4334,25 +4334,25 @@ E_Int NGON_BOOLEAN_CLASS::__build_PHT3s
     std::cout << " faulty (unclosed) PHT3 is : " << PHierr << "(" << PHT3s[PHierr].size() << " T3s)" << std::endl;
 
 #ifdef DEBUG_BOOLEAN
-    NGON_DBG::draw_PHT3(coord, connectT3o, PHT3s, PHierr);
-    //TRI_DBG::coloring_frames(coord, connectT3o, neighbors, PHT3s[PHierr][0]);
-    // its history :
-    std::set<E_Int> PHs1, PHs2; //from 1 and 2
-    NGON_DBG::__get_historical_PHs(coord, connectT3o, PHT3s, PHierr, connectT3.cols()/*shift*/, _nb_pgs1, _F2E, _anc_PH_for_PHT3s[mesh_oper], _nT3_to_oPG, PHs1, PHs2);
-    
-    std::cout << "list of ids for M1 : " << std::endl;
-    for (std::set<E_Int>::const_iterator i=PHs1.begin(); i != PHs1.end(); ++i)
-      std::cout << *i << " ";
-    std::cout << std::endl;
-    
-    std::cout << "list of ids for M2 : " << std::endl;
-    for (std::set<E_Int>::const_iterator i=PHs2.begin(); i != PHs2.end(); ++i)
-      std::cout << *i << " ";
-    std::cout << std::endl;
-    
-    //ngon_type ng1(_cNGON1), ng2(_cNGON2);
-    //NGON_DBG::draw_PHs("faulty_Molec1.plt", coord, ng1, PHs1);//fixme : not working
-    //NGON_DBG::draw_PHs("faulty_Molec2.plt", coord, ng2, PHs2);
+    ////NGON_DBG::draw_PHT3(coord, connectT3o, PHT3s, PHierr);
+    ////TRI_DBG::coloring_frames(coord, connectT3o, neighbors, PHT3s[PHierr][0]);
+    //// its history :
+    //std::set<E_Int> PHs1, PHs2; //from 1 and 2
+    //NGON_DBG::__get_historical_PHs(coord, connectT3o, PHT3s, PHierr, connectT3.cols()/*shift*/, _nb_pgs1, _F2E, _anc_PH_for_PHT3s[mesh_oper], _nT3_to_oPG, PHs1, PHs2);
+    //
+    //std::cout << "list of ids for M1 : " << std::endl;
+    //for (std::set<E_Int>::const_iterator i=PHs1.begin(); i != PHs1.end(); ++i)
+    //  std::cout << *i << " ";
+    //std::cout << std::endl;
+    //
+    //std::cout << "list of ids for M2 : " << std::endl;
+    //for (std::set<E_Int>::const_iterator i=PHs2.begin(); i != PHs2.end(); ++i)
+    //  std::cout << *i << " ";
+    //std::cout << std::endl;
+    //
+    ////ngon_type ng1(_cNGON1), ng2(_cNGON2);
+    ////NGON_DBG::draw_PHs("faulty_Molec1.plt", coord, ng1, PHs1);//fixme : not working
+    ////NGON_DBG::draw_PHs("faulty_Molec2.plt", coord, ng2, PHs2);
 #endif
 
     return 1;
@@ -4537,7 +4537,7 @@ E_Int NGON_BOOLEAN_CLASS::__classify_skin_PHT3s
 //    for (size_t i=0; i < _zones.size(); ++i)colz[i]=_zones[i];
 //    NGON_DBG::draw_PHT3s("PHT3zones.mesh", _coord, connectT3o, PHT3s, colz);
 //  }
-  {
+  /*{
     Vector_t<bool> flag(_zones.size(), false);
     for (size_t i=0; i < _zones.size(); ++i)if (_zones[i] == Z_IN){flag[i]=true;}
     NGON_DBG::draw_PHT3s("PHT3zin.mesh", _coord, connectT3o, PHT3s, colz, &flag);
@@ -4551,7 +4551,7 @@ E_Int NGON_BOOLEAN_CLASS::__classify_skin_PHT3s
     Vector_t<bool> flag(_zones.size(), false);
     for (size_t i=0; i < _zones.size(); ++i)if (_zones[i] == Z_2){flag[i]=true;}
     NGON_DBG::draw_PHT3s("PHT3z2.mesh", _coord, connectT3o, PHT3s, colz, &flag);
-  }
+  }*/
 #endif
 
   return 0;
@@ -5178,17 +5178,17 @@ E_Int NGON_BOOLEAN_CLASS::__remove_parasite_PHT3s
     if (pure_skin || has_baffles) //parasite
       _tmp_vec.push_back(it->first);
 #ifdef DEBUG_BOOLEAN
-    else
-    {
-      //
-      bool is_closed, is_manifold;
-      //separate analysis by zone
-      bool healthy = TRI_DBG::analyze_T3_set(PHi, _coord, connectT3o, faulty_T3s, is_manifold, is_closed, &faulty_colors);
-      if (!healthy)
-        std::cout << "PHi " << PHi << " is not healthy." << std::endl;
-      // analyze the PHT3 (except no treat parts) as a whole
-      //healthy = TRI_DBG::analyze_T3_set(PHi, _coord, connectT3o, pht3i, is_manifold, is_closed);*/
-    }
+    //else
+    //{
+    //  //
+    //  bool is_closed, is_manifold;
+    //  //separate analysis by zone
+    //  bool healthy = TRI_DBG::analyze_T3_set(PHi, _coord, connectT3o, faulty_T3s, is_manifold, is_closed, &faulty_colors);
+    //  if (!healthy)
+    //    std::cout << "PHi " << PHi << " is not healthy." << std::endl;
+    //  // analyze the PHT3 (except no treat parts) as a whole
+    //  //healthy = TRI_DBG::analyze_T3_set(PHi, _coord, connectT3o, pht3i, is_manifold, is_closed);*/
+    //}
 #endif
   }
  

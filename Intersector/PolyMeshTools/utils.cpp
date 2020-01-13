@@ -619,7 +619,7 @@ PyObject* K_INTERSECTOR::removeNthCell(PyObject* self, PyObject* args)
 PyObject* K_INTERSECTOR::detectIdenticalCells(PyObject* self, PyObject* args)
 {
 
-  std::cout << "detectIdenticalCells : begin" << std::endl;
+  //std::cout << "detectIdenticalCells : begin" << std::endl;
 
   PyObject *arr;
   E_Int clean(0);
@@ -627,7 +627,7 @@ PyObject* K_INTERSECTOR::detectIdenticalCells(PyObject* self, PyObject* args)
 
   if (!PyArg_ParseTuple(args, "Odl", &arr, &tol, &clean)) return NULL;
 
-  std::cout << "detectIdenticalCells : after parse" << std::endl;
+  //std::cout << "detectIdenticalCells : after parse" << std::endl;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -645,51 +645,30 @@ PyObject* K_INTERSECTOR::detectIdenticalCells(PyObject* self, PyObject* args)
   typedef ngon_t<K_FLD::IntArray> ngon_type;
   ngon_type ngi(cnt);
 
-  E_Int nb_phs = ngi.PHs.size();
-
-  std::cout << "detectIdenticalCells : build iso point..." << std::endl;
-
-  // detection
-  K_FLD::FloatArray centroids(3, nb_phs, 0.);
-  //ngon_type::centroids<DELAUNAY::Triangulator>(ngi, crd, centroids);
-  std::vector<E_Int> unodes;
-  for (E_Int i = 0; i < nb_phs; ++i)
-  {
-    unodes.clear();
-    K_MESH::Polyhedron<0>::unique_nodes(ngi.PGs, ngi.PHs.get_facets_ptr(i), ngi.PHs.stride(i), unodes);
-    std::sort(unodes.begin(), unodes.end());
-
-    for (size_t n=0; n < unodes.size();++n)
-    {
-      centroids(0, i) += crd(0, unodes[n] - 1);
-      centroids(1, i) += crd(1, unodes[n] - 1);
-      centroids(2, i) += crd(2, unodes[n] - 1);
-    }
-  }
-
-  std::cout << "detectIdenticalCells : merge" << std::endl;
-
-
-  K_FLD::ArrayAccessor<K_FLD::FloatArray> ca(centroids);
   Vector_t<E_Int> nids;
-  E_Int nb_merges = ::merge(ca, tol, nids);
+  ngi.detect_phs_with_same_centroid (crd, nids);
+  bool found=false;
 
-  //
-  std::cout << "detectIdenticalCells : check" << std::endl;
-
+  E_Int nb_phs = ngi.PHs.size();
   for (E_Int i = 0; i < nb_phs; ++i)
   {
     if (nids[i] != i)
+    {
       std::cout << "detectIdenticalCells : " << i << " is identical to " << nids[i] << std::endl;
+      found=true;
+    }
   }
 
-  if (!clean)
+  if (!found)
+    std::cout << "detectIdenticalCells : OK. No duplicates found." << std::endl;
+
+  if (!clean || !found)
   {
     delete f; delete cn;
     return arr;
   }
 
-  std::cout << "detectIdenticalCells : clean" << std::endl;
+  //std::cout << "detectIdenticalCells : clean" << std::endl;
 
   ngon_unit phs;
   for (E_Int i = 0; i < nb_phs; ++i)
@@ -698,7 +677,7 @@ PyObject* K_INTERSECTOR::detectIdenticalCells(PyObject* self, PyObject* args)
     phs.add(ngi.PHs.stride(i), ngi.PHs.get_facets_ptr(i));
   }
 
-  std::cout << "detectIdenticalCells : create output" << std::endl;
+  //std::cout << "detectIdenticalCells : create output" << std::endl;
   
   ngon_type ng(ngi.PGs, phs);
 
@@ -706,14 +685,13 @@ PyObject* K_INTERSECTOR::detectIdenticalCells(PyObject* self, PyObject* args)
   ng.remove_unreferenced_pgs(pgnids, phnids);
   ngon_type::compact_to_used_nodes(ng.PGs, crd);
 
-  std::cout << "detectIdenticalCells : build array" << std::endl;
+  //std::cout << "detectIdenticalCells : build array" << std::endl;
   
   K_FLD::IntArray cnto;
   ng.export_to_array(cnto);
   PyObject* tpl = K_ARRAY::buildArray(crd, varString, cnto, 8, "NGON", false);
 
-
-  std::cout << "detectIdenticalCells : end" << std::endl;
+  //std::cout << "detectIdenticalCells : end" << std::endl;
   
   delete f; delete cn;
   return tpl;
