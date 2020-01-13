@@ -12,7 +12,11 @@ def getFiles(module):
         if f not in exceptions: srcs.append(f.replace('../../',''))
     return srcs
 
-srcs = ['OCC/pyOCC.cpp', 'OCC/import_OCC_CAD_wrapper.cpp','OCC/CADviaOCC.cpp', 'OCC/OCCSurface.cpp']
+srcs = ['OCC/pyOCC.cpp', 
+        'OCC/import_OCC_CAD_wrapper.cpp',
+        'OCC/CADviaOCC.cpp', 
+        'OCC/OCCSurface.cpp',
+        'OCC/convertCAD2Arrays.cpp']
 
 # TKernel
 TKernel_srcs = getFiles('TKernel')

@@ -1,9 +1,6 @@
 #! /bin/sh
 #
 # Installation du module OCC
-# 
-# Par defaut dans : $CASSIOPEE/Dist/bin/$ELSAPROD/
-# Sinon : dans le repertoire specifie en argument
 #
 if ([ $# -eq 0 ])
 then
@@ -50,6 +47,7 @@ if [ $? -eq 0 ]; then
     [ $? != 0 ] && exit;
     #touch OCC/occ.cpp
     rm -f build/lib.*/OCC/occ.*
+    rm -f build/lib.*/OCC/occ-*.*
     python setupScons.py install --prefix="$INSTALLPATH"
     [ $? != 0 ] && exit;
 else
