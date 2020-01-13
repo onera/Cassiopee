@@ -30,7 +30,7 @@ class xsensor : public geom_sensor<mesh_t, crd_t>
     using parent_type = geom_sensor<mesh_t, crd_t>;
     using data_type = crd_t; //point cloud
     
-    xsensor(mesh_t& mesh, const K_FLD::IntArray& cntS, E_Int itermax = -1):geom_sensor<mesh_t,crd_t>(mesh, 1/*max_pts_per_cell*/, itermax), _cntS(cntS){}
+    xsensor(mesh_t& mesh, E_Int max_pts_per_cell, E_Int itermax, const K_FLD::IntArray* cntS):geom_sensor<mesh_t,crd_t>(mesh, max_pts_per_cell, itermax), _cntS(*cntS){}
 
     E_Int init(data_type& data) override;
     

@@ -249,7 +249,7 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
     hmesh->_ng->export_to_array(cnto);
   
     // pushing out the mesh
-    PyObject *tpl = K_ARRAY::buildArray(*hmesh->_crd, varString, cnto, -1, "NGON", false);
+    PyObject *tpl = K_ARRAY::buildArray(*hmesh->_crd, varString0, cnto, -1, "NGON", false);
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
 
@@ -274,7 +274,7 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
     hmesh->_ng->export_to_array(cnto);
   
     // pushing out the mesh
-    PyObject *tpl = K_ARRAY::buildArray(*hmesh->_crd, varString, cnto, -1, "NGON", false);
+    PyObject *tpl = K_ARRAY::buildArray(*hmesh->_crd, varString0, cnto, -1, "NGON", false);
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
 
@@ -299,7 +299,7 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
     hmesh->_ng->export_to_array(cnto);
   
     // pushing out the mesh
-    PyObject *tpl = K_ARRAY::buildArray(*hmesh->_crd, varString, cnto, -1, "NGON", false);
+    PyObject *tpl = K_ARRAY::buildArray(*hmesh->_crd, varString0, cnto, -1, "NGON", false);
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
 
@@ -324,7 +324,7 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
     hmesh->_ng->export_to_array(cnto);
   
     // pushing out the mesh
-    PyObject *tpl = K_ARRAY::buildArray(*hmesh->_crd, varString, cnto, -1, "NGON", false);
+    PyObject *tpl = K_ARRAY::buildArray(*hmesh->_crd, varString0, cnto, -1, "NGON", false);
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
 
@@ -440,272 +440,25 @@ PyObject* K_INTERSECTOR::splitNonStarCells(PyObject* self, PyObject* args)
   return tpl;
 }
 
-//=============================================================================
-/* Agglomerate superfuous faces (overdefined polyhedra) */
-//=============================================================================
-PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
+
+
+template <typename MESH_t, typename SENSOR_t>
+void __adapt(
+  K_FLD::FloatArray& crd, ngon_type& ngi, typename SENSOR_t::data_type& data, E_Int itermax,
+  const char* varString, PyObject *out, void* hook_hmesh=nullptr, const K_FLD::IntArray* cntS = nullptr)
 {
-  PyObject *arr(nullptr), *arrS(nullptr);
-  E_Int sensor_type(0), itermax(0), force_basic(0);
-  
 
-  if (!PYPARSETUPLEI(args, "OOlll", "OOiii", &arr, &arrS, &sensor_type, &itermax, &force_basic)) return NULL;
-
-  K_FLD::FloatArray* f(nullptr), *fS(nullptr);
-  K_FLD::IntArray* cn(nullptr), *cnS(nullptr);
-  char* varString, *eltType, *varString2, *eltType2;
-  // Check the mesh (NGON)
-  E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
-  if (err)
-  {
-    delete f; delete cn;
-    return NULL;
-  }
-
-    
-  K_FLD::FloatArray & crd = *f;
-  K_FLD::IntArray & cnt = *cn;
-
-  E_Int ni, nj, nk;
-  E_Int res2 = K_ARRAY::getFromArray(arrS, varString2, fS, ni, nj, nk,
-                                     cnS, eltType2);
-  
-  K_FLD::FloatArray & crdS = *fS;
-  const K_FLD::IntArray & cntS = *cnS;
-
-  if (sensor_type == 1 /*xensor*/)
-  {
-    if ( (res2 != 2) || ((res2 == 2) && (strcmp(eltType2, "HEXA") != 0) ) )
-    {
-     PyErr_SetString(PyExc_ValueError,
-       "adaptCells: xsensor currently support only HEXA mesh as source mesh.");
-     delete f; delete cn;
-     delete fS; delete cnS;
-     return NULL;
-    }
-  }
-  
-  //~ std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
-  //~ std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
-  
-  typedef ngon_t<K_FLD::IntArray> ngon_type;
-  ngon_type ngi(cnt);
-
-  PyObject *l(PyList_New(0));
-
-  E_Int elt_type = check_has_NGON_BASIC_ELEMENT(ngi);
-  if (elt_type==-1)
-  {
-    PyErr_SetString(PyExc_ValueError,
-       "adaptCells: input mesh to adapt must have basic elements and must be in NGON format.");
-    delete f; delete cn;
-    delete fS; delete cnS;
-    return NULL;
-  }
-  else if (elt_type==elt_t::HEXA && !force_basic)
-  {
-    using mesh_type = NUGA::hierarchical_mesh<K_MESH::Hexahedron, NUGA::ISO>;
-
-    mesh_type hmesh(crd, ngi);
-  
-    if (sensor_type == 0)
-    {
-      using sensor_t = NUGA::geom_sensor<mesh_type>;
-      sensor_t sensor(hmesh, 1/*max_pts per cell*/, itermax);
-      NUGA::adaptor<mesh_type, sensor_t>::run(hmesh, sensor, crdS);
-    }
-    else if (sensor_type == 1) //xsensor
-    {
-      using sensor_t = NUGA::xsensor<K_MESH::Hexahedron, mesh_type>;
-      sensor_t sensor(hmesh, cntS, itermax);
-      NUGA::adaptor<mesh_type, sensor_t>::run(hmesh, sensor, crdS);
-    }
-    else
-    {
-      using sensor_t = NUGA::geom_sensor2<mesh_type>;
-      sensor_t sensor(hmesh, 1/*max_pts per cell*/, itermax);
-      NUGA::adaptor<mesh_type, sensor_t>::run(hmesh, sensor, crdS);
-    }
-  
-    std::vector<E_Int> oids;
-    hmesh.conformize(oids);
-
-    K_FLD::IntArray cnto;
-    hmesh._ng->export_to_array(cnto);
-  
-    // pushing out the mesh
-    PyObject *tpl = K_ARRAY::buildArray(*hmesh._crd, varString, cnto, -1, "NGON", false);
-    PyList_Append(l, tpl);
-    Py_DECREF(tpl);
-
-    // pushing out PG history
-    tpl = K_NUMPY::buildNumpyArray(&oids[0], oids.size(), 1, 0);
- 
-    PyList_Append(l, tpl);
-    Py_DECREF(tpl);
-
-  }
-  else if (elt_type==elt_t::TETRA && !force_basic)
-  {
-    using mesh_type = NUGA::hierarchical_mesh<K_MESH::Tetrahedron, NUGA::ISO>;
-    mesh_type hmesh(crd, ngi);
-
-    if (sensor_type == 1) sensor_type = 0; //currently xsensor not supported
-  
-    //std::cout << "sensor_type : " << sensor_type << std::endl;
-  
-    if (sensor_type == 0)
-    {
-      //std::cout << "adapting..." << std::endl;
-      using sensor_t = NUGA::geom_sensor<mesh_type>;
-      sensor_t sensor(hmesh, 1/*max_pts per cell*/, itermax);
-      NUGA::adaptor<mesh_type, sensor_t>::run(hmesh, sensor, crdS);
-    }
-    else if (sensor_type == 1) //xsensor
-    {
-      //using sensor_t = NUGA::xsensor<K_MESH::Tetrahedron, mesh_type>;
-      //sensor_t sensor(hmesh, cntS, itermax);
-      //NUGA::adaptor<mesh_type, sensor_t>::run(hmesh, sensor, crdS);
-    }
-    else
-    {
-      //std::cout << "adapting..." << std::endl;
-      using sensor_t = NUGA::geom_sensor2<mesh_type>;
-      sensor_t sensor(hmesh, 1/*max_pts per cell*/, itermax);
-      NUGA::adaptor<mesh_type, sensor_t>::run(hmesh, sensor, crdS);
-    }   
-
-    std::vector<E_Int> oids;
-    hmesh.conformize(oids);
-    K_FLD::IntArray cnto;
-    hmesh._ng->export_to_array(cnto);
-      
-    // pushing out the mesh
-    PyObject *tpl = K_ARRAY::buildArray(*hmesh._crd, varString, cnto, -1, "NGON", false);
-    PyList_Append(l, tpl);
-    Py_DECREF(tpl);
-
-    // pushing out PG history
-    tpl = K_NUMPY::buildNumpyArray(&oids[0], oids.size(), 1, 0);
- 
-    PyList_Append(l, tpl);
-    Py_DECREF(tpl);
-  }
-  else if (elt_type==elt_t::PRISM3 && !force_basic)
-  {
-    using mesh_type = NUGA::hierarchical_mesh<K_MESH::Prism, NUGA::ISO>;
-    mesh_type hmesh(crd, ngi);
-
-    if (sensor_type == 1) sensor_type = 0; //currently xsensor not supported
-  
-    //std::cout << "sensor_type : " << sensor_type << std::endl;
-  
-    if (sensor_type == 0)
-    {
-      std::cout << "force_basic" << std::endl;
-      using sensor_t = NUGA::geom_sensor<mesh_type>;
-      sensor_t sensor(hmesh, 1/*max_pts per cell*/, itermax);
-      NUGA::adaptor<mesh_type, sensor_t>::run(hmesh, sensor, crdS);
-    }
-    else if (sensor_type == 1) //xsensor
-    {
-      //using sensor_t = NUGA::xsensor<K_MESH::Tetrahedron, mesh_type>;
-      //sensor_t sensor(hmesh, cntS, itermax);
-      //NUGA::adaptor<mesh_type, sensor_t>::run(hmesh, sensor, crdS);
-    }
-    else
-    {
-      //std::cout << "adapting..." << std::endl;
-      using sensor_t = NUGA::geom_sensor2<mesh_type>;
-      sensor_t sensor(hmesh, 1/*max_pts per cell*/, itermax);
-      NUGA::adaptor<mesh_type, sensor_t>::run(hmesh, sensor, crdS);
-    }
-
-    std::vector<E_Int> oids;
-    hmesh.conformize(oids);
-
-    K_FLD::IntArray cnto;
-    hmesh._ng->export_to_array(cnto);
-  
-    // pushing out the mesh
-    PyObject *tpl = K_ARRAY::buildArray(*hmesh._crd, varString, cnto, -1, "NGON", false);
-    PyList_Append(l, tpl);
-    Py_DECREF(tpl);
-
-    // pushing out PG history
-    tpl = K_NUMPY::buildNumpyArray(&oids[0], oids.size(), 1, 0);
- 
-    PyList_Append(l, tpl);
-    Py_DECREF(tpl);
-  }
-  else if (elt_type==elt_t::BASIC || force_basic)
-  {    
-    using mesh_type = NUGA::hierarchical_mesh<K_MESH::Basic, NUGA::ISO>;
-    mesh_type hmesh(crd, ngi);
-
-    if (sensor_type == 1) sensor_type = 0; //currently xsensor not supported
-  
-    //std::cout << "sensor_type : " << sensor_type << std::endl;
-  
-    if (sensor_type == 0)
-    {
-      //std::cout << "adapting..." << std::endl;
-      using sensor_t = NUGA::geom_sensor<mesh_type>;
-      sensor_t sensor(hmesh, 1/*max_pts per cell*/, itermax);
-      NUGA::adaptor<mesh_type, sensor_t>::run(hmesh, sensor, crdS);
-    } 
-    else if (sensor_type == 1) //xsensor
-    {
-      //using sensor_t = NUGA::xsensor<K_MESH::Basic, mesh_type>;
-      //sensor_t sensor(hmesh, cntS, itermax);
-      //NUGA::adaptor<mesh_type, sensor_t>::run(hmesh, sensor, crdS);
-    }
-    else
-    {
-      //std::cout << "adapting..." << std::endl;
-      using sensor_t = NUGA::geom_sensor2<mesh_type>;
-      sensor_t sensor(hmesh, 1/*max_pts per cell*/, itermax);
-      NUGA::adaptor<mesh_type, sensor_t>::run(hmesh, sensor, crdS);
-    }   
-
-    std::vector<E_Int> oids;
-    hmesh.conformize(oids);
-    K_FLD::IntArray cnto;
-    hmesh._ng->export_to_array(cnto);
-  
-    // pushing out the mesh
-    PyObject *tpl = K_ARRAY::buildArray(*hmesh._crd, varString, cnto, -1, "NGON", false);
-    PyList_Append(l, tpl);
-    Py_DECREF(tpl);
-
-    // pushing out PG history
-    tpl = K_NUMPY::buildNumpyArray(&oids[0], oids.size(), 1, 0);
- 
-    PyList_Append(l, tpl);
-    Py_DECREF(tpl);
-  }
-
-  delete f; delete cn;
-  delete fS; delete cnS;
-  return l;
-}
-
-template <typename ELT_t>
-void __adapt(K_FLD::FloatArray& crd, ngon_type& ngi, std::vector<E_Int>& nodal_data, const char* varString, PyObject *out, void* hook_hmesh=nullptr)
-{
-  using mesh_type = NUGA::hierarchical_mesh<ELT_t, NUGA::ISO>;
-  mesh_type * hmesh = nullptr;
+  MESH_t * hmesh = nullptr;
   if (hook_hmesh != nullptr){
-    hmesh = (mesh_type*)hook_hmesh;
+    hmesh = (MESH_t*)hook_hmesh;
     hmesh->relocate(crd, ngi); //refresh pointers
   }
   else 
-    hmesh = new mesh_type(crd, ngi);
+    hmesh = new MESH_t(crd, ngi);
 
-  using sensor_t = NUGA::geom_sensor3<mesh_type>;
-  sensor_t sensor(*hmesh, 1/*max_pts per cell*/);
-  NUGA::adaptor<mesh_type, sensor_t>::run(*hmesh, sensor, nodal_data);
- 
+  SENSOR_t sensor(*hmesh, 1/*max_pts per cell*/, itermax, cntS);
+  NUGA::adaptor<MESH_t, SENSOR_t>::run(*hmesh, sensor, data);
+
   std::vector<E_Int> oids;
   if (!hook_hmesh)
     hmesh->conformize(oids);
@@ -727,6 +480,204 @@ void __adapt(K_FLD::FloatArray& crd, ngon_type& ngi, std::vector<E_Int>& nodal_d
   }
 
   if (!hook_hmesh) delete hmesh;
+}
+
+//=============================================================================
+/* Agglomerate superfuous faces (overdefined polyhedra) */
+//=============================================================================
+PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
+{
+  PyObject *arr(nullptr), *arrS(nullptr), *hook_hmesh(nullptr);
+  E_Int sensor_type(0), itermax(0);
+
+  //
+  if (!PYPARSETUPLEI(args, "OOllO", "OOiiO", &arr, &arrS, &sensor_type, &itermax, &hook_hmesh)) return NULL;
+
+  K_FLD::FloatArray* f(nullptr), *fS(nullptr);
+  K_FLD::IntArray* cn(nullptr), *cnS(nullptr);
+  char* varString, *eltType, *varString2, *eltType2;
+  // Check the mesh (NGON)
+  E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
+  if (err)
+  {
+    delete f; delete cn;
+    return NULL;
+  }
+
+  //
+  K_FLD::FloatArray & crd = *f;
+  K_FLD::IntArray & cnt = *cn;
+
+  E_Int ni, nj, nk;
+  E_Int res2 = K_ARRAY::getFromArray(arrS, varString2, fS, ni, nj, nk,
+                                     cnS, eltType2);
+  
+  K_FLD::FloatArray & crdS = *fS;
+  const K_FLD::IntArray & cntS = *cnS;
+
+  if (sensor_type == 1 /*xensor*/)
+  {
+    if ( (res2 != 2) || ((res2 == 2) && (strcmp(eltType2, "HEXA") != 0) ) )
+    {
+     PyErr_SetString(PyExc_ValueError,
+       "adaptCells: xsensor currently support only HEXA mesh as source mesh.");
+     delete f; delete cn;
+     delete fS; delete cnS;
+     return NULL;
+    }
+  }
+
+  bool update_hook = (hook_hmesh != Py_None);
+  elt_t elt_type (elt_t::UNKN);
+  void * hookhm = nullptr;
+  if (update_hook)
+  {
+    void** packet = NULL;
+#if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
+    packet = (void**) PyCObject_AsVoidPtr(hook_hmesh);
+#else
+    packet = (void**) PyCapsule_GetPointer(hook_hmesh, NULL);
+#endif
+    E_Int type = *((E_Int*)(packet[0]));
+    NUGA::eSUBDIV_TYPE sub_type = *((NUGA::eSUBDIV_TYPE*)(packet[2]));
+    elt_type = *((elt_t*)(packet[3]));
+
+    hookhm = (void*)packet[1];
+
+    if (type != HMESH_HOOK_ID)
+    {
+      PyErr_SetString(PyExc_TypeError, 
+                    "adaptCells: this function requires a identify hmesh hook.");
+      return NULL;
+    }
+  }
+  
+  //~ std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
+  //~ std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
+  
+  typedef ngon_t<K_FLD::IntArray> ngon_type;
+  ngon_type ngi(cnt);
+
+  PyObject *l(PyList_New(0));
+
+  if (elt_type == elt_t::UNKN)
+    elt_type = check_has_NGON_BASIC_ELEMENT(ngi);
+
+  if (elt_type==-1)
+  {
+    PyErr_SetString(PyExc_ValueError,
+       "adaptCells: input mesh to adapt must have basic elements and must be in NGON format.");
+    delete f; delete cn;
+    delete fS; delete cnS;
+    return NULL;
+  }
+  else if (elt_type==elt_t::HEXA)
+  {
+    using ELT_type = K_MESH::Hexahedron;
+    using mesh_type = NUGA::hierarchical_mesh<ELT_type, NUGA::ISO>;
+
+    mesh_type hmesh(crd, ngi);
+  
+    if (sensor_type == 0)
+    {
+      using sensor_t = NUGA::geom_sensor<mesh_type>;
+      __adapt<mesh_type, sensor_t>(crd, ngi, crdS, itermax, varString, l, hookhm);
+    }
+    else if (sensor_type == 1) //xsensor
+    {
+      using sensor_t = NUGA::xsensor<ELT_type, mesh_type>;
+      __adapt<mesh_type, sensor_t>(crd, ngi, crdS, itermax, varString, l, hookhm, &cntS);
+    }
+    else
+    {
+      using sensor_t = NUGA::geom_sensor2<mesh_type>;
+      __adapt<mesh_type, sensor_t>(crd, ngi, crdS, itermax, varString, l, hookhm);
+    }
+  }
+  else if (elt_type==elt_t::TETRA)
+  {
+    using ELT_type = K_MESH::Tetrahedron;
+    using mesh_type = NUGA::hierarchical_mesh<ELT_type, NUGA::ISO>;
+
+    mesh_type hmesh(crd, ngi);
+
+    if (sensor_type == 1) sensor_type = 0; //currently xsensor not supported
+  
+    //std::cout << "sensor_type : " << sensor_type << std::endl;
+
+    if (sensor_type == 0)
+    {
+      using sensor_t = NUGA::geom_sensor<mesh_type>;
+      __adapt<mesh_type, sensor_t>(crd, ngi, crdS, itermax, varString, l, hookhm);
+    }
+    else if (sensor_type == 1) //xsensor
+    {
+      //using sensor_t = NUGA::xsensor<ELT_type, mesh_type>;
+      //__adapt<mesh_type, sensor_t>(crd, ngi, crdS, itermax, varString, l, hookhm);
+    }
+    else
+    {
+      using sensor_t = NUGA::geom_sensor2<mesh_type>;
+      __adapt<mesh_type, sensor_t>(crd, ngi, crdS, itermax, varString, l, hookhm);
+    }
+  }
+  else if (elt_type==elt_t::PRISM3)
+  {
+    using ELT_type = K_MESH::Prism;
+    using mesh_type = NUGA::hierarchical_mesh<ELT_type, NUGA::ISO>;
+
+    mesh_type hmesh(crd, ngi);
+
+    if (sensor_type == 1) sensor_type = 0; //currently xsensor not supported
+
+    //std::cout << "sensor_type : " << sensor_type << std::endl;
+
+    if (sensor_type == 0)
+    {
+      using sensor_t = NUGA::geom_sensor<mesh_type>;
+      __adapt<mesh_type, sensor_t>(crd, ngi, crdS, itermax, varString, l, hookhm);
+    }
+    else if (sensor_type == 1) //xsensor
+    {
+      //using sensor_t = NUGA::xsensor<ELT_type, mesh_type>;
+      //__adapt<mesh_type, sensor_t>(crd, ngi, crdS, varString, l, hookhm);
+    }
+    else
+    {
+      using sensor_t = NUGA::geom_sensor2<mesh_type>;
+      __adapt<mesh_type, sensor_t>(crd, ngi, crdS, itermax, varString, l, hookhm);
+    }
+  }
+  else if (elt_type==elt_t::BASIC)
+  {    
+    using ELT_type = K_MESH::Basic;
+    using mesh_type = NUGA::hierarchical_mesh<ELT_type, NUGA::ISO>;
+    mesh_type hmesh(crd, ngi);
+
+    if (sensor_type == 1) sensor_type = 0; //currently xsensor not supported
+
+    //std::cout << "sensor_type : " << sensor_type << std::endl;
+
+    if (sensor_type == 0)
+    {
+      using sensor_t = NUGA::geom_sensor<mesh_type>;
+      __adapt<mesh_type, sensor_t>(crd, ngi, crdS, itermax, varString, l, hookhm);
+    }
+    else if (sensor_type == 1) //xsensor
+    {
+      //using sensor_t = NUGA::xsensor<ELT_type, mesh_type>;
+      //__adapt<mesh_type, sensor_t>(crd, ngi, crdS, itermax, varString, l, hookhm);
+    }
+    else
+    {
+      using sensor_t = NUGA::geom_sensor2<mesh_type>;
+      __adapt<mesh_type, sensor_t>(crd, ngi, crdS, itermax, varString, l, hookhm);
+    }
+  }
+
+  delete f; delete cn;
+  delete fS; delete cnS;
+  return l;
 }
 
 //=============================================================================
@@ -849,13 +800,33 @@ PyObject* K_INTERSECTOR::adaptCellsNodal(PyObject* self, PyObject* args)
     return NULL;
   }
   else if (elt_type == elt_t::HEXA)
-    __adapt<K_MESH::Hexahedron>(crd, ngi, nodal_data, varString, l, hookhm);
+  {
+    using ELT_type = K_MESH::Hexahedron;
+    using mesh_type = NUGA::hierarchical_mesh<ELT_type, NUGA::ISO>;
+    using sensor_type = NUGA::geom_sensor3<mesh_type>;
+    __adapt<mesh_type, sensor_type>(crd, ngi, nodal_data, -1/*itermax*/, varString, l, hookhm);
+  }
   else if (elt_type == elt_t::TETRA)
-    __adapt<K_MESH::Tetrahedron>(crd, ngi, nodal_data, varString, l, hookhm);
+  {
+    using ELT_type = K_MESH::Tetrahedron;
+    using mesh_type = NUGA::hierarchical_mesh<ELT_type, NUGA::ISO>;
+    using sensor_type = NUGA::geom_sensor3<mesh_type>;
+    __adapt<mesh_type, sensor_type>(crd, ngi, nodal_data, -1/*itermax*/, varString, l, hookhm);
+  }
   else if (elt_type == elt_t::PRISM3)
-    __adapt<K_MESH::Prism>(crd, ngi, nodal_data, varString, l, hookhm);
+  {
+    using ELT_type = K_MESH::Prism;
+    using mesh_type = NUGA::hierarchical_mesh<ELT_type, NUGA::ISO>;
+    using sensor_type = NUGA::geom_sensor3<mesh_type>;
+    __adapt<mesh_type, sensor_type>(crd, ngi, nodal_data, -1/*itermax*/, varString, l, hookhm);
+  }
   else if (elt_type == elt_t::BASIC)
-    __adapt<K_MESH::Basic>(crd, ngi, nodal_data, varString, l, hookhm);
+  {
+    using ELT_type = K_MESH::Basic;
+    using mesh_type = NUGA::hierarchical_mesh<ELT_type, NUGA::ISO>;
+    using sensor_type = NUGA::geom_sensor3<mesh_type>;
+    __adapt<mesh_type, sensor_type>(crd, ngi, nodal_data, -1/*itermax*/, varString, l, hookhm);
+  }
 
   return l;
 }

@@ -70,7 +70,7 @@ class geom_sensor
     static constexpr eSUBDIV_TYPE sub_type = mesh_t::sub_type;
     using output_type = typename mesh_t::output_type;
     
-    geom_sensor(mesh_t& mesh, E_Int max_pts_per_cell = 1, E_Int itermax = -1)
+    geom_sensor(mesh_t& mesh, E_Int max_pts_per_cell = 1, E_Int itermax = -1, const void* dummy=nullptr)
             :_hmesh(mesh), _is_init(false), _refine(true), _has_agglo(false), _agglo(true), _max_pts_per_cell(max_pts_per_cell), _iter_max((itermax <= 0) ? INT_MAX : itermax), _iter(0){}
     
     virtual E_Int init(data_type& data);
@@ -627,7 +627,7 @@ class geom_sensor2 : public geom_sensor<mesh_t, crd_t>
         
         
         //////////
-        geom_sensor2(mesh_t& mesh, E_Int max_pts_per_cell = 1, E_Int itermax = -1): parent_t(mesh, max_pts_per_cell, itermax){}
+        geom_sensor2(mesh_t& mesh, E_Int max_pts_per_cell = 1, E_Int itermax = -1, const void* dummy=nullptr): parent_t(mesh, max_pts_per_cell, itermax){}
         void init2();
         bool compute(typename parent_t::data_type& data, Vector_t<E_Int>& adap_incr, bool do_agglo);
         void update(E_Int i);
@@ -781,7 +781,7 @@ class geom_sensor3 : public geom_sensor<mesh_t, crd_t>
         
         
         //////////
-        geom_sensor3(mesh_t& mesh, E_Int max_pts_per_cell = 1, E_Int itermax = -1): parent_t(mesh, max_pts_per_cell, itermax){}
+        geom_sensor3(mesh_t& mesh, E_Int max_pts_per_cell = 1, E_Int itermax = -1, const void* dummy=nullptr): parent_t(mesh, max_pts_per_cell, itermax){}
         E_Int init(data_type level);
         bool compute(data_type& data, Vector_t<E_Int>& adap_incr, bool do_agglo);
 };

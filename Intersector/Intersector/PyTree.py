@@ -1012,7 +1012,7 @@ def closeOctalCells(t):
 
 def _closeOctalCells(t):
     """Adapts a polyhedral mesh t1 with repsect to t2 points.
-    Usage: adaptCells(t1, t2, sensor_type)"""
+    Usage: _closeOctalCells(t)"""
 
     zones = Internal.getZones(t)
 
@@ -1035,13 +1035,13 @@ def _closeOctalCells(t):
 # IN: sensor_type : basic (0) or xsensor (1)
 # OUT: returns a 3D NGON Mesh with adapted cells
 #==============================================================================
-def adaptCells(t, t2, sensor_type = 0, itermax=-1, force_basic=0):
+def adaptCells(t, t2, sensor_type = 0, itermax=-1, hmesh=None):
      
     tp = Internal.copyRef(t)
-    _adaptCells(tp, t2, sensor_type, itermax, force_basic)
+    _adaptCells(tp, t2, sensor_type, itermax, hmesh)
     return tp
 
-def _adaptCells(t, t2, sensor_type = 0, itermax=-1, force_basic=0):
+def _adaptCells(t, t2, sensor_type = 0, itermax=-1, hmesh=None):
     """Adapts a polyhedral mesh t1 with repsect to t2 points.
     Usage: adaptCells(t1, t2, sensor_type)"""
 
@@ -1049,20 +1049,26 @@ def _adaptCells(t, t2, sensor_type = 0, itermax=-1, force_basic=0):
 
     zones = Internal.getZones(t)
 
+    i=-1
     for z in zones:
+        i+=1
         coords = C.getFields(Internal.__GridCoordinates__, z)[0]
         if coords == []: continue
 
         coords = Converter.convertArray2NGon(coords)
-        res = intersector.adaptCells(coords, source, sensor_type, itermax, force_basic)
+
+        if hmesh is not None:
+            res = intersector.adaptCells(coords, source, sensor_type, itermax, hmesh[i])
+        else:
+            res = intersector.adaptCells(coords, source, sensor_type, itermax, None)
 
         mesh = res[0]
-        pg_oids=res[1]
-
         # MAJ du maillage de la zone
-        C.setFields([mesh], z, 'nodes') 
-        # MAJ POINT LISTS #
-        updatePointLists(z, zones, pg_oids)
+        C.setFields([mesh], z, 'nodes')
+        if (len(res) > 1):
+            pg_oids=res[1]
+            # MAJ POINT LISTS #
+            updatePointLists(z, zones, pg_oids)
 
     return t
 
@@ -1089,8 +1095,9 @@ def _adaptCellsNodal(t, nodal_vals, hmesh=None):
         print('must give one nodal list (sized as cooridnates) per zone')
         return
 
-    i=0
+    i=-1
     for z in zones:
+        i+=1
         coords = C.getFields(Internal.__GridCoordinates__, z)[0]
         if coords == []: continue
 
@@ -1110,7 +1117,6 @@ def _adaptCellsNodal(t, nodal_vals, hmesh=None):
             pg_oids=res[1]
             # MAJ POINT LISTS #
             updatePointLists(z, zones, pg_oids)
-        i=i+1
 
     return t
 
