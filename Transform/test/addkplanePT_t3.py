@@ -12,7 +12,7 @@ a = C.addBC2Zone(a, 'overlap1', 'BCOverlap', 'jmin')
 a = C.addBC2Zone(a, 'match1', 'BCMatch', 'imax', a, 'imin', [1,2,3])
 a = C.addBC2Zone(a, 'nearmatch1', 'BCNearMatch', 'jmax', a, 'jmin', [1,2,3])
 a = C.initVars(a, 'F', 2.); a = C.initVars(a, 'centers:G', 1.)
-a = T.addkplane(a,N=3)
+a = T.addkplane(a, N=3)
 test.testT(a, 1)
 
 # 2D structure + champs en noeuds + [champs en centres] + CL
@@ -36,12 +36,12 @@ test.testT(a, 2)
 a = G.cart((0.,0.,0.),(0.1,0.1,1.),(11,10,1))
 a = C.convertArray2Hexa(a)
 a = C.initVars(a, 'F',2.); a = C.initVars(a, 'centers:G',1.)
-a = T.addkplane(a,N=3)
+a = T.addkplane(a, N=3)
 test.testT(a, 4)
 
 # TRI
 a = G.cart((0.,0.,0.),(0.1,0.1,1.),(11,10,1))
 a = C.convertArray2Tetra(a)
 a = C.initVars(a, 'F',2.); a = C.initVars(a, 'centers:G',1.)
-a = T.addkplane(a,N=3)
+a = T.addkplane(a, N=3)
 test.testT(a, 5)

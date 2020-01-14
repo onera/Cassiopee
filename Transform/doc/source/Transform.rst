@@ -262,14 +262,14 @@ Basic operations
 
     .. A1.O0.D1
     
-    Add one or more planes at constant heights z0+1, ...,z0+N.
+    Add one or more planes at constant heights in z: z0+1, ...,z0+N.
     Exists also as an in-place version (_addkplane) which modifies a and returns None.
    
-    :param a: structured mesh
+    :param a: any mesh
     :type a: [array, list of arrays] or [zone, list of zones, base, pyTree]
     :param N: number of layers in the k direction to be added
     :type N: integer
-    :return: a structured mesh
+    :return: expanded mesh
     :rtype: identical to input
 
     *Example of use:*

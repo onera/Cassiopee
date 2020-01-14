@@ -1126,17 +1126,16 @@ def checkOSMesa(additionalLibPaths=[], additionalIncludePaths=[]):
 # Retourne: (True/False, chemin des includes, chemin de la librairie)
 #=============================================================================
 def checkOCE(additionalLibPaths=[], additionalIncludePaths=[]):
-    libnames = ['TKernel', 'TKMath', 'TKGeomBase', 'TKG2d', 'TKG3d', 'TKBRep', 
-        'TKGeomAlgo', 'TKBool', 'TKPrim', 'TKShHealing', 'TKTopAlgo', 'TKXSBase',
-        'TKIGES', 'TKSTEP', 'TKSTEP2']
-    libnames2 = ['TKXDESTEP']
     l = checkLibFile__('libTKernel.so', additionalLibPaths)
     if l is None:
         l = checkLibFile__('libTKernel.a', additionalLibPaths)
         if l is None:
             l = checkLibFile__('libTKernel.dll.a', additionalLibPaths)
-            
     i = checkIncFile__('oce/TopTools.hxx', additionalIncludePaths)
+    if i is not None: i = i+'/oce'
+    if i is None: 
+        i = checkIncFile__('opencascade/TopTools.hxx', additionalIncludePaths)
+        if i is not None: i = i+'/opencascade'
     if i is not None and l is not None:
         print('Info: libOCE detected at %s.'%l)
         return (True, i, l)    

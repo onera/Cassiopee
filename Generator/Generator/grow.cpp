@@ -20,7 +20,6 @@
 // grow an array of one layer
 
 # include "generator.h"
-
 using namespace K_FLD;
 
 //=============================================================================

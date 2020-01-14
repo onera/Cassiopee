@@ -101,12 +101,13 @@ EXPORTFILE = "fig.png"
 #### TODO : link the following variables with preference in GUI of Cassiopee
 # local NUM_COLORS for colormap
 NUM_COLORS = 8
-# local color map set (cf: http://matplotlib.org/examples/color/colormaps_reference.html)
-#COLOR_MAP = 'Set2'
-# COLOR_MAP = 'rainbow'
+# local color map set (see: http://matplotlib.org/examples/color/colormaps_reference.html)
 COLOR_MAP = 'Set1'
-
+# default base name
 default_base = 'Base'
+# Navigation 0: matplotlib, 1: tecplot like
+NAVIGATION = 0
+
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 # TrueFalseDic = {1: True, 0: False}
@@ -3074,19 +3075,20 @@ class GraphTK(TK.Toplevel):
         self.canvas.get_tk_widget().grid_rowconfigure(0,weight=1)
         self.canvas.get_tk_widget().grid(row=0,column=0,sticky="NSEW")
         self.canvas.draw()
-        # ax click binding
-        #self.canvas.mpl_connect('button_press_event',self.clickOnCanvas)
-
+        
         # interactive zoom/pan
         self._pressed_button = None  # To store active button
         self._axes = None  # To store x and y axes concerned by interaction
         self._event = None  # To store reference event during interaction
         self.scale_factor = 1.1 # scale factor
         self._cids = []
-        self.canvas.mpl_connect('scroll_event', self._onMouseWheel)
-        self.canvas.mpl_connect('button_press_event', self._onMousePress)
-        self.canvas.mpl_connect('button_release_event', self._onMouseRelease)
-        self.canvas.mpl_connect('motion_notify_event', self._onMouseMotion)
+        if NAVIGATION == 0:
+            self.canvas.mpl_connect('button_press_event', self.clickOnCanvas)
+        else:
+            self.canvas.mpl_connect('scroll_event', self._onMouseWheel)
+            self.canvas.mpl_connect('button_press_event', self._onMousePress)
+            self.canvas.mpl_connect('button_release_event', self._onMouseRelease)
+            self.canvas.mpl_connect('motion_notify_event', self._onMouseMotion)
 
         # Toolbar
         toolbar_frame = TTK.Frame(self)
@@ -3327,13 +3329,6 @@ class GraphTK(TK.Toplevel):
             self._patch.set_height(event.ydata - self._event.ydata)
 
         self._draw()
-    
-    #def clickOnCanvas(self, event):
-    #    try:
-    #        ax = event.inaxes
-    #        self.parent.selectPositionByName(ax.name)
-    #    except AttributeError: # Click was not on an axe
-    #        return
             
     def _onMouseWheel(self, event):
         if event.step > 0: scale_factor = self.scale_factor
@@ -3358,7 +3353,6 @@ class GraphTK(TK.Toplevel):
                                     ydata, scale_factor,
                                     ax.get_yscale())
             ax.set_ylim(ylim)
-
         if x_axes or y_axes: self._draw()
         
     def _onMousePress(self, event):
@@ -3382,12 +3376,19 @@ class GraphTK(TK.Toplevel):
             if self._pressed_button == 1:  self._pan(event)
             elif self._pressed_button == 3: self._zoomArea(event)
             self._pressed_button = None
-            # Update Axis class of Matthieu here
-        
+            
     def _onMouseMotion(self, event):
         if self._pressed_button == 1: self._pan(event)
         elif self._pressed_button == 3: self._zoomArea(event)
         
+    # ------------------------------------------------------------ clickOnCanvas
+    def clickOnCanvas(self,event):
+        try:
+            ax = event.inaxes
+            self.parent.selectPositionByName(ax.name)
+        except AttributeError: # Click was not on an axe
+            return
+
     # ------------------------------------------------------------ clickOnWindow
     def clickOnWindow(self, event):
         self.parent.selectGraphByName(self.name)
@@ -5535,7 +5536,7 @@ class editCurvesWindow(TK.Toplevel):
     def cb_visibility(self,ind):
         CB = self.frame.visibilityItem[ind]
         initialValue = CB.val.get()
-        CB.val.set(not initialValue)
+        # CB.val.set(not initialValue)
         self.subGraph.curves[ind].setValue('visible',CB.val.get())
         # If line was selected, apply this modification to all other selected lines
         if self.frame.selectionItem[ind].val.get():
@@ -5552,7 +5553,7 @@ class editCurvesWindow(TK.Toplevel):
     def cb_legend_display(self,ind):
         CB = self.frame.legend_displayItem[ind]
         initialValue = CB.val.get()
-        CB.val.set(not initialValue)
+        # CB.val.set(not initialValue)
         self.subGraph.curves[ind].setValue('legend_display',CB.val.get())
         # If line was selected, apply this modification to all other selected lines
         if self.frame.selectionItem[ind].val.get():
@@ -5568,7 +5569,7 @@ class editCurvesWindow(TK.Toplevel):
     # ------------------------------------------------------------- cb_selection
     def cb_selection(self,ind):
         CB = self.frame.selectionItem[ind]
-        CB.val.set(not CB.val.get())
+        # CB.val.set(not CB.val.get())
     # ---------------------------------------------------------------cb_rmCurves
     def cmd_rmCurves(self):
         nbDeletion = 0
@@ -5732,10 +5733,8 @@ class DesktopFrameTK(TK.Frame):
                 if not isinstance(data[k],dict): # then it is not zone oriented
                     isZoneOriented = False
                     break
-            if not isZoneOriented:
-                tmp[default_base]=data
-            else:
-                tmp = data
+            if not isZoneOriented: tmp[default_base]=data
+            else: tmp = data
             # replace zone according to a dict data
             self.replaceGroupZonesWithDict(data,oldZoneList)
     # ------------------------------------------------------ replaceGroupZonesWithTree
@@ -5753,7 +5752,7 @@ class DesktopFrameTK(TK.Frame):
                 self.deleteZoneInCurve(zoneName)
         ##### Redraw all
         self.updateAllGraph()
-        #
+
     # ------------------------------------------------------ replaceGroupZonesWithDict
     def replaceGroupZonesWithDict(self,d,oldZoneList):
         # Add new data and determine the list of new zones
@@ -5861,8 +5860,7 @@ class DesktopFrameTK(TK.Frame):
                 try:
                     gridcoord = Internal.getNodesFromType2(zone,'GridCoordinates_t')[0]
                     for child in Internal.getChildren(gridcoord):
-                        if not basename+'/'+zonename in self.data:
-                            self.data[basename+'/'+zonename]={}
+                        if not basename+'/'+zonename in self.data: self.data[basename+'/'+zonename]={}
                         self.data[basename+'/'+zonename][Internal.getName(child)]=Internal.getValue(child)
                 except IndexError: # No GridCoordinates node in this zone
                     # print('''gridcoord = Internal.getNodesFromType(zone,'GridCoordinates_t')[0] -----> Can not be loaded''')
@@ -5877,8 +5875,7 @@ class DesktopFrameTK(TK.Frame):
                             bcdata = Internal.getNodesFromType(zoneBC,'BCData_t')[0]
                             for var in Internal.getChildren(bcdata):
                                 if Internal.getType(var) == 'DataArray_t':
-                                    if not basename+'/'+zonename in self.data:
-                                        self.data[basename+'/'+zonename]={}
+                                    if not basename+'/'+zonename in self.data: self.data[basename+'/'+zonename]={}
                                     self.data[basename+'/'+zonename][Internal.getName(var)+'@'+bcname]=Internal.getValue(var)
                         except IndexError:
                             # print('''bcdata = Internal.getNodesFromType(zoneBC,'BCData_t')[0] ------> Can not be loaded''')
@@ -5892,15 +5889,12 @@ class DesktopFrameTK(TK.Frame):
                     flowsolutionname = Internal.getName(flowsolution)
                     for var in Internal.getChildren(flowsolution):
                         if Internal.getType(var)=='DataArray_t':
-                            if not basename+'/'+zonename in self.data:
-                                self.data[basename+'/'+zonename]={}
+                            if not basename+'/'+zonename in self.data: self.data[basename+'/'+zonename]={}
                             self.data[basename+'/'+zonename][Internal.getName(var)+'@'+flowsolutionname]=Internal.getValue(var)
     # ---------------------------------------------------------- addZoneWithDict
     def addZoneWithDict(self,d,zoneName):
-        if zoneName in d:
-            self.data[zoneName]=d[zoneName]
-        else:
-            print('''### Warning: Can not find zone %s in submitted data.'''%newZoneName)
+        if zoneName in d: self.data[zoneName] = d[zoneName]
+        else: print('''### Warning: Can not find zone %s in submitted data.'''%newZoneName)
     # ------------------------------------------------------- deleteZoneFromData
     def deleteZoneFromData(self,zoneName,oldBaseName=""):
         for k in self.data:
@@ -5923,9 +5917,7 @@ class DesktopFrameTK(TK.Frame):
     def replaceZoneWithDict(self,d,oldZoneName,newZoneName):
         # Delete old zone from data
         self.deleteZoneFromData(oldZoneName)
-        #
         self.addZoneWithDict(d,newZoneName)
-        #
         ##### Edit curves : change the zonename
         self.updateAllCurvesZoneName(oldZoneName,newZoneName)
         ##### Redraw all
@@ -5964,8 +5956,7 @@ class DesktopFrameTK(TK.Frame):
                     if zonename not in self.data:
                         graph.removeCurvesZoneName(ax_name,zonename)
         #
-        if self.editCurveWdw  is not None:
-            self.editCurveWdw.updateData()
+        if self.editCurveWdw is not None: self.editCurveWdw.updateData()
         ##### Redraw all
         self.updateAllGraph()
 #    # ------------------------------------------------------------------ setData
@@ -6034,8 +6025,7 @@ class DesktopFrameTK(TK.Frame):
                             bcdata = Internal.getNodesFromType(zoneBC,'BCData_t')[0]
                             for var in Internal.getChildren(bcdata):
                                 if Internal.getType(var) == 'DataArray_t':
-                                    if not basename+'/'+zonename in tmp:
-                                        tmp[basename+'/'+zonename]={}
+                                    if not basename+'/'+zonename in tmp: tmp[basename+'/'+zonename]={}
                                     tmp[basename+'/'+zonename][Internal.getName(var)+'@'+bcname]=Internal.getValue(var)
                         except IndexError:
                             # print('''bcdata = Internal.getNodesFromType(zoneBC,'BCData_t')[0] ------> Can not be loaded''')
@@ -6049,18 +6039,17 @@ class DesktopFrameTK(TK.Frame):
                     flowsolutionname = Internal.getName(flowsolution)
                     for var in Internal.getChildren(flowsolution):
                         if Internal.getType(var)=='DataArray_t':
-                            if not basename+'/'+zonename in tmp:
-                                tmp[basename+'/'+zonename]={}
+                            if not basename+'/'+zonename in tmp: tmp[basename+'/'+zonename]={}
                             tmp[basename+'/'+zonename][Internal.getName(var)+'@'+flowsolutionname]=Internal.getValue(var)
 
 
         self.data = OrderedDict(sorted(tmp.items(),key=lambda t : t[0]))
     # ----------------------------------------------------------------- setQueue
     def setQueue(self,queue):
-        self.queue=queue
+        self.queue = queue
     # ---------------------------------------------------------------- setThread
     def setThread(self,thread):
-        self.thread=thread
+        self.thread = thread
     # ------------------------------------------------------------- killProgramm
     def killProgramm(self):
         if self.thread:
@@ -6075,7 +6064,6 @@ class DesktopFrameTK(TK.Frame):
         self.parent.quit()
     # --------------------------------------------------------------- initialize
     def initialize(self):
-        #
         self.graphName2Id = {}
         self.graphWdwL = []
         self.addCurveWdw   = None
@@ -6184,7 +6172,6 @@ class DesktopFrameTK(TK.Frame):
         lblframeEdit.grid_rowconfigure(5,weight=1)
         lblframeEdit.grid_rowconfigure(6,weight=1)
         lblframeEdit.grid_rowconfigure(7,weight=1)
-
         #
         ## Select Graph
         #
@@ -6217,12 +6204,9 @@ class DesktopFrameTK(TK.Frame):
         lblframe.grid_columnconfigure(0,weight=1)
         lblframe.grid_rowconfigure(0,weight=1)
         #
-        try:
-            self.positionList = list(self.graphWdwL[self.activeGraph.val].subGraph.keys())
-        except IndexError:
-            self.positionList = ['']
-        except TypeError:
-            self.positionList = ['']
+        try: self.positionList = list(self.graphWdwL[self.activeGraph.val].subGraph.keys())
+        except IndexError: self.positionList = ['']
+        except TypeError: self.positionList = ['']
         self.position = cttk.Combobox(lblframe,values = self.positionList,state='readonly')
         self.position.val = self.positionList[0]
         self.position.set(self.position.val)
@@ -6321,8 +6305,7 @@ class DesktopFrameTK(TK.Frame):
         if widget.name == 'resolution':
             pattern = '^[0123456789]*$'
             default = '^default$'
-            if not re.match(pattern,val) and not re.match(default,val):
-                val=''
+            if not re.match(pattern,val) and not re.match(default,val): val=''
 #            for i in val:
 #                if i not in '0123456789':
 #                    val = ''
@@ -6334,8 +6317,7 @@ class DesktopFrameTK(TK.Frame):
                 val = ''
         elif widget.name == 'zones':
             pattern = '^[0123456789]*:[0123456789]*$'
-            if not re.match(pattern,val):
-                val = ''
+            if not re.match(pattern,val): val = ''
         if val=='':
             widget.delete(0,TK.END)
             widget.insert(TK.END,widget.lastValue)

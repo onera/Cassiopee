@@ -35,7 +35,7 @@ installPath = Dist.getInstallPath(prefix)
                                                    additionalIncludePaths)
 
 if OCEPresent:
-        OCCIncDir = OCEIncDir+'/oce'
+        OCCIncDir = OCEIncDir
 else:
         # Hack: To make a full path name for the OCC include dir (the relative path to build/... doesn't contain everything, e.g fff is not copied
         import KCore.installPath
@@ -75,51 +75,19 @@ env.SConsignFile('build/'+ELSAPROD+'/.sconsign.dblite')
 #==============================================================================
 
 occ_cassiopee = env.StaticLibrary('occ_cassiopee', srcs.srcs)
-TKernel = env.StaticLibrary('TKernel', srcs.TKernel_srcs)
-TKMath = env.StaticLibrary('TKMath', srcs.TKMath_srcs)
-TKGeomBase = env.StaticLibrary('TKGeomBase', srcs.TKGeomBase_srcs)
-TKG2d = env.StaticLibrary('TKG2d', srcs.TKG2d_srcs)
-TKG3d = env.StaticLibrary('TKG3d', srcs.TKG3d_srcs)
-TKBRep = env.StaticLibrary('TKBRep', srcs.TKBRep_srcs)
-TKBRep2 = env.StaticLibrary('TKBRep2', srcs.TKBRep2_srcs)
-TKGeomAlgo = env.StaticLibrary('TKGeomAlgo', srcs.TKGeomAlgo_srcs)
-TKBool = env.StaticLibrary('TKBool', srcs.TKBool_srcs)
-TKBool2 = env.StaticLibrary('TKBool2', srcs.TKBool2_srcs)
-TKBool3 = env.StaticLibrary('TKBool3', srcs.TKBool3_srcs)
-TKBool4 = env.StaticLibrary('TKBool4', srcs.TKBool4_srcs)
-TKPrim = env.StaticLibrary('TKPrim', srcs.TKPrim_srcs)
-TKShHealing = env.StaticLibrary('TKShHealing', srcs.TKShHealing_srcs)
-TKTopAlgo = env.StaticLibrary('TKTopAlgo', srcs.TKTopAlgo_srcs)
-TKXSBase = env.StaticLibrary('TKXSBase', srcs.TKXSBase_srcs)
-TKIGES = env.StaticLibrary('TKIGES', srcs.TKIGES_srcs)
-#TKSTEP = env.StaticLibrary('TKSTEP', srcs.TKSTEP_srcs)
-#TKSTEP2 = env.StaticLibrary('TKSTEP2', srcs.TKSTEP2_srcs)
 
 modDir = installPath+'/OCC/'
+allLibs = []; allDeps = []
+for m in srcs.allMods:
+  f = srcs.mod_srcs[m]
+  lib = env.StaticLibrary(m, f)
+  allLibs.append(lib)
+  allDeps.append(env.Install(modDir, lib))
+
 dp = env.Install(modDir, Glob('OCC/*.py'))
 dp0 = env.Install(modDir, occ_cassiopee)
 
-dp1 = env.Install(modDir, TKernel)
-dp2 = env.Install(modDir, TKMath)
-dp3 = env.Install(modDir, TKGeomBase)
-dp4 = env.Install(modDir, TKG2d)
-dp5 = env.Install(modDir, TKG3d)
-dp6 = env.Install(modDir, TKBRep)
-dp6a = env.Install(modDir, TKBRep2)
-dp7 = env.Install(modDir, TKGeomAlgo)
-dp8 = env.Install(modDir, TKBool)
-dp8a = env.Install(modDir, TKBool2)
-dp8b = env.Install(modDir, TKBool3)
-dp8c = env.Install(modDir, TKBool4)
-dp9 = env.Install(modDir, TKPrim)
-dp10 = env.Install(modDir, TKShHealing)
-dp11 = env.Install(modDir, TKTopAlgo)
-dp12 = env.Install(modDir, TKXSBase)
-dp13 = env.Install(modDir, TKIGES)
-#dp14 = env.Install(modDir, TKSTEP)
-#dp15 = env.Install(modDir, TKSTEP2)
-
 if OCEPresent:
-        env.Alias(target="install", source=[dp0,dp])
+        env.Alias(target="install", source=[dp,dp0])
 else:
-        env.Alias(target="install", source=[dp0,dp1,dp2,dp3,dp4,dp5,dp6,dp6a,dp7,dp8,dp8a,dp8b,dp8c,dp9,dp10,dp11,dp12,dp13,dp])
+        env.Alias(target="install", source=[dp, dp0]+allDeps)
