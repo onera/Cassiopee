@@ -24,6 +24,9 @@
 # include <string.h>
 # include "Array/Array.h"
 
+// for dbx
+#include <iostream>
+
 using namespace std;
 using namespace K_FLD;
 
@@ -67,8 +70,9 @@ void readTitle(FILE* ptrFile, char* titre, char* date, char* machine,
   while ((c = fgetc(ptrFile)) != '\0')
   { machine[i] = c; i++; }
   machine[i] = '\0';
-  fread(&tempsZero, sizeof(double), 1, ptrFile);
-  fread(&epsilon, sizeof(double), 1, ptrFile);
+  fread(&tempsZero, sizeof(double), 1, ptrFile); tempsZero = DBE(tempsZero);
+  fread(&epsilon, sizeof(double), 1, ptrFile); epsilon = DBE(epsilon);
+  
   if (titre != NULL) printf("titre: %s\n", titre);
   printf("date: %s\n", date);
   printf("machine: %s\n", machine);
@@ -88,12 +92,12 @@ void readEspece(FILE* ptrFile, int& numMel, char* nomMel, int& nespeces, char* n
 {
   int c;
   // numero du melange
-  fread(&numMel, sizeof(int), 1, ptrFile);
+  fread(&numMel, sizeof(int), 1, ptrFile); numMel = IBE(numMel);
   E_Int i = 0;
   while ((c = fgetc(ptrFile)) != '\0')
   { nomMel[i] = c; i++; }
   nomMel[i] = '\0';
-  fread(&nespeces, sizeof(int), 1, ptrFile);
+  fread(&nespeces, sizeof(int), 1, ptrFile); nespeces = IBE(nespeces);
   i = 0;
   for (E_Int j = 0; j < nespeces; j++)
   {
@@ -111,12 +115,12 @@ void readScalar(FILE* ptrFile, int& numGrp, char* nomGrp, int& nelem,
                 char* nomScalar, unsigned char& typeSca)
 {
   int c;
-  fread(&numGrp, sizeof(int), 1, ptrFile);
+  fread(&numGrp, sizeof(int), 1, ptrFile); numGrp = IBE(numGrp);
   E_Int i = 0;
   while ((c = fgetc(ptrFile)) != '\0')
   { nomGrp[i] = c; i++; }
   nomGrp[i] = '\0';
-  fread(&nelem, sizeof(int), 1, ptrFile);
+  fread(&nelem, sizeof(int), 1, ptrFile); nelem = IBE(nelem);
   i = 0;
   while ((c = fgetc(ptrFile)) != '\0')
   { nomScalar[i] = c; i++; }
@@ -145,57 +149,59 @@ void readThermo(FILE* ptrFile, unsigned int& read, char* name,
   unsigned int*& dthGe, unsigned int*& dthGr,
   unsigned int*& dthe, double*& dthr)
 {
-  fread(&read, sizeof(unsigned int), 1, ptrFile);
+  fread(&read, sizeof(unsigned int), 1, ptrFile); read = UIBE(read);
   printf("thermo: read %u\n", read);
-  read = 0;
+  
   int c;
   E_Int i = 0;
-  while ((c = fgetc(ptrFile)) != '\0')
+  while ( (c = fgetc(ptrFile)) != '\0')
   { name[i] = c; i++; }
   name[i] = '\0';
-  printf("thermo name %s\n", name);
-  return;
+  printf("thermo name : %s\n", name);
   if (read == 1) return;
-  fread(&nGe, sizeof(unsigned int), 1, ptrFile);
-  fread(&nGr, sizeof(unsigned int), 1, ptrFile);
-  fread(&ne, sizeof(unsigned int), 1, ptrFile);
-  fread(&nr, sizeof(unsigned int), 1, ptrFile);
-  printf("%d %d %d %d\n", nGe, nGr, ne, nr);
+  fread(&nGe, sizeof(unsigned int), 1, ptrFile); nGe = UIBE(nGe);
+  fread(&nGr, sizeof(unsigned int), 1, ptrFile); nGr = UIBE(nGr);
+  fread(&ne, sizeof(unsigned int), 1, ptrFile); ne = UIBE(ne);
+  fread(&nr, sizeof(unsigned int), 1, ptrFile); nr = UIBE(nr);
+  printf("nGe: %d %d %d %d\n", nGe, nGr, ne, nr);
   dthGe = new unsigned int [nGe];
   dthGr = new unsigned int [nGr];
   dthe = new unsigned int [ne];
   dthr = new double [nr];
-  fread(&dthGe, sizeof(unsigned int), nGe, ptrFile);
+  fread(&dthGe, sizeof(unsigned int), nGe, ptrFile); 
   fread(&dthGr, sizeof(unsigned int), nGr, ptrFile);
   fread(&dthe, sizeof(unsigned int), ne, ptrFile);
   fread(&dthr, sizeof(double), nr, ptrFile);
-  
 }
  
 void readStructure(FILE* ptrFile, unsigned int& numabs, unsigned int& numuti,
-  char* name, unsigned int& type, unsigned int& situ, int& numMel, int& numGrp)
+  char* name, unsigned char& type, unsigned char& situ, int& numMel, int& numGrp)
 {
   int c;
   E_Int i = 0;
-  fread(&numabs, sizeof(unsigned int), 1, ptrFile);
-  fread(&numuti, sizeof(unsigned int), 1, ptrFile);
+  fread(&numabs, sizeof(unsigned int), 1, ptrFile); numabs = UIBE(numabs);
+  fread(&numuti, sizeof(unsigned int), 1, ptrFile); numuti = UIBE(numuti);
   while ((c = fgetc(ptrFile)) != '\0')
   { name[i] = c; i++; }
   name[i] = '\0';
-  fread(&type, sizeof(unsigned int), 1, ptrFile);
-  fread(&situ, sizeof(unsigned int), 1, ptrFile);
-  fread(&numMel, sizeof(int), 1, ptrFile);
-  fread(&numGrp, sizeof(int), 1, ptrFile);
+  fread(&type, sizeof(unsigned char), 1, ptrFile); 
+  fread(&situ, sizeof(unsigned char), 1, ptrFile); 
+  fread(&numMel, sizeof(int), 1, ptrFile); numMel = IBE(numMel);
+  fread(&numGrp, sizeof(int), 1, ptrFile); numGrp = IBE(numGrp);
+  printf("Structure: %u %u\n", numabs, numuti);
+  printf("nom dom: %s\n", name);
+  printf("type : %u, situ = %u\n", type, situ);
 }
 
-void readDomutil(FILE* ptrFile, unsigned int& numUti, char* name)
+void readDomutil(FILE* ptrFile, unsigned int& numUti, char* nomUti)
 {
   int c;
   E_Int i = 0;
-  fread(&numUti, sizeof(unsigned int), 1, ptrFile);
+  fread(&numUti, sizeof(unsigned int), 1, ptrFile); numUti = UIBE(numUti);
   while ((c = fgetc(ptrFile)) != '\0')
-  { name[i] = c; i++; }
-  name[i] = '\0';
+  { nomUti[i] = c; i++; }
+  nomUti[i] = '\0';
+  printf("nom du domaine %s\n", nomUti);
 }
 
 //=============================================================================
@@ -239,10 +245,12 @@ E_Int K_IO::GenIO::arcread(
     return 1;
   }
 
-
   //printf("Error: arcread: not implemented.\n");
   unsigned char version;
   char name[256];
+  char fileName[256];
+  char unitName[256];
+  char nomUti[256];
   char titre[256];
   char date[256];
   char machine[256];
@@ -261,6 +269,11 @@ E_Int K_IO::GenIO::arcread(
   unsigned char typeSca;
   char unit[256];
   unsigned int read;
+  unsigned int numUti;
+  unsigned int numabs;
+  unsigned int numuti;
+  unsigned char type;
+  unsigned char situ;
   unsigned int nGe, nGr, ne, nr;
   unsigned int* dthGe=NULL;
   unsigned int *dthGr=NULL;
@@ -278,10 +291,12 @@ E_Int K_IO::GenIO::arcread(
     else if (strcmp(name, "GLOBAL") == 0) readGlobal(ptrFile, solverType, dimField);
     else if (strcmp(name, "ESPECES") == 0) readEspece(ptrFile, numMel, nomMel, nespeces, nomEspece);
     else if (strcmp(name, "SCALAIRES") == 0) readScalar(ptrFile, numGrp, nomGrp, nelem, nomScalar, typeSca);
-    else if (strcmp(name, "UNITE") == 0) readUnit(ptrFile, name, unit);
-    else if (strcmp(name, "THERMODYNAMIQUE") == 0) readThermo(ptrFile, read, name, nGe, nGr, ne, nr, dthGe, dthGr, dthe, dthr);
-    
-    else break;
+    else if (strcmp(name, "UNITE") == 0) readUnit(ptrFile, unitName, unit);
+    else if (strcmp(name, "THERMODYNAMIQUE") == 0) readThermo(ptrFile, read, fileName, nGe, nGr, ne, nr, dthGe, dthGr, dthe, dthr);
+    else if (strcmp(name, "DOMUTIL") == 0) readDomutil(ptrFile, numUti, nomUti);
+    else if (strcmp(name, "STRUCTURE") == 0) readStructure(ptrFile, numabs, numuti, name, type, situ, numMel, numGrp);
+
+    else { printf("Block pas encore implemente: %s\n", name); break; }
   }
   delete [] dthGe; delete [] dthGr; delete [] dthe; delete [] dthr;
   return 0;

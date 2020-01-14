@@ -500,12 +500,13 @@ def convertExt2Format__(fileName):
     elif extension == '.gbin': format = 'bin_plot3d'
     elif extension == '.gfmt': format = 'fmt_plot3d'
     elif extension == '.iges' or extension == '.igs': format = 'fmt_iges'
+    elif extension == '.stp' or extension == '.step': format = 'fmt_step'
     elif extension[0:4] == '.ref': format = 'bin_pickle'
     else: format = 'unknown'
     return format
 
 def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
-                       density=-1., zoneNames=None, BCFaces=None):
+                       density=-1., zoneNames=None, BCFaces=None, deflection=1.):
     """Read file and return arrays containing file data.
     Usage: a = convertFile2Arrays(fileName, options)"""
     try: import locale; locale.setlocale(locale.LC_NUMERIC, 'C') # force .
@@ -530,11 +531,19 @@ def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
         else:
             print('done.')
             return a
-    elif format == 'fmt_iges':
+    elif format == 'fmt_igs':
         try: import OCC
         except: raise ImportError("convertFile2Arrays: IGES reader requires OCC module.")
         a = OCC.convertIGES2Arrays(fileName, h=0., chordal_err=0.)
-        for c in range(len(a)): zoneNames.append('zone%d'%c)
+        if zoneNames is not None: 
+            for c in range(len(a)): zoneNames.append('zone%d'%c)
+        return a
+    elif format == 'fmt_iges' or format == 'fmt_step':
+        try: import OCC
+        except: raise ImportError("convertFile2Arrays: CAD readers requires OCC module.")
+        a = OCC.occ.convertCAD2Arrays(fileName, format, "None", "None", deflection)
+        if zoneNames is not None: 
+            for c in range(len(a)): zoneNames.append('zone%d'%c)
         return a
     elif format == 'fmt_free':
         print('Reading '+fileName+' (fmt_free)...'),

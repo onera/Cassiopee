@@ -39,15 +39,17 @@
 #endif
 
 // Define conversion from int big endian to int little endian
-#define SBE(x) *((short*)GenIO::conv2((char*)&x))
+#define SBE(x) *((short*)K_IO::GenIO::conv2((char*)&x))
 // Define conversion from int big endian to int little endian
-#define IBE(x) *((int*)GenIO::conv4((char*)&x))
+#define IBE(x) *((int*)K_IO::GenIO::conv4((char*)&x))
+// Define conversion from unsigned int big endian to unsigned int little endian
+#define UIBE(x) *((unsigned int*)K_IO::GenIO::conv4((char*)&x))
 // Define conversion from long big endian to long little endian
-#define LBE(x) *((E_LONG*)GenIO::conv8((char*)&x))
+#define LBE(x) *((E_LONG*)K_IO::GenIO::conv8((char*)&x))
 // Define conversion between float big endian to double little endian
-#define FBE(x) *((float*)GenIO::conv4((char*)&x))
+#define FBE(x) *((float*)K_IO::GenIO::conv4((char*)&x))
 // Define conversion between double big endian to double little endian
-#define DBE(x) *((double*)GenIO::conv8((char*)&x))
+#define DBE(x) *((double*)K_IO::GenIO::conv8((char*)&x))
 
 #define FldArrayF K_FLD::FldArrayF
 #define FldArrayI K_FLD::FldArrayI

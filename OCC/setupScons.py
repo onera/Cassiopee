@@ -33,7 +33,6 @@ libraryDirs = ["build/"+prod, kcoreLibDir, generatorLibDir]
 includeDirs = [kcoreIncDir, generatorIncDir]
 libraries = ["occ_cassiopee", "generator", "kcore"]
 if OCEPresent:
-    #libOCE = ["TKIGES", "TKXSBase", "TKShHealing", "TKTopAlgo", "TKPrim", "TKBool", "TKGeomAlgo", "TKBRep", "TKGeomBase", "TKG3d", "TKMath", "TKernel", "TKG2d", "TKSTEP", "TKSTL", "TKBrep"]
     libOCE = ["TKBin", "TKBinL", "TKBinTObj", "TKBinXCAF", "TKBO",
               "TKBool", "TKBRep", "TKCAF", "TKCDF", "TKernel",
               "TKFeat", "TKFillet", "TKG2d", "TKG3d", "TKGeomAlgo",
@@ -46,7 +45,6 @@ if OCEPresent:
               "TKV3d", "TKVoxel", "TKVRML", "TKXCAF", "TKXCAFSchema",
               "TKXDEIGES", "TKXDESTEP", "TKXMesh", "TKXml",
               "TKXmlL", "TKXmlTObj", "TKXmlXCAF", "TKXSBase"]
-
     libOCE = [i+".dll" for i in libOCE]
 else:
     libOCE = ["TKIGES", "TKXSBase", "TKShHealing", "TKTopAlgo", "TKPrim", "TKBool", "TKBool2", "TKBool3", "TKBool4", "TKGeomAlgo", "TKBRep", "TKBRep2", "TKGeomBase", "TKG3d", "TKMath", "TKernel", "TKG2d"]

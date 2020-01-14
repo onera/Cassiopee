@@ -96,7 +96,9 @@ TKIGES = env.StaticLibrary('TKIGES', srcs.TKIGES_srcs)
 #TKSTEP2 = env.StaticLibrary('TKSTEP2', srcs.TKSTEP2_srcs)
 
 modDir = installPath+'/OCC/'
+dp = env.Install(modDir, Glob('OCC/*.py'))
 dp0 = env.Install(modDir, occ_cassiopee)
+
 dp1 = env.Install(modDir, TKernel)
 dp2 = env.Install(modDir, TKMath)
 dp3 = env.Install(modDir, TKGeomBase)
@@ -116,7 +118,6 @@ dp12 = env.Install(modDir, TKXSBase)
 dp13 = env.Install(modDir, TKIGES)
 #dp14 = env.Install(modDir, TKSTEP)
 #dp15 = env.Install(modDir, TKSTEP2)
-dp = env.Install(modDir, Glob('OCC/*.py'))
 
 if OCEPresent:
         env.Alias(target="install", source=[dp0,dp])

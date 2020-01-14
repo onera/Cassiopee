@@ -2990,7 +2990,7 @@ static E_Int __set_ref_PGs_for_orient(const K_FLD::FloatArray& coord, ngon_t& ng
   assert(ng.is_consistent(coord.cols()));
 #endif
 
-  if (ng.PHs._type.size() < ng.PHs.size())
+  if (ng.PHs._type.size() < (E_Int)ng.PHs.size())
   {
     std::cout << "__set_ref_PGs_for_orient : input PHs does not have type set (looking for INITIAL_SKIN or CONNEXION_SKIN)" << std::endl;
     return 1;

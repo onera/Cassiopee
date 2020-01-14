@@ -68,7 +68,7 @@ def setData():
     
     numb = {'temporal_scheme':temporal_scheme,
             'ss_iteration':ss_iteration}
-    numz = {'scheme':scheme, 'time_step':time_step}
+    numz = {'scheme':scheme, 'time_step':time_step, 'senseurType':0}
 
     nzs = CPlot.getSelectedZones()
     CTK.saveTree()
