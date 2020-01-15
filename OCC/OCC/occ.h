@@ -23,8 +23,8 @@
 
 namespace K_OCC
 {
-  PyObject* convertIGES2Arrays(PyObject* self, PyObject* args);
-  PyObject* convertCAD2Arrays(PyObject* self, PyObject* args);
+  PyObject* convertCAD2Arrays1(PyObject* self, PyObject* args); // with T3Mesher
+  PyObject* convertCAD2Arrays2(PyObject* self, PyObject* args); // with OCC internal
   
   E_Int CADread(
   char* file, char* fimeFmt, E_Float h, E_Float chordal_err, E_Float gr, char*& varString,

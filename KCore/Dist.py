@@ -1131,11 +1131,13 @@ def checkOCE(additionalLibPaths=[], additionalIncludePaths=[]):
         l = checkLibFile__('libTKernel.a', additionalLibPaths)
         if l is None:
             l = checkLibFile__('libTKernel.dll.a', additionalLibPaths)
+    print(l)
     i = checkIncFile__('oce/TopTools.hxx', additionalIncludePaths)
     if i is not None: i = i+'/oce'
     if i is None: 
         i = checkIncFile__('opencascade/TopTools.hxx', additionalIncludePaths)
         if i is not None: i = i+'/opencascade'
+    print(i)
     if i is not None and l is not None:
         print('Info: libOCE detected at %s.'%l)
         return (True, i, l)    

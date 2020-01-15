@@ -30,19 +30,34 @@ srcs = ['OCC/pyOCC.cpp',
         'OCC/OCCSurface.cpp',
         'OCC/convertCAD2Arrays.cpp']
 
-allMods = ["TKBin", "TKBinL", "TKBinTObj", "TKBinXCAF", "TKBO",
-  "TKBool", "TKBRep", "TKCAF", "TKCDF", "TKernel",
-  "TKFeat", "TKFillet", "TKG2d", "TKG3d", "TKGeomAlgo",
-  "TKGeomBase", "TKHLR", "TKIGES", "TKLCAF", "TKMath",
-  "TKMesh", "TKMeshVS", "TKOffset", "TKOpenGl", 
-  "TKPrim", "TKService",
-  "TKShHealing", "TKStdLSchema",
-  "TKStdSchema", "TKSTEP", "TKSTEP209", "TKSTEPAttr",
-  "TKSTEPBase", "TKSTL", "TKTObj", "TKTopAlgo",
-  "TKV3d", "TKVoxel", "TKVRML", "TKXCAF", "TKXCAFSchema",
-  "TKXDEIGES", "TKXDESTEP", "TKXMesh", "TKXml",
-  "TKXmlL", "TKXmlTObj", "TKXmlXCAF", "TKXSBase",
-  "TKPCAF", "TKPLCAF", "TKNIS", "TKPShape", "TKShapeSchema"]
+import KCore.Dist as Dist
+if Dist.getSystem()[0] == 'mingw':
+    allMods = ["TKBin", "TKBinL", "TKBinTObj", "TKBinXCAF", "TKBO",
+    "TKBool", "TKBRep", "TKCAF", "TKCDF", "TKernel",
+    "TKFeat", "TKFillet", "TKG2d", "TKG3d", "TKGeomAlgo",
+    "TKGeomBase", "TKHLR", "TKIGES", "TKLCAF", "TKMath",
+    "TKMesh", "TKMeshVS", "TKOffset", "TKOpenGl", 
+    "TKPrim", "TKService",
+    "TKShHealing", "TKStdLSchema",
+    "TKStdSchema", "TKSTEP", "TKSTEP209", "TKSTEPAttr",
+    "TKSTEPBase", "TKSTL", "TKTObj", "TKTopAlgo",
+    "TKV3d", "TKVoxel", "TKVRML", "TKXCAF", "TKXCAFSchema",
+    "TKXDEIGES", "TKXDESTEP", "TKXMesh", "TKXml",
+    "TKXmlL", "TKXmlTObj", "TKXmlXCAF", "TKXSBase",
+    "TKPCAF", "TKPLCAF", "TKNIS", "TKPShape", "TKShapeSchema"]
+else:
+    allMods = ["TKBinL", "TKBin", "TKBinTObj",
+    "TKBinXCAF", "TKBool", "TKBO", "TKBRep",
+    "TKCAF", "TKCDF", "TKDCAF", "TKDraw", "TKernel",
+    "TKFeat", "TKFillet", "TKG2d", "TKG3d", "TKGeomAlgo",
+    "TKGeomBase", "TKHLR", "TKIGES", "TKLCAF", "TKMath",
+    "TKMesh", "TKMeshVS", "TKOffset", "TKOpenGl", "TKPrim",
+    "TKQADraw", "TKRWMesh", "TKService", "TKShHealing", "TKStdL",
+    "TKStd", "TKSTEP209", "TKSTEPAttr", "TKSTEPBase", "TKSTEP",
+    "TKSTL", "TKTObjDRAW", "TKTObj", "TKTopAlgo", "TKTopTest",
+    "TKV3d", "TKVCAF", "TKViewerTest", "TKVRML", "TKXCAF", "TKXDEDRAW",
+    "TKXDEIGES", "TKXDESTEP", "TKXMesh", "TKXmlL", "TKXml", "TKXmlTObj",
+    "TKXmlXCAF", "TKXSBase", "TKXSDRAW"]
 
 mod_srcs = {}
 for m in allMods:

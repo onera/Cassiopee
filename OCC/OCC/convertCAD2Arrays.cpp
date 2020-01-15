@@ -45,7 +45,7 @@
 // ============================================================================
 /* Essai avec utilisation de BrepMesh */
 // ============================================================================
-PyObject* K_OCC::convertCAD2Arrays(PyObject* self, PyObject* args)
+PyObject* K_OCC::convertCAD2Arrays2(PyObject* self, PyObject* args)
 { 
   // inFileFormat : fmt_iges ou fmt_step
   // outFileFormat : None ou fmt_stl ou fmt_vrml

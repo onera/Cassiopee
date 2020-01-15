@@ -90,7 +90,7 @@ else if ($MAC == "ld") then
         setenv OMP_NUM_THREADS $ncpu
         set path=(/d/benoit/.local/bin $path $CASSIOPEE/Dist/bin)
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
-        setenv LD_LIBRARY_PATHL /usr/lib64:/stck/benoit/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
+        setenv LD_LIBRARY_PATHL /usr/lib64:/stck/benoit/opencascade/lib:/stck/benoit/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
         setenv PYTHONPATHL /d/benoit/.local/lib/python3.6/site-packages:$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.6/site-packages
         
 else if ($MAC == "ld_python2") then
@@ -256,7 +256,7 @@ else if ($MAC == "visio") then
         set path=(/usr/local/python/bin $path)
         set path=($path $CASSIOPEE/Dist/bin)
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
-        setenv LD_LIBRARY_PATHL $CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:/usr/local/hdf5-intel-1.8.8/lib:/usr/local/lib64:/usr/lib64
+        setenv LD_LIBRARY_PATHL /stck/benoit/opencascade2/lib:$CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:/usr/local/hdf5-intel-1.8.8/lib:/usr/local/lib64:/usr/lib64
         setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
 
 else if ($MAC == "tiamat") then

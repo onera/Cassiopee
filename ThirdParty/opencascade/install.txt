@@ -1,0 +1,17 @@
+gunzip opencascade-7.4.0.tgz
+tar xvf opencascade-7.4.0.tar opencascade-7.4.0/src
+tar xvf opencascade-7.4.0.tar opencascade-7.4.0/inc
+tar xvf opencascade-7.4.0.tar opencascade-7.4.0/CMakeLists.txt
+tar xvf opencascade-7.4.0.tar opencascade-7.4.0/adm
+cd opencascade-7.4.0
+mkdir build
+cd build
+cmake-gui ..
+mettre l'endroit des sources et du build
+Presser Configure
+Changer INSTALL : install path /stck/benoit/opencascade
+Changer CXXFLAGS : ajouter -std=c++11 (Advanced)
+presser Generate
+make -j 8
+Puis recopier a la main les libs
+

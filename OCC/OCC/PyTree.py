@@ -7,21 +7,19 @@ try:
     import Converter
     import Converter.PyTree as C
     import Converter.Internal as Internal
-except: raise ImportError("Connector.PyTree: requires Converter module.")
+except: raise ImportError("OCC.PyTree: requires Converter module.")
 
 __version__ = O.__version__
 
 #==============================================================================
-# -- convertIGES2PyTree --
+# -- convertCAD2PyTree --
 #==============================================================================
-def convertIGES2PyTree(fileName, h=0., chordal_err=0., growth_ratio=0.):
-  """Convert an IGES file to pyTree.
-  Usage: convertIGES2PyTree(fileName, options)"""
-  try: file = open(fileName, 'r')
-  except: raise IOError("convertIGES2PyTree: file %s not found."%fileName)
-  file.close()
+def convertCAD2PyTree(fileName, format='fmt_iges', h=0., chordal_err=0., growth_ratio=0.,
+                      deflection=1., algo=0):
+  """Convert a CAD (IGES or STEP) file to pyTree.
+  Usage: convertCAD2PyTree(fileName, options)"""
 
-  a = O.convertIGES2Arrays(fileName, h, chordal_err, growth_ratio)
+  a = O.convertCAD2Arrays(fileName, format, h, chordal_err, growth_ratio)
   
   t = C.newPyTree([])
   base1 = False; base2 = False; base3 = False; base = 1; c = 0

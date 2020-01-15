@@ -30,7 +30,7 @@ using namespace K_FLD;
 // ============================================================================
 /* Convert CAD file to arrays using OpenCascade */
 // ============================================================================
-PyObject* K_OCC::convertIGES2Arrays(PyObject* self, PyObject* args)
+PyObject* K_OCC::convertCAD2Arrays1(PyObject* self, PyObject* args)
 {
   char* fileName; char* fileFmt;
   E_Float h, chordal_err, gr(-1.);
@@ -42,10 +42,10 @@ PyObject* K_OCC::convertIGES2Arrays(PyObject* self, PyObject* args)
 #endif
 
   // Check recognised formats
-  if (K_STRING::cmp(fileFmt, "iges") != 0 && K_STRING::cmp(fileFmt, "step") != 0)
+  if (K_STRING::cmp(fileFmt, "fmt_iges") != 0 && K_STRING::cmp(fileFmt, "fmt_step") != 0)
   {
     PyErr_SetString(PyExc_TypeError, 
-                    "convertIGES2Arrays: unknown file format.");
+                    "convertCAD2Arrays: unknown file format.");
     return NULL;
   }
   
@@ -75,7 +75,7 @@ PyObject* K_OCC::convertIGES2Arrays(PyObject* self, PyObject* args)
     
   if (c.size() == 0)  
   {
-    printf("Warning: convertIGES2Arrays: no block in file.\n");
+    printf("Warning: convertCAD2Arrays: no block in file.\n");
     return PyList_New(0);
   }
   
@@ -112,8 +112,7 @@ E_Int K_OCC::CADread
    std::vector<K_FLD::IntArray> connectMs;
    bool aniso = false; // fixme : currently aniso mode mixed with growth ratio does not work
    E_Int err = import_OCC_CAD_wrapper::import_cad(file, fileFmt, crds, connectMs, h, chordal_err, gr, aniso);
-   if (err)
-     return err;
+   if (err) return err;
  
    for (unsigned int i=0; i < connectMs.size(); i++)
    {

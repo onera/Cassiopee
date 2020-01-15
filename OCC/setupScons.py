@@ -32,6 +32,9 @@ if prod is None: prod = 'xx'
 libraryDirs = ["build/"+prod, kcoreLibDir, generatorLibDir]
 includeDirs = [kcoreIncDir, generatorIncDir]
 libraries = ["occ_cassiopee", "generator", "kcore"]
+if OCEPresent:
+  libraryDirs += [OCELibDir]
+  includeDirs += [OCEIncDir]
 
 import srcs
 libOCE = srcs.allMods

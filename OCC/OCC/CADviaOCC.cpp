@@ -22,14 +22,15 @@
 #include "CADviaOCC.h"
 
 // IGES/STEP
-#include "IGESControl_Reader.hxx" //TKIGES
-//#include "STEPControl_Reader.hxx" // TKSTEP
+#include "IGESControl_Reader.hxx" 
+#include "STEPControl_Reader.hxx"
+
 //Data structure
 #include "TColStd_HSequenceOfTransient.hxx"
 #include "TopoDS.hxx"
 #include "BRep_Tool.hxx"
 #include "BRepAdaptor_Curve.hxx"
-#include "GCPnts_AbscissaPoint.hxx" // TKGeomBase
+#include "GCPnts_AbscissaPoint.hxx" 
 #include "GCPnts_UniformDeflection.hxx"
 #include "GCPnts_UniformAbscissa.hxx"
 #include "TopExp_Explorer.hxx"
@@ -107,24 +108,11 @@ E_Int import_iges(const char* fname, TopoDS_Shape& sh)
 int import_step(const char* fname, TopoDS_Shape& sh)
 {
   // Read the file
-  //STEPControl_Reader reader;
-  //reader.ReadFile(fname);
-	
-//   // Transfer CAD faces (only) into a OCC list
-//   Handle(TColStd_HSequenceOfTransient) occ_list = reader.GiveList("step-faces");
-		
-//   Standard_Integer nb_cad_faces = occ_list->Length();
-//   Standard_Integer nb_transfered_faces = reader.TransferList(occ_list);
-
-// #ifdef DEBUG_CAD_READER
-//   cout << "STEP Faces: " << nb_cad_faces << "   Transferred:" << nb_transfered_faces << endl;
-// #endif
-
-//   sh = reader.OneShape();
-	
-//   return sh.IsNull();
-
-  return 0;
+  STEPControl_Reader reader;
+  reader.ReadFile(fname);
+  reader.TransferRoots();
+  sh = reader.OneShape();
+  return sh.IsNull();
 }
 
 //
@@ -135,11 +123,8 @@ E_Int K_OCC::CADviaOCC::import_cad(const char* fname, const char* format, E_Floa
   _gr = gr;
     
   E_Int err(1);
-  if (::strcmp(format, "iges")==0)
-    err = import_iges(fname, _occ_shape);
-  /*else if (::strcmp(format, "step")==0)
-    err = import_step(fname, _occ_shape);*/
-  
+  if (::strcmp(format, "fmt_iges")==0) err = import_iges(fname, _occ_shape);
+  else if (::strcmp(format, "fmt_step")==0) err = import_step(fname, _occ_shape);
   if (err) return err;
     
   return __build_graph(_occ_shape, _faces);
@@ -176,7 +161,7 @@ E_Int K_OCC::CADviaOCC::compute_h_sizing(K_FLD::FloatArray& coords, std::vector<
   if (_h <= 0.) // undefined or badly defined
   {
     _h = _Lmean/10.;
-    std::cout << "OCC : computed h : " << _h << std::endl;
+    std::cout << "OCC: computed h: " << _h << std::endl;
   }
   
   for (E_Int i=1; i <= nb_edges; ++i)

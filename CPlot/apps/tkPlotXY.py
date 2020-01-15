@@ -106,7 +106,7 @@ COLOR_MAP = 'Set1'
 # default base name
 default_base = 'Base'
 # Navigation 0: matplotlib, 1: tecplot like
-NAVIGATION = 0
+NAVIGATION = 1
 
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
@@ -284,11 +284,7 @@ class editAxisWindow(TK.Toplevel):
         # self.axis_to_twin = self.ind_axis
         try: self.subGraph = self.parent.graphWdwL[self.graph].fig.subGraph[self.zone]
         except TypeError: # Exit if no graph & zone available
-            self.cmd_close()
-            return
-#        except IndexError: # Error while closing window ...
-#            return
-        #
+            self.cmd_close(); return
         self.grid_columnconfigure(0,weight=1)
         self.grid_rowconfigure(0,weight=1)
         self.createFrame()
@@ -304,7 +300,6 @@ class editAxisWindow(TK.Toplevel):
         self.frame.grid_rowconfigure(0,weight=1)
         self.frame.grid_rowconfigure(1,weight=1)
         self.frame.grid_rowconfigure(2,weight=1)
-        #
 
         ##########################################
         ###### Select axis line
@@ -418,13 +413,13 @@ class editAxisWindow(TK.Toplevel):
         B.val = xmin
         B.var = ['x','axis_min']
         B.treatmentId = 4 # 4 is float here
-        B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+        B.grid(row=0, column=0, columnspan=1, sticky="nsew")
         self.positionItem.append(B)
         ## ## --> Xmax
         xmax = self.subGraph.axis[self.ind_axis].get_xlim()[1]
         xmaxframe = TTK.LabelFrame(xlblframe, text="Max")
         xmaxframe.grid(row=0,column=4,sticky='NESW')
-        #
+
         xmaxframe.grid_columnconfigure(0,weight=1)
         xmaxframe.grid_rowconfigure(0,weight=1)
         #
@@ -788,8 +783,7 @@ class editLegendWindow(TK.Toplevel):
     def __init__(self):
         TK.Toplevel.__init__(self)
         self.title('Set legend')
-        self.protocol("WM_DELETE_WINDOW",self.cmd_close)
-        #
+        self.protocol("WM_DELETE_WINDOW", self.cmd_close)
         self.input_dialog = None
         self.list_dialog = None
     # --------------------------------------------------------------- initialize
@@ -923,9 +917,6 @@ class editLegendWindow(TK.Toplevel):
         self.legend_title_sizeItem.append(B)
 
 
-
-
-
         ########################################################
         ## Legend label(s)
         lblframe = TTK.LabelFrame(self.frame,text='Legend Label(s)')
@@ -938,7 +929,7 @@ class editLegendWindow(TK.Toplevel):
         lblframe.grid_rowconfigure(0,weight=1)
         #
         ## --> Bold Button
-        boldframe = TTK.LabelFrame(lblframe,text="Bold")
+        boldframe = TTK.LabelFrame(lblframe, text="Bold")
         boldframe.grid(row=0,column=0,sticky='NSEW')
         #
         boldframe.grid_columnconfigure(0,weight=1)
@@ -1122,7 +1113,6 @@ class editLegendWindow(TK.Toplevel):
         posFrame.grid_columnconfigure(0,weight=1)
         posFrame.grid_rowconfigure(0,weight=1)
         #
-#
         self.legend_position = ['best','upper left','upper center','upper right','center left','center','center right','lower left','lower center','lower right']
 
 
@@ -1132,7 +1122,6 @@ class editLegendWindow(TK.Toplevel):
         cbox.bind("<<ComboboxSelected>>",self.cmd_positionChange)
         cbox.grid(row=0,column=0,sticky="NSEW")
         cbox.var = 'legend_position'
-
         #
         activeFrame = TTK.LabelFrame(lblframe,text='Activate')
         activeFrame.grid(row=0,column=1,sticky="NSEW")
@@ -1181,7 +1170,6 @@ class editLegendWindow(TK.Toplevel):
     def bt_vaEtVient(self,var):
         bt_list = var[1]
         B = bt_list[var[0]]
-        #
         B.indVal = B.nextVal[B.indVal]
         B.val = B.list[B.indVal]
         B.config(bg=B.color[B.indVal])
@@ -3033,13 +3021,13 @@ class GraphTK(TK.Toplevel):
         self.dpi = dpi
         self.figsize = figsize
         self.minsize(width=500, height=500)
-        self.protocol("WM_DELETE_WINDOW",self.cmd_close)
-        self.bind("<FocusIn>",self.clickOnWindow)
+        self.protocol("WM_DELETE_WINDOW", self.cmd_close)
+        self.bind("<FocusIn>", self.clickOnWindow)
         self.grid_columnconfigure(0,weight=1)
         self.grid_rowconfigure(0,weight=1)
         self.parent = parent
-        self.name=self.soleName(name)
-        self.conf=conf
+        self.name = self.soleName(name)
+        self.conf = conf
         self.initialize()
         self.subPlotParams = SubPlotParams()
         self.tightLayout = TightLayout()
@@ -3093,7 +3081,6 @@ class GraphTK(TK.Toplevel):
         # Toolbar
         toolbar_frame = TTK.Frame(self)
         toolbar_frame.grid(row=1, column=0, sticky='W')
-#        toolbar = NavigationToolbar2Tk(self.canvas,toolbar_frame)
         toolbar = CustomToolbar(self.canvas, toolbar_frame, self)
         toolbar.update()
 
@@ -3115,14 +3102,14 @@ class GraphTK(TK.Toplevel):
         self.fig.updateGroupCurvesZoneName(iCurSubGraph,oldZoneList,newZoneList)
 
     # ------------------------------------------------------ updateSubPlotParams
-    def updateSubPlotParams(self,params):
+    def updateSubPlotParams(self, params):
         for var in params:
             self.subPlotParams.setValue(var,params[var])
             if var == 'isActive': self.tightLayout.setValue(var,not params[var])
         # Update Figure
         self.applyViewSettings()
     # -------------------------------------------------------- updateTightLayout
-    def updateTightLayout(self,params):
+    def updateTightLayout(self, params):
         for var in params:
             self.tightLayout.setValue(var,params[var])
             if var == 'isActive': self.subPlotParams.setValue(var,not params[var])
@@ -3142,10 +3129,10 @@ class GraphTK(TK.Toplevel):
     # ------------------------------------------------------------------ addGrid
     def getGrid(self,iCurSubGraph,ind=0,axis=None):
         if axis: ind = axis.getInd()
-        return self.fig.getGrid(iCurSubGraph,ind)
+        return self.fig.getGrid(iCurSubGraph, ind)
     # ------------------------------------------------------------------ addAxis
     def addAxis(self,iCurSubGraph,shared=None,ind=0,axis=None):
-        if axis :
+        if axis:
             ind = axis.getInd()
         axis_to_twin = ind
         if shared is None:
@@ -3410,8 +3397,7 @@ class GraphTK(TK.Toplevel):
         if len(self.parent.graphWdwL) == 1:
             # Close all edit windows if we are closing the last graph:
             for w in [self.parent.editCurveWdw,self.parent.editGridWdw,self.parent.editLegendWdw,self.parent.editAxisWdw,self.parent.editGraphWdw]:
-                if w is not None:
-                    w.cmd_close()
+                if w is not None: w.cmd_close()
         #
         self.fig.closeMovie()
         del self.fig
@@ -3433,7 +3419,7 @@ class GraphTK(TK.Toplevel):
     def updateCurvesZoneName(self,iCurSubGraph,oldZoneName,newZoneName):
         self.fig.updateCurvesZoneName(iCurSubGraph,oldZoneName,newZoneName)
     # -------------------------------------------------------------- updateGraph
-    def updateGraph(self,iCurSubGraph):
+    def updateGraph(self, iCurSubGraph):
         self.fig.drawOneFigure(iCurSubGraph)
         self.canvas.draw()
     # -------------------------------------------------------- applyViewSettings
@@ -3448,15 +3434,15 @@ class GraphTK(TK.Toplevel):
 #                pass
 
             self.fig.instance.subplots_adjust(left=self.subPlotParams.left,
-                                             right=self.subPlotParams.right,
-                                             top=self.subPlotParams.top,
-                                             bottom=self.subPlotParams.bottom,
-                                             hspace=self.subPlotParams.hspace,
-                                             wspace=self.subPlotParams.wspace)
+                                              right=self.subPlotParams.right,
+                                              top=self.subPlotParams.top,
+                                              bottom=self.subPlotParams.bottom,
+                                              hspace=self.subPlotParams.hspace,
+                                              wspace=self.subPlotParams.wspace)
         if self.tightLayout.isActive:
             self.fig.instance.tight_layout(pad=self.tightLayout.pad,
-                                  h_pad=self.tightLayout.hpad,
-                                  w_pad=self.tightLayout.wpad)
+                                           h_pad=self.tightLayout.hpad,
+                                           w_pad=self.tightLayout.wpad)
         self.canvas.draw()
     # ----------------------------------------------------------------- setValue
     def setValue(self,variable,value):
@@ -3481,10 +3467,10 @@ class Graph():
         self.parent = parent
         self.figsize = figsize
         self.dpi = dpi
-        self.name=self.soleName(name)
-        self.conf=conf
+        self.name = self.soleName(name)
+        self.conf = conf
         self.initialize()
-        #
+    
         self.useSubPlotParams = True
         self.subPlotParams = SubPlotParams()
         self.tightLayout = TightLayout()
@@ -3494,7 +3480,6 @@ class Graph():
         self.subgraph_background_alpha = default_values['Graph']['subgraph_background_alpha']
     # --------------------------------------------------------------- initialize
     def initialize(self):
-# TODO        # Il faudra regler : le titre de la fenetre
 
         self.parent.updateGraphName2Id()
         self.parent.graphName2Id[self.name]=len(self.parent.graphWdwL)
@@ -3504,9 +3489,6 @@ class Graph():
         # Figure
         self.fig = MatplotlibFigure(self.parent,self,self.conf,self.dpi,self.figsize)
         self.setName(self.name)
-
-
-
 
         # Update Main window : graph name list
 #        self.parent.updateactiveGraph()
@@ -3594,13 +3576,13 @@ class Graph():
             newaxis = self.fig.getAxis(iCurSubGraph,ind=newind)
             newaxis.ind = newind
             return newaxis
-        elif ((shared == 'x') or (shared == 'X')):
+        elif (shared == 'x') or (shared == 'X'):
             self.fig.subGraph[iCurSubGraph].addAxisTwinX(axis_to_twin)
             newind = len(self.fig.subGraph[iCurSubGraph].axis)-1
             newaxis = self.fig.getAxis(iCurSubGraph,ind=newind)
             newaxis.ind = newind
             return newaxis
-        elif ((shared == 'y') or (shared == 'Y')):
+        elif (shared == 'y') or (shared == 'Y'):
             self.fig.subGraph[iCurSubGraph].addAxisTwinY(axis_to_twin)
             newind = len(self.fig.subGraph[iCurSubGraph].axis)-1
             newaxis = self.fig.getAxis(iCurSubGraph,ind=newind)
@@ -3609,11 +3591,11 @@ class Graph():
         else:
             print('''### Error: value used for 'shared' is unknown, must be in [None, 'x', 'X', 'y', 'Y'].''')
     # ---------------------------------------------------------------- getLegend
-    def getLegend(self,iCurSubGraph):
+    def getLegend(self, iCurSubGraph):
         return self.fig.getLegend(iCurSubGraph)
     # ------------------------------------------------------------------ getAxis
-    def getAxis(self,iCurSubGraph,ind=0):
-        return self.fig.getAxis(iCurSubGraph,ind)
+    def getAxis(self, iCurSubGraph, ind=0):
+        return self.fig.getAxis(iCurSubGraph, ind)
     # -------------------------------------------------------------------- write
     def write(self,ind):
         line = '''graph_%s=Graph(obj,'%s','%s',dpi=%s,figsize=%s)'''%(ind,self.name,self.conf,self.dpi,self.figsize)
@@ -3656,6 +3638,7 @@ class Graph():
             self.subgraph_background_color = value
         elif variable == 'subgraph_background_alpha':
             self.subgraph_background_alpha = value
+
 # ==============================================================================
 # ==============================================================================
 class editCurvesWindow(TK.Toplevel):
@@ -3672,18 +3655,14 @@ class editCurvesWindow(TK.Toplevel):
     # --------------------------------------------------------------- initialize
     def initialize(self,parent):
         self.parent = parent
-        #
         self.graph = self.parent.activeGraph.val
-
         self.zone  = self.parent.position.val
         try:
             self.subGraph = self.parent.graphWdwL[self.graph].fig.subGraph[self.zone]
         except TypeError: # Exit if no graph & zone available
             self.cmd_close()
             return
-#        except IndexError: # Error while closing window ...
-#            return
-        #
+        
         self.grid_columnconfigure(0,weight=1)
         self.grid_rowconfigure(0,weight=1)
         #
@@ -4122,9 +4101,8 @@ class editCurvesWindow(TK.Toplevel):
         lblframe.grid_columnconfigure(0,weight=1)
         for ind in range(len(self.subGraph.curves)+1):
             lblframe.grid_rowconfigure(ind,weight=1)
-        #
         lblframelvl1.append(lblframe)
-        #
+
         self.frame.line_colorItem = []
         for ind in range(len(self.subGraph.curves)):
             c = self.subGraph.curves[ind]
@@ -4160,9 +4138,7 @@ class editCurvesWindow(TK.Toplevel):
         lblframe.grid_columnconfigure(0,weight=1)
         for ind in range(len(self.subGraph.curves)+1):
             lblframe.grid_rowconfigure(ind,weight=1)
-        #
         lblframelvl1.append(lblframe)
-        #
         self.frame.line_widthItem = []
         for ind in range(len(self.subGraph.curves)):
             c = self.subGraph.curves[ind]
@@ -6074,11 +6050,11 @@ class DesktopFrameTK(TK.Frame):
         self.editGraphWdw  = None
 
         # # Configure grid for postionning for the main window
-        self.grid_columnconfigure(0,weight=1)
+        self.grid_columnconfigure(0, weight=1)
         #
-        self.grid_rowconfigure(0,weight=1)
-        self.grid_rowconfigure(1,weight=8)
-        self.grid_rowconfigure(2,weight=1)
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=8)
+        self.grid_rowconfigure(2, weight=1)
 
         ################## Row 0 of self : create graph ########################
 
@@ -7066,7 +7042,7 @@ class Desktop():
 #            # set data according to a dict data
 #            self.setDataWithDict(data)
     # ------------------------------------------------------------------ setData
-    def setData(self,data):
+    def setData(self, data):
         """
         Set all the data from the input pyTree or dictionnary to the Desktop data manager.
         """
@@ -7585,15 +7561,13 @@ class MatplotlibFigure():
             self.subGraph[iCurSubGraph].axis[iCurrentAxis].set_ylim((self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].y.axis_min,self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].y.axis_max))
             ## auto scale
             count = 0
-            if self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].x.axis_autoscale:
-                count += 1
-            if self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].y.axis_autoscale:
-                count += 2
+            if self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].x.axis_autoscale: count += 1
+            if self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].y.axis_autoscale: count += 2
             conversion = [None,'x','y','both']
             if count == 0:
                 self.subGraph[iCurSubGraph].axis[iCurrentAxis].autoscale(enable=False)
             else:
-                self.subGraph[iCurSubGraph].axis[iCurrentAxis].autoscale(enable=True,axis=conversion[count])
+                self.subGraph[iCurSubGraph].axis[iCurrentAxis].autoscale(enable=True, axis=conversion[count])
 #            # set label
 #            self.subGraph[iCurSubGraph].axis[iCurrentAxis].set_xlabel(r'%s'%self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].x.axis_label)
 #            self.subGraph[iCurSubGraph].axis[iCurrentAxis].set_ylabel(r'%s'%self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].y.axis_label)
@@ -8472,21 +8446,26 @@ class Movie(object):
 # ==============================================================================
 # --------------------------------------------------
 class CustomToolbar(NavigationToolbar2Tk):
-    def __init__(self,canvas,parent,graph):
-        self.toolitems = (
-        ('Home', 'Reset original view', 'initial', 'home'),
-        ('Back', 'Back to  previous view', 'previous', 'back'),
-        ('Forward', 'Forward to next view', 'next', 'forward'),
-        (None, None, None, None),
-        ('Pan', 'Pan axes with left mouse, zoom with right', 'move', 'pan_tkPlotXY'),
-        ('Zoom', 'Zoom to rectangle', 'zoom_to_rect', 'zoom_tkPlotXY'),
-        (None, None, None, None),
-        ('Subplots', 'Configure subplots', 'subplots', 'configure_subplots_tkPlotXY'),
-        ('Save', 'Save the figure', 'filesave', 'save_figure'),
-      )
+    def __init__(self, canvas, parent, graph):
+        
+        if NAVIGATION == 0:
+            self.toolitems = (('Home', 'Reset original view', 'initial', 'home'),
+                              ('Back', 'Back to  previous view', 'previous', 'back'),
+                              ('Forward', 'Forward to next view', 'next', 'forward'),
+                              (None, None, None, None),
+                              ('Pan', 'Pan axes with left mouse, zoom with right', 'move', 'pan_tkPlotXY'),
+                              ('Zoom', 'Zoom to rectangle', 'zoom_to_rect', 'zoom_tkPlotXY'),
+                              (None, None, None, None),
+                              ('Subplots', 'Configure subplots', 'subplots', 'configure_subplots_tkPlotXY'),
+                              ('Save', 'Save the figure', 'filesave', 'save_figure'))
+        else:
+            self.toolitems = (('Home', 'Reset original view', 'initial', 'home_tkPlotXY'),
+                              ('Subplots', 'Configure subplots', 'subplots', 'configure_subplots_tkPlotXY'),
+                              ('Save', 'Save the figure', 'filesave', 'save_figure'))
+        
         self.graph = graph
         self.button_dict = {}
-        NavigationToolbar2Tk.__init__(self,canvas,parent)
+        NavigationToolbar2Tk.__init__(self, canvas, parent)
 
     def _Button(self, text, file, command, extension='.ppm'):
         fileimage = file
@@ -8497,6 +8476,13 @@ class CustomToolbar(NavigationToolbar2Tk):
         self.button_dict[fileimage]=b
         b.pack(side=TK.LEFT)
         return b
+
+    def home_tkPlotXY(self, *args):
+        #self.graph.fig.instance.tight_layout()
+        #self.graph.applyViewSettings()
+        #self.graph.fig.drawOneFigure(self.graph.fig.instance.position.val)
+        #self.canvas.draw()
+        self.graph.updateGraph(self.graph.parent.position.val)
 
     def pan_tkPlotXY(self, *args):
         if self._active == 'ZOOM':
@@ -8539,9 +8525,8 @@ class CustomToolbar(NavigationToolbar2Tk):
         window = TK.Tk()
         canvas = FigureCanvasTkAgg(toolfig, master=window)
         toolfig.subplots_adjust(top=0.9)
-        tool =  CustomSubplotTool(self.canvas.figure, toolfig)
+        tool = CustomSubplotTool(self.canvas.figure, toolfig)
         tool.graph = self.graph
-        #canvas.show()
         canvas.draw()
         canvas.get_tk_widget().pack(side=TK.TOP, fill=TK.BOTH, expand=1)
 
@@ -8625,8 +8610,7 @@ class GraphEditor():
             graph.quit()
 
     def close(self):
-        for graph in self.desktop.graphWdwL:
-            graph.quit()
+        for graph in self.desktop.graphWdwL: graph.quit()
 
 def openGraphEditor(display):
     """
