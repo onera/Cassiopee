@@ -36,6 +36,8 @@ applet = {
     'tkRuler':'tkRuler', 'Measure distance': 'tkRuler',
     # tkFind
     'tkFind':'tkFind', 'Find index/cell':'tkFind', 'Extract one/some cells':'tkFind',
+    # tkProbe
+    'tkProbe':'tkProbe', 'Probe value in cell or vertex':'tkProbe', 'Set a field value in a cell':'tkProbe',
     # tkCanvas
     'tkCanvas':'tkCanvas', 'Create Canvas for drawing':'tkCanvas', 
     'Enlarge canvas':'tkCanvas', 'Reduce canvas':'tkCanvas',

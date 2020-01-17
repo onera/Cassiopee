@@ -203,7 +203,6 @@ fileTypes=[('converter', '*.plt'),
 def getModule(app):
   global TKMODULES
   if app not in TKMODULES: return None
-  #if app == 'tkPlotXY': return None
   if TKMODULES[app] is None:
       try:
         module = __import__(app)

@@ -114,7 +114,6 @@ K_OCC::OCCSurface::parametersSample(const K_FLD::FloatArray&coord3D, K_FLD::Floa
 #ifdef DEBUG_CAD_READER
   std::cout << "sampling contour..." << std::endl;
 #endif  
-  E_Float UV[2];
   E_Int err(0), sz(coord3D.cols());
   
   UVs.clear();
@@ -132,7 +131,7 @@ K_OCC::OCCSurface::parametersSample(const K_FLD::FloatArray&coord3D, K_FLD::Floa
   E_Int Nc, N[2]; // N[0] its predecessor, N[1] its successor
   E_Float d2[2], lambda[2]; //d2[0] for predecessor, d2[1] for successor
   
-  for (size_t i = 0; i < sz; ++i)
+  for (E_Int i = 0; i < sz; ++i)
   {
     const E_Float* Pt = coord3D.col(i);
     Nc = tree.getClosest(Pt);
@@ -170,7 +169,7 @@ E_Int K_OCC::OCCSurface::__sample_contour(E_Int Nsample, K_FLD::FloatArray& pos3
   E_Float U[2], Pt[3];
   //
   U[1]=V0n;
-  for (size_t a=0; a < Nsample-1; ++a) // up to Nsample-1 to avoid to create duplicates
+  for (E_Int a=0; a < Nsample-1; ++a) // up to Nsample-1 to avoid to create duplicates
   {
     U[0]=U0n + (U1n-U0n)*E_Float(a)/E_Float(Nsample-1);
     point(U[0], V0n, Pt);
@@ -181,7 +180,7 @@ E_Int K_OCC::OCCSurface::__sample_contour(E_Int Nsample, K_FLD::FloatArray& pos3
   
   //
   U[0]=U1n;
-  for (size_t a=0; a < Nsample-1; ++a)
+  for (E_Int a=0; a < Nsample-1; ++a)
   {
     U[1]=V0n + (V1n-V0n)*E_Float(a)/E_Float(Nsample-1);
     point(U1n, U[1], Pt);
@@ -192,7 +191,7 @@ E_Int K_OCC::OCCSurface::__sample_contour(E_Int Nsample, K_FLD::FloatArray& pos3
   
   //
   U[1]=V1n;
-  for (size_t a=0; a < Nsample-1; ++a)
+  for (E_Int a=0; a < Nsample-1; ++a)
   {
     U[0]=U1n - (U1n-U0n)*E_Float(a)/E_Float(Nsample-1);
     point(U[0], V1n, Pt);
@@ -203,7 +202,7 @@ E_Int K_OCC::OCCSurface::__sample_contour(E_Int Nsample, K_FLD::FloatArray& pos3
   
   //
   U[0]=U0n;
-  for (size_t a=0; a < Nsample-1; ++a)
+  for (E_Int a=0; a < Nsample-1; ++a)
   {
     U[1]=V1n - (V1n-V0n)*E_Float(a)/E_Float(Nsample-1);
     point(U0n, U[1], Pt);

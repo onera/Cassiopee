@@ -17,7 +17,7 @@ TREEAPPS = ['tkTreeOps', 'tkCheckPyTree', '---',
 STATEAPPS = ['tkState', '---',
              'tkPrefs', 'tkPerfo', 'tkContainers', 'tkCamera', '---',
              #'tkLogFile', '---',
-             'tkFilter', 'tkFind', '---',
+             'tkFilter', 'tkFind', 'tkProbe', '---',
              'tkRuler']
 EDGEAPPS = ['tkCanvas', 'tkPoint', 'tkDraw','---',
             'tkExtractEdges', 'tkMapEdge']
