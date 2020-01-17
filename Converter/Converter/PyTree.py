@@ -30,8 +30,7 @@ def getZoneName(proposedName):
 def registerZoneNames(t):
   global __ZoneNameServer__
   nodes = Internal.getZones(t)
-  for i in nodes:
-    __ZoneNameServer__[i[0]] = 0
+  for i in nodes: __ZoneNameServer__[i[0]] = 0
 
 # -- getBCName
 # Retourne un nom de BC unique, stocke les noms de BC_t, GridConnectivity_t
@@ -798,7 +797,7 @@ def _deleteBCOverlapWithDonorZone__(a, removeDnrZones=True, removeDnrFam=True):
           else: # check if it is referenced to a family
             if Internal.getNodeFromName(families,donorName) is not None: typeOfDnr=2
 
-          if ((removeDnrZones and typeOfDnr==1) or (removeDnrFam and typeOfDnr==2) or (typeOfDnr==0)):
+          if (removeDnrZones and typeOfDnr==1) or (removeDnrFam and typeOfDnr==2) or (typeOfDnr==0):
             (parent, d) = Internal.getParentOfNode(z, i)
             del parent[2][d]
   return None
@@ -3379,7 +3378,7 @@ def _addBC2StructZone__(z, bndName, bndType, wrange=[], faceList=[],
   if len(s) > 1: bndType2 = s[1]
   else: bndType2 = ''
 
-  typeR = -1 # 0  : PR, 1 PL
+  typeR = -1 # 0 : PR, 1 PL
   if wrange != []: typeR=0
   elif len(faceList) != 0: typeR=1
   else: raise ValueError("addBC2Zone: match connectivity requires a range or face list.")

@@ -539,7 +539,7 @@ def subzoneUnstruct__(t, indices, type):
             nodes = Transform.subzone(fc, indices, type=type)
             C.setFields([nodes], z, 'nodes')
         else:
-            if dimz[0]=='Structured': # faceList as global indices of structured interfaces
+            if dimz[0] == 'Structured': # faceList as global indices of structured interfaces
                 if type == 'faces':
                     [nodes, centers] = Transform.transform.subzoneStructIntBoth(fc, fb, indices)
                     C.setFields([nodes], z, 'nodes')

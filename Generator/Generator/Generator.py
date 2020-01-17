@@ -616,6 +616,19 @@ def refinePerDir__(a, power, dir):
     elif dir == 3: return T.reorder(aout, (3,2,1))
     else: return aout
 
+# Remaille une surface avec mmgs
+def mmgs(array, ridgeAngle=45., hmin=0., hmax=0., hausd=0.01, grow=1.1, 
+         anisotropy=0, optim=0):
+    if isinstance(array[0], list):
+        l = []
+        for i in array:
+            l.append(generator.mmgs(i, ridgeAngle, hmin, hmax, hausd, 
+                                    grow, anisotropy, optim))
+        return l
+    else:
+        return generator.mmgs(array, ridgeAngle, hmin, hmax, hausd, 
+                              grow, anisotropy, optim)
+
 #==============================================================================
 # Densifie le maillage d'un i-array
 # IN: array: i-array

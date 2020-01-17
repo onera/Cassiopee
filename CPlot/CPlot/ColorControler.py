@@ -2,7 +2,7 @@
 # Attention : dependance aux colormaps de matplotlib
 try: import Tkinter as TK
 except: import tkinter as TK
-import CPlot.Ttk as TTK
+from . import Ttk as TTK
 import colorsys
 import tkPlotXY
 

@@ -3088,8 +3088,7 @@ class GraphTK(TK.Toplevel):
         self.parent.updateactiveGraph()
 
     def __del__(self):
-        for cid in self._cids:
-            self.canvas.mpl_disconnect(cid)
+        for cid in self._cids: self.canvas.mpl_disconnect(cid)
     
     # ------------------------------------------------------------------ getFig
     def getFig(self):
@@ -6560,7 +6559,7 @@ class DesktopFrameTK(TK.Frame):
         # Get path to save
         global EXPORTFILE
         # Works only with python 2, for python 3, it seems that the module name has changed to "filedialog"
-        filename = tkFileDialog.asksaveasfilename(parent=self, initialdir=os.getcwd(), initialfile=EXPORTFILE, filetypes=[('png', ".png")])
+        filename = tkFileDialog.asksaveasfilename(parent=self, initialdir=os.getcwd(), initialfile=EXPORTFILE, filetypes=[('png', ".png"), ('pdf', ".pdf")])
         if filename=='' or filename is None: return
         EXPORTFILE = filename
         self.export(filename)
@@ -7050,10 +7049,10 @@ class Desktop():
         if self.data is not None:
             old_zones = self.data.keys()
         self.data = {}
-        if isinstance(data,list):
+        if isinstance(data, list):
             # set data according to a tree
             self.setDataWithTree(data)
-        elif isinstance(data,dict):
+        elif isinstance(data, dict):
             # set data according to a dict data
             self.setDataWithDict(data)
         # Clean curves
@@ -7062,8 +7061,8 @@ class Desktop():
                 for zonename in old_zones:
                     if zonename not in self.data:
                         graph.removeCurvesZoneName(ax_name,zonename)
-        #
-        if self.editCurveWdw  is not None:
+        
+        if self.editCurveWdw is not None:
             self.editCurveWdw.updateData()
         ##### Redraw all
         self.updateAllGraph()
@@ -8460,6 +8459,7 @@ class CustomToolbar(NavigationToolbar2Tk):
                               ('Save', 'Save the figure', 'filesave', 'save_figure'))
         else:
             self.toolitems = (('Home', 'Reset original view', 'initial', 'home_tkPlotXY'),
+                              (None, None, None, None),
                               ('Subplots', 'Configure subplots', 'subplots', 'configure_subplots_tkPlotXY'),
                               ('Save', 'Save the figure', 'filesave', 'save_figure'))
         
@@ -8473,7 +8473,7 @@ class CustomToolbar(NavigationToolbar2Tk):
         b = TK.Button(master=self, text=text, padx=2, pady=2, image=im, command=command)
         b._ntimage = im
         b._image = fileimage
-        self.button_dict[fileimage]=b
+        self.button_dict[fileimage] = b
         b.pack(side=TK.LEFT)
         return b
 
@@ -8530,6 +8530,20 @@ class CustomToolbar(NavigationToolbar2Tk):
         canvas.draw()
         canvas.get_tk_widget().pack(side=TK.TOP, fill=TK.BOTH, expand=1)
 
+    def toggleNavigationStyle(self):
+        global NAVIGATION
+        if NAVIGATION == 0: NAVIGATION = 1
+        else: NAVIGATION = 0
+        graph = self.graph
+        canvas = graph.canvas
+        for cid in graph._cids: canvas.mpl_disconnect(cid)
+        if NAVIGATION == 0:
+            canvas.mpl_connect('button_press_event', graph.clickOnCanvas)
+        else:
+            canvas.mpl_connect('scroll_event', graph._onMouseWheel)
+            canvas.mpl_connect('button_press_event', graph._onMousePress)
+            canvas.mpl_connect('button_release_event', graph._onMouseRelease)
+            canvas.mpl_connect('motion_notify_event', graph._onMouseMotion)
 
 # ==============================================================================
 # ==============================================================================

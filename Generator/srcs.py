@@ -139,7 +139,9 @@ else:
 # mmg
 if MMGS:
     cpp_srcs2 += ["Generator/mmgs.cpp",
+                  "Generator/MMGS/mmg.c",    
                   "Generator/MMGS/mmgs1.c",
+                  "Generator/MMGS/mmgs2.c",
                   "Generator/MMGS/analys_s.c",
                   "Generator/MMGS/anisomovpt.c",
                   "Generator/MMGS/anisomovpt_s.c",

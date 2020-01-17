@@ -96,7 +96,7 @@ List of functions
    Generator.fittingPlaster
    Generator.gapfixer
    Generator.gapsmanager
-   Generator.quad2Pyra
+   Generator.mmgs
 
 **-- Information on generated meshes**
 
@@ -1421,6 +1421,38 @@ Operation on surface meshes
     .. literalinclude:: ../build/Examples/Generator/gapsmanagerPT.py
 
 
+---------------------------------------
+
+.. py:function:: Generator.mmgs(A, ridgeAngle=45., hmin=0., hmax=0., hausd=0.01, grow=1.1, anisotropy=0, optim=0)
+
+    Refine a TRI surface mesh using MMGs.
+
+    :param A:  surface TRI mesh
+    :type  A:  [array, list of arrays] or [zone, pyTree]
+    :param ridgeAngle: Angle between adjacent cells that MMGs consider to be a ridge (degrees) 
+    :type  ridgeAngle: double
+    :param hmin: the minimum mesh step in final mesh 
+    :type  hmin: double
+    :param hmax: the maximum mesh step in final mesh 
+    :type  hmax: double
+    :param hausd: the maximum chordal deviation in final mesh from initial mesh 
+    :type  hausd: double
+    :param grow: the maximum difference of steps between two adjacent cells 
+    :type  grow: double
+    :param optim: if 1, only optimize mesh keeping the same number of points 
+    :type  optim: int
+    :return: remeshed surface
+    :rtype: identical to input
+
+    *Example of use:*
+
+    * `Surface mesh remeshing (array) <Examples/Generator/mmgs.py>`_:
+
+    .. literalinclude:: ../build/Examples/Generator/mmgs.py
+
+    * `Surface mesh remeshing (pyTree) <Examples/Generator/mmgsPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Generator/mmgsPT.py
 
 
 Information on generated meshes

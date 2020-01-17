@@ -2265,13 +2265,10 @@ def copyNode(node):
 def duptree1__(node, byName, byType, parent):
     value = node[1]
     if byName is not None:
-        if fnmatch.fnmatch(node[0], byName):
-            value = node[1].copy('F')
+        if fnmatch.fnmatch(node[0], byName): value = node[1].copy('F')
     if byType is not None:
-        if fnmatch.fnmatch(node[3], byType):
-            value = node[1].copy('F')
-    if byName is None and byType is None:
-        value = node[1].copy('F')
+        if fnmatch.fnmatch(node[3], byType): value = node[1].copy('F')
+    if byName is None and byType is None: value = node[1].copy('F')
     d = [node[0], value, [], node[3]]
     if len(parent) == 4: parent[2].append(d)
     for i in node[2]: duptree1__(i, byName, byType, d)
@@ -4655,7 +4652,7 @@ def setLoc2Glob(z, source, loc2glob=None, win=None, sourceDim=None):
     return zp
 
 def _setLoc2Glob(z, source, loc2glob=None, win=None, sourceDim=None):
-    p = createUniqueChild(z, '.Solver#Param', 'UserDefinedData_t', value=None)
+    p = createUniqueChild(z, '.Solver#ownData', 'UserDefinedData_t', value=None)
     createUniqueChild(p, 'source', 'UserDefinedData_t', value=source)
     if loc2glob is not None:
         createUniqueChild(p, 'loc2glob', 'DataArray_t', value=loc2glob)
@@ -4675,7 +4672,7 @@ def setGlob2Loc(z, source, glob2loc=None, win=None, sourceDim=None):
         return zp
     
 def _setGlob2Loc(z, source, glob2loc=None, win=None, sourceDim=None):
-    p = createUniqueChild(z, '.Solver#Param', 'UserDefinedData_t', value=None)
+    p = createUniqueChild(z, '.Solver#ownData', 'UserDefinedData_t', value=None)
     createUniqueChild(p, 'source', 'UserDefinedData_t', value=source)
     if glob2loc is not None:
         createUniqueChild(p, 'glob2loc', 'DataArray_t', value=glob2loc)

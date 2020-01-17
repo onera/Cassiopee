@@ -1016,6 +1016,20 @@ def _refine(t, power, dir):
             else: C._deleteZoneBC__(z); C._deleteGridConnectivity__(z)
     return None
 
+def mmgs(t, ridgeAngle=45., hmin=0., hmax=0., hausd=0.01, grow=1.1, 
+         anisotropy=0, optim=0):
+    tp = Internal.copyRef(t)
+    _mmgs(tp, ridgeAngle, hmin, hmax, hausd, grow, anisotropy, optim)
+    return tp
+
+def _mmgs(t, ridgeAngle=45., hmin=0., hmax=0., hausd=0.01, grow=1.1, 
+          anisotropy=0, optim=0):
+    """Remesh a surface using MMGs."""
+    arrays = C.getFields('nodes', t, api=2)
+    b = Generator.mmgs(arrays, ridgeAngle, hmin, hmax, hausd, grow, anisotropy, optim)
+    C.setFields(b, t, 'nodes', True)
+    return None
+
 def densify(z, h):
     """Return zone with densified mesh.
     Usage: densify(z, h)"""
