@@ -95,21 +95,28 @@ E_Int K_IO::GenIO::pngread(
   width = png_get_image_width(png_ptr, info_ptr);
   height = png_get_image_height(png_ptr, info_ptr);
   color_type = png_get_color_type(png_ptr, info_ptr);
-  //printf("color type %d\n", color_type);
-  if (color_type == 3)
-  {
-    printf("Palette indexed colors is not supported.\n"); 
-    fclose(ptrFile); return 1;
-  }
-
   bit_depth = png_get_bit_depth(png_ptr, info_ptr);
+  //printf("color type %d\n", color_type);
   //printf("bit depth %d\n", bit_depth);
-  if (bit_depth != 8)
-  {
-    printf("Color depth must be 8.\n"); 
-    fclose(ptrFile); return 1;
-  }
+  
+  if (bit_depth == 16) png_set_strip_16(png_ptr);
+  if (color_type == PNG_COLOR_TYPE_PALETTE) png_set_palette_to_rgb(png_ptr);
 
+  // PNG_COLOR_TYPE_GRAY_ALPHA is always 8 or 16bit depth.
+  if (color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8) png_set_expand_gray_1_2_4_to_8(png_ptr);
+
+  if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS)) png_set_tRNS_to_alpha(png_ptr);
+  // These color_type don't have an alpha channel then fill it with 0xff.
+  if (color_type == PNG_COLOR_TYPE_RGB ||
+      color_type == PNG_COLOR_TYPE_GRAY ||
+      color_type == PNG_COLOR_TYPE_PALETTE)
+    png_set_filler(png_ptr, 0xFF, PNG_FILLER_AFTER);
+
+  if (color_type == PNG_COLOR_TYPE_GRAY ||
+      color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
+    png_set_gray_to_rgb(png_ptr);
+
+  png_read_update_info(png_ptr, info_ptr);
   //number_of_passes = png_set_interlace_handling(png_ptr);
   png_read_update_info(png_ptr, info_ptr);
 
@@ -125,26 +132,31 @@ E_Int K_IO::GenIO::pngread(
 
   png_read_image(png_ptr, row_pointers);
 
+  int components;
+  int size = png_get_rowbytes(png_ptr, info_ptr);
+  components = (size/width);
+  printf("components = %d\n", components);
+
   // Stockage du champ
   E_Int nil = width;
   E_Int njl = height;
   FldArrayF* f;
-  if (color_type == 0) // greyscale
+  if (components == 1) // greyscale
   {
     strcpy(varString, "x,y,z,r");
     f = new FldArrayF(nil*njl, 4);
   }
-  else if (color_type == 2) // RGB
+  else if (components == 3) // RGB
   {
     strcpy(varString, "x,y,z,r,g,b");
     f = new FldArrayF(nil*njl, 6);
   }
-  else if (color_type == 4) // greyscale + alpha
+  else if (components == 2) // greyscale + alpha
   {
     strcpy(varString, "x,y,z,r,a");
     f = new FldArrayF(nil*njl, 5);
   }
-  else if (color_type == 6) // RGB + alpha
+  else if (components == 4) // RGB + alpha
   {
     strcpy(varString, "x,y,z,r,g,b,a");
     f = new FldArrayF(nil*njl, 7);
@@ -171,7 +183,7 @@ E_Int K_IO::GenIO::pngread(
       fz[i+j*nil] = 0.;
     }
 
-  if (color_type == 0) // greyscale
+  if (components == 1) // greyscale
   {
     E_Float* r = f->begin(4);
     for (E_Int j = 0; j < njl; j++)
@@ -183,7 +195,7 @@ E_Int K_IO::GenIO::pngread(
       }
     }
   }
-  else if (color_type == 2)
+  else if (components == 3)
   {
     E_Float* r = f->begin(4);
     E_Float* g = f->begin(5);
@@ -199,7 +211,7 @@ E_Int K_IO::GenIO::pngread(
       }
     }
   }
-  else if (color_type == 4)
+  else if (components == 2)
   {
     E_Float* r = f->begin(4);
     E_Float* alpha = f->begin(5);
@@ -213,7 +225,7 @@ E_Int K_IO::GenIO::pngread(
       }
     }
   }
-  else if (color_type == 6)
+  else if (components == 4)
   {
     E_Float* r = f->begin(4);
     E_Float* g = f->begin(5);

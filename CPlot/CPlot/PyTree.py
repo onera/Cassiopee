@@ -741,7 +741,7 @@ def _addRender2PyTree(a, slot=0, posCam=None, posEye=None, dirCam=None,
     for i in materials:
       if i not in prevValues: li.append(i)
     for c, f in enumerate(li):
-        rt = Internal.createUniqueChild(rt, 'file%d'%c, 'DataArray_t', value=f)
+        Internal._createUniqueChild(rt, 'file%d'%c, 'DataArray_t', value=f)
 
   if bumpMaps is not None:
     rt = Internal.createUniqueChild(ri, 'bumpMaps', 'UserDefinedData_t')
@@ -751,7 +751,7 @@ def _addRender2PyTree(a, slot=0, posCam=None, posEye=None, dirCam=None,
     for i in bumpMaps:
       if i not in prevValues: li.append(i)
     for c, f in enumerate(li):
-        rt = Internal.createUniqueChild(rt, 'file%d'%c, 'DataArray_t', value=f)
+        Internal._createUniqueChild(rt, 'file%d'%c, 'DataArray_t', value=f)
 
   if billBoards is not None:
     rt = Internal.createUniqueChild(ri, 'billBoards', 'UserDefinedData_t')
@@ -761,7 +761,7 @@ def _addRender2PyTree(a, slot=0, posCam=None, posEye=None, dirCam=None,
     for i in billBoards:
       if i not in prevValues: li.append(i)
     for c, f in enumerate(li):
-        re = Internal.createUniqueChild(rt, 'file%d'%(c+cnt), 'DataArray_t', value=f)
+        Internal._createUniqueChild(rt, 'file%d'%(c+cnt), 'DataArray_t', value=f)
   return None
 
 #==============================================================================
@@ -823,7 +823,6 @@ def loadView(t, slot=0):
     else: colormapC2 = '#FFFFFF'
     if pos is not None: colormapC3 = Internal.getValue(pos)
     else: colormapC2 = '#777777'
-    
     
     style = 0
     if colormap == 'Blue2Red': style = 0
