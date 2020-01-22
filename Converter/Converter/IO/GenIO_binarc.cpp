@@ -204,6 +204,80 @@ void readDomutil(FILE* ptrFile, unsigned int& numUti, char* nomUti)
   printf("nom du domaine %s\n", nomUti);
 }
 
+void readNumerotation(FILE* ptrFile, unsigned int& numabs, double& temps,
+  int& nsom, int& nfac, int& nflm, int &nflp, int& nceli, int*& isomu,
+  int*& ifacu, int*& icelu)
+{
+  fread(&numabs, sizeof(unsigned int), 1, ptrFile); numabs = UIBE(numabs);
+  fread(&temps, sizeof(double), 1, ptrFile); temps = DBE(temps);
+  fread(&nsom, sizeof(int), 1, ptrFile); nsom = IBE(nsom);
+  fread(&nfac, sizeof(int), 1, ptrFile); nfac = IBE(nfac);
+  fread(&nflm, sizeof(int), 1, ptrFile); nflm = IBE(nflm);
+  fread(&nflp, sizeof(int), 1, ptrFile); nflp = IBE(nflp);
+  fread(&nceli, sizeof(int), 1, ptrFile); nceli = IBE(nceli);
+  printf("%d %d %d\n", nsom, nfac, nflm);
+  isomu = new int [nsom];
+  fread(isomu, sizeof(int), nsom, ptrFile);
+  for (E_Int i = 0; i < nsom; i++) isomu[i] = IBE(isomu[i]);
+
+  ifacu = new int [nfac];
+  fread(ifacu, sizeof(int), nfac, ptrFile);
+  for (E_Int i = 0; i < nfac; i++) ifacu[i] = IBE(ifacu[i]);
+  
+  E_Int size = nceli+nflm+nflp;
+  icelu = new int [size];
+  fread(icelu, sizeof(int), size, ptrFile);
+  for (E_Int i = 0; i < size; i++) icelu[i] = IBE(icelu[i]);
+}
+
+void readVariables(FILE* ptrFile, unsigned int& numUti, unsigned int& nvar, char* nomVar,
+  char* nomGrp, char* nomCat, unsigned char& glob, unsigned int& elmin,
+  unsigned int& nelem, double*& data)
+{
+  fread(&numUti, sizeof(unsigned int), 1, ptrFile); numUti = UIBE(numUti);
+  fread(&nvar, sizeof(unsigned int), 1, ptrFile); nvar = UIBE(nvar);
+  
+}
+
+
+void readConnexion(FILE* ptrFile, unsigned int& nd, double& temps, unsigned int& elmin,
+  unsigned int& nelem, unsigned int*& num, unsigned char* nbpoints, unsigned int*& numpoints)
+{
+  fread(&nd, sizeof(unsigned int), 1, ptrFile); nd = UIBE(nd);
+  fread(&temps, sizeof(double), 1, ptrFile); temps = DBE(temps);
+  fread(&elmin, sizeof(unsigned int), 1, ptrFile); elmin = UIBE(elmin);
+  fread(&nelem, sizeof(unsigned int), 1, ptrFile); nelem = UIBE(nelem);
+  
+  E_Int size = 2*nelem;
+  num = new unsigned int [size];
+  fread(num, sizeof(unsigned int), size, ptrFile);
+  for (E_Int i = 0; i < size; i++) num[i] = UIBE(num[i]);
+  
+  nbpoints = new unsigned char [nelem];
+  fread(nbpoints, sizeof(unsigned char), nelem, ptrFile);
+  
+  E_Int nbPointsTot = 0;
+  for (size_t i = 0; i < nelem; i++) nbPointsTot += (E_Int)nbpoints[i];
+    
+  size = nbPointsTot;
+  numpoints = new unsigned int [size];
+  fread(numpoints, sizeof(unsigned int), size, ptrFile);
+  for (E_Int i = 0; i < size; i++) numpoints[i] = UIBE(numpoints[i]);
+  
+}
+
+// Lit un maillage structure
+void readMaillage0(FILE* ptrFile)
+{
+  
+}
+
+// Lit un maillage non structure
+void readMaillage1(FILE* ptrFile, unsigned int& nd)
+{
+    
+}
+
 //=============================================================================
 /* 
    arcread - read binary cedre format (archive)
@@ -279,6 +353,22 @@ E_Int K_IO::GenIO::arcread(
   unsigned int *dthGr=NULL;
   unsigned int *dthe=NULL;
   double *dthr=NULL;
+  double temps;
+  int nsom;
+  int nfac;
+  int nflm;
+  int nflp;
+  int nceli;
+  int* isomu = NULL;
+  int* ifacu = NULL;
+  int* icelu = NULL;
+  unsigned int nd;
+  unsigned int elmin;
+  unsigned int nelems;
+  unsigned int* num = NULL;
+  unsigned char* nbpoints = NULL;
+  unsigned int* numpoints = NULL;
+  
   readBlockName(ptrFile, name);
   readVersion(ptrFile, &version);
   
@@ -295,10 +385,14 @@ E_Int K_IO::GenIO::arcread(
     else if (strcmp(name, "THERMODYNAMIQUE") == 0) readThermo(ptrFile, read, fileName, nGe, nGr, ne, nr, dthGe, dthGr, dthe, dthr);
     else if (strcmp(name, "DOMUTIL") == 0) readDomutil(ptrFile, numUti, nomUti);
     else if (strcmp(name, "STRUCTURE") == 0) readStructure(ptrFile, numabs, numuti, name, type, situ, numMel, numGrp);
+    else if (strcmp(name, "NUMEROTATION") == 0) readNumerotation(ptrFile, numabs, temps, nsom, nfac, nflm, nflp, nceli, isomu, ifacu, icelu);
+    else if (strcmp(name, "CONNEXION") == 0) readConnexion(ptrFile, nd, temps, elmin, nelems, num, nbpoints, numpoints);
 
     else { printf("Block pas encore implemente: %s\n", name); break; }
   }
   delete [] dthGe; delete [] dthGr; delete [] dthe; delete [] dthr;
+  delete [] isomu; delete [] ifacu; delete [] icelu;
+  delete [] num; delete [] nbpoints; delete [] numpoints;
   return 0;
 }
 

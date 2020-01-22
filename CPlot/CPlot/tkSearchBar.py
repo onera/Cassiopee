@@ -74,6 +74,9 @@ applet = {
     # tkMapSurfs
     'tkMapSurfs':'tkMapSurfs', 'Remesh a surface':'tkMapSurfs',
     'Wrap surface -watertight-':'tkMapSurfs', 'Cartesian wrapper':'tkMapSurfs',
+    # tkMMGs
+    'tkMMGs':'tkMMGs', 'Remesh a surface':'tkMMGs',
+    'Refine a surface':'tkMMGs',
     # tkFilterSurfs
     'tkFilterSurfs':'tkFilterSurfs', 'Offset a surface':'tkFilterSurfs',
     # tkSurfaceWalk

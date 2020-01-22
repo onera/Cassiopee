@@ -110,6 +110,14 @@ PyObject* K_GENERATOR::tetgen(PyObject* self, PyObject* args)
 
   //b.regionattrib = 1; // met des attributs de region
 
+  // options en ligne
+  // option -q : ratio edge/radius (anisotropie?) default:2.0 (input)
+  // option -a : volmax
+  // option -r : remesh a previous mesh
+  // option -Y : empeche le split de facettes
+  // option -M : empeche la fusion des facettes coplanaires
+  // option -T : tolerance pour les tests coplanaires 1.e-8
+  
   if (maxh > 0)
   {
     b.fixedvolume = 1;
@@ -216,9 +224,8 @@ PyObject* K_GENERATOR::tetgen(PyObject* self, PyObject* args)
 
   if (val == 1) // erreur
   { 
-    PyErr_SetString(PyExc_TypeError,
-                    "tetgen: failed.");
-    return NULL; 
+    PyErr_SetString(PyExc_TypeError, "tetgen: failed.");
+    return NULL;
   }
 
   /* Build output */
