@@ -532,21 +532,22 @@ def getMatchSubZones__(z, procDict, oppNode, depth):
             if oppNodeHere == oppNode:
                 prange = Internal.getNodeFromName1(n, 'PointRange')
                 prange = Internal.getValue(prange)
-                imin = prange[0][0]
-                jmin = prange[1][0]
-                kmin = prange[2][0]
-                imax = prange[0][1]
-                jmax = prange[1][1]
-                kmax = prange[2][1]
-                if imin == imax and imin == 1: imax = 1+depth
-                elif imin == imax: imin = imax-depth
-                elif jmin == jmax and jmin == 1: jmax = 1+depth
-                elif jmin == jmax: jmin = jmax-depth
-                elif kmin == kmax and kmin == 1: kmax = 1+depth
-                elif kmin == kmax: kmin = kmax-depth
+                wrange = Internal.range2Window(prange)
+                imin = wrange[0]
+                imax = wrange[1]
+                jmin = wrange[2]
+                jmax = wrange[3]
+                kmin = wrange[4]
+                kmax = wrange[5]
+                if imin == imax and imin == 1: imax = 1+depth ; suffix = 'imin'
+                elif imin == imax: imin = imax-depth ; suffix = 'imax'
+                elif jmin == jmax and jmin == 1: jmax = 1+depth ; suffix = 'jmin'
+                elif jmin == jmax: jmin = jmax-depth ; suffix = 'jmax'
+                elif kmin == kmax and kmin == 1: kmax = 1+depth ; suffix = 'kmin'
+                elif kmin == kmax: kmin = kmax-depth ; suffix = 'kmax'              
                 oppZone = T.subzone(z, (imin,jmin,kmin), (imax,jmax,kmax))
-                oppZone[0] = z[0]+'_MX_'+oppZoneName
-                
+                oppZone[0] = z[0]+'_MX_'+oppZoneName+'-'+suffix 
+                     
                 z = Internal.rmNodesByName(z, 'ZoneGridConnectivity')
                 Internal.createChild(oppZone, 'ZoneGridConnectivity_t', 'ZoneGridConnectivity_t')
                 gcXZone = Internal.createNode('ZoneGridConnectivity_t', 'ZoneGridConnectivity_t')
@@ -569,14 +570,30 @@ def updateGridConnectivity(a):
 
     for z in zonesReal:
         gcs   = Internal.getNodesFromType1(z, 'ZoneGridConnectivity_t')
-        for g in gcs:  
+        for g in gcs:
             nodes = Internal.getNodesFromType1(g, 'GridConnectivity1to1_t')
             for n in nodes:
                 # Recherche le nom de la bandelette en raccord 
                 oppName = Internal.getValue(n)
-                zopp    = Internal.getNodeFromName2(a, oppName+'_MX_'+z[0])
                 
-                if zopp is not None: 
+                # suffix
+                prange = Internal.getNodeFromName1(n, 'PointRangeDonor')
+                prange = Internal.getValue(prange)
+                wrange = Internal.range2Window(prange)
+                imin = wrange[0] ; imax = wrange[1]
+                jmin = wrange[2] ; jmax = wrange[3]
+                kmin = wrange[4] ; kmax = wrange[5]
+                if imin == imax and imin == 1:   suffix = 'imin'
+                elif imin == imax: suffix = 'imax'
+                elif jmin == jmax and jmin == 1: suffix = 'jmin'
+                elif jmin == jmax: suffix = 'jmax'
+                elif kmin == kmax and kmin == 1: suffix = 'kmin'
+                elif kmin == kmax: suffix = 'kmax' 
+                
+                zopp = Internal.getNodeFromName(a, oppName+'_MX_'+z[0]+'-'+suffix)
+                
+                if zopp is not None:
+                                           
                     Internal.setValue(n, zopp[0]) # renommage
             
                     src, loc2glob = Internal.getLoc2Glob(zopp)
@@ -591,7 +608,7 @@ def updateGridConnectivity(a):
                     # Update XZone 
                     gcopp  = Internal.getNodesFromType1(zopp, 'ZoneGridConnectivity_t')
                     match  = Internal.getNodesFromType1(gcopp, 'GridConnectivity1to1_t')[0] # 1 seul match dans les XZone
-                    
+                
                     pr     = Internal.getNodeFromName1(match, 'PointRange')
                     Internal.setValue(pr, p) 
                                   
@@ -742,7 +759,7 @@ def _addBXZones(a, depth=2, allB=False):
             # b4 = subzone(z, (1,max(nj-depth+1,1),1), (ni,nj,nk), 'S4')
             # b5 = subzone(z, (1,1,1), (ni,nj,min(depth,nk)), 'S5')
             # b6 = subzone(z, (1,1,max(nk-depth+1,1)), (ni,nj,nk), 'S6')
-
+ 
             # Bandelettes non recouvrantes
             b1 = subzone(z, (1,1,1), (min(depth,ni),nj,nk), 'S1')
             b2 = subzone(z, (max(ni-depth+1,1),1,1), (ni,nj,nk), 'S2')
