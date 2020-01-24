@@ -86,7 +86,6 @@ PyObject* K_GENERATOR::T3mesher2D(PyObject* self, PyObject* args)
                     "T3mesher2D: can't find coordinates in array.");
     return NULL;
   }
-
  
   K_FLD::FloatArray& POS = *f;
   K_FLD::IntArray&   CONNECT = *cn;
@@ -100,8 +99,7 @@ PyObject* K_GENERATOR::T3mesher2D(PyObject* self, PyObject* args)
   E_Float zero = 0., sz = POS.cols();
   
   if (posm11 != -1) // Isotropic metric (so far).
-  {
-    
+  {  
     dT3.metrics.resize(1, POS.cols(), &zero);
 
     for (E_Int j = 0; j < sz; ++j)

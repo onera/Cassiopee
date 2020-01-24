@@ -375,7 +375,9 @@ def uniformize(a, N=100, h=-1, factor=-1., density=-1., sharpAngle=30.):
 
 def _uniformize(a, N=100, h=-1., factor=-1, density=-1, sharpAngle=30.):
     C._deleteFlowSolutions__(a)
-    C._TZGC(a, 'nodes', Geom.uniformize, N, h, factor, density, sharpAngle)
+    ar = C.getFields(Internal.__GridCoordinates__, a)
+    ar = Geom.uniformize(ar, N, h, factor, density, sharpAngle)
+    C.setFields(ar, a, 'nodes')
     return None
 
 def refine(a, N=10, factor=-1, sharpAngle=30.):

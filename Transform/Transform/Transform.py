@@ -20,7 +20,7 @@ __all__ = ['_translate', 'translate', 'addkplane', 'breakElements', 'cart2Cyl', 
     'projectOrtho', 'projectOrthoSmooth', 'projectRay', 'reorder', 'reorderAll', 'rotate', '_scale', 'scale', 
     'smooth', 'splitBAR', 'splitConnexity', 'splitCurvatureAngle', 'splitCurvatureRadius', 'splitManifold', 
     'splitMultiplePts', 'splitNParts', 'splitSharpEdges', 'splitSize', 'splitTBranches', 
-    'splitTRI', 'subzone', '_symetrize', 'symetrize', 'deformMesh']
+    'splitTRI', 'subzone', '_symetrize', 'symetrize', 'deformMesh', 'kround']
 
 #========================================================================================
 # Merge a set of cart grids in A for each refinement level

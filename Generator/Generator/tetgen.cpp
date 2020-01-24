@@ -31,14 +31,13 @@ PyObject* K_GENERATOR::tetgen(PyObject* self, PyObject* args)
 {
   PyObject* array;
   E_Float grading, maxh;
+  E_Int remeshBoundaries;
+  char* optionString;
   PyObject* holes; // coord. d'un point a l'interieur
-#if defined E_DOUBLEREAL
-  if (!PyArg_ParseTuple(args, "OddO", &array, &maxh, &grading, &holes)) 
+  if (!PYPARSETUPLE(args, "OddlOs", "OddiOs", "OfflOs", "OffiOs", 
+                    &array, &maxh, &grading, &remeshBoundaries, &holes, &optionString))
     return NULL;
-#else
-  if (!PyArg_ParseTuple(args, "OffO", &array, &maxh, &grading, &holes)) 
-    return NULL;
-#endif
+
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
@@ -97,55 +96,60 @@ PyObject* K_GENERATOR::tetgen(PyObject* self, PyObject* args)
 
   tetgenio in, out;
   tetgenbehavior b;
-  // Maille l'interieur d'un PLC
-  b.plc = 1;
-  // Ne touche pas le maillage surfacique
-  b.nobisect = 1; // -Y (conserve la frontiere ext)
-  // b.nobisect_param = 1; // 0, 1 ou 2
-  // b.addsteiner_algo = 1; // 1 ou 2
-  // Ajoute des pts pour la qualite
-  b.quality = 1; // -q (ajoute de points)
-  //b.minratio = 1.2; // radius-edge ratio >= 0.612
-  //b.diagnose = 1;
 
-  //b.regionattrib = 1; // met des attributs de region
-
-  // options en ligne
-  // option -q : ratio edge/radius (anisotropie?) default:2.0 (input)
-  // option -a : volmax
-  // option -r : remesh a previous mesh
-  // option -Y : empeche le split de facettes
-  // option -M : empeche la fusion des facettes coplanaires
-  // option -T : tolerance pour les tests coplanaires 1.e-8
-  
-  if (maxh > 0)
+  // si les options sont passees par la ligne d'options
+  // elles priment sur celles passees par arguments
+  E_Int l = strlen(optionString); 
+  if (l > 0) // options par optionString
   {
-    b.fixedvolume = 1;
-    b.maxvolume = (maxh*maxh*maxh)*0.25; // -a (max volume constraint)
+    b.parse_commandline(optionString);
   }
-  else b.varvolume = 1;
+  else // options par arguments
+  { 
+    // Maille l'interieur d'un PLC
+    b.plc = 1;
+    // modification du maillage surfacique?
+    if (remeshBoundaries == 0) b.nobisect = 1; // -Y (conserve la frontiere ext)
+    else b.nobisect = 0;
+    // b.nobisect_param = 1; // 0, 1 ou 2
+    // b.addsteiner_algo = 1; // 1 ou 2
+    // Ajoute des pts pour la qualite
+    b.quality = 1; // -q (ajoute de points)
+    //b.minratio = 1.2; // radius-edge ratio >= 0.612
+    //b.diagnose = 1;
 
-  // coplanar test
-  b.epsilon = 1.e-10;
+    //b.regionattrib = 1; // met des attributs de region
 
-  // forced simple
-  //b.nobisect = 0;
-  //b.quality = 0;
-  //b.fixedvolume = 0;
-  //b.epsilon = 1.e-8;
+    // options en ligne
+    // option -q : ratio edge/radius (anisotropie?) default:2.0 (input)
+    // option -a : volmax
+    // option -r : remesh a previous mesh
+    // option -Y : empeche le split de facettes
+    // option -M : empeche la fusion des facettes coplanaires
+    // option -T : tolerance pour les tests coplanaires 1.e-8
+  
+    if (maxh > 0)
+    {
+      b.fixedvolume = 1;
+      b.maxvolume = (maxh*maxh*maxh)*0.25; // -a (max volume constraint)
+    }
+    else b.varvolume = 1;
 
-  // pour du remaillage coarsening
-  // b.refine = 1;
-  // b.coarsen = 1;
-  // b.coarsen_param = 1; // ??
-  // b.coarsen_percent = 0.5; // x % less points
+    // coplanar test
+    b.epsilon = 1.e-10;
 
-  /*
-  char file[256];
-  strcpy(file, "example");
-  in.load_plc(file, tetgenbehavior::POLY);
-  printf("loaded.\n");
-  */
+    // forced simple
+    //b.nobisect = 0;
+    //b.quality = 0;
+    //b.fixedvolume = 0;
+    //b.epsilon = 1.e-8;
+
+    // pour du remaillage coarsening
+    // b.refine = 1;
+    // b.coarsen = 1;
+    // b.coarsen_param = 1; // ??
+    // b.coarsen_percent = 0.5; // x % less points
+  }
 
   // Remplissage de in a partir de array
   in.mesh_dim = 3;
@@ -231,7 +235,7 @@ PyObject* K_GENERATOR::tetgen(PyObject* self, PyObject* args)
   /* Build output */
   E_Int np = out.numberofpoints;
   ne = out.numberoftetrahedra;
-  printf("Generate %d points and %d elements.\n",np,ne);
+  printf("INFO: tetgen: generate %d points and %d elements.\n",np,ne);
   pout = K_ARRAY::buildArray(3, "x,y,z", np, ne, 4, NULL, false, 0);
   E_Float* fp = K_ARRAY::getFieldPtr(pout);
   E_Float* fx = fp; E_Float* fy = fp+np; E_Float* fz = fp+2*np;

@@ -22,9 +22,26 @@ def uniformize(a, N=100, h=-1., factor=-1, density=-1., sharpAngle=30.):
     """Uniformize the distribution of points on a 1D-mesh."""
     if checkImport is None: return None
     if isinstance(a[0], list):
-        b = []
-        for i in a:
-            b.append(uniformize__(i, N, h, factor, density, sharpAngle))
+        L = D.getLength(a)
+        if density > 0: N = int(L*density)+1
+        elif factor > 0: N = int(factor*(C.getNPts(a)-1))+1
+        elif h > 0: N = int(L/(N-1))
+        b = []; Nt = 0; rest = 0
+        for ct, i in enumerate(a):
+            Li = D.getLength(i)
+            Ni = int(round(N*1.*(Li/L)))+1
+            if Ni-1-N*1.*(Li/L) < 0:
+               if rest == -1: rest = 0; Ni += 1
+               elif rest == 0: rest = -1
+               elif rest == +1: rest = 0
+            elif Ni-1-N*1.*(Li/L) > 0: 
+               if rest == +1: rest = 0; Ni -= 1
+               elif rest == 0: rest = +1
+               elif rest == -1: rest = 0
+            Ni = max(Ni,2)
+            Nt += Ni-1
+            if ct == len(a)-1: Ni = Ni-Nt+N-1; Ni = max(Ni,2)
+            b.append(uniformize__(i, Ni, -1, -1, -1, sharpAngle))
         return b
     else:
         return uniformize__(a, N, h, factor, density, sharpAngle)
@@ -32,18 +49,19 @@ def uniformize(a, N=100, h=-1., factor=-1, density=-1., sharpAngle=30.):
 def uniformize__(a, N, h, factor, density, sharpAngle):
     if len(a) == 4: ntype = 1
     else: ntype = 0
+    
     L = D.getLength(a)
     if density > 0: N = int(L*density)+1
     elif factor > 0: N = int(factor*(C.getNPts(a)-1))+1
     elif h > 0: N = int(L/(N-1))
     N = max(N, 2)
+    
     # I can add splitConnexity if needed
     b = T.splitSharpEdges(a, alphaRef=sharpAngle) # b is BAR closed
     if ntype == 1: b = T.splitTBranches(b)
-    out = []; Nt = 0
-    nt = len(b); ct = 0; rest = 0
-    for i in b:
-        ct += 1
+    
+    out = []; Nt = 0; rest = 0
+    for ct, i in enumerate(b):
         Li = D.getLength(i)
         Ni = int(round(N*1.*(Li/L)))+1
         if Ni-1-N*1.*(Li/L) < 0:
@@ -56,7 +74,7 @@ def uniformize__(a, N, h, factor, density, sharpAngle):
            elif rest == -1: rest = 0
         Ni = max(Ni,2)
         Nt += Ni-1
-        if ct == nt: Ni = Ni-Nt+N-1; Ni = max(Ni,2)
+        if ct == len(b)-1: Ni = Ni-Nt+N-1; Ni = max(Ni,2)
         i = C.convertBAR2Struct(i)
         distrib = G.cart((0,0,0), (1./(Ni-1.),1.,1.), (Ni,1,1))
         c = G.map(i, distrib) # c is STRUCT
@@ -88,10 +106,8 @@ def refine__(a, N, factor, sharpAngle):
     b = T.splitSharpEdges(a, alphaRef=sharpAngle)
     if ntype == 1: b = T.splitTBranches(b)
 
-    out = []; Nt = 0
-    nt = len(b); ct = 0; rest = 0
-    for i in b:
-        ct += 1
+    out = []; Nt = 0; rest = 0
+    for ct, i in enumerate(b):
         i = C.convertBAR2Struct(i)
         Li = D.getLength(i)
         if factor < 0.:
@@ -106,7 +122,7 @@ def refine__(a, N, factor, sharpAngle):
              elif rest == -1: rest = 0
             Ni = max(Ni,2)
             Nt += Ni-1
-            if ct == nt: Ni = Ni-Nt+N-1
+            if ct == len(b)-1: Ni = Ni-Nt+N-1
             factori = (Ni-1.)/(C.getNPts(i)-1.)
         else: factori = factor
         out.append(G.refine(i, factori))
@@ -259,10 +275,13 @@ def enforceh3D_(array, N, h, dir):
 def enforceh(a, N=100, h=-1):
     """Enforce mesh size in a 1D-mesh."""
     if checkImport is None: return None
-    if isinstance(a[0], list): 
+    if isinstance(a[0], list):
+        L = D.getLength(a)
         b = []
         for i in a:
-            b.append(enforceh_(i, N, h))
+            Li = D.getLength(i)
+            Ni = int(round(N*1.*(Li/L)))+1
+            b.append(enforceh_(i, Ni, h))
         return b
     else:
         return enforceh_(a, N, h)
@@ -340,7 +359,7 @@ def enforceh__(a, N, h):
         h1 = h1s[x]; h2 = h2s[x]
         # subzone
         sub = T.subzone(a, (i1+1,1,1), (i2+1,1,1))
-        d = buildDistrib(h1, h2, Ps[x])            
+        d = buildDistrib(h1, h2, Ps[x])
         # remap
         c = G.map(sub, d)
         out.append(c)

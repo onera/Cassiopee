@@ -162,24 +162,21 @@ def refine1D(density, npts, factor):
 def uniformize1D(density, npts, factor):
     fail = False
     nzs = CPlot.getSelectedZones()
+    zones = []
     for nz in nzs:
         nob = CTK.Nb[nz]+1
         noz = CTK.Nz[nz]
         z = CTK.t[2][nob][2][noz]
-        dims = Internal.getZoneDim(z)
-        try:
-            if dims[0] == 'Unstructured':
-                a = C.convertBAR2Struct(z); np = dims[1]
-            else: a = z; np = dims[1]*dims[2]*dims[3]
-            if density > 0: npts = D.getLength(a)*density
-            if factor > 0: npts = np*factor[0]
-            npts = int(max(npts, 2))
-            distrib = G.cart((0,0,0), (1./(npts-1.),1,1), (npts,1,1))
-            b = G.map(a, distrib)
-            CTK.replace(CTK.t, nob, noz, b)
-        except Exception as e:
-            fail = True
-            Panels.displayErrors([0,str(e)], header='Error: uniformize1D')
+        zones.append(z)
+    try:
+        zones = D.uniformize(zones, npts, -1, factor, density)
+        for c, nz in enumerate(nzs):
+            nob = CTK.Nb[nz]+1
+            noz = CTK.Nz[nz]
+            CTK.replace(CTK.t, nob, noz, zones[c])
+    except Exception as e:
+        fail = True
+        Panels.displayErrors([0,str(e)], header='Error: uniformize1D')
     return fail
 
 #==============================================================================
@@ -207,7 +204,7 @@ def apply2D(density, npts, factor, ntype=0):
     np = dims[1]*dims[2]*dims[3]
     if ntype == 0: # uniformize
         if density > 0: npts = D.getLength(i)*density
-        if factor > 0: npts = np*factor[0]
+        if factor > 0: npts = np*factor
         npts = int(max(npts, 2))
         distrib = G.cart((0,0,0), (1./(npts-1.),1,1), (npts,1,1))
         b = G.map(i, distrib)
@@ -329,7 +326,7 @@ def apply3D(density, npts, factor, ntype):
     np = dims[1]*dims[2]*dims[3]
     if ntype == 0: # uniformize
         if density > 0: npts = D.getLength(i)*density
-        if factor > 0: npts = np*factor[0]
+        if factor > 0: npts = np*factor
         npts = int(max(npts, 2))
         distrib = G.cart((0,0,0), (1./(npts-1.),1,1), (npts,1,1))
         b = G.map(i, distrib)
@@ -548,79 +545,79 @@ def getEdges3D(zone, factor):
     (i,j,k) = forceIJK(i,j,k,ni,nj,nk)
 
     r = [] # refined edges
-    if (i == 1 and j == 1):
+    if i == 1 and j == 1:
         ind = k-1
         m = [e9]
         f = [f3,f5]
-        if (factor != 1.): r = [e11,e12,e10]; f += [f4,f6]
+        if factor != 1.: r = [e11,e12,e10]; f += [f4,f6]
 
-    elif (i == ni and j == 1):
+    elif i == ni and j == 1:
         ind = k-1
         m = [e10]
         f = [f6,f3]
-        if (factor != 1.): 
+        if factor != 1.: 
             r = [e9,e11,e12]
             f += [f5,f4]
 
-    elif (i == 1 and j == nj):
+    elif i == 1 and j == nj:
         ind = k-1
         m = [e11]
         f = [f5,f4]
-        if (factor != 1.): r = [e9,e10,e12]; f += [f3,f6]
+        if factor != 1.: r = [e9,e10,e12]; f += [f3,f6]
 
-    elif (i == ni and j == nj):
+    elif i == ni and j == nj:
         ind = k-1
         m = [e12]
         f = [f6,f4]
-        if (factor != 1.): r = [e10,e9,e11]; f += [f3,f5]
+        if factor != 1.: r = [e10,e9,e11]; f += [f3,f5]
 
-    elif (i == 1 and k == 1):
+    elif i == 1 and k == 1:
         ind = j-1
         m = [e3]
         f = [f1,f5]
-        if (factor != 1.): r = [e4,e8,e7]; f += [f2,f6]
+        if factor != 1.: r = [e4,e8,e7]; f += [f2,f6]
 
-    elif (i == ni and k == 1):
+    elif i == ni and k == 1:
         ind = j-1
         m = [e4]
         f = [f6,f1]
-        if (factor != 1.): r = [e3,e8,e7]; f += [f2,f5]
+        if factor != 1.: r = [e3,e8,e7]; f += [f2,f5]
 
-    elif (i == 1 and k == nk):
+    elif i == 1 and k == nk:
         ind = j-1
         m = [e7]
         f = [f5,f2]
-        if (factor != 1.): r = [e8,e4,e3]; f += [f6,f1]
+        if factor != 1.: r = [e8,e4,e3]; f += [f6,f1]
 
-    elif (i == ni and k == nk):
+    elif i == ni and k == nk:
         ind = j-1
         m = [e8]
         f = [f6,f2]
-        if (factor != 1.): r = [e7,e3,e4]; f += [f5,f1]
+        if factor != 1.: r = [e7,e3,e4]; f += [f5,f1]
 
-    elif (j == 1 and k == 1):
+    elif j == 1 and k == 1:
         ind = i-1
         m = [e1]
         f = [f1,f3]
-        if (factor != 1.): r = [e2,e6,e5]; f += [f2,f4]
+        if factor != 1.: r = [e2,e6,e5]; f += [f2,f4]
 
-    elif (j == nj and k == 1):
+    elif j == nj and k == 1:
         ind = i-1
         m = [e2]
         f = [f4,f1]
-        if (factor != 1.): r = [e1,e6,e5]; f += [f2,f3]
+        if factor != 1.: r = [e1,e6,e5]; f += [f2,f3]
 
-    elif (j == 1 and k == nk):
+    elif j == 1 and k == nk:
         ind = i-1
         m = [e5]
         f = [f2,f3]
-        if (factor != 1.): r = [e6,e2,e1]; f += [f1,f4]
+        if factor != 1.: r = [e6,e2,e1]; f += [f1,f4]
 
-    elif (j == nj and k == nk):
+    elif j == nj and k == nk:
         ind = i-1
         m = [e6]
         f = [f2,f4]
-        if (factor != 1.): r = [e5,e1,e2]; f += [f3,f1]
+        if factor != 1.: r = [e5,e1,e2]; f += [f3,f1]
 
     for i in m+r: ue.remove(i)
     for i in f: uf.remove(i)
@@ -656,7 +653,7 @@ def uniformize(event=None):
         if len(factor) != 1:
             CTK.TXT.insert('START', 'Invalid number factor.\n')
             CTK.TXT.insert('START', 'Error: ', 'Error')
-
+        factor = factor[0]
     CTK.saveTree()
 
     # Get first selected zone

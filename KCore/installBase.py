@@ -101,7 +101,7 @@ True, # useOMP
 False, # static
 False, # CPlotOffScreen
 ['/opt/mpi10/include', '/opt/soft/cdtng/tools/portage/1.11/usr/include'], # additionalIncludePaths
-['svml', 'irc', 'ifcore', 'iomp5'], # additionalLibs
+['ifcore', 'iomp5', 'svml', 'irc'], # additionalLibs
 ['/opt/soft/cdtng/tools/intelcompiler/2018/compilers_and_libraries_2018.5.274/linux/compiler/lib/intel64', '/opt/soft/cdtng/tools/portage/1.11/usr/lib', '/opt/mpi10/lib'] # additionalLibPaths
 ],
 ###############################################################################

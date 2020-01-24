@@ -232,40 +232,32 @@ PyObject* K_GENERATOR::mmgs(PyObject* self, PyObject* args)
   // if anisotropy == 1
   //argv[11] = new char [20]; strcpy(argv[11], "-A");
   
-
   MMGS_parsar(argc, argv, mesh, metric);
 
   // Conversion de l'array vers mesh
   // dimensionne nbre de vertex, nbre de triangles, nbre d'edges
   E_Int ne = cn->getSize(); // nbre d'elements
-  E_Int nv = cn->getNfld(); // nbre de vertex par element
   E_Int np = f->getSize(); // nbre de vertex
   MMGS_Set_meshSize(mesh, np, ne, 0);
 
-  // b) give the vertices: for each vertex, give the coordinates, the reference
-  // and the position in mesh of the vertex
   E_Float* fx = f->begin(posx);
   E_Float* fy = f->begin(posy);
   E_Float* fz = f->begin(posz);
-  
   for (E_Int i = 0; i < np; i++)
     MMGS_Set_vertex(mesh, fx[i], fy[i], fz[i], 0, i+1);
 
-  // d) give the triangles (not mandatory): for each triangle,
-  //    give the vertices index, the reference and the position of the triangle
   E_Int* c1 = cn->begin(1);
   E_Int* c2 = cn->begin(2);
   E_Int* c3 = cn->begin(3);
   E_Int stride = cn->getStride(); 
-
   for (E_Int i = 0; i < ne; i++)
-    MMGS_Set_triangle(mesh, c1[i*stride], c2[i*stride],  c3[i*stride], 3, i+1);
+    MMGS_Set_triangle(mesh, c1[i*stride], c2[i*stride], c3[i*stride], 3, i+1);
 
   if (posf >= 1)
   {
     E_Float* ff = f->begin(posf);
     MMGS_Set_solSize(mesh, metric, MMG5_Vertex, np, MMG5_Scalar);
-    for (E_Int k=1; k <= np; k++) MMGS_Set_scalarSol(metric, ff[k-1], k);
+    for (E_Int k=1; k <= np; k++) MMGS_Set_scalarSol(metric, ff[k-1], k); // existe aussi set_TensorSol
   }
 
   // Remesh
@@ -367,5 +359,6 @@ PyObject* K_GENERATOR::mmgs(PyObject* self, PyObject* args)
   //_MMGS_RETURN_AND_FREE(mesh, met, ier);
 
   RELEASESHAREDB(res, array, f, cn);
+
   return o;
 }

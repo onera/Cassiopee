@@ -291,12 +291,12 @@ def T3mesher2D(a, grading=1.2, triangulateOnly=0, metricInterpType=0):
     return C.convertArrays2ZoneNode('tri', [c])
 
 def tetraMesher(a, maxh=-1., grading=0.4, triangulateOnly=0, 
-                remeshBoundaries=0, algo=1):
+                remeshBoundaries=0, algo=1, optionString=""):
     """Create a TRI/TETRA mesh given a set of BAR or surfaces in a.
     Usage: tetraMesher(a, fineness, grading)"""
     c = C.getAllFields(a, 'nodes')
     c = Generator.tetraMesher(c, maxh, grading, triangulateOnly,
-                              remeshBoundaries, algo)
+                              remeshBoundaries, algo, optionString)
     return C.convertArrays2ZoneNode('mesh', [c])
 
 def gapfixer(contour, cloud, hardPoints=None, refine=1):
@@ -1017,16 +1017,16 @@ def _refine(t, power, dir):
     return None
 
 def mmgs(t, ridgeAngle=45., hmin=0., hmax=0., hausd=0.01, grow=1.1, 
-         anisotropy=0, optim=0):
+         anisotropy=0, optim=0, constraint=None):
     tp = Internal.copyRef(t)
-    _mmgs(tp, ridgeAngle, hmin, hmax, hausd, grow, anisotropy, optim)
+    _mmgs(tp, ridgeAngle, hmin, hmax, hausd, grow, anisotropy, optim, constraint)
     return tp
 
 def _mmgs(t, ridgeAngle=45., hmin=0., hmax=0., hausd=0.01, grow=1.1, 
-          anisotropy=0, optim=0):
+          anisotropy=0, optim=0, constraint=None):
     """Remesh a surface using MMGs."""
     arrays = C.getFields('nodes', t, api=2)
-    b = Generator.mmgs(arrays, ridgeAngle, hmin, hmax, hausd, grow, anisotropy, optim)
+    b = Generator.mmgs(arrays, ridgeAngle, hmin, hmax, hausd, grow, anisotropy, optim, constraint)
     C.setFields(b, t, 'nodes', True)
     return None
 

@@ -618,7 +618,7 @@ def refinePerDir__(a, power, dir):
 
 # Remaille une surface avec mmgs
 def mmgs(array, ridgeAngle=45., hmin=0., hmax=0., hausd=0.01, grow=1.1, 
-         anisotropy=0, optim=0):
+         anisotropy=0, optim=0, constraint=None):
     if isinstance(array[0], list):
         l = []
         for i in array:
@@ -1147,10 +1147,10 @@ def mapSplitStruct__(array, dist, splitCrit, densMax):
     posx = KCore.isNamePresent(d, "x")
     posy = KCore.isNamePresent(d, "y")
     posz = KCore.isNamePresent(d, "z")
-    if (posx == -1): posx = KCore.isNamePresent(a, "CoordinateX")
-    if (posy == -1): posy = KCore.isNamePresent(a, "CoordinateY")
-    if (posz == -1): posz = KCore.isNamePresent(a, "CoordinateZ")
-    if (posx == -1 or posy == -1 or posz == -1):
+    if posx == -1: posx = KCore.isNamePresent(a, "CoordinateX")
+    if posy == -1: posy = KCore.isNamePresent(a, "CoordinateY")
+    if posz == -1: posz = KCore.isNamePresent(a, "CoordinateZ")
+    if posx == -1 or posy == -1 or posz == -1:
         raise TypeError("mapSplit: coordinates not found in an distribution.")
     x = d[1][posx]; y = d[1][posy]; z = d[1][posz]
     nbpoints = len(x)
@@ -1179,7 +1179,7 @@ def mapSplitStruct__(array, dist, splitCrit, densMax):
         dxa = xa[i]-xa[i-1]; dya = ya[i]-ya[i-1]; dza = za[i]-za[i-1]
         la = math.sqrt(dxa*dxa+dya*dya+dza*dza) *lti 
         if la < stepmin and la > 0.: stepmin = la
-    if (lt/stepmin > densMax): stepmin = lt/densMax
+    if lt/stepmin > densMax: stepmin = lt/densMax
     # Densify array
     a = densify(a, stepmin)
     # Split array
@@ -1201,10 +1201,10 @@ def mapSplitStruct__(array, dist, splitCrit, densMax):
 
         d1 = math.fabs(L[i]-ld[ind1])
         d2 = math.fabs(L[i]-ld[ind2])
-        if (d1 < d2): indsplit = ind1
+        if d1 < d2: indsplit = ind1
         else: indsplit = ind2
         # Split distribution with "split points"
-        if (indsplit_previous < indsplit):
+        if indsplit_previous < indsplit:
             ds = T.subzone(d, (indsplit_previous+1,1,1), (indsplit+1,1,1))
             hom = 1./((ld[indsplit]-ld[indsplit_previous])*ldt)
             xs = ds[1][posx]; ys = ds[1][posy]; zs = ds[1][posz]
@@ -1220,12 +1220,12 @@ def T3mesher2D(a, grading=1.2, triangulateOnly=0, metricInterpType=0):
     try:
         import Converter as C
         b = C.convertArray2Tetra(a); b = close(b)
-        return generator.T3mesher2D(b, grading, triangulateOnly, metricInterpYype)
+        return generator.T3mesher2D(b, grading, triangulateOnly, metricInterpType)
     except:
         return generator.T3mesher2D(a, grading, triangulateOnly, metricInterpType)
 
 def tetraMesher(a, maxh=-1., grading=0.4, triangulateOnly=0, 
-                remeshBoundaries=0, algo=1):
+                remeshBoundaries=0, algo=1, optionString=""):
     """Create a TRI/TETRA mesh given a set of BAR or surfaces in a.
     Usage: tetraMesher(a, maxh, grading)"""
     try:
@@ -1262,7 +1262,7 @@ def tetraMesher(a, maxh=-1., grading=0.4, triangulateOnly=0,
                 sp = T.splitConnexity(a)
                 for s in sp:
                     px = C.isNamePresent(s, 'x')
-                    if (px != -1): ext = C.extractVars(s, ['x','y','z'])
+                    if px != -1: ext = C.extractVars(s, ['x','y','z'])
                     else: ext = C.extractVars(s, ['CoordinateX','CoordinateY','CoordinateZ'])
                     n = getNormalMap(s)
                     n = C.center2Node(n)
@@ -1272,7 +1272,7 @@ def tetraMesher(a, maxh=-1., grading=0.4, triangulateOnly=0,
                     eps = 1.e-10
                     holes.append([pt[0]+eps*n[0], pt[1]+eps*n[1], pt[2]+eps*n[2]])
             except: pass
-            return generator.tetgen(a, maxh, grading, holes)
+            return generator.tetgen(a, maxh, grading, remeshBoundaries, holes, optionString)
     else:
         raise TypeError("tetraMesher: requires BAR or TRI mesh.")
 
