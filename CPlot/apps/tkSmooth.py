@@ -84,7 +84,7 @@ def smooth():
         if base is not None:
             nodes = Internal.getNodesFromType1(base, 'Zone_t')
             for z in nodes:
-                if (z[0] == sname[1]): fixedConstraints.append(z)
+                if z[0] == sname[1]: fixedConstraints.append(z)
 
     CTK.saveTree()
     

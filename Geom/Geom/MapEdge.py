@@ -397,11 +397,12 @@ def smooth__(a, eps, niter, sharpAngle):
     b = T.splitSharpEdges(a, alphaRef=sharpAngle)
     if ntype == 1: b = T.splitTBranches(b)
     out = []
+    P0 = D.point((0,0,0)); P1 = D.point((1,0,0))
     for i in b:
         i = C.convertBAR2Struct(i)
         c = D.getDistribution(i)
-        c = T.smooth(c, eps, niter)
-        i = G.map(i, c)
+        d = T.smooth(c, eps, niter, fixedConstraints=[P0,P1])
+        i = G.map(i, d)
         out.append(i)
     if ntype == 1: out = C.convertArray2Hexa(out)
     out = T.join(out)

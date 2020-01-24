@@ -413,3 +413,14 @@ def setF(a, ind, f):
     for z in zones:
         if C.isNamePresent(z, 'f') == -1: C._initVars(a, 'f', 0.)
         C.setValue(a, 'f', ind, f)
+
+def smooth(a, eps, niter):
+    """Smooth distribution on a curve."""
+    ap = Internal.copyRef(a)
+    _smooth(ap, eps, niter)
+    return ap
+
+def _smooth(a, eps, niter):
+    C._TZGC(a, 'nodes', Geom.smooth, eps, niter)
+    return None
+

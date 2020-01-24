@@ -49,9 +49,9 @@ def stretch1D(h):
     dims = Internal.getZoneDim(z)
     try:
         if dims[0] == 'Unstructured': a = C.convertBAR2Struct(z)
-        else: a = z
+        else: a = Internal.copyTree(z)
     except Exception as e:
-        #print 'Error: stretch1D: %s.'%str(e)
+        #print('Error: stretch1D: %s.'%str(e))
         Panels.displayErrors([0,str(e)], header='Error: stretch1D')
         return True # Fail
 
@@ -59,14 +59,14 @@ def stretch1D(h):
     if ind == []: return True # Fail
     ind = ind[0]
     
+    zp = D.getCurvilinearAbscissa(z)
     l = D.getLength(a)
     a = D.getCurvilinearAbscissa(a)
-    zp = D.getCurvilinearAbscissa(z)
     distrib = C.cpVars(a, 's', a, 'CoordinateX')
     C._initVars(distrib, 'CoordinateY', 0.)
     C._initVars(distrib, 'CoordinateZ', 0.)
-    distrib = C.rmVars(distrib, 's')
-    
+    C._rmVars(distrib, 's')
+
     N = dims[1]
     val = C.getValue(zp, 's', ind)
     
@@ -93,17 +93,54 @@ def stretch1D(h):
     if h < 0: # enforce point
         distrib = G.enforcePoint(distrib, valf)
     else: # enforce h
-        if val == 0: distrib = G.enforcePlusX(distrib, h/l, N/10, 1)
-        elif val == 1: distrib = G.enforceMoinsX(distrib, h/l, N/10, 1)
-        else: distrib = G.enforceX(distrib, valf, h/l, N/10, 1)
+        if val == 0: distrib = G.enforcePlusX(distrib, h/l, N//10, 1)
+        elif val == 1: distrib = G.enforceMoinsX(distrib, h/l, N//10, 1)
+        else: distrib = G.enforceX(distrib, valf, h/l, N//10, 1)
     try:
-        a1 = G.map(a, distrib)
+        a1 = G.map(z, distrib)
         CTK.replace(CTK.t, nob, noz, a1)
     except Exception as e:
         fail = True
         Panels.displayErrors([0,str(e)], header='Error: stretch1D')
     return fail
 
+#==============================================================================
+# Set enforce h as a sizemap
+def setEnforce(event=None):
+    h = CTK.varsFromWidget(VARS[1].get(), 1)
+    if len(h) != 1:
+        CTK.TXT.insert('START', 'Invalid spacing.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error')
+    h = h[0]
+
+    nzs = CPlot.getSelectedZones()
+    nz = nzs[0]
+    nob = CTK.Nb[nz]+1
+    noz = CTK.Nz[nz]
+    z = CTK.t[2][nob][2][noz]
+    
+    ind = CPlot.getActivePointIndex()
+    if ind == []: return True
+    ind = ind[0]
+    D.setH(z, ind, h)
+    CTK.TXT.insert('START', 'Spacing set.\n')
+
+def enforceH(event=None):
+    CTK.saveTree()
+    nzs = CPlot.getSelectedZones()
+    zones = []
+    for nz in nzs:
+        nob = CTK.Nb[nz]+1
+        noz = CTK.Nz[nz]
+        z = CTK.t[2][nob][2][noz]
+        zones.append(z)
+    zones = D.enforceh(zones)
+    for c, nz in enumerate(nzs):
+        nob = CTK.Nb[nz]+1
+        noz = CTK.Nz[nz]
+        CTK.replace(CTK.t, nob, noz, zones[c])
+    CTK.TXT.insert('START', 'Spacing enforced.\n')
+        
 #==============================================================================
 # Smooth pour les zones edges
 #==============================================================================
@@ -114,19 +151,8 @@ def smooth1D(niter, eps):
         nob = CTK.Nb[nz]+1
         noz = CTK.Nz[nz]
         z = CTK.t[2][nob][2][noz]
-        dims = Internal.getZoneDim(z)
         try:
-            if dims[0] == 'Unstructured': a = C.convertBAR2Struct(z)
-            else: a = z
-            a = D.getCurvilinearAbscissa(a)
-            distrib = C.cpVars(a, 's', a, 'CoordinateX')
-            C._initVars(distrib, 'CoordinateY', 0.)
-            C._initVars(distrib, 'CoordinateZ', 0.)
-            distrib = C.rmVars(distrib, 's')
-            bornes = P.exteriorFaces(distrib)
-            distrib = T.smooth(distrib, eps=eps, niter=niter, 
-                               fixedConstraints=[bornes])
-            b = G.map(a, distrib)
+            b = D.smooth(z, eps, niter)
             CTK.replace(CTK.t, nob, noz, b)
         except Exception as e:
             fail = True
@@ -418,7 +444,7 @@ def apply3D(density, npts, factor, ntype):
                 Q1 = C.getValue(ei, Internal.__GridCoordinates__, npi)
                 t1 = Vector.norm2(Vector.sub(P0,Q0))
                 t2 = Vector.norm2(Vector.sub(P1,Q1))
-                if (t1 < 1.e-12 and t2 < 1.e-12): match.append(ei)
+                if t1 < 1.e-12 and t2 < 1.e-12: match.append(ei)
         if len(match) == 4: # OK
             fn = G.TFI(match)
             # Projection du patch interieur
@@ -965,7 +991,7 @@ def createApp(win):
     # -0- Point density or Npts -
     V = TK.StringVar(win); V.set('1.'); VARS.append(V)
     # -1- Enforce height
-    V = TK.StringVar(win); V.set('1.e-6'); VARS.append(V)
+    V = TK.StringVar(win); V.set('1.e-3'); VARS.append(V)
     if 'tkMapEdgeEnforceHeight' in CTK.PREFS:
         V.set(CTK.PREFS['tkMapEdgeEnforceHeight'])
     # -2- Option for uniformize
@@ -997,14 +1023,17 @@ def createApp(win):
     B.bind('<Return>', uniformize)
 
     # - Enforce -
-    B = TTK.Button(Frame, text="Enforce", command=enforce)
-    B.grid(row=1, column=0, columnspan=2, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Enforce given spacing in edge.')
+    B = TTK.Button(Frame, text="Set", command=setEnforce)
+    B.grid(row=1, column=0, columnspan=1, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Set step on curve.')
     B = TTK.Entry(Frame, textvariable=VARS[1], background='White', width=7)
-    B.grid(row=1, column=2, columnspan=2, sticky=TK.EW)
+    B.grid(row=1, column=1, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Enforced spacing.')
-    B.bind('<Return>', enforce)
-
+    B.bind('<Return>', setEnforce)
+    B = TTK.Button(Frame, text="Enforce", command=enforceH)
+    B.grid(row=1, column=2, columnspan=2, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Enforce all given spacing.')
+    
     # - Refine edge -
     B = TTK.Button(Frame, text="Refine", command=refine)
     B.grid(row=2, column=0, sticky=TK.EW)
