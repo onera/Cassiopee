@@ -211,7 +211,7 @@ def buildDistrib(h1, h2, N):
     Ni = int(round(1./h2))+1
     a = G.cart((0,0,0), (h2,1,1), (Ni,1,1))
     a[1][0,Ni-2] = 1.-h2
-    b = G.enforcePlusX(a, h1, (Ni-2,N-Ni))
+    b = G.enforcePlusX(a, h1, (Ni-2,N-Ni-1))
     return b
 
 # moyenne ponderee de hl
@@ -290,7 +290,7 @@ def enforceh_(a, N, h):
     if len(a) == 4: ntype = 1
     else: ntype = 0
     L = D.getLength(a)
-    if ntype == 1: 
+    if ntype == 1:
         a = T.splitTBranches(a)
         a = C.convertBAR2Struct(a)
         out = []
@@ -309,7 +309,7 @@ def enforceh__(a, N, h):
     if pos == -1:
         pos = KCore.isNamePresent(a, 'f')
         if pos == -1:
-            raise ValueError("h or f is not present.")
+            raise ValueError("enforceh: h or f is not present.")
         else: 
             hl = numpy.copy(a[1][pos])
             factorMoy = moyenne(a, hl)
@@ -331,17 +331,14 @@ def enforceh__(a, N, h):
         if hi > 1.e-12:
             if i == 0: i1 = 0; h1 = hi
             if i > 0:
-                if i1 == -1:
-                    i1 = 0; i2 = i; h1 = hi; h2 = hi
-                if h1 > 0:
-                    i2 = i; h2 = hi
+                if i1 == -1: i1 = 0; i2 = i; h1 = hi; h2 = hi
+                if h1 > 0: i2 = i; h2 = hi
                 sub = T.subzone(a, (i1+1,1,1), (i2+1,1,1))                
                 Li = D.getLength(sub)
                 Pi = Li*1./(0.5*(h1+h2)+1.e-12)
                 i1s.append(i1); i2s.append(i2)
                 h1s.append(h1/Li); h2s.append(h2/Li)
                 Ps.append(Pi)
-                # loop
                 i1 = i2; h1 = h2
     Pt = 0.
     for x in range(len(h1s)):
@@ -357,10 +354,8 @@ def enforceh__(a, N, h):
     for x in range(len(h1s)):
         i1 = i1s[x]; i2 = i2s[x]
         h1 = h1s[x]; h2 = h2s[x]
-        # subzone
         sub = T.subzone(a, (i1+1,1,1), (i2+1,1,1))
         d = buildDistrib(h1, h2, Ps[x])
-        # remap
         c = G.map(sub, d)
         out.append(c)
     out = T.join(out)
@@ -370,12 +365,9 @@ def enforceh__(a, N, h):
 def enforce(a, h, ind, supp, add):
     c = D.getDistribution(a)
     L = D.getLength(a)
-    if ind == 0:
-        b = G.enforceMoinsX(b, h/L, supp, add)
-    elif ind == a[2]-1:
-        b = G.enforcePlusX(b, h/L, supp, add)
-    else:
-        b = G.enforceX(b, c[1][0,ind], h/L, supp, add)
+    if ind == 0: b = G.enforceMoinsX(b, h/L, supp, add)
+    elif ind == a[2]-1: b = G.enforcePlusX(b, h/L, supp, add)
+    else: b = G.enforceX(b, c[1][0,ind], h/L, supp, add)
     a = G.map(a, b)
     return a
 

@@ -68,7 +68,7 @@ void DataDL::renderGPUSMeshZone(StructZone* zonep, int zone)
 
   // For node rendering (1D zones)
   double d;
-  double dref = 0.003;
+  double dref = 0.004;
   double xi, yi, zi;
   double viewMatrix[16];
   glGetDoublev(GL_MODELVIEW_MATRIX, viewMatrix);

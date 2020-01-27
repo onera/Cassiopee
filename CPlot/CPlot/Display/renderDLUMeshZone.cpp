@@ -82,7 +82,7 @@ DataDL::renderGPUUMeshZone(UnstructZone* zonep, int zone, int zonet)
     getrgb = _plugins.colorMap->next->f;
 
     // For node rendering (1D zones)
-    double dref = 0.003;
+    double dref = 0.004;
     double xi, yi, zi;
     double viewMatrix[16];
     glGetDoublev(GL_MODELVIEW_MATRIX, viewMatrix);

@@ -118,14 +118,28 @@ def setEnforce(event=None):
     nob = CTK.Nb[nz]+1
     noz = CTK.Nz[nz]
     z = CTK.t[2][nob][2][noz]
-    
+    npts = C.getNPts(z)
+
     ind = CPlot.getActivePointIndex()
     if ind == []: return True
     ind = ind[0]
+    if VARS[8].get() == 'HFactor':
+        P0 = C.getValue(z, 'GridCoordinates', ind)
+        if ind == npts-1: P1 = C.getValue(z, 'GridCoordinates', ind-1)
+        else: P1 = C.getValue(z, 'GridCoordinates', ind+1)
+        import KCore.Vector as V
+        hloc = V.norm(V.sub(P1,P0))
+        h = h*hloc
+        print(h)
     D.setH(z, ind, h)
     CTK.TXT.insert('START', 'Spacing set.\n')
 
 def enforceH(event=None):
+    v = CTK.varsFromWidget(VARS[10].get(), 1)
+    if len(v) != 1:
+        CTK.TXT.insert('START', 'Invalid number of points or factor.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error')
+    v = v[0]
     CTK.saveTree()
     nzs = CPlot.getSelectedZones()
     zones = []
@@ -134,12 +148,18 @@ def enforceH(event=None):
         noz = CTK.Nz[nz]
         z = CTK.t[2][nob][2][noz]
         zones.append(z)
-    zones = D.enforceh(zones)
+    npts = C.getNPts(zones)
+    if VARS[9].get() == 'NFactor': N = v*npts
+    else: N = v 
+    zones = D.enforceh(zones, N=N)
     for c, nz in enumerate(nzs):
         nob = CTK.Nb[nz]+1
         noz = CTK.Nz[nz]
         CTK.replace(CTK.t, nob, noz, zones[c])
-    CTK.TXT.insert('START', 'Spacing enforced.\n')
+    (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+    CTK.TKTREE.updateApp()
+    CPlot.render()
+    CTK.TXT.insert('START', 'Spacings enforced.\n')
         
 #==============================================================================
 # Smooth pour les zones edges
@@ -674,7 +694,7 @@ def uniformize(event=None):
             CTK.TXT.insert('START', 'Invalid number of points.\n')
             CTK.TXT.insert('START', 'Error: ', 'Error')
         npts = npts[0]
-    elif type == 'Factor':
+    elif type == 'NFactor':
         factor = CTK.varsFromWidget(VARS[0].get(), 1)
         if len(factor) != 1:
             CTK.TXT.insert('START', 'Invalid number factor.\n')
@@ -762,7 +782,7 @@ def refine(event=None):
 
     type = VARS[4].get()
     factor = -1; npts = 2
-    if type == 'Factor':
+    if type == 'NFactor':
         factor = CTK.varsFromWidget(VARS[5].get(), 1)
         if len(factor) != 1:
             CTK.TXT.insert('START', 'Invalid refinement factor.\n')
@@ -990,16 +1010,16 @@ def createApp(win):
     # - VARS -
     # -0- Point density or Npts -
     V = TK.StringVar(win); V.set('1.'); VARS.append(V)
-    # -1- Enforce height
-    V = TK.StringVar(win); V.set('1.e-3'); VARS.append(V)
+    # -1- Enforce step
+    V = TK.StringVar(win); V.set('1.'); VARS.append(V)
     if 'tkMapEdgeEnforceHeight' in CTK.PREFS:
         V.set(CTK.PREFS['tkMapEdgeEnforceHeight'])
     # -2- Option for uniformize
-    V = TK.StringVar(win); V.set('Factor'); VARS.append(V)
+    V = TK.StringVar(win); V.set('NFactor'); VARS.append(V)
     # -3- Source mesh for copy -
     V = TK.StringVar(win); V.set(''); VARS.append(V)
     # -4- Option for refine
-    V = TK.StringVar(win); V.set('Factor'); VARS.append(V)
+    V = TK.StringVar(win); V.set('NFactor'); VARS.append(V)
     # -5-  Number of points/factor for refine 
     V = TK.StringVar(win); V.set('1.'); VARS.append(V)
     # -6- Smoothing iterations
@@ -1010,64 +1030,79 @@ def createApp(win):
     V = TK.StringVar(win); V.set('0.5'); VARS.append(V)
     if 'tkMapEdgeSmoothEps' in CTK.PREFS:
         V.set(CTK.PREFS['tkMapEdgeSmoothEps'])
+    # -8- Type of set enforce
+    V = TK.StringVar(win); V.set('HFactor'); VARS.append(V)
+    # -9- Type of h enforce
+    V = TK.StringVar(win); V.set('NFactor'); VARS.append(V)
+    # -10- Nbre de pts pour h enforce
+    V = TK.StringVar(win); V.set('1.'); VARS.append(V)
 
     # - Uniformize -
     B = TTK.Button(Frame, text="Uniformize", command=uniformize)
     B.grid(row=0, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Uniformize an edge with regular spacing.')
-    B = TTK.OptionMenu(Frame, VARS[2], 'Factor', 'Density', 'Npts')
+    B = TTK.OptionMenu(Frame, VARS[2], 'NFactor', 'Density', 'Npts')
     B.grid(row=0, column=1, sticky=TK.EW)
     B = TTK.Entry(Frame, textvariable=VARS[0], background='White', width=7)
     B.grid(row=0, column=2, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Point multiplication factor/point density/number of points.')
     B.bind('<Return>', uniformize)
 
-    # - Enforce -
-    B = TTK.Button(Frame, text="Set", command=setEnforce)
-    B.grid(row=1, column=0, columnspan=1, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Set step on curve.')
-    B = TTK.Entry(Frame, textvariable=VARS[1], background='White', width=7)
-    B.grid(row=1, column=1, columnspan=1, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Enforced spacing.')
-    B.bind('<Return>', setEnforce)
-    B = TTK.Button(Frame, text="Enforce", command=enforceH)
-    B.grid(row=1, column=2, columnspan=2, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Enforce all given spacing.')
-    
     # - Refine edge -
     B = TTK.Button(Frame, text="Refine", command=refine)
-    B.grid(row=2, column=0, sticky=TK.EW)
+    B.grid(row=1, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Refine an edge keeping distribution.')
-    B = TTK.OptionMenu(Frame, VARS[4], 'Factor', 'Npts')
-    B.grid(row=2, column=1, sticky=TK.EW)
+    B = TTK.OptionMenu(Frame, VARS[4], 'NFactor', 'Npts')
+    B.grid(row=1, column=1, sticky=TK.EW)
     B = TTK.Entry(Frame, textvariable=VARS[5], background='White', width=7)
-    B.grid(row=2, column=2, columnspan=2, sticky=TK.EW)
+    B.grid(row=1, column=2, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Refinement factor or number of points.')
     B.bind('<Return>', refine)
 
     # - Copy distribution -
     B = TTK.Button(Frame, command=setSourceEdge,
                    image=iconics.PHOTO[8], padx=0, pady=0)
-    B.grid(row=3, column=3, sticky=TK.EW)
+    B.grid(row=2, column=3, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Set source edge defining distribution to copy.')
     B = TTK.Entry(Frame, textvariable=VARS[3], background='White', width=10)
-    B.grid(row=3, column=1, columnspan=2, sticky=TK.EW)
+    B.grid(row=2, column=1, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Source edge for distribution copy.')
     B = TTK.Button(Frame, text="Copy", command=copyDistrib)
-    B.grid(row=3, column=0, columnspan=1, sticky=TK.EW)
+    B.grid(row=2, column=0, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Copy distribution from source edge.')
 
     # - Smooth edge -
     B = TTK.Button(Frame, text="Smooth", command=smooth)
-    B.grid(row=4, column=0, sticky=TK.EW)
+    B.grid(row=3, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Smooth an edge distribution.')
     B = TTK.Entry(Frame, textvariable=VARS[7], background='White', width=7)
-    B.grid(row=4, column=1, sticky=TK.EW)
+    B.grid(row=3, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Smoother power.')
     B = TTK.Entry(Frame, textvariable=VARS[6], background='White', width=7)
-    B.grid(row=4, column=2, columnspan=2, sticky=TK.EW)
+    B.grid(row=3, column=2, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Number of smoother iterations.')
     B.bind('<Return>', smooth)
+    
+    # - Enforce -
+    B = TTK.Button(Frame, text="Set", command=setEnforce)
+    B.grid(row=4, column=0, columnspan=1, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Set step on curve.')
+    B = TTK.OptionMenu(Frame, VARS[8], 'HFactor', 'H')
+    B.grid(row=4, column=1, sticky=TK.EW)
+    B = TTK.Entry(Frame, textvariable=VARS[1], background='White', width=7)
+    B.grid(row=4, column=2, columnspan=2, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Enforced spacing.')
+    B.bind('<Return>', setEnforce)
+
+    B = TTK.Button(Frame, text="Enforce", command=enforceH)
+    B.grid(row=5, column=0, columnspan=1, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Enforce all given spacing.')
+    B = TTK.OptionMenu(Frame, VARS[9], 'NFactor', 'Npts')
+    B.grid(row=5, column=1, sticky=TK.EW)
+    B = TTK.Entry(Frame, textvariable=VARS[10], background='White', width=7)
+    B.grid(row=5, column=2, columnspan=2, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Enforced number of points.')
+    B.bind('<Return>', enforceH)
     
 #==============================================================================
 # Called to display widgets

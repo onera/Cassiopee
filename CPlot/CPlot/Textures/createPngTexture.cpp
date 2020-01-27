@@ -119,8 +119,6 @@ int Data::createPngTexture(const char* filename, GLuint &tex,
       color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
     png_set_gray_to_rgb(png_ptr);
 
-  png_read_update_info(png_ptr, info_ptr);
-
   //int number_of_passes = png_set_interlace_handling(png_ptr);
   png_read_update_info(png_ptr, info_ptr);
 
