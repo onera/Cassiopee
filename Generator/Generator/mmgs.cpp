@@ -44,11 +44,12 @@ PyObject* K_GENERATOR::mmgs(PyObject* self, PyObject* args)
   E_Int anisotropy = 0;
   E_Int optim = 0;
   PyObject* array;
+  PyObject* fixedNodes;
   if (!PYPARSETUPLE(args, 
-                    "Odddddll", "Odddddii", 
-                    "Offfffll", "Offfffii", 
+                    "OdddddllO", "OdddddiiO", 
+                    "OfffffllO", "OfffffiiO", 
                     &array, &ridgeAngle, &hmin, &hmax, &hausd, &hgrad, 
-                    &anisotropy, &optim))
+                    &anisotropy, &optim, &fixedNodes))
   {
     return NULL;
   }
@@ -258,6 +259,19 @@ PyObject* K_GENERATOR::mmgs(PyObject* self, PyObject* args)
     E_Float* ff = f->begin(posf);
     MMGS_Set_solSize(mesh, metric, MMG5_Vertex, np, MMG5_Scalar);
     for (E_Int k=1; k <= np; k++) MMGS_Set_scalarSol(metric, ff[k-1], k); // existe aussi set_TensorSol
+  }
+
+  // Use fixedNodes if any
+  if (fixedNodes != Py_None)
+  {
+    E_Int ns = PyList_Size(fixedNodes);
+    for (E_Int l = 0; l < ns; l++)
+    {
+      PyObject* o = PyList_GetItem(fixedNodes, l);
+      E_Int* ptr; E_Int npts; E_Int nfld;
+      K_NUMPY::getFromNumpyArray(o, ptr, npts, nfld, true, false);
+      for (E_Int i = 0; i < npts; i++) MMGS_Set_requiredVertex(mesh, ptr[i]); // +1?
+    }
   }
 
   // Remesh

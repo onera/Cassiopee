@@ -1017,16 +1017,19 @@ def _refine(t, power, dir):
     return None
 
 def mmgs(t, ridgeAngle=45., hmin=0., hmax=0., hausd=0.01, grow=1.1, 
-         anisotropy=0, optim=0, constraint=None):
+         anisotropy=0, optim=0, fixedConstraints=[], sizeConstraints=[]):
+    """Remesh a surface using MMGs."""
     tp = Internal.copyRef(t)
-    _mmgs(tp, ridgeAngle, hmin, hmax, hausd, grow, anisotropy, optim, constraint)
+    _mmgs(tp, ridgeAngle, hmin, hmax, hausd, grow, anisotropy, optim, fixedConstraints, sizeConstraints)
     return tp
 
 def _mmgs(t, ridgeAngle=45., hmin=0., hmax=0., hausd=0.01, grow=1.1, 
-          anisotropy=0, optim=0, constraint=None):
-    """Remesh a surface using MMGs."""
+          anisotropy=0, optim=0, fixedConstraints=[], sizeConstraints=[]):
     arrays = C.getFields('nodes', t, api=2)
-    b = Generator.mmgs(arrays, ridgeAngle, hmin, hmax, hausd, grow, anisotropy, optim, constraint)
+    fixedConstraints = C.getFields('nodes', fixedConstraints, api=1)
+    sizeConstraints = C.getFields('nodes', sizeConstraints, api=1)
+    b = Generator.mmgs(arrays, ridgeAngle, hmin, hmax, hausd, grow, anisotropy, optim, 
+                       fixedConstraints, sizeConstraints)
     C.setFields(b, t, 'nodes', True)
     return None
 

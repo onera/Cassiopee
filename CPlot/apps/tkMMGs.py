@@ -8,9 +8,50 @@ import CPlot.Tk as CTK
 import CPlot.Panels as Panels
 import Generator.PyTree as G
 import Converter.Internal as Internal
+import CPlot.iconics as iconics
 
 # local widgets list
 WIDGETS = {}; VARS = []
+
+#==============================================================================
+def setFixedConstraints():
+    if CTK.t == []: return
+    if CTK.__MAINTREE__ <= 0:
+        CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+    nzs = CPlot.getSelectedZones()
+    if nzs == []:
+        CTK.TXT.insert('START', 'Selection is empty.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+
+    selected = ''
+    for nz in nzs:
+        nob = CTK.Nb[nz]+1
+        noz = CTK.Nz[nz]
+        z = CTK.t[2][nob][2][noz]
+        selected += CTK.t[2][nob][0]+'/'+z[0]+';'
+    selected = selected[0:-1]
+    VARS[4].set(selected)
+
+#==============================================================================
+def setSizeConstraints():
+    if CTK.t == []: return
+    if CTK.__MAINTREE__ <= 0:
+        CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+    nzs = CPlot.getSelectedZones()
+    if nzs == []:
+        CTK.TXT.insert('START', 'Selection is empty.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+
+    selected = ''
+    for nz in nzs:
+        nob = CTK.Nb[nz]+1
+        noz = CTK.Nz[nz]
+        z = CTK.t[2][nob][2][noz]
+        selected += CTK.t[2][nob][0]+'/'+z[0]+';'
+    selected = selected[0:-1]
+    VARS[5].set(selected)
 
 #==============================================================================
 def remesh():
@@ -45,13 +86,39 @@ def remesh():
             CTK.TXT.insert('START', 'Error: ', 'Error')
     hmax = hmax[0]
     
+    # Constraints
+    fixedConstraints = []
+    name = VARS[4].get()
+    names = name.split(';')
+    for v in names:
+        v = v.lstrip(); v = v.rstrip()
+        sname = v.split('/', 1)
+        base = Internal.getNodeFromName1(CTK.t, sname[0])
+        if base is not None:
+            nodes = Internal.getNodesFromType1(base, 'Zone_t')
+            for z in nodes:
+                if z[0] == sname[1]: fixedConstraints.append(z)
+    sizeConstraints = []
+    name = VARS[5].get()
+    names = name.split(';')
+    for v in names:
+        v = v.lstrip(); v = v.rstrip()
+        sname = v.split('/', 1)
+        base = Internal.getNodeFromName1(CTK.t, sname[0])
+        if base is not None:
+            nodes = Internal.getNodesFromType1(base, 'Zone_t')
+            for z in nodes:
+                if z[0] == sname[1]: sizeConstraints.append(z)
+
     CTK.saveTree()
     for nz in nzs:
         nob = CTK.Nb[nz]+1
         noz = CTK.Nz[nz]
         z = CTK.t[2][nob][2][noz]
         zp = G.mmgs(z, ridgeAngle=ridgeAngle, hausd=hausd, 
-                    hmin=hmin, hmax=hmax)
+                    hmin=hmin, hmax=hmax, 
+                    fixedConstraints=fixedConstraints,
+                    sizeConstraints=sizeConstraints)
         CTK.replace(CTK.t, nob, noz, zp)
         CTK.TXT.insert('START', 'Surface remeshed.\n')
         (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
@@ -70,6 +137,7 @@ def createApp(win):
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=0)
     Frame.columnconfigure(1, weight=1)
+    Frame.columnconfigure(2, weight=0)
     WIDGETS['frame'] = Frame
 
     # - Frame menu -
@@ -91,13 +159,17 @@ def createApp(win):
     V = TK.StringVar(win); V.set('0.0'); VARS.append(V)
     # -3- hmax -
     V = TK.StringVar(win); V.set('0.0'); VARS.append(V)
+    # -4- Fixed constraints
+    V = TK.StringVar(win); V.set(''); VARS.append(V)
+    # -5- Size constraints
+    V = TK.StringVar(win); V.set(''); VARS.append(V)
 
     # RidgeAngle
     B = TTK.Label(Frame, text="ridgeAngle")
     BB = CTK.infoBulle(parent=B, text='Ridge angle (degree).')
     B.grid(row=0, column=0, sticky=TK.EW)
     B = TTK.Entry(Frame, textvariable=VARS[0], background='White', width=10)
-    B.grid(row=0, column=1, sticky=TK.EW)
+    B.grid(row=0, column=1, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Ridge angle (degree).')
 
     # hausd
@@ -105,7 +177,7 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='Chordal error (hausdorff distance).')
     B.grid(row=1, column=0, sticky=TK.EW)
     B = TTK.Entry(Frame, textvariable=VARS[1], background='White', width=10)
-    B.grid(row=1, column=1, sticky=TK.EW)
+    B.grid(row=1, column=1, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Chordal error (hausdorff distance).')
 
     # hmin
@@ -113,7 +185,7 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='Minimum step in remeshed surface.')
     B.grid(row=2, column=0, sticky=TK.EW)
     B = TTK.Entry(Frame, textvariable=VARS[2], background='White', width=10)
-    B.grid(row=2, column=1, sticky=TK.EW)
+    B.grid(row=2, column=1, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Minimum step in remeshed surface.')
 
     # hmax
@@ -121,12 +193,34 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='Maximum step in remeshed surface.')
     B.grid(row=3, column=0, sticky=TK.EW)
     B = TTK.Entry(Frame, textvariable=VARS[3], background='White', width=10)
-    B.grid(row=3, column=1, sticky=TK.EW)
+    B.grid(row=3, column=1, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Maximum step in remeshed surface.')
 
+    # fixed constraints
+    B = TTK.Label(Frame, text="fixed")
+    B.grid(row=4, column=0, sticky=TK.EW)
+    B = TTK.Button(Frame, command=setFixedConstraints,
+                   image=iconics.PHOTO[8], padx=0, pady=0)
+    BB = CTK.infoBulle(parent=B, text='Set fixed constraints (points dont move).')
+    B.grid(row=4, column=2, columnspan=1, sticky=TK.EW)
+    B = TTK.Entry(Frame, textvariable=VARS[4], background='White', width=8)
+    B.grid(row=4, column=1, columnspan=1, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Fixed curves for mmg.')
+    
+    # size constraints
+    B = TTK.Label(Frame, text="size")
+    B.grid(row=5, column=0, sticky=TK.EW)
+    B = TTK.Button(Frame, command=setSizeConstraints,
+                   image=iconics.PHOTO[8], padx=0, pady=0)
+    BB = CTK.infoBulle(parent=B, text='Set size constraints (define sizemap).')
+    B.grid(row=5, column=2, columnspan=1, sticky=TK.EW)
+    B = TTK.Entry(Frame, textvariable=VARS[5], background='White', width=8)
+    B.grid(row=5, column=1, columnspan=1, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Define size map.')
+    
     # - Remesh -
     B = TTK.Button(Frame, text="Remesh", command=remesh)
-    B.grid(row=4, column=0, columnspan=2, sticky=TK.EW)
+    B.grid(row=6, column=0, columnspan=3, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Remesh a TRI surface.')
     
 #==============================================================================

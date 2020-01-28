@@ -618,16 +618,52 @@ def refinePerDir__(a, power, dir):
 
 # Remaille une surface avec mmgs
 def mmgs(array, ridgeAngle=45., hmin=0., hmax=0., hausd=0.01, grow=1.1, 
-         anisotropy=0, optim=0, constraint=None):
+         anisotropy=0, optim=0, fixedConstraints=[], sizeConstraints=[]):
     if isinstance(array[0], list):
         l = []
         for i in array:
-            l.append(generator.mmgs(i, ridgeAngle, hmin, hmax, hausd, 
-                                    grow, anisotropy, optim))
+            if fixedConstraints != []:
+                import Converter
+                fixedNodes = []
+                hook = Converter.createHook(i, function='nodes')
+                for c in fixedConstraints: fixedNodes.append(Converter.nearestNodes(hook, c)[0])
+            else: fixedNodes = None
+            if sizeConstraints != []:
+                import Converter; import KCore; import Generator
+                i = Converter.initVars(i, 'sizemap=%f'%hmax)
+                pos = KCore.isNamePresent(i, 'sizemap')
+                hook = Converter.createHook(i, function='nodes')
+                for c in sizeConstraints:
+                    v = Generator.getVolumeMap(c); v = Converter.center2Node(v); c = Converter.addVars([c,v])
+                    n = Converter.nearestNodes(hook, c)[0]
+                    pt = i[1]
+                    if isinstance(pt, list): pt[pos][n[:]-1] = v[1][0,:]
+                    else: pt[pos,n[:]-1] = v[1][0,:]
+                #Converter.convertArrays2File(i, 'array.plt')
+            l.append(generator.mmgs(i, ridgeAngle, hmin, hmax, hausd,
+                                    grow, anisotropy, optim, fixedNodes))
         return l
     else:
+        if fixedConstraints != []:
+            import Converter
+            fixedNodes = []
+            hook = Converter.createHook(array, function='nodes')
+            for c in fixedConstraints: fixedNodes.append(Converter.nearestNodes(hook, c)[0])
+        else: fixedNodes = None
+        if sizeConstraints != []:
+            import Converter; import KCore; import Generator
+            array = Converter.initVars(array, 'sizemap=%f'%hmax)
+            pos = KCore.isNamePresent(array, 'sizemap')
+            hook = Converter.createHook(array, function='nodes')
+            for c in sizeConstraints:
+                v = Generator.getVolumeMap(c); v = Converter.center2Node(v); c = Converter.addVars([c,v])
+                n = Converter.nearestNodes(hook, c)[0]
+                pt = array[1]
+                if isinstance(pt, list): pt[pos][n[:]-1] = v[1][0,:]
+                else: pt[pos,n[:]-1] = v[1][0,:]
+            #Converter.convertArrays2File(array, 'array.plt')
         return generator.mmgs(array, ridgeAngle, hmin, hmax, hausd, 
-                              grow, anisotropy, optim)
+                              grow, anisotropy, optim, fixedNodes)
 
 #==============================================================================
 # Densifie le maillage d'un i-array

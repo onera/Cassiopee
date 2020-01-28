@@ -29,15 +29,10 @@ def uniformize(a, N=100, h=-1., factor=-1, density=-1., sharpAngle=30.):
         b = []; Nt = 0; rest = 0
         for ct, i in enumerate(a):
             Li = D.getLength(i)
-            Ni = int(round(N*1.*(Li/L)))+1
-            if Ni-1-N*1.*(Li/L) < 0:
-               if rest == -1: rest = 0; Ni += 1
-               elif rest == 0: rest = -1
-               elif rest == +1: rest = 0
-            elif Ni-1-N*1.*(Li/L) > 0: 
-               if rest == +1: rest = 0; Ni -= 1
-               elif rest == 0: rest = +1
-               elif rest == -1: rest = 0
+            Ni = int(T.kround(N*1.*(Li/L)))+1
+            rest += Ni-1-N*1.*(Li/L)
+            if rest < -0.9: Ni += 1; rest = 0.
+            elif rest > 0.9: Ni -= 1; rest = 0.
             Ni = max(Ni,2)
             Nt += Ni-1
             if ct == len(a)-1: Ni = Ni-Nt+N-1; Ni = max(Ni,2)
@@ -63,15 +58,10 @@ def uniformize__(a, N, h, factor, density, sharpAngle):
     out = []; Nt = 0; rest = 0
     for ct, i in enumerate(b):
         Li = D.getLength(i)
-        Ni = int(round(N*1.*(Li/L)))+1
-        if Ni-1-N*1.*(Li/L) < 0:
-           if rest == -1: rest = 0; Ni += 1
-           elif rest == 0: rest = -1
-           elif rest == +1: rest = 0
-        elif Ni-1-N*1.*(Li/L) > 0: 
-           if rest == +1: rest = 0; Ni -= 1
-           elif rest == 0: rest = +1
-           elif rest == -1: rest = 0
+        Ni = int(T.kround(N*1.*(Li/L)))+1
+        rest += Ni-1-N*1.*(Li/L)
+        if rest < -0.9: Ni += 1; rest = 0.
+        elif rest > 0.9: Ni -= 1; rest = 0.
         Ni = max(Ni,2)
         Nt += Ni-1
         if ct == len(b)-1: Ni = Ni-Nt+N-1; Ni = max(Ni,2)
@@ -111,15 +101,10 @@ def refine__(a, N, factor, sharpAngle):
         i = C.convertBAR2Struct(i)
         Li = D.getLength(i)
         if factor < 0.:
-            Ni = int(round(N*(C.getNPts(i)-1)/(NPts-1))+1)
-            if Ni-1-N*1.*(Li/L) < 0:
-             if rest == -1: rest = 0; Ni += 1
-             elif rest == 0: rest = -1
-             elif rest == +1: rest = 0
-            elif Ni-1-N*1.*(Li/L) > 0:
-             if rest == +1: rest = 0; Ni -= 1
-             elif rest == 0: rest = +1
-             elif rest == -1: rest = 0
+            Ni = int(T.kround(N*(C.getNPts(i)-1)/(NPts-1))+1)
+            rest += Ni-1-N*1.*(Li/L)
+            if rest < -0.9: Ni += 1; rest = 0.
+            elif rest > 0.9: Ni -= 1; rest = 0.
             Ni = max(Ni,2)
             Nt += Ni-1
             if ct == len(b)-1: Ni = Ni-Nt+N-1
@@ -208,7 +193,7 @@ def setF(a, ind, f):
 
 # Build a distrib between 0. and 1. with h1 left, h2 right
 def buildDistrib(h1, h2, N):
-    Ni = int(round(1./h2))+1
+    Ni = int(T.kround(1./h2))+1
     a = G.cart((0,0,0), (h2,1,1), (Ni,1,1))
     a[1][0,Ni-2] = 1.-h2
     b = G.enforcePlusX(a, h1, (Ni-2,N-Ni-1))
@@ -280,7 +265,7 @@ def enforceh(a, N=100, h=-1):
         b = []
         for i in a:
             Li = D.getLength(i)
-            Ni = int(round(N*1.*(Li/L)))+1
+            Ni = int(T.kround(N*1.*(Li/L)))+1
             b.append(enforceh_(i, Ni, h))
         return b
     else:
@@ -309,14 +294,15 @@ def enforceh__(a, N, h):
     if pos == -1:
         pos = KCore.isNamePresent(a, 'f')
         if pos == -1:
-            raise ValueError("enforceh: h or f is not present.")
+            #raise ValueError("enforceh: h or f is not present.")
+            return a
         else: 
             hl = numpy.copy(a[1][pos])
             factorMoy = moyenne(a, hl)
             if h > 0:
                 href = h
                 N = D.getLength(a)/(factorMoy*href)+1
-                N = int(round(N))
+                N = int(T.kround(N))
             else:
                 href = D.getLength(a)/((N-1.)*factorMoy)
             hl[:] = hl[:]*href
@@ -348,7 +334,7 @@ def enforceh__(a, N, h):
     for x in range(len(h1s)):
         Pi = Ps[x]
         Pi = Pi/Pt*N
-        Ps[x] = int(round(Pi))+1
+        Ps[x] = int(T.kround(Pi))+1
 
     out = []
     for x in range(len(h1s)):
@@ -371,7 +357,7 @@ def enforce(a, h, ind, supp, add):
     a = G.map(a, b)
     return a
 
-# Super smooth - not working
+# Super smooth - OK
 def smooth(a, eps=0.1, niter=5, sharpAngle=30.):
     """Smooth point distribution in a 1D-mesh."""
     if checkImport is None: return None

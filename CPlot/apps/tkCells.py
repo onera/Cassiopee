@@ -61,7 +61,7 @@ def suppressCells():
                 CPlot.unselectAllZones()
                 time.sleep(CPlot.__timeStep__)
                 W.update()
-                if CTK.__BUSY__ == False: break
+                if not CTK.__BUSY__: break
             if CTK.__BUSY__:
                 nob = CTK.Nb[nz]+1
                 noz = CTK.Nz[nz]
@@ -92,7 +92,7 @@ def refineCells():
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     W = WIDGETS['refine']
-    if CTK.__BUSY__ == False:
+    if not CTK.__BUSY__:
         CPlot.unselectAllZones()
         CTK.__BUSY__ = True
         TTK.sunkButton(W)
@@ -105,7 +105,7 @@ def refineCells():
                 CPlot.unselectAllZones()
                 time.sleep(CPlot.__timeStep__)
                 W.update()
-                if CTK.__BUSY__ == False: break
+                if not CTK.__BUSY__: break
             if CTK.__BUSY__:
                 nob = CTK.Nb[nz]+1
                 noz = CTK.Nz[nz]

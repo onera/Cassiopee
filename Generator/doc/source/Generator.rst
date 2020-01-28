@@ -1429,7 +1429,7 @@ Operation on surface meshes
 
 ---------------------------------------
 
-.. py:function:: Generator.mmgs(A, ridgeAngle=45., hmin=0., hmax=0., hausd=0.01, grow=1.1, anisotropy=0, optim=0)
+.. py:function:: Generator.mmgs(A, ridgeAngle=45., hmin=0., hmax=0., hausd=0.01, grow=1.1, anisotropy=0, optim=0, fixedConstraints=[], sizeConstraints=[])
 
     Refine a TRI surface mesh using MMGs.
 
@@ -1447,6 +1447,10 @@ Operation on surface meshes
     :type  grow: double
     :param optim: if 1, only optimize mesh keeping the same number of points 
     :type  optim: int
+    :param fixedConstraints: curves or surface identifying points that must be in output mesh 
+    :type  fixedConstraints: [list of arrays] or [list of zones]
+    :param sizeConstraints: curves or surface defining sizemap 
+    :type  sizeConstraints: [list of arrays] or [list of zones]
     :return: remeshed surface
     :rtype: identical to input
 

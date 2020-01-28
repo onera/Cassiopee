@@ -107,19 +107,21 @@ def stretch1D(h):
 #==============================================================================
 # Set enforce h as a sizemap
 def setEnforce(event=None):
+    nzs = CPlot.getSelectedZones()
+    nz = nzs[0]
+    nob = CTK.Nb[nz]+1
+    noz = CTK.Nz[nz]
+    z = CTK.t[2][nob][2][noz]
+    setEnforceZ(z)
+
+def setEnforceZ(z):
     h = CTK.varsFromWidget(VARS[1].get(), 1)
     if len(h) != 1:
         CTK.TXT.insert('START', 'Invalid spacing.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error')
     h = h[0]
 
-    nzs = CPlot.getSelectedZones()
-    nz = nzs[0]
-    nob = CTK.Nb[nz]+1
-    noz = CTK.Nz[nz]
-    z = CTK.t[2][nob][2][noz]
     npts = C.getNPts(z)
-
     ind = CPlot.getActivePointIndex()
     if ind == []: return True
     ind = ind[0]
@@ -130,9 +132,43 @@ def setEnforce(event=None):
         import KCore.Vector as V
         hloc = V.norm(V.sub(P1,P0))
         h = h*hloc
-        print(h)
+        #print("setting %f"%hloc)
     D.setH(z, ind, h)
-    CTK.TXT.insert('START', 'Spacing set.\n')
+    CTK.TXT.insert('START', 'Spacing set to %f.\n'%h)
+
+def setEnforceMode(event=None):
+    import time
+    if CTK.t == []: return
+    if CTK.__MAINTREE__ <= 0:
+        CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+    W = WIDGETS['enforceMode']
+    if not CTK.__BUSY__:
+        CPlot.unselectAllZones()
+        CTK.__BUSY__ = True
+        TTK.sunkButton(W)
+        CPlot.setState(cursor=1)
+        while CTK.__BUSY__:
+            l = []
+            while l == []:
+                nz = CPlot.getSelectedZone()
+                l = CPlot.getActivePointIndex()
+                time.sleep(CPlot.__timeStep__)
+                W.update()
+                if not CTK.__BUSY__: break
+            if CTK.__BUSY__:
+                nob = CTK.Nb[nz]+1
+                noz = CTK.Nz[nz]
+                z = CTK.t[2][nob][2][noz]
+                setEnforceZ(z)
+                CPlot.unselectAllZones()
+        CTK.__BUSY__ = False
+        TTK.raiseButton(W)
+        CPlot.setState(cursor=0)
+    else:
+       CTK.__BUSY__ = False
+       TTK.raiseButton(W)
+       CPlot.setState(cursor=0)
 
 def enforceH(event=None):
     v = CTK.varsFromWidget(VARS[10].get(), 1)
@@ -1090,9 +1126,14 @@ def createApp(win):
     B = TTK.OptionMenu(Frame, VARS[8], 'HFactor', 'H')
     B.grid(row=4, column=1, sticky=TK.EW)
     B = TTK.Entry(Frame, textvariable=VARS[1], background='White', width=7)
-    B.grid(row=4, column=2, columnspan=2, sticky=TK.EW)
+    B.grid(row=4, column=2, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Enforced spacing.')
     B.bind('<Return>', setEnforce)
+    B = TTK.Button(Frame, command=setEnforceMode,
+                   image=iconics.PHOTO[8], padx=0, pady=0)
+    B.grid(row=4, column=3, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Set size mode.')
+    WIDGETS['enforceMode'] = B
 
     B = TTK.Button(Frame, text="Enforce", command=enforceH)
     B.grid(row=5, column=0, columnspan=1, sticky=TK.EW)
