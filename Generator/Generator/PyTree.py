@@ -437,6 +437,10 @@ def CEBBIntersection(a1, a2, tol=1.e-10):
         
 def bboxIntersection(z1, z2, tol=1.e-6, isBB=False, method='AABB'):
     """Return 1 if bounding boxes of z1 and z2 intersect."""       
+    if Internal.typeOfNode(z1) != 1:
+        raise(ValueError,"First arg must be a zone.")
+    if Internal.typeOfNode(z2) != 1:
+        raise(ValueError,"Second arg must be a zone.")
     if not isBB:
         z1 = BB(z1, method)
         z2 = BB(z2, method)
@@ -464,6 +468,10 @@ def bboxIntersection(z1, z2, tol=1.e-6, isBB=False, method='AABB'):
 
 def _bboxIntersection(z1, z2, tol=1.e-6, isBB=False, method='AABB'):
     """Return 1 if bounding boxes of z1 and z2 intersect."""       
+    if Internal.typeOfNode(z1) != 1:
+        raise(ValueError,"First arg must be a zone.")
+    if Internal.typeOfNode(z2) != 1:
+        raise(ValueError,"Second arg must be a zone.")
     if not isBB:
         _BB(z1,method)
         _BB(z2,method)

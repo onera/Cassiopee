@@ -6704,10 +6704,10 @@ def addPeriodicZones__(a):
 
 def _addPeriodicZones__(a):
     try: import Transform.PyTree as T
-    except: raise ImportError("addPeriodicZones__: requires Transform module.")
+    except: raise ImportError("_addPeriodicZones__: requires Transform module.")
     atype = Internal.typeOfNode(a)
     if atype != 4:  # base
-        print('Warning: addPeriodicZones__: input node must be a CGNS basis.')
+        print('Warning: _addPeriodicZones__: input node must be a CGNS basis.')
         print('Skipped.')
         return None
 
@@ -6733,7 +6733,7 @@ def _addPeriodicZones__(a):
           if rotationData == []: rotated = False
           else: rotated = True
           if rotated == True and translated == True:
-            print('Warning: duplicatePeriodicZones__: rotation and translation cannot be applied at the same time. %s periodic grid connectivity not taken into account.'%gc[0])
+            print('Warning: _addPeriodicZones__: rotation and translation cannot be applied at the same time. %s periodic grid connectivity not taken into account.'%gc[0])
           elif rotated == False and translated == False: pass
           else:
             zdonorname = Internal.getValue(gc)
