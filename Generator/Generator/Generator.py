@@ -652,7 +652,13 @@ def mmgs(array, ridgeAngle=45., hmin=0., hmax=0., hausd=0.01, grow=1.1,
         else: fixedNodes = None
         if sizeConstraints != []:
             import Converter; import KCore; import Generator
-            array = Converter.initVars(array, 'sizemap=%f'%hmax)
+            if hmax > 0: array = Converter.initVars(array, 'sizemap=%f'%hmax)
+            else: 
+                vol = Generator.getVolumeMap(array)
+                vol = Converter.initVars(vol, '{vol}=(1.15*{vol})**0.5')
+                vol = Converter.center2Node(vol)
+                vol[0] = 'sizemap'
+                array = Converter.addVars([array, vol])
             pos = KCore.isNamePresent(array, 'sizemap')
             hook = Converter.createHook(array, function='nodes')
             for c in sizeConstraints:

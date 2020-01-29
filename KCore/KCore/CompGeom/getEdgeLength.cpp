@@ -669,7 +669,7 @@ E_Int K_COMPGEOM::getEdgeLength(E_Float* xt, E_Float* yt, E_Float* zt,
         edges1[0] = indA; edges2[0] = indB; //AB
         edges1[1] = indB; edges2[1] = indC; //BC
         edges1[2] = indC; edges2[2] = indA; //CA
-        edges1[3] = indD; edges2[3] = indE; //DE              
+        edges1[3] = indD; edges2[3] = indE; //DE   
         edges1[4] = indE; edges2[4] = indF; //EF
         edges1[5] = indF; edges2[5] = indD; //FD
         edges1[6] = indA; edges2[6] = indD; //AD
@@ -893,11 +893,11 @@ E_Int K_COMPGEOM::getEdgeLength(E_Float* xt, E_Float* yt, E_Float* zt,
       for (E_Int noe = 0; noe < nelts; noe++)
       {
         nfaces = ptr[0];
-        lout = K_CONST::E_MAX_FLOAT;
+        lout = -K_CONST::E_MAX_FLOAT;
         for (E_Int j = 1; j <= nfaces; j++)
         {
           noface = ptr[j]-1;
-          lout = K_FUNC::E_min(lout,loutp[noface]);
+          lout = K_FUNC::E_max(lout,loutp[noface]);
         }
         ptr += nfaces+1;
         out[noe] = sqrt(lout);

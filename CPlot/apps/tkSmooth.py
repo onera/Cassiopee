@@ -151,7 +151,7 @@ def smooth():
                              fixedConstraints=fixedConstraints, 
                              projConstraints=projConstraints, delta=strength)
         else:
-            for s in xrange(smooth):
+            for s in range(smooth):
                 zones = T.smooth(zones, eps=eps, niter=2, type=ntype,
                                  fixedConstraints=fixedConstraints, 
                                  projConstraints=projConstraints, 

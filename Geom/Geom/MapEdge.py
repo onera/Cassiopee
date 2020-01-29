@@ -44,7 +44,6 @@ def uniformize(a, N=100, h=-1., factor=-1, density=-1., sharpAngle=30.):
 def uniformize__(a, N, h, factor, density, sharpAngle):
     if len(a) == 4: ntype = 1
     else: ntype = 0
-    
     L = D.getLength(a)
     if density > 0: N = int(L*density)+1
     elif factor > 0: N = int(factor*(C.getNPts(a)-1))+1
@@ -57,18 +56,19 @@ def uniformize__(a, N, h, factor, density, sharpAngle):
     
     out = []; Nt = 0; rest = 0
     for ct, i in enumerate(b):
-        Li = D.getLength(i)
-        Ni = int(T.kround(N*1.*(Li/L)))+1
-        rest += Ni-1-N*1.*(Li/L)
-        if rest < -0.9: Ni += 1; rest = 0.
-        elif rest > 0.9: Ni -= 1; rest = 0.
-        Ni = max(Ni,2)
-        Nt += Ni-1
-        if ct == len(b)-1: Ni = Ni-Nt+N-1; Ni = max(Ni,2)
-        i = C.convertBAR2Struct(i)
-        distrib = G.cart((0,0,0), (1./(Ni-1.),1.,1.), (Ni,1,1))
-        c = G.map(i, distrib) # c is STRUCT
-        out.append(c)
+        if C.getNPts(i) >= 2: # avoid degenerated cases 
+            Li = D.getLength(i)
+            Ni = int(T.kround(N*1.*(Li/L)))+1
+            rest += Ni-1-N*1.*(Li/L)
+            if rest < -0.9: Ni += 1; rest = 0.
+            elif rest > 0.9: Ni -= 1; rest = 0.
+            Ni = max(Ni,2)
+            Nt += Ni-1
+            if ct == len(b)-1: Ni = Ni-Nt+N-1; Ni = max(Ni,2)
+            i = C.convertBAR2Struct(i)
+            distrib = G.cart((0,0,0), (1./(Ni-1.),1.,1.), (Ni,1,1))
+            c = G.map(i, distrib) # c is STRUCT
+            out.append(c)
     if ntype == 1: out = C.convertArray2Hexa(out)
     if len(out) > 1: b = T.join(out)
     else: b = out[0]

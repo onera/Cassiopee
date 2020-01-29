@@ -129,6 +129,10 @@ def conformUnstr():
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     tol = tol[0]
 
+    split = VARS[2].get()
+    if split == '1': split = True
+    else: split = False
+
     patches = []
     CTK.saveTree()
 
@@ -141,20 +145,49 @@ def conformUnstr():
         nob2 = CTK.Nb[nz]+1
         noz2 = CTK.Nz[nz]
         z2 = CTK.t[2][nob2][2][noz2]
-        zo1 = XOR.conformUnstr(z1, z2, tol=tol, itermax=1)
-        zo2 = XOR.conformUnstr(z2, z1, tol=tol, itermax=1)
-        CTK.replace(CTK.t, nob1, noz1, zo1)
-        CTK.replace(CTK.t, nob2, noz2, zo2)
-    else:
-        for nz in nzs:
-            nob = CTK.Nb[nz]+1
-            noz = CTK.Nz[nz]
-            z = CTK.t[2][nob][2][noz]
+        if split:
+            #zo1 = XOR.conformUnstr(z1, z2, tol=tol, itermax=1)
+            #zo2 = XOR.conformUnstr(z2, z1, tol=tol, itermax=1)
+            z = T.join([z1, z2])
             z = XOR.conformUnstr(z, tol=tol, itermax=1)
-            CTK.replace(CTK.t, nob, noz, z)
+            zones = T.splitManifold(z); lz = len(zones)
+            if lz > 0: CTK.replace(CTK.t, nob1, noz1, zones[0])
+            if lz > 1: CTK.replace(CTK.t, nob2, noz2, zones[1])
+            for i in zones[2:]: CTK.add(CTK.t, nob1, -1, i)
+        else:
+            zo1 = XOR.conformUnstr(z1, z2, tol=tol, itermax=1)
+            zo2 = XOR.conformUnstr(z2, z1, tol=tol, itermax=1)
+            CTK.replace(CTK.t, nob1, noz1, zo1)
+            CTK.replace(CTK.t, nob2, noz2, zo2)
+    else:
+        if split:
+            zones = []
+            for nz in nzs:
+                nob = CTK.Nb[nz]+1
+                noz = CTK.Nz[nz]
+                zones.append(CTK.t[2][nob][2][noz])
+            z = T.join(zones)
+            z = XOR.conformUnstr(z, tol=tol, itermax=1)
+            zones = T.splitManifold(z); lz = len(zones)
+            if lz <= len(nzs):
+                for i in range(lz):
+                    nz = nzs[i]
+                    nob = CTK.Nb[nz]+1
+                    noz = CTK.Nz[nz]
+                    CTK.replace(CTK.t, nob, noz, zones[i])
+            nob = CTK.Nb[0]+1
+            for i in zones[lz:]: CTK.add(CTK.t, nob, -1, i)
+        else:
+            for nz in nzs:
+                nob = CTK.Nb[nz]+1
+                noz = CTK.Nz[nz]
+                z = CTK.t[2][nob][2][noz]
+                z = XOR.conformUnstr(z, tol=tol, itermax=1)
+                CTK.replace(CTK.t, nob, noz, z)
     
     #C._fillMissingVariables(CTK.t)
     CTK.TXT.insert('START', 'Surface conformized.\n')
+    (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
 
@@ -171,6 +204,7 @@ def createApp(win):
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=1)
     Frame.columnconfigure(1, weight=2)
+    Frame.columnconfigure(2, weight=0)
     WIDGETS['frame'] = Frame
     
     # - Frame menu -
@@ -181,16 +215,17 @@ def createApp(win):
 
     # - VARS -
     # -0- mode pour gapsmanager -
-    V = TK.StringVar(win); V.set('Nodes'); VARS.append(V)
-    
+    V = TK.StringVar(win); V.set('Nodes'); VARS.append(V)    
     # -1- tol pour conformUnstr -
     V = TK.StringVar(win); V.set('0.'); VARS.append(V)
+    # -2- checkbox if split in conformization
+    V = TK.StringVar(win); V.set('1'); VARS.append(V)
 
     # - Slider -
     B = TTK.Scale(Frame, from_=-50, to=50, orient=TK.HORIZONTAL, showvalue=0,
                   borderwidth=1, value=0)
     WIDGETS['bump'] = B
-    B.grid(row=0, column=1, columnspan=1, sticky=TK.EW)
+    B.grid(row=0, column=1, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Bump.')
     
     # - Fix gap in contour -
@@ -203,7 +238,7 @@ def createApp(win):
     B.grid(row=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Fix gaps in patches (even with overlap).')
     B = TTK.OptionMenu(Frame, VARS[0], 'Nodes', 'Centers', 'Unknown', 'Slice')
-    B.grid(row=1, column=1, sticky=TK.EW)
+    B.grid(row=1, column=1, columnspan=2, sticky=TK.EW)
     
     # - conformUnstr -
     B = TTK.Button(Frame, text="conformUnstr", command=conformUnstr)
@@ -212,6 +247,9 @@ def createApp(win):
     B = TTK.Entry(Frame, textvariable=VARS[1], background='White', width=5)
     B.grid(row=2, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Tolerance used in conformUnstr operations.\n0. means automatic setting.')
+    B = TTK.Checkbutton(Frame, text='', variable=VARS[2])
+    B.grid(row=2, column=2, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Split while conformizing.')
 
 #==============================================================================
 # Called to display widgets

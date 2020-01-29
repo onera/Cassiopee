@@ -52,7 +52,7 @@ fi
 #export ELSAPATH=$CASSIOPEE  # production (cfg)
 #export ELSAWKSP=$CASSIOPEE  # production (cfg)
 
-if [ "$MAC" == "ld" ]; then
+if [ "$MAC" = "ld" ]; then
 #------------------------------- ld centos 7 + python 3 -----------------------------------
     export ELSAPROD=x86_r8
     module unload $(module -t list 2>&1 | grep -i intel)
@@ -72,7 +72,7 @@ if [ "$MAC" == "ld" ]; then
     export LD_LIBRARY_PATHL=/usr/lib64:/stck/benoit/lib:/stck/benoit/opencascade/lib:$CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
     export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/x86_r8:$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.6/site-packages
     
-elif [ "$MAC" == "ld_python2" ]; then
+elif [ "$MAC" = "ld_python2" ]; then
 #------------------------------- ld centos 7 -----------------------------------
     export ELSAPROD=x86_r8
     module unload $(module -t list 2>&1 | grep -i intel)
@@ -94,7 +94,7 @@ elif [ "$MAC" == "ld_python2" ]; then
     # Pour utilisation MKL+numpy
     #export LD_PRELOAD=/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_avx2.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_def.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_core.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_intel_lp64.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_intel_thread.so:/opt/tools/intel/studio/2017/lib/intel64/libiomp5.so
 
-elif [ "$MAC" == "eos" ]; then
+elif [ "$MAC" = "eos" ]; then
 #------------------------------- eos -----------------------------------
     export ELSAPROD=x86_r8
     module unload $(module -t list 2>&1 | grep -i intel)
@@ -116,7 +116,7 @@ elif [ "$MAC" == "eos" ]; then
     # Pour utilisation MKL+numpy
     #export LD_PRELOAD=/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_avx2.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_def.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_core.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_intel_lp64.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_intel_thread.so:/opt/tools/intel/studio/2017/lib/intel64/libiomp5.so
 
-elif [ "$MAC" == "macosx" ]; then
+elif [ "$MAC" = "macosx" ]; then
 #----------------------------- Mac OSX-----------------------------------------
     export ELSAPROD=macosx_r8
     export OMP_NUM_THREADS=2
@@ -127,12 +127,12 @@ elif [ "$MAC" == "macosx" ]; then
     export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
     export DYLD_LIBRARY_PATH=$LD_LIBRARY_PATHL
 
-elif [ "$MAC" == "sgi" ]; then
+elif [ "$MAC" = "sgi" ]; then
 #-------------------------------- SGI -----------------------------------------
     export ELSAPROD=sgi_r8
     export LD_LIBRARY_PATHL=/tools/py/tmp/local/lib/:$CASSIOPEE/Kernel/lib/$ELSAPROD
 
-elif [ "$MAC" == "mangrove" ]; then
+elif [ "$MAC" = "mangrove" ]; then
 #-------------------------------- mangrove -------------------------------------
     export ELSAPROD=man_r8
     export OMP_NUM_THREADS=4
@@ -141,7 +141,7 @@ elif [ "$MAC" == "mangrove" ]; then
     export LD_LIBRARY_PATHL=/opt/intel/Compiler/11.0/0.83/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/man_r8/lib
     export PYTHONPATHL=$CASSIOPEE/Dist/lib/py::$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.6/site-packages
 
-elif [ "$MAC" == "ubuntu" ]; then
+elif [ "$MAC" = "ubuntu" ]; then
 #-------------------------------- ubuntu --------------------------------------
     export ELSAPROD=ub_r8
     export OMP_NUM_THREADS=2
@@ -150,7 +150,7 @@ elif [ "$MAC" == "ubuntu" ]; then
     export LD_LIBRARY_PATHL=/usr/lib:$CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/ub_r8/lib
     export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.5/site-packages
 
-elif [ "$MAC" == "fulvio" ]; then
+elif [ "$MAC" = "fulvio" ]; then
 #----------------------------- fulvio -----------------------------------------
     export ELSAPROD=flv_r8
     module unload $(module -t list 2>&1 | grep -i intel)
@@ -165,7 +165,7 @@ elif [ "$MAC" == "fulvio" ]; then
     export LD_LIBRARY_PATHL=$CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/flv_r8/lib:/usr/local/lib64:/usr/local/hdf5-intel-1.8.8/lib
     export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
 
-elif [ "$MAC" == "daapuv" ]; then
+elif [ "$MAC" = "daapuv" ]; then
 #----------------------------- daapuv -----------------------------------------
     export ELSAPROD=uv_r8
     export OMP_NUM_THREADS=4
@@ -174,7 +174,7 @@ elif [ "$MAC" == "daapuv" ]; then
     export LD_LIBRARY_PATHL=$CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/uv_r8/lib:/usr/local/hdf5-1.8.7/lib
     export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.6/site-packages
 
-elif [ "$MAC" == "visio" ]; then
+elif [ "$MAC" = "visio" ]; then
 #----------------------------- visio -----------------------------------------
     export ELSAPROD=vis_r8
     . /etc/profile.d/modules-dri.sh
@@ -191,7 +191,7 @@ elif [ "$MAC" == "visio" ]; then
     export LD_LIBRARY_PATHL=/stc/benoit/opencascade2/lib:$CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/vis_r8/lib:/usr/local/hdf5-intel-1.8.8/lib:/usr/local/lib64:/usr/lib64
     export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
 
-elif [ "$MAC" == "tiamat" ]; then
+elif [ "$MAC" = "tiamat" ]; then
 #----------------------------- tiamat -----------------------------------------
     export ELSAPROD=tia_r8
     # Nbre de threads
@@ -209,7 +209,7 @@ elif [ "$MAC" == "tiamat" ]; then
     export LD_LIBRARY_PATHL=/home/tools/local/tiamat/lib:$CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/tia_r8/lib64:/stck/benoit/x86_64t/lib
     export PYTHONPATHL=/home/tools/local/tiamat/lib/python2.7:$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/tia_r8:$CASSIOPEE/Dist/bin/tia_r8/lib64/python2.7/site-packages
 
-elif [ "$MAC" == "austri" ]; then
+elif [ "$MAC" = "austri" ]; then
 #----------------------------- austri -----------------------------------------
     export ELSAPROD=aus_r8
     # Nbre de threads
@@ -230,7 +230,7 @@ elif [ "$MAC" == "austri" ]; then
     export LD_LIBRARY_PATHL=/stck/benoit/aus/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/aus_r8/lib64
     export PYTHONPATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
 
-elif [ "$MAC" == "laura" ]; then
+elif [ "$MAC" = "laura" ]; then
 #----------------------------- laura ------------------------------------------
     export ELSAPROD=laura_r8
     # Chargement des modules
@@ -248,7 +248,7 @@ elif [ "$MAC" == "laura" ]; then
     export LD_LIBRARY_PATHL=$CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/laura_r8/lib:/stck/benoit/laura/lib:/usr/local/lib64:/opt/intel/composerxe-2011.1.107/compiler/lib/intel64
     export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
 
-elif [ "$MAC" == "moloch" ]; then
+elif [ "$MAC" = "moloch" ]; then
 #----------------------------- moloch -----------------------------------------
     export ELSAPROD=mol_r8
     # Nbre de threads
@@ -263,7 +263,7 @@ elif [ "$MAC" == "moloch" ]; then
     export LD_LIBRARY_PATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/mol_r8/lib64
     export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib64/python2.6/site-packages
 
-elif [ "$MAC" == "giulia" ]; then
+elif [ "$MAC" = "giulia" ]; then
 #----------------------------- giulia -----------------------------------------
     export ELSAPROD=giu_r8
     # Nbre de threads
@@ -290,7 +290,7 @@ elif [ "$MAC" == "giulia" ]; then
     export LD_LIBRARY_PATHL=/usr/lib64:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/giu_r8/lib64
     export PYTHONPATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
 
-elif [ "$MAC" == "westri" ]; then
+elif [ "$MAC" = "westri" ]; then
 #----------------------------- westri (KNL) -----------------------------------------
     export ELSAPROD=wes_r8
     # Nbre de threads
@@ -313,7 +313,7 @@ elif [ "$MAC" == "westri" ]; then
     export LD_LIBRARY_PATHL=/stck/benoit/aus/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/wes_r8/lib64
     export PYTHONPATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
 
-elif [ "$MAC" == "cobalt" ]; then 
+elif [ "$MAC" = "cobalt" ]; then 
 #-------------------------------- cobalt -----------------------------------------
     export ELSAPROD=cob_r8
     # Nbre de threads
@@ -332,7 +332,7 @@ elif [ "$MAC" == "cobalt" ]; then
     export LD_LIBRARY_PATHL=$CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/cob_r8/lib
     export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages   
 
-elif [ "$MAC" == "xdaap" ] ; then
+elif [ "$MAC" = "xdaap" ] ; then
 #----------------------------- xdaap -----------------------------------------
     export ELSAPROD=xdaap_r8
     . /etc/profile.d/modules-dri.sh
@@ -349,7 +349,7 @@ elif [ "$MAC" == "xdaap" ] ; then
     export LD_LIBRARY_PATHL=/usr/lib64/:$CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/xdaap_r8/lib:/usr/local/hdf5-intel-1.8.8/lib:/usr/local/lib64
     export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
 
-elif [ "$MAC" == "spiro_python3" ]; then
+elif [ "$MAC" = "spiro_python3" ]; then
 #----------------------------- spiro -----------------------------------------
     export ELSAPROD=spiro_r8
     # Nbre de threads
@@ -366,7 +366,7 @@ elif [ "$MAC" == "spiro_python3" ]; then
     export LD_LIBRARY_PATHL=/usr/lib64/:$CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/spiro_r8/lib
     export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.6/site-packages
 
-elif [ "$MAC" == "spiro" ]; then
+elif [ "$MAC" = "spiro" ]; then
 #----------------------------- spiro -----------------------------------------
     export ELSAPROD=spiro_r8
     # Nbre de threads
@@ -381,7 +381,7 @@ elif [ "$MAC" == "spiro" ]; then
     export LD_LIBRARY_PATHL=/usr/lib64/:$CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/spiro_r8/lib
     export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
 
-elif [ "$MAC" == "sator" ]; then
+elif [ "$MAC" = "sator" ]; then
 #----------------------------- sator -----------------------------------------
     export ELSAPROD=sat_r8
     echo "ELSAPROD=" $ELSAPROD
@@ -409,7 +409,7 @@ elif [ "$MAC" == "sator" ]; then
     export LD_LIBRARY_PATHL=$CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
     export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
 
-elif [ "$MAC" == "sator_sky" ]; then
+elif [ "$MAC" = "sator_sky" ]; then
 #----------------------------- sator skylake ---------------------------------------
     export ELSAPROD=sat_sky_r8
     echo "ELSAPROD=" $ELSAPROD

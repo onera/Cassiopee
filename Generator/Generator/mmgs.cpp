@@ -258,7 +258,10 @@ PyObject* K_GENERATOR::mmgs(PyObject* self, PyObject* args)
   {
     E_Float* ff = f->begin(posf);
     MMGS_Set_solSize(mesh, metric, MMG5_Vertex, np, MMG5_Scalar);
-    for (E_Int k=1; k <= np; k++) MMGS_Set_scalarSol(metric, ff[k-1], k); // existe aussi set_TensorSol
+    for (E_Int k=1; k <= np; k++)
+    {
+      MMGS_Set_scalarSol(metric, ff[k-1], k); // existe aussi set_TensorSol
+    }
   }
 
   // Use fixedNodes if any
