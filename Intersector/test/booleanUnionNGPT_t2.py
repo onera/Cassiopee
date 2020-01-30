@@ -25,7 +25,7 @@ p2 = C.convertArray2NGon(zones[1])
 #C.convertPyTree2File(p2, 'p2.cgns')
 
 x = XOR.booleanUnion(p1,p2, multi_zone=True) #conformize the join
-#C.convertPyTree2File(mesh, 'u.cgns')
+#C.convertPyTree2File(x, 'u.cgns')
 
 # compute the join
 x = XC.connectMatch(x, tol=1.e-6, dim=3)

@@ -36,7 +36,7 @@ def intersection(a1, a2, tol=0.):
     c = intersector.booleanIntersectionBorder(a1, a2, tol, 1, 1, 0, False) #last 4 args are dummy for now
     return G.close(c)
 
-def booleanIntersection(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_conformal_cloud_qual=False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
+def booleanIntersection(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_qual=False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     """Computes the intersection between two closed-surface or two volume meshes.
     Usage for surfaces or bars: booleanIntersection(a1, a2, tol)
     Usage for volumes: booleanIntersection(a1, a2, tol, preserve_right, solid_right, agg_mode)"""
@@ -47,10 +47,10 @@ def booleanIntersection(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mod
           a2 = Converter.convertArray2Tetra(a2)
           a1 = G.close(a1); a2 = G.close(a2)
       except: pass
-    c = intersector.booleanIntersection(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_conformal_cloud_qual)
+    c = intersector.booleanIntersection(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_qual)
     return G.close(c)
 
-def booleanUnion(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_conformal_cloud_qual=False, extrude_pgs=[]): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
+def booleanUnion(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_qual=False, extrude_pgs=[]): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     """Computes the union between two closed-surface or two volume meshes.
     Usage for surfaces or bars: booleanUnion(a1, a2, tol)
     Usage for volumes: booleanUnion(a1, a2, tol, preserve_right, solid_right)"""
@@ -61,19 +61,19 @@ def booleanUnion(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, im
         a2 = Converter.convertArray2Tetra(a2)
         a1 = G.close(a1); a2 = G.close(a2)
       except: pass
-      c = intersector.booleanUnion(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_conformal_cloud_qual, extrude_pgs)
+      c = intersector.booleanUnion(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_qual, extrude_pgs)
       return G.close(c)
     else: 
-      c = intersector.booleanUnion(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_conformal_cloud_qual, extrude_pgs)
+      c = intersector.booleanUnion(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_qual, extrude_pgs)
       return c #close is done inside
 
-def booleanUnionMZ(a1, a2, xtol=0., jtol = 0., agg_mode=1, improve_conformal_cloud_qual=False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
+def booleanUnionMZ(a1, a2, xtol=0., jtol = 0., agg_mode=1, improve_qual=False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     """Computes the union between two volume meshes.
     Usage for volumes: booleanUnionMZ(a1, a2, tol, agg_mode)"""
-    c = intersector.booleanUnionMZ(a1, a2, xtol, jtol, agg_mode, improve_conformal_cloud_qual)
+    c = intersector.booleanUnionMZ(a1, a2, xtol, jtol, agg_mode, improve_qual)
     return c #close is done inside
 
-def booleanMinus(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_conformal_cloud_qual=False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
+def booleanMinus(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_qual=False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     """Computes the difference between two closed-surface or two volume meshes.
     Usage for surfaces or bars: booleanMinus(a1, a2, tol)
     Usage for volumes: booleanMinus(a1, a2, tol, preserve_right, solid_right)"""
@@ -84,19 +84,19 @@ def booleanMinus(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, im
         a2 = Converter.convertArray2Tetra(a2)
         a1 = G.close(a1); a2 = G.close(a2)
       except: pass
-    c = intersector.booleanMinus(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_conformal_cloud_qual)
+    c = intersector.booleanMinus(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_qual)
     return G.close(c)
 
-def booleanModifiedSolid(solid, a2, tol=0., preserve_solid=1, agg_mode=1, improve_conformal_cloud_qual=False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
+def booleanModifiedSolid(solid, a2, tol=0., preserve_solid=1, agg_mode=1, improve_qual=False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     """Computes the transformed input solid after solving the intersection of its skin with a2.
     Usage: booleanMinus(a1, a2, tol, preserve_right, solid_right)"""
-    c = intersector.booleanModifiedSolid(a2, solid, tol, 1, preserve_solid, agg_mode, improve_conformal_cloud_qual)
+    c = intersector.booleanModifiedSolid(a2, solid, tol, 1, preserve_solid, agg_mode, improve_qual)
     return G.close(c)
     
-def diffSurf(a1, a2, tol=0., preserve_right=1, agg_mode=1, improve_conformal_cloud_qual=False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
+def diffSurf(a1, a2, tol=0., preserve_right=1, agg_mode=1, improve_qual=False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     """Computes the difference between a volume mesh and a surface mesh."""
     solid_right=1
-    c = intersector.DiffSurf(a1, a2, tol, solid_right, preserve_right, agg_mode, improve_conformal_cloud_qual)
+    c = intersector.DiffSurf(a1, a2, tol, solid_right, preserve_right, agg_mode, improve_qual)
     return G.close(c)
     
 #==============================================================================
@@ -463,14 +463,15 @@ def detectOverConnectedFaces(a):
 # IN : a1:              : NGON mesh (surface or volume).
 # IN : a2:              : NGON mesh (surface or volume).
 # IN : RTOL:            : Relative tolerance (in ]0., 1.[).
-# IN: ps_min            : minimal value for the dot product of the normals of each pair of colliding polygons. A value of 1. means pure parallelism.
+# IN: amax              : maximal angular value (in rad) between the normals of each pair of colliding polygons. 
+#                         In ragnge [0,PI]. A value of 0. means pure parallelism. A value of PI means any collision.
 # IN: dir2              : if specified, direction vector used for all a2's polygons instead of their own normals.
 # OUT: 2 lists of overlapping polygons, the first one for a1, the seoncd one for a2.
 #==============================================================================
-def getOverlappingFaces(a1, a2, RTOL = 0.1, ps_min = 0.95, dir2=(0.,0.,0.)):
+def getOverlappingFaces(a1, a2, RTOL = 0.1, amax = 0.1, dir2=(0.,0.,0.)):
     """ Returns the list of polygons in a1 and a2 that are overlapping.
-    Usage: getOverlappingFaces(a1, a2, RTOL, ps_min, dir2)"""
-    return intersector.getOverlappingFaces(a1,a2, RTOL, ps_min, dir2)
+    Usage: getOverlappingFaces(a1, a2, RTOL, amax, dir2)"""
+    return intersector.getOverlappingFaces(a1,a2, RTOL, amax, dir2)
 
 #==============================================================================
 # getAnisoInnerFaces   : returns the list of polygons in a1 that are connecting 2 aniso elements.
@@ -615,6 +616,9 @@ def convertBasic2NGONFaces(a):
 
 def centroids(a):
     return intersector.centroids(a)
+
+def volumes(a):
+    return intersector.volumes(a)
 
 def merge(a, s, tol = 1.e-15): #target arr, source arr
     return intersector.merge(a, s, tol)

@@ -80,6 +80,7 @@ namespace K_INTERSECTOR
   PyObject* computeAspectRatio(PyObject* self, PyObject* args);
 
   PyObject* centroids(PyObject* self, PyObject* args);
+  PyObject* volumes(PyObject* self, PyObject* args);
   PyObject* volume(PyObject* self, PyObject* args);
 
   PyObject* diffMesh(PyObject* self, PyObject* args);

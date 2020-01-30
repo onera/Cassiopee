@@ -2109,15 +2109,62 @@ PyObject* K_INTERSECTOR::centroids(PyObject* self, PyObject* args)
 }
 
 //=============================================================================
+/* Computes volumes*/
+//=============================================================================
+PyObject* K_INTERSECTOR::volumes(PyObject* self, PyObject* args)
+{
+  PyObject *arr;
+
+  if (!PyArg_ParseTuple(args, "O", &arr)) return NULL;
+
+  K_FLD::FloatArray* f(0);
+  K_FLD::IntArray* cn(0);
+  char* varString, *eltType;
+  // Check array # 1
+  E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
+  if (err) return NULL;
+
+  K_FLD::FloatArray & crd = *f;
+  K_FLD::IntArray & cnt = *cn;
+
+  //std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
+  //std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
+
+  typedef ngon_t<K_FLD::IntArray> ngon_type;
+  ngon_type ngi(cnt);
+
+  std::vector<E_Float> vols;
+  ngon_type::volumes<DELAUNAY::Triangulator>(crd, ngi, vols);
+
+  size_t sz = vols.size();
+  FloatArray ar(1, sz);
+  //E_Float minv(K_CONST::E_MAX_FLOAT), maxv(-1.);
+  for (size_t i = 0; i < sz; ++i) 
+    {
+      //minv = std::min(vols[i], minv);
+      //maxv = std::max(vols[i], maxv);
+      ar[i] = vols[i];
+    }
+
+  //std::cout << "minv : " << minv << std::endl;
+  //std::cout << "maxv : " << maxv << std::endl;
+
+  PyObject* tpl = K_ARRAY::buildArray(ar, "volumes", *cn, -1, "NGON", true);
+
+  delete f; delete cn;
+  return tpl;
+}
+
+//=============================================================================
 /* retrieves any polygon that are overlapping */
 //=============================================================================
 PyObject* K_INTERSECTOR::getOverlappingFaces(PyObject* self, PyObject* args)
 {
   PyObject *arr1, *arr2;
-  E_Float RTOL(0.1), PS_MIN(0.95);
+  E_Float RTOL(0.1), AMAX(0.1);
   E_Float d2[3], *pdir2(nullptr);
 
-  if (!PYPARSETUPLEF(args, "OOdd(ddd)", "OOff(fff)", &arr1, &arr2, &RTOL, &PS_MIN, &d2[0], &d2[1], &d2[2])) return NULL;
+  if (!PYPARSETUPLEF(args, "OOdd(ddd)", "OOff(fff)", &arr1, &arr2, &RTOL, &AMAX, &d2[0], &d2[1], &d2[2])) return NULL;
 
   if (d2[0] != 0. || d2[1] != 0. || d2[2] != 0.)
     pdir2 = d2;
@@ -2166,6 +2213,11 @@ PyObject* K_INTERSECTOR::getOverlappingFaces(PyObject* self, PyObject* args)
   chrono c;
   c.start();
 #endif
+
+  AMAX = std::max(0., AMAX);
+  AMAX = std::min(K_CONST::E_PI, AMAX);
+  double PS_MIN = ::cos(AMAX);
+
   NUGA::COLLIDE::compute_overlap<K_MESH::Polygon, K_MESH::Polygon>(crd1, ng1.PGs, crd2, ng2.PGs, localiz, PS_MIN, isx1, isx2, RTOL, true/*shuffle triangulation*/, pdir2);
 
 #ifdef FLAG_STEP

@@ -151,16 +151,16 @@ def intersection(surface1, surface2, tol=0.):
     s = XOR.intersection(s1, s2, tol)
     return C.convertArrays2ZoneNode('inter', [s])
 
-def booleanIntersection(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_conformal_cloud_qual=False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
+def booleanIntersection(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_qual=False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     """Computes the intersection between two closed-surface or two volume meshes.
     Usage for surfaces or bars: booleanIntersection(a1, a2, tol)
     Usage for volumes: booleanIntersection(a1, a2, tol, preserve_right, solid_right)"""
     s1 = C.getFields(Internal.__GridCoordinates__, a1)[0]
     s2 = C.getFields(Internal.__GridCoordinates__, a2)[0]
-    s = XOR.booleanIntersection(s1, s2, tol, preserve_right, solid_right, agg_mode, improve_conformal_cloud_qual)
+    s = XOR.booleanIntersection(s1, s2, tol, preserve_right, solid_right, agg_mode, improve_qual)
     return C.convertArrays2ZoneNode('inter', [s])
 
-def booleanUnion(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_conformal_cloud_qual=False, multi_zone=False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
+def booleanUnion(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_qual=False, multi_zone=False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     """Computes the union between two closed-surface or two volume meshes.
     Usage for surfaces or bars: booleanUnion(a1, a2, tol)
     Usage for volumes: booleanUnion(a1, a2, tol, preserve_right, solid_right)"""
@@ -177,7 +177,7 @@ def booleanUnion(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, im
           L2 = edgeLengthExtrema(a2)
           jtol = 0.1*min(L1,L2)
 
-          return booleanUnionMZ(a1, a2, tol, jtol, agg_mode, improve_conformal_cloud_qual)
+          return booleanUnionMZ(a1, a2, tol, jtol, agg_mode, improve_qual)
 
     #multi_zone option is ignored from here
 
@@ -189,7 +189,7 @@ def booleanUnion(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, im
     if (extrudepgs != []) : extrudepgs = numpy.concatenate(extrudepgs) # create a single list
     #print("nb of pgs to pass : %s" %(len(extrudepgs)))
 
-    res = XOR.booleanUnion(s1, s2, tol, preserve_right, solid_right, agg_mode, improve_conformal_cloud_qual, extrudepgs)
+    res = XOR.booleanUnion(s1, s2, tol, preserve_right, solid_right, agg_mode, improve_qual, extrudepgs)
     
     is_zone_list  = 0
     if (len(res) != 4) : is_zone_list = 1
@@ -205,7 +205,13 @@ def booleanUnion(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, im
     
     return ozones
 
-def booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_conformal_cloud_qual = False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
+def booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_qual = False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
+    tp1 = Internal.copyRef(t1)
+    tp2 = Internal.copyRef(t2)
+    return _booleanUnionMZ(tp1, tp2, xtol, jtol, agg_mode, improve_qual)
+
+
+def _booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_qual = False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     """Computes the union between two closed volume meshes.
     Usage for volumes: booleanUnion2(a1, a2, tol, agg_mode)"""
     m1s = []
@@ -217,7 +223,7 @@ def booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_conformal_cloud
     for z in z2s:
       m2s.append(C.getFields(Internal.__GridCoordinates__, z)[0])
 
-    res = XOR.booleanUnionMZ(m1s, m2s, xtol, jtol, agg_mode, improve_conformal_cloud_qual)
+    res = XOR.booleanUnionMZ(m1s, m2s, xtol, jtol, agg_mode, improve_qual)
 
     i=0
     zs = []
@@ -228,7 +234,7 @@ def booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_conformal_cloud
         #print mesh
 
         # MAJ du maillage de la zone
-        C.setFields([mesh], z, 'nodes') 
+        C.setFields([mesh], z, 'nodes')
 
         # MAJ POINT LISTS #
         #updatePointLists(z, z1s, pg_oids)
@@ -240,19 +246,23 @@ def booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_conformal_cloud
         pg_oids=res[i+1]
 
         # MAJ du maillage de la zone
-        C.setFields([mesh], z, 'nodes') 
+        C.setFields([mesh], z, 'nodes')
 
         # MAJ POINT LISTS #
         #updatePointLists(z, z2s, pg_oids)
         i=i+2
         zs.append(z)
 
-    #t = C.newPyTree(['Base1',z1s], ['Base2',z2s])
-    t = C.newPyTree(['Base',zs])
-    return t
+    t1_is_tree = Internal.isTopTree(t1)
+    t2_is_tree = Internal.isTopTree(t2)
+
+    if t1_is_tree == True and t2_is_tree == True:
+      return Internal.merge([t1, t2])
+    else:
+      return zs
       
 
-def booleanMinus(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_conformal_cloud_qual=False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
+def booleanMinus(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_qual=False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     """Computes the difference between two closed-surface or two volume meshes.
     Usage for surfaces or bars: booleanMinus(a1, a2, tol)
     Usage for volumes: booleanMinus(a1, a2, tol, preserve_right, solid_right)"""
@@ -261,19 +271,19 @@ def booleanMinus(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, im
     s = XOR.booleanMinus(s1, s2, tol, preserve_right, solid_right, agg_mode)
     return C.convertArrays2ZoneNode('minus', [s])
 
-def diffSurf(a1, a2, tol=0., preserve_right=1, agg_mode=1, improve_conformal_cloud_qual=False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
+def diffSurf(a1, a2, tol=0., preserve_right=1, agg_mode=1, improve_qual=False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     """Computes the difference between a volume mesh and a surface mesh."""
     s1 = C.getFields(Internal.__GridCoordinates__, a1)[0]
     s2 = C.getFields(Internal.__GridCoordinates__, a2)[0]
-    s = XOR.diffSurf(s1, s2, tol, preserve_right, agg_mode,improve_conformal_cloud_qual)
+    s = XOR.diffSurf(s1, s2, tol, preserve_right, agg_mode,improve_qual)
     return C.convertArrays2ZoneNode('VmS', [s])
     
-def booleanModifiedSolid(solid, a2, tol=0., preserve_solid=1, agg_mode=1, improve_conformal_cloud_qual=False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
+def booleanModifiedSolid(solid, a2, tol=0., preserve_solid=1, agg_mode=1, improve_qual=False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     """Computes the transformed input solid after solving the intersection of its skin with a2.
     Usage: booleanModifiedSolid(a1, a2, tol, preserve_right, solid_right)"""
     sld = C.getFields(Internal.__GridCoordinates__, solid)[0]
     operand = C.getFields(Internal.__GridCoordinates__, a2)[0]
-    s = XOR.booleanModifiedSolid(operand, sld, tol, preserve_solid, agg_mode, improve_conformal_cloud_qual)
+    s = XOR.booleanModifiedSolid(operand, sld, tol, preserve_solid, agg_mode, improve_qual)
     return C.convertArrays2ZoneNode('modified_solid', [s])
 
 #==============================================================================
@@ -951,26 +961,30 @@ def agglomerateNonStarCells(t):
 # IN: pgs : list of polygons
 # OUT: returns a 3D NGON Mesh
 #==============================================================================
-def agglomerateCellsWithSpecifiedFaces(t, pgs, simplify=2): # 0 : dno not simplify, 1 : simplify only internals, 2 : simlplify evrywhere
+def agglomerateCellsWithSpecifiedFaces(t, pgs, simplify=2, amax = 1.e-12): # 0 : dno not simplify, 1 : simplify only internals, 2 : simlplify evrywhere
      
     tp = Internal.copyRef(t)
-    _agglomerateCellsWithSpecifiedFaces(tp,pgs, simplify)
+    _agglomerateCellsWithSpecifiedFaces(tp,pgs, simplify, amax)
     return tp
 
-def _agglomerateCellsWithSpecifiedFaces(t, pgs, simplify=2):
+def _agglomerateCellsWithSpecifiedFaces(t, pgs, simplify=2, amax = 1.e-12):
 
     zones = Internal.getZones(t)
     if len(pgs) != len(zones):
-    	print('agglomerateCellsWithSpecifiedFaces: input error: nb of polygons packs differ from nb of zones.')
+    	print('agglomerateCellsWithSpecifiedFaces: input error: nb of polygons packs differ from nb of zones : %s versus %s.'%(len(pgs), len(zones)))
     	return None
 
+    if simplify < 0 : simplify = 0
+    if simplify > 2 : simplify = 2
     i=0
     for z in zones:
       m = C.getFields(Internal.__GridCoordinates__, z)[0]
       m = XOR.agglomerateCellsWithSpecifiedFaces(m, pgs[i])
-      if (simplify != 0) : 
-        simplify = simplify -1
-        m = XOR.simplifyCells(m, simplify)# treat externals iff simplify==1
+      
+      simp = simplify
+      if (simp != 0) : 
+        simp -= 1
+        m = XOR.simplifyCells(m, treat_externals=simp, angular_threshold=amax)# treat externals iff simplify==1
       C.setFields([m], z, 'nodes') # replace the mesh in the zone
       i = i+1
  
@@ -1344,30 +1358,32 @@ def _detectOverConnectedFaces(t, TOL=1.e-15, clean=0):
 # IN : t1:              : NGON mesh (surface or volume).
 # IN : t2:              : NGON mesh (surface or volume).
 # IN : RTOL:            : Relative tolerance (in ]0., 1.[).
-# IN: ps_min            : minimal value for the dot product of the normals of each pair of colliding polygons. A value of 1. means pure parallelism.
+# IN: amax              : maximal angular value (in rad) between the normals of each pair of colliding polygons. 
+#                         In ragnge [0,PI]. A value of 0. means pure parallelism. A value of PI means any collision.
 # IN: dir2              : if specified, direction vector used for all a2's polygons instead of their own normals.
 # OUT: 2 lists of overlapping polygons, the first one for a1, the seoncd one for a2.
 #==============================================================================
-def getOverlappingFaces(t1, t2, RTOL = 0.1, ps_min = 0.95, dir2=(0.,0.,0.)):
+def getOverlappingFaces(t1, t2, RTOL = 0.1, amax = 0.1, dir2=(0.,0.,0.)):
    """ Returns the list of polygons in a1 and a2 that are overlapping.
-   Usage: getOverlappingFaces(t1, t2, RTOL, ps_min, dir2)"""
+   Usage: getOverlappingFaces(t1, t2, RTOL, amax, dir2)"""
 
    try: import Transform as T
    except: raise ImportError("getOverlappingFaces: requires Transform module.")
+   
+   zones2 = Internal.getZones(t2)
+   m2 = concatenate(zones2)
+   m2 = C.getFields(Internal.__GridCoordinates__, m2)[0]
 
    zones1 = Internal.getZones(t1)
-   zones2 = Internal.getZones(t2)
-
    pgids = []
-   t2j = T.join(zones2)
-   m2 = C.getFields(Internal.__GridCoordinates__, t2j)[0]
 
+   i=-1
    for z in zones1:
-        
+     i+=1
      m1 = C.getFields(Internal.__GridCoordinates__, z)[0]
      if m1 == []: continue
 
-     pgids.append(XOR.getOverlappingFaces(m1,m2, RTOL, ps_min, dir2))
+     pgids.append(XOR.getOverlappingFaces(m1,m2, RTOL, amax, dir2))
 
    return pgids
 
@@ -1375,7 +1391,6 @@ def getOverlappingFaces(t1, t2, RTOL = 0.1, ps_min = 0.95, dir2=(0.,0.,0.)):
 # getAnisoInnerFaces   : returns the list of polygons in a1 that are connecting 2 aniso elements.
 # IN : t1:              : NGON mesh (surface or volume).
 # IN : RTOL:            : Relative tolerance (in ]0., 1.[).
-# IN: ps_min            : minimal value for the dot product of the normals of each pair of colliding polygons. A value of 1. means pure parallelism.
 # IN: dir2              : if specified, direction vector used for all a2's polygons instead of their own normals.
 # OUT: 2 lists of overlapping polygons, the first one for a1, the seoncd one for a2.
 #==============================================================================
@@ -1612,6 +1627,18 @@ def centroids(t):
     m = C.getFields(Internal.__GridCoordinates__, t)[0]
     c = XOR.centroids(m)
     return C.convertArrays2ZoneNode('centroids', [c])
+
+def volumes(t):
+    tp = Internal.copyRef(t)
+    _volumes(tp)
+    return tp
+
+def _volumes(t):
+    zones = Internal.getZones(t)
+    for z in zones:
+        m = C.getFields(Internal.__GridCoordinates__, z)[0]
+        vols = XOR.volumes(m)
+        C.setFields([vols], z, 'centers', False)
 
 def merge(tz, sz, tol = 1.e-15): #target zone, list source zones
     m = C.getFields(Internal.__GridCoordinates__, tz)[0]
