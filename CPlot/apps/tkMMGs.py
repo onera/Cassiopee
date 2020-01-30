@@ -197,7 +197,7 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='Maximum step in remeshed surface.')
 
     # fixed constraints
-    B = TTK.Label(Frame, text="fixed")
+    B = TTK.Label(Frame, text="Fixed")
     B.grid(row=4, column=0, sticky=TK.EW)
     B = TTK.Button(Frame, command=setFixedConstraints,
                    image=iconics.PHOTO[8], padx=0, pady=0)
@@ -208,7 +208,7 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='Fixed curves for mmg.')
     
     # size constraints
-    B = TTK.Label(Frame, text="size")
+    B = TTK.Label(Frame, text="Size")
     B.grid(row=5, column=0, sticky=TK.EW)
     B = TTK.Button(Frame, command=setSizeConstraints,
                    image=iconics.PHOTO[8], padx=0, pady=0)

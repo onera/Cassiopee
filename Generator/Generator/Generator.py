@@ -226,8 +226,7 @@ def bboxIntersection(array1, array2, tol=1.e-6, isBB=False, method='AABB'):
         return generator.bboxIntersection(m1, m2)
 
 def checkPointInCEBB(array, P):
-    """Check if point P is in the Cartesian Elements Bounding Box of
-    array."""
+    """Check if point P is in the Cartesian Elements Bounding Box of array."""
     return generator.checkPointInCEBB(array, P)
 
 def enforceX(array, x0, enforcedh, N, add=0):
@@ -616,6 +615,32 @@ def refinePerDir__(a, power, dir):
     elif dir == 3: return T.reorder(aout, (3,2,1))
     else: return aout
 
+def defineSizeMapForMMGs(array, hmax, sizeConstraints):
+    import Converter; import KCore; import Generator; import Transform
+    if hmax > 0: array = Converter.initVars(array, 'sizemap=%f'%hmax)
+    else: 
+        vol = Generator.getVolumeMap(array)
+        vol = Converter.initVars(vol, '{vol}=(1.15*{vol})**0.5')
+        vol = Converter.center2Node(vol)
+        vol[0] = 'sizemap'
+        array = Converter.addVars([array, vol])
+    pos = KCore.isNamePresent(array, 'sizemap')
+
+    c = Transform.join(sizeConstraints)
+    v = Generator.getVolumeMap(c); v = Converter.center2Node(v); c = Converter.addVars([c,v])
+    hook = Converter.createHook(c, function='nodes')
+    ret = Converter.nearestNodes(hook, array)
+    n = ret[0]; d = ret[1] 
+    pt = array[1]
+    alpha = numpy.empty(d.size, dtype=numpy.float64)
+    if isinstance(pt, list): alpha[:] = 0.3*d[:] / pt[pos,:]
+    else: alpha[:] = 0.3*d[:] / pt[pos][:]
+    alpha[:] = (alpha[:] > 1.)*1.+(alpha[:] <= 1.)*alpha[:]
+    if isinstance(pt, list): pt[pos,:] = alpha[:]*pt[pos,:]+(1.-alpha[:])*v[1][0,n[:]-1]
+    else: pt[pos][:] = alpha[:]*pt[pos][:]+(1.-alpha[:])*v[1][0,n[:]-1]
+    Converter.convertArrays2File(array, 'array.plt')
+    return array
+
 # Remaille une surface avec mmgs
 def mmgs(array, ridgeAngle=45., hmin=0., hmax=0., hausd=0.01, grow=1.1, 
          anisotropy=0, optim=0, fixedConstraints=[], sizeConstraints=[]):
@@ -629,17 +654,7 @@ def mmgs(array, ridgeAngle=45., hmin=0., hmax=0., hausd=0.01, grow=1.1,
                 for c in fixedConstraints: fixedNodes.append(Converter.nearestNodes(hook, c)[0])
             else: fixedNodes = None
             if sizeConstraints != []:
-                import Converter; import KCore; import Generator
-                i = Converter.initVars(i, 'sizemap=%f'%hmax)
-                pos = KCore.isNamePresent(i, 'sizemap')
-                hook = Converter.createHook(i, function='nodes')
-                for c in sizeConstraints:
-                    v = Generator.getVolumeMap(c); v = Converter.center2Node(v); c = Converter.addVars([c,v])
-                    n = Converter.nearestNodes(hook, c)[0]
-                    pt = i[1]
-                    if isinstance(pt, list): pt[pos][n[:]-1] = v[1][0,:]
-                    else: pt[pos,n[:]-1] = v[1][0,:]
-                #Converter.convertArrays2File(i, 'array.plt')
+                i = defineSizeMapForMMGs(i, hmax, sizeConstraints)
             l.append(generator.mmgs(i, ridgeAngle, hmin, hmax, hausd,
                                     grow, anisotropy, optim, fixedNodes))
         return l
@@ -651,23 +666,7 @@ def mmgs(array, ridgeAngle=45., hmin=0., hmax=0., hausd=0.01, grow=1.1,
             for c in fixedConstraints: fixedNodes.append(Converter.nearestNodes(hook, c)[0])
         else: fixedNodes = None
         if sizeConstraints != []:
-            import Converter; import KCore; import Generator
-            if hmax > 0: array = Converter.initVars(array, 'sizemap=%f'%hmax)
-            else: 
-                vol = Generator.getVolumeMap(array)
-                vol = Converter.initVars(vol, '{vol}=(1.15*{vol})**0.5')
-                vol = Converter.center2Node(vol)
-                vol[0] = 'sizemap'
-                array = Converter.addVars([array, vol])
-            pos = KCore.isNamePresent(array, 'sizemap')
-            hook = Converter.createHook(array, function='nodes')
-            for c in sizeConstraints:
-                v = Generator.getVolumeMap(c); v = Converter.center2Node(v); c = Converter.addVars([c,v])
-                n = Converter.nearestNodes(hook, c)[0]
-                pt = array[1]
-                if isinstance(pt, list): pt[pos][n[:]-1] = v[1][0,:]
-                else: pt[pos,n[:]-1] = v[1][0,:]
-            #Converter.convertArrays2File(array, 'array.plt')
+            array = defineSizeMapForMMGs(array, hmax, sizeConstraints)
         return generator.mmgs(array, ridgeAngle, hmin, hmax, hausd, 
                               grow, anisotropy, optim, fixedNodes)
 
@@ -737,8 +736,7 @@ def plaster(contours, surfaces, side=0):
     Usage: plaster(contours, surfaces)"""
     ni = 100; nj = 100
     try: import Transform as T; import Converter as C
-    except:
-        raise ImportError("plaster: requires Converter, Transform modules.")
+    except: raise ImportError("plaster: requires Converter, Transform modules.")
 
     c = C.convertArray2Tetra(contours); c = T.join(c)
     s = C.convertArray2Tetra(surfaces); s = T.join(s)
@@ -748,13 +746,13 @@ def plaster(contours, surfaces, side=0):
     bb[3] = bb[3] + 1.e-2; bb[4] = bb[4] + 1.e-2; bb[5] = bb[5] + 1.e-2
     lx = bb[3]-bb[0]; ly = bb[4]-bb[1]; lz = bb[5]-bb[2]
     s1 = lx*ly; s2 = lx*lz; s3 = ly*lz
-    if (s1 >= s2 and s1 >= s3):
+    if s1 >= s2 and s1 >= s3:
         if side == 0:
             p = cart( (bb[0],bb[1],bb[2]), (lx/(ni-1),ly/(nj-1),1), (ni,nj,1) )
         else:
             p = cart( (bb[0],bb[1],bb[5]), (lx/(ni-1),ly/(nj-1),1), (ni,nj,1) )
         dir = (0,0,1)
-    elif (s2 >= s1 and s2 >= s3):
+    elif s2 >= s1 and s2 >= s3:
         if side == 0:
             p = cart( (bb[0],bb[1],bb[2]), (lx/(ni-1),1,lz/(nj-1)), (ni,1,nj) )
         else:
@@ -874,7 +872,7 @@ def getSmoothNormalMap(array, niter=2, eps=0.4):
     n = C.normalize(n, ['sx','sy','sz'])
     n = C.center2Node(n)
     n = C.normalize(n, ['sx','sy','sz'])
-    while (it < niter):
+    while it < niter:
         np = C.node2Center(n)
         np = C.normalize(np, ['sx','sy','sz'])
         np = C.center2Node(np)
@@ -984,12 +982,12 @@ def modifyNormalWithMetric(array, narray):
     try: import Converter as C
     except: raise ImportError("modifyNormalWithMetric: requires Converter module.")
     a = C.copy(array); n = C.copy(narray)
-    if (len(a) == 5): a = C.convertArray2Hexa(a); n = C.convertArray2Hexa(n)
+    if len(a) == 5: a = C.convertArray2Hexa(a); n = C.convertArray2Hexa(n)
     ht = getLocalStepFactor__(a, n)
     nx = C.extractVars(n,['sx']); ny = C.extractVars(n,['sy']); nz = C.extractVars(n,['sz'])
     nx[1][0,:] = ht[1][0,:]* nx[1][0,:]
     ny[1][0,:] = ht[1][0,:]* ny[1][0,:]
-    nz[1][0,:] = ht[1][0,:]* nz[1][0,:]    
+    nz[1][0,:] = ht[1][0,:]* nz[1][0,:]
     n = C.addVars([n, nx, ny, nz])
     return n
 
@@ -1026,7 +1024,7 @@ def addNormalLayers(surface, distrib, check=0, niter=0, eps=0.4):
         if len(surface[0]) == 5: type = 0 # structured
         else: type = 1 # unstructured
         for i in range(1,len(surface)):
-            if ((len(surface[i]) == 5 and type != 0) or (len(surface[i]) == 4 and type != 1)):
+            if (len(surface[i]) == 5 and type != 0) or (len(surface[i]) == 4 and type != 1):
                 raise ValueError("addNormalLayers: all the surfaces must be structured or unstructured.")
         if type == 0: return addNormalLayersStruct__(surface, distrib, check, niter, eps)
         else: # NS
@@ -1083,7 +1081,7 @@ def gencartmb(bodies, h, Dfar, nlvl):
         out = []
         pmin = (1,1,1)
         pmax = (ref[2], ref[3], nb)
-        if (ref[4]- 2*nb < 3  or  ref[3]- 2*nb < 3 or ref[2]- 2*nb < 3):
+        if ref[4]-2*nb < 3  or  ref[3]-2*nb < 3 or ref[2]-2*nb < 3:
             print('Warning: number of points for level %d is too big: %d'%(level, nb))
             print('composite grid: %d %d %d.'%(ref[2],ref[3],ref[4])) 
             return out
@@ -1139,7 +1137,7 @@ def gencartmb(bodies, h, Dfar, nlvl):
     c = 1
     for i in nlvl :
         lev,ref = createLevel(i, c, ref)
-        c  = c + 1
+        c += 1
         out = out + lev
 
     # Derniere grille
@@ -1162,7 +1160,7 @@ def mapSplit(array, dist, splitCrit=100., densMax=1000):
     """Split a curve and map a distribution on the set of split curves.
     Usage: mapSplit(a, dist, splitCrit, densMax)"""
     if len(array) == 5: # structure
-        if (array[3] != 1 or array[4] != 1):
+        if array[3] != 1 or array[4] != 1:
             raise TypeError("mapSplit: requires a i-array.")
         else:
             return mapSplitStruct__(array, dist, splitCrit, densMax)
@@ -1644,15 +1642,13 @@ def addNormalLayersStruct__(surfaces, distrib, check=0, niter=0, eps=0.4):
 
     vect = ['sx','sy','sz']
     # verifications 
-    for nos in range(len(surfaces)):
-        surfs = surfaces[nos]
+    for nos, surfs in enumerate(surfaces):
         if surfs[4] != 1: raise ValueError("addNormalLayers: structured surface must be k=1.")
         if surfs[3] == 1: surfaces[nos] = T.addkplane(surfs)
 
     surfu = C.convertArray2Hexa(surfaces)
     surfu = T.join(surfu); surfu = close(surfu)
     surfu = T.reorder(surfu, (1,))
-
     listOfIndices = KCore.indiceStruct2Unstr2(surfaces, surfu, 1.e-14)
     
     listOfCoords = []
@@ -1671,8 +1667,8 @@ def addNormalLayersStruct__(surfaces, distrib, check=0, niter=0, eps=0.4):
     # determination de kb1,kb2
     kb1 =-1; kb2 =-1
     for k1 in range(kmax-1):
-        if (distrib[1][0,k1+1] >= 0.1*hmean and kb1 == -1): kb1 = k1
-        elif (distrib[1][0,k1+1] >= 1.*hmean and kb2 == -1): kb2 = k1
+        if distrib[1][0,k1+1] >= 0.1*hmean and kb1 == -1: kb1 = k1
+        elif distrib[1][0,k1+1] >= 1.*hmean and kb2 == -1: kb2 = k1
     kb2 = max(kb2, kb1+2)
     imax = surfu[1].shape[1]
     coordsloc = C.array(surfu[0],imax,2,1) # pour le check
@@ -1688,13 +1684,14 @@ def addNormalLayersStruct__(surfaces, distrib, check=0, niter=0, eps=0.4):
             n = C.normalize(n, vect)
             n = C.center2Node(n)
             n = C.normalize(n, vect)
+            n = modifyNormalWithMetric(surfu, n)
         else:
             if hmin < 0.01*hmean: # presence de couche limite
-                if (k1 < kb1): # pas de lissage ds la couche limite
+                if k1 < kb1: # pas de lissage ds la couche limite
                     n = getSmoothNormalMap(surfu, niter=0, eps=eps)
                     np = modifyNormalWithMetric(surfu, n)
                     n[1] = np[1]
-                elif (k1 < kb2):
+                elif k1 < kb2:
                     beta0 = (float(k1-kb1))/float(kb2-1-kb1)
                     n0 = getSmoothNormalMap(surfu, niter=0, eps=eps)
                     n0 = modifyNormalWithMetric(surfu,n0)
@@ -1710,7 +1707,7 @@ def addNormalLayersStruct__(surfaces, distrib, check=0, niter=0, eps=0.4):
             else: # pas de couche limite
                 n = getSmoothNormalMap(surfu, niter=niter, eps=eps)
                 np = modifyNormalWithMetric(surfu, n)
-                if (kmax == 2): beta0 = 0.1
+                if kmax == 2: beta0 = 0.1
                 else: beta0 = float((kmax-2-k1))/float(kmax-2); beta0 = beta0*beta0
                 n[1] = (1-beta0)*n[1] + beta0*np[1]
                 
@@ -1722,7 +1719,7 @@ def addNormalLayersStruct__(surfaces, distrib, check=0, niter=0, eps=0.4):
         kminout = kmax
         for noz in range(nzones):
             coords = listOfCoords[noz]
-            ni=coords[2]; nj=coords[3]
+            ni = coords[2]; nj = coords[3]
             ninj = ni*nj
             indicesU = listOfIndices[noz]
             shift = (k1+1)*ninj
@@ -1756,7 +1753,7 @@ def addNormalLayersUnstr__(surface, distrib, check=0, niter=0, eps=0.4):
     surf = close(surf); surf = T.reorder(surf, (1,))
     kmax = distrib[1].shape[1] # nb of layers in the normal direction
 
-    if (kmax < 2): raise ValueError("addNormalLayers: distribution must contain at least 2 points.")
+    if kmax < 2: raise ValueError("addNormalLayers: distribution must contain at least 2 points.")
 
     vect = ['sx','sy','sz']
     hmin = distrib[1][0,1]-distrib[1][0,0]
@@ -1765,29 +1762,29 @@ def addNormalLayersUnstr__(surface, distrib, check=0, niter=0, eps=0.4):
     # determination de kb1,kb2
     kb1 =-1; kb2 =-1
     for k1 in range(kmax-1):
-        if (distrib[1][0,k1+1] >= 0.1*hmean and kb1 == -1): kb1 = k1
-        elif (distrib[1][0,k1+1] >= 1.*hmean and kb2 == -1): kb2 = k1
+        if distrib[1][0,k1+1] >= 0.1*hmean and kb1 == -1: kb1 = k1
+        elif distrib[1][0,k1+1] >= 1.*hmean and kb2 == -1: kb2 = k1
     kb2 = max(kb2, kb1+2)  
     for k1 in range(kmax-1):
         hloc = distrib[1][0,k1+1]-distrib[1][0,k1]
-        if (niter == 0):
+        if niter == 0:
             n = getNormalMap(surf)
             n = C.normalize(n, vect)
             n = C.center2Node(n)
             n = C.normalize(n, vect)
         else:
-            if (hmin < 0.01*hmean): # presence de couche limite
-                if (k1 < kb1): # pas de lissage ds la couche limite
+            if hmin < 0.01*hmean: # presence de couche limite
+                if k1 < kb1: # pas de lissage ds la couche limite
                     n = getSmoothNormalMap(surf, niter=0, eps=eps)
                     np = modifyNormalWithMetric(surf, n)
                     n[1] = np[1]
                     
-                elif (k1 < kb2):
+                elif k1 < kb2:
                     beta0 = (float(k1-kb1))/float(kb2-1-kb1)
                     n0 = getSmoothNormalMap(surf,niter=0, eps=eps)
-                    n0 = modifyNormalWithMetric(surf,n0)
-                    n = getSmoothNormalMap(surf,niter=niter, eps=eps)
-                    np = modifyNormalWithMetric(surf,n)
+                    n0 = modifyNormalWithMetric(surf, n0)
+                    n = getSmoothNormalMap(surf, niter=niter, eps=eps)
+                    np = modifyNormalWithMetric(surf, n)
                     n[1] = (1-beta0)*n0[1] + beta0*np[1]
                 else: # lissage a fond
                     n = getSmoothNormalMap(surf,niter=niter, eps=eps)
@@ -1798,7 +1795,7 @@ def addNormalLayersUnstr__(surface, distrib, check=0, niter=0, eps=0.4):
             else: # pas de couche limite
                 n = getSmoothNormalMap(surf, niter=niter, eps=eps)
                 np = modifyNormalWithMetric(surf, n)
-                if (kmax == 2): beta0 = 0.1
+                if kmax == 2: beta0 = 0.1
                 else: beta0 = float((kmax-2-k1))/float(kmax-2); beta0 = beta0*beta0
                 n[1] = (1-beta0)*n[1] + beta0 *np[1]           
 
@@ -1815,15 +1812,14 @@ def addNormalLayersUnstr__(surface, distrib, check=0, niter=0, eps=0.4):
                     return m
                 else: raise ValueError("addNormalLayers: no layer created.")
         
-        n[0]='sx0,sy0,sz0'
+        n[0] = 'sx0,sy0,sz0'
         surf = C.addVars([surf,n])
         vectn2 = ['sx0','sy0','sz0']
         surf = T.deform(surf, vectn2)
         surf = C.rmVars(surf, vectn2)
 
         if k1 == 0: m = a
-        else: 
-            m = T.join(m, a)
+        else: m = T.join(m, a)
     return m
 
 # Fonction retournant la carte d'orthogonalite d'une grille

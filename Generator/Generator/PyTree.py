@@ -1033,7 +1033,7 @@ def mmgs(t, ridgeAngle=45., hmin=0., hmax=0., hausd=0.01, grow=1.1,
 
 def _mmgs(t, ridgeAngle=45., hmin=0., hmax=0., hausd=0.01, grow=1.1, 
           anisotropy=0, optim=0, fixedConstraints=[], sizeConstraints=[]):
-    arrays = C.getFields('nodes', t, api=2)
+    arrays = C.getFields('nodes', t, api=1)
     fixedConstraints = C.getFields('nodes', fixedConstraints, api=1)
     sizeConstraints = C.getFields('nodes', sizeConstraints, api=1)
     b = Generator.mmgs(arrays, ridgeAngle, hmin, hmax, hausd, grow, anisotropy, optim, 

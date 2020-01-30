@@ -59,10 +59,8 @@ PyObject* K_GENERATOR::getLocalStepFactor(PyObject* self, PyObject* args)
   E_Float* yn = f->begin(posy0);
   E_Float* zn = f->begin(posz0);
 
-  FldArrayF* fn;
-  char* varStringn;
-  char* eltTypen;
-  FldArrayI* cnn;
+  FldArrayF* fn; FldArrayI* cnn;
+  char* varStringn; char* eltTypen;
   res = K_ARRAY::getFromArray(normales, varStringn, fn, 
                               im, jm, km, cnn, eltTypen, true);
   if (res != 2) 
