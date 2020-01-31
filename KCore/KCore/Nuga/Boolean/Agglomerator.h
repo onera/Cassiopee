@@ -599,6 +599,9 @@ namespace NUGA
       {
         E_Int PGi = pPGlist[i];
 
+        if (PGi >= F2E.size())
+          continue;
+
         E_Int lPH = F2E(0, PGi);
         E_Int rPH = F2E(1, PGi);
         

@@ -1698,7 +1698,7 @@ static E_Int detect_bad_volumes(const K_FLD::FloatArray& crd, const ngon_t& ngi,
   E_Int nb_phs = ngi.PHs.size();
  
   std::vector<E_Float> vols;
-  ngon_t::volumes<TriangulatorType>(crd, ngi, vols);
+  ngon_t::volumes<TriangulatorType>(crd, ngi, vols, false/*i.e. not all cvx*/, false/* ! new algo*/);
 
   E_Float vi, vj;
   
@@ -2165,7 +2165,7 @@ static E_Int stats_bad_volumes(const K_FLD::FloatArray& crd, const ngon_t& ngi, 
   aspect_ratio.resize(nb_phs, 0.);
  
   std::vector<E_Float> vols;
-  ngon_t::volumes<TriangulatorType>(crd, ngi, vols);
+  ngon_t::volumes<TriangulatorType>(crd, ngi, vols, false/*not all cvx*/, false/* ! new algo*/);
 
   E_Float vi, vj;
   
@@ -3639,7 +3639,7 @@ static E_Int flag_neighbors(const ngon_t& ng, Vector_t<bool>& flag, bool overwri
 
 ///
 template<typename TriangulatorType>
-static E_Int volumes (const K_FLD::FloatArray& crd, const ngon_t& ng, std::vector<E_Float>& vols, bool new_algo=false)
+static E_Int volumes (const K_FLD::FloatArray& crd, const ngon_t& ng, std::vector<E_Float>& vols, bool all_pgs_cvx, bool new_algo)
 {
   ng.PGs.updateFacets();
   ng.PHs.updateFacets();
@@ -3673,7 +3673,7 @@ static E_Int volumes (const K_FLD::FloatArray& crd, const ngon_t& ng, std::vecto
 #pragma omp parallel for private(err, dt, v, Gdum) reduction(+:errcount)
 #endif
     for (E_Int i = 0; i < nb_phs; ++i){
-      err = K_MESH::Polyhedron<UNKNOWN>::metrics2<TriangulatorType>(dt, crd, ng.PGs, ng.PHs.get_facets_ptr(i), ng.PHs.stride(i), v, Gdum, false/*not all cvx*/);
+      err = K_MESH::Polyhedron<UNKNOWN>::metrics2<TriangulatorType>(dt, crd, ng.PGs, ng.PHs.get_facets_ptr(i), ng.PHs.stride(i), v, Gdum, all_pgs_cvx);
       v = ::fabs(v);
       if (!err) vols[i] = v;
       else ++errcount;

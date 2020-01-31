@@ -943,7 +943,7 @@ PyObject* K_INTERSECTOR::volume(PyObject* self, PyObject* args)
   }
 
   std::vector<E_Float> vols;
-  ngon_type::volumes<DELAUNAY::Triangulator>(crd, ngi, vols, true/*new algo*/);
+  ngon_type::volumes<DELAUNAY::Triangulator>(crd, ngi, vols, false/*not all cvx*/, true/*new algo*/);
 
   //std::cout << "use_xcelln ?" << use_xcelln << std::endl;
   E_Float V = 0.;
@@ -2114,8 +2114,10 @@ PyObject* K_INTERSECTOR::centroids(PyObject* self, PyObject* args)
 PyObject* K_INTERSECTOR::volumes(PyObject* self, PyObject* args)
 {
   PyObject *arr;
+  E_Int algo(0);
+  E_Int all_pgs_cvx(0);
 
-  if (!PyArg_ParseTuple(args, "O", &arr)) return NULL;
+  if (!PYPARSETUPLEI(args, "Oll", "Oii", &arr, &algo, &all_pgs_cvx)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -2134,20 +2136,12 @@ PyObject* K_INTERSECTOR::volumes(PyObject* self, PyObject* args)
   ngon_type ngi(cnt);
 
   std::vector<E_Float> vols;
-  ngon_type::volumes<DELAUNAY::Triangulator>(crd, ngi, vols);
+  ngon_type::volumes<DELAUNAY::Triangulator>(crd, ngi, vols, (all_pgs_cvx == 1), (algo == 1));
 
   size_t sz = vols.size();
   FloatArray ar(1, sz);
-  //E_Float minv(K_CONST::E_MAX_FLOAT), maxv(-1.);
   for (size_t i = 0; i < sz; ++i) 
-    {
-      //minv = std::min(vols[i], minv);
-      //maxv = std::max(vols[i], maxv);
-      ar[i] = vols[i];
-    }
-
-  //std::cout << "minv : " << minv << std::endl;
-  //std::cout << "maxv : " << maxv << std::endl;
+    ar[i] = vols[i];
 
   PyObject* tpl = K_ARRAY::buildArray(ar, "volumes", *cn, -1, "NGON", true);
 

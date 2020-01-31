@@ -617,8 +617,8 @@ def convertBasic2NGONFaces(a):
 def centroids(a):
     return intersector.centroids(a)
 
-def volumes(a):
-    return intersector.volumes(a)
+def volumes(a, algo=1, all_pgs_convex=False):
+    return intersector.volumes(a, algo, all_pgs_convex)
 
 def merge(a, s, tol = 1.e-15): #target arr, source arr
     return intersector.merge(a, s, tol)

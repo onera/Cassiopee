@@ -1628,16 +1628,16 @@ def centroids(t):
     c = XOR.centroids(m)
     return C.convertArrays2ZoneNode('centroids', [c])
 
-def volumes(t):
+def volumes(t, algo=1, all_pgs_convex=False):
     tp = Internal.copyRef(t)
-    _volumes(tp)
+    _volumes(tp, algo, all_pgs_convex)
     return tp
 
-def _volumes(t):
+def _volumes(t, algo=1, all_pgs_convex=False):
     zones = Internal.getZones(t)
     for z in zones:
         m = C.getFields(Internal.__GridCoordinates__, z)[0]
-        vols = XOR.volumes(m)
+        vols = XOR.volumes(m, algo, all_pgs_convex)
         C.setFields([vols], z, 'centers', False)
 
 def merge(tz, sz, tol = 1.e-15): #target zone, list source zones
