@@ -311,6 +311,7 @@ Modifying/creating variables
     Indices and BCFields are automatically extracted from BCDataSet nodes:
     if a BCDataSet node is defined for a BC of the pyTree, the corresponding face fields
     are imposed when computing the gradient.
+    If volume has already been computed and volume field is present in tree, it is not recomputed for the gradient computation (only NGON cases up to now).
 
     :param a:  Input data
     :type  a:  [array, list of arrays] or [pyTree, base, zone, list of zones]

@@ -40,8 +40,9 @@ extern "C"
 PyObject* K_POST::computeGrad2NGon(PyObject* self, PyObject* args)
 {
   PyObject* array; PyObject* arrayc;
+  PyObject* volc;
   PyObject* indices; PyObject* field;
-  if (!PyArg_ParseTuple(args, "OOOO", &array, &arrayc,
+  if (!PyArg_ParseTuple(args, "OOOOO", &array, &arrayc, &volc, 
                         &indices, &field)) return NULL;
 
   // Check array
@@ -218,11 +219,32 @@ PyObject* K_POST::computeGrad2NGon(PyObject* self, PyObject* args)
     }
   }
   surf.malloc(0); faceField.malloc(0);
-
+  
+  
   FldArrayF vol(nelts);
   E_Float* volp = vol.begin(1);
-  K_METRIC::CompNGonVol(f->begin(posx), f->begin(posy),
-                        f->begin(posz), *cn, volp);
+  
+  if ( volc == Py_None)
+  {  
+    K_METRIC::CompNGonVol(f->begin(posx), f->begin(posy),
+  			  f->begin(posz), *cn, volp);
+  }
+  else
+  {
+    FldArrayF* vols=NULL; 
+    K_NUMPY::getFromNumpyArray(volc, vols, true);
+    volp = vols->begin();
+  }
+
+ 
+  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  // FldArrayF vol(nelts);
+  // E_Float*volp = vol.begin(1);
+  // K_METRIC::CompNGonVol(f->begin(posx), f->begin(posy),
+  // 			f->begin(posz), *cn, volp);
+  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  
 
   E_Float voli;
   for (E_Int n = 0; n < nfld; n++)

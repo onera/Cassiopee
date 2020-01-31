@@ -1226,6 +1226,8 @@ def _computeGrad2(t,var,ghostCells=False):
     vare = var.split(':')
     if len(vare) > 1: vare = vare[1]
 
+
+
     # Compute fields on BCMatch (for all match connectivities)
     if not ghostCells:
         allMatch = C.extractAllBCMatch(t,vare)
@@ -1234,60 +1236,64 @@ def _computeGrad2(t,var,ghostCells=False):
 
     zones = Internal.getZones(t)
     for z in zones:
-        # if not C.isXZone(z): # For MPI computation with additionnal XZones loaded. 
-            # print("calcul du gradient!!!!!")
-            f = C.getField(var, z)[0]
-            x = C.getFields(Internal.__GridCoordinates__, z)[0]
-            # Get BCDataSet if any
-            indices=None; BCField=None
+        
+        # Test if vol present
+        cont = Internal.getNodeFromName1(z, Internal.__FlowSolutionCenters__)
+        vol  = Internal.getNodeFromName1(cont, 'vol')
+        if vol is not None: vol = vol[1]
+        
+        f = C.getField(var, z)[0]
+        x = C.getFields(Internal.__GridCoordinates__, z)[0]
+        # Get BCDataSet if any
+        indices=None; BCField=None
 
-            isghost = Internal.getNodeFromType1(z,'Rind_t')
-            if isghost is None or not ghostCells: # not a ghost cells zone : add BCDataSet
-                zoneBC = Internal.getNodesFromType1(z, 'ZoneBC_t')
-                if zoneBC is not None:
-                    BCs = Internal.getNodesFromType1(zoneBC, 'BC_t')
-                    for b in BCs:
-                        datas = Internal.getBCDataSet(z, b)
-                        inds = Internal.getBCFaceNode(z, b)
-                        if datas != [] and inds != []:
-                            bcf = None
-                            for i in datas:
-                                if i[0] == vare: bcf = i; break
-                            if bcf is not None:
-                                indsp = inds[1].ravel(order='K')
-                                bcfp = bcf[1].ravel(order='K')
-                                if indices is None: indices = indsp
-                                else: indices = numpy.concatenate((indices, indsp))
-                                if BCField is None: BCField = bcfp
-                                else: BCField = numpy.concatenate((BCField, bcfp))
+        isghost = Internal.getNodeFromType1(z,'Rind_t')
+        if isghost is None or not ghostCells: # not a ghost cells zone : add BCDataSet
+            zoneBC = Internal.getNodesFromType1(z, 'ZoneBC_t')
+            if zoneBC is not None:
+                BCs = Internal.getNodesFromType1(zoneBC, 'BC_t')
+                for b in BCs:
+                    datas = Internal.getBCDataSet(z, b)
+                    inds = Internal.getBCFaceNode(z, b)
+                    if datas != [] and inds != []:
+                        bcf = None
+                        for i in datas:
+                            if i[0] == vare: bcf = i; break
+                        if bcf is not None:
+                            indsp = inds[1].ravel(order='K')
+                            bcfp = bcf[1].ravel(order='K')
+                            if indices is None: indices = indsp
+                            else: indices = numpy.concatenate((indices, indsp))
+                            if BCField is None: BCField = bcfp
+                            else: BCField = numpy.concatenate((BCField, bcfp))
 
-            # compute field on BCMatch for current zone
-            if allMatch != {}:
-                indFace, fldFace = C.computeBCMatchField(z,allMatch,vare)
+        # compute field on BCMatch for current zone
+        if allMatch != {}:
+            indFace, fldFace = C.computeBCMatchField(z,allMatch,vare)
 
-                if fldFace is not None:
+            if fldFace is not None:
 
-                    fldp = None
+                fldp = None
 
-                    for fgc in fldFace:
-                        fgc   = fgc[1][0]
-                        if fldp is None:
-                            fldp = fgc
-                        else:
-                            fldp = numpy.concatenate((fldp,fgc))
+                for fgc in fldFace:
+                    fgc   = fgc[1][0]
+                    if fldp is None:
+                        fldp = fgc
+                    else:
+                        fldp = numpy.concatenate((fldp,fgc))
 
-                    indp    = indFace.ravel(order='K')
-                    fldp    = fldp.ravel(order='K')
+                indp    = indFace.ravel(order='K')
+                fldp    = fldp.ravel(order='K')
 
-                    if indices is None: indices = indp
-                    else: indices = numpy.concatenate((indices, indp))
+                if indices is None: indices = indp
+                else: indices = numpy.concatenate((indices, indp))
 
-                    if BCField is None: BCField = fldp
-                    else: BCField = numpy.concatenate((BCField, fldp))
+                if BCField is None: BCField = fldp
+                else: BCField = numpy.concatenate((BCField, fldp))
 
-            if f != []:
-                centers = Post.computeGrad2(x, f, indices=indices, BCField=BCField)
-                C.setFields([centers], z, 'centers')
+        if f != []:
+            centers = Post.computeGrad2(x, f, vol, indices=indices, BCField=BCField)
+            C.setFields([centers], z, 'centers')
 
     return None
 

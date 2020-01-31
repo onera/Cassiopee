@@ -399,13 +399,13 @@ def computeGrad(array, varname):
     else:
         return post.computeGrad(array, varname)
 
-def computeGrad2(array, arrayc, indices=None, BCField=None):
+def computeGrad2(array, arrayc, vol=None, indices=None, BCField=None):
     """Compute the gradient of a field defined on centers."""
     if isinstance(array[0], list):
         raise ValueError("computeGrad2: input must be a single zone.")
     if len(array) == 4:
         if array[3] == 'NGON' and arrayc[3] == 'NGON*':
-            return post.computeGrad2NGon(array, arrayc, indices, BCField)
+            return post.computeGrad2NGon(array, arrayc, vol, indices, BCField)
         else:
             raise ValueError("computeGrad2: only valid for NGon unstructured zones.")
     else:
