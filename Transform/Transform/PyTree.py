@@ -1928,6 +1928,7 @@ def _splitSizeUpR__(t, N, R, multigrid, dirs, minPtsPerDir):
                 ni1 = max(1, ni-1); nj1 = max(1, nj-1); nk1 = max(1, nk-1)
                 SP.append((ni1*nj1*nk1,z,b)); Nl += ni1*nj1*nk1
     if N == 0: N = Nl*1. / R
+    #print('average cells ', N)
     from operator import itemgetter
 
     # Init le vecteur des ressources

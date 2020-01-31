@@ -960,6 +960,7 @@ hid_t K_IO::GenIOHdf::openGroupWithLinks(hid_t start, char* path)
 //=============================================================================
 PyObject* K_IO::GenIO::hdfcgnsReadFromPaths(char* file, PyObject* paths,
                                             E_Int maxFloatSize, E_Int maxDepth,
+                                            PyObject* dataShape,
                                             PyObject* skipTypes,
                                             PyObject* mpi4pyCom)
 {
@@ -1057,7 +1058,7 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPaths(char* file, PyObject* paths,
       HDF._stringStack.push_front(path);
       node = HDF.createNode(gid);
       HDF._fatherStack.push_front(gid);
-      HDF.loadOne(node, 0);
+      HDF.loadOne(node, 0, dataShape);
       HDF._fatherStack.pop_front();
       HDF._stringStack.pop_front();
       HDF._fatherStack.clear();

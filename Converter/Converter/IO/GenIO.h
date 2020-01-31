@@ -649,7 +649,8 @@ class GenIO
     /* Lecture a partir de chemins donnes */
     PyObject* hdfcgnsReadFromPaths(char* file, PyObject* paths,
                                    E_Int maxFloatSize=1.e6, E_Int maxDepth=-1,
-                                   PyObject* skipTypes=NULL, PyObject* mpi4pyCom=NULL);
+                                   PyObject* dataShape=NULL, PyObject* skipTypes=NULL, 
+                                   PyObject* mpi4pyCom=NULL);
     PyObject* hdfcgnsReadFromPathsPartial(char* file, PyObject* Filters,
                                           PyObject* mpi4pyCom=NULL);
     /* Ecrit des parties d'un arbre python */

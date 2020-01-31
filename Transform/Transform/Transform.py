@@ -1174,7 +1174,7 @@ def splitSizeUpR__(A, N, R, multigrid, dirs, minPtsPerDir):
         if len(i) == 5: # structure
             SP.append((Converter.getNCells(i),i)); Nl += Converter.getNCells(i)
     if N == 0: N = Nl*1. / R
-    #print 'average cells ', N
+    #print('average cells ', N)
     from operator import itemgetter
     
     # Init le vecteur des ressources
@@ -1185,7 +1185,7 @@ def splitSizeUpR__(A, N, R, multigrid, dirs, minPtsPerDir):
     while len(SP) > 0:
         SP = sorted(SP, key=itemgetter(0), reverse=True)
         Rs = sorted(Rs)
-        #print 'ress', Rs[0], Converter.getNCells(SP[0][1])
+        #print('ress', Rs[0], Converter.getNCells(SP[0][1]))
         a = SP[0][1] # le plus gros
         ni = a[2]; nj = a[3]; nk = a[4]
         ni1 = max(1, ni-1); nj1 = max(1, nj-1); nk1 = max(1, nk-1)
@@ -1505,7 +1505,7 @@ def findNsi__(l, N, Np):
     ND = 0
     for i in range(l): ND += Ns[i]
     while ND != N:
-        #print 'Round ', ND, N
+        #print('Round ', ND, N)
         if ND < N: # pas assez de blocs
             # On cherche a augmenter les splits des plus grands Er
             for i in range(N-ND):
@@ -1522,7 +1522,7 @@ def findNsi__(l, N, Np):
 
         ND = 0
         for i in range(l): ND += Ns[i]
-        #print 'Final Round ', ND, N
+        #print('Final Round ', ND, N)
     return Ns
 
 # split une liste d'arrays structures en N parties a peu pres egales
