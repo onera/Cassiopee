@@ -52,6 +52,7 @@ applet = {
     'tkExtractEdges':'tkExtractEdges', 'Get external edges':'tkExtractEdges',
     'Get two edges intersection':'tkExtractEdges', 'Get sharp edges':'tkExtractEdges',
     'Convert BAR to Struct':'tkExtractEdges', 'Split TBranches':'tkExtractEdges',
+    'BAR2Struct':'tkExtractEdges',
     # tkMapEdge
     'tkMapEdges':'tkMapEdge', 'Uniformize edge distrib':'tkMapEdge',
     'Refine edge distrib':'tkMapEdge', 'Smooth edge distrib':'tkMapEdge',

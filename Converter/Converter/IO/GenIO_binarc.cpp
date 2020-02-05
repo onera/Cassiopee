@@ -239,7 +239,6 @@ void readVariables(FILE* ptrFile, unsigned int& numUti, unsigned int& nvar, char
   
 }
 
-
 void readConnexion(FILE* ptrFile, unsigned int& nd, double& temps, unsigned int& elmin,
   unsigned int& nelem, unsigned int*& num, unsigned char* nbpoints, unsigned int*& numpoints)
 {

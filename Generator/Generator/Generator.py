@@ -964,26 +964,32 @@ def buildExtension(c, surfaces, dh, niter=0):
 # IN : sn: normales a la surface s non structuree
 # OUT: ht the amplification factor of h, the step in the marching direction  
 #==============================================================================
-def getLocalStepFactor__(s, sn):
+def getLocalStepFactor__(s, sn, algo):
     import Converter as C
     sc = C.addVars([s,sn])
     sc = C.node2Center(sc)
-    ht = generator.getLocalStepFactor(s, sc)
-    niter = 10; eps = 0.01; it = 0
-    while it < niter:
-        ht = C.node2Center(ht)
-        ht = C.center2Node(ht)
-        it += 1
+    if algo == 0:
+        ht = generator.getLocalStepFactor(s, sc)
+        # Lissage hauteur du pas
+        niter = 10; eps = 0.01; it = 0
+        while it < niter:
+            ht = C.node2Center(ht)
+            ht = C.center2Node(ht)
+            it += 1
+    else:
+        # Nouvelle version (pas de lissage)
+        ht = generator.getLocalStepFactor2(s, sc)
+    
     return ht
 
 #==============================================================================
-def modifyNormalWithMetric(array, narray):
+def modifyNormalWithMetric(array, narray, algo):
     """Correct the normals located at nodes with respect to metric."""
     try: import Converter as C
     except: raise ImportError("modifyNormalWithMetric: requires Converter module.")
     a = C.copy(array); n = C.copy(narray)
     if len(a) == 5: a = C.convertArray2Hexa(a); n = C.convertArray2Hexa(n)
-    ht = getLocalStepFactor__(a, n)
+    ht = getLocalStepFactor__(a, n, algo)
     nx = C.extractVars(n,['sx']); ny = C.extractVars(n,['sy']); nz = C.extractVars(n,['sz'])
     nx[1][0,:] = ht[1][0,:]* nx[1][0,:]
     ny[1][0,:] = ht[1][0,:]* ny[1][0,:]
@@ -1014,7 +1020,7 @@ def getInCircleMap(array):
         return generator.getInCircleMap(array)
 
 # -- Add normal layers to a surface --
-def addNormalLayers(surface, distrib, check=0, niter=0, eps=0.4):
+def addNormalLayers(surface, distrib, check=0, niter=0, eps=0.4, algo=0):
     """Generate N layers to a surface following normals. distrib is the 
     height of the layers.
     If niter=0, the normal are not smoothed; else niter is the number of
@@ -1026,14 +1032,14 @@ def addNormalLayers(surface, distrib, check=0, niter=0, eps=0.4):
         for i in range(1,len(surface)):
             if (len(surface[i]) == 5 and type != 0) or (len(surface[i]) == 4 and type != 1):
                 raise ValueError("addNormalLayers: all the surfaces must be structured or unstructured.")
-        if type == 0: return addNormalLayersStruct__(surface, distrib, check, niter, eps)
+        if type == 0: return addNormalLayersStruct__(surface, distrib, check, niter, eps, algo)
         else: # NS
             out = []
-            for s in surface: out.append(addNormalLayersUnstr__(s, distrib, check, niter, eps))
+            for s in surface: out.append(addNormalLayersUnstr__(s, distrib, check, niter, eps, aglo))
             return out
     else: # 1 array
-        if len(surface) == 5: return addNormalLayersStruct__([surface], distrib, check, niter, eps)[0]
-        else: return addNormalLayersUnstr__(surface, distrib, check, niter, eps) # NS
+        if len(surface) == 5: return addNormalLayersStruct__([surface], distrib, check, niter, eps, algo)[0]
+        else: return addNormalLayersUnstr__(surface, distrib, check, niter, eps, algo) # NS
 
 #-----------------------------------------------------------------------------
 # Generation de grilles cartesiennes multibloc a partir de:
@@ -1632,7 +1638,7 @@ def expandLayer(octreeHexa, level=0, corners=0, balancing=0):
     return adaptOctree(octreeHexa, indic, balancing)
 
 # addnormallayers pour une liste d'arrays structures
-def addNormalLayersStruct__(surfaces, distrib, check=0, niter=0, eps=0.4):
+def addNormalLayersStruct__(surfaces, distrib, check=0, niter=0, eps=0.4, algo=0):
     import KCore
     try: import Converter as C; import Transform as T
     except: raise ImportError("addNormalLayers: requires Converter, Transform modules.")   
@@ -1684,29 +1690,29 @@ def addNormalLayersStruct__(surfaces, distrib, check=0, niter=0, eps=0.4):
             n = C.normalize(n, vect)
             n = C.center2Node(n)
             n = C.normalize(n, vect)
-            n = modifyNormalWithMetric(surfu, n)
+            n = modifyNormalWithMetric(surfu, n, algo)
         else:
             if hmin < 0.01*hmean: # presence de couche limite
                 if k1 < kb1: # pas de lissage ds la couche limite
                     n = getSmoothNormalMap(surfu, niter=0, eps=eps)
-                    np = modifyNormalWithMetric(surfu, n)
+                    np = modifyNormalWithMetric(surfu, n, algo)
                     n[1] = np[1]
                 elif k1 < kb2:
                     beta0 = (float(k1-kb1))/float(kb2-1-kb1)
                     n0 = getSmoothNormalMap(surfu, niter=0, eps=eps)
-                    n0 = modifyNormalWithMetric(surfu,n0)
+                    n0 = modifyNormalWithMetric(surfu, n0, algo)
                     n = getSmoothNormalMap(surfu, niter=niter, eps=eps)
-                    np = modifyNormalWithMetric(surfu,n)
+                    np = modifyNormalWithMetric(surfu, n, algo)
                     n[1] = (1-beta0)*n0[1] + beta0*np[1]
                 else: # lissage a fond
                     n = getSmoothNormalMap(surfu, niter=niter, eps=eps)
-                    np = modifyNormalWithMetric(surfu,n)
+                    np = modifyNormalWithMetric(surfu, n, algo)
                     beta0 = float((kmax-2-k1))/float(kmax-2)
                     beta0 = beta0*beta0
                     n[1] = (1-beta0)*n[1] + beta0*np[1]
             else: # pas de couche limite
                 n = getSmoothNormalMap(surfu, niter=niter, eps=eps)
-                np = modifyNormalWithMetric(surfu, n)
+                np = modifyNormalWithMetric(surfu, n, algo)
                 if kmax == 2: beta0 = 0.1
                 else: beta0 = float((kmax-2-k1))/float(kmax-2); beta0 = beta0*beta0
                 n[1] = (1-beta0)*n[1] + beta0*np[1]
@@ -1745,7 +1751,7 @@ def addNormalLayersStruct__(surfaces, distrib, check=0, niter=0, eps=0.4):
     return listOfCoords
 
 # addNormalLayers pour un array non structure
-def addNormalLayersUnstr__(surface, distrib, check=0, niter=0, eps=0.4):
+def addNormalLayersUnstr__(surface, distrib, check=0, niter=0, eps=0.4, algo=0):
     try: import Converter as C; import Transform as T; import KCore
     except: raise ImportError("addNormalLayers: requires Converter, Transform modules.")    
     if isinstance(surface[0], list): surf = T.join(surface)
@@ -1776,25 +1782,25 @@ def addNormalLayersUnstr__(surface, distrib, check=0, niter=0, eps=0.4):
             if hmin < 0.01*hmean: # presence de couche limite
                 if k1 < kb1: # pas de lissage ds la couche limite
                     n = getSmoothNormalMap(surf, niter=0, eps=eps)
-                    np = modifyNormalWithMetric(surf, n)
+                    np = modifyNormalWithMetric(surf, n, algo)
                     n[1] = np[1]
                     
                 elif k1 < kb2:
                     beta0 = (float(k1-kb1))/float(kb2-1-kb1)
                     n0 = getSmoothNormalMap(surf,niter=0, eps=eps)
-                    n0 = modifyNormalWithMetric(surf, n0)
+                    n0 = modifyNormalWithMetric(surf, n0, algo)
                     n = getSmoothNormalMap(surf, niter=niter, eps=eps)
-                    np = modifyNormalWithMetric(surf, n)
+                    np = modifyNormalWithMetric(surf, n, algo)
                     n[1] = (1-beta0)*n0[1] + beta0*np[1]
                 else: # lissage a fond
                     n = getSmoothNormalMap(surf,niter=niter, eps=eps)
-                    np = modifyNormalWithMetric(surf,n)
+                    np = modifyNormalWithMetric(surf, n, algo)
                     beta0 = float((kmax-2-k1))/float(kmax-2)
                     beta0 = beta0*beta0
                     n[1] = (1-beta0)*n[1] + beta0 *np[1]
             else: # pas de couche limite
                 n = getSmoothNormalMap(surf, niter=niter, eps=eps)
-                np = modifyNormalWithMetric(surf, n)
+                np = modifyNormalWithMetric(surf, n, algo)
                 if kmax == 2: beta0 = 0.1
                 else: beta0 = float((kmax-2-k1))/float(kmax-2); beta0 = beta0*beta0
                 n[1] = (1-beta0)*n[1] + beta0 *np[1]           

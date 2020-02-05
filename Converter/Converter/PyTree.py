@@ -752,7 +752,7 @@ def _deleteOtherBCMatch__(a):
     nodes = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
     for i in nodes:
       donorName = i[1]
-      if (donorName != zoneName):
+      if donorName != zoneName:
         (parent, d) = Internal.getParentOfNode(z, i)
         del parent[2][d]
   return None

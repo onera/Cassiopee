@@ -106,6 +106,7 @@ namespace K_GENERATOR
   PyObject* straightenVector(PyObject* self, PyObject* args);
   PyObject* computeEta(PyObject* self, PyObject* args);
   PyObject* getLocalStepFactor(PyObject* self, PyObject* args);
+  PyObject* getLocalStepFactor2(PyObject* self, PyObject* args);
   PyObject* getEdgeRatio(PyObject* self, PyObject* args);
   PyObject* getMaxLength(PyObject* self, PyObject* args);
   PyObject* getTriQualityMap(PyObject* self, PyObject* args);

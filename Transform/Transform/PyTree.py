@@ -278,7 +278,7 @@ def patch(t1, t2, position=None, nodes=None):
 def _patch(t1, t2, position=None, nodes=None):
     zones1 = Internal.getZones(t1)
     zones2 = Internal.getZones(t2)
-    for z1,z2 in zip(zones1,zones2):
+    for z1,z2 in zip(zones1, zones2):
       a2 = C.getAllFields(z2, 'nodes')[0]
       C._TZA(z1, 'nodes', 'nodes', Transform.patch, None, a2, position, nodes)
     return None

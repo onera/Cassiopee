@@ -104,6 +104,7 @@ static PyMethodDef Pygenerator [] =
   {"straightenVector", K_GENERATOR::straightenVector, METH_VARARGS},
   {"computeEta", K_GENERATOR::computeEta, METH_VARARGS},
   {"getLocalStepFactor", K_GENERATOR::getLocalStepFactor, METH_VARARGS},
+  {"getLocalStepFactor2", K_GENERATOR::getLocalStepFactor2, METH_VARARGS},
   {"getEdgeRatio", K_GENERATOR::getEdgeRatio, METH_VARARGS},
   {"getMaxLength", K_GENERATOR::getMaxLength, METH_VARARGS},
   {"getTriQualityMap", K_GENERATOR::getTriQualityMap, METH_VARARGS},
