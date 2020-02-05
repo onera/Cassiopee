@@ -99,7 +99,7 @@ def newBase(tree,name,ncell,nphys):
   else:                                              parent=tree
   CU.checkDuplicatedName(["<root node>",None,parent],name)
   node=CU.newNode(name,
-               NPY.array([ncell,nphys],dtype=NPY.int32,order='Fortran'),
+               NPY.array([ncell,nphys],dtype=NPY.int32,order='F'),
                [],CK.CGNSBase_ts)
   if (parent is not None): parent.append(node)
   return node
@@ -125,7 +125,7 @@ def updateBase(tree,name=None,ncell=None,nphys=None):
     raise cgnsException(20,(CK.CGNSBase_ts,name))
   if (name is not None): tree[0]=name
   if((ncell is not None) and (nphys is not None) and tree):
-    tree[1]=NPY.array([ncell,nphys],dtype=NPY.int32,order='Fortran')
+    tree[1]=NPY.array([ncell,nphys],dtype=NPY.int32,order='F')
   else: raise cgnsException(12)  
   
 # -----------------------------------------------------------------------------
@@ -273,10 +273,10 @@ def newDataArray(parent,name,value=None):
   ## code correction:  Add a specific array for string type
   ## code correction:  Modify array check
   if (type(value)==type(3)):
-    vv=NPY.array([value],dtype=NPY.int32,order='Fortran')
+    vv=NPY.array([value],dtype=NPY.int32,order='F')
     CU.checkArray(vv)
   elif(type(value)==type(3.2)):
-    vv=NPY.array([value],dtype=NPY.float32,order='Fortran')
+    vv=NPY.array([value],dtype=NPY.float32,order='F')
     CU.checkArray(vv)
   elif(type(value)==type("s")):
     vv=CU.setStringAsArray(value)
@@ -460,7 +460,7 @@ def newDimensionalExponents(parent,
                           LengthExponent,
                           TimeExponent,
                           TemperatureExponent,
-                          AngleExponent],dtype='Float64',order='Fortran'),
+                          AngleExponent],dtype='Float64',order='F'),
                [],CK.DimensionalExponents_ts,parent)
   return node
 
@@ -495,7 +495,7 @@ def newDataConversion(parent,ConversionScale=1.0,ConversionOffset=1.0):
   CU.checkDuplicatedName(parent,CK.DataConversion_s)
   node=CU.newNode(CK.DataConversion_s,
                NPY.array([ConversionScale,ConversionOffset],
-                         dtype='Float64',order='Fortran'),
+                         dtype='Float64',order='F'),
                [],CK.DataConversion_ts,parent)
   return node
 
@@ -841,10 +841,10 @@ def newBoundary(parent,bname,brange,
     zbnode=CU.newNode(CK.ZoneBC_s,None,[],CK.ZoneBC_ts,parent)
   bnode=CU.newNode(bname,CU.setStringAsArray(btype),[],CK.BC_ts,zbnode)
   if (pttype==CK.PointRange_s):
-    arange=NPY.array(brange,dtype=NPY.int32,order='Fortran')
+    arange=NPY.array(brange,dtype=NPY.int32,order='F')
     CU.newNode(CK.PointRange_s,arange,[],CK.IndexRange_ts,bnode)
   else:
-    arange=NPY.array(brange,dtype=NPY.int32,order='Fortran')
+    arange=NPY.array(brange,dtype=NPY.int32,order='F')
     CU.newNode(CK.PointList_s,arange,[],CK.IndexArray_ts,bnode)
   if (family):
     CU.newNode(CK.FamilyName_s,CU.setStringAsArray(family),[],
@@ -1005,10 +1005,10 @@ def newGridConnectivity1to1(parent,name,dname,window,dwindow,trans):
   CU.newNode(CK.Transform_s,NPY.array(list(trans),dtype=NPY.int32),[],
              CK.Transform_ts2,zcnode)
   CU.newNode(CK.PointRange_s,
-             NPY.array(window,dtype=NPY.int32,order='Fortran'),[],
+             NPY.array(window,dtype=NPY.int32,order='F'),[],
              CK.IndexRange_ts,zcnode)   
   CU.newNode(CK.PointRangeDonor_s,
-             NPY.array(dwindow,dtype=NPY.int32,order='Fortran'),[],
+             NPY.array(dwindow,dtype=NPY.int32,order='F'),[],
              CK.IndexRange_ts,zcnode)   
   return zcnode
 
@@ -1137,7 +1137,7 @@ def newOversetHoles(parent,name,hrange):
     #newPointList(node,pname,value)
   if (hrange is not None):  
     ## code correction: Modify PointRange shape and order
-   newPointRange(node,CK.PointRange_s,NPY.array(hrange,dtype=NPY.int32,order='Fortran'))
+   newPointRange(node,CK.PointRange_s,NPY.array(hrange,dtype=NPY.int32,order='F'))
    #newNode(CK.PointRange_s,NPY.array(list(hrange),'i'),[],CK.IndexRange_ts,node)
   return node
 

@@ -1035,7 +1035,7 @@ def addNormalLayers(surface, distrib, check=0, niter=0, eps=0.4, algo=0):
         if type == 0: return addNormalLayersStruct__(surface, distrib, check, niter, eps, algo)
         else: # NS
             out = []
-            for s in surface: out.append(addNormalLayersUnstr__(s, distrib, check, niter, eps, aglo))
+            for s in surface: out.append(addNormalLayersUnstr__(s, distrib, check, niter, eps, algo))
             return out
     else: # 1 array
         if len(surface) == 5: return addNormalLayersStruct__([surface], distrib, check, niter, eps, algo)[0]
