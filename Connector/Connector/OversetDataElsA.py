@@ -723,7 +723,7 @@ def inverseChimeraTransfer__(t, variables, locinterp='centers', mesh='extended')
                                         if variables.index(v) == len(variables)-1: vars2=vars2+v2
                                         else: vars2=vars2+v2+','
                                     cellRcvPara = numpy.arange(cellRcv.shape[0],dtype=numpy.int32)
-                                    rcvField = numpy.empty((donorArray[1].shape[0],cellRcv.shape[0]), order='Fortran')
+                                    rcvField = numpy.empty((donorArray[1].shape[0],cellRcv.shape[0]), order='F')
                                     rcvArray = [vars2,rcvField,cellRcv.shape[0],1,1] # tableau monodimensionnel
                                 else: # zone receveuse sur le processeur locale
                                     cellRcvPara = cellRcv
@@ -743,7 +743,7 @@ def inverseChimeraTransfer__(t, variables, locinterp='centers', mesh='extended')
                                                                       interpDonor, rcvArray, donorArray)[1]
                                 if rcvZoneName not in localZonesName:
                                     # redimensionnement du tableau au nombre de cellules interpolees
-                                    rcvField2 = numpy.empty((donorArray[1].shape[0]+2,cellRcv.shape[0]), order='Fortran')
+                                    rcvField2 = numpy.empty((donorArray[1].shape[0]+2,cellRcv.shape[0]), order='F')
                                     rcvField2[:rcvField.shape[0]]=rcvField
                                     rcvField2[donorArray[1].shape[0]]=cellRcv
                                     rcvField2[donorArray[1].shape[0]+1]=cellVol

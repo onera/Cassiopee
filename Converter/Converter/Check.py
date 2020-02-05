@@ -443,7 +443,7 @@ def checkBCRanges(t, ntype):
                 prange = Internal.getNodesFromName1(n, 'PointRange')
                 for r in prange:
                     if r[1].shape == (2,3):
-                        r[1] = numpy.reshape(r[1], (3,2), order='Fortran')
+                        r[1] = numpy.reshape(r[1], (3,2), order='F')
                     if r[1].shape == (3,2):
                         win = Internal.range2Window(r[1])
                     else: win = [0,0,0,0,0,0] # pas de check en non structure
@@ -510,7 +510,7 @@ def checkDonorRanges(t, ntype):
                         prange = Internal.getNodesFromName1(n, 'PointRangeDonor')
                         for r in prange:
                             if r[1].shape == (2,3):
-                                r[1] = numpy.reshape(r[1], (3,2), order='Fortran')
+                                r[1] = numpy.reshape(r[1], (3,2), order='F')
                             if r[1].shape == (3,2):
                                 win = Internal.range2Window(r[1])
                             else: win = [0,0,0,0,0,0] # pas de check en NS
@@ -646,7 +646,7 @@ def checkOppositRanges(t, ntype):
                         # Check des ranges
                         for ropp in prangedonor:
                             if ropp[1].shape == (2,3):
-                                ropp[1] = numpy.reshape(ropp[1], (3,2), order='Fortran')
+                                ropp[1] = numpy.reshape(ropp[1], (3,2), order='F')
                             if ropp[1].shape == (3,2):
                                 winopp = Internal.range2Window(ropp[1])
                             else: winopp = [-1,0,0,0,0,0]
@@ -665,7 +665,7 @@ def checkOppositRanges(t, ntype):
                                     transform = Internal.getNodesFromName1(n, 'Transform')
                                     for r in prange:
                                         if r[1].shape == (2,3):
-                                            r[1] = numpy.reshape(r[1], (3,2), order='Fortran')
+                                            r[1] = numpy.reshape(r[1], (3,2), order='F')
                                         if r[1].shape == (3,2):
                                             win = Internal.range2Window(r[1])
                                         else: win = [0,0,0,0,0,0]

@@ -2539,7 +2539,7 @@ def range2Window(r):
 
 # -- Convertit une fenetre [imin,imax,jmin,jmax,kmin,kmax] en PointRange pyTree
 def window2Range(win):
-    r = numpy.empty((3,2), numpy.int32, order='Fortran')
+    r = numpy.empty((3,2), numpy.int32, order='F')
     r[0,0] = win[0]; r[0,1] = win[1]
     r[1,0] = win[2]; r[1,1] = win[3]
     r[2,0] = win[4]; r[2,1] = win[5]
@@ -2583,38 +2583,38 @@ def array2PyTreeDim(a):
         ni = a[2]; nj = a[3]; nk = a[4]
         if ni == 1:
             if nj == 1:
-                d = numpy.empty((1,3), numpy.int32, order='Fortran')
+                d = numpy.empty((1,3), numpy.int32, order='F')
                 d[0,0] = nk
                 d[0,1] = nk-1
                 d[0,2] = 0
             elif nk == 1:
-                d = numpy.empty((1,3), numpy.int32, order='Fortran')
+                d = numpy.empty((1,3), numpy.int32, order='F')
                 d[0,0] = nj
                 d[0,1] = nj-1
                 d[0,2] = 0
             else:
-                d = numpy.empty((2,3), numpy.int32, order='Fortran')
+                d = numpy.empty((2,3), numpy.int32, order='F')
                 d[0,0] = nj;   d[1,0] = nk
                 d[0,1] = nj-1; d[1,1] = nk-1
                 d[0,2] = 0;    d[1,2] = 0
         elif nj == 1:
             if nk == 1:
-                d = numpy.empty((1,3), numpy.int32, order='Fortran')
+                d = numpy.empty((1,3), numpy.int32, order='F')
                 d[0,0] = ni
                 d[0,1] = ni-1
                 d[0,2] = 0
             else:
-                d = numpy.empty((2,3), numpy.int32, order='Fortran')
+                d = numpy.empty((2,3), numpy.int32, order='F')
                 d[0,0] = ni;   d[1,0] = nk
                 d[0,1] = ni-1; d[1,1] = nk-1
                 d[0,2] = 0;    d[1,2] = 0
         elif nk == 1:
-            d = numpy.empty((2,3), numpy.int32, order='Fortran')
+            d = numpy.empty((2,3), numpy.int32, order='F')
             d[0,0] = ni;   d[1,0] = nj
             d[0,1] = ni-1; d[1,1] = nj-1
             d[0,2] = 0;    d[1,2] = 0
         else:
-            d = numpy.empty((3,3), numpy.int32, order='Fortran')
+            d = numpy.empty((3,3), numpy.int32, order='F')
             d[0,0] = ni;   d[1,0] = nj;   d[2,0] = nk
             d[0,1] = ni-1; d[1,1] = nj-1; d[2,1] = nk-1
             d[0,2] = 0;    d[1,2] = 0;    d[2,2] = 0
@@ -2622,18 +2622,18 @@ def array2PyTreeDim(a):
         if isinstance(a[2], list): # Array2
             if a[3] == 'NGON':
                 nelts = a[2][3].size
-                d = numpy.empty((1,3), numpy.int32, order='Fortran')
+                d = numpy.empty((1,3), numpy.int32, order='F')
                 d[0,0] = a[1][0].size; d[0,1] = nelts; d[0,2] = 0
             else:
-                d = numpy.empty((1,3), numpy.int32, order='Fortran')
+                d = numpy.empty((1,3), numpy.int32, order='F')
                 d[0,0] = a[1][0].size; d[0,1] = a[2][0].shape[0]; d[0,2] = 0 
         else:   # Array1
             if a[3] == 'NGON':
                 sizeFN = a[2][0,1]; nelts = a[2][0,2+sizeFN]
-                d = numpy.empty((1,3), numpy.int32, order='Fortran')
+                d = numpy.empty((1,3), numpy.int32, order='F')
                 d[0,0] = a[1].shape[1]; d[0,1] = nelts; d[0,2] = 0
             else:
-                d = numpy.empty((1,3), numpy.int32, order='Fortran')
+                d = numpy.empty((1,3), numpy.int32, order='F')
                 d[0,0] = a[1].shape[1]; d[0,1] = a[2].shape[1]; d[0,2] = 0
     else:
         d = None
@@ -2648,27 +2648,27 @@ def createDataNode(name, array, nfld, cellDim=3):
       if isinstance(array[1], list): a = array[1][nfld] # array 2
       else: a = array[1][nfld,:] # array 1
       if cellDim == 3:
-          a = numpy.reshape(a, (ni, nj, nk), order='Fortran')
+          a = numpy.reshape(a, (ni, nj, nk), order='F')
       elif cellDim == 2:
           if ni == 1 or ni == 0:
-              a = numpy.reshape(a, (nj, nk), order='Fortran')
+              a = numpy.reshape(a, (nj, nk), order='F')
           elif nj == 1 or nj == 0:
-              a = numpy.reshape(a, (ni, nk), order='Fortran')
+              a = numpy.reshape(a, (ni, nk), order='F')
           else:
-              a = numpy.reshape(a, (ni, nj), order='Fortran')
+              a = numpy.reshape(a, (ni, nj), order='F')
       else: # cellDim = 1
           if ni == 1 or ni == 0:
               if nj == 1 or nj == 0:
-                  a = numpy.reshape(a, (nk), order='Fortran')
+                  a = numpy.reshape(a, (nk), order='F')
               elif nk == 1 or nk == 0:
-                  a = numpy.reshape(a, (nj), order='Fortran')
+                  a = numpy.reshape(a, (nj), order='F')
           elif nj == 1 or nj == 0:
               if nk == 1 or nk == 0:
-                  a = numpy.reshape(a, (ni), order='Fortran')
+                  a = numpy.reshape(a, (ni), order='F')
   else: # non structure
     if isinstance(array[1], list):
         a = array[1][nfld] # Array2
-        a = numpy.reshape(a, (a.size), order='Fortran')
+        a = numpy.reshape(a, (a.size), order='F')
     else: a = array[1][nfld,:] # Array1
   node = [name, a, [], 'DataArray_t']
   return node
@@ -2794,12 +2794,12 @@ def convertDataNode2Array(node, dim, connects, loc=-1):
         ni = dim[1]; nj = dim[2]; nk = dim[3]
         ni1 = max(ni-1,1); nj1 = max(nj-1,1); nk1 = max(nk-1,1)
         if ni*nj*nk == ar.size: # champ en noeuds
-            a = numpy.reshape(ar, (ni*nj*nk), order='Fortran')
+            a = numpy.reshape(ar, (ni*nj*nk), order='F')
             a = numpy.reshape(a, (1,ni*nj*nk))
             array = [node[0], a, ni, nj, nk]
             return ['nodes', array]
         elif ni1*nj1*nk1 == ar.size: # champ en centres
-            a = numpy.reshape(ar, (ni1*nj1*nk1), order='Fortran')
+            a = numpy.reshape(ar, (ni1*nj1*nk1), order='F')
             a = numpy.reshape(a, (1,ni1*nj1*nk1))
             array = [node[0], a, ni1, nj1, nk1]
             return ['centers', array]
@@ -2810,7 +2810,7 @@ def convertDataNode2Array(node, dim, connects, loc=-1):
             if lsize == 1: ni = size[0]; nj = 1; nk = 1
             elif lsize == 2: ni = size[0]; nj = size[1]; nk = 1
             elif lsize == 3: ni = size[0]; nj = size[1]; nk = size[2]
-            a = numpy.reshape(ar, (1,ni*nj*nk), order='Fortran')
+            a = numpy.reshape(ar, (1,ni*nj*nk), order='F')
             array = [node[0], a, ni, nj, nk]
             print("Warning: convertDataNode2Array: incoherency zone/array (%s)."%node[0])
             return ['unknown', array]
@@ -2818,7 +2818,7 @@ def convertDataNode2Array(node, dim, connects, loc=-1):
         cr, ettype = adaptConnect__(connects, dim)
         lconnects = len(connects)
         s = ar.size
-        a = numpy.reshape(ar, (1, s), order='Fortran')
+        a = numpy.reshape(ar, (1, s), order='F')
         locout = 'nodes'
         if dim[1] != dim[2]: # on peut decider
             if s == dim[2]: ettype += '*'; locout = 'centers'

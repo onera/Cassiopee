@@ -1812,7 +1812,7 @@ def extractIBMWallFields(tc, tb=None):
         ziNP = numpy.concatenate(ziNP)
 
     # Creation d une seule zone
-    zsize = numpy.empty((1,3), numpy.int32, order='Fortran')
+    zsize = numpy.empty((1,3), numpy.int32, order='F')
     zsize[0,0] = xwNP.shape[0]; zsize[0,1] = 0; zsize[0,2] = 0
     z = Internal.newZone(name='IBW_Wall',zsize=zsize,ztype='Unstructured')
     gc = Internal.newGridCoordinates(parent=z)

@@ -3168,7 +3168,7 @@ def _convertArray2Node(t):
     n = Internal.getNodeFromName1(z, 'ZoneType')
     Internal.setValue(n, 'Unstructured')
     x = Internal.getNodeFromName2(z, 'CoordinateX')
-    z[1] = numpy.empty((1,3), numpy.int32, order='Fortran')
+    z[1] = numpy.empty((1,3), numpy.int32, order='F')
     z[1][0,0] = x[1].size; z[1][0,1] = 0; z[1][0,2] = 0
     Internal._rmNodesByType(z, 'Elements_t')
     n = Internal.createChild(z, 'GridElements', 'Elements_t', [2,0])
@@ -3201,7 +3201,7 @@ def _conformizeNGon(a, tol=1.e-6):
 #=============================================================================
 
 # -- addBC2Zone
-def addBC2Zone(zone, bndName, bndType, wrange=[],
+def addBC2Zone(a, bndName, bndType, wrange=[],
                zoneDonor=[], rangeDonor=[], trirac=[1,2,3],
                rotationCenter=[], rotationAngle=[], translation=[],
                faceList=[], pointList=[], elementList=[], elementRange=[], data=None,
@@ -3209,14 +3209,14 @@ def addBC2Zone(zone, bndName, bndType, wrange=[],
                elementRangeDonor=None, tol=1.e-12, unitAngle=None):
   """Add a BC to a zone node.
   Usage: addBC2Zone(zone, bndName, bndType, wrange)"""
-  zonep = Internal.copyRef(zone)
-  _addBC2Zone(zonep, bndName, bndType, wrange=wrange,
+  ap = Internal.copyRef(a)
+  _addBC2Zone(ap, bndName, bndType, wrange=wrange,
               zoneDonor=zoneDonor, rangeDonor=rangeDonor, trirac=trirac,
               rotationCenter=rotationCenter, rotationAngle=rotationAngle, translation=translation,
               faceList=faceList, pointList=pointList, elementList=elementList, elementRange=elementRange, data=data, subzone=subzone,
               faceListDonor=faceListDonor, elementListDonor=elementListDonor, elementRangeDonor=elementRangeDonor,
               tol=tol, unitAngle=unitAngle)
-  return zonep
+  return ap
 
 def _addBC2Zone(a, bndName, bndType, wrange=[],
                 zoneDonor=[], rangeDonor=[], trirac=[1,2,3],
@@ -3335,17 +3335,17 @@ def _addFamilyOfStageGC__(z, bndName, bndType2, typeZone=0, faceList=[], element
 
     if isinstance(faceList, numpy.ndarray): r = faceList
     else: r = numpy.array(faceList, dtype=numpy.int32)
-    r = r.reshape((1,r.size), order='Fortran')
+    r = r.reshape((1,r.size), order='F')
     info[2].append([Internal.__FACELIST__, r, [], 'IndexArray_t'])
 
   elif typeZone == 2: # UNS BE
     if elementList != []:
       if isinstance(elementList, numpy.ndarray): r = elementList
       else: r = numpy.array(elementList, dtype=numpy.int32)
-      r = r.reshape((1,r.size), order='Fortran')
+      r = r.reshape((1,r.size), order='F')
       info[2].append([Internal.__ELEMENTLIST__, r, [], 'IndexArray_t'])
     elif elementRange != []:
-      r = numpy.empty((1,2), numpy.int32, order='Fortran')
+      r = numpy.empty((1,2), numpy.int32, order='F')
       r[0,0] = elementRange[0]
       r[0,1] = elementRange[1]
       info[2].append([Internal.__ELEMENTRANGE__, r, [], 'IndexRange_t'])
@@ -3354,7 +3354,7 @@ def _addFamilyOfStageGC__(z, bndName, bndType2, typeZone=0, faceList=[], element
       info[2].append(['GridLocation', v, [], 'GridLocation_t'])
       if isinstance(faceList, numpy.ndarray): r = faceList
       else: r = numpy.array(faceList, dtype=numpy.int32)
-      r = r.reshape((1,r.size), order='Fortran')
+      r = r.reshape((1,r.size), order='F')
       info[2].append([Internal.__FACELIST__, r, [], 'IndexArray_t'])
     else:
       raise ValueError("_addFamilyOfStageGC__: elementList, elementRange and faceList are all empty.")
@@ -3427,11 +3427,11 @@ def _addBC2StructZone__(z, bndName, bndType, wrange=[], faceList=[],
       info[2].append(['GridLocation', v, [], 'GridLocation_t'])
       if isinstance(faceList, numpy.ndarray): r = faceList
       else: r = numpy.array(faceList, dtype=numpy.int32)
-      r = r.reshape((1,r.size), order='Fortran')
+      r = r.reshape((1,r.size), order='F')
       info[2].append([Internal.__FACELIST__, r, [], 'IndexArray_t'])
       if isinstance(faceListDonor, numpy.ndarray): r = faceListDonor
       else: r = numpy.array(faceListDonor, dtype=numpy.int32)
-      r = r.reshape((1,r.size), order='Fortran')
+      r = r.reshape((1,r.size), order='F')
       info[2].append([Internal.__FACELIST__+'Donor', r, [], 'IndexArray_t'])
       Internal.createChild(info, 'GridConnectivityType', 'GridConnectivityType_t', 'Abutting1to1')
 
@@ -3594,11 +3594,11 @@ def _addBC2NGonZone__(z, bndName, bndType, faceList, data, subzone,
     Internal.createChild(info, 'GridLocation', 'GridLocation_t', 'FaceCenter')
     if isinstance(faceList, numpy.ndarray): r = faceList
     else: r = numpy.array(faceList, dtype=numpy.int32)
-    r = r.reshape((1,r.size), order='Fortran')
+    r = r.reshape((1,r.size), order='F')
     info[2].append([Internal.__FACELIST__, r, [], 'IndexArray_t'])
     if isinstance(faceListDonor, numpy.ndarray): r = faceListDonor
     else: r = numpy.array(faceListDonor, dtype=numpy.int32)
-    r = r.reshape((1,r.size), order='Fortran')
+    r = r.reshape((1,r.size), order='F')
     info[2].append([Internal.__FACELIST__+'Donor', r, [], 'IndexArray_t'])
     Internal.createChild(info, 'GridConnectivityType', 'GridConnectivityType_t', 'Abutting1to1')
     # Ajout pour les BC match periodiques
@@ -3667,7 +3667,7 @@ def _addBC2NGonZone__(z, bndName, bndType, faceList, data, subzone,
     Internal.createChild(info, 'GridLocation', 'GridLocation_t', 'FaceCenter')
     if isinstance(faceList, numpy.ndarray): r = faceList
     else: r = numpy.array(faceList, dtype=numpy.int32)
-    r = r.reshape((1,r.size), order='Fortran')
+    r = r.reshape((1,r.size), order='F')
     info[2].append([Internal.__FACELIST__, r, [], 'IndexArray_t'])
 
     # Ajoute la famille si necessaire
@@ -3732,10 +3732,10 @@ def _addBC2UnstructZone__(z, bndName, bndType, elementList, elementRange,
     if elementList != []:
       if isinstance(elementList, numpy.ndarray): r = elementList
       else: r = numpy.array(elementList, dtype=numpy.int32)
-      r = r.reshape((1,r.size), order='Fortran')
+      r = r.reshape((1,r.size), order='F')
       info[2].append([Internal.__ELEMENTLIST__, r, [], 'IndexArray_t'])
     elif elementRange != []:
-      r = numpy.empty((1,2), numpy.int32, order='Fortran')
+      r = numpy.empty((1,2), numpy.int32, order='F')
       r[0,0] = elementRange[0]
       r[0,1] = elementRange[1]
       info[2].append([Internal.__ELEMENTRANGE__, r, [], 'IndexRange_t'])
@@ -3744,7 +3744,7 @@ def _addBC2UnstructZone__(z, bndName, bndType, elementList, elementRange,
       info[2].append(['GridLocation', v, [], 'GridLocation_t'])
       if isinstance(faceList, numpy.ndarray): r = faceList
       else: r = numpy.array(faceList, dtype=numpy.int32)
-      r = r.reshape((1,r.size), order='Fortran')
+      r = r.reshape((1,r.size), order='F')
       info[2].append([Internal.__FACELIST__, r, [], 'IndexArray_t'])
 
     if elementListDonor is not None:
@@ -3754,14 +3754,14 @@ def _addBC2UnstructZone__(z, bndName, bndType, elementList, elementRange,
       r = r.reshape((1,r.size))
       info[2].append([Internal.__ELEMENTLIST__+'Donor', r, [], 'IndexArray_t'])
     elif elementRangeDonor is not None:
-      r = numpy.empty((1,2), numpy.int32, order='Fortran')
+      r = numpy.empty((1,2), numpy.int32, order='F')
       r[0,0] = elementRangeDonor[0]
       r[0,1] = elementRangeDonor[1]
       info[2].append([Internal.__ELEMENTRANGE__+'Donor', r, [], 'IndexRange_t'])
     elif faceListDonor is not None:
       if isinstance(faceListDonor, numpy.ndarray): r = faceList
       else: r = numpy.array(faceListDonor, dtype=numpy.int32)
-      r = r.reshape((1,r.size), order='Fortran')
+      r = r.reshape((1,r.size), order='F')
       info[2].append([Internal.__FACELIST__+'Donor', r, [], 'IndexArray_t'])
 
     Internal.createChild(info, 'GridConnectivityType', 'GridConnectivityType_t', 'Abutting1to1')
@@ -3788,10 +3788,10 @@ def _addBC2UnstructZone__(z, bndName, bndType, elementList, elementRange,
     if elementList != []:
       if isinstance(elementList, numpy.ndarray): r = elementList
       else: r = numpy.array(elementList, dtype=numpy.int32)
-      r = r.reshape((1,r.size), order='Fortran')
+      r = r.reshape((1,r.size), order='F')
       Internal.createChild(info, INTERNAL.__ELEMENTLIST__, 'IndexArray_t', value=r)
     elif elementRange != []:
-      n = numpy.empty((1,2), numpy.int32, order='Fortran')
+      n = numpy.empty((1,2), numpy.int32, order='F')
       n[0,0] = elementRange[0]
       n[0,1] = elementRange[1]
       Internal.createUniqueChild(info, Internal.__ELEMENTRANGE__,
@@ -3801,7 +3801,7 @@ def _addBC2UnstructZone__(z, bndName, bndType, elementList, elementRange,
                                  value='FaceCenter')
       if isinstance(faceList, numpy.ndarray): r = faceList
       else: r = numpy.array(faceList, dtype=numpy.int32)
-      r = r.reshape((1,r.size), order='Fortran')
+      r = r.reshape((1,r.size), order='F')
       info[2].append([Internal.__FACELIST__, r, [], 'IndexArray_t'])
 
     elif pointList != []:
@@ -3809,7 +3809,7 @@ def _addBC2UnstructZone__(z, bndName, bndType, elementList, elementRange,
                                  value='Vertex')
       if isinstance(pointList, numpy.ndarray): r = pointList
       else: r = numpy.array(pointList, dtype=numpy.int32)
-      r = r.reshape((1,r.size), order='Fortran')
+      r = r.reshape((1,r.size), order='F')
       info[2].append([Internal.__POINTLIST__, r, [], 'IndexArray_t'])
 
     # Ajoute la famille si necessaire

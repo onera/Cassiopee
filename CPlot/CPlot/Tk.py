@@ -709,10 +709,10 @@ def loadPrefFile():
     exist = os.path.exists(kdir)
     if not exist: savePrefFile(); return []
     isdir = os.path.isdir(kdir)
-    if not isdir:
-      file = open(homePath+'/.cassiopee', 'r')
+    if not isdir: file = open(homePath+'/.cassiopee', 'r')
     else:
-      file = open(homePath+'/.cassiopee/config', 'r')
+      try: file = open(homePath+'/.cassiopee/config', 'r')
+      except: savePrefFile(); return []
     list = file.read()
     file.close()
     list = list.split('\n')

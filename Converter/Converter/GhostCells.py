@@ -661,13 +661,13 @@ def getJoinDonorIndicesStruct__(prange,prangedonor,dimdonor,dirdonor,trirac,d,lo
     [arrayborder, dim1border, dim2border] = getBorderIndicesStruct__(prangedonor,dimdonor,dirdonor,d,loc,dim_zone, shift)
     if dim_zone == 3:
         dim1 = 3
-        array = numpy.zeros((dim1,2), numpy.int32, order='Fortran')
+        array = numpy.zeros((dim1,2), numpy.int32, order='F')
         array[0,1] = wimax-wimin+1
         array[1,1] = wjmax-wjmin+1
         array[2,1] = wkmax-wkmin+1
     else:
         dim1 = 2
-        array = numpy.zeros((dim1,2), numpy.int32, order='Fortran')
+        array = numpy.zeros((dim1,2), numpy.int32, order='F')
         array[0,1] = wimax-wimin+1
         array[1,1] = wjmax-wjmin+1
     # reorder indices of opposite (donor) matching join wrt the trirac
@@ -701,14 +701,14 @@ def getBorderIndicesStruct__(prange, dim, direction, d, loc, dim_zone, shift=0):
 
     # 3D Treatment
     if dim_zone == 3:
-        #arrayIndices = numpy.empty((dim1,dim2), numpy.int32, order='Fortran')
-        arrayIndices = numpy.empty((dim1*dim2), numpy.int32, order='Fortran')
+        #arrayIndices = numpy.empty((dim1,dim2), numpy.int32, order='F')
+        arrayIndices = numpy.empty((dim1*dim2), numpy.int32, order='F')
         Converter.converter.getJoinBorderIndices(arrayIndices, dim1, im, jm, km,
                                                  wimin, wimax, wjmin, wjmax, wkmin, wkmax,
                                                  direction, dim_zone, d, shift)
     # 2D Treatment
     else:
-        arrayIndices = numpy.empty((dim1), numpy.int32, order='Fortran')
+        arrayIndices = numpy.empty((dim1), numpy.int32, order='F')
         Converter.converter.getJoinBorderIndices(arrayIndices, dim1, im, jm, km,
                                                  wimin, wimax, wjmin, wjmax, wkmin, wkmax,
                                                  direction, dim_zone, d, shift)
@@ -920,13 +920,13 @@ def _initWithExtrapStruct__(z, dim, modified, d):
             img = im+2*d ; jmg = jm+2*d ; kmg = km+2*d
             # copy real values and fill ghost values
             if dim_zone == 3:
-                a = numpy.empty((img,jmg,kmg), b.dtype, order='Fortran')
+                a = numpy.empty((img,jmg,kmg), b.dtype, order='F')
                 Converter.converter.cpyReal2Ghost(a, b, d, im, jm, km)
             elif dim_zone == 2:
-                a = numpy.empty((img,jmg), b.dtype, order='Fortran')
+                a = numpy.empty((img,jmg), b.dtype, order='F')
                 Converter.converter.cpyReal2Ghost(a, b, d, im, jm, 0)
             else:
-                a = numpy.empty((img), b.dtype, order='Fortran')
+                a = numpy.empty((img), b.dtype, order='F')
                 Converter.converter.cpyReal2Ghost(a, b, d, im, 0, 0)
             cont[1] = a
             noc += 1
@@ -976,13 +976,13 @@ def _rmGhostCellsStruct__(z, dim, modified, d):
             im = img-2*d ; jm = jmg-2*d ; km = kmg-2*d
 
             if dim_zone == 3:
-                a = numpy.empty((im,jm,km), b.dtype, order='Fortran')
+                a = numpy.empty((im,jm,km), b.dtype, order='F')
                 Converter.converter.cpyGhost2Real(a,b,d,im,jm,km)
             elif dim_zone == 2:
-                a = numpy.empty((im,jm), b.dtype, order='Fortran')
+                a = numpy.empty((im,jm), b.dtype, order='F')
                 Converter.converter.cpyGhost2Real(a,b,d,im,jm,0)
             else:
-                a = numpy.empty((im), b.dtype, order='Fortran')
+                a = numpy.empty((im), b.dtype, order='F')
                 Converter.converter.cpyGhost2Real(a,b,d,im,0,0)
             cont[1] = a
             noc += 1
@@ -1023,13 +1023,13 @@ def _rmRindCells(t, d, modified=[]):
                         im = imz; jm = jmz; km = kmz
                     
                     if dim_zone == 3:
-                        a = numpy.empty((im,jm,km), b.dtype, order='Fortran')
+                        a = numpy.empty((im,jm,km), b.dtype, order='F')
                         Converter.converter.cpyGhost2Real(a,b,d,im,jm,km)
                     elif dim_zone == 2:
-                        a = numpy.empty((im,jm), b.dtype, order='Fortran')
+                        a = numpy.empty((im,jm), b.dtype, order='F')
                         Converter.converter.cpyGhost2Real(a,b,d,im,jm,0)
                     else:
-                        a = numpy.empty((im), b.dtype, order='Fortran')
+                        a = numpy.empty((im), b.dtype, order='F')
                         Converter.converter.cpyGhost2Real(a,b,d,im,0,0)
                     cont[1] = a
                     noc += 1               

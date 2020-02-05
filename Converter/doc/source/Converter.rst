@@ -616,13 +616,13 @@ pyTree creation and manipulation
 
 ---------------------------------------------------------------------------
 
-.. py:function:: Converter.PyTree.addBC2Zone(zone, bndName, bndType, wrange=[], zoneDonor=[], rangeDonor=[], trirac=[1,2,3], rotationCenter=[], rotationAngle=[], translation=[], faceList=[], elementList=[], elementRange=[], data=None, subzone=None, faceListDonor=None, elementListDonor=None, elementRangeDonor=None, tol=1.e-12, unitAngle=None)
+.. py:function:: Converter.PyTree.addBC2Zone(a, bndName, bndType, wrange=[], zoneDonor=[], rangeDonor=[], trirac=[1,2,3], rotationCenter=[], rotationAngle=[], translation=[], faceList=[], elementList=[], elementRange=[], data=None, subzone=None, faceListDonor=None, elementListDonor=None, elementRangeDonor=None, tol=1.e-12, unitAngle=None)
 
     Add a physical boundary condition (BC) or a grid connectivity (GC) to a structured/basic element/NGON zone of a PyTree. Parameter bndName is the 
     name of the BC or GC. Exists also as in place version (_addBC2Zone) modifying zone and returning None.
 
-    :param zone: zone in which the BC/GC is defined
-    :type zone: CGNS zone node
+    :param a: zone in which the BC/GC is defined
+    :type a: CGNS zone node
     :param bndName: name of the BC/GC
     :type bndName: string
     :param bndType: type of BC or GC defined either by a CGNS type or by a family of BCs of name myFamilyBC. Joins between stages must be defined by a familyBC prefixed by 'BCStage' 

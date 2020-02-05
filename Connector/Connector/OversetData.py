@@ -2246,7 +2246,7 @@ def cellN2OversetHoles(t, append=False):
             cellN = C.getField('centers:cellN', z)[0] # cellN en centres
         if cellN != []:
             cellN = cellN[1]
-            cellN = cellN.reshape(cellN.size, order='Fortran' )
+            cellN = cellN.reshape(cellN.size, order='F' )
         # dim
         dim = Internal.getZoneDim(z); cellDim = dim[4]
         # Structured zone
@@ -2256,7 +2256,7 @@ def cellN2OversetHoles(t, append=False):
             nb = 0
             for i in range(cellN.size):
                 if cellN[i] == 0: nb += 1
-            pointList = numpy.empty((cellDim,nb), dtype=numpy.int32, order='Fortran' )
+            pointList = numpy.empty((cellDim,nb), dtype=numpy.int32, order='F' )
             connector.cellN2OversetHolesStruct(pointList, cellN, im, jm, cellDim, cellN.size)
         # Unstructured zone
         else:
