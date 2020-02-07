@@ -3952,7 +3952,8 @@ def _recoverBCs(a, T, tol=1.e-11):
   (BCs, BCNames, BCTypes) = T
   for z in zones:
     indicesF = []
-    f = P.exteriorFaces(z, indices=indicesF)
+    try: f = P.exteriorFaces(z, indices=indicesF)
+    except: continue
     indicesF = indicesF[0]
     hook = createHook(f, 'elementCenters')
 

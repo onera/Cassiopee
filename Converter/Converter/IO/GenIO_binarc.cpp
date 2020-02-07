@@ -266,9 +266,20 @@ void readConnexion(FILE* ptrFile, unsigned int& nd, double& temps, unsigned int&
 }
 
 // Lit un maillage structure
-void readMaillage0(FILE* ptrFile)
+void readMaillage0(FILE* ptrFile, unsigned int& nd, double& temps, 
+  unsigned short& imax, unsigned short& jmax, unsigned short& kmax,
+  unsigned char* comp_x, double* vmin_x, double& vmax_x, double** x,
+  unsigned char* comp_y, double* vmin_y, double& vmax_y, double** y,
+  unsigned char* comp_z, double* vmin_z, double& vmax_z, double** z)
 {
-  
+  /*
+  fread(&nd, sizeof(unsigned int), 1, ptrFile); nd = UIBE(nd);
+  fread(&temps, sizeof(double), 1, ptrFile); temps = DBE(temps);
+  fread(&imax, sizeof(unsigned short), 1, ptrFile); 
+  fread(&jmax, sizeof(unsigned short), 1, ptrFile); 
+  fread(&kmax, sizeof(unsigned short), 1 ptrFile); 
+  fread(&comp_x, sizeof(unsigned short), 1 ptrFile); 
+  */
 }
 
 // Lit un maillage non structure

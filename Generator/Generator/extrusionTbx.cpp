@@ -389,8 +389,8 @@ PyObject* K_GENERATOR::getLocalStepFactor2(PyObject* self, PyObject* args)
             // acos retourne un angle entre [0,180]
             E_Float alpha = acos(ps);
             //printf("ind=%d, rough=%f, ps=%f, ps2=%f\n", ind, alpha*180./K_CONST::E_PI, ps, ps2);
-            if (std::abs(ps2) < 1.e-3 && std::abs(ps+1.) < 1.e-3) alpha = K_CONST::E_PI;
-            else if (std::abs(ps2) < 1.e-3 && std::abs(ps-1.) < 1.e-3) alpha = 0.;
+            if (K_FUNC::E_abs(ps2) < 1.e-3 && K_FUNC::E_abs(ps+1.) < 1.e-3) alpha = K_CONST::E_PI;
+            else if (K_FUNC::E_abs(ps2) < 1.e-3 && K_FUNC::E_abs(ps-1.) < 1.e-3) alpha = 0.;
             else if (ps >=0 && ps2 >=0)
             {
               // alpha must be in 0-90
@@ -415,7 +415,7 @@ PyObject* K_GENERATOR::getLocalStepFactor2(PyObject* self, PyObject* args)
             }
             
             //printf("ind=%d: alpha=%f %f %f\n", ind, alpha*180./K_CONST::E_PI, ps, ps2);
-            E_Float sas2 = std::abs(sin(alpha*0.5));
+            E_Float sas2 = K_FUNC::E_abs(sin(alpha*0.5));
             sas2 = std::max(sas2, 0.5);
             sas2 = std::min(sas2, 2.);
             fout[ind] = 1./sas2;
