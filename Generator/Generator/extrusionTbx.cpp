@@ -360,11 +360,11 @@ PyObject* K_GENERATOR::getLocalStepFactor2(PyObject* self, PyObject* args)
             E_Float v2x = xc2-xm;
             E_Float v2y = yc2-ym;
             E_Float v2z = zc2-zm;
-            E_Float norm = 1./K_FUNC::E_max(std::sqrt(v1x*v1x+v1y*v1y+v1z*v1z), 1.e-10);
+            E_Float norm = 1./K_FUNC::E_max(sqrt(v1x*v1x+v1y*v1y+v1z*v1z), 1.e-10);
             v1x = v1x * norm;
             v1y = v1y * norm;
             v1z = v1z * norm;
-            norm = 1./K_FUNC::E_max(std::sqrt(v2x*v2x+v2y*v2y+v2z*v2z), 1.e-10);
+            norm = 1./K_FUNC::E_max(sqrt(v2x*v2x+v2y*v2y+v2z*v2z), 1.e-10);
             v2x = v2x * norm;
             v2y = v2y * norm;
             v2z = v2z * norm;
@@ -422,7 +422,7 @@ PyObject* K_GENERATOR::getLocalStepFactor2(PyObject* self, PyObject* args)
             //printf("ind=%d: sas2=%f, fout=%f\n", ind,sas2,fout[ind]);
             
             // calcul de kappa
-            E_Float kappaL = 0.1;
+            E_Float kappaL = 0.;
             E_Float kappaP = 1.1;
             E_Float kappa;
             if (alpha <= K_CONST::E_PI) kappa = ((1.-kappaP)/K_CONST::E_PI)*alpha+kappaP;

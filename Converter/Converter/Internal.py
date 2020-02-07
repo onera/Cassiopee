@@ -3167,7 +3167,7 @@ def getZoneDim(zone):
                 elif i[1][0] == 23: NFACE = 1
             if NGON == 1 and NFACE == 1:
                 data = getNodeFromName1(NGONp, 'ElementConnectivity')
-                if data is not None: datar = data[1]
+                if data is not None and len(data)>0: datar = data[1]
                 else: datar = None
                 if datar is not None and datar.size > 0:
                     if datar[0] == 1: cellDim = 1
@@ -3182,7 +3182,7 @@ def getZoneDim(zone):
         elif eltName == 'TRI' or eltName == 'QUAD': cellDim = 2
         elif eltName == 'NGON':
             data = getNodeFromName1(c[0], 'ElementConnectivity')
-            datar = data[1]
+            if data is not None and len(data)>0: datar = data[1]
             if datar is not None and datar.size > 0:
                 if datar[0] == 1: cellDim = 1
                 elif datar[0] == 2: cellDim = 2

@@ -86,7 +86,7 @@ Low level layer
 
 ---------------------------------------------------------------------------
 
-.. py:function:: Converter.Filter.readNodesFromPaths(fileName, paths, format=None, maxFloatSize=-1, maxDepth=-1, skipTypes=None, com=None)
+.. py:function:: Converter.Filter.readNodesFromPaths(fileName, paths, format=None, maxFloatSize=-1, maxDepth=-1, dataShape=None, skipTypes=None, com=None)
 
     Read nodes specified by their paths.
     If maxFloatSize=-1, all data are loaded, otherwise data are loaded
@@ -105,6 +105,8 @@ Low level layer
     :type maxFloatSize: int
     :param maxDepth: max depth of load
     :type maxDepth: int
+    :param dataShape: dictionary of returned data shapes if not None
+    :type dataShape: None or dictionary of shapes of data
     :param skipTypes: list of CGNS types to skip
     :type skipTypes: None or list of strings
     :param com: optional MPI communicator. If set, triggers parallel IO
@@ -157,7 +159,7 @@ Low level layer
 
 ---------------------------------------------------------------------------
 
-.. py:function:: Converter.Filter.readPyTreeFromPaths(t, fileName, paths, format=None, maxFloatSize=-1, maxDepth=-1, com=None)
+.. py:function:: Converter.Filter.readPyTreeFromPaths(t, fileName, paths, format=None, maxFloatSize=-1, maxDepth=-1, dataShape=None, skipTypes=None, com=None)
 
     Read nodes of t specified by their paths.
     Exists also as in place function (_readPyTreeFromPaths) that modifies t
@@ -175,6 +177,10 @@ Low level layer
     :type maxFloatSize: int
     :param maxDepth: max depth of load
     :type maxDepth: int
+    :param dataShape: dictionary of returned data shapes if not None
+    :type dataShape: None or dictionary of shapes of data
+    :param skipTypes: list of CGNS types to skip
+    :type skipTypes: None or list of strings
     :param com: optional MPI communicator. If set, triggers parallel IO
     :type com: MPI communicator
     :rtype: modified tree

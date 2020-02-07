@@ -979,7 +979,12 @@ def getLocalStepFactor__(s, sn, algo):
     else:
         # Nouvelle version (pas de lissage)
         ht = generator.getLocalStepFactor2(s, sc)
-    
+        # Lissage hauteur du pas
+        niter = 0; eps = 0.01; it = 0
+        while it < niter:
+            ht = C.node2Center(ht)
+            ht = C.center2Node(ht)
+            it += 1
     return ht
 
 #==============================================================================
@@ -1141,7 +1146,7 @@ def gencartmb(bodies, h, Dfar, nlvl):
     # Niveaux
     out = []
     c = 1
-    for i in nlvl :
+    for i in nlvl:
         lev,ref = createLevel(i, c, ref)
         c += 1
         out = out + lev
@@ -1438,7 +1443,7 @@ def snapSharpEdges(meshes, surfaces, step=None, angle=30.):
 # IN: surfaces ou contours
 # IN: step: step for refinement
 # IN: angle: angle for surfaces splitting
-# OUT: outList: list which contains :
+# OUT: outList: list which contains:
 #               - the surfaces joined in a unique array
 #               - the contours (if not nul)
 #               - the corners (if not nul)
@@ -1671,7 +1676,7 @@ def addNormalLayersStruct__(surfaces, distrib, check=0, niter=0, eps=0.4, algo=0
     hmean = (distrib[1][0,kmax-1]-distrib[1][0,0])/(kmax-1)
 
     # determination de kb1,kb2
-    kb1 =-1; kb2 =-1
+    kb1 = -1; kb2 = -1
     for k1 in range(kmax-1):
         if distrib[1][0,k1+1] >= 0.1*hmean and kb1 == -1: kb1 = k1
         elif distrib[1][0,k1+1] >= 1.*hmean and kb2 == -1: kb2 = k1
@@ -1764,7 +1769,7 @@ def addNormalLayersUnstr__(surface, distrib, check=0, niter=0, eps=0.4, algo=0):
     vect = ['sx','sy','sz']
     hmin = distrib[1][0,1]-distrib[1][0,0]
     hmax = distrib[1][0,kmax-1]-distrib[1][0,kmax-2]
-    hmean =  (distrib[1][0,kmax-1]-distrib[1][0,0])/(kmax-1)
+    hmean = (distrib[1][0,kmax-1]-distrib[1][0,0])/(kmax-1)
     # determination de kb1,kb2
     kb1 =-1; kb2 =-1
     for k1 in range(kmax-1):

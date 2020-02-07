@@ -1132,7 +1132,7 @@ def hyper2D4(t, distrib, type):
     d = C.getFields(Internal.__GridCoordinates__, distrib)[0]
     return C.TZGC(t, 'nodes', Generator.hyper2D4, d, type)
 
-def addNormalLayers(t, distrib, check=0, niter=0):
+def addNormalLayers(t, distrib, check=0, niter=0, eps=0.4, algo=0):
     """Generate N layers to a surface following normals. Distrib is the 
     height of each layer.
     If niter = 0, the normal are not smoothed; else niter is the number of
@@ -1144,7 +1144,7 @@ def addNormalLayers(t, distrib, check=0, niter=0):
     C._deleteFlowSolutions__(tp, 'centers')
     C._deleteGridConnectivity__(tp)
     coords = C.getAllFields(tp, 'nodes')
-    coords = Generator.addNormalLayers(coords, d, check, niter)
+    coords = Generator.addNormalLayers(coords, d, check, niter, eps, algo)
     return C.setFields(coords, tp, 'nodes')
 
 #===============================================================================

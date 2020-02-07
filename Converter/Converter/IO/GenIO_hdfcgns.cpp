@@ -1044,7 +1044,14 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPaths(char* file, PyObject* paths,
     }
     else if (maxDepth == 0)
     {
-      node = HDF.createNode(gid);
+      std::string shortPath = path;
+      size_t pos = shortPath.find_last_of("/");
+      if (pos == std::string::npos) pos = 0; 
+      shortPath = shortPath.erase(pos);
+      HDF._stringStack.push_front(shortPath); // short path      
+      node = HDF.createNode(gid, dataShape, NULL);
+      HDF._stringStack.pop_front();
+
       PyObject* children = PyList_New(0);
       PyList_SetItem(node, 2, children);
       PyList_Append(ret, node); Py_DECREF(node);
@@ -1055,8 +1062,17 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPaths(char* file, PyObject* paths,
       { HDF._maxFloatSize = maxFloatSize; HDF._skeleton = 1; }
       if (maxDepth >= 0) HDF._maxDepth = maxDepth;
       else HDF._maxDepth = 1e6;
+
+      std::string shortPath = path;
+      size_t pos = shortPath.find_last_of("/");
+      if (pos == std::string::npos) pos = 0;
+      shortPath = shortPath.erase(pos);
+      
+      HDF._stringStack.push_front(shortPath); // short path            
+      node = HDF.createNode(gid, dataShape, NULL);
+      HDF._stringStack.pop_front();
+
       HDF._stringStack.push_front(path);
-      node = HDF.createNode(gid);
       HDF._fatherStack.push_front(gid);
       HDF.loadOne(node, 0, dataShape);
       HDF._fatherStack.pop_front();
@@ -1283,7 +1299,7 @@ PyObject* K_IO::GenIOHdf::createNode(hid_t& node, PyObject* dataShape, PyObject*
     PyObject* stid   = Py_BuildValue("h", 1);
     PyObject* type   = Py_BuildValue("s", _dtype);
         
-    PyTuple_SetItem(result, 0, stid); 
+    PyTuple_SetItem(result, 0, stid);
     PyTuple_SetItem(result, 1, type); 
 
     PyObject* shape = PyTuple_New(dim);
@@ -1291,7 +1307,7 @@ PyObject* K_IO::GenIOHdf::createNode(hid_t& node, PyObject* dataShape, PyObject*
     {
       // PyObject* temp = Py_BuildValue("%d", _dims[i]);
       PyObject* temp = Py_BuildValue("h", _dims[i]);
-      PyTuple_SetItem(shape, i, temp); 
+      PyTuple_SetItem(shape, i, temp);
     }
     PyTuple_SetItem(result, 2, shape); 
     PyDict_SetItemString(dataShape, _currentPath.c_str(), result); 
