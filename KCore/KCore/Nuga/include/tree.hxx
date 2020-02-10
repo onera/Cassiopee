@@ -8,7 +8,7 @@
  
  */
 //Authors : Sâm Landier (sam.landier@onera.fr), Alexis Gay (alexis.gay@onera.fr)
-
+ 
 #ifndef NUGA_TREE_HXX
 #define NUGA_TREE_HXX
 

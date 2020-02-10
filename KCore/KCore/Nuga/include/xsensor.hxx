@@ -34,7 +34,7 @@ class xsensor : public geom_sensor<mesh_t, crd_t>
 
     E_Int init(data_type& data) override;
     
-    void add_x_points(data_type& data, K_SEARCH::BbTree3D& tree);
+    void add_x_points(K_SEARCH::BbTree3D& tree);
 
 #ifdef DEBUG_2019    
     E_Int verif(){}
@@ -44,10 +44,9 @@ class xsensor : public geom_sensor<mesh_t, crd_t>
     const K_FLD::IntArray& _cntS;
             
 };
-
 ///
 template <typename ELT_t, typename mesh_t, typename crd_t>
-void xsensor<ELT_t, mesh_t, crd_t>::add_x_points(data_type& data, K_SEARCH::BbTree3D& tree)
+void xsensor<ELT_t, mesh_t, crd_t>::add_x_points(K_SEARCH::BbTree3D& tree)
 {
   Vector_t<E_Int> ids;
   std::map<K_MESH::NO_Edge,E_Int> unique_edges;
@@ -71,8 +70,8 @@ void xsensor<ELT_t, mesh_t, crd_t>::add_x_points(data_type& data, K_SEARCH::BbTr
       E_Int pt1 = noE.node(0);
       E_Int pt2 = noE.node(1);
 
-      E_Float* P0 = data.col(pt1);
-      E_Float* P1 = data.col(pt2);
+      E_Float* P0 = parent_type::_data->col(pt1);
+      E_Float* P1 = parent_type::_data->col(pt2);
 
       ids.clear();
       tree.getOverlappingBoxes(P0,P1,ids);
@@ -91,7 +90,7 @@ void xsensor<ELT_t, mesh_t, crd_t>::add_x_points(data_type& data, K_SEARCH::BbTr
         E_Int nb_faces = parent_type::_hmesh._ng->PHs.stride(PHi);
 
         // check if noE intersect with PHi
-        bool x = ELT_t::cross(*parent_type::_hmesh._ng, *parent_type::_hmesh._crd, face, nb_faces, data, P0, P1, lambda0, lambda1, tolerance);
+        bool x = ELT_t::cross(*parent_type::_hmesh._ng, *parent_type::_hmesh._crd, face, nb_faces, *parent_type::_data, P0, P1, lambda0, lambda1, tolerance);
         
         if (!x) continue; // no intersection
         
@@ -124,7 +123,7 @@ void xsensor<ELT_t, mesh_t, crd_t>::add_x_points(data_type& data, K_SEARCH::BbTr
         E_Float xpoint[3];
         for (int m = 0; m < 3; ++m)
           xpoint[m] = coord0[m] + x3*(coord1[m] - coord0[m]); // the new point
-        data.pushBack(xpoint, xpoint+3);
+        parent_type::_data->pushBack(xpoint, xpoint+3);
       }
     }
   }
@@ -134,13 +133,16 @@ void xsensor<ELT_t, mesh_t, crd_t>::add_x_points(data_type& data, K_SEARCH::BbTr
 template <typename ELT_t, typename mesh_t, typename crd_t>
 E_Int xsensor<ELT_t, mesh_t, crd_t>::init(data_type& data)
 {
+
+  parent_type::_data = &data ;
+  
   // fill in _points_to_cell with the initial mesh (giving for each source point the highest level cell containing it)
   parent_type::_points_to_cell.clear();
   
   K_SEARCH::BbTree3D tree(*parent_type::_hmesh._crd, *parent_type::_hmesh._ng, E_EPSILON);
 
   // add the intersection points
-  add_x_points(data, tree);
+  add_x_points(tree);
   
   // localize points : fill _points_to_cell
   parent_type::locate_points(tree, data);
