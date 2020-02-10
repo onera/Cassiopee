@@ -305,7 +305,7 @@ def createApp(win):
 
     # - VARS -
     # -0- Hauteur de chaque maille -
-    V = TK.StringVar(win); V.set('1.e-1'); VARS.append(V)
+    V = TK.StringVar(win); V.set('0.1'); VARS.append(V)
     if 'tkExtrusionHeight' in CTK.PREFS:
         V.set(CTK.PREFS['tkExtrusionHeight'])
     # -1- Nombre de layers a ajouter

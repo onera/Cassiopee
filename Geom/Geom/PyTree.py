@@ -399,7 +399,7 @@ def enforceh(a, N=100, h=-1.):
 
 def _enforceh(a, N=100, h=-1.):
     C._TZA(a, 'nodes', 'nodes', Geom.enforceh, None, N, h)
-    C._deleteFlowSolutions__(a)
+    C._deleteFlowSolutions__(a, loc='centers')
     return None
 
 def setH(a, ind, h):

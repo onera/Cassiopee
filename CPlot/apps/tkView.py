@@ -837,11 +837,11 @@ def setVals():
 #==============================================================================
 def setStyle(event=None):
     style = 0; v = VARS[16].get()
-    if v == 'Monocolor wires+solid': style = 0
+    if v == 'Red wires+solid': style = 0
     elif v == 'Multicolor wireframes': style = 1
     elif v == 'Multicolor wires+solid': style = 2
     elif v == 'Black wires+solid': style = 3
-    elif v == 'White wires+solid': style = 4
+    elif v == 'Multicolor wires+solid2': style = 4
     CPlot.setState(meshStyle=style)
     style = 0; v = VARS[17].get()
     if v == 'Monocolor/1-side': style = 0
@@ -992,7 +992,7 @@ def createApp(win):
     B = TTK.Label(Mesh, text="Style:")
     B.grid(row=0, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Mesh style.')
-    B = TTK.OptionMenu(Mesh, VARS[16], 'Monocolor wires+solid', 'Multicolor wireframes', 'Multicolor wires+solid', 'Black wires+solid', 'White wires+solid', command=setStyle)
+    B = TTK.OptionMenu(Mesh, VARS[16], 'Red wires+solid', 'Black wires+solid', 'Multicolor wireframes', 'Multicolor wires+solid', 'Multicolor wires+solid2', command=setStyle)
     B.grid(row=0, column=1, sticky=TK.EW)
 
     # - Solid frame -
@@ -1339,7 +1339,7 @@ def resetApp():
     VARS[10].set('1.')
     VARS[12].set('0')
     VARS[13].set('0')
-    VARS[16].set('Monocolor wires+solid')
+    VARS[16].set('Red wires+solid')
     VARS[17].set('Monocolor/1-side')
     VARS[19].set('Bands')
     CTK.PREFS['tkViewNiso'] = VARS[2].get()

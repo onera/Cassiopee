@@ -107,14 +107,14 @@ DataDL::renderGPUUMeshZone(UnstructZone* zonep, int zone, int zonet)
     E_Float nz = 1. / _numberOfUnstructZones;
 #include "meshStyles.h"
 
-#include "selection.h"
-
     double* x       = zonep->x;
     double* y       = zonep->y;
     double* z       = zonep->z;
     int     eltType = zonep->eltType;
 
-    if (eltType == 1 || eltType == 0 || (eltType == 10 && zonep->nelts1D > 0)) glLineWidth(3.);
+    if (eltType == 1 || eltType == 0 || (eltType == 10 && zonep->nelts1D > 0)) 
+    { glLineWidth(3.); color2[0] = 0.1; color2[1] = 0.1; color2[2] = 1.; }
+#include "selection.h"
 
     // glCallList(zonep->_DLmesh);
     if (zonep->_is_high_order == true) {

@@ -294,7 +294,7 @@ def tetraMesher(a, maxh=-1., grading=0.4, triangulateOnly=0,
                 remeshBoundaries=0, algo=1, optionString=""):
     """Create a TRI/TETRA mesh given a set of BAR or surfaces in a.
     Usage: tetraMesher(a, fineness, grading)"""
-    c = C.getAllFields(a, 'nodes')
+    c = C.getFields('coords', a)
     c = Generator.tetraMesher(c, maxh, grading, triangulateOnly,
                               remeshBoundaries, algo, optionString)
     return C.convertArrays2ZoneNode('mesh', [c])

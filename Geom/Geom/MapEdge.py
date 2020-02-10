@@ -319,7 +319,7 @@ def enforceh__(a, N, h):
             if i > 0:
                 if i1 == -1: i1 = 0; i2 = i; h1 = hi; h2 = hi
                 if h1 > 0: i2 = i; h2 = hi
-                sub = T.subzone(a, (i1+1,1,1), (i2+1,1,1))                
+                sub = T.subzone(a, (i1+1,1,1), (i2+1,1,1))             
                 Li = D.getLength(sub)
                 Pi = Li*1./(0.5*(h1+h2)+1.e-12)
                 i1s.append(i1); i2s.append(i2)
@@ -343,6 +343,8 @@ def enforceh__(a, N, h):
         sub = T.subzone(a, (i1+1,1,1), (i2+1,1,1))
         d = buildDistrib(h1, h2, Ps[x])
         c = G.map(sub, d)
+        if h < -0.5: 
+            setH(c, 0, sub[1][pos,0]); setH(c, -1, sub[1][pos,-1])
         out.append(c)
     out = T.join(out)
     return out

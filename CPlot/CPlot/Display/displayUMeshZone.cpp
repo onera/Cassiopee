@@ -91,9 +91,11 @@ void Data::displayUMeshZone(UnstructZone* zonep, int zone, int zonet)
   E_Float nz = 1./_numberOfUnstructZones;
 #include "meshStyles.h"
 
+  if (zonep->eltType == 1 || zonep->eltType == 0 || (zonep->eltType == 10 && zonep->nelts1D > 0)) 
+  { glLineWidth(3.); color2[0] = 0.1; color2[1] = 0.1; color2[2] = 1.; }
+      
 #include "selection.h"
-
-  if (zonep->eltType == 1 || zonep->eltType == 0 || (zonep->eltType == 10 && zonep->nelts1D > 0)) glLineWidth(3.);
+    
     /*if ( zonep->_is_high_order == true )
     {
       int ishader = 0;

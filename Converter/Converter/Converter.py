@@ -4,7 +4,7 @@ from numpy import *
 __version__ = '3.1'
 __author__ = "Stephanie Peron, Christophe Benoit, Gaelle Jeanfaivre, Pascal Raud, Benoit Rodriguez, Simon Verley, Bruno Maugars, Thomas Renaud"
 #
-# Python Interface for conversion between  array / file / CGNS
+# Python Interface for conversion between array / file / CGNS
 #
 try: range = xrange
 except: pass

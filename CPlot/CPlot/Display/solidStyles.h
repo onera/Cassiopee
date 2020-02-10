@@ -29,7 +29,7 @@
 
     case 4:
       // multicolor + sobel
-      getrgb(this, zone*nz, &r, &g, &b);
+      getrgb(this, zone*nz, &g, &r, &b);
       color1[0] = r; color1[1] = g; color1[2] = b;
       if (b > 0.8 && r < 0.2 && g < 0.2) 
       { color1[0] = r; color1[1] = b; color1[2] = g; }

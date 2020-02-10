@@ -28,26 +28,26 @@ def reorder():
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
     ii = VARS[0].get()
-    if (ii == 'I -> I'): i1 = 1
-    elif (ii == 'I -> -I'): i1 = -1
-    elif (ii == 'I -> J'): i1 = 2
-    elif (ii == 'I -> -J'): i1 = -2
-    elif (ii == 'I -> K'): i1 = 3
-    elif (ii == 'I -> -K'): i1 = -3
+    if ii == 'I -> I': i1 = 1
+    elif ii == 'I -> -I': i1 = -1
+    elif ii == 'I -> J': i1 = 2
+    elif ii == 'I -> -J': i1 = -2
+    elif ii == 'I -> K': i1 = 3
+    elif ii == 'I -> -K': i1 = -3
     jj = VARS[1].get()
-    if (jj == 'J -> I'): j1 = 1
-    elif (jj == 'J -> -I'): j1 = -1
-    elif (jj == 'J -> J'): j1 = 2
-    elif (jj == 'J -> -J'): j1 = -2
-    elif (jj == 'J -> K'): j1 = 3
-    elif (jj == 'J -> -K'): j1 = -3
+    if jj == 'J -> I': j1 = 1
+    elif jj == 'J -> -I': j1 = -1
+    elif jj == 'J -> J': j1 = 2
+    elif jj == 'J -> -J': j1 = -2
+    elif jj == 'J -> K': j1 = 3
+    elif jj == 'J -> -K': j1 = -3
     kk = VARS[2].get()
-    if (kk == 'K -> I'): k1 = 1
-    elif (kk == 'K -> -I'): k1 = -1
-    elif (kk == 'K -> J'): k1 = 2
-    elif (kk == 'K -> -J'): k1 = -2
-    elif (kk == 'K -> K'): k1 = 3
-    elif (kk == 'K -> -K'): k1 = -3
+    if kk == 'K -> I': k1 = 1
+    elif kk == 'K -> -I': k1 = -1
+    elif kk == 'K -> J': k1 = 2
+    elif kk == 'K -> -J': k1 = -2
+    elif kk == 'K -> K': k1 = 3
+    elif kk == 'K -> -K': k1 = -3
     if abs(i1)+abs(j1)+abs(k1) != 6:
         CTK.TXT.insert('START', 'Reordering settings is invalid.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
@@ -90,12 +90,12 @@ def reorder():
 #==============================================================================
 def reorderAll():
     if CTK.t == []: return
-    if (CTK.__MAINTREE__ <= 0):
+    if CTK.__MAINTREE__ <= 0:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     ii = VARS[0].get()
-    if (ii == 'I -> I'): i1 = 1
-    elif (ii == 'I -> -I'): i1 = -1
+    if ii == 'I -> I': i1 = 1
+    elif ii == 'I -> -I': i1 = -1
     try:
         CTK.saveTree()
         CTK.t = T.reorderAll(CTK.t, i1)
@@ -212,7 +212,7 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
     
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
     if len(sys.argv) == 2:
         FILE = sys.argv[1]

@@ -846,17 +846,27 @@ def split(a, dir, index):
         a1 = subzone(a, (1,1,1), (ni,nj,index))
         a2 = subzone(a, (1,1,index), (ni,nj,nk))
     return a1, a2
-
+    
 def reorder(a, order):
     """Reorder the numerotation of mesh.
     Usage: reorder(a, (2,1,-3))"""
-    if isinstance(a[0], list): 
+    if isinstance(a[0], list):
         b = []
         for i in a:
-            b.append(transform.reorder(i, order))
+            if i[3] == 'BAR':
+                c = Converter.convertBAR2Struct(i)
+                c = transform.reorder(c, (-1,2,3))
+                b.append(Converter.convertArray2Hexa(c))
+            else:
+                b.append(transform.reorder(i, order))
         return b
     else:
-        return transform.reorder(a, order)     
+        if a[3] == 'BAR':
+            b = Converter.convertBAR2Struct(a)
+            b = transform.reorder(b, (-1,2,3))
+            return Converter.convertArray2Hexa(b)
+        else: return transform.reorder(a, order)
+        
 
 def reorderAll(arrays, dir=1):
     """Orientate normals of all surface blocks consistently in one direction (1) or the opposite (-1).
