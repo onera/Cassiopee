@@ -244,13 +244,16 @@ ClbQghfEYAY1uEEOdtCDHwRhCEUIloAAADs=
     textWidget.insert(TK.END, myText)
 
     myText = "\n\n"
-    myText += " Included third party software:\n"
-    myText += " - freeglut (see Converter/GLUT/LICENSE).\n"
-    myText += " - glew (see Converter/GLEW/LICENSE).\n"
+    myText += " Cassiopee uses third party software:\n"
+    myText += " - freeglut (see CPlot/GLUT/LICENSE).\n"
+    myText += " - glew (see CPlot/GLEW/LICENSE).\n"
     myText += " - netgen (see Generator/Netgen/LICENSE).\n"
     myText += " - tetgen (see Generator/Tetgen/LICENSE).\n"
     myText += " - metis (see KCore/Metis/LICENSE).\n"
     myText += " - scotch (see XCore/scotch/LICENSE).\n"
+    myText += " - MMGs (see Generator/MMGS/LICENSE).\n"
+    myText += " - opencascade (see opencascade/LICENSE_LGPL_21.txt).\n"
+    myText += " - paradigma (see paradigma/LICENSE).\n"
     
     textWidget.insert(TK.END, myText)
     return

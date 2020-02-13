@@ -143,7 +143,7 @@ PyObject* K_TRANSFORM::subzoneUnstruct(PyObject* self, PyObject* args)
   if (!PyArg_ParseTuple(args, "OO",
                         &array, &listOfNodes))
   {
-      return NULL;
+    return NULL;
   }
 
   // Check array
@@ -991,7 +991,7 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
   if (!PyArg_ParseTuple(args, "OO",
                         &array, &listOfFaces))
   {
-      return NULL;
+    return NULL;
   }
 
   // Build face list
@@ -1045,6 +1045,20 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
     1, 2, 4,
     2, 3, 4,
     3, 1, 4 };
+  int fPENTA[] = {
+    1, 2, 5, 4,
+    2, 3, 6, 5,
+    3, 1, 4, 6,
+    1, 3, 2, 1,
+    4, 5, 6, 4
+  };
+  int fPYRA[] = {
+    1, 4, 3, 2,
+    1, 2, 5, 5,
+    2, 3, 5, 2,
+    3, 4, 5, 3,
+    4, 1, 5, 4
+  };  
   int fHEXA[] = {
     1, 4, 3, 2,
     1, 2, 6, 5,
@@ -1058,7 +1072,7 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
   // nf: nbre de face de l'element d'entree
   // eltTypeFaces: type de l'element de sortie (face de l'elt d'entree)
   // nt2: nbre de noeuds de l'element de sortie
-  // type=0 (les faces de sortie est a elements basiques
+  // type=0 (les faces de sortie sont a elements basiques
   // type=1 (entree: elements basiques, sortie: NGONS)
   // type=2 (entree: NGON, sortie: NGON)
   if (K_STRING::cmp(eltType, "BAR") == 0)
@@ -1083,11 +1097,13 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
   }
   else if (K_STRING::cmp(eltType, "PENTA") == 0)
   {
-    type = 1; nf = 5; strcpy(eltTypeFaces, "NGON");
+    //type = 1; nf = 5; strcpy(eltTypeFaces, "NGON");
+    type = 0; nf = 5; strcpy(eltTypeFaces, "QUAD"); nt2 = 4; fPtr = fPENTA;
   }
   else if (K_STRING::cmp(eltType, "PYRA") == 0)
   {
-    type = 1; nf = 5; strcpy(eltTypeFaces, "NGON");
+    //type = 1; nf = 5; strcpy(eltTypeFaces, "NGON");
+    type = 0; nf = 5; strcpy(eltTypeFaces, "QUAD"); nt2 = 4; fPtr = fPYRA; 
   }
   else if (K_STRING::cmp(eltType, "NGON") == 0)
   {
@@ -1183,7 +1199,7 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
     E_Int indnewface = 1;
     E_Int indvertp1, indvertp2;
     E_Int indvertn = 0;
-    vector< vector<E_Int> > indicesFaces(npts);// faces creees associees aux noeuds 
+    vector< vector<E_Int> > indicesFaces(npts); // faces creees associees aux noeuds 
 
     for (E_Int i = 0; i < n; i++)
     {
@@ -1201,7 +1217,7 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
         vector<E_Int>& facesp1 = indicesFaces[indvertp1];
         vector<E_Int>& facesp2 = indicesFaces[indvertp2];
 
-        //creation de la face P1P2 
+        // creation de la face P1P2 
         E_Int foundFace = -1; 
         if (facesp1.size() > 0 && facesp2.size() > 0) 
         {
@@ -1317,7 +1333,7 @@ PyObject* K_TRANSFORM::subzoneFacesBoth(PyObject* self, PyObject* args)
   if (!PyArg_ParseTuple(args, "OOO",
                         &arrayNodes, &arrayCenters, &listOfFaces))
   {
-      return NULL;
+    return NULL;
   }
 
   // Build face list
@@ -1388,6 +1404,22 @@ PyObject* K_TRANSFORM::subzoneFacesBoth(PyObject* self, PyObject* args)
     1, 2, 4,
     2, 3, 4,
     3, 1, 4 };
+
+  int fPENTA[] = {
+    1, 2, 5, 4,
+    2, 3, 6, 5,
+    3, 1, 4, 6,
+    1, 3, 2, 1,
+    4, 5, 6, 4
+  };
+  int fPYRA[] = {
+    1, 4, 3, 2,
+    1, 2, 5, 1,
+    2, 3, 5, 2,
+    3, 4, 5, 3,
+    4, 1, 5, 4
+  };  
+
   int fHEXA[] = {
     1, 4, 3, 2,
     1, 2, 6, 5,
@@ -1426,11 +1458,13 @@ PyObject* K_TRANSFORM::subzoneFacesBoth(PyObject* self, PyObject* args)
   }
   else if (K_STRING::cmp(eltType, "PENTA") == 0)
   {
-    type = 1; nf = 5; strcpy(eltTypeFaces, "NGON");
+    //type = 1; nf = 5; strcpy(eltTypeFaces, "NGON");
+    type = 0; nf = 5; strcpy(eltTypeFaces, "QUAD"); nt2 = 4; fPtr = fPENTA;
   }
   else if (K_STRING::cmp(eltType, "PYRA") == 0)
   {
-    type = 1; nf = 5; strcpy(eltTypeFaces, "NGON");
+    //type = 1; nf = 5; strcpy(eltTypeFaces, "NGON");
+    type = 0; nf = 5; strcpy(eltTypeFaces, "QUAD"); nt2 = 4; fPtr = fPYRA; 
   }
   else if (K_STRING::cmp(eltType, "NGON") == 0)
   {
@@ -1440,7 +1474,7 @@ PyObject* K_TRANSFORM::subzoneFacesBoth(PyObject* self, PyObject* args)
   {
     PyErr_SetString(PyExc_TypeError,
                     "subzone: element type not taken into account.");
-    RELEASESHAREDU(arrayNodes,f, cn); RELEASESHAREDU(arrayCenters, fc, cnc);  return NULL;
+    RELEASESHAREDU(arrayNodes,f, cn); RELEASESHAREDU(arrayCenters, fc, cnc); return NULL;
   }
   E_Int nfld = f->getNfld(); E_Int npts = f->getSize();
   E_Int nfldc = fc->getNfld();

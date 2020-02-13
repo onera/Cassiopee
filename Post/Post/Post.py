@@ -242,6 +242,7 @@ def exteriorFaces(a, indices=None):
         return exteriorFacesForOneArray__(a, indices)
 
 def exteriorFacesForOneArray__(a, indices):
+    # To be commented in next release
     if len(a) == 4 and (a[3] == 'PENTA' or a[3] == 'PYRA'):
         try:
             import Generator

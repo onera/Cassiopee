@@ -4238,7 +4238,7 @@ def tagDefinedBCForZone3D__(z):
   # BC match
   bnds = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
   for bc in bnds:
-      gl = Internal.getNodeFromType1(bc,'GridLocation_t')
+      gl = Internal.getNodeFromType1(bc, 'GridLocation_t')
       isHybrid=False
       if gl is not None:
         gl = Internal.getValue(gl)

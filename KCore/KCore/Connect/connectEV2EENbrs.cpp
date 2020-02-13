@@ -145,6 +145,10 @@ E_Int K_CONNECT::connectEV2EENbrs(const char* eltType, E_Int nv,
       // Prend le premier noeud de la facette
       ind = cEV(et, f[ff + 0*nfpe])-1;
       
+      // Pour les facettes degen
+      //if (f[ff + 0*nfpe] == f[ff + (nnpf-1)*nfpe]) nnpfmatch = nnpf-1;
+      //else nnpfmatch = nnpf;
+
       // Recupere tous les elts ayant ce noeud
       vector<E_Int>& cVE1 = cVE[ind];
       size = cVE1.size();

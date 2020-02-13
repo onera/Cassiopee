@@ -442,14 +442,12 @@ PyObject* K_POST::exteriorFacesBasic(char* varString, FldArrayF& f,
   bool boolIndir = false;
   if (indices != Py_None) boolIndir = true;
   char elttypeout[256];
-  if (strcmp(eltType, "TRI") == 0 || strcmp(eltType, "QUAD") == 0)
-    strcpy(elttypeout, "BAR");
-  else if (strcmp(eltType, "TETRA") == 0)
-    strcpy(elttypeout, "TRI");
-  else if (strcmp(eltType, "HEXA") == 0)
-    strcpy(elttypeout, "QUAD");
-  else if (strcmp(eltType,"BAR") == 0 )
-    strcpy(elttypeout,"NODE");
+  if (strcmp(eltType, "TRI") == 0 || strcmp(eltType, "QUAD") == 0) strcpy(elttypeout, "BAR");
+  else if (strcmp(eltType, "TETRA") == 0) strcpy(elttypeout, "TRI");
+  else if (strcmp(eltType, "HEXA") == 0) strcpy(elttypeout, "QUAD");
+  else if (strcmp(eltType, "PYRA") == 0) strcpy(elttypeout, "QUAD");
+  else if (strcmp(eltType, "PENTA") == 0) strcpy(elttypeout, "QUAD");
+  else if (strcmp(eltType, "BAR") == 0) strcpy(elttypeout, "NODE");
 	
   E_Int nfld = f.getNfld();
 
@@ -489,7 +487,7 @@ PyObject* K_POST::exteriorFacesBasic(char* varString, FldArrayF& f,
     { 
       PyObject* indir = K_NUMPY::buildNumpyArray(nExtNodes, 1, 1, 0);
       E_Int* indirp = K_NUMPY::getNumpyPtrI(indir);
-      if ( nExtNodes > 0) {indirp[0] = ind0+1; indirp[1] = ind1+1;}
+      if (nExtNodes > 0) {indirp[0] = ind0+1; indirp[1] = ind1+1;}
       PyList_Append(indices, indir);  Py_DECREF(indir);
     }
     return tpl;
@@ -592,23 +590,22 @@ short K_POST::exteriorFacesBasic3(FldArrayF& f, FldArrayI& cn,
   else if (strcmp(eltType, "PYRA") == 0) 
   {
     nvoisins = 5;
-    nfaces = 5; nof = 3; // 2 TRIs pour la base
-    face[0][0] = 1; face[0][1] = 4; face[0][2] = 3;
-    face[1][0] = 3; face[1][1] = 2; face[1][2] = 1;
-    face[2][0] = 1; face[2][1] = 2; face[2][2] = 5; 
-    face[3][0] = 2; face[3][1] = 3; face[3][2] = 5;
-    face[4][0] = 3; face[4][1] = 4; face[4][2] = 5;
-    face[5][0] = 4; face[5][1] = 1; face[5][2] = 5;
+    nfaces = 5; nof = 4; // QUAD degen
+    face[0][0] = 1; face[0][1] = 4; face[0][2] = 3; face[0][3] = 2;
+    face[1][0] = 1; face[1][1] = 2; face[1][2] = 5; face[1][3] = 1;
+    face[2][0] = 2; face[2][1] = 3; face[2][2] = 5; face[2][3] = 2;
+    face[3][0] = 3; face[3][1] = 4; face[3][2] = 5; face[3][3] = 3;
+    face[4][0] = 4; face[4][1] = 1; face[4][2] = 5; face[4][3] = 4;
   }
   else if (strcmp(eltType, "PENTA") == 0) 
   {
     nvoisins = 5;
-    nfaces = 5; nof = 4; // TRI degen
+    nfaces = 5; nof = 4; // QUAD degen
     face[0][0] = 1; face[0][1] = 2; face[0][2] = 5; face[0][3] = 4;
     face[1][0] = 2; face[1][1] = 3; face[1][2] = 6; face[1][3] = 5;
     face[2][0] = 3; face[2][1] = 1; face[2][2] = 4; face[2][3] = 6;
-    face[3][0] = 1; face[3][1] = 3; face[3][2] = 2; face[3][3] = 2;
-    face[4][0] = 4; face[4][1] = 5; face[4][2] = 6; face[4][3] = 6;
+    face[3][0] = 1; face[3][1] = 3; face[3][2] = 2; face[3][3] = 1;
+    face[4][0] = 4; face[4][1] = 5; face[4][2] = 6; face[4][3] = 4;
   }
   
   E_Int nthreads = __NUMTHREADS__;
