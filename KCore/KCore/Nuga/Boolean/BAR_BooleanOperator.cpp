@@ -184,7 +184,7 @@ BAR_BooleanOperator::compute_zones()
   _dT3 = new DELAUNAY::MeshData(coord2D, connect);
   DELAUNAY::MesherMode mode;
   mode.mesh_mode = DELAUNAY::MesherMode::TRIANGULATION_MODE;
-  //mode.remove_holes = false;
+  mode.remove_holes = false;
   DELAUNAY::T3Mesher<E_Float> mesher(mode);
   
   if (mesher.run(*_dT3))

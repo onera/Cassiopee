@@ -61,19 +61,21 @@ Conformizer<DIM, Element_t>::__prepare_data
 {
   E_Int nb_elts = connect.cols();
   
-  // Triangles and their bounding boxes.
-  _boxes.clear();
-  _boxes.resize(nb_elts);
   _elements.clear();
   _elements.reserve(nb_elts);
+  K_CONNECT::IdTool::init_inc(_elements, nb_elts);
   
+  if (_brute_force) return;
+
+  _boxes.clear();
+  _boxes.resize(nb_elts);
+
   _pool = new K_SEARCH::BoundingBox<DIM>[nb_elts];
 
   for (E_Int i = 0; i < nb_elts; ++i)
   {
     _boxes[i] = &_pool[i];
     _boxes[i]->compute(pos, connect.col(i), Element_t::NB_NODES);
-    _elements.push_back(i);
   }
   if (_iter == 1 && _X0 > 0)
   {
@@ -433,7 +435,11 @@ E_Int Conformizer<DIM, Element_t>::__run
   
   // Computes the intersection nodes and edges.
   _N0 = pos.cols(); // First index of new points.
-  E_Int nbX = this->__compute_intersections(pos, connect, xc, _tol_x/*EPSILON for now*/);
+  E_Int nbX = 0;
+  if (!_brute_force)
+    nbX=this->__compute_intersections_w_localizer(pos, connect, xc, _tol_x/*EPSILON for now*/);
+  else
+    nbX = this->__compute_intersections_brute(pos, connect, xc, _tol_x/*EPSILON for now*/);
 
 #ifdef FLAG_STEP
   if (chrono::verbose > 0) std::cout << "Conformizer : compute intersections : " << tt.elapsed() << std::endl;
@@ -707,7 +713,7 @@ Conformizer<DIM, Element_t>::__compute_min_edge_length
 ///
 template <E_Int DIM, typename Element_t>
 E_Int
-Conformizer<DIM, Element_t>::__compute_intersections
+Conformizer<DIM, Element_t>::__compute_intersections_w_localizer
 (K_FLD::FloatArray& pos, const K_FLD::IntArray& connect, K_CONT_DEF::bool_vector_type& xc, E_Float tolerance)
 {
   E_Int i, j, nb_boxes, nb_elts(xc.size()), nbX(0)/*, v1(-1), v2(-1), nbO(0)*/;
@@ -840,6 +846,129 @@ Conformizer<DIM, Element_t>::__compute_intersections
   
 #endif
   
+  return nbX;
+}
+
+///
+template <E_Int DIM, typename Element_t>
+E_Int
+Conformizer<DIM, Element_t>::__compute_intersections_brute
+(K_FLD::FloatArray& pos, const K_FLD::IntArray& connect, K_CONT_DEF::bool_vector_type& xc, E_Float tolerance)
+{
+  K_CONT_DEF::bool_vector_type new_xc(xc.size(), false);
+
+  typedef typename Struc<Element_t>::Type DS_Type;
+
+#ifdef DEBUG_TRI_CONFORMIZER
+  /*E_Int counter(0);
+  E_Int Ti = TRI_debug::get_T3_index(connect, 17911, 17912, 18156);
+  std::cout << "Ti : " << Ti << std::endl;
+  E_Int Ti2 = TRI_debug::get_T3_index(connect,17882, 17911, 17849);
+  std::cout << "Ti2 : " << Ti2 << std::endl;*/
+#endif
+
+#ifdef DEBUG_CONFORMIZER
+  std::vector<DS_Type> xelts, aelts;
+  E_Int iTi = 0;
+  std::ostringstream o;
+  E_Int count = 0;
+#endif
+
+  E_Int nbelts = _elements.size();
+  E_Int nbX(0);
+  //
+  for (int i = 0; i < _X0; ++i)
+  {
+    DS_Type& e1 = _elements[i];
+
+    // Loop through the second part and do the intersection test.
+    for (int j = _X0; j < nbelts; ++j)
+    {
+      DS_Type& e2 = _elements[j];
+
+#ifdef DEBUG_CONFORMIZER
+      if (e1.id == zTi)iTi = i;
+      else if (e2.id == zTi)iTi = j
+
+      if (e1.id == zTi)
+        aelts.push_back(e2);
+      else if (e2.id == zTi)
+        aelts.push_back(e1);
+
+      //if ((i == Ti && j == 11) || (i == 82624 && j == 25))
+      if (e1.id == zTi || e2.id == zTi)
+      {
+        std::vector<DS_Type> selec;
+        selec.push_back(e1);
+        selec.push_back(e2);
+        o.str("");
+        o << "selec_" << count++ << ".mesh";
+        this->drawElements(o.str().c_str(), "fmt_mesh", pos, connect, selec, false);
+      }
+
+#endif
+
+#ifdef DEBUG_CONFORMIZER
+      NUGA::ConformizerRoot::xtest_counter++;
+#endif
+
+      bool x = this->__intersect(pos, connect, e1, e2, tolerance); // intersection test and trace storage
+
+      if (x)
+      {
+        ++nbX;
+        new_xc[i] = new_xc[j] = true;
+        //      v1 = e1.id;
+        //      v2 = e2.id;
+
+#ifdef DEBUG_CONFORMIZER
+        if (e1.id == zTi || e2.id == zTi)
+        {
+          if (e1.id != zTi) xelts.push_back(e1);
+          if (e2.id != zTi) xelts.push_back(e2);
+        }
+#endif
+
+        if (x == 2)
+        {
+          if (!_one_pass_mode)_needs_another_iter = true; // overlap might require a second pass as each triangle split is done separtely so triangulation can be different.
+          if (_one_pass_mode && _iter == 1)_xpairs.insert(K_MESH::NO_Edge(i, j));
+        }
+      }
+    }
+  }
+
+  xc = new_xc;
+
+#ifdef FLAG_STEP
+  if (chrono::verbose > 0) std::cout << "cloud size (nb of T3s)   : " << connect.cols() << std::endl;
+#ifdef DEBUG_CONFORMIZER
+  if (chrono::verbose > 0) std::cout << "total nb of X tests done : " << NUGA::ConformizerRoot::xtest_counter << std::endl;
+  if (chrono::verbose > 0) std::cout << "nb of X quicly discarded : " << NUGA::ConformizerRoot::fastdiscard_counter << std::endl;
+  if (chrono::verbose > 0) std::cout << " REDUCING NB OF TESTS ??? : " << xtestreal << " instead of " << xtesttotal << std::endl;
+#endif
+  if (chrono::verbose > 0) std::cout << "nb of X detected         : " << nbX << std::endl;
+#endif
+
+#ifdef DEBUG_CONFORMIZER
+
+  o.str("");
+  o << "Xmolecule_" << zTi << ".mesh";
+  xelts.push_back(iTi);
+  xelts.push_back(zTi);
+  this->drawElements(o.str().c_str(), "fmt_mesh", pos, connect, xelts);
+  drawT3(pos, connect, zTi, true);
+
+  o.str("");
+  o << "molecule_" << zTi << ".mesh";
+  std::vector<E_Int> colors(aelts.size(), 0);
+  colors.push_back(1);
+  aelts.push_back(zTi);
+  if (aelts.size() > 1)
+    this->drawElements(o.str().c_str(), "fmt_mesh", pos, connect, aelts, 0, &colors);
+
+#endif
+
   return nbX;
 }
 

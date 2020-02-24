@@ -682,19 +682,19 @@ namespace DELAUNAY
 
       // Reset the color to zero for interior parts.
       E_Int nbc = (E_Int)connects.size(), c1, Si, nbound;
-      bool invalid_color;
+      bool good_color;
       for (c1 = 1; c1 < nbc; ++c1)
       {
         //DynArrayIO::write("part.mesh", data.pos, connects[c]);
         _tool->getBoundary(connects[c1], bound);
         //KDynArrayIO::write("bound.mesh", data.pos, bound);
-        invalid_color = true;
+        good_color = true;
         nbound = bound.cols();
 
-        for (Si = 0; (Si < nbound) && invalid_color; ++Si)
-          invalid_color &= (hard_edges.find(K_MESH::Edge(bound.col(Si))) == hard_edges.end());
+        for (Si = 0; (Si < nbound) && good_color; ++Si)
+          good_color &= (hard_edges.find(K_MESH::Edge(bound.col(Si))) != hard_edges.end());
 
-        if (invalid_color)
+        if (!good_color)
           for (Si = 0; Si < data.connectM.cols(); ++Si)
             if (data.colors[Si] == c1)
               data.colors[Si] = 0;

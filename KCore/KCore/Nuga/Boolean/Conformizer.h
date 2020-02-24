@@ -118,10 +118,11 @@ public:
 public://fixme
   bool _split_swap_afterwards; // TRI specific
   bool _silent_errors; // T3Mesher errors
+  bool _brute_force;
 
 protected:
   ///
-  Conformizer(bool wnh = false): _split_swap_afterwards(false), _silent_errors(false), _absolute_tol(true)/*fixme : no choice yet*/, _with_node_history(wnh), _X0(0) {}
+  Conformizer(bool wnh = false): _split_swap_afterwards(false), _silent_errors(false), _brute_force(false), _absolute_tol(true)/*fixme : no choice yet*/, _with_node_history(wnh), _X0(0) {}
   
   // Methods to override : interface to implement
 protected:
@@ -215,8 +216,12 @@ public:
   E_Int __run(K_FLD::FloatArray& pos, K_FLD::IntArray& connect,
               std::vector<E_Int>& ancestors, K_CONT_DEF::bool_vector_type& xc, E_Float tolerance = -1.); 
   ///
-  E_Int __compute_intersections(K_FLD::FloatArray& pos, const K_FLD::IntArray& connect,
+  E_Int __compute_intersections_w_localizer(K_FLD::FloatArray& pos, const K_FLD::IntArray& connect,
                                         K_CONT_DEF::bool_vector_type& xc, E_Float tolerance);
+
+  ///
+  E_Int __compute_intersections_brute(K_FLD::FloatArray& pos, const K_FLD::IntArray& connect,
+    K_CONT_DEF::bool_vector_type& xc, E_Float tolerance);
   ///
   void __compute_min_edge_length (const K_FLD::FloatArray& pos,
                                   const K_FLD::IntArray& connect, const K_CONT_DEF::bool_vector_type& xc, E_Float &Lmin, E_Float& Lmax);
