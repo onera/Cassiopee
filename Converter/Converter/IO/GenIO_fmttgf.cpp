@@ -17,7 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// Formated TGF (TGrid file - Ansys) file support
+// Formated TGF (TGrid file - Ansys) file support (not usable)
 
 # include <stdio.h>
 # include <stdlib.h>

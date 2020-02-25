@@ -17,7 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// Formated IGES file support (not usable)
+// Formated IGES file support (not usable, use OCC module instead)
 
 # include <string.h>
 # include <stdio.h>

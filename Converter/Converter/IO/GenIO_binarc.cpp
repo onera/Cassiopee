@@ -23,12 +23,103 @@
 # include <stdio.h>
 # include <string.h>
 # include "Array/Array.h"
+# include <map>
 
 // for dbx
 #include <iostream>
 
 using namespace std;
 using namespace K_FLD;
+
+class mesh
+{
+
+public:
+  mesh() { _isomu=NULL; _ifacu=NULL; _icelu=NULL; _pe=NULL; _nbpoints=NULL; 
+    _numpoints=NULL; _x=NULL; _y=NULL; _z=NULL; };
+  ~mesh() { delete [] _isomu; delete [] _ifacu; delete [] _icelu; 
+    delete [] _pe; delete [] _nbpoints; delete [] _numpoints; 
+    delete [] _x; delete [] _y; delete [] _z; };
+  
+public:
+  // numero absolu du sous domaine
+  unsigned int _nd;
+  // numero du domaine utilisateur
+  unsigned int _numutil;
+  // nom du du domaine
+  char _nom[256];
+  // type du maillage
+  unsigned char _type;
+  // situation des variables (0,1)
+  unsigned char _situ;
+  // numero du melange
+  int _num_mel;
+  // numero du groupe
+  int _num_grp;
+  // temps
+  double _temps;
+  // nombre de sommets
+  int _nsom;
+  // nombre de faces
+  int _nfac;
+  // nombre de cellules limites
+  int _nflm;
+  int _nflp;
+  // nombre de cellules internes
+  int _nceli;
+  // isomu
+  int* _isomu;
+  // ifacu
+  int* _ifacu;
+  // icelu
+  int* _icelu;
+  // elmin
+  unsigned int _elminx;
+  // nelem
+  unsigned int _nelemx;
+  // parent elements
+  unsigned int* _pe;
+  // nbpoints
+  unsigned char* _nbpoints;
+  // numpoints
+  unsigned int* _numpoints;
+  // imax jmax kmax
+  unsigned short _imax;
+  unsigned short _jmax;
+  unsigned short _kmax;
+  // elmin
+  unsigned short _elmin;
+  // nelem
+  unsigned short _nelem;
+  // comp
+  unsigned char _comp_x;
+  double _vmin_x;
+  double _vmax_x;
+  double* _x;
+  unsigned char _comp_y;
+  double _vmin_y;
+  double _vmax_y;
+  double* _y;
+  unsigned char _comp_z;
+  double _vmin_z;
+  double _vmax_z;
+  double* _z;
+  
+  };
+
+// Verifie si le domaine nd existe dans meshes, sinon le cree
+mesh* checkMesh(int nd, std::map<unsigned int, mesh*>& meshes)
+{
+  std::map<unsigned int,mesh*>::iterator it;
+  it = meshes.find(nd);
+  if (it != meshes.end()) return it->second;
+  else
+  {
+    mesh* m = new mesh; 
+    meshes[nd] = m;
+    return m;
+  }
+}
 
 // Read a block name jusqu'au caractere nul
 void readBlockName(FILE* ptrFile, char* name)
@@ -41,6 +132,7 @@ void readBlockName(FILE* ptrFile, char* name)
   printf("blockname: %s\n", name);
 }
 
+// Lit la version du fichier
 void readVersion(FILE* ptrFile, unsigned char* version)
 {
   int c;
@@ -51,6 +143,7 @@ void readVersion(FILE* ptrFile, unsigned char* version)
   printf("version: %u\n", *version);
 }
 
+// Lit le titre du fichier
 void readTitle(FILE* ptrFile, char* titre, char* date, char* machine, 
                double& tempsZero, double& epsilon)
 {
@@ -80,6 +173,7 @@ void readTitle(FILE* ptrFile, char* titre, char* date, char* machine,
   printf("epsilon: %g\n", epsilon);
 }
 
+// Lit les donnes globales
 void readGlobal(FILE* ptrFile, unsigned char& solverType, unsigned char& dimField)
 {
   fread(&solverType, sizeof(unsigned char), 1, ptrFile);
@@ -88,6 +182,7 @@ void readGlobal(FILE* ptrFile, unsigned char& solverType, unsigned char& dimFiel
   printf("dimField: %u\n", dimField);
 }
 
+// Lit une espece
 void readEspece(FILE* ptrFile, int& numMel, char* nomMel, int& nespeces, char* nomEspece)
 {
   int c;
@@ -111,6 +206,7 @@ void readEspece(FILE* ptrFile, int& numMel, char* nomMel, int& nespeces, char* n
   for (E_Int i = 0; i < nespeces; i++) printf("%d %s\n", i, nomEspece);
 }
 
+// Lit les donnees scalaires
 void readScalar(FILE* ptrFile, int& numGrp, char* nomGrp, int& nelem, 
                 char* nomScalar, unsigned char& typeSca)
 {
@@ -128,6 +224,7 @@ void readScalar(FILE* ptrFile, int& numGrp, char* nomGrp, int& nelem,
   fread(&typeSca, sizeof(unsigned char), 1, ptrFile);
 }
 
+// Lit une unite
 void readUnit(FILE* ptrFile, char* name, char* unit)
 {
   int c;
@@ -143,6 +240,7 @@ void readUnit(FILE* ptrFile, char* name, char* unit)
   printf("unit %s\n", unit);
 }
 
+// Lit les donnees thermo
 void readThermo(FILE* ptrFile, unsigned int& read, char* name,  
   unsigned int& nGe, unsigned int& nGr,
   unsigned int& ne, unsigned int& nr, 
@@ -174,23 +272,27 @@ void readThermo(FILE* ptrFile, unsigned int& read, char* name,
   fread(&dthr, sizeof(double), nr, ptrFile);
 }
  
-void readStructure(FILE* ptrFile, unsigned int& numabs, unsigned int& numuti,
-  char* name, unsigned char& type, unsigned char& situ, int& numMel, int& numGrp)
-{
+// Lit la structure d'un maillage
+void readStructure(FILE* ptrFile, std::map<unsigned int, mesh*>& meshes)
+{  
+  unsigned int nd;
+  fread(&nd, sizeof(unsigned int), 1, ptrFile); nd = UIBE(nd);
+  mesh* m = checkMesh(nd, meshes);
+  
+  fread(&m->_numutil, sizeof(unsigned int), 1, ptrFile); m->_numutil = UIBE(m->_numutil);
+
   int c;
   E_Int i = 0;
-  fread(&numabs, sizeof(unsigned int), 1, ptrFile); numabs = UIBE(numabs);
-  fread(&numuti, sizeof(unsigned int), 1, ptrFile); numuti = UIBE(numuti);
   while ((c = fgetc(ptrFile)) != '\0')
-  { name[i] = c; i++; }
-  name[i] = '\0';
-  fread(&type, sizeof(unsigned char), 1, ptrFile); 
-  fread(&situ, sizeof(unsigned char), 1, ptrFile); 
-  fread(&numMel, sizeof(int), 1, ptrFile); numMel = IBE(numMel);
-  fread(&numGrp, sizeof(int), 1, ptrFile); numGrp = IBE(numGrp);
-  printf("Structure: %u %u\n", numabs, numuti);
-  printf("nom dom: %s\n", name);
-  printf("type : %u, situ = %u\n", type, situ);
+  { m->_nom[i] = c; i++; }
+  m->_nom[i] = '\0';
+  fread(&m->_type, sizeof(unsigned char), 1, ptrFile); 
+  fread(&m->_situ, sizeof(unsigned char), 1, ptrFile); 
+  fread(&m->_num_mel, sizeof(int), 1, ptrFile); m->_num_mel = IBE(m->_num_mel);
+  fread(&m->_num_grp, sizeof(int), 1, ptrFile); m->_num_grp = IBE(m->_num_grp);
+  printf("Structure: %u %u\n", nd, m->_numutil);
+  printf("nom dom: %s\n", m->_nom);
+  printf("type : %u, situ = %u\n", m->_type, m->_situ);
 }
 
 void readDomutil(FILE* ptrFile, unsigned int& numUti, char* nomUti)
@@ -204,30 +306,35 @@ void readDomutil(FILE* ptrFile, unsigned int& numUti, char* nomUti)
   printf("nom du domaine %s\n", nomUti);
 }
 
-void readNumerotation(FILE* ptrFile, unsigned int& numabs, double& temps,
-  int& nsom, int& nfac, int& nflm, int &nflp, int& nceli, int*& isomu,
-  int*& ifacu, int*& icelu)
+void readNumerotation(FILE* ptrFile, std::map<unsigned int, mesh*>& meshes)
 {
-  fread(&numabs, sizeof(unsigned int), 1, ptrFile); numabs = UIBE(numabs);
-  fread(&temps, sizeof(double), 1, ptrFile); temps = DBE(temps);
-  fread(&nsom, sizeof(int), 1, ptrFile); nsom = IBE(nsom);
-  fread(&nfac, sizeof(int), 1, ptrFile); nfac = IBE(nfac);
-  fread(&nflm, sizeof(int), 1, ptrFile); nflm = IBE(nflm);
-  fread(&nflp, sizeof(int), 1, ptrFile); nflp = IBE(nflp);
-  fread(&nceli, sizeof(int), 1, ptrFile); nceli = IBE(nceli);
-  printf("%d %d %d\n", nsom, nfac, nflm);
-  isomu = new int [nsom];
-  fread(isomu, sizeof(int), nsom, ptrFile);
-  for (E_Int i = 0; i < nsom; i++) isomu[i] = IBE(isomu[i]);
-
-  ifacu = new int [nfac];
-  fread(ifacu, sizeof(int), nfac, ptrFile);
-  for (E_Int i = 0; i < nfac; i++) ifacu[i] = IBE(ifacu[i]);
+  unsigned int nd;
+  fread(&nd, sizeof(unsigned int), 1, ptrFile); nd = UIBE(nd);
+  mesh* m = checkMesh(nd, meshes);
   
-  E_Int size = nceli+nflm+nflp;
-  icelu = new int [size];
-  fread(icelu, sizeof(int), size, ptrFile);
-  for (E_Int i = 0; i < size; i++) icelu[i] = IBE(icelu[i]);
+  fread(&m->_temps, sizeof(double), 1, ptrFile); m->_temps = DBE(m->_temps);
+  
+  fread(&m->_nsom, sizeof(int), 1, ptrFile); m->_nsom = IBE(m->_nsom);
+  fread(&m->_nfac, sizeof(int), 1, ptrFile); m->_nfac = IBE(m->_nfac);
+  fread(&m->_nflm, sizeof(int), 1, ptrFile); m->_nflm = IBE(m->_nflm);
+  fread(&m->_nflp, sizeof(int), 1, ptrFile); m->_nflp = IBE(m->_nflp);
+  fread(&m->_nceli, sizeof(int), 1, ptrFile); m->_nceli = IBE(m->_nceli);
+  printf("%d %d %d\n", m->_nsom, m->_nfac, m->_nflm);
+  m->_isomu = new int [m->_nsom];
+  fread(m->_isomu, sizeof(int), m->_nsom, ptrFile);
+  int* pt = m->_isomu;
+  for (E_Int i = 0; i < m->_nsom; i++) pt[i] = IBE(pt[i]);
+
+  m->_ifacu = new int [m->_nfac];
+  fread(m->_ifacu, sizeof(int), m->_nfac, ptrFile);
+  pt = m->_ifacu;
+  for (E_Int i = 0; i < m->_nfac; i++) pt[i] = IBE(pt[i]);
+  
+  E_Int size = m->_nceli+m->_nflm+m->_nflp;
+  m->_icelu = new int [size];
+  fread(m->_icelu, sizeof(int), size, ptrFile);
+  pt = m->_icelu;
+  for (E_Int i = 0; i < size; i++) pt[i] = IBE(pt[i]);
 }
 
 void readVariables(FILE* ptrFile, unsigned int& numUti, unsigned int& nvar, char* nomVar,
@@ -239,53 +346,136 @@ void readVariables(FILE* ptrFile, unsigned int& numUti, unsigned int& nvar, char
   
 }
 
-void readConnexion(FILE* ptrFile, unsigned int& nd, double& temps, unsigned int& elmin,
-  unsigned int& nelem, unsigned int*& num, unsigned char* nbpoints, unsigned int*& numpoints)
+void readConnexion(FILE* ptrFile, std::map<unsigned int, mesh*>& meshes)
 {
+  unsigned int nd;
   fread(&nd, sizeof(unsigned int), 1, ptrFile); nd = UIBE(nd);
-  fread(&temps, sizeof(double), 1, ptrFile); temps = DBE(temps);
-  fread(&elmin, sizeof(unsigned int), 1, ptrFile); elmin = UIBE(elmin);
-  fread(&nelem, sizeof(unsigned int), 1, ptrFile); nelem = UIBE(nelem);
+  mesh* m = checkMesh(nd, meshes);
   
-  E_Int size = 2*nelem;
-  num = new unsigned int [size];
-  fread(num, sizeof(unsigned int), size, ptrFile);
-  for (E_Int i = 0; i < size; i++) num[i] = UIBE(num[i]);
+  fread(&m->_temps, sizeof(double), 1, ptrFile); m->_temps = DBE(m->_temps);
+  fread(&m->_elminx, sizeof(unsigned int), 1, ptrFile); m->_elminx = UIBE(m->_elminx);
+  fread(&m->_nelemx, sizeof(unsigned int), 1, ptrFile); m->_nelemx = UIBE(m->_nelemx);
   
-  nbpoints = new unsigned char [nelem];
-  fread(nbpoints, sizeof(unsigned char), nelem, ptrFile);
+  E_Int size = 2*m->_nelemx;
+  m->_pe = new unsigned int [size];
+  fread(m->_pe, sizeof(unsigned int), size, ptrFile);
+  for (E_Int i = 0; i < size; i++) m->_pe[i] = UIBE(m->_pe[i]);
+  
+  m->_nbpoints = new unsigned char [m->_nelemx];
+  fread(m->_nbpoints, sizeof(unsigned char), m->_nelemx, ptrFile);
   
   E_Int nbPointsTot = 0;
-  for (size_t i = 0; i < nelem; i++) nbPointsTot += (E_Int)nbpoints[i];
+  for (size_t i = 0; i < m->_nelemx; i++) nbPointsTot += (E_Int)m->_nbpoints[i];
     
   size = nbPointsTot;
-  numpoints = new unsigned int [size];
-  fread(numpoints, sizeof(unsigned int), size, ptrFile);
-  for (E_Int i = 0; i < size; i++) numpoints[i] = UIBE(numpoints[i]);
-  
+  m->_numpoints = new unsigned int [size];
+  fread(m->_numpoints, sizeof(unsigned int), size, ptrFile);
+  for (E_Int i = 0; i < size; i++) m->_numpoints[i] = UIBE(m->_numpoints[i]);
 }
 
 // Lit un maillage structure
-void readMaillage0(FILE* ptrFile, unsigned int& nd, double& temps, 
-  unsigned short& imax, unsigned short& jmax, unsigned short& kmax,
-  unsigned char* comp_x, double* vmin_x, double& vmax_x, double** x,
-  unsigned char* comp_y, double* vmin_y, double& vmax_y, double** y,
-  unsigned char* comp_z, double* vmin_z, double& vmax_z, double** z)
+void readMaillage0(FILE* ptrFile, mesh* m)
 {
-  /*
-  fread(&nd, sizeof(unsigned int), 1, ptrFile); nd = UIBE(nd);
-  fread(&temps, sizeof(double), 1, ptrFile); temps = DBE(temps);
-  fread(&imax, sizeof(unsigned short), 1, ptrFile); 
-  fread(&jmax, sizeof(unsigned short), 1, ptrFile); 
-  fread(&kmax, sizeof(unsigned short), 1 ptrFile); 
-  fread(&comp_x, sizeof(unsigned short), 1 ptrFile); 
-  */
+  fread(&m->_temps, sizeof(double), 1, ptrFile); m->_temps = DBE(m->_temps);
+  fread(&m->_imax, sizeof(unsigned short), 1, ptrFile); 
+  fread(&m->_jmax, sizeof(unsigned short), 1, ptrFile); 
+  fread(&m->_kmax, sizeof(unsigned short), 1, ptrFile);
+  fread(&m->_comp_x, sizeof(unsigned short), 1, ptrFile); 
+  if (m->_comp_x != 0)
+  {
+    fread(&m->_vmin_x, sizeof(double), 1, ptrFile); m->_vmin_x = DBE(m->_vmin_x);
+  }
+  if (m->_comp_x != 0 && m->_comp_x != 4)
+  {
+    fread(&m->_vmax_x, sizeof(double), 1, ptrFile); m->_vmax_x = DBE(m->_vmax_x);
+  }
+  m->_x = new double [m->_imax*m->_jmax*m->_kmax];
+  fread(m->_x, sizeof(double), m->_imax*m->_jmax*m->_kmax, ptrFile);
+  for (E_Int i=0; i < m->_imax*m->_jmax*m->_kmax; i++) m->_x[i] = DBE(m->_x[i]); 
+
+  fread(&m->_comp_y, sizeof(unsigned short), 1, ptrFile); 
+  if (m->_comp_y != 0)
+  {
+    fread(&m->_vmin_y, sizeof(double), 1, ptrFile); m->_vmin_y = DBE(m->_vmin_y);
+  }
+  if (m->_comp_y != 0 && m->_comp_y != 4)
+  {
+    fread(&m->_vmax_y, sizeof(double), 1, ptrFile); m->_vmax_y = DBE(m->_vmax_y);
+  }
+  m->_y = new double [m->_imax*m->_jmax*m->_kmax];
+  fread(m->_y, sizeof(double), m->_imax*m->_jmax*m->_kmax, ptrFile);
+  for (E_Int i=0; i < m->_imax*m->_jmax*m->_kmax; i++) m->_y[i] = DBE(m->_y[i]); 
+
+  fread(&m->_comp_z, sizeof(unsigned short), 1, ptrFile);
+  if (m->_comp_z != 0)
+  {
+    fread(&m->_vmin_z, sizeof(double), 1, ptrFile); m->_vmin_z = DBE(m->_vmin_z);
+  }
+  if (m->_comp_z != 0 && m->_comp_z != 4)
+  {
+    fread(&m->_vmax_z, sizeof(double), 1, ptrFile); m->_vmax_z = DBE(m->_vmax_z);
+  }
+  m->_z = new double [m->_imax*m->_jmax*m->_kmax];
+  fread(m->_z, sizeof(double), m->_imax*m->_jmax*m->_kmax, ptrFile);
+  for (E_Int i=0; i < m->_imax*m->_jmax*m->_kmax; i++) m->_z[i] = DBE(m->_z[i]); 
 }
 
 // Lit un maillage non structure
-void readMaillage1(FILE* ptrFile, unsigned int& nd)
+void readMaillage1(FILE* ptrFile, mesh* m)
 {
+  fread(&m->_temps, sizeof(double), 1, ptrFile); m->_temps = DBE(m->_temps);
+  fread(&m->_elmin, sizeof(unsigned short), 1, ptrFile); 
+  fread(&m->_nelem, sizeof(unsigned short), 1, ptrFile);
+  fread(&m->_comp_x, sizeof(unsigned short), 1, ptrFile); 
+  if (m->_comp_x != 0)
+  {
+    fread(&m->_vmin_x, sizeof(double), 1, ptrFile); m->_vmin_x = DBE(m->_vmin_x);
+  }
+  if (m->_comp_x != 0 && m->_comp_x != 4)
+  {
+    fread(&m->_vmax_x, sizeof(double), 1, ptrFile); m->_vmax_x = DBE(m->_vmax_x);
+  }
+  m->_x = new double [m->_nelem];
+  fread(m->_x, sizeof(double), m->_nelem, ptrFile);
+  for (E_Int i=0; i < m->_nelem; i++) m->_x[i] = DBE(m->_x[i]); 
     
+  fread(&m->_comp_y, sizeof(unsigned short), 1, ptrFile); 
+  if (m->_comp_y != 0)
+  {
+    fread(&m->_vmin_y, sizeof(double), 1, ptrFile); m->_vmin_y = DBE(m->_vmin_y);
+  }
+  if (m->_comp_y != 0 && m->_comp_y != 4)
+  {
+    fread(&m->_vmax_y, sizeof(double), 1, ptrFile); m->_vmax_y = DBE(m->_vmax_y);
+  }
+  m->_y = new double [m->_nelem];
+  fread(m->_y, sizeof(double), m->_nelem, ptrFile);
+  for (E_Int i=0; i < m->_nelem; i++) m->_y[i] = DBE(m->_y[i]); 
+
+  fread(&m->_comp_z, sizeof(unsigned short), 1, ptrFile); 
+  if (m->_comp_z != 0)
+  {
+    fread(&m->_vmin_z, sizeof(double), 1, ptrFile); m->_vmin_z = DBE(m->_vmin_z);
+  }
+  if (m->_comp_z != 0 && m->_comp_z != 4)
+  {
+    fread(&m->_vmax_z, sizeof(double), 1, ptrFile); m->_vmax_z = DBE(m->_vmax_z);
+  }
+  m->_z = new double [m->_nelem];
+  fread(m->_z, sizeof(double), m->_nelem, ptrFile);
+  for (E_Int i=0; i < m->_nelem; i++) m->_z[i] = DBE(m->_z[i]); 
+  
+}
+
+// Lecture generale de maillage
+void readMaillage(FILE* ptrFile, std::map<unsigned int, mesh*>& meshes)
+{
+  unsigned int nd;
+  fread(&nd, sizeof(unsigned int), 1, ptrFile); nd = UIBE(nd);
+  mesh* m = checkMesh(nd, meshes);
+  printf("reading type %d for mesh %d\n", m->_type, nd);
+  if (m->_type == 0) readMaillage0(ptrFile, m);
+  else readMaillage1(ptrFile, m);
 }
 
 //=============================================================================
@@ -354,30 +544,18 @@ E_Int K_IO::GenIO::arcread(
   char unit[256];
   unsigned int read;
   unsigned int numUti;
-  unsigned int numabs;
-  unsigned int numuti;
-  unsigned char type;
-  unsigned char situ;
   unsigned int nGe, nGr, ne, nr;
   unsigned int* dthGe=NULL;
   unsigned int *dthGr=NULL;
   unsigned int *dthe=NULL;
   double *dthr=NULL;
-  double temps;
-  int nsom;
-  int nfac;
-  int nflm;
-  int nflp;
-  int nceli;
-  int* isomu = NULL;
-  int* ifacu = NULL;
-  int* icelu = NULL;
-  unsigned int nd;
-  unsigned int elmin;
-  unsigned int nelems;
-  unsigned int* num = NULL;
-  unsigned char* nbpoints = NULL;
-  unsigned int* numpoints = NULL;
+  int* isomu=NULL;
+  int* ifacu=NULL;
+  int* icelu=NULL;
+  unsigned int* num=NULL;
+  unsigned char* nbpoints=NULL;
+  unsigned int* numpoints=NULL;
+  std::map<unsigned int, mesh*> meshes;
   
   readBlockName(ptrFile, name);
   readVersion(ptrFile, &version);
@@ -394,10 +572,10 @@ E_Int K_IO::GenIO::arcread(
     else if (strcmp(name, "UNITE") == 0) readUnit(ptrFile, unitName, unit);
     else if (strcmp(name, "THERMODYNAMIQUE") == 0) readThermo(ptrFile, read, fileName, nGe, nGr, ne, nr, dthGe, dthGr, dthe, dthr);
     else if (strcmp(name, "DOMUTIL") == 0) readDomutil(ptrFile, numUti, nomUti);
-    else if (strcmp(name, "STRUCTURE") == 0) readStructure(ptrFile, numabs, numuti, name, type, situ, numMel, numGrp);
-    else if (strcmp(name, "NUMEROTATION") == 0) readNumerotation(ptrFile, numabs, temps, nsom, nfac, nflm, nflp, nceli, isomu, ifacu, icelu);
-    else if (strcmp(name, "CONNEXION") == 0) readConnexion(ptrFile, nd, temps, elmin, nelems, num, nbpoints, numpoints);
-
+    else if (strcmp(name, "STRUCTURE") == 0) readStructure(ptrFile, meshes);
+    else if (strcmp(name, "NUMEROTATION") == 0) readNumerotation(ptrFile, meshes);
+    else if (strcmp(name, "CONNEXION") == 0) readConnexion(ptrFile, meshes);
+    else if (strcmp(name, "MAILLAGE") == 0) readMaillage(ptrFile, meshes);
     else { printf("Block pas encore implemente: %s\n", name); break; }
   }
   delete [] dthGe; delete [] dthGr; delete [] dthe; delete [] dthr;

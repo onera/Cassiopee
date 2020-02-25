@@ -88,8 +88,8 @@ E_Int K_IO::GenIO::tecCheckEndian(char* file)
   Return -2 if format is not recognised.
   Return 0 if the endian are the same and integers are i4.
   Return 1 if the endian are the same and integers are i8.
-  Return 2 if the endian are different and intgers are i4.
-  Return 3 if the endian are different and intgers are i8.
+  Return 2 if the endian are different and integers are i4.
+  Return 3 if the endian are different and integers are i8.
 */
 //=============================================================================
 E_Int K_IO::GenIO::v3dCheckEndian(char* file)
@@ -120,6 +120,8 @@ E_Int K_IO::GenIO::v3dCheckEndian(char* file)
   else
   {
     rb = IBE(ib);
+    _convertEndian = true;
+    _intLength = rb;
     if (rb == 4) return 2;
     else if (rb == 8) return 3;
     else return -2;

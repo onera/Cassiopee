@@ -926,7 +926,7 @@ def hackCenters(a):
   ncenterFields = 0
   varStringN = ''; varStringC = ''
   for n in range(nfield):
-    if np[n, size-1].astype(str) == '-999.0': # sentinelle for centers
+    if np[n, size-1] == -1.79769e+308: # sentinelle for centers
       ncenterFields += 1; varStringC += varString[n]+','
     else: varStringN += varString[n]+','
   if len(varStringC)>0: varStringC = varStringC[:-1]
@@ -943,7 +943,7 @@ def hackCenters(a):
     
   nn = 0; nc = 0
   for n in range(nfield):
-    if np[n, size-1].astype(str) == '-999.0': # sentinelle for centers
+    if np[n, size-1] == -1.79769e+308: # sentinelle for centers
       a2[1][nc,0:nelts] = np[n,0:nelts]; nc += 1
     else:
       a1[1][nn,0:npts] = np[n,0:npts]; nn += 1

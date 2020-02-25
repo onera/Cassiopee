@@ -17,6 +17,8 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// fieldview format (not usable)
+
 // ecriture_bin_fv : ecrit un champ structuré au format binaire fieldview
 // entrées: 
 //    - nom_fichier : le nom générique du fichier de sortie (il sera suivi de .xyz.bin_fv pour le maillage, .aero.bin_fv pour le champ aéro,

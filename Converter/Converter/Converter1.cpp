@@ -233,13 +233,6 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
                                               im, jm, km, 
                                               ufield, c, et, zoneNames);
   }
-  else if (K_STRING::cmp(fileFmt, "fmt_iges") == 0)
-  {
-    // Formatted IGES read
-    ret = K_IO::GenIO::getInstance()->igesread(fileName, varString, field, 
-                                               im, jm, km, 
-                                               ufield, c, et, zoneNames);
-  }
   else if (K_STRING::cmp(fileFmt, "bin_png") == 0)
   {
     // Binary PNG read
@@ -273,14 +266,6 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
     ret = K_IO::GenIO::getInstance()->arcread(fileName, varString, field, 
                                               im, jm, km, 
                                               ufield, c, et, zoneNames);
-  }
-  else if (K_STRING::cmp(fileFmt, "fmt_tgf") == 0)
-  {
-    // Formatted tgf read
-    ret = K_IO::GenIO::getInstance()->tgfread(fileName, varString, field, 
-                                              im, jm, km, 
-                                              ufield, c, et, zoneNames,
-                                              BCFaces, BCNames);
   }
   else
   {
@@ -822,13 +807,11 @@ E_Int K_CONVERTER::checkRecognisedFormat(char* fileFmt)
       K_STRING::cmp(fileFmt, "fmt_svg") == 0 ||
       K_STRING::cmp(fileFmt, "fmt_obj") == 0 ||
       K_STRING::cmp(fileFmt, "fmt_gts") == 0 ||
-      K_STRING::cmp(fileFmt, "fmt_iges") == 0 ||
       K_STRING::cmp(fileFmt, "bin_png") == 0 ||
       K_STRING::cmp(fileFmt, "bin_3ds") == 0 ||
       K_STRING::cmp(fileFmt, "bin_ply") == 0 ||
       K_STRING::cmp(fileFmt, "fmt_cedre") == 0 ||
       K_STRING::cmp(fileFmt, "bin_arc") == 0 ||
-      K_STRING::cmp(fileFmt, "fmt_tgf") == 0 ||
       K_STRING::cmp(fileFmt, "fmt_su2") == 0)
   {
     return 1;

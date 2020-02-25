@@ -543,17 +543,6 @@ class GenIO
       std::vector<char*>& zoneNames);
     ///-
 
-    ///+ IGES functions
-    /** iges read */
-    E_Int igesread(
-      char* file, char*& varString,
-      std::vector<FldArrayF*>& structField,
-      std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
-      std::vector<FldArrayF*>& unstructField,
-      std::vector<FldArrayI*>& connectivity,
-      std::vector<E_Int>& eltType, std::vector<char*>& zoneNames);
-    ///-
-
     ///+ CEDRE functions
     /** cedre read */
     E_Int cedreread(
@@ -597,30 +586,6 @@ class GenIO
       std::vector<FldArrayI*>& connect,
       std::vector<E_Int>& eltType,
       std::vector<char*>& zoneNames);
-    ///-
-
-    ///+ TGF functions (Ansys - TGRID)
-    /** tgf read */
-    E_Int tgfread(
-      char* file, char*& varString,
-      std::vector<FldArrayF*>& structField,
-      std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
-      std::vector<FldArrayF*>& unstructField,
-      std::vector<FldArrayI*>& connectivity,
-      std::vector<E_Int>& eltType, std::vector<char*>& zoneNames,
-      std::vector<FldArrayI*>& BCFaces,
-      std::vector<char*>& BCNames);
-
-    /** tgf write */
-    E_Int tgfwrite(
-      char* file, char* dataFmt, char* varString,
-      std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
-      std::vector <FldArrayF*>& structField,
-      std::vector<FldArrayF*>& unstructField,
-      std::vector<FldArrayI*>& connect,
-      std::vector<E_Int>& eltType,
-      std::vector<char*>& zoneNames,
-      PyObject* BCFaces);
     ///-
 
     ///+ ADF functions

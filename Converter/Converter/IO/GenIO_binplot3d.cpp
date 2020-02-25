@@ -425,7 +425,7 @@ E_Int K_IO::GenIO::xyzread(
           ptrFile, _convertEndian, si, si2);
   if (s != _intLength*3*nzones) // sep : nombre de zones * 3 * taille int
   {
-    printf("Warning : binary file corrupted.\n");
+    printf("Warning: binary file corrupted.\n");
     fclose(ptrFile);
     return 1;
   }

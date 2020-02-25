@@ -19,7 +19,8 @@
 
 // Binary tecplot v108 file support
 
-#define SENTINELLE -999.
+//#define SENTINELLE *(double*)&0xffefffffffffffff
+#define SENTINELLE -1.79769e+308
 
 # include "GenIO.h"
 # include <stdio.h>
