@@ -912,7 +912,7 @@ Conformizer<DIM, Element_t>::__compute_intersections_brute
       NUGA::ConformizerRoot::xtest_counter++;
 #endif
 
-      bool x = this->__intersect(pos, connect, e1, e2, tolerance); // intersection test and trace storage
+      E_Int x = this->__intersect(pos, connect, e1, e2, tolerance); // intersection test and trace storage
 
       if (x)
       {
