@@ -624,7 +624,7 @@ def compIsoMin(event=None):
     try:
         varmin = C.getMinValue(zones, var)
         VARS[9].set(str(varmin))
-        VARS[30].set(str(varmin))
+        #VARS[30].set(str(varmin))
         delta = max(VARMAX-VARMIN, 1.e-12)
         s = 100*(varmin-VARMIN)/delta
         WIDGETS['min'].set(s)
@@ -654,7 +654,7 @@ def compIsoMax(event=None):
     try:
         varmax = C.getMaxValue(zones, var)
         VARS[10].set(str(varmax))
-        VARS[31].set(str(varmax))
+        #VARS[31].set(str(varmax))
         delta = max(VARMAX-VARMIN, 1.e-12)
         s = 100*(varmax-VARMIN)/delta
         WIDGETS['max'].set(s)
@@ -954,9 +954,9 @@ def createApp(win):
     # -29- vector projection of arrow on surface
     V = TK.StringVar(win); V.set('0'); VARS.append(V)
     # -30- cutOffMin for iso values
-    V = TK.StringVar(win); V.set('-1.e38'); VARS.append(V)
+    V = TK.StringVar(win); V.set('-1.7e308'); VARS.append(V)
     # -31- cutOffMax for iso values
-    V = TK.StringVar(win); V.set('1.e38'); VARS.append(V)
+    V = TK.StringVar(win); V.set('1.7e308'); VARS.append(V)
     
     # - Dimension '2D ou 3D'
     B = TTK.OptionMenu(Frame, VARS[8], '3D', '2D',

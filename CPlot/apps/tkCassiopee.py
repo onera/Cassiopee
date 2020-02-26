@@ -250,7 +250,11 @@ def run(t=None):
         Panels.displayErrors(errors, header='Checking pyTree')
         CTK.t = Internal.correctPyTree(CTK.t, level=5)
         CTK.display(CTK.t)
-        CTK.TKTREE.updateApp()
+    
+    # - Update apps -    
+    CTK.TKTREE.updateApp()
+    if 'tkContainers' in CTK.TKMODULES: CTK.TKMODULES['tkContainers'].updateApp()
+    if CTK.TKPLOTXY is not None: CTK.TKPLOTXY.updateApp()
         
     # - open load panel if partial load -
     if CTK.t != []:

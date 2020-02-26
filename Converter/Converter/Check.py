@@ -446,15 +446,16 @@ def checkBCRanges(t, ntype):
                         r[1] = numpy.reshape(r[1], (3,2), order='F')
                     if r[1].shape == (3,2):
                         win = Internal.range2Window(r[1])
-                    else: win = [0,0,0,0,0,0] # pas de check en non structure
+                    else: win = None # pas de check en non structure
                     # Check structure uniquement pour l'instant
                     error = 0
-                    if win[0] < 0 or win[0] > dim[1]: error = 1
-                    if win[1] < 0 or win[1] > dim[1]: error = 1
-                    if win[2] < 0 or win[2] > dim[2]: error = 1
-                    if win[3] < 0 or win[3] > dim[2]: error = 1
-                    if win[4] < 0 or win[4] > dim[3]: error = 1
-                    if win[5] < 0 or win[5] > dim[3]: error = 1
+                    if win is not None:
+                        if win[0] < 0 or win[0] > dim[1]: error = 1
+                        if win[1] < 0 or win[1] > dim[1]: error = 1
+                        if win[2] < 0 or win[2] > dim[2]: error = 1
+                        if win[3] < 0 or win[3] > dim[2]: error = 1
+                        if win[4] < 0 or win[4] > dim[3]: error = 1
+                        if win[5] < 0 or win[5] > dim[3]: error = 1
                     
                     if error == 1:
                         errors += [n, bc, "Range of BC %s is invalid for zone %s."%(n[0],z[0])]

@@ -526,7 +526,6 @@ def loadFile(event=None):
     if files == '' or files is None or files == (): # user cancel
         return
     files = fixFileString__(files, FILE)
-
     try:
         FILE = files[0]
         t = []
@@ -638,6 +637,7 @@ def quickReloadFile(event=None):
     t = upgradeTree(t)
     (Nb, Nz) = CPlot.updateCPlotNumbering(t); TKTREE.updateApp()
     if 'tkContainers' in TKMODULES: TKMODULES['tkContainers'].updateApp()
+    if TKPLOTXY is not None: TKPLOTXY.updateApp()
     Panels.updateRenderPanel()
     fileName = os.path.split(FILE)[1]
     filePath = os.path.split(FILE)[0]
@@ -663,7 +663,7 @@ def saveSelFile():
     try: import tkFileDialog
     except: import tkinter.filedialog as tkFileDialog
     ret = tkFileDialog.asksaveasfilename(filetypes=fileTypes)
-    if (ret == '' or ret is None or ret == ()): # user cancel
+    if ret == '' or ret is None or ret == (): # user cancel
         return
 
     base1 = []; base2 = []; base3 = []

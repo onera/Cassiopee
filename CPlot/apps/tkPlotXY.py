@@ -142,6 +142,23 @@ markerlist = [marker_dic[k] for k in markername]
 
 linestylelist = ['solid', 'dashed', 'dashdot', 'dotted', 'None']
 
+font_stylelist = ['normal','italic','oblique']
+font_weightlist = [ 'ultralight', 'light', 'normal', 'regular', 'book', 'median',
+                    'roman', 'semibold', 'demibold', 'demi', 'bold', 'heavy', 'extra bold', 'black' ]
+horizontalalignmentlist = ['center','right','left']
+verticalalignmentlist = ['center','top','bottom','baseline','center_baseline']
+
+# arrow_arrowstylelist = ['butt','round','projecting']
+# arrow_arrowstylelist = ['-','->','-[','-|>','<-','<->','<|-','<|-|>',']-',']-[','fancy','simple','wedge','|-|']
+arrow_arrowstylelist = ['Curve','CurveA','CurveB','CurveAB','CurveFilledA','CurveFilledB','CurveFilledAB','Fancy','Simple']
+bracket_bracketstylelist = ['BracketA','BracketB','BracketAB']
+hatchlist = ['none','/','//','///','\\','\\\\','|','||','|||','-','--','---','+','++','+++','x','xx','xxx','o','oo','ooo','O','OO','OOO','.','..','...','*','**','***']
+
+font_typelist = ['serif','sans-serif','cursive','fantasy','monospace']
+
+# Create the list of shapes available for bbox
+shape_typelist = ['Circle','Rectangle','Ellipse','Arrow','Bracket','FancyBbox','Line']
+
 t = np.arange(0., 5., 0.002)
 
 data = {
@@ -154,6 +171,57 @@ data = {
 # ==============================================================================
 # ==============================================================================
 default_values = {
+'Shape':
+        {
+            'shape_type'                : 'Arrow',
+            'points'                    : [(0.17,0.17),(0.5,0.3)],
+            'arrowstyle'                : 'Curve',
+            'bracketstyle'              : 'BracketA',
+            'head_length'               : 0.4,
+            'head_width'                : 0.2,
+            'tail_width'                : 0.2,
+            'scale'                     : 100.,
+            'linewidth'                 : 1.,
+            'edgecolor'                 : '#000000',
+            'facecolor'                 : '#ffffff',
+            'hatch'                     : 'none',
+            'radius'                    : 0.1,
+            'linestyle'                 : 'solid',
+            'height'                    : 0.1,
+            'width'                     : 0.1,
+            'angle'                     : 0.,
+            'linecolor'                 : '#000000',
+            'alpha'                     : 1.,
+            'widthA'                    : 0.1,
+            'lengthA'                   : 0.1,
+            'angleA'                    : 0.,
+            'widthB'                    : 0.1,
+            'lengthB'                   : 0.1,
+            'angleB'                    : 0.,
+        },
+'Text':
+        {
+            'text'                : "",
+            'visibility'          : True,
+            'text_size'          : 8.,
+            'text_alpha'          : 1.,
+            'box_alpha'           : 1.,
+            'box_backgroundcolor' : '#FFFFFF',
+            'box_edgecolor'       : '#FFFFFF',
+            'box_linewidth'       : 3.,
+            'box_style'           : 'round4',
+            'active_background'   : True,
+            'text_color'          : '#000000',
+            'use_tex'             : False,
+            'rotation'            : 0.,
+            'posx'                : 0.,
+            'posy'                : 0.,
+            'ha'                  : 'center',
+            'va'                  : 'center',
+            'font_style'          : 'normal',
+            'font_weight'         : 'normal',
+            'font_type'           : 'serif'
+        },
 'Graph':
         {
             'image_background_color':'#FFFFFF', #White
@@ -262,6 +330,6111 @@ default_values = {
                     'wpad'  : None
                 }
 }
+
+def createFonts():
+    from io import BytesIO, TextIOWrapper
+    from sys import stderr
+    try: from contextlib import redirect_stderr
+    except ImportError: redirect_stderr = None
+    from matplotlib import font_manager
+    
+    # voir: https://matplotlib.org/gallery/api/font_family_rc_sgskip.html
+    font_dic = {}
+    if redirect_stderr:
+        def createListOfFonts(font_type):
+            l_font = []
+            with TextIOWrapper(BytesIO(), stderr.encoding) as buf:
+                with redirect_stderr(buf):
+                    # testage()  # the function defined at the start
+                    buf.seek(0)
+                    prev_pos = 0
+                    for font in plt.rcParams[font_type]:
+                        # Currently, font.sans-serif is poorely accessible by the font_manager, needs sometimes to add an extra \ before the -
+                        if font == 'sans-serif': font = 'sans\-serif'
+                        font_manager.findfont(font_manager.FontProperties(family=font))
+                        s = buf.read()
+                        new_pos = buf.tell()
+                        if new_pos == prev_pos:
+                            if font == 'sans\-serif': font = 'sans-serif'
+                            l_font.append(font)
+                        prev_pos = new_pos
+            return l_font
+        
+        init_rcparams = plt.rcParams['font.family']
+        for font_type in ['serif','sans-serif','cursive','fantasy','monospace']:
+            plt.rcParams['font.family']=['font.%s'%font_type]
+            l_font = createListOfFonts('font.%s'%font_type)
+            if l_font: font_dic[font_type] = l_font
+        plt.rcParams['font.family']=init_rcparams
+    else:
+        import sys
+        import StringIO
+
+        init_rcparams = plt.rcParams['font.family']
+        # 1/- Make a copy of sys.stderr.
+        stdout_store = sys.stdout
+        stderr_store = sys.stderr
+        # 2/- Open some StringIO variable (may already be done)
+        temp_out = StringIO.StringIO()
+        temp_err = StringIO.StringIO()
+        # 3/- Assign variable to sys.stderr
+        sys.stdout = temp_out
+        sys.stderr = temp_err
+        # 4/- All writes to stderr will now go to the new file.
+        for font_type in ['serif','sans-serif','cursive','fantasy','monospace']:
+            ft = 'font.%s'%font_type
+            plt.rcParams['font.family']=[ft]
+            l_font = []
+            for font in plt.rcParams[ft]:
+                temp_err.seek(0)
+                temp_err.truncate(0)
+                if font == 'sans-serif':
+                    font = 'sans\-serif'
+                font_manager.findfont(font_manager.FontProperties(family=font))
+                value = temp_err.getvalue()
+                if value=='':
+                    if font == 'sans\-serif':
+                        font = 'sans-serif'
+                    l_font.append(font)
+            if l_font: font_dic[font_type] = l_font
+        # 5/- Copy your saved original version of sys.stderr back to return to old behavior
+        sys.stdout = sys.__stdout__
+        sys.stderr = sys.__stderr__
+        temp_out.close()
+        temp_err.close()
+        plt.rcParams['font.family']=init_rcparams
+
+# ==============================================================================
+class editTextWindow(TK.Toplevel):
+    # --------------------------------------------------------------------- init
+    def __init__(self):
+        TK.Toplevel.__init__(self)
+        self.title('Edit  texts')
+        self.protocol("WM_DELETE_WINDOW",self.cmd_close)
+        #
+        self.list_dialog = None
+        self.input_dialog = None
+        #
+        self.frameList = {}
+    # --------------------------------------------------------------- initialize
+    def initialize(self,parent):
+        self.parent = parent
+        #
+        self.graph = self.parent.activeGraph.val
+
+        self.zone  = self.parent.position.val
+        try:
+            self.subGraph = self.parent.graphWdwL[self.graph].fig.subGraph[self.zone]
+        except TypeError: # Exit if no graph & zone available
+            self.cmd_close()
+            return
+#        except IndexError: # Error while closing window ...
+#            return
+        #
+        self.grid_columnconfigure(0,weight=1)
+        self.grid_rowconfigure(0,weight=1)
+        #
+        self.labelView = [True,True,False,False,False]
+        self.frame = None
+        self.createFrame()
+    # -------------------------------------------------------------- expandLblFrame
+    def expandLblFrame(self,event):
+        widget = event.widget
+        self.labelView[widget.id]= not self.labelView[widget.id]
+        widget.display = self.labelView[widget.id]
+        if widget.display:
+            widget.frame.grid(row=0,column=0,sticky='NSEW')
+            title = widget.title + "v "
+        else:
+            widget.frame.grid_forget()
+            title = widget.title + "> "
+        widget.config(text=title)
+        self.geometry("")
+    # ------------------------------------------------------------- reloadWindow
+    def reloadWindow(self):
+        self.frame.destroy()
+        self.createFrame()
+    # ----------------------------------------------------------- closeAllDialog
+    def closeAllDialog(self):
+        if self.list_dialog:
+            self.list_dialog.cmd_close()
+            self.list_dialog = None
+        if self.input_dialog:
+            self.input_dialog.cmd_close()
+            self.input_dialog = None
+    # -------------------------------------------------------------- createFrame
+    def createFrame(self):
+        self.geometry("")
+        self.grid_columnconfigure(0,weight=1)
+        self.grid_rowconfigure(0,weight=1)
+        # Load colormap
+        cm = plt.get_cmap(COLOR_MAP)
+        # Close all opened dialog windows
+        self.closeAllDialog()
+        #
+        self.frame = TTK.Frame(self)
+
+        self.frame.grid(row=0,column=0,sticky='NESW')
+        #
+        if self.labelView[0]:
+            self.frame.grid_columnconfigure(0,weight=3)
+        else:
+            self.frame.grid_columnconfigure(0,weight=1)
+
+        if self.labelView[1]:
+            self.frame.grid_columnconfigure(1,weight=3)
+        else:
+            self.frame.grid_columnconfigure(1,weight=1)
+
+        if self.labelView[2]:
+            self.frame.grid_columnconfigure(2,weight=6)
+        else:
+            self.frame.grid_columnconfigure(2,weight=1)
+
+        if self.labelView[3]:
+            self.frame.grid_columnconfigure(3,weight=5)
+        else:
+            self.frame.grid_columnconfigure(3,weight=1)
+
+        if self.labelView[4]:
+            self.frame.grid_columnconfigure(4,weight=6)
+        else:
+            self.frame.grid_columnconfigure(4,weight=1)
+
+        #
+        self.frame.grid_rowconfigure(0,weight=1)
+        self.frame.grid_rowconfigure(1,weight=0)
+        #
+        lblframelvl1=[]
+        #
+        ########################################################################
+        ####################
+        ######################### Manip
+        ####################
+        ########################################################################
+        lblframeManip = TTK.LabelFrame(self.frame, text = "Manip.")
+        lblframeManip.grid(row=0,column=0,sticky='NSEW')
+        lblframeManip.grid_rowconfigure(0,weight=1)
+        lblframeManip.grid_columnconfigure(0,weight=1)
+        lblframeManip.id=0
+        lblframeManip.display =self.labelView[lblframeManip.id]
+        lblframeManip.title = "Manip. "
+        if lblframeManip.display:
+            title = lblframeManip.title + "v "
+        else:
+            title = lblframeManip.title + "> "
+        lblframeManip.config(text=title)
+        #
+        lblframeManip.bind("<Button-1>",self.expandLblFrame)
+        #
+        frameManip = TTK.Frame(lblframeManip)
+        frameManip.grid(row=0,column=0,sticky='NSEW')
+        if not lblframeManip.display:
+            frameManip.grid_forget()
+        frameManip.grid_columnconfigure(0,weight=1)
+        frameManip.grid_columnconfigure(1,weight=1)
+        frameManip.grid_columnconfigure(2,weight=1)
+        frameManip.grid_rowconfigure(0,weight=1)
+        #
+        lblframeManip.frame = frameManip
+        # Create a hidden label to set minimum size of the lblframe respecting to its title
+        label = TTK.Label(self.frame,text="Manip.")
+        label.grid(row=0,column=0,in_=lblframeManip)
+        label.lower(lblframeManip)
+
+        #
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Selection
+        lblframe = TTK.LabelFrame(frameManip, text="Selected")
+        lblframe.grid(row=0,column=0,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        for ind in range(len(self.subGraph.texts)+1): lblframe.grid_rowconfigure(ind,weight=1)
+        #
+        self.frame.selectionItem=[]
+        #
+        for ind in range(len(self.subGraph.texts)):
+            var = TK.BooleanVar()
+            var.set(False)
+            CB = TTK.Checkbutton(lblframe,variable=var,command=lambda n=ind: self.cb_selection(n))#, variable=var)
+            CB.val = var
+            CB.ind=ind
+            CB.var='selection'
+            CB.grid(row=ind,column=0,sticky='NSEW')
+            CB.container = self.frame.selectionItem
+            self.frame.selectionItem.append(CB)
+        # Text to add
+        ind = len(self.subGraph.texts)
+        var = TK.BooleanVar()
+        var.set(False)
+        CB = TTK.Checkbutton(lblframe,variable=var,command=lambda n=ind: self.cb_selection(n),state=TK.DISABLED)#, variable=var)
+        CB.val = var
+        CB.ind=ind
+        CB.var='selection'
+        CB.grid(row=ind,column=0,sticky='NSEW')
+        CB.container = self.frame.selectionItem
+        self.frame.selectionItem.append(CB)
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Id
+        lblframe = TTK.LabelFrame(frameManip, text="Curve Id")
+        lblframe.grid(row=0,column=1,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        for ind in range(len(self.subGraph.texts)+1): lblframe.grid_rowconfigure(ind,weight=1)
+        #
+        self.frame.IdItem = []
+        #
+        for ind in range(len(self.subGraph.texts)):
+            LBL = TK.Label(lblframe,text='%s'%ind)
+            LBL.ind = ind
+            LBL.grid(row=ind,column=0,sticky='NSEW')
+            LBL.container = self.frame.IdItem
+            self.frame.IdItem.append(LBL)
+        # Curve to add
+        ind = len(self.subGraph.texts)
+        LBL = TK.Label(lblframe,text='to add')
+        LBL.ind = ind
+        LBL.grid(row=ind,column=0,sticky='NSEW')
+        LBL.container = self.frame.IdItem
+        self.frame.IdItem.append(LBL)
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Visibility
+        lblframe = TTK.LabelFrame(frameManip, text="Visibility")
+        lblframe.grid(row=0,column=2,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        for ind in range(len(self.subGraph.texts)+1): lblframe.grid_rowconfigure(ind,weight=1)
+        #
+        self.frame.visibilityItem=[]
+        #
+        for ind in range(len(self.subGraph.texts)):
+            t = self.subGraph.texts[ind]
+            var = TK.BooleanVar()
+            var.set(t.visibility)
+            # CB = TTK.Checkbutton(lblframe,variable=var,command=lambda n=ind: self.cb_visibility(n))#, variable=var)
+            CB = TTK.Checkbutton(lblframe,variable=var,command=lambda n=ind: self.cb_visibility(n))#, variable=var)
+            CB.val = var
+            CB.var = 'visibility'
+            CB.ind=ind
+            CB.grid(row=ind,column=0,sticky='NSEW')
+            CB.container = self.frame.visibilityItem
+            self.frame.visibilityItem.append(CB)
+        # Curve to add
+        ind = len(self.subGraph.texts)
+        var = TK.BooleanVar()
+        var.set(True)
+        # CB = TTK.Checkbutton(lblframe,variable=var,state=TK.DISABLED,command=lambda n=ind: self.cb_visibility(n))#, variable=var)
+        CB = TTK.Checkbutton(lblframe,variable=var,state=TK.DISABLED,command=lambda n=ind: self.cb_visibility(n))#, variable=var)
+        CB.val = var
+        CB.var = 'visibility'
+        CB.ind=ind
+        CB.grid(row=ind,column=0,sticky='NSEW')
+        CB.container = self.frame.visibilityItem
+        self.frame.visibilityItem.append(CB)
+
+        ########################################################################
+        ####################
+        ######################### Text
+        ####################
+        ########################################################################
+        lblframeText = TTK.LabelFrame(self.frame, text = "Text")
+        lblframeText.grid(row=0,column=1,sticky='NSEW')
+        lblframeText.grid_rowconfigure(0,weight=1)
+        lblframeText.grid_columnconfigure(0,weight=1)
+        lblframeText.id = 1
+        lblframeText.display =self.labelView[lblframeText.id]
+        lblframeText.title = "Text "
+        if lblframeText.display:
+            title = lblframeText.title + "v "
+        else:
+            title = lblframeText.title + "> "
+        lblframeText.config(text=title)
+        #
+        lblframeText.bind("<Button-1>",self.expandLblFrame)
+        #
+        frameText = TTK.Frame(lblframeText)
+        frameText.grid(row=0,column=0,sticky='NSEW')
+        if not lblframeText.display:
+            frameText.grid_forget()
+        frameText.grid_columnconfigure(0,weight=1)
+        frameText.grid_columnconfigure(1,weight=1)
+        frameText.grid_columnconfigure(2,weight=1)
+        frameText.grid_rowconfigure(0,weight=1)
+        #
+        lblframeText.frame = frameText
+        # Create a hidden label to set minimum size of the lblframe respecting to its title
+        label = TTK.Label(self.frame,text="Text")
+        label.grid(row=0,column=0,in_=lblframeText)
+        label.lower(lblframeText)
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Text
+        ## --> Text
+        lblframe = TTK.LabelFrame(frameText, text="Text")
+        lblframe.grid(row=0,column=0,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        for ind in range(len(self.subGraph.texts)+1): lblframe.grid_rowconfigure(ind,weight=1)
+        #
+        self.frame.textItem=[]
+        #
+        for ind in range(len(self.subGraph.texts)):
+            t = self.subGraph.texts[ind]
+            B = TTK.Button(lblframe,text=t.text,command=lambda n=(ind,self.frame.textItem): self.bt_click(n))
+            B.list = []
+            B.val = t.text
+            B.var = 'text'
+            B.ind = ind
+            B.treatmentId = 3
+            B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+            B.container = self.frame.textItem
+            self.frame.textItem.append(B)
+        # Text to add
+        ind = len(self.subGraph.texts)
+        B = TTK.Button(lblframe,text="Text",command=lambda n=(ind,self.frame.textItem): self.bt_click(n))
+        B.list = []
+        B.val = ""
+        B.var = 'text'
+        B.ind = ind
+        B.treatmentId = 3
+        B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+        B.container = self.frame.textItem
+        self.frame.textItem.append(B)
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& text color
+        lblframe = TTK.LabelFrame(frameText, text="Text color")
+        lblframe.grid(row=0,column=1,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        for ind in range(len(self.subGraph.texts)+1): lblframe.grid_rowconfigure(ind,weight=1)
+        #
+        self.frame.text_colorItem = []
+        for ind in range(len(self.subGraph.texts)):
+            t = self.subGraph.texts[ind]
+            B = TK.Button(lblframe,command=lambda n=(ind,self.frame.text_colorItem): self.bt_click(n))
+            B.list = []
+            B.val = t.text_color
+            B.var = 'text_color'
+            B.config(bg=B.val)
+            B.config(activebackground=B.val)
+            B.ind = ind
+            B.treatmentId = 1
+            B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+            B.container = self.frame.text_colorItem
+            self.frame.text_colorItem.append(B)
+        # Curve to add
+        ind = len(self.subGraph.texts)
+        B = TK.Button(lblframe,command=lambda n=(ind,self.frame.text_colorItem): self.bt_click(n))
+        B.list = []
+        color = [0,0,0]
+        B.val = '#%02x%02x%02x' % (int(255*color[0]),int(255*color[1]),int(255*color[2]))
+        B.var = 'text_color'
+        B.config(bg=B.val)
+        B.config(activebackground=B.val)
+        B.ind = ind
+        B.treatmentId = 1
+        B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+        B.container = self.frame.text_colorItem
+        self.frame.text_colorItem.append(B)
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Text size
+        lblframe = TTK.LabelFrame(frameText, text="Text size")
+        lblframe.grid(row=0,column=2,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        for ind in range(len(self.subGraph.texts)+1): lblframe.grid_rowconfigure(ind,weight=1)
+        #
+        self.frame.text_sizeItem = [] # va stands for Vertical Alignment
+        for ind in range(len(self.subGraph.texts)):
+            t = self.subGraph.texts[ind]
+            B = TTK.Button(lblframe,text=t.text_size,command=lambda n=(ind,self.frame.text_sizeItem): self.bt_click(n))
+            B.list = []
+            B.val = 0.
+            B.var = 'text_size'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+            B.container = self.frame.text_sizeItem
+            self.frame.text_sizeItem.append(B)
+        # Curve to add
+        ind = len(self.subGraph.texts)
+        B = TTK.Button(lblframe,text=default_values['Text']['text_size'],command=lambda n=(ind,self.frame.text_sizeItem): self.bt_click(n))
+        B.list = []
+        B.val = default_values['Text']['text_size']
+        B.var = 'text_size'
+        B.ind = ind
+        B.treatmentId = 4
+        B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+        B.container = self.frame.text_sizeItem
+        self.frame.text_sizeItem.append(B)
+
+        ########################################################################
+        ####################
+        ######################### Font
+        ####################
+        ########################################################################
+        lblframeFont = TTK.LabelFrame(self.frame, text = "Font")
+        lblframeFont.grid(row=0,column=2,sticky='NSEW')
+        lblframeFont.grid_rowconfigure(0,weight=1)
+        lblframeFont.grid_columnconfigure(0,weight=1)
+        lblframeFont.id = 2
+        lblframeFont.display =self.labelView[lblframeFont.id]
+        lblframeFont.title = "Font "
+        if lblframeFont.display:
+            title = lblframeFont.title + "v "
+        else:
+            title = lblframeFont.title + "> "
+        lblframeFont.config(text=title)
+        #
+        lblframeFont.bind("<Button-1>",self.expandLblFrame)
+        #
+        frameFont = TTK.Frame(lblframeFont)
+        frameFont.grid(row=0,column=0,sticky='NSEW')
+        if not lblframeFont.display: frameFont.grid_forget()
+        frameFont.grid_columnconfigure(0,weight=1)
+        frameFont.grid_columnconfigure(1,weight=1)
+        frameFont.grid_columnconfigure(2,weight=1)
+        frameFont.grid_columnconfigure(3,weight=1)
+        frameFont.grid_columnconfigure(4,weight=1)
+        frameFont.grid_columnconfigure(5,weight=1)
+        frameFont.grid_rowconfigure(0,weight=1)
+        #
+        lblframeFont.frame = frameFont
+        # Create a hidden label to set minimum size of the lblframe respecting to its title
+        label = TTK.Label(self.frame,text="Font")
+        label.grid(row=0,column=0,in_=lblframeFont)
+        label.lower(lblframeFont)
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Font Type
+        lblframe = TTK.LabelFrame(frameFont, text="Type")
+        lblframe.grid(row=0,column=0,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        for ind in range(len(self.subGraph.texts)+1): lblframe.grid_rowconfigure(ind,weight=1)
+        #
+        self.frame.font_typeItem = []
+        for ind in range(len(self.subGraph.texts)):
+            t = self.subGraph.texts[ind]
+            B = TTK.Button(lblframe,text=t.font_type,command=lambda n=(ind,self.frame.font_typeItem): self.bt_click(n))
+            B.list = font_typelist
+            B.val = t.font_type
+            B.var = 'font_type'
+            B.ind = ind
+            B.treatmentId = 5
+            B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+            B.container = self.frame.font_typeItem
+            self.frame.font_typeItem.append(B)
+        # Curve to add
+        ind = len(self.subGraph.texts)
+        B = TTK.Button(lblframe,text=default_values['Text']['font_type'],command=lambda n=(ind,self.frame.font_typeItem): self.bt_click(n))
+        B.list = font_typelist
+        B.val = default_values['Text']['font_type']
+        B.var = 'font_type'
+        B.ind = ind
+        B.treatmentId = 5
+        B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+        B.container = self.frame.font_typeItem
+        self.frame.font_typeItem.append(B)
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Police
+        lblframe = TTK.LabelFrame(frameFont, text="Police")
+        lblframe.grid(row=0,column=1,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        for ind in range(len(self.subGraph.texts)+1): lblframe.grid_rowconfigure(ind,weight=1)
+        #
+        policelist = font_dic[default_values['Text']['font_type']]
+        self.frame.policeItem = []
+        for ind in range(len(self.subGraph.texts)):
+            t = self.subGraph.texts[ind]
+            B = TTK.Button(lblframe,text=t.police,command=lambda n=(ind,self.frame.policeItem): self.bt_click(n))
+            B.list = policelist
+            B.val = t.police
+            B.var = 'police'
+            B.ind = ind
+            B.treatmentId = 0
+            B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+            B.container = self.frame.policeItem
+            self.frame.policeItem.append(B)
+        # Curve to add
+        ind = len(self.subGraph.texts)
+        B = TTK.Button(lblframe,text=font_dic[default_values['Text']['font_type']][0],command=lambda n=(ind,self.frame.policeItem): self.bt_click(n))
+        B.list = policelist
+        B.val = font_dic[default_values['Text']['font_type']][0]
+        B.var = 'police'
+        B.ind = ind
+        B.treatmentId = 0
+        B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+        B.container = self.frame.policeItem
+        self.frame.policeItem.append(B)
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Font Style
+        lblframe = TTK.LabelFrame(frameFont, text="Style")
+        lblframe.grid(row=0,column=2,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        for ind in range(len(self.subGraph.texts)+1): lblframe.grid_rowconfigure(ind,weight=1)
+        #
+        self.frame.font_styleItem = []
+        for ind in range(len(self.subGraph.texts)):
+            t = self.subGraph.texts[ind]
+            B = TTK.Button(lblframe,text=t.font_style,command=lambda n=(ind,self.frame.font_styleItem): self.bt_click(n))
+            B.list = font_stylelist
+            B.val = t.font_style
+            B.var = 'font_style'
+            B.ind = ind
+            B.treatmentId = 0
+            B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+            B.container = self.frame.font_styleItem
+            self.frame.font_styleItem.append(B)
+        # Curve to add
+        ind = len(self.subGraph.texts)
+        B = TTK.Button(lblframe,text=default_values['Text']['font_style'],command=lambda n=(ind,self.frame.font_styleItem): self.bt_click(n))
+        B.list = font_stylelist
+        B.val = default_values['Text']['font_style']
+        B.var = 'font_style'
+        B.ind = ind
+        B.treatmentId = 0
+        B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+        B.container = self.frame.font_styleItem
+        self.frame.font_styleItem.append(B)
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Font Weight
+        lblframe = TTK.LabelFrame(frameFont, text="Weight")
+        lblframe.grid(row=0,column=3,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        for ind in range(len(self.subGraph.texts)+1): lblframe.grid_rowconfigure(ind,weight=1)
+        #
+        self.frame.font_weightItem = []
+        for ind in range(len(self.subGraph.texts)):
+            t = self.subGraph.texts[ind]
+            B = TTK.Button(lblframe,text=t.font_weight,command=lambda n=(ind,self.frame.font_weightItem): self.bt_click(n))
+            B.list = font_weightlist
+            B.val = t.font_weight
+            B.var = 'font_weight'
+            B.ind = ind
+            B.treatmentId = 0
+            B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+            B.container = self.frame.font_weightItem
+            self.frame.font_weightItem.append(B)
+        # Curve to add
+        ind = len(self.subGraph.texts)
+        B = TTK.Button(lblframe,text=default_values['Text']['font_weight'],command=lambda n=(ind,self.frame.font_weightItem): self.bt_click(n))
+        B.list = font_weightlist
+        B.val = default_values['Text']['font_weight']
+        B.var = 'font_weight'
+        B.ind = ind
+        B.treatmentId = 0
+        B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+        B.container = self.frame.font_weightItem
+        self.frame.font_weightItem.append(B)
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Text Alpha
+        lblframe = TTK.LabelFrame(frameFont, text="Text Alpha")
+        lblframe.grid(row=0,column=4,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        for ind in range(len(self.subGraph.texts)+1): lblframe.grid_rowconfigure(ind,weight=1)
+        #
+        self.frame.text_alphaItem = [] # va stands for Vertical Alignment
+        for ind in range(len(self.subGraph.texts)):
+            t = self.subGraph.texts[ind]
+            B = TTK.Button(lblframe,text=t.text_alpha,command=lambda n=(ind,self.frame.text_alphaItem): self.bt_click(n))
+            B.list = []
+            B.val = 0.
+            B.var = 'text_alpha'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+            B.container = self.frame.text_alphaItem
+            self.frame.text_alphaItem.append(B)
+        # Curve to add
+        ind = len(self.subGraph.texts)
+        B = TTK.Button(lblframe,text=default_values['Text']['text_alpha'],command=lambda n=(ind,self.frame.text_alphaItem): self.bt_click(n))
+        B.list = []
+        B.val = default_values['Text']['text_alpha']
+        B.var = 'text_alpha'
+        B.ind = ind
+        B.treatmentId = 4
+        B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+        B.container = self.frame.text_alphaItem
+        self.frame.text_alphaItem.append(B)
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Use Tex
+        lblframe = TTK.LabelFrame(frameFont, text="Use Tex")
+        lblframe.grid(row=0,column=5,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        for ind in range(len(self.subGraph.texts)+1): lblframe.grid_rowconfigure(ind,weight=1)
+        #
+        self.frame.use_texItem=[]
+        #
+        for ind in range(len(self.subGraph.texts)):
+            t = self.subGraph.texts[ind]
+            var = TK.BooleanVar()
+            var.set(t.use_tex)
+            # CB = TTK.Checkbutton(lblframe,variable=var,command=lambda n=ind: self.cb_use_tex(n))#, variable=var)
+            CB = TTK.Checkbutton(lblframe,variable=var,command=lambda n=ind: self.cb_use_tex(n))#, variable=var)
+            CB.val = var
+            CB.var = 'use_tex'
+            CB.ind=ind
+            CB.grid(row=ind,column=0,sticky='NSEW')
+            CB.container = self.frame.use_texItem
+            self.frame.use_texItem.append(CB)
+        # Curve to add
+        ind = len(self.subGraph.texts)
+        var = TK.BooleanVar()
+        var.set(False)
+        # CB = TTK.Checkbutton(lblframe,variable=var,state=TK.DISABLED,command=lambda n=ind: self.cb_use_tex(n))#, variable=var)
+        CB = TTK.Checkbutton(lblframe,variable=var,state=TK.DISABLED,command=lambda n=ind: self.cb_use_tex(n))#, variable=var)
+        CB.val = var
+        CB.var = 'use_tex'
+        CB.ind=ind
+        CB.grid(row=ind,column=0,sticky='NSEW')
+        CB.container = self.frame.use_texItem
+        self.frame.use_texItem.append(CB)
+
+
+        ########################################################################
+        ####################
+        ######################### Position
+        ####################
+        ########################################################################
+        lblframePosition = TTK.LabelFrame(self.frame, text = "Position")
+        lblframePosition.grid(row=0,column=3,sticky='NSEW')
+        lblframePosition.grid_rowconfigure(0,weight=1)
+        lblframePosition.grid_columnconfigure(0,weight=1)
+        lblframePosition.id = 3
+        lblframePosition.display =self.labelView[lblframePosition.id]
+        lblframePosition.title = "Position "
+        if lblframePosition.display:
+            title = lblframePosition.title + "v "
+        else:
+            title = lblframePosition.title + "> "
+        lblframePosition.config(text=title)
+        #
+        lblframePosition.bind("<Button-1>",self.expandLblFrame)
+        #
+        framePosition = TTK.Frame(lblframePosition)
+        framePosition.grid(row=0,column=0,sticky='NSEW')
+        if not lblframePosition.display:
+            framePosition.grid_forget()
+        framePosition.grid_columnconfigure(0,weight=1)
+        framePosition.grid_columnconfigure(1,weight=1)
+        framePosition.grid_columnconfigure(2,weight=1)
+        framePosition.grid_columnconfigure(3,weight=1)
+        framePosition.grid_columnconfigure(4,weight=1)
+        framePosition.grid_rowconfigure(0,weight=1)
+        #
+        lblframePosition.frame = framePosition
+        # Create a hidden label to set minimum size of the lblframe respecting to its title
+        label = TTK.Label(self.frame,text="Position")
+        label.grid(row=0,column=0,in_=lblframePosition)
+        label.lower(lblframePosition)
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Horizontal Alignment
+        lblframe = TTK.LabelFrame(framePosition, text="H. align.")
+        lblframe.grid(row=0,column=0,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        for ind in range(len(self.subGraph.texts)+1): lblframe.grid_rowconfigure(ind,weight=1)
+        #
+        self.frame.haItem = [] # ha stands for Horizontal Alignment
+        for ind in range(len(self.subGraph.texts)):
+            t = self.subGraph.texts[ind]
+            B = TTK.Button(lblframe,text=t.ha,command=lambda n=(ind,self.frame.haItem): self.bt_click(n))
+            B.list = horizontalalignmentlist
+            B.val = t.ha
+            B.var = 'ha'
+            B.ind = ind
+            B.treatmentId = 0
+            B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+            B.container = self.frame.haItem
+            self.frame.haItem.append(B)
+        # Curve to add
+        ind = len(self.subGraph.texts)
+        B = TTK.Button(lblframe,text=default_values['Text']['ha'],command=lambda n=(ind,self.frame.haItem): self.bt_click(n))
+        B.list = horizontalalignmentlist
+        B.val = default_values['Text']['ha']
+        B.var = 'ha'
+        B.ind = ind
+        B.treatmentId = 0
+        B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+        B.container = self.frame.haItem
+        self.frame.haItem.append(B)
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Vertical Alignment
+        lblframe = TTK.LabelFrame(framePosition, text="V. align.")
+        lblframe.grid(row=0,column=1,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        for ind in range(len(self.subGraph.texts)+1): lblframe.grid_rowconfigure(ind,weight=1)
+        #
+        self.frame.vaItem = [] # va stands for Vertical Alignment
+        for ind in range(len(self.subGraph.texts)):
+            t = self.subGraph.texts[ind]
+            B = TTK.Button(lblframe,text=t.va,command=lambda n=(ind,self.frame.vaItem): self.bt_click(n))
+            B.list = verticalalignmentlist
+            B.val = t.va
+            B.var = 'va'
+            B.ind = ind
+            B.treatmentId = 0
+            B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+            B.container = self.frame.vaItem
+            self.frame.vaItem.append(B)
+        # Curve to add
+        ind = len(self.subGraph.texts)
+        B = TTK.Button(lblframe,text=default_values['Text']['va'],command=lambda n=(ind,self.frame.vaItem): self.bt_click(n))
+        B.list = verticalalignmentlist
+        B.val = default_values['Text']['va']
+        B.var = 'va'
+        B.ind = ind
+        B.treatmentId = 0
+        B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+        B.container = self.frame.vaItem
+        self.frame.vaItem.append(B)
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Posx
+        lblframe = TTK.LabelFrame(framePosition, text="Pos. x")
+        lblframe.grid(row=0,column=2,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_columnconfigure(1,weight=1)
+        lblframe.grid_columnconfigure(2,weight=1)
+        for ind in range(len(self.subGraph.texts)+1): lblframe.grid_rowconfigure(ind,weight=1)
+        #
+        self.frame.posxItem = [] # va stands for Vertical Alignment
+        self.frame.posxLItem = [] # va stands for Vertical Alignment
+        self.frame.posxRItem = [] # va stands for Vertical Alignment
+        for ind in range(len(self.subGraph.texts)):
+            t = self.subGraph.texts[ind]
+            B_left = TTK.Button(lblframe,text='<',command=lambda n=(ind,self.frame.posxItem): self.bt_moveLeft(n))
+            B = TTK.Button(lblframe,text=t.posx,command=lambda n=(ind,self.frame.posxItem): self.bt_click(n))
+            B_right = TTK.Button(lblframe,text='>',command=lambda n=(ind,self.frame.posxItem): self.bt_moveRight(n))
+            B.list = []
+            B.val = t.posx
+            B.var = 'posx'
+            B.ind = ind
+            B.treatmentId = 4
+            B_left.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+            B.grid(row=ind,column=1,columnspan=1,sticky="nsew")
+            B_right.grid(row=ind,column=2,columnspan=1,sticky="nsew")
+            B.container = self.frame.posxItem
+            self.frame.posxLItem.append(B_left)
+            self.frame.posxRItem.append(B_right)
+        # Curve to add
+        ind = len(self.subGraph.texts)
+        B_left = TTK.Button(lblframe,text='<',command=lambda n=(ind,self.frame.posxItem): self.bt_moveLeft(n))
+        B = TTK.Button(lblframe,text=default_values['Text']['posx'],command=lambda n=(ind,self.frame.posxItem): self.bt_click(n))
+        B_right = TTK.Button(lblframe,text='>',command=lambda n=(ind,self.frame.posxItem): self.bt_moveRight(n))
+        B.list = []
+        B.val = default_values['Text']['posx']
+        B.var = 'posx'
+        B.ind = ind
+        B.treatmentId = 4
+        B_left.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+        B.grid(row=ind,column=1,columnspan=1,sticky="nsew")
+        B_right.grid(row=ind,column=2,columnspan=1,sticky="nsew")
+        B.container = self.frame.posxItem
+        self.frame.posxItem.append(B)
+        self.frame.posxLItem.append(B_left)
+        self.frame.posxRItem.append(B_right)
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Posy
+        lblframe = TTK.LabelFrame(framePosition, text="Pos. y")
+        lblframe.grid(row=0,column=3,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_columnconfigure(1,weight=1)
+        lblframe.grid_columnconfigure(2,weight=1)
+        for ind in range(len(self.subGraph.texts)+1): lblframe.grid_rowconfigure(ind,weight=1)
+        #
+        self.frame.posyItem = [] # va stands for Vertical Alignment
+        self.frame.posyLItem = [] # va stands for Vertical Alignment
+        self.frame.posyRItem = [] # va stands for Vertical Alignment
+        for ind in range(len(self.subGraph.texts)):
+            t = self.subGraph.texts[ind]
+            B_left = TTK.Button(lblframe,text='<',command=lambda n=(ind,self.frame.posyItem): self.bt_moveLeft(n))
+            B = TTK.Button(lblframe,text=t.posy,command=lambda n=(ind,self.frame.posyItem): self.bt_click(n))
+            B_right = TTK.Button(lblframe,text='>',command=lambda n=(ind,self.frame.posyItem): self.bt_moveReft(n))
+            B.list = []
+            B.val = t.posy
+            B.var = 'posy'
+            B.ind = ind
+            B.treatmentId = 4
+            B_left.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+            B.grid(row=ind,column=1,columnspan=1,sticky="nsew")
+            B_right.grid(row=ind,column=2,columnspan=1,sticky="nsew")
+            B.container = self.frame.posyItem
+            self.frame.posyItem.append(B)
+            self.frame.posyLItem.append(B_left)
+            self.frame.posyRItem.append(B_right)
+        # Curve to add
+        ind = len(self.subGraph.texts)
+        B_left = TTK.Button(lblframe,text='<',command=lambda n=(ind,self.frame.posyItem): self.bt_moveLeft(n))
+        B = TTK.Button(lblframe,text=default_values['Text']['posy'],command=lambda n=(ind,self.frame.posyItem): self.bt_click(n))
+        B_right = TTK.Button(lblframe,text='>',command=lambda n=(ind,self.frame.posyItem): self.bt_moveRight(n))
+        B.list = []
+        B.val = default_values['Text']['posy']
+        B.var = 'posy'
+        B.ind = ind
+        B.treatmentId = 4
+        B_left.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+        B.grid(row=ind,column=1,columnspan=1,sticky="nsew")
+        B_right.grid(row=ind,column=2,columnspan=1,sticky="nsew")
+        B.container = self.frame.posyItem
+        self.frame.posyItem.append(B)
+        self.frame.posyLItem.append(B_left)
+        self.frame.posyRItem.append(B_right)
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Rotation
+        lblframe = TTK.LabelFrame(framePosition, text="Rotation")
+        lblframe.grid(row=0,column=4,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        for ind in range(len(self.subGraph.texts)+1): lblframe.grid_rowconfigure(ind,weight=1)
+        #
+        self.frame.rotationItem = [] # va stands for Vertical Alignment
+        for ind in range(len(self.subGraph.texts)):
+            t = self.subGraph.texts[ind]
+            B = TTK.Button(lblframe,text=t.rotation,command=lambda n=(ind,self.frame.rotationItem): self.bt_click(n))
+            B.list = []
+            B.val = t.rotation
+            B.var = 'rotation'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+            B.container = self.frame.rotationItem
+            self.frame.rotationItem.append(B)
+        # Curve to add
+        ind = len(self.subGraph.texts)
+        B = TTK.Button(lblframe,text=default_values['Text']['rotation'],command=lambda n=(ind,self.frame.rotationItem): self.bt_click(n))
+        B.list = []
+        B.val = default_values['Text']['rotation']
+        B.var = 'rotation'
+        B.ind = ind
+        B.treatmentId = 4
+        B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+        B.container = self.frame.rotationItem
+        self.frame.rotationItem.append(B)
+
+        ########################################################################
+        ####################
+        ######################### Box
+        ####################
+        ########################################################################
+        lblframeBox = TTK.LabelFrame(self.frame, text = "Box")
+        lblframeBox.grid(row=0,column=4,sticky='NSEW')
+        lblframeBox.grid_rowconfigure(0,weight=1)
+        lblframeBox.grid_columnconfigure(0,weight=1)
+        lblframeBox.id = 4
+        lblframeBox.display =self.labelView[lblframeBox.id]
+        lblframeBox.title = "Box "
+        if lblframeBox.display:
+            title = lblframeBox.title + "v "
+        else:
+            title = lblframeBox.title + "> "
+        lblframeBox.config(text=title)
+        #
+        lblframeBox.bind("<Button-1>",self.expandLblFrame)
+        #
+        frameBox = TTK.Frame(lblframeBox)
+        frameBox.grid(row=0,column=0,sticky='NSEW')
+        if not lblframeBox.display:
+            frameBox.grid_forget()
+        frameBox.grid_columnconfigure(0,weight=1)
+        frameBox.grid_columnconfigure(1,weight=1)
+        frameBox.grid_columnconfigure(2,weight=1)
+        frameBox.grid_columnconfigure(3,weight=1)
+        frameBox.grid_columnconfigure(4,weight=1)
+        frameBox.grid_columnconfigure(5,weight=1)
+        frameBox.grid_rowconfigure(0,weight=1)
+        #
+        lblframeBox.frame = frameBox
+        # Create a hidden label to set minimum size of the lblframe respecting to its title
+        label = TTK.Label(self.frame,text="Box")
+        label.grid(row=0,column=0,in_=lblframeBox)
+        label.lower(lblframeBox)
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Box background color
+        lblframe = TTK.LabelFrame(frameBox, text="Box bckgd")
+        lblframe.grid(row=0,column=0,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        for ind in range(len(self.subGraph.texts)+1): lblframe.grid_rowconfigure(ind,weight=1)
+        #
+        self.frame.box_backgroundcolorItem = []
+        for ind in range(len(self.subGraph.texts)):
+            t = self.subGraph.texts[ind]
+            B = TK.Button(lblframe,command=lambda n=(ind,self.frame.box_backgroundcolorItem): self.bt_click(n))
+            B.list = []
+            B.val = t.box_backgroundcolor
+            B.var = 'box_backgroundcolor'
+            B.config(bg=B.val)
+            B.config(activebackground=B.val)
+            B.ind = ind
+            B.treatmentId = 1
+            B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+            B.container = self.frame.box_backgroundcolorItem
+            self.frame.box_backgroundcolorItem.append(B)
+        # Curve to add
+        ind = len(self.subGraph.texts)
+        B = TK.Button(lblframe,command=lambda n=(ind,self.frame.box_backgroundcolorItem): self.bt_click(n))
+        B.list = []
+        color = [1,1,1]
+        B.val = '#%02x%02x%02x' % (int(255*color[0]),int(255*color[1]),int(255*color[2]))
+        B.var = 'box_backgroundcolor'
+        B.config(bg=B.val)
+        B.config(activebackground=B.val)
+        B.ind = ind
+        B.treatmentId = 1
+        B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+        B.container = self.frame.box_backgroundcolorItem
+        self.frame.box_backgroundcolorItem.append(B)
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& box edgecolor
+        lblframe = TTK.LabelFrame(frameBox, text="Box edge")
+        lblframe.grid(row=0,column=1,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        for ind in range(len(self.subGraph.texts)+1): lblframe.grid_rowconfigure(ind,weight=1)
+        #
+        self.frame.box_edgecolorItem = []
+        for ind in range(len(self.subGraph.texts)):
+            t = self.subGraph.texts[ind]
+            B = TK.Button(lblframe,command=lambda n=(ind,self.frame.box_edgecolorItem): self.bt_click(n))
+            B.list = []
+            B.val = t.box_edgecolor
+            B.var = 'box_edgecolor'
+            B.config(bg=B.val)
+            B.config(activebackground=B.val)
+            B.ind = ind
+            B.treatmentId = 1
+            B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+            B.container = self.frame.box_edgecolorItem
+            self.frame.box_edgecolorItem.append(B)
+        # Curve to add
+        ind = len(self.subGraph.texts)
+        B = TK.Button(lblframe,command=lambda n=(ind,self.frame.box_edgecolorItem): self.bt_click(n))
+        B.list = []
+        color = [1,1,1]
+        B.val = '#%02x%02x%02x' % (int(255*color[0]),int(255*color[1]),int(255*color[2]))
+        B.var = 'box_edgecolor'
+        B.config(bg=B.val)
+        B.config(activebackground=B.val)
+        B.ind = ind
+        B.treatmentId = 1
+        B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+        B.container = self.frame.box_edgecolorItem
+        self.frame.box_edgecolorItem.append(B)
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Box line width
+        lblframe = TTK.LabelFrame(frameBox, text="Border width")
+        lblframe.grid(row=0,column=2,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        for ind in range(len(self.subGraph.texts)+1): lblframe.grid_rowconfigure(ind,weight=1)
+        #
+        self.frame.box_linewidthItem = [] # va stands for Vertical Alignment
+        for ind in range(len(self.subGraph.texts)):
+            t = self.subGraph.texts[ind]
+            B = TTK.Button(lblframe,text=t.box_linewidth,command=lambda n=(ind,self.frame.box_linewidthItem): self.bt_click(n))
+            B.list = []
+            B.val = t.box_linewidth
+            B.var = 'box_linewidth'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+            B.container = self.frame.box_linewidthItem
+            self.frame.box_linewidthItem.append(B)
+        # Curve to add
+        ind = len(self.subGraph.texts)
+        B = TTK.Button(lblframe,text=default_values['Text']['box_linewidth'],command=lambda n=(ind,self.frame.box_linewidthItem): self.bt_click(n))
+        B.list = []
+        B.val = default_values['Text']['box_linewidth']
+        B.var = 'box_linewidth'
+        B.ind = ind
+        B.treatmentId = 4
+        B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+        B.container = self.frame.box_linewidthItem
+        self.frame.box_linewidthItem.append(B)
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Box style
+        lblframe = TTK.LabelFrame(frameBox, text="Box style")
+        lblframe.grid(row=0,column=3,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        for ind in range(len(self.subGraph.texts)+1): lblframe.grid_rowconfigure(ind,weight=1)
+        #
+        self.frame.box_styleItem = []
+        for ind in range(len(self.subGraph.texts)):
+            t = self.subGraph.texts[ind]
+            B = TTK.Button(lblframe,text=t.box_style,command=lambda n=(ind,self.frame.box_styleItem): self.bt_click(n))
+            B.list = box_stylelist
+            B.val = t.box_style
+            B.var = 'box_style'
+            B.ind = ind
+            B.treatmentId = 0
+            B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+            B.container = self.frame.box_styleItem
+            self.frame.box_styleItem.append(B)
+        # Curve to add
+        ind = len(self.subGraph.texts)
+        B = TTK.Button(lblframe,text=default_values['Text']['box_style'],command=lambda n=(ind,self.frame.box_styleItem): self.bt_click(n))
+        B.list = box_stylelist
+        B.val = default_values['Text']['box_style']
+        B.var = 'box_style'
+        B.ind = ind
+        B.treatmentId = 0
+        B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+        B.container = self.frame.box_styleItem
+        self.frame.box_styleItem.append(B)
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Active background
+        lblframe = TTK.LabelFrame(frameBox, text="Bckgd. active")
+        lblframe.grid(row=0,column=4,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        for ind in range(len(self.subGraph.texts)+1): lblframe.grid_rowconfigure(ind,weight=1)
+        #
+        self.frame.active_backgroundItem=[]
+        #
+        for ind in range(len(self.subGraph.texts)):
+            t = self.subGraph.texts[ind]
+            var = TK.BooleanVar()
+            var.set(t.active_background)
+            # CB = TTK.Checkbutton(lblframe,variable=var,command=lambda n=ind: self.cb_active_background(n))#, variable=var)
+            CB = TTK.Checkbutton(lblframe,variable=var,command=lambda n=ind: self.cb_active_background(n))#, variable=var)
+            CB.val = var
+            CB.var = 'active_background'
+            CB.ind=ind
+            CB.grid(row=ind,column=0,sticky='NSEW')
+            CB.container = self.frame.active_backgroundItem
+            self.frame.active_backgroundItem.append(CB)
+        # Curve to add
+        ind = len(self.subGraph.texts)
+        var = TK.BooleanVar()
+        var.set(True)
+        # CB = TTK.Checkbutton(lblframe,variable=var,state=TK.DISABLED,command=lambda n=ind: self.cb_active_background(n))#, variable=var)
+        CB = TTK.Checkbutton(lblframe,variable=var,state=TK.DISABLED,command=lambda n=ind: self.cb_active_background(n))#, variable=var)
+        CB.val = var
+        CB.var = 'active_background'
+        CB.ind=ind
+        CB.grid(row=ind,column=0,sticky='NSEW')
+        CB.container = self.frame.active_backgroundItem
+        self.frame.active_backgroundItem.append(CB)
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Box Alpha
+        lblframe = TTK.LabelFrame(frameBox, text="Box Alpha")
+        lblframe.grid(row=0,column=5,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        for ind in range(len(self.subGraph.texts)+1): lblframe.grid_rowconfigure(ind,weight=1)
+        #
+        self.frame.box_alphaItem = [] # va stands for Vertical Alignment
+        for ind in range(len(self.subGraph.texts)):
+            t = self.subGraph.texts[ind]
+            B = TTK.Button(lblframe,text=t.box_alpha,command=lambda n=(ind,self.frame.box_alphaItem): self.bt_click(n))
+            B.list = []
+            B.val = 0.
+            B.var = 'box_alpha'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+            B.container = self.frame.box_alphaItem
+            self.frame.box_alphaItem.append(B)
+        # Curve to add
+        ind = len(self.subGraph.texts)
+        B = TTK.Button(lblframe,text=default_values['Text']['box_alpha'],command=lambda n=(ind,self.frame.box_alphaItem): self.bt_click(n))
+        B.list = []
+        B.val = default_values['Text']['box_alpha']
+        B.var = 'box_alpha'
+        B.ind = ind
+        B.treatmentId = 4
+        B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+        B.container = self.frame.box_alphaItem
+        self.frame.box_alphaItem.append(B)
+#         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Id
+#         lblframe = TTK.LabelFrame(frameManip, text="Curve Id")
+#         lblframe.grid(row=0,column=1,sticky='NESW')
+#         #
+#         lblframe.grid_columnconfigure(0,weight=1)
+#         for ind in range(len(self.subGraph.curves)+1):
+#             lblframe.grid_rowconfigure(ind,weight=1)
+#         #
+#         lblframelvl1.append(lblframe)
+#         #
+#         self.frame.IdItem = []
+#         #
+#         for ind in range(len(self.subGraph.curves)):
+#             LBL = TK.Label(lblframe,text='%s'%ind)
+#             LBL.ind = ind
+#             LBL.grid(row=ind,column=0,sticky='NSEW')
+#             LBL.container = self.frame.IdItem
+#             self.frame.IdItem.append(LBL)
+#         # Curve to add
+#         ind = len(self.subGraph.curves)
+#         LBL = TK.Label(lblframe,text='to add')
+#         LBL.ind = ind
+#         LBL.grid(row=ind,column=0,sticky='NSEW')
+#         LBL.container = self.frame.IdItem
+#         self.frame.IdItem.append(LBL)
+#
+#         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Axis to plot
+#         lblframe = TTK.LabelFrame(frameManip, text="Axis")
+#         lblframe.grid(row=0,column=2,sticky='NESW')
+#         #
+#         lblframe.grid_columnconfigure(0,weight=1)
+#         for ind in range(len(self.subGraph.curves)+1):
+#             lblframe.grid_rowconfigure(ind,weight=1)
+#         #
+#         lblframelvl1.append(lblframe)
+#         #
+#         self.frame.axisItem = []
+#         for ind in range(len(self.subGraph.curves)):
+#             c = self.subGraph.curves[ind]
+#             B = TTK.Button(lblframe,text=c.axis,command=lambda n=(ind,self.frame.axisItem): self.bt_click(n))
+#             B.list = [i for i in range(len(self.subGraph.axis))]
+#             B.val = c.axis
+#             B.var = 'ind_axis'
+#             B.ind = ind
+#             B.treatmentId = 0
+#             B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+#             B.container = self.frame.axisItem
+#             self.frame.axisItem.append(B)
+#         # Curve to add
+#         ind = len(self.subGraph.curves)
+#         B = TTK.Button(lblframe,text=0,command=lambda n=(ind,self.frame.axisItem): self.bt_click(n))
+#         B.list = [i for i in range(len(self.subGraph.axis))]
+#         indexNone = 0
+#         B.val = 0
+#         B.var = 'axis'
+#         B.ind = ind
+#         B.treatmentId = 0
+#         B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+#         B.container = self.frame.axisItem
+#         self.frame.axisItem.append(B)
+#         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Visibility
+#         lblframe = TTK.LabelFrame(frameManip, text="Visibility")
+#         lblframe.grid(row=0,column=3,sticky='NESW')
+#         #
+#         lblframe.grid_columnconfigure(0,weight=1)
+#         for ind in range(len(self.subGraph.curves)+1):
+#             lblframe.grid_rowconfigure(ind,weight=1)
+#         #
+#         lblframelvl1.append(lblframe)
+#         #
+#         self.frame.visibilityItem=[]
+#         #
+#         for ind in range(len(self.subGraph.curves)):
+#             var = TK.IntVar()
+#             var.set(1)
+#             # CB = TTK.Checkbutton(lblframe,variable=var,command=lambda n=ind: self.cb_visibility(n))#, variable=var)
+#             CB = TTK.Checkbutton(lblframe,variable=var,command=lambda n=ind: self.cb_visibility(n))#, variable=var)
+#             CB.val = var
+#             CB.var = 'visible'
+#             CB.ind=ind
+#             CB.grid(row=ind,column=0,sticky='NSEW')
+#             CB.container = self.frame.visibilityItem
+#             self.frame.visibilityItem.append(CB)
+#         # Curve to add
+#         ind = len(self.subGraph.curves)
+#         var = TK.IntVar()
+#         var.set(1)
+#         # CB = TTK.Checkbutton(lblframe,variable=var,state=TK.DISABLED,command=lambda n=ind: self.cb_visibility(n))#, variable=var)
+#         CB = TTK.Checkbutton(lblframe,variable=var,state=TK.DISABLED,command=lambda n=ind: self.cb_visibility(n))#, variable=var)
+#         CB.val = var
+#         CB.var = 'visible'
+#         CB.ind=ind
+#         CB.grid(row=ind,column=0,sticky='NSEW')
+#         CB.container = self.frame.visibilityItem
+#         self.frame.visibilityItem.append(CB)
+#         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+#         lblframeData = TTK.LabelFrame(self.frame, text = "Data")
+#         lblframeData.grid(row=0,column=1,sticky='NSEW')
+#         lblframeData.grid_columnconfigure(0,weight=1)
+#         lblframeData.grid_rowconfigure(0,weight=1)
+#         lblframeData.id = 1
+#         lblframeData.display = self.labelView[lblframeData.id]
+#         #
+#         lblframeData.title = "Data "
+#         if lblframeData.display: title = lblframeData.title + "v "
+#         else: title = lblframeData.title + "> "
+#         lblframeData.config(text=title)
+#         #
+#         lblframeData.bind("<Button-1>",self.expandLblFrame)
+#         #
+#         frameData = TTK.Frame(lblframeData)
+#         frameData.grid(row=0,column=0,sticky='NSEW')
+#         if not lblframeData.display: frameData.grid_forget()
+#         frameData.grid_columnconfigure(0,weight=1)
+#         frameData.grid_columnconfigure(1,weight=1)
+#         frameData.grid_columnconfigure(2,weight=1)
+#         frameData.grid_rowconfigure(0,weight=1)
+#         #
+#         lblframeData.frame = frameData
+#         # Create a hidden label to set minimum size of the lblframe respecting to its title
+#         label = TTK.Label(self.frame,text="Data")
+#         label.grid(row=0,column=0,in_=lblframeData)
+#         label.lower(lblframeData)
+#         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Zone
+#         lblframe = TTK.LabelFrame(frameData, text="Zone(s)")
+#         lblframe.grid(row=0,column=0,sticky='NESW')
+#         #
+#         lblframe.grid_columnconfigure(0,weight=1)
+#         for ind in range(len(self.subGraph.curves)+1):
+#             lblframe.grid_rowconfigure(ind,weight=1)
+#         #
+#         lblframelvl1.append(lblframe)
+#         #
+#         self.frame.zoneItem = []
+#         for ind in range(len(self.subGraph.curves)):
+#             c = self.subGraph.curves[ind]
+#             B = TTK.Button(lblframe,text=len(c.zone),command=lambda n=(ind,self.frame.zoneItem): self.bt_click(n))
+#             B.val = c.zone
+# #            B.val = c.zoneList
+#             B.var = 'zone'
+#             B.ind = ind
+#             B.treatmentId = 4 # 4 is for selectzones
+#             B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+#             B.container = self.frame.zoneItem
+#             self.frame.zoneItem.append(B)
+#         # Curve to add
+#         ind = len(self.subGraph.curves)
+#         B = TTK.Button(lblframe,text=len(self.parent.data.keys()),command=lambda n=(ind,self.frame.zoneItem): self.bt_click(n))
+#         B.val = self.parent.data.keys()
+# #        B.listUnused = []
+# #        B.val = B.list
+#         B.var = 'zone'
+#         B.ind = ind
+#         B.treatmentId = 4
+#         B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+#         B.container = self.frame.zoneItem
+#         self.frame.zoneItem.append(B)
+#         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& VarX
+#         lblframe = TTK.LabelFrame(frameData, text="VarX")
+#         lblframe.grid(row=0,column=1,sticky='NESW')
+#         #
+#         lblframe.grid_columnconfigure(0,weight=1)
+#         for ind in range(len(self.subGraph.curves)+1):
+#             lblframe.grid_rowconfigure(ind,weight=1)
+#         #
+#         lblframelvl1.append(lblframe)
+#         #
+#         self.frame.varxItem = []
+#         for ind in range(len(self.subGraph.curves)):
+#             c = self.subGraph.curves[ind]
+#             B = TTK.Button(lblframe,text=c.varx,command=lambda n=(ind,self.frame.varxItem): self.bt_click(n))
+#             B.ind = ind
+#             B.list = self.filterVarWithZone(B)
+#             B.val = c.varx
+#             B.var = 'varx'
+#             B.treatmentId = 0
+#             B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+#             B.container = self.frame.varxItem
+#             self.frame.varxItem.append(B)
+#         # Curve to add
+#         ind = len(self.subGraph.curves)
+#         B = TTK.Button(lblframe,text=None,command=lambda n=(ind,self.frame.varxItem): self.bt_click(n))
+#         B.ind = ind
+#         B.list = self.filterVarWithZone(B)
+#         if len(B.list)!=0:
+#             B.config(text=B.list[0])
+#             B.val = B.list[0]
+#         else:
+#             B.config(text='')
+#             B.val = None
+#         B.var = 'varx'
+#         B.treatmentId = 0
+#         B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+#         B.container = self.frame.varxItem
+#         self.frame.varxItem.append(B)
+#         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& VarY
+#         lblframe = TTK.LabelFrame(frameData, text="VarY")
+#         lblframe.grid(row=0,column=2,sticky='NESW')
+#         #
+#         lblframe.grid_columnconfigure(0,weight=1)
+#         for ind in range(len(self.subGraph.curves)+1):
+#             lblframe.grid_rowconfigure(ind,weight=1)
+#         #
+#         lblframelvl1.append(lblframe)
+#         #
+#         self.frame.varyItem = []
+#         for ind in range(len(self.subGraph.curves)):
+#             c = self.subGraph.curves[ind]
+#             B = TTK.Button(lblframe,text=c.vary,command=lambda n=(ind,self.frame.varyItem): self.bt_click(n))
+#             B.ind = ind
+#             B.list = self.filterVarWithZone(B)
+#             B.val = c.vary
+#             B.var = 'vary'
+#             B.ind = ind
+#             B.treatmentId = 0
+#             B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+#             B.container = self.frame.varyItem
+#             self.frame.varyItem.append(B)
+#         # Curve to add
+#         ind = len(self.subGraph.curves)
+#         B = TTK.Button(lblframe,text=None,command=lambda n=(ind,self.frame.varyItem): self.bt_click(n))
+#         B.ind = ind
+#         B.list = self.filterVarWithZone(B)
+#         if len(B.list)!=0:
+#             B.config(text=B.list[0])
+#             B.val = B.list[0]
+#         else:
+#             B.config(text='')
+#             B.val = None
+#         B.var = 'vary'
+#         B.treatmentId = 0
+#         B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+#         B.container = self.frame.varyItem
+#         self.frame.varyItem.append(B)
+#
+#
+#         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+#         lblframeLine = TTK.LabelFrame(self.frame, text="Line")
+#         lblframeLine.grid(row=0,column=2,sticky='NSEW')
+#         lblframeLine.grid_columnconfigure(0,weight=1)
+#         lblframeLine.grid_rowconfigure(0,weight=1)
+#         lblframeLine.id = 2
+#         lblframeLine.display = self.labelView[lblframeLine.id]
+#         #
+#         lblframeLine.title = "Line "
+#         if lblframeLine.display:
+#             title = lblframeLine.title + "v "
+#         else:
+#             title = lblframeLine.title + "> "
+#         lblframeLine.config(text=title)
+#         #
+#         lblframeLine.bind("<Button-1>",self.expandLblFrame)
+#         #
+#         frameLine = TTK.Frame(lblframeLine)
+#         frameLine.grid(row=0,column=0,sticky='NSEW')
+#         if not lblframeLine.display: frameLine.grid_forget()
+#         frameLine.grid_columnconfigure(0,weight=1)
+#         frameLine.grid_columnconfigure(1,weight=1)
+#         frameLine.grid_columnconfigure(2,weight=1)
+#         frameLine.grid_rowconfigure(0,weight=1)
+#         #
+#         lblframeLine.frame = frameLine
+#         #
+#         # Create a hidden label to set minimum size of the lblframe respecting to its title
+#         label = TTK.Label(self.frame,text="Line")
+#         label.grid(row=0,column=0,in_=lblframeLine)
+#         label.lower(lblframeLine)
+#         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Line color
+#         lblframe = TTK.LabelFrame(frameLine, text="L.color")
+#         lblframe.grid(row=0,column=0,sticky='NESW')
+#         #
+#         lblframe.grid_columnconfigure(0,weight=1)
+#         for ind in range(len(self.subGraph.curves)+1):
+#             lblframe.grid_rowconfigure(ind,weight=1)
+#         #
+#         lblframelvl1.append(lblframe)
+#         #
+#         self.frame.line_colorItem = []
+#         for ind in range(len(self.subGraph.curves)):
+#             c = self.subGraph.curves[ind]
+#             B = TK.Button(lblframe,command=lambda n=(ind,self.frame.line_colorItem): self.bt_click(n))
+#             B.list = []
+#             B.val = c.line_color
+#             B.var = 'line_color'
+#             B.config(bg=B.val)
+#             B.config(activebackground=B.val)
+#             B.ind = ind
+#             B.treatmentId = 1
+#             B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+#             B.container = self.frame.line_colorItem
+#             self.frame.line_colorItem.append(B)
+#         # Curve to add
+#         ind = len(self.subGraph.curves)
+#         B = TK.Button(lblframe,command=lambda n=(ind,self.frame.line_colorItem): self.bt_click(n))
+#         B.list = []
+#         color = cm(1.*(ind%NUM_COLORS)/NUM_COLORS)
+#         B.val = '#%02x%02x%02x' % (int(255*color[0]),int(255*color[1]),int(255*color[2]))
+#         B.var = 'line_color'
+#         B.config(bg=B.val)
+#         B.config(activebackground=B.val)
+#         B.ind = ind
+#         B.treatmentId = 1
+#         B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+#         B.container = self.frame.line_colorItem
+#         self.frame.line_colorItem.append(B)
+#         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Line size
+#         lblframe = TTK.LabelFrame(frameLine, text="L.size")
+#         lblframe.grid(row=0,column=1,sticky='NESW')
+#         #
+#         lblframe.grid_columnconfigure(0,weight=1)
+#         for ind in range(len(self.subGraph.curves)+1):
+#             lblframe.grid_rowconfigure(ind,weight=1)
+#         #
+#         lblframelvl1.append(lblframe)
+#         #
+#         self.frame.line_widthItem = []
+#         for ind in range(len(self.subGraph.curves)):
+#             c = self.subGraph.curves[ind]
+#             B = TTK.Button(lblframe,text=c.line_width,command=lambda n=(ind,self.frame.line_widthItem): self.bt_click(n))
+#             B.list = (np.arange(0.5,100,0.5)).tolist()
+#             B.val = c.line_width
+#             B.var = 'line_width'
+#             B.ind = ind
+#             B.treatmentId = 0
+#             B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+#             B.container = self.frame.line_widthItem
+#             self.frame.line_widthItem.append(B)
+#         # Curve to add
+#         ind = len(self.subGraph.curves)
+#         B = TTK.Button(lblframe,text=default_values['Curve']['line_width'],command=lambda n=(ind,self.frame.line_widthItem): self.bt_click(n))
+#         B.list = (np.arange(0.5,100,0.5)).tolist()
+#         B.val = default_values['Curve']['line_width']
+#         B.var = 'line_width'
+#         B.ind = ind
+#         B.treatmentId = 0
+#         B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+#         B.container = self.frame.line_widthItem
+#         self.frame.line_widthItem.append(B)
+#         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Line style
+#         lblframe = TTK.LabelFrame(frameLine, text="L.style")
+#         lblframe.grid(row=0,column=2,sticky='NESW')
+#         #
+#         lblframe.grid_columnconfigure(0,weight=1)
+#         for ind in range(len(self.subGraph.curves)+1):
+#             lblframe.grid_rowconfigure(ind,weight=1)
+#         #
+#         lblframelvl1.append(lblframe)
+#         #
+#         self.frame.line_styleItem = []
+#         for ind in range(len(self.subGraph.curves)):
+#             c = self.subGraph.curves[ind]
+#             B = TTK.Button(lblframe,text=c.line_style,command=lambda n=(ind,self.frame.line_styleItem): self.bt_click(n))
+#             B.list = linestylelist
+#             B.val = c.line_style
+#             B.var = 'line_style'
+#             B.ind = ind
+#             B.treatmentId = 0
+#             B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+#             B.container = self.frame.line_styleItem
+#             self.frame.line_styleItem.append(B)
+#         # Curve to add
+#         ind = len(self.subGraph.curves)
+#         B = TTK.Button(lblframe,text=default_values['Curve']['line_style'],command=lambda n=(ind,self.frame.line_styleItem): self.bt_click(n))
+#         B.list = linestylelist
+#         B.val = default_values['Curve']['line_style']
+#         B.var = 'line_style'
+#         B.ind = ind
+#         B.treatmentId = 0
+#         B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+#         B.container = self.frame.line_styleItem
+#         self.frame.line_styleItem.append(B)
+#         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+#         lblframeSymbol = TTK.LabelFrame(self.frame, text = "Symbol")
+#         lblframeSymbol.grid(row=0,column=3,sticky='NSEW')
+#         lblframeSymbol.grid_columnconfigure(0,weight=1)
+#         lblframeSymbol.grid_rowconfigure(0,weight=1)
+#         lblframeSymbol.id = 3
+#         lblframeSymbol.display = self.labelView[lblframeSymbol.id]
+#         #
+#         lblframeSymbol.title = "Symbol "
+#         if lblframeSymbol.display:
+#             title = lblframeSymbol.title + "v "
+#         else:
+#             title = lblframeSymbol.title + "> "
+#         lblframeSymbol.config(text=title)
+#         #
+#         lblframeSymbol.bind("<Button-1>",self.expandLblFrame)
+#         #
+#         frameSymbol = TTK.Frame(lblframeSymbol)
+#         frameSymbol.grid(row=0,column=0,sticky='NSEW')
+#         if not lblframeSymbol.display: frameSymbol.grid_forget()
+#         frameSymbol.grid_columnconfigure(0,weight=1)
+#         frameSymbol.grid_columnconfigure(1,weight=1)
+#         frameSymbol.grid_columnconfigure(2,weight=1)
+#         frameSymbol.grid_columnconfigure(3,weight=1)
+#         frameSymbol.grid_columnconfigure(4,weight=1)
+#         frameSymbol.grid_rowconfigure(0,weight=1)
+#         #
+#         lblframeSymbol.frame = frameSymbol
+#         #
+#         # Create a hidden label to set minimum size of the lblframe respecting to its title
+#         label = TTK.Label(self.frame,text="Symbol")
+#         label.grid(row=0,column=0,in_=lblframeSymbol)
+#         label.lower(lblframeSymbol)
+#         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Symbol Face color
+#         lblframe = TTK.LabelFrame(frameSymbol, text="S.color")
+#         lblframe.grid(row=0,column=0,sticky='NESW')
+#         #
+#         lblframe.grid_columnconfigure(0,weight=1)
+#         for ind in range(len(self.subGraph.curves)+1):
+#             lblframe.grid_rowconfigure(ind,weight=1)
+#         #
+#         lblframelvl1.append(lblframe)
+#         #
+#         self.frame.marker_face_colorItem = []
+#         for ind in range(len(self.subGraph.curves)):
+#             c = self.subGraph.curves[ind]
+#             B = TK.Button(lblframe,command=lambda n=(ind,self.frame.marker_face_colorItem): self.bt_click(n))
+#             B.list = []
+#             B.val = c.marker_face_color
+#             B.var = 'marker_face_color'
+#             B.config(bg=B.val)
+#             B.config(activebackground=B.val)
+#             B.ind = ind
+#             B.treatmentId = 1
+#             B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+#             B.container = self.frame.marker_face_colorItem
+#             self.frame.marker_face_colorItem.append(B)
+#         # Curve to add
+#         ind = len(self.subGraph.curves)
+#         B = TK.Button(lblframe,command=lambda n=(ind,self.frame.marker_face_colorItem): self.bt_click(n))
+#         B.list = []
+#         color = cm(1.*(ind%NUM_COLORS)/NUM_COLORS)
+#         B.val = '#%02x%02x%02x' % (int(255*color[0]),int(255*color[1]),int(255*color[2]))
+#         B.var = 'marker_face_color'
+#         B.config(bg=B.val)
+#         B.config(activebackground=B.val)
+#         B.ind = ind
+#         B.treatmentId = 1
+#         B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+#         B.container = self.frame.marker_face_colorItem
+#         self.frame.marker_face_colorItem.append(B)
+#         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Symbol Face size
+#         lblframe = TTK.LabelFrame(frameSymbol, text="S.size")
+#         lblframe.grid(row=0,column=1,sticky='NESW')
+#         #
+#         lblframe.grid_columnconfigure(0,weight=1)
+#         for ind in range(len(self.subGraph.curves)+1):
+#             lblframe.grid_rowconfigure(ind,weight=1)
+#         #
+#         lblframelvl1.append(lblframe)
+#         #
+#         self.frame.marker_sizeItem = []
+#         for ind in range(len(self.subGraph.curves)):
+#             c = self.subGraph.curves[ind]
+#             B = TTK.Button(lblframe,text=c.marker_size,command=lambda n=(ind,self.frame.marker_sizeItem): self.bt_click(n))
+#             B.list = (np.arange(0.5,100,0.5)).tolist()
+#             B.val = c.marker_size
+#             B.var = 'marker_size'
+#             B.ind = ind
+#             B.treatmentId = 0
+#             B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+#             B.container = self.frame.marker_sizeItem
+#             self.frame.marker_sizeItem.append(B)
+#         # Curve to add
+#         ind = len(self.subGraph.curves)
+#         B = TTK.Button(lblframe,text=default_values['Curve']['marker_size'],command=lambda n=(ind,self.frame.marker_sizeItem): self.bt_click(n))
+#         B.list = (np.arange(0.5,100,0.5)).tolist()
+#         B.val = default_values['Curve']['marker_size']
+#         B.var = 'marker_size'
+#         B.ind = ind
+#         B.treatmentId = 0
+#         B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+#         B.container = self.frame.marker_sizeItem
+#         self.frame.marker_sizeItem.append(B)
+#         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Symbol Type
+#         lblframe = TTK.LabelFrame(frameSymbol, text="S.type")
+#         lblframe.grid(row=0,column=2,sticky='NESW')
+#         #
+#         lblframe.grid_columnconfigure(0,weight=1)
+#         for ind in range(len(self.subGraph.curves)+1):
+#             lblframe.grid_rowconfigure(ind,weight=1)
+#         #
+#         lblframelvl1.append(lblframe)
+#         #
+#         self.frame.marker_styleItem = []
+#         for ind in range(len(self.subGraph.curves)):
+#             c = self.subGraph.curves[ind]
+#             B = TTK.Button(lblframe,text=c.marker_style,command=lambda n=(ind,self.frame.marker_styleItem): self.bt_click(n))
+#             B.list = markername
+#             B.val = c.marker_style
+#             B.var = 'marker_style'
+#             B.ind = ind
+#             B.treatmentId = 0
+#             B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+#             B.container = self.frame.marker_styleItem
+#             self.frame.marker_styleItem.append(B)
+#         # Curve to add
+#         ind = len(self.subGraph.curves)
+#         B = TTK.Button(lblframe,text=default_values['Curve']['marker_style'],command=lambda n=(ind,self.frame.marker_styleItem): self.bt_click(n))
+#         B.list = markername
+#         B.val = default_values['Curve']['marker_style']
+#         indexNone = markername.index(B.val)
+#         B.var = 'marker_style'
+#         B.ind = ind
+#         B.treatmentId = 0
+#         B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+#         B.container = self.frame.marker_styleItem
+#         self.frame.marker_styleItem.append(B)
+#         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Symbol edge color
+#         lblframe = TTK.LabelFrame(frameSymbol, text="S.edge color")
+#         lblframe.grid(row=0,column=3,sticky='NESW')
+#         #
+#         lblframe.grid_columnconfigure(0,weight=1)
+#         for ind in range(len(self.subGraph.curves)+1):
+#             lblframe.grid_rowconfigure(ind,weight=1)
+#         #
+#         lblframelvl1.append(lblframe)
+#         #
+#         self.frame.marker_edge_colorItem = []
+#         for ind in range(len(self.subGraph.curves)):
+#             c = self.subGraph.curves[ind]
+#             B = TK.Button(lblframe,command=lambda n=(ind,self.frame.marker_edge_colorItem): self.bt_click(n))
+#             B.list = []
+#             B.val = c.marker_edge_color
+#             B.var = 'marker_edge_color'
+#             B.config(bg=B.val)
+#             B.config(activebackground=B.val)
+#             B.ind = ind
+#             B.treatmentId = 1
+#             B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+#             B.container = self.frame.marker_edge_colorItem
+#             self.frame.marker_edge_colorItem.append(B)
+#         # Curve to add
+#         ind = len(self.subGraph.curves)
+#         B = TK.Button(lblframe,command=lambda n=(ind,self.frame.marker_edge_colorItem): self.bt_click(n))
+#         B.list = []
+#         color = cm(1.*(ind%NUM_COLORS)/NUM_COLORS)
+#         B.val = '#%02x%02x%02x' % (int(255*color[0]),int(255*color[1]),int(255*color[2]))
+#         B.var = 'marker_edge_color'
+#         B.config(bg=B.val)
+#         B.config(activebackground=B.val)
+#         B.ind = ind
+#         B.treatmentId = 1
+#         B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+#         B.container = self.frame.marker_edge_colorItem
+#         self.frame.marker_edge_colorItem.append(B)
+#         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Symbol edge size
+#         lblframe = TTK.LabelFrame(frameSymbol, text="S.edge size")
+#         lblframe.grid(row=0,column=4,sticky='NESW')
+#         #
+#         lblframe.grid_columnconfigure(0,weight=1)
+#         for ind in range(len(self.subGraph.curves)+1):
+#             lblframe.grid_rowconfigure(ind,weight=1)
+#         #
+#         lblframelvl1.append(lblframe)
+#         #
+#         self.frame.marker_edge_widthItem = []
+#         for ind in range(len(self.subGraph.curves)):
+#             c = self.subGraph.curves[ind]
+#             B = TTK.Button(lblframe,text=c.marker_edge_width,command=lambda n=(ind,self.frame.marker_edge_widthItem): self.bt_click(n))
+#             B.list = (np.arange(0.5,100,0.5)).tolist()
+#             B.val = c.marker_edge_width
+#             B.var = 'marker_edge_width'
+#             B.ind = ind
+#             B.treatmentId = 0
+#             B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+#             B.container = self.frame.marker_edge_widthItem
+#             self.frame.marker_edge_widthItem.append(B)
+#         # Curve to add
+#         ind = len(self.subGraph.curves)
+#         B = TTK.Button(lblframe,text=default_values['Curve']['marker_edge_width'],command=lambda n=(ind,self.frame.marker_edge_widthItem): self.bt_click(n))
+#         B.list = (np.arange(0.5,100,0.5)).tolist()
+#         B.val = default_values['Curve']['marker_edge_width']
+#         B.var = 'marker_edge_width'
+#         B.ind = ind
+#         B.treatmentId = 0
+#         B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+#         B.container = self.frame.marker_edge_widthItem
+#         self.frame.marker_edge_widthItem.append(B)
+#         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+#         lblframeSymbolSampling = TTK.LabelFrame(self.frame, text = "Symb. Sampling")
+#         lblframeSymbolSampling.grid(row=0,column=4,sticky='NSEW')
+#         lblframeSymbolSampling.grid_columnconfigure(0,weight=1)
+#         lblframeSymbolSampling.grid_rowconfigure(0,weight=1)
+#         lblframeSymbolSampling.id = 4
+#         lblframeSymbolSampling.display = self.labelView[lblframeSymbolSampling.id]
+#         #
+#         lblframeSymbolSampling.title = "Symb. Sampling "
+#         if lblframeSymbolSampling.display: title = lblframeSymbolSampling.title + "v "
+#         else: title = lblframeSymbolSampling.title + "> "
+#         lblframeSymbolSampling.config(text=title)
+#         #
+#         lblframeSymbolSampling.bind("<Button-1>",self.expandLblFrame)
+#         #
+#         frameSymbolSampling = TTK.Frame(lblframeSymbolSampling)
+#         frameSymbolSampling.grid(row=0,column=0,sticky='NSEW')
+#         if not lblframeSymbolSampling.display:
+#             frameSymbolSampling.grid_forget()
+#         frameSymbolSampling.grid_columnconfigure(0,weight=1)
+#         frameSymbolSampling.grid_columnconfigure(1,weight=1)
+#         frameSymbolSampling.grid_columnconfigure(2,weight=1)
+#         frameSymbolSampling.grid_rowconfigure(0,weight=1)
+#         #
+#         lblframeSymbolSampling.frame = frameSymbolSampling
+#         #
+#         # Create a hidden label to set minimum size of the lblframe respecting to its title
+#         label = TTK.Label(self.frame,text="Symb. Sampling")
+#         label.grid(row=0,column=0,in_=lblframeSymbolSampling)
+#         label.lower(lblframeSymbolSampling)
+#         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Symbol sampling start
+#         lblframe = TTK.LabelFrame(frameSymbolSampling, text="Start")
+#         lblframe.grid(row=0,column=0,sticky='NESW')
+#         #
+#         lblframe.grid_columnconfigure(0,weight=1)
+#         for ind in range(len(self.subGraph.curves)+1):
+#             lblframe.grid_rowconfigure(ind,weight=1)
+#         #
+#         lblframelvl1.append(lblframe)
+#         #
+#         self.frame.marker_sampling_startItem = []
+#         for ind in range(len(self.subGraph.curves)):
+#             c = self.subGraph.curves[ind]
+#             B = TTK.Button(lblframe,text=c.marker_sampling_start,command=lambda n=(ind,self.frame.marker_sampling_startItem): self.bt_click(n))
+#             B.list = []
+#             B.val = c.marker_sampling_start
+#             B.var = 'marker_sampling_start'
+#             B.ind = ind
+#             B.treatmentId = 2
+#             B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+#             B.container = self.frame.marker_sampling_startItem
+#             self.frame.marker_sampling_startItem.append(B)
+#         # Curve to add
+#         ind = len(self.subGraph.curves)
+#         B = TTK.Button(lblframe,text=default_values['Curve']['marker_sampling_start'],command=lambda n=(ind,self.frame.marker_sampling_startItem): self.bt_click(n))
+#         B.list = []
+#         B.val = default_values['Curve']['marker_sampling_start']
+#         B.var = 'marker_sampling_start'
+#         B.ind = ind
+#         B.treatmentId = 2
+#         B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+#         B.container = self.frame.marker_sampling_startItem
+#         self.frame.marker_sampling_startItem.append(B)
+#         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Symbol sampling end
+#         lblframe = TTK.LabelFrame(frameSymbolSampling, text="End")
+#         lblframe.grid(row=0,column=1,sticky='NESW')
+#         #
+#         lblframe.grid_columnconfigure(0,weight=1)
+#         for ind in range(len(self.subGraph.curves)+1):
+#             lblframe.grid_rowconfigure(ind,weight=1)
+#         #
+#         lblframelvl1.append(lblframe)
+#         #
+#         self.frame.marker_sampling_endItem = []
+#         for ind in range(len(self.subGraph.curves)):
+#             c = self.subGraph.curves[ind]
+#             B = TTK.Button(lblframe,text=c.marker_sampling_end,command=lambda n=(ind,self.frame.marker_sampling_endItem): self.bt_click(n))
+#             B.list = []
+#             B.val = c.marker_sampling_end
+#             B.var = 'marker_sampling_end'
+#             B.ind = ind
+#             B.treatmentId = 2
+#             B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+#             B.container = self.frame.marker_sampling_endItem
+#             self.frame.marker_sampling_endItem.append(B)
+#         # Curve to add
+#         ind = len(self.subGraph.curves)
+#         B = TTK.Button(lblframe,text=default_values['Curve']['marker_sampling_end'],command=lambda n=(ind,self.frame.marker_sampling_endItem): self.bt_click(n))
+#         B.list = []
+#         B.val = default_values['Curve']['marker_sampling_end']
+#         B.var = 'marker_sampling_end'
+#         B.ind = ind
+#         B.treatmentId = 2
+#         B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+#         B.container = self.frame.marker_sampling_endItem
+#         self.frame.marker_sampling_endItem.append(B)
+#         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Symbol sampling step
+#         lblframe = TTK.LabelFrame(frameSymbolSampling, text="Step")
+#         lblframe.grid(row=0,column=2,sticky='NESW')
+#         #
+#         lblframe.grid_columnconfigure(0,weight=1)
+#         for ind in range(len(self.subGraph.curves)+1):
+#             lblframe.grid_rowconfigure(ind,weight=1)
+#         #
+#         lblframelvl1.append(lblframe)
+#         #
+#         self.frame.marker_sampling_stepItem = []
+#         for ind in range(len(self.subGraph.curves)):
+#             c = self.subGraph.curves[ind]
+#             B = TTK.Button(lblframe,text=c.marker_sampling_step,command=lambda n=(ind,self.frame.marker_sampling_stepItem): self.bt_click(n))
+#             B.list = []
+#             B.val = c.marker_sampling_step
+#             B.var = 'marker_sampling_step'
+#             B.ind = ind
+#             B.treatmentId = 2
+#             B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+#             B.container = self.frame.marker_sampling_stepItem
+#             self.frame.marker_sampling_stepItem.append(B)
+#         # Curve to add
+#         ind = len(self.subGraph.curves)
+#         B = TTK.Button(lblframe,text=default_values['Curve']['marker_sampling_step'],command=lambda n=(ind,self.frame.marker_sampling_stepItem): self.bt_click(n))
+#         B.list = []
+#         B.val = default_values['Curve']['marker_sampling_step']
+#         B.var = 'marker_sampling_step'
+#         B.ind = ind
+#         B.treatmentId = 2
+#         B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+#         B.container = self.frame.marker_sampling_stepItem
+#         self.frame.marker_sampling_stepItem.append(B)
+#         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+#         lblframeLegend = TTK.LabelFrame(self.frame, text="Legend")
+#         lblframeLegend.grid(row=0,column=5,sticky='NSEW')
+#         lblframeLegend.grid_columnconfigure(0,weight=1)
+#         lblframeLegend.grid_rowconfigure(0,weight=1)
+#         lblframeLegend.id = 5
+#         lblframeLegend.display = self.labelView[lblframeLegend.id]
+#         #
+#         lblframeLegend.title = "Legend. "
+#         if lblframeLegend.display: title = lblframeLegend.title + "v "
+#         else: title = lblframeLegend.title + "> "
+#         lblframeLegend.config(text=title)
+#         #
+#         lblframeLegend.bind("<Button-1>",self.expandLblFrame)
+#         #
+#         frameLegend = TTK.Frame(lblframeLegend)
+#         frameLegend.grid(row=0,column=0,sticky='NSEW')
+#         if not lblframeLegend.display:
+#             frameLegend.grid_forget()
+#         frameLegend.grid_columnconfigure(0,weight=1)
+#         frameLegend.grid_columnconfigure(1,weight=1)
+#         frameLegend.grid_rowconfigure(0,weight=1)
+#         #
+#         lblframeLegend.frame = frameLegend
+#         #
+#         # Create a hidden label to set minimum size of the lblframe respecting to its title
+#         label = TTK.Label(self.frame,text="Legend")
+#         label.grid(row=0,column=0,in_=lblframeLegend)
+#         label.lower(lblframeLegend)
+#         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Legend label
+#         lblframe = TTK.LabelFrame(frameLegend, text="Legend label")
+#         lblframe.grid(row=0,column=0,sticky='NESW')
+#         #
+#         lblframe.grid_columnconfigure(0,weight=1)
+#         for ind in range(len(self.subGraph.curves)+1):
+#             lblframe.grid_rowconfigure(ind,weight=1)
+#         #
+#         lblframelvl1.append(lblframe)
+#         #
+#         self.frame.legend_labelItem = []
+#         for ind in range(len(self.subGraph.curves)):
+#             c = self.subGraph.curves[ind]
+#             B = TTK.Button(lblframe,text=c.legend_label,command=lambda n=(ind,self.frame.legend_labelItem): self.bt_click(n))
+#             B.list = []
+#             B.val = c.legend_label
+#             B.var = 'legend_label'
+#             B.ind = ind
+#             B.treatmentId = 3
+#             B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+#             B.container = self.frame.legend_labelItem
+#             self.frame.legend_labelItem.append(B)
+#         # Curve to add
+#         ind = len(self.subGraph.curves)
+#         B = TTK.Button(lblframe,text="...",command=lambda n=(ind,self.frame.legend_labelItem): self.bt_click(n))
+#         B.list = []
+#         B.val = "..."
+#         B.var = 'legend_label'
+#         B.ind = ind
+#         B.treatmentId = 3
+#         B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+#         B.container = self.frame.legend_labelItem
+#         self.frame.legend_labelItem.append(B)
+#         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Legend display
+#         lblframe = TTK.LabelFrame(frameLegend, text="Legend display")
+#         lblframe.grid(row=0,column=1,sticky='NESW')
+#         #
+#         lblframe.grid_columnconfigure(0,weight=1)
+#         for ind in range(len(self.subGraph.curves)+1):
+#             lblframe.grid_rowconfigure(ind,weight=1)
+#         #
+#         lblframelvl1.append(lblframe)
+#         #
+#         self.frame.legend_displayItem=[]
+#         #
+#         for ind in range(len(self.subGraph.curves)):
+#             var = TK.IntVar()
+#             var.set(1)
+#             CB = TTK.Checkbutton(lblframe,variable=var,command=lambda n=ind: self.cb_legend_display(n))#, variable=var)
+#             CB.val = var
+#             CB.var = 'legend_display'
+#             CB.ind=ind
+#             CB.grid(row=ind,column=0,sticky='NSEW')
+#             CB.container = self.frame.legend_displayItem
+#             self.frame.legend_displayItem.append(CB)
+#         # Curve to add
+#         ind = len(self.subGraph.curves)
+#         var = TK.IntVar()
+#         var.set(1)
+#         CB = TTK.Checkbutton(lblframe,variable=var,state=TK.DISABLED,command=lambda n=ind: self.cb_legend_display(n))#, variable=var)
+#         CB.val = var
+#         CB.var = 'legend_display'
+#         CB.ind=ind
+#         CB.grid(row=ind,column=0,sticky='NSEW')
+#         CB.container = self.frame.legend_displayItem
+#         self.frame.legend_displayItem.append(CB)
+
+        ########################################################################
+        #################### -> Button Line
+        bottomFrame = TTK.Frame(self.frame)
+        # bottomFrame.grid(row=1,column=0,columnspan=18,sticky="NSEW")
+        bottomFrame.grid(row=1,column=0,columnspan=23,sticky="NSEW")
+        #
+        bottomFrame.grid_columnconfigure(0,weight=1)
+        bottomFrame.grid_columnconfigure(1,weight=1)
+        bottomFrame.grid_columnconfigure(2,weight=1)
+        bottomFrame.grid_columnconfigure(3,weight=1)
+        bottomFrame.grid_columnconfigure(4,weight=1)
+        bottomFrame.grid_columnconfigure(5,weight=1)
+
+        #
+        bottomFrame.grid_rowconfigure(0,weight=0)
+        #
+        B = TTK.Button(bottomFrame,text='Move Up',command=self.cmd_moveUp)
+        B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+        #
+        B = TTK.Button(bottomFrame,text='Move Down',command=self.cmd_moveDown)
+        B.grid(row=0,column=1,columnspan=1,sticky="nsew")
+        #
+        B = TTK.Button(bottomFrame,text='Delete selected texts',command=self.cmd_rmTexts)
+        B.grid(row=0,column=2,columnspan=1,sticky="nsew")
+        #
+        B = TTK.Button(bottomFrame,text='Duplicate selected texts',command=self.cmd_duplicateTexts)
+        B.grid(row=0,column=3,columnspan=1,sticky="nsew")
+        #
+        B = TTK.Button(bottomFrame,text='Create text to add',command=self.cmd_createText)
+        B.grid(row=0,column=4,columnspan=1,sticky="nsew")
+        #
+        B = TTK.Button(bottomFrame,text='Close',command=self.cmd_close)
+        B.grid(row=0,column=5,columnspan=1,sticky="nsew")
+
+        #
+        try:
+            self.frameList[self.graph][self.zone] = self.frame
+        except KeyError:
+            self.frameList[self.graph] = {self.zone:self.frame}
+    # ------------------------------------------------------------ cb_active_background
+    def cb_active_background(self,ind):
+        CB = self.frame.active_backgroundItem[ind]
+        initialValue = CB.val.get()
+        self.subGraph.texts[ind].setValue('active_background',initialValue)
+        # If line was selected, apply this modification to all other selected lines
+        if self.frame.selectionItem[ind].val.get():
+            for ind2 in range(len(self.frame.selectionItem)):
+                if ind != ind2 and self.frame.selectionItem[ind2].val.get():
+                    CB = self.frame.active_backgroundItem[ind2]
+                    CB.val.set(initialValue)
+                    # if initialValue: CB.state(['selected'])
+                    # else: CB.state(['!selected'])
+                    self.subGraph.texts[ind2].setValue('active_background',initialValue)
+        # Update Graph
+        self.parent.graphWdwL[self.graph].updateGraph(self.zone)
+    # ------------------------------------------------------------ cb_visibility
+    def cb_visibility(self,ind):
+        CB = self.frame.visibilityItem[ind]
+        initialValue = CB.val.get()
+        self.subGraph.texts[ind].setValue('visibility',initialValue)
+        # If line was selected, apply this modification to all other selected lines
+        if self.frame.selectionItem[ind].val.get():
+            for ind2 in range(len(self.frame.selectionItem)):
+                if ind != ind2 and self.frame.selectionItem[ind2].val.get():
+                    CB = self.frame.visibilityItem[ind2]
+                    CB.val.set(initialValue)
+                    # if initialValue: CB.state(['selected'])
+                    # else: CB.state(['!selected'])
+                    self.subGraph.texts[ind2].setValue('visibility',initialValue)
+        # Update Graph
+        self.parent.graphWdwL[self.graph].updateGraph(self.zone)
+    # ------------------------------------------------------------ cb_use_tex
+    def cb_use_tex(self,ind):
+        CB = self.frame.use_texItem[ind]
+        initialValue = CB.val.get()
+        if initialValue:
+            self.frame.font_typeItem[ind].config(state='disabled')
+            self.frame.policeItem[ind].config(state='disabled')
+            self.frame.font_styleItem[ind].config(state='disabled')
+            self.frame.font_weightItem[ind].config(state='disabled')
+            self.frame.text_alphaItem[ind].config(state='disabled')
+        else:
+            self.frame.font_typeItem[ind].config(state='normal')
+            self.frame.policeItem[ind].config(state='normal')
+            self.frame.font_styleItem[ind].config(state='normal')
+            self.frame.font_weightItem[ind].config(state='normal')
+            self.frame.text_alphaItem[ind].config(state='normal')
+        self.subGraph.texts[ind].setValue('use_tex',CB.val.get())
+        # If line was selected, apply this modification to all other selected lines
+        if self.frame.selectionItem[ind].val.get():
+            for ind2 in range(len(self.frame.selectionItem)):
+                if ind != ind2 and self.frame.selectionItem[ind2].val.get():
+                    CB = self.frame.use_texItem[ind2]
+                    CB.val.set(initialValue)
+                    if initialValue:
+                        self.frame.font_typeItem[ind2].config(state='disabled')
+                        self.frame.policeItem[ind2].config(state='disabled')
+                        self.frame.font_styleItem[ind2].config(state='disabled')
+                        self.frame.font_weightItem[ind2].config(state='disabled')
+                        self.frame.text_alphaItem[ind2].config(state='disabled')
+                    else:
+                        self.frame.font_typeItem[ind2].config(state='normal')
+                        self.frame.policeItem[ind2].config(state='normal')
+                        self.frame.font_styleItem[ind2].config(state='normal')
+                        self.frame.font_weightItem[ind2].config(state='normal')
+                        self.frame.text_alphaItem[ind2].config(state='normal')
+                    # if initialValue: CB.state(['selected'])
+                    # else: CB.state(['!selected'])
+                    self.subGraph.texts[ind2].setValue('use_tex',CB.val.get())
+        # Update Graph
+        self.parent.graphWdwL[self.graph].updateGraph(self.zone)
+    # # -------------------------------------------------------------- updateButon
+    # def updateButon(self,B,val):
+    #     B.val = val
+    #     B.config(text=B.val)
+    #     try:
+    #         self.subGraph.texts[B.ind].setValue(B.var,B.val)
+    #         # Update Graph
+    #         self.parent.graphWdwL[self.graph].updateGraph(self.zone)
+    #     except IndexError: return
+    # -------------------------------------------------------------- updateButon
+    def updateButon(self, B, val, treatmentId=None):
+        l_ind = [B.ind]
+        if treatmentId is None:
+            treatmentId = B.treatmentId
+        if treatmentId == 5: # Special case for font police
+            self.frame.policeItem[B.ind].list = font_dic[val]
+            self.frame.policeItem[B.ind].config(text=font_dic[val][0])
+            self.frame.policeItem[B.ind].val = font_dic[val][0]
+            self.subGraph.texts[B.ind].setValue(self.frame.policeItem[B.ind].var,self.frame.policeItem[B.ind].val)
+            # If line is selected, apply the modification to all other selected lines
+            containerOfB = self.frame.policeItem[B.ind].container
+            if self.frame.selectionItem[B.ind].val.get():
+                for ind2, f in enumerate(self.frame.selectionItem):
+                    if B.ind != ind2 and f.val.get(): l_ind.append(ind2)
+            for ind in l_ind:
+                BB = containerOfB[ind]
+                BB.val = font_dic[val][0]
+                BB.config(text=BB.val)
+                BB.list = font_dic[val]
+            for ind in l_ind:
+                try:
+                    self.subGraph.texts[BB.ind].setValue(BB.var,BB.val)
+                except IndexError:
+                    return
+            self.updateButon(B,val,treatmentId=0)
+        else:
+            containerOfB = B.container
+            # If line is selected, apply the modification to all other selected lines
+            if self.frame.selectionItem[B.ind].val.get():
+                for ind2, f in enumerate(self.frame.selectionItem):
+                    if B.ind != ind2 and f.val.get(): l_ind.append(ind2)
+            for ind in l_ind:
+                BB = containerOfB[ind]
+                BB.val = val
+                BB.config(text=BB.val)
+            for ind in l_ind:
+                BB = containerOfB[ind]
+                try:
+                    self.subGraph.texts[BB.ind].setValue(BB.var,BB.val)
+                    # Update Graph
+                    self.parent.graphWdwL[self.graph].updateGraph(self.zone)
+                except IndexError:
+                    return
+    # ----------------------------------------------------------------- bt_moveLeft
+    def bt_moveLeft(self,data):
+        ind = data[0]
+        B_l = data[1]
+        B = B_l[ind]
+        actualValue = B.val
+        newValue = actualValue - 0.1
+        self.updateButon(B,newValue)
+    # ----------------------------------------------------------------- bt_moveRight
+    def bt_moveRight(self,data):
+        ind = data[0]
+        B_l = data[1]
+        B = B_l[ind]
+        actualValue = B.val
+        newValue = actualValue + 0.1
+        self.updateButon(B,newValue)
+    # ----------------------------------------------------------------- bt_click
+    def bt_click(self,ind):
+        bt_list = ind[1]
+        B = bt_list[ind[0]]
+        self.closeAllDialog()
+        if B.treatmentId==0:
+            self.list_dialog = list_dialogWindow()
+            self.list_dialog.initialize(self,B)
+        elif B.treatmentId==1:
+            self.list_dialog = ColorControler.color_dialogWindow(self,B,B.val,extra_data=ind)
+            # try:
+            #     color = askcolor(B.val,parent=self)
+            #     if color[1] is not None:
+            #         B.val = color[1]
+            #         B.config(bg=B.val)
+            #         B.config(activebackground=B.val)
+            #         try:
+            #             self.subGraph.legend_property.setValue(B.var,B.val)
+            #             # Update Graph
+            #             self.parent.graphWdwL[self.graph].updateGraph(self.zone)
+            #         except IndexError:
+            #             return
+            # except ValueError:
+            #     return
+        elif B.treatmentId==2: # UNUSED
+            self.input_dialog = input_dialogWindow()
+            self.input_dialog.initialize(self,B)
+        elif B.treatmentId == 3:
+            self.input_dialog = input_dialogStringWindow()
+            self.input_dialog.initialize(self,B)
+        elif B.treatmentId==4:
+            self.input_dialog = inputFloat_dialogWindow()
+            self.input_dialog.initialize(self,B)
+        elif B.treatmentId==5:
+            self.list_dialog = list_dialogWindow()
+            self.list_dialog.initialize(self,B)
+        else: return
+    # ---------------------------------------------------------- updateButonWith
+    def updateButonWith(self,B,val):
+        self.updateButon(B,val)
+    # ----------------------------------------------------------------- bt_click
+    def updateColor(self,color,B,extra_data):
+        bt_list = extra_data[1]
+        # B = bt_list[ind[0]]
+        l_ind = [extra_data[0]]
+        # If line is selected, apply the modification to all other selected lines
+        if self.frame.selectionItem[extra_data[0]].val.get():
+            for ind2 in range(len(self.frame.selectionItem)):
+                if extra_data[0]!=ind2 and self.frame.selectionItem[ind2].val.get():
+                    l_ind.append(ind2)
+        if color is not None:
+            for ii in l_ind:
+                B = bt_list[ii]
+                B.val = color
+                B.config(bg=B.val)
+                B.config(activebackground=B.val)
+                try:
+                    self.subGraph.texts[B.ind].setValue(B.var,B.val)
+                    # Update Graph
+                    self.parent.graphWdwL[self.graph].updateGraph(self.zone)
+
+                except IndexError: return
+    # ------------------------------------------------------------- cb_selection
+    def cb_selection(self,ind):
+        CB = self.frame.selectionItem[ind]
+    # ---------------------------------------------------------------- cmd_moveUp
+    def cmd_moveUp(self):
+        # Works only if a single curve is selected !
+        nbSelected = 0
+        indSelected = None
+        for ind in range(len(self.frame.selectionItem)):
+            select = self.frame.selectionItem[ind]
+            if select.val.get():
+                nbSelected += 1
+                indSelected = ind
+        # Check if only a single curve has been selected
+        if nbSelected != 1:
+            tkMessageBox.showwarning('Move Up Failed','Need to select a single text line')
+            return
+        else:
+            # if indSelected == 0, can not move up beacause it is already at the top !
+            if indSelected!= 0:
+                t = cpy.deepcopy(self.subGraph.texts[indSelected])
+                self.subGraph.texts[indSelected]=self.subGraph.texts[indSelected-1]
+                self.subGraph.texts[indSelected-1]=t
+                self.switchText(indSelected,-1)
+                self.updatelblFrameSize()
+                try:
+                    self.frameList[self.graph][self.zone] = self.frame
+                except KeyError:
+                    self.frameList[self.graph] = {self.zone:self.frame}
+                #
+                # Update Graph
+                self.parent.graphWdwL[self.graph].updateGraph(self.zone)
+    # ---------------------------------------------------------------- cmd_moveDown
+    def cmd_moveDown(self):
+        # Works only if a single curve is selected !
+        nbSelected = 0
+        indSelected = None
+        for ind in range(len(self.frame.selectionItem)):
+            select = self.frame.selectionItem[ind]
+            if select.val.get():
+                nbSelected += 1
+                indSelected = ind
+        # Check if only a single curve has been selected
+        if nbSelected != 1:
+            tkMessageBox.showwarning('Move Up Failed','Need to select a single text line')
+            return
+        else:
+            # if indSelected == len(self.frame.selectionItem)-2, can not move down beacause it is already at the bottom !
+            # Rmk : it is "-2" because there is the line for the "curve to add" that counts for one that is at the end
+            if indSelected!= len(self.frame.selectionItem)-2:
+                t = cpy.deepcopy(self.subGraph.texts[indSelected])
+                self.subGraph.texts[indSelected]=self.subGraph.texts[indSelected+1]
+                self.subGraph.texts[indSelected+1]=t
+                self.switchText(indSelected,1)
+                self.updatelblFrameSize()
+                try:
+                    self.frameList[self.graph][self.zone] = self.frame
+                except KeyError:
+                    self.frameList[self.graph] = {self.zone:self.frame}
+                #
+                # Update Graph
+                self.parent.graphWdwL[self.graph].updateGraph(self.zone)
+    # ------------------------------------------------------------- switchText
+    def switchText(self,indSelected,incr):
+        self.geometry("")
+        cm = plt.get_cmap(COLOR_MAP)
+        if indSelected==0 and incr == -1: return
+        if indSelected==(len(self.frame.selectionItem)-1) and incr==1:
+            return
+        ### Visual
+        for action in [ self.frame.selectionItem,self.frame.IdItem,self.frame.textItem,
+                        self.frame.visibilityItem,self.frame.text_colorItem,self.frame.text_sizeItem,
+                        self.frame.font_typeItem,self.frame.policeItem,self.frame.font_styleItem,
+                        self.frame.font_weightItem,self.frame.text_alphaItem,
+                        self.frame.haItem,self.frame.vaItem,
+                        self.frame.posxItem,self.frame.posxLItem,self.frame.posxRItem,
+                        self.frame.posyItem,self.frame.posyLItem,self.frame.posyRItem,
+                        self.frame.rotationItem,
+                        self.frame.use_texItem,self.frame.box_backgroundcolorItem,self.frame.box_edgecolorItem,
+                        self.frame.box_linewidthItem,self.frame.box_styleItem,
+                        self.frame.active_backgroundItem,self.frame.box_alphaItem]:
+            action[indSelected].grid_forget()
+            action[indSelected+incr].grid_forget()
+            action[indSelected].grid(row=indSelected+incr,column=0,sticky='NSEW')
+            action[indSelected+incr].grid(row=indSelected,column=0,sticky='NSEW')
+            action[indSelected].ind = indSelected+incr
+            action[indSelected+incr].ind = indSelected
+            tmp = action[indSelected+incr]
+            action[indSelected+incr] = action[indSelected]
+            action[indSelected] = tmp
+        ### Edit lambda functions
+        for ind in [indSelected+incr,indSelected]:
+            self.frame.selectionItem[ind].config(command=lambda n=ind: self.cb_selection(n))
+            self.frame.IdItem[ind].config(text=ind)
+            self.frame.textItem[ind].config(command=lambda n=(ind,self.frame.textItem): self.bt_click(n))
+            self.frame.visibilityItem[ind].config(command=lambda n=ind: self.cb_visibility(n))
+            self.frame.text_colorItem[ind].config(command=lambda n=(ind,self.frame.text_colorItem): self.bt_click(n))
+            self.frame.text_sizeItem[ind].config(command=lambda n=(ind,self.frame.text_sizeItem): self.bt_click(n))
+            self.frame.font_typeItem[ind].config(command=lambda n=(ind,self.frame.font_typeItem): self.bt_click(n))
+            self.frame.policeItem[ind].config(command=lambda n=(ind,self.frame.policeItem): self.bt_click(n))
+            self.frame.font_styleItem[ind].config(command=lambda n=(ind,self.frame.font_styleItem): self.bt_click(n))
+            self.frame.font_weightItem[ind].config(command=lambda n=(ind,self.frame.font_weightItem): self.bt_click(n))
+            self.frame.text_alphaItem[ind].config(command=lambda n=(ind,self.frame.text_alphaItem): self.bt_click(n))
+            self.frame.haItem[ind].config(command=lambda n=(ind,self.frame.haItem): self.bt_click(n))
+            self.frame.vaItem[ind].config(command=lambda n=(ind,self.frame.vaItem): self.bt_click(n))
+            self.frame.posxLItem[ind].config(command=lambda n=(ind,self.frame.posxItem): self.bt_moveLeft(n))
+            self.frame.posxRItem[ind].config(command=lambda n=(ind,self.frame.posxItem): self.bt_moveRight(n))
+            self.frame.posxItem[ind].config(command=lambda n=(ind,self.frame.posxItem): self.bt_click(n))
+            self.frame.posyItem[ind].config(command=lambda n=(ind,self.frame.posyItem): self.bt_click(n))
+            self.frame.posyLItem[ind].config(command=lambda n=(ind,self.frame.posyItem): self.bt_moveLeft(n))
+            self.frame.posyRItem[ind].config(command=lambda n=(ind,self.frame.posyItem): self.bt_moveRight(n))
+            self.frame.rotationItem[ind].config(command=lambda n=(ind,self.frame.rotationItem): self.bt_click(n))
+            self.frame.use_texItem[ind].config(command=lambda n=ind: self.cb_use_tex(n))
+            self.frame.box_backgroundcolorItem[ind].config(command=lambda n=(ind,self.frame.box_backgroundcolorItem): self.bt_click(n))
+            self.frame.box_edgecolorItem[ind].config(command=lambda n=(ind,self.frame.box_edgecolorItem): self.bt_click(n))
+            self.frame.box_linewidthItem[ind].config(command=lambda n=(ind,self.frame.box_linewidthItem): self.bt_click(n))
+            self.frame.box_styleItem[ind].config(command=lambda n=(ind,self.frame.box_styleItem): self.bt_click(n))
+            self.frame.active_backgroundItem[ind].config(command=lambda n=ind: self.cb_active_background(n))
+            self.frame.box_alphaItem[ind].config(command=lambda n=(ind,self.frame.box_alphaItem): self.bt_click(n))
+
+    # ---------------------------------------------------------------- cmd_rmTexts
+    def cmd_rmTexts(self):
+        nbDeletion = 0
+        deletionList = []
+        for ind, select in enumerate(self.frame.selectionItem):
+            if select.val.get(): deletionList.append(ind)
+        deletionList.sort()
+        ind=0
+        nbDeletion = len(deletionList)-1
+        while ind <= nbDeletion:
+            indRemove = deletionList[ind]
+            del self.subGraph.texts[indRemove]
+            self.popUpTextLine(indRemove)
+            ind += 1
+            deletionList = [i-1 for i in deletionList]
+        self.updatelblFrameSize()
+
+        self.parent.graphWdwL[self.graph].updateGraph(self.zone)
+
+    # --------------------------------------------------------------- popUpTextLine
+    def popUpTextLine(self,indRemove):
+        self.geometry("")
+        cm = plt.get_cmap(COLOR_MAP)
+
+
+        ### grid forget on indRemove
+        for action in [ self.frame.selectionItem,self.frame.IdItem,self.frame.textItem,
+                        self.frame.visibilityItem,self.frame.text_colorItem,self.frame.text_sizeItem,
+                        self.frame.font_typeItem,self.frame.policeItem,self.frame.font_styleItem,
+                        self.frame.font_weightItem,self.frame.text_alphaItem,
+                        self.frame.haItem,self.frame.vaItem,
+                        self.frame.posxItem,self.frame.posxLItem,self.frame.posxRItem,
+                        self.frame.posyItem,self.frame.posyLItem,self.frame.posyRItem,
+                        self.frame.rotationItem,
+                        self.frame.use_texItem,self.frame.box_backgroundcolorItem,self.frame.box_edgecolorItem,
+                        self.frame.box_linewidthItem,self.frame.box_styleItem,
+                        self.frame.active_backgroundItem,self.frame.box_alphaItem]:
+            action[indRemove].grid_forget()
+
+        # action[indRemove].destroy()
+        ### Loop on curves
+        for ind in range(len(self.subGraph.texts)+1):
+            ### ### Check index value
+            if ind>=indRemove:
+                for action in [ self.frame.selectionItem,self.frame.IdItem,self.frame.textItem,
+                                self.frame.visibilityItem,self.frame.text_colorItem,self.frame.text_sizeItem,
+                                self.frame.font_typeItem,self.frame.policeItem,self.frame.font_styleItem,
+                                self.frame.font_weightItem,self.frame.text_alphaItem,
+                                self.frame.haItem,self.frame.vaItem,
+                                self.frame.posxItem,self.frame.posxLItem,self.frame.posxRItem,
+                                self.frame.posyItem,self.frame.posyLItem,self.frame.posyRItem,
+                                self.frame.rotationItem,
+                                self.frame.use_texItem,self.frame.box_backgroundcolorItem,self.frame.box_edgecolorItem,
+                                self.frame.box_linewidthItem,self.frame.box_styleItem,
+                                self.frame.active_backgroundItem,self.frame.box_alphaItem]:
+                    ### ### ### grid_forget
+                    action[ind+1].grid_forget()
+                    ### ### ### Pop up
+                    action[ind] = action[ind+1]
+                    action[ind+1] = None
+                    action[ind].grid(row=ind,column=0,sticky='NSEW')
+                    action[ind].ind = ind
+                # Re Link the lambda function
+                self.frame.selectionItem[ind].config(command=lambda n=ind: self.cb_selection(n))
+                self.frame.IdItem[ind].config(text=ind)
+                self.frame.textItem[ind].config(command=lambda n=(ind,self.frame.textItem): self.bt_click(n))
+                self.frame.visibilityItem[ind].config(command=lambda n=ind: self.cb_visibility(n))
+                self.frame.text_colorItem[ind].config(command=lambda n=(ind,self.frame.text_colorItem): self.bt_click(n))
+                self.frame.text_sizeItem[ind].config(command=lambda n=(ind,self.frame.text_sizeItem): self.bt_click(n))
+                self.frame.font_typeItem[ind].config(command=lambda n=(ind,self.frame.font_typeItem): self.bt_click(n))
+                self.frame.policeItem[ind].config(command=lambda n=(ind,self.frame.policeItem): self.bt_click(n))
+                self.frame.font_styleItem[ind].config(command=lambda n=(ind,self.frame.font_styleItem): self.bt_click(n))
+                self.frame.font_weightItem[ind].config(command=lambda n=(ind,self.frame.font_weightItem): self.bt_click(n))
+                self.frame.text_alphaItem[ind].config(command=lambda n=(ind,self.frame.text_alphaItem): self.bt_click(n))
+                self.frame.haItem[ind].config(command=lambda n=(ind,self.frame.haItem): self.bt_click(n))
+                self.frame.vaItem[ind].config(command=lambda n=(ind,self.frame.vaItem): self.bt_click(n))
+                self.frame.posxItem[ind].config(command=lambda n=(ind,self.frame.posxItem): self.bt_click(n))
+                self.frame.posxLItem[ind].config(command=lambda n=(ind,self.frame.posxItem): self.bt_moveLeft(n))
+                self.frame.posxRItem[ind].config(command=lambda n=(ind,self.frame.posxItem): self.bt_moveRight(n))
+                self.frame.posyItem[ind].config(command=lambda n=(ind,self.frame.posyItem): self.bt_click(n))
+                self.frame.posyLItem[ind].config(command=lambda n=(ind,self.frame.posyItem): self.bt_moveLeft(n))
+                self.frame.posyRItem[ind].config(command=lambda n=(ind,self.frame.posyItem): self.bt_moveRight(n))
+                self.frame.rotationItem[ind].config(command=lambda n=(ind,self.frame.rotationItem): self.bt_click(n))
+                self.frame.use_texItem[ind].config(command=lambda n=ind: self.cb_use_tex(n))
+                self.frame.box_backgroundcolorItem[ind].config(command=lambda n=(ind,self.frame.box_backgroundcolorItem): self.bt_click(n))
+                self.frame.box_edgecolorItem[ind].config(command=lambda n=(ind,self.frame.box_edgecolorItem): self.bt_click(n))
+                self.frame.box_linewidthItem[ind].config(command=lambda n=(ind,self.frame.box_linewidthItem): self.bt_click(n))
+                self.frame.box_styleItem[ind].config(command=lambda n=(ind,self.frame.box_styleItem): self.bt_click(n))
+                self.frame.active_backgroundItem[ind].config(command=lambda n=ind: self.cb_active_background(n))
+                self.frame.box_alphaItem[ind].config(command=lambda n=(ind,self.frame.box_alphaItem): self.bt_click(n))
+
+
+
+        for action in [ self.frame.selectionItem,self.frame.IdItem,self.frame.textItem,
+                        self.frame.visibilityItem,self.frame.text_colorItem,self.frame.text_sizeItem,
+                        self.frame.font_typeItem,self.frame.policeItem,self.frame.font_styleItem,
+                        self.frame.font_weightItem,self.frame.text_alphaItem,
+                        self.frame.haItem,self.frame.vaItem,
+                        self.frame.posxItem,self.frame.posxLItem,self.frame.posxRItem,
+                        self.frame.posyItem,self.frame.posyLItem,self.frame.posyRItem,
+                        self.frame.rotationItem,
+                        self.frame.use_texItem,self.frame.box_backgroundcolorItem,self.frame.box_edgecolorItem,
+                        self.frame.box_linewidthItem,self.frame.box_styleItem,
+                        self.frame.active_backgroundItem,self.frame.box_alphaItem]:
+
+            del action[-1]
+            ### get lblframe
+            lblframe = action[0].winfo_parent() # Returns the name of the parent
+            lblframe = self.frame.nametowidget(lblframe) # returns the instance of the parent # Returns the name of the parent
+            lblframe.grid_rowconfigure(len(self.subGraph.curves)+1,weight=1)
+        #
+        try:
+            self.frameList[self.graph][self.zone] = self.frame
+        except KeyError:
+            self.frameList[self.graph] = {self.zone:self.frame}
+
+
+    # ---------------------------------------------------------------- cmd_duplicateTexts
+    def cmd_duplicateTexts(self):
+        for ind, select in enumerate(self.frame.selectionItem):
+            if select.val.get():
+                t= Text(
+                            zone                = self.zone,
+                            text                = self.frame.textItem[ind].val,
+                            visibility          = self.frame.visibilityItem[ind].val.get(),
+                            text_color          = self.frame.text_colorItem[ind].val,
+                            text_size           = self.frame.text_sizeItem[ind].val,
+                            font_type           = self.frame.font_typeItem[ind].val,
+                            police              = self.frame.policeItem[ind].val,
+                            font_style          = self.frame.font_styleItem[ind].val,
+                            font_weight         = self.frame.font_weightItem[ind].val,
+                            text_alpha          = self.frame.text_alphaItem[ind].val,
+                            ha                  = self.frame.haItem[ind].val,
+                            va                  = self.frame.vaItem[ind].val,
+                            posx                = self.frame.posxItem[ind].val,
+                            posy                = self.frame.posyItem[ind].val,
+                            rotation            = self.frame.rotationItem[ind].val,
+                            use_tex             = self.frame.use_texItem[ind].val.get(),
+                            box_backgroundcolor = self.frame.box_backgroundcolorItem[ind].val,
+                            box_edgecolor       = self.frame.box_edgecolorItem[ind].val,
+                            box_linewidth       = self.frame.box_linewidthItem[ind].val,
+                            box_style           = self.frame.box_styleItem[ind].val,
+                            active_background   = self.frame.active_backgroundItem[ind].val.get(),
+                            box_alpha           = self.frame.box_alphaItem[ind].val)
+                # Add texts
+                self.subGraph.texts.append(t)
+                # self.frame.destroy()
+                self.addTextLineToFrame(t)
+                self.updatelblFrameSize()
+        # self.createFrame()
+        # Update Graph
+        self.parent.graphWdwL[self.graph].updateGraph(self.zone)
+    # ---------------------------------------------------------------- cmd_createText
+    def cmd_createText(self):
+        ind = len(self.subGraph.texts)
+
+        t = Text(
+                    zone                = self.zone,
+                    text                = self.frame.textItem[ind].val,
+                    visibility          = self.frame.visibilityItem[ind].val.get(),
+                    text_color          = self.frame.text_colorItem[ind].val,
+                    text_size           = self.frame.text_sizeItem[ind].val,
+                    font_type           = self.frame.font_typeItem[ind].val,
+                    police              = self.frame.policeItem[ind].val,
+                    font_style          = self.frame.font_styleItem[ind].val,
+                    font_weight         = self.frame.font_weightItem[ind].val,
+                    text_alpha          = self.frame.text_alphaItem[ind].val,
+                    ha                  = self.frame.haItem[ind].val,
+                    va                  = self.frame.vaItem[ind].val,
+                    posx                = self.frame.posxItem[ind].val,
+                    posy                = self.frame.posyItem[ind].val,
+                    rotation            = self.frame.rotationItem[ind].val,
+                    use_tex             = self.frame.use_texItem[ind].val.get(),
+                    box_backgroundcolor = self.frame.box_backgroundcolorItem[ind].val,
+                    box_edgecolor       = self.frame.box_edgecolorItem[ind].val,
+                    box_linewidth       = self.frame.box_linewidthItem[ind].val,
+                    box_style           = self.frame.box_styleItem[ind].val,
+                    active_background   = self.frame.active_backgroundItem[ind].val.get(),
+                    box_alpha           = self.frame.box_alphaItem[ind].val)
+        # Add curves
+        self.subGraph.texts.append(t)
+        # self.frame.destroy()
+        self.addTextLineToFrame(t)
+        self.updatelblFrameSize()
+        # self.createFrame()
+        # Update Graph
+        self.parent.graphWdwL[self.graph].updateGraph(self.zone)
+    # --------------------------------------------------------------- updatelblFrameSize
+    def updatelblFrameSize(self):
+        for action in [ self.frame.selectionItem,self.frame.IdItem,self.frame.textItem,
+                        self.frame.visibilityItem,self.frame.text_colorItem,self.frame.text_sizeItem,
+                        self.frame.font_typeItem,self.frame.policeItem,
+                        self.frame.font_styleItem,self.frame.font_weightItem,self.frame.text_alphaItem,
+                        self.frame.haItem,
+                        self.frame.vaItem,self.frame.posxItem,self.frame.posxLItem,self.frame.posxRItem,
+                        self.frame.posyItem,self.frame.posyLItem,self.frame.posyRItem,
+                        self.frame.rotationItem,
+                        self.frame.use_texItem,self.frame.box_backgroundcolorItem,self.frame.box_edgecolorItem,
+                        self.frame.box_linewidthItem,self.frame.box_styleItem,
+                        self.frame.active_backgroundItem,self.frame.box_alphaItem]:
+            ### get lblframe
+            lblframe = action[0].winfo_parent() # Returns the name of the parent
+            lblframe = self.frame.nametowidget(lblframe) # returns the instance of the parent # Returns the name of the parent
+        #     ### Loop on curves
+        #     for ind in range(len(self.subGraph.curves)):
+        #         lblframe.rowconfigure(ind,weight=0)
+        #         print('-> ',ind)
+        #     lblframe.rowconfigure(len(self.subGraph.curves),weight=0)
+        #     print('-> ',len(self.subGraph.curves))
+        #     #
+        self.frame.grid_rowconfigure(0,weight=len(self.subGraph.texts)+1)
+        self.frame.grid_rowconfigure(1,weight=0)
+    # --------------------------------------------------------------- addLineToFrame
+    def addTextLineToFrame(self,text):
+        # self.geometry("")
+        cm = plt.get_cmap(COLOR_MAP)
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Selection
+        ### delete text to add
+        ind = len(self.subGraph.texts)-1
+        ### Add new text
+        var = TK.BooleanVar()
+        var.set(False)
+        self.frame.selectionItem[ind].config(state=TK.NORMAL)
+        self.frame.selectionItem[ind].config(variable=var)
+        self.frame.selectionItem[ind].val = var
+        self.frame.selectionItem[ind].ind=ind
+        self.frame.selectionItem[ind].var='selection'
+        lblframe = self.frame.selectionItem[ind].winfo_parent() # Returns the name of the parent
+        lblframe = self.frame.nametowidget(lblframe) # returns the instance of the parent # Returns the name of the parent
+        # Text to add
+        ind = len(self.subGraph.texts)
+        var = TK.BooleanVar()
+        var.set(False)
+        CB = TTK.Checkbutton(lblframe,variable=var,command=lambda n=ind: self.cb_selection(n),state=TK.DISABLED)#, variable=var)
+        CB.val = var
+        CB.ind = ind
+        CB.var = 'selection'
+        CB.grid(row=ind,column=0,sticky='NSEW')
+        CB.container = self.frame.selectionItem
+        self.frame.selectionItem.append(CB)
+        lblframe.grid_rowconfigure(ind,weight=1)
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Id
+        ### delete Text to add
+        ind = len(self.subGraph.texts)-1
+        ### Add new text
+        self.frame.IdItem[ind].config(text='%s'%ind)
+        self.frame.IdItem[ind].ind = ind
+        lblframe = self.frame.IdItem[ind].winfo_parent() # Returns the name of the parent
+        lblframe = self.frame.nametowidget(lblframe) # returns the instance of the parent # Returns the name of the parent
+        # Text to add
+        ind = len(self.subGraph.texts)
+        LBL = TK.Label(lblframe,text='to add')
+        LBL.ind = ind
+        LBL.grid(row=ind,column=0,sticky='NSEW')
+        LBL.container = self.frame.IdItem
+        self.frame.IdItem.append(LBL)
+        lblframe.grid_rowconfigure(ind,weight=1)
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Text
+        ### delete curve to add
+        ind = len(self.subGraph.texts)-1
+        ### Add new text
+        t = self.subGraph.texts[ind]
+        self.frame.textItem[ind].config(text=t.text)
+        self.frame.textItem[ind].ind = ind
+        lblframe = self.frame.textItem[ind].winfo_parent() # Returns the name of the parent
+        lblframe = self.frame.nametowidget(lblframe) # returns the instance of the parent # Returns the name of the parent
+
+        # Text to add
+        ind = len(self.subGraph.texts)
+        B = TTK.Button(lblframe,text="Text",command=lambda n=(ind,self.frame.textItem): self.bt_click(n))
+        B.list = []
+        B.val = ""
+        B.var = 'text'
+        B.ind = ind
+        B.treatmentId = 3
+        B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+        B.container = self.frame.textItem
+        self.frame.textItem.append(B)
+        lblframe.grid_rowconfigure(ind,weight=1)
+
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Visibility
+        ### delete text to add
+        ind = len(self.subGraph.texts)-1
+        t = self.subGraph.texts[ind]
+        ### Add new test
+        # var = TK.IntVar()
+        var = TK.BooleanVar()
+        var.set(t.visibility)
+        self.frame.visibilityItem[ind].config(state=TK.NORMAL)
+        self.frame.visibilityItem[ind].config(variable=var)
+        self.frame.visibilityItem[ind].val = var
+        self.frame.visibilityItem[ind].var = 'visibility'
+        self.frame.visibilityItem[ind].ind=ind
+        lblframe = self.frame.visibilityItem[ind].winfo_parent() # Returns the name of the parent
+        lblframe = self.frame.nametowidget(lblframe) # returns the instance of the parent # Returns the name of the parent
+        # Text to add
+        ind = len(self.subGraph.texts)
+        # var = TK.IntVar()
+        var = TK.BooleanVar()
+        var.set(True)
+        # CB = TTK.Checkbutton(lblframe,variable=var,state=TK.DISABLED,command=lambda n=ind: self.cb_visibility(n))#, variable=var)
+        CB = TTK.Checkbutton(lblframe,variable=var,state=TK.DISABLED,command=lambda n=ind: self.cb_visibility(n))#, variable=var)
+        CB.val = var
+        CB.var = 'visibility'
+        CB.ind = ind
+        CB.grid(row=ind,column=0,sticky='NSEW')
+        CB.container = self.frame.visibilityItem
+        self.frame.visibilityItem.append(CB)
+        lblframe.grid_rowconfigure(ind, weight=1)
+
+
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& text color
+        ### delete text to add
+        ind = len(self.subGraph.texts)-1
+        ### Add new text
+        t = self.subGraph.texts[ind]
+
+        self.frame.text_colorItem[ind].list = []
+        self.frame.text_colorItem[ind].val = t.text_color
+        self.frame.text_colorItem[ind].var = 'text_color'
+        self.frame.text_colorItem[ind].config(bg=self.frame.text_colorItem[ind].val)
+        self.frame.text_colorItem[ind].config(activebackground=self.frame.text_colorItem[ind].val)
+        self.frame.text_colorItem[ind].ind = ind
+        self.frame.text_colorItem[ind].treatmentId = 1
+        lblframe = self.frame.text_colorItem[ind].winfo_parent() # Returns the name of the parent
+        lblframe = self.frame.nametowidget(lblframe) # returns the instance of the parent # Returns the name of the parent
+        # Text to add
+        ind = len(self.subGraph.texts)
+        B = TK.Button(lblframe,command=lambda n=(ind,self.frame.text_colorItem): self.bt_click(n))
+        B.list = []
+        color = [0,0,0]
+        B.val = '#%02x%02x%02x' % (int(255*color[0]),int(255*color[1]),int(255*color[2]))
+        B.var = 'text_color'
+        B.config(bg=B.val)
+        B.config(activebackground=B.val)
+        B.ind = ind
+        B.treatmentId = 1
+        B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+        B.container = self.frame.text_colorItem
+        self.frame.text_colorItem.append(B)
+        lblframe.grid_rowconfigure(ind,weight=1)
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Text size
+        ### delete text to add
+        ind = len(self.subGraph.texts)-1
+        ### Add new text
+        t = self.subGraph.texts[ind]
+        self.frame.text_sizeItem[ind].config(text=t.text_size)
+        self.frame.text_sizeItem[ind].val = t.text_size
+        self.frame.text_sizeItem[ind].var = 'text_size'
+        self.frame.text_sizeItem[ind].ind = ind
+        self.frame.text_sizeItem[ind].treatmentId = 4
+        lblframe = self.frame.text_sizeItem[ind].winfo_parent() # Returns the name of the parent
+        lblframe = self.frame.nametowidget(lblframe) # returns the instance of the parent # Returns the name of the parent
+        # Text to add
+        ind = len(self.subGraph.texts)
+        B = TTK.Button(lblframe,text=default_values['Text']['text_size'],command=lambda n=(ind,self.frame.text_sizeItem): self.bt_click(n))
+        B.list = []
+        B.val = default_values['Text']['text_size']
+        B.var = 'text_size'
+        B.ind = ind
+        B.treatmentId = 4
+        B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+        B.container = self.frame.text_sizeItem
+        self.frame.text_sizeItem.append(B)
+        lblframe.grid_rowconfigure(ind,weight=1)
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Text Font
+        ### delete text to add
+        ind = len(self.subGraph.texts)-1
+        ### Add new text
+        t = self.subGraph.texts[ind]
+        self.frame.font_typeItem[ind].config(text=t.font_type)
+        self.frame.font_typeItem[ind].list = font_typelist
+        self.frame.font_typeItem[ind].val = t.font_type
+        self.frame.font_typeItem[ind].var = 'font_type'
+        self.frame.font_typeItem[ind].ind = ind
+        self.frame.font_typeItem[ind].treatmentId = 5
+        lblframe = self.frame.font_typeItem[ind].winfo_parent() # Returns the name of the parent
+        lblframe = self.frame.nametowidget(lblframe) # returns the instance of the parent # Returns the name of the parent
+        # Text to add
+        ind = len(self.subGraph.texts)
+        B = TTK.Button(lblframe,text=default_values['Text']['font_type'],command=lambda n=(ind,self.frame.font_typeItem): self.bt_click(n))
+        B.list = font_typelist
+        B.val = default_values['Text']['font_type']
+        B.var = 'font_type'
+        B.ind = ind
+        B.treatmentId = 5
+        B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+        B.container = self.frame.font_typeItem
+        self.frame.font_typeItem.append(B)
+        lblframe.grid_rowconfigure(ind,weight=1)
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Police
+        ### delete text to add
+        ind = len(self.subGraph.texts)-1
+        ### Add new text
+        policelist = font_dic[default_values['Text']['font_type']]
+        t = self.subGraph.texts[ind]
+        self.frame.policeItem[ind].config(text=t.police)
+        self.frame.policeItem[ind].list = policelist
+        self.frame.policeItem[ind].val = t.police
+        self.frame.policeItem[ind].var = 'police'
+        self.frame.policeItem[ind].ind = ind
+        self.frame.policeItem[ind].treatmentId = 0
+        lblframe = self.frame.policeItem[ind].winfo_parent() # Returns the name of the parent
+        lblframe = self.frame.nametowidget(lblframe) # returns the instance of the parent # Returns the name of the parent
+        # Text to add
+        ind = len(self.subGraph.texts)
+        B = TTK.Button(lblframe,text=font_dic[default_values['Text']['font_type']][0],command=lambda n=(ind,self.frame.policeItem): self.bt_click(n))
+        B.list = policelist
+        B.val = font_dic[default_values['Text']['font_type']][0]
+        B.var = 'police'
+        B.ind = ind
+        B.treatmentId = 0
+        B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+        B.container = self.frame.policeItem
+        self.frame.policeItem.append(B)
+        lblframe.grid_rowconfigure(ind,weight=1)
+
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Font Style
+        ### delete text to add
+        ind = len(self.subGraph.texts)-1
+        ### Add new text
+        t = self.subGraph.texts[ind]
+        self.frame.font_styleItem[ind].config(text=t.font_style)
+        self.frame.font_styleItem[ind].list = font_stylelist
+        self.frame.font_styleItem[ind].val = t.font_style
+        self.frame.font_styleItem[ind].var = 'font_style'
+        self.frame.font_styleItem[ind].ind = ind
+        self.frame.font_styleItem[ind].treatmentId = 0
+        lblframe = self.frame.font_styleItem[ind].winfo_parent() # Returns the name of the parent
+        lblframe = self.frame.nametowidget(lblframe) # returns the instance of the parent # Returns the name of the parent
+        # Text to add
+        ind = len(self.subGraph.texts)
+        B = TTK.Button(lblframe,text=default_values['Text']['font_style'],command=lambda n=(ind,self.frame.font_styleItem): self.bt_click(n))
+        B.list = font_stylelist
+        B.val = default_values['Text']['font_style']
+        B.var = 'font_style'
+        B.ind = ind
+        B.treatmentId = 0
+        B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+        B.container = self.frame.font_styleItem
+        self.frame.font_styleItem.append(B)
+        lblframe.grid_rowconfigure(ind,weight=1)
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Font Weight
+        ### delete text to add
+        ind = len(self.subGraph.texts)-1
+        ### Add new text
+        t = self.subGraph.texts[ind]
+        self.frame.font_weightItem[ind].config(text=t.font_weight)
+        self.frame.font_weightItem[ind].list = font_weightlist
+        self.frame.font_weightItem[ind].val = t.font_weight
+        self.frame.font_weightItem[ind].var = 'font_weight'
+        self.frame.font_weightItem[ind].ind = ind
+        self.frame.font_weightItem[ind].treatmentId = 0
+        lblframe = self.frame.font_weightItem[ind].winfo_parent() # Returns the name of the parent
+        lblframe = self.frame.nametowidget(lblframe) # returns the instance of the parent # Returns the name of the parent
+        # Text to add
+        ind = len(self.subGraph.texts)
+        B = TTK.Button(lblframe,text=default_values['Text']['font_weight'],command=lambda n=(ind,self.frame.font_weightItem): self.bt_click(n))
+        B.list = font_weightlist
+        B.val = default_values['Text']['font_weight']
+        B.var = 'font_weight'
+        B.ind = ind
+        B.treatmentId = 0
+        B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+        B.container = self.frame.font_weightItem
+        self.frame.font_weightItem.append(B)
+        lblframe.grid_rowconfigure(ind,weight=1)
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Text Alpha
+        ### delete text to add
+        ind = len(self.subGraph.texts)-1
+        ### Add new text
+        t = self.subGraph.texts[ind]
+        self.frame.text_alphaItem[ind].config(text=t.text_alpha)
+        self.frame.text_alphaItem[ind].val = t.text_alpha
+        self.frame.text_alphaItem[ind].var = 'text_alpha'
+        self.frame.text_alphaItem[ind].ind = ind
+        self.frame.text_alphaItem[ind].treatmentId = 4
+        lblframe = self.frame.text_alphaItem[ind].winfo_parent() # Returns the name of the parent
+        lblframe = self.frame.nametowidget(lblframe) # returns the instance of the parent # Returns the name of the parent
+        # Text to add
+        ind = len(self.subGraph.texts)
+        B = TTK.Button(lblframe,text=default_values['Text']['text_alpha'],command=lambda n=(ind,self.frame.text_alphaItem): self.bt_click(n))
+        B.list = []
+        B.val = default_values['Text']['text_alpha']
+        B.var = 'text_alpha'
+        B.ind = ind
+        B.treatmentId = 4
+        B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+        B.container = self.frame.text_alphaItem
+        self.frame.text_alphaItem.append(B)
+        lblframe.grid_rowconfigure(ind,weight=1)
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Horizontal alignment
+        ### delete text to add
+        ind = len(self.subGraph.texts)-1
+        ### Add new text
+        t = self.subGraph.texts[ind]
+        self.frame.haItem[ind].config(text=t.ha)
+        self.frame.haItem[ind].list = horizontalalignmentlist
+        self.frame.haItem[ind].val = t.ha
+        self.frame.haItem[ind].var = 'ha'
+        self.frame.haItem[ind].ind = ind
+        self.frame.haItem[ind].treatmentId = 0
+        lblframe = self.frame.haItem[ind].winfo_parent() # Returns the name of the parent
+        lblframe = self.frame.nametowidget(lblframe) # returns the instance of the parent # Returns the name of the parent
+        # Text to add
+        ind = len(self.subGraph.texts)
+        B = TTK.Button(lblframe,text=default_values['Text']['ha'],command=lambda n=(ind,self.frame.haItem): self.bt_click(n))
+        B.list = horizontalalignmentlist
+        B.val = default_values['Text']['ha']
+        B.var = 'ha'
+        B.ind = ind
+        B.treatmentId = 0
+        B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+        B.container = self.frame.haItem
+        self.frame.haItem.append(B)
+        lblframe.grid_rowconfigure(ind,weight=1)
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Vertical alignment
+        ### delete text to add
+        ind = len(self.subGraph.texts)-1
+        ### Add new text
+        t = self.subGraph.texts[ind]
+        self.frame.vaItem[ind].config(text=t.va)
+        self.frame.vaItem[ind].list = verticalalignmentlist
+        self.frame.vaItem[ind].val = t.va
+        self.frame.vaItem[ind].var = 'va'
+        self.frame.vaItem[ind].ind = ind
+        self.frame.vaItem[ind].treatmentId = 0
+        lblframe = self.frame.vaItem[ind].winfo_parent() # Returns the name of the parent
+        lblframe = self.frame.nametowidget(lblframe) # returns the instance of the parent # Returns the name of the parent
+        # Text to add
+        ind = len(self.subGraph.texts)
+        B = TTK.Button(lblframe,text=default_values['Text']['va'],command=lambda n=(ind,self.frame.vaItem): self.bt_click(n))
+        B.list = verticalalignmentlist
+        B.val = default_values['Text']['va']
+        B.var = 'va'
+        B.ind = ind
+        B.treatmentId = 0
+        B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+        B.container = self.frame.vaItem
+        self.frame.vaItem.append(B)
+        lblframe.grid_rowconfigure(ind,weight=1)
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Pos X
+        ### delete text to add
+        ind = len(self.subGraph.texts)-1
+        ### Add new text
+        t = self.subGraph.texts[ind]
+        self.frame.posxItem[ind].config(text=t.posx)
+        self.frame.posxItem[ind].val = t.posx
+        self.frame.posxItem[ind].var = 'posx'
+        self.frame.posxItem[ind].ind = ind
+        self.frame.posxItem[ind].treatmentId = 4
+        lblframe = self.frame.posxItem[ind].winfo_parent() # Returns the name of the parent
+        lblframe = self.frame.nametowidget(lblframe) # returns the instance of the parent # Returns the name of the parent
+        # Text to add
+        ind = len(self.subGraph.texts)
+        B_left = TTK.Button(lblframe,text='<',command=lambda n=(ind,self.frame.posxItem): self.bt_moveLeft(n))
+        B = TTK.Button(lblframe,text=default_values['Text']['posx'],command=lambda n=(ind,self.frame.posxItem): self.bt_click(n))
+        B_right = TTK.Button(lblframe,text='>',command=lambda n=(ind,self.frame.posxItem): self.bt_moveRight(n))
+        B.list = []
+        B.val = default_values['Text']['posx']
+        B.var = 'posx'
+        B.ind = ind
+        B.treatmentId = 4
+        B_left.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+        B.grid(row=ind,column=1,columnspan=1,sticky="nsew")
+        B_right.grid(row=ind,column=2,columnspan=1,sticky="nsew")
+        B.container = self.frame.posxItem
+        self.frame.posxItem.append(B)
+        self.frame.posxLItem.append(B_left)
+        self.frame.posxRItem.append(B_right)
+        lblframe.grid_rowconfigure(ind,weight=1)
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Pos Y
+        ### delete text to add
+        ind = len(self.subGraph.texts)-1
+        ### Add new text
+        t = self.subGraph.texts[ind]
+        self.frame.posyItem[ind].config(text=t.posy)
+        self.frame.posyItem[ind].val = t.posy
+        self.frame.posyItem[ind].var = 'posy'
+        self.frame.posyItem[ind].ind = ind
+        self.frame.posyItem[ind].treatmentId = 4
+        lblframe = self.frame.posyItem[ind].winfo_parent() # Returns the name of the parent
+        lblframe = self.frame.nametowidget(lblframe) # returns the instance of the parent # Returns the name of the parent
+        # Text to add
+        ind = len(self.subGraph.texts)
+        B_left = TTK.Button(lblframe,text='<',command=lambda n=(ind,self.frame.posyItem): self.bt_moveLeft(n))
+        B = TTK.Button(lblframe,text=default_values['Text']['posy'],command=lambda n=(ind,self.frame.posyItem): self.bt_click(n))
+        B_right = TTK.Button(lblframe,text='>',command=lambda n=(ind,self.frame.posyItem): self.bt_moveRight(n))
+        B.list = []
+        B.val = default_values['Text']['posy']
+        B.var = 'posy'
+        B.ind = ind
+        B.treatmentId = 4
+        B_left.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+        B.grid(row=ind,column=1,columnspan=1,sticky="nsew")
+        B_right.grid(row=ind,column=2,columnspan=1,sticky="nsew")
+        B.container = self.frame.posyItem
+        self.frame.posyItem.append(B)
+        self.frame.posyLItem.append(B_left)
+        self.frame.posyRItem.append(B_right)
+        lblframe.grid_rowconfigure(ind,weight=1)
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Rotation
+        ### delete text to add
+        ind = len(self.subGraph.texts)-1
+        ### Add new text
+        t = self.subGraph.texts[ind]
+        self.frame.rotationItem[ind].config(text=t.rotation)
+        self.frame.rotationItem[ind].val = t.rotation
+        self.frame.rotationItem[ind].var = 'rotation'
+        self.frame.rotationItem[ind].ind = ind
+        self.frame.rotationItem[ind].treatmentId = 4
+        lblframe = self.frame.rotationItem[ind].winfo_parent() # Returns the name of the parent
+        lblframe = self.frame.nametowidget(lblframe) # returns the instance of the parent # Returns the name of the parent
+        # Text to add
+        ind = len(self.subGraph.texts)
+        B = TTK.Button(lblframe,text=default_values['Text']['rotation'],command=lambda n=(ind,self.frame.rotationItem): self.bt_click(n))
+        B.list = []
+        B.val = default_values['Text']['rotation']
+        B.var = 'rotation'
+        B.ind = ind
+        B.treatmentId = 4
+        B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+        B.container = self.frame.rotationItem
+        self.frame.rotationItem.append(B)
+        lblframe.grid_rowconfigure(ind,weight=1)
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Use Tex
+        ### delete text to add
+        ind = len(self.subGraph.texts)-1
+        ### Add new test
+        t = self.subGraph.texts[ind]
+        var = TK.BooleanVar()
+        var.set(t.use_tex)
+        self.frame.use_texItem[ind].config(state=TK.NORMAL)
+        self.frame.use_texItem[ind].config(variable=var)
+        self.frame.use_texItem[ind].val = var
+        self.frame.use_texItem[ind].var = 'use_tex'
+        self.frame.use_texItem[ind].ind=ind
+        lblframe = self.frame.use_texItem[ind].winfo_parent() # Returns the name of the parent
+        lblframe = self.frame.nametowidget(lblframe) # returns the instance of the parent # Returns the name of the parent
+        # Text to add
+        ind = len(self.subGraph.texts)
+        var = TK.BooleanVar()
+        var.set(False)
+        # CB = TTK.Checkbutton(lblframe,variable=var,state=TK.DISABLED,command=lambda n=ind: self.cb_use_tex(n))#, variable=var)
+        CB = TTK.Checkbutton(lblframe,variable=var,state=TK.DISABLED,command=lambda n=ind: self.cb_use_tex(n))#, variable=var)
+        CB.val = var
+        CB.var = 'use_tex'
+        CB.ind = ind
+        CB.grid(row=ind,column=0,sticky='NSEW')
+        CB.container = self.frame.use_texItem
+        self.frame.use_texItem.append(CB)
+        lblframe.grid_rowconfigure(ind, weight=1)
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Background color
+        ### delete text to add
+        ind = len(self.subGraph.texts)-1
+        ### Add new text
+        t = self.subGraph.texts[ind]
+
+        self.frame.box_backgroundcolorItem[ind].list = []
+        self.frame.box_backgroundcolorItem[ind].val = t.box_backgroundcolor
+        self.frame.box_backgroundcolorItem[ind].var = 'box_backgroundcolor'
+        self.frame.box_backgroundcolorItem[ind].config(bg=self.frame.box_backgroundcolorItem[ind].val)
+        self.frame.box_backgroundcolorItem[ind].config(activebackground=self.frame.box_backgroundcolorItem[ind].val)
+        self.frame.box_backgroundcolorItem[ind].ind = ind
+        self.frame.box_backgroundcolorItem[ind].treatmentId = 1
+        lblframe = self.frame.box_backgroundcolorItem[ind].winfo_parent() # Returns the name of the parent
+        lblframe = self.frame.nametowidget(lblframe) # returns the instance of the parent # Returns the name of the parent
+        # Text to add
+        ind = len(self.subGraph.texts)
+        B = TK.Button(lblframe,command=lambda n=(ind,self.frame.box_backgroundcolorItem): self.bt_click(n))
+        B.list = []
+        color = [1,1,1]
+        B.val = '#%02x%02x%02x' % (int(255*color[0]),int(255*color[1]),int(255*color[2]))
+        B.var = 'box_backgroundcolor'
+        B.config(bg=B.val)
+        B.config(activebackground=B.val)
+        B.ind = ind
+        B.treatmentId = 1
+        B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+        B.container = self.frame.box_backgroundcolorItem
+        self.frame.box_backgroundcolorItem.append(B)
+        lblframe.grid_rowconfigure(ind,weight=1)
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Box edgecolor
+        ### delete text to add
+        ind = len(self.subGraph.texts)-1
+        ### Add new text
+        t = self.subGraph.texts[ind]
+
+        self.frame.box_edgecolorItem[ind].list = []
+        self.frame.box_edgecolorItem[ind].val = t.box_edgecolor
+        self.frame.box_edgecolorItem[ind].var = 'box_edgecolor'
+        self.frame.box_edgecolorItem[ind].config(bg=self.frame.box_edgecolorItem[ind].val)
+        self.frame.box_edgecolorItem[ind].config(activebackground=self.frame.box_edgecolorItem[ind].val)
+        self.frame.box_edgecolorItem[ind].ind = ind
+        self.frame.box_edgecolorItem[ind].treatmentId = 1
+        lblframe = self.frame.box_edgecolorItem[ind].winfo_parent() # Returns the name of the parent
+        lblframe = self.frame.nametowidget(lblframe) # returns the instance of the parent # Returns the name of the parent
+        # Text to add
+        ind = len(self.subGraph.texts)
+        B = TK.Button(lblframe,command=lambda n=(ind,self.frame.box_edgecolorItem): self.bt_click(n))
+        B.list = []
+        color = [1,1,1]
+        B.val = '#%02x%02x%02x' % (int(255*color[0]),int(255*color[1]),int(255*color[2]))
+        B.var = 'box_edgecolor'
+        B.config(bg=B.val)
+        B.config(activebackground=B.val)
+        B.ind = ind
+        B.treatmentId = 1
+        B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+        B.container = self.frame.box_edgecolorItem
+        self.frame.box_edgecolorItem.append(B)
+        lblframe.grid_rowconfigure(ind,weight=1)
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Box border width
+        ### delete text to add
+        ind = len(self.subGraph.texts)-1
+        ### Add new text
+        t = self.subGraph.texts[ind]
+        self.frame.box_linewidthItem[ind].config(text=t.box_linewidth)
+        self.frame.box_linewidthItem[ind].val = t.box_linewidth
+        self.frame.box_linewidthItem[ind].var = 'box_linewidth'
+        self.frame.box_linewidthItem[ind].ind = ind
+        self.frame.box_linewidthItem[ind].treatmentId = 4
+        lblframe = self.frame.box_linewidthItem[ind].winfo_parent() # Returns the name of the parent
+        lblframe = self.frame.nametowidget(lblframe) # returns the instance of the parent # Returns the name of the parent
+        # Text to add
+        ind = len(self.subGraph.texts)
+        B = TTK.Button(lblframe,text=default_values['Text']['box_linewidth'],command=lambda n=(ind,self.frame.box_linewidthItem): self.bt_click(n))
+        B.list = []
+        B.val = default_values['Text']['box_linewidth']
+        B.var = 'box_linewidth'
+        B.ind = ind
+        B.treatmentId = 4
+        B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+        B.container = self.frame.box_linewidthItem
+        self.frame.box_linewidthItem.append(B)
+        lblframe.grid_rowconfigure(ind,weight=1)
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Box style
+        ### delete text to add
+        ind = len(self.subGraph.texts)-1
+        ### Add new text
+        t = self.subGraph.texts[ind]
+        self.frame.box_styleItem[ind].config(text=t.box_style)
+        self.frame.box_styleItem[ind].list = box_stylelist
+        self.frame.box_styleItem[ind].val = t.box_style
+        self.frame.box_styleItem[ind].var = 'box_style'
+        self.frame.box_styleItem[ind].ind = ind
+        self.frame.box_styleItem[ind].treatmentId = 0
+        lblframe = self.frame.box_styleItem[ind].winfo_parent() # Returns the name of the parent
+        lblframe = self.frame.nametowidget(lblframe) # returns the instance of the parent # Returns the name of the parent
+        # Text to add
+        ind = len(self.subGraph.texts)
+        B = TTK.Button(lblframe,text=default_values['Text']['box_style'],command=lambda n=(ind,self.frame.box_styleItem): self.bt_click(n))
+        B.list = box_stylelist
+        B.val = default_values['Text']['box_style']
+        B.var = 'box_style'
+        B.ind = ind
+        B.treatmentId = 0
+        B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+        B.container = self.frame.box_styleItem
+        self.frame.box_styleItem.append(B)
+        lblframe.grid_rowconfigure(ind,weight=1)
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Active background
+        ### delete text to add
+        ind = len(self.subGraph.texts)-1
+        t = self.subGraph.texts[ind]
+        ### Add new test
+        # var = TK.IntVar()
+        var = TK.BooleanVar()
+        var.set(t.active_background)
+        self.frame.active_backgroundItem[ind].config(state=TK.NORMAL)
+        self.frame.active_backgroundItem[ind].config(variable=var)
+        self.frame.active_backgroundItem[ind].val = var
+        self.frame.active_backgroundItem[ind].var = 'active_background'
+        self.frame.active_backgroundItem[ind].ind=ind
+        lblframe = self.frame.active_backgroundItem[ind].winfo_parent() # Returns the name of the parent
+        lblframe = self.frame.nametowidget(lblframe) # returns the instance of the parent # Returns the name of the parent
+        # Text to add
+        ind = len(self.subGraph.texts)
+        # var = TK.IntVar()
+        var = TK.BooleanVar()
+        var.set(True)
+        # CB = TTK.Checkbutton(lblframe,variable=var,state=TK.DISABLED,command=lambda n=ind: self.cb_active_background(n))#, variable=var)
+        CB = TTK.Checkbutton(lblframe,variable=var,state=TK.DISABLED,command=lambda n=ind: self.cb_active_background(n))#, variable=var)
+        CB.val = var
+        CB.var = 'active_background'
+        CB.ind = ind
+        CB.grid(row=ind,column=0,sticky='NSEW')
+        CB.container = self.frame.active_backgroundItem
+        self.frame.active_backgroundItem.append(CB)
+        lblframe.grid_rowconfigure(ind, weight=1)
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Box Alpha
+        ### delete text to add
+        ind = len(self.subGraph.texts)-1
+        ### Add new text
+        t = self.subGraph.texts[ind]
+        self.frame.box_alphaItem[ind].config(text=t.box_alpha)
+        self.frame.box_alphaItem[ind].val = t.box_alpha
+        self.frame.box_alphaItem[ind].var = 'box_alpha'
+        self.frame.box_alphaItem[ind].ind = ind
+        self.frame.box_alphaItem[ind].treatmentId = 4
+        lblframe = self.frame.box_alphaItem[ind].winfo_parent() # Returns the name of the parent
+        lblframe = self.frame.nametowidget(lblframe) # returns the instance of the parent # Returns the name of the parent
+        # Text to add
+        ind = len(self.subGraph.texts)
+        B = TTK.Button(lblframe,text=default_values['Text']['box_alpha'],command=lambda n=(ind,self.frame.box_alphaItem): self.bt_click(n))
+        B.list = []
+        B.val = default_values['Text']['box_alpha']
+        B.var = 'box_alpha'
+        B.ind = ind
+        B.treatmentId = 4
+        B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+        B.container = self.frame.box_alphaItem
+        self.frame.box_alphaItem.append(B)
+        lblframe.grid_rowconfigure(ind,weight=1)
+
+        try:
+            self.frameList[self.graph][self.zone] = self.frame
+        except KeyError:
+            self.frameList[self.graph] = {self.zone:self.frame}
+
+    # ---------------------------------------------------------------- cmd_close
+    def cmd_close(self):
+        self.closeAllDialog()
+        self.parent.editTextWdw = None
+        self.destroy()
+# ==============================================================================
+# ==============================================================================
+# ==============================================================================
+# ==============================================================================
+# Liste of variables for shape
+
+class editShapeWindow(TK.Toplevel):
+    # --------------------------------------------------------------------- init
+    def __init__(self):
+        TK.Toplevel.__init__(self)
+        self.title('Edit  texts')
+        self.protocol("WM_DELETE_WINDOW",self.cmd_close)
+        #
+        self.list_dialog = None
+        self.input_dialog = None
+        #
+        self.frameList = {}
+    # --------------------------------------------------------------- initialize
+    def initialize(self,parent):
+        self.parent = parent
+        #
+        self.graph = self.parent.activeGraph.val
+
+        self.zone  = self.parent.position.val
+        try:
+            self.subGraph = self.parent.graphWdwL[self.graph].fig.subGraph[self.zone]
+        except TypeError: # Exit if no graph & zone available
+            self.cmd_close()
+            return
+#        except IndexError: # Error while closing window ...
+#            return
+        #
+        self.grid_columnconfigure(0,weight=1)
+        self.grid_rowconfigure(0,weight=1)
+        #
+        # self.labelView = [True,True,True,False,False,False]
+        self.frame = None
+        self.createFrame()
+    # ------------------------------------------------------------- reloadWindow
+    def reloadWindow(self):
+        self.frame.destroy()
+        self.createFrame()
+    # ----------------------------------------------------------- closeAllDialog
+    def closeAllDialog(self):
+        if self.list_dialog:
+            self.list_dialog.cmd_close()
+            self.list_dialog = None
+        if self.input_dialog:
+            self.input_dialog.cmd_close()
+            self.input_dialog = None
+    # -------------------------------------------------------------- createFrame
+    def createFrame(self):
+        self.geometry("")
+        self.grid_columnconfigure(0,weight=1)
+        self.grid_rowconfigure(0,weight=1)
+        # Load colormap
+        cm = plt.get_cmap(COLOR_MAP)
+        # Close all opened dialog windows
+        self.closeAllDialog()
+        #
+        self.frame = TTK.Frame(self)
+
+        self.frame.grid(row=0,column=0,sticky='NESW')
+        #
+        self.frame.grid_columnconfigure(0,weight=1)
+
+        #
+        self.frame.grid_rowconfigure(0,weight=1)
+        self.frame.grid_rowconfigure(1,weight=0)
+        #
+        lblframelvl1=[]
+        #
+        ########################################################################
+        #################### -> Level 1
+        mainFrame = TTK.LabelFrame(self.frame, text = "Liste des shapes")
+        mainFrame.grid(row=0,column=0,sticky='NSEW')
+        mainFrame.grid_rowconfigure(0,weight=1)
+        #
+        mainFrame.grid_columnconfigure(0,weight=1)
+        mainFrame.grid_columnconfigure(1,weight=1)
+        mainFrame.grid_columnconfigure(2,weight=1)
+        mainFrame.grid_columnconfigure(3,weight=1)
+        #
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Selection
+        lblframe = TTK.LabelFrame(mainFrame, text="Selected")
+        lblframe.grid(row=0,column=0,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        for ind in range(len(self.subGraph.shapes)+1): lblframe.grid_rowconfigure(ind,weight=1)
+        #
+        self.frame.selectionItem=[]
+        #
+        for ind in range(len(self.subGraph.shapes)):
+            var = TK.BooleanVar()
+            var.set(False)
+            CB = TTK.Checkbutton(lblframe,variable=var,command=lambda n=ind: self.cb_selection(n))#, variable=var)
+            CB.val = var
+            CB.ind=ind
+            CB.var='selection'
+            CB.grid(row=ind,column=0,sticky='NSEW')
+            CB.container = self.frame.selectionItem
+            self.frame.selectionItem.append(CB)
+        # Text to add
+        ind = len(self.subGraph.shapes)
+        var = TK.BooleanVar()
+        var.set(False)
+        CB = TTK.Checkbutton(lblframe,variable=var,command=lambda n=ind: self.cb_selection(n),state=TK.DISABLED)#, variable=var)
+        CB.val = var
+        CB.ind=ind
+        CB.var='selection'
+        CB.grid(row=ind,column=0,sticky='NSEW')
+        CB.container = self.frame.selectionItem
+        self.frame.selectionItem.append(CB)
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Id
+        lblframe = TTK.LabelFrame(mainFrame, text="Curve Id")
+        lblframe.grid(row=0,column=1,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        for ind in range(len(self.subGraph.shapes)+1): lblframe.grid_rowconfigure(ind,weight=1)
+        #
+        self.frame.IdItem = []
+        #
+        for ind in range(len(self.subGraph.shapes)):
+            LBL = TK.Label(lblframe,text='%s'%ind)
+            LBL.ind = ind
+            LBL.grid(row=ind,column=0,sticky='NSEW')
+            LBL.container = self.frame.IdItem
+            self.frame.IdItem.append(LBL)
+        # Curve to add
+        ind = len(self.subGraph.shapes)
+        LBL = TK.Label(lblframe,text='to add')
+        LBL.ind = ind
+        LBL.grid(row=ind,column=0,sticky='NSEW')
+        LBL.container = self.frame.IdItem
+        self.frame.IdItem.append(LBL)
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Shape Type
+        lblframe = TTK.LabelFrame(mainFrame, text="Type")
+        lblframe.grid(row=0,column=2,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        for ind in range(len(self.subGraph.shapes)+1): lblframe.grid_rowconfigure(ind,weight=1)
+        #
+        self.frame.shape_typeItem = []
+        for ind in range(len(self.subGraph.shapes)):
+            s = self.subGraph.shapes[ind]
+            B = TTK.Button(lblframe,text=s.shape_type,command=lambda n=(ind,self.frame.shape_typeItem): self.bt_click(n))
+            B.list = shape_typelist
+            B.val = s.shape_type
+            B.var = 'shape_type'
+            B.ind = ind
+            B.treatmentId = 0
+            B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+            B.container = self.frame.shape_typeItem
+            self.frame.shape_typeItem.append(B)
+        # Curve to add
+        ind = len(self.subGraph.shapes)
+        B = TTK.Button(lblframe,text=default_values['Shape']['shape_type'],command=lambda n=(ind,self.frame.shape_typeItem): self.bt_click(n))
+        B.list = shape_typelist
+        B.val = default_values['Shape']['shape_type']
+        B.var = 'shape_type'
+        B.ind = ind
+        B.treatmentId = 0
+        B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+        B.container = self.frame.shape_typeItem
+        self.frame.shape_typeItem.append(B)
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Specific menu
+        lblframe = TTK.LabelFrame(mainFrame, text="Configuring Shapes")
+        lblframe.grid(row=0,column=3,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        for ind in range(len(self.subGraph.shapes)+1): lblframe.grid_rowconfigure(ind,weight=1)
+        #
+        self.frame.conf_shapeItem = []
+        for ind in range(len(self.subGraph.shapes)):
+            s = self.subGraph.shapes[ind]
+            shapeframe = TTK.Frame(lblframe)
+            if s.shape_type == "Circle":
+                self.Set_CircleShape(shapeframe,ind)
+            elif s.shape_type == "Rectangle":
+                self.Set_RectangleShape(shapeframe,ind)
+            elif s.shape_type == "Ellipse":
+                self.Set_EllipseShape(shapeframe,ind)
+            elif s.shape_type == "Arrow":
+                self.Set_ArrowShape(shapeframe,ind)
+            elif s.shape_type == "FancyBbox":
+                self.Set_FancyBboxShape(shapeframe,ind)
+            elif s.shape_type == "Line":
+                self.Set_LineShape(shapeframe,ind)
+            elif s.shape_type == "Bracket":
+                self.Set_BracketShape(shapeframe,ind)
+
+            shapeframe.var = 'setting_shape'
+            shapeframeind = ind
+            shapeframetreatmentId = 0
+            shapeframe.grid(row=ind,column=0,columnspan=1,sticky="NSEW")
+            shapeframe.container = self.frame.conf_shapeItem
+            self.frame.conf_shapeItem.append(shapeframe)
+        # Curve to add
+        ind = len(self.subGraph.shapes)
+        shapeframe = TTK.Frame(lblframe)
+        if default_values['Shape']['shape_type'] == "Circle":
+            self.Set_CircleShape(shapeframe,ind,last=True)
+        elif default_values['Shape']['shape_type'] == "Rectangle":
+            self.Set_RectangleShape(shapeframe,ind,last=True)
+        elif default_values['Shape']['shape_type'] == "Ellipse":
+            self.Set_EllipseShape(shapeframe,ind,last=True)
+        elif default_values['Shape']['shape_type'] == "Arrow":
+            self.Set_ArrowShape(shapeframe,ind,last=True)
+        elif default_values['Shape']['shape_type'] == "FancyBbox":
+            self.Set_FancyBboxShape(shapeframe,ind,last=True)
+        elif default_values['Shape']['shape_type'] == "Line":
+            self.Set_LineShape(shapeframe,ind,last=True)
+        elif default_values['Shape']['shape_type'] == "Bracket":
+            self.Set_BracketShape(shapeframe,ind,last=True)
+        shapeframe.var = 'setting_shape'
+        shapeframe.ind = ind
+        shapeframe.treatmentId = 0
+        shapeframe.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+        shapeframe.container = self.frame.conf_shapeItem
+        self.frame.conf_shapeItem.append(shapeframe)
+
+
+
+
+        ########################################################################
+        #################### -> Button Line
+        bottomFrame = TTK.Frame(self.frame)
+        # bottomFrame.grid(row=1,column=0,columnspan=18,sticky="NSEW")
+        bottomFrame.grid(row=1,column=0,columnspan=1,sticky="NSEW")
+        #
+        bottomFrame.grid_columnconfigure(0,weight=1)
+        bottomFrame.grid_columnconfigure(1,weight=1)
+        bottomFrame.grid_columnconfigure(2,weight=1)
+        bottomFrame.grid_columnconfigure(3,weight=1)
+        bottomFrame.grid_columnconfigure(4,weight=1)
+        bottomFrame.grid_columnconfigure(5,weight=1)
+
+        #
+        bottomFrame.grid_rowconfigure(0,weight=0)
+        #
+        B = TTK.Button(bottomFrame,text='Move Up',command=self.cmd_moveUp)
+        B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+        #
+        B = TTK.Button(bottomFrame,text='Move Down',command=self.cmd_moveDown)
+        B.grid(row=0,column=1,columnspan=1,sticky="nsew")
+        #
+        B = TTK.Button(bottomFrame,text='Delete selected shapes',command=self.cmd_rmShapes)
+        B.grid(row=0,column=2,columnspan=1,sticky="nsew")
+        #
+        B = TTK.Button(bottomFrame,text='Duplicate selected shapes',command=self.cmd_duplicateShapes)
+        B.grid(row=0,column=3,columnspan=1,sticky="nsew")
+        #
+        B = TTK.Button(bottomFrame,text='Create shape to add',command=self.cmd_createShape)
+        B.grid(row=0,column=4,columnspan=1,sticky="nsew")
+        #
+        B = TTK.Button(bottomFrame,text='Close',command=self.cmd_close)
+        B.grid(row=0,column=5,columnspan=1,sticky="nsew")
+        #
+        try:
+            self.frameList[self.graph][self.zone] = self.frame
+        except KeyError:
+            self.frameList[self.graph] = {self.zone:self.frame}
+
+    # ------------------------------------------------------------ cb_visibility
+    def cb_visibility(self,ind):
+        CB = self.frame.visibilityItem[ind]
+        initialValue = CB.val.get()
+        self.subGraph.shapes[ind].setValue('visibility',initialValue)
+        # If line was selected, apply this modification to all other selected lines
+        if self.frame.selectionItem[ind].val.get():
+            for ind2 in range(len(self.frame.selectionItem)):
+                if ind != ind2 and self.frame.selectionItem[ind2].val.get():
+                    CB = self.frame.visibilityItem[ind2]
+                    CB.val.set(initialValue)
+                    # if initialValue: CB.state(['selected'])
+                    # else: CB.state(['!selected'])
+                    self.subGraph.shapes[ind2].setValue('visibility',initialValue)
+        # Update Graph
+        self.parent.graphWdwL[self.graph].updateGraph(self.zone)
+
+    # -------------------------------------------------------------- updateShapePointsList
+    def updateShapePointsList(self, B, val):
+        B.val = val
+        B.config(text=len(B.val))
+        B.list = val
+        try:
+            self.subGraph.shapes[B.ind].setValue(B.var,B.val)
+            # Update Graph
+            self.parent.graphWdwL[self.graph].updateGraph(self.zone)
+        except IndexError:
+            return
+    # -------------------------------------------------------------- updateButon
+    def updateButon(self, B, val):
+
+
+        if B.treatmentId == 5: # Cas specifique de la liste de points
+            self.updateShapePointsList(B,val)
+            return
+
+
+
+
+        l_ind = [B.ind]
+        containerOfB = B.container
+
+        if B.container is not None:
+            # If line is selected, apply the modification to all other selected lines
+            if self.frame.selectionItem[B.ind].val.get():
+                for ind2, f in enumerate(self.frame.selectionItem):
+                    if B.ind != ind2 and f.val.get(): l_ind.append(ind2)
+            for ind in l_ind:
+                BB = containerOfB[ind]
+                BB.val = val
+                BB.config(text=BB.val)
+            for ind in l_ind:
+                BB = containerOfB[ind]
+                try:
+                    self.subGraph.shapes[BB.ind].setValue(BB.var,BB.val)
+                    # Update Graph
+                    self.parent.graphWdwL[self.graph].updateGraph(self.zone)
+                except IndexError:
+                    continue
+        else:
+            B.val = val
+            B.config(text=B.val)
+            try :
+                self.subGraph.shapes[B.ind].setValue(B.var,B.val)
+                # Update Graph
+                self.parent.graphWdwL[self.graph].updateGraph(self.zone)
+            except IndexError:
+                pass
+
+        # Si on modifie le type de shape, on remet a jour les boutons pour la shape specifique
+        if B.var =='shape_type':
+            shapeframe = self.frame.conf_shapeItem[B.ind]
+            count = 0
+            for widget in shapeframe.winfo_children():
+                count += 1
+                widget.grid_forget()
+                widget.destroy()
+
+            if B.ind in range(len(self.subGraph.shapes)):
+                isLast = False
+            else:
+                isLast = True
+            if val == "Circle":
+                self.Set_CircleShape(shapeframe,B.ind,last=isLast)
+            elif val == "Rectangle":
+                self.Set_RectangleShape(shapeframe,B.ind,last=isLast)
+            elif val == "Ellipse":
+                self.Set_EllipseShape(shapeframe,B.ind,last=isLast)
+            elif val == "Arrow":
+                self.Set_ArrowShape(shapeframe,B.ind,last=isLast)
+            elif val == "FancyBbox":
+                self.Set_FancyBboxShape(shapeframe,B.ind,last=isLast)
+            elif val == "Line":
+                self.Set_LineShape(shapeframe,B.ind,last=isLast)
+            elif val == "Bracket":
+                self.Set_BracketShape(shapeframe,B.ind,last=isLast)
+
+    # ----------------------------------------------------------------- bt_moveLeft
+    def bt_moveLeft(self,data):
+        ind = data[0]
+        B_l = data[1]
+        B = B_l[ind]
+        actualValue = B.val
+        newValue = actualValue - 0.1
+        self.updateButon(B,newValue)
+    # ----------------------------------------------------------------- bt_moveRight
+    def bt_moveRight(self,data):
+        ind = data[0]
+        B_l = data[1]
+        B = B_l[ind]
+        actualValue = B.val
+        newValue = actualValue + 0.1
+        self.updateButon(B,newValue)
+    # ----------------------------------------------------------------- bt_click
+    def bt_click(self,ind):
+        bt_list = ind[1]
+        B = bt_list[ind[0]]
+        self.closeAllDialog()
+        if B.treatmentId==0:
+            self.list_dialog = list_dialogWindow()
+            self.list_dialog.initialize(self,B)
+        elif B.treatmentId==1:
+            self.list_dialog = ColorControler.color_dialogWindow(self,B,B.val,extra_data=ind)
+        elif B.treatmentId==2: # UNUSED
+            self.input_dialog = input_dialogWindow()
+            self.input_dialog.initialize(self,B)
+        elif B.treatmentId == 3:
+            self.input_dialog = input_dialogStringWindow()
+            self.input_dialog.initialize(self,B)
+        elif B.treatmentId==4:
+            self.input_dialog = inputFloat_dialogWindow()
+            self.input_dialog.initialize(self,B)
+        else: return
+    # ----------------------------------------------------------------- bt_click
+    def bt_click_shape(self,B):
+        self.closeAllDialog()
+        if B.treatmentId==0:
+            self.list_dialog = list_dialogWindow()
+            self.list_dialog.initialize(self,B)
+        elif B.treatmentId==1:
+            self.list_dialog = ColorControler.color_dialogWindow(self,B,B.val)
+        elif B.treatmentId==2: # UNUSED
+            self.input_dialog = input_dialogWindow()
+            self.input_dialog.initialize(self,B)
+        elif B.treatmentId == 3:
+            self.input_dialog = input_dialogStringWindow()
+            self.input_dialog.initialize(self,B)
+        elif B.treatmentId==4:
+            self.input_dialog = inputFloat_dialogWindow()
+            self.input_dialog.initialize(self,B)
+        elif B.treatmentId==5:
+            self.input_dialog = inputPosition_dialogWindow()
+            self.input_dialog.initialize(self,B)
+        else: return
+    # ---------------------------------------------------------- updateButonWith
+    def updateButonWith(self,B,val):
+        self.updateButon(B,val)
+    # ----------------------------------------------------------------- bt_click
+    def updateColor(self,color,B,extra_data):
+        if extra_data:
+            bt_list = extra_data[1]
+            # B = bt_list[ind[0]]
+            l_ind = [extra_data[0]]
+        else:
+            bt_list = [B]
+            l_ind = [0]
+        # # If line is selected, apply the modification to all other selected lines
+        # if self.frame.selectionItem[B.ind].val.get():
+        #     for ind2 in range(len(self.frame.selectionItem)):
+        #         if B.ind!=ind2 and self.frame.selectionItem[ind2].val.get():
+        #             l_ind.append(ind2)
+        if color is not None:
+            for ii in l_ind:
+                B = bt_list[ii]
+                B.val = color
+                B.config(bg=B.val)
+                B.config(activebackground=B.val)
+                try:
+                    self.subGraph.shapes[B.ind].setValue(B.var,B.val)
+                    # Update Graph
+                    self.parent.graphWdwL[self.graph].updateGraph(self.zone)
+
+                except IndexError: return
+
+    # ------------------------------------------------------------- cb_selection
+    def cb_selection(self,ind):
+        CB = self.frame.selectionItem[ind]
+    # ---------------------------------------------------------------- cmd_moveUp
+    def cmd_moveUp(self):
+        # Works only if a single curve is selected !
+        nbSelected = 0
+        indSelected = None
+        for ind in range(len(self.frame.selectionItem)):
+            select = self.frame.selectionItem[ind]
+            if select.val.get():
+                nbSelected += 1
+                indSelected = ind
+        # Check if only a single curve has been selected
+        if nbSelected != 1:
+            tkMessageBox.showwarning('Move Up Failed','Need to select a single text line')
+            return
+        else:
+            # if indSelected == 0, can not move up beacause it is already at the top !
+            if indSelected!= 0:
+                t = cpy.deepcopy(self.subGraph.shapes[indSelected])
+                self.subGraph.shapes[indSelected]=self.subGraph.shapes[indSelected-1]
+                self.subGraph.shapes[indSelected-1]=t
+                self.switchShape(indSelected,-1)
+                self.updatelblFrameSize()
+                try:
+                    self.frameList[self.graph][self.zone] = self.frame
+                except KeyError:
+                    self.frameList[self.graph] = {self.zone:self.frame}
+                #
+                # Update Graph
+                self.parent.graphWdwL[self.graph].updateGraph(self.zone)
+    # ---------------------------------------------------------------- cmd_moveDown
+    def cmd_moveDown(self):
+        # Works only if a single curve is selected !
+        nbSelected = 0
+        indSelected = None
+        for ind in range(len(self.frame.selectionItem)):
+            select = self.frame.selectionItem[ind]
+            if select.val.get():
+                nbSelected += 1
+                indSelected = ind
+        # Check if only a single curve has been selected
+        if nbSelected != 1:
+            tkMessageBox.showwarning('Move Up Failed','Need to select a single text line')
+            return
+        else:
+            # if indSelected == len(self.frame.selectionItem)-2, can not move down beacause it is already at the bottom !
+            # Rmk : it is "-2" because there is the line for the "curve to add" that counts for one that is at the end
+            if indSelected!= len(self.frame.selectionItem)-2:
+                t = cpy.deepcopy(self.subGraph.shapes[indSelected])
+                self.subGraph.shapes[indSelected]=self.subGraph.shapes[indSelected+1]
+                self.subGraph.shapes[indSelected+1]=t
+                self.switchShape(indSelected,1)
+                self.updatelblFrameSize()
+                try:
+                    self.frameList[self.graph][self.zone] = self.frame
+                except KeyError:
+                    self.frameList[self.graph] = {self.zone:self.frame}
+                #
+                # Update Graph
+                self.parent.graphWdwL[self.graph].updateGraph(self.zone)
+    # ------------------------------------------------------------- switchText
+    def switchShape(self,indSelected,incr):
+        self.geometry("")
+        cm = plt.get_cmap(COLOR_MAP)
+        if indSelected==0 and incr == -1: return
+        if indSelected==(len(self.frame.selectionItem)-1) and incr==1:
+            return
+        ### Visual
+        for action in [ self.frame.selectionItem,self.frame.IdItem,self.frame.shape_typeItem,self.frame.conf_shapeItem]:
+            action[indSelected].grid_forget()
+            action[indSelected+incr].grid_forget()
+            action[indSelected].grid(row=indSelected+incr,column=0,sticky='NSEW')
+            action[indSelected+incr].grid(row=indSelected,column=0,sticky='NSEW')
+            action[indSelected].ind = indSelected+incr
+            action[indSelected+incr].ind = indSelected
+            tmp = action[indSelected+incr]
+            action[indSelected+incr] = action[indSelected]
+            action[indSelected] = tmp
+        ### Edit lambda functions
+        for ind in [indSelected+incr,indSelected]:
+            self.frame.selectionItem[ind].config(command=lambda n=ind: self.cb_selection(n))
+            self.frame.IdItem[ind].config(text=ind)
+            self.frame.shape_typeItem[ind].config(command=lambda n=(ind,self.frame.shape_typeItem): self.bt_click(n))
+            self.relinkLambda4ShapeConf(ind,self.frame.shape_typeItem[ind].val)
+
+    # ---------------------------------------------------------------- cmd_rmTexts
+    def cmd_rmShapes(self):
+        nbDeletion = 0
+        deletionList = []
+        for ind, select in enumerate(self.frame.selectionItem):
+            if select.val.get(): deletionList.append(ind)
+        deletionList.sort()
+        ind=0
+        nbDeletion = len(deletionList)-1
+        while ind <= nbDeletion:
+            indRemove = deletionList[ind]
+            del self.subGraph.shapes[indRemove]
+            self.popUpShapeLine(indRemove)
+            ind += 1
+            deletionList = [i-1 for i in deletionList]
+        self.updatelblFrameSize()
+
+        self.parent.graphWdwL[self.graph].updateGraph(self.zone)
+
+
+    # --------------------------------------------------------------- relinkLambda4ShapeConf
+    def relinkLambda4ShapeConf(self,ind,shape):
+        framePosition = self.frame.conf_shapeItem[ind].childframe
+        if shape == 'Arrow':
+            for v in [  framePosition.positionItem,framePosition.arrowstyleItem,framePosition.head_lengthItem,
+                        framePosition.head_widthItem,framePosition.tail_widthItem,framePosition.scaleItem,
+                        framePosition.linewidthItem,framePosition.linestyleItem,framePosition.edgecolorItem,
+                        framePosition.facecolorItem,framePosition.hatchItem,framePosition.alphaItem]:
+                v.config(command=lambda n=(v): self.bt_click_shape(n))
+                v.ind = ind
+
+        elif shape in ['Rectangle','Ellipse']:
+            for v in [  framePosition.positionItem,framePosition.heightItem,framePosition.widthItem,
+                        framePosition.angleItem,framePosition.linewidthItem,framePosition.linestyleItem,
+                        framePosition.edgecolorItem,framePosition.facecolorItem,framePosition.hatchItem,
+                        framePosition.alphaItem]:
+                v.config(command=lambda n=(v): self.bt_click_shape(n))
+                v.ind = ind
+
+        elif shape == 'Circle':
+            for v in [  framePosition.positionItem,framePosition.radiusItem,framePosition.linewidthItem,
+                        framePosition.linestyleItem,framePosition.edgecolorItem,framePosition.facecolorItem,
+                        framePosition.hatchItem,framePosition.alphaItem]:
+
+                v.config(command=lambda n=(v): self.bt_click_shape(n))
+                v.ind = ind
+
+        elif shape == 'Line':
+            for v in [  framePosition.positionItem,framePosition.linewidthItem,framePosition.linestyleItem,
+                        framePosition.linecolorItem,framePosition.alphaItem]:
+                v.config(command=lambda n=(v): self.bt_click_shape(n))
+                v.ind = ind
+
+        elif shape == 'FancyBbox':
+            return
+    # --------------------------------------------------------------- popUpShapeLine
+    def popUpShapeLine(self,indRemove):
+        self.geometry("")
+        cm = plt.get_cmap(COLOR_MAP)
+
+
+        ### grid forget on indRemove
+        for action in [ self.frame.selectionItem,self.frame.IdItem,self.frame.shape_typeItem,self.frame.conf_shapeItem]:
+            action[indRemove].grid_forget()
+
+        # action[indRemove].destroy()
+        ### Loop on curves
+        for ind in range(len(self.subGraph.shapes)+1):
+            ### ### Check index value
+            if ind>=indRemove:
+                for action in [ self.frame.selectionItem,self.frame.IdItem,self.frame.shape_typeItem,self.frame.conf_shapeItem]:
+                    ### ### ### grid_forget
+                    action[ind+1].grid_forget()
+                    ### ### ### Pop up
+                    action[ind] = action[ind+1]
+                    action[ind+1] = None
+                    action[ind].grid(row=ind,column=0,sticky='NSEW')
+                    action[ind].ind = ind
+                # Re Link the lambda function
+                self.frame.selectionItem[ind].config(command=lambda n=ind: self.cb_selection(n))
+                self.frame.IdItem[ind].config(text=ind)
+                self.frame.shape_typeItem[ind].config(command=lambda n=(ind,self.frame.shape_typeItem): self.bt_click(n))
+                self.relinkLambda4ShapeConf(ind,self.frame.shape_typeItem[ind].val)
+
+
+        for action in [ self.frame.selectionItem,self.frame.IdItem,self.frame.shape_typeItem,self.frame.conf_shapeItem]:
+
+            del action[-1]
+            ### get lblframe
+            lblframe = action[0].winfo_parent() # Returns the name of the parent
+            lblframe = self.frame.nametowidget(lblframe) # returns the instance of the parent # Returns the name of the parent
+            lblframe.grid_rowconfigure(len(self.subGraph.curves)+1,weight=1)
+        #
+        try:
+            self.frameList[self.graph][self.zone] = self.frame
+        except KeyError:
+            self.frameList[self.graph] = {self.zone:self.frame}
+
+
+
+    # ---------------------------------------------------------------- cmd_duplicateTexts
+    def cmd_duplicateShapes(self):
+        for ind, select in enumerate(self.frame.selectionItem):
+            if select.val.get():
+                # List of specific arguments to a given shape
+                # # # -> points
+
+                points          = default_values['Shape']['points']
+                arrowstyle      = default_values['Shape']['arrowstyle']
+                bracketstyle      = default_values['Shape']['bracketstyle']
+                head_length     = default_values['Shape']['head_length']
+                head_width      = default_values['Shape']['head_width']
+                tail_width      = default_values['Shape']['tail_width']
+                scale           = default_values['Shape']['scale']
+                linewidth       = default_values['Shape']['linewidth']
+                edgecolor       = default_values['Shape']['edgecolor']
+                facecolor       = default_values['Shape']['facecolor']
+                hatch           = default_values['Shape']['hatch']
+                radius          = default_values['Shape']['radius']
+                linestyle       = default_values['Shape']['linestyle']
+                height          = default_values['Shape']['height']
+                width           = default_values['Shape']['width']
+                angle           = default_values['Shape']['angle']
+                linecolor       = default_values['Shape']['linecolor']
+                alpha           = default_values['Shape']['alpha']
+
+                try:
+                    points              = self.frame.conf_shapeItem[ind].childframe.positionItem.list
+                except AttributeError:
+                    pass
+                try:
+                    arrowstyle          = self.frame.conf_shapeItem[ind].childframe.arrowstyleItem.val
+                except AttributeError:
+                    pass
+                try:
+                    bracketstyle          = self.frame.conf_shapeItem[ind].childframe.bracketstyleItem.val
+                except AttributeError:
+                    pass
+                try:
+                    head_length         = self.frame.conf_shapeItem[ind].childframe.head_lengthItem.val
+                except AttributeError:
+                    pass
+                try:
+                    head_width          = self.frame.conf_shapeItem[ind].childframe.head_widthItem.val
+                except AttributeError:
+                    pass
+                try:
+                    tail_width          = self.frame.conf_shapeItem[ind].childframe.tail_widthItem.val
+                except AttributeError:
+                    pass
+                try:
+                    scale               = self.frame.conf_shapeItem[ind].childframe.scaleItem.val
+                except AttributeError:
+                    pass
+                try:
+                    linewidth           = self.frame.conf_shapeItem[ind].childframe.linewidthItem.val
+                except AttributeError:
+                    pass
+                try:
+                    edgecolor           = self.frame.conf_shapeItem[ind].childframe.edgecolorItem.val
+                except AttributeError:
+                    pass
+                try:
+                    facecolor           = self.frame.conf_shapeItem[ind].childframe.facecolorItem.val
+                except AttributeError:
+                    pass
+                try:
+                    hatch               = self.frame.conf_shapeItem[ind].childframe.hatchItem.val
+                except AttributeError:
+                    pass
+                try:
+                    radius              = self.frame.conf_shapeItem[ind].childframe.radiusItem.val
+                except AttributeError:
+                    pass
+                try:
+                    linestyle              = self.frame.conf_shapeItem[ind].childframe.linestyleItem.val
+                except AttributeError:
+                    pass
+                try:
+                    height              = self.frame.conf_shapeItem[ind].childframe.heightItem.val
+                except AttributeError:
+                    pass
+                try:
+                    width              = self.frame.conf_shapeItem[ind].childframe.widthItem.val
+                except AttributeError:
+                    pass
+                try:
+                    angle              = self.frame.conf_shapeItem[ind].childframe.angleItem.val
+                except AttributeError:
+                    pass
+                try:
+                    linecolor              = self.frame.conf_shapeItem[ind].childframe.linecolorItem.val
+                except AttributeError:
+                    pass
+                try:
+                    alpha              = self.frame.conf_shapeItem[ind].childframe.alphaItem.val
+                except AttributeError:
+                    pass
+
+                s = Shape(
+                            zone                = self.zone,
+                            shape_type          = self.frame.shape_typeItem[ind].val,
+                            points              = points,
+                            arrowstyle          = arrowstyle,
+                            bracketstyle          = bracketstyle,
+                            head_length         = head_length,
+                            head_width          = head_width,
+                            tail_width          = tail_width,
+                            scale               = scale,
+                            linewidth           = linewidth,
+                            edgecolor           = edgecolor,
+                            facecolor           = facecolor,
+                            hatch               = hatch,
+                            radius              = radius,
+                            linestyle           = linestyle,
+                            height              = height,
+                            width               = width,
+                            angle               = angle,
+                            linecolor           = linecolor,
+                            alpha               = alpha,
+                            )
+                # Add texts
+                self.subGraph.shapes.append(s)
+                # self.frame.destroy()
+                self.addShapeLineToFrame(s)
+                self.updatelblFrameSize()
+        # self.createFrame()
+        # Update Graph
+        self.parent.graphWdwL[self.graph].updateGraph(self.zone)
+    # ---------------------------------------------------------------- cmd_createText
+    def cmd_createShape(self):
+        ind = len(self.subGraph.shapes)
+
+        # List of specific arguments to a given shape
+        # # # -> points
+        points          = default_values['Shape']['points']
+        arrowstyle      = default_values['Shape']['arrowstyle']
+        bracketstyle      = default_values['Shape']['bracketstyle']
+        head_length     = default_values['Shape']['head_length']
+        head_width      = default_values['Shape']['head_width']
+        tail_width      = default_values['Shape']['tail_width']
+        scale           = default_values['Shape']['scale']
+        linewidth       = default_values['Shape']['linewidth']
+        edgecolor       = default_values['Shape']['edgecolor']
+        facecolor       = default_values['Shape']['facecolor']
+        hatch           = default_values['Shape']['hatch']
+        radius          = default_values['Shape']['radius']
+        linestyle       = default_values['Shape']['linestyle']
+        height          = default_values['Shape']['height']
+        width           = default_values['Shape']['width']
+        angle           = default_values['Shape']['angle']
+        linecolor       = default_values['Shape']['linecolor']
+        alpha           = default_values['Shape']['alpha']
+
+        try:
+            points              = self.frame.conf_shapeItem[ind].childframe.positionItem.list
+        except AttributeError:
+            pass
+        try:
+            arrowstyle          = self.frame.conf_shapeItem[ind].childframe.arrowstyleItem.val
+        except AttributeError:
+            pass
+        try:
+            bracketstyle          = self.frame.conf_shapeItem[ind].childframe.bracketstyleItem.val
+        except AttributeError:
+            pass
+        try:
+            head_length         = self.frame.conf_shapeItem[ind].childframe.head_lengthItem.val
+        except AttributeError:
+            pass
+        try:
+            head_width          = self.frame.conf_shapeItem[ind].childframe.head_widthItem.val
+        except AttributeError:
+            pass
+        try:
+            tail_width          = self.frame.conf_shapeItem[ind].childframe.tail_widthItem.val
+        except AttributeError:
+            pass
+        try:
+            scale               = self.frame.conf_shapeItem[ind].childframe.scaleItem.val
+        except AttributeError:
+            pass
+        try:
+            linewidth           = self.frame.conf_shapeItem[ind].childframe.linewidthItem.val
+        except AttributeError:
+            pass
+        try:
+            edgecolor           = self.frame.conf_shapeItem[ind].childframe.edgecolorItem.val
+        except AttributeError:
+            pass
+        try:
+            facecolor           = self.frame.conf_shapeItem[ind].childframe.facecolorItem.val
+        except AttributeError:
+            pass
+        try:
+            hatch               = self.frame.conf_shapeItem[ind].childframe.hatchItem.val
+        except AttributeError:
+            pass
+        try:
+            radius              = self.frame.conf_shapeItem[ind].childframe.radiusItem.val
+        except AttributeError:
+            pass
+        try:
+            linestyle              = self.frame.conf_shapeItem[ind].childframe.linestyleItem.val
+        except AttributeError:
+            pass
+        try:
+            height              = self.frame.conf_shapeItem[ind].childframe.heightItem.val
+        except AttributeError:
+            pass
+        try:
+            width              = self.frame.conf_shapeItem[ind].childframe.widthItem.val
+        except AttributeError:
+            pass
+        try:
+            angle              = self.frame.conf_shapeItem[ind].childframe.angleItem.val
+        except AttributeError:
+            pass
+        try:
+            linecolor              = self.frame.conf_shapeItem[ind].childframe.linecolorItem.val
+        except AttributeError:
+            pass
+        try:
+            alpha              = self.frame.conf_shapeItem[ind].childframe.alphaItem.val
+        except AttributeError:
+            pass
+
+        s = Shape(
+                    zone                = self.zone,
+                    shape_type          = self.frame.shape_typeItem[ind].val,
+                    points              = points,
+                    arrowstyle          = arrowstyle,
+                    bracketstyle          = bracketstyle,
+                    head_length         = head_length,
+                    head_width          = head_width,
+                    tail_width          = tail_width,
+                    scale               = scale,
+                    linewidth           = linewidth,
+                    edgecolor           = edgecolor,
+                    facecolor           = facecolor,
+                    hatch               = hatch,
+                    radius              = radius,
+                    linestyle           = linestyle,
+                    height              = height,
+                    width               = width,
+                    angle               = angle,
+                    linecolor           = linecolor,
+                    alpha               = alpha,
+                    )
+
+        # Add curves
+        self.subGraph.shapes.append(s)
+        # self.frame.destroy()
+        self.addShapeLineToFrame(s)
+        self.updatelblFrameSize()
+        # self.createFrame()
+        # Update Graph
+        self.parent.graphWdwL[self.graph].updateGraph(self.zone)
+    # --------------------------------------------------------------- updatelblFrameSize
+    def updatelblFrameSize(self):
+        for action in [ self.frame.selectionItem,self.frame.IdItem,self.frame.shape_typeItem,self.frame.conf_shapeItem]:
+            ### get lblframe
+            lblframe = action[0].winfo_parent() # Returns the name of the parent
+            lblframe = self.frame.nametowidget(lblframe) # returns the instance of the parent # Returns the name of the parent
+            # ### Loop on curves
+            # for ind in range(len(self.subGraph.shapes)+1):
+            #     lblframe.rowconfigure(ind,weight=1)
+        #         print('-> ',ind)
+        #     lblframe.rowconfigure(len(self.subGraph.curves),weight=0)
+        #     print('-> ',len(self.subGraph.curves))
+        #     #
+        # self.frame.grid_rowconfigure(0,weight=len(self.subGraph.shapes)+1)
+        self.frame.grid_rowconfigure(0,weight=1)
+        self.frame.grid_rowconfigure(1,weight=0)
+    # --------------------------------------------------------------- addLineToFrame
+    def addShapeLineToFrame(self,text):
+        # self.geometry("")
+        cm = plt.get_cmap(COLOR_MAP)
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Selection
+        ### delete shape to add
+        ind = len(self.subGraph.shapes)-1
+        ### Add new shape
+        var = TK.BooleanVar()
+        var.set(False)
+        self.frame.selectionItem[ind].config(state=TK.NORMAL)
+        self.frame.selectionItem[ind].config(variable=var)
+        self.frame.selectionItem[ind].val = var
+        self.frame.selectionItem[ind].ind=ind
+        self.frame.selectionItem[ind].var='selection'
+        lblframe = self.frame.selectionItem[ind].winfo_parent() # Returns the name of the parent
+        lblframe = self.frame.nametowidget(lblframe) # returns the instance of the parent # Returns the name of the parent
+        # Shape to add
+        ind = len(self.subGraph.shapes)
+        var = TK.BooleanVar()
+        var.set(False)
+        CB = TTK.Checkbutton(lblframe,variable=var,command=lambda n=ind: self.cb_selection(n),state=TK.DISABLED)#, variable=var)
+        CB.val = var
+        CB.ind = ind
+        CB.var = 'selection'
+        CB.grid(row=ind,column=0,sticky='NSEW')
+        CB.container = self.frame.selectionItem
+        self.frame.selectionItem.append(CB)
+        lblframe.grid_rowconfigure(ind,weight=1)
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Id
+        ### delete Shape to add
+        ind = len(self.subGraph.shapes)-1
+        ### Add new text
+        self.frame.IdItem[ind].config(text='%s'%ind)
+        self.frame.IdItem[ind].ind = ind
+        lblframe = self.frame.IdItem[ind].winfo_parent() # Returns the name of the parent
+        lblframe = self.frame.nametowidget(lblframe) # returns the instance of the parent # Returns the name of the parent
+        # Shape to add
+        ind = len(self.subGraph.shapes)
+        LBL = TK.Label(lblframe,text='to add')
+        LBL.ind = ind
+        LBL.grid(row=ind,column=0,sticky='NSEW')
+        LBL.container = self.frame.IdItem
+        self.frame.IdItem.append(LBL)
+        lblframe.grid_rowconfigure(ind,weight=1)
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Shape type
+        ### delete text to add
+        ind = len(self.subGraph.shapes)-1
+        ### Add new text
+        s = self.subGraph.shapes[ind]
+        self.frame.shape_typeItem[ind].config(text=s.shape_type)
+        self.frame.shape_typeItem[ind].list = shape_typelist
+        self.frame.shape_typeItem[ind].val = s.shape_type
+        self.frame.shape_typeItem[ind].var = 'shape_type'
+        self.frame.shape_typeItem[ind].ind = ind
+        self.frame.shape_typeItem[ind].treatmentId = 0
+        lblframe = self.frame.shape_typeItem[ind].winfo_parent() # Returns the name of the parent
+        lblframe = self.frame.nametowidget(lblframe) # returns the instance of the parent # Returns the name of the parent
+        # Text to add
+        ind = len(self.subGraph.shapes)
+        B = TTK.Button(lblframe,text=default_values['Shape']['shape_type'],command=lambda n=(ind,self.frame.shape_typeItem): self.bt_click(n))
+        B.list = shape_typelist
+        B.val = default_values['Shape']['shape_type']
+        B.var = 'shape_type'
+        B.ind = ind
+        B.treatmentId = 0
+        B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+        B.container = self.frame.shape_typeItem
+        self.frame.shape_typeItem.append(B)
+        lblframe.grid_rowconfigure(ind,weight=1)
+
+        try:
+            self.frameList[self.graph][self.zone] = self.frame
+        except KeyError:
+            self.frameList[self.graph] = {self.zone:self.frame}
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Shape configuration tool
+        ### delete shape to add
+        ind = len(self.subGraph.shapes)-1
+        ### Add new shape
+        s = self.subGraph.shapes[ind]
+        shapeframe = self.frame.conf_shapeItem[ind]
+        if s.shape_type == "Circle":
+            self.Modify_CircleShape(s,shapeframe,ind)
+        elif s.shape_type == "Rectangle":
+            self.Modify_RectangleShape(s,shapeframe,ind)
+        elif s.shape_type == "Ellipse":
+            self.Modify_EllipseShape(s,shapeframe,ind)
+        elif s.shape_type == "Arrow":
+            self.Modify_ArrowShape(s,shapeframe,ind)
+        elif s.shape_type == "FancyBbox":
+            self.Modify_FancyBboxShape(s,shapeframe,ind)
+        elif s.shape_type == "Line":
+            self.Modify_LineShape(s,shapeframe,ind)
+        elif s.shape_type == "Bracket":
+            self.Modify_BracketShape(s,shapeframe,ind)
+
+        lblframe = shapeframe.winfo_parent() # Returns the name of the parent
+        lblframe = self.frame.nametowidget(lblframe) # returns the instance of the parent # Returns the name of the parent
+
+
+        # Shape to add
+        ind = len(self.subGraph.shapes)
+        shapeframe = TTK.Frame(lblframe)
+        if default_values['Shape']['shape_type'] == "Circle":
+            self.Set_CircleShape(shapeframe,ind,last=True)
+        elif default_values['Shape']['shape_type'] == "Rectangle":
+            self.Set_RectangleShape(shapeframe,ind,last=True)
+        elif default_values['Shape']['shape_type'] == "Ellipse":
+            self.Set_EllipseShape(shapeframe,ind,last=True)
+        elif default_values['Shape']['shape_type'] == "Arrow":
+            self.Set_ArrowShape(shapeframe,ind,last=True)
+        elif default_values['Shape']['shape_type'] == "FancyBbox":
+            self.Set_FancyBboxShape(shapeframe,ind,last=True)
+        elif default_values['Shape']['shape_type'] == "Line":
+            self.Set_LineShape(shapeframe,ind,last=True)
+        elif default_values['Shape']['shape_type'] == "Bracket":
+            self.Set_BracketShape(shapeframe,ind,last=True)
+        shapeframe.var = 'setting_shape'
+        shapeframe.ind = ind
+        shapeframe.treatmentId = 0
+        shapeframe.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+        shapeframe.container = self.frame.conf_shapeItem
+        self.frame.conf_shapeItem.append(shapeframe)
+        lblframe.grid_rowconfigure(ind,weight=1)
+
+        try:
+            self.frameList[self.graph][self.zone] = self.frame
+        except KeyError:
+            self.frameList[self.graph] = {self.zone:self.frame}
+
+
+
+
+
+    # ---------------------------------------------------------------- cmd_close
+    def cmd_close(self):
+        self.closeAllDialog()
+        self.parent.editShapeWdw = None
+        self.destroy()
+
+
+
+    # ==============================================================================
+    def Modify_CircleShape(self,s,parent,ind):
+        framePosition = parent.childframe
+        for (B,svar) in [
+                            (framePosition.positionItem,s.points),
+                            (framePosition.radiusItem,s.radius),
+                            (framePosition.linewidthItem,s.linewidth),
+                            (framePosition.linestyleItem,s.linestyle),
+                            (framePosition.edgecolorItem,s.edgecolor),
+                            (framePosition.facecolorItem,s.facecolor),
+                            (framePosition.hatchItem,s.hatch),
+                            (framePosition.alphaItem,s.alpha),
+                        ]:
+            if B.var == 'points':
+                B.shape = s
+                B.list = s.points
+
+                B.val = len(B.list)
+            elif B.var in ['edgecolor','facecolor']:
+                B.shape = s
+                B.val = svar
+                B.config(bg=B.val)
+                B.config(activebackground=B.val)
+            else:
+                self.updateButon(B,svar)
+        return
+    # ==============================================================================
+    def Modify_EllipseShape(self,s,parent,ind):
+        framePosition = parent.childframe
+        for (B,svar) in [
+                            (framePosition.positionItem,s.points),
+                            (framePosition.heightItem,s.height),
+                            (framePosition.widthItem,s.width),
+                            (framePosition.angleItem,s.angle),
+                            (framePosition.linewidthItem,s.linewidth),
+                            (framePosition.linestyleItem,s.linestyle),
+                            (framePosition.edgecolorItem,s.edgecolor),
+                            (framePosition.facecolorItem,s.facecolor),
+                            (framePosition.hatchItem,s.hatch),
+                            (framePosition.alphaItem,s.alpha),
+                        ]:
+            if B.var == 'points':
+                B.shape = s
+                B.list = s.points
+
+                B.val = len(B.list)
+            elif B.var in ['edgecolor','facecolor']:
+                B.shape = s
+                B.val = svar
+                B.config(bg=B.val)
+                B.config(activebackground=B.val)
+            else:
+                self.updateButon(B,svar)
+        return
+    # ==============================================================================
+    def Modify_RectangleShape(self,s,parent,ind):
+        self.Modify_EllipseShape(s,parent,ind) # Same interface as ellipse
+    # ==============================================================================
+    def Modify_ArrowShape(self,s,parent,ind):
+        framePosition = parent.childframe
+        for (B,svar) in [
+                            (framePosition.positionItem,s.points),
+                            (framePosition.arrowstyleItem,s.arrowstyle),
+                            (framePosition.head_lengthItem,s.head_length),
+                            (framePosition.head_widthItem,s.head_width),
+                            (framePosition.tail_widthItem,s.tail_width),
+                            (framePosition.scaleItem,s.scale),
+                            (framePosition.linewidthItem,s.linewidth),
+                            (framePosition.linestyleItem,s.linestyle),
+                            (framePosition.edgecolorItem,s.edgecolor),
+                            (framePosition.facecolorItem,s.facecolor),
+                            (framePosition.hatchItem,s.hatch),
+                            (framePosition.alphaItem,s.alpha),
+                        ]:
+            if B.var == 'points':
+                B.shape = s
+                B.list = s.points
+
+                B.val = len(B.list)
+            elif B.var in ['edgecolor','facecolor']:
+                B.shape = s
+                B.val = svar
+                B.config(bg=B.val)
+                B.config(activebackground=B.val)
+            else:
+                self.updateButon(B,svar)
+            #
+    # ==============================================================================
+    def Modify_BracketShape(self,s,parent,ind):
+        framePosition = parent.childframe
+        for (B,svar) in [
+                            (framePosition.positionItem,s.points),
+                            (framePosition.bracketstyleItem,s.bracketstyle),
+                            (framePosition.lengthAItem,s.lengthA),
+                            (framePosition.lengthBItem,s.lengthB),
+                            (framePosition.widthAItem,s.widthA),
+                            (framePosition.widthBItem,s.widthB),
+                            (framePosition.angleAItem,s.angleA),
+                            (framePosition.angleBItem,s.angleB),
+                            (framePosition.scaleItem,s.scale),
+                            (framePosition.linewidthItem,s.linewidth),
+                            (framePosition.linestyleItem,s.linestyle),
+                            (framePosition.edgecolorItem,s.edgecolor),
+                            (framePosition.alphaItem,s.alpha),
+                        ]:
+            if B.var == 'points':
+                B.shape = s
+                B.list = s.points
+
+                B.val = len(B.list)
+            elif B.var in ['edgecolor','facecolor']:
+                B.shape = s
+                B.val = svar
+                B.config(bg=B.val)
+                B.config(activebackground=B.val)
+            else:
+                self.updateButon(B,svar)
+            #
+
+    # ==============================================================================
+    def Modify_FancyBboxShape(self,s,parent,ind):
+        return
+    # ==============================================================================
+    def Modify_LineShape(self,s,parent,ind):
+        framePosition = parent.childframe
+        for (B,svar) in [
+                            (framePosition.positionItem,s.points),
+                            (framePosition.linewidthItem,s.linewidth),
+                            (framePosition.linestyleItem,s.linestyle),
+                            (framePosition.linecolorItem,s.linecolor),
+                            (framePosition.alphaItem,s.alpha),
+                        ]:
+            if B.var == 'points':
+                B.shape = s
+                B.list = s.points
+
+                B.val = len(B.list)
+            elif B.var in ['linecolor']:
+                B.shape = s
+                B.val = svar
+                B.config(bg=B.val)
+                B.config(activebackground=B.val)
+            else:
+                self.updateButon(B,svar)
+
+
+    # ==============================================================================
+    def Set_CircleShape(self,parent,ind,last=False):
+        parent.grid_columnconfigure(0,weight=1)
+        parent.grid_rowconfigure(0,weight=1)
+        framePosition = TK.Label(parent,text='Arrow')
+        parent.childframe = framePosition
+        framePosition.grid(row=0,column=0,sticky='NESW')
+        framePosition.parent = parent
+        framePosition.grid_rowconfigure(0,weight=1)
+        framePosition.grid_columnconfigure(0,weight=1)
+        framePosition.grid_columnconfigure(1,weight=1)
+        framePosition.grid_columnconfigure(2,weight=1)
+        framePosition.grid_columnconfigure(3,weight=1)
+        framePosition.grid_columnconfigure(4,weight=1)
+        framePosition.grid_columnconfigure(5,weight=1)
+        framePosition.grid_columnconfigure(6,weight=1)
+        framePosition.grid_columnconfigure(7,weight=1)
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Position
+        lblframe = TTK.LabelFrame(framePosition, text="Points position")
+        lblframe.grid(row=0,column=0,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+        #
+        if not last:
+            s = self.subGraph.shapes[ind]
+            B = TTK.Button(lblframe)
+            framePosition.positionItem = B
+            framePosition.positionItem.config(command=lambda n=(framePosition.positionItem): self.bt_click_shape(n))
+            B.list = s.points
+            B.val = B.list
+            B.var = 'points'
+            B.ind = ind
+            B.treatmentId = 5
+            B.config(text=len(B.val))
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.positionItem
+            B.container = None
+            B.shape = s
+        # Curve to add
+        else:
+            B = TTK.Button(lblframe)
+            framePosition.positionItem = B
+            framePosition.positionItem.config(command=lambda n=(framePosition.positionItem): self.bt_click_shape(n))
+            B.list = default_values['Shape']['points']
+            B.val = B.list
+            B.var = 'points'
+            B.ind = ind
+            B.treatmentId = 5
+            B.config(text=len(B.val))
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            B.shape = None
+            # B.container = self.frame.positionItem
+            B.container = None
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Radius
+        lblframe = TTK.LabelFrame(framePosition, text="Radius")
+        lblframe.grid(row=0,column=1,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+
+        #
+        if not last:
+            s = self.subGraph.shapes[ind]
+            B = TTK.Button(lblframe,text=s.radius)
+            framePosition.radiusItem = B
+            framePosition.radiusItem.config(command=lambda n=(framePosition.radiusItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = s.radius
+            B.var = 'radius'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.radiusItem
+            B.container = None
+        # Curve to add
+        else:
+            B = TTK.Button(lblframe,text=default_values['Shape']['radius'])
+            framePosition.radiusItem = B
+            framePosition.radiusItem.config(command=lambda n=(framePosition.radiusItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = default_values['Shape']['radius']
+            B.var = 'radius'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.posxItem
+            B.container = None
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Linewidth
+        lblframe = TTK.LabelFrame(framePosition, text="Linewidth")
+        lblframe.grid(row=0,column=2,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+
+        #
+        if not last:
+            s = self.subGraph.shapes[ind]
+            B = TTK.Button(lblframe,text=s.linewidth)
+            framePosition.linewidthItem = B
+            framePosition.linewidthItem.config(command=lambda n=(framePosition.linewidthItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = s.linewidth
+            B.var = 'linewidth'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.linewidthItem
+            B.container = None
+        # Curve to add
+        else:
+            B = TTK.Button(lblframe,text=default_values['Shape']['linewidth'])
+            framePosition.linewidthItem = B
+            framePosition.linewidthItem.config(command=lambda n=(framePosition.linewidthItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = default_values['Shape']['linewidth']
+            B.var = 'linewidth'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.posxItem
+            B.container = None
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Linestyle
+        lblframe = TTK.LabelFrame(framePosition, text="Linestyle")
+        lblframe.grid(row=0,column=3,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+        #
+        if not last :
+            s = self.subGraph.shapes[ind]
+            B = TTK.Button(lblframe,text=s.linestyle)
+            framePosition.linestyleItem = B
+            framePosition.linestyleItem.config(command=lambda n=(framePosition.linestyleItem): self.bt_click_shape(n))
+            B.list = linestylelist
+            B.val = s.linestyle
+            B.var = 'linestyle'
+            B.ind = ind
+            B.treatmentId = 0
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            B.container = None
+        else:
+            # Curve to add
+            B = TTK.Button(lblframe,text=default_values['Shape']['linestyle'])
+            framePosition.linestyleItem = B
+            framePosition.linestyleItem.config(command=lambda n=(framePosition.linestyleItem): self.bt_click_shape(n))
+            B.list = linestylelist
+            B.val = default_values['Shape']['linestyle']
+            B.var = 'linestyle'
+            B.ind = ind
+            B.treatmentId = 0
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            B.container = None
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Edgecolor
+        lblframe = TTK.LabelFrame(framePosition, text="Edge")
+        lblframe.grid(row=0,column=4,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+        #
+        if not last:
+            s = self.subGraph.shapes[ind]
+            B = TK.Button(lblframe)
+            framePosition.edgecolorItem = B
+            framePosition.edgecolorItem.config(command=lambda n=(framePosition.edgecolorItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = s.edgecolor
+            B.var = 'edgecolor'
+            B.ind = ind
+            B.treatmentId = 1
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.linewidthItem
+            B.container = None
+            B.config(bg=B.val)
+            B.config(activebackground=B.val)
+        # Curve to add
+        else:
+            B = TK.Button(lblframe)
+            framePosition.edgecolorItem = B
+            framePosition.edgecolorItem.config(command=lambda n=(framePosition.edgecolorItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = default_values['Shape']['edgecolor']
+            B.var = 'edgecolor'
+            B.ind = ind
+            B.treatmentId = 1
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.posxItem
+            B.container = None
+            B.config(bg=B.val)
+            B.config(activebackground=B.val)
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Facecolor
+        lblframe = TTK.LabelFrame(framePosition, text="Face")
+        lblframe.grid(row=0,column=5,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+        #
+        if not last:
+            s = self.subGraph.shapes[ind]
+            B = TK.Button(lblframe)
+            framePosition.facecolorItem = B
+            framePosition.facecolorItem.config(command=lambda n=(framePosition.facecolorItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = s.facecolor
+            B.var = 'facecolor'
+            B.ind = ind
+            B.treatmentId = 1
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.linewidthItem
+            B.container = None
+            B.config(bg=B.val)
+            B.config(activebackground=B.val)
+        # Curve to add
+        else:
+            B = TK.Button(lblframe)
+            framePosition.facecolorItem = B
+            framePosition.facecolorItem.config(command=lambda n=(framePosition.facecolorItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = default_values['Shape']['facecolor']
+            B.var = 'facecolor'
+            B.ind = ind
+            B.treatmentId = 1
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.posxItem
+            B.container = None
+            B.config(bg=B.val)
+            B.config(activebackground=B.val)
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Hatch
+        lblframe = TTK.LabelFrame(framePosition, text="Hatch")
+        lblframe.grid(row=0,column=6,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+        #
+        if not last :
+            s = self.subGraph.shapes[ind]
+            B = TTK.Button(lblframe,text=s.hatch)
+            framePosition.hatchItem = B
+            framePosition.hatchItem.config(command=lambda n=(framePosition.hatchItem): self.bt_click_shape(n))
+            B.list = hatchlist
+            B.val = s.hatch
+            B.var = 'hatch'
+            B.ind = ind
+            B.treatmentId = 0
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            B.container = None
+        else:
+            # Curve to add
+            B = TTK.Button(lblframe,text=default_values['Shape']['hatch'])
+            framePosition.hatchItem = B
+            framePosition.hatchItem.config(command=lambda n=(framePosition.hatchItem): self.bt_click_shape(n))
+            B.list = hatchlist
+            B.val = default_values['Shape']['hatch']
+            B.var = 'hatch'
+            B.ind = ind
+            B.treatmentId = 0
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            B.container = None
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Alpha
+        lblframe = TTK.LabelFrame(framePosition, text="Alpha")
+        lblframe.grid(row=0,column=7,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+
+        #
+        if not last:
+            s = self.subGraph.shapes[ind]
+            B = TTK.Button(lblframe,text=s.alpha)
+            framePosition.alphaItem = B
+            framePosition.alphaItem.config(command=lambda n=(framePosition.alphaItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = s.alpha
+            B.var = 'alpha'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.alphaItem
+            B.container = None
+        # Curve to add
+        else:
+            B = TTK.Button(lblframe,text=default_values['Shape']['alpha'])
+            framePosition.alphaItem = B
+            framePosition.alphaItem.config(command=lambda n=(framePosition.alphaItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = default_values['Shape']['alpha']
+            B.var = 'alpha'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.posxItem
+            B.container = None
+    # ==============================================================================
+    def Set_EllipseShape(self,parent,ind,last=False):
+        parent.grid_columnconfigure(0,weight=1)
+        parent.grid_rowconfigure(0,weight=1)
+        framePosition = TK.Label(parent,text='Arrow')
+        parent.childframe = framePosition
+        framePosition.grid(row=0,column=0,sticky='NESW')
+        framePosition.parent = parent
+        framePosition.grid_rowconfigure(0,weight=1)
+        framePosition.grid_columnconfigure(0,weight=1)
+        framePosition.grid_columnconfigure(1,weight=1)
+        framePosition.grid_columnconfigure(2,weight=1)
+        framePosition.grid_columnconfigure(3,weight=1)
+        framePosition.grid_columnconfigure(4,weight=1)
+        framePosition.grid_columnconfigure(5,weight=1)
+        framePosition.grid_columnconfigure(6,weight=1)
+        framePosition.grid_columnconfigure(7,weight=1)
+        framePosition.grid_columnconfigure(8,weight=1)
+        framePosition.grid_columnconfigure(9,weight=1)
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Position
+        lblframe = TTK.LabelFrame(framePosition, text="Points position")
+        lblframe.grid(row=0,column=0,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+        #
+        if not last:
+            s = self.subGraph.shapes[ind]
+            B = TTK.Button(lblframe)
+            framePosition.positionItem = B
+            framePosition.positionItem.config(command=lambda n=(framePosition.positionItem): self.bt_click_shape(n))
+            B.list = s.points
+            B.val = B.list
+            B.var = 'points'
+            B.ind = ind
+            B.treatmentId = 5
+            B.config(text=len(B.val))
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.positionItem
+            B.container = None
+            B.shape = s
+        # Curve to add
+        else:
+            B = TTK.Button(lblframe)
+            framePosition.positionItem = B
+            framePosition.positionItem.config(command=lambda n=(framePosition.positionItem): self.bt_click_shape(n))
+            B.list = default_values['Shape']['points']
+            B.val = B.list
+            B.var = 'points'
+            B.ind = ind
+            B.treatmentId = 5
+            B.config(text=len(B.val))
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            B.shape = None
+            # B.container = self.frame.positionItem
+            B.container = None
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Width
+        lblframe = TTK.LabelFrame(framePosition, text="Width")
+        lblframe.grid(row=0,column=1,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+
+        #
+        if not last:
+            s = self.subGraph.shapes[ind]
+            B = TTK.Button(lblframe,text=s.width)
+            framePosition.widthItem = B
+            framePosition.widthItem.config(command=lambda n=(framePosition.widthItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = s.width
+            B.var = 'width'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.widthItem
+            B.container = None
+        # Curve to add
+        else:
+            B = TTK.Button(lblframe,text=default_values['Shape']['width'])
+            framePosition.widthItem = B
+            framePosition.widthItem.config(command=lambda n=(framePosition.widthItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = default_values['Shape']['width']
+            B.var = 'width'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.posxItem
+            B.container = None
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Height
+        lblframe = TTK.LabelFrame(framePosition, text="Height")
+        lblframe.grid(row=0,column=2,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+
+        #
+        if not last:
+            s = self.subGraph.shapes[ind]
+            B = TTK.Button(lblframe,text=s.height)
+            framePosition.heightItem = B
+            framePosition.heightItem.config(command=lambda n=(framePosition.heightItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = s.height
+            B.var = 'height'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.heightItem
+            B.container = None
+        # Curve to add
+        else:
+            B = TTK.Button(lblframe,text=default_values['Shape']['height'])
+            framePosition.heightItem = B
+            framePosition.heightItem.config(command=lambda n=(framePosition.heightItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = default_values['Shape']['height']
+            B.var = 'height'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.posxItem
+            B.container = None
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Angle
+        lblframe = TTK.LabelFrame(framePosition, text="Angle")
+        lblframe.grid(row=0,column=3,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+
+        #
+        if not last:
+            s = self.subGraph.shapes[ind]
+            B = TTK.Button(lblframe,text=s.angle)
+            framePosition.angleItem = B
+            framePosition.angleItem.config(command=lambda n=(framePosition.angleItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = s.angle
+            B.var = 'angle'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.angleItem
+            B.container = None
+        # Curve to add
+        else:
+            B = TTK.Button(lblframe,text=default_values['Shape']['angle'])
+            framePosition.angleItem = B
+            framePosition.angleItem.config(command=lambda n=(framePosition.angleItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = default_values['Shape']['angle']
+            B.var = 'angle'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.posxItem
+            B.container = None
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Linewidth
+        lblframe = TTK.LabelFrame(framePosition, text="Linewidth")
+        lblframe.grid(row=0,column=4,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+
+        #
+        if not last:
+            s = self.subGraph.shapes[ind]
+            B = TTK.Button(lblframe,text=s.linewidth)
+            framePosition.linewidthItem = B
+            framePosition.linewidthItem.config(command=lambda n=(framePosition.linewidthItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = s.linewidth
+            B.var = 'linewidth'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.linewidthItem
+            B.container = None
+        # Curve to add
+        else:
+            B = TTK.Button(lblframe,text=default_values['Shape']['linewidth'])
+            framePosition.linewidthItem = B
+            framePosition.linewidthItem.config(command=lambda n=(framePosition.linewidthItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = default_values['Shape']['linewidth']
+            B.var = 'linewidth'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.posxItem
+            B.container = None
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Linestyle
+        lblframe = TTK.LabelFrame(framePosition, text="Linestyle")
+        lblframe.grid(row=0,column=5,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+        #
+        if not last :
+            s = self.subGraph.shapes[ind]
+            B = TTK.Button(lblframe,text=s.linestyle)
+            framePosition.linestyleItem = B
+            framePosition.linestyleItem.config(command=lambda n=(framePosition.linestyleItem): self.bt_click_shape(n))
+            B.list = linestylelist
+            B.val = s.linestyle
+            B.var = 'linestyle'
+            B.ind = ind
+            B.treatmentId = 0
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            B.container = None
+        # Curve to add
+        else:
+            B = TTK.Button(lblframe,text=default_values['Shape']['linestyle'])
+            framePosition.linestyleItem = B
+            framePosition.linestyleItem.config(command=lambda n=(framePosition.linestyleItem): self.bt_click_shape(n))
+            B.list = linestylelist
+            B.val = default_values['Shape']['linestyle']
+            B.var = 'linestyle'
+            B.ind = ind
+            B.treatmentId = 0
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            B.container = None
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Edgecolor
+        lblframe = TTK.LabelFrame(framePosition, text="Edge")
+        lblframe.grid(row=0,column=6,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+        #
+        if not last:
+            s = self.subGraph.shapes[ind]
+            B = TK.Button(lblframe)
+            framePosition.edgecolorItem = B
+            framePosition.edgecolorItem.config(command=lambda n=(framePosition.edgecolorItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = s.edgecolor
+            B.var = 'edgecolor'
+            B.ind = ind
+            B.treatmentId = 1
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.linewidthItem
+            B.container = None
+            B.config(bg=B.val)
+            B.config(activebackground=B.val)
+        # Curve to add
+        else:
+            B = TK.Button(lblframe)
+            framePosition.edgecolorItem = B
+            framePosition.edgecolorItem.config(command=lambda n=(framePosition.edgecolorItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = default_values['Shape']['edgecolor']
+            B.var = 'edgecolor'
+            B.ind = ind
+            B.treatmentId = 1
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.posxItem
+            B.container = None
+            B.config(bg=B.val)
+            B.config(activebackground=B.val)
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Facecolor
+        lblframe = TTK.LabelFrame(framePosition, text="Face")
+        lblframe.grid(row=0,column=7,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+        #
+        if not last:
+            s = self.subGraph.shapes[ind]
+            B = TK.Button(lblframe)
+            framePosition.facecolorItem = B
+            framePosition.facecolorItem.config(command=lambda n=(framePosition.facecolorItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = s.facecolor
+            B.var = 'facecolor'
+            B.ind = ind
+            B.treatmentId = 1
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.linewidthItem
+            B.container = None
+            B.config(bg=B.val)
+            B.config(activebackground=B.val)
+        # Curve to add
+        else:
+            B = TK.Button(lblframe)
+            framePosition.facecolorItem = B
+            framePosition.facecolorItem.config(command=lambda n=(framePosition.facecolorItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = default_values['Shape']['facecolor']
+            B.var = 'facecolor'
+            B.ind = ind
+            B.treatmentId = 1
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.posxItem
+            B.container = None
+            B.config(bg=B.val)
+            B.config(activebackground=B.val)
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Hatch
+        lblframe = TTK.LabelFrame(framePosition, text="Hatch")
+        lblframe.grid(row=0,column=8,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+        #
+        if not last :
+            s = self.subGraph.shapes[ind]
+            B = TTK.Button(lblframe,text=s.hatch)
+            framePosition.hatchItem = B
+            framePosition.hatchItem.config(command=lambda n=(framePosition.hatchItem): self.bt_click_shape(n))
+            B.list = hatchlist
+            B.val = s.hatch
+            B.var = 'hatch'
+            B.ind = ind
+            B.treatmentId = 0
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            B.container = None
+        else:
+            # Curve to add
+            B = TTK.Button(lblframe,text=default_values['Shape']['hatch'])
+            framePosition.hatchItem = B
+            framePosition.hatchItem.config(command=lambda n=(framePosition.hatchItem): self.bt_click_shape(n))
+            B.list = hatchlist
+            B.val = default_values['Shape']['hatch']
+            B.var = 'hatch'
+            B.ind = ind
+            B.treatmentId = 0
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            B.container = None
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Alpha
+        lblframe = TTK.LabelFrame(framePosition, text="Alpha")
+        lblframe.grid(row=0,column=9,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+
+        #
+        if not last:
+            s = self.subGraph.shapes[ind]
+            B = TTK.Button(lblframe,text=s.alpha)
+            framePosition.alphaItem = B
+            framePosition.alphaItem.config(command=lambda n=(framePosition.alphaItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = s.alpha
+            B.var = 'alpha'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.alphaItem
+            B.container = None
+        # Curve to add
+        else:
+            B = TTK.Button(lblframe,text=default_values['Shape']['alpha'])
+            framePosition.alphaItem = B
+            framePosition.alphaItem.config(command=lambda n=(framePosition.alphaItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = default_values['Shape']['alpha']
+            B.var = 'alpha'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.posxItem
+            B.container = None
+
+    # ==============================================================================
+    def Set_RectangleShape(self,parent,ind,last=False):
+        self.Set_EllipseShape(parent,ind,last) # Same interface as Ellipse creation
+    # ==============================================================================
+    def Set_ArrowShape(self,parent,ind,last=False):
+        parent.grid_columnconfigure(0,weight=1)
+        parent.grid_rowconfigure(0,weight=1)
+        framePosition = TK.Label(parent,text='Arrow')
+        parent.childframe = framePosition
+        framePosition.grid(row=0,column=0,sticky='NESW')
+        framePosition.parent = parent
+        framePosition.grid_rowconfigure(0,weight=1)
+        framePosition.grid_columnconfigure(0,weight=1)
+        framePosition.grid_columnconfigure(1,weight=1)
+        framePosition.grid_columnconfigure(2,weight=1)
+        framePosition.grid_columnconfigure(3,weight=1)
+        framePosition.grid_columnconfigure(4,weight=1)
+        framePosition.grid_columnconfigure(5,weight=1)
+        framePosition.grid_columnconfigure(6,weight=1)
+        framePosition.grid_columnconfigure(7,weight=1)
+        framePosition.grid_columnconfigure(8,weight=1)
+        framePosition.grid_columnconfigure(9,weight=1)
+        framePosition.grid_columnconfigure(10,weight=1)
+        framePosition.grid_columnconfigure(11,weight=1)
+        framePosition.dic = {}
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Position
+        lblframe = TTK.LabelFrame(framePosition, text="Points position")
+        lblframe.grid(row=0,column=0,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+        #
+        if not last:
+            s = self.subGraph.shapes[ind]
+            B = TTK.Button(lblframe)
+            framePosition.positionItem = B
+            framePosition.positionItem.config(command=lambda n=(framePosition.positionItem): self.bt_click_shape(n))
+            B.list = s.points
+            B.val = B.list
+            B.var = 'points'
+            B.ind = ind
+            B.treatmentId = 5
+            B.config(text=len(B.val))
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.positionItem
+            B.container = None
+            B.shape = s
+        # Curve to add
+        else:
+            B = TTK.Button(lblframe)
+            framePosition.positionItem = B
+            framePosition.positionItem.config(command=lambda n=(framePosition.positionItem): self.bt_click_shape(n))
+            B.list = default_values['Shape']['points']
+            B.val = B.list
+            B.var = 'points'
+            B.ind = ind
+            B.treatmentId = 5
+            B.config(text=len(B.val))
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            B.shape = None
+            # B.container = self.frame.positionItem
+            B.container = None
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& arrowstyle
+        lblframe = TTK.LabelFrame(framePosition, text="arrowstyle")
+        lblframe.grid(row=0,column=1,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+        #
+        if not last :
+            s = self.subGraph.shapes[ind]
+            B = TTK.Button(lblframe,text=s.arrowstyle)
+            framePosition.arrowstyleItem = B
+            framePosition.arrowstyleItem.config(command=lambda n=(framePosition.arrowstyleItem): self.bt_click_shape(n))
+            B.list = arrow_arrowstylelist
+            B.val = s.arrowstyle
+            B.var = 'arrowstyle'
+            B.ind = ind
+            B.treatmentId = 0
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            B.container = None
+        else:
+            # Curve to add
+            B = TTK.Button(lblframe,text=default_values['Shape']['arrowstyle'])
+            framePosition.arrowstyleItem = B
+            framePosition.arrowstyleItem.config(command=lambda n=(framePosition.arrowstyleItem): self.bt_click_shape(n))
+            B.list = arrow_arrowstylelist
+            B.val = default_values['Shape']['arrowstyle']
+            B.var = 'arrowstyle'
+            B.ind = ind
+            B.treatmentId = 0
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            B.container = None
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& head length
+        lblframe = TTK.LabelFrame(framePosition, text="Head length")
+        lblframe.grid(row=0,column=2,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+
+        #
+        if not last:
+            s = self.subGraph.shapes[ind]
+            B = TTK.Button(lblframe,text=s.head_length)
+            framePosition.head_lengthItem = B
+            framePosition.head_lengthItem.config(command=lambda n=(framePosition.head_lengthItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = s.head_length
+            B.var = 'head_length'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.head_lengthItem
+            B.container = None
+        # Curve to add
+        else:
+            B = TTK.Button(lblframe,text=default_values['Shape']['head_length'])
+            framePosition.head_lengthItem = B
+            framePosition.head_lengthItem.config(command=lambda n=(framePosition.head_lengthItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = default_values['Shape']['head_length']
+            B.var = 'head_length'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.posxItem
+            B.container = None
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& head width
+        lblframe = TTK.LabelFrame(framePosition, text="Head width")
+        lblframe.grid(row=0,column=3,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+
+        #
+        if not last:
+            s = self.subGraph.shapes[ind]
+            B = TTK.Button(lblframe,text=s.head_width)
+            framePosition.head_widthItem = B
+            framePosition.head_widthItem.config(command=lambda n=(framePosition.head_widthItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = s.head_width
+            B.var = 'head_width'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.head_widthItem
+            B.container = None
+        # Curve to add
+        else:
+            B = TTK.Button(lblframe,text=default_values['Shape']['head_width'])
+            framePosition.head_widthItem = B
+            framePosition.head_widthItem.config(command=lambda n=(framePosition.head_widthItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = default_values['Shape']['head_width']
+            B.var = 'head_width'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.posxItem
+            B.container = None
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& tail width
+        lblframe = TTK.LabelFrame(framePosition, text="Tail width")
+        lblframe.grid(row=0,column=4,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+
+        #
+        if not last:
+            s = self.subGraph.shapes[ind]
+            B = TTK.Button(lblframe,text=s.tail_width)
+            framePosition.tail_widthItem = B
+            framePosition.tail_widthItem.config(command=lambda n=(framePosition.tail_widthItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = s.tail_width
+            B.var = 'tail_width'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.tail_widthItem
+            B.container = None
+        # Curve to add
+        else:
+            B = TTK.Button(lblframe,text=default_values['Shape']['tail_width'])
+            framePosition.tail_widthItem = B
+            framePosition.tail_widthItem.config(command=lambda n=(framePosition.tail_widthItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = default_values['Shape']['tail_width']
+            B.var = 'tail_width'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.posxItem
+            B.container = None
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Scale
+        lblframe = TTK.LabelFrame(framePosition, text="Scale")
+        lblframe.grid(row=0,column=5,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+
+        #
+        if not last:
+            s = self.subGraph.shapes[ind]
+            B = TTK.Button(lblframe,text=s.scale)
+            framePosition.scaleItem = B
+            framePosition.scaleItem.config(command=lambda n=(framePosition.scaleItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = s.scale
+            B.var = 'scale'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.scaleItem
+            B.container = None
+        # Curve to add
+        else:
+            B = TTK.Button(lblframe,text=default_values['Shape']['scale'])
+            framePosition.scaleItem = B
+            framePosition.scaleItem.config(command=lambda n=(framePosition.scaleItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = default_values['Shape']['scale']
+            B.var = 'scale'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.posxItem
+            B.container = None
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Linewidth
+        lblframe = TTK.LabelFrame(framePosition, text="Linewidth")
+        lblframe.grid(row=0,column=6,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+
+        #
+        if not last:
+            s = self.subGraph.shapes[ind]
+            B = TTK.Button(lblframe,text=s.linewidth)
+            framePosition.linewidthItem = B
+            framePosition.linewidthItem.config(command=lambda n=(framePosition.linewidthItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = s.linewidth
+            B.var = 'linewidth'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.linewidthItem
+            B.container = None
+        # Curve to add
+        else:
+            B = TTK.Button(lblframe,text=default_values['Shape']['linewidth'])
+            framePosition.linewidthItem = B
+            framePosition.linewidthItem.config(command=lambda n=(framePosition.linewidthItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = default_values['Shape']['linewidth']
+            B.var = 'linewidth'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.posxItem
+            B.container = None
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Linestyle
+        lblframe = TTK.LabelFrame(framePosition, text="Linestyle")
+        lblframe.grid(row=0,column=7,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+        #
+        if not last :
+            s = self.subGraph.shapes[ind]
+            B = TTK.Button(lblframe,text=s.linestyle)
+            framePosition.linestyleItem = B
+            framePosition.linestyleItem.config(command=lambda n=(framePosition.linestyleItem): self.bt_click_shape(n))
+            B.list = linestylelist
+            B.val = s.linestyle
+            B.var = 'linestyle'
+            B.ind = ind
+            B.treatmentId = 0
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            B.container = None
+        # Curve to add
+        else:
+            B = TTK.Button(lblframe,text=default_values['Shape']['linestyle'])
+            framePosition.linestyleItem = B
+            framePosition.linestyleItem.config(command=lambda n=(framePosition.linestyleItem): self.bt_click_shape(n))
+            B.list = linestylelist
+            B.val = default_values['Shape']['linestyle']
+            B.var = 'linestyle'
+            B.ind = ind
+            B.treatmentId = 0
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            B.container = None
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Edgecolor
+        lblframe = TTK.LabelFrame(framePosition, text="Edge")
+        lblframe.grid(row=0,column=8,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+        #
+        if not last:
+            s = self.subGraph.shapes[ind]
+            B = TK.Button(lblframe)
+            framePosition.edgecolorItem = B
+            framePosition.edgecolorItem.config(command=lambda n=(framePosition.edgecolorItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = s.edgecolor
+            B.var = 'edgecolor'
+            B.ind = ind
+            B.treatmentId = 1
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.linewidthItem
+            B.container = None
+            B.config(bg=B.val)
+            B.config(activebackground=B.val)
+        # Curve to add
+        else:
+            B = TK.Button(lblframe)
+            framePosition.edgecolorItem = B
+            framePosition.edgecolorItem.config(command=lambda n=(framePosition.edgecolorItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = default_values['Shape']['edgecolor']
+            B.var = 'edgecolor'
+            B.ind = ind
+            B.treatmentId = 1
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.posxItem
+            B.container = None
+            B.config(bg=B.val)
+            B.config(activebackground=B.val)
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Facecolor
+        lblframe = TTK.LabelFrame(framePosition, text="Face")
+        lblframe.grid(row=0,column=9,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+        #
+        if not last:
+            s = self.subGraph.shapes[ind]
+            B = TK.Button(lblframe)
+            framePosition.facecolorItem = B
+            framePosition.facecolorItem.config(command=lambda n=(framePosition.facecolorItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = s.facecolor
+            B.var = 'facecolor'
+            B.ind = ind
+            B.treatmentId = 1
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.linewidthItem
+            B.container = None
+            B.config(bg=B.val)
+            B.config(activebackground=B.val)
+        # Curve to add
+        else:
+            B = TK.Button(lblframe)
+            framePosition.facecolorItem = B
+            framePosition.facecolorItem.config(command=lambda n=(framePosition.facecolorItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = default_values['Shape']['facecolor']
+            B.var = 'facecolor'
+            B.ind = ind
+            B.treatmentId = 1
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.posxItem
+            B.container = None
+            B.config(bg=B.val)
+            B.config(activebackground=B.val)
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Hatch
+        lblframe = TTK.LabelFrame(framePosition, text="Hatch")
+        lblframe.grid(row=0,column=10,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+        #
+        if not last :
+            s = self.subGraph.shapes[ind]
+            B = TTK.Button(lblframe,text=s.hatch)
+            framePosition.hatchItem = B
+            framePosition.hatchItem.config(command=lambda n=(framePosition.hatchItem): self.bt_click_shape(n))
+            B.list = hatchlist
+            B.val = s.hatch
+            B.var = 'hatch'
+            B.ind = ind
+            B.treatmentId = 0
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            B.container = None
+        else:
+            # Curve to add
+            B = TTK.Button(lblframe,text=default_values['Shape']['hatch'])
+            framePosition.hatchItem = B
+            framePosition.hatchItem.config(command=lambda n=(framePosition.hatchItem): self.bt_click_shape(n))
+            B.list = hatchlist
+            B.val = default_values['Shape']['hatch']
+            B.var = 'hatch'
+            B.ind = ind
+            B.treatmentId = 0
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            B.container = None
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Alpha
+        lblframe = TTK.LabelFrame(framePosition, text="Alpha")
+        lblframe.grid(row=0,column=11,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+
+        #
+        if not last:
+            s = self.subGraph.shapes[ind]
+            B = TTK.Button(lblframe,text=s.alpha)
+            framePosition.alphaItem = B
+            framePosition.alphaItem.config(command=lambda n=(framePosition.alphaItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = s.alpha
+            B.var = 'alpha'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.alphaItem
+            B.container = None
+        # Curve to add
+        else:
+            B = TTK.Button(lblframe,text=default_values['Shape']['alpha'])
+            framePosition.alphaItem = B
+            framePosition.alphaItem.config(command=lambda n=(framePosition.alphaItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = default_values['Shape']['alpha']
+            B.var = 'alpha'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.posxItem
+            B.container = None
+
+        # edgecolor
+        # facecolor
+        # linewidth
+        # linestyle
+    # ==============================================================================
+    def Set_BracketShape(self,parent,ind,last=False):
+        parent.grid_columnconfigure(0,weight=1)
+        parent.grid_rowconfigure(0,weight=1)
+        framePosition = TK.Label(parent,text='Arrow')
+        parent.childframe = framePosition
+        framePosition.grid(row=0,column=0,sticky='NESW')
+        framePosition.parent = parent
+        framePosition.grid_rowconfigure(0,weight=1)
+        framePosition.grid_columnconfigure(0,weight=1)
+        framePosition.grid_columnconfigure(1,weight=1)
+        framePosition.grid_columnconfigure(2,weight=1)
+        framePosition.grid_columnconfigure(3,weight=1)
+        framePosition.grid_columnconfigure(4,weight=1)
+        framePosition.grid_columnconfigure(5,weight=1)
+        framePosition.grid_columnconfigure(6,weight=1)
+        framePosition.grid_columnconfigure(7,weight=1)
+        framePosition.grid_columnconfigure(8,weight=1)
+        framePosition.grid_columnconfigure(9,weight=1)
+        framePosition.grid_columnconfigure(10,weight=1)
+        framePosition.grid_columnconfigure(11,weight=1)
+        framePosition.grid_columnconfigure(12,weight=1)
+        framePosition.dic = {}
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Position
+        lblframe = TTK.LabelFrame(framePosition, text="Points position")
+        lblframe.grid(row=0,column=0,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+        #
+        if not last:
+            s = self.subGraph.shapes[ind]
+            B = TTK.Button(lblframe)
+            framePosition.positionItem = B
+            framePosition.positionItem.config(command=lambda n=(framePosition.positionItem): self.bt_click_shape(n))
+            B.list = s.points
+            B.val = B.list
+            B.var = 'points'
+            B.ind = ind
+            B.treatmentId = 5
+            B.config(text=len(B.val))
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.positionItem
+            B.container = None
+            B.shape = s
+        # Curve to add
+        else:
+            B = TTK.Button(lblframe)
+            framePosition.positionItem = B
+            framePosition.positionItem.config(command=lambda n=(framePosition.positionItem): self.bt_click_shape(n))
+            B.list = default_values['Shape']['points']
+            B.val = B.list
+            B.var = 'points'
+            B.ind = ind
+            B.treatmentId = 5
+            B.config(text=len(B.val))
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            B.shape = None
+            # B.container = self.frame.positionItem
+            B.container = None
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& bracketstyle
+        lblframe = TTK.LabelFrame(framePosition, text="bracketstyle")
+        lblframe.grid(row=0,column=1,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+        #
+        if not last :
+            s = self.subGraph.shapes[ind]
+            B = TTK.Button(lblframe,text=s.bracketstyle)
+            framePosition.bracketstyleItem = B
+            framePosition.bracketstyleItem.config(command=lambda n=(framePosition.bracketstyleItem): self.bt_click_shape(n))
+            B.list = bracket_bracketstylelist
+            B.val = s.bracketstyle
+            B.var = 'bracketstyle'
+            B.ind = ind
+            B.treatmentId = 0
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            B.container = None
+        else:
+            # Curve to add
+            B = TTK.Button(lblframe,text=default_values['Shape']['bracketstyle'])
+            framePosition.bracketstyleItem = B
+            framePosition.bracketstyleItem.config(command=lambda n=(framePosition.bracketstyleItem): self.bt_click_shape(n))
+            B.list = bracket_bracketstylelist
+            B.val = default_values['Shape']['bracketstyle']
+            B.var = 'bracketstyle'
+            B.ind = ind
+            B.treatmentId = 0
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            B.container = None
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& widthA
+        lblframe = TTK.LabelFrame(framePosition, text="WidthA")
+        lblframe.grid(row=0,column=2,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+
+        #
+        if not last:
+            s = self.subGraph.shapes[ind]
+            B = TTK.Button(lblframe,text=s.widthA)
+            framePosition.widthAItem = B
+            framePosition.widthAItem.config(command=lambda n=(framePosition.widthAItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = s.widthA
+            B.var = 'widthA'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.widthAItem
+            B.container = None
+        # Curve to add
+        else:
+            B = TTK.Button(lblframe,text=default_values['Shape']['widthA'])
+            framePosition.widthAItem = B
+            framePosition.widthAItem.config(command=lambda n=(framePosition.widthAItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = default_values['Shape']['widthA']
+            B.var = 'widthA'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.posxItem
+            B.container = None
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& lengthA
+        lblframe = TTK.LabelFrame(framePosition, text="lengthA")
+        lblframe.grid(row=0,column=3,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+
+        #
+        if not last:
+            s = self.subGraph.shapes[ind]
+            B = TTK.Button(lblframe,text=s.lengthA)
+            framePosition.lengthAItem = B
+            framePosition.lengthAItem.config(command=lambda n=(framePosition.lengthAItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = s.lengthA
+            B.var = 'lengthA'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.lengthAItem
+            B.container = None
+        # Curve to add
+        else:
+            B = TTK.Button(lblframe,text=default_values['Shape']['lengthA'])
+            framePosition.lengthAItem = B
+            framePosition.lengthAItem.config(command=lambda n=(framePosition.lengthAItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = default_values['Shape']['lengthA']
+            B.var = 'lengthA'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.posxItem
+            B.container = None
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& angleA
+        lblframe = TTK.LabelFrame(framePosition, text="AngleA")
+        lblframe.grid(row=0,column=4,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+
+        #
+        if not last:
+            s = self.subGraph.shapes[ind]
+            B = TTK.Button(lblframe,text=s.angleA)
+            framePosition.angleAItem = B
+            framePosition.angleAItem.config(command=lambda n=(framePosition.angleAItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = s.angleA
+            B.var = 'angleA'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.angleAItem
+            B.container = None
+        # Curve to add
+        else:
+            B = TTK.Button(lblframe,text=default_values['Shape']['angleA'])
+            framePosition.angleAItem = B
+            framePosition.angleAItem.config(command=lambda n=(framePosition.angleAItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = default_values['Shape']['angleA']
+            B.var = 'angleA'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.posxItem
+            B.container = None
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& widthB
+        lblframe = TTK.LabelFrame(framePosition, text="WidthB")
+        lblframe.grid(row=0,column=5,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+
+        #
+        if not last:
+            s = self.subGraph.shapes[ind]
+            B = TTK.Button(lblframe,text=s.widthB)
+            framePosition.widthBItem = B
+            framePosition.widthBItem.config(command=lambda n=(framePosition.widthBItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = s.widthB
+            B.var = 'widthB'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.widthBItem
+            B.container = None
+        # Curve to add
+        else:
+            B = TTK.Button(lblframe,text=default_values['Shape']['widthB'])
+            framePosition.widthBItem = B
+            framePosition.widthBItem.config(command=lambda n=(framePosition.widthBItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = default_values['Shape']['widthB']
+            B.var = 'widthB'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.posxItem
+            B.container = None
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& lengthB
+        lblframe = TTK.LabelFrame(framePosition, text="LengthB")
+        lblframe.grid(row=0,column=6,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+
+        #
+        if not last:
+            s = self.subGraph.shapes[ind]
+            B = TTK.Button(lblframe,text=s.lengthB)
+            framePosition.lengthBItem = B
+            framePosition.lengthBItem.config(command=lambda n=(framePosition.lengthBItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = s.lengthB
+            B.var = 'lengthB'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.lengthBItem
+            B.container = None
+        # Curve to add
+        else:
+            B = TTK.Button(lblframe,text=default_values['Shape']['lengthB'])
+            framePosition.lengthBItem = B
+            framePosition.lengthBItem.config(command=lambda n=(framePosition.lengthBItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = default_values['Shape']['lengthB']
+            B.var = 'lengthB'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.posxItem
+            B.container = None
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& angleB
+        lblframe = TTK.LabelFrame(framePosition, text="AngleB")
+        lblframe.grid(row=0,column=7,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+
+        #
+        if not last:
+            s = self.subGraph.shapes[ind]
+            B = TTK.Button(lblframe,text=s.angleB)
+            framePosition.angleBItem = B
+            framePosition.angleBItem.config(command=lambda n=(framePosition.angleBItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = s.angleB
+            B.var = 'angleB'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.angleBItem
+            B.container = None
+        # Curve to add
+        else:
+            B = TTK.Button(lblframe,text=default_values['Shape']['angleB'])
+            framePosition.angleBItem = B
+            framePosition.angleBItem.config(command=lambda n=(framePosition.angleBItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = default_values['Shape']['angleB']
+            B.var = 'angleB'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.posxItem
+            B.container = None
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Scale
+        lblframe = TTK.LabelFrame(framePosition, text="Scale")
+        lblframe.grid(row=0,column=8,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+
+        #
+        if not last:
+            s = self.subGraph.shapes[ind]
+            B = TTK.Button(lblframe,text=s.scale)
+            framePosition.scaleItem = B
+            framePosition.scaleItem.config(command=lambda n=(framePosition.scaleItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = s.scale
+            B.var = 'scale'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.scaleItem
+            B.container = None
+        # Curve to add
+        else:
+            B = TTK.Button(lblframe,text=default_values['Shape']['scale'])
+            framePosition.scaleItem = B
+            framePosition.scaleItem.config(command=lambda n=(framePosition.scaleItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = default_values['Shape']['scale']
+            B.var = 'scale'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.posxItem
+            B.container = None
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Linewidth
+        lblframe = TTK.LabelFrame(framePosition, text="Linewidth")
+        lblframe.grid(row=0,column=9,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+
+        #
+        if not last:
+            s = self.subGraph.shapes[ind]
+            B = TTK.Button(lblframe,text=s.linewidth)
+            framePosition.linewidthItem = B
+            framePosition.linewidthItem.config(command=lambda n=(framePosition.linewidthItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = s.linewidth
+            B.var = 'linewidth'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.linewidthItem
+            B.container = None
+        # Curve to add
+        else:
+            B = TTK.Button(lblframe,text=default_values['Shape']['linewidth'])
+            framePosition.linewidthItem = B
+            framePosition.linewidthItem.config(command=lambda n=(framePosition.linewidthItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = default_values['Shape']['linewidth']
+            B.var = 'linewidth'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.posxItem
+            B.container = None
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Linestyle
+        lblframe = TTK.LabelFrame(framePosition, text="Linestyle")
+        lblframe.grid(row=0,column=10,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+        #
+        if not last :
+            s = self.subGraph.shapes[ind]
+            B = TTK.Button(lblframe,text=s.linestyle)
+            framePosition.linestyleItem = B
+            framePosition.linestyleItem.config(command=lambda n=(framePosition.linestyleItem): self.bt_click_shape(n))
+            B.list = linestylelist
+            B.val = s.linestyle
+            B.var = 'linestyle'
+            B.ind = ind
+            B.treatmentId = 0
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            B.container = None
+        # Curve to add
+        else:
+            B = TTK.Button(lblframe,text=default_values['Shape']['linestyle'])
+            framePosition.linestyleItem = B
+            framePosition.linestyleItem.config(command=lambda n=(framePosition.linestyleItem): self.bt_click_shape(n))
+            B.list = linestylelist
+            B.val = default_values['Shape']['linestyle']
+            B.var = 'linestyle'
+            B.ind = ind
+            B.treatmentId = 0
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            B.container = None
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Edgecolor
+        lblframe = TTK.LabelFrame(framePosition, text="Edge")
+        lblframe.grid(row=0,column=11,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+        #
+        if not last:
+            s = self.subGraph.shapes[ind]
+            B = TK.Button(lblframe)
+            framePosition.edgecolorItem = B
+            framePosition.edgecolorItem.config(command=lambda n=(framePosition.edgecolorItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = s.edgecolor
+            B.var = 'edgecolor'
+            B.ind = ind
+            B.treatmentId = 1
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.linewidthItem
+            B.container = None
+            B.config(bg=B.val)
+            B.config(activebackground=B.val)
+        # Curve to add
+        else:
+            B = TK.Button(lblframe)
+            framePosition.edgecolorItem = B
+            framePosition.edgecolorItem.config(command=lambda n=(framePosition.edgecolorItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = default_values['Shape']['edgecolor']
+            B.var = 'edgecolor'
+            B.ind = ind
+            B.treatmentId = 1
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.posxItem
+            B.container = None
+            B.config(bg=B.val)
+            B.config(activebackground=B.val)
+
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Alpha
+        lblframe = TTK.LabelFrame(framePosition, text="Alpha")
+        lblframe.grid(row=0,column=12,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+
+        #
+        if not last:
+            s = self.subGraph.shapes[ind]
+            B = TTK.Button(lblframe,text=s.alpha)
+            framePosition.alphaItem = B
+            framePosition.alphaItem.config(command=lambda n=(framePosition.alphaItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = s.alpha
+            B.var = 'alpha'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.alphaItem
+            B.container = None
+        # Curve to add
+        else:
+            B = TTK.Button(lblframe,text=default_values['Shape']['alpha'])
+            framePosition.alphaItem = B
+            framePosition.alphaItem.config(command=lambda n=(framePosition.alphaItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = default_values['Shape']['alpha']
+            B.var = 'alpha'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.posxItem
+            B.container = None
+
+        # edgecolor
+        # facecolor
+        # linewidth
+        # linestyle
+
+
+    # ==============================================================================
+    def Set_FancyBboxShape(self,parent,ind,last=False):
+        parent.grid_columnconfigure(0,weight=1)
+        parent.grid_rowconfigure(0,weight=1)
+        LBL = TK.Label(parent,text='FancyBbox')
+        LBL.grid(row=0,column=0,sticky='NESW')
+        LBL.parent = parent
+    # ==============================================================================
+    def Set_LineShape(self,parent,ind,last=False):
+        parent.grid_columnconfigure(0,weight=1)
+        parent.grid_rowconfigure(0,weight=1)
+        framePosition = TK.Label(parent,text='Arrow')
+        parent.childframe = framePosition
+        framePosition.grid(row=0,column=0,sticky='NESW')
+        framePosition.parent = parent
+        framePosition.grid_rowconfigure(0,weight=1)
+        framePosition.grid_columnconfigure(0,weight=1)
+        framePosition.grid_columnconfigure(1,weight=1)
+        framePosition.grid_columnconfigure(2,weight=1)
+        framePosition.grid_columnconfigure(3,weight=1)
+        framePosition.grid_columnconfigure(4,weight=1)
+        framePosition.dic = {}
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Position
+        lblframe = TTK.LabelFrame(framePosition, text="Points position")
+        lblframe.grid(row=0,column=0,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+        #
+        if not last:
+            s = self.subGraph.shapes[ind]
+            B = TTK.Button(lblframe)
+            framePosition.positionItem = B
+            framePosition.positionItem.config(command=lambda n=(framePosition.positionItem): self.bt_click_shape(n))
+            B.list = s.points
+            B.val = B.list
+            B.var = 'points'
+            B.ind = ind
+            B.treatmentId = 5
+            B.config(text=len(B.val))
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.positionItem
+            B.container = None
+            B.shape = s
+        # Curve to add
+        else:
+            B = TTK.Button(lblframe)
+            framePosition.positionItem = B
+            framePosition.positionItem.config(command=lambda n=(framePosition.positionItem): self.bt_click_shape(n))
+            B.list = default_values['Shape']['points']
+            B.val = B.list
+            B.var = 'points'
+            B.ind = ind
+            B.treatmentId = 5
+            B.config(text=len(B.val))
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            B.shape = None
+            # B.container = self.frame.positionItem
+            B.container = None
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Linewidth
+        lblframe = TTK.LabelFrame(framePosition, text="Linewidth")
+        lblframe.grid(row=0,column=1,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+
+        #
+        if not last:
+            s = self.subGraph.shapes[ind]
+            B = TTK.Button(lblframe,text=s.linewidth)
+            framePosition.linewidthItem = B
+            framePosition.linewidthItem.config(command=lambda n=(framePosition.linewidthItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = s.linewidth
+            B.var = 'linewidth'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.linewidthItem
+            B.container = None
+        # Curve to add
+        else:
+            B = TTK.Button(lblframe,text=default_values['Shape']['linewidth'])
+            framePosition.linewidthItem = B
+            framePosition.linewidthItem.config(command=lambda n=(framePosition.linewidthItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = default_values['Shape']['linewidth']
+            B.var = 'linewidth'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.posxItem
+            B.container = None
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Linestyle
+        lblframe = TTK.LabelFrame(framePosition, text="Linestyle")
+        lblframe.grid(row=0,column=2,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+        #
+        if not last :
+            s = self.subGraph.shapes[ind]
+            B = TTK.Button(lblframe,text=s.linestyle)
+            framePosition.linestyleItem = B
+            framePosition.linestyleItem.config(command=lambda n=(framePosition.linestyleItem): self.bt_click_shape(n))
+            B.list = linestylelist
+            B.val = s.linestyle
+            B.var = 'linestyle'
+            B.ind = ind
+            B.treatmentId = 0
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            B.container = None
+        # Curve to add
+        else:
+            B = TTK.Button(lblframe,text=default_values['Shape']['linestyle'])
+            framePosition.linestyleItem = B
+            framePosition.linestyleItem.config(command=lambda n=(framePosition.linestyleItem): self.bt_click_shape(n))
+            B.list = linestylelist
+            B.val = default_values['Shape']['linestyle']
+            B.var = 'linestyle'
+            B.ind = ind
+            B.treatmentId = 0
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            B.container = None
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& linecolor
+        lblframe = TTK.LabelFrame(framePosition, text="Color")
+        lblframe.grid(row=0,column=3,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+        #
+        if not last:
+            s = self.subGraph.shapes[ind]
+            B = TK.Button(lblframe)
+            framePosition.linecolorItem = B
+            framePosition.linecolorItem.config(command=lambda n=(framePosition.linecolorItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = s.linecolor
+            B.var = 'linecolor'
+            B.ind = ind
+            B.treatmentId = 1
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.linewidthItem
+            B.container = None
+            B.config(bg=B.val)
+            B.config(activebackground=B.val)
+        # Curve to add
+        else:
+            B = TK.Button(lblframe)
+            framePosition.linecolorItem = B
+            framePosition.linecolorItem.config(command=lambda n=(framePosition.linecolorItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = default_values['Shape']['linecolor']
+            B.var = 'linecolor'
+            B.ind = ind
+            B.treatmentId = 1
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.posxItem
+            B.container = None
+            B.config(bg=B.val)
+            B.config(activebackground=B.val)
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Alpha
+        lblframe = TTK.LabelFrame(framePosition, text="Alpha")
+        lblframe.grid(row=0,column=4,sticky='NESW')
+        #
+        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_rowconfigure(0,weight=1)
+
+        #
+        if not last:
+            s = self.subGraph.shapes[ind]
+            B = TTK.Button(lblframe,text=s.alpha)
+            framePosition.alphaItem = B
+            framePosition.alphaItem.config(command=lambda n=(framePosition.alphaItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = s.alpha
+            B.var = 'alpha'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.alphaItem
+            B.container = None
+        # Curve to add
+        else:
+            B = TTK.Button(lblframe,text=default_values['Shape']['alpha'])
+            framePosition.alphaItem = B
+            framePosition.alphaItem.config(command=lambda n=(framePosition.alphaItem): self.bt_click_shape(n))
+            B.list = []
+            B.val = default_values['Shape']['alpha']
+            B.var = 'alpha'
+            B.ind = ind
+            B.treatmentId = 4
+            B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+            # B.container = self.frame.posxItem
+            B.container = None
 
 # ==============================================================================
 # ==============================================================================
@@ -2753,6 +8926,216 @@ class inputPattern_dialogWindow(TK.Toplevel):
         self.destroy()
 # ==============================================================================
 # ==============================================================================
+class inputPosition_dialogWindow(TK.Toplevel):
+    # --------------------------------------------------------------------- init
+    def __init__(self):
+        TK.Toplevel.__init__(self)
+        (x,y) = self.winfo_pointerxy()
+        self.geometry('+%s+%s'%(x,y))
+        #self.protocol("WM_DELETE_WINDOW",self.cmd_close)
+    # --------------------------------------------------------------- initialize
+    def initialize(self,parent,B):
+        self.B = B
+        self.shape = self.B.shape
+        self.parent=parent
+        self.grid_columnconfigure(0,weight=1)
+        self.grid_rowconfigure(0,weight=1)
+        self.grid_rowconfigure(1,weight=0)
+        self.grid_rowconfigure(2,weight=0)
+        #
+        pointFrame = TTK.Frame(self)
+        pointFrame.grid(row=0,column=0,sticky='NSEW')
+        pointFrame.grid_columnconfigure(0,weight=3)
+        pointFrame.grid_columnconfigure(1,weight=0)
+        pointFrame.grid_rowconfigure(0,weight=1)
+
+        #
+        pointlistFrame = TTK.LabelFrame(pointFrame,text='List of points coord. from 0. to 1.')
+        pointlistFrame.grid(row=0,column=0,sticky='NSEW')
+        pointlistFrame.grid_columnconfigure(0,weight=1)
+        pointlistFrame.grid_rowconfigure(0,weight=1)
+        self.pos_list = TK.Listbox(pointlistFrame,selectmode=TK.EXTENDED)
+        # Postionning in grid
+        self.pos_list.grid(row=0,column=0,sticky="NSEW")
+        self.pos_list.list = self.getListFromButton()
+
+        self.displayList()
+        #
+        buttonUpDownFrame = TTK.Frame(pointFrame)
+        buttonUpDownFrame.grid(row=0,column=1,sticky='NSEW')
+        buttonUpDownFrame.grid_columnconfigure(0,weight=1)
+        buttonUpDownFrame.grid_rowconfigure(0,weight=1)
+        buttonUpDownFrame.grid_rowconfigure(1,weight=1)
+        ButtonUp = TTK.Button(buttonUpDownFrame,text='Up',command=self.cmd_moveUp)
+        ButtonUp.grid(row=0,column=0,sticky='EW')
+        ButtonDown = TTK.Button(buttonUpDownFrame,text='Down',command=self.cmd_moveDown)
+        ButtonDown.grid(row=1,column=0,sticky='EW')
+        #
+        valueFrame = TTK.Frame(self)
+        valueFrame.grid(row=1,column=0,sticky='NSEW')
+        valueFrame.grid_columnconfigure(0,weight=1)
+        valueFrame.grid_columnconfigure(1,weight=1)
+        valueFrame.grid_rowconfigure(0,weight=1)
+        xlblframe = TTK.LabelFrame(valueFrame,text='X coord.')
+        xlblframe.grid(row=0,column=0,sticky='NSEW')
+        xlblframe.grid_columnconfigure(0,weight=1)
+        xlblframe.grid_rowconfigure(0,weight=1)
+        x_input = TK.StringVar()
+        self.entry_x = TK.Entry(xlblframe,textvariable=x_input)
+        self.entry_x.grid(row=0,column=0,sticky='NSEW')
+        self.entry_x.var = x_input
+        ylblframe = TTK.LabelFrame(valueFrame,text='Y coord.')
+        ylblframe.grid(row=0,column=1,sticky='NSEW')
+        ylblframe.grid_columnconfigure(0,weight=1)
+        ylblframe.grid_rowconfigure(0,weight=1)
+        y_input = TK.StringVar()
+        self.entry_y = TK.Entry(ylblframe,textvariable=y_input)
+        self.entry_y.grid(row=0,column=0,sticky='NSEW')
+        self.entry_y.var = y_input
+        #
+        buttonFrame = TTK.Frame(self)
+        buttonFrame.grid(row=2,column=0,sticky='NSEW')
+        buttonFrame.grid_columnconfigure(0,weight=1)
+        buttonFrame.grid_columnconfigure(1,weight=1)
+        buttonFrame.grid_columnconfigure(2,weight=1)
+        buttonFrame.grid_columnconfigure(3,weight=1)
+        buttonFrame.grid_columnconfigure(4,weight=1)
+        buttonFrame.grid_rowconfigure(0,weight=1)
+        bt_add = TTK.Button(buttonFrame,text='Add',command=self.cmd_addXY)
+        bt_add.grid(row=0,column=0,sticky='NS')
+        bt_modify = TTK.Button(buttonFrame,text='Modify',command=self.cmd_modifyXY)
+        bt_modify.grid(row=0,column=1,sticky='NS')
+        bt_delete = TTK.Button(buttonFrame,text='Delete',command=self.cmd_deleteXY)
+        bt_delete.grid(row=0,column=2,sticky='NS')
+        bt_close = TTK.Button(buttonFrame,text='OK',command=self.cmd_okButton)
+        bt_close.grid(row=0,column=3,sticky='NS')
+        bt_close = TTK.Button(buttonFrame,text='Cancel',command=self.cmd_close)
+        bt_close.grid(row=0,column=4,sticky='NS')
+
+
+
+
+
+    # ---------------------------------------------------------------- getListFromButton
+    def getListFromButton(self):
+        res = []
+        for entry in self.B.list:
+            res.append('(%s x %s)'%(entry[0],entry[1]))
+        return res
+    # ---------------------------------------------------------------- checkFloatvalue
+    def checkFloatvalue(self,widget):
+        value = widget.var.get()
+        re_pattern = re.compile('^[0-1]\.*[0-9]*$')
+        if re.match(re_pattern,value):
+            return value
+        else:
+            return None
+    # ---------------------------------------------------------------- checkXYvalues
+    def checkXYvalues(self):
+        xval = self.checkFloatvalue(self.entry_x)
+        yval = self.checkFloatvalue(self.entry_y)
+        if ((xval is not None) and (yval is not None)):
+            return '(%s x %s)'%(xval,yval)
+        else:
+            return None
+
+    # ---------------------------------------------------------------- displayList
+    def displayList(self):
+        self.pos_list.delete(0,TK.END)
+        for pos in self.pos_list.list:
+            self.pos_list.insert(TK.END,pos)
+    # ---------------------------------------------------------------- cmd_moveUp
+    def cmd_moveUp(self):
+        items = list(map(int, self.pos_list.curselection()))
+        items.sort()
+        for i2move in items:
+            if i2move == 0: # exception du premier de la liste
+                continue
+            val2move = self.pos_list.list[i2move]
+            self.pos_list.list[i2move] = self.pos_list.list[i2move-1]
+            self.pos_list.list[i2move-1] = val2move
+        self.displayList()
+
+    # ---------------------------------------------------------------- cmd_moveDown
+    def cmd_moveDown(self):
+        items = list(map(int, self.pos_list.curselection()))
+        items.sort()
+        for i2move in items:
+            if i2move == len(self.pos_list.list)-1: # exception du premier de la liste
+                continue
+            val2move = self.pos_list.list[i2move]
+            self.pos_list.list[i2move] = self.pos_list.list[i2move+1]
+            self.pos_list.list[i2move+1] = val2move
+        self.displayList()
+    # ---------------------------------------------------------------- cmd_addXY
+    def cmd_addXY(self):
+        entry = self.checkXYvalues()
+
+        if entry is not None:
+            self.pos_list.list.append(entry)
+            self.pos_list.insert(TK.END,entry)
+        else:
+            return
+    # ---------------------------------------------------------------- cmd_modifyXY
+    def cmd_modifyXY(self):
+        entry = self.checkXYvalues()
+
+        if entry is not None:
+            items = list(map(int, self.pos_list.curselection()))
+            items.sort()
+            for i2modify in items:
+                self.pos_list.list[i2modify]=entry
+            self.displayList()
+        else:
+            return
+
+    # ---------------------------------------------------------------- cmd_deleteXY
+    def cmd_deleteXY(self):
+        items = map(int, self.pos_list.curselection())
+        positions = []
+        for index in items: positions.append(self.pos_list.get(index))
+
+        for pos in positions:
+        # Find index in used listbox
+            try: index = self.pos_list.list.index(pos)
+            except ValueError: continue
+            del self.pos_list.list[index]
+        # Display listbox
+        self.displayList()
+    # ---------------------------------------------------------------- cmd_okButton
+    def cmd_okButton(self):
+        # Quelque chose a faire pour updater parent, ou du moins la shape consideree
+        shape_type = self.parent.frame.shape_typeItem[self.B.ind].val
+        # Check length of the point list with the shape type :
+        if (shape_type == 'Arrow' and len(self.pos_list.list) not in [2,3]):
+            tkMessageBox.showwarning('WARNING','For an arrow shape, you must provide 2 points at least, a third one can be added to bow the arrow. The order of the points is as follow : [P0, (Pm,) Pf] with P0 the starting point, Pm the point to bow the arrow and Pf the final point')
+            return
+        if (shape_type == 'Circle' and len(self.pos_list.list) not in [1]):
+            tkMessageBox.showwarning('WARNING','For a circle shape, you must provide a single point')
+            return
+        if (shape_type == 'Ellipse' and len(self.pos_list.list) not in [1]):
+            tkMessageBox.showwarning('WARNING','For an ellipse shape, you must provide a single point')
+            return
+        if (shape_type == 'Rectangle' and len(self.pos_list.list) not in [1]):
+            tkMessageBox.showwarning('WARNING','For a rectangle shape, you must provide a single point (the lower left corner)')
+            return
+        #
+        res = []
+        for s_val in self.pos_list.list:
+            s_val = s_val.replace('(','')
+            s_val = s_val.replace(')','')
+            s_val = s_val.replace(' ','')
+            res.append((float(s_val.split('x')[0]),float(s_val.split('x')[1])))
+        self.parent.updateButon(self.B,res)
+        self.destroy()
+
+    # ---------------------------------------------------------------- cmd_close
+    def cmd_close(self):
+        self.destroy()
+
+
+# ==============================================================================
+# ==============================================================================
 class inputFloat_dialogWindow(TK.Toplevel):
     # --------------------------------------------------------------------- init
     def __init__(self):
@@ -3411,6 +9794,16 @@ class GraphTK(TK.Toplevel):
         curve.correctColor(len(self.fig.subGraph[iCurSubGraph].curves))
         self.fig.subGraph[iCurSubGraph].curves.append(curve)
         self.updateGraph(iCurSubGraph)
+    # ----------------------------------------------------------------- addCurve
+    def addText(self,iCurSubGraph,text):
+
+        self.fig.subGraph[iCurSubGraph].texts.append(text)
+        self.updateGraph(iCurSubGraph)
+    # ----------------------------------------------------------------- addShape
+    def addShape(self,iCurSubGraph,shape):
+
+        self.fig.subGraph[iCurSubGraph].shapes.append(shape)
+        self.updateGraph(iCurSubGraph)
     # ----------------------------------------------------- removeCurvesZoneName
     def removeCurvesZoneName(self,ax_name,zonename):
         self.fig.removeCurvesZoneName(ax_name,zonename)
@@ -3623,6 +10016,16 @@ class Graph():
         # Without interface, if no color is specified while creating a curve, a color map is used
         curve.correctColor(len(self.fig.subGraph[iCurSubGraph].curves))
         self.fig.subGraph[iCurSubGraph].curves.append(curve)
+        self.updateGraph(iCurSubGraph)
+    # ----------------------------------------------------------------- addCurve
+    def addText(self,iCurSubGraph,text):
+        # Without interface, if no color is specified while creating a curve, a color map is used
+        self.fig.subGraph[iCurSubGraph].texts.append(text)
+        self.updateGraph(iCurSubGraph)
+    # ----------------------------------------------------------------- addShape
+    def addShape(self,iCurSubGraph,shape):
+        # Without interface, if no color is specified while creating a curve, a color map is used
+        self.fig.subGraph[iCurSubGraph].shapes.append(shape)
         self.updateGraph(iCurSubGraph)
     # -------------------------------------------------------------- updateGraph
     def updateGraph(self,iCurSubGraph):
@@ -5265,6 +11668,7 @@ class editCurvesWindow(TK.Toplevel):
         var = TK.IntVar()
         var.set(1)
         self.frame.legend_displayItem[ind].config(state=TK.NORMAL)
+        self.frame.legend_displayItem[ind].config(variable=var)
         self.frame.legend_displayItem[ind].val = var
         self.frame.legend_displayItem[ind].var = 'legend_display'
         self.frame.legend_displayItem[ind].ind=ind
@@ -5914,14 +12318,14 @@ class DesktopFrameTK(TK.Frame):
                 graph.updateCurvesZoneName(ax_name,oldZoneName,newZoneName)
 
     # -------------------------------------------------------------- replaceData
-    def setData(self,data):
+    def setData(self, data):
         old_zones = []
         if self.data is not None: old_zones = self.data.keys()
         self.data = {}
-        if isinstance(data,list):
+        if isinstance(data, list):
             # set data according to a tree
             self.setDataWithTree(data)
-        elif isinstance(data,dict):
+        elif isinstance(data, dict):
             # set data according to a dict data
             self.setDataWithDict(data)
         # Clean curves
@@ -5930,7 +12334,7 @@ class DesktopFrameTK(TK.Frame):
                 for zonename in old_zones:
                     if zonename not in self.data:
                         graph.removeCurvesZoneName(ax_name,zonename)
-        #
+        
         if self.editCurveWdw is not None: self.editCurveWdw.updateData()
         ##### Redraw all
         self.updateAllGraph()
@@ -5973,15 +12377,15 @@ class DesktopFrameTK(TK.Frame):
         # Order dict
         self.data = OrderedDict(sorted(tmp.items(),key=lambda t : t[0]))
     # ---------------------------------------------------------- setDataWithTree
-    def setDataWithTree(self,t):
+    def setDataWithTree(self, t):
         tmp = {}
         for base in Internal.getNodesFromType1(t, 'CGNSBase_t'):
             basename = Internal.getName(base)
-            ## ## Loop on zones
+            ## Loop on zones
             for zone in Internal.getNodesFromType1(base, 'Zone_t'):
                 # Grab GridCoordinates
                 zonename = Internal.getName(zone)
-                ## ## Get GridCoorinates nodes
+                ## Get GridCoorinates nodes
                 try:
                     gridcoord = Internal.getNodesFromType2(zone,'GridCoordinates_t')[0]
                     for child in Internal.getChildren(gridcoord):
@@ -6047,6 +12451,8 @@ class DesktopFrameTK(TK.Frame):
         self.editLegendWdw = None
         self.editAxisWdw   = None
         self.editGraphWdw  = None
+        self.editTextWdw   = None
+        self.editShapeWdw  = None
 
         # # Configure grid for postionning for the main window
         self.grid_columnconfigure(0, weight=1)
@@ -6189,43 +12595,53 @@ class DesktopFrameTK(TK.Frame):
         self.position.grid(row=0,column=0,sticky="NSEW")
 
         #
-        ## Edit/Delete curves -> Row 1 of lblframeEdit
+        ## Edit/Delete curves
         #
         B = TTK.Button(lblframeEdit,text='Add/Edit/Delete Curves',command=self.cmd_editCurves)
         B.grid(row=1,column=0,columnspan=1,sticky="nsew")
         #
-        ## Set Axis -> Row 2 of lblframeEdit
-        #
-        B = TTK.Button(lblframeEdit,text='Set Axis',command=self.cmd_setAxis)
-        B.grid(row=2,column=0,columnspan=1,sticky="nsew")
-        #
-        ## Set Legend -> Row 3 of lblframeEdit
+        ## Set Legend
         #
         B = TTK.Button(lblframeEdit,text='Set Legend',command=self.cmd_setLegend)
         B.grid(row=1,column=1,columnspan=1,sticky="nsew")
         #
-        ## Set Grids -> Row 4 of lblframeEdit
+        ## Set Axis
+        #
+        B = TTK.Button(lblframeEdit,text='Set Axis',command=self.cmd_setAxis)
+        B.grid(row=2,column=0,columnspan=1,sticky="nsew")
+        #
+        ## Set Grids
         #
         B = TTK.Button(lblframeEdit,text='Set Grid',command=self.cmd_setGrid)
         B.grid(row=2,column=1,columnspan=1,sticky="nsew")
         #
-        ## Set Graph Settings -> Row 5 of lblframeEdit
+        ## Set Text
+        #
+        #B = TTK.Button(lblframeEdit,text='Add/Edit/Delete Texts',command=self.cmd_setText)
+        #B.grid(row=3,column=0,columnspan=1,sticky="nsew")
+        #
+        ## Set Shapes
+        #
+        #B = TTK.Button(lblframeEdit,text='Add/Edit/Delete Shapes',command=self.cmd_setShape)
+        #B.grid(row=3,column=1,columnspan=1,sticky="nsew")
+        #
+        ## Set Graph Settings
         #
         B = TTK.Button(lblframeEdit,text='Graph settings',command=self.cmd_setGraph)
-        B.grid(row=3,column=0,columnspan=1,sticky="nsew")
+        B.grid(row=4,column=0,columnspan=1,sticky="nsew")
         #
-        ## Export -> Row 6 of lblframeEdit
+        ## Export 
         #
         B = TTK.Button(lblframeEdit,text='Export',command=self.cmd_export)
-        B.grid(row=3,column=1,columnspan=1,sticky="nsew")
+        B.grid(row=4,column=1,columnspan=1,sticky="nsew")
         #
-        ## Close Graph -> Row 7 of lblframeEdit
+        ## Close Graph
         #
-        B = TTK.Button(lblframeEdit,text='Close all graphs',command=self.cmd_closeAllGraph)
-        B.grid(row=7,column=0,columnspan=1,sticky="nsew")
+        #B = TTK.Button(lblframeEdit,text='Close all graphs',command=self.cmd_closeAllGraph)
+        #B.grid(row=7,column=0,columnspan=1,sticky="nsew")
         #
-        B = TTK.Button(lblframeEdit,text='Close graph',command=self.cmd_closeGraph)
-        B.grid(row=7,column=1,columnspan=1,sticky="nsew")
+        #B = TTK.Button(lblframeEdit,text='Close graph',command=self.cmd_closeGraph)
+        #B.grid(row=7,column=1,columnspan=1,sticky="nsew")
 
         ################## Row 2 of self : Graph configuration #################
         # Add a labelFrame
@@ -6245,6 +12661,23 @@ class DesktopFrameTK(TK.Frame):
         B = TTK.Button(lblframeEdit,text='Load',command=self.cmd_confLoad)
         B.grid(row=0,column=1,columnspan=1,sticky="nsew")
 
+    # -------------------------------------------------------------- cmd_setText
+    def cmd_setText(self):
+        if not self.editTextWdw:
+            self.editTextWdw = editTextWindow()
+            self.editTextWdw.initialize(self)
+        else:
+            self.editTextWdw.lift()
+            self.editTextWdw.focus()
+    # ------------------------------------------------------------- cmd_setShape
+    def cmd_setShape(self):
+        if not self.editShapeWdw:
+            self.editShapeWdw = editShapeWindow()
+            self.editShapeWdw.initialize(self)
+        else:
+            self.editShapeWdw.lift()
+            self.editShapeWdw.focus()
+    # ----------------------------------------------------- selectPositionByName
     # ----------------------------------------------------- selectPositionByName
     def selectPositionByName(self,name):
         ind = self.positionList.index(name)
@@ -7046,8 +13479,7 @@ class Desktop():
         Set all the data from the input pyTree or dictionnary to the Desktop data manager.
         """
         old_zones = []
-        if self.data is not None:
-            old_zones = self.data.keys()
+        if self.data is not None: old_zones = self.data.keys()
         self.data = {}
         if isinstance(data, list):
             # set data according to a tree
@@ -7088,14 +13520,13 @@ class Desktop():
     # ---------------------------------------------------------- setDataWithTree
     def setDataWithTree(self,t):
         tmp = {}
-#        base =  Internal.getNodesFromType1(t, 'CGNSBase_t')[0] # Assume there is only one base
         for base in Internal.getNodesFromType1(t, 'CGNSBase_t'):
             basename = Internal.getName(base)
-            ## ## Loop on zones
+            ## Loop on zones
             for zone in Internal.getNodesFromType1(base,'Zone_t'):
                 # Grab GridCoordinates
                 zonename = Internal.getName(zone)
-                ## ## Get GridCoorinates nodes
+                ## Get GridCoorinates nodes
                 try:
                     gridcoord = Internal.getNodesFromType1(zone,'GridCoordinates_t')[0]
                     for child in Internal.getChildren(gridcoord):
@@ -7134,7 +13565,6 @@ class Desktop():
                                 tmp[basename+'/'+zonename]={}
                             tmp[basename+'/'+zonename][Internal.getName(var)+'@'+flowsolutionname]=Internal.getValue(var)
 
-
         self.data = OrderedDict(sorted(tmp.items(),key=lambda t : t[0]))
     # ----------------------------------------------------------------- setQueue
     def setQueue(self,queue):
@@ -7156,6 +13586,8 @@ class Desktop():
         self.editGridWdw   = None
         self.editLegendWdw = None
         self.editAxisWdw   = None
+        self.editTextWdw   = None
+        self.editShapeWdw  = None
 
     # ----------------------------------------------------------------- confSave
     def confSave(self,filename):
@@ -8194,6 +14626,232 @@ class Curve:
         #
         lines += '''    graph_%s.addCurve('%s',curve_%s)'''%(indgraph,iCurSubGraph,indcurve)
         return lines
+# ==============================================================================
+# ==============================================================================
+class Text:
+    """
+    Text class describes all the settings concerning a given text itself.
+    """
+    def __init__(self, *args, **kwargs):
+        self.zone                  = kwargs.get('zone', None)
+        self.text                   = kwargs.get('text', default_values['Text']['text'])
+        self.ha                     = kwargs.get('ha', default_values['Text']['ha'])
+        self.va                     = kwargs.get('va', default_values['Text']['va'])
+        self.text_size             = kwargs.get('text_size', default_values['Text']['text_size'])
+        self.text_alpha             = kwargs.get('text_alpha', default_values['Text']['text_alpha'])
+        self.box_alpha              = kwargs.get('box_alpha', default_values['Text']['box_alpha'])
+        self.box_backgroundcolor    = kwargs.get('box_backgroundcolor', default_values['Text']['box_backgroundcolor'])
+        self.box_edgecolor          = kwargs.get('box_edgecolor', default_values['Text']['box_edgecolor'])
+        self.box_linewidth          = kwargs.get('box_linewidth', default_values['Text']['box_linewidth'])
+        self.box_style              = kwargs.get('box_style', default_values['Text']['box_style'])
+        self.active_background      = kwargs.get('active_background', default_values['Text']['active_background'])
+        self.use_tex                = kwargs.get('use_tex', default_values['Text']['use_tex'])
+        self.rotation               = kwargs.get('rotation', default_values['Text']['rotation'])
+        self.posx                   = kwargs.get('posx', default_values['Text']['posx'])
+        self.posy                   = kwargs.get('posy', default_values['Text']['posy'])
+        self.text_color             = kwargs.get('text_color', default_values['Text']['text_color'])
+        self.font_type              = kwargs.get('font_type', default_values['Text']['font_type'])
+        self.police                 = kwargs.get('police', font_dic[default_values['Text']['font_type']][0])
+        self.font_style             = kwargs.get('font_style', default_values['Text']['font_style'])
+        self.font_weight            = kwargs.get('font_weight', default_values['Text']['font_weight'])
+        self.visibility             = kwargs.get('visibility', default_values['Text']['visibility'])
+
+
+    # ------------------------------------------------------------------- setVal
+    def setValue(self,variable,value):
+        if variable == 'zone': self.zone = value
+        elif variable == 'text': self.text = value
+        elif variable == 'ha': self.ha = value
+        elif variable == 'va': self.va = value
+        elif variable == 'text_size': self.text_size = value
+        elif variable == 'text_alpha': self.text_alpha = value
+        elif variable == 'box_alpha': self.box_alpha = value
+        elif variable == 'box_backgroundcolor': self.box_backgroundcolor = value
+        elif variable == 'box_edgecolor': self.box_edgecolor = value
+        elif variable == 'box_linewidth': self.box_linewidth = value
+        elif variable == 'box_style': self.box_style = value
+        elif variable == 'active_background': self.active_background = value
+        elif variable == 'use_tex': self.use_tex = value
+        elif variable == 'rotation': self.rotation = value
+        elif variable == 'posx': self.posx = value
+        elif variable == 'posy': self.posy = value
+        elif variable == 'text_color': self.text_color = value
+        elif variable == 'font_type': self.font_type = value
+        elif variable == 'police': self.police = value
+        elif variable == 'font_style': self.font_style = value
+        elif variable == 'font_weight': self.font_weight = value
+        elif variable == 'visibility': self.visibility = value
+    # -------------------------------------------------------------------- write
+    def write(self,indgraph,iCurSubGraph,indsubgraph,indtext):
+        lines = '''    text_%s = Text(zone=%s '''%(indtext,self.zone,self.varx,self.vary)
+        if self.text            != default_values['Text']['text']    :
+            lines += ''', text='%s' '''%(self.text)
+        if self.ha            != default_values['Text']['ha']    :
+            lines += ''', ha='%s' '''%(self.ha)
+        if self.va            != default_values['Text']['va']    :
+            lines += ''', va='%s' '''%(self.va)
+        if self.text_size            != default_values['Text']['text_size']    :
+            lines += ''', text_size='%s' '''%(self.text_size)
+        if self.text_alpha            != default_values['Text']['text_alpha']    :
+            lines += ''', text_alpha='%s' '''%(self.text_alpha)
+        if self.box_alpha            != default_values['Text']['box_alpha']    :
+            lines += ''', box_alpha='%s' '''%(self.box_alpha)
+        if self.rotation            != default_values['Text']['rotation']    :
+            lines += ''', rotation='%s' '''%(self.rotation)
+        if self.box_backgroundcolor            != default_values['Text']['box_backgroundcolor']    :
+            lines += ''', box_backgroundcolor='%s' '''%(self.box_backgroundcolor)
+        if self.box_edgecolor            != default_values['Text']['box_edgecolor']    :
+            lines += ''', box_edgecolor='%s' '''%(self.box_edgecolor)
+        if self.box_linewidth            != default_values['Text']['box_linewidth']    :
+            lines += ''', box_linewidth='%s' '''%(self.box_linewidth)
+        if self.box_style            != default_values['Text']['box_style']    :
+            lines += ''', box_style='%s' '''%(self.box_style)
+        if self.active_background            != default_values['Text']['active_background']    :
+            lines += ''', active_background='%s' '''%(self.active_background)
+        if self.use_tex            != default_values['Text']['use_tex']    :
+            lines += ''', use_tex='%s' '''%(self.use_tex)
+        if self.posx            != default_values['Text']['posx']    :
+            lines += ''', posx='%s' '''%(self.posx)
+        if self.posy            != default_values['Text']['posy']    :
+            lines += ''', posy='%s' '''%(self.posy)
+        if self.text_color            != default_values['Text']['text_color']    :
+            lines += ''', text_color='%s' '''%(self.text_color)
+        if self.font_type            != default_values['Text']['font_type']    :
+            lines += ''', font_type='%s' '''%(self.font_type)
+        if self.police            != font_dico[default_values['Text']['font_type']][0]    :
+            lines += ''', police='%s' '''%(self.police)
+        if self.font_style            != default_values['Text']['font_style']    :
+            lines += ''', font_style='%s' '''%(self.font_style)
+        if self.font_weight            != default_values['Text']['font_weight']    :
+            lines += ''', font_weight='%s' '''%(self.font_weight)
+        if self.visibility               != default_values['Text']['visibility']    :
+            lines += ''', visibility=%s'''%(self.visibility)
+        #
+        lines += ''')\n'''
+        #
+        lines += '''    graph_%s.addText('%s',text_%s)'''%(indgraph,iCurSubGraph,indcurve)
+        return lines
+
+# ==============================================================================
+class Shape:
+    """
+    Shape class describes all the settings concerning a given shape itself.
+    """
+    def __init__(self, *args, **kwargs):
+        self.zone                  = kwargs.get('zone', None)
+        self.shape_type            = kwargs.get('shape_type', default_values['Shape']['shape_type'])
+        self.points            = kwargs.get('points', default_values['Shape']['points'])
+        self.arrowstyle            = kwargs.get('arrowstyle', default_values['Shape']['arrowstyle'])
+        self.bracketstyle            = kwargs.get('bracketstyle', default_values['Shape']['bracketstyle'])
+        self.head_length            = kwargs.get('head_length', default_values['Shape']['head_length'])
+        self.head_width             = kwargs.get('head_width', default_values['Shape']['head_width'])
+        self.tail_width             = kwargs.get('tail_width', default_values['Shape']['tail_width'])
+        self.scale             = kwargs.get('scale', default_values['Shape']['scale'])
+        self.linewidth             = kwargs.get('linewidth', default_values['Shape']['linewidth'])
+        self.edgecolor             = kwargs.get('edgecolor', default_values['Shape']['edgecolor'])
+        self.facecolor             = kwargs.get('facecolor', default_values['Shape']['facecolor'])
+        self.hatch             = kwargs.get('hatch', default_values['Shape']['hatch'])
+        self.radius             = kwargs.get('radius', default_values['Shape']['radius'])
+        self.linestyle             = kwargs.get('linestyle', default_values['Shape']['linestyle'])
+        self.height             = kwargs.get('height', default_values['Shape']['height'])
+        self.width             = kwargs.get('width', default_values['Shape']['width'])
+        self.angle             = kwargs.get('angle', default_values['Shape']['angle'])
+        self.linecolor             = kwargs.get('linecolor', default_values['Shape']['linecolor'])
+        self.alpha             = kwargs.get('alpha', default_values['Shape']['alpha'])
+        self.lengthA             = kwargs.get('lengthA', default_values['Shape']['lengthA'])
+        self.widthA             = kwargs.get('widthA', default_values['Shape']['widthA'])
+        self.angleA             = kwargs.get('angleA', default_values['Shape']['angleA'])
+        self.lengthB             = kwargs.get('lengthB', default_values['Shape']['lengthB'])
+        self.widthB             = kwargs.get('widthB', default_values['Shape']['widthB'])
+        self.angleB             = kwargs.get('angleB', default_values['Shape']['angleB'])
+
+
+    # ------------------------------------------------------------------- setVal
+    def setValue(self,variable,value):
+        if variable == 'zone': self.zone = value
+        elif variable == 'shape_type': self.shape_type = value
+        elif variable == 'points': self.points = value
+        elif variable == 'arrowstyle': self.arrowstyle = value
+        elif variable == 'bracketstyle': self.bracketstyle = value
+        elif variable == 'head_length': self.head_length = value
+        elif variable == 'head_width': self.head_width = value
+        elif variable == 'tail_width': self.tail_width = value
+        elif variable == 'scale': self.scale = value
+        elif variable == 'linewidth': self.linewidth = value
+        elif variable == 'edgecolor': self.edgecolor = value
+        elif variable == 'facecolor': self.facecolor = value
+        elif variable == 'hatch': self.hatch = value
+        elif variable == 'radius': self.radius = value
+        elif variable == 'linestyle': self.linestyle = value
+        elif variable == 'height': self.height = value
+        elif variable == 'width': self.width = value
+        elif variable == 'angle': self.angle = value
+        elif variable == 'linecolor': self.linecolor = value
+        elif variable == 'alpha': self.alpha = value
+        elif variable == 'lengthA': self.lengthA = value
+        elif variable == 'widthA': self.widthA = value
+        elif variable == 'angleA': self.angleA = value
+        elif variable == 'lengthB': self.lengthB = value
+        elif variable == 'widthB': self.widthB = value
+        elif variable == 'angleB': self.angleB = value
+    # -------------------------------------------------------------------- write
+    def write(self,indgraph,iCurSubGraph,indsubgraph,indshape):
+        lines = '''    shape_%s = Shape(zone=%s '''%(indtext,self.zone,self.varx,self.vary)
+        if self.shape_type            != default_values['Shape']['shape_type']    :
+            lines += ''', shape_type='%s' '''%(self.shape_type)
+        if self.points            != default_values['Shape']['points']    :
+            lines += ''', points='%s' '''%(self.points)
+        if self.arrowstyle            != default_values['Shape']['arrowstyle']    :
+            lines += ''', arrowstyle='%s' '''%(self.arrowstyle)
+        if self.bracketstyle            != default_values['Shape']['bracketstyle']    :
+            lines += ''', bracketstyle='%s' '''%(self.bracketstyle)
+        if self.head_length            != default_values['Shape']['head_length']    :
+            lines += ''', head_length='%s' '''%(self.head_length)
+        if self.head_width            != default_values['Shape']['head_width']    :
+            lines += ''', head_width='%s' '''%(self.head_width)
+        if self.tail_width            != default_values['Shape']['tail_width']    :
+            lines += ''', tail_width='%s' '''%(self.tail_width)
+        if self.scale            != default_values['Shape']['scale']    :
+            lines += ''', scale='%s' '''%(self.scale)
+        if self.linewidth            != default_values['Shape']['linewidth']    :
+            lines += ''', linewidth='%s' '''%(self.linewidth)
+        if self.edgecolor            != default_values['Shape']['edgecolor']    :
+            lines += ''', edgecolor='%s' '''%(self.edgecolor)
+        if self.facecolor            != default_values['Shape']['facecolor']    :
+            lines += ''', facecolor='%s' '''%(self.facecolor)
+        if self.hatch            != default_values['Shape']['hatch']    :
+            lines += ''', hatch='%s' '''%(self.hatch)
+        if self.radius            != default_values['Shape']['radius']    :
+            lines += ''', radius='%s' '''%(self.radius)
+        if self.linestyle            != default_values['Shape']['linestyle']    :
+            lines += ''', linestyle='%s' '''%(self.linestyle)
+        if self.height            != default_values['Shape']['height']    :
+            lines += ''', height='%s' '''%(self.height)
+        if self.width            != default_values['Shape']['width']    :
+            lines += ''', width='%s' '''%(self.width)
+        if self.angle            != default_values['Shape']['angle']    :
+            lines += ''', angle='%s' '''%(self.angle)
+        if self.linecolor            != default_values['Shape']['linecolor']    :
+            lines += ''', linecolor='%s' '''%(self.linecolor)
+        if self.alpha            != default_values['Shape']['alpha']    :
+            lines += ''', alpha='%s' '''%(self.alpha)
+        if self.lengthA            != default_values['Shape']['lengthA']    :
+            lines += ''', lengthA='%s' '''%(self.lengthA)
+        if self.widthA            != default_values['Shape']['widthA']    :
+            lines += ''', widthA='%s' '''%(self.widthA)
+        if self.angleA            != default_values['Shape']['angleA']    :
+            lines += ''', angleA='%s' '''%(self.angleA)
+        if self.lengthB            != default_values['Shape']['lengthB']    :
+            lines += ''', lengthB='%s' '''%(self.lengthB)
+        if self.widthB            != default_values['Shape']['widthB']    :
+            lines += ''', widthB='%s' '''%(self.widthB)
+        if self.angleB            != default_values['Shape']['angleB']    :
+            lines += ''', angleB='%s' '''%(self.angleB)
+        #
+        lines += ''')\n'''
+        #
+        lines += '''    graph_%s.addShape('%s',shape_%s)'''%(indgraph,iCurSubGraph,indcurve)
+        return lines
 
 
 # ==============================================================================
@@ -8213,6 +14871,8 @@ class SubGraph:
         self.axis_property         = [Axis(ind=0)]
         self.grid_property         = [Grid()]
         self.curves                = []
+        self.texts                 = []
+        self.shapes                = []
         self.name                  = '%s:%s'%(self.il+1, self.ic+1)
         #
         self.axis[0].type = ['main',None]
@@ -8636,7 +15296,6 @@ def openGraphEditor(display):
 # ==============================================================================
 # ==============================================================================
 
-
 def filterInteger(string):
     res = ''
     for i in string:
@@ -8741,6 +15400,12 @@ def hideApp(event=None):
 # Update widgets when global pyTree t changes
 #==============================================================================
 def updateApp():
+    # Update App toujours
+    if IMPORTOK and CTK.t != []:
+        updateFromTree()
+    return
+
+def updateApp2():
     # Update App seulement si une graph window est ouverte
     if IMPORTOK and CTK.t != [] and len(DESKTOP.graphWdwL) > 0:
         updateFromTree()
