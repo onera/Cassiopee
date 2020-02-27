@@ -313,7 +313,9 @@ default_values = {
             'axis_x_offset' : 0.,
             'axis_y_offset' : 0.,
             'axis_x_label_fontsize' : plt.rcParams.get('font.size'),
-            'axis_y_label_fontsize' : plt.rcParams.get('font.size')
+            'axis_y_label_fontsize' : plt.rcParams.get('font.size'),
+            'axis_x_label_format' : '{x:.2e}',
+            'axis_y_label_format' : '{x:.2e}',
         },
 'SubPlotParams':{
                     'left'    : pltLeft,
@@ -6545,7 +6547,7 @@ class editAxisWindow(TK.Toplevel):
         CB.grid(row=0,column=0,sticky='NSEW')
         self.visibleItem.append(CB)
         ## ## --> Use logscale
-        logframe = TTK.LabelFrame(xlblframe,text="Use Log Scale")
+        logframe = TTK.LabelFrame(xlblframe,text="Log Scale")
         logframe.grid(row=0,column=1,sticky='NSEW')
         logframe.grid_columnconfigure(0,weight=1)
         logframe.grid_rowconfigure(0,weight=1)
@@ -6559,7 +6561,7 @@ class editAxisWindow(TK.Toplevel):
         CB.grid(row=0,column=0,sticky='NSEW')
         self.logscaleItem.append(CB)
         ## ## --> Use autoscale
-        autoscaleframe = TTK.LabelFrame(xlblframe,text="Use Auto Scale")
+        autoscaleframe = TTK.LabelFrame(xlblframe,text="Auto Scale")
         autoscaleframe.grid(row=0,column=2,sticky='NSEW')
         autoscaleframe.grid_columnconfigure(0,weight=1)
         autoscaleframe.grid_rowconfigure(0,weight=1)
@@ -6581,7 +6583,7 @@ class editAxisWindow(TK.Toplevel):
         xminframe.grid_rowconfigure(0,weight=1)
         #
         self.positionItem = []
-        B = TTK.Button(xminframe,text=xmin,command=lambda n=(0,self.positionItem): self.bt_click(n))
+        B = TTK.Button(xminframe,width=12,text=xmin,command=lambda n=(0,self.positionItem): self.bt_click(n))
         B.list = []
         B.val = xmin
         B.var = ['x','axis_min']
@@ -6596,7 +6598,7 @@ class editAxisWindow(TK.Toplevel):
         xmaxframe.grid_columnconfigure(0,weight=1)
         xmaxframe.grid_rowconfigure(0,weight=1)
         #
-        B = TTK.Button(xmaxframe,text=xmax,command=lambda n=(1,self.positionItem): self.bt_click(n))
+        B = TTK.Button(xmaxframe,width=12,text=xmax,command=lambda n=(1,self.positionItem): self.bt_click(n))
         B.list = []
         B.val = xmax
         B.var = ['x','axis_max']
@@ -6617,25 +6619,24 @@ class editAxisWindow(TK.Toplevel):
         CB.var = ['x','axis_inverted']
         CB.grid(row=0,column=0,sticky='NSEW')
         self.invertItem.append(CB)
-        ## ## --> Label name
+        ## --> Label name
         labelframe = TTK.LabelFrame(xlblframe, text="Label name")
         labelframe.grid(row=0,column=6,sticky='NESW')
-        #
         labelframe.grid_columnconfigure(0,weight=1)
         labelframe.grid_rowconfigure(0,weight=1)
         #
         self.labelItem = []
-        B = TTK.Button(labelframe,text=self.subGraph.axis_property[self.ind_axis].x.axis_label,command=lambda n=(0,self.labelItem): self.bt_click(n))
+        B = TTK.Button(labelframe,width=12,text=self.subGraph.axis_property[self.ind_axis].x.axis_label,command=lambda n=(0,self.labelItem): self.bt_click(n))
         B.list = []
         B.val = self.subGraph.axis_property[self.ind_axis].x.axis_label
         B.var = ['x','axis_label']
         B.treatmentId = 3
         B.grid(row=0,column=0,columnspan=1,sticky="nsew")
         self.labelItem.append(B)
-        ## ## --> Label size
+        
+        ## --> Label size
         labelframe = TTK.LabelFrame(xlblframe, text="Label size")
         labelframe.grid(row=0,column=7,sticky='NESW')
-        #
         labelframe.grid_columnconfigure(0,weight=1)
         labelframe.grid_rowconfigure(0,weight=1)
         #
@@ -6647,11 +6648,26 @@ class editAxisWindow(TK.Toplevel):
         B.treatmentId = 4 # 4 is float here
         B.grid(row=0,column=0,columnspan=1,sticky="nsew")
         self.labelSizeItem.append(B)
-        ## ## --> axis Position
+
+        ## --> Label format
+        labelframe = TTK.LabelFrame(xlblframe, text="Label format")
+        labelframe.grid(row=0,column=8,sticky='NESW')
+        labelframe.grid_columnconfigure(0,weight=1)
+        labelframe.grid_rowconfigure(0,weight=1)
+        #
+        self.labelFormatItem=[]
+        B = TTK.Button(labelframe,text=self.subGraph.axis_property[self.ind_axis].x.axis_label_format,command=lambda n=(0,self.labelFormatItem): self.bt_click(n))
+        B.list = []
+        B.val = self.subGraph.axis_property[self.ind_axis].x.axis_label_format
+        B.var = ['x','axis_label_format']
+        B.treatmentId = 3
+        B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+        self.labelFormatItem.append(B)
+
+        ## --> axis Position
         position = self.subGraph.axis_property[self.ind_axis].x.axis_position
         positionframe = TTK.LabelFrame(xlblframe, text="Axis position")
-        positionframe.grid(row=0,column=8,sticky='NESW')
-        #
+        positionframe.grid(row=0,column=9,sticky='NESW')
         positionframe.grid_columnconfigure(0,weight=1)
         positionframe.grid_rowconfigure(0,weight=1)
         #
@@ -6663,12 +6679,12 @@ class editAxisWindow(TK.Toplevel):
         B.treatmentId = 0 #
         B.grid(row=0,column=0,columnspan=1,sticky="nsew")
         self.axisPositionItem.append(B)
-        ## ## --> Axis offset
+
+        ## --> Axis offset
         self.offsetItem=[]
         offset = self.subGraph.axis_property[self.ind_axis].x.axis_offset
         offsetframe = TTK.LabelFrame(xlblframe, text="Axis offset")
-        offsetframe.grid(row=0,column=9,sticky='NESW')
-        #
+        offsetframe.grid(row=0,column=10,sticky='NESW')
         offsetframe.grid_columnconfigure(0,weight=1)
         offsetframe.grid_rowconfigure(0,weight=1)
         #
@@ -6709,7 +6725,7 @@ class editAxisWindow(TK.Toplevel):
         CB.grid(row=0,column=0,sticky='NSEW')
         self.visibleItem.append(CB)
         ## ## --> Use logscale
-        logframe = TTK.LabelFrame(ylblframe,text="Use Log Scale")
+        logframe = TTK.LabelFrame(ylblframe,text="Log Scale")
         logframe.grid(row=0,column=1,sticky='NSEW')
         logframe.grid_columnconfigure(0,weight=1)
         logframe.grid_rowconfigure(0,weight=1)
@@ -6722,7 +6738,7 @@ class editAxisWindow(TK.Toplevel):
         CB.grid(row=0,column=0,sticky='NSEW')
         self.logscaleItem.append(CB)
         ## ## --> Use autoscale
-        autoscaleframe = TTK.LabelFrame(ylblframe,text="Use Auto Scale")
+        autoscaleframe = TTK.LabelFrame(ylblframe,text="Auto Scale")
         autoscaleframe.grid(row=0,column=2,sticky='NSEW')
         autoscaleframe.grid_columnconfigure(0,weight=1)
         autoscaleframe.grid_rowconfigure(0,weight=1)
@@ -6734,22 +6750,21 @@ class editAxisWindow(TK.Toplevel):
         CB.var = ['y','axis_autoscale']
         CB.grid(row=0,column=0,sticky='NSEW')
         self.autoscaleItem.append(CB)
-        ## ## --> Ymin
+        ## --> Ymin
         ymin = self.subGraph.axis[self.ind_axis].get_ylim()[0]
         yminframe = TTK.LabelFrame(ylblframe, text="Min")
         yminframe.grid(row=0,column=3,sticky='NESW')
-        #
         yminframe.grid_columnconfigure(0,weight=1)
         yminframe.grid_rowconfigure(0,weight=1)
         #
-        B = TTK.Button(yminframe,text=ymin,command=lambda n=(2,self.positionItem): self.bt_click(n))
+        B = TTK.Button(yminframe,width=12,text=ymin,command=lambda n=(2,self.positionItem): self.bt_click(n))
         B.list = []
         B.val = ymin
         B.var = ['y','axis_min']
         B.treatmentId = 4 # 4 is float here
         B.grid(row=0,column=0,columnspan=1,sticky="nsew")
         self.positionItem.append(B)
-        ## ## --> Ymax
+        ## --> Ymax
         ymax = self.subGraph.axis[self.ind_axis].get_ylim()[1]
         ymaxframe = TTK.LabelFrame(ylblframe, text="Max")
         ymaxframe.grid(row=0,column=4,sticky='NESW')
@@ -6757,14 +6772,14 @@ class editAxisWindow(TK.Toplevel):
         ymaxframe.grid_columnconfigure(0,weight=1)
         ymaxframe.grid_rowconfigure(0,weight=1)
         #
-        B = TTK.Button(ymaxframe,text=ymax,command=lambda n=(3,self.positionItem): self.bt_click(n))
+        B = TTK.Button(ymaxframe,width=12,text=ymax,command=lambda n=(3,self.positionItem): self.bt_click(n))
         B.list = []
         B.val = ymax
         B.var = ['y','axis_max']
         B.treatmentId = 4 # 4 is float here
         B.grid(row=0,column=0,columnspan=1,sticky="nsew")
         self.positionItem.append(B)
-        ## ## --> Invert axis
+        ## --> Invert axis
         invertedframe = TTK.LabelFrame(ylblframe,text="Invert Axis")
         invertedframe.grid(row=0,column=5,sticky='NSEW')
         invertedframe.grid_columnconfigure(0,weight=1)
@@ -6777,24 +6792,22 @@ class editAxisWindow(TK.Toplevel):
         CB.var = ['y','axis_inverted']
         CB.grid(row=0,column=0,sticky='NSEW')
         self.invertItem.append(CB)
-        ## ## --> Label name
+        ## --> Label name
         labelframe = TTK.LabelFrame(ylblframe, text="Label name")
         labelframe.grid(row=0,column=6,sticky='NESW')
-        #
         labelframe.grid_columnconfigure(0,weight=1)
         labelframe.grid_rowconfigure(0,weight=1)
         #
-        B = TTK.Button(labelframe,text=self.subGraph.axis_property[self.ind_axis].y.axis_label,command=lambda n=(1,self.labelItem): self.bt_click(n))
+        B = TTK.Button(labelframe,width=12,text=self.subGraph.axis_property[self.ind_axis].y.axis_label,command=lambda n=(1,self.labelItem): self.bt_click(n))
         B.list = []
         B.val = self.subGraph.axis_property[self.ind_axis].y.axis_label
         B.var = ['y','axis_label']
         B.treatmentId = 3
         B.grid(row=0,column=0,columnspan=1,sticky="nsew")
         self.labelItem.append(B)
-        ## ## --> Label size
+        ## --> Label size
         labelframe = TTK.LabelFrame(ylblframe, text="Label size")
         labelframe.grid(row=0,column=7,sticky='NESW')
-        #
         labelframe.grid_columnconfigure(0,weight=1)
         labelframe.grid_rowconfigure(0,weight=1)
         #
@@ -6805,11 +6818,26 @@ class editAxisWindow(TK.Toplevel):
         B.treatmentId = 4 # 4 is float here
         B.grid(row=0,column=0,columnspan=1,sticky="nsew")
         self.labelSizeItem.append(B)
-        ## ## --> axis Position
+
+        ## --> Label format
+        labelframe = TTK.LabelFrame(ylblframe, text="Label format")
+        labelframe.grid(row=0,column=8,sticky='NESW')
+        labelframe.grid_columnconfigure(0,weight=1)
+        labelframe.grid_rowconfigure(0,weight=1)
+        #
+        self.labelFormatItem=[]
+        B = TTK.Button(labelframe,text=self.subGraph.axis_property[self.ind_axis].y.axis_label_format,command=lambda n=(0,self.labelFormatItem): self.bt_click(n))
+        B.list = []
+        B.val = self.subGraph.axis_property[self.ind_axis].y.axis_label_format
+        B.var = ['y','axis_label_format']
+        B.treatmentId = 3
+        B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+        self.labelFormatItem.append(B)
+
+        ## --> axis Position
         position = self.subGraph.axis_property[self.ind_axis].y.axis_position
         positionframe = TTK.LabelFrame(ylblframe, text="Axis position")
-        positionframe.grid(row=0,column=8,sticky='NESW')
-        #
+        positionframe.grid(row=0,column=9,sticky='NESW')
         positionframe.grid_columnconfigure(0,weight=1)
         positionframe.grid_rowconfigure(0,weight=1)
         #
@@ -6820,11 +6848,10 @@ class editAxisWindow(TK.Toplevel):
         B.treatmentId = 0 #
         B.grid(row=0,column=0,columnspan=1,sticky="nsew")
         self.axisPositionItem.append(B)
-        ## ## --> Axis offset
+        ## --> Axis offset
         offset = self.subGraph.axis_property[self.ind_axis].y.axis_offset
         offsetframe = TTK.LabelFrame(ylblframe, text="Axis offset")
-        offsetframe.grid(row=0,column=9,sticky='NESW')
-        #
+        offsetframe.grid(row=0,column=10,sticky='NESW')
         offsetframe.grid_columnconfigure(0,weight=1)
         offsetframe.grid_rowconfigure(0,weight=1)
         #
@@ -12464,7 +12491,8 @@ class DesktopFrameTK(TK.Frame):
         ################## Row 0 of self : create graph ########################
 
         # Add a labelFrame
-        lblframeCreate = TTK.LabelFrame(self, text="Create Graph")
+        #lblframeCreate = TTK.LabelFrame(self, text="Create Graph")
+        lblframeCreate = TTK.Frame(self)
         lblframeCreate.grid(row=0,column=0,sticky="nsew")
         # # Configure grid for postionning for the inside of the LabelFrame
         lblframeCreate.grid_columnconfigure(0,weight=1)
@@ -12539,7 +12567,8 @@ class DesktopFrameTK(TK.Frame):
 
         ################## Row 1 of self : Edit graph ##########################
         # Add a labelFrame
-        lblframeEdit = TTK.LabelFrame(self, text="Edit Graph")
+        #lblframeEdit = TTK.LabelFrame(self, text="Edit Graph")
+        lblframeEdit = TTK.Frame(self)
         lblframeEdit.grid(row=1,column=0,sticky="nsew")
         # # Configure grid for postionning for the inside of the LabelFrame
         lblframeEdit.grid_columnconfigure(0,weight=1)
@@ -12630,7 +12659,7 @@ class DesktopFrameTK(TK.Frame):
         B = TTK.Button(lblframeEdit,text='Graph settings',command=self.cmd_setGraph)
         B.grid(row=4,column=0,columnspan=1,sticky="nsew")
         #
-        ## Export 
+        ## Export
         #
         B = TTK.Button(lblframeEdit,text='Export',command=self.cmd_export)
         B.grid(row=4,column=1,columnspan=1,sticky="nsew")
@@ -13980,8 +14009,14 @@ class MatplotlibFigure():
                                 legend_text.append(c.legend_label)
 
 
-            ## ## Set Axis
+            ## Set Axis
             self.subGraph[iCurSubGraph].axis[iCurrentAxis].relim()
+            ## formatter des labels
+            val = self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].x.axis_label_format
+            self.subGraph[iCurSubGraph].axis[iCurrentAxis].xaxis.set_major_formatter(matplotlib.ticker.StrMethodFormatter(val))
+            val = self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].y.axis_label_format
+            self.subGraph[iCurSubGraph].axis[iCurrentAxis].yaxis.set_major_formatter(matplotlib.ticker.StrMethodFormatter(val))
+
             ## logscale
             if self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].x.axis_logscale:
                 self.subGraph[iCurSubGraph].axis[iCurrentAxis].set_xscale("log")
@@ -14221,7 +14256,7 @@ class DirAxis():
     """
     DirAxis contains the settings of the X or Y axis. This settings can directly be accessed from the class Axis.
     """
-    def __init__(self,axis_logscale,axis_autoscale,axis_min,axis_max,axis_label,axis_inverted,axis_visible,axis_position,axis_offset,axis_label_fontsize):
+    def __init__(self,axis_logscale,axis_autoscale,axis_min,axis_max,axis_label,axis_inverted,axis_visible,axis_position,axis_offset,axis_label_fontsize,axis_label_format):
         self.axis_logscale=axis_logscale
         self.axis_autoscale=axis_autoscale
         self.axis_min=axis_min
@@ -14232,6 +14267,7 @@ class DirAxis():
         self.axis_position = axis_position
         self.axis_offset = axis_offset
         self.axis_label_fontsize = axis_label_fontsize
+        self.axis_label_format = axis_label_format
 
     def setValue(self,variable,value):
         if variable == 'axis_logscale': self.axis_logscale = value
@@ -14244,6 +14280,8 @@ class DirAxis():
         elif variable == 'axis_position': self.axis_position = value
         elif variable == 'axis_offset': self.axis_offset = value
         elif variable == 'axis_label_fontsize': self.axis_label_fontsize = value
+        elif variable == 'axis_label_format': self.axis_label_format = value
+        
 # ==============================================================================
 # ==============================================================================
 class Axis():
@@ -14272,11 +14310,13 @@ class Axis():
         axis_y_offset         = kwargs.get('axis_y_offset', default_values['Axis']['axis_y_offset'])
         axis_x_label_fontsize = kwargs.get('axis_x_label_fontsize', default_values['Axis']['axis_x_label_fontsize'])
         axis_y_label_fontsize = kwargs.get('axis_y_label_fontsize', default_values['Axis']['axis_y_label_fontsize'])
+        axis_x_label_format = kwargs.get('axis_x_label_format', default_values['Axis']['axis_x_label_format'])
+        axis_y_label_format = kwargs.get('axis_y_label_format', default_values['Axis']['axis_y_label_format'])
 
         self.x = DirAxis(axis_x_logscale,axis_x_autoscale,axis_x_min,axis_x_max,axis_x_label,
-                        axis_x_inverted,axis_x_visible,axis_x_position,axis_x_offset,axis_x_label_fontsize)
+                        axis_x_inverted,axis_x_visible,axis_x_position,axis_x_offset,axis_x_label_fontsize,axis_x_label_format)
         self.y = DirAxis(axis_y_logscale,axis_y_autoscale,axis_y_min,axis_y_max,axis_y_label,
-                        axis_y_inverted,axis_y_visible,axis_y_position,axis_y_offset,axis_x_label_fontsize)
+                        axis_y_inverted,axis_y_visible,axis_y_position,axis_y_offset,axis_x_label_fontsize,axis_y_label_format)
 
     def getInd(self):
         return self.ind

@@ -184,7 +184,7 @@ def view(event=None):
         Panels.displayErrors([0,str(e)], header='Error: slice')
         CTK.TXT.insert('START', 'Slice failed.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error') ; return    
-
+    
 #==============================================================================
 def extract(event=None):
     if CTK.t == []: return

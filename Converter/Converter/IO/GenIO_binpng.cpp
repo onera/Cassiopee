@@ -134,7 +134,7 @@ E_Int K_IO::GenIO::pngread(
   int components;
   int size = png_get_rowbytes(png_ptr, info_ptr);
   components = (size/width);
-  printf("components = %d\n", components);
+  //printf("components = %d\n", components);
 
   // Stockage du champ
   E_Int nil = width;
