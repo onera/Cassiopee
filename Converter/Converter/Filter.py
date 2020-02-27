@@ -1073,7 +1073,7 @@ class Handle:
     writeVariables(a, fileName, var, znp, self.format)
 
   # save zones + field
-  # mode 0: parallele, 1: écriture chacun son tour
+  # mode 0: parallele, 1: ecriture chacun son tour
   def save(self, a, fileName=None, cartesian=False):
     a2 = Internal.copyRef(a)
     if cartesian: 

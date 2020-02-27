@@ -1957,7 +1957,8 @@ def addGhostCellsNG(t, nlayers=2):
     for z in zones:
       zname = z[0]
       znames.append(zname)
-
+      if Internal.getZoneType(z)==1: continue
+      
       m = PyTree.getFields(Internal.__GridCoordinates__, z)[0]
       zone_ngons.append(m)
 

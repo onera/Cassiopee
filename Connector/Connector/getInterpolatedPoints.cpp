@@ -549,7 +549,7 @@ PyObject* K_CONNECTOR::_getOversetHolesInterpCellCenters(PyObject* self, PyObjec
   if (dir != 0 && dir != 1) 
   {
     PyErr_SetString(PyExc_TypeError,
-                    "getOversetHolesInterpNodes: dir must be 0 or 1.");
+                    "getOversetHolesInterpCellCenters: dir must be 0 or 1.");
     return NULL;
   }
   /*--------------------------------------------------*/
@@ -565,7 +565,7 @@ PyObject* K_CONNECTOR::_getOversetHolesInterpCellCenters(PyObject* self, PyObjec
     if ( res == 2 )
     {
       PyErr_SetString(PyExc_TypeError,
-                      "_getOversetHolesInterpNodes: not yet implemented for unstructured zones.");
+                      "_getOversetHolesInterpCellCenters: not yet implemented for unstructured zones.");
       RELEASESHAREDU(centersArray, field, cn);
     }
     else 

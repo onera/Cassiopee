@@ -1082,24 +1082,38 @@ PyObject* K_CONNECTOR::blankCells(PyObject* self, PyObject* args)
     }
     else // Masquage en centres
     {
-      if (unstrFc[zone]->getSize() != cnt[zone]->getSize())
-      {
-        PyErr_SetString(PyExc_TypeError,
-                        "blankCells: dimensions of coord and celln arrays do not correspond."); 
-        for (E_Int is = 0; is < ns; is++)
+        E_Int iserr=0;
+        if  (strcmp(eltType[zone],"NGON")==0)
         {
-          RELEASESHAREDS(objs[is], structF[is]);
-          RELEASESHAREDS(objsc[is], structFc[is]); 
+            iserr=1;
+            PyErr_SetString(PyExc_TypeError,
+                            "blankCells: blanking with cell intersect option is not implemented for NGONs."); 
         }
-        for (E_Int iu = 0; iu < nu; iu++)
+        else 
+        { 
+            if (unstrFc[zone]->getSize() != cnt[zone]->getSize())
+            {
+                iserr=1;
+                PyErr_SetString(PyExc_TypeError,
+                                "blankCells: dimensions of coord and celln arrays do not correspond."); 
+            }
+        }
+        if (iserr==1)
         {
-          RELEASESHAREDU(obju[iu], unstrF[iu], cnt[iu]);
-          RELEASESHAREDU(objuc[iu], unstrFc[iu], cntc[iu]);     
+            for (E_Int is = 0; is < ns; is++)
+            {
+              RELEASESHAREDS(objs[is], structF[is]);
+              RELEASESHAREDS(objsc[is], structFc[is]); 
+            }
+            for (E_Int iu = 0; iu < nu; iu++)
+            {
+              RELEASESHAREDU(obju[iu], unstrF[iu], cnt[iu]);
+              RELEASESHAREDU(objuc[iu], unstrFc[iu], cntc[iu]);     
+            }
+            for (E_Int ib = 0; ib < nzonesb; ib++)
+              RELEASESHAREDU(objub[ib], unstrbF[ib], cnb[ib]);
+            return NULL;            
         }
-        for (E_Int ib = 0; ib < nzonesb; ib++)
-          RELEASESHAREDU(objub[ib], unstrbF[ib], cnb[ib]);
-        return NULL;
-      }
     }
   } // fin test coherence dimensions
   // Build arrays
@@ -1481,7 +1495,6 @@ E_Int K_CONNECTOR::searchForBlankedCellsUnstr(
 {
   E_Int nelts = cn.getNfld();
   E_Int masked = 0;
-
   list<XRayPlane*>::iterator itr;
   for (itr = planes.begin(); itr != planes.end(); itr++)
   {

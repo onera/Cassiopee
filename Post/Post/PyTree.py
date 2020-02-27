@@ -90,14 +90,18 @@ def extractPlane(t, T, order=2, tol=1.e-6):
 def projectCloudSolution(cloud, surf, dim=3):
     """Project the solution defined on a set of points to a TRI surface."""
     surf2 = Internal.copyRef(surf)
+    _projectCloudSolution(cloud, surf2, dim=dim)
+    return surf2
+
+def _projectCloudSolution(cloud, surf, dim=3):
+    """Project the solution defined on a set of points to a TRI surface."""
     fc = C.getAllFields(cloud, 'nodes')[0]
-    zones = Internal.getZones(surf2)
+    zones = Internal.getZones(surf)
     for noz in range(len(zones)):
         fs = C.getAllFields(zones[noz], 'nodes')[0]
         res = Post.projectCloudSolution(fc,fs,dim=dim)
         C.setFields([res], zones[noz], 'nodes')
-    return surf2
-
+    return None
 # hook is a list of pointers on ADT for donor zones of t - created by C.createHook(a,'extractMesh')
 def extractMesh(t, extractionMesh, order=2, extrapOrder=1,
                 constraint=40., tol=1.e-6, hook=None, mode='robust'):

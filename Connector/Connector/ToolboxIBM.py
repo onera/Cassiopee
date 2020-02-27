@@ -2002,3 +2002,33 @@ def extractIBMInfo(tc):
     t[2][1][2] = corrected; t[2][2][2] = wall; t[2][3][2] = interp
     t = C.convertArray2Node(t)
     return t
+
+# --------------------------------------------------------------------------------
+# Creation des zones 1D de nom 'Zone#IBCD_*' pour pouvoir etre identifie en post
+# retourne tw avec une zone 1D par IBCD de depart
+# Sert au post traitement paroi en parallele et instationnaire
+def createIBMWZones(tc,variables=[]):
+    tw = C.newPyTree(['IBM_WALL'])
+    for z in Internal.getZones(tc):
+        ZSR = Internal.getNodesFromType2(z,'ZoneSubRegion_t')
+        for IBCD in Internal.getNodesFromName(ZSR,"IBCD_*"):
+            xPW = Internal.getNodesFromName(IBCD,"CoordinateX_PW")[0][1]
+            yPW = Internal.getNodesFromName(IBCD,"CoordinateY_PW")[0][1]
+            zPW = Internal.getNodesFromName(IBCD,"CoordinateZ_PW")[0][1]
+            nptsW = xPW.shape[0]
+            zw = G.cart((0,0,0),(1,1,1),(nptsW,1,1))
+            COORDX = Internal.getNodeFromName2(zw,'CoordinateX'); COORDX[1]=xPW
+            COORDY = Internal.getNodeFromName2(zw,'CoordinateY'); COORDY[1]=yPW
+            COORDZ = Internal.getNodeFromName2(zw,'CoordinateZ'); COORDZ[1]=zPW
+            if variables != [] and variables != None:
+                FSN = Internal.newFlowSolution(parent=zw)
+                for varo in variables:
+                    fieldV = Internal.getNodeFromName2(IBCD,varo)
+                    if fieldV is not None: 
+                        C._initVars(zw,varo,0.)
+                        fieldW = Internal.getNodeFromName2(FSN,varo)
+                        fieldW[1] = fieldV[1]
+
+            zw[0]=z[0]+"#"+IBCD[0]
+            tw[2][1][2].append(zw)
+    return tw

@@ -679,6 +679,7 @@ namespace K_CONNECTOR
   PyObject* setInterpDataForGCNGon(PyObject* self, PyObject* args);
   PyObject* setInterpDataLS(PyObject* self, PyObject* args);
   PyObject* setInterpDataCons(PyObject* self, PyObject* args);
+  PyObject* setInterpData_IBMWall(PyObject* self, PyObject* args);
   PyObject* writeCoefs(PyObject* self, PyObject* args);
   PyObject* chimeraTransfer(PyObject* self, PyObject* args);
   PyObject* transferFields(PyObject* self, PyObject* args);

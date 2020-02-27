@@ -173,8 +173,8 @@ def _setHoleInterpolatedPoints(cellN,depth=2, dir=0, cellNName='cellN'):
     except: raise ImportError("_setHoleInterpolatedPoints: requires Converter module.")
     loc = 'nodes'
     if len(cellN) == 4:
-        if cellN[1].shape[1] == cellN[2].shape[1]: loc = 'centers'
-
+        if cellN[3][-1]=='*': loc = 'centers'
+    
     if loc == 'nodes':
         if depth < 0:
             Converter._initVars(cellN,'{%s} = 1-{cellN}+({cellN}>1.5)*3'%cellNName)
@@ -198,7 +198,7 @@ def setHoleInterpolatedPoints(celln, depth=2, dir=0, cellNName='cellN'):
     except: raise ImportError("setHoleInterpolatedPoints: requires Converter module.")
     loc = 'nodes'
     if len(celln) == 4:
-        if celln[1].shape[1] == celln[2].shape[1]: loc = 'centers'
+        if celln[3][-1]=='*': loc = 'centers'
     if loc == 'nodes':
         if depth < 0:
             celln = Converter.initVars(celln, 

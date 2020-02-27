@@ -12,7 +12,9 @@ import Initiator.PyTree as I
 import Converter.Mpi as Cmpi
 import Converter.Filter as Filter
 from Apps.Fast.Common import Common
+import Connector.connector as connector
 
+import numpy
 try: range = xrange
 except: pass
 
@@ -228,8 +230,6 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
     if isinstance(t_out, str): Fast.save(t, t_out, split=format, NP=-NP, cartesian=True)
     return t, tc
 
-#==================================================================================================
-
 #================================================================================
 # IBM prepare - para
 #
@@ -244,14 +244,13 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
              frontType=1, extrusion=False, smoothing=False, balancing=False, 
              distrib=True, expand=3, tinit=None, initWithBBox=-1.):
     import Generator
-    import Connector.connector as connector
     import Connector.Mpi as Xmpi
     import Converter.Distributed as Distributed
     import Connector.OversetData as XOD
     import KCore.test as test
     import Post.PyTree as P
     from mpi4py import MPI
-    import numpy
+
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
     else: tb = t_case
 
@@ -502,7 +501,7 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
         raise ValueError('prepareIBMData: not valid IBCType. Check model.')
     TIBM._removeBlankedGrids(t, loc='centers')
     test.printMem(">>> Blanking [end]")
-    
+
     print('Nb of Cartesian grids=%d.'%len(Internal.getZones(t)))
     npts = 0
     for i in Internal.getZones(t):
@@ -891,20 +890,6 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
 
     test.printMem(">>> Saving [start]")
 
-    # Sauvegarde des infos IBM
-    if check:
-        test.printMem(">>> Saving IBM infos [start]")
-        tibm = TIBM.extractIBMInfo(tc)
-
-        # Avoid that two procs write the same information
-        for z in Internal.getZones(tibm):
-           if int(z[0][-1]) != rank:
-              Internal._rmNodesByName(tibm, z[0])
-
-        Cmpi.convertPyTree2File(tibm, 'IBMInfo.cgns')
-        test.printMem(">>> Saving IBM infos [end]")
-        del tibm
-
     # distribution par defaut (sur NP)
     tbbc = Cmpi.createBBoxTree(tc)
     
@@ -919,7 +904,6 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
 
     # Save tc
     if isinstance(tc_out, str): Cmpi.convertPyTree2File(tc, tc_out, ignoreProcNodes=True)
-    
     # Initialisation
     if tinit is None: I._initConst(t, loc='centers')
     else: 
@@ -954,6 +938,17 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
 
     if Cmpi.size > 1: Cmpi.barrier()
     return t, tc
+
+def extractIBMInfo(tc_in, t_out='IBMInfo.cgns'):
+    import Converter.Distributed as CD
+    if isinstance(tc_in, str): tc = Cmpi.convertFile2PyTree(tc_in)
+    else: tc = tc_in
+
+    tibm = TIBM.extractIBMInfo(tc)
+    rank = Cmpi.rank
+    CD._setProc(tibm,rank)
+    if isinstance(t_out, str): Cmpi.convertPyTree2File(tibm, t_out)
+    return tibm
 
 #=============================================================================
 # Post
@@ -1167,11 +1162,11 @@ def loads(t_case, tc_in, wall_out, alpha=0., beta=0., Sref=None):
     # calcul coefficient de frottement
     C._initVars(zw, '{centers:Cf}=(sqrt({centers:Fricx}**2+{centers:Fricy}**2+{centers:Fricz}**2))/%f'%q)
 
-    zw = G.getVolumeMap(zw)
+    G._getVolumeMap(zw)
     effortX = P.integ(zw, 'centers:Fricx')[0]
-    zw = G.getVolumeMap(zw)
+    #G._getVolumeMap(zw)
     effortY = P.integ(zw, 'centers:Fricy')[0]
-    zw = G.getVolumeMap(zw)
+    #G._getVolumeMap(zw)
     effortZ = P.integ(zw, 'centers:Fricz')[0]
 
     cd = (effortX*math.cos(alpha)*math.cos(beta) + effortZ*math.sin(alpha)*math.cos(beta))/q
@@ -1241,6 +1236,153 @@ def _distribute(t_in, tc_in, NP, algorithm='graph'):
     return None
 
 #====================================================================================
+#  Build data in an additional tree used for co-processing and post-processing
+#====================================================================================
+def transferInfoForWallReconstruction__(tw,tc,variables=[], interDict=None, graph=None):
+    rank = Cmpi.rank
+    import Converter.Distributed as Distributed
+
+    # GLOBAL
+    # pour eviter les trous lies au split des zones IBM en nuages de points
+    tolBB = 0.
+    for snear in Internal.getNodesFromName(tw,"snear"):
+        snearval = Internal.getValue(snear)
+        tolBB = max(tolBB,2*snearval)
+
+    tcw = TIBM.createIBMWZones(tc,variables=variables)
+    dimPb = Internal.getNodeFromName(tw, 'EquationDimension')
+    dimPb = Internal.getValue(dimPb)
+    if dimPb ==2: C._initVars(tcw,"CoordinateZ",0.0)
+    for z in Internal.getZones(tcw): Cmpi._setProc(z,rank)
+    # C.convertPyTree2File(tcw,"tcw.cgns")
+    # 
+    if graph is not None and interDict is not None:
+        Cmpi._addXZones(tcw, graph, subr=False)
+        return tcw, interDict, graph
+
+    tcw_bb = Cmpi.createBBoxTree(tcw)
+    for z in Internal.getZones(tcw_bb):
+        valxm = C.getValue(z,'CoordinateX',0)-tolBB
+        valxp = C.getValue(z,'CoordinateX',1)-tolBB
+        C.setValue(z,'CoordinateX',0, valxm)
+        C.setValue(z,'CoordinateX',1, valxp)
+        valxm = C.getValue(z,'CoordinateY',0)-tolBB
+        valxp = C.getValue(z,'CoordinateY',1)-tolBB
+        C.setValue(z,'CoordinateY',0, valxm)
+        C.setValue(z,'CoordinateY',1, valxp)
+        if dimPb == 3:
+            valxm = C.getValue(z,'CoordinateZ',0)-tolBB
+            valxp = C.getValue(z,'CoordinateZ',1)-tolBB
+            C.setValue(z,'CoordinateZ',0, valxm)
+            C.setValue(z,'CoordinateZ',1, valxp)
+
+    D2._copyDistribution(tcw, tcw_bb)
+
+    graph={}
+    for zw in Internal.getZones(tw):
+        zwBB = G.BB(zw)
+        for zdBB in Internal.getZones(tcw_bb):
+            if G.bboxIntersection(zwBB,zdBB,isBB=True):
+                popp=Cmpi.getProc(zdBB)
+                zdname = zdBB[0]
+                Distributed.updateGraph__(graph, popp, rank, zdname)
+
+    allGraph = Cmpi.KCOMM.allgather(graph)
+    graph = {}
+    for i in allGraph:
+        for k in i:
+            if not k in graph: graph[k] = {}
+            for j in i[k]:
+                if not j in graph[k]: graph[k][j] = []
+                graph[k][j] += i[k][j]
+                graph[k][j] = list(set(graph[k][j])) # pas utile?
+    
+    Cmpi._addXZones(tcw, graph, subr=False)
+    interDict = X.getIntersectingDomains(tw,tcw_bb)
+    del tcw_bb 
+    return tcw, interDict, graph
+
+def _prepareWallReconstruction(tw, tc):
+    import Generator.PyTree as G
+    import Connector.OversetData as XOD
+
+    # Order LS
+    LSorder = 3
+    dimPb = Internal.getNodeFromName(tw, 'EquationDimension')
+    dimPb = Internal.getValue(dimPb)
+    rank = Cmpi.rank
+
+    tcw, interDict,graph = transferInfoForWallReconstruction__(tw,tc)
+
+    # C.convertPyTree2File(tcw,"tcw_%d.cgns"%rank)
+    EXTRAP = numpy.array([],numpy.int32)
+    VOL = numpy.array([],numpy.float64)
+    ORPHAN = numpy.array([],numpy.float64)
+    for zw in Internal.getZones(tw):
+        zwname = Internal.getName(zw)
+        children=[]
+        zones =[]
+        size = 0
+        for zdname in interDict[zwname]:
+            zd = Internal.getNodeFromName(tcw,zdname)            
+            children.append(Internal.createNode(zdname,'UsedDefinedData_t',value=size,children=None))
+            size += Internal.getZoneDim(zd)[1]
+            zones.append(zd)
+        zones = C.convertArray2Node(zones)
+        zones = T.join(zones)
+        coordsD = C.getFields(Internal.__GridCoordinates__, zones, api=1)[0]
+        coordsR = C.getFields(Internal.__GridCoordinates__, zw, api=1)[0]        
+        if coordsR[1].shape[1]>0 and coordsD[1].shape[1]>0 and rank==2:                    
+            ret = connector.setInterpData_IBMWall(coordsD, coordsR, dimPb, LSorder)
+            PL = ret[0]; PLD = ret[1]; COEFS=ret[3]; ITYPE=ret[2]
+            XOD._createInterpRegion__(zw, zw[0], PL, PLD, COEFS, ITYPE, VOL, EXTRAP, ORPHAN, \
+                                      tag='Receiver', loc='nodes',itype='chimera', prefix='IDW_')
+            zsr = Internal.getNodeFromType2(zw,'ZoneSubRegion_t')
+            POSTW_node = Internal.createNode('.Solver#POSTW','UserDefinedData_t',value=None,children=children,parent=zsr)
+
+    return interDict,graph
+
+# reconstruit les champs parietaux a partir des infos stockees dans tw et les champs de tc
+def _computeWallReconstruction(tw, tc, interDict=None, graph=None, variables=['Pressure']):
+    rank = Cmpi.rank
+    import Converter.Distributed as Distributed
+    # C.convertPyTree2File(tw,'outr_%d.cgns'%rank)
+    tcw, interDict, graph = transferInfoForWallReconstruction__(tw,tc,variables=variables,
+                                                                interDict=interDict, graph=graph)
+
+    for var in variables: C._initVars(tw,var,0.)
+    for zw in Internal.getZones(tw):
+        zwname = Internal.getName(zw)
+        IDW = Internal.getNodeFromName2(zw,'IDW_%s'%zwname)
+        if IDW is not None:
+            COEFS   = Internal.getNodeFromName1(IDW,'InterpolantsDonor')[1]
+            DNRTYPE = Internal.getNodeFromName1(IDW,'InterpolantsType')[1] 
+            LISTRCV = Internal.getNodeFromName1(IDW,'PointList')[1]
+            LISTDNR = Internal.getNodeFromName1(IDW,'PointListDonor')[1]
+            DNRINFO = Internal.getNodeFromName1(IDW,'.Solver#POSTW')[2]
+            zones = []
+            for dnrname in DNRINFO:
+                dnrname = Internal.getName(dnrname)
+                zdnr = Internal.getNodeFromName2(tcw,dnrname)                
+                if zdnr is None: 
+                    print(zwname,dnrname)
+                    print("_computeWallReconstruction : IMPLEMENTATION ERROR !!!!")
+                zones.append(zdnr)
+            #C.convertPyTree2File(zones,"dnrs_%d.cgns"%rank)
+
+            zones = C.convertArray2Node(zones); zones = T.join(zones)
+            loc = 0; varType = 1; compact=0; cellNVariable='' 
+            RotAngleX = 0.; RotAngleY = 0.; RotAngleZ = 0. 
+            connector._setInterpTransfers(zw,zones,variables, LISTRCV, LISTDNR, DNRTYPE, COEFS, 
+                                          loc, varType, compact, 
+                                          cellNVariable,
+                                          Internal.__GridCoordinates__, 
+                                          Internal.__FlowSolutionNodes__, 
+                                          Internal.__FlowSolutionCenters__, 
+                                          RotAngleX, RotAngleY, RotAngleZ)
+    return None
+
+#====================================================================================
 # Prend les snears dans t, les multiplie par factor
 def snearFactor(t, factor=1.):
     tp = Internal.copyRef(t)
@@ -1298,28 +1440,55 @@ def _setDfar(z, value):
     return None
 
 def _modifIBCD(tc):
-    # modif BC outpress
-    nodes = Internal.getNodesFromName(tc, 'IBCD_4_*')
-    for n in nodes:
-        pres = Internal.getNodeFromName1(n, 'Pressure')
-        Internal.setValue(pres, 74500.*numpy.ones(numpy.shape(pres[1])))
-    # modif BC injection
-    alpha = 0.*pi/180.
-    nodes = I.getNodesFromName(tc, 'dirx')
-    for n in nodes:
-        d = numpy.ones(numpy.shape(n[1]))
-        Internal.setValue(n, d)
-    nodes = Internal.getNodesFromName(tc, 'StagnationEnthalpy')
-    for n in nodes:
-        Internal.setValue(n, stagEnt*numpy.ones(numpy.shape(n[1])))
-    nodes = Internal.getNodesFromName(tc, 'StagnationPressure')
-    for n in nodes:
-        Internal.setValue(n, PiInj*numpy.ones(numpy.shape(n[1])))
+    raise(NotImplementedError,"_modifyIBCD is obsolete. Use _initOutflow and _initInj functions.")
+
+# set Pressure to P_tot for a IBC of type outpress of family name FamilyName
+def _initOutflow(tc, familyNameOutflow, P_tot):
+    for zc in Internal.getZones(tc):
+        for zsr in Internal.getNodesFromName(zc,'IBCD_4_*'):
+            FamNode = Internal.getNodeFromType1(zsr,'FamilyName_t')
+            if FamNode is not None:
+                FamName = Internal.getValue(FamNode)
+                if FamName==familyNameOutflow:
+                    stagPNode =  Internal.getNodeFromName(zsr,'Pressure')    
+                    sizeIBC = NPY.shape(stagPNode[1])
+                    Internal.setValue(stagPNode,P_tot*NPY.ones(sizeIBC))
     return None
 
+def _initInj(tc, familyNameInj, P_tot, H_tot, injDir=[1.,0.,0.]):
+    for zc in Internal.getZones(tc):
+        for zsr in Internal.getNodesFromName(zc,'IBCD_5_*'):
+            FamNode = Internal.getNodeFromType1(zsr,'FamilyName_t')
+            if FamNode is not None:
+                FamName = Internal.getValue(FamNode)
+                if FamName==familyNameInj:
+                    stagPNode =  Internal.getNodeFromName(zsr,'StagnationPressure')
+                    stagHNode =  Internal.getNodeFromName(zsr,'StagnationEnthalpy')
+                    dirxNode = Internal.getNodeFromName(zsr,'dirx')
+                    diryNode = Internal.getNodeFromName(zsr,'diry')
+                    dirzNode = Internal.getNodeFromName(zsr,'dirz')
+                    sizeIBC = NPY.shape(stagHNode[1])
+                    Internal.setValue(stagHNode,H_tot*NPY.ones(sizeIBC))
+                    Internal.setValue(stagPNode,P_tot*NPY.ones(sizeIBC))
+                    if injDir[0] != 0.: 
+                        Internal.setValue(dirxNode, injDir[0]*NPY.ones(sizeIBC))
+                    else:
+                        Internal.setValue(dirxNode, NPY.zeros(sizeIBC)) 
+
+                    if injDir[1] != 0.: 
+                        Internal.setValue(diryNode, injDir[1]*NPY.ones(sizeIBC))
+                    else:
+                        Internal.setValue(diryNode, NPY.zeros(sizeIBC))
+
+                    if injDir[2] != 0.: 
+                        Internal.setValue(dirzNode, injDir[2]*NPY.ones(sizeIBC))
+                    else:
+                        Internal.setValue(dirzNode, NPY.zeros(sizeIBC)) 
+                    
+    return None
 #====================================================================================
 class IBM(Common):
-    """Preparation et caculs avec le module FastS."""
+    """Preparation et calculs IBM avec le module FastS."""
     def __init__(self, format=None, numb=None, numz=None):
         Common.__init__(self, format, numb, numz)
         self.__version__ = "0.0"

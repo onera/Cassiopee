@@ -32,7 +32,7 @@ def prepare0(t_case, t_out, tc_out, translation=[0.,0.,0.], NP=0, format='single
     C._addState(t, 'GoverningEquations', 'LBMLaminar')
     C._addState(t,adim='adim1', MInf=0.05)# ne sert qu a passer le warmup
     #
-    if NP > 0 : t = T.splitSize(t, R=NP, type=2, minPtsPerDir=9)
+    if NP > 1 : t = T.splitSize(t, R=NP, type=2, minPtsPerDir=9)
     t = X.connectMatch(t)
     isPerio=0
     
