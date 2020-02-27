@@ -157,6 +157,11 @@ hatchlist = ['none','/','//','///','\\','\\\\','|','||','|||','-','--','---','+'
 font_typelist = ['serif','sans-serif','cursive','fantasy','monospace']
 
 # Create the list of shapes available for bbox
+import matplotlib.patches as mpatch
+styles = mpatch.BoxStyle.get_styles()
+box_stylelist = []
+for i, (stylename,styleclass) in enumerate(sorted(styles.items())):
+    box_stylelist.append(stylename)
 shape_typelist = ['Circle','Rectangle','Ellipse','Arrow','Bracket','FancyBbox','Line']
 
 t = np.arange(0., 5., 0.002)
@@ -203,7 +208,7 @@ default_values = {
         {
             'text'                : "",
             'visibility'          : True,
-            'text_size'          : 8.,
+            'text_size'          : 11.,
             'text_alpha'          : 1.,
             'box_alpha'           : 1.,
             'box_backgroundcolor' : '#FFFFFF',
@@ -333,6 +338,8 @@ default_values = {
                 }
 }
 
+font_dic = {}
+# Cette fonction remplit font_dic
 def createFonts():
     from io import BytesIO, TextIOWrapper
     from sys import stderr
@@ -341,7 +348,6 @@ def createFonts():
     from matplotlib import font_manager
     
     # voir: https://matplotlib.org/gallery/api/font_family_rc_sgskip.html
-    font_dic = {}
     if redirect_stderr:
         def createListOfFonts(font_type):
             l_font = []
@@ -367,7 +373,7 @@ def createFonts():
             plt.rcParams['font.family']=['font.%s'%font_type]
             l_font = createListOfFonts('font.%s'%font_type)
             if l_font: font_dic[font_type] = l_font
-        plt.rcParams['font.family']=init_rcparams
+        plt.rcParams['font.family'] = init_rcparams
     else:
         import sys
         import StringIO
@@ -405,6 +411,7 @@ def createFonts():
         temp_out.close()
         temp_err.close()
         plt.rcParams['font.family']=init_rcparams
+    return font_dic
 
 # ==============================================================================
 class editTextWindow(TK.Toplevel):
@@ -425,13 +432,9 @@ class editTextWindow(TK.Toplevel):
         self.graph = self.parent.activeGraph.val
 
         self.zone  = self.parent.position.val
-        try:
-            self.subGraph = self.parent.graphWdwL[self.graph].fig.subGraph[self.zone]
+        try: self.subGraph = self.parent.graphWdwL[self.graph].fig.subGraph[self.zone]
         except TypeError: # Exit if no graph & zone available
-            self.cmd_close()
-            return
-#        except IndexError: # Error while closing window ...
-#            return
+            self.cmd_close(); return
         #
         self.grid_columnconfigure(0,weight=1)
         self.grid_rowconfigure(0,weight=1)
@@ -690,7 +693,7 @@ class editTextWindow(TK.Toplevel):
             self.frame.textItem.append(B)
         # Text to add
         ind = len(self.subGraph.texts)
-        B = TTK.Button(lblframe,text="Text",command=lambda n=(ind,self.frame.textItem): self.bt_click(n))
+        B = TTK.Button(lblframe,width=12,text="Text",command=lambda n=(ind,self.frame.textItem): self.bt_click(n))
         B.list = []
         B.val = ""
         B.var = 'text'
@@ -958,12 +961,12 @@ class editTextWindow(TK.Toplevel):
         self.frame.text_alphaItem.append(B)
 
         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Use Tex
-        lblframe = TTK.LabelFrame(frameFont, text="Use Tex")
+        lblframe = TTK.LabelFrame(frameFont, text="Tex")
         lblframe.grid(row=0,column=5,sticky='NESW')
         #
         lblframe.grid_columnconfigure(0,weight=1)
         for ind in range(len(self.subGraph.texts)+1): lblframe.grid_rowconfigure(ind,weight=1)
-        #
+        
         self.frame.use_texItem=[]
         #
         for ind in range(len(self.subGraph.texts)):
@@ -1104,7 +1107,7 @@ class editTextWindow(TK.Toplevel):
         for ind in range(len(self.subGraph.texts)):
             t = self.subGraph.texts[ind]
             B_left = TTK.Button(lblframe,text='<',command=lambda n=(ind,self.frame.posxItem): self.bt_moveLeft(n))
-            B = TTK.Button(lblframe,text=t.posx,command=lambda n=(ind,self.frame.posxItem): self.bt_click(n))
+            B = TTK.Button(lblframe,width=12,text=t.posx,command=lambda n=(ind,self.frame.posxItem): self.bt_click(n))
             B_right = TTK.Button(lblframe,text='>',command=lambda n=(ind,self.frame.posxItem): self.bt_moveRight(n))
             B.list = []
             B.val = t.posx
@@ -1149,7 +1152,7 @@ class editTextWindow(TK.Toplevel):
         for ind in range(len(self.subGraph.texts)):
             t = self.subGraph.texts[ind]
             B_left = TTK.Button(lblframe,text='<',command=lambda n=(ind,self.frame.posyItem): self.bt_moveLeft(n))
-            B = TTK.Button(lblframe,text=t.posy,command=lambda n=(ind,self.frame.posyItem): self.bt_click(n))
+            B = TTK.Button(lblframe,width=12,text=t.posy,command=lambda n=(ind,self.frame.posyItem): self.bt_click(n))
             B_right = TTK.Button(lblframe,text='>',command=lambda n=(ind,self.frame.posyItem): self.bt_moveReft(n))
             B.list = []
             B.val = t.posy
@@ -1384,7 +1387,7 @@ class editTextWindow(TK.Toplevel):
         self.frame.box_styleItem.append(B)
 
         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Active background
-        lblframe = TTK.LabelFrame(frameBox, text="Bckgd. active")
+        lblframe = TTK.LabelFrame(frameBox, text="Bckgd.")
         lblframe.grid(row=0,column=4,sticky='NESW')
         #
         lblframe.grid_columnconfigure(0,weight=1)
@@ -2264,7 +2267,6 @@ class editTextWindow(TK.Toplevel):
         bottomFrame.grid_columnconfigure(3,weight=1)
         bottomFrame.grid_columnconfigure(4,weight=1)
         bottomFrame.grid_columnconfigure(5,weight=1)
-
         #
         bottomFrame.grid_rowconfigure(0,weight=0)
         #
@@ -2286,11 +2288,8 @@ class editTextWindow(TK.Toplevel):
         B = TTK.Button(bottomFrame,text='Close',command=self.cmd_close)
         B.grid(row=0,column=5,columnspan=1,sticky="nsew")
 
-        #
-        try:
-            self.frameList[self.graph][self.zone] = self.frame
-        except KeyError:
-            self.frameList[self.graph] = {self.zone:self.frame}
+        try: self.frameList[self.graph][self.zone] = self.frame
+        except KeyError: self.frameList[self.graph] = {self.zone:self.frame}
     # ------------------------------------------------------------ cb_active_background
     def cb_active_background(self,ind):
         CB = self.frame.active_backgroundItem[ind]
@@ -2472,6 +2471,9 @@ class editTextWindow(TK.Toplevel):
     # ---------------------------------------------------------- updateButonWith
     def updateButonWith(self,B,val):
         self.updateButon(B,val)
+    def updateButonWidth(self,B,val):
+        self.updateButon(B,val)
+        
     # ----------------------------------------------------------------- bt_click
     def updateColor(self,color,B,extra_data):
         bt_list = extra_data[1]
@@ -2638,7 +2640,6 @@ class editTextWindow(TK.Toplevel):
         self.geometry("")
         cm = plt.get_cmap(COLOR_MAP)
 
-
         ### grid forget on indRemove
         for action in [ self.frame.selectionItem,self.frame.IdItem,self.frame.textItem,
                         self.frame.visibilityItem,self.frame.text_colorItem,self.frame.text_sizeItem,
@@ -2724,11 +2725,9 @@ class editTextWindow(TK.Toplevel):
             lblframe = action[0].winfo_parent() # Returns the name of the parent
             lblframe = self.frame.nametowidget(lblframe) # returns the instance of the parent # Returns the name of the parent
             lblframe.grid_rowconfigure(len(self.subGraph.curves)+1,weight=1)
-        #
-        try:
-            self.frameList[self.graph][self.zone] = self.frame
-        except KeyError:
-            self.frameList[self.graph] = {self.zone:self.frame}
+        
+        try: self.frameList[self.graph][self.zone] = self.frame
+        except KeyError: self.frameList[self.graph] = {self.zone:self.frame}
 
 
     # ---------------------------------------------------------------- cmd_duplicateTexts
@@ -2928,7 +2927,6 @@ class editTextWindow(TK.Toplevel):
         lblframe.grid_rowconfigure(ind, weight=1)
 
 
-
         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& text color
         ### delete text to add
         ind = len(self.subGraph.texts)-1
@@ -3036,7 +3034,6 @@ class editTextWindow(TK.Toplevel):
         B.container = self.frame.policeItem
         self.frame.policeItem.append(B)
         lblframe.grid_rowconfigure(ind,weight=1)
-
 
         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Font Style
         ### delete text to add
@@ -3450,10 +3447,8 @@ class editTextWindow(TK.Toplevel):
         self.frame.box_alphaItem.append(B)
         lblframe.grid_rowconfigure(ind,weight=1)
 
-        try:
-            self.frameList[self.graph][self.zone] = self.frame
-        except KeyError:
-            self.frameList[self.graph] = {self.zone:self.frame}
+        try: self.frameList[self.graph][self.zone] = self.frame
+        except KeyError: self.frameList[self.graph] = {self.zone:self.frame}
 
     # ---------------------------------------------------------------- cmd_close
     def cmd_close(self):
@@ -3755,13 +3750,9 @@ class editShapeWindow(TK.Toplevel):
     # -------------------------------------------------------------- updateButon
     def updateButon(self, B, val):
 
-
         if B.treatmentId == 5: # Cas specifique de la liste de points
             self.updateShapePointsList(B,val)
             return
-
-
-
 
         l_ind = [B.ind]
         containerOfB = B.container
@@ -8930,7 +8921,6 @@ class inputPattern_dialogWindow(TK.Toplevel):
 
         Button = TTK.Button(frame,text='OK',command=self.cmd_okButton)
         Button.grid(row=0,column=0,sticky='NSEW')
-
         Button = TTK.Button(frame,text='Cancel',command=self.cmd_close)
         Button.grid(row=0,column=1,sticky='NSEW')
         #
@@ -8975,7 +8965,6 @@ class inputPosition_dialogWindow(TK.Toplevel):
         pointFrame.grid_columnconfigure(0,weight=3)
         pointFrame.grid_columnconfigure(1,weight=0)
         pointFrame.grid_rowconfigure(0,weight=1)
-
         #
         pointlistFrame = TTK.LabelFrame(pointFrame,text='List of points coord. from 0. to 1.')
         pointlistFrame.grid(row=0,column=0,sticky='NSEW')
@@ -9541,8 +9530,7 @@ class GraphTK(TK.Toplevel):
         return self.fig.getGrid(iCurSubGraph, ind)
     # ------------------------------------------------------------------ addAxis
     def addAxis(self,iCurSubGraph,shared=None,ind=0,axis=None):
-        if axis:
-            ind = axis.getInd()
+        if axis: ind = axis.getInd()
         axis_to_twin = ind
         if shared is None:
             self.fig.subGraph[iCurSubGraph].addAxis()
@@ -9581,6 +9569,7 @@ class GraphTK(TK.Toplevel):
         if self.subgraph_background_alpha != default_values['Graph']['subgraph_background_alpha']:
             line += '''graph_%s.setValue('subgraph_background_alpha',%s)\n'''%(ind,self.subgraph_background_alpha)
         return line
+
     # ------------------------------------------------------------ clickOnCanvas
     def _axesToUpdate(self, event):
         x_axes, y_axes = set(), set()
@@ -9597,6 +9586,36 @@ class GraphTK(TK.Toplevel):
         return x_axes, y_axes
 
     def _draw(self):
+        # -- Update axis properties here from axis (modified by zoom)
+        x_axes, y_axes = self._axes
+        h = self.fig.subGraph
+        for ax in x_axes:
+            for iCurSubGraph in h:
+                for iCurrentAxis in range(len(h[iCurSubGraph].axis)):
+                    if id(h[iCurSubGraph].axis[iCurrentAxis]) == id(ax):
+                        (xmin,xmax) = ax.get_xlim()
+                        if xmin <= xmax:
+                            h[iCurSubGraph].axis_property[iCurrentAxis].x.axis_min = xmin
+                            h[iCurSubGraph].axis_property[iCurrentAxis].x.axis_max = xmax
+                        else:
+                            h[iCurSubGraph].axis_property[iCurrentAxis].x.axis_min = xmax
+                            h[iCurSubGraph].axis_property[iCurrentAxis].x.axis_max = xmin
+                        h[iCurSubGraph].axis_property[iCurrentAxis].x.axis_autoscale = False
+        for ay in y_axes:
+            for iCurSubGraph in h:
+                for iCurrentAxis in range(len(h[iCurSubGraph].axis)):
+                    if id(h[iCurSubGraph].axis[iCurrentAxis]) == id(ay):
+                        (xmin,xmax) = ay.get_ylim()
+                        if xmin <= xmax:
+                            h[iCurSubGraph].axis_property[iCurrentAxis].y.axis_min = xmin
+                            h[iCurSubGraph].axis_property[iCurrentAxis].y.axis_max = xmax
+                        else:
+                            h[iCurSubGraph].axis_property[iCurrentAxis].y.axis_min = xmax
+                            h[iCurSubGraph].axis_property[iCurrentAxis].y.axis_max = xmin
+                        h[iCurSubGraph].axis_property[iCurrentAxis].y.axis_autoscale = False
+        # End of update --
+
+        # draw
         self.canvas.draw()
     
     @staticmethod
@@ -9718,7 +9737,6 @@ class GraphTK(TK.Toplevel):
 
         elif event.name == 'motion_notify_event':  # drag
             if self._event is None: return
-
             if event.inaxes != self._event.inaxes: return  # Ignore event outside plot
 
             self._patch.set_width(event.xdata - self._event.xdata)
@@ -9764,15 +9782,16 @@ class GraphTK(TK.Toplevel):
                 self._axes = x_axes, y_axes
                 self._pressed_button = event.button
 
-                if self._pressed_button == 1:  self._pan(event)
-                elif self._pressed_button == 3:  self._zoomArea(event)
+                if self._pressed_button == 1: self._pan(event)
+                elif self._pressed_button == 3: self._zoomArea(event)
         
     def _onMouseRelease(self, event):
         if self._pressed_button == event.button:
-            if self._pressed_button == 1:  self._pan(event)
+            if self._pressed_button == 1: self._pan(event)
             elif self._pressed_button == 3: self._zoomArea(event)
             self._pressed_button = None
-            
+        self.updateGraph(self.parent.position.val)
+
     def _onMouseMotion(self, event):
         if self._pressed_button == 1: self._pan(event)
         elif self._pressed_button == 3: self._zoomArea(event)
@@ -9823,12 +9842,10 @@ class GraphTK(TK.Toplevel):
         self.updateGraph(iCurSubGraph)
     # ----------------------------------------------------------------- addCurve
     def addText(self,iCurSubGraph,text):
-
         self.fig.subGraph[iCurSubGraph].texts.append(text)
         self.updateGraph(iCurSubGraph)
     # ----------------------------------------------------------------- addShape
     def addShape(self,iCurSubGraph,shape):
-
         self.fig.subGraph[iCurSubGraph].shapes.append(shape)
         self.updateGraph(iCurSubGraph)
     # ----------------------------------------------------- removeCurvesZoneName
@@ -10903,7 +10920,7 @@ class editCurvesWindow(TK.Toplevel):
         lblframe.grid_columnconfigure(0,weight=1)
         for ind in range(len(self.subGraph.curves)+1):
             lblframe.grid_rowconfigure(ind,weight=1)
-        #
+        
         lblframelvl1.append(lblframe)
         #
         self.frame.marker_sampling_endItem = []
@@ -11004,7 +11021,7 @@ class editCurvesWindow(TK.Toplevel):
         self.frame.legend_labelItem = []
         for ind in range(len(self.subGraph.curves)):
             c = self.subGraph.curves[ind]
-            B = TTK.Button(lblframe,text=c.legend_label,command=lambda n=(ind,self.frame.legend_labelItem): self.bt_click(n))
+            B = TTK.Button(lblframe,width=12,text=c.legend_label,command=lambda n=(ind,self.frame.legend_labelItem): self.bt_click(n))
             B.list = []
             B.val = c.legend_label
             B.var = 'legend_label'
@@ -12626,7 +12643,7 @@ class DesktopFrameTK(TK.Frame):
         #
         ## Edit/Delete curves
         #
-        B = TTK.Button(lblframeEdit,text='Add/Edit/Delete Curves',command=self.cmd_editCurves)
+        B = TTK.Button(lblframeEdit,text='Edit Curves',command=self.cmd_editCurves)
         B.grid(row=1,column=0,columnspan=1,sticky="nsew")
         #
         ## Set Legend
@@ -12646,12 +12663,12 @@ class DesktopFrameTK(TK.Frame):
         #
         ## Set Text
         #
-        #B = TTK.Button(lblframeEdit,text='Add/Edit/Delete Texts',command=self.cmd_setText)
-        #B.grid(row=3,column=0,columnspan=1,sticky="nsew")
+        B = TTK.Button(lblframeEdit,text='Edit Texts',command=self.cmd_setText)
+        B.grid(row=3,column=0,columnspan=2,sticky="nsew")
         #
         ## Set Shapes
         #
-        #B = TTK.Button(lblframeEdit,text='Add/Edit/Delete Shapes',command=self.cmd_setShape)
+        #B = TTK.Button(lblframeEdit,text='Edit Shapes',command=self.cmd_setShape)
         #B.grid(row=3,column=1,columnspan=1,sticky="nsew")
         #
         ## Set Graph Settings
@@ -12692,6 +12709,8 @@ class DesktopFrameTK(TK.Frame):
 
     # -------------------------------------------------------------- cmd_setText
     def cmd_setText(self):
+        global font_dic
+        font_dic = createFonts()
         if not self.editTextWdw:
             self.editTextWdw = editTextWindow()
             self.editTextWdw.initialize(self)
@@ -13321,10 +13340,8 @@ class Desktop():
                             self.data[basename+'/'+zonename][Internal.getName(var)+'@'+flowsolutionname]=Internal.getValue(var)
     # ---------------------------------------------------------- addZoneWithDict
     def addZoneWithDict(self,d,zoneName):
-        if zoneName in d:
-            self.data[zoneName]=d[zoneName]
-        else:
-            print('''### Wanring: Can not find zone %s in submitted data.'''%newZoneName)
+        if zoneName in d: self.data[zoneName]=d[zoneName]
+        else: print('''### Warning: Can not find zone %s in submitted data.'''%newZoneName)
     # ------------------------------------------------------- deleteZoneFromData
     def deleteZoneFromData(self,zoneName,oldBaseName=""):
         """
@@ -14241,8 +14258,144 @@ class MatplotlibFigure():
             if self.subGraph[iCurSubGraph].legend_property.legend_background_color_active:
                 legend.get_frame().set_facecolor(self.subGraph[iCurSubGraph].legend_property.legend_background_color)
             else: legend.get_frame().set_facecolor('none')
-        #
-#        self.instance.tight_layout()
+
+        #### ADDITIONAL TEXTS
+        if iCurrentAxis == len(self.subGraph[iCurSubGraph].axis)-1 :
+            for t in self.subGraph[iCurSubGraph].texts:
+                if t.active_background:
+                    box_backgroundcolor = t.box_backgroundcolor
+                else:
+                    box_backgroundcolor = 'none' # et pas None ... ... ...
+                # Determine posx and posy
+                posx = t.posx*(xmax-xmin)+xmin
+                posy = t.posy*(ymax-ymin)+ymin
+                # Configuration de la police
+                plt.rcParams['font.%s'%t.font_type] = [t.police] + font_dic[t.font_type]
+                try:
+                    # text = self.subGraph[iCurSubGraph].axis[iCurrentAxis].text(t.posx,t.posy,t.text,color=t.text_color,visible=t.visibility,
+                    #         family=t.font_type,fontweight=t.font_weight,horizontalalignment=t.ha,verticalalignment=t.va,
+                    #         rotation=t.rotation,usetex=t.use_tex,alpha=t.text_alpha,backgroundcolor=background_color)
+                    text = self.subGraph[iCurSubGraph].axis[iCurrentAxis].text(posx,posy,t.text,color=t.text_color,visible=t.visibility,
+                            family=t.font_type,fontweight=t.font_weight,horizontalalignment=t.ha,verticalalignment=t.va,
+                            rotation=t.rotation,alpha=t.text_alpha,fontsize=t.text_size,
+                            usetex=t.use_tex)
+                except AttributeError:
+                    print("usetex has been disabled => your version of matplotlib is to old")
+                    # text = self.subGraph[iCurSubGraph].axis[iCurrentAxis].text(t.posx,t.posy,t.text,color=t.text_color,visible=t.visibility,
+                    # family=t.font_type,fontweight=t.font_weight,horizontalalignment=t.ha,verticalalignment=t.va,
+                    # rotation=t.rotation,alpha=t.text_alpha,backgroundcolor=background_color)
+                    text = self.subGraph[iCurSubGraph].axis[iCurrentAxis].text(posx,posy,t.text,color=t.text_color,visible=t.visibility,
+                            family=t.font_type,fontweight=t.font_weight,horizontalalignment=t.ha,verticalalignment=t.va,
+                            rotation=t.rotation,alpha=t.text_alpha,fontsize=t.text_size)
+                text.set_bbox(dict( facecolor=box_backgroundcolor,edgecolor=t.box_edgecolor,alpha=t.box_alpha,
+                                    boxstyle=t.box_style,linewidth=t.box_linewidth))
+
+            #
+            #### ADDITIONAL SHAPES
+            for s in self.subGraph[iCurSubGraph].shapes:
+                points = []
+                for p in s.points:
+                    # Determine posx and posy
+                    posx = p[0]*(xmax-xmin)+xmin
+                    posy = p[1]*(ymax-ymin)+ymin
+                    points.append((posx,posy))
+                width = s.width*(xmax-xmin)
+                height = s.height*(ymax-ymin)
+                if s.hatch == 'none':
+                    hatch = None
+                else:
+                    hatch = s.hatch
+                if s.shape_type == 'Arrow':
+                    dico_arrow = {
+                                    'Curve'         :mpatch.ArrowStyle.Curve(),
+                                    'CurveB'        :mpatch.ArrowStyle.CurveB(head_length=s.head_length,head_width=s.head_width),
+                                    'CurveFilledB'  :mpatch.ArrowStyle.CurveFilledB(head_length=s.head_length,head_width=s.head_width),
+                                    'CurveA'        :mpatch.ArrowStyle.CurveA(head_length=s.head_length,head_width=s.head_width),
+                                    'CurveAB'       :mpatch.ArrowStyle.CurveAB(head_length=s.head_length,head_width=s.head_width),
+                                    'CurveFilledA'  :mpatch.ArrowStyle.CurveFilledA(head_length=s.head_length,head_width=s.head_width),
+                                    'CurveFilledAB' :mpatch.ArrowStyle.CurveFilledAB(head_length=s.head_length,head_width=s.head_width),
+                                    'Fancy'         :mpatch.ArrowStyle.Fancy(head_length=s.head_length,head_width=s.head_width,tail_width=s.tail_width),
+                                    'Simple'        :mpatch.ArrowStyle.Simple(head_length=s.head_length,head_width=s.head_width,tail_width=s.tail_width)
+                                }
+
+                    if len(points)==2:
+                        shape = mpatch.FancyArrowPatch(points[0],points[1],arrowstyle=dico_arrow[s.arrowstyle],
+                                                        mutation_scale=s.scale,linewidth=s.linewidth,
+                                                        hatch=hatch,
+                                                        edgecolor=s.edgecolor,
+                                                        facecolor=s.facecolor,
+                                                        linestyle=s.linestyle,
+                                                        alpha=s.alpha)
+                        self.subGraph[iCurSubGraph].axis[iCurrentAxis].add_patch(shape)
+                    elif len(points)==3:
+                        codes = [
+                                    Path.MOVETO,
+                                    Path.CURVE3,
+                                    Path.CURVE3,
+                                ]
+                        path = Path(points,codes)
+
+
+                        self.subGraph[iCurSubGraph].axis[iCurrentAxis].add_patch(mpatch.FancyArrowPatch(
+                                                            path=path,
+                                                            arrowstyle=dico_arrow[s.arrowstyle],
+                                                            mutation_scale=s.scale,
+                                                            linewidth=s.linewidth,
+                                                            hatch=hatch,
+                                                            edgecolor=s.edgecolor,
+                                                            facecolor=s.facecolor,linestyle=s.linestyle,alpha=s.alpha))
+
+                elif s.shape_type == 'Circle':
+                    shape = mpatch.Circle(  xy=[points[0][0],points[0][1]],radius=s.radius,clip_on=False,
+                                            linewidth=s.linewidth,edgecolor=s.edgecolor,facecolor=s.facecolor,
+                                            hatch=hatch,linestyle=s.linestyle, alpha=s.alpha)
+                    self.subGraph[iCurSubGraph].axis[iCurrentAxis].add_patch(shape)
+                elif s.shape_type == 'Ellipse':
+                    shape = mpatch.Ellipse( xy=[points[0][0],points[0][1]],height=height,width=width,angle=s.angle,clip_on=False,
+                                            linewidth=s.linewidth,edgecolor=s.edgecolor,facecolor=s.facecolor,
+                                            hatch=hatch,linestyle=s.linestyle,alpha=s.alpha)
+                    self.subGraph[iCurSubGraph].axis[iCurrentAxis].add_patch(shape)
+                elif s.shape_type == 'Rectangle':
+                    shape = mpatch.Rectangle(   xy=[points[0][0],points[0][1]],height=height,width=width,angle=s.angle,clip_on=False,
+                                                linewidth=s.linewidth,edgecolor=s.edgecolor,facecolor=s.facecolor,
+                                                hatch=hatch,linestyle=s.linestyle,alpha=s.alpha)
+                    self.subGraph[iCurSubGraph].axis[iCurrentAxis].add_patch(shape)
+                elif s.shape_type == 'Line':
+                    x,y = np.array([[p[0] for p in points],[p[1] for p in points]])
+                    line = mlines.Line2D(x,y,linewidth=s.linewidth,linestyle=s.linestyle,color=s.linecolor,alpha=s.alpha)
+                    self.subGraph[iCurSubGraph].axis[iCurrentAxis].add_line(line)
+                elif s.shape_type == 'Bracket':
+                    dico_bracket = {
+                                    'BracketA'          :mpatch.ArrowStyle.BracketA(widthA=s.widthA,lengthA=s.lengthA,angleA=s.angleA),
+                                    'BracketB'          :mpatch.ArrowStyle.BracketB(widthB=s.widthB,lengthB=s.lengthB,angleB=s.angleB),
+                                    'BracketAB'          :mpatch.ArrowStyle.BracketAB(widthA=s.widthA,lengthA=s.lengthA,angleA=s.angleA,
+                                                                                        widthB=s.widthB,lengthB=s.lengthB,angleB=s.angleB),
+                                }
+                    if len(points)==2:
+                        shape = mpatch.FancyArrowPatch(points[0],points[1],arrowstyle=dico_bracket[s.bracketstyle],
+                                                        mutation_scale=s.scale,linewidth=s.linewidth,
+                                                        edgecolor=s.edgecolor,
+                                                        facecolor=s.facecolor,
+                                                        linestyle=s.linestyle,
+                                                        alpha=s.alpha)
+                        self.subGraph[iCurSubGraph].axis[iCurrentAxis].add_patch(shape)
+                    elif len(points)==3:
+                        codes = [
+                                    Path.MOVETO,
+                                    Path.CURVE3,
+                                    Path.CURVE3,
+                                ]
+                        path = Path(points,codes)
+
+                        self.subGraph[iCurSubGraph].axis[iCurrentAxis].add_patch(mpatch.FancyArrowPatch(
+                                                            path=path,
+                                                            arrowstyle=dico_bracket[s.bracketstyle],
+                                                            mutation_scale=s.scale,
+                                                            linewidth=s.linewidth,
+                                                            edgecolor=s.edgecolor,
+                                                            facecolor=s.facecolor,linestyle=s.linestyle,alpha=s.alpha))
+
+
 
     # --------------------------------------------------------------------------
     def sortData(self,v1,v2):
@@ -14347,6 +14500,8 @@ class Axis():
             lines +='''    %s.setValue('x','axis_offset','%s')\n'''%(axisobj,self.x.axis_offset)
         if float(self.x.axis_label_fontsize) != default_values['Axis']['axis_x_label_fontsize']    :
             lines +='''    %s.setValue('x','axis_label_fontsize','%s')\n'''%(axisobj,self.x.axis_label_fontsize)
+        if float(self.x.axis_label_format) != default_values['Axis']['axis_x_label_format']    :
+            lines +='''    %s.setValue('x','axis_label_format','%s')\n'''%(axisobj,self.x.axis_label_format)
         if self.y.axis_logscale != default_values['Axis']['axis_y_logscale']    :
             lines +='''    %s.setValue('y','axis_logscale',%s)\n'''%(axisobj,bool(self.y.axis_logscale))
         if self.y.axis_autoscale != default_values['Axis']['axis_y_autoscale']    :
@@ -14367,6 +14522,9 @@ class Axis():
             lines +='''    %s.setValue('y','axis_offset','%s')\n'''%(axisobj,self.y.axis_offset)
         if float(self.y.axis_label_fontsize) != default_values['Axis']['axis_y_label_fontsize'] :
             lines +='''    %s.setValue('y','axis_label_fontsize','%s')\n'''%(axisobj,self.y.axis_label_fontsize)
+        if float(self.y.axis_label_format) != default_values['Axis']['axis_y_label_format']    :
+            lines +='''    %s.setValue('x','axis_label_format','%s')\n'''%(axisobj,self.y.axis_label_format)
+        
         return lines
 # ==============================================================================
 # ==============================================================================
@@ -14673,11 +14831,11 @@ class Text:
     Text class describes all the settings concerning a given text itself.
     """
     def __init__(self, *args, **kwargs):
-        self.zone                  = kwargs.get('zone', None)
+        self.zone                   = kwargs.get('zone', None)
         self.text                   = kwargs.get('text', default_values['Text']['text'])
         self.ha                     = kwargs.get('ha', default_values['Text']['ha'])
         self.va                     = kwargs.get('va', default_values['Text']['va'])
-        self.text_size             = kwargs.get('text_size', default_values['Text']['text_size'])
+        self.text_size              = kwargs.get('text_size', default_values['Text']['text_size'])
         self.text_alpha             = kwargs.get('text_alpha', default_values['Text']['text_alpha'])
         self.box_alpha              = kwargs.get('box_alpha', default_values['Text']['box_alpha'])
         self.box_backgroundcolor    = kwargs.get('box_backgroundcolor', default_values['Text']['box_backgroundcolor'])
@@ -15182,6 +15340,11 @@ class CustomToolbar(NavigationToolbar2Tk):
         #self.graph.applyViewSettings()
         #self.graph.fig.drawOneFigure(self.graph.fig.instance.position.val)
         #self.canvas.draw()
+        h = self.graph.fig.subGraph
+        for iCurSubGraph in h:
+            for iCurrentAxis in range(len(h[iCurSubGraph].axis)):
+                h[iCurSubGraph].axis_property[iCurrentAxis].x.axis_autoscale = True
+                h[iCurSubGraph].axis_property[iCurrentAxis].y.axis_autoscale = True
         self.graph.updateGraph(self.graph.parent.position.val)
 
     def pan_tkPlotXY(self, *args):
