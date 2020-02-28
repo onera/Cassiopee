@@ -28,7 +28,10 @@ for (E_Int noind = 0; noind < ifin-ideb; noind++)
   uext = sqrt(ut_vec[noind]*ut_vec[noind]+vt_vec[noind]*vt_vec[noind]+wt_vec[noind]*wt_vec[noind]);
   uext = std::max(uext, 1.e-12);
 
-  tcible_vec[noind] = tcible_vec[noind] + 0.5*pow(Pr,one_third)/(cv*gamma)*(uext*uext - umod*umod); // Crocco-Busemann
+  // tcible_vec[noind] = tcible_vec[noind] + 0.5*pow(Pr,one_third)/(cv*gamma)*(uext*uext - umod*umod); // Crocco-Busemann
+
+  twall = tcible_vec[noind] + 0.5*pow(Pr,one_third)/(cv*gamma)*(uext*uext);
+  tcible_vec[noind] =  twall + (tcible_vec[noind] + 0.5*(uext*uext)/(cv*gamma) - twall)*(umod/uext) - 0.5*(umod*umod)/(cv*gamma); // Equations de Crocco, plus precises pour ecoulements compressibles
   
   // van dryst pour nut
   expy                = 1.-exp(-yplus/19.);// ranges 17 a 26

@@ -6,6 +6,7 @@
 
 E_Float tol = 1.e-12;
 E_Float Cv1 = 7.1;
+
 for (E_Int noind = 0; noind < ifin-ideb; noind++)
 {
   // printf(" noind = %d | utau = %g \n", noind, utau_vec[noind]);
@@ -32,7 +33,6 @@ for (E_Int noind = 0; noind < ifin-ideb; noind++)
   twall = tcible_vec[noind] + 0.5*pow(Pr,one_third)/(cv*gamma)*(uext*uext);
   tcible_vec[noind] =  twall + (tcible_vec[noind] + 0.5*(uext*uext)/(cv*gamma) - twall)*(umod/uext) - 0.5*(umod*umod)/(cv*gamma); // Equations de Crocco, plus precises pour ecoulements compressibles
 
-  
   // van driest pour nut
   expy                = 1.-exp(-yplus/19.);// ranges 17 a 26
   nutcible_vec[noind] = (kappa * alpha_vec[noind])*utau_vec[noind ] * expy*expy;//negatif si pt ibc interieur aux corps
