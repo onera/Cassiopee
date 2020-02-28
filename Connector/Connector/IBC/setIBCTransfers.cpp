@@ -50,7 +50,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar1(
   E_Float uscaln, un, vn, wn, ut, vt, wt, utau0, umod;
   E_Float expy, denoml10, ax, l1, l2, l3;
   E_Float fp, tp;
-  E_Float ucible0, ucible, vcible, wcible, signibc,twall;
+  E_Float ucible0, ucible, vcible, wcible, signibc, twall, rowall, muwall;
   //Lois de paroi : criteres d arret pour estimer le frottement par Newton
   E_Float newtoneps = 1.e-7; // critere d arret pour u+
   E_Float newtonepsnutilde = 1.e-10; // critere d'arret pour nutilde
@@ -489,7 +489,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
   E_Float uscaln, un, vn, wn, ut, vt, wt, utau, utauv, utau0, umod;
   E_Float aa, bb, dd, fp, tp, f1v;
   E_Float expy, denoml10,ax,l1,l2, l3;
-  E_Float ucible0, ucible, vcible, wcible, nutilde, signibc,twall;
+  E_Float ucible0, ucible, vcible, wcible, nutilde, signibc, twall, rowall, muwall;
   E_Int npass;
   // Lois de paroi: criteres d'arret pour estimer le frottement par Newton
   E_Float newtoneps = 1.e-7; // critere d'arret pour u+
@@ -767,7 +767,6 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
           E_Int indR = rcvPts[noind+ideb];
 
           // For Post (tOut temperature du point image en entree, pt corrige en sortie)
-
           twall = tOut[indR] + 0.5*pow(Pr,one_third)/(cv*gamma)*(uext_vec[noind]*uext_vec[noind]); // Crocco-Busemann
           densPtr[noind+ideb] = press_vec[noind ]/twall*cvgaminv;
           pressPtr[noind+ideb]= press_vec[noind ];
@@ -1382,7 +1381,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar3(
   E_Float uscaln, un, vn, wn, ut, vt, wt, utau, utauv, utau0, umod;
   E_Float aa, bb, dd, fp, tp, f1v;
   E_Float expy, denoml10,ax,l1,l2, l3;
-  E_Float ucible0, ucible, vcible, wcible, nutilde, signibc, twall;
+  E_Float ucible0, ucible, vcible, wcible, nutilde, signibc, twall, rowall, muwall;
   //Lois de paroi : criteres d arret pour estimer le frottement par Newton
   E_Float newtoneps = 1.e-7; // critere d arret pour u+
   E_Float newtonepsnutilde = 1.e-10; // critere d arret pour nutilde
