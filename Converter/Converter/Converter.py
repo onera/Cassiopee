@@ -19,7 +19,7 @@ __all__ = ['array', 'addVars', '_addVars', 'addVars2', 'center2ExtCenter', 'cent
     'convertArrays2File', 'convertBAR2Struct', 'convertFile2Arrays', 'convertTri2Quad', 'copy', 
     'createGlobalHook', 'createHook', 
     'createGlobalIndex', '_createGlobalIndex', 'recoverGlobalIndex', '_recoverGlobalIndex',
-    'createSockets', 'diffArrays', 'extCenter2Node', 'extractVars', 
+    'createSockets', 'diffArrays', 'extCenter2Node', 'extractVars', 'getIndexField',
     'freeHook', 'getArgMax', 'getArgMin', 'getMaxValue', 'getMeanRangeValue', 'getMeanValue', 'getMinValue', 
     'getNCells', 'getNPts', 'getValue', 'getVarNames', 'identifyElements', 'identifyFaces', 'identifyNodes', 
     'identifySolutions', 'initVars', '_initVars', 'isNamePresent', 'listen', 'magnitude', 
@@ -465,6 +465,29 @@ def _initVarByEq__(a, eq):
                 loc = loc.replace('{%s}'%v, 'ap1[%d][:]'%c); c += 1
             ap1[varp][:] = eval(loc)
     return None
+
+# Get index field
+def getIndexField__(a):
+    npts = getNPts(a)
+    n = numpy.arange(0, npts, dtype=numpy.float64)
+    # structure/non structure/array1/array2
+    if len(a) == 5: # structure
+       if isinstance(a[1], list): return ['index', [n], a[2], a[3], a[4]] # array2
+       else: return ['index', n.reshape(1,npts), a[2], a[3], a[4]] # array1
+    else:
+       if isinstance(a[1], list): return ['index', [n], a[2], a[3]] # array2
+       else: return ['index', n.reshape(1,npts), a[2], a[3]] # array1
+
+def getIndexField(array):
+    """Return the index field in an array.
+    Usage: getIndexField(array)"""
+    if isinstance(array[0], list): 
+        b = []
+        for i in array:
+            b.append(getIndexField__(i))
+        return b
+    else:
+        return getIndexField__(array)
 
 # Converti l'extension en nom de format
 def convertExt2Format__(fileName):

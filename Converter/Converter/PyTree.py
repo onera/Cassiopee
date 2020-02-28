@@ -603,6 +603,13 @@ def setValue(t, var, ind, val):
           i[1][ind] = val[c]; c += 1
   return None
 
+def _getIndexField(t):
+  return _TZGC(t, 'nodes', Converter.getIndexField)
+
+def getIndexField(t):
+  """Return the index field."""
+  return TZGC(t, 'nodes', Converter.getIndexField)
+
 #==============================================================================
 # -- Create PyTree --
 #==============================================================================
@@ -790,8 +797,7 @@ def _deleteBCOverlapWithDonorZone__(a, removeDnrZones=True, removeDnrFam=True):
         val = Internal.getValue(r)
         if val == 'Overset' and zoneName != donorName: # no auto attach
           removeGC = False
-
-          typeOfDnr = 0 # 1 : zone, 2 : family
+          typeOfDnr = 0 # 1: zone, 2: family
           # check if donorName is a zone name
           if Internal.getNodeFromName(zones,donorName) is not None: typeOfDnr = 1
           else: # check if it is referenced to a family

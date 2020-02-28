@@ -47,7 +47,7 @@ POSTAPPS = ['tkVariables', '---',
             'tkInteg']
 VISUAPPS = ['tkView', #'tkPlot', 
             'tkPlotXY', '---',
-            'tkSlice', 'tkCellN', '---',
+            'tkSlice', 'tkIJK', 'tkCellN', '---',
             'tkBackground']
 RENDERAPPS = ['tkRenderTree', 'tkRenderSet', '---',
               'tkStereo', 'tkEffects', 'tkDemo', '---',

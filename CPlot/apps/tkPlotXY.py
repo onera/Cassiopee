@@ -13185,7 +13185,7 @@ class DesktopTK(TK.Tk):
     def __init__(self,parent):
         TK.Tk.__init__(self,parent)
         self.protocol(name="WM_DELETE_WINDOW", func=self.killProgramm)
-        self.title(string="PlotXY by Cassiopee")
+        self.title(string="tkPlotXY")
         self.desktopFrameTK = DesktopFrameTK(self)
         self.grid_columnconfigure(0,weight=1)
         self.grid_rowconfigure(0,weight=1)
@@ -14603,7 +14603,6 @@ class Legend():
         if self.legend_title_color             != default_values['Legend']['legend_title_color']    :
             lines += '''    %s.setValue('legend_title_color','%s')\n'''%(legendobj,self.legend_title_color)
 
-
         return lines
 # ==============================================================================
 # ==============================================================================
@@ -14819,9 +14818,7 @@ class Curve:
             lines += ''', axis=axis_%s_%s_%s'''%(indgraph,indsubgraph,self.axis)
         if self.visible               != default_values['Curve']['visible']    :
             lines += ''', visible=%s'''%(self.visible)
-        #
         lines += ''')\n'''
-        #
         lines += '''    graph_%s.addCurve('%s',curve_%s)'''%(indgraph,iCurSubGraph,indcurve)
         return lines
 # ==============================================================================
@@ -15047,7 +15044,6 @@ class Shape:
             lines += ''', angleB='%s' '''%(self.angleB)
         #
         lines += ''')\n'''
-        #
         lines += '''    graph_%s.addShape('%s',shape_%s)'''%(indgraph,iCurSubGraph,indcurve)
         return lines
 
@@ -15483,16 +15479,13 @@ class GraphEditor():
         return self.desktop
 
     def __exit__(self, type, value, traceback):
-        for graph in self.desktop.graphWdwL:
-            graph.quit()
+        for graph in self.desktop.graphWdwL: graph.quit()
 
     def close(self):
         for graph in self.desktop.graphWdwL: graph.quit()
 
 def openGraphEditor(display):
-    """
-    Create an object of class GraphEditor and returns its Desktop.
-    """
+    """ Create an object of class GraphEditor and returns its Desktop."""
     editor = GraphEditor(display)
     return editor.desktop
 
@@ -15524,6 +15517,7 @@ def updateFromTree(event=None):
             zname = z[0]
             if dim[0] == 'Structured' and dim[2] == 1 and dim[3] == 1:
                 z = C.center2Node(z, Internal.__FlowSolutionCenters__)
+                C._getIndexField(z)
                 bn[2].append(z)
             elif dim[0] == 'Unstructured' and dim[3] == 'BAR':
                 zps = T.splitConnexity(z)
@@ -15532,6 +15526,7 @@ def updateFromTree(event=None):
                 for i in zps:
                     i[0] = zname+str(c); c += 1
                     i = C.center2Node(i, Internal.__FlowSolutionCenters__)
+                C._getIndexField(zps)
                 bn[2] += zps
 
             elif dim[0] == 'Unstructured' and dim[3] == 'NGON' and dim[4] == 1:
@@ -15542,6 +15537,7 @@ def updateFromTree(event=None):
                 for i in zps:
                     i[0] = zname+str(c); c += 1
                     i = C.center2Node(i, Internal.__FlowSolutionCenters__)
+                C._getIndexField(zps)
                 bn[2] += zps
 
     if CTK.__MAINTREE__ == 1:

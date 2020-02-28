@@ -4,7 +4,7 @@
 twall  = text + 0.5*pow(Pr,one_third)/(cv*gamma)*(uext*uext);               // Temperature a la paroi
 rowall = pext/twall*cvgaminv;                                               // Densite a la paroi
 // muwall = coefSuth * sqrt(K_FUNC::E_abs(twall)*Tsinv) / (1.+Cs/twall);    // Viscosite a la paroi en utilisant temperature absolue pour reference
-muwall = muext*sqrt(twall/text)*(1+Cs/text)/(1+Cs/twall);                   // Viscosite a la paroi en utilisant temperature exterieure (PI) pour reference
+muwall = muext*sqrt(twall/text)*(1+Cs/text)/(1+Cs/twall);                   // Viscosite a la paroi en utilisant temperature exterieure (PI) pour reference (Benjamin's formula)
 
 utau0  = sqrt(muwall*uext/(yext*rowall));
 
