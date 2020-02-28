@@ -560,10 +560,10 @@ class editTextWindow(TK.Toplevel):
         for ind in range(len(self.subGraph.texts)):
             var = TK.BooleanVar()
             var.set(False)
-            CB = TTK.Checkbutton(lblframe,variable=var,command=lambda n=ind: self.cb_selection(n))#, variable=var)
+            CB = TTK.Checkbutton(lblframe,variable=var,command=lambda n=ind: self.cb_selection(n))
             CB.val = var
-            CB.ind=ind
-            CB.var='selection'
+            CB.ind = ind
+            CB.var = 'selection'
             CB.grid(row=ind,column=0,sticky='NSEW')
             CB.container = self.frame.selectionItem
             self.frame.selectionItem.append(CB)
@@ -573,8 +573,8 @@ class editTextWindow(TK.Toplevel):
         var.set(False)
         CB = TTK.Checkbutton(lblframe,variable=var,command=lambda n=ind: self.cb_selection(n),state=TK.DISABLED)#, variable=var)
         CB.val = var
-        CB.ind=ind
-        CB.var='selection'
+        CB.ind = ind
+        CB.var = 'selection'
         CB.grid(row=ind,column=0,sticky='NSEW')
         CB.container = self.frame.selectionItem
         self.frame.selectionItem.append(CB)
@@ -614,11 +614,10 @@ class editTextWindow(TK.Toplevel):
             t = self.subGraph.texts[ind]
             var = TK.BooleanVar()
             var.set(t.visibility)
-            # CB = TTK.Checkbutton(lblframe,variable=var,command=lambda n=ind: self.cb_visibility(n))#, variable=var)
-            CB = TTK.Checkbutton(lblframe,variable=var,command=lambda n=ind: self.cb_visibility(n))#, variable=var)
+            CB = TTK.Checkbutton(lblframe,variable=var,command=lambda n=ind: self.cb_visibility(n))
             CB.val = var
             CB.var = 'visibility'
-            CB.ind=ind
+            CB.ind = ind
             CB.grid(row=ind,column=0,sticky='NSEW')
             CB.container = self.frame.visibilityItem
             self.frame.visibilityItem.append(CB)
@@ -626,8 +625,7 @@ class editTextWindow(TK.Toplevel):
         ind = len(self.subGraph.texts)
         var = TK.BooleanVar()
         var.set(True)
-        # CB = TTK.Checkbutton(lblframe,variable=var,state=TK.DISABLED,command=lambda n=ind: self.cb_visibility(n))#, variable=var)
-        CB = TTK.Checkbutton(lblframe,variable=var,state=TK.DISABLED,command=lambda n=ind: self.cb_visibility(n))#, variable=var)
+        CB = TTK.Checkbutton(lblframe,variable=var,state=TK.DISABLED,command=lambda n=ind: self.cb_visibility(n))
         CB.val = var
         CB.var = 'visibility'
         CB.ind=ind
@@ -977,7 +975,7 @@ class editTextWindow(TK.Toplevel):
             CB = TTK.Checkbutton(lblframe,variable=var,command=lambda n=ind: self.cb_use_tex(n))#, variable=var)
             CB.val = var
             CB.var = 'use_tex'
-            CB.ind=ind
+            CB.ind = ind
             CB.grid(row=ind,column=0,sticky='NSEW')
             CB.container = self.frame.use_texItem
             self.frame.use_texItem.append(CB)
@@ -1403,7 +1401,7 @@ class editTextWindow(TK.Toplevel):
             CB = TTK.Checkbutton(lblframe,variable=var,command=lambda n=ind: self.cb_active_background(n))#, variable=var)
             CB.val = var
             CB.var = 'active_background'
-            CB.ind=ind
+            CB.ind = ind
             CB.grid(row=ind,column=0,sticky='NSEW')
             CB.container = self.frame.active_backgroundItem
             self.frame.active_backgroundItem.append(CB)
@@ -2392,10 +2390,8 @@ class editTextWindow(TK.Toplevel):
                 BB.config(text=BB.val)
                 BB.list = font_dic[val]
             for ind in l_ind:
-                try:
-                    self.subGraph.texts[BB.ind].setValue(BB.var,BB.val)
-                except IndexError:
-                    return
+                try: self.subGraph.texts[BB.ind].setValue(BB.var,BB.val)
+                except IndexError: return
             self.updateButon(B,val,treatmentId=0)
         else:
             containerOfB = B.container
@@ -2413,8 +2409,7 @@ class editTextWindow(TK.Toplevel):
                     self.subGraph.texts[BB.ind].setValue(BB.var,BB.val)
                     # Update Graph
                     self.parent.graphWdwL[self.graph].updateGraph(self.zone)
-                except IndexError:
-                    return
+                except IndexError: return
     # ----------------------------------------------------------------- bt_moveLeft
     def bt_moveLeft(self,data):
         ind = data[0]
@@ -3552,8 +3547,8 @@ class editShapeWindow(TK.Toplevel):
             var.set(False)
             CB = TTK.Checkbutton(lblframe,variable=var,command=lambda n=ind: self.cb_selection(n))#, variable=var)
             CB.val = var
-            CB.ind=ind
-            CB.var='selection'
+            CB.ind = ind
+            CB.var = 'selection'
             CB.grid(row=ind,column=0,sticky='NSEW')
             CB.container = self.frame.selectionItem
             self.frame.selectionItem.append(CB)
@@ -3749,7 +3744,6 @@ class editShapeWindow(TK.Toplevel):
             return
     # -------------------------------------------------------------- updateButon
     def updateButon(self, B, val):
-
         if B.treatmentId == 5: # Cas specifique de la liste de points
             self.updateShapePointsList(B,val)
             return
@@ -3793,10 +3787,8 @@ class editShapeWindow(TK.Toplevel):
                 widget.grid_forget()
                 widget.destroy()
 
-            if B.ind in range(len(self.subGraph.shapes)):
-                isLast = False
-            else:
-                isLast = True
+            if B.ind in range(len(self.subGraph.shapes)): isLast = False
+            else: isLast = True
             if val == "Circle":
                 self.Set_CircleShape(shapeframe,B.ind,last=isLast)
             elif val == "Rectangle":
@@ -8702,7 +8694,7 @@ class input_dialogSelectZoneWindow(TK.Toplevel):
         # Create list
         self.unused_zones = TK.Listbox(lblframe,selectmode=TK.EXTENDED)
         self.unused_zones.list = []
-        for zone in self.getUnusedZoneList(self.B.val,self.parent.parent.data.keys()):
+        for zone in self.getUnusedZoneList(self.B.val,list(self.parent.parent.data.keys())):
             self.unused_zones.list.append(zone)
         # Add elements of list to the listbox according to the filter
         self.displayUnusedZones(self.entry_filter.val)
@@ -10255,10 +10247,10 @@ class editCurvesWindow(TK.Toplevel):
         #
         for ind in range(len(self.subGraph.curves)):
             var = TK.IntVar()
-            CB = TTK.Checkbutton(lblframe,variable=var,command=lambda n=ind: self.cb_selection(n))#, variable=var)
+            CB = TTK.Checkbutton(lblframe,variable=var,command=lambda n=ind: self.cb_selection(n))
             CB.val = var
-            CB.ind=ind
-            CB.var='selection'
+            CB.ind = ind
+            CB.var = 'selection'
             CB.grid(row=ind,column=0,sticky='NSEW')
             CB.container = self.frame.selectionItem
             self.frame.selectionItem.append(CB)
@@ -10267,8 +10259,8 @@ class editCurvesWindow(TK.Toplevel):
         var = TK.IntVar()
         CB = TTK.Checkbutton(lblframe,variable=var,command=lambda n=ind: self.cb_selection(n),state=TK.DISABLED)#, variable=var)
         CB.val = var
-        CB.ind=ind
-        CB.var='selection'
+        CB.ind = ind
+        CB.var = 'selection'
         CB.grid(row=ind,column=0,sticky='NSEW')
         CB.container = self.frame.selectionItem
         self.frame.selectionItem.append(CB)
@@ -10421,7 +10413,7 @@ class editCurvesWindow(TK.Toplevel):
         # Curve to add
         ind = len(self.subGraph.curves)
         B = TTK.Button(lblframe,text=len(self.parent.data.keys()),command=lambda n=(ind,self.frame.zoneItem): self.bt_click(n))
-        B.val = self.parent.data.keys()
+        B.val = list(self.parent.data.keys())
 #        B.listUnused = []
 #        B.val = B.list
         B.var = 'zone'
@@ -11144,7 +11136,6 @@ class editCurvesWindow(TK.Toplevel):
         self.geometry("")
         cm = plt.get_cmap(COLOR_MAP)
 
-
         ### grid forget on indRemove
         for action in [self.frame.selectionItem,self.frame.IdItem,self.frame.axisItem,
                        self.frame.visibilityItem,self.frame.zoneItem,self.frame.varxItem,
@@ -11224,15 +11215,15 @@ class editCurvesWindow(TK.Toplevel):
         ### Add new curve line
         var = TK.IntVar()
         self.frame.selectionItem[ind].config(state=TK.NORMAL)
-        self.frame.selectionItem[ind].val = var
-        self.frame.selectionItem[ind].ind=ind
-        self.frame.selectionItem[ind].var='selection'
+        #self.frame.selectionItem[ind].val = var ## CB!!
+        self.frame.selectionItem[ind].ind = ind
+        self.frame.selectionItem[ind].var = 'selection'
         lblframe = self.frame.selectionItem[ind].winfo_parent() # Returns the name of the parent
         lblframe = self.frame.nametowidget(lblframe) # returns the instance of the parent # Returns the name of the parent
         # Curve to add
         ind = len(self.subGraph.curves)
         var = TK.IntVar()
-        CB = TTK.Checkbutton(lblframe,variable=var,command=lambda n=ind: self.cb_selection(n),state=TK.DISABLED)#, variable=var)
+        CB = TTK.Checkbutton(lblframe,variable=var,command=lambda n=ind: self.cb_selection(n),state=TK.DISABLED)
         CB.val = var
         CB.ind = ind
         CB.var = 'selection'
@@ -11290,7 +11281,7 @@ class editCurvesWindow(TK.Toplevel):
         var = TK.IntVar()
         var.set(1)
         self.frame.visibilityItem[ind].config(state=TK.NORMAL)
-        self.frame.visibilityItem[ind].val = var
+        #self.frame.visibilityItem[ind].val = var # CB!!
         self.frame.visibilityItem[ind].var = 'visible'
         self.frame.visibilityItem[ind].ind=ind
         lblframe = self.frame.visibilityItem[ind].winfo_parent() # Returns the name of the parent
@@ -11323,7 +11314,7 @@ class editCurvesWindow(TK.Toplevel):
         # Curve to add
         ind = len(self.subGraph.curves)
         B = TTK.Button(lblframe,text=len(self.parent.data.keys()),command=lambda n=(ind,self.frame.zoneItem): self.bt_click(n))
-        B.val = self.parent.data.keys()
+        B.val = list(self.parent.data.keys())
         B.var = 'zone'
         B.ind = ind
         B.treatmentId = 4
@@ -11998,7 +11989,7 @@ class editCurvesWindow(TK.Toplevel):
         nbDeletion = 0
         deletionList = []
         for ind, select in enumerate(self.frame.selectionItem):
-            if select.val.get(): deletionList.append(ind)
+            if select.val.get() == 1: deletionList.append(ind)
         deletionList.sort()
         ind=0
         nbDeletion = len(deletionList)-1
@@ -12364,7 +12355,7 @@ class DesktopFrameTK(TK.Frame):
     # -------------------------------------------------------------- replaceData
     def setData(self, data):
         old_zones = []
-        if self.data is not None: old_zones = self.data.keys()
+        if self.data is not None: old_zones = list(self.data.keys())
         self.data = {}
         if isinstance(data, list):
             # set data according to a tree
@@ -12464,7 +12455,6 @@ class DesktopFrameTK(TK.Frame):
                         if Internal.getType(var)=='DataArray_t':
                             if not basename+'/'+zonename in tmp: tmp[basename+'/'+zonename]={}
                             tmp[basename+'/'+zonename][Internal.getName(var)+'@'+flowsolutionname]=Internal.getValue(var)
-
 
         self.data = OrderedDict(sorted(tmp.items(),key=lambda t : t[0]))
     # ----------------------------------------------------------------- setQueue
@@ -13525,7 +13515,7 @@ class Desktop():
         Set all the data from the input pyTree or dictionnary to the Desktop data manager.
         """
         old_zones = []
-        if self.data is not None: old_zones = self.data.keys()
+        if self.data is not None: old_zones = list(self.data.keys())
         self.data = {}
         if isinstance(data, list):
             # set data according to a tree
@@ -13926,6 +13916,7 @@ class MatplotlibFigure():
     def deleteZoneInCurve(self,iCurSubGraph,zoneName):
         for c in self.subGraph[iCurSubGraph].curves:
             if zoneName in c.zone: c.zone.remove(zoneName)
+            
     # ----------------------------------------------------- updateGroupCurvesZoneName
     '''
     Determine if all the old zones are used for a given curve, if it is so, then
@@ -13979,6 +13970,7 @@ class MatplotlibFigure():
                                 markingSampling=(c.marker_sampling_start,c.marker_sampling_step)
                     if c.visible:
                         if (c.varx is not None) and (c.vary is not None):
+                            thisPlot = None
                             for zone in c.zone:
                                 try:
                                     if self.parent.data[zone][c.varx].shape != self.parent.data[zone][c.vary].shape:
@@ -13998,7 +13990,6 @@ class MatplotlibFigure():
                                     try:
                                         if len(self.parent.data[zone][c.varx])<2: continue
                                     except TypeError: continue
-
 
                                 sortedData = self.sortData(self.parent.data[zone][c.varx],self.parent.data[zone][c.vary])
                                 # Update xaxis_label & yaxis_label
@@ -14022,7 +14013,7 @@ class MatplotlibFigure():
             #                marker=marker_dic[c.marker_style],markersize=c.marker_size,markerfacecolor=c.marker_face_color,markeredgecolor=c.marker_edge_color,markeredgewidth=c.marker_edge_width,markevery=markingSampling)
 
                             if c.legend_display and self.subGraph[iCurSubGraph].legend_property.legend_display:
-                                legend_list.append(thisPlot)
+                                if thisPlot is not None: legend_list.append(thisPlot)
                                 legend_text.append(c.legend_label)
 
 
@@ -14816,7 +14807,7 @@ class Curve:
             lines += ''', legend_display=%s'''%(self.legend_display)
         if self.axis                  != default_values['Curve']['ind_axis']    :
             lines += ''', axis=axis_%s_%s_%s'''%(indgraph,indsubgraph,self.axis)
-        if self.visible               != default_values['Curve']['visible']    :
+        if self.visible               != default_values['Curve']['visible']:
             lines += ''', visible=%s'''%(self.visible)
         lines += ''')\n'''
         lines += '''    graph_%s.addCurve('%s',curve_%s)'''%(indgraph,iCurSubGraph,indcurve)
@@ -14921,9 +14912,7 @@ class Text:
             lines += ''', font_weight='%s' '''%(self.font_weight)
         if self.visibility               != default_values['Text']['visibility']    :
             lines += ''', visibility=%s'''%(self.visibility)
-        #
         lines += ''')\n'''
-        #
         lines += '''    graph_%s.addText('%s',text_%s)'''%(indgraph,iCurSubGraph,indcurve)
         return lines
 
@@ -14933,27 +14922,27 @@ class Shape:
     Shape class describes all the settings concerning a given shape itself.
     """
     def __init__(self, *args, **kwargs):
-        self.zone                  = kwargs.get('zone', None)
-        self.shape_type            = kwargs.get('shape_type', default_values['Shape']['shape_type'])
-        self.points            = kwargs.get('points', default_values['Shape']['points'])
-        self.arrowstyle            = kwargs.get('arrowstyle', default_values['Shape']['arrowstyle'])
-        self.bracketstyle            = kwargs.get('bracketstyle', default_values['Shape']['bracketstyle'])
-        self.head_length            = kwargs.get('head_length', default_values['Shape']['head_length'])
-        self.head_width             = kwargs.get('head_width', default_values['Shape']['head_width'])
-        self.tail_width             = kwargs.get('tail_width', default_values['Shape']['tail_width'])
-        self.scale             = kwargs.get('scale', default_values['Shape']['scale'])
-        self.linewidth             = kwargs.get('linewidth', default_values['Shape']['linewidth'])
-        self.edgecolor             = kwargs.get('edgecolor', default_values['Shape']['edgecolor'])
-        self.facecolor             = kwargs.get('facecolor', default_values['Shape']['facecolor'])
-        self.hatch             = kwargs.get('hatch', default_values['Shape']['hatch'])
+        self.zone               = kwargs.get('zone', None)
+        self.shape_type         = kwargs.get('shape_type', default_values['Shape']['shape_type'])
+        self.points             = kwargs.get('points', default_values['Shape']['points'])
+        self.arrowstyle         = kwargs.get('arrowstyle', default_values['Shape']['arrowstyle'])
+        self.bracketstyle       = kwargs.get('bracketstyle', default_values['Shape']['bracketstyle'])
+        self.head_length        = kwargs.get('head_length', default_values['Shape']['head_length'])
+        self.head_width         = kwargs.get('head_width', default_values['Shape']['head_width'])
+        self.tail_width         = kwargs.get('tail_width', default_values['Shape']['tail_width'])
+        self.scale              = kwargs.get('scale', default_values['Shape']['scale'])
+        self.linewidth          = kwargs.get('linewidth', default_values['Shape']['linewidth'])
+        self.edgecolor          = kwargs.get('edgecolor', default_values['Shape']['edgecolor'])
+        self.facecolor          = kwargs.get('facecolor', default_values['Shape']['facecolor'])
+        self.hatch              = kwargs.get('hatch', default_values['Shape']['hatch'])
         self.radius             = kwargs.get('radius', default_values['Shape']['radius'])
-        self.linestyle             = kwargs.get('linestyle', default_values['Shape']['linestyle'])
+        self.linestyle          = kwargs.get('linestyle', default_values['Shape']['linestyle'])
         self.height             = kwargs.get('height', default_values['Shape']['height'])
-        self.width             = kwargs.get('width', default_values['Shape']['width'])
-        self.angle             = kwargs.get('angle', default_values['Shape']['angle'])
-        self.linecolor             = kwargs.get('linecolor', default_values['Shape']['linecolor'])
-        self.alpha             = kwargs.get('alpha', default_values['Shape']['alpha'])
-        self.lengthA             = kwargs.get('lengthA', default_values['Shape']['lengthA'])
+        self.width              = kwargs.get('width', default_values['Shape']['width'])
+        self.angle              = kwargs.get('angle', default_values['Shape']['angle'])
+        self.linecolor          = kwargs.get('linecolor', default_values['Shape']['linecolor'])
+        self.alpha              = kwargs.get('alpha', default_values['Shape']['alpha'])
+        self.lengthA            = kwargs.get('lengthA', default_values['Shape']['lengthA'])
         self.widthA             = kwargs.get('widthA', default_values['Shape']['widthA'])
         self.angleA             = kwargs.get('angleA', default_values['Shape']['angleA'])
         self.lengthB             = kwargs.get('lengthB', default_values['Shape']['lengthB'])
@@ -15042,7 +15031,6 @@ class Shape:
             lines += ''', widthB='%s' '''%(self.widthB)
         if self.angleB            != default_values['Shape']['angleB']    :
             lines += ''', angleB='%s' '''%(self.angleB)
-        #
         lines += ''')\n'''
         lines += '''    graph_%s.addShape('%s',shape_%s)'''%(indgraph,iCurSubGraph,indcurve)
         return lines
