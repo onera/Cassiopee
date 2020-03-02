@@ -11,6 +11,49 @@ import Converter.Internal as Internal
 # local widgets list
 WIDGETS = {}; VARS = []
 
+def setPlusI(event=None):
+    set__(VARS[0], VARS[1], +1)
+
+def setMoinsI(event=None):
+    set__(VARS[0], VARS[1], -1)
+    
+def setFullI(event=None):
+    setFull__(VARS[0], VARS[1])
+    
+def setPlusJ(event=None):
+    set__(VARS[2], VARS[3], +1)
+
+def setMoinsJ(event=None):
+    set__(VARS[2], VARS[3], -1)
+
+def setFullJ(event=None):
+    setFull__(VARS[2], VARS[3])
+
+def setPlusK(event=None):
+    set__(VARS[4], VARS[5], +1)
+
+def setMoinsK(event=None):
+    set__(VARS[4], VARS[5], -1)
+
+def setFullK(event=None):
+    setFull__(VARS[4], VARS[5])
+
+def set__(V0, V1, off):
+    v = CTK.varsFromWidget(V0.get(), type=2)
+    if len(v) > 0: imin = v[0]
+    v = CTK.varsFromWidget(V1.get(), type=2)
+    if len(v) > 0: imax = v[0]
+    m = min(imin, imax)+off
+    m = max(m,1)
+    V0.set(str(m))
+    V1.set(str(m))
+    show()
+
+def setFull__(V0, V1):
+    V0.set(str(1))
+    V1.set(str(-1))
+    show()
+       
 #==============================================================================
 # show
 #==============================================================================
@@ -62,12 +105,9 @@ def createApp(win):
     Frame.bind('<Control-c>', hideApp)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
-    Frame.columnconfigure(0, weight=1)
-    Frame.columnconfigure(1, weight=1)
-    Frame.columnconfigure(2, weight=1)
-    Frame.columnconfigure(3, weight=1)
-    Frame.columnconfigure(4, weight=1)
-    Frame.columnconfigure(5, weight=1)
+    Frame.columnconfigure(0, weight=0)
+    Frame.columnconfigure(1, weight=0)
+    Frame.columnconfigure(2, weight=0)
     
     WIDGETS['frame'] = Frame
     
@@ -92,28 +132,63 @@ def createApp(win):
     V = TK.StringVar(win); V.set('-1'); VARS.append(V)
 
     # - Subzone indices -
-    B = TTK.Entry(Frame, textvariable=VARS[0], background='White', width=4)
-    B.bind('<Return>', show)
+    F = TTK.LabelFrame(Frame, borderwidth=2, relief=CTK.FRAMESTYLE,
+                        text='I', font=CTK.FRAMEFONT, takefocus=1)
+    F.grid(row=0, column=0)
+    
+    B = TTK.Button(F, text='+', width=5, command=setPlusI)
     B.grid(row=0, column=0, sticky=TK.EW)
-    B = TTK.Entry(Frame, textvariable=VARS[1], background='White', width=4)
-    B.bind('<Return>', show)
+    B = TTK.Button(F, text='-', width=5, command=setMoinsI)
     B.grid(row=0, column=1, sticky=TK.EW)
-    B = TTK.Entry(Frame, textvariable=VARS[2], background='White', width=4)
-    B.bind('<Return>', show)
+    B = TTK.Button(F, text='X', width=1, command=setFullI)
     B.grid(row=0, column=2, sticky=TK.EW)
-    B = TTK.Entry(Frame, textvariable=VARS[3], background='White', width=4)
+    
+    B = TTK.Entry(F, textvariable=VARS[0], background='White', width=5)
     B.bind('<Return>', show)
-    B.grid(row=0, column=3, sticky=TK.EW)
-    B = TTK.Entry(Frame, textvariable=VARS[4], background='White', width=4)
+    B.grid(row=1, column=0, sticky=TK.EW)
+    B = TTK.Entry(F, textvariable=VARS[1], background='White', width=5)
     B.bind('<Return>', show)
-    B.grid(row=0, column=4, sticky=TK.EW)
-    B = TTK.Entry(Frame, textvariable=VARS[5], background='White', width=4)
+    B.grid(row=1, column=1, columnspan=2, sticky=TK.EW)
+    
+    F = TTK.LabelFrame(Frame, borderwidth=2, relief=CTK.FRAMESTYLE,
+                       text='J', font=CTK.FRAMEFONT, takefocus=1)
+    F.grid(row=0, column=1)
+    
+    B = TTK.Button(F, text='+', width=5, command=setPlusJ)
+    B.grid(row=0, column=0, sticky=TK.EW)
+    B = TTK.Button(F, text='-', width=5, command=setMoinsJ)
+    B.grid(row=0, column=1, sticky=TK.EW)
+    B = TTK.Button(F, text='X', width=1, command=setFullJ)
+    B.grid(row=0, column=2, sticky=TK.EW)
+    
+    B = TTK.Entry(F, textvariable=VARS[2], background='White', width=5)
     B.bind('<Return>', show)
-    B.grid(row=0, column=5, sticky=TK.EW)
+    B.grid(row=1, column=0, sticky=TK.EW)
+    B = TTK.Entry(F, textvariable=VARS[3], background='White', width=5)
+    B.bind('<Return>', show)
+    B.grid(row=1, column=1, columnspan=2, sticky=TK.EW)
+    
+    F = TTK.LabelFrame(Frame, borderwidth=2, relief=CTK.FRAMESTYLE,
+                        text='K', font=CTK.FRAMEFONT, takefocus=1)
+    F.grid(row=0, column=2)
+    
+    B = TTK.Button(F, text='+', width=5, command=setPlusK)
+    B.grid(row=0, column=0, sticky=TK.EW)
+    B = TTK.Button(F, text='-', width=5, command=setMoinsK)
+    B.grid(row=0, column=1, sticky=TK.EW)
+    B = TTK.Button(F, text='X', width=1, command=setFullK)
+    B.grid(row=0, column=2, sticky=TK.EW)
+    
+    B = TTK.Entry(F, textvariable=VARS[4], background='White', width=5)
+    B.bind('<Return>', show)
+    B.grid(row=1, column=0, sticky=TK.EW)
+    B = TTK.Entry(F, textvariable=VARS[5], background='White', width=5)
+    B.bind('<Return>', show)
+    B.grid(row=1, column=1, columnspan=2, sticky=TK.EW)
 
-    B = TTK.Button(Frame, text="Show", command=show)
-    B.grid(row=1, column=0, columnspan=6, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Show subzones.')
+    #B = TTK.Button(Frame, text="Show", command=show)
+    #B.grid(row=1, column=0, columnspan=6, sticky=TK.EW)
+    #BB = CTK.infoBulle(parent=B, text='Show subzones.')
 
 #==============================================================================
 # Called to display widgets
