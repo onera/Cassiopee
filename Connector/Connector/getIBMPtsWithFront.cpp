@@ -447,6 +447,8 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
         snearloc = snearloc*snearloc;
         E_Float distMaxF2 = toldistFactorImage*snearloc;// distance au carre maximale des pts cibles au front
         E_Float distMaxB2 = toldistFactorWall*snearloc;// distance au carre maximale des pts cibles au projete paroi
+        //E_Float distMaxF2 = 9000.; 
+        //E_Float distMaxB2 = 9000.; 
 
         vector<FldArrayI*> vectOfIndicesByIBCType(nbodies);
         vector<E_Int> nPtsPerIBCType(nbodies);//nb de pts projetes sur la surface paroi de type associe 

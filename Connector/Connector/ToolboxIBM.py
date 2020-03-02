@@ -21,7 +21,7 @@ try:
     import Converter.GhostCells as CGC
     import KCore
     import numpy
-    import math  
+    import math
 except:
     raise ImportError("Connector.ToolboxIBM requires Converter, Generator, Transform, Dist2Walls and Post modules.")
 
@@ -119,6 +119,7 @@ def adaptIBMMesh(t, tb, vmin, sensor, factor=1.2, DEPTH=2, sizeMax=4000000,
     o = Internal.getZones(to)[0]
     o = G.adaptOctree(o, balancing=2)
     if mpisize==1: C.convertPyTree2File(o, fileo)
+
     t2 = generateCartMesh__(o, dimPb=dimPb, vmin=vmin, DEPTH=DEPTH,
                             sizeMax=sizeMax, check=check, symmetry=symmetry, 
                             externalBCType=externalBCType)
@@ -565,6 +566,45 @@ def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None,
             #indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic, 0, corner, 5)
             # FIN CHECK
 
+        elif expand == 4: # expand minimum + 2 couche propagee
+            #C.convertPyTree2File(o, 'octree1.cgns')
+            corner = 0
+            to = C.newPyTree(['Base',o])
+            to = blankByIBCBodies(to, tb, 'centers', dimPb)
+            C._initVars(o, "centers:indicator", 0.)
+            cellN = C.getField("centers:cellN", to)[0]
+            octreeA = C.getFields(Internal.__GridCoordinates__, o)[0]
+            indic = C.getField("centers:indicator", o)[0]
+            indic = Converter.addVars([indic,cellN])
+            indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic, 0, corner, 3)          
+            octreeA = Generator.adaptOctree(octreeA, indic, balancing=2)
+            o = C.convertArrays2ZoneNode(o[0], [octreeA])
+            #C.convertPyTree2File(o, 'octree2.cgns')
+            
+            # passe 2
+            to = C.newPyTree(['Base',o])
+            to = blankByIBCBodies(to, tb, 'centers', dimPb)
+            C._initVars(o, "centers:indicator", 0.)
+            cellN = C.getField("centers:cellN", to)[0]
+            octreeA = C.getFields(Internal.__GridCoordinates__, o)[0]
+            indic = C.getField("centers:indicator", o)[0]
+            indic = Converter.addVars([indic,cellN])
+            indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic, 0, corner, 4)                                                                          
+            octreeA = Generator.adaptOctree(octreeA, indic, balancing=2)
+            o = C.convertArrays2ZoneNode(o[0], [octreeA])
+
+            # passe 3
+            to = C.newPyTree(['Base',o])
+            to = blankByIBCBodies(to, tb, 'centers', dimPb)
+            C._initVars(o, "centers:indicator", 0.)
+            cellN = C.getField("centers:cellN", to)[0]
+            octreeA = C.getFields(Internal.__GridCoordinates__, o)[0]
+            indic = C.getField("centers:indicator", o)[0]
+            indic = Converter.addVars([indic,cellN])
+            indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic, 0, corner, 6)                                                                          
+            octreeA = Generator.adaptOctree(octreeA, indic, balancing=2)
+            o = C.convertArrays2ZoneNode(o[0], [octreeA])
+
         #if expand > 0: C.convertPyTree2File(o, 'endOctree.cgns')
         G._getVolumeMap(o); volmin = C.getMinValue(o, 'centers:vol')
         C._rmVars(o, 'centers:vol')
@@ -575,7 +615,7 @@ def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None,
         if nelts > 20000: 
             print('Warning: number of zones (%d) on rank %d is high (block merging might last a long time).'%(nelts, rank))
 
-    if fileout is not None: 
+    if fileout is not None:
         if mpisize==1: C.convertPyTree2File(o, fileout)
     return o
 
@@ -841,7 +881,8 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None,
 #=============================================================================
 def getIBMFront(tc, frontvar, dim, frontType):
 
-    if frontType == 1 or frontType == 2 : front = getIBMFrontType1(tc,frontvar,dim)
+    # if frontType == 1 or frontType == 2 : front = getIBMFrontType1(tc,frontvar,dim)
+    if frontType > 0 : front = getIBMFrontType1(tc,frontvar,dim)
     else: front = getIBMFrontType0(tc,frontvar,dim)
     front = C.deleteEmptyZones(front)
     Internal._rmNodesFromName(front,"ID_*")
@@ -1444,7 +1485,7 @@ def doInterp2(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=
 # interpDataType = 0 : interpolation optimisees sur grilles cartesiennes
 # frontType 0, 1, 2
 #=============================================================================
-def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interpDataType=0, smoothing=False):
+def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interpDataType=0, smoothing=False, yplus=100., wallAdapt=None):
     tb =  Internal.copyRef(tbody)
 
     # tb: fournit model et dimension
@@ -1503,18 +1544,73 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interpDataType
     #-----------------------------------------
     C._initVars(t,'{centers:cellN}={centers:cellNIBC}')
     # determination des pts IBC
-    if IBCType == -1: X._setHoleInterpolatedPoints(t,depth=-DEPTH,dir=0,loc='centers',cellNName='cellN',addGC=False)
-    elif IBCType == 1:
-        X._setHoleInterpolatedPoints(t,depth=1,dir=1,loc='centers',cellNName='cellN',addGC=False) # pour les gradients
-        if frontType < 2:
-            X._setHoleInterpolatedPoints(t,depth=DEPTH,dir=0,loc='centers',cellNName='cellN',addGC=False)
+    if frontType != 42:
+        if IBCType == -1: X._setHoleInterpolatedPoints(t,depth=-DEPTH,dir=0,loc='centers',cellNName='cellN',addGC=False)
+        elif IBCType == 1:
+            X._setHoleInterpolatedPoints(t,depth=1,dir=1,loc='centers',cellNName='cellN',addGC=False) # pour les gradients
+            if frontType < 2:
+                X._setHoleInterpolatedPoints(t,depth=DEPTH,dir=0,loc='centers',cellNName='cellN',addGC=False)
+            else:
+                DEPTHL=DEPTH+1
+                X._setHoleInterpolatedPoints(t,depth=DEPTHL,dir=0,loc='centers',cellNName='cellN',addGC=False)
+                #cree des pts extrapoles supplementaires
+                # _blankClosestTargetCells(t,cellNName='cellN', depth=DEPTHL)
         else:
-            DEPTHL=DEPTH+1
-            X._setHoleInterpolatedPoints(t,depth=DEPTHL,dir=0, loc='centers',cellNName='cellN',addGC=False)
-            #cree des pts extrapoles supplementaires
-            # _blankClosestTargetCells(t,cellNName='cellN', depth=DEPTHL)
+            raise ValueError('prepareIBMData: not valid IBCType. Check model.')
     else:
-        raise ValueError('prepareIBMData: not valid IBCType. Check model.')
+        # determination des pts IBC en fonction de la distance a la paroi
+        # cree d'abord un front de type 1 pour assurer que l'adaptation ne descende pas en dessous de la limite...
+        C._initVars(t,'{centers:cellNMin}={centers:cellNIBC}')
+        if IBCType == -1: X._setHoleInterpolatedPoints(t,depth=-DEPTH,dir=0,loc='centers',cellNName='cellNMin',addGC=False)
+        elif IBCType == 1: X._setHoleInterpolatedPoints(t,depth=1,dir=1,loc='centers',cellNName='cellNMin',addGC=False) # pour les gradients
+        X._setHoleInterpolatedPoints(t,depth=DEPTH,dir=0,loc='centers',cellNName='cellNMin',addGC=False)
+
+        Reynolds = Internal.getNodeFromName(tb, 'Reynolds')
+        Reynolds = Internal.getValue(Reynolds)
+        for z in Internal.getZones(t):
+            h = abs(C.getValue(z,'CoordinateX',0)-C.getValue(z,'CoordinateX',1))
+            if yplus > 0.:
+                height = computeModelisationHeight(Re=Reynolds, yplus=yplus)
+            else:
+                height = computeBestModelisationHeight(Re=Reynolds, h=h) # meilleur compromis entre hauteur entre le snear et la hauteur de modelisation
+            C._initVars(z,'{centers:cellN}=({centers:TurbulentDistance}>%20.16g)+(2*({centers:TurbulentDistance}<=%20.16g)*({centers:TurbulentDistance}>0))'%(height,height))
+
+        # Si wallAdapt, utilisation de la solution precedente pour ne garder que les pts cibles tq y+PC <= y+ref : rapproche le front de la paroi (utile proche bord d'attaque)
+        # Attention, le fichier d'adaptation doit etre un nuage de points dont les coordonnees correspondent aux points cibles (Cf modification dans extractIBMWallFields avec tb=None)
+        if wallAdapt is not None:
+            C._initVars(t,'{centers:yplus}=100000.')
+            w = C.convertFile2PyTree(wallAdapt)
+            yplus_w = Internal.getNodeFromName(w, 'yplus')[1]
+            total = len(Internal.getZones(t))
+            cpt = 1
+            for z in Internal.getZones(t):
+                print("{} / {}".format(cpt, total))
+                cellN = Internal.getNodeFromName(z,'cellN')[1]
+                if 2 in cellN:
+                    yplus_z = Internal.getNodeFromName(z, 'yplus')[1]
+                    original_shape = numpy.shape(yplus_z)
+                    yplus_z = yplus_z.ravel(order='K')
+                    hook = C.createHook(z, function='elementCenters')
+                    nodes = C.identifyNodes(hook, w)
+                    for pos, node in enumerate(nodes):
+                        if node != -1:
+                            yplus_z[node-1]=yplus_w[pos]
+                    yplus_z = numpy.reshape(yplus_z, original_shape)
+                cpt += 1
+
+            C._initVars(t,'{centers:cellN}=({centers:cellN}>0) * ( (({centers:cellN}) * ({centers:yplus}<=%20.16g)) + ({centers:yplus}>%20.16g) )'%(yplus,yplus))
+            
+        # Securite finale, on aura au min deux rangees de points cibles
+        # def maximum(x1, x2): return max(x1,x2)
+        # C._initVars(t,'centers:cellN', maximum, ['centers:cellN','centers:cellNMin'])
+        # del maximum 
+        C._initVars(t, '{centers:cellN} = maximum({centers:cellN}, {centers:cellNMin})')
+        C._rmVars(t,['centers:yplus', 'centers:cellNMin'])
+
+
+        # permet de ne garder que les deux rangees superieures (prises en compte par le solveur), mais complique l'adaptation suivante et la visualisation
+        # X._maximizeBlankedCells(t, depth=2, addGC=False)
+
     _removeBlankedGrids(t, loc='centers')
     print('Nb of Cartesian grids=%d.'%len(Internal.getZones(t)))
     npts = 0
@@ -1601,8 +1697,7 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interpDataType
             if sizeOne < sizeTot:
                 XOD._setInterpTransfers(t,zc,variables=['cellNFront'],cellNVariable='cellNFront',compact=0)
 
-    if frontType==2 or frontType==3 : 
-        # C.convertPyTree2File(t, "BeforeF2.cgns")
+    if frontType == 2: 
         _pushBackImageFront2(t, tc, tbb, interpDataType=interpDataType) 
         if smoothing and dimPb==2: _smoothImageFront(t, tc); _pushBackImageFront2(t, tc, tbb, interpDataType=interpDataType) 
 
@@ -1616,7 +1711,6 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interpDataType
                 sizeOne =  int(numpy.sum(cellNFront))
                 if sizeOne < sizeTot:
                     XOD._setInterpTransfers(t,zc,variables=['cellNFront'],cellNVariable='cellNFront',compact=0)
-        # C.convertPyTree2File(t, "AfterF2.cgns")
 
     ## Fin traitement specifique, vaut 0 ou 1 apres la ligne suivante
     # C._cpVars(t,'centers:cellNFront',tc,'cellNFront')
@@ -1628,7 +1722,6 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interpDataType
     print('Building the IBM front.')
     front = getIBMFront(tc, 'cellNFront', dimPb, frontType)
     C.convertPyTree2File(front, 'front.cgns')
-
     print('Interpolations IBM')
     tc = doInterp(t,tc,tbb, tb=tb,typeI='IBCD',dim=dimPb, dictOfADT=None, front=front, frontType=frontType, depth=DEPTH, IBCType=IBCType, interpDataType=interpDataType)
 
@@ -1646,7 +1739,7 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interpDataType
     return t, tc
 
 #=============================================================================
-# Performs specific treatment for frontType=2 or frontType=3
+# Performs specific treatment for frontType=2
 #=============================================================================
 def _pushBackImageFront2(t, tc, tbb, interpDataType=1):
     intersectionsDict = X.getIntersectingDomains(tbb, method='AABB', taabb=tbb)
@@ -1656,8 +1749,9 @@ def _pushBackImageFront2(t, tc, tbb, interpDataType=1):
     C._cpVars(t,'centers:cellNFront_origin',tc,'cellNFront_origin')
     C._cpVars(t,'centers:cellNIBC_origin',tc,'cellNIBC_origin')
 
+    C._initVars(t,'{centers:cellNFront2}=1.-({centers:cellNFront}<1.)*(abs({centers:cellNChim})>1.)')
+
     for z in Internal.getZones(t):
-        C._initVars(z,'{centers:cellNFront2}=1.-({centers:cellNFront}<1.)*(abs({centers:cellNChim})>1.)')
         cellNFront = Internal.getNodeFromName2(z,'cellNFront2')
         if cellNFront != []:
             cellNFront = cellNFront[1]
@@ -1710,6 +1804,7 @@ def _smoothImageFront(t, tc, dimPb=2):
         cellNIBC    = Internal.getNodeFromName(z,'cellNIBC')
         cellNIBCDnr = Internal.getNodeFromName(z,'cellNIBCDnr')
         dim         = Internal.getZoneDim(z)
+        k           = 0
         if cellNIBC != []:
                 cellNIBC = cellNIBC[1]
                 sizeTot = cellNIBC.shape[0]*cellNIBC.shape[1]*cellNIBC.shape[2]
@@ -1753,14 +1848,51 @@ def _smoothImageFront(t, tc, dimPb=2):
 
     return None  
 
+
+#=============================================================================
+# Compute the height of the modelisation zone for the turbulent boundary layer
+#=============================================================================
+def computeModelisationHeight(Re, Cf_law='ANSYS', yplus=100., L=1.):
+    if Cf_law == 'ANSYS':
+        def compute_Cf(Re):
+            return 0.058*Re**(-0.2)
+    elif Cf_law == 'PW':
+        def compute_Cf(Re):
+            return 0.026*Re**(-1/7.)
+    elif Cf_law == 'PipeDiameter':
+        def compute_Cf(Re):
+            return 0.079*Re**(-0.25)
+
+    return (yplus*L*math.sqrt(2))/(Re*math.sqrt(compute_Cf(Re)))
+
+#=============================================================================
+# Compute the best height of the modelisation zone for the turbulent boundary 
+# layer for a given snear
+#=============================================================================
+def computeBestModelisationHeight(Re, h, Cf_law='ANSYS', L=1., q=1.2):
+    if Cf_law == 'ANSYS':
+        def compute_Cf(Re):
+            return 0.058*Re**(-0.2)
+    elif Cf_law == 'PW':
+        def compute_Cf(Re):
+            return 0.026*Re**(-1/7.)
+    elif Cf_law == 'PipeDiameter':
+        def compute_Cf(Re):
+            return 0.079*Re**(-0.25)
+
+    h0 = (L*math.sqrt(2))/(Re*math.sqrt(compute_Cf(Re)))
+
+    return (h0-q*h)/(1.-q) 
+
 #=============================================================================
 # Extraction des infos pour le post traitement
 # if td=None: return the cloud of points
 # else interpolate on td
 #=============================================================================
-def extractIBMWallFields(tc, tb=None):
+def extractIBMWallFields(tc, tb=None, coordRef='wall'):
     xwNP = []; ywNP = []; zwNP = []
     xiNP = []; yiNP = []; ziNP = []
+    xcNP = []; ycNP = []; zcNP = []
     pressNP = []; utauNP = []; yplusNP = []; densNP = []
     vxNP = []; vyNP = []; vzNP = []
     for z in Internal.getZones(tc):
@@ -1777,6 +1909,12 @@ def extractIBMWallFields(tc, tb=None):
                 yPI = Internal.getNodeFromName1(IBCD,"CoordinateY_PI")[1]
                 zPI = Internal.getNodeFromName1(IBCD,"CoordinateZ_PI")[1]
                 xiNP.append(xPI); yiNP.append(yPI); ziNP.append(zPI)
+
+                xPC = Internal.getNodeFromName1(IBCD,"CoordinateX_PC")[1]
+                yPC = Internal.getNodeFromName1(IBCD,"CoordinateY_PC")[1]
+                zPC = Internal.getNodeFromName1(IBCD,"CoordinateZ_PC")[1]
+                xcNP.append(xPC); ycNP.append(yPC); zcNP.append(zPC)
+
 
                 PW = Internal.getNodeFromName1(IBCD,X.__PRESSURE__)
                 if PW is not None: pressNP.append(PW[1])
@@ -1811,14 +1949,27 @@ def extractIBMWallFields(tc, tb=None):
         yiNP = numpy.concatenate(yiNP)
         ziNP = numpy.concatenate(ziNP)
 
+        xcNP = numpy.concatenate(xcNP)
+        ycNP = numpy.concatenate(ycNP)
+        zcNP = numpy.concatenate(zcNP)
+
     # Creation d une seule zone
     zsize = numpy.empty((1,3), numpy.int32, order='F')
     zsize[0,0] = xwNP.shape[0]; zsize[0,1] = 0; zsize[0,2] = 0
     z = Internal.newZone(name='IBW_Wall',zsize=zsize,ztype='Unstructured')
     gc = Internal.newGridCoordinates(parent=z)
-    coordx = ['CoordinateX',xwNP,[],'DataArray_t']
-    coordy = ['CoordinateY',ywNP,[],'DataArray_t']
-    coordz = ['CoordinateZ',zwNP,[],'DataArray_t']
+    if coordRef == 'cible':
+        coordx = ['CoordinateX',xcNP,[],'DataArray_t']
+        coordy = ['CoordinateY',ycNP,[],'DataArray_t']
+        coordz = ['CoordinateZ',zcNP,[],'DataArray_t']
+    elif coordRef == 'wall':
+        coordx = ['CoordinateX',xwNP,[],'DataArray_t']
+        coordy = ['CoordinateY',ywNP,[],'DataArray_t']
+        coordz = ['CoordinateZ',zwNP,[],'DataArray_t']
+    else:
+        coordx = ['CoordinateX',xwNP,[],'DataArray_t']
+        coordy = ['CoordinateY',ywNP,[],'DataArray_t']
+        coordz = ['CoordinateZ',zwNP,[],'DataArray_t']
     gc[2] = [coordx,coordy,coordz]
     n = Internal.createChild(z, 'GridElements', 'Elements_t', [2,0])
     Internal.createChild(n, 'ElementRange', 'IndexRange_t', [1,0])
@@ -1828,9 +1979,17 @@ def extractIBMWallFields(tc, tb=None):
     FSN[2].append([X.__PRESSURE__,pressNP, [],'DataArray_t'])
     FSN[2].append([X.__DENSITY__,densNP, [],'DataArray_t'])
 
+    FSN[2].append(["CoordinateX_PW",xwNP, [],'DataArray_t'])
+    FSN[2].append(["CoordinateY_PW",ywNP, [],'DataArray_t'])
+    FSN[2].append(["CoordinateZ_PW",zwNP, [],'DataArray_t'])
+
     FSN[2].append(["CoordinateX_PI",xiNP, [],'DataArray_t'])
     FSN[2].append(["CoordinateY_PI",yiNP, [],'DataArray_t'])
     FSN[2].append(["CoordinateZ_PI",ziNP, [],'DataArray_t'])
+
+    FSN[2].append(["CoordinateX_PC",xcNP, [],'DataArray_t'])
+    FSN[2].append(["CoordinateY_PC",ycNP, [],'DataArray_t'])
+    FSN[2].append(["CoordinateZ_PC",zcNP, [],'DataArray_t'])
 
     utauPresent = 0; yplusPresent = 0
     if utauNP != []:
@@ -1864,9 +2023,18 @@ def extractIBMWallFields(tc, tb=None):
                     zones = C.convertArray2Tetra(zones)
                     zones = T.join(zones); zones = G.close(zones)
                     b[2] = [zones]
+        C._initVars(td,"CoordinateX_PW",0.)     
+        C._initVars(td,"CoordinateY_PW",0.)     
+        C._initVars(td,"CoordinateZ_PW",0.)  
+
         C._initVars(td,"CoordinateX_PI",0.)     
         C._initVars(td,"CoordinateY_PI",0.)     
-        C._initVars(td,"CoordinateZ_PI",0.)        
+        C._initVars(td,"CoordinateZ_PI",0.)   
+
+        C._initVars(td,"CoordinateX_PC",0.)     
+        C._initVars(td,"CoordinateY_PC",0.)     
+        C._initVars(td,"CoordinateZ_PC",0.)     
+        
         C._initVars(td,X.__PRESSURE__,0.)
         C._initVars(td,X.__DENSITY__,0.)
         if utauPresent==1: C._initVars(td,X.__UTAU__,0.)
@@ -1891,7 +2059,6 @@ def extractIBMInfo(tc):
         allIBCD = Internal.getNodesFromName(z, "IBCD_*")
         for IBCD in allIBCD:
             znames = Internal.getValue(IBCD)
-            #znames = znamea.tostring()
             Zones.append(znames)
             xPC = Internal.getNodesFromName(IBCD,"CoordinateX_PC")[0][1]
             yPC = Internal.getNodesFromName(IBCD,"CoordinateY_PC")[0][1]

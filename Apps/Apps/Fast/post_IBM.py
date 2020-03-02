@@ -19,8 +19,8 @@ tolerance = 1e-8 # Valeur a partir de laquelle on considere nu == 0
 coord     = 2.1084 # coordY de la slice pour les cas 3D
 
 #-----------------------------------------------------
-h = Filter.Handle('restart_slice.cgns')
-#h = Filter.Handle('restart.cgns')
+# h = Filter.Handle('restart_slice.cgns')
+h = Filter.Handle('restart.cgns')
 t = h.loadSkeleton()
 h._loadZonesWoVars(t)
 h._loadVariables(t, var=['centers:TurbulentSANuTilde'])
@@ -57,9 +57,9 @@ else:
 #-----------------------------------------------------
 C._initVars(zw,'{boundaryLayerThickness}=1000')
 
-coordX_PW   = Internal.getNodeFromName(zw,'CoordinateX')[1]
-coordY_PW   = Internal.getNodeFromName(zw,'CoordinateY')[1]
-coordZ_PW   = Internal.getNodeFromName(zw,'CoordinateZ')[1]
+coordX_PW   = Internal.getNodeFromName(zw,'CoordinateX_PW')[1]
+coordY_PW   = Internal.getNodeFromName(zw,'CoordinateY_PW')[1]
+coordZ_PW   = Internal.getNodeFromName(zw,'CoordinateZ_PW')[1]
 
 coordX_PI   = Internal.getNodeFromName(zw,'CoordinateX_PI')[1]
 coordY_PI   = Internal.getNodeFromName(zw,'CoordinateY_PI')[1]

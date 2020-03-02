@@ -1543,21 +1543,25 @@ def optimizeOverlap(t, double_wall=0, priorities=[], planarTol=0., intersections
     return a
 
 #==============================================================================
-def maximizeBlankedCells(t, depth=2, dir=1, loc='centers', cellNName='cellN'):
+def maximizeBlankedCells(t, depth=2, dir=1, loc='centers', cellNName='cellN', addGC=True):
     a = Internal.copyRef(t)
-    _maximizeBlankedCells(a,depth=depth, dir=dir, loc=loc, cellNName=cellNName)
+    _maximizeBlankedCells(a,depth=depth, dir=dir, loc=loc, cellNName=cellNName, addGC=addGC)
     return a
 
-def _maximizeBlankedCells(t, depth=2, dir=1, loc='centers', cellNName='cellN'):
+def _maximizeBlankedCells(t, depth=2, dir=1, loc='centers', cellNName='cellN', addGC=True):
     var = cellNName
     if loc == 'centers': var = 'centers:'+cellNName
 
-    ghost = Internal.getNodeFromName3(t, 'ZoneRind')
-    if ghost is None: Internal._addGhostCells(t, t, depth, modified=[var])
+    if addGC:
+        ghost = Internal.getNodeFromName3(t, 'ZoneRind')
+        if ghost is None: Internal._addGhostCells(t, t, depth, modified=[var])
+
     cellN = C.getField(var, t)
     cellN = Connector.maximizeBlankedCells(cellN, depth, dir, cellNName=cellNName)
     C.setFields(cellN, t, loc, False)
-    if ghost is None: Internal._rmGhostCells(t, t, depth, modified=[var])
+    
+    if addGC:
+        if ghost is None: Internal._rmGhostCells(t, t, depth, modified=[var])
     return None
 
 #==============================================================================
