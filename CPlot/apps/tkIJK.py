@@ -12,37 +12,42 @@ import Converter.Internal as Internal
 WIDGETS = {}; VARS = []
 
 def setPlusI(event=None):
-    set__(VARS[0], VARS[1], +1)
+    set__(VARS[0], VARS[1], VARS[6], +1)
 
 def setMoinsI(event=None):
-    set__(VARS[0], VARS[1], -1)
+    set__(VARS[0], VARS[1], VARS[6], -1)
     
 def setFullI(event=None):
     setFull__(VARS[0], VARS[1])
     
 def setPlusJ(event=None):
-    set__(VARS[2], VARS[3], +1)
+    set__(VARS[2], VARS[3], VARS[7], +1)
 
 def setMoinsJ(event=None):
-    set__(VARS[2], VARS[3], -1)
+    set__(VARS[2], VARS[3], VARS[7], -1)
 
 def setFullJ(event=None):
     setFull__(VARS[2], VARS[3])
 
 def setPlusK(event=None):
-    set__(VARS[4], VARS[5], +1)
+    set__(VARS[4], VARS[5], VARS[8], +1)
 
 def setMoinsK(event=None):
-    set__(VARS[4], VARS[5], -1)
+    set__(VARS[4], VARS[5], VARS[8], -1)
 
 def setFullK(event=None):
     setFull__(VARS[4], VARS[5])
 
-def set__(V0, V1, off):
+def set__(V0, V1, Voff, off):
+    v = CTK.varsFromWidget(Voff.get(), type=2)
+    if len(v) > 0: off = v[0]*off
+    else: return
     v = CTK.varsFromWidget(V0.get(), type=2)
     if len(v) > 0: imin = v[0]
+    else: return
     v = CTK.varsFromWidget(V1.get(), type=2)
     if len(v) > 0: imax = v[0]
+    else: return
     m = min(imin, imax)+off
     m = max(m,1)
     V0.set(str(m))
@@ -130,61 +135,83 @@ def createApp(win):
     V = TK.StringVar(win); V.set('1'); VARS.append(V)
     # -5- Kmax -
     V = TK.StringVar(win); V.set('-1'); VARS.append(V)
+    # -6- stepI -
+    V = TK.StringVar(win); V.set('1'); VARS.append(V)
+    # -7- stepJ -
+    V = TK.StringVar(win); V.set('1'); VARS.append(V)
+    # -8- stepK -
+    V = TK.StringVar(win); V.set('1'); VARS.append(V)
 
     # - Subzone indices -
     F = TTK.LabelFrame(Frame, borderwidth=2, relief=CTK.FRAMESTYLE,
                         text='I', font=CTK.FRAMEFONT, takefocus=1)
-    F.grid(row=0, column=0)
-    
+    F.grid(row=0, column=0, sticky=TK.EW)
     B = TTK.Button(F, text='+', width=5, command=setPlusI)
-    B.grid(row=0, column=0, sticky=TK.EW)
-    B = TTK.Button(F, text='-', width=5, command=setMoinsI)
     B.grid(row=0, column=1, sticky=TK.EW)
+    B = TTK.Button(F, text='-', width=5, command=setMoinsI)
+    B.grid(row=0, column=0, sticky=TK.EW)
     B = TTK.Button(F, text='X', width=1, command=setFullI)
+    BB = CTK.infoBulle(parent=B, text='Reset to full zone.')
     B.grid(row=0, column=2, sticky=TK.EW)
     
     B = TTK.Entry(F, textvariable=VARS[0], background='White', width=5)
+    BB = CTK.infoBulle(parent=B, text='imin.')
     B.bind('<Return>', show)
     B.grid(row=1, column=0, sticky=TK.EW)
     B = TTK.Entry(F, textvariable=VARS[1], background='White', width=5)
+    BB = CTK.infoBulle(parent=B, text='imax.')
     B.bind('<Return>', show)
-    B.grid(row=1, column=1, columnspan=2, sticky=TK.EW)
-    
+    B.grid(row=1, column=1, columnspan=1, sticky=TK.EW)
+    B = TTK.Entry(F, textvariable=VARS[6], background='White', width=1)
+    BB = CTK.infoBulle(parent=B, text='i step.')
+    B.grid(row=1, column=2, columnspan=1, sticky=TK.EW)
+
     F = TTK.LabelFrame(Frame, borderwidth=2, relief=CTK.FRAMESTYLE,
                        text='J', font=CTK.FRAMEFONT, takefocus=1)
     F.grid(row=0, column=1)
     
     B = TTK.Button(F, text='+', width=5, command=setPlusJ)
-    B.grid(row=0, column=0, sticky=TK.EW)
-    B = TTK.Button(F, text='-', width=5, command=setMoinsJ)
     B.grid(row=0, column=1, sticky=TK.EW)
+    B = TTK.Button(F, text='-', width=5, command=setMoinsJ)
+    B.grid(row=0, column=0, sticky=TK.EW)
     B = TTK.Button(F, text='X', width=1, command=setFullJ)
+    BB = CTK.infoBulle(parent=B, text='Reset to full zone.')
     B.grid(row=0, column=2, sticky=TK.EW)
     
     B = TTK.Entry(F, textvariable=VARS[2], background='White', width=5)
+    BB = CTK.infoBulle(parent=B, text='jmin.')
     B.bind('<Return>', show)
     B.grid(row=1, column=0, sticky=TK.EW)
     B = TTK.Entry(F, textvariable=VARS[3], background='White', width=5)
+    BB = CTK.infoBulle(parent=B, text='jmax.')
     B.bind('<Return>', show)
-    B.grid(row=1, column=1, columnspan=2, sticky=TK.EW)
+    B.grid(row=1, column=1, columnspan=1, sticky=TK.EW)
+    B = TTK.Entry(F, textvariable=VARS[7], background='White', width=1)
+    BB = CTK.infoBulle(parent=B, text='j step.')
+    B.grid(row=1, column=2, columnspan=1, sticky=TK.EW)
     
     F = TTK.LabelFrame(Frame, borderwidth=2, relief=CTK.FRAMESTYLE,
                         text='K', font=CTK.FRAMEFONT, takefocus=1)
     F.grid(row=0, column=2)
-    
     B = TTK.Button(F, text='+', width=5, command=setPlusK)
-    B.grid(row=0, column=0, sticky=TK.EW)
-    B = TTK.Button(F, text='-', width=5, command=setMoinsK)
     B.grid(row=0, column=1, sticky=TK.EW)
+    B = TTK.Button(F, text='-', width=5, command=setMoinsK)
+    B.grid(row=0, column=0, sticky=TK.EW)
     B = TTK.Button(F, text='X', width=1, command=setFullK)
+    BB = CTK.infoBulle(parent=B, text='Reset to full zone.')
     B.grid(row=0, column=2, sticky=TK.EW)
-    
+        
     B = TTK.Entry(F, textvariable=VARS[4], background='White', width=5)
+    BB = CTK.infoBulle(parent=B, text='kmin.')
     B.bind('<Return>', show)
     B.grid(row=1, column=0, sticky=TK.EW)
     B = TTK.Entry(F, textvariable=VARS[5], background='White', width=5)
+    BB = CTK.infoBulle(parent=B, text='kmax.')
     B.bind('<Return>', show)
-    B.grid(row=1, column=1, columnspan=2, sticky=TK.EW)
+    B.grid(row=1, column=1, columnspan=1, sticky=TK.EW)
+    B = TTK.Entry(F, textvariable=VARS[8], background='White', width=1)
+    BB = CTK.infoBulle(parent=B, text='k step.')
+    B.grid(row=1, column=2, columnspan=1, sticky=TK.EW)
 
     #B = TTK.Button(Frame, text="Show", command=show)
     #B.grid(row=1, column=0, columnspan=6, sticky=TK.EW)

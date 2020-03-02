@@ -131,7 +131,7 @@ E_Int K_ARRAY::getInfoFromArray(PyObject* o, char*& varString,
       if (PyString_Check(l))
       {
         // pointeur sur la chaine python
-        varString = PyString_AsString(l);  
+        varString = PyString_AsString(l);
       }
 #if PY_VERSION_HEX >= 0x03000000
       else if (PyUnicode_Check(l))
@@ -192,9 +192,17 @@ E_Int K_ARRAY::getInfoFromArray(PyObject* o, char*& varString,
     {
       if (PyList_Check(c) == true) // array2
       {
-        PyArrayObject* acl = (PyArrayObject*)PyList_GetItem(c, 0);
-        nelt = PyArray_DIM(acl, 1);
-        sizeConnect = nelt*PyArray_DIM(acl, 0);
+        if (PyList_Size(c) == 0) // NODE
+        {
+          nelt = 0;
+          sizeConnect = 0;
+        }
+        else
+        {
+          PyArrayObject* acl = (PyArrayObject*)PyList_GetItem(c, 0);
+          nelt = PyArray_DIM(acl, 1);
+          sizeConnect = nelt*PyArray_DIM(acl, 0);
+        }
       }
       else // array
       {

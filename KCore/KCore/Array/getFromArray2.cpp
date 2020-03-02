@@ -509,7 +509,8 @@ E_Int K_ARRAY::getFromArray2(PyObject* o,
       E_Int nc = PyList_Size(tpl);
       if (nc == 0) // BE NODE
       {
-        c = NULL;
+        //c = NULL;
+        c = new FldArrayI(0, 1, (E_Int*)NULL, true, false);
       }
       else if (nc == 1) // BE => compact + stride
       {

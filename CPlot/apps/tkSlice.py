@@ -335,10 +335,10 @@ def createApp(win):
 
     # Move
     B = TTK.Button(Frame, text="+", command=movePlus)
-    B.grid(row=0, column=0, sticky=TK.EW)
+    B.grid(row=0, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Move slice +.')
     B = TTK.Button(Frame, text="-", command=moveMoins)
-    B.grid(row=0, column=1, sticky=TK.EW)
+    B.grid(row=0, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Move slice -.')
     B = TTK.Entry(Frame, textvariable=VARS[4], background='White', width=3)
     B.grid(row=0, column=2, sticky=TK.EW)
