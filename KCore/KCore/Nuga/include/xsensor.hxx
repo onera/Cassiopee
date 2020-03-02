@@ -32,9 +32,9 @@ class xsensor : public geom_sensor<mesh_t, crd_t>
     
     xsensor(mesh_t& mesh, E_Int max_pts_per_cell, E_Int itermax, const K_FLD::IntArray* cntS):geom_sensor<mesh_t,crd_t>(mesh, max_pts_per_cell, itermax), _cntS(*cntS){}
 
-    E_Int init(data_type& data) override;
+    E_Int assign_data(data_type& data) override;
     
-    void add_x_points(K_SEARCH::BbTree3D& tree);
+    void add_x_points();
 
 #ifdef DEBUG_2019    
     E_Int verif(){}
@@ -46,7 +46,7 @@ class xsensor : public geom_sensor<mesh_t, crd_t>
 };
 ///
 template <typename ELT_t, typename mesh_t, typename crd_t>
-void xsensor<ELT_t, mesh_t, crd_t>::add_x_points(K_SEARCH::BbTree3D& tree)
+void xsensor<ELT_t, mesh_t, crd_t>::add_x_points()
 {
   Vector_t<E_Int> ids;
   std::map<K_MESH::NO_Edge,E_Int> unique_edges;
@@ -74,7 +74,7 @@ void xsensor<ELT_t, mesh_t, crd_t>::add_x_points(K_SEARCH::BbTree3D& tree)
       E_Float* P1 = parent_type::_data->col(pt2);
 
       ids.clear();
-      tree.getOverlappingBoxes(P0,P1,ids);
+      parent_type::_bbtree->getOverlappingBoxes(P0,P1,ids);
       lambdas.clear();
       
       if (ids.empty()) continue;
@@ -131,7 +131,7 @@ void xsensor<ELT_t, mesh_t, crd_t>::add_x_points(K_SEARCH::BbTree3D& tree)
 
 ///
 template <typename ELT_t, typename mesh_t, typename crd_t>
-E_Int xsensor<ELT_t, mesh_t, crd_t>::init(data_type& data)
+E_Int xsensor<ELT_t, mesh_t, crd_t>::assign_data(data_type& data)
 {
 
   parent_type::_data = &data ;
@@ -139,13 +139,13 @@ E_Int xsensor<ELT_t, mesh_t, crd_t>::init(data_type& data)
   // fill in _points_to_cell with the initial mesh (giving for each source point the highest level cell containing it)
   parent_type::_points_to_cell.clear();
   
-  K_SEARCH::BbTree3D tree(*parent_type::_hmesh._crd, *parent_type::_hmesh._ng, E_EPSILON);
+  // K_SEARCH::BbTree3D tree(*parent_type::_hmesh._crd, *parent_type::_hmesh._ng, E_EPSILON);
 
   // add the intersection points
-  add_x_points(tree);
+  add_x_points();
   
   // localize points : fill _points_to_cell
-  parent_type::locate_points(tree, data);
+  parent_type::locate_points();
   
   return 0;
 }

@@ -101,7 +101,10 @@ class hierarchical_mesh
     bool                      _initialized;     // flag to avoid initialization more than once.
 
     ///
-    hierarchical_mesh(crd_t& crd, ngo_t & ng):_crd(&crd), _ng(&ng), _PGtree(ng.PGs, htrait::PGNBC), _PHtree(ng.PHs, htrait::PHNBC), _initialized(false){}
+    hierarchical_mesh(crd_t& crd, ngo_t & ng):_crd(&crd), _ng(&ng), _PGtree(ng.PGs, htrait::PGNBC), _PHtree(ng.PHs, htrait::PHNBC), _initialized(false)
+    {
+      init();
+    }
 
     ///
     E_Int init();
@@ -131,6 +134,8 @@ class hierarchical_mesh
     ///
     void smooth(output_type& adap_incr);
     ///
+    bool is_initialised();
+  
 #ifdef DEBUG_2019    
     ///
     static bool is_hybrid(const ngon_type& ng);
@@ -627,6 +632,15 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t, crd_t>::smooth(output_type& adap_inc
   }
 
 }
+
+///
+template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t, typename crd_t>
+bool hierarchical_mesh<ELT_t, STYPE, ngo_t, crd_t>::is_initialised()
+{
+  if (_initialized) return true;
+  else return false;
+}
+
 
 ///
 template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t, typename crd_t>

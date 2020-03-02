@@ -132,7 +132,6 @@ PyObject* K_INTERSECTOR::createHMesh(PyObject* self, PyObject* args)
   {
     PyErr_SetString(PyExc_ValueError,
        "createHMesh: input mesh to adapt must have basic elements and must be in NGON format.");
-    delete f; delete cn;
     return NULL;
   }
   else if (elt_type==elt_t::HEXA)
@@ -447,7 +446,7 @@ void __adapt(
   K_FLD::FloatArray& crd, ngon_type& ngi, typename SENSOR_t::data_type& data, E_Int itermax,
   const char* varString, PyObject *out, void* hook_hmesh=nullptr, const K_FLD::IntArray* cntS = nullptr)
 {
-
+  
   MESH_t * hmesh = nullptr;
   if (hook_hmesh != nullptr){
     hmesh = (MESH_t*)hook_hmesh;
@@ -455,10 +454,14 @@ void __adapt(
   }
   else 
     hmesh = new MESH_t(crd, ngi);
-
+  
   SENSOR_t sensor(*hmesh, 1/*max_pts per cell*/, itermax, cntS);
-  NUGA::adaptor<MESH_t, SENSOR_t>::run(*hmesh, sensor, data);
-
+  
+  E_Int err(0);
+  err = sensor.assign_data(data);
+  
+  NUGA::adaptor<MESH_t, SENSOR_t>::run(*hmesh, sensor);
+  
   std::vector<E_Int> oids;
   if (!hook_hmesh)
     hmesh->conformize(oids);
@@ -735,7 +738,7 @@ PyObject* K_INTERSECTOR::adaptCellsNodal(PyObject* self, PyObject* args)
   
   E_Int *nodv, size, nfld;
   E_Int res2 = K_NUMPY::getFromNumpyArray(nodal_vals, nodv, size, nfld, true/* shared*/, false/* inverse*/);
-
+  
   bool update_hook = (hook_hmesh != Py_None);
   elt_t elt_type (elt_t::UNKN);
   void * hookhm = nullptr;
@@ -760,7 +763,6 @@ PyObject* K_INTERSECTOR::adaptCellsNodal(PyObject* self, PyObject* args)
       return NULL;
     }
   }
-
   ///
   std::vector<E_Int> nodal_data(crd.cols(), 0);
   E_Int imax = std::min(size, crd.cols());
@@ -896,8 +898,10 @@ PyObject* K_INTERSECTOR::adaptBox(PyObject* self, PyObject* args)
   
   mesh_type hmesh(crd, ngi);
   sensor_type sensor(hmesh, 1/*max pts per cell*/, itermax);
+  E_Int err(0);
+  err = sensor.assign_data(crdS);
   
-  NUGA::adaptor<mesh_type, sensor_type>::run(hmesh, sensor, crdS);
+  NUGA::adaptor<mesh_type, sensor_type>::run(hmesh, sensor);
 
   //std::cout << "output leaves..." << std::endl;
   std::vector<E_Int> oids;

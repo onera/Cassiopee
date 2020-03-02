@@ -68,12 +68,16 @@ class geom_sensor
     
     using data_type = crd_t; //point cloud
     static constexpr eSUBDIV_TYPE sub_type = mesh_t::sub_type;
-    using output_type = typename mesh_t::output_type;
+    using output_type   = typename mesh_t::output_type;
+    using BbTree3D_type = typename K_SEARCH::BbTree3D;
     
     geom_sensor(mesh_t& mesh, E_Int max_pts_per_cell = 1, E_Int itermax = -1, const void* dummy=nullptr)
-      :_hmesh(mesh), _is_init(false), _refine(true), _has_agglo(false), _agglo(true), _max_pts_per_cell(max_pts_per_cell), _iter_max((itermax <= 0) ? INT_MAX : itermax), _iter(0){}
+      :_hmesh(mesh), _is_init(false), _refine(true), _has_agglo(false), _agglo(true), _max_pts_per_cell(max_pts_per_cell), _iter_max((itermax <= 0) ? INT_MAX : itermax), _iter(0)
+    {
+      _bbtree = new K_SEARCH::BbTree3D(*_hmesh._crd, *_hmesh._ng, E_EPSILON);
+    }
     
-    virtual E_Int init(data_type& data);
+    virtual E_Int assign_data(data_type& data);
     
     virtual bool compute(output_type& adap_incr, bool do_agglo);
 
@@ -82,7 +86,7 @@ class geom_sensor
     void fix_adap_incr(dir_incr_type& adap_incr); //DIR : output_type is 
     void fix_adap_incr(std::vector<E_Int>& adap_incr); //ISO
     
-    void locate_points(K_SEARCH::BbTree3D& tree, const data_type& data);
+    void locate_points();
     
     E_Int get_highest_lvl_cell(const E_Float* p, E_Int& PHi);
     
@@ -90,14 +94,22 @@ class geom_sensor
     
     E_Int detect_child(const E_Float* p, E_Int PHi, E_Int* children);
 
+    virtual E_Int redistrib_data();
+
+    ~geom_sensor()
+    {
+      delete _bbtree;
+    }
+
 #ifdef DEBUG_2019
     void verif();
     E_Int verif2();
 #endif
-    
+  
   protected:
     mesh_t& _hmesh;
-    data_type* _data; 
+    data_type* _data;
+    BbTree3D_type* _bbtree;
     bool _is_init;
     Vector_t<E_Int> _points_to_cell;
     bool _refine; // continue the adaptation
@@ -109,7 +121,7 @@ class geom_sensor
 
 /// 
 template <typename mesh_t, typename crd_t>
-E_Int geom_sensor<mesh_t, crd_t>::init(data_type& data) 
+E_Int geom_sensor<mesh_t, crd_t>::assign_data(data_type& data) 
 {
 
   _data = &data ;
@@ -117,10 +129,16 @@ E_Int geom_sensor<mesh_t, crd_t>::init(data_type& data)
   // fill in _points_to_cell with the initial mesh (giving for each source point the highest level cell containing it)
   _points_to_cell.clear();
   
-  K_SEARCH::BbTree3D tree(*_hmesh._crd, *_hmesh._ng, E_EPSILON);
-  
   // Count the number of data per cell
-  locate_points(tree, data);
+
+  // Check if hmesh has been initialized
+  if (not _hmesh.is_initialised())
+  {
+    std::cout << "Error in geom_sensor.hxx / function assign_data: hmesh has not been initialised." << std::endl; 
+    return 1;
+  }
+  
+  locate_points();
   
   return 0;
 }
@@ -197,24 +215,6 @@ bool geom_sensor<mesh_t, crd_t>::compute(output_type& adap_incr, bool do_agglo)
   _refine=false;
   _agglo = false;
   _has_agglo = false;
-  
-  if (_is_init) // first iteration : init is done instead
-  {
-    //update points_to_cell : replace the PH that have been subdivided in adapt by the child(ren) containing the source point(s)
-    for (int i = 0; i < nb_pts; ++i)
-    {
-      E_Int PHi = _points_to_cell[i];
-
-      if (PHi == E_IDX_NONE) continue; //external point
-      if (_hmesh._PHtree.children(PHi) != nullptr) // we detect the subdivised PH : one of his children has this source point
-      {
-        E_Float* p = _data->col(i); // in which children of PHi is the point
-        E_Int cell = get_higher_lvl_cell(p,PHi);
-        _points_to_cell[i] = cell;
-      }
-    }
-  }
-
   _is_init = true;
 
   //fill in adap incr thanks to points to cell
@@ -384,14 +384,14 @@ void geom_sensor<mesh_t, crd_t>::fix_adap_incr(dir_incr_type& adap_incr)
 }
 ///
 template <typename mesh_t, typename crd_t>
-void geom_sensor<mesh_t, crd_t>::locate_points(K_SEARCH::BbTree3D& tree, const data_type& data)
+void geom_sensor<mesh_t, crd_t>::locate_points()
 {
   // locate every source points in a given mesh
   using ELT_t = typename mesh_t::elt_type;
 
   E_Float tol = 10. * ZERO_M;
   
-  E_Int nb_src_pts = data.cols();
+  E_Int nb_src_pts = _data->cols();
   // for each source points, give the highest cell containing it if there is one, otherwise E_IDX_NONE
   _points_to_cell.resize(nb_src_pts, E_IDX_NONE);
   
@@ -403,7 +403,7 @@ void geom_sensor<mesh_t, crd_t>::locate_points(K_SEARCH::BbTree3D& tree, const d
   //
   for (int i = 0; i < nb_src_pts; i++)
   {
-    const E_Float* p = data.col(i);
+    const E_Float* p = _data->col(i);
     
     for (int j = 0; j < 3;j++)
     {
@@ -411,12 +411,13 @@ void geom_sensor<mesh_t, crd_t>::locate_points(K_SEARCH::BbTree3D& tree, const d
       maxB[j] = p[j]+E_EPSILON;
     }  
     ids.clear();
-    tree.getOverlappingBoxes(minB,maxB,ids); // ids contains the list of PH index partially containing the small box around the source point
-
+    _bbtree->getOverlappingBoxes(minB,maxB,ids); // ids contains the list of PH index partially containing the small box around the source point
+    
     if (ids.empty()) continue; // exterior point : E_IDX_NONE
     
     for (size_t j = 0; j < ids.size(); j++) // which of these boxes has the source point ?
     {
+      
       if (K_MESH::Polyhedron<UNKNOWN>::pt_is_inside(ids[j], _hmesh._ng->PGs, _hmesh._ng->PHs.get_facets_ptr(ids[j]), _hmesh._ng->PHs.stride(ids[j]), *_hmesh._crd, _hmesh._F2E, p, tol))
       {
         if (_hmesh._PHtree.children(ids[j]) == nullptr) // if the cell has no children : source point i is in this cell
@@ -469,12 +470,14 @@ E_Int geom_sensor<mesh_t, crd_t>::get_highest_lvl_cell(const E_Float* p, E_Int& 
   // will find, in the tree (starting at PHi cell), the highest level cell (ie smallest cell) cointaining a given source point 
   using ELT_t = typename mesh_t::elt_type;
 
+  // Do not test children if PHi is enabled
+  if (_hmesh._PHtree.is_enabled(PHi)) return PHi;
+
   E_Int nb_children = _hmesh._PHtree.nb_children(PHi);
-  
-  if (nb_children == 0) return PHi;
+  assert(nb_children != 0);
   
   E_Int* q = _hmesh._PHtree.children(PHi); // the children of PHi
-  
+
   bool found = false;
   for (int j = 0; j < nb_children; ++j)
   {
@@ -534,7 +537,27 @@ E_Int geom_sensor<mesh_t, crd_t>::detect_child(const E_Float* p, E_Int PHi, E_In
   return children[closest_child];
 }
 
+///
+template <typename mesh_t, typename crd_t>
+E_Int geom_sensor<mesh_t, crd_t>::redistrib_data()
+{
+  std::cout << "redistrib data geom sensor. " << std::endl;
+  E_Int nb_pts = _points_to_cell.size();
 
+  for (int i = 0; i < nb_pts; ++i)
+  {
+    E_Int PHi = _points_to_cell[i];
+
+    if (PHi == E_IDX_NONE) continue; //external point
+    if (_hmesh._PHtree.children(PHi) != nullptr) // we detect the subdivised PH : one of his children has this source point
+    {
+      E_Float* p = _data->col(i); // in which children of PHi is the point
+      E_Int cell = get_higher_lvl_cell(p,PHi);
+      _points_to_cell[i] = cell;
+    }
+  }
+}
+  
 
 /*************************** COARSE SENSOR ****************************************/
 //
@@ -786,12 +809,13 @@ class geom_sensor3 : public geom_sensor<mesh_t, crd_t>
         
         //////////
         geom_sensor3(mesh_t& mesh, E_Int max_pts_per_cell = 1, E_Int itermax = -1, const void* dummy=nullptr): parent_t(mesh, max_pts_per_cell, itermax){}
-        E_Int init(data_type level);
+        E_Int assign_data(data_type level);
         bool compute(Vector_t<E_Int>& adap_incr, bool do_agglo);
+        E_Int redistrib_data();
 };
 
 template <typename mesh_t, typename crd_t>
-E_Int geom_sensor3<mesh_t, crd_t>::init(data_type level)
+E_Int geom_sensor3<mesh_t, crd_t>::assign_data(data_type level)
 {
     E_Int n_nodes= level.size(); 
     _Ln.resize(n_nodes);
@@ -806,8 +830,8 @@ E_Int geom_sensor3<mesh_t, crd_t>::init(data_type level)
 template <typename mesh_t, typename crd_t>
 bool geom_sensor3<mesh_t, crd_t>::compute(Vector_t<E_Int>& adap_incr, bool do_agglo)
 {
-  E_Int n_nodes= parent_t::_hmesh._crd->size();
-  _Ln.resize(n_nodes, 0);
+  // E_Int n_nodes= parent_t::_hmesh._crd->size();
+  // _Ln.resize(n_nodes, 0);
   E_Int nb_elt= parent_t::_hmesh._ng->PHs.size();
   bool flag(false);
   adap_incr.clear();
@@ -835,11 +859,6 @@ bool geom_sensor3<mesh_t, crd_t>::compute(Vector_t<E_Int>& adap_incr, bool do_ag
     }
     flag=false;
   }
-  for (int i=0; i< n_nodes; i++)
-  {
-    if (_Ln[i]>0)
-      _Ln[i]--;
-  }
     
   for (int i=0; i< adap_incr.size(); i++){
     if (adap_incr[i]==1){
@@ -848,6 +867,27 @@ bool geom_sensor3<mesh_t, crd_t>::compute(Vector_t<E_Int>& adap_incr, bool do_ag
   }  
   return false;
 }
+
+
+///
+template <typename mesh_t, typename crd_t>
+E_Int geom_sensor3<mesh_t, crd_t>::redistrib_data()
+{
+  E_Int n_nodes= parent_t::_hmesh._crd->size();
+  _Ln.resize(n_nodes, 0);
+  
+  for (int i=0; i< n_nodes; i++)
+  {
+    if (_Ln[i]>0)
+      _Ln[i]--;
+  }
+  
+}
+  
+
+
+
+
 
 }
 #endif
