@@ -14,8 +14,7 @@ __version__ = O.__version__
 #==============================================================================
 # -- convertCAD2PyTree --
 #==============================================================================
-def convertCAD2PyTree(fileName, format='fmt_iges', h=0., chordal_err=0., growth_ratio=0.,
-                      deflection=1., algo=0):
+def convertCAD2PyTree(fileName, format='fmt_iges', h=0., chordal_err=0., growth_ratio=0., algo=0):
   """Convert a CAD (IGES or STEP) file to pyTree.
   Usage: convertCAD2PyTree(fileName, options)"""
 

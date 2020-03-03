@@ -28,7 +28,7 @@ elif ([ $# -eq 2 ])
 then
     PRODUCTION=1
     # Destination docs
-    DEST="$CASSIOPEE/UserGuides"
+    DEST="$CASSIOPEE/WWW/cassiopee-web"
     # Destination tests unitaires
     DEST2="$DEST/Examples/OCC"
     # Destination des release notes
@@ -39,61 +39,68 @@ else
     exit
 fi
 
-# Nom du fichier doc
-DOC=OCC
-
-# Creation des repertoires de destination
-if test ! -e $DEST
-then 
-    mkdir $DEST
-fi
-if test ! -e "$DEST/Examples"
-then 
-    mkdir "$DEST/Examples"
-fi
-if test ! -e $DEST2
-then 
-    mkdir $DEST2
-fi
-if test ! -e $DEST3
-then 
-    mkdir $DEST3
-fi
-
-# copie de la doc html
-cp $DOC.html $DEST
-cp Internal.html $DEST
-
-# Production + copie des tests unitaires
+# Copy examples to global dir (production mod)
 if ([ $PRODUCTION -eq 1 ])
 then
-    LOCAL=`pwd`
-    cd $DEST
-    if test ! -e Latex
-    then
-        mkdir Latex
+    if test ! -e $DEST
+    then 
+        mkdir $DEST
     fi
-    python parseDoc.py $DOC.html Latex/$DOC.tex
-    cd Latex ; compile $DOC > out ; cd $LOCAL
-    cp $DEST/Latex/$DOC.pdf .
+    if test ! -e "$DEST/Examples"
+    then 
+        mkdir "$DEST/Examples"
+    fi
+    if test ! -e $DEST2
+    then 
+        mkdir $DEST2
+    fi
+    if test ! -e $DEST3
+    then 
+        mkdir $DEST3
+    fi
 
-    # Genere la doc de Internal
-    cd $DEST
-    python parseDoc.py Internal.html Latex/Internal.tex
-    cd Latex ; compile Internal > out ; cd $LOCAL
-    cp $DEST/Latex/Internal.pdf .
-else
     cp ../test/*.py $DEST2
-    if test -f $DOC.pdf
-    then
-        cp *.pdf $DEST
-    fi
+fi
+
+# Create Links for Examples (local)
+if test ! -e build
+then
+    mkdir build
+fi
+cd build
+if test ! -e Examples
+then
+    mkdir Examples
+    ln -s $CASSIOPEE/Apps/Modules/OCC/test Examples/OCC
+fi
+cd ..
+
+# Build html
+sphinx-build -b html ./source ./build
+if ([ $PRODUCTION -eq 1 ])
+then
+# Build pdf
+    sphinx-build -b latex ./source ./build
+    cd build
+    pdflatex OCC
+    cd ..
+fi
+
+# Copie dans le DEST
+if ([ $PRODUCTION -eq 1 ])
+then
+    taghtml build/OCC.html
+    sed -i 's/OCC.OCC/OCC/g' build/OCC.html
+    cp build/OCC.html $DEST
+    cp build/OCC.pdf $DEST
 fi
 
 # Copie des release Notes
-version=`grep -e __version__ ../OCC/OCC.py`
-version1=${version:15:4}
-version1=${version1/"'"/""}
-v='OCC-'$version1'.txt'
-cp OCC.txt $DEST3/$v
-
+if ([ $PRODUCTION -eq 1 ])
+then
+    version=`grep -e __version__ ../OCC/OCC.py`
+    version1=${version:15:4}
+    version1=${version1/"'"/""}
+    v='OCC-'$version1'.txt'
+    cp OCC.txt $DEST3/$v
+fi

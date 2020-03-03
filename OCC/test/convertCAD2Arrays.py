@@ -10,7 +10,7 @@ C.convertArrays2File(A, 'hammer1.plt')
 
 # IGES avec OCC
 A = OCC.convertCAD2Arrays('hammer.iges', format='fmt_iges',
-                          deflection=1, algo=1)
+                          chordal_err=1, algo=1)
 
 C.convertArrays2File(A, 'hammer2.plt')
 
@@ -22,6 +22,6 @@ C.convertArrays2File(A, 'as1.plt')
 
 # STEP avec OCC
 A = OCC.convertCAD2Arrays('as1-oc-214.stp', format='fmt_step',
-                          deflection=1, algo=1)
+                          chordal_err=1, algo=1)
 
 C.convertArrays2File(A, 'as2.plt')
