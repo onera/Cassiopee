@@ -110,9 +110,9 @@ def createApp(win):
     Frame.bind('<Control-c>', hideApp)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
-    Frame.columnconfigure(0, weight=0)
-    Frame.columnconfigure(1, weight=0)
-    Frame.columnconfigure(2, weight=0)
+    Frame.columnconfigure(0, weight=1)
+    Frame.columnconfigure(1, weight=1)
+    Frame.columnconfigure(2, weight=1)
     
     WIDGETS['frame'] = Frame
     
@@ -145,6 +145,9 @@ def createApp(win):
     # - Subzone indices -
     F = TTK.LabelFrame(Frame, borderwidth=2, relief=CTK.FRAMESTYLE,
                         text='I', font=CTK.FRAMEFONT, takefocus=1)
+    F.columnconfigure(0, weight=1)
+    F.columnconfigure(1, weight=1)
+    F.columnconfigure(2, weight=0)
     F.grid(row=0, column=0, sticky=TK.EW)
     B = TTK.Button(F, text='+', width=5, command=setPlusI)
     B.grid(row=0, column=1, sticky=TK.EW)
@@ -168,8 +171,10 @@ def createApp(win):
 
     F = TTK.LabelFrame(Frame, borderwidth=2, relief=CTK.FRAMESTYLE,
                        text='J', font=CTK.FRAMEFONT, takefocus=1)
-    F.grid(row=0, column=1)
-    
+    F.columnconfigure(0, weight=1)
+    F.columnconfigure(1, weight=1)
+    F.columnconfigure(2, weight=0)
+    F.grid(row=0, column=1, sticky=TK.EW)
     B = TTK.Button(F, text='+', width=5, command=setPlusJ)
     B.grid(row=0, column=1, sticky=TK.EW)
     B = TTK.Button(F, text='-', width=5, command=setMoinsJ)
@@ -192,7 +197,10 @@ def createApp(win):
     
     F = TTK.LabelFrame(Frame, borderwidth=2, relief=CTK.FRAMESTYLE,
                         text='K', font=CTK.FRAMEFONT, takefocus=1)
-    F.grid(row=0, column=2)
+    F.columnconfigure(0, weight=1)
+    F.columnconfigure(1, weight=1)
+    F.columnconfigure(2, weight=0)
+    F.grid(row=0, column=2, sticky=TK.EW)
     B = TTK.Button(F, text='+', width=5, command=setPlusK)
     B.grid(row=0, column=1, sticky=TK.EW)
     B = TTK.Button(F, text='-', width=5, command=setMoinsK)

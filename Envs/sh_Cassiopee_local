@@ -188,7 +188,7 @@ elif [ "$MAC" = "visio" ]; then
     export PATH=/usr/local/python/bin:$PATH
     export PATH=$PATH:$CASSIOPEE/Dist/bin
     export PATH=$CASSIOPEE/Dist/bin/$ELSAPROD:$CASSIOPEE/Dist/bin/$ELSAPROD/bin:$PATH
-    export LD_LIBRARY_PATHL=/stc/benoit/opencascade2/lib:$CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/vis_r8/lib:/usr/local/hdf5-intel-1.8.8/lib:/usr/local/lib64:/usr/lib64
+    export LD_LIBRARY_PATHL=/stck/benoit/opencascade2/lib:$CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/vis_r8/lib:/usr/local/hdf5-intel-1.8.8/lib:/usr/local/lib64:/usr/lib64
     export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
 
 elif [ "$MAC" = "tiamat" ]; then

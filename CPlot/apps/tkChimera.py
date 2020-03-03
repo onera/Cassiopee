@@ -252,7 +252,6 @@ def createApp(win):
     Frame.columnconfigure(1, weight=1)
     Frame.columnconfigure(2, weight=1)
     Frame.columnconfigure(3, weight=1)
-    Frame.columnconfigure(4, weight=1)
     WIDGETS['frame'] = Frame
     
     # - Frame menu -

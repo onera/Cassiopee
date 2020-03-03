@@ -98,7 +98,6 @@ def createApp(win):
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=1)
-    Frame.columnconfigure(1, weight=1)
     WIDGETS['frame'] = Frame
 
     # - Frame menu -
