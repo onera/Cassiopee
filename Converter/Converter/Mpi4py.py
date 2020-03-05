@@ -7,7 +7,7 @@ from . import Distributed
 from .Distributed import readZones, writeZones, convert2PartialTree, convert2SkeletonTree, readNodesFromPaths, readPyTreeFromPaths, writeNodesFromPaths
 
 __all__ = ['rank', 'size', 'KCOMM', 'COMM_WORLD', 'setCommunicator', 'barrier', 'send', 'recv', 'sendRecv',
-    'bcast', 'Bcast', 'bcastZone', 'allgatherZones', 
+    'bcast', 'Bcast', 'bcastZone', 'allgatherZones',
     'allgather', 'readZones', 'writeZones', 'convert2PartialTree', 'convert2SkeletonTree', 'convertFile2DistributedPyTree', 
     'readNodesFromPaths', 'readPyTreeFromPaths', 'writeNodesFromPaths',
     'allgatherTree', 'convertFile2SkeletonTree', 'convertFile2PyTree', 'convertPyTree2File', 'seq', 'print0', 'printA',
@@ -799,7 +799,8 @@ def _addBXZones(a, depth=2, allB=False):
         if i != rank:
             for bb in bboxes[i]:
                 for k in bbsz:
-                    if inters(bbsz[k], bboxes[i][bb]):
+                    #SP : marge a 1e-6 lorsque les zones sont de meme z par exemple
+                    if inters(bbsz[k], bboxes[i][bb], tol=1.e-6):
                         if not allB:
                             data_i[k] = sz[k]
                         else:
@@ -817,7 +818,7 @@ def _addBXZones(a, depth=2, allB=False):
                     data_i[z+'S6'] = sz[z+'S6']
            
         data.append(data_i)
-        
+
     datar = COMM_WORLD.alltoall(data)
     for p in datar:
         for q in p:

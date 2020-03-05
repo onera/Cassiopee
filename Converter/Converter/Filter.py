@@ -168,7 +168,11 @@ def _loadContainerPartial(a, fileName, znp, variablesN=[], variablesC=[], format
       for v in variablesN: paths.append('/%s/%s/%s'%(bname, pname, v))
 
       dim = Internal.getZoneDim(zone)
-      if dim[3] == 1:
+      if dim[2] == 1 and dim[3] == 1:
+        DataSpaceMMRY = [[0], [1], [j[1]-j[0]+1], [1]]
+        DataSpaceFILE = [[j[0]-1], [1], [j[1]-j[0]+1], [1]]
+        DataSpaceGLOB = [[0]]        
+      elif dim[3] == 1:
         DataSpaceMMRY = [[0,0], [1,1], [j[1]-j[0]+1,j[3]-j[2]+1], [1,1]]
         DataSpaceFILE = [[j[0]-1,j[2]-1], [1,1], [j[1]-j[0]+1,j[3]-j[2]+1], [1,1]]
         DataSpaceGLOB = [[0]]
@@ -183,9 +187,13 @@ def _loadContainerPartial(a, fileName, znp, variablesN=[], variablesC=[], format
       paths = []
       for v in variablesC: paths.append('/%s/%s/%s'%(bname, pname, v))
 
-      if dim[3] == 1:
-        DataSpaceMMRYC = [[0,0], [1,1,1], [max(j[1]-j[0],1),max(j[3]-j[2],1)], [1,1]]
-        DataSpaceFILEC = [[j[0]-1,j[2]-1], [1,1,1], [max(j[1]-j[0],1),max(j[3]-j[2],1)], [1,1]]
+      if dim[2] == 1 and dim[3] == 1:
+        DataSpaceMMRYC = [[0], [1], [max(j[1]-j[0],1)], [1]]
+        DataSpaceFILEC = [[j[0]-1,j[2]-1], [1], [max(j[1]-j[0],1)], [1]]
+        DataSpaceGLOBC = [[0]]        
+      elif dim[3] == 1:
+        DataSpaceMMRYC = [[0,0], [1,1], [max(j[1]-j[0],1),max(j[3]-j[2],1)], [1,1]]
+        DataSpaceFILEC = [[j[0]-1,j[2]-1], [1,1], [max(j[1]-j[0],1),max(j[3]-j[2],1)], [1,1]]
         DataSpaceGLOBC = [[0]]
       else:
         DataSpaceMMRYC = [[0,0,0], [1,1,1], [max(j[1]-j[0],1),max(j[3]-j[2],1),max(j[5]-j[4],1)], [1,1,1]]
@@ -213,7 +221,6 @@ def _loadContainerPartial(a, fileName, znp, variablesN=[], variablesC=[], format
               Internal.newGridLocation(value='CellCenter', parent=parent)
           else: print('Cannot set %s.'%k2)
         else: n[1] = r[k]
-    
     return None
 
 #=========================================================================
@@ -640,8 +647,14 @@ class Handle:
       # Lecture ZoneBC + ZoneGC necessaire pour le split
       for b in Internal.getBases(a):
         for z in Internal.getZones(b):
-          _readPyTreeFromPaths(a, self.fileName, [b[0]+'/'+z[0]+'/ZoneBC', b[0]+'/'+z[0]+'/ZoneGridConnectivity'])
-    
+          paths = []          
+          if Internal.getNodeFromName1(z,"ZoneBC") is not None: 
+            paths.append(b[0]+'/'+z[0]+'/ZoneBC')
+          if Internal.getNodeFromName1(z,"ZoneGridConnectivity") is not None: 
+            paths.append(b[0]+'/'+z[0]+'/ZoneGridConnectivity')
+          if paths != []:
+            _readPyTreeFromPaths(a, self.fileName, paths)
+
       # Lecture des noms de variables
       varsN = ['%s/CoordinateX'%Internal.__GridCoordinates__,
       '%s/CoordinateY'%Internal.__GridCoordinates__,
