@@ -229,7 +229,8 @@ def prepare(tinit=None):
 
     import Apps.Fast.IBM as App
     myApp = App.IBM(format='single')
-    CTK.t, tc = myApp.prepare(CTK.t, t_out='t.cgns', tc_out='tc.cgns', vmin=21, tbox=tbox, check=False, tinit=tinit)
+    CTK.t, tc = myApp.prepare(CTK.t, t_out='t.cgns', tc_out='tc.cgns', vmin=21, 
+                              tbox=tbox, check=False, tinit=tinit, frontType=42, yplus=150.)
     return None
 
 #==============================================================================

@@ -528,13 +528,13 @@ def getNormalMap(t):
 def _getNormalMap(t):
     return C._TZGC(t, 'centers', Generator.getNormalMap)
 
-def getSmoothNormalMap(t, niter=2, eps = 0.4):
+def getSmoothNormalMap(t, niter=2, eps=0.4):
     """Return the map of smoothed and non-normalized surface normals in an array.
     eps is the smoothing factor.
     Usage: getSmoothNormalMap(t, niter, eps)"""
     return C.TZGC(t, 'nodes', Generator.getSmoothNormalMap, niter, eps)
 
-def _getSmoothNormalMap(t, niter=2, eps = 0.4):
+def _getSmoothNormalMap(t, niter=2, eps=0.4):
     return C._TZGC(t, 'nodes', Generator.getSmoothNormalMap, niter, eps)
 
 def getCellPlanarity(t):

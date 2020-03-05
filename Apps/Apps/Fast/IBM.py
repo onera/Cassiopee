@@ -1576,8 +1576,9 @@ class IBM(Common):
 
     # Prepare
     def prepare(self, t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
-                tbox=None, snearsf=None,
-                vmin=21, check=False, frontType=1, NP=None, expand=3, tinit=None):
+                tbox=None, snearsf=None, yplus=100.,
+                vmin=21, check=False, frontType=1, NP=None, expand=3, tinit=None,
+                initWithBBox=-1., wallAdapt=None):
         if NP is None: NP = Cmpi.size
         if NP == 0: print('Preparing for a sequential computation.')
         else: print('Preparing for a computation on %d processors.'%NP)

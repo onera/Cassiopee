@@ -188,16 +188,17 @@ PyObject* K_GENERATOR::getLocalStepFactor(PyObject* self, PyObject* args)
   return tpl;
 }
 
-
 // ============================================================================
 /* calcul du facteur d'amplification pour la hauteur h a extruder 
    normales contient les coordonnees des centres + les normales aux centres
+   sortie: champ 1 (ht) : hauteur d'extrusion
+           champ 2 (hl): champ utilise dans le lissage
 */
 // ============================================================================
 PyObject* K_GENERATOR::getLocalStepFactor2(PyObject* self, PyObject* args)
 {
   E_Float tolps = 0.5;
-  PyObject *array, *normales; 
+  PyObject *array, *normales;
   if (!PyArg_ParseTuple(args, "OO", &array, &normales)) return NULL;
 
   // Check arrays : surface + normales sx,sy,sz
@@ -262,7 +263,7 @@ PyObject* K_GENERATOR::getLocalStepFactor2(PyObject* self, PyObject* args)
   possx++; possy++; possz++;
 
   E_Int npts = f->getSize();
-  FldArrayF fout(npts,1);
+  FldArrayF fout(npts,2);
   vector< vector<E_Int> > cVE(npts);
   K_CONNECT::connectEV2VE(*cn, cVE);
   E_Float* xc = fn->begin(posx);
@@ -272,6 +273,9 @@ PyObject* K_GENERATOR::getLocalStepFactor2(PyObject* self, PyObject* args)
   E_Float* sy = fn->begin(possy);
   E_Float* sz = fn->begin(possz);
   fout.setAllValuesAt(1.);
+  E_Float* fouth = fout.begin(1);
+  E_Float* foute = fout.begin(2);
+  
   E_Int nvert = cn->getNfld();
   
 //#pragma omp parallel default(shared)
@@ -418,25 +422,34 @@ PyObject* K_GENERATOR::getLocalStepFactor2(PyObject* self, PyObject* args)
             E_Float sas2 = K_FUNC::E_abs(sin(alpha*0.5));
             sas2 = std::max(sas2, 0.5);
             sas2 = std::min(sas2, 2.);
-            fout[ind] = 1./sas2;
+            fouth[ind] = 1./sas2;
             //printf("ind=%d: sas2=%f, fout=%f\n", ind,sas2,fout[ind]);
             
             // calcul de kappa
             E_Float kappaL = 0.;
-            E_Float kappaP = 1.1;
+            E_Float kappaP = 2.;
             E_Float kappa;
             if (alpha <= K_CONST::E_PI) kappa = ((1.-kappaP)/K_CONST::E_PI)*alpha+kappaP;
             else kappa = ((kappaL-1.)/K_CONST::E_PI)*alpha+2.-kappaL;
             //E_Float kappa = 1.3 + (0.7-1.3)/(2.*K_CONST::E_PI)*alpha;
             //E_Float kappa = 0.6 + (1.4-0.6)/(2.*K_CONST::E_PI)*alpha;
             //printf("ind=%d, kappa=%f, alpha=%f\n",ind, kappa, alpha*180./K_CONST::E_PI);
-            fout[ind] = kappa*fout[ind];
+            //fouth[ind] = kappa*fouth[ind];
+            // Champ 2
+            // Lissage en fonction de alpha (pas suffisant car trop ponctuel)
+            //if (alpha > K_CONST::E_PI) foute[ind] = 0.;
+            //else foute[ind] = 3.*(K_CONST::E_PI-alpha)/K_CONST::E_PI;
+            // Pas de lissage
+            //foute[ind] = 0.;
+            // Lissage en fonction de alpha (pas suffisant car trop ponctuel)
+            foute[ind] = 3.*K_FUNC::E_abs(K_CONST::E_PI-alpha)/K_CONST::E_PI;
+            
           }
         }
       }
     }
   }
-  PyObject* tpl = K_ARRAY::buildArray(fout, "ht", *cn, -1, eltType);
+  PyObject* tpl = K_ARRAY::buildArray(fout, "ht,hl", *cn, -1, eltType);
   RELEASESHAREDU(array, f, cn);
   RELEASESHAREDU(normales, fn, cnn);
   return tpl;

@@ -304,7 +304,7 @@ PyObject* octree(PyObject* self, PyObject* args)
     {
       xmino = K_FUNC::E_min(xminZ[v],xmino); xmaxo = K_FUNC::E_max(xmaxZ[v],xmaxo);
       ymino = K_FUNC::E_min(yminZ[v],ymino); ymaxo = K_FUNC::E_max(ymaxZ[v],ymaxo);
-      if ( dim == 3)
+      if (dim == 3)
       {
         zmino = K_FUNC::E_min(zminZ[v],zmino); zmaxo = K_FUNC::E_max(zmaxZ[v],zmaxo);
       }
@@ -335,7 +335,7 @@ PyObject* octree(PyObject* self, PyObject* args)
     for (E_Int v = 0; v < nzones; v++)
     {
       E_Float dfarloc = vectOfDfars[v];
-      if (dfarloc > __DFARTOL__)//extensions non isotropes
+      if (dfarloc > __DFARTOL__) // extensions non isotropes
       {
         E_Float xminl = xminZ[v]; E_Float xmaxl = xmaxZ[v];
         E_Float yminl = yminZ[v]; E_Float ymaxl = ymaxZ[v];
@@ -344,7 +344,7 @@ PyObject* octree(PyObject* self, PyObject* args)
         Deltax = xmaxl-xminl+2*dfarloc;
         Deltay = ymaxl-yminl+2*dfarloc;
         Delta = K_FUNC::E_max(Deltax, Deltay); 
-        if ( dim == 3) 
+        if (dim == 3) 
         {
           Deltaz=zmaxl-zminl+2*dfarloc;
           Delta = K_FUNC::E_max(Delta, Deltaz);
@@ -352,25 +352,34 @@ PyObject* octree(PyObject* self, PyObject* args)
         Delta = 0.5*Delta;
         xc = 0.5*(xmaxl+xminl);
         yc = 0.5*(ymaxl+yminl);
-        xminl=xc-Delta; yminl=yc-Delta; 
+        xminl=xc-Delta; yminl=yc-Delta;
         xmaxl=xc+Delta; ymaxl=yc+Delta; 
 
-        if ( dim == 2) 
+        if (dim == 2)
         {zc = 0.; zminl = 0.; zmaxl = 0.;}
         else 
         {
           zc = 0.5*(zmaxl+zminl);
           zminl=zc-Delta; zmaxl=zc+Delta;
         }
-        xmino = K_FUNC::E_min(xmino,xminl);xmaxo = K_FUNC::E_max(xmaxo,xmaxl);
-        ymino = K_FUNC::E_min(ymino,yminl);ymaxo = K_FUNC::E_max(ymaxo,ymaxl);
-        if (dim==3)
+        xmino = K_FUNC::E_min(xmino,xminl); xmaxo = K_FUNC::E_max(xmaxo,xmaxl);
+        ymino = K_FUNC::E_min(ymino,yminl); ymaxo = K_FUNC::E_max(ymaxo,ymaxl);
+        if (dim == 3)
         {
-          zmino = K_FUNC::E_min(zmino,zminl);zmaxo = K_FUNC::E_max(zmaxo,zmaxl);
+          zmino = K_FUNC::E_min(zmino,zminl); zmaxo = K_FUNC::E_max(zmaxo,zmaxl);
         }        
       }//only zones with dfar > -1
     }// loop on all zones
   }// list of dfars
+
+  // Nous rendons cubique la boite finale
+  E_Float d = K_FUNC::E_max(xmaxo-xmino,ymaxo-ymino);
+  if (dim == 3) d = K_FUNC::E_max(d, zmaxo-zmino);
+  xc = 0.5*(xmino+xmaxo);
+  yc = 0.5*(ymino+ymaxo);
+  xmino = xc-0.5*d; ymino = yc-0.5*d;
+  xmaxo = xc+0.5*d; ymaxo = yc+0.5*d;
+  if (dim == 3) { zmino = zc-0.5*d; zmaxo = zc+0.5*d; }
 
   // construction de l'octree (octant)
   // si octant est present, ecrase xmino,...
@@ -403,12 +412,12 @@ PyObject* octree(PyObject* self, PyObject* args)
   E_Int indmax = 0;
   
   OctreeNode* toptree;
-  if (dim == 2) 
+  if (dim == 2)
   {
     toptree = new OctreeNode(xmino, ymino, zmino, xmaxo-xmino, l0, indmax, indmax+1, indmax+2, indmax+3);
     indmax += 4;
   }
-  else 
+  else
   {
     toptree = new OctreeNode(xmino, ymino, zmino, xmaxo-xmino, l0, indmax, indmax+1, indmax+2, indmax+3, indmax+4, indmax+5, indmax+6, indmax+7);
     indmax += 8;

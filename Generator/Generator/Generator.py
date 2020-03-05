@@ -861,7 +861,7 @@ def getNormalMap(array):
     else:
         return generator.getNormalMap(array)
   
-def getSmoothNormalMap(array, niter=2, eps=0.4):
+def getSmoothNormalMap(array, niter=2, eps=0.4, algo=0):
     """Return the map of smoothed and non-normalized surface normals in 
     an array.
     Usage: getSmoothNormalMap(array, niter, eps)"""
@@ -878,7 +878,12 @@ def getSmoothNormalMap(array, niter=2, eps=0.4):
         np = C.center2Node(np)
         np = C.normalize(np, ['sx','sy','sz'])
         it += 1
-        n[1][:] += eps*np[1][:]
+        if algo == 0:
+            if isinstance(eps, float): n[1][:] += eps*np[1][:]
+            else: n[1][:] += eps[:]*np[1][:]
+        else:
+            if isinstance(eps, float): n[1][:] += eps*(np[1][:]-n[1][:])
+            else: n[1][:] += eps[:]*(np[1][:]-n[1][:])
         n = C.normalize(n, ['sx','sy','sz'])
     return n
 
@@ -971,16 +976,16 @@ def getLocalStepFactor__(s, sn, algo):
     if algo == 0:
         ht = generator.getLocalStepFactor(s, sc)
         # Lissage hauteur du pas
-        niter = 10; eps = 0.01; it = 0
+        niter = 10; it = 0
         while it < niter:
             ht = C.node2Center(ht)
             ht = C.center2Node(ht)
             it += 1
     else:
-        # Nouvelle version (pas de lissage)
+        # Nouvelle version
         ht = generator.getLocalStepFactor2(s, sc)
         # Lissage hauteur du pas
-        niter = 0; eps = 0.01; it = 0
+        niter = 2; it = 0
         while it < niter:
             ht = C.node2Center(ht)
             ht = C.center2Node(ht)
@@ -988,7 +993,8 @@ def getLocalStepFactor__(s, sn, algo):
     return ht
 
 #==============================================================================
-def modifyNormalWithMetric(array, narray, algo):
+# Regle la hauteur des normales, retoure aussi le champ pour le lisseur (algo=1)
+def modifyNormalWithMetric(array, narray, algo=0, eps=0.4):
     """Correct the normals located at nodes with respect to metric."""
     try: import Converter as C
     except: raise ImportError("modifyNormalWithMetric: requires Converter module.")
@@ -999,8 +1005,10 @@ def modifyNormalWithMetric(array, narray, algo):
     nx[1][0,:] = ht[1][0,:]* nx[1][0,:]
     ny[1][0,:] = ht[1][0,:]* ny[1][0,:]
     nz[1][0,:] = ht[1][0,:]* nz[1][0,:]
+    if algo == 1: epsl = C.extractVars(ht,['hl']); epsl[1][:] = eps*epsl[1][:]
+    else: epsl = None
     n = C.addVars([n, nx, ny, nz])
-    return n
+    return n, epsl
 
 def getCircumCircleMap(array):
     """Return the map of circum circle radius of any cell in a TRI array.
@@ -1596,7 +1604,7 @@ def octree(stlArrays, snearList=[], dfarList=[], dfar=-1., balancing=0, levelMax
     else: #27-tree
         o = generator.octree3(s, snearList, dfar, levelMax, octant)
         if balancing == 0: return o
-        else: return balanceOctree__(o,3, corners=0)
+        else: return balanceOctree__(o, 3, corners=0)
 
 def conformOctree3(octree):
     """Conformize an octree3.
@@ -1688,40 +1696,60 @@ def addNormalLayersStruct__(surfaces, distrib, check=0, niter=0, eps=0.4, algo=0
     coordsloc[1][2,0:imax] = surfu[1][2,0:imax]
     k1 = 0
     stop = 0
+    epsl = None # champ pour le lissage
+    
     while k1 < kmax-1 and stop == 0:
         hloc = distrib[1][0,k1+1]-distrib[1][0,k1]
-        if niter == 0:
-            n = getNormalMap(surfu)
-            n = C.normalize(n, vect)
-            n = C.center2Node(n)
-            n = C.normalize(n, vect)
-            n = modifyNormalWithMetric(surfu, n, algo)
-        else:
-            if hmin < 0.01*hmean: # presence de couche limite
-                if k1 < kb1: # pas de lissage ds la couche limite
-                    n = getSmoothNormalMap(surfu, niter=0, eps=eps)
-                    np = modifyNormalWithMetric(surfu, n, algo)
-                    n[1] = np[1]
-                elif k1 < kb2:
-                    beta0 = (float(k1-kb1))/float(kb2-1-kb1)
-                    n0 = getSmoothNormalMap(surfu, niter=0, eps=eps)
-                    n0 = modifyNormalWithMetric(surfu, n0, algo)
+        if algo == 0: # algo=0, lissage partout, hauteur 1
+            if niter == 0:
+                n = getNormalMap(surfu)
+                n = C.normalize(n, vect)
+                n = C.center2Node(n)
+                n = C.normalize(n, vect)
+                n, epsl = modifyNormalWithMetric(surfu, n, algo=0, eps=eps)
+            else:
+                if hmin < 0.01*hmean: # presence de couche limite
+                    if k1 < kb1: # pas de lissage ds la couche limite
+                        n = getSmoothNormalMap(surfu, niter=0, eps=eps)
+                        np, epsl = modifyNormalWithMetric(surfu, n, algo=0, eps=eps)
+                        n[1] = np[1]
+                    elif k1 < kb2:
+                        beta0 = (float(k1-kb1))/float(kb2-1-kb1)
+                        n0 = getSmoothNormalMap(surfu, niter=0, eps=eps)
+                        n0, epsl = modifyNormalWithMetric(surfu, n0, algo=0, eps=eps)
+                        n = getSmoothNormalMap(surfu, niter=niter, eps=eps)
+                        np, epsl = modifyNormalWithMetric(surfu, n, algo=0, eps=eps)
+                        n[1] = (1-beta0)*n0[1] + beta0*np[1]
+                    else: # lissage a fond
+                        n = getSmoothNormalMap(surfu, niter=niter, eps=eps)
+                        np, epsl = modifyNormalWithMetric(surfu, n, algo=0, eps=eps)
+                        beta0 = float((kmax-2-k1))/float(kmax-2)
+                        beta0 = beta0*beta0
+                        n[1] = (1-beta0)*n[1] + beta0*np[1]
+                else: # pas de couche limite
                     n = getSmoothNormalMap(surfu, niter=niter, eps=eps)
-                    np = modifyNormalWithMetric(surfu, n, algo)
-                    n[1] = (1-beta0)*n0[1] + beta0*np[1]
-                else: # lissage a fond
-                    n = getSmoothNormalMap(surfu, niter=niter, eps=eps)
-                    np = modifyNormalWithMetric(surfu, n, algo)
-                    beta0 = float((kmax-2-k1))/float(kmax-2)
-                    beta0 = beta0*beta0
+                    np, epsl = modifyNormalWithMetric(surfu, n, algo=0, eps=eps)
+                    if kmax == 2: beta0 = 0.1
+                    else: beta0 = float((kmax-2-k1))/float(kmax-2); beta0 = beta0*beta0
                     n[1] = (1-beta0)*n[1] + beta0*np[1]
-            else: # pas de couche limite
-                n = getSmoothNormalMap(surfu, niter=niter, eps=eps)
-                np = modifyNormalWithMetric(surfu, n, algo)
-                if kmax == 2: beta0 = 0.1
-                else: beta0 = float((kmax-2-k1))/float(kmax-2); beta0 = beta0*beta0
-                n[1] = (1-beta0)*n[1] + beta0*np[1]
-                
+        else: # algo=1, lissage ponctuel, hauteur 2
+            if niter == 0:
+                n = getNormalMap(surfu)
+                n = C.normalize(n, vect)
+                n = C.center2Node(n)
+                n = C.normalize(n, vect)
+                n, epsl = modifyNormalWithMetric(surfu, n, algo=1, eps=eps)
+            else:
+                if epsl is None:
+                    n = getNormalMap(surfu)
+                    n = C.normalize(n, vect)
+                    n = C.center2Node(n)
+                    n = C.normalize(n, vect)
+                    n, epsl = modifyNormalWithMetric(surfu, n, algo=1, eps=eps)
+                    n = getSmoothNormalMap(surfu, niter=niter, eps=epsl[1], algo=1)
+                else: n = getSmoothNormalMap(surfu, niter=niter, eps=epsl[1], algo=1)
+                n, epsl = modifyNormalWithMetric(surfu, n, algo=1, eps=eps)
+
         n[1] = hloc*n[1]
         surfu = C.addVars([surfu,n])
         surfu = T.deform(surfu, ['sx','sy','sz'])
@@ -1775,40 +1803,55 @@ def addNormalLayersUnstr__(surface, distrib, check=0, niter=0, eps=0.4, algo=0):
     for k1 in range(kmax-1):
         if distrib[1][0,k1+1] >= 0.1*hmean and kb1 == -1: kb1 = k1
         elif distrib[1][0,k1+1] >= 1.*hmean and kb2 == -1: kb2 = k1
-    kb2 = max(kb2, kb1+2)  
+    kb2 = max(kb2, kb1+2)
+    epsl = None # champ pour le lissage
+
     for k1 in range(kmax-1):
         hloc = distrib[1][0,k1+1]-distrib[1][0,k1]
-        if niter == 0:
-            n = getNormalMap(surf)
-            n = C.normalize(n, vect)
-            n = C.center2Node(n)
-            n = C.normalize(n, vect)
-        else:
-            if hmin < 0.01*hmean: # presence de couche limite
-                if k1 < kb1: # pas de lissage ds la couche limite
-                    n = getSmoothNormalMap(surf, niter=0, eps=eps)
-                    np = modifyNormalWithMetric(surf, n, algo)
-                    n[1] = np[1]
-                    
-                elif k1 < kb2:
-                    beta0 = (float(k1-kb1))/float(kb2-1-kb1)
-                    n0 = getSmoothNormalMap(surf,niter=0, eps=eps)
-                    n0 = modifyNormalWithMetric(surf, n0, algo)
+        if algo == 0: # algo=0, lissage partout, hauteur 1
+            if niter == 0:
+                n = getNormalMap(surf)
+                n = C.normalize(n, vect)
+                n = C.center2Node(n)
+                n = C.normalize(n, vect)
+                n, epsl = modifyNormalWithMetric(surf, n, algo=0, eps=eps)
+            else:
+                # ancienne version
+                if hmin < 0.01*hmean: # presence de couche limite
+                    if k1 < kb1: # pas de lissage ds la couche limite
+                        n = getSmoothNormalMap(surf, niter=0, eps=eps)
+                        np, epsl = modifyNormalWithMetric(surf, n, algo=0, eps=eps)
+                        n[1] = np[1]
+                        
+                    elif k1 < kb2:
+                        beta0 = (float(k1-kb1))/float(kb2-1-kb1)
+                        n0 = getSmoothNormalMap(surf,niter=0, eps=eps)
+                        n0, epsl = modifyNormalWithMetric(surf, n0, algo=0, eps=eps)
+                        n = getSmoothNormalMap(surf, niter=niter, eps=eps)
+                        np, epsl = modifyNormalWithMetric(surf, n, algo=0, eps=eps)
+                        n[1] = (1-beta0)*n0[1] + beta0*np[1]
+                    else: # lissage a fond
+                        n = getSmoothNormalMap(surf,niter=niter, eps=eps)
+                        np, epsl = modifyNormalWithMetric(surf, n, algo=0, eps=eps)
+                        beta0 = float((kmax-2-k1))/float(kmax-2)
+                        beta0 = beta0*beta0
+                        n[1] = (1-beta0)*n[1] + beta0 *np[1]
+                else: # pas de couche limite
                     n = getSmoothNormalMap(surf, niter=niter, eps=eps)
-                    np = modifyNormalWithMetric(surf, n, algo)
-                    n[1] = (1-beta0)*n0[1] + beta0*np[1]
-                else: # lissage a fond
-                    n = getSmoothNormalMap(surf,niter=niter, eps=eps)
-                    np = modifyNormalWithMetric(surf, n, algo)
-                    beta0 = float((kmax-2-k1))/float(kmax-2)
-                    beta0 = beta0*beta0
-                    n[1] = (1-beta0)*n[1] + beta0 *np[1]
-            else: # pas de couche limite
-                n = getSmoothNormalMap(surf, niter=niter, eps=eps)
-                np = modifyNormalWithMetric(surf, n, algo)
-                if kmax == 2: beta0 = 0.1
-                else: beta0 = float((kmax-2-k1))/float(kmax-2); beta0 = beta0*beta0
-                n[1] = (1-beta0)*n[1] + beta0 *np[1]           
+                    np, epsl = modifyNormalWithMetric(surf, n, algo=0, eps=eps)
+                    if kmax == 2: beta0 = 0.1
+                    else: beta0 = float((kmax-2-k1))/float(kmax-2); beta0 = beta0*beta0
+                    n[1] = (1-beta0)*n[1] + beta0 *np[1]           
+        else: # algo=1
+            if niter == 0:
+                n = getNormalMap(surf)
+                n = C.normalize(n, vect)
+                n = C.center2Node(n)
+                n = C.normalize(n, vect)
+                n, epsl = modifyNormalWithMetric(surf, n, algo=1, eps=eps)
+                n = getSmoothNormalMap(surf, niter=niter, eps=epsl[1], algo=1)
+            else: n = getSmoothNormalMap(surf, niter=niter, eps=epsl[1], algo=1)
+            n, epsl = modifyNormalWithMetric(surf, n, algo=1, eps=eps)
 
         n[1] = hloc*n[1]
         a = grow(surf, n)

@@ -15504,9 +15504,9 @@ def updateFromTree(event=None):
             dim = Internal.getZoneDim(z)
             zname = z[0]
             if dim[0] == 'Structured' and dim[2] == 1 and dim[3] == 1:
-                z = C.center2Node(z, Internal.__FlowSolutionCenters__)
-                C._getIndexField(z)
-                bn[2].append(z)
+                zp = C.center2Node(z, Internal.__FlowSolutionCenters__)
+                zp = C.getIndexField(zp)
+                bn[2].append(zp)
             elif dim[0] == 'Unstructured' and dim[3] == 'BAR':
                 zps = T.splitConnexity(z)
                 zps = C.convertBAR2Struct(zps)
@@ -15514,7 +15514,7 @@ def updateFromTree(event=None):
                 for i in zps:
                     i[0] = zname+str(c); c += 1
                     i = C.center2Node(i, Internal.__FlowSolutionCenters__)
-                C._getIndexField(zps)
+                zps = C.getIndexField(zps)
                 bn[2] += zps
 
             elif dim[0] == 'Unstructured' and dim[3] == 'NGON' and dim[4] == 1:
@@ -15525,7 +15525,7 @@ def updateFromTree(event=None):
                 for i in zps:
                     i[0] = zname+str(c); c += 1
                     i = C.center2Node(i, Internal.__FlowSolutionCenters__)
-                C._getIndexField(zps)
+                zps = C.getIndexField(zps)
                 bn[2] += zps
 
     if CTK.__MAINTREE__ == 1:

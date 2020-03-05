@@ -330,7 +330,9 @@ def check():
         CPlot.setActiveZones(active)
 
     # modifie la couleur du bouton
-    l = len(Internal.getZones(CTK.dt))
+    bases = Internal.getBases(CTK.dt)
+    if len(bases) > 0: l = len(Internal.getZones(bases[0]))
+    else: l == 0
     if l == 0: TTK.setButtonGreen(WIDGETS['undefinedBC'])
     else: TTK.setButtonRed(WIDGETS['undefinedBC'])    
     WIDGETS['undefinedBC'].update()
