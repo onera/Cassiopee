@@ -919,8 +919,6 @@ void NUGA::Splitter::__apply_pgs_splits(ngon_unit& PHs, const ngon_unit& split_g
 void NUGA::Splitter::__get_valid_concave_chains
 (const eset_t& reflex_edges, idlists_t& chains, ivec_t& chains_type)
 {
-  size_t nb_chains = 0;
-  
   if (reflex_edges.empty()) return;
 
   //GRAPH "node to nodes" for REFLEX ONLY
@@ -928,26 +926,10 @@ void NUGA::Splitter::__get_valid_concave_chains
   __get_nodes_graph(reflex_edges, nodes_graph);
   
   //type : 0 for closed, 1 for open
+  std::vector<E_Int> edgecol;
+  BARSplitter::split_eset_into_manifold_chains<eset_t>(reflex_edges, chains, edgecol);
 
-  K_FLD::IntArray cntE, neighborsE;
-  std::vector<E_Int> colorsE;
-  for (std::set<K_MESH::NO_Edge>::iterator it = reflex_edges.begin(); it != reflex_edges.end(); ++it)
-    cntE.pushBack(it->begin(), it->end());
-
-  K_CONNECT::EltAlgo<K_MESH::Edge>::getManifoldNeighbours(cntE, neighborsE, false);
-  K_CONNECT::EltAlgo<K_MESH::Edge>::coloring(neighborsE, colorsE);
-  
-  // 2.b. classify chains : type 0 (closed), type 1 (open polyline)
-  nb_chains = *std::max_element(colorsE.begin(), colorsE.end()) + 1;
-  chains.resize(nb_chains);
-  std::vector<K_FLD::IntArray> cnt_chains(nb_chains);
-  
-  //2.c. dispacth by color and create the poly lines
-  for (E_Int i = 0; i < cntE.cols(); ++i)
-    cnt_chains[colorsE[i]].pushBack(cntE.col(i), cntE.col(i) + 2);
-  for (size_t c = 0; c < nb_chains; ++c)
-    BARSplitter::getSortedChainNodes(cnt_chains[c], chains[c]);
-
+  size_t nb_chains = chains.size();
   //2.d remove any non-valid chain (having non-manifold node)
   {
     idlists_t tmp;

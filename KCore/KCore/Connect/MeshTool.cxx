@@ -671,6 +671,46 @@ inline void MeshTool::get_farthest_point_to_edge
   //std::cout << "farthest point :" << Nf << std::endl;
   //std::cout << "farthest dist :" << d2 << std::endl;
 }
+
+template <typename IntCont, E_Int DIM >
+inline void
+K_CONNECT::MeshTool::reorder_nodes_on_edge
+(const K_FLD::FloatArray& pos, IntCont& nodes, E_Int idx_start, std::vector<std::pair<E_Float, E_Int> >& sorter)
+{
+  E_Float L;
+  E_Int   E[2];
+
+  size_t nb_nodes = nodes.size();
+
+  const E_Float *P0 = pos.col(nodes[0] - idx_start);
+  L = K_FUNC::sqrDistance(pos.col(nodes[1] - idx_start), P0, DIM);
+
+  sorter.clear();
+  sorter.push_back(std::make_pair(0., nodes[0]));
+
+  for (size_t k = 1; k < nb_nodes; ++k)
+  {
+    L = K_FUNC::sqrDistance(pos.col(nodes[k] - idx_start), P0, DIM);
+    sorter.push_back(std::make_pair(L, nodes[k]));
+  }
+
+  std::sort(sorter.begin(), sorter.end());
+
+  nodes.clear();
+  E[0] = sorter[0].second;
+  nodes.push_back(E[0]);
+
+  for (size_t s = 0; s < sorter.size() - 1; ++s)
+  {
+    E[1] = sorter[s + 1].second;
+
+    if (E[1] != E[0])
+    {
+      nodes.push_back(E[1]);
+      E[0] = E[1];
+    }
+  }
+}
   
 }
 

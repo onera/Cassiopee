@@ -4497,7 +4497,7 @@ E_Int NGON_BOOLEAN_CLASS::__classify_skin_PHT3s
 
   if (_F2E.cols())
   {
-    E_Int err = __set_PH_history(PHT3s, is_skin, shift, _nb_pgs1, _F2E, _anc_PH_for_PHT3s[mesh_oper], true/*soft*/, connectT3o);
+    /*E_Int err = */__set_PH_history(PHT3s, is_skin, shift, _nb_pgs1, _F2E, _anc_PH_for_PHT3s[mesh_oper], true/*soft*/, connectT3o);
     
 #ifdef DEBUG_BOOLEAN
     if (err) 

@@ -556,6 +556,7 @@ E_Int geom_sensor<mesh_t, crd_t>::redistrib_data()
       _points_to_cell[i] = cell;
     }
   }
+  return 0;
 }
   
 
@@ -881,7 +882,7 @@ E_Int geom_sensor3<mesh_t, crd_t>::redistrib_data()
     if (_Ln[i]>0)
       _Ln[i]--;
   }
-  
+  return 0;
 }
   
 

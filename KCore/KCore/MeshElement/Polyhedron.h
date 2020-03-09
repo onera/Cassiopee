@@ -1062,7 +1062,37 @@ public:
 
     return true;
   }
-  
+
+  ///
+  static bool is_closed(const ngon_unit& PGS, const E_Int* first_pg, E_Int nb_pgs, std::set<K_MESH::NO_Edge>& free_edges)
+  {
+    free_edges.clear();
+
+    K_MESH::NO_Edge noE;
+    for (E_Int i = 0; i < nb_pgs; ++i)
+    {
+      E_Int PGi = *(first_pg + i) - 1;
+      E_Int nb_nodes = PGS.stride(PGi);
+      const E_Int* pNi = PGS.get_facets_ptr(PGi);
+      //
+      for (E_Int i = 0; i < nb_nodes; ++i)
+      {
+        const E_Int& Ni = *(pNi + i);
+        const E_Int& Nj = *(pNi + (i + 1) % nb_nodes);
+
+        noE.setNodes(Ni, Nj);
+
+        if (free_edges.find(noE) != free_edges.end()) //if already in, closed border
+          free_edges.erase(noE);
+        else
+          free_edges.insert(noE);
+      }
+    }
+    
+    return free_edges.empty();
+  }
+
+  ///
   template <typename Triangulator_t>
   static E_Int is_pathological(const Triangulator_t& dt,  const K_FLD::FloatArray& crd, const ngon_unit& PGS, const E_Int* first_pg, E_Int nb_pgs, const E_Int* orient)
   {
@@ -1925,7 +1955,7 @@ static bool is_aniso_HX8(const K_FLD::FloatArray& crd, const ngon_unit& PGS, con
       {
         //compute the aniso ratio
         const E_Int * nodes = PGS.get_facets_ptr(first_pg[i] - 1);
-        E_Int nnodes = PGS.stride(first_pg[i] - 1);
+        //E_Int nnodes = PGS.stride(first_pg[i] - 1);
 
         E_Float L0 = K_FUNC::sqrDistance(crd.col(nodes[0]-1), crd.col(nodes[1]-1), 3);
         E_Float L1 = K_FUNC::sqrDistance(crd.col(nodes[1]-1), crd.col(nodes[2]-1), 3);
@@ -2035,9 +2065,10 @@ static bool is_PR6(const ngon_unit& PGs, const E_Int* firstPG, E_Int nb_pgs)
      poids->resize(nodes.size());
    }
    
+   crd.reserve(3, nodes.size());
    for (size_t i=0; i < nodes.size(); ++i){
      crd.pushBack(crdi.col(nodes[i]-1), crdi.col(nodes[i]-1)+3);
-     if (poids != nullptr)(*poids)[i] = nodes[i]-1;
+     if (poids != nullptr)(*poids)[i] = nodes[i];
    }
    
    std::map<E_Int, E_Int> gid_to_lid;
@@ -2056,6 +2087,7 @@ static bool is_PR6(const ngon_unit& PGs, const E_Int* firstPG, E_Int nb_pgs)
      E_Int nb_nodes = _pgs->stride(Fi);
      //pass to local
      nodes.clear();
+     nodes.resize(nb_nodes);
      for (size_t j=0; j < nb_nodes; ++j)
        nodes[j] = gid_to_lid[pN[j]];
      

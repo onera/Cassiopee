@@ -26,7 +26,7 @@ struct aPolyhedron : public K_MESH::Polyhedron<TopoShape>
   std::vector<E_Int> m_faces;
   K_FLD::FloatArray  m_crd;
   
-  aPolyhedron(){plug(); parent_type::_triangles = nullptr;}
+  aPolyhedron(){parent_type::_triangles = nullptr;}
   aPolyhedron(const ngon_unit* pgs, const E_Int* faces, E_Int nb_faces, const K_FLD::FloatArray& crd); // from "mesh" to autonmous
   aPolyhedron(const parent_type& ph, const K_FLD::FloatArray& crd); // from "mesh" to autonmous
   aPolyhedron(const ngon_unit& lpgs, const K_FLD::FloatArray& crd);
@@ -134,7 +134,11 @@ struct haPolyhedron : public aPolyhedron<TopoShape>
   haPolyhedron& operator=(const haPolyhedron& rhs);
           
   void set(const base_type& ph, const K_FLD::FloatArray& crd);
-  void set(ngon_type& ng, E_Int PHi, const K_FLD::FloatArray& crd);
+  template <typename ngo_t> void set(ngo_t& ng, E_Int PHi, const K_FLD::FloatArray& crd); //template to avoid cycling with ngon_t.hxx
+
+  bool is_closed(std::set<K_MESH::NO_Edge>& free_edges);
+  void get_edge_refinement
+  (const std::set<K_MESH::NO_Edge>& free_edges, E_Int idx_start, std::map<K_MESH::NO_Edge, std::deque<E_Int> >& edge_to_refine_nodes);
   
 };
 
@@ -148,6 +152,8 @@ haPolyhedron<TopoShape>& haPolyhedron<TopoShape>::operator=(const haPolyhedron<T
   parent_type::m_crd = rhs.m_crd;
   
   parent_type::plug();
+
+  return *this;
 }
 
 ///
@@ -163,7 +169,8 @@ void haPolyhedron<TopoShape>::set(const base_type& ph, const K_FLD::FloatArray& 
 
 ///
 template <int TopoShape>
-void haPolyhedron<TopoShape>::set(ngon_type& ng, E_Int PHi, const K_FLD::FloatArray& crd)
+template <typename ngo_t>
+void haPolyhedron<TopoShape>::set(ngo_t& ng, E_Int PHi, const K_FLD::FloatArray& crd)
 {
   base_type e(ng,PHi);
   set(e, crd);

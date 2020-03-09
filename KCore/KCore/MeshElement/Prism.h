@@ -166,9 +166,10 @@ void Prism::reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i)
     {
       const E_Int* nodes = PGs.get_facets_ptr(first_pg[i+3*i]-index_start);
       E_Int nb_nodes = PGs.stride(first_pg[i+3*i]-index_start);
+      assert (nb_nodes == 3); //fixme : checkme
       
-      for (int k = 0; k  < nb_nodes; ++k)
-        new_bary[nb_nodes*i+k] = nodes[k];   
+      for (int k = 0; k  < 3; ++k)
+        new_bary[3*i+k] = nodes[k];   
     }
     
     K_MESH::Polyhedron<STAR_SHAPED>::iso_barycenter(crd, new_bary, 6, 1, G);

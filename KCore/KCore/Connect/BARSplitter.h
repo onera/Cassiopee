@@ -21,6 +21,8 @@
 
 #include "Fld/DynArray.h"
 #include "Def/DefContainers.h"
+#include "Connect/EltAlgo.h"
+#include <deque>
 
 class BARSplitter
 {
@@ -76,7 +78,15 @@ public:
   
   ///
   static E_Int get_node_to_nodes(const K_FLD::IntArray& connectE2, std::map< E_Int, std::pair<E_Int, E_Int> >& node_to_nodes);
+
+  ///
+  template<typename EdgeCONT> static void split_eset_into_manifold_chains(const EdgeCONT& edges, std::vector<std::deque<E_Int>>& chains, std::vector<E_Int>& edgecol);
   
+  ///
+  template<typename EdgeCONT, typename IdCONT>
+  static void compute_refinement(const EdgeCONT& free_edges, const IdCONT &chain,
+                          std::map < K_MESH::NO_Edge, IdCONT>& edge_to_refine_nodes);
+   
   // Returs the node having the smallest angle (absolute value).
   static E_Int min_angle_node(const std::vector<E_Int>& sorted_nodes, const K_FLD::FloatArray& coord);
 
@@ -198,5 +208,59 @@ BARSplitter::getSortedChainNodes // open polyline : ADD TWICE THE NODE TO DISTIN
   return 0;
 }
 
+template<typename EdgeCONT>
+void BARSplitter::split_eset_into_manifold_chains(const EdgeCONT& edges, std::vector<std::deque<E_Int>>& chains, std::vector<E_Int>& edgecol)
+{
+  K_FLD::IntArray cntE, neighborsE;
+  std::vector<E_Int> colorsE;
+  for (auto it = edges.begin(); it != edges.end(); ++it)
+    cntE.pushBack(it->begin(), it->end());
+
+  K_CONNECT::template EltAlgo<K_MESH::Edge>::getManifoldNeighbours(cntE, neighborsE, false);
+  K_CONNECT::template EltAlgo<K_MESH::Edge>::coloring(neighborsE, colorsE);
+
+  // 2.b. classify chains : type 0 (closed), type 1 (open polyline)
+  E_Int nb_chains = *std::max_element(colorsE.begin(), colorsE.end()) + 1;
+  chains.resize(nb_chains);
+  std::vector<K_FLD::IntArray> cnt_chains(nb_chains);
+
+  edgecol.clear();
+  edgecol.resize(edges.size());
+
+  //2.c. dispacth by color and create the poly lines
+  for (E_Int i = 0; i < cntE.cols(); ++i)
+  {
+    cnt_chains[colorsE[i]].pushBack(cntE.col(i), cntE.col(i) + 2);
+    edgecol[i] = colorsE[i];
+  }
+  for (size_t c = 0; c < nb_chains; ++c)
+    BARSplitter::getSortedChainNodes(cnt_chains[c], chains[c]);
+}
+
+///
+template<typename EdgeCONT, typename IdCONT>
+void BARSplitter::compute_refinement
+(const EdgeCONT& edges, const IdCONT &chain,
+ std::map < K_MESH::NO_Edge, IdCONT>& edge_to_refine_nodes)
+{
+  edge_to_refine_nodes.clear();
+
+  for (auto& e : edges)
+  {
+    E_Int I[] = {0, 0};
+    E_Int count(-1);
+
+    for (size_t i = 0; i < chain.size(); ++i)
+    {
+      if (chain[i] != e.node(0) && chain[i] != e.node(1)) continue;
+      I[++count] = i;
+    }
+
+    assert(count == 1);
+
+    for (E_Int j = I[0] + 1; j < I[1]; ++j)
+      edge_to_refine_nodes[e].push_back(chain[j]);
+  }
+}
 
 #endif

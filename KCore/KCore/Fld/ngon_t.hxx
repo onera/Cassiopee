@@ -30,6 +30,7 @@
 #include "MeshElement/Triangle.h"
 #include "MeshElement/Quadrangle.h"
 #include "MeshElement/Polyhedron.h"
+#include "Nuga/include/polyhedron.hxx"
 #include "Connect/IdTool.h"
 #include "Connect/EltAlgo.h"
 #include "Connect/BARSplitter.h"
@@ -766,12 +767,12 @@ struct ngon_t
   }
   
   ///
-  static void refine_pg
-  (const E_Int* pg, E_Int sz, const std::map<K_MESH::NO_Edge, Vector_t<E_Int> >& edge_to_refined_edge, Vector_t<E_Int>& pg_molec)
+  template<typename IntCont>
+  static bool refine_pg
+  (const E_Int* pg, E_Int sz, const std::map<K_MESH::NO_Edge, IntCont >& edge_to_refined_edge, Vector_t<E_Int>& pg_molec)
   {
     E_Int Ni, Nj;
     K_MESH::NO_Edge Ei;
-    std::map<K_MESH::NO_Edge, Vector_t<E_Int> >::const_iterator it;
     
     pg_molec.clear();
     pg_molec.resize(1, 0);
@@ -781,10 +782,10 @@ struct ngon_t
       Nj = *(pg + (i+1)%sz);
       Ei.setNodes(Ni, Nj);
       
-      it = edge_to_refined_edge.find(Ei);
+      auto it = edge_to_refined_edge.find(Ei);
       if (it != edge_to_refined_edge.end())
       {
-        const Vector_t<E_Int>& nodes = it->second;
+        const auto& nodes = it->second;
         if (Ni == Ei.node(0)) //same orientation
           for (size_t j=0; j< nodes.size()-1; ++j)
             pg_molec.push_back(nodes[j]);
@@ -795,142 +796,135 @@ struct ngon_t
       else
       {
         pg_molec.push_back(Ni);
-        //pg_molec.push_back(Nj);
       }
     }
     
     pg_molec[0]=pg_molec.size()-1;
+    return (sz < pg_molec[0]);
   }
   
-  static bool is_closed(const ngon_t& ngio, E_Int PHi, std::set<K_MESH::NO_Edge>& free_edges)
+  /// Close PHs having free edges (GEOM algo).
+  static void close_phs(ngon_t& ngio, const K_FLD::FloatArray& crd)
   {
-    //std::cout << ngio.PHs << std::endl;
-    E_Int nb_pgs = ngio.PHs.stride(PHi);
-    const E_Int* const ptrPG = ngio.PHs.get_facets_ptr(PHi);
-    E_Int PGi, nb_nodes;
-    K_MESH::NO_Edge noE;
-    const  E_Int *pNi;
-    
-    free_edges.clear();
-    
-    for (E_Int i = 0; i < nb_pgs; ++i)
-    {
-      PGi = *(ptrPG+i)-1;
-      nb_nodes=ngio.PGs.stride(PGi);
-      pNi = ngio.PGs.get_facets_ptr(PGi);
-      //
-      for (E_Int i=0; i < nb_nodes; ++i)
-      {
-        const E_Int& Ni = *(pNi+i);
-        const E_Int& Nj = *(pNi+(i+1)%nb_nodes);
-             
-        noE.setNodes(Ni, Nj);
-        
-        if (free_edges.find(noE) != free_edges.end()) //if already in, closed border
-          free_edges.erase(noE);
-        else
-          free_edges.insert(noE);
-      }
-    }
-    return free_edges.empty();
-  }
-  
-  /// Close a PH having free edges (GEOM algo).
-  static void close_phs(ngon_t& ngio, const K_FLD::FloatArray& coord)
-  {
-    //WARNING : algo valid only for quasi-straight BAR openings (because the poinst are sorted by distance).
-    // TYPICAL USE : after Cassiopee NGON conformization of an octree (new points on a subdivided face are not propagated to the attached faces..)
-    
-    std::map<K_MESH::NO_Edge, Vector_t<E_Int> > edge_to_refined_edge;
-    ngon_unit refinedPGs;
-    Vector_t<E_Int> pg_molec, refined_edge;
-    std::set<K_MESH::NO_Edge> edges;
-    K_MESH::NO_Edge noE;
-    K_FLD::IntArray conn;
-    
     ngio.PGs.updateFacets();
     ngio.PHs.updateFacets();
-    
-    // Build the refined edges       
-    E_Int nb_phs(ngio.PHs.size());
-    //E_Int PGi;
-    for (E_Int PHi = 0; PHi < nb_phs; ++PHi)
-    {      
-      //NGON_debug<K_FLD::FloatArray, K_FLD::IntArray>::draw_PH("/home/slandier/tmp/open_borders.tp", coord, ngio, PHi);
-      //NGON_debug<K_FLD::FloatArray, K_FLD::IntArray>::highlight_PH(ngio, coord, PHi);
-      
-      // Get the edges to refine (for the entire PH).
-      //E_Int nb_pgs = ngio.PHs.stride(PHi);
-      //const E_Int* const ptrPG = ngio.PHs.get_facets_ptr(PHi);
-      
-      if (is_closed(ngio, PHi, edges)) continue;
-      
-      /*if (edges.empty()) // PH is closed, nothing to do.
-      {
-        for (E_Int i=0; i < nb_pgs; ++i)
-        {
-          PGi = *(ptrPG+i)-1;
-          refinedPGs.__add(ngio.PGs, PGi);
-        }
-        continue;
-      }*/
-      
-#ifdef DEBUG_NGON_T
-      /*{
-        K_FLD::IntArray connectE;
-        std::set<K_MESH::NO_Edge>::const_iterator it;
-        for (it=edges.begin(); it!=edges.end(); ++it)
-        {
-          K_MESH::Edge e(it->node(0), it->node(1));
-          connectE.pushBack(e.begin(), e.end());
-        }
-        connectE.shift(-1);  
-        MIO::write("free_edges.mesh", coord, connectE, "BAR");
-      }*/
-#endif
-      
-      //
-      conn.clear();
-      conn.resize(2, edges.size());
-      E_Int i(0);
-      for (std::set<K_MESH::NO_Edge>::const_iterator ii=edges.begin(); ii!= edges.end(); ++ii, ++i)
-      { conn(0,i)=ii->node(0)-1; conn(1,i)=ii->node(1)-1; }
-      
-      // Split into single contours
-      typedef std::map<E_Int, std::vector<E_Int> > ntn_t;
-      ntn_t node_to_nodes;
-      BARSplitter::get_node_to_nodes(conn, node_to_nodes);
-      
-      // For each contour
-      for (ntn_t::const_iterator n=node_to_nodes.begin(); n!= node_to_nodes.end(); ++n)
-      {
-        if (n->second.size() != 2) // not a splitting node
-          continue;
 
-        const E_Int& Nsplit = n->first ;
+    using dint_t = std::deque<E_Int>;
 
-        refined_edge.clear();
-        noE.setNodes(1+n->second[0], 1+n->second[1]);
-        refined_edge.push_back(noE.node(0));
-        refined_edge.push_back(Nsplit+1);
-        refined_edge.push_back(noE.node(1));
-        edge_to_refined_edge[noE]=refined_edge;
-      } 
-    }
-    
-    // Refine the PGs ( <=> close the PHs )
+    std::vector < std::pair<E_Float, E_Int>> sorter;
+    std::map<K_MESH::NO_Edge, dint_t > edge_to_refine_nodesTMP, edge_to_refine_nodes;
+    using edge_t = std::set<K_MESH::NO_Edge>;
+    edge_t free_edges;
+    using vedge_t = std::vector<K_MESH::NO_Edge>;
+    vedge_t vfree_edges;
+    std::vector<dint_t> chains;
+    std::vector<E_Int> edgecol;
+
     E_Int nb_pgs = ngio.PGs.size();
-    for (E_Int PGi = 0; PGi < nb_pgs; ++PGi)
+    E_Int nb_phs(ngio.PHs.size());
+
+    std::vector<bool> processPG, processPH(nb_phs, true); //test all at first iter
+
+    bool carry_on(true);
+    while (carry_on)
     {
-      refine_pg(ngio.PGs.get_facets_ptr(PGi), ngio.PGs.stride(PGi), edge_to_refined_edge, pg_molec);
-      refinedPGs.add(pg_molec);
+      carry_on = false;
+      edge_to_refine_nodes.clear();
+
+      // Build the refined edges       
+      for (E_Int i = 0; i < nb_phs; ++i)
+      {
+        if (!processPH[i]) continue;
+
+        // closed ?
+        if (K_MESH::Polyhedron<0>::is_closed(ngio.PGs, ngio.PHs.get_facets_ptr(i), ngio.PHs.stride(i), free_edges)) continue;
+
+        carry_on = true;
+
+#ifdef DEBUG_NGON_T
+        //if (i == 169804) medith::write("PH.mesh", crd, ngio, i);
+#endif
+
+        BARSplitter::split_eset_into_manifold_chains<edge_t>(free_edges, chains, edgecol);
+
+        // now we have openLines and closed loops, so convert closed ones into 2 openLines based on worst angle nodes
+        size_t nchains = chains.size(); // initial because following sliiting will append it
+        for (size_t c = 0; c < nchains; ++c)
+        {
+          E_Int nnodes = chains[c].size();
+          if (nnodes == 2) continue; // taken into account later when adding the edge made of edge chains ends to vfree_edges
+                                     // get the edges assigned to that color
+          vfree_edges.clear();
+          E_Int j = 0;
+          for (auto ite = free_edges.begin(); ite != free_edges.end(); ++ite, ++j) if (edgecol[j] == c)vfree_edges.push_back(*ite);
+
+          bool is_closed_loop = (*chains[c].begin() == *chains[c].rbegin());
+
+          if (is_closed_loop)
+          {
+            chains[c].pop_back(); // remove redundant end
+            --nnodes;
+
+            E_Int is(E_IDX_NONE), ie(E_IDX_NONE);
+            if (!K_MESH::Polygon::is_spiky(crd, &chains[c][0], nnodes, 1, is, ie)) continue;
+            // put spiky nodes at the right place (start & end). following works beacause is < ie
+            if (is != 0) std::swap(chains[c][0], chains[c][is]);
+            if (ie != nnodes - 1) std::swap(chains[c][nnodes - 1], chains[c][ie]);
+            // sort (GEOMETRIC)
+            E_Int Ne(chains[c][nnodes - 1]);
+            K_CONNECT::MeshTool::reorder_nodes_on_edge<std::deque<E_Int>, 3>(crd, chains[c], 1, sorter);
+            if (chains[c][nnodes - 1] != Ne) continue; // not handled : spiky nodes are not the extrema ones.
+          }
+
+          if (!is_closed_loop) vfree_edges.push_back(K_MESH::NO_Edge(chains[c][0], chains[c][nnodes - 1]));
+
+          BARSplitter::compute_refinement<vedge_t, dint_t>(vfree_edges, chains[c], edge_to_refine_nodesTMP);
+
+          // append it to global
+          for (auto& itLOC : edge_to_refine_nodesTMP)
+          {
+            auto ii = edge_to_refine_nodes.find(itLOC.first);
+            if (ii == edge_to_refine_nodes.end())// new
+              edge_to_refine_nodes.insert(std::make_pair(itLOC.first, itLOC.second)); //set false to tell "no reorder required"
+            else // append
+              ii->second.insert(ii->second.end(), ALL(itLOC.second));
+          }
+        }
+      }
+
+      if (!carry_on) break;
+
+      // complete refinement with ends and eventually sort in between if more than 1 point
+      for (auto& e : edge_to_refine_nodes)
+      {
+        e.second.push_front(e.first.node(0));
+        if (e.second.size() > 2)
+          K_CONNECT::MeshTool::reorder_nodes_on_edge<std::deque<E_Int>, 3>(crd, e.second, 1, sorter);
+        e.second.push_back(e.first.node(1));
+      }
+
+      // Refine the PGs ( <=> close the PHs )
+      Vector_t<E_Int> pg_molec;
+      ngon_unit refinedPGs;
+
+      processPG.clear();
+      processPG.resize(nb_pgs, false);
+
+      for (E_Int PGi = 0; PGi < nb_pgs; ++PGi)
+      {
+        processPG[PGi] = refine_pg(ngio.PGs.get_facets_ptr(PGi), ngio.PGs.stride(PGi), edge_to_refine_nodes, pg_molec);
+        refinedPGs.add(pg_molec);
+      }
+
+      // update PGs ngon unit
+      refinedPGs._type = ngio.PGs._type;  // hack to preserve flags (externality)
+      refinedPGs._ancEs = ngio.PGs._ancEs;// hack
+      ngio.PGs = refinedPGs;
+      ngio.PGs.updateFacets();
+
+      // build PH list for next iter
+      ngio.flag_PHs_having_PGs(processPG, processPH);
     }
-    
-    refinedPGs._type = ngio.PGs._type;  // hack to preserve flags (externality)
-    refinedPGs._ancEs = ngio.PGs._ancEs;// hack
-    ngio.PGs = refinedPGs;
-    ngio.PGs.updateFacets();//fixme : required ?
-    
   }
   
   /// Change the node indice to reference the same when duplicated exist
@@ -2849,18 +2843,18 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
       }
     };
   
-  static E_Int flag_manifold_nodes(const ngon_t& ng, const K_FLD::FloatArray& crd, Vector_t<bool>& mnfld_nodes)
+  static E_Int flag_manifold_nodes(const ngon_unit& PGs, const K_FLD::FloatArray& crd, Vector_t<bool>& mnfld_nodes)
   {
-    ng.PGs.updateFacets();
+    PGs.updateFacets();
 
     Vector_t<link_t> links(crd.cols());
     
     mnfld_nodes.resize(crd.cols(), true);
     E_Int nb_nodes;
-    for (E_Int i = 0; i < ng.PGs.size(); ++i)
+    for (E_Int i = 0; i < PGs.size(); ++i)
     {
-      nb_nodes = ng.PGs.stride(i);
-      const E_Int* nodes = ng.PGs.get_facets_ptr(i);
+      nb_nodes = PGs.stride(i);
+      const E_Int* nodes = PGs.get_facets_ptr(i);
 
       for (E_Int n = 0; n < nb_nodes; ++n)
       {
@@ -2882,7 +2876,7 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
   {
     Vector_t<bool> man_nodes;
 
-    flag_manifold_nodes(ng, crd, man_nodes);
+    flag_manifold_nodes(ng.PGs, crd, man_nodes);
 
     Vector_t<E_Int> pgnids, node_ids(crd.cols());//0-based ids
     for (E_Int i = 0; i < crd.cols(); ++i)
@@ -3763,9 +3757,11 @@ static E_Int centroids(const ngon_t& ng, const K_FLD::FloatArray& crd, K_FLD::Fl
 static E_Int check_phs_closure(const ngon_t& ng)
 {
   E_Int nb_phs = ng.PHs.size();
+  K_CONT_DEF::non_oriented_edge_set_type edges;
+  //
   for (E_Int i = 0; i < nb_phs; ++i)
   {
-    bool is_closed = K_MESH::Polyhedron<UNKNOWN>::is_closed(ng.PGs, ng.PHs.get_facets_ptr(i), ng.PHs.stride(i));
+    bool is_closed = K_MESH::Polyhedron<UNKNOWN>::is_closed(ng.PGs, ng.PHs.get_facets_ptr(i), ng.PHs.stride(i), edges);
     if (!is_closed)
     {
       std::cout << "Cell " << i << " is not closed !" << std::endl;
@@ -4364,7 +4360,7 @@ static E_Int extrude_revol_faces
 {
   if (PGlist.empty()) return 0;
 
-  E_Float axis[] = {0., 0., 1.};
+  //E_Float axis[] = {0., 0., 1.};
   E_Float* axis_pt = nullptr;
   
 #ifdef DEBUG_NGON_T

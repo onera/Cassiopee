@@ -233,6 +233,8 @@ public:
     (const K_FLD::FloatArray& coord, const E_Int* nodes, E_Int nb_nodes, E_Int index_start,
     const E_Float* normal, E_Float convexity_tol);
   
+  static bool is_spiky
+  (const K_FLD::FloatArray& crd, const E_Int* nodes, E_Int nb_nodes, E_Int idx_start, E_Int& is, E_Int& ie);
   
   
 private: 

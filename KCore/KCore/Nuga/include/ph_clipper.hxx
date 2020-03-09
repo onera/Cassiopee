@@ -139,7 +139,7 @@ namespace NUGA
       K_CONNECT::MeshTool::computeIncidentEdgesSqrLengths(acrd1.array(), *subj.pgs(), L);
       if( L.cols() == 0) return 1;
 
-      E_Int nb_faces1 = subj.nb_faces();
+      //E_Int nb_faces1 = subj.nb_faces();
       E_Int& nb_faces2 = cutter.nb_faces();
 
       if (ps_min > 0.) //discard any "overlapping" PG in e2 (the mode ps_min tends to 1, the more 'overlapping' has a meaning)
@@ -348,7 +348,7 @@ namespace NUGA
         if (*(pS+(i0+1)%3) != E1)
           std::swap(E0,E1); // Now E0E1 is oriented as in T0
         
-        const E_Float* norm0 = normals.col(K0);
+        //const E_Float* norm0 = normals.col(K0);
         
         for (size_t j=1; j < T3s.size(); ++j)
         {

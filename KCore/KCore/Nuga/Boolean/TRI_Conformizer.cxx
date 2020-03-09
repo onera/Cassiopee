@@ -1634,48 +1634,7 @@ TRI_Conformizer<DIM>::__tidy_edge (const K_FLD::FloatArray& coord, std::vector<E
       return;
   }
   else if (nb_nodes > 3)
-    __reorder_nodes_on_edge(coord, nodes);
-}
-
-template <E_Int DIM>
-void
-TRI_Conformizer<DIM>::__reorder_nodes_on_edge
-(const K_FLD::FloatArray& pos, std::vector<E_Int>& nodes)
-{
-  E_Float L;
-  E_Int   E[2];
-
-  size_t nb_nodes = nodes.size();
-
-  const E_Float *P0 = pos.col(nodes[0]);
-  L = K_FUNC::sqrDistance(pos.col(nodes[1]), P0, DIM);
-
-  parent_type::_sorterFI.clear();
-  parent_type::_sorterFI.push_back(std::make_pair(0., nodes[0]));
-  parent_type::_sorterFI.push_back(std::make_pair(L,  nodes[1]));
-
-  for (size_t k = 0; k < nb_nodes; ++k)
-  {
-    L = K_FUNC::sqrDistance(pos.col(nodes[k]), P0, DIM);
-    parent_type::_sorterFI.push_back(std::make_pair(L, nodes[k]));
-  }
-
-  std::sort(parent_type::_sorterFI.begin(), parent_type::_sorterFI.end());
-
-  nodes.clear();
-  E[0] = parent_type::_sorterFI[0].second;
-  nodes.push_back(E[0]);
-
-  for (size_t s = 0; s < parent_type::_sorterFI.size()-1; ++s)
-  {
-    E[1] = parent_type::_sorterFI[s+1].second;
-
-    if (E[1] != E[0])
-    {
-      nodes.push_back(E[1]);
-      E[0] = E[1];
-    }
-  }
+    K_CONNECT::MeshTool::reorder_nodes_on_edge<std::vector<E_Int>, DIM>(coord, nodes, 0, parent_type::_sorterFI);
 }
 
 ///

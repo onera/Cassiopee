@@ -179,6 +179,10 @@ class MeshTool
     static void extrude_line (K_FLD::FloatArray& crd, const K_FLD::IntArray& cntE, const double* dir, double H, K_FLD::IntArray& cntQ4);
     static E_Int computeNodeRadiusAndAngles(K_FLD::FloatArray& coord, const ngon_unit& pgs, E_Float x0, E_Float y0, 
                                             std::vector<E_Float>& radius, std::vector<E_Float>& angles);
+
+    template <typename IntCont, E_Int DIM>
+    static void reorder_nodes_on_edge(const K_FLD::FloatArray& pos, IntCont & nodes, E_Int idx_start, std::vector<std::pair<E_Float, E_Int> >& sorter);
+
 private:
 
   E_Int __getContainingElement(const E_Float* point, const K_FLD::FloatArray& pos, const K_FLD::IntArray& connect,
@@ -194,8 +198,6 @@ private:
   ///
   template <typename StoringTriangleType>
   static E_Int removeDuplicated(K_FLD::IntArray& connect, std::vector<E_Int>& dupIds);
-
-
 
 private:
 

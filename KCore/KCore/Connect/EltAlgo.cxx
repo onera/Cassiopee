@@ -167,7 +167,7 @@ K_CONNECT::EltAlgo<ElementType>::getNeighbours (const K_FLD::IntArray& ELTContai
   
   // Map the boundary to the connected elements.
   K_FLD::ArrayAccessor<K_FLD::IntArray> actv(ELTContainer);
-  E_Int maxNgh = getBoundToElements(actv, bound_to_elt);
+  /*E_Int maxNgh = */getBoundToElements(actv, bound_to_elt);
 
   for (E_Int i = 0; i < COLS; ++i)
   {

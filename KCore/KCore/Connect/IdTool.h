@@ -22,6 +22,7 @@
 
 #include "Def/DefTypes.h"
 #include <vector>
+#include<map>
 #define Vector_t std::vector
 
 #include "Fld/DynArray.h"
@@ -106,6 +107,9 @@ public:
   static void init_inc(K_FLD::DynArray<T>& arr, E_Int row, E_Int sz){ 
     arr.resize(arr.rows(), sz, E_IDX_NONE);  
     for (E_Int i = 0; i < sz; ++i) arr(row, i) = i; }
+
+  template <typename IntCont, typename Edge_t>
+  static void loc2glob(std::map<Edge_t, IntCont>& m, E_Int idx_start/*in m*/, const std::vector<E_Int>& oids);
 
 };
 
@@ -374,6 +378,7 @@ void IdTool::compact(K_FLD::DynArray<T>& arr, const std::vector<E_Int> & nids)
   arr=tmp;
 }
 
+///
 template <typename T>
 E_Int IdTool::compact (E_Int* target, E_Int& szio, const T* keep/*, Vector2& new_Ids*/)
 {
@@ -405,6 +410,23 @@ E_Int IdTool::compact (E_Int* target, E_Int& szio, const T* keep/*, Vector2& new
   szio = i1;
 
   return (szi - szio);
+}
+
+///
+template <typename IntCont, typename Edge_t>
+void IdTool::loc2glob(std::map<Edge_t, IntCont>& m, E_Int idx_start /* in m*/, const std::vector<E_Int>& oids)
+{
+  std::map<Edge_t, IntCont> gm;
+  Edge_t e;
+
+  for (auto& it : m)
+  {
+    e.setNodes(oids[it.first.node(0) - idx_start], oids[it.first.node(1) - idx_start]);
+    for (auto & n : it.second) n = oids[n - idx_start];
+    gm[e] = it.second;
+  }
+
+  m = gm;
 }
 
 }
