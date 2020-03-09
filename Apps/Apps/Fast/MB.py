@@ -256,7 +256,7 @@ def post0(t_in, t_out, wall_out, format='single'):
     Internal._rmNodesByName(a,'FlowSolution#Centers')
 
     # Supprime les ghost cells
-    a = Internal.rmGhostCells(a, a, 2, adaptBCs=1)
+    Internal._rmGhostCells(a, a, 2, adaptBCs=1)
     if isinstance(t_out, str): C.convertPyTree2File(a, t_out)
 
     #=================================

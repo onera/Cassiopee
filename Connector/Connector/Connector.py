@@ -422,9 +422,11 @@ def setInterpData__(interpPts, zonesD, order=2, penalty=1, nature=0, method='lag
         if isinstance(interpPts[0], list): # liste d arrays
             if interpPts[0][1].shape[1] >0: return connector.setInterpDataDW(interpPts, zonesD, order, nature, penalty, hook)
             else: return None
-        else: # pas de liste d arrays = pas de double wall  
-            if interpPts[1].shape[1]>0: return connector.setInterpData(interpPts, zonesD, order, nature, penalty, 
-                                                                       interpDataType, hook)
+        else: # pas de liste d arrays = pas de double wall              
+            if interpPts[1].shape[1]>0: 
+                if not isinstance(interpDataType,list): interpDataTypeL=[interpDataType]*len(zonesD)
+                else: interpDataTypeL = interpDataType
+                return connector.setInterpData(interpPts, zonesD, order, nature, penalty, interpDataTypeL, hook)
             else: return None
 
     elif method == 'leastsquares':

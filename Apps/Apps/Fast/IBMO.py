@@ -41,79 +41,110 @@ def prepare(t_case, t_out, tc_out,
             vmin=21, check=False, NP=0,
             frontType=1, 
             expand=3, distrib=False, tinit=None, initWithBBox=-1.):
+    rank = Cmpi.rank
+    comm = Cmpi.COMM_WORLD
+    tolMatch = 1.e-6
     DEPTH = 2
     IBCType = 1
     if frontType==2: 
         print("Warning: IBMO.prepare: not fully implemented yet for frontType=2 algorithm.")
         frontType=1
 
-    if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
+    if isinstance(t_case, str): 
+        h = Filter.Handle(t_case)
+        if distrib:
+            tb = h.loadAndSplit(NParts=Cmpi.size)
+        else:
+            tb = h.loadAndSplit(NParts=max(NP, Cmpi.size))
+
+        #tb = Cmpi.convertFile2SkeletonTree(t_case)
     else: tb = t_case
 
-    rank = Cmpi.rank
-    comm = Cmpi.COMM_WORLD
-
-    # Extraction de la liste des dfars de tb
-    zones = Internal.getZones(tb)
-    dfarList = [10.]*len(zones)
-    for c, z in enumerate(zones): 
-        n = Internal.getNodeFromName2(z, 'dfar')
-        if n is not None: dfarList[c] = Internal.getValue(n)*1.
-
-    # reference state
-    refstate = C.getState(tb)
     # dimension du pb
     dimPb = Internal.getNodeFromName(tb, 'EquationDimension')
     dimPb = Internal.getValue(dimPb)
+
+    # tbchim : arbre des corps chimeres 
+    tbchim = C.newPyTree()
+    tbov = C.newPyTree()
+    # tbibm : arbre des corps ibms en z = 0
+    tbibm = C.newPyTree()    
+    # chargement des zones Chimere par proc 
+    bases = Internal.getBases(tb)
+    baseNamesChim=[]
+    C.convertPyTree2File(tb,'tb_%d.cgns'%rank)
+    for b in bases:
+        isChimera = False
+        for z in Internal.getZones(b):
+            if isZoneChimera(z): 
+                isChimera = True
+                baseNamesChim.append(b[0])
+                break
+
+        if isChimera:
+            zoneChimNames=[]
+            for z in Internal.getZones(b): 
+                proc = Internal.getNodeFromName2(z,'proc')
+                proc = Internal.getValue(proc)
+                if proc == rank:
+                    zoneChimNames.append(z[0])
+                else: 
+                    Internal._rmNodesFromName1(b,z[0])
+            if zoneChimNames != []:
+                Cmpi._readZones(tb, t_case, rank=rank, zoneNames=zoneChimNames)
+                basechim = Internal.newCGNSBase(b[0], parent=tbchim)
+                zones = Internal.getZones(b)
+                basechim[2] += C.extractBCOfType(zones, 'BCWall')
+                baseov = Internal.newCGNSBase(b[0], parent=tbov)
+                baseov[2] += C.extractBCOfType(zones, 'BCOverlap')
+
+        else:
+            zoneIBMNames = []
+            for z in Internal.getZones(b): 
+                proc = Internal.getNodeFromName2(z,'proc')
+                proc = Internal.getValue(proc)
+                if proc == rank:
+                    zoneIBMNames.append(z[0])
+                else: 
+                    Internal._rmNodesFromName1(b,z[0])
+
+            if zoneIBMNames!=[]:
+                Cmpi._readZones(tb, t_case, rank=rank, zoneNames=zoneIBMNames)
+                tbibm[2].append(b) 
+
+
+    if dimPb == 2:
+        C._initVars(tb, 'CoordinateZ', 0.)
+        C._initVars(tbchim,'CoordinateZ',0.)
+        C._initVars(tbibm,'CoordinateZ',0.)
+        C._initVars(tbov,'CoordinateZ',0.)
+
+    # allgather: everybody sees all the bodies and overlaps 
+    tbchim = Cmpi.allgatherTree(tbchim)
+    tbibm  = Cmpi.allgatherTree(tbibm)
+    tbov   = Cmpi.allgatherTree(tbov)
+
+    # Reference state
+    refstate = C.getState(tb)
 
     # model : Euler, NSLaminar, NSTurbulent
     model = Internal.getNodeFromName(tb, 'GoverningEquations')
     if model is None: raise ValueError('GoverningEquations is missing in input tree defined in %s.'%FILE)
     model = Internal.getValue(model)
 
-    if dimPb == 2: C._initVars(tb, 'CoordinateZ', 0.) # forced
-    
-    # tbchim : arbre des corps chimeres 
-    tbchim = C.newPyTree()
-    bases = Internal.getBases(tb)
-    for b in bases:
-        isChimera = False
-        for z in b[2]:
-            if isZoneChimera(z): isChimera = True; break
-        if isChimera:
-            base = Internal.newCGNSBase(b[0], parent=tbchim)
-            zones = Internal.getZones(b)
-            ext = C.extractBCOfType(zones, 'BCWall')
-            base[2] += ext
-
-    # tbibm : arbre des corps ibms en z = 0
-    tbibm = C.newPyTree()
-    bases = Internal.getBases(tb)
-    for b in bases:
-        zones = Internal.getZones(b)
-        isChimera = False
-        for z in zones:
-            if isZoneChimera(z): isChimera = True; break
-        if not isChimera: tbibm[2].append(b) 
-    if dimPb == 2:
-        C._initVars(tbchim,'CoordinateZ',0.)
-        C._initVars(tbibm,'CoordinateZ',0.)
-
     # Octree identical on all procs
     test.printMem('>>> Octree unstruct [start]')
 
     # construction de l'arbre des corps pour l'octree : tbo
-    tbo = Internal.copyRef(tb)
-    bases = Internal.getBases(tbo)
-    for b in bases:
-        c = 0
-        for z in b[2]:
-            if z[3] == 'Zone_t':
-                if isZoneChimera(z): 
-                    ext = C.extractBCOfType(z, 'BCOverlap')
-                    if len(ext)>0: b[2][c] = ext[0]
-                    if len(ext)>1: b[2] += ext[1:]
-            c += 1
+    tbo = C.newPyTree(['Surf_octree'])
+    tbo[2][1][2] = Internal.getZones(tbibm)+Internal.getZones(tbov)
+
+    # Extraction de la liste des dfars de tb
+    zones = Internal.getZones(tbo)
+    dfarList = [10.]*len(zones)
+    for c, z in enumerate(zones): 
+        n = Internal.getNodeFromName2(z, 'dfar')
+        if n is not None: dfarList[c] = Internal.getValue(n)*1.
 
     o = TIBM.buildOctree(tbo, snearFactor=1., dfarList=dfarList, 
                          dimPb=dimPb, vmin=vmin, rank=rank,
@@ -174,14 +205,23 @@ def prepare(t_case, t_out, tc_out,
     t2 = C.newPyTree()
     bases = Internal.getBases(tb)
     for b in bases:
-        zones = Internal.getZones(b)
-        isChimera = False
-        for z in zones:
-            if isZoneChimera(z): isChimera = True; break
-        if isChimera: t2[2].append(b) 
+        if b[0] in baseNamesChim:
+            t2[2].append(b)
+
+
     # Ajout des ghost cells sur maillages chimeres
     C.addState(t2, 'EquationDimension', dimPb)
-    Internal._addGhostCells(t2, t2, 2, adaptBCs=1, fillCorner=0)
+    C._rmBCOfType(t2,'BCMatch')
+    Cmpi._addBXZones(t2, depth=DEPTH*2, allB=False)
+    t2 = X.connectMatch(t2, tol=tolMatch, dim=dimPb)
+    Internal._addGhostCells(t2, t2, DEPTH, adaptBCs=1, fillCorner=0)
+
+    # Suppression des XZones et correction des matchs 
+    Cmpi._rmBXZones(t2)
+
+    # Fusion des fenetres des raccords 
+    t2 = Xmpi.mergeWindows(t2)
+
     if dimPb == 2: 
         T._addkplane(t2)
         T._contract(t2, (0,0,0), (1,0,0), (0,1,0), dz)
@@ -189,11 +229,12 @@ def prepare(t_case, t_out, tc_out,
 
     # tball : arbre de tous les corps
     test.printMem(">>> Wall distance on Chimera grids [start]")
-    tball = C.newPyTree()
-    tball[2] += Internal.getBases(tbchim) + Internal.getBases(tbibm)
+    tball = C.newPyTree(['AllBodies'])
+    tball[2][1][2] = Internal.getZones(tbchim) + Internal.getZones(tbibm)
     if dimPb == 2:
         ZMEAN = dz*0.5
         C._initVars(tball, 'CoordinateZ', ZMEAN)
+
     # Distances a la paroi sur les grilles chimeres
     DTW._distance2Walls(t2, tball, loc='centers', type='ortho')
     test.printMem(">>> Wall distance on Chimera grids [end]")
@@ -203,7 +244,7 @@ def prepare(t_case, t_out, tc_out,
     C._addState(t, 'GoverningEquations', model)
     C._addState(t, 'EquationDimension', dimPb)
 
-    # Distance a la paroi par rapport aux corps IBMs
+    # Distance a la paroi psur les grilles cartesiennes
     test.printMem(">>> Wall distance for Cartesian grids [start]")
     DTW._distance2Walls(t, tball, type='ortho', signed=0, dim=dimPb, loc='centers')
     test.printMem(">>> Wall distance for Cartesian grids [end]")
@@ -211,9 +252,9 @@ def prepare(t_case, t_out, tc_out,
 
     # Calcul du cellNChim sur CART
     C._initVars(t, 'centers:cellNChim', 1.)
-    X._applyBCOverlaps(t, depth=2, loc='centers', val=2, cellNName='cellNChim')
+    X._applyBCOverlaps(t, depth=DEPTH, loc='centers', val=2, cellNName='cellNChim')
         
-    # Calcul du cellN sur bases chimeres
+    # Calcul du cellN sur bases Chimere
     C._initVars(t2, 'centers:cellNChim', 1.)
     X._applyBCOverlaps(t2, depth=4, val=2, cellNName='cellNChim')
     X._applyBCOverlaps(t2, depth=2, val=0, cellNName='cellNChim')
@@ -227,19 +268,30 @@ def prepare(t_case, t_out, tc_out,
         T._addkplane(tbibm)
         T._contract(tbibm, (0,0,0), (1,0,0), (0,1,0), dz)
 
-    # Masquage IBC
+    # Blanking IBC
     C._initVars(t, 'centers:cellNIBC', 1.)
     t  = TIBM.blankByIBCBodies(t, tbibm, 'centers', dimPb, cellNName='cellNIBC')
     t  = TIBM.blankByIBCBodies(t, tbchim, 'centers', dimPb, cellNName='cellNChim')
     t2 = TIBM.blankByIBCBodies(t2, tbibm, 'centers', dimPb, cellNName='cellNChim')
-    # a faire : masquer les bases chimeres entre elles
+    test.printMem(">>> Blanking [end]")
+
+    # 2-Blank between overset curvilinear grids
+    test.printMem(">>> Blanking between curvilinear grids [start]")
+    for bodyBase in Internal.getBases(tbchim):
+        bodyBaseName = Internal.getName(bodyBase)
+        for nob in range(len(t2[2])):
+            if t2[2][nob][3]=='CGNSBase_t':
+                baseName = Internal.getName(t2[2][nob])
+                if baseName != bodyBaseName:
+                    t2[2][nob] = TIBM.blankByIBCBodies(t2[2][nob], bodyBase, 'centers', dimPb, cellNName='cellNChim')
+    test.printMem(">>> Blanking between curvilinear grids [end]")
 
     # Signe la distance en fonction de cellNIBC et cellNChim
     TIBM._signDistance(t)
 
     # Points interpoles autour des points masques
-    X._setHoleInterpolatedPoints(t,depth=1,dir=1,loc='centers',cellNName='cellNChim',addGC=False)
-    X._setHoleInterpolatedPoints(t2,depth=1,dir=1,loc='centers',cellNName='cellNChim',addGC=False)
+    X._setHoleInterpolatedPoints(t,depth=DEPTH,dir=1,loc='centers',cellNName='cellNChim',addGC=False)
+    X._setHoleInterpolatedPoints(t2,depth=DEPTH,dir=1,loc='centers',cellNName='cellNChim',addGC=False)
 
     # determination des pts IBC
     X._setHoleInterpolatedPoints(t,depth=1,dir=1,loc='centers',cellNName='cellNIBC',addGC=False) # pour les gradients
@@ -295,37 +347,50 @@ def prepare(t_case, t_out, tc_out,
                 if zdnr[3] == 'Zone_t':
                     zdnrname = zdnr[0]
                     nobOfDnrBases[zdnrname]=nobd
+
     for nob in range(len(tp[2])):
         if Internal.getType(tp[2][nob])=='CGNSBase_t':
             basercv = tp[2][nob]
             basername = Internal.getName(basercv)
 
-            # 1st step : Abutting IDs
-            isCartBase=False
+            isCartBaseR=False
             if basername == 'CARTESIAN':
-                isCartBase=True
-            else:
-                # on construit les donnees des raccords match
-                X._setInterpData(tp[2][nob], tpc[2][nob], nature=1, penalty=1, loc='centers', storage='inverse', 
-                                 sameName=1, interpDataType=1, itype='abutting')
+               isCartBaseR=True
 
             # 2nd step : Chimera
             for zrcv in Internal.getZones(basercv):
                 zrname = Internal.getName(zrcv)
-                dnrZonesChim = []
-                if not isCartBase:
-                    print(zrcv[0], ' : ' ,interDict[zrname])
+                dnrZonesChim = []; listOfInterpDataTypes=[]
                 for zdname in interDict[zrname]:
                     zd = Internal.getNodeFromName2(tpc, zdname)
-                    if isCartBase:
+                    isDnrCart=False
+                    # base receveuse cartesienne : on prend les donneurs meme ds la meme base 
+                    if isCartBaseR:
                         dnrZonesChim.append(zd)
+                        prefix=zdname.split('.')
+                        if len(prefix)>1:
+                            prefix = prefix[0]
+                            if prefix=='Cart': isDnrCart=True
+                        if isDnrCart:
+                            listOfInterpDataTypes.append(0)
+                        else: 
+                            listOfInterpDataTypes.append(1)
                     else:                        
                         if nobOfDnrBases[zdname]!=nob:
                             dnrZonesChim.append(zd)
-
-                # A OPTIMISER : des cartesiens et des ADT
+                            prefix=zdname.split('.')
+                            if len(prefix)>1:
+                                prefix = prefix[0]
+                                if prefix=='Cart': isDnrCart=True
+                            if isDnrCart:
+                                listOfInterpDataTypes.append(0)
+                            else: 
+                                listOfInterpDataTypes.append(1)
+                #3- A OPTIMISER : des cartesiens et des ADT
+                # for i in range(len(dnrZonesChim)):
+                #     print(dnrZonesChim[i][0],listOfInterpDataTypes[i])
                 X._setInterpData(zrcv, dnrZonesChim, nature=1, penalty=1, loc='centers', storage='inverse', 
-                                 sameName=1, interpDataType=1, itype='chimera')
+                                 sameName=1, interpDataType=listOfInterpDataTypes, itype='chimera')
 
                 for zd in dnrZonesChim:
                     zdname = zd[0]
@@ -356,9 +421,39 @@ def prepare(t_case, t_out, tc_out,
             if IDs != []:
                 zD = Internal.getNodeFromName2(tpc, zname)
                 zD[2] += IDs
+
     datas = {}; destDatas = None; graph={}
     test.printMem(">>> Interpdata [after free]")
+
+
     test.printMem(">>> Interpdata [end]")
+
+    #===============================
+    # donnees de raccords match
+    #===============================
+    test.printMem(">>> Abutting data for curvilinear grids [start]")
+    for nob in range(len(tp[2])):
+        if Internal.getType(tp[2][nob])=='CGNSBase_t':
+            basercv = tp[2][nob]
+            basername = Internal.getName(basercv)
+
+            # 1st step : Abutting IDs
+            isCartBase=False
+            if basername == 'CARTESIAN': isCartBase=True
+            else:
+                graphMatch = Cmpi.computeGraph(tp[2][nob], type='match', reduction=True)
+                Cmpi._addXZones(tpc[2][nob], graphMatch, noCoordinates=True, cartesian=False)
+                Cmpi._addXZones(tp[2][nob], graphMatch, noCoordinates=True, cartesian=False)
+                # on construit les donnees des raccords match
+                X._setInterpData(tp[2][nob], tpc[2][nob], nature=1, penalty=1, loc='centers', 
+                                 storage='inverse', sameName=1, dim=dimPb, itype='abutting')
+                Cmpi._rmXZones(tpc[2][nob])
+                Cmpi._rmXZones(tp[2][nob])
+                #C._rmBCOfType(tp[2][nob],'BCMatch')
+
+    graphMatch={}
+    test.printMem(">>> Abutting data [after free]")
+    test.printMem(">>> Abutting data [end]")
 
     # Traitement IBC : n est fait que sur le cartesien -> 
     tp_cart = C.newPyTree(); tp_cart[2].append(Internal.copyRef(tp[2][1]))
@@ -461,6 +556,7 @@ def prepare(t_case, t_out, tc_out,
 
     ReferenceState = Internal.getNodeFromType2(tp, 'ReferenceState_t')
     nbZonesIBC = len(zonesRIBC)
+    for i in range(Cmpi.size): datas[i] = [] # force
 
     if dictOfCorrectedPtsByIBCType!={}:
         for ibcTypeL in dictOfCorrectedPtsByIBCType:
@@ -528,11 +624,10 @@ def prepare(t_case, t_out, tc_out,
             zname = n[0]
             IBCDs = n[1]
             if IBCDs != []:
-                zD = Internal.getNodeFromName2(tpc, zname)
+                zD = Internal.getNodeFromName2(tc, zname)
                 zD[2] += IBCDs
 
     datas = {}; graph = {}
-    for i in range(Cmpi.size): datas[i] = [] # force
 
     # uniquement le cartesien
     C._initVars(tp_cart[2][1],'{centers:cellN}=minimum({centers:cellNChim}*{centers:cellNIBCDnr},2.)')
@@ -567,19 +662,6 @@ def prepare(t_case, t_out, tc_out,
             test.printMem(">>> wall distance for Musker only [end]")
 
     test.printMem(">>> Saving [start]")
-    # Sauvegarde des infos IBM
-    if check:
-        test.printMem(">>> Saving IBM infos [start]")
-        tibm = TIBM.extractIBMInfo(tpc)
-
-        # Avoid that two procs write the same information
-        for z in Internal.getZones(tibm):
-           if int(z[0][-1]) != rank:
-              Internal._rmNodesByName(tibm, z[0])
-
-        Cmpi.convertPyTree2File(tibm, 'IBMInfo.cgns')
-        test.printMem(">>> Saving IBM infos [end]")
-        del tibm
 
     # distribution par defaut (sur NP)
     # Perform the final distribution
@@ -618,7 +700,7 @@ def prepare(t_case, t_out, tc_out,
 
     # Init with BBox : uniquement sur le cartesien autour des IBM - curviligne tel quel
     if initWithBBox>0.:
-        print('initialisation par bounding box')
+        print('Init momentum to 0 inside the bounding box')
         import Geom.PyTree as D
         bodybb = C.newPyTree(['Base'])
         for base in Internal.getBases(tbibm):
@@ -645,20 +727,20 @@ def prepare(t_case, t_out, tc_out,
 
 #====================================================================================
 class IBMO(Common):
-    """Preparation et caculs avec le module FastS."""
+    """Preparation et calculs avec le module FastS."""
     def __init__(self, format=None, numb=None, numz=None):
         Common.__init__(self, format, numb, numz)
         self.__version__ = "0.0"
         self.authors = ["stephanie@onera.fr", "ash@onera.fr"]
-        self.cartesian = True
+        self.cartesian = False
         
     # Prepare 
-    def prepare(self, t_case, t_out, tc_out, 
+    def prepare(self, t_case, t_out, tc_out, distrib=False,
                 vmin=21, check=False, frontType=1, NP=None, expand=3):
         if NP is None: NP = Cmpi.size
         if NP == 0: print('Preparing for a sequential computation.')
-        else: print('Preparing for a computation on %d processors.'%NP)
-        ret = prepare(t_case, t_out, tc_out, 
+        else: print('Preparing for an IBMO computation on %d processors.'%NP)
+        ret = prepare(t_case, t_out, tc_out, distrib=distrib,
                       vmin=vmin, check=check, NP=NP,  
                       frontType=frontType, expand=expand)
         return ret

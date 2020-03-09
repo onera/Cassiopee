@@ -1581,7 +1581,7 @@ class IBM(Common):
                 initWithBBox=-1., wallAdapt=None):
         if NP is None: NP = Cmpi.size
         if NP == 0: print('Preparing for a sequential computation.')
-        else: print('Preparing for a computation on %d processors.'%NP)
+        else: print('Preparing for an IBM computation on %d processors.'%NP)
         ret = prepare(t_case, t_out, tc_out, snears=snears, dfar=dfar, dfarList=dfarList,
                       tbox=tbox, snearsf=snearsf,
                       vmin=vmin, check=check, NP=NP, format=self.data['format'],

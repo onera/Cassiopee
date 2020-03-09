@@ -49,19 +49,29 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
   E_Int Order;
   E_Int Nature;
   E_Int PenalizeBorders;
-  E_Int InterpDataType;// 1 : ADT ou 0 : CART
+  PyObject* InterpDataType;// liste pour chaque zone donneuse 1 : ADT ou 0 : CART
   PyObject* allHooks;
-  if (!PYPARSETUPLEI(args, "OOllllO", "OOiiiiO",
+  if (!PYPARSETUPLEI(args, "OOlllOO", "OOiiiOO",
                     &receiverArray, &donorArrays, &Order, &Nature, &PenalizeBorders, 
                     &InterpDataType, &allHooks))
   {
       return NULL;
   }
-  if ( InterpDataType != 0 && InterpDataType != 1 )
+  
+  // Extraction du type d InterpData (0 : CART, 1 : ADT)
+  vector<E_Int> listOfInterpDataTypes;
+  E_Int ninterptypes = PyList_Size(InterpDataType);
+
+  for (int i = 0; i < ninterptypes; i++)
   {
-    PyErr_SetString(PyExc_TypeError,
-                    "setInterpData: InterpDataType must be 0 for CART or 1 for ADT.");
-    return NULL;
+    E_Int itype = PyLong_AsLong(PyList_GetItem(InterpDataType, i)); 
+    if ( itype != 0 && itype != 1 )
+    {
+      PyErr_SetString(PyExc_TypeError,
+                      "setInterpData: InterpDataType must be 0 for CART or 1 for ADT.");
+      return NULL;
+    }
+    listOfInterpDataTypes.push_back(itype);
   }
   // ordre des interpolations
   E_Int interporder = Order;
@@ -198,6 +208,16 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
     poscs.push_back(posc); 
     a5.push_back(NULL);// PAS DE CONNECTIVITE ELTS/ELTS VOISINS
   }
+  if ( nzones != listOfInterpDataTypes.size())
+  {
+    RELEASESHAREDB(resr, receiverArray, fr, cnr); 
+    for (E_Int no = 0; no < nzones; no++)
+      RELEASESHAREDA(resl[no],objs[no],fields[no],a2[no],a3[no],a4[no]);   
+    PyErr_SetString(PyExc_TypeError,
+                    "setInterpData: structured donor zones must be 3D or 2D with z=constant.");
+    return NULL; 
+  }
+
   // Liste des interpDatas
   vector<E_Int> nis; vector<E_Int> njs; vector<E_Int> nks;
   vector<FldArrayI*> cnt;
@@ -209,7 +229,8 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
     E_Int failed = 0;
     for (E_Int no = 0; no < nzones; no++)
     {
-      if ( InterpDataType == 1)
+      E_Int interpdatatype = listOfInterpDataTypes[no];
+      if ( interpdatatype == 1)
       {
         K_INTERP::InterpAdt* adt = new K_INTERP::InterpAdt(fields[no]->getSize(), 
                                                            fields[no]->begin(posxs[no]),

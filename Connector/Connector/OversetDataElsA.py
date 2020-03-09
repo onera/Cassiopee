@@ -111,7 +111,6 @@ def _setDistInterpolations(a, parallelDatas=[], depth=2, double_wall=0,
     # ----------------------------------------
     # creation et initialisation a 1 du champ cellN s'il n'est pas deja present dans l'arbre
     XOD._addCellN__(a); XOD._addCellN__(a, loc='centers')
-    bases = Internal.getBases(a); nbases = len(bases)
 
     # ----------------------------------------------------------------------------------------
     # Calcul des cellules et coefficients d'interpolation et ecriture dans un arbre CGNS/Python
@@ -134,23 +133,24 @@ def _setDistInterpolations(a, parallelDatas=[], depth=2, double_wall=0,
             interpolationZonesNameD[oppZone] = []
             interpolationCellnD[oppZone] = []
             surfiD[oppZone] = []
-        
+
+    bases = Internal.getBases(a); nbases = len(bases)        
     # remplissage des dictionnaires
-    zones = Internal.getNodesFromType2(a, 'Zone_t')
-    nzones = len(zones)
     for oppNode in localGraph:
         oppZones = graph[oppNode][rank]
         for s in range(len(interpDatas[oppNode])):
             oppZone = oppZones[s]
-            for noz in range(nzones):
-                z = zones[noz]
-                zn = C.getFields(Internal.__GridCoordinates__,z)[0]
-                cellN = C.getField('centers:cellN', z)[0]
-                interpolationZonesNameD[oppZone].append(z[0])
-                interpolationZonesD[oppZone].append(zn)
-                interpolationCellnD[oppZone].append(cellN)
-                if (surfacesExtC != []): surfiD[oppZone].append(surfacesExtC[nob][noz])
-                del zn
+            for nob in range(nbases):
+                zones = Internal.getZones(bases[nob])
+                for noz in range(len(zones)):
+                    z = zones[noz]
+                    zn = C.getFields(Internal.__GridCoordinates__,z)[0]
+                    cellN = C.getField('centers:cellN', z)[0]
+                    interpolationZonesNameD[oppZone].append(z[0])
+                    interpolationZonesD[oppZone].append(zn)
+                    interpolationCellnD[oppZone].append(cellN)
+                    if (surfacesExtC != []): surfiD[oppZone].append(surfacesExtC[nob][noz])
+                    del zn
 
     # 1. deals with depth=2
     if depth == 2:

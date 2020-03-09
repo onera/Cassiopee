@@ -1030,12 +1030,15 @@ def blankByIBCBodies(t, tb, loc, dim, cellNName='cellN'):
         #         bodies.append(wallsl)
 
     nbodies = len(bodies)
-    if nbodies == 0: return t
+    if nbodies == 0: 
+        print("Warning: blankByIBCBodies: no body defined.")
+        return t
+
     print('Blanking mesh by %d bodies'%nbodies)
     if loc == 'centers': typeb = 'center_in'
     else: typeb = 'node_in'
     nbases = len(Internal.getBases(t))
-    
+
     bodiesInv=[]
     for body in bodies:
         inv = Internal.getNodeFromName(body,'inv')
@@ -1060,9 +1063,10 @@ def blankByIBCBodies(t, tb, loc, dim, cellNName='cellN'):
         if loc == 'centers':
             tc = C.node2Center(t)
             for body in bodiesInv:
-                print('Blanking inversed for body')
+                print('Reverse blanking for body')
                 tc = X.blankCells(tc, [body], BM, blankingType='node_in', XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2, dim=DIM, cellNName=cellNName)
                 C._initVars(tc,'{%s}=1.-{%s}'%(cellNName,cellNName)) # ecoulement interne
+
             for body in bodies:
                 tc = X.blankCells(tc, [body], BM, blankingType='node_in', XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2, dim=DIM, cellNName=cellNName)
             C._cpVars(tc,'%s'%cellNName,t,'centers:%s'%cellNName)
@@ -1071,7 +1075,7 @@ def blankByIBCBodies(t, tb, loc, dim, cellNName='cellN'):
     else:
         BM2 = numpy.ones((nbases,1),dtype=numpy.int32)
         for body in bodiesInv:
-            print('Blanking inversed for body') 
+            print('Reverse blanking for body') 
             t = X.blankCellsTri(t, [body], BM2, blankingType=typeb, cellNName=cellNName)
             C._initVars(t,'{centers:%s}=1-{centers:%s}'%(cellNName,cellNName)) # ecoulement interne
         for body in bodies: 
