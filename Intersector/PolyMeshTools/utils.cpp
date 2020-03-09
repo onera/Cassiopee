@@ -484,7 +484,7 @@ PyObject* K_INTERSECTOR::extractBiggestCell(PyObject* self, PyObject* args)
 
   E_Int nth=-1;
   E_Float dm(0.);
-  for (size_t i=0; i < ngi.PHs.size(); ++i)
+  for (E_Int i=0; i < ngi.PHs.size(); ++i)
   {
     K_SEARCH::BBox3D box;
     K_MESH::Polyhedron<0> PH(&ngi.PGs, ngi.PHs.get_facets_ptr(i), ngi.PHs.stride(i));
@@ -903,7 +903,7 @@ PyObject* K_INTERSECTOR::volume(PyObject* self, PyObject* args)
 
   K_FLD::FloatArray* xcelln(nullptr);
   K_FLD::IntArray *cn1(0);
-  char *varString1, *eltType1;
+  char *varString1;
   E_Int ni, nj, nk;
   E_Int res = 0;
   if (axcelln != Py_None) res = K_ARRAY::getFromArray(axcelln, varString1, xcelln, ni, nj, nk, cn1, eltType);
@@ -949,11 +949,11 @@ PyObject* K_INTERSECTOR::volume(PyObject* self, PyObject* args)
   E_Float V = 0.;
   if (use_xcelln)
   {
-    for (E_Int i = 0; i < vols.size(); ++i)
+    for (size_t i = 0; i < vols.size(); ++i)
       V += vols[i] * (*xcelln)[i];
   }
   else
-    for (E_Int i = 0; i < vols.size(); ++i)
+    for (size_t i = 0; i < vols.size(); ++i)
       V += vols[i];
 
   delete f; delete cn;
@@ -1896,7 +1896,7 @@ PyObject* K_INTERSECTOR::oneZonePerCell(PyObject* self, PyObject* args)
 //=============================================================================
 /* XXX */
 //=============================================================================
-PyObject* K_INTERSECTOR::closeOctalCells(PyObject* self, PyObject* args)
+PyObject* K_INTERSECTOR::closeCells(PyObject* self, PyObject* args)
 {
   PyObject *arr;
 
@@ -2312,7 +2312,7 @@ PyObject* K_INTERSECTOR::merge(PyObject* self, PyObject* args)
   K_FLD::FloatArray *f1(0), *f2(0);
   K_FLD::IntArray *cn1(0);
   
-  E_Int res = K_ARRAY::getFromArray(arr1, varString, f1, ni, nj, nk, cn1, eltType);
+  /*E_Int res = */K_ARRAY::getFromArray(arr1, varString, f1, ni, nj, nk, cn1, eltType);
 
   // if (strcmp(eltType, "NODE") != 0)
   // {
@@ -2321,7 +2321,7 @@ PyObject* K_INTERSECTOR::merge(PyObject* self, PyObject* args)
   //   return nullptr;
   // }
 
-  res = K_ARRAY::getFromArray(arr2, varString, f2, ni, nj, nk, cn1, eltType);
+  /*res = */K_ARRAY::getFromArray(arr2, varString, f2, ni, nj, nk, cn1, eltType);
 
   // if (strcmp(eltType, "NODE") != 0)
   // {
@@ -2335,7 +2335,7 @@ PyObject* K_INTERSECTOR::merge(PyObject* self, PyObject* args)
 
   K_FLD::ArrayAccessor<K_FLD::FloatArray> ca(crd);
   Vector_t<E_Int> nids;
-  E_Int nb_merges = ::merge(ca, tolerance, nids);
+  /*E_Int nb_merges = */::merge(ca, tolerance, nids);
 
   E_Int sz = f2->cols();
   Vector_t<E_Int> nids_for_2(sz);
@@ -2364,7 +2364,7 @@ PyObject* K_INTERSECTOR::oneph(PyObject* self, PyObject* args)
   K_FLD::FloatArray *f(0);
   K_FLD::IntArray *cn(0);
   
-  E_Int res = K_ARRAY::getFromArray(arr, varString, f, ni, nj, nk, cn, eltType);
+  /*E_Int res = */K_ARRAY::getFromArray(arr, varString, f, ni, nj, nk, cn, eltType);
   if ( (strcmp(eltType, "TRI") != 0) && (strcmp(eltType, "QUAD") != 0) )
   {
     PyErr_SetString(PyExc_TypeError, "input error : invalid array, must be a TRI or QUAD array.");
@@ -2414,8 +2414,7 @@ PyObject* K_INTERSECTOR::concatenate(PyObject* self, PyObject* args)
   std::vector<K_FLD::FloatArray*> crds(nb_zones, nullptr);
   std::vector<K_FLD::IntArray*>   cnts(nb_zones, nullptr);
   char* varString, *eltType;
-  PyObject *l(PyList_New(0));
-
+  
   // get the zones
   for (E_Int i=0; i < nb_zones; ++i)
   {
@@ -2498,7 +2497,7 @@ PyObject* K_INTERSECTOR::drawOrientation(PyObject* self, PyObject* args)
 
   K_FLD::IntArray cntE;
   K_FLD::FloatArray crdE;
-  for (size_t i=0; i < ngi.PGs.size(); ++i)
+  for (E_Int i=0; i < ngi.PGs.size(); ++i)
   {
     
     const E_Int* nodes = ngi.PGs.get_facets_ptr(i);

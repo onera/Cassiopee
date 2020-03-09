@@ -198,7 +198,7 @@ PyObject* K_INTERSECTOR::triangulateExteriorFaces(PyObject* self, PyObject* args
 PyObject* K_INTERSECTOR::triangulateSpecifiedFaces(PyObject* self, PyObject* args)
 {
   PyObject *arr, *py_pgs;
-  E_Int int_or_ext(2), improve_qual(1); //0 : internals only, 1: external only, 2: both
+  E_Int /*int_or_ext(2), */improve_qual(1); //0 : internals only, 1: external only, 2: both
 
   if (!PYPARSETUPLEI(args, "OOl", "OOi", &arr, &py_pgs, &improve_qual)) return NULL;
 
@@ -296,19 +296,19 @@ PyObject* K_INTERSECTOR::triangulateNFaces(PyObject* self, PyObject* args)
   // enable history
   E_Int nb_pgs=(E_Int)ngi.PGs.size();
   ngi.PGs._ancEs.resize((E_Int)2, nb_pgs, (E_Int)0);
-  for (size_t i=0; i < nb_pgs; ++i) ngi.PGs._ancEs(0,i)=i;
+  for (E_Int i=0; i < nb_pgs; ++i) ngi.PGs._ancEs(0,i)=i;
 
   // discard pgs belonging to given BC
   std::vector<bool> addit(nb_pgs, true);
   if (pgsList != NULL)
-    for (size_t k = 0; k < size; ++k)
+    for (E_Int k = 0; k < size; ++k)
     {
      E_Int pg=pgsList[k];
       addit[pg] = false;
     }
 
   std::vector<E_Int> pgs;
-  for (size_t i=0; i < ngi.PGs.size(); ++i) if (ngi.PGs.stride(i) >= min_nvertices && addit[i]) pgs.push_back(i);
+  for (E_Int i=0; i < ngi.PGs.size(); ++i) if (ngi.PGs.stride(i) >= min_nvertices && addit[i]) pgs.push_back(i);
 
   NUGA::transfo_t qual_param;
   qual_param.improve_qual=improve_qual ? true : false;

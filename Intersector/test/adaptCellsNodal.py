@@ -14,7 +14,7 @@ nodal_vals[:] = 2
 
 m = XOR.adaptCellsNodal(a, nodal_vals)
 
-m = XOR.closeOctalCells(m[0])
+m = XOR.closeCells(m[0])
 C.convertArrays2File([m], 'out.plt')
 
 

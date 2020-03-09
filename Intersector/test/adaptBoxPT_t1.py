@@ -9,6 +9,6 @@ a = C.convertArray2NGon(a); a = G.close(a)
 
 m = XOR.adaptBox(a, box_ratio=10.)
 
-m = XOR.closeOctalCells(m)
+m = XOR.closeCells(m)
 test.testT(m,1)
 

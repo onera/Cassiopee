@@ -19,7 +19,7 @@ z = C.fillEmptyBCWith(z, 'wall', 'BCWall')
 
 m = XOR.adaptCellsNodal(z, [nodal_vals])
 
-m = XOR.closeOctalCells(m)
+m = XOR.closeCells(m)
 C.convertPyTree2File(m, 'out.cgns')
 
 zTH4 = C.fillEmptyBCWith(zTH4, 'wall', 'BCWall')
@@ -31,7 +31,7 @@ nodal_vals[:] = 2
 
 m = XOR.adaptCellsNodal(zTH4, [nodal_vals])
 
-m = XOR.closeOctalCells(m)
+m = XOR.closeCells(m)
 C.convertPyTree2File(m, 'out2.cgns')
 
 

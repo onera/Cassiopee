@@ -12,10 +12,10 @@ b = G.cartHexa((0.,0.,0.), (0.005,0.005,0.005), (5,5,5))
 a = C.fillEmptyBCWith(a, 'wall', 'BCWall')
 
 m = XOR.adaptCells(a,b, sensor_type=0)
-m = XOR.closeOctalCells(m)
+m = XOR.closeCells(m)
 C.convertPyTree2File(m, 'out.cgns')
 
 m = XOR.adaptCells(a,b, sensor_type=1)
-m = XOR.closeOctalCells(m)
+m = XOR.closeCells(m)
 C.convertPyTree2File(m, 'xout.cgns')
 

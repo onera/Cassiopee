@@ -318,14 +318,14 @@ def removeNonManifoldExternalCells(a):
     return intersector.removeNonManifoldExternalCells(a)
 
 #==============================================================================
-# closeOctalCells : Closes any polyhedral cell in an octree
+# closeCells : Closes any polyhedral cell in a mesh (processes hanging nodes on edges).
 # IN: a : 3D NGON mesh
 # OUT: returns a 3D NGON Mesh with all cells closed
 #==============================================================================
-def closeOctalCells(a):
-    """Closes any polyhedral cell in an octree.
-    Usage: closeOctalCells(a)"""
-    return intersector.closeOctalCells(a)
+def closeCells(a):
+    """Closes any polyhedral cell in a mesh (processes hanging nodes on edges).
+    Usage: closeCells(a)"""
+    return intersector.closeCells(a)
 
 #==============================================================================
 # adaptCells : Adapts a polyhedral mesh a1 with repsect to a2 points

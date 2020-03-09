@@ -59,7 +59,7 @@ static PyMethodDef Pyintersector [] =
   {"createHMesh", K_INTERSECTOR::createHMesh, METH_VARARGS},
   {"deleteHMesh", K_INTERSECTOR::deleteHMesh, METH_VARARGS},
   {"conformizeHMesh", K_INTERSECTOR::conformizeHMesh, METH_VARARGS},
-  {"closeOctalCells", K_INTERSECTOR::closeOctalCells, METH_VARARGS},
+  {"closeCells", K_INTERSECTOR::closeCells, METH_VARARGS},
   {"extractUncomputables", K_INTERSECTOR::extractUncomputables, METH_VARARGS},
   {"extractPathologicalCells", K_INTERSECTOR::extractPathologicalCells, METH_VARARGS},
   {"extractOuterLayers", K_INTERSECTOR::extractOuterLayers, METH_VARARGS},

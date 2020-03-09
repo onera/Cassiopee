@@ -397,15 +397,15 @@ PyObject* call_operation(PyObject* args, eOperation oper)
     switch (oper)
     {
     case INTERSECTION:        
-      err=BO.Intersection(pos, connect, (bo_t::eInterPolicy)solid_right, (bo_t::eMergePolicy)preserve_right); break;
+      /*err=*/BO.Intersection(pos, connect, (bo_t::eInterPolicy)solid_right, (bo_t::eMergePolicy)preserve_right); break;
     case UNION :              
-      err=BO.Union(pos, connect, (bo_t::eInterPolicy)solid_right, (bo_t::eMergePolicy)preserve_right); break;
+      /*err=*/BO.Union(pos, connect, (bo_t::eInterPolicy)solid_right, (bo_t::eMergePolicy)preserve_right); break;
     case MINUS12:             
-      err=BO.Diff(pos, connect, (bo_t::eInterPolicy)solid_right, (bo_t::eMergePolicy)preserve_right); break;
+      /*err=*/BO.Diff(pos, connect, (bo_t::eInterPolicy)solid_right, (bo_t::eMergePolicy)preserve_right); break;
     case MODIFIED_SOLID:             
-      err=BO.Modified_Solid(pos, connect, (bo_t::eMergePolicy)preserve_right); break;
+      /*err=*/BO.Modified_Solid(pos, connect, (bo_t::eMergePolicy)preserve_right); break;
     case DIFFSURF:             
-      err=BO.Diffsurf(pos, connect); break;
+      /*err=*/BO.Diffsurf(pos, connect); break;
     default: return NULL;
     }
     et = 8;
@@ -784,7 +784,7 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
     else  // comes from op2
     {
       //std::cout << ancPH2 << "/" << zoneids2.size() << std::endl;
-      if (ancPH2 >= zoneids2.size()){
+      if (ancPH2 >= (E_Int)zoneids2.size()){
         // std::cout << "PHi : " << i << std::endl;
         // std::cout << "wrong ancPH2 or zoneids2 : " <<  ancPH2 << "/" << zoneids2.size() << std::endl;
         // std::cout << "zoneids1 : " << zoneids1.size() << std::endl;

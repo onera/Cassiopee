@@ -26,11 +26,11 @@ mesh = XOR.booleanUnion(p1,p2) #conformize the join
 #C.convertPyTree2File(mesh, 'u.cgns')
 
 m1 = XOR.adaptCells(mesh,source, sensor_type=0)
-m1 = XOR.closeOctalCells(m1)
+m1 = XOR.closeCells(m1)
 #C.convertPyTree2File(m1, 'out.cgns')
 test.testT(m1,1)
 
 m2 = XOR.adaptCells(mesh,source, sensor_type=2)
-m2 = XOR.closeOctalCells(m2)
+m2 = XOR.closeCells(m2)
 #C.convertPyTree2File(m2, 'out1.cgns')
 test.testT(m2,2)

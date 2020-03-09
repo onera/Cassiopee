@@ -6,6 +6,6 @@ import KCore.test as test
 m = C.convertFile2PyTree('boolNG_M1.tp')
 m = C.convertArray2NGon(m)
 
-m = XOR.closeOctalCells(m)
+m = XOR.closeCells(m)
 test.testT(m, 1)
 

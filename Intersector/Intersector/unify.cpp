@@ -73,7 +73,6 @@ using prior_t = std::map< E_Int, std::vector<E_Int>>;
 
 bool has_flag(ngon_unit& pgs, E_Int flag)
 {
-  bool ret = false;
   E_Int nbf = pgs.size();
   for (E_Int f=0; f < nbf; ++f)
   {
@@ -135,8 +134,8 @@ void comp_priorities(std::vector<std::pair<E_Int, E_Int>> & priority,  std::map<
 
 eCellType is_inside(const E_Float* pt, const K_FLD::FloatArray& crdS, const E_Float* ptS, const tree_t* treeS, const ngon_unit& PGsS)
 {
-  E_Int Ti[3], tx;
-  E_Float tol(E_EPSILON), tol2(E_EPSILON*E_EPSILON), d2;
+  E_Int tx;
+  E_Float tol(E_EPSILON);
 
   std::vector<E_Int> candidates;
   std::set<E_Int> valid_cands;
@@ -238,7 +237,6 @@ eCellType is_inside(const E_Float* pt, const K_FLD::FloatArray& crdS, const E_Fl
   auto itPGi = valid_cands.begin();//[0];
   E_Int PGi = *itPGi;
   const E_Int* nodes = PGsS.get_facets_ptr(PGi);
-  E_Int nb_nodes = PGsS.stride(PGi);
   const E_Float* Q0 = crdS.col(nodes[0]-1);
   const E_Float* Q1 = crdS.col(nodes[1]-1);
   const E_Float* Q2 = crdS.col(nodes[2]-1);
@@ -255,7 +253,6 @@ eCellType is_inside(const E_Float* pt, const K_FLD::FloatArray& crdS, const E_Fl
     {
       E_Int PGi = *(it);//valid_cands[i];
       const E_Int* nodes = PGsS.get_facets_ptr(PGi);
-      E_Int nb_nodes = PGsS.stride(PGi);
       const E_Float* Q0 = crdS.col(nodes[0]-1);
       const E_Float* Q1 = crdS.col(nodes[1]-1);
       const E_Float* Q2 = crdS.col(nodes[2]-1);
@@ -316,16 +313,16 @@ void init(const std::vector<K_FLD::FloatArray*> &crds, const std::vector<K_FLD::
     
   ngs.clear();
   ngs.resize(nb_zones);
-  for (size_t i=0; i < nb_zones; ++i)ngs[i] = new ngon_type(*cnts[i]);
+  for (E_Int i=0; i < nb_zones; ++i)ngs[i] = new ngon_type(*cnts[i]);
 
   acrds.clear();
   acrds.resize(nb_zones);
-  for (size_t i=0; i < nb_zones; ++i)acrds[i] = new acrd_t(*crds[i]);
+  for (E_Int i=0; i < nb_zones; ++i)acrds[i] = new acrd_t(*crds[i]);
   
   pgfs.clear();
   pgfs.resize(nb_comps);
 
-  for (size_t i=0; i < nb_comps; ++i)
+  for (E_Int i=0; i < nb_comps; ++i)
   {
     pgfs[i] = new ngon_unit(mask_cnts[i]->begin());
 
@@ -342,7 +339,7 @@ void init(const std::vector<K_FLD::FloatArray*> &crds, const std::vector<K_FLD::
 
   locs.clear();
   locs.resize(nb_comps);
-  for (size_t i=0; i < nb_comps; ++i)
+  for (E_Int i=0; i < nb_comps; ++i)
   {
     tree_t* t = new tree_t(*mask_crds[i], *pgfs[i]);  //polygons !
     locs[i]   = new loc_t(t, E_EPSILON/*fixme*/); //not a leak : locs[i] owes t
@@ -466,7 +463,7 @@ bool compute_zone_blanking(const K_FLD::FloatArray& crd, ngon_type& ng,
 
     // detect colors among 1 to n that are inside masks (and therefore are zero color)
     STACK_ARRAY(E_Int, nb_bits, is_zero);
-    for(size_t u=0; u< nb_bits; ++u)is_zero[u]=E_IDX_NONE;
+    for(E_Int u=0; u< nb_bits; ++u)is_zero[u]=E_IDX_NONE;
     E_Int remains_zones(nb_bits-1);//-1 : discard collide color of the test
     //
     for (E_Int i = 0; (i < nb_phs) && (remains_zones> 0); ++i)
@@ -483,7 +480,7 @@ bool compute_zone_blanking(const K_FLD::FloatArray& crd, ngon_type& ng,
             
       const E_Int* neighs = neighbors.get_facets_ptr(i);
       
-      for (size_t v=0; (v<nb_pgs); ++v)
+      for (E_Int v=0; (v<nb_pgs); ++v)
       {
         E_Int Fi = faces[v] - 1;
         E_Int PHn = neighs[v]; //0-based
@@ -546,7 +543,7 @@ void build_current(ngon_type& ng, E_Int i, const K_FLD::FloatArray& crd, aELT1& 
   aPHcur.reorient();
 
   // Compute initial volume
-  E_Int err = aPHcur.volume<DELAUNAY::Triangulator>(V0, false/*need reorient*/);
+  /*E_Int err = */aPHcur.volume<DELAUNAY::Triangulator>(V0, false/*need reorient*/);
 
   is_inward1=false;
   if (V0 < 0.) //point inward
@@ -617,7 +614,7 @@ bool update_volume(aELT1& aPHcur, const K_FLD::FloatArray&crdp, ngon_unit* skinp
   E_Float v;
   if (!classify_geom) // non_empy polyclip answer
   {
-    E_Int er = aPHclip.volume<DELAUNAY::Triangulator>(v, false/*need reorient*/);
+    /*E_Int er = */aPHclip.volume<DELAUNAY::Triangulator>(v, false/*need reorient*/);
     v = (v < 0.) ? -v : v;
     classify_geom = (v/vcur >= 1. - E_EPSILON); // if the volume is the same => do the test in/out
   }
@@ -674,7 +671,7 @@ bool incremental_clip
     if (!poids.empty())
     {
       poids.resize(aPHclip.m_crd.cols(), E_IDX_NONE);
-      for (size_t u=0; u < aPHclip.m_crd.cols(); ++u)
+      for (E_Int u=0; u < aPHclip.m_crd.cols(); ++u)
         if (aPHclip.poids[u] != E_IDX_NONE) poids[u] = poids[aPHclip.poids[u]];
       aPHcur.poids = poids;
     }
@@ -747,7 +744,7 @@ E_Float compute_coeff(aELT1& aPHcur, E_Int nb_pts0, E_Float vcur, E_Float V0, st
     else // compute the coef based on OUT pieces
     {
       std::vector<E_Int> facs;
-      for (size_t u=0; u < aPHcur._nb_faces; ++u)
+      for (E_Int u=0; u < aPHcur._nb_faces; ++u)
         if (is_wall_free[colors[u]])facs.push_back(aPHcur._faces[u]);
 
       E_Float v=0.;
@@ -847,7 +844,7 @@ void compute_zone_overlaps(const K_FLD::FloatArray& crd, ngon_type& ng, loc_t** 
       ngon_unit* skinp = mask_skins[m];
       const K_FLD::FloatArray& crdp = *mask_crds[m];
 
-      bool err = incremental_clip(skinp, crdp, locp, is_inward1, make_inward2, aPHclip, aPHcutter, aPHcur, vcur, dbg);
+      /*bool err = */incremental_clip(skinp, crdp, locp, is_inward1, make_inward2, aPHclip, aPHcutter, aPHcur, vcur, dbg);
 
 #ifdef DEBUG_UNIFY
       if (err) std::cout << "ERROR for PHS : " << i /*<< " in zone : " << z */<< std::endl;
@@ -914,7 +911,7 @@ void MOVLP_unify(const std::vector<K_FLD::FloatArray*> &crds, const std::vector<
 
   // all start in a visible state //fixme : cuirrently unset , but we should be able to replace UNSET concept by OUT
   xcelln.resize(nb_zones);
-  for (size_t i=0; i < nb_zones; ++i)xcelln[i].resize(ngs[i]->PHs.size(), UNSET);
+  for (E_Int i=0; i < nb_zones; ++i)xcelln[i].resize(ngs[i]->PHs.size(), UNSET);
 
   std::map<E_Int, std::vector<E_Int>> sorted_comps_per_comp;
   comp_priorities(priority, sorted_comps_per_comp);
@@ -944,7 +941,7 @@ void MOVLP_unify(const std::vector<K_FLD::FloatArray*> &crds, const std::vector<
 #ifndef NETBEANSZ
 #pragma omp parallel for shared(process_overlap_pass) //private()
 #endif
-  for (size_t z=0; z < nb_zones; ++z)
+  for (E_Int z=0; z < nb_zones; ++z)
   {
     E_Int compid = comp_id[z];
     auto it = sorted_comps_per_comp.find(compid);
@@ -959,7 +956,7 @@ void MOVLP_unify(const std::vector<K_FLD::FloatArray*> &crds, const std::vector<
     STACK_ARRAY(ngon_unit*, sz, hiding_skins);
     STACK_ARRAY(K_FLD::FloatArray*, sz, hiding_crds);
     
-    for (size_t i=0; i < sz; ++i)
+    for (E_Int i=0; i < sz; ++i)
     {
       E_Int Cp = hiding_comps[sz-1-i]; //store them in decreasing priority order
       hiding_locs[i] = locs[Cp];
@@ -1037,7 +1034,7 @@ void MOVLP_unify(const std::vector<K_FLD::FloatArray*> &crds, const std::vector<
 #ifndef NETBEANSZ
 #pragma omp parallel for shared(process_overlap_pass) //private()
 #endif
-  for (size_t z=0; (z < nb_zones); ++z)
+  for (E_Int z=0; (z < nb_zones); ++z)
   {
     if (!process_overlap_pass[z]) continue; // zone is fully in or out => need a component wie coloration a posteriori
     
@@ -1052,7 +1049,7 @@ void MOVLP_unify(const std::vector<K_FLD::FloatArray*> &crds, const std::vector<
     STACK_ARRAY(ngon_unit*, sz, hiding_skins);
     STACK_ARRAY(K_FLD::FloatArray*, sz, hiding_crds);
     
-    for (size_t i=0; i < sz; ++i)
+    for (E_Int i=0; i < sz; ++i)
     {
       E_Int Cp = hiding_comps[sz-1-i]; //stor them in decreasing priority order
       hiding_locs[i] = locs[Cp];
@@ -1215,7 +1212,7 @@ void MOVLP_unify(const std::vector<K_FLD::FloatArray*> &crds, const std::vector<
       {
         E_Int Kseed = toprocess[i];
         E_Float bad_col;
-        bool good_dom = K_CONNECT::EltAlgo<K_MESH::Triangle/*dummy*/>::coloring_one_connex_homogeneous (neighbors, xcelln[z], Kseed, (E_Float)UNSET, (E_Float)IN, (E_Float)IN_BODY, bad_col);
+        /*bool good_dom = */K_CONNECT::EltAlgo<K_MESH::Triangle/*dummy*/>::coloring_one_connex_homogeneous (neighbors, xcelln[z], Kseed, (E_Float)UNSET, (E_Float)IN, (E_Float)IN_BODY, bad_col);
         
       }
     }
@@ -1291,16 +1288,16 @@ void MOVLP_unify(const std::vector<K_FLD::FloatArray*> &crds, const std::vector<
   
   if (is_prior)
   {
-    for (size_t i=0; i < nb_zones; ++i){
+    for (E_Int i=0; i < nb_zones; ++i){
       xcelln[i].clear();
       xcelln[i].resize(ngs[i]->PHs.size(), 1.);
     }
   }
   
-  for (size_t i=0; i < nb_zones; ++i)
+  for (E_Int i=0; i < nb_zones; ++i)
     delete ngs[i];
   
-  for (size_t i=0; i < nb_comps; ++i)
+  for (E_Int i=0; i < nb_comps; ++i)
   {
     delete pgfs[i];
     delete locs[i];
@@ -1432,7 +1429,7 @@ PyObject* K_INTERSECTOR::unify(PyObject* self, PyObject* args)
   {
     E_Int sz = xcelln[i].size();
     K_FLD::FloatArray xcellno(1,sz);
-    for (size_t j = 0; j < sz; ++j)xcellno(0,j)=xcelln[i][j];
+    for (E_Int j = 0; j < sz; ++j)xcellno(0,j)=xcelln[i][j];
     tpl = K_ARRAY::buildArray(xcellno, "xcelln", *cnts[i], -1, eltType, false);
     //tpl = K_NUMPY::buildNumpyArray(&xcelln[i][0], xcelln[i].size(), 1, 0);
     PyList_Append(l, tpl);

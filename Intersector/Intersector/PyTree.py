@@ -1013,20 +1013,20 @@ def removeNonManifoldExternalCells(t):
     return C.convertArrays2ZoneNode('manifoldOuter', [m])
 
 #==============================================================================
-# closeOctalCells : Closes any polyhedral cell in an octree
+# closeCells : Closes any polyhedral cell in a mesh (processes hanging nodes on edges)
 # IN: t: 3D NGON mesh
 # OUT: returns a 3D NGON Mesh with all cells closed
 #==============================================================================
-def closeOctalCells(t):
-    """Closes any polyhedral cell in an octree.
-    Usage: closeOctalCells(t)"""
+def closeCells(t):
+    """Closes any polyhedral cell in a mesh (processes hanging nodes on edges).
+    Usage: closeCells(t)"""
     tp = Internal.copyRef(t)
-    _closeOctalCells(tp)
+    _closeCells(tp)
     return tp
 
-def _closeOctalCells(t):
-    """Adapts a polyhedral mesh t1 with repsect to t2 points.
-    Usage: _closeOctalCells(t)"""
+def _closeCells(t):
+    """Closes any polyhedral cell in a mesh (processes hanging nodes on edges).
+    Usage: _closeCells(t)"""
 
     zones = Internal.getZones(t)
 
@@ -1035,7 +1035,7 @@ def _closeOctalCells(t):
         if coords == []: continue
 
         coords = Converter.convertArray2NGon(coords)
-        mesh = intersector.closeOctalCells(coords)
+        mesh = intersector.closeCells(coords)
 
         # MAJ du maillage de la zone
         C.setFields([mesh], z, 'nodes')

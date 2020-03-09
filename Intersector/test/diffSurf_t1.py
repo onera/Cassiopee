@@ -14,7 +14,7 @@ t = C.convertArray2NGon(t)
 print("ngon conformization...")
 t = C.conformizeNGon(t); t = G.close(t)
 print("ngon close cells...")
-t = XOR.closeOctalCells(t)
+t = XOR.closeCells(t)
 #t = XOR.reorientExternalFaces(t)
 
 s = C.convertArray2NGon(s)

@@ -28,13 +28,13 @@ a5 = T.join(a, a4)
 a5 = C.fillEmptyBCWith(a5, 'wall', 'BCWall')
 
 m1 = XOR.adaptCells(a5,b, sensor_type=0)
-m1 = XOR.closeOctalCells(m1)
+m1 = XOR.closeCells(m1)
 #C.convertPyTree2File(m1, 'out6.cgns')
 test.testT(m1,1)
 
 a = C.fillEmptyBCWith(a, 'wall', 'BCWall')
 
 m2 = XOR.adaptCells(a,b, sensor_type=2)
-m2 = XOR.closeOctalCells(m2)
+m2 = XOR.closeCells(m2)
 #C.convertPyTree2File(m2, 'out61.cgns')
 test.testT(m2,2)

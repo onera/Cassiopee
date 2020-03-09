@@ -13,7 +13,7 @@ t = C.convertArray2NGon(t)
 # ngon conformization
 t = C.conformizeNGon(t); t = G.close(t)
 # ngon close cells
-t = XOR.closeOctalCells(t)
+t = XOR.closeCells(t)
 #t = XOR.reorientExternalFaces(t)
 
 # ngon conversion of the sphere
