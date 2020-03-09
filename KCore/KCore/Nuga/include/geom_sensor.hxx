@@ -541,7 +541,7 @@ E_Int geom_sensor<mesh_t, crd_t>::detect_child(const E_Float* p, E_Int PHi, E_In
 template <typename mesh_t, typename crd_t>
 E_Int geom_sensor<mesh_t, crd_t>::redistrib_data()
 {
-  std::cout << "redistrib data geom sensor. " << std::endl;
+  //std::cout << "redistrib data geom sensor. " << std::endl;
   E_Int nb_pts = _points_to_cell.size();
 
   for (int i = 0; i < nb_pts; ++i)
