@@ -72,7 +72,7 @@ def prepare(t_case, t_out, tc_out,
     # chargement des zones Chimere par proc 
     bases = Internal.getBases(tb)
     baseNamesChim=[]
-    C.convertPyTree2File(tb,'tb_%d.cgns'%rank)
+
     for b in bases:
         isChimera = False
         for z in Internal.getZones(b):
@@ -624,7 +624,7 @@ def prepare(t_case, t_out, tc_out,
             zname = n[0]
             IBCDs = n[1]
             if IBCDs != []:
-                zD = Internal.getNodeFromName2(tc, zname)
+                zD = Internal.getNodeFromName2(tpc, zname)
                 zD[2] += IBCDs
 
     datas = {}; graph = {}
@@ -716,6 +716,15 @@ def prepare(t_case, t_out, tc_out,
                 C._initVars(zone, 'centers:MomentumX', 0.)
                 C._initVars(zone, 'centers:MomentumY', 0.)
                 C._initVars(zone, 'centers:MomentumZ', 0.)
+
+    # clean t
+    for z in Internal.getZones(tp):
+        SDD = Internal.getNodeFromName1(z,".Solver#define")
+        if SDD is not None:
+            Internal._rmNodesFromName1(SDD,'inv')
+            Internal._rmNodesFromName1(SDD,'ibctype')
+            Internal._rmNodesFromName1(SDD,'dfar')
+            Internal._rmNodesFromName1(SDD,'snear')
 
     # Save t
     if isinstance(t_out, str):
