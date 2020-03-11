@@ -2,7 +2,7 @@
 import Generator.PyTree as G
 import Converter.PyTree as C
 import Converter.Internal as Internal
-import Fast.PyTree as Fast
+import FastC.PyTree as FastC
 import FastLBM.PyTree as FastLBM
 import Connector.PyTree as X
 import Transform.PyTree as T
@@ -86,7 +86,7 @@ numz['cache_blocking_I']=1000000
 numz["time_step"]=dt # pour l instant pas de viscosite
 myApp.set(numb=numb) 
 myApp.set(numz=numz)
-Fast._setNum2Zones(t, numz); Fast._setNum2Base(t, numb)
+FastC._setNum2Zones(t, numz); FastC._setNum2Base(t, numb)
 
 (t, tc, metrics)  = FastLBM.warmup(t, tc)
 

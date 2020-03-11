@@ -908,21 +908,55 @@ def checkGenerator():
         raise SystemError("Error: generator library is required for the compilation of this module.")
 
 #=============================================================================
-# Check for Fast module
+# Check for FastC module
 #=============================================================================
-def checkFast():
+def checkFastC():
     try:
-        import Fast
+        import FastC
         import KCore.installPath
-        fastIncDir = KCore.installPath.includePath
-        fastIncDir = fastIncDir.replace('Modules', 'PModules')
-        fastIncDir = os.path.dirname(fastIncDir)
-        fastIncDir = os.path.join(fastIncDir, 'Fast/Fast')
-        fastLibDir = KCore.installPath.libPath
-        return (Fast.__version__, fastIncDir, fastLibDir)
+        fastcIncDir = KCore.installPath.includePath
+        fastcIncDir = fastcIncDir.replace('Modules', 'PModules')
+        fastcIncDir = os.path.dirname(fastcIncDir)
+        fastcIncDir = os.path.join(fastcIncDir, 'FastC/FastC')
+        fastcLibDir = KCore.installPath.libPath
+        return (FastC.__version__, fastcIncDir, fastcLibDir)
 
     except ImportError:
-        raise SystemError("Error: fast library is required for the compilation of this module.")
+        raise SystemError("Error: fastc library is required for the compilation of this module.")
+
+#=============================================================================
+# Check for FastS module
+#=============================================================================
+def checkFastS():
+    try:
+        import FastS
+        import KCore.installPath
+        fastsIncDir = KCore.installPath.includePath
+        fastsIncDir = fastsIncDir.replace('Modules', 'PModules')
+        fastsIncDir = os.path.dirname(fastsIncDir)
+        fastsIncDir = os.path.join(fastsIncDir, 'FastS/FastS')
+        fastsLibDir = KCore.installPath.libPath
+        return (FastS.__version__, fastsIncDir, fastsLibDir)
+
+    except ImportError:
+        raise SystemError("Error: fasts library is required for the compilation of this module.")
+
+#=============================================================================
+# Check for FastP module
+#=============================================================================
+def checkFastP():
+    try:
+        import FastP
+        import KCore.installPath
+        fastpIncDir = KCore.installPath.includePath
+        fastpIncDir = fastpIncDir.replace('Modules', 'PModules')
+        fastpIncDir = os.path.dirname(fastpIncDir)
+        fastpIncDir = os.path.join(fastpIncDir, 'FastP/FastP')
+        fastpLibDir = KCore.installPath.libPath
+        return (FastP.__version__, fastpIncDir, fastpLibDir)
+
+    except ImportError:
+        raise SystemError("Error: fastp library is required for the compilation of this module.")
 
 #=============================================================================
 # Check for Connector module

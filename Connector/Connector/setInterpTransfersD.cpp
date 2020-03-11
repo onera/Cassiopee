@@ -748,6 +748,8 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
 #include "commonInterpTransfersD_reorder_5eq.h"
                         } else if ( nvars_loc == 6 ) {
 #include "commonInterpTransfersD_reorder_6eq.h"
+                        } else if ( nvars_loc ==19 ) {
+#include "commonInterpTransfersD_reorder_19eq.h"
                         } else {
 #include "commonInterpTransfersD_reorder_neq.h"
                         }

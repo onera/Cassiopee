@@ -1,5 +1,5 @@
 # Class for FastLBM prepare
-import Fast.PyTree as Fast
+import FastC.PyTree as FastC
 import Converter.PyTree as C
 import Generator.PyTree as G
 import Transform.PyTree as T

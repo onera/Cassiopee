@@ -4,7 +4,7 @@
 # optionel: solution initiale 
 # Si 2D, maillage 1 seul plan (XY)
 
-import Fast.PyTree as Fast
+import FastC.PyTree as FastC
 import Converter.PyTree as C
 import Transform.PyTree as T
 import Converter.Internal as Internal
@@ -227,7 +227,7 @@ def post0(t_in, t_out, wall_out, format='single'):
     from math import sqrt
 
     # Use filter load here!
-    if isinstance(t_in, str): a = Fast.loadFile(t_in)
+    if isinstance(t_in, str): a = FastC.loadFile(t_in)
     else: a = t_in 
 
     #=============================

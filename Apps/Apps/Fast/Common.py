@@ -1,5 +1,5 @@
 # Class common to all types of FAST simulations
-import Fast.PyTree as Fast
+import FastC.PyTree as FastC
 import Converter.PyTree as C
 import Converter.Internal as Internal
 from Apps.App import App
@@ -108,17 +108,17 @@ def _distributeOptFile(t_in, tc_in, corePerNode=28, nptMaxPerCore=4.e6):
 def setup(t_in, tc_in, numb, numz, format='single'):
     if Cmpi.size > 1:
         import FastS.Mpi as FastS
-        FastS.PyTree.HOOK = None
+        FastC.HOOK = None
         rank = Cmpi.rank; size = Cmpi.size
     else:
         import FastS.PyTree as FastS
-        FastS.HOOK = None
+        FastC.HOOK = None
         rank = 0; size = 1
 
-    t,tc,ts,graph = Fast.load(t_in, tc_in, split=format)
+    t,tc,ts,graph = FastC.load(t_in, tc_in, split=format)
 
     # Numerics
-    Fast._setNum2Zones(t, numz); Fast._setNum2Base(t, numb)
+    FastC._setNum2Zones(t, numz); FastC._setNum2Base(t, numb)
     (t, tc, metrics) = FastS.warmup(t, tc, graph)
     return t, tc, ts, metrics, graph
 
@@ -137,7 +137,7 @@ def finalize(t, t_out=None, it0=None, time0=None, format='single', cartesian=Fal
     if time0 is not None:
         Internal.createUniqueChild(t, 'Time', 'DataArray_t', value=time0)
     if t_out is not None and isinstance(t_out, str):
-        Fast.save(t, t_out, split=format, NP=Cmpi.size, cartesian=cartesian)
+        FastC.save(t, t_out, split=format, NP=Cmpi.size, cartesian=cartesian)
 
 #=====================================================================================
 # IN: t_in : nom du fichier t input ou arbre input
@@ -160,10 +160,10 @@ def compute(t_in, tc_in,
         import FastS.PyTree as FastS
         rank = 0; size = 1
 
-    t,tc,ts,graph = Fast.load(t_in, tc_in, split=format, cartesian=cartesian)
+    t,tc,ts,graph = FastC.load(t_in, tc_in, split=format, cartesian=cartesian)
 
     # Numerics
-    Fast._setNum2Zones(t, numz); Fast._setNum2Base(t, numb)
+    FastC._setNum2Zones(t, numz); FastC._setNum2Base(t, numb)
 
     (t, tc, metrics) = FastS.warmup(t, tc, graph)
 
@@ -192,9 +192,9 @@ def compute(t_in, tc_in,
     Internal.createUniqueChild(t, 'Iteration', 'DataArray_t', value=it0+NIT)
     Internal.createUniqueChild(t, 'Time', 'DataArray_t', value=time0)
     if t_out is not None and isinstance(t_out,str):
-        Fast.save(t, t_out, split=format, NP=Cmpi.size, cartesian=cartesian)
+        FastC.save(t, t_out, split=format, NP=Cmpi.size, cartesian=cartesian)
     if tc_out is not None and isinstance(tc_out,str): 
-        Fast.save(tc, tc_out, split=format, NP=Cmpi.size)
+        FastC.save(tc, tc_out, split=format, NP=Cmpi.size)
     if Cmpi.size > 1: Cmpi.barrier()
     return t, tc
 

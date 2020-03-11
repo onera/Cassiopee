@@ -1,5 +1,5 @@
 # Class for FastS "IBM" prepare and compute
-import Fast.PyTree as Fast
+import FastC.PyTree as FastC
 import Converter.PyTree as C
 import Generator.PyTree as G
 import Transform.PyTree as T
@@ -155,7 +155,7 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
 
     # arbre donneur
     D2._copyDistribution(tc, t)
-    if isinstance(tc_out, str): Fast.save(tc, tc_out, split=format, NP=-NP)
+    if isinstance(tc_out, str): FastC.save(tc, tc_out, split=format, NP=-NP)
 
     #----------------------------------------
     # Extraction des coordonnees des pts IBM
@@ -227,7 +227,7 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
                 C._initVars(zone, 'centers:MomentumY', 0.)
                 C._initVars(zone, 'centers:MomentumZ', 0.)
 
-    if isinstance(t_out, str): Fast.save(t, t_out, split=format, NP=-NP, cartesian=True)
+    if isinstance(t_out, str): FastC.save(t, t_out, split=format, NP=-NP, cartesian=True)
     return t, tc
 
 #================================================================================

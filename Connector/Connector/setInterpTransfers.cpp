@@ -1040,7 +1040,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
 
       if (loc == 0)
       {
-        printf("transferts optimises pas code en vextex \n"); 
+        printf("transferts optimises pas code en vextex %d %d %d\n", shift_rac + nrac*9  +1, NoD, NoR ); 
         //imd= ipt_ndimdxD[ NoD+ nidomD*4]; jmd= ipt_ndimdxD[ NoD + nidomD*5];
       }
       else
@@ -1156,6 +1156,10 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
           else if(nvars_loc==6)
           {
 #           include "commonInterpTransfers_reorder_6eq.h" 
+          }
+          else if(nvars_loc==19)
+          {
+#           include "commonInterpTransfers_reorder_19eq.h" 
           }
           else
           {
