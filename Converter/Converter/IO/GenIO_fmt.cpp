@@ -237,9 +237,10 @@ E_Int K_IO::GenIO::readDataAndKeyword(FILE* ptrFile, char* buf,
   E_Int l, p, i, j;
   E_Int c = 0;
 
-  E_Int ret = readKeyword(ptrFile,buf);
+  readKwd:
+  E_Int ret = readKeyword(ptrFile, buf);
 
-  if (ret!=0)
+  if (ret != 0)
   {
     strcpy(prevData, buf);
     return ret; // echec
@@ -269,10 +270,11 @@ E_Int K_IO::GenIO::readDataAndKeyword(FILE* ptrFile, char* buf,
     }
   }
 
-  if (found == 0)
+  if (found == 0) // pas un mot cle reconnu, continue a la recherche d'un nouveau mot cle
   {
-    strcpy(prevData, buf);
-    return 1; // echec
+    goto readKwd;
+    //strcpy(prevData, buf);
+    //return 1; // echec
   }
 
   // stocke la prevdata

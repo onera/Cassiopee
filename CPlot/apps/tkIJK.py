@@ -4,6 +4,7 @@ except: import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import Transform.PyTree as T
+import Post.PyTree as P
 import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
 import Converter.Internal as Internal
@@ -87,15 +88,37 @@ def show(event=None):
 
     temp = C.newPyTree(['Base']); temp[2][1][2] += active
             
-    CTK.dt = C.newPyTree(['Base'])
+    # Subzone les zones actives
+    CTK.dt = C.newPyTree(['Base','Edges'])
     for z in Internal.getZones(temp):
         try:
             zp = T.subzone(z, (imin,jmin,kmin), (imax,jmax,kmax)); zp[0] = z[0]
             CTK.dt[2][1][2].append(zp)
         except: pass
+    if CTK.TKPLOTXY is not None: CTK.TKPLOTXY.updateApp(CTK.dt)
+
+    # Ajoute les edges pour les grilles structurees
+    exts = []
+    for z in active:
+        ztype = Internal.getZoneType(z)
+        if ztype == 1:
+            zp = P.exteriorFacesStructured(z)
+            exts += zp
+        else:
+            #zp = P.exteriorFaces(z)
+            #zp = P.sharpEdges(zp)
+            zp = []
+            exts += zp
+    CTK.dt[2][2][2] += exts
+    # deactivate les zones exts
+    lenZ = len(CTK.dt[2][1][2]); lenExts = len(exts)
+    activeExt = [(i,1) for i in range(lenZ+lenExts)]
+    for i in range(lenZ): activeExt[i] = (i,1)
+    for i in range(lenExts): activeExt[i+lenZ] = (i+lenZ,0)
 
     CTK.display(CTK.dt, mainTree=CTK.SLICE)
-    if CTK.TKPLOTXY is not None: CTK.TKPLOTXY.updateApp()
+    CPlot.setActiveZones(activeExt)
+    CPlot.setState(edgifyDeactivatedZones=1)
     
 #==============================================================================
 # Create app widgets

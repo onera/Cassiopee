@@ -22,7 +22,6 @@
 using namespace std;
 using namespace K_FLD;
 
-
 // ============================================================================
 /* calcul du facteur d'amplification pour la hauteur h a extruder 
    normales contient les coordonnees des centres + les normales aux centres
@@ -207,7 +206,7 @@ PyObject* K_GENERATOR::getLocalStepFactor2(PyObject* self, PyObject* args)
   char* varString; char* eltType;
   E_Int res = K_ARRAY::getFromArray(array, varString, f, 
                                     im, jm, km, cn, eltType, true);
-  if (res != 2) 
+  if (res != 2)
   {
     PyErr_SetString(PyExc_TypeError,
                     "getLocalStepFactor: array must unstructured.");
@@ -426,15 +425,15 @@ PyObject* K_GENERATOR::getLocalStepFactor2(PyObject* self, PyObject* args)
             //printf("ind=%d: sas2=%f, fout=%f\n", ind,sas2,fout[ind]);
             
             // calcul de kappa
-            E_Float kappaL = 0.;
-            E_Float kappaP = 2.;
+            E_Float kappaL = 0.2;
+            E_Float kappaP = 1.6;
             E_Float kappa;
             if (alpha <= K_CONST::E_PI) kappa = ((1.-kappaP)/K_CONST::E_PI)*alpha+kappaP;
             else kappa = ((kappaL-1.)/K_CONST::E_PI)*alpha+2.-kappaL;
             //E_Float kappa = 1.3 + (0.7-1.3)/(2.*K_CONST::E_PI)*alpha;
             //E_Float kappa = 0.6 + (1.4-0.6)/(2.*K_CONST::E_PI)*alpha;
             //printf("ind=%d, kappa=%f, alpha=%f\n",ind, kappa, alpha*180./K_CONST::E_PI);
-            //fouth[ind] = kappa*fouth[ind];
+            fouth[ind] = kappa*fouth[ind];
             // Champ 2
             // Lissage en fonction de alpha (pas suffisant car trop ponctuel)
             //if (alpha > K_CONST::E_PI) foute[ind] = 0.;
@@ -443,7 +442,6 @@ PyObject* K_GENERATOR::getLocalStepFactor2(PyObject* self, PyObject* args)
             //foute[ind] = 0.;
             // Lissage en fonction de alpha (pas suffisant car trop ponctuel)
             foute[ind] = 3.*K_FUNC::E_abs(K_CONST::E_PI-alpha)/K_CONST::E_PI;
-            
           }
         }
       }

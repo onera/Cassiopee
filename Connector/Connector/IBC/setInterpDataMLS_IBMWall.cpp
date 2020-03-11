@@ -153,7 +153,7 @@ PyObject* K_CONNECTOR::setInterpData_IBMWall(PyObject* self, PyObject* args)
     // calcul de la bounding box de la sphere de rayon PP'
     rx = pt[0]-xtRcv[indR]; ry = pt[1]-ytRcv[indR]; rz = pt[2]-ztRcv[indR];
     rad = sqrt(rx*rx+ry*ry+rz*rz);
-    if (rad < K_CONST::E_GEOM_CUTOFF)//matching
+    if (rad < K_CONST::E_GEOM_CUTOFF) //matching
     {matchingP[indR] = indD;}
       
     else //projection 
@@ -164,7 +164,6 @@ PyObject* K_CONNECTOR::setInterpData_IBMWall(PyObject* self, PyObject* args)
       indev = K_COMPGEOM::projectOrthoPrecond(pt[0], pt[1], pt[2],
                                               xtRcv, ytRcv, ztRcv, indicesBB, *cnr, xo, yo, zo);
       indicesBB.clear();
-      if ( indev == -1) printf(" indev = ", indev);
       if (indev != -1)
       {
         // E_Float dist = (xo-pt[0])*(xo-pt[0])+(yo-pt[1])*(yo-pt[1])+(zo-pt[2])*(zo-pt[2]);
@@ -173,6 +172,7 @@ PyObject* K_CONNECTOR::setInterpData_IBMWall(PyObject* self, PyObject* args)
         //        listOfCloudPtsPerTri[indev].size(), dist);
         listOfCloudPtsPerTri[indev].push_back(indD);
       }
+      else printf(" indev = %d\n", indev);
     }
   }
   // cleanings

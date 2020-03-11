@@ -99,18 +99,28 @@ E_Int K_IO::GenIO::tpread(
   knownKeywords.push_back("FACES"); // nbre de faces
   knownKeywords.push_back("DT");
   knownKeywords.push_back("ET"); // type d'element
-  knownKeywords.push_back("I"); // ni
-  knownKeywords.push_back("J"); // nj
-  knownKeywords.push_back("K"); // nk
-  knownKeywords.push_back("F"); // format (point, block)
-  knownKeywords.push_back("N"); // nbre de pts
-  knownKeywords.push_back("E"); // elements
-  knownKeywords.push_back("Y"); // dummy
-  knownKeywords.push_back("T"); // dummy Zone Title
-  knownKeywords.push_back("X"); // dummy Text Position
   knownKeywords.push_back("CS"); // dummy Text Position
   knownKeywords.push_back("HU"); // dummy Text Position
-  knownKeywords.push_back("H"); // dummy Text Position
+  knownKeywords.push_back(" I"); // ni
+  knownKeywords.push_back(",I"); // ni
+  knownKeywords.push_back(" J"); // nj
+  knownKeywords.push_back(",J"); // nj
+  knownKeywords.push_back(" K"); // nk
+  knownKeywords.push_back(",K"); // nk
+  knownKeywords.push_back(" F"); // format (point, block)
+  knownKeywords.push_back(",F"); // format (point, block)
+  knownKeywords.push_back(" N"); // nbre de pts
+  knownKeywords.push_back(",N"); // nbre de pts
+  knownKeywords.push_back(" E"); // elements
+  knownKeywords.push_back(",E"); // elements
+  knownKeywords.push_back(" Y"); // dummy
+  knownKeywords.push_back(",Y"); // dummy
+  knownKeywords.push_back(" T"); // dummy Zone Title
+  knownKeywords.push_back(",T"); // dummy Zone Title
+  knownKeywords.push_back(" X"); // dummy Text Position
+  knownKeywords.push_back(",X"); // dummy Text Position
+  knownKeywords.push_back(" H"); // dummy Text Position
+  knownKeywords.push_back(",H"); // dummy Text Position
 
   /* Header read */
   E_Int res = readKeyword(ptrFile, keyword);

@@ -856,7 +856,7 @@ GoverningEquationsType_       = enumAsKeyDict(GoverningEquationsType_l)
 (GoverningEquationsNull, GoverningEquationUserDefined,
  FullPotential,Euler,NSLaminar,
  NSTurbulent,NSLaminarIncompressible,
- NSTurbulentIncompressible_s)=GoverningEquationsType_.keys()
+ NSTurbulentIncompressible)=GoverningEquationsType_.keys()
 
 # --------------------------------------------------
 BCType_s                   = "BCType"
@@ -1236,7 +1236,7 @@ cgnsnames=[globals()[k] for k in dir() if (k[-2:]=='_s')]
 cgnstypes=[globals()[k] for k in dir() if (k[-3:]=='_ts')]
 cgnsenums={}
 for k in dir():
-  if (k[-2:]=='_l'): cgnsenums[k[:-1]+'t']=locals()[k]
+  if k[-2:] == '_l': cgnsenums[k[:-1]+'t']=locals()[k]
 #
 cgnsnames.sort()
 cgnstypes.sort()

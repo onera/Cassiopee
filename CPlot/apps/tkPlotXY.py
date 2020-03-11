@@ -9579,6 +9579,7 @@ class GraphTK(TK.Toplevel):
 
     def _draw(self):
         # -- Update axis properties here from axis (modified by zoom)
+        if self._axes is None: return
         x_axes, y_axes = self._axes
         h = self.fig.subGraph
         for ax in x_axes:
@@ -15489,9 +15490,11 @@ def filterInteger(string):
 #===============================================================================
 # Fonction permettant de pointer vers les zones 1D de l'arbre
 #===============================================================================
-def updateFromTree(event=None):
-    if CTK.__MAINTREE__ == 1: tp = CTK.t
-    else: tp = CTK.dt
+def updateFromTree(event=None, t=None):
+    if t is None: # prend l'arbre CTK.t ou CTK.dt
+        if CTK.__MAINTREE__ == 1: tp = CTK.t
+        else: tp = CTK.dt
+    else: tp = t
 
     to = C.newPyTree()
     bases = Internal.getBases(tp)
@@ -15586,16 +15589,16 @@ def hideApp(event=None):
 #==============================================================================
 # Update widgets when global pyTree t changes
 #==============================================================================
-def updateApp():
+def updateApp(t=None):
     # Update App toujours
     if IMPORTOK and CTK.t != []:
-        updateFromTree()
+        updateFromTree(t)
     return
 
-def updateApp2():
+def updateApp2(t=None):
     # Update App seulement si une graph window est ouverte
     if IMPORTOK and CTK.t != [] and len(DESKTOP.graphWdwL) > 0:
-        updateFromTree()
+        updateFromTree(t)
     return
 
 #==============================================================================
