@@ -725,7 +725,7 @@ def addRefinementZones(o, tb, tbox, snearsf, vmin, dim):
 # Calcul des points IBM a corriger, paroi et a interpoler
 # =============================================================================
 def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, 
-                    frontType=0, cellNName='cellN', IBCType=1, depth=2):
+                    frontType=0, cellNName='cellN', IBCType=1, depth=2, Reynolds=6.e6, yplus=100.):
     if IBCType == -1: signOfDistCorrected = -1
     else: signOfDistCorrected=1 # signe de la distance aux points corriges
 
@@ -734,6 +734,7 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None,
     # 1. Get the list of IBC corrected pts
     #-------------------------------------------
     listOfSnearsLoc=[]
+    listOfModelisationHeightsLoc = []
     if loc == 'nodes':
         for z in Internal.getZones(t):
             an = C.getFields(Internal.__GridCoordinates__,z)[0]
@@ -753,6 +754,8 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None,
             snearl = xt[1]-xt[0]
             listOfSnearsLoc.append(snearl)
             allCorrectedPts.append(correctedPts)
+            if frontType == 42: listOfModelisationHeightsLoc.append(computeModelisationHeight(Re=Reynolds, yplus=yplus))
+            else: listOfModelisationHeightsLoc.append(0.)
     else:
         for z in Internal.getZones(t):            
             an = C.getFields(Internal.__GridCoordinates__,z)[0]
@@ -773,6 +776,8 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None,
             xt = C.getField('CoordinateX',z)[0][1][0]
             snearl = xt[1]-xt[0]
             listOfSnearsLoc.append(snearl)
+            if frontType == 42: listOfModelisationHeightsLoc.append(computeModelisationHeight(Re=Reynolds, yplus=yplus))
+            else: listOfModelisationHeightsLoc.append(0.)
     #-------------------------------------------
     # 2. Get the list of IBC wall and interp pts
     #-------------------------------------------        
@@ -826,7 +831,7 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None,
             front = C.getFields(Internal.__GridCoordinates__,tfront)
             front = Converter.convertArray2Tetra(front)
             allCorrectedPts = Converter.extractVars(allCorrectedPts,['CoordinateX','CoordinateY','CoordinateZ']+varsn)
-            res = connector.getIBMPtsWithFront(allCorrectedPts, listOfSnearsLoc, bodies, 
+            res = connector.getIBMPtsWithFront(allCorrectedPts, listOfSnearsLoc, listOfModelisationHeightsLoc, bodies, 
                                                front, varsn, signOfDistCorrected, depth)
     allWallPts = res[0]
     allWallPts = Converter.extractVars(allWallPts,['CoordinateX','CoordinateY','CoordinateZ'])
@@ -926,7 +931,8 @@ def getIBMFront(tc, frontvar, dim, frontType):
 
     return front
 
-# front of first computed cells - with overlapping
+# front of first computed cells - with overlappin
+    if isinstance(t_in, str):g
 def getIBMFrontType1(tc, frontvar, dim):
     if dim == 2:
         z0 = Internal.getNodeFromType2(tc, 'Zone_t')
@@ -1109,7 +1115,7 @@ def gatherFront(front):
     
 #=============================================================================
 def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None, 
-             frontType=0, depth=2, IBCType=1, interpDataType=1):    
+             frontType=0, depth=2, IBCType=1, interpDataType=1, Reynolds=6.e6, yplus=100.):    
     ReferenceState = Internal.getNodeFromType2(t, 'ReferenceState_t')
     if typeI == 'ID':
         # toutes les zones sont interpolables en Chimere
@@ -1156,7 +1162,7 @@ def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None,
         if zonesRIBC == []: return tc
 
         res = getAllIBMPoints(zonesRIBC, loc='centers',tb=tb, tfront=front, frontType=frontType, \
-                              cellNName='cellNIBC', depth=depth, IBCType=IBCType)
+                              cellNName='cellNIBC', depth=depth, IBCType=IBCType, Reynolds=Reynolds, yplus=yplus)
         nbZonesIBC = len(zonesRIBC)
         dictOfADT = {}
         dictOfCorrectedPtsByIBCType = res[0]
@@ -1209,7 +1215,7 @@ def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None,
     return tc
 
 #=============================================================================
-def doInterp2(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=0, depth=2, IBCType=1):    
+def doInterp2(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=0, depth=2, IBCType=1, Reynolds=6.e6, yplus=100.):    
     ReferenceState = Internal.getNodeFromType2(t,'ReferenceState_t')
 
     bases  = Internal.getNodesFromType1(t     , 'CGNSBase_t') 
@@ -1394,7 +1400,7 @@ def doInterp2(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=
         C.convertPyTree2File(front, 'front.cgns')
 
         res = getAllIBMPoints(zonesRIBC, loc='centers',tb=tb, tfront=front, frontType=frontType, \
-                              cellNName='cellNIBC', depth=depth, IBCType=IBCType)
+                              cellNName='cellNIBC', depth=depth, IBCType=IBCType, Reynolds=Reynolds, yplus=yplus)
         nbZonesIBC = len(zonesRIBC)
         dictOfADT = {}
         dictOfCorrectedPtsByIBCType = res[0]
@@ -1727,7 +1733,7 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interpDataType
     front = getIBMFront(tc, 'cellNFront', dimPb, frontType)
     C.convertPyTree2File(front, 'front.cgns')
     print('Interpolations IBM')
-    tc = doInterp(t,tc,tbb, tb=tb,typeI='IBCD',dim=dimPb, dictOfADT=None, front=front, frontType=frontType, depth=DEPTH, IBCType=IBCType, interpDataType=interpDataType)
+    tc = doInterp(t,tc,tbb, tb=tb,typeI='IBCD',dim=dimPb, dictOfADT=None, front=front, frontType=frontType, depth=DEPTH, IBCType=IBCType, interpDataType=interpDataType, Reynolds=Reynolds, yplus=yplus)
 
     # cleaning...
     Internal._rmNodesByName(tc, Internal.__FlowSolutionNodes__)
@@ -1866,6 +1872,9 @@ def computeModelisationHeight(Re, Cf_law='ANSYS', yplus=100., L=1.):
     elif Cf_law == 'PipeDiameter':
         def compute_Cf(Re):
             return 0.079*Re**(-0.25)
+    elif Cf_law == 'Laminar':
+        def compute_Cf(Re):
+            return 1.46*Re**(-0.5)
 
     return (yplus*L*math.sqrt(2))/(Re*math.sqrt(compute_Cf(Re)))
 
@@ -1883,6 +1892,9 @@ def computeBestModelisationHeight(Re, h, Cf_law='ANSYS', L=1., q=1.2):
     elif Cf_law == 'PipeDiameter':
         def compute_Cf(Re):
             return 0.079*Re**(-0.25)
+    elif Cf_law == 'Laminar':
+        def compute_Cf(Re):
+            return 1.46*Re**(-0.5)
 
     h0 = (L*math.sqrt(2))/(Re*math.sqrt(compute_Cf(Re)))
 

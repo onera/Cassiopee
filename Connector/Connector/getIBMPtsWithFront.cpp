@@ -53,10 +53,11 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
 {
     PyObject *allCorrectedPts, *bodySurfaces, *frontSurfaces, *normalNames;
     PyObject *ListOfSnearsLoc;
+    PyObject *ListOfModelisationHeightsLoc;
     E_Int signOfDist; //if correctedPts are inside bodies: sign = -1, else sign=1
     E_Int depth;//nb of layers of ghost cells
-    if (!PYPARSETUPLEI(args,"OOOOOll","OOOOOii", 
-                       &allCorrectedPts, &ListOfSnearsLoc, &bodySurfaces, &frontSurfaces, 
+    if (!PYPARSETUPLEI(args,"OOOOOOll","OOOOOOii", 
+                       &allCorrectedPts, &ListOfSnearsLoc, &ListOfModelisationHeightsLoc, &bodySurfaces, &frontSurfaces, 
                        &normalNames, &signOfDist, &depth)) return NULL;
 
     // extract list of snearsloc
@@ -81,6 +82,28 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
             return NULL;
         } 
         else vectOfSnearsLoc.push_back(PyFloat_AsDouble(tpl0));
+    }
+
+    // extract list of ModelisationHeightsLoc
+    if (PyList_Size(ListOfModelisationHeightsLoc) == 0)
+    {
+        PyErr_SetString(PyExc_TypeError, 
+                        "getIBMPtsWithFront: 3rd argument is an empty list.");
+        return NULL;
+    }
+
+    vector<E_Float> vectOfModelisationHeightsLoc;
+
+    for (int i = 0; i < nsnears; i++)
+    {
+        tpl0 = PyList_GetItem(ListOfModelisationHeightsLoc, i);
+        if (PyFloat_Check(tpl0) == 0)
+        {
+            PyErr_SetString(PyExc_TypeError, 
+                            "getIBMPtsWithFront: not a valid value for modelisation height.");
+            return NULL;
+        } 
+        else vectOfModelisationHeightsLoc.push_back(PyFloat_AsDouble(tpl0));
     }
   
     E_Int sign = -signOfDist; // sens de projection sur la paroi
@@ -443,12 +466,13 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
         E_Float* ptrXI = xit[noz];
         E_Float* ptrYI = yit[noz];
         E_Float* ptrZI = zit[noz];
-        E_Float snearloc = vectOfSnearsLoc[noz];        
+        E_Float snearloc = vectOfSnearsLoc[noz];
+        E_Float heightloc = vectOfModelisationHeightsLoc[noz];
+        //distance max for image pt to its corrected pt : height*sqrt(3)
+        heightloc = (heightloc*1.1)*(heightloc*1.1)*3;     
         snearloc = snearloc*snearloc;
-        E_Float distMaxF2 = toldistFactorImage*snearloc;// distance au carre maximale des pts cibles au front
-        E_Float distMaxB2 = toldistFactorWall*snearloc;// distance au carre maximale des pts cibles au projete paroi
-        //E_Float distMaxF2 = 9000.; 
-        //E_Float distMaxB2 = 9000.; 
+        E_Float distMaxF2 = max(toldistFactorImage*snearloc, heightloc);// distance au carre maximale des pts cibles au front via depth ou modelisationHeight
+        E_Float distMaxB2 = max(toldistFactorWall*snearloc, heightloc);// distance au carre maximale des pts cibles au projete paroi via depth ou modelisationHeight
 
         vector<FldArrayI*> vectOfIndicesByIBCType(nbodies);
         vector<E_Int> nPtsPerIBCType(nbodies);//nb de pts projetes sur la surface paroi de type associe 

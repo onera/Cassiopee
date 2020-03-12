@@ -790,7 +790,7 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
         res = [{},{},{}]
     else:
         res = TIBM.getAllIBMPoints(zonesRIBC, loc='centers',tb=tb, tfront=front, frontType=frontType,
-                                   cellNName='cellNIBC', depth=DEPTH, IBCType=IBCType)
+                                   cellNName='cellNIBC', depth=DEPTH, IBCType=IBCType, Reynolds=Reynolds, yplus=yplus)
 
     # cleaning
     C._rmVars(tc,['cellNChim','cellNIBC','TurbulentDistance','cellNFront'])
@@ -1130,6 +1130,8 @@ def post(t_case, t_in, tc_in, t_out, wall_out):
     #==============================
     # Sortie champs aux noeuds
     #==============================
+    # vars = ['centers:Density','centers:VelocityX', 'centers:VelocityY', 'centers:VelocityZ', 'centers:Temperature','centers:ViscosityEddy',
+    # 'centers:TurbulentSANuTilde','centers:ViscosityMolecular', 'centers:mutsmu', 'centers:cellN']
     vars = ['centers:Density','centers:VelocityX', 'centers:Temperature','centers:ViscosityEddy',
     'centers:TurbulentSANuTilde','centers:ViscosityMolecular', 'centers:mutsmu', 'centers:cellN']
     t = C.center2Node(t, vars)
