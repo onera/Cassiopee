@@ -25,6 +25,7 @@
 #include "Def/DefContainers.h"
 #include "MeshElement/Triangle.h"
 #include "Nuga/include/macros.h"
+#include "Fld/ngon_unit.h"
 
 namespace K_SEARCH
 {
@@ -94,14 +95,9 @@ public:
     return true;
   }
   
-  BoundingBox& operator=(const BoundingBox& rhs){
+  BoundingBox& operator=(const BoundingBox& rhs) = delete;
 
-    for (E_Int i = 0; i < DIM; ++i){
-      minB[i] = rhs.minB[i];
-      maxB[i] = rhs.maxB[i];
-    }
-    return *this;
-  }
+  BoundingBox& operator=(BoundingBox&& rhs) = default;
   
   bool is_included(const BoundingBox& rhs){
     for (E_Int i = 0; i < DIM; ++i)
@@ -208,7 +204,7 @@ public:
   }
   
   template <template <typename ELEM, typename ALLOC = std::allocator<ELEM> > class Vector>
-  void compute(const K_FLD::FloatArray& pos, const Vector<E_Int> & indices)
+  void compute(const K_FLD::FloatArray& pos, const Vector<E_Int> & indices, E_Int idx_start=0)
   {
     const E_Float* Pi;
     for (E_Int i = 0; i < DIM; ++i)
@@ -216,7 +212,7 @@ public:
 
     for (size_t i = 0; i < indices.size(); ++i)
     {
-      Pi = pos.col(indices[i]);
+      Pi = pos.col(indices[i] - idx_start);
       for (E_Int j = 0; j < DIM; ++j)
       {
         minB[j] = (minB[j] > Pi[j]) ? Pi[j] : minB[j];
@@ -228,7 +224,7 @@ public:
   ///
   template<typename CoordinateArray_t, template <typename ELEM, typename ALLOC = std::allocator<ELEM> > class Vector>
   void compute
-  (const K_FLD::ArrayAccessor<CoordinateArray_t>& pos, const Vector<E_Int> & indices)
+  (const K_FLD::ArrayAccessor<CoordinateArray_t>& pos, const Vector<E_Int> & indices, E_Int idx_start=0)
   {
     E_Float Pi[DIM];
     for (E_Int i = 0; i < DIM; ++i)
@@ -236,7 +232,7 @@ public:
 
     for (size_t i = 0; i < indices.size(); ++i)
     {
-      pos.getEntry(indices[i], Pi);
+      pos.getEntry(indices[i] - idx_start, Pi);
       for (E_Int j = 0; j < DIM; ++j)
       {
         minB[j] = (minB[j] > Pi[j]) ? Pi[j] : minB[j];
@@ -357,10 +353,12 @@ class BbTree {
     BbTree(const std::vector<BBoxType*>& boxes, E_Float tolerance=E_EPSILON);
     
     template <typename array_t>
-    BbTree(const K_FLD::FloatArray& crd, const array_t& ng, E_Float tolerance);
+    BbTree(const K_FLD::FloatArray& crd, const array_t& ng, E_Float tolerance=E_EPSILON);
     //fixme : hack overload rather than specialization to distinghuish ngon_unit (viso icc 15 compil issue)
-    template <typename array_t>
-    BbTree(const K_FLD::FloatArray& crd, const array_t& pgs);
+    inline BbTree(const K_FLD::FloatArray& crd, const ngon_unit& pgs, E_Float tolerance=E_EPSILON);
+    //fixme : hack overload rather than specialization to distinghuish ngon_unit (viso icc 15 compil issue)
+    inline BbTree(const K_FLD::FloatArray& crd, const K_FLD::IntArray& cnt);
+
 
     /// Destructor.
     ~BbTree()

@@ -85,6 +85,7 @@ class MeshTool
                                  const KPredicate& kpred, const BPredicate& bpred) const;
 */
     static void getBoundary(const K_FLD::IntArray& connect, K_FLD::IntArray& connectB);
+    static void getBoundary(const ngon_unit& ngu, K_FLD::IntArray& cB, std::vector<E_Int>* ancestors = nullptr);
     static void getBoundaryT3Mesh(const K_FLD::IntArray& connect, const K_FLD::IntArray& neighbors, K_CONT_DEF::int_pair_vector_type& boundaries);
     static void getBoundaryT3Mesh(const K_FLD::IntArray& connect, const K_FLD::IntArray& neighbors, K_FLD::IntArray& cB);
     static void getNonManifoldEdges(const K_FLD::IntArray& connect, K_FLD::IntArray& connectB);
@@ -110,6 +111,8 @@ class MeshTool
     static void compact_to_mesh(const K_FLD::FloatArray& pos0, const K_FLD::IntArray& connect0,
                                 K_FLD::FloatArray& pos1, K_FLD::IntArray& connect1,
                                 std::vector<E_Int>& oids);
+    
+    static void compact_to_mesh(const K_FLD::FloatArray& pos, const E_Int* nodes, E_Int nb_nodes, E_Int idx_start, K_FLD::FloatArray& lpos);
 
     /// L stores the min, and the max length for each element (column-wise). The first row is for mins.
     template <E_Int DIM>
@@ -120,10 +123,8 @@ class MeshTool
     static void computeMinMaxEdgeSqrLength(const K_FLD::FloatArray& pos, const K_FLD::IntArray& connect, E_Float& min_d, E_Float& max_d);
 
     /// L stores the min, and the max incident edge's length for each node (column-wise). The first row is for mins.
-    template <E_Int DIM>
-    static void computeIncidentEdgesSqrLengths(const K_FLD::FloatArray& pos, const K_FLD::IntArray& connect, K_FLD::FloatArray& L);
-    
-    static void computeIncidentEdgesSqrLengths(const K_FLD::FloatArray& crd, const ngon_unit& pgs, K_FLD::FloatArray& L);
+    template <typename cnt_t>
+    static void computeIncidentEdgesSqrLengths(const K_FLD::FloatArray& pos, const cnt_t& cnt, K_FLD::FloatArray& L);
     
     static void computeMinMaxIndices (const K_FLD::IntArray& connect, E_Int& min_i, E_Int& max_i);
 
@@ -208,7 +209,79 @@ public://fixme
   mutable int_set_type              _inval;
 };
 
+///
+template <> inline
+void MeshTool::computeIncidentEdgesSqrLengths<K_FLD::IntArray>
+(const K_FLD::FloatArray& pos, const K_FLD::IntArray& connect, K_FLD::FloatArray& L)
+{
+  E_Int                           DIM(3), COLS(connect.cols()), NB_NODES(connect.rows());
+  K_FLD::IntArray::const_iterator pS;
+  E_Float                         min(-K_CONST::E_MAX_FLOAT), max(K_CONST::E_MAX_FLOAT);
+
+  E_Int seg = (NB_NODES > 2) ? NB_NODES : 1; 
+
+  L.clear();
+  L.resize(1, pos.cols(), &max);  // init mins to DBL_MAX.
+  L.resize(2, pos.cols(), &min);  // init maxs to -DBL_MAX.
+
+  for (E_Int  c = 0; c < COLS; ++c)
+  {
+    pS = connect.col(c);
+    for (E_Int n = 0; n < seg; ++n)
+    {
+      E_Int Ni = *(pS+n);
+      E_Int Nj = *(pS+(n+1)%NB_NODES);
+      E_Float l = K_FUNC::sqrDistance(pos.col(Ni), pos.col(Nj), DIM);
+      
+      // update Ni.
+      min = L(0, Ni);
+      max = L(1, Ni);
+      L(0, Ni) = (l < min) ? l : min;
+      L(1, Ni) = (l > max) ? l : max;
+      // update Nj.
+      min = L(0, Nj);
+      max = L(1, Nj);
+      L(0, Nj) = (l < min) ? l : min;
+      L(1, Nj) = (l > max) ? l : max;
+    }
+  }
+}
+
+///
+template <> inline
+void MeshTool::computeIncidentEdgesSqrLengths<ngon_unit>
+(const K_FLD::FloatArray& crd, const ngon_unit& cnt, K_FLD::FloatArray& L)
+{
+  E_Int                           DIM(3), nb_pgs(cnt.size());
+  
+  L.clear();
+  
+  if (nb_pgs == 0) return;
+  
+  E_Int idmaxp1 = cnt.get_facets_max_id();
+  
+  L.resize(1, idmaxp1, K_CONST::E_MAX_FLOAT);  //mins
+  L.resize(2, idmaxp1, -K_CONST::E_MAX_FLOAT); // maxs
+  
+  for (E_Int i = 0; i < nb_pgs; ++i)
+  {
+    const E_Int* nodes = cnt.get_facets_ptr(i);
+    E_Int nb_nodes = cnt.stride(i);
+    
+    for (E_Int n = 0; n < nb_nodes; ++n)
+    {
+      E_Int Ni = *(nodes + n) - 1;
+      E_Int Nj = *(nodes + (n+1) % nb_nodes) - 1;
+      E_Float l = K_FUNC::sqrDistance(crd.col(Ni), crd.col(Nj), DIM);
+      
+      L(0, Ni) = (l < L(0, Ni)) ? l : L(0, Ni);
+      L(1, Ni) = (l > L(1, Ni)) ? l : L(1, Ni);
+    }
+  }
+}
+
 } // End namespace K_CONNECT
+
 
 #include "MeshTool.cxx"
 

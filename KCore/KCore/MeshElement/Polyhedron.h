@@ -1470,21 +1470,21 @@ public:
   }
   
    ///
-  template <typename TriangulatorType, typename acrd_t>
+  template <typename TriangulatorType, typename crd_t>
   E_Int triangulate
-    (const TriangulatorType& dt, const acrd_t& acrd)
+    (const TriangulatorType& dt, const crd_t& crdi)
   {
     _pgs->updateFacets();
 
     E_Int ntris = nb_tris();
     _triangles = new E_Int[ntris*3];
     
-    //to get local
+    //to get local and appropriate array for Delaunay
     K_FLD::FloatArray crd;
     std::vector<E_Int> oids, lpgs;
 
     E_Int err(0);
-    E_Float Pt[3];
+    typename crd_t::pt_t Pt;
     E_Int * pstart = _triangles;
     for (E_Int i = 0; (i<_nb_faces) && !err; ++i)
     {
@@ -1498,8 +1498,8 @@ public:
       oids.resize(stride);
       for (E_Int n=0; n < stride; ++n){
         lpgs[n]=n; oids[n]=nodes[n]-1;
-        acrd.getEntry(nodes[n]-1, Pt);
-        crd.pushBack(Pt, Pt+3);
+        Pt = crdi.col(nodes[n]-1);
+        crd.pushBack<E_Float const*>(Pt, Pt+3);
       }
       
       //std::cout << crd  << std::endl;

@@ -95,10 +95,12 @@ class KdTree {
     /// Returns a close node to node N. It is not necessarily the closest one.
     size_type getClose(size_type N) const;
     size_type getClose(size_type N, E_Float& d2) const;
+    size_type getClosest(E_Int n, const E_Float& guessed_d2, E_Float& dist2) const ;
 
     /// Returns the global closest node.
     size_type getClosest(const E_Float* pt) const;
     size_type getClosest(const E_Float *pt, E_Float& d2) const;
+    size_type getClosest(const E_Float* point, const E_Float& guessed_d2, E_Float& d2) const;
 
     /// Returns the global closest node to node of index N.
     size_type getClosest(E_Int N) const;

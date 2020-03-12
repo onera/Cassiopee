@@ -25,7 +25,7 @@ using namespace K_FLD;
 
 //=============================================================================
 /* Redresseur de normales: etant donnee une liste de bloc non structures 
-   paroi (TRI), oriente les blocs de telle sorte que les normales soient 
+   paroi (TRI, QUAD), oriente les blocs de telle sorte que les normales soient 
    toutes orientees vers l'exterieur ou l'interieur au choix.
 */ 
 //=============================================================================

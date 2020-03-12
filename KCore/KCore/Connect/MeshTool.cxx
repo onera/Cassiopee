@@ -21,6 +21,7 @@
 #define __GENERATOR_K_CONNECT_MESHTOOL_CXX__
 
 #include "MeshTool.h"
+#include "Fld/DynArray.h"
 
 namespace K_CONNECT
 {
@@ -305,46 +306,6 @@ MeshTool::computeEdgesSqrLengths
     L(1, c) = maxL;
   }
 }
-
-///
-template <E_Int DIM>
-void
-MeshTool::computeIncidentEdgesSqrLengths
-(const K_FLD::FloatArray& pos, const K_FLD::IntArray& connect, K_FLD::FloatArray& L)
-{
-  E_Int                           COLS(connect.cols()), NB_NODES(connect.rows());
-  E_Int                           Ni, Nj, seg, c, n;
-  K_FLD::IntArray::const_iterator pS;
-  E_Float                         l, min(-K_CONST::E_MAX_FLOAT), max(K_CONST::E_MAX_FLOAT);
-
-  seg = (NB_NODES > 2) ? NB_NODES : 1; 
-
-  L.clear();
-  L.resize(1, pos.cols(), &max);  // init mins to DBL_MAX.
-  L.resize(2, pos.cols(), &min);  // init maxs to -DBL_MAX.
-
-  for (c = 0; c < COLS; ++c)
-  {
-    pS = connect.col(c);
-    for (n = 0; n < seg; ++n)
-    {
-      Ni = *(pS+n);
-      Nj = *(pS+(n+1)%NB_NODES);
-      l = K_FUNC::sqrDistance(pos.col(Ni), pos.col(Nj), DIM);
-      // update Ni.
-      min = L(0, Ni);
-      max = L(1, Ni);
-      L(0, Ni) = (l < min) ? l : min;
-      L(1, Ni) = (l > max) ? l : max;
-      // update Nj.
-      min = L(0, Nj);
-      max = L(1, Nj);
-      L(0, Nj) = (l < min) ? l : min;
-      L(1, Nj) = (l > max) ? l : max;
-    }
-  }
-}
-
 
 ///
 template <typename Element_t>

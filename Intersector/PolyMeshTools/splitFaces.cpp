@@ -36,10 +36,12 @@ E_Int K_INTERSECTOR::check_is_of_type(const std::vector<std::string>& types, PyO
   
   E_Int res = K_ARRAY::getFromArray(arr, varString, f1, ni, nj, nk,
                                     cn1, eltType);
+
+  //std::cout << "eltType ???????" << eltType << std::endl;
      
   bool err = (res !=2);
 
-  for (size_t i=0; i < types.size(); ++i)
+  for (size_t i=0; (i < types.size()) && !err; ++i)
     err |= (strcmp(eltType, types[i].c_str()) != 0);
 
   if (err)
@@ -51,7 +53,8 @@ E_Int K_INTERSECTOR::check_is_of_type(const std::vector<std::string>& types, PyO
     }
     o << types[types.size()-1] << "array." ;
     PyErr_SetString(PyExc_TypeError, o.str().c_str());//fixme triangulateExteriorFaces : PASS A STRING AS INPUT
-    delete f1; delete cn1;
+    //delete f1; delete cn1;
+    //f1 = nullptr; cn1 = nullptr;
     return 1;
   }
 
@@ -63,7 +66,8 @@ E_Int K_INTERSECTOR::check_is_of_type(const std::vector<std::string>& types, PyO
   if ((posx == -1) || (posy == -1) || (posz == -1))
   {
     PyErr_SetString(PyExc_TypeError, "input error : can't find coordinates in array.");//fixme  conformUnstr
-    delete f1; delete cn1;
+    //delete f1; delete cn1;
+    //f1 = nullptr; cn1 = nullptr;
     return 1;
   }
   

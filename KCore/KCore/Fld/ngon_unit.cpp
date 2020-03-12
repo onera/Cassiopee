@@ -39,6 +39,9 @@ ngon_unit::ngon_unit(const E_Int* begin):_dirty(true)
 }
 
 ///
+ngon_unit::ngon_unit(const K_FLD::IntArray& cass_arr):ngon_unit(cass_arr.begin()){}
+
+///
 ngon_unit::ngon_unit(const E_Int* begin, E_Int sz, E_Int nbe):_dirty(true)
 {
   const E_Int* end = begin+sz;
@@ -675,7 +678,7 @@ void ngon_unit::get_degenerated(Vector_t<E_Int>& indices)
 }
 
 ///
-void ngon_unit::change_indices (const Vector_t<E_Int>& nIds, bool zerobased)
+void ngon_unit::change_indices (const Vector_t<E_Int>& nIds, E_Int idx_start)
 {
   updateFacets();
   
@@ -686,10 +689,9 @@ void ngon_unit::change_indices (const Vector_t<E_Int>& nIds, bool zerobased)
     for (E_Int j = 0; j < nb_facets; ++j)
     {
       E_Int& id = get_facet(i,j);
-      if (zerobased)
-        id = nIds[id-1]+1;
-      else
-        id = nIds[id];
+      if (id == E_IDX_NONE) continue;
+      E_Int nid = nIds[id-idx_start];
+      id = (nid != E_IDX_NONE) ? nid + idx_start : E_IDX_NONE;
     }
   }
 }

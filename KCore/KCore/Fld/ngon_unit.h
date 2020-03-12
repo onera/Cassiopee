@@ -48,6 +48,7 @@ class ngon_unit
     ngon_unit():_dirty(true){};
     ///
     explicit ngon_unit (const E_Int* begin);//Cassiopee format
+    explicit ngon_unit(const K_FLD::IntArray& cass_arr);
     ///
     ngon_unit(const ngon_unit& ngin);
     /// 
@@ -136,6 +137,7 @@ class ngon_unit
     /// Returns the j-th facet of the i-th element
     inline const E_Int* get_facets_ptr(E_Int i) const {return &_NGON[_facet[i]+1];}
     inline E_Int* get_facets_ptr(E_Int i) {return &_NGON[_facet[i]+1];}
+    inline const E_Int* begin(E_Int i) const {return &_NGON[_facet[i]+1];}//SYNOMYM
     /// Returns the number of entities
     inline E_Int size() const {return !_NGON.empty() ? _NGON[0] : 0;}
     ///
@@ -170,8 +172,8 @@ class ngon_unit
     void append(const ngon_unit& cngon_in, const E_Int* first, E_Int nb_elts);
     ///
     void clear() { _NGON.clear(); _facet.clear(); _type.clear(); _ancEs.clear(); _dirty = true; }
-    ///
-    void change_indices (const Vector_t<E_Int>& nIds, bool zerobased);
+    /// WARNING : nids is 0-based, "this" is kept 1-based
+    void change_indices (const Vector_t<E_Int>& nIds, E_Int idx_start=1);
     ///
     void get_degenerated(Vector_t<E_Int>& indices);
     ///
@@ -262,7 +264,7 @@ void ngon_unit::extract_by_predicate (const Predicate_t& P, ngon_unit& ngo, Vect
   // 0-based indices
   
   size_t sz = size();
-  assert (_type.size() == sz);
+  assert (_type.empty() || (_type.size() == sz));
   
   oids.clear();
   
@@ -299,7 +301,7 @@ void ngon_unit::extract_by_predicate (const Predicate_t& P, ngon_unit& ngo, Vect
   // fill it
   E_Int pos(2);
   nb_ents = 0;
-  for (size_t i = 0; i < _type.size(); ++i)
+  for (size_t i = 0; i < sz; ++i)
   {
     if (!P(i)) continue;
     

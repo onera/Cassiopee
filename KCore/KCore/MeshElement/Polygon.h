@@ -45,15 +45,22 @@ public:
   //Polygon(E_Int shift=0):_shift(shift),_nodes(0){}
   ///
   Polygon(const E_Int* nodes, E_Int nb_nodes, E_Int shift=0):_nb_nodes(nb_nodes), _nodes(nodes), _shift(shift), _triangles(nullptr){}
+
+  Polygon(const ngon_unit& ngu, E_Int ith):_nb_nodes(ngu.stride(ith)), _nodes(ngu.get_facets_ptr(ith)), _shift(-1), _triangles(nullptr){}
   ///
   ~Polygon(){if (_triangles != nullptr) delete [] _triangles;}
+
+  Polygon(Polygon&& r) = default;
+
   ///
   //void setNodes(const E_Int* nodes, E_Int nb_nodes){NB_NODES=nb_nodes; for (size_t i=0; i < nb_nodes; ++i)_nodes[i]=nodes[i];}
-  inline E_Int node(E_Int i){return _nodes[i]+_shift;}
+  inline E_Int node(E_Int i) const {return _nodes[i]+_shift;}
   ///
-  inline E_Int nb_nodes() { return _nb_nodes;}
+  inline E_Int nb_nodes() const { return _nb_nodes;}
+  
+  inline E_Int shift() const { return _shift;}
 
-  inline E_Int nb_tris() { return (_triangles != nullptr) ? _nb_nodes - 2 : 0;}
+  inline E_Int nb_tris() const { return (_triangles != nullptr) ? _nb_nodes - 2 : 0;}
   ///
   const E_Int* begin() const{ return &_nodes[0];}
   ///
@@ -63,15 +70,15 @@ public:
   template<typename box_t, typename CoordAcc>
   void bbox(const CoordAcc& acrd, box_t&bb) const
   {
-    bb.compute(acrd, _nodes, _nb_nodes, 1/*idx start*/);
+    bb.compute(acrd, _nodes, _nb_nodes, -_shift);
   }
   ///
   //template <typename TriangulatorType>
   //inline E_Int triangulate(const TriangulatorType& t, const K_FLD::FloatArray& coord, K_FLD::IntArray& connectT3);//WARNING : connectT3 is Apended (not cleared upon entry)
   
   ///
-  template <typename TriangulatorType, typename acrd_t>
-  E_Int triangulate (const TriangulatorType& dt, const acrd_t& acrd);
+  template <typename TriangulatorType>
+  E_Int triangulate (const TriangulatorType& dt, const K_FLD::FloatArray&) const ;
 
   ///
   template <typename TriangulatorType>
@@ -94,7 +101,7 @@ public:
   static E_Int triangulate
   (const TriangulatorType& t, const K_FLD::FloatArray& coord, const E_Int* nodes, E_Int nb_nodes, E_Int index_start, K_FLD::IntArray& connectT3, K_FLD::IntArray& neighbors, bool do_no_shuffle = true, bool improve_qual = false);  
   
-  inline void triangle(E_Int i, E_Int* target)
+  inline void triangle(E_Int i, E_Int* target) const 
   {
     assert (_triangles != nullptr);
     const E_Int* p = &_triangles[i*3];
@@ -165,7 +172,7 @@ public:
   //template <E_Int DIM>
   //static inline void center_of_mass(const K_FLD::FloatArray& crd, const E_Int* nodes, E_Int nb_nodes, E_Int index_start, E_Float* G);
   
-  void edge_length_extrema(const K_FLD::FloatArray& crd, E_Float& Lmin2, E_Float& Lmax2)
+  void edge_length_extrema(const K_FLD::FloatArray& crd, E_Float& Lmin2, E_Float& Lmax2) const
   {
     Lmin2 = K_CONST::E_MAX_FLOAT;
     Lmax2 = -1.;
@@ -180,8 +187,27 @@ public:
       Lmax2 = MAX(Lmax2, L2);
     }
   }
+
+  double L2ref(const K_FLD::FloatArray& crd) const
+  {
+    E_Float Lmin2, Lmax2;
+    edge_length_extrema(crd, Lmin2, Lmax2);
+    return Lmin2;
+  }
+  double L2ref(const std::vector<E_Float>& nodal_tol2) const
+  {
+    double val = K_CONST::E_MAX_FLOAT;
+    for (E_Int n = 0; n < _nb_nodes; ++n)
+    {
+      E_Int Ni = *(_nodes+n) + _shift;
+      val = std::min(val, nodal_tol2[Ni]);
+    }
+    return val;
+  }
   
   inline void getBoundary(E_Int n, boundary_type& b) const {b.setNodes(_nodes[n], _nodes[(n+1)%_nb_nodes]);}
+  inline void getBoundary(E_Int n, K_MESH::Edge& b) const {b.setNodes(_nodes[n]-1, _nodes[(n+1)%_nb_nodes]-1);}
+    
   static void getBoundary(const Polygon&  T1, const Polygon&  T2, E_Int& i1, E_Int& i2) ;
   
   static E_Int get_boundary
@@ -207,7 +233,9 @@ public:
   template <typename CoordAcc, E_Int DIM>
   static inline void ndS(const CoordAcc& crd, const E_Int* nodes, E_Int nb_nodes, E_Int index_start, E_Float* ndS);
   
-  
+  template <typename mesh_t>
+  static inline void compute_dir(const mesh_t& mesh, const E_Float* origin, E_Float* dir);
+    
   /// Compute the surface : norm of above
   template <typename Coord_t, E_Int DIM>
   static E_Float surface(const Coord_t& crd, const E_Int* nodes, E_Int nb_nodes, E_Int index_start);
@@ -215,6 +243,13 @@ public:
   // Computes the normal : normalized ndS
   template <typename CoordAcc, E_Int DIM>
   static inline void normal(const CoordAcc& crd, const E_Int* nodes, E_Int nb_nodes, E_Int index_start, E_Float* W);
+
+  // Computes the normal : normalized ndS
+  template <typename CoordAcc, E_Int DIM>
+  inline void normal(const CoordAcc& crd, E_Float* W) const
+  {
+    normal<CoordAcc, DIM>(crd, _nodes, _nb_nodes, -_shift, W);
+  }
 
   //
   static E_Int get_oriented_normal(const K_FLD::FloatArray& crd, const ngon_unit& pgs, E_Int PGi/*glob id : sync with normals*/, bool reverse, E_Float* Normi, const E_Float** normals = 0);
@@ -240,11 +275,11 @@ public:
 private: 
   Polygon(const Polygon& orig);
  
-private:
+protected:
     E_Int _nb_nodes;
     const E_Int*_nodes;
     E_Int _shift;
-    E_Int* _triangles;
+    mutable E_Int* _triangles;
 
 };
 
@@ -389,21 +424,17 @@ E_Int Polygon::triangulate
 }
 
  ///
-template <typename TriangulatorType, typename acrd_t>
+template <typename TriangulatorType>
 E_Int Polygon::triangulate
-  (const TriangulatorType& dt, const acrd_t& acrd)
+  (const TriangulatorType& dt, const K_FLD::FloatArray& crd) const 
 {
   if (_triangles != nullptr) return 0;
   
   E_Int ntris = _nb_nodes -2;
   _triangles = new E_Int[ntris*3];
     
-  E_Int err(0);
-    
-  const K_FLD::FloatArray& crd = acrd.array();
- 
-  err = K_MESH::Polygon::triangulate_inplace(dt, crd, _nodes, _nb_nodes, -_shift/*index start*/, _triangles, false/*do_not_shuffle*/, false/*improve_quality*/);
-  
+  E_Int err = K_MESH::Polygon::triangulate_inplace(dt, crd, _nodes, _nb_nodes, -_shift/*index start*/, _triangles, false/*do_not_shuffle*/, false/*improve_quality*/);
+
   return err;
   }
 
@@ -566,6 +597,40 @@ void Polygon::ndS<K_FLD::FloatArray,3>(const K_FLD::FloatArray& crd, const E_Int
 }
 
 ///
+template <typename mesh_t> inline
+void Polygon::compute_dir(const mesh_t& poly_line/*0-based*/, const E_Float* origin, E_Float* dir)
+{
+  E_Float V1[3], V2[3], w[3];
+  
+  // Compute an approximate normal W to the contour's surface (oriented toward outside).
+  dir[0] = dir[1] = dir[2] = 0.;
+
+  //
+  E_Int nedges = poly_line.ncells();
+  for (E_Int n = 0; n < nedges; ++n)
+  {
+    E_Int Ni = poly_line.cnt(0,n); 
+    E_Int Nj = poly_line.cnt(1,n);
+    
+    const E_Float* Pi = poly_line.crd.col(Ni);
+    const E_Float* Pj = poly_line.crd.col(Nj);
+
+    K_FUNC::diff<3>(Pi, origin, V1);
+    K_FUNC::diff<3>(Pj, origin, V2);
+    
+    // prevent numerical error when computing cross product. fixme : should be done evrywhere a cross product or determinant is done ?
+    for (size_t i=0; i < 3; ++i)
+    {
+      V1[i]=ROUND(V1[i]);
+      V2[i]=ROUND(V2[i]);
+    }
+
+    K_FUNC::crossProduct<3>(V1, V2, w);
+    K_FUNC::sum<3>(1., w, dir, dir);
+  }
+}
+
+///
 template <E_Int DIM> inline
 void Polygon::centroid(const K_FLD::FloatArray& crd, const E_Int* nodes, E_Int nb_nodes, E_Int index_start, E_Float* cM)
 {
@@ -665,6 +730,13 @@ void Polygon::normal(const CoordAcc& acrd, const E_Int* nodes, E_Int nb_nodes, E
   //
   K_MESH::Polygon::ndS<CoordAcc, DIM>(acrd, nodes, nb_nodes, index_start, n);
   K_FUNC::normalize<DIM>(n);
+}
+
+template <> inline
+void Polygon::normal<K_FLD::FloatArray, 3>(const K_FLD::FloatArray& crd, const E_Int* nodes, E_Int nb_nodes, E_Int index_start, E_Float* n)
+{
+  K_MESH::Polygon::ndS<K_FLD::FloatArray, 3>(crd, nodes, nb_nodes, index_start, n);
+  K_FUNC::normalize<3>(n);
 }
 
 ///

@@ -590,7 +590,7 @@ inline E_Int __do_the_cell_blanking
   std::vector<E_Int> is_colliding;
   if (!oldIds2.empty())
   {    
-    using loc_t = NUGA::localizer<K_SEARCH::BbTree3D, K_FLD::ArrayAccessor<K_FLD::FldArrayF>, K_FLD::ArrayAccessor<K_FLD::FldArrayI> >;
+    using loc_t = NUGA::localizer<K_SEARCH::BbTree3D>;
     loc_t loc(*maskE._auxiliary->getTree(), maskE._auxiliary->tolerance());
 
     std::vector<E_Int> ids1;
@@ -731,7 +731,7 @@ inline E_Int __do_the_cell_blanking<K_MESH::Polyhedron<UNKNOWN> >
   std::vector<E_Int> is_colliding;
   if (!oldIds2.empty())
   {
-    using loc_t = NUGA::localizer<K_SEARCH::BbTree3D, K_FLD::ArrayAccessor<K_FLD::FldArrayF>, K_FLD::ArrayAccessor<K_FLD::FldArrayI> >;
+    using loc_t = NUGA::localizer<K_SEARCH::BbTree3D>;
     loc_t loc(*maskE._auxiliary->getTree(), maskE._auxiliary->tolerance());
 
     std::vector<E_Int> ids1;

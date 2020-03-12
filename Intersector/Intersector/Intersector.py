@@ -100,25 +100,17 @@ def diffSurf(a1, a2, tol=0., preserve_right=1, agg_mode=1, improve_qual=False): 
     return G.close(c)
     
 #==============================================================================
-# XcellN
-# IN: coords: 3D structured or unstructured mesh
-# OUT: returns the cellnfields, 0 for fully inside, 1 for fully outside, in between when intersecting
+# XcellNSurf
+# IN: t: 3D NGON SURFACE mesh
+# IN : priorities : one-to-one priorities between components
+# IN : binary_mode : binary versus contiguous output field. If set to True, the field as 3 values upon exit : 0(IN), 1(OUT) and col_X(colliding).
+#      If set to False, the field has any value in [0,1] upon exit, the values in between are the surface ratio of the visible cells
+# OUT: returns a 3D NGON mesh with the xcelln field
 #==============================================================================
-def XcellN(coords, cellnfields, maskingMesh, wall_pgl=[], ghost_pgl=[]):
-    """Computes the acurate cellN based on overlapped volumes.
-    Usage: XcellN(coords, cellnfields, maskingMesh)"""
-    cellnt = []
-    #C.convertArrays2File([maskingMesh], "mask.plt")
-    #print(pgl)
-    for i in range(len(coords)):
-      #print('coords : %d / %d' %(i+1, len(coords)))
-      #C.convertArrays2File([coords[i]], "bloc%d.plt"%(i))
-      #print(pgl)
-      #print(coords[i])
-      cn = intersector.XcellN(coords[i], cellnfields[i], maskingMesh, wall_pgl, ghost_pgl)
-      #C.convertArrays2File([cn], "walls%d.plt"%(i))
-      cellnt.append(cn)
-    return cellnt
+def XcellNSurf(coord, basenum, masks, wall_ids, priorities, binary_mode=True, col_X=0.5, rtol=0.05):
+    """Computes the weight coefficients of visibility for overset grid configurations as a field called xcelln, for any kind of surface mesh.
+    Usage : XcellNSurf(t, priorities [, binary_mode, col_X, rtol])"""
+    return intersector.XcellNSurf(coord, basenum, masks, wall_ids, priorities, binary_mode, col_X, rtol)
     
 #==============================================================================
 # unify

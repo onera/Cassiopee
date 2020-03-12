@@ -2189,9 +2189,7 @@ PyObject* K_INTERSECTOR::getOverlappingFaces(PyObject* self, PyObject* args)
   std::vector<E_Int> isx1, isx2;
     
   using tree_t = K_SEARCH::BbTree3D;
-  using acrd_t = K_FLD::ArrayAccessor<K_FLD::FloatArray>;
-  using acnt_t = K_FLD::ArrayAccessor<K_FLD::IntArray>;
-  
+    
   tree_t tree(crd2, ng2.PGs);
 
   // compute a tolerance for the Tree
@@ -2201,7 +2199,7 @@ PyObject* K_INTERSECTOR::getOverlappingFaces(PyObject* self, PyObject* args)
 
   tol *= RTOL;
     
-  NUGA::localizer<tree_t, acrd_t, acnt_t> localiz(tree, tol);
+  NUGA::localizer<tree_t> localiz(tree, tol);
     
 #ifdef FLAG_STEP
   chrono c;

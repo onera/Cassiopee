@@ -34,6 +34,19 @@ namespace K_FLD
     typedef           ArrayType             array_type;
     typedef  typename ArrayType::value_type value_type;
 
+    struct pt_t
+    {
+      pt_t(){};
+      pt_t(value_type* p){e[0]=p[0]; e[1]=p[1]; e[2]=p[2];}
+      pt_t& operator=(pt_t const& r){e[0]=r.e[0]; e[1]=r.e[1]; e[2]=r.e[2]; return *this;}
+      pt_t(pt_t const & r){*this = r;}
+      value_type e[3];
+      operator value_type*() { return e;}
+      //operator typename ArrayType::iterator() { return e;}
+      //value_type* operator+(E_Int i) {return e+i;}
+    };
+
+
   public:
     /// Constuctors
     explicit ArrayAccessor(const array_type& arr, size_type posx, size_type posy, size_type posz = -1, E_Int shift = 0):_arr(arr), _shift(shift)
@@ -96,6 +109,12 @@ namespace K_FLD
       for (E_Int k = 0; k < _stride; ++k)p[k] =*((_arr._data+((_posX[k])*_arr._sizeMax)) + j) + _shift;
     }
 
+    pt_t col(E_Int j) const { 
+      value_type e[3];
+      getEntry(j, e);
+      return pt_t(e);
+    }
+
     /// Checks whether the index is out of range or not.
     inline bool isOutOfRange(const E_Int& j) const {return (j >= _arr.getSize());}
 
@@ -145,7 +164,8 @@ namespace K_FLD
   public: /** Typedefs */
     typedef typename  K_FLD::DynArray<T>  array_type;
     typedef           E_Int               size_type;
-
+    typedef           T const *           pt_t;//entry type
+    
   public:
     /// Constuctor
     explicit ArrayAccessor(const array_type& arr, E_Int dummyshift = 0):_arr(arr), _stride(arr.rows())
@@ -177,6 +197,8 @@ namespace K_FLD
       for (E_Int k = 0; k < _stride; ++k)
         pE[k] = p[k];
     }
+
+    inline const T* col(E_Int j) const { return _arr.col(j);}
     
     /// Returns the j-th entry's pointer to the first field.
     inline const T* getEntry(const E_Int& j) const { return (_arr.begin() + _arr._rowsMax*j);}

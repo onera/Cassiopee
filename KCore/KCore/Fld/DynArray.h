@@ -66,6 +66,7 @@ Design
     typedef       value_type*    iterator;
     typedef const value_type*    const_iterator;
     typedef       E_Int          size_type;
+    typedef       const_iterator pt_t;
 
   public: /** Constructors and Destructor */
 
@@ -89,6 +90,9 @@ Design
     /// Converts the DynArray to a FldArray.
     inline void convert(FldArray<T>& i, value_type shift = value_type(0.)) const ;
     inline void convert(DynArray<T>& out, T shift) const {out = *this;/*fixme : dum to convert to itself*/}
+
+    // Extracts a given field
+    inline void extract_field(size_type i, std::vector<T>& f);
 
   public: /** Attributes */
 
@@ -154,6 +158,16 @@ Design
     /// Returns an iterator pointing at the beginning of the i-th column (const version).
     inline const_iterator col(size_type i) const
     {assert(i < _cols);return _data + (i*_rowsMax);}
+    
+    /// Returns an iterator pointing at the beginning of the i-th column.
+    inline iterator begin(size_type i)
+    {assert(i < _cols); return _data + (i*_rowsMax);}
+
+    /// Returns an iterator pointing at the beginning of the i-th column (const version).
+    inline const_iterator begin(size_type i) const
+    {assert(i < _cols);return _data + (i*_rowsMax);} 
+    
+    inline size_type stride( int i) { return _rows; }
 
   public: /** Operators and operations*/
 
@@ -334,6 +348,15 @@ Design
   void
   DynArray<T>::convert(FldArray<T>& out, T shift) const
   {__exportFldArray(out, shift);}
+
+  template <typename T> inline
+  void
+  DynArray<T>::extract_field(size_type i, std::vector<T>& f)
+  {
+    f.resize(_cols, {});
+    for (size_type j=0; j < _cols; ++j)
+      f[j] = *(_data + j*_rowsMax +i);
+  }
 
   ///Clear the array. Do not deallocate.
   template <typename T>

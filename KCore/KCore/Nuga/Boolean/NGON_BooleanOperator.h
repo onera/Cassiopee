@@ -2901,7 +2901,7 @@ E_Int NGON_BOOLEAN_CLASS::__build_connect_hard
   }
   
   // Move extrawPGs after conformizing (node _history).
-  extrawPGs.change_indices(_nodes_history, true);
+  extrawPGs.change_indices(_nodes_history);
   extrawPGs.remove_consecutive_duplicated();//consecutive version to preserve PGs topology
 
 #ifdef DEBUG_BOOLEAN
@@ -6005,7 +6005,7 @@ void NGON_BOOLEAN_CLASS:: __compact_and_join(ngon_type& ngio, K_FLD::FloatArray&
   E_Int nb_merges = ::merge(ca, E_EPSILON, nids);
   
   if (nb_merges)
-    ngio.PGs.change_indices(nids, true/*zero based*/); 
+    ngio.PGs.change_indices(nids); 
   
   ngon_type::compact_to_used_nodes(ngio.PGs, coord);
 }

@@ -36,6 +36,7 @@ static PyMethodDef Pyintersector [] =
   {"booleanIntersectionBorder", K_INTERSECTOR::booleanIntersectionBorder, METH_VARARGS},
   {"booleanModifiedSolid", K_INTERSECTOR::booleanModifiedSolid, METH_VARARGS},
   {"DiffSurf", K_INTERSECTOR::DiffSurf, METH_VARARGS},
+  {"XcellNSurf", K_INTERSECTOR::XcellNSurf, METH_VARARGS},
   {"unify", K_INTERSECTOR::unify, METH_VARARGS},
   {"P1ConservativeChimeraCoeffs", K_INTERSECTOR::P1ConservativeChimeraCoeffs, METH_VARARGS},
   {"selfX", K_INTERSECTOR::selfX, METH_VARARGS},

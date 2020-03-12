@@ -64,7 +64,7 @@ List of functions
    Intersector.agglomerateSmallCells
    Intersector.agglomerateNonStarCells
    Intersector.agglomerateCellsWithSpecifiedFaces
-   Intersector.closeOctalCells
+   Intersector.closeCells
    Intersector.adaptCells
    Intersector.adaptCellsNodal
    Intersector.adaptBox
@@ -581,22 +581,22 @@ Transformation Functions
 ---------------------------------------
 
 
-.. py:function:: Intersector.closeOctalCells(a)
+.. py:function:: Intersector.closeCells(a)
 
-    Closes any polyhedral cell in a 2:1 octree.
+    Closed any polyhedral cell in a mesh which is open because it has, and only has, hanging nodes on its edges.
 
     :param           a:  Input mesh
     :type            a:  [array, list of arrays] or [pyTree, base, zone, list of zones]
 
     *Example of use:*
 
-    * `closeOctalCells (array) <Examples/Intersector/closeOctalCells.py>`_:
+    * `closeCells (array) <Examples/Intersector/closeCells.py>`_:
 
-    .. literalinclude:: ../build/Examples/Intersector/closeOctalCells.py
+    .. literalinclude:: ../build/Examples/Intersector/closeCells.py
 
-    * `closeOctalCells (pyTree) <Examples/Intersector/closeOctalCellsPT.py>`_:
+    * `closeCells (pyTree) <Examples/Intersector/closeCellsPT.py>`_:
 
-    .. literalinclude:: ../build/Examples/Intersector/closeOctalCellsPT.py
+    .. literalinclude:: ../build/Examples/Intersector/closeCellsPT.py
 
     *Tips and Notes:*
 

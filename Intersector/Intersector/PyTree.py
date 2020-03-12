@@ -47,6 +47,15 @@ def nb_cells(a):
       ncellsTot += ncells
   return ncellsTot
 
+def getTreeDim(t):
+  zs = Internal.getZones(t)
+  d = 0
+  for z in zs:
+    dims = Internal.getZoneDim(z)
+    if d == 0: d = dims[4]
+    if dims[4] != d:return 0; # mixed type : not handled
+  return d
+
 #=============================================================================
 # Concatenation des PointList d un type de BC donne dans une liste de zones
 #=============================================================================
@@ -288,77 +297,173 @@ def booleanModifiedSolid(solid, a2, tol=0., preserve_solid=1, agg_mode=1, improv
 
 #==============================================================================
 # XcellN
-# IN: t: background Mesh (NGON 3D)
-# IN: prioritaryMesh: hiding Mesh (NGON 3D)
-# IN: blankingMatrix
-# OUT: returns the cellnfields, between 0 (fully hidden) and 1 (fully visible)
+# IN: t: 3D NGON mesh
+# IN : priorities : one-to-one priorities between components
+# IN : binary_mode : binary versus contiguous output field. If set to True, the field as 3 values upon exit : 0(IN), 1(OUT) and col_X(colliding).
+#      If set to False, the field has any value in [0,1] upon exit, the values in between are the surface/volume ratio of the visible cells
+# OUT: returns a 3D NGON mesh with the xcelln field
 #==============================================================================
-def XcellN(t, prioritaryMesh, blankingMatrix=[]):
-    try: import Transform as T
-    except: raise ImportError("XcellN: requires Transform module.")
+def XcellN(t, priorities, binary_mode=True, col_X=0.5, rtol=0.05):
+    """Computes the weight coefficients of visibility for overset grid configurations as a field called xcelln, for both surface and volume mesh of any kind.
+    Usage : XcellN(t, priorities [, binary_mode, col_X, rtol])"""
+    tp = Internal.copyRef(t)
+    _XcellN(tp, priorities, binary_mode, col_X, rtol)
+    return tp
 
-    nb = -1
-    a = Internal.copyRef(t)
-    # ajout du celln aux centres si n'existe pas pour une zone
-    loc = 'centers'
-    a = addVar__(a, var='cellN', loc=loc)
-    bases = Internal.getBases(a)
-    if blankingMatrix == []: blankingMatrix = numpy.ones((len(bases), len(prioritaryMesh)), numpy.int32)
-    for b in bases:
-        nb += 1
-        #print('bgm base : %d / %d' %(nb+1, len(bases)))
-        coords = C.getFields(Internal.__GridCoordinates__, b)
-        if coords == []: continue
+#==============================================================================
+# _XcellN (in-place version)
+# IN: t: 3D NGON mesh
+# IN : priorities : one-to-one priorities between components
+# IN : binary_mode : binary versus contiguous output field. If set to True, the field as 3 values upon exit : 0(IN), 1(OUT) and col_X(colliding).
+#      If set to False, the field has any value in [0,1] upon exit, the values in between are the surface/volume ratio of the visible cells
+# OUT: returns a 3D NGON mesh with the xcelln field
+#==============================================================================
+def _XcellN(t, priorities, binary_mode=True, col_X=0.5, rtol=0.05):
+    """Computes the weight coefficients of visibility for overset grid configurations as a field called xcelln, for both surface and volume mesh of any kind.
+    Usage : _XcellN(t, priorities [, binary_mode, col_X, rtol])"""
+    d = getTreeDim(t)
+    if d == 2:
+      _XcellNSurf(t, priorities, binary_mode, col_X, rtol)
+    elif d == 3:
+      print ('XcellN : not implemented yet for 3D')
+    else :
+      print ('XcellN : the input file contain mixed 2D/3D zones : not handled currently')
 
-        coords = Converter.convertArray2NGon(coords)
+#==============================================================================
+# XcellNSurf
+# IN: t: 3D NGON SURFACE mesh
+# IN : priorities : one-to-one priorities between components
+# IN : binary_mode : binary versus contiguous output field. If set to True, the field as 3 values upon exit : 0(IN), 1(OUT) and col_X(colliding).
+#      If set to False, the field has any value in [0,1] upon exit, the values in between are the surface ratio of the visible cells
+# OUT: returns a 3D NGON mesh with the xcelln field
+#==============================================================================
+def XcellNSurf(t, priorities, binary_mode=True, col_X=0.5, rtol=0.05):
+    """Computes the weight coefficients of visibility for overset grid configurations as a field called xcelln, for any kind of surface mesh.
+    Usage : XcellNSurf(t, priorities [, binary_mode, col_X, rtol])"""
+    tp = Internal.copyRef(t)
+    _XcellNSurf(tp, priorities, binary_mode, col_X, rtol)
+    return tp
 
-        if loc == 'centers': cellN = C.getField('centers:cellN', b)
-        else: cellN = C.getField('cellN', b)
+#==============================================================================
+# _XcellNSurf (in-place version)
+# IN: t: 3D NGON SURFACE mesh
+# IN : priorities : one-to-one priorities between components
+# IN : binary_mode : binary versus contiguous output field. If set to True, the field as 3 values upon exit : 0(IN), 1(OUT) and col_X(colliding).
+#      If set to False, the field has any value in [0,1] upon exit, the values in between are the surface ratio of the visible cells
+# OUT: returns a 3D NGON mesh with the xcelln field
+#==============================================================================
+def _XcellNSurf(t, priorities, binary_mode=True, col_X=0.5, rtol=0.05):
+  """Computes the weight coefficients of visibility for overset grid configurations as a field called xcelln, for any kind of surface mesh.
+  Usage : _XcellNSurf(t, priorities [, binary_mode, col_X, rtol])"""
+  tp = Internal.copyRef(t)
+  try: import Transform.PyTree as T
+  except: raise ImportError("XcellN: requires Transform module.")
+  try: import Post.PyTree as P
+  except: raise ImportError("XcellN: requires Post module.")
+  try: import Generator.PyTree as G
+  except: raise ImportError("XcellN: requires Generator module.")
 
-        bc = []
-        wallpgs = [] # LIST OF BODY WALLS IDS USED TO IGNORE BGM CELLS INSIDE THEM 
-        ghostpgs = [] # LIST OF BOUNDARIES TO EXTRUDE TO PREVENT UNECESSARY X COMPUTATIONS
-        cur_shift=0
-        for nb2 in range(len(prioritaryMesh)):
-            blanking = blankingMatrix[nb, nb2]
-            #if (prioritaryMesh[nb2] == []): print('empty')
-            if (prioritaryMesh[nb2] == []): continue
-            
-            #print('hiding base : %d / %d' %(nb2+1, len(prioritaryMesh)))
-            zones = Internal.getZones(prioritaryMesh[nb2])
-            i=0
-            for z in zones:
-                c = C.getFields(Internal.__GridCoordinates__, z)
 
-                if c == []: continue
+  allbcs = Internal.KNOWNBCS
+  allbcs.remove('BCOverlap')
+  allbcs.remove('BCMatch')
+  allbcs.remove('BCWallViscous')
+  allbcs.remove('BCWallInviscid')
+  allbcs.remove('BCWallViscousIsothermal')
 
-                #print(' -- hiding base %d zone : %d / %d' %(nb2+1, i+1, len(zones)))
+  #t = T.reorderAll(t, dir=1)
+  #C.convertPyTree2File(t, 'reorederedt.cgns')
+  bases = Internal.getBases(t)
+   #(BCs,BCNames,BCTypes) = C.getBCs(t)
 
-                c = c[0]
-                bc.append(c)
+  if len(bases) == 1 :
+    print('Only one base in the file. Each component must be separated in a given Base. No check between zones of the same component.')
+    return
 
-            (wallpgs, cur_shift_new) = concatenateBC('BCWall', zones, wallpgs, cur_shift)
+  boundaries = []
+  wall_ids = []
+  
+  # PREPARE INPUTS FOR ALL ZONES : boundaries and wall ids
+  for b in bases:
+    bj = T.join(b)
 
-            (ghostpgs, cur_shift_new) = concatenateBC('UserDefined', zones, ghostpgs, cur_shift)
-            cur_shift=cur_shift_new
+    b_bounds = P.exteriorFaces(bj)
+    b_bounds = C.convertArray2Tetra(b_bounds) # to have BARs
+    m_bounds = C.getFields(Internal.__GridCoordinates__, b_bounds)[0]
 
-        if (wallpgs != []) : wallpgs = numpy.concatenate(wallpgs) # create a single list
-        #print("nb of wall pgs %s"%(len(wallpgs)))
-        if (ghostpgs != []) : ghostpgs = numpy.concatenate(ghostpgs) # create a single list
-        #print("nb of ghost pgs %s"%(len(ghostpgs)))
-                
-        if bc == []:
-            #print('Warning : no xcelln to compute for base %d'%(nb))
-            continue
+    walls = []
+    for btype in allbcs:
+      walls += C.extractBCOfType(b, btype)
+    wallf = None
+    if len(walls) is not 0: 
+        walls = T.join(walls)
+        hook = C.createHook(b_bounds, function='elementCenters') # identifying edges
+        wallf = C.identifyElements(hook, walls) # wallf are ids in boundaries
+        wallf -= 1 # make it 0 based
+    boundaries.append(m_bounds)
+    wall_ids.append(wallf)
 
-        bc = Converter.convertArray2NGon(bc); bc = T.join(bc);
+  # get the zones in a single list with parent base id
+  ngons = []
+  basenum = []
 
-        cellN = XOR.XcellN(coords, cellN, bc, wallpgs, ghostpgs)
-        bc = None
-        coords = None
-        C.setFields(cellN, b, loc, False)
-    return a
+  structured_tree=True
+  ngon_tree=True
+  zs = Internal.getZones(t)
+  for z in zs:
+    dims = Internal.getZoneDim(z)
+    if dims[0] == 'Unstructured' : 
+      structured_tree = False
+    if dims[3] != 'NGON' : 
+      ngon_tree = False
+  #print('ngon_tree?',ngon_tree, 'structured_tree?', structured_tree )
 
+  if ngon_tree == False:
+    tNG = C.convertArray2NGon(t)
+    #tNG = G.close(tNG, tol=1.e-15)
+    bases = Internal.getBases(tNG)
+
+  base_id=-1
+  for b in bases:
+
+    base_id += 1
+    zones = Internal.getZones(b)
+    
+    for z in zones:
+        z = convertNGON2DToNGON3D(z)
+        c = C.getFields(Internal.__GridCoordinates__, z)[0]
+        ngons.append(c)
+        basenum.append(base_id)
+
+  #print(wall_ids)
+
+  # COMPUTE THE COEFFS PER ZONE (PARALLEL OMP PER ZONE)
+  xcellns = XOR.XcellNSurf(ngons, basenum, boundaries, wall_ids, priorities, binary_mode, col_X, rtol)
+
+  #APPLY IT TO ZONES
+  if structured_tree == False:
+    bases = Internal.getBases(t)
+
+  i=0
+  for b in bases:
+    zones = Internal.getZones(b)
+    for z in zones:
+      C.setFields([xcellns[i]], z, 'centers', False)
+      i = i+1
+
+  if structured_tree == True :
+    # back to STRUCT
+    print('XcellN : back to original mesh type (STRUCT, Basic...)')
+    mc = C.node2Center(tNG)
+    hookC = C.createGlobalHook([mc], 'nodes')
+    hookN = C.createGlobalHook([tNG], 'nodes')
+
+    C._identifySolutions(t, tNG, hookN, hookC, tol=1000.)
+    C.freeHook(hookC)
+    C.freeHook(hookN)
+
+  #C.convertPyTree2File(tNG, 'tNG.cgns')
+  #C.convertPyTree2File(t, 't.cgns')
 
 #==============================================================================
 # unify

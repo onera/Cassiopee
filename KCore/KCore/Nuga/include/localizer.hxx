@@ -15,7 +15,7 @@
 namespace NUGA
 {
 
-template <typename Tree_t, typename acrd_t, typename acnt_t>
+template <typename Tree_t>
 class localizer
 {
   public:
@@ -29,19 +29,22 @@ class localizer
   // tree owner version
   localizer(Tree_t* tree, E_Float tolerance):_tree(tree), _owner(true), _tolerance(tolerance){_tree->_tolerance = _tolerance;}
   
+  template <typename acrd_t, typename acnt_t>
   localizer(const acrd_t& coords, const acnt_t& connect, E_Float tolerance):_owner(true), _tolerance(tolerance){__create_tree(coords, connect);}
   
   ~localizer(){ 
     if (_owner) __destroy_tree();
   }
   
-  template<typename ELT>
-  void get_candidates(const ELT& e, const acrd_t crde, std::vector<E_Int>& candidates, E_Int idx_start = 0) const ;
+  template<typename ELT, typename crd_t>
+  void get_candidates(const ELT& e, const crd_t& crde, std::vector<E_Int>& candidates, E_Int idx_start = 0) const ;
   
   const Tree_t* get_tree() const { return _tree;}
   
   private:
+    template <typename acrd_t, typename acnt_t>
     void __create_tree(const acrd_t& crd, const acnt_t& cnt);
+
     void __destroy_tree();
   
   private:
@@ -52,9 +55,9 @@ class localizer
 };
 
 ///
-template <typename Tree_t, typename acrd_t, typename acnt_t>
-template<typename ELT>
-void localizer<Tree_t, acrd_t, acnt_t>::get_candidates(const ELT& e, const acrd_t crde, std::vector<E_Int>& candidates, E_Int idx_start) const { 
+template <typename Tree_t>
+template<typename ELT, typename crd_t>
+void localizer<Tree_t>::get_candidates(const ELT& e, const crd_t& crde, std::vector<E_Int>& candidates, E_Int idx_start) const { 
   
   box_t bb;
   e.bbox(crde, bb);
@@ -69,8 +72,9 @@ void localizer<Tree_t, acrd_t, acnt_t>::get_candidates(const ELT& e, const acrd_
 
 
 ///
-template <typename Tree_t, typename acrd_t, typename acnt_t>
-void localizer<Tree_t, acrd_t, acnt_t>::__create_tree(const acrd_t& coords, const acnt_t& connect)
+template <typename Tree_t>
+template <typename acrd_t, typename acnt_t>
+void localizer<Tree_t>::__create_tree(const acrd_t& coords, const acnt_t& connect)
 {
 
 #ifdef DEBUG_COLLIDER
@@ -110,8 +114,8 @@ void localizer<Tree_t, acrd_t, acnt_t>::__create_tree(const acrd_t& coords, cons
 }
 
 ///
-template <typename Tree_t, typename acrd_t, typename acnt_t>
-void localizer<Tree_t, acrd_t, acnt_t>::__destroy_tree()
+template <typename Tree_t>
+void localizer<Tree_t>::__destroy_tree()
 {
   _boxes.clear();
   delete _tree;

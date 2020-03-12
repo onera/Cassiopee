@@ -175,7 +175,8 @@ public:
 
   return 0;
 }
-  static E_Int write(const char* filename, const K_FLD::FloatArray& crd, const K_FLD::IntArray& cnt, const char* elt_type, const std::vector<bool>* keep = 0, const std::vector<E_Int>* colors = 0)
+  template< typename color_t = E_Int>
+  static E_Int write(const char* filename, const K_FLD::FloatArray& crd, const K_FLD::IntArray& cnt, const char* elt_type, const std::vector<bool>* keep = nullptr, const std::vector<color_t>* colors = nullptr)
   {
     if (crd.cols() == 0)
     return 0;
@@ -299,19 +300,51 @@ public:
   
   return 0;
   }
+
+  template< typename color_t = E_Int>
+  static E_Int write(const char* filename, const K_FLD::FloatArray& crd, const K_FLD::IntArray& cnt, const std::vector<color_t>* colors = nullptr)
+  {
+    std::string stype;
+    if      (cnt.rows() == 2) stype="BAR";
+    else if (cnt.rows() == 3) stype="TRI";
+    else if (cnt.rows() == 4) stype="QUAD"; //fixme : TETRA
+
+    return write<color_t>(filename, crd, cnt, stype.c_str(), nullptr, colors);
+  }
+
+  ///
+  static E_Int write(const char* filename, const K_FLD::FloatArray& crd, const K_FLD::IntArray& cnt, const std::vector<E_Int>& toprocess, E_Int idx_start)
+  {
+    std::string stype;
+    if      (cnt.rows() == 2) stype="BAR";
+    else if (cnt.rows() == 3) stype="TRI";
+    else if (cnt.rows() == 4) stype="QUAD"; //fixme : TETRA
+
+    std::vector<bool> keep;
+    if (!toprocess.empty())
+    {
+      keep.resize(cnt.cols(), false);
+      
+      for (size_t u=0; u< toprocess.size(); ++u)
+        keep[toprocess[u] - idx_start] = true;
+    }
+
+    return write<int>(filename, crd, cnt, stype.c_str(), keep.empty() ? nullptr : &keep, nullptr);
+  }
   
-  static E_Int write(const char* filename, const K_FLD::FloatArray& crd, const ngon_unit& pgs)
+  template< typename color_t = E_Int>
+  static E_Int write(const char* filename, const K_FLD::FloatArray& crd, const ngon_unit& pgs, const std::vector<color_t>* colors = nullptr)
   {
     K_FLD::IntArray cT3;
     DELAUNAY::Triangulator dt;
+    std::vector<E_Int> T3color;
     for (E_Int i=0; i < pgs.size(); ++i)
     {
       K_MESH::Polygon::triangulate<DELAUNAY::Triangulator>(dt, crd, pgs.get_facets_ptr(i), pgs.stride(i), 1, cT3);
+      if (colors)T3color.resize(cT3.cols(), (E_Int) (*colors)[i]);
     }
     
-    write(filename, crd, cT3, "TRI");
-    
-    return 0;
+    return write(filename, crd, cT3, "TRI", nullptr, colors ? &T3color : nullptr);
   }
   
   template <typename ngon_t>
@@ -362,6 +395,18 @@ public:
 
     return 0;
   }
+  
+  static E_Int write(const char* filename, const K_FLD::FloatArray& crd, const E_Int* nodes, E_Int nb_nodes, E_Int idx_start)
+  {
+    K_FLD::IntArray cnt(2,nb_nodes);
+    for (E_Int i=0; i < nb_nodes; ++i)
+    {
+      cnt(0,i) = nodes[i] - idx_start;
+      cnt(1,i) = nodes[(i+1)%nb_nodes] - idx_start;
+    }
+    return write(filename, crd, cnt);
+  }
+  
   
   ///
   static void

@@ -226,6 +226,41 @@ K_SEARCH::KdTree<CoordArrayType>::getClosest(E_Int n, E_Float& dist2) const
 }
 
 // ============================================================================
+/// Returns the closest node and the square distance to it using an input guessed distance.
+// ============================================================================
+template <typename CoordArrayType>
+E_Int
+K_SEARCH::KdTree<CoordArrayType>::getClosest(E_Int n, const E_Float& guessed_d2, E_Float& dist2) const 
+{
+  size_type m = E_IDX_NONE;  
+  dist2 = guessed_d2;
+
+  if (_tolerance < dist2){
+    E_Float Xn[3];
+    _posAcc.getEntry(n, Xn);
+    __seek_closest(n, Xn, 0/*root col*/, 0/*axis*/, dist2, m);
+  }
+
+  return m;
+}
+
+// ============================================================================
+/// Returns the closest node and the square distance to it using an input guessed distance.
+// ============================================================================
+template <typename CoordArrayType>
+E_Int
+K_SEARCH::KdTree<CoordArrayType>::getClosest(const E_Float* point, const E_Float& guessed_d2, E_Float& dist2) const 
+{
+  size_type m = E_IDX_NONE;  
+  dist2 = guessed_d2;
+
+  if (_tolerance < dist2)
+    __seek_closest(point, 0/*root col*/, 0/*axis*/, dist2, m);
+
+  return m;
+}
+
+// ============================================================================
 /// Returns all the nodes in the input box by appending the vector 'out'.
 // ============================================================================
 template <typename CoordArrayType>

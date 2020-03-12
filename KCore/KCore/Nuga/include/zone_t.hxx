@@ -407,7 +407,7 @@ E_Int zone_t<crd_t, ngo_t>::reduce_to_positive_types()
 
   _ng.PGs.extract_by_predicate(pred, pgs, pgoids, pgnids);
   _ng.PGs = pgs;
-  _ng.PHs.change_indices(pgnids, true);
+  _ng.PHs.change_indices(pgnids);
   
       
   // 2.4 compress and update accordingly F2E
@@ -881,7 +881,7 @@ void zone_t<crd_t, ngo_t>::append( zone_t& that_z, bool keep_joins)
       this->draw_boundaries();
 #endif
     
-    ngtmp.PHs.change_indices(pgnids, true); 
+    ngtmp.PHs.change_indices(pgnids); 
 
     _ng.PHs.append(ngtmp.PHs);
 
@@ -969,7 +969,7 @@ void zone_t<crd_t, ngo_t>::sort_by_type()
   }
 #endif
 
-  _ng.PHs.change_indices(nids, true);
+  _ng.PHs.change_indices(nids);
   
   _ng.PHs.sort_by_type(nids, oids);
   

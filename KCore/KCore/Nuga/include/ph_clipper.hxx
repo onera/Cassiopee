@@ -105,7 +105,7 @@ namespace NUGA
           }*/
 #endif
          E_Int it1, it2;
-         bool ov = NUGA::COLLIDE::simplicial_colliding<acrd_t, 3>(acrd1, PG1, acrd2, PG2, K_MESH::Triangle::overlap2, abstol, it1, it2);
+         bool ov = NUGA::COLLIDE::simplicial_colliding<K_FLD::FloatArray, 3>(acrd1.array(), PG1, acrd2.array(), PG2, K_MESH::Triangle::overlap2, abstol, it1, it2);
 
           if (ov)
             contact = ( (ps > 0. && inward1) || (ps < 0. && !inward1)) ? 1 : -1;
@@ -142,7 +142,7 @@ namespace NUGA
       //E_Int nb_faces1 = subj.nb_faces();
       E_Int& nb_faces2 = cutter.nb_faces();
 
-      if (ps_min > 0.) //discard any "overlapping" PG in e2 (the mode ps_min tends to 1, the more 'overlapping' has a meaning)
+      if (ps_min > 0.) //discard any "overlapping" PG in e2 (the more ps_min tends to 1, the more 'overlapping' has a meaning)
         discard_overlaps(acrd1, subj, inward1, acrd2, cutter, RTOL, L, ps_min, contact, dbg); //cutter is filtered
       
       if (contact != 0 && nb_faces2 == 0) // e2 was just in contact
@@ -157,8 +157,8 @@ namespace NUGA
       
       // go to a triangle view 
       DELAUNAY::Triangulator dt;
-      subj.triangulate(dt, acrd1);
-      cutter.triangulate(dt, acrd2);
+      subj.triangulate(dt, acrd1.array());
+      cutter.triangulate(dt, acrd2.array());
 
       K_FLD::IntArray cT3;
       E_Int T[3];

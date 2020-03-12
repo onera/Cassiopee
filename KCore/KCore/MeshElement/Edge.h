@@ -49,6 +49,8 @@ public: /* Constructors, Destructor and operators*/
   ///
   explicit Edge(const E_Int* pN){_nodes[0] = *pN; _nodes[1] = *(pN+1);}
   ///
+  explicit Edge(const K_FLD::IntArray& cnt, E_Int i){_nodes[0] = cnt(0,i); _nodes[1] = cnt(1,i);}
+  ///
   explicit Edge(void){_nodes[0] = _nodes[1] = E_IDX_NONE;}
   ///
   virtual ~Edge(void){}
@@ -81,6 +83,21 @@ public: /* Set and Get methods */
   inline E_Int* end() { return &_nodes[0]+NB_NODES;}
   inline const E_Int* begin() const { return &_nodes[0];}
   inline const E_Int* end() const { return &_nodes[0]+NB_NODES;}
+
+  template <typename box_t, typename crd_t>
+  void bbox (const crd_t&crd, box_t& box) const
+  {
+    box = box_t(crd, _nodes, NB_NODES);
+  }
+
+  double L2ref(const K_FLD::FloatArray& crd) const
+  {
+    return K_FUNC::sqrDistance(crd.col(_nodes[0]), crd.col(_nodes[1]), 3);
+  }
+  double L2ref(const std::vector<E_Float>& nodal_tol2) const
+  {
+    return std::min(nodal_tol2[_nodes[0]], nodal_tol2[_nodes[1]]);
+  }
 
   /// Gets the i-th node (required to abstract some algorithms to be valid both in 2D and 3D.
   inline void getBoundary(size_type n, boundary_type& b){b = _nodes[n];}
@@ -150,6 +167,29 @@ public:
   template <typename NodeIterator>
   inline void setNodes(const NodeIterator pN){_nodes[0] = (*pN < *(pN+1)) ? *pN : *(pN+1); _nodes[1] = (*pN < *(pN+1)) ? *(pN+1) : *pN;}
   ~NO_Edge(){}
+};
+
+////////////////
+struct aEdge : public Edge
+{
+  E_Float m_L2ref;
+  
+  aEdge(const Edge& e, const K_FLD::FloatArray& crd):m_L2ref(-1.)
+  {
+    v1[0] = crd(0, e.node(0));
+    v1[1] = crd(1, e.node(0));
+    v1[2] = crd(2, e.node(0));
+    
+    v2[0] = crd(0, e.node(1));
+    v2[1] = crd(1, e.node(1));
+    v2[2] = crd(2, e.node(1));
+  } // from "mesh" to autonmous
+  
+  aEdge(const Edge& e, const K_FLD::FloatArray& crd, E_Float L2r):aEdge(e, crd){m_L2ref = L2r;}
+
+  double L2ref() const { return (m_L2ref > 0.) ? m_L2ref : K_FUNC::sqrDistance(v1, v2, 3);}
+ 
+  E_Float v1[3], v2[3];
 };
 
 } // End namespace K_MESH

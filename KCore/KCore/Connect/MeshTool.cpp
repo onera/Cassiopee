@@ -152,6 +152,58 @@ K_CONNECT::MeshTool::getBoundary(const K_FLD::IntArray& connect, K_FLD::IntArray
 
 ///
 void
+K_CONNECT::MeshTool::getBoundary(const ngon_unit& ngu, K_FLD::IntArray& cB, std::vector<E_Int>* ancestors)
+{
+  cB.clear();
+  
+  E_Int nb_pgs(ngu.size());
+  K_MESH::NO_Edge b;
+  std::map<K_MESH::NO_Edge, E_Int> edge_to_singlePG;
+
+  for (E_Int i = 0; i < nb_pgs; ++i)
+  {
+    const E_Int* nodes = ngu.get_facets_ptr(i);
+    E_Int nb_nodes = ngu.stride(i);
+
+    for (E_Int n = 0; n < nb_nodes; ++n)
+    {
+      const E_Int& Ni = nodes[n];
+      const E_Int& Nj = nodes[(n+1)%nb_nodes];
+
+      b.setNodes(Ni, Nj);
+      
+      auto it = edge_to_singlePG.find(b);
+      if (it == edge_to_singlePG.end())
+        edge_to_singlePG.insert(std::make_pair(b, i)); //store the attached PG, NONE if more than one.
+      else
+        it->second = E_IDX_NONE;
+    }
+  }
+
+  for (E_Int i = 0; i < nb_pgs; ++i)
+  {
+    const E_Int* nodes = ngu.get_facets_ptr(i);
+    E_Int nb_nodes = ngu.stride(i);
+
+    for (E_Int n = 0; n < nb_nodes; ++n)
+    {
+      const E_Int& Ni = nodes[n];
+      const E_Int& Nj = nodes[(n+1)%nb_nodes];
+
+      b.setNodes(Ni, Nj);
+      
+      if (edge_to_singlePG[b] != E_IDX_NONE)
+      {
+        E_Int E[] = {Ni, Nj};
+        cB.pushBack(E, E+2);
+        if (ancestors) ancestors->push_back(i);
+      }
+    }
+  }
+}
+
+///
+void
 K_CONNECT::MeshTool::getBoundaryT3Mesh
 (const K_FLD::IntArray& connect, const K_FLD::IntArray& neighbors, K_CONT_DEF::int_pair_vector_type& boundaries)
 {
@@ -658,6 +710,20 @@ K_CONNECT::MeshTool::compact_to_mesh
   pos1.reserve(ROWS, id);
   for (size_t i=0; i < id; ++i)
     pos1.pushBack(pos0.col(oids[i]), pos0.col(oids[i])+ROWS);
+}
+
+void
+K_CONNECT::MeshTool::compact_to_mesh
+(const K_FLD::FloatArray& pos, const E_Int* nodes, E_Int nb_nodes, E_Int idx_start, K_FLD::FloatArray& lpos)
+{
+  lpos.clear();
+  E_Int stride(pos.rows());
+  lpos.reserve(stride, nb_nodes);
+  for (E_Int i=0; i < nb_nodes; ++i)
+  {
+    const E_Float* Pt = pos.col(nodes[i]-idx_start);
+    lpos.pushBack(Pt, Pt+stride);
+  }
 }
 
 ///
@@ -1398,37 +1464,6 @@ E_Float K_CONNECT::MeshTool::get_max_deviation
 }
 
 ///
-void K_CONNECT::MeshTool::computeIncidentEdgesSqrLengths
-(const K_FLD::FloatArray& crd, const ngon_unit& pgs, K_FLD::FloatArray& L)
-{
-  E_Int                           nb_pgs(pgs.size());
-  
-  L.clear();
-  
-  if (nb_pgs == 0) return;
-  
-  E_Int idmaxp1 = pgs.get_facets_max_id();
-  
-  L.resize(1, idmaxp1, K_CONST::E_MAX_FLOAT);  //mins
-  L.resize(2, idmaxp1, -K_CONST::E_MAX_FLOAT); // maxs
-  
-  for (E_Int i = 0; i < nb_pgs; ++i)
-  {
-    const E_Int* nodes = pgs.get_facets_ptr(i);
-    E_Int nb_nodes = pgs.stride(i);
-    
-    for (E_Int n = 0; n < nb_nodes; ++n)
-    {
-      E_Int Ni = *(nodes + n) - 1;
-      E_Int Nj = *(nodes + (n+1) % nb_nodes) - 1;
-      E_Float l = K_FUNC::sqrDistance(crd.col(Ni), crd.col(Nj), 3);
-      
-      L(0, Ni) = (l < L(0, Ni)) ? l : L(0, Ni);
-      L(1, Ni) = (l > L(1, Ni)) ? l : L(1, Ni);
-    }
-  }
-}
-
 void K_CONNECT::MeshTool::extrude_line
 (K_FLD::FloatArray& crd, const K_FLD::IntArray& cntE, const double* dir, double H, K_FLD::IntArray& cntQ4)
 {

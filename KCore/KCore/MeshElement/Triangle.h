@@ -205,6 +205,10 @@ namespace K_MESH
       (const E_Float* P1, const E_Float* Q1, const E_Float* R1, const E_Float* P2, const E_Float* Q2, const E_Float* R2, E_Float ABSTOL);
 
     ///
+     static inline bool fast_intersectE2_2D
+      (const E_Float* P1, const E_Float* Q1, const E_Float* R1, const E_Float* P2, const E_Float* Q2, E_Float ABSTOL);
+
+    ///
     template <E_Int DIM>
     static bool intersect 
       (const E_Float* P0, const E_Float* P1, const E_Float* P2, const E_Float* Q0, const E_Float* Q1,
@@ -795,7 +799,7 @@ namespace K_MESH
     switch (reg)
     {
       case 1/*R1*/  : s=q;t=r;break;
-      case 2/*R12*/ : s=p;t=q;break;
+      case 2/*R12*/ : s=q;t=p;break;
       case 4/*R2*/  : s=r;t=p;break;
       case 8/*R23*/ : s=r;t=q;break;
       case 16/*R3*/ : s=p;t=q;break;
@@ -843,6 +847,28 @@ namespace K_MESH
       if ((CROSS_PRD(R2,s,P2) > E_EPSILON) && (CROSS_PRD(R2,P2,t) > E_EPSILON))
         return true;
     }
+    return false;
+  }
+
+  // same as above but only for one edge
+  inline bool K_MESH::Triangle::fast_intersectE2_2D
+  (const E_Float* P1, const E_Float* Q1, const E_Float* R1, const E_Float* P2, const E_Float* Q2, E_Float ABSTOL)
+  {
+    E_Int region[2];
+    
+    region[0] = get_region(P2, P1, Q1, R1);
+    if (region[0] == 0) return true;
+    region[1] = get_region(Q2, P1, Q1, R1);
+    if (region[1] == 0) return true;
+ 
+    const E_Float *s=NULL, *t=NULL;
+    if (POTENTIAL_X(region[0]+region[1])) //P2Q2
+    {
+      solid_angle(region[0], P1, Q1, R1, s, t);
+      if ((CROSS_PRD(P2,s,Q2) > E_EPSILON) && (CROSS_PRD(P2,Q2,t) > E_EPSILON))
+        return true;
+    }
+    
     return false;
   }
   

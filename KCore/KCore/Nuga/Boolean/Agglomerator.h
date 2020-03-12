@@ -750,7 +750,7 @@ namespace NUGA
       crd(0,Ni)=G[0]; crd(1,Ni)=G[1]; crd(2,Ni)=G[2];
     }
   
-    ng.PGs.change_indices(nid, true);
+    ng.PGs.change_indices(nid);
   
     ngon_type::clean_connectivity(ng, crd);
   
@@ -798,7 +798,7 @@ namespace NUGA
       nids[Nsource]= Ntarget;
     }
   
-    ng.PGs.change_indices(nids, true);
+    ng.PGs.change_indices(nids);
   
     ngon_type::clean_connectivity(ng, crd);
   

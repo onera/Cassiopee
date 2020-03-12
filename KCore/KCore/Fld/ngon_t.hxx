@@ -938,7 +938,7 @@ struct ngon_t
     Vector_t<E_Int> nids;
     E_Int nb_merges = ::merge(ca, tolerance, nids);
     if (nb_merges)
-      PGs.change_indices(nids, true/*zero based*/);
+      PGs.change_indices(nids);
     return nb_merges;
   }
   
@@ -1106,7 +1106,7 @@ struct ngon_t
     E_Int nb_removed = Coordinate_t::compact(coord, flag, newIDs);
     if (nb_removed == 0) return;
   
-    PGs.change_indices(newIDs, true/*zero based*/); 
+    PGs.change_indices(newIDs); 
   }
   
   ///fixme
@@ -1130,7 +1130,7 @@ struct ngon_t
     
     nb_removed = K_CONNECT::IdTool::compress(coord, pred);
   
-    PGs.change_indices(nids, true/*zero based*/); 
+    PGs.change_indices(nids); 
   }
    
   ///
@@ -1276,7 +1276,7 @@ struct ngon_t
     if (!found)
       return false;
     
-    PHs.change_indices(nids, true/*zerobased*/);
+    PHs.change_indices(nids);
     return true;
   }
   
@@ -1309,7 +1309,7 @@ struct ngon_t
     if (!found)
       return false;
     
-    PHs.change_indices(nids, true/*zerobased*/);
+    PHs.change_indices(nids);
     return true;
   }
 
@@ -4285,7 +4285,7 @@ static E_Int extrude_faces
   
   // d. TOPs
   ngon_unit tops = ghost_pgs;
-  tops.change_indices(img, true/*zero based*/);
+  tops.change_indices(img);
   shft = wNG.PGs.size(); // for top indirection when building ghost cells at the end
   
   tops._type.resize(ghost_pgs.size(), INITIAL_SKIN);
@@ -4473,7 +4473,7 @@ static E_Int extrude_revol_faces
   
   // d. TOPs
   ngon_unit tops = ghost_pgs;
-  tops.change_indices(img, true/*zero based*/);
+  tops.change_indices(img);
   shft = wNG.PGs.size(); // for top indirection when building ghost cells at the end
   
   tops._type.resize(ghost_pgs.size(), INITIAL_SKIN);

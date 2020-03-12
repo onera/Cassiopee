@@ -67,7 +67,7 @@ using tree_t = K_SEARCH::BbTree3D;
 using bbox_t = K_SEARCH::BBox3D;
 using acrd_t = K_FLD::ArrayAccessor<K_FLD::FloatArray>;
 using acnt_t = K_FLD::ArrayAccessor<K_FLD::IntArray>;
-using loc_t = NUGA::localizer<tree_t, acrd_t, acnt_t>;
+using loc_t = NUGA::localizer<tree_t>;
 
 using prior_t = std::map< E_Int, std::vector<E_Int>>;
 
@@ -180,7 +180,6 @@ eCellType is_inside(const E_Float* pt, const K_FLD::FloatArray& crdS, const E_Fl
   K_FUNC::normalize<3>(ptA);
   E_Int T[3];
 
-  acrd_t acrdS(crdS);
   DELAUNAY::Triangulator dt;
   
   for (size_t b=0; b < bx_sz; ++b)
@@ -192,7 +191,7 @@ eCellType is_inside(const E_Float* pt, const K_FLD::FloatArray& crdS, const E_Fl
     
     K_MESH::Polygon PG(nodes, nb_nodes, -1/*to make it zero based*/);
     
-    PG.triangulate(dt, acrdS);
+    PG.triangulate(dt, crdS);
     
     E_Int nb_tris = PG.nb_tris();
     for (E_Int t = 0; t < nb_tris; ++t)

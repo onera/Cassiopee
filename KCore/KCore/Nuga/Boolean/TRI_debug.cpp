@@ -45,7 +45,7 @@ void TRI_debug::draw_connected_to_node_T3s
   }
   std::ostringstream o;
   o << "T3_connected_to_" << Ni << "_toT3.mesh";
-  medith::write(o.str().c_str(), coord, tmp, "TRI");
+  medith::write(o.str().c_str(), coord, tmp);
 }
 
 ///
@@ -234,7 +234,7 @@ void TRI_debug::draw_connected_to_E2
          (connectT3(0,i) == Nj || connectT3(1,i) == Nj || connectT3(2,i) == Nj) )
       tmp.pushBack(connectT3.col(i), connectT3.col(i)+3); 
   }
-  medith::write("attached_toE.mesh", coord, tmp, "TRI");
+  medith::write("attached_toE.mesh", coord, tmp);
 }
 
 ///
