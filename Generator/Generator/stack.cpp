@@ -19,7 +19,7 @@
 
 // stack the planes of two meshes (with same nixnj) into a single mesh
 
-# include "generator.h"
+#include "generator.h"
 using namespace K_FLD;
 using namespace std;
 
@@ -59,6 +59,7 @@ PyObject* K_GENERATOR::stackMesh(PyObject* self, PyObject* args)
     E_Float* coordp = K_ARRAY::getFieldPtr(tpl);
     FldArrayF coord(ni1nj1*nk1, nfld, coordp, true);
 
+    nk1 = 0;
     for (E_Int p = 0; p < ns; p++)
     {
       for (E_Int n = 1; n <= nfld; n++)
@@ -68,9 +69,10 @@ PyObject* K_GENERATOR::stackMesh(PyObject* self, PyObject* args)
         for (E_Int k = 0; k < nk[p]; k++)
           for (E_Int i = 0; i < ni1nj1; i++)
           {
-            coordp[i+(k+p)*ni1nj1] = f1p[i+k*ni1nj1];
+            coordp[i+(k+nk1)*ni1nj1] = f1p[i+k*ni1nj1];
           }
       }
+      nk1 += nk[p];
     }
   }
   else if (nu >= 2) // concatenate all unstructs

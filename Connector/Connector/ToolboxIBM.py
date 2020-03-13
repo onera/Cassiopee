@@ -1554,6 +1554,10 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interpDataType
     #-----------------------------------------
     C._initVars(t,'{centers:cellN}={centers:cellNIBC}')
     # determination des pts IBC
+    Reynolds = Internal.getNodeFromName(tb, 'Reynolds')
+    if Reynolds is not None: Reynolds = Internal.getValue(Reynolds)
+    else: Reynolds = 6.e6
+    if Reynolds < 1.e6: frontType = 1
     if frontType != 42:
         if IBCType == -1: X._setHoleInterpolatedPoints(t,depth=-DEPTH,dir=0,loc='centers',cellNName='cellN',addGC=False)
         elif IBCType == 1:
@@ -1575,8 +1579,6 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interpDataType
         elif IBCType == 1: X._setHoleInterpolatedPoints(t,depth=1,dir=1,loc='centers',cellNName='cellNMin',addGC=False) # pour les gradients
         X._setHoleInterpolatedPoints(t,depth=DEPTH,dir=0,loc='centers',cellNName='cellNMin',addGC=False)
 
-        Reynolds = Internal.getNodeFromName(tb, 'Reynolds')
-        Reynolds = Internal.getValue(Reynolds)
         for z in Internal.getZones(t):
             h = abs(C.getValue(z,'CoordinateX',0)-C.getValue(z,'CoordinateX',1))
             if yplus > 0.:

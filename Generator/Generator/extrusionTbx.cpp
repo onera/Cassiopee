@@ -198,7 +198,9 @@ PyObject* K_GENERATOR::getLocalStepFactor2(PyObject* self, PyObject* args)
 {
   E_Float tolps = 0.5;
   PyObject *array, *normales;
-  if (!PyArg_ParseTuple(args, "OO", &array, &normales)) return NULL;
+  E_Int kappaType;
+  E_Float kappaL, kappaP;
+  if (!PyArg_ParseTuple(args, "OOldd", &array, &normales, &kappaType, &kappaL, &kappaP)) return NULL;
 
   // Check arrays : surface + normales sx,sy,sz
   E_Int im, jm, km;
@@ -425,15 +427,16 @@ PyObject* K_GENERATOR::getLocalStepFactor2(PyObject* self, PyObject* args)
             //printf("ind=%d: sas2=%f, fout=%f\n", ind,sas2,fout[ind]);
             
             // calcul de kappa
-            E_Float kappaL = 0.2;
-            E_Float kappaP = 1.6;
+            //E_Float kappaL = 0.2;
+            //E_Float kappaP = 1.6;
             E_Float kappa;
             if (alpha <= K_CONST::E_PI) kappa = ((1.-kappaP)/K_CONST::E_PI)*alpha+kappaP;
             else kappa = ((kappaL-1.)/K_CONST::E_PI)*alpha+2.-kappaL;
             //E_Float kappa = 1.3 + (0.7-1.3)/(2.*K_CONST::E_PI)*alpha;
             //E_Float kappa = 0.6 + (1.4-0.6)/(2.*K_CONST::E_PI)*alpha;
             //printf("ind=%d, kappa=%f, alpha=%f\n",ind, kappa, alpha*180./K_CONST::E_PI);
-            fouth[ind] = kappa*fouth[ind];
+            if (kappaType == 1) fouth[ind] = kappa*fouth[ind];
+
             // Champ 2
             // Lissage en fonction de alpha (pas suffisant car trop ponctuel)
             //if (alpha > K_CONST::E_PI) foute[ind] = 0.;

@@ -3,6 +3,7 @@ import Converter.Mpi as Cmpi
 import Transform.PyTree as T
 import Converter.Internal as Internal
 import KCore.test as test
+test.TOLERANCE = 1.e-6
 
 FILE = 'naca_IBMO.cgns'
 myApp = App.IBMO(format='single')

@@ -488,6 +488,10 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
 
     C._initVars(t,'{centers:cellN}={centers:cellNIBC}')
     # determination des pts IBC
+    Reynolds = Internal.getNodeFromName(tb, 'Reynolds')
+    if Reynolds is not None: Reynolds = Internal.getValue(Reynolds)
+    else: Reynolds = 6.e6
+    if Reynolds < 1.e6: frontType = 1
     if frontType != 42:
         if IBCType == -1: X._setHoleInterpolatedPoints(t,depth=-DEPTH,dir=0,loc='centers',cellNName='cellN',addGC=False)
         elif IBCType == 1:
@@ -509,8 +513,6 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
         elif IBCType == 1: X._setHoleInterpolatedPoints(t,depth=1,dir=1,loc='centers',cellNName='cellNMin',addGC=False) # pour les gradients
         X._setHoleInterpolatedPoints(t,depth=DEPTH,dir=0,loc='centers',cellNName='cellNMin',addGC=False)
 
-        Reynolds = Internal.getNodeFromName(tb, 'Reynolds')
-        Reynolds = Internal.getValue(Reynolds)
         for z in Internal.getZones(t):
             h = abs(C.getValue(z,'CoordinateX',0)-C.getValue(z,'CoordinateX',1))
             if yplus > 0.:
@@ -653,7 +655,6 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
     test.printMem(">>> Interpdata [end]")
 
     # fin interpData
-
     C._initVars(t,'{centers:cellNIBCDnr}=minimum(2.,abs({centers:cellNIBC}))')
     C._initVars(t,'{centers:cellNIBC}=maximum(0.,{centers:cellNIBC})')# vaut -3, 0, 1, 2, 3 initialement
     C._initVars(t,'{centers:cellNIBC}={centers:cellNIBC}*({centers:cellNIBC}<2.5)')
@@ -1585,7 +1586,7 @@ class IBM(Common):
         if NP == 0: print('Preparing for a sequential computation.')
         else: print('Preparing for an IBM computation on %d processors.'%NP)
         ret = prepare(t_case, t_out, tc_out, snears=snears, dfar=dfar, dfarList=dfarList,
-                      tbox=tbox, snearsf=snearsf,
+                      tbox=tbox, snearsf=snearsf, yplus=yplus,
                       vmin=vmin, check=check, NP=NP, format=self.data['format'],
                       frontType=frontType, expand=expand, tinit=tinit)
         return ret
