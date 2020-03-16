@@ -185,7 +185,7 @@ E_Int Conformizer<DIM, Element_t>::run
     if (chrono::verbose > 1) std::cout << "Conformizer::run : __run : " << c.elapsed() << std::endl;
     c.start();
 #endif
-    
+
     // Delete the BST.
     this->__finalize();
     
@@ -655,14 +655,18 @@ template <E_Int DIM, typename Element_t>
 void
 Conformizer<DIM, Element_t>::__finalize()
 {
-  delete [] _pool;
+  if (_pool != nullptr) 
+  {
+    delete [] _pool;
+    _pool = nullptr;
+  }
 
   _boxes.clear();
 
-  if (_tree)
+  if (_tree != nullptr)
   {
     delete _tree;
-    _tree = 0;
+    _tree = nullptr;
   } 
 }
 

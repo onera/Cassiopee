@@ -212,6 +212,8 @@ namespace NUGA
       std::vector<E_Int> ancT3;
       TRI_Conformizer<3> conformizer(true/* keep track of nodes history*/);
       conformizer._split_swap_afterwards = false;
+      
+      //conformizer._brute_force=true;
 
 #ifdef DEBUG_UNIFY
       conformizer._silent_errors = false;
