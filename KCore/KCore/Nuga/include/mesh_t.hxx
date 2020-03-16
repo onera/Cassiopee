@@ -73,6 +73,12 @@ struct connect_trait<LINEIC, true>
     K_CONNECT::MeshTool::computeIncidentEdgesSqrLengths(crd, cnt, L);
     L.extract_field(0, nodal_tolerance); // 0: extract the min
   }
+  
+  static void reverse_orient(cnt_t&c)
+  {
+    for (E_Int i=0; i<c.cols(); ++i)std::swap(c(0,i), c(1,i));
+  }
+  
 };
 
 // SURF
@@ -307,6 +313,12 @@ struct mesh_t
       bound_trait<BSTRIDE>::compact_to_used_nodes(bmesh.cnt, bmesh.crd, nids);
     }
     
+  }
+  
+  /// 
+  void reverse_orient()
+  {
+    trait::reverse_orient(cnt);
   }
   
   ///

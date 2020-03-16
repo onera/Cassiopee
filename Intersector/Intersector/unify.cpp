@@ -843,7 +843,11 @@ void compute_zone_overlaps(const K_FLD::FloatArray& crd, ngon_type& ng, loc_t** 
       ngon_unit* skinp = mask_skins[m];
       const K_FLD::FloatArray& crdp = *mask_crds[m];
 
-      /*bool err = */incremental_clip(skinp, crdp, locp, is_inward1, make_inward2, aPHclip, aPHcutter, aPHcur, vcur, dbg);
+#ifdef DEBUG_UNIFY
+      bool err = 
+#endif
+
+      incremental_clip(skinp, crdp, locp, is_inward1, make_inward2, aPHclip, aPHcutter, aPHcur, vcur, dbg);
 
 #ifdef DEBUG_UNIFY
       if (err) std::cout << "ERROR for PHS : " << i /*<< " in zone : " << z */<< std::endl;

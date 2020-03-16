@@ -141,11 +141,20 @@ namespace NUGA
   	  }
       
       //std::cout << "__build_mask_bits : 7 "  << std::endl;
+      
+      if (!is_prior) // reverse WNPs
+      {
+        //std::cout << "reversing " << i << std::endl;
+        bit->reverse_orient();
+      }
 
   	  mask_bits.push_back(bit);
+      
+      //std::cout << "mask rank : " << mask_bits.size() -1 << std::endl;
 
 #ifdef DEBUG_XCELLN
     {
+      //std::cout << "ouput mask_1_ " << i << std::endl;
       std::ostringstream o;
       o << "/home/slandier/tmp/mask_1_" << i << ".mesh";
       medith::write<>(o.str().c_str(), bit->crd, bit->cnt);
@@ -457,6 +466,11 @@ namespace NUGA
   bool __flag_collided_zone_cells(zmesh_t const & z_mesh, bound_mesh_t const & mask_bit, std::vector<E_Float>& z_xcelln, double RTOL)
   {
   	bool has_X = false;
+    
+#ifdef DEBUG_XCELLN
+      medith::write<>("/home/slandier/tmp/currentz.mesh", z_mesh.crd, z_mesh.cnt);
+      medith::write<>("/home/slandier/tmp/currentm.mesh", mask_bit.crd, mask_bit.cnt);
+#endif
   
     E_Int nbcells = z_mesh.ncells();
 

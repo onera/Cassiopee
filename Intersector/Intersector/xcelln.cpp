@@ -87,8 +87,19 @@ struct aIsLessThanb : std::binary_function<int, int, bool>
 inline void comp_priorities(const std::vector<ii_pair_t> & priority,  prior_t & decrease_prior_per_comp, IntVec& rank_wnps)
 {
   // WARNING DECREASING PRIORITY UPON EXIT
+  
+  // 0. get the max comp id
+  E_Int max_comp_id = -1;
+  for (auto it = priority.begin(); it != priority.end(); ++it)
+  {
+    max_comp_id = std::max(max_comp_id, it->first);
+    max_comp_id = std::max(max_comp_id, it->second);
+  }
+  
+  E_Int nb_comps = max_comp_id + 1;
 
   decrease_prior_per_comp.clear();
+  rank_wnps.resize(nb_comps, 0);
 
   // // 1. CLEANING INPUT (discard redundancy & bilateral)
   std::set<no_ii_pair_t> upairs;
@@ -108,8 +119,15 @@ inline void comp_priorities(const std::vector<ii_pair_t> & priority,  prior_t & 
   // // store the priors per comp
   for (size_t i = 0; i < clean_priority.size(); ++i)
   {
-    //std::cout << " pair : " << clean_priority[i].first << "/" << clean_priority[i].second << std::endl;
-    decrease_prior_per_comp[clean_priority[i].first].push_back(clean_priority[i].second);
+    E_Int Lcompid = clean_priority[i].first;
+    E_Int Rcompid = clean_priority[i].second;
+
+    //std::cout << " pair : " << Lcompid << "/" << Rcompid << std::endl;
+    
+    decrease_prior_per_comp[Lcompid].push_back(Rcompid);
+    ++rank_wnps[Lcompid];
+    
+    decrease_prior_per_comp[Rcompid].push_back(Lcompid); //opposite pair : for considering WNPs
   }
 
   // IntVec all_comps;
@@ -125,7 +143,6 @@ inline void comp_priorities(const std::vector<ii_pair_t> & priority,  prior_t & 
     E_Int compid = it->first;
     std::sort(ALL(it->second), pred);
     std::reverse(ALL(it->second)); // WARNING DECREASING PRIORITY DONE HERE
-    rank_wnps[compid] = it->second.size();
     //std::cout << "WNP rank for comp " << it->first << " is " << rank_wnps[compid] << std::endl;
   }
 
@@ -221,7 +238,7 @@ void MOVLP_XcellN(const std::vector<K_FLD::FloatArray*> &crds, const std::vector
     if(cnts[u] != nullptr) xcelln[u].resize((*cnts[u])[0], 1.);
 
 #ifndef NETBEANSZ
-#pragma omp parallel for
+//#pragma omp parallel for
 #endif
   for (E_Int z=0; z < nb_zones; ++z)
   { 
@@ -234,10 +251,22 @@ void MOVLP_XcellN(const std::vector<K_FLD::FloatArray*> &crds, const std::vector
     IntVec& z_priorities = it->second;
 
     //if (z != 26) continue;
-
     //std::cout << "calling MOVLP_XcellN_z for zone : " << z << " over " << nb_zones << std::endl;
     
     MOVLP_XcellN_z(*crds[z], *cnts[z], z_priorities, z_rank_wnp, mask_crds, mask_cnts, mask_wall_ids, xcelln[z], binary_mode, col_X, RTOL);
+
+    //fixme : hack for fully inside non prior
+    // inferior but uncolored => assume it means fully in so IN
+    E_Float mincol = *std::min_element(ALL(xcelln[z]));
+    bool is_inferior = (rank_wnps[comp_id[z]] == z_priorities.size() && !z_priorities.empty());
+    
+    if (mincol == 1. && is_inferior) 
+    {
+      //std::cout << "full OUT rank : " << rank_wnps[comp_id[z]] << std::endl;
+      E_Int sz = xcelln[z].size();
+      xcelln[z].clear();
+      xcelln[z].resize(sz, NUGA::eClassify::IN);    
+    }
   }
 }
 

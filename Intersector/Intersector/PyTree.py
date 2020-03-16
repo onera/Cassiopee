@@ -1719,7 +1719,7 @@ def convertBasic2NGONFaces(t):
     return tp
 
 def _convertBasic2NGONFaces(t):
-    """ Converts a Basci type format for faces (QUAD or TRI) to nuga Face/Node Format.
+    """ Converts a Basic type format for faces (QUAD or TRI) to nuga Face/Node Format.
     Usage: _convertBasic2NGONFaces(t)"""
     zones = Internal.getZones(t)
     zo = []
