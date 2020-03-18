@@ -4,25 +4,21 @@ import Generator.PyTree as G
 import os, sys
 import Intersector.PyTree as XOR
 import numpy
+import KCore.test as test
 
+a = G.cartHexa((0.,0.,0.), (0.1,0.1,0.1), (5,5,5))
+a = C.convertArray2NGon(a); a = G.close(a)
+#C.convertPyTree2File(a, 'a.cgns')
+s = G.cartHexa((0.,0.,0.), (0.005,0.005,0.005), (5,5,5))
 
-if len(sys.argv) is not 3:
-    print("ARG ERROR : 2 arguments to provide : mesh source")
-    sys.exit()
-
-ifile1=sys.argv[1] # mesh to adapt in NGON format
-ifile2=sys.argv[2] # source mesh
-z = C.convertFile2PyTree(ifile1)
-s = C.convertFile2PyTree(ifile2)
-
-z = C.fillEmptyBCWith(z, 'wall', 'BCWall')
+z = C.fillEmptyBCWith(a, 'wall', 'BCWall')
 
 
 ########################## create the hook
 hmsh = XOR.createHMesh(z, 0) # 0 : ISOTROPIC subdivision 
 ######################################## 
     
-for i in range(5): # simple loop to demonstrate the feature
+for i in range(3): # simple loop to demonstrate the feature sequencing adaptCells and adaptCellsNodal
   
   #nodal specification
   n = C.getNPts(z)
@@ -33,12 +29,13 @@ for i in range(5): # simple loop to demonstrate the feature
   # refine now with source mesh
   z = XOR.adaptCells(z, s, itermax=-1, hmesh = hmsh)
 
-#C.convertPyTree2File(z, "hmesh.cgns") # all the hierarchy is in !
+  test.testT(z, i+1)
 
 z = XOR.conformizeHMesh(z, hmsh)     # each children faces replace its mother in any polyhedron
 
 z = XOR.closeCells(z)            # close cells (adding point on lateral faces)
 
+test.testT(z, 4)
 #C.convertPyTree2File(z, "out1.cgns")
 
 ########################## free the hook

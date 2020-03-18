@@ -22,7 +22,8 @@
 
 
 //=============================================================================
-/* Creates 4 zones : 1) uncomputable polygons 2) uncomputable polyhedra 3) uncomputable polyhedra & neighbors 4) complementary of 3)*/
+/* Creates 4 zones : 1) uncomputable polygons 2) uncomputable polyhedra 
+   3) uncomputable polyhedra & neighbors 4) complementary of 3) */
 //=============================================================================
 PyObject* K_INTERSECTOR::extractUncomputables(PyObject* self, PyObject* args)
 {
@@ -129,7 +130,25 @@ PyObject* K_INTERSECTOR::computeAspectRatio(PyObject* self, PyObject* args)
 //=============================================================================
 /* XXX */
 //=============================================================================
-PyObject* K_INTERSECTOR::extrudeUserDefinedBC(PyObject* self, PyObject* args)
+PyObject* K_INTERSECTOR::extrudeBC(PyObject* self, PyObject* args)
+{
+  PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
+  return NULL;
+}
+
+//=============================================================================
+/* XXX */
+//=============================================================================
+PyObject* K_INTERSECTOR::extrudeSurf(PyObject* self, PyObject* args)
+{
+  PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
+  return NULL;
+}
+
+//=============================================================================
+/* XXX */
+//=============================================================================
+PyObject* K_INTERSECTOR::extrudeRevolSurf(PyObject* self, PyObject* args)
 {
   PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
   return NULL;
@@ -194,7 +213,7 @@ PyObject* K_INTERSECTOR::oneZonePerCell(PyObject* self, PyObject* args)
 //=============================================================================
 /* XXX */
 //=============================================================================
-PyObject* K_INTERSECTOR::closeOctalCells(PyObject* self, PyObject* args)
+PyObject* K_INTERSECTOR::closeCells(PyObject* self, PyObject* args)
 {
   PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
   return NULL;
@@ -228,6 +247,15 @@ PyObject* K_INTERSECTOR::centroids(PyObject* self, PyObject* args)
 }
 
 //=============================================================================
+/* Computes volumes */
+//=============================================================================
+PyObject* K_INTERSECTOR::volumes(PyObject* self, PyObject* args)
+{
+  PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
+  return NULL;
+}
+
+//=============================================================================
 /* retrieves any polygon that are overlapping */
 //=============================================================================
 PyObject* K_INTERSECTOR::getOverlappingFaces(PyObject* self, PyObject* args)
@@ -235,6 +263,53 @@ PyObject* K_INTERSECTOR::getOverlappingFaces(PyObject* self, PyObject* args)
   PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
   return NULL;
 }
+
+//=============================================================================
+/* retrieves any polygon that are connecting 2 aniso HEXA */
+//=============================================================================
+PyObject* K_INTERSECTOR::getAnisoInnerFaces(PyObject* self, PyObject* args)
+{
+  PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
+  return NULL;
+
+}
+
+//=============================================================================
+/* XXX */
+//=============================================================================
+PyObject* K_INTERSECTOR::merge(PyObject* self, PyObject* args)
+{
+
+  PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
+  return NULL;
+}
+
+//=============================================================================
+/* XXX */
+//=============================================================================
+PyObject* K_INTERSECTOR::oneph(PyObject* self, PyObject* args)
+{
+  PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
+  return NULL;
+}
+
+//=============================================================================
+/* XXX */
+//=============================================================================
+PyObject* K_INTERSECTOR::concatenate(PyObject* self, PyObject* args)
+{
+
+  PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
+  return NULL;
+}
+
+//=============================================================================
+/* XXX */
+//=============================================================================
+PyObject* K_INTERSECTOR::drawOrientation(PyObject* self, PyObject* args)
+{
+  PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
+  return NULL;
 }
 
 //=======================  Intersector/PolyMeshTools/utils.cpp ====================

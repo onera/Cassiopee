@@ -96,6 +96,18 @@ class tree
       for (E_Int i=0; i < n; ++i)
         _indir[ids[i]] = locid++;
     }
+
+    inline E_Int size()
+    {
+      E_Int sz = _indir.size();
+
+      if (sz != _parent.size()) return -1;
+      if (sz != _level.size())  return -1;
+      if (sz != _indir.size()) return -1;
+      if (sz != _enabled.size()) return -1;
+
+      return sz;
+    }
     
     inline const E_Int& get_level(E_Int i /*zero based*/) const {return _level[i];}
     

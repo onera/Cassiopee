@@ -101,19 +101,23 @@ class hierarchical_mesh
     bool                      _initialized;     // flag to avoid initialization more than once.
 
     ///
-    hierarchical_mesh(crd_t& crd, ngo_t & ng):_crd(&crd), _ng(&ng), _PGtree(ng.PGs, htrait::PGNBC), _PHtree(ng.PHs, htrait::PHNBC), _initialized(false)
-    {
-      init();
-    }
+    hierarchical_mesh(crd_t& crd, ngo_t & ng):_crd(&crd), _ng(&ng), _PGtree(ng.PGs, htrait::PGNBC), _PHtree(ng.PHs, htrait::PHNBC), _initialized(false){}
 
     ///
     E_Int init();
     ///
-    void relocate (crd_t& crd, ngo_t & ng) {
+    E_Int relocate (crd_t& crd, ngo_t & ng) {
       _crd = &crd;
       _ng = &ng;
       _PGtree.set_entities(ng.PGs);
       _PHtree.set_entities(ng.PHs);
+
+      if (ng.PGs.size() != _PGtree.size())
+        return 1; //trying to relocate on the wrong mesh
+      if (ng.PHs.size() != _PHtree.size())
+        return 1; //trying to relocate on the wrong mesh
+      
+      return 0;
     }
     ///
     E_Int adapt(output_type& adap_incr, bool do_agglo);
@@ -175,8 +179,9 @@ template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t, typename crd_t>
 void hierarchical_mesh<ELT_t, STYPE, ngo_t, crd_t>::__init(ngo_t& ng, const K_FLD::IntArray& F2E)
 {
   // sort the PGs of the initial NGON
-  for (int i = 0; i < (int)_ng->PHs.size(); ++i)
-  {
+  E_Int nb_phs = _ng->PHs.size();
+  for (E_Int i = 0; i < nb_phs; ++i)
+  { 
     ELT_t::reorder_pgs(*_ng,_F2E,i);
   }
 }

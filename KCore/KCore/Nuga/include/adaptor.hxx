@@ -39,27 +39,7 @@ E_Int NUGA::adaptor<mesh_t, sensor_t>::run(mesh_t& hmesh, sensor_t& sensor, bool
   
   output_type adap_incr;
 
-// #ifdef ADAPT_STEPS
-//   std::cout << "nuga/adapt::hmesh.init..." << std::endl;
-//   auto start0 = std::chrono::system_clock::now();
-//   auto startG = start0;
-// #endif
-  
-// #ifdef ADAPT_STEPS
-//   auto end0 = std::chrono::system_clock::now();
-//   std::chrono::duration<double> t0 = end0 - start0;
-//   std::cout << "nuga/adapt::hmesh.init : " << t0.count() << "s" << std::endl;
-//   start0 = std::chrono::system_clock::now();
-//   std::cout << "nuga/adapt::sensor.init..." << std::endl;
-// #endif
-  
-// #ifdef ADAPT_STEPS
-//   end0 = std::chrono::system_clock::now();
-//   t0 = end0-start0;
-//   std::cout << "nuga/adapt::sensor.init : " << t0.count() << "s"<< std::endl;
-//   int iter = 1;
-// #endif
-  
+  hmesh.init();  
 
   while (!err)
   {

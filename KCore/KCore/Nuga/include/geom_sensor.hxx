@@ -77,7 +77,7 @@ class geom_sensor
       _bbtree = new K_SEARCH::BbTree3D(*_hmesh._crd, *_hmesh._ng, E_EPSILON);
     }
     
-    virtual E_Int assign_data(data_type& data);
+    virtual E_Int assign_data(data_type& level);
     
     virtual bool compute(output_type& adap_incr, bool do_agglo);
 
@@ -802,30 +802,25 @@ void geom_sensor2<mesh_t, crd_t>::update(E_Int i)
 template <typename mesh_t, typename crd_t = K_FLD::FloatArray>
 class geom_sensor3 : public geom_sensor<mesh_t, crd_t>
 {
-    public:
-        using parent_t = geom_sensor<mesh_t, crd_t>;
-        Vector_t<E_Int> _Ln;       
-        using data_type = Vector_t<E_Int>;
+  public:
+  
+    using parent_t = geom_sensor<mesh_t, crd_t>;
+    Vector_t<E_Int> _Ln;       
+    using data_type = Vector_t<E_Int>;
         
         
-        //////////
-        geom_sensor3(mesh_t& mesh, E_Int max_pts_per_cell = 1, E_Int itermax = -1, const void* dummy=nullptr): parent_t(mesh, max_pts_per_cell, itermax){}
-        E_Int assign_data(data_type level);
-        bool compute(Vector_t<E_Int>& adap_incr, bool do_agglo);
-        E_Int redistrib_data();
+    //////////
+    geom_sensor3(mesh_t& mesh, E_Int max_pts_per_cell = 1, E_Int itermax = -1, const void* dummy=nullptr): parent_t(mesh, max_pts_per_cell, itermax){}
+    E_Int assign_data(data_type& level);
+    bool compute(Vector_t<E_Int>& adap_incr, bool do_agglo);
+    E_Int redistrib_data();
 };
 
 template <typename mesh_t, typename crd_t>
-E_Int geom_sensor3<mesh_t, crd_t>::assign_data(data_type level)
+E_Int geom_sensor3<mesh_t, crd_t>::assign_data(data_type& level)
 {
-    E_Int n_nodes= level.size(); 
-    _Ln.resize(n_nodes);
-
-    for (int i=0; i< n_nodes; i++){
-        _Ln[i]= level[i];
-    }
-    return 0;
-    
+  _Ln =level;
+  return 0;  
 }      
 
 template <typename mesh_t, typename crd_t>

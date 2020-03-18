@@ -11,10 +11,10 @@ zTH4 = C.convertArray2NGon(zTH4); zTH4 = G.close(zTH4)
 #C.convertPyTree2File([z], 'a.cgns')
 
 n = C.getNPts(z)
-#nodal_vals = numpy.zeros((n,), dtype=numpy.int32)
 nodal_vals = numpy.empty((n,), dtype=numpy.int32)
 nodal_vals[:] = 2
 
+## HEXA static adaptation
 z = C.fillEmptyBCWith(z, 'wall', 'BCWall')
 
 m = XOR.adaptCellsNodal(z, [nodal_vals])
@@ -22,6 +22,17 @@ m = XOR.adaptCellsNodal(z, [nodal_vals])
 m = XOR.closeCells(m)
 C.convertPyTree2File(m, 'out.cgns')
 
+## HEXA dynamic adaptation
+hmsh = XOR.createHMesh(z, 0) # 0 : ISOTROPIC subdivision 
+
+m = XOR.adaptCellsNodal(z, [nodal_vals], hmesh = hmsh)
+m = XOR.closeCells(m)            # close cells (adding point on lateral faces)
+
+C.convertPyTree2File(m, "out1.cgns")
+XOR.deleteHMesh(hmsh);
+
+
+## TETRA static adaptation
 zTH4 = C.fillEmptyBCWith(zTH4, 'wall', 'BCWall')
 
 n = C.getNPts(zTH4)
