@@ -2,6 +2,7 @@
 # Euler, seq, frontType=1
 import Apps.Fast.IBM as App
 import Converter.PyTree as C
+import Converter.Internal as Internal
 import KCore.test as test
 
 LOCAL = test.getLocal()
@@ -22,6 +23,8 @@ test.testT(tc, 1)
 # Compute
 t,tc = myApp.compute(LOCAL+'/t.cgns', LOCAL+'/tc.cgns', t_out=LOCAL+'/restart.cgns', tc_out=LOCAL+'/tc_restart.cgns', nit=300)
 t = C.convertFile2PyTree(LOCAL+'/restart.cgns')
+Internal._rmNodesByName(t, '.Solver#Param')
+Internal._rmNodesByName(t, '.Solver#ownData')
 test.testT(t, 2)
 
 # Post

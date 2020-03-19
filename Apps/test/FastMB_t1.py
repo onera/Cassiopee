@@ -1,7 +1,8 @@
 # - Fast.MB -
 import Apps.Fast.MB as App
-import KCore.test as test
 import Converter.PyTree as C
+import Converter.Internal as Internal
+import KCore.test as test
 
 LOCAL = test.getLocal()
 
@@ -19,4 +20,6 @@ test.testT(tc, 2)
 
 t, tc = myApp.compute(LOCAL+'/t.cgns', LOCAL+'/tc.cgns', t_out=LOCAL+'/restart.cgns', nit=300)
 t = C.convertFile2PyTree(LOCAL+'/restart.cgns')
+Internal._rmNodesByName(t, '.Solver#Param')
+Internal._rmNodesByName(t, '.Solver#ownData')
 test.testT(t, 1)

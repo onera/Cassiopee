@@ -1714,9 +1714,13 @@ def addNormalLayersStruct__(surfaces, distrib, check=0, niterType=0, niter=0, ni
     coordsloc[1][2,0:imax] = surfu[1][2,0:imax]
     k1 = 0
     stop = 0
-    epsl = None # champ pour le lissage
+    epsl = None # champ pour le lissage defini sur surfu
     cellNp = [None]*nzones # champ de blanking
     for i in range(nzones): cellNs.append(None) # Champ complet de blanking
+    cellNu = None # champ de cellN defini sur surfu
+    if blanking:
+        cellNu = C.array('cellN',surfu[1].shape[1],1,1)
+        cellNu = C.initVars(cellNu, 'cellN', 1.)
 
     while k1 < kmax-1 and stop == 0:
         hloc = distrib[1][0,k1+1]-distrib[1][0,k1]
@@ -1770,6 +1774,7 @@ def addNormalLayersStruct__(surfaces, distrib, check=0, niterType=0, niter=0, ni
                     n[1][0,:] = n[1][0,:]*h0*vol0[1][0,:]/(vol[1][0,:]*hloc)
                     n[1][1,:] = n[1][1,:]*h0*vol0[1][0,:]/(vol[1][0,:]*hloc)
                     n[1][2,:] = n[1][2,:]*h0*vol0[1][0,:]/(vol[1][0,:]*hloc)
+                if cellNu is not None: epsl[1][:] *= cellNu[1][:]
             else:
                 if epsl is None:
                     n = getNormalMap(surfu)
@@ -1795,6 +1800,8 @@ def addNormalLayersStruct__(surfaces, distrib, check=0, niterType=0, niter=0, ni
                     print('%d: niter=%d'%(k1,niterl))
                     n = getSmoothNormalMap(surfu, niter=niterl, eps=epsl[1], algo=1)
                 n, epsl = modifyNormalWithMetric(surfu, n, algo=1, smoothType=smoothType, eps=eps, nitLocal=nitLocal, kappaType=kappaType, kappaS=kappaS)
+                if cellNu is not None: epsl[1][:] *= cellNu[1][:]
+                print(epsl[1])
                 if kappaType == 2:
                     n[1][0,:] = n[1][0,:]*h0*vol0[1][0,:]/(vol[1][0,:]*hloc)
                     n[1][1,:] = n[1][1,:]*h0*vol0[1][0,:]/(vol[1][0,:]*hloc)
@@ -1834,7 +1841,24 @@ def addNormalLayersStruct__(surfaces, distrib, check=0, niterType=0, niter=0, ni
                     #print(cellN)
                     cellNs[noz] = G.stack(cellNs[noz], cellN)
                     #print(cellNs[noz])
-
+                # modification du lissage pour les points masques
+                ni1 = ni-1
+                ni2 = max(ni-2,0) 
+                nj2 = max(nj-2,0)
+                for ind in range(ninj):
+                    indu = indicesU[ind]
+                    # in vertex
+                    ii = ind//ni; jj = ind - ii*ni
+                    # in centers
+                    i0 = min(ii,ni2)
+                    i1 = min(ii+1,ni2)
+                    j0 = min(jj,nj2)
+                    j1 = min(jj+1,nj2)
+                    cellNu[1][0,indu] *= 0.25*(cellN[1][0,i0+ni1*j0]+
+                                               cellN[1][0,i1+ni1*j0]+
+                                               cellN[1][0,i0+ni1*j1]+
+                                               cellN[1][0,i1+ni1*j1])
+                    cellNu[1][0,indu] = 0.
             elif check == 1:
                 subc = T.subzone(coords,(1,1,k1+1),(ni,nj,k1+2))
                 vol = getVolumeMap(subc)

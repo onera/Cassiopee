@@ -24,6 +24,7 @@
 #include "Def/DefFunction.h"
 #include <assert.h>
 #include <stdio.h>
+#include <ostream>
 #include <set>
 #include <vector>
 

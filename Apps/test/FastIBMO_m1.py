@@ -19,7 +19,10 @@ t,tc = myApp.prepare(FILE, t_out='t.cgns', tc_out='tc.cgns', expand=3, vmin=11, 
 if Cmpi.rank == 0: test.testT(t,1)
 
 t,tc = myApp.compute('t.cgns','tc.cgns', t_out='restart.cgns', tc_out='tc_restart.cgns', nit=100)
-if Cmpi.rank == 0: test.testT(t,2)
+if Cmpi.rank == 0:
+	Internal._rmNodesByName(t, '.Solver#Param')
+	Internal._rmNodesByName(t, '.Solver#ownData')
+	test.testT(t,2)
 
 t = T.subzone(t,(1,1,1),(-1,-1,1))
 for nob in range(len(t[2])):

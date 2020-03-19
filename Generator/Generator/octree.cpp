@@ -379,7 +379,7 @@ PyObject* octree(PyObject* self, PyObject* args)
   yc = 0.5*(ymino+ymaxo);
   xmino = xc-0.5*d; ymino = yc-0.5*d;
   xmaxo = xc+0.5*d; ymaxo = yc+0.5*d;
-  if (dim == 3) { zmino = zc-0.5*d; zmaxo = zc+0.5*d; }
+  if (dim == 3) { zc = 0.5*(zmino+zmaxo); zmino = zc-0.5*d; zmaxo = zc+0.5*d; }
 
   // construction de l'octree (octant)
   // si octant est present, ecrase xmino,...

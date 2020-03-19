@@ -566,7 +566,7 @@ Addition of elsA nodes
 
     Add nodes required by elsA Hybrid solver for NGON zones.
     For elsA < 3.8.01, use method=0, for newer versions use method=1.
-    If the mesh is 2D, use axe2D to precise 2D plane (0: (x,y), 1: (x,z), 2: (y,z)).
+    If the mesh is 2D, use axe2D to specify 2D plane (1: (y,z), 2: (x,z), 3: (x,y)).
     If the mesh has poor quality cells (concave...) use methodPE=1 to build the ParentElement node in a topological manner.
     Exists also as in place version (_createElsaHybrid) that modifies t and returns None.
 
