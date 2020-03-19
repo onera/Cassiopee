@@ -11,12 +11,14 @@
 #ifndef NUGA_XCELLN_HXX
 #define NUGA_XCELLN_HXX
 
+//#define DEBUG_XCELLN
+
 #include "Nuga/include/collider.hxx"
+#ifdef DEBUG_XCELLN
 #include "Nuga/include/medit.hxx"
+#endif
 #include "Nuga/include/mesh_t.hxx"
 #include "Nuga/include/polygon.hxx"
-
-//#define DEBUG_XCELLN
 
 namespace NUGA
 {
@@ -120,7 +122,7 @@ namespace NUGA
 #ifdef DEBUG_XCELLN
     {
       std::ostringstream o;
-      o << "/home/slandier/tmp/mask_0_" << i << ".mesh";
+      o << "mask_0_" << i;
       medith::write<>(o.str().c_str(), bit->crd, bit->cnt);
     }
 #endif
@@ -156,7 +158,7 @@ namespace NUGA
     {
       //std::cout << "ouput mask_1_ " << i << std::endl;
       std::ostringstream o;
-      o << "/home/slandier/tmp/mask_1_" << i << ".mesh";
+      o << "mask_1_" << i;
       medith::write<>(o.str().c_str(), bit->crd, bit->cnt);
     }
 #endif
@@ -178,12 +180,12 @@ namespace NUGA
 #ifdef DEBUG_XCELLN
     {
       std::ostringstream o;
-      o << "/home/slandier/tmp/m.mesh";
+      o << "m";
       medith::write(o.str().c_str(), z_mesh.crd, z_mesh.cnt);
     }
     {
       std::ostringstream o;
-      o << "/home/slandier/tmp/bound.mesh";
+      o << "bound";
       medith::write(o.str().c_str(), zbound.crd, zbound.cnt);
     }
 #endif
@@ -199,7 +201,7 @@ namespace NUGA
 #ifdef DEBUG_XCELLN
     {
       std::ostringstream o;
-      o << "/home/slandier/tmp/mask_" << m << ".mesh";
+      o << "mask_" << m;
       medith::write<>(o.str().c_str(), mask_bits[m]->crd, mask_bits[m]->cnt);
     }
 #endif
@@ -251,7 +253,7 @@ namespace NUGA
     {
       std::cout << "has ABUTTING/OVERSET" << std::endl;
       std::ostringstream o;
-      o << "/home/slandier/tmp/m_in.mesh";
+      o << "m_in";
       medith::write(o.str().c_str(), z_mesh.crd, z_mesh.cnt, z_mesh.e_type.empty() ? nullptr : &z_mesh.e_type);
     }
 #endif
@@ -283,7 +285,7 @@ namespace NUGA
 #ifdef DEBUG_XCELLN
     for (size_t m=0; m < mask_bits.size(); ++m){
       std::ostringstream o;
-      o << "/home/slandier/tmp/mask1a_" << m << ".mesh";
+      o << "mask1a_" << m;
       medith::write(o.str().c_str(), mask_bits[m]->crd, mask_bits[m]->cnt);
     }
     std::cout << "PREP_build_structures_and_reduce_to_zone : 3" << std::endl;
@@ -295,7 +297,7 @@ namespace NUGA
 #ifdef DEBUG_XCELLN
     for (size_t m=0; m < mask_bits.size(); ++m){
       std::ostringstream o;
-      o << "/home/slandier/tmp/mask1b_" << m << ".mesh";
+      o << "mask1b_" << m;
       medith::write(o.str().c_str(), mask_bits[m]->crd, mask_bits[m]->cnt);
     }
     //std::cout << "PREP_build_structures_and_reduce_to_zone : 4" << std::endl;
@@ -337,7 +339,7 @@ namespace NUGA
   bool __are_colliding(const aelt_t& e1, const bound_mesh_t& mask_bit, const std::vector<E_Int>& cands, E_Int idx_start, E_Int & cid, double RTOL);
   
   ///
-  template <>
+  template <> inline
   bool __are_colliding<NUGA::aPolygon, edge_mesh_t>
   (const NUGA::aPolygon& ae1, const edge_mesh_t& mask_bit, const std::vector<E_Int>& cands, E_Int idx_start, E_Int & cid, double RTOL)
   {
@@ -361,7 +363,7 @@ namespace NUGA
   	const double * plane_pt = ae1.m_crd.col(0); // choosing first node
     
 #ifdef DEBUG_XCELLN
-    //medith::write("/home/slandier/tmp/cutter_front_before_projection.mesh", lmask.crd, lmask.cnt);
+    //medith::write("cutter_front_before_projection", lmask.crd, lmask.cnt);
 #endif
 
   	// project candidates on e1's plane => 2D problem
@@ -395,7 +397,7 @@ namespace NUGA
     // close enough so go to 2D for real test
 
 #ifdef DEBUG_XCELLN
-    //medith::write("/home/slandier/tmp/cutter_front_projected.mesh", lmask.crd, lmask.cnt);
+    //medith::write("cutter_front_projected", lmask.crd, lmask.cnt);
 #endif
 
   	// compute collision between e1 and each candidate until founding one collision
@@ -424,8 +426,8 @@ namespace NUGA
       K_FLD::FloatArray c1(crd2D), c2(lmask.crd);
       c1.resize(3, c1.cols(), 0.);
       c2.resize(3, c2.cols(), 0.);
-      medith::write("/home/slandier/tmp/subj2D.mesh", c1, ae1.begin(), ae1.nb_nodes(), 0);
-      medith::write("/home/slandier/tmp/cutter_front2D.mesh", c2, lmask.cnt);
+      medith::write("subj2D", c1, ae1.begin(), ae1.nb_nodes(), 0);
+      medith::write("cutter_front2D", c2, lmask.cnt);
     }
 #endif
   	
@@ -468,8 +470,8 @@ namespace NUGA
   	bool has_X = false;
     
 #ifdef DEBUG_XCELLN
-      medith::write<>("/home/slandier/tmp/currentz.mesh", z_mesh.crd, z_mesh.cnt);
-      medith::write<>("/home/slandier/tmp/currentm.mesh", mask_bit.crd, mask_bit.cnt);
+      medith::write<>("currentz", z_mesh.crd, z_mesh.cnt);
+      medith::write<>("currentm", mask_bit.crd, mask_bit.cnt);
 #endif
   
     E_Int nbcells = z_mesh.ncells();
@@ -496,8 +498,8 @@ namespace NUGA
    
 #ifdef DEBUG_XCELLN
      //NGDBG::draw_PGs("shape", crdp, *skinp, candsp);
-      medith::write<ngon_type>("/home/slandier/tmp/subj.mesh", z_mesh.crd, z_mesh.cnt, i);
-      medith::write("/home/slandier/tmp/cutter_front.mesh", mask_bit.crd, mask_bit.cnt, cands, 1);
+      medith::write<ngon_type>("subj", z_mesh.crd, z_mesh.cnt, i);
+      medith::write("cutter_front", mask_bit.crd, mask_bit.cnt, cands, 1);
 #endif
 
       E_Int cid;
@@ -524,8 +526,8 @@ namespace NUGA
       std::cout << "NO COLLISIONS WITH CURRENT MASK" << std::endl;
     else
     {
-      medith::write<ngon_type>("/home/slandier/tmp/colliding_set.mesh", z_mesh.crd, z_mesh.cnt, xs);
-      medith::write("/home/slandier/tmp/flag_collided_zone_cells.mesh", z_mesh.crd, z_mesh.cnt, &z_xcelln);
+      medith::write<ngon_type>("colliding_set", z_mesh.crd, z_mesh.cnt, xs);
+      medith::write("flag_collided_zone_cells", z_mesh.crd, z_mesh.cnt, &z_xcelln);
     }
 #endif
 
@@ -570,7 +572,7 @@ namespace NUGA
 //    xriver.compress(keep);
 //
 //#ifdef DEBUG_XCELLN
-//    medith::write("/home/slandier/tmp/xriver.mesh", xriver.crd, xriver.cnt);
+//    medith::write("xriver", xriver.crd, xriver.cnt);
 //#endif
 //
 //    // 2.5.2 separate river boundaries by color AND CONNEXITY
@@ -590,7 +592,7 @@ namespace NUGA
 //    for (auto it : color_to_riversides)
 //    {
 //      std::ostringstream o;
-//      o << "/home/slandier/tmp/riverside_" << it.first << ".mesh";
+//      o << "riverside_" << it.first;
 //      medith::write(o.str().c_str(), it.second.crd, it.second.cnt);
 //    }
 //#endif
@@ -619,14 +621,14 @@ namespace NUGA
 //    }
 //
 //#ifdef DEBUG_XCELLN
-//    medith::write("/home/slandier/tmp/coloring.mesh", z_mesh.crd, z_mesh.cnt, &z_xcelln);
+//    medith::write("coloring", z_mesh.crd, z_mesh.cnt, &z_xcelln);
 //#endif
 //  }
   
   template <typename elt_t>
   eClassify __classify(const elt_t& e1, const elt_t& e2);
   
-  template <>
+  template <> inline
   eClassify __classify<K_MESH::aEdge>(const K_MESH::aEdge& e1, const K_MESH::aEdge& e2)
   {
     E_Float threshold = 0.75;//decide only with roughly colinear
@@ -667,7 +669,7 @@ namespace NUGA
     }
     
 #ifdef DEBUG_XCELLN
-    medith::write("/home/slandier/tmp/initial_field_coloring.mesh", z_mesh.crd, z_mesh.cnt, &cur_xcelln);
+    medith::write("initial_field_coloring", z_mesh.crd, z_mesh.cnt, &cur_xcelln);
 #endif
 
     // 2.2 : incremental coloring => new INs, some X
@@ -675,7 +677,7 @@ namespace NUGA
     K_CONNECT::EltAlgo<typename zmesh_t::elt_t>::coloring(*neighborz, cur_xcelln, (E_Float)OUT, (E_Float)UPPER_COL);
     
 #ifdef DEBUG_XCELLN
-    medith::write("/home/slandier/tmp/colored_field_coloring.mesh", z_mesh.crd, z_mesh.cnt, &cur_xcelln);
+    medith::write("colored_field_coloring", z_mesh.crd, z_mesh.cnt, &cur_xcelln);
 #endif
 
     // 2.3 : update z_xcelln with IN & X: RULE : IN > X > OUT
@@ -749,18 +751,18 @@ namespace NUGA
         cc.pushBack(abj.v2, abj.v2+3);
         K_FLD::IntArray ct(2,1,0);ct(1,0)=1;
         std::ostringstream o;
-        o << "/home/slandier/tmp/subid_" << subid << ".mesh";
+        o << "subid_" << subid;
         medith::write(o.str().c_str(), cc, ct, "BAR");
         std::vector<E_Int> toto;
         toto.push_back(mid);
         o.str("");
-        o << "/home/slandier/tmp/cutter_front_" << subid << ".mesh";
+        o << "cutter_front_" << subid;
         medith::write(o.str().c_str(), mask_bit.crd, mask_bit.cnt, toto, 0);
         o.str("");
-        o << "/home/slandier/tmp/maskbit_" << subid << ".mesh";
+        o << "maskbit_" << subid;
         medith::write(o.str().c_str(), mask_bit.crd, mask_bit.cnt);
         
-        medith::write<ngon_type>("/home/slandier/tmp/ei.mesh", z_mesh.crd, z_mesh.cnt, i); 
+        medith::write<ngon_type>("ei", z_mesh.crd, z_mesh.cnt, i); 
 #endif
         
         z_color[subid] = __classify(abj, mask_e);
@@ -789,7 +791,7 @@ namespace NUGA
     }
 
 #ifdef DEBUG_XCELLN
-    medith::write("/home/slandier/tmp/flag_hidden_subzones.mesh", z_mesh.crd, z_mesh.cnt, &z_xcelln);
+    medith::write("flag_hidden_subzones", z_mesh.crd, z_mesh.cnt, &z_xcelln);
 #endif
   }
   

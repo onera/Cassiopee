@@ -28,6 +28,8 @@
 #include <iostream>
 ///
 
+std::string medith::wdir = "";
+
 void TRI_debug::draw_connected_to_node_T3s
 (const K_FLD::FloatArray& coord, const K_FLD::IntArray& connectT3, E_Int Ni)
 {

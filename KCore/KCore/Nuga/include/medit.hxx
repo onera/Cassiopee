@@ -24,6 +24,8 @@ public:
   enum eType { NONE = -2, VERT = -1, EDGE, TRI, QUAD, TET, HEX};
   enum eColor { COL_NONE = 0, RED = 1, GREEN = 2, YELLOW = 3};
 
+  static std::string wdir;
+
 public:
   static E_Int read (const char* filename, K_FLD::FloatArray& pos, K_FLD::IntArray& connect)
   {
@@ -176,11 +178,17 @@ public:
   return 0;
 }
   template< typename color_t = E_Int>
-  static E_Int write(const char* filename, const K_FLD::FloatArray& crd, const K_FLD::IntArray& cnt, const char* elt_type, const std::vector<bool>* keep = nullptr, const std::vector<color_t>* colors = nullptr)
+  static E_Int write(const char* fname, const K_FLD::FloatArray& crd, const K_FLD::IntArray& cnt, const char* elt_type, const std::vector<bool>* keep = nullptr, const std::vector<color_t>* colors = nullptr)
   {
     if (crd.cols() == 0)
     return 0;
-  FILE * file = fopen(filename, "w");
+
+    std::ostringstream filename;
+    filename << wdir << fname << ".mesh";
+
+  FILE * file = fopen(filename.str().c_str(), "w");
+  if (file == nullptr) return 1;
+
   E_Int  nb_pts(crd.cols()), COLS(cnt.cols()), dim(crd.rows());
 
   // Header

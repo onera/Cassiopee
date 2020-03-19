@@ -18,7 +18,10 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef VISUAL
 #include "intersector.h"
+#endif
+
 #include <map>
 #include "Nuga/include/macros.h"
 #include "Fld/ngon_t.hxx"
@@ -271,7 +274,7 @@ void MOVLP_XcellN(const std::vector<K_FLD::FloatArray*> &crds, const std::vector
 }
 
 
-#ifndef NETBEANSZ
+#if !  defined(NETBEANS) && ! defined(VISUAL)
 PyObject* K_INTERSECTOR::XcellNSurf(PyObject* self, PyObject* args)
 {
   PyObject *zones, *base_num, *masks, *priorities, *wall_ids;
