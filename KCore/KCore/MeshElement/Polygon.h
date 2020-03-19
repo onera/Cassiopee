@@ -50,7 +50,11 @@ public:
   ///
   ~Polygon(){if (_triangles != nullptr) delete [] _triangles;}
 
-  Polygon(Polygon&& r) = default;
+  // templated to use any polygon in the hierarchy (rather than upcasting when called from down)
+  template <typename PolyG_t> Polygon(PolyG_t&& r): _nb_nodes(r._nb_nodes), _nodes(r._nodes), _shift(r._shift), _triangles(r._triangles)/* = default  old intel (15) reject it*/
+  {
+    r._triangles = nullptr;//stolen
+  }
 
   ///
   //void setNodes(const E_Int* nodes, E_Int nb_nodes){NB_NODES=nb_nodes; for (size_t i=0; i < nb_nodes; ++i)_nodes[i]=nodes[i];}

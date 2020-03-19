@@ -57,7 +57,10 @@ struct aPolygon : public K_MESH::Polygon
     return *this;
   }
 
-  aPolygon(aPolygon&& rhs) = default;
+  aPolygon(aPolygon&& rhs) :/* = default; rejected by old compiler intel (15)*/
+  parent_type(rhs), m_crd(std::move(rhs.m_crd)), m_nodes(std::move(rhs.m_nodes)), m_L2ref(rhs.m_L2ref)
+  {
+  }
   
   template <short DIM> void normal(E_Float* norm) const 
   {
