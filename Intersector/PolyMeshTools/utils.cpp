@@ -2073,7 +2073,7 @@ PyObject* K_INTERSECTOR::removeNonManifoldExternalCells(PyObject* self, PyObject
 }
 
 //=============================================================================
-/* Computes centroids*/
+/* Computes centroids */
 //=============================================================================
 PyObject* K_INTERSECTOR::centroids(PyObject* self, PyObject* args)
 {
@@ -2109,7 +2109,7 @@ PyObject* K_INTERSECTOR::centroids(PyObject* self, PyObject* args)
 }
 
 //=============================================================================
-/* Computes volumes*/
+/* Computes volumes */
 //=============================================================================
 PyObject* K_INTERSECTOR::volumes(PyObject* self, PyObject* args)
 {

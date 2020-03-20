@@ -64,9 +64,36 @@ PyObject* K_INTERSECTOR::extractNthCell(PyObject* self, PyObject* args)
 //=============================================================================
 /* XXX */
 //=============================================================================
+PyObject* K_INTERSECTOR::extractBiggestCell(PyObject* self, PyObject* args)
+{
+  PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
+  return NULL;
+}
+
+//=============================================================================
+/* XXX */
+//=============================================================================
 PyObject* K_INTERSECTOR::removeNthCell(PyObject* self, PyObject* args)
 {
 
+  PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
+  return NULL;
+}
+
+//=============================================================================
+/* XXX */
+//=============================================================================
+PyObject* K_INTERSECTOR::detectIdenticalCells(PyObject* self, PyObject* args)
+{
+  PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
+  return NULL;
+}
+
+//=============================================================================
+/* XXX */
+//=============================================================================
+PyObject* K_INTERSECTOR::detectOverConnectedFaces(PyObject* self, PyObject* args)
+{
   PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
   return NULL;
 }
@@ -85,6 +112,12 @@ PyObject* K_INTERSECTOR::extractNthFace(PyObject* self, PyObject* args)
 /* XXX */
 //=============================================================================
 PyObject* K_INTERSECTOR::checkCellsClosure(PyObject* self, PyObject* args)
+{
+  PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
+  return NULL;
+}
+
+PyObject* K_INTERSECTOR::volume(PyObject* self, PyObject* args)
 {
   PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
   return NULL;
@@ -164,6 +197,24 @@ PyObject* K_INTERSECTOR::reorientExternalFaces(PyObject* self, PyObject* args)
 }
 
 //=============================================================================
+/* reorient specified polygons. */
+//=============================================================================
+PyObject* K_INTERSECTOR::reorientSpecifiedFaces(PyObject* self, PyObject* args)
+{
+  PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
+  return NULL;
+}
+
+//=============================================================================
+/* XXX */
+//=============================================================================
+PyObject* K_INTERSECTOR::reorientSurf(PyObject* self, PyObject* args)
+{
+  PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
+  return NULL;
+}
+
+//=============================================================================
 /* XXX */
 //=============================================================================
 PyObject* K_INTERSECTOR::diffMesh(PyObject* self, PyObject* args)
@@ -229,6 +280,15 @@ PyObject* K_INTERSECTOR::convertNGON2DToNGON3D(PyObject* self, PyObject* args)
 }
 
 //=============================================================================
+/* Converts a surfacic Basic to NGON nuga format*/
+//=============================================================================
+PyObject* K_INTERSECTOR::convertBasic2NGONFaces(PyObject* self, PyObject* args)
+{
+  PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
+  return NULL;
+}
+
+//=============================================================================
 /* remove any cell contributing to a non-manifold boundary */
 //=============================================================================
 PyObject* K_INTERSECTOR::removeNonManifoldExternalCells(PyObject* self, PyObject* args)
@@ -238,7 +298,7 @@ PyObject* K_INTERSECTOR::removeNonManifoldExternalCells(PyObject* self, PyObject
 }
 
 //=============================================================================
-/* Computes centroids */
+/* Computes centroids*/
 //=============================================================================
 PyObject* K_INTERSECTOR::centroids(PyObject* self, PyObject* args)
 {

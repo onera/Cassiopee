@@ -20,6 +20,7 @@
 // Some boolean operations like intersection, union, minus...
 //#define FLAG_STEP
 //#define DEBUG_W_PYTHON_LAYER
+//#define DEBUG_MESHER
 
 # include <string>
 # include <sstream> 
@@ -285,7 +286,7 @@ bool getUnionArgs(PyObject* args,
       E_Int nb_ghost_pgs = inds->getSize();
       //E_Int minid(INT_MAX), maxid(-1);
       pgsList.resize(nb_ghost_pgs);
-      for (size_t i = 0; i < nb_ghost_pgs; ++i) 
+      for (E_Int i = 0; i < nb_ghost_pgs; ++i) 
       {
         pgsList[i]=(*inds)[i]-1;
         //std::cout << pgsList[i] << std::endl;
@@ -403,7 +404,10 @@ PyObject* call_union(PyObject* args)
   if (!ok) return NULL;
   PyObject* tpl = NULL;
   E_Int err(0), et=-1;
+
+#ifdef DEBUG_W_PYTHON_LAYER
   PyObject *l(PyList_New(0));
+#endif
 
   char eltType2[20];
   strcpy(eltType2, eltType);
@@ -457,6 +461,12 @@ PyObject* K_INTERSECTOR::booleanIntersection(PyObject* self, PyObject* args)
 PyObject* K_INTERSECTOR::booleanUnion(PyObject* self, PyObject* args)
 {
   return call_union(args);
+}
+
+PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
+{
+  PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
+    return NULL;
 }
 
 //=============================================================================

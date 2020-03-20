@@ -49,6 +49,12 @@ PyObject* K_INTERSECTOR::triangulateSpecifiedFaces(PyObject* self, PyObject* arg
   return NULL;
 }
 
+PyObject* K_INTERSECTOR::triangulateNFaces(PyObject* self, PyObject* args)
+{
+  PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
+  return NULL;
+}
+
 //=============================================================================
 /* Convexify any concave polygon found in the input polyhedral mesh. */
 //=============================================================================

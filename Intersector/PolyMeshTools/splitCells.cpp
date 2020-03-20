@@ -348,6 +348,10 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
   return l;
 }
 
+//============================================================================
+/* Deletes a hmesh */
+//============================================================================
+
 PyObject* K_INTERSECTOR::deleteHMesh(PyObject* self, PyObject* args)
 {
   PyObject* hook;

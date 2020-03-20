@@ -21,7 +21,35 @@
 # include "intersector.h"
 # include "stub.h"
 
+//============================================================================
+/* Create a hmesh and returns a hook */
+//============================================================================
+PyObject* K_INTERSECTOR::createHMesh(PyObject* self, PyObject* args)
+{
+  PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
+  return NULL;
+}
 
+//=============================================================================
+/* 
+   Confomize a hmesh
+ */
+//=============================================================================
+PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
+{
+  PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
+  return NULL;
+}
+
+//============================================================================
+/* Deletes a hmesh */
+//============================================================================
+
+PyObject* K_INTERSECTOR::deleteHMesh(PyObject* self, PyObject* args)
+{
+  PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
+  return NULL;
+}
 //=============================================================================
 /* Agglomerate superfuous faces (overdefined polyhedra) */
 //=============================================================================
@@ -35,6 +63,15 @@ PyObject* K_INTERSECTOR::splitNonStarCells(PyObject* self, PyObject* args)
 /* Agglomerate superfuous faces (overdefined polyhedra) */
 //=============================================================================
 PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
+{
+  PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
+  return NULL;
+}
+
+//=============================================================================
+/* Adapt cells with respect to the nodal subdivisions query */
+//=============================================================================
+PyObject* K_INTERSECTOR::adaptCellsNodal(PyObject* self, PyObject* args)
 {
   PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
   return NULL;
