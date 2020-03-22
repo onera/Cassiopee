@@ -5,7 +5,7 @@
 if ($?CASSIOPEE == 0) then
     echo "You must specify a CASSIOPEE variable in you .csrhc"
     echo "This variable specifies the installation path of *Cassiopee*"
-    exit
+    exit 1
 endif
 
 source $CASSIOPEE/Kernel/env_Cassiopee_r8

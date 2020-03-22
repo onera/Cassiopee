@@ -119,6 +119,46 @@ def show(event=None):
     CTK.display(CTK.dt, mainTree=CTK.SLICE)
     CPlot.setActiveZones(activeExt)
     CPlot.setState(edgifyDeactivatedZones=1)
+
+#==============================================================================
+# extract : ajoute l'entite dans CTK.t/EXTRACT
+#==============================================================================
+def extract(event=None):
+    if CTK.t == []: return
+    # Get indices
+    v = CTK.varsFromWidget(VARS[0].get(), type=2)
+    if len(v) > 0: imin = v[0]
+    v = CTK.varsFromWidget(VARS[1].get(), type=2)
+    if len(v) > 0: imax = v[0]
+    v = CTK.varsFromWidget(VARS[2].get(), type=2)
+    if len(v) > 0: jmin = v[0]
+    v = CTK.varsFromWidget(VARS[3].get(), type=2)
+    if len(v) > 0: jmax = v[0]
+    v = CTK.varsFromWidget(VARS[4].get(), type=2)
+    if len(v) > 0: kmin = v[0]
+    v = CTK.varsFromWidget(VARS[5].get(), type=2)
+    if len(v) > 0: kmax = v[0]
+    
+    if CTK.__MAINTREE__ == 1:
+        CTK.__MAINACTIVEZONES__ = CPlot.getActiveZones()
+    active = []
+    tp = Internal.appendBaseName2ZoneName(CTK.t, updateRef=False, 
+                                          separator=Internal.SEP1)
+    for z in CTK.__MAINACTIVEZONES__: active.append(tp[2][CTK.Nb[z]+1][2][CTK.Nz[z]])
+
+    temp = C.newPyTree(['Base']); temp[2][1][2] += active
+    
+    C._addBase2PyTree(CTK.t, 'EXTRACT')
+    base = Internal.getNodeFromName1(CTK.t, 'EXTRACT')
+    
+    # Subzone les zones actives
+    for z in Internal.getZones(temp):
+        try:
+            zp = T.subzone(z, (imin,jmin,kmin), (imax,jmax,kmax))
+            zp[0] = C.getZoneName(z[0])
+            base[2].append(zp)
+        except: pass    
+    CTK.TXT.insert('START', 'Zone extracted in base EXTRACT.\n')
     
 #==============================================================================
 # Create app widgets
@@ -244,9 +284,9 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='k step.')
     B.grid(row=1, column=2, columnspan=1, sticky=TK.EW)
 
-    #B = TTK.Button(Frame, text="Show", command=show)
-    #B.grid(row=1, column=0, columnspan=6, sticky=TK.EW)
-    #BB = CTK.infoBulle(parent=B, text='Show subzones.')
+    B = TTK.Button(Frame, text="Extract", command=extract)
+    B.grid(row=2, column=0, columnspan=6, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Extract subzones to main tree.')
 
 #==============================================================================
 # Called to display widgets

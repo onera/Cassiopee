@@ -7,7 +7,7 @@ then
     if [ "$CASSIOPEE" = "" ]; then
         echo "You must specify a CASSIOPEE variable in your environment."
         echo "This variable specifies the installation path of *Cassiopee*."
-        exit
+        exit 1
     fi
     if [ "$ELSAPROD" = "" ]; then
        export ELSAPROD=x86_r8
@@ -21,7 +21,7 @@ else
     echo 'install: install in $CASSIOPEE/Dist/bin/$ELSAPROD'
     echo ' -or-'
     echo 'install <dir>: install in directory <dir>.'
-    exit
+    exit 1
 fi
 
 if [ "$PYTHONEXE" != "" ]; then
@@ -38,15 +38,15 @@ if [ $? -eq 0 ]; then
         export SCONSOPT=""
     fi
     python $sconsf install prefix="$INSTALLPATH" "$SCONSOPT"
-    [ $? != 0 ] && exit;
+    [ $? != 0 ] && exit 1;
     #touch Dist2Walls/dist2walls.cpp
     rm -f build/lib.*/Dist2Walls/dist2walls.*
     rm -f build/lib.*/Dist2Walls/dist2walls-*.*
     python setupScons.py install --prefix="$INSTALLPATH"
-    [ $? != 0 ] && exit;
+    [ $? != 0 ] && exit 1;
 else
     python setup.py install --prefix="$INSTALLPATH"
-    [ $? != 0 ] && exit;
+    [ $? != 0 ] && exit 1;
 fi
 
 # Test l'installation
