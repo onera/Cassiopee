@@ -83,7 +83,7 @@ listExtensions.append(
               include_dirs=["Converter"]+additionalIncludePaths+includeDirs,
               library_dirs=additionalLibPaths+libraryDirs,
               libraries=libraries+additionalLibs,
-              extra_compile_args=Dist.getCArgs()+ADDITIONALCPPFLAGS,
+              extra_compile_args=Dist.getCppArgs()+ADDITIONALCPPFLAGS,
               extra_link_args=Dist.getLinkArgs()
               ) )
 import srcs
@@ -94,7 +94,7 @@ if srcs.EXPRESSION:
               include_dirs=["Converter"]+additionalIncludePaths+includeDirs,
               library_dirs=additionalLibPaths+libraryDirs,
               libraries=libraries+additionalLibs,
-              extra_compile_args=Dist.getCArgs()+ADDITIONALCPPFLAGS,
+              extra_compile_args=Dist.getCppArgs()+ADDITIONALCPPFLAGS,
               extra_link_args=Dist.getLinkArgs() ) )
 
 # setup ======================================================================

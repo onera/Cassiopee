@@ -60,7 +60,7 @@ listExtensions.append(
               include_dirs=["XCore"]+additionalIncludePaths+includeDirs,
               library_dirs=additionalLibPaths+libraryDirs,
               libraries=libraries+additionalLibs,
-              extra_compile_args=Dist.getCArgs()+ADDITIONALCPPFLAGS,
+              extra_compile_args=Dist.getCppArgs()+ADDITIONALCPPFLAGS,
               extra_link_args=Dist.getLinkArgs()
               ) )
 
