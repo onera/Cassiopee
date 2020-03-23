@@ -61,6 +61,25 @@ struct aPolygon : public K_MESH::Polygon
   parent_type(rhs), m_crd(std::move(rhs.m_crd)), m_nodes(std::move(rhs.m_nodes)), m_L2ref(rhs.m_L2ref)
   {
   }
+
+  aPolygon& operator=(aPolygon&& rhs)
+  {
+    m_nodes = std::move(rhs.m_nodes);
+    m_crd = std::move(rhs.m_crd);
+    m_L2ref = rhs.m_L2ref;
+
+    parent_type::_nb_nodes = m_nodes.size();
+    parent_type::_nodes = &m_nodes[0];
+    _triangles = rhs._triangles;
+    parent_type::_shift = rhs._shift;
+
+    rhs._nb_nodes = 0;
+    rhs._shift = 0;
+    rhs._triangles = nullptr;
+    rhs._nodes = nullptr;
+
+    return *this;
+  }
   
   template <short DIM> void normal(E_Float* norm) const 
   {

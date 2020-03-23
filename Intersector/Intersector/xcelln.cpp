@@ -26,6 +26,8 @@
 #include "Nuga/include/macros.h"
 #include "Fld/ngon_t.hxx"
 #include "Nuga/include/mesh_t.hxx"
+//#include "Nuga/include/classifyer.hxx"
+#include "Nuga/include/masker.hxx"
 #include "Nuga/include/xcelln.hxx"
 // #include <vector>
 // #include "Fld/DynArray.h"
@@ -148,45 +150,6 @@ inline void comp_priorities(const std::vector<ii_pair_t> & priority,  prior_t & 
     std::reverse(ALL(it->second)); // WARNING DECREASING PRIORITY DONE HERE
     //std::cout << "WNP rank for comp " << it->first << " is " << rank_wnps[compid] << std::endl;
   }
-
-  // // sort the priors and append with Non Priors of that comp
-  // aIsLessThanb predic(decrease_prior_per_comp);
-  // for (auto it = decrease_prior_per_comp.begin(); it != decrease_prior_per_comp.end(); ++it)
-  // {
-  //   E_Int compi = it->first;
-  //   E_Int & rank = it->second.first;
-  //   IntVec listi = it->second.second; //by value to avoid bad behaviour when calling sort with the pred
-
-  //   //the WNP rank (first id of WNPs) is the current size
-  //   rank = listi.size();
-
-  //   std::cout << "compi : "<< compi << std::endl;
-  //   std::cout << "rank wnp : " << rank << std::endl;
-  //   std::cout << "listi size : " << listi.size() << std::endl;
-  //   for (size_t u=0; u < listi.size(); ++u)std::cout << listi[u] << "/" << std::endl;
-
-  //   if (listi.size() > 1)
-  //   {
-  //     std::cout << "ee" << std::endl;
-  //     std::sort(listi.begin(), listi.end(), predic);
-  //     std::cout << "ff" << std::endl;
-  //     std::reverse(ALL(listi)); // WARNING DECREASING PRIORITY UPON EXIT
-  //     it->second.second = listi;
-  //   }
-
-  //   std::cout << "gg" << std::endl;
-
-  //   // append listi with non priors
-  //   for (size_t i=0; i< all_comps.size(); ++i)
-  //   {
-  //     E_Int& compj = all_comps[i];
-  //     if (compj == compi) continue;
-  //     if (predic(compj, compi)) // ie compj has compi in its list of priors
-  //       listi.push_back(compj);
-  //   }
-
-  //   std::cout << "hh" << std::endl;
-  // } 
 }
 
 using zmesh_t = NUGA::pg_smesh_t;
@@ -194,7 +157,7 @@ using bmesh_t = NUGA::edge_mesh_t;
 //using zmesh_t = NUGA::ph_mesh_t;
 //using bmesh_t = NUGA::pg_smesh_t;
 
-void MOVLP_XcellN_z(K_FLD::FloatArray& z_crd, K_FLD::IntArray& z_cnt,
+void compute_zone(K_FLD::FloatArray& z_crd, K_FLD::IntArray& z_cnt,
                   const IntVec& z_priorities, E_Int rank_wnp,
                   const std::vector<K_FLD::FloatArray*> &mask_crds, const std::vector<K_FLD::IntArray*>& mask_cnts,
                   std::vector< std::vector<E_Int>> &mask_wall_ids, 
@@ -203,17 +166,19 @@ void MOVLP_XcellN_z(K_FLD::FloatArray& z_crd, K_FLD::IntArray& z_cnt,
   zmesh_t  z_mesh(z_crd, z_cnt);  // polygonal surface mesh
   std::vector<bmesh_t*> mask_meshes;
   
-#ifdef DEBUG_XCELLN
-  std::cout << "PREP" << std::endl;
-#endif
-
-  NUGA::PREP_build_structures_and_reduce_to_zone<zmesh_t>(z_mesh, mask_crds, mask_cnts, mask_wall_ids, z_priorities, rank_wnp, mask_meshes);
+  if (binary_mode)
+  {
+    NUGA::masker<zmesh_t, bmesh_t> classs(RTOL, col_X);
+    classs.prepare(z_mesh, mask_crds, mask_cnts, mask_wall_ids, z_priorities, rank_wnp, mask_meshes);
+    classs.compute(z_mesh, mask_meshes, z_xcelln);
+  }
+  else
+  {
+    NUGA::xcellnv<zmesh_t, bmesh_t> classs(RTOL);
+    classs.prepare(z_mesh, mask_crds, mask_cnts, mask_wall_ids, z_priorities, rank_wnp, mask_meshes);
+    classs.compute(z_mesh, mask_meshes, z_xcelln);
+  }
   
-#ifdef DEBUG_XCELLN
-  std::cout << "COMPUTE" << std::endl;
-#endif
-
-  NUGA::MOVLP_zone_XcellN<zmesh_t>(z_mesh, mask_meshes, z_xcelln, col_X, RTOL);
   
 #ifdef DEBUG_XCELLN
   std::cout << "TERMINATE" << std::endl;
@@ -254,21 +219,21 @@ void MOVLP_XcellN(const std::vector<K_FLD::FloatArray*> &crds, const std::vector
     IntVec& z_priorities = it->second;
 
     //if (z != 26) continue;
-    //std::cout << "calling MOVLP_XcellN_z for zone : " << z << " over " << nb_zones << std::endl;
+    //std::cout << "calling compute_zone for zone : " << z << " over " << nb_zones << std::endl;
     
-    MOVLP_XcellN_z(*crds[z], *cnts[z], z_priorities, z_rank_wnp, mask_crds, mask_cnts, mask_wall_ids, xcelln[z], binary_mode, col_X, RTOL);
+    compute_zone(*crds[z], *cnts[z], z_priorities, z_rank_wnp, mask_crds, mask_cnts, mask_wall_ids, xcelln[z], binary_mode, col_X, RTOL);
 
     //fixme : hack for fully inside non prior
     // inferior but uncolored => assume it means fully in so IN
-    E_Float mincol = *std::min_element(ALL(xcelln[z]));
+    bool full_out = (*std::min_element(ALL(xcelln[z])) == 1.);
     bool is_inferior = (rank_wnps[comp_id[z]] == z_priorities.size() && !z_priorities.empty());
     
-    if (mincol == 1. && is_inferior) 
+    if (full_out && is_inferior) 
     {
       //std::cout << "full OUT rank : " << rank_wnps[comp_id[z]] << std::endl;
       E_Int sz = xcelln[z].size();
       xcelln[z].clear();
-      xcelln[z].resize(sz, NUGA::eClassify::IN);    
+      xcelln[z].resize(sz, NUGA::IN);
     }
   }
 }

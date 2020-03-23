@@ -99,11 +99,12 @@ public:
   {
   	minB[0] = rhs.minB[0]; minB[1] = rhs.minB[1]; minB[2] = rhs.minB[2];
   	maxB[0] = rhs.maxB[0]; maxB[1] = rhs.maxB[1]; maxB[2] = rhs.maxB[2];
+
+    return *this;
   }
 
-  //BoundingBox& operator=(BoundingBox&& rhs) = default;
-  
-  bool is_included(const BoundingBox& rhs){
+  bool is_included(const BoundingBox& rhs)
+  {
     for (E_Int i = 0; i < DIM; ++i)
     {
       if (minB[i] + ZERO_M < rhs.minB[i]) return false;

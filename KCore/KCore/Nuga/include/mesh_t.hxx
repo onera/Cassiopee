@@ -256,7 +256,7 @@ struct mesh_t
   {  
     elt_t e(cnt, i);
     E_Float L2r = e.L2ref(nodal_tolerance);
-    return aelt_t(e, crd, L2r);
+    return std::move(aelt_t(e, crd, L2r));
   }
     
   template <bool BSTRIDE = BOUND_STRIDE> void get_boundary(int i, int j, bound_elt_t<BSTRIDE>& b) const

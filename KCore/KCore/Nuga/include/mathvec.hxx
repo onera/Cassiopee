@@ -11,8 +11,7 @@ Author : Sam Landier (sam.landier@onera.fr)
 #ifndef NUGA_VECTOR_HXX
 #define NUGA_VECTOR_HXX
 
-#include "Nuga/nuga/include_c/basic_types.h"
-#include "Nuga/nuga/include_c/macros.h"
+#include "Nuga/include/macros.h"
 #include <cmath>
 
 #define SQRT std::sqrt

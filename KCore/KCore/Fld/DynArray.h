@@ -81,6 +81,7 @@ Design
     template <typename U> explicit DynArray(const DynArray<U>& rhs);
     ///
     DynArray(const DynArray<T>& rhs);//fixme : why required ? i.e why the above doesn't work (not called when returning an object created inside a function scope)
+    DynArray(DynArray<T>&& rhs); //move version
     /// Destructor.
     ~DynArray(){__destroy();}
 
@@ -174,6 +175,8 @@ Design
 
     /// Assignment operator
     self_type& operator=(const self_type& rhs);
+    /// Move assignment operator
+    self_type& operator=(self_type&& rhs);
     
      /// Assignment operator
     template <typename FldArrayType> self_type& operator=(const FldArrayType& rhs) { *this = DynArray<T>(rhs); return *this;}
@@ -323,6 +326,7 @@ Design
     }
   }
 
+  ///
   template <typename T>
   DynArray<T>::DynArray(const DynArray<T>& rhs)
     :_allocated_sz(0), _rows(rhs._rows), _cols(rhs._cols), _rowsMax(rhs._rows),_colsMax(rhs._cols), _data(0)
@@ -334,6 +338,14 @@ Design
       _data=__create(_rows * _cols);
       __mappingcopy(rhs, _data, _rowsMax, _rows, _cols);
     }
+  }
+
+  template <typename T>
+  DynArray<T>::DynArray(DynArray<T>&& rhs)
+    :_allocated_sz(rhs._allocated_sz), _rows(rhs._rows), _cols(rhs._cols), _rowsMax(rhs._rowsMax), _colsMax(rhs._colsMax), _data(rhs._data)
+  {
+    rhs._data = nullptr;
+    rhs._rows = rhs._rowsMax = rhs._cols = rhs._colsMax = rhs._allocated_sz = 0;
   }
 
   /** Conversion specialization */
@@ -587,6 +599,27 @@ DynArray<T>::pushBack(const self_type& a){
      __mappingcopy(rhs, _data, _rowsMax, _rows, _cols);
 
       return *this;
+  }
+
+  /// Move Assignment operator.
+  template <typename T>
+  DynArray<T>&
+    DynArray<T>::operator=(self_type&& rhs) {
+
+    if (this == &rhs) //avoid self move.
+      return *this;
+
+    _data         = rhs._data;
+    _rows         = rhs._rows;
+    _rowsMax      = rhs._rowsMax;
+    _cols         = rhs._cols;
+    _colsMax      = rhs._colsMax;
+    _allocated_sz = rhs._allocated_sz;
+
+    rhs._data = nullptr;
+    rhs._rows = rhs._rowsMax = rhs._cols = rhs._colsMax = rhs._allocated_sz = 0;
+
+    return *this;
   }
 
   /// Adds two DynArrays. Do the job on the common dimensions.
