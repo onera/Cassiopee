@@ -18,7 +18,7 @@ def convertCAD2PyTree(fileName, format='fmt_iges', h=0., chordal_err=0., growth_
   """Convert a CAD (IGES or STEP) file to pyTree.
   Usage: convertCAD2PyTree(fileName, options)"""
 
-  a = O.convertCAD2Arrays(fileName, format, h, chordal_err, growth_ratio)
+  a = O.convertCAD2Arrays(fileName, format, h, chordal_err, growth_ratio, algo)
   
   t = C.newPyTree([])
   base1 = False; base2 = False; base3 = False; base = 1; c = 0

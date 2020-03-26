@@ -504,6 +504,7 @@ def convertExt2Format__(fileName):
     elif extension == '.stl': format = 'fmt_stl'
     elif extension == '.fstl': format = 'fmt_stl'
     elif extension == '.bstl': format = 'bin_stl'
+    elif extension == '.gltf': format = 'bin_gltf'
     elif extension == '.fig': format = 'fmt_xfig'
     elif extension == '.svg': format = 'fmt_svg'
     elif extension == '.pov': format = 'fmt_pov'
@@ -609,7 +610,8 @@ def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
             except:   
                 FORMATS = ['bin_ply', 'fmt_tp', 'fmt_v3d',
                 'bin_tp', 'bin_v3d', 'fmt_mesh',
-                'fmt_gmsh', 'bin_gmsh', 'fmt_stl', 'bin_stl',
+                'fmt_gmsh', 'bin_gmsh', 'fmt_stl', 
+                'bin_stl', 'bin_gltf',
                 'fmt_xfig', 'fmt_svg', 'bin_3ds',
                 'fmt_obj', 'fmt_gts' , 'fmt_pov']
                 success = 0

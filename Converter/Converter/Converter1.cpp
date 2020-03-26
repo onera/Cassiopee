@@ -176,6 +176,13 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
                                               im, jm, km, 
                                               ufield, c, et, zoneNames);
   }
+  else if (K_STRING::cmp(fileFmt, "bin_gltf") == 0)
+  {
+    // Binary GLTF read
+    ret = K_IO::GenIO::getInstance()->gltfread(fileName, varString, field, 
+                                               im, jm, km, 
+                                               ufield, c, et, zoneNames);
+  }
   else if (K_STRING::cmp(fileFmt, "fmt_stl") == 0)
   {
     // Formatted STL read
@@ -802,6 +809,7 @@ E_Int K_CONVERTER::checkRecognisedFormat(char* fileFmt)
       K_STRING::cmp(fileFmt, "bin_gmsh") == 0 ||
       K_STRING::cmp(fileFmt, "bin_stl") == 0 ||
       K_STRING::cmp(fileFmt, "fmt_stl") == 0 ||
+      K_STRING::cmp(fileFmt, "bin_gltf") == 0 ||
       K_STRING::cmp(fileFmt, "bin_wav") == 0 ||
       K_STRING::cmp(fileFmt, "fmt_xfig") == 0 ||
       K_STRING::cmp(fileFmt, "fmt_svg") == 0 ||

@@ -233,7 +233,7 @@ void BARSplitter::split_eset_into_manifold_chains(const EdgeCONT& edges, std::ve
     cnt_chains[colorsE[i]].pushBack(cntE.col(i), cntE.col(i) + 2);
     edgecol[i] = colorsE[i];
   }
-  for (size_t c = 0; c < nb_chains; ++c)
+  for (E_Int c = 0; c < nb_chains; ++c)
     BARSplitter::getSortedChainNodes(cnt_chains[c], chains[c]);
 }
 

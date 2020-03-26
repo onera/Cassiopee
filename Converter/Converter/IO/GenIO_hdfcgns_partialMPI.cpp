@@ -957,12 +957,12 @@ hid_t K_IO::GenIOHdf::writeNodePartial(hid_t     node,
         if (elSize == 4)
         {
           setArrayPartial(node, (void*)PyArray_DATA(ar), dim, dims,
-                                 _NATIVE_INT, L3T_I4);
+                                 _NATIVE_INT, (char*)L3T_I4);
         }
         else
         {
           setArrayPartial(node, (void*)PyArray_DATA(ar), dim, dims,
-                                 _NATIVE_LONG, L3T_I8);
+                                 _NATIVE_LONG, (char*)L3T_I8);
         }
         //E_Int s = PyArray_Size(v);
         //int* buf = new int [s];
@@ -977,8 +977,8 @@ hid_t K_IO::GenIOHdf::writeNodePartial(hid_t     node,
         //for (int i = 0; i < s; i++) buf[i] = (double)PyArray_DATA(ar)[i];
         //setArrayR8(node, buf, dim, dims);
         //delete [] buf;
-        setArrayPartial(node, (void*)PyArray_DATA(ar), dim, dims,
-                               _NATIVE_FLOAT, L3T_R4);
+        setArrayPartial(node, (void*)PyArray_DATA(ar), dim, dims, 
+                        _NATIVE_FLOAT, (char*)L3T_R4);
       }
     }
     delete [] dims;

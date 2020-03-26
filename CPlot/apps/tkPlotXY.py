@@ -14022,10 +14022,19 @@ class MatplotlibFigure():
             self.subGraph[iCurSubGraph].axis[iCurrentAxis].relim()
             ## formatter des labels
             val = self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].x.axis_label_format
-            self.subGraph[iCurSubGraph].axis[iCurrentAxis].xaxis.set_major_formatter(matplotlib.ticker.StrMethodFormatter(val))
+            try: self.subGraph[iCurSubGraph].axis[iCurrentAxis].xaxis.set_major_formatter(matplotlib.ticker.StrMethodFormatter(val))
+            except:
+                val = val.replace('x:', '%')
+                val = val.replace('{', '')
+                val = val.replace('}', '') 
+                self.subGraph[iCurSubGraph].axis[iCurrentAxis].xaxis.set_major_formatter(matplotlib.ticker.FormatStrFormatter (val))
             val = self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].y.axis_label_format
-            self.subGraph[iCurSubGraph].axis[iCurrentAxis].yaxis.set_major_formatter(matplotlib.ticker.StrMethodFormatter(val))
-
+            try: self.subGraph[iCurSubGraph].axis[iCurrentAxis].yaxis.set_major_formatter(matplotlib.ticker.StrMethodFormatter(val))
+            except: 
+                val = val.replace('x:', '%')
+                val = val.replace('{', '')
+                val = val.replace('}', '')
+                self.subGraph[iCurSubGraph].axis[iCurrentAxis].xaxis.set_major_formatter(matplotlib.ticker.FormatStrFormatter (val)) 
             ## logscale
             if self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].x.axis_logscale:
                 self.subGraph[iCurSubGraph].axis[iCurrentAxis].set_xscale("log")

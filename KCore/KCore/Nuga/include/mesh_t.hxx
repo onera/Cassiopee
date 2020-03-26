@@ -243,8 +243,8 @@ struct mesh_t
 
   ~mesh_t()
   {
-    if (localiz != nullptr) delete localiz; localiz = nullptr;
-    if (neighbors != nullptr) delete neighbors; neighbors = nullptr;
+    if (localiz != nullptr) { delete localiz; localiz = nullptr; }
+    if (neighbors != nullptr) { delete neighbors; neighbors = nullptr; }
   }
 
   // end constructors / destructor //
@@ -441,7 +441,7 @@ struct mesh_t
 
   const neighbor_t* get_neighbors() const
   {
-    if (neighbors != nullptr) delete neighbors; neighbors = nullptr;
+    if (neighbors != nullptr) { delete neighbors; neighbors = nullptr; }
     if (neighbors == nullptr) build_neighbors();
     return neighbors;
   }

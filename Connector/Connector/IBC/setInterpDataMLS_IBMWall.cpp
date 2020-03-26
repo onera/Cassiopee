@@ -78,8 +78,8 @@ PyObject* K_CONNECTOR::setInterpData_IBMWall(PyObject* self, PyObject* args)
   E_Int imd, jmd, kmd;
   FldArrayF* fd; FldArrayI* cnd;
   char* varStringd; char* eltTyped;
-  E_Int resd = K_ARRAY::getFromArray(arrayD, varStringd, fd,
-                                      imd, jmd, kmd, cnd, eltTyped);
+  K_ARRAY::getFromArray(arrayD, varStringd, fd,
+                        imd, jmd, kmd, cnd, eltTyped);
 
   E_Int posxd = K_ARRAY::isCoordinateXPresent(varStringd);
   E_Int posyd = K_ARRAY::isCoordinateYPresent(varStringd);
@@ -193,8 +193,7 @@ PyObject* K_CONNECTOR::setInterpData_IBMWall(PyObject* self, PyObject* args)
   axis[0] = 1.; axis[1] = 0.; axis[2] = 0.;
   axis[3] = 0.; axis[4] = 1.; axis[5] = 0.;
   axis[6] = 0.; axis[7] = 0.; axis[8] = 1.;
-  E_Int indpb = -1;
-
+  
   FldArrayI* indicesR = new FldArrayI(nbPtsR); indicesR->setAllValuesAtNull();
   FldArrayI* indicesD = new FldArrayI(nbPtsR*(CLOUDMAX+1)); indicesD->setAllValuesAt(-1);
   FldArrayI* itypes   = new FldArrayI(nbPtsR); itypes->setAllValuesAtNull();

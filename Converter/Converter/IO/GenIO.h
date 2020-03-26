@@ -446,6 +446,26 @@ class GenIO
       std::vector<char*>& zoneNames);
     ///-
 
+    ///+ GLTF functions
+    /** gltf read */
+    E_Int gltfread(
+      char* file, char*& varString,
+      std::vector<FldArrayF*>& structField,
+      std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
+      std::vector<FldArrayF*>& unstructField,
+      std::vector<FldArrayI*>& connectivity,
+      std::vector<E_Int>& eltType, std::vector<char*>& zoneNames);
+    /** gltf write */
+    E_Int gltfwrite(
+      char* file, char* dataFmt, char* varString,
+      std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
+      std::vector <FldArrayF*>& structField,
+      std::vector<FldArrayF*>& unstructField,
+      std::vector<FldArrayI*>& connect,
+      std::vector<E_Int>& eltType,
+      std::vector<char*>& zoneNames);
+    ///-
+
     ///+ WAV functions
     /** wavwrite */
     E_Int wavwrite(

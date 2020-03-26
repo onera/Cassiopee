@@ -202,13 +202,13 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
     E_Int posc = K_ARRAY::isCellNatureField2Present(varString[no]); posc++;
     if (a4[no] == NULL) nzonesU++;
     else nzonesS++;
-    posxs.push_back(posx); 
+    posxs.push_back(posx);
     posys.push_back(posy); 
     poszs.push_back(posz); 
     poscs.push_back(posc); 
     a5.push_back(NULL);// PAS DE CONNECTIVITE ELTS/ELTS VOISINS
   }
-  if ( nzones != listOfInterpDataTypes.size())
+  if ((size_t)nzones != listOfInterpDataTypes.size())
   {
     RELEASESHAREDB(resr, receiverArray, fr, cnr); 
     for (E_Int no = 0; no < nzones; no++)
