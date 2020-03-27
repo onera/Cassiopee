@@ -17,9 +17,9 @@ setup(
     name="Apps",
     version="3.1",
     description="Application module (layer1).",
-    author="C. Benoit",
+    author="C. Benoit, S. Peron",
     package_dir={"":"."},
-    packages=['Apps', 'Apps.Chimera', 'Apps.Fast']
+    packages=['Apps', 'Apps.Chimera', 'Apps.Fast', 'Apps.Mesh', 'Apps.Coda']
     )
 
 # Check PYTHONPATH ===========================================================

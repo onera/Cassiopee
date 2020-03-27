@@ -937,7 +937,7 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
         for node in Internal.getNodesFromName(tb,'ibctype'):
             ibctypes.add(Internal.getValue(node))
         ibctypes = list(ibctypes)
-        if model != 'Euler' and ('outpress' in ibctypes or 'inj' in ibctypes or 'slip' in ibctypes):
+        if 'outpress' in ibctypes or 'inj' in ibctypes or 'slip' in ibctypes:
             test.printMem(">>> wall distance for wall only [start]")
             for z in Internal.getZones(tb):
                 ibc = Internal.getNodeFromName(z,'ibctype')
