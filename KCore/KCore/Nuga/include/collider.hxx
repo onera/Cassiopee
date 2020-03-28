@@ -428,7 +428,7 @@ bool are_colliding<NUGA::aPolygon, edge_mesh_t>
   bool isx = false;
   cid = E_IDX_NONE;
 
-  // reduce mask to candidates
+  // reduce mask to candidates : fixme : to simplify
   edge_mesh_t lmask = mask_bit;
   std::vector<bool> keep(lmask.ncells(), false);
 

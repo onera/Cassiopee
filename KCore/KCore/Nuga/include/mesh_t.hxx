@@ -55,15 +55,41 @@ struct connect_trait<LINEIC, true>
   static int ncells(const cnt_t& c) {return c.cols();}
   static void unique_indices(const cnt_t&c, std::vector<E_Int>& uinds) { c.uniqueVals(uinds);}
   
-  static void compress(cnt_t&c, const std::vector<bool>& keep){
+  static void compress(cnt_t&c, const std::vector<bool>& keep)
+  {
     std::vector<E_Int> nids;
     K_CONNECT::keep<bool> pred_keep(keep);
     K_CONNECT::IdTool::compress(c, pred_keep, nids);
   }
+  static void compress(cnt_t&c, const std::vector<int>& keepids)
+  {
+    K_CONNECT::IdTool::compress(c, keepids, index_start);
+  }
+
+  static cnt_t compress_(cnt_t const& c, const std::vector<int>& keepids)
+  {
+    return K_CONNECT::IdTool::compress_(c, keepids, index_start);
+  }
+
   static void compact(cnt_t&c, const std::vector<bool>& keep){ std::vector<E_Int> nids; K_FLD::IntArray::compact(c, keep, nids);}
   static void compact_to_used_nodes(cnt_t& c, K_FLD::FloatArray& crd, std::vector<E_Int>& nids)
   {
     K_CONNECT::MeshTool::compact_to_mesh(crd, c, nids);
+  }
+
+  static K_FLD::FloatArray compact_to_used_nodes(cnt_t&c, K_FLD::FloatArray const & crdi, std::vector<E_Int>& nids)
+  {
+    std::vector<E_Int> oids;
+    K_FLD::FloatArray lcrd;
+    K_FLD::IntArray lcnt;
+    K_CONNECT::MeshTool::compact_to_mesh(crdi, c, lcrd, lcnt, oids); //use this version to minimize mem print
+    c = std::move(lcnt);
+
+    // build nids, sized as crdi
+    K_CONNECT::IdTool::reverse_indirection(oids, nids);
+    nids.resize(crdi.cols(), E_IDX_NONE);
+
+    return std::move(lcrd);
   }
 
   static void compute_nodal_tolerance(const K_FLD::FloatArray& crd, const cnt_t& cnt, std::vector<E_Float>& nodal_tolerance)
@@ -218,21 +244,65 @@ struct mesh_t
   mesh_t& operator=(const mesh_t&m)
   {
     crd = m.crd; cnt = m.cnt;
-    localiz = nullptr;//otherwise would grabb it
+    
+    // these attribute are rferring to a previous state
+    if (localiz != nullptr) delete localiz;
+    if (neighbors != nullptr) delete neighbors;
+    localiz   = nullptr;
     neighbors = nullptr;
+
     if (m.neighbors != nullptr)
     {
-      neighbors = new neighbor_t;
+      neighbors  = new neighbor_t;
       *neighbors = *m.neighbors;
     }
+    
     e_type = m.e_type;
     flag = m.flag;
     nodal_tolerance = m.nodal_tolerance;
 
     return *this;
   } 
+
+  mesh_t& operator=(const mesh_t &&m)
+  {
+    crd = std::move(m.crd);
+    cnt = std::move(m.cnt);
+
+    // these attribute are rferring to a previous state
+    if (localiz != nullptr) delete localiz;
+    if (neighbors != nullptr) delete neighbors;
+    // steal new ones
+    localiz = m.localiz;
+    neighbors = m.neighbors;
+    
+    e_type = std::move(m.e_type);
+    flag = std::move(m.flag);
+    nodal_tolerance = std::move(m.nodal_tolerance);
+
+    m.localiz = m.neighbors = nullptr;
+
+    return *this;
+  }
   
-  mesh_t(const mesh_t& m, bool with_attributes = false){*this = m;}
+  mesh_t(const mesh_t& m) :localiz(nullptr), neighbors(nullptr) {*this = m;}
+  mesh_t(const mesh_t&& m):localiz(nullptr), neighbors(nullptr) { *this = m; }
+
+  mesh_t(const mesh_t& m, std::vector<E_Int>& ids) :localiz(nullptr), neighbors(nullptr)
+  {
+    cnt = trait::compress_(m.cnt, ids);
+    std::vector<E_Int> nids;
+    crd = trait::compact_to_used_nodes(cnt, m.crd, nids);
+
+    nodal_tolerance = K_CONNECT::IdTool::compact_(m.nodal_tolerance, nids); //sync the tolerance 
+
+    //sync the neighborhood
+    if (m.neighbors != nullptr)
+    {
+      neighbors = new neighbor_t;
+      *neighbors = trait::compress_(*m.neighbors, ids);
+    }
+  }
 
   // to create a bound mesh from a "parent" mesh
   template <bool USTRIDE>
@@ -399,8 +469,9 @@ struct mesh_t
     return e.L2ref(crd);
   }
   
-
-  void compress(const std::vector<bool>& keep)
+  // WARNING : if T=bool, use predicate compress, if T=int, use keep as a list of indices to keep
+  template <typename T>
+  void compress(const std::vector<T>& keep)
   {
     trait::compress(cnt, keep);
     std::vector<E_Int> nids;

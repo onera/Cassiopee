@@ -32,12 +32,12 @@ class localizer
   template <typename acrd_t, typename acnt_t>
   localizer(const acrd_t& coords, const acnt_t& connect, E_Float tolerance):_owner(true), _tolerance(tolerance){__create_tree(coords, connect);}
   
-  ~localizer(){ 
-    if (_owner) __destroy_tree();
-  }
+  ~localizer() { if (_owner) __destroy_tree(); }
   
   template<typename ELT, typename crd_t>
   void get_candidates(const ELT& e, const crd_t& crde, std::vector<E_Int>& candidates, E_Int idx_start = 0) const ;
+
+  void get_candidates(const box_t& bb, std::vector<E_Int>& candidates, E_Int idx_start = 0) const ;
   
   const Tree_t* get_tree() const { return _tree;}
   
@@ -62,9 +62,16 @@ void localizer<Tree_t>::get_candidates(const ELT& e, const crd_t& crde, std::vec
   box_t bb;
   e.bbox(crde, bb);
   
+  get_candidates(bb, candidates, idx_start);
+}
+
+///
+template <typename Tree_t>
+void localizer<Tree_t>::get_candidates(const box_t& bb, std::vector<E_Int>& candidates, E_Int idx_start) const {
+
   candidates.clear();
   _tree->getOverlappingBoxes(bb.minB, bb.maxB, candidates);
-  
+
   if (idx_start != 0)
     K_CONNECT::IdTool::shift(candidates, idx_start);
 }

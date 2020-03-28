@@ -23,21 +23,26 @@ namespace NUGA
   enum eXPolicy { COLLISION, XCELLN_VAL, XCELLN_OUT, MESH };
   enum eClassify { AMBIGUOUS = -1, IN = 0, X = 1, OUT = 2, UPPER_COL = 3 };
 
-  template <eXPolicy POLICY>
+  template <eXPolicy POLICY> // implemented for COLLISION policy
   struct data_trait
   {
     using wdata_t = std::vector<double>;
     using outdata_t = std::vector<double>;
+
+    static bool processed(wdata_t const & data, E_Int i) { return (data[i] != OUT); } // in COLLISION POLICY, X have not to be processed again
+  
+    static void mark_cell_w_mask(wdata_t & data, E_Int i, E_Int im) { data[i] = -X; } // minus to mark as new X for __flag_hidden_subzones
   };
 
   struct color_t
   {
     color_t(int col) :val(col) {}
 
-    bool operator!=(int col) { return (col != val); }
-    bool operator==(int col) { return (col == val); }
+    color_t& operator=(int col) { val = col; return *this; } // do not touch to masks
+    bool operator!=(int col) const { return (col != val); }
+    bool operator==(int col) const { return (col == val); }
 
-    operator double (){ return val; }
+    operator double () const { return val; }
 
     double val;
     std::vector<int> masks;
@@ -46,8 +51,17 @@ namespace NUGA
   template <>
   struct data_trait<XCELLN_VAL>
   {
-    using wdata_t = std::vector<color_t>;
+    using wdata_t   = std::vector<color_t>;
     using outdata_t = std::vector<double>;
+
+    static bool processed(wdata_t const & data, int i) { return (data[i] == IN); } // in XCELLN POLICY, we have to consider multiple X with multiple masks, so only discard IN
+ 
+    static void mark_cell_w_mask(wdata_t & data, E_Int i, E_Int im)
+    { 
+      // minus to mark as new X for __flag_hidden_subzones
+      data[i].val = -X; 
+      data[i].masks.push_back(im);
+    }
   };
 
     ///
@@ -89,7 +103,7 @@ namespace NUGA
 
     void __process_overlapping_boundaries(zmesh_t & z_mesh, std::vector< bound_mesh_t*> & mask_bits, E_Int rank_wnp, E_Float RTOL);
 
-    bool __flag_colliding_cells(zmesh_t const & z_mesh, bound_mesh_t const & mask_bit, wdata_t& wdata);
+    bool __flag_colliding_cells(zmesh_t const & z_mesh, std::vector< bound_mesh_t*> const & mask_bits, E_Int im, wdata_t& wdata);
 
     void __flag_hidden_subzones(zmesh_t const & z_mesh, bound_mesh_t const & mask_bit, wdata_t& wdata);
 
@@ -159,14 +173,14 @@ namespace NUGA
     for (size_t i = 0; i < nbits; ++i)
     {
       // append z_xcelln with X
-      bool has_X = __flag_colliding_cells(z_mesh, *(mask_bits[i]), wdata);
+      bool has_X = __flag_colliding_cells(z_mesh, mask_bits, i, wdata);
       if (!has_X) continue;
 
       // if there are at least 2 zones => mark as IN the hidden ones.
       __flag_hidden_subzones(z_mesh, *(mask_bits[i]), wdata);
     }
 
-    // set col_X color (ternary mode) or polyclip (xcelln mode)
+    // set col_X color (collision mode) or polyclip (xcelln mode)
     outdata = this->__process_X_cells(z_mesh, mask_bits, wdata);
 
     // replace with output colors
@@ -188,7 +202,9 @@ namespace NUGA
     for (size_t m = 0; m < nmasks; ++m)
     {
       if (mask_bits[m] == nullptr) continue;
-      NUGA::selector::reduce_to_box(*mask_bits[m], z_box);
+      // first coarse filtering based on brute force : localizers are not available yet
+      // because we want to build them on a reduced set
+      NUGA::selector::reduce_to_box(*mask_bits[m], z_box, true/*brute force*/);
     }
   }
 
@@ -403,9 +419,11 @@ namespace NUGA
   ///
   TEMPLATE_TYPES
   bool TEMPLATE_CLASS::__flag_colliding_cells
-  (zmesh_t const & z_mesh, bound_mesh_t const & mask_bit, wdata_t& data)
+  (zmesh_t const & z_mesh, std::vector< bound_mesh_t*> const & mask_bits, E_Int im, wdata_t& data)
   {
   	bool has_X = false;
+
+    bound_mesh_t const & mask_bit = *(mask_bits[im]);
     
 #ifdef DEBUG_XCELLN
       medith::write<>("currentz", z_mesh.crd, z_mesh.cnt);
@@ -425,7 +443,7 @@ namespace NUGA
     for (E_Int i = 0; i < nbcells; ++i)
     {
       //std::cout << i << " over " << nbcells << std::endl;
-      if (data[i] != OUT) continue;
+      if (data_trait<POLICY>::processed(data, i)) continue;
 
       // autonomous element
       auto ae1 = z_mesh.aelement(i);
@@ -445,7 +463,7 @@ namespace NUGA
       
       if (is_x)
       {
-        data[i] = -X; // minus to mark as new X
+        data_trait<POLICY>::mark_cell_w_mask(data, i, im);
         z_mesh.set_flag(i, cands[cid]);
       }
       

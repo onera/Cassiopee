@@ -65,7 +65,12 @@ public:
   ///
   template < typename T, typename Predicate_t>
   static E_Int compress(K_FLD::DynArray<T>& arr, const Predicate_t& P, std::vector<E_Int>& nids);
-  
+  ///
+  template < typename T>
+  static E_Int compress(K_FLD::DynArray<T>& arr, const std::vector<E_Int>& keepids, E_Int idx_start);
+  ///
+  template < typename T>
+  static K_FLD::DynArray<T> compress_(K_FLD::DynArray<T> const & arr, const std::vector<E_Int>& keepids, E_Int idx_start);
   ///
   template < typename T, typename Predicate_t>
   static E_Int compress(K_FLD::FldArray<T>& arr, const Predicate_t& P);
@@ -77,10 +82,16 @@ public:
   static E_Int min(const Vector_t<E_Int>& vec);
   ///
   static void compact(std::vector<E_Int>& vec, const std::vector<bool> & flag);
+  ///
   template <typename T>
   static void compact(std::vector<T>& vec, const std::vector<E_Int> & nids);
+  ///
+  template <typename T>
+  static std::vector<T> compact_(std::vector<T> const & vec, std::vector<E_Int> const & nids);
+  ///
   template <typename T>
   static void compact(K_FLD::DynArray<T>& arr, const std::vector<E_Int> & nids);
+  ///
   template <typename T>
   static E_Int compact (E_Int* target, E_Int& szio, const T* keep/*, Vector2& new_Ids*/);
   
@@ -315,43 +326,55 @@ E_Int IdTool::compress(K_FLD::DynArray<T>& arr, const Predicate_t& P, std::vecto
   return ret;
 }
 
-///fixme : mem corruption
-/*template < typename T, typename Predicate_t>
-E_Int IdTool::compress(K_FLD::FldArray<T>& arr, const Predicate_t& P)
+template < typename T>
+E_Int IdTool::compress(K_FLD::DynArray<T>& arr, const std::vector<E_Int>& keepids, E_Int idx_start)
 {
-  //assert (arr.getSize() == P._indir.size());
-  size_t         i, cols(arr.getSize());
-  K_FLD::FldArray<T> new_arr(1, arr.getNfld());
-  new_arr.resize(0,new_arr.getNfld());
-  for (i = 0; i < cols; ++i)
-  {
-    if (P(i)) new_arr.pushBack(arr, i);
-  }
-  E_Int ret = arr.getSize() - new_arr.getSize();
-  arr = new_arr;
+  E_Int ret = arr.cols();
+  arr = std::move(compress_(arr, keepids, idx_start));
+  ret -= arr.cols();
+ 
   return ret;
-}*/
+}
 
-/// compact (with reordering) of a vector using a indirection from compacting an IntArray
+template < typename T>
+K_FLD::DynArray<T> IdTool::compress_(K_FLD::DynArray<T> const & arr, const std::vector<E_Int>& keepids, E_Int idx_start)
+{
+  K_FLD::DynArray<T> new_arr;
+  E_Int stride(arr.rows());
+  
+  new_arr.reserve(stride, keepids.size());
+  for (E_Int i = 0; i < keepids.size(); ++i)
+  {
+    E_Int id = keepids[i] - idx_start;
+    new_arr.pushBack(arr.col(id), arr.col(id) + stride);
+  }
+  return std::move(new_arr);
+}
+
+/// compact (with reordering) of a vector using an indirection
 template <typename T>
 void IdTool::compact(std::vector<T>& vec, const std::vector<E_Int> & nids)
 {
-  
-  E_Int sz = vec.size();
-  if (sz == 0) return;
-  
+  if (vec.empty() || nids.empty()) return;
+  vec = compact_(vec, nids);
+}
+
+/// compact (with reordering) of a vector using an indirection
+template <typename T>
+std::vector<T> IdTool::compact_(std::vector<T> const & vec, std::vector<E_Int> const & nids)
+{
   std::vector<T> tmp;
-    
-  E_Int s = max(nids)+1;
+
+  E_Int s = max(nids) + 1;
   tmp.resize(s);
-    
-  for (E_Int i=0; i<sz; ++i )
+
+  for (E_Int i = 0; i<vec.size(); ++i)
   {
-    const E_Int& ni=nids[i];
+    const E_Int& ni = nids[i];
     if (ni != E_IDX_NONE)
-      tmp[ni]=vec[i];
+      tmp[ni] = vec[i];
   }
-  vec=tmp;
+  return std::move(tmp);
 }
 
 /// compact (with reordering) of a vector using a indirection from compacting an IntArray

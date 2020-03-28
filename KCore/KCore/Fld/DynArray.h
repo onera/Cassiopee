@@ -609,6 +609,8 @@ DynArray<T>::pushBack(const self_type& a){
     if (this == &rhs) //avoid self move.
       return *this;
 
+    __destroy(); // delete _data
+
     _data         = rhs._data;
     _rows         = rhs._rows;
     _rowsMax      = rhs._rowsMax;
@@ -896,7 +898,7 @@ DynArray<T>::pushBack(const self_type& a){
 
       if (_data){
         delete [] _data;
-        _data = 0;
+        _data = nullptr;
       }
   }
 

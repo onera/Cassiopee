@@ -71,10 +71,10 @@ public:
   template <typename ConnectivityAcc>
   inline void set(const ConnectivityAcc& connect, E_Int K){connect.getEntry(K, _nodes);}
   
-  template<typename box_t, typename CoordAcc>
-  void bbox(const CoordAcc& acrd, box_t&bb) const
+  template<typename box_t>
+  void bbox(const K_FLD::FloatArray& crd, box_t&bb) const
   {
-    bb.compute(acrd, _nodes, _nb_nodes, -_shift);
+    bb.compute(crd, _nodes, _nb_nodes, -_shift);
   }
   ///
   //template <typename TriangulatorType>
