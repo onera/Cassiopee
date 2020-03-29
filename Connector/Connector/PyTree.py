@@ -623,6 +623,21 @@ def connectMatchPeriodicStruct__(a,rotationCenter,rotationAngle,translation,tol,
             gcnodes = Internal.getNodesFromType2(zonesS[noz],'GridConnectivity1to1_t')
             _addPeriodicInfo__(gcnodes,rotationCenter,rotationAngle,translation,\
                                signT[i-1],signR[i-1],dupname,unitAngle=unitAngle)
+            # CORRECTIF DANS LE CAS 180 DEG : LA PREMIERE PASSE FAIT LES 2 RACCORDS MIN ET MAX
+            # MAIS L ANGLE N EST PAS BON POUR LE 2E RACCORD SI PAS CE CORRECTIF
+            if i == 1: 
+                for angle in rotationAngle:
+                    if angle == 180. or angle==-180.: 
+                        nogci = 0
+                        for gc in gcnodes:
+                            if Internal.getValue(gc)==Internal.getName(zonesS[noz]):
+                                rotation_angle = Internal.getNodeFromName(gc, "RotationAngle")
+                                if rotation_angle:
+                                    nogci+=1
+                                    if nogci == 2:# changement de signe                                        
+                                        rotation_angle=Internal.getValue(rotation_angle) 
+                                        for j in range(3): rotation_angle[j]=-rotation_angle[j]
+
         infoPer[i] = []
     # update the original tree
     if typeOfInputNode == 1: # une zone
@@ -643,7 +658,6 @@ def connectMatchPeriodicStruct__(a,rotationCenter,rotationAngle,translation,tol,
 
 #===============================================================================
 def _addPeriodicInfo__(gcnodes,rotationCenter,rotationAngle,translation,signT,signR, dupname='DUPPER_',unitAngle=None):
-    #nodes = Internal.getNodesFromType2(z,'GridConnectivity1to1_t')
     for info in gcnodes:
         if len(info[1]) > 8:
             donorNamePref = info[1][0:7]; donorName = info[1][7:]
@@ -689,6 +703,7 @@ def duplicatePeriodicZones__(t, rotationCenter=[0.,0.,0.], rotationAngle=[0.,0.,
                                  (rotationAngle[0],rotationAngle[1],rotationAngle[2]))
         zonesdupM = T.rotate(zones,(rotationCenter[0],rotationCenter[1],rotationCenter[2]),\
                                  (-rotationAngle[0],-rotationAngle[1],-rotationAngle[2]))
+
         dupZones = [typePeriodic,zonesdupP,zonesdupM]
 
     elif typePeriodic == 3:

@@ -18,6 +18,7 @@
 */
 #include "PyTree/PyTree.h"
 #include "String/kstring.h"
+
 using namespace K_FLD;
 using namespace std;
 
@@ -163,10 +164,17 @@ E_Int* K_PYTREE::getValueAI(PyObject* o, vector<PyArrayObject*>& hook)
 {
   //IMPORTNUMPY;
   PyObject* v = PyList_GetItem(o, 1);
-  PyArrayObject* ac = (PyArrayObject*)v; Py_INCREF(ac);
-  E_Int* d = (E_Int*)PyArray_DATA(ac);
-  hook.push_back(ac);
-  return d;
+  if ( v != Py_None)
+  {
+    PyArrayObject* ac = (PyArrayObject*)v; Py_INCREF(ac);
+    E_Int* d = (E_Int*)PyArray_DATA(ac);
+    hook.push_back(ac);
+    return d;
+  }
+  else
+  {
+    return NULL;
+  }
 }
 
 //==============================================================================
@@ -199,13 +207,22 @@ E_Int* K_PYTREE::getValueAI(PyObject* o, E_Int& s0, E_Int& s1,
 {
   //IMPORTNUMPY;
   PyObject* v = PyList_GetItem(o, 1);
-  PyArrayObject* ac = (PyArrayObject*)v; Py_INCREF(ac);
-  E_Int* d = (E_Int*)PyArray_DATA(ac);
-  int ndim = PyArray_NDIM(ac);
-  if (ndim == 1) { s0 = PyArray_DIM(ac,0); s1 = 1; }
-  else { s0 = PyArray_DIM(ac,0); s1 = PyArray_DIM(ac,1); }
-  hook.push_back(ac);
-  return d;
+  if ( v != Py_None )
+  {
+    PyArrayObject* ac = (PyArrayObject*)v; Py_INCREF(ac);
+    E_Int* d = (E_Int*)PyArray_DATA(ac);
+    int ndim = PyArray_NDIM(ac);
+   
+    if (ndim == 1) { s0 = PyArray_DIM(ac,0); s1 = 1; }
+    else if ( ndim == 2 || ndim == 3) { s0 = PyArray_DIM(ac,0); s1 = PyArray_DIM(ac,1); }
+    hook.push_back(ac);
+    return d;
+  }
+  else // NODE type : some nodes are empty (ElementConnectivity[1] = None for instance)
+  {
+    s0 = 0; s1 = 1;
+  }
+  return NULL;
 }
 
 //==============================================================================
