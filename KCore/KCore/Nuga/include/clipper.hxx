@@ -17,6 +17,7 @@
 #include <vector>
 #include "Nuga/Boolean/BAR_Conformizer.h"
 #include "Nuga/Delaunay/T3Mesher.h"
+
 namespace NUGA
 {
   namespace CLIP
@@ -174,7 +175,7 @@ namespace NUGA
       bits.reserve(res.size());
       //for (size_t i = 0; i < res.size(); ++i)
         //bits.push_back(std::move(res[i]));
-      std::move(std::begin(res), std::end(res), std::back_inserter(bits));
+      std::move(ALL(res), std::back_inserter(bits));
  
       return true_clip;
     }

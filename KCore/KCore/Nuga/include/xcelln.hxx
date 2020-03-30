@@ -122,7 +122,7 @@ namespace NUGA
         bits[b] = std::move(*it);  // replace the first
 
         bits.reserve(bits.size() + toadd.size() - 1);
-        std::move(++it, std::end(toadd), std::back_inserter(bits)); // push back remainers
+        std::move(++it, toadd.end(), std::back_inserter(bits)); // push back remainers
         toadd.clear();                                                          
       }
       else
