@@ -450,7 +450,7 @@ struct mesh_t
       return *std::min_element(ALL(nodal_tolerance));
 
     double minLref = K_CONST::E_MAX_FLOAT;
-    for (size_t i=0; i < ncells(); ++i)
+    for (E_Int i=0; i < ncells(); ++i)
     {
       elt_t e =element(i);
       minLref = std::min(e.L2ref(crd), minLref);

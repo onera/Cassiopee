@@ -244,6 +244,7 @@ else if ($MAC == "visio_python3") then
 else if ($MAC == "visio") then
 #------------------------------- visio ---------------------------------------
         setenv ELSAPROD vis_r8
+        module load subversion/1.7.6
         foreach x (`(echo "" ; module -t list) | & grep intel`)
             module unload $x
         end

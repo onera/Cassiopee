@@ -343,7 +343,7 @@ K_FLD::DynArray<T> IdTool::compress_(K_FLD::DynArray<T> const & arr, const std::
   E_Int stride(arr.rows());
   
   new_arr.reserve(stride, keepids.size());
-  for (E_Int i = 0; i < keepids.size(); ++i)
+  for (size_t i = 0; i < keepids.size(); ++i)
   {
     E_Int id = keepids[i] - idx_start;
     new_arr.pushBack(arr.col(id), arr.col(id) + stride);
@@ -368,7 +368,7 @@ std::vector<T> IdTool::compact_(std::vector<T> const & vec, std::vector<E_Int> c
   E_Int s = max(nids) + 1;
   tmp.resize(s);
 
-  for (E_Int i = 0; i<vec.size(); ++i)
+  for (size_t i = 0; i < vec.size(); ++i)
   {
     const E_Int& ni = nids[i];
     if (ni != E_IDX_NONE)

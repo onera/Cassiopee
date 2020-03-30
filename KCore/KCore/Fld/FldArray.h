@@ -1055,7 +1055,8 @@ void FldArray<T>::acquireMemory()
   {
     assert((_nfldLoc > 0) && "_nfldLoc must be greater than zero !");
     assert((_sizeLoc > 0) && "_sizeLoc must be greater than zero !");
-    for (E_Int i = 0; i < _nfldLoc; i++) _rake[i] = new T[_sizeLoc];
+    _rake[0] = new T[_sizeLoc];
+    for (E_Int i = 1; i < _nfldLoc; i++) _rake[i] = new T[_sizeLoc];
     _data = _rake[0];
   }
 }

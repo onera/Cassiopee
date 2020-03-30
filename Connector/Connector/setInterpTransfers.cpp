@@ -1024,7 +1024,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
       E_Int ibcType =  ipt_param_int[shift_rac+nrac*3];
       E_Int ibc = 1;
       if (ibcType < 0) ibc = 0;
-      if( 1-ibc != ipass_typ)  continue;
+      if(1-ibc != ipass_typ)  continue;
 
       E_Int NoD      =  ipt_param_int[ shift_rac + nrac*5     ];
       E_Int loc      =  ipt_param_int[ shift_rac + nrac*9  +1 ]; //+1 a cause du nrac mpi
@@ -1040,8 +1040,9 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
 
       if (loc == 0)
       {
-        printf("transferts optimises pas code en vextex %d %d %d\n", shift_rac + nrac*9  +1, NoD, NoR ); 
+        printf("Error: transferts optimises non code en vextex %d %d %d\n", shift_rac + nrac*9  +1, NoD, NoR ); 
         //imd= ipt_ndimdxD[ NoD+ nidomD*4]; jmd= ipt_ndimdxD[ NoD + nidomD*5];
+        imd = 0; jmd = 0;
       }
       else
       {
@@ -1050,7 +1051,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
          vectOfRcvFields[eq] = ipt_roR[ NoR] + eq*ipt_param_intR[ NoR ][ NDIMDX ];
          vectOfDnrFields[eq] = ipt_roD[ NoD] + eq*ipt_param_intR[ NoD ][ NDIMDX ];
         }
-         imd= ipt_param_intR[ NoD ][ NIJK ]; jmd= ipt_param_intR[ NoD ][ NIJK+1];
+        imd= ipt_param_intR[ NoD ][ NIJK ]; jmd= ipt_param_intR[ NoD ][ NIJK+1];
       }
 
       imdjmd = imd*jmd;
@@ -1176,7 +1177,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
           // ibc    
           if (ibc == 1)
           {
-            E_Int nvars = vectOfDnrFields.size();
+            //E_Int nvars = vectOfDnrFields.size();
 
             Pr    = ipt_param_realR[ NoR ][ PRANDT ];
             Ts    = ipt_param_realR[ NoR ][ TEMP0 ];

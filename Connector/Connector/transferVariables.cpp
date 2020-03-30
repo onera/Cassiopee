@@ -227,7 +227,6 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
         RELEASEDATA;
         return NULL;
       }
-      K_INTERP::InterpAdt* adt;
       interpData = (K_INTERP::InterpAdt*)(packet[1]);
     }
   }
@@ -312,7 +311,7 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
 
   char* varStringOut = new char[lenVarString];
 
-  for (size_t nov = 0; nov < nvars; nov++)
+  for (E_Int nov = 0; nov < nvars; nov++)
   {
     char*& varname = listOfVars[nov];
     if (nov > 0) 

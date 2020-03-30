@@ -119,8 +119,8 @@ PyObject* K_CONNECTOR::_setInterpTransfersD( PyObject* self, PyObject* args )
     }
 
     vector< PyArrayObject* > hook;
-    E_Int imdjmd, imd, jmd, kmd, cnNfldD, nvars, ndimdxR, ndimdxD, meshtype;
-    E_Float * iptroD, *iptroR;
+    E_Int imdjmd, imd, jmd, kmd, cnNfldD, nvars, ndimdxD, meshtype;
+    E_Float * iptroD;
     E_Int poscd = -1;
     E_Int posvd, posvarcd=-1;
 
@@ -347,7 +347,7 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
 
     // E_Int kmd, cnNfldD, nvars,ndimdxR, ndimdxD,meshtype;
     E_Int   kmd, cnNfldD, nvars, ndimdxD, meshtype;
-    E_Float* iptroD;
+    //E_Float* iptroD;
 
     if     ( vartype <= 3 &&  vartype >= 1) nvars =5;
     else if( vartype == 4 ) nvars =27;    // on majore pour la LBM, car nvar sert uniquememnt a dimensionner taille vector
@@ -594,7 +594,7 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
         E_Int Nbre_thread_actif = 1;
 #endif
 
-        E_Int indR, type;
+        E_Int type;
         E_Int indD0, indD, i, j, k, ncfLoc, indCoef, noi, sizecoefs, imd, jmd, imdjmd;
 
         vector< E_Float* > vectOfRcvFields( nvars );
@@ -737,7 +737,7 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
                         noi     = shiftDonor;  // compteur sur le tableau d indices donneur
                         indCoef = ( pt_deb - ideb ) * sizecoefs + shiftCoef;
 
-                        E_Int NoR = ipt_param_int[shift_rac + nrac * 11 + 1];
+                        //E_Int NoR = ipt_param_int[shift_rac + nrac * 11 + 1];
 
                         //if (ipt_param_int[ech]==0) printf("No rac= %d , NoR= %d, NoD= %d, Ntype= %d, ptdeb= %d, ptfin= %d, NptD= %d, neq= %d, skip= %d, rank= %d, dest= %d,  thread= %d\n",
                         //irac, NoR,NoD, ntype[ 1 + ndtyp],pt_deb,pt_fin , 
@@ -763,7 +763,7 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
                         // ibc
                         if (ibc == 1) 
                         {
-                            E_Int nvars = vectOfDnrFields.size();
+                            //E_Int nvars = vectOfDnrFields.size();
 
                             Pr    = ipt_param_realD[ NoD ][ PRANDT ];
                             Ts    = ipt_param_realD[ NoD ][ TEMP0 ];

@@ -32,12 +32,13 @@ using namespace K_FLD;
 using namespace std;
 
 //=============================================================================
-// Cree la boucle glut dans une thread
+// Cree la boucle glut dans une thread. Cette fonction n'est plus
+// utilise car le threading est fait en python
 //=============================================================================
+/*
 static void* threadFunc(void* v)
 {
   Data* d = Data::getInstance();
-  /* Gfx setup */
   int argc = 0;
   char* com = NULL;
   glutInit(&argc, &com);
@@ -45,7 +46,7 @@ static void* threadFunc(void* v)
   glutMainLoop();
   return NULL;
 }
-
+*/
 //=============================================================================
 /* display arrays */
 //=============================================================================

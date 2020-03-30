@@ -132,7 +132,7 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
   E_Int nthreads = __NUMTHREADS__;
 
   E_Int nelts = cn.getNElts();
-  E_Int nfaces = cn.getNFaces();
+  //E_Int nfaces = cn.getNFaces();
   //printf("nelts=%d, nfaces=%d\n", nelts, nfaces);
   //printf("api=%d, ngon=%d\n", cn.getApi(), cn.isNGon());
   //printf("nfld=%d\n", cn.getNfld());

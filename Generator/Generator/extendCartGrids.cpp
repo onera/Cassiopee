@@ -217,7 +217,7 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
         }
       }// fin parcours de ts les elts intersectant 
       // fin test facette i = 1
-      faceimax2:;
+      //faceimax2:;
 
       /* facette BC ou i = imax */
       minB[0] = xt1[indB1]; minB[1] = yt1[indB1]; minB[2] = zt1[indB1];
@@ -288,7 +288,7 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
       }// fin parcours de ts les elts intersectant 
       // fin test facette i = imax      
 
-      facejmin2:;
+      //facejmin2:;
       /* facette AB ou i = 1 */
       s1 = (xmaxp[v1]-xminp[v1])/(nit[v1]-1);
       minB[0] = xt1[indA1]; minB[1] = yt1[indA1]; minB[2] = zt1[indA1];
@@ -358,7 +358,7 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
       }// fin parcours de ts les elts intersectant 
       // fin test facette i = 1
 
-      facejmax2:;      
+      //facejmax2:;      
       /* facette DC ou i = imax */
       minB[0] = xt1[indD1]; minB[1] = yt1[indD1]; minB[2] = zt1[indD1];
       maxB[0] = xt1[indC1]; maxB[1] = yt1[indC1]; maxB[2] = zt1[indC1];
@@ -426,7 +426,7 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
         }
       }// fin parcours de ts les elts intersectant 
       // fin test facette j = jmax      
-      end2:;
+      //end2:;
     }
   }
   else //( dim == 3 )
@@ -542,7 +542,7 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
       // fin test facette i = 1
 
       /* facette BCGF ou i = imax */
-      faceimax:;
+      //faceimax:;
       minB[0] = xt1[indB1]; minB[1] = yt1[indB1]; minB[2] = zt1[indB1];
       maxB[0] = xt1[indG1]; maxB[1] = yt1[indG1]; maxB[2] = zt1[indG1];
 

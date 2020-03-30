@@ -69,7 +69,7 @@ struct aPolygon : public K_MESH::Polygon
   }
 
   aPolygon(aPolygon&& rhs) :/* = default; rejected by old compiler intel (15)*/
-  parent_type(rhs), m_crd(std::move(rhs.m_crd)), m_nodes(std::move(rhs.m_nodes)), m_L2ref(rhs.m_L2ref)
+  parent_type(rhs), m_nodes(std::move(rhs.m_nodes)), m_crd(std::move(rhs.m_crd)), m_L2ref(rhs.m_L2ref)
   {
   }
 

@@ -68,7 +68,8 @@ PyObject* K_CONNECTOR::setIBCTransfersD(PyObject* self, PyObject* args)
   E_Int resd = K_ARRAY::getFromArray(arrayD, varStringD, fd, 
                                      imd, jmd, kmd, cnd, eltTypeD, true); 
   E_Int* ptrcnd = NULL;
-  E_Int cndSize = 0; E_Int cnNfldD = 0;
+  E_Int cndSize = 0; 
+  E_Int cnNfldD = 0;
   if (resd != 2 && resd != 1) 
   {
     PyErr_SetString(PyExc_TypeError,
@@ -339,14 +340,14 @@ PyObject* K_CONNECTOR::_setIBCTransfersD(PyObject* self, PyObject* args)
   E_Int varType = E_Int(vartype); // 1:conservatives, 2:(ro,u,v,w,t), 3:(ro,u,v,w,p)
 
   vector<PyArrayObject*> hook;
-  E_Int imdjmd, imd,jmd,kmd, cnNfldD, nvars,ndimdxR, ndimdxD,meshtype;
-  E_Float* iptroD; E_Float* iptroR; 
+  E_Int imdjmd, imd,jmd,kmd, cnNfldD, nvars, ndimdxD, meshtype;
+  E_Float* iptroD=NULL; 
 
 # include "extract_interpD.h"
 # include "IBC/extract_IBC.h"
 
   vector<E_Float*> fieldsD; vector<E_Int> posvarsD; 
-  E_Int* ptrcnd;
+  E_Int* ptrcnd=NULL;
   char* eltTypeD=NULL; char* varStringD=NULL;
   char* varStringOut = new char[K_ARRAY::VARSTRINGLENGTH];
 
@@ -360,10 +361,10 @@ PyObject* K_CONNECTOR::_setIBCTransfersD(PyObject* self, PyObject* args)
      vector<E_Int> locsD;
      vector<E_Int*> cnd;
      E_Int resd = K_PYTREE::getFromZone(zoneD, 0, 0, varStringD,
-                                       fieldsD, locsD, imd, jmd, kmd,
-                                       cnd, cnSizeD, cnNfldD, 
-                                       eltTypeD, hook,
-                                       GridCoordinates, 
+                                        fieldsD, locsD, imd, jmd, kmd,
+                                        cnd, cnSizeD, cnNfldD, 
+                                        eltTypeD, hook,
+                                        GridCoordinates, 
                                         FlowSolutionNodes, FlowSolutionCenters);
      if (cnd.size() > 0) ptrcnd = cnd[0];
      meshtype = resd; // 1: structure, 2: non structure
@@ -451,14 +452,14 @@ PyObject* K_CONNECTOR::_setIBCTransfersD(PyObject* self, PyObject* args)
 ////  
 
      // tableau temporaire pour utiliser la routine commune setIBCTransfersCommon
-     FldArrayI rcvPtsI(nbRcvPts); E_Int*  rcvPts = rcvPtsI.begin();
+     FldArrayI rcvPtsI(nbRcvPts); E_Int* rcvPts = rcvPtsI.begin();
 #    include "commonInterpTransfers_direct.h"
   
     E_Int threadmax_sdm  = __NUMTHREADS__;
 
     E_Int size = (nbRcvPts/threadmax_sdm)+1; // on prend du gras pour gerer le residus
           size = size + size % 8;            // on rajoute du bas pour alignememnt 64bits
-    if (bctype <=1 ) size = 0;               // tableau inutile
+    if (bctype <= 1) size = 0;               // tableau inutile
 
     FldArrayF  tmp(size*16*threadmax_sdm);
     E_Float* ipt_tmp = tmp.begin();
