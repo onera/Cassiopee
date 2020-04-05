@@ -122,6 +122,13 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
     ret = K_IO::GenIO::getInstance()->v3dread(fileName, varString, 
                                               im, jm, km, field, zoneNames);
   }
+  else if (K_STRING::cmp(fileFmt, "bin_vtk") == 0)
+  {
+    // Binary vtk (legacy) read
+    ret = K_IO::GenIO::getInstance()->binvtkread(fileName, varString, field, 
+                                                 im, jm, km, 
+                                                 ufield, c, et, zoneNames);
+  }
   else if (K_STRING::cmp(fileFmt, "fmt_plot3d") == 0)
   {
     // Formatted plot3d read
@@ -800,6 +807,7 @@ E_Int K_CONVERTER::checkRecognisedFormat(char* fileFmt)
       K_STRING::cmp(fileFmt, "bin_tp") == 0 ||
       K_STRING::cmp(fileFmt, "fmt_v3d") == 0 ||
       K_STRING::cmp(fileFmt, "bin_v3d") == 0 ||
+      K_STRING::cmp(fileFmt, "bin_vtk") == 0 ||
       K_STRING::cmp(fileFmt, "fmt_plot3d") == 0 ||
       K_STRING::cmp(fileFmt, "bin_plot3d") == 0 ||
       K_STRING::cmp(fileFmt, "fmt_pov") == 0 ||

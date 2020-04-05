@@ -3819,6 +3819,27 @@ def _adaptNFace2Index(t):
                     createUniqueChild(NFACE, 'ElementIndex', 'DataArray_t', value=pos)
     return None
 
+# -- Adapte un NGon2 en NGon1
+def adaptNGon22NGon1(t):
+    tp = copyRef(t)
+    _adaptNGon22NGon1(tp)
+    return tp
+    
+def _adaptNGon22NGon1(t):
+    zones = getZones(t)
+    for z in zones:
+        cn = getElementNodes(z)
+        for c in cn:
+            # NGON ou NFACE
+            if c[1][0] == 22 or c[1][0] == 23: 
+                off = getNodeFromName1(c, 'ElementStartOffset')
+                cn = getNodeFromName1(c, 'ElementConnectivity')
+                if off is not None and cn is not None:
+                    n = converter.adaptNGon22NGon1(cn[1], off[1])
+                    cn[1] = n
+                    _rmNodesFromName(c, 'ElementStartOffset')
+    return None
+
 # -- Adapte une condition aux limites definies par faces en conditions aux
 # limites definies avec une BCC
 def adaptBCFace2BCC(t, remove=True):
@@ -4133,6 +4154,7 @@ def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
                             shiftn = shift1[zdonorname][ref][0]-shift0[zdonorname][ref][0]
                             pln[:] += shiftn
                             pld[1] = pln.reshape((1, pln.size))
+    _adaptNGon22NGon1(t)
     return None
 
 #==============================================================================

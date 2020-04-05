@@ -128,6 +128,7 @@ static PyMethodDef Pyconverter [] =
   {"adaptNGon2Index", K_CONVERTER::adaptNGon2Index, METH_VARARGS},
   {"adaptNFace2Index", K_CONVERTER::adaptNFace2Index, METH_VARARGS},
   {"adaptBCFace2BCC", K_CONVERTER::adaptBCFace2BCC, METH_VARARGS},
+  {"adaptNGon22NGon1", K_CONVERTER::adaptNGon22NGon1, METH_VARARGS},
   {"adapt2FastP", K_CONVERTER::adapt2FastP, METH_VARARGS},
   {"createElsaHybrid", K_CONVERTER::createElsaHybrid, METH_VARARGS},
   {"diffIndex", K_CONVERTER::diffIndex, METH_VARARGS},

@@ -499,6 +499,7 @@ def convertExt2Format__(fileName):
     elif extension == '.dat' or extension == '.tp': format = 'fmt_tp'
     elif extension == '.v3d': format = 'bin_v3d'
     elif extension == '.fv3d': format = 'fmt_v3d'
+    elif extension == '.vtk': format = 'bin_vtk'
     elif extension == '.mesh': format = 'fmt_mesh'
     elif extension == '.msh': format = 'fmt_gmsh'
     elif extension == '.stl': format = 'fmt_stl'
@@ -609,7 +610,7 @@ def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
                return  converter.convertFile2Arrays(fileName, format, nptsCurve, nptsLine, density, zoneNames, BCFaces)
             except:   
                 FORMATS = ['bin_ply', 'fmt_tp', 'fmt_v3d',
-                'bin_tp', 'bin_v3d', 'fmt_mesh',
+                'bin_tp', 'bin_v3d', 'bin_vtk', 'fmt_mesh',
                 'fmt_gmsh', 'bin_gmsh', 'fmt_stl', 
                 'bin_stl', 'bin_gltf',
                 'fmt_xfig', 'fmt_svg', 'bin_3ds',

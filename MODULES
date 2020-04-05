@@ -2,4 +2,4 @@ FREEMODULES='KCore XCore Converter Geom Transform Generator Post Initiator Conne
 export FREEMODULES
 FULLMODULES=$FREEMODULES''
 export FULLMODULES
-OTHERS='OCC etc Turbo'
+OTHERS='OCC'

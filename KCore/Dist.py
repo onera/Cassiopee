@@ -1160,6 +1160,8 @@ def checkOSMesa(additionalLibPaths=[], additionalIncludePaths=[]):
 # Retourne: (True/False, chemin des includes, chemin de la librairie)
 #=============================================================================
 def checkOCE(additionalLibPaths=[], additionalIncludePaths=[]):
+    #print("INFO: dependance to OCE STUBED.")
+    #return (False, None, None)
     l = checkLibFile__('libTKernel.so', additionalLibPaths)
     if l is None:
         l = checkLibFile__('libTKernel.a', additionalLibPaths)
@@ -1186,6 +1188,8 @@ def checkOCE(additionalLibPaths=[], additionalIncludePaths=[]):
 # Retourne: (True/False, chemin des includes, chemin de la librairie)
 #=============================================================================
 def checkPng(additionalLibPaths=[], additionalIncludePaths=[]):
+    #print("INFO: dependance to PNG STUBED.")
+    #return (False, None, None)
     l = checkLibFile__('libpng.so', additionalLibPaths)
     if l is None:
         l = checkLibFile__('libpng.a', additionalLibPaths)
@@ -1258,6 +1262,8 @@ def checkAdf(additionalLibPaths=[], additionalIncludePaths=[]):
 # liste des noms des libs)
 #=============================================================================
 def checkHdf(additionalLibPaths=[], additionalIncludePaths=[]):
+    #print("INFO: dependance to HDF STUBED.")
+    #return (False, None, None, None)
     libnames = []
     l = checkLibFile__('libhdf5.so', additionalLibPaths)
     if l is not None : libnames.append('hdf5')
@@ -1290,6 +1296,8 @@ def checkHdf(additionalLibPaths=[], additionalIncludePaths=[]):
 # Retourne: (True/False, chemin des includes, chemin de la librairie, nom des libs)
 #=============================================================================
 def checkMpi(additionalLibPaths=[], additionalIncludePaths=[]):
+    #print("INFO: dependance to MPI STUBED.")
+    #return (False, None, None, None)
     libnames = []
     l = checkLibFile__('libmpi.so', additionalLibPaths)
     if l is not None: libnames.append('mpi')

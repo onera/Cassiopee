@@ -35,8 +35,10 @@ installPath = Dist.getInstallPath(prefix)
                                                    additionalIncludePaths)
 
 if OCEPresent:
+        # Utilise la version installe dans le systeme
         OCCIncDir = OCEIncDir
 else:
+        # Utilise la version installee dans OCC
         # Hack: To make a full path name for the OCC include dir (the relative path to build/... doesn't contain everything, e.g fff is not copied
         import KCore.installPath
         OCCIncDir = KCore.installPath.includePath
@@ -73,9 +75,7 @@ ELSAPROD = os.environ.get('ELSAPROD', 'x86_r8')
 env.SConsignFile('build/'+ELSAPROD+'/.sconsign.dblite')
 
 #==============================================================================
-
 occ_cassiopee = env.StaticLibrary('occ_cassiopee', srcs.srcs)
-
 modDir = installPath+'/OCC/'
 allLibs = []; allDeps = []
 for m in srcs.allMods:

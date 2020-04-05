@@ -48,7 +48,8 @@ E_Int K_IO::GenIO::hdfcgnswrite(char* file, PyObject* tree, PyObject* links)
 
 //=============================================================================
 PyObject* K_IO::GenIO::hdfcgnsReadFromPaths(char* file, PyObject* paths,
-                                            E_Int maxFloatSize, E_Int maxDepth, 
+                                            E_Int maxFloatSize, E_Int maxDepth,
+                                            PyObject* dataShape,
                                             PyObject* skipTypes, PyObject* mpi4pyCom)
 { 
   printf("Error: Converter has been installed without CGNS/HDF support.\n");
