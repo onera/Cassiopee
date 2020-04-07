@@ -3,6 +3,7 @@ import Generator.PyTree as G
 import Transform.PyTree as T
 import Converter.PyTree as C
 import Converter.Filter as Filter
+import KCore.test as test
 
 # Ecrit la zone en entier
 t = C.newPyTree(['Base'])
@@ -23,5 +24,8 @@ DataSpaceGLOB = [[10,10,10]]
 f = {}
 f['/Base/cart/GridCoordinates/CoordinateX'] = DataSpaceMMRY+DataSpaceFILE+DataSpaceGLOB
 
-# skelData != None since node already exists
+# skelData != None car le noeud existe deja
 Filter.writePyTreeFromFilter(t, 'out.hdf', f, skelData=[])
+
+r = C.convertFile2PyTree('out.hdf')
+test.testT(r, 1)

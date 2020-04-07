@@ -42,9 +42,13 @@ public:
     delete [] _x; delete [] _y; delete [] _z; };
   
 public:
+  // IN: Numero absolu + temps permette de reperer un bloc de facon unique
   // numero absolu du sous domaine
   unsigned int _nd;
-  // numero du domaine utilisateur
+  // temps
+  double _temps;
+  
+  // numero du domaine utilisateur auquel ce bloc appartient
   unsigned int _numutil;
   // nom du du domaine
   char _nom[256];
@@ -56,8 +60,6 @@ public:
   int _num_mel;
   // numero du groupe
   int _num_grp;
-  // temps
-  double _temps;
   // nombre de sommets
   int _nsom;
   // nombre de faces
@@ -108,6 +110,7 @@ public:
   };
 
 // Verifie si le domaine nd existe dans meshes, sinon le cree
+// il faudrait aussi pouvoir utiliser le temps
 mesh* checkMesh(int nd, std::map<unsigned int, mesh*>& meshes)
 {
   std::map<unsigned int,mesh*>::iterator it;
@@ -286,13 +289,14 @@ void readStructure(FILE* ptrFile, std::map<unsigned int, mesh*>& meshes)
   while ((c = fgetc(ptrFile)) != '\0')
   { m->_nom[i] = c; i++; }
   m->_nom[i] = '\0';
+  // type=0 (structure), type=1 (mixte), type=2 (elements finis), type=3 (particules)
   fread(&m->_type, sizeof(unsigned char), 1, ptrFile); 
   fread(&m->_situ, sizeof(unsigned char), 1, ptrFile); 
   fread(&m->_num_mel, sizeof(int), 1, ptrFile); m->_num_mel = IBE(m->_num_mel);
   fread(&m->_num_grp, sizeof(int), 1, ptrFile); m->_num_grp = IBE(m->_num_grp);
-  printf("Structure: %u %u\n", nd, m->_numutil);
-  printf("nom dom: %s\n", m->_nom);
-  printf("type : %u, situ = %u\n", m->_type, m->_situ);
+  printf("Structure: nd=%u numutil=%u\n", nd, m->_numutil);
+  printf("nom dom=%s\n", m->_nom);
+  printf("type=%u, situ=%u\n", m->_type, m->_situ);
 }
 
 void readDomutil(FILE* ptrFile, unsigned int& numUti, char* nomUti)
@@ -373,7 +377,7 @@ void readConnexion(FILE* ptrFile, std::map<unsigned int, mesh*>& meshes)
   for (E_Int i = 0; i < size; i++) m->_numpoints[i] = UIBE(m->_numpoints[i]);
 }
 
-// Lit un maillage structure
+// Lit un maillage structure (type=0 ou type=1)
 void readMaillage0(FILE* ptrFile, mesh* m)
 {
   fread(&m->_temps, sizeof(double), 1, ptrFile); m->_temps = DBE(m->_temps);
@@ -420,13 +424,14 @@ void readMaillage0(FILE* ptrFile, mesh* m)
   for (E_Int i=0; i < m->_imax*m->_jmax*m->_kmax; i++) m->_z[i] = DBE(m->_z[i]); 
 }
 
-// Lit un maillage non structure
+// Lit un maillage non structure (type=2 ou type=3)
 void readMaillage1(FILE* ptrFile, mesh* m)
 {
   fread(&m->_temps, sizeof(double), 1, ptrFile); m->_temps = DBE(m->_temps);
+  printf("temps=%f\n", m->_temps);
   fread(&m->_elmin, sizeof(unsigned short), 1, ptrFile); 
   fread(&m->_nelem, sizeof(unsigned short), 1, ptrFile);
-  fread(&m->_comp_x, sizeof(unsigned short), 1, ptrFile); 
+  fread(&m->_comp_x, sizeof(unsigned short), 1, ptrFile);
   if (m->_comp_x != 0)
   {
     fread(&m->_vmin_x, sizeof(double), 1, ptrFile); m->_vmin_x = DBE(m->_vmin_x);
@@ -473,8 +478,8 @@ void readMaillage(FILE* ptrFile, std::map<unsigned int, mesh*>& meshes)
   unsigned int nd;
   fread(&nd, sizeof(unsigned int), 1, ptrFile); nd = UIBE(nd);
   mesh* m = checkMesh(nd, meshes);
-  printf("reading type %d for mesh %d\n", m->_type, nd);
-  if (m->_type == 0) readMaillage0(ptrFile, m);
+  printf("reading type=%d for mesh no %d\n", m->_type, nd);
+  if (m->_type == 0 || m->_type == 1) readMaillage0(ptrFile, m);
   else readMaillage1(ptrFile, m);
 }
 

@@ -76,11 +76,11 @@ PyObject* octree(PyObject* self, PyObject* args)
   E_Float __DFARTOL__ = -0.5;// dfar=-1 par defaut = pas pris en compte
   PyObject* stlArrays; PyObject* listOfSnears;
   PyObject* listOfDfars;
-  E_Float dfar; E_Int levelMax;
+  E_Float dfar; E_Int levelMax; E_Int dfarDir;
   PyObject* octant;
-  if (!PYPARSETUPLE(args, "OOOdlO", "OOOdiO", "OOOflO", "OOOfiO",
+  if (!PYPARSETUPLE(args, "OOOdlOl", "OOOdiOi", "OOOflOl", "OOOfiOi",
                     &stlArrays, &listOfSnears, &listOfDfars,
-                    &dfar, &levelMax, &octant)) return NULL;
+                    &dfar, &levelMax, &octant, &dfarDir)) return NULL;
   
   if (PyList_Size(stlArrays) == 0)
   {
@@ -239,7 +239,7 @@ PyObject* octree(PyObject* self, PyObject* args)
     else snears[i] = PyFloat_AsDouble(tpl);
   }
   
-  typedef K_SEARCH::BoundingBox<3>  BBox3DType;
+  typedef K_SEARCH::BoundingBox<3> BBox3DType;
   vector<K_SEARCH::BbTree3D*> bboxtrees(nzones);
   vector< vector<BBox3DType*> > vectOfBBoxes;// pour etre detruit a la fin
   E_Float minB[3]; E_Float maxB[3];
@@ -290,7 +290,7 @@ PyObject* octree(PyObject* self, PyObject* args)
   // calcul du dfar reel a partir de la bbox des bbox
   E_Float xmino, ymino, zmino, xmaxo, ymaxo, zmaxo;
   E_Float xc, yc, zc, Delta, Deltax, Deltay, Deltaz;
-  if (ndfars == 0)// starts from the global dfar
+  if (ndfars == 0) // starts from the global dfar
   {
     E_Float dfxm = dfar; E_Float dfym = dfar; E_Float dfzm = dfar;
     E_Float dfxp = dfar; E_Float dfyp = dfar; E_Float dfzp = dfar;  
@@ -324,7 +324,7 @@ PyObject* octree(PyObject* self, PyObject* args)
     xmino = xc-Delta; ymino = yc-Delta; if (dim == 3) zmino = zc-Delta;
     xmaxo = xc+Delta; ymaxo = yc+Delta; if (dim == 3) zmaxo = zc+Delta;
   }
-  else// if (ndfars > 0)// local dfar
+  else // if (ndfars > 0)// local dfar
   {
     // calcul de la bbox etendue de dfar local pour ttes les surfaces sauf celles tq dfarloc=-1
     xmino = K_CONST::E_MAX_FLOAT; xmaxo =-K_CONST::E_MAX_FLOAT;
@@ -373,14 +373,22 @@ PyObject* octree(PyObject* self, PyObject* args)
   }// list of dfars
 
   // Nous rendons cubique la boite finale
-  E_Float d = K_FUNC::E_max(xmaxo-xmino,ymaxo-ymino);
+  E_Float d = 0.;
+  if (dfarDir == 0) // impose dfar max
+    d = K_FUNC::E_max(xmaxo-xmino,ymaxo-ymino);
+  else if (dfarDir == 1)
+    d = xmaxo-xmino;
+  else if (dfarDir == 2)
+    d = ymaxo-ymino;
+  else if (dfarDir == 3)
+    d = zmaxo-zmino;
   if (dim == 3) d = K_FUNC::E_max(d, zmaxo-zmino);
   xc = 0.5*(xmino+xmaxo);
   yc = 0.5*(ymino+ymaxo);
   xmino = xc-0.5*d; ymino = yc-0.5*d;
   xmaxo = xc+0.5*d; ymaxo = yc+0.5*d;
   if (dim == 3) { zc = 0.5*(zmino+zmaxo); zmino = zc-0.5*d; zmaxo = zc+0.5*d; }
-
+    
   // construction de l'octree (octant)
   // si octant est present, ecrase xmino,...
   if (octant != Py_None && PyList_Check(octant) == true)

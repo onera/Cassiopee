@@ -184,10 +184,7 @@ E_Int K_IO::GenIO::binvtkread(
     return 1;
   }
 
-  E_Int sizeChar = sizeof(char);
-  E_Int sizeInt = sizeof(int);
-  E_Int sizeFloat = sizeof(double);
-  int type; E_Int i; char c;
+  E_Int i; char c;
 
   // Lecture de la version (jusqu'a newline)
   char buf[256];
@@ -403,7 +400,7 @@ E_Int K_IO::GenIO::binvtkread(
     }
 
     int* ptr = cells;
-    E_Int pNODE = 0; E_Int pBAR = 0; E_Int pPENTA = 0;
+    E_Int pBAR = 0; E_Int pPENTA = 0;
     E_Int pHEXA = 0; E_Int pTRI = 0; E_Int pQUAD = 0;
     E_Int pPYRA = 0; E_Int pTETRA = 0;
     for (E_Int i = 0; i < ncells; i++)
@@ -475,6 +472,14 @@ E_Int K_IO::GenIO::binvtkread(
   
   fclose(ptrFile);
 
+  // Cree le nom de zone
+  for (unsigned int i=0; i < unstructField.size(); i++)
+  {
+    char* zoneName = new char [128];
+    sprintf(zoneName, "Zone%d", i);
+    zoneNames.push_back(zoneName);
+  }
+  
   return 0;
 }
 

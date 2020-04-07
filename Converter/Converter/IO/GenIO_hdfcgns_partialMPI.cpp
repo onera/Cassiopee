@@ -652,7 +652,6 @@ E_Int K_IO::GenIO::hdfcgnsWritePathsPartial(char* file, PyObject* tree,
                                             PyObject* mpi4pyCom)
 {
   /* ***************************************************** */
-  /* Declaration */
   hid_t fapl, fid, ret/*, capl*/;
 
   PyObject   *key, *DataSpaceDIM;
@@ -1041,8 +1040,8 @@ hid_t K_IO::GenIOHdf::setArrayPartial(hid_t node, void* data, int idim, int* idi
     // printf("setArrayPartial Sequential Open \n");
     dataset = H5Dopen2(node, L3S_DATA, H5P_DEFAULT);
   }
-
 #endif
+  
   hid_t mid = H5Tget_native_type(tid, H5T_DIR_ASCEND);
   /* -------------------------------------------------------------- */
 
