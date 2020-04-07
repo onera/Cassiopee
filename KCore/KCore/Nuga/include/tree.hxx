@@ -19,9 +19,6 @@ using ngon_type = ngon_t<K_FLD::IntArray>;
 
 namespace NUGA
 {
-  enum eSUBDIV_TYPE { ISO = 0, DIR, ANISO};
-  enum eDIR { NONE=0, X, Y, XY, /*XZ, YZ*/XYZ};
-
 //
 template <typename array>
 class array_trait;
@@ -39,11 +36,10 @@ class tree
     Vector_t<bool>    _enabled; //sized as entities
     
   public:
-    explicit tree(ngon_unit & entities, E_Int nbc):_entities(&entities){ resize_hierarchy(entities.size());}
+    explicit tree(ngon_unit & entities, E_Int nbc/*dummy*/):_entities(&entities){ resize_hierarchy(entities.size());}
     
     void set_entities(ngon_unit& ngu) { _entities = &ngu ;}//relocate for hook
 
-    
     const Vector_t<E_Int>& level() const {return _level;}
         
     // to make sizes consistent : need to be called when refining the mesh
@@ -57,10 +53,10 @@ class tree
     
     void resize(const Vector_t<E_Int>& ids, E_Int stride) //storing fixed stride
     {
-      //first available local id : one passed-the-end before appending : important to get it before resizing _children
+      // first available local id : one passed-the-end before appending : important to get it before resizing _children
       E_Int locid = array_trait<children_array>::size(_children); // nb_child
       
-      // get the total nb of new entities after refining
+      // get the total nb of children to add
       E_Int nb_new_children = array_trait<children_array>::get_nb_new_children(*_entities, stride, ids);
       
       // expand the children array
@@ -97,7 +93,7 @@ class tree
         _indir[ids[i]] = locid++;
     }
 
-    inline E_Int size()
+    inline E_Int size() const
     {
       E_Int sz = _indir.size();
 
@@ -113,11 +109,9 @@ class tree
     
     inline void set_level(E_Int i /*zero based*/, E_Int level) {_level[i] = level;}
     
-    inline E_Int get_parent_size() {return (E_Int)_parent.size();}
+    inline E_Int parent(E_Int i /*zero based*/) const { return _parent[i];}
     
-    inline E_Int parent(E_Int i /*zero based*/){ return _parent[i];}
-    
-    void get_oids(std::vector<E_Int>& oids); //WAZRNING : NOT VALID AFTER CONFOMIZE
+    void get_oids(std::vector<E_Int>& oids) const ; //WARNING : NOT VALID AFTER CONFOMIZE
     
     
     //
@@ -136,6 +130,7 @@ class tree
       _enabled[i] = false;
     }
     
+    // set n random children ids
     void set_children(E_Int i/*zero based*/, const E_Int* childr, E_Int n){
      
       E_Int* there = children(i);
@@ -147,8 +142,21 @@ class tree
       
     }
 
+    // set n contiguous children id
+    void set_children(E_Int i/*zero based*/, E_Int firstChild, E_Int n) {
+
+      E_Int* there = children(i);
+      assert(there != NULL);
+
+      for (size_t c = 0; c < n; ++c)
+      {
+        *(there++) = firstChild + c;
+        _parent[firstChild + c] = i;
+      }
+    }
+
     //
-    E_Int nb_children(E_Int i /*zero based*/){
+    E_Int nb_children(E_Int i /*zero based*/) const {
       if (_indir[i] == E_IDX_NONE) return 0;
       return array_trait<children_array>::nb_children(_children, _indir[i]);}
     
@@ -165,41 +173,24 @@ class tree
     
     void enable(E_Int i /*zero based*/)
     {
-       agglomerate(i);
+       _enabled[i] = true;
        
        // disable its parent
        _enabled[parent(i)] = false;
+
+       // disable its children
+       E_Int nbc = nb_children(i);
+       const E_Int* childr = children(i);
+       for (E_Int n = 0; n < nbc; ++n)
+         _enabled[*(childr + n)] = false;
     }
-    
-    inline void agglomerate(E_Int i /*zero based*/)
-    {
-      _enabled[i] = true;
-       
-     // disable its children
-     E_Int nbc = nb_children(i);
-     const E_Int* childr = children(i);
-     for (E_Int n = 0; n < nbc; ++n) 
-       _enabled[*(childr+n)] = false;
-    }
-    
-    inline bool is_enabled(E_Int i /*zero based*/){ return _enabled[i];}
-    
-    void disable_one_elt(E_Int i /*zero based*/)
-    {
-      _enabled[i] = false;
-    }
-    
-    void enable_one_elt(E_Int i /*zero based*/)
-    {
-      _enabled[i] = true;
-    }
-    
-    
+      
+    inline bool is_enabled(E_Int i /*zero based*/) const { return _enabled[i];}
 };
 
 /// WARNING : true while the tree is alive (NOT AFTER CONFORMIZE))
 template <typename children_array>
-void tree<children_array>::get_oids(std::vector<E_Int>& oids)
+void tree<children_array>::get_oids(std::vector<E_Int>& oids) const
 {
   E_Int nb_ents(_parent.size());
   

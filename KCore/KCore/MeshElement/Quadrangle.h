@@ -22,6 +22,7 @@
 
 #include "Def/DefTypes.h"
 #include "Fld/DynArray.h"
+#include "MeshElement/Edge.h"
 
 namespace K_MESH
 {
@@ -29,6 +30,8 @@ namespace K_MESH
   class Quadrangle
   {
   public:
+
+    using nob_t = K_MESH::NO_Edge;
     
     static const E_Int NB_NODES;
     static const E_Int NB_TRIS;
@@ -36,8 +39,8 @@ namespace K_MESH
     Quadrangle(){};
     
     template <typename NodeIterator>
-    explicit Quadrangle(const NodeIterator pN)
-    {_nodes[0] = *pN; _nodes[1] = *(pN+1); _nodes[2] = *(pN+2); _nodes[3] = *(pN+3);}
+    explicit Quadrangle(const NodeIterator pN, E_Int idx_start = 0)
+    {_nodes[0] = *pN - idx_start; _nodes[1] = *(pN+1) - idx_start; _nodes[2] = *(pN+2) - idx_start; _nodes[3] = *(pN+3) - idx_start;}
 
     void setNodes(E_Int n0, E_Int n1, E_Int n2, E_Int n3){_nodes[0]=n0;_nodes[1]=n1;_nodes[2]=n2;_nodes[3]=n3;}
     //void setNodes(E_Int* nodes){for (size_t i = 0; i< 4; ++i)_nodes[i]=*(nodes++);}

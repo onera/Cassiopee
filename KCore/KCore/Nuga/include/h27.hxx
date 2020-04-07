@@ -17,8 +17,17 @@ namespace NUGA
   {
   public:
     template <typename crd_t>
-    static void splitH27(crd_t& crd, E_Int* INT, E_Int* BOT, E_Int* TOP, E_Int* LEFT, E_Int* RIGHT, E_Int* FRONT, E_Int* BACK, E_Int* h271, E_Int* h272, E_Int* h273, E_Int* h274, E_Int* h275, E_Int* h276, E_Int* h277, E_Int* h278)
+    static void splitH27(crd_t& crd, ngon_unit& PHs, E_Int* INT, E_Int* BOT, E_Int* TOP, E_Int* LEFT, E_Int* RIGHT, E_Int* FRONT, E_Int* BACK, E_Int firstPHchild)
     {
+      E_Int* h271 = PHs.get_facets_ptr(firstPHchild);
+      E_Int* h272 = PHs.get_facets_ptr(firstPHchild + 1);
+      E_Int* h273 = PHs.get_facets_ptr(firstPHchild + 2);
+      E_Int* h274 = PHs.get_facets_ptr(firstPHchild + 3);
+      E_Int* h275 = PHs.get_facets_ptr(firstPHchild + 4);
+      E_Int* h276 = PHs.get_facets_ptr(firstPHchild + 5);
+      E_Int* h277 = PHs.get_facets_ptr(firstPHchild + 6);
+      E_Int* h278 = PHs.get_facets_ptr(firstPHchild + 7);
+
       h271[0] = BOT[0]+1; h271[1] = INT[4]+1; h271[2] = LEFT[0]+1; h271[3] = INT[8]+1; h271[4] = FRONT[1]+1; h271[5] = INT[1]+1;
       h272[0] = BOT[1]+1; h272[1] = INT[5]+1; h272[2] = INT[8]+1; h272[3] = RIGHT[0]+1; h272[4] = FRONT[0]+1; h272[5] = INT[0]+1;
       h273[0] = BOT[2]+1; h273[1] = INT[6]+1; h273[2] = INT[9]+1; h273[3] = RIGHT[1]+1; h273[4] = INT[0]+1; h273[5] = BACK[0]+1;

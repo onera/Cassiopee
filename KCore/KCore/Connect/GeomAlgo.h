@@ -25,9 +25,6 @@
 #include "MeshElement/Edge.h"
 #include "Nuga/include/macros.h"
 
-#define Vector_t std::vector
-
-
 namespace K_CONNECT {
 
 template <typename ElementType>

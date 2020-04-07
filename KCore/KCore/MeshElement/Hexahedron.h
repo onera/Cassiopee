@@ -47,6 +47,9 @@ public:
   template <typename ngunit_t>
   Hexahedron(const ngunit_t & PGs, const E_Int* first_pg){}
 
+  template <typename ngunit_t>
+  static bool isOfType(const ngunit_t & PGs, const E_Int* first_pg, E_Int nb_pgs) { return K_MESH::Polyhedron<0>::is_HX8(PGs, first_pg, nb_pgs); }
+
   E_Int* nodes() { return _nodes;}
   const E_Int* nodes() const { return _nodes;}
   
@@ -153,6 +156,8 @@ public:
   template <typename ngunit_t>
   static inline void iso_barycenter(const K_FLD::FloatArray& crd, const ngunit_t & PGs, const E_Int* first_pg, E_Int nb_pgs, E_Int index_start, E_Float* G);
   
+  static inline void iso_barycenter(const K_FLD::FloatArray& crd, const E_Int* nodes, E_Int nb_nodes, E_Int idx_start, E_Float* G);
+
   E_Float quality(const K_FLD::FloatArray& crd, E_Float* Vol){return 1;}
 
 private:
@@ -277,6 +282,11 @@ void Hexahedron::iso_barycenter(const CoordAcc& coord, E_Float* G)
     }
     
     K_MESH::Polyhedron<STAR_SHAPED>::iso_barycenter(crd, new_bary, 8, 1, G);
+  }
+
+  inline void Hexahedron::iso_barycenter(const K_FLD::FloatArray& crd, const E_Int* nodes, E_Int nb_nodes, E_Int idx_start, E_Float* G)
+  {
+    K_MESH::Polyhedron<STAR_SHAPED>::iso_barycenter(crd, nodes, 8, idx_start, G);
   }
   
   ///

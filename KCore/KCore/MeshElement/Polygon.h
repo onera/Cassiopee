@@ -168,6 +168,8 @@ public:
   template <typename CoordAcc, E_Int DIM>
   static inline void iso_barycenter(const CoordAcc& crd, const E_Int* nodes, E_Int nb_nodes, E_Int index_start, E_Float* G);
 
+  static inline void iso_barycenter(const K_FLD::FloatArray& crd, const E_Int* nodes, E_Int nb_nodes, E_Int index_start, E_Float* G);
+
   // Center of gravity using the topology (weighted with triangles area)
   template <E_Int DIM>
   static inline void centroid(const K_FLD::FloatArray& crd, const E_Int* nodes, E_Int nb_nodes, E_Int index_start, E_Float* G);
@@ -528,6 +530,11 @@ void Polygon::iso_barycenter<K_FLD::FloatArray, 3>(const K_FLD::FloatArray& coor
   G[0] *= k;
   G[1] *= k;
   G[2] *= k;
+}
+
+void Polygon::iso_barycenter(const K_FLD::FloatArray& crd, const E_Int* nodes, E_Int nb_nodes, E_Int index_start, E_Float* G)
+{
+  K_MESH::Polygon::iso_barycenter<K_FLD::FloatArray, 3>(crd, nodes, nb_nodes, index_start, G);
 }
 
 ///

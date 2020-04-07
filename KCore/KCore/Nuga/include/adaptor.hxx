@@ -21,9 +21,7 @@ template <typename mesh_t, typename sensor_t>
 class adaptor
 {
   public:
-    
-    using output_type = typename mesh_t::output_type;
-  
+      
     static E_Int run(mesh_t& hmesh, sensor_t& sensor, bool do_agglo = false);
   
 };
@@ -37,7 +35,7 @@ E_Int NUGA::adaptor<mesh_t, sensor_t>::run(mesh_t& hmesh, sensor_t& sensor, bool
 
   E_Int err(0);
   
-  output_type adap_incr;
+  typename mesh_t::sensor_output_t adap_incr;
 
   hmesh.init();  
 
@@ -69,7 +67,8 @@ E_Int NUGA::adaptor<mesh_t, sensor_t>::run(mesh_t& hmesh, sensor_t& sensor, bool
 #endif
 
     err = hmesh.adapt(adap_incr, do_agglo);
-    sensor.redistrib_data(); 
+
+    sensor.update(); 
 
 #ifdef ADAPT_STEPS
     end0 = std::chrono::system_clock::now();

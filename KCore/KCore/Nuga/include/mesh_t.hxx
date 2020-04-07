@@ -216,14 +216,17 @@ struct mesh_t
   
   using trait = connect_trait<GEODIM, FIXSTRIDE>;
   template <bool USTRIDE> using bound_mesh_t = mesh_t<eGEODIM(GEODIM-1), USTRIDE>;
-  template <bool USTRIDE> using bound_trait = connect_trait<eGEODIM(GEODIM-1), USTRIDE>;
-  template <bool USTRIDE> using bound_elt_t = typename bound_mesh_t<USTRIDE>::elt_t;
+  template <bool USTRIDE> using bound_trait  = connect_trait<eGEODIM(GEODIM-1), USTRIDE>;
+  template <bool USTRIDE> using bound_elt_t  = typename bound_mesh_t<USTRIDE>::elt_t;
   
   static const E_Int BOUND_STRIDE = trait::BOUND_STRIDE; //cannot use directly it in above definitions (instead of USTRIDE) as it does a infinite recursion => avoid it delcaring template
-  static const E_Int index_start = trait::index_start;
+  static const E_Int index_start  = trait::index_start;
 
   using cnt_t = typename trait::cnt_t;
-  using elt_t = typename trait::elt_t; using aelt_t = typename trait::aelt_t;
+  
+  using elt_t = typename trait::elt_t;
+  using aelt_t = typename trait::aelt_t;
+  
   using loc_t = localizer<K_SEARCH::BbTree3D>;
   using neighbor_t = typename trait::neighbor_t;
   

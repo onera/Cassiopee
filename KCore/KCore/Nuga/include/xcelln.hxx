@@ -87,11 +87,9 @@ namespace NUGA
             //CLIPPING
             tmpbits.clear();
             if (!just_io)
-            {
               just_io = !NUGA::CLIP::compute(ae1, acut_front, parent_t::_RTOL, tmpbits); //robust_clip returns true if true clip
-            }
-
-            // IO
+ 
+            // IO : current bit does not intersect front.
             if (just_io)
               if (__classify(ae1, acut_front) == OUT) continue;
 

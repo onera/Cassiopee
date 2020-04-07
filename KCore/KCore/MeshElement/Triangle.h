@@ -41,6 +41,7 @@ namespace K_MESH
     typedef Edge                  self_type;
     typedef K_CONT_DEF::size_type size_type;
     typedef K_MESH::NO_Edge       boundary_type;
+    using nob_t = K_MESH::NO_Edge;
 
   public:
     static const size_type NB_NODES;

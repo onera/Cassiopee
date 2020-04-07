@@ -2052,6 +2052,17 @@ static bool is_PR6(const ngon_unit& PGs, const E_Int* firstPG, E_Int nb_pgs)
  
 }
 
+///
+static bool is_basic(const ngon_unit & PGs, const E_Int* faces, E_Int nb_faces)
+{
+  if (K_MESH::Polyhedron<0>::is_HX8(PGs, faces, nb_faces)) return true;
+  if (K_MESH::Polyhedron<0>::is_TH4(PGs, faces, nb_faces)) return true;
+  if (K_MESH::Polyhedron<0>::is_PR6(PGs, faces, nb_faces)) return true;
+  if (K_MESH::Polyhedron<0>::is_PY5(PGs, faces, nb_faces)) return true;
+
+  return false;
+}
+
  void compact(const K_FLD::FloatArray& crdi, ngon_unit& pgs, K_FLD::FloatArray&crd, std::vector<E_Int>* poids = nullptr) const
  {
    crd.clear();
