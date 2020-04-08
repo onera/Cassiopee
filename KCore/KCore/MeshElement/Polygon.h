@@ -35,7 +35,8 @@ namespace K_MESH
 class Polygon {
   
 public:
-  static const E_Int NB_NODES;
+  static constexpr E_Int NB_NODES = -1;
+
 public:
   typedef K_MESH::NO_Edge boundary_type;
   typedef K_FLD::ArrayAccessor<K_FLD::FloatArray> aDynCrd_t;

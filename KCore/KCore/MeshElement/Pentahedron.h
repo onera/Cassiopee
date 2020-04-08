@@ -29,9 +29,9 @@ namespace K_MESH
 class Pentahedron {
   
   public:
-    static const E_Int NB_NODES = 6;
-    static const E_Int NB_TRIS = 8;
-    static const E_Int NB_BOUNDS = 5;
+    static constexpr E_Int NB_NODES = 6;
+    static constexpr E_Int NB_TRIS = 8;
+    static constexpr E_Int NB_BOUNDS = 5;
       
   public:
     Pentahedron():_shift(0){}

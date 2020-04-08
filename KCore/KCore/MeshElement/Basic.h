@@ -29,7 +29,7 @@ namespace K_MESH
 
 class Basic {
 public: 
-    static const E_Int NB_BOUNDS=6;
+    static constexpr E_Int NB_BOUNDS=6;//fixme
 
     //
     template< typename ngo_t>

@@ -32,11 +32,11 @@ namespace K_MESH
 class Hexahedron {
   
 public:
-  static const E_Int NB_NODES;
-  static const E_Int NB_TRIS;
-  static const E_Int NB_BOUNDS;
-  static const E_Int NB_EDGES;
-  
+  static constexpr E_Int NB_NODES = 8;
+  static constexpr E_Int NB_TRIS = 12;
+  static constexpr E_Int NB_BOUNDS = 6;
+  static constexpr E_Int NB_EDGES = 12;
+ 
   typedef K_MESH::Quadrangle boundary_type;
     
 public:

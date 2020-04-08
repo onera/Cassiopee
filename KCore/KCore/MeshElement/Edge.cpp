@@ -21,8 +21,6 @@
 #include "Def/DefFunction.h"
 #include <math.h>
 
-const E_Int K_MESH::Edge::NB_NODES=2;
-
 //=============================================================================
 void
 K_MESH::Edge::getBoundary(const Edge& E1, const Edge& E2, boundary_type& b)

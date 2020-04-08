@@ -20,7 +20,7 @@ namespace K_MESH
 {
 class Prism {
 public:
-    static const E_Int NB_BOUNDS=5;
+    static constexpr E_Int NB_BOUNDS=5;
 
     Prism(){}
     Prism(const Prism& orig){}

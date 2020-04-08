@@ -24,9 +24,9 @@ namespace K_MESH
 class Pyramid {
 
   public:
-    static const E_Int NB_NODES = 5;
-    static const E_Int NB_TRIS = 6;
-    static const E_Int NB_BOUNDS = 5;
+    static constexpr E_Int NB_NODES = 5;
+    static constexpr E_Int NB_TRIS = 6;
+    static constexpr E_Int NB_BOUNDS = 5;
       
   public:
     Pyramid():_shift(0){}

@@ -33,8 +33,8 @@ namespace K_MESH
 
     using nob_t = K_MESH::NO_Edge;
     
-    static const E_Int NB_NODES;
-    static const E_Int NB_TRIS;
+    static constexpr E_Int NB_NODES = 4;
+    static constexpr E_Int NB_TRIS = 2;
     
     Quadrangle(){};
     

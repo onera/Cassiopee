@@ -24,12 +24,6 @@
 
 namespace K_MESH
 {
-  
-const E_Int Hexahedron::NB_NODES=8;
-const E_Int Hexahedron::NB_TRIS=12;
-const E_Int Hexahedron::NB_BOUNDS=6;
-const E_Int Hexahedron::NB_EDGES=12;
-
 void Hexahedron::triangulate(E_Int* target)
 {
   // WARNING: connectT3 is Apended (not cleared upon entry)

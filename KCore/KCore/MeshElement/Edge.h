@@ -40,7 +40,7 @@ public:
   typedef Edge          self_type;
 
 public:
-  static const E_Int NB_NODES;
+  static constexpr E_Int NB_NODES = 2;
 
 public: /* Constructors, Destructor and operators*/
 

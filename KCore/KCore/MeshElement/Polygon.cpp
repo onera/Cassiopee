@@ -25,8 +25,6 @@
 #include <vector>
 #define Vector_t std::vector
 
-const E_Int K_MESH::Polygon::NB_NODES = -1;
-
 #ifdef DEBUG_POLYGON
 #include "IO/DynArrayIO.h"
 #include <iostream>
