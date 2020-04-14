@@ -125,10 +125,9 @@ struct connect_trait<SURFACIC, false>
 
   template <typename ELT_t> static void add(K_FLD::FloatArray& crd, cnt_t& c, ELT_t const& e)
   {
-    E_Int shift = crd.cols();
+    E_Int shift = crd.cols() + index_start - e.shift();
     crd.pushBack(e.m_crd);
-    E_Int pos = c.size();
-    c.add(e.nb_nodes(), e.begin(), pos);
+    c.add(e.nb_nodes(), e.begin(), shift);
   }
   
   static void build_neighbors(const cnt_t& c, neighbor_t& neighbors)

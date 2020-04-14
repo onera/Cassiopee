@@ -25,6 +25,7 @@ struct aPolygon : public K_MESH::Polygon
   K_FLD::FloatArray    m_crd;
   E_Float              m_L2ref;
   mutable E_Float      m_normal[3];
+  mutable E_Float      m_centroid[3];
     
   aPolygon() = delete;
   aPolygon(const E_Int* nodes, E_Int nb_nodes, const K_FLD::FloatArray& crd) = delete; // from "mesh" to autonmous
@@ -39,10 +40,10 @@ struct aPolygon : public K_MESH::Polygon
     parent_type::_nodes = &m_nodes[0];
     _triangles = nullptr;
     parent_type::_shift = 0;
-    m_normal[0] = K_CONST::E_MAX_FLOAT;
+    m_normal[0] = m_centroid[0] = K_CONST::E_MAX_FLOAT;
   }
   
-  aPolygon(const parent_type& pg, const K_FLD::FloatArray& crd, E_Float L2r) :aPolygon(pg, crd) { m_L2ref = L2r; m_normal[0] = K_CONST::E_MAX_FLOAT; }
+  aPolygon(const parent_type& pg, const K_FLD::FloatArray& crd, E_Float L2r) :aPolygon(pg, crd) { m_L2ref = L2r; m_normal[0] = m_centroid[0] = K_CONST::E_MAX_FLOAT; }
 
   aPolygon(K_FLD::FloatArray && crd):parent_type(nullptr, 0), m_crd(std::move(crd))
   {
@@ -53,7 +54,7 @@ struct aPolygon : public K_MESH::Polygon
     parent_type::_nodes = &m_nodes[0];
     _triangles = nullptr;
     parent_type::_shift = 0;
-    m_normal[0] = K_CONST::E_MAX_FLOAT;
+    m_normal[0] = m_centroid[0] = K_CONST::E_MAX_FLOAT;
   }
     
   aPolygon& operator=(const parent_type& rhs) = delete;
@@ -72,6 +73,10 @@ struct aPolygon : public K_MESH::Polygon
     m_normal[1] = rhs.m_normal[1];
     m_normal[2] = rhs.m_normal[2];
 
+    m_centroid[0] = rhs.m_centroid[0];
+    m_centroid[1] = rhs.m_centroid[1];
+    m_centroid[2] = rhs.m_centroid[2];
+
     return *this;
   }
 
@@ -81,6 +86,10 @@ struct aPolygon : public K_MESH::Polygon
     m_normal[0] = rhs.m_normal[0];
     m_normal[1] = rhs.m_normal[1];
     m_normal[2] = rhs.m_normal[2];
+
+    m_centroid[0] = rhs.m_centroid[0];
+    m_centroid[1] = rhs.m_centroid[1];
+    m_centroid[2] = rhs.m_centroid[2];
   }
 
   aPolygon& operator=(aPolygon&& rhs)
@@ -97,6 +106,10 @@ struct aPolygon : public K_MESH::Polygon
     m_normal[0] = rhs.m_normal[0];
     m_normal[1] = rhs.m_normal[1];
     m_normal[2] = rhs.m_normal[2];
+
+    m_centroid[0] = rhs.m_centroid[0];
+    m_centroid[1] = rhs.m_centroid[1];
+    m_centroid[2] = rhs.m_centroid[2];
 
     rhs._nb_nodes = 0;
     rhs._shift = 0;
@@ -133,6 +146,12 @@ struct aPolygon : public K_MESH::Polygon
     if (m_normal[0] == K_CONST::E_MAX_FLOAT)
       normal<3>(m_normal);
     return m_normal;
+  }
+
+  const double* get_centroid() const {
+    if (m_centroid[0] == K_CONST::E_MAX_FLOAT)
+      parent_type::centroid<3>(m_crd, parent_type::_nodes, parent_type::_nb_nodes, parent_type::_shift, m_centroid);
+    return m_centroid;
   }
 
   double L2ref() const { return (m_L2ref > 0.) ? m_L2ref : parent_type::L2ref(m_crd);} // if passed by mesh_t, return it, otherwise compute it first

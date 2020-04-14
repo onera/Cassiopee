@@ -438,6 +438,8 @@ def _XcellNSurf(t, priorities, output_type=0, rtol=0.05):
 
   if output_type == 2: # output as ckipped NGON
     i=0
+    C._deleteFlowSolutions__(t)
+    bases = Internal.getBases(t)
     for b in bases:
       zones = Internal.getZones(b)
       for z in zones:

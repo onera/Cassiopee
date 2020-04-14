@@ -89,27 +89,30 @@ pyMOVLP_XcellNSurf<NUGA::xcellno<zmesh_t, bmesh_t>>
   ///
   NUGA::MOVLP_xcelln_zones<classifyer_t>(crds, cnts, comp_id, priority, mask_crds, mask_cnts, mask_wall_ids, xmesh, RTOL);
 
-  //std::cout << "ng of xcelln upon exit : " << xcelln.size() << std::endl;
   E_Int nb_zones = crds.size();
   for (E_Int i = 0; i < nb_zones; ++i)
   {
-    // pushing out the mesh
+    //std::cout << "ng of cells upon exit : " << xmesh[i].mesh.ncells() << std::endl;
+    //std::cout << "pushing out the mesh" << std::endl;
     // 1. ngon_unit => CASSIOPEE surface NGON
     K_FLD::IntArray cnto;
     ngon_type::export_surfacic_FN_to_EFN(xmesh[i].mesh.cnt, cnto);
 
-    // 2. history
-    std::vector<E_Int> oids(xmesh[i].mesh.cnt.size(), E_IDX_NONE);
-    for (E_Int j = 0; j < oids.size(); ++j) oids[j] = xmesh[i].mesh.cnt._ancEs(0, j);
-    
+    //std::cout << "buildarray mesh" << std::endl;
     PyObject *tpl = K_ARRAY::buildArray(xmesh[i].mesh.crd, varString, cnto, -1, eltType, false);
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
 
+    // 2. history
+    //std::cout << "history : " << xmesh[i].mesh.flag.size()  << std::endl;
+    //std::vector<E_Int> oids(xmesh[i].mesh.cnt.size(), E_IDX_NONE);
+    //for (size_t j = 0; j < oids.size(); ++j) oids[j] = xmesh[i].mesh.flag[j];
+    
+    //std::cout << "buildArray histo" << std::endl;
     // pushing out PG history
-    tpl = K_NUMPY::buildNumpyArray(&oids[0], oids.size(), 1, 0);
-    PyList_Append(l, tpl);
-    Py_DECREF(tpl);
+    //tpl = K_NUMPY::buildNumpyArray(&oids[0], oids.size(), 1, 0);
+    //PyList_Append(l, tpl);
+    //Py_DECREF(tpl);
   }
 }
 

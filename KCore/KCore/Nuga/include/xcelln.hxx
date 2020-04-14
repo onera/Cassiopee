@@ -137,6 +137,7 @@ namespace NUGA
         xmesh.mesh.flag.resize(xmesh.mesh.ncells(), i); //use flag for history
       }
 
+      xmesh.mesh.cnt.updateFacets();
       return std::move(xmesh);
     }
 
@@ -224,10 +225,10 @@ namespace NUGA
     E_Int i = 0;
     for (auto it = decrease_prior_per_comp.begin(); it != decrease_prior_per_comp.end(); ++it, ++i)
     {
-      E_Int compid = it->first;
+      //E_Int compid = it->first;
       std::sort(ALL(it->second), pred);
       std::reverse(ALL(it->second)); // WARNING DECREASING PRIORITY DONE HERE
-                                     //std::cout << "WNP rank for comp " << it->first << " is " << rank_wnps[compid] << std::endl;
+      //std::cout << "WNP rank for comp " << it->first << " is " << rank_wnps[compid] << std::endl;
     }
   }
 

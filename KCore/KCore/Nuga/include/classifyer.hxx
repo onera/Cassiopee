@@ -149,11 +149,11 @@ namespace NUGA
       eClassify res(IN);
 
       const double* norm = ae1.get_normal();
-      const double* pt = ae1.m_crd.col(0);
+      const double* pt = ae1.get_centroid();
 
       double nn[] = { 0., 0., 0. };
 
-      for (size_t i = 0; i < front.ncells(); ++i)
+      for (E_Int i = 0; i < front.ncells(); ++i)
       {
         E_Float v1[3], v2[3], v[3];
         K_FUNC::diff<3>(front.crd.col(front.cnt(0, i)), pt, v1);

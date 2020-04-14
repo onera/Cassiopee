@@ -59,7 +59,7 @@ namespace NUGA
       crd.pushBack(crd2);
       K_FLD::IntArray cnt(subj), cnt2(cutter);
 
-      for (size_t i = 0; i < cnt2.cols(); ++i) std::swap(cnt2(0, i), cnt2(1, i));//boolean diff mode
+      for (E_Int i = 0; i < cnt2.cols(); ++i) std::swap(cnt2(0, i), cnt2(1, i));//boolean diff mode
 
       cnt2.shift(nb_pts1);
       cnt.pushBack(cnt2);
@@ -144,7 +144,7 @@ namespace NUGA
       {
         std::map<int, K_FLD::IntArray> col_to_cntB;
         E_Int nbe = data.connectM.cols();
-        for (size_t i = 0; i < nbe; ++i)
+        for (E_Int i = 0; i < nbe; ++i)
         {
           int coli = data.colors[i];
           K_FLD::IntArray::const_iterator pS = data.connectM.col(i);
