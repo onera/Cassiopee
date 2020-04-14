@@ -26,227 +26,100 @@
 #include "Nuga/include/macros.h"
 #include "Fld/ngon_t.hxx"
 #include "Nuga/include/mesh_t.hxx"
-//#include "Nuga/include/classifyer.hxx"
 #include "Nuga/include/masker.hxx"
 #include "Nuga/include/xcelln.hxx"
-// #include <vector>
-// #include "Fld/DynArray.h"
-// 
-// #include "MeshElement/Hexahedron.h"
-// #include "MeshElement/Polyhedron.h"
-// #include "Search/BbTree.h"
-// #include "Nuga/include/localizer.hxx"
-// #include "Nuga/Delaunay/Triangulator.h"
-// #include "Nuga/include/ph_clipper.hxx"
-// #include "Nuga/include/polyhedron.hxx"
 
 // //#define FLAG_STEP
-// //#define OUTPUT_XCELLN
+// #define DEBUG_XCELLN
 
-// #ifdef FLAG_STEP
-// #include "chrono.h"
-// int chrono::verbose = 2;
-// #endif
-
-// #ifdef NETBEANSZ
-// //#define DEBUG_XCELLN
-// #endif
-
-// #ifdef OUTPUT_XCELLN
-// #include <sstream>
-// #include "Nuga/include/medit.hxx"
-// #endif
-
-// #ifdef DEBUG_XCELLN
-// #include "Nuga/include/medit.hxx"
+#ifdef DEBUG_XCELLN
+#include "Nuga/include/medit.hxx"
 // #include "Nuga/Boolean/NGON_debug.h"
 // using NGDBG  = NGON_debug<K_FLD::FloatArray, K_FLD::IntArray>;
-// #endif
+std::string medith::wdir = "";
+#endif
 
-
- using IntVec = std::vector<E_Int>;
- using prior_t = std::map< E_Int, IntVec>;
-
- using ii_pair_t = std::pair<E_Int, E_Int>;
- using no_ii_pair_t = K_MESH::NO_Edge;
-
-struct aIsLessThanb : std::binary_function<int, int, bool>
-{
-  
-  aIsLessThanb(const prior_t p):_p(p){}
-  
-  bool operator()(int a, int b) const { 
-    
-    auto it = _p.find(a);
-    if (it == _p.end()) return false;
-    
-    for (size_t i=0; i < it->second.size(); ++i)
-      if (it->second[i] == b) return true;
-    
-    return false;
-  }
-  
-  prior_t _p;
-};
-   
-inline void comp_priorities(const std::vector<ii_pair_t> & priority,  prior_t & decrease_prior_per_comp, IntVec& rank_wnps)
-{
-  // WARNING DECREASING PRIORITY UPON EXIT
-  
-  // 0. get the max comp id
-  E_Int max_comp_id = -1;
-  for (auto it = priority.begin(); it != priority.end(); ++it)
-  {
-    max_comp_id = std::max(max_comp_id, it->first);
-    max_comp_id = std::max(max_comp_id, it->second);
-  }
-  
-  E_Int nb_comps = max_comp_id + 1;
-
-  decrease_prior_per_comp.clear();
-  rank_wnps.resize(nb_comps, 0);
-
-  // // 1. CLEANING INPUT (discard redundancy & bilateral)
-  std::set<no_ii_pair_t> upairs;
-  for (auto it = priority.begin(); it != priority.end(); ++it) // make pairs unique and unilateral
-    upairs.insert(no_ii_pair_t(it->first, it->second));
-  // // in case of bilateral input keep the first
-  std::vector<ii_pair_t> clean_priority;
-  for (auto it = priority.begin(); it != priority.end(); ++it)
-  {
-    no_ii_pair_t p(it->first, it->second);
-    if (upairs.find(p) == upairs.end()) continue; // p is redundant here and first occ has been remove in upairs so discard p
-    upairs.erase(p);
-    clean_priority.push_back(*it);
-  }
-  
-  // // 2. 
-  // // store the priors per comp
-  for (size_t i = 0; i < clean_priority.size(); ++i)
-  {
-    E_Int Lcompid = clean_priority[i].first;
-    E_Int Rcompid = clean_priority[i].second;
-
-    //std::cout << " pair : " << Lcompid << "/" << Rcompid << std::endl;
-    
-    decrease_prior_per_comp[Lcompid].push_back(Rcompid);
-    ++rank_wnps[Lcompid];
-    
-    decrease_prior_per_comp[Rcompid].push_back(Lcompid); //opposite pair : for considering WNPs
-  }
-
-  // IntVec all_comps;
-  // for (auto it = decrease_prior_per_comp.begin(); it != decrease_prior_per_comp.end(); ++it)
-  //   all_comps.push_back(it->first);
-
-  aIsLessThanb pred(decrease_prior_per_comp);
-  rank_wnps.resize(1+decrease_prior_per_comp.rbegin()->first, 0); //sized as the max comp num
-
-  E_Int i=0;
-  for (auto it = decrease_prior_per_comp.begin(); it != decrease_prior_per_comp.end(); ++it, ++i)
-  {
-    E_Int compid = it->first;
-    std::sort(ALL(it->second), pred);
-    std::reverse(ALL(it->second)); // WARNING DECREASING PRIORITY DONE HERE
-    //std::cout << "WNP rank for comp " << it->first << " is " << rank_wnps[compid] << std::endl;
-  }
-}
+#if !  defined(NETBEANS) && ! defined(VISUAL)
 
 using zmesh_t = NUGA::pg_smesh_t;
 using bmesh_t = NUGA::edge_mesh_t;
-//using zmesh_t = NUGA::ph_mesh_t;
-//using bmesh_t = NUGA::pg_smesh_t;
 
-void compute_zone(K_FLD::FloatArray& z_crd, K_FLD::IntArray& z_cnt,
-                  const IntVec& z_priorities, E_Int rank_wnp,
-                  const std::vector<K_FLD::FloatArray*> &mask_crds, const std::vector<K_FLD::IntArray*>& mask_cnts,
-                  std::vector< std::vector<E_Int>> &mask_wall_ids, 
-                  std::vector<E_Float>& z_xcelln, bool binary_mode, E_Float col_X, E_Float RTOL)
+/// Default impl : for both output_type 0 (mask) and 1 (xcelln)
+template<typename classifyer_t>
+void
+pyMOVLP_XcellNSurf
+(const std::vector<K_FLD::FloatArray*> &crds, const std::vector<K_FLD::IntArray*>& cnts,
+  const std::vector<E_Int>& comp_id, std::vector<std::pair<E_Int, E_Int>> & priority,
+  const std::vector<K_FLD::FloatArray*> &mask_crds, const std::vector<K_FLD::IntArray*>& mask_cnts,
+  std::vector< std::vector<E_Int>> &mask_wall_ids,
+  E_Float RTOL, char* varString, char* eltType, PyObject* l)
 {
-  zmesh_t  z_mesh(z_crd, z_cnt);  // polygonal surface mesh
-  std::vector<bmesh_t*> mask_meshes;
-  
-  if (binary_mode)
-  {
-    NUGA::masker<zmesh_t, bmesh_t> classs(RTOL, col_X);
-    classs.prepare(z_mesh, mask_crds, mask_cnts, mask_wall_ids, z_priorities, rank_wnp, mask_meshes);
-    classs.compute(z_mesh, mask_meshes, z_xcelln);
-  }
-  else
-  {
-    NUGA::xcellnv<zmesh_t, bmesh_t> classs(RTOL);
-    classs.prepare(z_mesh, mask_crds, mask_cnts, mask_wall_ids, z_priorities, rank_wnp, mask_meshes);
-    classs.compute(z_mesh, mask_meshes, z_xcelln);
-  }
-  
-  
-#ifdef DEBUG_XCELLN
-  std::cout << "TERMINATE" << std::endl;
-#endif
+  using outdata_t = typename classifyer_t::outdata_t;
+  std::vector<outdata_t> xcelln;
+  ///
+  NUGA::MOVLP_xcelln_zones<classifyer_t>(crds, cnts, comp_id, priority, mask_crds, mask_cnts, mask_wall_ids, xcelln, RTOL);
 
-  for (size_t u=0; u < mask_meshes.size(); ++u)
-    delete mask_meshes[u];
-}
-
-void MOVLP_XcellN(const std::vector<K_FLD::FloatArray*> &crds, const std::vector<K_FLD::IntArray*>& cnts,
-                  const std::vector<E_Int>& comp_id, std::vector<std::pair<E_Int, E_Int>> & priority, 
-                  const std::vector<K_FLD::FloatArray*> &mask_crds, const std::vector<K_FLD::IntArray*>& mask_cnts,
-                  std::vector< std::vector<E_Int>> &mask_wall_ids, 
-                  std::vector< std::vector<E_Float>>& xcelln, bool binary_mode, E_Float col_X, E_Float RTOL)
-{
-  //priority map
-  prior_t sorted_comps_per_comp;
-  IntVec rank_wnps;
-  comp_priorities(priority, sorted_comps_per_comp, rank_wnps);
-
+  //std::cout << "ng of xcelln upon exit : " << xcelln.size() << std::endl;
   E_Int nb_zones = crds.size();
-
-  xcelln.resize(nb_zones);
-  for (E_Int u=0; u < nb_zones; ++u)
-    if(cnts[u] != nullptr) xcelln[u].resize((*cnts[u])[0], 1.);
-
-#ifndef NETBEANSZ
-//#pragma omp parallel for
-#endif
-  for (E_Int z=0; z < nb_zones; ++z)
-  { 
-    //std::cout << "processing zone : " << z << " from comp " << comp_id[z] << std::endl;
-
-    auto it = sorted_comps_per_comp.find(comp_id[z]);
-    if (it == sorted_comps_per_comp.end()) continue;
-
-    E_Int z_rank_wnp = rank_wnps[it->first];
-    IntVec& z_priorities = it->second;
-
-    //if (z != 26) continue;
-    //std::cout << "calling compute_zone for zone : " << z << " over " << nb_zones << std::endl;
-    
-    compute_zone(*crds[z], *cnts[z], z_priorities, z_rank_wnp, mask_crds, mask_cnts, mask_wall_ids, xcelln[z], binary_mode, col_X, RTOL);
-
-    //fixme : hack for fully inside non prior
-    // inferior but uncolored => assume it means fully in so IN
-    bool full_out = (*std::min_element(ALL(xcelln[z])) == 1.);
-    bool is_inferior = (rank_wnps[comp_id[z]] == z_priorities.size() && !z_priorities.empty());
-    
-    if (full_out && is_inferior) 
-    {
-      //std::cout << "full OUT rank : " << rank_wnps[comp_id[z]] << std::endl;
-      E_Int sz = xcelln[z].size();
-      xcelln[z].clear();
-      xcelln[z].resize(sz, NUGA::IN);
-    }
+  for (E_Int i = 0; i < nb_zones; ++i)
+  {
+    E_Int sz = xcelln[i].size();
+    //std::cout << "size of xcelln for zone " << i << ": " << sz << std::endl;
+    K_FLD::FloatArray xcellno(1, sz);
+    for (E_Int j = 0; j < sz; ++j)xcellno(0, j) = xcelln[i][j];
+    PyObject* tpl = K_ARRAY::buildArray(xcellno, varString, *cnts[i], -1, eltType, false);
+    //tpl = K_NUMPY::buildNumpyArray(&xcelln[i][0], xcelln[i].size(), 1, 0);
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
   }
 }
 
+/// polyclip impl (output type 2  : xcellno
+template<>
+void
+pyMOVLP_XcellNSurf<NUGA::xcellno<zmesh_t, bmesh_t>>
+(const std::vector<K_FLD::FloatArray*> &crds, const std::vector<K_FLD::IntArray*>& cnts,
+  const std::vector<E_Int>& comp_id, std::vector<std::pair<E_Int, E_Int>> & priority,
+  const std::vector<K_FLD::FloatArray*> &mask_crds, const std::vector<K_FLD::IntArray*>& mask_cnts,
+  std::vector< std::vector<E_Int>> &mask_wall_ids,
+  E_Float RTOL, char* varString, char* eltType, PyObject* l)
+{
+  using classifyer_t = NUGA::xcellno<zmesh_t, bmesh_t>;
+  std::vector<typename classifyer_t::outdata_t> xmesh;
+  ///
+  NUGA::MOVLP_xcelln_zones<classifyer_t>(crds, cnts, comp_id, priority, mask_crds, mask_cnts, mask_wall_ids, xmesh, RTOL);
 
-#if !  defined(NETBEANS) && ! defined(VISUAL)
+  //std::cout << "ng of xcelln upon exit : " << xcelln.size() << std::endl;
+  E_Int nb_zones = crds.size();
+  for (E_Int i = 0; i < nb_zones; ++i)
+  {
+    // pushing out the mesh
+    // 1. ngon_unit => CASSIOPEE surface NGON
+    K_FLD::IntArray cnto;
+    ngon_type::export_surfacic_FN_to_EFN(xmesh[i].mesh.cnt, cnto);
+
+    // 2. history
+    std::vector<E_Int> oids(xmesh[i].mesh.cnt.size(), E_IDX_NONE);
+    for (E_Int j = 0; j < oids.size(); ++j) oids[j] = xmesh[i].mesh.cnt._ancEs(0, j);
+    
+    PyObject *tpl = K_ARRAY::buildArray(xmesh[i].mesh.crd, varString, cnto, -1, eltType, false);
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
+
+    // pushing out PG history
+    tpl = K_NUMPY::buildNumpyArray(&oids[0], oids.size(), 1, 0);
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
+  }
+}
+
 PyObject* K_INTERSECTOR::XcellNSurf(PyObject* self, PyObject* args)
 {
   PyObject *zones, *base_num, *masks, *priorities, *wall_ids;
-  E_Int binary_mode(1);
-  E_Float col_X(0.5), RTOL(0.05);
+  E_Int output_type(1);
+  E_Float RTOL(0.05);
 
-  if (!PyArg_ParseTuple(args, "OOOOOldd", &zones, &base_num, &masks, &wall_ids, &priorities, &binary_mode, &col_X, &RTOL)) return NULL;
+  if (!PyArg_ParseTuple(args, "OOOOOld", &zones, &base_num, &masks, &wall_ids, &priorities, &output_type, &RTOL)) return NULL;
 
   E_Int nb_zones = PyList_Size(zones);
   E_Int nb_basenum = PyList_Size(base_num);
@@ -353,24 +226,14 @@ PyObject* K_INTERSECTOR::XcellNSurf(PyObject* self, PyObject* args)
 
   //std::cout << "calling MOVLP_XcellN..." << std::endl;
 
-  ///
-  MOVLP_XcellN (crds, cnts, comp_id, priority, mask_crds, mask_cnts, mask_wall_ids, xcelln, binary_mode, col_X, RTOL);
+  PyObject *l(PyList_New(0));
 
-  //std::cout << "ng of xcelln upon exit : " << xcelln.size() << std::endl;
-
-  PyObject *l(PyList_New(0)), *tpl;
-
-  for (E_Int i = 0; i < nb_zones; ++i)
-  {
-    E_Int sz = xcelln[i].size();
-    //std::cout << "size of xcelln for zone " << i << ": " << sz << std::endl;
-    K_FLD::FloatArray xcellno(1,sz);
-    for (E_Int j = 0; j < sz; ++j)xcellno(0,j)=xcelln[i][j];
-    tpl = K_ARRAY::buildArray(xcellno, "xcelln", *cnts[i], -1, z_eltType, false);
-    //tpl = K_NUMPY::buildNumpyArray(&xcelln[i][0], xcelln[i].size(), 1, 0);
-    PyList_Append(l, tpl);
-    Py_DECREF(tpl);
-  }
+  if (output_type == 0)
+    pyMOVLP_XcellNSurf<NUGA::masker<zmesh_t, bmesh_t>>(crds, cnts, comp_id, priority, mask_crds, mask_cnts, mask_wall_ids, RTOL, "xcelln", z_eltType, l);
+  else if (output_type == 1)
+    pyMOVLP_XcellNSurf<NUGA::xcellnv<zmesh_t, bmesh_t>>(crds, cnts, comp_id, priority, mask_crds, mask_cnts, mask_wall_ids, RTOL, "xcelln", z_eltType, l);
+  else if (output_type == 2)
+    pyMOVLP_XcellNSurf<NUGA::xcellno<zmesh_t, bmesh_t>>(crds, cnts, comp_id, priority, mask_crds, mask_cnts, mask_wall_ids, RTOL, z_varString, z_eltType, l);
 
   for (E_Int i=0; i < nb_zones; ++i)
   {

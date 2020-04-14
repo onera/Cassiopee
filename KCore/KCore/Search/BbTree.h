@@ -114,6 +114,20 @@ public:
     return true;
   }
 
+  void enlarge(double RTOL)
+  {
+    E_Float dx = 0.5*(maxB[0] - minB[0]);
+    E_Float dy = 0.5*(maxB[1] - minB[1]);
+    E_Float dz = 0.5*(maxB[2] - minB[2]);
+
+    minB[0] -= dx * RTOL;
+    minB[1] -= dy * RTOL;
+    minB[2] -= dz * RTOL;
+    maxB[0] += dx * RTOL;
+    maxB[1] += dy * RTOL;
+    maxB[2] += dz * RTOL;
+  }
+
   static bool intersection(const BoundingBox& b1, const BoundingBox& b2, BoundingBox& b)
   {
     std::vector<E_Float> palma(4);

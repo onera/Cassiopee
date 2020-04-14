@@ -103,14 +103,14 @@ def diffSurf(a1, a2, tol=0., preserve_right=1, agg_mode=1, improve_qual=False): 
 # XcellNSurf
 # IN: t: 3D NGON SURFACE mesh
 # IN : priorities : one-to-one priorities between components
-# IN : binary_mode : binary versus contiguous output field. If set to True, the field as 3 values upon exit : 0(IN), 1(OUT) and col_X(colliding).
+# IN : output_type : 0 : binary mask; 1 : continuous mask (xcelln) ; 2 : clipped surface.
 #      If set to False, the field has any value in [0,1] upon exit, the values in between are the surface ratio of the visible cells
-# OUT: returns a 3D NGON mesh with the xcelln field
+# OUT: returns a 3D NGON surface mesh with the xcelln field (if output_type=0/1, the clipped surface with solution if output_type=2)
 #==============================================================================
-def XcellNSurf(coord, basenum, masks, wall_ids, priorities, binary_mode=True, col_X=0.5, rtol=0.05):
+def XcellNSurf(coord, basenum, masks, wall_ids, priorities, output_type=0, rtol=0.05):
     """Computes the weight coefficients of visibility for overset grid configurations as a field called xcelln, for any kind of surface mesh.
-    Usage : XcellNSurf(t, priorities [, binary_mode, col_X, rtol])"""
-    return intersector.XcellNSurf(coord, basenum, masks, wall_ids, priorities, binary_mode, col_X, rtol)
+    Usage : XcellNSurf(t, priorities [, output_type, rtol])"""
+    return intersector.XcellNSurf(coord, basenum, masks, wall_ids, priorities, output_type, rtol)
     
 #==============================================================================
 # unify

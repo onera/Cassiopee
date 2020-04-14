@@ -299,31 +299,29 @@ def booleanModifiedSolid(solid, a2, tol=0., preserve_solid=1, agg_mode=1, improv
 # XcellN
 # IN: t: 3D NGON mesh
 # IN : priorities : one-to-one priorities between components
-# IN : binary_mode : binary versus contiguous output field. If set to True, the field as 3 values upon exit : 0(IN), 1(OUT) and col_X(colliding).
-#      If set to False, the field has any value in [0,1] upon exit, the values in between are the surface/volume ratio of the visible cells
-# OUT: returns a 3D NGON mesh with the xcelln field
+# IN : output_type : 0 : binary mask; 1 : continuous mask (xcelln) ; 2 : clipped surface.
+# OUT: returns a 3D NGON surface mesh with the xcelln field (if output_type=0/1, the clipped surface with solution if output_type=2)     
 #==============================================================================
-def XcellN(t, priorities, binary_mode=True, col_X=0.5, rtol=0.05):
+def XcellN(t, priorities, output_type=0, rtol=0.05):
     """Computes the weight coefficients of visibility for overset grid configurations as a field called xcelln, for both surface and volume mesh of any kind.
-    Usage : XcellN(t, priorities [, binary_mode, col_X, rtol])"""
+    Usage : XcellN(t, priorities [, output_type, rtol])"""
     tp = Internal.copyRef(t)
-    _XcellN(tp, priorities, binary_mode, col_X, rtol)
+    _XcellN(tp, priorities, output_type, rtol)
     return tp
 
 #==============================================================================
 # _XcellN (in-place version)
 # IN: t: 3D NGON mesh
 # IN : priorities : one-to-one priorities between components
-# IN : binary_mode : binary versus contiguous output field. If set to True, the field as 3 values upon exit : 0(IN), 1(OUT) and col_X(colliding).
-#      If set to False, the field has any value in [0,1] upon exit, the values in between are the surface/volume ratio of the visible cells
-# OUT: returns a 3D NGON mesh with the xcelln field
+# IN : output_type : 0 : binary mask; 1 : continuous mask (xcelln) ; 2 : clipped surface.
+# OUT: returns a 3D NGON surface mesh with the xcelln field (if output_type=0/1, the clipped surface with solution if output_type=2)
 #==============================================================================
-def _XcellN(t, priorities, binary_mode=True, col_X=0.5, rtol=0.05):
+def _XcellN(t, priorities, output_type=0, rtol=0.05):
     """Computes the weight coefficients of visibility for overset grid configurations as a field called xcelln, for both surface and volume mesh of any kind.
-    Usage : _XcellN(t, priorities [, binary_mode, col_X, rtol])"""
+    Usage : _XcellN(t, priorities [, output_type, rtol])"""
     d = getTreeDim(t)
     if d == 2:
-      _XcellNSurf(t, priorities, binary_mode, col_X, rtol)
+      _XcellNSurf(t, priorities, output_type, rtol)
     elif d == 3:
       print ('XcellN : not implemented yet for 3D')
     else :
@@ -333,29 +331,27 @@ def _XcellN(t, priorities, binary_mode=True, col_X=0.5, rtol=0.05):
 # XcellNSurf
 # IN: t: 3D NGON SURFACE mesh
 # IN : priorities : one-to-one priorities between components
-# IN : binary_mode : binary versus contiguous output field. If set to True, the field as 3 values upon exit : 0(IN), 1(OUT) and col_X(colliding).
-#      If set to False, the field has any value in [0,1] upon exit, the values in between are the surface ratio of the visible cells
-# OUT: returns a 3D NGON mesh with the xcelln field
+# IN : output_type : 0 : binary mask; 1 : continuous mask (xcelln) ; 2 : clipped surface.
+# OUT: returns a 3D NGON surface mesh with the xcelln field (if output_type=0/1, the clipped surface with solution if output_type=2)
 #==============================================================================
-def XcellNSurf(t, priorities, binary_mode=True, col_X=0.5, rtol=0.05):
+def XcellNSurf(t, priorities, output_type=0, rtol=0.05):
     """Computes the weight coefficients of visibility for overset grid configurations as a field called xcelln, for any kind of surface mesh.
-    Usage : XcellNSurf(t, priorities [, binary_mode, col_X, rtol])"""
+    Usage : XcellNSurf(t, priorities [, output_type, rtol])"""
     tp = Internal.copyRef(t)
-    _XcellNSurf(tp, priorities, binary_mode, col_X, rtol)
+    _XcellNSurf(tp, priorities, output_type, rtol)
     return tp
 
 #==============================================================================
 # _XcellNSurf (in-place version)
 # IN: t: 3D NGON SURFACE mesh
 # IN : priorities : one-to-one priorities between components
-# IN : binary_mode : binary versus contiguous output field. If set to True, the field as 3 values upon exit : 0(IN), 1(OUT) and col_X(colliding).
-#      If set to False, the field has any value in [0,1] upon exit, the values in between are the surface ratio of the visible cells
-# OUT: returns a 3D NGON mesh with the xcelln field
+# IN : output_type : 0 : binary mask; 1 : continuous mask (xcelln) ; 2 : clipped surface. 
+# OUT: returns a 3D NGON surface mesh with the xcelln field (if output_type=0/1, the clipped surface with solution if output_type=2)
 #==============================================================================
-def _XcellNSurf(t, priorities, binary_mode=True, col_X=0.5, rtol=0.05):
+def _XcellNSurf(t, priorities, output_type=0, rtol=0.05):
   """Computes the weight coefficients of visibility for overset grid configurations as a field called xcelln, for any kind of surface mesh.
-  Usage : _XcellNSurf(t, priorities [, binary_mode, col_X, rtol])"""
-  tp = Internal.copyRef(t)
+  Usage : _XcellNSurf(t, priorities [, rtol])"""
+
   try: import Transform.PyTree as T
   except: raise ImportError("XcellN: requires Transform module.")
   try: import Post.PyTree as P
@@ -438,7 +434,17 @@ def _XcellNSurf(t, priorities, binary_mode=True, col_X=0.5, rtol=0.05):
   #print(wall_ids)
 
   # COMPUTE THE COEFFS PER ZONE (PARALLEL OMP PER ZONE)
-  xcellns = XOR.XcellNSurf(ngons, basenum, boundaries, wall_ids, priorities, binary_mode, col_X, rtol)
+  xcellns = XOR.XcellNSurf(ngons, basenum, boundaries, wall_ids, priorities, output_type, rtol)
+
+  if output_type == 2: # output as ckipped NGON
+    i=0
+    for b in bases:
+      zones = Internal.getZones(b)
+      for z in zones:
+        # MAJ du maillage de la zone
+        C.setFields([xcellns[i]], z, 'nodes')
+        i +=1
+    return
 
   #APPLY IT TO ZONES
   if structured_tree == False:

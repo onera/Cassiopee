@@ -24,10 +24,7 @@ namespace NUGA
     using wdata_t = typename parent_t::wdata_t;
     using outdata_t = typename parent_t::outdata_t;
 
-  public:
-    double _col_X;
-
-    masker(double RTOL, double col_X) : parent_t(RTOL), _col_X(col_X) {}
+    masker(double RTOL) : parent_t(RTOL), _col_X(0.5) {}
     
     outdata_t __process_X_cells(zmesh_t const & z_mesh, std::vector< bound_mesh_t*> const & mask_bits, wdata_t & wdata)
     {
@@ -36,6 +33,9 @@ namespace NUGA
 
       return std::move(wdata);
     };
+
+  private:
+    double _col_X;
 
     
   };

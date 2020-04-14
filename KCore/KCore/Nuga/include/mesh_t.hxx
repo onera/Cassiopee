@@ -122,6 +122,14 @@ struct connect_trait<SURFACIC, false>
   static int ncells(const cnt_t& c) {return c.size();}
   static void shift(cnt_t& c, int v) { c.shift(v);}
   static void unique_indices(const cnt_t& c, std::vector<E_Int>& uinds) { c.unique_indices(uinds);}
+
+  template <typename ELT_t> static void add(K_FLD::FloatArray& crd, cnt_t& c, ELT_t const& e)
+  {
+    E_Int shift = crd.cols();
+    crd.pushBack(e.m_crd);
+    E_Int pos = c.size();
+    c.add(e.nb_nodes(), e.begin(), pos);
+  }
   
   static void build_neighbors(const cnt_t& c, neighbor_t& neighbors)
   {
@@ -265,8 +273,9 @@ struct mesh_t
     nodal_tolerance = m.nodal_tolerance;
 
     return *this;
-  } 
+  }
 
+  ///
   mesh_t& operator=(const mesh_t &&m)
   {
     crd = std::move(m.crd);
@@ -283,7 +292,8 @@ struct mesh_t
     flag = std::move(m.flag);
     nodal_tolerance = std::move(m.nodal_tolerance);
 
-    m.localiz = m.neighbors = nullptr;
+    m.localiz = nullptr;
+    m.neighbors = nullptr;
 
     return *this;
   }
@@ -404,11 +414,17 @@ struct mesh_t
     cnt.append(mcnt);
   }
 
-  // void clear()
-  // {
-  //   crd.clear();
-  //   cnt.clear();
-  // }
+  ///
+  void add(aelt_t const & e)
+  {
+    trait::add(crd, cnt, e);
+  }
+
+  void clear()
+  {
+    crd.clear();
+    cnt.clear();
+  }
 
   template <typename T>
   void set_type(T typ, std::vector<int>& ids)
@@ -428,7 +444,7 @@ struct mesh_t
   
   void set_flag(int i, int val) const // fixme : constness here is bad design
   {
-    flag.resize(ncells(), E_IDX_NONE);
+    if (i >= flag.size()) flag.resize(ncells(), E_IDX_NONE);
     flag[i] = val;
   }
 
@@ -484,6 +500,14 @@ struct mesh_t
     
     if (neighbors != nullptr)
       trait::compress(*neighbors, keep); //sync the neighborhood
+
+    if (e_type.size() == keep.size())
+      K_CONNECT::IdTool::compact(e_type, keep);
+    else e_type.clear();
+
+    if (flag.size() == keep.size())
+      K_CONNECT::IdTool::compact(flag, keep);
+    else flag.clear(); 
   }
 
   void build_localizer() const 

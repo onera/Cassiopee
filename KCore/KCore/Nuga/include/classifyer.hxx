@@ -23,7 +23,7 @@ namespace NUGA
   enum eXPolicy { COLLISION, XCELLN_VAL, XCELLN_OUT, MESH };
   enum eClassify { AMBIGUOUS = -1, IN = 0, X = 1, OUT = 2, UPPER_COL = 3 };
 
-  template <eXPolicy POLICY> // implemented for COLLISION policy
+  template <eXPolicy POLICY, typename zmesh_t> // implemented for COLLISION policy. Second template arg is only there for XCELLN_OUT/MESH modes
   struct data_trait
   {
     using wdata_t = std::vector<double>;
@@ -42,39 +42,46 @@ namespace NUGA
     bool operator!=(int col) const { return (col != val); }
     bool operator==(int col) const { return (col == val); }
 
-    operator double () const { return val; }
+    operator double() const { return val; }
 
     double val;
     std::vector<int> masks;
   };
 
-  template <>
-  struct data_trait<XCELLN_VAL>
+  template <typename zmesh_t>
+  struct data_trait<XCELLN_VAL, zmesh_t>
   {
-    using wdata_t   = std::vector<color_t>;
+    using wdata_t = std::vector<color_t>;
     using outdata_t = std::vector<double>;
 
     static bool processed(wdata_t const & data, int i) { return (data[i] == IN); } // in XCELLN POLICY, we have to consider multiple X with multiple masks, so only discard IN
- 
+
     static void mark_cell_w_mask(wdata_t & data, E_Int i, E_Int im)
-    { 
+    {
       // minus to mark as new X for __flag_hidden_subzones
-      data[i].val = -X; 
+      data[i].val = -X;
       data[i].masks.push_back(im);
     }
   };
 
-    ///
+  template <typename zmesh_t>
+  struct data_trait<XCELLN_OUT, zmesh_t> : public data_trait<XCELLN_VAL, zmesh_t>
+  {
+    struct outdata_t {
+      zmesh_t mesh;
+      bool full_out;
+    };
+  };
+
+  ///
   template<eXPolicy POLICY, typename zmesh_t, typename bound_mesh_t = typename NUGA::boundary_t<zmesh_t>>
   class classifyer
   {
   public:
-    using wdata_t   = typename data_trait<POLICY>::wdata_t;
-    using outdata_t = typename data_trait<POLICY>::outdata_t;
+    using wdata_t   = typename data_trait<POLICY, zmesh_t>::wdata_t;
+    using outdata_t = typename data_trait<POLICY, zmesh_t>::outdata_t;
 
   public:
-    double _RTOL;
-
     classifyer(double RTOL):_RTOL(RTOL) {}
 
     void prepare(zmesh_t & z_mesh,
@@ -85,6 +92,8 @@ namespace NUGA
                  std::vector< bound_mesh_t*> & mask_bits);
 
     void compute(zmesh_t const & z_mesh, std::vector< bound_mesh_t*> const & mask_bits, outdata_t& outdata);
+
+    void finalize(outdata_t& outdata);
 
   protected:
 
@@ -99,16 +108,65 @@ namespace NUGA
                            const std::vector<E_Int>& z_priorities, E_Int rank_wnp,
                            std::vector< bound_mesh_t*> & mask_bits);
 
-    eClassify __classify(typename bound_mesh_t::aelt_t const & e1, typename bound_mesh_t::aelt_t const & e2);
-
     void __process_overlapping_boundaries(zmesh_t & z_mesh, std::vector< bound_mesh_t*> & mask_bits, E_Int rank_wnp, E_Float RTOL);
 
     bool __flag_colliding_cells(zmesh_t const & z_mesh, std::vector< bound_mesh_t*> const & mask_bits, E_Int im, wdata_t& wdata);
 
     void __flag_hidden_subzones(zmesh_t const & z_mesh, bound_mesh_t const & mask_bit, wdata_t& wdata);
 
-    void __replace_IN_OUT_colors(outdata_t& outdata);
+  protected:
+    double _RTOL;
+    bool _is_inferior;
 
+  };
+
+  namespace CLASSIFY // some "global" functions : they do not need all the template params ofthe classifyer class
+  {
+    template <typename T1, typename T2>
+    static eClassify classify(T1 const& t1, T2 const& t2);
+
+    template <>
+    eClassify classify(typename K_MESH::aEdge const & e1, typename K_MESH::aEdge const & e2)
+    {
+      E_Float threshold = 0.75;//decide only with roughly colinear
+
+      E_Float V1[3], V2[3];
+      K_FUNC::diff<3>(e1.v2, e1.v1, V1);
+      K_FUNC::diff<3>(e2.v2, e2.v1, V2);
+
+      K_FUNC::normalize<3>(V1);
+      K_FUNC::normalize<3>(V2);
+
+      E_Float ps = K_FUNC::dot<3>(V1, V2);
+      if (::fabs(ps) < threshold) return AMBIGUOUS;
+
+      return (ps < 0.) ? IN : OUT;
+    }
+
+    template <>
+    eClassify classify(NUGA::aPolygon const& ae1, edge_mesh_t const& front)
+    {
+      eClassify res(IN);
+
+      const double* norm = ae1.get_normal();
+      const double* pt = ae1.m_crd.col(0);
+
+      double nn[] = { 0., 0., 0. };
+
+      for (size_t i = 0; i < front.ncells(); ++i)
+      {
+        E_Float v1[3], v2[3], v[3];
+        K_FUNC::diff<3>(front.crd.col(front.cnt(0, i)), pt, v1);
+        K_FUNC::diff<3>(front.crd.col(front.cnt(1, i)), pt, v2);
+
+        K_FUNC::crossProduct<3>(v1, v2, v);
+        nn[0] += v[0]; nn[1] += v[1]; nn[2] += v[2];
+      }
+
+      E_Float ps = K_FUNC::dot<3>(norm, nn);
+      if (ps < 0.) res = OUT;
+      return res;
+    }
   };
 
   ///
@@ -121,6 +179,8 @@ namespace NUGA
    std::vector< bound_mesh_t*> & mask_bits)
   {
     //std::cout << "PREP_build_structures_and_reduce_to_zone : 1" << std::endl;
+
+    _is_inferior = (rank_wnp == z_priorities.size() && !z_priorities.empty()); //hack in finalize : untouched and inferior => IN
 
     // build mask data structures (mesh object) : WP are discarded. Putting first decreasing OP, then remaining WNP
     __build_mask_bits(mask_crds, mask_cnts, mask_wall_ids, z_priorities, rank_wnp, mask_bits);
@@ -159,6 +219,7 @@ namespace NUGA
       mask_bits[m]->build_localizer();
   }
 
+  ///
   TEMPLATE_TYPES
   void TEMPLATE_CLASS::compute
   (zmesh_t const & z_mesh, std::vector< bound_mesh_t*> const & mask_bits, outdata_t& outdata)
@@ -182,9 +243,28 @@ namespace NUGA
 
     // set col_X color (collision mode) or polyclip (xcelln mode)
     outdata = this->__process_X_cells(z_mesh, mask_bits, wdata);
+  }
+  
+  ///
+  TEMPLATE_TYPES
+  void TEMPLATE_CLASS::finalize(outdata_t& outdata)
+  {
+    for (size_t i = 0; i < outdata.size(); ++i)
+    {
+      outdata[i] = (outdata[i] == IN) ? 0. : (outdata[i] == OUT) ? 1. : outdata[i];
+    }
 
-    // replace with output colors
-    __replace_IN_OUT_colors(outdata);
+    //fixme : hack for fully inside non prior
+    // inferior but uncolored => assume it means fully in so IN
+    bool full_out = (*std::min_element(ALL(outdata)) == 1.);
+
+    if (full_out && _is_inferior)
+    {
+      //std::cout << "full OUT rank : " << rank_wnps[comp_id[z]] << std::endl;
+      E_Int sz = outdata.size();
+      outdata.clear();
+      outdata.resize(sz, 0.);
+    }
   }
   
   ///
@@ -298,27 +378,6 @@ namespace NUGA
 #endif
   	}
     //std::cout << "__build_mask_bits : exit" << std::endl;
-  }
-
-  ///
-  TEMPLATE_TYPES
-  typename NUGA::eClassify
-  TEMPLATE_CLASS::__classify
-  (typename bound_mesh_t::aelt_t const & e1, typename bound_mesh_t::aelt_t const & e2)
-  {
-    E_Float threshold = 0.75;//decide only with roughly colinear
-    
-    E_Float V1[3], V2[3];
-    K_FUNC::diff<3>(e1.v2, e1.v1, V1);
-    K_FUNC::diff<3>(e2.v2, e2.v1, V2);
-
-    K_FUNC::normalize<3>(V1);
-    K_FUNC::normalize<3>(V2);
-
-    E_Float ps = K_FUNC::dot<3>(V1, V2);
-    if (::fabs(ps) < threshold) return AMBIGUOUS;
-
-    return (ps < 0.) ? IN : OUT;
   }
 
   ///
@@ -443,7 +502,7 @@ namespace NUGA
     for (E_Int i = 0; i < nbcells; ++i)
     {
       //std::cout << i << " over " << nbcells << std::endl;
-      if (data_trait<POLICY>::processed(data, i)) continue;
+      if (data_trait<POLICY, zmesh_t>::processed(data, i)) continue;
 
       // autonomous element
       auto ae1 = z_mesh.aelement(i);
@@ -463,7 +522,7 @@ namespace NUGA
       
       if (is_x)
       {
-        data_trait<POLICY>::mark_cell_w_mask(data, i, im);
+        data_trait<POLICY, zmesh_t>::mark_cell_w_mask(data, i, im);
         z_mesh.set_flag(i, cands[cid]);
       }
       
@@ -609,7 +668,7 @@ namespace NUGA
         medith::write<ngon_type>("ei", z_mesh.crd, z_mesh.cnt, i); 
 #endif
         
-        z_color[subid] = __classify(abj, mask_e);
+        z_color[subid] = CLASSIFY::classify(abj, mask_e);
         if (z_color[subid] != AMBIGUOUS)
         {
           --missing_col; //otherwise cary_on
@@ -637,15 +696,6 @@ namespace NUGA
 #ifdef DEBUG_XCELLN
     medith::write("flag_hidden_subzones", z_mesh.crd, z_mesh.cnt, &z_xcelln);
 #endif
-  }
-
-  TEMPLATE_TYPES
-  void TEMPLATE_CLASS::__replace_IN_OUT_colors(outdata_t& outdata)
-  {
-    for (size_t i = 0; i < outdata.size(); ++i)
-    {
-      outdata[i] = (outdata[i] == IN) ? 0. : (outdata[i] == OUT) ? 1. : outdata[i];
-    }
   }
 }
 

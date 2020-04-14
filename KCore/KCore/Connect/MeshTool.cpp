@@ -671,6 +671,7 @@ K_CONNECT::MeshTool::compact_to_mesh
   K_FLD::IntArray::changeIndices(connect, new_IDs);// Change mesh indices accordingly.
 }
 
+// done for extracting repeatidly small mesh from huge one
 void
 K_CONNECT::MeshTool::compact_to_mesh
 (const K_FLD::FloatArray& pos0, const K_FLD::IntArray& connect0,
@@ -712,6 +713,7 @@ K_CONNECT::MeshTool::compact_to_mesh
     pos1.pushBack(pos0.col(oids[i]), pos0.col(oids[i])+ROWS);
 }
 
+///
 void
 K_CONNECT::MeshTool::compact_to_mesh
 (const K_FLD::FloatArray& pos, const E_Int* nodes, E_Int nb_nodes, E_Int idx_start, K_FLD::FloatArray& lpos)

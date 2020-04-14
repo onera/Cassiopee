@@ -110,7 +110,7 @@ void ngon_unit::get_stride_extrema(E_Int& mins, E_Int& maxs) const
 
 
 ///
-void ngon_unit::add(E_Int n, const E_Int* facet_ptr)
+void ngon_unit::add(E_Int n, const E_Int* facet_ptr, E_Int shift)
 {
   // molecule here is one PH or PG
   if (_NGON.empty())
@@ -123,6 +123,12 @@ void ngon_unit::add(E_Int n, const E_Int* facet_ptr)
   _NGON.push_back(n);
   _NGON.insert(_NGON.end(), facet_ptr, facet_ptr + n);
   _NGON[1] = _NGON.size() - 2;
+
+  if (shift != 0)
+  {
+    E_Int from = _NGON.size() - n;
+    K_CONNECT::IdTool::shift(_NGON, from, shift);
+  }
 
   if (!_dirty)
     _facet.push_back(_NGON.size() - n - 1);
