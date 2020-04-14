@@ -72,7 +72,9 @@ cpp_srcs = ["Generator/cart.cpp",
             "Generator/extrusionTbx.cpp",
             "Generator/getEdgeRatio.cpp",
             "Generator/getMaxLength.cpp",
-            "Generator/quad2pyra.cpp"
+            "Generator/quad2pyra.cpp",
+            "Generator/blankSelf.cpp",
+            "Generator/extrapWithCellN.cpp"
             ]
 
 cpp_srcs2 = []

@@ -1,6 +1,8 @@
 # *Cassiopee* GUI for validation and tests
 try: import Tkinter as TK
 except: import tkinter as TK
+try: import tkFont as Font
+except: import tkinter.font as Font
 import os, sys, re
 import subprocess
 import time
@@ -92,6 +94,19 @@ def check_output(cmd, shell, stderr):
             out += ti
     return out
 
+# retourne une chaine justifiee en fonction de la font et
+# d'une taille voulue
+def ljust(text, size):
+    # for mono fonts (faster)
+    #form = '{}{:%d}'%size
+    #return form.format(text, ' ')
+    l = generalFont.measure(text)*1.
+    l = int(round((size*generalFontA-l)/generalFontS))
+    if l > 0:
+        form = '{}{:%d}'%l
+        return form.format(text, ' ')
+    else: return text
+    
 #==============================================================================
 # build a test string:
 # 0       1         2         3             4     5         6       7
@@ -147,10 +162,25 @@ def buildString(module, test, CPUtime, coverage, status):
 
     if coverage == '...%': coverage = refCoverage
 
-    s = module.ljust(13)+separatorl+test.ljust(40)+separatorl+\
-        CPUtime.ljust(10)+separatorl+refCPUtime.ljust(10)+separatorl+\
-        refDate.ljust(16)+separatorl+coverage.ljust(5)+separatorl+\
-        status.ljust(7)+separatorl+refStar.ljust(5)
+    #s = module.ljust(13)+separatorl+test.ljust(40)+separatorl+\
+    #    CPUtime.ljust(10)+separatorl+refCPUtime.ljust(10)+separatorl+\
+    #    refDate.ljust(16)+separatorl+coverage.ljust(5)+separatorl+\
+    #    status.ljust(7)+separatorl+refStar.ljust(5)
+    s = ljust(module, 13)+separatorl+ljust(test, 40)+separatorl+\
+        ljust(CPUtime, 10)+separatorl+ljust(refCPUtime, 10)+separatorl+\
+        ljust(refDate, 16)+separatorl+ljust(coverage, 5)+separatorl+' '+\
+        ljust(status, 7)
+    #s = '{}{}{}{}{}{}{}{}{}{}{}{}{}{}'.format(ljust(module, 13), separatorl,
+    #    ljust(test, 40), separatorl, ljust(CPUtime, 10), separatorl,
+    #    ljust(refCPUtime, 10), separatorl,
+    #    ljust(refDate, 16), separatorl, ljust(coverage, 5), separatorl, ' ',
+    #    ljust(status, 7))
+    #s = '{:13}{}{:40}{}{:10}{}{:10}{}{:16}{}{:5}{}{}{:7}'.format(module, separatorl,
+    #    test, separatorl, CPUtime, separatorl,
+    #    refCPUtime, separatorl,
+    #    refDate, separatorl, coverage, separatorl, ' ',
+    #    status)
+    
     return s
 
 #==============================================================================
@@ -859,12 +889,11 @@ def export2Text():
     try: import tkFileDialog
     except: import tkinter.filedialog as tkFileDialog 
     ret = tkFileDialog.asksaveasfilename()
-    if ret == '' or ret == None or ret == (): # user cancel
+    if ret == '' or ret is None or ret == (): # user cancel
         return
 
     file = open(ret, 'w')
-    for t in TESTS:
-        file.write(t); file.write('\n')
+    for t in TESTS: file.write(t); file.write('\n')
     file.close()
     return
 
@@ -1010,8 +1039,12 @@ master.columnconfigure(0, weight=1)
 master.rowconfigure(0, weight=1)
 #GENERALFONT = ('Courier', 9)
 GENERALFONT = ('Andale Mono', 9)
-master.option_add('*Font', GENERALFONT)
 
+master.option_add('*Font', GENERALFONT)
+generalFont = Font.Font(family=GENERALFONT[0], size=GENERALFONT[1])
+generalFontS = generalFont.measure(' ')*1.
+generalFontA = generalFont.measure('a')*1.
+    
 # Main menu
 menu = TK.Menu(master)
 file = TK.Menu(menu, tearoff=0)

@@ -225,7 +225,7 @@ E_Int K_OCC::CADviaOCC::__chord_sizing(const TopoDS_Edge& E, E_Float chordal_err
   
   nb_pts_defl = std::max(nb_pts_defl, 3); // at least 3 points
   nb_points = std::max(nb_pts_defl, nb_points); // at least 3 points
-  
+  return 0;
 }
 
 E_Int K_OCC::CADviaOCC::__eval_nb_points(const BRepAdaptor_Curve& C, E_Float u0, E_Float u1, E_Float dmax, E_Int& nb_points )
@@ -1026,15 +1026,12 @@ void K_OCC::CADviaOCC::__split_surface_of_revolution(const OCCSurface* face, K_F
   std::cout << "splitting surface ..." << std::endl;
 #endif
   
-  E_Float paramtol = 1.e-9;
   //1. removing any duplicate
   std::set<K_MESH::NO_Edge> uedges;  
   seam_nodes.clear();
   
   //assert ((face->_isUClosed && !face->_isVClosed) || (!face->_isUClosed && face->_isVClosed));
-  
-  E_Float twoPI = 2.*K_CONST::E_PI;
-  
+    
   for (size_t i=0; i < connectB.cols(); ++i)
   {
     E_Int& N0 = connectB(0,i);
@@ -1067,7 +1064,7 @@ void K_OCC::CADviaOCC::__split_surface_of_revolution(const OCCSurface* face, K_F
     else if (it0 != seam_nodes.end() && it1 == seam_nodes.end()) // seam-connected edge
     {
       E_Float u,v;
-      E_Int err = face->parameters(pos3D.col(N1), u, v);
+      face->parameters(pos3D.col(N1), u, v);
       
       E_Float * p = &u;
       if (face->_isVClosed && !face->_isUClosed) p = &v;
@@ -1113,9 +1110,7 @@ void K_OCC::CADviaOCC::__split_surface_of_revolution(const OCCSurface* face, K_F
 void K_OCC::CADviaOCC::__add_seam_node
 (OCCSurface const *face, K_FLD::FloatArray& pos3D, E_Int N0,
  std::map<E_Int, std::pair<E_Int, E_Int> >& seam_nodes)
-{
-  E_Float twoPI = 2.*K_CONST::E_PI;
-  
+{ 
   //create the points
   E_Float u,v;
   E_Int err = face->parameters(pos3D.col(N0), u, v);

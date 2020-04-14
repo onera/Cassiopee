@@ -1665,7 +1665,7 @@ def expandLayer(octreeHexa, level=0, corners=0, balancing=0):
                                                level, corners, typeExpand)
     return adaptOctree(octreeHexa, indic, balancing)
 
-# addnormallayers pour une liste d'arrays structures
+# addnormalLayers pour une liste d'arrays structures
 def addNormalLayersStruct__(surfaces, distrib, check=0, niterType=0, niter=0, niterK=[], 
                             smoothType=0, eps=0.4, nitLocal=3, 
                             kappaType=0, kappaS=[0.2,1.6], blanking=False, cellNs=[],
@@ -1901,6 +1901,7 @@ def addNormalLayersUnstr__(surface, distrib, check=0, niterType=0, niter=0, nite
         elif distrib[1][0,k1+1] >= 1.*hmean and kb2 == -1: kb2 = k1
     kb2 = max(kb2, kb1+2)
     epsl = None # champ pour le lissage
+    cellN = None # champ pour le blanking
 
     for k1 in range(kmax-1):
         hloc = distrib[1][0,k1+1]-distrib[1][0,k1]
@@ -1942,6 +1943,13 @@ def addNormalLayersUnstr__(surface, distrib, check=0, niterType=0, niter=0, nite
             if niter == 0:
                 n = getNormalMap(surf)
                 n = C.normalize(n, vect)
+                
+                # Add cellN to n
+                if cellN is not None and blanking:
+                    fake = ['cellN',cellN[1],n[2],n[3]]
+                    n = C.addVars([n, fake])
+                    generator.extrapWithCellN(surf, n)
+                    
                 n = C.center2Node(n)
                 n = C.normalize(n, vect)
                 n, epsl = modifyNormalWithMetric(surf, n, algo=1, smoothType=smoothType, eps=eps, nitLocal=nitLocal, kappaType=kappaType, kappaS=kappaS)
@@ -1986,6 +1994,18 @@ def addNormalLayersUnstr__(surface, distrib, check=0, niterType=0, niter=0, nite
                     return m
                 else: raise ValueError("addNormalLayers: no layer created.")
 
+        if blanking:
+            # Cree un cellN aux centres sur la layer a
+            if cellN is None:
+                cellN = C.node2Center(a)
+                cellN = C.initVars(cellN, 'cellN=1.')
+                cellN = C.extractVars(cellN, ['cellN'])
+            vol = getVolumeMap(a)
+            cellN = C.addVars([cellN, vol])
+            cellN = C.initVars(cellN, '{cellN}=minimum({vol}>0, {cellN})')
+            cellN = C.extractVars(cellN, ['cellN'])
+            generator.blankSelf(a, cellN)
+            
         n[0] = 'sx0,sy0,sz0'
         surf = C.addVars([surf,n])
         vectn2 = ['sx0','sy0','sz0']
@@ -1994,6 +2014,13 @@ def addNormalLayersUnstr__(surface, distrib, check=0, niterType=0, niter=0, nite
 
         if k1 == 0: m = a
         else: m = T.join(m, a)
+        
+        if blanking:
+            if k1 == 0: cellNs.append(cellN) 
+            else:
+                op = ['cellN', None, m[2], cellN[3]]
+                op[1] = numpy.concatenate((cellNs[0][1], cellN[1]), axis=1) 
+                cellNs[0] = op
     return m
 
 # Fonction retournant la carte d'orthogonalite d'une grille

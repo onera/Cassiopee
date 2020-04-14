@@ -143,7 +143,7 @@ PyObject* K_GENERATOR::modifyIndicToExpandLayer(PyObject* self, PyObject* args)
 
   // detection des elements de niveau l 
   E_Float eps = 1.e-10; E_Float dhl = pow(2.,level) * dhmin;
-  
+  E_Boolean voisinBlanked;
   E_Int etv; E_Float dhet; E_Float dhetv;
   E_Float dhleps = dhl + eps;
 
@@ -195,7 +195,7 @@ PyObject* K_GENERATOR::modifyIndicToExpandLayer(PyObject* self, PyObject* args)
       if (cellNp[et] > 0.1) // pas masque
       {
         // voisine masquee?
-        E_Boolean voisinBlanked = false;
+        voisinBlanked = false;
         E_Float voisinStep = K_CONST::E_MAX_FLOAT;
         vector<E_Int>& voisins = cEEN[et];
         for (size_t nov = 0; nov < voisins.size(); nov++)
@@ -247,7 +247,7 @@ PyObject* K_GENERATOR::modifyIndicToExpandLayer(PyObject* self, PyObject* args)
       if (cellNp[et] > 0.5) // non masque
       {
         // voisine masquee?
-        E_Boolean voisinBlanked = false;
+        voisinBlanked = false;
         E_Float voisinStep = K_CONST::E_MAX_FLOAT;
         vector<E_Int>& voisins = cEEN[et];
         for (size_t nov = 0; nov < voisins.size(); nov++)
@@ -273,7 +273,7 @@ PyObject* K_GENERATOR::modifyIndicToExpandLayer(PyObject* self, PyObject* args)
       if (cellNp[et] > 0.5) // non masque
       {
         // voisine non masquee?
-        E_Boolean voisinBlanked = false;
+        voisinBlanked = false;
         E_Float voisinStep = 1.e10;
         vector<E_Int>& voisins = cEEN[et];
         for (size_t nov = 0; nov < voisins.size(); nov++)
@@ -309,7 +309,7 @@ PyObject* K_GENERATOR::modifyIndicToExpandLayer(PyObject* self, PyObject* args)
       dhet = dhtp[et];
       if (cellNp[et] > 0.5) // non masque
       {
-        E_Boolean voisinBlanked = false;
+        voisinBlanked = false;
         vector<E_Int>& voisins = cEEN[et];
         for (size_t nov = 0; nov < voisins.size(); nov++)
         {
@@ -342,7 +342,7 @@ PyObject* K_GENERATOR::modifyIndicToExpandLayer(PyObject* self, PyObject* args)
       if (cellNp[et] > 0.5) // non masque
       {
         // voisine masquee?
-        E_Boolean voisinBlanked = false;
+        voisinBlanked = false;
         E_Float voisinStep = K_CONST::E_MAX_FLOAT;
         vector<E_Int>& voisins = cEEN[et];
         for (size_t nov = 0; nov < voisins.size(); nov++)
@@ -368,7 +368,7 @@ PyObject* K_GENERATOR::modifyIndicToExpandLayer(PyObject* self, PyObject* args)
       if (cellNp[et] > 0.5) // non masque
       {
         // voisine non masquee?
-        E_Boolean voisinBlanked = false;
+        voisinBlanked = false;
         E_Float voisinStep = 1.e10;
         vector<E_Int>& voisins = cEEN[et];
         for (size_t nov = 0; nov < voisins.size(); nov++)
@@ -394,7 +394,7 @@ PyObject* K_GENERATOR::modifyIndicToExpandLayer(PyObject* self, PyObject* args)
       if (cellNp[et] > 0.5) // non masque
       {
         // voisine non masquee?
-        E_Boolean voisinBlanked = false;
+        voisinBlanked = false;
         E_Float voisinStep = 1.e10;
         vector<E_Int>& voisins = cEEN[et];
         for (size_t nov = 0; nov < voisins.size(); nov++)

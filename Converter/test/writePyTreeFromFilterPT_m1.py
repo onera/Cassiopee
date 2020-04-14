@@ -38,6 +38,7 @@ f = {}
 f['/Base/cart/GridCoordinates/CoordinateX'] = DataSpaceMMRY+DataSpaceFILE+DataSpaceGLOB
 # skelData != None car le noeud existe deja
 Filter.writePyTreeFromFilter(t, 'out.hdf', f, skelData=[])
+Cmpi.barrier()
 
 if Cmpi.rank == 0:
     r = C.convertFile2PyTree('out.hdf')

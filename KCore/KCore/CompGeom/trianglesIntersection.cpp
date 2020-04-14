@@ -100,8 +100,8 @@ E_Int K_COMPGEOM::crossIntersectionOfTriangles(
 //=============================================================================
 /* Compute triangle-triangle intersection par l'algorithme de Moller
    IN: ptA, ptB, ptC sommets des 2 triangles 
-   OUT:  0: pas d intersection
-          1: intersection sur une ligne: les 2 intervalles s intersectent
+   OUT:  0: pas d'intersection
+          1: intersection sur une ligne: les 2 intervalles s'intersectent
          -1: intersection en un point commun
          -2: intersection sur une arete commune
          -3: coplanaires et intersectants */

@@ -102,7 +102,7 @@ namespace NUGA
 
           // accumulated volume
           vcur = 0.;
-          for (size_t b = 0; b < nbits; ++b)
+          for (E_Int b = 0; b < nbits; ++b)
             vcur += bits[b].extent();
         }
 

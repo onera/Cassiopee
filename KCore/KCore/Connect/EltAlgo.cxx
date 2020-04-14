@@ -436,7 +436,7 @@ K_CONNECT::EltAlgo<ElementType>::coloring_one_connex_heterogeneous (const ngon_u
     neighs.reserve(1, sz);
     neighbors.getEntry(K, neighs.begin());
     E_Int* ptr = neighs.begin();
-    for (size_t i = 0; i < sz; ++i)
+    for (E_Int i = 0; i < sz; ++i)
     {
       E_Int Kn = *(ptr++);
 

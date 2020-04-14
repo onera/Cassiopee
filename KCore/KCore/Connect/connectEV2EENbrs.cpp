@@ -180,6 +180,151 @@ E_Int K_CONNECT::connectEV2EENbrs(const char* eltType, E_Int nv,
   return 1;
 }
 
+// identique mais retourne aussi le no local de la face commune
+E_Int K_CONNECT::connectEV2EENbrs(const char* eltType, E_Int nv, 
+                                  FldArrayI& cEV,
+                                  vector< vector<E_Int> >& cEEN,
+                                  vector< vector<E_Int> >& commonFace)
+{
+  E_Int nelts = cEV.getSize();
+  E_Int nvertex = cEV.getNfld(); // nb de noeuds par element
+
+  if (nelts == 0) return 0;
+  
+  // Tableau de facettes (conforme a CGNS)
+  E_Int* f; E_Int nfpe; E_Int nnpf;
+  if (K_STRING::cmp(eltType, "TRI") == 0 || 
+      K_STRING::cmp(eltType, "TRI*") == 0)
+  {
+    nfpe = 3; nnpf = 2;
+    f = new E_Int[nfpe * nnpf]; 
+    f[0 + 0*nfpe] = 1; f[0 + 1*nfpe] = 2;
+    f[1 + 0*nfpe] = 2; f[1 + 1*nfpe] = 3;
+    f[2 + 0*nfpe] = 3; f[2 + 1*nfpe] = 1;
+  }
+  else if (K_STRING::cmp(eltType, "QUAD") == 0 || 
+           K_STRING::cmp(eltType, "QUAD*") == 0)
+  {
+    nfpe = 4; nnpf = 2;
+    f = new E_Int[nfpe * nnpf]; 
+    f[0 + 0*nfpe] = 1; f[0 + 1*nfpe] = 2;
+    f[1 + 0*nfpe] = 2; f[1 + 1*nfpe] = 3;
+    f[2 + 0*nfpe] = 3; f[2 + 1*nfpe] = 4;
+    f[3 + 0*nfpe] = 4; f[3 + 1*nfpe] = 1;
+  }
+  else if (K_STRING::cmp(eltType, "TETRA") == 0 || 
+           K_STRING::cmp(eltType, "TETRA*") == 0)
+  {
+    nfpe = 4; nnpf = 3;
+    f = new E_Int[nfpe * nnpf];
+    f[0 + 0*nfpe] = 1; f[0 + 1*nfpe] = 2; f[0 + 2*nfpe] = 3;
+    f[1 + 0*nfpe] = 1; f[1 + 1*nfpe] = 2; f[1 + 2*nfpe] = 4;
+    f[2 + 0*nfpe] = 2; f[2 + 1*nfpe] = 3; f[2 + 2*nfpe] = 4;
+    f[3 + 0*nfpe] = 3; f[3 + 1*nfpe] = 1; f[3 + 2*nfpe] = 4;
+  }
+  else if (K_STRING::cmp(eltType, "HEXA") == 0 || 
+           K_STRING::cmp(eltType, "HEXA*") == 0) 
+  {
+    nfpe = 6; nnpf = 4;
+    f = new E_Int[nfpe * nnpf];
+    f[0 + 0*nfpe] = 1; f[0 + 1*nfpe] = 4; f[0 + 2*nfpe] = 3; f[0 + 3*nfpe] = 2;
+    f[1 + 0*nfpe] = 1; f[1 + 1*nfpe] = 2; f[1 + 2*nfpe] = 6; f[1 + 3*nfpe] = 5;
+    f[2 + 0*nfpe] = 2; f[2 + 1*nfpe] = 3; f[2 + 2*nfpe] = 7; f[2 + 3*nfpe] = 6;
+    f[3 + 0*nfpe] = 3; f[3 + 1*nfpe] = 4; f[3 + 2*nfpe] = 8; f[3 + 3*nfpe] = 7;
+    f[4 + 0*nfpe] = 1; f[4 + 1*nfpe] = 5; f[4 + 2*nfpe] = 8; f[4 + 3*nfpe] = 4;
+    f[5 + 0*nfpe] = 5; f[5 + 1*nfpe] = 6; f[5 + 2*nfpe] = 7; f[5 + 3*nfpe] = 8;
+  }
+  else if (K_STRING::cmp(eltType, "BAR") == 0 || 
+           K_STRING::cmp(eltType, "BAR*") == 0)
+  {
+    nfpe = 2; nnpf = 1;
+    f = new E_Int[nfpe * nnpf]; 
+    f[0 + 0*nfpe] = 1; 
+    f[1 + 0*nfpe] = 2;
+  }
+  else if (K_STRING::cmp(eltType, "PYRA") == 0 || 
+           K_STRING::cmp(eltType, "PYRA*") == 0)
+  {
+    nfpe = 5; nnpf = 4;
+    f = new E_Int[nfpe * nnpf];
+    f[0 + 0*nfpe] = 1; f[0 + 1*nfpe] = 4; f[0 + 2*nfpe] = 3; f[0 + 3*nfpe] = 2;
+    f[1 + 0*nfpe] = 1; f[1 + 1*nfpe] = 2; f[1 + 2*nfpe] = 5; f[1 + 3*nfpe] = 1;
+    f[2 + 0*nfpe] = 2; f[2 + 1*nfpe] = 3; f[2 + 2*nfpe] = 5; f[2 + 3*nfpe] = 2;
+    f[3 + 0*nfpe] = 3; f[3 + 1*nfpe] = 4; f[3 + 2*nfpe] = 5; f[3 + 3*nfpe] = 3;
+    f[4 + 0*nfpe] = 4; f[4 + 1*nfpe] = 1; f[4 + 2*nfpe] = 5; f[4 + 3*nfpe] = 4;
+  }
+  else if (K_STRING::cmp(eltType, "PENTA") == 0 || 
+           K_STRING::cmp(eltType, "PENTA*") == 0)
+  {
+    nfpe = 5; nnpf = 4;
+    f = new E_Int[nfpe * nnpf];
+    f[0 + 0*nfpe] = 1; f[0 + 1*nfpe] = 2; f[0 + 2*nfpe] = 5; f[0 + 3*nfpe] = 4;
+    f[1 + 0*nfpe] = 2; f[1 + 1*nfpe] = 3; f[1 + 2*nfpe] = 6; f[1 + 3*nfpe] = 5;
+    f[2 + 0*nfpe] = 3; f[2 + 1*nfpe] = 1; f[2 + 2*nfpe] = 4; f[2 + 3*nfpe] = 6;
+    f[3 + 0*nfpe] = 1; f[3 + 1*nfpe] = 3; f[3 + 2*nfpe] = 2; f[3 + 3*nfpe] = 1;
+    f[4 + 0*nfpe] = 4; f[4 + 1*nfpe] = 5; f[4 + 2*nfpe] = 6; f[4 + 3*nfpe] = 4;
+  }
+  else return 0;
+
+  // Elts voisin d'un noeud
+  vector< vector<E_Int> > cVE(nv);
+  K_CONNECT::connectEV2VE(cEV, cVE);
+
+#pragma omp parallel for default(shared) if (nelts > __MIN_SIZE_MEAN__)  
+  for (E_Int et = 0; et < nelts; et++)
+  {
+    E_Int size, match, ind, ind1, ind2, eltVoisin, node;
+    vector<E_Int>& cEEN1 = cEEN[et];
+    cEEN1.reserve(nfpe);
+    vector<E_Int>& commonFace1 = commonFace[et];
+    commonFace1.reserve(nfpe);
+
+    // pour chaque facette de l'element et
+    for (E_Int ff = 0; ff < nfpe; ff++)
+    {
+      // Prend le premier noeud de la facette
+      ind = cEV(et, f[ff + 0*nfpe])-1;
+      
+      // Pour les facettes degen
+      //if (f[ff + 0*nfpe] == f[ff + (nnpf-1)*nfpe]) nnpfmatch = nnpf-1;
+      //else nnpfmatch = nnpf;
+
+      // Recupere tous les elts ayant ce noeud
+      vector<E_Int>& cVE1 = cVE[ind];
+      size = cVE1.size();
+
+      // Parcourt tout ses voisins pour savoir lequel a la facette
+      // en commun
+      for (E_Int v = 0; v < size; v++)
+      {
+        eltVoisin = cVE1[v];
+        if (eltVoisin != et)
+        {
+          match = 0;
+          for (E_Int k = 0; k < nnpf; k++)
+          {
+            ind1 = cEV(et, f[ff + k*nfpe]);
+            for (node = 1; node <= nvertex; node++)
+            {
+              ind2 = cEV(eltVoisin, node);
+              if (ind1 == ind2) { match++; break; }
+            }
+          }
+          if (match == nnpf) 
+          { 
+            cEEN1.push_back(eltVoisin);
+            commonFace1.push_back(ff); // common face
+            goto next; 
+          }
+        }
+      }
+      next: ;
+    }
+  }
+  delete [] f;
+  return 1;
+}
+
 //=============================================================================
 /* Recherche de l'element voisin (PENTA ou HEXA) contenant aussi la facette 
    QUAD ABCD dans cEEN */

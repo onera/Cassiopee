@@ -115,6 +115,8 @@ namespace K_GENERATOR
   PyObject* tetgen(PyObject* self, PyObject* args);
   PyObject* mmgs(PyObject* self, PyObject* args);
   PyObject* quad2Pyra(PyObject* self, PyObject* args);
+  PyObject* blankSelf(PyObject* self, PyObject* args);
+  PyObject* extrapWithCellN(PyObject* self, PyObject* args);  
 
   void computeEta(E_Int nic, E_Float* xc, E_Float* yc, E_Float* zc, 
                   E_Float* nxc, E_Float* nyc, E_Float* nzc, 

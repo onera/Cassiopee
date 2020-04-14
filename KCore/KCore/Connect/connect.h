@@ -181,6 +181,10 @@ namespace K_CONNECT
   */
   E_Int connectEV2EENbrs(const char* eltType, E_Int nv, K_FLD::FldArrayI& cEV,
                          std::vector< std::vector<E_Int> >& cEEN);
+  E_Int connectEV2EENbrs(const char* eltType, E_Int nv, K_FLD::FldArrayI& cEV,
+                         std::vector< std::vector<E_Int> >& cEEN,
+                         std::vector< std::vector<E_Int> >& commonFace);
+    
 
   /* Change un connectivite Elts-Vertex (basic elements) en une connectivite
    Faces->Vertex. L'indice des faces est global, soit : nof + nelt*nfaces

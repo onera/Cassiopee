@@ -1594,7 +1594,7 @@ public:
   
     std::vector<E_Int> molecPH;
     
-    if (commonPG.size() == nb_pgs1 && nb_pgs1 == nb_pgs2) // PH1 is the same as PH2 => by convention the merge is one of them
+    if ((E_Int)commonPG.size() == nb_pgs1 && nb_pgs1 == nb_pgs2) // PH1 is the same as PH2 => by convention the merge is one of them
     { 
       molecPH.reserve(nb_pgs1);
       for (E_Int i=0; i < nb_pgs1; ++i)

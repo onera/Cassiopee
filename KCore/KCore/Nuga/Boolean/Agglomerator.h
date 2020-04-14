@@ -377,7 +377,7 @@ namespace NUGA
         
         //fixme proto : compute the total surface of PHi
         E_Float stot=0.;
-        for (size_t f = 0; f < nb_neighs; ++f)
+        for (E_Int f = 0; f < nb_neighs; ++f)
         {
           E_Int PGi = *(pgsi+f)-1;
           stot += K_MESH::Polygon::surface<K_FLD::FloatArray, 3>(crd, ngi.PGs.get_facets_ptr(PGi), ngi.PGs.stride(PGi), 1);
