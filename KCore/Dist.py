@@ -959,6 +959,22 @@ def checkFastP():
         raise SystemError("Error: fastp library is required for the compilation of this module.")
 
 #=============================================================================
+# Check for FastLBM module
+#=============================================================================
+def checkFastLBM():
+    try:
+        import FastLBM
+        import KCore.installPath
+        fastlbmIncDir = KCore.installPath.includePath
+        fastlbmIncDir = fastlbmIncDir.replace('Modules', 'PModules')
+        fastlbmIncDir = os.path.dirname(fastlbmIncDir)
+        fastlbmIncDir = os.path.join(fastlbmIncDir, 'FastLBM/FastLBM')
+        fastlbmLibDir = KCore.installPath.libPath
+        return (FastLBM.__version__, fastlbmIncDir, fastlbmLibDir)
+
+    except ImportError:
+        raise SystemError("Error: fastlbm library is required for the compilation of this module.")
+#=============================================================================
 # Check for Connector module
 #=============================================================================
 def checkConnector():
