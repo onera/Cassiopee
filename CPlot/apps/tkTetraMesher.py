@@ -27,6 +27,7 @@ def tetraMesher():
     if VARS[0].get() == 'netgen': algo = 0
     else: algo = 1
 
+    CTK.setCursor(2, WIDGETS['tetraMesher'])
     CTK.saveTree()
     out = []
     for nz in nzs:
@@ -41,7 +42,6 @@ def tetraMesher():
         nob = C.getNobOfBase(bases[0], CTK.t)
         CTK.add(CTK.t, nob, -1, mesh)
         CTK.TXT.insert('START', 'Tetra mesh created.\n')
-        #C._fillMissingVariables(CTK.t)
         (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
         CTK.TKTREE.updateApp()
         CPlot.render()
@@ -49,6 +49,7 @@ def tetraMesher():
         Panels.displayErrors([0,str(e)], header='Error: TetraMesher')
         CTK.TXT.insert('START', 'Tetra mesh failed.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error')
+    CTK.setCursor(0, WIDGETS['tetraMesher'])
 
 #==============================================================================
 # Create app widgets
@@ -85,6 +86,7 @@ def createApp(win):
     # - Run -
     B = TTK.Button(Frame, text="tetraMesher", command=tetraMesher)
     B.grid(row=0, column=0, sticky=TK.EW)
+    WIDGETS['tetraMesher'] = B
     BB = CTK.infoBulle(parent=B, text='Mesh with TETRAs or TRIs.')
     
 #==============================================================================

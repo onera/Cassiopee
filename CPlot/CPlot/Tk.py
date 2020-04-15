@@ -217,6 +217,20 @@ def openApp(app):
   module = getModule(app)
   if module is not None: module.showApp()
 
+def setCursor(cursor, B=None, C=None):
+  win = WIDGETS['masterWin']
+  if cursor == 2: win.config(cursor="wait")
+  elif cursor == 0: win.config(cursor="")
+  win.update()
+  if B is not None:
+    if cursor == 2: B.config(cursor="wait")
+    elif cursor == 0: B.config(cursor="")
+    B.update()
+  if C is not None:
+    if cursor == 2: C.config(cursor="wait")
+    elif cursor == 0: C.config(cursor="")
+    C.update()
+    
 #==============================================================================
 # Extrait des arrays de a pour les envoyer au plotter
 # - transforme la solution en centres en noeuds

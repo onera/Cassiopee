@@ -97,15 +97,17 @@ def check_output(cmd, shell, stderr):
 # retourne une chaine justifiee en fonction de la font et
 # d'une taille voulue
 def ljust(text, size):
-    # for mono fonts (faster)
-    #form = '{}{:%d}'%size
-    #return form.format(text, ' ')
-    l = generalFont.measure(text)*1.
-    l = int(round((size*generalFontA-l)/generalFontS))
-    if l > 0:
-        form = '{}{:%d}'%l
-        return form.format(text, ' ')
-    else: return text
+    if generalFontFixed == 1:
+        # for mono fonts (faster)
+        form = '{:%d}'%size
+        return form.format(text)
+    else:
+        l = generalFont.measure(text)*1.
+        l = int(round((size*generalFontA-l)/generalFontS))
+        if l > 0:
+            form = '{}{:%d}'%l
+            return form.format(text, ' ')
+        else: return text
     
 #==============================================================================
 # build a test string:
@@ -1044,7 +1046,8 @@ master.option_add('*Font', GENERALFONT)
 generalFont = Font.Font(family=GENERALFONT[0], size=GENERALFONT[1])
 generalFontS = generalFont.measure(' ')*1.
 generalFontA = generalFont.measure('a')*1.
-    
+generalFontFixed = generalFont.metrics('fixed')
+
 # Main menu
 menu = TK.Menu(master)
 file = TK.Menu(menu, tearoff=0)

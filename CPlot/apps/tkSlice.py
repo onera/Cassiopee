@@ -272,7 +272,7 @@ def extract(event=None):
         Panels.displayErrors([0,str(e)], header='Error: slice')
         CTK.TXT.insert('START', 'Slice failed.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-
+    
 def changePlane(event=None):
     plane = VARS[0].get()
     if plane == 'X': VARS[1].set(str(XVALUE))

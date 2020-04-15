@@ -117,7 +117,7 @@ def setCurve():
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     nzs = CPlot.getSelectedZones()
-    if (nzs == []):
+    if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     selected = ''
@@ -214,7 +214,8 @@ def addLayers():
     if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-        
+
+    CTK.setCursor(2, WIDGETS['addLayers'])    
     CTK.saveTree()
     zlist = []
     for nz in nzs:
@@ -223,7 +224,7 @@ def addLayers():
         z = CTK.t[2][nob][2][noz]
         zlist.append(z)
 
-    d = G.cart( (0,0,0), (h,1,1), (N+1,1,1))
+    d = G.cart((0,0,0), (h,1,1), (N+1,1,1))
     fail = False; errors = []
     try:
         zlist = G.addNormalLayers(zlist, d, niter=smooth)
@@ -246,6 +247,7 @@ def addLayers():
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
+    CTK.setCursor(0, WIDGETS['addLayers'])
     
 #==============================================================================
 def addkplanes():
@@ -343,6 +345,7 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='Number of smoothing iterations.')
     
     B = TTK.Button(Frame, text="Add layers", command=addLayers)
+    WIDGETS['addLayers'] = B
     B.grid(row=1, column=0, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Add normal layers to surface.')
 

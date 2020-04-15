@@ -409,6 +409,7 @@ def connectMatch():
         rotationCenter = f[0:3]; rotationAngle = f[3:6]
     else: mode = 0
 
+    CTK.setCursor(2, WIDGETS['connectMatch'])
     nzs = CPlot.getSelectedZones()
     CTK.saveTree()
     if CTK.__MAINTREE__ <= 0 or nzs == []:
@@ -449,6 +450,7 @@ def connectMatch():
             CTK.TXT.insert('START', 'Matching BCs failed.\n')
             CTK.TXT.insert('START', 'Error: ', 'Error')  
     check()
+    CTK.setCursor(0, WIDGETS['connectMatch'])
     
 #==============================================================================
 # Construit les BC NearMatch dans t pour les zones selectionnees
@@ -472,7 +474,8 @@ def connectNearMatch():
     else:
         CTK.TXT.insert('START', 'EquationDimension not found (tkState). Using 3D.\n')
         CTK.TXT.insert('START', 'Warning: ', 'Warning'); ndim = 3
-        
+    
+    CTK.setCursor(2, WIDGETS['connectNearMatch'])    
     nzs = CPlot.getSelectedZones()
     CTK.saveTree()
     if CTK.__MAINTREE__ <= 0 or nzs == []:
@@ -503,7 +506,8 @@ def connectNearMatch():
             CTK.TXT.insert('START', 'n/m matching BCs failed.\n')
             CTK.TXT.insert('START', 'Error: ', 'Error')  
     check()
-
+    CTK.setCursor(0, WIDGETS['connectNearMatch'])
+        
 #==============================================================================
 # Remplit les BC vide de t avec le type demande
 # IN: t
@@ -603,6 +607,7 @@ def setBCWith():
         return
 
     CTK.saveTree()
+    CPlot.setState(cursor=2)
     wins = C.getEmptyBC(CTK.t, ndim, splitFactor)
     
     # calcul nzr : le nz dans la numerotation des fenetres emptys
@@ -648,6 +653,7 @@ def setBCWith():
     CTK.TXT.insert('START', 'BCs set to %s.\n'%typeBC)
     CTK.TKTREE.updateApp()
     check()
+    CPlot.setState(cursor=0)
     
 #==============================================================================
 def setSplitFactor(event=None):
@@ -801,14 +807,13 @@ def createApp(win):
         WIDGETS['BCs4'] = B
 
     # - setDegeneratedBC -
-    B = TTK.Button(Frame, text="SetDegeneratedBC",
-                   command=setDegeneratedBC)
+    B = TTK.Button(Frame, text="SetDegeneratedBC", command=setDegeneratedBC)
     B.grid(row=7, column=0, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Find the degenerated BCs\nAdded to pyTree.')
 
     # - ConnectMatch -
-    B = TTK.Button(Frame, text="ConnectMatch",
-                   command=connectMatch)
+    B = TTK.Button(Frame, text="ConnectMatch", command=connectMatch)
+    WIDGETS['connectMatch'] = B
     B.grid(row=8, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Find the matching BCs\nAdded to pyTree.')
     B = TTK.Entry(Frame, textvariable=VARS[2], background='White')
@@ -824,6 +829,7 @@ def createApp(win):
 
     # - ConnectNearMatch -
     B = TTK.Button(Frame, text="ConnectNearMatch", command=connectNearMatch)
+    WIDGETS['connectNearMatch'] = B
     B.grid(row=10, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Find the matching BCs\nAdded to pyTree.')
     B = TTK.Entry(Frame, textvariable=VARS[3], background='White')

@@ -8,6 +8,7 @@ import CPlot.Tk as CTK
 import CPlot.Panels as Panels
 import Converter.Internal as Internal
 import Transform.PyTree as T
+import Post.PyTree as P
 import Generator.PyTree as G
 
 # local widgets list
@@ -146,10 +147,72 @@ def split():
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
+    stype = VARS[1].get()
+    CTK.saveTree()
+    
+    # View split
+    if stype == 'X-view':
+        import KCore.Vector as Vector
+        point = CPlot.getActivePoint()
+        posCam = CPlot.getState('posCam')
+        posEye = CPlot.getState('posEye')
+        dirCam = CPlot.getState('dirCam')
+        v1 = dirCam
+        v2 = Vector.sub(posEye, posCam)
+        v3 = Vector.cross(v1, v2)
+        for nz in nzs:
+            nob = CTK.Nb[nz]+1
+            noz = CTK.Nz[nz]
+            z = CTK.t[2][nob][2][noz]
+            zp = T.rotate(z, point, (v1,v2,v3), ((1,0,0), (0,1,0), (0,0,1)))
+            zp = C.initVars(zp, '{centers:__tag__}={centers:CoordinateZ}<=%f'%point[2])
+            #zp = T.rotate(zp, point, ((1,0,0), (0,1,0), (0,0,1)), (v1,v2,v3))
+            # replace initial coordinates
+            gc1 = Internal.getNodeFromName(zp, Internal.__GridCoordinates__)
+            gc2 = Internal.getNodeFromName(z, Internal.__GridCoordinates__)
+            gc1[2][:] = gc2[2][:]
+            
+            z1 = P.selectCells2(zp, 'centers:__tag__')
+            z1[0] = C.getZoneName(z[0]+'1')
+            C._initVars(zp, '{centers:__tag__} = 1.-{centers:__tag__}')
+            z2 = P.selectCells2(zp, 'centers:__tag__')
+            z2[0] = C.getZoneName(z[0]+'2')
+            CTK.replace(CTK.t, nob, noz, z1)
+            CTK.add(CTK.t, nob, -1, z2)
+        (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+        CTK.TKTREE.updateApp()
+        CPlot.render()
+        return
+        
+    # Coordinate Split
+    if stype == 'X-coords' or stype == 'Y-coords' or stype == 'Z-coords':
+        point = CPlot.getActivePoint()
+        for nz in nzs:
+            nob = CTK.Nb[nz]+1
+            noz = CTK.Nz[nz]
+            z = CTK.t[2][nob][2][noz]
+            if stype == 'X-coords':
+                zp = C.initVars(z, '{centers:__tag__}={centers:CoordinateX}<=%f'%point[0])
+            elif stype == 'Y-coords':
+                zp = C.initVars(z, '{centers:__tag__}={centers:CoordinateY}<=%f'%point[1])
+            else:
+                zp = C.initVars(z, '{centers:__tag__}={centers:CoordinateZ}<=%f'%point[2])
+            z1 = P.selectCells2(zp, 'centers:__tag__')
+            z1[0] = C.getZoneName(z[0]+'1')
+            C._initVars(zp, '{centers:__tag__} = 1.-{centers:__tag__}')
+            z2 = P.selectCells2(zp, 'centers:__tag__')
+            z2[0] = C.getZoneName(z[0]+'2')
+            CTK.replace(CTK.t, nob, noz, z1)
+            CTK.add(CTK.t, nob, -1, z2)
+        (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+        CTK.TKTREE.updateApp()
+        CPlot.render()
+        return
+
+    # Indice splits
     ind = CPlot.getActivePointIndex()
     i1 = ind[2]; j1 = ind[3]; k1 = ind[4]
     
-    CTK.saveTree()
     fail = False; errors = []
     for nz in nzs:
         nob = CTK.Nb[nz]+1
@@ -159,10 +222,10 @@ def split():
         try:
             if dims[0] == 'Structured':
                 ni = dims[1]; nj = dims[2]; nk = dims[3]
-                if VARS[1].get() == 'i-indices':
+                if stype == 'i-indices':
                     z1 = T.subzone(z, (1,1,1), (i1,nj,nk))
                     z2 = T.subzone(z, (i1,1,1), (ni,nj,nk))
-                elif VARS[1].get() == 'j-indices':
+                elif stype == 'j-indices':
                     z1 = T.subzone(z, (1,1,1), (ni,j1,nk))
                     z2 = T.subzone(z, (1,j1,1), (ni,nj,nk))
                 else:
@@ -185,7 +248,6 @@ def split():
     else:
         Panels.displayErrors(errors, header='Error: split')
         CTK.TXT.insert('START', 'split done.\n')
-    #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
@@ -539,7 +601,8 @@ def createApp(win):
     B.grid(row=0, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Split structured blocks following\n index direction.')
     B = TTK.OptionMenu(Frame, VARS[1], 'i-indices', 'j-indices', 'k-indices',
-                       'i-j-k indices','i-j indices','i-k indices', 'j-k indices')
+                       'X-coords', 'Y-coords', 'Z-coords',
+                       'X-view')
     B.grid(row=0, column=1, columnspan=2, sticky=TK.EW)
     
     # - splitSize -

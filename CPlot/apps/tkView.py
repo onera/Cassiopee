@@ -1278,7 +1278,6 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='Show edges for deactivated zones.')
     B.grid(row=3, column=1, sticky=TK.EW)
 
-
     # - Slot -
     B = TTK.OptionMenu(Frame, VARS[0], '0', '1', '2', '3', '4', '5')
     B.grid(row=5, column=0, sticky=TK.EW)

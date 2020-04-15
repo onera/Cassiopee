@@ -86,7 +86,7 @@ def meshCircle(center, R, N):
 
 #==============================================================================
 def generate(event=None):
-    
+    CTK.setCursor(2, WIDGETS['generate'], WIDGETS['Npts'])
     CTK.saveTree()
     N = CTK.varsFromWidget(VARS[0].get(), type=2)
     if len(N) != 1:
@@ -94,7 +94,6 @@ def generate(event=None):
     N = N[0]
     eltType = VARS[1].get()
     surfType = VARS[2].get()
-
     if surfType == 'Sphere':
         s = D.sphere6((0,0,0), 0.5, N=N)
         xc = 0; yc = 0; zc = 0
@@ -199,11 +198,11 @@ def generate(event=None):
         else:
             for i in s: CTK.add(CTK.t, nob, -1, i)
         
-    #C._fillMissingVariables(CTK.t)
     CTK.TXT.insert('START', 'Surface created.\n')
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
+    CTK.setCursor(0, WIDGETS['generate'], WIDGETS['Npts'])
     
 #==============================================================================
 # Create app widgets
@@ -247,6 +246,7 @@ def createApp(win):
     # - Npts -
     B = TTK.Entry(Frame, textvariable=VARS[0], background='White')
     B.grid(row=0, column=0, sticky=TK.EW)
+    WIDGETS['Npts'] = B
     BB = CTK.infoBulle(parent=B, text='Number of generated points.')
     B.bind('<Return>', generate)
 
@@ -269,6 +269,7 @@ def createApp(win):
     B.grid(row=1, column=0, sticky=TK.EW)
     #BB = CTK.infoBulle(parent=B, text='Type of generated surface.')
     B = TTK.Button(Frame, text="Generate", command=generate)
+    WIDGETS['generate'] = B
     B.grid(row=1, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Generate surface.')
     
