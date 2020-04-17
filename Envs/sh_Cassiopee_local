@@ -179,14 +179,12 @@ elif [ "$MAC" = "visio" ]; then
     export ELSAPROD=vis_r8
     . /etc/profile.d/modules-dri.sh
     module load subversion/1.7.6
+    module load python/2.7.8
     module unload $(module -t list 2>&1 | grep -i intel)
     module load intel/15.0.6
-    #module load  impi/15
     # Nombre de threads
     export OMP_NUM_THREADS=16
     #export KMP_AFFINITY="verbose,granularity=fine,proclist=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],explicit"
-    # Chemin de l'executable python
-    export PATH=/usr/local/python/bin:$PATH
     export PATH=$PATH:$CASSIOPEE/Dist/bin
     export PATH=$CASSIOPEE/Dist/bin/$ELSAPROD:$CASSIOPEE/Dist/bin/$ELSAPROD/bin:$PATH
     export LD_LIBRARY_PATHL=/stck/benoit/opencascade2/lib:$CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/vis_r8/lib:/usr/local/hdf5-intel-1.8.8/lib:/usr/local/lib64:/usr/lib64
