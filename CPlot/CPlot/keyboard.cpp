@@ -343,12 +343,10 @@ void Data::keyboard(unsigned char key, int x, int y)
           cip = ci;
           ci = ci->next;
         }
-        if (ptrState->selectedZone != 0)
-          _zones[ptrState->selectedZone-1]->selected = 0;
+        if (ptrState->selectedZone != 0) _zones[ptrState->selectedZone-1]->selected = 0;
         _zones[ci->value-1]->active = 1;
         //ptrState->selectedZone = ci->value;
-        if (ptrState->selectedZone != 0)
-          _zones[ptrState->selectedZone-1]->selected = 1;
+        if (ptrState->selectedZone != 0) _zones[ptrState->selectedZone-1]->selected = 1;
         if (cip == ci) ptrState->deactivatedZones = ci->next;
         else cip->next = NULL;
         free(ci);

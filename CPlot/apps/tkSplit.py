@@ -413,6 +413,7 @@ def splitConnexity():
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
+    CTK.setCursor(2, WIDGETS['splitConnexity'])
     CTK.saveTree()
     fail = False; errors = []
     for nz in nzs:
@@ -436,6 +437,7 @@ def splitConnexity():
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
+    CTK.setCursor(0, WIDGETS['splitConnexity'])
 
 #==============================================================================
 # splitManifold
@@ -452,6 +454,7 @@ def splitManifold():
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
+    CTK.setCursor(2, WIDGETS['splitManifold'])
     CTK.saveTree()
     fail = False; errors = []
     for nz in nzs:
@@ -475,6 +478,7 @@ def splitManifold():
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
+    CTK.setCursor(0, WIDGETS['splitManifold'])
 
 # Split suivant les sharpEdges + distance
 def splitSharpEdgesWithDelta__(a, alphaRef, deltaRef):
@@ -631,11 +635,13 @@ def createApp(win):
 
     # - splitManifold -
     B = TTK.Button(Frame, text="SplitManifold", command=splitManifold)
+    WIDGETS['splitManifold'] = B
     B.grid(row=3, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Split a mesh into manifold parts.\nTree is modified.')
 
     # - splitConnexity -
     B = TTK.Button(Frame, text="SplitConnexity", command=splitConnexity)
+    WIDGETS['splitConnexity'] = B
     B.grid(row=3, column=1, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Split a mesh into connex parts.\nTree is modified.')
 

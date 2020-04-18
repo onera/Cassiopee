@@ -116,11 +116,7 @@ PyObject* K_CPLOT::add(PyObject* self, PyObject* args)
       strcpy(referenceVarNames[i], referenceZone->varnames[i]);
     } 
   }
-  //printf("referenceNfield=%d\n", referenceNfield);
-  //printf("numberOfZones=%d\n", numberOfZones);
-  //printf("numberOfStructZones=%d\n", numberOfStructZones);
-  //printf("numberOfUnstrZones=%d\n", numberOfUnstructZones);
-
+  
   // malloc nouveaux pointeurs (copie)
   Zone** zones = (Zone**)malloc(numberOfZones*sizeof(Zone*));
   for (E_Int i = 0; i < numberOfZones; i++) zones[i] = d->_zones[i];
@@ -190,6 +186,31 @@ PyObject* K_CPLOT::add(PyObject* self, PyObject* args)
   for (E_Int i = 0; i < numberOfUnstructZones; i++)
     zones[i+numberOfStructZones] = uzones[i];
 
+  // update de la liste des deactivatedZones
+  if (d->ptrState->deactivatedZones != NULL) // la numerotation change que si la zone change de type
+  {
+    int* old2new = new int [d->_numberOfZones];
+    if (res == 1) // structure en plus a la fin des structures
+    {
+      for (E_Int i = 0; i < nzs; i++) old2new[i] = i;
+      for (E_Int i = nzs+1; i < d->_numberOfZones; i++) old2new[i] = i+1;
+    }
+    else if (res == 2) // non structure en plus a la fin des non structures
+    {
+      for (E_Int i = 0; i < d->_numberOfZones; i++) old2new[i] = i;
+    }
+    chain_int* c = d->ptrState->deactivatedZones;
+    int oldn, newn;
+    while (c != NULL)
+    {
+      oldn = c->value-1;
+      newn = old2new[oldn];
+      c->value = newn+1; c = c->next;
+    }
+    delete [] old2new;
+    //d->ptrState->clearDeactivatedZones();
+  }
+
   // Switch - Dangerous zone protegee par _state.lock
   if (d->ptrState->selectedZone >= numberOfZones)
     d->ptrState->selectedZone = 0; // RAZ selected zone
@@ -209,7 +230,7 @@ PyObject* K_CPLOT::add(PyObject* self, PyObject* args)
   globFMinMax(d->_zones, d->_numberOfZones, d->minf, d->maxf);
   
   free(szonesp); free(uzonesp); free(zonesp);
-
+  
   // Free the input array
   RELEASESHAREDB(res, array, f, cn);
 

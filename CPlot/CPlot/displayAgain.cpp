@@ -130,7 +130,8 @@ PyObject* K_CPLOT::displayAgain(PyObject* self, PyObject* args)
 
   for (E_Int i = 0; i < referenceNfield; i++) delete [] referenceVarNames[i];
   delete [] referenceVarNames;
-
+  d->ptrState->clearDeactivatedZones();
+  
   // enforce given data
   E_Int mode = getMode(modeObject);
   E_Int scalarField = getScalarField(scalarFieldObject);

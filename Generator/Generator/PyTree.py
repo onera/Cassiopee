@@ -207,7 +207,7 @@ def expandLayer(o, level=0, corners=0, balancing=0):
     """Expand layer of level l of an unstructured quadtree/octree.
     Usage: expandLayer(o,level,corners,balancing)"""
     tp = Internal.copyRef(o)
-    _expandLayer(tp,level=level,corners=corners,balancing=balancing)
+    _expandLayer(tp, level=level, corners=corners, balancing=balancing)
     return tp
 
 def _expandLayer(o, level=0, corners=0, balancing=0):
@@ -216,6 +216,13 @@ def _expandLayer(o, level=0, corners=0, balancing=0):
     for noz, z in enumerate(zones):
         res = Generator.expandLayer(hexa[noz], level, corners, balancing)
         C.setFields([res], z, 'nodes', writeDim=True)
+    return None
+
+def _forceMatch(z1, z2, tol):
+    a1 = C.getFields(Internal.__GridCoordinates__, z1)[0]
+    a2 = C.getFields(Internal.__GridCoordinates__, z2)[0]
+    generator._forceMatch(a1, a2, tol)
+    C.setFields([a1], z1, 'nodes', writeDim=False)
     return None
 
 def cylinder(Xo, R1, R2, tetas, tetae, H, N):
@@ -1032,6 +1039,7 @@ def mmgs(t, ridgeAngle=45., hmin=0., hmax=0., hausd=0.01, grow=1.1,
 
 def _mmgs(t, ridgeAngle=45., hmin=0., hmax=0., hausd=0.01, grow=1.1, 
           anisotropy=0, optim=0, fixedConstraints=[], sizeConstraints=[]):
+    C._deleteFlowSolutions__(t)
     arrays = C.getFields('nodes', t, api=1)
     fixedConstraints = C.getFields('nodes', fixedConstraints, api=1)
     sizeConstraints = C.getFields('nodes', sizeConstraints, api=1)

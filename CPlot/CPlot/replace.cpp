@@ -52,7 +52,7 @@ PyObject* K_CPLOT::replace(PyObject* self, PyObject* args)
   // Recuperaton des no (nzs, nzu)
   if (PyTuple_Check(l) == false)
   {
-    PyErr_SetString(PyExc_TypeError, 
+    PyErr_SetString(PyExc_TypeError,
                "replace: arg must be a tuple.");
     return NULL;
   }
@@ -248,6 +248,34 @@ PyObject* K_CPLOT::replace(PyObject* self, PyObject* args)
   for (E_Int i = 0; i < numberOfUnstructZones; i++)
     zones[i+numberOfStructZones] = uzones[i];
 
+  // update de la liste des deactivatedZones
+  if (oldType != res && d->ptrState->deactivatedZones != NULL) // la numerotation change que si la zone change de type
+  {
+    int* old2new = new int [d->_numberOfZones];
+    if (oldType == 1) // structure qui est maintenant a la fin en non-structure
+    {
+      for (E_Int i = 0; i < nzs; i++) old2new[i] = i;
+      for (E_Int i = nzs+1; i < d->_numberOfZones; i++) old2new[i] = i-1;
+      old2new[nzs] = d->_numberOfZones-1;
+    }
+    else if (oldType == 2) // non structure qui est maintenant a la fin des structures
+    {
+      for (E_Int i = 0; i < d->_numberOfStructZones; i++) old2new[i] = i;
+      for (E_Int i = d->_numberOfStructZones; i < d->_numberOfZones; i++) old2new[i] = i+1;
+      old2new[nzs+nzu] = d->_numberOfStructZones;
+    }
+    chain_int* c = d->ptrState->deactivatedZones;
+    int oldn, newn;
+    while (c != NULL)
+    {
+      oldn = c->value-1;
+      newn = old2new[oldn];
+      c->value = newn+1; c = c->next;
+    }
+    delete [] old2new;
+    //d->ptrState->clearDeactivatedZones();
+  }
+  
   // Switch - Dangerous zone protegee par _state.lock
   if (d->ptrState->selectedZone >= numberOfZones)
     d->ptrState->selectedZone = 0; // RAZ selected zone
@@ -267,7 +295,6 @@ PyObject* K_CPLOT::replace(PyObject* self, PyObject* args)
 
   // Free previous zones
   delete zonesp[nz];
-  
   free(szonesp); free(uzonesp); free(zonesp);
   
   // Free the input array

@@ -133,6 +133,8 @@ def conformUnstr():
     if split == '1': split = True
     else: split = False
 
+    CTK.setCursor(2, WIDGETS['conformUnstr'])
+    C._fillMissingVariables(CTK.t)
     patches = []
     CTK.saveTree()
 
@@ -185,12 +187,12 @@ def conformUnstr():
                 z = XOR.conformUnstr(z, tol=tol, itermax=1)
                 CTK.replace(CTK.t, nob, noz, z)
     
-    #C._fillMissingVariables(CTK.t)
     CTK.TXT.insert('START', 'Surface conformized.\n')
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
-
+    CTK.setCursor(0, WIDGETS['conformUnstr'])
+    
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -242,6 +244,7 @@ def createApp(win):
     
     # - conformUnstr -
     B = TTK.Button(Frame, text="conformUnstr", command=conformUnstr)
+    WIDGETS['conformUnstr'] = B
     B.grid(row=2, column=0, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Conformize a TRI surface.')
     B = TTK.Entry(Frame, textvariable=VARS[1], background='White', width=5)

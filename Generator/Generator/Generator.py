@@ -7,6 +7,7 @@ __author__ = "Stephanie Peron, Sam Landier, Christophe Benoit, Gaelle Jeanfaivre
 #
 from . import generator
 import numpy
+
 def cart(Xo, H, N, api=1):
     """Create a cartesian mesh defined by a structured array.
     Usage: cart((xo,yo,zo), (hi,hj,hk), (ni,nj,nk))"""
@@ -1665,6 +1666,40 @@ def expandLayer(octreeHexa, level=0, corners=0, balancing=0):
                                                level, corners, typeExpand)
     return adaptOctree(octreeHexa, indic, balancing)
 
+def forceMatch(a1, a2, tol):
+    import Converter
+    b1 = Converter.copy(a1)
+    _forceMatch(b1, a2, tol)
+    return b1
+
+# force near boundary (<tol) of a1 to match with a2
+# in place on a1 (TRI surfaces)
+def _forceMatch(a1, a2, tol):
+    import Post; import Converter; import KCore
+    # exterior of a1
+    ext = Post.exteriorFaces(a1)
+    # identifie ext sur a1
+    hook = Converter.createHook(a1, function='nodes')
+    indices = Converter.identifyNodes(hook, ext)
+    
+    # nearest points on a2
+    hook = Converter.createHook(a2, function='nodes')
+    nodes,dist = Converter.nearestNodes(hook, ext)
+    # fonction C (a1,a2,indices,nodes,dist)
+    posx1 = KCore.isCoordinateXPresent(a1)
+    posy1 = KCore.isCoordinateYPresent(a1)
+    posz1 = KCore.isCoordinateZPresent(a1)
+    posx2 = KCore.isCoordinateXPresent(a2)
+    posy2 = KCore.isCoordinateYPresent(a2)
+    posz2 = KCore.isCoordinateZPresent(a2)
+    npts = Converter.getNPts(ext)
+    for i in range(npts):
+        if dist[i] < tol:
+            a1[1][posx1,indices[i]-1] = a2[1][posx2,nodes[i]-1]
+            a1[1][posy1,indices[i]-1] = a2[1][posy2,nodes[i]-1]
+            a1[1][posz1,indices[i]-1] = a2[1][posz2,nodes[i]-1]
+    return None
+        
 # addnormalLayers pour une liste d'arrays structures
 def addNormalLayersStruct__(surfaces, distrib, check=0, niterType=0, niter=0, niterK=[], 
                             smoothType=0, eps=0.4, nitLocal=3, 
@@ -1801,7 +1836,6 @@ def addNormalLayersStruct__(surfaces, distrib, check=0, niterType=0, niter=0, ni
                     n = getSmoothNormalMap(surfu, niter=niterl, eps=epsl[1], algo=1)
                 n, epsl = modifyNormalWithMetric(surfu, n, algo=1, smoothType=smoothType, eps=eps, nitLocal=nitLocal, kappaType=kappaType, kappaS=kappaS)
                 if cellNu is not None: epsl[1][:] *= cellNu[1][:]
-                print(epsl[1])
                 if kappaType == 2:
                     n[1][0,:] = n[1][0,:]*h0*vol0[1][0,:]/(vol[1][0,:]*hloc)
                     n[1][1,:] = n[1][1,:]*h0*vol0[1][0,:]/(vol[1][0,:]*hloc)

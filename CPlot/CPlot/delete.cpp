@@ -146,10 +146,9 @@ PyObject* K_CPLOT::deletez(PyObject* self, PyObject* args)
 
   // malloc pointeurs
   Zone** zones = (Zone**)malloc(numberOfZones*sizeof(Zone*));
-  StructZone** szones = (StructZone**)malloc(numberOfStructZones*
-                                             sizeof(StructZone*));
-  UnstructZone** uzones = (UnstructZone**)malloc(numberOfUnstructZones*
-                                                 sizeof(UnstructZone*));
+  StructZone** szones = (StructZone**)malloc(numberOfStructZones*sizeof(StructZone*));
+  UnstructZone** uzones = (UnstructZone**)malloc(numberOfUnstructZones*sizeof(UnstructZone*));
+  
   int mustDel;
   int c = 0;
   for (E_Int i = 0; i < d->_numberOfStructZones; i++)
@@ -173,6 +172,33 @@ PyObject* K_CPLOT::deletez(PyObject* self, PyObject* args)
   for (E_Int i = 0; i < numberOfUnstructZones; i++)
     zones[i+numberOfStructZones] = uzones[i];
 
+  // Renumerotation de deactivatedZones
+  if (d->ptrState->deactivatedZones != NULL)
+  {
+    int* old2new = new int [d->_numberOfZones];
+    c = 0;
+    for (E_Int i = 0; i < d->_numberOfZones; i++)
+    {
+      mustDel = 0;
+      for (E_Int j = 0; j < size; j++)
+        if (i == deleted[j]) {mustDel = 1; break;}
+      if (mustDel == 0) { old2new[i] = c; c++; }
+      else old2new[i] = -1;
+    }
+    
+    chain_int* c = d->ptrState->deactivatedZones;
+    int oldn, newn;
+    while (c != NULL)
+    {
+      oldn = c->value-1;
+      newn = old2new[oldn];
+      if (newn == -1) { free(c); c = c->next;}  
+      else { c->value = newn+1; c = c->next; }
+    }
+      
+    delete [] old2new;
+  }
+  
   // Switch - Dangerous zone protegee par _state.lock
   if (d->ptrState->selectedZone >= numberOfZones)
     d->ptrState->selectedZone = 0; // RAZ selected zone
@@ -193,5 +219,6 @@ PyObject* K_CPLOT::deletez(PyObject* self, PyObject* args)
   // Free
   for (E_Int i = 0; i < size; i++) delete zonesp[deleted[i]];
   free(szonesp); free(uzonesp); free(zonesp);
+  
   return Py_BuildValue("i", KSUCCESS);
 }
