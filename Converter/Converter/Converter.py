@@ -524,6 +524,7 @@ def convertExt2Format__(fileName):
     elif extension == '.su2': format = 'fmt_su2'
     elif extension == '.gbin': format = 'bin_plot3d'
     elif extension == '.gfmt': format = 'fmt_plot3d'
+    elif extension == '.arc': format = 'bin_arc'
     elif extension == '.iges' or extension == '.igs': format = 'fmt_iges'
     elif extension == '.stp' or extension == '.step': format = 'fmt_step'
     elif extension[0:4] == '.ref': format = 'bin_pickle'
@@ -614,7 +615,7 @@ def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
                 'fmt_gmsh', 'bin_gmsh', 'fmt_stl', 
                 'bin_stl', 'bin_gltf',
                 'fmt_xfig', 'fmt_svg', 'bin_3ds',
-                'fmt_obj', 'fmt_gts' , 'fmt_pov']
+                'fmt_obj', 'fmt_gts' , 'fmt_pov', 'bin_arc']
                 success = 0
                 for fmt in FORMATS:
                     try:

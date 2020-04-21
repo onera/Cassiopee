@@ -28,7 +28,9 @@ def installLocalThemes(win):
 # Get available ttk themes
 def getAvailableThemes():
     if ttk is not None:
-        return ttk.Style().theme_names()
+        l = ttk.Style().theme_names()
+        l = list(l); l.sort()
+        return l
     else: return ['default']
 
 #================================================================

@@ -716,7 +716,8 @@ def saveSelFile():
 #==============================================================================
 def loadPrefFile():
     global PREFS
-    homePath = os.getenv('HOME')
+    homePath = os.path.expanduser('~')
+    if homePath is None: homePath = os.getenv('HOME')
     if homePath is None: homePath = os.getenv('USERPROFILE')
     if homePath is None: homePath = ''
     kdir = homePath+'/.cassiopee'
@@ -880,6 +881,9 @@ def setPrefs():
 #==============================================================================
 def savePrefFile():
     homePath = os.path.expanduser('~')
+    if homePath is None: homePath = os.getenv('HOME')
+    if homePath is None: homePath = os.getenv('USERPROFILE')
+    if homePath is None: homePath = ''
     kdir = homePath+'/.cassiopee'
     exist = os.path.exists(kdir)
     if not exist: 
@@ -894,8 +898,7 @@ def savePrefFile():
         #os.rename(homePath+'/.cassiopee_save', homePath+'/.cassiopee/config')
       else:
         file = open(homePath+'/.cassiopee/config', 'w')
-    for i in PREFS:
-        file.write(i+':'+PREFS[i]+'\n')
+    for i in PREFS: file.write(i+':'+PREFS[i]+'\n')
     file.close()
 
 #==============================================================================
