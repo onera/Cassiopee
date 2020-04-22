@@ -40,7 +40,7 @@ def isZoneChimera(z):
 def prepare(t_case, t_out, tc_out,   
             vmin=21, check=False, NP=0,
             frontType=1, 
-            expand=3, distrib=False, tinit=None, initWithBBox=-1.):
+            expand=3, distrib=False, tinit=None, initWithBBox=-1., dfarDir=0):
     rank = Cmpi.rank
     comm = Cmpi.COMM_WORLD
     tolMatch = 1.e-6
@@ -148,7 +148,7 @@ def prepare(t_case, t_out, tc_out,
 
     o = TIBM.buildOctree(tbo, snearFactor=1., dfarList=dfarList, 
                          dimPb=dimPb, vmin=vmin, rank=rank,
-                         expand=expand)
+                         expand=expand, dfarDir=dfarDir)
 
     # build parent octree 3 levels higher
     # returns a list of 4 octants of the parent octree in 2D and 8 in 3D
@@ -745,11 +745,11 @@ class IBMO(Common):
         
     # Prepare 
     def prepare(self, t_case, t_out, tc_out, distrib=False,
-                vmin=21, check=False, frontType=1, NP=None, expand=3):
+                vmin=21, check=False, frontType=1, NP=None, expand=3, dfarDir=0):
         if NP is None: NP = Cmpi.size
         if NP == 0: print('Preparing for a sequential computation.')
         else: print('Preparing for an IBMO computation on %d processors.'%NP)
         ret = prepare(t_case, t_out, tc_out, distrib=distrib,
                       vmin=vmin, check=check, NP=NP,  
-                      frontType=frontType, expand=expand)
+                      frontType=frontType, expand=expand, dfarDir=dfarDir)
         return ret

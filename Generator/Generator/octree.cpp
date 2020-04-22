@@ -375,14 +375,16 @@ PyObject* octree(PyObject* self, PyObject* args)
   // Nous rendons cubique la boite finale
   E_Float d = 0.;
   if (dfarDir == 0) // impose dfar max
+  { 
     d = K_FUNC::E_max(xmaxo-xmino,ymaxo-ymino);
+    if (dim == 3) d = K_FUNC::E_max(d, zmaxo-zmino);
+  }
   else if (dfarDir == 1)
     d = xmaxo-xmino;
   else if (dfarDir == 2)
     d = ymaxo-ymino;
   else if (dfarDir == 3)
     d = zmaxo-zmino;
-  if (dim == 3) d = K_FUNC::E_max(d, zmaxo-zmino);
   xc = 0.5*(xmino+xmaxo);
   yc = 0.5*(ymino+ymaxo);
   xmino = xc-0.5*d; ymino = yc-0.5*d;

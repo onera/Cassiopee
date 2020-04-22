@@ -37,7 +37,7 @@ except: pass
 def prepare(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
             tbox=None, snearsf=None, yplus=100.,
             vmin=21, check=False, NP=0, format='single',
-            frontType=1, expand=3, tinit=None, initWithBBox=-1., wallAdapt=None):
+            frontType=1, expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, dfarDir=0):
     import Converter.Mpi as Cmpi
     rank = Cmpi.rank; size = Cmpi.size
     ret = None
@@ -45,12 +45,12 @@ def prepare(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
     if size == 1: ret = prepare0(t_case, t_out, tc_out, snears=snears, dfar=dfar, dfarList=dfarList,
                                  tbox=tbox, snearsf=snearsf, yplus=yplus,
                                  vmin=vmin, check=check, NP=NP, format=format, frontType=frontType,
-                                 expand=expand, tinit=tinit, initWithBBox=initWithBBox, wallAdapt=wallAdapt)
+                                 expand=expand, tinit=tinit, initWithBBox=initWithBBox, wallAdapt=wallAdapt, dfarDir=dfarDir)
     # parallel prep
     else: ret = prepare1(t_case, t_out, tc_out, snears=snears, dfar=dfar, dfarList=dfarList,
                          tbox=tbox, snearsf=snearsf, yplus=yplus, 
                          vmin=vmin, check=check, NP=NP, format=format, frontType=frontType,
-                         expand=expand, tinit=tinit, initWithBBox=initWithBBox, wallAdapt=wallAdapt)
+                         expand=expand, tinit=tinit, initWithBBox=initWithBBox, wallAdapt=wallAdapt, dfarDir=dfarDir)
 
     return ret
 
@@ -59,8 +59,8 @@ def prepare(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
 #================================================================================
 def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
              tbox=None, snearsf=None, yplus=100.,
-             vmin=21, check=False, NP=0, format='single',
-             frontType=1, expand=3, tinit=None, initWithBBox=-1., wallAdapt=None):
+             vmin=21, check=False, NP=0, format='single', frontType=1,
+             expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, dfarDir=0):
     import KCore.test as test
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
     else: tb = t_case
@@ -116,7 +116,7 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
     # Generates the full Cartesian mesh
     t = TIBM.generateIBMMesh(tb, vmin=vmin, snears=snears, dfar=dfar, dfarList=dfarList, DEPTH=2,
                              tbox=tbox, snearsf=snearsf, check=check, sizeMax=1000000,
-                             expand=expand)
+                             expand=expand, dfarDir=dfarDir)
     test.printMem(">>> Build octree full [end]")
 
     #------------------------------------------------------
@@ -242,7 +242,7 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
              tbox=None, snearsf=None, yplus=100.,
              vmin=21, check=False, NP=0, format='single',
              frontType=1, extrusion=False, smoothing=False, balancing=False,
-             distrib=True, expand=3, tinit=None, initWithBBox=-1., wallAdapt=None):
+             distrib=True, expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, dfarDir=0):
 
     import Generator
     import Connector.Mpi as Xmpi
@@ -313,9 +313,10 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
     # Octree identical on all procs
     test.printMem('>>> Octree unstruct [start]')
 
-    o = TIBM.buildOctree(tb, snears=snears, snearFactor=1., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf,
+    o = TIBM.buildOctree(tb, snears=snears, snearFactor=1., dfar=dfar, dfarList=dfarList,
+                         to=to, tbox=tbox, snearsf=snearsf,
                          dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=None, rank=rank,
-                         expand=expand)
+                         expand=expand, dfarDir=dfarDir)
 
     if rank==0 and check: C.convertPyTree2File(o, fileout)
 
@@ -1142,7 +1143,7 @@ def post(t_case, t_in, tc_in, t_out, wall_out):
     return t, zw
 
 #=============================================================================
-# Post Efforts
+# Post efforts
 # IN: t_case: fichier ou arbre du cas
 # IN: t_in: fichier ou arbre de resultat
 # IN: tc_in: fichier ou arbre de connectivite
@@ -1182,17 +1183,18 @@ def loads(t_case, tc_in, wall_out, alpha=0., beta=0., Sref=None):
     dimPb = Internal.getValue(Internal.getNodeFromName(tb, 'EquationDimension'))
 
     q = 0.5*RoInf*(MInf*math.sqrt(Gamma*PInf/RoInf))**2
-
+    RoUInf2I = 1./(RouInf*RouInf+RovInf*RovInf+RowInf*RowInf)
+    
     #====================================
     # Extraction des grandeurs a la paroi
     #====================================
     zw = TIBM.extractIBMWallFields(tc, tb=tb)
 
-    if dimPb == 2: zw = T.addkplane(zw)
+    if dimPb == 2: T._addkplane(zw)
 
     zw = C.convertArray2Tetra(zw)
     zw = T.reorderAll(zw, 1)
-    C._initVars(zw, 'Cp=-({Pressure}-%f)/%f'%(PInf,q))
+    C._initVars(zw, 'Cp=-({Pressure}-%g)/%g'%(PInf,q))
 
     #===========================
     # Calcul efforts de pression
@@ -1231,33 +1233,41 @@ def loads(t_case, tc_in, wall_out, alpha=0., beta=0., Sref=None):
     C._initVars(zw, '{centers:tauxz}={centers:tau_wall}*({centers:tx}*{centers:sz}+{centers:tz}*{centers:sx})')
     C._initVars(zw, '{centers:tauyz}={centers:tau_wall}*({centers:ty}*{centers:sz}+{centers:tz}*{centers:sy})')
 
-    # calcul frottement
+    # calcul forces de frottement
     C._initVars(zw, '{centers:Fricx}={centers:tauxx}*{centers:sx}+{centers:tauxy}*{centers:sy}+{centers:tauxz}*{centers:sz}')
     C._initVars(zw, '{centers:Fricy}={centers:tauxy}*{centers:sx}+{centers:tauyy}*{centers:sy}+{centers:tauyz}*{centers:sz}')
     C._initVars(zw, '{centers:Fricz}={centers:tauxz}*{centers:sx}+{centers:tauyz}*{centers:sy}+{centers:tauzz}*{centers:sz}')
-
+    
+    # calcul forces de pression   
+    C._initVars(zw, '{centers:Fx_pressure}=-({centers:Pressure}-%f)*{centers:sx}'%PInf)
+    C._initVars(zw, '{centers:Fy_pressure}=-({centers:Pressure}-%f)*{centers:sy}'%PInf)
+    C._initVars(zw, '{centers:Fz_pressure}=-({centers:Pressure}-%f)*{centers:sz}'%PInf)
+    
     # calcul effort complet
-    C._initVars(zw, '{centers:Fx}={centers:Fricx}-({centers:Pressure}-%f)*{centers:sx}'%PInf)
-    C._initVars(zw, '{centers:Fy}={centers:Fricy}-({centers:Pressure}-%f)*{centers:sy}'%PInf)
-    C._initVars(zw, '{centers:Fz}={centers:Fricz}-({centers:Pressure}-%f)*{centers:sz}'%PInf)
+    C._initVars(zw, '{centers:Fx}={centers:Fricx}+{centers:Fx_pressure}')
+    C._initVars(zw, '{centers:Fy}={centers:Fricy}+{centers:Fy_pressure}')
+    C._initVars(zw, '{centers:Fz}={centers:Fricz}+{centers:Fz_pressure}')
 
     # calcul coefficient de frottement
-    C._initVars(zw, '{centers:Cf}=(sqrt({centers:Fricx}**2+{centers:Fricy}**2+{centers:Fricz}**2))/%f'%q)
+    C._initVars(zw, '{centers:Cf}=(sqrt({centers:Fricx}**2+{centers:Fricy}**2+{centers:Fricz}**2))/%g'%q)
 
     G._getVolumeMap(zw)
     effortX = P.integ(zw, 'centers:Fricx')[0]
-    #G._getVolumeMap(zw)
     effortY = P.integ(zw, 'centers:Fricy')[0]
-    #G._getVolumeMap(zw)
     effortZ = P.integ(zw, 'centers:Fricz')[0]
 
-    cd = (effortX*math.cos(alpha)*math.cos(beta) + effortZ*math.sin(alpha)*math.cos(beta))/q
-    cl = (effortZ*math.cos(alpha)*math.cos(beta) - effortX*math.sin(alpha)*math.cos(beta))/q
+    QADIM = q*Sref
+    if dimPb==3:
+        cd = (effortX*math.cos(alpha)*math.cos(beta) + effortZ*math.sin(alpha)*math.cos(beta))/QADIM
+        cl = (effortZ*math.cos(alpha)*math.cos(beta) - effortX*math.sin(alpha)*math.cos(beta))/QADIM
+    else:
+        cd = (effortX*math.cos(alpha) + effortY*math.sin(alpha))/QADIM
+        cl = (effortY*math.cos(alpha) - effortX*math.sin(alpha))/QADIM
     print("Skin friction loads", cd, cl)
 
     vars = ['centers:sx','centers:sy','centers:sz','centers:tx','centers:ty','centers:tz','centers:tauxx','centers:tauyy','centers:tauzz','centers:tauxy','centers:tauxz',
 'centers:tauyz']
-    zw = C.rmVars(zw, vars)
+    C._rmVars(zw, vars)
     if dimPb == 2: # reextrait en 2D
         zw = P.isoSurfMC(zw, "CoordinateZ", 0.)
         nodes = Internal.getNodesFromName(zw, 'CoordinateX')
@@ -1581,14 +1591,14 @@ class IBM(Common):
     def prepare(self, t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
                 tbox=None, snearsf=None, yplus=100.,
                 vmin=21, check=False, frontType=1, NP=None, expand=3, tinit=None,
-                initWithBBox=-1., wallAdapt=None):
+                initWithBBox=-1., wallAdapt=None,dfarDir=0):
         if NP is None: NP = Cmpi.size
         if NP == 0: print('Preparing for a sequential computation.')
         else: print('Preparing for an IBM computation on %d processors.'%NP)
         ret = prepare(t_case, t_out, tc_out, snears=snears, dfar=dfar, dfarList=dfarList,
                       tbox=tbox, snearsf=snearsf, yplus=yplus,
                       vmin=vmin, check=check, NP=NP, format=self.data['format'],
-                      frontType=frontType, expand=expand, tinit=tinit)
+                      frontType=frontType, expand=expand, tinit=tinit, dfarDir=dfarDir)
         return ret
 
     # post-processing: extrait la solution aux noeuds + le champs sur les surfaces

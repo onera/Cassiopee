@@ -295,12 +295,12 @@ def octree2StructLoc__(o, parento=None, vmin=21, ext=0, optimized=0, sizeMax=4e6
 
 
 def buildParentOctrees__(o, tb, snears=None, snearFactor=4., dfar=10., dfarList=[], to=None, tbox=None, snearsf=None, 
-                         dimPb=3, vmin=15, symmetry=0, fileout=None, rank=0):
+                         dimPb=3, vmin=15, symmetry=0, fileout=None, rank=0, dfarDir=0):
     nzones0 = Internal.getZoneDim(o)[2] 
     if nzones0 < 1000: return None
 
     parento = buildOctree(tb, snears=snears, snearFactor=snearFactor, dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf, 
-                          dimPb=dimPb, vmin=vmin, symmetry=symmetry, balancing=0, rank=rank, expand=0)
+                          dimPb=dimPb, vmin=vmin, symmetry=symmetry, balancing=0, rank=rank, expand=0, dfarDir=dfarDir)
     
     bbo = G.bbox(parento)
     xmino=bbo[0]; xmaxo=bbo[3]; xmeano=0.5*(xmino+xmaxo)
@@ -424,7 +424,7 @@ def _addExternalBCs(t, bbox, DEPTH=2, externalBCType='BCFarfield', dimPb=3):
 # to : maillage octree, si not None : on le prend comme squelette 
 #--------------------------------------------------------------------------
 def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None, tbox=None, snearsf=None, 
-                dimPb=3, vmin=15, balancing=2, symmetry=0, fileout=None, rank=0, expand=2):
+                dimPb=3, vmin=15, balancing=2, symmetry=0, fileout=None, rank=0, expand=2, dfarDir=0):
     i = 0; surfaces=[]; snearso=[] # pas d'espace sur l'octree
     bodies = Internal.getZones(tb)
     if not isinstance(snears, list): snears = len(bodies)*[snears]
@@ -439,33 +439,24 @@ def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None,
                 snearl = Internal.getValue(snearl)
                 snears[i] = snearl*snearFactor
         dhloc = snears[i]*(vmin-1)
-        surfaces += [s]; snearso += [dhloc]
+        if C.isNamePresent(s,'centers:cellN') != -1:
+            s2 = P.selectCells(s,'{centers:cellN}>0.')
+            surfaces.append(s2)
+        else: surfaces += [s] 
+        snearso += [dhloc]
         dxmin0 = min(dxmin0, dhloc)
         i += 1
 
     if to is not None:
         o = Internal.getZones(to)[0]
     else:
-        o = G.octree(surfaces, snearList=snearso, dfar=dfar, dfarList=dfarList, balancing=balancing)
+        o = G.octree(surfaces, snearList=snearso, dfar=dfar, dfarList=dfarList, balancing=balancing,dfarDir=dfarDir)
         G._getVolumeMap(o); volmin = C.getMinValue(o, 'centers:vol')
         dxmin = (volmin)**(1./dimPb)
         if dxmin < 0.65*dxmin0:
             snearso = [2.*i for i in snearso]
-            o = G.octree(surfaces, snearList=snearso, dfar=dfar, dfarList=dfarList, balancing=balancing)
+            o = G.octree(surfaces, snearList=snearso, dfar=dfar, dfarList=dfarList, balancing=balancing, dfarDir=dfarDir)
         
-        symmetry = 0
-        if symmetry != 0:
-            bb = G.bbox(o)
-            xmoy = 0.5*(bb[3]+bb[0])
-            ymoy = 0.5*(bb[4]+bb[1])
-            zmoy = 0.5*(bb[5]+bb[2])
-            if   symmetry== 1: o = P.selectCells(o,'{CoordinateX}>%g'%(xmoy-TOLDIST))
-            elif symmetry==-1: o = P.selectCells(o,'{CoordinateX}<%g'%(xmoy+TOLDIST))
-            elif symmetry== 2: o = P.selectCells(o,'{CoordinateY}>%g'%(ymoy-TOLDIST))
-            elif symmetry==-2: o = P.selectCells(o,'{CoordinateY}<%g'%(ymoy+TOLDIST))
-            elif symmetry== 3: o = P.selectCells(o,'{CoordinateZ}>%g'%(zmoy-TOLDIST))
-            elif symmetry==-3: o = P.selectCells(o,'{CoordinateZ}<%g'%(zmoy+TOLDIST))  
-
         # Adaptation avant expandLayer (pour corriger eventuellement les sauts de maille)
         if tbox is not None and snearsf is not None:
             o = addRefinementZones(o, tb, tbox, snearsf, vmin, dimPb)
@@ -622,7 +613,7 @@ def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None,
 def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., dfarList=[], DEPTH=2, tbox=None, 
                     snearsf=None, check=True, sizeMax=4000000, 
                     symmetry=0, externalBCType='BCFarfield', to=None, 
-                    fileo=None, expand=2):
+                    fileo=None, expand=2, dfarDir=0):
     dimPb = Internal.getNodeFromName(tb, 'EquationDimension')
     if dimPb is None: raise ValueError('generateIBMMesh: EquationDimension is missing in input body tree.')
     dimPb = Internal.getValue(dimPb)
@@ -642,14 +633,14 @@ def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., dfarList=[], DEPTH=2, tb
 
     o = buildOctree(tb, snears=snears, snearFactor=1., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf, 
                     dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=fileo, rank=0,
-                    expand=expand)
+                    expand=expand, dfarDir=dfarDir)
 
     if check: C.convertPyTree2File(o, "octree.cgns")
 
     # retourne les 4 quarts (en 2D) de l'octree parent 2 niveaux plus haut 
     # et les 8 octants en 3D sous forme de listes de zones non structurees
     parento = buildParentOctrees__(o, tb, snears=snears, snearFactor=4., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf, 
-                                   dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=None, rank=0)
+                                   dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=None, rank=0, dfarDir=dfarDir)
     res = generateCartMesh__(o, parento=parento, dimPb=dimPb, vmin=vmin, DEPTH=DEPTH, sizeMax=sizeMax, 
                              check=check, symmetry=symmetry, externalBCType=externalBCType)
     return res
