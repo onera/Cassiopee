@@ -44,8 +44,8 @@ namespace K_MESH
     using nob_t = K_MESH::NO_Edge;
 
   public:
-    static constexpr size_type NB_NODES = 3;
-    static constexpr size_type NB_TRIS = 1;
+    static const E_Int NB_NODES;
+    static const E_Int NB_TRIS;
     
     enum eDegenType { OK, HAT, SPIKE, SMALL};
 

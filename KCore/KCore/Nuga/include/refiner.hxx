@@ -36,7 +36,7 @@ struct NBC<K_MESH::Hexahedron, ISO>
 {
   enum { nbc = 8 };
   using arr_t = K_FLD::IntArray;
-  static constexpr E_Int nbi = 12; // nb of inner faces
+  enum { nbi = 12 };
 };
 
 //

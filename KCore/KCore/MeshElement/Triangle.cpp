@@ -20,6 +20,8 @@
 #include "MeshElement/Triangle.h"
 #include <limits>
 
+const E_Int K_MESH::Triangle::NB_NODES = 3;
+const E_Int K_MESH::Triangle::NB_TRIS = 1;
 //=============================================================================
 E_Float K_MESH::Triangle::surface(const E_Float* p1, const E_Float* p2, 
                                   const E_Float* p3, size_type dim)
