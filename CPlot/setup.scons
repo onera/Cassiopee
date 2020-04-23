@@ -91,14 +91,13 @@ EXTRA = ['-D__SHADERS__']
 
 if OSMesa: EXTRA += ['-D__MESA__']
 
-if mySystem == 'Darwin':
-    EXTRA += ['-framework OpenGL']
+if mySystem == 'Darwin': EXTRA += ['-framework OpenGL']
 
 env.Append(CPPFLAGS=EXTRA)
 
-myMod = env.StaticLibrary('cplot', srcs.cpp_srcs)
+cplotLib = env.StaticLibrary('cplot', srcs.cpp_srcs)
 modDir = installPath+'/CPlot/'
-dp1 = env.Install(modDir, myMod)
+dp1 = env.Install(modDir, cplotLib)
 dp2 = env.Install(modDir, Glob('CPlot/*.py'))
 dp3 = env.Install(modDir, Glob('CPlot/Shaders/*.frag'))
 dp4 = env.Install(modDir, Glob('CPlot/Shaders/*.vert'))

@@ -1039,13 +1039,13 @@ def mmgs(t, ridgeAngle=45., hmin=0., hmax=0., hausd=0.01, grow=1.1,
 
 def _mmgs(t, ridgeAngle=45., hmin=0., hmax=0., hausd=0.01, grow=1.1, 
           anisotropy=0, optim=0, fixedConstraints=[], sizeConstraints=[]):
-    C._deleteFlowSolutions__(t)
     arrays = C.getFields('nodes', t, api=1)
     fixedConstraints = C.getFields('nodes', fixedConstraints, api=1)
     sizeConstraints = C.getFields('nodes', sizeConstraints, api=1)
     b = Generator.mmgs(arrays, ridgeAngle, hmin, hmax, hausd, grow, anisotropy, optim, 
                        fixedConstraints, sizeConstraints)
     C.setFields(b, t, 'nodes', True)
+    C._deleteFlowSolutions__(t)
     return None
 
 def densify(z, h):

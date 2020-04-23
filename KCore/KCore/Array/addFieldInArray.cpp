@@ -46,7 +46,7 @@ void K_ARRAY::addFieldInArray(PyObject* array, char* varName)
 
   // Ajout du champ dans varString
   E_Int l = strlen(varString)+strlen(varName)+2;
-  char newVarstring[l];
+  char* newVarstring = new char[l];
   strcpy(newVarstring, varString);
   strcat(newVarstring, ",");
   strcat(newVarstring, varName);
@@ -55,6 +55,7 @@ void K_ARRAY::addFieldInArray(PyObject* array, char* varName)
 #else
   PyList_SetItem(array, 0, PyString_FromString(newVarstring));
 #endif
+  delete [] newVarstring;
   
   // Recuperation des champs
   PyObject* a = PyList_GetItem(array, 1);

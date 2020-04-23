@@ -168,7 +168,7 @@ PyObject* K_POST::computeDiv(PyObject* self,PyObject* args)
     RELEASESHAREDB(res,array,f,cn); return NULL;
   }
   char* varStringOut = new char [strlen(vars[0])+3]; // +3 for "div", -1 for trailing 'X'
-  strncpy(varStringOut, "div", 3);
+  strcpy(varStringOut, "div");
   char* pt = varStringOut;
   char* v = vars[0];
   pt += 3;

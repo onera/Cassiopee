@@ -20,6 +20,7 @@
 // Binary archive (CEDRE) file support
 
 #define SENTINELLE -1.79769e+308
+#define STRINGLENGTH 256
 
 # include "GenIO.h"
 #include "kcore.h"
@@ -59,7 +60,7 @@ public:
   // numero du domaine utilisateur auquel ce bloc appartient
   unsigned int _numutil;
   // nom du du domaine
-  char _nom[256];
+  char _nom[STRINGLENGTH];
   // type du maillage
   unsigned char _type;
   // situation des variables (0,1)
@@ -117,14 +118,15 @@ public:
 
 // Verifie si le domaine nd existe dans meshes, sinon le cree
 // il faudrait aussi pouvoir utiliser le temps
-mesh* checkMesh(int nd, std::map<unsigned int, mesh*>& meshes)
+mesh* checkMesh(unsigned int nd, std::map<unsigned int,mesh*>& meshes)
 {
   std::map<unsigned int,mesh*>::iterator it;
   it = meshes.find(nd);
+  
   if (it != meshes.end()) return it->second;
   else
   {
-    mesh* m = new mesh; 
+    mesh* m = new mesh();
     meshes[nd] = m;
     return m;
   }
@@ -240,14 +242,14 @@ void readTitle(FILE* ptrFile, char* titre, char* date, char* machine,
   if (titre != NULL)
   {
     i = 0;
-    while ((c = fgetc(ptrFile)) != '\0') { titre[i] = c; i++; }
+    while ((c = fgetc(ptrFile)) != '\0' && i < STRINGLENGTH-1) { titre[i] = c; i++; }
     titre[i] = '\0';
   }
   i = 0;
-  while ((c = fgetc(ptrFile)) != '\0') { date[i] = c; i++; }
+  while ((c = fgetc(ptrFile)) != '\0' && i < STRINGLENGTH-1) { date[i] = c; i++; }
   date[i] = '\0';
   i = 0;
-  while ((c = fgetc(ptrFile)) != '\0') { machine[i] = c; i++; }
+  while ((c = fgetc(ptrFile)) != '\0' && i < STRINGLENGTH-1) { machine[i] = c; i++; }
   machine[i] = '\0';
   fread(&tempsZero, sizeof(double), 1, ptrFile); tempsZero = DBE(tempsZero);
   fread(&epsilon, sizeof(double), 1, ptrFile); epsilon = DBE(epsilon);
@@ -275,13 +277,13 @@ void readEspece(FILE* ptrFile, int& numMel, char* nomMel, int& nespeces, char* n
   // numero du melange
   fread(&numMel, sizeof(int), 1, ptrFile); numMel = IBE(numMel);
   E_Int i = 0;
-  while ((c = fgetc(ptrFile)) != '\0') { nomMel[i] = c; i++; }
+  while ((c = fgetc(ptrFile) && i < STRINGLENGTH-1) != '\0') { nomMel[i] = c; i++; }
   nomMel[i] = '\0';
   fread(&nespeces, sizeof(int), 1, ptrFile); nespeces = IBE(nespeces);
   i = 0;
   for (E_Int j = 0; j < nespeces; j++)
   {
-    while ((c = fgetc(ptrFile)) != '\0') { nomEspece[i] = c; i++; }
+    while ((c = fgetc(ptrFile) && i < STRINGLENGTH-1) != '\0') { nomEspece[i] = c; i++; }
     nomEspece[i] = '\0';
   }
   printf("numMel: %d\n", numMel);
@@ -301,7 +303,7 @@ void readScalar(FILE* ptrFile, int& numGrp, char* nomGrp, int& nelem,
   nomGrp[i] = '\0';
   fread(&nelem, sizeof(int), 1, ptrFile); nelem = IBE(nelem);
   i = 0;
-  while ((c = fgetc(ptrFile)) != '\0') { nomScalar[i] = c; i++; }
+  while ((c = fgetc(ptrFile)) != '\0' && i < STRINGLENGTH-1) { nomScalar[i] = c; i++; }
   nomScalar[i] = '\0';
   fread(&typeSca, sizeof(unsigned char), 1, ptrFile);
 }
@@ -311,11 +313,11 @@ void readUnit(FILE* ptrFile, char* name, char* unit)
 {
   int c;
   E_Int i = 0;
-  while ((c = fgetc(ptrFile)) != '\0') { name[i] = c; i++; }
+  while ((c = fgetc(ptrFile)) != '\0' && i < STRINGLENGTH-1) { name[i] = c; i++; }
   name[i] = '\0';
   printf("name %s\n", name);
   i = 0;
-  while ((c = fgetc(ptrFile)) != '\0') { unit[i] = c; i++; }
+  while ((c = fgetc(ptrFile)) != '\0' && i < STRINGLENGTH-1) { unit[i] = c; i++; }
   unit[i] = '\0';
   printf("unit %s\n", unit);
 }
@@ -332,8 +334,7 @@ void readThermo(FILE* ptrFile, unsigned int& read, char* name,
   
   int c;
   E_Int i = 0;
-  while ( (c = fgetc(ptrFile)) != '\0')
-  { name[i] = c; i++; }
+  while ( (c = fgetc(ptrFile)) != '\0' && i < STRINGLENGTH-1) { name[i] = c; i++; }
   name[i] = '\0';
   printf("thermo name : %s\n", name);
   if (read == 1) return;
@@ -361,9 +362,8 @@ void readStructure(FILE* ptrFile, std::map<unsigned int, mesh*>& meshes)
   
   fread(&m->_numutil, sizeof(unsigned int), 1, ptrFile); m->_numutil = UIBE(m->_numutil);
 
-  int c;
-  E_Int i = 0;
-  while ((c = fgetc(ptrFile)) != '\0') { m->_nom[i] = c; i++; }
+  E_Int i = 0; int c;
+  while ((c = fgetc(ptrFile)) != '\0' && i < STRINGLENGTH-1) { m->_nom[i] = c; i++; }
   m->_nom[i] = '\0';
   // type=0 (structure), type=1 (mixte), type=2 (elements finis), type=3 (particules)
   fread(&m->_type, sizeof(unsigned char), 1, ptrFile); 
@@ -380,9 +380,9 @@ void readDomutil(FILE* ptrFile, unsigned int& numUti, char* nomUti)
   int c;
   E_Int i = 0;
   fread(&numUti, sizeof(unsigned int), 1, ptrFile); numUti = UIBE(numUti);
-  while ((c = fgetc(ptrFile)) != '\0') { nomUti[i] = c; i++; }
+  while ((c = fgetc(ptrFile)) != '\0' && i < STRINGLENGTH-1) { nomUti[i] = c; i++; }
   nomUti[i] = '\0';
-  printf("nom du domaine %s\n", nomUti);
+  printf("nom du domaine utilisateur %s\n", nomUti);
 }
 
 void readNumerotation(FILE* ptrFile, std::map<unsigned int, mesh*>& meshes)
@@ -567,9 +567,9 @@ void readSurface(FILE* ptrFile, std::map<unsigned int, mesh*>& meshes)
   unsigned int no;
   fread(&no, sizeof(unsigned int), 1, ptrFile); no = UIBE(no);
   // nom de la surface
-  char nomSurf[256];
+  char nomSurf[STRINGLENGTH];
   E_Int i = 0; char c;
-  while ((c = fgetc(ptrFile)) != '\0') { nomSurf[i] = c; i++; }
+  while ((c = fgetc(ptrFile)) != '\0' && i < STRINGLENGTH-1) { nomSurf[i] = c; i++; }
   nomSurf[i] = '\0';
   printf("nom surf=%s\n", nomSurf);
   // type de la surface
@@ -613,9 +613,9 @@ void readValeurVolumique(FILE* ptrFile, std::map<unsigned int, mesh*>& meshes)
   fread(toto, sizeof(char), 8, ptrFile);
   
   // nom du champ
-  char* nomField = new char [256];
+  char* nomField = new char [STRINGLENGTH];
   E_Int i = 0; char c;
-  while ((c = fgetc(ptrFile)) != '\0') { nomField[i] = c; i++; }
+  while ((c = fgetc(ptrFile)) != '\0' && i < STRINGLENGTH-1) { nomField[i] = c; i++; }
   nomField[i] = '\0';
   printf("nom champ=%s\n", nomField);
   
@@ -652,9 +652,9 @@ void readVecteurVolumique(FILE* ptrFile, std::map<unsigned int, mesh*>& meshes)
   fread(toto, sizeof(char), 8, ptrFile);
   
   // nom du champ
-  char nomField[256];
+  char nomField[STRINGLENGTH];
   E_Int i = 0; char c;
-  while ((c = fgetc(ptrFile)) != '\0') { nomField[i] = c; i++; }
+  while ((c = fgetc(ptrFile)) != '\0' && i < STRINGLENGTH-1) { nomField[i] = c; i++; }
   nomField[i] = '\0';
   printf("nom champ=%s\n", nomField);
   
@@ -665,9 +665,9 @@ void readVecteurVolumique(FILE* ptrFile, std::map<unsigned int, mesh*>& meshes)
   double* Fy = readAndUncompress(ptrFile, nelem, elmin);
   double* Fz = readAndUncompress(ptrFile, nelem, elmin);
   
-  char* nomFieldx = new char [256]; strcpy(nomFieldx, nomField); strcat(nomFieldx, "X");
-  char* nomFieldy = new char [256]; strcpy(nomFieldy, nomField); strcat(nomFieldy, "Y");
-  char* nomFieldz = new char [256]; strcpy(nomFieldz, nomField); strcat(nomFieldz, "Z");
+  char* nomFieldx = new char [STRINGLENGTH+1]; strcpy(nomFieldx, nomField); strcat(nomFieldx, "X");
+  char* nomFieldy = new char [STRINGLENGTH+1]; strcpy(nomFieldy, nomField); strcat(nomFieldy, "Y");
+  char* nomFieldz = new char [STRINGLENGTH+1]; strcpy(nomFieldz, nomField); strcat(nomFieldz, "Z");
   if ((int)nelem == m->_nsom) { m->_nfieldNames.push_back(nomFieldx); m->_nfields.push_back(Fx); }
   else { m->_cfieldNames.push_back(nomFieldx); m->_cfields.push_back(Fx); }
   if ((int)nelem == m->_nsom) { m->_nfieldNames.push_back(nomFieldy); m->_nfields.push_back(Fy); }
@@ -700,9 +700,9 @@ void readTenseurVolumique(FILE* ptrFile, std::map<unsigned int, mesh*>& meshes)
   fread(toto, sizeof(char), 8, ptrFile);
   
   // nom du champ
-  char nomField[256];
+  char nomField[STRINGLENGTH];
   E_Int i = 0; char c;
-  while ((c = fgetc(ptrFile)) != '\0') { nomField[i] = c; i++; }
+  while ((c = fgetc(ptrFile)) != '\0' && i < STRINGLENGTH-1) { nomField[i] = c; i++; }
   nomField[i] = '\0';
   printf("nom champ=%s\n", nomField);
   
@@ -719,17 +719,17 @@ void readTenseurVolumique(FILE* ptrFile, std::map<unsigned int, mesh*>& meshes)
   double* Fzy = readAndUncompress(ptrFile, nelem, elmin);
   double* Fzz = readAndUncompress(ptrFile, nelem, elmin);
   
-  char* nomFieldxx = new char [256]; strcpy(nomFieldxx, nomField); strcat(nomFieldxx, "XX");
-  char* nomFieldxy = new char [256]; strcpy(nomFieldxy, nomField); strcat(nomFieldxy, "XY");
-  char* nomFieldxz = new char [256]; strcpy(nomFieldxz, nomField); strcat(nomFieldxz, "XZ");
+  char* nomFieldxx = new char [STRINGLENGTH+2]; strcpy(nomFieldxx, nomField); strcat(nomFieldxx, "XX");
+  char* nomFieldxy = new char [STRINGLENGTH+2]; strcpy(nomFieldxy, nomField); strcat(nomFieldxy, "XY");
+  char* nomFieldxz = new char [STRINGLENGTH+2]; strcpy(nomFieldxz, nomField); strcat(nomFieldxz, "XZ");
   
-  char* nomFieldyx = new char [256]; strcpy(nomFieldyx, nomField); strcat(nomFieldyx, "YX");
-  char* nomFieldyy = new char [256]; strcpy(nomFieldyy, nomField); strcat(nomFieldyy, "YY");
-  char* nomFieldyz = new char [256]; strcpy(nomFieldyz, nomField); strcat(nomFieldyz, "YZ");
+  char* nomFieldyx = new char [STRINGLENGTH+2]; strcpy(nomFieldyx, nomField); strcat(nomFieldyx, "YX");
+  char* nomFieldyy = new char [STRINGLENGTH+2]; strcpy(nomFieldyy, nomField); strcat(nomFieldyy, "YY");
+  char* nomFieldyz = new char [STRINGLENGTH+2]; strcpy(nomFieldyz, nomField); strcat(nomFieldyz, "YZ");
   
-  char* nomFieldzx = new char [256]; strcpy(nomFieldzx, nomField); strcat(nomFieldzx, "ZX");
-  char* nomFieldzy = new char [256]; strcpy(nomFieldzy, nomField); strcat(nomFieldzy, "ZY");
-  char* nomFieldzz = new char [256]; strcpy(nomFieldzz, nomField); strcat(nomFieldzz, "ZZ");
+  char* nomFieldzx = new char [STRINGLENGTH+2]; strcpy(nomFieldzx, nomField); strcat(nomFieldzx, "ZX");
+  char* nomFieldzy = new char [STRINGLENGTH+2]; strcpy(nomFieldzy, nomField); strcat(nomFieldzy, "ZY");
+  char* nomFieldzz = new char [STRINGLENGTH+2]; strcpy(nomFieldzz, nomField); strcat(nomFieldzz, "ZZ");
   
   if ((int)nelem == m->_nsom) { m->_nfieldNames.push_back(nomFieldxx); m->_nfields.push_back(Fxx); }
   else { m->_cfieldNames.push_back(nomFieldxx); m->_cfields.push_back(Fxx); }
@@ -796,27 +796,27 @@ E_Int K_IO::GenIO::arcread(
 
   //printf("Error: arcread: not implemented.\n");
   unsigned char version;
-  char name[256];
-  char fileName[256];
-  char unitName[256];
-  char nomUti[256];
-  char titre[256];
-  char date[256];
-  char machine[256];
+  char name[STRINGLENGTH];
+  char fileName[STRINGLENGTH];
+  char unitName[STRINGLENGTH];
+  char nomUti[STRINGLENGTH];
+  char titre[STRINGLENGTH];
+  char date[STRINGLENGTH];
+  char machine[STRINGLENGTH];
   double tempsZero;
   double epsilon;
   unsigned char solverType;
   unsigned char dimField;
   int numMel;
-  char nomMel[256];
+  char nomMel[STRINGLENGTH];
   int nespeces;
-  char nomEspece[256*10];
+  char nomEspece[STRINGLENGTH*10];
   int numGrp;
-  char nomGrp[256];
+  char nomGrp[STRINGLENGTH];
   int nelem;
-  char nomScalar[256];
+  char nomScalar[STRINGLENGTH];
   unsigned char typeSca;
-  char unit[256];
+  char unit[STRINGLENGTH];
   unsigned int read;
   unsigned int numUti;
   unsigned int nGe, nGr, ne, nr;
@@ -824,13 +824,7 @@ E_Int K_IO::GenIO::arcread(
   unsigned int *dthGr=NULL;
   unsigned int *dthe=NULL;
   double *dthr=NULL;
-  int* isomu=NULL;
-  int* ifacu=NULL;
-  int* icelu=NULL;
-  unsigned int* num=NULL;
-  unsigned char* nbpoints=NULL;
-  unsigned int* numpoints=NULL;
-  std::map<unsigned int, mesh*> meshes;
+  std::map<unsigned int,mesh*> meshes;
   
   readBlockName(ptrFile, name);
   readVersion(ptrFile, &version);
@@ -862,17 +856,14 @@ E_Int K_IO::GenIO::arcread(
     else { printf("Block pas encore implemente: %s\n", name); break; }
   }
   delete [] dthGe; delete [] dthGr; delete [] dthe; delete [] dthr;
-  delete [] isomu; delete [] ifacu; delete [] icelu;
-  delete [] num; delete [] nbpoints; delete [] numpoints;
   fclose(ptrFile);
   
-  // transforme les strcutrues de maillages en arrays
+  // transforme les structures de maillages en arrays
   char* zoneName = new char [128];
   varString = new char [1200];
-  E_Int nmeshes = meshes.size();
-  for (E_Int i = 0; i < nmeshes; i++)
+  for (std::map<unsigned int,mesh*>::iterator it = meshes.begin(); it != meshes.end(); it++)
   {
-    mesh& m = *meshes[i];
+    mesh& m = *meshes[it->first];
     if (m._type == 0) // structure
     {
       //structField.push_back(f);
@@ -893,7 +884,7 @@ E_Int K_IO::GenIO::arcread(
       for (E_Int p = 0; p < np; p++) fx[p] = m._x[p];
       for (E_Int p = 0; p < np; p++) fy[p] = m._y[p];
       for (E_Int p = 0; p < np; p++) fz[p] = m._z[p];
-      printf("champs aux noeuds=%ld\n", m._nfields.size());
+      printf("champs aux noeuds=%lld\n", m._nfields.size());
       for (size_t j = 0; j < m._nfields.size(); j++)
       {
         E_Float* fp = f->begin(4+j);
@@ -901,12 +892,13 @@ E_Int K_IO::GenIO::arcread(
         for (E_Int p = 0; p < np; p++) fp[p] = pf[p];
       }
       // recopie des champs au centre + vire les ghost cells + sentinelle  
-      printf("champs aux centres=%ld, nceli=%d\n", m._cfields.size(), m._nceli);
+      printf("champs aux centres=%lld, nceli=%d\n", m._cfields.size(), m._nceli);
+      if (m._nceli > np) printf("Warning! Depassement ncell > np.\n");
       for (size_t j = 0; j < m._cfields.size(); j++)
       {
         E_Float* fp = f->begin(4+m._nfields.size()+j);
         E_Float* pf = m._cfields[j];
-        for (E_Int p = 0; p < m._nceli; p++) fp[p] = pf[p];
+        for (E_Int p = 0; p < K_FUNC::E_min(m._nceli,np); p++) fp[p] = pf[p];
         for (E_Int p = m._nceli; p < np; p++) fp[p] = SENTINELLE;
       }
       /*
@@ -988,9 +980,8 @@ E_Int K_IO::GenIO::arcread(
     }
   }
   
-  
   // delete meshes
-  for (E_Int i = 0; i < nmeshes; i++) delete meshes[i];
+  for (std::map<unsigned int,mesh*>::iterator it = meshes.begin(); it != meshes.end(); it++) delete meshes[it->first];
   
   return 0;
 }

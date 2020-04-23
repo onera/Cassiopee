@@ -21,4 +21,4 @@ namespace K_LOGGER
   // ...............................................................................................
   log_from_distributed_file::~log_from_distributed_file()
   {}
-};
+}

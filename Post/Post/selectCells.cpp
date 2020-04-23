@@ -112,13 +112,15 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
   E_Int posz = K_ARRAY::isCoordinateZPresent(varString); posz++;
   if (res == 1) // Create connectivity cnp (HEXA or QUAD)
   {
-    eltType = "";
     E_Int dim0 = 3;
     if (ni == 1 || nj == 1 || nk == 1) dim0 = 2;
     if (nj == 1 && nk == 1) dim0 = 1;
     else if (ni == 1 && nk == 1) dim0 = 1;
     else if (ni == 1 && nj == 1) dim0 = 1;
-
+    eltType = new char [128];
+    if (dim0 == 3) strcpy(eltType, "HEXA");
+    else if (dim0 == 2) strcpy(eltType, "QUAD");
+    else strcpy(eltType, "BAR");
     E_Int ni1 = E_max(1, E_Int(ni)-1);
     E_Int nj1 = E_max(1, E_Int(nj)-1);
     E_Int nk1 = E_max(1, E_Int(nk)-1);
@@ -281,8 +283,9 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
   }
 
   // Infos sur le type d'element
-  E_Int isNGon = strcmp(eltType, "NGON"); // vaut 0 si l'elmt est un NGON
-  E_Int isNode = strcmp(eltType, "NODE"); // vaut 0 si l'elmt est un NODE
+  E_Int isNGon = 1; E_Int isNode = 1;
+  isNGon = strcmp(eltType, "NGON"); // vaut 0 si l'elmt est un NGON
+  isNode = strcmp(eltType, "NODE"); // vaut 0 si l'elmt est un NODE
     
   // Selection
   PyObject* tpl;
@@ -404,6 +407,7 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
     }
     tpl = K_ARRAY::buildArray(*an, varString, *acn, elt, eltType);
     delete an; delete acn;
+    if (res == 1) delete eltType;
   }
   else if (isNode == 0) // NODE
   {

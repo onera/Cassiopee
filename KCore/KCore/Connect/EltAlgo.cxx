@@ -233,7 +233,7 @@ K_CONNECT::EltAlgo<ElementType>::coloring
       colors[S] = color;
       ++colored;
 
-      assert (S >= 0 && S < neighbors.size()); //Error: the neighbors object is not consistent with ELTContainer.
+      assert (S >= 0 && S < (size_type)neighbors.size()); //Error: the neighbors object is not consistent with ELTContainer.
 
       const std::vector<E_Int>& neigh = neighbors[S];
       sz = neigh.size();
@@ -343,7 +343,7 @@ K_CONNECT::EltAlgo<ElementType>::coloring_one_connex_homogeneous (const ngon_uni
     neighs.reserve(1, sz);
     neighbors.getEntry(K, neighs.begin());
     E_Int* ptr = neighs.begin();
-    for (size_t i = 0; i < sz; ++i)
+    for (E_Int i = 0; i < sz; ++i)
     {
       E_Int Kn = *(ptr++);
       

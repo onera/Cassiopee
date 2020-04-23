@@ -79,7 +79,7 @@ def show(event=None):
     v = CTK.varsFromWidget(VARS[5].get(), type=2)
     if len(v) > 0: kmax = v[0]
     
-    if CTK.__MAINTREE__ == 1:
+    if CTK.__MAINTREE__ == CTK.MAIN:
         CTK.__MAINACTIVEZONES__ = CPlot.getActiveZones()
     active = []
     tp = Internal.appendBaseName2ZoneName(CTK.t, updateRef=False, 
@@ -87,7 +87,12 @@ def show(event=None):
     for z in CTK.__MAINACTIVEZONES__: active.append(tp[2][CTK.Nb[z]+1][2][CTK.Nz[z]])
 
     temp = C.newPyTree(['Base']); temp[2][1][2] += active
-            
+        
+    if CTK.__MAINTREE__ == CTK.SLICE:
+        exts = Internal.getNodeFromName1(CTK.dt, 'Edges')
+        if exts is None: exts = []
+        else: exts = exts[2]
+        
     # Subzone les zones actives
     CTK.dt = C.newPyTree(['Base','Edges'])
     for z in Internal.getZones(temp):
@@ -98,20 +103,22 @@ def show(event=None):
     if CTK.TKPLOTXY is not None: CTK.TKPLOTXY.updateApp(CTK.dt)
 
     # Ajoute les edges pour les grilles structurees
-    exts = []
-    for z in active:
-        ztype = Internal.getZoneType(z)
-        if ztype == 1:
-            zp = P.exteriorFacesStructured(z)
-            exts += zp
-        else:
-            #zp = P.exteriorFaces(z)
-            #zp = P.sharpEdges(zp)
-            zp = []
-            exts += zp
-    CTK.dt[2][2][2] += exts
+    if CTK.__MAINTREE__ == CTK.MAIN:
+        exts = []
+        for z in active:
+            ztype = Internal.getZoneType(z)
+            if ztype == 1:
+                zp = P.exteriorFacesStructured(z)
+                exts += zp
+            else:
+                #zp = P.exteriorFaces(z)
+                #zp = P.sharpEdges(zp)
+                zp = []
+                exts += zp
+    CTK.dt[2][2][2] += exts    
+
     # deactivate les zones exts
-    lenZ = len(CTK.dt[2][1][2]); lenExts = len(exts)
+    lenZ = len(CTK.dt[2][1][2]); lenExts = len(CTK.dt[2][2][2])
     activeExt = [(i,1) for i in range(lenZ+lenExts)]
     for i in range(lenZ): activeExt[i] = (i,1)
     for i in range(lenExts): activeExt[i+lenZ] = (i+lenZ,0)

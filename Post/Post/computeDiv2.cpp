@@ -854,8 +854,7 @@ PyObject* K_POST::computeDiv2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
 
 
   // Replace DataSet
-  if (indices != Py_None && (fieldX != Py_None | fieldY != Py_None
-			     | fieldZ != Py_None) )
+  if (indices != Py_None && (fieldX != Py_None || fieldY != Py_None || fieldZ != Py_None))
   {
     FldArrayI* inds=NULL; FldArrayF* bfieldX=NULL;
     FldArrayF* bfieldY=NULL; FldArrayF* bfieldZ=NULL;
@@ -973,10 +972,11 @@ void K_POST::computeDivVarsString(char* varString, char*& varStringOut)
         c = 1;
       }
       else strcat(varStringOut, ",div");
-      char nme[strlen(var0)-1];
-      strncpy(nme, var0, strlen(var0)-1);
+      char* nme = new char [strlen(var0)+1];
+      strcpy(nme, var0);
       nme[strlen(var0)-1] = '\0';
       strcat(varStringOut, nme);
+      delete [] nme;
     }
   }
   for (E_Int v = 0; v < varsSize; v++) delete [] vars[v];

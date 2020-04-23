@@ -123,7 +123,7 @@ def view(event=None):
         
     if plane == 'Mesh': CTK.display(CTK.t); return
     try:
-        if CTK.__MAINTREE__ == 1:
+        if CTK.__MAINTREE__ == CTK.MAIN:
             CTK.__MAINACTIVEZONES__ = CPlot.getActiveZones()
         active = []
         tp = Internal.appendBaseName2ZoneName(CTK.t, updateRef=False, 
@@ -183,14 +183,14 @@ def view(event=None):
     except Exception as e:
         Panels.displayErrors([0,str(e)], header='Error: slice')
         CTK.TXT.insert('START', 'Slice failed.\n')
-        CTK.TXT.insert('START', 'Error: ', 'Error') ; return    
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return  
     
 #==============================================================================
 def extract(event=None):
     if CTK.t == []: return
     plane = VARS[0].get()
     pos = float(VARS[1].get())
-    global XVALUE, YVALUE, ZVALUE;
+    global XVALUE, YVALUE, ZVALUE
     if plane == 'X': XVALUE = pos
     elif plane == 'Y': YVALUE = pos
     elif plane == 'Z': ZVALUE = pos
