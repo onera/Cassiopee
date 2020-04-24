@@ -62,8 +62,6 @@ void Data::renderBitmapString(float x, float y, float z,
   while (myString[i] != '\0')
   {
     glutBitmapCharacter(font, myString[i]); i++;
-    //GLUT_STROKE_MONO_ROMAN
-    //glutStrokeCharacter(GLUT_STROKE_ROMAN, myString[i]); i++;
   }
 }
 
@@ -93,11 +91,19 @@ void Data::renderStringWithShadow(
   lColorR = fgColorR; lColorG = fgColorG; lColorB = fgColorB;  
 
   double shnx, shny, shnz, shtx, shty, shtz;
-  shtx = offtx*r; shty= offty*r; shtz = offtz*r;
-  shnx = offnx*r; shny= offny*r; shnz = offnz*r;
-
+  
+  // edaclage pour le cas avec depth test (bandeaux)
+  double zoffset = 0.;
+  if (offtx == 1 && offty == 0 && offtz == 0) zoffset=0.01;
+  
+  //glEnable(GL_BLEND);
+  //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  
+  shtx = offtx*r; shty = offty*r; shtz = offtz*r;
+  shnx = offnx*r; shny = offny*r; shnz = offnz*r;
+  
   // segmente la string en mots
-  char msg[1024]; 
+  char msg[1024];
   int i = 0; int j = 0; int w = 0;
   while (myString[j] != '\0')
   {
@@ -105,22 +111,23 @@ void Data::renderStringWithShadow(
     {
       // Ecrit
       msg[i] = '\0';
+      glColor4f(shColorR, shColorG, shColorB, shColorA);
+      renderBitmapString(x+w+shnx+shtx, y+shny+shty, z+shnz+shtz-zoffset, font, msg);
+      //renderBitmapString(x+w+shtx, y+shty, z+shtz-zoffset, font, msg);
+      //renderBitmapString(x+w+shnx, y+shny, z+shnz-zoffset, font, msg);
       glColor4f(lColorR, lColorG, lColorB, fgColorA);
       renderBitmapString(x+w, y, z, font, msg);
-      glColor4f(shColorR, shColorG, shColorB, shColorA);
-      renderBitmapString(x+w+shnx+shtx, y+shny+shty, z+shnz+shtz, font, msg);
-      renderBitmapString(x+w+shtx, y+shty, z+shtz, font, msg);
-      renderBitmapString(x+w+shnx, y+shny, z+shnz, font, msg);
-      w += textWidth(FONT1, msg); i = 0;
+      w += textWidth(font, msg); i = 0;
 
       // Change la couleur
       j++;
       if (myString[j] == '0') // default
       { lColorR = fgColorR; lColorG = fgColorG; lColorB = fgColorB; }
-      if (myString[j] == '1') // light red 
-      { lColorR = 1.; lColorG = 0.6; lColorB = 0.6; }
-      else if (myString[j] == '2') // light green 
-      { lColorR = 0.6; lColorG = 1.; lColorB = 0.6; }
+      if (myString[j] == '2') // light green
+      { lColorR = 252./255.; lColorG = 113./255.; lColorB = 1./255.; }
+      else if (myString[j] == '1') // light red 
+      { lColorR = 155./255.; lColorG = 251./255.; lColorB = 60./255.; }
+    
       j++;
     }
 
@@ -141,21 +148,19 @@ void Data::renderStringWithShadow(
     msg[i] = myString[j]; i++; j++;
   }
   msg[i] = '\0';
+  glColor4f(shColorR, shColorG, shColorB, shColorA);
+  renderBitmapString(x+w+shnx+shtx, y+shny+shty, z+shnz+shtz-zoffset, font, msg);
+  //renderBitmapString(x+w+shtx, y+shty, z+shtz-zoffset, font, msg);
+  //renderBitmapString(x+w+shnx, y+shny, z+shnz-zoffset, font, msg);
+  //renderBitmapString(x+w-shtx, y-shty, z+shtz-zoffset, font, msg);
+  //renderBitmapString(x+w-shnx, y-shny, z+shnz-zoffset, font, msg);
+  //renderBitmapString(x+w-shnx-shtx, y-shny-shty, z-shnz-shtz-zoffset, font, msg);
+  //renderBitmapString(x+w+shnx-shtx, y+shny-shty, z+shnz-shtz-zoffset, font, msg);
+  //renderBitmapString(x+w-shnx+shtx, y-shny+shty, z-shnz+shtz-zoffset, font, msg);
   glColor4f(lColorR, lColorG, lColorB, fgColorA);
   renderBitmapString(x+w, y, z, font, msg);
-  glColor4f(shColorR, shColorG, shColorB, shColorA);
-  renderBitmapString(x+w+shnx+shtx, y+shny+shty, z+shnz+shtz, font, msg);
-  renderBitmapString(x+w+shtx, y+shty, z+shtz, font, msg);
-  renderBitmapString(x+w+shnx, y+shny, z+shnz, font, msg);
-
-  /*
-  glColor4f(fgColorR, fgColorG, fgColorB, fgColorA);
-  renderBitmapString(x, y, z, font, myString);
-  glColor4f(shColorR, shColorG, shColorB, shColorA);
-  renderBitmapString(x+w+shnx+shtx, y+shny+shty, z+shnz+shtz, font, msg);
-  renderBitmapString(x+w+shtx, y+shty, z+shtz, font, msg);
-  renderBitmapString(x+w+shnx, y+shny, z+shnz, font, msg);
-  */
+  //glDisable(GL_BLEND);
+  
 }
 
 //=============================================================================
@@ -202,13 +207,12 @@ void Data::displayText(char* text)
   // Render a string
   renderStringWithShadow(5, FONTSIZE1, 0, FONT1, text,
                          1., 1., 1., 1.,
-                         0.1, 0.1, 0.1, 1.);
+                         0.1, 0.1, 0.1, 0.5);
 
   // Render a rectangle
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  //glDisable(GL_DEPTH_TEST);
-  glColor4f(0.0, 0.0, 1., 0.3);
+  glColor4f(0.0, 0.0, 1., 0.5);
   glBegin(GL_QUADS);
   glVertex3d(0, 0, 0);
   glVertex3d(_view.w, 0, 0);
@@ -216,7 +220,6 @@ void Data::displayText(char* text)
   glVertex3d(0, FONTSIZE1+5, 0);
   glEnd();
   glDisable(GL_BLEND);
-  //glEnable(GL_DEPTH_TEST);
 
   // Put back the previous projection
   glPopMatrix();
@@ -475,7 +478,7 @@ void Data::printTmpMessage(const char* text)
     // Render string
     renderStringWithShadow(5, FONTSIZE1+5+(l+1)*FONTSIZE2, 0, FONT2, txt,
                            1.0, 1.0, 1.0, 1.0,
-                           0.1, 0.1, 0.1, 1.0);
+                           0.1, 0.1, 0.1, 0.5);
     l++;
   }
   glPopMatrix();
@@ -489,7 +492,7 @@ void Data::printTmpMessage(const char* text)
 //=============================================================================
 void Data::displayInfoWindow(char* text, int l)
 {
-  char msg[1024];
+  char msg[1024]; char msg2[1024]; int j; int jl;
   // Swap to orthographic 2D projection view
   setOrthographicProjection();
   glPushMatrix();
@@ -506,10 +509,18 @@ void Data::displayInfoWindow(char* text, int l)
     if (c == '\n')
     {
       msg[i2] = '\0';
-      w = MAX(w, textWidth(FONT1, msg));
+      // suppress @
+      jl = 0;
+      for (j = 0; j <= i2; j++)
+      {
+        if (msg[j] == '@') j++;
+        else { msg2[jl] = msg[j]; jl++; }
+      }
+      
+      w = MAX(w, textWidth(FONT1, msg2));
       renderStringWithShadow(5, l, 0, FONT1, msg,
                              1.0, 1.0, 1.0, 1.0,
-                             0.1, 0.1, 0.1, 1.0);
+                             0.1, 0.1, 0.1, 0.5);
       i2 = 0; l += 17;
     }
     else
@@ -521,18 +532,24 @@ void Data::displayInfoWindow(char* text, int l)
     c = text[i1];
   }
   msg[i2] = '\0';
-  w = MAX(w, textWidth(FONT1, msg));
+  // suppress @
+  jl = 0;
+  for (j = 0; j <= i2; j++)
+  {
+    if (msg[j] == '@') j++;
+    else { msg2[jl] = msg[j]; jl++; }
+  }
+  w = MAX(w, textWidth(FONT1, msg2));
   renderStringWithShadow(5, l, 0, FONT1, msg,
                          1.0, 1.0, 1.0, 1.0,
-                         0.1, 0.1, 0.1, 1.0);
+                         0.1, 0.1, 0.1, 0.5);
   l += 16;
 
   // Render rectangle
   w += 10;
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  //glDisable(GL_DEPTH_TEST);
-  glColor4f(0.0, 0.0, 1., 0.3);
+  glColor4f(0.0, 0.0, 1., 0.5);
   glBegin(GL_QUADS);
   glVertex3d(2, l-5, 0);
   glVertex3d(w, l-5, 0);
@@ -540,7 +557,6 @@ void Data::displayInfoWindow(char* text, int l)
   glVertex3d(2, ls, 0);
   glEnd();
   glDisable(GL_BLEND);
-  //glEnable(GL_DEPTH_TEST);
   glPopMatrix();
 
   // Put back the previous projection

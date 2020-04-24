@@ -260,6 +260,7 @@ void Data::displayActivePoint()
   glVertex3d(x+5*r*(vx+dirx), y+5*r*(vy+diry), z+5*r*(vz+dirz));
   glVertex3d(x+5*r*(2*vx+dirx), y+5*r*(2*vy+diry), z+5*r*(2*vz+dirz));
   glEnd();
+  glLineWidth(1.);
   
   char msg[512]; char msg2[512]; msg2[0] = '\0';
   if (ptrState->selectedZone > 0)
@@ -362,27 +363,89 @@ void Data::displayActivePoint()
     double posX,posY,posZ;
     double shtx, shty, shtz;
     double shnx, shny, shnz;
+    double ptx, pty, ptz;
+    ptx = x+5.*r*(2.2*vx+dirx);
+    pty = y+5.*r*(2.2*vy+diry);
+    ptz = z+5.*r*(2.2*vz+dirz);
     gluUnProject(winx+1., winy, winz, modelview, projection, viewport, 
                  &posX, &posY, &posZ);
-    shtx = x-posX; shty = y-posY; shtz = z-posZ;
+    shtx = posX-x; shty = posY-y; shtz = posZ-z;
     gluUnProject(winx, winy+1., winz, modelview, projection, viewport, 
                  &posX, &posY, &posZ);
-    shnx = x-posX; shny = y-posY; shnz = z-posZ;
-    renderStringWithShadow(x+5.*r*(2.2*vx+dirx), y+5.*r*(2.2*vy+diry), 
-                           z+5.*r*(2.2*vz+dirz), FONT3, msg,
-                           1., 0., 0., 1., 
-                           1., 1., 1., 0.7,
+    shnx = posX-x; shny = posY-y; shnz = posZ-z;
+    
+    // z offset - inutile sans depth test
+    /*
+    double crossx, crossy, crossz;
+    crossx = shty*shnz-shtz*shny;
+    crossy = shtz*shnx-shtx*shnz;
+    crossz = shtx*shny-shty*shnx;
+    if (crossx > 0) crossx = sqrt(crossx);
+    else crossx = -sqrt(-crossx);
+    if (crossy > 0) crossy = sqrt(crossy);
+    else crossy = -sqrt(-crossy);
+    if (crossz > 0) crossz = sqrt(crossz);
+    else crossz = -sqrt(-crossz);
+    ptx = ptx+10*crossx;
+    pty = pty+10*crossy;
+    ptz = ptz+10*crossz;
+    */
+    
+    // render rectangle
+    int width = textWidth(FONT3, msg);
+    int height = textHeight(FONT3);
+    double x0 = ptx-5*shtx-8*shnx;
+    double y0 = pty-5*shty-8*shny;
+    double z0 = ptz-5*shtz-8*shnz;
+    double x1 = x0+2*5*shtx+width*shtx;
+    double y1 = y0+2*5*shty+width*shty;
+    double z1 = z0+2*5*shtz+width*shtz;
+    double x2 = x1+height*shnx+13*shnx;
+    double y2 = y1+height*shny+13*shny;
+    double z2 = z1+height*shnz+13*shnz;
+    double x3 = x0+height*shnx+13*shnx;
+    double y3 = y0+height*shny+13*shny;
+    double z3 = z0+height*shnz+13*shnz;
+    
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glColor4f(0.0, 0.0, 1., 0.7);
+    glBegin(GL_QUADS);
+    glVertex3d(x0,y0,z0);
+    glVertex3d(x1,y1,z1);
+    glVertex3d(x2,y2,z2);
+    glVertex3d(x3,y3,z3);
+    glEnd();    
+    glDisable(GL_BLEND);
+    
+    glColor4f(1.0, 1.0, 1., 1.);
+    glBegin(GL_LINES);
+    glVertex3d(x0,y0,z0);
+    glVertex3d(x1,y1,z1);
+    glVertex3d(x1,y1,z1);
+    glVertex3d(x2,y2,z2);
+    glVertex3d(x2,y2,z2);
+    glVertex3d(x3,y3,z3);
+    glVertex3d(x3,y3,z3);
+    glVertex3d(x0,y0,z0);
+    glEnd();
+
+    // render HUD string
+    renderStringWithShadow(ptx, pty, ptz, 
+                           FONT3, msg,
+                           1., 1., 1., 1., 
+                           0.1, 0.1, 0.1, 0.5,
                            shtx, shty, shtz,
                            shnx, shny, shnz,
                            1.);
-    if (msg2[0] != '\0')
-      renderStringWithShadow(x+5*r*(2.2*vx+0.2*dirx), y+5*r*(2.2*vy+0.2*diry), 
-                           z+5*r*(2.2*vz+0.2*dirz), FONT3, msg2,
-                           1., 0., 0., 1., 
-                           1., 1., 1., 0.7,
-                           shtx, shty, shtz,
-                           shnx, shny, shnz,
-                           1.);
+    if (msg2[0] != '\0') // deuxieme ligne eventuelle
+      renderStringWithShadow(ptx-(20+height)*shnx, pty-(20+height)*shny, ptz-(20+height)*shnz, 
+                            FONT3, msg2,
+                            1., 1., 1., 1., 
+                            0.1, 0.1, 0.1, 0.5,
+                            shtx, shty, shtz,
+                            shnx, shny, shnz,
+                            1.);
   }
  
   /* End of HUD */

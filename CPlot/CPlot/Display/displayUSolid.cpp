@@ -119,13 +119,15 @@ void DataDL::displayUSolid()
     noLight();
 #ifdef __SHADERS__
     _shaders.activate( (short unsigned int)0 );
-    glActiveTexture( GL_TEXTURE1 );
-    glDisable( GL_TEXTURE_2D );
-    glActiveTexture( GL_TEXTURE0 );
-    glDisable( GL_TEXTURE_2D );
+    glActiveTexture(GL_TEXTURE2);
+    glDisable(GL_TEXTURE_2D);
+    glActiveTexture(GL_TEXTURE1);
+    glDisable(GL_TEXTURE_2D);
+    glActiveTexture(GL_TEXTURE0);
+    glDisable(GL_TEXTURE_2D);
 #endif
-    glDisable( GL_BLEND );
-    glDisable( GL_POLYGON_OFFSET_FILL );
-    glDisable( GL_POLYGON_OFFSET_LINE );
-    glColor4f( 1., 1., 1., 1. );
+    glDisable(GL_BLEND );
+    glDisable(GL_POLYGON_OFFSET_FILL);
+    glDisable(GL_POLYGON_OFFSET_LINE);
+    glColor4f(1., 1., 1., 1.);
 }

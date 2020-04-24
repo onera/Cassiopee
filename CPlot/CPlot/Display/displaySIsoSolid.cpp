@@ -204,5 +204,5 @@ void DataDL::displaySIsoSolid()
   glDisable(GL_BLEND);
   glDisable(GL_POLYGON_OFFSET_FILL);
   glDisable(GL_POLYGON_OFFSET_LINE);
-  glColor3f(1., 1., 1.);
+  glColor4f(1., 1., 1., 1.);
 }
