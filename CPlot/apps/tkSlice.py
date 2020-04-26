@@ -111,6 +111,7 @@ def view(event=None):
     order = int(VARS[3].get())
     eps = float(VARS[2].get())
     algo = VARS[5].get()
+    CTK.setCursor(2, WIDGETS['view'], WIDGETS['plus'], WIDGETS['moins'])
 
     nzs = CPlot.getSelectedZones()
     if nzs != []:
@@ -184,6 +185,7 @@ def view(event=None):
         Panels.displayErrors([0,str(e)], header='Error: slice')
         CTK.TXT.insert('START', 'Slice failed.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return  
+    CTK.setCursor(0, WIDGETS['view'], WIDGETS['plus'], WIDGETS['moins'])
     
 #==============================================================================
 def extract(event=None):
@@ -200,6 +202,7 @@ def extract(event=None):
     eps = float(VARS[2].get())
     algo = VARS[5].get()
 
+    CTK.setCursor(2, WIDGETS['extract'])
     nzs = CPlot.getSelectedZones()
     if nzs != []:
         point = CPlot.getActivePoint()
@@ -272,6 +275,7 @@ def extract(event=None):
         Panels.displayErrors([0,str(e)], header='Error: slice')
         CTK.TXT.insert('START', 'Slice failed.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
+    CTK.setCursor(0, WIDGETS['extract'])
     
 def changePlane(event=None):
     plane = VARS[0].get()
@@ -336,8 +340,10 @@ def createApp(win):
     # Move
     B = TTK.Button(Frame, text="+", command=movePlus)
     B.grid(row=0, column=1, sticky=TK.EW)
+    WIDGETS['plus'] = B
     BB = CTK.infoBulle(parent=B, text='Move slice +.')
     B = TTK.Button(Frame, text="-", command=moveMoins)
+    WIDGETS['moins'] = B
     B.grid(row=0, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Move slice -.')
     B = TTK.Entry(Frame, textvariable=VARS[4], background='White', width=3)
@@ -367,9 +373,11 @@ def createApp(win):
 
     # - View/extract/clear -
     B = TTK.Button(Frame, text="View", command=view)
+    WIDGETS['view'] = B
     B.grid(row=2, column=0, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='View a slice.')
     B = TTK.Button(Frame, text="Extract", command=extract)
+    WIDGETS['extract'] = B
     B.grid(row=2, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Extract a slice to pyTree.')
     B = TTK.Button(Frame, text="Clear", width=10, command=clear)

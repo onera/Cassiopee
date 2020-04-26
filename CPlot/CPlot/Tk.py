@@ -217,7 +217,7 @@ def openApp(app):
   module = getModule(app)
   if module is not None: module.showApp()
 
-def setCursor(cursor, B=None, C=None):
+def setCursor(cursor, B=None, C=None, D=None):
   win = WIDGETS['masterWin']
   if cursor == 2: win.config(cursor="wait")
   elif cursor == 0: win.config(cursor="")
@@ -230,6 +230,10 @@ def setCursor(cursor, B=None, C=None):
     if cursor == 2: C.config(cursor="wait")
     elif cursor == 0: C.config(cursor="")
     C.update()
+  if D is not None:
+    if cursor == 2: D.config(cursor="wait")
+    elif cursor == 0: D.config(cursor="")
+    D.update()
     
 #==============================================================================
 # Extrait des arrays de a pour les envoyer au plotter

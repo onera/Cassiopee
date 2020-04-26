@@ -22,8 +22,8 @@
 #if defined(_WIN64)
 #define __int64 long long
 #endif
-#include "mpi.h"
-#include "mpi4py/mpi4py.h"
+//#include "mpi.h"
+//#include "mpi4py/mpi4py.h"
 #endif
 #include "converter.h"
 #include "kcore.h"

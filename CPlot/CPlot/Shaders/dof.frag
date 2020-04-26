@@ -155,7 +155,8 @@ vec4 sobel(vec2 coords)
      ve += texture2D(FrameBuffer, vec2(coords.x                  , coords.y + pixelSizeHigh.y))*2.;
      ve += texture2D(FrameBuffer, vec2(coords.x + pixelSizeHigh.x, coords.y + pixelSizeHigh.y));
 
-     vec3 e = sqrt(he.rgb * he.rgb + ve.rgb*ve.rgb);
+     vec3 e = sqrt(he.rgb*he.rgb + ve.rgb*ve.rgb);
+
      return vec4(e, 1.);
 }
 
@@ -186,6 +187,7 @@ void main()
      {
         float ct = max(color2.r, color2.g);
         ct = max(ct, color2.b);
+        //ct = smoothstep(0.4, 0.8, ct);
         if (ct > sobelThreshold) color = sobelColor;
         else 
         color = mix(color1, 1.-color2, 0.3); // pastel colors

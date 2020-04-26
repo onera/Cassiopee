@@ -782,7 +782,11 @@ E_Int K_IO::GenIO::arcread(
   vector<E_Int>& ni, vector<E_Int>& nj, vector<E_Int>& nk,
   vector<FldArrayF*>& unstructField,
   vector<FldArrayI*>& connectivity,
-  vector<E_Int>& eltType, vector<char*>& zoneNames)
+  vector<E_Int>& eltType, vector<char*>& zoneNames,
+  char*& centerVarString,
+  vector<FldArrayF*>& centerStructField,
+  vector<FldArrayF*>& centerUnstructField
+  )
 {
   /* File Opening */
   FILE* ptrFile;
@@ -861,6 +865,7 @@ E_Int K_IO::GenIO::arcread(
   // transforme les structures de maillages en arrays
   char* zoneName = new char [128];
   varString = new char [1200];
+  centerVarString = new char [1200];
   for (std::map<unsigned int,mesh*>::iterator it = meshes.begin(); it != meshes.end(); it++)
   {
     mesh& m = *meshes[it->first];
@@ -876,7 +881,7 @@ E_Int K_IO::GenIO::arcread(
       zoneNames.push_back(zoneName);
       // recopie des coord + champs en noeuds
       E_Int np = m._nsom;
-      E_Int nvars = 3 + m._nfields.size() + m._cfields.size();
+      E_Int nvars = 3 + m._nfields.size();
       FldArrayF* f = new FldArrayF(np, nvars);
       E_Float* fx = f->begin(1);
       E_Float* fy = f->begin(2);
@@ -891,30 +896,28 @@ E_Int K_IO::GenIO::arcread(
         E_Float* pf = m._nfields[j];
         for (E_Int p = 0; p < np; p++) fp[p] = pf[p];
       }
-      // recopie des champs au centre + vire les ghost cells + sentinelle  
-      printf("champs aux centres=%lld, nceli=%d\n", m._cfields.size(), m._nceli);
-      if (m._nceli > np) printf("Warning! Depassement ncell > np.\n");
-      for (size_t j = 0; j < m._cfields.size(); j++)
-      {
-        E_Float* fp = f->begin(4+m._nfields.size()+j);
-        E_Float* pf = m._cfields[j];
-        for (E_Int p = 0; p < K_FUNC::E_min(m._nceli,np); p++) fp[p] = pf[p];
-        for (E_Int p = m._nceli; p < np; p++) fp[p] = SENTINELLE;
-      }
-      /*
-      for (size_t j = 0; j < f->getNfld(); j++)
-      {
-        for (E_Int p = 0; p < f->getSize(); p++) printf(" %f ",(*f)(p,j+1));
-        printf("\n\n");
-      }
-      */
       // update varString    
       strcpy(varString, "x,y,z");
       for (size_t p = 0; p < m._nfields.size(); p++) 
       { strcat(varString, ","); strcat(varString, m._nfieldNames[p]); }
-      for (size_t p = 0; p < m._cfields.size(); p++)
-      { strcat(varString, ","); strcat(varString, m._cfieldNames[p]); }
-      printf("%s\n", varString);
+      printf("nodes: %s\n", varString);
+      
+      // recopie des champs au centre + vire les ghost cells + sentinelle 
+      printf("champs aux centres=%lld, nceli=%d\n", m._cfields.size(), m._nceli);
+      FldArrayF* fc = NULL;
+      nvars = m._cfields.size();
+      if (nvars > 0) fc = new FldArrayF(m._nceli, nvars);
+      for (size_t j = 0; j < m._cfields.size(); j++)
+      {
+        E_Float* fp = fc->begin(j+1);
+        E_Float* pf = m._cfields[j];
+        for (E_Int p = 0; p < m._nceli; p++) fp[p] = pf[p];
+      }
+      // update centerVarString
+      if (nvars > 0) strcpy(centerVarString, m._cfieldNames[0]);
+      for (size_t p = 1; p < m._cfields.size(); p++)
+      { strcat(centerVarString, ","); strcat(centerVarString, m._cfieldNames[p]); }
+      printf("centers: %s\n", centerVarString);
       
       // Calcul de NFACE
       E_Int nf = m._nfac;
@@ -977,6 +980,7 @@ E_Int K_IO::GenIO::arcread(
       //for (E_Int p = 0; p < sizeNFACE+sizeNGON+4; p++) printf(" %d ", cnp[p]);
       //printf("\n");
       unstructField.push_back(f); connectivity.push_back(cn); eltType.push_back(8);
+      centerUnstructField.push_back(fc);
     }
   }
   

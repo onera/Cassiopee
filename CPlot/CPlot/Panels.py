@@ -1192,6 +1192,7 @@ def updateLoadPanel():
 
 def loadVars(event=None):
     if CTK.HANDLE is None: return
+    CTK.setCursor(2, WIDGETS['loadVars'])
     # Recupere les variables selectionnees
     selection = WIDGETS['LBVARS'].curselection()
     varList = []
@@ -1212,6 +1213,7 @@ def loadVars(event=None):
     if 'tkContainers' in CTK.TKMODULES: CTK.TKMODULES['tkContainers'].updateApp()
     if CTK.TKPLOTXY is not None: CTK.TKPLOTXY.updateApp()
     CTK.display(CTK.t)
+    CTK.setCursor(0, WIDGETS['loadVars'])
 
 def unloadVars(event=None):
     if CTK.HANDLE is None: return
@@ -1246,6 +1248,7 @@ def filterVarList(event=None):
 
 def loadZones(event=None):
     if CTK.HANDLE is None: return
+    CTK.setCursor(2, WIDGETS['loadZones'])
     import Converter.Filter as Filter
     # First load
     if len(Internal.getZones(CTK.t)) == 0: firstLoad = True
@@ -1277,6 +1280,7 @@ def loadZones(event=None):
     if CTK.TKPLOTXY is not None: CTK.TKPLOTXY.updateApp()
     CTK.display(CTK.t)
     if firstLoad: CPlot.fitView(); module = CTK.getModule('tkContainers'); module.updateApp()
+    CTK.setCursor(0, WIDGETS['loadZones'])
 
 def unloadZones(event=None):
     if CTK.HANDLE is None: return
@@ -1364,6 +1368,7 @@ def openLoadPanel(event=None):
         
         B = TTK.Button(F, text="Load", command=loadZones)
         B.grid(row=2, column=0, sticky=TK.EW)
+        WIDGETS['loadZones'] = B
         BB = CTK.infoBulle(parent=B, text='Load zones.')
         
         B = TTK.Button(F, text="Unload", command=unloadZones)
@@ -1388,6 +1393,7 @@ def openLoadPanel(event=None):
         
         B = TTK.Button(F, text="Load", command=loadVars)
         B.grid(row=2, column=3, sticky=TK.EW)
+        WIDGETS['loadVars'] = B
         BB = CTK.infoBulle(parent=B, text='Load vars.')
         
         B = TTK.Button(F, text="Unload", command=unloadVars)

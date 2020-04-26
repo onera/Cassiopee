@@ -923,8 +923,9 @@ def _upgradeTree(t, uncompress=True):
     except: pass
   return None
 
-# Hack pour les arrays en centres avec sentinelle -999.
-# copie sur les champs
+# Hack pour les arrays en centres avec sentinelle - 1.79769e+308
+# copie sur les champs - plus utilisé depuis que l'on sort directement 
+# les champs en centres
 def hackCenters(a):
   varString = a[0].split(',')
   np = a[1]
@@ -1037,16 +1038,20 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
   zn = []; bcfaces = []
   if format != 'bin_pickle': # autres formats
     if autoTry: format = None
+    centerArrays = []
     a = Converter.convertFile2Arrays(fileName, format, nptsCurve, nptsLine,
                                      density, zoneNames=zn, BCFaces=bcfaces,
-                                     deflection=deflection)
+                                     deflection=deflection, centerArrays=centerArrays)
 
   t = newPyTree([])
   base1 = False; base2 = False; base3 = False; base = 1; c = 0
 
-  for i in a:
-    a1, a2 = hackCenters(i)
-  
+  for c, i in enumerate(a):
+    #a1, a2 = hackCenters(i)
+    a1 = i
+    if centerArrays != []: a2 = centerArrays[c]
+    else: a2 = []
+    
     if len(i) == 5: # Structure
       if i[3] == 1 and i[4] == 1:
         if not base1:

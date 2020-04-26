@@ -532,7 +532,8 @@ def convertExt2Format__(fileName):
     return format
 
 def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
-                       density=-1., zoneNames=None, BCFaces=None, deflection=1.):
+                       density=-1., zoneNames=None, BCFaces=None, 
+                       deflection=1., centerArrays=None):
     """Read file and return arrays containing file data.
     Usage: a = convertFile2Arrays(fileName, options)"""
     try: import locale; locale.setlocale(locale.LC_NUMERIC, 'C') # force .
@@ -557,13 +558,6 @@ def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
         else:
             print('done.')
             return a
-    elif format == 'fmt_igs':
-        try: import OCC
-        except: raise ImportError("convertFile2Arrays: IGES reader requires OCC module.")
-        a = OCC.convertIGES2Arrays(fileName, h=0., chordal_err=0.)
-        if zoneNames is not None: 
-            for c in range(len(a)): zoneNames.append('zone%d'%c)
-        return a
     elif format == 'fmt_iges' or format == 'fmt_step':
         try: import OCC
         except: raise ImportError("convertFile2Arrays: CAD readers requires OCC module.")
@@ -602,13 +596,13 @@ def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
             raise TypeError("convertFile2Arrays: file %s can not be read."%fileName)
     else:
         try:
-            return  converter.convertFile2Arrays(fileName, format, nptsCurve, nptsLine, density, zoneNames, BCFaces)
+            return converter.convertFile2Arrays(fileName, format, nptsCurve, nptsLine, density, zoneNames, BCFaces, centerArrays)
         except:
             if not autoTry: raise
             else: pass
             format = checkFileType(fileName)
             try: 
-               return  converter.convertFile2Arrays(fileName, format, nptsCurve, nptsLine, density, zoneNames, BCFaces)
+               return converter.convertFile2Arrays(fileName, format, nptsCurve, nptsLine, density, zoneNames, BCFaces, centerArrays)
             except:   
                 FORMATS = ['bin_ply', 'fmt_tp', 'fmt_v3d',
                 'bin_tp', 'bin_v3d', 'bin_vtk', 'fmt_mesh',
@@ -619,11 +613,11 @@ def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
                 success = 0
                 for fmt in FORMATS:
                     try:
-                        a = converter.convertFile2Arrays(fileName, fmt, nptsCurve, nptsLine, density, zoneNames, BCFaces)
+                        a = converter.convertFile2Arrays(fileName, fmt, nptsCurve, nptsLine, density, zoneNames, BCFaces, centerArrays)
                         success = 1; break
                     except: pass
                     if success == 1: return a
-                    else: return converter.convertFile2Arrays(fileName, format, nptsCurve, nptsLine, density, zoneNames, BCFaces)
+                    else: return converter.convertFile2Arrays(fileName, format, nptsCurve, nptsLine, density, zoneNames, BCFaces, centerArrays)
 
 def convertArrays2File(arrays, fileName, format=None, isize=4, rsize=8,
                        endian='big', colormap=0, dataFormat='%.9e ',

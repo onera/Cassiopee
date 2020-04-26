@@ -28,8 +28,8 @@
 #if defined(_WIN64)
 #define __int64 long long
 #endif
-#include "mpi.h"
-#include "mpi4py/mpi4py.h"
+//#include "mpi.h"
+//#include "mpi4py/mpi4py.h"
 #endif
 
 using namespace std;
@@ -40,15 +40,14 @@ using namespace K_FLD;
 // ============================================================================
 PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
 {
-  E_Int n;
   E_Int nLine; E_Int nCurve; E_Float density;
   char* fileName; char* fileFmt;
-  PyObject* zoneNamesO; PyObject* BCFacesO;
+  PyObject* zoneNamesO; PyObject* BCFacesO; PyObject* centerArrays;
 
-  if (!PYPARSETUPLE(args, "sslldOO", "ssiidOO",
-                    "ssllfOO", "ssiifOO", &fileName, &fileFmt, 
+  if (!PYPARSETUPLE(args, "sslldOOO", "ssiidOOO",
+                    "ssllfOOO", "ssiifOOO", &fileName, &fileFmt, 
                     &nCurve, &nLine, &density, &zoneNamesO,
-                    &BCFacesO)) return NULL;
+                    &BCFacesO, &centerArrays)) return NULL;
 
   E_Int NptsLine = nLine;
   E_Int NptsCurve = nCurve;
@@ -82,13 +81,20 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
     printf("Warning: convertFile2Arrays: zoneNames is not empty. zones names will be appended to zoneNames.\n");
   }
 
-  vector<FldArrayF*> field;            // field read for each zone
+  char* varString = NULL;  // variable strings (node fields) 
+  char* varStringc = NULL; // varstring for center variables
+  
+  vector<FldArrayF*> field;   // structured node fields
+  vector<FldArrayF*> fieldc; // structured center fields
+  
   vector<E_Int> im; vector<E_Int> jm; vector<E_Int> km;
-  char* varString = NULL;
-  vector<FldArrayI*> c;
-  vector<FldArrayF*> ufield;
-  vector<E_Int> et;
-  vector<char*> zoneNames;
+  vector<FldArrayI*> c; // unstructured connectivities
+  
+  vector<FldArrayF*> ufield; // unstructured node fields
+  vector<FldArrayF*> ufieldc; // unstructured center fields
+  
+  vector<E_Int> et; // element types
+  vector<char*> zoneNames; // zone names
   vector<FldArrayI*> BCFaces;
   vector<char*> BCNames;
   E_Int ret = 1;
@@ -268,7 +274,7 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
   }
   else if (K_STRING::cmp(fileFmt, "fmt_cedre") == 0)
   {
-    // Formatted cedre read
+    // Formatted cedre read (Cedre input)
     ret = K_IO::GenIO::getInstance()->cedreread(fileName, varString, field, 
                                                 im, jm, km, 
                                                 ufield, c, et, zoneNames,
@@ -276,10 +282,11 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
   }
   else if (K_STRING::cmp(fileFmt, "bin_arc") == 0)
   {
-    // Formatted cedre read
+    // Binary archive read (Cedre output)
     ret = K_IO::GenIO::getInstance()->arcread(fileName, varString, field, 
                                               im, jm, km, 
-                                              ufield, c, et, zoneNames);
+                                              ufield, c, et, zoneNames,
+                                              varStringc, fieldc, ufieldc);
   }
   else
   {
@@ -371,8 +378,7 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
   
   PyObject* l = PyList_New(0);
   
-  n = im.size();
-  for (E_Int i = 0; i < n; i++)
+  for (size_t i = 0; i < field.size(); i++)
   {
     // Build array
     tpl = K_ARRAY::buildArray2(*field[i], varString,
@@ -382,8 +388,7 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
     Py_DECREF(tpl);
   }
   
-  n = ufield.size();    
-  for (E_Int i = 0; i < n; i++)
+  for (size_t i = 0; i < ufield.size(); i++)
   {
     char eltType[28]; E_Int d;
     K_ARRAY::typeId2eltString(et[i], 0, eltType, d);
@@ -392,6 +397,45 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
     delete ufield[i]; delete c[i];
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
+  }
+  
+  for (size_t i = 0; i < fieldc.size(); i++)
+  {
+    if (centerArrays != Py_None)
+    {
+      if (fieldc[i] != NULL)
+      {
+        tpl = K_ARRAY::buildArray2(*fieldc[i], varStringc,
+                                   im[i]-1, jm[i]-1, km[i]-1);
+        PyList_Append(centerArrays, tpl);
+        Py_DECREF(tpl);
+      }
+    }
+    delete fieldc[i];
+  }
+  
+  for (size_t i = 0; i < ufieldc.size(); i++)
+  {
+    if (centerArrays != Py_None)
+    {
+      if (ufieldc[i] != NULL)
+      {
+        FldArrayI* cnl = new FldArrayI();
+        char eltType[28]; strcpy(eltType, "NODE"); // hack
+        tpl = K_ARRAY::buildArray2(*ufieldc[i], varStringc,
+                                   *cnl, eltType); // hack
+        delete cnl;
+        PyList_Append(centerArrays, tpl);
+        Py_DECREF(tpl);
+      }
+      else 
+      {
+        tpl = PyList_New(0);
+        PyList_Append(centerArrays, tpl);
+        Py_DECREF(tpl);
+      }
+    }
+    delete ufieldc[i];
   }
 
   // build zoneNames list. Les fonctions de lecture ont alloue un char* par

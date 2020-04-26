@@ -172,7 +172,11 @@ void DataDL::displayUIsoSolid()
 #ifdef __SHADERS__
   _shaders.activate((short unsigned int)0);
 #endif
-
+  glActiveTexture(GL_TEXTURE1);
+  glDisable(GL_TEXTURE_2D);
+  glActiveTexture(GL_TEXTURE0);
+  glDisable(GL_TEXTURE_2D);
+  
   // Surimposition maillage eventuellement
   if (ptrState->scalarStyle == 1 || ptrState->scalarStyle == 3)
   {
