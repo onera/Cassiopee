@@ -28,7 +28,7 @@ m1 = XOR.closeCells(m1)
 #C.convertPyTree2File(m1, 'out.cgns')
 test.testT(m1,1)
 
-m2 = XOR.adaptCells(a,b, sensor_type=2)
+m2 = XOR.adaptCells(a,b, sensor_type=0, smoothing_type=1)
 m2 = XOR.closeCells(m2)
 #C.convertPyTree2File(m2, 'out1.cgns')
 test.testT(m2,2)

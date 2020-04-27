@@ -1160,17 +1160,18 @@ def _closeCells(t):
 # IN: t1 : 3D NGON mesh
 # IN: t2 : source points (any kind of mesh)
 # IN: sensor_type : basic (0) or xsensor (1)
+# IN smoothing_type : First-neighborhood (0) Shell-neighborhood(1)
 # OUT: returns a 3D NGON Mesh with adapted cells
 #==============================================================================
-def adaptCells(t, t2, sensor_type = 0, itermax=-1, hmesh=None):
+def adaptCells(t, t2, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, hmesh=None):
      
     tp = Internal.copyRef(t)
-    _adaptCells(tp, t2, sensor_type, itermax, hmesh)
+    _adaptCells(tp, t2, sensor_type, smoothing_type, itermax, subdiv_type, hmesh)
     return tp
 
-def _adaptCells(t, t2, sensor_type = 0, itermax=-1, hmesh=None):
+def _adaptCells(t, t2, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, hmesh=None):
     """Adapts a polyhedral mesh t1 with repsect to t2 points.
-    Usage: adaptCells(t1, t2, sensor_type)"""
+    Usage: adaptCells(t1, t2, sensor_type, smoothing_type, itermax, subdiv_type, hmesh)"""
 
     source = C.getFields(Internal.__GridCoordinates__, t2)[0]
 
@@ -1185,9 +1186,9 @@ def _adaptCells(t, t2, sensor_type = 0, itermax=-1, hmesh=None):
         coords = Converter.convertArray2NGon(coords)
 
         if hmesh is not None:
-            res = intersector.adaptCells(coords, source, sensor_type, itermax, hmesh[i])
+            res = intersector.adaptCells(coords, source, sensor_type, smoothing_type, itermax, subdiv_type, hmesh[i])
         else:
-            res = intersector.adaptCells(coords, source, sensor_type, itermax, None)
+            res = intersector.adaptCells(coords, source, sensor_type, smoothing_type, itermax, subdiv_type, None)
 
         mesh = res[0]
         # MAJ du maillage de la zone
@@ -1198,6 +1199,27 @@ def _adaptCells(t, t2, sensor_type = 0, itermax=-1, hmesh=None):
             updatePointLists(z, zones, pg_oids)
 
     return t
+
+
+#==============================================================================
+# Dynamic cells adaptation 
+#==============================================================================
+def adaptCellsDyn(t,ts,hmeshs,hsensors):
+    tp = Internal.copyRef(t)
+    _adaptCellsDyn(tp, ts, hmeshs, hsensors)
+    return tp
+
+def _adaptCellsDyn(t,ts,hmeshs,hsensors):
+    source = C.getFields(Internal.__GridCoordinates__, ts)[0]
+
+    zones   = Internal.getZones(t)
+    i       = 0
+    hmesh   = hmeshs[i]
+    hsensor = hsensors[i]
+    for z in zones:        
+        res = intersector.adaptCellsDyn(source,hmesh,hsensor)
+        i   = i+1
+    
 
 #==============================================================================
 # adaptCellsNodal : Adapts a polyhedral mesh a1 with repsect to the nodal subdivision values.
@@ -1258,6 +1280,15 @@ def createHMesh(t, subdiv_type = 0):
         i=i+1
     return hmeshs
 
+def createGeomSensor(hmeshs, sensor_type = 0, itermax = -1):
+
+    sensors = []
+
+    for hmesh in hmeshs:
+        sensors.append(intersector.createSensor(hmesh,sensor_type,itermax))
+  
+    return sensors
+
 def deleteHMesh(hooks):
     nb_hooks = len(hooks)
     i=0
@@ -1282,7 +1313,7 @@ def _conformizeHMesh(t, hooks):
     for z in zones:
         m = C.getFields(Internal.__GridCoordinates__, z)[0]
         if m == []: continue
-        res = intersector.conformizeHMesh(m, hooks[i])
+        res = intersector.conformizeHMesh(hooks[i])
         mesh = res[0]
         # MAJ du maillage de la zone
         C.setFields([mesh], z, 'nodes')
@@ -1296,11 +1327,11 @@ def _conformizeHMesh(t, hooks):
 #==============================================================================
 # adaptBox : Adapts a bounding box to a cloud of interior points
 #==============================================================================
-def adaptBox(t, box_ratio = 10., itermax=-1):
+def adaptBox(t, box_ratio = 10., smoothing_type=0, itermax=-1):
     """Adapts a bounding box to a cloud of interior points.
     Usage: adaptBox(t, box_ratio)"""
     m = C.getFields(Internal.__GridCoordinates__, t)[0]
-    m = intersector.adaptBox(m, box_ratio, itermax)
+    m = intersector.adaptBox(m, box_ratio, smoothing_type, itermax)
     return C.convertArrays2ZoneNode('adapted', [m])
 
 #==============================================================================
@@ -1829,3 +1860,6 @@ def volume(t, fieldname=None):
 #~ 
     #~ return generator.normL1(s1, flowsol1, s2, flowsol2)
 #~ 
+def testmain(t):
+    m = C.getFields(Internal.__GridCoordinates__, t)[0]
+    c = XOR.testmain(m)

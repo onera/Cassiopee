@@ -30,7 +30,7 @@ m0 = XOR.closeCells(m0)
 #C.convertPyTree2File(m0, 'out.cgns')
 test.testT(m0,1)
 
-m1 = XOR.adaptCells(mesh,source, sensor_type=2)
+m1 = XOR.adaptCells(mesh,source, sensor_type=0, smoothing_type=1)
 m1 = XOR.closeCells(m1)
 #C.convertPyTree2File(m1, 'out.cgns')
 test.testT(m1,2)
@@ -49,7 +49,7 @@ XOR.deleteHMesh(hmsh);
 test.testT(m,4)
 
 hmsh = XOR.createHMesh(mesh)
-m = XOR.adaptCells(mesh, source, hmesh = hmsh, sensor_type=2)
+m = XOR.adaptCells(mesh, source, hmesh = hmsh, sensor_type=0, smoothing_type=1)
 
 cm = XOR.conformizeHMesh(m, hmsh)
 cm = XOR.closeCells(cm)

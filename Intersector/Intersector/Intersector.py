@@ -325,10 +325,17 @@ def closeCells(a):
 # IN: a2 : source points (any kind of mesh)
 # OUT: returns a 3D NGON Mesh with adapted cells
 #==============================================================================
-def adaptCells(a1, a2, sensor_type=0, itermax=-1, hmesh=None):
+def adaptCells(a1, a2, sensor_type=0, smoothing_type=0, itermax=-1, subdiv_type=0, hmesh=None):
     """Adapts a polyhedral mesh a1 with repsect to a2 points.
     Usage: adaptCells(a1, a2, [sensor_type, itermax, hmesh])"""
-    return intersector.adaptCells(a1, a2, sensor_type, itermax, hmesh)
+    return intersector.adaptCells(a1, a2, sensor_type, smoothing_type, itermax, subdiv_type, hmesh)
+
+#==============================================================================
+# adaptCellsDyn
+#==============================================================================
+# def __adaptCellsDyn(hook_hmesh, hook_sensor):
+    
+#   return intersector.adaptCellsDyn(hook_hmesh, hook_sensor) 
 
 #==============================================================================
 # adaptCellsNodal : Adapts a polyhedral mesh a1 with repsect to the nodal subdivision values.
@@ -344,18 +351,21 @@ def adaptCellsNodal(a1, nodal_vals, hmesh=None):
 #==============================================================================
 # adaptBox : Adapts a bounding box to a cloud of interior points.
 #==============================================================================
-def adaptBox(a, box_ratio=10., itermax=-1):
+def adaptBox(a, box_ratio=10., smoothing_type=0, itermax=-1):
     """Adapts a bounding box to a cloud of interior points"""
-    return intersector.adaptBox(a, box_ratio, itermax)
+    return intersector.adaptBox(a, box_ratio, smoothing_type, itermax)
 
-def createHMesh(a, subdiv_type = 0): # 0 : ISO
+def createHMesh(a, subdiv_type = 0): # 0 : ISO, 1: ISO_HEX
     return intersector.createHMesh(a, subdiv_type)
 
 def deleteHMesh(hmesh):
     return intersector.deleteHMesh(hook)
 
-def conformizeHMesh(a, hmesh):
-    return intersector.conformizeHMesh(a, hmesh)
+def conformizeHMesh(hmesh):
+    return intersector.conformizeHMesh(hmesh)
+
+def createGeomSensor(hookHMesh, smoothing_type = 0, itermax = -1):
+    return intersector.createSensor(hookHMesh, smoothing_type, itermax)
 
 #==============================================================================
 # extractUncomputables : Extracts any entity that will probably cause trouble to a CFD solver
@@ -645,3 +655,5 @@ def drawOrientation(a):
     #~ intersector.total_mass(a1, flowsol)
     #~ return a1
 
+def testmain(a):
+    intersector.testmain(a)

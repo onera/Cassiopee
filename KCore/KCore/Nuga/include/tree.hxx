@@ -51,16 +51,17 @@ class tree
       _enabled.resize(nb_ent, true);
     }
     
-    void resize(const Vector_t<E_Int>& ids, E_Int stride) //storing fixed stride
+    // expand a tree with fixed-stride-children
+    void resize(const Vector_t<E_Int>& ids, E_Int stride)
     {
       // first available local id : one passed-the-end before appending : important to get it before resizing _children
       E_Int locid = array_trait<children_array>::size(_children); // nb_child
       
       // get the total nb of children to add
-      E_Int nb_new_children = array_trait<children_array>::get_nb_new_children(*_entities, stride, ids);
+      E_Int nb_new_children = stride * ids.size();
       
       // expand the children array
-      array_trait<children_array>::resize_for_children(_children, stride, nb_new_children);
+      array_trait<children_array>::resize_children(_children, stride, nb_new_children);
 
       // expand remaining attributes
       E_Int current_sz = _parent.size();
@@ -72,16 +73,22 @@ class tree
         _indir[ids[i]] = locid++;
     }
 
+    // expand a tree with variable-stride-children
+    // pregnant[i] is the nb of children for ids[i]
     void resize(const Vector_t<E_Int>& ids, const Vector_t<E_Int>& pregnant)
     {
+      if (pregnant.empty()) return;
+
+      assert(ids.size() == pregnant.size());
+
       //first available local id : one passed-the-end before appending : important to get it before resizing _children
       E_Int locid = array_trait<children_array>::size(_children); // nb_child
       
       // get the total nb of new entities after refining
-      E_Int nb_new_children = array_trait<children_array>::get_nb_new_children(*_entities, ids, pregnant);
-      
+      E_Int nb_new_children = K_CONNECT::IdTool::sum(pregnant);
+
       // expand the children array
-      array_trait<children_array>::resize_for_children(_children, ids, pregnant); // espace _children
+      _children.expand_variable_stride(pregnant.size(), &pregnant[0]);
 
       // expand remaining attributes
       E_Int current_sz = _parent.size();
@@ -234,34 +241,13 @@ class array_trait<ngon_unit>
   static E_Int* children(ngon_unit& arr, E_Int loci) {
       return arr.get_facets_ptr(loci);
   }
-   
-  //fixed stride but stored in ngon_unit
-  static E_Int get_nb_new_children(const ngon_unit &dummy, E_Int stride, const Vector_t<E_Int>& to_refine_ids)
-  {
-    return to_refine_ids.size() * stride;
-  }
-
-  // variable stride
-  static E_Int get_nb_new_children(const ngon_unit &dummy, E_Int stride, const Vector_t<E_Int>& to_refine_ids, const Vector_t<E_Int>& pregnant)
-  {
-    E_Int nb_new_children(0);
-    E_Int len = to_refine_ids.size();
-    for (int i=0; i< len; i++){
-      nb_new_children += pregnant[i];
-    }  
-    return nb_new_children;
-  }
-  
-  static void resize_for_children(ngon_unit& arr, E_Int stride, E_Int nb_new_children) //fixed strride
+ 
+  //
+  static void resize_children(ngon_unit& arr, E_Int stride, E_Int nb_new_children) //fixed stride
   {
     arr.expand_n_fixed_stride(nb_new_children, stride);
   }
   
-  // variable stride
-  static void resize_for_children(ngon_unit& arr, const Vector_t<E_Int>& pregnant)
-  {
-    arr.expand_variable_stride(pregnant.size(), &pregnant[0]);
-  }
 };
 
 // FIXED STRIDE CHILDREN ARRAY : BASIC ELEMENTS (2D and 3D)
@@ -288,14 +274,10 @@ class array_trait<K_FLD::IntArray>
       return arr.col(loci);
   }
   
-  static void resize_for_children(K_FLD::IntArray& arr, E_Int stride, E_Int nb_children){
+  static void resize_children(K_FLD::IntArray& arr, E_Int stride, E_Int nb_children){
     arr.resize(stride, arr.cols() + nb_children/stride, E_IDX_NONE);
   }
   
-  static E_Int get_nb_new_children(const ngon_unit &dummy, E_Int stride, const Vector_t<E_Int>& to_refine_ids)
-  {
-    return stride * to_refine_ids.size();
-  }
 };
 
 

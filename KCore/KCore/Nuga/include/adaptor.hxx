@@ -39,11 +39,12 @@ E_Int NUGA::adaptor<mesh_t, sensor_t>::run(mesh_t& hmesh, sensor_t& sensor, bool
 
   hmesh.init();  
 
+  //int iter = 0;
   while (!err)
   {
 
 #ifdef ADAPT_STEPS
-    std::cout << "nuga/adapt::sensor.compute iter " << iter << "..." << std::endl;
+    std::cout << "nuga/adapt::sensor.compute iter " << iter++ << "..." << std::endl;
     start0 = std::chrono::system_clock::now();
 #endif
     bool require = sensor.compute(adap_incr, do_agglo);

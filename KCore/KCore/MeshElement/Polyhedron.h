@@ -40,6 +40,9 @@
 
 namespace K_MESH
 {
+  class Hexahedron;
+  class Prism;
+  class Pyramid;
 //static int level=0;
 
 //enum TopoShape { UNKNOWN, STAR_SHAPED, CONVEX, CONCAVE};
@@ -128,6 +131,17 @@ public:
 
     for (size_t i = 0; i < 3; ++i) G[i] *= k;
     //std::cout << "G : " << G[0] << "/" << G[1] << "/" << G[2] << std::endl;
+  }
+
+  ///
+  static void iso_barycenter(const K_FLD::FloatArray& crd, const ngon_unit & PGs, const E_Int* first_pg, E_Int nb_pgs, E_Int index_start, E_Float* G)
+  {
+    //todo JP
+
+    // 1 option : 
+    // a. call to unique_nodes (a method of this class, see below)
+    // b. call to above function
+
   }
   
   template<typename box_t, typename CoordAcc>
@@ -1660,6 +1674,13 @@ static E_Int unique_nodes(const ngon_unit& PGS, const E_Int* first_pg, E_Int nb_
   return nb_unodes;
 }
 
+static E_Int cumulated_arity(const ngon_unit& PGS, const E_Int* first_pg, E_Int nb_pgs)
+{
+  // todo JP
+  // the arity of a node is the nb of PGs sharing that node
+  // the returned value is the sum of the nodal arities
+}
+
 inline static void expressions (E_Float w0 , E_Float w1 , E_Float w2 , E_Float &f1 , E_Float& f2 , E_Float& f3 , E_Float& g0 , E_Float& g1 , E_Float& g2 )
 {
   E_Float temp0 = w0 + w1 ;   f1 = temp0 + w2 ;
@@ -2009,56 +2030,19 @@ static bool is_aniso_HX8(const K_FLD::FloatArray& crd, const ngon_unit& PGS, con
   return false;
 }
 
-static bool is_TH4(const ngon_unit& PGs, const E_Int* firstPG, E_Int nb_pgs)
+template <typename ELT_t> static bool is_of_type(const ngon_unit& PGs, const E_Int* firstPG, E_Int nb_pgs)
 {    
-  if (nb_pgs != 4) return false;
-  
-  for (int i=0; i<4; i++)
-    if (PGs.stride(*(firstPG+i)-1) != 3) return false; 
-
-  return true;
+  return ELT_t::is_of_type(PGs, firstPG, nb_pgs);
 }
 
-static bool is_PY5(const ngon_unit& PGs, const E_Int* firstPG, E_Int nb_pgs)
-{    
-  E_Int s1(0), s2(0); 
-    
-  if (nb_pgs != 5) return false;
-  
-  for (int i=0; i<5; i++)
-  {
-    if (PGs.stride(*(firstPG+i)-1) == 3) ++s1;
-    else if (PGs.stride(*(firstPG+i)-1) == 4) ++s2;
-    else return false;
-  }
-
-  return ((s1 == 4) && (s2 == 1));
-}
-
-static bool is_PR6(const ngon_unit& PGs, const E_Int* firstPG, E_Int nb_pgs)
-{    
-  E_Int s1(0), s2(0);
-
-  if (nb_pgs != 5) return false;
-    
-  for (int i=0; i<5; i++)
-  {
-    if (PGs.stride(*(firstPG+i)-1) == 3) ++s1;
-    else if (PGs.stride(*(firstPG+i)-1) == 4) ++s2;
-    else return false;
-  }
-  
-  return ((s1==2) && (s2==3));
- 
-}
 
 ///
 static bool is_basic(const ngon_unit & PGs, const E_Int* faces, E_Int nb_faces)
 {
-  if (K_MESH::Polyhedron<0>::is_HX8(PGs, faces, nb_faces)) return true;
-  if (K_MESH::Polyhedron<0>::is_TH4(PGs, faces, nb_faces)) return true;
-  if (K_MESH::Polyhedron<0>::is_PR6(PGs, faces, nb_faces)) return true;
-  if (K_MESH::Polyhedron<0>::is_PY5(PGs, faces, nb_faces)) return true;
+  if (is_of_type<K_MESH::Hexahedron>(PGs, faces, nb_faces)) return true;
+  if (is_of_type<K_MESH::Tetrahedron>(PGs, faces, nb_faces)) return true;
+  if (is_of_type<K_MESH::Prism>(PGs, faces, nb_faces)) return true;
+  if (is_of_type<K_MESH::Pyramid>(PGs, faces, nb_faces)) return true;
 
   return false;
 }

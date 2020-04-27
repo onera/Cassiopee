@@ -28,15 +28,13 @@
 #include "MeshElement/Triangle.h"
 #include "Fld/ngon_unit.h"
 #include <deque>
+#include "Nuga/include/subdiv_defs.h"
 
 namespace K_MESH
 {
 
 class Polygon {
-  
-public:
-  static constexpr E_Int NB_NODES = -1;
-
+ 
 public:
   typedef K_MESH::NO_Edge boundary_type;
   typedef K_FLD::ArrayAccessor<K_FLD::FloatArray> aDynCrd_t;
@@ -130,14 +128,18 @@ public:
     for (E_Int i=0; i < nb_tris; ++i)
     {
       T[1] = nodes[I] - index_start;
-      T[2] = nodes[(I+1)%nb_nodes] - index_start;
-      connectT3.pushBack(T, T+3);
-      I = (I+1)%nb_nodes;
+      T[2] = nodes[(I + 1) % nb_nodes] - index_start;
+      connectT3.pushBack(T, T + 3);
+      I = (I + 1) % nb_nodes;
     }
   }
   
   ///
   E_Int shuffle_triangulation();
+
+  ///
+  template<NUGA::eSUBDIV_TYPE STYPE>
+  static void split(const E_Int* refE, E_Int n, ngon_unit& PGs, E_Int posChild);
 
   ///
   static E_Int get_sharp_edges
@@ -443,6 +445,13 @@ E_Int Polygon::triangulate
   E_Int err = K_MESH::Polygon::triangulate_inplace(dt, crd, _nodes, _nb_nodes, -_shift/*index start*/, _triangles, false/*do_not_shuffle*/, false/*improve_quality*/);
 
   return err;
+  }
+
+  template<>
+  inline void Polygon::split<NUGA::ISO_HEX>(const E_Int* refE, E_Int n, ngon_unit& PGs, E_Int posChild)
+  {
+    //todo JP : refE => (n-1)/2 QUADS
+    // exemple : voir Q9::split dans Q9.hxx
   }
 
 

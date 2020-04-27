@@ -37,14 +37,6 @@ void Hexahedron::triangulate(E_Int* target)
   }
 }
 
-
-void Hexahedron::get_internal(E_Int* nodes, E_Int* p)
-{ 
-  p[0] = nodes[9];  p[1] = nodes[11];  p[2] = nodes[16];  p[3] = nodes[14];  p[4] = nodes[12];  p[5] = nodes[25];  p[6] = nodes[17];  p[7] = nodes[23];  p[8] = nodes[26];
-  p[9] = nodes[18];  p[10] = nodes[19];  p[11] = nodes[20];  p[12] = nodes[21];  p[13] = nodes[22];  p[14] = nodes[23];  p[15] = nodes[24];  p[16] = nodes[25];  p[17] = nodes[26];
-  p[18] = nodes[8];  p[19] = nodes[10];  p[20] = nodes[15];  p[21] = nodes[13];  p[22] = nodes[12];  p[23] = nodes[24];  p[24] = nodes[17];  p[25] = nodes[22];  p[26] = nodes[26];    
-}
-
 void Hexahedron::get_edges(const E_Int* nodes, Vector_t<K_MESH::NO_Edge>& edges)
 {
   // nodes length is 8 and there are 12 edges in total
@@ -58,7 +50,7 @@ void Hexahedron::get_edges(const E_Int* nodes, Vector_t<K_MESH::NO_Edge>& edges)
   }
 }
 
-bool Hexahedron::cross(const ngon_type& ng, K_FLD::FloatArray& crd, E_Int* face, E_Int nb_faces, K_FLD::FloatArray& data, E_Float* P0, E_Float* P1, E_Float& lambda0, E_Float& lambda1, E_Float tolerance)
+bool Hexahedron::cross(const ngon_type& ng, const K_FLD::FloatArray& crd, const E_Int* face, E_Int nb_faces, K_FLD::FloatArray& data, E_Float* P0, E_Float* P1, E_Float& lambda0, E_Float& lambda1, E_Float tolerance)
 {
   // crossing points are defined by lambda coefficients, initialize them
   lambda0 = K_CONST::E_MAX_FLOAT;
@@ -70,9 +62,9 @@ bool Hexahedron::cross(const ngon_type& ng, K_FLD::FloatArray& crd, E_Int* face,
 	
 	// 3 points of the PGi
 	const E_Int* node = ng.PGs.get_facets_ptr(PGi);
-	E_Float* q0 = crd.col(node[0]-1);
-	E_Float* q1 = crd.col(node[1]-1);
-	E_Float* q2 = crd.col(node[2]-1);
+	const E_Float* q0 = crd.col(node[0]-1);
+	const E_Float* q1 = crd.col(node[1]-1);
+	const E_Float* q2 = crd.col(node[2]-1);
 	
 	// intersect
 	E_Bool overlap = false;

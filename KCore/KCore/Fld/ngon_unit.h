@@ -88,7 +88,41 @@ class ngon_unit
       updateFacets();
     }
 
-    // warning : pregnant as non-zero vals
+    void expand_n_ab_fixed_stride(E_Int nn, E_Int na, E_Int astrd, E_Int nb, E_Int bstrd) {
+
+      /// compound  na*astrd, nb*bstrd...nn times
+
+      if (_NGON.empty())
+      {
+        _NGON.resize(2, 0);
+        _dirty = true;
+      }
+
+      E_Int sz_tot = (na * (astrd+1) + nb * (bstrd+1)) * nn;
+      E_Int sz0    = _facet.size();
+      E_Int ng_sz0 = _NGON.size();
+
+      _NGON.resize(ng_sz0 + sz_tot); _facet.resize(sz0 + nn * (na + nb));
+      
+      // set the coorrect strides in NGON
+      for (size_t i = 0; i < nn; ++i)
+      {
+        E_Int pos = ng_sz0 + i * (na * (astrd + 1) + nb * (bstrd + 1));
+        for (size_t j = 0; j < na*(astrd + 1); ++j) _NGON[pos + j] = astrd;
+        for (size_t j = 0; j < nb*(bstrd + 1); ++j) _NGON[pos + j + na * (astrd + 1)] = bstrd;
+      }
+      
+      if (!_type.empty()) _type.resize(_type.size() + nn * (na + nb));
+      if (_ancEs.cols() != 0) _ancEs.resize(2, _ancEs.cols() + nn * (na + nb));
+      
+      _NGON[0] += nn * (na + nb);
+      _NGON[1] = _NGON.size() - 2;
+      
+      _dirty = true;
+      updateFacets();
+    }
+
+    // warning : pregnant has non-zero vals
     void expand_variable_stride(E_Int n, const E_Int* pregnant)
     {
       if (_NGON.empty())

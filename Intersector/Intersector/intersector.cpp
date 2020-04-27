@@ -55,11 +55,13 @@ static PyMethodDef Pyintersector [] =
   //{"agglomerateUncomputableCells", K_INTERSECTOR::agglomerateUncomputableCells, METH_VARARGS},
   {"agglomerateCellsWithSpecifiedFaces", K_INTERSECTOR::agglomerateCellsWithSpecifiedFaces, METH_VARARGS},
   {"adaptCells", K_INTERSECTOR::adaptCells, METH_VARARGS},
+  {"adaptCellsDyn", K_INTERSECTOR::adaptCellsDyn, METH_VARARGS},
   {"adaptCellsNodal", K_INTERSECTOR::adaptCellsNodal, METH_VARARGS},
   {"adaptBox", K_INTERSECTOR::adaptBox, METH_VARARGS},
   {"createHMesh", K_INTERSECTOR::createHMesh, METH_VARARGS},
   {"deleteHMesh", K_INTERSECTOR::deleteHMesh, METH_VARARGS},
   {"conformizeHMesh", K_INTERSECTOR::conformizeHMesh, METH_VARARGS},
+  {"createGeomSensor", K_INTERSECTOR::createGeomSensor, METH_VARARGS},
   {"closeCells", K_INTERSECTOR::closeCells, METH_VARARGS},
   {"extractUncomputables", K_INTERSECTOR::extractUncomputables, METH_VARARGS},
   {"extractPathologicalCells", K_INTERSECTOR::extractPathologicalCells, METH_VARARGS},
@@ -110,6 +112,8 @@ static PyMethodDef Pyintersector [] =
   /////////////////////////////////////////////
   { "merge", K_INTERSECTOR::merge, METH_VARARGS },
   { "concatenate", K_INTERSECTOR::concatenate, METH_VARARGS },
+
+  { "testmain", K_INTERSECTOR::testmain, METH_VARARGS },
 
   {NULL, NULL}
 };

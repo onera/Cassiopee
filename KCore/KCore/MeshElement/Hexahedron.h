@@ -48,7 +48,7 @@ public:
   Hexahedron(const ngunit_t & PGs, const E_Int* first_pg){}
 
   template <typename ngunit_t>
-  static bool isOfType(const ngunit_t & PGs, const E_Int* first_pg, E_Int nb_pgs) { return K_MESH::Polyhedron<0>::is_HX8(PGs, first_pg, nb_pgs); }
+  static bool is_of_type(const ngunit_t & PGs, const E_Int* first_pg, E_Int nb_pgs) { return K_MESH::Polyhedron<0>::is_HX8(PGs, first_pg, nb_pgs); }
 
   E_Int* nodes() { return _nodes;}
   const E_Int* nodes() const { return _nodes;}
@@ -98,12 +98,10 @@ public:
   ///
   template <typename TriangulatorType, typename acrd_t>
   void triangulate (const TriangulatorType& dt, const acrd_t& acrd) {} //dummy : for genericity
-    
-  static void get_internal(E_Int* nodes, E_Int* p);
   
   static void get_edges(const E_Int* nodes, Vector_t<K_MESH::NO_Edge>& edges);
   
-  static bool cross(const ngon_type& ng, K_FLD::FloatArray& crd, E_Int* face, E_Int nb_faces, K_FLD::FloatArray& data, E_Float* P0, E_Float* P1, E_Float& lambda0, E_Float& lambda1, E_Float tolerance);
+  static bool cross(const ngon_type& ng, const K_FLD::FloatArray& crd, const E_Int* face, E_Int nb_faces, K_FLD::FloatArray& data, E_Float* P0, E_Float* P1, E_Float& lambda0, E_Float& lambda1, E_Float tolerance);
   
   inline void getBoundary(E_Int n, boundary_type& b) const {
     

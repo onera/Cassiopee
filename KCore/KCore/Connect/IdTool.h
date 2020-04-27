@@ -81,6 +81,8 @@ public:
   static E_Int min(const K_FLD::IntArray& connect);
   static E_Int min(const Vector_t<E_Int>& vec);
   ///
+  static E_Int sum(const Vector_t<E_Int>& vec){E_Int s = 0; for (size_t i = 0; i < vec.size(); ++i) { s += vec[i]; } return s;}
+  ///
   static void compact(std::vector<E_Int>& vec, const std::vector<bool> & flag);
   ///
   template <typename T>
@@ -121,6 +123,17 @@ public:
 
   template <typename IntCont, typename Edge_t>
   static void loc2glob(std::map<Edge_t, IntCont>& m, E_Int idx_start/*in m*/, const std::vector<E_Int>& oids);
+
+
+ static inline E_Int get_pos(const E_Int* vec, E_Int n, E_Int val)
+  {
+    for (int i = 0; i < n; i++)
+      if (vec[i] == val) return i;
+#ifdef DEBUG_HIERARCHICAL_MESH
+    assert(false);
+#endif
+    return -1;
+  }
 
 };
 

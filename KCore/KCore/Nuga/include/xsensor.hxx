@@ -29,13 +29,13 @@ class xsensor : public geom_sensor<mesh_t>
     using parent_t = geom_sensor<mesh_t>;
     using sensor_data_t = typename parent_t::sensor_data_t; //point cloud
     
-    xsensor(mesh_t& mesh, E_Int max_pts_per_cell, E_Int itermax, const K_FLD::IntArray* cntS):parent_t(mesh, max_pts_per_cell, itermax), _cntS(*cntS){}
+    xsensor(mesh_t& mesh, eSmoother smootyp, E_Int max_pts_per_cell, E_Int itermax, const K_FLD::IntArray* cntS):parent_t(mesh, smootyp, max_pts_per_cell, itermax), _cntS(*cntS){}
 
     E_Int assign_data(sensor_data_t& data) override;
-    
+
+ private:
     void add_x_points(sensor_data_t& data);
 
-  private:
     const K_FLD::IntArray& _cntS;
             
 };
@@ -81,11 +81,11 @@ void xsensor<ELT_t, mesh_t>::add_x_points(sensor_data_t& data)
       for (size_t k = 0; k < ids.size(); ++k) // for each element of hmesh that may intersect with noE
       {
         E_Int PHi = ids[k];
-        E_Int* face = parent_t::_hmesh._ng->PHs.get_facets_ptr(PHi);
-        E_Int nb_faces = parent_t::_hmesh._ng->PHs.stride(PHi);
+        const E_Int* face = parent_t::_hmesh._ng.PHs.get_facets_ptr(PHi);
+        E_Int nb_faces = parent_t::_hmesh._ng.PHs.stride(PHi);
 
         // check if noE intersect with PHi
-        bool x = ELT_t::cross(*parent_t::_hmesh._ng, *parent_t::_hmesh._crd, face, nb_faces, *parent_t::_data, P0, P1, lambda0, lambda1, tolerance);
+        bool x = ELT_t::cross(parent_t::_hmesh._ng, parent_t::_hmesh._crd, face, nb_faces, *parent_t::_data, P0, P1, lambda0, lambda1, tolerance);
         
         if (!x) continue; // no intersection
         

@@ -26,4 +26,6 @@
 
 #define STACK_ARRAY(T, n, name) std::unique_ptr<T[]> name(new T[n]);
 
+#define NEIGHBOR(PHi, F2E, PGi) ( (F2E(0,PGi) == PHi) ? F2E(1,PGi) : F2E(0,PGi) )
+
 #endif

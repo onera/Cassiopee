@@ -51,8 +51,22 @@ class Pyramid {
     
     template< typename ngo_t>
     static void reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i);
-    
-    
+
+    template <typename ngunit_t>
+    static bool is_of_type(const ngunit_t & PGs, const E_Int* first_pg, E_Int nb_pgs)
+    {
+      if (nb_pgs != 5) return false;
+      E_Int s1(0), s2(0);
+
+      for (int i = 0; i<5; i++)
+      {
+        if (PGs.stride(*(first_pg + i) - 1) == 3) ++s1;
+        else if (PGs.stride(*(first_pg + i) - 1) == 4) ++s2;
+        else return false;
+      }
+
+      return ((s1 == 4) && (s2 == 1));
+    }
     
     ///
     template <typename TriangulatorType, typename acrd_t>

@@ -16,6 +16,8 @@ cpp_srcs = ["Intersector/conformUnstr.cpp",
             "PolyMeshTools/aggloFaces.cpp",
             "PolyMeshTools/aggloCells.cpp",
             "PolyMeshTools/splitCells.cpp",
-            "PolyMeshTools/utils.cpp"
+            "PolyMeshTools/utils.cpp",
+
+            "Intersector/testm.cpp"
             
             ]

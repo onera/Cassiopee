@@ -81,6 +81,16 @@ class Tetrahedron {
         _nodes[3] = nodes[2]-1;
     }
     
+    template <typename ngunit_t>
+    static bool is_of_type(const ngunit_t & PGs, const E_Int* first_pg, E_Int nb_pgs) {
+      if (nb_pgs != 4) return false;
+
+      for (int i = 0; i<4; i++)
+        if (PGs.stride(*(first_pg + i) - 1) != 3) return false;
+
+      return true;
+    }
+    
     inline E_Int node(E_Int i){return _nodes[i]+_shift;}
     
     E_Int* nodes() { return _nodes;}
