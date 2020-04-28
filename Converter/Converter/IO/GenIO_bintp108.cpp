@@ -32,6 +32,24 @@
 using namespace std;
 using namespace K_FLD;
 
+// Retourne les begin pour les nodes et les centres
+void getBeginFromLoc(vector<E_Int>& loc, vector<E_Int>& beginNodes, 
+                     vector<E_Int>& beginCenters)
+{
+  E_Int nvars = loc.size();
+  beginNodes.resize(nvars);
+  beginCenters.resize(nvars);
+  E_Int nfldNodes, nfldCenters;
+  nfldNodes = 1; nfldCenters = 1;
+  for (size_t i = 0; i < loc.size(); i++)
+  {
+    beginNodes[i] = nfldNodes;
+    beginCenters[i] = nfldCenters;
+    if (loc[i] == 0) { nfldNodes++; }
+    else { nfldCenters++; }
+  }
+}
+
 //=============================================================================
 /* Read zone header.
    return 1 if pb else return 0.
@@ -169,7 +187,7 @@ E_Int K_IO::GenIO::readZoneHeader108(
 
   /* Var location */
   fread(&ib, si, 1, ptrFile);
-  loc.reserve(nfield);
+  loc.resize(nfield);
   for (E_Int i = 0; i < nfield; i++) loc[i] = 0;
   if (ib != 0)
   {
@@ -391,7 +409,7 @@ E_Int K_IO::GenIO::readZoneHeader108CE(
 
   /* Var location */
   fread(&ib, si, 1, ptrFile); ib = IBE(ib);
-  loc.reserve(nfield);
+  loc.resize(nfield);
   for (E_Int i = 0; i < nfield; i++) loc[i] = 0;
   if (ib != 0)
   {
@@ -503,18 +521,22 @@ E_Int K_IO::GenIO::readZoneHeader108CE(
 //=============================================================================
 E_Int K_IO::GenIO::readData108(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
                                E_Int dataPacking, vector<E_Int>& loc,
-                               FldArrayF& f)
+                               FldArrayF* f, FldArrayF* fc)
 {
   float a;
   int ib;
   double t;
   E_Int i, n;
   E_Int sizer = 8;
-  E_Int nfield = f.getNfld();
+  E_Int nfield = loc.size();
+  if (nfield == 0) nfield = f->getNfld();
   E_Int si = sizeof(int);
   E_Int npts = ni*nj*nk;
   E_Int nelts = K_FUNC::E_max((ni-1),1)*K_FUNC::E_max((nj-1),1)*K_FUNC::E_max((nk-1),1);
 
+  vector<E_Int> beginNodes; vector<E_Int> beginCenters;
+  getBeginFromLoc(loc, beginNodes, beginCenters);
+    
   // Read zone separator
   fread(&a, sizeof(float), 1, ptrFile); // 299.
 
@@ -570,9 +592,9 @@ E_Int K_IO::GenIO::readData108(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
     float* buf = new float[npts];
     for (n = 0; n < nfield; n++)
     {
-      E_Float* fp = f.begin(n+1);
-      if (loc[n] == 1) size = nelts;
-      else size = npts;  
+      E_Float* fp;
+      if (loc[n] == 1) { size = nelts; fp = fc->begin(beginCenters[n]); }
+      else { size = npts; fp = f->begin(beginNodes[n]); }
       if (passive[n] == 0)
       {
         fread(buf, sizeof(float), size, ptrFile);
@@ -582,7 +604,6 @@ E_Int K_IO::GenIO::readData108(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
       {
         for (E_Int i = 0; i < size; i++) fp[i] = 0.;
       }
-      for (i = size; i < npts; i++) fp[i] = SENTINELLE;
     }
     delete [] buf;
   }
@@ -590,50 +611,51 @@ E_Int K_IO::GenIO::readData108(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
   {
     for (n = 0; n < nfield; n++)
     {
-      E_Float* fp = f.begin(n+1);
-      if (loc[n] == 1) size = nelts;
-      else size = npts;  
+      E_Float* fp;
+      if (loc[n] == 1) { size = nelts; fp = fc->begin(beginCenters[n]); }
+      else { size = npts; fp = f->begin(beginNodes[n]); }  
       if (passive[n] == 0)
       {
-        fread(f.begin(n+1), sizeof(E_Float), size, ptrFile);
+        fread(fp, sizeof(E_Float), size, ptrFile);
       }
       else
       {
         for (E_Int i = 0; i < size; i++) fp[i] = 0.;
       }
-      for (E_Int i = size; i < npts; i++) fp[i] = SENTINELLE;
     }
   }
-  else if (sizer == 4 && dataPacking == 1) // point
+  else if (sizer == 4 && dataPacking == 1) // point (forcement node)
   {
     float* buf = new float[nfield];
+    FldArrayF& fp = *f;
     for (n = 0; n < npts; n++)
     {
       if (passive[n] == 0)
       {
         fread(buf, sizeof(float), nfield, ptrFile);
-        for (i = 0; i < nfield; i++) f(n, i+1) = buf[i];
+        for (i = 0; i < nfield; i++) fp(n, i+1) = buf[i];
       }
       else
       {
-        for (i = 0; i < nfield; i++) f(n, i+1) = 0.;
+        for (i = 0; i < nfield; i++) fp(n, i+1) = 0.;
       }  
     }
     delete [] buf;
   }
-  else if (sizer == 8 && dataPacking == 1) // point
+  else if (sizer == 8 && dataPacking == 1) // point (forcement node)
   {
+    FldArrayF& fp = *f;
     double* buf = new double[nfield];
     for (n = 0; n < npts; n++)
     {
       if (passive[n] == 0)
       {
         fread(buf, sizeof(E_Float), nfield, ptrFile);
-        for (i = 0; i < nfield; i++) f(n, i+1) = buf[i];
+        for (i = 0; i < nfield; i++) fp(n, i+1) = buf[i];
       }
       else
       {
-        for (i = 0; i < nfield; i++) f(n, i+1) = 0.;
+        for (i = 0; i < nfield; i++) fp(n, i+1) = 0.;
       }  
     }
     delete [] buf;
@@ -659,19 +681,25 @@ E_Int K_IO::GenIO::readData108(
   E_Int dataPacking, vector<E_Int>& loc, E_Int et,
   E_Int numFaces, E_Int numFaceNodes,
   E_Int numBoundaryFaces, E_Int numBoundaryConnections, E_Int ne,
-  FldArrayF& f, FldArrayI& c)
+  FldArrayF* f, FldArrayI& c, FldArrayF* fc)
 {
   float a;
   int ib;
   double t;
   E_Int i, n;
   E_Int sizer = 8;
-  E_Int nfield = f.getNfld();
-  E_Int npts = f.getSize();
+  E_Int nfield = loc.size();
+  if (nfield == 0) nfield = f->getNfld(); 
+  E_Int npts;
+  if (f != NULL) npts = f->getSize();
+  else npts = 0;
   E_Int nelts = c.getSize();
   E_Int eltType = c.getNfld();
   E_Int si = sizeof(int);
 
+  vector<E_Int> beginNodes; vector<E_Int> beginCenters;
+  getBeginFromLoc(loc, beginNodes, beginCenters);
+    
   // Read zone separator
   fread(&a, sizeof(float), 1, ptrFile); // 299.
 
@@ -729,9 +757,9 @@ E_Int K_IO::GenIO::readData108(
     float* buf = new float[npts];
     for (n = 0; n < nfield; n++)
     {
-      E_Float* fp = f.begin(n+1);
-      if (loc[n] == 1) size = nelts;
-      else size = npts;  
+      E_Float* fp;
+      if (loc[n] == 1) { size = nelts; fp = fc->begin(beginCenters[n]); }
+      else { size = npts; fp = f->begin(beginNodes[n]); } 
       if (passive[n] == 0)
       {
         fread(buf, sizeof(float), size, ptrFile);
@@ -741,7 +769,6 @@ E_Int K_IO::GenIO::readData108(
       {
         for (E_Int i = 0; i < size; i++) fp[i] = 0.; 
       }
-      for (i = size; i < npts; i++) fp[i] = SENTINELLE;
     }
     delete [] buf;
   }
@@ -749,50 +776,51 @@ E_Int K_IO::GenIO::readData108(
   {
     for (n = 0; n < nfield; n++)
     {
-      E_Float* fp = f.begin(n+1);
-      if (loc[n] == 1) size = nelts;
-      else size = npts;
+      E_Float* fp;
+      if (loc[n] == 1) { size = nelts; fp = fc->begin(beginCenters[n]); }
+      else { size = npts; fp = f->begin(beginNodes[n]); }
       if (passive[n] == 0)
       {
-        fread(f.begin(n+1), sizeof(E_Float), size, ptrFile);
+        fread(fp, sizeof(E_Float), size, ptrFile);
       }
       else
       {
         for (E_Int i = 0; i < size; i++) fp[i] = 0.;
       }
-      for (E_Int i = size; i < npts; i++) fp[i] = SENTINELLE;
     }
   }
   else if (sizer == 4 && dataPacking == 1) // point R4
   {
     float* buf = new float[nfield];
+    FldArrayF& fp = *f;
     for (n = 0; n < npts; n++)
     {
       if (passive[n] == 0)
       {
         fread(buf, sizeof(float), nfield, ptrFile);
-        for (i = 0; i < nfield; i++) f(n, i+1) = buf[i];
+        for (i = 0; i < nfield; i++) fp(n, i+1) = buf[i];
       }
       else
       {
-        for (i = 0; i < nfield; i++) f(n, i+1) = 0.;
+        for (i = 0; i < nfield; i++) fp(n, i+1) = 0.;
       }
     }
     delete [] buf;
   }
   else if (sizer == 8 && dataPacking == 1) // point R8
   {
+    FldArrayF& fp = *f;
     double* buf = new double[nfield];
     for (n = 0; n < npts; n++)
     {
       if (passive[n] == 0)
       {
         fread(buf, sizeof(E_Float), nfield, ptrFile);
-        for (i = 0; i < nfield; i++) f(n, i+1) = buf[i];
+        for (i = 0; i < nfield; i++) fp(n, i+1) = buf[i];
       }
       else
       {
-        for (i = 0; i < nfield; i++) f(n, i+1) = 0.;
+        for (i = 0; i < nfield; i++) fp(n, i+1) = 0.;
       }  
     }
     delete [] buf;
@@ -922,18 +950,22 @@ E_Int K_IO::GenIO::readData108(
 //=============================================================================
 E_Int K_IO::GenIO::readData108CE(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
                                  E_Int dataPacking, vector<E_Int>& loc,
-                                 FldArrayF& f)
+                                 FldArrayF* f, FldArrayF* fc)
 {
   float a;
   double t;
   int ib;
   E_Int i, n;
   E_Int sizer = 8;
-  E_Int nfield = f.getNfld();
+  E_Int nfield = loc.size();
+  if (nfield == 0) nfield = f->getNfld();
   E_Int si = sizeof(int);
   E_Int npts = ni*nj*nk;
   E_Int nelts = K_FUNC::E_max((ni-1),1)*K_FUNC::E_max((nj-1),1)*K_FUNC::E_max((nk-1),1);
 
+  vector<E_Int> beginNodes; vector<E_Int> beginCenters;
+  getBeginFromLoc(loc, beginNodes, beginCenters);  
+  
   // Read zone separator
   fread(&a, sizeof(float), 1, ptrFile); // 299.
 
@@ -990,9 +1022,9 @@ E_Int K_IO::GenIO::readData108CE(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
     float* buf = new float[npts];
     for (n = 0; n < nfield; n++)
     {
-      E_Float* fp = f.begin(n+1);
-      if (loc[n] == 1) size = nelts;
-      else size = npts;  
+      E_Float* fp;
+      if (loc[n] == 1) { size = nelts; fp = fc->begin(beginCenters[n]); }
+      else { size = npts; fp = f->begin(beginNodes[n]); } 
       if (passive[n] == 0)
       {
         fread(buf, sizeof(float), size, ptrFile);
@@ -1002,7 +1034,6 @@ E_Int K_IO::GenIO::readData108CE(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
       {
         for (E_Int i = 0; i < size; i++) fp[i] = 0.; 
       }
-      for (i = size; i < npts; i++) fp[i] = SENTINELLE;
     }
     delete [] buf;
   }
@@ -1010,55 +1041,56 @@ E_Int K_IO::GenIO::readData108CE(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
   {
     for (n = 0; n < nfield; n++)
     {
-      E_Float* fp = f.begin(n+1);
-      if (loc[n] == 1) size = nelts;
-      else size = npts;  
+      E_Float* fp;
+      if (loc[n] == 1) { size = nelts; fp = fc->begin(beginCenters[n]); }
+      else { size = npts; fp = f->begin(beginNodes[n]); } 
       if (passive[n] == 0)
       {
-        fread(f.begin(n+1), sizeof(E_Float), size, ptrFile);
+        fread(fp, sizeof(E_Float), size, ptrFile);
       }
       else
       {
         for (E_Int i = 0; i < size; i++) fp[i] = 0.; 
       }
-      for (E_Int i = size; i < npts; i++) fp[i] = SENTINELLE;
     }
   }
   else if (sizer == 4 && dataPacking == 1)
   {
     vector<float> buf(nfield);
+    FldArrayF& fp = *f;
     for (n = 0; n < npts; n++)
     {
       if (passive[n] == 0)
       {
         fread(&buf[0], sizeof(float), nfield, ptrFile);
-        for (i = 0; i < nfield; i++) f(n, i+1) = FBE(buf[i]);
+        for (i = 0; i < nfield; i++) fp(n, i+1) = FBE(buf[i]);
       }
       else
       {
-        for (i = 0; i < nfield; i++) f(n, i+1) = 0.;
+        for (i = 0; i < nfield; i++) fp(n, i+1) = 0.;
       }
     }
   }
   else if (sizer == 8 && dataPacking == 1)
   {
     vector<double> buf(nfield);
+    FldArrayF& fp = *f;
     for (n = 0; n < npts; n++)
     {
       if (passive[n] == 0)
       {
         fread(&buf[0], sizeof(E_Float), nfield, ptrFile);
-        for (i = 0; i < nfield; i++) f(n, i+1) = DBE(buf[i]);
+        for (i = 0; i < nfield; i++) fp(n, i+1) = DBE(buf[i]);
       }
       else
       {
-        for (i = 0; i < nfield; i++) f(n, i+1) = 0.;
+        for (i = 0; i < nfield; i++) fp(n, i+1) = 0.;
       }
     }
   }
   delete [] passive;
   
-  if (sizer == 8 && dataPacking == 0) convertEndianField(f);
+  if (sizer == 8 && dataPacking == 0) convertEndianField(*f);
   return 0;
 }
 //=============================================================================
@@ -1077,19 +1109,25 @@ E_Int K_IO::GenIO::readData108CE(
   E_Int numFaces, E_Int numFaceNodes,
   E_Int numBoundaryFaces, E_Int numBoundaryConnections,
   E_Int ne,
-  FldArrayF& f, FldArrayI& c)
+  FldArrayF* f, FldArrayI& c, FldArrayF* fc)
 {
   float a;
   int ib;
   double t;
   E_Int i, n;
   E_Int sizer = 8;
-  E_Int nfield = f.getNfld();
-  E_Int npts = f.getSize();
+  E_Int nfield = loc.size();
+  if (nfield == 0) nfield = f->getNfld();
+  E_Int npts;
+  if (f != NULL) npts = f->getSize();
+  else npts = 0; 
   E_Int nelts = c.getSize();
   E_Int eltType = c.getNfld();
   E_Int si = sizeof(int);
 
+  vector<E_Int> beginNodes; vector<E_Int> beginCenters;
+  getBeginFromLoc(loc, beginNodes, beginCenters);
+  
   // Read zone separator
   fread(&a, sizeof(float), 1, ptrFile); // 299.
   a = FBE(a);
@@ -1155,9 +1193,9 @@ E_Int K_IO::GenIO::readData108CE(
     vector<float> buf(npts);
     for (n = 0; n < nfield; n++)
     {
-      E_Float* fp = f.begin(n+1);
-      if (loc[n] == 1) size = nelts;
-      else size = npts;  
+      E_Float* fp;
+      if (loc[n] == 1) { size = nelts; fp = fc->begin(beginCenters[n]); }
+      else { size = npts; fp = f->begin(beginNodes[n]); } 
       if (passive[n] == 0)
       {
         fread(&buf[0], sizeof(float), size, ptrFile);
@@ -1167,56 +1205,56 @@ E_Int K_IO::GenIO::readData108CE(
       {
         for (E_Int i = 0; i < size; i++) fp[i] = 0.; 
       }
-      for (E_Int i = size; i < npts; i++) fp[i] = SENTINELLE;
     }
   }
   else if (sizer == 8 && dataPacking == 0) // block R8
   {
     for (n = 0; n < nfield; n++)
     {
-      E_Float* fp = f.begin(n+1);
-      if (loc[n] == 1) size = nelts;
-      else size = npts;  
+      E_Float* fp;
+      if (loc[n] == 1) { size = nelts; fp = fc->begin(beginCenters[n]); }
+      else { size = npts; fp = f->begin(beginNodes[n]); } 
       if (passive[n] == 0)
       {
-        fread(f.begin(n+1), sizeof(E_Float), size, ptrFile);
+        fread(fp, sizeof(E_Float), size, ptrFile);
       }
       else
       {
         for (E_Int i = 0; i < size; i++) fp[i] = 0.;
       }
-      for (E_Int i = size; i < npts; i++) fp[i] = SENTINELLE;
     }
   }
   else if (sizer == 4 && dataPacking == 1) // point
   {
     vector<float> buf(nfield);
+    FldArrayF& fp = *f;
     for (n = 0; n < npts; n++)
     {
       if (passive[n] == 0)
       {
         fread(&buf[0], sizeof(float), nfield, ptrFile);
-        for (i = 0; i < nfield; i++) f(n, i+1) = FBE(buf[i]);
+        for (i = 0; i < nfield; i++) fp(n, i+1) = FBE(buf[i]);
       }
       else
       {
-        for (i = 0; i < nfield; i++) f(n, i+1) = 0.;
+        for (i = 0; i < nfield; i++) fp(n, i+1) = 0.;
       }  
     }
   }
   else if (sizer == 8 && dataPacking == 1) // point
   {
     vector<double> buf(nfield);
+    FldArrayF& fp = *f;
     for (n = 0; n < npts; n++)
     {
       if (passive[n] == 0)
       {
         fread(&buf[0], sizeof(E_Float), nfield, ptrFile);
-        for (i = 0; i < nfield; i++) f(n, i+1) = DBE(buf[i]);
+        for (i = 0; i < nfield; i++) fp(n, i+1) = DBE(buf[i]);
       }
       else
       {
-        for (i = 0; i < nfield; i++) f(n, i+1) = 0.;
+        for (i = 0; i < nfield; i++) fp(n, i+1) = 0.;
       }  
     }
   }
@@ -1329,7 +1367,7 @@ E_Int K_IO::GenIO::readData108CE(
     }
   }
 
-  if (sizer == 8 && dataPacking == 0) convertEndianField(f);
+  if (sizer == 8 && dataPacking == 0) convertEndianField(*f);
   return 0;
 }
 

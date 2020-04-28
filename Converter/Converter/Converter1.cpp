@@ -426,13 +426,14 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
       if (fieldc[i] != NULL)
       {
         tpl = K_ARRAY::buildArray2(*fieldc[i], varStringc,
-                                   im[i]-1, jm[i]-1, km[i]-1);
+                                   std::max(im[i]-1,1), std::max(jm[i]-1,1), std::max(km[i]-1,1));
         delete fieldc[i];
       }
       else tpl = PyList_New(0);
       PyList_Append(centerArrays, tpl);
       Py_DECREF(tpl);
     }
+    else delete fieldc[i];
   }
   
   for (size_t i = 0; i < ufieldc.size(); i++)
@@ -451,6 +452,7 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
       PyList_Append(centerArrays, tpl);
       Py_DECREF(tpl);
     }
+    else delete ufieldc[i];
     
   }
 

@@ -188,7 +188,7 @@ namespace {
             }
             // On extrait le nom de toutes les variables definies dans le
             // tableau
-            std::vector<char *> vars;
+            std::vector<char*> vars;
             K_ARRAY::extractVars(varString2, vars);
             for (size_t ivar = 0; ivar < vars.size(); ++ivar) {
                 std::string key_var = vars[ivar];

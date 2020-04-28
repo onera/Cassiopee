@@ -22,7 +22,7 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPathsPartial(char* file,
                                                    PyObject* Filter,
                                                    PyObject* mpi4pyCom)
 {
-  hid_t fapl, fid, ret;
+  hid_t fapl, fid;
 
   PyObject *key, *DataSpaceDIM;
   Py_ssize_t pos = 0;
@@ -652,7 +652,7 @@ E_Int K_IO::GenIO::hdfcgnsWritePathsPartial(char* file, PyObject* tree,
                                             PyObject* mpi4pyCom)
 {
   /* ***************************************************** */
-  hid_t fapl, fid, ret/*, capl*/;
+  hid_t fapl, fid/*, ret, capl*/;
 
   PyObject   *key, *DataSpaceDIM;
   Py_ssize_t  pos = 0;

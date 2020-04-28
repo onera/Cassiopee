@@ -742,22 +742,22 @@ class GenIO
     /* bin_tp: read data */
     E_Int readData108(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
                       E_Int dataPacking, std::vector<E_Int>& loc,
-                      FldArrayF& f);
+                      FldArrayF* f, FldArrayF* fc);
     E_Int readData108(FILE* ptrFile,
                       E_Int dataPacking, std::vector<E_Int>& loc, E_Int et,
                       E_Int numFaces, E_Int numFaceNodes,
                       E_Int numBoundaryFaces, E_Int numBoundaryConnections,
                       E_Int ne,
-                      FldArrayF& f, FldArrayI& c);
+                      FldArrayF* f, FldArrayI& c, FldArrayF* fc);
     E_Int readData108CE(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
                         E_Int dataPacking, std::vector<E_Int>& loc,
-                        FldArrayF& f);
+                        FldArrayF* f, FldArrayF* fc);
     E_Int readData108CE(FILE* ptrFile,
                         E_Int dataPacking, std::vector<E_Int>& loc, E_Int et,
                         E_Int numFaces, E_Int numFaceNodes,
                         E_Int numBoundaryFaces, E_Int numBoundaryConnections,
                         E_Int ne,
-                        FldArrayF& f, FldArrayI& c);
+                        FldArrayF* f, FldArrayI& c, FldArrayF* fc);
     E_Int readData75(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
                      E_Int dataPacking,
                      FldArrayF& f);
