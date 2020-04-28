@@ -38,4 +38,5 @@ PyObject* K_INTERSECTOR::testmain(PyObject* self, PyObject* args)
   // todo
   
   delete f; delete cn;
+  return NULL;
 }

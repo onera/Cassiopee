@@ -242,6 +242,7 @@ E_Int K_IO::GenIO::readDataAndKeyword(FILE* ptrFile, char* buf,
 
   if (ret != 0)
   {
+    buf[BUFSIZE] = '\0';
     strcpy(prevData, buf);
     return ret; // echec
   }

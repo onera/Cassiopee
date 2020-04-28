@@ -29,8 +29,8 @@ using std::unordered_set;
 
 //#   define SPLITTER_TRACE
 
-namespace
-{
+//namespace
+//{
     std::pair<int, int>
     section_type( const char *eltType )
     {
@@ -83,7 +83,7 @@ namespace
         }
         return -1;
     }
-}  // namespace
+//}  // namespace
 
 static unordered_map<int, std::vector<PDM_g_num_t>> elt2global_vertices;
 static unordered_map<int, std::vector<int>> elttag_global;

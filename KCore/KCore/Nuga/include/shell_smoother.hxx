@@ -39,7 +39,7 @@ void shell_smoother<mesh_t>::smooth(const mesh_t& hmesh, sensor_output_t& adap_i
   E_Int n_nodes = hmesh._crd.cols();
   _Ln.resize(n_nodes);
 
-  for (int i = 0; i<adap_incr.size(); i++)
+  for (size_t i = 0; i<adap_incr.size(); i++)
   {
     if (adap_incr[i] == 1) __update_nodal_levels(hmesh, i);
   }

@@ -49,7 +49,7 @@ void Data::colorString2RGB(char* color, double& colorR, double& colorG, double& 
   { colorR = 0.588; colorG = 0.294; colorB = 0.; }
   else if (color[0] == '#')  // par code hexa #aabbcc
   {
-    char code[3]; int val;
+    char code[3]; unsigned int val;
     code[0] = color[1]; code[1] = color[2]; code[2] = '\0';
     sscanf(code, "%x", &val);
     colorR = val/255.;

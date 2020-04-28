@@ -332,7 +332,7 @@ void refiner<ELT_t, STYPE>::__reserve_mem_single_bound_type_PHs
 
   intpos.resize(nb_phs_ref + 1);//one-pass-the-end size
   E_Int s(nb_pgs0);
-  for (size_t i = 0; i < nb_phs_ref + 1; ++i)
+  for (E_Int i = 0; i < nb_phs_ref + 1; ++i)
   {
     intpos[i] = s;
     s += nbi;

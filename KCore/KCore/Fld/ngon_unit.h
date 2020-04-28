@@ -105,11 +105,11 @@ class ngon_unit
       _NGON.resize(ng_sz0 + sz_tot); _facet.resize(sz0 + nn * (na + nb));
       
       // set the coorrect strides in NGON
-      for (size_t i = 0; i < nn; ++i)
+      for (E_Int i = 0; i < nn; ++i)
       {
         E_Int pos = ng_sz0 + i * (na * (astrd + 1) + nb * (bstrd + 1));
-        for (size_t j = 0; j < na*(astrd + 1); ++j) _NGON[pos + j] = astrd;
-        for (size_t j = 0; j < nb*(bstrd + 1); ++j) _NGON[pos + j + na * (astrd + 1)] = bstrd;
+        for (E_Int j = 0; j < na*(astrd + 1); ++j) _NGON[pos + j] = astrd;
+        for (E_Int j = 0; j < nb*(bstrd + 1); ++j) _NGON[pos + j + na * (astrd + 1)] = bstrd;
       }
       
       if (!_type.empty()) _type.resize(_type.size() + nn * (na + nb));

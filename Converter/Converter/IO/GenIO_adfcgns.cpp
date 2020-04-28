@@ -311,11 +311,11 @@ PyObject* K_IO::GenIOAdf::getArrayR8(double node)
   ADF_Get_Dimension_Values(node, _dims, &_errorFlag);
 
   // Create numpy: toujours en double
-  npy_intp npy_dim_vals[dim];
+  npy_intp* npy_dim_vals = new npy_intp [dim];
   for (E_Int nn = 0; nn < dim; nn++) npy_dim_vals[nn] = _dims[nn];
   r = (PyObject*)PyArray_EMPTY(dim, npy_dim_vals, NPY_DOUBLE, 1);
   ADF_Read_All_Data(node, (char*)PyArray_DATA((PyArrayObject*)r), &_errorFlag);
-
+  delete [] npy_dim_vals;
   return r;
 }
 

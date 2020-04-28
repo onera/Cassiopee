@@ -172,7 +172,10 @@ E_Int K_IO::GenIO::tecread(
   vector<E_Int>& ni, vector<E_Int>& nj, vector<E_Int>& nk,
   vector<FldArrayF*>& unstructField,
   vector<FldArrayI*>& connectivity,
-  vector<E_Int>& eltType, vector<char*>& zoneNames)
+  vector<E_Int>& eltType, vector<char*>& zoneNames,
+  char*& centerVarString,
+  vector<FldArrayF*>& centerStructField,
+  vector<FldArrayF*>& centerUnstructField)
 {
   FILE* ptrFile;
   E_Int error, nfield, zone, no, zoneStruct, zoneUnstruct;
@@ -460,15 +463,15 @@ E_Int K_IO::GenIO::tecread(
     {
       vector<char*> vars;
       K_ARRAY::extractVars(varString, vars);
-      if ( strcmp(vars[0], "x") !=0 && strcmp(vars[0], "CoordinateX") !=0)
+      if (strcmp(vars[0], "x") !=0 && strcmp(vars[0], "CoordinateX") !=0)
         printf(
           "Warning: tecread: first geometry variable is set to: %s\n",
           vars[0]);
-      if ( strcmp(vars[1], "y") !=0 && strcmp(vars[1], "CoordinateY") !=0)
+      if (strcmp(vars[1], "y") !=0 && strcmp(vars[1], "CoordinateY") !=0)
         printf(
           "Warning: tecread: second geometry variable is set to: %s\n",
           vars[1]);
-      if ( strcmp(vars[2], "z") !=0 && strcmp(vars[2], "CoordinateZ") !=0)
+      if (strcmp(vars[2], "z") !=0 && strcmp(vars[2], "CoordinateZ") !=0)
         printf(
           "Warning: tecread: third geometry variable is set to: %s\n",
           vars[2]);

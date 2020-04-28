@@ -630,6 +630,7 @@ E_Int K_IO::GenIO::tpwrite(
     strcat(t, vars[i]);
     strcat(t, "\" ");
     fprintf(ptrFile, "%s", t);
+    delete [] vars[i];
   }
   strcpy(t, "\n"); fprintf(ptrFile, "%s", t);
 

@@ -107,7 +107,8 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
     // Binary tecplot read
     ret = K_IO::GenIO::getInstance()->tecread(fileName, varString, field, 
                                               im, jm, km, 
-                                              ufield, c, et, zoneNames);
+                                              ufield, c, et, zoneNames,
+                                              varStringc, fieldc, ufieldc);
   }
   else if (K_STRING::cmp(fileFmt, "fmt_tp") == 0)
   {
@@ -380,10 +381,19 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
   
   for (size_t i = 0; i < field.size(); i++)
   {
-    // Build array
-    tpl = K_ARRAY::buildArray2(*field[i], varString,
-                               im[i], jm[i], km[i]);
-    delete field[i];
+    if (field[i] != NULL)
+    {
+      // Build array
+      tpl = K_ARRAY::buildArray2(*field[i], varString,
+                                 im[i], jm[i], km[i]);
+      delete field[i];
+    }
+    else 
+    {
+      FldArrayF fl(0,1);
+      tpl = K_ARRAY::buildArray2(fl, varString,
+                                 im[i], jm[i], km[i]);
+    }
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
   }
@@ -392,9 +402,19 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
   {
     char eltType[28]; E_Int d;
     K_ARRAY::typeId2eltString(et[i], 0, eltType, d);
-    tpl = K_ARRAY::buildArray2(*ufield[i], varString,
-                               *c[i], eltType);
-    delete ufield[i]; delete c[i];
+    if (ufield[i] != NULL)
+    {
+      tpl = K_ARRAY::buildArray2(*ufield[i], varString,
+                                 *c[i], eltType);
+      delete ufield[i];
+    }
+    else 
+    {
+      FldArrayF fl(0,1);
+      tpl = K_ARRAY::buildArray2(fl, varString,
+                                 *c[i], eltType); 
+    }
+    delete c[i];
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
   }
@@ -407,11 +427,12 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
       {
         tpl = K_ARRAY::buildArray2(*fieldc[i], varStringc,
                                    im[i]-1, jm[i]-1, km[i]-1);
-        PyList_Append(centerArrays, tpl);
-        Py_DECREF(tpl);
+        delete fieldc[i];
       }
+      else tpl = PyList_New(0);
+      PyList_Append(centerArrays, tpl);
+      Py_DECREF(tpl);
     }
-    delete fieldc[i];
   }
   
   for (size_t i = 0; i < ufieldc.size(); i++)
@@ -424,18 +445,13 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
         char eltType[28]; strcpy(eltType, "NODE"); // hack
         tpl = K_ARRAY::buildArray2(*ufieldc[i], varStringc,
                                    *cnl, eltType); // hack
-        delete cnl;
-        PyList_Append(centerArrays, tpl);
-        Py_DECREF(tpl);
+        delete ufieldc[i]; delete cnl;
       }
-      else 
-      {
-        tpl = PyList_New(0);
-        PyList_Append(centerArrays, tpl);
-        Py_DECREF(tpl);
-      }
+      else tpl = PyList_New(0);
+      PyList_Append(centerArrays, tpl);
+      Py_DECREF(tpl);
     }
-    delete ufieldc[i];
+    
   }
 
   // build zoneNames list. Les fonctions de lecture ont alloue un char* par

@@ -617,15 +617,18 @@ void readValeurVolumique(FILE* ptrFile, std::map<unsigned int, mesh*>& meshes)
   E_Int i = 0; char c;
   while ((c = fgetc(ptrFile)) != '\0' && i < STRINGLENGTH-1) { nomField[i] = c; i++; }
   nomField[i] = '\0';
-  printf("nom champ=%s\n", nomField);
   
   unsigned int elmin; unsigned int nelem;
   readNElemElmin(ptrFile, nelem, elmin);
   
+  printf("nom champ=%s\n", nomField);
+  printf("taille %d (ncell=%d)\n", nelem, m->_nceli);
+  
   double* F = readAndUncompress(ptrFile, nelem, elmin);
   
   if ((int)nelem == m->_nsom) { m->_nfieldNames.push_back(nomField); m->_nfields.push_back(F); }
-  else { m->_cfieldNames.push_back(nomField); m->_cfields.push_back(F); }
+  else if ((int)nelem >= m->_nceli) { m->_cfieldNames.push_back(nomField); m->_cfields.push_back(F); }
+  else delete [] F;
 }
 
 // Lecture d'un vecteur volumique
@@ -656,10 +659,11 @@ void readVecteurVolumique(FILE* ptrFile, std::map<unsigned int, mesh*>& meshes)
   E_Int i = 0; char c;
   while ((c = fgetc(ptrFile)) != '\0' && i < STRINGLENGTH-1) { nomField[i] = c; i++; }
   nomField[i] = '\0';
-  printf("nom champ=%s\n", nomField);
-  
   unsigned int elmin; unsigned int nelem;
   readNElemElmin(ptrFile, nelem, elmin);
+  
+  printf("nom champ=%s\n", nomField);
+  printf("taille %d (ncell=%d)\n", nelem, m->_nceli);
   
   double* Fx = readAndUncompress(ptrFile, nelem, elmin);
   double* Fy = readAndUncompress(ptrFile, nelem, elmin);
@@ -668,12 +672,22 @@ void readVecteurVolumique(FILE* ptrFile, std::map<unsigned int, mesh*>& meshes)
   char* nomFieldx = new char [STRINGLENGTH+1]; strcpy(nomFieldx, nomField); strcat(nomFieldx, "X");
   char* nomFieldy = new char [STRINGLENGTH+1]; strcpy(nomFieldy, nomField); strcat(nomFieldy, "Y");
   char* nomFieldz = new char [STRINGLENGTH+1]; strcpy(nomFieldz, nomField); strcat(nomFieldz, "Z");
-  if ((int)nelem == m->_nsom) { m->_nfieldNames.push_back(nomFieldx); m->_nfields.push_back(Fx); }
-  else { m->_cfieldNames.push_back(nomFieldx); m->_cfields.push_back(Fx); }
-  if ((int)nelem == m->_nsom) { m->_nfieldNames.push_back(nomFieldy); m->_nfields.push_back(Fy); }
-  else { m->_cfieldNames.push_back(nomFieldy); m->_cfields.push_back(Fy); }
-  if ((int)nelem == m->_nsom) { m->_nfieldNames.push_back(nomFieldz); m->_nfields.push_back(Fz); }
-  else { m->_cfieldNames.push_back(nomFieldz); m->_cfields.push_back(Fz); }
+  if ((int)nelem == m->_nsom) 
+  { 
+    m->_nfieldNames.push_back(nomFieldx); m->_nfields.push_back(Fx);
+    m->_nfieldNames.push_back(nomFieldy); m->_nfields.push_back(Fy);
+    m->_nfieldNames.push_back(nomFieldz); m->_nfields.push_back(Fz);  
+  }
+  else if ((int)nelem >= m->_nceli) 
+  { 
+    m->_cfieldNames.push_back(nomFieldx); m->_cfields.push_back(Fx);
+    m->_cfieldNames.push_back(nomFieldy); m->_cfields.push_back(Fy);
+    m->_cfieldNames.push_back(nomFieldz); m->_cfields.push_back(Fz);
+  }
+  else
+  {
+    delete [] Fx; delete [] Fy; delete [] Fz;
+  }
 }
 
 // Lecture d'un tenseur volumique
@@ -704,11 +718,12 @@ void readTenseurVolumique(FILE* ptrFile, std::map<unsigned int, mesh*>& meshes)
   E_Int i = 0; char c;
   while ((c = fgetc(ptrFile)) != '\0' && i < STRINGLENGTH-1) { nomField[i] = c; i++; }
   nomField[i] = '\0';
-  printf("nom champ=%s\n", nomField);
   
   unsigned int elmin; unsigned int nelem;
   readNElemElmin(ptrFile, nelem, elmin);
   
+  printf("nom champ=%s\n", nomField);
+  printf("taille %d (ncell=%d)\n", nelem, m->_nceli);
   double* Fxx = readAndUncompress(ptrFile, nelem, elmin);
   double* Fxy = readAndUncompress(ptrFile, nelem, elmin);
   double* Fxz = readAndUncompress(ptrFile, nelem, elmin);
@@ -731,26 +746,36 @@ void readTenseurVolumique(FILE* ptrFile, std::map<unsigned int, mesh*>& meshes)
   char* nomFieldzy = new char [STRINGLENGTH+2]; strcpy(nomFieldzy, nomField); strcat(nomFieldzy, "ZY");
   char* nomFieldzz = new char [STRINGLENGTH+2]; strcpy(nomFieldzz, nomField); strcat(nomFieldzz, "ZZ");
   
-  if ((int)nelem == m->_nsom) { m->_nfieldNames.push_back(nomFieldxx); m->_nfields.push_back(Fxx); }
-  else { m->_cfieldNames.push_back(nomFieldxx); m->_cfields.push_back(Fxx); }
-  if ((int)nelem == m->_nsom) { m->_nfieldNames.push_back(nomFieldxy); m->_nfields.push_back(Fxy); }
-  else { m->_cfieldNames.push_back(nomFieldxy); m->_cfields.push_back(Fxy); }
-  if ((int)nelem == m->_nsom) { m->_nfieldNames.push_back(nomFieldxz); m->_nfields.push_back(Fxz); }
-  else { m->_cfieldNames.push_back(nomFieldxz); m->_cfields.push_back(Fxz); }
-  
-  if ((int)nelem == m->_nsom) { m->_nfieldNames.push_back(nomFieldyx); m->_nfields.push_back(Fyx); }
-  else { m->_cfieldNames.push_back(nomFieldyx); m->_cfields.push_back(Fyx); }
-  if ((int)nelem == m->_nsom) { m->_nfieldNames.push_back(nomFieldxy); m->_nfields.push_back(Fyy); }
-  else { m->_cfieldNames.push_back(nomFieldyy); m->_cfields.push_back(Fyy); }
-  if ((int)nelem == m->_nsom) { m->_nfieldNames.push_back(nomFieldxz); m->_nfields.push_back(Fyz); }
-  else { m->_cfieldNames.push_back(nomFieldyz); m->_cfields.push_back(Fyz); }
-   
-  if ((int)nelem == m->_nsom) { m->_nfieldNames.push_back(nomFieldzx); m->_nfields.push_back(Fzx); }
-  else { m->_cfieldNames.push_back(nomFieldzx); m->_cfields.push_back(Fzx); }
-  if ((int)nelem == m->_nsom) { m->_nfieldNames.push_back(nomFieldxy); m->_nfields.push_back(Fzy); }
-  else { m->_cfieldNames.push_back(nomFieldzy); m->_cfields.push_back(Fzy); }
-  if ((int)nelem == m->_nsom) { m->_nfieldNames.push_back(nomFieldxz); m->_nfields.push_back(Fzz); }
-  else { m->_cfieldNames.push_back(nomFieldzz); m->_cfields.push_back(Fzz); }
+  if ((int)nelem == m->_nsom) 
+  { 
+    m->_nfieldNames.push_back(nomFieldxx); m->_nfields.push_back(Fxx);
+    m->_nfieldNames.push_back(nomFieldxy); m->_nfields.push_back(Fxy);
+    m->_nfieldNames.push_back(nomFieldxz); m->_nfields.push_back(Fxz);
+    m->_nfieldNames.push_back(nomFieldyx); m->_nfields.push_back(Fyx);
+    m->_nfieldNames.push_back(nomFieldyy); m->_nfields.push_back(Fyy);
+    m->_nfieldNames.push_back(nomFieldyz); m->_nfields.push_back(Fyz);
+    m->_nfieldNames.push_back(nomFieldzx); m->_nfields.push_back(Fzx);
+    m->_nfieldNames.push_back(nomFieldzy); m->_nfields.push_back(Fzy);
+    m->_nfieldNames.push_back(nomFieldzz); m->_nfields.push_back(Fzz);
+  }
+  else if ((int)nelem >= m->_nceli)
+  { 
+    m->_cfieldNames.push_back(nomFieldxx); m->_cfields.push_back(Fxx);
+    m->_cfieldNames.push_back(nomFieldxy); m->_cfields.push_back(Fxy);
+    m->_cfieldNames.push_back(nomFieldxz); m->_cfields.push_back(Fxz);
+    m->_cfieldNames.push_back(nomFieldyx); m->_cfields.push_back(Fyx);
+    m->_cfieldNames.push_back(nomFieldyy); m->_cfields.push_back(Fyy);
+    m->_cfieldNames.push_back(nomFieldyz); m->_cfields.push_back(Fyz);
+    m->_cfieldNames.push_back(nomFieldzx); m->_cfields.push_back(Fzx);
+    m->_cfieldNames.push_back(nomFieldzy); m->_cfields.push_back(Fzy);
+    m->_cfieldNames.push_back(nomFieldzz); m->_cfields.push_back(Fzz);
+  }  
+  else
+  {
+    delete [] Fxx; delete [] Fxy; delete [] Fxz;
+    delete [] Fyx; delete [] Fyy; delete [] Fyz;
+    delete [] Fzx; delete [] Fzy; delete [] Fzz;
+  }
 }
 
 //=============================================================================
@@ -862,13 +887,33 @@ E_Int K_IO::GenIO::arcread(
   delete [] dthGe; delete [] dthGr; delete [] dthe; delete [] dthr;
   fclose(ptrFile);
   
+  // dimensionne les varStrings supposees identiques pour tous les blocs
+  E_Int lx = 0;
+  for (std::map<unsigned int,mesh*>::iterator it = meshes.begin(); it != meshes.end(); it++)
+  { 
+    mesh& m = *meshes[it->first];
+    E_Int l = 6;
+    for (size_t p = 0; p < m._nfieldNames.size(); p++) l += strlen(m._nfieldNames[p])+2;
+    lx = std::max(l, lx);
+  }
+  varString = new char [lx];
+  lx = 0;
+  for (std::map<unsigned int,mesh*>::iterator it = meshes.begin(); it != meshes.end(); it++)
+  { 
+    mesh& m = *meshes[it->first];
+    E_Int l = 1;
+    for (size_t p = 0; p < m._cfieldNames.size(); p++) l += strlen(m._cfieldNames[p])+2;
+    lx = std::max(l, lx);
+  }
+  centerVarString = new char [lx];
+  printf("lx=%d\n", lx);
+  
   // transforme les structures de maillages en arrays
-  char* zoneName = new char [128];
-  varString = new char [1200];
-  centerVarString = new char [1200];
   for (std::map<unsigned int,mesh*>::iterator it = meshes.begin(); it != meshes.end(); it++)
   {
     mesh& m = *meshes[it->first];
+    char* zoneName = new char [128];
+   
     if (m._type == 0) // structure
     {
       //structField.push_back(f);
@@ -912,7 +957,9 @@ E_Int K_IO::GenIO::arcread(
         E_Float* fp = fc->begin(j+1);
         E_Float* pf = m._cfields[j];
         for (E_Int p = 0; p < m._nceli; p++) fp[p] = pf[p];
+        //for (E_Int p = 0; p < m._nceli; p++) fp[p] = 0.;   
       }
+    
       // update centerVarString
       if (nvars > 0) strcpy(centerVarString, m._cfieldNames[0]);
       for (size_t p = 1; p < m._cfields.size(); p++)

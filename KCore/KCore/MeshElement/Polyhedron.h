@@ -1679,6 +1679,7 @@ static E_Int cumulated_arity(const ngon_unit& PGS, const E_Int* first_pg, E_Int 
   // todo JP
   // the arity of a node is the nb of PGs sharing that node
   // the returned value is the sum of the nodal arities
+  return 0;
 }
 
 inline static void expressions (E_Float w0 , E_Float w1 , E_Float w2 , E_Float &f1 , E_Float& f2 , E_Float& f3 , E_Float& g0 , E_Float& g1 , E_Float& g2 )

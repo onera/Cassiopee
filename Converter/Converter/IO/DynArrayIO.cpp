@@ -56,6 +56,10 @@ E_Int DynArrayIO::read
   std::vector<K_FLD::FldArrayF*> ufield;
   std::vector<E_Int> et;
   std::vector<char*> zoneNames;
+  char* varStringc = NULL; // added for center fields read
+  std::vector<K_FLD::FldArrayF*> fieldc;
+  std::vector<K_FLD::FldArrayF*> ufieldc;
+  
   E_Int ret = 1;
   
   int l = strlen(fileName);
@@ -82,7 +86,7 @@ E_Int DynArrayIO::read
   {
     // Binary tecplot read
     ret = K_IO::GenIO::getInstance()->tecread
-            (fname, varString, field, im, jm, km, ufield, c, et, zoneNames);
+            (fname, varString, field, im, jm, km, ufield, c, et, zoneNames, varStringc, fieldc, ufieldc);
   }
   else if (strcmp(fileFmt, "fmt_tp") == 0)
   {
@@ -162,6 +166,9 @@ E_Int DynArrayIO::read
   std::vector<K_FLD::FldArrayF*> ufield;
   std::vector<E_Int> et;
   std::vector<char*> zoneNames;
+  char* varStringc = NULL; // centers
+  std::vector<K_FLD::FldArrayF*> fieldc; 
+  std::vector<K_FLD::FldArrayF*> ufieldc; 
   E_Int ret = 1;
   
   int l = strlen(fileName);
@@ -188,7 +195,7 @@ E_Int DynArrayIO::read
   {
     // Binary tecplot read
     ret = K_IO::GenIO::getInstance()->tecread
-            (fname, varString, field, im, jm, km, ufield, c, et, zoneNames);
+            (fname, varString, field, im, jm, km, ufield, c, et, zoneNames, varStringc, fieldc, ufieldc);
   }
   else if (strcmp(fileFmt, "fmt_tp") == 0)
   {

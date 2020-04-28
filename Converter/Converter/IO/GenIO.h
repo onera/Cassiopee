@@ -110,7 +110,10 @@ class GenIO
       std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connectivity,
-      std::vector<E_Int>& eltType, std::vector<char*>& zoneNames);
+      std::vector<E_Int>& eltType, std::vector<char*>& zoneNames,
+      char*& centerVarString,
+      std::vector<FldArrayF*>& centerStructField,
+      std::vector<FldArrayF*>& centerUnstructField);
     /** Write structured field in binary tec format. One zone.
         return 1 if failed */
     E_Int tecwrite(char* file, char* dataFmt, char* varstring,

@@ -2593,7 +2593,7 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
       NG.detect_phs_with_same_centroid(f, duphnids);
       for (size_t k = 0; k < duphnids.size(); ++k)
       {
-        if (duphnids[k] != k)
+        if (duphnids[k] != (E_Int)k)
           toremove.push_back(duphnids[k]);
       }
     }

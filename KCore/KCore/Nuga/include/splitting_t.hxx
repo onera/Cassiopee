@@ -43,7 +43,7 @@ namespace NUGA
   void splitting_base_t::__update_outer_F2E
   (const ngon_type& ng, E_Int parentPHi, const E_Int* childrenPHi, E_Int nchildren, const tree<arr_t>& PGtree, K_FLD::IntArray& F2E)
   {
-    E_Int count(0);
+    //E_Int count(0);
 
     for (E_Int c = 0; c < nchildren; ++c)
     {

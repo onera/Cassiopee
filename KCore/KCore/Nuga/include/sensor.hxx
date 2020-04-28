@@ -134,7 +134,7 @@ bool sensor<mesh_t, sensor_data_t>::compute(sensor_output_t& adap_incr, bool do_
   fix_adap_incr(_hmesh, adap_incr);
 
   //detect if at least one modification is required
-  bool carry_on(false);
+  //bool carry_on(false);
   E_Int nb_elts = _hmesh._ng.PHs.size();
   for (int i = 0; i < nb_elts; ++i)
     if (adap_incr[i] != 0) return true;

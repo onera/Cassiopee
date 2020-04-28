@@ -116,6 +116,7 @@ void* __createHM<NUGA::ISO>(E_Int typ, K_FLD::FloatArray& crd, K_FLD::IntArray& 
     using mesh_type = NUGA::hierarchical_mesh<K_MESH::Basic, NUGA::ISO>;
     return new mesh_type(crd, cnt);
   }
+  return NULL;
 }
 
 // ISO_HEX strategy
@@ -906,7 +907,7 @@ E_Int unpackSensor(PyObject* hook_sensor, void* &sensor, E_Int &sensor_type, E_I
   sensor_type = *((E_Int*)(packet_ss[1]));
   sensor = (void*)packet_ss[2];
   smoothing_type = *((E_Int*)(packet_ss[3]));//todo CW : veriier que ca marche
-
+  return 1;
 }
 
 //=============================================================================
