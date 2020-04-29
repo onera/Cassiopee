@@ -1103,7 +1103,6 @@ def post(t_case, t_in, tc_in, t_out, wall_out):
                           Gamma=Gamma, Cv=cvInf, MuS=Mus,
                           Cs=Cs, Ts=Ts)
     zw = TIBM.extractIBMWallFields(tc, tb=tb)
-
     RoUInf2I = 1./(RouInf*RouInf+RovInf*RovInf+RowInf*RowInf)
     C._initVars(zw,'{Cp}=2*%f*({Pressure}-%f)*%f'%(RoInf,PInf,RoUInf2I))
     if model != 'Euler':
@@ -1145,20 +1144,24 @@ def post(t_case, t_in, tc_in, t_out, wall_out):
 #=============================================================================
 # Post efforts
 # IN: t_case: fichier ou arbre du cas
-# IN: t_in: fichier ou arbre de resultat
-# IN: tc_in: fichier ou arbre de connectivite
+# IN: tc_in: fichier ou arbre de connectivite contenant les IBCD
+# si tc_in =None, t_case est la surface avec la solution deja projetee
 # OUT: wall_out ou None: fichier pour sortie des efforts sur la paroi aux centres
 # IN: alpha: angle pour les efforts
 # IN: beta: angle pour les efforts
 #==============================================================================
-def loads(t_case, tc_in, wall_out, alpha=0., beta=0., Sref=None):
+def loads(t_case, tc_in, wall_out, alpha=0., beta=0., Sref=None, famZones=[]):
     import Post.PyTree as P
     import Converter.Filter as Filter
     import math
     import numpy as numpy
 
-    if isinstance(tc_in, str): tc = C.convertFile2PyTree(tc_in)
-    else: tc = tc_in
+    if tc_in is not None:
+        if isinstance(tc_in, str): 
+            tc = C.convertFile2PyTree(tc_in)
+        else: tc = tc_in
+    else: tc = None
+
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
     else: tb = t_case
 
@@ -1188,7 +1191,11 @@ def loads(t_case, tc_in, wall_out, alpha=0., beta=0., Sref=None):
     #====================================
     # Extraction des grandeurs a la paroi
     #====================================
-    zw = TIBM.extractIBMWallFields(tc, tb=tb)
+    if tc is None: 
+        zw = Internal.getZones(tb)
+        zw = T.join(zw)
+    else:
+        zw = TIBM.extractIBMWallFields(tc, tb=tb, famZones=famZones)
 
     if dimPb == 2: T._addkplane(zw)
 
@@ -1203,8 +1210,8 @@ def loads(t_case, tc_in, wall_out, alpha=0., beta=0., Sref=None):
     res = [i/Sref for i in res]
     cd = res[0]*math.cos(alpha)*math.cos(beta) + res[2]*math.sin(alpha)*math.cos(beta)
     cl = res[2]*math.cos(alpha)*math.cos(beta) - res[0]*math.sin(alpha)*math.cos(beta)
-    print("Pressure loads", cd, cl)
-
+    print("Normalized pressure drag = %g and lift = %g"%(cd, cl))
+    print("Vector of pressure loads: (Fx_P,Fy_P,Fz_P)=(",res[0],res[1],res[2],")")
     #======================================
     # Calcul frottement et efforts visqueux
     #======================================
@@ -1263,8 +1270,8 @@ def loads(t_case, tc_in, wall_out, alpha=0., beta=0., Sref=None):
     else:
         cd = (effortX*math.cos(alpha) + effortY*math.sin(alpha))/QADIM
         cl = (effortY*math.cos(alpha) - effortX*math.sin(alpha))/QADIM
-    print("Skin friction loads", cd, cl)
-
+    print("Normalized skin friction drag = %g and lift = %g"%(cd, cl))
+    print("Vector of skin friction loads: (Fx_f,Fy_f,Fz_f)=(",effortX/QADIM, effortY/QADIM, effortZ/QADIM,")")
     vars = ['centers:sx','centers:sy','centers:sz','centers:tx','centers:ty','centers:tz','centers:tauxx','centers:tauyy','centers:tauzz','centers:tauxy','centers:tauxz',
 'centers:tauyz']
     C._rmVars(zw, vars)
@@ -1606,5 +1613,5 @@ class IBM(Common):
         return post(t_case, t_in, tc_in, t_out, wall_out)
 
     # post-processing: extrait les efforts sur les surfaces
-    def loads(self, t_case, t_in, tc_in, wall_out, alpha=0., beta=0., Sref=None):
-        return loads(t_case, t_in, tc_in, wall_out, alpha=0., beta=0., Sref=None)
+    def loads(self, t_case, t_in, tc_in, wall_out, alpha=0., beta=0., Sref=None, famZones=[]):
+        return loads(t_case, t_in, tc_in, wall_out, alpha=alpha, beta=beta, Sref=Sref, famZones=famZones)

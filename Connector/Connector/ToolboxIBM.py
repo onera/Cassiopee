@@ -1897,15 +1897,53 @@ def computeBestModelisationHeight(Re, h, Cf_law='ANSYS', L=1., q=1.2):
 # Extraction des infos pour le post traitement
 # if td=None: return the cloud of points
 # else interpolate on td
+# input famZones: family of subregions to extract as a list ['FAM1','FAM2,...]
 #=============================================================================
-def extractIBMWallFields(tc, tb=None, coordRef='wall'):
+def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[]):
     xwNP = []; ywNP = []; zwNP = []
     xiNP = []; yiNP = []; ziNP = []
     xcNP = []; ycNP = []; zcNP = []
     pressNP = []; utauNP = []; yplusNP = []; densNP = []
     vxNP = []; vyNP = []; vzNP = []
-    for z in Internal.getZones(tc):
-        allZSR = Internal.getNodesFromType1(z,'ZoneSubRegion_t')
+
+    dictOfFamilies={}
+    if famZones != []:
+        out = []
+        allIBCD = Internal.getNodesFromName(tc,"IBCD_*")
+        for zsr in allIBCD:
+            fam = Internal.getNodeFromType(zsr,'FamilyName_t')
+            if fam is not None:
+                famName=Internal.getValue(fam)
+                if famName in famZones:
+                    if famName not in dictOfFamilies: dictOfFamilies[famName]=[zsr]
+                    else: dictOfFamilies[famName]+=[zsr]
+
+
+        # Creation of a single zone
+        zsize = numpy.empty((1,3), numpy.int32, order='F')
+        zsize[0,0] = 1; zsize[0,1] = 0; zsize[0,2] = 0
+        dictOfZoneFamilies={}
+        for z in Internal.getZones(tb):
+            famName = Internal.getNodeFromType(z,'FamilyName_t')
+            if famName is not None:
+                famName = Internal.getValue(famName)
+                if famName in famZones:
+                    if famName not in dictOfZoneFamilies: dictOfZoneFamilies[famName]=[z]
+                    else: dictOfZoneFamilies[famName]+=[z]
+        for famName in dictOfFamilies:
+            zd = Internal.newZone(name='ZIBC_%s'%famName,zsize=zsize,ztype='Unstructured')
+            zd[2] += dictOfFamilies[famName]
+            tb2 = None
+            if tb is not None:
+                zones = dictOfZoneFamilies[famName]
+                if zones!=[]: tb2=C.newPyTree(['Base']); tb2[2][1][2]=zones
+
+            zd = extractIBMWallFields(zd, tb=tb2, coordRef=coordRef, famZones=[])
+            out+=Internal.getZones(zd)
+        return out
+    
+    else:
+        allZSR = Internal.getNodesFromType(tc,'ZoneSubRegion_t')
         if allZSR != []:
             allIBCD = Internal.getNodesFromName(allZSR,"IBCD_*")
             for IBCD in allIBCD:
@@ -1913,18 +1951,17 @@ def extractIBMWallFields(tc, tb=None, coordRef='wall'):
                 yPW = Internal.getNodeFromName1(IBCD,"CoordinateY_PW")[1]
                 zPW = Internal.getNodeFromName1(IBCD,"CoordinateZ_PW")[1]
                 xwNP.append(xPW); ywNP.append(yPW); zwNP.append(zPW)
-
+                
                 xPI = Internal.getNodeFromName1(IBCD,"CoordinateX_PI")[1]
                 yPI = Internal.getNodeFromName1(IBCD,"CoordinateY_PI")[1]
                 zPI = Internal.getNodeFromName1(IBCD,"CoordinateZ_PI")[1]
                 xiNP.append(xPI); yiNP.append(yPI); ziNP.append(zPI)
-
+                
                 xPC = Internal.getNodeFromName1(IBCD,"CoordinateX_PC")[1]
                 yPC = Internal.getNodeFromName1(IBCD,"CoordinateY_PC")[1]
                 zPC = Internal.getNodeFromName1(IBCD,"CoordinateZ_PC")[1]
                 xcNP.append(xPC); ycNP.append(yPC); zcNP.append(zPC)
-
-
+                                
                 PW = Internal.getNodeFromName1(IBCD,X.__PRESSURE__)
                 if PW is not None: pressNP.append(PW[1])
                 RHOW = Internal.getNodeFromName1(IBCD,X.__DENSITY__)
@@ -1933,14 +1970,14 @@ def extractIBMWallFields(tc, tb=None, coordRef='wall'):
                 if UTAUW is not None: utauNP.append(UTAUW[1])
                 YPLUSW = Internal.getNodeFromName1(IBCD, X.__YPLUS__)
                 if YPLUSW is not None: yplusNP.append(YPLUSW[1])
-
+                
                 VXW = Internal.getNodeFromName1(IBCD, X.__VELOCITYX__)
                 if VXW is not None: vxNP.append(VXW[1])
                 VYW = Internal.getNodeFromName1(IBCD, X.__VELOCITYY__)
                 if VYW is not None: vyNP.append(VYW[1])
                 VZW = Internal.getNodeFromName1(IBCD, X.__VELOCITYZ__)
                 if VZW is not None: vzNP.append(VZW[1])
-
+                
     if pressNP == []: return None
     else:
         pressNP = numpy.concatenate(pressNP)
