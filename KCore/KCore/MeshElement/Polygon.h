@@ -203,12 +203,18 @@ public:
     edge_length_extrema(crd, Lmin2, Lmax2);
     return Lmin2;
   }
+
   double L2ref(const std::vector<E_Float>& nodal_tol2) const
   {
+    return L2ref(_nodes, _nb_nodes, nodal_tol2, _shift);
+  }
+
+  static double L2ref(const E_Int* nodes, E_Int nb_nodes, const std::vector<E_Float>& nodal_tol2, E_Int shift)
+  {
     double val = K_CONST::E_MAX_FLOAT;
-    for (E_Int n = 0; n < _nb_nodes; ++n)
+    for (E_Int n = 0; n < nb_nodes; ++n)
     {
-      E_Int Ni = *(_nodes+n) + _shift;
+      E_Int Ni = *(nodes + n) + shift;
       val = std::min(val, nodal_tol2[Ni]);
     }
     return val;

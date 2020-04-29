@@ -85,7 +85,7 @@ GapFixer::run
   }
  
   // Build the spline surface.
-  std::auto_ptr<UBSSurface> ubs(UBSSurface::buildUBSSurface(posC, nj));
+  std::unique_ptr<UBSSurface> ubs(UBSSurface::buildUBSSurface(posC, nj));
   if (!ubs.get())
     return 1;
 

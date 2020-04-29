@@ -89,7 +89,7 @@ struct connect_trait<LINEIC, true>
     K_CONNECT::IdTool::reverse_indirection(oids, nids);
     nids.resize(crdi.cols(), E_IDX_NONE);
 
-    return std::move(lcrd);
+    return lcrd;
   }
 
   static void compute_nodal_tolerance(const K_FLD::FloatArray& crd, const cnt_t& cnt, std::vector<E_Float>& nodal_tolerance)
@@ -300,9 +300,8 @@ struct mesh_t
   mesh_t(const mesh_t& m) :localiz(nullptr), neighbors(nullptr) {*this = m;}
   mesh_t(const mesh_t&& m):localiz(nullptr), neighbors(nullptr) { *this = m; }
 
-  mesh_t(const mesh_t& m, std::vector<E_Int>& ids) :localiz(nullptr), neighbors(nullptr)
+  mesh_t(const mesh_t& m, std::vector<E_Int>& ids) :cnt(trait::compress_(m.cnt, ids)), localiz(nullptr), neighbors(nullptr)
   {
-    cnt = trait::compress_(m.cnt, ids);
     std::vector<E_Int> nids;
     crd = trait::compact_to_used_nodes(cnt, m.crd, nids);
 
@@ -333,12 +332,12 @@ struct mesh_t
 
   // ACCESSORS //
 
-  elt_t element(int i) const { elt_t e(cnt, i); return e;}
+  elt_t element(int i) const { return elt_t(cnt,i);}
   aelt_t aelement(int i) const 
   {  
     elt_t e(cnt, i);
     E_Float L2r = e.L2ref(nodal_tolerance);
-    return std::move(aelt_t(e, crd, L2r));
+    return aelt_t(e, crd, L2r);
   }
     
   template <bool BSTRIDE = BOUND_STRIDE> void get_boundary(int i, int j, bound_elt_t<BSTRIDE>& b) const
@@ -588,7 +587,7 @@ struct vmesh_t
 
   vmesh_t(const K_FLD::FloatArray &crd, const K_FLD::IntArray& cnt):crd(crd),cnt(cnt){}
 
-  elt_t element(int i) const { elt_t e(cnt, i); return e;}
+  elt_t element(int i) const { return elt_t(cnt, i);}
   
   //mesh_t& operator=(const mesh_t&m){crd = m.crd; cnt = m.cnt;} 
   

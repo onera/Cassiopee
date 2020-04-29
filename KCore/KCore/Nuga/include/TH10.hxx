@@ -169,7 +169,7 @@ namespace NUGA
                E_Int firsIntPG, E_Int firstPHChild)
     {
       static constexpr E_Int nbc = subdiv_pol<K_MESH::Tetrahedron, ISO>::PHNBC;
-      static constexpr E_Int nbi = subdiv_pol<K_MESH::Tetrahedron, ISO>::NBI;
+      //static constexpr E_Int nbi = subdiv_pol<K_MESH::Tetrahedron, ISO>::NBI;
 
       E_Int* q41 = ng.PGs.get_facets_ptr(firsIntPG);
       E_Int* q42 = ng.PGs.get_facets_ptr(firsIntPG+1);

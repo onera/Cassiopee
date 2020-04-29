@@ -56,6 +56,21 @@ struct aPolygon : public K_MESH::Polygon
     parent_type::_shift = 0;
     m_normal[0] = m_centroid[0] = K_CONST::E_MAX_FLOAT;
   }
+
+  aPolygon(const ngon_unit& ngu, E_Int ith, const K_FLD::FloatArray& crd): parent_type(nullptr, 0)
+  {
+    parent_type::_nb_nodes = ngu.stride(ith);
+    _triangles = nullptr;
+    parent_type::_shift = 0;
+    m_normal[0] = m_centroid[0] = K_CONST::E_MAX_FLOAT;
+
+    K_CONNECT::MeshTool::compact_to_mesh(crd, ngu.get_facets_ptr(ith), parent_type::_nb_nodes, 1, m_crd);
+    
+    m_nodes.clear();
+    K_CONNECT::IdTool::init_inc(m_nodes, parent_type::_nb_nodes, 0);
+
+    parent_type::_nodes = &m_nodes[0];
+  }
     
   aPolygon& operator=(const parent_type& rhs) = delete;
   aPolygon& operator=(const aPolygon& rhs)

@@ -31,7 +31,7 @@ namespace NUGA
       for (size_t i = 0; i < wdata.size(); ++i)
         wdata[i] = (wdata[i] == X) ? _col_X : wdata[i];
 
-      return std::move(wdata);
+      return wdata;
     };
 
   private:

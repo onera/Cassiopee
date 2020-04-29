@@ -187,6 +187,22 @@ struct aEdge : public Edge
   
   aEdge(const Edge& e, const K_FLD::FloatArray& crd, E_Float L2r):aEdge(e, crd){m_L2ref = L2r;}
 
+  aEdge(const K_FLD::IntArray& cnt, E_Int i, const K_FLD::FloatArray& crd)
+  {
+    const E_Float* pt1 = crd.col(cnt(0, i));
+    const E_Float* pt2 = crd.col(cnt(1, i));
+
+    v1[0] = pt1[0];
+    v1[1] = pt1[1];
+    v1[2] = pt1[2];
+
+    v2[0] = pt2[0];
+    v2[1] = pt2[1];
+    v2[2] = pt2[2];
+
+    m_L2ref = L2ref();
+  }
+
   double L2ref() const { return (m_L2ref > 0.) ? m_L2ref : K_FUNC::sqrDistance(v1, v2, 3);}
  
   E_Float v1[3], v2[3];

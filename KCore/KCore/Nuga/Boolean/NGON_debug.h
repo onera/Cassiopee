@@ -557,7 +557,7 @@ void NGON_DBG_CLASS::extract_pgs_of_type(E_Int type, const char* fname, const ng
   //
   ng.PGs.extract_of_type(type, pg_ext, oids);
   write(fname, ACoordinate_t(crd), pg_ext);
-  draw_PGT3s(crd, pg_ext);
+  //draw_PGT3s(crd, pg_ext);
 }
 
 

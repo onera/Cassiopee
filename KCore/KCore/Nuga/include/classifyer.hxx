@@ -70,6 +70,15 @@ namespace NUGA
     struct outdata_t {
       zmesh_t mesh;
       bool full_out;
+      outdata_t() :mesh(), full_out(false) {};
+      outdata_t(outdata_t&& d):mesh(std::move(d.mesh)), full_out(d.full_out){}
+      outdata_t& operator=(outdata_t&& d)
+      {
+        mesh = std::move(d.mesh);
+        full_out = d.full_out;
+        return *this;
+      }
+
     };
   };
 

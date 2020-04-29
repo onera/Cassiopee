@@ -67,7 +67,7 @@ namespace NUGA
         xcelln[i] = vcur / v0;
       }
 
-      return std::move(xcelln);
+      return xcelln;
     }
     
   };
@@ -138,7 +138,7 @@ namespace NUGA
       }
 
       xmesh.mesh.cnt.updateFacets();
-      return std::move(xmesh);
+      return xmesh;
     }
 
   };

@@ -361,7 +361,7 @@ K_FLD::DynArray<T> IdTool::compress_(K_FLD::DynArray<T> const & arr, const std::
     E_Int id = keepids[i] - idx_start;
     new_arr.pushBack(arr.col(id), arr.col(id) + stride);
   }
-  return std::move(new_arr);
+  return new_arr;
 }
 
 /// compact (with reordering) of a vector using an indirection
@@ -387,7 +387,7 @@ std::vector<T> IdTool::compact_(std::vector<T> const & vec, std::vector<E_Int> c
     if (ni != E_IDX_NONE)
       tmp[ni] = vec[i];
   }
-  return std::move(tmp);
+  return tmp;
 }
 
 /// compact (with reordering) of a vector using a indirection from compacting an IntArray
