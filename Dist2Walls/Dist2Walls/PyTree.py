@@ -31,6 +31,8 @@ def distance2Walls(t, bodies, type='ortho', loc='centers', signed=0, dim=3):
 def _distance2Walls(t, bodies, type='ortho', loc='centers', signed=0, dim=3):
     """Compute distance field.
     Usage: distance2Walls(a, bodies, type, loc, signed, dim)"""
+    if loc != 'centers': loc = 'nodes'
+
     bodyZones = Internal.getZones(bodies)
     bodiesa = C.getFields(Internal.__GridCoordinates__, bodyZones)
     cellnba = [] # cellN localise au meme endroit que bodies
@@ -42,16 +44,29 @@ def _distance2Walls(t, bodies, type='ortho', loc='centers', signed=0, dim=3):
             posn = C.isNamePresent(zb, varn2)
             if posn != -1: cellnba += C.getField(varn2, zb)
             else: cellnba.append([])
+
+    # we sort structured then unstructured
+    orderedZones=[]
+    zones = Internal.getZones(t)
+    for i,z in enumerate(zones):
+        if Internal.getZoneType(z)==1: orderedZones.append(i)
+    nzoness = len(orderedZones)
+    for i,z in enumerate(zones):
+        if Internal.getZoneType(z)==2: orderedZones.append(i) 
     
-    coords = C.getFields(Internal.__GridCoordinates__, t)
-    if loc == 'centers': flag = C.getField('centers:flag',t)
-    else: flag = C.getField('flag',t)
+    coords = C.getFields(Internal.__GridCoordinates__,zones)
+    if loc == 'centers': flag = C.getField('centers:flag',zones)
+    else: flag = C.getField('flag',zones)
 
     distances = Dist2Walls.distance2Walls(
         coords, bodiesa, flags=flag, cellnbodies=cellnba, type=type,
         loc=loc, signed=signed, dim=dim)
-    if loc == 'centers': return C.setFields(distances, t, 'centers')
-    else: return C.setFields(distances, t, 'nodes')
+    
+    for nz in range(len(distances)):
+        nozorig = orderedZones[nz]
+        zorig = zones[nozorig]
+        C.setFields([distances[nz]], zorig, loc)
+    return None
 
 #==============================================================================
 # Eikonal equation starting from spring points 
