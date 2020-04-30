@@ -215,9 +215,9 @@ PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
     //printf("Creating OS context..."); fflush(stdout);
     OSMesaContext ctx; 
     ctx = OSMesaCreateContext(OSMESA_RGBA, NULL);
-    d->ptrState->offscreenBuffer[ptrState->frameBuffer] = 
+    d->ptrState->offscreenBuffer[d->ptrState->frameBuffer] = 
     (char*)malloc(d->_view.w * d->_view.h * 4 * sizeof(GLubyte));
-    OSMesaMakeCurrent(ctx, d->ptrState->offscreenBuffer[ptrState->frameBuffer], 
+    OSMesaMakeCurrent(ctx, d->ptrState->offscreenBuffer[d->ptrState->frameBuffer], 
                       GL_UNSIGNED_BYTE, d->_view.w, d->_view.h);
     d->init();
     d->ptrState->farClip = 1;
@@ -225,7 +225,7 @@ PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
     d->display();  
     d->exportFile();
     //printf("done.\n");
-    free(d->ptrState->offscreenBuffer[ptrState->frameBuffer]);
+    free(d->ptrState->offscreenBuffer[d->ptrState->frameBuffer]);
     OSMesaDestroyContext(ctx);
 #else
     printf("Error: CPlot: mesa offscreen unavailable.\n");

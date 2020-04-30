@@ -25,15 +25,15 @@ using namespace std;
 
 #define ETK E_LONG
 #define EDGEINDEX(n1,n2,ind) \
-    if (n1 < n2) k = (ETK)(n1-1)*nvertex+(ETK)(n2-1); \
-    else k = (ETK)(n2-1)+nvertex*(ETK)(n1-1); \
+    if (n1 < n2) { k = (ETK)(n1-1)*nvertex+(ETK)(n2-1); }\
+    else { k = (ETK)(n1-1) + nvertex*(ETK)(n2-1); } \
     ind = map[k];
 #define ADDEDGE(n1,n2) \
-    if (n1 < n2) k = (ETK)(n1-1)*nvertex+(ETK)(n2-1); \
-    else k = (ETK)(n2-1)+nvertex*(ETK)(n1-1); \
+    if (n1 < n2)   k = (ETK)(n1-1)*nvertex+(ETK)(n2-1); \
+    else k = (ETK)(n1-1)+nvertex*(ETK)(n2-1); \
     it = map.find(k); \
-    if (it == map.end()) { map[k] = compt; compt++; } \
-    else map[k] = it->second;
+    if (it == map.end()) { map[k] = compt; compt++; } 
+    
 #define ADDFACE(n1,n2,n3,n4) \
     if (n1 < n2) { l1 = n1; h1 = n2; } \
     else { l1 = n2; h1 = n1; } \
@@ -67,8 +67,9 @@ using namespace std;
 PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  E_Int mode;
-  if (!PYPARSETUPLEI(args, "Ol", "Oi", &array, &mode)) return NULL;
+  E_Int mode, order;
+  order = 2;
+  if (!PYPARSETUPLEI(args, "Ol|l", "Oi|i", &array, &mode, &order)) return NULL;
 
   // Check array
   E_Int ni, nj, nk;
@@ -98,7 +99,20 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
                     "convertLO2HO: array must not be NGON.");
     return NULL;
   }
-  
+  if ( (order < 2) || (order > 4) )
+  {
+    RELEASESHAREDU(array, f, cn);
+    PyErr_SetString(PyExc_TypeError,
+                    "convertLO2HO: order must be 2, 3 or 4.");
+    return NULL; 
+  }
+
+  constexpr const double onethird = 1./3.;
+  constexpr const double twothird = 2./3.;
+  constexpr const double onequart = 1./4.;
+  constexpr const double onehalf  = 1./2.;
+  constexpr const double threequart = 3./4.;
+
   // Caracteristiques de l'array input
   E_Int nelts = cn->getSize();
   E_Int nfld = f->getNfld();
@@ -111,9 +125,21 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
   // BAR -> BAR_3
   if (K_STRING::cmp(eltType, 3, "BAR") == 0 && mode == 0)
   {
-    E_Int nvertexHO = nvertex + nelts;
+
+    E_Int nvertexHO = nvertex + (order-1)*nelts;
     E_Int neltsHO = nelts;
-    o = K_ARRAY::buildArray2(nfld, varString, nvertexHO, neltsHO, -1, "BAR_3", false, 0, 0, 0, api);
+    if (order == 2 )
+    {
+      o = K_ARRAY::buildArray2(nfld, varString, nvertexHO, neltsHO, -1, "BAR_3", false, 0, 0, 0, api);
+    }
+    else if (order == 3)
+    {
+      o = K_ARRAY::buildArray2(nfld, varString, nvertexHO, neltsHO, -1, "BAR_4", false, 0, 0, 0, api);      
+    }
+    else // order == 4
+    {
+      o = K_ARRAY::buildArray2(nfld, varString, nvertexHO, neltsHO, -1, "BAR_5", false, 0, 0, 0, api);
+    }
     FldArrayF* fo; FldArrayI* co;
     K_ARRAY::getFromArray2(o, fo, co);
     E_Int p1, p2;
@@ -124,10 +150,32 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
       for (E_Int i = 0; i < nvertex; i++)
         (*fo)(i,n) = (*f)(i,n);
       // ajout des sommets milieux a la fin
-      for (E_Int i = 0; i < nelts; i++)
+      if (order == 2)
       {
-        p1 = (*cn)(i,1)-1; p2 = (*cn)(i,2)-1;
-        (*fo)(i+nvertex,n) = 0.5*( (*f)(p1,n)+ (*f)(p2,n) );
+        for (E_Int i = 0; i < nelts; i++)
+        {
+          p1 = (*cn)(i,1)-1; p2 = (*cn)(i,2)-1;
+          (*fo)(i+nvertex,n) = 0.5*( (*f)(p1,n)+ (*f)(p2,n) );
+        }
+      }
+      else if (order == 3)
+      {
+        for (E_Int i = 0; i < nelts; i++)
+        {
+          p1 = (*cn)(i,1)-1; p2 = (*cn)(i,2)-1;
+          (*fo)(2*i+0+nvertex,n) = twothird*(*f)(p1,n) + onethird*(*f)(p2,n);
+          (*fo)(2*i+1+nvertex,n) = onethird*(*f)(p1,n) + twothird*(*f)(p2,n);
+        }
+      }
+      else //if (order == 4)
+      {
+        for (E_Int i = 0; i < nelts; i++)
+        {
+          p1 = (*cn)(i,1)-1; p2 = (*cn)(i,2)-1;
+          (*fo)(3*i+0+nvertex,n) = threequart*(*f)(p1,n) + onequart * (*f)(p2,n);
+          (*fo)(3*i+1+nvertex,n) = onehalf   *( (*f)(p1,n)+ (*f)(p2,n) );
+          (*fo)(3*i+2+nvertex,n) = onequart  *(*f)(p1,n) + threequart*(*f)(p2,n);
+        }
       }
     }
     // Connectivity
@@ -135,11 +183,12 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
     {
       (*co)(i,1) = (*cn)(i,1);
       (*co)(i,2) = (*cn)(i,2);
-      (*co)(i,3) = nvertex+i+1;
+      for ( E_Int ord = 1; ord < order; ++ord )
+        (*co)(i,2+ord) = nvertex+(order-1)*i+ord;
     }
     RELEASESHAREDU(o, fo, co); 
   }
-  // TRI -> TRI_6
+  // TRI -> TRI_6 ou TRI_9 ou TRI_12
   else if (K_STRING::cmp(eltType, 3, "TRI") == 0 && mode == 0)
   {
     // compte les edges, cree la map des cles
@@ -155,9 +204,14 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
     }
     E_Int nedges = map.size();
 
-    E_Int nvertexHO = nvertex + nedges;
+    E_Int nvertexHO = nvertex + (order-1)*nedges;
     E_Int neltsHO = nelts;
-    o = K_ARRAY::buildArray2(nfld, varString, nvertexHO, neltsHO, -1, "TRI_6", false, 0, 0, 0, api);
+    if (order == 2)
+      o = K_ARRAY::buildArray2(nfld, varString, nvertexHO, neltsHO, -1, "TRI_6", false, 0, 0, 0, api);
+    else if (order == 3)
+      o = K_ARRAY::buildArray2(nfld, varString, nvertexHO, neltsHO, -1, "TRI_9", false, 0, 0, 0, api);
+    else // order == 4
+      o = K_ARRAY::buildArray2(nfld, varString, nvertexHO, neltsHO, -1, "TRI_12", false, 0, 0, 0, api);
     FldArrayF* fo; FldArrayI* co;
     K_ARRAY::getFromArray2(o, fo, co);
     E_Int p1, p2,ind,n4,n5,n6;
@@ -167,13 +221,41 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
       // reprise des sommets LO
       for (E_Int i = 0; i < nvertex; i++) (*fo)(i,n) = (*f)(i,n);
       // ajout pour chaque edge
-      for (const std::pair<ETK,E_Int>& elt : map)
+      if (order == 2)
       {
-        k = elt.first;
-        ind = elt.second;
-        p1 = k/nvertex;
-        p2 = k - p1*nvertex;
-        (*fo)(ind+nvertex,n) = 0.5*( (*f)(p1,n)+ (*f)(p2,n) );
+        for (const std::pair<ETK,E_Int>& elt : map)
+        {
+          k = elt.first;
+          ind = elt.second;
+          p1 = k/nvertex;
+          p2 = k - p1*nvertex;
+          (*fo)(ind+nvertex,n) = 0.5*( (*f)(p1,n)+ (*f)(p2,n) );
+        }
+      }
+      else if (order == 3)
+      {
+        for (const std::pair<ETK,E_Int>& elt : map)
+        {
+          k = elt.first;
+          ind = elt.second;
+          p1 = k/nvertex;
+          p2 = k - p1*nvertex;
+          (*fo)(2*ind+0+nvertex,n) = twothird * (*f)(p1,n) + onethird * (*f)(p2,n);
+          (*fo)(2*ind+1+nvertex,n) = onethird * (*f)(p1,n) + twothird * (*f)(p2,n);
+        }
+      }
+      else // if (order == 4)
+      {
+        for (const std::pair<ETK,E_Int>& elt : map)
+        {
+          k = elt.first;
+          ind = elt.second;
+          p1 = k/nvertex;
+          p2 = k - p1*nvertex;
+          (*fo)(3*ind+0+nvertex,n) = threequart*(*f)(p1,n) + onequart * (*f)(p2,n);
+          (*fo)(3*ind+1+nvertex,n) = onehalf   *( (*f)(p1,n)+ (*f)(p2,n) );
+          (*fo)(3*ind+2+nvertex,n) = onequart  *(*f)(p1,n) + threequart*(*f)(p2,n);
+        }
       }
     }
     // Connectivity
@@ -187,13 +269,31 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
       (*co)(i,1) = n1;
       (*co)(i,2) = n2;
       (*co)(i,3) = n3;
-      (*co)(i,4) = n4+nvertex+1;
-      (*co)(i,5) = n5+nvertex+1; 
-      (*co)(i,6) = n6+nvertex+1;
+
+      if (n1<n2) // Si n1 < n2, alors arete dans le bon sens :
+        for (E_Int ord = 1; ord < order; ++ord )
+          (*co)(i,3+ord) = (order-1)*n4 + nvertex + ord;
+      else // Arete a l'envers par rapport a la convention cgns :
+        for (E_Int ord = 1; ord < order; ++ord )
+          (*co)(i,3+ord) = (order-1)*n4 + nvertex + (order-ord);
+
+      if (n2 < n3) // Si n2 < n3, arete dans le bon sens :      
+        for (E_Int ord = 1; ord < order; ++ord )
+          (*co)(i,3+(order-1)+ord) = (order-1)*n5 + nvertex + ord;
+      else
+        for (E_Int ord = 1; ord < order; ++ord )
+          (*co)(i,3+(order-1)+ord) = (order-1)*n5 + nvertex + (order-ord);
+      if (n3 < n1) // Si n3 < n1, arete dans le bon sens :
+        for (E_Int ord = 1; ord < order; ++ord )
+          (*co)(i,3+2*(order-1)+ord) = (order-1)*n6 + nvertex + ord;
+      else // Arete pas dans le bon sens
+        for (E_Int ord = 1; ord < order; ++ord )
+          (*co)(i,3+2*(order-1)+ord) = (order-1)*n6 + nvertex + (order-ord);
     }
     RELEASESHAREDU(o, fo, co); 
   }
-  // QUAD -> QUAD_8
+  // QUAD -> QUAD_8 ou QUAD_12 ( et QUAD_P4_16 mais pour sa visu, on verra plus tard, car ce couillon a le meme nombre de sommets que QUAD_16 => pas cool pour le shader ! )
+  // Pour Quad_P4_16 il faudra donc faire un shader a part...
   else if (K_STRING::cmp(eltType, 4, "QUAD") == 0 && mode == 0)
   {
     // compte les edges, cree la map des cles
@@ -210,9 +310,15 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
     }
     E_Int nedges = map.size();
 
-    E_Int nvertexHO = nvertex + nedges;
+    E_Int nvertexHO = nvertex + (order-1)*nedges;
     E_Int neltsHO = nelts;
-    o = K_ARRAY::buildArray2(nfld, varString, nvertexHO, neltsHO, -1, "QUAD_8", false, 0, 0, 0, api);
+    if (order == 2)
+      o = K_ARRAY::buildArray2(nfld, varString, nvertexHO, neltsHO, -1, "QUAD_8", false, 0, 0, 0, api);
+    else if (order == 3)
+      o = K_ARRAY::buildArray2(nfld, varString, nvertexHO, neltsHO, -1, "QUAD_12", false, 0, 0, 0, api);
+    else // order == 4
+      o = K_ARRAY::buildArray2(nfld, varString, nvertexHO, neltsHO, -1, "QUAD_P4_16", false, 0, 0, 0, api);
+
     FldArrayF* fo; FldArrayI* co;
     K_ARRAY::getFromArray2(o, fo, co);
     E_Int p1,p2,ind,n5,n6,n7,n8;
@@ -222,14 +328,40 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
       // reprise des sommets LO
       for (E_Int i = 0; i < nvertex; i++) (*fo)(i,n) = (*f)(i,n);
       // ajout pour chaque edge
-      for (const std::pair<ETK,E_Int>& elt : map)
+      if (order == 2)
       {
-        k = elt.first;
-        ind = elt.second;
-        p1 = k/nvertex;
-        p2 = k - p1*nvertex;
-        (*fo)(ind+nvertex,n) = 0.5*( (*f)(p1,n)+ (*f)(p2,n) );
+        for (const std::pair<ETK,E_Int>& elt : map)
+        {
+          k = elt.first;
+          ind = elt.second;
+           p1 = k/nvertex;
+          p2 = k - p1*nvertex;
+          (*fo)(ind+nvertex,n) = 0.5*( (*f)(p1,n)+ (*f)(p2,n) );
+        }
       }
+      else if (order == 3)
+      {
+        for (const std::pair<ETK,E_Int>& elt : map)
+        {
+          k = elt.first;
+          ind = elt.second;
+          p1 = k/nvertex;
+          p2 = k - p1*nvertex;
+          (*fo)(2*ind+0+nvertex,n) = twothird * (*f)(p1,n) + onethird * (*f)(p2,n);
+          (*fo)(2*ind+1+nvertex,n) = onethird * (*f)(p1,n) + twothird * (*f)(p2,n);
+        }
+      }
+      else // order == 4
+        for (const std::pair<ETK,E_Int>& elt : map)
+        {
+          k = elt.first;
+          ind = elt.second;
+          p1 = k/nvertex;
+          p2 = k - p1*nvertex;
+          (*fo)(3*ind+0+nvertex,n) = threequart*(*f)(p1,n) + onequart * (*f)(p2,n);
+          (*fo)(3*ind+1+nvertex,n) = onehalf * ((*f)(p1,n) + (*f)(p2,n) );
+          (*fo)(3*ind+2+nvertex,n) = onequart  *(*f)(p1,n) + threequart*(*f)(p2,n);
+        }
     }
     // Connectivity
     for (E_Int i = 0; i < nelts; i++)
@@ -244,14 +376,170 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
       (*co)(i,2) = n2;
       (*co)(i,3) = n3;
       (*co)(i,4) = n4;
-      (*co)(i,5) = n5+nvertex+1;
-      (*co)(i,6) = n6+nvertex+1;
-      (*co)(i,7) = n7+nvertex+1;
-      (*co)(i,8) = n8+nvertex+1;
+
+      if (n1<n2) // Si n1 < n2, alors arete dans le bon sens :
+        for (E_Int ord = 1; ord < order; ++ord )
+          (*co)(i,4+ord) = (order-1)*n5 + nvertex + ord;
+      else // Arete a l'envers par rapport a la convention cgns :
+        for (E_Int ord = 1; ord < order; ++ord )
+          (*co)(i,4+ord) = (order-1)*n5 + nvertex + (order-ord);
+
+      if (n2 < n3) // Si n2 < n3, arete dans le bon sens :      
+        for (E_Int ord = 1; ord < order; ++ord )
+          (*co)(i,4+(order-1)+ord) = (order-1)*n6 + nvertex + ord;
+      else
+        for (E_Int ord = 1; ord < order; ++ord )
+          (*co)(i,4+(order-1)+ord) = (order-1)*n6 + nvertex + (order-ord);
+
+      if (n3 < n4) // Si n3 < n4, arete dans le bon sens :
+        for (E_Int ord = 1; ord < order; ++ord )
+          (*co)(i,4+2*(order-1)+ord) = (order-1)*n7 + nvertex + ord;
+      else // Arete pas dans le bon sens
+        for (E_Int ord = 1; ord < order; ++ord )
+          (*co)(i,4+2*(order-1)+ord) = (order-1)*n7 + nvertex + (order-ord);
+
+      if (n4 < n1) // Si n4 < n1, arete dans le bon sens :
+        for (E_Int ord = 1; ord < order; ++ord )
+          (*co)(i,4+3*(order-1)+ord) = (order-1)*n8 + nvertex + ord;
+      else // Arete pas dans le bon sens
+        for (E_Int ord = 1; ord < order; ++ord )
+          (*co)(i,4+3*(order-1)+ord) = (order-1)*n8 + nvertex + (order-ord);
+
     }
     RELEASESHAREDU(o, fo, co); 
   }
-  // QUAD -> QUAD_9
+  // TRI -> TRI_10 ou TRI_15
+  else if (K_STRING::cmp(eltType, 4, "TRI") == 0 && mode == 1)
+  {
+    if (order < 3)
+    {
+      RELEASESHAREDU(array, f, cn);
+      PyErr_SetString(PyExc_TypeError,
+                      "convertLO2HO: order must be 3 or 4 for triangle with mode 1.");
+      return NULL; 
+    }
+    // compte les edges, cree la map des cles
+    std::unordered_map<ETK, E_Int> map;
+    E_Int compt = 0; 
+    std::unordered_map<ETK,E_Int>::iterator it;
+    E_Int n1,n2,n3; ETK k;
+    for (E_Int i = 0; i < nelts; i++)
+    {
+      n1 = (*cn)(i,1); n2 = (*cn)(i,2); n3 = (*cn)(i,3);
+      ADDEDGE(n1,n2);
+      ADDEDGE(n2,n3);
+      ADDEDGE(n1,n3);
+    }
+    E_Int nedges = map.size();
+    E_Int nvertexHO = nvertex + (order-1)*nedges + (order == 3 ? 1 : 3) * nelts;
+    E_Int neltsHO = nelts;
+    if (order == 3)
+      o = K_ARRAY::buildArray2(nfld, varString, nvertexHO, neltsHO, -1, "TRI_10", false, 0, 0, 0, api);
+    else // order == 4
+      o = K_ARRAY::buildArray2(nfld, varString, nvertexHO, neltsHO, -1, "TRI_15", false, 0, 0, 0, api);
+
+    FldArrayF* fo; FldArrayI* co;
+    K_ARRAY::getFromArray2(o, fo, co);
+    E_Int p1,p2,ind,n4,n5,n6;//,n7,n8;
+    // Fields
+    for (E_Int n = 1; n <= nfld; n++)
+    {
+      // reprise des sommets LO
+      for (E_Int i = 0; i < nvertex; i++) (*fo)(i,n) = (*f)(i,n);
+      // ajout pour chaque edge
+      if (order == 3)
+      {
+        for (const std::pair<ETK,E_Int>& elt : map)
+        {
+          k = elt.first;
+          ind = elt.second;
+          p1 = k/nvertex;
+          p2 = k - p1*nvertex;
+          (*fo)(2*ind+0+nvertex,n) = twothird * (*f)(p1,n) + onethird * (*f)(p2,n);
+          (*fo)(2*ind+1+nvertex,n) = onethird * (*f)(p1,n) + twothird * (*f)(p2,n);
+        }
+      }
+      else // if (order == 4)
+      {
+        for (const std::pair<ETK,E_Int>& elt : map)
+        {
+          k = elt.first;
+          ind = elt.second;
+          p1 = k/nvertex;
+          p2 = k - p1*nvertex;
+          (*fo)(3*ind+0+nvertex,n) = threequart*(*f)(p1,n) + onequart * (*f)(p2,n);
+          (*fo)(3*ind+1+nvertex,n) = onehalf   *( (*f)(p1,n)+ (*f)(p2,n) );
+          (*fo)(3*ind+2+nvertex,n) = onequart  *(*f)(p1,n) + threequart*(*f)(p2,n);
+        }
+      }
+      // ajout pour les centres
+      if (order == 3)
+      {
+        E_Int beg_centers = 2*nedges;
+        for (E_Int i = 0; i < nelts; i++)
+        {
+          n1 = (*cn)(i,1)-1; n2 = (*cn)(i,2)-1; n3 = (*cn)(i,3)-1;
+          (*fo)(i+nvertex+beg_centers,n) = (onethird)*( (*f)(n1,n)+ (*f)(n2,n) + (*f)(n3,n) );
+        }
+      }
+      else // order == 4
+      {
+        E_Int beg_centers = 3*nedges;
+        for (E_Int i = 0; i < nelts; i++)
+        {
+          n1 = (*cn)(i,1)-1; n2 = (*cn)(i,2)-1; n3 = (*cn)(i,3)-1;
+          (*fo)(3*i+0+nvertex+beg_centers,n) = onehalf*(*f)(n1,n) + onequart*((*f)(n2,n) + (*f)(n3,n) );
+          (*fo)(3*i+1+nvertex+beg_centers,n) = onehalf*(*f)(n2,n) + onequart*((*f)(n3,n) + (*f)(n1,n) );
+          (*fo)(3*i+2+nvertex+beg_centers,n) = onehalf*(*f)(n3,n) + onequart*((*f)(n1,n) + (*f)(n2,n) );
+        }
+      }
+    }
+    // Connectivity
+    for (E_Int i = 0; i < nelts; i++)
+    {
+      n1 = (*cn)(i,1); n2 = (*cn)(i,2); n3 = (*cn)(i,3);
+
+      EDGEINDEX(n1,n2,n4);
+      EDGEINDEX(n2,n3,n5);
+      EDGEINDEX(n3,n1,n6);
+
+      (*co)(i,1) = n1;
+      (*co)(i,2) = n2;
+      (*co)(i,3) = n3;
+
+      if (n1<n2) // Si n1 < n2, alors arete dans le bon sens :
+        for (E_Int ord = 1; ord < order; ++ord )
+          (*co)(i,3+ord) = (order-1)*n4 + nvertex + ord;
+      else // Arete a l'envers par rapport a la convention cgns :
+        for (E_Int ord = 1; ord < order; ++ord )
+          (*co)(i,3+ord) = (order-1)*n4 + nvertex + (order-ord);
+
+      if (n2 < n3) // Si n2 < n3, arete dans le bon sens :      
+        for (E_Int ord = 1; ord < order; ++ord )
+          (*co)(i,3+(order-1)+ord) = (order-1)*n5 + nvertex + ord;
+      else
+        for (E_Int ord = 1; ord < order; ++ord )
+          (*co)(i,3+(order-1)+ord) = (order-1)*n5 + nvertex + (order-ord);
+
+      if (n3 < n1) // Si n3 < n1, arete dans le bon sens :
+        for (E_Int ord = 1; ord < order; ++ord )
+          (*co)(i,3+2*(order-1)+ord) = (order-1)*n6 + nvertex + ord;
+      else // Arete pas dans le bon sens
+        for (E_Int ord = 1; ord < order; ++ord )
+          (*co)(i,3+2*(order-1)+ord) = (order-1)*n6 + nvertex + (order-ord);
+
+      if (order == 3)
+        (*co)(i,10) = i+nvertex+2*nedges+1;
+      else // order == 4
+      {
+        (*co)(i,10) = 3*i+0+nvertex+2*nedges+1;
+        (*co)(i,11) = 3*i+1+nvertex+2*nedges+1;
+        (*co)(i,12) = 3*i+2+nvertex+2*nedges+1;
+      }
+    }
+    RELEASESHAREDU(o, fo, co);
+  }
+  // QUAD -> QUAD_9 ou QUAD_16 ou QUAD_25
   else if (K_STRING::cmp(eltType, 4, "QUAD") == 0 && mode == 1)
   {
     // compte les edges, cree la map des cles
@@ -268,9 +556,15 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
     }
     E_Int nedges = map.size();
 
-    E_Int nvertexHO = nvertex + nedges + nelts;
+    E_Int nvertexHO = nvertex + (order-1)*nedges + (order-1)*(order-1)*nelts;
     E_Int neltsHO = nelts;
-    o = K_ARRAY::buildArray2(nfld, varString, nvertexHO, neltsHO, -1, "QUAD_9", false, 0, 0, 0, api);
+    if (order == 2)
+      o = K_ARRAY::buildArray2(nfld, varString, nvertexHO, neltsHO, -1, "QUAD_9", false, 0, 0, 0, api);
+    else if (order == 3)
+      o = K_ARRAY::buildArray2(nfld, varString, nvertexHO, neltsHO, -1, "QUAD_16", false, 0, 0, 0, api);
+    else // order == 4
+      o = K_ARRAY::buildArray2(nfld, varString, nvertexHO, neltsHO, -1, "QUAD_25", false, 0, 0, 0, api);
+
     FldArrayF* fo; FldArrayI* co;
     K_ARRAY::getFromArray2(o, fo, co);
     E_Int p1,p2,ind,n5,n6,n7,n8;
@@ -280,19 +574,70 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
       // reprise des sommets LO
       for (E_Int i = 0; i < nvertex; i++) (*fo)(i,n) = (*f)(i,n);
       // ajout pour chaque edge
-      for (const std::pair<ETK,E_Int>& elt : map)
+      if (order == 2)
       {
-        k = elt.first;
-        ind = elt.second;
-        p1 = k/nvertex;
-        p2 = k - p1*nvertex;
-        (*fo)(ind+nvertex,n) = 0.5*( (*f)(p1,n)+ (*f)(p2,n) );
+        for (const std::pair<ETK,E_Int>& elt : map)
+        {
+          k = elt.first;
+          ind = elt.second;
+          p1 = k/nvertex;
+          p2 = k - p1*nvertex;
+          (*fo)(ind+nvertex,n) = 0.5*( (*f)(p1,n)+ (*f)(p2,n) );
+        }
+        // ajout pour les centres
+        for (E_Int i = 0; i < nelts; i++)
+        {
+          n1 = (*cn)(i,1)-1; n2 = (*cn)(i,2)-1; n3 = (*cn)(i,3)-1; n4 = (*cn)(i,4)-1;
+          (*fo)(i+nvertex+nedges,n) = onequart*( (*f)(n1,n)+ (*f)(n2,n) + (*f)(n3,n) + (*f)(n4,n) );
+        }
       }
-      // ajout pour les centres
-      for (E_Int i = 0; i < nelts; i++)
+      else if (order == 3)
       {
-        n1 = (*cn)(i,1)-1; n2 = (*cn)(i,2)-1; n3 = (*cn)(i,3)-1; n4 = (*cn)(i,4)-1;
-        (*fo)(i+nvertex+nedges,n) = 0.25*( (*f)(n1,n)+ (*f)(n2,n) + (*f)(n3,n) + (*f)(n4,n) );
+        for (const std::pair<ETK,E_Int>& elt : map)
+        {
+          k = elt.first;
+          ind = elt.second;
+          p1 = k/nvertex;
+          p2 = k - p1*nvertex;
+          (*fo)(2*ind+0+nvertex,n) = twothird * (*f)(p1,n) + onethird * (*f)(p2,n);
+          (*fo)(2*ind+1+nvertex,n) = onethird * (*f)(p1,n) + twothird * (*f)(p2,n);
+        }
+        // ajout pour les centres
+        for (E_Int i = 0; i < nelts; i++)
+        {
+          n1 = (*cn)(i,1)-1; n2 = (*cn)(i,2)-1; n3 = (*cn)(i,3)-1; n4 = (*cn)(i,4)-1;
+          (*fo)(4*i+0+nvertex+2*nedges,n) = (4./9.)*(*f)(n1,n) + (2./9.) * ( (*f)(n2,n) + (*f)(n4,n) ) + (1./9.)*(*f)(n3,n);
+          (*fo)(4*i+1+nvertex+2*nedges,n) = (4./9.)*(*f)(n2,n) + (2./9.) * ( (*f)(n3,n) + (*f)(n1,n) ) + (1./9.)*(*f)(n4,n);
+          (*fo)(4*i+2+nvertex+2*nedges,n) = (4./9.)*(*f)(n3,n) + (2./9.) * ( (*f)(n4,n) + (*f)(n2,n) ) + (1./9.)*(*f)(n1,n);
+          (*fo)(4*i+3+nvertex+2*nedges,n) = (4./9.)*(*f)(n4,n) + (2./9.) * ( (*f)(n1,n) + (*f)(n3,n) ) + (1./9.)*(*f)(n2,n);
+        }
+      }
+      else // order == 4
+      {
+        for (const std::pair<ETK,E_Int>& elt : map)
+        {
+          k = elt.first;
+          ind = elt.second;
+          p1 = k/nvertex;
+          p2 = k - p1*nvertex;
+          (*fo)(3*ind+0+nvertex,n) = threequart*(*f)(p1,n) + onequart * (*f)(p2,n);
+          (*fo)(3*ind+1+nvertex,n) = onehalf * ((*f)(p1,n) + (*f)(p2,n) );
+          (*fo)(3*ind+2+nvertex,n) = onequart  *(*f)(p1,n) + threequart*(*f)(p2,n);
+        }
+        // ajout pour les centres
+        for (E_Int i = 0; i < nelts; i++)
+        {
+          n1 = (*cn)(i,1)-1; n2 = (*cn)(i,2)-1; n3 = (*cn)(i,3)-1; n4 = (*cn)(i,4)-1;
+          (*fo)(9*i+0+nvertex+2*nedges,n) = (9./16.)*(*f)(n1,n) + (3./16.) * ( (*f)(n2,n) + (*f)(n4,n) ) + (1./16.)*(*f)(n3,n);
+          (*fo)(9*i+1+nvertex+2*nedges,n) = (3./8.0)*( (*f)(n1,n) + (*f)(n2,n) ) + (1./8.0) * ( (*f)(n4,n) + (*f)(n3,n) );
+          (*fo)(9*i+2+nvertex+2*nedges,n) = (9./16.)*(*f)(n2,n) + (3./16.) * ( (*f)(n3,n) + (*f)(n1,n) ) + (1./16.)*(*f)(n4,n);
+          (*fo)(9*i+3+nvertex+2*nedges,n) = (3./8.0)*( (*f)(n2,n) + (*f)(n3,n) ) + (1./8.0) * ( (*f)(n1,n) + (*f)(n4,n) );
+          (*fo)(9*i+4+nvertex+2*nedges,n) = (9./16.)*(*f)(n3,n) + (3./16.) * ( (*f)(n4,n) + (*f)(n2,n) ) + (1./16.)*(*f)(n1,n);
+          (*fo)(9*i+5+nvertex+2*nedges,n) = (3./8.0)*( (*f)(n3,n) + (*f)(n4,n) ) + (1./8.0) * ( (*f)(n2,n) + (*f)(n1,n) );
+          (*fo)(9*i+6+nvertex+2*nedges,n) = (9./16.)*(*f)(n4,n) + (3./16.) * ( (*f)(n1,n) + (*f)(n3,n) ) + (1./16.)*(*f)(n2,n);
+          (*fo)(9*i+7+nvertex+2*nedges,n) = (3./8.0)*( (*f)(n4,n) + (*f)(n1,n) ) + (1./8.0) * ( (*f)(n3,n) + (*f)(n2,n) );
+          (*fo)(9*i+8+nvertex+2*nedges,n) = (1./4.0)*( (*f)(n1,n) + (*f)(n2,n) + (*f)(n3,n) + (*f)(n4,n) );
+        }
       }
     }
     // Connectivity
@@ -303,16 +648,45 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
       EDGEINDEX(n2,n3,n6);
       EDGEINDEX(n3,n4,n7);
       EDGEINDEX(n1,n4,n8);
+
+      E_Int order2 = (order-1)*(order-1);
       
       (*co)(i,1) = n1;
       (*co)(i,2) = n2;
       (*co)(i,3) = n3;
       (*co)(i,4) = n4;
-      (*co)(i,5) = n5+nvertex+1;
-      (*co)(i,6) = n6+nvertex+1;
-      (*co)(i,7) = n7+nvertex+1;
-      (*co)(i,8) = n8+nvertex+1;
-      (*co)(i,9) = i+nvertex+nedges+1;
+
+      if (n1<n2) // Si n1 < n2, alors arete dans le bon sens :
+        for (E_Int ord = 1; ord < order; ++ord )
+          (*co)(i,4+ord) = (order-1)*n5 + nvertex + ord;
+      else // Arete a l'envers par rapport a la convention cgns :
+        for (E_Int ord = 1; ord < order; ++ord )
+          (*co)(i,4+ord) = (order-1)*n5 + nvertex + (order-ord);
+
+      if (n2 < n3) // Si n2 < n3, arete dans le bon sens :      
+        for (E_Int ord = 1; ord < order; ++ord )
+          (*co)(i,4+(order-1)+ord) = (order-1)*n6 + nvertex + ord;
+      else
+        for (E_Int ord = 1; ord < order; ++ord )
+          (*co)(i,4+(order-1)+ord) = (order-1)*n6 + nvertex + (order-ord);
+
+      if (n3 < n4) // Si n3 < n4, arete dans le bon sens :
+        for (E_Int ord = 1; ord < order; ++ord )
+          (*co)(i,4+2*(order-1)+ord) = (order-1)*n7 + nvertex + ord;
+      else // Arete pas dans le bon sens
+        for (E_Int ord = 1; ord < order; ++ord )
+          (*co)(i,4+2*(order-1)+ord) = (order-1)*n7 + nvertex + (order-ord);
+
+      if (n4 < n1) // Si n4 < n1, arete dans le bon sens :
+        for (E_Int ord = 1; ord < order; ++ord )
+          (*co)(i,4+3*(order-1)+ord) = (order-1)*n8 + nvertex + ord;
+      else // Arete pas dans le bon sens
+        for (E_Int ord = 1; ord < order; ++ord )
+          (*co)(i,4+3*(order-1)+ord) = (order-1)*n8 + nvertex + (order-ord);
+
+
+      for (E_Int ord = 1; ord <= order2; ++ord)
+        (*co)(i,4+4*(order-1)+ord) = order2*i + nvertex + (order-1)*nedges + ord;
     }
     RELEASESHAREDU(o, fo, co); 
   }

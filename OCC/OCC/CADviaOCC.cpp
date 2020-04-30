@@ -18,7 +18,6 @@
 */
 //Author : Sâm Landier (sam.landier@onera.fr)
 
-
 #include "CADviaOCC.h"
 
 // IGES/STEP
@@ -91,11 +90,11 @@ E_Int import_iges(const char* fname, TopoDS_Shape& sh)
   Handle(TColStd_HSequenceOfTransient) occ_list = reader.GiveList("iges-faces");
     
   if (occ_list.IsNull()) return 1;
-    
-  Standard_Integer nb_cad_faces = occ_list->Length();
-  Standard_Integer nb_transfered_faces = reader.TransferList(occ_list);
 
+  Standard_Integer nb_transfered_faces = reader.TransferList(occ_list);
+  
 #ifdef DEBUG_CAD_READER
+  Standard_Integer nb_cad_faces = occ_list->Length();
   std::cout << "IGES Faces: " << nb_cad_faces << "   Transferred:" << nb_transfered_faces << endl;
 #endif
 
@@ -115,13 +114,12 @@ int import_step(const char* fname, TopoDS_Shape& sh)
   return sh.IsNull();
 }
 
-//
+// Lit le fichier CAD et retourne les entites openscascade
 E_Int K_OCC::CADviaOCC::import_cad(const char* fname, const char* format, E_Float h, E_Float chordal_err, E_Float gr /*groqth ratio*/)
 {
   _chordal_err = chordal_err;
   _h = h;
   _gr = gr;
-    
   E_Int err(1);
   if (::strcmp(format, "fmt_iges")==0) err = import_iges(fname, _occ_shape);
   else if (::strcmp(format, "fmt_step")==0) err = import_step(fname, _occ_shape);
@@ -161,8 +159,9 @@ E_Int K_OCC::CADviaOCC::compute_h_sizing(K_FLD::FloatArray& coords, std::vector<
   if (_h <= 0.) // undefined or badly defined
   {
     _h = _Lmean/10.;
-    std::cout << "OCC: computed h: " << _h << std::endl;
   }
+  
+  std::cout << "OCC: size h: " << _h << std::endl;
   
   for (E_Int i=1; i <= nb_edges; ++i)
   {
@@ -184,8 +183,12 @@ E_Int K_OCC::CADviaOCC::update_with_chordal_sizing(std::vector<E_Int>& Ns)
     _chordal_err = 0.02;
 
   for (E_Int i=1; i <= nb_edges; ++i)
+  {
     __chord_sizing(TopoDS::Edge(_edges(i)), _chordal_err, Ns[i]);
+  }
 
+  std::cout << "OCC: chordal_error h: " << _chordal_err << std::endl;
+  
   return err;
 }
 
@@ -205,7 +208,7 @@ E_Int K_OCC::CADviaOCC::__h_sizing(const TopoDS_Edge& E, E_Float& L)
   return 0;
 }
 
-///
+// Retourne le nbre de points pour recuperer le bon chordal_err (fait un max)
 E_Int K_OCC::CADviaOCC::__chord_sizing(const TopoDS_Edge& E, E_Float chordal_err, E_Int& nb_points)
 {  
   if (BRep_Tool::Degenerated (E))      // Exit if the edge is degenerated.
@@ -221,14 +224,41 @@ E_Int K_OCC::CADviaOCC::__chord_sizing(const TopoDS_Edge& E, E_Float chordal_err
   E_Int nb_pts_defl = 0;
   E_Float dmax = chordal_err * L;
   __eval_nb_points(C0, u0, u1, dmax, nb_pts_defl);
-  nb_pts_defl +=1; //give the number of split => +1 to have the nb of points
-  
+  nb_pts_defl += 1; //give the number of split => +1 to have the nb of points
   nb_pts_defl = std::max(nb_pts_defl, 3); // at least 3 points
-  nb_points = std::max(nb_pts_defl, nb_points); // at least 3 points
+  nb_points = std::max(nb_pts_defl, nb_points); // max des nbre de pts
   return 0;
 }
 
-E_Int K_OCC::CADviaOCC::__eval_nb_points(const BRepAdaptor_Curve& C, E_Float u0, E_Float u1, E_Float dmax, E_Int& nb_points )
+// Calcul le nbre de pts pour avoir la bonne erreur de corde sur la courbe C
+E_Int K_OCC::CADviaOCC::__eval_nb_points2(const BRepAdaptor_Curve& C, E_Float u0, E_Float u1, E_Float dmax, E_Int& nb_points)
+{
+  E_Float dm;
+  __eval_chordal_error(C, u0, u1, dm);
+  if (dm <= dmax)
+  {
+    nb_points = 1; return 0;
+  }
+  E_Int ns = 1; // nbre de splits
+  E_Float du = u1-u0;
+  
+  while (ns < 50)
+  {
+    E_Float dml = 0.;
+    for (E_Int i = 0; i <= ns; i++)
+    {
+      __eval_chordal_error(C, u0+i*du/(ns+1), u0+(i+1)*du/(ns+1), dm);
+      dml = std::max(dml, dm);
+    }
+    if (dml <= dmax) { nb_points = ns; return 0; }
+    ns += 1;
+  }
+  nb_points = ns;
+  return 0;
+}
+
+// Fonction recursive : parfois boucle a l'infini
+E_Int K_OCC::CADviaOCC::__eval_nb_points(const BRepAdaptor_Curve& C, E_Float u0, E_Float u1, E_Float dmax, E_Int& nb_points)
 {
   E_Float dm;
   __eval_chordal_error(C, u0, u1, dm);
@@ -241,7 +271,6 @@ E_Int K_OCC::CADviaOCC::__eval_nb_points(const BRepAdaptor_Curve& C, E_Float u0,
   __eval_nb_points(C, 0.5*(u1+u0), u1, dmax, nb_points);
   
   return 0;
-  
 }
 
 E_Int K_OCC::CADviaOCC::__eval_chordal_error(const BRepAdaptor_Curve& C, E_Float u0, E_Float u1, E_Float& dmax)
@@ -275,6 +304,7 @@ E_Int K_OCC::CADviaOCC::__eval_chordal_error(const BRepAdaptor_Curve& C, E_Float
     
     dmax = (dm > dmax) ? dm : dmax;
   }
+  return 0;
 }
 
 ///
@@ -287,7 +317,6 @@ E_Int K_OCC::CADviaOCC::mesh_edges(K_FLD::FloatArray& coords, std::vector<K_FLD:
   std::vector<E_Int> Ns;
   compute_h_sizing(coords, Ns);   // compute the number of points per edge regarding h
   update_with_chordal_sizing(Ns); // take chordal error into account if it gives a finer discretization 
-  
   connectEs.resize(nb_edges+1);
   
   for (E_Int i=1; i <= _surfs.Extent(); ++i)
@@ -298,13 +327,13 @@ E_Int K_OCC::CADviaOCC::mesh_edges(K_FLD::FloatArray& coords, std::vector<K_FLD:
     
     E_Int nb_edges = F._edges.size();
     
-    for (size_t j=0; j < nb_edges; ++j)
+    for (E_Int j=0; j < nb_edges; ++j)
     {
       E_Int id = ::abs(F._edges[j]);
       
       if (connectEs[id].cols())
-        continue;//already meshed.
-      
+        continue; //already meshed.
+    
 #ifdef DEBUG_CAD_READER
     std::cout << "Edge :  " << id <<  ". Nb points : " << Ns[id] << std::endl;
 #endif
@@ -380,7 +409,7 @@ E_Int K_OCC::CADviaOCC::build_loops
     // prepare contour  
     E_Int nb_edges = F._edges.size();
     //
-    for (size_t j=0; j < nb_edges; ++j)
+    for (E_Int j=0; j < nb_edges; ++j)
     {
       E_Int id = F._edges[j];
       
@@ -388,19 +417,16 @@ E_Int K_OCC::CADviaOCC::build_loops
       
       if (id > 0)
       {
-        if (connectEs[id].cols()==0)
-          continue;
+        if (connectEs[id].cols()==0) continue;
         connectBs[i].pushBack(connectEs[id]);
-        connectEs[id].uniqueVals(unods);
-        
+        connectEs[id].uniqueVals(unods); 
       }
       else
       {
         tmp=connectEs[-id];
-        if (tmp.cols()==0)
-          continue;
+        if (tmp.cols()==0) continue;
         tmp.uniqueVals(unods);
-        for (size_t k=0; k < tmp.cols(); ++k)std::swap(tmp(0,k), tmp(1,k));
+        for (E_Int k=0; k < tmp.cols(); ++k) std::swap(tmp(0,k), tmp(1,k));
         connectBs[i].pushBack(tmp);
       }
     }
@@ -428,8 +454,7 @@ E_Int K_OCC::CADviaOCC::build_loops
   _merge_tol = ::sqrt(tol2);
   E_Int nb_merges = ::merge(crdA, _merge_tol, nids);
   
-  if (!nb_merges)
-    return 0;
+  if (!nb_merges) return 0;
 
   for (E_Int i=1; i <= nb_faces; ++i)
   {
@@ -460,7 +485,7 @@ E_Int K_OCC::CADviaOCC::__clean(const K_FLD::ArrayAccessor<K_FLD::FloatArray>& c
   _end_nodes.clear();
   _enodes.clear();
   
-  for (size_t i=0; i < connectB.cols(); ++i)
+  for (E_Int i=0; i < connectB.cols(); ++i)
   {
     if (_enodes.find(connectB(0,i)) == _enodes.end())
       _enodes[connectB(0,i)]=1;
@@ -558,7 +583,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces
 #ifdef DEBUG_CAD_READER
   E_Int faulty_id = 109;
 #endif
-  size_t t;
+  //size_t t;
 
 #ifndef DEBUG_CAD_READER
 //#pragma omp parallel for private(nodes, nids, UVcontour, pos3D, err, mesher, t)
@@ -576,7 +601,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces
     if (connectB.cols() == 0)
     {
 #ifdef DEBUG_CAD_READER
-      std::cout << "EEROR Face : " << i << " : empty discretized contour!" << std::endl;
+      std::cout << "ERROR Face : " << i << " : empty discretized contour!" << std::endl;
 #endif
       continue;
     }
@@ -612,7 +637,9 @@ E_Int K_OCC::CADviaOCC::mesh_faces
 #endif
       
     // surface of revolution => duplicate, reverse and separate seams
-    bool is_of_revolution = (nodes.size() != connectB.cols());  
+    //bool is_of_revolution = ((E_Int)nodes.size() != connectB.cols());
+    bool is_of_revolution = (nodes.size() != connectB.cols());
+    
     std::map<E_Int, std::pair<E_Int, E_Int> > seam_nodes;
     if (is_of_revolution)
     {
@@ -642,7 +669,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces
        
 #ifdef DEBUG_CAD_READER
       //if (i==faulty_id)
-        MIO::write("connectBUV.mesh", UVcontour , connectB, "BAR");
+      MIO::write("connectBUV.mesh", UVcontour , connectB, "BAR");
       //std::cout << UVcontour << std::endl;
 #endif
     
@@ -665,7 +692,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces
 #endif
       DELAUNAY::SurfaceMesherMode mode;
       
-      mode.chordal_error=_chordal_err;
+      mode.chordal_error = _chordal_err;
       
       if (aniso) mode.metric_mode = mode.ANISO;
 
@@ -694,7 +721,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces
             K_FUNC::diff<2>(UVcontour.col(Ni), UVcontour.col(Nj), ds);
             K_FUNC::normalize<2>(ds);
             
-            if (::fabs(ds[0]) < ::fabs(ds[1]))++nv;
+            if (::fabs(ds[0]) < ::fabs(ds[1])) ++nv;
             else ++nu;
           }
           
@@ -710,11 +737,10 @@ E_Int K_OCC::CADviaOCC::mesh_faces
 
       mesher.mode = mode;
     
-      err = mesher.run (data);
+      err = mesher.run(data);
       if (err || (data.connectM.cols() == 0))
       {
-        if (t==0)
-          continue;
+        if (t==0) continue;
         if (err)
           std::cout << "ERROR Face : " << i << " : Geometric Mesher failed." << std::endl;
         else
@@ -817,7 +843,7 @@ void K_OCC::CADviaOCC::__computeOrient(const K_FLD::FloatArray crd2D, const K_FL
 {
   o=0;
   E_Float Z=0., z=0.;
-  for (size_t i=0; i < cnt.cols(); ++i)
+  for (E_Int i=0; i < cnt.cols(); ++i)
   {
     K_FUNC::crossProduct<2>(crd2D.col(cnt(0,i)), crd2D.col(cnt(1,i)), &z);
     Z +=z;
@@ -967,7 +993,7 @@ int K_OCC::CADviaOCC::__reorient_holed_surface(K_FLD::IntArray& connectB, const 
   cntLoops[0].uniqueVals(indices);
   boxOuter.compute(acrd, indices);
   
-  for (size_t i=1; i < nb_loops; ++i)
+  for (E_Int i=1; i < nb_loops; ++i)
   {
     
     cntLoops[i].uniqueVals(indices);
@@ -984,7 +1010,7 @@ int K_OCC::CADviaOCC::__reorient_holed_surface(K_FLD::IntArray& connectB, const 
   E_Int o;
   Vector_t<E_Int> sorted_nodes;
   E_Int E[2];
-  for (size_t i=0; i < nb_loops; ++i)
+  for (E_Int i=0; i < nb_loops; ++i)
   {
     sorted_nodes.clear();
     int err = BARSplitter::getSortedNodes(cntLoops[i], sorted_nodes);
@@ -1012,8 +1038,7 @@ int K_OCC::CADviaOCC::__reorient_holed_surface(K_FLD::IntArray& connectB, const 
 
   //concatenate back to connectB
   connectB.clear();
-  for (size_t i=0; i < nb_loops; ++i)
-    connectB.pushBack(cntLoops[i]);
+  for (E_Int i=0; i < nb_loops; ++i) connectB.pushBack(cntLoops[i]);
   
   return 0;
 }
@@ -1032,7 +1057,7 @@ void K_OCC::CADviaOCC::__split_surface_of_revolution(const OCCSurface* face, K_F
   
   //assert ((face->_isUClosed && !face->_isVClosed) || (!face->_isUClosed && face->_isVClosed));
     
-  for (size_t i=0; i < connectB.cols(); ++i)
+  for (E_Int i=0; i < connectB.cols(); ++i)
   {
     E_Int& N0 = connectB(0,i);
     E_Int& N1 = connectB(1,i);
@@ -1079,7 +1104,8 @@ void K_OCC::CADviaOCC::__split_surface_of_revolution(const OCCSurface* face, K_F
     else if (it0 == seam_nodes.end() && it1 != seam_nodes.end()) // seam-connected edge
     {
       E_Float u,v;
-      E_Int err = face->parameters(pos3D.col(N0), u, v);
+      //E_Int err = 
+      face->parameters(pos3D.col(N0), u, v);
       
       E_Float * p = &u;
       if (face->_isVClosed && !face->_isUClosed) p = &v;
@@ -1113,7 +1139,8 @@ void K_OCC::CADviaOCC::__add_seam_node
 { 
   //create the points
   E_Float u,v;
-  E_Int err = face->parameters(pos3D.col(N0), u, v);
+  //E_Int err = 
+  face->parameters(pos3D.col(N0), u, v);
 
   E_Float Pt[3];
 

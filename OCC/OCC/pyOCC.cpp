@@ -63,7 +63,7 @@ PyObject* K_OCC::convertCAD2Arrays1(PyObject* self, PyObject* args)
   if (ret == 1)
   {
     char error[256];
-    sprintf(error, "convertIGES2Arrays: fail to read %s (%s).", 
+    sprintf(error, "convertCAD2Arrays: fail to read %s (%s).", 
             fileName, fileFmt);
     PyErr_SetString(PyExc_IOError, error);
     return NULL;

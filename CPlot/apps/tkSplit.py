@@ -154,6 +154,7 @@ def split():
     if stype == 'X-view':
         import KCore.Vector as Vector
         point = CPlot.getActivePoint()
+        if point == []: return
         posCam = CPlot.getState('posCam')
         posEye = CPlot.getState('posEye')
         dirCam = CPlot.getState('dirCam')

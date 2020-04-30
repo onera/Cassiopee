@@ -21,7 +21,6 @@
 #include "import_OCC_CAD_wrapper.h"
 #include "CADviaOCC.h"
 
-
 E_Int K_OCC::import_OCC_CAD_wrapper::import_cad
 (const char* fname, const char* format, std::vector<K_FLD::FloatArray> & crds, std::vector<K_FLD::IntArray>& connectMs, E_Float h, E_Float chordal_err, E_Float gr, bool aniso)
 {
@@ -33,8 +32,7 @@ E_Int K_OCC::import_OCC_CAD_wrapper::import_cad
   // CAD --> OCC Shape with associated homemade graph to link flat sorage ids between faces and edges.
   CADviaOCC reader;
   E_Int err = reader.import_cad(fname, format, h, chordal_err, gr);
-  if (err)
-    return err;
+  if (err) return err;
   
 #ifdef DEBUG_CAD_READER
   std::cout << "import_cad done." << std::endl;
@@ -45,8 +43,7 @@ E_Int K_OCC::import_OCC_CAD_wrapper::import_cad
   std::vector<K_FLD::IntArray> connectEs;
   K_FLD::FloatArray coords;
   err = reader.mesh_edges(coords, connectEs);
-  if (err)
-    return err;
+  if (err) return err;
   
 #ifdef DEBUG_CAD_READER
   std::cout << "mesh_edges done." << std::endl;
@@ -56,8 +53,7 @@ E_Int K_OCC::import_OCC_CAD_wrapper::import_cad
   // Prepare loops.
   std::vector<K_FLD::IntArray> connectBs;
   err = reader.build_loops(coords, connectEs, connectBs);
-  if (err)
-    return err;
+  if (err) return err;
   
 #ifdef DEBUG_CAD_READER
   std::cout << "build_loops done." << std::endl;

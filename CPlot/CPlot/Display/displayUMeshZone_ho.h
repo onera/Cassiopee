@@ -10,6 +10,10 @@
   int ne5 = 5*ne;
   int ne6 = 6*ne;
   int ne7 = 7*ne;
+  int ne8 = 8*ne;
+  int ne9 = 9*ne;
+  int ne10= 10*ne;
+  int ne11= 11*ne;
   int eltType = zonep->eltType;
   int nbNodesPerPatch = zonep->eltSize;
   glPatchParameteri( GL_PATCH_VERTICES, 3 );
@@ -20,23 +24,60 @@
     switch (eltType)
     {
       case 2: // TRI
-        assert(nbNodesPerPatch == 6);
-        for (i = 0; i < ne; i++)
+        if (nbNodesPerPatch==6)
         {
-          n1 = connect[i]-1;
-          n2 = connect[i+ne ]-1;
-          n3 = connect[i+ne3]-1;
-          PLOTHO;
+          for (i = 0; i < ne; i++)
+          {
+            n1 = connect[i]-1;
+            n2 = connect[i+ne ]-1;
+            n3 = connect[i+ne3]-1;
+            PLOTHO;
+            
+            n1 = connect[i+ne]-1;
+            n2 = connect[i+ne2]-1;
+            n3 = connect[i+ne4]-1;
+            PLOTHO;
           
-          n1 = connect[i+ne]-1;
-          n2 = connect[i+ne2]-1;
-          n3 = connect[i+ne4]-1;
-          PLOTHO;
-          
-          n1 = connect[i+ne2]-1;
-          n2 = connect[i]-1;
-          n3 = connect[i+ne5]-1;
-          PLOTHO;
+            n1 = connect[i+ne2]-1;
+            n2 = connect[i]-1;
+            n3 = connect[i+ne5]-1;
+            PLOTHO;
+          }
+        }
+        else if ( (nbNodesPerPatch==9) or (nbNodesPerPatch==10) )
+        {
+          for (i = 0; i < ne; i++)
+          {
+            n1 = connect[i]-1;
+            n2 = connect[i+ne3 ]-1;
+            n3 = connect[i+ne4]-1;
+            PLOTHO;
+            
+            n1 = connect[i+ne3]-1;
+            n2 = connect[i+ne ]-1;
+            n3 = connect[i+ne4]-1;
+            PLOTHO;
+ 
+            n1 = connect[i+ne ]-1;
+            n2 = connect[i+ne5]-1;
+            n3 = connect[i+ne6]-1;
+            PLOTHO;
+ 
+            n1 = connect[i+ne5]-1;
+            n2 = connect[i+ne2]-1;
+            n3 = connect[i+ne6]-1;
+            PLOTHO;
+
+            n1 = connect[i+ne2]-1;
+            n2 = connect[i+ne7]-1;
+            n3 = connect[i+ne8]-1;
+            PLOTHO;
+
+            n1 = connect[i+ne7]-1;
+            n2 = connect[i]-1;
+            n3 = connect[i+ne8]-1;
+            PLOTHO;
+          }
         }
         break;
         
@@ -66,8 +107,54 @@
             PLOTHO;
           }// for
         }// if ( nbNodesPerPatch)
-      break;
-    }
+        else if ( (nbNodesPerPatch == 12) or (nbNodesPerPatch == 16) )
+        {
+          for (i = 0; i < ne; i++)
+          {
+            n1 = connect[i]-1;
+            n2 = connect[i+ne5]-1;
+            n3 = connect[i+ne4]-1;
+            PLOTHO;
+
+            n1 = connect[i+ne4]-1;
+            n2 = connect[i+ne ]-1;
+            n3 = connect[i+ne5]-1;
+            PLOTHO;
+
+            n1 = connect[i+ne ]-1;
+            n2 = connect[i+ne7]-1;
+            n3 = connect[i+ne6]-1;
+            PLOTHO;
+
+            n1 = connect[i+ne6]-1;
+            n2 = connect[i+ne2]-1;
+            n3 = connect[i+ne7]-1;
+            PLOTHO;
+
+            n1 = connect[i+ne2]-1;
+            n2 = connect[i+ne9]-1;
+            n3 = connect[i+ne8]-1;
+            PLOTHO;
+
+            n1 = connect[i+ne8]-1;
+            n2 = connect[i+ne3]-1;
+            n3 = connect[i+ne9]-1;
+            PLOTHO;
+
+            n1 = connect[i+ne3 ]-1;
+            n2 = connect[i+ne11]-1;
+            n3 = connect[i+ne10]-1;
+            PLOTHO;
+
+            n1 = connect[i+ne10]-1;
+            n2 = connect[i     ]-1;
+            n3 = connect[i+ne11]-1;
+            PLOTHO;
+          }// for
+
+        }// End if
+        break;
+    }// End switch
   }
   else // With blanking
   {

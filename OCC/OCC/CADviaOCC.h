@@ -57,6 +57,7 @@ public:
     
     E_Int __eval_chordal_error(const BRepAdaptor_Curve& curve, E_Float u0, E_Float u1, E_Float& chordal_error);
     E_Int __eval_nb_points(const BRepAdaptor_Curve& C, E_Float u0, E_Float u1, E_Float chordal_error, E_Int& nb_points );
+    E_Int __eval_nb_points2(const BRepAdaptor_Curve& C, E_Float u0, E_Float u1, E_Float chordal_error, E_Int& nb_points );
         
 private:
   

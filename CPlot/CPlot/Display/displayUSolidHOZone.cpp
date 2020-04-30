@@ -89,9 +89,9 @@ void Data::displayUSolidHOZone( UnstructZone *zonep, int zone, int zonet )
     // Activation du shader de tesselation :
     int ishader = 0;
     if ( zonep->eltType == UnstructZone::TRI )
-        ishader = 1;  // OK, element de type Tri_6
+        ishader = 1;  // OK, element de type Tri_6, TRI_9, TRI_10, TRI_12 or TRI_15
     if ( zonep->eltType == UnstructZone::QUAD )
-        ishader = 2;  // OK, element de type Quad_8 ou Quad_9
+        ishader = 2;  // OK, element de type Quad_8 ou Quad_9, QUAD_12, QUAD_16, QUAD_25
     this->_shaders.set_tesselation( ishader );
     if ( ptrState->mode == RENDER ) {
         if ( zonep->selected == 1 && zonep->active == 1 )

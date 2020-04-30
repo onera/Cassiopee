@@ -2452,12 +2452,18 @@ def eltName2EltNo(name):
         else: nnodes = int(name[4:])
         if nnodes == 3: eltno = 5
         elif nnodes == 6: eltno = 6
+        elif nnodes == 9: eltno = 25   # D'apres l'enumeration CGNS
+        elif nnodes == 10: eltno = 26  #
+                                       # Pour l'ordre 4, rien dans l'enumeration CGNS...
     elif name[0:4] == 'QUAD':
         if len(name) == 4: nnodes = 4
         else: nnodes = int(name[5:])
         if nnodes == 4: eltno = 7
-        elif nnodes == 8: eltno = 8
-        elif nnodes == 9: eltno = 9
+        elif nnodes == 8:  eltno = 8
+        elif nnodes == 9:  eltno = 9
+        elif nnodes == 12: eltno = 27 # D'apres l'enumeration CGNS
+        elif nnodes == 16: eltno = 28 # Attention, ici, je prends par defaut QUAD_16 mais cela pourrait être QUAD_P4_16... Que faire ? 
+                                      # Pour l'ordre 4,rien dans l'enumeration CGNS
     elif name[0:5] == 'TETRA':
         if len(name) == 5: nnodes = 4
         else: nnodes = int(name[6:])
@@ -2497,9 +2503,13 @@ def eltNo2EltName(eltno):
     elif eltno == 4: name = 'BAR_3'; nnodes = 3
     elif eltno == 5: name = 'TRI'; nnodes = 3
     elif eltno == 6: name = 'TRI_6'; nnodes = 6
+    elif eltno == 25: name = 'TRI_9'; nnodes = 9
+    elif eltno == 26: name = 'TRI_10';nnodes = 10
     elif eltno == 7: name = 'QUAD'; nnodes = 4
     elif eltno == 8: name = 'QUAD_8'; nnodes = 8
     elif eltno == 9: name = 'QUAD_9'; nnodes = 9
+    elif eltno == 27: name = 'QUAD_12'; nnodes = 12
+    elif eltno == 28: name = 'QUAD_16'; nnodes = 16
     elif eltno == 10: name = 'TETRA'; nnodes = 4
     elif eltno == 11: name = 'TETRA_10'; nnodes = 10
     elif eltno == 12: name = 'PYRA'; nnodes = 5
@@ -2523,6 +2533,7 @@ def dimFromEltNo(eltno):
     elif eltno >= 3 and eltno <= 4: return 1 # BAR
     elif eltno >= 5 and eltno <= 6: return 2 # TRI
     elif eltno >= 7 and eltno <= 9: return 2 # QUAD
+    elif eltno >=25 and eltno <= 28: return 2 #TRI et QUAD d'ordre 3
     else: return 3
 
 # -- Convertit un PointRange (pyTree) en indices de fenetres (Converter)

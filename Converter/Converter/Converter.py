@@ -1463,16 +1463,16 @@ def convertHO2LO(a, mode=0):
         return b
 
 # convert to high order mesh
-def convertLO2HO(a, mode=0):
+def convertLO2HO(a, mode=0, order=2):
     """Convert a LO mesh to a high order mesh.
-    Usage: convertLO2HO(a, mode)"""
+    Usage: convertLO2HO(a, mode, order)"""
     if isinstance(a[0], list):
         out = []
         for i in a:
-            out.append(converter.convertLO2HO(i, mode))
+            out.append(converter.convertLO2HO(i, mode, order))
         return out
     else:
-        b = converter.convertLO2HO(a, mode)
+        b = converter.convertLO2HO(a, mode, order)
         return b
 
 #==============================================================================

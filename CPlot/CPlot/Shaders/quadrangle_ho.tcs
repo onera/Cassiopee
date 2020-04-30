@@ -2,7 +2,7 @@
 
 uniform float uOuter, uInner;
 
-layout(vertices = 9) out;
+layout(vertices = 25) out;
 
 in V2CT_OUT
 {

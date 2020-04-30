@@ -6831,10 +6831,10 @@ def convertHO2LO(t, mode=0):
     return TZGC2(t, Converter.convertHO2LO, 'nodes', True, mode)
 
 # Convert to high order mesh
-def convertLO2HO(t, mode=0):
+def convertLO2HO(t, mode=0, order=2):
     """Convert a LO element mesh to high order mesh.
-    Usage: convertLO2HO(t, mode)"""
-    return TZGC2(t, Converter.convertLO2HO, 'nodes', True, mode)
+    Usage: convertLO2HO(t, mode, order)"""
+    return TZGC2(t, Converter.convertLO2HO, 'nodes', True, mode, order)
 
 #==============================================================================
 # - client/server -
