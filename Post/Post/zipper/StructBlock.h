@@ -169,11 +169,11 @@ class StructBlock
     
     /** Write the block in unstructured format, considering iblank.
      add = true, appends the block. */
-    void write(char* fileName, E_Boolean add = false);
+    void write(const char* fileName, E_Boolean add=false);
 
     /** Write indices of points in line shape */
     void writeLine(FldArrayI& indices,
-                   char* fileName, E_Boolean add = false);
+                   const char* fileName, E_Boolean add=false);
     
     /** Make 1D strings of indices of pts identified for stringing */
     void stringing(std::list<FldArrayI*>& strings);

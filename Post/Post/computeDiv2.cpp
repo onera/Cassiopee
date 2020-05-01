@@ -893,7 +893,7 @@ PyObject* K_POST::computeDiv2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
   E_Float* gnp = K_ARRAY::getFieldPtr(tpl);
   FldArrayF gp(ncells, nfld, gnp, true); gp.setAllValuesAtNull();
 
-  E_Int inti; E_Int intj;
+  E_Int inti=0; E_Int intj=0;
   if (ixyz == 0) {inti = 1; intj = 2;}
   else if (ixyz == 1) {inti = 1; intj = 3;}
   else if (ixyz == 2) {inti = 2; intj = 3;}

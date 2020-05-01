@@ -1,7 +1,7 @@
 """Post-processing of solutions.
 """
 __version__ = '3.1'
-__author__ = "Stephanie Peron, Christophe Benoit, Gaelle Jeanfaivre, Pascal Raud, Christelle Wervaecke"
+__author__ = "Stephanie Peron, Christophe Benoit, Gaelle Jeanfaivre, Pascal Raud, Christelle Wervaecke, Xavier Juvigny"
 #
 # Python Interface for post-processing tools
 #
@@ -23,7 +23,7 @@ __all__ = ['coarsen', 'computeCurl', 'computeDiff', 'computeExtraVariable', 'com
 'integNorm', 'integNormProduct', 'interiorFaces', 'isoLine', 'isoSurf', 'isoSurfMC',
 'isoSurfMC_opt', 'perlinNoise', 'projectCloudSolution', 'refine', 'renameVars',
 'selectCells', 'selectCells2', 'selectCells3', 'sharpEdges', 'silhouette', 'slice',
-'streamLine', 'streamRibbon', 'streamSurf', 'usurp', 'zip', 'zipper', 'growOfEps__']
+'streamLine', 'streamLine2', 'streamRibbon', 'streamSurf', 'usurp', 'zip', 'zipper', 'growOfEps__']
 
 #==============================================================================
 # Add two layers to surface arrays
@@ -548,6 +548,36 @@ def streamLine(arrays, X0, vector, N=2000, dir=2):
         elif b == 0 and a != 0: return a
         elif a == 0 and b != 0: return b
         else: raise
+
+def streamLine2(arrays, X0, vector, N=2000, dir=2):
+    """Compute a streamline starting from (x0,y0,z0) given
+    a list of arrays containing 'vector' information.
+    Usage: streamLine(arrays, (x0,y0,z0), vector, N, dir)"""
+    # get an (unstructured) array containing all  2D-surface arrays
+    surf = []
+    for a in arrays:
+        elt='None'
+        ni = 2; nj=2; nk=2
+        if len(a) == 5: # structure
+            ni = a[2]; nj = a[3]; nk = a[4]
+        else: elt = a[3]
+        mult = (ni - 1)*(nj - 1)*(nk - 1)
+        add = (ni - 1)*(nj - 1) + (ni - 1)*(nk - 1) + (nj - 1)*(nk - 1)
+        if ((mult == 0) and (add != 0)) or (elt == 'QUAD') or (elt == 'TRI'):
+            a = Converter.convertArray2Tetra(a)
+            surf.append(a)
+    if surf != []:
+        try: import Transform, Generator
+        except: raise ImportError("streamLine: requires Transform and Generator modules.")
+        surf = Transform.join(surf)
+        surf = Generator.close(surf)
+    # grow 2D arrays
+    if surf != []:
+        tol=1.
+        inl, modified = growOfEps__(arrays, tol, nlayers=2, planarity=False)
+        arrays = inl
+
+    return post.comp_stream_line(arrays, surf, X0, vector, dir, N)
 
 def streamRibbon(arrays, X0, N0, vector, N=2000, dir=2):
     """Compute a streamribbon starting from (x0,y0,z0) given

@@ -245,6 +245,10 @@ class FldArray
     /** Resize with new array allocation WITH copy, keeping
         elements at the same position in the matrix. */
     void reAllocMat(E_Int l, E_Int q);
+    /** Resize with new array allocation WITH copy, keeping
+        elements at the same position in the matrix. 
+        No openMP in this version */
+    void reAllocMatSeq(E_Int l, E_Int q);
     /** Resize the array. No new allocation if the new dimension
         if smaller than oldest dimension and WITHOUT copy. */
     void resize(E_Int nsize, E_Int nnfld=NUMFIELD0);
@@ -1340,6 +1344,49 @@ void FldArray<T>::reAllocMat(E_Int size, E_Int nfld)
       newdata[i+j*size] = 0;
   }
 #pragma omp for
+  for (E_Int i = size*nf; i < sizeTot; i++) newdata[i] = 0;
+
+  releaseMemory();
+  _shared = false;
+  _compact = true;
+  _sizeTot = size*nfld;
+  _sizeMax = _sizeLoc = size;
+  _nfldMax = _nfldLoc = nfld;
+  _data = newdata;
+  //_rake = new T* [nfld];
+  SETRAKE;
+}
+//-----------------------------------------------------------------------------
+// For a matrix, copy and keep elements at the same position in the matrix
+// for ex: A(12,12) will be B(12,12) after reAlloc
+// This is not the case with the previous method.
+// No open MP.
+//-----------------------------------------------------------------------------
+TEMPLATE_T
+void FldArray<T>::reAllocMatSeq(E_Int size, E_Int nfld)
+{
+  T* newdata = NULL;
+  E_Int sizeTot = size*nfld;
+  assert(sizeTot >= 0);
+
+#ifdef E_DEBUG_MEMORY
+    newdata = (T*) ::malloc( sizeof(T)*sizeTot);
+#else
+    newdata = new T[sizeTot];
+#endif
+
+  assert(newdata != NULL);
+
+  E_Int sz = K_FUNC::E_min(size, _sizeLoc);
+  E_Int nf = K_FUNC::E_min(nfld, _nfldLoc);
+
+  for (E_Int j = 0; j < nf; j++)
+  {
+    for (E_Int i = 0; i < sz; i++)
+      newdata[i+j*size] = _data[i+j*_sizeLoc];
+    for (E_Int i = sz; i < size; i++)
+      newdata[i+j*size] = 0;
+  }
   for (E_Int i = size*nf; i < sizeTot; i++) newdata[i] = 0;
 
   releaseMemory();
