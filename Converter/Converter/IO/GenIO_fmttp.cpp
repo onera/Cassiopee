@@ -320,7 +320,8 @@ E_Int K_IO::GenIO::tpread(
         if (c != EOF) buf[i++] = (char)c;
       } while(c != EOF && c != '\n');
       buf[i]='\0';
-      if (ndatalines==0) {
+      if (ndatalines == 0) 
+      {
         strcpy(firstline,buf);
       } 
       if ('\n' == c) {

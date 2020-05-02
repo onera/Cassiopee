@@ -33,7 +33,7 @@ namespace K_POST
         kdtree tree;
 
         Implementation( kind_of_zone type_zone, const coordinates_npos& pos_coords, const fields_type& f, const coordinates_npos& vel) :
-            kind(type_zone), pos_coordinates(pos_coords), fields(f), pos_velocity(vel)//, interpdata(interp)
+            kind(type_zone), pos_coordinates(pos_coords), pos_velocity(vel), fields(f)//, interpdata(interp)
         {
             //std::cout << "Construction de l'implementation de base à l'adresse " << (void*)this << std::endl;
             const auto& coords = this->getCoordinates();

@@ -102,8 +102,8 @@ namespace K_POST
     kdtree::kdtree( const K_MEMORY::vector_view<const double>& xCoords, 
                     const K_MEMORY::vector_view<const double>& yCoords,
                     const K_MEMORY::vector_view<const double>& zCoords, unsigned min_nodes ) :
-        m_indices_nodes(xCoords.size()),
-        m_coords{xCoords, yCoords, zCoords}
+        m_coords{xCoords, yCoords, zCoords},
+        m_indices_nodes(xCoords.size())
     {
         assert(xCoords.size() == yCoords.size());
         assert(xCoords.size() == zCoords.size());
@@ -114,8 +114,8 @@ namespace K_POST
     }
     // ----------------------------------------------------------------------------------    
     kdtree::kdtree( const std::array<K_MEMORY::vector_view<const double>,3>& coords, unsigned min_nodes ) :
-        m_indices_nodes(coords[0].size()),
-        m_coords(coords)
+        m_coords(coords),
+        m_indices_nodes(coords[0].size())
     {
         for ( std::vector<E_Int>::size_type i = 0; i < m_indices_nodes.size(); ++i )
             m_indices_nodes[i] = i;

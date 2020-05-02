@@ -216,6 +216,7 @@ PyObject* K_POST::comp_stream_line(PyObject* self, PyObject* args)
       }// Fin cas traitement ngon
     }// Fin boucle sur les zones non structurées
     //std::cout << "Je vais calculer une streamline" << std::flush << std::endl;
+    /*
     if (beg_nodes.size() == 1)
     {
         PyObject* list_of_streamlines = PyList_New(1);
@@ -227,6 +228,7 @@ PyObject* K_POST::comp_stream_line(PyObject* self, PyObject* args)
         PyList_SetItem(list_of_streamlines, 0, tpl);
         return list_of_streamlines;
     }
+    */
     PyObject* list_of_streamlines = PyList_New(beg_nodes.size());
 #   pragma omp parallel for schedule(dynamic,10)
     for (size_t i = 0; i < beg_nodes.size(); ++i )

@@ -45,7 +45,7 @@ namespace K_POST
 
     const std::array<std::vector<unsigned char>,unstructured_data_view::Implementation::number_of_element_types> 
     unstructured_data_view::Implementation::number_of_vertices_per_face_per_element =
-    { // Nombre de sommets par face pour chaque élément à l'ordre 1
+    { // Nombre de sommets par face pour chaque element a l'ordre 1
         std::vector<unsigned char>{3,3,3,3},
                                   {4,3,3,3,3},
                                   {4,4,4,3,3},
@@ -55,7 +55,7 @@ namespace K_POST
     const std::array<std::vector<std::vector<unsigned char>>,unstructured_data_view::Implementation::number_of_element_types>
     unstructured_data_view::Implementation::vertices_per_face_per_element =
     {
-        // Pour le tetraèdre :
+        // Pour le tetraedre :
         std::vector<std::vector<unsigned char>> 
         {
             std::vector<unsigned char>{0,2,1},
@@ -71,7 +71,7 @@ namespace K_POST
                                       {2,3,4},
                                       {3,0,4}
         },
-        // Pour le pentaèdre :
+        // Pour le pentaedre :
         {
             std::vector<unsigned char>{0,1,4,3},
                                       {1,2,5,4},
@@ -79,7 +79,7 @@ namespace K_POST
                                       {0,2,1},
                                       {3,4,5}
         },
-        // Pour l'hexaèdre
+        // Pour l'hexaedre
         {
             std::vector<unsigned char>{0,3,2,1},
                                       {0,1,5,4},
@@ -93,35 +93,34 @@ namespace K_POST
     void unstructured_data_view::Implementation::compute_faces_connectivity()
     {
         /**
-         * L'algorithme utilisé ici est basé sur l'algorithme formel présenté dans l'article suivant :
+         * L'algorithme utilise ici est base sur l'algorithme formel presente dans l'article suivant :
          * 
          *             A. Logg (2008), 'Efficient Representation of Computational Meshes'
          * 
-         * posté sur arXiv le quatorze mai 2012.
+         * poste sur arXiv le quatorze mai 2012.
          * 
          */
 
-
-        E_Int nb_verts = m_beg_vert2elts.size()-1;
+        //E_Int nb_verts = m_beg_vert2elts.size()-1;
         E_Int nb_elts  = m_elt2verts->getSize();
         E_Int nb_faces_per_elt = number_of_faces_per_element[m_type_of_element];
         //std::cout << "nb_faces_per_elt : " << nb_faces_per_elt << std::endl;
         const FldArrayI& e2v = *m_elt2verts;
         m_elt2faces.resize(nb_elts * nb_faces_per_elt);
 
-        // Foncteur pour détecter si deux faces f1 et f2 sont identiques. 
-        // On suppose le maillage orienté, donc deux faces identiques, provenant de
-        // deux éléments du maillage différents présentent une orientation différente
+        // Foncteur pour detecter si deux faces f1 et f2 sont identiques. 
+        // On suppose le maillage oriente, donc deux faces identiques, provenant de
+        // deux elements du maillage differents presentent une orientation differente
         // (car dans les deux cas, normale sortante).
-        // Supposons que pour chaque face crée ou testée, on fait en sorte que le premier sommet
-        // de la face soit celui d'indice minimum. Dans ce cas, nous n'avons qu'à tester que :
+        // Supposons que pour chaque face cree ou testee, on fait en sorte que le premier sommet
+        // de la face soit celui d'indice minimum. Dans ce cas, nous n'avons qu'a tester que :
         // f1[0] == f2[0], f1[1] == f2[nb_verts-1] et f1[2] == f2[nb_verts-2] !
-        // on suppose aussi le maillage conforme, c'est à dire qu'une face d'un élément est commune
-        // à un autre élément en entier, et pas seulement en partie !
+        // on suppose aussi le maillage conforme, c'est a dire qu'une face d'un element est commune
+        // a un autre element en entier, et pas seulement en partie !
         // Notons que le ordonnancement des sommets dans chaque face (en commençant par l'indice le plus petit),
-        // n'a pas d'incidence sur le reste du code hormis la constitution géométrique des faces (qui ne demande
-        // qu'à ce que les faces soient orientées vers l'extérieur)
-        // puisqu'on se base principalement sur la connectivité element to vertices.
+        // n'a pas d'incidence sur le reste du code hormis la constitution geometrique des faces (qui ne demande
+        // qu'a ce que les faces soient orientees vers l'exterieur)
+        // puisqu'on se base principalement sur la connectivite element to vertices.
         auto same_face = [] (const E_Int nb_verts, const E_Int* indices_face1, const E_Int* indices_face2)
         {
             if ( (indices_face1[0] == indices_face2[0]) &&
@@ -138,10 +137,10 @@ namespace K_POST
         m_beg_face2verts.push_back(0);
         for ( E_Int ielt = 0; ielt < nb_elts; ++ielt )
         {
-            // On constitue les faces candidates de notre ième élément :
+            // On constitue les faces candidates de notre ieme element :
             std::vector<std::vector<E_Int>> candidates_faces(nb_faces_per_elt);
 #           pragma omp parallel for
-            for ( E_Int iface = 0; iface < vertices_per_face_per_element[m_type_of_element].size(); ++iface )
+            for ( size_t iface = 0; iface < vertices_per_face_per_element[m_type_of_element].size(); ++iface )
             {
                 // Indices locaux suivant la norme CGNS des sommets constituant les faces :
                 const auto& loc_faces = vertices_per_face_per_element[m_type_of_element][iface];
@@ -149,7 +148,7 @@ namespace K_POST
                 std::vector<E_Int> face(nb_verts_for_face);
                 candidates_faces[iface].reserve(nb_verts_for_face);
                 for ( E_Int ivert = 0; ivert < nb_verts_for_face; ++ivert )
-                    face[ivert] = e2v(ielt,loc_faces[ivert]+1)-1;// Indices globaux des sommets de la iface ème face
+                    face[ivert] = e2v(ielt,loc_faces[ivert]+1)-1;// Indices globaux des sommets de la iface eme face
                 // Recherche du plus petit indice dans face :
                 E_Int imin = 0;
                 for ( E_Int ivert = 1; ivert < nb_verts_for_face; ++ivert )
@@ -158,15 +157,15 @@ namespace K_POST
                 for ( E_Int ivert = 0; ivert < nb_verts_for_face; ++ivert )
                     candidates_faces[iface].push_back(face[(imin+ivert)%nb_verts_for_face]);
             }
-            // On va chercher pour chaque face si elle a déjà été définie par les éléments précédents
-            if (ielt>0) // Sauf si c'est le premier élément :-)
+            // On va chercher pour chaque face si elle a deja ete definie par les elements precedents
+            if (ielt>0) // Sauf si c'est le premier element :-)
             {
-                // On va chercher les éléments voisins de l'élément courant. Ce sont les seuls qui peuvent avoir une face commune
-                // avec notre élément.
+                // On va chercher les elements voisins de l'element courant. Ce sont les seuls qui peuvent avoir une face commune
+                // avec notre element.
                 E_Int nb_elts_for_verts = 0;
                 for (E_Int ivert = 0; ivert < number_of_vertices_per_element[m_type_of_element]; ++ivert)
                 {
-                    // Attention, m_elt2verts commence ses indices à un !
+                    // Attention, m_elt2verts commence ses indices a un !
                     E_Int ind_vert = e2v(ielt,ivert+1)-1;
                     assert(ind_vert>=0);
                     assert(ind_vert<nb_verts);
@@ -184,37 +183,37 @@ namespace K_POST
                 {
                     const auto& face = candidates_faces[iface]; // Pour chaque face candidate comme nouvelle face :
                     bool found_face = false;
-                    // On cherche si la face de la cellule a déjà été prise en compte par une cellule voisine :
+                    // On cherche si la face de la cellule a deja ete prise en compte par une cellule voisine :
                     for ( E_Int jelt : unique_cells )
                     {
                         for (E_Int jface = 0; jface < nb_faces_per_elt; ++jface )
                         {
                             E_Int index_jface = m_elt2faces[nb_faces_per_elt*jelt + jface];
                             E_Int nb_vert_for_jface = m_beg_face2verts[index_jface+1] - m_beg_face2verts[index_jface];
-                            if (nb_vert_for_jface != face.size() ) continue;// Pas même nombre de sommet, faces différentes !
+                            if (nb_vert_for_jface != (E_Int)face.size() ) continue;// Pas même nombre de sommet, faces differentes !
                             if (same_face(nb_vert_for_jface, face.data(), m_face2verts.data() + m_beg_face2verts[index_jface]))
-                            {   // On a trouvé la face déjà stockée. On met à jour l'index de la face dans m_elt2faces
-                                // pour l'élément courant :
+                            {   // On a trouve la face deja stockee. On met a jour l'index de la face dans m_elt2faces
+                                // pour l'element courant :
                                 m_elt2faces[nb_faces_per_elt*ielt + iface] = index_jface;
                                 found_face = true;
-                                break; // On sort de la boucle sur les faces du jième élément
+                                break; // On sort de la boucle sur les faces du jieme element
                             }
                         }
-                        if (found_face) break;// OK, on a trouvé la face déjà définie, on sort de la boucle sur les éléments précédents
+                        if (found_face) break;// OK, on a trouve la face deja definie, on sort de la boucle sur les elements precedents
                     }
-                    if (found_face == false) // Non, on n'a pas trouvé cette face déjà définie
+                    if (found_face == false) // Non, on n'a pas trouve cette face deja definie
                     {
                         // On la rajoute :
                         m_elt2faces[nb_faces_per_elt*ielt + iface] = m_beg_face2verts.size()-1;
                         m_beg_face2verts.push_back(m_beg_face2verts.back()+face.size());
                         m_face2verts.insert(m_face2verts.end(), face.begin(),face.end());
                     }
-                }// Fin for (E_Int iface ... ) : On passe à la face suivante de l'élément en train d'être traité
+                }// Fin for (E_Int iface ... ) : On passe a la face suivante de l'element en train d'être traite
             }// Fin if (ielt> 0)
             else
             {
-                // C'est le premier élément visité, donc toutes les faces sont nouvelles !
-                for( E_Int iface = 0; iface < candidates_faces.size(); ++iface )
+                // C'est le premier element visite, donc toutes les faces sont nouvelles !
+                for( size_t iface = 0; iface < candidates_faces.size(); ++iface )
                 {
                     const auto& face = candidates_faces[iface]; // Pour chaque face candidate comme nouvelle face :
                     m_elt2faces[iface] = m_beg_face2verts.size()-1;
@@ -222,14 +221,14 @@ namespace K_POST
                     m_face2verts.insert(m_face2verts.end(), face.begin(),face.end());
                 }
             }
-        } // For (E_int ielt ... ) : on passe à l'élément suivant pour traiter ses faces
+        } // For (E_int ielt ... ) : on passe a l'element suivant pour traiter ses faces
         m_elt2faces.shrink_to_fit();
         m_beg_face2verts.shrink_to_fit();
         m_face2verts.shrink_to_fit();
         /*std::cout << "elt2verts : " << std::endl;
         for (E_Int ielt = 0; ielt < nb_elts; ++ielt)
         {
-            std::cout << "\telt n°" << ielt << " : ";
+            std::cout << "\telt no" << ielt << " : ";
             for ( E_Int iv = 0; iv < m_elt2verts->getNfld(); ++iv )
                 std::cout << (*m_elt2verts)(ielt,iv+1)-1 << " ";
             std::cout << std::endl;
@@ -237,7 +236,7 @@ namespace K_POST
         std::cout << "elt2faces : " << std::endl;
         for (E_Int ielt = 0; ielt < nb_elts; ++ielt)
         {
-            std::cout << "elt n°" << ielt << " : ";
+            std::cout << "elt no" << ielt << " : ";
             for ( E_Int iv = 0; iv < number_of_vertices_per_element[m_type_of_element]; ++iv)
             {
                 std::cout << m_elt2faces[ielt*number_of_vertices_per_element[m_type_of_element]+iv] << " ";
@@ -249,20 +248,20 @@ namespace K_POST
         std::cout << "\nface2verts : " << std::endl;
         for ( E_Int pt_f  = 0; pt_f < m_beg_face2verts.size()-1; ++pt_f )
         {
-            std::cout << "\tface n°" << pt_f << " : ";
+            std::cout << "\tface no" << pt_f << " : ";
             for ( E_Int iface = m_beg_face2verts[pt_f]; iface < m_beg_face2verts[pt_f+1]; ++iface )
             {
                 std::cout << m_face2verts[iface] << " ";
             }
             std::cout << std::endl;
         }*/
-        // On calcule m_face2elts en sachant que first pour element correspondant à face directe
-        // et second à élément avec face indirecte
-        // Au vue de la construction ci--dessus, le premier élément faisant référence à une face donnée aura forcément
-        // la normale à la face sortante (ce que l'on veut), tandis que le second élément y faisant référence
-        // aura de son point de vue la normale à la face rentrante. Donc en parcourant les éléments, il suffit de remplir
-        // la première fois pour une face le champs first avec le n° de l'élément (qui aura la face sortante) et la seconde
-        // fois on remplit le champs second avec le n° de l'élément (qui aura la face rentrante)
+        // On calcule m_face2elts en sachant que first pour element correspondant a face directe
+        // et second a element avec face indirecte
+        // Au vue de la construction ci--dessus, le premier element faisant reference a une face donnee aura forcement
+        // la normale a la face sortante (ce que l'on veut), tandis que le second element y faisant reference
+        // aura de son point de vue la normale a la face rentrante. Donc en parcourant les elements, il suffit de remplir
+        // la premiere fois pour une face le champs first avec le n° de l'element (qui aura la face sortante) et la seconde
+        // fois on remplit le champs second avec le n° de l'element (qui aura la face rentrante)
         E_Int nb_faces = m_beg_face2verts.size()-1;
         std::vector<std::pair<E_Int,E_Int>>(nb_faces,{-1,-1}).swap(m_face2elts);
         for (E_Int ielt = 0; ielt < nb_elts; ++ielt)
@@ -294,8 +293,8 @@ namespace K_POST
         m_type_of_element(str_type_of_element_to_element_type(str_elt_type)),
         m_elt2verts(elt2verts)
     {
-        //std::cout << "Type d'élément détecté : " << m_type_of_element << std::endl;
-        //std::cout << "nb faces par élément : " << int(number_of_faces_per_element[m_type_of_element]) << std::flush <<  std::endl;
+        //std::cout << "Type d'element detecte : " << m_type_of_element << std::endl;
+        //std::cout << "nb faces par element : " << int(number_of_faces_per_element[m_type_of_element]) << std::flush <<  std::endl;
         std::tie(m_beg_vert2elts, m_vert2elts) = compute_vertex_to_elements( fields->getSize(), *elt2verts); 
         this->compute_faces_connectivity();
     }
@@ -312,11 +311,11 @@ namespace K_POST
             const auto& f2e = m_face2elts[index_face];
             bool is_direct = (f2e.first == number ? true : false);
             std::vector<E_Int> coords;
-            if (is_direct) // Ok, face stockée avec normale sortante pour cet élément :
+            if (is_direct) // Ok, face stockee avec normale sortante pour cet element :
                 std::vector<E_Int>(m_face2verts.begin()+beg_vertices, m_face2verts.begin()+end_vertices).swap(coords);
             else
-            {   // Ah non, face stockée avec normale rentrante pour cet élément. Donc on va
-                // recréer la face en parcourant ses sommets à l'envers :
+            {   // Ah non, face stockee avec normale rentrante pour cet element. Donc on va
+                // recreer la face en parcourant ses sommets a l'envers :
                 coords.reserve(end_vertices-beg_vertices);
                 for (E_Int ivert = end_vertices-1; ivert >= beg_vertices; --ivert)
                     coords.push_back(m_face2verts[ivert]);
@@ -331,7 +330,7 @@ namespace K_POST
     unstructured_data_view::Implementation::is_containing(E_Int ind_elt, const point3d& pt) const
     {
         const auto& crds = this->getCoordinates();
-        std::array<std::vector<double>,3> coords; // Nombre de sommet dépend du type d'élément (avec barycentre pour certains)
+        std::array<std::vector<double>,3> coords; // Nombre de sommet depend du type d'element (avec barycentre pour certains)
         coords[0].reserve(number_of_vertices_for_polyhedron[m_type_of_element]);
         coords[1].reserve(number_of_vertices_for_polyhedron[m_type_of_element]);
         coords[2].reserve(number_of_vertices_for_polyhedron[m_type_of_element]);
@@ -344,7 +343,7 @@ namespace K_POST
             coords[1].push_back(crds[1][ind_vert]);
             coords[2].push_back(crds[2][ind_vert]);
         }
-        // On doit utiliser des triangles en tessalisant les faces de l'élément :
+        // On doit utiliser des triangles en tessalisant les faces de l'element :
         using triangle_type = triangulated_polyhedron::triangle_type;
         std::vector<triangle_type> faces; faces.reserve(number_of_triangles_per_element[m_type_of_element]);
         // On parcourt les faces dans l'ordre CGNS :
@@ -360,14 +359,14 @@ namespace K_POST
             }
             else
             {   // C'est un quadrangle. On va devoir rajouter le barycentre pour
-                // tessaliser sans être ambigu entre éléments.
+                // tessaliser sans être ambigu entre elements.
                 assert(number_of_vertices_per_face_per_element[m_type_of_element][iface] == 4);
                 E_Int ind1 = vertices_per_face_per_element[m_type_of_element][iface][0];
                 E_Int ind2 = vertices_per_face_per_element[m_type_of_element][iface][1];
                 E_Int ind3 = vertices_per_face_per_element[m_type_of_element][iface][2];
                 E_Int ind4 = vertices_per_face_per_element[m_type_of_element][iface][3];
-                E_Int ind5 = coords[0].size(); // Index du point barycentre mis à la fin de coords
-                // Calcul d'un barycentre et rajout d'un point à coords :
+                E_Int ind5 = coords[0].size(); // Index du point barycentre mis a la fin de coords
+                // Calcul d'un barycentre et rajout d'un point a coords :
                 coords[0].push_back(0.25*(coords[0][ind1]+coords[0][ind2]+coords[0][ind3]+coords[0][ind4]));
                 coords[1].push_back(0.25*(coords[1][ind1]+coords[1][ind2]+coords[1][ind3]+coords[1][ind4]));
                 coords[2].push_back(0.25*(coords[2][ind1]+coords[2][ind2]+coords[2][ind3]+coords[2][ind4]));
@@ -377,9 +376,9 @@ namespace K_POST
                 faces.emplace_back(triangle_type{ind4, ind1, ind5});
             }
         }
-        // Construction du polyèdre :
-        /*std::cout << "point à localiser : " << std::string(pt) << std::endl;
-        std::cout << "polyèdre généré : " << std::endl;
+        // Construction du polyedre :
+        /*std::cout << "point a localiser : " << std::string(pt) << std::endl;
+        std::cout << "polyedre genere : " << std::endl;
         for ( const auto& face : faces )
         {
             std::cout << "{" << std::string(point3d{coords[0][face[0]],coords[1][face[0]],coords[2][face[0]]})
@@ -398,10 +397,10 @@ namespace K_POST
             is_inside = polyedre.is_containing(pt);
         } catch(std::invalid_argument& err)
         {
-            // On est sur la frontière de l'élément :
+            // On est sur la frontiere de l'element :
             std::cerr << "Warning : interpolated point is on interface. Possibility to have two points in same location in the stream line"
                       << std::flush << std::endl;
-            is_inside = true; // Dans ce cas, on considère qu'on est à l'intérieur (on prend l'élément comme un fermé topologique)
+            is_inside = true; // Dans ce cas, on considere qu'on est a l'interieur (on prend l'element comme un ferme topologique)
         }
         //std::cout << "is inside " << std::boolalpha << is_inside << std::endl;
         return is_inside;
@@ -421,7 +420,7 @@ namespace K_POST
             bool found = this->is_containing(elt, point);
             if (found) return elt;
         }
-        // Et sinon on cherche chez les voisins des voisins pour une couverture complète de localisation :
+        // Et sinon on cherche chez les voisins des voisins pour une couverture complete de localisation :
         for (E_Int ielt = m_beg_vert2elts[ind_nearest_vertex]; ielt < m_beg_vert2elts[ind_nearest_vertex+1]; ++ielt )
         {
             E_Int elt = this->m_vert2elts[ielt];
@@ -445,7 +444,7 @@ namespace K_POST
     {
         E_Int nb_verts_per_elt = number_of_vertices_per_element[m_type_of_element];
         const auto& crds = this->getCoordinates();
-        std::vector<point3d> coords;// Nombre de sommet dépend du type d'élément (avec barycentre pour certains)
+        std::vector<point3d> coords;// Nombre de sommet depend du type d'element (avec barycentre pour certains)
         coords.reserve(nb_verts_per_elt);
         FldArrayF* fld = this->fields;
         E_Int nfld = fld->getNfld();
@@ -464,21 +463,21 @@ namespace K_POST
                 values[ifld].push_back((*fld)(ind_vert,ifld+1));
             }
         }
-        // L'interpolation va dépendre ici du type d'élément :
+        // L'interpolation va dependre ici du type d'element :
         if (this->m_type_of_element == tetraedre)
         {
             // L'interpolation la plus simple :
-            // Soit le tetraèdre T(p₀, p₁, p₂, p₃)    →  →  →
-            // On choisit comme repère barycentrique (e₁,e₂,e₃)
+            // Soit le tetraedre T(p₀, p₁, p₂, p₃)    →  →  →
+            // On choisit comme repere barycentrique (e₁,e₂,e₃)
             //       →                       →                        →
             // avec  e₁ le vecteur (p₀, p₁), e₂ le vecteur (p₀,p₂) et e₃ le vecteur (p₀,p₃)
             // 
-            // On calcule les coordonnées barycentriques (𝛼,𝛽,𝛾) du point p où on doit interpoler : :
+            // On calcule les coordonnees barycentriques (𝛼,𝛽,𝛾) du point p où on doit interpoler : :
             //        →      →      →
             // p₀ + 𝛼.e₁ + 𝛽.e₂ + 𝛾.e₃ = p avec 𝛼 + 𝛽 + 𝛾 ≤ 1, 𝛼 ≥ 0, 𝛽 ≥ 0, 𝛾 ≥ 0
             // 
-            // ce qui revient à inverser un système linéaire de dimension trois.
-            // Pour calculer le champs interpolé, il suffit alors de calculer :
+            // ce qui revient a inverser un systeme lineaire de dimension trois.
+            // Pour calculer le champs interpole, il suffit alors de calculer :
             // 
             // f(p) = (1-𝛼-𝛽-𝛾).f(p₀) + 𝛼.f(p₁) + 𝛽.f(p₂) + 𝛾.f(p₃)
             // 
@@ -505,33 +504,33 @@ namespace K_POST
         if (this->m_type_of_element == pyramide)
         {
             // Soit la pyramide P(p₀, p₁, p₂, p₃, p₄) →  →  →
-            // On choisit comme repère barycentrique (e₁,e₂,e₃)
+            // On choisit comme repere barycentrique (e₁,e₂,e₃)
             //      →                      →                        →
             // avec e₁ le vecteur (p₀,p₁), e₂ le vecteur (p₀,p₃) et e₃ le vecteur (p₀, p₄)
-            // ( en suivant la norme CGNS de numérotation des sommets )
+            // ( en suivant la norme CGNS de numerotation des sommets )
             // 
-            // On va chercher les polynômes d'interpolation de chaque champs à l'aide de polynômes de la forme :
+            // On va chercher les polynômes d'interpolation de chaque champs a l'aide de polynômes de la forme :
             // 
             // f(𝛼,𝛽,𝛾) = a₀ + a₁.𝛼 + a₂.𝛽 + a₃.𝛾 + a₄.𝛼𝛽
             // 
-            // On calcule les coordonnées barycentriques (𝛼₂,𝛽₂,𝛾₂) du point p₂ tel que :
+            // On calcule les coordonnees barycentriques (𝛼₂,𝛽₂,𝛾₂) du point p₂ tel que :
             //         →       →       →
             // p₀ + 𝛼₂.e₁ + 𝛽₂.e₂ + 𝛾₂.e₃ = p₂
             // 
-            // en résolvant un système linéaire de dimension trois ainsi que les coordonnées barycentriques (𝛼ₚ, 𝛽ₚ, 𝛾ₚ)
+            // en resolvant un systeme lineaire de dimension trois ainsi que les coordonnees barycentriques (𝛼ₚ, 𝛽ₚ, 𝛾ₚ)
             //  du point p où on interpole :
             //         →       →      →
             // p₀ + 𝛼ₚ.e₁ + 𝛽ₚ.e₂ + 𝛾ₚ.e₃ = p
             // 
-            // Puisqu'on connaît les valeurs du champs aux sommets de l'élément, c'est à dire qu'on connait
-            // en particuliers les valeurs de f(0,0,0), f(1,0,0), f(0,1,0) et f(0,0,1), on en déduit que :
+            // Puisqu'on connaît les valeurs du champs aux sommets de l'element, c'est a dire qu'on connait
+            // en particuliers les valeurs de f(0,0,0), f(1,0,0), f(0,1,0) et f(0,0,1), on en deduit que :
             // 
             // a₀ = f(0,0,0)       → valeur du champs au point p₀
             // a₁ = f(1,0,0) - a₀  → valeur du champs au point p₁
             // a₂ = f(0,1,0) - a₀  → valeur du champs au point p₃
             // a₃ = f(0,0,1) - a₀  → valeur du champs au point p₄
             // 
-            // On connaît également f(𝛼₂,𝛽₂,𝛾₂), la valeur du champs au point p₂, ce qui nous donne a₄ :
+            // On connaît egalement f(𝛼₂,𝛽₂,𝛾₂), la valeur du champs au point p₂, ce qui nous donne a₄ :
             // 
             // a₄ = (f(𝛼₂,𝛽₂,𝛾₂) - a₀ - 𝛼₂.a₁ - 𝛽₂.a₂ - 𝛾₂.a₃)/(𝛼₂.𝛽₂)
             // 
@@ -572,39 +571,39 @@ namespace K_POST
         {
             // Soit le pentaedre P(p₀, p₁, p₂, p₃, p₄, p₅)
             //                                     →  →  →
-            // On choisit le repère barycentrique (e₁,e₂,e₃) avec
+            // On choisit le repere barycentrique (e₁,e₂,e₃) avec
             //      →                      →                        →
             // avec e₁ le vecteur (p₀,p₁), e₂ le vecteur (p₀,p₂) et e₃ le vecteur (p₀, p₃)
-            // ( en suivant la norme CGNS de numérotation des sommets )
+            // ( en suivant la norme CGNS de numerotation des sommets )
             // 
-            // On va chercher les polynômes d'interpolation de chaque champs à l'aide de polynômes de la forme :
+            // On va chercher les polynômes d'interpolation de chaque champs a l'aide de polynômes de la forme :
             // 
             // f(𝛼,𝛽,𝛾) = a₀ + a₁.𝛼 + a₂.𝛽 + a₃.𝛾 + a₄.𝛼𝛾 + a₅.𝛽𝛾
             // 
-            // On calcule les coordonnées barycentriques (𝛼ᵢ,𝛽ᵢ,𝛾ᵢ) (i=4 ou 5) du point pᵢ tel que :
+            // On calcule les coordonnees barycentriques (𝛼ᵢ,𝛽ᵢ,𝛾ᵢ) (i=4 ou 5) du point pᵢ tel que :
             //         →       →       →
             // p₀ + 𝛼ᵢ.e₁ + 𝛽ᵢ.e₂ + 𝛾ᵢ.e₃ = pᵢ
             // 
-            // en résolvant un système linéaire de dimension trois ainsi que les coordonnées barycentriques (𝛼ₚ, 𝛽ₚ, 𝛾ₚ)
+            // en resolvant un systeme lineaire de dimension trois ainsi que les coordonnees barycentriques (𝛼ₚ, 𝛽ₚ, 𝛾ₚ)
             //  du point p où on interpole :
             //         →       →      →
             // p₀ + 𝛼ₚ.e₁ + 𝛽ₚ.e₂ + 𝛾ₚ.e₃ = p
             // 
-            // Puisqu'on connaît les valeurs du champs aux sommets de l'élément, c'est à dire qu'on connait
-            // en particuliers les valeurs de f(0,0,0), f(1,0,0), f(0,1,0) et f(0,0,1), on en déduit que :
+            // Puisqu'on connaît les valeurs du champs aux sommets de l'element, c'est a dire qu'on connait
+            // en particuliers les valeurs de f(0,0,0), f(1,0,0), f(0,1,0) et f(0,0,1), on en deduit que :
             // 
             // a₀ = f(0,0,0)       → valeur du champs au point p₀
             // a₁ = f(1,0,0) - a₀  → valeur du champs au point p₁
             // a₂ = f(0,1,0) - a₀  → valeur du champs au point p₂
             // a₃ = f(0,0,1) - a₀  → valeur du champs au point p₃
             //
-            // Connaissant également la valeur du champs aux points p₄ et p₅, on peut déduire les valeurs de a₄ et a₅
-            // en résolvant le système linéaire suivant :
+            // Connaissant egalement la valeur du champs aux points p₄ et p₅, on peut deduire les valeurs de a₄ et a₅
+            // en resolvant le systeme lineaire suivant :
             // 
             // ⎛ 𝛼₄𝛾₄  𝛽₄𝛾₄⎞ ⎛ a₄⎞   ⎛ f(𝛼₄,𝛽₄,𝛾₄) - a₀ - a₁.𝛼₄ - a₂.𝛽₄ - a₃.𝛾₄⎞
             // ⎝ 𝛼₅𝛾₅  𝛽₅𝛾₅⎠ ⎝ a₅⎠ = ⎝ f(𝛼₅,𝛽₅,𝛾₅) - a₀ - a₁.𝛼₅ - a₂.𝛽₅ - a₃.𝛾₅⎠
             // 
-            // Il ne reste plus qu'à interpoler le champs au point p :
+            // Il ne reste plus qu'a interpoler le champs au point p :
             // 
             // f(𝛼ₚ, 𝛽ₚ, 𝛾ₚ) = a₀ + a₁.𝛼ₚ + a₂.𝛽ₚ + a₃.𝛾ₚ + a₄.𝛼ₚ𝛾ₚ + a₅.𝛽ₚ𝛾ₚ
             // 
@@ -653,12 +652,12 @@ namespace K_POST
         }
         if (this->m_type_of_element == hexaedre)
         {
-            // Soit un hexaèdre représenté par huit sommets : H : {p₀, p₁, p₂, p₃, p₄, p₅, p₆, p₇}
+            // Soit un hexaedre represente par huit sommets : H : {p₀, p₁, p₂, p₃, p₄, p₅, p₆, p₇}
             //         →                       →                        →
             // On note e₁ le vecteur (p₀, p₁), e₂ le vecteur (p₀,p₃) et e₃ le vecteur (p₀,p₄)
-            // ( en suivant la norme CGNS de numérotation des sommets )
+            // ( en suivant la norme CGNS de numerotation des sommets )
             // 
-            // On va utiliser une interpolation trilinéaire en
+            // On va utiliser une interpolation trilineaire en
             // prenant pour polynôme d'interpolation f({𝛼,𝛽,𝛾}) = a₀ + a₁.𝛼 + a₂.𝛽 + a₃.𝛾 + a₄.𝛼𝛽 + a₅.𝛼𝛾 + a₆.𝛽𝛾 + a₇.𝛼𝛽𝛾
             // avec {𝛼,𝛽,𝛾} ∈ [0;1]³           →      →      →
             // Il est clair que :  p₀ = p₀ + 0.e₁ + 0.e₂ + 0.e₃ soit {𝛼,𝛽,𝛾} = {0,0,0}
@@ -669,26 +668,26 @@ namespace K_POST
             //                                 →      →      →
             //                     p₄ = p₀ + 0.e₁ + 0.e₂ + 1.e₃ soit {𝛼,𝛽,𝛾} = {0,0,1}
             //                                                              →   →     →
-            // Pour trouver les autres sommets de l'hexahèdre par rapport à e₁, e₂ et e₃, il faut résoudre le système
-            // linéaire suivant (pour le sommet pᵢ, i ∈ {2,5,6,7}) :
+            // Pour trouver les autres sommets de l'hexahedre par rapport a e₁, e₂ et e₃, il faut resoudre le systeme
+            // lineaire suivant (pour le sommet pᵢ, i ∈ {2,5,6,7}) :
             //   →    →    →   ⎛𝛼⎞
             //  (e₁ | e₂ | e₃) ⎜𝛽⎟ = pᵢ - p₀
             //                 ⎝𝛾⎠                                                                        →   →   →
-            // On obtient alors un triplet (𝛼ᵢ,𝛽ᵢ,𝛾ᵢ) permettant de représenter le sommet dans le repère e₁, e₂, e₃
-            // Puisqu'on connaît la valeur du champs aux sommets de l'élément, c'est à dire que
+            // On obtient alors un triplet (𝛼ᵢ,𝛽ᵢ,𝛾ᵢ) permettant de representer le sommet dans le repere e₁, e₂, e₃
+            // Puisqu'on connaît la valeur du champs aux sommets de l'element, c'est a dire que
             //  f(pᵢ), i ∈ {1,2,3,4,5,6,7}  sont connus.
-            //  D'après le choix du polynôme d'interpolation qu'on a fait plus haut :
+            //  D'apres le choix du polynôme d'interpolation qu'on a fait plus haut :
             //      f(p₀) = a₀
             //      f(p₁) = a₀ + a₁ ⇒ a₁ = f(p₁) - a₀
             //      f(p₃) = a₀ + a₂ ⇒ a₂ = f(p₃) - a₀
             //      f(p₄) = a₀ + a₃ ⇒ a₃ = f(p₄) - a₀
             //  et pour les autres sommets, on aura donc :
             //      f(pᵢ) = a₀ + a₁.𝛼ᵢ + a₂.𝛽ᵢ + a₃.𝛾ᵢ + a₄.𝛼ᵢ𝛽ᵢ + a₅.𝛼ᵢ𝛾ᵢ + a₆.𝛽ᵢ𝛾ᵢ + a₇.𝛼ᵢ𝛽ᵢ𝛾ᵢ
-            //  ce qui nous donne un système linéaire de dimension quatre à résoudre :
+            //  ce qui nous donne un systeme lineaire de dimension quatre a resoudre :
             //      a₄.𝛼ᵢ𝛽ᵢ + a₅.𝛼ᵢ𝛾ᵢ + a₆.𝛽ᵢ𝛾ᵢ + a₇.𝛼ᵢ𝛽ᵢ𝛾ᵢ = f(pᵢ) - a₀ - a₁.𝛼ᵢ - a₂.𝛽ᵢ - a₃.𝛾ᵢ
             //   avec i ∈ {2,5,6,7}.
-            //   Il faudra ensuite déterminer les coordonnées (𝛼ₚ,𝛽ₚ,𝛾ₚ) de notre point à interpoler, puis appliquer la fonction
-            //   polynomiale ainsi calculée.
+            //   Il faudra ensuite determiner les coordonnees (𝛼ₚ,𝛽ₚ,𝛾ₚ) de notre point a interpoler, puis appliquer la fonction
+            //   polynomiale ainsi calculee.
             //   
             vector3d e1(coords[0], coords[1]);
             vector3d e2(coords[0], coords[3]);

@@ -76,13 +76,13 @@ std::string K_POST::to_string(const matrix_2x2_type& A)
     std::ostringstream sout;
     constexpr const int w = 9;
     constexpr const int p = 4;
-    sout << "⎛" << std::fixed 
+    sout << "(" << std::fixed 
          << std::setprecision(p) << std::setw(w) << A[0][0] 
          << std::setprecision(p) << std::setw(w) << A[0][1] 
-         << " ⎞" << std::endl;
-    sout << "⎝" << std::fixed
+         << " )" << std::endl;
+    sout << "(" << std::fixed
          << std::setprecision(p) << std::setw(w) << A[1][0]
-         << std::setprecision(p) << std::setw(w) << A[1][1] << " ⎠" << std::endl;
+         << std::setprecision(p) << std::setw(w) << A[1][1] << " )" << std::endl;
     return sout.str();
 }
 // ====================================================================================================
@@ -138,20 +138,20 @@ std::string K_POST::to_string(const matrix_3x3_type& A)
     std::ostringstream sout;
     constexpr const int w = 9;
     constexpr const int p = 4;
-    sout << "⎛" << std::fixed 
+    sout << "(" << std::fixed 
          << std::setprecision(p) << std::setw(w) << A[0][0] 
          << std::setprecision(p) << std::setw(w) << A[0][1] 
          << std::setprecision(p) << std::setw(w) << A[0][2] 
-         << " ⎞" << std::endl;
-    sout << "⎜" << std::fixed
+         << " )" << std::endl;
+    sout << "|" << std::fixed
          << std::setprecision(p) << std::setw(w) << A[1][0] 
          << std::setprecision(p) << std::setw(w) << A[1][1] 
          << std::setprecision(p) << std::setw(w) << A[1][2] 
-         << " ⎟" << std::endl;
-    sout << "⎝" << std::fixed
+         << " |" << std::endl;
+    sout << "(" << std::fixed
          << std::setprecision(p) << std::setw(w) << A[2][0]
          << std::setprecision(p) << std::setw(w) << A[2][1] 
-         << std::setprecision(p) << std::setw(w) << A[2][2] << " ⎠" << std::endl;
+         << std::setprecision(p) << std::setw(w) << A[2][2] << " )" << std::endl;
     return sout.str();
 }
 // ====================================================================================================
@@ -167,12 +167,12 @@ auto K_POST::operator * ( const matrix_4x4_type& A, const vector4d& u) -> vector
 // ----------------------------------------------------------------------------------------------------
 auto K_POST::factorize(const matrix_4x4_type& A) -> factorized_matrix_4x4_type
 {
-    std::array<int,4> pivot{0,1,2,3};// Pivot au départ = identité
+    std::array<int,4> pivot{0,1,2,3};// Pivot au depart = identite
     matrix_4x4_type LU(A);
 
     for (int i = 0; i < 4; i++) 
     {
-        // Recherche du plus grand coefficient de la première colonne de la sous-matrice
+        // Recherche du plus grand coefficient de la premiere colonne de la sous-matrice
         int imax = i;
         for (int j = i+1; j < 4; ++j )
             if (std::abs(LU[pivot[j]][i]) > std::abs(LU[pivot[imax]][i])) imax = j;
@@ -205,7 +205,7 @@ auto K_POST::inverse_linear_system(const factorized_matrix_4x4_type& PLU, const 
         for (int k = 0; k < i; k++)
             v[i] -= LU[i][k] * v[k];
     }
-    // Remontée :
+    // Remontee :
     for (int i = 3; i >= 0; i--) 
     {
         for (int k = i + 1; k < 4; k++)
@@ -228,29 +228,29 @@ std::string K_POST::to_string(const matrix_4x4_type& A)
     std::ostringstream sout;
     constexpr const int w = 9;
     constexpr const int p = 4;
-    sout << "⎛" << std::fixed 
+    sout << "(" << std::fixed 
          << std::setprecision(p) << std::setw(w) << A[0][0] 
          << std::setprecision(p) << std::setw(w) << A[0][1] 
          << std::setprecision(p) << std::setw(w) << A[0][2] 
          << std::setprecision(p) << std::setw(w) << A[0][3] 
-         << " ⎞" << std::endl;
-    sout << "⎜" << std::fixed
+         << " )" << std::endl;
+    sout << "|" << std::fixed
          << std::setprecision(p) << std::setw(w) << A[1][0] 
          << std::setprecision(p) << std::setw(w) << A[1][1] 
          << std::setprecision(p) << std::setw(w) << A[1][2] 
          << std::setprecision(p) << std::setw(w) << A[1][3] 
-         << " ⎟" << std::endl;
-    sout << "⎜" << std::fixed
+         << " |" << std::endl;
+    sout << "|" << std::fixed
          << std::setprecision(p) << std::setw(w) << A[2][0] 
          << std::setprecision(p) << std::setw(w) << A[2][1] 
          << std::setprecision(p) << std::setw(w) << A[2][2] 
          << std::setprecision(p) << std::setw(w) << A[2][3] 
-         << " ⎟" << std::endl;
-    sout << "⎝" << std::fixed
+         << " |" << std::endl;
+    sout << "(" << std::fixed
          << std::setprecision(p) << std::setw(w) << A[3][0]
          << std::setprecision(p) << std::setw(w) << A[3][1] 
          << std::setprecision(p) << std::setw(w) << A[3][2]
-         << std::setprecision(p) << std::setw(w) << A[3][3] << " ⎠" << std::endl;
+         << std::setprecision(p) << std::setw(w) << A[3][3] << " )" << std::endl;
     return sout.str();
 
 }
@@ -262,70 +262,70 @@ std::string K_POST::to_string(const factorized_matrix_4x4_type& PLU)
     std::ostringstream sout;
     constexpr const int w = 9;
     constexpr const int p = 4;
-    sout << "⎛" << std::fixed 
+    sout << "(" << std::fixed 
          << std::setprecision(p) << std::setw(w) << (pivot[0] == 0 ? 1 : 0) 
          << std::setprecision(p) << std::setw(w) << (pivot[0] == 1 ? 1 : 0)
          << std::setprecision(p) << std::setw(w) << (pivot[0] == 2 ? 1 : 0)
          << std::setprecision(p) << std::setw(w) << (pivot[0] == 3 ? 1 : 0)
-         << " ⎞ ⎛"
+         << " ) ("
          << std::setprecision(p) << std::setw(w) << 1. 
          << std::setprecision(p) << std::setw(w) << 0. 
          << std::setprecision(p) << std::setw(w) << 0. 
          << std::setprecision(p) << std::setw(w) << 0. 
-         << " ⎞ ⎛"
+         << " ) ("
          << std::setprecision(p) << std::setw(w) << LU[0][0] 
          << std::setprecision(p) << std::setw(w) << LU[0][1] 
          << std::setprecision(p) << std::setw(w) << LU[0][2] 
          << std::setprecision(p) << std::setw(w) << LU[0][3] 
-         << " ⎞" << std::endl;
-    sout << "⎜" << std::fixed 
+         << " )" << std::endl;
+    sout << "|" << std::fixed 
          << std::setprecision(p) << std::setw(w) << (pivot[1] == 0 ? 1 : 0) 
          << std::setprecision(p) << std::setw(w) << (pivot[1] == 1 ? 1 : 0)
          << std::setprecision(p) << std::setw(w) << (pivot[1] == 2 ? 1 : 0)
          << std::setprecision(p) << std::setw(w) << (pivot[1] == 3 ? 1 : 0)
-         << " ⎟ ⎜"
+         << " | |"
          << std::setprecision(p) << std::setw(w) << LU[1][0]
          << std::setprecision(p) << std::setw(w) << 1.
          << std::setprecision(p) << std::setw(w) << 0. 
          << std::setprecision(p) << std::setw(w) << 0. 
-         << " ⎟ ⎜"
+         << " | |"
          << std::setprecision(p) << std::setw(w) << 0. 
          << std::setprecision(p) << std::setw(w) << LU[1][1] 
          << std::setprecision(p) << std::setw(w) << LU[1][2] 
          << std::setprecision(p) << std::setw(w) << LU[1][3] 
-         << " ⎟" << std::endl;
-    sout << "⎜" << std::fixed 
+         << " |" << std::endl;
+    sout << "|" << std::fixed 
          << std::setprecision(p) << std::setw(w) << (pivot[2] == 0 ? 1 : 0) 
          << std::setprecision(p) << std::setw(w) << (pivot[2] == 1 ? 1 : 0)
          << std::setprecision(p) << std::setw(w) << (pivot[2] == 2 ? 1 : 0)
          << std::setprecision(p) << std::setw(w) << (pivot[2] == 3 ? 1 : 0)
-         << " ⎟.⎜"
+         << " |.|"
          << std::setprecision(p) << std::setw(w) << LU[2][0]
          << std::setprecision(p) << std::setw(w) << LU[2][1]
          << std::setprecision(p) << std::setw(w) << 1. 
          << std::setprecision(p) << std::setw(w) << 0. 
-         << " ⎟.⎜"
+         << " |.|"
          << std::setprecision(p) << std::setw(w) << 0. 
          << std::setprecision(p) << std::setw(w) << 0. 
          << std::setprecision(p) << std::setw(w) << LU[2][2] 
          << std::setprecision(p) << std::setw(w) << LU[2][3] 
-         << " ⎟" << std::endl;
-    sout << "⎝" << std::fixed 
+         << " |" << std::endl;
+    sout << "(" << std::fixed 
          << std::setprecision(p) << std::setw(w) << (pivot[3] == 0 ? 1 : 0) 
          << std::setprecision(p) << std::setw(w) << (pivot[3] == 1 ? 1 : 0)
          << std::setprecision(p) << std::setw(w) << (pivot[3] == 2 ? 1 : 0)
          << std::setprecision(p) << std::setw(w) << (pivot[3] == 3 ? 1 : 0)
-         << " ⎠ ⎝"
+         << " ) ("
          << std::setprecision(p) << std::setw(w) << LU[3][0]
          << std::setprecision(p) << std::setw(w) << LU[3][1]
          << std::setprecision(p) << std::setw(w) << LU[3][2]
          << std::setprecision(p) << std::setw(w) << 1. 
-         << " ⎠ ⎝"
+         << " ) ("
          << std::setprecision(p) << std::setw(w) << 0. 
          << std::setprecision(p) << std::setw(w) << 0. 
          << std::setprecision(p) << std::setw(w) << 0. 
          << std::setprecision(p) << std::setw(w) << LU[3][3] 
-         << " ⎠" << std::endl;
+         << " )" << std::endl;
 
     return sout.str();
 }
@@ -349,14 +349,14 @@ int main()
     assert(std::abs(v2[1]-5.)<1.E-14);
 
     vector2d w2_1 = inverse_linear_system(A2, v2);
-    std::cout << "w2_1 = A2⁻¹.v2 = " << w2_1 << std::endl;
+    std::cout << "w2_1 = A2^-1.v2 = " << w2_1 << std::endl;
     assert(std::abs(w2_1[0]-u2[0])<1.E-14);
     assert(std::abs(w2_1[0]-u2[0])<1.E-14);
 
     auto invA2 = inverse(A2);
     std::cout << "A2⁻¹ : " << std::endl << to_string(invA2) << std::endl;
     vector2d w2_2 = invA2*v2;
-    std::cout << "w2_2 = A2⁻¹.v2 = " << w2_2 << std::endl;
+    std::cout << "w2_2 = A2^-1.v2 = " << w2_2 << std::endl;
     assert(std::abs(w2_2[0]-u2[0])<1.E-14);
     assert(std::abs(w2_2[0]-u2[0])<1.E-14);
     // ##############################################################
@@ -376,15 +376,15 @@ int main()
     assert(std::abs(v.z-6.)<1.E-14);
 
     vector3d w = inverse_linear_system(A, v);
-    std::cout << "w = A⁻¹.v = " << std::string(w) << std::endl;
+    std::cout << "w = A^-1.v = " << std::string(w) << std::endl;
     assert(std::abs(w.x-u.x)<1.E-14);
     assert(std::abs(w.y-u.y)<1.E-14);
     assert(std::abs(w.z-u.z)<1.E-14);
 
     auto invA = inverse(A);
-    std::cout << "A⁻¹ : " << std::endl << to_string(invA) << std::endl;
+    std::cout << "A^-1 : " << std::endl << to_string(invA) << std::endl;
     vector3d w2 = invA*v;
-    std::cout << "w2 = A⁻¹.v = " << std::string(w2) << std::endl;
+    std::cout << "w2 = A^-1.v = " << std::string(w2) << std::endl;
     assert(std::abs(w2.x-u.x)<1.E-14);
     assert(std::abs(w2.y-u.y)<1.E-14);
     assert(std::abs(w2.z-u.z)<1.E-14);
@@ -403,7 +403,7 @@ int main()
     auto PLU = factorize(B);
     std::cout << "PLU(B) : " << std::endl << to_string(PLU) << std::endl;
     auto w4 = inverse_linear_system(PLU, v4);
-    std::cout << "w4 = B⁻¹.v4 = " << w4 << std::endl;
+    std::cout << "w4 = B^-1.v4 = " << w4 << std::endl;
     assert(std::abs(w4[0]-u4[0]) < 1.E-14);
     assert(std::abs(w4[1]-u4[1]) < 1.E-14);
     assert(std::abs(w4[2]-u4[2]) < 1.E-14);

@@ -24,19 +24,28 @@ DIRX = 0; DIRY = 0; DIRZ = 0
 def initCanvas(event=None):
     dir = VARS[0].get()
     if dir == 'None' and CTK.t == []: return
-
     global CANVASSIZE, XC, YC, ZC, UX, UY, UZ, LX, LY, LZ, DIRX, DIRY, DIRZ
     if CANVASSIZE == -1:
         try:
             bb = G.bbox(CTK.t)
             CANVASSIZE = max(bb[3]-bb[0], bb[4]-bb[1], bb[5]-bb[2])
+            dx = (bb[3]-bb[0] + bb[4]-bb[1] + bb[5]-bb[2])/30.
+            VARS[2].set(str(dx))
+            VARS[3].set(str(dx))
+        
+            XC = 0.5*(bb[3]+bb[0])
+            YC = 0.5*(bb[4]+bb[1])
+            ZC = 0.5*(bb[5]+bb[2])
         except: CANVASSIZE = 1
 
     nzs = CPlot.getSelectedZones()
-    if (nzs != [] and dir != 'None'):
+    if nzs != [] and dir != 'None':
         point = CPlot.getActivePoint()
         if point != []:
-            XC = point[0]; YC = point[1]; ZC = point[2]
+            if dir == 'YZ': XC = point[0]
+            elif dir == 'XZ': YC = point[1]
+            elif dir == 'XY': ZC = point[2]
+            else: XC = point[0]; YC = point[1]; ZC = point[2]
     
     if dir == 'None':
         deleteCanvasBase()
@@ -200,16 +209,16 @@ def setCanvasPos(event=None):
     dir = VARS[0].get()
     res = CTK.varsFromWidget(VARS[1].get(), type=1)
     if dir == 'View':
-        if (len(res) != 3):
+        if len(res) != 3:
             CTK.TXT.insert('START', 'xc;yc;zc is incorrect.\n'); return
         else:
             XC = res[0]; YC = res[1]; ZC = res[2]
     else:
-        if (len(res) != 1):
+        if len(res) != 1:
             CTK.TXT.insert('START', 'pos is incorrect.\n'); return
         else:
-            if (dir == 'YZ'): XC = res[0]
-            elif (dir == 'XZ'): YC = res[0]
+            if dir == 'YZ': XC = res[0]
+            elif dir == 'XZ': YC = res[0]
             else: ZC = res[0]
     setCanvas()
     
@@ -328,9 +337,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
     
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

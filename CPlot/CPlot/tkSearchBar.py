@@ -184,6 +184,8 @@ applet = {
     # tkSlice
     'tkSlice':'tkSlice', 'Slice mesh':'tkSlice', 'View inside mesh':'tkSlice',
     'Cut mesh':'tkSlice',
+    # tkIJK
+    'tkIJK':'tkIJK', 'View IJK planes':'tkIJK',
     # tkCellN
     'tkCellN':'tkCellN', 'View blanking':'tkCellN', 'View chimera data':'tkCellN',
     'View Orphan points -chimera-':'tkCellN',

@@ -12148,7 +12148,7 @@ class DesktopFrameTK(TK.Frame):
                 if not isinstance(data[k],dict): # then it is not zone oriented
                     isZoneOriented = False
                     break
-            if not isZoneOriented: tmp[default_base]=data
+            if not isZoneOriented: tmp[default_base] = data
             else: tmp = data
             # replace zone according to a dict data
             self.replaceGroupZonesWithDict(data,oldZoneList)
@@ -12247,7 +12247,6 @@ class DesktopFrameTK(TK.Frame):
                             tmp[basename+'/'+zonename][Internal.getName(var)+'@'+flowsolutionname]=Internal.getValue(var)
                             newZoneList.append(basename+'/'+zonename)
 
-
         self.data = OrderedDict(sorted(tmp.items(),key=lambda t : t[0]))
         return newZoneList
     # ------------------------------------------------------------------ addZone
@@ -12312,7 +12311,7 @@ class DesktopFrameTK(TK.Frame):
         else: print('''### Warning: Can not find zone %s in submitted data.'''%newZoneName)
     # ------------------------------------------------------- deleteZoneFromData
     def deleteZoneFromData(self,zoneName,oldBaseName=""):
-        for k in self.data:
+        for k in self.data.copy():
             re_str = oldBaseName+zoneName.replace('\\','\\\\') # replace \ by \\ for regular expression conversion
             if re.match(re_str,k): del self.data[k]
     # -------------------------------------------------------------- replaceZone
@@ -13429,7 +13428,6 @@ class Desktop():
                                 tmp[basename+'/'+zonename]={}
                             tmp[basename+'/'+zonename][Internal.getName(var)+'@'+flowsolutionname]=Internal.getValue(var)
                             newZoneList.append(basename+'/'+zonename)
-
 
         self.data = OrderedDict(sorted(tmp.items(),key=lambda t : t[0]))
         return newZoneList

@@ -74,7 +74,7 @@ namespace K_POST
         kdtree( const std::array<K_MEMORY::vector_view<const double>,3>& coords, unsigned min_nodes_per_leaf = 10 );
         /// Constructeur de copie (interdit)
         kdtree( const kdtree& ) = delete;
-        /// Constructeur de déplacement (par défaut)
+        /// Constructeur de deplacement (par defaut)
         kdtree( kdtree&& )      = default;
         /// Destructeur
         ~kdtree() = default;
@@ -97,7 +97,7 @@ namespace K_POST
          *
          * @return     L'indice du sommet le plus proche
          */
-        std::pair<E_Int,double> nearest(const point3d& pt ) const;
+        std::pair<E_Int,double> nearest(const point3d& pt) const;
         //@}
     private:
         struct node;
