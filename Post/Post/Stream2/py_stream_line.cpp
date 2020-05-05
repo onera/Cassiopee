@@ -30,7 +30,6 @@ PyObject* K_POST::comp_stream_line(PyObject* self, PyObject* args)
     PyObject* vectorNames;
     E_Int     nStreamPtsMax;
     E_Float   signe;
-
     if (!PYPARSETUPLE(args, "OOOOdl", "OOOOdi", "OOOOfl", "OOOOfi", &arrays, &surfArray, &listOfPoints,
                       &vectorNames, &signe, &nStreamPtsMax)) {
         return NULL;
@@ -40,13 +39,13 @@ PyObject* K_POST::comp_stream_line(PyObject* self, PyObject* args)
     {
         if (!PyTuple_Check(listOfPoints))
         {
-            PyErr_SetString(PyExc_TypeError, "streamline : third argument must be a point or a list of point [(x0,y0,z0),(x1,y1,z1),...]");
+            PyErr_SetString(PyExc_TypeError, "streamLine: third argument must be a point or a list of point [(x0,y0,z0),(x1,y1,z1),...]");
             return NULL;
         }
         //if (!PYPARSETUPLE(listOfPoints, "ddd", "fff", &x0, &y0, &z0))
         if (! PyArg_ParseTuple(listOfPoints, "ddd", &x0, &y0, &z0) )
         {
-            PyErr_SetString(PyExc_TypeError, "streamline : a point must be a triplet of doubles");
+            PyErr_SetString(PyExc_TypeError, "streamLine: a point must be a triplet of doubles");
             return NULL;
         }
         beg_nodes.emplace_back(point3d{x0,y0,z0});
@@ -61,14 +60,14 @@ PyObject* K_POST::comp_stream_line(PyObject* self, PyObject* args)
             PyObject* tple = PyList_GetItem(listOfPoints, i);
             if (!PyTuple_Check(tple))
             {
-                PyErr_SetString(PyExc_TypeError, "streamline : a point inside the list of nodes must be a tuple of reals");
+                PyErr_SetString(PyExc_TypeError, "streamLine: a point inside the list of nodes must be a tuple of reals");
                 return NULL;
             }
             //std::cout << "on depiote tple at " << (void*)tple << std::flush << std::endl;
             //if (!PYPARSETUPLE(tple, "ddd", "fff", &x0, &y0, &z0))
             if (! PyArg_ParseTuple(tple, "ddd", &x0, &y0, &z0) )
             {
-                PyErr_SetString(PyExc_TypeError, "streamline : a point must be a triplet of reals");
+                PyErr_SetString(PyExc_TypeError, "streamLine: a point must be a triplet of reals");
                 return NULL;
             }
             //std::cout << "Rajout point " << std::string(point3d{x0,y0,z0}) << std::flush << std::endl;
@@ -147,12 +146,15 @@ PyObject* K_POST::comp_stream_line(PyObject* self, PyObject* args)
         varStringOut[0] = '\0';
     }
     E_Int nb_zones = structVarString.size() + unstrVarString.size();
-    if (nb_zones == 0 ) Py_RETURN_NONE;
+    if (nb_zones == 0)
+    {
+        PyObject* tpl = PyList_New(0);
+        return tpl;
+    }
 
     // Build interpData 
     E_Int nzonesS = structF.size();
     E_Int nzonesU = unstrF.size();
-    // InterpData structuree
     std::vector<E_Int> posxs1; std::vector<E_Int> posys1; std::vector<E_Int> poszs1; std::vector<E_Int> poscs1;
     std::vector<FldArrayF*> structF1;
     std::vector<E_Int> nis1; std::vector<E_Int> njs1; std::vector<E_Int> nks1;
@@ -166,12 +168,19 @@ PyObject* K_POST::comp_stream_line(PyObject* self, PyObject* args)
         E_Int posy = K_ARRAY::isCoordinateYPresent(structVarString[no]); posy++;
         E_Int posz = K_ARRAY::isCoordinateZPresent(structVarString[no]); posz++;
         E_Int posc = K_ARRAY::isCellNatureField2Present(structVarString[no]); posc++;
-        // On extrait la position du vecteur servant au streamline (a priori la vélocité!) du champs structF :
+        // On extrait la position du vecteur servant au streamline (a priori la vitesse!) du champs structF :
         E_Int posv1 = K_ARRAY::isNamePresent(vnames[0], structVarString[no]);
         E_Int posv2 = K_ARRAY::isNamePresent(vnames[1], structVarString[no]);
         E_Int posv3 = K_ARRAY::isNamePresent(vnames[2], structVarString[no]);
         // variables pas presentes dans l'array v
-        if ( posv1== -1 || posv2 == -1 || posv3 == -1) Py_RETURN_NONE;
+        if (posv1 == -1 || posv2 == -1 || posv3 == -1)
+        {
+            for (unsigned int nos = 0; nos < objs.size(); nos++) RELEASESHAREDS(objs[nos], structF[nos]);
+            for (unsigned int nos = 0; nos < obju.size(); nos++) RELEASESHAREDU(obju[nos], unstrF[nos], cnt[nos]);
+            PyErr_SetString(PyExc_TypeError, 
+                    "streamLine: Vector is missing.");
+            return NULL;
+        }
         posv1++; posv2++; posv3++;
 
         zones.push_back( structured_data_view( {nit[no],njt[no],nkt[no]}, structF[no], {posx, posy, posz}, 
@@ -179,23 +188,30 @@ PyObject* K_POST::comp_stream_line(PyObject* self, PyObject* args)
     }
 
     // InterpData non structuree (pour les n-gons, c'est aussi ici ?)
-    //std::cout << "Construction des vues pour zones non structurées (" << nzonesU << ")." << std::flush << std::endl;
+    //std::cout << "Construction des vues pour zones non structurees (" << nzonesU << ")." << std::flush << std::endl;
     for (E_Int no = 0; no < nzonesU; no++)
     {
       E_Int posx = K_ARRAY::isCoordinateXPresent(unstrVarString[no]); posx++;
       E_Int posy = K_ARRAY::isCoordinateYPresent(unstrVarString[no]); posy++;
       E_Int posz = K_ARRAY::isCoordinateZPresent(unstrVarString[no]); posz++;
       E_Int posc = K_ARRAY::isCellNatureField2Present(unstrVarString[no]); posc++;
-      // On extrait la position du vecteur servant au streamline (a priori la vélocité!) du champs structF :
+      // On extrait la position du vecteur servant au streamline (a priori la vitesse!) du champs structF :
       E_Int posv1 = K_ARRAY::isNamePresent(vnames[0], unstrVarString[no]);
       E_Int posv2 = K_ARRAY::isNamePresent(vnames[1], unstrVarString[no]);
       E_Int posv3 = K_ARRAY::isNamePresent(vnames[2], unstrVarString[no]);
       // variables pas presentes dans l'array v
-      if ( posv1== -1 || posv2 == -1 || posv3 == -1) Py_RETURN_NONE;
+      if (posv1== -1 || posv2 == -1 || posv3 == -1)
+      {
+        for (unsigned int nos = 0; nos < objs.size(); nos++) RELEASESHAREDS(objs[nos], structF[nos]);
+            for (unsigned int nos = 0; nos < obju.size(); nos++) RELEASESHAREDU(obju[nos], unstrF[nos], cnt[nos]);
+        PyErr_SetString(PyExc_TypeError, 
+                "streamLine: Vector is missing.");
+        return NULL;
+      }
       posv1++; posv2++; posv3++;
 
-      // On sépare la connectivité par type d'éléments :
-      // cnt[no] => FldArrayI -> connectivité élément vers sommets, je pense...
+      // On separe la connectivité par type d'elements :
+      // cnt[no] => FldArrayI -> connectivité element vers sommets, je pense...
       // eltType[no] : Type d'élément
       // Vérifier si c'est un n-gon ou pas :
       if (K_STRING::cmp(eltType[no], "NGON") != 0 && K_STRING::cmp(eltType[no], "NGON*") != 0)
@@ -231,10 +247,10 @@ PyObject* K_POST::comp_stream_line(PyObject* self, PyObject* args)
     */
     PyObject* list_of_streamlines = PyList_New(beg_nodes.size());
 #   pragma omp parallel for schedule(dynamic,10)
-    for (size_t i = 0; i < beg_nodes.size(); ++i )
+    for (size_t i = 0; i < beg_nodes.size(); ++i)
     {
 //#       pragma omp critical
-//        std::cout << "Calcul streamline n°" << i+1 << std::flush << std::endl;
+//        std::cout << "Calcul streamline no" << i+1 << std::flush << std::endl;
         streamline sline( beg_nodes[i], zones, nStreamPtsMax, (signe==1) );
 //#       pragma omp critical
 //        std::cout << "\t Conversion en python..." << std::flush << std::endl;
@@ -245,10 +261,51 @@ PyObject* K_POST::comp_stream_line(PyObject* self, PyObject* args)
         {
             PyObject* tpl = K_ARRAY::buildArray(field, varStringOut, number_of_points, 1, 1);
             PyList_SetItem(list_of_streamlines, i, tpl);
+            
+            /* Essai pour supprimer les streams avec 0 points
+            if (number_of_points > 0)
+            {
+                PyObject* tpl = K_ARRAY::buildArray(field, varStringOut, number_of_points, 1, 1);
+                PyList_SetItem(list_of_streamlines, i, tpl);
+            }
+            else 
+            {
+                //Py_INCREF(Py_None);
+                PyList_SetItem(list_of_streamlines, i, Py_None);
+            }
+            */
         }
 //#       pragma omp critical
 //        std::cout << "OK" << std::flush << std::endl;
     }
+    
+    // Compact - Essai pour enlever des streamlines qui auraient 0 points
+    /*
+    E_Int size = 0;
+    for (size_t i = 0; i < beg_nodes.size(); ++i)
+    {
+        PyObject* tpl = PyList_GetItem(list_of_streamlines, i);
+        if (tpl != Py_None) size += 1; 
+    }
+    if (size < beg_nodes.size())
+    {
+        PyObject* list_of_streamlines2 = PyList_New(size);
+        E_Int j = 0;
+        for (size_t i = 0; i < beg_nodes.size(); ++i)
+        {
+            PyObject* tpl = PyList_GetItem(list_of_streamlines, i);
+            if (tpl != Py_None) { PyList_SetItem(list_of_streamlines2, j, tpl); j += 1; }
+        }
+        Py_DECREF(list_of_streamlines);
+        list_of_streamlines = list_of_streamlines2;
+    }
+    */
+
+    for (unsigned int nos = 0; nos < objs.size(); nos++)
+        RELEASESHAREDS(objs[nos], structF[nos]);
+    for (unsigned int nos = 0; nos < obju.size(); nos++)
+        RELEASESHAREDU(obju[nos], unstrF[nos], cnt[nos]);
+
     //std::cout << "varStringOut : " << varStringOut << std::endl;
     // Vérifier que le nettoyage est bon.
     //std::cout << "Retour de la streamline..." << std::flush << std::endl;

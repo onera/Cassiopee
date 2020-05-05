@@ -91,7 +91,7 @@ namespace K_POST
         std::cout << "indices of cell : " << indices_of_cell[0] << "; " << indices_of_cell[1] << "; "
                   << indices_of_cell[2] << std::endl;
 #       endif
-        std::array<E_Int,3> indices_min_of_vertices{indices_of_cell};
+        std::array<E_Int,3> indices_min_of_vertices(indices_of_cell);
         std::vector<face> faces; faces.reserve(6);
         std::vector<E_Int> coords(4);
 
@@ -180,7 +180,8 @@ namespace K_POST
         std::array<std::vector<double>,3> coords; // 8 points cellules + 6 points barycentres
         coords[0].reserve(14); coords[1].reserve(14); coords[2].reserve(14);
         // On extrait tous les points de la cellule :
-        for (const auto& indices : {
+        for (const std::array<int,3>& indices : std::vector<std::array<int,3>>{
+        //for (const auto& indices : {
                             indices_cell,                                                // i  ,j  ,k
                             {indices_cell[0]+1, indices_cell[1]  , indices_cell[2]  },   // i+1,j  ,k
                             {indices_cell[0]+1, indices_cell[1]+1, indices_cell[2]  },   // i+1,j+1,k
@@ -310,7 +311,8 @@ namespace K_POST
         // On recherche sur les huit cellules potentielles contenant ce sommet :
         dimension_type dim = this->dimensions;
         E_Int ind_cell = -1;
-        for ( const auto& neighbour_cell_indices : {
+        for (const std::array<int,3>& neighbour_cell_indices : std::vector<std::array<int,3>>{
+        //for ( const auto& neighbour_cell_indices : {
                         {indices_nearest_vertex[0]-1,indices_nearest_vertex[1]-1,indices_nearest_vertex[2]-1},
                         {indices_nearest_vertex[0]  ,indices_nearest_vertex[1]-1,indices_nearest_vertex[2]-1},
                         {indices_nearest_vertex[0]  ,indices_nearest_vertex[1]  ,indices_nearest_vertex[2]-1},
@@ -392,7 +394,8 @@ namespace K_POST
         values.reserve(nfld);
 
         E_Int ivert = 0;
-        for (const auto& indices : {
+        for (const std::array<int,3>& indices : std::vector<std::array<int,3>>{
+        //for (const auto& indices : {
                             indices_cell,                                                // i  ,j  ,k
                             {indices_cell[0]+1, indices_cell[1]  , indices_cell[2]  },   // i+1,j  ,k
                             {indices_cell[0]+1, indices_cell[1]+1, indices_cell[2]  },   // i+1,j+1,k

@@ -75,7 +75,8 @@ namespace
             }
             ++ izone;
         }
-        if (izone == zones.size()) return { -1, -1, {0.,0.,0.}};
+        //if (izone == zones.size()) return { -1, -1, {0.,0.,0.}};
+        if (izone == zones.size()) return std::tuple< E_Int, E_Int, vector3d >( -1, -1, {0.,0.,0.});
         if (izone > zones.size()) throw std::domain_error("Wrong starting point : no zones contain this point.");
 
 #if defined(DEBUG_VERBOSE)
@@ -95,7 +96,8 @@ namespace
         // Initialise les coordonnées du premier sommet de la streamline aux coordonnées du point initial :
         auto pos_crds = zones[num_blk].get_position_of_coordinates();
         streamPt(istream,pos_crds[0]) = init_pos.x; streamPt(istream,pos_crds[1]) = init_pos.y; streamPt(istream,pos_crds[2]) = init_pos.z;
-        return {num_blk, icell, velocity_pt};
+        //return {num_blk, icell, velocity_pt};
+        return std::tuple< E_Int, E_Int, vector3d >(num_blk, icell, velocity_pt);
     }
 
     void build_streamline(const point3d& init_pos, 

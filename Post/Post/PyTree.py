@@ -102,6 +102,7 @@ def _projectCloudSolution(cloud, surf, dim=3):
         res = Post.projectCloudSolution(fc,fs,dim=dim)
         C.setFields([res], zones[noz], 'nodes')
     return None
+    
 # hook is a list of pointers on ADT for donor zones of t - created by C.createHook(a,'extractMesh')
 def extractMesh(t, extractionMesh, order=2, extrapOrder=1,
                 constraint=40., tol=1.e-6, hook=None, mode='robust'):
@@ -1642,6 +1643,7 @@ def streamLine2(t, X0, vector, N=2000, dir=2):
     Usage: streamLine2(t, (x0,y0,z0), (vx,vy,vz), N, dir)"""
     t = C.center2Node(t, Internal.__FlowSolutionCenters__)
     arrays = C.getAllFields(t, 'nodes')
+    for c, v in enumerate(vector): vector[c] = v.replace('centers:', '')
     a = Post.streamLine2(arrays, X0, vector, N, dir)
     out = []
     for i in a:
