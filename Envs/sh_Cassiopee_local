@@ -154,6 +154,7 @@ elif [ "$MAC" = "fulvio" ]; then
 #----------------------------- fulvio -----------------------------------------
     export ELSAPROD=flv_r8
     module unload $(module -t list 2>&1 | grep -i intel)
+    module load gcc/4.8.1
     module load intel/15.0.6
     #module load   impi/13
     # Nbre de threads
@@ -181,6 +182,7 @@ elif [ "$MAC" = "visio" ]; then
     module load subversion/1.7.6
     module load python/2.7.8
     module unload $(module -t list 2>&1 | grep -i intel)
+    module load gcc/4.8.1
     module load intel/15.0.6
     # Nombre de threads
     export OMP_NUM_THREADS=16

@@ -229,7 +229,7 @@ StructBlock::compInterpolationInformation(vector<StructBlock*>& vectOfBlks)
   E_Boolean test;
   E_Int i,j;
   E_Float x, y, z;
-  E_Float xmax1, ymax1, zmax1, xmin1, ymin1, zmin1;
+  //E_Float xmax1, ymax1, zmax1, xmin1, ymin1, zmin1;
   E_Float xmax2, ymax2, zmax2, xmin2, ymin2, zmin2;
   E_Int npts2;
   E_Int cellNF;
@@ -254,12 +254,12 @@ StructBlock::compInterpolationInformation(vector<StructBlock*>& vectOfBlks)
       x = _coord(ind,1);
       y = _coord(ind,2);
       z = _coord(ind,3);
-      xmax1 = _bbCell(ind,1);
-      ymax1 = _bbCell(ind,2);
-      zmax1 = _bbCell(ind,3);
-      xmin1 = _bbCell(ind,4);
-      ymin1 = _bbCell(ind,5);
-      zmin1 = _bbCell(ind,6);
+      //xmax1 = _bbCell(ind,1);
+      //ymax1 = _bbCell(ind,2);
+      //zmax1 = _bbCell(ind,3);
+      //xmin1 = _bbCell(ind,4);
+      //ymin1 = _bbCell(ind,5);
+      //zmin1 = _bbCell(ind,6);
 
       j = ind/_im + 1;
       i = ind - (j-1)*_im + 1;

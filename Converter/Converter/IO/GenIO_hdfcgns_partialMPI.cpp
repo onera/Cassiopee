@@ -63,7 +63,7 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPathsPartial(char* file,
     void* pt_comm = (void*)&(((PyMPICommObject*)mpi4pyCom)->ob_mpi);
     MPI_Comm comm = *((MPI_Comm*) pt_comm);
     MPI_Info info   = MPI_INFO_NULL;
-    ret             = H5Pset_fapl_mpio(fapl, comm, info);
+    E_Int ret       = H5Pset_fapl_mpio(fapl, comm, info);
    }
 #endif
 

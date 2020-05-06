@@ -1,6 +1,7 @@
 from KCore.config import *
 import os
 USURP = False
+STREAMLINE2 = True
 dirName = os.path.dirname(__file__)+'/Post'
 
 #==============================================================================
@@ -51,18 +52,6 @@ cpp_srcs = ["Post/coarsen.cpp",
             "Post/extractPlane.cpp",
             "Post/cutPlane/cutPlane.cpp",
             "Post/cutPlane/PlaneIntersection.cpp",
-            "Post/Stream2/face.cpp",
-            "Post/Stream2/connectivity.cpp",
-            "Post/Stream2/kdtree.cpp",
-            "Post/Stream2/linear_algebra.cpp",
-            "Post/Stream2/triangulated_polyhedron.cpp",
-            "Post/Stream2/zone_data_view.cpp",
-            "Post/Stream2/structured_data_view.cpp",
-            "Post/Stream2/unstructured_data_view.cpp",
-            "Post/Stream2/ngon_data_view.cpp",
-            "Post/Stream2/stream_line.cpp",
-            "Post/Stream2/py_stream_line.cpp",
-            "Post/Stream2/write_svg.cpp",
             "Post/Stream/stream.cpp",
             "Post/Stream/StreamLine.cpp",
             "Post/Stream/StreamRibbon.cpp",
@@ -80,6 +69,24 @@ cpp_srcs = ["Post/coarsen.cpp",
             "Post/sharpEdges.cpp",
             "Post/silhouette.cpp"]
 
+if STREAMLINE2:
+    cpp_srcs += [
+            "Post/Stream2/face.cpp",
+            "Post/Stream2/connectivity.cpp",
+            "Post/Stream2/kdtree.cpp",
+            "Post/Stream2/linear_algebra.cpp",
+            "Post/Stream2/triangulated_polyhedron.cpp",
+            "Post/Stream2/zone_data_view.cpp",
+            "Post/Stream2/structured_data_view.cpp",
+            "Post/Stream2/unstructured_data_view.cpp",
+            "Post/Stream2/ngon_data_view.cpp",
+            "Post/Stream2/stream_line.cpp",
+            "Post/Stream2/py_stream_line.cpp",
+            "Post/Stream2/write_svg.cpp"]
+else:
+    cpp_srcs += [
+            "Post/Stream2/py_stream_line_stub.cpp"]
+    
 if USURP and f90compiler != "None" and os.access(dirName+'/usurp', os.F_OK):
     cpp_srcs.append("Post/usurp.cpp")
     cpp_srcs += ["Post/usurp/Ctype.cpp",
