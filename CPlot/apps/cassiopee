@@ -2,9 +2,18 @@
 if [ "$PYTHONEXE" != "" ]; then
     alias python=$PYTHONEXE
 fi
-if test -e "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.py"
-then
-    python "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.py" "$@"
+if [ "$ELSAPROD" = "vis_r8" ]; then
+	if test -e "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.py"
+	then
+    	vglrun python "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.py" "$@"
+	else
+    	vglrun python "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.pyc" "$@"
+	fi
 else
-    python "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.pyc" "$@"
+	if test -e "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.py"
+	then
+    	python "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.py" "$@"
+	else
+    	python "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.pyc" "$@"
+	fi
 fi

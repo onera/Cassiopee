@@ -219,19 +219,19 @@ def openApp(app):
 
 def setCursor(cursor, B=None, C=None, D=None):
   win = WIDGETS['masterWin']
-  if cursor == 2: win.config(cursor="wait")
+  if cursor == 2: win.config(cursor="watch")
   elif cursor == 0: win.config(cursor="")
   win.update()
   if B is not None:
-    if cursor == 2: B.config(cursor="wait")
+    if cursor == 2: B.config(cursor="watch")
     elif cursor == 0: B.config(cursor="")
     B.update()
   if C is not None:
-    if cursor == 2: C.config(cursor="wait")
+    if cursor == 2: C.config(cursor="watch")
     elif cursor == 0: C.config(cursor="")
     C.update()
   if D is not None:
-    if cursor == 2: D.config(cursor="wait")
+    if cursor == 2: D.config(cursor="watch")
     elif cursor == 0: D.config(cursor="")
     D.update()
     
