@@ -893,12 +893,14 @@ pyTree creation and manipulation
 
 ---------------------------------------------------------------------------
 
-.. py:function:: Converter.PyTree.getBCs(t)
+.. py:function:: Converter.PyTree.getBCs(t, reorder=True)
 
     Return the BCs with their complete geometries, names and types.
 
     :param t: input data
     :type t: [pyTree, base, zone, list of zones]
+    :param reorder: if True, extracted BCs are reordered such that normals are oriented towards the interior of a.
+    :type reorder: Boolean
     :rtype: tuple (BCs, BCNames, BCTypes) where BCs is a list of BC nodes, BCNames a list of BC names and BCTypes a list of BC types.
 
     *Example of use:*

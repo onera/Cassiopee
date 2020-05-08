@@ -62,12 +62,10 @@
 #include "gp_Lin.hxx"
 */
 
-//
 #ifdef DEBUG_CAD_READER
 #include "IO/io.h"
 #include <sstream>
 #endif
-
 
 K_OCC::CADviaOCC::CADviaOCC()
 {
@@ -76,8 +74,7 @@ K_OCC::CADviaOCC::CADviaOCC()
 
 K_OCC::CADviaOCC::~CADviaOCC()
 {
-  for (size_t i=1; i < _faces.size(); ++i)
-    delete _faces[i];
+  for (size_t i=1; i < _faces.size(); ++i) delete _faces[i];
 }
 
 E_Int import_iges(const char* fname, TopoDS_Shape& sh)
@@ -99,7 +96,6 @@ E_Int import_iges(const char* fname, TopoDS_Shape& sh)
 #endif
 
   sh = reader.OneShape();
-	
   return sh.IsNull();
 }
 
@@ -331,8 +327,7 @@ E_Int K_OCC::CADviaOCC::mesh_edges(K_FLD::FloatArray& coords, std::vector<K_FLD:
     {
       E_Int id = ::abs(F._edges[j]);
       
-      if (connectEs[id].cols())
-        continue; //already meshed.
+      if (connectEs[id].cols()) continue; //already meshed.
     
 #ifdef DEBUG_CAD_READER
     std::cout << "Edge :  " << id <<  ". Nb points : " << Ns[id] << std::endl;
@@ -392,7 +387,7 @@ E_Int K_OCC::CADviaOCC::build_loops
   K_FLD::IntArray tmp;
   K_FLD::ArrayAccessor<K_FLD::FloatArray > crdA(coords);
   std::vector<E_Int> end_nodes;
-  E_Float tol2=-1.;
+  E_Float tol2 = -1.;
   
 #ifdef DEBUG_CAD_READER
   E_Int faulty_id=69;
@@ -581,7 +576,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces
   DELAUNAY::SurfaceMesher<OCCSurface> mesher;
   
 #ifdef DEBUG_CAD_READER
-  E_Int faulty_id = 109;
+  E_Int faulty_id = 83;
 #endif
   //size_t t;
 
@@ -590,6 +585,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces
 #endif
   for (E_Int i=1; i <= nb_faces; ++i)
   {
+    std::cout << "Processing face: " << i << " / "<< nb_faces << std::endl;
 #ifdef DEBUG_CAD_READER
     std::cout << " face nb : " << i << std::endl;
 #endif
@@ -607,14 +603,13 @@ E_Int K_OCC::CADviaOCC::mesh_faces
     }
     
 #ifdef DEBUG_CAD_READER
-    //if (i==faulty_id)
-      MIO::write("connectB.mesh",coords , connectB);
+    if (i==faulty_id)
+      MIO::write("connectB.mesh", coords , connectB);
 #endif
     
     connectB.uniqueVals(nodes);
     
-    if (nodes.size() == 2)
-      continue;
+    if (nodes.size() == 2) continue;
     
     if (nodes.size() == 3)
     {
@@ -628,12 +623,31 @@ E_Int K_OCC::CADviaOCC::mesh_faces
     
     // compact to mesh
     nids.clear();
-    pos3D=coords;
+    pos3D = coords;
     K_CONNECT::MeshTool::compact_to_mesh(pos3D, connectB, nids);
     
+    // added shrink pour forcer les pts a l'interieur de la surface
+    //_faces[i]->shrink(pos3D, 0.9);
+  
 #ifdef DEBUG_CAD_READER
-    //if (i==faulty_id)
-      MIO::write("connectBcompacted.mesh",pos3D , connectB, "BAR");
+    if (i == faulty_id)
+      MIO::write("connectBcompacted.mesh", pos3D, connectB, "BAR");
+#endif
+    
+    /* Projection de pos3D sur la surface */
+    //_faces[i]->project(pos3D);
+    
+#ifdef DEBUG_CAD_READER
+    if (i == faulty_id)
+      MIO::write("connectBprojected.mesh", pos3D , connectB, "BAR");
+    
+    if (i == faulty_id)
+    {
+      K_FLD::FloatArray surfc;
+      K_FLD::IntArray con;
+      _faces[i]->discretize(surfc, con, 30, 30);
+      MIO::write("surface.plt", surfc, con, "QUAD");
+    }
 #endif
       
     // surface of revolution => duplicate, reverse and separate seams
@@ -649,16 +663,16 @@ E_Int K_OCC::CADviaOCC::mesh_faces
       
     // Up to 2 tries : first by asking OCC for params, Second by "hand" (sampling)
     err = 0;
-    for (size_t t=0; t<2; ++t)
+    for (size_t t=0; t<2; ++t) // supp. la parametrisation discrete
     {
       if (t==0)
-        err=_faces[i]->parameters(pos3D, connectB, UVcontour);
+        err = _faces[i]->parameters(pos3D, connectB, UVcontour);
       else
-        err=_faces[i]->parametersSample(pos3D, UVcontour);
-      
+        err = _faces[i]->parametersSample(pos3D, UVcontour);
+            
       if (!err) // Need to reorient holed surface.
         err = __reorient_holed_surface(connectB, UVcontour);
-    
+      
       if (err)
       {
         if (t==1)
@@ -666,14 +680,12 @@ E_Int K_OCC::CADviaOCC::mesh_faces
         continue;
       }
       
-       
 #ifdef DEBUG_CAD_READER
-      //if (i==faulty_id)
-      MIO::write("connectBUV.mesh", UVcontour , connectB, "BAR");
+      if (i==faulty_id)
+      MIO::write("connectBUV.mesh", UVcontour, connectB, "BAR");
       //std::cout << UVcontour << std::endl;
 #endif
     
-      //
       OCCSurface occ_surf(F);
       DELAUNAY::SurfaceMeshData<OCCSurface> data(UVcontour, pos3D, connectB, occ_surf);
     
@@ -740,7 +752,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces
       err = mesher.run(data);
       if (err || (data.connectM.cols() == 0))
       {
-        if (t==0) continue;
+        if (t==0) continue; // pour lever l'erreur sur la param OCC
         if (err)
           std::cout << "ERROR Face : " << i << " : Geometric Mesher failed." << std::endl;
         else
@@ -769,7 +781,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces
       o << "surfaceUV_" << i << ".mesh";
       MIO::write(o.str().c_str(), *data.pos, data.connectM);
       }
-    {
+      {
       std::ostringstream o;
       o << "surface3D_" << i << ".mesh";
       MIO::write(o.str().c_str(), data.pos3D, data.connectM, "TRI");
@@ -946,11 +958,10 @@ E_Int K_OCC::CADviaOCC::__mesh_edge(const TopoDS_Edge& E, E_Int& nb_points, K_FL
   // fixme ? : uniform because cannot identify 2 edges with different orientations currently.
   // consequently, a non uniform meshing will give 2 different result depending on which extremity is used to start
   // it would then lead to a mismatch between shared edge discretizations.
-  Standard_Real u0=geom_adap.FirstParameter();
-  Standard_Real u1=geom_adap.LastParameter();
-  GCPnts_UniformAbscissa unif_abs (geom_adap, nb_points, u0, u1);
-  if (!unif_abs.IsDone())
-    return 1;
+  Standard_Real u0 = geom_adap.FirstParameter();
+  Standard_Real u1 = geom_adap.LastParameter();
+  GCPnts_UniformAbscissa unif_abs(geom_adap, nb_points, u0, u1);
+  if (!unif_abs.IsDone()) return 1;
    
   nb_points = unif_abs.NbPoints();// just in case the number of constructed points is different from what was asked.
     
@@ -963,7 +974,6 @@ E_Int K_OCC::CADviaOCC::__mesh_edge(const TopoDS_Edge& E, E_Int& nb_points, K_FL
   {
     C0.D0 (unif_abs/*unif_defl*/.Parameter(i), Pt);
     P[0]=Pt.X();P[1]=Pt.Y();P[2]=Pt.Z();
-      
     coords.pushBack(P, P+3);
   }
    
@@ -1016,7 +1026,6 @@ int K_OCC::CADviaOCC::__reorient_holed_surface(K_FLD::IntArray& connectB, const 
     int err = BARSplitter::getSortedNodes(cntLoops[i], sorted_nodes);
     // the following test is added to catch a getSortedNodes error. Not added inside it for efficiency (generally works fine).
     if (std::find(sorted_nodes.begin(), sorted_nodes.end(), E_IDX_NONE) != sorted_nodes.end()) err = 1;
-    
     if (err) return err;
 
     cntLoops[i].clear();

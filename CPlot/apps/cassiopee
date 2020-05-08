@@ -2,7 +2,7 @@
 if [ "$PYTHONEXE" != "" ]; then
     alias python=$PYTHONEXE
 fi
-if [ "$ELSAPROD" = "vis_r8" ]; then
+if [ "$ELSAPROD" = "vis_r8" -o "$ELSAPROD" = "flv_r8" ]; then
 	if test -e "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.py"
 	then
     	vglrun python "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.py" "$@"

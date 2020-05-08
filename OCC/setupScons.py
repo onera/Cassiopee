@@ -31,7 +31,9 @@ if prod is None: prod = 'xx'
 # Setting libraryDirs and libraries ===========================================
 libraryDirs = ["build/"+prod, kcoreLibDir, generatorLibDir]
 includeDirs = [kcoreIncDir, generatorIncDir]
+#libraries = ["occ_cassiopee", "generator", "converter", "kcore"]
 libraries = ["occ_cassiopee", "generator", "kcore"]
+
 if OCEPresent:
   libraryDirs += [OCELibDir]
   includeDirs += [OCEIncDir]

@@ -237,8 +237,8 @@ BARSplitter::__getOrientation(const K_FLD::IntArray& connectB, E_Int N0)
 E_Int
 BARSplitter::get_node_to_nodes(const K_FLD::IntArray& connectE2, std::map< E_Int, std::vector<E_Int> >& node_to_nodes)
 {
-  K_FLD::IntArray::const_iterator       pS;
-  E_Int                                 NBELTS(connectE2.cols()), e;
+  K_FLD::IntArray::const_iterator pS;
+  E_Int                           NBELTS(connectE2.cols()), e;
   
   node_to_nodes.clear();
 

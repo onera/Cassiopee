@@ -4790,7 +4790,7 @@ def extractBCOfName(t, bndName, reorder=True):
 # OUT: BCs: liste des geometries de bcs
 # OUT: BCNames: liste des noms des BCs
 # OUT: BCTypes: liste des types des BCs
-def getBCs(t):
+def getBCs(t, reorder=True):
   """Return geometry, names and types of boundary conditions."""
   BCs = []; BCNames = []; BCTypes = []
   for z in Internal.getZones(t):
@@ -4801,7 +4801,7 @@ def getBCs(t):
         fname = Internal.getNodeFromType1(n,'FamilyName_t')
         fname = Internal.getValue(fname)
         typeBC = 'FamilySpecified:%s'%fname
-      zBC = extractBCOfName(z, name)
+      zBC = extractBCOfName(z, name, reorder)
       if zBC == []:
         name2 = name.split(':')
         if len(name2)>1 and name2[0] == 'FamilySpecified':
@@ -4816,7 +4816,7 @@ def getBCs(t):
         fname = Internal.getNodeFromType1(gc, 'FamilyName_t')
         if fname is not None:
           fname = Internal.getValue(fname)
-          zBC = extractBCOfName(z, name)
+          zBC = extractBCOfName(z, name, reorder)
           typeGC = 'FamilySpecified:%s'%fname
           BCs.append(zBC); BCNames.append(name); BCTypes.append(typeGC)
   return (BCs, BCNames, BCTypes)

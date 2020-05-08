@@ -1550,8 +1550,8 @@ def _initOutflow(tc, familyNameOutflow, P_tot):
                 FamName = Internal.getValue(FamNode)
                 if FamName==familyNameOutflow:
                     stagPNode =  Internal.getNodeFromName(zsr,'Pressure')    
-                    sizeIBC = NPY.shape(stagPNode[1])
-                    Internal.setValue(stagPNode,P_tot*NPY.ones(sizeIBC))
+                    sizeIBC = numpy.shape(stagPNode[1])
+                    Internal.setValue(stagPNode,P_tot*numpy.ones(sizeIBC))
     return None
 
 def _initInj(tc, familyNameInj, P_tot, H_tot, injDir=[1.,0.,0.]):
@@ -1566,23 +1566,23 @@ def _initInj(tc, familyNameInj, P_tot, H_tot, injDir=[1.,0.,0.]):
                     dirxNode = Internal.getNodeFromName(zsr,'dirx')
                     diryNode = Internal.getNodeFromName(zsr,'diry')
                     dirzNode = Internal.getNodeFromName(zsr,'dirz')
-                    sizeIBC = NPY.shape(stagHNode[1])
-                    Internal.setValue(stagHNode,H_tot*NPY.ones(sizeIBC))
-                    Internal.setValue(stagPNode,P_tot*NPY.ones(sizeIBC))
+                    sizeIBC = numpy.shape(stagHNode[1])
+                    Internal.setValue(stagHNode,H_tot*numpy.ones(sizeIBC))
+                    Internal.setValue(stagPNode,P_tot*numpy.ones(sizeIBC))
                     if injDir[0] != 0.: 
-                        Internal.setValue(dirxNode, injDir[0]*NPY.ones(sizeIBC))
+                        Internal.setValue(dirxNode, injDir[0]*numpy.ones(sizeIBC))
                     else:
-                        Internal.setValue(dirxNode, NPY.zeros(sizeIBC)) 
+                        Internal.setValue(dirxNode, numpy.zeros(sizeIBC)) 
 
                     if injDir[1] != 0.: 
-                        Internal.setValue(diryNode, injDir[1]*NPY.ones(sizeIBC))
+                        Internal.setValue(diryNode, injDir[1]*numpy.ones(sizeIBC))
                     else:
-                        Internal.setValue(diryNode, NPY.zeros(sizeIBC))
+                        Internal.setValue(diryNode, numpy.zeros(sizeIBC))
 
                     if injDir[2] != 0.: 
-                        Internal.setValue(dirzNode, injDir[2]*NPY.ones(sizeIBC))
+                        Internal.setValue(dirzNode, injDir[2]*numpy.ones(sizeIBC))
                     else:
-                        Internal.setValue(dirzNode, NPY.zeros(sizeIBC)) 
+                        Internal.setValue(dirzNode, numpy.zeros(sizeIBC)) 
                     
     return None
 #====================================================================================

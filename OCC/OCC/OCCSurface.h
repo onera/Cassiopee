@@ -36,13 +36,21 @@ public:
   OCCSurface (const OCCSurface& rhs);
   ~OCCSurface();
   
+  // Shrink curve
+  void shrink(K_FLD::FloatArray& coord3D, E_Float factor);
   
-  ///
+  // Projete coord3D sur la surface
+  void project(K_FLD::FloatArray& coord3D) const;
+
+  // Discretise la surface dans coord3D
+  void discretize(K_FLD::FloatArray& coord3D,K_FLD::IntArray& connect, E_Int ni, E_Int nj);
+  
+  // Calcule les parametres UV de coord3D sur la surface
   E_Int parameters(const K_FLD::FloatArray&coord3D, const K_FLD::IntArray& connectB, K_FLD::FloatArray& UVs) const ;
   E_Int parametersSample(const K_FLD::FloatArray&coord3D, K_FLD::FloatArray& UVs);
   
-  ///
-  E_Int parameters(const E_Float* pt, E_Float & u, E_Float& v) const ;
+  // Calcule les parametres UV du point P sur la surface
+  E_Int parameters(const E_Float* pt, E_Float & u, E_Float& v, E_Int index=-1) const ;
   
   
   /// Computes the surface point P for the input (u,v) parameters.

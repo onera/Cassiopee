@@ -129,8 +129,7 @@ BARSplitter::getSortedNodes // assume a closed polyline : DO NOT ADD TWICE A NOD
   nodes.clear();
 
   err = get_node_to_nodes(connectB, node_to_nodes);
-  if (err)
-    return err;
+  if (err) return err;
   
   // starting as connectB orientation : if connectB is consistently oriented, it will be the same orientation upon exit
   nodes.push_back(connectB(0, 0));

@@ -21,6 +21,7 @@
 #include "OCCSurface.h"
 #include "BRep_Tool.hxx"
 #include "GeomLib_Tool.hxx"
+#include "GeomAPI_ProjectPointOnSurf.hxx"
 #include "Fld/ArrayAccessor.h"
 #include "Search/KdTree.h"
 #include "MeshElement/Edge.h"
@@ -33,7 +34,7 @@
 
 ///
 K_OCC::OCCSurface::OCCSurface(const TopoDS_Face& F, TopTools_IndexedMapOfShape& occ_edges, E_Int pid) 
-:_F(F), _surface(BRep_Tool::Surface (F)), _parent(pid), _normalize_domain(true)
+:_F(F), _surface(BRep_Tool::Surface(F)), _parent(pid), _normalize_domain(true)
 {
   // check if the surface is of revolution
   _isUClosed = _isVClosed = false;
@@ -51,13 +52,88 @@ K_OCC::OCCSurface::OCCSurface(const OCCSurface& rhs)
 ///
 K_OCC::OCCSurface::~OCCSurface() {}
 
+// homothetie par rapport au centre
+void K_OCC::OCCSurface::shrink(K_FLD::FloatArray& coord3D, E_Float factor)
+{
+  E_Float xc=0.,yc=0.,zc=0.;
+  E_Float x,y,z;
+  E_Int npts = coord3D.getSize();
+  for (E_Int i = 0; i < npts; i++)
+  {  
+    x = coord3D(0,i); y = coord3D(1,i); z = coord3D(2,i);
+    xc += x; yc += y; zc += z;
+  }
+  xc = xc/npts; yc = yc/npts; zc = zc/npts;
+  for (E_Int i = 0; i < npts; i++)
+  {  
+    x = coord3D(0,i); y = coord3D(1,i); z = coord3D(2,i);
+    coord3D(0,i) = xc + factor*(x-xc);
+    coord3D(1,i) = yc + factor*(y-yc);
+    coord3D(2,i) = zc + factor*(z-zc);
+  }
+}
+
+// Calcule une discretisation de la surface pour visu avec connect QUAD
+void K_OCC::OCCSurface::discretize(K_FLD::FloatArray& coord3D, K_FLD::IntArray& connect, E_Int ni, E_Int nj)
+{
+  gp_Pnt Pt;
+  coord3D.resize(3, ni*nj);
+  connect.resize(4, (ni-1)*(nj-1));
+  // Get UV bounds
+  E_Float U0, V0, U1, V1, U, V;
+  ShapeAnalysis::GetFaceUVBounds(_F, U0, U1, V0, V1);
+  for (E_Int j = 0; j < nj; j++)
+  for (E_Int i = 0; i < ni; i++)
+  {
+    U = U0+i*(U1-U0)/(ni-1);
+    V = V0+j*(V1-V0)/(nj-1);
+    _surface->D0(U, V, Pt);
+    coord3D(0,i+j*ni) = Pt.X(); coord3D(1,i+j*ni) = Pt.Y(); coord3D(2,i+j*ni) = Pt.Z();
+  }
+  for (E_Int j = 0; j < nj-1; j++)
+  for (E_Int i = 0; i < ni-1; i++)
+  {
+    connect(0,i+j*(ni-1)) = i+j*ni+1;
+    connect(1,i+j*(ni-1)) = i+1+j*ni+1;
+    connect(2,i+j*(ni-1)) = i+1+(j+1)*ni+1;
+    connect(3,i+j*(ni-1)) = i+(j+1)*ni+1;
+  }
+}
+
+// Projete coord3D sur la surface
+void K_OCC::OCCSurface::project(K_FLD::FloatArray& coord3D) const
+{
+  for (E_Int i=0; i < coord3D.cols(); ++i)
+  {
+    E_Float x,y,z;
+    x = coord3D(0,i); y = coord3D(1,i); z = coord3D(2,i);
+    gp_Pnt Point;
+    Point.SetCoord(x, y, z);
+    GeomAPI_ProjectPointOnSurf o(Point, _surface);
+    /*
+    E_Int nbsol = o.NbPoints();
+    printf("Nb solution=%d\n",o.NbPoints());
+    for (E_Int i = 1; i <= nbsol; i++)
+    {
+      gp_Pnt Pj = o.Point(i);
+      printf("Pt %g %g %g -> %g %g %g\n",pt[0],pt[1],pt[2],Pj.X(),Pj.Y(),Pj.Z());
+      o.Parameters(i,u3,v3);
+      printf("proj    %d: %g %g\n",i,u3,v3);
+    }
+    */
+    gp_Pnt Pj = o.NearestPoint();
+    //printf("projection %f %f %f -> %f %f %f\n",x,y,z,Pj.X(),Pj.Y(),Pj.Z());
+    coord3D(0,i) = Pj.X(); coord3D(1,i) = Pj.Y(); coord3D(2,i) = Pj.Z();
+  }
+}
+
 ///
 E_Int
 K_OCC::OCCSurface::parameters
-(const K_FLD::FloatArray&coord3D, const K_FLD::IntArray& connectB, K_FLD::FloatArray& UVs) const 
+(const K_FLD::FloatArray& coord3D, const K_FLD::IntArray& connectB, K_FLD::FloatArray& UVs) const 
 {
   UVs.clear();
-    
+  
   E_Int err(0), sz(coord3D.cols());
   UVs.resize(2, sz, K_CONST::E_MAX_FLOAT);
 
@@ -69,17 +145,31 @@ K_OCC::OCCSurface::parameters
     
     if (UVs(0, Ni) == K_CONST::E_MAX_FLOAT)
     {
-      err = parameters(coord3D.col(Ni), UVs(0,Ni), UVs(1,Ni));
+      err = parameters(coord3D.col(Ni), UVs(0,Ni), UVs(1,Ni), Ni);
     }
     if (!err && UVs(0, Nj) == K_CONST::E_MAX_FLOAT)
     {
-      err = parameters(coord3D.col(Nj), UVs(0,Nj), UVs(1,Nj));
+      err = parameters(coord3D.col(Nj), UVs(0,Nj), UVs(1,Nj), Nj);
     }
-    
+
     if (_isUClosed && ::fabs(UVs(0,Ni) - UVs(0,Nj)) > K_CONST::E_PI) err = 1;
     if (_isVClosed && ::fabs(UVs(1,Ni) - UVs(1,Nj)) > K_CONST::E_PI) err = 1;
-    
   }
+  
+  // Detect jumps
+  /*
+  for (E_Int i=0; i < connectB.cols(); ++i)
+  {
+    E_Int Ni = connectB(0,i);
+    E_Int Nj = connectB(1,i);
+    E_Float Ui = UVs(0, Ni);
+    E_Float Vi = UVs(1, Ni);
+    E_Float Uj = UVs(0, Nj);
+    E_Float Vj = UVs(1, Nj);
+    //printf("la %d: %g %g -> %g %g\n", i,Ui,Vi,Uj,Vj);
+    if (::fabs(Ui-Uj) > 0.7 || ::fabs(Vi-Vj) > 0.7) printf("switch elt=%d, n1=%d, n2=%d: %g %g -> %g %g\n", i,Ni,Nj,Ui,Vi,Uj,Vj);
+  }
+  */
   
   for (E_Int k=0; k < UVs.cols(); ++k)
     if (UVs(0,k) == K_CONST::E_MAX_FLOAT)
@@ -90,17 +180,47 @@ K_OCC::OCCSurface::parameters
 
 ///
 E_Int
-K_OCC::OCCSurface::parameters(const E_Float* pt, E_Float & u, E_Float& v) const 
+K_OCC::OCCSurface::parameters(const E_Float* pt, E_Float& u, E_Float& v, E_Int index) const 
 {
   u=v=-1;
     
   gp_Pnt Point;
   Point.SetCoord(pt[0], pt[1], pt[2]);
   
-  E_Int ok = GeomLib_Tool::Parameters(_surface, Point, 1.e+100/*dummytol*/, u, v); 
-
-  if (!ok || u==-1 || v== -1)
-    return 1;
+  E_Int ok = GeomLib_Tool::Parameters(_surface, Point, 1.e+100/*dummytol*/, u, v);
+  if (!ok || u==-1 || v==-1) return 1;
+  
+  //E_Float u1,v1;
+  //GeomLib_Tool::Parameters(_surface, Point, 1.e+100/*dummytol*/, u1, v1);
+  
+  //GeomAPI_ProjectPointOnSurf o(Point, _surface);
+  //E_Float u2,v2;
+  //o.LowerDistanceParameters(u2,v2);
+  
+  //printf("Point index=%d\n",index);
+  //printf("geomlib:   %g %g\n",u1,v1);
+  //printf("lowerproj: %g %g\n",u2,v2);
+  //printf("=============\n");
+  
+  //if (index == 4)
+  //{
+  //  printf("Point index=%d\n",index);
+  //  printf("geomlib:   %g %g\n",u1,v1);
+  //  printf("lowerproj: %g %g\n",u2,v2);
+  //  
+  //  E_Float u3,v3;
+  //  E_Int nbsol = o.NbPoints();
+  //  printf("Nb solution=%d\n",o.NbPoints());
+  //  for (E_Int i = 1; i <= nbsol; i++)
+  //  {
+  //    gp_Pnt Pj = o.Point(i);
+  //    printf("Pt %g %g %g -> %g %g %g\n",pt[0],pt[1],pt[2],Pj.X(),Pj.Y(),Pj.Z());
+  //    o.Parameters(i,u3,v3);
+  //    printf("proj    %d: %g %g\n",i,u3,v3);
+  //  }
+  //  //printf("=============\n");
+  //}
+  //u = u2; v = v2;
   
   // normalize in [0,1]
   __normalize(u,v);
@@ -168,7 +288,7 @@ E_Int K_OCC::OCCSurface::__sample_contour(E_Int Nsample, K_FLD::FloatArray& pos3
   
   E_Float U[2], Pt[3];
   //
-  U[1]=V0n;
+  U[1] = V0n;
   for (E_Int a=0; a < Nsample-1; ++a) // up to Nsample-1 to avoid to create duplicates
   {
     U[0]=U0n + (U1n-U0n)*E_Float(a)/E_Float(Nsample-1);
@@ -233,9 +353,8 @@ void K_OCC::OCCSurface::point(E_Float u, E_Float v, E_Float* P) const{
   
   __denormalize(u,v);
   
-  _surface->D0(u, v,  Pt);
-  
-  P[0]=Pt.X();P[1]=Pt.Y();P[2]=Pt.Z();
+  _surface->D0(u, v, Pt);
+  P[0]=Pt.X(); P[1]=Pt.Y(); P[2]=Pt.Z();
   
 //  std::cout << "coordinated passed to D0 : " << u << "/" << v << std::endl;
 //  std::cout << "returned PT : " << P[0] << "/" << P[1] << "/" << P[2] << std::endl;
@@ -245,7 +364,7 @@ void K_OCC::OCCSurface::point(E_Float u, E_Float v, E_Float* P) const{
 /// Computes the first U-derivative at P(u,v) on the surface.
 void K_OCC::OCCSurface::DU1(E_Float u, E_Float v, E_Float* P) const{
   gp_Pnt Pt;
-  gp_Vec            DU1, DV1;
+  gp_Vec DU1, DV1;
   
   __denormalize(u,v);
   
@@ -262,8 +381,8 @@ void K_OCC::OCCSurface::DU1(E_Float u, E_Float v, E_Float* P) const{
 
 /// Computes the second U-derivative at P(u,v) on the surface.
 void K_OCC::OCCSurface::DU2(E_Float u, E_Float v, E_Float* P) const{
-  gp_Pnt            Pt;
-  gp_Vec            DU1, DV1, DU2, DV2, DUV;
+  gp_Pnt  Pt;
+  gp_Vec  DU1, DV1, DU2, DV2, DUV;
   
   __denormalize(u,v);
   
@@ -282,7 +401,7 @@ void K_OCC::OCCSurface::DU2(E_Float u, E_Float v, E_Float* P) const{
 /// Computes the first V-derivative at P(u,v) on the surface.
 void K_OCC::OCCSurface::DV1(E_Float u, E_Float v, E_Float* P) const{
   gp_Pnt Pt;
-  gp_Vec            DU1, DV1;
+  gp_Vec DU1, DV1;
   
   __denormalize(u,v);
   
@@ -380,15 +499,14 @@ void K_OCC::OCCSurface::__denormalize(E_Float& u, E_Float& v) const
 }
 
 
-///
+// Trouve les edges de la face F
 void K_OCC::OCCSurface::__traverse_face_edges(const TopoDS_Face& F, TopExp_Explorer& edge_expl, TopTools_IndexedMapOfShape& occ_edges, std::vector<E_Int>& edges)
 {
   for (edge_expl.Init(F, TopAbs_EDGE); edge_expl.More(); edge_expl.Next())
   {
     const TopoDS_Edge& E = TopoDS::Edge(edge_expl.Current());
      
-    if (BRep_Tool::Degenerated (E))
-      continue;
+    if (BRep_Tool::Degenerated (E)) continue;
 
     // Get edge id in the flat list
     E_Int edge_idx = occ_edges.FindIndex(E);

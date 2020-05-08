@@ -48,6 +48,7 @@ else:
 # Setting libraryDirs and libraries ===========================================
 libraryDirs = ['..', '.', pythonLibDir, kcoreLibDir, generatorLibDir]
 includeDirs = [OCCIncDir, generatorIncDir, pythonIncDir, numpyIncDir, kcoreIncDir]
+#includeDirs = [OCCIncDir, generatorIncDir, pythonIncDir, numpyIncDir, kcoreIncDir, kcoreIncDir+'/../../Converter/Converter']
 libraries = ["generator", "kcore"]
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
