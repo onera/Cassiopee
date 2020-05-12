@@ -540,7 +540,7 @@ def _addFlowSolution(t, name='', loc='CellCenter', variables=None,
   if output is None: outputDict={}
   else: outputDict=output
   if loc == 'cellfict': outputDict["loc"]=2
-  elif loc is 'CellCenter' or loc is "Vertex": pass
+  elif loc == 'CellCenter' or loc == "Vertex": pass
   else: raise AttributeError("'loc' attribute should be 'CellCenter','Vertex' or 'cellfict' => loc='%s'" %(loc))
   if writingMode is not None: outputDict['writingmode'] = writingMode
   if period is not None: outputDict['period'] = period
