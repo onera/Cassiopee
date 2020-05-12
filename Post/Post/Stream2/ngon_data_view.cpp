@@ -141,6 +141,7 @@ namespace K_POST
             }
         }
 #       if defined(DEBUG_VERBOSE)
+        auto coords = this->getCoordinates();
         std::cout << "Connectivité élément vers sommets : " << std::endl;
         for (E_Int ielt = 0; ielt < nb_elts; ++ielt )
         {
@@ -148,6 +149,67 @@ namespace K_POST
             for ( E_Int ivert = m_beg_elt2verts[ielt]; ivert < m_beg_elt2verts[ielt+1]; ++ivert )
                 std::cout << m_elt2verts[ivert] << " ";
             std::cout << std::endl;
+            // On va calculer l'aire des tétraèdres pour vérifier qu'ils sont non nuls à l'aide de la formule de Tartaglia (tétraèdre quelconque)
+            if (m_beg_elt2verts[ielt+1]-m_beg_elt2verts[ielt] == 4)
+            {
+                E_Int beg_ind = m_beg_elt2verts[ielt];
+                E_Int ind1    = m_elt2verts[beg_ind+0];
+                E_Int ind2    = m_elt2verts[beg_ind+1];
+                E_Int ind3    = m_elt2verts[beg_ind+2];
+                E_Int ind4    = m_elt2verts[beg_ind+3];
+
+                point3d p1{coords[0][ind1],coords[1][ind1],coords[2][ind1]};
+                point3d p2{coords[0][ind2],coords[1][ind2],coords[2][ind2]};
+                point3d p3{coords[0][ind3],coords[1][ind3],coords[2][ind3]};
+                point3d p4{coords[0][ind4],coords[1][ind4],coords[2][ind4]};
+
+                vector3d v1(p1,p2);
+                double d12 = norm(v1);
+                vector3d v2(p1,p3);
+                double d13 = norm(v2);
+                vector3d v3(p1,p4);
+                double d14 = norm(v3);
+                vector3d v4(p2,p3);
+                double d23 = norm(v4);
+                vector3d v5(p3,p4);
+                double d34 = norm(v5);
+                vector3d v6(p2,p4);
+                double d24 = norm(v6);
+
+                // CAlcul du carré du volume
+                double V2 = (d12*(-d12*d34 +d13*(-d23 + d24 + d34) + d14*(d23 -d24 +d34) + d34*(d23 + d24 - d34)) 
+                             + d13* (-d13*d24 +d14*d23 +d14*d24 -d14*d34 +d23*d24 -d24*d24 +d24*d34) 
+                             + d14* (-d14*d23 - d23*d23 +d23*d24 +d23*d34) - d23*d24*d34)/144.;
+
+                if ((V2<0) || (std::sqrt(V2) < 1.E-14))
+                { // A ce point, on considère le volume nul, non ?
+                    if (V2 > 0)
+                        std::cerr << "L'élément n°" << ielt << " a un volume de " << std::sqrt(V2) << " ce qui est trop faible !" << std::endl;
+                    else 
+                        std::cerr << "L'élément n°" << ielt << " a un volume au carré négatif ????" << std::endl;
+                    std::cerr << "Ces sommets sont : " << std::string(p1) << ", " << std::string(p2) << ", "
+                              << std::string(p3) << ", " << std::string(p4) << std::endl;
+                    std::cerr << "Indices des points considérés : " << ind1 << ", " << ind2 << ", " << ind3 << ", " << ind4 << std::endl;
+                    std::cerr << "Indice des Faces composant l'élément (donnée brute du maillage) : ";
+                    for ( E_Int iface = m_beg_elt2faces[ielt]; iface < m_beg_elt2faces[ielt+1]; ++iface )
+                    {
+                        std::cerr << m_elt2faces[iface] << " ";
+                    } 
+                    std::cerr << std::endl;
+                    std::cerr << "Coordonnées des sommets des faces (pour voir si c'est bien consistant) : " << std::endl;
+                    for ( E_Int iface = m_beg_elt2faces[ielt]; iface < m_beg_elt2faces[ielt+1]; ++iface )
+                    {
+                        E_Int ind_face = m_elt2faces[iface];
+                        std::cerr << "Face " << ind_face << " : [ ";
+                        for ( E_Int ivert = m_beg_face2verts[ind_face]; ivert < m_beg_face2verts[ind_face+1]; ivert++)
+                        {
+                            E_Int ind_vert = m_face2verts[ivert];
+                            std::cerr << std::string(point3d{coords[0][ind_vert],coords[1][ind_vert],coords[2][ind_vert]}) << " ";
+                        }
+                        std::cerr << "]" << std::endl;
+                    }                    
+                }
+            }
         }
 #       endif
         // Calcul de la connectivité sommet vers éléments.
@@ -229,35 +291,149 @@ namespace K_POST
             }
             E_Int ref_face = 0;
             bool found_ref_face = false;
-            while (!found_ref_face)
+            if (nfaces > 4)
             {
-                const point3d &    origin = faces[ref_face].get_barycenter();
-                const vector3d& direction = faces[ref_face].get_normal();
-                E_Int nb_existing = 0;
-                E_Int nb_entering = 0;
-                bool is_intersecting, is_entering;
-                try { // Normalement, dans 99.99% des cas, tout devrait bien se passer
-                    for (E_Int iface = 0; iface < nfaces; ++iface )
-                    {
-                        if (iface != ref_face)
-                        {
-                            std::tie(is_intersecting,is_entering) = faces[iface].is_intersecting_ray(origin, direction);
+                // Calcul de la bouding box alignée:
+                double xmin, ymin, zmin;
+                auto coords = this->getCoordinates();
+                E_Int nb_verts = m_beg_elt2verts[ielt+1] - m_beg_elt2verts[ielt];
+                E_Int beg_verts = m_beg_elt2verts[ielt];
+                xmin = coords[0][m_elt2verts[beg_verts]];
+                ymin = coords[1][m_elt2verts[beg_verts]];
+                zmin = coords[2][m_elt2verts[beg_verts]];
+                for (E_Int ivert = 1; ivert < nb_verts; ++ivert )
+                {
+                    E_Int ind_vert = m_elt2verts[beg_verts+ivert];
+                    xmin = std::min(coords[0][ind_vert],xmin);
+                    ymin = std::min(coords[1][ind_vert],xmin);
+                    zmin = std::min(coords[2][ind_vert],xmin);
+                }
+                while (!found_ref_face)
+                {
+                    const point3d &    origin = faces[ref_face].get_barycenter();
+                    const vector3d& direction = faces[ref_face].get_normal();
+                    vector3d normal = (1./abs(direction))*direction;
+                    point3d  o = origin + (-1.E-8)*normal;
+                    point3d  r{xmin-1.E-3,o.y, o.z};
+                    vector3d d{o.x-r.x,0.,0.};
+                    E_Int nb_intersects = 0;
+                    bool is_intersecting, is_entering;
+                    try { // Normalement, dans 99.99% des cas, tout devrait bien se passer
+                        for (E_Int iface = 0; iface < nfaces; ++iface )
+                        {                            
+                            std::tie(is_intersecting,is_entering) = faces[iface].is_intersecting_ray(r, d);
                             if (is_intersecting)
                             {
-                                if (is_entering) nb_entering += 1; else nb_existing += 1;
-                            }
+                                const point3d &    o = faces[iface].get_barycenter();
+                                const vector3d&    df= faces[iface].get_normal();
+                                vector3d n = (1./abs(df))*df;
+                                vector3d ofr(o, r);
+                                // On va calculer le point d'intersection :
+                                // Plan "moyen" de la face : (o,df)
+                                // Rayon : (r, d) où d = vector3d(ro)
+                                double nxdx = n.x*d.x;
+                                if (std::abs(nxdx) < 1.E-14) throw std::underflow_error("Face parallèle à la direction");
+                                double t = -(ofr|n)/nxdx;
+                                if ((0<=t) && (t<=1)) nb_intersects += 1;  
+                            } 
                         }
+                        is_direct[ref_face] = (nb_intersects%2==1);// Si impair, point à l'intérieur, donc face bien orientée
+                        found_ref_face = true;
                     }
-                    is_direct[ref_face] = (nb_entering == nb_existing);
-                    found_ref_face = true;
+                    catch(std::underflow_error& err) // Mais ça arrive qu'on croise des arêtes ou des sommets...
+                    { 
+                        // On essaie du coup dans la direction y :
+                        r = point3d{o.x,ymin-1.E-3,o.z};
+                        d = vector3d{0.,o.y-r.y,0.};
+                        try { 
+                            for (E_Int iface = 0; iface < nfaces; ++iface )
+                            {
+                                std::tie(is_intersecting,is_entering) = faces[iface].is_intersecting_ray(r, d);
+                                if (is_intersecting)
+                                {
+                                    const point3d &    o = faces[iface].get_barycenter();
+                                    const vector3d&    df= faces[iface].get_normal();
+                                    vector3d n = (1./abs(df))*df;
+                                    vector3d ofr(o, r);
+                                    // On va calculer le point d'intersection :
+                                    // Plan "moyen" de la face : (o,df)
+                                    // Rayon : (r, d) où d = vector3d(ro)
+                                    double nydy = n.y*d.y;
+                                    if (std::abs(nydy) < 1.E-14) throw std::underflow_error("Face parallèle à la direction");
+                                    double t = -(ofr|n)/nydy;
+                                    if ((0<=t) && (t<=1)) nb_intersects += 1;  
+                                } 
+                            }
+                            is_direct[ref_face] = (nb_intersects%2==1);// Si impair, point à l'intérieur, donc face bien orientée
+                            found_ref_face = true;
+                        }
+                        catch(std::underflow_error& err)
+                        {
+                            // Dans la direction z ?
+                            r = point3d{o.x,o.y,zmin-1.E-3};
+                            d = vector3d{0.,0.,o.z-r.z};
+                            try {
+                                for (E_Int iface = 0; iface < nfaces; ++iface )
+                                {
+                                    std::tie(is_intersecting,is_entering) = faces[iface].is_intersecting_ray(r, d);
+                                    if (is_intersecting)
+                                    {
+                                        const point3d &    o = faces[iface].get_barycenter();
+                                        const vector3d&    df= faces[iface].get_normal();
+                                        vector3d n = (1./abs(df))*df;
+                                        vector3d ofr(o, r);
+                                        // On va calculer le point d'intersection :
+                                        // Plan "moyen" de la face : (o,df)
+                                        // Rayon : (r, d) où d = vector3d(ro)
+                                        double nzdz = n.z*d.z;
+                                        if (std::abs(nzdz) < 1.E-14) throw std::underflow_error("Face parallèle à la direction");
+                                        double t = -(ofr|n)/nzdz;
+                                        if ((0<=t) && (t<=1)) nb_intersects += 1;  
+                                    } 
+                                }
+                                is_direct[ref_face] = (nb_intersects%2==1);// Si impair, point à l'intérieur, donc face bien orientée
+                                found_ref_face = true;
+                            }
+                            catch(std::underflow_error& err)
+                            {
+                                // Pour la face courante, on est dans une configuration indéterminée, donc je prend une autre face
+                                // comme face de référence.
+                                ref_face ++;
+                                assert(ref_face < nfaces);
+                            }// catch
+                        }// catch
+                    }// catch
+                }// while (!found_ref_face)
+            }// nfaces > 4...
+            else 
+            {   // Pour les tétraèdres, on va faire un truc numériquement plus stable ?
+                // Calcul barycentre du barycentre légèrement perturbé par la normale :
+                //std::cerr << "Testing with barycenters." << std::endl;
+                auto coords = this->getCoordinates();
+                const point3d &    origin = faces[ref_face].get_barycenter();
+                const vector3d& direction = faces[ref_face].get_normal();
+                // On récupère les sommets du tétraèdre et on calcul le barycentre du tétraèdre :
+                assert(m_beg_elt2verts[ielt+1]-m_beg_elt2verts[ielt] == 4);
+                E_Int ivert = m_beg_elt2verts[ielt];
+                std::array<point3d,4> sommets;
+                point3d barycentre{0.,0.,0.};
+                for ( E_Int i = 0; i < 4; ++i)
+                {
+                    E_Int ind_vert = m_elt2verts[ivert+i];
+                    sommets[i] = point3d{coords[0][ind_vert],coords[1][ind_vert],coords[2][ind_vert]};
+                    barycentre.x += 0.25*sommets[i].x;
+                    barycentre.y += 0.25*sommets[i].y;
+                    barycentre.z += 0.25*sommets[i].z;
                 }
-                catch(std::underflow_error& err) // Mais ça arrive qu'on soit pour la première face dans un cas indéterminé.
-                { // Pour la face courante, on est dans une configuration indéterminée, donc je prend une autre face
-                  // comme face de référence.
-                    ref_face ++;
-                    assert(ref_face < nfaces);
-                }
+                vector3d sortante(barycentre, origin);
+                if (std::abs((sortante|direction)) < 1.E-16) std::cout << "Warning: too mush small dot product..." << std::endl;
+                if ((sortante|direction) > 0)
+                    is_direct[ref_face] = true;
+                else
+                    is_direct[ref_face] = false;
             }
+            //std::cout << "La face n" << m_elt2faces[m_beg_elt2faces[ielt]+ref_face] << " est orienté "
+            //          << (is_direct[ref_face] ? "dans le sens direct" : "dans le sens indirect") << " de l'élément n°" << ielt << std::endl;
 
             /**
              * @brief      Fonction lambda retournant 0 si par d'arêtes communes (donc cas encore indéterminé), 
@@ -274,6 +450,7 @@ namespace K_POST
                 E_Int pos_first_common_vertex_f1 = -1, pos_first_common_vertex_f2 = -1;
                 E_Int nb_verts1 = f1.indices_vertices.size();
                 E_Int nb_verts2 = f2.indices_vertices.size();
+
                 for (E_Int ipos1 = 0; (ipos1 < nb_verts1) && (pos_first_common_vertex_f1==-1); ++ipos1 )
                 {
                     for (E_Int ipos2 = 0; (ipos2 < nb_verts2) && (pos_first_common_vertex_f2==-1); ++ipos2)
@@ -298,6 +475,11 @@ namespace K_POST
                     return -1;
                 if (next_index_f1 == f2.indices_vertices[(pos_first_common_vertex_f2-1+nb_verts2)%nb_verts2])
                     return +1;
+                E_Int prev_index_f1 = f1.indices_vertices[(pos_first_common_vertex_f1-1+nb_verts1)%nb_verts1];
+                if (prev_index_f1 == f2.indices_vertices[(pos_first_common_vertex_f2+1)%nb_verts2])
+                    return +1;
+                if (prev_index_f1 == f2.indices_vertices[(pos_first_common_vertex_f2-1+nb_verts2)%nb_verts2])
+                    return -1;
                 // Un seul sommet commun, on retourne une indétermination :
                 return 0;
             };
@@ -419,14 +601,19 @@ namespace K_POST
         coords[2].reserve(nb_verts+nb_barycenters);
         std::unordered_map<E_Int, E_Int> glob2loc;
         // On extrait tous les points de la cellule :
+        double xb = 0, yb = 0, zb = 0;
         for (E_Int ivert = 0; ivert < nb_verts; ++ivert)
         {
             E_Int ind_vert = m_elt2verts[this->m_beg_elt2verts[ind_elt]+ivert];
             glob2loc[ind_vert] = ivert;
+            xb += crds[0][ind_vert];
+            yb += crds[1][ind_vert];
+            zb += crds[2][ind_vert];
             coords[0].push_back(crds[0][ind_vert]);
             coords[1].push_back(crds[1][ind_vert]);
             coords[2].push_back(crds[2][ind_vert]);
         }
+        point3d bary(xb/nb_verts,yb/nb_verts, zb/nb_verts);
         // On doit utiliser des triangles en tessalisant les faces de l'élément :
         using triangle_type = triangulated_polyhedron::triangle_type;
         // Par contre, il me semble difficile de connaître le nombre de triangle d'avance...
@@ -468,6 +655,26 @@ namespace K_POST
                     ind1 = glob2loc[m_face2verts[m_beg_face2verts[index_face]+0]];
                     ind2 = glob2loc[m_face2verts[m_beg_face2verts[index_face]+2]];
                     ind3 = glob2loc[m_face2verts[m_beg_face2verts[index_face]+1]];                    
+                }
+                point3d p1{coords[0][ind1], coords[1][ind1],coords[2][ind1]};
+                point3d p2{coords[0][ind2], coords[1][ind2],coords[2][ind2]};
+                point3d p3{coords[0][ind3], coords[1][ind3],coords[2][ind3]};
+                point3d barf = point3d{(p1.x+p2.x+p3.x)/3.,(p1.y+p2.y+p3.y)/3.,(p1.z+p2.z+p3.z)/3.};
+                vector3d ob(bary,barf);
+                vector3d no = vector3d{p1,p2} ^ vector3d{p1,p3};
+                if ((no|ob) < 0)
+                {
+                    std::cerr << "Facette mal orientée !";
+                    std::cerr << "ind1 : " << ind1 << " ind2 : " << ind2 << ", ind3 : " << ind3 << std::endl;
+
+                    std::cerr << "Sommets du tetrahèdre : " << std::endl;
+                    for (E_Int ivert = 0; ivert < nb_verts; ++ivert)
+                        printf("{%13.9g,%13.9g,%13.9g}",coords[0][ivert],coords[1][ivert],coords[2][ivert]);
+                    std::cerr << "Sommets orientés de la face : " << std::endl;
+                    std::cerr << std::string(p1) << ", " << std::string(p2) << ", " << std::string(p3) << std::endl;
+                    std::cerr << "no : " << std::string(no) << std::endl;
+                    std::cerr << "ob : " << std::string(ob) << std::endl;
+                    std::cerr << "<no|ob> = " << (no|ob) << std::endl;
                 }
                 faces.emplace_back(triangle_type{ind1, ind2, ind3}); // On rajoute directement la facette
             }
@@ -551,8 +758,8 @@ namespace K_POST
         } catch(std::invalid_argument& err)
         {
             // On est sur la frontière de l'élément :
-            std::cerr << "Warning : interpolated point is on interface. Possibility to have two points in same location in the stream line"
-                      << std::flush << std::endl;
+            //std::cerr << "Warning: interpolated point is on interface. Possibility to have two points in same location in the stream line"
+            //          << std::flush << std::endl;
             is_inside = true; // Dans ce cas, on considère qu'on est à l'intérieur (on prend l'élément comme un fermé topologique)
         }
         return is_inside;

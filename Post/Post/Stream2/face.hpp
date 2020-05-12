@@ -105,7 +105,7 @@ namespace K_POST
          *
          * @return     Première valeur vrai si l'intersection a lieu, faux sinon, deuxième valeur vraie si le rayon est rentrant, faux si il est sortant
          */
-        std::pair<bool,bool> is_intersecting_ray( const point3d& origin, const vector3d& direction ) const;
+        std::pair<bool,bool> is_intersecting_ray( const point3d& origin, const vector3d& direction, bool is_with_perturbation=false ) const;
 
         /**
          * @brief      Calcule l'intersection entre la face et un rayon

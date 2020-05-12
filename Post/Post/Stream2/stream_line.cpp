@@ -55,7 +55,7 @@ namespace
      */
     std::tuple< E_Int, E_Int, vector3d  >
     init_streamline(const point3d& init_pos, const std::vector<K_POST::zone_data_view>&  zones,
-                    E_Int max_vertices_for_streamline, FldArrayF& streamPt, int istream, E_Int num_zone )
+                    E_Int max_vertices_for_streamline, FldArrayF& streamPt, int istream, E_Int num_zone, bool is_with_perturbation=false )
     {
 #if defined(DEBUG_VERBOSE)
         std::cout << "Nbre de zones dans lesquels chercher : " << zones.size() << std::endl;        
@@ -75,9 +75,25 @@ namespace
             }
             ++ izone;
         }
-        //if (izone == zones.size()) return { -1, -1, {0.,0.,0.}};
-        if (izone == zones.size()) return std::tuple< E_Int, E_Int, vector3d >( -1, -1, {0.,0.,0.});
-        if (izone > zones.size()) throw std::domain_error("Wrong starting point : no zones contain this point.");
+        if (izone == zones.size()) 
+        {
+            if (!is_with_perturbation)
+            {
+                // On n'a pas trouvé de domaine adéquat. Le point est sans doute au bord d'un bloc extérieur.
+                // On va perturbé le point initial pour trouvé une cellule :
+                for ( vector3d perturb : std::array<vector3d,6>{ vector3d{1.E-6,0.,0.}, vector3d{-1.E-6,0.,0.},
+                                                                 vector3d{0.,1.E-6,0.}, vector3d{0.,-1.E-6,0.},
+                                                                 vector3d{0.,0.,1.E-6}, vector3d{0.,0.,-1.E-6}} )
+                {
+                    auto pos2 = init_pos + perturb;
+                    auto res2 = init_streamline(pos2, zones, max_vertices_for_streamline, streamPt, istream, num_zone, true);
+                    if (std::get<0>(res2) != -1) return res2;
+                }
+            }
+            //throw std::domain_error("Wrong starting point : no zones contain this point.");
+            return  std::tuple< E_Int, E_Int, vector3d >( -1, -1, {0.,0.,0.});
+        }
+        //if (izone > zones.size()) throw std::domain_error("Wrong starting point : no zones contain this point.");
 
 #if defined(DEBUG_VERBOSE)
         std::cout << "bloc ou se trouve le point initial = " << izone << std::endl;
@@ -150,7 +166,7 @@ namespace
             if ((velocity|velocity) < 1.E-14)
             {
 #           if defined(DEBUG_VERBOSE)
-                std::cout << "Warning : vitesse nulle. fini calcul Streamline ..." << std::flush << std::endl;
+                std::cout << "Warning: vitesse nulle. fini calcul Streamline ..." << std::flush << std::endl;
 #           endif
                 //istream -= 1;
                 break;
@@ -199,13 +215,13 @@ namespace
                 intersect_data = facette.compute_intersection(cur_point, velocity);
 #if defined(DEBUG_VERBOSE)
                 std::cout << "Nouvelle position : " << std::string(intersect_data.first) << std::endl;
-                std::cout << "N° triangle d'intersection : " << intersect_data.second << "." << std::endl;
+                std::cout << "No triangle d'intersection : " << intersect_data.second << "." << std::endl;
 #endif
 #if !defined(DEBUG_VERBOSE)            
             }
             catch(std::domain_error& err)
             {
-                std::cerr << "Warning : problème intersection géométrique sur facette : " << err.what() << ". On arête prématurément le calcul de cette streamline." << std::endl;
+                std::cerr << "Warning: probleme intersection géométrique sur facette : " << err.what() << ". On arête prématurément le calcul de cette streamline." << std::endl;
                 break;
             }
 #endif

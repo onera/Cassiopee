@@ -119,7 +119,7 @@ namespace K_POST
     }    
     // =====================================================================================
     std::pair<bool,bool> 
-    face::is_intersecting_ray( const point3d& origin, const vector3d& direction ) const
+    face::is_intersecting_ray( const point3d& origin, const vector3d& direction, bool is_with_perturbation ) const
     {
 #if defined(DEBUG_VERBOSE)
         std::cout << "rayon : point de départ <= " << std::string(origin) 
@@ -160,7 +160,27 @@ namespace K_POST
                 if ( signe2 != signe ) not_change_sign = false;
             }
         }
-        if (signe == 0) throw std::underflow_error("Cas d'indétermination, face coplanaire avec la direction.");
+        if (signe == 0) 
+        {
+            if (!is_with_perturbation)
+            {
+                // On va faire une légère perturbation pour voir...
+                vector3d n = this->get_normal();
+                point3d perturb1_origin = origin + (1.E-6)*n;
+                decltype(this->is_intersecting_ray(perturb1_origin, direction)) result;
+                try
+                {
+                    result = this->is_intersecting_ray(perturb1_origin, direction, true);
+                } catch(std::underflow_error& err)
+                {
+                    point3d perturb2_origin = origin + (-1.E-6)*n;
+                    result = this->is_intersecting_ray(perturb2_origin, direction, true);
+                }
+                return result;
+            }
+            else
+                throw std::underflow_error("Cas d'indétermination, face coplanaire avec la direction même avec pertubation.... étrange");
+        }
         return {not_change_sign, signe<0};
     }
     // ============================================================================================
