@@ -46,7 +46,7 @@
 #include <iostream>
 
 #ifdef DEBUG_MESHER
-#include "medit.hxx"
+#include "Nuga/include/medit.hxx"
 #endif
 
 //#define FORCING_EDGE_ERROR 999
@@ -254,7 +254,7 @@ namespace DELAUNAY
 
 #ifdef DEBUG_MESHER
     if (dbg_flag)
-      medith::write("triangulationC.mesh", *_data->pos, _data->connectM, "TRI", &_data->mask);
+      medith::write("triangulationC", *_data->pos, _data->connectM, "TRI", &_data->mask);
 #endif
 
 #ifdef E_TIME
@@ -653,6 +653,8 @@ namespace DELAUNAY
         Sseed = i-1;
       }
     }
+
+    data.mono_connex = (color == 2); // box-elts color + one color
 
     if ((color > 2) && (_mode.remove_holes == true)) // detect eventual interior
     {

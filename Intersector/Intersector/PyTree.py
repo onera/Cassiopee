@@ -139,6 +139,35 @@ def updatePointLists(z, zones, oids):
         break
       i=i+1
 
+def transferFields(z, oids):
+  nparrs = []
+  fields = C.getFields(Internal.__FlowSolutionCenters__, z)
+
+  nf = len(fields)
+  ofields = []
+
+  for f in fields:
+    nparrs.append(f[1][0])
+
+  C._deleteFlowSolutions__(z, 'centers') # destroy and rebuild one by one ??
+
+  fi=0
+  for f in fields:
+    C._initVars(z, 'centers:'+f[0], 1.)
+    of = C.getField('centers:'+f[0], z)
+    
+    n = len(oids) # nb of element has decreased : len <= len(fields)
+    print(len(nparrs[fi]))
+    #onumparr = numpy.empty((n,), dtype=numpy.int32)
+    for i in range(n):
+      of[0][1][0][i] = nparrs[fi][oids[i]]
+    fi += 1
+
+    #ofields.append(f)
+
+  #print(ofields)
+  #return ofields
+
 #------------------------------------------------------------------------------
 # Conformisation d'une soupe de TRI ou de BAR
 #------------------------------------------------------------------------------
@@ -438,14 +467,19 @@ def _XcellNSurf(t, priorities, output_type=0, rtol=0.05):
 
   if output_type == 2: # output as ckipped NGON
     i=0
-    C._deleteFlowSolutions__(t)
+    C._deleteFlowSolutions__(t)#, 'nodes') #no histo for nodes currently
     bases = Internal.getBases(t)
     for b in bases:
       zones = Internal.getZones(b)
       for z in zones:
-        # MAJ du maillage de la zone
-        C.setFields([xcellns[i]], z, 'nodes')
-        i +=1
+        # udpating mesh and solution
+        mesh = xcellns[i]
+        pg_oids = xcellns[i+1]
+        
+        #transferFields(z, pg_oids)
+        C.setFields([mesh], z, 'nodes') 
+
+        i +=2
     return
 
   #APPLY IT TO ZONES

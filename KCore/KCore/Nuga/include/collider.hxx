@@ -24,8 +24,9 @@
 #include "Nuga/include/linmath.hxx"
 #include "Nuga/include/mesh_t.hxx"
 
-#ifdef COLLIDE_DBG
+#ifdef COLLIDER_DBG
 #include "IO/io.h"
+#include "Nuga/include/medit.hxx"
 #endif
 
 
@@ -68,7 +69,7 @@ namespace NUGA
           Q1 = crd2.col(T2[1]);
           Q2 = crd2.col(T2[2]);
           
-#ifdef COLLIDE_DBG
+#ifdef COLLIDER_DBG
 
 //  K_FLD::IntArray tmpE;
 //  for (size_t i=0; i < 3; ++i)
@@ -193,7 +194,7 @@ namespace NUGA
       ELT2 e2;
       size_t i1;
 
-#ifndef COLLIDE_DBG
+#ifndef COLLIDER_DBG
 #pragma omp parallel for private (cands1, e1, e2, i1)
 #endif
       for (size_t i2 = 0; i2 < sz2; ++i2)
@@ -246,7 +247,7 @@ void compute_overlap(const K_FLD::FloatArray& crd1, const ngon_unit& PGs1,
   K_FLD::FloatArray L;
   K_CONNECT::MeshTool::computeIncidentEdgesSqrLengths(crd1, PGs1, L);
   
-#ifndef COLLIDE_DBG
+#ifndef COLLIDER_DBG
 //#pragma omp parallel private (cands2, n1, n2, j)
 //#pragma omp for
 #endif
@@ -259,7 +260,7 @@ void compute_overlap(const K_FLD::FloatArray& crd1, const ngon_unit& PGs1,
 
     loc2.get_candidates(PG1, crd1, cands2);
     
-#ifdef COLLIDE_DBG
+#ifdef COLLIDER_DBG
   /*if (!cands2.empty())
   {
     ngon_unit pgs;
@@ -345,7 +346,7 @@ void compute_overlap(const K_FLD::FloatArray& crd1, const K_FLD::IntArray& edges
   K_FLD::FloatArray L;
   K_CONNECT::MeshTool::computeIncidentEdgesSqrLengths(crd1, edges1, L);
   
-#ifndef COLLIDE_DBG
+#ifndef COLLIDER_DBG
 //#pragma omp parallel private (cands2, n1, n2, j)
 //#pragma omp for
 #endif
@@ -358,7 +359,7 @@ void compute_overlap(const K_FLD::FloatArray& crd1, const K_FLD::IntArray& edges
 
     loc2.get_candidates(E1, crd1, cands2);
     
-#ifdef COLLIDE_DBG
+#ifdef COLLIDER_DBG
   /*if (!cands2.empty())
   {
     ngon_unit pgs;
@@ -418,37 +419,38 @@ void compute_overlap(const K_FLD::FloatArray& crd1, const K_FLD::IntArray& edges
 
 ///
 template <typename aelt_t, typename bound_mesh_t>
-bool are_colliding(const aelt_t& e1, const bound_mesh_t& mask_bit, const std::vector<E_Int>& cands, E_Int idx_start, E_Int & cid, double RTOL);
+bool get_colliding(const aelt_t& e1, const bound_mesh_t& mask_bit, std::vector<E_Int>& cands, E_Int idx_start, double RTOL, bool only_first_found);
 
 ///
 template <> inline
-bool are_colliding<NUGA::aPolygon, edge_mesh_t>
-(const NUGA::aPolygon& ae1, const edge_mesh_t& mask_bit, const std::vector<E_Int>& cands, E_Int idx_start, E_Int & cid, double RTOL)
+bool get_colliding<NUGA::aPolygon, edge_mesh_t>
+(const NUGA::aPolygon& ae1, const edge_mesh_t& mask_bit, std::vector<E_Int>& cands, E_Int idx_start, double RTOL, bool first_found)
 {
-  bool isx = false;
-  cid = E_IDX_NONE;
+ 
+  bool hasX(false);
 
   // reduce mask to candidates : fixme : to simplify
   edge_mesh_t lmask = mask_bit;
+
   std::vector<bool> keep(lmask.ncells(), false);
-
   for (size_t u = 0; u < cands.size(); ++u)
-  {
-    //std::cout << cands[u] - idx_start << std::endl;
     keep[cands[u] - idx_start] = true;
-  }
-
-  lmask.compress(keep); // WARNING : must be 1-based here
+  
+  lmask.compress(keep);
 
   double normal1[3];
   ae1.normal<3>(normal1);
   const double * plane_pt = ae1.m_crd.col(0); // choosing first node
 
 #ifdef DEBUG_XCELLN
-                                              //medith::write("cutter_front_before_projection", lmask.crd, lmask.cnt);
+  //medith::write("cutter_front_before_projection", lmask.crd, lmask.cnt);
 #endif
 
-                                              // project candidates on e1's plane => 2D problem
+  double l21 = ae1.L2ref();
+  double l22 = lmask.L2ref();//compute it before proj
+  double ATOL(RTOL * ::sqrt(std::min(l21, l22)));
+
+  // project candidates on e1's plane => 2D problem
   STACK_ARRAY(double, lmask.crd.cols(), signed_dists);
   for (int i = 0; i < lmask.crd.cols(); ++i)
   {
@@ -457,24 +459,31 @@ bool are_colliding<NUGA::aPolygon, edge_mesh_t>
     signed_dists[i] = NUGA::project(plane_pt, normal1, lmask.crd.col(i), normal1, lmask.crd.col(i));
   }
 
-  // check if not too far
-  bool is_close = false;
-  double l21 = ae1.L2ref();
-  double l22 = lmask.L2ref();
-  double ATOL(RTOL * ::sqrt(std::min(l21, l22))), min_d(K_CONST::E_MAX_FLOAT);
+  // discard those that are too far
+  keep.clear();
+  keep.resize(cands.size(), true);
 
-  for (int i = 0; (i < lmask.crd.cols()) && !is_close; ++i)
+  for (int i = 0; (i < lmask.cnt.cols()); ++i)
   {
-    if (i < lmask.crd.cols() - 1) is_close = signed_dists[i] * signed_dists[i + 1] < 0.; // means crossing
-    min_d = std::min(min_d, ::fabs(signed_dists[i]));
+    int e1 = lmask.cnt(0, i);
+    int e2 = lmask.cnt(1, i);
+
+    double z1 = signed_dists[e1];
+    double z2 = signed_dists[e2];
+
+    if (z1*z2 < 0.) continue; // means crossing 
+
+    double mz = std::min(::fabs(z1), ::fabs(z2));
+    keep[i] = (mz < ATOL);
   }
 
-  is_close |= (min_d < ATOL);
-  if (!is_close)
-  {
-    //std::cout << "lr1/lr2/ATOL : " << l21 << "/" << l22 << "/" << ATOL <<  " and min_d : " << min_d << std::endl;
+  K_CONNECT::keep<bool> pred(keep);
+  K_CONNECT::IdTool::compress(cands, pred);
+
+  if (cands.empty())
     return false;
-  }
+
+  lmask.compress(keep);
 
   // close enough so go to 2D for real test
 
@@ -503,7 +512,7 @@ bool are_colliding<NUGA::aPolygon, edge_mesh_t>
   FittingBox::transform(lmask.crd, iP);// Now we are in the fitting coordinate system.
   lmask.crd.resize(2, lmask.crd.cols()); // lmask is 2D now.
 
-#ifdef DEBUG_XCELLN
+#ifdef COLLIDER_DBG
   {
     K_FLD::FloatArray c1(crd2D), c2(lmask.crd);
     c1.resize(3, c1.cols(), 0.);
@@ -514,35 +523,57 @@ bool are_colliding<NUGA::aPolygon, edge_mesh_t>
 #endif
 
   // c. detect collisions
+  
+  E_Int nbx(0), ncands(cands.size());
+  keep.clear();
+  keep.resize(ncands, false);
 
   int T1[3];
-  for (E_Int i = 0; (i < ae1.nb_tris()) && !isx; ++i)
+  for (E_Int i = 0; (i < ae1.nb_tris()); ++i)
   {
     ae1.triangle(i, T1);
     const E_Float* P1 = crd2D.col(T1[0]);
     const E_Float* Q1 = crd2D.col(T1[1]);
     const E_Float* R1 = crd2D.col(T1[2]);
 
-    for (int j = 0; (j<lmask.ncells()) && !isx; ++j)
+    for (int j = 0; (j<ncands); ++j)
     {
+      if (keep[j]) continue;
+
       K_MESH::Edge e = lmask.element(j);
       const E_Float* P2 = lmask.crd.col(e.node(0));
       const E_Float* Q2 = lmask.crd.col(e.node(1));
 
-      isx = K_MESH::Triangle::fast_intersectE2_2D(P1, Q1, R1, P2, Q2, ATOL);
+      bool isx = K_MESH::Triangle::fast_intersectE2_2D(P1, Q1, R1, P2, Q2, ATOL);
 
       if (!isx) //deeper check
       {
         E_Float u00, u01;
         E_Int tx;
         E_Bool overlap;
+
         isx = K_MESH::Triangle::intersect<2>(P1, Q1, R1, P2, Q2, ATOL, true, u00, u01, tx, overlap);
       }
-      if (isx) cid = j;
+      if (isx)
+      {
+        if (first_found)
+        {
+          cands[0] = cands[j];
+          cands.resize(1);
+          return true;
+        }
+
+        hasX = keep[j] = true;
+      }
     }
   }
 
-  return isx;
+  if (hasX)
+  {
+    K_CONNECT::keep<bool> pred(keep);
+    K_CONNECT::IdTool::compress(cands, pred);
+  }
+  return hasX;
 }
 
   

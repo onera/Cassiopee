@@ -46,7 +46,7 @@ static bool xtest=false;
 #include <sstream>
 #endif
 #if defined(DEBUG_MESHER) || defined(DEBUG_LIGHT)
-#include "Nuga/Delaunay/medit.hxx"
+#include "Nuga/include/medit.hxx"
 #endif
 
 #define OLD_STYLE
@@ -201,7 +201,7 @@ TRI_Conformizer<DIM>::__split_Elements
       xcOut.push_back(false);
       colors.push_back(Ci++);
       
-#ifdef DEBUG_TRI_CONFORMIZER
+#ifdef DEBUG_CONFORMIZER
       NUGA::ConformizerRoot::split_fastdiscard_counter++;
 #endif
 
@@ -444,12 +444,10 @@ TRI_Conformizer<DIM>::__split_Elements
 #ifdef FLAG_STEP
   if (chrono::verbose > 1)
   {
-#ifdef DEBUG_TRI_CONFORMIZER
 #ifdef DEBUG_CONFORMIZER
     std::cout << "split : nb of quicly discarded : " << NUGA::ConformizerRoot::split_fastdiscard_counter << std::endl;
     std::cout << "split : nb of done : " << NUGA::ConformizerRoot::split_counter << std::endl;
     std::cout << "split : nb of degen discarded : " << NUGA::ConformizerRoot::degen_counter << std::endl;
-#endif
 
     std::cout << "split : nb of resulting bits in more : " << connect.cols() - connectIn.cols() << std::endl;
     std::cout << "split : NB ERRORS : " << err_count << std::endl;

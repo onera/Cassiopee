@@ -122,7 +122,7 @@ public://fixme
 
 protected:
   ///
-  Conformizer(bool wnh = false): _split_swap_afterwards(false), _silent_errors(false), _brute_force(false), _pool(nullptr), _tree(nullptr), _absolute_tol(true)/*fixme : no choice yet*/, _with_node_history(wnh), _X0(0)  {}
+  Conformizer(bool whisto = false): _split_swap_afterwards(false), _silent_errors(false), _brute_force(false), _pool(nullptr), _tree(nullptr), _absolute_tol(true)/*fixme : no choice yet*/, _with_history(whisto), _X0(0)  {}
   
   // Methods to override : interface to implement
 protected:
@@ -191,8 +191,8 @@ public:
   
 #ifdef DEBUG_CONFORMIZER
   virtual void drawElements(const char* fname, const char* filefmt, const K_FLD::FloatArray& coord,
-                            const K_FLD::IntArray& connect, 
-                            const std::vector<typename Struc<Element_t>::Type> & elts, bool localid = false, std::vector<E_Int>* colors=0) = 0;
+    const K_FLD::IntArray& connect,
+    const std::vector<typename Struc<Element_t>::Type> & elts, bool localid = false, std::vector<E_Int>* colors = 0) {}
   
   virtual void drawT3(const K_FLD::FloatArray& pos, const K_FLD::IntArray& connect, E_Int ith_elts, bool compact=false){}
   E_Int _nbX;
@@ -245,7 +245,7 @@ public:
   bool _absolute_tol;
   std::vector<std::pair<E_Float, E_Int> > _sorterFI;
   E_Int _initialrows;
-  bool _with_node_history;
+  bool _with_history;
   std::vector<E_Int> _node_history;
   E_Int _N0;
   K_FLD::IntArray _connect0;

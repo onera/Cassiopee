@@ -61,12 +61,12 @@ struct connect_trait<LINEIC, true>
     K_CONNECT::keep<bool> pred_keep(keep);
     K_CONNECT::IdTool::compress(c, pred_keep, nids);
   }
-  static void compress(cnt_t&c, const std::vector<int>& keepids)
+  static void compress(cnt_t&c, const std::vector<int>& keepids, int index_start)
   {
     K_CONNECT::IdTool::compress(c, keepids, index_start);
   }
 
-  static cnt_t compress_(cnt_t const& c, const std::vector<int>& keepids)
+  static cnt_t compress_(cnt_t const& c, const std::vector<int>& keepids,int index_start)
   {
     return K_CONNECT::IdTool::compress_(c, keepids, index_start);
   }
@@ -297,10 +297,10 @@ struct mesh_t
     return *this;
   }
   
-  mesh_t(const mesh_t& m) :localiz(nullptr), neighbors(nullptr) {*this = m;}
+  mesh_t(const mesh_t& m) :localiz(nullptr), neighbors(nullptr) { *this = m; }
   mesh_t(const mesh_t&& m):localiz(nullptr), neighbors(nullptr) { *this = m; }
 
-  mesh_t(const mesh_t& m, std::vector<E_Int>& ids) :cnt(trait::compress_(m.cnt, ids)), localiz(nullptr), neighbors(nullptr)
+  mesh_t(const mesh_t& m, std::vector<E_Int>& ids, int idx_start) :cnt(trait::compress_(m.cnt, ids, idx_start)), localiz(nullptr), neighbors(nullptr)
   {
     std::vector<E_Int> nids;
     crd = trait::compact_to_used_nodes(cnt, m.crd, nids);
@@ -311,7 +311,7 @@ struct mesh_t
     if (m.neighbors != nullptr)
     {
       neighbors = new neighbor_t;
-      *neighbors = trait::compress_(*m.neighbors, ids);
+      *neighbors = trait::compress_(*m.neighbors, ids, idx_start);
     }
   }
 

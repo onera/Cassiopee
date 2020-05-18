@@ -35,7 +35,7 @@
 #define OTHER_LAYS_COL 7  //above 2nd lauyer , anything is unsorted for now
 #define PG_GHOST       99
 
-#define NEIGHBOR(PH0, F2E, shift, Fi) ((F2E[Fi] == PH0 ) ? F2E[Fi+shift] : F2E[Fi])
+#define NEIGHBOR1(PH0, F2E, shift, Fi) ((F2E[Fi] == PH0 ) ? F2E[Fi+shift] : F2E[Fi])
 
 namespace NUGA
 {
@@ -462,7 +462,7 @@ void zone_t<crd_t, ngo_t>::flag_connected_to_type
     for (E_Int n=0; n < nb_faces;++n)
     {
       E_Int PGi = *(pPGi + n) - 1;
-      E_Int neighPH = NEIGHBOR(PHi, _F2Es, nb_pgs, PGi);
+      E_Int neighPH = NEIGHBOR1(PHi, _F2Es, nb_pgs, PGi);
       
       if (neighPH == this->_F2E_NONE) continue; // BC
       

@@ -242,7 +242,7 @@ E_Int Conformizer<DIM, Element_t>::run
   }
   
 //#ifdef E_DEBUG
-  if (_with_node_history)
+  if (_with_history)
   {
     //check histo validity with distance
   }
@@ -267,7 +267,7 @@ Conformizer<DIM, Element_t>::__initialize
   for (size_t i = 0; i < ancestors.size(); ++i)ancestors[i] = i;
   
   // initialize node history
-  if (_with_node_history)
+  if (_with_history)
   {
     _node_history.resize(pos.cols());
     for (size_t i = 0; i < _node_history.size(); ++i)_node_history[i] = i;
@@ -372,7 +372,7 @@ Conformizer<DIM, Element_t>::__clean
   K_FLD::IntArray::changeIndices(connect, new_IDs);
   K_FLD::IntArray::changeIndices(_connect0, new_IDs);
       
-  if (_with_node_history)
+  if (_with_history)
     K_CONNECT::IdTool::propagate(new_IDs, _node_history);
       
   std::vector<E_Int> nids;
@@ -614,8 +614,12 @@ E_Int Conformizer<DIM, Element_t>::__run
     std::vector<E_Int> nids;
     K_CONNECT::MeshTool::compact_to_mesh(pos, connect, nids);
 
-    if (_with_node_history)
+    if (_with_history)
+    {
       K_CONNECT::IdTool::propagate(nids, _node_history);
+      //update also parent_t::_elements to get x history (from which edge this x point commes from ?)
+      this->__update_data(pos, connect, nids);
+    }
     K_FLD::IntArray::changeIndices(_connect0, nids);
   }
 
@@ -892,7 +896,7 @@ Conformizer<DIM, Element_t>::__compute_intersections_brute
 
 #ifdef DEBUG_CONFORMIZER
       if (e1.id == zTi)iTi = i;
-      else if (e2.id == zTi)iTi = j
+      else if (e2.id == zTi)iTi = j;
 
       if (e1.id == zTi)
         aelts.push_back(e2);

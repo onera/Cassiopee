@@ -67,6 +67,7 @@ void ngon_unit::updateFacets() const
 ngon_unit& ngon_unit::operator=(const ngon_unit& ng)
 {
   _NGON.clear();
+  _facet.clear();
   _NGON = ng._NGON;
   _type = ng._type;
   _ancEs = ng._ancEs;

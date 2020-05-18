@@ -41,7 +41,7 @@ int TRI_BooleanOperator::case_nb = 0;
 #define C_OVERLAP 2
 #define C_NONE -1
 
-#ifdef DEBUG_TRI_CONFORMIZER
+#ifdef DEBUG_CONFORMIZER
 E_Int NUGA::ConformizerRoot::xtest_counter = 0;
 E_Int NUGA::ConformizerRoot::fastdiscard_counter = 0;
 E_Int NUGA::ConformizerRoot::split_counter = 0;

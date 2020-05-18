@@ -2504,7 +2504,11 @@ PyObject* K_INTERSECTOR::drawOrientation(PyObject* self, PyObject* args)
     E_Float c[3], n[3], top[3];
     K_MESH::Polygon::centroid<3>(crd, nodes, nb_nodes, 1, c);
     K_MESH::Polygon::ndS<K_FLD::FloatArray, 3>(crd, nodes, nb_nodes, 1, n);
-    K_FUNC::sum<3>(c, n, top);
+
+    K_MESH::Polygon pg(nodes, nb_nodes, -1);
+    double Lref = ::sqrt(pg.L2ref(crd));
+
+    K_FUNC::sum<3>(1., c, Lref, n, top);
 
     E_Int id = crdE.cols();
     crdE.pushBack(c, c+3);

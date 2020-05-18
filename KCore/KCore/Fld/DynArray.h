@@ -95,6 +95,8 @@ Design
 
     // Extracts a given field
     inline void extract_field(size_type i, std::vector<T>& f);
+    // Sets a given field on an existing row
+    inline void set_field(size_type i, const std::vector<T>& f);
 
   public: /** Attributes */
 
@@ -364,11 +366,23 @@ Design
 
   template <typename T> inline
   void
-  DynArray<T>::extract_field(size_type i, std::vector<T>& f)
+    DynArray<T>::extract_field(size_type i, std::vector<T>& f)
   {
     f.resize(_cols, {});
-    for (size_type j=0; j < _cols; ++j)
-      f[j] = *(_data + j*_rowsMax +i);
+    for (size_type j = 0; j < _cols; ++j)
+      f[j] = *(_data + j * _rowsMax + i);
+  }
+  
+
+  template <typename T> inline
+  void
+    DynArray<T>::set_field(size_type i, const std::vector<T>& f)
+  {
+    assert(f.size() == _cols);
+    assert(i < _rows);
+
+    for (size_type j = 0; j < _cols; ++j)
+      *(_data + j * _rowsMax + i) = f[j];
   }
 
   ///Clear the array. Do not deallocate.

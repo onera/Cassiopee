@@ -79,7 +79,7 @@ namespace K_ARRAY
 
   /* Retourne le nombre de variables dans varString (style "a,b,c").
      IN: varString: la chaine de variables. */
-  E_Int getNumberOfVariables(char* varString);
+  E_Int getNumberOfVariables(const char* varString);
 
   /* Is name present in string?
      IN: name: nom a rechercher dans string
@@ -87,23 +87,23 @@ namespace K_ARRAY
      Retourne -1 si name n'existe pas dans string.
      Return i: si name existe et est en position i. La position etant 
      determinee suivant les virgules. */
-  E_Int isNamePresent(const char* name, char* string);
-  E_Int isCoordinateXPresent(char* string);
-  E_Int isCoordinateYPresent(char* string);
-  E_Int isCoordinateZPresent(char* string);
-  E_Int isCellNatureField1Present(char* string);
-  E_Int isCellNatureField2Present(char* string);
-  E_Int isDensityPresent(char* string);
-  E_Int isMomentumXPresent(char* string);
-  E_Int isMomentumYPresent(char* string);
-  E_Int isMomentumZPresent(char* string);
-  E_Int isEnergyStagnationDensityPresent(char* string);
-  E_Int isVelocityXPresent(char* varString);
-  E_Int isVelocityYPresent(char* varString);
-  E_Int isVelocityZPresent(char* varString);
-  E_Int isPressurePresent(char* varString);
-  E_Int isTemperaturePresent(char* varString);
-  E_Int isTimePresent(char* varString);
+  E_Int isNamePresent(const char* name, const char* string);
+  E_Int isCoordinateXPresent(const char* string);
+  E_Int isCoordinateYPresent(const char* string);
+  E_Int isCoordinateZPresent(const char* string);
+  E_Int isCellNatureField1Present(const char* string);
+  E_Int isCellNatureField2Present(const char* string);
+  E_Int isDensityPresent(const char* string);
+  E_Int isMomentumXPresent(const char* string);
+  E_Int isMomentumYPresent(const char* string);
+  E_Int isMomentumZPresent(const char* string);
+  E_Int isEnergyStagnationDensityPresent(const char* string);
+  E_Int isVelocityXPresent(const char* varString);
+  E_Int isVelocityYPresent(const char* varString);
+  E_Int isVelocityZPresent(const char* varString);
+  E_Int isPressurePresent(const char* varString);
+  E_Int isTemperaturePresent(const char* varString);
+  E_Int isTimePresent(const char* varString);
 
   /* A partir de 2 varStrings, recherche si des variables communes existent et 
      retourne les vecteurs des positions des variables correspondantes dans les
@@ -240,6 +240,13 @@ namespace K_ARRAY
                      K_FLD::DynArray<E_Float>*& f,
                      E_Int& ni, E_Int& nj, E_Int& nk,
                      K_FLD::DynArray<E_Int>*& c,
+                     char*& eltType);
+  //idem sans allocation interne des DynArrays
+  E_Int getFromArray(PyObject* o,
+                     char*& varString,
+                     K_FLD::DynArray<E_Float>& f,
+                     E_Int& ni, E_Int& nj, E_Int& nk,
+                     K_FLD::DynArray<E_Int>& c,
                      char*& eltType);
 
   /* Extrait les donnees utiles d'une liste d'objets pythons.
@@ -421,7 +428,7 @@ namespace K_ARRAY
      IN: varString: variable string
      IN: ni,nj,nk: nombre de points dans field
      OUT: PyObject cree. */
-  PyObject* buildArray(K_FLD::DynArray<E_Float>& field, const char* varString,
+  PyObject* buildArray(const K_FLD::DynArray<E_Float>& field, const char* varString,
                        E_Int ni, E_Int nj, E_Int nk);
   
   /* Construit un array non structure a partir d'un DynArray
@@ -434,8 +441,8 @@ namespace K_ARRAY
      IN: center: mis a true si field est localise sur les centres,
      sinon false.
      OUT: PyObject cree. */
-  PyObject* buildArray(K_FLD::DynArray<E_Float>& field, const char* varString,
-                       K_FLD::DynArray<E_Int>& c, E_Int et, 
+  PyObject* buildArray(const K_FLD::DynArray<E_Float>& field, const char* varString,
+                       const K_FLD::DynArray<E_Int>& c, E_Int et, 
                        const char* etString=NULL, 
                        E_Boolean center=false);
 

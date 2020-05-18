@@ -50,16 +50,14 @@ namespace NUGA
       E_Float W[3];
       //fixme //////////////////////////////////////
       {
-        NUGA::aPolygon aPGsubj(std::move(crd));//fixme
-        aPGsubj.normal<3>(W);                     //fixme
+        NUGA::aPolygon aPGsubj(std::move(crd));
+        aPGsubj.normal<3>(W);                   
         crd = std::move(aPGsubj.m_crd);//give it back
       }
       //////////////////////////////////////////////
       E_Int nb_pts1 = crd.cols();
       crd.pushBack(crd2);
       K_FLD::IntArray cnt(subj), cnt2(cutter);
-
-      for (E_Int i = 0; i < cnt2.cols(); ++i) std::swap(cnt2(0, i), cnt2(1, i));//boolean diff mode
 
       cnt2.shift(nb_pts1);
       cnt.pushBack(cnt2);
@@ -71,23 +69,64 @@ namespace NUGA
       iP = P;
       K_FLD::FloatArray::inverse3(iP);
       FittingBox::transform(crd, iP);
-      E_Float z = crd(2, 0);
-      crd.resize(2, crd.cols());
 
-      // compute an overall abstol
+      std::vector<double> zs;
+      crd.extract_field(2, zs); //keep 3rd coord appart (altitude)
+      //compute zmean
+      double zmean(0.);
+      for (size_t k = 0; k < nb_pts1; ++k) zmean += zs[k];
+      zmean /= nb_pts1;
+      
+      // compute an overall 3D abstol
       E_Float min_d, max_d, ABSTOL;
-      K_CONNECT::MeshTool::computeMinMaxEdgeSqrLength<2>(crd, cnt, min_d, max_d);
-      ABSTOL = ::sqrt(min_d) * RTOL;
+      K_CONNECT::MeshTool::computeMinMaxEdgeSqrLength<3>(crd, cnt, min_d, max_d);
+      double Lref = ::sqrt(min_d);
+      ABSTOL = Lref * RTOL;
+      ABSTOL = std::max(ABSTOL, ZERO_M);
+
+      // discard false overlaps among front (now we are in 2D, those with big altitudes)
+      {
+        std::vector<bool> keep(cnt.cols(), true);
+        bool do_compact(false);
+        for (size_t i = nb_edges1; i < cnt.cols(); ++i)
+        {
+          double z1 = zs[cnt(0, i)] - zmean;
+          double z2 = zs[cnt(1, i)] - zmean;
+
+          if (z1*z2 < 0.) continue; // means crossing 
+
+          double mz = std::min(::fabs(z1), ::fabs(z2));
+          keep[i] = (mz < Lref); //at least one inside interf zone
+          do_compact |= !keep[i];
+        }
+        if (do_compact)
+        {
+          std::vector<E_Int> nids;
+          K_FLD::IntArray::compact(cnt, keep, nids);
+        }
+      }
+      // now apply zmean to front points such remaining ones at the end will be roughly on subj supporting surface
+      for (size_t k = nb_pts1; k < zs.size(); ++k) zs[k] = zmean;
+
+      crd.resize(2, crd.cols());//now pure 2D
 
       // conformize this cloud
       std::vector<E_Int> ancE2;
-      NUGA::BAR_Conformizer<2> conformizer;
+      NUGA::BAR_Conformizer<2> conformizer(true/* keep track of nodes history*/);
       conformizer._brute_force = true;
 
 #ifdef DEBUG_CLIPPER
       conformizer._silent_errors = false;
 #else
       conformizer._silent_errors = true;
+#endif
+
+#ifdef DEBUG_CLIPPER
+      {
+        K_FLD::FloatArray tcrd(crd);
+        tcrd.resize(3, tcrd.cols(), 0.);
+        medith::write("before_conf", tcrd, cnt, "BAR");
+      }
 #endif
 
       E_Int nb_edges0 = cnt.cols();
@@ -99,13 +138,13 @@ namespace NUGA
       {
         K_FLD::FloatArray tcrd(crd);
         tcrd.resize(3, tcrd.cols(), 0.);
-        medith::write("in", tcrd, cnt, "BAR");
+        medith::write("after_conf", tcrd, cnt, "BAR");
       }
 #endif
 
       if (cnt.cols() == nb_edges0) return 0;// no intersections => fully visible or hidden
 
-      true_clip = true;
+      // use the T3mesher to classify
 
       DELAUNAY::MeshData data;
       data.pos = &crd;
@@ -117,9 +156,15 @@ namespace NUGA
       mode.silent_errors = conformizer._silent_errors;
       DELAUNAY::T3Mesher<E_Float> mesher(mode);
 
-      mesher.run(data);
+      err = mesher.run(data);
+      if (err) return err;
 
       if (data.connectM.cols() == 0) return 0; //empty here means IN
+
+      // 1 region after triangulation => so something might have happened on its boundary but not inside so consider as untouched
+      if (data.mono_connex) return 0;
+
+      true_clip = true;
 
 #ifdef DEBUG_CLIPPER
       {
@@ -129,8 +174,46 @@ namespace NUGA
       }
 #endif
 
+      // transfer altitude
+      std::vector<double> zsnew(data.pos->cols(), K_CONST::E_MAX_FLOAT);
+      const auto& pnids = conformizer.get_node_history();
+      for (size_t i = 0; i < pnids.size(); ++i)
+        if (pnids[i] != E_IDX_NONE) zsnew[pnids[i]] = zs[i];
+      zs = std::move(zsnew);
+
+      // interpolate missings using x history
+      auto xedge = conformizer.get_x_history();
+      for (size_t i = 0; i < zs.size(); ++i)
+      {
+        if (zs[i] != K_CONST::E_MAX_FLOAT) continue;
+        int xe = xedge[i];
+        
+        assert(xe != E_IDX_NONE); // i is an x point and has its histo
+        
+        if (xe >= subj.cols()) continue;
+
+        int N0 = subj(0, xe);
+        double * P0 = crd.col(N0);
+        int N1 = subj(1, xe);
+        double * P1 = crd.col(N1);
+        double * Px = crd.col(i);
+
+        double L2 = K_FUNC::sqrDistance(P0, P1, 2);
+        double lam2 = K_FUNC::sqrDistance(P0, Px, 2);
+        double l = ::sqrt(lam2 / L2);
+
+        zs[i] = (1. - l) * zs[N0] + l * zs[N1];
+      }
+
+      
+      for (size_t k = 0; k < zs.size(); ++k)
+      {
+        if (zs[k] == K_CONST::E_MAX_FLOAT) zs[k] = zmean;
+      }
+
       // go back 3D
-      data.pos->resize(3, data.pos->cols(), z);
+      data.pos->resize(3, data.pos->cols());
+      data.pos->set_field(2, zs); //
       FittingBox::transform(*data.pos, P); // back to original ref frame  
 
 #ifdef DEBUG_CLIPPER
@@ -205,13 +288,25 @@ namespace NUGA
     }
 
     template <typename aELT1, typename aELT2>
-    bool compute(aELT1 const & subj, aELT2 const & cutter, E_Float RTOL, std::vector<aELT1>& bits)
+    bool compute(aELT1 const & subj, aELT2 const & cutter, std::vector<aELT1>& bits)
     {
       bool true_clip(false);
       std::vector<crd_t> res;
-      /*E_Int err = */isolated_clip(subj.m_crd, cutter.crd, cutter.cnt, RTOL, res, true_clip);
+
+      double RTOL = 1.e-9;
+      E_Int err(1);
+      for (size_t i = 0; i < 8 && err; ++i)
+      {
+        res.clear();
+        true_clip = false;
+        err = isolated_clip(subj.m_crd, cutter.crd, cutter.cnt, RTOL, res, true_clip);
+        RTOL *= 10;
+      }
 
       bits.clear();
+
+      if (err || !true_clip) return false; // to classify with a I/O test (even in case of error => rougly good approx)
+
       bits.reserve(res.size());
       //for (size_t i = 0; i < res.size(); ++i)
         //bits.push_back(std::move(res[i]));
@@ -287,7 +382,9 @@ namespace NUGA
             mask_loc.get_candidates(bx0, cands, idx_start, RTOL);
 
           // autonomous cutter front
-          bound_mesh_t acut_front(mask_bit, cands);
+          bound_mesh_t acut_front(mask_bit, cands, idx_start);
+
+          acut_front.reverse_orient(); // BOOLEAN DIFF MODE
 
 #ifdef DEBUG_XCELLN
           medith::write("subj", ae1.m_crd, &ae1.m_nodes[0], ae1.m_nodes.size(), 0);// or medith::write<ngon_type>("subj", z_mesh.crd, z_mesh.cnt, i);
@@ -296,11 +393,15 @@ namespace NUGA
           //CLIPPING
           tmpbits.clear();
           if (!just_io)
-            just_io = !NUGA::CLIP::compute(ae1, acut_front, 1.e-4/*parent_t::_RTOL*/, tmpbits); //robust_clip returns true if true clip
+            just_io = !NUGA::CLIP::compute(ae1, acut_front, tmpbits); //robust_clip returns true if true clip
 
-          // IO : current bit does not intersect front.
+          // IO : current bit does not intersect front (or only along its boundaries)
           if (just_io)
-            if (NUGA::CLASSIFY::classify(ae1, acut_front) == OUT) continue;
+          {
+            assert(tmpbits.empty());
+            if (NUGA::CLASSIFY::classify(ae1, acut_front, true/*reversed*/, true/*unambiguous*/) == OUT)
+              continue; //will be considered with next front
+          }
 
           // COMPRESS STRATEGY (with MOVE SEMANTICS) for bits => b can be reduced of 1 to treat the replaced at next iter 
           // if tmpbits is empty (IN) => compress (erase bits if single, put the last instead of current otherwise)
@@ -308,6 +409,11 @@ namespace NUGA
           __replace_append_and_next_iter(bits, b, tmpbits);
           if (bits.size() < nbits) nbits = bits.size(); //update iff the last have replaced the current 
         }
+
+        // update vcur
+        vcur = 0.;
+        for (size_t u = 0; u < bits.size(); ++u) vcur += bits[u].metrics();
+
       }
     }
   } // CLIP

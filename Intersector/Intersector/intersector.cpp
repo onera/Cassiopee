@@ -18,6 +18,7 @@
 */
 #define K_ARRAY_UNIQUE_SYMBOL
 #include "intersector.h"
+#include <sstream>
 
 int __activation__;
 
@@ -168,4 +169,146 @@ extern "C"
     return module;
 #endif
   }
+}
+
+E_Int K_INTERSECTOR::check_is_of_type(const std::vector<std::string>& types, PyObject* arr, K_FLD::FloatArray*& f1, K_FLD::IntArray*& cn1, char*& varString, char*& eltType)
+{
+  E_Int ni, nj, nk;
+  
+  E_Int res = K_ARRAY::getFromArray(arr, varString, f1, ni, nj, nk,
+                                    cn1, eltType);
+
+  //std::cout << "eltType ???????" << eltType << std::endl;
+     
+  bool err = (res !=2);
+
+  for (size_t i=0; (i < types.size()) && !err; ++i)
+    err |= (strcmp(eltType, types[i].c_str()) != 0);
+
+  if (err)
+  {
+    std::stringstream o;
+    o << "input error : invalid array, must be a ";
+    for (size_t i=0; i < types.size()-1; ++i){
+      o << types[i] << ",";
+    }
+    o << types[types.size()-1] << "array." ;
+    PyErr_SetString(PyExc_TypeError, o.str().c_str());//fixme triangulateExteriorFaces : PASS A STRING AS INPUT
+    //delete f1; delete cn1;
+    //f1 = nullptr; cn1 = nullptr;
+    return 1;
+  }
+
+  // Check coordinates.
+  E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
+  E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
+  E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
+
+  if ((posx == -1) || (posy == -1) || (posz == -1))
+  {
+    PyErr_SetString(PyExc_TypeError, "input error : can't find coordinates in array.");//fixme  conformUnstr
+    //delete f1; delete cn1;
+    //f1 = nullptr; cn1 = nullptr;
+    return 1;
+  }
+  
+  return 0;
+}
+
+E_Int K_INTERSECTOR::get_of_type
+(const std::vector<std::string>& types, PyObject* arr, K_FLD::FloatArray& f1, bool only_coords, K_FLD::IntArray& cn1, char*& varString, char*& eltType)
+{
+  E_Int ni, nj, nk;
+  
+  E_Int res = K_ARRAY::getFromArray(arr, varString, f1, ni, nj, nk, cn1, eltType);
+
+  //std::cout << "eltType ???????" << eltType << std::endl;
+     
+  bool err = (res !=2);
+
+  for (size_t i=0; (i < types.size()) && !err; ++i)
+    err |= (strcmp(eltType, types[i].c_str()) != 0);
+
+  if (err)
+  {
+    std::stringstream o;
+    o << "input error : invalid array, must be a ";
+    for (size_t i=0; i < types.size()-1; ++i){
+      o << types[i] << ",";
+    }
+    o << types[types.size()-1] << "array." ;
+    PyErr_SetString(PyExc_TypeError, o.str().c_str());//fixme triangulateExteriorFaces : PASS A STRING AS INPUT
+    //delete f1; delete cn1;
+    //f1 = nullptr; cn1 = nullptr;
+    return 1;
+  }
+
+  // Check coordinates.
+  E_Int pos[3];
+  pos[0] = K_ARRAY::isCoordinateXPresent(varString);
+  pos[1] = K_ARRAY::isCoordinateYPresent(varString);
+  pos[2] = K_ARRAY::isCoordinateZPresent(varString);
+
+  if ((pos[0] == -1) || (pos[1] == -1) || (pos[2] == -1))
+  {
+    PyErr_SetString(PyExc_TypeError, "input error : can't find coordinates in array.");//fixme  conformUnstr
+    //delete f1; delete cn1;
+    //f1 = nullptr; cn1 = nullptr;
+    return 1;
+  }
+
+  if (pos[0] == 0 && pos[1] == 1 && pos[2] == 2) only_coords = false; //nothing to do
+
+  if (only_coords)
+  {
+    E_Int npts = f1.cols();
+    K_FLD::FloatArray crd(3, npts);
+    for (E_Int i = 0; i < npts; ++i)
+    {
+      for (size_t k=0; k < 3; ++k)
+        crd(k, i) = f1(pos[k], i);
+    }
+    f1 = std::move(crd);
+    //std::cout << "COORDS : " << f1.rows() << std::endl;
+  }
+  //else
+  	//std::cout << " U COORDS : " << f1.rows() << std::endl;
+  
+  return 0;
+}
+
+E_Int K_INTERSECTOR::check_is_NGON(PyObject* arr, K_FLD::FloatArray*& f1, K_FLD::IntArray*& cn1, char*& varString, char*& eltType)
+{
+  std::vector<std::string> types;
+  types.push_back("NGON");
+  return check_is_of_type(types, arr, f1, cn1, varString, eltType);
+}
+
+E_Int K_INTERSECTOR::getFromNGON(PyObject* arr, K_FLD::FloatArray& f1, bool only_coords, K_FLD::IntArray& cn1, char*& varString, char*& eltType)
+{
+  std::vector<std::string> types;
+  types.push_back("NGON");
+  return get_of_type(types, arr, f1, only_coords, cn1, varString, eltType);
+}
+
+E_Int K_INTERSECTOR::check_is_BAR(PyObject* arr, K_FLD::FloatArray*& f1, K_FLD::IntArray*& cn1, char*& varString, char*& eltType)
+{
+  std::vector<std::string> types;
+  types.push_back("BAR");
+  return check_is_of_type(types, arr, f1, cn1, varString, eltType);
+}
+
+E_Int K_INTERSECTOR::getFromBAR(PyObject* arr, K_FLD::FloatArray& f1, bool only_coords, K_FLD::IntArray& cn1, char*& varString, char*& eltType)
+{
+  std::vector<std::string> types;
+  types.push_back("BAR");
+  return get_of_type(types, arr, f1, only_coords, cn1, varString, eltType);
+}
+
+E_Int K_INTERSECTOR::check_is_BASICF(PyObject* arr, K_FLD::FloatArray*& f1, K_FLD::IntArray*& cn1, char*& varString, char*& eltType)
+{
+  std::vector<std::string> types;
+  types.push_back("TRI");
+  types.push_back("QUAD");
+  return check_is_of_type(types, arr, f1, cn1, varString, eltType);
 }

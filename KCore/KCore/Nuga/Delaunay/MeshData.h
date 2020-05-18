@@ -30,7 +30,7 @@ namespace DELAUNAY
     typedef K_CONT_DEF::int_vector_type  int_vector_type;
     typedef K_CONT_DEF::bool_vector_type bool_vector_type;
     
-    MeshData():pos(0), connectB(0), unsync_nodes(false){hnids.clear();};
+    MeshData():pos(0), connectB(0), unsync_nodes(false), mono_connex(false){hnids.clear();};
 
     MeshData(K_FLD::FloatArray& p, const K_FLD::IntArray& cB):pos(&p),connectB(&cB), unsync_nodes(false)
     {
@@ -48,7 +48,8 @@ namespace DELAUNAY
       metrics.clear();
       mask.clear();
       hnids.clear();
-      unsync_nodes=false;
+      unsync_nodes = false;
+      mono_connex = false;
     }
     
     ///
@@ -80,6 +81,7 @@ namespace DELAUNAY
     int_vector_type            hardNodes;
     bool                       unsync_nodes;
     int_vector_type            hnids;
+    bool                       mono_connex;
   
     K_CONT_DEF::non_oriented_edge_set_type hardEdges;
     K_FLD::IntArray            connectM;

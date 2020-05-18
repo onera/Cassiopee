@@ -24,10 +24,40 @@
 
 namespace NUGA
 {
-///
-template<E_Int DIM>
-BAR_Conformizer<DIM>::BAR_Conformizer() : Conformizer<DIM, K_MESH::Edge>()
-{}
+
+///  
+template <E_Int DIM>
+std::vector<int> BAR_Conformizer<DIM>::get_x_history()
+{
+  std::vector<int> xhis;
+  size_t nb_edges = parent_type::_elements.size();
+  int maxid = -1;
+  for (size_t i = 0; i < nb_edges; ++i)
+  {
+    E2& e = parent_type::_elements[i];
+    size_t sz = e.nodes.size();
+    if (sz == 0)
+      continue;
+    maxid = std::max(maxid, *std::max_element(ALL(e.nodes)));
+  }
+  
+  xhis.resize(maxid+1, E_IDX_NONE);
+
+  for (size_t i = 0; i < nb_edges; ++i)
+  {
+    E2& e = parent_type::_elements[i];
+    size_t sz = e.nodes.size();
+    if (sz == 0)
+      continue;
+    for (size_t j = 0; j < sz; ++j)
+    {
+      int xid = e.nodes[j];
+      if (xhis[xid] == E_IDX_NONE) xhis[xid] = e.id; // keep first (prior to lower ids)
+    }
+  }
+
+  return xhis;
+}
 
 ///
 template <E_Int DIM>
@@ -124,6 +154,8 @@ void
 BAR_Conformizer<DIM>::__update_data
 (const K_FLD::FloatArray& pos, const K_FLD::IntArray& connect, const std::vector<E_Int>& newIDs)
 {
+  if (newIDs.empty()) return;
+
   std::set<E_Int> pool;
   E_Int nb_edges = parent_type::_elements.size();
   for (E_Int i = 0; i < nb_edges; ++i)

@@ -30,9 +30,10 @@
 #include "Nuga/include/xcelln.hxx"
 
 // //#define FLAG_STEP
-// #define DEBUG_XCELLN
+//#define DEBUG_XCELLN
+//#define CLASSIFYER_DBG
 
-#ifdef DEBUG_XCELLN
+#if defined(DEBUG_XCELLN) || defined(CLASSIFYER_DBG)
 #include "Nuga/include/medit.hxx"
 // #include "Nuga/Boolean/NGON_debug.h"
 // using NGDBG  = NGON_debug<K_FLD::FloatArray, K_FLD::IntArray>;
@@ -48,9 +49,9 @@ using bmesh_t = NUGA::edge_mesh_t;
 template<typename classifyer_t>
 void
 pyMOVLP_XcellNSurf
-(const std::vector<K_FLD::FloatArray*> &crds, const std::vector<K_FLD::IntArray*>& cnts,
+(const std::vector<K_FLD::FloatArray> &crds, const std::vector<K_FLD::IntArray>& cnts,
   const std::vector<E_Int>& comp_id, std::vector<std::pair<E_Int, E_Int>> & priority,
-  const std::vector<K_FLD::FloatArray*> &mask_crds, const std::vector<K_FLD::IntArray*>& mask_cnts,
+  const std::vector<K_FLD::FloatArray> &mask_crds, const std::vector<K_FLD::IntArray>& mask_cnts,
   std::vector< std::vector<E_Int>> &mask_wall_ids,
   E_Float RTOL, char* varString, char* eltType, PyObject* l)
 {
@@ -67,7 +68,7 @@ pyMOVLP_XcellNSurf
     //std::cout << "size of xcelln for zone " << i << ": " << sz << std::endl;
     K_FLD::FloatArray xcellno(1, sz);
     for (E_Int j = 0; j < sz; ++j)xcellno(0, j) = xcelln[i][j];
-    PyObject* tpl = K_ARRAY::buildArray(xcellno, varString, *cnts[i], -1, eltType, false);
+    PyObject* tpl = K_ARRAY::buildArray(xcellno, varString, cnts[i], -1, eltType, false);
     //tpl = K_NUMPY::buildNumpyArray(&xcelln[i][0], xcelln[i].size(), 1, 0);
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
@@ -78,9 +79,9 @@ pyMOVLP_XcellNSurf
 template<>
 void
 pyMOVLP_XcellNSurf<NUGA::xcellno<zmesh_t, bmesh_t>>
-(const std::vector<K_FLD::FloatArray*> &crds, const std::vector<K_FLD::IntArray*>& cnts,
+(const std::vector<K_FLD::FloatArray> &crds, const std::vector<K_FLD::IntArray>& cnts,
   const std::vector<E_Int>& comp_id, std::vector<std::pair<E_Int, E_Int>> & priority,
-  const std::vector<K_FLD::FloatArray*> &mask_crds, const std::vector<K_FLD::IntArray*>& mask_cnts,
+  const std::vector<K_FLD::FloatArray> &mask_crds, const std::vector<K_FLD::IntArray>& mask_cnts,
   std::vector< std::vector<E_Int>> &mask_wall_ids,
   E_Float RTOL, char* varString, char* eltType, PyObject* l)
 {
@@ -105,14 +106,17 @@ pyMOVLP_XcellNSurf<NUGA::xcellno<zmesh_t, bmesh_t>>
 
     // 2. history
     //std::cout << "history : " << xmesh[i].mesh.flag.size()  << std::endl;
-    //std::vector<E_Int> oids(xmesh[i].mesh.cnt.size(), E_IDX_NONE);
-    //for (size_t j = 0; j < oids.size(); ++j) oids[j] = xmesh[i].mesh.flag[j];
+    std::vector<E_Int> oids(xmesh[i].mesh.cnt.size(), E_IDX_NONE);
+    for (size_t j = 0; j < oids.size(); ++j) oids[j] = xmesh[i].mesh.flag[j];
+
+    //E_Int minf = *std::min_element(ALL(xmesh[i].mesh.flag));
+    //E_Int maxf = *std::max_element(ALL(xmesh[i].mesh.flag));
     
-    //std::cout << "buildArray histo" << std::endl;
+    //std::cout << "buildArray histo : " << minf << "/" << maxf << std::endl;
     // pushing out PG history
-    //tpl = K_NUMPY::buildNumpyArray(&oids[0], oids.size(), 1, 0);
-    //PyList_Append(l, tpl);
-    //Py_DECREF(tpl);
+    tpl = K_NUMPY::buildNumpyArray(&oids[0], oids.size(), 1, 0);
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
   }
 }
 
@@ -130,7 +134,7 @@ PyObject* K_INTERSECTOR::XcellNSurf(PyObject* self, PyObject* args)
   E_Int nb_priority_pairs = PyList_Size(priorities);
   //E_Int nb_wall_sets = PyList_Size(wall_ids);
 
-  //std::cout << "zones/masks/wallids/prior_pairs/base_num/binary/colX : " << nb_zones << "/" << nb_masks << "/" << nb_wall_sets << "/" << nb_priority_pairs << "/" << nb_basenum << "/" << binary_mode << "/" << col_X << std::endl;
+  //std::cout << "nb_zones/nb_basenum/nb_masks/nb_priority_pairs/output_type : " << nb_zones << "/" << nb_basenum << "/" << nb_masks << "/" << nb_priority_pairs << "/" << output_type << std::endl;
 
   if (nb_zones != nb_basenum)
   {
@@ -140,9 +144,9 @@ PyObject* K_INTERSECTOR::XcellNSurf(PyObject* self, PyObject* args)
       return NULL;
   }
   
-  std::vector<K_FLD::FloatArray*> crds(nb_zones, nullptr), mask_crds(nb_masks, nullptr);
-  std::vector<K_FLD::IntArray*>   cnts(nb_zones, nullptr), mask_cnts(nb_masks, nullptr);
-  std::vector<std::vector<E_Int>>                          mask_wall_ids(nb_masks);
+  std::vector<K_FLD::FloatArray> crds(nb_zones), mask_crds(nb_masks);
+  std::vector<K_FLD::IntArray>   cnts(nb_zones), mask_cnts(nb_masks);
+  std::vector<std::vector<E_Int>>                mask_wall_ids(nb_masks);
 
   std::vector<std::pair<E_Int, E_Int>> priority;
   std::vector<E_Int> comp_id;
@@ -157,7 +161,7 @@ PyObject* K_INTERSECTOR::XcellNSurf(PyObject* self, PyObject* args)
     //std::cout << "getting zone in list : " << i << std::endl;
     PyObject* py_zone = PyList_GetItem(zones, i);
 
-    err = check_is_NGON(py_zone, crds[i], cnts[i], z_varString, z_eltType);
+    err = getFromNGON(py_zone, crds[i], false, cnts[i], z_varString, z_eltType);
   }
 
   // get the masks
@@ -166,7 +170,7 @@ PyObject* K_INTERSECTOR::XcellNSurf(PyObject* self, PyObject* args)
   {
     PyObject* py_mask = PyList_GetItem(masks, i);
 
-    err = check_is_BAR(py_mask, mask_crds[i], mask_cnts[i], msk_varString, msk_eltType);
+    err = getFromBAR(py_mask, mask_crds[i], false, mask_cnts[i], msk_varString, msk_eltType);
     //std::cout << "mask sizes : " << mask_crds[i]->cols() << " points" << std::endl;
     //std::cout << "mask sizes : " << mask_cnts[i]->cols() << " cells" << std::endl;
   }
@@ -186,21 +190,7 @@ PyObject* K_INTERSECTOR::XcellNSurf(PyObject* self, PyObject* args)
     }
   }
 
-  if (err)
-  {
-    for (E_Int i=0; i < nb_zones; ++i)
-    {
-      delete crds[i];
-      delete cnts[i];
-    }
-    for (E_Int i=0; i < nb_masks; ++i)
-    {
-      delete mask_crds[i];
-      delete mask_cnts[i];
-    }
-
-    return nullptr;
-  }
+  if (err) return nullptr;
 
   // get the priority pairs
   for (E_Int i=0; i < nb_priority_pairs; ++i)
@@ -235,19 +225,8 @@ PyObject* K_INTERSECTOR::XcellNSurf(PyObject* self, PyObject* args)
     pyMOVLP_XcellNSurf<NUGA::masker<zmesh_t, bmesh_t>>(crds, cnts, comp_id, priority, mask_crds, mask_cnts, mask_wall_ids, RTOL, "xcelln", z_eltType, l);
   else if (output_type == 1)
     pyMOVLP_XcellNSurf<NUGA::xcellnv<zmesh_t, bmesh_t>>(crds, cnts, comp_id, priority, mask_crds, mask_cnts, mask_wall_ids, RTOL, "xcelln", z_eltType, l);
-  else if (output_type == 2)
+  else if (output_type == 2)    
     pyMOVLP_XcellNSurf<NUGA::xcellno<zmesh_t, bmesh_t>>(crds, cnts, comp_id, priority, mask_crds, mask_cnts, mask_wall_ids, RTOL, z_varString, z_eltType, l);
-
-  for (E_Int i=0; i < nb_zones; ++i)
-  {
-    delete crds[i];
-    delete cnts[i];
-  }
-  for (E_Int i=0; i < nb_masks; ++i)
-  {
-    delete mask_crds[i];
-    delete mask_cnts[i];
-  }
 
   return l;
 

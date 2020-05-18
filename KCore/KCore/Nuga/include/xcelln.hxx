@@ -40,6 +40,7 @@ namespace NUGA
       z_mesh.get_nodal_tolerance();
 
       outdata_t xcelln(ncells, OUT);
+      if (mask_bits.empty()) return xcelln;// completely visible
 
       std::vector<int> cands;
       std::vector<aelt_t> bits, tmpbits; // one clip can produce several bits
@@ -97,8 +98,6 @@ namespace NUGA
       E_Int ncells = z_mesh.ncells();
       assert(ncells == wdata.size());
 
-      z_mesh.get_nodal_tolerance();
-
       outdata_t xmesh;
 
       std::vector<bool> keep(ncells, false);
@@ -111,9 +110,12 @@ namespace NUGA
 
       xmesh.mesh = z_mesh;
       K_CONNECT::IdTool::init_inc(xmesh.mesh.flag, xmesh.mesh.ncells()); // for history
-      xmesh.mesh.compress(keep);
+      xmesh.mesh.compress(keep);//contains now only non-X elements
 
       xmesh.full_out = (ncells == xmesh.mesh.ncells());
+      if (xmesh.full_out) return xmesh;
+
+      z_mesh.get_nodal_tolerance();
 
       std::vector<int> cands;
       std::vector<aelt_t> bits, tmpbits; // one clip can produce several bits
@@ -180,11 +182,7 @@ namespace NUGA
       max_comp_id = std::max(max_comp_id, it->first);
       max_comp_id = std::max(max_comp_id, it->second);
     }
-
-    E_Int nb_comps = max_comp_id + 1;
-
-    decrease_prior_per_comp.clear();
-    rank_wnps.resize(nb_comps, 0);
+    rank_wnps.resize(max_comp_id + 1, 0);
 
     // // 1. CLEANING INPUT (discard redundancy & bilateral)
     std::set<no_ii_pair_t> upairs;
@@ -202,6 +200,8 @@ namespace NUGA
 
     // // 2. 
     // // store the priors per comp
+    decrease_prior_per_comp.clear();
+  
     for (size_t i = 0; i < clean_priority.size(); ++i)
     {
       E_Int Lcompid = clean_priority[i].first;
@@ -211,17 +211,9 @@ namespace NUGA
 
       decrease_prior_per_comp[Lcompid].push_back(Rcompid);
       ++rank_wnps[Lcompid];
-
-      decrease_prior_per_comp[Rcompid].push_back(Lcompid); //opposite pair : for considering WNPs
     }
 
-    // IntVec all_comps;
-    // for (auto it = decrease_prior_per_comp.begin(); it != decrease_prior_per_comp.end(); ++it)
-    //   all_comps.push_back(it->first);
-
     aIsLessThanb pred(decrease_prior_per_comp);
-    rank_wnps.resize(1 + decrease_prior_per_comp.rbegin()->first, 0); //sized as the max comp num
-
     E_Int i = 0;
     for (auto it = decrease_prior_per_comp.begin(); it != decrease_prior_per_comp.end(); ++it, ++i)
     {
@@ -229,6 +221,14 @@ namespace NUGA
       std::sort(ALL(it->second), pred);
       std::reverse(ALL(it->second)); // WARNING DECREASING PRIORITY DONE HERE
       //std::cout << "WNP rank for comp " << it->first << " is " << rank_wnps[compid] << std::endl;
+    }
+
+    // append with opposite pairs for considering WNPS
+    for (size_t i = 0; i < clean_priority.size(); ++i)
+    {
+      E_Int Lcompid = clean_priority[i].first;
+      E_Int Rcompid = clean_priority[i].second;
+      decrease_prior_per_comp[Rcompid].push_back(Lcompid);
     }
   }
 
@@ -239,9 +239,9 @@ namespace NUGA
 
   ///
   template <typename classifyer_t> inline 
-  void MOVLP_xcelln_1zone(K_FLD::FloatArray& z_crd, K_FLD::IntArray& z_cnt,
+  E_Int MOVLP_xcelln_1zone(const K_FLD::FloatArray& z_crd, const K_FLD::IntArray& z_cnt,
     const IntVec& z_priorities, E_Int rank_wnp,
-    const std::vector<K_FLD::FloatArray*> &mask_crds, const std::vector<K_FLD::IntArray*>& mask_cnts,
+    const std::vector<K_FLD::FloatArray> &mask_crds, const std::vector<K_FLD::IntArray>& mask_cnts,
     std::vector< std::vector<E_Int>> &mask_wall_ids,
     typename classifyer_t::outdata_t& z_xcelln, E_Float RTOL)
   {
@@ -251,18 +251,20 @@ namespace NUGA
 
     std::vector<bmesh_t*> mask_meshes;
     classs.prepare(z_mesh, mask_crds, mask_cnts, mask_wall_ids, z_priorities, rank_wnp, mask_meshes);
-    classs.compute(z_mesh, mask_meshes, z_xcelln);
-    classs.finalize(z_xcelln); //replace IN/OUT with 0./1.
+    E_Int err = classs.compute(z_mesh, mask_meshes, z_xcelln);
+    if(!err) classs.finalize(z_xcelln); //replace IN/OUT with 0./1.
 
     for (size_t u = 0; u < mask_meshes.size(); ++u)
       delete mask_meshes[u];
+
+    return err;
   }
 
   ///
   template <typename classifyer_t> inline
-  void MOVLP_xcelln_zones(const std::vector<K_FLD::FloatArray*> &crds, const std::vector<K_FLD::IntArray*>& cnts,
+  void MOVLP_xcelln_zones(const std::vector<K_FLD::FloatArray> &crds, const std::vector<K_FLD::IntArray>& cnts,
     const std::vector<E_Int>& comp_id, std::vector<std::pair<E_Int, E_Int>> & priority,
-    const std::vector<K_FLD::FloatArray*> &mask_crds, const std::vector<K_FLD::IntArray*>& mask_cnts,
+    const std::vector<K_FLD::FloatArray> &mask_crds, const std::vector<K_FLD::IntArray>& mask_cnts,
     std::vector< std::vector<E_Int>> &mask_wall_ids,
     std::vector<typename classifyer_t::outdata_t > & xcelln, E_Float RTOL)
   {
@@ -273,7 +275,7 @@ namespace NUGA
 
     E_Int nb_zones = crds.size();
 
-    xcelln.resize(nb_zones); // xcelln can beclipped mesh
+    xcelln.resize(nb_zones); // xcelln can be clipped mesh
 
 #ifndef NETBEANSZ
 //#pragma omp parallel for
@@ -285,10 +287,15 @@ namespace NUGA
       auto it = sorted_comps_per_comp.find(comp_id[z]);
       if (it == sorted_comps_per_comp.end()) continue;
 
+      //std::cout << "list : ";
+      //for (size_t u = 0; u < it->second.size(); ++u)std::cout << it->second[u] << "/";
+      //std::cout << std::endl;
+
       E_Int z_rank_wnp = rank_wnps[it->first];
       IntVec& z_priorities = it->second;
       
-      MOVLP_xcelln_1zone<classifyer_t>(*crds[z], *cnts[z], z_priorities, z_rank_wnp, mask_crds, mask_cnts, mask_wall_ids, xcelln[z], RTOL);
+      E_Int err = MOVLP_xcelln_1zone<classifyer_t>(crds[z], cnts[z], z_priorities, z_rank_wnp, mask_crds, mask_cnts, mask_wall_ids, xcelln[z], RTOL);
+      if (err) break;
     }
   }
 

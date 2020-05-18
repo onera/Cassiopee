@@ -139,6 +139,11 @@ struct aPolygon : public K_MESH::Polygon
   {
     parent_type::normal<K_FLD::FloatArray, DIM>(m_crd, norm);
   }
+
+  template <short DIM> void centroid(double* G) const
+  {
+    parent_type::centroid<DIM>(m_crd, _nodes, _nb_nodes, 0, G);
+  }
   
   template <typename TriangulatorType>
   E_Int triangulate(const TriangulatorType& dt) const

@@ -362,7 +362,6 @@ void ngon_unit::extract_by_predicate (const Predicate_t& P, ngon_unit& ngo, Vect
   
 }
 
-#ifdef DEBUG_BOOLEAN
 #include <iostream>
 inline std::ostream &operator<<(std::ostream& out, const ngon_unit& ng)
 {
@@ -398,7 +397,7 @@ inline std::ostream &operator<<(std::ostream& out, const ngon_unit& ng)
   
   return out;
 }
-#endif
+
 
 #endif	/* __NGON_UNIT_H__ */
 

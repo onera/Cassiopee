@@ -35,9 +35,12 @@ public :
   typedef Conformizer<DIM, K_MESH::Edge>  parent_type;
   
 public:
-  BAR_Conformizer();
+  BAR_Conformizer(bool whisto = false) :parent_type(whisto) {}
+
   virtual ~BAR_Conformizer(){}
   
+  std::vector<int> get_x_history();
+
   // Overridden Methods ///////////////////////////////////////////////////////
 
 protected:

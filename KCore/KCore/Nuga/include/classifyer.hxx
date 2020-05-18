@@ -15,6 +15,10 @@
 #include "Nuga/include/selector.hxx"
 #include "Nuga/include/collider.hxx"
 
+#ifdef CLASSIFYER_DBG
+#include "Nuga/include/medit.hxx"
+#endif
+
 #define TEMPLATE_TYPES template<eXPolicy POLICY, typename zmesh_t, typename bound_mesh_t>
 #define TEMPLATE_CLASS classifyer<POLICY, zmesh_t, bound_mesh_t>
 
@@ -94,13 +98,13 @@ namespace NUGA
     classifyer(double RTOL):_RTOL(RTOL) {}
 
     void prepare(zmesh_t & z_mesh,
-                 const std::vector<K_FLD::FloatArray*> &mask_crds,
-                 const std::vector<K_FLD::IntArray*>& mask_cnts,
+                 const std::vector<K_FLD::FloatArray> &mask_crds,
+                 const std::vector<K_FLD::IntArray>& mask_cnts,
                  std::vector< std::vector<E_Int> > &mask_wall_ids,
                  const std::vector<E_Int>& z_priorities, E_Int rank_wnp,
                  std::vector< bound_mesh_t*> & mask_bits);
 
-    void compute(zmesh_t const & z_mesh, std::vector< bound_mesh_t*> const & mask_bits, outdata_t& outdata);
+    E_Int compute(zmesh_t const & z_mesh, std::vector< bound_mesh_t*> const & mask_bits, outdata_t& outdata);
 
     void finalize(outdata_t& outdata);
 
@@ -111,8 +115,8 @@ namespace NUGA
     void __compact_to_box(zmesh_t const & z_mesh, std::vector< bound_mesh_t*> & mask_bits,
                           std::vector< std::vector<E_Int> > &mask_wall_ids);
 
-    void __build_mask_bits(const std::vector<K_FLD::FloatArray*> &mask_crds,
-                           const std::vector<K_FLD::IntArray*>& mask_cnts,
+    void __build_mask_bits(const std::vector<K_FLD::FloatArray> &mask_crds,
+                           const std::vector<K_FLD::IntArray>& mask_cnts,
                            std::vector< std::vector<E_Int> > &mask_wall_ids,
                            const std::vector<E_Int>& z_priorities, E_Int rank_wnp,
                            std::vector< bound_mesh_t*> & mask_bits);
@@ -121,7 +125,7 @@ namespace NUGA
 
     bool __flag_colliding_cells(zmesh_t const & z_mesh, std::vector< bound_mesh_t*> const & mask_bits, E_Int im, wdata_t& wdata);
 
-    void __flag_hidden_subzones(zmesh_t const & z_mesh, bound_mesh_t const & mask_bit, wdata_t& wdata);
+    E_Int __flag_hidden_subzones(zmesh_t const & z_mesh, bound_mesh_t const & mask_bit, wdata_t& wdata);
 
   protected:
     double _RTOL;
@@ -132,9 +136,9 @@ namespace NUGA
   namespace CLASSIFY // some "global" functions : they do not need all the template params ofthe classifyer class
   {
     template <typename T1, typename T2>
-    static eClassify classify(T1 const& t1, T2 const& t2);
+    static eClassify classify(T1 const& t1, T2 const& t2, bool reversed_t2, bool deep);
 
-    template <>
+    /*template <>
     eClassify classify(typename K_MESH::aEdge const & e1, typename K_MESH::aEdge const & e2)
     {
       E_Float threshold = 0.75;//decide only with roughly colinear
@@ -150,17 +154,15 @@ namespace NUGA
       if (::fabs(ps) < threshold) return AMBIGUOUS;
 
       return (ps < 0.) ? IN : OUT;
-    }
+    }*/
 
     template <>
-    eClassify classify(NUGA::aPolygon const& ae1, edge_mesh_t const& front)
+    eClassify classify(NUGA::aPolygon const& ae1, edge_mesh_t const& front, bool reversed_front, bool deep)
     {
-      eClassify res(IN);
-
       const double* norm = ae1.get_normal();
       const double* pt = ae1.get_centroid();
 
-      double nn[] = { 0., 0., 0. };
+      E_Int sign(0);
 
       for (E_Int i = 0; i < front.ncells(); ++i)
       {
@@ -169,20 +171,82 @@ namespace NUGA
         K_FUNC::diff<3>(front.crd.col(front.cnt(1, i)), pt, v2);
 
         K_FUNC::crossProduct<3>(v1, v2, v);
-        nn[0] += v[0]; nn[1] += v[1]; nn[2] += v[2];
+        K_FUNC::normalize<3>(v);
+
+        double psi = K_FUNC::dot<3>(norm, v);
+        E_Int sigpsi = zSIGN(psi, E_EPSILON);
+
+        if (sigpsi == 0) //AMBIGUOUS
+        {
+          sign = 0;
+          break;
+        }
+
+        if (sign == 0) sign = sigpsi;
+        else if (sign*sigpsi < 0) // AMBIGUOUS
+        {
+          sign = 0;
+          break;
+        }
       }
 
-      E_Float ps = K_FUNC::dot<3>(norm, nn);
-      if (ps < 0.) res = OUT;
-      return res;
+      if (sign == 0) // AMBIGUOUS => deeper test to valuate sign based on visibility
+      {
+        if (!deep) return AMBIGUOUS;
+
+        // pick randomly an edge, for the ray(GC) from its mid point to the centroid of ae1
+        int i = std::rand() % front.ncells();
+        double C[3], G[3], norm[3];
+        K_FUNC::sum<3>(0.5, front.crd.col(front.cnt(0, i)), 0.5, front.crd.col(front.cnt(1, i)), C);
+        ae1.centroid<3>(G);
+        ae1.normal<3>(norm);
+
+        // get the visible edge : since we are 3D, we use plane containing the edge and norm
+        double lambda_min(K_CONST::E_MAX_FLOAT), R[3];
+        for (size_t j = 0; j < front.ncells(); ++j)
+        {
+          const double * P = front.crd.col(front.cnt(0, j));
+          const double * Q = front.crd.col(front.cnt(1, j));
+          K_FUNC::sum<3>(Q, norm, R);
+
+          double lambda, UV[2], min_d;
+          E_Bool parallel, coincident;
+          K_MESH::Triangle::planeLineMinDistance<3>(P, Q, R, G, C, E_EPSILON, true, lambda, UV, parallel, coincident, min_d, true/*strict*/);
+
+          if (lambda < lambda_min)
+          {
+            // is G above or under the plane ?
+            double PQ[3], pnorm[3], ray[3];
+            K_FUNC::diff<3>(Q, P, PQ);
+            K_FUNC::crossProduct<3>(PQ, norm, pnorm);
+            K_FUNC::diff<3>(C, G, ray);
+            double ps = K_FUNC::dot<3>(ray, pnorm);
+            sign = zSIGN(ps, E_EPSILON); // >0 means under
+            lambda_min = lambda;
+          }
+        }
+      }
+
+      assert(sign);
+
+      if (sign < 0)
+      {
+        if (!reversed_front) return OUT;
+        else return IN;
+      }
+      else
+      {
+        if (!reversed_front) return IN;
+        else return OUT;
+      }
     }
   };
 
   ///
   TEMPLATE_TYPES
   void TEMPLATE_CLASS::prepare
-  (zmesh_t & z_mesh, const std::vector<K_FLD::FloatArray*> &mask_crds,
-   const std::vector<K_FLD::IntArray*>& mask_cnts,
+  (zmesh_t & z_mesh, const std::vector<K_FLD::FloatArray> &mask_crds,
+   const std::vector<K_FLD::IntArray>& mask_cnts,
    std::vector< std::vector<E_Int> > &mask_wall_ids,
    const std::vector<E_Int>& z_priorities, E_Int rank_wnp,
    std::vector< bound_mesh_t*> & mask_bits)
@@ -194,7 +258,7 @@ namespace NUGA
     // build mask data structures (mesh object) : WP are discarded. Putting first decreasing OP, then remaining WNP
     __build_mask_bits(mask_crds, mask_cnts, mask_wall_ids, z_priorities, rank_wnp, mask_bits);
 
-#ifdef DEBUG_XCELLN
+#ifdef CLASSIFYER_DBG
     for (size_t m = 0; m < mask_bits.size(); ++m) {
       std::ostringstream o;
       o << "mask1a_" << m;
@@ -206,7 +270,7 @@ namespace NUGA
     // reduce masks to pieces in zone box : TO REMOVE IF DONE BEFORE IN THE PYTHON
     __compact_to_box(z_mesh, mask_bits, mask_wall_ids);
 
-#ifdef DEBUG_XCELLN
+#ifdef CLASSIFYER_DBG
     for (size_t m = 0; m < mask_bits.size(); ++m) {
       std::ostringstream o;
       o << "mask1b_" << m;
@@ -220,7 +284,7 @@ namespace NUGA
     // 3. discarding overlap boundaries of mask (not required anymore, neither to blank, nor to clip)
     //__process_overlapping_boundaries(z_mesh, mask_bits, rank_wnp, RTOL);
 
-#ifdef DEBUG_XCELLN
+#ifdef CLASSIFYER_DBG
     std::cout << "PREP_build_structures_and_reduce_to_zone : 5" << std::endl;
 #endif
     // now we have reduced the meshes to the useful part, create & add localizers
@@ -230,7 +294,7 @@ namespace NUGA
 
   ///
   TEMPLATE_TYPES
-  void TEMPLATE_CLASS::compute
+  E_Int TEMPLATE_CLASS::compute
   (zmesh_t const & z_mesh, std::vector< bound_mesh_t*> const & mask_bits, outdata_t& outdata)
   {
     E_Int ncells(z_mesh.ncells());
@@ -252,6 +316,8 @@ namespace NUGA
 
     // set col_X color (collision mode) or polyclip (xcelln mode)
     outdata = this->__process_X_cells(z_mesh, mask_bits, wdata);
+
+    return 0;
   }
   
   ///
@@ -300,7 +366,7 @@ namespace NUGA
   ///
   TEMPLATE_TYPES
   void TEMPLATE_CLASS::__build_mask_bits
-  (const std::vector<K_FLD::FloatArray*> &mask_crds, const std::vector<K_FLD::IntArray*>& mask_cnts,
+  (const std::vector<K_FLD::FloatArray> &mask_crds, const std::vector<K_FLD::IntArray>& mask_cnts,
    std::vector< std::vector<E_Int> > &mask_wall_ids,
    const std::vector<E_Int>& z_priorities, E_Int rank_wnp, std::vector< bound_mesh_t*> & mask_bits)
   {
@@ -325,7 +391,7 @@ namespace NUGA
       
       //std::cout << "__build_mask_bits : 1 "  << std::endl;
 
-  	  bound_mesh_t* bit = new bound_mesh_t(*mask_crds[compi], *mask_cnts[compi]);
+  	  bound_mesh_t* bit = new bound_mesh_t(mask_crds[compi], mask_cnts[compi]);
       
   	  int nbcells = bit->ncells();
       
@@ -342,7 +408,7 @@ namespace NUGA
 
       //std::cout << "__build_mask_bits : 4 "  << std::endl;
 
-#ifdef DEBUG_XCELLN
+#ifdef CLASSIFYER_DBG
     {
       std::ostringstream o;
       o << "mask_0_" << i;
@@ -377,7 +443,7 @@ namespace NUGA
       
       //std::cout << "mask rank : " << mask_bits.size() -1 << std::endl;
 
-#ifdef DEBUG_XCELLN
+#ifdef CLASSIFYER_DBG
     {
       //std::cout << "ouput mask_1_ " << i << std::endl;
       std::ostringstream o;
@@ -402,7 +468,7 @@ namespace NUGA
     std::vector<E_Int> ancestor;
   	z_mesh.get_boundary(zbound, ancestor);
 
-#ifdef DEBUG_XCELLN
+#ifdef CLASSIFYER_DBG
     {
       std::ostringstream o;
       o << "m";
@@ -423,7 +489,7 @@ namespace NUGA
       is_x1.clear();
       is_x2.clear();
 
-#ifdef DEBUG_XCELLN
+#ifdef CLASSIFYER_DBG
     {
       std::ostringstream o;
       o << "mask_" << m;
@@ -473,7 +539,7 @@ namespace NUGA
     
    mask_bits = remaining_masks;
 
-#ifdef DEBUG_XCELLN
+#ifdef CLASSIFYER_DBG
     if (has_abut_ovlp)
     {
       std::cout << "has ABUTTING/OVERSET" << std::endl;
@@ -493,7 +559,7 @@ namespace NUGA
 
     bound_mesh_t const & mask_bit = *(mask_bits[im]);
     
-#ifdef DEBUG_XCELLN
+#ifdef CLASSIFYER_DBG
       medith::write<>("currentz", z_mesh.crd, z_mesh.cnt);
       medith::write<>("currentm", mask_bit.crd, mask_bit.cnt);
 #endif
@@ -517,41 +583,40 @@ namespace NUGA
       auto ae1 = z_mesh.aelement(i);
 
       cands.clear();
-      mask_loc.get_candidates(ae1, ae1.m_crd, cands, 1); //return as 0-based (fixme for volumic, was 1-based)
+      mask_loc.get_candidates(ae1, ae1.m_crd, cands, 1, _RTOL); //return as 0-based (fixme for volumic, was 1-based)
       if (cands.empty()) continue;
-   
-#ifdef DEBUG_XCELLN
-     //NGDBG::draw_PGs("shape", crdp, *skinp, candsp);
-      medith::write<ngon_type>("subj", z_mesh.crd, z_mesh.cnt, i);
-      medith::write("cutter_front", mask_bit.crd, mask_bit.cnt, cands, 1);
-#endif
 
-      E_Int cid;
-      bool is_x = NUGA::COLLIDE::are_colliding (ae1, mask_bit, cands, 1, cid, _RTOL);
+      bool is_x = NUGA::COLLIDE::get_colliding (ae1, mask_bit, cands, 1, _RTOL, true/*returns at first found*/);
+
+#ifdef CLASSIFYER_DBG
+      //NGDBG::draw_PGs("shape", crdp, *skinp, candsp);
+      medith::write<ngon_type>("subj", z_mesh.crd, z_mesh.cnt, i);
+      medith::write("first_x", mask_bit.crd, mask_bit.cnt, cands, 1);
+#endif
       
-      if (is_x)
+      if (is_x) // cands[0] contains the first found
       {
         data_trait<POLICY, zmesh_t>::mark_cell_w_mask(data, i, im);
-        z_mesh.set_flag(i, cands[cid]);
+        //z_mesh.set_flag(i, cands[0]);
       }
       
       has_X |= is_x;
 
     }
     
-#ifdef DEBUG_XCELLN
+#ifdef CLASSIFYER_DBG
     std::vector<E_Int> xs;
     
-    for (size_t i=0; i < z_xcelln.size(); ++i)
+    for (size_t i=0; i < data.size(); ++i)
     {
-      if (z_xcelln[i] == -X) xs.push_back(i);
+      if (data[i] == -X) xs.push_back(i);
     }
     if (xs.empty())
       std::cout << "NO COLLISIONS WITH CURRENT MASK" << std::endl;
     else
     {
       medith::write<ngon_type>("colliding_set", z_mesh.crd, z_mesh.cnt, xs);
-      medith::write("flag_collided_zone_cells", z_mesh.crd, z_mesh.cnt, &z_xcelln);
+      medith::write("flag_collided_zone_cells", z_mesh.crd, z_mesh.cnt, &data);
     }
 #endif
 
@@ -560,7 +625,7 @@ namespace NUGA
 
   ///
   TEMPLATE_TYPES
-  void TEMPLATE_CLASS::__flag_hidden_subzones
+  E_Int TEMPLATE_CLASS::__flag_hidden_subzones
   (zmesh_t const & z_mesh, bound_mesh_t const & mask_bit, wdata_t& z_xcelln)
   {
     // 1. compute neighborhood (lazy mode)
@@ -581,7 +646,7 @@ namespace NUGA
       }
     }
     
-#ifdef DEBUG_XCELLN
+#ifdef CLASSIFYER_DBG
     medith::write("initial_field_coloring", z_mesh.crd, z_mesh.cnt, &cur_xcelln);
 #endif
 
@@ -589,7 +654,7 @@ namespace NUGA
     assert (UPPER_COL > OUT);
     K_CONNECT::EltAlgo<typename zmesh_t::elt_t>::coloring(*neighborz, cur_xcelln, (E_Float)OUT, (E_Float)UPPER_COL);
     
-#ifdef DEBUG_XCELLN
+#ifdef CLASSIFYER_DBG
     medith::write("colored_field_coloring", z_mesh.crd, z_mesh.cnt, &cur_xcelln);
 #endif
 
@@ -598,7 +663,7 @@ namespace NUGA
     // 2.4 : check nb of subzones. STOP if < 2
     E_Int nb_subzones = *std::max_element(ALL(cur_xcelln)) - UPPER_COL + 1;
 
-#ifdef DEBUG_XCELLN
+#ifdef CLASSIFYER_DBG
     // std::set<int> all_cols(ALL(cur_xcelln));
     // for (auto c : all_cols)
     //   std::cout << "colors : " << c << std::endl;
@@ -606,88 +671,99 @@ namespace NUGA
 #endif
 
     if (nb_subzones <= 1) // no new subzones, just return
-      return;
+      return 0;
     
     // 2.5 : classify subzones
     STACK_ARRAY(eClassify, nb_subzones, z_color);
     for (size_t i=0; i < nb_subzones; ++i)z_color[i] = AMBIGUOUS;
     
-#ifdef DEBUG_XCELLN
+#ifdef CLASSIFYER_DBG
     std::cout << "NB SUZONES : " << nb_subzones << std::endl;
 #endif
     
     int ncell = z_mesh.ncells();
     int missing_col=nb_subzones;
 
-    for (size_t i=0; (i < ncell) && missing_col; ++i)
+    using loc_t = typename zmesh_t::loc_t;
+    const loc_t& mask_loc = *(mask_bit.get_localizer());
+
+    std::vector<E_Int> cands;
+    short iter(0);
+    
+    while (iter++ < 2 && missing_col)
     {
-      if (cur_xcelln[i] != X) continue;
-      
-      int nneighs = neighborz->stride(i);
-      const int* pneighs = neighborz->begin(i);
-
-      for (size_t j=0; (j<nneighs); ++j)
+      bool deep = (iter == 1) ? false : true;
+      for (size_t i = 0; (i < ncell) && missing_col; ++i)
       {
-        if (pneighs[j] == E_IDX_NONE) continue;
-        
-        E_Int subid = cur_xcelln[pneighs[j]];
-        
-        if (subid == E_IDX_NONE)     continue;
-        if (subid == X)              continue;
-        
-        subid -= UPPER_COL; // to be 0-based
-        assert(subid > -1 && subid < nb_subzones);
-        
-        //std::cout << "subid " <<  subid << ": z_color[subid] : " << z_color[subid] << std::endl;
-        
-        if (z_color[subid] != AMBIGUOUS) continue;
-        
-        // subid is a unvisited subzone
-        
-        // get the boundary (edge/face)
-        typename bound_mesh_t::elt_t bj;
-        z_mesh.get_boundary(i, j, bj);
-        E_Float L2rf = bj.L2ref(z_mesh.get_nodal_tolerance());
-        //make it autonomous
-        typename bound_mesh_t::aelt_t abj(bj, z_mesh.crd, L2rf);
-        
-        E_Int mid = z_mesh.flag[i]; //colliding mask element (1-based)
-        if (mid == E_IDX_NONE) continue;
-        --mid; // make it 0-based
+        if (cur_xcelln[i] != X) continue;
 
-        typename bound_mesh_t::aelt_t mask_e = mask_bit.aelement(mid);
-        
-#ifdef DEBUG_XCELLN
-        K_FLD::FloatArray cc;
-        cc.pushBack(abj.v1, abj.v1+3);
-        cc.pushBack(abj.v2, abj.v2+3);
-        K_FLD::IntArray ct(2,1,0);ct(1,0)=1;
-        std::ostringstream o;
-        o << "subid_" << subid;
-        medith::write(o.str().c_str(), cc, ct, "BAR");
-        std::vector<E_Int> toto;
-        toto.push_back(mid);
-        o.str("");
-        o << "cutter_front_" << subid;
-        medith::write(o.str().c_str(), mask_bit.crd, mask_bit.cnt, toto, 0);
-        o.str("");
-        o << "maskbit_" << subid;
-        medith::write(o.str().c_str(), mask_bit.crd, mask_bit.cnt);
-        
-        medith::write<ngon_type>("ei", z_mesh.crd, z_mesh.cnt, i); 
-#endif
-        
-        z_color[subid] = CLASSIFY::classify(abj, mask_e);
-        if (z_color[subid] != AMBIGUOUS)
+        int nneighs = neighborz->stride(i);
+        const int* pneighs = neighborz->begin(i);
+
+        for (size_t j = 0; (j < nneighs); ++j)
         {
-          --missing_col; //otherwise cary_on
-        
-#ifdef DEBUG_XCELLN
-          std::cout << "subid : " << subid << " is in ? " << (z_color[subid] == IN) << std::endl;
+          if (pneighs[j] == E_IDX_NONE) continue;
+
+          E_Int subid = cur_xcelln[pneighs[j]];
+
+          if (subid == E_IDX_NONE)     continue;
+          if (subid == X)              continue;
+          if (subid == IN)             continue;
+
+          subid -= UPPER_COL; // to be 0-based
+          assert(subid > -1 && subid < nb_subzones);
+
+          //std::cout << "subid " <<  subid << ": z_color[subid] : " << z_color[subid] << std::endl;
+
+          if (z_color[subid] != AMBIGUOUS) continue;
+
+          // subid is a unvisited subzone
+
+          // GET MOLECULE of i, check position of pneighs[j] regarding that molecule
+
+          // a. get molecule of i
+          auto ae1 = z_mesh.aelement(i);
+          cands.clear();
+          mask_loc.get_candidates(ae1, ae1.m_crd, cands, 1, _RTOL); //return as 0-based (fixme for volumic, was 1-based)
+          if (cands.empty()) continue;
+
+#ifdef CLASSIFYER_DBG
+          medith::write("cands", mask_bit.crd, mask_bit.cnt, cands, 1);
 #endif
+
+          bool is_x = NUGA::COLLIDE::get_colliding(ae1, mask_bit, cands, 1, _RTOL, false/*i.e reduce cands to true collidings*/);
+          if (cands.empty()) continue;
+
+#ifdef CLASSIFYER_DBG
+          medith::write("subj", ae1.m_crd, &ae1.m_nodes[0], ae1.m_nodes.size(), 0);
+          medith::write("xmolecule", mask_bit.crd, mask_bit.cnt, cands, 1);
+          //medith::write<ngon_type>("neighj", z_mesh.crd, z_mesh.cnt, pneighs[j]);
+#endif
+
+        // autonomous cutter front
+          bound_mesh_t acut_front(mask_bit, cands, 1);
+
+          // b. classify pneigh[j] with that molecule
+          auto aen = z_mesh.aelement(pneighs[j]);
+          z_color[subid] = CLASSIFY::classify(aen, acut_front, false/*i.e not reversed*/, deep);
+          if (z_color[subid] != AMBIGUOUS)
+          {
+            --missing_col;
+
+#ifdef CLASSIFYER_DBG
+            std::cout << "subid : " << subid << " is in ? " << (z_color[subid] == IN) << std::endl;
+#endif
+          }
         }
       }
     }
+
+    
+    //if (missing_col != 0)
+    //{
+      // happening for unclosed portion (previously colored X) that have nothing to do with current mask
+      // NOTHING TO DO
+    //}
     
     // now update z_xcelln
     for (size_t i=0; i < z_xcelln.size(); ++i)
@@ -702,9 +778,14 @@ namespace NUGA
       if (z_color[subid] == IN) z_xcelln[i] = IN;
     }
 
-#ifdef DEBUG_XCELLN
-    medith::write("flag_hidden_subzones", z_mesh.crd, z_mesh.cnt, &z_xcelln);
+#ifdef CLASSIFYER_DBG
+    static int counter = 0;
+    std::ostringstream o;
+    o << "flag_hidden_subzones_" << counter++;
+    medith::write(o.str().c_str(), z_mesh.crd, z_mesh.cnt, &z_xcelln);
 #endif
+
+    return 0;
   }
 }
 
