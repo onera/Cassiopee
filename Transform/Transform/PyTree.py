@@ -659,6 +659,21 @@ def shiftMatrix__(trirac):
     if s == 2: m[2+3*2] = 1
     return m
 
+def triracopp__(trirac):
+    m=numpy.zeros((3,3),dtype=numpy.int32)
+    
+    for no in range(3):
+        signt = (trirac[no]>0)*1+(-1*(trirac[no]<0))
+        i1 = abs(trirac[no])-1
+        m[i1,no] = signt
+    mopp = numpy.linalg.inv(m)
+    triracopp=[1,2,3]
+    for i in range(3):
+        for no in range(3):
+            if mopp[no,i]!=0:
+                triracopp[i]=int(mopp[no,i]*(no+1))
+    return triracopp
+        
 # Retourne un indice sur le donneur
 # win: fenetre sur B (raccord match)
 # winDonor : fenetre correspondante a win1 sur opp(B)
@@ -775,6 +790,7 @@ def _adaptBCMatch(z, z1, z2, winz1, winz2, t=None):
     bcs = getBCMatchs__(z)
     for b in bcs:
         (oppBlock, winz, winDonor, trirac, periodic) = getBCMatchData__(b) 
+        triracopp = triracopp__(trirac)
 
         if oppBlock == z[0]: # self attached BCMatch
             wins1 = intersectWins__(winz1, winDonor, ret=1)
@@ -810,8 +826,8 @@ def _adaptBCMatch(z, z1, z2, winz1, winz2, t=None):
                 else: C._addBC2Zone(z2, 'match', 'BCMatch', wini, oppBlock2, windonor2, trirac,
                                     rotationCenter=periodic[1], rotationAngle=periodic[2], translation=periodic[0])
 
-        else: # not self opposite
-
+        else: # not self opposite)
+                
             # Reporte cette BC sur z1
             wini1 = intersectWins__(winz1, winz, ret=0)
             wini = intersectWins__(winz1, winz, ret=1)
@@ -827,8 +843,8 @@ def _adaptBCMatch(z, z1, z2, winz1, winz2, t=None):
                 if t is not None:
                     zopp = Internal.getNodeFromName2(t, oppBlock)
                     if zopp is not None:
-                       if periodic is None: C._addBC2Zone(zopp, 'match', 'BCMatch', winopp, z1[0], wini, trirac)
-                       else: C._addBC2Zone(zopp, 'match', 'BCMatch', winopp, z1[0], wini, trirac,
+                       if periodic is None: C._addBC2Zone(zopp, 'match', 'BCMatch', winopp, z1[0], wini, triracopp)
+                       else: C._addBC2Zone(zopp, 'match', 'BCMatch', winopp, z1[0], wini, triracopp,
                                            rotationCenter=periodic[1], rotationAngle=-1.*periodic[2], translation=-1.*periodic[0])
 
             # Reporte cette BC sur z2
@@ -846,8 +862,8 @@ def _adaptBCMatch(z, z1, z2, winz1, winz2, t=None):
                 if t is not None:
                     zopp = Internal.getNodeFromName2(t, oppBlock)
                     if zopp is not None: 
-                        if periodic is None: C._addBC2Zone(zopp, 'match', 'BCMatch', winopp, z2[0], wini, trirac)
-                        else: C._addBC2Zone(zopp, 'match', 'BCMatch', winopp, z2[0], wini, trirac,
+                        if periodic is None: C._addBC2Zone(zopp, 'match', 'BCMatch', winopp, z2[0], wini, triracopp)
+                        else: C._addBC2Zone(zopp, 'match', 'BCMatch', winopp, z2[0], wini, triracopp,
                                             rotationCenter=periodic[1], rotationAngle=-1.*periodic[2], translation=-1.*periodic[0])
 
     # Enleve les raccords de qui referent z[0] dans t
@@ -2374,7 +2390,7 @@ def _splitNParts(t, N, multigrid=0, dirs=[1,2,3], recoverBC=True):
     if l == 0: return None
     NPa = NPart[NbN]
     Ns = Transform.findNsi__(l, NPa, NpS)
-
+    #for z in zonesS: print(z[0])
     for i in range(l):
         a = zonesS[i]
         dimL = Internal.getZoneDim(a)
@@ -2436,11 +2452,13 @@ def _splitNParts(t, N, multigrid=0, dirs=[1,2,3], recoverBC=True):
             prev += nks[e]-1
         store = []
         ap = a
+
         for e, i in enumerate(nis):
             a1,a2 = split(ap, 1, i, t)
             store.append(a1)
             if e == len(nis)-1: store.append(a2)
             ap = a2
+
         if len(nis) == 0: store = [a]
         store2 = []
         for ap in store:

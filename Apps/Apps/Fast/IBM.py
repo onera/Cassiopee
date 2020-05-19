@@ -1150,7 +1150,7 @@ def post(t_case, t_in, tc_in, t_out, wall_out):
 # IN: alpha: angle pour les efforts
 # IN: beta: angle pour les efforts
 #==============================================================================
-def loads(t_case, tc_in, wall_out, alpha=0., beta=0., Sref=None, famZones=[]):
+def loads(t_case, tc_in=None, wall_out=None, alpha=0., beta=0., Sref=None, famZones=[]):
     import Post.PyTree as P
     import Converter.Filter as Filter
     import math
@@ -1208,10 +1208,17 @@ def loads(t_case, tc_in, wall_out, alpha=0., beta=0., Sref=None, famZones=[]):
     #===========================
     res = P.integNorm(zw, 'Cp')[0]
     res = [i/Sref for i in res]
-    cd = res[0]*math.cos(alpha)*math.cos(beta) + res[2]*math.sin(alpha)*math.cos(beta)
-    cl = res[2]*math.cos(alpha)*math.cos(beta) - res[0]*math.sin(alpha)*math.cos(beta)
+    calpha = math.cos(alpha); cbeta = math.cos(beta)
+    salpha = math.sin(alpha); sbeta = math.sin(beta)
+    if dimPb==3:
+        cd = res[0]*calpha*cbeta + res[2]*salpha*cbeta
+        cl = res[2]*calpha*cbeta - res[0]*salpha*cbeta
+    else:
+        cd = res[0]*calpha + res[1]*salpha
+        cl = res[1]*calpha - res[0]*salpha
     print("Normalized pressure drag = %g and lift = %g"%(cd, cl))
     print("Vector of pressure loads: (Fx_P,Fy_P,Fz_P)=(",res[0],res[1],res[2],")")
+    
     #======================================
     # Calcul frottement et efforts visqueux
     #======================================
