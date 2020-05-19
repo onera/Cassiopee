@@ -2884,11 +2884,11 @@ def splitMultiplePts(t, dim=3):
     elif type == 3: return Internal.getZones(tp)
     else: return Internal.getZones(tp)
 
-def splitBAR(t, N):
+def splitBAR(t, N, N2=-1):
     """Split a BAR at index N (start 0).
     Usage: splitBAR(t, N)"""
     a = C.getAllFields(t, 'nodes')[0]
-    A = Transform.splitBAR(a, N)
+    A = Transform.splitBAR(a, N, N2)
     zones = []
     for i in A:
         zone = C.convertArrays2ZoneNode('split',[i])

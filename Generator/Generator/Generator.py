@@ -8,6 +8,27 @@ __author__ = "Stephanie Peron, Sam Landier, Christophe Benoit, Gaelle Jeanfaivre
 from . import generator
 import numpy
 
+__all__ = ['cart', 'cartHexa', 'cartTetra', 'cartPenta', 'cartPyra', 'cartNGon',
+    'cylinder', 'cylinder2', 'cylinder3', 'delaunay', 'checkDelaunay', 
+    'constrainedDelaunay', 'check', 'bbox', 'BB', 'barycenter', 'CEBBIntersection',
+    'bboxIntersection', 'checkPointInCEBB', 'enforceX', 'enforceY', 'enforceZ',
+    'enforcePlusX', 'enforcePlusY', 'enforcePlusZ', 'enforceMoinsX',
+    'enforceMoinsY', 'enforceMoinsZ', 'enforceLine', 'enforcePoint',
+    'enforceCurvature', 'enforceCurvature2', 'addPointInDistribution', 'map',
+    'map1d', 'map1dpl', 'map2d', 'mapCurvature', 'refine', 'defineSizeMapForMMGs',
+    'mmgs', 'densify', 'hyper2D', 'hyper2D2', 'hyper2D3', 'hyper2D4',
+    'close', 'pointedHat', 'stitchedHat', 'plaster', 'selectInsideElts',
+    'grow', 'stack', 'TFI', 'TFITri', 'TFIO', 'TFIHalfO', 'TFIMono',
+    'TTM', 'bboxOfCells', 'getCellPlanarity', 'getVolumeMap', 'getNormalMap',
+    'getSmoothNormalMap', 'getEdgeRatio', 'getMaxLength', 'collarMesh',
+    'surfaceWalk', 'buildExtension', 'getCircumCircleMap', 'getInCircleMap',
+    'addNormalLayers', 'gencartmb', 'mapSplit', 'T3mesher2D', 'tetraMesher',
+    'fittingPlaster', 'gapfixer', 'gapsmanager', 'front2Hexa', 'front2Struct',
+    'snapFront', 'snapSharpEdges', 'fillWithStruct', 'octree2Struct', 'cutOctant',
+    'octree', 'conformOctree3', 'adaptOctree', 'expandLayer', 'forceMatch',
+    '_forceMatch', 'getOrthogonalityMap', 'getRegularityMap', 'getTriQualityMap',
+    'getTriQualityStat', 'quad2Pyra']
+
 def cart(Xo, H, N, api=1):
     """Create a cartesian mesh defined by a structured array.
     Usage: cart((xo,yo,zo), (hi,hj,hk), (ni,nj,nk))"""
@@ -337,22 +358,22 @@ def enforceCurvature2(arrayD, arrayC, alpha=1.e-2):
     loop = 0 # le contour est il une boucle
 
     posx = KCore.isNamePresent(arrayC, 'x')
-    if (posx != -1): xt = C.extractVars(arrayC, ['x'])[1]
+    if posx != -1: xt = C.extractVars(arrayC, ['x'])[1]
     else:
         posx = KCore.isNamePresent(arrayC, 'CoordinateX')
         if (posx != -1): xt = C.extractVars(arrayC, ['CoordinateX'])[1]
         else: raise ValueError("enforceCurvature2: coordinates must be present in array.")
     posy = KCore.isNamePresent(arrayC, 'y')
-    if (posy != -1): yt = C.extractVars(arrayC, ['y'])[1]
+    if posy != -1: yt = C.extractVars(arrayC, ['y'])[1]
     else:
         posy = KCore.isNamePresent(arrayC, 'CoordinateY')
-        if (posy != -1): yt = C.extractVars(arrayC, ['CoordinateY'])[1]
+        if posy != -1: yt = C.extractVars(arrayC, ['CoordinateY'])[1]
         else: raise ValueError("enforceCurvature2: coordinates must be present in array.")
     posz = KCore.isNamePresent(arrayC, 'z')
-    if (posz != -1): zt = C.extractVars(arrayC, ['z'])[1]
+    if posz != -1: zt = C.extractVars(arrayC, ['z'])[1]
     else:
         posz = KCore.isNamePresent(arrayC, 'CoordinateZ')
-        if (posz != -1): zt = C.extractVars(arrayC, ['CoordinateZ'])[1]
+        if posz != -1: zt = C.extractVars(arrayC, ['CoordinateZ'])[1]
         else: raise ValueError("enforceCurvature2: coordinates must be present in array.")
     
     nmax = xt.shape[1]-1
@@ -639,7 +660,7 @@ def defineSizeMapForMMGs(array, hmax, sizeConstraints):
     alpha[:] = (alpha[:] > 1.)*1.+(alpha[:] <= 1.)*alpha[:]
     if isinstance(pt, list): pt[pos,:] = alpha[:]*pt[pos,:]+(1.-alpha[:])*v[1][0,n[:]-1]
     else: pt[pos][:] = alpha[:]*pt[pos][:]+(1.-alpha[:])*v[1][0,n[:]-1]
-    Converter.convertArrays2File(array, 'array.plt')
+    #Converter.convertArrays2File(array, 'array.plt')
     return array
 
 # Remaille une surface avec mmgs
@@ -1666,25 +1687,36 @@ def expandLayer(octreeHexa, level=0, corners=0, balancing=0):
                                                level, corners, typeExpand)
     return adaptOctree(octreeHexa, indic, balancing)
 
-def forceMatch(a1, a2, tol):
+def forceMatch(a1, a2, tol=1.):
     import Converter
     b1 = Converter.copy(a1)
     _forceMatch(b1, a2, tol)
     return b1
-
+    
 # force near boundary (<tol) of a1 to match with a2
 # in place on a1 (TRI surfaces)
-def _forceMatch(a1, a2, tol):
+# if P0 and P1: point of ext of a1, used to find the
+# piece of ext that must match
+def _forceMatch(a1, a2, tol=1.):
     import Post; import Converter; import KCore
+    
     # exterior of a1
     ext = Post.exteriorFaces(a1)
+    vol = getVolumeMap(ext)
+    vol = Converter.center2Node(vol)[1]
     # identifie ext sur a1
     hook = Converter.createHook(a1, function='nodes')
     indices = Converter.identifyNodes(hook, ext)
     
-    # nearest points on a2
-    hook = Converter.createHook(a2, function='nodes')
+    # identifie ext2 sur a2
+    ext2 = Post.exteriorFaces(a2)
+    hook = Converter.createHook(a2, function='nodes')        
+        
+    indices2 = Converter.identifyNodes(hook, ext2)
+    # identifie ext sur ext2
+    hook = Converter.createHook(ext2, function='nodes')
     nodes,dist = Converter.nearestNodes(hook, ext)
+    
     # fonction C (a1,a2,indices,nodes,dist)
     posx1 = KCore.isCoordinateXPresent(a1)
     posy1 = KCore.isCoordinateYPresent(a1)
@@ -1694,10 +1726,12 @@ def _forceMatch(a1, a2, tol):
     posz2 = KCore.isCoordinateZPresent(a2)
     npts = Converter.getNPts(ext)
     for i in range(npts):
-        if dist[i] < tol:
-            a1[1][posx1,indices[i]-1] = a2[1][posx2,nodes[i]-1]
-            a1[1][posy1,indices[i]-1] = a2[1][posy2,nodes[i]-1]
-            a1[1][posz1,indices[i]-1] = a2[1][posz2,nodes[i]-1]
+        if dist[i] < tol*0.55*vol[0,i]:
+            ind1 = indices[i]-1
+            ind2 = indices2[nodes[i]-1]-1
+            a1[1][posx1,ind1] = a2[1][posx2,ind2]
+            a1[1][posy1,ind1] = a2[1][posy2,ind2]
+            a1[1][posz1,ind1] = a2[1][posz2,ind2]
     return None
         
 # addnormalLayers pour une liste d'arrays structures

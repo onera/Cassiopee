@@ -182,7 +182,7 @@ def octree2Struct(o, vmin=15, ext=0, optimized=1, merged=1, AMR=0,
             if z2 < zmax-eps: C._addBC2Zone(z,'overlap6','BCOverlap','kmax')
     return zones
 
-def _adaptOctree(a,indicator="indicator",balancing=1,ratio=2):
+def _adaptOctree(a, indicator="indicator", balancing=1, ratio=2):
     indicator = indicator.split(':')
     if len(indicator) == 2: indicator = indicator[1]
     else: indicator = indicator[0]
@@ -218,10 +218,10 @@ def _expandLayer(o, level=0, corners=0, balancing=0):
         C.setFields([res], z, 'nodes', writeDim=True)
     return None
 
-def _forceMatch(z1, z2, tol):
+def _forceMatch(z1, z2, tol=1.):
     a1 = C.getFields(Internal.__GridCoordinates__, z1)[0]
     a2 = C.getFields(Internal.__GridCoordinates__, z2)[0]
-    generator._forceMatch(a1, a2, tol)
+    Generator._forceMatch(a1, a2, tol)
     C.setFields([a1], z1, 'nodes', writeDim=False)
     return None
 

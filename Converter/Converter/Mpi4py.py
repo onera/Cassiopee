@@ -12,7 +12,7 @@ __all__ = ['rank', 'size', 'KCOMM', 'COMM_WORLD', 'setCommunicator', 'barrier', 
     'readNodesFromPaths', 'readPyTreeFromPaths', 'writeNodesFromPaths',
     'allgatherTree', 'convertFile2SkeletonTree', 'convertFile2PyTree', 'convertPyTree2File', 'seq', 'print0', 'printA',
     'createBBoxTree', 'createBboxDict', 'computeGraph', 'addXZones', '_addXZones', '_addMXZones', '_addBXZones', '_addLXZones',
-    'rmXZones', '_rmXZones', '_rmMXZones', '_rmBXZones', 'getProcDict', 'getProc', 'setProc', '_setProc']
+    'rmXZones', '_rmXZones', '_rmMXZones', '_rmBXZones', 'getProcDict', 'getProc', 'setProc', '_setProc', 'COMM_WORLD']
 
 from mpi4py import MPI
 import numpy

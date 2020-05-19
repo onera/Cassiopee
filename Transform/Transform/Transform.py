@@ -1900,10 +1900,10 @@ def splitMultiplePts(A, dim=3):
         A,count = splitMultiplePts__(A, dim)
     return A
 
-def splitBAR(array, N):
+def splitBAR(array, N, N2=-1):
     """Split BAR at index N (start 0).
     Usage: splitBAR(array, N)"""
-    a = transform.splitBAR(array, N)
+    a = transform.splitBAR(array, N, N2)
     A = splitConnexity(a)
     if len(A) == 1: return a
     else: return A

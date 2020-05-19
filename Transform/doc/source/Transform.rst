@@ -1123,16 +1123,19 @@ Mesh splitting and merging
 
 ---------------------------------------
 
-.. py:function:: Transform.splitBAR(a, N)
+.. py:function:: Transform.splitBAR(a, N, N2=-1)
 
     .. A1.O0.D1 
 
     Split a curve defined by a BAR at index N.
+    If N2 is provided, split also at index N2.
 
     :param a: input mesh (BAR)
     :type  a: array or zone 
     :param N: index of split in a
     :type N: integer
+    :param N2: optional second split index
+    :type N2: integer
     :return: two BARS 
     :rtype: [list of arrays] or [list of zones]
 
