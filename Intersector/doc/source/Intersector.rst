@@ -40,8 +40,9 @@ List of functions
    Intersector.booleanMinus
    Intersector.diffSurf
    Intersector.intersection
+   Intersector.XcellN
 .. Intersector.booleanModifiedSolid
-.. Intersector.P1ConservativeChimeraCoeffs 
+.. Intersector.P1ConservativeChimeraCoeffs
 
 **-- Collision predicates**
 
@@ -329,6 +330,71 @@ Main Functions
     * `Cut-cell mesh with an octree and a sphere (pyTree) <Examples/Intersector/diffSurfPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Intersector/diffSurfPT.py
+
+---------------------------------------
+
+
+.. py:function:: Intersector.XcellN(t, priorities, output_type=0, rtol=0.05)
+
+    Computes the visibility coefficient for each cell in an overset surface grid configuration t with one-to-one priorities. t can be structured or unstructured.
+
+    Depending on the output_type argument, this function computes :
+
+    * a ternary blanking information (0 (hidden), 1(visible) and 0.5(colliding), when output_type=0
+
+    * a continuous blanking information (any val in [0,1] based on the ratio of the visible part of the cell), when output_type=1
+
+    * a clipped polygonal surface (NGON format) where all the hidden surface parts have been removed, when output_type=2
+
+    .. image:: images/xcelln_conf.jpg
+      :width: 24%
+    .. image:: images/xcelln_mode0.jpg
+      :width: 24%
+    .. image:: images/xcelln_mode1.jpg
+      :width: 24%
+    .. image:: images/xcelln_mode2.jpg
+      :width: 24%
+
+    *From left to right : Sphere made of 2 overset patches, results with output_type=0,1 and 2 displayed for the non-prioritized patch.*
+
+    When output_type is 0 or 1, a 'xcelln' field is added to each zone of the PyTree.
+    When output_type is 2, the fields defined at center are transferred in the output mesh. 
+
+    :param t:  an overset surface mesh where components are separated in different bases.
+    :type  t:  [pyTree, base, zone, list of zones].
+    :param priorities:   list of one-to-one pairs of priorities between components.
+    :type  priorities:   list of pairs of integers.
+    :param output_type:  ternary blanking field.
+    :type  output_type:   0, 1 or 2.
+    :param rtol: relative tolerance for detecting and computing intersections.
+    :type  rtol: float.
+    
+        
+    **Prerequisites :**
+
+    * All the surface patches must be oriented consistently and outwardly (use Transform.reorderAll before)
+
+    **Tips and Notes:**
+
+    * each component must set in a separate base.
+    * priorisation and computation is done between components only : not between zones of the same base.
+    * wall boundaries are considered whatever the priorisation:
+
+    .. image:: images/xcelln_prior_conf.jpg
+      :width: 30%
+    .. image:: images/xcelln_prior1.jpg
+      :width: 30%
+    .. image:: images/xcelln_prior2.jpg
+      :width: 30%
+
+    *Example of wall treatment on the fuselage/collar zone of a CRM configuration when output_type is 2: if the collar is prioritized (middle) or not (right), the part of the fuselage falling inside the wing is clipped.*
+    
+
+    *Example of use:*
+
+    * `xcelln field on structured configuration <Examples/Intersector/xcelln_sphYinYangPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Intersector/xcelln_sphYinYangPT.py
 
 ---------------------------------------
 

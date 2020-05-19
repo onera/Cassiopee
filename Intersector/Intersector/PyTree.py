@@ -326,9 +326,10 @@ def booleanModifiedSolid(solid, a2, tol=0., preserve_solid=1, agg_mode=1, improv
 
 #==============================================================================
 # XcellN
-# IN: t: 3D NGON mesh
+# IN : t: 3D NGON mesh
 # IN : priorities : one-to-one priorities between components
 # IN : output_type : 0 : binary mask; 1 : continuous mask (xcelln) ; 2 : clipped surface.
+# IN : rtol : relative tolerance
 # OUT: returns a 3D NGON surface mesh with the xcelln field (if output_type=0/1, the clipped surface with solution if output_type=2)     
 #==============================================================================
 def XcellN(t, priorities, output_type=0, rtol=0.05):
