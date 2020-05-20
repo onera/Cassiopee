@@ -1,4 +1,10 @@
 ===============================================================================
+Dist2Walls 3.1 [06/2020]
+Require: C++ compiler, python > 2.4, numpy > 1.0, KCore, Converter, 
+Transform, Generator 3.1
+Signed distance: require Connector 3.1
+- bug corrected for hybrid structured/unstructured grids
+===============================================================================
 Dist2Walls 3.0 [12/2019]
 Require: C++ compiler, python > 2.4, numpy > 1.0, KCore, Converter, 
 Transform, Generator 3.0

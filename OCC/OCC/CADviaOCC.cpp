@@ -227,7 +227,7 @@ E_Int K_OCC::CADviaOCC::__chord_sizing(const TopoDS_Edge& E, E_Float chordal_err
 }
 
 // Calcul le nbre de pts pour avoir la bonne erreur de corde sur la courbe C
-E_Int K_OCC::CADviaOCC::__eval_nb_points2(const BRepAdaptor_Curve& C, E_Float u0, E_Float u1, E_Float dmax, E_Int& nb_points)
+E_Int K_OCC::CADviaOCC::__eval_nb_points(const BRepAdaptor_Curve& C, E_Float u0, E_Float u1, E_Float dmax, E_Int& nb_points)
 {
   E_Float dm;
   __eval_chordal_error(C, u0, u1, dm);
@@ -254,7 +254,7 @@ E_Int K_OCC::CADviaOCC::__eval_nb_points2(const BRepAdaptor_Curve& C, E_Float u0
 }
 
 // Fonction recursive : parfois boucle a l'infini
-E_Int K_OCC::CADviaOCC::__eval_nb_points(const BRepAdaptor_Curve& C, E_Float u0, E_Float u1, E_Float dmax, E_Int& nb_points)
+E_Int K_OCC::CADviaOCC::__eval_nb_points2(const BRepAdaptor_Curve& C, E_Float u0, E_Float u1, E_Float dmax, E_Int& nb_points)
 {
   E_Float dm;
   __eval_chordal_error(C, u0, u1, dm);
@@ -303,7 +303,7 @@ E_Int K_OCC::CADviaOCC::__eval_chordal_error(const BRepAdaptor_Curve& C, E_Float
   return 0;
 }
 
-///
+// maille les edges
 E_Int K_OCC::CADviaOCC::mesh_edges(K_FLD::FloatArray& coords, std::vector<K_FLD::IntArray>& connectEs)
 {
   E_Int err(0), nb_edges(_edges.Extent());
@@ -553,13 +553,12 @@ E_Int K_OCC::CADviaOCC::__clean(const K_FLD::ArrayAccessor<K_FLD::FloatArray>& c
     }
   }
   
-  //
   K_FLD::IntArray::changeIndices(connectB, nids);
   
   return 1; 
 }
 
-//
+// Parametrise les edges et appelle le mailleur par face
 E_Int K_OCC::CADviaOCC::mesh_faces
 (const K_FLD::FloatArray& coords, const std::vector<K_FLD::IntArray>& connectBs, std::vector<K_FLD::FloatArray>& crds, std::vector<K_FLD::IntArray>& connectMs, bool aniso)
 {
@@ -576,7 +575,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces
   DELAUNAY::SurfaceMesher<OCCSurface> mesher;
   
 #ifdef DEBUG_CAD_READER
-  E_Int faulty_id = 83;
+  E_Int faulty_id = 3;
 #endif
   //size_t t;
 
@@ -604,7 +603,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces
     
 #ifdef DEBUG_CAD_READER
     if (i==faulty_id)
-      MIO::write("connectB.mesh", coords , connectB);
+      MIO::write("connectB.mesh", coords, connectB);
 #endif
     
     connectB.uniqueVals(nodes);
@@ -634,13 +633,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces
       MIO::write("connectBcompacted.mesh", pos3D, connectB, "BAR");
 #endif
     
-    /* Projection de pos3D sur la surface */
-    //_faces[i]->project(pos3D);
-    
 #ifdef DEBUG_CAD_READER
-    if (i == faulty_id)
-      MIO::write("connectBprojected.mesh", pos3D , connectB, "BAR");
-    
     if (i == faulty_id)
     {
       K_FLD::FloatArray surfc;
@@ -655,12 +648,14 @@ E_Int K_OCC::CADviaOCC::mesh_faces
     bool is_of_revolution = (nodes.size() != connectB.cols());
     
     std::map<E_Int, std::pair<E_Int, E_Int> > seam_nodes;
+    
     if (is_of_revolution)
     {
       _faces[i]->_normalize_domain = false; // fixme : currently normalizing not working with revol surfaces.
       __split_surface_of_revolution(_faces[i], connectB, pos3D, seam_nodes);
-    }
       
+    }
+    
     // Up to 2 tries : first by asking OCC for params, Second by "hand" (sampling)
     err = 0;
     for (size_t t=0; t<2; ++t) // supp. la parametrisation discrete
@@ -669,7 +664,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces
         err = _faces[i]->parameters(pos3D, connectB, UVcontour);
       else
         err = _faces[i]->parametersSample(pos3D, UVcontour);
-            
+
       if (!err) // Need to reorient holed surface.
         err = __reorient_holed_surface(connectB, UVcontour);
       
@@ -681,8 +676,10 @@ E_Int K_OCC::CADviaOCC::mesh_faces
       }
       
 #ifdef DEBUG_CAD_READER
-      if (i==faulty_id)
-      MIO::write("connectBUV.mesh", UVcontour, connectB, "BAR");
+      if (i==faulty_id&& t==0)
+      MIO::write("connectBUV1.mesh", UVcontour, connectB, "BAR");
+      if (i==faulty_id&& t==1)
+      MIO::write("connectBUV2.mesh", UVcontour, connectB, "BAR");
       //std::cout << UVcontour << std::endl;
 #endif
     
@@ -746,13 +743,13 @@ E_Int K_OCC::CADviaOCC::mesh_faces
           }
         }
       }
-
       mesher.mode = mode;
-    
+      
       err = mesher.run(data);
+
       if (err || (data.connectM.cols() == 0))
       {
-        if (t==0) continue; // pour lever l'erreur sur la param OCC
+        if (t==0) continue; 
         if (err)
           std::cout << "ERROR Face : " << i << " : Geometric Mesher failed." << std::endl;
         else
@@ -788,11 +785,10 @@ E_Int K_OCC::CADviaOCC::mesh_faces
       }
 #endif
     
-      crds1[i-1]=data.pos3D;    
-      connectMs1[i-1]=data.connectM;
+      crds1[i-1] = data.pos3D;
+      connectMs1[i-1] = data.connectM;
       
-      if (!err) // done
-        break;
+      if (!err) break; // done
       }
     }
 
@@ -819,8 +815,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces
       std::vector<E_Int> nids;
       for (E_Int i=0; i <= max_solid_id; ++i)
       {
-        if (crds[i].cols()==0)
-          continue;
+        if (crds[i].cols()==0) continue;
 
 #ifdef DEBUG_CAD_READER
         E_Int maxid = 0;
@@ -846,7 +841,6 @@ E_Int K_OCC::CADviaOCC::mesh_faces
     }
     MIO::write("surfaceALL.mesh", crd, tmp, "TRI");
   }
-  
 #endif
   return 0;
 }
@@ -858,7 +852,7 @@ void K_OCC::CADviaOCC::__computeOrient(const K_FLD::FloatArray crd2D, const K_FL
   for (E_Int i=0; i < cnt.cols(); ++i)
   {
     K_FUNC::crossProduct<2>(crd2D.col(cnt(0,i)), crd2D.col(cnt(1,i)), &z);
-    Z +=z;
+    Z += z;
   }
   
   o = (Z > 0.) ? 1 : -1;
@@ -873,7 +867,6 @@ E_Int K_OCC::CADviaOCC::__build_graph(const TopoDS_Shape& occ_shape, std::vector
   _edges.Clear();
   
   // Store all the faces and edges in a flat list.
-  
   TopExp::MapShapes(occ_shape, TopAbs_FACE, _surfs);
   E_Int nb_faces = _surfs.Extent();
   
@@ -889,7 +882,6 @@ E_Int K_OCC::CADviaOCC::__build_graph(const TopoDS_Shape& occ_shape, std::vector
 #endif
   
   // Now build the graph : for each Face in _surfs associate edges ids in _edges and stamp the solid id.
-  
   vFG.resize(nb_faces+1, 0);
   
   TopExp_Explorer top_expl;
@@ -918,7 +910,7 @@ E_Int K_OCC::CADviaOCC::__build_graph(const TopoDS_Shape& occ_shape, std::vector
       vFG[idx] = new OCCSurface(F, _edges, nb_solids);
   
 #ifdef DEBUG_CAD_READER
-      nb_edges2 +=vFG[idx]->_edges.size();
+      nb_edges2 += vFG[idx]->_edges.size();
 #endif
     }
   }
@@ -928,7 +920,7 @@ E_Int K_OCC::CADviaOCC::__build_graph(const TopoDS_Shape& occ_shape, std::vector
 #endif
 
   // Traverse the orphan faces (not belonging to any solid)
-  // And store ORIENTED edges ids //fixme : orinetation doesn't seem to work..
+  // And store ORIENTED edges ids //fixme : orientation doesn't seem to work..
   for (top_expl.Init(occ_shape, TopAbs_FACE, TopAbs_SOLID); top_expl.More(); top_expl.Next())
   {
     E_Int idx = (E_Int)_surfs.FindIndex(top_expl.Current());   
@@ -963,7 +955,7 @@ E_Int K_OCC::CADviaOCC::__mesh_edge(const TopoDS_Edge& E, E_Int& nb_points, K_FL
   GCPnts_UniformAbscissa unif_abs(geom_adap, nb_points, u0, u1);
   if (!unif_abs.IsDone()) return 1;
    
-  nb_points = unif_abs.NbPoints();// just in case the number of constructed points is different from what was asked.
+  nb_points = unif_abs.NbPoints(); // just in case the number of constructed points is different from what was asked.
     
   gp_Pnt Pt;
   E_Float P[3];
@@ -972,8 +964,8 @@ E_Int K_OCC::CADviaOCC::__mesh_edge(const TopoDS_Edge& E, E_Int& nb_points, K_FL
   // Insert new points
   for (Standard_Integer i = 1; i <= nb_points; ++i) //in case NbPoints() != nb_points)
   {
-    C0.D0 (unif_abs/*unif_defl*/.Parameter(i), Pt);
-    P[0]=Pt.X();P[1]=Pt.Y();P[2]=Pt.Z();
+    C0.D0(unif_abs/*unif_defl*/.Parameter(i), Pt);
+    P[0]=Pt.X(); P[1]=Pt.Y(); P[2]=Pt.Z();
     coords.pushBack(P, P+3);
   }
    
@@ -1052,7 +1044,6 @@ int K_OCC::CADviaOCC::__reorient_holed_surface(K_FLD::IntArray& connectB, const 
   return 0;
 }
 
-///
 void K_OCC::CADviaOCC::__split_surface_of_revolution(const OCCSurface* face, K_FLD::IntArray& connectB, K_FLD::FloatArray& pos3D, std::map<E_Int, std::pair<E_Int, E_Int> >& seam_nodes)
 {
   
@@ -1116,7 +1107,7 @@ void K_OCC::CADviaOCC::__split_surface_of_revolution(const OCCSurface* face, K_F
       //E_Int err = 
       face->parameters(pos3D.col(N0), u, v);
       
-      E_Float * p = &u;
+      E_Float *p = &u;
       if (face->_isVClosed && !face->_isUClosed) p = &v;
       
       E_Int e[] = {N0, E_IDX_NONE};
@@ -1190,5 +1181,3 @@ void K_OCC::CADviaOCC::__add_seam_node
 #endif
   }
 }
-
-

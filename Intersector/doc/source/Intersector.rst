@@ -338,7 +338,7 @@ Main Functions
 
     Computes the visibility coefficient for each cell in an overset surface grid configuration t with one-to-one priorities. t can be structured or unstructured.
 
-    Depending on the output_type argument, this function computes :
+    Depending on the output_type argument, this function computes:
 
     * a ternary blanking information (0 (hidden), 1(visible) and 0.5(colliding), when output_type=0
 
@@ -355,7 +355,7 @@ Main Functions
     .. image:: images/xcelln_mode2.jpg
       :width: 24%
 
-    *From left to right : Sphere made of 2 overset patches, results with output_type=0,1 and 2 displayed for the non-prioritized patch.*
+    *From left to right: Sphere made of 2 overset patches, results with output_type=0,1 and 2 displayed for the non-prioritized patch.*
 
     When output_type is 0 or 1, a 'xcelln' field is added to each zone of the PyTree.
     When output_type is 2, the fields defined at center are transferred in the output mesh. 
@@ -392,9 +392,9 @@ Main Functions
 
     *Example of use:*
 
-    * `xcelln field on structured configuration <Examples/Intersector/xcelln_sphYinYangPT.py>`_:
+    * `xcelln field on structured configuration <Examples/Intersector/xcellnSphYinYangPT.py>`_:
 
-    .. literalinclude:: ../build/Examples/Intersector/xcelln_sphYinYangPT.py
+    .. literalinclude:: ../build/Examples/Intersector/xcellnSphYinYangPT.py
 
 ---------------------------------------
 

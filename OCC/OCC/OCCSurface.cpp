@@ -31,6 +31,8 @@
 #include "TopoDS_Edge.hxx"
 #include "TopoDS.hxx"
 #include <ShapeAnalysis.hxx>
+#include <ShapeAnalysis_Surface.hxx>
+#include <StdFail_NotDone.hxx>
 
 ///
 K_OCC::OCCSurface::OCCSurface(const TopoDS_Face& F, TopTools_IndexedMapOfShape& occ_edges, E_Int pid) 
@@ -73,61 +75,12 @@ void K_OCC::OCCSurface::shrink(K_FLD::FloatArray& coord3D, E_Float factor)
   }
 }
 
-// Calcule une discretisation de la surface pour visu avec connect QUAD
-void K_OCC::OCCSurface::discretize(K_FLD::FloatArray& coord3D, K_FLD::IntArray& connect, E_Int ni, E_Int nj)
-{
-  gp_Pnt Pt;
-  coord3D.resize(3, ni*nj);
-  connect.resize(4, (ni-1)*(nj-1));
-  // Get UV bounds
-  E_Float U0, V0, U1, V1, U, V;
-  ShapeAnalysis::GetFaceUVBounds(_F, U0, U1, V0, V1);
-  for (E_Int j = 0; j < nj; j++)
-  for (E_Int i = 0; i < ni; i++)
-  {
-    U = U0+i*(U1-U0)/(ni-1);
-    V = V0+j*(V1-V0)/(nj-1);
-    _surface->D0(U, V, Pt);
-    coord3D(0,i+j*ni) = Pt.X(); coord3D(1,i+j*ni) = Pt.Y(); coord3D(2,i+j*ni) = Pt.Z();
-  }
-  for (E_Int j = 0; j < nj-1; j++)
-  for (E_Int i = 0; i < ni-1; i++)
-  {
-    connect(0,i+j*(ni-1)) = i+j*ni+1;
-    connect(1,i+j*(ni-1)) = i+1+j*ni+1;
-    connect(2,i+j*(ni-1)) = i+1+(j+1)*ni+1;
-    connect(3,i+j*(ni-1)) = i+(j+1)*ni+1;
-  }
-}
 
-// Projete coord3D sur la surface
-void K_OCC::OCCSurface::project(K_FLD::FloatArray& coord3D) const
-{
-  for (E_Int i=0; i < coord3D.cols(); ++i)
-  {
-    E_Float x,y,z;
-    x = coord3D(0,i); y = coord3D(1,i); z = coord3D(2,i);
-    gp_Pnt Point;
-    Point.SetCoord(x, y, z);
-    GeomAPI_ProjectPointOnSurf o(Point, _surface);
-    /*
-    E_Int nbsol = o.NbPoints();
-    printf("Nb solution=%d\n",o.NbPoints());
-    for (E_Int i = 1; i <= nbsol; i++)
-    {
-      gp_Pnt Pj = o.Point(i);
-      printf("Pt %g %g %g -> %g %g %g\n",pt[0],pt[1],pt[2],Pj.X(),Pj.Y(),Pj.Z());
-      o.Parameters(i,u3,v3);
-      printf("proj    %d: %g %g\n",i,u3,v3);
-    }
-    */
-    gp_Pnt Pj = o.NearestPoint();
-    //printf("projection %f %f %f -> %f %f %f\n",x,y,z,Pj.X(),Pj.Y(),Pj.Z());
-    coord3D(0,i) = Pj.X(); coord3D(1,i) = Pj.Y(); coord3D(2,i) = Pj.Z();
-  }
-}
 
-///
+
+
+// parametre le contour (coord3D, connectB) avec les parametres de la surface
+// version originale
 E_Int
 K_OCC::OCCSurface::parameters
 (const K_FLD::FloatArray& coord3D, const K_FLD::IntArray& connectB, K_FLD::FloatArray& UVs) const 
@@ -156,21 +109,6 @@ K_OCC::OCCSurface::parameters
     if (_isVClosed && ::fabs(UVs(1,Ni) - UVs(1,Nj)) > K_CONST::E_PI) err = 1;
   }
   
-  // Detect jumps
-  /*
-  for (E_Int i=0; i < connectB.cols(); ++i)
-  {
-    E_Int Ni = connectB(0,i);
-    E_Int Nj = connectB(1,i);
-    E_Float Ui = UVs(0, Ni);
-    E_Float Vi = UVs(1, Ni);
-    E_Float Uj = UVs(0, Nj);
-    E_Float Vj = UVs(1, Nj);
-    //printf("la %d: %g %g -> %g %g\n", i,Ui,Vi,Uj,Vj);
-    if (::fabs(Ui-Uj) > 0.7 || ::fabs(Vi-Vj) > 0.7) printf("switch elt=%d, n1=%d, n2=%d: %g %g -> %g %g\n", i,Ni,Nj,Ui,Vi,Uj,Vj);
-  }
-  */
-  
   for (E_Int k=0; k < UVs.cols(); ++k)
     if (UVs(0,k) == K_CONST::E_MAX_FLOAT)
       UVs(0,k) = UVs(1,k) = 0.;
@@ -178,7 +116,7 @@ K_OCC::OCCSurface::parameters
   return err;
 }
 
-///
+// version originale
 E_Int
 K_OCC::OCCSurface::parameters(const E_Float* pt, E_Float& u, E_Float& v, E_Int index) const 
 {
@@ -190,44 +128,13 @@ K_OCC::OCCSurface::parameters(const E_Float* pt, E_Float& u, E_Float& v, E_Int i
   E_Int ok = GeomLib_Tool::Parameters(_surface, Point, 1.e+100/*dummytol*/, u, v);
   if (!ok || u==-1 || v==-1) return 1;
   
-  //E_Float u1,v1;
-  //GeomLib_Tool::Parameters(_surface, Point, 1.e+100/*dummytol*/, u1, v1);
-  
-  //GeomAPI_ProjectPointOnSurf o(Point, _surface);
-  //E_Float u2,v2;
-  //o.LowerDistanceParameters(u2,v2);
-  
-  //printf("Point index=%d\n",index);
-  //printf("geomlib:   %g %g\n",u1,v1);
-  //printf("lowerproj: %g %g\n",u2,v2);
-  //printf("=============\n");
-  
-  //if (index == 4)
-  //{
-  //  printf("Point index=%d\n",index);
-  //  printf("geomlib:   %g %g\n",u1,v1);
-  //  printf("lowerproj: %g %g\n",u2,v2);
-  //  
-  //  E_Float u3,v3;
-  //  E_Int nbsol = o.NbPoints();
-  //  printf("Nb solution=%d\n",o.NbPoints());
-  //  for (E_Int i = 1; i <= nbsol; i++)
-  //  {
-  //    gp_Pnt Pj = o.Point(i);
-  //    printf("Pt %g %g %g -> %g %g %g\n",pt[0],pt[1],pt[2],Pj.X(),Pj.Y(),Pj.Z());
-  //    o.Parameters(i,u3,v3);
-  //    printf("proj    %d: %g %g\n",i,u3,v3);
-  //  }
-  //  //printf("=============\n");
-  //}
-  //u = u2; v = v2;
-  
   // normalize in [0,1]
   __normalize(u,v);
   
   return 0;
 }
 
+// Parametre le contour coord3D par rapport a la surface (edges discretises)
 E_Int
 K_OCC::OCCSurface::parametersSample(const K_FLD::FloatArray&coord3D, K_FLD::FloatArray& UVs)
 {
@@ -258,7 +165,7 @@ K_OCC::OCCSurface::parametersSample(const K_FLD::FloatArray&coord3D, K_FLD::Floa
     
     //init
     N[0] = (Nc > 0) ? Nc-1 : szSmpl-1; //prior
-    N[1] = (Nc+1)%szSmpl;                // next
+    N[1] = (Nc+1)%szSmpl;              // next
       
     //
     d2[0]=K_MESH::Edge::edgePointMinDistance2<3>(pos3D.col(N[0]), pos3D.col(Nc), Pt, lambda[0]);
@@ -287,7 +194,7 @@ E_Int K_OCC::OCCSurface::__sample_contour(E_Int Nsample, K_FLD::FloatArray& pos3
   }
   
   E_Float U[2], Pt[3];
-  //
+  // edge 1
   U[1] = V0n;
   for (E_Int a=0; a < Nsample-1; ++a) // up to Nsample-1 to avoid to create duplicates
   {
@@ -298,7 +205,7 @@ E_Int K_OCC::OCCSurface::__sample_contour(E_Int Nsample, K_FLD::FloatArray& pos3
     pos3D.pushBack(Pt, Pt+3);
   }
   
-  //
+  // edge 2
   U[0]=U1n;
   for (E_Int a=0; a < Nsample-1; ++a)
   {
@@ -309,7 +216,7 @@ E_Int K_OCC::OCCSurface::__sample_contour(E_Int Nsample, K_FLD::FloatArray& pos3
     pos3D.pushBack(Pt, Pt+3);
   }
   
-  //
+  // edge 3
   U[1]=V1n;
   for (E_Int a=0; a < Nsample-1; ++a)
   {
@@ -320,7 +227,7 @@ E_Int K_OCC::OCCSurface::__sample_contour(E_Int Nsample, K_FLD::FloatArray& pos3
     pos3D.pushBack(Pt, Pt+3);
   }
   
-  //
+  // edge 4
   U[0]=U0n;
   for (E_Int a=0; a < Nsample-1; ++a)
   {
@@ -348,7 +255,8 @@ E_Int K_OCC::OCCSurface::__sample_contour(E_Int Nsample, K_FLD::FloatArray& pos3
 }
 
 /// Computes the surface point P for the input (u,v) parameters.
-void K_OCC::OCCSurface::point(E_Float u, E_Float v, E_Float* P) const{
+void K_OCC::OCCSurface::point(E_Float u, E_Float v, E_Float* P) const
+{
   gp_Pnt Pt;
   
   __denormalize(u,v);
@@ -358,7 +266,6 @@ void K_OCC::OCCSurface::point(E_Float u, E_Float v, E_Float* P) const{
   
 //  std::cout << "coordinated passed to D0 : " << u << "/" << v << std::endl;
 //  std::cout << "returned PT : " << P[0] << "/" << P[1] << "/" << P[2] << std::endl;
-  
 }
 
 /// Computes the first U-derivative at P(u,v) on the surface.
@@ -370,7 +277,7 @@ void K_OCC::OCCSurface::DU1(E_Float u, E_Float v, E_Float* P) const{
   
   _surface->D1(u, v, Pt, DU1, DV1);
   
-  P[0]=DU1.X();P[1]=DU1.Y();P[2]=DU1.Z();
+  P[0]=DU1.X(); P[1]=DU1.Y(); P[2]=DU1.Z();
   
   if (!_normalize_domain) return;
   
@@ -388,7 +295,7 @@ void K_OCC::OCCSurface::DU2(E_Float u, E_Float v, E_Float* P) const{
   
   _surface->D2 (u, v, Pt, DU1, DV1, DU2, DV2, DUV);
   
-  P[0]=DU2.X();P[1]=DU2.Y();P[2]=DU2.Z();
+  P[0]=DU2.X(); P[1]=DU2.Y(); P[2]=DU2.Z();
   
   if (!_normalize_domain) return;
   
@@ -536,16 +443,24 @@ void K_OCC::OCCSurface::__get_params_and_type
   
   ShapeAnalysis::GetFaceUVBounds(F, U0, U1, V0, V1);
   
+  printf("bounds U=%f %f - V=%f %f\n",U0,U1,V0,V1);
+  
   // min must be a strictly positive epsilon to avoid seam issue for revol surface (and should not hurt for others..)
   U0 = (::fabs(U0) < paramtol ) ? paramtol : U0;
   V0 = (::fabs(V0) < paramtol ) ? paramtol : V0;
   
   E_Float twoPI = 2.*K_CONST::E_PI;
   
-  // is max is 2Pi (revolution) , we similarily put a value smaller to avoid the seam issu
+  // if max is 2Pi (revolution) , we similarily put a value smaller to avoid the seam issu
   U1 = (::fabs(U1 - twoPI) < paramtol ) ? twoPI - paramtol : U1;
   V1 = (::fabs(V1 - twoPI) < paramtol ) ? twoPI - paramtol : V1;
   
-  isUClosed = (U0 == paramtol) && (U1 == (twoPI - paramtol));
-  isVClosed = (V0 == paramtol) && (V1 == (twoPI - paramtol));
+  isUClosed = (U0 == paramtol) & (U1 == (twoPI - paramtol));
+  isVClosed = (V0 == paramtol) & (V1 == (twoPI - paramtol));
+  
+  // Analyse par OCC
+  ShapeAnalysis_Surface o(_surface);
+  isUClosed = o.IsUClosed();
+  isVClosed = o.IsVClosed();
+  //printf("closed %d %d\n", isUClosed, isVClosed);
 }

@@ -625,18 +625,19 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
           (*fo)(3*ind+2+nvertex,n) = onequart  *(*f)(p1,n) + threequart*(*f)(p2,n);
         }
         // ajout pour les centres
+        E_Int beg_centers = nvertex + 3*nedges;
         for (E_Int i = 0; i < nelts; i++)
         {
           n1 = (*cn)(i,1)-1; n2 = (*cn)(i,2)-1; n3 = (*cn)(i,3)-1; n4 = (*cn)(i,4)-1;
-          (*fo)(9*i+0+nvertex+2*nedges,n) = (9./16.)*(*f)(n1,n) + (3./16.) * ( (*f)(n2,n) + (*f)(n4,n) ) + (1./16.)*(*f)(n3,n);
-          (*fo)(9*i+1+nvertex+2*nedges,n) = (3./8.0)*( (*f)(n1,n) + (*f)(n2,n) ) + (1./8.0) * ( (*f)(n4,n) + (*f)(n3,n) );
-          (*fo)(9*i+2+nvertex+2*nedges,n) = (9./16.)*(*f)(n2,n) + (3./16.) * ( (*f)(n3,n) + (*f)(n1,n) ) + (1./16.)*(*f)(n4,n);
-          (*fo)(9*i+3+nvertex+2*nedges,n) = (3./8.0)*( (*f)(n2,n) + (*f)(n3,n) ) + (1./8.0) * ( (*f)(n1,n) + (*f)(n4,n) );
-          (*fo)(9*i+4+nvertex+2*nedges,n) = (9./16.)*(*f)(n3,n) + (3./16.) * ( (*f)(n4,n) + (*f)(n2,n) ) + (1./16.)*(*f)(n1,n);
-          (*fo)(9*i+5+nvertex+2*nedges,n) = (3./8.0)*( (*f)(n3,n) + (*f)(n4,n) ) + (1./8.0) * ( (*f)(n2,n) + (*f)(n1,n) );
-          (*fo)(9*i+6+nvertex+2*nedges,n) = (9./16.)*(*f)(n4,n) + (3./16.) * ( (*f)(n1,n) + (*f)(n3,n) ) + (1./16.)*(*f)(n2,n);
-          (*fo)(9*i+7+nvertex+2*nedges,n) = (3./8.0)*( (*f)(n4,n) + (*f)(n1,n) ) + (1./8.0) * ( (*f)(n3,n) + (*f)(n2,n) );
-          (*fo)(9*i+8+nvertex+2*nedges,n) = (1./4.0)*( (*f)(n1,n) + (*f)(n2,n) + (*f)(n3,n) + (*f)(n4,n) );
+          (*fo)(9*i+0+beg_centers,n) = (9./16.)*(*f)(n1,n) + (3./16.) * ( (*f)(n2,n) + (*f)(n4,n) ) + (1./16.)*(*f)(n3,n);
+          (*fo)(9*i+1+beg_centers,n) = (3./8.0)*( (*f)(n1,n) + (*f)(n2,n) ) + (1./8.0) * ( (*f)(n4,n) + (*f)(n3,n) );
+          (*fo)(9*i+2+beg_centers,n) = (9./16.)*(*f)(n2,n) + (3./16.) * ( (*f)(n3,n) + (*f)(n1,n) ) + (1./16.)*(*f)(n4,n);
+          (*fo)(9*i+3+beg_centers,n) = (3./8.0)*( (*f)(n2,n) + (*f)(n3,n) ) + (1./8.0) * ( (*f)(n1,n) + (*f)(n4,n) );
+          (*fo)(9*i+4+beg_centers,n) = (9./16.)*(*f)(n3,n) + (3./16.) * ( (*f)(n4,n) + (*f)(n2,n) ) + (1./16.)*(*f)(n1,n);
+          (*fo)(9*i+5+beg_centers,n) = (3./8.0)*( (*f)(n3,n) + (*f)(n4,n) ) + (1./8.0) * ( (*f)(n2,n) + (*f)(n1,n) );
+          (*fo)(9*i+6+beg_centers,n) = (9./16.)*(*f)(n4,n) + (3./16.) * ( (*f)(n1,n) + (*f)(n3,n) ) + (1./16.)*(*f)(n2,n);
+          (*fo)(9*i+7+beg_centers,n) = (3./8.0)*( (*f)(n4,n) + (*f)(n1,n) ) + (1./8.0) * ( (*f)(n3,n) + (*f)(n2,n) );
+          (*fo)(9*i+8+beg_centers,n) = (1./4.0)*( (*f)(n1,n) + (*f)(n2,n) + (*f)(n3,n) + (*f)(n4,n) );
         }
       }
     }

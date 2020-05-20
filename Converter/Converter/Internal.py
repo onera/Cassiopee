@@ -2462,7 +2462,7 @@ def eltName2EltNo(name):
         elif nnodes == 8:  eltno = 8
         elif nnodes == 9:  eltno = 9
         elif nnodes == 12: eltno = 27 # D'apres l'enumeration CGNS
-        elif nnodes == 16: eltno = 28 # Attention, ici, je prends par defaut QUAD_16 mais cela pourrait être QUAD_P4_16... Que faire ? 
+        elif nnodes == 16: eltno = 28 # Attention, ici, je prends par defaut QUAD_16 mais cela pourrait etre QUAD_P4_16... Que faire ? 
                                       # Pour l'ordre 4,rien dans l'enumeration CGNS
     elif name[0:5] == 'TETRA':
         if len(name) == 5: nnodes = 4

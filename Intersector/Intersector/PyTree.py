@@ -478,7 +478,7 @@ def _XcellNSurf(t, priorities, output_type=0, rtol=0.05):
         pg_oids = xcellns[i+1]
         
         #transferFields(z, pg_oids)
-        C.setFields([mesh], z, 'nodes') 
+        C.setFields([mesh], z, 'nodes')
 
         i +=2
     return

@@ -432,7 +432,7 @@ void col3HSV(Data* d, double f, float* r, float* g, float* b)
   double g3 = d->ptrState->colormapG3;
   double b3 = d->ptrState->colormapB3;
   double h1,s1,v1,h2,v2,s2,h3,v3,s3,h,s,v,ro,go,bo;
-  double delta, delta1, delta2,h3s;
+  double delta, delta1, delta2;
   d->rgb2hsv(r1,g1,b1,h1,s1,v1);
   d->rgb2hsv(r2,g2,b2,h2,s2,v2);
   d->rgb2hsv(r3,g3,b3,h3,s3,v3);

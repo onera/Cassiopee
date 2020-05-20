@@ -36,9 +36,9 @@ namespace K_FLD
 
     struct pt_t
     {
-      pt_t(){};
-      pt_t(value_type* p){e[0]=p[0]; e[1]=p[1]; e[2]=p[2];}
-      pt_t& operator=(pt_t const& r){e[0]=r.e[0]; e[1]=r.e[1]; e[2]=r.e[2]; return *this;}
+      pt_t() {};
+      pt_t(value_type* p) {e[0]=p[0]; e[1]=p[1]; e[2]=p[2];}
+      pt_t& operator=(pt_t const& r) {e[0]=r.e[0]; e[1]=r.e[1]; e[2]=r.e[2]; return *this;}
       pt_t(pt_t const & r){*this = r;}
       value_type e[3];
       operator value_type*() { return e;}

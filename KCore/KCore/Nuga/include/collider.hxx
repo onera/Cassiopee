@@ -524,7 +524,7 @@ bool get_colliding<NUGA::aPolygon, edge_mesh_t>
 
   // c. detect collisions
   
-  E_Int nbx(0), ncands(cands.size());
+  E_Int ncands(cands.size());
   keep.clear();
   keep.resize(ncands, false);
 

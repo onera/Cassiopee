@@ -192,6 +192,64 @@ def conformUnstr():
     CTK.TKTREE.updateApp()
     CPlot.render()
     CTK.setCursor(0, WIDGETS['conformUnstr'])
+
+#==============================================================================
+def forceMatch():
+    if CTK.t == []: return
+    if CTK.__MAINTREE__ <= 0:
+        CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+    
+    nzs = CPlot.getSelectedZones()
+    if nzs == []:
+        CTK.TXT.insert('START', 'Selection is empty.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+
+    tol = CTK.varsFromWidget(VARS[3].get(), type=1)
+    if len(tol) != 1:
+        CTK.TXT.insert('START', 'Tolerance is incorrect.\n') 
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+    tol = tol[0]
+
+    if len(nzs) != 2: 
+        CTK.TXT.insert('START', 'Need two patches.\n') 
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+
+    CTK.setCursor(2, WIDGETS['forceMatch'])
+    CTK.saveTree()
+
+    nz = nzs[0]
+    nob1 = CTK.Nb[nz]+1
+    noz1 = CTK.Nz[nz]
+    z1 = CTK.t[2][nob1][2][noz1]
+    nz = nzs[1]
+    nob2 = CTK.Nb[nz]+1
+    noz2 = CTK.Nz[nz]
+    z2 = CTK.t[2][nob2][2][noz2]
+
+    G._forceMatch(z1, z2, tol)
+    
+    # Try merge
+    z = T.join(z1, z2)
+    z = G.close(z)
+    
+    # Check
+    A = T.splitManifold(z)
+    if len(A) > 1: # must increase tolerance
+        CTK.replace(CTK.t, nob1, noz1, z1)
+        CTK.replace(CTK.t, nob2, noz2, z2)  
+    else:
+        z = T.reorder(z, (1,))
+        CTK.replace(CTK.t, nob1, noz1, z)
+        print(CTK.t[2][nob2][0]+Internal.SEP1+z2[0])
+        CPlot.delete([CTK.t[2][nob2][0]+Internal.SEP1+z2[0]])
+        del CTK.t[2][nob2][2][noz2]
+    
+    CTK.TXT.insert('START', 'Surfaces match.\n')
+    (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+    CTK.TKTREE.updateApp()
+    CPlot.render()
+    CTK.setCursor(0, WIDGETS['forceMatch'])
     
 #==============================================================================
 # Create app widgets
@@ -222,6 +280,8 @@ def createApp(win):
     V = TK.StringVar(win); V.set('0.'); VARS.append(V)
     # -2- checkbox if split in conformization
     V = TK.StringVar(win); V.set('1'); VARS.append(V)
+    # -3- tolerance for forcematch
+    V = TK.StringVar(win); V.set('1.'); VARS.append(V)
 
     # - Slider -
     B = TTK.Scale(Frame, from_=-50, to=50, orient=TK.HORIZONTAL, showvalue=0,
@@ -253,6 +313,15 @@ def createApp(win):
     B = TTK.Checkbutton(Frame, text='', variable=VARS[2])
     B.grid(row=2, column=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Split while conformizing.')
+    
+    # - forceMatch -
+    #B = TTK.Button(Frame, text="forceMatch", command=forceMatch)
+    #WIDGETS['forceMatch'] = B
+    #B.grid(row=3, column=0, columnspan=1, sticky=TK.EW)
+    #BB = CTK.infoBulle(parent=B, text='Force two patch to match.')
+    #B = TTK.Entry(Frame, textvariable=VARS[3], background='White', width=5)
+    #B.grid(row=3, column=1, columnspan=2, sticky=TK.EW)
+    #BB = CTK.infoBulle(parent=B, text='Tolerance used in forceMatch operations.')    
 
 #==============================================================================
 # Called to display widgets

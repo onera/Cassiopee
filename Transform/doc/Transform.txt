@@ -1,4 +1,9 @@
 ===============================================================================
+Transform 3.1 [06/2020]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.1
+Optional: pyTree interface requires Converter 3.1
+Optional: splitMultiplePts function requires Connector 3.1
+===============================================================================
 Transform 3.0 [12/2019]
 Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.0
 Optional: pyTree interface requires Converter 3.0

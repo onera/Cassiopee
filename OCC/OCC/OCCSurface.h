@@ -26,6 +26,7 @@
 #include "Geom_Surface.hxx"
 #include "TopExp_Explorer.hxx"
 #include "TopTools_IndexedMapOfShape.hxx"
+#include <map>
 
 namespace K_OCC
 {
@@ -43,7 +44,20 @@ public:
   void project(K_FLD::FloatArray& coord3D) const;
 
   // Discretise la surface dans coord3D
-  void discretize(K_FLD::FloatArray& coord3D,K_FLD::IntArray& connect, E_Int ni, E_Int nj);
+  void discretize(K_FLD::FloatArray& coord3D, K_FLD::IntArray& connect, E_Int ni, E_Int nj);
+
+  // Order BAR  
+  E_Int findNextPoint(K_FLD::IntArray& found, std::vector< std::vector<E_Int> >& node2Elt);
+  void orderBAR(E_Int npts, K_FLD::FloatArray& coord3D, K_FLD::IntArray& connectB, K_FLD::IntArray& ind, K_FLD::IntArray& start);
+  void parcoursBAR(K_FLD::FloatArray& pos3D, K_FLD::IntArray& connectB);
+  E_Int findNextElement(E_Int e, K_FLD::IntArray& found, K_FLD::IntArray& connectB,
+                        std::vector< std::vector<E_Int> >& node2Elt);
+  void dupBAR(K_FLD::FloatArray& pos3D, K_FLD::IntArray& connectB, K_FLD::IntArray& switcha, std::map< E_Int, E_Int >& mirror);
+  E_Int findNonAmbStart(E_Int npts, K_FLD::FloatArray& coord3D);
+
+  // version CB
+  E_Int parameters2(K_FLD::FloatArray& coord3D, K_FLD::IntArray& connectB, K_FLD::FloatArray& UVs) const ;
+  E_Int parameters2(const E_Float* pt, E_Float & u, E_Float& v, E_Int index, E_Float& up, E_Float& vp, E_Float& upp, E_Float& vpp) const ;
   
   // Calcule les parametres UV de coord3D sur la surface
   E_Int parameters(const K_FLD::FloatArray&coord3D, const K_FLD::IntArray& connectB, K_FLD::FloatArray& UVs) const ;
@@ -51,7 +65,6 @@ public:
   
   // Calcule les parametres UV du point P sur la surface
   E_Int parameters(const E_Float* pt, E_Float & u, E_Float& v, E_Int index=-1) const ;
-  
   
   /// Computes the surface point P for the input (u,v) parameters.
   void point(E_Float u, E_Float v, E_Float* P) const;

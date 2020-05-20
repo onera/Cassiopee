@@ -28,6 +28,8 @@ srcs = ['OCC/pyOCC.cpp',
         'OCC/import_OCC_CAD_wrapper.cpp',
         'OCC/CADviaOCC.cpp', 
         'OCC/OCCSurface.cpp',
+        'OCC/CADviaOCC2.cpp', 
+        'OCC/OCCSurface2.cpp',
         'OCC/convertCAD2Arrays.cpp']
 
 import KCore.Dist as Dist

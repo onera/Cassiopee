@@ -54,6 +54,7 @@ public:
     E_Int build_loops (K_FLD::FloatArray& coords, const std::vector<K_FLD::IntArray>& connectEs, std::vector<K_FLD::IntArray>& connectBs);
     ///
     E_Int mesh_faces(const K_FLD::FloatArray& coords, const std::vector<K_FLD::IntArray>& connectEs, std::vector<K_FLD::FloatArray>& crds, std::vector<K_FLD::IntArray>& connectMs, bool aniso=false);
+    E_Int mesh_faces2(const K_FLD::FloatArray& coords, const std::vector<K_FLD::IntArray>& connectEs, std::vector<K_FLD::FloatArray>& crds, std::vector<K_FLD::IntArray>& connectMs, bool aniso=false);
     
     E_Int __eval_chordal_error(const BRepAdaptor_Curve& curve, E_Float u0, E_Float u1, E_Float& chordal_error);
     E_Int __eval_nb_points(const BRepAdaptor_Curve& C, E_Float u0, E_Float u1, E_Float chordal_error, E_Int& nb_points );
@@ -81,6 +82,11 @@ private:
                                        std::map<E_Int, std::pair<E_Int, E_Int> >& seam_nodes);
     
     void __add_seam_node(OCCSurface const *face, K_FLD::FloatArray& pos3D, E_Int N0, std::map<E_Int, std::pair<E_Int, E_Int> >& seam_nodes);
+    
+    void __split_surface_of_revolution2(const OCCSurface* face, K_FLD::IntArray& connectB, K_FLD::FloatArray& pos3D, 
+                                        std::map<E_Int, std::pair<E_Int, E_Int> >& seam_nodes);
+    
+    void __add_seam_node2(OCCSurface const *face, K_FLD::FloatArray& pos3D, E_Int N0, std::map<E_Int, std::pair<E_Int, E_Int> >& seam_nodes);
     
     E_Float _chordal_err, _h, _merge_tol, _Lmin, _Lmax, _Lmean, _gr;
     bool _hrelative;

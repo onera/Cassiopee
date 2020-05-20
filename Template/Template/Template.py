@@ -1,6 +1,6 @@
 """Do something cool with arrays.
 """
-__version__ = '2.4'
+__version__ = '3.1'
 __author__ = "You"
 
 import template
