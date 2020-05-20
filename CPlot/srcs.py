@@ -146,10 +146,7 @@ cpp_srcs = ['CPlot/render.cpp',
             'CPlot/GLUT/freeglut_xinput.c']
 
 if SHADERS==2:
-    cpp_srcs += [#'CPlot/Shaders2.0/TesselationShaderManager.cpp',
-                 #'CPlot/Shaders2.0/TesselationControlShader.cpp',
-                 #'CPlot/Shaders2.0/TesselationEvaluationShader.cpp',
-                 'CPlot/Shaders2.0/triggerShader.cpp',
+    cpp_srcs += ['CPlot/Shaders2.0/triggerShader.cpp',
                  'CPlot/Shaders2.0/FragmentShader.cpp',
                  'CPlot/Shaders2.0/VertexShader.cpp',
                  'CPlot/Shaders2.0/GeomShader.cpp',

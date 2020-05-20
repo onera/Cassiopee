@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2020 Onera.
 
     This file is part of Cassiopee.
 
@@ -26,20 +26,20 @@
 using namespace CPlot;
 
 //=============================================================================
-ShaderManager::ShaderManager() : 
-  _shaderList(), 
-  _currentActiveShader(0)
-{}
-
+ShaderManager::ShaderManager()
+    : _shaderList(),
+      m_previous_shader( nullptr ),
+      _currentActiveShader( 0 )
+{
+}
 //=============================================================================
 ShaderManager::~ShaderManager()
 {
-  deactivate();
-  for (std::vector<Shader*>::iterator itShad = _shaderList.begin();
-       itShad != _shaderList.end(); itShad++)
-  {
-    delete (*itShad);
-  }  
+    deactivate();
+    for ( std::vector<Shader *>::iterator itShad = _shaderList.begin();
+          itShad != _shaderList.end(); itShad++ ) {
+        delete ( *itShad );
+    }
 }
 
 //=============================================================================
@@ -112,36 +112,34 @@ Shader* ShaderManager::addFromFile(const char* vertexFile,
 }
 
 //=============================================================================
-unsigned short ShaderManager::getId(Shader* shad)
+unsigned short ShaderManager::getId( Shader *shad ) const
 {
-  unsigned short id = 0;
-  std::vector<Shader*>::iterator it = _shaderList.begin();
-  while (it != _shaderList.end())
-  {
-    id++;
-    if ((*it) == shad) break;
-  }
-  if (id == _shaderList.size()) id = 0;
-  return id;
+    unsigned short id = 0;
+    std::vector<Shader *>::const_iterator it = _shaderList.begin();
+    while ( it != _shaderList.end() ) {
+        if ( ( *it ) == shad ) break;
+        id++;
+    }
+    if ( id == _shaderList.size() ) return 0;
+    return id;
 }
 
 // ============================================================================
-bool ShaderManager::eraseShader(Shader* obj)
+bool ShaderManager::eraseShader( Shader *obj )
 {
-  std::vector<Shader*>::iterator it = _shaderList.begin();
-  while (it != _shaderList.end())
-  {
-    if ((*it) == obj)
-    {
-      _shaderList.erase(it);
-      delete obj;
-      return true;
+    std::vector<Shader *>::iterator it = _shaderList.begin();
+    while ( it != _shaderList.end() ) {
+        if ( ( *it ) == obj ) {
+            _shaderList.erase( it );
+            delete obj;
+            return true;
+        }
     }
-  }
-  return false;
+    return false;
 }
 
 // ----------------------------------------------------------------------------
+/*
 void ShaderManager::activate(unsigned short id)
 {
   if (_currentActiveShader > 0) _shaderList[_currentActiveShader-1]->end();
@@ -151,36 +149,58 @@ void ShaderManager::activate(unsigned short id)
   if (!_shaderList[id-1]->start())
     throw std::runtime_error("Fail to start shader !");
 }
-
-//=============================================================================
-void ShaderManager::activate(Shader* shad)
+*/
+// ----------------------------------------------------------------------------
+void ShaderManager::activate( unsigned short id )
 {
-  if (_currentActiveShader > 0) _shaderList[_currentActiveShader-1]->end();
-  _currentActiveShader = 0;
-  unsigned short id = 0;
-  std::vector<Shader*>::iterator it = _shaderList.begin();
-  while (it != _shaderList.end())
-  {
-    id++;
-    if ((*it) == shad)
-    {
-      activate(id); _currentActiveShader = id; return;
+        if ( m_previous_shader != nullptr ) {
+            m_previous_shader->end();
+            m_previous_shader = nullptr;
+        }
+        //if ( _currentActiveShader > 0 ) _shaderList[ _currentActiveShader - 1 ]->end();
+        _currentActiveShader = 0;
+        if ( id == 0 ) return;
+        if ( id >= _shaderList.size() ) return;
+        _currentActiveShader = id;
+        if ( !_shaderList[ id  ]->start() )
+            throw std::runtime_error( "Fail to start shader !" );
+        else
+            m_previous_shader = _shaderList[ id ];
+}
+//=============================================================================
+void ShaderManager::activate( Shader *shad )
+{
+    if ( m_previous_shader != nullptr ) m_previous_shader->end();
+    //if ( _currentActiveShader > 0 ) _shaderList[ _currentActiveShader - 1 ]->end();
+    _currentActiveShader = 0;
+    unsigned short id = 0;
+    std::vector<Shader *>::iterator it = _shaderList.begin();
+    while ( it != _shaderList.end() ) {
+        id++;
+        if ( ( *it ) == shad ) {
+            activate( id );
+            _currentActiveShader = id;
+            m_previous_shader = shad;
+            return;
+        }
     }
-  }
 }
 //=============================================================================
 void ShaderManager::deactivate()
 {
-  if (_currentActiveShader > 0) _shaderList[_currentActiveShader-1]->end();
-  _currentActiveShader = 0;
+    if ( m_previous_shader != nullptr ) m_previous_shader->end();
+    activate( (unsigned short)0 );
+    _currentActiveShader = 0;
 }
 
 //=============================================================================
 int ShaderManager::init()
 {
-  glewInit();
-  if (GLEW_ARB_vertex_shader && GLEW_ARB_fragment_shader) return 1; // success
-  else return 0; // fail
+    glewInit();
+    if ( GLEW_ARB_vertex_shader && GLEW_ARB_fragment_shader )
+        return 1;  // success
+    else
+        return 0;  // fail
 }
 
 //=============================================================================
@@ -189,6 +209,11 @@ int ShaderManager::load()
   char vert[256*8]; char frag[256*8]; char geom[256*8];
   Data* d = Data::getInstance();
   char* path = d->ptrState->shaderPath;
+
+  // - 0 - None
+  strcpy(vert, path); strcat(vert, "phong.vert");
+  strcpy(frag, path); strcat(frag, "phong.frag");
+  addFromFile(vert, frag);
 
   // - 1 - Phong unidirectionnel
   strcpy(vert, path); strcat(vert, "phong.vert");

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2020 Onera.
 
     This file is part of Cassiopee.
 
@@ -18,8 +18,11 @@
 */
 #ifndef _CPLOT_SHADERMANAGER_HPP_
 #define _CPLOT_SHADERMANAGER_HPP_
+#include <cassert>
 #include <map>
 #include <vector>
+
+#include <iostream>
 #include "Shader.h"
 
 // prepare the shadow texture
@@ -59,17 +62,31 @@ namespace CPlot
     bool eraseShader(Shader* obj);
     unsigned short numberOfShaders() const
     { return (unsigned short)_shaderList.size(); }
-    unsigned short currentShader()
+    unsigned short currentShader() const
     { return _currentActiveShader; }
+    unsigned short shader_id( int idShadMat ) const
+    {
+      unsigned short id = idShadMat;
+      if ( id >= (unsigned short)_shaderList.size() ) std::cerr << "Bogue, depassement de tableau de shader !!!!" << std::flush << std::endl;
+      return id;
+    }
     
     Shader* operator [] (unsigned short id)
-    { return _shaderList[id-1]; }
+    {
+        assert(id > 0);
+        assert(id < _shaderList.size());
+        return _shaderList[id]; 
+    }
     
     const Shader* operator [] (unsigned short id) const
-    { return _shaderList[id-1]; }
+    { 
+        assert(id > 0);
+        assert(id < _shaderList.size());
+        return _shaderList[id]; 
+    }
     
     /* Return the id of a shader in shader list */
-    unsigned short getId(Shader* shad);
+    unsigned short getId(Shader* shad) const;
     
     /* Activate a shader from his identificator 
        Desactivate the previous shader if different.
@@ -94,6 +111,7 @@ namespace CPlot
     ShaderManager& operator = (const ShaderManager& shadMan);
     
     std::vector<Shader*> _shaderList;
+    Shader* m_previous_shader;
     unsigned short _currentActiveShader;
   };
 }

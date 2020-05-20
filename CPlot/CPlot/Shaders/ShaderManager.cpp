@@ -31,8 +31,8 @@ using namespace CPlot;
 //=============================================================================
 ShaderManager::ShaderManager()
     : _shaderList(),
-      _currentActiveShader( 0 ),
-      m_previous_shader( nullptr )
+      m_previous_shader( nullptr ),
+      _currentActiveShader( 0 )
 {
 }
 //=============================================================================
