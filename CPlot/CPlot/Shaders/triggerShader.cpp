@@ -17,7 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "../Data.h"
-#include "Shaders/shaders_id.h"
+#include "shaders_id.h"
 #include <iostream>
 
 //=============================================================================

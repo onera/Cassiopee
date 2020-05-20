@@ -12,7 +12,7 @@ TesselationControlShader::TesselationControlShader(): ShaderObject()
   CHECK_GL_ERROR();
 }
 //==============================================================================
-TesselationControlShader::TesselationControlShader(const std::string& src ):
+TesselationControlShader::TesselationControlShader(const std::string& src):
   ShaderObject()
 {
   _shaderId = glCreateShader(GL_TESS_CONTROL_SHADER);

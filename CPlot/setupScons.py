@@ -82,6 +82,10 @@ if mpeg:
     
 libraryDirs += [kcoreLibDir]
 
+from srcs import SHADERS
+if SHADERS == 2: includeDirs += ['CPlot/Shaders2.0']
+else: includeDirs += ['CPlot/Shaders']
+
 # Extensions =================================================================
 EXTRA = ['-D__SHADERS__']
 if OSMesa: EXTRA += ['-D__MESA__']

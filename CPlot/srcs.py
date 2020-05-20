@@ -4,6 +4,8 @@ from KCore.config import *
                                          additionalIncludePaths)
 (mpeg, mpegIncDir, mpegLib) = Dist.checkMpeg(additionalLibPaths,
                                              additionalIncludePaths)
+# SHADERS=2 (glsl2.0) =4 (glsl4.0)
+SHADERS = 4
 
 #==============================================================================
 # Fichiers C++
@@ -115,16 +117,6 @@ cpp_srcs = ['CPlot/render.cpp',
             'CPlot/Plugins/writePPMFile.cpp',
             'CPlot/Plugins/imagePost.cpp',
             'CPlot/Plugins/mouseClick.cpp',
-            'CPlot/Shaders/FragmentShader.cpp',
-            'CPlot/Shaders/VertexShader.cpp',
-            'CPlot/Shaders/GeomShader.cpp',
-            'CPlot/Shaders/ShaderObject.cpp',
-            'CPlot/Shaders/Shader.cpp',
-            'CPlot/Shaders/ShaderManager.cpp',
-            'CPlot/Shaders/TesselationShaderManager.cpp',
-            'CPlot/Shaders/TesselationControlShader.cpp',
-            'CPlot/Shaders/TesselationEvaluationShader.cpp',
-            'CPlot/Shaders/triggerShader.cpp',
             #'CPlot/Fonts/OpenGLText.cpp',
             'CPlot/GLEW/glew.c',
             'CPlot/GLUT/freeglut_callbacks.c',
@@ -153,6 +145,28 @@ cpp_srcs = ['CPlot/render.cpp',
             'CPlot/GLUT/freeglut_window.c',
             'CPlot/GLUT/freeglut_xinput.c']
 
+if SHADERS==2:
+    cpp_srcs += [#'CPlot/Shaders2.0/TesselationShaderManager.cpp',
+                 #'CPlot/Shaders2.0/TesselationControlShader.cpp',
+                 #'CPlot/Shaders2.0/TesselationEvaluationShader.cpp',
+                 'CPlot/Shaders2.0/triggerShader.cpp',
+                 'CPlot/Shaders2.0/FragmentShader.cpp',
+                 'CPlot/Shaders2.0/VertexShader.cpp',
+                 'CPlot/Shaders2.0/GeomShader.cpp',
+                 'CPlot/Shaders2.0/ShaderObject.cpp',
+                 'CPlot/Shaders2.0/Shader.cpp',
+                 'CPlot/Shaders2.0/ShaderManager.cpp']
+else:
+    cpp_srcs += ['CPlot/Shaders/TesselationShaderManager.cpp',
+                 'CPlot/Shaders/TesselationControlShader.cpp',
+                 'CPlot/Shaders/TesselationEvaluationShader.cpp',
+                 'CPlot/Shaders/triggerShader.cpp',
+                 'CPlot/Shaders/FragmentShader.cpp',
+                 'CPlot/Shaders/VertexShader.cpp',
+                 'CPlot/Shaders/GeomShader.cpp',
+                 'CPlot/Shaders/ShaderObject.cpp',
+                 'CPlot/Shaders/Shader.cpp',
+                 'CPlot/Shaders/ShaderManager.cpp']
 if png:
     cpp_srcs += ["CPlot/Plugins/writePNGFile.cpp",
                  "CPlot/Textures/createPngTexture.cpp"]

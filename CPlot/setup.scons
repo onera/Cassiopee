@@ -66,8 +66,11 @@ if mpeg:
     libraryDirs += [mpegLib]
     includeDirs += [mpegIncDir]
 
-# Env =========================================================================
 import srcs
+if srcs.SHADERS == 2: includeDirs += ['CPlot/Shaders2.0']
+else: includeDirs += ['CPlot/Shaders']
+    
+# Env =========================================================================
 mySystem = Dist.getSystem()[0]
 if mySystem == 'mingw': tools = ['mingw']
 else: tools = None
@@ -99,12 +102,20 @@ cplotLib = env.StaticLibrary('cplot', srcs.cpp_srcs)
 modDir = installPath+'/CPlot/'
 dp1 = env.Install(modDir, cplotLib)
 dp2 = env.Install(modDir, Glob('CPlot/*.py'))
-dp3 = env.Install(modDir, Glob('CPlot/Shaders/*.frag'))
-dp4 = env.Install(modDir, Glob('CPlot/Shaders/*.vert'))
-dp5 = env.Install(modDir, Glob('CPlot/Shaders/*.geom'))
-dp6 = env.Install(modDir, Glob('CPlot/Textures/*.png'))
-dp7 = env.Install(modDir, Glob('CPlot/Textures/*.ico'))
-dp8 = env.Install(modDir, 'ttk-themes/themes.tar')
-dp9 = env.Install(modDir, Glob('CPlot/Shaders/*.tcs'))
-dp10= env.Install(modDir, Glob('CPlot/Shaders/*.tes'))
+dp3 = env.Install(modDir, 'ttk-themes/themes.tar')
+dp4 = env.Install(modDir, Glob('CPlot/Textures/*.png'))
+dp5 = env.Install(modDir, Glob('CPlot/Textures/*.ico'))
+
+if srcs.SHADERS == 2:
+    dp6 = env.Install(modDir, Glob('CPlot/Shaders2.0/*.frag'))
+    dp7 = env.Install(modDir, Glob('CPlot/Shaders2.0/*.vert'))
+    dp8 = env.Install(modDir, Glob('CPlot/Shaders2.0/*.geom'))
+    dp9 = env.Install(modDir, Glob('CPlot/Shaders2.0/*.tcs'))
+    dp10= env.Install(modDir, Glob('CPlot/Shaders2.0/*.tes'))
+else:
+    dp6 = env.Install(modDir, Glob('CPlot/Shaders/*.frag'))
+    dp7 = env.Install(modDir, Glob('CPlot/Shaders/*.vert'))
+    dp8 = env.Install(modDir, Glob('CPlot/Shaders/*.geom'))
+    dp9 = env.Install(modDir, Glob('CPlot/Shaders/*.tcs'))
+    dp10= env.Install(modDir, Glob('CPlot/Shaders/*.tes'))
 env.Alias(target="install", source=[dp1,dp2,dp3,dp4,dp5,dp6,dp7,dp8,dp9,dp10])

@@ -18,7 +18,7 @@
 */
 #include "../DataDL.h"
 #include "../ZoneImplDL.h"
-#include "Shaders/shaders_id.h"
+#include "shaders_id.h"
 
 #define PLOTNODE                          \
     xi     = x[i];                        \

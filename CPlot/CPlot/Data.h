@@ -41,8 +41,8 @@
 
 #ifdef __SHADERS__
 #include "GL/glew.h"
-#include "Shaders/ShaderManager.h"
-#include "Shaders/TesselationShaderManager.hpp"
+#include "ShaderManager.h"
+#include "TesselationShaderManager.hpp"
 #endif
 
 #ifndef __SHADERS__

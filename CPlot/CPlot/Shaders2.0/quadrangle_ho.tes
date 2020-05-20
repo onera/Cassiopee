@@ -1,0 +1,157 @@
+#version 400 compatibility
+
+uniform int patch_size;
+
+layout( quads, equal_spacing, ccw ) in;
+
+in TCS_OUT
+{
+    vec4 position;
+    vec4 color;
+    ivec4 data_comp; // Raconte si vdata1,2,3 ou 4 est utilise
+    vec4 vdata1, vdata2, vdata3, vdata4;    
+} tcs_in[];
+
+
+out V2F_OUT
+{
+    vec4 position;
+    vec4 mv_position;
+    vec4 mvp_position;
+    vec4 view_normal;
+    vec4 nrm_view_normal;
+    vec4 color;
+    vec4 vdata1, vdata2, vdata3, vdata4;
+} v2f_out;
+
+void interpolate_q2()
+{
+    vec3 p0 = gl_in[0].gl_Position.xyz;
+    vec3 p1 = gl_in[1].gl_Position.xyz;
+    vec3 p2 = gl_in[2].gl_Position.xyz;
+    vec3 p3 = gl_in[3].gl_Position.xyz;
+    vec3 p4 = gl_in[4].gl_Position.xyz;
+    vec3 p5 = gl_in[5].gl_Position.xyz;
+    vec3 p6 = gl_in[6].gl_Position.xyz;
+    vec3 p7 = gl_in[7].gl_Position.xyz;
+
+    vec3 a00 = p0;
+    vec3 a10 = -3. * p0 - p1 + 4. * p4;
+    vec3 a01 = -3. * p0 - p3 + 4. * p7;
+    vec3 a11 =  5. * p0 - p1 -3 * p2 - p3 - 4 * p4 + 4 * p5 + 4 * p6 - 4 * p7 ;
+    vec3 a20 =  2. * p0 + 2. * p1 - 4. * p4;
+    vec3 a02 =  2. * p0 + 2. * p3 - 4. * p7;
+    vec3 a21 = -2 * p0 -2 * p1 + 2 * p2 + 2 * p3 + 4 * p4 - 4 * p6;
+    vec3 a12 = -2 * p0 + 2 * p1 + 2 * p2 - 2 * p3 -4 * p5 + 4 * p7;
+
+    float u = gl_TessCoord.x;
+    float v = gl_TessCoord.y;
+    float w = gl_TessCoord.z;
+
+    // vertex en coordonnees modele...
+    vec4 xyz = vec4(a00 + u*a10 + v*a01 + u*v*a11 + u*u*a20 + v*v*a02 + u*u*v*a21 + u*v*v*a12,1);
+    float nx = ( a10.y +   a11.y*v + a12.y*v*v + 2*a20.y*u   + 2*a21.y*u*v ) * ( a01.z + 2*a02.z*v + a11.z*u   + 2*a12.z*u*v +   a21.z*u*u ) -
+               ( a01.y + 2*a02.y*v + a11.y*u   + 2*a12.y*u*v +   a21.y*u*u ) * ( a10.z +   a11.z*v + a12.z*v*v + 2*a20.z*u   + 2*a21.z*u*v );
+    float ny = ( a10.z +   a11.z*v + a12.z*v*v + 2*a20.z*u   + 2*a21.z*u*v ) * ( a01.x + 2*a02.x*v + a11.x*u   + 2*a12.x*u*v +   a21.x*u*u ) -
+               ( a01.z + 2*a02.z*v + a11.z*u   + 2*a12.z*u*v +   a21.z*u*u ) * ( a10.x +   a11.x*v + a12.x*v*v + 2*a20.x*u   + 2*a21.x*u*v );
+    float nz = ( a10.x +   a11.x*v + a12.x*v*v + 2*a20.x*u   + 2*a21.x*u*v ) * ( a01.y + 2*a02.y*v + a11.y*u   + 2*a12.y*u*v +   a21.y*u*u ) -
+               ( a01.x + 2*a02.x*v + a11.x*u   + 2*a12.x*u*v +   a21.x*u*u ) * ( a10.y +   a11.y*v + a12.y*v*v + 2*a20.y*u   + 2*a21.y*u*v );
+    v2f_out.position    = xyz;
+    v2f_out.mv_position = gl_ModelViewMatrix * xyz;
+    v2f_out.mvp_position = gl_ModelViewProjectionMatrix * xyz;
+    v2f_out.view_normal = vec4(gl_NormalMatrix * vec3(nx, ny, nz), 0.);
+    v2f_out.nrm_view_normal = normalize(v2f_out.view_normal);
+    // Pour la couleur, sans doute a changer, il faut voir quel est la fonction de forme associee
+    // Ce sera surement une fonction dans un fichier a rajouter au programme de tesselation shader
+    vec4  c0 = tcs_in[0].color;
+    vec4  c1 = tcs_in[1].color;
+    vec4  c2 = tcs_in[2].color;
+    vec4  c3 = tcs_in[3].color;
+    v2f_out.color       = (1-u)*(1-v)*c0 + u*(1-v)*c1 + v*(1-u)*c3 + u*v*c2;
+    // Les interpolations suivantes surement aussi a changer selon une fonction bien definie
+    // qu'on nommera par exemple : interpol_data1, interpol_data2, interpol_data3 et
+    // interpol_data4...
+    // Par defaut, on fera une interpolation lineaire par rapport aux sommets.
+    if ( tcs_in[0].data_comp.x == 1 )
+        v2f_out.vdata1 = u * tcs_in[1].vdata1 + v * tcs_in[2].vdata1 + w * tcs_in[0].vdata1;
+    if ( tcs_in[0].data_comp.y == 1 )
+        v2f_out.vdata2 = u * tcs_in[1].vdata2 + v * tcs_in[2].vdata2 + w * tcs_in[0].vdata2;
+    if ( tcs_in[0].data_comp.z == 1 )
+        v2f_out.vdata3 = u * tcs_in[1].vdata3 + v * tcs_in[2].vdata3 + w * tcs_in[0].vdata3;
+    if ( tcs_in[0].data_comp.w == 1 )
+        v2f_out.vdata4 = u * tcs_in[1].vdata4 + v * tcs_in[2].vdata4 + w * tcs_in[0].vdata4;
+
+    // gl_position en repere camera projetee
+    gl_Position = gl_ModelViewProjectionMatrix * xyz;    
+}
+
+void interpolate_p2()
+{
+    vec3 p0 = gl_in[0].gl_Position.xyz;
+    vec3 p1 = gl_in[1].gl_Position.xyz;
+    vec3 p2 = gl_in[2].gl_Position.xyz;
+    vec3 p3 = gl_in[3].gl_Position.xyz;
+    // Inversion gmsh par rapport a mon document...
+    vec3 p4 = gl_in[4].gl_Position.xyz;
+    vec3 p5 = gl_in[5].gl_Position.xyz;
+    vec3 p6 = gl_in[6].gl_Position.xyz;
+    vec3 p7 = gl_in[7].gl_Position.xyz;
+    vec3 p8 = gl_in[8].gl_Position.xyz;
+
+    vec3 a00 = p0;
+    vec3 a10 = -3. * p0 - p1 + 4. * p4;
+    vec3 a01 = -3. * p0 - p3 + 4. * p7;
+    vec3 a11 =  9. * p0 + 3*p1 + p2 + 3*p3 - 12 * p4 - 4 * p5 - 4 * p6 - 12 * p7 + 16 * p8 ;
+    vec3 a20 =  2. * p0 + 2. * p1 - 4. * p4;
+    vec3 a02 =  2. * p0 + 2. * p3 - 4. * p7;
+    vec3 a21 = -6 * p0 - 6 * p1 - 2 * p2 - 2 * p3 + 12 * p4 + 8 * p5 + 4 * p6 + 8 * p7 - 16 * p8;
+    vec3 a12 = -6 * p0 - 2 * p1 - 2 * p2 - 6 * p3 + 8  * p4 + 4 * p5 + 8 * p6 + 12 *p7 - 16 * p8;
+    vec3 a22 =  4 * p0 + 4 * p1 + 4 * p2 + 4 * p3 - 8  * p4 - 8 * p5 - 8 * p6 - 8 * p7 + 16 * p8;
+
+    float u = gl_TessCoord.x;
+    float v = gl_TessCoord.y;
+    float w = gl_TessCoord.z;
+
+    // vertex en coordonnees modele...
+    vec4 xyz = vec4(a00 + u*a10 + v*a01 + u*v*a11 + u*u*a20 + v*v*a02 + u*u*v*a21 + u*v*v*a12 + u*u*v*v*a22,1);
+    float nx = ( a10.y + a11.y*v + a12.y*v*v + 2*a20.y*u + 2*a21.y*u*v + 2*a22.y*u*v*v ) * ( a01.z + 2*a02.z*v + a11.z*u + 2*a12.z*u*v + a21.z*u*u + 2*a22.z*u*u*v ) -
+               ( a01.y + 2*a02.y*v + a11.y*u + 2*a12.y*u*v + a21.y*u*u + 2*a22.y*u*u*v ) * ( a10.z + a11.z*v + a12.z*v*v + 2*a20.z*u + 2*a21.z*u*v + 2*a22.z*u*v*v);
+    float ny = ( a10.z + a11.z*v + a12.z*v*v + 2*a20.z*u + 2*a21.z*u*v + 2*a22.z*u*v*v ) * ( a01.x + 2*a02.x*v + a11.x*u + 2*a12.x*u*v + a21.x*u*u + 2*a22.x*u*u*v ) -
+               ( a01.z + 2*a02.z*v + a11.z*u + 2*a12.z*u*v + a21.z*u*u + 2*a22.z*u*u*v ) * ( a10.x +   a11.x*v + a12.x*v*v+2*a20.x*u + 2*a21.x*u*v + 2*a22.x*u*v*v );
+    float nz = ( a10.x + a11.x*v + a12.x*v*v + 2*a20.x*u + 2*a21.x*u*v + 2*a22.x*u*v*v ) * ( a01.y + 2*a02.y*v + a11.y*u + 2*a12.y*u*v + a21.y*u*u + 2*a22.y*u*u*v) -
+               ( a01.x + 2*a02.x*v + a11.x*u + 2*a12.x*u*v + a21.x*u*u + 2*a22.x*u*u*v ) * ( a10.y + a11.y*v + a12.y*v*v + 2*a20.y*u + 2*a21.y*u*v + 2*a22.y*u*v*v );
+    v2f_out.position    = xyz;
+    v2f_out.mv_position = gl_ModelViewMatrix * xyz;
+    v2f_out.mvp_position = gl_ModelViewProjectionMatrix * xyz;
+    v2f_out.view_normal = vec4(gl_NormalMatrix * vec3(nx, ny, nz), 0.);
+    v2f_out.nrm_view_normal = normalize(v2f_out.view_normal);
+    // Pour la couleur, sans doute a changer, il faut voir quel est la fonction de forme associee
+    // Ce sera surement une fonction dans un fichier a rajouter au programme de tesselation shader
+    vec4  c0 = tcs_in[0].color;
+    vec4  c1 = tcs_in[1].color;
+    vec4  c2 = tcs_in[2].color;
+    vec4  c3 = tcs_in[3].color;
+    v2f_out.color       = u * c1 + v * c2 + w * c0  + (1-u-v-w) * c3;
+    // Les interpolations suivantes surement aussi a changer selon une fonction bien definie
+    // qu'on nommera par exemple : interpol_data1, interpol_data2, interpol_data3 et
+    // interpol_data4...
+    // Par defaut, on fera une interpolation lineaire par rapport aux sommets.
+    if ( tcs_in[0].data_comp.x == 1 )
+        v2f_out.vdata1 = u * tcs_in[1].vdata1 + v * tcs_in[2].vdata1 + w * tcs_in[0].vdata1;
+    if ( tcs_in[0].data_comp.y == 1 )
+        v2f_out.vdata2 = u * tcs_in[1].vdata2 + v * tcs_in[2].vdata2 + w * tcs_in[0].vdata2;
+    if ( tcs_in[0].data_comp.z == 1 )
+        v2f_out.vdata3 = u * tcs_in[1].vdata3 + v * tcs_in[2].vdata3 + w * tcs_in[0].vdata3;
+    if ( tcs_in[0].data_comp.w == 1 )
+        v2f_out.vdata4 = u * tcs_in[1].vdata4 + v * tcs_in[2].vdata4 + w * tcs_in[0].vdata4;
+
+    // gl_position en repere camera projetee
+    gl_Position = gl_ModelViewProjectionMatrix * xyz;
+
+}
+
+void main()
+{
+    if (patch_size == 8) interpolate_q2();
+    if (patch_size == 9) interpolate_p2();
+}
