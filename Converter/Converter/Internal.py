@@ -4351,11 +4351,37 @@ def getRotationAngleValueInDegrees(RotationAngleNode):
     if RotationAngleNode is None: return None
     angleUnitNode = getNodeFromType1(RotationAngleNode, 'DimensionalUnits_t')
     if angleUnitNode is not None:
-        angleUnit = getValue(angleUnitNode)[4]
-        if angleUnit == 'Radian': alpha = __RAD2DEG__
-        elif angleUnit == 'Degree': alpha = 1.
+        #angleUnit = getValue(angleUnitNode)[4]
+        # print("angleUnit", angleUnit)
+        # if angleUnit == 'Radian': alpha = __RAD2DEG__
+        # elif angleUnit == 'Degree': alpha = 1.
+
+        val = ''
+        n = angleUnitNode[1]
+        if isinstance(n,numpy.ndarray):
+            if n.dtype.char=='S':
+                n = numpy.transpose(n)
+                if version_info[0]==2: val = n.tostring()
+                else: val = n.tostring().decode()
+            elif n.dtype.char == 'c':
+                if len(n.shape) == 1:
+                    if version_info[0] == 2: val = n.tostring()
+                    else: val = n.tostring().decode() 
+                else:
+                    out = []
+                    for i in range(n.shape[1]):
+                        if version_info[0] == 2: 
+                            v = n[:,i].tostring()
+                        else: 
+                            v = n[:,i].tostring().decode()
+                        out.append(v.strip())
+                    val = out
+
+
+        if 'Radian' in val: alpha = __RAD2DEG__
+        elif 'Degree' in val: alpha=1.
         else:
-            print('Warning: getRotationAngleValueInDegrees: unknown angle unit=%s.'%angleUnit)
+            print('Warning: getRotationAngleValueInDegrees: unknown angle unit !')
             print('Warning: getRotationAngleInDegrees: AngleUnits must be Radian or Degree. Assuming Degree')
             alpha = 1.
     else: 

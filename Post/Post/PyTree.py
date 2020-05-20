@@ -1613,7 +1613,7 @@ def computeDiff(t, var):
         if v[0] == 'centers':
             loc = 'centers'; var = v[1]
     tp = Internal.copyRef(t)
-    tp = Internal.addGhostCells(tp, tp, 1)
+    Internal._addGhostCells(tp, tp, 1)
     nodes = C.getAllFields(tp, loc)
     res = Post.computeDiff(nodes, var)
     C.setFields(res, tp, loc)
