@@ -2181,6 +2181,8 @@ Array / PyTree input/output
     +------------+-----------+---------------------------------------+
     |fmt_obj     | .obj      | formatted OBJ file (WAVEFRONT)        |
     +------------+-----------+---------------------------------------+
+    |bin_gltf    | .gltf     | binary gltf file (KHRONOS, only read) |
+    +------------+-----------+---------------------------------------+
     |bin_3ds     | .3ds      | binary 3DS file (3D STUDIO)           |
     +------------+-----------+---------------------------------------+
     |bin_ply     | .ply      | binary PLY file (STANFORD)            |

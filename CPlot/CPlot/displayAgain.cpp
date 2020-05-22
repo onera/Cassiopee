@@ -176,6 +176,8 @@ PyObject* K_CPLOT::displayAgain(PyObject* self, PyObject* args)
   d->setBgColor();
   d->ptrState->farClip = 1;
   d->ptrState->render = 0;
+  d->ptrState->shootScreen = 0;
+  gdisplay(); // build DL
   d->display();
   d->exportFile();
   //printf("done.\n");

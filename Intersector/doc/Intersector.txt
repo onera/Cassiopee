@@ -3,6 +3,9 @@ Intersector 3.1 [06/2020]
 Require: C++ compiler, python > 2.4, numpy > 1.0, Transform, Generator, 
 KCore 3.1
 Optional: pyTree interface requires Converter 3.1
+-  XcellN: Chimera Post Processing feature for computing visibility coefficients on overset surface grids configurations of any kind (structured or polygonal unstructured)
+- adaptCells: smoothing_type option to extend the smoothing beyond the first neighborhood
+- booleanUnion: multi_zone option to preserve zoning of the configuration 
 ===============================================================================
 Intersector 3.0 [12/2019]
 Require: C++ compiler, python > 2.4, numpy > 1.0, Transform, Generator, 

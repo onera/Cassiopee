@@ -14,6 +14,6 @@ void main()
     opacity = clamp(opacity, 0., 1.);
     
     //vec4 result = pow(color, vec4(1.0 / 2.2));
-    gl_FragColor = color*(1.+opacity*2*(intensity-1));
+    gl_FragColor = color*(1.+opacity*2.*(intensity-1.));
     gl_FragColor.a = opacity;
 }

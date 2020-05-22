@@ -375,31 +375,17 @@ int ShaderManager::load()
   strcpy(frag, path); strcat(frag, "isoAnisotropic.frag");
   addFromFile(vert, frag);
 
-  // - 33 - Velocity shader ( geom + frag + vert )
-  strcpy(geom, path); strcat(geom, "streamline.geom");
-  strcpy(vert,path);  strcat(vert, "streamline.vert");
-  strcpy(frag,path);  strcat(frag, "streamline.frag");
-  addFromFile(geom, vert, frag);
+  // - 33 - Velocity shader ( geom + frag + vert ) - fake
+  strcpy(vert, path); strcat(vert, "isoAnisotropic.vert");
+  strcpy(frag, path); strcat(frag, "isoAnisotropic.frag");
+  addFromFile(vert, frag);
 
-  // - 34 - Velocity shader ( geom + frag + vert )
-  strcpy(geom, path); strcat(geom, "streamtetra.geom");
-  strcpy(vert,path);  strcat(vert, "streamtetra.vert");
-  strcpy(frag,path);  strcat(frag, "streamtetra.frag");
-  addFromFile(geom, vert, frag);
-
-  // - 35 - Velocity shader ( geom + frag + vert (34) )
-  strcpy(geom, path); strcat(geom, "streamtriangle.geom");
-  strcpy(vert,path);  strcat(vert, "streamtriangle.vert");
-  strcpy(frag,path);  strcat(frag, "streamtetra.frag");
-  addFromFile(geom, vert, frag);
-
-  // - 36 - Uniform Velocity shader ( geom + vert + frag(33) )
-  strcpy(geom, path); strcat(geom, "uniformstreamline.geom");
-  strcpy(vert,path);  strcat(vert, "uniformstreamline.vert");
-  strcpy(frag,path);  strcat(frag, "streamline.frag");
-  addFromFile(geom, vert, frag);
-
-  // - 37 - Textured material shader
+  // - 34 - Velocity shader ( geom + frag + vert ) - fake
+  strcpy(vert, path); strcat(vert, "isoAnisotropic.vert");
+  strcpy(frag, path); strcat(frag, "isoAnisotropic.frag");
+  addFromFile(vert, frag);
+  
+  // - 35 - Textured material shader
   strcpy(vert,path);  strcat(vert, "texmat.vert");
   strcpy(frag,path);  strcat(frag, "texmat.frag");
   addFromFile(vert, frag);

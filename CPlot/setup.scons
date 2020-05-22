@@ -67,7 +67,8 @@ if mpeg:
     includeDirs += [mpegIncDir]
 
 import srcs
-if srcs.SHADERS == 2: includeDirs += ['CPlot/Shaders2.0']
+if srcs.SHADERS == 2: 
+  includeDirs += ['CPlot/Shaders2.0']; print('INFO: using 2.0 shaders.')
 else: includeDirs += ['CPlot/Shaders']
     
 # Env =========================================================================

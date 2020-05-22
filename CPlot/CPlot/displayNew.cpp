@@ -222,7 +222,9 @@ PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
     d->init();
     d->ptrState->farClip = 1;
     d->ptrState->render = 0;
-    d->display();  
+    d->ptrState->shootScreen = 0;
+    gdisplay(); // build DL
+    d->display();
     d->exportFile();
     //printf("done.\n");
     free(d->ptrState->offscreenBuffer[d->ptrState->frameBuffer]);

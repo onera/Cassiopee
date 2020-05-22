@@ -1902,9 +1902,16 @@ def getValue(node):
     """Return the value of a node."""
     n = node[1]
     if isinstance(n, numpy.ndarray):
-        if n.dtype.char == 'S': 
-            if version_info[0] == 2: return n.tostring()
-            else: return n.tostring().decode()
+        if n.dtype.char == 'S':
+            if len(n.shape) == 1:
+                if version_info[0] == 2: return n.tostring()
+                else: return n.tostring().decode()
+            out = []
+            for i in range(n.shape[1]):
+                if version_info[0] == 2: v = n[:,i].tostring()
+                else: v = n[:,i].tostring().decode()
+                out.append(v.strip())
+            return out
         elif n.dtype.char == 'c':
             if len(n.shape) == 1:
                 if version_info[0] == 2: return n.tostring()
@@ -3109,7 +3116,7 @@ def _groupByFamily(t, familyChilds=None, unique=False):
                 setValue(bc, 'FamilySpecified')
             else:
                 FamiliesNodeNames.append(FamilyName)
-                FamBC=createNode('FamilyBC','FamilyBC_t',Internal.getValue(bc))                
+                FamBC = createNode('FamilyBC','FamilyBC_t', getValue(bc))                
                 children = FamilyChilds[:]+solverBCChilds[:]# faut il faire une deepcopy ? dans XTree c est le cas
                 if not unique: children.append(FamBC)
                 else:

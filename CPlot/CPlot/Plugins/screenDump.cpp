@@ -302,6 +302,7 @@ void Data::dumpWindow()
     char* buffer; char* buffer2;
     int antialiasing = 1;
     if (ptrState->offscreen >= 3) antialiasing=0;
+    if (ptrState->offscreen == 1) antialiasing=0; // suppressed for OSMESA
 
     if (antialiasing == 1)
     {

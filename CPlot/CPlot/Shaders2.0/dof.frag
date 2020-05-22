@@ -1,4 +1,3 @@
-#version 130
 // Depth of field shader (post shader)
 uniform sampler2D FrameBuffer;
 uniform sampler2D depthMap;
@@ -134,8 +133,10 @@ vec4 dof(vec2 coords)
 
 void main()
 {
-     pixelSizeHigh = 1.0/textureSize(FrameBuffer, 0);
- 
+     // only for glsl>1.3
+     //pixelSizeHigh = 1.0/textureSize(FrameBuffer, 0);
+     pixelSizeHigh = vec2(1.0/512.,1./512.);
+      
 	// poisson-distributed positions
      poisson0 = vec2( 0.0, 0.0);
      poisson1 = vec2( 0.527837,-0.08586);
