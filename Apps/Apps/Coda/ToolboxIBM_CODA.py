@@ -186,6 +186,8 @@ def convertCart2NSMesh(t):
                     nizd = dimZd[1]; njzd = dimZd[2]; nkzd = dimZd[3]
                     dimPb = dimZd[4]
                     nid1 = nizd-1; njd1 = njzd-1; nkd1 = nkzd-1
+                    nid1njd1 = nid1*njd1
+                    ni1nj1=ni1*nj1
                     i1 = PR[0]; i2 = PR[1]
                     j1 = PR[2]; j2 = PR[3]
                     k1 = PR[4]; k2 = PR[5]
@@ -225,9 +227,51 @@ def convertCart2NSMesh(t):
                                 fineList1.append(indopp1+shiftd)
                                 fineList2.append(indopp2+shiftd)
 
-                    else:
-                        raise("ValueError, not yet implemented for 3D.")
+                    else: #3D
+                        if NMR[0]==2:# z is coarse, zd is fine
+                            idl = id1-1
+                            if j1 > 1: j1 = j1-1
+                            if jd1 > 1: jd1 = jd1-1
+                            if k1>1: k1=k1-1
+                            if kd1>1: kd1 = kd1-1
+                            for i in range(i1-1,i2-1):
+                                indr    = i    + (j1-1)*ni1+(k1-1)*ni1nj1
+                                indopp1 = idl  + (jd1-1)*nid1+(kd1-1)*nid1njd1
+                                indopp2 = idl+1+ (jd1-1)*nid1+(kd1-1)*nid1njd1
+                                idl = idl+2
+                                coarseList.append(indr+shiftr)
+                                fineList1.append(indopp1+shiftd)
+                                fineList2.append(indopp2+shiftd)
+                        elif NMR[1]==2:# z is coarse, zd is fine
+                            jdl = jd1-1
+                            if i1>1: i1 = i1-1
+                            if id1>1: id1 = id1-1
+                            if k1>1: k1=k1-1
+                            if kd1>1: kd1 = kd1-1
+                            for j in range(j1-1,j2-1):
+                                indr    = i1-1  + j*ni1   + (k1-1)*ni1nj1
+                                indopp1 = id1-1 + jdl*nid1+ (kd1-1)*nid1njd1
+                                indopp2 = id1-1 + jdl*nid1+ (kd1-1)*nid1njd1
+                                jdl = jdl+2
+                                coarseList.append(indr+shiftr)
+                                fineList1.append(indopp1+shiftd)
+                                fineList2.append(indopp2+shiftd)
 
+                        elif NMR[2]==2:# z is coarse, zd is fine
+                            kdl = kd1-1
+                            if i1>1: i1 = i1-1
+                            if id1>1: id1 = id1-1
+                            if j1>1: j1=j1-1
+                            if jd1>1: jd1 = jd1-1
+                            for k in range(k1-1,k2-1):
+                                indr    = i1-1  + (j1-1)*ni1   + k*ni1nj1
+                                indopp1 = id1-1 + (jd1-1)*nid1 + kdl*nid1njd1
+                                indopp2 = id1-1 + (jd1-1)*nid1 + kdl*nid1njd1
+                                kdl = kdl+2
+                                coarseList.append(indr+shiftr)
+                                fineList1.append(indopp1+shiftd)
+                                fineList2.append(indopp2+shiftd)
+                                
                     HN_C +=coarseList
                     HN_F1+=fineList1
                     HN_F2+=fineList2
