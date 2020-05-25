@@ -106,7 +106,9 @@ public:
   std::vector<E_Int> _edges;
   
   E_Float _U0, _U1, _V0, _V1;
-  bool _isUClosed, _isVClosed;
+  bool _isUClosed, _isVClosed, _isRevol;
+  bool _isUPeriodic, _isVPeriodic;
+  E_Float _uPeriod, _vPeriod;
   bool _normalize_domain;
 };
 

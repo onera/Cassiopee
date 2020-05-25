@@ -16,7 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-// File conversion
+// convertCAD2Arrays (algo=0)
 
 #include <stdio.h>
 #include <string.h>
@@ -27,6 +27,17 @@ using namespace std;
 using namespace K_FLD;
 
 #include <iostream>
+
+namespace K_OCC 
+{
+  E_Int CADread(
+  char* file, char* fimeFmt, E_Float h, E_Float chordal_err, E_Float gr, char*& varString,
+  std::vector<K_FLD::FldArrayF*>& unstructField,
+  std::vector<K_FLD::FldArrayI*>& connect,
+  std::vector<E_Int>& eltType,
+  std::vector<char*>& zoneNames);
+}
+  
 // ============================================================================
 /* Convert CAD file to arrays using OpenCascade */
 // ============================================================================

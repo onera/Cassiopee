@@ -5702,7 +5702,7 @@ def node2ExtCenter(t, var=''):
 #==============================================================================
 # diff 2 pyTrees
 #==============================================================================
-def diffArrays(A, B):
+def diffArrays(A, B, removeCoordinates=True):
   t1 = Internal.copyRef(A); t2 = Internal.copyRef(B)
   zones1 = Internal.getZones(t1)
   zones2 = Internal.getZones(t2)
@@ -5734,7 +5734,7 @@ def diffArrays(A, B):
     if A1 != [] and A2 != []:
       diff = Converter.diffArrays(A1, A2)
       setFields(diff, zones1[no], 'centers')
-  t1 = rmNodes(t1, Internal.__GridCoordinates__)
+  if removeCoordinates: t1 = rmNodes(t1, Internal.__GridCoordinates__)
   return t1
 
 #==============================================================================

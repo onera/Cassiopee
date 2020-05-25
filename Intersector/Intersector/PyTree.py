@@ -334,7 +334,7 @@ def booleanModifiedSolid(solid, a2, tol=0., preserve_solid=1, agg_mode=1, improv
 #==============================================================================
 def XcellN(t, priorities, output_type=0, rtol=0.05):
     """Computes the weight coefficients of visibility for overset grid configurations as a field called xcelln, for both surface and volume mesh of any kind.
-    Usage : XcellN(t, priorities [, output_type, rtol])"""
+    Usage: XcellN(t, priorities [, output_type, rtol])"""
     tp = Internal.copyRef(t)
     _XcellN(tp, priorities, output_type, rtol)
     return tp
@@ -473,7 +473,7 @@ def _XcellNSurf(t, priorities, output_type=0, rtol=0.05):
     for b in bases:
       zones = Internal.getZones(b)
       for z in zones:
-        # udpating mesh and solution
+        # updating mesh and solution
         mesh = xcellns[i]
         pg_oids = xcellns[i+1]
         

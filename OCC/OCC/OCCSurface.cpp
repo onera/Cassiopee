@@ -33,6 +33,7 @@
 #include <ShapeAnalysis.hxx>
 #include <ShapeAnalysis_Surface.hxx>
 #include <StdFail_NotDone.hxx>
+#include <BRepAdaptor_Surface.hxx>
 
 ///
 K_OCC::OCCSurface::OCCSurface(const TopoDS_Face& F, TopTools_IndexedMapOfShape& occ_edges, E_Int pid) 
@@ -40,7 +41,24 @@ K_OCC::OCCSurface::OCCSurface(const TopoDS_Face& F, TopTools_IndexedMapOfShape& 
 {
   // check if the surface is of revolution
   _isUClosed = _isVClosed = false;
-  __get_params_and_type(F, _U0, _U1, _V0, _V1, _isUClosed, _isVClosed);
+  _isRevol = false;
+  ShapeAnalysis::GetFaceUVBounds(F, _U0, _U1, _V0, _V1);
+  printf("bounds U=%f %f - V=%f %f\n",_U0,_U1,_V0,_V1);
+  // Analyse par OCC
+  ShapeAnalysis_Surface o(_surface);
+  _isUClosed = o.IsUClosed();
+  _isVClosed = o.IsVClosed();
+  BRepAdaptor_Surface h(_F);
+  _isUPeriodic = h.IsUPeriodic();
+  if (_isUPeriodic) _uPeriod = h.UPeriod();
+  else _uPeriod = _U1-_U0;
+  _isVPeriodic = h.IsVPeriodic();
+  if (_isVPeriodic) _vPeriod = h.VPeriod();
+  else _vPeriod = _V1-_V0;
+  
+  //printf("closed %d %d\n", isUClosed, isVClosed);
+
+  //__get_params_and_type(F, _U0, _U1, _V0, _V1, _isUClosed, _isVClosed);
       
   // Traverse the edges
   TopExp_Explorer edge_expl;
@@ -458,9 +476,4 @@ void K_OCC::OCCSurface::__get_params_and_type
   isUClosed = (U0 == paramtol) & (U1 == (twoPI - paramtol));
   isVClosed = (V0 == paramtol) & (V1 == (twoPI - paramtol));
   
-  // Analyse par OCC
-  ShapeAnalysis_Surface o(_surface);
-  isUClosed = o.IsUClosed();
-  isVClosed = o.IsVClosed();
-  //printf("closed %d %d\n", isUClosed, isVClosed);
-}
+  }

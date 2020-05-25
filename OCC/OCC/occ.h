@@ -23,15 +23,9 @@
 
 namespace K_OCC
 {
+  PyObject* convertCAD2Arrays0(PyObject* self, PyObject* args); // with OCC internal
   PyObject* convertCAD2Arrays1(PyObject* self, PyObject* args); // with T3Mesher
-  PyObject* convertCAD2Arrays2(PyObject* self, PyObject* args); // with OCC internal
-  
-  E_Int CADread(
-  char* file, char* fimeFmt, E_Float h, E_Float chordal_err, E_Float gr, char*& varString,
-  std::vector<K_FLD::FldArrayF*>& unstructField,
-  std::vector<K_FLD::FldArrayI*>& connect,
-  std::vector<E_Int>& eltType,
-  std::vector<char*>& zoneNames);
+  PyObject* convertCAD2Arrays2(PyObject* self, PyObject* args); // with T3Mesher
 }
 
 #endif

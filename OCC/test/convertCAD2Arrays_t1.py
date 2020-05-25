@@ -3,17 +3,17 @@ import Converter as C
 import OCC
 import KCore.test as test
 
-#~ coarse =  O.convertCAD2Arrays("hammer.iges", h=500., chordal_err=8.)
+#~ coarse =  O.convertCAD2Arrays("hammer.iges", h=500., chordal_err=8., algo=1)
 #~ C.convertArrays2File(coarse, 'hammer_coarsec.plt')
 
-#~ fine = OCC.convertCAD2Arrays("hammer.iges", h=20., chordal_err=0.4)
+#~ fine = OCC.convertCAD2Arrays("hammer.iges", h=20., chordal_err=0.4, algo=1)
 #~ C.convertArrays2File(fine, 'hammer_fine.plt')
 
 import os
 if os.environ["ELSAPROD"] != 'msys64p3':
     # tres long sur msys2 (>20 minutes)
-    A = OCC.convertCAD2Arrays("hammer.iges", h=0., chordal_err=0., algo=0)
+    A = OCC.convertCAD2Arrays("hammer.iges", h=0., chordal_err=0., algo=1)
     test.testA(A,1)
 
-A = OCC.convertCAD2Arrays("hammer.iges", chordal_err=1., algo=1)
+A = OCC.convertCAD2Arrays("hammer.iges", chordal_err=1., algo=0)
 test.testA(A,2)

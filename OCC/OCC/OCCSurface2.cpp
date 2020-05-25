@@ -359,13 +359,13 @@ E_Int K_OCC::OCCSurface::findNonAmbStart(E_Int npts, K_FLD::FloatArray& coord3D)
     amb = false;
     if (_isUClosed)
     {
-      if (std::fabs(u-_U0) < 1.e-2) amb = true;
-      if (std::fabs(u-_U1) < 1.e-2) amb = true;
+      if (std::fabs(u-0.) < 1.e-2) amb = true;
+      if (std::fabs(u-1.) < 1.e-2) amb = true;
     }
     if (_isVClosed)
     {
-      if (std::fabs(u-_V0) < 1.e-2) amb = true;
-      if (std::fabs(u-_V1) < 1.e-2) amb = true;
+      if (std::fabs(u-0.) < 1.e-2) amb = true;
+      if (std::fabs(u-1.) < 1.e-2) amb = true;
     }
     if (amb == false) { return i; }
   }
@@ -435,7 +435,8 @@ void K_OCC::OCCSurface::orderBAR(E_Int npts,
   // NEW ALGO
   //E_Int indCur = findNextPoint(found, node2Elt);
   E_Int indCur = findNonAmbStart(npts, coord3D);
-  start[0] = 1;
+  printf("starting non ambiguous index=%d\n", indCur);
+  start[0] = indCur;
   
   for (E_Int i = 0; i < npts; i++)
   {
@@ -521,8 +522,10 @@ E_Int K_OCC::OCCSurface::parameters2
   //printf("before orderBAR\n"); fflush(stdout);
   orderBAR(npts, coord3D, connectB, index, start);
   //printf("after orderBAR\n"); fflush(stdout);
-  printf("isClosedU = %d isClosedV = %d\n",_isUClosed,_isVClosed);
   printf("bounds %f %f - %f %f \n",_U0,_U1,_V0,_V1);
+  printf("isClosedU = %d isClosedV = %d\n",_isUClosed,_isVClosed);
+  printf("isUPeriodic = %d isVPeriodic = %d\n", _isUPeriodic, _isVPeriodic);
+  printf("UPeriod=%f, VPeriod=%f\n", _uPeriod,_vPeriod);
   
   E_Int n;
   E_Float Up=-1; E_Float Vp=-1;
@@ -534,14 +537,15 @@ E_Int K_OCC::OCCSurface::parameters2
     n = index[i];
     err = parameters2(coord3D.col(n), UVs(0,n), UVs(1,n), n, Up, Vp, Upp, Vpp);
     
-    if (std::fabs(Up-Upp) > 0.7*(_U1-_U0) || std::fabs(Vp-Vpp) > 0.7*(_V1-_V0))
+    if (_isRevol == true && (std::fabs(Up-Upp) > 0.7*(_U1-_U0) || std::fabs(Vp-Vpp) > 0.7*(_V1-_V0)))
     {
-      printf("%f %f | %f %f Jump detected\n",Up,Upp,Vp,Vpp);
-      return i;
+      printf("Warning: %f %f | %f %f Jump detected in %d.\n",Up,Upp,Vp,Vpp,n);
+      return index[i-1]+1;
     }
     
     //printf("%d/%d: %f %f \n",n,npts,UVs(0,n),UVs(1,n));
   }
+  return 0;
   
   // Detect jumps
   /*
@@ -587,7 +591,7 @@ E_Int K_OCC::OCCSurface::parameters2
     if (UVs(0,k) == K_CONST::E_MAX_FLOAT)
       UVs(0,k) = UVs(1,k) = 0.;
   */
-  return 0;
+  
 }
 
 // parameters2
@@ -609,6 +613,22 @@ K_OCC::OCCSurface::parameters2(const E_Float* pt, E_Float& u, E_Float& v,
     uv = s.ValueOfUV(Point, 1.e-6);
     u = uv.X(); v = uv.Y();
     
+    if (_isUClosed == true)
+    {
+      // periodic shift
+      E_Float per = _uPeriod;
+      E_Int N = floor((u-_U0)/per);
+      if (u > _U1+1.e-2) u = u - N*per;
+      if (u < _U0-1.e-2) u = u + N*per;
+    }
+    if (_isVClosed == true)
+    {
+      // periodic shift
+      E_Float per = _vPeriod;
+      E_Int N = floor((v-_V0)/per);
+      if (v > _V1+1.e-2) v = v - N*per;
+      if (v < _V0-1.e-2) v = v + N*per;
+    }
     //E_Float u1,v1;
     //GeomAPI_ProjectPointOnSurf o(Point, _surface, Extrema_ExtAlgo_Tree);
     //o.LowerDistanceParameters(u1,v1);
@@ -626,24 +646,32 @@ K_OCC::OCCSurface::parameters2(const E_Float* pt, E_Float& u, E_Float& v,
     // Gestion de la periodicite
     // Avoid backsteping
     E_Float du,dv,dup,dvp,p,inv;
+    
     if (_isUClosed == true)
     {
+      // periodic shift
+      E_Float per = _uPeriod;
+      E_Int N = floor((u-_U0)/per);
+      if (u > _U1+1.e-2) u = u - N*per;
+      if (u < _U0-1.e-2) u = u + N*per;
+      //if (_isUPeriodic) u = u + ShapeAnalysis::AdjustToPeriod(u, _U0, _U1);
+        
+      // on the bound
       if (std::fabs(u-_U0) < 1.e-2)
       {
         du = (u-up); dv = (v-vp);
-
         dup = (up-upp); dvp = (vp-vpp);
       
         inv = std::sqrt(du*du+dv*dv)*std::sqrt(dup*dup+dvp*dvp)+1.e-10;
         p = du*dup+dv*dvp;
         //printf("switchU0 %f %f\n", p, 0.2*inv);
+        //if (index == 97) printf("p=%f,du=%f,dv =%f,dup=%f,dvp=%f\n",p,du,dv,dup,dvp);
         if (p < -0.2*inv) u = _U1;
         else if (std::fabs(du) > std::fabs(_U1-up)) u = _U1;
       }
       else if (std::fabs(u-_U1) < 1.e-2)
       {
         du = (u-up); dv = (v-vp);
-
         dup = (up-upp); dvp = (vp-vpp);
         
         inv = std::sqrt(du*du+dv*dv)*std::sqrt(dup*dup+dvp*dvp)+1.e-10;
@@ -652,16 +680,33 @@ K_OCC::OCCSurface::parameters2(const E_Float* pt, E_Float& u, E_Float& v,
         if (p < -0.2*inv) u = _U0;
         else if (std::fabs(du) > std::fabs(_U0-up)) u = _U0;
       }
+      else if (std::fabs(u-_U0-per) < 1.e-2)
+      {
+        du = (u-up); dv = (v-vp);
+        dup = (up-upp); dvp = (vp-vpp);
+        
+        inv = std::sqrt(du*du+dv*dv)*std::sqrt(dup*dup+dvp*dvp)+1.e-10;
+        p = du*dup+dv*dvp;
+        //printf("switchU1 %f %f\n", p, _U0-up);
+        if (p < -0.2*inv) u = _U0;
+        else if (std::fabs(du) > std::fabs(_U0-up)) u = _U0;
+      }
+      
     }
     if (_isVClosed == true)
     {
+      // periodic shift
+      E_Float per = _vPeriod;
+      E_Int N = floor((v-_V0)/per);
+      if (v > _V1+1.e-2) v = v - N*per;
+      if (v < _V0-1.e-2) v = v + N*per;
+      //if (_isVPeriodic) v = v + ShapeAnalysis::AdjustToPeriod(v, _V0, _V1);
+        
       if (std::fabs(v-_V0) < 1.e-2)
       {
-        du = (u-up);
-        dv = (v-vp);
+        du = (u-up); dv = (v-vp);
 
-        dup = (up-upp);
-        dvp = (vp-vpp);
+        dup = (up-upp); dvp = (vp-vpp);
       
         inv = std::sqrt(du*du+dv*dv)*std::sqrt(dup*dup+dvp*dvp)+1.e-10;
         p = du*dup+dv*dvp;          
@@ -671,11 +716,21 @@ K_OCC::OCCSurface::parameters2(const E_Float* pt, E_Float& u, E_Float& v,
       }
       else if (std::fabs(v-_V1) < 1.e-2)
       {
-        du = (u-up);
-        dv = (v-vp);
+        du = (u-up); dv = (v-vp);
 
-        dup = (up-upp);
-        dvp = (vp-vpp);
+        dup = (up-upp); dvp = (vp-vpp);
+      
+        inv = std::sqrt(du*du+dv*dv)*std::sqrt(dup*dup+dvp*dvp)+1.e-10;
+        p = du*dup+dv*dvp;          
+        
+        if (p < -0.2*inv) v = _V0;
+        else if (std::fabs(dv) > std::fabs(_V0-vp)) v = _V0;
+      }
+      else if (std::fabs(v-_V0-per) < 1.e-2)
+      {
+        du = (u-up); dv = (v-vp);
+
+        dup = (up-upp); dvp = (vp-vpp);
       
         inv = std::sqrt(du*du+dv*dv)*std::sqrt(dup*dup+dvp*dvp)+1.e-10;
         p = du*dup+dv*dvp;          

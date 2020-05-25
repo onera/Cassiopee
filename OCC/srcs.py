@@ -24,13 +24,14 @@ def getFiles(module):
         if f not in exceptions: srcs.append(f.replace('../../',''))
     return srcs
 
-srcs = ['OCC/pyOCC.cpp', 
-        'OCC/import_OCC_CAD_wrapper.cpp',
+srcs = ['OCC/import_OCC_CAD_wrapper.cpp',
         'OCC/CADviaOCC.cpp', 
         'OCC/OCCSurface.cpp',
         'OCC/CADviaOCC2.cpp', 
         'OCC/OCCSurface2.cpp',
-        'OCC/convertCAD2Arrays.cpp']
+        'OCC/convertCAD2Arrays0.cpp',
+        'OCC/convertCAD2Arrays1.cpp',
+        'OCC/convertCAD2Arrays2.cpp']
 
 import KCore.Dist as Dist
 if Dist.getSystem()[0] == 'mingw':

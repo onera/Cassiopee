@@ -1725,7 +1725,7 @@ Array / PyTree common manipulations
 Array / PyTree analysis
 ------------------------------------
 
-.. py:function:: Converter.diffArrays(a, b)
+.. py:function:: Converter.diffArrays(a, b, removeCoordinates=True)
 
     Given a solution in a and a solution in b, both defined on the same mesh, 
     return the differences.
@@ -1734,6 +1734,8 @@ Array / PyTree analysis
     :type a: [list of arrays] or [pyTree, base, zone, list of zones]
     :param b: input data 2
     :type b: [list of arrays] or [pyTree, base, zone, list of zones]
+    :param removeCoordinates: if True, remove original coordinates (pyTree)
+    :type removeCoordinates: boolean
     :rtype: Identical to input 1
 
     *Example of use:*

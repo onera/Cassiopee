@@ -12,10 +12,8 @@ import Converter as C
 try: range = xrange
 except: pass
 
-
 def updatePointLists(oids, pointLists):
     return intersector.updatePointLists(oids, pointLists)
-
 
 def conformUnstr(a1, a2=None, tol=0., left_or_right=0, itermax=10):
     """Conformizes a1 (optionally with a2).

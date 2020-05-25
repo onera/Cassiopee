@@ -53,11 +53,11 @@
 #include "Nuga/Delaunay/MeshUtils1D.h"
 #include <Precision.hxx>
 
-// Brancher mesh_face2
+// algo=2
 // Brancher __eval_nb_points2
 //#define DEBUG_CAD_READER
-// copier libconverter.a dans Dist
-// decommenter dans setupscons
+// si debug, copier libconverter.a dans Dist
+// decommenter dans setup.scons et setupScons
 
 #ifdef DEBUG_CAD_READER
 #include "IO/io.h"
@@ -81,7 +81,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces2
   DELAUNAY::SurfaceMesher<OCCSurface> mesher;
   
 #ifdef DEBUG_CAD_READER
-  E_Int faulty_id = 3;
+  E_Int faulty_id = 10;
 #endif
   //size_t t;
 
@@ -104,7 +104,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces2
     }
     
 #ifdef DEBUG_CAD_READER
-    if (i==faulty_id)
+    if (i == faulty_id)
       MIO::write("connectB.mesh", coords, connectB);
 #endif
     
@@ -139,8 +139,8 @@ E_Int K_OCC::CADviaOCC::mesh_faces2
     //_faces[i]->project(pos3D);
     
 #ifdef DEBUG_CAD_READER
-    if (i == faulty_id)
-      MIO::write("connectBprojected.mesh", pos3D , connectB, "BAR");
+    //if (i == faulty_id)
+    //  MIO::write("connectBprojected.mesh", pos3D , connectB, "BAR");
 #endif
     
 #ifdef DEBUG_CAD_READER
@@ -163,8 +163,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces2
     
     if (is_of_revolution)
     {
-      //_faces[i]->_normalize_domain = false; // fixme : currently normalizing not working with revol surfaces.
-      //_faces[i]->_normalize_domain = true; // CB
+      _faces[i]->_isRevol = true; // trigger jump test and branch correction
       //__split_surface_of_revolution2(_faces[i], connectB, pos3D, seam_nodes);
       
       // Parcours la BAR pour n'avoir qu'une seule loop
@@ -174,16 +173,21 @@ E_Int K_OCC::CADviaOCC::mesh_faces2
       K_FLD::IntArray connectBorig = connectB;
       K_FLD::IntArray switcha(1,pos3D.cols(),0);
       std::map<E_Int, E_Int> mirror;
-      _faces[i]->dupBAR(pos3D, connectB, switcha, mirror);
       
+      _faces[i]->dupBAR(pos3D, connectB, switcha, mirror);
       err = _faces[i]->parameters2(pos3D, connectB, UVcontour);
+      _faces[i]->_isRevol = false; // avoid jump check
+      
       if (err > 0)
       { 
-        printf("switcha %d\n", err);
+        err = err-1;
+        printf("Warning: switcha in=%d\n", err);
         if (err >= switcha.size()) err = mirror[err];
         switcha[err] = 1;
         pos3D = pos3Dorig; connectB = connectBorig; mirror.clear();
         _faces[i]->dupBAR(pos3D, connectB, switcha, mirror);
+        
+        err = _faces[i]->parameters2(pos3D, connectB, UVcontour);
       }
 #ifdef DEBUG_CAD_READER      
       if (i == faulty_id)
@@ -214,9 +218,9 @@ E_Int K_OCC::CADviaOCC::mesh_faces2
       }
       
 #ifdef DEBUG_CAD_READER
-      if (i==faulty_id&& t==0)
+      if (i==faulty_id && t==0)
       MIO::write("connectBUV1.mesh", UVcontour, connectB, "BAR");
-      if (i==faulty_id&& t==1)
+      if (i==faulty_id && t==1)
       MIO::write("connectBUV2.mesh", UVcontour, connectB, "BAR");
 #endif
     
@@ -225,7 +229,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces2
     
 
 #ifdef DEBUG_MESHER
-      if (i==faulty_id)
+      if (i == faulty_id)
         mesher.dbg_flag=true;
       else
         mesher.dbg_flag=false;
@@ -237,7 +241,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces2
       if (aniso) mode.metric_mode = mode.ANISO;
 
 #ifndef DEBUG_CAD_READER
-      mode.silent_errors = true;
+      //mode.silent_errors = true;
 #endif
       if (_gr <= 0.) // unspecified == OLD MODE
       {
@@ -312,7 +316,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces2
       }
     }
 
-    //Final cleaning and compacting
+    // Final cleaning and compacting
     {
       E_Int max_solid_id=0;
       for (E_Int i=1; i <= nb_faces; ++i)
@@ -337,11 +341,6 @@ E_Int K_OCC::CADviaOCC::mesh_faces2
       {
         if (crds[i].cols()==0) continue;
 
-#ifdef DEBUG_CAD_READER
-        E_Int maxid = 0;
-        maxid = *std::max_element(connectMs[i].begin(), connectMs[i].end());
-        assert(maxid < crds[i].cols());
-#endif
         K_FLD::ArrayAccessor<K_FLD::FloatArray > crdA(crds[i]);
         ::merge(crdA, _merge_tol, nids);
         K_FLD::IntArray::changeIndices(connectMs[i], nids);

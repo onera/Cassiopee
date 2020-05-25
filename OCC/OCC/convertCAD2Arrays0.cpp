@@ -16,6 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
+// convertCAD2Arrays (algo=1)
 
 #include "STEPControl_Reader.hxx"
 #include "IGESControl_Reader.hxx"
@@ -43,13 +44,13 @@
 #include "Poly_Triangulation.hxx"
 
 // ============================================================================
-/* Essai avec utilisation de BrepMesh */
+/* Essai avec utilisation de BrepMesh d'open cascade */
 // ============================================================================
-PyObject* K_OCC::convertCAD2Arrays2(PyObject* self, PyObject* args)
+PyObject* K_OCC::convertCAD2Arrays0(PyObject* self, PyObject* args)
 { 
-  // inFileFormat : fmt_iges ou fmt_step
-  // outFileFormat : None ou fmt_stl ou fmt_vrml
-  // deflection : deviation pour le maillage
+  // inFileFormat: fmt_iges ou fmt_step
+  // outFileFormat: None ou fmt_stl ou fmt_vrml
+  // deflection: deviation pour le maillage
   char* inFileName; char* inFileFormat; 
   char* outFileName; char* outFileFormat;
   E_Float deflection;

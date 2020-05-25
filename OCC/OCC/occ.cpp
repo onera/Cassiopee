@@ -24,6 +24,7 @@
 // ============================================================================
 static PyMethodDef Pyocc [] =
 {
+  {"convertCAD2Arrays0", K_OCC::convertCAD2Arrays0, METH_VARARGS},
   {"convertCAD2Arrays1", K_OCC::convertCAD2Arrays1, METH_VARARGS},
   {"convertCAD2Arrays2", K_OCC::convertCAD2Arrays2, METH_VARARGS},
   {NULL, NULL}

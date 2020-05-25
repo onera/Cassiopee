@@ -40,7 +40,7 @@ List of functions
    Intersector.booleanMinus
    Intersector.diffSurf
    Intersector.intersection
-   Intersector.XcellN
+   Intersector.PyTree.XcellN
 .. Intersector.booleanModifiedSolid
 .. Intersector.P1ConservativeChimeraCoeffs
 
@@ -119,14 +119,14 @@ Main Functions
     
     Colliding elements are cut to get a conformal set. Mixing types BAR and TRI is not currently handled.
 
-    :param a1:  First input mesh (BAR or TRI).
-    :type  a1:  [array, list of arrays] or [pyTree, base, zone, list of zones]
-    :param a2:   Second input mesh (BAR or TRI). If s2 is 'None' self-intersections are solved over s1.
-    :type  a2:   [array, list of arrays] or [pyTree, base, zone, list of zones]
-    :param tol:   Merging tolerance when points (existing or computed by intersections) are too close.
-    :type  tol:   float
+    :param a1: First input mesh (BAR or TRI).
+    :type  a1: [array, list of arrays] or [pyTree, base, zone, list of zones]
+    :param a2: Second input mesh (BAR or TRI). If s2 is 'None' self-intersections are solved over s1.
+    :type  a2: [array, list of arrays] or [pyTree, base, zone, list of zones]
+    :param tol: Merging tolerance when points (existing or computed by intersections) are too close.
+    :type  tol: float
     :param left_or_right: Tells the function what to ouput : the transformed s1 (0), s2(1) or both (2).
-    :type  left_or_right: 0,1 or 2
+    :type  left_or_right: 0, 1 or 2
     :param itermax: Number of intersection/merging iterations. 10 is the default value.
     :type  itermax: int
 
@@ -160,10 +160,10 @@ Main Functions
 
     :param a1:  First mesh operand.
     :type  a1:  [array, list of arrays] or [pyTree, base, zone, list of zones]
-    :param a2:   Second mesh operand.
-    :type  a2:   [array, list of arrays] or [pyTree, base, zone, list of zones]
-    :param tol:   Merging tolerance when points (existing or computed by intersections) are too close.
-    :type  tol:   float
+    :param a2:  Second mesh operand.
+    :type  a2:  [array, list of arrays] or [pyTree, base, zone, list of zones]
+    :param tol: Merging tolerance when points (existing or computed by intersections) are too close.
+    :type  tol: float
     :param preserve_right: Indicates the merging direction, either a1->a2 or a2->a1. If set to 1(0), it means a1->a2 (a2->a1), i.e. a2(a1)'s points are preserved.
     :type  preserve_right: 0 or 1
     :param solid_right: Indicates that the second operand is not penetrable, i.e. it is prioritized over the first operand a1.
@@ -205,12 +205,12 @@ Main Functions
 
     Computes a conformal intersection between two components, either TRI surfaces or Polyhedral volumes. 
 
-    :param a1:  First mesh operand.
-    :type  a1:  [array, list of arrays] or [pyTree, base, zone, list of zones]
-    :param a2:   Second mesh operand.
-    :type  a2:   [array, list of arrays] or [pyTree, base, zone, list of zones]
-    :param tol:   Merging tolerance when points (existing or computed by intersections) are too close.
-    :type  tol:   float
+    :param a1: First mesh operand.
+    :type  a1: [array, list of arrays] or [pyTree, base, zone, list of zones]
+    :param a2: Second mesh operand.
+    :type  a2: [array, list of arrays] or [pyTree, base, zone, list of zones]
+    :param tol: Merging tolerance when points (existing or computed by intersections) are too close.
+    :type  tol: float
     :param preserve_right: Indicates the merging direction, either a1->a2 or a2->a1. If set to 1(0), it means a1->a2 (a2->a1), i.e. a2(a1)'s points are preserved.
     :type  preserve_right: 0 or 1
     :param solid_right: Indicates that the second operand is not penetrable, i.e. it is prioritized over the first operand a1.
@@ -240,12 +240,12 @@ Main Functions
 
     Computes a conformal difference between two components, either TRI surfaces or Polyhedral volumes. 
 
-    :param a1:  First mesh operand.
-    :type  a1:  [array, list of arrays] or [pyTree, base, zone, list of zones]
-    :param a2:   Second mesh operand.
-    :type  a2:   [array, list of arrays] or [pyTree, base, zone, list of zones]
-    :param tol:   Merging tolerance when points (existing or computed by intersections) are too close.
-    :type  tol:   float
+    :param a1: First mesh operand.
+    :type  a1: [array, list of arrays] or [pyTree, base, zone, list of zones]
+    :param a2: Second mesh operand.
+    :type  a2: [array, list of arrays] or [pyTree, base, zone, list of zones]
+    :param tol: Merging tolerance when points (existing or computed by intersections) are too close.
+    :type  tol: float
     :param preserve_right: Indicates the merging direction, either a1->a2 or a2->a1. If set to 1(0), it means a1->a2 (a2->a1), i.e. a2(a1)'s points are preserved.
     :type  preserve_right: 0 or 1
     :param solid_right: Indicates that the second operand is not penetrable, i.e. it is prioritized over the first operand a1.
@@ -334,7 +334,7 @@ Main Functions
 ---------------------------------------
 
 
-.. py:function:: Intersector.XcellN(t, priorities, output_type=0, rtol=0.05)
+.. py:function:: Intersector.PyTree.XcellN(t, priorities, output_type=0, rtol=0.05)
 
     Computes the visibility coefficient for each cell in an overset surface grid configuration t with one-to-one priorities. t can be structured or unstructured.
 
