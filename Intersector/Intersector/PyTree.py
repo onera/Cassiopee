@@ -106,7 +106,7 @@ def updatePointLists(z, zones, oids):
       ptl = Internal.getNodeFromName1(j, 'PointList')
       ptLists.append(ptl[1])#ptl[0][1][0]
 
-    if (ptLists == []) : return
+    if ptLists == []: return
 
     # recalcul des pointlist
     ptLists = XOR.updatePointLists(oids, ptLists)
@@ -206,7 +206,7 @@ def booleanUnion(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, im
     s1 = C.getFields(Internal.__GridCoordinates__, a1)[0]
     s2 = C.getFields(Internal.__GridCoordinates__, a2)[0]
 
-    if multi_zone == True :
+    if multi_zone:
         typzone1 = s1[3]
         typzone2 = s2[3]
         if typzone1 == 'NGON' and typzone2 == 'NGON': # only for Volume/Volume
@@ -467,21 +467,32 @@ def _XcellNSurf(t, priorities, output_type=0, rtol=0.05):
   xcellns = XOR.XcellNSurf(ngons, basenum, boundaries, wall_ids, priorities, output_type, rtol)
 
   if output_type == 2: # output as ckipped NGON
-    i=0
-    C._deleteFlowSolutions__(t)#, 'nodes') #no histo for nodes currently
+    i = 0
+    C._deleteFlowSolutions__(t, 'nodes') #no histo for nodes currently
     bases = Internal.getBases(t)
+    paths = []
     for b in bases:
       zones = Internal.getZones(b)
       for z in zones:
+        # grab solution ptrs
+        cont = Internal.getNodesFromName2(z, Internal.__FlowSolutionCenters__)
+        fields = Internal.getNodesFromType1(cont, 'DataArray_t')
+    
         # updating mesh and solution
         mesh = xcellns[i]
         pg_oids = xcellns[i+1]
-        
         #transferFields(z, pg_oids)
-        C.setFields([mesh], z, 'nodes')
-
-        i +=2
-    return
+        if mesh[1].size > 0:
+          C.setFields([mesh], z, 'nodes')
+          for f in fields:
+            pt = f[1].ravel('k') 
+            f[1] = numpy.empty( (pg_oids.size), numpy.float64)
+            f[1][:] = pt[pg_oids[:]]
+        else: # stocke le chemin des zones a supprimer
+          paths.append(Internal.getPath(t, z))
+        i += 2
+    for p in paths: Internal.rmNodeFromPath(t, p)
+    return None
 
   #APPLY IT TO ZONES
   if structured_tree == False:
@@ -504,7 +515,8 @@ def _XcellNSurf(t, priorities, output_type=0, rtol=0.05):
     C._identifySolutions(t, tNG, hookN, hookC, tol=1000.)
     C.freeHook(hookC)
     C.freeHook(hookN)
-
+    
+  return None
   #C.convertPyTree2File(tNG, 'tNG.cgns')
   #C.convertPyTree2File(t, 't.cgns')
 
