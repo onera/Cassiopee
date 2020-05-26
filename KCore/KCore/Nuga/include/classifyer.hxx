@@ -402,7 +402,9 @@ namespace NUGA
 
   	  if (discard_bit) 
   	  {
+#ifdef CLASSIFYER_DBG
         std::cout << "mask bit " << i << " is discarded" << std::endl;
+#endif
   	  	delete bit; continue;
   	  }
 

@@ -99,18 +99,18 @@ namespace NUGA
       assert(ncells == wdata.size());
 
       outdata_t xmesh;
-
+      bool docomp(false);
       std::vector<bool> keep(ncells, false);
       for (E_Int i = 0; i < ncells; ++i)
       {
         color_t const & idata = wdata[i];
         double v = double(idata);
-        keep[i] = (v == OUT);
+        docomp |= keep[i] = (v == OUT);
       }
 
       xmesh.mesh = z_mesh;
       K_CONNECT::IdTool::init_inc(xmesh.mesh.flag, xmesh.mesh.ncells()); // for history
-      xmesh.mesh.compress(keep);//contains now only non-X elements
+      if (docomp) xmesh.mesh.compress(keep);//contains now only non-X elements
 
       xmesh.full_out = (ncells == xmesh.mesh.ncells());
       if (xmesh.full_out) return xmesh;
