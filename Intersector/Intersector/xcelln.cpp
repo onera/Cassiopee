@@ -169,10 +169,11 @@ PyObject* K_INTERSECTOR::XcellNSurf(PyObject* self, PyObject* args)
   for (E_Int i=0; (i < nb_masks) && !err; ++i)
   {
     PyObject* py_mask = PyList_GetItem(masks, i);
+    if (py_mask == Py_None) continue;
 
     err = getFromBAR(py_mask, mask_crds[i], false, mask_cnts[i], msk_varString, msk_eltType);
-    //std::cout << "mask sizes : " << mask_crds[i]->cols() << " points" << std::endl;
-    //std::cout << "mask sizes : " << mask_cnts[i]->cols() << " cells" << std::endl;
+    //std::cout << "mask sizes : " << mask_crds[i].cols() << " points" << std::endl;
+    //std::cout << "mask sizes : " << mask_cnts[i].cols() << " cells" << std::endl;
   }
 
   // get the wall ids

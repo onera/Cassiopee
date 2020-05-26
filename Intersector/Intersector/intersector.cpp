@@ -224,10 +224,14 @@ E_Int K_INTERSECTOR::get_of_type
 
   //std::cout << "eltType ???????" << eltType << std::endl;
      
-  bool err = (res !=2);
+  bool err = (res != 2);
 
-  for (size_t i=0; (i < types.size()) && !err; ++i)
-    err |= (strcmp(eltType, types[i].c_str()) != 0);
+  if (!err)
+  {
+    std::set<std::string> stypes(types.begin(), types.end());
+    std::string selt(eltType);
+    err = (stypes.find(selt) == stypes.end()); // eltType is not in the input list
+  }
 
   if (err)
   {
@@ -236,7 +240,7 @@ E_Int K_INTERSECTOR::get_of_type
     for (size_t i=0; i < types.size()-1; ++i){
       o << types[i] << ",";
     }
-    o << types[types.size()-1] << "array." ;
+    o << types[types.size()-1] << " array." ;
     PyErr_SetString(PyExc_TypeError, o.str().c_str());//fixme triangulateExteriorFaces : PASS A STRING AS INPUT
     //delete f1; delete cn1;
     //f1 = nullptr; cn1 = nullptr;

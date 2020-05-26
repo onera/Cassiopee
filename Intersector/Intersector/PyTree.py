@@ -139,35 +139,6 @@ def updatePointLists(z, zones, oids):
         break
       i=i+1
 
-def transferFields(z, oids):
-  nparrs = []
-  fields = C.getFields(Internal.__FlowSolutionCenters__, z)
-
-  nf = len(fields)
-  ofields = []
-
-  for f in fields:
-    nparrs.append(f[1][0])
-
-  C._deleteFlowSolutions__(z, 'centers') # destroy and rebuild one by one ??
-
-  fi=0
-  for f in fields:
-    C._initVars(z, 'centers:'+f[0], 1.)
-    of = C.getField('centers:'+f[0], z)
-    
-    n = len(oids) # nb of element has decreased : len <= len(fields)
-    print(len(nparrs[fi]))
-    #onumparr = numpy.empty((n,), dtype=numpy.int32)
-    for i in range(n):
-      of[0][1][0][i] = nparrs[fi][oids[i]]
-    fi += 1
-
-    #ofields.append(f)
-
-  #print(ofields)
-  #return ofields
-
 #------------------------------------------------------------------------------
 # Conformisation d'une soupe de TRI ou de BAR
 #------------------------------------------------------------------------------
@@ -389,13 +360,13 @@ def _XcellNSurf(t, priorities, output_type=0, rtol=0.05):
   try: import Generator.PyTree as G
   except: raise ImportError("XcellN: requires Generator module.")
 
-
+  
   allbcs = Internal.KNOWNBCS
-  allbcs.remove('BCOverlap')
-  allbcs.remove('BCMatch')
-  allbcs.remove('BCWallViscous')
-  allbcs.remove('BCWallInviscid')
-  allbcs.remove('BCWallViscousIsothermal')
+  if  'BCOverlap' in allbcs : allbcs.remove('BCOverlap')
+  if  'BCMatch' in allbcs : allbcs.remove('BCMatch')
+  if  'BCWallViscous' in allbcs : allbcs.remove('BCWallViscous')
+  if  'BCWallInviscid' in allbcs : allbcs.remove('BCWallInviscid')
+  if  'BCWallViscousIsothermal' in allbcs : allbcs.remove('BCWallViscousIsothermal')
 
   #t = T.reorderAll(t, dir=1)
   #C.convertPyTree2File(t, 'reorederedt.cgns')
@@ -411,21 +382,45 @@ def _XcellNSurf(t, priorities, output_type=0, rtol=0.05):
   
   # PREPARE INPUTS FOR ALL ZONES : boundaries and wall ids
   for b in bases:
-    bj = T.join(b)
+    # we need to get the exteriorFace of the compnent (no inner joins), so :
+    # if first zone is STRUCT, assume the entire base is STRUCT
+    # in this case, convert in HEXA to do a join
+    bz = Internal.getZones(b)
+    firstzonetype = Internal.getZoneDim(bz[0])[0]
+    #print(firstzonetype)
+    if Internal.getZoneDim(bz[0])[0] == 'Structured' :
+      bj = C.convertArray2Hexa(b)
+    else : bj = b
 
-    b_bounds = P.exteriorFaces(bj)
-    b_bounds = C.convertArray2Tetra(b_bounds) # to have BARs
-    m_bounds = C.getFields(Internal.__GridCoordinates__, b_bounds)[0]
+    if len(bz) > 1:
+      bj = T.join(bj)
+      bj = G.close(bj)
 
-    walls = []
-    for btype in allbcs:
-      walls += C.extractBCOfType(b, btype)
-    wallf = None
-    if len(walls) is not 0: 
-        walls = T.join(walls)
-        hook = C.createHook(b_bounds, function='elementCenters') # identifying edges
-        wallf = C.identifyElements(hook, walls) # wallf are ids in boundaries
-        wallf -= 1 # make it 0 based
+    nbf=0
+    try:
+      b_bounds = P.exteriorFaces(bj)
+      nbf = nb_cells(b_bounds)
+    except ValueError: # empty set
+      nbf = 0
+      pass
+    
+    if nbf > 0 :
+      b_bounds = C.convertArray2Tetra(b_bounds) # to always have BARs even with NGON component
+      m_bounds = C.getFields(Internal.__GridCoordinates__, b_bounds)[0]
+
+      walls = []
+      for btype in allbcs:
+        walls += C.extractBCOfType(b, btype)
+      wallf = None
+      if len(walls) is not 0: 
+          walls = T.join(walls)
+          hook = C.createHook(b_bounds, function='elementCenters') # identifying edges
+          wallf = C.identifyElements(hook, walls) # wallf are ids in boundaries
+          wallf -= 1 # make it 0 based
+    else:
+      m_bounds = None
+      wallf = None
+    
     boundaries.append(m_bounds)
     wall_ids.append(wallf)
 
@@ -468,7 +463,7 @@ def _XcellNSurf(t, priorities, output_type=0, rtol=0.05):
 
   if output_type == 2: # output as ckipped NGON
     i = 0
-    C._deleteFlowSolutions__(t, 'nodes') #no histo for nodes currently
+    C._deleteFlowSolutions__(t)#, 'nodes') #no histo for nodes currently
     bases = Internal.getBases(t)
     paths = []
     for b in bases:
@@ -481,13 +476,13 @@ def _XcellNSurf(t, priorities, output_type=0, rtol=0.05):
         # updating mesh and solution
         mesh = xcellns[i]
         pg_oids = xcellns[i+1]
-        #transferFields(z, pg_oids)
+        
         if mesh[1].size > 0:
           C.setFields([mesh], z, 'nodes')
-          for f in fields:
-            pt = f[1].ravel('k') 
-            f[1] = numpy.empty( (pg_oids.size), numpy.float64)
-            f[1][:] = pt[pg_oids[:]]
+          #for f in fields:
+          #  pt = f[1].ravel('k') 
+          #  f[1] = numpy.empty( (pg_oids.size), numpy.float64)
+          #  f[1][:] = pt[pg_oids[:]]
         else: # stocke le chemin des zones a supprimer
           paths.append(Internal.getPath(t, z))
         i += 2
@@ -507,7 +502,7 @@ def _XcellNSurf(t, priorities, output_type=0, rtol=0.05):
 
   if structured_tree == True :
     # back to STRUCT
-    print('XcellN : back to original mesh type (STRUCT, Basic...)')
+    #print('XcellN : back to original mesh type (STRUCT, Basic...)')
     mc = C.node2Center(tNG)
     hookC = C.createGlobalHook([mc], 'nodes')
     hookN = C.createGlobalHook([tNG], 'nodes')
