@@ -463,7 +463,11 @@ def _XcellNSurf(t, priorities, output_type=0, rtol=0.05):
 
   if output_type == 2: # output as ckipped NGON
     i = 0
-    C._deleteFlowSolutions__(t)#, 'nodes') #no histo for nodes currently
+    # delete all data that are no longer valid
+    C._deleteFlowSolutions__(t, 'nodes') #no histo for nodes currently
+    C._deleteGridConnectivity__(t)
+    C._deleteZoneBC__(t)
+
     bases = Internal.getBases(t)
     paths = []
     for b in bases:
@@ -472,21 +476,22 @@ def _XcellNSurf(t, priorities, output_type=0, rtol=0.05):
         # grab solution ptrs
         cont = Internal.getNodesFromName2(z, Internal.__FlowSolutionCenters__)
         fields = Internal.getNodesFromType1(cont, 'DataArray_t')
-    
-        # updating mesh and solution
+
+        # updating mesh and solution at centers
         mesh = xcellns[i]
         pg_oids = xcellns[i+1]
-        
+
         if mesh[1].size > 0:
           C.setFields([mesh], z, 'nodes')
-          #for f in fields:
-          #  pt = f[1].ravel('k') 
-          #  f[1] = numpy.empty( (pg_oids.size), numpy.float64)
-          #  f[1][:] = pt[pg_oids[:]]
+          for f in fields:
+            pt = f[1].ravel('k')
+            f[1] = numpy.empty( (pg_oids.size), numpy.float64)
+            f[1][:] = pt[pg_oids[:]]
         else: # stocke le chemin des zones a supprimer
           paths.append(Internal.getPath(t, z))
         i += 2
     for p in paths: Internal._rmNodeFromPath(t, p)
+    G._close(t)
     return None
 
   #APPLY IT TO ZONES
