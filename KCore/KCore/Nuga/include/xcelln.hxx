@@ -140,6 +140,8 @@ namespace NUGA
       }
 
       xmesh.mesh.cnt.updateFacets();
+      std::vector<E_Int> nids;
+      zmesh_t::trait::compact_to_used_nodes(xmesh.mesh.cnt, xmesh.mesh.crd, nids);
       return xmesh;
     }
 

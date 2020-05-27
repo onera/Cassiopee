@@ -178,9 +178,8 @@ struct connect_trait<SURFACIC, false>
   
   static void compact_to_used_nodes(cnt_t& c, K_FLD::FloatArray& crd, std::vector<E_Int>& nids)
   {
-    // fixme
-    //std::vector<E_Int> nids;
-    //K_CONNECT::MeshTool::compact_to_mesh(crd, c, nids);
+    nids.clear();
+    ngon_type::compact_to_used_nodes(c, crd);
   }
 
   static void compute_nodal_tolerance(const K_FLD::FloatArray& crd, const cnt_t& cnt, std::vector<E_Float>& nodal_tolerance)

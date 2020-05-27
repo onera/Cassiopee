@@ -486,7 +486,7 @@ def _XcellNSurf(t, priorities, output_type=0, rtol=0.05):
         else: # stocke le chemin des zones a supprimer
           paths.append(Internal.getPath(t, z))
         i += 2
-    for p in paths: Internal.rmNodeFromPath(t, p)
+    for p in paths: Internal._rmNodeFromPath(t, p)
     return None
 
   #APPLY IT TO ZONES
