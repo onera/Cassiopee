@@ -47,13 +47,13 @@ public:
   void discretize(K_FLD::FloatArray& coord3D, K_FLD::IntArray& connect, E_Int ni, E_Int nj);
 
   // Order BAR  
-  E_Int findNextPoint(K_FLD::IntArray& found, std::vector< std::vector<E_Int> >& node2Elt);
-  void orderBAR(E_Int npts, K_FLD::FloatArray& coord3D, K_FLD::IntArray& connectB, K_FLD::IntArray& ind, K_FLD::IntArray& start);
+  E_Int findNextPoint(K_FLD::IntArray& found, std::vector< std::vector<E_Int> >& node2Elt) const;
+  void orderBAR(E_Int npts, K_FLD::FloatArray& coord3D, K_FLD::IntArray& connectB, K_FLD::IntArray& ind, K_FLD::IntArray& start) const;
   void parcoursBAR(K_FLD::FloatArray& pos3D, K_FLD::IntArray& connectB);
   E_Int findNextElement(E_Int e, K_FLD::IntArray& found, K_FLD::IntArray& connectB,
-                        std::vector< std::vector<E_Int> >& node2Elt);
+                        std::vector< std::vector<E_Int> >& node2Elt) const;
   void dupBAR(K_FLD::FloatArray& pos3D, K_FLD::IntArray& connectB, K_FLD::IntArray& switcha, std::map< E_Int, E_Int >& mirror);
-  E_Int findNonAmbStart(E_Int npts, K_FLD::FloatArray& coord3D);
+  E_Int findNonAmbStart(E_Int npts, K_FLD::FloatArray& coord3D) const;
 
   // version CB
   E_Int parameters2(K_FLD::FloatArray& coord3D, K_FLD::IntArray& connectB, K_FLD::FloatArray& UVs) const ;

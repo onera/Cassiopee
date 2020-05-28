@@ -92,7 +92,7 @@ void K_OCC::OCCSurface::project(K_FLD::FloatArray& coord3D) const
 
 // Trouve l'element suivant pour un parcours en elements de la BAR
 E_Int K_OCC::OCCSurface::findNextElement(E_Int e, K_FLD::IntArray& found, 
-  K_FLD::IntArray& connectB, std::vector< std::vector<E_Int> >& node2Elt)
+  K_FLD::IntArray& connectB, std::vector< std::vector<E_Int> >& node2Elt) const
 {
   std::vector< E_Int > next;
   std::set< E_Int > nexts;
@@ -331,7 +331,7 @@ void K_OCC::OCCSurface::dupBAR(K_FLD::FloatArray& pos3D, K_FLD::IntArray& connec
 
 // findNextPoint. En priorite les 1, sinon les 2
 E_Int K_OCC::OCCSurface::findNextPoint(K_FLD::IntArray& found, 
-  std::vector< std::vector<E_Int> >& node2Elt)
+  std::vector< std::vector<E_Int> >& node2Elt) const
 {
   E_Int i0 = -1; E_Int i1 = -1; E_Int i2 = -1;
   for (E_Int i = 0; i < found.cols(); i++)
@@ -349,7 +349,7 @@ E_Int K_OCC::OCCSurface::findNextPoint(K_FLD::IntArray& found,
 }
 
 // Find non ambiguous start
-E_Int K_OCC::OCCSurface::findNonAmbStart(E_Int npts, K_FLD::FloatArray& coord3D)
+E_Int K_OCC::OCCSurface::findNonAmbStart(E_Int npts, K_FLD::FloatArray& coord3D) const
 {
   bool amb;
   E_Float u,v,up,vp,upp,vpp;
@@ -378,7 +378,7 @@ E_Int K_OCC::OCCSurface::findNonAmbStart(E_Int npts, K_FLD::FloatArray& coord3D)
 void K_OCC::OCCSurface::orderBAR(E_Int npts, 
   K_FLD::FloatArray& coord3D, 
   K_FLD::IntArray& connectB, 
-  K_FLD::IntArray& index, K_FLD::IntArray& start)
+  K_FLD::IntArray& index, K_FLD::IntArray& start) const
 {
   // get node->elts connect
   E_Int ind0, ind1, ind2, ind3;
@@ -514,7 +514,7 @@ void K_OCC::OCCSurface::orderBAR(E_Int npts,
 
 // parametre le contour (coord3D, connectB) avec les parametres de la surface
 E_Int K_OCC::OCCSurface::parameters2
-(K_FLD::FloatArray& coord3D, K_FLD::IntArray& connectB, K_FLD::FloatArray& UVs) const 
+(K_FLD::FloatArray& coord3D, K_FLD::IntArray& connectB, K_FLD::FloatArray& UVs) const
 {
   UVs.clear();
   
