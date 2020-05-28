@@ -55,6 +55,9 @@ K_OCC::OCCSurface::OCCSurface(const TopoDS_Face& F, TopTools_IndexedMapOfShape& 
   _isVPeriodic = h.IsVPeriodic();
   if (_isVPeriodic) _vPeriod = h.VPeriod();
   else _vPeriod = _V1-_V0;
+  // Comme on dessine uniquement sur la premiere periode:
+  if (_uPeriod > _U1-_U0+1.e-2) _isUClosed = false;
+  if (_vPeriod > _V1-_V0+1.e-2) _isVClosed = false;
   
   //printf("closed %d %d\n", isUClosed, isVClosed);
 
@@ -367,7 +370,7 @@ void K_OCC::OCCSurface::DUV(E_Float u, E_Float v, E_Float* P) const{
   
   __denormalize(u,v);
   
-  _surface->D2 (u, v, Pt, DU1, DV1, DU2, DV2, DUV);
+  _surface->D2(u, v, Pt, DU1, DV1, DU2, DV2, DUV);
   
   P[0]=DUV.X();P[1]=DUV.Y();P[2]=DUV.Z();
   

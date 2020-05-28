@@ -412,7 +412,7 @@ def _XcellNSurf(t, priorities, output_type=0, rtol=0.05):
       for btype in allbcs:
         walls += C.extractBCOfType(b, btype)
       wallf = None
-      if len(walls) is not 0: 
+      if len(walls) != 0: 
           walls = T.join(walls)
           hook = C.createHook(b_bounds, function='elementCenters') # identifying edges
           wallf = C.identifyElements(hook, walls) # wallf are ids in boundaries
@@ -483,6 +483,7 @@ def _XcellNSurf(t, priorities, output_type=0, rtol=0.05):
 
         if mesh[1].size > 0:
           C.setFields([mesh], z, 'nodes')
+
           for f in fields:
             pt = f[1].ravel('k')
             f[1] = numpy.empty( (pg_oids.size), numpy.float64)

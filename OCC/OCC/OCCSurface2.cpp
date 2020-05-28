@@ -33,6 +33,7 @@
 #include <ShapeAnalysis_Surface.hxx>
 #include <StdFail_NotDone.hxx>
 
+//#define DEBUG_CAD_READER
 
 // Calcule une discretisation de la surface avec connect QUAD
 void K_OCC::OCCSurface::discretize(K_FLD::FloatArray& coord3D, K_FLD::IntArray& connect, E_Int ni, E_Int nj)
@@ -354,7 +355,7 @@ E_Int K_OCC::OCCSurface::findNonAmbStart(E_Int npts, K_FLD::FloatArray& coord3D)
   E_Float u,v,up,vp,upp,vpp;
   for (E_Int i = 0; i < npts; i++)
   {
-    up = -1; upp = -1;
+    up = -K_CONST::E_MAX_FLOAT; upp = -K_CONST::E_MAX_FLOAT;
     parameters2(coord3D.col(i), u, v, i, up, vp, upp, vpp);
     amb = false;
     if (_isUClosed)
@@ -364,8 +365,8 @@ E_Int K_OCC::OCCSurface::findNonAmbStart(E_Int npts, K_FLD::FloatArray& coord3D)
     }
     if (_isVClosed)
     {
-      if (std::fabs(u-0.) < 1.e-2) amb = true;
-      if (std::fabs(u-1.) < 1.e-2) amb = true;
+      if (std::fabs(v-0.) < 1.e-2) amb = true;
+      if (std::fabs(v-1.) < 1.e-2) amb = true;
     }
     if (amb == false) { return i; }
   }
@@ -403,7 +404,7 @@ void K_OCC::OCCSurface::orderBAR(E_Int npts,
   }
   */
   // check open BAR, branch
- 
+#ifdef DEBUG_CAD_READER
   for (E_Int i = 0; i < npts; i++)
   {
     if (node2Elt[i].size() == 0) // isolated
@@ -425,6 +426,7 @@ void K_OCC::OCCSurface::orderBAR(E_Int npts,
     }
   }
   //printf("after check\n"); fflush(stdout);
+#endif
   
   // order
   E_Int s, e0, e1;
@@ -435,7 +437,9 @@ void K_OCC::OCCSurface::orderBAR(E_Int npts,
   // NEW ALGO
   //E_Int indCur = findNextPoint(found, node2Elt);
   E_Int indCur = findNonAmbStart(npts, coord3D);
+#ifdef DEBUG_CAD_READER
   printf("starting non ambiguous index=%d\n", indCur);
+#endif
   start[0] = indCur;
   
   for (E_Int i = 0; i < npts; i++)
@@ -485,10 +489,10 @@ void K_OCC::OCCSurface::orderBAR(E_Int npts,
   }
   
   // Check order new->old
-  
+#ifdef DEBUG_CAD_READER
   for (E_Int i = 0; i < npts; i++)
     printf("order new=%d -> old=%d (found=%d, start=%d) \n", i, index[i], found[index[i]], start[i]);
-  
+#endif
   
   // Check start
   E_Int nstart = 0;
@@ -497,12 +501,14 @@ void K_OCC::OCCSurface::orderBAR(E_Int npts,
   {
     if ( (start[i] == 1 && i != 0) || i == npts-1)
     {
-      if (node2Elt[index[i]].size() > 0) { printf("%d: length = %d\n", i, length); nstart += 1;  }
+      if (node2Elt[index[i]].size() > 0) {  nstart += 1;  }
       length = 0;
     }
     else length += 1;
   }
+#ifdef DEBUG_CAD_READER
   if (nstart > 1) printf("Warning: nstart = %d\n", nstart);
+#endif
 }
 
 
@@ -522,24 +528,27 @@ E_Int K_OCC::OCCSurface::parameters2
   //printf("before orderBAR\n"); fflush(stdout);
   orderBAR(npts, coord3D, connectB, index, start);
   //printf("after orderBAR\n"); fflush(stdout);
+#ifdef DEBUG_CAD_READER
   printf("bounds %f %f - %f %f \n",_U0,_U1,_V0,_V1);
   printf("isClosedU = %d isClosedV = %d\n",_isUClosed,_isVClosed);
   printf("isUPeriodic = %d isVPeriodic = %d\n", _isUPeriodic, _isVPeriodic);
   printf("UPeriod=%f, VPeriod=%f\n", _uPeriod,_vPeriod);
+#endif
   
   E_Int n;
-  E_Float Up=-1; E_Float Vp=-1;
-  E_Float Upp=-1; E_Float Vpp=-1;
+  E_Float Up=-K_CONST::E_MAX_FLOAT; E_Float Vp=-K_CONST::E_MAX_FLOAT;
+  E_Float Upp=-K_CONST::E_MAX_FLOAT; E_Float Vpp=-K_CONST::E_MAX_FLOAT;
   
   for (E_Int i = 0; i < npts; i++)
   {
-    if (start[i] == 1) { Up=-1; Vp=-1; Upp=-1; Vpp=-1; }
+    if (start[i] == 1) { Up=-K_CONST::E_MAX_FLOAT; Vp=-K_CONST::E_MAX_FLOAT; Upp=-K_CONST::E_MAX_FLOAT; Vpp=-K_CONST::E_MAX_FLOAT; }
     n = index[i];
     err = parameters2(coord3D.col(n), UVs(0,n), UVs(1,n), n, Up, Vp, Upp, Vpp);
-    
-    if (_isRevol == true && (std::fabs(Up-Upp) > 0.7*(_U1-_U0) || std::fabs(Vp-Vpp) > 0.7*(_V1-_V0)))
+    if (_isRevol == true && (std::fabs(Up-Upp) > 0.7*(_U1-_U0) || std::fabs(Vp-Vpp) > std::fabs(Vp-Vpp)))
     {
+#ifdef DEBUG_CAD_READER
       printf("Warning: %f %f | %f %f Jump detected in %d.\n",Up,Upp,Vp,Vpp,n);
+#endif
       return index[i-1]+1;
     }
     
@@ -608,32 +617,44 @@ K_OCC::OCCSurface::parameters2(const E_Float* pt, E_Float& u, E_Float& v,
   ShapeAnalysis_Surface s(_surface);
   gp_Pnt2d uv, uvp;
   
-  if (up < -0.5) // starting
+  if (up == -K_CONST::E_MAX_FLOAT) // starting
   {
     uv = s.ValueOfUV(Point, 1.e-6);
     u = uv.X(); v = uv.Y();
     
-    if (_isUClosed == true)
+    if (_isUPeriodic == true)
     {
       // periodic shift
       E_Float per = _uPeriod;
-      E_Int N = floor((u-_U0)/per);
-      if (u > _U1+1.e-2) u = u - N*per;
-      if (u < _U0-1.e-2) u = u + N*per;
+      E_Float b0 = (_U0-u)/per; E_Float b1 = (_U1-u)/per;
+      E_Int N = floor(b1);
+      //if (N < b0-1.e-2) printf("Warning: danger %d %f!\n",N,b0);
+      if (N < b0-1.e-3) N += 1;
+      if (u <= _U0-1.e-2 || u >= _U1+1.e-2) u = u+N*per;
+      //E_Int N = floor(std::abs(u-_U0)/per);
+      //if (u > _U1+1.e-2) u = u - N*per;
+      //if (u < _U0-1.e-2) u = u + (N+1)*per;
     }
-    if (_isVClosed == true)
+    if (_isVPeriodic == true)
     {
       // periodic shift
       E_Float per = _vPeriod;
-      E_Int N = floor((v-_V0)/per);
-      if (v > _V1+1.e-2) v = v - N*per;
-      if (v < _V0-1.e-2) v = v + N*per;
+      E_Float b0 = (_V0-v)/per; E_Float b1 = (_V1-v)/per;
+      E_Int N = floor(b1);
+      //if (N < b0-1.e-2) printf("Warning: danger %d %f!\n",N,b0);
+      if (N < b0-1.e-3) N += 1;
+      if (v <= _V0-1.e-2 || v >= _V1+1.e-2) v = v+N*per;
+      //E_Int N = floor(std::abs(v-_V0)/per);
+      //if (v > _V1+1.e-2) v = v - N*per;
+      //if (v < _V0-1.e-2) v = v + (N+1)*per;
     }
     //E_Float u1,v1;
     //GeomAPI_ProjectPointOnSurf o(Point, _surface, Extrema_ExtAlgo_Tree);
     //o.LowerDistanceParameters(u1,v1);
     //if (::fabs(u-u1) > 1.e-6 || ::fabs(v-v1) > 1.e-6) printf("erreur: %f %f versus %f %f\n",u,v,u1,v1);
-    printf("%d: startuv: %f %f (up=%f)\n",index,u,v,up);
+#ifdef DEBUG_CAD_READER
+    printf("%d: startuv: %f %f (orig=%f %f)\n",index,u,v,uv.X(),uv.Y());
+#endif
   }
   else
   {
@@ -641,27 +662,50 @@ K_OCC::OCCSurface::parameters2(const E_Float* pt, E_Float& u, E_Float& v,
     uv = s.NextValueOfUV (uvp, Point, 1.e-6, -1.0);
     u = uv.X(); v = uv.Y();
     
-    if (upp < -0.5) { upp = up; vpp = vp; }
+    if (upp == -K_CONST::E_MAX_FLOAT) { upp = up; vpp = vp; }
     
     // Gestion de la periodicite
     // Avoid backsteping
     E_Float du,dv,dup,dvp,p,inv;
     
-    if (_isUClosed == true)
+    if (_isUPeriodic == true)
     {
       // periodic shift
       E_Float per = _uPeriod;
-      E_Int N = floor((u-_U0)/per);
-      if (u > _U1+1.e-2) u = u - N*per;
-      if (u < _U0-1.e-2) u = u + N*per;
+      E_Float b0 = (_U0-u)/per; E_Float b1 = (_U1-u)/per;
+      E_Int N = floor(b1);
+      //if (N < b0-1.e-3) printf("Warning: danger N=%d < %f!\n",N,b0);
+      if (N < b0-1.e-3) N += 1;
+      if (u <= _U0-1.e-2 || u >= _U1+1.e-2) u = u+N*per;
+      //E_Int N = floor(std::abs(u-_U0)/per);
+      //if (u > _U1+1.e-2) u = u - N*per;
+      //if (u < _U0-1.e-2) u = u + (N+1)*per;
       //if (_isUPeriodic) u = u + ShapeAnalysis::AdjustToPeriod(u, _U0, _U1);
-        
+    }
+    if (_isVPeriodic == true)
+    {
+      // periodic shift
+      E_Float per = _vPeriod;
+      E_Float b0 = (_V0-v)/per; E_Float b1 = (_V1-v)/per;
+      E_Int N = floor(b1);
+      //if (N < b0-1.e-3) printf("Warning: danger N=%d %f!\n",N,b0);
+      if (N < b0-1.e-3) N += 1;
+      if (v <= _V0-1.e-2 || v >= _V1+1.e-2) v = v+N*per;
+      //E_Int N = floor(std::abs(v-_V0)/per);
+      //if (v > _V1+1.e-2) v = v - N*per;
+      //if (v < _V0-1.e-2) v = v + (N+1)*per;
+      //if (_isVPeriodic) v = v + ShapeAnalysis::AdjustToPeriod(v, _V0, _V1);
+    }
+    
+    if (_isUClosed == true)
+    { 
+      E_Float per = _uPeriod;
       // on the bound
       if (std::fabs(u-_U0) < 1.e-2)
       {
         du = (u-up); dv = (v-vp);
         dup = (up-upp); dvp = (vp-vpp);
-      
+
         inv = std::sqrt(du*du+dv*dv)*std::sqrt(dup*dup+dvp*dvp)+1.e-10;
         p = du*dup+dv*dvp;
         //printf("switchU0 %f %f\n", p, 0.2*inv);
@@ -691,21 +735,13 @@ K_OCC::OCCSurface::parameters2(const E_Float* pt, E_Float& u, E_Float& v,
         if (p < -0.2*inv) u = _U0;
         else if (std::fabs(du) > std::fabs(_U0-up)) u = _U0;
       }
-      
     }
     if (_isVClosed == true)
-    {
-      // periodic shift
+    { 
       E_Float per = _vPeriod;
-      E_Int N = floor((v-_V0)/per);
-      if (v > _V1+1.e-2) v = v - N*per;
-      if (v < _V0-1.e-2) v = v + N*per;
-      //if (_isVPeriodic) v = v + ShapeAnalysis::AdjustToPeriod(v, _V0, _V1);
-        
       if (std::fabs(v-_V0) < 1.e-2)
       {
         du = (u-up); dv = (v-vp);
-
         dup = (up-upp); dvp = (vp-vpp);
       
         inv = std::sqrt(du*du+dv*dv)*std::sqrt(dup*dup+dvp*dvp)+1.e-10;
@@ -717,7 +753,6 @@ K_OCC::OCCSurface::parameters2(const E_Float* pt, E_Float& u, E_Float& v,
       else if (std::fabs(v-_V1) < 1.e-2)
       {
         du = (u-up); dv = (v-vp);
-
         dup = (up-upp); dvp = (vp-vpp);
       
         inv = std::sqrt(du*du+dv*dv)*std::sqrt(dup*dup+dvp*dvp)+1.e-10;
@@ -729,7 +764,6 @@ K_OCC::OCCSurface::parameters2(const E_Float* pt, E_Float& u, E_Float& v,
       else if (std::fabs(v-_V0-per) < 1.e-2)
       {
         du = (u-up); dv = (v-vp);
-
         dup = (up-upp); dvp = (vp-vpp);
       
         inv = std::sqrt(du*du+dv*dv)*std::sqrt(dup*dup+dvp*dvp)+1.e-10;
@@ -739,8 +773,9 @@ K_OCC::OCCSurface::parameters2(const E_Float* pt, E_Float& u, E_Float& v,
         else if (std::fabs(dv) > std::fabs(_V0-vp)) v = _V0;
       }
     }
-    printf("%d: nextuv: %f %f (up=%f)\n",index, u,v,up);
-    
+#ifdef DEBUG_CAD_READER
+    printf("%d: nextuv: %f %f (orig=%f %f)\n",index, u,v,uv.X(),uv.Y());
+#endif
   }
   
   /*
@@ -748,7 +783,7 @@ K_OCC::OCCSurface::parameters2(const E_Float* pt, E_Float& u, E_Float& v,
   u = uv.X(); v = uv.Y();
   printf("%f %f - %f %f %f %f\n", u,v,_U0,_U1,_V0,_V1);
   */
-  if (up < -0.5) { up = u; vp = v; }
+  if (up == -K_CONST::E_MAX_FLOAT) { up = u; vp = v; }
   upp = up; vpp = vp; // save for next time
   up = u; vp = v; // save for next time
   

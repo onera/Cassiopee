@@ -81,7 +81,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces2
   DELAUNAY::SurfaceMesher<OCCSurface> mesher;
   
 #ifdef DEBUG_CAD_READER
-  E_Int faulty_id = 10;
+  E_Int faulty_id = 2;
 #endif
   //size_t t;
 
@@ -98,7 +98,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces2
     if (connectB.cols() == 0)
     {
 #ifdef DEBUG_CAD_READER
-      std::cout << "ERROR Face : " << i << " : empty discretized contour!" << std::endl;
+      std::cout << "ERROR Face: " << i << ": empty discretized contour!" << std::endl;
 #endif
       continue;
     }
@@ -156,7 +156,9 @@ E_Int K_OCC::CADviaOCC::mesh_faces2
     // surface of revolution => duplicate, reverse and separate seams
     //bool is_of_revolution = ((E_Int)nodes.size() != connectB.cols());
     bool is_of_revolution = (nodes.size() != connectB.cols());
-    if (is_of_revolution) printf("Edge is not loop - Is of revolution=true\n");
+#ifdef DEBUG_CAD_READER
+    if (i == faulty_id && is_of_revolution) printf("Edge is not loop - Is of revolution=true\n");
+#endif
     //is_of_revolution = false; // DBG
     
     std::map<E_Int, std::pair<E_Int, E_Int> > seam_nodes;
@@ -176,19 +178,37 @@ E_Int K_OCC::CADviaOCC::mesh_faces2
       
       _faces[i]->dupBAR(pos3D, connectB, switcha, mirror);
       err = _faces[i]->parameters2(pos3D, connectB, UVcontour);
-      _faces[i]->_isRevol = false; // avoid jump check
       
       if (err > 0)
       { 
         err = err-1;
-        printf("Warning: switcha in=%d\n", err);
+#ifdef DEBUG_CAD_READER
+        if (i == faulty_id) printf("Warning: switcha in=%d\n", err);
+#endif
         if (err >= switcha.size()) err = mirror[err];
         switcha[err] = 1;
         pos3D = pos3Dorig; connectB = connectBorig; mirror.clear();
         _faces[i]->dupBAR(pos3D, connectB, switcha, mirror);
-        
         err = _faces[i]->parameters2(pos3D, connectB, UVcontour);
       }
+      
+      if (err > 0)
+      { 
+        err = err-1;
+#ifdef DEBUG_CAD_READER
+        if (i == faulty_id) printf("Warning: switcha in=%d\n", err);
+#endif
+        if (err >= switcha.size()) err = mirror[err];
+        switcha[err] = 1;
+        pos3D = pos3Dorig; connectB = connectBorig; mirror.clear();
+        _faces[i]->dupBAR(pos3D, connectB, switcha, mirror);
+        err = _faces[i]->parameters2(pos3D, connectB, UVcontour);
+      }
+#ifdef DEBUG_CAD_READER
+      if (err > 0) printf("still unresolved loop.\n");
+#endif
+      _faces[i]->_isRevol = false; // avoid jump check
+      
 #ifdef DEBUG_CAD_READER      
       if (i == faulty_id)
         MIO::write("connectBrevol.mesh", pos3D, connectB, "BAR");
@@ -213,7 +233,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces2
       if (err)
       {
         if (t==1)
-          std::cout << "ERROR Face : " << i << " : cannot retrieve parametrization !" << std::endl;
+          std::cout << "ERROR Face: " << i << ": cannot retrieve parametrization !" << std::endl;
         continue;
       }
       
