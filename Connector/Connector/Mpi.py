@@ -52,6 +52,27 @@ def connectMatch(a, tol=1.e-6, dim=3):
     return a
 
 #==============================================================================
+def connectNearMatch(a, ratio=2, tol=1.e-6, dim=3):
+    """Find boundaries that matches with a given ratio."""
+    if not isinstance(ratio, list):
+        iratio = ratio
+    else:
+        iratio=1
+        for r in ratio: iratio=max(iratio,r)
+    # Ajout des bandelettes
+    Cmpi._addBXZones(a, depth=iratio+1)
+    
+    # Construction des raccords 
+    a = X.connectNearMatch(a, ratio=2, tol=tol, dim=dim)
+
+    # Suppression des XZones et correction des matchs 
+    Cmpi._rmBXZones(a)
+    
+    # Fusion des fenetres des raccords 
+    a = mergeWindows(a)
+
+    return a
+#==============================================================================
 # connectMatchPeriodic 
 #==============================================================================
 def connectMatchPeriodic(a, rotationCenter=[0.,0.,0.],
