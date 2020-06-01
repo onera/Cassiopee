@@ -64,7 +64,7 @@ E_Int K_OCC::import_OCC_CAD_wrapper::import_cad
   connectMs.clear();
   err = reader.mesh_faces(coords, connectBs, crds, connectMs, aniso);
   
-#ifdef DEBUG_CAD_READER
+#ifdef DEBUG_CAD_READER 
   std::cout << "import_OCC_CAD_wrapper::import_cad done." << std::endl;
 #endif
 

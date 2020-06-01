@@ -320,12 +320,12 @@ void K_CONNECT::cleanConnectivityBasic_opt(E_Int posx, E_Int posy, E_Int posz,
   // Copie de la solution
   f.malloc(np, nfld);
 
-    for (E_Int n1 = 1; n1 <= nfld; n1++)
-    {
-      E_Float* fp = f.begin(n1);
-      E_Float* f2p = f2.begin(n1);
-      for (E_Int i = 0; i < np; i++) fp[i] = f2p[indir2p[i]];
-    }
+  for (E_Int n1 = 1; n1 <= nfld; n1++)
+  {
+    E_Float* fp = f.begin(n1);
+    E_Float* f2p = f2.begin(n1);
+    for (E_Int i = 0; i < np; i++) fp[i] = f2p[indir2p[i]];
+  }
   delete indir2; 
 
   // Creation de la nouvelle connectivite  Elements -> Noeuds

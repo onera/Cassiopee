@@ -496,7 +496,7 @@ else if ($MAC == "sator_python3") then
         setenv OMP_NUM_THREADS 28
         set path=($path $CASSIOPEE/Dist/bin)
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
-        #setenv LD_LIBRARY_PATHL /usr/lib64:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/stv_r8/lib:/tmp_user/stelvio/benoit/sator/lib
+        #setenv LD_LIBRARY_PATHL /usr/lib64:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:/tmp_user/stelvio/benoit/sator/lib
         setenv LD_LIBRARY_PATHL /usr/lib64:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
         setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
 
@@ -517,8 +517,8 @@ else if ($MAC == "sator") then
         setenv OMP_NUM_THREADS 28
         set path=($path $CASSIOPEE/Dist/bin)
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
-        #setenv LD_LIBRARY_PATHL $CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/stv_r8/lib:/tmp_user/stelvio/benoit/sator/lib
-        setenv LD_LIBRARY_PATHL $CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:
+        #setenv LD_LIBRARY_PATHL /usr/lib64:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:/tmp_user/stelvio/benoit/sator/lib
+        setenv LD_LIBRARY_PATHL /usr/lib64:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:
         setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
 
 else if ($MAC == "sator_sky") then
@@ -536,8 +536,8 @@ else if ($MAC == "sator_sky") then
         set path=($path $CASSIOPEE/Dist/bin)
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
 
-        #setenv LD_LIBRARY_PATHL $CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/stv_r8/lib:/tmp_user/stelvio/benoit/sator/lib
-        setenv LD_LIBRARY_PATHL $CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:
+        #setenv LD_LIBRARY_PATHL /usr/lib64:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:/tmp_user/stelvio/benoit/sator/lib
+        setenv LD_LIBRARY_PATHL /usr/lib64:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:
         setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
 endif
 #---------------------------Common---------------------------------------------

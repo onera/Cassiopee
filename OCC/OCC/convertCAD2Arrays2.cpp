@@ -18,7 +18,7 @@
 */
 // convertCAD2Arrays (algo=2)
 
-#define DEBUG_CAD_READER
+//#define DEBUG_CAD_READER
 
 #include <stdio.h>
 #include <string.h>
@@ -114,6 +114,7 @@ PyObject* K_OCC::convertCAD2Arrays2(PyObject* self, PyObject* args)
   return l;
 }
 
+// sub routine
 E_Int K_OCC::CADread2
 (char* file, char* fileFmt, E_Float h, E_Float chordal_err, E_Float gr, char*& varString,
  vector<FldArrayF*>& unstructField,

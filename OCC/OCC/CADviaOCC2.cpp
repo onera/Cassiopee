@@ -81,7 +81,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces2
   DELAUNAY::SurfaceMesher<OCCSurface> mesher;
   
 #ifdef DEBUG_CAD_READER
-  E_Int faulty_id = 2;
+  E_Int faulty_id = 16;
 #endif
   //size_t t;
 
@@ -164,7 +164,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces2
     std::map<E_Int, std::pair<E_Int, E_Int> > seam_nodes;
     
     if (is_of_revolution)
-    {
+    {  
       _faces[i]->_isRevol = true; // trigger jump test and branch correction
       //__split_surface_of_revolution2(_faces[i], connectB, pos3D, seam_nodes);
       

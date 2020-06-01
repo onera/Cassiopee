@@ -214,9 +214,10 @@ void K_OCC::OCCSurface::parcoursBAR(K_FLD::FloatArray& pos3D, K_FLD::IntArray& c
   */
 }
 
+// En entree : les elements sont doubles sur le backbone
 // Tentative de duplication brutale
 // Les pts de valence =3 ou 4 sont dupliques
-// Ils sont remplaces dans deux elements au pif
+// Ils sont remplaces dans deux elements au pif suivant switch
 void K_OCC::OCCSurface::dupBAR(K_FLD::FloatArray& pos3D, K_FLD::IntArray& connectB,
   K_FLD::IntArray& switcha, std::map< E_Int, E_Int >& mirror)
 {
@@ -244,6 +245,7 @@ void K_OCC::OCCSurface::dupBAR(K_FLD::FloatArray& pos3D, K_FLD::IntArray& connec
   for (E_Int i = 0; i < npts; i++)
   {
     E_Int valence = node2Elt[i].size();
+    //printf("%d: valence=%d\n", i, valence);
     if (valence == 3)
     {
       Pt = pos3D.col(i);
@@ -270,7 +272,7 @@ void K_OCC::OCCSurface::dupBAR(K_FLD::FloatArray& pos3D, K_FLD::IntArray& connec
       E_Int e2 = node2Elt[i][2];
       E_Int e3 = node2Elt[i][3];
       
-      //if (i == 294)
+      //if (i == 40)
       //{
       //  printf("e0: %d %d\n", connectB2(0,e0), connectB2(1,e0));
       //  printf("e1: %d %d\n", connectB2(0,e1), connectB2(1,e1));
@@ -544,7 +546,7 @@ E_Int K_OCC::OCCSurface::parameters2
     if (start[i] == 1) { Up=-K_CONST::E_MAX_FLOAT; Vp=-K_CONST::E_MAX_FLOAT; Upp=-K_CONST::E_MAX_FLOAT; Vpp=-K_CONST::E_MAX_FLOAT; }
     n = index[i];
     err = parameters2(coord3D.col(n), UVs(0,n), UVs(1,n), n, Up, Vp, Upp, Vpp);
-    if (_isRevol == true && (std::fabs(Up-Upp) > 0.7*(_U1-_U0) || std::fabs(Vp-Vpp) > std::fabs(Vp-Vpp)))
+    if (_isRevol == true && (std::fabs(Up-Upp) > 0.7*(_U1-_U0) || std::fabs(Vp-Vpp) > 0.7*(_V1-_V0)))
     {
 #ifdef DEBUG_CAD_READER
       printf("Warning: %f %f | %f %f Jump detected in %d.\n",Up,Upp,Vp,Vpp,n);

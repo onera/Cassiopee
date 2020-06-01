@@ -303,7 +303,7 @@ E_Int K_OCC::CADviaOCC::__eval_chordal_error(const BRepAdaptor_Curve& C, E_Float
   return 0;
 }
 
-// maille les edges
+// maille les edges (uniforme)
 E_Int K_OCC::CADviaOCC::mesh_edges(K_FLD::FloatArray& coords, std::vector<K_FLD::IntArray>& connectEs)
 {
   E_Int err(0), nb_edges(_edges.Extent());
@@ -336,7 +336,7 @@ E_Int K_OCC::CADviaOCC::mesh_edges(K_FLD::FloatArray& coords, std::vector<K_FLD:
       
 #ifdef DEBUG_CAD_READER
     if (id==41 || id==101)
-      MIO::write("Ei.mesh", coords , connectEs[id], "BAR");
+      MIO::write("Ei.mesh", coords, connectEs[id], "BAR");
 #endif
       
     }
@@ -437,16 +437,20 @@ E_Int K_OCC::CADviaOCC::build_loops
     
 #ifdef DEBUG_CAD_READER
     if (faulty_id==i)
-      MIO::write("connectBc.mesh", coords , connectBs[i], "BAR");
+      MIO::write("connectBc.mesh", coords, connectBs[i], "BAR");
     //std::ostringstream o;
     //o << "clean_loop_" << i << ".mesh";
     //meshIO::write(o.str().c_str(), coords, connectBs[i]);
 #endif
   }
-    
+  
+  // merge tol
+  _merge_tol = ::sqrt(tol2); 
+  _merge_tol = std::max(_merge_tol, 1.e-4*_Lmean);
+  printf("merge tol = %g\n", _merge_tol);
+  
   // Global pass to join the loops.  
   std::vector<E_Int> nids;
-  _merge_tol = ::sqrt(tol2);
   E_Int nb_merges = ::merge(crdA, _merge_tol, nids);
   
   if (!nb_merges) return 0;
@@ -473,23 +477,24 @@ E_Int K_OCC::CADviaOCC::build_loops
   return 0;
 }
 
-//
+// Ressort aussi la tolerance
 E_Int K_OCC::CADviaOCC::__clean(const K_FLD::ArrayAccessor<K_FLD::FloatArray>& crdA, K_FLD::IntArray& connectB, E_Float& tol2)
 { 
   //
   _end_nodes.clear();
   _enodes.clear();
   
+  // calcul la valence
   for (E_Int i=0; i < connectB.cols(); ++i)
   {
     if (_enodes.find(connectB(0,i)) == _enodes.end())
-      _enodes[connectB(0,i)]=1;
+      _enodes[connectB(0,i)] = 1;
     else
-      _enodes[connectB(0,i)]+=1;
+      _enodes[connectB(0,i)] += 1;
     if (_enodes.find(connectB(1,i)) == _enodes.end())
-      _enodes[connectB(1,i)]=1;
+      _enodes[connectB(1,i)] = 1;
     else
-      _enodes[connectB(1,i)]+=1;
+      _enodes[connectB(1,i)] += 1;
   }
   
   for (std::map<E_Int, E_Int>::const_iterator it = _enodes.begin(); it != _enodes.end(); ++it)

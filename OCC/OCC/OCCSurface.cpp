@@ -43,7 +43,7 @@ K_OCC::OCCSurface::OCCSurface(const TopoDS_Face& F, TopTools_IndexedMapOfShape& 
   _isUClosed = _isVClosed = false;
   _isRevol = false;
   ShapeAnalysis::GetFaceUVBounds(F, _U0, _U1, _V0, _V1);
-  printf("bounds U=%f %f - V=%f %f\n",_U0,_U1,_V0,_V1);
+  //printf("bounds U=%f %f - V=%f %f\n",_U0,_U1,_V0,_V1);
   // Analyse par OCC
   ShapeAnalysis_Surface o(_surface);
   _isUClosed = o.IsUClosed();
@@ -464,7 +464,7 @@ void K_OCC::OCCSurface::__get_params_and_type
   
   ShapeAnalysis::GetFaceUVBounds(F, U0, U1, V0, V1);
   
-  printf("bounds U=%f %f - V=%f %f\n",U0,U1,V0,V1);
+  //printf("bounds U=%f %f - V=%f %f\n",U0,U1,V0,V1); 
   
   // min must be a strictly positive epsilon to avoid seam issue for revol surface (and should not hurt for others..)
   U0 = (::fabs(U0) < paramtol ) ? paramtol : U0;
