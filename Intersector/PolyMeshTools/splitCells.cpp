@@ -382,6 +382,9 @@ void* __createGeomSensor<NUGA::ISO_HEX>(E_Int etype, void* hmesh, E_Int sensor_t
   return __createGeomSensor<K_MESH::Polyhedron<0>, NUGA::ISO_HEX>(hmesh, smoothing_type, itermax);
 }
 
+//============================================================================
+/* Creates a Geom Sensor */
+//============================================================================
 PyObject* K_INTERSECTOR::createGeomSensor(PyObject* self, PyObject* args)
 {
   PyObject *hook_sensor;

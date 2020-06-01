@@ -50,6 +50,16 @@ PyObject* K_INTERSECTOR::deleteHMesh(PyObject* self, PyObject* args)
   PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
   return NULL;
 }
+
+//============================================================================
+/* Creates a Geom Sensor */
+//============================================================================
+PyObject* K_INTERSECTOR::createGeomSensor(PyObject* self, PyObject* args)
+{
+  PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
+  return NULL;
+}
+
 //=============================================================================
 /* Agglomerate superfuous faces (overdefined polyhedra) */
 //=============================================================================
@@ -63,6 +73,15 @@ PyObject* K_INTERSECTOR::splitNonStarCells(PyObject* self, PyObject* args)
 /* Agglomerate superfuous faces (overdefined polyhedra) */
 //=============================================================================
 PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
+{
+  PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
+  return NULL;
+}
+
+//=============================================================================
+/* Dynamic cells adaptation */
+//=============================================================================
+PyObject* K_INTERSECTOR::adaptCellsDyn(PyObject* self, PyObject* args)
 {
   PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
   return NULL;
