@@ -250,7 +250,7 @@ struct ngon_t
       bool edges_are_sorted = true;
       snodes.clear();
 
-      for (E_Int j=0; (j<nb_edges-1) && edges_are_sorted; ++j) //assume first edge are sorted
+      for (E_Int j=0; (j<nb_edges-1); ++j) //assume first edge are sorted
       {
         E_Int Ej = pEs[j]-1;
         E_Int Ejp1 = pEs[j+1]-1;
@@ -263,20 +263,41 @@ struct ngon_t
         E_Int ej[] = {pNj[0], pNj[1]};
         E_Int ejp1[] = {pNjp1[0], pNjp1[1]};
 
-        if (ej[0] == ejp1[0] || ej[0] == ejp1[1])
+        if (ej[0] == ejp1[0])
+        {
+          //  ej[1]    ej[0]
+          //    +--------+
+          //             +----------+
+          //           ejp1[0]    ejp1[1]
           std::swap(ej[0], ej[1]);
+        }
         else if (ej[1] == ejp1[1])
+        {
+          //  ej[0]    ej[1]
+          //    +--------+
+          //             +----------+
+          //           ejp1[1]    ejp1[0]
           std::swap(ejp1[0], ejp1[1]);
-        
+        }
+        else if (ej[0] == ejp1[1])
+        {
+          //  ej[1]    ej[0]
+          //    +--------+
+          //             +----------+
+          //           ejp1[1]    ejp1[0]
+          std::swap(ej[0], ej[1]);
+          std::swap(ejp1[0], ejp1[1]);
+        }
         if (j==0)
         {
           snodes.push_back(ej[0]);
-          //std::cout << "s0 : " << pNj[0] << std::endl;
+          // std::cout << "s0 : " << ej[0] << std::endl;
         }
 
         assert (ej[1] == ejp1[0]);
         snodes.push_back(ej[1]);
-        //std::cout << "s1 : " << pNj[1] << std::endl;
+
+        // std::cout << "s1 : " << ej[1] << std::endl;
       }
 
       if (!edges_are_sorted)
