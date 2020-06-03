@@ -376,7 +376,8 @@ E_Int K_OCC::CADviaOCC::__remove_degenerated(K_FLD::IntArray& connectE)
 
 //
 E_Int K_OCC::CADviaOCC::build_loops
-(K_FLD::FloatArray& coords, const std::vector<K_FLD::IntArray>& connectEs, std::vector<K_FLD::IntArray>& connectBs)
+(K_FLD::FloatArray& coords, const std::vector<K_FLD::IntArray>& connectEs, 
+  std::vector<K_FLD::IntArray>& connectBs, E_Float merge_tol)
 {
   E_Int nb_faces(_surfs.Extent());
   
@@ -447,6 +448,7 @@ E_Int K_OCC::CADviaOCC::build_loops
   // merge tol
   _merge_tol = ::sqrt(tol2); 
   _merge_tol = std::max(_merge_tol, 1.e-4*_Lmean);
+  if (merge_tol > 0.) _merge_tol = merge_tol;
   printf("merge tol = %g\n", _merge_tol);
   
   // Global pass to join the loops.  

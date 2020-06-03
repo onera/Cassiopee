@@ -218,11 +218,14 @@ def _expandLayer(o, level=0, corners=0, balancing=0):
         C.setFields([res], z, 'nodes', writeDim=True)
     return None
 
-def _forceMatch(z1, z2, tol=1.):
+def _forceMatch(a1, a2=None, P1=None, P2=None, C1=None, C2=None, tol=-1):
     a1 = C.getFields(Internal.__GridCoordinates__, z1)[0]
-    a2 = C.getFields(Internal.__GridCoordinates__, z2)[0]
-    Generator._forceMatch(a1, a2, tol)
+    if a2 is not None: a2 = C.getFields(Internal.__GridCoordinates__, z2)[0]
+    if c1 is not None: c1 = C.getFields(Internal.__GridCoordinates__, c1)[0]
+    if c2 is not None: c2 = C.getFields(Internal.__GridCoordinates__, c2)[0]
+    Generator._forceMatch(a1, a2, P1, P2, C1, C2, tol)
     C.setFields([a1], z1, 'nodes', writeDim=False)
+    if a2 is not None: C.setFields([a2], z2, 'nodes', writeDim=False)
     return None
 
 def cylinder(Xo, R1, R2, tetas, tetae, H, N):

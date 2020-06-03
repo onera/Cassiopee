@@ -33,7 +33,8 @@ using namespace K_FLD;
 namespace K_OCC
 {
 E_Int CADread2
-(char* file, char* fileFmt, E_Float h, E_Float chordal_err, E_Float gr, char*& varString,
+(char* file, char* fileFmt, E_Float h, E_Float chordal_err, E_Float gr, 
+ E_Float merge_tol, char*& varString,
  vector<FldArrayF*>& unstructField,
  vector<FldArrayI*>& connect,
  vector<E_Int>& eltType,
@@ -46,12 +47,12 @@ E_Int CADread2
 PyObject* K_OCC::convertCAD2Arrays2(PyObject* self, PyObject* args)
 {
   char* fileName; char* fileFmt;
-  E_Float h, chordal_err, gr(-1.);
+  E_Float h, chordal_err, gr(-1.), merge_tol(1.e-6);
 
 #if defined E_DOUBLEREAL
-  if (!PyArg_ParseTuple(args, "ssddd", &fileName, &fileFmt, &h, &chordal_err, &gr)) return NULL;
+  if (!PyArg_ParseTuple(args, "ssdddd", &fileName, &fileFmt, &h, &chordal_err, &gr, &merge_tol)) return NULL;
 #else
-  if (!PyArg_ParseTuple(args, "ssfff", &fileName, &fileFmt, &h, &chordal_err, &gr)) return NULL;
+  if (!PyArg_ParseTuple(args, "ssffff", &fileName, &fileFmt, &h, &chordal_err, &gr, &merge_tol)) return NULL;
 #endif
 
   // Check recognised formats
@@ -71,7 +72,8 @@ PyObject* K_OCC::convertCAD2Arrays2(PyObject* self, PyObject* args)
   printf("Reading %s (%s)...", fileName, fileFmt);
   fflush(stdout);
   
-  E_Int ret = CADread2(fileName, fileFmt, h, chordal_err, gr, varString, ufield, c, et, zoneNames);
+  E_Int ret = CADread2(fileName, fileFmt, h, chordal_err, gr, merge_tol, 
+                       varString, ufield, c, et, zoneNames);
 
   if (ret == 1)
   {
@@ -116,7 +118,8 @@ PyObject* K_OCC::convertCAD2Arrays2(PyObject* self, PyObject* args)
 
 // sub routine
 E_Int K_OCC::CADread2
-(char* file, char* fileFmt, E_Float h, E_Float chordal_err, E_Float gr, char*& varString,
+(char* file, char* fileFmt, E_Float h, E_Float chordal_err, 
+ E_Float gr, E_Float merge_tol, char*& varString,
  vector<FldArrayF*>& unstructField,
  vector<FldArrayI*>& connect,
  vector<E_Int>& eltType,
@@ -154,7 +157,7 @@ E_Int K_OCC::CADread2
   
   // Prepare loops.
   std::vector<K_FLD::IntArray> connectBs;
-  err = reader.build_loops(coords, connectEs, connectBs);
+  err = reader.build_loops(coords, connectEs, connectBs, merge_tol);
   if (err) return err;
   
 #ifdef DEBUG_CAD_READER

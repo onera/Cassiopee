@@ -1693,47 +1693,190 @@ def forceMatch(a1, a2, tol=1.):
     _forceMatch(b1, a2, tol)
     return b1
     
+# find the best of two numpys
+def findBest(diff, bary):
+    ind1 = numpy.argmin(diff)
+    ind2 = numpy.argmin(bary)
+    if ind1 == ind2: return ind1
+    diff2 = numpy.copy(diff)
+    diff[ind1] = 1.e6
+    ind1 = numpy.argmin(diff)
+    if ind1 == ind2: return ind1
+    diff = diff2
+    bary[ind2] = 1.e6
+    ind2 = numpy.argmin(bary)
+    if ind1 == ind2: return ind1
+    return ind1
+    
 # force near boundary (<tol) of a1 to match with a2
 # in place on a1 (TRI surfaces)
 # if P0 and P1: point of ext of a1, used to find the
 # piece of ext that must match
-def _forceMatch(a1, a2, tol=1.):
-    import Post; import Converter; import KCore
-    
-    # exterior of a1
-    ext = Post.exteriorFaces(a1)
-    vol = getVolumeMap(ext)
-    vol = Converter.center2Node(vol)[1]
-    # identifie ext sur a1
-    hook = Converter.createHook(a1, function='nodes')
-    indices = Converter.identifyNodes(hook, ext)
-    
-    # identifie ext2 sur a2
-    ext2 = Post.exteriorFaces(a2)
-    hook = Converter.createHook(a2, function='nodes')        
+
+# Match l'exterieur de a1 sur l'exterieur de a2 si la distance est
+# infierieure a tol
+def _forceMatch1(a1, a2, tol):
+    import Post; import Converter; import KCore; import Geom; import Transform; import Generator
         
-    indices2 = Converter.identifyNodes(hook, ext2)
-    # identifie ext sur ext2
-    hook = Converter.createHook(ext2, function='nodes')
-    nodes,dist = Converter.nearestNodes(hook, ext)
+    # exterior of a1
+    ext1 = Post.exteriorFaces(a1)
     
-    # fonction C (a1,a2,indices,nodes,dist)
+    # exterior of a2
+    ext2 = Post.exteriorFaces(a2)
+
+    # Get pos
     posx1 = KCore.isCoordinateXPresent(a1)
     posy1 = KCore.isCoordinateYPresent(a1)
     posz1 = KCore.isCoordinateZPresent(a1)
     posx2 = KCore.isCoordinateXPresent(a2)
     posy2 = KCore.isCoordinateYPresent(a2)
     posz2 = KCore.isCoordinateZPresent(a2)
-    npts = Converter.getNPts(ext)
+    
+    vol1 = getVolumeMap(ext1)
+    vol1 = Converter.center2Node(vol1)[1]
+    vol2 = getVolumeMap(ext2)
+    vol2 = Converter.center2Node(vol2)[1]
+    
+    # identifie ext1 sur a1
+    hook = Converter.createHook(a1, function='nodes')
+    indices1 = Converter.identifyNodes(hook, ext1)
+    
+    # identifie ext2 sur a2
+    hook = Converter.createHook(a2, function='nodes')        
+    indices2 = Converter.identifyNodes(hook, ext2)
+    
+    # match ext1 sur ext2
+    hook = Converter.createHook(ext2, function='nodes')
+    nodes,dist = Converter.nearestNodes(hook, ext1)
+    npts = Converter.getNPts(ext1)
     for i in range(npts):
-        if dist[i] < tol*0.55*vol[0,i]:
-            ind1 = indices[i]-1
-            ind2 = indices2[nodes[i]-1]-1
-            a1[1][posx1,ind1] = a2[1][posx2,ind2]
-            a1[1][posy1,ind1] = a2[1][posy2,ind2]
-            a1[1][posz1,ind1] = a2[1][posz2,ind2]
-    return None
+        if dist[i] < tol*0.55*vol1[0,i]:
+            ind1 = indices1[i]-1
+            ind2 = nodes[i]-1
+            ext1[1][posx1,i] = ext2[1][posx2,ind2]
+            ext1[1][posy1,i] = ext2[1][posy2,ind2]
+            ext1[1][posz1,i] = ext2[1][posz2,ind2]
+            a1[1][posx1,ind1] = ext2[1][posx2,ind2]
+            a1[1][posy1,ind1] = ext2[1][posy2,ind2]
+            a1[1][posz1,ind1] = ext2[1][posz2,ind2]        
         
+    # match ext2 sur ext1
+    hook = Converter.createHook(ext1, function='nodes')
+    nodes,dist = Converter.nearestNodes(hook, ext2)
+    npts = Converter.getNPts(ext2)
+    for i in range(npts):
+        if dist[i] < tol*0.55*vol2[0,i]:
+            ind1 = nodes[i]-1
+            ind2 = indices2[i]-1
+            a2[1][posx2,ind2] = ext1[1][posx1,ind1]
+            a2[1][posy2,ind2] = ext1[1][posy1,ind1]
+            a2[1][posz2,ind2] = ext1[1][posz1,ind1]        
+    return None
+
+# Force match sur la bande delimitee par P1-P2
+def _forceMatch2(a1, a2, P1, P2):
+    import Post; import Converter; import KCore; import Geom; import Transform; import Generator
+    
+    # exterior of a1
+    ext1 = Post.exteriorFaces(a1)
+    
+    # exterior of a2
+    ext2 = Post.exteriorFaces(a2)
+    
+    # Find split index of P1 and P2
+    hook = Converter.createHook(ext1, function='nodes')
+    nodes,dist = Converter.nearestNodes(hook, Geom.point(P1))
+    ind1s1 = nodes[0]-1
+    nodes,dist = Converter.nearestNodes(hook, Geom.point(P2))    
+    ind2s1 = nodes[0]-1
+    hook = Converter.createHook(ext2, function='nodes')
+    nodes,dist = Converter.nearestNodes(hook, Geom.point(P1))    
+    ind1s2 = nodes[0]-1
+    nodes,dist = Converter.nearestNodes(hook, Geom.point(P2))    
+    ind2s2 = nodes[0]-1
+    ext1 = Transform.splitBAR(ext1, ind1s1, ind2s1)
+    ext2 = Transform.splitBAR(ext2, ind1s2, ind2s2)
+    Converter.convertArrays2File(ext1+ext2, 'exts.plt')
+    # on garde ceux qui ont a peu pres la meme longeur
+    # et un barycentre semblable
+    n1 = len(ext1); n2 = len(ext2)
+    diff = numpy.empty(n1+n2, dtype=numpy.float64)
+    bary = numpy.empty(n1+n2, dtype=numpy.float64)
+    for i, e1 in enumerate(ext1):
+        di = Geom.getLength(e1)
+        bi = Generator.barycenter(e1)
+        for j, e2 in enumerate(ext2):
+            dj = Geom.getLength(e2)
+            bj = Generator.barycenter(e2)
+            diff[i+n1*j] = abs(di-dj)
+            bary[i+n1*j] = (bi[0]-bj[0])**2+(bi[1]-bj[1])**2+(bi[2]-bj[2])**2            
+    
+    ind = findBest(diff, bary)
+    j = ind//n1; i = ind-j*n1
+    ext1 = ext1[i]; ext2 = ext2[j]
+    Converter.convertArrays2File([ext1,ext2], 'exts.plt')
+    _forceMatch3(a1, a2, ext1, ext2)    
+    return None
+
+# force match avec deux courbes en entree
+def _forceMatch3(a1, a2, ext1, ext2):
+    import Post; import Converter; import KCore; import Geom; import Transform; import Generator
+                
+    # Get pos
+    posx1 = KCore.isCoordinateXPresent(a1)
+    posy1 = KCore.isCoordinateYPresent(a1)
+    posz1 = KCore.isCoordinateZPresent(a1)
+    posx2 = KCore.isCoordinateXPresent(a2)
+    posy2 = KCore.isCoordinateYPresent(a2)
+    posz2 = KCore.isCoordinateZPresent(a2)
+    
+    # identifie ext1 sur a1
+    hook = Converter.createHook(a1, function='nodes')
+    indices1 = Converter.identifyNodes(hook, ext1)
+    
+    # identifie ext2 sur a2
+    hook = Converter.createHook(a2, function='nodes')        
+    indices2 = Converter.identifyNodes(hook, ext2)
+    
+    # match ext1 sur ext2
+    hook = Converter.createHook(ext2, function='nodes')
+    nodes,dist = Converter.nearestNodes(hook, ext1)
+        
+    npts = Converter.getNPts(ext1)
+    ext1[1][posx1,:] = ext2[1][posx2,nodes[:]-1]
+    ext1[1][posy1,:] = ext2[1][posy2,nodes[:]-1]
+    ext1[1][posz1,:] = ext2[1][posz2,nodes[:]-1]
+    a1[1][posx1,indices[:]-1] = ext2[1][posx2,nodes[:]-1]
+    a1[1][posy1,indices[:]-1] = ext2[1][posy2,nodes[:]-1]
+    a1[1][posz1,indices[:]-1] = ext2[1][posz2,nodes[:]-1]    
+        
+    # match ext2 sur ext1
+    hook = Converter.createHook(ext1, function='nodes')
+    nodes,dist = Converter.nearestNodes(hook, ext2)
+    
+    npts = Converter.getNPts(ext2)
+    a2[1][posx2,indices2[:]-1] = ext1[1][posx1,nodes[:]-1]
+    a2[1][posy2,indices2[:]-1] = ext1[1][posy1,nodes[:]-1]
+    a2[1][posz2,indices2[:]-1] = ext1[1][posz1,nodes[:]-1]
+        
+    return None
+
+# Pour contour interne a a
+def _forceMatch4(a, ext):
+    
+    return None
+
+def _forceMatch(a1, a2=None, P1=None, P2=None, C1=None, C2=None, tol=-1):
+    if P1 is not None and P2 is not None:
+        _forceMatch2(a1, a2, P1, P2)
+    elif C1 is not None and C2 is not None:
+        _forceMatch3(a1, a2, C1, C2)
+    elif a2 is None and C1 is not None:
+        _forceMatch4(a1, C1)
+    else: 
+        _forceMatch1(a1, a2, tol)
+    return None
+    
 # addnormalLayers pour une liste d'arrays structures
 def addNormalLayersStruct__(surfaces, distrib, check=0, niterType=0, niter=0, niterK=[], 
                             smoothType=0, eps=0.4, nitLocal=3, 
