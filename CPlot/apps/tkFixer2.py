@@ -10,6 +10,7 @@ import Converter.Internal as Internal
 import Generator.PyTree as G
 import Transform.PyTree as T
 import Intersector.PyTree as XOR
+import CPlot.iconics as iconics
 
 # local widgets list
 WIDGETS = {}; VARS = []
@@ -200,10 +201,10 @@ def forceMatch():
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     
-    nzs = CPlot.getSelectedZones()
-    if nzs == []:
-        CTK.TXT.insert('START', 'Selection is empty.\n')
-        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+    #nzs = CPlot.getSelectedZones()
+    #if nzs == []:
+    #    CTK.TXT.insert('START', 'Selection is empty.\n')
+    #    CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
     tol = CTK.varsFromWidget(VARS[3].get(), type=1)
     if len(tol) != 1:
@@ -211,23 +212,80 @@ def forceMatch():
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     tol = tol[0]
 
-    if len(nzs) != 2: 
-        CTK.TXT.insert('START', 'Need two patches.\n') 
-        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+
+    #P1 = CTK.varsFromWidget(VARS[4].get(), type=1)
+    #P2 = CTK.varsFromWidget(VARS[5].get(), type=1)
+
+    #if len(nzs) != 2: 
+    #    CTK.TXT.insert('START', 'Need two patches.\n') 
+    #    CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
     CTK.setCursor(2, WIDGETS['forceMatch'])
     CTK.saveTree()
 
-    nz = nzs[0]
-    nob1 = CTK.Nb[nz]+1
-    noz1 = CTK.Nz[nz]
-    z1 = CTK.t[2][nob1][2][noz1]
-    nz = nzs[1]
-    nob2 = CTK.Nb[nz]+1
-    noz2 = CTK.Nz[nz]
-    z2 = CTK.t[2][nob2][2][noz2]
-
-    G._forceMatch(z1, z2, tol)
+    #nz = nzs[0]
+    #nob1 = CTK.Nb[nz]+1
+    #noz1 = CTK.Nz[nz]
+    #z1 = CTK.t[2][nob1][2][noz1]
+    #nz = nzs[1]
+    #nob2 = CTK.Nb[nz]+1
+    #noz2 = CTK.Nz[nz]
+    #z2 = CTK.t[2][nob2][2][noz2]
+    
+    z1 = []
+    name = VARS[6].get()
+    names = name.split(';')
+    for v in names:
+        v = v.lstrip(); v = v.rstrip()
+        sname = v.split('/', 1)
+        base = Internal.getNodeFromName1(CTK.t, sname[0])
+        if base is not None:
+            nodes = Internal.getNodesFromType1(base, 'Zone_t')
+            for z in nodes:
+                if z[0] == sname[1]: z1.append(z)
+    z1 = z1[0]
+    
+    c1 = []
+    name = VARS[7].get()
+    names = name.split(';')
+    for v in names:
+        v = v.lstrip(); v = v.rstrip()
+        sname = v.split('/', 1)
+        base = Internal.getNodeFromName1(CTK.t, sname[0])
+        if base is not None:
+            nodes = Internal.getNodesFromType1(base, 'Zone_t')
+            for z in nodes:
+                if z[0] == sname[1]: c1.append(z)
+    c1 = T.join(c1)
+    
+    z2 = []
+    name = VARS[8].get()
+    names = name.split(';')
+    for v in names:
+        v = v.lstrip(); v = v.rstrip()
+        sname = v.split('/', 1)
+        base = Internal.getNodeFromName1(CTK.t, sname[0])
+        if base is not None:
+            nodes = Internal.getNodesFromType1(base, 'Zone_t')
+            for z in nodes:
+                if z[0] == sname[1]: z2.append(z)
+    z2 = z2[0]
+    
+    c2 = []
+    name = VARS[9].get()
+    names = name.split(';')
+    for v in names:
+        v = v.lstrip(); v = v.rstrip()
+        sname = v.split('/', 1)
+        base = Internal.getNodeFromName1(CTK.t, sname[0])
+        if base is not None:
+            nodes = Internal.getNodesFromType1(base, 'Zone_t')
+            for z in nodes:
+                if z[0] == sname[1]: c2.append(z)
+    c2 = T.join(c2)
+    
+    if tol > 0: G._forceMatch(z1, z2, tol=tol)
+    else: G._forceMatch(z1, z2, C1=c1, C2=c2)
     
     # Try merge
     z = T.join(z1, z2)
@@ -252,6 +310,36 @@ def forceMatch():
     CTK.setCursor(0, WIDGETS['forceMatch'])
     
 #==============================================================================
+def setPointCoordinates(V):
+    if CTK.t == []: return
+    nzs = CPlot.getSelectedZones()
+    if nzs == []:
+        CTK.TXT.insert('START', 'Selection is empty.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+    point = CPlot.getActivePoint()
+    if point != []:
+        V.set(str(point[0])+';'+str(point[1])+';'+str(point[2]))
+
+def setSel(V):
+    if CTK.t == []: return
+    if CTK.__MAINTREE__ <= 0:
+        CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+    nzs = CPlot.getSelectedZones()
+    if nzs == []:
+        CTK.TXT.insert('START', 'Selection is empty.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+
+    selected = ''
+    for nz in nzs:
+        nob = CTK.Nb[nz]+1
+        noz = CTK.Nz[nz]
+        z = CTK.t[2][nob][2][noz]
+        selected += CTK.t[2][nob][0]+'/'+z[0]+';'
+    selected = selected[0:-1]
+    V.set(selected)
+    
+#==============================================================================
 # Create app widgets
 #==============================================================================
 def createApp(win):
@@ -263,8 +351,9 @@ def createApp(win):
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=1)
-    Frame.columnconfigure(1, weight=2)
-    Frame.columnconfigure(2, weight=0)
+    Frame.columnconfigure(1, weight=0)
+    Frame.columnconfigure(2, weight=1)
+    Frame.columnconfigure(3, weight=0)
     WIDGETS['frame'] = Frame
     
     # - Frame menu -
@@ -281,47 +370,85 @@ def createApp(win):
     # -2- checkbox if split in conformization
     V = TK.StringVar(win); V.set('1'); VARS.append(V)
     # -3- tolerance for forcematch
-    V = TK.StringVar(win); V.set('1.'); VARS.append(V)
+    V = TK.StringVar(win); V.set('-1.'); VARS.append(V)
+    # -4- point 1 coordinates -
+    V = TK.StringVar(win); V.set('0;0;0'); VARS.append(V)
+    # -5- point 2 coordinates -
+    V = TK.StringVar(win); V.set('0;0;0'); VARS.append(V)
+    # -6- Bloc 1 -
+    V = TK.StringVar(win); V.set(''); VARS.append(V)
+    # -7- Courbe 1 -
+    V = TK.StringVar(win); V.set(''); VARS.append(V)
+    # -8- Bloc 2 -
+    V = TK.StringVar(win); V.set(''); VARS.append(V)
+    # -9- Courbe 2 -
+    V = TK.StringVar(win); V.set(''); VARS.append(V)
 
     # - Slider -
     B = TTK.Scale(Frame, from_=-50, to=50, orient=TK.HORIZONTAL, showvalue=0,
                   borderwidth=1, value=0)
     WIDGETS['bump'] = B
-    B.grid(row=0, column=1, columnspan=2, sticky=TK.EW)
+    B.grid(row=0, column=2, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Bump.')
     
     # - Fix gap in contour -
     B = TTK.Button(Frame, text="Fix gap in contour", command=fixGap)
-    B.grid(row=0, column=0, columnspan=1, sticky=TK.EW)
+    B.grid(row=0, column=0, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Fix gap in a contour.')
 
     # - Fix gaps in a set of patches (with overlap) -
     B = TTK.Button(Frame, text="Fix gaps in patches", command=fixGaps)
-    B.grid(row=1, sticky=TK.EW)
+    B.grid(row=1, column=0, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Fix gaps in patches (even with overlap).')
     B = TTK.OptionMenu(Frame, VARS[0], 'Nodes', 'Centers', 'Unknown', 'Slice')
-    B.grid(row=1, column=1, columnspan=2, sticky=TK.EW)
+    B.grid(row=1, column=2, columnspan=2, sticky=TK.EW)
     
     # - conformUnstr -
     B = TTK.Button(Frame, text="conformUnstr", command=conformUnstr)
     WIDGETS['conformUnstr'] = B
-    B.grid(row=2, column=0, columnspan=1, sticky=TK.EW)
+    B.grid(row=2, column=0, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Conformize a TRI surface.')
     B = TTK.Entry(Frame, textvariable=VARS[1], background='White', width=5)
-    B.grid(row=2, column=1, sticky=TK.EW)
+    B.grid(row=2, column=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Tolerance used in conformUnstr operations.\n0. means automatic setting.')
     B = TTK.Checkbutton(Frame, text='', variable=VARS[2])
-    B.grid(row=2, column=2, sticky=TK.EW)
+    B.grid(row=2, column=3, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Split while conformizing.')
     
     # - forceMatch -
-    #B = TTK.Button(Frame, text="forceMatch", command=forceMatch)
-    #WIDGETS['forceMatch'] = B
-    #B.grid(row=3, column=0, columnspan=1, sticky=TK.EW)
-    #BB = CTK.infoBulle(parent=B, text='Force two patch to match.')
-    #B = TTK.Entry(Frame, textvariable=VARS[3], background='White', width=5)
-    #B.grid(row=3, column=1, columnspan=2, sticky=TK.EW)
-    #BB = CTK.infoBulle(parent=B, text='Tolerance used in forceMatch operations.')    
+    B = TTK.Entry(Frame, textvariable=VARS[6], background='White', width=15)
+    B.grid(row=3, column=0, columnspan=1, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Source1.')
+    B = TTK.Button(Frame, image=iconics.PHOTO[8],
+                   command=lambda x=VARS[6] : setSel(x), padx=0)
+    B.grid(row=3, column=1, sticky=TK.EW)
+    B = TTK.Entry(Frame, textvariable=VARS[7], background='White', width=15)
+    B.grid(row=3, column=2, columnspan=1, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Courbe1.')
+    B = TTK.Button(Frame, image=iconics.PHOTO[8],
+                   command=lambda x=VARS[7] : setSel(x), padx=0)
+    B.grid(row=3, column=3, sticky=TK.EW)
+    
+    B = TTK.Entry(Frame, textvariable=VARS[8], background='White', width=15)
+    B.grid(row=4, column=0, columnspan=1, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Source1.')
+    B = TTK.Button(Frame, image=iconics.PHOTO[8],
+                   command=lambda x=VARS[8] : setSel(x), padx=0)
+    B.grid(row=4, column=1, sticky=TK.EW)
+    B = TTK.Entry(Frame, textvariable=VARS[9], background='White', width=15)
+    B.grid(row=4, column=2, columnspan=1, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Courbe1.')
+    B = TTK.Button(Frame, image=iconics.PHOTO[8],
+                   command=lambda x=VARS[9] : setSel(x), padx=0)
+    B.grid(row=4, column=3, sticky=TK.EW)
+    
+    B = TTK.Button(Frame, text="forceMatch", command=forceMatch)
+    WIDGETS['forceMatch'] = B
+    B.grid(row=5, column=0, columnspan=2, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Force two patch to match.')
+    B = TTK.Entry(Frame, textvariable=VARS[3], background='White', width=5)
+    B.grid(row=5, column=2, columnspan=2, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Tolerance used in forceMatch operations.')    
 
 #==============================================================================
 # Called to display widgets

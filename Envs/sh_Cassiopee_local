@@ -356,6 +356,7 @@ elif [ "$MAC" = "spiro" ]; then
     # Nbre de threads
     export OMP_NUM_THREADS=24
     # modules 
+    . /usr/local/Modules/init/bash
     module unload $(module -t list 2>&1 | grep -i intel)
     #module load CFD/4.0-intel-17.impi
     module load intel/17.0.4
@@ -382,7 +383,6 @@ elif [ "$MAC" = "spiro_python2" ]; then
     module load intel/17.0.4
     module load impi/17
     module load hdf5/1.8.17-intel-17
-    
     # Chemin de l'executable python
     export PATH=$PATH:$CASSIOPEE/Dist/bin
     export PATH=$CASSIOPEE/Dist/bin/$ELSAPROD:$CASSIOPEE/Dist/bin/$ELSAPROD/bin:$PATH
