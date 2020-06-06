@@ -429,14 +429,8 @@ bool get_colliding<NUGA::aPolygon, edge_mesh_t>
  
   bool hasX(false);
 
-  // reduce mask to candidates : fixme : to simplify
-  edge_mesh_t lmask = mask_bit;
-
-  std::vector<bool> keep(lmask.ncells(), false);
-  for (size_t u = 0; u < cands.size(); ++u)
-    keep[cands[u] - idx_start] = true;
-  
-  lmask.compress(keep);
+  // reduce mask to candidates
+  edge_mesh_t lmask(mask_bit, cands, idx_start);
 
   double normal1[3];
   ae1.normal<3>(normal1);
@@ -460,8 +454,7 @@ bool get_colliding<NUGA::aPolygon, edge_mesh_t>
   }
 
   // discard those that are too far
-  keep.clear();
-  keep.resize(cands.size(), true);
+  std::vector<bool> keep(cands.size(), true);
 
   for (int i = 0; (i < lmask.cnt.cols()); ++i)
   {

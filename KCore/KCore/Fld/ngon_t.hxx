@@ -37,12 +37,12 @@
 #include "Connect/MeshTool.h"
 #include "Nuga/GapFixer/FittingBox.h"
 #include "Nuga/include/macros.h"
-
 #ifdef DEBUG_NGON_T
 #include "IO/io.h"
 #include "Nuga/Boolean/NGON_debug.h"
 #include "Nuga/Boolean/TRI_debug.h"
 #define NGDBG NGON_debug<K_FLD::FloatArray, Connectivity_t>
+#include "Nuga/include/medit.hxx"
 #endif
 #ifdef FLAG_STEP
 #include "chrono.h"
@@ -1105,8 +1105,14 @@ struct ngon_t
       colors.resize(connectT3.getSize(), i);
     }
     
-    if (err)
-      std::cout << "triangulate_pgs error at PG : " << i-1 << " (" << PGs.stride(i-1) << " nodes)" << std::endl; 
+    if (err) { //i-1 because have been incremented when exiting the loop
+      std::cout << "triangulate_pgs error at PG : " << i - 1 << " (" << PGs.stride(i - 1) << " nodes)" << std::endl;
+#ifdef DEBUG_TRIANGULATOR
+      std::ostringstream o;
+      o << "./pg_" << i - 1 << ".mesh";
+      medith::write(o.str().c_str(), coord, PGs.get_facets_ptr(i - 1), PGs.stride(i - 1), 1);
+#endif
+    }
 
     return err;
   }
@@ -1130,28 +1136,27 @@ struct ngon_t
     PGs.change_indices(newIDs); 
   }
   
-  ///fixme
-  template <typename Coordinate_t>
-  static void compress_to_used_nodes (ngon_unit& PGs, Coordinate_t& coord)
+  ///
+  static K_FLD::FloatArray compress_to_used_nodes (ngon_unit& PGs, const K_FLD::FloatArray& coord, std::vector<E_Int>& nids)
   {
     Vector_t<E_Int> unic_nodes;
     PGs.unique_indices(unic_nodes);
+
+    K_CONNECT::IdTool::shift(unic_nodes, -1);
+
+    K_FLD::FloatArray lcrd = K_CONNECT::IdTool::compress_(coord, unic_nodes, 0/*idx start*/);
      
-    Vector_t<E_Int> nids(coord.getSize(), E_IDX_NONE), nidscpy;
-  
-    size_t sz(unic_nodes.size());
-    for (size_t i = 0; i < sz; ++i) nids[unic_nodes[i]-1]=unic_nodes[i]-1; // indices start at 1.
-    
-    nidscpy=nids;
-    K_CONNECT::valid pred(nidscpy);
-    
-    E_Int nb_removed = K_CONNECT::IdTool::compress(nids, pred);
-    if (nb_removed == 0)
-      return;
-    
-    nb_removed = K_CONNECT::IdTool::compress(coord, pred);
+    if (lcrd.cols() == coord.cols())
+    {
+      K_CONNECT::IdTool::init_inc(nids, coord.cols());
+      return coord;
+    }
+
+    K_CONNECT::IdTool::reverse_indirection(unic_nodes, nids);
+    nids.resize(coord.cols(), E_IDX_NONE);
   
     PGs.change_indices(nids); 
+    return lcrd;
   }
    
   ///
@@ -2615,7 +2620,7 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
       for (size_t k = 0; k < duphnids.size(); ++k)
       {
         if (duphnids[k] != (E_Int)k)
-          toremove.push_back(duphnids[k]);
+          toremove.push_back(k);
       }
     }
 

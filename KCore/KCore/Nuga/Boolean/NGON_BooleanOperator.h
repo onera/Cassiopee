@@ -25,6 +25,7 @@
 //#define DEBUG_W_PYTHON_LAYER
 //#define DEBUG_MESHER
 //#define DEBUG_BOOLEAN
+//#define FLAG_STEP
 
 #include "Fld/ngon_t.hxx"
 #include "Search/BbTree.h"
@@ -483,7 +484,7 @@ private:
 		  for (size_t i = 0; i < ngout.PHs.size(); ++i)
 		  {
 			//std::cout << i << std::endl;
-            bool ok = ngon_type::is_closed(ngout, i, free_edges);
+            bool ok = K_MESH::Polyhedron<0>::is_closed(ngout.PGs, ngout.PHs.get_facets_ptr(i), ngout.PHs.stride(i), free_edges);
 #ifndef DEBUG_BOOLEAN
         assert(ok);
 #else
@@ -2463,6 +2464,10 @@ NGON_BOOLEAN_CLASS::__compute()
   chrono c;
   c.start();
 #endif
+
+#ifdef FLAG_STEP
+  std::cout << "NGON Boolean : aggregate the soft bits : " << c.elapsed() << std::endl;
+#endif
   
   // Aggregate the soft bits
   _ngXs.append(_ng1);//tocheck : append to ngX to avoid to have to modify _zones. but might be more efficient to append the smaller to the bigger..
@@ -2482,19 +2487,10 @@ NGON_BOOLEAN_CLASS::__compute()
 #ifdef DEBUG_BOOLEAN
   medith::write("ngXs1.mesh", _coord, _ngXs);
   medith::write("ngXh1.mesh", _coord, _ngXh);
-#endif
-
-#ifdef FLAG_STEP
-  std::cout << "NGON Boolean : aggregate the soft bits : " << c.elapsed() << std::endl;
-#endif
-
-#ifdef DEBUG_BOOLEAN
-  medith::write("ngXsG.mesh", _coord, _ngXs);
-  medith::write("ngXhG.mesh", _coord, _ngXh);
   medith::write("ngXsG_ex.mesh", _coord, _ngXs, INITIAL_SKIN);
   std::vector<E_Int> toprocess;
   for (size_t i=0; i < _ngXs.PHs.size(); ++i) if(_ngXs.PHs._type[i] != INITIAL_SKIN)toprocess.push_back(i);
-  medith::write("ngXsGin.mesh", _coord, _ngXs, toprocess);
+  medith::write("ngXsGin.mesh", _coord, _ngXs, &toprocess);
 #endif
   
   return OK;
@@ -4497,7 +4493,10 @@ E_Int NGON_BOOLEAN_CLASS::__classify_skin_PHT3s
 
   if (_F2E.cols())
   {
-    /*E_Int err = */__set_PH_history(PHT3s, is_skin, shift, _nb_pgs1, _F2E, _anc_PH_for_PHT3s[mesh_oper], true/*soft*/, connectT3o);
+#ifdef DEBUG_BOOLEAN
+    E_Int err = 
+#endif
+      __set_PH_history(PHT3s, is_skin, shift, _nb_pgs1, _F2E, _anc_PH_for_PHT3s[mesh_oper], true/*soft*/, connectT3o);
     
 #ifdef DEBUG_BOOLEAN
     if (err) 
@@ -4676,7 +4675,7 @@ E_Int NGON_BOOLEAN_CLASS::__classify_soft()
     std::ostringstream o;
     o << "zc_" << c << ".mesh";
     
-    medith::write(o.str().c_str(), _coord, _ngXs, toprocess);
+    medith::write(o.str().c_str(), _coord, _ngXs, &toprocess);
   }
 }
 #endif
@@ -4750,7 +4749,7 @@ E_Int NGON_BOOLEAN_CLASS::__classify_soft()
   }
   
 #ifdef DEBUG_BOOLEAN
-  if (!toprocess.empty()) medith::write("wrong_col.mesh", _coord, _ngXs, toprocess);
+  if (!toprocess.empty()) medith::write("wrong_col.mesh", _coord, _ngXs, &toprocess);
 #endif
   
   // Now update missing zones (Z_NONE)

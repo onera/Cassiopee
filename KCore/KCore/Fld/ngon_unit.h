@@ -189,7 +189,7 @@ class ngon_unit
     ///
     void unique_indices(std::vector<E_Int>& indices) const;
     ///
-    void extract (const Vector_t<E_Int>& indices, ngon_unit& ng_out, Vector_t<E_Int>& oldIds) const;
+    void extract (const Vector_t<E_Int>& indices, ngon_unit& ng_out, Vector_t<E_Int>& oldIds, E_Int idx_start=0) const;
     void extract (const E_Int* ptr, E_Int n, ngon_unit& ng_out, Vector_t<E_Int>& oids) const;
     ///
     void extract_of_type (E_Int FLAG, ngon_unit& ng_out, Vector_t<E_Int>& oldIds) const;

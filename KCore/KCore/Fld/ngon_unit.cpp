@@ -403,7 +403,7 @@ ngon_unit::reset_facets()
 
 ///
 void ngon_unit::extract
-(const Vector_t<E_Int>& indices, ngon_unit& ng_out, Vector_t<E_Int>& oldIds) const
+(const Vector_t<E_Int>& indices, ngon_unit& ng_out, Vector_t<E_Int>& oldIds, E_Int idx_start) const
 {
   // 0-based indices
   ng_out.clear();
@@ -413,9 +413,11 @@ void ngon_unit::extract
   
   for (size_t i = 0; i < indices.size(); ++i)
   {
-    ng_out.__add(*this, indices[i]);
+    ng_out.__add(*this, indices[i] - idx_start);
     oldIds.push_back(indices[i]);
   }
+
+  ng_out.updateFacets();
 }
 
 ///
