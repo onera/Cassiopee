@@ -1905,8 +1905,7 @@ def splitBAR(array, N, N2=-1):
     Usage: splitBAR(array, N)"""
     a = transform.splitBAR(array, N, N2)
     A = splitConnexity(a)
-    if len(A) == 1: return a
-    else: return A
+    return A
 
 def splitTBranches(array, tol=1.e-13):
     """Split a BAR into a set of BARS at vertices where T branches exist.

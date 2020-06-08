@@ -333,7 +333,7 @@ elif [ "$MAC" = "cobalt" ]; then
     export LD_LIBRARY_PATHL=$CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
     export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages   
 
-elif [ "$MAC" = "xdaap" ] ; then
+elif [ "$MAC" = "xdaap" ]; then
 #----------------------------- xdaap -----------------------------------------
     export ELSAPROD=xdaap_r8
     . /etc/profile.d/modules-dri.sh

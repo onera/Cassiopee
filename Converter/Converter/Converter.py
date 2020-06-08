@@ -561,7 +561,9 @@ def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
     elif format == 'fmt_iges' or format == 'fmt_step':
         try: import OCC
         except: raise ImportError("convertFile2Arrays: CAD readers requires OCC module.")
-        a = OCC.occ.convertCAD2Arrays0(fileName, format, "None", "None", deflection)
+        
+        a = OCC.convertCAD2Arrays(fileName, format='fmt_iges', h=0., chordal_err=deflection, 
+                                  growth_ratio=0., merge_tol=-1, algo=0)
         if zoneNames is not None: 
             for c in range(len(a)): zoneNames.append('zone%d'%c)
         return a

@@ -86,7 +86,11 @@ def remesh():
             CTK.TXT.insert('START', 'Invalid hmax.\n')
             CTK.TXT.insert('START', 'Error: ', 'Error')
     hmax = hmax[0]
-
+    
+    # si hmax est negatif, on fait de l'optimisation du maillage
+    if hmax < 0: optim = 1
+    else: optim = 0
+    
     fixedConstraints = []
     # Exterior constraints
     if VARS[6].get() == "1":
@@ -130,7 +134,7 @@ def remesh():
         noz = CTK.Nz[nz]
         z = CTK.t[2][nob][2][noz]
         zp = G.mmgs(z, ridgeAngle=ridgeAngle, hausd=hausd, 
-                    hmin=hmin, hmax=hmax, 
+                    hmin=hmin, hmax=hmax, optim=optim, 
                     fixedConstraints=fixedConstraints,
                     sizeConstraints=sizeConstraints)
         CTK.replace(CTK.t, nob, noz, zp)

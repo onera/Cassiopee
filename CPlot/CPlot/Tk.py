@@ -1394,7 +1394,7 @@ def minimal(title, show=True):
     file.add_separator()
     file.add_command(label='Save', accelerator='Ctrl+s', command=quickSaveFile)
     file.add_command(label='Save as...', command=saveFile)
-    file.add_command(label='Save sel. zones', command=saveSelFile)
+    file.add_command(label='Save selected zones', command=saveSelFile)
     file.add_separator()
     file.add_command(label='Quit', command=Quit)
 

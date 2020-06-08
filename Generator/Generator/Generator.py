@@ -1842,19 +1842,16 @@ def _forceMatch3(a1, a2, ext1, ext2):
     hook = Converter.createHook(ext2, function='nodes')
     nodes,dist = Converter.nearestNodes(hook, ext1)
         
-    npts = Converter.getNPts(ext1)
     ext1[1][posx1,:] = ext2[1][posx2,nodes[:]-1]
     ext1[1][posy1,:] = ext2[1][posy2,nodes[:]-1]
     ext1[1][posz1,:] = ext2[1][posz2,nodes[:]-1]
-    a1[1][posx1,indices[:]-1] = ext2[1][posx2,nodes[:]-1]
-    a1[1][posy1,indices[:]-1] = ext2[1][posy2,nodes[:]-1]
-    a1[1][posz1,indices[:]-1] = ext2[1][posz2,nodes[:]-1]    
-        
-    # match ext2 sur ext1
+    a1[1][posx1,indices1[:]-1] = ext2[1][posx2,nodes[:]-1]
+    a1[1][posy1,indices1[:]-1] = ext2[1][posy2,nodes[:]-1]
+    a1[1][posz1,indices1[:]-1] = ext2[1][posz2,nodes[:]-1]
+    
+    # match ext2 sur new ext1
     hook = Converter.createHook(ext1, function='nodes')
     nodes,dist = Converter.nearestNodes(hook, ext2)
-    
-    npts = Converter.getNPts(ext2)
     a2[1][posx2,indices2[:]-1] = ext1[1][posx1,nodes[:]-1]
     a2[1][posy2,indices2[:]-1] = ext1[1][posy1,nodes[:]-1]
     a2[1][posz2,indices2[:]-1] = ext1[1][posz1,nodes[:]-1]
@@ -1862,18 +1859,18 @@ def _forceMatch3(a1, a2, ext1, ext2):
     return None
 
 # Pour contour interne a a
-def _forceMatch4(a, ext):
-    
+def _forceMatch4(a, ext1, ext2):
+    _forceMatch3(a, a, ext1, ext2)
     return None
 
 def _forceMatch(a1, a2=None, P1=None, P2=None, C1=None, C2=None, tol=-1):
-    if P1 is not None and P2 is not None:
+    if a2 is not None and P1 is not None and P2 is not None:
         _forceMatch2(a1, a2, P1, P2)
-    elif C1 is not None and C2 is not None:
+    elif a2 is not None and C1 is not None and C2 is not None:
         _forceMatch3(a1, a2, C1, C2)
-    elif a2 is None and C1 is not None:
-        _forceMatch4(a1, C1)
-    else: 
+    elif a2 is None and C1 is not None and C2 is not None:
+        _forceMatch4(a1, C1, C2)
+    elif a2 is not None: 
         _forceMatch1(a1, a2, tol)
     return None
     
