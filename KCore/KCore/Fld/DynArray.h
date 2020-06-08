@@ -588,7 +588,10 @@ DynArray<T>::pushBack(const self_type& a){
       
       E_Int required_sz = rhs._cols*rhs._rows;
       if (required_sz == 0)
+      {
+        //this->clear();
         return *this;
+      }
       
       if (_allocated_sz < required_sz)
       {

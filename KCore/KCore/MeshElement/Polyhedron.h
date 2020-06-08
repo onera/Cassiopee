@@ -76,7 +76,7 @@ public:
   
   ~Polyhedron(){ if (_triangles != nullptr) delete [] _triangles;}
   
-  Polyhedron(const Polyhedron& rhs){ *this = rhs; }
+  Polyhedron(const Polyhedron& rhs):_triangles(nullptr) { *this = rhs; }
   
   Polyhedron& operator=(const Polyhedron& rhs){
     _pgs = rhs._pgs;
@@ -84,6 +84,8 @@ public:
     _nb_faces = rhs._nb_faces;
     if (_triangles != nullptr) delete _triangles;
     _triangles = rhs._triangles;
+
+    return *this;
   }
   
   E_Int nb_faces() const { return _nb_faces;}
@@ -1488,6 +1490,8 @@ public:
   E_Int triangulate
     (const TriangulatorType& dt, const crd_t& crdi)
   {
+    if (_triangles != nullptr) delete _triangles;
+
     _pgs->updateFacets();
 
     E_Int ntris = nb_tris();

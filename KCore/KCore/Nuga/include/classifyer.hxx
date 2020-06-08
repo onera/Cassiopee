@@ -289,7 +289,7 @@ namespace NUGA
 #endif
     // now we have reduced the meshes to the useful part, create & add localizers
     for (size_t m = 0; m < mask_bits.size(); ++m)
-      mask_bits[m]->build_localizer();
+      if (mask_bits[m] != nullptr) mask_bits[m]->build_localizer();
   }
 
   ///
@@ -360,6 +360,11 @@ namespace NUGA
       // first coarse filtering based on brute force : localizers are not available yet
       // because we want to build them on a reduced set
       NUGA::selector::reduce_to_box(*mask_bits[m], z_box, true/*brute force*/);
+
+      if (mask_bits[m]->ncells() == 0)
+      {
+        delete mask_bits[m]; mask_bits[m] = nullptr;
+      }
     }
   }
 
@@ -491,6 +496,8 @@ namespace NUGA
       is_x1.clear();
       is_x2.clear();
 
+      if (mask_bits[m] == nullptr) continue;
+
 #ifdef CLASSIFYER_DBG
     {
       std::ostringstream o;
@@ -557,9 +564,11 @@ namespace NUGA
   bool TEMPLATE_CLASS::__flag_colliding_cells
   (zmesh_t const & z_mesh, std::vector< bound_mesh_t*> const & mask_bits, E_Int im, wdata_t& data)
   {
-  	bool has_X = false;
+    const bound_mesh_t* pmask = mask_bits[im];
+    if (pmask == nullptr) return false;
 
-    bound_mesh_t const & mask_bit = *(mask_bits[im]);
+    bool has_X = false;
+    bound_mesh_t const & mask_bit = *pmask;
     
 #ifdef CLASSIFYER_DBG
       medith::write<>("currentz", z_mesh.crd, z_mesh.cnt);
@@ -585,7 +594,7 @@ namespace NUGA
       auto ae1 = z_mesh.aelement(i);
 
       cands.clear();
-      mask_loc.get_candidates(ae1, ae1.m_crd, cands, 1, _RTOL); //return as 0-based (fixme for volumic, was 1-based)
+      mask_loc.get_candidates(ae1, ae1.m_crd, cands, 1, _RTOL); //return as 1-based
       if (cands.empty()) continue;
 
       bool is_x = NUGA::COLLIDE::get_colliding (ae1, mask_bit, cands, 1, _RTOL, true/*returns at first found*/);
