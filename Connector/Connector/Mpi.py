@@ -42,7 +42,7 @@ def connectMatch(a, tol=1.e-6, dim=3):
     
     # Construction des raccords 
     a = X.connectMatch(a, tol=tol, dim=dim)
-
+   
     # Suppression des XZones et correction des matchs 
     Cmpi._rmBXZones(a)
     
@@ -65,6 +65,20 @@ def connectNearMatch(a, ratio=2, tol=1.e-6, dim=3):
     # Construction des raccords 
     a = X.connectNearMatch(a, ratio=2, tol=tol, dim=dim)
 
+    for z in Internal.getZones(a):
+        gcs = Internal.getNodesFromType1(z, 'ZoneGridConnectivity_t')
+        for g in gcs:  
+            nodes = Internal.getNodesFromType1(g, 'GridConnectivity_t')
+            for n in nodes:
+                gctype = Internal.getNodeFromType(n,'GridConnectivityType_t')
+                if Internal.getValue(gctype)=='Abutting':
+                    nmratio = Internal.getNodeFromName(n,'NMRatio')
+                    nmratio = Internal.getValue(nmratio)
+                    fratio = 1.
+                    for i in nmratio: fratio *= i
+
+                    if fratio < 1.95 and fratio > 0.55:
+                        Internal._rmNodesByName(z,n[0])
     # Suppression des XZones et correction des matchs 
     Cmpi._rmBXZones(a)
     

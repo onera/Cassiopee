@@ -428,6 +428,7 @@ def getProcGlobal__(zoneName, t, procDict=None):
 # type='bbox2' si intersection de bbox et pas sur la meme base (full/bbox)
 # type='bbox3' si intersection de bbox avec t2 (t:full/bbox et t2:full/bbox)
 # type='match' si match entre zones (full/skel/load skel/partial[+procDict])
+# type='nmatch' si nearmatch entre zones (full/skel/load skel/partial[+procDict])
 # type='ID' si donnees d'interpolation entre zones (full/skel/load skel/partial+procDict)
 # type='IBCD' si donnees IBC entres zones (full/skel/load skel/partial+procDict)
 # type='ALLD' si toutes donnees (Interp+IBC) (full/skel/load skel/partial+procDict)
@@ -692,6 +693,16 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
                 popp = getProcGlobal__(donor, t, procDict)
                 updateGraph__(graph, proc, popp, z[0])
 
+    elif type=='nmatch':# base sur les nearmatchs
+        for z in zones:
+            proc = getProcLocal__(z, procDict)
+            GC = Internal.getNodesFromType2(z, 'GridConnectivity_t')
+            for c in GC:
+                gctype = Internal.getNodeFromType(c,'GridConnectivityType_t')
+                if Internal.getValue(gctype)=='Abutting':
+                    donor = Internal.getValue(c)
+                    popp = getProcGlobal__(donor, t, procDict)
+                    updateGraph__(graph, proc, popp, z[0])
     elif type == 'proc':
         for z in zones:
             if not isZoneSkeleton__(z):

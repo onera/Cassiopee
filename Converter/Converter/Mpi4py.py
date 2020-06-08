@@ -660,7 +660,6 @@ def _revertBXGridConnectivity(a):
         for g in gcs:  
             nodes = Internal.getNodesFromType1(g, 'GridConnectivity1to1_t')
             for n in nodes:
-
                 # Recherche le nom de la bandelette en raccord 
                 oppName = Internal.getValue(n)
                 zopp    = Internal.getNodeFromName(a, oppName)
@@ -669,15 +668,42 @@ def _revertBXGridConnectivity(a):
                     if xzopp is not None:
                         newName = oppName[:len(oppName)-2]
                         Internal.setValue(n, newName)
-      
                         src, loc2glob = Internal.getLoc2Glob(zopp)
 
                         # Update current zone
                         prd    = Internal.getNodeFromName1(n, 'PointRangeDonor')
                         p      = Internal.range2Window(prd[1])
                         p      = [p[0]+loc2glob[0]-1,p[1]+loc2glob[0]-1,p[2]+loc2glob[2]-1,p[3]+loc2glob[2]-1,p[4]+loc2glob[4]-1,p[5]+loc2glob[4]-1]
-                        p      = Internal.window2Range(p)
-                        Internal.setValue(prd, p)                   
+                        #check if not same window - can happen if near match exists
+                        remove=False
+                        if z[0] == newName:
+                            remove=True
+                            prr = Internal.getNodeFromName1(n,'PointRange')
+                            p2 = Internal.range2Window(prr[1])
+                            for i in range(6):
+                                if p2[i] != p[i]: 
+                                    remove=False
+                                    break
+                        if not remove:
+                            p = Internal.window2Range(p)
+                            Internal.setValue(prd, p)                   
+                        else:
+                            Internal._rmNodesByName(z,n[0])
+
+            nodes = Internal.getNodesFromType1(g, 'GridConnectivity_t')
+            for n in nodes:
+                gctype = Internal.getNodeFromType(n,'GridConnectivityType_t')
+                gctype = Internal.getValue(gctype)
+                if gctype=='Abutting':
+                    # Recherche le nom de la bandelette en raccord 
+                    oppName = Internal.getValue(n)
+                    zopp    = Internal.getNodeFromName(a, oppName)
+                    if zopp is not None:
+                        xzopp = Internal.getNodeFromName1(zopp, 'XZone')
+                        if xzopp is not None:
+                            newName = oppName[:len(oppName)-2]
+                            Internal.setValue(n, newName)
+
     return None
     
 # Ajoute des sous-zones correspondant aux raccords sur un arbre distribue
