@@ -235,6 +235,7 @@ PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
   }// if (d->ptrState->offscreen == 1)
   else
   { // direct ou offscreen FBO
+    d->ptrState->farClip = 1;
     // thread en python
     Py_BEGIN_ALLOW_THREADS;
     Data* d = Data::getInstance();

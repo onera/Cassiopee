@@ -2146,7 +2146,7 @@ def addNormalLayersUnstr__(surface, distrib, check=0, niterType=0, niter=0, nite
                     if kmax == 2: beta0 = 0.1
                     else: beta0 = float((kmax-2-k1))/float(kmax-2); beta0 = beta0*beta0
                     n[1] = (1-beta0)*n[1] + beta0 *np[1]           
-        else: # algo=1
+        else: # algo=1 (nouvelle version)
             if k1 == 0 and kappaType == 2: vol = G.getVolumeMap(surfu)
             if niter == 0:
                 n = getNormalMap(surf)
@@ -2213,6 +2213,9 @@ def addNormalLayersUnstr__(surface, distrib, check=0, niterType=0, niter=0, nite
             cellN = C.initVars(cellN, '{cellN}=minimum({vol}>0, {cellN})')
             cellN = C.extractVars(cellN, ['cellN'])
             generator.blankSelf(a, cellN)
+            generator.blankSelf(a, cellN)
+            generator.blankSelf(a, cellN)
+            
             
         n[0] = 'sx0,sy0,sz0'
         surf = C.addVars([surf,n])

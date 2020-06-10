@@ -2938,7 +2938,7 @@ def splitTRI(t, idxList):
 def splitManifold(t):
     """Split an unstructured mesh (only TRI or BAR currently) into several manifold pieces.
     Usage: splitManifold(array)"""
-    a = C.getAllFields(t, 'nodes')[0]
+    a = C.getAllFields(t, 'nodes')
     A = Transform.splitManifold(a)
     zones = []
     for i in A:

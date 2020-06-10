@@ -116,7 +116,7 @@ def drawLine(npts):
                 if prev == []:
                     prev = l
                     CTK.TXT.insert('START', 'Click second point...\n')
-                elif (prev != l):
+                elif prev != l:
                     line = D.line(prev, l, npts)
                     if surfaces != []: line = T.projectOrthoSmooth(line, surfaces)
                     CTK.add(CTK.t, nob, -1, line)
@@ -156,19 +156,19 @@ def drawCircle(npts):
             CTK.saveTree()
             surfaces = getSurfaces()
             l = []
-            while (l == []):
+            while l == []:
                 l = CPlot.getActivePoint()
                 time.sleep(CPlot.__timeStep__)
                 w.update()
-                if (CTK.__BUSY__ == False): break
-            if (CTK.__BUSY__ == True):
+                if not CTK.__BUSY__: break
+            if CTK.__BUSY__:
                 if prev == []:
                     prev = l
                     CTK.TXT.insert('START', 'Click second point...\n')
-                elif (second == [] and prev != l):
+                elif second == [] and prev != l:
                     second = l
                     CTK.TXT.insert('START', 'Click third point...\n')
-                elif (prev != l and second != l):
+                elif prev != l and second != l:
                     x1 = l[0]; y1 = l[1]; z1 = l[2]
                     x2 = prev[0]; y2 = prev[1]; z2 = prev[2]
                     x3 = second[0]; y3 = second[1]; z3 = second[2]
@@ -215,7 +215,7 @@ def drawCircle(npts):
                                       (center[0], center[1], center[2]),
                                       ((1,0,0), (0,1,0), (0,0,1)),
                                       (e1, e4, e3))
-                    if (surfaces != []):
+                    if surfaces != []:
                         circle = T.projectOrthoSmooth(circle, surfaces)
                     CTK.add(CTK.t, nob, -1, circle)
                     CTK.TXT.insert('START', 'Circle created.\n')
@@ -245,7 +245,7 @@ def drawArc(npts):
     CTK.TXT.insert('START', 'Click first point...\n')
     w = WIDGETS['draw']
     prev = []; second = []
-    if CTK.__BUSY__ == False:
+    if not CTK.__BUSY__:
         CTK.__BUSY__ = True
         TTK.sunkButton(w)
         CPlot.setState(cursor=1)
@@ -254,19 +254,19 @@ def drawArc(npts):
             CTK.saveTree()
             surfaces = getSurfaces()
             l = []
-            while (l == []):
+            while l == []:
                 l = CPlot.getActivePoint()
                 time.sleep(CPlot.__timeStep__)
                 w.update()
-                if (CTK.__BUSY__ == False): break
-            if (CTK.__BUSY__ == True):
-                if (prev == []):
+                if not CTK.__BUSY__: break
+            if CTK.__BUSY__:
+                if prev == []:
                     prev = l
                     CTK.TXT.insert('START', 'Click second point...\n')
-                elif (second == [] and prev != l):
+                elif second == [] and prev != l:
                     second = l
                     CTK.TXT.insert('START', 'Click third point...\n')
-                elif (prev != l and second != l):
+                elif prev != l and second != l:
                     x1 = l[0]; y1 = l[1]; z1 = l[2]
                     x2 = prev[0]; y2 = prev[1]; z2 = prev[2]
                     x3 = second[0]; y3 = second[1]; z3 = second[2]
@@ -296,7 +296,7 @@ def drawArc(npts):
                     center[2] = 0.5*(z1+z2) + alpha*tz
                     dx3 = center[0]-x3; dy3 = center[1]-y3; dz3 = center[2]-z3
                     l = dx3*dx3 + dy3*dy3 + dz3*dz3
-                    if (abs(l - R*R) > 1.e-10):
+                    if abs(l - R*R) > 1.e-10:
                         center[0] = 0.5*(x1+x2) - alpha*tx
                         center[1] = 0.5*(y1+y2) - alpha*ty
                         center[2] = 0.5*(z1+z2) - alpha*tz
@@ -371,7 +371,6 @@ def drawArc(npts):
                     CTK.__BUSY__ = False
                     TTK.raiseButton(w)
                     CPlot.setState(cursor=0)
-                    #C._fillMissingVariables(CTK.t)
                     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
                     CTK.TKTREE.updateApp()
                     CPlot.render()
@@ -394,36 +393,36 @@ def drawRectangle(npts):
     CTK.TXT.insert('START', 'Click left/lower corner...\n')
     w = WIDGETS['draw']
     prev = []; second = []
-    if (CTK.__BUSY__ == False):
+    if not CTK.__BUSY__:
         CTK.__BUSY__ = True
         TTK.sunkButton(w)
         CPlot.setState(cursor=1)
-        while (CTK.__BUSY__ == True):
+        while CTK.__BUSY__:
             CPlot.unselectAllZones()
             CTK.saveTree()
             surfaces = getSurfaces()
             l = []
-            while (l == []):
+            while l == []:
                 l = CPlot.getActivePoint()
                 time.sleep(CPlot.__timeStep__)
                 w.update()
-                if (CTK.__BUSY__ == False): break
-            if (CTK.__BUSY__ == True):
-                if (prev == []):
+                if not CTK.__BUSY__: break
+            if CTK.__BUSY__:
+                if prev == []:
                     prev = l
                     CTK.TXT.insert('START', 'Click right/up corner...\n')
-                elif (prev != l):
+                elif prev != l:
                     e1,e2 = getVectorsFromCanvas()
                     e1n = Vector.norm(e1)
                     e2n = Vector.norm(e2)
-                    if (e2n > e1n): e1 = e2
+                    if e2n > e1n: e1 = e2
                     P1 = l; P2 = prev
                     P1P2 = Vector.sub(P2, P1)
                     P1P2n = Vector.norm(P1P2)
                     Q = Vector.norm(Vector.cross(e1, P1P2))
                     L = math.sqrt( P1P2n*P1P2n - Q*Q )
                     sign = Vector.dot(e1, P1P2)
-                    if (sign > 0): e1 = Vector.mul(L, e1)
+                    if sign > 0: e1 = Vector.mul(L, e1)
                     else: e1 = Vector.mul(-L, e1)
                     P3 = Vector.add(P1, e1)
                     P4 = Vector.sub(P2, e1)
@@ -432,14 +431,13 @@ def drawRectangle(npts):
                     l3 = D.line(P2, P4, npts)
                     l4 = D.line(P4, P1, npts)
                     rect = T.join([l1,l2,l3,l4])
-                    if (surfaces != []):
+                    if surfaces != []:
                         rect = T.projectOrthoSmooth(rect, surfaces)
                     CTK.add(CTK.t, nob, -1, rect)
                     CTK.TXT.insert('START', 'Rectangle created.\n')
                     CTK.__BUSY__ = False
                     TTK.raiseButton(w)
                     CPlot.setState(cursor=0)
-                    #C._fillMissingVariables(CTK.t)
                     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
                     CTK.TKTREE.updateApp()
                     CPlot.render()
@@ -457,26 +455,26 @@ def drawRectangle(npts):
 #==============================================================================
 def drawPolyline():
     global CURRENTZONE; global CURRENTPOLYLINE
-    if (CTK.t == []): return
+    if CTK.t == []: return
     w = WIDGETS['draw']
     
-    if (CTK.__BUSY__ == False):
+    if not CTK.__BUSY__:
         CPlot.unselectAllZones()
         CTK.saveTree()
         CTK.__BUSY__ = True
         TTK.sunkButton(w)
         CPlot.setState(cursor=1)
-        while (CTK.__BUSY__ == True):
+        while CTK.__BUSY__:
             l = []
-            while (l == []):
+            while l == []:
                 l = CPlot.getActivePoint()
                 CPlot.unselectAllZones()
                 time.sleep(CPlot.__timeStep__)
                 w.update()
-                if (CTK.__BUSY__ == False): break
-            if (CTK.__BUSY__ == True):
+                if not CTK.__BUSY__: break
+            if CTK.__BUSY__:
                 CURRENTPOLYLINE.append((l[0],l[1],l[2]))
-                if (CURRENTZONE == None):
+                if CURRENTZONE is None:
                     CTK.t = C.addBase2PyTree(CTK.t, 'CONTOURS', 1)
                     base = Internal.getNodeFromName1(CTK.t, 'CONTOURS')
                     nob = C.getNobOfBase(base, CTK.t)
@@ -498,13 +496,12 @@ def drawPolyline():
     else:
        CTK.__BUSY__ = False
        surfaces = getSurfaces()
-       if (surfaces != []):
+       if surfaces != []:
            ret = Internal.getParentOfNode(CTK.t, CURRENTZONE)
            nob = C.getNobOfBase(ret[0], CTK.t)
            a = T.projectOrthoSmooth(CURRENTZONE, surfaces)
            noz = ret[1]
            CTK.replace(CTK.t, nob, noz, a)
-       #C._fillMissingVariables(CTK.t)
        (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
        CTK.TKTREE.updateApp()
        CPlot.render()
@@ -516,25 +513,25 @@ def drawPolyline():
 #==============================================================================
 def drawCubic(npts):
     global CURRENTZONE; global CURRENTPOLYLINE
-    if (CTK.t == []): return
+    if CTK.t == []: return
     w = WIDGETS['draw']
-    if (CTK.__BUSY__ == False):
+    if not CTK.__BUSY__:
         CPlot.unselectAllZones()
         CTK.saveTree()
         CTK.__BUSY__ = True
         TTK.sunkButton(w)
         CPlot.setState(cursor=1)
-        while (CTK.__BUSY__ == True):
+        while CTK.__BUSY__:
             l = []
-            while (l == []):
+            while l == []:
                 l = CPlot.getActivePoint()
                 CPlot.unselectAllZones()
                 time.sleep(CPlot.__timeStep__)
                 w.update()
-                if (CTK.__BUSY__ == False): break
-            if (CTK.__BUSY__ == True):
+                if not CTK.__BUSY__: break
+            if CTK.__BUSY__:
                 CURRENTPOLYLINE.append((l[0],l[1],l[2]))
-                if (CURRENTZONE == None):
+                if CURRENTZONE is None:
                     CTK.t = C.addBase2PyTree(CTK.t, 'CONTOURS', 1)
                     base = Internal.getNodeFromName1(CTK.t, 'CONTOURS')
                     nob = C.getNobOfBase(base, CTK.t)
@@ -560,10 +557,9 @@ def drawCubic(npts):
        d = G.cart( (0,0,0), (1./(npts-1),1,1), (npts,1,1) )
        a = G.map(a, d)
        surfaces = getSurfaces()
-       if (surfaces != []): a = T.projectOrthoSmooth(a, surfaces)
+       if surfaces != []: a = T.projectOrthoSmooth(a, surfaces)
        nob = C.getNobOfBase(ret[0], CTK.t)
        CTK.replace(CTK.t, nob, ret[1], a)
-       #C._fillMissingVariables(CTK.t)
        (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
        CTK.TKTREE.updateApp()
        CPlot.render()
@@ -584,7 +580,7 @@ def drawFreeHand():
         TTK.sunkButton(w)
         CPlot.setState(cursor=1)
         buttonState = 0
-        while CTK.__BUSY__ == True:
+        while CTK.__BUSY__:
             if prev == []: # first point
                 l = []
                 while l == []:
@@ -592,7 +588,7 @@ def drawFreeHand():
                     if l != []: prev = l; first = l
                     time.sleep(CPlot.__timeStep__)
                     w.update()
-                    if CTK.__BUSY__ == False: break
+                    if not CTK.__BUSY__: break
             else: # next points
                 diff = -1.
                 while (diff < 1.e-10):
@@ -600,15 +596,15 @@ def drawFreeHand():
                     l = (x,y,z)
                     diff = Vector.norm2(Vector.sub(l,prev))
                     diff1 = Vector.norm2(Vector.sub(l,first))
-                    if (diff1 < 1.e-10): l = first
-                    if (buttonState == 5): break
+                    if diff1 < 1.e-10: l = first
+                    if buttonState == 5: break
                     time.sleep(CPlot.__timeStep__)
                     w.update()
-                    if (CTK.__BUSY__ == False): break
+                    if not CTK.__BUSY__: break
                     
             prev = l
             CPlot.unselectAllZones()
-            if (buttonState == 5): # button released
+            if buttonState == 5: # button released
                 ALLZONES.append(CURRENTZONE)
                 CURRENTZONE = None; prev = []; first = []
                 CURRENTPOLYLINE = []
@@ -616,7 +612,7 @@ def drawFreeHand():
                 
             if (CTK.__BUSY__ == True and buttonState != 5):
                 CURRENTPOLYLINE.append((l[0],l[1],l[2]))
-                if (CURRENTZONE == None):
+                if CURRENTZONE is None:
                     CTK.t = C.addBase2PyTree(CTK.t, 'CONTOURS', 1)
                     base = Internal.getNodeFromName1(CTK.t, 'CONTOURS')
                     nob = C.getNobOfBase(base, CTK.t)
@@ -638,15 +634,14 @@ def drawFreeHand():
     else:
        CTK.__BUSY__ = False
        surfaces = getSurfaces()
-       if (surfaces != []):
-           if (CURRENTZONE != None): ALLZONES += [CURRENTZONE]
+       if surfaces != []:
+           if CURRENTZONE is not None: ALLZONES += [CURRENTZONE]
            for s in ALLZONES:
                ret = Internal.getParentOfNode(CTK.t, s)
                nob = C.getNobOfBase(ret[0], CTK.t)
                a = T.projectOrthoSmooth(s, surfaces)
                noz = ret[1]
                CTK.replace(CTK.t, nob, noz, a)
-       #C._fillMissingVariables(CTK.t)
        (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
        CTK.TKTREE.updateApp()
        CPlot.render()

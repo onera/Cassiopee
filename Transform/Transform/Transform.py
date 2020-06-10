@@ -1930,4 +1930,11 @@ def splitTRI(array, idxList):
 def splitManifold(array):
     """Split an unstructured mesh (only TRI or BAR currently) into several manifold pieces.
     Usage: splitManifold(array)"""
-    return transform.splitManifold(array)
+    if isinstance(array[0], list):
+        out = []
+        for i in array:
+            ret = transform.splitManifold(i)
+            if isinstance(ret[0], list): out += ret
+            else: out.append(ret)
+        return out
+    else: return transform.splitManifold(array)
