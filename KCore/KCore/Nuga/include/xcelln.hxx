@@ -105,7 +105,10 @@ namespace NUGA
       {
         color_t const & idata = wdata[i];
         double v = double(idata);
-        docomp |= keep[i] = (v == OUT);
+
+        keep[i] = (v == OUT);
+        docomp |= (v != OUT);
+
       }
 
       xmesh.mesh = z_mesh;
@@ -135,7 +138,14 @@ namespace NUGA
         NUGA::CLIP::poly_clip<zmesh_t, bound_mesh_t>(bits, v0, idata.masks, mask_bits, parent_t::_RTOL);
 
         for (size_t b = 0; b < bits.size(); ++b)
+        {
+#ifdef DEBUG_XCELLN
+          std::ostringstream o;
+          o << "cut_" << i;
+          medith::write(o.str().c_str(), bits[b]);
+#endif
           xmesh.mesh.add(bits[b]);
+        }
         xmesh.mesh.flag.resize(xmesh.mesh.ncells(), i); //use flag for history
       }
 

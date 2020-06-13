@@ -32,8 +32,6 @@ namespace NUGA
   {
     using wdata_t = std::vector<double>;
     using outdata_t = std::vector<double>;
-
-    static bool processed(wdata_t const & data, E_Int i) { return (data[i] != OUT); } // in COLLISION POLICY, X have not to be processed again
   
     static void mark_cell_w_mask(wdata_t & data, E_Int i, E_Int im) { data[i] = -X; } // minus to mark as new X for __flag_hidden_subzones
   };
@@ -57,8 +55,6 @@ namespace NUGA
   {
     using wdata_t = std::vector<color_t>;
     using outdata_t = std::vector<double>;
-
-    static bool processed(wdata_t const & data, int i) { return (data[i] == IN); } // in XCELLN POLICY, we have to consider multiple X with multiple masks, so only discard IN
 
     static void mark_cell_w_mask(wdata_t & data, E_Int i, E_Int im)
     {
@@ -588,7 +584,9 @@ namespace NUGA
     for (E_Int i = 0; i < nbcells; ++i)
     {
       //std::cout << i << " over " << nbcells << std::endl;
-      if (data_trait<POLICY, zmesh_t>::processed(data, i)) continue;
+
+      // in any POLICY, X must be re-processed to avoid missing element in current X-front being computed
+      if (data[i] == IN) continue;
 
       // autonomous element
       auto ae1 = z_mesh.aelement(i);
@@ -681,7 +679,7 @@ namespace NUGA
     // std::cout << "nb of supposed sub zones: " <<nb_subzones << std::endl;
 #endif
 
-    if (nb_subzones <= 1) // no new subzones, just return
+    if (nb_subzones < 1) // no new subzones, just return
       return 0;
     
     // 2.5 : classify subzones
