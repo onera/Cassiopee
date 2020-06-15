@@ -67,7 +67,7 @@ void DataDL::displayUSolid()
 #ifdef __SHADERS__
 #include "isoShaders.h"
 #endif
-                if ( ptrState->isoLight == 1 && ptrState->dim == 3 ) light( 3 );
+                if ( ptrState->isoLight == 1 && ptrState->dim == 3 ) light(3);
 
                 //displayUIsoSolidZone(zonep, zone, (int)(-zonep->colorR-2));
                 renderUIsoSolidZone( zonep, zone, (int)( -zonep->colorR - 2 ) );

@@ -57,7 +57,7 @@ void DataDL::displaySSolid()
       if (ptrState->mode == RENDER && zonep->blending != -1.)
       {
         ptrState->alpha = zonep->blending;
-        if (ptrState->alpha < 0.9999) 
+        if (ptrState->alpha < 0.9999)
         { /*glEnable(GL_CULL_FACE);*/ glDepthMask(GL_FALSE); }
       }
 
@@ -66,6 +66,8 @@ void DataDL::displaySSolid()
 #ifdef __SHADERS__
 #include "isoShaders.h"
 #endif
+        if (ptrState->isoLight == 1 && ptrState->dim == 3) light(3);
+        
         //displaySIsoSolidZone(zonep, zone, (int)(-zonep->colorR-2));
         renderSIsoSolidZone(zonep, zone, (int)(-zonep->colorR-2));
       }

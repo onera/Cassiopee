@@ -2112,6 +2112,7 @@ def addNormalLayersUnstr__(surface, distrib, check=0, niterType=0, niter=0, nite
     cellN = None # champ pour le blanking
 
     for k1 in range(kmax-1):
+        print("Generating layer %d"%k1)
         hloc = distrib[1][0,k1+1]-distrib[1][0,k1]
         if algo == 0: # algo=0, lissage partout, hauteur 1
             if niter == 0:
@@ -2157,12 +2158,13 @@ def addNormalLayersUnstr__(surface, distrib, check=0, niterType=0, niter=0, nite
                     fake = ['cellN',cellN[1],n[2],n[3]]
                     n = C.addVars([n, fake])
                     generator.extrapWithCellN(surf, n)
-                    
+                    n = C.extractVars(n, ['sx','sy','sz'])
+                    #C.convertArrays2File(surf, 'surf.plt')
                 n = C.center2Node(n)
                 n = C.normalize(n, vect)
                 n, epsl = modifyNormalWithMetric(surf, n, algo=1, smoothType=smoothType, eps=eps, nitLocal=nitLocal, kappaType=kappaType, kappaS=kappaS)
-                n = getSmoothNormalMap(surf, niter=niter, eps=epsl[1], algo=1)
-                n, epsl = modifyNormalWithMetric(surf, n, algo=1, smoothType=smoothType, eps=eps, nitLocal=nitLocal, kappaType=kappaType, kappaS=kappaS)
+                #n = getSmoothNormalMap(surf, niter=niter, eps=epsl[1], algo=1)
+                #n, epsl = modifyNormalWithMetric(surf, n, algo=1, smoothType=smoothType, eps=eps, nitLocal=nitLocal, kappaType=kappaType, kappaS=kappaS)
             else:
                 if epsl is None:
                     n = getNormalMap(surf)

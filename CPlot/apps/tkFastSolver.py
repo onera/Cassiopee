@@ -207,6 +207,7 @@ def run(event=None):
 
     compute()
     
+    print("DISPLAYING", dim)
     if dim == 2: CTK.display(CTK.t)
     else: displaySlices()
 
@@ -303,6 +304,7 @@ def compute():
     Internal.createUniqueChild(CTK.t, 'Time', 'DataArray_t', value=time0)
 
     # Wall extraction
+    print("WALL EXTRACTIONS")
     import Connector.ToolboxIBM as TIBM
     global WALL
     WALL = TIBM.extractIBMWallFields(tc, tb=BODY) # avec surface

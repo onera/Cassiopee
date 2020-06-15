@@ -91,17 +91,24 @@ PyObject* K_GENERATOR::extrapWithCellN(PyObject* self, PyObject* args)
       cellNv = cellN[ind];
       if (cellNi == 1 && cellNv == 0)
       {
-        for (E_Int n = 1; n <= nfld; n++) 
+        //printf("extrapolation en %d\n",i);
+        for (E_Int n = 1; n <= nfld; n++)
           if (n-1 != posCellN) (*f1)(ind, n) = (*f1)(i, n);
       }
-      if (cellNi == 0 && cellNv == 1)
+      else if (cellNi == 0 && cellNv == 1)
       {
-        for (E_Int n = 1; n <= nfld; n++) 
+        //printf("extrapolation en %d\n",i);
+        for (E_Int n = 1; n <= nfld; n++)
           if (n-1 != posCellN) (*f1)(i, n) = (*f1)(ind, n);
+      }
+      else if (cellNi == 0)
+      {
+        for (E_Int n = 1; n <= nfld; n++)
+          if (n-1 != posCellN) (*f1)(i, n) = 0.;
       }
     }
   }
-    
+  
   RELEASESHAREDB(res, array, f, cn);
   RELEASESHAREDB(res1, cellNObject, f1, cn1);
   

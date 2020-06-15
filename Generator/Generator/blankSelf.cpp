@@ -129,7 +129,7 @@ PyObject* K_GENERATOR::blankSelf(PyObject* self, PyObject* args)
       cellNv = cellN[ind];
       if ((cellNi == 1 && cellNv == 0) || (cellNi == 0 && cellNv == 1))
       {
-        printf("%d %d\n", cellNi, cellNv);
+        //printf("%d %d\n", cellNi, cellNv);
         E_Int noFace = commonFace[i][n];
         face = new facet;
         
