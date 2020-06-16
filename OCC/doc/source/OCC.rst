@@ -42,7 +42,7 @@ CAD/mesh conversion
 ----------------------------
 
 
-.. py:function:: OCC.convertCAD2Arrays(fileName, format='fmt_iges', h=0., chordal_err=0., growth_ratio=0., algo=0)
+.. py:function:: OCC.convertCAD2Arrays(fileName, format='fmt_iges', h=0., chordal_err=0., growth_ratio=0., algo=1)
 
     Read a CAD and return arrays.
 
@@ -51,13 +51,13 @@ CAD/mesh conversion
     :type fileName: string
     :param format: file format ('fmt_iges' or 'fmt_step')
     :type format: string
-    :param h: step size on output mesh. If 0., automatic setting [algo=0].
+    :param h: step size on output mesh. If 0., automatic setting [algo=1,2].
     :type h: float
     :param chordal_error: max error between CAD and mesh. Result in curvature adaptation. If 0., automatic setting.
     :type chordal_error: float
-    :param growth_ratio: max growth ratio between adjacent triangles [algo=0].
+    :param growth_ratio: max growth ratio between adjacent triangles [algo=1,2].
     :type growth_ratio: float
-    :param algo: algo=0: mesh with regular triangles, algo=1: mesh with only respect to curvature.
+    :param algo: algo=0: mesh with only respect to curvature, algo=1 or algo=2: mesh with regular triangles.
     :type algo: int
     :rtype: a list of TRI arrays
 
@@ -69,7 +69,7 @@ CAD/mesh conversion
 
 ---------------------------------------
 
-.. py:function:: OCC.PyTree.convertCAD2PyTree(fileName, format='fmt_iges', h=0., chordal_err=0., growth_ratio=0., algo=0)
+.. py:function:: OCC.PyTree.convertCAD2PyTree(fileName, format='fmt_iges', h=0., chordal_err=0., growth_ratio=0., algo=1)
 
     Read a CAD and return zone.
 
@@ -77,13 +77,13 @@ CAD/mesh conversion
     :type fileName: string
     :param format: file format ('fmt_iges' or 'fmt_step')
     :type format: string
-    :param h: step size on output mesh. If 0., automatic setting [algo=0].
+    :param h: step size on output mesh. If 0., automatic setting [algo=1,2].
     :type h: float
     :param chordal_error: max error between CAD and mesh. Result in curvature adaptation. If 0., automatic setting.
     :type chordal_error: float
-    :param growth_ratio: max growth ratio between adjacent triangles [algo=0].
+    :param growth_ratio: max growth ratio between adjacent triangles [algo=1,2].
     :type growth_ratio: float
-    :param algo: algo=0: mesh with regular triangles, algo=1: mesh with only respect to curvature.
+    :param algo: algo=0: mesh with only respect to curvature, algo=1 or algo=2: mesh with regular triangles. 
     :type algo: int
     :rtype: CGNS pyTree
 

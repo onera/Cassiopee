@@ -207,10 +207,21 @@ def run(event=None):
 
     compute()
     
-    print("DISPLAYING", dim)
-    if dim == 2: CTK.display(CTK.t)
+    if dim == 2: 
+        #CTK.display(CTK.t)
+        displayByReplace(CTK.t)
     else: displaySlices()
 
+# Display replacing all zones in place
+# Prend moins de memoire
+def displayByReplace(t):
+    for nob, b in enumerate(t[2]):
+        if b[3] == 'CGNSBase_t':
+            for noz, z in enumerate(b[2]):
+                if z[3] == 'Zone_t':
+                    CPlot.replace(t, nob, noz, z)
+    CPlot.render()
+                
 #==============================================================================
 # A partir de CTK.t considere comme les bodies
 # tinit est un arbre de reprise eventuel
@@ -232,6 +243,7 @@ def prepare(tinit=None):
     myApp = App.IBM(format='single')
     CTK.t, tc = myApp.prepare(CTK.t, t_out='t.cgns', tc_out='tc.cgns', vmin=21, 
                               tbox=tbox, check=False, tinit=tinit)
+    # Preparation pour le front 42
     #CTK.t, tc = myApp.prepare(CTK.t, t_out='t.cgns', tc_out='tc.cgns', vmin=21, 
     #                          tbox=tbox, check=False, tinit=tinit, frontType=42, yplus=150.)
     
@@ -304,7 +316,6 @@ def compute():
     Internal.createUniqueChild(CTK.t, 'Time', 'DataArray_t', value=time0)
 
     # Wall extraction
-    print("WALL EXTRACTIONS")
     import Connector.ToolboxIBM as TIBM
     global WALL
     WALL = TIBM.extractIBMWallFields(tc, tb=BODY) # avec surface

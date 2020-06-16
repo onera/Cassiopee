@@ -1,8 +1,8 @@
 """Plotter functions for pyTrees.
 """
 import numpy
-import CPlot
-try: import cplot
+from . import CPlot
+try: from . import cplot
 except: ImportError("CPlot: is partially installed (no display).")
 
 try: range = xrange
@@ -87,7 +87,7 @@ def display(t,
                   shadow, dof, stereo, stereoDist,
                   export, exportResolution, 
                   zoneNames, renderTags, frameBuffer, offscreen)
-
+    
 #==============================================================================
 def render():
     """Force render.
