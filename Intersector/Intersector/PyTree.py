@@ -360,13 +360,7 @@ def _XcellNSurf(t, priorities, output_type=0, rtol=0.05):
   try: import Generator.PyTree as G
   except: raise ImportError("XcellN: requires Generator module.")
 
-  
-  allbcs = Internal.KNOWNBCS
-  if  'BCOverlap' in allbcs : allbcs.remove('BCOverlap')
-  if  'BCMatch' in allbcs : allbcs.remove('BCMatch')
-  if  'BCWallViscous' in allbcs : allbcs.remove('BCWallViscous')
-  if  'BCWallInviscid' in allbcs : allbcs.remove('BCWallInviscid')
-  if  'BCWallViscousIsothermal' in allbcs : allbcs.remove('BCWallViscousIsothermal')
+  WALLBCS = ['BCWall', 'BCWallInviscid','BCWallViscous', 'BCWallViscousIsothermal']
 
   #t = T.reorderAll(t, dir=1)
   #C.convertPyTree2File(t, 'reorederedt.cgns')
@@ -409,7 +403,7 @@ def _XcellNSurf(t, priorities, output_type=0, rtol=0.05):
       m_bounds = C.getFields(Internal.__GridCoordinates__, b_bounds)[0]
 
       walls = []
-      for btype in allbcs:
+      for btype in WALLBCS:
         walls += C.extractBCOfType(b, btype)
       wallf = None
       if len(walls) != 0: 
