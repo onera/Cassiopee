@@ -247,7 +247,7 @@ else if ($MAC == "visio") then
 #------------------------------- visio ---------------------------------------
         setenv ELSAPROD vis_r8
         module load subversion/1.7.6
-	module load python/2.7.8
+        module load python/2.7.8
         foreach x (`(echo "" ; module -t list) | & grep intel`)
             module unload $x
         end
@@ -434,6 +434,9 @@ else if ($MAC == "xdaap") then
 else if ($MAC == "spiro") then
 #------------------------------- spiro --------------------------------------
         setenv ELSAPROD spiro_r8
+        foreach x (`(echo "" ; module -t list) | & grep intel`)
+            module unload $x
+        end
         module load python/3.6.1
         # Set next two lines only if python is not python
         setenv PYTHONEXE python3
@@ -441,7 +444,6 @@ else if ($MAC == "spiro") then
         module load intel/17.0.4
         module load impi/17
         module load hdf5/1.8.17-intel-17
-	
         # Number of threads
         setenv OMP_NUM_THREADS 24
         set path=($path $CASSIOPEE/Dist/bin)
@@ -456,7 +458,6 @@ else if ($MAC == "spiro_socle") then
         setenv PYTHONEXE python3
         alias python python3
 	    module load CFD/5.0-intel-19.impi-19
-	
         # Number of threads
         setenv OMP_NUM_THREADS 24
         set path=($path $CASSIOPEE/Dist/bin)
