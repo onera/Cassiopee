@@ -33,6 +33,10 @@ fi
 
 . ./MODULES
 
+if [ "$PYTHONEXE" = "" ]; then
+    export PYTHONEXE=python
+fi
+
 if [ "$1" = "opensource" ]; then
     $PYTHONEXE $CASSIOPEE/Apps/util/STUBS/stubs.py stubit
 fi

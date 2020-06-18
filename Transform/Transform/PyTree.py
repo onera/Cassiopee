@@ -1357,11 +1357,18 @@ def reorderAll(t, dir=1):
     For unstructured inputs, when dir is set to 1(-1), it means outward(inward).
     Usage: reorderAll(arrays, dir)"""
     tp = Internal.copyRef(t)
-    tp = C.fillMissingVariables(tp)
-    zones = Internal.getZones(tp)
+    _reorderAll(tp, dir)
+    return tp
+    
+def _reorderAll(t, dir=1):
+    """Orientate normals of all surface blocks consistently in one direction (1) or the opposite (-1).
+    For unstructured inputs, when dir is set to 1(-1), it means outward(inward).
+    Usage: reorderAll(arrays, dir)"""
+    C._fillMissingVariables(t)
+    zones = Internal.getZones(t)
     allBCInfos = C.extractBCInfo(zones)
-    zones = C.deleteZoneBC__(zones)
-    zones = C.deleteGridConnectivity__(zones)
+    C._deleteZoneBC__(zones)
+    C._deleteGridConnectivity__(zones)
     coords = []; fn = []; fc = []; indirn = []; indirc = []
     nofan=0; nofac=0
     for z in zones:
@@ -1377,41 +1384,33 @@ def reorderAll(t, dir=1):
 
     if nofan == 0 and nofac == 0: # pas de champs en centres et noeuds
         an = Transform.reorderAll(coords, dir)
-        zones = C.setFields(an, zones, 'nodes')
+        C.setFields(an, zones, 'nodes')
     elif nofan == len(zones) and nofac == 0:
         an = Converter.addVars([coords,fn])
         an = Transform.reorderAll(an, dir)
-        zones = C.setFields(an,zones,'nodes')
+        C.setFields(an,zones,'nodes')
     elif nofan == 0 and nofac == len(zones):
         fc = Converter.center2Node(fc)
         ac = Converter.addVars([coords,fc])
         ac = Transform.reorderAll(ac, dir)
         ac = Converter.rmVars(ac,['CoordinateX','CoordinateY','CoordinateZ'])
         ac = Converter.node2Center(ac)
-        zones = C.setFields(ac,zones,'centers')
+        C.setFields(ac,zones,'centers')
     elif nofan == len(zones) and nofac == len(zones):
         an = Converter.addVars([coords,fn])
         an = Transform.reorderAll(an, dir)
-        zones = C.setFields(an,zones,'nodes')
+        C.setFields(an, zones, 'nodes')
 
         fc = Converter.center2Node(fc)
         ac = Converter.addVars([coords,fc])
         ac = Transform.reorderAll(ac, dir)
         ac = Converter.rmVars(ac,['CoordinateX','CoordinateY','CoordinateZ'])
         ac = Converter.node2Center(ac)
-        zones = C.setFields(ac, zones, 'centers')
+        C.setFields(ac, zones, 'centers')
 
+    # This function is in place
     zones = C.identifyBC(zones, allBCInfos)
-    # sortie
-    toptree = Internal.isTopTree(tp)
-    if not toptree:
-        bases = Internal.getBases(tp)
-        if bases == []:
-            stdNode = Internal.isStdNode(tp)
-            if stdNode == 0: # liste de zones
-                return zones
-            else: return zones[0]
-    return tp
+    return None
 
 #=============================================================================
 # Align I,J,K directions of a Cartesian mesh with X,Y,Z axes

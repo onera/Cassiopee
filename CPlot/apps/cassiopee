@@ -1,19 +1,21 @@
 #! /bin/sh
-if [ "$PYTHONEXE" != "" ]; then
-    alias python=$PYTHONEXE
+if [ "$PYTHONEXE" = "" ]; then
+    export PYTHONEXE=python
 fi
-if [ "$ELSAPROD" = "vis_r8" -o "$ELSAPROD" = "flv_r8" -o "$ELSAPROD" = "spiro_r8" ]; then
+
+which vglrun &>/dev/null
+if [ $? -eq 0 ]; then
 	if test -e "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.py"
 	then
-    	vglrun python "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.py" "$@"
+    	vglrun $PYTHONEXE "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.py" "$@"
 	else
-    	vglrun python "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.pyc" "$@"
-	fi
+    	vglrun $PYTHONEXE "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.pyc" "$@"
+	fi	
 else
 	if test -e "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.py"
 	then
-    	python "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.py" "$@"
+    	$PYTHONEXE "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.py" "$@"
 	else
-    	python "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.pyc" "$@"
+    	$PYTHONEXE "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.pyc" "$@"
 	fi
 fi

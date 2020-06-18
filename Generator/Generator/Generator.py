@@ -2214,6 +2214,7 @@ def addNormalLayersUnstr__(surface, distrib, check=0, niterType=0, niter=0, nite
             cellN = C.addVars([cellN, vol])
             cellN = C.initVars(cellN, '{cellN}=minimum({vol}>0, {cellN})')
             cellN = C.extractVars(cellN, ['cellN'])
+            generator.blankFirst(a, cellN)
             generator.blankSelf(a, cellN)
             generator.blankSelf(a, cellN)
             generator.blankSelf(a, cellN)

@@ -114,6 +114,7 @@ static PyMethodDef Pygenerator [] =
   {"mmgs", K_GENERATOR::mmgs, METH_VARARGS},
   {"quad2Pyra", K_GENERATOR::quad2Pyra, METH_VARARGS},
   {"blankSelf", K_GENERATOR::blankSelf, METH_VARARGS},
+  {"blankFirst", K_GENERATOR::blankFirst, METH_VARARGS},
   {"extrapWithCellN", K_GENERATOR::extrapWithCellN, METH_VARARGS},
   {NULL, NULL}
 };

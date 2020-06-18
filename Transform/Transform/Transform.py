@@ -570,7 +570,7 @@ def deformMesh(a, surfDelta, beta=4., type='nearest'):
         if len(a) == 5: 
             if type=='nearest': return deformMeshStruct1__(a, surfDelta, beta)
             elif type=='gridline': return deformMeshStruct2__(a, surfDelta, beta)
-            else: raise TypeError("deformMesh: type not valid.")
+            else: raise TypeError("deformMesh: type is invalid.")
         else: raise TypeError("deformMesh: not valid for unstructured arrays.")
     else:
         out = []
@@ -578,7 +578,7 @@ def deformMesh(a, surfDelta, beta=4., type='nearest'):
             if len(i) == 5: 
                 if type=='nearest': out.append(deformMeshStruct1__(i, surfDelta, beta))
                 elif type =='gridline': out.append(deformMeshStruct2__(i, surfDelta, beta))
-                else: raise TypeError("deformMesh: type not valid.")
+                else: raise TypeError("deformMesh: type is invalid.")
             else: raise TypeError("deformMesh: not valid for unstructured arrays.")
         return out
 
@@ -813,7 +813,7 @@ def subzone(array, minIndex, maxIndex=None, type=None):
     if maxIndex is None: # non structure
         if type == 'elements':
             if len(array) == 5: 
-                raise TypeError("subzone with a list of elements not yet implemented for structured arrays.")
+                raise TypeError("subzone: subzone with a list of elements not yet implemented for structured arrays.")
             return transform.subzoneElements(array, minIndex)
         elif type == 'faces':
             if len(array) == 5:
@@ -822,15 +822,15 @@ def subzone(array, minIndex, maxIndex=None, type=None):
                 return transform.subzoneFaces(array, minIndex)
         elif type == 'nodes':
             if len(array) == 5: 
-                raise TypeError("subzone with a list of nodes not yet implemented for structured arrays.")
+                raise TypeError("subzone: subzone with a list of nodes not yet implemented for structured arrays.")
             return  transform.subzoneUnstruct(array, minIndex)
         else: 
             if len(array) == 5:
-                raise TypeError("subzone with a list of nodes not yet implemented for structured arrays.")
+                raise TypeError("subzone: subzone with a list of nodes not yet implemented for structured arrays.")
             return transform.subzoneUnstruct(array, minIndex)
     else: # structure (subzone par range)
         if len(array) == 4:
-            raise TypeError("subzone with two ranges is not valid for unstructured arrays.")
+            raise TypeError("subzone: subzone with two ranges is not valid for unstructured arrays.")
         return transform.subzoneStruct(array, minIndex, maxIndex)
 
 def split(a, dir, index):
@@ -1849,7 +1849,7 @@ def splitMultiplePts3D__(A):
 
 def splitMultiplePts__(A,dim=3):
     try: import Generator as G
-    except: raise ImportError("splitMultiplePts requires Converter and Generator modules.")
+    except: raise ImportError("splitMultiplePts: requires Converter and Generator modules.")
     nzones = len(A)
     allWins =[]
     tags = Converter.addVars(A, 'definedBC')
