@@ -62,11 +62,11 @@ struct ngon_t
   enum eExtrudeStrategy { CST_ABS=0, CST_REL_MEAN, CST_REL_MIN, VAR_REL_MEAN, VAR_REL_MIN};
   
   using unit_type = ngon_unit;
-  
+ 
   ///
-  ngon_t(const Connectivity_t& cNGON) :PGs(cNGON.begin() + STARTFACE), PHs(cNGON.begin() + STARTELTS(cNGON)){ PGs.updateFacets(); PHs.updateFacets(); }
+  ngon_t(const Connectivity_t& cNGON) :PGs(cNGON.begin() + STARTFACE), PHs(cNGON.begin() + STARTELTS(cNGON)){ updateFacets();}
   ///
-  ngon_t(const ngon_t& ngt) :PGs(ngt.PGs), PHs(ngt.PHs){ PGs.updateFacets(); PHs.updateFacets(); }
+  ngon_t(const ngon_t& ngt) :PGs(ngt.PGs), PHs(ngt.PHs){ updateFacets(); }
 
   /// WARNING : need a call to clean_connectivity
   template <typename ELT>
@@ -138,6 +138,8 @@ struct ngon_t
   
   ///
   ngon_t(){}
+
+  void updateFacets() const { PGs.updateFacets(); PHs.updateFacets(); }
 
   bool is_consistent(E_Int max_node_id) const { 
     

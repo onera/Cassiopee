@@ -33,8 +33,10 @@ namespace K_INTERSECTOR
   PyObject* booleanIntersectionBorder(PyObject* self, PyObject* args);
   PyObject* booleanModifiedSolid(PyObject* self, PyObject* args);
   PyObject* DiffSurf(PyObject* self, PyObject* args);
-  PyObject* XcellNSurf(PyObject* self, PyObject* args);
+
+  PyObject* XcellN(PyObject* self, PyObject* args);
   PyObject* unify(PyObject* self, PyObject* args);
+  
   PyObject* P1ConservativeChimeraCoeffs(PyObject* self, PyObject* args);
 
   PyObject* selfX(PyObject* self, PyObject* args);

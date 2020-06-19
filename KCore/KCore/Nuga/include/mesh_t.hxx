@@ -168,7 +168,16 @@ struct connect_trait<SURFACIC, false>
     }
   }
     
-  static void compress(cnt_t&c, const std::vector<bool>& ikeep){ 
+  static cnt_t compress_(cnt_t const& c, const std::vector<int>& keepids, int index_start)
+  {
+    std::vector<E_Int> oids;
+    ngon_unit pgs;
+    c.extract(keepids, pgs, oids, index_start);
+    return pgs;
+  }
+
+  static void compress(cnt_t&c, const std::vector<bool>& ikeep)
+  {
     K_CONNECT::keep<bool> pred(ikeep);
     Vector_t<E_Int> pgnids, pgoids;
     ngon_unit pgs;
@@ -182,11 +191,26 @@ struct connect_trait<SURFACIC, false>
     ngon_type::compact_to_used_nodes(c, crd);
   }
 
+  static K_FLD::FloatArray compact_to_used_nodes(cnt_t&c, K_FLD::FloatArray const & crdi, std::vector<E_Int>& nids)
+  {
+    return ngon_type::compress_to_used_nodes(c, crdi, nids);
+  }
+
   static void compute_nodal_tolerance(const K_FLD::FloatArray& crd, const cnt_t& cnt, std::vector<E_Float>& nodal_tolerance)
   {
     K_FLD::FloatArray L;
     K_CONNECT::MeshTool::computeIncidentEdgesSqrLengths(crd, cnt, L);
     L.extract_field(0, nodal_tolerance); // 0: extract the min
+  }
+
+  static void reverse_orient(cnt_t&c)
+  {
+    for (E_Int PGi = 0; PGi < c.size(); ++PGi)
+    {
+      E_Int s = c.stride(PGi);
+      E_Int* p = c.get_facets_ptr(PGi);
+      std::reverse(p, p + s);
+    }
   }
 };
 
@@ -206,9 +230,99 @@ struct connect_trait<VOLUMIC, false>
   static void shift(cnt_t& c, int v) { c.PGs.shift(v);}
   static void unique_indices(const cnt_t& c, std::vector<E_Int>& uinds) { c.PGs.unique_indices(uinds);}
 
+  template <typename ELT_t> static void add(K_FLD::FloatArray& crd, cnt_t& c, ELT_t const& e)
+  {
+    E_Int ptshift = crd.cols();
+    E_Int npgs0 = c.PGs.size();
+    E_Int nphs0 = c.PHs.size();
+
+    crd.pushBack(e.m_crd);
+    c.PGs.append(e.m_pgs);
+    c.PGs.shift(ptshift, npgs0);
+    c.PHs.add(e.m_faces.size(), &e.m_faces[0], npgs0);
+  }
+
   static void build_neighbors(const cnt_t& c, neighbor_t& neighbors)
   {
     c.build_ph_neighborhood(neighbors);
+  }
+
+  static void get_boundary(cnt_t& c, ngon_unit& bc)
+  {
+    c.flag_externals(INITIAL_SKIN);
+    Vector_t<E_Int> oids;
+    c.PGs.extract_of_type(INITIAL_SKIN, bc, oids);
+  }
+  static void get_boundary(cnt_t& c, ngon_unit& bc, std::vector<E_Int>& ancestors)
+  {
+    c.flag_externals(INITIAL_SKIN);
+    Vector_t<E_Int> oids;
+    c.PGs.extract_of_type(INITIAL_SKIN, bc, oids);
+
+    ancestors.clear();
+    ancestors.resize(c.PGs.size(), E_IDX_NONE);
+    for (E_Int i = 0; i < c.PHs.size(); ++i)
+    {
+      E_Int s = c.PHs.stride(i);
+      const E_Int* f = c.PHs.get_facets_ptr(i);
+
+      for (E_Int j = 0; j < s; ++j)
+        ancestors[f[j] - 1] = i;
+    }
+
+    std::vector<E_Int> new_anc(bc.size(), E_IDX_NONE);
+    for (size_t i = 0; i < new_anc.size(); ++i) new_anc[i] = ancestors[oids[i]];
+    ancestors = new_anc;
+  }
+
+  static cnt_t compress_(cnt_t const& c, const std::vector<int>& keepids, int index_start)
+  {
+    std::vector<E_Int> oids;
+    cnt_t ng;
+    c.PHs.extract(keepids, ng.PHs, oids, index_start);
+
+    ng.PGs = c.PGs;
+
+    Vector_t<E_Int> pgnids, phnids;
+    ng.remove_unreferenced_pgs(pgnids, phnids);
+
+    return ng;
+  }
+
+  static void compress(cnt_t&c, const std::vector<bool>& ikeep)
+  {
+    K_CONNECT::keep<bool> pred(ikeep);
+    Vector_t<E_Int> pgnids, pgoids;
+    ngon_unit phs;
+    c.PHs.extract_by_predicate(pred, phs, pgoids, pgnids);
+    c.PHs = phs;
+
+    Vector_t<E_Int> phnids;
+    c.remove_unreferenced_pgs(pgnids, phnids);
+  }
+
+  static void compress(ngon_unit& neigh, const std::vector<bool>& ikeep)
+  {
+    connect_trait<SURFACIC, false>::compress(neigh, ikeep);
+  }
+
+  static void compact_to_used_nodes(cnt_t& c, K_FLD::FloatArray& crd, std::vector<E_Int>& nids)
+  {
+    nids.clear();
+    ngon_type::compact_to_used_nodes(c.PGs, crd);
+  }
+
+  static K_FLD::FloatArray compact_to_used_nodes(cnt_t&c, K_FLD::FloatArray const & crdi, std::vector<E_Int>& nids)
+  {
+    return ngon_type::compress_to_used_nodes(c.PGs, crdi, nids);
+  }
+
+  static void compute_nodal_tolerance(const K_FLD::FloatArray& crd, const cnt_t& c, std::vector<E_Float>& nodal_tolerance)
+  {
+    // should be factorized in a behaviour class
+    K_FLD::FloatArray L;
+    K_CONNECT::MeshTool::computeIncidentEdgesSqrLengths(crd, c.PGs, L);
+    L.extract_field(0, nodal_tolerance); // 0: extract the min
   }
 };
 
@@ -242,17 +356,18 @@ struct mesh_t
   mutable std::vector<E_Float> nodal_tolerance; // square dist
   mutable loc_t*               localiz;
   mutable neighbor_t*          neighbors;
-
+  int                         oriented;
 
   // CONSTRUCTORS / DESTRUCTOR //
 
-  mesh_t():localiz(nullptr), neighbors(nullptr){}
+  mesh_t():localiz(nullptr), neighbors(nullptr), oriented(0){}
 
-  mesh_t(const K_FLD::FloatArray &crd, const K_FLD::IntArray& cnt):crd(crd),cnt(cnt), localiz(nullptr), neighbors(nullptr){}
+  mesh_t(const K_FLD::FloatArray &crd, const K_FLD::IntArray& cnt, int orient=0):crd(crd),cnt(cnt), localiz(nullptr), neighbors(nullptr), oriented(orient){}
   
   mesh_t& operator=(const mesh_t&m)
   {
     crd = m.crd; cnt = m.cnt;
+    oriented = m.oriented;
     
     // these attribute are rferring to a previous state
     if (localiz != nullptr) delete localiz;
@@ -278,6 +393,7 @@ struct mesh_t
   {
     crd = std::move(m.crd);
     cnt = std::move(m.cnt);
+    oriented = m.oriented;
 
     // these attribute are rferring to a previous state
     if (localiz != nullptr) delete localiz;
@@ -301,8 +417,10 @@ struct mesh_t
 
   mesh_t(const mesh_t& m, std::vector<E_Int>& ids, int idx_start) :cnt(trait::compress_(m.cnt, ids, idx_start)), localiz(nullptr), neighbors(nullptr)
   {
+    // fixme : hpc issue for more than lineic
     std::vector<E_Int> nids;
     crd = trait::compact_to_used_nodes(cnt, m.crd, nids);
+    oriented = m.oriented;
 
     nodal_tolerance = K_CONNECT::IdTool::compact_(m.nodal_tolerance, nids); //sync the tolerance 
 
@@ -316,7 +434,7 @@ struct mesh_t
 
   // to create a bound mesh from a "parent" mesh
   template <bool USTRIDE>
-  mesh_t(const mesh_t<eGEODIM(GEODIM+1), USTRIDE>& parent_mesh):crd(crd), localiz(nullptr), neighbors(nullptr)
+  mesh_t(const mesh_t<eGEODIM(GEODIM+1), USTRIDE>& parent_mesh):crd(crd), localiz(nullptr), neighbors(nullptr), oriented(parent_mesh.oriented)
   {
     parent_mesh.get_boundary<FIXSTRIDE>(*this);
   }
@@ -352,7 +470,7 @@ struct mesh_t
   //
 
   template <bool BSTRIDE>
-  void get_boundary(bound_mesh_t<BSTRIDE>& bound_mesh) const 
+  void get_boundary(bound_mesh_t<BSTRIDE>& bound_mesh) 
   {
     trait::get_boundary(cnt, bound_mesh.cnt);
     bound_mesh.crd = crd;
@@ -363,7 +481,7 @@ struct mesh_t
 
   ///
   template <bool BSTRIDE>
-  void get_boundary(bound_mesh_t<BSTRIDE>& bound_mesh, std::vector<int>& ancestors) const 
+  void get_boundary(bound_mesh_t<BSTRIDE>& bound_mesh, std::vector<int>& ancestors) 
   {
     trait::get_boundary(cnt, bound_mesh.cnt, ancestors);
     bound_mesh.crd = crd;
@@ -399,6 +517,7 @@ struct mesh_t
   void reverse_orient()
   {
     trait::reverse_orient(cnt);
+    if (oriented != 0) oriented = -oriented;
   }
   
   ///
@@ -480,9 +599,19 @@ struct mesh_t
     elt_t e =element(i);
     
     if (not nodal_tolerance.empty())
-      return e.L2ref(nodal_tolerance);
+      return e.L2ref(nodal_tolerance); // taking into acount surrounding elements
     // otherwise only based on this element
-    return e.L2ref(crd);
+    return e.L2ref(crd);               // isolated val
+  }
+
+  double L2ref(const std::vector<E_Int>& cands, E_Int idx_start) const
+  {
+    double val = K_CONST::E_MAX_FLOAT;
+    for (size_t i = 0; i < cands.size(); ++i)
+    {
+      val = std::min(val, L2ref(cands[i] - idx_start));
+    }
+    return val;
   }
   
   // WARNING : if T=bool, use predicate compress, if T=int, use keep as a list of indices to keep

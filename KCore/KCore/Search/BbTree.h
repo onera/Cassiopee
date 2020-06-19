@@ -103,7 +103,7 @@ public:
     return *this;
   }
 
-  bool is_included(const BoundingBox& rhs)
+  bool is_included(const BoundingBox& rhs) const
   {
     for (E_Int i = 0; i < DIM; ++i)
     {
@@ -128,6 +128,16 @@ public:
     maxB[0] += Lref;
     maxB[1] += Lref;
     maxB[2] += Lref;
+  }
+
+  void merge(const BoundingBox& b)
+  {
+    minB[0] = std::min(minB[0], b.minB[0]);
+    minB[1] = std::min(minB[1], b.minB[1]);
+    minB[2] = std::min(minB[2], b.minB[2]);
+    maxB[0] = std::max(maxB[0], b.maxB[0]);
+    maxB[1] = std::max(maxB[1], b.maxB[1]);
+    maxB[2] = std::max(maxB[2], b.maxB[2]);
   }
 
   static bool intersection(const BoundingBox& b1, const BoundingBox& b2, BoundingBox& b)

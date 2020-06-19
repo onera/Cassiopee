@@ -2186,7 +2186,7 @@ PyObject* K_INTERSECTOR::getOverlappingFaces(PyObject* self, PyObject* args)
   
   ngon_type ng1(cnt1), ng2(cnt2);
 
-  std::vector<E_Int> isx1, isx2;
+  std::vector<NUGA::COLLIDE::eOVLPTYPE> isx1, isx2;
     
   using tree_t = K_SEARCH::BbTree3D;
     
@@ -2210,7 +2210,7 @@ PyObject* K_INTERSECTOR::getOverlappingFaces(PyObject* self, PyObject* args)
   AMAX = std::min(K_CONST::E_PI, AMAX);
   double PS_MIN = ::cos(AMAX);
 
-  NUGA::COLLIDE::compute_overlap<K_MESH::Polygon, K_MESH::Polygon>(crd1, ng1.PGs, crd2, ng2.PGs, localiz, PS_MIN, isx1, isx2, RTOL, true/*shuffle triangulation*/, pdir2);
+  NUGA::COLLIDE::compute_overlap<K_MESH::Polygon, K_MESH::Polygon>(crd1, ng1.PGs, crd2, ng2.PGs, localiz, isx1, isx2, RTOL, PS_MIN, true/*shuffle triangulation*/, pdir2);
 
 #ifdef FLAG_STEP
   std::cout << "v0 : " << c.elapsed() << std::endl;

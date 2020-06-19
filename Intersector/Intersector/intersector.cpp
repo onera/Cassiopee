@@ -37,9 +37,12 @@ static PyMethodDef Pyintersector [] =
   {"booleanIntersectionBorder", K_INTERSECTOR::booleanIntersectionBorder, METH_VARARGS},
   {"booleanModifiedSolid", K_INTERSECTOR::booleanModifiedSolid, METH_VARARGS},
   {"DiffSurf", K_INTERSECTOR::DiffSurf, METH_VARARGS},
-  {"XcellNSurf", K_INTERSECTOR::XcellNSurf, METH_VARARGS},
+
+  {"XcellN", K_INTERSECTOR::XcellN, METH_VARARGS},
   {"unify", K_INTERSECTOR::unify, METH_VARARGS},
+  
   {"P1ConservativeChimeraCoeffs", K_INTERSECTOR::P1ConservativeChimeraCoeffs, METH_VARARGS},
+  
   {"selfX", K_INTERSECTOR::selfX, METH_VARARGS},
   {"triangulateExteriorFaces", K_INTERSECTOR::triangulateExteriorFaces, METH_VARARGS},
   {"triangulateSpecifiedFaces", K_INTERSECTOR::triangulateSpecifiedFaces, METH_VARARGS},
@@ -183,16 +186,16 @@ E_Int K_INTERSECTOR::check_is_of_type(const std::vector<std::string>& types, PyO
   bool err = (res !=2);
 
   for (size_t i=0; (i < types.size()) && !err; ++i)
-    err |= (strcmp(eltType, types[i].c_str()) != 0);
+    err &= (strcmp(eltType, types[i].c_str()) != 0);
 
   if (err)
   {
     std::stringstream o;
-    o << "input error : invalid array, must be a ";
+    o << "input error : " << eltType << " is an invalid array, must be a ";
     for (size_t i=0; i < types.size()-1; ++i){
-      o << types[i] << ",";
+      o << types[i] << ", ";
     }
-    o << types[types.size()-1] << "array." ;
+    o << types[types.size()-1] << " array." ;
     PyErr_SetString(PyExc_TypeError, o.str().c_str());//fixme triangulateExteriorFaces : PASS A STRING AS INPUT
     //delete f1; delete cn1;
     //f1 = nullptr; cn1 = nullptr;
@@ -284,35 +287,36 @@ E_Int K_INTERSECTOR::get_of_type
 E_Int K_INTERSECTOR::check_is_NGON(PyObject* arr, K_FLD::FloatArray*& f1, K_FLD::IntArray*& cn1, char*& varString, char*& eltType)
 {
   std::vector<std::string> types;
-  types.push_back("NGON");
+  types.push_back(std::string("NGON"));
   return check_is_of_type(types, arr, f1, cn1, varString, eltType);
 }
 
 E_Int K_INTERSECTOR::getFromNGON(PyObject* arr, K_FLD::FloatArray& f1, bool only_coords, K_FLD::IntArray& cn1, char*& varString, char*& eltType)
 {
   std::vector<std::string> types;
-  types.push_back("NGON");
+  types.push_back(std::string("NGON"));
   return get_of_type(types, arr, f1, only_coords, cn1, varString, eltType);
 }
 
 E_Int K_INTERSECTOR::check_is_BAR(PyObject* arr, K_FLD::FloatArray*& f1, K_FLD::IntArray*& cn1, char*& varString, char*& eltType)
 {
   std::vector<std::string> types;
-  types.push_back("BAR");
+  types.push_back(std::string("BAR"));
   return check_is_of_type(types, arr, f1, cn1, varString, eltType);
 }
 
 E_Int K_INTERSECTOR::getFromBAR(PyObject* arr, K_FLD::FloatArray& f1, bool only_coords, K_FLD::IntArray& cn1, char*& varString, char*& eltType)
 {
   std::vector<std::string> types;
-  types.push_back("BAR");
+  types.push_back(std::string("BAR"));
   return get_of_type(types, arr, f1, only_coords, cn1, varString, eltType);
 }
 
 E_Int K_INTERSECTOR::check_is_BASICF(PyObject* arr, K_FLD::FloatArray*& f1, K_FLD::IntArray*& cn1, char*& varString, char*& eltType)
 {
   std::vector<std::string> types;
-  types.push_back("TRI");
-  types.push_back("QUAD");
+  types.push_back(std::string("TRI"));
+  types.push_back(std::string("QUAD"));
+
   return check_is_of_type(types, arr, f1, cn1, varString, eltType);
 }

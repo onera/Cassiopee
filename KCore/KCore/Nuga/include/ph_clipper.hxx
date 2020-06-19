@@ -21,11 +21,12 @@
 #include "Nuga/include/collider.hxx"
 #include "Nuga/Boolean/TRI_Conformizer.h"
 
-#ifdef DEBUG_UNIFY
-#include "Nuga/Boolean/NGON_debug.h"
-using NGDBG = NGON_debug<K_FLD::FloatArray, K_FLD::IntArray>;
+#ifdef DEBUG_CLIPPER
+//#include "Nuga/Boolean/NGON_debug.h"
+//using NGDBG = NGON_debug<K_FLD::FloatArray, K_FLD::IntArray>;
+#include "medit.hxx"
 #endif
-//#include "medit.hxx"
+
 
 enum ePGType { ANY=-8, BCWALL=1, WALL1 = 7};
 
@@ -83,7 +84,9 @@ namespace NUGA
           double ps = K_FUNC::dot<3>(n1,n2);
           if (::fabs(ps) < ps_min) continue;
 
-#ifdef DEBUG_UNIFY
+          //std::cout << "ps : " << ps << std::endl;
+
+#ifdef DEBUG_CLIPPER
           /*if (dbg)
           {
             {
@@ -116,7 +119,7 @@ namespace NUGA
       
       K_CONNECT::IdTool::compact (oe2.faces(), oe2.nb_faces()/*IO!*/, keep.get()/*, Vector2& new_Ids*/);
 
-#ifdef DEBUG_UNIFY
+#ifdef DEBUG_CLIPPER
 //        {
 //          std::vector<E_Int> ids;
 //          const E_Int* faces = oe2.faces();
@@ -128,9 +131,11 @@ namespace NUGA
     
     ///
     template <typename acrd_t, typename ELT1, typename ELT2>
-    E_Int isolated_clip(const acrd_t& acrd1, ELT1& subj, bool inward1, const acrd_t& acrd2, ELT2& cutter, E_Float ps_min, E_Float RTOL, NUGA::haPolyhedron<UNKNOWN>& result, E_Int& contact, bool dbg)
+    E_Int isolated_clip(const acrd_t& acrd1, const ELT1& subj, bool inward1, const acrd_t& acrd2, ELT2& cutter, E_Float ps_min, E_Float RTOL, NUGA::haPolyhedron<UNKNOWN>& result, E_Int& contact, bool& true_clip, bool dbg)
     {
       E_Int err(0);
+
+      true_clip = false;
       
       result.clear();
 
@@ -140,7 +145,7 @@ namespace NUGA
       if( L.cols() == 0) return 1;
 
       //E_Int nb_faces1 = subj.nb_faces();
-      E_Int& nb_faces2 = cutter.nb_faces();
+      E_Int &nb_faces2 = cutter.nb_faces();
 
       if (ps_min > 0.) //discard any "overlapping" PG in e2 (the more ps_min tends to 1, the more 'overlapping' has a meaning)
         discard_overlaps(acrd1, subj, inward1, acrd2, cutter, RTOL, L, ps_min, contact, dbg); //cutter is filtered
@@ -195,7 +200,7 @@ namespace NUGA
           type[nb_tris1 + i] = cutter._pgs->_type[ancPG2[i]];
       
       //medith::write("triangles.mesh", crd, cT3, "TRI");
-#ifdef DEBUG_UNIFY
+#ifdef DEBUG_CLIPPER
       if (dbg){
         medith::write("triangles.mesh", crd, cT3, "TRI");
         std::cout << crd << std::endl;
@@ -215,7 +220,7 @@ namespace NUGA
       
       //conformizer._brute_force=true;
 
-#ifdef DEBUG_UNIFY
+#ifdef DEBUG_CLIPPER
       conformizer._silent_errors = false;
 #else
       conformizer._silent_errors = true;
@@ -232,10 +237,25 @@ namespace NUGA
 
       if (cT3.cols() == nb_tris0) return 0 ;// no intersections => fully visible or hidden
 
-#ifdef DEBUG_UNIFY
+      true_clip = true;
+
+#ifdef DEBUG_CLIPPER
       if (dbg)
         medith::write("conformized.mesh", crd, cT3, "TRI", 0, &ancT3);
 #endif
+
+      // duplicates
+      {
+        E_Int nbt3o = cT3.cols();
+        std::vector<E_Int> dupids;
+        K_CONNECT::MeshTool::removeDuplicated(cT3, dupids, false/*strict orient*/);
+
+        if (cT3.cols() < nbt3o) // update ancT3
+        {
+          K_CONNECT::unchanged pred(dupids);
+          K_CONNECT::IdTool::compress(ancT3, pred);
+        }
+      }
 
       // update type
       {
@@ -245,7 +265,7 @@ namespace NUGA
           new_type[i] = type[ancT3[i]];
         type = new_type;
       }
-      
+
       // keep relevant pieces
       K_FLD::IntArray neighbors, neighbors_cpy;
       err = K_CONNECT::EltAlgo<K_MESH::Triangle>::getNeighbours (cT3, neighbors, false/*means put somthing on manifolds to distinguish them from free edges*/);
@@ -287,7 +307,7 @@ namespace NUGA
       K_FLD::IntArray::changeIndices(neighbors, nids);
 
       //std::cout << neighbors << std::endl;
-#ifdef DEBUG_UNIFY
+#ifdef DEBUG_CLIPPER
       if (dbg){
         K_CONNECT::IdTool::compress(ancT3, pred);
         medith::write("reduced.mesh", crd, cT3, "TRI", 0, &ancT3);
@@ -309,8 +329,8 @@ namespace NUGA
       K_FLD::ArrayAccessor<K_FLD::IntArray> acnt(cT3);
       K_CONNECT::MeshTool::compute_or_transfer_normals(acrd, acnt, *cutter.pgs()/*fixme!!!!*/, ancPG2, normals);
       
-#ifdef DEBUG_UNIFY
-      if (dbg) TRI_debug::write_wired("oriented.mesh", crd, cT3, true);
+#ifdef DEBUG_CLIPPER
+      //if (dbg) TRI_debug::write_wired("oriented.mesh", crd, cT3, true);
 #endif
       
       // update neighbors at non-manifold edges
@@ -355,6 +375,7 @@ namespace NUGA
         for (size_t j=1; j < T3s.size(); ++j)
         {
           E_Int& Kj = T3s[j];
+          //std::cout << "Kj : " << cT3(0, Kj) << "/" << cT3(1, Kj) << "/" << cT3(2, Kj) << std::endl;
           //finding out Ap and use the right orientation for Ki.
           E_Int* pS = cT3.col(Kj);
           E_Int i0 = K_MESH::Triangle::getLocalNodeId(pS, E0);
@@ -373,7 +394,7 @@ namespace NUGA
           E_Float q = K_CONNECT::GeomAlgo<K_MESH::Triangle>::angle_measure(normals.col(K0), normj, crd.col(E0), crd.col(E1));
           if (q == ERRORVAL)
           {
-#if defined (DEBUG_UNIFY)
+#if defined (DEBUG_CLIPPER)
             //std::cout << "ERROR at edge E0E1 : " << E0 << "/" << E1 << std::endl;
             //std::cout << "The conformizer missed some intersections there." << std::endl;
 #endif
@@ -387,7 +408,7 @@ namespace NUGA
         std::sort(ALL(palmares));
         E_Int sz = (E_Int)palmares.size();
         
-#if defined (DEBUG_UNIFY)
+#if defined (DEBUG_CLIPPER)
         if (err)  
         {  
           K_FLD::IntArray sorted_cnt;
@@ -414,7 +435,7 @@ namespace NUGA
           {
             std::ostringstream o;
             o << "Wsorted_on_edge_" << E0 << "_" << E1 << ".mesh";
-            TRI_debug::write_wired(o.str().c_str(), crd, cT3, normals, 0, &keep,true);
+            //TRI_debug::write_wired(o.str().c_str(), crd, cT3, normals, 0, &keep,true);
           }
         }
 #endif
@@ -447,14 +468,14 @@ namespace NUGA
       K_CONNECT::EltAlgo<K_MESH::Triangle>::coloring_pure(neighbors, T3_to_PHT3);
       E_Int nb_bits = *std::max_element(ALL(T3_to_PHT3))+1;
       
-//#ifdef DEBUG_UNIFY
+//#ifdef DEBUG_CLIPPER
 //      std::vector<bool> kp(cT3.cols(), false);
 //      kp[26]=true;
 //      MIO::write("k26.mesh", crd, cT3, "TRI", &kp/*, &colors*/);
 //      TRI_debug::coloring_frames(crd, cT3, neighbors, 0);
 //#endif
  
-#ifdef DEBUG_UNIFY
+#ifdef DEBUG_CLIPPER
 //      std::map<E_Int, Vector_t<E_Int> > PHT3s;
 //      E_Int sz1(cT3.getSize());
 //      for (E_Int i = 0; i < sz1; ++i)
@@ -484,18 +505,25 @@ namespace NUGA
       }
 
       nb_t3 = cT3.cols();
+      if (nb_t3 == 0)
+      {
+        result.clear();
+        return 0;
+      }
       
       // build the output ph
 
       result.m_crd = crd;
-      if (dbg) std::cout << crd << std::endl;
+      //if (dbg) std::cout << crd << std::endl;
       //std::cout << cT3 << std::endl;
 
       const std::vector<E_Int>& xpoids = conformizer.get_node_history();
       result.poids = xpoids;
       result.poids.resize(crd.cols(), E_IDX_NONE);//fixme : ?????
 
-      //medith::write("/home/slandier/tmp/cutT3.mesh", crd, cT3, "TRI");
+#ifdef DEBUG_CLIPPER
+      medith::write("cutT3", crd, cT3, "TRI");
+#endif
 
       ngon_unit::convert_fixed_stride_to_ngon_unit(cT3, 1, result.m_pgs);
 

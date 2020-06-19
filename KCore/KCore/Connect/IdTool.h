@@ -47,6 +47,7 @@ public:
   static void reverse_sorting(Vector_t<E_Int> & vec);
   ///
   static void negative (Vector_t<bool>& flag);
+  static void negative(Vector_t<E_Int>& flag);
   ///
   static void propagate(const Vector_t<E_Int>& nids, Vector_t<E_Int>& oids);
   /// Convert a flag array to a corresponding compacted indirection old_to_new

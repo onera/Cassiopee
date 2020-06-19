@@ -58,10 +58,10 @@ public:
   using boundary_type = K_MESH::Polygon;
   
 public:
-  ngon_unit* _pgs;
-  E_Int* _faces;
+  const ngon_unit* _pgs;
+  const E_Int* _faces;
   E_Int _nb_faces;
-  E_Int* _triangles;
+  mutable E_Int* _triangles;
     
 public:
   
@@ -70,7 +70,7 @@ public:
   Polyhedron(ngon_unit* pgs, E_Int* faces, E_Int nb_faces):_pgs(pgs), _faces(faces), _nb_faces(nb_faces), _triangles(nullptr){}
   
   template <typename ngo_t>
-  Polyhedron(ngo_t& ng, E_Int i):_pgs(&ng.PGs), _faces(ng.PHs.get_facets_ptr(i)), _nb_faces(ng.PHs.stride(i)), _triangles(nullptr){}
+  Polyhedron(const ngo_t& ng, E_Int i):_pgs(&ng.PGs), _faces(ng.PHs.get_facets_ptr(i)), _nb_faces(ng.PHs.stride(i)), _triangles(nullptr){}
 
   void set(ngon_unit* pgs, E_Int* faces, E_Int nb_faces){_pgs = pgs; _faces = faces; _nb_faces = nb_faces; if (_triangles != nullptr) {delete [] _triangles;_triangles = nullptr;}/*fixme : just set it as PGS is pure T3*/}
   
@@ -91,10 +91,10 @@ public:
   E_Int nb_faces() const { return _nb_faces;}
   E_Int& nb_faces() { return _nb_faces;}
   const E_Int* faces() const {return _faces;}
-  E_Int* faces() {return _faces;}
-  const ngon_unit* pgs() {return _pgs;}
-  const E_Int* nodes(E_Int Fi) { return _pgs->get_facets_ptr(_faces[Fi]-1);}
-  E_Int nb_nodes(E_Int Fi) { return _pgs->stride(_faces[Fi]-1);}
+  
+  const ngon_unit* pgs() const {return _pgs;}
+  const E_Int* nodes(E_Int Fi) const { return _pgs->get_facets_ptr(_faces[Fi]-1);}
+  E_Int nb_nodes(E_Int Fi) const { return _pgs->stride(_faces[Fi]-1);}
   
   ///
   template <typename CoordAcc>
@@ -146,7 +146,7 @@ public:
 
   }
   
-  template<typename box_t, typename CoordAcc>
+  template<typename CoordAcc>
   void iso_barycenter(const CoordAcc& acrd, E_Float* G, E_Int index_start) const
   {
     for (size_t d = 0; d < 3; ++d) G[d] = 0.;
@@ -261,12 +261,6 @@ public:
       std::reverse(p, p + s);
     }
   }
-  
-  void reverse()
-  {
-    reverse(*_pgs, _faces, _nb_faces);
-  }
-  
   
   static inline void reorient_PHT3(K_FLD::IntArray& connectT3)
   {
@@ -1335,6 +1329,40 @@ public:
     return has_bfl;
   }
 
+  double L2ref(const K_FLD::FloatArray& crd) const
+  {
+    double val = K_CONST::E_MAX_FLOAT;
+    for (E_Int i = 0; i < _nb_faces; ++i)
+    {
+      E_Int PGi = *(_faces + i) - 1;
+      const E_Int* nodes = _pgs->get_facets_ptr(PGi);
+      E_Int nb_nodes = _pgs->stride(PGi);
+
+      K_MESH::Polygon PG(nodes, nb_nodes, -1);
+      E_Float Lmin2, Lmax2;
+      PG.edge_length_extrema(crd, Lmin2, Lmax2);
+
+      val = std::min(val, Lmin2);
+    }
+    return val;
+  }
+
+  double L2ref(const std::vector<E_Float>& nodal_tol2) const
+  {
+    double val = K_CONST::E_MAX_FLOAT;
+    for (E_Int i = 0; i < _nb_faces; ++i)
+    {
+      E_Int PGi = *(_faces + i) - 1;
+      const E_Int* nodes = _pgs->get_facets_ptr(PGi);
+      E_Int nb_nodes = _pgs->stride(PGi);
+
+      double L2r = K_MESH::Polygon::L2ref(nodes, nb_nodes, nodal_tol2, -1);
+
+      val = std::min(val, L2r);
+    }
+    return val;
+  }
+
   ///
   template<typename TriangulatorType>
   static E_Int metrics2
@@ -1345,6 +1373,8 @@ public:
     V=K_CONST::E_MAX_FLOAT;
     typedef K_FLD::ArrayAccessor<K_FLD::FloatArray> acrd_t;
     acrd_t acrd(crd);
+
+    /* commented because does not give the correct sign
 
     bool is_th4=false;
 
@@ -1371,7 +1401,7 @@ public:
 
         return 0;
       }
-    }
+    }*/
     
     // get local and oriented
     ngon_unit opgs;
@@ -1419,7 +1449,7 @@ public:
   }
   
   template<typename TriangulatorType>
-  E_Int volume(const K_FLD::FloatArray&crd, E_Float& v, bool need_reorient)
+  E_Int volume(const K_FLD::FloatArray&crd, E_Float& v, bool need_reorient) const
   {
     return volume<TriangulatorType>(crd, *_pgs, _faces, _nb_faces, v, need_reorient);
   }
@@ -1488,7 +1518,7 @@ public:
    ///
   template <typename TriangulatorType, typename crd_t>
   E_Int triangulate
-    (const TriangulatorType& dt, const crd_t& crdi)
+    (const TriangulatorType& dt, const crd_t& crdi) const
   {
     if (_triangles != nullptr) delete _triangles;
 
@@ -1542,7 +1572,7 @@ public:
     
   }
   
-  inline void get_triangle_oids(std::vector<E_Int>& oids)
+  inline void get_triangle_oids(std::vector<E_Int>& oids) const
   {
     oids.clear();
     oids.resize(nb_tris());

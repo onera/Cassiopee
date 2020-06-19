@@ -366,14 +366,14 @@ E_Int ngon_unit::remove_facets(const Vector_t<E_Int>& nfacids, Vector_t<E_Int>& 
 }
   
 ///
-void ngon_unit::shift(E_Int val)
+void ngon_unit::shift(E_Int val, E_Int from)
 {
   if (val == 0) return;
 
   updateFacets();
 
   size_t sz(_facet.size()), nb_nodes;  
-  for (size_t i = 0; i < sz; ++i)
+  for (size_t i = from; i < sz; ++i)
   {
     nb_nodes = stride(i);
     E_Int* ptr = get_facets_ptr(i);

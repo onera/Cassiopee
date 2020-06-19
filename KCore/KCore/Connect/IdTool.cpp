@@ -98,6 +98,10 @@ namespace K_CONNECT
   {
     for (size_t i = 0; i < flag.size(); ++i)flag[i]=!flag[i];
   }
+  void IdTool::negative(Vector_t<E_Int>& flag)
+  {
+    for (size_t i = 0; i < flag.size(); ++i)flag[i] = -flag[i];
+  }
   
   ///
   void IdTool::propagate(const Vector_t<E_Int>& nids, Vector_t<E_Int>& oids)

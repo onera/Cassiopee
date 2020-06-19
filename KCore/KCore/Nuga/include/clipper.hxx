@@ -18,6 +18,9 @@
 #include "Nuga/Boolean/BAR_Conformizer.h"
 #include "Nuga/Delaunay/T3Mesher.h"
 
+#include "Nuga/include/ph_clipper.hxx"
+
+
 #ifdef DEBUG_CLIPPER
 #include "Nuga/include/medit.hxx"
 #endif
@@ -27,12 +30,22 @@ namespace NUGA
   namespace CLIP
   {
     using crd_t = K_FLD::FloatArray;
-    using cnt_t = K_FLD::IntArray;
 
-    inline E_Int isolated_clip(const crd_t& crd1, const crd_t& crd2, const cnt_t& cutter, E_Float RTOL, std::vector<crd_t>& res, bool& true_clip)
+    template <typename aELT1, typename aELT2> //sub & cut are non const as they can be reoriented/reversed
+    inline E_Int isolated_clip(aELT1& sub, aELT2& cut, E_Float RTOL, std::vector<aELT1>& res, bool& true_clip);
+
+    template <>
+    inline E_Int isolated_clip<aPolygon, edge_mesh_t>(aPolygon& sub, edge_mesh_t& cut, E_Float RTOL, std::vector<aPolygon>& bits, bool& true_clip)
     {
+      using cnt_t = K_FLD::IntArray;
+      const crd_t& crd1 = sub.m_crd;
+      const crd_t& crd2 = cut.crd;
+      const cnt_t& cutter = cut.cnt;
+
       true_clip = false;
-      res.clear();
+      bits.clear();
+
+      std::vector<crd_t> crd_res; //intermediate format as crds
 
       E_Int nb_nodes = crd1.cols();
       cnt_t subj(2, nb_nodes);
@@ -58,6 +71,8 @@ namespace NUGA
       E_Int nb_pts1 = crd.cols();
       crd.pushBack(crd2);
       K_FLD::IntArray cnt(subj), cnt2(cutter);
+
+      connect_trait<LINEIC, true>::reverse_orient(cnt2);  // BOOLEAN DIFF
 
       cnt2.shift(nb_pts1);
       cnt.pushBack(cnt2);
@@ -243,7 +258,7 @@ namespace NUGA
         }
 
         std::vector<int> PGi;
-        res.resize(col_to_cntB.size());
+        crd_res.resize(col_to_cntB.size());
         int i = 0;
         std::vector<E_Int> nids;
         for (auto it = col_to_cntB.begin(); it != col_to_cntB.end(); ++it, ++i)
@@ -258,9 +273,9 @@ namespace NUGA
           BARSplitter::getSortedNodes(it->second, PGi);
 
           E_Int str = crd.rows();
-          res[i].reserve(str, PGi.size());
+          crd_res[i].reserve(str, PGi.size());
           for (size_t j = 0; j < PGi.size(); ++j)
-            res[i].pushBack(crd.col(PGi[j]), crd.col(PGi[j]) + str);
+            crd_res[i].pushBack(crd.col(PGi[j]), crd.col(PGi[j]) + str);
         }
       }
       else //connex
@@ -276,43 +291,64 @@ namespace NUGA
         // sort the nodes
         BARSplitter::getSortedNodes(cB, PGi);
 
-        res.resize(1);
+        crd_res.resize(1);
         E_Int str = crd.rows();
-        res[0].reserve(str, PGi.size());
+        crd_res[0].reserve(str, PGi.size());
  
         for (size_t j = 0; j < PGi.size(); ++j)
-          res[0].pushBack(crd.col(PGi[j]), crd.col(PGi[j]) + str);
+          crd_res[0].pushBack(crd.col(PGi[j]), crd.col(PGi[j]) + str);
       }
+
+      bits.reserve(crd_res.size());
+      std::move(ALL(crd_res), std::back_inserter(bits));
 
       return err;
     }
 
+    template <>
+    inline E_Int isolated_clip<aPolyhedron<0>, pg_smesh_t>(aPolyhedron<0>& sub, pg_smesh_t& cut, E_Float RTOL, std::vector<aPolyhedron<0>>& bits, bool& true_clip)
+    {
+      bool dbg(true);
+      using acrd_t = K_FLD::ArrayAccessor<K_FLD::FloatArray>;
+
+      bool inward1 = (cut.oriented == -1);
+      sub.reorient(false);
+
+      E_Float ps_min(1. - E_EPSILON);
+      E_Int contact;
+      
+      haPolyhedron<0> result;
+      aPolyhedron<0> cutter(cut.cnt, cut.crd);
+
+      acrd_t acrd1(sub.m_crd), acrd2(cutter.m_crd);
+
+      E_Int ret = NUGA::INTERSECT::isolated_clip(acrd1, sub, inward1, acrd2, cutter, ps_min, RTOL, result, contact, true_clip, dbg);
+      if (!result.empty())bits.push_back(result);
+      return ret;
+    }
+
+
     template <typename aELT1, typename aELT2>
-    bool compute(aELT1 const & subj, aELT2 const & cutter, std::vector<aELT1>& bits)
+    bool compute(aELT1 & subj, aELT2 & cutter, std::vector<aELT1>& bits)
     {
       bool true_clip(false);
-      std::vector<crd_t> res;
-
       double RTOL = 1.e-9;
       E_Int err(1);
       for (size_t i = 0; i < 8 && err; ++i)
       {
-        res.clear();
+        bits.clear();
         true_clip = false;
-        err = isolated_clip(subj.m_crd, cutter.crd, cutter.cnt, RTOL, res, true_clip);
+        err = isolated_clip(subj, cutter, RTOL, bits, true_clip);
         RTOL *= 10;
       }
 
-      bits.clear();
-
-      if (err || !true_clip) return false; // to classify with a I/O test (even in case of error => rougly good approx)
-
-      bits.reserve(res.size());
-      //for (size_t i = 0; i < res.size(); ++i)
-        //bits.push_back(std::move(res[i]));
-      std::move(ALL(res), std::back_inserter(bits));
+      if (err || !true_clip)
+      {
+        bits.clear();
+        return false; // to classify with a I/O test (even in case of error => roughly good approx)
+      }
  
-      return true_clip;
+      return true;// true_clip;
     }
 
     template<typename aelt_t>
@@ -381,14 +417,14 @@ namespace NUGA
           if (just_io) // try with inital box to catch the bounds and do i/o test
             mask_loc.get_candidates(bx0, cands, idx_start, RTOL);
 
+          //assert(!cands.empty());
+
           // autonomous cutter front
           bound_mesh_t acut_front(mask_bit, cands, idx_start);
 
-          acut_front.reverse_orient(); // BOOLEAN DIFF MODE
-
 #ifdef DEBUG_XCELLN
-          medith::write("subj", ae1.m_crd, &ae1.m_nodes[0], ae1.m_nodes.size(), 0);// or medith::write<ngon_type>("subj", z_mesh.crd, z_mesh.cnt, i);
-          medith::write("cutter_front", mask_bit.crd, mask_bit.cnt, cands, idx_start);
+          medith::write("subj", ae1);// or medith::write<ngon_type>("subj", z_mesh.crd, z_mesh.cnt, i);
+          medith::write("cutter_front", acut_front.crd, acut_front.cnt);
 #endif
           //CLIPPING
           tmpbits.clear();
@@ -399,7 +435,9 @@ namespace NUGA
           if (just_io)
           {
             assert(tmpbits.empty());
-            if (NUGA::CLASSIFY::classify(ae1, acut_front, true/*reversed*/, true/*unambiguous*/) == OUT)
+            NUGA::eClassify wher = NUGA::CLASSIFY::classify(ae1, acut_front, true/*unambiguous*/);
+            //std::cout << "where OUT ? " << (wher == OUT) << std::endl;
+            if (wher == OUT)
               continue; //will be considered with next front
           }
 

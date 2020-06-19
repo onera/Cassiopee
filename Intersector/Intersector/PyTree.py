@@ -312,44 +312,12 @@ def XcellN(t, priorities, output_type=0, rtol=0.05):
 
 #==============================================================================
 # _XcellN (in-place version)
-# IN: t: 3D NGON mesh
-# IN : priorities : one-to-one priorities between components
-# IN : output_type : 0 : binary mask; 1 : continuous mask (xcelln) ; 2 : clipped surface.
-# OUT: returns a 3D NGON surface mesh with the xcelln field (if output_type=0/1, the clipped surface with solution if output_type=2)
-#==============================================================================
-def _XcellN(t, priorities, output_type=0, rtol=0.05):
-    """Computes the weight coefficients of visibility for overset grid configurations as a field called xcelln, for both surface and volume mesh of any kind.
-    Usage : _XcellN(t, priorities [, output_type, rtol])"""
-    d = getTreeDim(t)
-    if d == 2:
-      _XcellNSurf(t, priorities, output_type, rtol)
-    elif d == 3:
-      print ('XcellN : not implemented yet for 3D')
-    else :
-      print ('XcellN : the input file contain mixed 2D/3D zones : not handled currently')
-
-#==============================================================================
-# XcellNSurf
-# IN: t: 3D NGON SURFACE mesh
-# IN : priorities : one-to-one priorities between components
-# IN : output_type : 0 : binary mask; 1 : continuous mask (xcelln) ; 2 : clipped surface.
-# OUT: returns a 3D NGON surface mesh with the xcelln field (if output_type=0/1, the clipped surface with solution if output_type=2)
-#==============================================================================
-def XcellNSurf(t, priorities, output_type=0, rtol=0.05):
-    """Computes the weight coefficients of visibility for overset grid configurations as a field called xcelln, for any kind of surface mesh.
-    Usage : XcellNSurf(t, priorities [, output_type, rtol])"""
-    tp = Internal.copyRef(t)
-    _XcellNSurf(tp, priorities, output_type, rtol)
-    return tp
-
-#==============================================================================
-# _XcellNSurf (in-place version)
 # IN: t: 3D NGON SURFACE mesh
 # IN : priorities : one-to-one priorities between components
 # IN : output_type : 0 : binary mask; 1 : continuous mask (xcelln) ; 2 : clipped surface. 
 # OUT: returns a 3D NGON surface mesh with the xcelln field (if output_type=0/1, the clipped surface with solution if output_type=2)
 #==============================================================================
-def _XcellNSurf(t, priorities, output_type=0, rtol=0.05):
+def _XcellN(t, priorities, output_type=0, rtol=0.05):
   """Computes the weight coefficients of visibility for overset grid configurations as a field called xcelln, for any kind of surface mesh.
   Usage : _XcellNSurf(t, priorities [, rtol])"""
 
@@ -362,8 +330,11 @@ def _XcellNSurf(t, priorities, output_type=0, rtol=0.05):
 
   WALLBCS = ['BCWall', 'BCWallInviscid','BCWallViscous', 'BCWallViscousIsothermal']
 
-  #t = T.reorderAll(t, dir=1)
-  #C.convertPyTree2File(t, 'reorederedt.cgns')
+  DIM = getTreeDim(t)
+  if DIM != 2 and DIM != 3:
+    print ('XcellN : the input file contain mixed 2D/3D zones : not handled currently')
+    return
+
   bases = Internal.getBases(t)
    #(BCs,BCNames,BCTypes) = C.getBCs(t)
 
@@ -373,16 +344,21 @@ def _XcellNSurf(t, priorities, output_type=0, rtol=0.05):
 
   boundaries = []
   wall_ids = []
+
+  DBG = False
+  dbgbounds = []
   
   # PREPARE INPUTS FOR ALL ZONES : boundaries and wall ids
+  bid=-1
   for b in bases:
     # we need to get the exteriorFace of the compnent (no inner joins), so :
     # if first zone is STRUCT, assume the entire base is STRUCT
     # in this case, convert in HEXA to do a join
     bz = Internal.getZones(b)
-    firstzonetype = Internal.getZoneDim(bz[0])[0]
+    dims = Internal.getZoneDim(bz[0])
+    firstzonetype = dims[0]
     #print(firstzonetype)
-    if Internal.getZoneDim(bz[0])[0] == 'Structured' :
+    if firstzonetype == 'Structured' :
       bj = C.convertArray2Hexa(b)
     else : bj = b
 
@@ -399,16 +375,41 @@ def _XcellNSurf(t, priorities, output_type=0, rtol=0.05):
       pass
     
     if nbf > 0 :
-      b_bounds = C.convertArray2Tetra(b_bounds) # to always have BARs even with NGON component
+      bid +=1
+      if dims[0] == 'Structured':
+        b_bounds = C.convertArray2Hexa(b_bounds)
+
+      if DBG == True : C.convertPyTree2File(b_bounds, 'bounds'+str(bid)+'.cgns')
+
+      if DIM == 3 : b_bounds = T.reorderAll(b_bounds, dir=1) # assume reordered inputs in 2D
+
+      if dims[3] == 'NGON' :
+        if DIM == 2 :
+          b_bounds = C.convertArray2Tetra(b_bounds) # to always have BARs even with NGON component
+        else:
+          bbzs = Internal.getZones(b_bounds)
+          dd = Internal.getZoneDim(bbzs[0])
+          #print(dd)
+          if dd[4] == 2:
+            b_bounds = XOR.convertNGON2DToNGON3D(b_bounds)
+      else:
+        if DIM == 3 :
+          b_bounds = convertBasic2NGONFaces(b_bounds)
+
       m_bounds = C.getFields(Internal.__GridCoordinates__, b_bounds)[0]
 
       walls = []
       for btype in WALLBCS:
         walls += C.extractBCOfType(b, btype)
       wallf = None
-      if len(walls) != 0: 
+      if len(walls) != 0:
+          if dims[0] == 'Structured':
+            walls = C.convertArray2Hexa(walls)
           walls = T.join(walls)
-          hook = C.createHook(b_bounds, function='elementCenters') # identifying edges
+          if DIM == 2:
+            hook = C.createHook(b_bounds, function='elementCenters') # identifying edges
+          else:
+            hook = C.createHook(b_bounds, function='faceCenters')
           wallf = C.identifyElements(hook, walls) # wallf are ids in boundaries
           wallf -= 1 # make it 0 based
     else:
@@ -445,7 +446,7 @@ def _XcellNSurf(t, priorities, output_type=0, rtol=0.05):
     zones = Internal.getZones(b)
     
     for z in zones:
-        z = convertNGON2DToNGON3D(z)
+        if DIM == 2 : z = convertNGON2DToNGON3D(z)
         c = C.getFields(Internal.__GridCoordinates__, z)[0]
         ngons.append(c)
         basenum.append(base_id)
@@ -453,7 +454,7 @@ def _XcellNSurf(t, priorities, output_type=0, rtol=0.05):
   #print(wall_ids)
 
   # COMPUTE THE COEFFS PER ZONE (PARALLEL OMP PER ZONE)
-  xcellns = XOR.XcellNSurf(ngons, basenum, boundaries, wall_ids, priorities, output_type, rtol)
+  xcellns = XOR.XcellN(ngons, basenum, boundaries, wall_ids, priorities, output_type, rtol)
 
   if output_type == 2: # output as ckipped NGON
     i = 0

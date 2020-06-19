@@ -13,7 +13,6 @@
 #define NUGA_XSENSOR_HXX
 
 #include "Nuga/include/geom_sensor.hxx"
-#include "Nuga/include/hierarchical_mesh.hxx"
 #include "MeshElement/Hexahedron.h"
 
 

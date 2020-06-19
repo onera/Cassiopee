@@ -222,7 +222,7 @@ class ngon_unit
     E_Int remove_facets(const Vector_t<E_Int>& facet_ids, Vector_t<E_Int>& nids, E_Int min_facets_nb=0); //0-based nids
     
     ///
-    void shift(E_Int shift);
+    void shift(E_Int shift, E_Int from=0);
     
     /// 
     void sort_by_type(Vector_t<E_Int>& nids, Vector_t<E_Int>& oids) const;
@@ -266,7 +266,7 @@ private:
 public:
     Vector_t<E_Int> _NGON;
     mutable Vector_t<E_Int> _facet;// _facet[i] is the index in _data of the sub entity of i-th element.
-    Vector_t<E_Int>  _type;
+    mutable Vector_t<E_Int>  _type;
     K_FLD::IntArray  _ancEs;
     mutable bool _dirty; 
 };

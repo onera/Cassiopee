@@ -21,7 +21,7 @@
 # include "stub.h"
 
 
-PyObject* K_INTERSECTOR::XcellNSurf(PyObject* self, PyObject* args)
+PyObject* K_INTERSECTOR::XcellN(PyObject* self, PyObject* args)
 {
   PyErr_SetString(PyExc_NotImplementedError, STUBMSG);
   return nullptr;

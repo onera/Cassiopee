@@ -285,7 +285,12 @@ public:
   
   static bool is_spiky
   (const K_FLD::FloatArray& crd, const E_Int* nodes, E_Int nb_nodes, E_Int idx_start, E_Int& is, E_Int& ie);
-  
+
+  // Polygon-Edge intersection
+  template <typename TriangulatorType>
+  bool intersect
+  (const K_FLD::FloatArray&crd, const E_Float* Q0, const E_Float* Q1,
+    E_Float tol, E_Bool tol_is_absolute, E_Float& u0, E_Float& u1, E_Bool& overlap);
   
 private: 
   Polygon(const Polygon& orig);
@@ -788,5 +793,28 @@ bool Polygon::is_star_shaping
   return true;
 }
 
+template <typename TriangulatorType>
+bool Polygon::intersect
+(const K_FLD::FloatArray&crd, const E_Float* Q0, const E_Float* Q1, 
+  E_Float tol, E_Bool tol_is_absolute, E_Float& u0, E_Float& u1, E_Bool& overlap)
+{
+  TriangulatorType dt;
+  this->triangulate(dt, crd);
+  E_Int ntris = nb_tris();
+
+  E_Int T[3];
+  for (size_t i = 0; i < ntris; ++i)
+  {
+    this->triangle(i, T);
+    const E_Float* P0 = crd.col(T[0]);
+    const E_Float* P1 = crd.col(T[1]);
+    const E_Float* P2 = crd.col(T[2]);
+    E_Int tx;
+    if (K_MESH::Triangle::intersect<3>(P0, P1, P2, Q0, Q1, tol, tol_is_absolute, u0, u1, tx, overlap))
+      return true;
+  }
+
+  return false;
+}
 }
 #endif	/* __K_MESH_POLYGON_H__ */

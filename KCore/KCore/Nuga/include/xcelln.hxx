@@ -85,11 +85,16 @@ namespace NUGA
 
     xcellno(double RTOL) : parent_t(RTOL) {}
 
-    void finalize(outdata_t& outdata)
+    void finalize(const zmesh_t& m, outdata_t& outdata)
     {
-      //fixme : hack for fully inside non prior
-      // inferior but uncolored => assume it means fully in so IN
-      if (outdata.full_out && parent_t::_is_inferior)
+      eClassify loc = OUT;
+      K_SEARCH::BBox3D zbx;
+      outdata.mesh.bbox(zbx); // use truncated mesh instead of m
+      if (outdata.full_out) {
+        //std::cout << "xcellno testing" << std::endl;
+        loc = NUGA::CLASSIFY::classify(zbx, parent_t::_comp_boxes, parent_t::_z_priorities);
+      }
+      if (loc == IN)
         outdata.mesh.clear();
     }
 
@@ -110,6 +115,8 @@ namespace NUGA
         docomp |= (v != OUT);
 
       }
+
+      //std::cout << "has somethin else than OUT ? " << docomp << std::endl;
 
       xmesh.mesh = z_mesh;
       K_CONNECT::IdTool::init_inc(xmesh.mesh.flag, xmesh.mesh.ncells()); // for history
@@ -142,7 +149,7 @@ namespace NUGA
 #ifdef DEBUG_XCELLN
           std::ostringstream o;
           o << "cut_" << i;
-          medith::write(o.str().c_str(), bits[b]);
+         // medith::write(o.str().c_str(), bits[b]);
 #endif
           xmesh.mesh.add(bits[b]);
         }
@@ -157,6 +164,7 @@ namespace NUGA
 
   };
 
+ 
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   using IntVec = std::vector<E_Int>;
   using prior_t = std::map< E_Int, IntVec>;
@@ -232,7 +240,7 @@ namespace NUGA
       //E_Int compid = it->first;
       std::sort(ALL(it->second), pred);
       std::reverse(ALL(it->second)); // WARNING DECREASING PRIORITY DONE HERE
-      //std::cout << "WNP rank for comp " << it->first << " is " << rank_wnps[compid] << std::endl;
+      //std::cout << "WNP rank for comp " << compid << " is " << rank_wnps[compid] << std::endl;
     }
 
     // append with opposite pairs for considering WNPS
@@ -244,27 +252,27 @@ namespace NUGA
     }
   }
 
-  using zmesh_t = NUGA::pg_smesh_t;
-  using bmesh_t = NUGA::edge_mesh_t;
-  //using zmesh_t = NUGA::ph_mesh_t;
-  //using bmesh_t = NUGA::pg_smesh_t;
-
   ///
-  template <typename classifyer_t> inline 
+  template <typename classifyer_t> inline
   E_Int MOVLP_xcelln_1zone(const K_FLD::FloatArray& z_crd, const K_FLD::IntArray& z_cnt,
     const IntVec& z_priorities, E_Int rank_wnp,
     const std::vector<K_FLD::FloatArray> &mask_crds, const std::vector<K_FLD::IntArray>& mask_cnts,
     std::vector< std::vector<E_Int>> &mask_wall_ids,
+    const std::vector<K_SEARCH::BBox3D>& comp_boxes,
     typename classifyer_t::outdata_t& z_xcelln, E_Float RTOL)
   {
+    using zmesh_t = typename classifyer_t::zmesh_t;
+    using bmesh_t = typename classifyer_t::bmesh_t;
+
     zmesh_t  z_mesh(z_crd, z_cnt);  // polygonal surface mesh
+    E_Int err(0);
 
     classifyer_t classs(RTOL);
 
     std::vector<bmesh_t*> mask_meshes;
-    classs.prepare(z_mesh, mask_crds, mask_cnts, mask_wall_ids, z_priorities, rank_wnp, mask_meshes);
-    E_Int err = classs.compute(z_mesh, mask_meshes, z_xcelln);
-    if(!err) classs.finalize(z_xcelln); //replace IN/OUT with 0./1.
+    classs.prepare(z_mesh, mask_crds, mask_cnts, mask_wall_ids, comp_boxes, z_priorities, rank_wnp, mask_meshes);
+    err = classs.compute(z_mesh, mask_meshes, z_xcelln);
+    if(!err) classs.finalize(z_mesh, z_xcelln); //replace IN/OUT with 0./1.
 
     for (size_t u = 0; u < mask_meshes.size(); ++u)
       delete mask_meshes[u];
@@ -289,6 +297,23 @@ namespace NUGA
 
     xcelln.resize(nb_zones); // xcelln can be clipped mesh
 
+    using zmesh_t = typename classifyer_t::zmesh_t;
+
+    // compute component boxes
+    E_Int nb_comps = *std::max_element(ALL(comp_id)) + 1;
+    std::vector<K_SEARCH::BBox3D> comp_boxes(nb_comps);
+    for (size_t z = 0; z < nb_zones; ++z)
+    {
+      K_SEARCH::BBox3D zbx;
+      if (typeid(zmesh_t) == typeid(ph_mesh_t))
+        zbx.compute(mask_crds[z]); //exterior is sufficient to compute bbox in 3D
+      else
+        zbx.compute(crds[z]); //a close surface gives a null mask so compute box on patch which is light to compute
+
+      comp_boxes[comp_id[z]].merge(zbx);
+    }
+
+
 #ifndef NETBEANSZ
 //#pragma omp parallel for
 #endif
@@ -299,14 +324,16 @@ namespace NUGA
       auto it = sorted_comps_per_comp.find(comp_id[z]);
       if (it == sorted_comps_per_comp.end()) continue;
 
-      //std::cout << "list : ";
-      //for (size_t u = 0; u < it->second.size(); ++u)std::cout << it->second[u] << "/";
-      //std::cout << std::endl;
-
       E_Int z_rank_wnp = rank_wnps[it->first];
       IntVec& z_priorities = it->second;
+
+      //std::cout << "priorities : ";
+      //for (size_t u = 0; u < it->second.size(); ++u)std::cout << it->second[u] << "/";
+      //std::cout << std::endl;
+      //std::cout << "rank WNP : " << z_rank_wnp << std::endl;
+      //std::cout << "NB of ELT in MASK  AT  Z POS : " << mask_crds[z].cols() << std::endl;
       
-      E_Int err = MOVLP_xcelln_1zone<classifyer_t>(crds[z], cnts[z], z_priorities, z_rank_wnp, mask_crds, mask_cnts, mask_wall_ids, xcelln[z], RTOL);
+      E_Int err = MOVLP_xcelln_1zone<classifyer_t>(crds[z], cnts[z], z_priorities, z_rank_wnp, mask_crds, mask_cnts, mask_wall_ids, comp_boxes, xcelln[z], RTOL);
       if (err) break;
     }
   }

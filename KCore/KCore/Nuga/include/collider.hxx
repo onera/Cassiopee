@@ -218,9 +218,9 @@ namespace NUGA
 template <typename ELT1, typename ELT2, typename loc_t>
 void compute_overlap(const K_FLD::FloatArray& crd1, const ngon_unit& PGs1,
                      const K_FLD::FloatArray& crd2, const ngon_unit& PGs2, const loc_t& loc2, 
-                     double ps_min,//overlap criterion
-                     std::vector<E_Int>& is_x1, std::vector<E_Int>& is_x2,
-                     E_Float RTOL, bool swap, const E_Float* norm2 = nullptr) //norm2 when right direction is known upon entry
+                     std::vector<eOVLPTYPE>& is_x1, std::vector<eOVLPTYPE>& is_x2,
+                     E_Float RTOL, 
+                     double ps_min = 0.95/*overlap criterion*/,bool swap = true, const E_Float* norm2 = nullptr) //norm2 when right direction is known upon entry
 {
   is_x1.clear();
   is_x2.clear();
@@ -228,8 +228,8 @@ void compute_overlap(const K_FLD::FloatArray& crd1, const ngon_unit& PGs1,
   E_Int nb_pgs1 = PGs1.size();
   E_Int it1, it2;
   
-  is_x1.resize(nb_pgs1, 0);
-  is_x2.resize(PGs2.size(), 0);
+  is_x1.resize(nb_pgs1, NONE);
+  is_x2.resize(PGs2.size(), NONE);
   
   using crd_t = K_FLD::FloatArray;
     
@@ -282,8 +282,7 @@ void compute_overlap(const K_FLD::FloatArray& crd1, const ngon_unit& PGs1,
 
     E_Float abstol = MAX(E_EPSILON, RTOL*::sqrt(Lref));
     //std::cout << abstol << std::endl;
-    bool isx = false;
-    for (j = 0; (j < cands2.size()) && !isx; ++j)
+    for (j = 0; (j < cands2.size()); ++j)
     {
       E_Int J = cands2[j];
 
@@ -293,14 +292,14 @@ void compute_overlap(const K_FLD::FloatArray& crd1, const ngon_unit& PGs1,
       if (norm2 == nullptr)
         ELT2::template normal<crd_t, 3>(crd2, nodes2, nb_nodes2, 1, n2);
       
-      double ps = ::fabs(K_FUNC::dot<3>(n1,n2));
-      if (ps < ps_min) continue;
+      double ps = K_FUNC::dot<3>(n1,n2);
+      if (::fabs(ps) < ps_min) continue;
       
       // Polygons pairs are now roughly overlapping/parallel : important in order to have a relevant result when using simplicial_colliding with Triangle::overlap
       
       ELT2 PG2(nodes2, nb_nodes2, -1);
       
-      isx = NUGA::COLLIDE::simplicial_colliding<crd_t, 3>(crd1, PG1, crd2, PG2, K_MESH::Triangle::overlap, abstol, it1, it2);
+      bool isx = NUGA::COLLIDE::simplicial_colliding<crd_t, 3>(crd1, PG1, crd2, PG2, K_MESH::Triangle::overlap, abstol, it1, it2);
       
       if (swap && !isx) //deeper test
       {
@@ -311,14 +310,16 @@ void compute_overlap(const K_FLD::FloatArray& crd1, const ngon_unit& PGs1,
       }
       //assert (i > -1 && i < is_x1.size());
       //assert (J > -1 && J < is_x2.size());
-      is_x1[i] |= isx;
-      is_x2[J] |= isx;
+      if (isx)
+      {
+        is_x2[J] = is_x1[i] = (ps < 0.) ? ABUTTING : OVERSET;
+      }
     }
   }
 }
 
 ///
-template<typename loc_t>
+template <typename ELT1, typename ELT2, typename loc_t>
 void compute_overlap(const K_FLD::FloatArray& crd1, const K_FLD::IntArray& edges1,
                      const K_FLD::FloatArray& crd2, const K_FLD::IntArray& edges2, const loc_t& loc2, 
                      std::vector<eOVLPTYPE>& is_x1, std::vector<eOVLPTYPE>& is_x2,
@@ -355,7 +356,7 @@ void compute_overlap(const K_FLD::FloatArray& crd1, const K_FLD::IntArray& edges
     const E_Int* nodes = edges1.col(i);
     E_Int nb_nodes = 2;
     
-    K_MESH::Edge E1(nodes);
+    ELT1 E1(nodes);
 
     loc2.get_candidates(E1, crd1, cands2);
     
@@ -383,7 +384,7 @@ void compute_overlap(const K_FLD::FloatArray& crd1, const K_FLD::IntArray& edges
 
     //std::cout << abstol << std::endl;
     
-    for (j = 0; (j < cands2.size()) && !overlap; ++j)
+    for (j = 0; (j < cands2.size()); ++j)
     {
       E_Int J = cands2[j];
 
@@ -392,7 +393,7 @@ void compute_overlap(const K_FLD::FloatArray& crd1, const K_FLD::IntArray& edges
       
       // Polygons pairs are now roughly overlapping/parallel : important in order to have a relevant result when using simplicial_colliding with Triangle::overlap
 
-      K_MESH::Edge E2(nodes2);
+      ELT2 E2(nodes2);
 
       K_MESH::Edge::intersect<3> (crd1.col(nodes[0]), crd1.col(nodes[1]), 
                                crd2.col(nodes2[0]), crd2.col(nodes2[1]), 
@@ -406,7 +407,7 @@ void compute_overlap(const K_FLD::FloatArray& crd1, const K_FLD::IntArray& edges
         E_Float d1[3], d2[3];
         K_FUNC::diff<3>(crd1.col(nodes[1]),  crd1.col(nodes[0]),  d1);
         K_FUNC::diff<3>(crd2.col(nodes2[1]), crd2.col(nodes2[0]), d2);
-        double ps = ::fabs(K_FUNC::dot<3>(d1,d2));
+        double ps = K_FUNC::dot<3>(d1,d2);
         eOVLPTYPE res;
         if (ps < 0.) res = ABUTTING;
         else res=OVERSET;
@@ -549,6 +550,85 @@ bool get_colliding<NUGA::aPolygon, edge_mesh_t>
       }
       if (isx)
       {
+        if (first_found)
+        {
+          cands[0] = cands[j];
+          cands.resize(1);
+          return true;
+        }
+
+        hasX = keep[j] = true;
+      }
+    }
+  }
+
+  if (hasX)
+  {
+    K_CONNECT::keep<bool> pred(keep);
+    K_CONNECT::IdTool::compress(cands, pred);
+  }
+  return hasX;
+}
+
+template <> inline
+bool get_colliding<NUGA::aPolyhedron<UNKNOWN>, pg_smesh_t>
+(const NUGA::aPolyhedron<UNKNOWN>& ae1, const pg_smesh_t& mask_bit, std::vector<E_Int>& cands, E_Int idx_start, double RTOL, bool first_found)
+{
+  bool hasX(false);
+
+  // reduce mask to candidates : noy hpc way for above lineic (yet)
+  //pg_smesh_t lmask(mask_bit, cands, idx_start);
+  const pg_smesh_t& lmask = mask_bit;
+
+#ifdef CLASSIFYER_DBG
+  //medith::write("lmask", lmask.crd, lmask.cnt);
+#endif
+
+  double l21 = ae1.L2ref();
+  double l22 = lmask.L2ref(cands, idx_start);
+  double ATOL(RTOL * ::sqrt(std::min(l21, l22)));
+
+  // compute collision between e1 and each candidate until founding one collision
+
+  // a. triangulate e1, check if any lmask point falls into the triangulation
+  DELAUNAY::Triangulator dt;
+  ae1.triangulate(dt);
+
+  // (b. projection for 2D)
+
+  // c. detect collisions
+
+  E_Int ncands(cands.size());
+  std::vector<bool> keep(ncands, false);
+
+  int T1[3];
+  for (E_Int i = 0; (i < ae1.nb_tris()); ++i)
+  {
+    ae1.triangle(i, T1);
+    const E_Float* P1 = ae1.m_crd.col(T1[0]);
+    const E_Float* Q1 = ae1.m_crd.col(T1[1]);
+    const E_Float* R1 = ae1.m_crd.col(T1[2]);
+
+    for (int j = 0; (j<ncands); ++j)
+    {
+      if (keep[j]) continue;
+
+      K_MESH::Polygon e2 = lmask.element(cands[j] - idx_start);
+
+      //do not pass the tol as we use here a predicate
+      E_Int t1, t2;
+      using crd_t = K_FLD::FloatArray;
+      bool isx = simplicial_colliding<crd_t, 3>(ae1.m_crd, ae1, lmask.crd, e2, K_MESH::Triangle::fast_intersectT3<3>, -1., t1, t2);
+
+      if (!isx) //deeper check
+      {
+        //fixme : required ?
+      }
+      if (isx)
+      {
+#ifdef CLASSIFYER_DBG
+        //medith::write("xe2", lmask.crd, e2.begin(), e2.nb_nodes(), 1);
+#endif
         if (first_found)
         {
           cands[0] = cands[j];

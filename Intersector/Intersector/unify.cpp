@@ -539,7 +539,7 @@ void build_current(ngon_type& ng, E_Int i, const K_FLD::FloatArray& crd, aELT1& 
 {
   aPHcur.set(ng,i, crd); // self-contained with pt histo
   // make orientation consistent
-  aPHcur.reorient();
+  aPHcur.reorient(true);
 
   // Compute initial volume
   /*E_Int err = */aPHcur.volume<DELAUNAY::Triangulator>(V0, false/*need reorient*/);
@@ -596,7 +596,8 @@ E_Int robust_clip(acrd_t& acrdcur, aELT1& aPHcur, bool is_inward1, acrd_t& acrdc
     if (dbg) std::cout << "isolated_clip : PS_MIN/RTOL : " << PS_MIN << "/" << RTOL << std::endl;
 
     contact = 0;
-    err = NUGA::INTERSECT::isolated_clip(acrdcur, aPHcur, is_inward1, acrdcut, aPHcutter, PS_MIN, RTOL, aPHclip, contact, dbg);
+    bool true_clip;
+    err = NUGA::INTERSECT::isolated_clip(acrdcur, aPHcur, is_inward1, acrdcut, aPHcutter, PS_MIN, RTOL, aPHclip, contact, true_clip, dbg);
 
     RTOL *=10;
     PS_MIN -=0.01;   

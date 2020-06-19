@@ -13,6 +13,7 @@
 #define NUGA_POLYHEDRON_HXX
 
 #include "MeshElement/Polyhedron.h"
+#include "Nuga/Delaunay/Triangulator.h"
 
 namespace NUGA
 {
@@ -25,57 +26,177 @@ struct aPolyhedron : public K_MESH::Polyhedron<TopoShape>
   ngon_unit          m_pgs;
   std::vector<E_Int> m_faces;
   K_FLD::FloatArray  m_crd;
+  E_Float            m_L2ref;
+  E_Int              m_oriented;
+  mutable E_Float    m_normal[3];
+  mutable E_Float    m_centroid[3];
   
-  aPolyhedron(){parent_type::_triangles = nullptr;}
+  aPolyhedron();
   aPolyhedron(const ngon_unit* pgs, const E_Int* faces, E_Int nb_faces, const K_FLD::FloatArray& crd); // from "mesh" to autonmous
   aPolyhedron(const parent_type& ph, const K_FLD::FloatArray& crd); // from "mesh" to autonmous
   aPolyhedron(const ngon_unit& lpgs, const K_FLD::FloatArray& crd);
+
+  aPolyhedron(const parent_type& ph, const K_FLD::FloatArray& crd, E_Float L2r);
  
-  aPolyhedron(const aPolyhedron& r):m_pgs(r.pgs), m_faces(r.m_faces), m_crd(r.m_crd){plug();}
-  
+  aPolyhedron(const aPolyhedron& r);
+
+  aPolyhedron(aPolyhedron&& r);
     
   aPolyhedron& operator=(const parent_type& rhs) = delete;
-  aPolyhedron& operator=(const aPolyhedron& rhs) = delete;
+  aPolyhedron& operator=(const aPolyhedron& rhs);
+  aPolyhedron& operator=(aPolyhedron&& rhs);
           
   void set(const parent_type& ph, const K_FLD::FloatArray& crd);
+
+  E_Int* faces() {return &m_faces[0];} //this class can change this inner attr, but cannot touch from parent class (so const version only avail. from there)
   
-  void reorient();
+  void reverse();
+  void reorient(bool outward);
   
   void clear() {m_pgs.clear(); m_faces.clear(); m_crd.clear();}
+  bool empty() { return m_faces.empty(); }
   
-  template<typename TriangulatorType> E_Int volume(E_Float& v, bool need_reorient);
+  template<typename TriangulatorType> E_Int volume(E_Float& v, bool need_reorient) const;
   
-  void plug(){parent_type::_pgs = &m_pgs; parent_type::_faces = &m_faces[0]; parent_type::_nb_faces = m_faces.size();}
-  
+  double extent() const; //wrapper to volume, to be generic surf/vol
+  double metrics() ; //same as extent : no normal computation as in surfacic
+
+  using parent_type::triangulate; //to make it visible (!!)
+
+  template <typename TriangulatorType>
+  E_Int triangulate(const TriangulatorType& dt) const;
+
+  const double* get_centroid() const; // WARNING : currently implemented as iso_bary
+
+  double L2ref() const { return (m_L2ref > 0.) ? m_L2ref : parent_type::L2ref(m_crd); } // if passed by mesh_t, return it, otherwise compute it first
+
+  void plug() { parent_type::_pgs = &m_pgs; parent_type::_faces = &m_faces[0]; parent_type::_nb_faces = m_faces.size(); }
 };
 
 ///
 template <int TopoShape>
+aPolyhedron<TopoShape>::aPolyhedron() :parent_type(), m_L2ref(K_CONST::E_MAX_FLOAT), m_oriented(0)
+{
+  m_normal[0] = m_centroid[0] = K_CONST::E_MAX_FLOAT;
+  //plug();
+}
+
+///
+template <int TopoShape>
 aPolyhedron<TopoShape>::aPolyhedron(const ngon_unit* pgs, const E_Int* faces, E_Int nb_faces, const K_FLD::FloatArray& crd)
+  :m_L2ref(K_CONST::E_MAX_FLOAT), m_oriented(0)
 {
   parent_type ph(pgs, faces, nb_faces);
   set(ph, crd);
-  
 }
 
 ///
 template <int TopoShape>
 aPolyhedron<TopoShape>::aPolyhedron(const parent_type& ph, const K_FLD::FloatArray& crd)
+  :m_L2ref(K_CONST::E_MAX_FLOAT), m_oriented(0)
 {
   set(ph, crd);
+  m_normal[0] = m_centroid[0] = K_CONST::E_MAX_FLOAT;
 }
 
 ///
 template <int TopoShape>
 aPolyhedron<TopoShape>::aPolyhedron(const ngon_unit& lpgs, const K_FLD::FloatArray& lcrd)
+  :m_pgs(lpgs), m_crd(lcrd), m_L2ref(K_CONST::E_MAX_FLOAT), m_oriented(0)
 {
-  m_pgs = lpgs;
-  m_crd = lcrd;
   
   m_faces.clear();
   K_CONNECT::IdTool::init_inc(m_faces, m_pgs.size(), 1);
+
+  m_normal[0] = m_centroid[0] = K_CONST::E_MAX_FLOAT;
   
   plug();
+}
+
+///
+template <int TopoShape>
+aPolyhedron<TopoShape>::aPolyhedron(const parent_type& ph, const K_FLD::FloatArray& crd, E_Float L2r) :aPolyhedron(ph, crd)
+{
+  m_L2ref = L2r;
+  m_oriented = 0;
+  m_normal[0] = m_centroid[0] = K_CONST::E_MAX_FLOAT;
+}
+
+template <int TopoShape>
+aPolyhedron<TopoShape>::aPolyhedron(const aPolyhedron& r) :m_pgs(r.m_pgs), m_faces(r.m_faces), m_crd(r.m_crd), m_L2ref(K_CONST::E_MAX_FLOAT), m_oriented(0)
+{ 
+  m_normal[0] = m_centroid[0] = K_CONST::E_MAX_FLOAT;
+
+  plug();
+}
+
+template <int TopoShape>
+aPolyhedron<TopoShape>::aPolyhedron (aPolyhedron<TopoShape>&& rhs) :/* = default; rejected by old compiler intel (15)*/
+  parent_type(rhs), m_pgs(std::move(rhs.m_pgs)), m_faces(std::move(rhs.m_faces)), m_crd(std::move(rhs.m_crd)), m_L2ref(rhs.m_L2ref), m_oriented(rhs.m_oriented)
+{
+  m_normal[0] = rhs.m_normal[0];
+  m_normal[1] = rhs.m_normal[1];
+  m_normal[2] = rhs.m_normal[2];
+
+  m_centroid[0] = rhs.m_centroid[0];
+  m_centroid[1] = rhs.m_centroid[1];
+  m_centroid[2] = rhs.m_centroid[2];
+
+  plug();
+}
+
+template <int TopoShape>
+aPolyhedron<TopoShape>& aPolyhedron<TopoShape>::operator=(const aPolyhedron& rhs)
+{
+  m_pgs = rhs.m_pgs;
+  m_faces = rhs.m_faces;
+  m_crd = rhs.m_crd;
+  m_L2ref = rhs.m_L2ref;
+  m_oriented = rhs.m_oriented;
+
+  parent_type::_triangles = rhs._triangles;
+
+  m_normal[0] = rhs.m_normal[0];
+  m_normal[1] = rhs.m_normal[1];
+  m_normal[2] = rhs.m_normal[2];
+
+  m_centroid[0] = rhs.m_centroid[0];
+  m_centroid[1] = rhs.m_centroid[1];
+  m_centroid[2] = rhs.m_centroid[2];
+
+  plug();
+
+  return *this;
+}
+
+template <int TopoShape>
+aPolyhedron<TopoShape>& aPolyhedron<TopoShape>::operator=(aPolyhedron&& rhs)
+{
+  m_pgs = std::move(rhs.m_pgs);
+  m_faces = std::move(rhs.m_faces);
+  m_crd = std::move(rhs.m_crd);
+  m_L2ref = rhs.m_L2ref;
+  m_oriented = rhs.m_oriented;
+
+  parent_type::_triangles = rhs._triangles;
+
+  m_normal[0] = rhs.m_normal[0];
+  m_normal[1] = rhs.m_normal[1];
+  m_normal[2] = rhs.m_normal[2];
+
+  m_centroid[0] = rhs.m_centroid[0];
+  m_centroid[1] = rhs.m_centroid[1];
+  m_centroid[2] = rhs.m_centroid[2];
+
+  rhs._pgs = nullptr;
+  rhs._faces = nullptr;
+  rhs._nb_faces = 0;
+  rhs._triangles = nullptr;
+  rhs.m_normal[0] = rhs.m_centroid[0] = K_CONST::E_MAX_FLOAT;
+
+  plug();
+
+  return *this;
 }
 
 ///
@@ -89,10 +210,32 @@ void aPolyhedron<TopoShape>::set(const parent_type& ph, const K_FLD::FloatArray&
   plug();
 }
 
+template <int TopoShape>
+void aPolyhedron<TopoShape>::reverse()
+{
+  for (E_Int i = 0; i < m_pgs.size(); ++i)
+  {
+    E_Int s = m_pgs.stride(i);
+    E_Int* p = m_pgs.get_facets_ptr(i);
+    std::reverse(p, p + s);
+  }
+  if (m_oriented != 0) m_oriented = !m_oriented;
+}
+
 ///
 template <int TopoShape>
-void aPolyhedron<TopoShape>::reorient()
+void aPolyhedron<TopoShape>::reorient(bool outward)
 {
+  if (m_oriented != 0) // already oriented
+  {
+    if (outward && m_oriented == 1) return;
+    if (!outward && m_oriented == -1) return;
+
+    reverse();
+    m_oriented = !m_oriented;
+    return;
+  }
+  
   ngon_unit neighbors;
   K_MESH::Polygon::build_pg_neighborhood(m_pgs, neighbors);
   std::vector<E_Int> oids, orient(m_faces.size(), 1);
@@ -108,13 +251,61 @@ void aPolyhedron<TopoShape>::reorient()
       std::reverse(p, p + s);
     }
   }
+
+  double v;
+  volume<DELAUNAY::Triangulator>(v, false);
+
+  bool need_reverse = (v < 0. && outward) || (v > 0. && !outward);
+
+  if (need_reverse)
+    reverse();
+
+  m_oriented = outward ? 1 : -1;
+}
+
+template <int TopoShape>
+template <typename TriangulatorType>
+E_Int aPolyhedron<TopoShape>::triangulate(const TriangulatorType& dt) const
+{
+  return parent_type::triangulate(dt, m_crd);
+}
+
+template <int TopoShape>
+const double* aPolyhedron<TopoShape>::get_centroid() const 
+{ 
+  if (m_centroid[0] == K_CONST::E_MAX_FLOAT)
+  {
+    for (size_t d = 0; d < 3; ++d) m_centroid[d] = 0.;
+    for (E_Int i = 0; i < m_crd.cols(); ++i)
+    {
+      const E_Float* p = m_crd.col(i);
+      for (size_t d = 0; d < 3; ++d) m_centroid[d] += p[d];
+    }
+    E_Float k = 1. / (E_Float)m_crd.cols();
+    for (size_t i = 0; i < 3; ++i) m_centroid[i] *= k;
+  }
+  return m_centroid;
 }
 
 template <int TopoShape>
 template<typename TriangulatorType>
-E_Int aPolyhedron<TopoShape>::volume(E_Float& v, bool need_reorient)
+E_Int aPolyhedron<TopoShape>::volume(E_Float& v, bool need_reorient) const
 {
   return parent_type::template volume<TriangulatorType>(m_crd, v, need_reorient);
+}
+
+template <int TopoShape>
+double aPolyhedron<TopoShape>::extent() const
+{
+  double v(0.);
+  volume<DELAUNAY::Triangulator>(v, false/*do not reorient*/);
+  return ::fabs(v);
+}
+
+template <int TopoShape>
+double aPolyhedron<TopoShape>::metrics()
+{
+  return extent();
 }
 
 
@@ -127,7 +318,7 @@ struct haPolyhedron : public aPolyhedron<TopoShape>
   
   std::vector<E_Int> poids;
 
-  haPolyhedron():parent_type(){};//=default;
+  haPolyhedron():parent_type() {};
   
   haPolyhedron& operator=(const base_type& rhs) = delete; // crd must be also specified so disable this operation (permanent)
   haPolyhedron& operator=(const parent_type& rhs) = delete;// {set(rhs, rhs.m_crd);} delet until required
