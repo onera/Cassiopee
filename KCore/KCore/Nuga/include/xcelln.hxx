@@ -302,15 +302,20 @@ namespace NUGA
     // compute component boxes
     E_Int nb_comps = *std::max_element(ALL(comp_id)) + 1;
     std::vector<K_SEARCH::BBox3D> comp_boxes(nb_comps);
-    for (size_t z = 0; z < nb_zones; ++z)
-    {
-      K_SEARCH::BBox3D zbx;
-      if (typeid(zmesh_t) == typeid(ph_mesh_t))
-        zbx.compute(mask_crds[z]); //exterior is sufficient to compute bbox in 3D
-      else
-        zbx.compute(crds[z]); //a close surface gives a null mask so compute box on patch which is light to compute
 
-      comp_boxes[comp_id[z]].merge(zbx);
+    if (typeid(zmesh_t) == typeid(ph_mesh_t))
+    {
+      for (size_t c = 0; c < nb_comps; ++c)
+        comp_boxes[c].compute(mask_crds[c]);//skin is sufficient to compute bbox in 3D
+    }
+    else
+    {
+      for (size_t z = 0; z < nb_zones; ++z)
+      {
+        K_SEARCH::BBox3D zbx;
+        zbx.compute(crds[z]); //a close surface gives a null mask so compute box on patch which is light to compute
+        comp_boxes[comp_id[z]].merge(zbx);
+      }
     }
 
 
