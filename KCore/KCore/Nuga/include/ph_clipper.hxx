@@ -165,33 +165,55 @@ namespace NUGA
       subj.triangulate(dt, acrd1.array());
       cutter.triangulate(dt, acrd2.array());
 
-      K_FLD::IntArray cT3;
-      E_Int T[3];
+      std::vector<E_Int> ancPG1, ancPG2;
+      subj.get_triangle_oids(ancPG1);
+      cutter.get_triangle_oids(ancPG2);
+
       E_Int nb_tris1 = subj.nb_tris();
+      E_Int nb_tris2 = cutter.nb_tris();
+
+      K_FLD::IntArray cT3;
+      K_FLD::FloatArray normalsT3(3, nb_tris1 + nb_tris2, K_CONST::E_MAX_FLOAT);
+      E_Int T[3];
+      E_Float nT3[3];
       for (E_Int i=0; i < nb_tris1; ++i)
       {
         subj.triangle(i, T); //watchme : base ?
         cT3.pushBack(T, T+3);
+
+        //normals
+        K_MESH::Triangle::normal(acrd1.array(), &T[0], nT3);
+        E_Float l2 = ::sqrt(nT3[0] * nT3[0] + nT3[1] * nT3[1] + nT3[2] * nT3[2]);
+        if (::fabs(l2 - 1.) >= E_EPSILON) // DEGEN
+          K_MESH::Polygon::normal<acrd_t, 3>(acrd1, subj.m_pgs.get_facets_ptr(ancPG1[i]), subj.m_pgs.stride(ancPG1[i]), 1, nT3);
+        normalsT3(0, i) = nT3[0];
+        normalsT3(1, i) = nT3[1];
+        normalsT3(2, i) = nT3[2];
       }
-      E_Int nb_tris2 = cutter.nb_tris();
+      
       
       for (E_Int i=0; i < nb_tris2; ++i)
       {
-        
         cutter.triangle(i, T); //watchme : base ?
+
+        //normals
+        K_MESH::Triangle::normal(acrd2.array(), T, nT3);
+        E_Float l2 = ::sqrt(nT3[0] * nT3[0] + nT3[1] * nT3[1] + nT3[2] * nT3[2]);
+        if (::fabs(l2 - 1.) >= E_EPSILON) // DEGEN
+          K_MESH::Polygon::normal<acrd_t, 3>(acrd2, cutter.m_pgs.get_facets_ptr(ancPG2[i]), cutter.m_pgs.stride(ancPG2[i]), 1, nT3);
+        normalsT3(0, i + nb_tris1) = nT3[0];
+        normalsT3(1, i + nb_tris1) = nT3[1];
+        normalsT3(2, i + nb_tris1) = nT3[2];
+
+        // shiftand append after normal computation
         T[0] += nb_pts1;
         T[1] += nb_pts1;
         T[2] += nb_pts1;
-        cT3.pushBack(T, T+3);
+        cT3.pushBack(T, T + 3);
       }
       
       // type transmission
-
       std::vector<E_Int> type(subj.nb_tris() + cutter.nb_tris(), ANY);
-      std::vector<E_Int> ancPG1, ancPG2;
-      subj.get_triangle_oids(ancPG1);
-      cutter.get_triangle_oids(ancPG2);
-      
       if (!subj._pgs->_type.empty())
         for (E_Int i=0; i<nb_tris1; ++i)
           type[i] = subj._pgs->_type[ancPG1[i]];
@@ -244,6 +266,24 @@ namespace NUGA
         medith::write("conformized.mesh", crd, cT3, "TRI", 0, &ancT3);
 #endif
 
+      // recompute normals or take ancestor is not doable
+      K_FLD::FloatArray new_normalsT3(3, cT3.cols(), K_CONST::E_MAX_FLOAT);
+      for (E_Int i = 0; i < cT3.cols(); ++i)
+      {
+        K_MESH::Triangle::normal(crd, cT3.col(i), nT3);
+         E_Float l2 = ::sqrt(nT3[0] * nT3[0] + nT3[1] * nT3[1] + nT3[2] * nT3[2]);
+        if (::fabs(l2 - 1.) >= E_EPSILON) // DEGEN
+        {
+          nT3[0] = normalsT3(0, ancT3[i]);
+          nT3[1] = normalsT3(1, ancT3[i]);
+          nT3[2] = normalsT3(2, ancT3[i]);
+        }
+        new_normalsT3(0, i) = nT3[0];
+        new_normalsT3(1, i) = nT3[1];
+        new_normalsT3(2, i) = nT3[2];
+      }
+      normalsT3 = std::move(new_normalsT3);
+
       // duplicates
       {
         E_Int nbt3o = cT3.cols();
@@ -254,6 +294,7 @@ namespace NUGA
         {
           K_CONNECT::unchanged pred(dupids);
           K_CONNECT::IdTool::compress(ancT3, pred);
+          K_CONNECT::IdTool::compress(normalsT3, pred);
         }
       }
 
@@ -301,6 +342,7 @@ namespace NUGA
       std::vector<E_Int> nids;
       K_CONNECT::IdTool::compress(cT3, pred, nids);
       K_CONNECT::IdTool::compress(type, pred);
+      K_CONNECT::IdTool::compress(normalsT3, pred);
 
       // update also neighbors_cpy
       K_CONNECT::IdTool::compress(neighbors, pred); //contains E_IDX_NONE at non-manfold edges
@@ -313,26 +355,7 @@ namespace NUGA
         medith::write("reduced.mesh", crd, cT3, "TRI", 0, &ancT3);
       }
 #endif
-
-      // compute (or transfer when degen) normals to triangles
-//      K_FLD::ArrayAccessor<K_FLD::IntArray> acnt1(cT31);
-//      K_FLD::FloatArray normals1;
-//      K_CONNECT::MeshTool::compute_or_transfer_normals(acrd1, acnt1, *subj.pgs(), ancPG1, normals1);
-//      K_FLD::ArrayAccessor<K_FLD::IntArray> acnt2(cT32);
-//      K_FLD::FloatArray normals2;
-//      K_CONNECT::MeshTool::compute_or_transfer_normals(acrd2, acnt2, *cutter.pgs(), ancPG2, normals2);
-//      K_FLD::FloatArray normals = normals1;
-//      normals.pushBack(normals2);
-//      K_CONNECT::IdTool::compress(normals, pred);
-      K_FLD::FloatArray normals;
-      K_FLD::ArrayAccessor<K_FLD::FloatArray> acrd(crd);
-      K_FLD::ArrayAccessor<K_FLD::IntArray> acnt(cT3);
-      K_CONNECT::MeshTool::compute_or_transfer_normals(acrd, acnt, *cutter.pgs()/*fixme!!!!*/, ancPG2, normals);
-      
-#ifdef DEBUG_CLIPPER
-      //if (dbg) TRI_debug::write_wired("oriented.mesh", crd, cT3, true);
-#endif
-      
+    
       // update neighbors at non-manifold edges
       
       using acnt_t = K_FLD::ArrayAccessor<K_FLD::IntArray>;
@@ -382,7 +405,7 @@ namespace NUGA
           if (*(pS+(i0+1)%3) == E1) // the side to consider is the opposite
             reversed[j]=true;
           
-          E_Float normj[] = {normals(0, Kj), normals(1, Kj), normals(2,Kj)};
+          E_Float normj[] = {normalsT3(0, Kj), normalsT3(1, Kj), normalsT3(2,Kj)};
           
           if (reversed[j])
           {
@@ -391,7 +414,7 @@ namespace NUGA
             normj[2] = -normj[2]; 
           }
           
-          E_Float q = K_CONNECT::GeomAlgo<K_MESH::Triangle>::angle_measure(normals.col(K0), normj, crd.col(E0), crd.col(E1));
+          E_Float q = K_CONNECT::GeomAlgo<K_MESH::Triangle>::angle_measure(normalsT3.col(K0), normj, crd.col(E0), crd.col(E1));
           if (q == ERRORVAL)
           {
 #if defined (DEBUG_CLIPPER)

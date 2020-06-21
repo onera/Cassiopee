@@ -234,6 +234,11 @@ namespace NUGA
         K_MESH::Polygon::normal<K_FLD::FloatArray, 3>(front.crd, front.cnt.get_facets_ptr(i), front.cnt.stride(i), front.index_start, fni);
         K_MESH::Polygon::centroid<3>(front.crd, front.cnt.get_facets_ptr(i), front.cnt.stride(i), front.index_start, ci);
 
+#ifdef CLASSIFYER_DBG
+        E_Float l2 = ::sqrt(fni[0] * fni[0] + fni[1] * fni[1] + fni[2] * fni[2]);
+        assert(::fabs(l2 - 1.) < E_EPSILON); // NOT DEGEN
+#endif
+
         E_Float ptG[3];
         K_FUNC::diff<3>(ci, ae1G, ptG);
 
@@ -280,6 +285,11 @@ namespace NUGA
             // is G above or under the plane ?
             double nj[3], ray[3];
             PGj.normal<K_FLD::FloatArray, 3>(front.crd, nj);
+
+#ifdef CLASSIFYER_DBG
+            E_Float l2 = ::sqrt(nj[0] * nj[0] + nj[1] * nj[1] + nj[2] * nj[2]);
+            assert(::fabs(l2 - 1.) < E_EPSILON); // NOT DEGEN
+#endif
             K_FUNC::diff<3>(C, ae1G, ray);
             double ps = K_FUNC::dot<3>(ray, nj);
             sign = zSIGN(ps, E_EPSILON); // >0 means under

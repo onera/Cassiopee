@@ -587,6 +587,8 @@ void K_CONNECT::MeshTool::compute_or_transfer_normals
  const ngon_unit& PGs, const Vector_t<E_Int> T3_to_PG, K_FLD::FloatArray& T3normals)
 {
   size_t nb_t3s = acnt.size();
+
+  assert(T3_to_PG.size() == nb_t3s);
   
   T3normals.clear();
   T3normals.reserve(3, nb_t3s);
