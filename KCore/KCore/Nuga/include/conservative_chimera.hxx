@@ -16,7 +16,7 @@
 
 namespace NUGA
 {
-  static const E_Int INTERPOL = 2;
+  static const E_Int INTERP = 2;
   static const E_Float RESET_VAL = K_CONST::E_MAX_FLOAT;
   static const E_Float COEF_THRESHOLD2 = E_EPSILON*E_EPSILON;
   
@@ -164,7 +164,7 @@ namespace NUGA
       }
 #endif
       
-      if (cellNR[ancR] != INTERPOL) continue;
+      if (cellNR[ancR] != INTERP) continue;
       
       receiver_to_bits[ancR].push_back(i);
     }
@@ -392,7 +392,7 @@ namespace NUGA
         continue;
       }
       
-      if (cellNR[ancR] != INTERPOL) continue;
+      if (cellNR[ancR] != INTERP) continue;
       
       // SUPERMESH CENTROID AND VOLUME : assumed to be centroid-star-shaped as well (because operation is intersection)
       const E_Int* first_pg = ngS.PHs.get_facets_ptr(i);
@@ -461,7 +461,7 @@ namespace NUGA
   
   ngon_type ngr = rcnt;
   ngon_type ngd = dcnt;
-  std::vector<E_Int> cellNR(ngr.PHs.size(), INTERPOL);
+  std::vector<E_Int> cellNR(ngr.PHs.size(), INTERP);
   
   E_Int err = NUGA::P1_Conservative_Chimera<K_FLD::FloatArray, K_FLD::IntArray>::compute_coeffs<DELAUNAY::Triangulator>(rcrd,rcnt , dcrd, dcnt, cellNR, dids, dcoefs, xdon, rids);
   if (err==1)
