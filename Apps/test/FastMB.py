@@ -1,4 +1,5 @@
 # - Fast.MB -
+# Fast Multiblock application
 import Apps.Fast.MB as App
 import Converter.Mpi as Cmpi
 

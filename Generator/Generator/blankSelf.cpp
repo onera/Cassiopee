@@ -228,6 +228,8 @@ PyObject* K_GENERATOR::blankSelf(PyObject* self, PyObject* args)
         // faces horizontales
         if (cellN[i] == 1) 
         { face = createFace(i, 0, *cn, ff, fx, fy, fz); faces.push_back(face); }
+        if (cellN[i] == 1) 
+        { face = createFace(i, 5, *cn, ff, fx, fy, fz); faces.push_back(face); }
         if (cellN[ind] == 1)
         { face = createFace(ind, 0, *cn, ff, fx, fy, fz); faces.push_back(face); }
       }
@@ -244,7 +246,7 @@ PyObject* K_GENERATOR::blankSelf(PyObject* self, PyObject* args)
       if (i != j)
       {
         ret = intersect(face1, face2);
-        if (ret == 1) { cellN[face1->cell] = 0; /*cellN[face2->cell] = 0;*/ } // disymetrique volontaire
+        if (ret == 1) { cellN[face1->cell] = 0; cellN[face2->cell] = 0; } // disymetrique volontaire
       }
     }
   }
@@ -353,6 +355,118 @@ PyObject* K_GENERATOR::blankFirst(PyObject* self, PyObject* args)
   Py_INCREF(Py_None);
   return Py_None;
 }
+
+//=============================================================================
+/* 
+   blank Ext. 
+   Prend les faces externes, verifie si elles
+   s'intersectent, si oui, blank
+   IN: hexa mesh + cellN in center
+   OUT: cellN modifie in-place
+ */
+//=============================================================================
+PyObject* K_GENERATOR::blankExt(PyObject* self, PyObject* args)
+{
+  PyObject* array;
+  PyObject* cellNObject;
+  if (!PyArg_ParseTuple(args, "OO", &array, &cellNObject))
+  {
+    return NULL;
+  }
+
+  // Check array: must be HEXA mesh
+  E_Int ni, nj, nk;
+  FldArrayF* f; FldArrayI* cn;
+  char* varString; char* eltType;
+  E_Int res = K_ARRAY::getFromArray2(array, varString, f, ni, nj, nk, 
+                                     cn, eltType);
+  if (res != 2 || strcmp(eltType, "HEXA") != 0) 
+  {
+    if (res != 0) RELEASESHAREDB(res, array, f, cn);
+    PyErr_SetString(PyExc_TypeError,
+                    "blankExt: a must be HEXA.");
+    return NULL;
+  }
+  E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
+  E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
+  E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
+  if (posx == -1 || posy == -1 || posz == -1)
+  {
+    RELEASESHAREDB(res, array, f, cn);
+    PyErr_SetString(PyExc_TypeError, 
+                    "blankExt: coords must be present in a1.");
+    return NULL;       
+  }
+  E_Float* fx = f->begin(posx+1);
+  E_Float* fy = f->begin(posy+1);
+  E_Float* fz = f->begin(posz+1);
+
+  // Check cellN (like array but in center)
+  E_Int ni1, nj1, nk1;
+  FldArrayF* f1; FldArrayI* cn1;
+  char* varString1; char* eltType1;
+  E_Int res1 = K_ARRAY::getFromArray2(cellNObject, varString1, f1, ni1, nj1, nk1, 
+                                      cn1, eltType1);
+  
+  E_Int posCellN = K_ARRAY::isCellNatureField1Present(varString1);
+  if (posCellN == -1)
+  {
+    RELEASESHAREDB(res, array, f, cn);
+    RELEASESHAREDB(res1, cellNObject, f1, cn1);
+    PyErr_SetString(PyExc_TypeError,
+                    "blankExt: cellN must be present in second array.");
+    return NULL;
+  }
+  E_Int ne = cn->getSize();
+  E_Float* cellN = f1->begin(posCellN+1);
+  
+  E_Int ff[24];
+  ff[0 + 0*6] = 1; ff[0 + 1*6] = 4; ff[0 + 2*6] = 3; ff[0 + 3*6] = 2;
+  ff[1 + 0*6] = 1; ff[1 + 1*6] = 2; ff[1 + 2*6] = 6; ff[1 + 3*6] = 5;
+  ff[2 + 0*6] = 2; ff[2 + 1*6] = 3; ff[2 + 2*6] = 7; ff[2 + 3*6] = 6;
+  ff[3 + 0*6] = 3; ff[3 + 1*6] = 4; ff[3 + 2*6] = 8; ff[3 + 3*6] = 7;
+  ff[4 + 0*6] = 1; ff[4 + 1*6] = 5; ff[4 + 2*6] = 8; ff[4 + 3*6] = 4;
+  ff[5 + 0*6] = 5; ff[5 + 1*6] = 6; ff[5 + 2*6] = 7; ff[5 + 3*6] = 8;
+  
+  facet* face; facet* face1; facet* face2; E_Int ret;
+  vector<struct facet*> faces;
+
+  for (E_Int e = 0; e < ne; e++)
+  {
+    // faces externe
+    if (cellN[e] == 1) 
+    {
+      face = createFace(e, 5, *cn, ff, fx, fy, fz); 
+      faces.push_back(face); 
+    }
+  }
+  
+   // calcul des intersections des faces deux a deux
+  for (size_t i = 0; i < faces.size(); i++)
+  {
+    face1 = faces[i];
+    for (size_t j = 0; j < faces.size(); j++)
+    {
+      face2 = faces[j];
+      if (i != j)
+      {
+        ret = intersect(face1, face2);
+        if (ret == 1) { cellN[face1->cell] = 0; cellN[face2->cell] = 0; } // disymetrique volontaire
+      }
+    }
+  }
+  
+  // nettoyage des facettes
+  for (size_t i = 0; i < faces.size(); i++) delete faces[i];
+
+  RELEASESHAREDB(res, array, f, cn);
+  RELEASESHAREDB(res1, cellNObject, f1, cn1);
+  
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
+
 
 //=============================================================================
 /* 
@@ -474,7 +588,7 @@ PyObject* K_GENERATOR::blankPrev(PyObject* self, PyObject* args)
     return NULL;
   }
   E_Float* cellNp = fp1->begin(posCellN+1);
-
+  
   E_Int ff[24];
   ff[0 + 0*6] = 1; ff[0 + 1*6] = 4; ff[0 + 2*6] = 3; ff[0 + 3*6] = 2;
   ff[1 + 0*6] = 1; ff[1 + 1*6] = 2; ff[1 + 2*6] = 6; ff[1 + 3*6] = 5;
@@ -485,11 +599,11 @@ PyObject* K_GENERATOR::blankPrev(PyObject* self, PyObject* args)
 
   // Construction de la connectivite elt/elt voisins
   E_Int ne = cn->getSize();
-  E_Int nv = cn->getNfld();
+  E_Int nv = f->getSize();
   vector< vector<E_Int> > cEEN(ne);
   vector< vector<E_Int> > commonFace(ne);
   K_CONNECT::connectEV2EENbrs(eltType, nv, *cn, cEEN, commonFace);
-    
+      
   // Pool des faces limites de array
   E_Int cellNi; E_Int ind; E_Int cellNv;
   struct facet* face; struct facet* face1; struct facet* face2; 
@@ -509,16 +623,17 @@ PyObject* K_GENERATOR::blankPrev(PyObject* self, PyObject* args)
         E_Int noFace = commonFace[i][n];
         face = createFace(i, noFace, *cn, ff, fx, fy, fz);
         faces.push_back(face);
+        // faces externes aussi a ajouter
       }
     }
   }
-   
+     
   // Construction de la connectivite elt/elt voisins
-  ne = cn->getSize();
-  nv = cn->getNfld();
+  ne = cnp->getSize();
+  nv = fp->getSize();
   cEEN.clear(); cEEN.resize(ne);
   commonFace.clear(); commonFace.resize(ne);
-  K_CONNECT::connectEV2EENbrs(eltTypep, nv, *cnp, cEEN, commonFace);
+  K_CONNECT::connectEV2EENbrs(eltTypep, nv, *cnp, cEEN, commonFace); 
   
   // Pool des faces limites de arrayPrev
   vector<struct facet*> facesPrev;

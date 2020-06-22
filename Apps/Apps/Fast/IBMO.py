@@ -208,7 +208,6 @@ def prepare(t_case, t_out, tc_out,
         if b[0] in baseNamesChim:
             t2[2].append(b)
 
-
     # Ajout des ghost cells sur maillages chimeres
     C.addState(t2, 'EquationDimension', dimPb)
     C._rmBCOfType(t2,'BCMatch')

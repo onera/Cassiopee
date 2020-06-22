@@ -883,7 +883,7 @@ def getNormalMap(array):
     else:
         return generator.getNormalMap(array)
   
-def getSmoothNormalMap(array, niter=2, eps=0.4, algo=0):
+def getSmoothNormalMap(array, niter=2, eps=0.4, cellN=None, algo=0):
     """Return the map of smoothed and non-normalized surface normals in 
     an array.
     Usage: getSmoothNormalMap(array, niter, eps)"""
@@ -892,11 +892,27 @@ def getSmoothNormalMap(array, niter=2, eps=0.4, algo=0):
     it = 1
     n = getNormalMap(array)
     n = C.normalize(n, ['sx','sy','sz'])
+
+    if cellN is not None:
+        fake = ['cellN',cellN[1],n[2],n[3]]
+        print(cellN[1].shape, n[1].shape)
+        n = C.addVars([n, fake])
+        generator.extrapWithCellN(array, n)
+        n = C.extractVars(n, ['sx','sy','sz'])
+
     n = C.center2Node(n)
     n = C.normalize(n, ['sx','sy','sz'])
+    
     while it < niter:
         np = C.node2Center(n)
         np = C.normalize(np, ['sx','sy','sz'])
+        
+        if cellN is not None: 
+            fake = ['cellN',cellN[1],n[2],n[3]]
+            np = C.addVars([np, fake])
+            generator.extrapWithCellN(array, np)
+            np = C.extractVars(np, ['sx','sy','sz'])
+
         np = C.center2Node(np)
         np = C.normalize(np, ['sx','sy','sz'])
         it += 1
@@ -2179,7 +2195,7 @@ def addNormalLayersUnstr__(surface, distrib, check=0, niterType=0, niter=0, nite
                         elif k1 < niterK[1]: niterl = niter
                         else: niterl = max(niter + niter*(niterK[1]-k1)/(niterK[2]-niterK[1]),0) 
                     print('%d: niter=%d'%(k1,niterl))
-                    n = getSmoothNormalMap(surf, niter=niterl, eps=epsl[1], algo=1)
+                    n = getSmoothNormalMap(surf, niter=niterl, eps=epsl[1], cellN=cellN, algo=1)
                 else:
                     if niterType == 0: niterl = niter
                     elif niterType == 1: niterl = niter*(1.+C.getMaxValue(epsl, 'hl')/eps)
@@ -2188,7 +2204,7 @@ def addNormalLayersUnstr__(surface, distrib, check=0, niterType=0, niter=0, nite
                         elif k1 < niterK[1]: niterl = niter
                         else: niterl = max(niter + niter*(niterK[1]-k1)/(niterK[2]-niterK[1]),0) 
                     print('%d: niter=%d'%(k1,niterl))
-                    n = getSmoothNormalMap(surf, niter=niterl, eps=epsl[1], algo=1)
+                    n = getSmoothNormalMap(surf, niter=niterl, eps=epsl[1], cellN=cellN, algo=1)
                 n, epsl = modifyNormalWithMetric(surf, n, algo=1, smoothType=smoothType, eps=eps, nitLocal=nitLocal, kappaType=kappaType, kappaS=kappaS)
 
         n[1] = hloc*n[1]
@@ -2219,7 +2235,6 @@ def addNormalLayersUnstr__(surface, distrib, check=0, niterType=0, niter=0, nite
             generator.blankSelf(a, cellN)
             generator.blankSelf(a, cellN)
             
-            
         n[0] = 'sx0,sy0,sz0'
         surf = C.addVars([surf,n])
         vectn2 = ['sx0','sy0','sz0']
@@ -2235,6 +2250,9 @@ def addNormalLayersUnstr__(surface, distrib, check=0, niterType=0, niter=0, nite
                 op = ['cellN', None, m[2], cellN[3]]
                 op[1] = numpy.concatenate((cellNs[0][1], cellN[1]), axis=1) 
                 cellNs[0] = op
+                #C.convertArrays2File([a,m], 'check.plt')
+                #generator.blankPrev(a, cellN, m, op)
+                
     return m
 
 # Fonction retournant la carte d'orthogonalite d'une grille

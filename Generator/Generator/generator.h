@@ -117,6 +117,7 @@ namespace K_GENERATOR
   PyObject* quad2Pyra(PyObject* self, PyObject* args);
   PyObject* blankSelf(PyObject* self, PyObject* args);
   PyObject* blankFirst(PyObject* self, PyObject* args);
+  PyObject* blankExt(PyObject* self, PyObject* args);
   PyObject* blankPrev(PyObject* self, PyObject* args);
   PyObject* extrapWithCellN(PyObject* self, PyObject* args);  
 

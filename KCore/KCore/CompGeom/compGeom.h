@@ -296,7 +296,7 @@ typedef struct {
            -1: intersection en un point commun
            -2: intersection sur une arete commune
            -3: coplanaires et intersectant sur des edges
-           -4: coplanaires et un triangle est interne a l autre */
+           -4: coplanaires et un triangle est interne a l'autre */
   E_Int trianglesIntersection(E_Float* ptA1, E_Float* ptB1, E_Float* ptC1,
                               E_Float* ptA2, E_Float* ptB2, E_Float* ptC2,
                               E_Float eps=1.e-10);

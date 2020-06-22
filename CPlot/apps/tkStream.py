@@ -128,6 +128,7 @@ def streamLine():
     nob = C.getNobOfBase(b[0], CTK.t)
     
     # Arbre source (on enleve les Bases CANVAS, CONTOURS et STREAMS)
+    print((l[0], l[1], l[2]))
     source = C.newPyTree()
     bases = Internal.getBases(CTK.t)
     for b in bases:

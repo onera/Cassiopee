@@ -1,4 +1,5 @@
 # - Fast.IBM -
+# Fast IBM application
 import Apps.Fast.IBM as App
 
 myApp = App.IBM(format='single')

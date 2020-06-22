@@ -252,37 +252,39 @@ PyObject* K_POST::comp_stream_line(PyObject* self, PyObject* args)
     {
 //#       pragma omp critical
 //        std::cout << "Calcul streamline no" << i+1 << std::flush << std::endl;
-        streamline sline( beg_nodes[i], zones, nStreamPtsMax, (signe==1) );
-//#       pragma omp critical
-//        std::cout << "\t Conversion en python..." << std::flush << std::endl;
-        FldArrayF& field = sline.field();
-        E_Int number_of_points = field.getSize();
-        //std::cout << "field : " << number_of_points << ", " << field.getNfld() << std::endl;
-#       pragma omp critical
+        try
         {
-            PyObject* tpl = K_ARRAY::buildArray(field, varStringOut, number_of_points, 1, 1);
-            PyList_SetItem(list_of_streamlines, i, tpl);
+            streamline sline( beg_nodes[i], zones, nStreamPtsMax, (signe==1) );
+
+            FldArrayF& field = sline.field();
+            E_Int number_of_points = field.getSize();
+#       pragma omp critical
+            {
+                //PyObject* tpl = K_ARRAY::buildArray(field, varStringOut, number_of_points, 1, 1);
+                //PyList_SetItem(list_of_streamlines, i, tpl);
             
-            /* Essai pour supprimer les streams avec 0 points
-            if (number_of_points > 0)
-            {
-                PyObject* tpl = K_ARRAY::buildArray(field, varStringOut, number_of_points, 1, 1);
-                PyList_SetItem(list_of_streamlines, i, tpl);
+                /* Essai pour supprimer les streams avec 0 points */
+                if (number_of_points > 0)
+                {
+                    PyObject* tpl = K_ARRAY::buildArray(field, varStringOut, number_of_points, 1, 1);
+                    PyList_SetItem(list_of_streamlines, i, tpl);
+                }
+                else 
+                {
+                    //Py_INCREF(Py_None);
+                    PyList_SetItem(list_of_streamlines, i, Py_None);
+                }
             }
-            else 
-            {
-                //Py_INCREF(Py_None);
-                PyList_SetItem(list_of_streamlines, i, Py_None);
-            }
-            */
         }
-//#       pragma omp critical
-//        std::cout << "OK" << std::flush << std::endl;
+        catch(std::exception& err)
+        {
+            printf("Warning: streamLine: %s\n", err.what());
+            PyList_SetItem(list_of_streamlines, i, Py_None);
+        }
     }
     
     // Compact - Essai pour enlever des streamlines qui auraient 0 points
-    /*
-    E_Int size = 0;
+    size_t size = 0;
     for (size_t i = 0; i < beg_nodes.size(); ++i)
     {
         PyObject* tpl = PyList_GetItem(list_of_streamlines, i);
@@ -300,7 +302,6 @@ PyObject* K_POST::comp_stream_line(PyObject* self, PyObject* args)
         Py_DECREF(list_of_streamlines);
         list_of_streamlines = list_of_streamlines2;
     }
-    */
 
     for (unsigned int nos = 0; nos < objs.size(); nos++)
         RELEASESHAREDS(objs[nos], structF[nos]);
