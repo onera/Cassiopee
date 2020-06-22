@@ -772,6 +772,10 @@ PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
 
   NUGA::eSUBDIV_TYPE sub_type = subdiv_t(subdiv_type);
 
+  // from adaptCells, can only be a geom or x sensor
+  if (sensor_type != 0 && sensor_type != 1)
+    sensor_type = 0; //geom sensor
+
   K_FLD::FloatArray* f(nullptr), *fS(nullptr);
   K_FLD::IntArray* cn(nullptr), *cnS(nullptr);
   char* varString, *eltType, *varString2, *eltType2;
