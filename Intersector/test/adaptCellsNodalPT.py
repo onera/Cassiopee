@@ -17,7 +17,7 @@ nodal_vals[:] = 2
 ## HEXA static adaptation
 z = C.fillEmptyBCWith(z, 'wall', 'BCWall')
 
-m = XOR.adaptCellsNodal(z, [nodal_vals])
+m = XOR.adaptCellsNodal(z, [nodal_vals], smoothing_type = 1)
 
 m = XOR.closeCells(m)
 C.convertPyTree2File(m, 'out.cgns')
@@ -25,7 +25,7 @@ C.convertPyTree2File(m, 'out.cgns')
 ## HEXA dynamic adaptation
 hmsh = XOR.createHMesh(z, 0) # 0 : ISOTROPIC subdivision 
 
-m = XOR.adaptCellsNodal(z, [nodal_vals], hmesh = hmsh)
+m = XOR.adaptCellsNodal(z, [nodal_vals], hmesh = hmsh, smoothing_type = 1)
 m = XOR.closeCells(m)            # close cells (adding point on lateral faces)
 
 C.convertPyTree2File(m, "out1.cgns")
@@ -40,7 +40,7 @@ n = C.getNPts(zTH4)
 nodal_vals = numpy.empty((n,), dtype=numpy.int32)
 nodal_vals[:] = 2
 
-m = XOR.adaptCellsNodal(zTH4, [nodal_vals])
+m = XOR.adaptCellsNodal(zTH4, [nodal_vals], smoothing_type = 1)
 
 m = XOR.closeCells(m)
 C.convertPyTree2File(m, 'out2.cgns')

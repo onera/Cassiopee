@@ -319,32 +319,24 @@ def closeCells(a):
 
 #==============================================================================
 # adaptCells : Adapts a polyhedral mesh a1 with repsect to a2 points
-# IN: a1 : 3D NGON mesh
-# IN: a2 : source points (any kind of mesh)
+# IN: a : 3D NGON mesh
+# IN: sensdata : sensor data (any mesh for a geom sensor, nodal values for a nodal sensor)
 # OUT: returns a 3D NGON Mesh with adapted cells
 #==============================================================================
-def adaptCells(a1, a2, sensor_type=0, smoothing_type=0, itermax=-1, subdiv_type=0, hmesh=None):
+def adaptCells(a, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, hmesh=None, sensor=None):
     """Adapts a polyhedral mesh a1 with repsect to a2 points.
     Usage: adaptCells(a1, a2, [sensor_type, itermax, hmesh])"""
-    return intersector.adaptCells(a1, a2, sensor_type, smoothing_type, itermax, subdiv_type, hmesh)
-
-#==============================================================================
-# adaptCellsDyn
-#==============================================================================
-# def __adaptCellsDyn(hook_hmesh, hook_sensor):
-    
-#   return intersector.adaptCellsDyn(hook_hmesh, hook_sensor) 
-
-#==============================================================================
-# adaptCellsNodal : Adapts a polyhedral mesh a1 with repsect to the nodal subdivision values.
-# IN: a1 : 3D NGON mesh
-# IN: nodal_vals : nb of subdivision required expressed at mesh nodes
-# OUT: returns a 3D NGON Mesh with adapted cells
-#==============================================================================
-def adaptCellsNodal(a1, nodal_vals, hmesh=None):
-    """Adapts a polyhedral mesh a1 with repsect to the nodal subdivision values.
-    Usage: adaptCellsNodal(a1, nodal_vals, [hmesh])"""
-    return intersector.adaptCellsNodal(a1, nodal_vals, hmesh)
+    owesHMesh=0
+    if hmesh is None:
+        hmesh = createHMesh(a, subdiv_type)
+        owesHMesh=1
+    sensor = createSensor(hmesh, sensor_type, smoothing_type, itermax)
+    assignData2Sensor(sensor, sensdata)
+    am = intersector.adaptCells(hmesh, sensor)
+    if owesHMesh == 1 :
+        deleteHMesh(hmesh)
+    deleteSensor(sensor)
+    return am
 
 #==============================================================================
 # adaptBox : Adapts a bounding box to a cloud of interior points.
@@ -357,13 +349,19 @@ def createHMesh(a, subdiv_type = 0): # 0 : ISO, 1: ISO_HEX
     return intersector.createHMesh(a, subdiv_type)
 
 def deleteHMesh(hmesh):
-    return intersector.deleteHMesh(hook)
+    return intersector.deleteHMesh(hmesh)
 
 def conformizeHMesh(hmesh):
     return intersector.conformizeHMesh(hmesh)
 
-def createGeomSensor(hookHMesh, smoothing_type = 0, itermax = -1):
-    return intersector.createSensor(hookHMesh, smoothing_type, itermax)
+def createSensor(hmesh, sensor_type = 0, smoothing_type=0 , itermax = -1):
+    return intersector.createSensor(hmesh, sensor_type, smoothing_type, itermax)
+
+def assignData2Sensor(hmesh, sensdata):
+    return intersector.assignData2Sensor(hmesh, sensdata)
+
+def deleteSensor(hmesh):
+    return intersector.deleteSensor(hmesh)
 
 #==============================================================================
 # extractUncomputables : Extracts any entity that will probably cause trouble to a CFD solver

@@ -63,13 +63,13 @@ namespace K_INTERSECTOR
   PyObject* getAnisoInnerFaces(PyObject* self, PyObject* args);
 
   PyObject* adaptCells(PyObject* self, PyObject* args);
-  PyObject* adaptCellsDyn(PyObject* self, PyObject* args);
-  PyObject* adaptCellsNodal(PyObject* self, PyObject* args);
   PyObject* adaptBox(PyObject* self, PyObject* args);
   PyObject* createHMesh(PyObject* self, PyObject* args);
   PyObject* deleteHMesh(PyObject* self, PyObject* args);
+  PyObject* createSensor(PyObject* self, PyObject* args);
+  PyObject* assignData2Sensor(PyObject* self, PyObject* args);
+  PyObject* deleteSensor(PyObject* self, PyObject* args);
   PyObject* conformizeHMesh(PyObject* self, PyObject* args);
-  PyObject* createGeomSensor(PyObject* self, PyObject* args);
   
   PyObject* extractUncomputables(PyObject* self, PyObject* args);
   PyObject* extractPathologicalCells(PyObject* self, PyObject* args);

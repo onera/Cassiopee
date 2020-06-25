@@ -197,7 +197,7 @@ void refiner<ELT_t, STYPE>::get_PHs_to_refine
 (const ngon_type& ng, const tree<arr_t> & PHtree, const sensor_output_t &adap_incr, Vector_t<E_Int> & PHlist)
 {
   for (size_t i = 0; i < adap_incr.size(); ++i)
-    if (adap_incr[i] > 0 && PHtree.is_enabled(i) && (ELT_t::is_of_type(ng.PGs, ng.PHs.get_facets_ptr(i), ng.PHs.stride(i))))
+    if (adap_incr[i] > 0 && (PHtree.nb_children(i)==0)  && (ELT_t::is_of_type(ng.PGs, ng.PHs.get_facets_ptr(i), ng.PHs.stride(i))))
       PHlist.push_back(i);
 }
 

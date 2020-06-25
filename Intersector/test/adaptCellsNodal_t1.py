@@ -16,7 +16,7 @@ nodal_vals = numpy.empty((n,), dtype=numpy.int32)
 nodal_vals[:] = 2
 
 ## HEXA static adaptation
-m = XOR.adaptCellsNodal(a, nodal_vals)
+m = XOR.adaptCells(a, nodal_vals, sensor_type = 2, smoothing_type = 1)
 
 m = XOR.closeCells(m[0])
 test.testA(m,1)
@@ -26,7 +26,7 @@ n = C.getNPts(aTH4)
 nodal_vals = numpy.empty((n,), dtype=numpy.int32)
 nodal_vals[:] = 2
 
-m = XOR.adaptCellsNodal(aTH4, nodal_vals)
+m = XOR.adaptCells(aTH4, nodal_vals, sensor_type = 2, smoothing_type = 1)
 
 m = XOR.closeCells(m[0])
 test.testA(m,2)

@@ -19,6 +19,12 @@
 namespace NUGA
 {
 
+struct mesh_s
+{
+  K_FLD::FloatArray crd;
+  K_FLD::IntArray  cnt;
+};
+
 /// X geometric sensor
 template <typename ELT_t, typename mesh_t> //ngu for surfacic (PGs) or ngon_t for volumic
 class xsensor : public geom_sensor<mesh_t>
@@ -26,17 +32,14 @@ class xsensor : public geom_sensor<mesh_t>
   public:
     using elt_type = ELT_t;
     using parent_t = geom_sensor<mesh_t>;
-    using sensor_data_t = typename parent_t::sensor_data_t; //point cloud
+    using sensor_data_t = mesh_s;
     
-    xsensor(mesh_t& mesh, eSmoother smootyp, E_Int max_pts_per_cell, E_Int itermax, const K_FLD::IntArray* cntS):parent_t(mesh, smootyp, max_pts_per_cell, itermax), _cntS(*cntS){}
+    xsensor(mesh_t& mesh, eSmoother smootyp, E_Int max_pts_per_cell, E_Int itermax):parent_t(mesh, smootyp, max_pts_per_cell, itermax){}
 
-    E_Int assign_data(sensor_data_t& data) override;
+    E_Int assign_data(sensor_data_t& data) ; //not an override as args are different
 
  private:
-    void add_x_points(sensor_data_t& data);
-
-    const K_FLD::IntArray& _cntS;
-            
+    void add_x_points(sensor_data_t& data);            
 };
 ///
 template <typename ELT_t, typename mesh_t>
@@ -45,12 +48,12 @@ void xsensor<ELT_t, mesh_t>::add_x_points(sensor_data_t& data)
   Vector_t<E_Int> ids;
   std::map<K_MESH::NO_Edge,E_Int> unique_edges;
   //
-  for (int i = 0; i < _cntS.cols(); ++i)// for each elts of the source file, check if there is a x situation
+  for (int i = 0; i < data.cnt.cols(); ++i)// for each elts of the source file, check if there is a x situation
   {      
     // get the edges
     Vector_t<K_MESH::NO_Edge> edges(ELT_t::NB_EDGES);
     edges.clear();
-    ELT_t::get_edges(_cntS.col(i),edges);
+    ELT_t::get_edges(data.cnt.col(i),edges);
     
     Vector_t<E_Float> lambdas;
     
@@ -64,8 +67,8 @@ void xsensor<ELT_t, mesh_t>::add_x_points(sensor_data_t& data)
       E_Int pt1 = noE.node(0);
       E_Int pt2 = noE.node(1);
 
-      E_Float* P0 = data.col(pt1);
-      E_Float* P1 = data.col(pt2);
+      E_Float* P0 = data.crd.col(pt1);
+      E_Float* P1 = data.crd.col(pt2);
 
       ids.clear();
       parent_t::_bbtree->getOverlappingBoxes(P0,P1,ids);
@@ -84,7 +87,7 @@ void xsensor<ELT_t, mesh_t>::add_x_points(sensor_data_t& data)
         E_Int nb_faces = parent_t::_hmesh._ng.PHs.stride(PHi);
 
         // check if noE intersect with PHi
-        bool x = ELT_t::cross(parent_t::_hmesh._ng, parent_t::_hmesh._crd, face, nb_faces, *parent_t::_data, P0, P1, lambda0, lambda1, tolerance);
+        bool x = ELT_t::cross(parent_t::_hmesh._ng, parent_t::_hmesh._crd, face, nb_faces, parent_t::_data, P0, P1, lambda0, lambda1, tolerance);
         
         if (!x) continue; // no intersection
         
@@ -117,7 +120,7 @@ void xsensor<ELT_t, mesh_t>::add_x_points(sensor_data_t& data)
         E_Float xpoint[3];
         for (int m = 0; m < 3; ++m)
           xpoint[m] = coord0[m] + x3*(coord1[m] - coord0[m]); // the new point
-        data.pushBack(xpoint, xpoint+3);
+        data.crd.pushBack(xpoint, xpoint+3);
       }
     }
   }
@@ -128,7 +131,7 @@ template <typename ELT_t, typename mesh_t>
 E_Int xsensor<ELT_t, mesh_t>::assign_data(sensor_data_t& data)
 {
   add_x_points(data);
-  parent_t::assign_data(data); // done after because localizing (inside assign_data) must be done after add_x_points
+  parent_t::assign_data(data.crd); // done after because localizing (inside assign_data) must be done after add_x_points
   return 0;
 }
 

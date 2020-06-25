@@ -12,7 +12,7 @@ b = G.cartHexa((0.,0.,0.), (0.005,0.005,0.005), (5,5,5))
 
 a = C.fillEmptyBCWith(a, 'wall', 'BCWall')
 
-## static adaptation
+# static adaptation
 m = XOR.adaptCells(a,b, sensor_type=0)
 m = XOR.closeCells(m)
 test.testT(m,1)
@@ -25,7 +25,7 @@ m = XOR.adaptCells(a,b, sensor_type=0, smoothing_type=1)
 m = XOR.closeCells(m)
 test.testT(m,3)
 
-## dynamic adaptation
+# dynamic adaptation
 hmsh = XOR.createHMesh(a)
 m = XOR.adaptCells(a, b, hmesh = hmsh, sensor_type=0)
 m = XOR.conformizeHMesh(m, hmsh)

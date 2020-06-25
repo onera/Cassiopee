@@ -28,17 +28,31 @@ class nodal_sensor : public sensor<mesh_t, Vector_t<E_Int>> // Vector_t might be
     using sensor_output_t = typename mesh_t::sensor_output_t; //fixme: static assert to add : must be ISO => IntVec
 
     nodal_sensor(mesh_t& mesh): parent_t(mesh, new V1_smoother<mesh_t>()){}
+
+    E_Int assign_data(sensor_data_t& data);
     
     void fill_adap_incr(sensor_output_t& adap_incr, bool do_agglo) override;
     void update() override;
 };
+
+/// 
+template <typename mesh_t>
+E_Int nodal_sensor<mesh_t>::assign_data(sensor_data_t& data)
+{
+
+  parent_t::assign_data(data);
+
+  int ncrd = parent_t::_hmesh._crd.cols();
+  if (ncrd > data.size())
+    parent_t::_data.resize(ncrd, 0.);
+}
 
 ///
 template <typename mesh_t>
 void nodal_sensor<mesh_t>::fill_adap_incr(sensor_output_t& adap_incr, bool do_agglo)
 {
   //
-  sensor_data_t& Ln = *parent_t::_data;
+  sensor_data_t& Ln = parent_t::_data;
   // E_Int n_nodes= parent_t::_hmesh._crd.size();
   // Ln.resize(n_nodes, 0);
   E_Int nb_elt= parent_t::_hmesh._ng.PHs.size();
@@ -75,7 +89,7 @@ void nodal_sensor<mesh_t>::fill_adap_incr(sensor_output_t& adap_incr, bool do_ag
 template <typename mesh_t>
 void nodal_sensor<mesh_t>::update()
 {
-  sensor_data_t& Ln = *parent_t::_data;
+  sensor_data_t& Ln = parent_t::_data;
   E_Int nb_pts = parent_t::_hmesh._crd.size();
   Ln.resize(nb_pts, 0);
   

@@ -30,7 +30,7 @@ class sensor
   public:
     sensor(mesh_t& mesh, smoother<mesh_t>* smoother) :_hmesh(mesh), _smoother(smoother) {};
     
-    virtual E_Int assign_data(sensor_data_t& data) { _data = &data; return 0; }
+    virtual E_Int assign_data(sensor_data_t& data) { _data = data; return 0; }
     
     bool compute(sensor_output_t& adap_incr, bool do_agglo);
 
@@ -42,12 +42,12 @@ class sensor
 
     virtual ~sensor()
     {
-      if (_smoother != nullptr) delete _smoother;
+      if (_smoother != nullptr) delete _smoother; _smoother = nullptr;
     }
 
   protected:
     mesh_t const &    _hmesh;
-    sensor_data_t*    _data;
+    sensor_data_t     _data;
     smoother<mesh_t>* _smoother;
 };
 

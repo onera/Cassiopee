@@ -183,7 +183,7 @@ class tree
        _enabled[i] = true;
        
        // disable its parent
-       _enabled[parent(i)] = false;
+       if ( parent(i) !=  E_IDX_NONE )_enabled[parent(i)] = false;
 
        // disable its children
        E_Int nbc = nb_children(i);

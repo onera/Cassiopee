@@ -56,6 +56,15 @@ def getTreeDim(t):
     if dims[4] != d:return 0; # mixed type : not handled
   return d
 
+def isMesh(t): #
+  if isinstance(t, list):
+    if isinstance(t[0], numpy.ndarray):
+      return False
+  else:
+    if isinstance(t, numpy.ndarray):
+      return False
+  return True
+
 #=============================================================================
 # Concatenation des PointList d un type de BC donne dans une liste de zones
 #=============================================================================
@@ -1204,65 +1213,97 @@ def _closeCells(t):
 # IN: t2 : source points (any kind of mesh)
 # IN: sensor_type : basic (0) or xsensor (1)
 # IN smoothing_type : First-neighborhood (0) Shell-neighborhood(1)
+# IN itermax : max number of level in the hierarchy
+# IN subdiv_type : XXX
+# IN hmesh : XXX
+# IN sensor : XXX
 # OUT: returns a 3D NGON Mesh with adapted cells
 #==============================================================================
-def adaptCells(t, t2, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, hmesh=None):
-     
-    tp = Internal.copyRef(t)
-    _adaptCells(tp, t2, sensor_type, smoothing_type, itermax, subdiv_type, hmesh)
-    return tp
+def adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, hmesh=None, sensor=None):
+  tp = Internal.copyRef(t)
+  _adaptCells(tp, sensdata, sensor_type, smoothing_type, itermax, subdiv_type, hmesh, sensor)
+  return tp
 
-def _adaptCells(t, t2, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, hmesh=None):
+def _adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, hmesh=None, sensor=None):
     """Adapts a polyhedral mesh t1 with repsect to t2 points.
-    Usage: adaptCells(t1, t2, sensor_type, smoothing_type, itermax, subdiv_type, hmesh)"""
+    Usage: adaptCells(t1, t2, sensor_type, smoothing_type, itermax, subdiv_type, hmesh, sensor)"""
 
-    source = C.getFields(Internal.__GridCoordinates__, t2)[0]
+    if sensdata is None and sensor is None:
+      print('INPUT ERROR : no source data to initialize a sensor')
+      return
 
+    if hmesh is None and sensor is not None:
+      print ('INPUT ERROR : you must also give as an argument the hmesh on which you have built the sensor')
+      return
+
+    owesHmesh=0
+    if hmesh is None :
+      #print("create hm")
+      hmesh = createHMesh(t, subdiv_type)
+      owesHmesh=1
+
+    owesSensor=0
+    if sensor is None : 
+      #print("create sensor")
+      sensor = createSensor(hmesh, sensor_type, smoothing_type, itermax)
+      owesSensor=1
+
+    if sensdata is not None: assignData2Sensor(sensor, sensdata)
+
+    _adaptCellsDyn(t, hmesh, sensor)
+
+    if owesHmesh == 1 : #and owesSensor == 1 :
+      _conformizeHMesh(t, hmesh)
+
+    if owesHmesh == 1 :
+      #print('delete owned hmesh')
+      deleteHMesh(hmesh)
+    if owesSensor == 1 : 
+      #print('delete owned sensor')
+      deleteSensor(sensor)
+      #print('delete done')
+
+#==============================================================================
+# adaptCellsDyn : Adapts a polyhedral mesh a1 with repsect to the nodal subdivision values.
+# IN: t : 3D NGON mesh
+# IN: nodal_vals : nb of subdivision required expressed at mesh nodes
+# OUT: returns a 3D NGON Mesh with adapted cells
+#==============================================================================
+def adaptCellsDyn(t, hmesh, sensor):
+  tp = Internal.copyRef(t)
+  _adaptCellsDyn(tp, hmesh, sensor)
+  return tp
+#==============================================================================
+# _adaptCellsDyn : Adapts a polyhedral mesh a1 with repsect to a2 points
+# IN: t1 : 3D NGON mesh
+# IN: t2 : source points (any kind of mesh)
+# IN: sensor_type : basic (0) or xsensor (1)
+# IN smoothing_type : First-neighborhood (0) Shell-neighborhood(1)
+# OUT: returns a 3D NGON Mesh with adapted cells
+#==============================================================================
+def _adaptCellsDyn(t, hmesh, sensor):
+    """XXX.
+    Usage: _adaptCellsDyn(hmesh, sensor)"""
     zones = Internal.getZones(t)
-
+    nb_zones = len(zones)
+    
     i=-1
     for z in zones:
-        i+=1
-        coords = C.getFields(Internal.__GridCoordinates__, z)[0]
-        if coords == []: continue
+      i+=1
+      coords = C.getFields(Internal.__GridCoordinates__, z)[0]
+      if coords == []: continue
 
-        coords = Converter.convertArray2NGon(coords)
+      res = intersector.adaptCells(hmesh[i], sensor[i])
 
-        if hmesh is not None:
-            res = intersector.adaptCells(coords, source, sensor_type, smoothing_type, itermax, subdiv_type, hmesh[i])
-        else:
-            res = intersector.adaptCells(coords, source, sensor_type, smoothing_type, itermax, subdiv_type, None)
+      mesh = res[0]
+      # MAJ du maillage de la zone
+      C.setFields([mesh], z, 'nodes')
 
-        mesh = res[0]
-        # MAJ du maillage de la zone
-        C.setFields([mesh], z, 'nodes')
-        if (len(res) > 1):
-            pg_oids=res[1]
-            # MAJ POINT LISTS #
-            updatePointLists(z, zones, pg_oids)
+      if (len(res) > 1):
+        pg_oids=res[1]
+        # MAJ POINT LISTS #
+        updatePointLists(z, zones, pg_oids)
 
-    return t
-
-
-#==============================================================================
-# Dynamic cells adaptation 
-#==============================================================================
-def adaptCellsDyn(t,ts,hmeshs,hsensors):
-    tp = Internal.copyRef(t)
-    _adaptCellsDyn(tp, ts, hmeshs, hsensors)
-    return tp
-
-def _adaptCellsDyn(t,ts,hmeshs,hsensors):
-    source = C.getFields(Internal.__GridCoordinates__, ts)[0]
-
-    zones   = Internal.getZones(t)
-    i       = 0
-    hmesh   = hmeshs[i]
-    hsensor = hsensors[i]
-    for z in zones:        
-        res = intersector.adaptCellsDyn(source,hmesh,hsensor)
-        i   = i+1
-    
 
 #==============================================================================
 # adaptCellsNodal : Adapts a polyhedral mesh a1 with repsect to the nodal subdivision values.
@@ -1270,47 +1311,10 @@ def _adaptCellsDyn(t,ts,hmeshs,hsensors):
 # IN: nodal_vals : nb of subdivision required expressed at mesh nodes
 # OUT: returns a 3D NGON Mesh with adapted cells
 #==============================================================================
-def adaptCellsNodal(t, nodal_vals, hmesh=None):
+def adaptCellsNodal(t, sensdata=None, smoothing_type = 0, subdiv_type=0, hmesh=None, sensor=None):
     tp = Internal.copyRef(t)
-    _adaptCellsNodal(tp, nodal_vals, hmesh)
+    _adaptCells(tp, sensdata, 2, smoothing_type, -1, subdiv_type, hmesh, sensor)
     return tp
-
-def _adaptCellsNodal(t, nodal_vals, hmesh=None):
-    """Adapts a polyhedral mesh a1 with repsect to the nodal subdivision values.
-    Usage: _adaptCellsNodal(t, nodal_vals)"""
-
-    zones = Internal.getZones(t)
-    nb_zones = len(zones)
-    nb_nodals = len(nodal_vals)
-
-    if nb_zones != nb_nodals:
-        print('must give one nodal list (sized as cooridnates) per zone')
-        return
-
-    i=-1
-    for z in zones:
-        i+=1
-        coords = C.getFields(Internal.__GridCoordinates__, z)[0]
-        if coords == []: continue
-
-        nval = nodal_vals[i] 
-        #print(nval)
-
-        if hmesh is not None:
-            res = intersector.adaptCellsNodal(coords, nval, hmesh[i])
-        else:
-            res = intersector.adaptCellsNodal(coords, nval, None)
-
-        mesh = res[0]
-        # MAJ du maillage de la zone
-        C.setFields([mesh], z, 'nodes')
-
-        if (len(res) > 1):
-            pg_oids=res[1]
-            # MAJ POINT LISTS #
-            updatePointLists(z, zones, pg_oids)
-
-    return t
 
 def createHMesh(t, subdiv_type = 0):
     zones = Internal.getZones(t)
@@ -1323,22 +1327,31 @@ def createHMesh(t, subdiv_type = 0):
         i=i+1
     return hmeshs
 
-def createGeomSensor(hmeshs, sensor_type = 0, itermax = -1):
-
+def createSensor(hmeshs, sensor_type = 0, smoothing_type=0 , itermax = -1):
     sensors = []
-
     for hmesh in hmeshs:
-        sensors.append(intersector.createSensor(hmesh,sensor_type,itermax))
-  
+      sensors.append(intersector.createSensor(hmesh,sensor_type,smoothing_type,itermax))
     return sensors
 
 def deleteHMesh(hooks):
-    nb_hooks = len(hooks)
-    i=0
-    for h in range(nb_hooks):
-        intersector.deleteHMesh(hooks[i])
-        i=i+1
+    for h in hooks:
+      intersector.deleteHMesh(h)
 
+def deleteSensor(hooks):
+    for h in hooks:
+      intersector.deleteSensor(h)
+
+def assignData2Sensor(hooks, sensdata):
+    if isMesh(sensdata): # mesh or coords : FIXME : get first block only
+      #print('supposed mesh')
+      data = C.getFields(Internal.__GridCoordinates__, sensdata)[0] 
+    else:
+      #print('supposed numpy')
+      data = sensdata[0]
+
+    for h in hooks:
+      intersector.assignData2Sensor(h, data)
+        
 def conformizeHMesh(t, hooks):
     tp = Internal.copyRef(t)
     _conformizeHMesh(tp, hooks)

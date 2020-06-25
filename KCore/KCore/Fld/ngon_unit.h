@@ -138,7 +138,7 @@ class ngon_unit
       
       E_Int pos = _NGON.size();
       _NGON.resize(pos + nb_tot_child + n, E_IDX_NONE); 
-      _facet.resize(sz0 + nb_tot_child);
+      _facet.resize(sz0 + n);
 
       //put the nb_facets
       for (E_Int i = 0; i < n; ++i)
@@ -147,10 +147,10 @@ class ngon_unit
         pos += pregnant[i] + 1;
       }
 
-      if (!_type.empty()) _type.resize(_type.size() + nb_tot_child);
-      if (_ancEs.cols() != 0) _ancEs.resize(2, _ancEs.cols() + nb_tot_child);
+      if (!_type.empty()) _type.resize(_type.size() + n);
+      if (_ancEs.cols() != 0) _ancEs.resize(2, _ancEs.cols() + n);
 
-      _NGON[0] += nb_tot_child;
+      _NGON[0] += n;
       _NGON[1] = _NGON.size() - 2;
 
       _dirty = true;

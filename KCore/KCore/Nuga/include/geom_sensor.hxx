@@ -91,10 +91,11 @@ E_Int geom_sensor<mesh_t>::assign_data(sensor_data_t& data)
 {
 
   parent_t::assign_data(data);
-    
+   
+  _iter = 0; //reset
   // fill in _points_to_cell with the initial mesh (giving for each source point the highest level cell containing it)
   _points_to_cell.clear();
-  
+
   // Count the number of data per cell
 
   // Check if hmesh has been initialized
@@ -175,7 +176,7 @@ void geom_sensor<mesh_t>::locate_points()
  
   E_Float tol = 10. * ZERO_M;
   
-  E_Int nb_src_pts =parent_t::_data->cols();
+  E_Int nb_src_pts =parent_t::_data.cols();
   // for each source points, give the highest cell containing it if there is one, otherwise E_IDX_NONE
   _points_to_cell.resize(nb_src_pts, E_IDX_NONE);
   
@@ -187,7 +188,7 @@ void geom_sensor<mesh_t>::locate_points()
   //
   for (int i = 0; i < nb_src_pts; i++)
   {
-    const E_Float* p =parent_t::_data->col(i);
+    const E_Float* p =parent_t::_data.col(i);
     
     for (int j = 0; j < 3;j++)
     {
@@ -305,7 +306,7 @@ E_Int geom_sensor<mesh_t>::detect_child(const E_Float* p, E_Int PHi, const E_Int
 template <typename mesh_t>
 void geom_sensor<mesh_t>::update()
 {
-  //std::cout << "redistrib data geom sensor. " << std::endl;
+  //std::cout << "redistrib data geom sensor. : nb pts" << _points_to_cell.size() << std::endl;
   E_Int nb_pts = _points_to_cell.size();
 
   for (int i = 0; i < nb_pts; ++i)
@@ -315,7 +316,7 @@ void geom_sensor<mesh_t>::update()
     if (PHi == E_IDX_NONE) continue; //external point
     if (parent_t::_hmesh._PHtree.children(PHi) != nullptr) // we detect the subdivised PH : one of his children has this source point
     {
-      E_Float* p = parent_t::_data->col(i); // in which children of PHi is the point
+      E_Float* p = parent_t::_data.col(i); // in which children of PHi is the point
       E_Int cell = get_higher_lvl_cell(p,PHi);
       _points_to_cell[i] = cell;
     }

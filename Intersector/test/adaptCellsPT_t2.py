@@ -18,7 +18,7 @@ m = XOR.adaptCells(a,b, sensor_type=0)
 m = XOR.closeCells(m)
 test.testT(m,1)
 
-m = XOR.adaptCells(a,b, sensor_type=1)
+m = XOR.adaptCells(a,b, sensor_type=0)
 m = XOR.closeCells(m)
 test.testT(m,2)
 

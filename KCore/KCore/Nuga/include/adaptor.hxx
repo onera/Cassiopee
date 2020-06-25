@@ -14,6 +14,12 @@
 #ifndef NUGA_ADAPTOR_HXX
 #define NUGA_ADAPTOR_HXX
 
+//#define ADAPT_STEPS
+
+#ifdef ADAPT_STEPS
+#include <chrono>
+#endif
+
 namespace NUGA
 {
   
@@ -39,18 +45,23 @@ E_Int NUGA::adaptor<mesh_t, sensor_t>::run(mesh_t& hmesh, sensor_t& sensor, bool
 
   hmesh.init();  
 
-  //int iter = 0;
+#ifdef ADAPT_STEPS
+  int iter = -1;
+#endif
+
   while (!err)
   {
+    E_Int nbphs = hmesh._ng.PHs.size();
+#ifdef ADAPT_STEPS
+    std::cout << "nuga/adapt::sensor.compute iter " << ++iter << "... with agglo ? " << do_agglo << std::endl;
+    auto start0 = std::chrono::system_clock::now();
+#endif
+
+    bool require = sensor.compute(adap_incr, do_agglo);
 
 #ifdef ADAPT_STEPS
-    std::cout << "nuga/adapt::sensor.compute iter " << iter++ << "..." << std::endl;
-    start0 = std::chrono::system_clock::now();
-#endif
-    bool require = sensor.compute(adap_incr, do_agglo);
-#ifdef ADAPT_STEPS
-    end0 = std::chrono::system_clock::now();
-    t0 = end0 - start0;
+    auto end0 = std::chrono::system_clock::now();
+    auto t0 = end0 - start0;
     std::cout << "nuga/adapt::sensor.compute iter " << iter << " : " << t0.count() << "s" << std::endl;
 #endif
 
@@ -74,16 +85,10 @@ E_Int NUGA::adaptor<mesh_t, sensor_t>::run(mesh_t& hmesh, sensor_t& sensor, bool
 #ifdef ADAPT_STEPS
     end0 = std::chrono::system_clock::now();
     t0 = end0 - start0;
-    std::cout << "nuga/adapt::hmesh.adapt    iter " << iter++ << " : " << t0.count() << "s" << std::endl;
+    std::cout << "nuga/adapt::hmesh.adapt    iter " << iter << " : " << t0.count() << "s" << std::endl;
 #endif
 
   }
-
-#ifdef ADAPT_STEPS
-  end0 = std::chrono::system_clock::now();
-  t0 = end0 - startG;
-  std::cout << "nuga/adapt : total time : " << t0.count() << "s" << std::endl;
-#endif
 
   return err;
 }
