@@ -140,7 +140,7 @@ namespace K_POST
             vector3d XPi0(origin, Pi0);
             vector3d XPi1(origin, Pi1);
             vector3d n = (XPi0 ^ XPi1);
-
+            n = (1./abs(n))*n;
             E_Float scal = (direction|n);
             return (scal>1.E-14) - (scal<-1.E-14);// En prenant en compte les erreurs numériques...
         };
@@ -179,7 +179,7 @@ namespace K_POST
                 return result;
             }
             else
-                throw std::underflow_error("Cas d'indétermination, face coplanaire avec la direction même avec pertubation.... étrange");
+                throw std::underflow_error("Indetermination case, coplanar face with direction even with perturbation....");
         }
         return {not_change_sign, signe<0};
     }
@@ -349,8 +349,8 @@ namespace K_POST
         vector3d pmb(v1, pos_inter);
         double s = inv_det * (edge2[ind2] * pmb[ind1] - edge2[ind1] * pmb[ind2]);
         double t = inv_det * (edge1[ind1] * pmb[ind2] - edge1[ind2] * pmb[ind1]);
-        assert(s+t >= 0);
-        assert(s+t <= 1);
+        assert(s+t >= -1.E-6);
+        assert(s+t <= 1+1.E-6);
         // On vérifie bien qu'on a bien la coordonnée barycentrique avec la troisième coordonnée
         assert(std::abs(pmb[3-ind2-ind1] - s * edge1[3-ind2-ind1] - t * edge2[3-ind2-ind1]) < 1.E-6);
         std::vector<E_Float> interpol_field(field.getNfld());

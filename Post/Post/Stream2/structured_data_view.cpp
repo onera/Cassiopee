@@ -282,7 +282,7 @@ namespace K_POST
         } catch(std::invalid_argument& err)
         {
             // On est sur la frontière de l'élément :
-            std::cerr << "Warning : interpolated point is on interface. Possibility to have two points in same location in the stream line"
+            std::cerr << "Warning: interpolated point is on interface. Possibility to have two points in same location in the stream line"
                       << std::flush << std::endl;
             is_inside = true; // Dans ce cas, on considère qu'on est à l'intérieur (on prend l'élément comme un fermé topologique)
         }

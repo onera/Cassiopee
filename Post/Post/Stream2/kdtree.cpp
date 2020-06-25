@@ -79,14 +79,57 @@ namespace K_POST
         }
         double dx = coords[m_direction][m_separation_index] - pt[m_direction];
         //std::cout << "dx : " << dx << std::endl;
-        auto result_child = (dx >= 0 ? m_left->nearest(pt, coords) : m_right->nearest(pt, coords));
+        std::pair<E_Int,double> result_child;
+        if (dx>=0)
+        {
+            if (m_left != nullptr)
+            {
+                result_child = m_left->nearest(pt, coords);
+            }
+            else
+            {
+                result_child = {min_index, sq_dist_min};
+            }
+        }
+        else
+        {
+            if (m_right != nullptr)
+            {
+                result_child = m_right->nearest(pt, coords);
+            }
+            else
+            {
+                result_child = {min_index, sq_dist_min};                
+            }
+        }
         if (dx*dx >= result_child.second) return result_child;
         if (result_child.second < sq_dist_min)
         {
             min_index = result_child.first;
             sq_dist_min = result_child.second;
         }
-        result_child = (dx >= 0 ? m_right->nearest(pt, coords) : m_left->nearest(pt, coords));
+        if (dx >= 0)
+        {
+            if (m_right != nullptr)
+            {
+                result_child = m_right->nearest(pt, coords);
+            }
+            else
+            {
+                result_child = {min_index, sq_dist_min};                
+            }
+        }
+        else
+        {
+            if (m_left != nullptr)
+            {
+                result_child = m_left->nearest(pt, coords);
+            }
+            else
+            {
+                result_child = {min_index, sq_dist_min};
+            }            
+        }
         if ( result_child.second < sq_dist_min)
         {
             //std::cout << "point le plus proche : " << std::string(point3d{coords[0][result_child.first],

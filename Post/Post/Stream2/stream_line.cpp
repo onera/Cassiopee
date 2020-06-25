@@ -166,7 +166,7 @@ namespace
             if ((velocity|velocity) < 1.E-14)
             {
 #           if defined(DEBUG_VERBOSE)
-                std::cout << "Warning: vitesse nulle. fini calcul Streamline ..." << std::flush << std::endl;
+                std::cout << "Warning: null speed detected. End Streamline computation ..." << std::flush << std::endl;
 #           endif
                 //istream -= 1;
                 break;
@@ -214,14 +214,14 @@ namespace
 #endif
                 intersect_data = facette.compute_intersection(cur_point, velocity);
 #if defined(DEBUG_VERBOSE)
-                std::cout << "Nouvelle position : " << std::string(intersect_data.first) << std::endl;
-                std::cout << "No triangle d'intersection : " << intersect_data.second << "." << std::endl;
+                std::cout << "Nouvelle position: " << std::string(intersect_data.first) << std::endl;
+                std::cout << "No triangle d'intersection: " << intersect_data.second << "." << std::endl;
 #endif
 #if !defined(DEBUG_VERBOSE)            
             }
             catch(std::domain_error& err)
             {
-                std::cerr << "Warning: probleme intersection géométrique sur facette : " << err.what() << ". On arête prématurément le calcul de cette streamline." << std::endl;
+                std::cerr << "Warning: geometric intersection problem: " << err.what() << ". On arête prématurément le calcul de cette streamline." << std::endl;
                 break;
             }
 #endif

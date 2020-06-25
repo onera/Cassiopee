@@ -289,7 +289,7 @@ class MB(Common):
         self.__version__ = "0.0"
         self.authors = ["ash@onera.fr"]
         
-    # Prepare : n'utilise qu'un proc pour l'instant
+    # Prepare
     def prepare(self, t_case, t_out, tc_out, NP):
         if NP == 0: print('Preparing for a sequential computation.')
         else: print('Preparing for a computation on %d processors.'%NP)

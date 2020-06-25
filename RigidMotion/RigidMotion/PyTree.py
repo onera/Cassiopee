@@ -427,10 +427,28 @@ def _moveZone__(z, time):
             else:
                 print("Motion type not found. Nothing done.")
     return None
+  
+# Recopie Coordinate#Init si il existe  
+def _copyInit(t):
+  zones = Internal.getZones(t)
+  for z in zones:
+    gridInit = Internal.getNodeFromName1(z, 'GridCoordinates#Init')
+    if gridInit:
+      xcoord0 = Internal.getNodeFromName1(gridInit, 'CoordinateX')[1]
+      ycoord0 = Internal.getNodeFromName1(gridInit, 'CoordinateY')[1]
+      zcoord0 = Internal.getNodeFromName1(gridInit, 'CoordinateZ')[1]
+      grid = Internal.getNodeFromName1(z, 'GridCoordinates')
+      xcoord = Internal.getNodeFromName1(grid, 'CoordinateX')[1]
+      ycoord = Internal.getNodeFromName1(grid, 'CoordinateY')[1]
+      zcoord = Internal.getNodeFromName1(grid, 'CoordinateZ')[1]
+      xcoord[:] = xcoord0[:]
+      ycoord[:] = ycoord0[:]
+      zcoord[:] = zcoord0[:]
+  return None
     
 #==============================================================================
 # Evalue la position reelle de la zone a l'instant t
-# Le mouvement est stockee dans chaque zone.
+# Le mouvement est stocke dans chaque zone.
 # Les coordonnees de la zone sont modifiees
 #==============================================================================
 def _evalPosition__(a, time):
@@ -478,7 +496,7 @@ def _evalPosition(a, time, F=None):
   else: return _evalPosition___(a, time, F)
 
 #=========================================================
-# Matrice de rotation  a partir des donnees de l arbre
+# Matrice de rotation  a partir des donnees de l'arbre
 #=========================================================
 def getDictOfMotionMatrix(a, time, F=None):
     dictRM = {}
@@ -579,3 +597,20 @@ def _moveN(coordsN, d, c, r):
 
 def moveN(coordsN, d, c, r):
     return RigidMotion.moveN(coordsN, d, c, r)
+
+# Evalue la vitesse a un instant t
+def evalSpeed(z, time):
+  # Find Coordinates pointers (must already be updated)
+  grid = Internal.getNodeFromName1(z, 'GridCoordinates')
+  xcoord = Internal.getNodeFromName1(grid, 'CoordinateX')[1]
+  ycoord = Internal.getNodeFromName1(grid, 'CoordinateY')[1]
+  zcoord = Internal.getNodeFromName1(grid, 'CoordinateZ')[1]
+  # Get speed pointers
+  mmo = Internal.getNodeFromName1(z, 'Motion')
+  sx = Internal.getNodeFromName1(mmo,'VelocityX')[1]
+  sy = Internal.getNodeFromName1(mmo,'VelocityY')[1]
+  sz = Internal.getNodeFromName1(mmo,'VelocityZ')[1]
+  # derive
+  
+  return a
+  
