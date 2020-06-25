@@ -14,12 +14,13 @@ import Dist2Walls.PyTree as DTW
 import KCore.test as test
 import Connector.PyTree as X
 import Connector.Mpi as Xmpi
-
+import Transform
 #==============================================
 # IBM prepro for CODA 
 #==============================================
 def prepare(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=0,
             tbox=None, snearsf=None, expand=3, check=False, fileout='octree.cgns'):
+    recoverBC=True
     isHanging=False
     symmetry=0
     dfarDir=0
@@ -61,7 +62,7 @@ def prepare(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=0,
     # model : Euler, NSLaminar, NSTurbulent
     model = Internal.getValue(model)
 
-        # check Euler non consistant avec Musker
+    # check Euler non consistant avec Musker
     if model == 'Euler':
         for z in Internal.getZones(tb):
             ibctype = Internal.getNodeFromName2(z, 'ibctype')
@@ -84,8 +85,11 @@ def prepare(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=0,
 
     # build parent octree 3 levels higher
     # returns a list of 4 octants of the parent octree in 2D and 8 in 3D
+    print(" rank" , rank, " buildParent")
     parento = TIBM.buildParentOctrees__(o, tb, snears=snears, snearFactor=4., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf,
                                         dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=None, rank=rank)
+    print(" rank" , rank, " buildParent done.")
+
     test.printMem(">>> Octree unstruct [end]")
 
     # Split octree
@@ -96,7 +100,7 @@ def prepare(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=0,
     else: p = T.splitNParts(o, N=NPI, recoverBC=False)[rank]
     del o
     test.printMem(">>> Octree unstruct split [end]")
-    # C.convertPyTree2File(p,"octree_%d.cgns"%rank)
+    C.convertPyTree2File(p,"octree_%d.cgns"%rank)
 
     # fill vmin + merge in parallel
     test.printMem(">>> Octree struct [start]")
@@ -199,8 +203,8 @@ def prepare(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=0,
     loc='FaceCenter'
     he = he*1.8 # distmax = sqrt(3)*dx => he min = distmax + dx + tol
     varsn = ['gradxTurbulentDistance','gradyTurbulentDistance','gradzTurbulentDistance']
-    ibczones = []
-    fullzones = []
+    allip_pts=[]; allwall_pts=[]; allimage_pts=[]
+
     for z in Internal.getZones(t):
         parentz,noz = Internal.getParentOfNode(t,z)
         ip_ptsZ = frontDict[z[0]]
@@ -212,12 +216,11 @@ def prepare(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=0,
             C._rmVars(z,['TurbulentDistance'])
             z = P.selectCells(z,"{cellN}==1.",strict=1)
             C._rmVars(z,['cellN'])
-            ibczones.append(z)
             #
             # IBM Wall points
             #
             zname = ip_ptsZ[0]
-            ip_pts = C.getAllFields(ip_ptsZC,loc='nodes')
+            ip_pts = C.getAllFields(ip_ptsZC,loc='nodes')[0]
             ip_pts = Converter.convertArray2Node(ip_pts)
             wallpts = T.projectAllDirs(ip_ptsZC, tb, varsn, oriented=0)
             C._normalize(wallpts,varsn)
@@ -225,30 +228,17 @@ def prepare(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=0,
             for var in varsn:
                 C._initVars(wallpts,'{%s}=%g*{%s}'%(var,he,var))
             imagepts = T.deform(wallpts, vector=varsn)
-            wallpts = C.getFields(Internal.__GridCoordinates__,wallpts)
-            imagepts = C.getFields(Internal.__GridCoordinates__,imagepts)
+            wallpts = C.getFields(Internal.__GridCoordinates__,wallpts)[0]
+            imagepts = C.getFields(Internal.__GridCoordinates__,imagepts)[0]
+            ip_pts = Converter.extractVars(ip_pts,['CoordinateX','CoordinateY','CoordinateZ'])
+            wallpts = Converter.extractVars(wallpts,['CoordinateX','CoordinateY','CoordinateZ'])
+            imagepts = Converter.extractVars(imagepts,['CoordinateX','CoordinateY','CoordinateZ'])
             # Converter.convertArrays2File(ip_pts,"targetPts_%s.plt"%zname)
             # Converter.convertArrays2File(wallpts,"wallPts_%s.plt"%zname)
             # Converter.convertArrays2File(imagepts,"imagePts_%s.plt"%zname)
-            # indices of elements at border of IP Faces
-            ip_ptsZ[0]+='_IPFaces'
- #           C._addBC2Zone(z, 'IBMWall', 'FamilySpecified:IBMWall',subzone=ip_ptsZ)
-            VARCOORDS = ['CoordinateX','CoordinateY','CoordinateZ']
-            ip_pts = Converter.extractVars(ip_pts,VARCOORDS)
-            ip_pts[0]='xc,yc,zc'
-            wallpts = Converter.extractVars(wallpts,VARCOORDS) 
-            wallpts[0]='xw,yw,zw'
-            imagepts = Converter.extractVars(imagepts,VARCOORDS) 
-            imagepts[0]='xi,yi,zi'
-            IBPts=Converter.addVars([ip_pts,wallpts,imagepts])
-            C.setFields([IBPts], ip_ptsZ,loc='centers',writeDim=False)
-            # bcs = Internal.getNodesFromType(z,'BC_t')
-            # for bc in bcs:
-            #     FamName = Internal.getNodeFromName(bc,'FamilyName')
-            #     if FamName is not None and not check:
-            #         if Internal.getValue(FamName)=='IBMWall':
-            #             _addIBCDataSet(bc,ip_pts, wallpts, imagepts)
- 
+            allip_pts.append(ip_pts)
+            allimage_pts.append(imagepts)
+            allwall_pts.append(wallpts)
         else:
             if C.getMinValue(z,'cellN')==0.:
                 z = P.selectCells(z,"{cellN}==1.",strict=1)
@@ -256,19 +246,16 @@ def prepare(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=0,
             else:
                 C._rmVars(z,['TurbulentDistance','cellN'])
                 z = C.convertArray2Hexa(z)
-            fullzones.append(z)
 
         parentz[2][noz] = z
 
-    C.convertPyTree2File(ibczones,"ibczones_%d.cgns"%(Cmpi.rank))
-    C.convertPyTree2File(fullzones,"fullzones_%d.cgns"%(Cmpi.rank))
 
+    front1=[]
+    for zname in frontDict:
+        if frontDict[zname] != []:
+            front1.append(frontDict[zname])
+    if front1 != []: front1 = T.join(front1)
     if check:
-        front1=[]
-        for zname in frontDict:
-            if frontDict[zname] != []:
-                front1.append(frontDict[zname])
-        if front1 != []: front1 = T.join(front1)
         C.convertPyTree2File(front1,'targetFaces_%d.cgns'%(Cmpi.rank))
 
     zones = Internal.getZones(t)
@@ -276,9 +263,18 @@ def prepare(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=0,
     for noz in range(1,len(zones)):
         z = T.join([z,zones[noz]])
     z[0] = 'CART_P%d'%rank
-    t[2][1][2]=[z]
 
-    # identify hanging nodes
+    # recoverIBC familySpecified:IBMWall
+    if front1 != []: # can be empty on a proc
+        front1[0]='IBMWall'    
+        C._addBC2Zone(z, 'IBMWall', 'FamilySpecified:IBMWall',subzone=front1)
+        allip_pts=Transform.join(allip_pts)
+        allwall_pts = Transform.join(allwall_pts)
+        allimage_pts = Transform.join(allimage_pts)
+        _addIBDataZSR(z,[allip_pts],[allwall_pts],[allimage_pts], prefix='IBCD_')
+
+    # add 2 PyTree
+    t[2][1][2]=[z]
     
     # identify elements per processor
     if t_out is not None:
@@ -312,20 +308,21 @@ def getHangingNodesInfoPara(a, b, indicesFacesOrig, bopp, indicesFacesOrigOpp):
                 HN_COARSE.append((indicesFacesOrig[noEltEF]-1)//nfaces)
                 # looking for opp faces (fine side) with vertex indVertexEF
                 noptr = 0; noe = 0
-                found = 0
+                found = 0; efd = -1; efg = -1
                 while noptr < sizeCNExtFaceOpp:
                     indV1 = cnExtFaceOpp[noptr]
                     indV2 = cnExtFaceOpp[noptr+1]
                     if indV1 == indVertexEF: 
                         efd = (indicesFacesOrigOpp[noe]-1)//nfaces
-                        HN_FINE2.append(efd)
                         found +=1
                     if indV2 == indVertexEF:
                         efg = (indicesFacesOrigOpp[noe]-1)//nfaces
-                        HN_FINE1.append(efg)
                         found += 1
 
                     if found == 2:
+                        if efd==efg: efd = -1
+                        HN_FINE2.append(efd)
+                        HN_FINE1.append(efg)
                         break
                     noptr+=shiftElt
                     noe+=1
@@ -344,27 +341,37 @@ def getHangingNodesInfoPara(a, b, indicesFacesOrig, bopp, indicesFacesOrigOpp):
                     indV2 = cnExtFaceOpp[noptr+1]
                     indV3 = cnExtFaceOpp[noptr+2]
                     indV4 = cnExtFaceOpp[noptr+3]
+                    ef1=-1; ef2=-1; ef3=-1; ef4=-1
                     if indVertexEF == indV1: 
-                        efd = (indicesFacesOrigOpp[noe]-1)//nfaces
-                        HN_FINE4.append(efd)
+                        ef4 = (indicesFacesOrigOpp[noe]-1)//nfaces
                         found +=1
 
                     elif indVertexEF == indV2:
-                        efg = (indicesFacesOrigOpp[noe]-1)//nfaces
-                        HN_FINE3.append(efg)
+                        ef3 = (indicesFacesOrigOpp[noe]-1)//nfaces
                         found += 1
 
                     elif indVertexEF == indV3:
-                        efg = (indicesFacesOrigOpp[noe]-1)//nfaces
-                        HN_FINE1.append(efg)
+                        ef1 = (indicesFacesOrigOpp[noe]-1)//nfaces
                         found += 1
 
                     elif indVertexEF == indV4:
-                        efg = (indicesFacesOrigOpp[noe]-1)//nfaces
+                        ef2 = (indicesFacesOrigOpp[noe]-1)//nfaces
                         HN_FINE2.append(efg)
                         found += 1
 
-                    if found == 4: break
+                    if found == 4: 
+                        if ef2 == ef1: ef2 =-1
+                        if ef3 == ef1: ef3 =-1
+                        if ef4 == ef1: ef4 =-1
+                        if ef2 == ef3: ef3 =-1
+                        if ef3 == ef4: ef4 =-1
+                        if ef4 == ef2: ef4 =-1
+                        HN_FINE1.append(ef1)
+                        HN_FINE2.append(ef2)
+                        HN_FINE3.append(ef3)
+                        HN_FINE4.append(ef4)
+
+                        break
                     noptr+=shiftElt
                     noe+=1
         return [HN_COARSE, HN_FINE1, HN_FINE2, HN_FINE3, HN_FINE4] 
@@ -480,18 +487,36 @@ def extractIBMWallFields(XCP, YCP, ZCP, arrayOfFields, tb, variables):
     td = P.projectCloudSolution(z, td, dim=dimPb)
     return td
    
+def extractIBMInfo(t):
+  tinfo = C.newPyTree(['Wall','IP','Image'])
+  tw = C.createIBMZones(t,typeOfPoint='Wall')
+  tw = C.convertArray2Node(tw)
+  tinfo[2][1][2] = Internal.getZones(tw)
+  
+  tw = C.createIBMZones(t,typeOfPoint='IP')
+  tw = C.convertArray2Node(tw)
+  tinfo[2][2][2] = Internal.getZones(tw)
+   
+  tw = C.createIBMZones(t,typeOfPoint='Image')
+  tw = C.convertArray2Node(tw)
+  tinfo[2][3][2] = Internal.getZones(tw)
+   
+  return tinfo
 # --------------------------------------------------------------------------------
 # Creation of 0-D zones of name 'Zone#IBCD_*' such that their original zones can be
-# retrieved in post processing
-# Fonction is available in 
-def createIBMWZones(tc,variables=[]):
+# retrieved in post processing 
+#typeOfPoint can be 'Wall','Image','IP'
+def createIBMZones(tc,variables=[], typeOfPoint='Wall'):
+    if typeOfPoint=='Wall': suff='PW'
+    elif typeOfPoint=='Image': suff='PI'
+    elif typeOfPoint=='IP': suff='PC'
     tw = C.newPyTree(['IBM_WALL'])
     for z in Internal.getZones(tc):
         ZSR = Internal.getNodesFromType2(z,'ZoneSubRegion_t')
         for IBCD in Internal.getNodesFromName(ZSR,"IBCD_*"):
-            xPW = Internal.getNodesFromName(IBCD,"CoordinateX_PW")[0][1]
-            yPW = Internal.getNodesFromName(IBCD,"CoordinateY_PW")[0][1]
-            zPW = Internal.getNodesFromName(IBCD,"CoordinateZ_PW")[0][1]
+            xPW = Internal.getNodesFromName(IBCD,"CoordinateX_%s"%suff)[0][1]
+            yPW = Internal.getNodesFromName(IBCD,"CoordinateY_%s"%suff)[0][1]
+            zPW = Internal.getNodesFromName(IBCD,"CoordinateZ_%s"%suff)[0][1]
             nptsW = xPW.shape[0]
             zw = G.cart((0,0,0),(1,1,1),(nptsW,1,1))
             COORDX = Internal.getNodeFromName2(zw,'CoordinateX'); COORDX[1]=xPW
@@ -506,179 +531,30 @@ def createIBMWZones(tc,variables=[]):
                         fieldW = Internal.getNodeFromName2(FSN,varo)
                         fieldW[1] = fieldV[1]
 
-            zw[0]=z[0]+"#"+IBCD[0]
+            zw[0]=z[0]+"#"+IBCD[0]+"_%s"%suff
             tw[2][1][2].append(zw)
     return tw
 
 #------------------------------------------
 # Creation of the subregions for IBM zones
 #-----------------------------------------
-def _createIB_ZSR(z, facelist, correctedPts, wallPts, imagePts, bctype, loc='faces'):
-    varsRM = ["Density","utau","yplus","Pressure","Velocity*"]
-    zname = Internal.getName(z)
-    nameSubRegion='IBCD_'+zname
-    zsr = Internal.getNodesFromName1(z, nameSubRegion)
-    # create new subregion for interpolations
-    if zsr == []:
-        dimZSR = numpy.zeros((1), numpy.int32)
-        dimZSR[0] = correctedPts[1].shape[0]
-        #v = numpy.fromstring(zname, 'c')
-        z[2].append([nameSubRegion, dimZSR, [],'ZoneSubRegion_t'])
-        info = z[2][len(z[2])-1]
-        info[2].append(['PointList',facelist, [], 'IndexArray_t'])
-        Internal.createChild(info,'GridLocation','GridLocation_t','FaceCenter')
-
-    XOD._addIBCCoords__(z, z[0], correctedPts, wallPts, imagePts, bctype)
-    # remove some nodes created by addIBCCoord but not useful for CODA
-    zsr=Internal.getNodesFromName1(z,nameSubRegion)[0]
-    for vrm in varsRM: Internal._rmNodesFromName(zsr,vrm)
-    return None
-
-# Extract hanging nodes information of a structured octree mesh with a nearmatch GC (coarse side)
-# IN : t : Cartesian mesh with nearmatch info (coarse side)
-# OUT : dictionary (key=coarse zone), values = [[znameopp,HC,HF1,HF2,HF3,HF4],...]
-#￿where HC : index of element (>=0) on coarse side, HF1 to HF4 element indices on fine side 
-#            znameopp : name of opposite (fine) structured zone
-# in parallel mode: t must be a skeleton such that dims of opposite zones are defined even if they 
-# are not on the same processor
-def getHangingNodesFromNearMatch(t_skel, dimPb=3):
-    zones = Internal.getZones(t_skel)
-    nzones = len(zones)
-    dictOfNozOfZones={}
-    for noz in range(nzones):
-        zname = zones[noz][0]
-        dictOfNozOfZones[zname]=noz
-
-    dictOfHN={}
-    for noz in range(nzones):
-        z = zones[noz]
-        if Internal.getNodeFromName1(z,'XZone') is None:
-            zname = Internal.getName(z)
-            dictOfHN[zname]=[]
-            dimZ = Internal.getZoneDim(z)
-            niz = dimZ[1]; njz = dimZ[2]; nkz = dimZ[3]
-            ni1 = niz-1; nj1 = njz-1; nk1 = nkz-1
-            shiftr = 0; shiftd = 0
-            for gc in Internal.getNodesFromType(z,'GridConnectivity_t'):
-                gctype = Internal.getNodeFromType(gc,'GridConnectivityType_t')
-                if gctype is not None:
-                    gctype = Internal.getValue(gctype)
-                    if gctype=='Abutting':
-                        PR = Internal.getNodeFromName(gc,'PointRange')
-                        PR = Internal.getValue(PR)
-                        PR = Internal.range2Window(PR)
-                        PRD = Internal.getNodeFromName(gc,'PointRangeDonor')
-                        PRD = Internal.getValue(PRD)
-                        PRD = Internal.range2Window(PRD)
-                        NMR = Internal.getNodeFromName(gc,'NMRatio')
-                        NMR = Internal.getValue(NMR)
-                        zdnrname = Internal.getValue(gc)
-                        if zdnrname in dictOfNozOfZones:
-                            nozd = dictOfNozOfZones[zdnrname]
-                            zdnr = zones[nozd]
-                            dimZd = Internal.getZoneDim(zdnr)
-                            nizd = dimZd[1]; njzd = dimZd[2]; nkzd = dimZd[3]
-                            nid1 = nizd-1; njd1 = njzd-1; nkd1 = nkzd-1
-                            nid1njd1 = nid1*njd1
-                            ni1nj1=ni1*nj1
-                            i1 = PR[0]; i2 = PR[1]
-                            j1 = PR[2]; j2 = PR[3]
-                            k1 = PR[4]; k2 = PR[5]
-                            id1 = PRD[0]; id2 = PRD[1]
-                            jd1 = PRD[2]; jd2 = PRD[3]
-                            kd1 = PRD[4]; kd2 = PRD[5]
-                            coarseList=[]
-                            fineList1 = []; fineList2 = []
-                            fineList3 = []; fineList4 = []
-
-                            if dimPb == 2:
-                                if NMR[0]==2:# z is coarse, zd is fine, j=cst
-                                    idl = id1-1
-                                    if j1 > 1: j1 = j1-1
-                                    if jd1 > 1: jd1 = jd1-1
-                                    for i in range(i1-1,i2-1):
-                                        indr    = i    + (j1-1)*ni1 
-                                        indopp1 = idl  + (jd1-1)*nid1
-                                        indopp2 = idl+1+ (jd1-1)*nid1
-                                        idl = idl+2
-                                        coarseList.append(indr+shiftr)
-                                        fineList1.append(indopp1+shiftd)
-                                        fineList2.append(indopp2+shiftd)
-
-                                elif NMR[1] == 2:
-                                    jdl = jd1-1
-                                    if i1 > 1: i1 = i1-1
-                                    if id1 > 1: id1 = id1-1
-                                    for j in range(j1-1,j2-1):
-                                        indr    = i1-1  + j*ni1 
-                                        indopp1 = id1-1 + jdl*nid1
-                                        indopp2 = id1-1 + (jdl+1)*nid1
-                                        jdl = jdl+2
-                                        coarseList.append(indr+shiftr)
-                                        fineList1.append(indopp1+shiftd)
-                                        fineList2.append(indopp2+shiftd)
-
-
-                            else: #3D
-                                if NMR[0]==1 and NMR[1]==2 and NMR[2]==2:# i=cst border, z is coarse
-                                    jdl = jd1-1; kdl = kd1-1
-                                    if i1 > 1: i1 = i1-1
-                                    if id1 > 1: id1 = id1-1
-                                    id11 = id1-1; i11 = i1-1
-                                    for k in range(k1-1,k2-1):
-                                        for j in range(j1-1,j2-1):
-                                            indr    = i11  + j*ni1+ k*ni1nj1 
-                                            indopp1 = id11 +     jdl*nid1 +    kdl*nid1njd1
-                                            indopp2 = id11 + (jdl+1)*nid1 +    kdl*nid1njd1
-                                            indopp3 = id11 + (jdl+1)*nid1 +(kdl+1)*nid1njd1
-                                            indopp4 = id11 +     jdl*nid1 +(kdl+1)*nid1njd1
-                                            jdl = jdl+2; kdl = kdl+2
-                                            coarseList.append(indr+shiftr)
-                                            fineList1.append(indopp1+shiftd)
-                                            fineList2.append(indopp2+shiftd)
-                                            fineList3.append(indopp3+shiftd)
-                                            fineList4.append(indopp4+shiftd)
-
-                                elif NMR[0]==2 and NMR[1]==1 and NMR[2]==2:# j=cst border, z is coarse
-                                    idl = id1-1; kdl = kd1-1
-                                    if j1 > 1: j1 = j1-1
-                                    if jd1 > 1: jd1 = jd1-1
-                                    jd11n = (jd1-1)*nid1; j11n = (j1-1)*ni1
-                                    for k in range(k1-1,k2-1):
-                                        for i in range(i1-1,i2-1):
-                                            indr    = i  + j11n + k*ni1nj1 
-                                            indopp1 = idl   + jd11n +    kdl*nid1njd1
-                                            indopp2 = idl+1 + jd11n +    kdl*nid1njd1
-                                            indopp3 = idl+1 + jd11n +(kdl+1)*nid1njd1
-                                            indopp4 = idl   + jd11n +(kdl+1)*nid1njd1
-                                            idl = idl+2; kdl = kdl+2
-                                            coarseList.append(indr+shiftr)
-                                            fineList1.append(indopp1+shiftd)
-                                            fineList2.append(indopp2+shiftd)
-                                            fineList3.append(indopp3+shiftd)
-                                            fineList4.append(indopp4+shiftd)
-
-                                elif NMR[0]==2 and NMR[1]==2 and NMR[2]==1:# k=cst border, z is coarse
-                                    idl = id1-1; jdl = jd1-1
-                                    if k1 > 1: k1 = k1-1
-                                    if kd1 > 1: kd1 = kd1-1
-                                    kd11n = (kd1-1)*nid1njd1; k11n = (k1-1)*ni1nj1
-                                    for j in range(j1-1,j2-1):
-                                        for i in range(i1-1,i2-1):
-                                            indr    = i  + j*ni1+ k11n
-                                            indopp1 = idl   +     jdl*nid1 + kd11n
-                                            indopp2 = idl+1 +     jdl*nid1 + kd11n
-                                            indopp3 = idl+1 + (jdl+1)*nid1 + kd11n
-                                            indopp4 = idl   + (jdl+1)*nid1 + kd11n
-                                            idl = idl+2; jdl = jdl+2
-                                            coarseList.append(indr+shiftr)
-                                            fineList1.append(indopp1+shiftd)
-                                            fineList2.append(indopp2+shiftd)
-                                            fineList3.append(indopp3+shiftd)
-                                            fineList4.append(indopp4+shiftd)
-                            if coarseList != []:
-                                HNInfoC = [zdnrname, coarseList,
-                                           fineList1, fineList2, fineList3, fineList4]
-                                dictOfHN[zname].append(HNInfoC)
-                           
-    return dictOfHN
+#def _createIB_ZSR(z, facelist, correctedPts, wallPts, imagePts, bctype, loc='faces'):
+#    varsRM = ["Density","utau","yplus","Pressure","Velocity*"]
+#    zname = Internal.getName(z)
+#    nameSubRegion='IBCD_'+zname
+#    zsr = Internal.getNodesFromName1(z, nameSubRegion)
+#    # create new subregion for interpolations
+#    if zsr == []:
+#        dimZSR = numpy.zeros((1), numpy.int32)
+#        dimZSR[0] = correctedPts[1].shape[0]
+#        #v = numpy.fromstring(zname, 'c')
+#        z[2].append([nameSubRegion, dimZSR, [],'ZoneSubRegion_t'])
+#        info = z[2][len(z[2])-1]
+#        info[2].append(['PointList',facelist, [], 'IndexArray_t'])
+#        Internal.createChild(info,'GridLocation','GridLocation_t','FaceCenter')
+#
+#    XOD._addIBCCoords__(z, z[0], correctedPts, wallPts, imagePts, bctype)
+#    # remove some nodes created by addIBCCoord but not useful for CODA
+#    zsr=Internal.getNodesFromName1(z,nameSubRegion)[0]
+#    for vrm in varsRM: Internal._rmNodesFromName(zsr,vrm)
+#    return None
