@@ -59,10 +59,11 @@ def connectNearMatch(a, ratio=2, tol=1.e-6, dim=3):
     else:
         iratio=1
         for r in ratio: iratio=max(iratio,r)
+
     # Ajout des bandelettes
     Cmpi._addBXZones(a, depth=iratio+1)
     
-    # Construction des raccords 
+    # Construction des raccords
     a = X.connectNearMatch(a, ratio=2, tol=tol, dim=dim)
 
     for z in Internal.getZones(a):
@@ -77,8 +78,9 @@ def connectNearMatch(a, ratio=2, tol=1.e-6, dim=3):
                     fratio = 1.
                     for i in nmratio: fratio *= i
 
-                    if fratio < 1.95 and fratio > 0.55:
+                    if fratio==1.:
                         Internal._rmNodesByName(z,n[0])
+                    
     # Suppression des XZones et correction des matchs 
     Cmpi._rmBXZones(a)
     
@@ -127,17 +129,19 @@ def giveName2Window(p, zname, zopp):
 def mergeWindows(t):
     # Merge grid connectivities created after addBXZones
     zones = Internal.getZones(t)
-
     for z in zones:
-        
         xz = Internal.getNodeFromName1(z, 'XZone')
         if xz is None:
             # Construction du dictionnaire des matchs 
             dico = {}
             gcs   = Internal.getNodesFromType1(z, 'ZoneGridConnectivity_t')
             for g in gcs:  
-                nodes = Internal.getNodesFromType(g, 'GridConnectivity1to1_t')
-                    
+                nodes = Internal.getNodesFromType1(g, 'GridConnectivity1to1_t')
+
+                for n in Internal.getNodesFromType1(g,'GridConnectivity_t'):
+                    gctype = Internal.getNodeFromType(n,'GridConnectivityType_t')
+                    if Internal.getValue(gctype)=='Abutting': nodes.append(n)
+                        
                 for n in nodes:
                     pr    = Internal.getNodeFromName1(n, 'PointRange')
                     p     = Internal.range2Window(pr[1])
@@ -162,9 +166,9 @@ def mergeWindows(t):
                         sumSurf = sumSurf + surf
 
                         if pglob[0] is None:
-                            pglob[0] = p[0] ; pglob[1] = p[1] ;
-                            pglob[2] = p[2] ; pglob[3] = p[3] ;
-                            pglob[4] = p[4] ; pglob[5] = p[5] ;
+                            pglob[0] = p[0] ; pglob[1] = p[1]
+                            pglob[2] = p[2] ; pglob[3] = p[3]
+                            pglob[4] = p[4] ; pglob[5] = p[5] 
                         else:
                             if pglob[0] > p[0] : pglob[0] = p[0]
                             if pglob[1] < p[1] : pglob[1] = p[1]
@@ -181,13 +185,14 @@ def mergeWindows(t):
                         pglobD   = [None]*6
                         for name in dico[match]:
                             node    = Internal.getNodeFromName(z,name)
-                            prd     = Internal.getNodeFromName1(node, 'PointRangeDonor')
+                            prd     = Internal.getNodeFromName2(node, 'PointRangeDonor')
                             pd      = Internal.range2Window(prd[1])
-                        
+                            #print(" name = %s, p = "%(name),p, prd)
+
                             if pglobD[0] is None:
-                                pglobD[0] = pd[0] ; pglobD[1] = pd[1] ;
-                                pglobD[2] = pd[2] ; pglobD[3] = pd[3] ;
-                                pglobD[4] = pd[4] ; pglobD[5] = pd[5] ;
+                                pglobD[0] = pd[0] ; pglobD[1] = pd[1]
+                                pglobD[2] = pd[2] ; pglobD[3] = pd[3]
+                                pglobD[4] = pd[4] ; pglobD[5] = pd[5]
                             else:
                                 if pglobD[0] > pd[0] : pglobD[0] = pd[0]
                                 if pglobD[1] < pd[1] : pglobD[1] = pd[1]
@@ -204,7 +209,7 @@ def mergeWindows(t):
                                 modifMatch = dico[match][0]
                                 node    = Internal.getNodeFromName(z,modifMatch)
                                 pr      = Internal.getNodeFromName1(node, 'PointRange')
-                                prd     = Internal.getNodeFromName1(node, 'PointRangeDonor')
+                                prd     = Internal.getNodeFromName2(node, 'PointRangeDonor')
                                 pglob   = Internal.window2Range(pglob)
                                 pglobD  = Internal.window2Range(pglobD)
                                 Internal.setValue(pr,  pglob)

@@ -489,15 +489,15 @@ def extractIBMWallFields(XCP, YCP, ZCP, arrayOfFields, tb, variables):
    
 def extractIBMInfo(t):
   tinfo = C.newPyTree(['Wall','IP','Image'])
-  tw = C.createIBMZones(t,typeOfPoint='Wall')
+  tw = createIBMZones(t,typeOfPoint='Wall')
   tw = C.convertArray2Node(tw)
   tinfo[2][1][2] = Internal.getZones(tw)
   
-  tw = C.createIBMZones(t,typeOfPoint='IP')
+  tw = createIBMZones(t,typeOfPoint='IP')
   tw = C.convertArray2Node(tw)
   tinfo[2][2][2] = Internal.getZones(tw)
    
-  tw = C.createIBMZones(t,typeOfPoint='Image')
+  tw = createIBMZones(t,typeOfPoint='Image')
   tw = C.convertArray2Node(tw)
   tinfo[2][3][2] = Internal.getZones(tw)
    

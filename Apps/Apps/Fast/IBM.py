@@ -13,13 +13,80 @@ import Converter.Mpi as Cmpi
 import Converter.Filter as Filter
 from Apps.Fast.Common import Common
 import Connector.connector as connector
-
+import math
 import numpy
 try: range = xrange
 except: pass
 
-# IN: maillage surfacique + reference State + snears
+def compute_Cf(Re, Cf_law='ANSYS'):
+    if Cf_law == 'ANSYS':
+        return 0.058*Re**(-0.2)
+    elif Cf_law == 'PW':
+        return 0.026*Re**(-1/7.)
+    elif Cf_law == 'PipeDiameter':
+        return 0.079*Re**(-0.25)
+    elif Cf_law == 'Laminar':
+        return 1.328*Re**(-0.5)
 
+def computeYplusOpt(Re=None,tb=None,Lref=1.,q=1.2,snear=None,Cf_law='ANSYS'):
+    fail=0
+    if Re is None:
+        if tb is not None:
+            Re = Internal.getNodeFromName(tb,"Reynolds")
+            if Re is None: fail=1
+            else:
+                Re = Internal.getValue(Re)
+        else: fail = 1
+    if fail: 
+        raise("ValueError: computeYplusOpt requires Reynolds number as a float or in tb.")
+    fail = 0
+    if snear is None:
+        snear = Internal.getNodeFromName(tb,"snear")
+        if snear is None: fail=1
+        else:
+            snear = Internal.getValue(snear)
+    if fail:
+        raise("ValueError: computeYlusOpt requires snear as a float or in tb.")
+
+    print("Estimation of the optimum y+  at Reynolds number ", Re, " and snear target at image point ", snear)
+    h0 = (1.*L*math.sqrt(2.))/(Re*math.sqrt(compute_Cf(Re,Cf_law))) #Taille de maille pour y+1
+    h_opti = (h0-q*snear)/(1.-q) #Hauteur de modelisation opti
+    yplus_opti = h_opti/h0 #yplus opti
+
+    # print('\nInformation for the body-fitted mesh :')
+    # print('h_opti     = {:.2e}'.format(h_opti))
+    # print('h0         = {:.2e}\n'.format(h0))
+    # print('Information for the Cartesian mesh :')
+    # print('yplus_opti = {}\n'.format(math.ceil(yplus_opti)))
+    return yplus_opti
+
+# compute the near wall spacing in agreement with the yplus target at image points - front42
+def computeSnearOpt(Re=None,tb=None,Lref=1.,q=1.2,yplus=300.,Cf_law='ANSYS'):
+    fail=0
+    if Re is None:
+        if tb is not None:
+            Re = Internal.getNodeFromName(tb,"Reynolds")
+            if Re is None: fail=1
+            else:
+                Re = Internal.getValue(Re)
+        else: fail = 1
+    if fail: 
+        raise("ValueError: computeSnearOpt requires Reynolds number as a float or in tb.")
+
+
+    print("Estimation of the optimum near-wall spacing at Reynolds number ", Re, " and yplus target at image point ", yplus)
+    h_mod = (yplus*Lref*math.sqrt(2.))/(Re*math.sqrt(compute_Cf(Re,Cf_law)))
+    h0    = (Lref*math.sqrt(2.))/(Re*math.sqrt(compute_Cf(Re,Cf_law))) #Taille de maille pour y+=1
+    n     = int(math.ceil(math.log(1-yplus*(1-q))/math.log(q))) # number of cells in the BF mesh for the height h
+    snear_opti = q**(n-1)*h0 # best snear for the target yplus
+    print('\nInformation for the body-fitted mesh :')
+    print('h           = {:.2e}'.format(h_mod))
+    print('h0          = {:.2e}\n'.format(h0))
+    print('Information for the Cartesian mesh :')
+    print('snear_opti  = {:.3e}\n'.format(snear_opti))
+    return snear_opti
+
+# IN: maillage surfacique + reference State + snears
 #================================================================================
 # IBM prepare
 # IN: t_case: fichier ou arbre body
@@ -37,19 +104,19 @@ except: pass
 def prepare(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
             tbox=None, snearsf=None, yplus=100.,
             vmin=21, check=False, NP=0, format='single',
-            frontType=1, expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, dfarDir=0):
+            frontType=1, expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, dfarDir=0, recomputeDist=True):
     import Converter.Mpi as Cmpi
     rank = Cmpi.rank; size = Cmpi.size
     ret = None
     # sequential prep
     if size == 1: ret = prepare0(t_case, t_out, tc_out, snears=snears, dfar=dfar, dfarList=dfarList,
                                  tbox=tbox, snearsf=snearsf, yplus=yplus,
-                                 vmin=vmin, check=check, NP=NP, format=format, frontType=frontType,
+                                 vmin=vmin, check=check, NP=NP, format=format, frontType=frontType, recomputeDist=recomputeDist,
                                  expand=expand, tinit=tinit, initWithBBox=initWithBBox, wallAdapt=wallAdapt, dfarDir=dfarDir)
     # parallel prep
     else: ret = prepare1(t_case, t_out, tc_out, snears=snears, dfar=dfar, dfarList=dfarList,
                          tbox=tbox, snearsf=snearsf, yplus=yplus, 
-                         vmin=vmin, check=check, NP=NP, format=format, frontType=frontType,
+                         vmin=vmin, check=check, NP=NP, format=format, frontType=frontType, recomputeDist=recomputeDist,
                          expand=expand, tinit=tinit, initWithBBox=initWithBBox, wallAdapt=wallAdapt, dfarDir=dfarDir)
 
     return ret
@@ -59,7 +126,7 @@ def prepare(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
 #================================================================================
 def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
              tbox=None, snearsf=None, yplus=100.,
-             vmin=21, check=False, NP=0, format='single', frontType=1,
+             vmin=21, check=False, NP=0, format='single', frontType=1, recomputeDist=True,
              expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, dfarDir=0):
     import KCore.test as test
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
@@ -168,24 +235,25 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
     #-----------------------------------------
     # Computes distance field for Musker only
     #-----------------------------------------
-    ibctypes = set()
-    for node in Internal.getNodesFromName(tb,'ibctype'):
-        ibctypes.add(Internal.getValue(node))
-    if model != 'Euler' and ('outpress' in ibctypes or 'inj' in ibctypes or 'slip' in ibctypes):
-        test.printMem(">>> wall distance for wall only [start]")
-        for z in Internal.getZones(tb):
-            ibc = Internal.getNodeFromName(z,'ibctype')
-            if Internal.getValue(ibc)=='outpress' or Internal.getValue(ibc)=='inj' or Internal.getValue(ibc)=='slip':
-                Internal.rmNode(tb,z)
+    if model != 'Euler' and recomputeDist:
+        ibctypes = set()
+        for node in Internal.getNodesFromName(tb,'ibctype'):
+            ibctypes.add(Internal.getValue(node))
+            if 'outpress' in ibctypes or 'inj' in ibctypes or 'slip' in ibctypes:
+                test.printMem(">>> wall distance for viscous wall only [start]")
+                for z in Internal.getZones(tb):
+                    ibc = Internal.getNodeFromName(z,'ibctype')
+                    if Internal.getValue(ibc)=='outpress' or Internal.getValue(ibc)=='inj' or Internal.getValue(ibc)=='slip':
+                        Internal.rmNode(tb,z)
 
-        if dimPb == 2:
-            z0 = Internal.getZones(t)
-            bb = G.bbox(z0); dz = bb[5]-bb[2]
-            tb2 = C.initVars(tb, 'CoordinateZ', dz*0.5)
-            DTW._distance2Walls(t,tb2,type='ortho', signed=0, dim=dimPb, loc='centers')
-        else:
-            DTW._distance2Walls(t,tb,type='ortho', signed=0, dim=dimPb, loc='centers')
-        test.printMem(">>> wall distance for wall only [end]")
+                if dimPb == 2:
+                    z0 = Internal.getZones(t)
+                    bb = G.bbox(z0); dz = bb[5]-bb[2]
+                    tb2 = C.initVars(tb, 'CoordinateZ', dz*0.5)
+                    DTW._distance2Walls(t,tb2,type='ortho', signed=0, dim=dimPb, loc='centers')
+                else:
+                    DTW._distance2Walls(t,tb,type='ortho', signed=0, dim=dimPb, loc='centers')
+                test.printMem(">>> wall distance for viscous wall only [end]")
 
     # Initialisation
     if tinit is None:
@@ -241,7 +309,7 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
 def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
              tbox=None, snearsf=None, yplus=100.,
              vmin=21, check=False, NP=0, format='single',
-             frontType=1, extrusion=False, smoothing=False, balancing=False,
+             frontType=1, extrusion=False, smoothing=False, balancing=False, recomputeDist=True,
              distrib=True, expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, dfarDir=0):
 
     import Generator
@@ -933,13 +1001,13 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
     # Cmpi.barrier()
     # print('proc {} has {} blocks and {} Millions points'.format(rank, len(zones), npts/1.e6))
     
-    if model != 'Euler':
+    if model != 'Euler' and recomputeDist:
         ibctypes = set()
         for node in Internal.getNodesFromName(tb,'ibctype'):
             ibctypes.add(Internal.getValue(node))
         ibctypes = list(ibctypes)
         if 'outpress' in ibctypes or 'inj' in ibctypes or 'slip' in ibctypes:
-            test.printMem(">>> wall distance for wall only [start]")
+            test.printMem(">>> wall distance for viscous wall only [start]")
             for z in Internal.getZones(tb):
                 ibc = Internal.getNodeFromName(z,'ibctype')
                 if Internal.getValue(ibc)=='outpress' or Internal.getValue(ibc)=='inj' or Internal.getValue(ibc)=='slip':
@@ -952,7 +1020,7 @@ def prepare1(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
                 DTW._distance2Walls(t,tb2,type='ortho', signed=0, dim=dimPb, loc='centers')
             else:
                 DTW._distance2Walls(t,tb,type='ortho', signed=0, dim=dimPb, loc='centers')
-            test.printMem(">>> wall distance for Musker only [end]")
+            test.printMem(">>> wall distance for viscous wall only [end]")
 
 
     # Sauvegarde des infos IBM

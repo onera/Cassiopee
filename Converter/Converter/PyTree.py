@@ -924,7 +924,7 @@ def _upgradeTree(t, uncompress=True):
   return None
 
 # Hack pour les arrays en centres avec sentinelle - 1.79769e+308
-# copie sur les champs - plus utilisé depuis que l'on sort directement 
+# copie sur les champs - plus utilise depuis que l'on sort directement 
 # les champs en centres
 def hackCenters(a):
   varString = a[0].split(',')

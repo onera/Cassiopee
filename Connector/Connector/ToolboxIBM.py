@@ -439,14 +439,15 @@ def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None,
                 snearl = Internal.getValue(snearl)
                 snears[i] = snearl*snearFactor
         dhloc = snears[i]*(vmin-1)
-        if C.isNamePresent(s,'centers:cellN') != -1:
-            s2 = P.selectCells(s,'{centers:cellN}>0.')
-            surfaces.append(s2)
-        else: surfaces += [s] 
+        # if C.isNamePresent(s,'centers:cellN') != -1:
+        #     s2 = P.selectCells(s,'{centers:cellN}>0.')
+        #     surfaces.append(s2)
+        # else: 
+        #     surfaces += [s] 
+        surfaces += [s]
         snearso += [dhloc]
         dxmin0 = min(dxmin0, dhloc)
         i += 1
-
     if to is not None:
         o = Internal.getZones(to)[0]
     else:
@@ -636,7 +637,7 @@ def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., dfarList=[], DEPTH=2, tb
                     expand=expand, dfarDir=dfarDir)
 
     if check: C.convertPyTree2File(o, "octree.cgns")
-
+    
     # retourne les 4 quarts (en 2D) de l'octree parent 2 niveaux plus haut 
     # et les 8 octants en 3D sous forme de listes de zones non structurees
     parento = buildParentOctrees__(o, tb, snears=snears, snearFactor=4., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf, 
