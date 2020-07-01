@@ -85,11 +85,8 @@ def prepare(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=0,
 
     # build parent octree 3 levels higher
     # returns a list of 4 octants of the parent octree in 2D and 8 in 3D
-    print(" rank" , rank, " buildParent")
     parento = TIBM.buildParentOctrees__(o, tb, snears=snears, snearFactor=4., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf,
                                         dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=None, rank=rank)
-    print(" rank" , rank, " buildParent done.")
-
     test.printMem(">>> Octree unstruct [end]")
 
     # Split octree
@@ -274,7 +271,9 @@ def prepare(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=0,
         _addIBDataZSR(z,[allip_pts],[allwall_pts],[allimage_pts], prefix='IBCD_')
 
     # add 2 PyTree
+    Cmpi._setProc(z,Cmpi.rank)
     t[2][1][2]=[z]
+    
     
     # identify elements per processor
     if t_out is not None:
@@ -356,7 +355,6 @@ def getHangingNodesInfoPara(a, b, indicesFacesOrig, bopp, indicesFacesOrigOpp):
 
                     elif indVertexEF == indV4:
                         ef2 = (indicesFacesOrigOpp[noe]-1)//nfaces
-                        HN_FINE2.append(efg)
                         found += 1
 
                     if found == 4: 
