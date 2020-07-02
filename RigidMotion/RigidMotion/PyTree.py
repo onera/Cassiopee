@@ -2,6 +2,7 @@
 # Python Interface to compute/define rigid motion from PyTrees
 #
 from . import RigidMotion
+from . import rigidMotion
 __version__ = RigidMotion.__version__
  
 try:
@@ -256,6 +257,23 @@ def evalTimeString__(m, string, time):
     tx = eval(st)
     return tx
 
+def getTimeString__(m, string):
+    st = Internal.getNodeFromName1(m, string)
+    st = Internal.getValue(st)
+    return st
+  
+def evalTimeDerivativeString__(m, string, time):
+    import Converter.expression as expr
+    st = Internal.getNodeFromName1(m, string)
+    st = Internal.getValue(st)
+    a = expr.ast('{%s}'%string+'='+st); da = expr.derivate(a)
+    #print(da)
+    crds = Converter.array('t',2,1,1); crds[1][0,0] = time; crds[1][0,1] = time
+    Converter._addVars(crds, string); a.run(crds)
+    Converter._addVars(crds, 'd_'+string); da.run(crds, d_t=numpy.ones(1))
+    print(crds[1][2,0])
+    return crds[1][2,0]
+        
 #==============================================================================
 # IN: m: motion node
 # IN: string: nom du noeud dont on retourne la valeur
@@ -428,8 +446,8 @@ def _moveZone__(z, time):
                 print("Motion type not found. Nothing done.")
     return None
   
-# Recopie Coordinate#Init si il existe  
-def _copyInit(t):
+# Recopie GridCoordinates#Init (si il existe) dans GridCoordinates  
+def _copyGridInit2Grid(t):
   zones = Internal.getZones(t)
   for z in zones:
     gridInit = Internal.getNodeFromName1(z, 'GridCoordinates#Init')
@@ -445,7 +463,34 @@ def _copyInit(t):
       ycoord[:] = ycoord0[:]
       zcoord[:] = zcoord0[:]
   return None
-    
+
+# Copy GridCoordinates dans GridCoordinates#Init
+def _copyGrid2GridInit(t):
+  zones = Internal.getZones(t)
+  for z in zones:
+    grid = Internal.getNodeFromName1(z, 'GridCoordinates')
+    xcoord = Internal.getNodeFromName1(grid, 'CoordinateX')
+    ycoord = Internal.getNodeFromName1(grid, 'CoordinateY')
+    zcoord = Internal.getNodeFromName1(grid, 'CoordinateZ')
+    if grid:
+      gridInit = Internal.getNodeFromName1(z, 'GridCoordinates#Init')
+      if not gridInit:
+       gridInit = Internal.createNode('GridCoordinates#Init', 'GridCoordinates_t', parent=z)
+      xcoord0 = Internal.getNodeFromName1(gridInit, 'CoordinateX')
+      if xcoord0 is None: 
+        xcoord0 = Internal.copyNode(xcoord); gridInit[2].append(xcoord0)
+      ycoord0 = Internal.getNodeFromName1(gridInit, 'CoordinateY')
+      if ycoord0 is None: 
+        ycoord0 = Internal.copyNode(ycoord); gridInit[2].append(ycoord0)
+      zcoord0 = Internal.getNodeFromName1(gridInit, 'CoordinateZ')
+      if zcoord0 is None: 
+        zcoord0 = Internal.copyNode(zcoord); gridInit[2].append(zcoord0)
+      
+      xcoord0[1][:] = xcoord[1][:]
+      ycoord0[1][:] = ycoord[1][:]
+      zcoord0[1][:] = zcoord[1][:]
+  return None
+
 #==============================================================================
 # Evalue la position reelle de la zone a l'instant t
 # Le mouvement est stocke dans chaque zone.
@@ -496,13 +541,13 @@ def _evalPosition(a, time, F=None):
   else: return _evalPosition___(a, time, F)
 
 #=========================================================
-# Matrice de rotation  a partir des donnees de l'arbre
+# Matrice de rotation a partir des donnees de l'arbre
 #=========================================================
 def getDictOfMotionMatrix(a, time, F=None):
     dictRM = {}
     for z in Internal.getZones(a):
         zname = Internal.getName(z)
-        dictRM[zname] = getMotionMatrixForZone(z,time, F)
+        dictRM[zname] = getMotionMatrixForZone(z, time, F)
     return dictRM
 
 def getMotionMatrixForZone(z, time, F=None):    
@@ -599,18 +644,70 @@ def moveN(coordsN, d, c, r):
     return RigidMotion.moveN(coordsN, d, c, r)
 
 # Evalue la vitesse a un instant t
-def evalSpeed(z, time):
+def _evalGridSpeed(z, time):
   # Find Coordinates pointers (must already be updated)
-  grid = Internal.getNodeFromName1(z, 'GridCoordinates')
-  xcoord = Internal.getNodeFromName1(grid, 'CoordinateX')[1]
-  ycoord = Internal.getNodeFromName1(grid, 'CoordinateY')[1]
-  zcoord = Internal.getNodeFromName1(grid, 'CoordinateZ')[1]
-  # Get speed pointers
-  mmo = Internal.getNodeFromName1(z, 'Motion')
-  sx = Internal.getNodeFromName1(mmo,'VelocityX')[1]
-  sy = Internal.getNodeFromName1(mmo,'VelocityY')[1]
-  sz = Internal.getNodeFromName1(mmo,'VelocityZ')[1]
-  # derive
+  grid = Internal.getNodeFromName1(z, 'GridCoordinates#Init')
+  if grid is None:
+    grid = Internal.getNodeFromName1(z, 'GridCoordinates')
+  xcoord = Internal.getNodeFromName1(grid, 'CoordinateX')
+  ycoord = Internal.getNodeFromName1(grid, 'CoordinateY')
+  zcoord = Internal.getNodeFromName1(grid, 'CoordinateZ')
   
-  return a
+  # Get speed pointers
+  name  = 'Motion'
+  name = 'FlowSolution'
+  mmo = Internal.getNodeFromName1(z, name)
+  if mmo is None: mmo = Internal.createNode(name, 'UserDefined_t', parent=z)  
+  sx = Internal.getNodeFromName1(mmo, 'VelocityX')
+  if sx is None: sx = Internal.copyNode(xcoord); sx[0] = 'VelocityX'; mmo[2].append(sx); sx[1] = sx[1].reshape((sx[1].size));
+  sy = Internal.getNodeFromName1(mmo, 'VelocityY')
+  if sy is None: sy = Internal.copyNode(xcoord); sy[0] = 'VelocityY'; mmo[2].append(sy); sy[1] = sy[1].reshape((sy[1].size));
+  sz = Internal.getNodeFromName1(mmo, 'VelocityZ')
+  if sz is None: sz = Internal.copyNode(xcoord); sz[0] = 'VelocityZ'; mmo[2].append(sz); sz[1] = sz[1].reshape((sz[1].size));
+  
+  # Get translation vector
+  cont = Internal.getNodeFromName1(z, 'TimeMotion')
+  if cont is not None:
+    motions = Internal.getNodesFromType1(cont, 'TimeRigidMotion_t')
+    for m in motions:
+      mtype = Internal.getNodeFromName1(m, 'MotionType')
+      dtype = mtype[1][0]
+      if dtype == 1: # type 1: time string
+        tx = getTimeString__(m, 'tx')
+        ty = getTimeString__(m, 'ty')
+        tz = getTimeString__(m, 'tz')
+        cx = getTimeString__(m, 'cx')
+        cy = getTimeString__(m, 'cy')
+        cz = getTimeString__(m, 'cz')
+        ex = getTimeString__(m, 'ex')
+        ey = getTimeString__(m, 'ey')
+        ez = getTimeString__(m, 'ez')
+        theta = getTimeString__(m, 'angle')
+        
+        # dtx, dty, dtz
+        dtx = evalTimeDerivativeString__(m, 'tx', time)
+        dty = evalTimeDerivativeString__(m, 'ty', time)
+        dtz = evalTimeDerivativeString__(m, 'tz', time)
+        
+        # dcx, dcy, dcz
+        dcx = evalTimeDerivativeString__(m, 'cx', time)
+        dcy = evalTimeDerivativeString__(m, 'cy', time)
+        dcz = evalTimeDerivativeString__(m, 'cz', time)
+        
+        sx[1][:] = 0.
+        sy[1][:] = 0.
+        sz[1][:] = 0.
+        
+      elif dtype == 3: # type 3: constant rotation
+        axis_pnt = Internal.getNodeFromName1(m, 'axis_pnt')
+        axis_vct = Internal.getNodeFromName1(m, 'axis_vct')
+        omega = Internal.getNodeFromName1(m, 'omega')
+        omega = Internal.getValue(omega)
+        
+        rigidMotion.evalSpeed1(xcoord[1], ycoord[1], zcoord[1], 
+          sx[1], sy[1], sz[1], omega, omega*time,
+          axis_pnt[1][0], axis_pnt[1][1], axis_pnt[1][2],
+          axis_vct[1][0], axis_vct[1][1], axis_vct[1][2])
+        
+  return None
   

@@ -17,7 +17,8 @@ static struct python_parameters_dictionnary {
 } py_params;
 
 struct py_ast_handler {
-    PyObject_HEAD Expression::ast *pt_ast;
+    PyObject_HEAD 
+    Expression::ast *pt_ast;
 };
 
 PyAPI_DATA(PyTypeObject) py_ast_handler_type;
@@ -52,7 +53,7 @@ namespace {
     // =========================================================================================
     void py_ast_handler_dealloc(py_ast_handler *self) {
         if (self->pt_ast != nullptr) delete self->pt_ast;
-        self->ob_type->tp_free((PyObject *)self);
+        Py_TYPE(self)->tp_free((PyObject *)self);
     }
     // -----------------------------------------------------------------------------------------
     PyObject *py_ast_handler_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
@@ -63,7 +64,11 @@ namespace {
     }
     // -----------------------------------------------------------------------------------------
     PyObject *py_ast_handler_str(py_ast_handler *self) {
+#if PY_VERSION_HEX >= 0x03000000
+        return PyUnicode_FromString(std::string(*self->pt_ast).data());
+#else
         return PyString_FromString(std::string(*self->pt_ast).data());
+#endif
     }
     // -----------------------------------------------------------------------------------------
     struct data_array {
@@ -209,7 +214,17 @@ namespace {
             PyObject *py_keys = PyDict_Keys(kwds);
             for (int idict = 0; idict < nb_dict_vars; ++idict) {
                 PyObject *  py_str = PyList_GetItem(py_keys, idict);
-                std::string key_str(PyString_AsString(py_str));
+                std::string key_str;
+                if (PyString_Check(py_str))
+                {
+                    key_str = std::string(PyString_AsString(py_str));
+                }
+#if PY_VERSION_HEX >= 0x03000000
+                else if (PyUnicode_Check(py_str))
+                {
+                    key_str = std::string(PyUnicode_AsUTF8(py_str));
+                }
+#endif
                 if (std::find(symbol_kwds.begin(), symbol_kwds.end(), key_str) == symbol_kwds.end()) {
                     std::string s_error = key_str + " is not a variable of the expression";
                     PyErr_SetString(PyExc_NameError, s_error.c_str());
@@ -355,7 +370,7 @@ namespace {
             return NULL;
         }
         PyObject *py_name = PyTuple_GetItem(args, 1);
-        char* outName;
+        const char* outName;
         if (PyString_Check(py_name))
         {
          outName = PyString_AsString(py_name);   
@@ -435,7 +450,17 @@ namespace {
             PyObject *py_keys = PyDict_Keys(kwds);
             for (int idict = 0; idict < nb_dict_vars; ++idict) {
                 PyObject *  py_str = PyList_GetItem(py_keys, idict);
-                std::string key_str(PyString_AsString(py_str));
+                std::string key_str;
+                if (PyString_Check(py_str))
+                {
+                    key_str = std::string(PyString_AsString(py_str));
+                }
+#if PY_VERSION_HEX >= 0x03000000
+                else if (PyUnicode_Check(py_str))
+                {
+                    key_str = std::string(PyUnicode_AsUTF8(py_str));
+                }
+#endif
                 if (std::find(symbol_kwds.begin(), symbol_kwds.end(), key_str) == symbol_kwds.end()) {
                     std::string s_error = key_str + " is not a variable of the expression";
                     PyErr_SetString(PyExc_NameError, s_error.c_str());
@@ -471,15 +496,15 @@ namespace {
             }
         }
         // On cherche tout d'abord si la variable demandee existe dans le array :
-        E_Int    posvar = K_ARRAY::isNamePresent(outName, varString);
+        E_Int    posvar = K_ARRAY::isNamePresent((char*)outName, varString);
         E_Int res2;
         if (posvar == -1) // Ce nom n'existe pas, on rajoute le champs a l'array
         {
             // On va prendre le premier argument de args  comme modele
             // d'array Et on verifie sa validite en tant que tableau cassiopee.
-            K_ARRAY::addFieldInArray(parray,outName);
+            K_ARRAY::addFieldInArray(parray,(char*)outName);
             res2  = K_ARRAY::getFromArray2(parray, varString, f, ni, nj, nk, cn, eltType);
-            posvar = K_ARRAY::isNamePresent(outName, varString);
+            posvar = K_ARRAY::isNamePresent((char*)outName, varString);
         }
         assert(posvar >=0);
         E_Float* fnp = f->begin(posvar+1);
@@ -631,7 +656,17 @@ namespace {
             PyObject *py_keys = PyDict_Keys(kwds);
             for (int idict = 0; idict < nb_dict_vars; ++idict) {
                 PyObject *  py_str = PyList_GetItem(py_keys, idict);
-                std::string key_str(PyString_AsString(py_str));
+                std::string key_str;
+                if (PyString_Check(py_str))
+                {
+                    key_str = std::string(PyString_AsString(py_str));
+                }
+#if PY_VERSION_HEX >= 0x03000000
+                else if (PyUnicode_Check(py_str))
+                {
+                    key_str = std::string(PyUnicode_AsUTF8(py_str));
+                }
+#endif
                 if (std::find(symbol_kwds.begin(), symbol_kwds.end(), key_str) == symbol_kwds.end()) {
                     std::string s_error = key_str + " is not a variable of the expression";
                     PyErr_SetString(PyExc_NameError, s_error.c_str());
@@ -679,8 +714,9 @@ namespace {
     }
     // ====================================================================================================>
     static PyMethodDef ast_methods[] = {
-        {"eval", (PyCFunction)py_ast_handler_eval, METH_VARARGS | METH_KEYWORDS, eval_doc},  // Sentinelle
-        {"run", (PyCFunction)py_ast_handler_run, METH_VARARGS | METH_KEYWORDS, run_doc}, {NULL} // Sentinelle
+        {(char*)"eval", (PyCFunction)py_ast_handler_eval, METH_VARARGS | METH_KEYWORDS, eval_doc},  // Sentinelle
+        {(char*)"run", (PyCFunction)py_ast_handler_run, METH_VARARGS | METH_KEYWORDS, run_doc}, 
+        {NULL} // Sentinelle
     };
     //
     static int ast_init(py_ast_handler *self, PyObject *args) {
@@ -711,7 +747,7 @@ static const char ast_doc[]           = "Abstract syntax tree documentation to d
 __declspec(dllexport)
 #endif
 PyTypeObject      py_ast_handler_type = {
-    PyObject_HEAD_INIT(NULL) 0,               // Object size (minus type size)
+    PyVarObject_HEAD_INIT( NULL,0 ) 
     "Expression.ast",                         // Name of the python type
     sizeof(py_ast_handler),                   // Basic object size
     0,                                        // Item size
@@ -799,6 +835,38 @@ static PyMethodDef expression_methods[] = {
     {"derivate", (PyCFunction)py_derivate, METH_VARARGS, derivate_doc},
     {NULL, NULL}
 };
+#if PY_MAJOR_VERSION >= 3
+static struct PyModuleDef expression_moduledef = {
+    PyModuleDef_HEAD_INIT,
+    "expression",                            // Nom du module
+    "Interface c pour arbre d'expression ast",  // Documentation
+    -1,                                       // Taille du module
+    expression_methods,                                     // Fonctions du module
+    NULL,                                     // Quand on reload le module...
+    NULL,                                     // Traverse ?
+    NULL,                                     // clear ?
+    NULL,                                     // Libération mémoire du module
+};
+PyMODINIT_FUNC PyInit_expression( void );
+PyMODINIT_FUNC PyInit_expression( void )
+{
+    PyObject *m;
+
+    if ( PyType_Ready( &py_ast_handler_type ) < 0 )
+        return NULL;
+
+    m = PyModule_Create( &expression_moduledef );
+    if ( m == NULL ) return NULL;
+
+    Py_INCREF(&py_ast_handler_type);
+    /* Très important : initialise numpy afin de pouvoir l'utiliser ici !!!! */
+    import_array();
+    Expression::init_math_functions();
+
+    PyModule_AddObject( m, "ast", (PyObject *)&py_ast_handler_type );
+    return m;
+}
+#else
 static char        expression_mod_doc[] = R"DOC(
 This module is intented to evaluate and derivate some expressions given by the user as string litteral. The expression can be evaluated on vectors.
 In this case, the expression is evaluated coefficient per coefficient to avoid some intermediate vector to copy which slow the global evaluation.
@@ -827,3 +895,4 @@ PyMODINIT_FUNC initexpression() {
     Py_INCREF(&py_ast_handler_type);
     PyModule_AddObject(m, "ast", (PyObject *)&py_ast_handler_type);
 }
+#endif

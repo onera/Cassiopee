@@ -116,32 +116,19 @@ Contents
 
 .. py:function:: RigidMotion.setPrescribedMotion3(a, motionName, transl_speed, axis_pnt, axis_vct, omega)
 
-    Set a precribed motion defined by a constant speed rotation and translation. 
+    Set a precribed motion defined by a constant speed rotation and constant translation vector. 
     omega is in rad/time unit.
 
     :param a: Input data
     :type  a: [array, list of arrays] or [pyTree, base, zone, list of zones]
-    :param tx: translation in x motion string
-    :type tx: string
-    :param ty: translation in y motion string
-    :type ty: string
-    :param tz: translation in z motion string
-    :type tz: string
-    :param cx: rotation center x coordinate motion string
-    :type cx: string
-    :param cy: rotation center y coordinate motion string
-    :type cy: string
-    :param cz: rotation center z coordinate motion string
-    :type cz: string
-    :param ex: rotation axis x coordinate motion string
-    :type ex: string
-    :param ey: rotation axis y coordinate motion string
-    :type ey: string
-    :param ez: rotation axis z coordinate motion string
-    :type ez: string
-    :param angle: rotation angle motion string
-    :type angle: string
-    
+    :param transl_speed: translation vector
+    :type transl_speed: tuple of 3 floats
+    :param axis_pnt: rotation axis (constant in translated frame)
+    :type axis_pnt: tuple of 3 floats
+    :param axis_vect: vector axis (constant in traslated frame)
+    :type axis_vect: tuple of 3 floats
+    :param omega: constant rotation speed
+    :type omega: float 
     *Example of use:*
 
     * `Set a prescribed motion of type 3 (pyTree) <Examples/RigidMotion/setPrescribedMotion3PT.py>`_:

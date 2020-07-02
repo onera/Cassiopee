@@ -168,7 +168,7 @@ namespace K_POST
                     // Attention, m_elt2verts commence ses indices a un !
                     E_Int ind_vert = e2v(ielt,ivert+1)-1;
                     assert(ind_vert>=0);
-                    assert(ind_vert<nb_verts);
+                    //assert(ind_vert<nb_verts);
                     nb_elts_for_verts += m_beg_vert2elts[ind_vert+1] - m_beg_vert2elts[ind_vert];
                 }
                 std::vector<E_Int> cells; cells.reserve(nb_elts_for_verts);

@@ -3,7 +3,7 @@
 __version__ = '3.1'
 __author__ = "You"
 
-import template
+from . import template
 
 def arrayExample(a):
     return template.arrayExample(a)

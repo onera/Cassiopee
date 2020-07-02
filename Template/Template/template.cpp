@@ -55,7 +55,7 @@ static struct PyModuleDef moduledef = {
         "template",
         NULL,
         sizeof(struct module_state),
-        Pyconverter,
+        Pytemplate,
         NULL,
         myextension_traverse,
         myextension_clear,
