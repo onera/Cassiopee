@@ -41,8 +41,10 @@ public:
   /// non-bijective : convert a n-to-one vector (tipically an oids) to a ngon_unit
   static void reverse_indirection(E_Int nb_pgs, const E_Int*oids, E_Int sz, ngon_unit& split_graph);
   /// 
-  template < E_Int S >
-  static void right_shift(E_Int* list, E_Int sz);
+  template < E_Int LIST_sZ >
+  static void right_shift(E_Int* list, E_Int shift);
+  // variable stride version
+  static void right_shift(E_Int* list, E_Int sz, E_Int shift);
   ///
   static void reverse_sorting(Vector_t<E_Int> & vec);
   ///
@@ -139,20 +141,17 @@ public:
 };
 
 /// 
-template <E_Int S>
-void IdTool::right_shift(E_Int* list, E_Int sz)
+template <E_Int LIST_SZ>
+void IdTool::right_shift(E_Int* list, E_Int shift)
 {
-    if (sz == 0) return; 
+  if (shift == 0) return;
 
-      E_Int tmp[S];
+  E_Int tmp[LIST_SZ];
+  for (int i =0; i < LIST_SZ; ++i)
+    tmp[i] = list[(i+shift)% LIST_SZ];
 
-      for (int i =0; i < S; ++i){
-          tmp[i] = list[(i+sz)%S];
-      }
-
-      for (int i =0; i < S; ++i){
-          list[i] = tmp[i];
-      }    
+  for (int i =0; i < LIST_SZ; ++i)
+    list[i] = tmp[i];    
 }
 
 ///

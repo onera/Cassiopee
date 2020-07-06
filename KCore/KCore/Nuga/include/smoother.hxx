@@ -21,10 +21,11 @@ template <typename mesh_t>
 struct smoother
 {
   using sensor_output_t = typename sensor_output_data<mesh_t::SUBTYPE>::type;
+  using cell_adap_incr_t = typename sensor_output_t::cell_output_type;
      
   smoother() = default;
 
-  virtual void smooth(const mesh_t& hmesh, sensor_output_t& adap_incr)  = 0;
+  virtual void smooth(const mesh_t& hmesh, cell_adap_incr_t& adap_incr)  = 0;
   
   virtual ~smoother() {}
 };

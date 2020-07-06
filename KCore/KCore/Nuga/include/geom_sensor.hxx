@@ -38,7 +38,7 @@ class geom_sensor : public sensor<mesh_t, crd_t>
 {
   public:
 
-    using sensor_data_t = crd_t;
+    using sensor_input_t = crd_t;
     using parent_t = sensor<mesh_t, crd_t>;
     using sensor_output_t   = typename mesh_t::sensor_output_t;
  
@@ -57,11 +57,11 @@ class geom_sensor : public sensor<mesh_t, crd_t>
 
     }
     
-    virtual E_Int assign_data(sensor_data_t& data) override;
+    virtual E_Int assign_data(sensor_input_t& data) override;
 
     void fill_adap_incr(sensor_output_t& adap_incr, bool do_agglo) override;
 
-    void update() override;
+    bool update() override;
 
     bool stop() override;
 
@@ -83,11 +83,12 @@ class geom_sensor : public sensor<mesh_t, crd_t>
     Vector_t<E_Int> _points_to_cell;
     E_Int _max_pts_per_cell;
     E_Int _iter_max, _iter;
+    E_Int _cur_nphs;
 };
 
 /// 
 template <typename mesh_t>
-E_Int geom_sensor<mesh_t>::assign_data(sensor_data_t& data) 
+E_Int geom_sensor<mesh_t>::assign_data(sensor_input_t& data) 
 {
 
   parent_t::assign_data(data);
@@ -114,10 +115,17 @@ E_Int geom_sensor<mesh_t>::assign_data(sensor_data_t& data)
 template <typename mesh_t>
 void geom_sensor<mesh_t>::fill_adap_incr(sensor_output_t& adap_incr, bool do_agglo)
 {
-  E_Int nb_elts = parent_t::_hmesh._ng.PHs.size();
+  _cur_nphs = parent_t::_hmesh._ng.PHs.size();
+  E_Int nb_faces = parent_t::_hmesh._ng.PGs.size();
   E_Int nb_pts = _points_to_cell.size();
+
+  adap_incr.face_adap_incr.clear();
+  adap_incr.cell_adap_incr.clear();
+  adap_incr.cell_adap_incr.resize(_cur_nphs, 0);
+  adap_incr.face_adap_incr.resize(nb_faces, 0);
+
   //points_to_cell gives the number of points per cell
-  Vector_t<E_Int> nb_pts_per_cell(nb_elts,0);
+  Vector_t<E_Int> nb_pts_per_cell(_cur_nphs,0);
   
   for (int i = 0; i < nb_pts; ++i)
   {
@@ -126,26 +134,22 @@ void geom_sensor<mesh_t>::fill_adap_incr(sensor_output_t& adap_incr, bool do_agg
       nb_pts_per_cell[PHi] += 1;
   }
 
-  //adap_incr
-  adap_incr.clear();
-  adap_incr.resize(nb_elts, 0);
-
-  for (int i = 0; i < nb_elts; ++i)
+  for (int i = 0; i < _cur_nphs; ++i)
   {
     const E_Int* faces = parent_t::_hmesh._ng.PHs.get_facets_ptr(i);
     E_Int nb_faces = parent_t::_hmesh._ng.PHs.stride(i);
     bool admissible_elt = K_MESH::Polyhedron<0>::is_basic(parent_t::_hmesh._ng.PGs, faces, nb_faces);
     if ( admissible_elt && (nb_pts_per_cell[i] >= _max_pts_per_cell + 1) && (parent_t::_hmesh._PHtree.is_enabled(i)) ) // can be and has to be subdivided
-      adap_incr[i] = 1;
+      adap_incr.cell_adap_incr[i] = 1;
   }
 
   if (do_agglo)
   {
-    for (int i = 0; i < nb_elts; ++i)
+    for (int i = 0; i < _cur_nphs; ++i)
     {
       if ((parent_t::_hmesh._PHtree.get_level(i) > 0) && (parent_t::_hmesh._PHtree.is_enabled(i))) // this cell may be agglomerated : check its brothers
       {
-        if (adap_incr[i] == -1) continue;
+        if (adap_incr.cell_adap_incr[i] == -1) continue;
                 
         E_Int father = parent_t::_hmesh._PHtree.parent(i);
         const E_Int* p = parent_t::_hmesh._PHtree.children(father);
@@ -161,7 +165,7 @@ void geom_sensor<mesh_t>::fill_adap_incr(sensor_output_t& adap_incr, bool do_agg
         if (sum <= _max_pts_per_cell) // number of source points in the father <= criteria chosen : might be agglomerated : -1 for every child
         {
           for (int k = 0; k < nb_children; ++k)
-            adap_incr[p[k]] = -1;
+            adap_incr.cell_adap_incr[p[k]] = -1;
         }
       }
     }
@@ -304,9 +308,13 @@ E_Int geom_sensor<mesh_t>::detect_child(const E_Float* p, E_Int PHi, const E_Int
 
 ///
 template <typename mesh_t>
-void geom_sensor<mesh_t>::update()
+bool geom_sensor<mesh_t>::update()
 {
   //std::cout << "redistrib data geom sensor. : nb pts" << _points_to_cell.size() << std::endl;
+  
+  // if no subdivision has occured => no reason for a new point dispatch
+  if (_cur_nphs == parent_t::_hmesh._ng.PHs.size()) return false;
+  
   E_Int nb_pts = _points_to_cell.size();
 
   for (int i = 0; i < nb_pts; ++i)
@@ -321,6 +329,7 @@ void geom_sensor<mesh_t>::update()
       _points_to_cell[i] = cell;
     }
   }
+  return true;
 }
 
 template <typename mesh_t>

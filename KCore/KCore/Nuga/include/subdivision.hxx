@@ -125,6 +125,14 @@ struct subdiv_pol<K_MESH::Quadrangle, ISO>
 {
   enum { NBC = 4};
   using arr_t = K_FLD::IntArray;
+
+  static void reorder_children(E_Int* child, bool reverse, E_Int i0)
+  {
+    K_CONNECT::IdTool::right_shift<4>(&child[0], i0);
+    if (reverse)
+      std::swap(child[1], child[3]);
+  }
+
 };
 
 // isotropic Triangle subdivision => 4 Trianges children => fixed stride array
@@ -133,13 +141,20 @@ struct subdiv_pol<K_MESH::Triangle, ISO>
 {
   enum { NBC = 4 };
   using arr_t = K_FLD::IntArray;
+
+  static void reorder_children(E_Int* child, bool reverse, E_Int i0)
+  {
+    K_CONNECT::IdTool::right_shift<3>(&child[0], i0);
+    if (reverse)
+      std::swap(child[1], child[2]);
+  }
 };
 
 // ISO_HEX Polygon subdivision => N quad children , with N is the nb of nodes
 template <>
 struct subdiv_pol<K_MESH::Polygon, ISO_HEX>
 {
-  enum { PGNBC = -1, PHNBC = -1/*, NBI = -1 */ };
+  enum { NBC = -1};
   using arr_t = ngon_unit;
 
   static E_Int nbc_list(const ngon_unit& PGs, const std::vector<E_Int>& PGlist, std::vector<E_Int>& pregnant)
@@ -151,20 +166,25 @@ struct subdiv_pol<K_MESH::Polygon, ISO_HEX>
 
 };
   
+struct incr_type
+{
+  using cell_output_type = Vector_t<E_Int>;
+  Vector_t<E_Int> face_adap_incr, cell_adap_incr;
+};
 
 // Directional subdivision data
-  struct dir_incr_type
-  {
-    Vector_t<E_Int>      _adap_incr;
-    Vector_t<NUGA::eDIR> _ph_dir, _pg_dir;
-    
-    E_Int& operator[](E_Int i) {return _adap_incr[i]; };
-    
-    void clear() {_adap_incr.clear();}
-    void resize(E_Int sz, E_Int val) {_adap_incr.resize(sz, val);}
-    Vector_t<E_Int>::iterator begin() {return _adap_incr.begin();}
-    Vector_t<E_Int>::iterator end() {return _adap_incr.end();}
-  };
+struct dir_incr_type //fixme : separate also here face & cell adap incr
+{
+  Vector_t<E_Int>      _adap_incr;
+  Vector_t<NUGA::eDIR> _ph_dir, _pg_dir;
+  
+  E_Int& operator[](E_Int i) {return _adap_incr[i]; };
+  
+  void clear() {_adap_incr.clear();}
+  void resize(E_Int sz, E_Int val) {_adap_incr.resize(sz, val);}
+  Vector_t<E_Int>::iterator begin() {return _adap_incr.begin();}
+  Vector_t<E_Int>::iterator end() {return _adap_incr.end();}
+};
 
   // Isotropic subdivision data : Vector_t<E_Int>
   template <eSUBDIV_TYPE STYPE>
@@ -173,13 +193,13 @@ struct subdiv_pol<K_MESH::Polygon, ISO_HEX>
   template<>
   struct sensor_output_data<ISO>
   {
-    using type = Vector_t<E_Int>;
+    using type = incr_type;
   };
 
   template<>
   struct sensor_output_data<ISO_HEX>
   {
-    using type = Vector_t<E_Int>;
+    using type = incr_type;
   };
 
   template<>

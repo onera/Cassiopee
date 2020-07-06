@@ -138,12 +138,9 @@ public:
   ///
   static void iso_barycenter(const K_FLD::FloatArray& crd, const ngon_unit & PGs, const E_Int* first_pg, E_Int nb_pgs, E_Int index_start, E_Float* G)
   {
-    //todo JP
-
-    // 1 option : 
-    // a. call to unique_nodes (a method of this class, see below)
-    // b. call to above function
-
+    std::vector<E_Int> uniqnodes;
+    unique_nodes(PGs, first_pg, nb_pgs, uniqnodes);
+    iso_barycenter(crd, &uniqnodes[0], uniqnodes.size(), 1, G);
   }
   
   template<typename CoordAcc>

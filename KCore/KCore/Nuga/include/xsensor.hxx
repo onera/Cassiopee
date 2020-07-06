@@ -32,18 +32,18 @@ class xsensor : public geom_sensor<mesh_t>
   public:
     using elt_type = ELT_t;
     using parent_t = geom_sensor<mesh_t>;
-    using sensor_data_t = mesh_s;
+    using sensor_input_t = mesh_s;
     
     xsensor(mesh_t& mesh, eSmoother smootyp, E_Int max_pts_per_cell, E_Int itermax):parent_t(mesh, smootyp, max_pts_per_cell, itermax){}
 
-    E_Int assign_data(sensor_data_t& data) ; //not an override as args are different
+    E_Int assign_data(sensor_input_t& data) ; //not an override as args are different
 
  private:
-    void add_x_points(sensor_data_t& data);            
+    void add_x_points(sensor_input_t& data);            
 };
 ///
 template <typename ELT_t, typename mesh_t>
-void xsensor<ELT_t, mesh_t>::add_x_points(sensor_data_t& data)
+void xsensor<ELT_t, mesh_t>::add_x_points(sensor_input_t& data)
 {
   Vector_t<E_Int> ids;
   std::map<K_MESH::NO_Edge,E_Int> unique_edges;
@@ -128,7 +128,7 @@ void xsensor<ELT_t, mesh_t>::add_x_points(sensor_data_t& data)
 
 ///
 template <typename ELT_t, typename mesh_t>
-E_Int xsensor<ELT_t, mesh_t>::assign_data(sensor_data_t& data)
+E_Int xsensor<ELT_t, mesh_t>::assign_data(sensor_input_t& data)
 {
   add_x_points(data);
   parent_t::assign_data(data.crd); // done after because localizing (inside assign_data) must be done after add_x_points

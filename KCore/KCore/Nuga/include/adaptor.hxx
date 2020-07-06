@@ -65,22 +65,24 @@ E_Int NUGA::adaptor<mesh_t, sensor_t>::run(mesh_t& hmesh, sensor_t& sensor, bool
     std::cout << "nuga/adapt::sensor.compute iter " << iter << " : " << t0.count() << "s" << std::endl;
 #endif
 
-    if (!require)
+    if (require)
+    {
+#ifdef ADAPT_STEPS
+      start0 = std::chrono::system_clock::now();
+      std::cout << "nuga/adapt::hmesh.adapt    iter " << iter << "..." << std::endl;
+#endif
+      err = hmesh.adapt(adap_incr, do_agglo);
+    }
+
+    bool updated = sensor.update(); 
+
+    if (!require && !updated)
     {
 #ifdef ADAPT_STEPS
       std::cout << "nuga/adapt : no more adaptation required." << std::endl;
 #endif
       break;
     }
-
-#ifdef ADAPT_STEPS
-    start0 = std::chrono::system_clock::now();
-    std::cout << "nuga/adapt::hmesh.adapt    iter " << iter << "..." << std::endl;
-#endif
-
-    err = hmesh.adapt(adap_incr, do_agglo);
-
-    sensor.update(); 
 
 #ifdef ADAPT_STEPS
     end0 = std::chrono::system_clock::now();

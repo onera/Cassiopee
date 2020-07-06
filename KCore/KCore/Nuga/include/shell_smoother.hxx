@@ -21,12 +21,13 @@ template <typename mesh_t>
 struct shell_smoother : public smoother<mesh_t>
 {
   using sensor_output_t = typename sensor_output_data<mesh_t::SUBTYPE>::type;
+  using cell_adap_incr_t = typename sensor_output_t::cell_output_type;
 
   Vector_t<E_Int> _Ln;
 
   shell_smoother() = default;
 
-  void smooth(const mesh_t& hmesh, sensor_output_t& adap_incr);
+  void smooth(const mesh_t& hmesh, cell_adap_incr_t& adap_incr);
 
   void __update_nodal_levels(const mesh_t& hmesh, E_Int PHi);
 
@@ -34,7 +35,7 @@ struct shell_smoother : public smoother<mesh_t>
 };
 
 template <typename mesh_t>
-void shell_smoother<mesh_t>::smooth(const mesh_t& hmesh, sensor_output_t& adap_incr) 
+void shell_smoother<mesh_t>::smooth(const mesh_t& hmesh, cell_adap_incr_t& adap_incr)
 {
   E_Int n_nodes = hmesh._crd.cols();
   _Ln.resize(n_nodes);

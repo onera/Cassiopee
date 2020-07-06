@@ -20,6 +20,8 @@
 #include "IdTool.h"
 #include <algorithm>
 #include <map>
+#include "Nuga/include/macros.h"
+
 //#include <iostream>
 namespace K_CONNECT
 {
@@ -274,4 +276,17 @@ namespace K_CONNECT
    
     return equal;
  }
+
+  void IdTool::right_shift(E_Int* list, E_Int sz, E_Int shift)
+  {
+    if (shift == 0) return;
+
+    STACK_ARRAY(E_Int, sz, tmp);
+
+    for (int i = 0; i < sz; ++i)
+      tmp[i] = list[(i + shift) % sz];
+
+    for (int i = 0; i < sz; ++i)
+      list[i] = tmp[i];
+  }
 }

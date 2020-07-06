@@ -29,6 +29,7 @@
 #include "Fld/ngon_unit.h"
 #include <deque>
 #include "Nuga/include/subdiv_defs.h"
+#include "Nuga/include/macros.h"
 
 namespace K_MESH
 {
@@ -291,6 +292,8 @@ public:
   bool intersect
   (const K_FLD::FloatArray&crd, const E_Float* Q0, const E_Float* Q1,
     E_Float tol, E_Bool tol_is_absolute, E_Float& u0, E_Float& u1, E_Bool& overlap);
+
+  static void sync_join(const K_FLD::FloatArray&crd1, const E_Int* nodes1, E_Int idx_strt1, const K_FLD::FloatArray&crd2, E_Int* nodes2, E_Int idx_strt2, E_Int nb_nodes, bool do_reverse = false);
   
 private: 
   Polygon(const Polygon& orig);
@@ -816,5 +819,39 @@ bool Polygon::intersect
 
   return false;
 }
+
+///
+inline void Polygon::sync_join(const K_FLD::FloatArray&crd1, const E_Int* nodes1, E_Int idx_strt1, const K_FLD::FloatArray&crd2, E_Int* nodes2, E_Int idx_strt2, E_Int nb_nodes, bool do_reverse)
+{
+  E_Float n1[3], n2[3];
+  normal<K_FLD::FloatArray, 3>(crd1, nodes1, nb_nodes, 1, n1);
+  normal<K_FLD::FloatArray, 3>(crd2, nodes2, nb_nodes, 1, n2);
+
+  if (do_reverse) {
+    bool reversed = (SIGN(K_FUNC::dot<3>(n1, n2)) == -1);
+    if (reversed)
+      std::reverse(nodes2, nodes2 + nb_nodes);
+  }
+
+  //look for nodes1[0] in nodes2
+  const E_Float* P0{ crd1.col(nodes1[0]-idx_strt1) };
+  E_Float zerom2{ ZERO_M*ZERO_M };
+  E_Int i0{ E_IDX_NONE };
+  for (E_Int i=0; i < nb_nodes; ++i)
+  {
+    const E_Float* Pi = crd2.col(nodes2[i] - idx_strt2);
+    if (K_FUNC::sqrDistance(P0, Pi, 3) < zerom2)
+    {
+      i0 = i;
+      break;
+    }
+  }
+
+  assert(i0 != E_IDX_NONE);
+
+  K_CONNECT::IdTool::right_shift(nodes2, nb_nodes, i0);
+
+}
+
 }
 #endif	/* __K_MESH_POLYGON_H__ */

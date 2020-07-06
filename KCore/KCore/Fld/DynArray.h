@@ -137,6 +137,9 @@ Design
     
     ///
     void pushBack(const self_type& a, const E_Int* fields, E_Int sz);
+
+    /// pushBack a constant col colum .
+    void pushBack(value_type v, E_Int rows);
     
     /// Extract a selection of entries given by ids from arr.
     void append_selection (const self_type& arr, const std::vector<E_Int>& ids);
@@ -245,6 +248,8 @@ Design
     /// Copies the entries from begin to end at location 'there'.
     template <class InputIterator>
     inline static void __copy (InputIterator begin, InputIterator end, iterator there);
+
+    inline static void __copy(value_type v, E_Int rows, iterator there);//fill a column with a given val
     
     ///
     inline void __mappingcopy(const self_type& src_arr, iterator tgt_data, E_Int tgt_stride, E_Int nb_fields, E_Int nb_seq);
@@ -565,6 +570,23 @@ DynArray<T>::pushBack(const self_type& a){
 
       iterator there(col(_cols++));
       __copy(begin, end, there);
+  }
+
+  ///
+  template <typename T>
+  void
+    DynArray<T>::pushBack(value_type val, E_Int rows) {
+        
+    if (_rows == 0)// Empty array
+      _rows = rows;
+    else if (_rows != rows)
+      return;
+
+    if (_cols == _colsMax)
+      reserve(_rows, 2 * (_cols + 1));
+
+    iterator there(col(_cols++));
+    __copy(val, rows, there);
   }
   
   ///
@@ -928,6 +950,14 @@ DynArray<T>::pushBack(const self_type& a){
       *(there++) = *(it);
 
     //std::copy (begin, end, there);
+  }
+
+  template <typename T>
+  void
+    DynArray<T>::__copy(value_type val, E_Int rows, iterator there) {
+
+    for (size_t i=0; i < rows; ++i)
+      *(there++) = val;
   }
   
   template <typename T>

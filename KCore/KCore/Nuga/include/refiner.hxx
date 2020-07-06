@@ -146,12 +146,21 @@ void refiner<ELT_t, STYPE>::get_PGs_to_refine
 {
   E_Int nb_phs = ng.PHs.size();
   // Gets PGs to refine
-  E_Int nb_pgs(ng.PGs.size()), nb_pgs_ref(0);
-  Vector_t<bool> is_PG_to_refine(nb_pgs, false);
+  E_Int nb_pgs(ng.PGs.size());
+  Vector_t<E_Int> is_PG_to_refine = adap_incr.face_adap_incr;
+  is_PG_to_refine.resize(nb_pgs, 0);
+
+  // disable non-admissible elements (face_adap_incr may contain info fo Q4 & T3)
+  for (E_Int i = 0; i < nb_pgs; ++i)
+  {
+    if (ng.PGs.stride(i) != ELT_t::NB_NODES)
+      is_PG_to_refine[i] = 0;
+  }
+
   //
   for (E_Int i = 0; i < nb_phs; ++i)
   {
-    if (adap_incr[i] <= 0) continue;
+    if (adap_incr.cell_adap_incr[i] <= 0) continue;
 
     E_Int nb_faces = ng.PHs.stride(i);
     const E_Int* faces = ng.PHs.get_facets_ptr(i);
@@ -159,19 +168,19 @@ void refiner<ELT_t, STYPE>::get_PGs_to_refine
     for (E_Int j = 0; j < nb_faces; ++j)
     {
       E_Int PGi = *(faces + j) - 1;
+      if (is_PG_to_refine[PGi] != 0) continue;
 
       if (PGtree.nb_children(PGi) == 0) // leaf PG => to refine
       {
         if (ng.PGs.stride(PGi) == ELT_t::NB_NODES)
-        {
-          ++nb_pgs_ref;
-          is_PG_to_refine[PGi] = true;
-        }
+          is_PG_to_refine[PGi] = 1;
       }
     }
   }
 
+  E_Int nb_pgs_ref = std::count(is_PG_to_refine.begin(), is_PG_to_refine.end(), 1);
   PGlist.reserve(nb_pgs_ref);
+
   for (E_Int i = 0; i < nb_pgs; ++i)
   {
     if (is_PG_to_refine[i]) {
@@ -196,8 +205,8 @@ template <typename arr_t>
 void refiner<ELT_t, STYPE>::get_PHs_to_refine
 (const ngon_type& ng, const tree<arr_t> & PHtree, const sensor_output_t &adap_incr, Vector_t<E_Int> & PHlist)
 {
-  for (size_t i = 0; i < adap_incr.size(); ++i)
-    if (adap_incr[i] > 0 && (PHtree.nb_children(i)==0)  && (ELT_t::is_of_type(ng.PGs, ng.PHs.get_facets_ptr(i), ng.PHs.stride(i))))
+  for (size_t i = 0; i < adap_incr.cell_adap_incr.size(); ++i)
+    if (adap_incr.cell_adap_incr[i] > 0 && (PHtree.nb_children(i)==0)  && (ELT_t::is_of_type(ng.PGs, ng.PHs.get_facets_ptr(i), ng.PHs.stride(i))))
       PHlist.push_back(i);
 }
 
@@ -690,14 +699,14 @@ void refiner<ELT_t, STYPE>::refine_PHs
 (const sensor_output_t &adap_incr, ngon_type& ng, tree<arr_t> & PGtree, tree<arr_t> & PHtree,
   K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
 {
-  assert(adap_incr.size() <= ng.PHs.size());
+  assert(adap_incr.cell_adap_incr.size() <= ng.PHs.size());
   //
   std::vector<E_Int> PHadap;
   get_PHs_to_refine(ng, PHtree, adap_incr, PHadap);
   E_Int nb_phs_ref = PHadap.size();
   if (nb_phs_ref == 0) return;
 
-  E_Int pos = crd.cols(); // first face center in crd (if relevant)
+  E_Int pos = crd.cols(); // first cell center in crd (if relevant)
   E_Int nb_pgs0 = ng.PGs.size();
   E_Int nb_phs0 = ng.PHs.size();
   // Reserve space for children in the tree
@@ -726,7 +735,7 @@ void refiner<K_MESH::Basic, eSUBDIV_TYPE::ISO>::refine_PHs
 (const sensor_output_t &adap_incr, 
  ngon_type& ng, tree<arr_t> & PGtree, tree<arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
 {  
-  assert(adap_incr.size() <= ng.PHs.size());
+  assert(adap_incr.cell_adap_incr.size() <= ng.PHs.size());
 
   refiner<K_MESH::Hexahedron, eSUBDIV_TYPE::ISO>::refine_PHs(adap_incr, ng, PGtree, PHtree, crd, F2E);
 
@@ -746,7 +755,7 @@ void refiner<K_MESH::Tetrahedron, DIR>::refine_PHs
 (const sensor_output_t &adap_incr, 
  ngon_type& ng, tree<arr_t> & PGtree, tree<arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
 {
-  refiner<K_MESH::Tetrahedron, ISO>::refine_PHs(adap_incr, ng, PGtree, PHtree, crd, F2E);
+  refiner<K_MESH::Tetrahedron, ISO>::refine_PHs(adap_incr.cell_adap_incr, ng, PGtree, PHtree, crd, F2E);
 }
 
 ///
@@ -756,7 +765,7 @@ void refiner<K_MESH::Pyramid, DIR>::refine_PHs
 (const sensor_output_t &adap_incr,
  ngon_type& ng, tree<arr_t> & PGtree, tree<arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
 {
-  refiner<K_MESH::Pyramid, ISO>::refine_PHs(adap_incr, ng, PGtree, PHtree, crd, F2E);
+  refiner<K_MESH::Pyramid, ISO>::refine_PHs(adap_incr.cell_adap_incr, ng, PGtree, PHtree, crd, F2E);
 }
 
 ///
@@ -766,7 +775,7 @@ void refiner<K_MESH::Prism, DIR>::refine_PHs
 (const sensor_output_t &adap_incr,
  ngon_type& ng, tree<arr_t> & PGtree, tree<arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
 {
-  refiner<K_MESH::Prism, ISO>::refine_PHs(adap_incr, ng, PGtree, PHtree, crd, F2E);
+  refiner<K_MESH::Prism, ISO>::refine_PHs(adap_incr.cell_adap_incr, ng, PGtree, PHtree, crd, F2E);
 }
 
 ///

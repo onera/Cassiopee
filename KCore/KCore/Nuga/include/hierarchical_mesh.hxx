@@ -13,9 +13,13 @@
 #define NUGA_HIERACHICAL_MESH_HXX
 
 #if defined (DEBUG_HIERARCHICAL_MESH) || defined (OUTPUT_ITER_MESH)
+#if defined (VISUAL) || defined(NETBEANSZ)
+#include "Nuga/include/medit.hxx"
+#else
 #include "IO/io.h"
 #include "Nuga/Boolean/NGON_debug.h"
-using NGDBG = NGON_debug<K_FLD::FloatArray,K_FLD::IntArray>;
+using NGDBG = NGON_debug<K_FLD::FloatArray, K_FLD::IntArray>;
+#endif
 #endif
 
 #include "Nuga/include/tree.hxx"
@@ -26,8 +30,8 @@ using NGDBG = NGON_debug<K_FLD::FloatArray,K_FLD::IntArray>;
 #include "MeshElement/Basic.h"
 #include "MeshElement/Prism.h"
 #include "Nuga/include/refiner.hxx"
+#include "Nuga/include/macros.h"
 
-#define NEIGHBOR(PHi, _F2E, PGi) ( (_F2E(0,PGi) == PHi) ? _F2E(1,PGi) : _F2E(0,PGi) )
 
 namespace NUGA
 {
@@ -42,21 +46,22 @@ class hierarchical_mesh
 
     using elt_t = ELT_t;
     using subdiv_t = subdiv_pol<ELT_t, STYPE>;
-    using arr_t = typename subdiv_t::arr_t; //ngon_unit (general case) or IntArray (fixed nb of children : e.g. all basic but pyra in ISO)
+    using arr_t = typename subdiv_t::arr_t; //ngon_unit (general case) or IntArray (fixed nb of children : e.g. all basic -except pyra- in ISO)
     using sensor_output_t = typename sensor_output_data<STYPE>::type;
+    using tree_t = tree<arr_t>;
 
     static constexpr  eSUBDIV_TYPE SUBTYPE = STYPE;
 
     crd_t                     _crd;             // Coordinates
     ngo_t                     _ng;              // NGON mesh
-    tree<arr_t>               _PGtree, _PHtree; // Polygons/Polyhedra hierarchy
+    tree_t                    _PGtree, _PHtree; // Polygons/Polyhedra hierarchy
     K_FLD::IntArray           _F2E;             // neighborhood data structure : 2 X (nb_pgs) array : for each PG gives the left and right cells ids that share this PG
     bool                      _initialized;     // flag to avoid initialization more than once.
     refiner<ELT_t, STYPE>     _refiner;         //refinement method must stay static, so this object is here to store _ecenter (not relevant in hmesh)
 
     ///
     //hierarchical_mesh(crd_t& crd, ngo_t & ng):_crd(crd), _ng(ng), _PGtree(ng.PGs, subdiv_t::PGNBC), _PHtree(ng.PHs, subdiv_t::PHNBC), _initialized(false){}
-    hierarchical_mesh(crd_t& crd, K_FLD::IntArray& cnt) :_crd(crd), _ng(cnt), _PGtree(_ng.PGs, subdiv_t::PGNBC), _PHtree(_ng.PHs, subdiv_t::PHNBC), _initialized(false) { init(); }
+    hierarchical_mesh(crd_t& crd, K_FLD::IntArray& cnt) :_crd(crd), _ng(cnt), _PGtree(_ng.PGs), _PHtree(_ng.PHs), _initialized(false) { init(); }
 
     ///
     E_Int init();
@@ -82,7 +87,9 @@ class hierarchical_mesh
     void conformize(ngo_t& ngo, Vector_t<E_Int>& pgoids) const;
     /// Keep only enabled PHs
     void extract_enabled(ngon_type& filtered_ng) const ;
-    
+    ///
+    //void extract_plan(E_Int PGi, bool reverse, E_Int i0, std::vector<E_Int>& plan);
+    void extract_plan(E_Int PGi, bool reverse, E_Int i0, K_FLD::IntArray& plan) const;
     ///
     void get_cell_center(E_Int PHi, E_Float* center) const ;
     ///
@@ -94,10 +101,15 @@ class hierarchical_mesh
     
     ///
     bool is_initialised() const ;
+
+private:
     ///
     void __init();
     ///
     void __conformize_next_lvl(Vector_t<E_Int>& molec, E_Int PGi, E_Int i) const ;
+    ///
+    template <typename PG_t>
+    void __append_children_plan(E_Int PGi, bool reverse, int i0, std::map<E_Int, std::vector<E_Int>>& lvl_to_plan, E_Int lvl);
  
 };
 
@@ -213,31 +225,30 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::adapt(sensor_output_t& adap_incr, 
   E_Int err(0);
 
   // identify the sensor
-  E_Int max = *std::max_element(ALL(adap_incr));
-  E_Int min = (!do_agglo) ? 0 : *std::min_element(ALL(adap_incr));
+  E_Int cmax = *std::max_element(ALL(adap_incr.cell_adap_incr));
+  E_Int cmin = (!do_agglo) ? 0 : *std::min_element(ALL(adap_incr.cell_adap_incr));
+  E_Int fmax = *std::max_element(ALL(adap_incr.face_adap_incr));
+  E_Int fmin = (!do_agglo) ? 0 : *std::min_element(ALL(adap_incr.face_adap_incr));
 
-  if (max == 0 && min == 0) return 0; // no adaptation required
+  if (cmax == 0 && cmin == 0 && fmin == 0 && fmax == 0) return 0; // no adaptation required
   
   // adaptation has only one sub iteration ? => yes, break at the end
-  bool one_generation = ((abs(min) <= 1) && (abs(max) <= 1)) ? true : false;
+  bool one_generation = ((abs(cmin) <= 1) && (abs(cmax) <= 1)) ? true : false;
     
   while (!err)
   {
-    if (max > 0) // there is a need to refine
-    {
-      // refine Faces : create missing children (those PGi with _PGtree.nb_children(PGi) == 0)
-      refiner<ELT_t, STYPE>::refine_Faces(adap_incr, _ng, _PGtree, _crd, _F2E, _refiner._ecenter);
-      // refine Cells with missing children (those PHi with _PHtree.nb_children(PHi) == 0)
-      refiner<ELT_t, STYPE>::refine_PHs(adap_incr, _ng, _PGtree, _PHtree, _crd, _F2E);
-    }
+    // refine Faces : create missing children (those PGi with _PGtree.nb_children(PGi) == 0)
+    if (fmax > 0 || cmax > 0) refiner<ELT_t, STYPE>::refine_Faces(adap_incr, _ng, _PGtree, _crd, _F2E, _refiner._ecenter);
+    // refine Cells with missing children (those PHi with _PHtree.nb_children(PHi) == 0)
+    if (cmax > 0) refiner<ELT_t, STYPE>::refine_PHs(adap_incr, _ng, _PGtree, _PHtree, _crd, _F2E);
         
     // enable the right PHs & their levels, disable subdivided PHs
-    adap_incr.resize(_ng.PHs.size(),0);
+    adap_incr.cell_adap_incr.resize(_ng.PHs.size(),0);
     for (E_Int PHi = 0; PHi < _ng.PHs.size(); ++PHi)
     {
       if (!_PHtree.is_enabled(PHi)) continue;
       
-      E_Int& adincrPHi = adap_incr[PHi];
+      E_Int& adincrPHi = adap_incr.cell_adap_incr[PHi];
       if (adincrPHi == 0) continue;
 
       if (adincrPHi > 0) // refinement : activate the children, transfer the adapincr & set their level
@@ -247,7 +258,7 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::adapt(sensor_output_t& adap_incr, 
         for (E_Int j = 0; j < nb_child; ++j)
         {
           _PHtree.enable(*(children+j));
-          adap_incr[*(children+j)] = adincrPHi - 1;
+          adap_incr.cell_adap_incr[*(children+j)] = adincrPHi - 1;
 
           E_Int lvl_p1 = _PHtree.get_level(PHi) + 1;
           _PHtree.set_level(*(children+j), lvl_p1); //fixme : do it somewhere else ?
@@ -258,12 +269,12 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::adapt(sensor_output_t& adap_incr, 
       {
         E_Int father = _PHtree.parent(PHi);
         _PHtree.enable(father);
-        adap_incr[father] = adincrPHi + 1;
+        adap_incr.cell_adap_incr[father] = adincrPHi + 1;
         // reset incr on children
         E_Int nb_child = _PHtree.nb_children(PHi);
         const E_Int* children = _PHtree.children(PHi);
         for (E_Int j = 0; j < nb_child; ++j)
-          adap_incr[*(children + j)] = 0;
+          adap_incr.cell_adap_incr[*(children + j)] = 0;
       }
     }
         
@@ -281,10 +292,27 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::adapt(sensor_output_t& adap_incr, 
     extract_enabled(filtered_ng);
 
     std::ostringstream o;
+    
+    
+#if defined (VISUAL) || defined(NETBEANSZ)
+    o << "NGON_it_" << iter; // we create a file at each iteration
+    medith::write(o.str().c_str(), _crd, filtered_ng);
+    if (iter == 5)
+    {
+      for (size_t k = 0; k < _ng.PHs.size(); ++k)
+      {
+        std::ostringstream o;
+        o << "h_" << k;
+        medith::write(o.str().c_str(), _crd, _ng, k);
+      }
+    }
+#else
     o << "NGON_it_" << iter << ".plt"; // we create a file at each iteration
     K_FLD::IntArray cnto;
     filtered_ng.export_to_array(cnto);
     MIO::write(o.str().c_str(), _crd, cnto, "NGON");
+#endif
+
     ++iter;
 #endif
 
@@ -322,7 +350,19 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::conformize(ngo_t& ngo, Vector_t<E_I
       E_Int PHn = NEIGHBOR(i, _F2E, PGi);
 
       if (PHn == E_IDX_NONE)
-        molec.push_back(PGi + 1);
+      {
+        E_Int nbc = _PGtree.nb_children(PGi);
+        if (nbc == 0)
+          molec.push_back(PGi + 1);
+        else // case for joins
+        {
+          for (E_Int c = 0; c < nbc; ++c)
+          {
+            E_Int PG_f = *(_PGtree.children(PGi) + c);
+            __conformize_next_lvl(molec, PG_f, PHn);
+          }
+        }
+      }
       else if (_PHtree.is_enabled(PHn))
         molec.push_back(PGi + 1);
       else // father or children ?
@@ -470,6 +510,29 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::get_cell_center(E_Int PHi, E_Float*
   ELT_t::iso_barycenter(_crd, _ng.PGs, _ng.PHs.get_facets_ptr(PHi), _ng.PHs.stride(PHi), 1, center);
 }
 
+
+///
+template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t>
+void hierarchical_mesh<ELT_t, STYPE, ngo_t>::extract_plan(E_Int PGi, bool reverse, E_Int i0, K_FLD::IntArray& plan) const
+{
+  plan.clear();
+
+  E_Int ret{ 0 };
+
+  if (_ng.PGs.stride(PGi) == 3)
+    ret =_PGtree.extract_compact_tree(PGi, plan, subdiv_pol<K_MESH::Triangle, STYPE>::reorder_children, reverse, i0);
+  else if (_ng.PGs.stride(PGi) == 4)
+    ret = _PGtree.extract_compact_tree(PGi, plan, subdiv_pol<K_MESH::Quadrangle, STYPE>::reorder_children, reverse, i0);
+  else
+  {
+    //fixme : not handled yet
+  }
+
+  //std::cout << plan << std::endl;
+
+  if (ret == NO_GRAND_CHILDREN)
+    plan.resize(1, 1, NO_GRAND_CHILDREN);
+}
 
 }
 

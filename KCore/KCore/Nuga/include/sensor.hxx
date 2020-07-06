@@ -21,7 +21,7 @@ namespace NUGA
 {
 
 /// Geometric sensor
-template <typename mesh_t, typename sensor_data_t>
+template <typename mesh_t, typename sensor_input_t>
 class sensor
 {
   public:
@@ -30,13 +30,15 @@ class sensor
   public:
     sensor(mesh_t& mesh, smoother<mesh_t>* smoother) :_hmesh(mesh), _smoother(smoother) {};
     
-    virtual E_Int assign_data(sensor_data_t& data) { _data = data; return 0; }
+    virtual E_Int assign_data(sensor_input_t& data) { _data = data; return 0; }
     
     bool compute(sensor_output_t& adap_incr, bool do_agglo);
 
+    const smoother<mesh_t>* get_smoother() { return _smoother; }
+
     virtual void fill_adap_incr(sensor_output_t& adap_incr, bool do_agglo) = 0;
   
-    virtual void update() {};
+    virtual bool update() { return false; };
 
     virtual bool stop() { return false; }
 
@@ -47,7 +49,7 @@ class sensor
 
   protected:
     mesh_t const &    _hmesh;
-    sensor_data_t     _data;
+    sensor_input_t     _data;
     smoother<mesh_t>* _smoother;
 };
 
@@ -119,8 +121,8 @@ static void fix_adap_incr(mesh_t& hmesh, dir_incr_type& adap_incr)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// 
-template <typename mesh_t, typename sensor_data_t>
-bool sensor<mesh_t, sensor_data_t>::compute(sensor_output_t& adap_incr, bool do_agglo)
+template <typename mesh_t, typename sensor_input_t>
+bool sensor<mesh_t, sensor_input_t>::compute(sensor_output_t& adap_incr, bool do_agglo)
 {
   if (this->stop()) return false; // e.g. itermax is reached for geom_sensor
 
@@ -128,16 +130,19 @@ bool sensor<mesh_t, sensor_data_t>::compute(sensor_output_t& adap_incr, bool do_
   this->fill_adap_incr(adap_incr, do_agglo);
 
   //apply the 2:1 rule
-  if (_smoother != nullptr) _smoother->smooth(_hmesh, adap_incr);
+  if (_smoother != nullptr) _smoother->smooth(_hmesh, adap_incr.cell_adap_incr);
 
   // fix inconsistencies
-  fix_adap_incr(_hmesh, adap_incr);
+  fix_adap_incr(_hmesh, adap_incr.cell_adap_incr);
 
   //detect if at least one modification is required
   //bool carry_on(false);
   E_Int nb_elts = _hmesh._ng.PHs.size();
   for (int i = 0; i < nb_elts; ++i)
-    if (adap_incr[i] != 0) return true;
+    if (adap_incr.cell_adap_incr[i] != 0) return true;
+  E_Int nb_faces = _hmesh._ng.PGs.size();
+  for (int i = 0; i < nb_faces; ++i)
+    if (adap_incr.face_adap_incr[i] != 0) return true;
   return false;
 }
 
