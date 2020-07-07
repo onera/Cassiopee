@@ -569,9 +569,10 @@ def rmBCOfType():
             z = CTK.t[2][nob][2][noz]
             if 'FamilySpecified:-All BC-' in BCTypes: 
                 Internal._rmNodesByType(z, 'BC_t')
-            else:
+            else: 
                 for t in BCTypes: C._rmBCOfType(z, t)
-    CTK.TXT.insert('START', 'BCs of type %s have been removed.\n'%type)
+    if len(BCTypes) > 0:
+        CTK.TXT.insert('START', 'BCs of type %s have been removed.\n'%BCTypes[0])
     CTK.TKTREE.updateApp()
     check()
     

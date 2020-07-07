@@ -103,7 +103,7 @@ def prepare0(t_case, t_out, tc_out, NP=0, format='single'):
     tc = X.setInterpData(t, tc, nature=1, loc='centers', storage='inverse', 
                          sameName=1, dim=dim)
     C._rmVars(tc, 'FlowSolution')
-    C._rmVars(tc, 'GridCoordinates')
+    #C._rmVars(tc, 'GridCoordinates')
 
     if isinstance(tc_out, str):
         #Fast.save(tc, tc_out, split=format, NP=-NP)

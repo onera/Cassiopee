@@ -1158,10 +1158,10 @@ def convertFile2PartialPyTreeFromPath(fileName, Filter, comm=None,
 
 # Fonction utilisee dans PPart
 def convertPyTree2FilePartial(t, fileName, comm, Filter, ParallelHDF=False,
-                              format=None):
+                              format=None, links=[]):
     """Convert a pyTree to a file.
     Usage: convertPyTree2File(t, fileName, format, options)"""
-  
+    import collections
     # > GardeFou
     if t == []: print('Warning: convertPyTree2File: nothing to write.'); return
     format = 'bin_hdf'
@@ -1195,11 +1195,13 @@ def convertPyTree2FilePartial(t, fileName, comm, Filter, ParallelHDF=False,
       # > Cette maniere de faire provoque de la non reproductibilite ...
       # Converter.converter.convertPyTree2FilePartial(t, fileName, format, skeletonData, comm, Filter)
   
+      FilterSort = collections.OrderedDict(sorted(Filter.items()))  # Because sometimes proc have not the same order in key and HDF get in trouble !
+
       # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
       # > On serialize
       for lock in range(comm.Get_size()):
         if lock == comm.Get_rank():
-          Converter.converter.convertPyTree2FilePartial(t, fileName, format, skeletonData, comm, Filter)
+          Converter.converter.convertPyTree2FilePartial(t, fileName, format, skeletonData, comm, FilterSort)
         comm.barrier()
       # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
   
@@ -1214,7 +1216,7 @@ def convertPyTree2FilePartial(t, fileName, comm, Filter, ParallelHDF=False,
   
       # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
       if comm.Get_rank() == 0:
-        convertPyTree2File(SkeletonTree, fileName, format)
+        convertPyTree2File(SkeletonTree, fileName, format, links=links)
       # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
   
       # > On wait l'ecriture Skelette ...
@@ -1223,7 +1225,8 @@ def convertPyTree2FilePartial(t, fileName, comm, Filter, ParallelHDF=False,
       # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
       # > Write data in filter in file (With creation of DataSpace)
       skeletonData = None  # Skeleton Data is inefective (Normaly)
-      Converter.converter.convertPyTree2FilePartial(t, fileName, format, skeletonData, comm, Filter)
+      FilterSort = collections.OrderedDict(sorted(Filter.items()))  # Because sometimes proc have not the same order in key and HDF get in trouble !
+      Converter.converter.convertPyTree2FilePartial(t, fileName, format, skeletonData, comm, FilterSort)
       # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 #==============================================================================

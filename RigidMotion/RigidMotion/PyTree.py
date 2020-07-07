@@ -207,16 +207,17 @@ def _setPrescribedMotion2(t, name,
 # Permet de definir un mouvement de rotation constant
 #=============================================================================
 def setPrescribedMotion3(t, name,
-                         axis_pnt=(0.,0.,0.), axis_vct=(0.,0.,0.),
+                         transl_speed=(0.,0.,0.),  
+                         axis_pnt=(0.,0.,0.), axis_vct=(0.,0.,1.),
                          omega=0.):
   """Define a motion of type 3 (rotation) into zones."""
   tp = Internal.copyRef(t)
-  _setPrescribedMotion3(tp, name, axis_pnt=axis_pnt,
+  _setPrescribedMotion3(tp, name, transl_speed=transl_speed, axis_pnt=axis_pnt,
                         axis_vct=axis_vct, omega=omega)
   return tp
 
-def _setPrescribedMotion3(t, name,
-                         axis_pnt=(0.,0.,0.), axis_vct=(0.,0.,0.),
+def _setPrescribedMotion3(t, name, transl_speed=(0.,0.,0.),
+                         axis_pnt=(0.,0.,0.), axis_vct=(0.,0.,1.),
                          omega=0.):
 
     for z in Internal.getZones(t):
@@ -235,6 +236,8 @@ def _setPrescribedMotion3(t, name,
         # Set it
         motion[2] = []
         motion[2].append(['MotionType', numpy.array([3], numpy.int32),
+                          [], 'DataArray_t'])
+        motion[2].append(['transl_speed', numpy.array([transl_speed[0], transl_speed[1], transl_speed[2]], numpy.float64),
                           [], 'DataArray_t'])
         motion[2].append(['axis_pnt', numpy.array([axis_pnt[0], axis_pnt[1], axis_pnt[2]], numpy.float64),
                           [], 'DataArray_t'])
@@ -429,19 +432,20 @@ def _moveZone__(z, time):
                 M = KBridge.evalKDesFunction(Func1, time)
                 _evalPosition___(z, None, M)
                 T._translate(z, (transl_speed[0]*time,transl_speed[1]*time,transl_speed[2]*time))
-            elif dtype == 3: # type 3: rotation
+            elif dtype == 3: # type 3: translation+rotation
+                transl_speed = getNodeValue__(m, 'transl_speed')
                 axis_pnt = getNodeValue__(m, 'axis_pnt')
                 axis_vct = getNodeValue__(m, 'axis_vct')
                 omega = getNodeValue__(m, 'omega')               
-                cx = axis_pnt[0]#+tx
-                cy = axis_pnt[1]#+ty
-                cz = axis_pnt[2]#+tz
+                cx = axis_pnt[0]
+                cy = axis_pnt[1]
+                cz = axis_pnt[2]
                 ex = axis_vct[0]
                 ey = axis_vct[1]
                 ez = axis_vct[2]
                 angle = omega[0]*time*__RAD2DEG__
-                #T._rotate(z, (cx,cy,cz), (ex-cx,ey-cy,ez-cz), angle)
                 T._rotate(z, (cx,cy,cz), (ex,ey,ez), angle)
+                T._translate(z, (transl_speed[0]*time,transl_speed[1]*time,transl_speed[2]*time))
             else:
                 print("Motion type not found. Nothing done.")
     return None
@@ -497,6 +501,7 @@ def _copyGrid2GridInit(t):
 # Les coordonnees de la zone sont modifiees
 #==============================================================================
 def _evalPosition__(a, time):
+  _copyGridInit2Grid(a)
   zones = Internal.getZones(a)
   for z in zones: _moveZone__(z, time)
   return None
@@ -581,11 +586,12 @@ def getMotionMatrixForZone(z, time, F=None):
                 ey = axis_vct[1]
                 ez = axis_vct[2]
                 theta = omega[0]*time
-                # getRotationMatrix : theta en radians
+                # getRotationMatrix: theta en radians
                 return getRotationMatrix__(cx,cy,cz,ex,ey,ez,theta)
-            elif dtype==4:
+                
+            elif dtype == 4: # ?
                 Rot = numpy.zeros((3,3), numpy.float64)
-                Rot[0,0]=1.; Rot[1,1]=1.;Rot[2,2]=1.
+                Rot[0,0]=1.; Rot[1,1]=1.; Rot[2,2]=1.
                 return Rot
             else:
                 raise ValueError("getMotionMatrixForZone: MotionType not valid.")
@@ -598,9 +604,7 @@ def getMotionMatrixForZone(z, time, F=None):
 
 #getRotationMatrix : l angle theta doit etre en radians
 def getRotationMatrix__(cx,cy,cz,ex,ey,ez,theta):
-
   Rot = numpy.zeros((3,3), numpy.float64)
-
   vnorm = sqrt(ex*ex+ey*ey+ez*ez)
   if vnorm < 1.e-12: return Rot
 
@@ -643,71 +647,86 @@ def _moveN(coordsN, d, c, r):
 def moveN(coordsN, d, c, r):
     return RigidMotion.moveN(coordsN, d, c, r)
 
+def evalGridSpeed(a, time):
+  ap = Internal.copyRef(a)
+  _evalGridSpeed(ap)
+  return ap
+
 # Evalue la vitesse a un instant t
-def _evalGridSpeed(z, time):
-  # Find Coordinates pointers (must already be updated)
-  grid = Internal.getNodeFromName1(z, 'GridCoordinates#Init')
-  if grid is None:
-    grid = Internal.getNodeFromName1(z, 'GridCoordinates')
-  xcoord = Internal.getNodeFromName1(grid, 'CoordinateX')
-  ycoord = Internal.getNodeFromName1(grid, 'CoordinateY')
-  zcoord = Internal.getNodeFromName1(grid, 'CoordinateZ')
+def _evalGridSpeed(a, time):
+  zones = Internal.getZones(a)
+  for z in zones:
+    # Find Coordinates pointers (must already be updated)
+    grid = Internal.getNodeFromName1(z, 'GridCoordinates#Init')
+    if grid is None: grid = Internal.getNodeFromName1(z, 'GridCoordinates')
+    xcoord = Internal.getNodeFromName1(grid, 'CoordinateX')
+    ycoord = Internal.getNodeFromName1(grid, 'CoordinateY')
+    zcoord = Internal.getNodeFromName1(grid, 'CoordinateZ')
   
-  # Get speed pointers
-  name  = 'Motion'
-  name = 'FlowSolution'
-  mmo = Internal.getNodeFromName1(z, name)
-  if mmo is None: mmo = Internal.createNode(name, 'UserDefined_t', parent=z)  
-  sx = Internal.getNodeFromName1(mmo, 'VelocityX')
-  if sx is None: sx = Internal.copyNode(xcoord); sx[0] = 'VelocityX'; mmo[2].append(sx); sx[1] = sx[1].reshape((sx[1].size));
-  sy = Internal.getNodeFromName1(mmo, 'VelocityY')
-  if sy is None: sy = Internal.copyNode(xcoord); sy[0] = 'VelocityY'; mmo[2].append(sy); sy[1] = sy[1].reshape((sy[1].size));
-  sz = Internal.getNodeFromName1(mmo, 'VelocityZ')
-  if sz is None: sz = Internal.copyNode(xcoord); sz[0] = 'VelocityZ'; mmo[2].append(sz); sz[1] = sz[1].reshape((sz[1].size));
+    # Get speed pointers
+    name  = 'Motion'
+    #name = 'FlowSolution'
+    mmo = Internal.getNodeFromName1(z, name)
+    if mmo is None: mmo = Internal.createNode(name, 'UserDefined_t', parent=z)  
+    sx = Internal.getNodeFromName1(mmo, 'VelocityX')
+    if sx is None: sx = Internal.copyNode(xcoord); sx[0] = 'VelocityX'; mmo[2].append(sx); sx[1] = sx[1].reshape((sx[1].size));
+    sy = Internal.getNodeFromName1(mmo, 'VelocityY')
+    if sy is None: sy = Internal.copyNode(xcoord); sy[0] = 'VelocityY'; mmo[2].append(sy); sy[1] = sy[1].reshape((sy[1].size));
+    sz = Internal.getNodeFromName1(mmo, 'VelocityZ')
+    if sz is None: sz = Internal.copyNode(xcoord); sz[0] = 'VelocityZ'; mmo[2].append(sz); sz[1] = sz[1].reshape((sz[1].size));
   
-  # Get translation vector
-  cont = Internal.getNodeFromName1(z, 'TimeMotion')
-  if cont is not None:
-    motions = Internal.getNodesFromType1(cont, 'TimeRigidMotion_t')
-    for m in motions:
-      mtype = Internal.getNodeFromName1(m, 'MotionType')
-      dtype = mtype[1][0]
-      if dtype == 1: # type 1: time string
-        tx = getTimeString__(m, 'tx')
-        ty = getTimeString__(m, 'ty')
-        tz = getTimeString__(m, 'tz')
-        cx = getTimeString__(m, 'cx')
-        cy = getTimeString__(m, 'cy')
-        cz = getTimeString__(m, 'cz')
-        ex = getTimeString__(m, 'ex')
-        ey = getTimeString__(m, 'ey')
-        ez = getTimeString__(m, 'ez')
-        theta = getTimeString__(m, 'angle')
+    # Get translation vector
+    cont = Internal.getNodeFromName1(z, 'TimeMotion')
+    if cont is not None:
+      motions = Internal.getNodesFromType1(cont, 'TimeRigidMotion_t')
+      for m in motions:
+        mtype = Internal.getNodeFromName1(m, 'MotionType')
+        dtype = mtype[1][0]
+        if dtype == 1: # type 1: time string
+          tx = getTimeString__(m, 'tx')
+          ty = getTimeString__(m, 'ty')
+          tz = getTimeString__(m, 'tz')
+          cx = getTimeString__(m, 'cx')
+          cy = getTimeString__(m, 'cy')
+          cz = getTimeString__(m, 'cz')
+          ex = getTimeString__(m, 'ex')
+          ey = getTimeString__(m, 'ey')
+          ez = getTimeString__(m, 'ez')
+          theta = getTimeString__(m, 'angle')
         
-        # dtx, dty, dtz
-        dtx = evalTimeDerivativeString__(m, 'tx', time)
-        dty = evalTimeDerivativeString__(m, 'ty', time)
-        dtz = evalTimeDerivativeString__(m, 'tz', time)
+          # dtx, dty, dtz
+          dtx = evalTimeDerivativeString__(m, 'tx', time)
+          dty = evalTimeDerivativeString__(m, 'ty', time)
+          dtz = evalTimeDerivativeString__(m, 'tz', time)
         
-        # dcx, dcy, dcz
-        dcx = evalTimeDerivativeString__(m, 'cx', time)
-        dcy = evalTimeDerivativeString__(m, 'cy', time)
-        dcz = evalTimeDerivativeString__(m, 'cz', time)
+          # dcx, dcy, dcz
+          dcx = evalTimeDerivativeString__(m, 'cx', time)
+          dcy = evalTimeDerivativeString__(m, 'cy', time)
+          dcz = evalTimeDerivativeString__(m, 'cz', time)
         
-        sx[1][:] = 0.
-        sy[1][:] = 0.
-        sz[1][:] = 0.
+          sx[1][:] = 0.
+          sy[1][:] = 0.
+          sz[1][:] = 0.
         
-      elif dtype == 3: # type 3: constant rotation
-        axis_pnt = Internal.getNodeFromName1(m, 'axis_pnt')
-        axis_vct = Internal.getNodeFromName1(m, 'axis_vct')
-        omega = Internal.getNodeFromName1(m, 'omega')
-        omega = Internal.getValue(omega)
+        elif dtype == 3: # type 3: constant rotation / translation
+          transl_speed = Internal.getNodeFromName1(m, 'transl_speed')
+          if transl_speed is None: transl_speed = [0,0,0]
+          else: transl_speed = transl_speed[1] 
+          axis_pnt = Internal.getNodeFromName1(m, 'axis_pnt')
+          if axis_pnt is None: axis_pnt = [0,0,0]
+          else: axis_pnt = axis_pnt[1]
+          axis_vct = Internal.getNodeFromName1(m, 'axis_vct')
+          if axis_vct is None: axis_vct = [0,0,1]
+          else: axis_vct = axis_vct[1]
+          omega = Internal.getNodeFromName1(m, 'omega')
+          if omega is None: omega = 0.
+          else: omega = Internal.getValue(omega)
         
-        rigidMotion.evalSpeed1(xcoord[1], ycoord[1], zcoord[1], 
-          sx[1], sy[1], sz[1], omega, omega*time,
-          axis_pnt[1][0], axis_pnt[1][1], axis_pnt[1][2],
-          axis_vct[1][0], axis_vct[1][1], axis_vct[1][2])
+          rigidMotion.evalSpeed3(xcoord[1], ycoord[1], zcoord[1], 
+            sx[1], sy[1], sz[1], omega, omega*time,
+            transl_speed[0], transl_speed[1], transl_speed[2],
+            axis_pnt[0], axis_pnt[1], axis_pnt[2],
+            axis_vct[0], axis_vct[1], axis_vct[2])
         
   return None
   

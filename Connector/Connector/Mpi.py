@@ -372,10 +372,10 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
               time=0., absFrame=True, procDict=None, cellNName='cellN'):
     if procDict is None: procDict = Cmpi.getProcDict(tc)
     
-    # dictionnaire des matrices de mouvement pour passer du repere relatif d une zone au repere absolu
+    # dictionnaire des matrices de mouvement pour passer du repere relatif d'une zone au repere absolu
     dictOfMotionMatR2A={}
     dictOfMotionMatA2R={}
-    coordsD=[0.,0.,0.];  coordsC= [0.,0.,0.] # XAbs = coordsD + Mat*(XRel-coordsC)
+    coordsD=[0.,0.,0.]; coordsC= [0.,0.,0.] # XAbs = coordsD + Mat*(XRel-coordsC)
     dictOfFields={}; dictOfIndices={}
     
     datas={}
@@ -388,11 +388,11 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
         nobc = dictOfNobOfRcvZonesC[zname]
         nozc = dictOfNozOfRcvZonesC[zname]
         zc = tc[2][nobc][2][nozc]
-        if zc[0] != zname:# check
+        if zc[0] != zname: # check
             raise ValueError("_transfer: t and tc skeletons must be identical.")
 
-        C._cpVars(z,'centers:'+cellNName, zc, cellNName)
-        res = X.getInterpolatedPoints(zc,loc='nodes', cellNName=cellNName) 
+        C._cpVars(z, 'centers:'+cellNName, zc, cellNName)
+        res = X.getInterpolatedPoints(zc, loc='nodes', cellNName=cellNName) 
         # print 'Zone %s du proc %d a interpoler'%(zname, Cmpi.rank)
 
         if res is not None: 
@@ -403,7 +403,7 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
             # si mouvement gere par FastS -> les coordonnees dans z sont deja les coordonnees en absolu
             if not absFrame: 
                 if zname in dictOfMotionMatR2A:
-                    MatRel2AbsR=RM.getMotionMatrixForZone(z, time=time, F=None)
+                    MatRel2AbsR = RM.getMotionMatrixForZone(z, time=time, F=None)
                     dictOfMotionMatR2A[zname]=MatRel2AbsR
                 else:
                     MatRel2AbsR = dictOfMotionMatR2A[zname]
@@ -418,15 +418,15 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
                     zdnr = tc[2][nobc][2][nozc]
                     adt = dictOfADT[znamed]
                     if znamed in dictOfMotionMatA2R:
-                        MatAbs2RelD=dictOfMotionMatA2R[znamed]
+                        MatAbs2RelD = dictOfMotionMatA2R[znamed]
                     else:                        
                         if znamed in dictOfMotionMatR2A:
                             MatRel2AbsD = dictOfMotionMatR2A[znamed]
                             MatAbs2RelD = numpy.transpose(MatRel2AbsD)
                             dictOfMotionMatA2R[znamed] = MatAbs2RelD
                         else:
-                            MatRel2AbsD=RM.getMotionMatrixForZone(zdnr, time=time, F=None)
-                            dictOfMotionMatR2A[znamed]=MatRel2AbsD
+                            MatRel2AbsD = RM.getMotionMatrixForZone(zdnr, time=time, F=None)
+                            dictOfMotionMatR2A[znamed] = MatRel2AbsD
                             MatAbs2RelD = numpy.transpose(MatRel2AbsD)
                             dictOfMotionMatA2R[znamed] = MatAbs2RelD
                     [XIRel, YIRel, ZIRel] = RM.moveN([XI,YI,ZI],coordsC,coordsD,MatAbs2RelD)
@@ -434,8 +434,8 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
                     # transfers avec coordonnees dans le repere relatif 
                     fields = X.transferFields(zdnr, XIRel, YIRel, ZIRel, hook=adt, variables=variables)
                     if zname not in dictOfFields:
-                        dictOfFields[zname]=[fields]
-                        dictOfIndices[zname]=indicesI
+                        dictOfFields[zname] = [fields]
+                        dictOfIndices[zname] = indicesI
                     else:
                         dictOfFields[zname].append(fields)
 
@@ -445,10 +445,10 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
                         datas[procD] = [[zname, znamed, indicesI, XI, YI, ZI]]
                     else: datas[procD].append([zname, znamed, indicesI, XI, YI, ZI])
 
-    # print 'Proc  : ', Cmpi.rank, ' envoie les donnees : ' ,datas.keys()
+    # print 'Proc  : ', Cmpi.rank, ' envoie les donnees : ' , datas.keys()
     # print ' a partir du graphe ', graph
     # 1er envoi : envoi des numpys des donnees a interpoler suivant le graphe
-    interpDatas = Cmpi.sendRecv(datas,graph)
+    interpDatas = Cmpi.sendRecv(datas, graph)
 
     # recuperation par le proc donneur des donnees pour faire les transferts    
     transferedDatas={}

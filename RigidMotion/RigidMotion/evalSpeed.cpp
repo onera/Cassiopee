@@ -25,20 +25,22 @@ using namespace std;
 //=============================================================================
 // Eval part of speed (motion3)
 //=============================================================================
-PyObject* K_RIGIDMOTION::evalSpeed1(PyObject* self, PyObject* args)
+PyObject* K_RIGIDMOTION::evalSpeed3(PyObject* self, PyObject* args)
 {
   PyObject *xo, *yo, *zo;
   PyObject *sxo, *syo, *szo;
   E_Float omega, teta;
+  E_Float tx, ty, tz;
   E_Float cx, cy, cz;
   E_Float kx, ky, kz;
 
   if (!PYPARSETUPLEF(args, 
-                     "OOOOOOffffffff", 
-                     "OOOOOOdddddddd",
+                     "OOOOOOddddddddddd", 
+                     "OOOOOOfffffffffff",
                      &xo, &yo, &zo,
                      &sxo, &syo, &szo,
                      &omega, &teta,
+                     &tx, &ty, &tz,
                      &cx, &cy, &cz,
                      &kx, &ky, &kz)) return NULL;
   // Check numpys
@@ -48,26 +50,29 @@ PyObject* K_RIGIDMOTION::evalSpeed1(PyObject* self, PyObject* args)
   ret = K_NUMPY::getFromNumpyArray(yo, y, size, nfld, true);
   E_Float* z;
   ret = K_NUMPY::getFromNumpyArray(zo, z, size, nfld, true);
+  
   E_Float* sx;
   ret = K_NUMPY::getFromNumpyArray(sxo, sx, size, nfld, true);
+  
   E_Float* sy;
   ret = K_NUMPY::getFromNumpyArray(syo, sy, size, nfld, true);
+  
   E_Float* sz;
   ret = K_NUMPY::getFromNumpyArray(szo, sz, size, nfld, true);
+
   size = size*nfld;
-  printf("size=%d\n", size);
   
 #pragma omp parallel
   {
     E_Float sin_teta, cos_teta, kcm, cmx, cmy, cmz;
     E_Float kvcmx, kvcmy, kvcmz;
 
+    sin_teta = sin(teta);
+    cos_teta = cos(teta);
+
 #pragma omp for
     for (E_Int i = 0; i < size; i++)
     {
-      sin_teta = sin(teta);
-      cos_teta = cos(teta);
-
       // cm
       cmx = x[i] - cx;
       cmy = y[i] - cy;
@@ -82,9 +87,9 @@ PyObject* K_RIGIDMOTION::evalSpeed1(PyObject* self, PyObject* args)
       kvcmz = kx*cmy-ky*cmx;
 
       // grid speed
-      sx[i] = -omega*sin_teta*(cmx-kcm*kx)+omega*cos_teta*kvcmx;
-      sy[i] = -omega*sin_teta*(cmy-kcm*ky)+omega*cos_teta*kvcmy;
-      sz[i] = -omega*sin_teta*(cmz-kcm*kz)+omega*cos_teta*kvcmz;
+      sx[i] = tx-omega*sin_teta*(cmx-kcm*kx)+omega*cos_teta*kvcmx;
+      sy[i] = ty-omega*sin_teta*(cmy-kcm*ky)+omega*cos_teta*kvcmy;
+      sz[i] = tz-omega*sin_teta*(cmz-kcm*kz)+omega*cos_teta*kvcmz;
     }
   }
   Py_INCREF(Py_None);

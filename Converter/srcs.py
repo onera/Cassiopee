@@ -1,6 +1,6 @@
 import KCore.Dist as Dist
 from KCore.config import *
-EXPRESSION = False
+EXPRESSION = True
 
 (hdf, hdfIncDir, hdfLibDir, hdflibs) = Dist.checkHdf(additionalLibPaths,
                                                      additionalIncludePaths)

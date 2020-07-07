@@ -726,9 +726,9 @@ E_Int K_IO::GenIO::hdfcgnsWritePathsPartial(char* file, PyObject* tree,
       PyErr_SetString(PyExc_TypeError, "hdfwrite: DataSpaceDIM must be a list of numbers.");
       return 0;
     }
-    if (FilterSize != 9)
+    if (FilterSize < 9)
     {
-      PyErr_SetString(PyExc_TypeError, "hdfwrite: FilterSize must be a list of 9 numbers.");
+      PyErr_SetString(PyExc_TypeError, "hdfwrite: FilterSize must be a list of at least 9 numbers.");
       return 0;
     }
     /* ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo */
