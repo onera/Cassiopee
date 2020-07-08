@@ -6,7 +6,7 @@ namespace shader
 enum shaders_id
 {
         None = 0,
-	unidirectionnel_phong=0, // 1
+	unidirectionnel_phong, // 1
 	bidirectionnel_phong,  // 2
 	glass, // 3
 	chrome, // 4

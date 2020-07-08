@@ -14,6 +14,8 @@ uniform float edgeStyle;
 uniform sampler1D colormap;
 uniform float alpha; // colormap range
 uniform float beta;
+uniform float amin;
+uniform float amax;
 uniform float blend;
 uniform int shadow;
 uniform sampler2D ShadowMap;
@@ -22,14 +24,24 @@ void main()
 {
   float f, fs;
   int vali;
-  f = color.r; f = alpha*f + beta;
-  f = clamp(f, 0.0f, 1.f-0.5/niso);
-  
+  f = color.r; 
+  if (amax > amin)
+  { 
+    if (f > amax) discard;
+    if (f < amin) discard;
+  }
+  else
+  {
+    if (f > amax && f < amin) discard;
+  }
+  f = alpha*f + beta;
+  f = clamp(f, 0.0, 1.-0.5/niso);
+
   fs = f;
   vali = int(f*niso);
   f = float(vali)/niso;
   vec3 val; 
-  val = vec3(texture1D(colormap, f+0.5f/niso));
+  val = vec3(texture1D(colormap, f+0.5/niso));
 
   float df, borne, borne1, borne2;
   df = fwidth(fs);

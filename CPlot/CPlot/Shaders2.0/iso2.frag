@@ -6,7 +6,7 @@ varying vec3 P;
 
 // light is on?
 uniform int lightOn;
-//colormap
+// colormap
 uniform sampler1D colormap;
 uniform float alpha;
 uniform float beta;
@@ -18,7 +18,7 @@ void main()
   f = color.r;
   vec3 val;
   f = alpha*f+beta;
-  f = clamp(f, 0.0f, 1.0f);
+  f = clamp(f, 0.0, 1.0);
   val = vec3(texture1D(colormap, f));
   
   vec4 color2 = vec4(val.r, val.g, val.b, blend);
