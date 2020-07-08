@@ -370,8 +370,10 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
               dictOfNobOfDnrZones, dictOfNozOfDnrZones, 
               dictOfNobOfRcvZonesC, dictOfNozOfRcvZonesC, 
               time=0., absFrame=True, procDict=None, cellNName='cellN'):
+  
     if procDict is None: procDict = Cmpi.getProcDict(tc)
-    
+    if Cmpi.size==1:
+        for name in procDict: procDict[name]=0
     # dictionnaire des matrices de mouvement pour passer du repere relatif d'une zone au repere absolu
     dictOfMotionMatR2A={}
     dictOfMotionMatA2R={}
@@ -393,10 +395,10 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
 
         C._cpVars(z, 'centers:'+cellNName, zc, cellNName)
         res = X.getInterpolatedPoints(zc, loc='nodes', cellNName=cellNName) 
-        # print 'Zone %s du proc %d a interpoler'%(zname, Cmpi.rank)
+        # print('Zone %s du proc %d a interpoler'%(zname, Cmpi.rank))
 
         if res is not None: 
-            # print 'Res not None : zone %s du proc %d a interpoler'%(zname, Cmpi.rank)
+            #print('Res not None : zone %s du proc %d a interpoler'%(zname, Cmpi.rank))
 
             indicesI, XI, YI, ZI = res
             # passage des coordonnees du recepteur dans le repere absolu
@@ -431,7 +433,7 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
                             dictOfMotionMatA2R[znamed] = MatAbs2RelD
                     [XIRel, YIRel, ZIRel] = RM.moveN([XI,YI,ZI],coordsC,coordsD,MatAbs2RelD)
 
-                    # transfers avec coordonnees dans le repere relatif 
+                    # transfers avec coordonnees dans le repere relatif
                     fields = X.transferFields(zdnr, XIRel, YIRel, ZIRel, hook=adt, variables=variables)
                     if zname not in dictOfFields:
                         dictOfFields[zname] = [fields]

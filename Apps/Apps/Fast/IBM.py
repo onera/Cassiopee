@@ -49,7 +49,7 @@ def computeYplusOpt(Re=None,tb=None,Lref=1.,q=1.2,snear=None,Cf_law='ANSYS'):
         raise("ValueError: computeYlusOpt requires snear as a float or in tb.")
 
     print("Estimation of the optimum y+  at Reynolds number ", Re, " and snear target at image point ", snear)
-    h0 = (1.*L*math.sqrt(2.))/(Re*math.sqrt(compute_Cf(Re,Cf_law))) #Taille de maille pour y+1
+    h0 = (1.*Lref*math.sqrt(2.))/(Re*math.sqrt(compute_Cf(Re,Cf_law))) #Taille de maille pour y+1
     h_opti = (h0-q*snear)/(1.-q) #Hauteur de modelisation opti
     yplus_opti = h_opti/h0 #yplus opti
 

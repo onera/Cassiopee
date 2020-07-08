@@ -4442,6 +4442,74 @@ def getPeriodicInfo(t):
     # Synthetisation    
     return ret
 
+# merge Elements_t nodes for BE  per elt type
+def _mergeEltsTPerType(t):
+    for z in getZones(t):
+        typesEltsT={}
+        rangeMinT={}; rangeMaxT={}
+        rmaxall = -1
+        for elts_t in getNodesFromType(z,'Elements_t'):
+            name = getName(elts_t)
+            typeEt = getValue(elts_t)[0]
+            if typeEt not in typesEltsT: typesEltsT[name]=[]
+            typesEltsT[name].append(typeEt)
+            eltRange = getNodeFromType(elts_t,"IndexRange_t")
+            rangeMinT[name] = getValue(eltRange)[0]
+            rangeMaxT[name] = getValue(eltRange)[1]
+            rmaxall = max(rangeMaxT[name]+1,rmaxall)
+
+        # init 
+        rmin = 1; rmax= -1
+        newElts_t=[]; etype = -1
+   
+        while ( rmin < rmaxall):
+            name1 = -1; name2 = -1
+            #start
+            for name in rangeMinT:
+                if rangeMinT[name]==rmin:
+                    rmax = rangeMaxT[name]
+                    EltsT = getNodeFromName1(z,name)
+                    etype = typesEltsT[name]
+                    name1 = name
+                    break
+                
+            # recherche des suivants de meme type
+            found = 1
+            while found == 1:
+                found = -1
+                for name in rangeMinT:
+                    if rangeMinT[name]==rmax+1:
+                        if typesEltsT[name]==etype:
+                            found = 1
+                            name2 = name
+                            EltsT2 = getNodeFromName1(z,name2)
+                        else: found = 0
+                        
+                if found == 0:
+                    rmax2 = rmax
+                    newElts_t.append(EltsT)
+                    
+                elif found == 1:#merge EltsT and EltsT2
+                    rmin2 = rangeMinT[name1]
+                    rmax2 = rangeMaxT[name2]
+                    ER = getNodeFromType(EltsT,'IndexRange_t')
+                    ERVal = getValue(ER)
+                    ERVal[0] = rmin
+                    ERVal[1] = rmax2
+                    setValue(ER,ERVal)
+                    ec1 = getNodeFromName(EltsT,'ElementConnectivity')
+                    ec2 = getNodeFromName(EltsT2,'ElementConnectivity')
+                    ec1[1] = numpy.concatenate((ec1[1],ec2[1]))
+                    typesEltsT[name2]=-1; rangeMinT[name2]=-1; rangeMaxT[name2]=-1
+                    rmax = rmax2
+                    if rmax2+1==rmaxall:
+                        newElts_t.append(EltsT)
+            rmin = rmax2+1
+     
+        _rmNodesFromType(z,'Elements_t')
+        z[2] += newElts_t
+
+    return None
 #=================================================================================
 # Merge BCDataSets: special bcdataset (etc/FFD) are prefered, other are destroyed
 #=================================================================================
