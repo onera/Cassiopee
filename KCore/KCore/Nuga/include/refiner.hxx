@@ -600,7 +600,7 @@ void refiner<K_MESH::Triangle, DIR>::refine_PGs
   std::map<K_MESH::NO_Edge, E_Int>& ecenter)
 {
   // do not handle DIR for Triangle yet
-  refiner<K_MESH::Triangle, ISO>::refine_PGs<arr_t>(adap_incr._adap_incr, ng, PGtree, crd, F2E, ecenter);
+  //refiner<K_MESH::Triangle, ISO>::refine_PGs<arr_t>(adap_incr._adap_incr, ng, PGtree, crd, F2E, ecenter);
 }
 
 ///
@@ -755,7 +755,7 @@ void refiner<K_MESH::Tetrahedron, DIR>::refine_PHs
 (const sensor_output_t &adap_incr, 
  ngon_type& ng, tree<arr_t> & PGtree, tree<arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
 {
-  refiner<K_MESH::Tetrahedron, ISO>::refine_PHs(adap_incr.cell_adap_incr, ng, PGtree, PHtree, crd, F2E);
+  //refiner<K_MESH::Tetrahedron, ISO>::refine_PHs(adap_incr.cell_adap_incr, ng, PGtree, PHtree, crd, F2E);
 }
 
 ///
@@ -765,7 +765,7 @@ void refiner<K_MESH::Pyramid, DIR>::refine_PHs
 (const sensor_output_t &adap_incr,
  ngon_type& ng, tree<arr_t> & PGtree, tree<arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
 {
-  refiner<K_MESH::Pyramid, ISO>::refine_PHs(adap_incr.cell_adap_incr, ng, PGtree, PHtree, crd, F2E);
+  //refiner<K_MESH::Pyramid, ISO>::refine_PHs(adap_incr.cell_adap_incr, ng, PGtree, PHtree, crd, F2E);
 }
 
 ///
@@ -775,7 +775,7 @@ void refiner<K_MESH::Prism, DIR>::refine_PHs
 (const sensor_output_t &adap_incr,
  ngon_type& ng, tree<arr_t> & PGtree, tree<arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
 {
-  refiner<K_MESH::Prism, ISO>::refine_PHs(adap_incr.cell_adap_incr, ng, PGtree, PHtree, crd, F2E);
+  //refiner<K_MESH::Prism, ISO>::refine_PHs(adap_incr.cell_adap_incr, ng, PGtree, PHtree, crd, F2E);
 }
 
 ///
