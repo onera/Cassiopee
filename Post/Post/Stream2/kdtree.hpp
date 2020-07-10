@@ -20,6 +20,7 @@
 #define _POST_STREAM_KDTREE_HPP_
 #include <vector>
 #include <memory>
+#include <array>
 #include "point3d.hpp"
 #include "Memory/vector_view.hpp"
 #include "kcore.h"

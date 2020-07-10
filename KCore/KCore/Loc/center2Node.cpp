@@ -514,12 +514,11 @@ E_Int K_LOC::center2nodeNGon(
     for (E_Int nov = 0; nov < nvert; nov++)
     {
       ind = vertices[nov]-1;
-      for (E_Int eq = 1; eq <= nfld; eq++)
-        FNode(ind,eq) += FCenter(et,eq);
-      countp[ind]++;   
+      for (E_Int eq = 1; eq <= nfld; eq++) FNode(ind,eq) += FCenter(et,eq);
+      countp[ind]++;
     }
   }
-  
+
   for (E_Int eq = 1; eq <= nfld; eq++)
   {
     E_Float* fnode = FNode.begin(eq);
@@ -527,12 +526,11 @@ E_Int K_LOC::center2nodeNGon(
     {
       if (countp[ind] > 0)
       {
-        inv = 1./countp[ind];
+        inv = 1./K_FUNC::E_max(countp[ind],1);
         fnode[ind] = fnode[ind] * inv;
       }
     }
   }
-  
 
   // Traitement special pour le champ "cellnaturefield"
   /* algo=0:

@@ -136,8 +136,10 @@ PyObject* K_CONVERTER::center2Node(PyObject* self, PyObject* args)
       E_Int nelts = FCenter->getSize();
       vector< vector<E_Int> > cEV(nelts);
       K_CONNECT::connectNG2EV(*c, cEV);
+
+      /* Calcul de Nb en eliminant les vertex non references
       E_Int nptsmax = 0;
-      for (E_Int et = 0; et < nelts; et++) nptsmax+= cEV[et].size();
+      for (E_Int et = 0; et < nelts; et++) nptsmax += cEV[et].size();
       FldArrayI count(nptsmax); count.setAllValuesAtNull();
       E_Int* countp = count.begin();
       for (E_Int et = 0; et < nelts; et++)
@@ -149,11 +151,25 @@ PyObject* K_CONVERTER::center2Node(PyObject* self, PyObject* args)
           if (countp[indv] == 0) {countp[indv]++; nb++;}
         }
       }
-      count.malloc(0); 
-      FldArrayF* FNode = new FldArrayF(nb, nfld);
-      ret = K_LOC::center2nodeNGon(*FCenter, *c, cEV, *FNode, cellN, mod, type);    
+      count.malloc(0);
+      */
+
+      /* Calcul de Nb en prenant le numero max du vertex dans les faces */
+      E_Int nb = 0;
       for (E_Int et = 0; et < nelts; et++)
-        cEV[et].clear();
+      {
+        vector<E_Int>& vertices = cEV[et]; E_Int nvert = vertices.size();   
+        for (E_Int nov = 0; nov < nvert; nov++)
+        {
+          E_Int indv = vertices[nov];
+          nb = K_FUNC::E_max(nb, indv);
+        }
+      }
+
+      FldArrayF* FNode = new FldArrayF(nb, nfld);
+      ret = K_LOC::center2nodeNGon(*FCenter, *c, cEV, *FNode, cellN, mod, type);
+    
+      for (E_Int et = 0; et < nelts; et++) cEV[et].clear();
       cEV.clear();
       PyObject* tpl = K_ARRAY::buildArray(*FNode, varString, *c, -1, eltType);
       delete FNode;

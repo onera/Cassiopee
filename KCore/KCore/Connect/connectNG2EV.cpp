@@ -37,7 +37,7 @@ void K_CONNECT::connectNG2EV(FldArrayI& cNG, vector< vector<E_Int> >& cEV)
   E_Int nfaces = cnp[0];
   E_Int sizeFN = cnp[1];
   E_Int ncells = cnp[sizeFN+2];
-  E_Int* ptr = cnp+sizeFN+4;//debut connectivite EF
+  E_Int* ptr = cnp+sizeFN+4; // debut connectivite EF
   E_Int nf, nv, vert;
   FldArrayI posFaces(nfaces); // tableau de position des faces dans la connectivite
   K_CONNECT::getPosFaces(cNG, posFaces);
@@ -47,19 +47,18 @@ void K_CONNECT::connectNG2EV(FldArrayI& cNG, vector< vector<E_Int> >& cEV)
   for (E_Int et = 0; et < ncells; et++)
   {
     vector<E_Int>& vertices = cEV[et]; // noeuds associes a l'element et
-    nf = ptr[0]; //nb de faces pour l elt
+    nf = ptr[0]; // nb de faces pour l'elt
     for (E_Int j = 1; j <= nf; j++)
     {
       pos = posFacesp[ptr[j]-1];
-      
-      nv = cnp[pos];//nb de noeuds pour la face courante 
+      nv = cnp[pos]; //nb de noeuds pour la face courante 
       for (E_Int nov = 1; nov <= nv; nov++)
       {
-        vert = cnp[pos+nov];//demarre a 1
+        vert = cnp[pos+nov]; //demarre a 1
         vertices.push_back(vert);
       }
     }    
-    ptr+= nf+1;
+    ptr += nf+1;
   }  
   vector<E_Int>::iterator it;  
   for (E_Int et = 0; et < ncells; et++)
