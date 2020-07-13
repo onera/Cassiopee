@@ -43,12 +43,11 @@ def computeYplusOpt(Re=None,tb=None,Lref=1.,q=1.2,snear=None,Cf_law='ANSYS'):
     if snear is None:
         snear = Internal.getNodeFromName(tb,"snear")
         if snear is None: fail=1
-        else:
-            snear = Internal.getValue(snear)
+        else: snear = Internal.getValue(snear)
     if fail:
         raise("ValueError: computeYlusOpt requires snear as a float or in tb.")
 
-    print("Estimation of the optimum y+  at Reynolds number ", Re, " and snear target at image point ", snear)
+    print("Warning: estimation of the optimum y+ at Reynolds number ", Re, " and snear target at image point ", snear)
     h0 = (1.*Lref*math.sqrt(2.))/(Re*math.sqrt(compute_Cf(Re,Cf_law))) #Taille de maille pour y+1
     h_opti = (h0-q*snear)/(1.-q) #Hauteur de modelisation opti
     yplus_opti = h_opti/h0 #yplus opti
@@ -67,8 +66,7 @@ def computeSnearOpt(Re=None,tb=None,Lref=1.,q=1.2,yplus=300.,Cf_law='ANSYS'):
         if tb is not None:
             Re = Internal.getNodeFromName(tb,"Reynolds")
             if Re is None: fail=1
-            else:
-                Re = Internal.getValue(Re)
+            else: Re = Internal.getValue(Re)
         else: fail = 1
     if fail: 
         raise("ValueError: computeSnearOpt requires Reynolds number as a float or in tb.")

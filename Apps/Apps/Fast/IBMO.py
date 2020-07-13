@@ -115,9 +115,9 @@ def prepare(t_case, t_out, tc_out,
 
     if dimPb == 2:
         C._initVars(tb, 'CoordinateZ', 0.)
-        C._initVars(tbchim,'CoordinateZ',0.)
-        C._initVars(tbibm,'CoordinateZ',0.)
-        C._initVars(tbov,'CoordinateZ',0.)
+        C._initVars(tbchim, 'CoordinateZ', 0.)
+        C._initVars(tbibm, 'CoordinateZ', 0.)
+        C._initVars(tbov, 'CoordinateZ', 0.)
 
     # allgather: everybody sees all the bodies and overlaps 
     tbchim = Cmpi.allgatherTree(tbchim)

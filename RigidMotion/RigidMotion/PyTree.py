@@ -447,7 +447,7 @@ def _moveZone__(z, time):
                 T._rotate(z, (cx,cy,cz), (ex,ey,ez), angle)
                 T._translate(z, (transl_speed[0]*time,transl_speed[1]*time,transl_speed[2]*time))
             else:
-                print("Motion type not found. Nothing done.")
+                print("Warning: Motion type not found. Nothing done.")
     return None
   
 # Recopie GridCoordinates#Init (si il existe) dans GridCoordinates  
@@ -602,7 +602,7 @@ def getMotionMatrixForZone(z, time, F=None):
     Rot[0,0]=1.; Rot[1,1]=1.; Rot[2,2]=1.
     return Rot
 
-#getRotationMatrix : l angle theta doit etre en radians
+# getRotationMatrix: l'angle theta doit etre en radians
 def getRotationMatrix__(cx,cy,cz,ex,ey,ez,theta):
   Rot = numpy.zeros((3,3), numpy.float64)
   vnorm = sqrt(ex*ex+ey*ey+ez*ez)
@@ -633,9 +633,9 @@ def getRotationMatrix__(cx,cy,cz,ex,ey,ez,theta):
   Rot[2,0] = t11 - t12
   Rot[2,1] = t19 + t20
   Rot[2,2] = t1 + t2*t24
-  print('Matrice de rotation de RigidMotion en x: ', Rot[0,:])
-  print('Matrice de rotation de RigidMotion en y: ', Rot[1,:])
-  print('Matrice de rotation de RigidMotion en z: ', Rot[2,:])
+  #print('Matrice de rotation de RigidMotion en x: ', Rot[0,:])
+  #print('Matrice de rotation de RigidMotion en y: ', Rot[1,:])
+  #print('Matrice de rotation de RigidMotion en z: ', Rot[2,:])
   return Rot
 
 # Applique la formule XP=d+r*(XN-c) sur des numpys de coordonnees

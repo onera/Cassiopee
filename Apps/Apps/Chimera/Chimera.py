@@ -101,7 +101,6 @@ def extractSurface(t_sol, t_pts=None, eq=(0.,0.,0.,0.), XC=(0.,0.,0.), AXIS=(1.,
     C._rmVars(res,[cellNName])
     return res
 
-
 def extractIJSurface(t_sol, t_pts, XC=(0.,0.,0.), AXIS=(1.,0.,0.), loc='centers', cellNName='cellN',variables=[]):
     # distrib en i (le long de la ligne) et j
     NI = 101; NJ = 201

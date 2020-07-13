@@ -13,4 +13,3 @@ void main()
   color = gl_Color;
   gl_Position = ftransform();
 }
-

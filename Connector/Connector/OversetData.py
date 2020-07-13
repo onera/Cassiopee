@@ -1435,7 +1435,7 @@ def _createInterpRegion__(z, zname, pointlist, pointlistdonor, interpCoef, inter
 #=============================================================================
 # 3. TRANSFERTS
 # interpDataType = 0 if donor is Cartesian
-# interpDataType = otherwise (an ADT muse define the hook)
+# interpDataType = otherwise (an ADT must define the hook)
 #=============================================================================
 #=============================================================================
 def transferFields(z, interpXN, interpYN, interpZN, order=2, penalty=1, nature=0,

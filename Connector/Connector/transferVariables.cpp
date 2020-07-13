@@ -140,7 +140,7 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
                                           eltTypeD, hook,
                                           GridCoordinates, FlowSolutionNodes, FlowSolutionCenters);
 
-  if ( typeZoneD == 0)
+  if (typeZoneD == 0)
   {
     RELEASESHAREDN(interpPtsCoordX, coordX);
     RELEASESHAREDN(interpPtsCoordY, coordY);
@@ -168,13 +168,13 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
   E_Int posyd = K_ARRAY::isCoordinateYPresent(varStringD);
   E_Int poszd = K_ARRAY::isCoordinateZPresent(varStringD);
   E_Int poscd = K_ARRAY::isCellNatureField2Present(varStringD);
-  if ( posxd == -1 || posyd == -1 || poszd==-1)
+  if (posxd == -1 || posyd == -1 || poszd==-1)
   {
     PyErr_SetString(PyExc_TypeError, "transferFields: no coordinates found for donor zone.");
     RELEASEDATA;
     return NULL;
   }
-  if ( poscd == -1)
+  if (poscd == -1)
   {
     PyErr_SetString(PyExc_TypeError, "transferFields: no cellN found in donor zone.");
     RELEASEDATA;
@@ -195,7 +195,7 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
 
       interpData = new K_INTERP::InterpAdt(donorFields.getSize(), donorFields.begin(posxd), donorFields.begin(posyd), donorFields.begin(poszd),
                                            a1, a2, a3, isBuilt);
-      if ( isBuilt != 1)
+      if (isBuilt != 1)
       {
         PyErr_SetString(PyExc_TypeError, 
                         "transferFields: interpADT cannot be built.");
@@ -241,7 +241,7 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
     E_Float hk;
 
     //Cas 2D
-    if ( kmd == 1 )
+    if (kmd == 1)
       hk = 1;
     else
       hk = zt[imd*jmd]-zt[0];
@@ -374,9 +374,9 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
       else //orphan
         volD = penaltyOrphan;
     }
-    if (ok == 1)//formule d interpolation
+    if (ok == 1)//formule d'interpolation
     {
-      // on n interpole que les variables dans posvars0, qui sont les 1eres variables ds interpolatedFields
+      // on n'interpole que les variables dans posvars0, qui sont les 1eres variables ds interpolatedFields
       K_INTERP::compInterpolatedValues(indi.begin(), cf, donorFields, a2, a3, a4, 
                                        noind, type, interpolatedFields, posvars0);      
     }

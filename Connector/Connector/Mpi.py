@@ -372,12 +372,12 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
               time=0., absFrame=True, procDict=None, cellNName='cellN'):
   
     if procDict is None: procDict = Cmpi.getProcDict(tc)
-    if Cmpi.size==1:
+    if Cmpi.size == 1:
         for name in procDict: procDict[name]=0
     # dictionnaire des matrices de mouvement pour passer du repere relatif d'une zone au repere absolu
     dictOfMotionMatR2A={}
     dictOfMotionMatA2R={}
-    coordsD=[0.,0.,0.]; coordsC= [0.,0.,0.] # XAbs = coordsD + Mat*(XRel-coordsC)
+    coordsD=[0.,0.,0.]; coordsC=[0.,0.,0.] # XAbs = coordsD + Mat*(XRel-coordsC)
     dictOfFields={}; dictOfIndices={}
     
     datas={}
@@ -398,12 +398,12 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
         # print('Zone %s du proc %d a interpoler'%(zname, Cmpi.rank))
 
         if res is not None: 
-            #print('Res not None : zone %s du proc %d a interpoler'%(zname, Cmpi.rank))
+            #print('Res not None: zone %s du proc %d a interpoler'%(zname, Cmpi.rank))
 
             indicesI, XI, YI, ZI = res
             # passage des coordonnees du recepteur dans le repere absolu
             # si mouvement gere par FastS -> les coordonnees dans z sont deja les coordonnees en absolu
-            if not absFrame: 
+            if not absFrame:
                 if zname in dictOfMotionMatR2A:
                     MatRel2AbsR = RM.getMotionMatrixForZone(z, time=time, F=None)
                     dictOfMotionMatR2A[zname]=MatRel2AbsR
@@ -431,10 +431,43 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
                             dictOfMotionMatR2A[znamed] = MatRel2AbsD
                             MatAbs2RelD = numpy.transpose(MatRel2AbsD)
                             dictOfMotionMatA2R[znamed] = MatAbs2RelD
+                    #if zc[0] == 'cart': 
+                    #    print(znamed)
+                    #    print(MatAbs2RelD)
+                    #    print(time)
                     [XIRel, YIRel, ZIRel] = RM.moveN([XI,YI,ZI],coordsC,coordsD,MatAbs2RelD)
 
+                    # DBX
+                    # Create a NODE Zone
+                    #import Generator.PyTree as G
+                    #deb = G.cart((0,0,0), (1,1,1), (3,3,3))
+                    #deb = C.convertArray2Node(deb)
+                    #deb[1][0] = XIRel.size
+                    #x = Internal.getNodeFromName2(deb, 'CoordinateX')
+                    #y = Internal.getNodeFromName2(deb, 'CoordinateY')
+                    #z = Internal.getNodeFromName2(deb, 'CoordinateZ')
+                    #x[1] = XIRel; y[1] = YIRel; z[1] = ZIRel
+                    #deb2 = G.cart((0,0,0), (1,1,1), (3,3,3))
+                    #deb2 = C.convertArray2Node(deb2)
+                    #deb2[1][0] = XI.size
+                    #x = Internal.getNodeFromName2(deb2, 'CoordinateX')
+                    #y = Internal.getNodeFromName2(deb2, 'CoordinateY')
+                    #z = Internal.getNodeFromName2(deb2, 'CoordinateZ')
+                    #x[1] = XI; y[1] = YI; z[1] = ZI
+                    #if zc[0] == 'cart.0': C.convertPyTree2File([deb,deb2], 'debug.cgns')
+                    #print(XIRel, YIRel, ZIRel)
+                    # END DBX
+                    
                     # transfers avec coordonnees dans le repere relatif
+                    # hack par CB
+                    GC1 = Internal.getNodeFromName1(zdnr, 'GridCoordinates')
+                    GC2 = Internal.getNodeFromName1(zdnr, 'GridCoordinates#Init')
+                    T = GC1[2]; GC1[2] = GC2[2]; GC2[2] = T                    
                     fields = X.transferFields(zdnr, XIRel, YIRel, ZIRel, hook=adt, variables=variables)
+                    # hack par CB
+                    T = GC1[2]; GC1[2] = GC2[2]; GC2[2] = T                    
+                    
+                    
                     if zname not in dictOfFields:
                         dictOfFields[zname] = [fields]
                         dictOfIndices[zname] = indicesI
@@ -489,13 +522,13 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
                 transferedDatas[procR].append([zrcvname,indicesR,fields])
             
     if transferedDatas != {}:
-        # 2nd envoi : envoi des numpys des donnees  interpolees suivant le graphe
+        # 2nd envoi : envoi des numpys des donnees interpolees suivant le graphe
         rcvDatas = Cmpi.sendRecv(transferedDatas,graph)
                                                               
         # remise des donnees interpolees chez les zones receveuses
         # une fois que tous les donneurs potentiels ont calcule et envoye leurs donnees
         for i in rcvDatas:
-            #print Cmpi.rank, 'recoit des donnees interpolees de',i, '->', len(rcvDatas[i])
+            #print(Cmpi.rank, 'recoit des donnees interpolees de',i, '->', len(rcvDatas[i]))
             for n in rcvDatas[i]:
                 zrcvname = n[0]
                 indicesI = n[1]
