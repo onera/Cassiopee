@@ -181,7 +181,9 @@ if MMGS:
                   "Generator/MMGS/swapar_s.c",
                   "Generator/MMGS/tools.c",
                   "Generator/MMGS/variadic_s.c",
-                  "Generator/MMGS/zaldy_s.c"]
+                  "Generator/MMGS/zaldy_s.c",
+                  "Generator/MMGS/mmgexterns.c",
+                  "Generator/MMGS/mmgsexterns.c"]
 
 #==============================================================================
 # Fichiers fortran

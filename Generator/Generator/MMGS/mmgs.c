@@ -1,7 +1,7 @@
 /* =============================================================================
 **  This file is part of the mmg software package for the tetrahedral
 **  mesh modification.
-**  Copyright (c) Bx INP/Inria/UBordeaux/UPMC, 2004- .
+**  Copyright (c) Bx INP/CNRS/Inria/UBordeaux/UPMC, 2004-
 **
 **  mmg is free software: you can redistribute it and/or modify it
 **  under the terms of the GNU Lesser General Public License as published
@@ -42,7 +42,7 @@ mytime         MMG5_ctim[TIMEMAX];
 /**
  * Print elapsed time at end of process.
  */
-static void _MMG5_endcod() {
+static void MMG5_endcod() {
   char   stim[32];
 
   chrono(OFF,&MMG5_ctim[0]);
@@ -61,7 +61,7 @@ static void _MMG5_endcod() {
  * DEFAULT.mmgs.
  *
  */
-static int _MMG5_parsop(MMG5_pMesh mesh,MMG5_pSol met) {
+static int MMG5_parsop(MMG5_pMesh mesh,MMG5_pSol met) {
   float      fp1,fp2,hausd;
   int        ref,i,j,ret,npar;
   char       *ptr,buf[256],data[256];
@@ -76,15 +76,15 @@ static int _MMG5_parsop(MMG5_pMesh mesh,MMG5_pSol met) {
   if ( !in ) {
     sprintf(data,"%s","DEFAULT.mmgs");
     in = fopen(data,"rb");
-    if ( !in )  return(1);
+    if ( !in )  return 1;
   }
-  fprintf(stdout,"  %%%% %s OPENED\n",data);
+  fprintf(stdout,"\n  %%%% %s OPENED\n",data);
 
   /* read parameters */
   mesh->info.npar = 0;
   while ( !feof(in) ) {
     /* scan line */
-    ret = fscanf(in,"%s",data);
+    ret = fscanf(in,"%255s",data);
     if ( !ret || feof(in) )  break;
     for (i=0; i<strlen(data); i++) data[i] = tolower(data[i]);
 
@@ -92,32 +92,38 @@ static int _MMG5_parsop(MMG5_pMesh mesh,MMG5_pSol met) {
     if ( !strcmp(data,"parameters") ) {
       fscanf(in,"%d",&npar);
       if ( !MMGS_Set_iparameter(mesh,met,MMGS_IPARAM_numberOfLocalParam,npar) )
-        exit(EXIT_FAILURE);
+        return 0;
 
       for (i=0; i<mesh->info.npar; i++) {
-        fscanf(in,"%d %s ",&ref,buf);
+        fscanf(in,"%d %255s ",&ref,buf);
         ret = fscanf(in,"%f %f %f",&fp1,&fp2,&hausd);
+
+        if ( !ret ) {
+          fprintf(stderr,"  %%%% Wrong format: %s\n",buf);
+          return 0;
+        }
+
         for (j=0; j<strlen(buf); j++)  buf[j] = tolower(buf[j]);
 
         if ( !strcmp(buf,"triangles") || !strcmp(buf,"triangle") ) {
           if ( !MMGS_Set_localParameter(mesh,met,MMG5_Triangle,ref,fp1,fp2,hausd) ) {
-            exit(EXIT_FAILURE);
+            return 0;
           }
         }
         /* else if ( !strcmp(buf,"vertices") || !strcmp(buf,"vertex") ) { */
         /*   if ( !MMGS_Set_localParameter(mesh,met,MMG5_Vertex,ref,fp1,fp2,hausd) ) { */
-        /*     exit(EXIT_FAILURE); */
+        /*     return 0; */
         /*   } */
         /* } */
         else {
           fprintf(stdout,"  %%%% Wrong format: %s\n",buf);
-          continue;
+          return 0;
         }
       }
     }
   }
   fclose(in);
-  return(1);
+  return 1;
 }
 
 /**
@@ -129,8 +135,8 @@ static int _MMG5_parsop(MMG5_pMesh mesh,MMG5_pSol met) {
  *
  */
 static inline
-int _MMGS_writeLocalParam( MMG5_pMesh mesh ) {
-  _MMG5_iNode  *triRefs;
+int MMGS_writeLocalParam( MMG5_pMesh mesh ) {
+  MMG5_iNode  *triRefs;
   int          npar;
   char         *ptr,data[128];
   FILE         *out;
@@ -143,24 +149,30 @@ int _MMGS_writeLocalParam( MMG5_pMesh mesh ) {
   /** Save the local parameters file */
   if ( !(out = fopen(data,"wb")) ) {
     fprintf(stderr,"\n  ** UNABLE TO OPEN %s.\n",data);
-    return(0);
+    return 0;
   }
 
   fprintf(stdout,"\n  %%%% %s OPENED\n",data);
 
 
-  npar = _MMG5_countLocalParamAtTri( mesh, &triRefs);
+  npar = MMG5_countLocalParamAtTri( mesh, &triRefs);
 
-  if ( !npar ) return 0;
+  if ( !npar ) {
+    fclose(out);
+    return 0;
+  }
 
   fprintf(out,"parameters\n %d\n",npar);
 
-  if ( !_MMG5_writeLocalParamAtTri(mesh, triRefs, out) ) return 0;
+  if ( !MMG5_writeLocalParamAtTri(mesh, triRefs, out) ) {
+    fclose(out);
+    return 0;
+  }
 
   fclose(out);
   fprintf(stdout,"  -- WRITING COMPLETED\n");
 
-  return(1);
+  return 1;
 }
 
 /**
@@ -176,66 +188,75 @@ int _MMGS_writeLocalParam( MMG5_pMesh mesh ) {
  *
  */
 static inline
-int _MMGS_defaultOption(MMG5_pMesh mesh,MMG5_pSol met) {
+int MMGS_defaultOption(MMG5_pMesh mesh,MMG5_pSol met) {
   mytime    ctim[TIMEMAX];
+  double    hsiz;
   char      stim[32];
 
-  _MMGS_Set_commonFunc();
+  MMGS_Set_commonFunc();
 
-  signal(SIGABRT,_MMG5_excfun);
-  signal(SIGFPE,_MMG5_excfun);
-  signal(SIGILL,_MMG5_excfun);
-  signal(SIGSEGV,_MMG5_excfun);
-  signal(SIGTERM,_MMG5_excfun);
-  signal(SIGINT,_MMG5_excfun);
+  signal(SIGABRT,MMG5_excfun);
+  signal(SIGFPE,MMG5_excfun);
+  signal(SIGILL,MMG5_excfun);
+  signal(SIGSEGV,MMG5_excfun);
+  signal(SIGTERM,MMG5_excfun);
+  signal(SIGINT,MMG5_excfun);
 
   tminit(ctim,TIMEMAX);
   chrono(ON,&(ctim[0]));
 
   if ( mesh->info.npar ) {
-    fprintf(stderr,"\n  ## Error: "
+    fprintf(stderr,"\n  ## Error: %s: "
             "unable to save of a local parameter file with"
             " the default parameters values because local parameters"
-            " are provided.\n");
+            " are provided.\n",__func__);
     _LIBMMG5_RETURN(mesh,met,MMG5_LOWFAILURE);
   }
 
 
-  if ( mesh->info.imprim ) fprintf(stdout,"\n  -- INPUT DATA\n");
+  if ( mesh->info.imprim > 0 ) fprintf(stdout,"\n  -- INPUT DATA\n");
   /* load data */
   chrono(ON,&(ctim[1]));
 
   if ( met->np && (met->np != mesh->np) ) {
-    fprintf(stderr,"  ## WARNING: WRONG SOLUTION NUMBER. IGNORED\n");
-    _MMG5_DEL_MEM(mesh,met->m,(met->size*(met->npmax+1))*sizeof(double));
+    fprintf(stderr,"\n  ## WARNING: WRONG SOLUTION NUMBER. IGNORED\n");
+    MMG5_DEL_MEM(mesh,met->m);
     met->np = 0;
   }
 
   chrono(OFF,&(ctim[1]));
   printim(ctim[1].gdif,stim);
-  if ( mesh->info.imprim )
+  if ( mesh->info.imprim > 0 )
     fprintf(stdout,"  --  INPUT DATA COMPLETED.     %s\n",stim);
 
   /* analysis */
   chrono(ON,&(ctim[2]));
   MMGS_setfunc(mesh,met);
 
-  if ( mesh->info.imprim ) {
+  if ( mesh->info.imprim > 0 ) {
     fprintf(stdout,"\n  %s\n   MODULE MMGS: IMB-LJLL : %s (%s)\n  %s\n",MG_STR,MG_VER,MG_REL,MG_STR);
     fprintf(stdout,"\n  -- DEFAULT PARAMETERS COMPUTATION\n");
   }
 
   /* scaling mesh and hmin/hmax computation*/
-  if ( !_MMG5_scaleMesh(mesh,met) ) _LIBMMG5_RETURN(mesh,met,MMG5_STRONGFAILURE);
+  if ( !MMG5_scaleMesh(mesh,met) ) _LIBMMG5_RETURN(mesh,met,MMG5_STRONGFAILURE);
+
+  /* Specific meshing + hmin/hmax update */
+  if ( mesh->info.hsiz > 0. ) {
+    if ( !MMG5_Compute_constantSize(mesh,met,&hsiz) ) {
+     if ( !MMG5_unscaleMesh(mesh,met) ) _LIBMMG5_RETURN(mesh,met,MMG5_STRONGFAILURE);
+     _LIBMMG5_RETURN(mesh,met,MMG5_STRONGFAILURE);
+    }
+  }
 
   /* unscaling mesh */
-  if ( !_MMG5_unscaleMesh(mesh,met) ) _LIBMMG5_RETURN(mesh,met,MMG5_STRONGFAILURE);
+  if ( !MMG5_unscaleMesh(mesh,met) ) _LIBMMG5_RETURN(mesh,met,MMG5_STRONGFAILURE);
 
   /* Save the local parameters file */
   mesh->mark = 0;
-  if ( !_MMGS_writeLocalParam(mesh) ) {
-    fprintf(stderr,"  ## Error: Unable to save the local parameters file.\n"
-            "            Exit program.\n");
+  if ( !MMGS_writeLocalParam(mesh) ) {
+    fprintf(stderr,"\n  ## Error: %s: unable to save the local parameters file.\n"
+            "            Exit program.\n",__func__);
      _LIBMMG5_RETURN(mesh,met,MMG5_LOWFAILURE);
   }
 
@@ -253,10 +274,10 @@ int main(int argc,char *argv[]) {
   fprintf(stdout,"     %s\n",MG_CPY);
   fprintf(stdout,"     %s %s\n",__DATE__,__TIME__);
 
-  _MMGS_Set_commonFunc();
+  MMGS_Set_commonFunc();
 
-  /* trap exceptions */
-  atexit(_MMG5_endcod);
+  /* Print timer at exit */
+  atexit(MMG5_endcod);
 
   tminit(MMG5_ctim,TIMEMAX);
   chrono(ON,&MMG5_ctim[0]);
@@ -275,10 +296,11 @@ int main(int argc,char *argv[]) {
                   MMG5_ARG_end);
 
   /* command line */
-  if ( !MMGS_parsar(argc,argv,mesh,met) )  return(MMG5_STRONGFAILURE);
+  if ( !MMGS_parsar(argc,argv,mesh,met) )  return MMG5_STRONGFAILURE;
 
   /* load data */
-  fprintf(stdout,"\n  -- INPUT DATA\n");
+  if ( mesh->info.imprim >= 0 )
+    fprintf(stdout,"\n  -- INPUT DATA\n");
   chrono(ON,&MMG5_ctim[1]);
 
   /* read mesh file */
@@ -288,26 +310,31 @@ int main(int argc,char *argv[]) {
     ier = MMGS_loadMshMesh(mesh,met,mesh->namein);
     msh = 1;
   }
+  if ( ier<1 )
+    MMGS_RETURN_AND_FREE(mesh,met,MMG5_STRONGFAILURE);
 
   if ( !msh ) {
     ier = MMGS_loadSol(mesh,met,met->namein);
     if ( ier==-1 ) {
-      fprintf(stderr,"  ## ERROR: WRONG DATA TYPE OR WRONG SOLUTION NUMBER.\n");
-      _MMGS_RETURN_AND_FREE(mesh,met,MMG5_STRONGFAILURE);
+      fprintf(stderr,"\n  ## ERROR: WRONG DATA TYPE OR WRONG SOLUTION NUMBER.\n");
+      MMGS_RETURN_AND_FREE(mesh,met,MMG5_STRONGFAILURE);
     }
   }
 
-  if ( !_MMG5_parsop(mesh,met) )
-    _MMGS_RETURN_AND_FREE(mesh,met,MMG5_LOWFAILURE);
+  if ( !MMG5_parsop(mesh,met) )
+    MMGS_RETURN_AND_FREE(mesh,met,MMG5_LOWFAILURE);
 
   chrono(OFF,&MMG5_ctim[1]);
-  printim(MMG5_ctim[1].gdif,stim);
-  fprintf(stdout,"  -- DATA READING COMPLETED.     %s\n",stim);
+
+  if ( mesh->info.imprim >= 0 ) {
+    printim(MMG5_ctim[1].gdif,stim);
+    fprintf(stdout,"  -- DATA READING COMPLETED.     %s\n",stim);
+  }
 
   if ( mesh->mark ) {
     /* Save a local parameters file containing the default parameters */
-    ier = _MMGS_defaultOption(mesh,met);
-    _MMGS_RETURN_AND_FREE(mesh,met,ier);
+    ier = MMGS_defaultOption(mesh,met);
+    MMGS_RETURN_AND_FREE(mesh,met,ier);
   }
   else if ( mesh->info.iso ) {
     ier = MMGS_mmgsls(mesh,met);
@@ -318,16 +345,10 @@ int main(int argc,char *argv[]) {
 
   if ( ier != MMG5_STRONGFAILURE ) {
     chrono(ON,&MMG5_ctim[1]);
-    if ( mesh->info.imprim )
+    if ( mesh->info.imprim > 0 )
       fprintf(stdout,"\n  -- WRITING DATA FILE %s\n",mesh->nameout);
 
-    if ( !strcmp(&mesh->nameout[strlen(mesh->nameout)-5],".mesh") ||
-         !strcmp(&mesh->nameout[strlen(mesh->nameout)-6],".meshb") )
-      msh = 0;
-
-    else if (!strcmp(&mesh->nameout[strlen(mesh->nameout)-4],".msh") ||
-             !strcmp(&mesh->nameout[strlen(mesh->nameout)-5],".mshb") )
-      msh = 1;
+    MMG5_chooseOutputFormat(mesh,&msh);
 
     if ( !msh )
       ierSave = MMGS_saveMesh(mesh,mesh->nameout);
@@ -335,18 +356,18 @@ int main(int argc,char *argv[]) {
       ierSave = MMGS_saveMshMesh(mesh,met,mesh->nameout);
 
     if ( !ierSave )
-      _MMGS_RETURN_AND_FREE(mesh,met,MMG5_STRONGFAILURE);
+      MMGS_RETURN_AND_FREE(mesh,met,MMG5_STRONGFAILURE);
 
     if ( !msh && !MMGS_saveSol(mesh,met,met->nameout) )
-      _MMGS_RETURN_AND_FREE(mesh,met,MMG5_STRONGFAILURE);
+      MMGS_RETURN_AND_FREE(mesh,met,MMG5_STRONGFAILURE);
 
     chrono(OFF,&MMG5_ctim[1]);
-    if ( mesh->info.imprim )  fprintf(stdout,"  -- WRITING COMPLETED\n");
+    if ( mesh->info.imprim > 0 )  fprintf(stdout,"  -- WRITING COMPLETED\n");
   }
 
   /* release memory */
   /* free mem */
-  _MMGS_RETURN_AND_FREE(mesh,met,ier);
+  MMGS_RETURN_AND_FREE(mesh,met,ier);
 
-  return(0);
+  return 0;
 }

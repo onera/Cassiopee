@@ -1,7 +1,7 @@
 /* =============================================================================
 **  This file is part of the mmg software package for the tetrahedral
 **  mesh modification.
-**  Copyright (c) Bx INP/Inria/UBordeaux/UPMC, 2004- .
+**  Copyright (c) Bx INP/CNRS/Inria/UBordeaux/UPMC, 2004-
 **
 **  mmg is free software: you can redistribute it and/or modify it
 **  under the terms of the GNU Lesser General Public License as published
@@ -41,12 +41,12 @@
  * Print help for common options of mmg3d and mmgs.
  *
  */
-void _MMG5_mmgUsage(char *prog) {
+void MMG5_mmgUsage(char *prog) {
   fprintf(stdout,"\nUsage: %s [-v [n]] [opts..] filein [fileout]\n",prog);
 
   fprintf(stdout,"\n** Generic options :\n");
   fprintf(stdout,"-h        Print this message\n");
-  fprintf(stdout,"-v [n]    Tune level of verbosity, [-10..10]\n");
+  fprintf(stdout,"-v [n]    Tune level of verbosity, [-1..10]\n");
   fprintf(stdout,"-m [n]    Set maximal memory size to n Mbytes\n");
   fprintf(stdout,"-d        Turn on debug mode\n");
   fprintf(stdout,"-val      Print the default parameters values\n");
@@ -63,6 +63,7 @@ void _MMG5_mmgUsage(char *prog) {
   fprintf(stdout,"-nr          no angle detection\n");
   fprintf(stdout,"-hmin   val  minimal mesh size\n");
   fprintf(stdout,"-hmax   val  maximal mesh size\n");
+  fprintf(stdout,"-hsiz   val  constant mesh size\n");
   fprintf(stdout,"-hausd  val  control Hausdorff distance\n");
   fprintf(stdout,"-hgrad  val  control gradation\n");
   fprintf(stdout,"-ls     val  create mesh of isovalue val (0 if no argument provided)\n");
@@ -76,30 +77,21 @@ void _MMG5_mmgUsage(char *prog) {
  * Print the default parameters values.
  *
  */
-void _MMG5_mmgDefaultValues(MMG5_pMesh mesh) {
-  long long memMax;
+void MMG5_mmgDefaultValues(MMG5_pMesh mesh) {
 
   fprintf(stdout,"\nDefault parameters values:\n");
 
   fprintf(stdout,"\n** Generic options :\n");
   fprintf(stdout,"verbosity                 (-v)      : %d\n",
           mesh->info.imprim);
-  memMax = _MMG5_memSize();
-  if ( memMax )
-    /* maximal memory = 50% of total physical memory */
-    memMax = memMax*50/104857600L;
-  else {
-    /* default value = 800 Mo */
-    memMax = _MMG5_MEMMAX;
-  }
-  fprintf(stdout,"maximal memory size       (-m)      : %ld MBytes\n",
-          _MMG5_safeLL2LCast(memMax));
+  fprintf(stdout,"maximal memory size       (-m)      : %zu MB\n",
+          mesh->memMax/MMG5_MILLION);
 
 
   fprintf(stdout,"\n**  Parameters\n");
   fprintf(stdout,"angle detection           (-ar)     : %lf\n",
           180/M_PI*acos(mesh->info.dhd) );
-  fprintf(stdout,"minimal mesh size         (-hmin)   : 0.01 of "
+  fprintf(stdout,"minimal mesh size         (-hmin)   : 0.001 of "
           "the mesh bounding box if no metric is provided, 0.1 times the "
           "minimum of the metric sizes otherwise.\n");
   fprintf(stdout,"maximal mesh size         (-hmax)   : size of "
@@ -122,21 +114,20 @@ void _MMG5_mmgDefaultValues(MMG5_pMesh mesh) {
  *
  */
 inline
-int _MMG5_countLocalParamAtTri( MMG5_pMesh mesh,_MMG5_iNode **bdryRefs) {
+int MMG5_countLocalParamAtTri( MMG5_pMesh mesh,MMG5_iNode **bdryRefs) {
   int         npar,k,ier;
 
   /** Count the number of different boundary references and list it */
   (*bdryRefs) = NULL;
-  npar = 0;
 
   k = mesh->nt? mesh->tria[1].ref : 0;
 
   /* Try to alloc the first node */
-  ier = _MMG5_Add_inode( mesh, bdryRefs, k );
+  ier = MMG5_Add_inode( mesh, bdryRefs, k );
   if ( ier < 0 ) {
-    fprintf(stderr,"  ## Error: unable to allocate the first boundary"
-           " reference node.\n");
-    return(0);
+    fprintf(stderr,"\n  ## Error: %s: unable to allocate the first boundary"
+           " reference node.\n",__func__);
+    return 0;
   }
   else {
     assert(ier);
@@ -144,17 +135,17 @@ int _MMG5_countLocalParamAtTri( MMG5_pMesh mesh,_MMG5_iNode **bdryRefs) {
   }
 
   for ( k=1; k<=mesh->nt; ++k ) {
-    ier = _MMG5_Add_inode( mesh, bdryRefs, mesh->tria[k].ref );
+    ier = MMG5_Add_inode( mesh, bdryRefs, mesh->tria[k].ref );
 
     if ( ier < 0 ) {
-      printf("  ## Warning: unable to list the tria references.\n"
-             "              Uncomplete parameters file.\n" );
+      printf("  ## Warning: %s: unable to list the tria references."
+             " Uncomplete parameters file.\n",__func__ );
       break;
     }
     else if ( ier ) ++npar;
   }
 
-  return(npar);
+  return npar;
 }
 
 /**
@@ -168,9 +159,9 @@ int _MMG5_countLocalParamAtTri( MMG5_pMesh mesh,_MMG5_iNode **bdryRefs) {
  *
  */
 inline
-int _MMG5_writeLocalParamAtTri( MMG5_pMesh mesh, _MMG5_iNode *bdryRefs,
+int MMG5_writeLocalParamAtTri( MMG5_pMesh mesh, MMG5_iNode *bdryRefs,
                                 FILE *out ) {
-  _MMG5_iNode *cur;
+  MMG5_iNode *cur;
 
   cur = bdryRefs;
   while( cur ) {
@@ -179,7 +170,31 @@ int _MMG5_writeLocalParamAtTri( MMG5_pMesh mesh, _MMG5_iNode *bdryRefs,
     cur = cur->nxt;
   }
 
-  _MMG5_Free_ilinkedList(mesh,bdryRefs);
+  MMG5_Free_ilinkedList(mesh,bdryRefs);
 
-  return(1);
+  return 1;
+}
+
+/**
+ * \param mesh pointer toward the mesh structure.
+ * \param mesh pointer toward the msh value.
+ *
+ * Update the msh value if we detect that the user want to force output at Gmsh
+ * or Medit format.
+ *
+ */
+void MMG5_chooseOutputFormat(MMG5_pMesh mesh, int *msh) {
+  int len;
+
+  len = strlen(mesh->nameout);
+
+  if ( ( len>4 && !strcmp(&mesh->nameout[len-5],".mesh") ) ||
+       ( len>5 && !strcmp(&mesh->nameout[len-6],".meshb") ) )
+    *msh = 0;
+  else if ( ( len>3 && !strcmp(&mesh->nameout[len-4],".msh") ) ||
+            ( len>4 && !strcmp(&mesh->nameout[len-5],".mshb") ))
+    *msh = 1;
+  else
+    *msh = 0;
+
 }

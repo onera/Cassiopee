@@ -1,7 +1,7 @@
 /* =============================================================================
 **  This file is part of the mmg software package for the tetrahedral
 **  mesh modification.
-**  Copyright (c) Bx INP/CNRS/Inria/UBordeaux/UPMC, 2004-
+**  Copyright (c) Bx INP/Inria/UBordeaux/UPMC, 2004- .
 **
 **  mmg is free software: you can redistribute it and/or modify it
 **  under the terms of the GNU Lesser General Public License as published
@@ -21,37 +21,17 @@
 ** =============================================================================
 */
 
-/**
- * \file mmgs/libmmgsf.c
- * \brief Fortran API functions for MMGS library.
- * \author Charles Dapogny (UPMC)
- * \author Cécile Dobrzynski (Bx INP/Inria/UBordeaux)
- * \author Pascal Frey (UPMC)
- * \author Algiane Froehly (Inria/UBordeaux)
- * \version 5
- * \date 01 2014
- * \copyright GNU Lesser General Public License.
- * \note Please, refer to the \ref mmgs/libmmgs.h file for functions
- * documentation.
- *
- * Define the private Fortran API functions for MMGS library
- * (incompatible functions with the main binary): adds function
- * definitions with upcase, underscore and double underscore to match
- * any fortran compiler.
- *
- */
-
-#include "libmmgs.h"
 #include "mmgcommon.h"
 
-/**
- * See \ref MMGS_mmgslib function in \ref mmgs/libmmgs.h file.
- */
-FORTRAN_NAME(MMGS_MMGSLIB,mmgs_mmgslib,(MMG5_pMesh *mesh,MMG5_pSol *met,
-                                        int* retval),
-             (mesh,met,retval)){
 
-  *retval = MMGS_mmgslib(*mesh,*met);
-
-  return;
-}
+int  (*MMG5_chkmsh)(MMG5_pMesh,int,int)=NULL;
+int  (*MMG5_bezierCP)(MMG5_pMesh ,MMG5_Tria *,MMG5_pBezier ,char )=NULL;
+double (*MMG5_lenSurfEdg)(MMG5_pMesh mesh,MMG5_pSol sol ,int ,int, char )=NULL;
+int  (*MMG5_indElt)(MMG5_pMesh mesh,int kel)=NULL;
+int  (*MMG5_indPt)(MMG5_pMesh mesh,int kp)=NULL;
+int  (*MMG5_grad2met_ani)(MMG5_pMesh,MMG5_pSol,MMG5_pTria,int,int)=NULL;
+int  (*MMG5_grad2metreq_ani)(MMG5_pMesh,MMG5_pSol,MMG5_pTria,int,int)=NULL;
+int    (*MMG5_compute_meanMetricAtMarkedPoints)( MMG5_pMesh,MMG5_pSol)=NULL;
+#ifdef USE_SCOTCH
+int  (*MMG5_renumbering)(int vertBoxNbr, MMG5_pMesh mesh, MMG5_pSol sol)=NULL;
+#endif
