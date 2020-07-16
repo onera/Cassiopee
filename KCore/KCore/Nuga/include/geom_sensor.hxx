@@ -115,7 +115,6 @@ E_Int geom_sensor<mesh_t>::assign_data(sensor_input_t& data)
 template <typename mesh_t>
 void geom_sensor<mesh_t>::fill_adap_incr(sensor_output_t& adap_incr, bool do_agglo)
 {
-  _cur_nphs = parent_t::_hmesh._ng.PHs.size();
   E_Int nb_faces = parent_t::_hmesh._ng.PGs.size();
   E_Int nb_pts = _points_to_cell.size();
 
@@ -335,6 +334,9 @@ bool geom_sensor<mesh_t>::update()
 template <typename mesh_t>
 bool geom_sensor<mesh_t>::stop()
 {
+  //the following must be done here because this has to be refreshed at each iter to be sync for sensor.update
+  _cur_nphs = parent_t::_hmesh._ng.PHs.size();
+
 #ifdef FLAG_STEP
   std::cout << "iter : " << _iter << ". nb of PHs : " << parent_t::_hmesh._ng.PHs.size() << std::endl;
 #endif
