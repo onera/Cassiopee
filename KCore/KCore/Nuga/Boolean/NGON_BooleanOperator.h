@@ -316,6 +316,8 @@ private:
   E_Int faultyId = 86644;
 #endif
 
+      assert(_zones.empty() || (_zones.size() == PH_to_PGT3s.size()));
+
       E_Int aphi = 0;
       for (it = PH_to_PGT3s.begin(); it != PH_to_PGT3s.end(); ++it, ++aphi)
       {
@@ -444,7 +446,8 @@ private:
 #endif
           molec_ph.push_front(molec_ph.size());// this is now a real PH molecule.
           phs.add(molec_ph);
-          phs._type.push_back(skin_ph ? INITIAL_SKIN : INNER);
+          
+          if (mesh_oper == 0) phs._type.push_back((E_Int)_zones[aphi]);
 
           if (_anc_PH_for_PHT3s[mesh_oper].cols())
           {
@@ -469,6 +472,8 @@ private:
 
       ngout.PGs = pgs;
       ngout.PHs = phs;
+
+      _zones.clear(); //info is now stored directly in PHs._type
 
 #ifdef FLAG_STEP
       std::cout << "NGON Boolean : __aggregate_PHs : " << c.elapsed() << std::endl;
@@ -1853,11 +1858,14 @@ NGON_BOOLEAN_CLASS::__get_working_PGs
 #endif
   
   //Externality : MUST BE PRECEEDED BY close_phs IN CASE OF OCTREES
-  wNG1.flag_externals(INITIAL_SKIN);
-  wNG2.flag_externals(INITIAL_SKIN);
   eRetCode err = __reorient_externals(XPol, wNG1, wNG2);
   if (err)
     return err;
+
+#ifdef FLAG_STEP
+  if (chrono::verbose >0) std::cout << "__get_working_PGs : __reorient_externals : " << c.elapsed() << std::endl;
+  c.start();
+#endif
   
 #ifdef DEBUG_BOOLEAN
     //extract_pgs_of_type(INITIAL_SKIN, "iwalls", wNG2, _crd2);
@@ -1878,6 +1886,11 @@ NGON_BOOLEAN_CLASS::__get_working_PGs
     wNG2.build_ph_neighborhood(neighbors);
     wNG2.build_F2E(neighbors, F2E2);
   }
+
+#ifdef FLAG_STEP
+    if (chrono::verbose >0) std::cout << "__get_working_PGs : build_F2Es : " << c.elapsed() << std::endl;
+  c.start();
+#endif
 
   // Add ghost cells for prioritized overlapping PGs
   // fixme : HACK _pglist2 is used both for body walls (BdnWall) and here to extrude ghost cells on BndUser
@@ -1917,9 +1930,7 @@ NGON_BOOLEAN_CLASS::__get_working_PGs
     std::cout << "GHOST creation : " << std::endl;
     nb_ghost(wNG2);
 #endif  
-    //has_ghosts = true;
-    wNG1.flag_externals(INITIAL_SKIN); // do it again to reflect ghost presence
-    wNG2.flag_externals(INITIAL_SKIN);
+
     eRetCode er = __reorient_externals(XPol, wNG1, wNG2);
     if (er)
       return er;
@@ -2470,6 +2481,8 @@ NGON_BOOLEAN_CLASS::__compute()
 #endif
   
   // Aggregate the soft bits
+  _ng1.PHs._type.clear();
+  _ng1.PHs._type.resize(_ng1.PHs.size(), (E_Int)Z_NONE);
   _ngXs.append(_ng1);//tocheck : append to ngX to avoid to have to modify _zones. but might be more efficient to append the smaller to the bigger..
   _ng1.clear();
 
@@ -3185,6 +3198,9 @@ TEMPLATE_COORD_CONNECT
 typename NGON_BOOLEAN_CLASS::eRetCode
 NGON_BOOLEAN_CLASS::__reorient_externals(eInterPolicy XPol, ngon_type& wNG1, ngon_type& wNG2)
 {
+  wNG1.flag_externals(INITIAL_SKIN);
+  wNG2.flag_externals(INITIAL_SKIN);
+
   DELAUNAY::Triangulator dt;
   if (XPol == BOTH_SURFACE)
   {
@@ -4588,6 +4604,8 @@ TEMPLATE_COORD_CONNECT
 E_Int NGON_BOOLEAN_CLASS::__classify_soft()
 {
   E_Int err(0);
+
+  assert (_ngXs.PHs._type.size() == _ngXs.PHs.size()); // _type must contain zone info for each PH
   
 #ifdef FLAG_STEP
   chrono c;
@@ -4683,46 +4701,29 @@ E_Int NGON_BOOLEAN_CLASS::__classify_soft()
   if (colmax == 1) // special case : when a single zone unset : correspond to 2 meshes of a same domain
   {
     bool zone_is_unset=true;
-    size_t sz = _zones.size();
-    //size_t sz1 = _ngXs.PHs.size();
+    size_t sz = _ngXs.PHs.size();
     for (size_t i=0; (i < sz) && zone_is_unset; ++i)
-      zone_is_unset = (_zones[i] == Z_NONE);
+      zone_is_unset = (_ngXs.PHs._type[i] == Z_NONE);
     
     if (zone_is_unset)
     {
-      _zones.clear();
-      _zones.resize(sz, Z_IN);
+      //_zones.clear();
+      //_zones.resize(sz, Z_IN);
       return OK;
     }
   }
-  
-#ifdef DEBUG_BOOLEAN
-#ifdef DEBUG_ALG
-/*
-{
-  std::vector<bool> keep(_ngXs.PHs.size(), false);
-  std::cout << K_CONNECT::EltAlgo<K_MESH::Triangle>::_pool.size() << std::endl;
-  for (std::set<E_Int>::const_iterator i=K_CONNECT::EltAlgo<K_MESH::Triangle>::_pool.begin(); i!=K_CONNECT::EltAlgo<K_MESH::Triangle>::_pool.end(); ++i)
-  {if (*i == 1213)keep[*i]=true;std::cout << *i << std::endl;}
-  medith::write("toto", ACoordinate_t(_coord), _ngXs, &keep);
-}
-*/
-#endif
-#endif
-
   
 #ifdef DEBUG_BOOLEAN
   std::vector<E_Int> toprocess;
 #endif
   
   //Interpret colors as zones
-  assert (colors.size() >= _zones.size());
-  Vector_t<eZone> col_to_z(colmax, Z_NONE);
-  for (size_t i=0; i < _zones.size(); ++i)
+  Vector_t<E_Int> col_to_z(colmax, (E_Int)Z_NONE);
+  for (size_t i=0; i < _ngXs.PHs.size(); ++i)
   {
-    const eZone& zi = _zones[i];
+    const E_Int& zi = _ngXs.PHs._type[i];
     
-    if (zi == Z_NONE)
+    if (zi == (E_Int)Z_NONE)
       continue;
     
     if (_Op == DIFF && zi != Z_1) //fixme : hack filter to boost : no necessary to retriev all the zones when diffsurf. similar thing should be done for all the other cases.
@@ -4731,7 +4732,7 @@ E_Int NGON_BOOLEAN_CLASS::__classify_soft()
     const E_Int& ci = colors[i];
     //eZone& ctzi = col_to_z[ci];
 
-    if (col_to_z[ci] != Z_NONE)
+    if (col_to_z[ci] != (E_Int)Z_NONE)
     {
 #ifdef DEBUG_BOOLEAN
       if (col_to_z[ci] != zi)
@@ -4753,11 +4754,11 @@ E_Int NGON_BOOLEAN_CLASS::__classify_soft()
 #endif
   
   // Now update missing zones (Z_NONE)
-  _zones.resize(_ngXs.PHs.size(), Z_NONE);
-  for (size_t i=0; i < _zones.size(); ++i)
+  
+  for (size_t i=0; i < _ngXs.PHs.size(); ++i)
   {
-    if (_zones[i] == Z_NONE)
-      _zones[i]=col_to_z[colors[i]];
+    if (_ngXs.PHs._type[i] == (E_Int)Z_NONE)
+      _ngXs.PHs._type[i] = col_to_z[colors[i]];
     
 #ifdef DEBUG_BOOLEAN
     /*if (_XPol != SURFACE_RIGHT || _Op != DIFF) //fixme : due to previous filter
@@ -4772,11 +4773,11 @@ E_Int NGON_BOOLEAN_CLASS::__classify_soft()
   //WARNING : _ng1 and/or _ng2 must have been cleared properly before the following. 
   for (E_Int i=0; i < colmax; ++i)
   {
-    eZone Zi = col_to_z[i];
+    E_Int Zi = col_to_z[i];
     if (_XPol == SURFACE_RIGHT && _Op == DIFF && Zi != Z_1)
       continue;
     
-    for (size_t j=0; j < colors.size(); ++j) flag[j]=(_zones[j]==Zi);
+    for (size_t j=0; j < colors.size(); ++j) flag[j]=(ngcpy.PHs._type[j]==Zi);
     
     switch (Zi)
     {

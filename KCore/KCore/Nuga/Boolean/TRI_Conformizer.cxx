@@ -49,6 +49,10 @@ static bool xtest=false;
 #include "Nuga/include/medit.hxx"
 #endif
 
+#ifdef FLAG_STEP
+#include "chrono.h"
+#endif
+
 #define OLD_STYLE
 
 namespace NUGA

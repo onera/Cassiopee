@@ -343,23 +343,41 @@ public:
     DELAUNAY::Triangulator dt;
     std::vector<E_Int> Tcolors;
 
-    bool pureBasic = true;
+    E_Int pureBasic = 0;
 
     if (toprocess)
     {
-      for (E_Int i = 0; i < toprocess->size() && pureBasic; ++i)
+      for (E_Int i = 0; i < toprocess->size(); ++i)
       {
         E_Int PGi = (*toprocess)[i] - idx_start;
         E_Int str = pgs.stride(PGi);
-        pureBasic &= (str == 4) || (str == 3);
+        if (pureBasic == 0)
+        {
+          if (str != 3 && str != 4) break;
+          pureBasic = str;
+        }
+        else if (pureBasic != str)
+        {
+          pureBasic = 0;
+          break;
+        }
       }
     }
     else
     {
-      for (E_Int i = 0; i < pgs.size() && pureBasic; ++i)
+      for (E_Int i = 0; i < pgs.size(); ++i)
       {
         E_Int str = pgs.stride(i);
-        pureBasic &= (str == 4) || (str == 3);
+        if (pureBasic == 0)
+        {
+          if (str != 3 && str != 4) break;
+          pureBasic = str;
+        }
+        else if (pureBasic != str)
+        {
+          pureBasic = 0;
+          break;
+        }
       }
     }
 

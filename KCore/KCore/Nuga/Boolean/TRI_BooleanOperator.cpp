@@ -25,7 +25,7 @@
 #include "Connect/ContourSplitter.h"
 #include "Search/BbTree.h"
 
-#ifdef DEBUG_BOOLEAN
+#ifdef DEBUG_TRI_BOOLEAN
 #include "IO/io.h"
 #include <sstream>
 #include <iostream>
@@ -790,7 +790,7 @@ TRI_BooleanOperator::isClosed(const K_FLD::FloatArray& coord, const K_FLD::IntAr
       is_not_close = true;
     }
   }
-#ifdef DEBUG_BOOLEAN
+#ifdef DEBUG_TRI_BOOLEAN
   if (is_not_close)
   {
     static int s_file_count = 0;

@@ -28,6 +28,10 @@
 
 using namespace K_SEARCH;
 
+#ifdef FLAG_STEP
+#include "chrono.h"
+#endif
+
 namespace NUGA
 {
 

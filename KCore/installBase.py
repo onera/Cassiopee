@@ -63,6 +63,20 @@ False, # CPlotOffScreen
 ['c:/msys64/mingw64/lib', 'c:/Program Files (x86)/Microsoft SDKs/MPI/Lib/x64'] # additionalLibPaths
 ],
 ###############################################################################
+'WDAAA878Z': [ 'Windows win64+msys2 (SL-Onera)',
+'gfortran', # f77compiler
+'gfortran', # f90compiler
+'gcc', # Cppcompiler
+['-Wno-attributes', '-fcommon'], # CppAdditionalOptions
+[], # f77AdditionalOptions
+False, # useOMP
+False, # static
+False, # CPlotOffScreen
+['c:/msys64/mingw64/include', 'c:/msys64/mingw64/include/OpenBLAS'], # additionalIncludePaths
+['gomp', 'gfortran'], # additionalLibs
+['c:/msys64/mingw64/lib'] # additionalLibPaths
+],
+###############################################################################
 'node6.cluster': [ 'MacOSX (generic)',
 'ifort', # f77compiler
 'ifort', # f90compiler

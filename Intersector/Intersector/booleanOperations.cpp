@@ -21,6 +21,7 @@
 //#define FLAG_STEP
 //#define DEBUG_W_PYTHON_LAYER
 //#define DEBUG_MESHER
+//#define DEBUG_BOOLEAN
 
 # include <string>
 # include <sstream> 
@@ -38,6 +39,9 @@ E_Int chrono::verbose=1;
 #endif
 #if defined(DEBUG_TRIANGULATOR)
       bool DELAUNAY::Triangulator::dbg_enabled = false;
+#endif
+#ifdef DEBUG_BOOLEAN
+      std::string medith::wdir = "./";
 #endif
 
 //=============================================================================
