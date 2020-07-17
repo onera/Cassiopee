@@ -840,8 +840,8 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
       {
 
 	//cout << "autorisation_transferts= " << autorisation_transferts[pass_inst][irac] << endl;
-
-	if (autorisation_transferts[pass_inst][irac]==1)
+        E_Int irac_auto= irac-irac_deb;
+	if (autorisation_transferts[pass_inst][irac_auto]==1)
 	  
 	{
 

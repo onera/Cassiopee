@@ -69,6 +69,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
               ordered_subRegions.append(s)
               No_zoneD.append(c)
               MeshTypeD.append(meshtype)
+              #print('RANk=',rank, 'NODonneuse=', c, s[0], z[0])
          else:
             numero_iter = int( s[0].split('#')[1].split('_')[0] )
             if numero_iter < numero_min : numero_min = numero_iter
@@ -188,6 +189,9 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
                 sizeType[pos] = sizeType[pos]  + Nbpts_D                 + nbTypeSize+1
 
       c += 1
+
+    #for pos in range(len(rac)):
+    #   print('RAC=', rac[pos], 'racInst', rac_inst[pos], pos,'rank=', rank, 'dest=',listproc[pos])
 
     base     = Internal.getNodeFromType1(tc, 'CGNSBase_t')  # noeud
     model    = 'NSLaminar'
@@ -378,7 +382,15 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
        nrac_inst_deb  =  nrac_steady
        for i in range(TimeLevelNumber):
             # len(inst[i][0])  = nb de raccord instationnaire pour le temps i
-            nrac_inst_fin  = nrac_inst_deb + len(inst[i+numero_min][0])
+            # len(inst[i][3])  = list destination du rac pour le temps i
+            NracInsta=0
+            for procSearch in inst[i+numero_min][3]:
+                if procSearch==proc: NracInsta+=1
+               
+            #nrac_inst_fin  = nrac_inst_deb + len(inst[i+numero_min][0])
+            nrac_inst_fin  = nrac_inst_deb + NracInsta
+
+            #print('NracInsta=',NracInsta,'TimeLevel=',i, 'dest=',proc)
 
             param_int[ pt_ech +4 + i                  ] = nrac_inst_deb
             param_int[ pt_ech +4 + i + TimeLevelNumber] = nrac_inst_fin
@@ -601,7 +613,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None):
        else:
          param_int[ iadr +rac[pos]*11  ]= procList[proc].index( zRname )  # No zone raccord
 
-       #print 'rac', s[0], 'zoneR=', zRname, param_int[ iadr +rac[pos]*11 ], 'NozoneD=', zones_tc[No_zoneD[c]][0]
+       #print( 'rac', s[0], 'zoneR=', zRname, 'NoR=', param_int[ iadr +rac[pos]*11 ],  'adr=',iadr +rac[pos]*11, 'NoD=',  param_int[ iadr-1 +rac[pos]*5 ], 'adr=',iadr-1 +rac[pos]*5,'rank=', rank, 'dest=', proc)
 
        # ATTENTION STEPHANIE A TOUT COMMENTE
        #a = Internal.getNodeFromName2(zones_tc[ param_int[ iadr +rac[pos]*11  ]  ], 'GoverningEquations')
