@@ -238,7 +238,7 @@ public:
   {
     for (E_Int n = 0; n < nb_nodes; ++n)
     {
-      std::cout << *(nodes+n) << std::endl;
+      //std::cout << *(nodes+n) << std::endl;
       if (*(nodes+n) == Ni) return n;
     }
     assert (false);// should never get here.
@@ -294,7 +294,8 @@ public:
     E_Float tol, E_Bool tol_is_absolute, E_Float& u0, E_Float& u1, E_Bool& overlap);
 
   static void sync_join(const K_FLD::FloatArray&crd1, const E_Int* nodes1, E_Int idx_strt1, const K_FLD::FloatArray&crd2, E_Int* nodes2, E_Int idx_strt2, E_Int nb_nodes, bool do_reverse = false);
-  
+  static void shift_geom(const K_FLD::FloatArray&crd, E_Int* nodes, E_Int nnodes, E_Int idx_strt);
+
 private: 
   Polygon(const Polygon& orig);
  
@@ -851,6 +852,86 @@ inline void Polygon::sync_join(const K_FLD::FloatArray&crd1, const E_Int* nodes1
 
   K_CONNECT::IdTool::right_shift(nodes2, nb_nodes, i0);
 
+}
+
+inline void Polygon::shift_geom(const K_FLD::FloatArray&crd, E_Int* nodes, E_Int nnodes, E_Int idx_strt)
+{
+  using palma_t = std::vector<std::pair<E_Float, E_Int>>;
+
+  std::vector<E_Int> cands;
+  K_CONNECT::IdTool::init_inc(cands, nnodes);
+
+  palma_t palma;
+  palma.reserve(nnodes);
+
+  // check min X
+  for (E_Int i = 0; i < nnodes; ++i)
+    palma.push_back(std::make_pair(crd(0, nodes[i] - idx_strt), i));
+
+  std::sort(ALL(palma));
+
+  if (palma[0].first < palma[1].first - ZERO_M)
+  {
+    K_CONNECT::IdTool::right_shift(nodes, nnodes, palma[0].second);
+    return;
+  }
+
+  if (palma[1].first < palma[2].first - ZERO_M)      // keep first 2
+  {
+    cands[0] = palma[0].second;
+    cands[1] = palma[1].second;
+    cands.resize(2);
+  }
+  else if (palma[2].first < palma[3].first - ZERO_M) // keep first 3
+  { 
+    cands[0] = palma[0].second;
+    cands[1] = palma[1].second;
+    cands[2] = palma[2].second;
+    cands.resize(3);
+  }
+
+  // else check min Y on remaining candidates
+
+  palma.clear();
+  for (E_Int i = 0; i < cands.size(); ++i)
+    palma.push_back(std::make_pair(crd(1, nodes[cands[i]] - idx_strt), i));
+
+  std::sort(ALL(palma));
+
+  if (palma[0].first < palma[1].first - ZERO_M)
+  {
+    E_Int locid = cands[palma[0].second];
+    K_CONNECT::IdTool::right_shift(nodes, nnodes, locid);
+    return;
+  }
+
+  if ((cands.size() > 2) && (palma[1].first < palma[2].first - ZERO_M))      // keep first 2
+  {
+    cands[0] = palma[0].second;
+    cands[1] = palma[1].second;
+    cands.resize(2);
+  }
+  else if ((cands.size() > 3) && (palma[2].first < palma[3].first - ZERO_M)) // keep first 3
+  {
+    cands[0] = palma[0].second;
+    cands[1] = palma[1].second;
+    cands[2] = palma[2].second;
+    cands.resize(3);
+  }
+
+  // else check min Z
+
+  palma.clear();
+  for (E_Int i = 0; i < cands.size(); ++i)
+    palma.push_back(std::make_pair(crd(2, nodes[cands[i]] - idx_strt), i));
+
+  std::sort(ALL(palma));
+
+  assert(palma[0].first < palma[1].first - ZERO_M);
+
+  E_Int locid = cands[palma[0].second];
+  K_CONNECT::IdTool::right_shift(nodes, nnodes, locid);
+  return;
 }
 
 }

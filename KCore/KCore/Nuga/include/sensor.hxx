@@ -25,18 +25,20 @@ template <typename mesh_t, typename sensor_input_t>
 class sensor
 {
   public:
-    using sensor_output_t = typename sensor_output_data<mesh_t::SUBTYPE>::type;
+    using output_t = typename sensor_output_data<mesh_t::SUBTYPE>::type;
 
   public:
     sensor(mesh_t& mesh, smoother<mesh_t>* smoother) :_hmesh(mesh), _smoother(smoother) {};
     
     virtual E_Int assign_data(sensor_input_t& data) { _data = data; return 0; }
     
-    bool compute(sensor_output_t& adap_incr, bool do_agglo);
+    bool compute(output_t& adap_incr, bool do_agglo);
 
     const smoother<mesh_t>* get_smoother() { return _smoother; }
 
-    virtual void fill_adap_incr(sensor_output_t& adap_incr, bool do_agglo) = 0;
+    const mesh_t& get_hmesh() { return _hmesh; }
+
+    virtual void fill_adap_incr(output_t& adap_incr, bool do_agglo) = 0;
   
     virtual bool update() { return false; };
 
@@ -122,7 +124,7 @@ static void fix_adap_incr(mesh_t& hmesh, dir_incr_type& adap_incr)
 
 /// 
 template <typename mesh_t, typename sensor_input_t>
-bool sensor<mesh_t, sensor_input_t>::compute(sensor_output_t& adap_incr, bool do_agglo)
+bool sensor<mesh_t, sensor_input_t>::compute(output_t& adap_incr, bool do_agglo)
 {
   if (this->stop()) return false; // e.g. itermax is reached for geom_sensor
 

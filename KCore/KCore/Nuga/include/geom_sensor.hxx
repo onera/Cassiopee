@@ -40,7 +40,7 @@ class geom_sensor : public sensor<mesh_t, crd_t>
 
     using sensor_input_t = crd_t;
     using parent_t = sensor<mesh_t, crd_t>;
-    using sensor_output_t   = typename mesh_t::sensor_output_t;
+    using output_t   = typename mesh_t::output_t;
  
     using BbTree3D_type = typename K_SEARCH::BbTree3D;
     
@@ -59,7 +59,7 @@ class geom_sensor : public sensor<mesh_t, crd_t>
     
     virtual E_Int assign_data(sensor_input_t& data) override;
 
-    void fill_adap_incr(sensor_output_t& adap_incr, bool do_agglo) override;
+    void fill_adap_incr(output_t& adap_incr, bool do_agglo) override;
 
     bool update() override;
 
@@ -113,7 +113,7 @@ E_Int geom_sensor<mesh_t>::assign_data(sensor_input_t& data)
 
 ///
 template <typename mesh_t>
-void geom_sensor<mesh_t>::fill_adap_incr(sensor_output_t& adap_incr, bool do_agglo)
+void geom_sensor<mesh_t>::fill_adap_incr(output_t& adap_incr, bool do_agglo)
 {
   E_Int nb_faces = parent_t::_hmesh._ng.PGs.size();
   E_Int nb_pts = _points_to_cell.size();

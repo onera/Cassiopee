@@ -47,7 +47,7 @@ class hierarchical_mesh
     using elt_t = ELT_t;
     using subdiv_t = subdiv_pol<ELT_t, STYPE>;
     using arr_t = typename subdiv_t::arr_t; //ngon_unit (general case) or IntArray (fixed nb of children : e.g. all basic -except pyra- in ISO)
-    using sensor_output_t = typename sensor_output_data<STYPE>::type;
+    using output_t = typename sensor_output_data<STYPE>::type;
     using tree_t = tree<arr_t>;
 
     static constexpr  eSUBDIV_TYPE SUBTYPE = STYPE;
@@ -81,15 +81,21 @@ class hierarchical_mesh
     }*/
 
     ///
-    E_Int adapt(sensor_output_t& adap_incr, bool do_agglo);
+    E_Int adapt(output_t& adap_incr, bool do_agglo);
   
     /// face-conformity
     void conformize(ngo_t& ngo, Vector_t<E_Int>& pgoids) const;
     /// Keep only enabled PHs
-    void extract_enabled(ngon_type& filtered_ng) const ;
+    void extract_enabled_phs(ngon_type& filtered_ng) const ;
+    ///
+    void extract_enabled_pgs_descendance(E_Int PGi, bool reverse, std::vector<E_Int>& pointlist);
+    ///
+    void __extract_enabled_pgs_descendance(E_Int PGi, NUGA::reordering_func F, bool reverse, std::vector<E_Int>& pointlist);
     ///
     //void extract_plan(E_Int PGi, bool reverse, E_Int i0, std::vector<E_Int>& plan);
     void extract_plan(E_Int PGi, bool reverse, E_Int i0, K_FLD::IntArray& plan) const;
+    ///
+    void extract_join_plans(E_Int zid, std::map<E_Int, K_FLD::IntArray>& plans, E_Int idx_start) const;
     ///
     void get_cell_center(E_Int PHi, E_Float* center) const ;
     ///
@@ -220,7 +226,7 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::init()
 #endif
 
 template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t>
-E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::adapt(sensor_output_t& adap_incr, bool do_agglo)
+E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::adapt(output_t& adap_incr, bool do_agglo)
 {
   E_Int err(0);
 
@@ -289,23 +295,13 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::adapt(sensor_output_t& adap_incr, 
     
 #ifdef OUTPUT_ITER_MESH
     ngon_type filtered_ng;
-    extract_enabled(filtered_ng);
+    extract_enabled_phs(filtered_ng);
 
     std::ostringstream o;
-    
-    
+ 
 #if defined (VISUAL) || defined(NETBEANSZ)
     o << "NGON_it_" << iter; // we create a file at each iteration
     medith::write(o.str().c_str(), _crd, filtered_ng);
-    if (iter == 5)
-    {
-      for (size_t k = 0; k < _ng.PHs.size(); ++k)
-      {
-        std::ostringstream o;
-        o << "h_" << k;
-        medith::write(o.str().c_str(), _crd, _ng, k);
-      }
-    }
 #else
     o << "NGON_it_" << iter << ".plt"; // we create a file at each iteration
     K_FLD::IntArray cnto;
@@ -426,7 +422,7 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::__conformize_next_lvl(Vector_t<E_In
 
 ///
 template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t>
-void hierarchical_mesh<ELT_t, STYPE, ngo_t>::extract_enabled(ngon_type& filtered_ng) const
+void hierarchical_mesh<ELT_t, STYPE, ngo_t>::extract_enabled_phs(ngon_type& filtered_ng) const
 {
   filtered_ng.PGs = _ng.PGs;
         
@@ -448,6 +444,49 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::extract_enabled(ngon_type& filtered
     
   Vector_t<E_Int> pgnids, phnids;
   filtered_ng.remove_unreferenced_pgs(pgnids, phnids);
+}
+
+///
+template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t>
+void hierarchical_mesh<ELT_t, STYPE, ngo_t>::extract_enabled_pgs_descendance(E_Int PGi, bool reverse, std::vector<E_Int>& pointlist)
+{
+  reordering_func F;
+  if (_ng.PGs.stride(PGi) == 3)
+    F = subdiv_pol<K_MESH::Triangle, STYPE>::reorder_children;
+  else if (_ng.PGs.stride(PGi) == 4)
+    F = subdiv_pol<K_MESH::Quadrangle, STYPE>::reorder_children;
+  else
+  {
+    //fixme : not handled yet
+    return;
+  }
+
+  __extract_enabled_pgs_descendance(PGi, F, reverse, pointlist);
+}
+
+///
+template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t>
+void hierarchical_mesh<ELT_t, STYPE, ngo_t>::__extract_enabled_pgs_descendance(E_Int PGi, reordering_func F, bool reverse, std::vector<E_Int>& ptlist)
+{
+  //
+  E_Int nbc = _PGtree.nb_children(PGi);
+  if (nbc == 0) //leave
+  {
+    ptlist.push_back(PGi);
+    return;
+  }
+
+  const E_Int* pchild = _PGtree.children(PGi);
+
+  STACK_ARRAY(E_Int, nbc, children);
+  for (size_t i = 0; i < nbc; ++i) children[i] = pchild[i];
+
+  // to put in asked ref frame
+  F(children.get(), reverse, 0);// 0 because shift_geom must have been called
+
+  //
+  for (size_t i = 0; i < nbc; ++i)
+    __extract_enabled_pgs_descendance(children[i], F, reverse, ptlist);
 }
 
 ///

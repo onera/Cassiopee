@@ -21,8 +21,8 @@ namespace NUGA
 template <typename mesh_t>
 struct V1_smoother : public smoother<mesh_t>
 {
-  using sensor_output_t = typename sensor_output_data<mesh_t::SUBTYPE>::type;
-  using cell_adap_incr_t = typename sensor_output_t::cell_output_type;
+  using output_t = typename sensor_output_data<mesh_t::SUBTYPE>::type;
+  using cell_adap_incr_t = typename output_t::cell_output_type;
 
   V1_smoother() = default;
 

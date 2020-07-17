@@ -171,7 +171,7 @@ E_Int iodata::read(const char* filename, DELAUNAY::MeshData& data)
   std::vector<std::string>     words;
   std::ifstream                file (filename);
   std::set<std::string>        keys;
-  E_Int                        rows, cols;
+  E_Int                        rows{ 0 }, cols{ 0 };
   E_Float                      P[3];
   E_Int                        K[3], i;
 

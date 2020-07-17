@@ -84,7 +84,7 @@ template <typename ELT_t, eSUBDIV_TYPE STYPE>
 class refiner
 {
   public : 
-    using sensor_output_t = typename sensor_output_data<STYPE>::type;
+    using output_t = typename sensor_output_data<STYPE>::type;
 
   public:
     std::map<K_MESH::NO_Edge, E_Int> _ecenter;
@@ -93,18 +93,18 @@ class refiner
     
     // Generic wrapper for cells (calls relevant(s) refine_PGs)
     template <typename arr_t>
-    static void refine_Faces(const sensor_output_t &adap_incr, 
+    static void refine_Faces(const output_t &adap_incr, 
                            ngon_type& ng, tree<arr_t> & PGtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E,         
                            std::map<K_MESH::NO_Edge,E_Int>& ecenter);
 
     /// Generic wrapper for cells
     template <typename arr_t>
-    static void refine_PHs(const sensor_output_t &adap_incr, ngon_type& ng, tree<arr_t> & PGtree, tree<arr_t> & PHtree,
+    static void refine_PHs(const output_t &adap_incr, ngon_type& ng, tree<arr_t> & PGtree, tree<arr_t> & PHtree,
                            K_FLD::FloatArray& crd, K_FLD::IntArray & F2E);
 
     // T3/Q4/PG
     template <typename arr_t>
-    static void refine_PGs(const sensor_output_t &adap_incr,
+    static void refine_PGs(const output_t &adap_incr,
       ngon_type& ng, tree<arr_t> & PGtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E,
       std::map<K_MESH::NO_Edge, E_Int>& ecenter);
 
@@ -117,11 +117,11 @@ class refiner
     
     ///
     template <typename arr_t>
-    static void get_PGs_to_refine(const ngon_type& ng, const tree<arr_t> & PGtree, const sensor_output_t &adap_incr, Vector_t<E_Int> & PGlist);
+    static void get_PGs_to_refine(const ngon_type& ng, const tree<arr_t> & PGtree, const output_t &adap_incr, Vector_t<E_Int> & PGlist);
     ///
     ///
     template <typename arr_t>
-    static void get_PHs_to_refine(const ngon_type& ng, const tree<arr_t> & PHtree, const sensor_output_t &adap_incr, Vector_t<E_Int> & PHlist);
+    static void get_PHs_to_refine(const ngon_type& ng, const tree<arr_t> & PHtree, const output_t &adap_incr, Vector_t<E_Int> & PHlist);
     ///
     template <typename arr_t>
     static void reserve_mem_PGs(K_FLD::FloatArray& crd, ngon_unit& PGs, const Vector_t<E_Int>& PGlist, tree<arr_t> & PGtree, K_FLD::IntArray& F2E, std::vector<E_Int>& childpos);
@@ -142,7 +142,7 @@ class refiner
 template <typename ELT_t, eSUBDIV_TYPE STYPE>
 template <typename arr_t>
 void refiner<ELT_t, STYPE>::get_PGs_to_refine
-(const ngon_type& ng, const tree<arr_t> & PGtree, const sensor_output_t &adap_incr, Vector_t<E_Int> & PGlist)
+(const ngon_type& ng, const tree<arr_t> & PGtree, const output_t &adap_incr, Vector_t<E_Int> & PGlist)
 {
   E_Int nb_phs = ng.PHs.size();
   // Gets PGs to refine
@@ -193,7 +193,7 @@ void refiner<ELT_t, STYPE>::get_PGs_to_refine
 template <>
 template <typename arr_t>
 void refiner<K_MESH::Polygon, ISO_HEX>::get_PGs_to_refine
-(const ngon_type& ng, const tree<arr_t> & PGtree, const sensor_output_t &adap_incr, Vector_t<E_Int> & PGlist)
+(const ngon_type& ng, const tree<arr_t> & PGtree, const output_t &adap_incr, Vector_t<E_Int> & PGlist)
 {
   //todo JP
 }
@@ -203,7 +203,7 @@ void refiner<K_MESH::Polygon, ISO_HEX>::get_PGs_to_refine
 template <typename ELT_t, eSUBDIV_TYPE STYPE>
 template <typename arr_t>
 void refiner<ELT_t, STYPE>::get_PHs_to_refine
-(const ngon_type& ng, const tree<arr_t> & PHtree, const sensor_output_t &adap_incr, Vector_t<E_Int> & PHlist)
+(const ngon_type& ng, const tree<arr_t> & PHtree, const output_t &adap_incr, Vector_t<E_Int> & PHlist)
 {
   for (size_t i = 0; i < adap_incr.cell_adap_incr.size(); ++i)
     if (adap_incr.cell_adap_incr[i] > 0 && (PHtree.nb_children(i)==0)  && (ELT_t::is_of_type(ng.PGs, ng.PHs.get_facets_ptr(i), ng.PHs.stride(i))))
@@ -214,7 +214,7 @@ void refiner<ELT_t, STYPE>::get_PHs_to_refine
 template <>
 template <typename arr_t>
 void refiner<K_MESH::Polyhedron<0>, ISO_HEX>::get_PHs_to_refine
-(const ngon_type& ng, const tree<arr_t> & PHtree, const sensor_output_t &adap_incr, Vector_t<E_Int> & PHlist)
+(const ngon_type& ng, const tree<arr_t> & PHtree, const output_t &adap_incr, Vector_t<E_Int> & PHlist)
 {
   //todo JP
 }
@@ -534,7 +534,7 @@ void refiner<K_MESH::Polyhedron<0>, ISO_HEX>::reserve_mem_PHs
 template <typename ELT_t, eSUBDIV_TYPE STYPE>
 template <typename arr_t>
 void refiner<ELT_t, STYPE>::refine_PGs
-(const sensor_output_t& adap_incr,
+(const output_t& adap_incr,
  ngon_type& ng, tree<arr_t>& PGtree, K_FLD::FloatArray& crd, K_FLD::IntArray& F2E,
  std::map<K_MESH::NO_Edge, E_Int>& ecenter)
 {
@@ -581,7 +581,7 @@ void refiner<ELT_t, STYPE>::refine_PGs
 template <>
 template <typename arr_t>
 void refiner<K_MESH::Quadrangle, eSUBDIV_TYPE::DIR>::refine_PGs
-(const sensor_output_t& adap_incr, ngon_type& ng, tree<arr_t>& PGtree, K_FLD::FloatArray& crd,
+(const output_t& adap_incr, ngon_type& ng, tree<arr_t>& PGtree, K_FLD::FloatArray& crd,
   K_FLD::IntArray& F2E, std::map<K_MESH::NO_Edge, E_Int>& ecenter)
 {
   //alexis : todo:
@@ -673,7 +673,7 @@ void refiner<K_MESH::Polygon, ISO_HEX>::refine_PG
 template <typename ELT_t, eSUBDIV_TYPE STYPE>
 template <typename arr_t>
 void refiner<ELT_t, STYPE>::refine_Faces
-(const sensor_output_t &adap_incr, 
+(const output_t &adap_incr, 
  ngon_type& ng, tree<arr_t> & PGtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E,                 
  std::map<K_MESH::NO_Edge,E_Int>& ecenter)
 { 
@@ -685,7 +685,7 @@ void refiner<ELT_t, STYPE>::refine_Faces
 template <>
 template <typename arr_t>
 void refiner<K_MESH::Polyhedron<0>, ISO_HEX>::refine_Faces
-(const sensor_output_t &adap_incr,
+(const output_t &adap_incr,
   ngon_type& ng, tree<arr_t> & PGtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E,
   std::map<K_MESH::NO_Edge, E_Int>& ecenter)
 {
@@ -696,7 +696,7 @@ void refiner<K_MESH::Polyhedron<0>, ISO_HEX>::refine_Faces
 template <typename ELT_t, eSUBDIV_TYPE STYPE>
 template <typename arr_t>
 void refiner<ELT_t, STYPE>::refine_PHs
-(const sensor_output_t &adap_incr, ngon_type& ng, tree<arr_t> & PGtree, tree<arr_t> & PHtree,
+(const output_t &adap_incr, ngon_type& ng, tree<arr_t> & PGtree, tree<arr_t> & PHtree,
   K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
 {
   assert(adap_incr.cell_adap_incr.size() <= ng.PHs.size());
@@ -732,7 +732,7 @@ void refiner<ELT_t, STYPE>::refine_PHs
 template <>
 template <typename arr_t>
 void refiner<K_MESH::Basic, eSUBDIV_TYPE::ISO>::refine_PHs
-(const sensor_output_t &adap_incr, 
+(const output_t &adap_incr, 
  ngon_type& ng, tree<arr_t> & PGtree, tree<arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
 {  
   assert(adap_incr.cell_adap_incr.size() <= ng.PHs.size());
@@ -752,7 +752,7 @@ void refiner<K_MESH::Basic, eSUBDIV_TYPE::ISO>::refine_PHs
 template <>
 template <typename arr_t>
 void refiner<K_MESH::Tetrahedron, DIR>::refine_PHs
-(const sensor_output_t &adap_incr, 
+(const output_t &adap_incr, 
  ngon_type& ng, tree<arr_t> & PGtree, tree<arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
 {
   //refiner<K_MESH::Tetrahedron, ISO>::refine_PHs(adap_incr.cell_adap_incr, ng, PGtree, PHtree, crd, F2E);
@@ -762,7 +762,7 @@ void refiner<K_MESH::Tetrahedron, DIR>::refine_PHs
 template <>
 template <typename arr_t>
 void refiner<K_MESH::Pyramid, DIR>::refine_PHs
-(const sensor_output_t &adap_incr,
+(const output_t &adap_incr,
  ngon_type& ng, tree<arr_t> & PGtree, tree<arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
 {
   //refiner<K_MESH::Pyramid, ISO>::refine_PHs(adap_incr.cell_adap_incr, ng, PGtree, PHtree, crd, F2E);
@@ -772,7 +772,7 @@ void refiner<K_MESH::Pyramid, DIR>::refine_PHs
 template <>
 template <typename arr_t>
 void refiner<K_MESH::Prism, DIR>::refine_PHs
-(const sensor_output_t &adap_incr,
+(const output_t &adap_incr,
  ngon_type& ng, tree<arr_t> & PGtree, tree<arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
 {
   //refiner<K_MESH::Prism, ISO>::refine_PHs(adap_incr.cell_adap_incr, ng, PGtree, PHtree, crd, F2E);
@@ -782,7 +782,7 @@ void refiner<K_MESH::Prism, DIR>::refine_PHs
 template <>
 template <typename arr_t>
 void refiner<K_MESH::Hexahedron, DIR>::refine_PHs
-(const sensor_output_t &adap_incr,
+(const output_t &adap_incr,
  ngon_type& ng, tree<arr_t> & PGtree, tree<arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
 {
   //alexis : todo
@@ -792,7 +792,7 @@ void refiner<K_MESH::Hexahedron, DIR>::refine_PHs
 template <>
 template <typename arr_t>
 void refiner<K_MESH::Basic, DIR>::refine_PHs
-(const sensor_output_t &adap_incr, 
+(const output_t &adap_incr, 
  ngon_type& ng, tree<arr_t> & PGtree, tree<arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
 {
   //alexis : todo

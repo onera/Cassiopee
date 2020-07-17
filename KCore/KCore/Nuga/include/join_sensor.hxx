@@ -13,25 +13,25 @@
 #define NUGA_BALANCING_SENSOR_HXX
 
 #include "Nuga/include/sensor.hxx"
+#include "Nuga/include/V1_smoother.hxx"
 
 
 namespace NUGA
 {
 
-  using input_t = std::map<E_Int, K_FLD::IntArray>;
+  using input_type = std::map<E_Int, K_FLD::IntArray>;
 
 template <typename mesh_t>
-class join_sensor : public sensor<mesh_t, input_t> // Vector_t might be templatized to have ISO mode with a metric field
+class join_sensor : public sensor<mesh_t, input_type> // Vector_t might be templatized to have ISO mode with a metric field
 {
   public:
-  
-    using sensor_input_t = input_t;
-    using parent_t = sensor<mesh_t, sensor_input_t>;
-    using sensor_output_t = typename mesh_t::sensor_output_t; //fixme: static assert to add : must be ISO => IntVec
+    using input_t = input_type;
+    using parent_t = sensor<mesh_t, input_t>;
+    using output_t = typename mesh_t::output_t; //fixme: static assert to add : must be ISO => IntVec
 
-    join_sensor(mesh_t& mesh): parent_t(mesh, new V1_smoother<mesh_t>()){}
+    join_sensor(mesh_t& mesh) : parent_t(mesh, new V1_smoother<mesh_t>()) {}
 
-    void fill_adap_incr(sensor_output_t& adap_incr, bool do_agglo) override;
+    void fill_adap_incr(output_t& adap_incr, bool do_agglo) override;
     bool update() override;
     bool stop() override { return parent_t::_data.empty(); }
   
@@ -42,7 +42,7 @@ class join_sensor : public sensor<mesh_t, input_t> // Vector_t might be templati
 
 /// WARNING : only for ISO currently
 template <typename mesh_t>
-void join_sensor<mesh_t>::fill_adap_incr(sensor_output_t& adap_incr, bool do_agglo)
+void join_sensor<mesh_t>::fill_adap_incr(output_t& adap_incr, bool do_agglo)
 {
   adap_incr.face_adap_incr.clear();
   adap_incr.cell_adap_incr.clear();

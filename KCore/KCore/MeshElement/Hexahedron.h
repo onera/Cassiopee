@@ -177,7 +177,7 @@ void Hexahedron::reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i) // 
   E_Int PGi = faces[0] - 1;
   E_Int* pN = ng.PGs.get_facets_ptr(PGi);
   
-  // but convention, first face is bottom, first node is 0 in local numbering (0 to 26)
+  // by convention, first face is bottom, first node is 0 in local numbering (0 to 26)
 
   glmap[*pN] = 0; // PHi(0,0) -> 0  
   glmap[*(pN+1)] = 1;
