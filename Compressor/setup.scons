@@ -30,6 +30,8 @@ from KCore.config import *
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 
+ADDITIONALCFLAGS = ""
+
 # Env =========================================================================
 import srcs
 if Dist.getSystem()[0] == 'mingw': tools = ['mingw']
@@ -38,7 +40,7 @@ AR = Dist.getAR()
 env = Environment(tools=tools, CC=cc, CXX=cxx, AR=AR, CPPFLAGS=[],
                   LIBPATH=["Compressor"]+additionalLibPaths+libraryDirs,
                   LIBS=libraries+additionalLibs,
-                  CPPPATH=additionalIncludePaths+[pythonIncDir, numpyIncDir, kcoreIncDir],
+                  CPPPATH=additionalIncludePaths+["Compressor/zfp/include", "Compressor/sz/include", "Compressor/zstd", "Compressor/zstd/common", pythonIncDir, numpyIncDir, kcoreIncDir],
                   CFLAGS=Dist.getCArgs(),
                   CXXFLAGS=Dist.getCppArgs(),
                   SHLIBSUFFIX=so_ext, SHLIBPREFIX='',
@@ -51,8 +53,15 @@ env.SConsignFile('build/'+ELSAPROD+'/.sconsign.dblite')
 #==============================================================================
 
 myMod = env.StaticLibrary('compressor', srcs.cpp_srcs)
+myMod2 = env.StaticLibrary('zstd', srcs.zstd_srcs)
+myMod3 = env.StaticLibrary('sz', srcs.sz_srcs)
+myMod4 = env.StaticLibrary('zfp', srcs.zfp_srcs)
+
 modDir = installPath+'/Compressor/'
 dp1 = env.Install(modDir, myMod)
 dp2 = env.Install(modDir, Glob('Compressor/*.py'))
+dp3 = env.Install(modDir, myMod2)
+dp4 = env.Install(modDir, myMod3)
+dp5 = env.Install(modDir, myMod4)
 
-env.Alias(target="install", source=[dp1,dp2])
+env.Alias(target="install", source=[dp1,dp2,dp3,dp4,dp5])
