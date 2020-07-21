@@ -847,19 +847,20 @@ PyObject* K_CONNECTOR::getInterpolatedPoints(PyObject* self, PyObject* args)
   E_Int nfldOut = nfld+1;
   strcpy(varStringOut,varString); strcat(varStringOut,",indcell");
   E_Float* cellnp = f->begin(posc);
+  
   FldArrayF* fout = new FldArrayF(npts,nfldOut);
   E_Int c=0;
   for (E_Int ind=0; ind < npts; ind++)
   {
     if (cellnp[ind] == 2.)
     { 
-      for (E_Int eq = 1; eq <= nfld; eq++)
-        (*fout)(c,eq) = (*f)(ind,eq);
+      for (E_Int eq = 1; eq <= nfld; eq++) (*fout)(c,eq) = (*f)(ind,eq);
       (*fout)(c,nfldOut) = E_Float(ind);
       c++;
     }
   }
-  fout->reAllocMat(c,nfldOut);
+  fout->reAllocMat(c, nfldOut);
+  
   RELEASESHAREDB(res, array, f, cn);
   FldArrayI* cnl = new FldArrayI(0);
   PyObject* tpl = K_ARRAY::buildArray(*fout, varStringOut, *cnl, -1, 

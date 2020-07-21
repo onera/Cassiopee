@@ -162,7 +162,7 @@ def checkNumpy():
 def getInstallPath(prefix):
     mySystem = getSystem()[0]; bits = getSystem()[1]
     # Based on spec
-    if os.environ['ELSAPROD'][0:6] == 'msys64':
+    if os.environ['ELSAPROD'][0:6] == 'msys64' or os.environ['ELSAPROD'] == 'win64':
         pythonLib = distutils.sysconfig.get_python_lib()
         pythonLib = pythonLib.split('/')
         pythonVersion = pythonLib[-2]

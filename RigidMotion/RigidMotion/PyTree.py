@@ -463,9 +463,7 @@ def _copyGridInit2Grid(t):
       xcoord = Internal.getNodeFromName1(grid, 'CoordinateX')[1]
       ycoord = Internal.getNodeFromName1(grid, 'CoordinateY')[1]
       zcoord = Internal.getNodeFromName1(grid, 'CoordinateZ')[1]
-      xcoord[:] = xcoord0[:]
-      ycoord[:] = ycoord0[:]
-      zcoord[:] = zcoord0[:]
+      xcoord[:] = xcoord0[:]; ycoord[:] = ycoord0[:]; zcoord[:] = zcoord0[:]
   return None
 
 # Copy GridCoordinates dans GridCoordinates#Init
@@ -490,9 +488,7 @@ def _copyGrid2GridInit(t):
       if zcoord0 is None: 
         zcoord0 = Internal.copyNode(zcoord); gridInit[2].append(zcoord0)
       
-      xcoord0[1][:] = xcoord[1][:]
-      ycoord0[1][:] = ycoord[1][:]
-      zcoord0[1][:] = zcoord[1][:]
+      xcoord0[1][:] = xcoord[1][:]; ycoord0[1][:] = ycoord[1][:]; zcoord0[1][:] = zcoord[1][:]
   return None
 
 #==============================================================================
@@ -594,7 +590,7 @@ def getMotionMatrixForZone(z, time, F=None):
                 Rot[0,0]=1.; Rot[1,1]=1.; Rot[2,2]=1.
                 return Rot
             else:
-                raise ValueError("getMotionMatrixForZone: MotionType not valid.")
+                raise ValueError("getMotionMatrixForZone: MotionType invalid.")
     else:
         raise ValueError("getMotionMatrixForZone: not yet implemented with a function.")
 
@@ -704,9 +700,7 @@ def _evalGridSpeed(a, time):
           dcy = evalTimeDerivativeString__(m, 'cy', time)
           dcz = evalTimeDerivativeString__(m, 'cz', time)
         
-          sx[1][:] = 0.
-          sy[1][:] = 0.
-          sz[1][:] = 0.
+          sx[1][:] = 0.; sy[1][:] = 0.; sz[1][:] = 0.
         
         elif dtype == 3: # type 3: constant rotation / translation
           transl_speed = Internal.getNodeFromName1(m, 'transl_speed')
@@ -730,3 +724,26 @@ def _evalGridSpeed(a, time):
         
   return None
   
+# Evaluation de la position inverse
+# coords : liste de numpys a inverser attaches a la zone
+# a : zone contenant le motion 
+def evalPositionM1(coords, z, time):
+  cont = Internal.getNodeFromName1(z, 'TimeMotion')
+  coordsO = [numpy.copy(coords[0]),numpy.copy(coords[1]),numpy.copy(coords[2])]
+  if cont is not None:
+    motions = Internal.getNodesFromType1(cont, 'TimeRigidMotion_t')
+    for m in motions:
+      mtype = Internal.getNodeFromName1(m, 'MotionType')
+      dtype = mtype[1][0]
+      if dtype == 3:
+        axis_pnt = getNodeValue__(m, 'axis_pnt')
+        axis_vct = getNodeValue__(m, 'axis_vct')
+        omega = getNodeValue__(m, 'omega')
+        speed = getNodeValue__(m, 'transl_speed')
+        coordsD = [speed[0]*time, speed[1]*time, speed[2]*time]
+        coordsC = [axis_pnt[0], axis_pnt[1], axis_pnt[2]]
+        mat = getRotationMatrix__(axis_pnt[0],axis_pnt[1],axis_pnt[2],
+              axis_vct[0],axis_vct[1],axis_vct[2],omega*time)
+        mat = numpy.transpose(mat)
+        _moveN(coordsO, coordsC, coordsD, mat)
+  return coordsO

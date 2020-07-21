@@ -1,4 +1,4 @@
-# - octree (pyTree) -
+# - getHangingNodesInfo (pyTree) -
 import Converter.Internal as Internal
 import Generator.PyTree as G
 import Converter.PyTree as C
@@ -9,6 +9,7 @@ import Converter.Mpi as Cmpi
 import Apps.Coda.ToolboxIBM_CODA as TBX
 import Connector.PyTree as X
 import KCore.test as test
+import collections
 
 rank = Cmpi.rank
 NP = Cmpi.size
@@ -31,7 +32,7 @@ extFaces[0]='extFaces_%d'%rank
 indicesFacesOrig=indicesFacesOrig[0]
 # Local hanging nodes
 res = TBX.getHangingNodesInfoPara(a,extFaces, indicesFacesOrig, extFaces, indicesFacesOrig)
-dictOfHangingNodes={}
+dictOfHangingNodes=collections.OrderedDict()
 if res[0] != []:
     dictOfHangingNodes[rank]=res
 
@@ -49,8 +50,7 @@ if NP>1:
         for res in destDatas[i]:
             extFacesOpp=res[0]; indicesFacesOrigOpp=res[1]
             res = TBX.getHangingNodesInfoPara(a, extFaces, indicesFacesOrig, extFacesOpp, indicesFacesOrigOpp)
-            if res[0] != []:
-                dictOfHangingNodes[i]=res
+            if res[0] != []: dictOfHangingNodes[i]=res
 print("Hanging node on coarse mpi rank:", rank, ": ", dictOfHangingNodes)
-
+print(dictOfHangingNodes)
 test.testO(dictOfHangingNodes,rank)

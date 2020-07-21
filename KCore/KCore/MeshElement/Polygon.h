@@ -893,7 +893,7 @@ inline void Polygon::shift_geom(const K_FLD::FloatArray&crd, E_Int* nodes, E_Int
   // else check min Y on remaining candidates
 
   palma.clear();
-  for (E_Int i = 0; i < cands.size(); ++i)
+  for (size_t i = 0; i < cands.size(); ++i)
     palma.push_back(std::make_pair(crd(1, nodes[cands[i]] - idx_strt), i));
 
   std::sort(ALL(palma));
@@ -922,7 +922,7 @@ inline void Polygon::shift_geom(const K_FLD::FloatArray&crd, E_Int* nodes, E_Int
   // else check min Z
 
   palma.clear();
-  for (E_Int i = 0; i < cands.size(); ++i)
+  for (size_t i = 0; i < cands.size(); ++i)
     palma.push_back(std::make_pair(crd(2, nodes[cands[i]] - idx_strt), i));
 
   std::sort(ALL(palma));

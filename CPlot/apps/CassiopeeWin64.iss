@@ -13,8 +13,8 @@ PrivilegesRequired=none
 AppPublisher=ONERA
 
 [Files]
-Source: "C:\Users\Administrateur\Cassiopee\Dist\*"; DestDir: "{app}\Dist" ; Flags: recursesubdirs createallsubdirs
-Source: "C:\Users\Administrateur\Cassiopee\env_Cassiopee_win64.bat"; DestDir: "{app}\Dist"; AfterInstall: CurStepChanged()
+Source: "D:\benoit\Cassiopee\Dist\*"; DestDir: "{app}\Dist" ; Flags: recursesubdirs createallsubdirs
+Source: "D:\benoit\Cassiopee\env_Cassiopee_win64.bat"; DestDir: "{app}\Dist"; AfterInstall: CurStepChanged()
 
 [Code]
 function IsRegularUser(): boolean;
@@ -39,11 +39,11 @@ begin
   CassiopeeVar := ExpandConstant('{app}');
   SetArrayLength(lines, 7);
   lines[0] := 'set CASSIOPEE='+CassiopeeVar;
-  lines[1] := 'path = %CASSIOPEE%\Dist\bin\win64\Python27;%CASSIOPEE%\Dist\bin\win64\Python27\Scripts;%CASSIOPEE%\Dist\bin\win64\Python27\Lib;%CASSIOPEE%\Dist\bin\win64\Python27\DLLs;%PATH%';
-  lines[2] := 'path = %CASSIOPEE%\Dist\bin\win64;%CASSIOPEE%\Dist\bin\win64\Lib;%CASSIOPEE%\Dist\bin\win64\Lib\site-packages;%PATH%';
-  lines[3] := 'set PYTHONHOME=%CASSIOPEE%\Dist\bin\win64\Python27';
+  lines[1] := 'path=%CASSIOPEE%\Dist\bin\win64\bin;%CASSIOPEE%\Dist\bin\win64;%PATH%';
+  lines[2] := 'set PYTHONEXE=python3.8';
+  lines[3] := 'set PYTHONHOME=%CASSIOPEE%\Dist\bin\win64';
   lines[4] := 'set ELSAPROD=win64';
-  lines[5] := 'set PYTHONPATH=%CASSIOPEE%\Dist\bin\win64;%CASSIOPEE%\Dist\bin\win64\Python27\Scripts;%CASSIOPEE%\Dist\bin\win64\Lib\site-packages'
+  lines[5] := 'set PYTHONPATH=%CASSIOPEE%\Dist\bin\win64\bin;%CASSIOPEE%\Dist\bin\win64\Lib\python3.8';
   lines[6] := 'set OMP_NUM_THREADS=%NUMBER_OF_PROCESSORS%'
   SaveStringsToFile(filename,lines,false);
 
@@ -51,11 +51,11 @@ begin
   CassiopeeVar := ExpandConstant('{app}');
   SetArrayLength(lines, 8);
   lines[0] := 'set CASSIOPEE='+CassiopeeVar;
-  lines[1] := 'path = %CASSIOPEE%\Dist\bin\win64\Python27;%CASSIOPEE%\Dist\bin\win64\Python27\Scripts;%CASSIOPEE%\Dist\bin\win64\Python27\Lib;%CASSIOPEE%\Dist\bin\win64\Python27\DLLs;%PATH%';
-  lines[2] := 'path = %CASSIOPEE%\Dist\bin\win64;%CASSIOPEE%\Dist\bin\win64\Lib;%CASSIOPEE%\Dist\bin\win64\Lib\site-packages;%PATH%';
-  lines[3] := 'set PYTHONHOME=%CASSIOPEE%\Dist\bin\win64\Python27';
+  lines[1] := 'path=%CASSIOPEE%\Dist\bin\win64\bin;%CASSIOPEE%\Dist\bin\win64;%PATH%';
+  lines[2] := 'set PYTHONEXE=python3.8';
+  lines[3] := 'set PYTHONHOME=%CASSIOPEE%\Dist\bin\win64';
   lines[4] := 'set ELSAPROD=win64';
-  lines[5] := 'set PYTHONPATH=%CASSIOPEE%\Dist\bin\win64;%CASSIOPEE%\Dist\bin\win64\Python27\Scripts;%CASSIOPEE%\Dist\bin\win64\Lib\site-packages'
+  lines[5] := 'set PYTHONPATH=%CASSIOPEE%\Dist\bin\win64;%CASSIOPEE%\Dist\bin\win64\Lib\python3.8'
   lines[6] := 'python "%CASSIOPEE%\Dist\bin\win64\tkCassiopee.pyc" %1'
   lines[7] := 'set OMP_NUM_THREADS=%NUMBER_OF_PROCESSORS%'
   Result := SaveStringsToFile(filename,lines,false);

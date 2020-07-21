@@ -90,6 +90,7 @@ PyObject* K_RIGIDMOTION::evalSpeed3(PyObject* self, PyObject* args)
       sx[i] = tx-omega*sin_teta*(cmx-kcm*kx)+omega*cos_teta*kvcmx;
       sy[i] = ty-omega*sin_teta*(cmy-kcm*ky)+omega*cos_teta*kvcmy;
       sz[i] = tz-omega*sin_teta*(cmz-kcm*kz)+omega*cos_teta*kvcmz;
+      //printf("%f %f %f\n",sx[i],sy[i],sz[i]);
     }
   }
   Py_INCREF(Py_None);

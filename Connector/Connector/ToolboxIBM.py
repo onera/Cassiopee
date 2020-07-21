@@ -275,7 +275,7 @@ def octree2StructLoc__(o, parento=None, vmin=21, ext=0, optimized=0, sizeMax=4e6
     # Cas ext=-1, ne fait pas les extensions ni les BCs ou raccords
     if ext == -1: return zones
 
-    if ext > 0:        
+    if ext > 0:
         coords = C.getFields(Internal.__GridCoordinates__, zones,api=2)
         coords = Generator.generator.extendCartGrids(coords, ext, optimized)
         C.setFields(coords, zones, 'nodes')
@@ -442,8 +442,7 @@ def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None,
         # if C.isNamePresent(s,'centers:cellN') != -1:
         #     s2 = P.selectCells(s,'{centers:cellN}>0.')
         #     surfaces.append(s2)
-        # else: 
-        #     surfaces += [s] 
+        # else: surfaces += [s] 
         surfaces += [s]
         snearso += [dhloc]
         dxmin0 = min(dxmin0, dhloc)

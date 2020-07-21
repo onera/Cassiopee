@@ -419,24 +419,27 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
                     nozc = dictOfNozOfDnrZones[znamed]
                     zdnr = tc[2][nobc][2][nozc]
                     adt = dictOfADT[znamed]
-                    if znamed in dictOfMotionMatA2R:
-                        MatAbs2RelD = dictOfMotionMatA2R[znamed]
-                    else:                        
-                        if znamed in dictOfMotionMatR2A:
-                            MatRel2AbsD = dictOfMotionMatR2A[znamed]
-                            MatAbs2RelD = numpy.transpose(MatRel2AbsD)
-                            dictOfMotionMatA2R[znamed] = MatAbs2RelD
-                        else:
-                            MatRel2AbsD = RM.getMotionMatrixForZone(zdnr, time=time, F=None)
-                            dictOfMotionMatR2A[znamed] = MatRel2AbsD
-                            MatAbs2RelD = numpy.transpose(MatRel2AbsD)
-                            dictOfMotionMatA2R[znamed] = MatAbs2RelD
-                    #if zc[0] == 'cart': 
+                    #if znamed in dictOfMotionMatA2R:
+                    #    MatAbs2RelD = dictOfMotionMatA2R[znamed]
+                    #else:                        
+                    #    if znamed in dictOfMotionMatR2A:
+                    #        MatRel2AbsD = dictOfMotionMatR2A[znamed]
+                    #        MatAbs2RelD = numpy.transpose(MatRel2AbsD)
+                    #        dictOfMotionMatA2R[znamed] = MatAbs2RelD
+                    #    else:
+                    #        MatRel2AbsD = RM.getMotionMatrixForZone(zdnr, time=time, F=None)
+                    #        dictOfMotionMatR2A[znamed] = MatRel2AbsD
+                    #        MatAbs2RelD = numpy.transpose(MatRel2AbsD)
+                    #        dictOfMotionMatA2R[znamed] = MatAbs2RelD
+                    #if zc[0] == 'cart.0':
                     #    print(znamed)
+                    #    print(coordsD)
                     #    print(MatAbs2RelD)
                     #    print(time)
-                    [XIRel, YIRel, ZIRel] = RM.moveN([XI,YI,ZI],coordsC,coordsD,MatAbs2RelD)
-
+                    #
+                    #[XIRel, YIRel, ZIRel] = RM.moveN([XI,YI,ZI],coordsC,coordsD,MatAbs2RelD)
+                    [XIRel, YIRel, ZIRel] = RM.evalPositionM1([XI,YI,ZI], zdnr, time)
+                        
                     # DBX
                     # Create a NODE Zone
                     #import Generator.PyTree as G
@@ -454,7 +457,7 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
                     #y = Internal.getNodeFromName2(deb2, 'CoordinateY')
                     #z = Internal.getNodeFromName2(deb2, 'CoordinateZ')
                     #x[1] = XI; y[1] = YI; z[1] = ZI
-                    #if zc[0] == 'cart.0': C.convertPyTree2File([deb,deb2], 'debug.cgns')
+                    #if zc[0] == 'cart6': C.convertPyTree2File([deb,deb2], 'debug.cgns')
                     #print(XIRel, YIRel, ZIRel)
                     # END DBX
                     
