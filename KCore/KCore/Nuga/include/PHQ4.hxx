@@ -12,7 +12,7 @@
 #define NUGA_PHQ4_HXX
 
 #include "splitting_t.hxx"
-#include "MeshElement/Polyhedron.h"
+#include "Nuga/include/Polyhedron.h"
 
 namespace NUGA
 {

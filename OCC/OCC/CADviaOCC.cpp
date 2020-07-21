@@ -41,18 +41,18 @@
 #include "Geom_TrimmedCurve.hxx"
 #include "BRepBuilderAPI_MakeFace.hxx"
 
-#include "Fld/ArrayAccessor.h"
-#include "Connect/merge.h"
-#include "Nuga/Delaunay/SurfaceMesher.h"
+# include "Nuga/include/ArrayAccessor.h"
+#include "Nuga/include/merge.h"
+#include "Nuga/include/SurfaceMesher.h"
 
 #include "OCCSurface.h"
-#include "Search/KdTree.h"
+#include "Nuga/include/KdTree.h"
 
-#include "Connect/ContourSplitter.h"
-#include "Connect/BARSplitter.h"
-#include "Search/BbTree.h"
-#include "Nuga/GapFixer/FittingBox.h"
-#include "Nuga/Delaunay/MeshUtils1D.h"
+#include "Nuga/include/ContourSplitter.h"
+#include "Nuga/include/BARSplitter.h"
+# include "Nuga/include/BbTree.h"
+#include "Nuga/include/FittingBox.h"
+#include "Nuga/include/MeshUtils1D.h"
 #include <Precision.hxx>
 /*
 #include "TopoDS_Edge.hxx"
@@ -630,7 +630,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces
     // compact to mesh
     nids.clear();
     pos3D = coords;
-    K_CONNECT::MeshTool::compact_to_mesh(pos3D, connectB, nids);
+    NUGA::MeshTool::compact_to_mesh(pos3D, connectB, nids);
     
     // added shrink pour forcer les pts a l'interieur de la surface
     //_faces[i]->shrink(pos3D, 0.9);
@@ -833,7 +833,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces
         ::merge(crdA, _merge_tol, nids);
         K_FLD::IntArray::changeIndices(connectMs[i], nids);
         nids.clear();
-        K_CONNECT::MeshTool::compact_to_mesh(crds[i], connectMs[i], nids);
+        NUGA::MeshTool::compact_to_mesh(crds[i], connectMs[i], nids);
       }
     }
   

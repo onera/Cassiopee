@@ -12,7 +12,7 @@
 #define NUGA_TH10_HXX
 
 #include "splitting_t.hxx"
-#include "MeshElement/Tetrahedron.h"
+#include "Nuga/include/Tetrahedron.h"
 
 
 namespace NUGA

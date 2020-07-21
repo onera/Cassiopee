@@ -17,8 +17,8 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <stdexcept>
-#include "Nuga/Delaunay/Triangulator.h"
-#include "MeshElement/Polygon.h"
+#include "Nuga/include/Triangulator.h"
+#include "Nuga/include/Polygon.h"
 
 #include "face.hpp"
 //#define DEBUG_VERBOSE

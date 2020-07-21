@@ -17,10 +17,10 @@
 #include "Nuga/include/macros.h"
 #include <vector>
 #include "Fld/FldArray.h"
-#include "Fld/ArrayWriter.h"
-#include "Nuga/Delaunay/Triangulator.h"
-#include "MeshElement/Triangle.h"
-#include "Fld/ngon_unit.h"
+#include "Nuga/include/ArrayWriter.h"
+#include "Nuga/include/Triangulator.h"
+#include "Nuga/include/Triangle.h"
+#include "Nuga/include/ngon_unit.h"
 #include "Nuga/include/linmath.hxx"
 #include "Nuga/include/mesh_t.hxx"
 
@@ -245,7 +245,7 @@ void compute_overlap(const K_FLD::FloatArray& crd1, const ngon_unit& PGs1,
   
   // for nodal tolerance
   K_FLD::FloatArray L;
-  K_CONNECT::MeshTool::computeIncidentEdgesSqrLengths(crd1, PGs1, L);
+  NUGA::MeshTool::computeIncidentEdgesSqrLengths(crd1, PGs1, L);
   
 #ifndef COLLIDER_DBG
 //#pragma omp parallel private (cands2, n1, n2, j)
@@ -345,7 +345,7 @@ void compute_overlap(const K_FLD::FloatArray& crd1, const K_FLD::IntArray& edges
 
   // for nodal tolerance
   K_FLD::FloatArray L;
-  K_CONNECT::MeshTool::computeIncidentEdgesSqrLengths(crd1, edges1, L);
+  NUGA::MeshTool::computeIncidentEdgesSqrLengths(crd1, edges1, L);
   
 #ifndef COLLIDER_DBG
 //#pragma omp parallel private (cands2, n1, n2, j)

@@ -20,7 +20,7 @@
 // Mesh (or triangulate only) a 2D contour.
 
 # include "generator.h"
-# include "Nuga/Delaunay/T3Mesher.h"
+# include "Nuga/include/T3Mesher.h"
 using namespace std;
 
 //=========================================================================

@@ -20,9 +20,9 @@
 // Identify matching points in windows
 
 # include "connector.h"
-# include "Connect/merge.h"
-# include "Search/KdTree.h"
-# include "Fld/ArrayAccessor.h"
+# include "Nuga/include/merge.h"
+# include "Nuga/include/KdTree.h"
+# include "Nuga/include/ArrayAccessor.h"
 
 using namespace K_FUNC;
 using namespace std;

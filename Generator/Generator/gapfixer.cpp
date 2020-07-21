@@ -18,7 +18,7 @@
 */
 
 # include "generator.h"
-# include "Nuga/GapFixer/GapFixer.h"
+# include "Nuga/include/GapFixer.h"
 using namespace std;
 
 //=============================================================================

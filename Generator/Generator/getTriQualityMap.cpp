@@ -20,7 +20,7 @@
 // getTriQualityMap
 
 # include "generator.h"
-#include "MeshElement/Triangle.h"
+#include "Nuga/include/Triangle.h"
 
 using namespace K_FLD;
 

@@ -21,14 +21,14 @@
 #ifndef __MASKGEN_H__
 #define __MASKGEN_H__
 
-//#include "Fld/ArrayAccessor.h"
-#include "Fld/ArrayWriter.h"
+//#include "Nuga/include/ArrayAccessor.h"
+#include "Nuga/include/ArrayWriter.h"
 #include <vector>
 #define Vector_t std::vector
-#include "Search/BbTree.h"
-#include "Search/KdTree.h"
-#include "MeshElement/Tetrahedron.h"
-#include "Connect/EltAlgo.h"
+#include "Nuga/include/BbTree.h"
+#include "Nuga/include/KdTree.h"
+#include "Nuga/include/Tetrahedron.h"
+#include "Nuga/include/EltAlgo.h"
 
 #ifdef DEBUG_MASK
 #include "IO/io.h"

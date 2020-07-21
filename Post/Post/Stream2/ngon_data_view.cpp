@@ -22,8 +22,8 @@
 #include <unordered_map>
 #include <list>
 #include "triangulated_polyhedron.hpp"
-#include "MeshElement/Polygon.h"
-#include "Nuga/Delaunay/Triangulator.h"
+#include "Nuga/include/Polygon.h"
+#include "Nuga/include/Triangulator.h"
 #include "ngon_data_view_p.hpp"
 #include "vector3d.hpp"
 #include "linear_algebra.hpp"

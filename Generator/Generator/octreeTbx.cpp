@@ -20,8 +20,8 @@
 // Outils pour l'octree
 
 # include "generator.h"
-# include "Search/BbTree.h"
-# include "Fld/ArrayAccessor.h"
+# include "Nuga/include/BbTree.h"
+# include "Nuga/include/ArrayAccessor.h"
 
 //=============================================================================
 /* Recuperation des elements voisins par arete, avec prise en compte de la non

@@ -12,8 +12,8 @@
 #ifndef REFINER_HXX
 #define REFINER_HXX
 
-#include "MeshElement/Edge.h"
-#include "MeshElement/Basic.h"
+#include "Nuga/include/Edge.h"
+#include "Nuga/include/Basic.h"
 #include "T6.hxx"
 #include "Q9.hxx"
 #include "HX27.hxx"

@@ -11,8 +11,8 @@
 #ifndef NUGA_CONSERVATIVE_CHIMERA_HXX
 #define NUGA_CONSERVATIVE_CHIMERA_HXX
 
-#include "Nuga/Boolean/NGON_BooleanOperator.h"
-#include "MeshElement/Polygon.h"
+#include "Nuga/include/NGON_BooleanOperator.h"
+#include "Nuga/include/Polygon.h"
 
 namespace NUGA
 {

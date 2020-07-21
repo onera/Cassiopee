@@ -23,7 +23,7 @@
 
 #include "Def/DefTypes.h"
 #include <vector>
-#include "Fld/DynArray.h"
+# include "Nuga/include/DynArray.h"
 
 namespace K_OCC
 {

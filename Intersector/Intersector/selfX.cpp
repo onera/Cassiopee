@@ -21,9 +21,9 @@
 # include <string>
 # include <sstream> 
 # include "intersector.h"
-# include "Fld/ngon_t.hxx"
-# include "Nuga/Delaunay/Triangulator.h"
-# include "Nuga/Boolean/SelfX.h"
+# include "Nuga/include/ngon_t.hxx"
+# include "Nuga/include/Triangulator.h"
+# include "Nuga/include/SelfX.h"
 
 //#include <iostream>
 

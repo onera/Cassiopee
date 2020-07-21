@@ -17,8 +17,8 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 # include "connector.h"
-# include "Search/BbTree.h"
-# include "Fld/ArrayAccessor.h"
+# include "Nuga/include/BbTree.h"
+# include "Nuga/include/ArrayAccessor.h"
 # include <iostream>
 using namespace K_FLD;
 using namespace std;

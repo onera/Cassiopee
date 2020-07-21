@@ -18,9 +18,9 @@
 */
 
 # include "CompGeom/compGeom.h"
-# include "Search/KdTree.h"
-# include "Search/BbTree.h"
-# include "Fld/ArrayAccessor.h"
+# include "Nuga/include/KdTree.h"
+# include "Nuga/include/BbTree.h"
+# include "Nuga/include/ArrayAccessor.h"
 # include <stdio.h>
 
 using namespace K_FLD;
@@ -217,7 +217,7 @@ void K_COMPGEOM::projectOrthoWithPrecond(
   E_Float* fy2 = f2.begin(posy2);
   E_Float* fz2 = f2.begin(posz2);
   // Creation du kdtree
-  ArrayAccessor<FldArrayF> coordAcc(f2, posx2, posy2, posz2);
+  K_FLD::ArrayAccessor<FldArrayF> coordAcc(f2, posx2, posy2, posz2);
   K_SEARCH::KdTree<FldArrayF> kdt(coordAcc);
   // Creation du bboxtree
   typedef K_SEARCH::BoundingBox<3>  BBox3DType; 
@@ -291,7 +291,7 @@ void K_COMPGEOM::projectOrthoWithPrecond(
   E_Float* fz2 = f2.begin(posz2);
  
   // Creation du kdtree
-  ArrayAccessor<FldArrayF> coordAcc(f2, posx2, posy2, posz2);
+  K_FLD::ArrayAccessor<FldArrayF> coordAcc(f2, posx2, posy2, posz2);
   K_SEARCH::KdTree<FldArrayF> kdt(coordAcc);
 
   // Creation du bboxtree

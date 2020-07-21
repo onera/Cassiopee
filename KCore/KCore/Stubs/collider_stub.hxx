@@ -17,10 +17,10 @@
 #include "Nuga/include/macros.h"
 #include <vector>
 #include "Fld/FldArray.h"
-#include "Fld/ArrayWriter.h"
-#include "Nuga/Delaunay/Triangulator.h"
-#include "MeshElement/Triangle.h"
-#include "Fld/ngon_unit.h"
+#include "Nuga/include/ArrayWriter.h"
+#include "Nuga/include/Triangulator.h"
+#include "Nuga/include/Triangle.h"
+#include "Nuga/include/ngon_unit.h"
 #ifdef COLLIDE_DBG
 #include "IO/io.h"
 #endif

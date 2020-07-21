@@ -26,7 +26,7 @@
 #include "Numpy/importNumpy.h"
 #include <numpy/arrayobject.h>
 #include "Fld/FldArray.h"
-#include "Fld/DynArray.h"
+# include "Nuga/include/DynArray.h"
 #include <vector>
 
 #define FldArrayF K_FLD::FldArrayF

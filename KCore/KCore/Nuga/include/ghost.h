@@ -11,7 +11,7 @@
 #ifndef NUGA_GHOST_H
 #define NUGA_GHOST_H
 
-#include "Fld/ngon_t.hxx"
+#include "Nuga/include/ngon_t.hxx"
 
 using ngon_type = ngon_t<K_FLD::IntArray>;
 

@@ -21,7 +21,7 @@
 #ifndef OCCSURFACE_H
 #define	OCCSURFACE_H
 
-#include "Fld/DynArray.h"
+# include "Nuga/include/DynArray.h"
 #include "TopoDS_Face.hxx"
 #include "Geom_Surface.hxx"
 #include "TopExp_Explorer.hxx"

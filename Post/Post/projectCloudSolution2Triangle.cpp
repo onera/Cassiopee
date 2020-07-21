@@ -20,9 +20,9 @@
 // Interpolation on zones given a solution defined on a list of zones
 
 # include "post.h"
-# include "Search/KdTree.h"
-# include "Search/BbTree.h"
-# include "Fld/ArrayAccessor.h"
+# include "Nuga/include/KdTree.h"
+# include "Nuga/include/BbTree.h"
+# include "Nuga/include/ArrayAccessor.h"
 using namespace K_FLD;
 using namespace std;
 

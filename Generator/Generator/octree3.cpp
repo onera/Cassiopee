@@ -21,9 +21,9 @@
 
 # include "generator.h"
 # include <stack>
-# include "Search/BbTree.h"
+# include "Nuga/include/BbTree.h"
 # include "Search/OctreeNode.h"
-# include "Fld/ArrayAccessor.h"
+# include "Nuga/include/ArrayAccessor.h"
 
 using namespace std;
 using namespace K_FLD;

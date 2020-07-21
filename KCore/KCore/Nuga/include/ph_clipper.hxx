@@ -19,10 +19,10 @@
 #include "Nuga/include/macros.h"
 #include "Nuga/include/polyhedron.hxx"
 #include "Nuga/include/collider.hxx"
-#include "Nuga/Boolean/TRI_Conformizer.h"
+#include "Nuga/include/TRI_Conformizer.h"
 
 #ifdef DEBUG_CLIPPER
-//#include "Nuga/Boolean/NGON_debug.h"
+//#include "Nuga/include/NGON_debug.h"
 //using NGDBG = NGON_debug<K_FLD::FloatArray, K_FLD::IntArray>;
 #include "medit.hxx"
 #endif
@@ -141,7 +141,7 @@ namespace NUGA
 
       // for nodal tolerance
       K_FLD::FloatArray L;
-      K_CONNECT::MeshTool::computeIncidentEdgesSqrLengths(acrd1.array(), *subj.pgs(), L);
+      NUGA::MeshTool::computeIncidentEdgesSqrLengths(acrd1.array(), *subj.pgs(), L);
       if( L.cols() == 0) return 1;
 
       //E_Int nb_faces1 = subj.nb_faces();
@@ -232,7 +232,7 @@ namespace NUGA
 
       // compute an overall abstol
       E_Float min_d, max_d, abstol;
-      K_CONNECT::MeshTool::computeMinMaxEdgeSqrLength<3>(crd, cT3, min_d, max_d);
+      NUGA::MeshTool::computeMinMaxEdgeSqrLength<3>(crd, cT3, min_d, max_d);
       abstol= ::sqrt(min_d) * RTOL;
 
       // conformize this cloud
@@ -288,7 +288,7 @@ namespace NUGA
       {
         E_Int nbt3o = cT3.cols();
         std::vector<E_Int> dupids;
-        K_CONNECT::MeshTool::removeDuplicated(cT3, dupids, false/*strict orient*/);
+        NUGA::MeshTool::removeDuplicated(cT3, dupids, false/*strict orient*/);
 
         if (cT3.cols() < nbt3o) // update ancT3
         {
@@ -309,7 +309,7 @@ namespace NUGA
 
       // keep relevant pieces
       K_FLD::IntArray neighbors, neighbors_cpy;
-      err = K_CONNECT::EltAlgo<K_MESH::Triangle>::getNeighbours (cT3, neighbors, false/*means put somthing on manifolds to distinguish them from free edges*/);
+      err = NUGA::EltAlgo<K_MESH::Triangle>::getNeighbours (cT3, neighbors, false/*means put somthing on manifolds to distinguish them from free edges*/);
       neighbors_cpy = neighbors; //save it as we are going to erase non manifold info to split but we need it afterwards
       // do the coloring to see non manifoldnesses and non-connexities
       //so add the cuts in the graph
@@ -318,7 +318,7 @@ namespace NUGA
           if (neighbors(j,i) == NON_MANIFOLD_COL) neighbors(j,i) = E_IDX_NONE;
       
       std::vector<E_Int> nonmfld_bits;
-      K_CONNECT::EltAlgo<K_MESH::Triangle>::coloring_pure (neighbors, nonmfld_bits);
+      NUGA::EltAlgo<K_MESH::Triangle>::coloring_pure (neighbors, nonmfld_bits);
       
       //
       E_Int nb_nonmfld_bits = *std::max_element(ALL(nonmfld_bits))+1;
@@ -359,7 +359,7 @@ namespace NUGA
       // update neighbors at non-manifold edges
       
       using acnt_t = K_FLD::ArrayAccessor<K_FLD::IntArray>;
-      using algoT3 = K_CONNECT::EltAlgo<K_MESH::Triangle>;
+      using algoT3 = NUGA::EltAlgo<K_MESH::Triangle>;
       algoT3::BoundToEltType noE_to_oTs; // non oriented edge to oriented triangles (1 to n).
       //E_Int maxN = 
       acnt_t acT3(cT3);
@@ -414,7 +414,7 @@ namespace NUGA
             normj[2] = -normj[2]; 
           }
           
-          E_Float q = K_CONNECT::GeomAlgo<K_MESH::Triangle>::angle_measure(normalsT3.col(K0), normj, crd.col(E0), crd.col(E1));
+          E_Float q = NUGA::GeomAlgo<K_MESH::Triangle>::angle_measure(normalsT3.col(K0), normj, crd.col(E0), crd.col(E1));
           if (q == ERRORVAL)
           {
 #if defined (DEBUG_CLIPPER)
@@ -488,7 +488,7 @@ namespace NUGA
       
       // cells detection
       std::vector<E_Int> T3_to_PHT3;
-      K_CONNECT::EltAlgo<K_MESH::Triangle>::coloring_pure(neighbors, T3_to_PHT3);
+      NUGA::EltAlgo<K_MESH::Triangle>::coloring_pure(neighbors, T3_to_PHT3);
       E_Int nb_bits = *std::max_element(ALL(T3_to_PHT3))+1;
       
 //#ifdef DEBUG_CLIPPER

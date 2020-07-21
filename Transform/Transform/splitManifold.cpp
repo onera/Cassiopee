@@ -18,8 +18,8 @@
 */
 
 # include "transform.h"
-# include "Connect/MeshTool.h"
-# include "Connect/EltAlgo.h"
+# include "Nuga/include/MeshTool.h"
+# include "Nuga/include/EltAlgo.h"
 
 using namespace K_FLD;
 using namespace std;
@@ -83,17 +83,17 @@ PyObject* K_TRANSFORM::splitManifold(PyObject* self, PyObject* args)
   std::vector<E_Int> colors;
   E_Int NB_NODES=3;
   std::vector<E_Int> dupIds;
-  K_CONNECT::MeshTool::removeDuplicated(*cn, dupIds, false);
+  NUGA::MeshTool::removeDuplicated(*cn, dupIds, false);
   
   if (strcmp(eltType, "TRI") == 0)
   {
-    K_CONNECT::EltAlgo<K_MESH::Triangle>::getManifoldNeighbours(*cn, neighbors, false);
-    K_CONNECT::EltAlgo<K_MESH::Triangle>::coloring (neighbors, colors);
+    NUGA::EltAlgo<K_MESH::Triangle>::getManifoldNeighbours(*cn, neighbors, false);
+    NUGA::EltAlgo<K_MESH::Triangle>::coloring (neighbors, colors);
   }
   else if (strcmp(eltType, "BAR") == 0)
   {
-    K_CONNECT::EltAlgo<K_MESH::Edge>::getManifoldNeighbours(*cn, neighbors, false);
-    K_CONNECT::EltAlgo<K_MESH::Edge>::coloring(neighbors, colors);
+    NUGA::EltAlgo<K_MESH::Edge>::getManifoldNeighbours(*cn, neighbors, false);
+    NUGA::EltAlgo<K_MESH::Edge>::coloring(neighbors, colors);
     NB_NODES = 2;
   }
   
@@ -125,7 +125,7 @@ PyObject* K_TRANSFORM::splitManifold(PyObject* self, PyObject* args)
     for (size_t i=0; i < nb_bits; ++i)
     {
       fs[i] = *f;
-      K_CONNECT::MeshTool::compact_to_mesh(fs[i], cs[i], nids);
+      NUGA::MeshTool::compact_to_mesh(fs[i], cs[i], nids);
       tpl = K_ARRAY::buildArray(fs[i], varString, cs[i], -1, eltType);
       PyList_Append(l, tpl);
       Py_DECREF(tpl);

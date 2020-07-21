@@ -19,7 +19,7 @@
 
 # include "compGeom.h"
 # include <stdio.h>
-# include "MeshElement/Triangle.h"
+# include "Nuga/include/Triangle.h"
 
 using namespace std;
 

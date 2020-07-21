@@ -15,7 +15,7 @@
 #include <vector>
 
 #ifdef DEBUG_ZONE_T
-#include "Nuga/Boolean/NGON_debug.h"
+#include "Nuga/include/NGON_debug.h"
 #endif
 
 

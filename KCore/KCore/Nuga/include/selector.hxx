@@ -11,7 +11,7 @@
 #ifndef NUGA_SELECTOR_HXX
 #define NUGA_SELECTOR_HXX
 
-#include "Search/BbTree.h"
+#include "Nuga/include/BbTree.h"
 
 namespace NUGA
 {

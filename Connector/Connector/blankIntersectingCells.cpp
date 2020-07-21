@@ -18,8 +18,8 @@
 */
 
 # include "connector.h"
-# include "Search/BbTree.h"
-# include "Fld/ArrayAccessor.h"
+# include "Nuga/include/BbTree.h"
+# include "Nuga/include/ArrayAccessor.h"
 # include "Connect/connect.h"
 
 using namespace std;

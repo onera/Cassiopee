@@ -27,8 +27,8 @@
 E_Int chrono::verbose=1;
 #endif
 
-# include "Fld/ngon_t.hxx"
-# include "Nuga/Delaunay/Triangulator.h"
+# include "Nuga/include/ngon_t.hxx"
+# include "Nuga/include/Triangulator.h"
 #include "Nuga/include/localizer.hxx"
 #include "Nuga/include/collider.hxx"
 #include "Nuga/include/mesh_t.hxx"

@@ -19,11 +19,11 @@
 #include <string.h>
 #include "String/kstring.h"
 #include "Connect/connect.h"
-#include "Fld/ArrayAccessor.h"
-#include "Connect/merge.h"
-#include "Search/BbTree.h"
+# include "Nuga/include/ArrayAccessor.h"
+#include "Nuga/include/merge.h"
+# include "Nuga/include/BbTree.h"
 #include <iostream>
-#include "Fld/ngon_t.hxx"
+#include "Nuga/include/ngon_t.hxx"
 
 using namespace K_FLD;
 using namespace std;

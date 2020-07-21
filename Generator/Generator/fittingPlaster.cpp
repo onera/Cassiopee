@@ -20,7 +20,7 @@
 // Creates a structured points cloud over a BAR.
 
 # include "generator.h"
-# include "Nuga/GapFixer/Plaster.h"
+# include "Nuga/include/Plaster.h"
 
 using namespace std;
 

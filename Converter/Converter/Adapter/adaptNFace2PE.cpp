@@ -17,8 +17,8 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 # include "converter.h"
-#include "Fld/ngon_t.hxx"
-#include "Nuga/Delaunay/Triangulator.h"
+#include "Nuga/include/ngon_t.hxx"
+#include "Nuga/include/Triangulator.h"
 
 using namespace K_FLD;
 using ngon_type = ngon_t<K_FLD::IntArray>;

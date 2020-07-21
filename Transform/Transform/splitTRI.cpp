@@ -18,7 +18,7 @@
 */
 
 # include "transform.h"
-# include "Connect/TSSplitter.h"
+# include "Nuga/include/TSSplitter.h"
 
 using namespace K_FLD;
 using namespace std;

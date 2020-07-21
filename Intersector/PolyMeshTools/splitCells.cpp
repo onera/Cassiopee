@@ -28,9 +28,9 @@
 # include <string>
 # include <sstream> 
 # include "intersector.h"
-# include "Fld/ngon_t.hxx"
-# include "Nuga/Delaunay/Triangulator.h"
-# include "Nuga/Boolean/Splitter.h"
+# include "Nuga/include/ngon_t.hxx"
+# include "Nuga/include/Triangulator.h"
+# include "Nuga/include/Splitter.h"
 
 #include "Nuga/include/tree.hxx"
 #include "Nuga/include/geom_sensor.hxx"
@@ -39,7 +39,7 @@
 #include "Nuga/include/adaptor.hxx"
 #include "Nuga/include/hierarchical_mesh.hxx"
 
-#include "Search/BbTree.h"
+#include "Nuga/include/BbTree.h"
 #include <memory>
 //#include <iostream>
 

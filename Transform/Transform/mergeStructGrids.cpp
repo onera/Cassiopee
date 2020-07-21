@@ -20,8 +20,8 @@
 # include "transform.h"
 # include <list>
 # include <stdlib.h>
-# include "Search/KdTree.h"
-# include "Fld/ArrayAccessor.h"
+# include "Nuga/include/KdTree.h"
+# include "Nuga/include/ArrayAccessor.h"
 
 using namespace std;
 using namespace K_FLD;

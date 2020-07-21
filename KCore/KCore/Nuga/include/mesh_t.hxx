@@ -8,10 +8,10 @@
  
 */
 
-#include "Fld/DynArray.h"
-#include "Fld/ngon_t.hxx"
+#include "Nuga/include/DynArray.h"
+#include "Nuga/include/ngon_t.hxx"
 #include "Nuga/include/localizer.hxx"
-#include "Search/BbTree.h"
+# include "Nuga/include/BbTree.h"
 #include "Nuga/include/polygon.hxx"
 #include "Nuga/include/polyhedron.hxx"
 
@@ -74,7 +74,7 @@ struct connect_trait<LINEIC, true>
   static void compact(cnt_t&c, const std::vector<bool>& keep){ std::vector<E_Int> nids; K_FLD::IntArray::compact(c, keep, nids);}
   static void compact_to_used_nodes(cnt_t& c, K_FLD::FloatArray& crd, std::vector<E_Int>& nids)
   {
-    K_CONNECT::MeshTool::compact_to_mesh(crd, c, nids);
+    NUGA::MeshTool::compact_to_mesh(crd, c, nids);
   }
 
   static K_FLD::FloatArray compact_to_used_nodes(cnt_t&c, K_FLD::FloatArray const & crdi, std::vector<E_Int>& nids)
@@ -82,7 +82,7 @@ struct connect_trait<LINEIC, true>
     std::vector<E_Int> oids;
     K_FLD::FloatArray lcrd;
     K_FLD::IntArray lcnt;
-    K_CONNECT::MeshTool::compact_to_mesh(crdi, c, lcrd, lcnt, oids); //use this version to minimize mem print
+    NUGA::MeshTool::compact_to_mesh(crdi, c, lcrd, lcnt, oids); //use this version to minimize mem print
     c = std::move(lcnt);
 
     // build nids, sized as crdi
@@ -96,7 +96,7 @@ struct connect_trait<LINEIC, true>
   {
     // should be factorized in a behaviour class
     K_FLD::FloatArray L;
-    K_CONNECT::MeshTool::computeIncidentEdgesSqrLengths(crd, cnt, L);
+    NUGA::MeshTool::computeIncidentEdgesSqrLengths(crd, cnt, L);
     L.extract_field(0, nodal_tolerance); // 0: extract the min
   }
   
@@ -137,11 +137,11 @@ struct connect_trait<SURFACIC, false>
 
   static void get_boundary(const cnt_t& c, K_FLD::IntArray& bc)
   {
-    K_CONNECT::MeshTool::getBoundary(c, bc);
+    NUGA::MeshTool::getBoundary(c, bc);
   }
   static void get_boundary(const cnt_t& c, K_FLD::IntArray& bc, std::vector<E_Int>& ancestors)
   {
-    K_CONNECT::MeshTool::getBoundary(c, bc, &ancestors);
+    NUGA::MeshTool::getBoundary(c, bc, &ancestors);
     bc.shift(-1); //NGON store 1-based, IntArray is 0-based
   }
   
@@ -199,7 +199,7 @@ struct connect_trait<SURFACIC, false>
   static void compute_nodal_tolerance(const K_FLD::FloatArray& crd, const cnt_t& cnt, std::vector<E_Float>& nodal_tolerance)
   {
     K_FLD::FloatArray L;
-    K_CONNECT::MeshTool::computeIncidentEdgesSqrLengths(crd, cnt, L);
+    NUGA::MeshTool::computeIncidentEdgesSqrLengths(crd, cnt, L);
     L.extract_field(0, nodal_tolerance); // 0: extract the min
   }
 
@@ -321,7 +321,7 @@ struct connect_trait<VOLUMIC, false>
   {
     // should be factorized in a behaviour class
     K_FLD::FloatArray L;
-    K_CONNECT::MeshTool::computeIncidentEdgesSqrLengths(crd, c.PGs, L);
+    NUGA::MeshTool::computeIncidentEdgesSqrLengths(crd, c.PGs, L);
     L.extract_field(0, nodal_tolerance); // 0: extract the min
   }
 };

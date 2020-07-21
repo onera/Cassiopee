@@ -19,14 +19,14 @@
 
 # include "connector.h"
 #include "maskGen.h"
-#include "Search/Collider.h"
-#include "Search/ZoneExtractor.h"
+#include "Nuga/include/Collider.h"
+#include "Nuga/include/ZoneExtractor.h"
 #include <memory>
 #include "Nuga/include/ngacc.hxx"
 #include "Nuga/include/localizer.hxx"
 #include "Nuga/include/collider.hxx"
-#include "MeshElement/Pentahedron.h"
-#include "MeshElement/Pyramid.h"
+#include "Nuga/include/Pentahedron.h"
+#include "Nuga/include/Pyramid.h"
 //#include <sstream>
 //#include <fstream>
 //#include <iostream>

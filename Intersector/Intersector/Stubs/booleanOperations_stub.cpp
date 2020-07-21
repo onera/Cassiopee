@@ -25,8 +25,8 @@
 # include <string>
 # include <sstream> 
 # include "intersector.h"
-# include "Nuga/Boolean/TRI_BooleanOperator.h"
-# include "Nuga/Boolean/BAR_BooleanOperator.h"
+# include "Nuga/include/TRI_BooleanOperator.h"
+# include "Nuga/include/BAR_BooleanOperator.h"
 #include <memory>
 #include "stub.h"
 

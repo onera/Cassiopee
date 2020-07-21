@@ -12,8 +12,8 @@
 #ifndef NUGA_POLYHEDRON_HXX
 #define NUGA_POLYHEDRON_HXX
 
-#include "MeshElement/Polyhedron.h"
-#include "Nuga/Delaunay/Triangulator.h"
+#include "Nuga/include/Polyhedron.h"
+#include "Nuga/include/Triangulator.h"
 
 namespace NUGA
 {
@@ -239,7 +239,7 @@ void aPolyhedron<TopoShape>::reorient(bool outward)
   ngon_unit neighbors;
   K_MESH::Polygon::build_pg_neighborhood(m_pgs, neighbors);
   std::vector<E_Int> oids, orient(m_faces.size(), 1);
-  K_CONNECT::EltAlgo<K_MESH::Polygon>::reversi_connex(m_pgs, neighbors, 0/*ref*/, orient);
+  NUGA::EltAlgo<K_MESH::Polygon>::reversi_connex(m_pgs, neighbors, 0/*ref*/, orient);
 
   //Apply new orientation
   for (E_Int i = 0; i < m_pgs.size(); ++i)

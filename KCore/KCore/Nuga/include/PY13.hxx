@@ -12,7 +12,7 @@
 #define NUGA_PY13_HXX
 
 #include "splitting_t.hxx"
-#include "MeshElement/Pyramid.h"
+#include "Nuga/include/Pyramid.h"
 
 namespace NUGA
 {

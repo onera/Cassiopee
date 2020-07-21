@@ -20,13 +20,13 @@
 
 #include "intersector.h"
 #include <vector>
-#include "Fld/DynArray.h"
-#include "Fld/ngon_t.hxx"
-#include "MeshElement/Hexahedron.h"
-#include "MeshElement/Polyhedron.h"
-#include "Search/BbTree.h"
+#include "Nuga/include/DynArray.h"
+#include "Nuga/include/ngon_t.hxx"
+#include "Nuga/include/Hexahedron.h"
+#include "Nuga/include/Polyhedron.h"
+#include "Nuga/include/BbTree.h"
 #include "Nuga/include/localizer.hxx"
-#include "Nuga/Delaunay/Triangulator.h"
+#include "Nuga/include/Triangulator.h"
 #include "Nuga/include/ph_clipper.hxx"
 #include "Nuga/include/polyhedron.hxx"
 
@@ -49,7 +49,7 @@ int chrono::verbose = 2;
 
 #ifdef DEBUG_UNIFY
 #include "Nuga/include/medit.hxx"
-#include "Nuga/Boolean/NGON_debug.h"
+#include "Nuga/include/NGON_debug.h"
 using NGDBG  = NGON_debug<K_FLD::FloatArray, K_FLD::IntArray>;
 #endif
 
@@ -425,7 +425,7 @@ bool compute_zone_blanking(const K_FLD::FloatArray& crd, ngon_type& ng,
     ngon_unit neighbors;
     ng.build_ph_neighborhood(neighbors);
     E_Float FIRST_COL = 1.;
-    K_CONNECT::EltAlgo<K_MESH::Polyhedron<0>/*dummy*/>::coloring(neighbors, xcelln_cur, (E_Float)UNSET, (E_Float)FIRST_COL);
+    NUGA::EltAlgo<K_MESH::Polyhedron<0>/*dummy*/>::coloring(neighbors, xcelln_cur, (E_Float)UNSET, (E_Float)FIRST_COL);
     
     E_Int nb_bits;
     {
@@ -717,7 +717,7 @@ E_Float compute_coeff(aELT1& aPHcur, E_Int nb_pts0, E_Float vcur, E_Float V0, st
   ngon_unit neighbors;
   std::vector<E_Int> colors;
   K_MESH::Polygon::build_pg_neighborhood(aPHcur.m_pgs, neighbors);
-  K_CONNECT::EltAlgo<K_MESH::Polygon>::coloring (neighbors, colors);
+  NUGA::EltAlgo<K_MESH::Polygon>::coloring (neighbors, colors);
   E_Int nb_connex = 1+*std::max_element(colors.begin(), colors.end());
 
   std::vector<bool> is_wall_free(nb_connex, true);
@@ -1216,7 +1216,7 @@ void MOVLP_unify(const std::vector<K_FLD::FloatArray*> &crds, const std::vector<
       {
         E_Int Kseed = toprocess[i];
         E_Float bad_col;
-        /*bool good_dom = */K_CONNECT::EltAlgo<K_MESH::Triangle/*dummy*/>::coloring_one_connex_homogeneous (neighbors, xcelln[z], Kseed, (E_Float)UNSET, (E_Float)IN, (E_Float)IN_BODY, bad_col);
+        /*bool good_dom = */NUGA::EltAlgo<K_MESH::Triangle/*dummy*/>::coloring_one_connex_homogeneous (neighbors, xcelln[z], Kseed, (E_Float)UNSET, (E_Float)IN, (E_Float)IN_BODY, bad_col);
         
       }
     }

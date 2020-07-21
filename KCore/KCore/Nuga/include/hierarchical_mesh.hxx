@@ -17,7 +17,7 @@
 #include "Nuga/include/medit.hxx"
 #else
 #include "IO/io.h"
-#include "Nuga/Boolean/NGON_debug.h"
+#include "Nuga/include/NGON_debug.h"
 using NGDBG = NGON_debug<K_FLD::FloatArray, K_FLD::IntArray>;
 #endif
 #endif
@@ -25,10 +25,10 @@ using NGDBG = NGON_debug<K_FLD::FloatArray, K_FLD::IntArray>;
 #include "Nuga/include/tree.hxx"
 #include "Nuga/include/subdivision.hxx"
 
-#include "Connect/IdTool.h"
-#include "Nuga/Delaunay/Triangulator.h"
-#include "MeshElement/Basic.h"
-#include "MeshElement/Prism.h"
+#include "Nuga/include/IdTool.h"
+#include "Nuga/include/Triangulator.h"
+#include "Nuga/include/Basic.h"
+#include "Nuga/include/Prism.h"
 #include "Nuga/include/refiner.hxx"
 #include "Nuga/include/macros.h"
 

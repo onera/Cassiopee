@@ -22,8 +22,8 @@
 # include <string>
 # include <sstream> 
 # include "intersector.h"
-# include "Nuga/Boolean/TRI_Conformizer.h"
-# include "Nuga/Boolean/BAR_Conformizer.h"
+# include "Nuga/include/TRI_Conformizer.h"
+# include "Nuga/include/BAR_Conformizer.h"
 //#include <iostream>
 
 using namespace std;
@@ -160,7 +160,7 @@ PyObject* K_INTERSECTOR::conformUnstr(PyObject* self, PyObject* args)
     }
     
     //
-    K_CONNECT::MeshTool::compact_to_mesh(crd, *cntOut, nids);
+    NUGA::MeshTool::compact_to_mesh(crd, *cntOut, nids);
     //std::cout << "nb elts : " << cntOut->cols() << " and type (nb rows) : " << cntOut->rows() << std::endl; 
     tpl = K_ARRAY::buildArray(crd, varString, *cntOut, -1, eltType1, false);
     

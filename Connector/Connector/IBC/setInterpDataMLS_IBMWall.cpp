@@ -20,9 +20,9 @@
 // Computes MLS coefficients for the projection of IBM solution on a triangulated surface
 
 # include "connector.h"
-# include "Search/KdTree.h"
-# include "Search/BbTree.h"
-# include "Fld/ArrayAccessor.h"
+# include "Nuga/include/KdTree.h"
+# include "Nuga/include/BbTree.h"
+# include "Nuga/include/ArrayAccessor.h"
 using namespace K_FLD;
 using namespace std;
 

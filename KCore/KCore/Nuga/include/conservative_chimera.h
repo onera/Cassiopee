@@ -12,8 +12,8 @@
 #define NUGA_CONSERVATIVE_CHIMERA_H
 
 #include "Nuga/include/conservative_chimera.hxx"
-#include "Nuga/Delaunay/Triangulator.h"
-#include "Fld/DynArray.h"
+#include "Nuga/include/Triangulator.h"
+#include "Nuga/include/DynArray.h"
 
 
 namespace NUGA

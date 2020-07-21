@@ -22,7 +22,7 @@
 # include <stdio.h>
 # include <string.h>
 # include "post.h"
-# include "Connect/merge.h"
+# include "Nuga/include/merge.h"
 
 using namespace std;
 using namespace K_FLD;

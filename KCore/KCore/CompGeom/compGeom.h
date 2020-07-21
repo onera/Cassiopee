@@ -281,7 +281,7 @@ typedef struct {
   E_Float getAlphaAngleBetweenBars(E_Float* ptA1, E_Float* ptB1, 
                                    E_Float* ptA2, E_Float* ptB2,   E_Float* dirVect);
 
-  /* Intersection de triangles (algo de Sam : cf MeshElement/Triangle.h) 
+  /* Intersection de triangles (algo de Sam : cf Nuga/include/Triangle.h) 
      Retourne -1 si intersection entre 2 triangles non coplanaires
      Retourne  0 si pas d'intersection 
   */

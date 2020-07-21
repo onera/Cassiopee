@@ -23,8 +23,8 @@
 # include "Def/DefFunction.h"
 # include "Fld/FldArray.h"
 # include "Array/Array.h"
-# include "Search/KdTree.h"
-# include "Fld/ArrayAccessor.h"
+# include "Nuga/include/KdTree.h"
+# include "Nuga/include/ArrayAccessor.h"
 # include <vector>
 # include <list>
 # define FldArrayF K_FLD::FldArrayF

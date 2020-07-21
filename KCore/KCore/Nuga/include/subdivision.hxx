@@ -16,16 +16,16 @@
 #include "Nuga/include/macros.h"
 #include "Nuga/include/subdiv_defs.h"
 
-#include "MeshElement/Tetrahedron.h"
-#include "MeshElement/Hexahedron.h"
-#include "MeshElement/Prism.h"
-#include "MeshElement/Pyramid.h"
-#include "MeshElement/Basic.h"
-#include "MeshElement/Polyhedron.h"
+#include "Nuga/include/Tetrahedron.h"
+#include "Nuga/include/Hexahedron.h"
+#include "Nuga/include/Prism.h"
+#include "Nuga/include/Pyramid.h"
+#include "Nuga/include/Basic.h"
+#include "Nuga/include/Polyhedron.h"
 
-#include "MeshElement/Triangle.h"
-#include "MeshElement/Quadrangle.h"
-#include "MeshElement/Polygon.h"
+#include "Nuga/include/Triangle.h"
+#include "Nuga/include/Quadrangle.h"
+#include "Nuga/include/Polygon.h"
 
 
 namespace NUGA

@@ -13,9 +13,9 @@
 #define NUGA_GEOM_SENSOR_HXX
 
 #include "Nuga/include/sensor.hxx"
-#include "Connect/EltAlgo.h"
-#include "MeshElement/Hexahedron.h"
-#include "Fld/ngon_t.hxx"
+#include "Nuga/include/EltAlgo.h"
+#include "Nuga/include/Hexahedron.h"
+#include "Nuga/include/ngon_t.hxx"
 #include "V1_smoother.hxx"
 #include "shell_smoother.hxx"
 
@@ -397,7 +397,7 @@ bool geom_sensor<mesh_t>::stop()
 //  for (E_Int i=0; i < nb_elts; ++i)
 //    adap_incr[i] = NB_PTS_TO_INCR(adap_incr[i]);
 //
-//  K_CONNECT::EltAlgo<typename mesh_t::elt_type>::smoothd1(parent_t::_hmesh._ng.PHs, parent_t::_hmesh._F2E, parent_t::_hmesh._PHtree.level(), adap_incr); // 2-1 smoothing
+//  NUGA::EltAlgo<typename mesh_t::elt_type>::smoothd1(parent_t::_hmesh._ng.PHs, parent_t::_hmesh._F2E, parent_t::_hmesh._PHtree.level(), adap_incr); // 2-1 smoothing
 //
 //  return true;
 //  

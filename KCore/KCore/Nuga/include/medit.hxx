@@ -16,8 +16,8 @@
 #include <iostream>
 #include <cstring>
 
-#include "Nuga/Delaunay/Triangulator.h"
-#include "Fld/ngon_t.hxx"
+#include "Nuga/include/Triangulator.h"
+#include "Nuga/include/ngon_t.hxx"
 #include "Nuga/include/polygon.hxx"
 #include "Nuga/include/polyhedron.hxx"
 

@@ -20,7 +20,7 @@
 
 #ifndef _KCORE_ARRAY_H_
 #define _KCORE_ARRAY_H_
-#include "Fld/DynArray.h"
+#include "Nuga/include/DynArray.h"
 #include "kPython.h"
 #include "Def/DefTypes.h"
 #include "Def/DefCplusPlusConst.h"

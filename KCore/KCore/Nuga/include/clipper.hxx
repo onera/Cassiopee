@@ -15,8 +15,8 @@
 #define NUGA_CLIPPER_HXX
 
 #include <vector>
-#include "Nuga/Boolean/BAR_Conformizer.h"
-#include "Nuga/Delaunay/T3Mesher.h"
+#include "Nuga/include/BAR_Conformizer.h"
+#include "Nuga/include/T3Mesher.h"
 
 #include "Nuga/include/ph_clipper.hxx"
 
@@ -94,7 +94,7 @@ namespace NUGA
       
       // compute an overall 3D abstol
       E_Float min_d, max_d, ABSTOL;
-      K_CONNECT::MeshTool::computeMinMaxEdgeSqrLength<3>(crd, cnt, min_d, max_d);
+      NUGA::MeshTool::computeMinMaxEdgeSqrLength<3>(crd, cnt, min_d, max_d);
       double Lref = ::sqrt(min_d);
       ABSTOL = Lref * RTOL;
       ABSTOL = std::max(ABSTOL, ZERO_M);
@@ -266,7 +266,7 @@ namespace NUGA
           //
           nids.clear();
           K_FLD::FloatArray crd(*data.pos); //should not hurt as meshes are small
-          K_CONNECT::MeshTool::compact_to_mesh(crd, it->second, nids);
+          NUGA::MeshTool::compact_to_mesh(crd, it->second, nids);
 
           PGi.clear();
           // sort the nodes
@@ -281,11 +281,11 @@ namespace NUGA
       else //connex
       {
         K_FLD::IntArray cB;
-        K_CONNECT::MeshTool::getBoundaryT3Mesh(data.connectM, data.neighbors, cB);
+        NUGA::MeshTool::getBoundaryT3Mesh(data.connectM, data.neighbors, cB);
 
         std::vector<E_Int> nids;
         K_FLD::FloatArray& crd = *data.pos;
-        K_CONNECT::MeshTool::compact_to_mesh(crd, cB, nids);
+        NUGA::MeshTool::compact_to_mesh(crd, cB, nids);
 
         std::vector<E_Int> PGi;
         // sort the nodes

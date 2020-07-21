@@ -12,7 +12,7 @@
 #ifndef NUGA_POLYGON_HXX
 #define NUGA_POLYGON_HXX
 
-#include "MeshElement/Polygon.h"
+#include "Nuga/include/Polygon.h"
 
 namespace NUGA
 {
@@ -31,7 +31,7 @@ struct aPolygon : public K_MESH::Polygon
   aPolygon(const E_Int* nodes, E_Int nb_nodes, const K_FLD::FloatArray& crd) = delete; // from "mesh" to autonmous
   aPolygon(const parent_type& pg, const K_FLD::FloatArray& crd):parent_type(pg.begin(), pg.nb_nodes(), pg.shift()), m_L2ref(-1.)
   {
-    K_CONNECT::MeshTool::compact_to_mesh(crd, _nodes, _nb_nodes, -_shift, m_crd);
+    NUGA::MeshTool::compact_to_mesh(crd, _nodes, _nb_nodes, -_shift, m_crd);
     
     m_nodes.clear();
     K_CONNECT::IdTool::init_inc(m_nodes, pg.nb_nodes(), 0);
@@ -64,7 +64,7 @@ struct aPolygon : public K_MESH::Polygon
     parent_type::_shift = 0;
     m_normal[0] = m_centroid[0] = K_CONST::E_MAX_FLOAT;
 
-    K_CONNECT::MeshTool::compact_to_mesh(crd, ngu.get_facets_ptr(ith), parent_type::_nb_nodes, 1, m_crd);
+    NUGA::MeshTool::compact_to_mesh(crd, ngu.get_facets_ptr(ith), parent_type::_nb_nodes, 1, m_crd);
     
     m_nodes.clear();
     K_CONNECT::IdTool::init_inc(m_nodes, parent_type::_nb_nodes, 0);

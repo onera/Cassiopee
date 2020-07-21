@@ -12,7 +12,7 @@ NUGA
 #ifndef NUGA_T6_HXX
 #define NUGA_T6_HXX
 
-#include "MeshElement/Polygon.h"
+#include "Nuga/include/Polygon.h"
 #include "Nuga/include/subdivision.hxx"
 
 namespace NUGA

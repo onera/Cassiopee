@@ -792,7 +792,7 @@ namespace NUGA
 
     // 2.2 : incremental coloring => new INs, some X
     assert (UPPER_COL > OUT);
-    K_CONNECT::EltAlgo<typename zmesh_t::elt_t>::coloring(*neighborz, cur_xcelln, (E_Float)OUT, (E_Float)UPPER_COL);
+    NUGA::EltAlgo<typename zmesh_t::elt_t>::coloring(*neighborz, cur_xcelln, (E_Float)OUT, (E_Float)UPPER_COL);
     
 #ifdef CLASSIFYER_DBG
     medith::write("colored_field_coloring", z_mesh.crd, z_mesh.cnt, nullptr, 0, &cur_xcelln);

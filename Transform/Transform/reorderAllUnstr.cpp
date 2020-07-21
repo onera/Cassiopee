@@ -18,7 +18,7 @@
 */
 # include "stdio.h"
 # include "transform.h"
-# include "Connect/GeomAlgo.h"
+# include "Nuga/include/GeomAlgo.h"
 
 using namespace std;
 using namespace K_FLD;
@@ -128,7 +128,7 @@ PyObject* K_TRANSFORM::reorderAllUnstr(PyObject* self, PyObject* args)
   }//parcours de toutes les zones
   
   bool otwd = (outward == 1);
-  K_CONNECT::GeomAlgo<K_MESH::Triangle>::reversi_chimera_skin(crds, tri_cnts, otwd);
+  NUGA::GeomAlgo<K_MESH::Triangle>::reversi_chimera_skin(crds, tri_cnts, otwd);
   
   /*--------------*/
   /* build arrays */

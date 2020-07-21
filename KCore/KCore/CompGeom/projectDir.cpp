@@ -19,7 +19,7 @@
 
 # include "CompGeom/compGeom.h"
 # include <stdio.h>
-# include "Search/BbTree.h"
+# include "Nuga/include/BbTree.h"
 
 using namespace K_FLD;
 using namespace std;

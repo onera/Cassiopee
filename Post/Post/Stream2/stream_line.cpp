@@ -22,9 +22,9 @@
 #include "unstructured_data_view.hpp"
 #include "ngon_data_view.hpp"
 #include "Interp/InterpData.h"
-#include "MeshElement/Polygon.h"
+#include "Nuga/include/Polygon.h"
 #include "stream_line.hpp"
-#include "Nuga/Delaunay/Triangulator.h"
+#include "Nuga/include/Triangulator.h"
 #include "vector3d.hpp"
 #include "point3d.hpp"
 using K_POST::vector3d;

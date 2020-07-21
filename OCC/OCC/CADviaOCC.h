@@ -29,7 +29,7 @@
 #include "Def/DefTypes.h"
 #include <vector>
 #include <map>
-#include "Fld/DynArray.h"
+# include "Nuga/include/DynArray.h"
 #include "OCCSurface.h"
 
 namespace K_OCC

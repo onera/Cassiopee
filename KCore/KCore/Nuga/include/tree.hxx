@@ -12,8 +12,8 @@
 #ifndef NUGA_TREE_HXX
 #define NUGA_TREE_HXX
 
-#include "MeshElement/Hexahedron.h"
-#include "MeshElement/Polyhedron.h"
+#include "Nuga/include/Hexahedron.h"
+#include "Nuga/include/Polyhedron.h"
 
 using ngon_type = ngon_t<K_FLD::IntArray>;
 

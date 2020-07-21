@@ -28,14 +28,14 @@
 
 #include <map>
 #include "Nuga/include/macros.h"
-#include "Fld/ngon_t.hxx"
+#include "Nuga/include/ngon_t.hxx"
 #include "Nuga/include/mesh_t.hxx"
 #include "Nuga/include/masker.hxx"
 #include "Nuga/include/xcelln.hxx"
 
 #if defined(DEBUG_XCELLN) || defined(CLASSIFYER_DBG)
 #include "Nuga/include/medit.hxx"
-// #include "Nuga/Boolean/NGON_debug.h"
+// #include "Nuga/include/NGON_debug.h"
 // using NGDBG  = NGON_debug<K_FLD::FloatArray, K_FLD::IntArray>;
 std::string medith::wdir = "./";
 #endif

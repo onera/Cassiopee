@@ -18,7 +18,7 @@
 */
 
 #include "linear.h"
-#include "Linear/DelaunayMath.h"
+#include "Nuga/include/DelaunayMath.h"
 # include <math.h>
 
 #define SWAP(a, b) { temp = a; a = b; b = temp; }

@@ -18,9 +18,9 @@
 */
 
 # include "connector.h"
-# include "Search/BbTree.h"
-# include "Search/KdTree.h"
-# include "Fld/ArrayAccessor.h"
+# include "Nuga/include/BbTree.h"
+# include "Nuga/include/KdTree.h"
+# include "Nuga/include/ArrayAccessor.h"
 using namespace K_FLD;
 using namespace std;
 using namespace K_SEARCH;

@@ -24,7 +24,7 @@
 //#define DEBUG_GHOST
 //#define DEBUG_ZONE_T
 
-# include "Fld/ngon_t.hxx"
+# include "Nuga/include/ngon_t.hxx"
 # include "Nuga/include/zone_t.hxx"
 
 //#include <iostream>

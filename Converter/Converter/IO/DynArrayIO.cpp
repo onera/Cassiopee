@@ -23,7 +23,7 @@
 #include "IO/DynArrayIO.h"
 #include <vector>
 #include "Fld/FldArray.h"
-#include "Fld/DynArray.h"
+# include "Nuga/include/DynArray.h"
 #include <string.h>
 #include "IO/GenIO.h"
 #include <iostream>
@@ -31,7 +31,7 @@
 #include "Connect/connect.h"
 #include "kcore.h"
 #include "converter.h"
-#include "Connect/merge.h"
+#include "Nuga/include/merge.h"
 
 std::string K_CONVERTER::DynArrayIO::rdir = "";
 std::string K_CONVERTER::DynArrayIO::wdir = "";
