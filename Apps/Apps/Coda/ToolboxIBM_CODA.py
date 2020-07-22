@@ -276,12 +276,11 @@ def prepare(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=0,
     
     
     # identify elements per processor
-    if t_out is not None:
-        Cmpi.convertPyTree2File(t,t_out)
+    if t_out is not None: Cmpi.convertPyTree2File(t, t_out)
 
     return t
 
-# OUT: list [HN_C, HN_F1, HN_F2, HN_F3, HN_F4] : indices of coarse/fine1 to 4 elements, index starts at 0
+# OUT: list [HN_C, HN_F1, HN_F2, HN_F3, HN_F4]: indices of coarse/fine1 to 4 elements, index starts at 0
 # indicesFacesOrig start at 1
 def getHangingNodesInfoPara(a, b, indicesFacesOrig, bopp, indicesFacesOrigOpp):
     b[0]='extFaces'; bopp[0] = 'extFacesOpp'
@@ -293,18 +292,16 @@ def getHangingNodesInfoPara(a, b, indicesFacesOrig, bopp, indicesFacesOrigOpp):
     cnExtFaceOpp = Internal.getValue(cnExtFaceOpp)
     sizeCNExtFaceOpp = cnExtFaceOpp.shape[0]
     eltType = Internal.getZoneDim(b)[3]
-    if eltType=='BAR': 
-        shiftElt=2; nfaces = 4
-    else: 
-        shiftElt=4; nfaces = 6
+    if eltType == 'BAR': shiftElt=2; nfaces = 4
+    else: shiftElt=4; nfaces = 6
 
     # loop on face centers of coarse zone (local b zone)
-    HN_COARSE=[]; HN_FINE1 = []; HN_FINE2 = []; HN_FINE3 = []; HN_FINE4 = []
+    HN_COARSE=[]; HN_FINE1=[]; HN_FINE2=[]; HN_FINE3=[]; HN_FINE4=[]
     if eltType=='BAR':
         for noEltEF in range(len(HN)):
             indVertexEF = HN[noEltEF] # indice of vertex of bopp, starts at 1
             if indVertexEF !=-1:
-                HN_COARSE.append((indicesFacesOrig[noEltEF]-1)//nfaces)
+                HN_COARSE.append(int(indicesFacesOrig[noEltEF]-1)//nfaces)
                 # looking for opp faces (fine side) with vertex indVertexEF
                 noptr = 0; noe = 0
                 found = 0; efd = -1; efg = -1
@@ -312,10 +309,10 @@ def getHangingNodesInfoPara(a, b, indicesFacesOrig, bopp, indicesFacesOrigOpp):
                     indV1 = cnExtFaceOpp[noptr]
                     indV2 = cnExtFaceOpp[noptr+1]
                     if indV1 == indVertexEF: 
-                        efd = (indicesFacesOrigOpp[noe]-1)//nfaces
+                        efd = int(indicesFacesOrigOpp[noe]-1)//nfaces
                         found +=1
                     if indV2 == indVertexEF:
-                        efg = (indicesFacesOrigOpp[noe]-1)//nfaces
+                        efg = int(indicesFacesOrigOpp[noe]-1)//nfaces
                         found += 1
 
                     if found == 2:
@@ -331,7 +328,7 @@ def getHangingNodesInfoPara(a, b, indicesFacesOrig, bopp, indicesFacesOrigOpp):
         for noEltEF in range(len(HN)):
             indVertexEF = HN[noEltEF] # starts at 1
             if indVertexEF !=-1:
-                HN_COARSE.append((indicesFacesOrig[noEltEF]-1)//nfaces)
+                HN_COARSE.append(int(indicesFacesOrig[noEltEF]-1)//nfaces)
                 # looking for opp faces (fine side) with vertex indVertexEF
                 noptr = 0; noe = 0
                 found = 0
@@ -342,19 +339,19 @@ def getHangingNodesInfoPara(a, b, indicesFacesOrig, bopp, indicesFacesOrigOpp):
                     indV4 = cnExtFaceOpp[noptr+3]
                     ef1=-1; ef2=-1; ef3=-1; ef4=-1
                     if indVertexEF == indV1: 
-                        ef4 = (indicesFacesOrigOpp[noe]-1)//nfaces
+                        ef4 = int(indicesFacesOrigOpp[noe]-1)//nfaces
                         found +=1
 
                     elif indVertexEF == indV2:
-                        ef3 = (indicesFacesOrigOpp[noe]-1)//nfaces
+                        ef3 = int(indicesFacesOrigOpp[noe]-1)//nfaces
                         found += 1
 
                     elif indVertexEF == indV3:
-                        ef1 = (indicesFacesOrigOpp[noe]-1)//nfaces
+                        ef1 = int(indicesFacesOrigOpp[noe]-1)//nfaces
                         found += 1
 
                     elif indVertexEF == indV4:
-                        ef2 = (indicesFacesOrigOpp[noe]-1)//nfaces
+                        ef2 = int(indicesFacesOrigOpp[noe]-1)//nfaces
                         found += 1
 
                     if found == 4: 

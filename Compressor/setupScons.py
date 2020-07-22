@@ -36,8 +36,21 @@ extensions = [
               library_dirs=additionalLibPaths+libraryDirs,
               libraries=libraries+additionalLibs,
               extra_compile_args=Dist.getCppArgs(),
-              extra_link_args=Dist.getLinkArgs()
-	)
+              extra_link_args=Dist.getLinkArgs()),
+    #Extension('Compressor.sz.csz',
+    #          sources=["Compressor/sz/compressor.cpp"],
+    #          include_dirs=["Compressor"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
+    #          library_dirs=additionalLibPaths+libraryDirs,
+    #          libraries=libraries+["SZ","zstd"]+additionalLibs,
+    #          extra_compile_args=Dist.getCppArgs(),
+    #          extra_link_args=Dist.getLinkArgs()),
+    #Extension('Compressor.zfp.czfp',
+    #          sources=["Compressor/zfp/compressor.cpp"],
+    #          include_dirs=["Compressor"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
+    #          library_dirs=additionalLibPaths+libraryDirs,
+    #          libraries=libraries+["zfp"]+additionalLibs,
+    #          extra_compile_args=Dist.getCppArgs(),
+    #          extra_link_args=Dist.getLinkArgs()),
     ]
 
 # Setup ======================================================================
@@ -47,6 +60,7 @@ setup(
     description="Compress CFD solutions.",
     author="Onera",
     package_dir={"":"."},
+    #packages=['Compressor', 'Compressor.sz', 'Compressor.zfp'],
     packages=['Compressor'],
     ext_modules=extensions
     )

@@ -847,7 +847,7 @@ def stdTestT__(output, F, *keywords):
         b = F(b, *keywords)
         t[2][1] = b
         res = Internal.isStdNode(t)
-        if (output == 1 and res != -2): C.convertPyTree2File(t, 'out4.cgns')
+        if output == 1 and res != -2: C.convertPyTree2File(t, 'out4.cgns')
         if res != -2: testT(b, 4)
         else: testO(b, 4)
         coverage += 1

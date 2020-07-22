@@ -9,7 +9,6 @@ import Converter.Mpi as Cmpi
 import Apps.Coda.ToolboxIBM_CODA as TBX
 import Connector.PyTree as X
 import KCore.test as test
-import collections
 
 rank = Cmpi.rank
 NP = Cmpi.size
@@ -32,7 +31,7 @@ extFaces[0]='extFaces_%d'%rank
 indicesFacesOrig=indicesFacesOrig[0]
 # Local hanging nodes
 res = TBX.getHangingNodesInfoPara(a,extFaces, indicesFacesOrig, extFaces, indicesFacesOrig)
-dictOfHangingNodes=collections.OrderedDict()
+dictOfHangingNodes={}
 if res[0] != []: dictOfHangingNodes[rank]=res
 
 if NP>1:
