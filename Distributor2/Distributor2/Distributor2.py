@@ -1,6 +1,6 @@
 """Distribution module for Cassiopee package.
 """
-__version__ = '3.1'
+__version__ = '3.2'
 __author__ = "Christophe Benoit, Xavier Juvigny, Stephanie Peron, Pascal Raud"
 # 
 # Python Interface for block distribution over processors

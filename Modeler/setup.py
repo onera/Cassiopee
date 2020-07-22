@@ -38,7 +38,7 @@ libraryDirs += paths; libraries += libs
 # setup ======================================================================
 setup(
     name="Modeler",
-    version="3.1",
+    version="3.2",
     description="Modeler module.",
     author="Onera",
     package_dir={"":"."},

@@ -47,7 +47,7 @@ listExtensions.append(
 # setup =======================================================================
 setup(
     name="Generator",
-    version="3.1",
+    version="3.2",
     description="*Cassiopee* module of mesh generation.",
     author="Onera",
     package_dir={"":"."},

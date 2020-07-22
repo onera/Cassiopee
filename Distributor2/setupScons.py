@@ -32,7 +32,7 @@ libraryDirs += paths; libraries += libs
 # setup ======================================================================
 setup(
     name="Distributor2",
-    version="3.1",
+    version="3.2",
     description="Distributor for arrays and pyTrees.",
     author="Onera",
     package_dir={"":"."},
