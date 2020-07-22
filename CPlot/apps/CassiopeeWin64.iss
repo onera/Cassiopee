@@ -39,11 +39,11 @@ begin
   CassiopeeVar := ExpandConstant('{app}');
   SetArrayLength(lines, 7);
   lines[0] := 'set CASSIOPEE='+CassiopeeVar;
-  lines[1] := 'path=%CASSIOPEE%\Dist\bin\win64\bin;%CASSIOPEE%\Dist\bin\win64;%PATH%';
+  lines[1] := 'path=%CASSIOPEE%\Dist\bin\win64\lib;%CASSIOPEE%\Dist\bin\win64\bin;%CASSIOPEE%\Dist\bin\win64;%PATH%';
   lines[2] := 'set PYTHONEXE=python3.8';
   lines[3] := 'set PYTHONHOME=%CASSIOPEE%\Dist\bin\win64';
   lines[4] := 'set ELSAPROD=win64';
-  lines[5] := 'set PYTHONPATH=%CASSIOPEE%\Dist\bin\win64\bin;%CASSIOPEE%\Dist\bin\win64\Lib\python3.8';
+  lines[5] := 'set PYTHONPATH=%CASSIOPEE%\Dist\bin\win64\bin;%CASSIOPEE%\Dist\bin\win64\lib\python3.8;%CASSIOPEE%\Dist\bin\win64\lib\python3.8\site-packages';
   lines[6] := 'set OMP_NUM_THREADS=%NUMBER_OF_PROCESSORS%'
   SaveStringsToFile(filename,lines,false);
 
@@ -55,8 +55,8 @@ begin
   lines[2] := 'set PYTHONEXE=python3.8';
   lines[3] := 'set PYTHONHOME=%CASSIOPEE%\Dist\bin\win64';
   lines[4] := 'set ELSAPROD=win64';
-  lines[5] := 'set PYTHONPATH=%CASSIOPEE%\Dist\bin\win64;%CASSIOPEE%\Dist\bin\win64\Lib\python3.8'
-  lines[6] := 'python "%CASSIOPEE%\Dist\bin\win64\tkCassiopee.pyc" %1'
+  lines[5] := 'set PYTHONPATH=%CASSIOPEE%\Dist\bin\win64;%CASSIOPEE%\Dist\bin\win64\Lib\python3.8;%CASSIOPEE%\Dist\bin\win64\lib\python3.8\site-packages'
+  lines[6] := 'python "%CASSIOPEE%\Dist\bin\win64\tkCassiopee.py" %1'
   lines[7] := 'set OMP_NUM_THREADS=%NUMBER_OF_PROCESSORS%'
   Result := SaveStringsToFile(filename,lines,false);
   exit;
@@ -68,6 +68,6 @@ begin
 end;
 
 [Icons]
-Name: "{group}\Cassiopee"; Filename: "{app}\Dist\bin\win64\cassiopeeRunWin64.bat" ; Flags: runminimized ; WorkingDir: "%USERPROFILE%" ; IconFilename: "{app}\Dist\bin\win64\Lib\site-packages\CPlot\logoCassiopee32.ico"
+Name: "{group}\Cassiopee"; Filename: "{app}\Dist\bin\win64\cassiopeeRunWin64.bat" ; Flags: runminimized ; WorkingDir: "%USERPROFILE%" ; IconFilename: "{app}\Dist\bin\win64\lib\python3.8\site-packages\CPlot\logoCassiopee32.ico"
 Name: "{group}\Command shell"; Filename: "cmd.exe" ; Parameters: "/k ""{app}\Dist\env_Cassiopee_win64.bat""" ; WorkingDir: "%USERPROFILE%" ; Flags: runmaximized
 Name: "{group}\Uninstall"; Filename: "{uninstallexe}"
