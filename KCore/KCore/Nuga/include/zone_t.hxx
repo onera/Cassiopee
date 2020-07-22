@@ -15,7 +15,7 @@
 #include <vector>
 
 #ifdef DEBUG_ZONE_T
-#include "Nuga/include/NGON_debug.h"
+#include "Nuga/include/medit.hxx"
 #endif
 
 
@@ -25,15 +25,17 @@
 #define UNSET_COL     0
 #define PH_GHOST      99
 
-#define PG_INNER_COL   0
-#define PG_JOIN_COL    1
-#define PG_LAY1_IN_COL 2
-#define PG_LAY1_BC_COL 3
-#define PG_BC          4
-#define PG_LAY2_IN_COL 5
-#define PG_LAY2_BC_COL 6
-#define OTHER_LAYS_COL 7  //above 2nd lauyer , anything is unsorted for now
-#define PG_GHOST       99
+#define PG_COL_RANGE   10000 // <=> sum(n_bcs(zi)) over i zones must be <= 1000
+
+#define PG_INNER_COL   0  * PG_COL_RANGE
+#define PG_JOIN_COL    1  * PG_COL_RANGE
+#define PG_LAY1_IN_COL 2  * PG_COL_RANGE
+#define PG_LAY1_BC_COL 3  * PG_COL_RANGE
+#define PG_BC          4  * PG_COL_RANGE
+#define PG_LAY2_IN_COL 5  * PG_COL_RANGE
+#define PG_LAY2_BC_COL 6  * PG_COL_RANGE
+#define OTHER_LAYS_COL 7  * PG_COL_RANGE  //above 2nd lauyer , anything is unsorted for now
+#define PG_GHOST       99 * PG_COL_RANGE
 
 #define NEIGHBOR1(PH0, F2E, shift, Fi) ((F2E[Fi] == PH0 ) ? F2E[Fi+shift] : F2E[Fi])
 
@@ -186,6 +188,8 @@ class zone_t
     void sort_pointLists();
     
     void set_pg_colors();
+
+    void __distinguish_bcs();
     
     void color_ranges(std::vector<E_Int>& PGcolors, std::vector<E_Int>& PHcolors);
     
@@ -199,7 +203,7 @@ void draw_boundaries()
     if (_F2Es[i+nb_pgs] == _F2E_NONE)ids.push_back(i);
   }
   
-  NGON_debug<K_FLD::FloatArray, K_FLD::IntArray>::draw_PGs("bound", _crd, _ng.PGs, ids, false);
+  //NGON_debug<K_FLD::FloatArray, K_FLD::IntArray>::draw_PGs("bound", _crd, _ng.PGs, ids, false);
 }
 #endif
     
@@ -504,7 +508,7 @@ void zone_t<crd_t, ngo_t>::set_pg_colors()
     
     K_FLD::IntArray cnto;
     ngt.export_to_array(cnto);
-    MIO::write("layer1.plt", _crd, cnto, "NGON");
+    medith::write("layer1.plt", _crd, cnto, "NGON");
   }
   {
     ngon_unit PHex;
@@ -515,7 +519,7 @@ void zone_t<crd_t, ngo_t>::set_pg_colors()
     
     K_FLD::IntArray cnto;
     ngt.export_to_array(cnto);
-    MIO::write("layer2.plt", _crd, cnto, "NGON");
+    medith::write("layer2.plt", _crd, cnto, "NGON");
   }
 #endif
   E_Int nb_pgs = _ng.PGs.size();
@@ -589,6 +593,25 @@ void zone_t<crd_t, ngo_t>::set_pg_colors()
   std::cout << " PG_LAY2_BC_COL : " << lay2bc << std::endl;
   std::cout << " OTHER_LAYS_COL : " << other << std::endl;
 #endif
+
+  __distinguish_bcs();
+}
+
+template <typename crd_t, typename ngo_t>
+void zone_t<crd_t, ngo_t>::__distinguish_bcs()
+{
+  for (auto b=_bcs.begin(); b != _bcs.end(); ++b)
+  {
+    E_Int bcid = b->first;
+    Vector_t<E_Int>& ids = b->second;
+    size_t nbc = ids.size();
+    for (size_t i=0; i < nbc; ++i)
+    {
+      E_Int PGi = ids[i] - 1;
+      if (_ng.PGs._type[PGi] != PG_BC && _ng.PGs._type[PGi] != PG_LAY1_BC_COL && _ng.PGs._type[PGi] != PG_LAY2_BC_COL) continue;
+      _ng.PGs._type[PGi] += bcid; // first bc will have 1001, second 1002...
+    }
+  }
 }
 
 template <typename crd_t, typename ngo_t>
@@ -963,7 +986,7 @@ void zone_t<crd_t, ngo_t>::sort_by_type()
       ngon_type ng(pgs, true);
       K_FLD::IntArray cnto;
       ng.export_to_array(cnto);
-      MIO::write(o.str().c_str(), _crd, cnto, "NGON");
+      medith::write(o.str().c_str(), _crd, cnto, "NGON");
       
     }
   }
