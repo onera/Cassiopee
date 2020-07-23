@@ -334,14 +334,13 @@ def blankCellsTri(coords, cellnfields, meshT3, blankingType=1, tol = 1.e-12,
     mask = connector.createTriMask(meshT3, tol)
     
     for i in range(len(coords)):
-      #print 'coords : %d / %d' %(i+1, len(coords))
+      #print('coords : %d / %d' %(i+1, len(coords)))
       bt = blankingType
       if blankingType == 2: # center_in: simplement un node_in sur les centres
         coords[i] = C.node2Center(coords[i])
         bt = 0
       cellnt.append(connector.blankCellsTetra(coords[i], cellnfields[i], mask, bt, cellnval, overwrite, cellNName))
-    
-    connector.deleteTriMask(mask);
+    connector.deleteTriMask(mask)
     return cellnt
 
 def getIntersectingDomainsAABB(arrays, tol=1.e-10):

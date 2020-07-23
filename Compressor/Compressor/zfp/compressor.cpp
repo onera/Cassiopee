@@ -26,7 +26,7 @@ have to bound the compressed size or if you need random access to blocks.
 PyObject *
 py_compress(PyObject *self, PyObject *args, PyObject *kwd)
 {
-    int         status = 0; /* return value: 0 = success */
+    //int         status = 0; /* return value: 0 = success */
     zfp_type    type;       /* array scalar type */
     zfp_field * field;      /* array meta data */
     zfp_stream *zfp;        /* compressed stream */
@@ -139,7 +139,7 @@ Usage : array = zfp.unpack(compressed_array[,options]);
 PyObject *
 py_decompress(PyObject *self, PyObject *args, PyObject* kwd)
 {
-    int         status = 0; /* return value: 0 = success */
+    //int         status = 0; /* return value: 0 = success */
     zfp_type    type;       /* array scalar type */
     zfp_field * field;      /* array meta data */
     zfp_stream *zfp;        /* compressed stream */
@@ -209,7 +209,7 @@ py_decompress(PyObject *self, PyObject *args, PyObject* kwd)
     type = zfp_type_double;
     PyObject *lst_out_arrays;
     lst_out_arrays = PyList_New(cpr_arrays.size());
-    for (Py_ssize_t i = 0; i < cpr_arrays.size(); ++i) {
+    for (size_t i = 0; i < cpr_arrays.size(); ++i) {
         PyArrayObject* array = cpr_arrays[i];
         PyObject* shape = shapes[i];
         npy_intp  dims[4];

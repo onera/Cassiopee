@@ -519,10 +519,9 @@ py_decompress(PyObject *self, PyObject *args)
 
     PyObject *lst_out_arrays;
     lst_out_arrays = PyList_New(np_cpr_arrays.size());
-    for (Py_ssize_t i = 0; i < np_cpr_arrays.size(); ++i) {
+    for (size_t i = 0; i < np_cpr_arrays.size(); ++i) {
         npy_intp  dims[5];
         int       ndim;
-        PyObject *shp;
         ndim = shape_arrays[i].ndims();
         for (int j = 0; j < ndim; ++j) { dims[j] = shape_arrays[i].r[5 - ndim + j]; }
         PyArrayObject *py_array      = (PyArrayObject *)PyArray_SimpleNew(ndim, dims, NPY_DOUBLE);

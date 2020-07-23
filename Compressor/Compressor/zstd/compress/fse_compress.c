@@ -41,7 +41,7 @@
 #include "mem.h"        /* U32, U16, etc. */
 #include "debug.h"      /* assert, DEBUGLOG */
 #include "hist.h"       /* HIST_count_wksp */
-#include "bitstream.h"
+#include "zstd_bitstream.h"
 #define FSE_STATIC_LINKING_ONLY
 #include "fse.h"
 #include "error_private.h"

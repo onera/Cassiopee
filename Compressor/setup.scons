@@ -31,6 +31,10 @@ from KCore.config import *
 libraryDirs += paths; libraries += libs
 
 ADDITIONALCFLAGS = ""
+# Attention a renommer Compressor/zstd/common/bitstream.h en zstd_bitstream.h
+additionalIncludePaths += ["Compressor/zstd", "Compressor/zstd/common"]
+additionalIncludePaths += ["Compressor/sz/include"]
+additionalIncludePaths += ["Compressor/zfp/include"]
 
 # Env =========================================================================
 import srcs
@@ -40,7 +44,7 @@ AR = Dist.getAR()
 env = Environment(tools=tools, CC=cc, CXX=cxx, AR=AR, CPPFLAGS=[],
                   LIBPATH=["Compressor"]+additionalLibPaths+libraryDirs,
                   LIBS=libraries+additionalLibs,
-                  CPPPATH=additionalIncludePaths+["Compressor/zstd", "Compressor/zstd/common", "Compressor/zfp/include", "Compressor/sz/include", pythonIncDir, numpyIncDir, kcoreIncDir],
+                  CPPPATH=additionalIncludePaths+[pythonIncDir, numpyIncDir, kcoreIncDir],
                   CFLAGS=Dist.getCArgs(),
                   CXXFLAGS=Dist.getCppArgs(),
                   SHLIBSUFFIX=so_ext, SHLIBPREFIX='',

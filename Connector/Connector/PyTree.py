@@ -824,7 +824,7 @@ def connectNearMatch(t, ratio=2, tol=1.e-6, dim=3):
                 type = Internal.getNodeFromName1(i, 'GridConnectivityType')
                 if type is not None:
                     val = Internal.getValue(type)
-                    if (val == 'Abutting'):
+                    if val == 'Abutting':
                         r = Internal.getNodeFromName1(i, 'PointRange')
                         ranger = r[1]
                         w = Internal.range2Window(ranger)
@@ -876,17 +876,17 @@ def connectNearMatch(t, ratio=2, tol=1.e-6, dim=3):
                 range1 = info[1]; range2 = info[2]
                 topp0 = info[3];
                 now1 = info[4][0]; now2 = info[4][1]
-                if (dimZ == 3): topp = [1,2,3]
+                if dimZ == 3: topp = [1,2,3]
                 else:
                     topp = [1,2]
                     topp0 = [topp0[0], topp0[1]]
 
-                if (topp0[0] > 0): topp[topp0[0]-1] = 1
+                if topp0[0] > 0: topp[topp0[0]-1] = 1
                 else: topp[-topp0[0]-1] = -1
-                if (topp0[1] > 0): topp[topp0[1]-1] = 2
+                if topp0[1] > 0: topp[topp0[1]-1] = 2
                 else: topp[-topp0[1]-1] = -2
-                if (dimZ == 3):
-                    if (topp0[2] > 0): topp[topp0[2]-1] = 3
+                if dimZ == 3:
+                    if topp0[2] > 0: topp[topp0[2]-1] = 3
                     else: topp[-topp0[2]-1] = -3
                 #
                 # addBC2Zone...
@@ -907,12 +907,12 @@ def connectNearMatch(t, ratio=2, tol=1.e-6, dim=3):
 
                 #couplage RANS/laminar ou euler
                 model_z1 = model; model_z2 = model
-                eq= Internal.getNodeFromName2(zones[noz1], 'GoverningEquations')
+                eq = Internal.getNodeFromName2(zones[noz1], 'GoverningEquations')
                 if eq is not None: model_z1 = Internal.getValue( eq )
-                eq= Internal.getNodeFromName2(zones[noz2], 'GoverningEquations')
+                eq = Internal.getNodeFromName2(zones[noz2], 'GoverningEquations')
                 if eq is not None: model_z2 = Internal.getValue( eq )
 
-                if (model_z1=='NSTurbulent'  and  model_z1 != model_z2):
+                if model_z1 == 'NSTurbulent' and  model_z1 != model_z2:
                    #creation flag pour tranfert rans/LES
                    datap1 = numpy.ones(1, numpy.int32)
                    datap2 = numpy.ones(1, numpy.int32)
@@ -921,7 +921,7 @@ def connectNearMatch(t, ratio=2, tol=1.e-6, dim=3):
                    name1 = 'RANS_LES%d_%d'%(noz1,noz2)
                    C._addBC2Zone(zones[noz1],name1,'BCExtrapolateRANS',rangenm1)
 
-                if (model_z2=='NSTurbulent'  and  model_z1 != model_z2):
+                if model_z2 =='NSTurbulent' and  model_z1 != model_z2:
                    datap1 = numpy.ones(1, numpy.int32)
                    datap2 = numpy.ones(1, numpy.int32)
                    Internal.createUniqueChild( Internal.getNodeFromName2(zones[noz2], name2) , 'RANSLES', 'DataArray_t', datap2)
@@ -962,10 +962,10 @@ def blankCells(t, bodies, blankingMatrix=[], depth=2,
         print('Warning: blankCells: depth must be equal to 1 or 2. Set to default value (2).')
         depth = 2
 
-    if (blankingType != 'cell_intersect' and \
+    if blankingType != 'cell_intersect' and \
         blankingType != 'cell_intersect_opt' and \
         blankingType != 'center_in' and \
-        blankingType != 'node_in'):
+        blankingType != 'node_in':
         print('Warning: blankCells: blankingType must be cell_intersect, cell_intersect_opt, center_in or node_in.')
         print('Set to default (cell_intersect).')
         blankingType = 'cell_intersect'
@@ -999,8 +999,7 @@ def blankCells(t, bodies, blankingMatrix=[], depth=2,
             else: cellN = C.getField(cellNName, b)
             for nb2 in range(len(bodies)):
                 blanking = blankingMatrix[nb, nb2]
-                if (bodies[nb2] != [] and \
-                    (blanking == 1 or blanking == -1)):
+                if bodies[nb2] != [] and (blanking == 1 or blanking == -1):
                     bc = []
                     for z in bodies[nb2]:
                         c = C.getFields(Internal.__GridCoordinates__, z)
@@ -1032,15 +1031,15 @@ def _blankCellsOpt(t, tb, blankingMatrix, depth=2, blankingType='cell_intersect'
     if depth != 1 and depth != 2:
         print('Warning: blankCellsOpt: depth must be equal to 1 or 2. Set to default value (2).')
         depth = 2
-    if blankingType== 'center_in':
+    if blankingType == 'center_in':
         print('Warning: _blankCellsOpt: cannot be applied yet with center_in.')
         #raise ValueError("_blankCells : cannot be applied yet with center_in.")
         blankingType='cell_intersect'
 
-    if (blankingType != 'cell_intersect' and \
+    if blankingType != 'cell_intersect' and \
         blankingType != 'cell_intersect_opt' and \
         blankingType != 'center_in' and \
-        blankingType != 'node_in'):
+        blankingType != 'node_in':
         print('Warning: blankCellsOpt: blankingType must be cell_intersect, cell_intersect_opt, center_in or node_in.')
         print('Set to default (cell_intersect).')
         blankingType = 'cell_intersect'
@@ -1067,7 +1066,7 @@ def _blankCellsOpt(t, tb, blankingMatrix, depth=2, blankingType='cell_intersect'
         if tb[2][nos][3]=='CGNSBase_t':
             bodyZones = Internal.getZones(tb[2][nos])
             if len(bodyZones)>0: 
-                bodies = C.getFields(Internal.__GridCoordinates__,bodyZones)# pas d api=2 car peut etre non structure
+                bodies = C.getFields(Internal.__GridCoordinates__, bodyZones) # pas d api=2 car peut etre non structure
 
                 nobase=0
                 for nob in range(len(t[2])):
@@ -1101,17 +1100,17 @@ def _blankCells(a, bodies, blankingMatrix=[], depth=2,
                 tol=1.e-8, XRaydim1=1000, XRaydim2=1000, cellNName='cellN'):
     try: import Transform as T
     except: raise ImportError("_blankCells: requires Transform module.")
-    if (depth != 1 and depth != 2):
+    if depth != 1 and depth != 2:
         print('Warning: blankCells: depth must be equal to 1 or 2. Set to default value (2).')
         depth = 2
-    if blankingType== 'center_in':
+    if blankingType == 'center_in':
         print('Warning: _blankCells: cannot be applied yet with center_in.')
         blankingType='cell_intersect'
 
-    if (blankingType != 'cell_intersect' and \
+    if blankingType != 'cell_intersect' and \
         blankingType != 'cell_intersect_opt' and \
         blankingType != 'center_in' and \
-        blankingType != 'node_in'):
+        blankingType != 'node_in':
         print('Warning: blankCells: blankingType must be cell_intersect, cell_intersect_opt, center_in or node_in.')
         print('Set to default (cell_intersect).')
         blankingType = 'cell_intersect'
@@ -1141,12 +1140,11 @@ def _blankCells(a, bodies, blankingMatrix=[], depth=2,
     for b in bases:
         coords = C.getFields(Internal.__GridCoordinates__, b, api=2) # api=1 a cause de node2Center en center_in dans le Connector.py
         if coords != []:
-            if loc == 'centers': cellN = C.getField('centers:'+cellNName, b,api=2)
-            else: cellN = C.getField(cellNName, b,api=2)
+            if loc == 'centers': cellN = C.getField('centers:'+cellNName, b, api=2)
+            else: cellN = C.getField(cellNName, b, api=2)
             for nb2 in range(len(bodies)):
                 blanking = blankingMatrix[nb, nb2]
-                if (bodies[nb2] != [] and \
-                    (blanking == 1 or blanking == -1)):
+                if bodies[nb2] != [] and (blanking == 1 or blanking == -1):
                     bc = []
                     for z in bodies[nb2]:
                         c = C.getFields(Internal.__GridCoordinates__, z)
@@ -1204,9 +1202,7 @@ def blankCellsTetra(t, mT4, blankingMatrix=[], blankingType='node_in',
         bc = []
         for nb2 in range(len(mT4)):
             blanking = blankingMatrix[nb, nb2]
-            #if (mT4[nb2] == []): print 'empty'
-            if (mT4[nb2] == [] or \
-                (blanking != 1 and blanking != -1)): continue
+            if mT4[nb2] == [] or (blanking != 1 and blanking != -1): continue
             i = 0
             for z in mT4[nb2]:
                 c = C.getFields(Internal.__GridCoordinates__, z)
@@ -1215,7 +1211,7 @@ def blankCellsTetra(t, mT4, blankingMatrix=[], blankingType='node_in',
                     bc.append(c)
                 i += 1
         if bc == []:
-            #print 'Warning : nothing to mask for base %d'%(nb)
+            #print('Warning: nothing to mask for base %d'%(nb))
             continue
         bc = T.join(bc)
         cellN = Connector.blankCellsTetra(coords, cellN, bc, blankingType=blankType, tol=tol, \
@@ -1264,9 +1260,7 @@ def blankCellsTri(t, mT3, blankingMatrix=[], blankingType='node_in',
         bc = []
         for nb2 in range(len(mT3)):
             blanking = blankingMatrix[nb, nb2]
-            #if (mT3[nb2] == []): print('empty')
-            if (mT3[nb2] == [] or \
-                (blanking != 1 and blanking != -1)): continue
+            if mT3[nb2] == [] or (blanking != 1 and blanking != -1): continue
             i = 0
             for z in mT3[nb2]:
                 c = C.getFields(Internal.__GridCoordinates__, z)
@@ -1275,7 +1269,7 @@ def blankCellsTri(t, mT3, blankingMatrix=[], blankingType='node_in',
                     bc.append(c)
                 i += 1
         if bc == []:
-            #print 'Warning : nothing to mask for base %d'%(nb)
+            #print('Warning : nothing to mask for base %d'%(nb))
             continue
         bc = Converter.convertArray2Tetra(bc); bc = T.join(bc)
         cellN = Connector.blankCellsTri(coords, cellN, bc, blankingType=blankType, tol=tol, \
@@ -1285,11 +1279,64 @@ def blankCellsTri(t, mT3, blankingMatrix=[], blankingType='node_in',
         C.setFields(cellN, b, loc, False)
     return a
 
+def _blankCellsTri(a, mT3, blankingMatrix=[], blankingType='node_in',
+                    tol=1.e-12, cellnval=0, overwrite=0, cellNName='cellN'):
+    try: import Transform as T
+    except: raise ImportError("blankCellsTri: requires Transform module.")
+
+    blankType = 1 # par defaut: cell_intersect
+    if blankingType == 'node_in': blankType = 0
+    elif blankingType == 'cell_intersect': blankType = 1
+    elif blankingType == 'center_in': blankType = 2
+    else:
+        print('Warning: blankCellsTri: blankingType must be cell_intersect, center_in or node_in.')
+        print('Set to cell_intersect.')
+        blankType = 1
+
+    nb = -1
+    # ajout du celln aux centres si n'existe pas pour une zone
+    loc = 'centers'
+    if blankType == 0: loc = 'nodes'
+    _addCellN__(a, loc=loc, cellNName=cellNName)
+    bases = Internal.getBases(a)
+    if bases == []: raise ValueError("blankCellsTri: no basis found in input tree.")
+
+    if blankingMatrix == []: blankingMatrix = numpy.ones((len(bases), len(mT3)), numpy.int32)
+    for b in bases:
+        nb += 1
+        coords = C.getFields(Internal.__GridCoordinates__, b)
+        if coords == []: continue
+
+        if len(coords[0]) == 5: coords = Converter.convertArray2Hexa(coords) # STRUCT -> HEXA
+
+        if loc == 'centers': cellN = C.getField('centers:'+cellNName, b)
+        else: cellN = C.getField(cellNName, b)
+        bc = []
+        for nb2 in range(len(mT3)):
+            blanking = blankingMatrix[nb, nb2]
+            if mT3[nb2] == [] or (blanking != 1 and blanking != -1): continue
+            i = 0
+            for z in mT3[nb2]:
+                c = C.getFields(Internal.__GridCoordinates__, z)
+                if c != []:
+                    c = c[0]
+                    bc.append(c)
+                i += 1
+        if bc == []:
+            #print('Warning: nothing to mask for base %d'%(nb))
+            continue
+        bc = Converter.convertArray2Tetra(bc); bc = T.join(bc)
+        cellN = Connector.blankCellsTri(coords, cellN, bc, blankingType=blankType, tol=tol, \
+                                        cellnval=cellnval, overwrite=overwrite, cellNName=cellNName)
+        bc = None; coords = None
+        C.setFields(cellN, b, loc, False)
+    return None
+
 #=====================================================================================
 # returns the numpys of indices of cellN=2 cell centers and corresponding coordinates
 #=====================================================================================
 def getInterpolatedPoints(z,loc='centers', cellNName='cellN'):
-    if loc=='centers':
+    if loc == 'centers':
         zc = C.node2Center(z)
         return connector.getInterpolatedPointsZ(zc, cellNName, Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__,Internal.__FlowSolutionCenters__)
     else: 
@@ -1707,7 +1754,7 @@ def setHoleInterpolatedPoints(a, depth=2, dir=0, loc='centers',
                               cellNName='cellN'):
     count = 0
     a = setHoleInterpolatedPoints__(a, depth, dir, count, loc, cellNName)
-    count +=1
+    count += 1
 
     ghost = Internal.getNodeFromName(a, 'ZoneRind')
     if loc == 'centers': varcelln = 'centers:'+cellNName

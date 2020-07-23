@@ -39,7 +39,7 @@
 ****************************************************************/
 #include <string.h>     /* memcpy, memset */
 #include "compiler.h"
-#include "bitstream.h"  /* BIT_* */
+#include "zstd_bitstream.h"  /* BIT_* */
 #include "fse.h"        /* to compress headers */
 #define HUF_STATIC_LINKING_ONLY
 #include "huf.h"

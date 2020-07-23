@@ -165,7 +165,7 @@ namespace K_CONNECTOR
 #ifdef DEBUG_MASK
     
 if (dbg_switch)
-  std::cout << "number of caucht boxes for [" << pt[0] << "," << pt[1] << "," << pt[2] << "] :" << sz << std::endl;
+  std::cout << "number of caught boxes for [" << pt[0] << "," << pt[1] << "," << pt[2] << "] :" << sz << std::endl;
     
 static int count = 0;
 if (dbg_switch && sz)
