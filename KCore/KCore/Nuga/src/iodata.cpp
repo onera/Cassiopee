@@ -17,7 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "iodata.h"
+#include "Nuga/include/iodata.h"
 #include <vector>
 #include <string>
 #include <iomanip>
@@ -69,7 +69,7 @@ void write_vector(std::ofstream& file, const std::vector<T>& vals)
 
 ///
 template <typename T>
-void write_matrix(std::ofstream& file, const NUGA::DynArray<T>& vals)
+void write_matrix(std::ofstream& file, const K_FLD::DynArray<T>& vals)
 {
   if (vals.cols() == 0)
     return;

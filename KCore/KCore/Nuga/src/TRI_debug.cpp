@@ -18,7 +18,7 @@
 */
 //Author : Sâm Landier (sam.landier@onera.fr)
 
-#include "TRI_debug.h"
+#include "Nuga/include/TRI_debug.h"
 #include "Nuga/include/medit.hxx"
 #include "Nuga/include/Triangle.h"
 #include "Nuga/include/Edge.h"

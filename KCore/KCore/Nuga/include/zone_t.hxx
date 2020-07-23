@@ -39,6 +39,17 @@
 
 #define NEIGHBOR1(PH0, F2E, shift, Fi) ((F2E[Fi] == PH0 ) ? F2E[Fi+shift] : F2E[Fi])
 
+inline bool is_a_bc(E_Int type, E_Int nlayers)
+{
+  if ((PG_LAY1_BC_COL <= type && type < PG_LAY1_BC_COL + PG_COL_RANGE) && (nlayers >= 2))
+    return true;
+  if ((PG_LAY2_BC_COL <= type && type < PG_LAY2_BC_COL + PG_COL_RANGE) && (nlayers >=3))
+    return true;
+  if (PG_BC <= type && type < PG_BC + PG_COL_RANGE)
+    return true;
+  return false;
+}
+
 namespace NUGA
 {
   
@@ -1041,9 +1052,7 @@ void zone_t<crd_t, ngo_t>::insert_ghosts_on_bcs(E_Int type, E_Int nb_layers) //t
 
     for (size_t i=0; i < nb_pgs; ++i)
     {
-      bool ad = (_ng.PGs._type[i]  == PG_BC) || 
-              ((_ng.PGs._type[i]  == PG_LAY1_BC_COL) && (nb_layers>=2)) ||
-              ((_ng.PGs._type[i]  == PG_LAY2_BC_COL) && (nb_layers>=3));
+      bool ad = is_a_bc(_ng.PGs._type[i], nb_layers);
 
       if (ad)
       {
@@ -1060,9 +1069,7 @@ void zone_t<crd_t, ngo_t>::insert_ghosts_on_bcs(E_Int type, E_Int nb_layers) //t
     std::vector<E_Int> pglist;
     for (size_t i=0; i < nb_pgs; ++i)
     {
-      bool ad = (_ng.PGs._type[i]  == PG_BC) || 
-              ((_ng.PGs._type[i]  == PG_LAY1_BC_COL) && (nb_layers>=2)) ||
-              ((_ng.PGs._type[i]  == PG_LAY2_BC_COL) && (nb_layers>=3));
+      bool ad = is_a_bc(_ng.PGs._type[i], nb_layers);
 
       if (ad)
         pglist.push_back(i);

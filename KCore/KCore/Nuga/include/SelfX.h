@@ -8,7 +8,7 @@ namespace NUGA
 typedef K_FLD::FloatArray crd_t;
 typedef K_FLD::IntArray cnt_t;
 
-#ifndef NETBEANSZ
+#if !defined(NETBEANSZ) && !defined(VISUAL)
 inline bool getBoundary(const E_Int* t0, const E_Int* t1, E_Int& i, E_Int& j)
 {
   for (i=0; i < 3; ++i)

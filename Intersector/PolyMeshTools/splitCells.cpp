@@ -631,7 +631,7 @@ void __assign_sensor_data
 {
   if (sensor_type == 0)
   {
-    using mesh_type     = NUGA::hierarchical_mesh<K_MESH::Hexahedron, NUGA::ISO>;
+    using mesh_type     = NUGA::hierarchical_mesh<ELT_t, STYPE>;
     using sensor_t   = NUGA::geom_sensor<mesh_type>;
     sensor_t* sensor = (sensor_t*)psensor;
 
@@ -639,7 +639,7 @@ void __assign_sensor_data
   }
   else if (sensor_type == 2)
   {
-    using mesh_type     = NUGA::hierarchical_mesh<K_MESH::Hexahedron, NUGA::ISO>;
+    using mesh_type     = NUGA::hierarchical_mesh<ELT_t, STYPE>;
     using sensor_t   = NUGA::nodal_sensor<mesh_type>;
     sensor_t* sensor = (sensor_t*)psensor;
 
