@@ -656,7 +656,7 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
 
   std::vector<K_FLD::FloatArray*> crd1s(nb_zones1, nullptr), crd2s(nb_zones2, nullptr);
   std::vector<K_FLD::IntArray*>   cnt1s(nb_zones1, nullptr), cnt2s(nb_zones2, nullptr);
-  char* varString, *eltType;
+  char* varString{ nullptr }, *eltType{ nullptr };
   PyObject *l(PyList_New(0));
 
   // get the zones

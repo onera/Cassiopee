@@ -238,7 +238,7 @@ void refiner<K_MESH::Triangle, ISO>::reserve_mem_PGs
 
   childpos.resize(nb_pgs_ref + 1);//one-pass-the-end size
   E_Int s(nb_pgs0);
-  for (size_t i = 0; i < nb_pgs_ref + 1; ++i)
+  for (E_Int i = 0; i < nb_pgs_ref + 1; ++i)
   {
     childpos[i] = s;
     s += nbc;
@@ -265,7 +265,7 @@ void refiner<K_MESH::Quadrangle, ISO>::reserve_mem_PGs
 
   childpos.resize(nb_pgs_ref + 1);//one-pass-the-end size
   E_Int s(nb_pgs0);
-  for (size_t i = 0; i < nb_pgs_ref+1; ++i)
+  for (E_Int i = 0; i < nb_pgs_ref+1; ++i)
   {
     childpos[i] = s;
     s += nbc;
@@ -299,7 +299,7 @@ void refiner<K_MESH::Polygon, ISO_HEX>::reserve_mem_PGs
 
   childpos.resize(nb_pgs_ref + 1);//one-pass-the-end size
   E_Int s(nb_pgs0);
-  for (size_t i = 0; i < nb_pgs_ref; ++i)
+  for (E_Int i = 0; i < nb_pgs_ref; ++i)
   {
     childpos[i] = s;
     s += pregnant[i];
@@ -358,7 +358,7 @@ void refiner<ELT_t, STYPE>::__reserve_mem_single_bound_type_PHs
 
   childpos.resize(nb_phs_ref + 1);//one-pass-the-end size
   s = nb_phs0;
-  for (size_t i = 0; i < nb_phs_ref + 1; ++i)
+  for (E_Int i = 0; i < nb_phs_ref + 1; ++i)
   {
     childpos[i] = s;
     s += nbc;
@@ -414,7 +414,7 @@ void refiner<K_MESH::Prism, ISO>::reserve_mem_PHs
 
   intpos.resize(nb_phs_ref + 1);//one-pass-the-end size
   E_Int s(nb_pgs0);
-  for (size_t i = 0; i < nb_phs_ref + 1; ++i)
+  for (E_Int i = 0; i < nb_phs_ref + 1; ++i)
   {
     intpos[i] = s;
     s += nbi;
@@ -429,7 +429,7 @@ void refiner<K_MESH::Prism, ISO>::reserve_mem_PHs
 
   childpos.resize(nb_phs_ref + 1);//one-pass-the-end size
   s = nb_phs0;
-  for (size_t i = 0; i < nb_phs_ref + 1; ++i)
+  for (E_Int i = 0; i < nb_phs_ref + 1; ++i)
   {
     childpos[i] = s;
     s += nbc;
@@ -464,7 +464,7 @@ void refiner<K_MESH::Pyramid, ISO>::reserve_mem_PHs
 
   intpos.resize(nb_phs_ref + 1);//one-pass-the-end size
   E_Int s(nb_pgs0);
-  for (size_t i = 0; i < nb_phs_ref + 1; ++i)
+  for (E_Int i = 0; i < nb_phs_ref + 1; ++i)
   {
     intpos[i] = s;
     s += nbi;
@@ -482,7 +482,7 @@ void refiner<K_MESH::Pyramid, ISO>::reserve_mem_PHs
 
   childpos.resize(nb_phs_ref + 1);//one-pass-the-end size
   s = nb_phs0;
-  for (size_t i = 0; i < nb_phs_ref + 1; ++i)
+  for (E_Int i = 0; i < nb_phs_ref + 1; ++i)
   {
     childpos[i] = s;
     s += nbc;
@@ -604,7 +604,7 @@ void refiner<K_MESH::Triangle, DIR>::refine_PGs
 }
 
 ///
-template<>
+template<> inline
 void refiner<K_MESH::Quadrangle, ISO>::refine_PG
 (K_FLD::FloatArray& crd, ngon_unit& PGs, E_Int PGi, E_Int posC, E_Int posChild, std::map<K_MESH::NO_Edge, E_Int>& ecenter)
 {
@@ -628,7 +628,7 @@ void refiner<K_MESH::Quadrangle, ISO>::refine_PG
 }
 
 ///
-template<>
+template<> inline
 void refiner<K_MESH::Triangle, ISO>::refine_PG
 (K_FLD::FloatArray& crd, ngon_unit& PGs, E_Int PGi, E_Int posC, E_Int posChild, std::map<K_MESH::NO_Edge, E_Int>& ecenter)
 {
@@ -648,7 +648,7 @@ void refiner<K_MESH::Triangle, ISO>::refine_PG
 }
 
 ///
-template<>
+template<> inline
 void refiner<K_MESH::Polygon, ISO_HEX>::refine_PG
 (K_FLD::FloatArray& crd, ngon_unit& PGs, E_Int PGi, E_Int posC, E_Int posChild, std::map<K_MESH::NO_Edge, E_Int>& ecenter)
 {
@@ -707,8 +707,8 @@ void refiner<ELT_t, STYPE>::refine_PHs
   if (nb_phs_ref == 0) return;
 
   E_Int pos = crd.cols(); // first cell center in crd (if relevant)
-  E_Int nb_pgs0 = ng.PGs.size();
-  E_Int nb_phs0 = ng.PHs.size();
+  //E_Int nb_pgs0 = ng.PGs.size();
+  //E_Int nb_phs0 = ng.PHs.size();
   // Reserve space for children in the tree
   std::vector<E_Int> intpos, childpos;
   reserve_mem_PHs(crd, ng, PHadap, PGtree, PHtree, F2E, intpos, childpos);

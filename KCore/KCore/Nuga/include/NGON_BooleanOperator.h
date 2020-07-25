@@ -3169,7 +3169,7 @@ void NGON_BOOLEAN_CLASS::__refine_open_PGs
 #ifdef DEBUG_BOOLEAN
           bool a = (d22 < d21);
           bool b = (edge_to_refined_edge[E].size() < polyLine.size());
-          if (a&&!b || b && !a)
+          if ((a && !b) || (b && !a))
           {
             medith::write("pL1.mesh", _coord, cnt1, "TRI");
             medith::write("pL2.mesh", _coord, cnt2, "TRI");

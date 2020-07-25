@@ -145,7 +145,7 @@ namespace NUGA
       E_Int nb_phs = ngi.PHs.size();
       
       std::vector<bool> split_it(nb_phs, false);
-      for (E_Int i=0; i < PHlist.size() ; ++i) split_it[PHlist[i]]=true;
+      for (size_t i=0; i < PHlist.size() ; ++i) split_it[PHlist[i]]=true;
       
       for (E_Int i=0; i < nb_phs ; ++i)
       {

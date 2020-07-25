@@ -57,7 +57,7 @@ E_Int NUGA::adaptor<mesh_t, sensor_t>::run(mesh_t& hmesh, sensor_t& sensor, bool
 
   while (!err)
   {
-    E_Int nbphs = hmesh._ng.PHs.size();
+    //E_Int nbphs = hmesh._ng.PHs.size();
 #ifdef ADAPT_STEPS
     std::cout << "nuga/adapt::sensor.compute iter " << ++iter << "... with agglo ? " << do_agglo << std::endl;
     auto start0 = std::chrono::system_clock::now();

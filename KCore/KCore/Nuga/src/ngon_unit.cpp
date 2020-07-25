@@ -31,6 +31,8 @@
 /// Methods Definitions
 ngon_unit::ngon_unit(const E_Int* begin):_dirty(true)
 {
+  if (begin == nullptr) return;
+  
   E_Int l = *(begin+1)+2;
   const E_Int* end = begin+l;
   _NGON.clear();

@@ -110,14 +110,14 @@ class tree
 
     inline E_Int size() const
     {
-      E_Int sz = _indir.size();
+      size_t sz = _indir.size();
 
       if (sz != _parent.size()) return -1;
       if (sz != _level.size())  return -1;
       if (sz != _indir.size()) return -1;
       if (sz != _enabled.size()) return -1;
 
-      return sz;
+      return E_Int(sz);
     }
     
     inline const E_Int& get_level(E_Int i /*zero based*/) const {return _level[i];}
@@ -151,7 +151,7 @@ class tree
       
       std::copy(childr, childr+n, there);
       
-      for (size_t c=0; c<n; ++c) _parent[childr[c]] = i;
+      for (E_Int c=0; c<n; ++c) _parent[childr[c]] = i;
       
     }
 
@@ -161,7 +161,7 @@ class tree
       E_Int* there = children(i);
       assert(there != NULL);
 
-      for (size_t c = 0; c < n; ++c)
+      for (E_Int c = 0; c < n; ++c)
       {
         *(there++) = firstChild + c;
         _parent[firstChild + c] = i;
@@ -206,7 +206,7 @@ class tree
 template <typename children_array>
 void tree<children_array>::get_oids(std::vector<E_Int>& oids) const
 {
-  E_Int nb_ents(_parent.size());
+  size_t nb_ents(_parent.size());
   
   oids.clear();
   K_CONNECT::IdTool::init_inc(oids, nb_ents);

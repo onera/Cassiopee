@@ -287,11 +287,10 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
   PyObject* hook;
   if (!PyArg_ParseTuple(args, "O", &hook)) return nullptr;
 
-  void * hmesh = nullptr;
-  E_Int* sub_type, *elt_type, *hook_id;
-  std::string* vString;
-  void** packet = NULL;
-  hmesh = unpackHMesh(hook, hook_id, sub_type, elt_type, vString, packet);
+  E_Int* sub_type{ nullptr }, *elt_type{ nullptr }, *hook_id{ nullptr };
+  std::string* vString{ nullptr };
+  void** packet{ nullptr };
+  void* hmesh = unpackHMesh(hook, hook_id, sub_type, elt_type, vString, packet);
 
   PyObject *l(PyList_New(0));
   K_FLD::IntArray cnto;
@@ -355,11 +354,10 @@ PyObject* K_INTERSECTOR::deleteHMesh(PyObject* self, PyObject* args)
   }
 
   // recupere le hook
-  void * hmesh = nullptr;
-  E_Int* sub_type, *elt_type, *hook_id;
-  std::string* vString;
-  void** packet = NULL ; 
-  hmesh = unpackHMesh(hook, hook_id, sub_type, elt_type, vString, packet);
+  E_Int* sub_type{ nullptr }, *elt_type{ nullptr }, *hook_id{ nullptr };
+  std::string* vString{ nullptr };
+  void** packet{ nullptr };
+  void* hmesh = unpackHMesh(hook, hook_id, sub_type, elt_type, vString, packet);
   
   if (*sub_type == 0) // ISO
     __deleteHM<NUGA::ISO>(*elt_type, hmesh);
@@ -400,6 +398,7 @@ void* __createSensor(void* hmesh, E_Int smoothing_type, E_Int itermax, E_Int sen
     using sensor_t = NUGA::nodal_sensor<hmesh_t>;
     return new sensor_t(*(hmesh_t*)hmesh);
   }
+  return nullptr;
 }
 
 template<>
@@ -423,6 +422,7 @@ void* __createSensor<K_MESH::Hexahedron, NUGA::ISO>(void* hmesh, E_Int smoothing
     using sensor_t = NUGA::nodal_sensor<hmesh_t>;
     return new sensor_t(*(hmesh_t*)hmesh);
   }
+  return nullptr;
 }
 
 template<>
@@ -440,6 +440,7 @@ void* __createSensor<K_MESH::Polyhedron<0>, NUGA::ISO_HEX>(void* hmesh, E_Int sm
     using sensor_t = NUGA::nodal_sensor<hmesh_t>;
     return new sensor_t(*(hmesh_t*)hmesh);
   }
+  return nullptr;
 }
 
 template<NUGA::eSUBDIV_TYPE STYPE>
@@ -485,17 +486,14 @@ PyObject* K_INTERSECTOR::createSensor(PyObject* self, PyObject* args)
 
   // // Unpack hmesh hook
   // // ==================
-  E_Int* subtype_hm, *elttype_hm, *hook_id;
-  std::string* vString;
-  void ** packet_h = NULL;
+  E_Int* subtype_hm{ nullptr }, *elttype_hm{ nullptr }, *hook_id{ nullptr };
+  std::string* vString{ nullptr };
+  void ** packet_h{ nullptr };
   void* hmesh = unpackHMesh(hook_hmesh, hook_id, subtype_hm, elttype_hm, vString, packet_h);
 
   // // Create packet for sensor hook 
   // // ==============================
   void** packet_ss = new void*[6];  // hook ID, sensor type, hmesh ptr, smoothing type, elt type, subdiv type
-
-  packet_ss[2] = nullptr;
-  packet_ss[4] = nullptr;
 
   // HOOK ID
   E_Int* hook_sensor_id = new E_Int;
@@ -530,6 +528,7 @@ PyObject* K_INTERSECTOR::createSensor(PyObject* self, PyObject* args)
   }
 
   // HMESH PTR
+  packet_ss[2] = nullptr;
   if (*subtype_hm == 0) // ISO
     packet_ss[2] = __createSensor<NUGA::ISO>(*elt_type, hmesh, sensor_type, smoothing_type, itermax);
   else if (*subtype_hm == 1) // ISO_HEX
@@ -605,11 +604,10 @@ PyObject* K_INTERSECTOR::deleteSensor(PyObject* self, PyObject* args)
   }
 
   // recupere le hook
-  void *sensor = nullptr;
-  E_Int *hook_ss_id, *sensor_type,*smoothing_type;
-  E_Int *subdiv_type, *elt_type;
-  void** packet;
-  sensor = unpackSensor(hook_sensor, hook_ss_id, sensor_type, smoothing_type, subdiv_type, elt_type, packet);  
+  E_Int *hook_ss_id{ nullptr }, *sensor_type{ nullptr }, *smoothing_type{ nullptr };
+  E_Int *subdiv_type{ nullptr }, *elt_type{ nullptr };
+  void** packet{ nullptr };
+  void* sensor = unpackSensor(hook_sensor, hook_ss_id, sensor_type, smoothing_type, subdiv_type, elt_type, packet);  
 
   if (*subdiv_type == 0) // ISO
     __deleteSensor<NUGA::ISO>(*elt_type, *sensor_type, sensor);
@@ -629,6 +627,8 @@ template <typename ELT_t, NUGA::eSUBDIV_TYPE STYPE>
 void __assign_sensor_data
 (E_Int sensor_type, void* psensor, K_FLD::FloatArray& crdS, K_FLD::IntArray& cntS, std::vector<E_Int>& nodal_data)
 {
+  if (psensor == nullptr) return;
+
   if (sensor_type == 0)
   {
     using mesh_type     = NUGA::hierarchical_mesh<ELT_t, STYPE>;
@@ -652,6 +652,8 @@ template <>
 void __assign_sensor_data<K_MESH::Hexahedron, NUGA::ISO>
 (E_Int sensor_type, void* psensor, K_FLD::FloatArray& crdS, K_FLD::IntArray& cntS, std::vector<E_Int>& nodal_data)
 {
+  if (psensor == nullptr) return;
+
   if (sensor_type == 0)
   {
     using mesh_type     = NUGA::hierarchical_mesh<K_MESH::Hexahedron, NUGA::ISO>;
@@ -706,20 +708,18 @@ void __assign_sensor_data<NUGA::ISO_HEX>
 
 PyObject* K_INTERSECTOR::assignData2Sensor(PyObject* self, PyObject* args)
 {
-  PyObject* hook_sensor, *dataSensor(nullptr);
+  PyObject* hook_sensor{ nullptr }, *dataSensor(nullptr);
   if (!PyArg_ParseTuple(args, "OO", &hook_sensor, &dataSensor))
   {
-      return NULL;
+    return NULL;
   }
 
   // recupere le hook
-  void *sensor = nullptr;
-  E_Int *hook_ss_id, *sensor_type,*smoothing_type;
-  E_Int *subdiv_type, *elt_type;
-  void** packet;
-  sensor = unpackSensor(hook_sensor, hook_ss_id, sensor_type, smoothing_type, subdiv_type, elt_type, packet);  
+  E_Int *hook_ss_id{ nullptr }, *sensor_type{ nullptr }, *smoothing_type{ nullptr };
+  E_Int *subdiv_type{ nullptr }, *elt_type{ nullptr };
+  void** packet{ nullptr };
+  void* sensor = unpackSensor(hook_sensor, hook_ss_id, sensor_type, smoothing_type, subdiv_type, elt_type, packet);
 
-  
   //geom/xsensor or nodal_sensor data ?
   std::vector<E_Int> nodal_data;
   K_FLD::FloatArray fS;
@@ -798,6 +798,10 @@ template <typename MESH_t, typename sensor_t>
 E_Int __adapt
 (MESH_t* hmesh, sensor_t* sensor, const char* varString, PyObject *out)
 {
+
+  if (hmesh == nullptr) return 1;
+  if (sensor == nullptr) return 1;
+
   hmesh->init();
   NUGA::adaptor<MESH_t, sensor_t>::run(*hmesh, *sensor);
 
@@ -985,24 +989,22 @@ PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
 
   // Unpack hmesh hook
   // ==================
-  void * hmesh = nullptr;
-  E_Int* elt_type, *subdiv_type, *hook_id;
-  std::string* vString;
-  void** packet = NULL ; 
+  E_Int* elt_type{ nullptr }, *subdiv_type{ nullptr }, *hook_id{ nullptr };
+  std::string* vString{ nullptr };
+  void** packet{ nullptr };
 
   // std::cout << " unpack hmesh" << std::endl;
-  hmesh = unpackHMesh(hook_hmesh, hook_id, subdiv_type, elt_type, vString, packet);
+  void * hmesh = unpackHMesh(hook_hmesh, hook_id, subdiv_type, elt_type, vString, packet);
   if (hmesh == nullptr) return nullptr;
   // std::cout << " unpack hmesh OK " << std::endl;
 
   // Unpack sensor hook
   // ==================
-  void *sensor = nullptr;
-  E_Int *hook_ss_id, *sensor_type, *smoothing_type;
-  E_Int *subdiv_type_ss, *elt_type_ss;
-  void** packet_ss;
+  E_Int *hook_ss_id{ nullptr }, *sensor_type{ nullptr }, *smoothing_type{ nullptr };
+  E_Int *subdiv_type_ss{ nullptr }, *elt_type_ss{ nullptr };
+  void** packet_ss{ nullptr };
   // std::cout << " unpack sensor" << std::endl;
-  sensor = unpackSensor(hook_sensor, hook_ss_id, sensor_type, smoothing_type, subdiv_type_ss, elt_type_ss, packet_ss);  
+  void* sensor = unpackSensor(hook_sensor, hook_ss_id, sensor_type, smoothing_type, subdiv_type_ss, elt_type_ss, packet_ss);
   // std::cout << " unpack sensor OK" << std::endl;
 
   // Check basic elements presence     # to do in createHMesh step? 

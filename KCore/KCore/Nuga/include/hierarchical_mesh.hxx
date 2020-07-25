@@ -129,14 +129,14 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::__init()
     ELT_t::reorder_pgs(_ng,_F2E,i);
 }
 
-template <>
+template <> inline
 void hierarchical_mesh<K_MESH::Polyhedron<0>, ISO_HEX, ngon_type>::__init()
 {
   // nothing to do
 }
 
 
-template <>
+template <> inline
 void hierarchical_mesh<K_MESH::Hexahedron, DIR, ngon_type>::__init()
 {
   // alexis : todo
@@ -198,6 +198,8 @@ template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t>
 E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::init()
 {
   if (_initialized) return 0;
+
+  if (_ng.PGs.size() == 0) return 1;
   
   E_Int err(0);
   

@@ -28,7 +28,7 @@ class sensor
     using output_t = typename sensor_output_data<mesh_t::SUBTYPE>::type;
 
   public:
-    sensor(mesh_t& mesh, smoother<mesh_t>* smoother) :_hmesh(mesh), _smoother(smoother) {};
+    sensor(const mesh_t& mesh, smoother<mesh_t>* smoother) :_hmesh(mesh), _smoother(smoother) {};
     
     virtual E_Int assign_data(sensor_input_t& data) { _data = data; return 0; }
     
