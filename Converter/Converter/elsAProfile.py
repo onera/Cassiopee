@@ -1081,6 +1081,17 @@ def _prefixDnrInSubRegions(t):
 
   return None
 
+# remove OrphanPointList nodes and  subregions with empty PointList nodes (created for orphan points)
+def _cleanIDSubregions(t):
+    for z in Internal.getZones(t):
+        removedNames=[]
+        for zsr in Internal.getNodesFromType1(z,'ZoneSubRegion_t'):
+            PL = Internal.getNodeFromName1(zsr,'PointList')
+            if PL[1].shape[0]==0: removedNames.append(zsr[0])
+            Internal._rmNodesFromName(zsr,"OrphanPointList")
+        for srname in removedNames:
+            Internal._rmNodesFromName1(z,srname)
+    return None
 #==============================================================================
 # Conversion d'un arbre CGNS a la Cassiopee en un arbre de profil elsAxdt
 #==============================================================================
@@ -1107,6 +1118,8 @@ def _convert2elsAxdt(t, sameBase=0, fileDir='.'):
   _fillNeighbourList(t)
   print('8. prefixDnrInSubRegions')
   _prefixDnrInSubRegions(t)
+  print('9. clean subregions ID')
+  _cleanIDSubregions(t)
   return None
 
 #===============================================================================================================================

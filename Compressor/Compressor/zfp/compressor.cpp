@@ -321,7 +321,7 @@ initczfp(void)
 {
     m = Py_InitModule3("czfp", NULL, module_doc);
     if (m == NULL) return;
-    /* Très important : initialise numpy afin de pouvoir l'utiliser ici !!!! */
+    /* Tres important : initialise numpy afin de pouvoir l'utiliser ici !!!! */
     import_array();
 
 }

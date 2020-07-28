@@ -870,7 +870,7 @@ Mesh splitting and merging
     
     Split a set of M grids into N parts of same size roughly, provided M < N. 
 
-    Argument multigrid enables to ensure the multigrid level by the splitting, provided the input grids are of that multigrid level.
+    Argument multigrid enables to ensure the multigrid level by the splitting, provided the input grids are of that multigrid level. It can also be useful to split at nearmatch interfaces (multigrid=1 for 1:2 interfaces and multigrid 2 for 1:4 interfaces).
 
     For the pyTree version, boundary conditions and matching connectivity are split.
 

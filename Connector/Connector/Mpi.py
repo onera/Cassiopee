@@ -395,11 +395,7 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
 
         C._cpVars(z, 'centers:'+cellNName, zc, cellNName)
         res = X.getInterpolatedPoints(zc, loc='nodes', cellNName=cellNName) 
-        # print('Zone %s du proc %d a interpoler'%(zname, Cmpi.rank))
-
         if res is not None: 
-            #print('Res not None: zone %s du proc %d a interpoler'%(zname, Cmpi.rank))
-
             indicesI, XI, YI, ZI = res
             # passage des coordonnees du recepteur dans le repere absolu
             # si mouvement gere par FastS -> les coordonnees dans z sont deja les coordonnees en absolu
@@ -431,36 +427,8 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
                     #        dictOfMotionMatR2A[znamed] = MatRel2AbsD
                     #        MatAbs2RelD = numpy.transpose(MatRel2AbsD)
                     #        dictOfMotionMatA2R[znamed] = MatAbs2RelD
-                    #if zc[0] == 'cart.0':
-                    #    print(znamed)
-                    #    print(coordsD)
-                    #    print(MatAbs2RelD)
-                    #    print(time)
-                    #
                     #[XIRel, YIRel, ZIRel] = RM.moveN([XI,YI,ZI],coordsC,coordsD,MatAbs2RelD)
-                    [XIRel, YIRel, ZIRel] = RM.evalPositionM1([XI,YI,ZI], zdnr, time)
-                        
-                    # DBX
-                    # Create a NODE Zone
-                    #import Generator.PyTree as G
-                    #deb = G.cart((0,0,0), (1,1,1), (3,3,3))
-                    #deb = C.convertArray2Node(deb)
-                    #deb[1][0] = XIRel.size
-                    #x = Internal.getNodeFromName2(deb, 'CoordinateX')
-                    #y = Internal.getNodeFromName2(deb, 'CoordinateY')
-                    #z = Internal.getNodeFromName2(deb, 'CoordinateZ')
-                    #x[1] = XIRel; y[1] = YIRel; z[1] = ZIRel
-                    #deb2 = G.cart((0,0,0), (1,1,1), (3,3,3))
-                    #deb2 = C.convertArray2Node(deb2)
-                    #deb2[1][0] = XI.size
-                    #x = Internal.getNodeFromName2(deb2, 'CoordinateX')
-                    #y = Internal.getNodeFromName2(deb2, 'CoordinateY')
-                    #z = Internal.getNodeFromName2(deb2, 'CoordinateZ')
-                    #x[1] = XI; y[1] = YI; z[1] = ZI
-                    #if zc[0] == 'cart6': C.convertPyTree2File([deb,deb2], 'debug.cgns')
-                    #print(XIRel, YIRel, ZIRel)
-                    # END DBX
-                    
+                    [XIRel, YIRel, ZIRel] = RM.evalPositionM1([XI,YI,ZI], zdnr, time)                    
                     # transfers avec coordonnees dans le repere relatif
                     # hack par CB
                     GC1 = Internal.getNodeFromName1(zdnr, 'GridCoordinates')
@@ -491,7 +459,7 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
     # recuperation par le proc donneur des donnees pour faire les transferts    
     transferedDatas={}
     for i in interpDatas:
-        #print Cmpi.rank, 'recoit de',i, '->', len(interpDatas[i])
+        #print(Cmpi.rank, 'recoit de',i, '->', len(interpDatas[i]))
         for n in interpDatas[i]:
             zdnrname = n[1]
             zrcvname = n[0]
@@ -501,22 +469,29 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
             nozc = dictOfNozOfDnrZones[zdnrname]
             zdnr = tc[2][nobc][2][nozc]
             adt = dictOfADT[zdnrname]
-            if zdnrname in dictOfMotionMatA2R:
-                MatAbs2RelD=dictOfMotionMatA2R[zdnrname]
-            else:
-                if zdnrname in dictOfMotionMatR2A:
-                    MatRel2AbsD = dictOfMotionMatR2A[zdnrname]
-                    MatAbs2RelD = numpy.transpose(MatRel2AbsD)
-                    dictOfMotionMatA2R[zdnrname] = MatAbs2RelD
-                else:
-                    MatRel2AbsD=RM.getMotionMatrixForZone(zdnr, time=time, F=None)
-                    dictOfMotionMatR2A[zdnrname]=MatRel2AbsD
-                    MatAbs2RelD = numpy.transpose(MatRel2AbsD)
-                    dictOfMotionMatA2R[zdnrname] = MatAbs2RelD
-            
-            [XIRel, YIRel, ZIRel] = RM.moveN([XI,YI,ZI],coordsC,coordsD,MatAbs2RelD)
+
+            # if zdnrname in dictOfMotionMatA2R:
+            #     MatAbs2RelD=dictOfMotionMatA2R[zdnrname]
+            # else:
+            #     if zdnrname in dictOfMotionMatR2A:
+            #         MatRel2AbsD = dictOfMotionMatR2A[zdnrname]
+            #         MatAbs2RelD = numpy.transpose(MatRel2AbsD)
+            #         dictOfMotionMatA2R[zdnrname] = MatAbs2RelD
+            #     else:
+            #         MatRel2AbsD=RM.getMotionMatrixForZone(zdnr, time=time, F=None)
+            #         dictOfMotionMatR2A[zdnrname]=MatRel2AbsD
+            #         MatAbs2RelD = numpy.transpose(MatRel2AbsD)
+            #         dictOfMotionMatA2R[zdnrname] = MatAbs2RelD
+            [XIRel, YIRel, ZIRel] = RM.evalPositionM1([XI,YI,ZI], zdnr, time)
+            # [XIRel, YIRel, ZIRel] = RM.moveN([XI,YI,ZI],coordsC,coordsD,MatAbs2RelD)
             # transferts avec coordonnees dans le repere relatif 
+            GC1 = Internal.getNodeFromName1(zdnr, 'GridCoordinates')
+            GC2 = Internal.getNodeFromName1(zdnr, 'GridCoordinates#Init')
+            T = GC1[2]; GC1[2] = GC2[2]; GC2[2] = T      
             fields = X.transferFields(zdnr, XIRel, YIRel, ZIRel, hook=adt, variables=variables)
+            # hack par CB
+            T = GC1[2]; GC1[2] = GC2[2]; GC2[2] = T            
+
             procR = procDict[zrcvname]
             
             if procR not in transferedDatas:
