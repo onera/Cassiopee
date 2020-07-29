@@ -458,14 +458,14 @@ PyObject* K_CONVERTER::addGhostCellsNG(PyObject* self, PyObject* args)
 
       E_Int nb_pgs = Zghost._ng.PGs.size();
       for (E_Int l=0; l < nb_pgs; ++l) {
-       if(Zghost._ng.PGs._type[l]==PG_INNER_COL  ) Face[0]+=1;
-       if(Zghost._ng.PGs._type[l]==PG_JOIN_COL   ) Face[1]+=1;
-       if(Zghost._ng.PGs._type[l]==PG_LAY1_IN_COL) Face[2]+=1;
-       if(Zghost._ng.PGs._type[l]==PG_LAY1_BC_COL) Face[3]+=1;
-       if(Zghost._ng.PGs._type[l]==PG_BC         ) Face[4]+=1;
-       if(Zghost._ng.PGs._type[l]==PG_LAY2_IN_COL) Face[5]+=1;
+       if(Zghost._ng.PGs._type[l] == PG_INNER_COL                                               ) Face[0]+=1;
+       if(Zghost._ng.PGs._type[l] >= PG_JOIN_COL    && Zghost._ng.PGs._type[l] < PG_LAY1_IN_COL ) Face[1]+=1;
+       if(Zghost._ng.PGs._type[l] >= PG_LAY1_IN_COL && Zghost._ng.PGs._type[l] < PG_LAY1_BC_COL ) Face[2]+=1;
+       if(Zghost._ng.PGs._type[l] >= PG_LAY1_BC_COL && Zghost._ng.PGs._type[l] < PG_BC          ) Face[3]+=1;
+       if(Zghost._ng.PGs._type[l] >= PG_BC          && Zghost._ng.PGs._type[l] < PG_LAY2_IN_COL ) Face[4]+=1;
+       if(Zghost._ng.PGs._type[l] >= PG_LAY2_IN_COL && Zghost._ng.PGs._type[l] < PG_LAY2_BC_COL ) Face[5]+=1;
 
-      //printf("face = %d %d \n", Zghost._ng.PGs._type[l], l);
+      //printf("face = %d %d %d %d  \n", Zghost._ng.PGs._type[l],PG_BC,Zghost._ng.PGs._type[l]/PG_BC, l );
       }
 
       Face[6] = nb_pgs;

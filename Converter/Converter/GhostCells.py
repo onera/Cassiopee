@@ -1929,6 +1929,57 @@ def addGhostCellsNG(t, nlayers=2):
     zones = Internal.getZones(t)
     nbz = len(zones)
 
+    #merge des BC de meme type
+    for z in zones:
+       bc_type={}
+       bcs   = Internal.getNodesFromType2(z, 'BC_t')
+       for bc in bcs:
+           tmp = Internal.getValue(bc)
+           if tmp in bc_type:
+            bc_type[tmp].append(bc)
+           else:
+            bc_type[tmp]=[bc]
+       for key in bc_type:
+           print(key, len(bc_type[key]) )
+           if len(bc_type[key]) != 1:
+             size_fen = 0
+             min_face= 10000000
+             max_face=-10000000
+             for bc in bc_type[key]:
+               ptlist  = Internal.getNodeFromName1(bc, 'PointList')[1]
+               min_face= min(min_face, numpy.amin(ptlist)) 
+               max_face= max(max_face, numpy.amax(ptlist)) 
+               size_fen+= numpy.size(ptlist)
+               #print("minmax", min_face, max_face, size_fen)
+             #bc contigu
+             if min_face + size_fen - 1 ==  max_face:
+               ptlistNew = numpy.arange(min_face, min_face + size_fen, dtype=numpy.int32).reshape((1,size_fen))
+               #on supprime les noeuds merger et on gonfle le numpy du prelmier noeud
+               c=0
+               for bc in bc_type[key]:
+                 if c==0:
+                   Internal.getNodeFromName1(bc, 'PointList')[1]=ptlistNew
+                 else:
+                   Internal._rmNodesByName(z, bc[0])
+                 c+=1
+             else:
+                print(key,": cette CL n'est pas contigue et doit etre mergee")
+                ptlistNew = numpy.empty((1,size_fen), dtype=numpy.int32)
+                c=0
+                ipt_ptlist=0
+                for bc in bc_type[key]:
+                  if c==0:
+                    ptlistOld = Internal.getNodeFromName1(bc, 'PointList')[1]
+                    ptlistNew[:,ipt_ptlist:ipt_ptlist+numpy.size(ptlistOld)]= ptlistOld[:]
+                    Internal.getNodeFromName1(bc, 'PointList')[1] = ptlistNew
+                    ipt_ptlist += numpy.size(ptlistOld)
+                  else:
+                    ptlistOld = Internal.getNodeFromName1(bc, 'PointList')[1]
+                    ptlistNew[:,ipt_ptlist:ipt_ptlist+numpy.size(ptlistOld)]= ptlistOld[:]
+                    ipt_ptlist += numpy.size(ptlistOld)
+                    Internal._rmNodesByName(z, bc[0])
+                  c+=1
+
     ozones = []
     znames = []
     # Overall BC names and type
@@ -1954,9 +2005,11 @@ def addGhostCellsNG(t, nlayers=2):
     bc_PointLists = []
     bc_ptL_sizes = []
 
+    nbz_unstruct=0
     for z in zones:
       zname = z[0]
       znames.append(zname)
+
       if Internal.getZoneType(z)==1: continue
       
       m = PyTree.getFields(Internal.__GridCoordinates__, z)[0]
@@ -2010,6 +2063,8 @@ def addGhostCellsNG(t, nlayers=2):
         BCNames.append(bc[0])
         BCTypes.append(Internal.getValue(bc))
 
+        #o = Internal.getNodeFromName1(bc, 'PointList')[1]
+        #print(f"Internal get node : {o[0]}")
         ptList = Internal.getNodeFromName1(bc, 'PointList')[1][0]
         z_bc_PointLists.append(ptList)
         z_bc_ptL_sizes[b] = len(ptList)
@@ -2023,6 +2078,7 @@ def addGhostCellsNG(t, nlayers=2):
       bc_PointLists.append(z_bc_PointLists)
       bc_ptL_sizes.append(z_bc_ptL_sizes)
 
+      nbz_unstruct+=1
     #print "nb of bc in python side as input : %d"%len(bc_ptL_sizes)
 
     nodes = converter.addGhostCellsNG(zone_ngons, F2Es, ptL_sizes, PointLists, PointListsD, donIds, bc_ptL_sizes, bc_PointLists, nlayers)
@@ -2031,7 +2087,7 @@ def addGhostCellsNG(t, nlayers=2):
 
     # Create zones with ghost upon exit
 
-    for i in range(nbz):
+    for i in range(nbz_unstruct):
 
       #print "zone %d"%i
 
@@ -2063,7 +2119,7 @@ def addGhostCellsNG(t, nlayers=2):
     tp = PyTree.newPyTree([bases[0][0]])
     # Attache les zones
 
-    for i in range(nbz):
+    for i in range(nbz_unstruct):
 
       zwgh = ozones[i]
 
