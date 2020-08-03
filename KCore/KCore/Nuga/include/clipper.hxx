@@ -89,7 +89,7 @@ namespace NUGA
       crd.extract_field(2, zs); //keep 3rd coord appart (altitude)
       //compute zmean
       double zmean(0.);
-      for (size_t k = 0; k < nb_pts1; ++k) zmean += zs[k];
+      for (E_Int k = 0; k < nb_pts1; ++k) zmean += zs[k];
       zmean /= nb_pts1;
       
       // compute an overall 3D abstol
@@ -103,7 +103,7 @@ namespace NUGA
       {
         std::vector<bool> keep(cnt.cols(), true);
         bool do_compact(false);
-        for (size_t i = nb_edges1; i < cnt.cols(); ++i)
+        for (E_Int i = nb_edges1; i < cnt.cols(); ++i)
         {
           double z1 = zs[cnt(0, i)] - zmean;
           double z2 = zs[cnt(1, i)] - zmean;
@@ -367,7 +367,7 @@ namespace NUGA
       }
       else
       {
-        if (b < bits.size() - 1) // put the last (if exist) in the current, pop back the last
+        if (b < (E_Int)bits.size() - 1) // put the last (if exist) in the current, pop back the last
         {
           bits[b] = std::move(bits.back());
           --b; // to treat it at next iter
@@ -445,7 +445,7 @@ namespace NUGA
           // if tmpbits is empty (IN) => compress (erase bits if single, put the last instead of current otherwise)
           // else replace the first bit, append the other bits  . 
           __replace_append_and_next_iter(bits, b, tmpbits);
-          if (bits.size() < nbits) nbits = bits.size(); //update iff the last have replaced the current 
+          if ((E_Int)bits.size() < nbits) nbits = bits.size(); //update iff the last have replaced the current 
         }
 
         // update vcur

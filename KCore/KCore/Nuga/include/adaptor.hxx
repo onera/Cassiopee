@@ -34,7 +34,7 @@ class adaptor
     static E_Int run(mesh_t& hmesh, sensor_t& sensor, bool do_agglo = false);
 
     template <typename communicator_t>
-    static E_Int run(std::vector<mesh_t*>& hzones, std::vector<sensor_t*>& sensors, bool do_agglo, ePara PARA, communicator_t& com);
+    static E_Int run(std::vector<mesh_t*>& hzones, std::vector<sensor_t*>& sensors, bool do_agglo, ePara PARA, communicator_t* com);
   
 };
 
@@ -104,43 +104,60 @@ E_Int NUGA::adaptor<mesh_t, sensor_t>::run(mesh_t& hmesh, sensor_t& sensor, bool
 ///
 template <typename mesh_t, typename sensor_t>
 template <typename communicator_t>
-E_Int NUGA::adaptor<mesh_t, sensor_t>::run(std::vector<mesh_t*>& hzones, std::vector<sensor_t*>& sensors, bool do_agglo, ePara PARA, communicator_t& COM)
+E_Int NUGA::adaptor<mesh_t, sensor_t>::run(std::vector<mesh_t*>& hzones, std::vector<sensor_t*>& sensors, bool do_agglo, ePara PARA, communicator_t* COM)
 {
   E_Int err(0);
   size_t NBZ{ hzones.size() };
-
-  using hmesh_t = typename mesh_t::hmesh_t;
 
   assert ( NBZ == sensors.size() );
 
 #pragma omp parallel for if(PARA == COARSE_OMP)
   for (size_t i = 0; i < NBZ; ++i)
-    NUGA::adaptor<hmesh_t, sensor_t>::run(*hzones[i], *sensors[i], do_agglo);
+  {
+    //std::cout << "running zone :" << i << std::endl;
+    if (hzones[i] == nullptr || sensors[i] == nullptr) continue;
+
+    NUGA::adaptor<mesh_t, sensor_t>::run(*hzones[i], *sensors[i], do_agglo);
+  }
+
+  if (COM == nullptr) return 0;
 
   // ADAPT PARA :: A POSTERIORI JOIN SMOOTHING
+  //std::cout << "post smoothing" << std::endl;
   bool has_changes{ true };
-
+  E_Int iter{ 0 };
   while (has_changes)
   {
     has_changes = false;
 
+    //std::cout << "smoothing iter : " << iter++ << std::endl;
+
     // prepare & send
-    for (size_t i = 0; i < COM.agents.size(); ++i)
+    for (size_t i = 0; i < COM->agents.size(); ++i)
     {
-      bool has_packs = COM.agents[i]->pack();
-      if (has_packs) COM.isend(i);
+      //std::cout << "agent : " << i << " : " << COM->agents[i] << std::endl;
+      if (COM->agents[i] == nullptr) continue;
+      //std::cout << "pack" << std::endl;
+      bool has_packs = COM->agents[i]->pack();
+      //if (has_packs) std::cout << "isend" << std::endl;
+      if (has_packs) COM->isend(i);
     }
 
     // receive and process
-    for (size_t i = 0; i < COM.agents.size(); ++i)
+    for (size_t i = 0; i < COM->agents.size(); ++i)
     {
-      bool has_packs = (COM.agents[i])->unpack(); //should wait untill all data are received
-      if (has_packs) has_changes |= (COM.agents[i])->process();
+      //std::cout << "agent : " << i << " : " << COM->agents[i] << std::endl;
+      if (COM->agents[i] == nullptr) continue;
+      //std::cout << "unpack : " << i << std::endl;
+      bool has_packs = (COM->agents[i])->unpack(); //should wait untill all data are received
+      //if (has_packs) std::cout << "process : " << i << std::endl;
+      if (has_packs) has_changes |= (COM->agents[i])->process();
+      //if (has_packs) std::cout << "process done" << std::endl;
     }
   }
 
   // done : all zones are sync (2:1 smoothing)
-
+  //std::cout << "adapt multiseq done" << std::endl;
   return err;
 }
 

@@ -191,8 +191,8 @@ namespace NUGA
     }
 
     ///
-    template <typename arr_t>
-    void split(ngon_type& ng, E_Int PHi, tree<arr_t>& PHtree, tree<arr_t>& PGtree, K_FLD::IntArray& F2E,
+    template <typename pg_arr_t, typename ph_arr_t>
+    void split(ngon_type& ng, E_Int PHi, tree<ph_arr_t>& PHtree, tree<pg_arr_t>& PGtree, K_FLD::IntArray& F2E,
                E_Int firstIntPG, E_Int firstPHChild)
     { 
       const E_Int &nbc = subdiv_pol<K_MESH::Prism, ISO>::PHNBC;

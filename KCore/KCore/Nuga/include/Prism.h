@@ -183,9 +183,10 @@ void Prism::reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i)
     for (int i = 0; i < 2; ++i) // 6 points : bot and top nodes
     {
       const E_Int* nodes = PGs.get_facets_ptr(first_pg[i+3*i]-index_start);
+#ifdef DEBUG_2019  
       E_Int nb_nodes = PGs.stride(first_pg[i+3*i]-index_start);
       assert (nb_nodes == 3); //fixme : checkme
-      
+#endif
       for (int k = 0; k  < 3; ++k)
         new_bary[3*i+k] = nodes[k];   
     }

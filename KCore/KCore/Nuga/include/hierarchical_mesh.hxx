@@ -32,6 +32,10 @@ using NGDBG = NGON_debug<K_FLD::FloatArray, K_FLD::IntArray>;
 #include "Nuga/include/refiner.hxx"
 #include "Nuga/include/macros.h"
 
+#include "Nuga/include/join_sensor.hxx"
+#include "Nuga/include/communicator.hxx"
+#include "Nuga/include/join_t.hxx"
+
 
 namespace NUGA
 {
@@ -45,23 +49,49 @@ class hierarchical_mesh
   public:
 
     using elt_t = ELT_t;
-    using subdiv_t = subdiv_pol<ELT_t, STYPE>;
-    using arr_t = typename subdiv_t::arr_t; //ngon_unit (general case) or IntArray (fixed nb of children : e.g. all basic -except pyra- in ISO)
-    using output_t = typename sensor_output_data<STYPE>::type;
-    using tree_t = tree<arr_t>;
-
     static constexpr  eSUBDIV_TYPE SUBTYPE = STYPE;
+
+    using self_t = hierarchical_mesh<ELT_t, STYPE, ngo_t>;
+    using subdiv_t = subdiv_pol<ELT_t, STYPE>;
+    using pg_arr_t = typename subdiv_t::pg_arr_t;
+    using ph_arr_t = typename subdiv_t::ph_arr_t;
+    using output_t = typename sensor_output_data<STYPE>::type;
+    using pg_tree_t = tree<pg_arr_t>; 
+    using ph_tree_t = tree<ph_arr_t>;
+
+    // mutli-zone stuff
+    using jsensor_t = join_sensor<self_t>;
+    using join_data_t = std::vector<std::pair<E_Int, std::vector<E_Int>>>;
+    using jcom_t = jsensor_com_agent<self_t, typename jsensor_t::input_t>;
+    using communicator_t = NUGA::communicator<jcom_t>;
 
     crd_t                     _crd;             // Coordinates
     ngo_t                     _ng;              // NGON mesh
-    tree_t                    _PGtree, _PHtree; // Polygons/Polyhedra hierarchy
+    pg_tree_t                 _PGtree;          // Polygons hierarchy
+    ph_tree_t                 _PHtree;          // Polyhedra hierarchy
     K_FLD::IntArray           _F2E;             // neighborhood data structure : 2 X (nb_pgs) array : for each PG gives the left and right cells ids that share this PG
     bool                      _initialized;     // flag to avoid initialization more than once.
-    refiner<ELT_t, STYPE>     _refiner;         //refinement method must stay static, so this object is here to store _ecenter (not relevant in hmesh)
+    refiner<ELT_t, STYPE>     _refiner;         // refinement methods must stay static, so this object is here to store _ecenter (not relevant in hmesh)
+
+    E_Int            zid;
+    join_t<self_t>* join;
+    jsensor_t*       jsensor;
+    communicator_t*  COM;
 
     ///
     //hierarchical_mesh(crd_t& crd, ngo_t & ng):_crd(crd), _ng(ng), _PGtree(ng.PGs, subdiv_t::PGNBC), _PHtree(ng.PHs, subdiv_t::PHNBC), _initialized(false){}
-    hierarchical_mesh(crd_t& crd, K_FLD::IntArray& cnt) :_crd(crd), _ng(cnt), _PGtree(_ng.PGs), _PHtree(_ng.PHs), _initialized(false) { init(); }
+    hierarchical_mesh(crd_t& crd, K_FLD::IntArray& cnt) :_crd(crd), _ng(cnt), _PGtree(_ng.PGs), _PHtree(_ng.PHs), _initialized(false), zid(0), join(nullptr), jsensor(nullptr), COM(nullptr) { init(); }
+
+    //multi-zone constructor
+    hierarchical_mesh(E_Int id, K_FLD::FloatArray& crd, K_FLD::IntArray& cnt, const join_data_t& jdata, E_Int idx_start, communicator_t* com);
+
+    ~hierarchical_mesh()
+    {
+      if (join != nullptr) delete join;
+      if (jsensor != nullptr) delete jsensor;
+      if (COM != nullptr)
+        if (COM->agents[zid] != nullptr) delete COM->agents[zid];
+    }
 
     ///
     E_Int init();
@@ -92,10 +122,7 @@ class hierarchical_mesh
     ///
     void __extract_enabled_pgs_descendance(E_Int PGi, NUGA::reordering_func F, bool reverse, std::vector<E_Int>& pointlist);
     ///
-    //void extract_plan(E_Int PGi, bool reverse, E_Int i0, std::vector<E_Int>& plan);
-    void extract_plan(E_Int PGi, bool reverse, E_Int i0, K_FLD::IntArray& plan) const;
-    ///
-    void extract_join_plans(E_Int zid, std::map<E_Int, K_FLD::IntArray>& plans, E_Int idx_start) const;
+    void extract_plan(E_Int PGi, bool reverse, E_Int i0, pg_arr_t& plan) const;
     ///
     void get_cell_center(E_Int PHi, E_Float* center) const ;
     ///
@@ -119,6 +146,37 @@ private:
  
 };
 
+///
+template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t>
+hierarchical_mesh<ELT_t, STYPE, ngo_t>::hierarchical_mesh
+(E_Int id, K_FLD::FloatArray& crd, K_FLD::IntArray& cnt, const join_data_t& jdata, E_Int idx_start, communicator_t* com) :
+  _crd(crd), _ng(cnt), _PGtree(_ng.PGs), _PHtree(_ng.PHs), _initialized(false), zid(id), join(nullptr), jsensor(nullptr), COM(com)
+{
+  //std::cout << "hierarchical_mesh : begin " << std::endl;
+  init();
+  //std::cout << "hierarchical_mesh : jdata sz" << jdata.size() << std::endl;
+  join_data_t jmp = jdata;
+  if (!jmp.empty()) // join is specified
+  {
+    //std::cout << "hierarchical_mesh : join specified " << std::endl;
+    jsensor = new jsensor_t(*this);
+    join = new join_t<self_t>(id, *this, idx_start);
+
+    assert((E_Int)COM->agents.size() > zid); //COM agents must be resized by the caller before this call
+
+    COM->agents[zid] = new jcom_t(zid, join, jsensor);
+    //std::cout << "hierarchical_mesh : jmp sz " << jmp.size() << std::endl;
+    for (auto j : jmp)
+    {
+      E_Int joinedZid = j.first;
+      std::vector<E_Int>& ptlist = j.second;
+
+      join->link(joinedZid, ptlist);
+      COM->agents[zid]->link(joinedZid);
+    }
+  }
+}
+
 // default implementation for any basci element in ISO mode
 template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t>
 void hierarchical_mesh<ELT_t, STYPE, ngo_t>::__init()
@@ -136,7 +194,7 @@ void hierarchical_mesh<K_MESH::Polyhedron<0>, ISO_HEX, ngon_type>::__init()
 }
 
 
-template <> inline
+/*template <> inline
 void hierarchical_mesh<K_MESH::Hexahedron, DIR, ngon_type>::__init()
 {
   // alexis : todo
@@ -191,7 +249,7 @@ void hierarchical_mesh<K_MESH::Hexahedron, DIR, ngon_type>::__init()
   
   //to do : si aniso => faire  ng.PHs._type =  K_MESH::Polyhedron<0>::eType::LAYER
   
-}
+}*/
 
 ///
 template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t>
@@ -452,18 +510,20 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::extract_enabled_phs(ngon_type& filt
 template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t>
 void hierarchical_mesh<ELT_t, STYPE, ngo_t>::extract_enabled_pgs_descendance(E_Int PGi, bool reverse, std::vector<E_Int>& pointlist)
 {
-  reordering_func F;
+  reordering_func F{ nullptr };
   if (_ng.PGs.stride(PGi) == 3)
     F = subdiv_pol<K_MESH::Triangle, STYPE>::reorder_children;
   else if (_ng.PGs.stride(PGi) == 4)
     F = subdiv_pol<K_MESH::Quadrangle, STYPE>::reorder_children;
-  else
-  {
-    //fixme : not handled yet
-    return;
-  }
-
+  
   __extract_enabled_pgs_descendance(PGi, F, reverse, pointlist);
+}
+
+///
+template <>
+void hierarchical_mesh<K_MESH::Polyhedron<0>, NUGA::ISO_HEX, ngon_type>::extract_enabled_pgs_descendance(E_Int PGi, bool reverse, std::vector<E_Int>& pointlist)
+{
+  //todo
 }
 
 ///
@@ -481,13 +541,13 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::__extract_enabled_pgs_descendance(E
   const E_Int* pchild = _PGtree.children(PGi);
 
   STACK_ARRAY(E_Int, nbc, children);
-  for (size_t i = 0; i < nbc; ++i) children[i] = pchild[i];
+  for (E_Int i = 0; i < nbc; ++i) children[i] = pchild[i];
 
   // to put in asked ref frame
   F(children.get(), reverse, 0);// 0 because shift_geom must have been called
 
   //
-  for (size_t i = 0; i < nbc; ++i)
+  for (E_Int i = 0; i < nbc; ++i)
     __extract_enabled_pgs_descendance(children[i], F, reverse, ptlist);
 }
 
@@ -554,25 +614,22 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::get_cell_center(E_Int PHi, E_Float*
 
 ///
 template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t>
-void hierarchical_mesh<ELT_t, STYPE, ngo_t>::extract_plan(E_Int PGi, bool reverse, E_Int i0, K_FLD::IntArray& plan) const
+void hierarchical_mesh<ELT_t, STYPE, ngo_t>::extract_plan(E_Int PGi, bool reverse, E_Int i0, pg_arr_t& plan) const
 {
   plan.clear();
 
-  E_Int ret{ 0 };
+  /*E_Int ret{ 0 };*/
 
   if (_ng.PGs.stride(PGi) == 3)
-    ret =_PGtree.extract_compact_tree(PGi, plan, subdiv_pol<K_MESH::Triangle, STYPE>::reorder_children, reverse, i0);
+    /*ret = */join_plan<pg_arr_t>::extract_compact_tree(_PGtree, PGi, subdiv_pol<K_MESH::Triangle, STYPE>::reorder_children, reverse, i0, plan);
   else if (_ng.PGs.stride(PGi) == 4)
-    ret = _PGtree.extract_compact_tree(PGi, plan, subdiv_pol<K_MESH::Quadrangle, STYPE>::reorder_children, reverse, i0);
-  else
-  {
-    //fixme : not handled yet
-  }
+    /*ret = */join_plan<pg_arr_t>::extract_compact_tree(_PGtree, PGi, subdiv_pol<K_MESH::Quadrangle, STYPE>::reorder_children, reverse, i0, plan);
+}
 
-  //std::cout << plan << std::endl;
-
-  if (ret == NO_GRAND_CHILDREN)
-    plan.resize(1, 1, NO_GRAND_CHILDREN);
+template <>
+void hierarchical_mesh<K_MESH::Polyhedron<0>, NUGA::ISO_HEX, ngon_type>::extract_plan(E_Int PGi, bool reverse, E_Int i0, pg_arr_t& plan) const
+{
+  //todo
 }
 
 }

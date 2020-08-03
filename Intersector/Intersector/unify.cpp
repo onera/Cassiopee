@@ -826,7 +826,7 @@ void compute_zone_overlaps(const K_FLD::FloatArray& crd, ngon_type& ng, loc_t** 
     if (xcelln[i] != COLLIDE) continue;
     
     E_Float V0;
-    bool is_inward1;
+    bool is_inward1{false};
     build_current(ng, i, crd, aPHcur, V0, is_inward1, make_inward1);
         
     E_Int nb_pts1 = aPHcur.m_crd.cols();

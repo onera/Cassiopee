@@ -66,6 +66,8 @@ static PyMethodDef Pyintersector [] =
   {"createSensor", K_INTERSECTOR::createSensor, METH_VARARGS},
   {"deleteSensor", K_INTERSECTOR::deleteSensor, METH_VARARGS},
   {"assignData2Sensor", K_INTERSECTOR::assignData2Sensor, METH_VARARGS},
+  {"createCom", K_INTERSECTOR::createCom, METH_VARARGS},
+  {"deleteCom", K_INTERSECTOR::deleteCom, METH_VARARGS},
   {"closeCells", K_INTERSECTOR::closeCells, METH_VARARGS},
   {"extractUncomputables", K_INTERSECTOR::extractUncomputables, METH_VARARGS},
   {"extractPathologicalCells", K_INTERSECTOR::extractPathologicalCells, METH_VARARGS},

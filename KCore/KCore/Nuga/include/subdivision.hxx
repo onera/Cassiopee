@@ -40,7 +40,9 @@ template <>
 struct subdiv_pol<K_MESH::Hexahedron, ISO>
 {
   enum {PGNBC=4, PHNBC=8, NBI=12};
-  using arr_t = K_FLD::IntArray;
+
+  using ph_arr_t = K_FLD::IntArray;
+  using pg_arr_t = K_FLD::IntArray;
 };
 
 //
@@ -48,7 +50,9 @@ template <>
 struct subdiv_pol<K_MESH::Tetrahedron, ISO>
 {
   enum { PGNBC = 4, PHNBC = 8, NBI = 8 };
-  using arr_t = K_FLD::IntArray;
+
+  using ph_arr_t = K_FLD::IntArray;
+  using pg_arr_t = K_FLD::IntArray;
 };
 
 //
@@ -56,7 +60,9 @@ template <>
 struct subdiv_pol<K_MESH::Prism, ISO>
 {
   enum { PGNBC = 4, PHNBC = 8, NBI = 10 }; // NBI : 4 T3 + 6 Q4
-  using arr_t = K_FLD::IntArray;
+
+  using ph_arr_t = K_FLD::IntArray;
+  using pg_arr_t = K_FLD::IntArray;
 };
 
 //
@@ -64,7 +70,10 @@ template <>
 struct subdiv_pol<K_MESH::Pyramid, ISO>
 {
   enum { PGNBC=4, PHNBC=10, NBI=13 }; // NBI : 12 T3 + 1 Q4
-  using arr_t = K_FLD::IntArray;
+
+  using ph_arr_t = K_FLD::IntArray;
+  using pg_arr_t = K_FLD::IntArray;
+
 };
 
 // Basic - ISO
@@ -72,7 +81,9 @@ template <>
 struct subdiv_pol<K_MESH::Basic, ISO>
 {
   enum { PGNBC = -1, PHNBC = -1/*, NBI = -1 */};
-  using arr_t = ngon_unit;
+
+  using ph_arr_t = ngon_unit;
+  using pg_arr_t = K_FLD::IntArray;
 };
 
 // ISO_HEX Poyhedron subdivision => N HEXA children , with N is the nb of nodes
@@ -80,7 +91,9 @@ template <>
 struct subdiv_pol<K_MESH::Polyhedron<0>, ISO_HEX>
 {
   enum { PGNBC = -1, PHNBC = -1/*, NBI = -1 */};
-  using arr_t = ngon_unit;
+
+  using ph_arr_t = ngon_unit;
+  using pg_arr_t = ngon_unit;
 
   static E_Int nbc(const ngon_unit& PGS, const E_Int* first_pg, E_Int nb_pgs)
   {
@@ -100,6 +113,7 @@ struct subdiv_pol<K_MESH::Polyhedron<0>, ISO_HEX>
     //todo JP
     // <=> nb of internal faces : half of the cumulated node arity
     // method : cumulated_arity in K_MESH::Polyhedron
+    return 0;
   }
 
   static E_Int nbi_sum(const ngon_type& ng, const std::vector<E_Int>& PHlist)
@@ -116,7 +130,9 @@ template <>
 struct subdiv_pol < K_MESH::Hexahedron, DIR >
 {
   enum { PGNBC = -1, PHNBC = -1/*, NBI = -1 */ };
-  using arr_t = ngon_unit;
+
+  using ph_arr_t = ngon_unit;
+  using pg_arr_t = ngon_unit;
 };
 
 // isotropic HEXA subdivision => 4 Quadrangles children => fixed stride array
@@ -124,7 +140,7 @@ template <>
 struct subdiv_pol<K_MESH::Quadrangle, ISO>
 {
   enum { NBC = 4};
-  using arr_t = K_FLD::IntArray;
+  using pg_arr_t = K_FLD::IntArray;
 
   static void reorder_children(E_Int* child, bool reverse, E_Int i0)
   {
@@ -140,7 +156,7 @@ template <>
 struct subdiv_pol<K_MESH::Triangle, ISO>
 {
   enum { NBC = 4 };
-  using arr_t = K_FLD::IntArray;
+  using pg_arr_t = K_FLD::IntArray;
 
   static void reorder_children(E_Int* child, bool reverse, E_Int i0)
   {
@@ -155,7 +171,7 @@ template <>
 struct subdiv_pol<K_MESH::Polygon, ISO_HEX>
 {
   enum { NBC = -1};
-  using arr_t = ngon_unit;
+  using pg_arr_t = ngon_unit;
 
   static E_Int nbc_list(const ngon_unit& PGs, const std::vector<E_Int>& PGlist, std::vector<E_Int>& pregnant)
   {

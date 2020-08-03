@@ -12,6 +12,8 @@
 #ifndef NUGA_SMOOTHER_HXX
 #define NUGA_SMOOTHER_HXX
 
+#include "Nuga/include/subdivision.hxx"
+
 
 namespace NUGA
 {

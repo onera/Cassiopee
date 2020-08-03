@@ -807,7 +807,7 @@ bool Polygon::intersect
   E_Int ntris = nb_tris();
 
   E_Int T[3];
-  for (size_t i = 0; i < ntris; ++i)
+  for (E_Int i = 0; i < ntris; ++i)
   {
     this->triangle(i, T);
     const E_Float* P0 = crd.col(T[0]);

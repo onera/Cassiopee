@@ -871,8 +871,8 @@ struct ngon_t
         BARSplitter::split_eset_into_manifold_chains<edge_t>(free_edges, chains, edgecol);
 
         // now we have openLines and closed loops, so convert closed ones into 2 openLines based on worst angle nodes
-        size_t nchains = chains.size(); // initial because following sliiting will append it
-        for (size_t c = 0; c < nchains; ++c)
+        E_Int nchains = (E_Int)chains.size(); // initial because following sliiting will append it
+        for (E_Int c = 0; c < nchains; ++c)
         {
           E_Int nnodes = chains[c].size();
           if (nnodes == 2) continue; // taken into account later when adding the edge made of edge chains ends to vfree_edges

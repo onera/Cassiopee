@@ -42,8 +42,7 @@ E_Int nodal_sensor<mesh_t>::assign_data(sensor_input_t& data)
   parent_t::assign_data(data);
 
   E_Int ncrd = parent_t::_hmesh._crd.cols();
-  if (ncrd > E_Int(data.size()))
-    parent_t::_data.resize(ncrd, 0.);
+  parent_t::_data.resize(ncrd, 0.); // resize anyway to ensure same size as crd
 
   return 0;
 }

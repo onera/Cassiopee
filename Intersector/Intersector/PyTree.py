@@ -56,14 +56,15 @@ def getTreeDim(t):
     if dims[4] != d:return 0; # mixed type : not handled
   return d
 
-def isMesh(t): #
+# return values : 0(single numpy), 1(list of numpies), 2(single zone), 3 (list of zones)
+def InputType(t): # fixme : based on first block only
   if isinstance(t, list):
-    if isinstance(t[0], numpy.ndarray):
-      return False
+    if isinstance(t[0], numpy.ndarray): return 1
+    elif XOR.isSingleZone(t): return 2
+    else : return 3
   else:
-    if isinstance(t, numpy.ndarray):
-      return False
-  return True
+    if isinstance(t, numpy.ndarray): return 0
+    else: return -1 # error
 
 #=============================================================================
 # Concatenation des PointList d un type de BC donne dans une liste de zones
@@ -101,19 +102,21 @@ def concatenateBC(bctype, zones, wallpgs, cur_shift):
       cur_shift += z_nb_pgs
     return (wallpgs, cur_shift)
 
-# update BC and JOINS point lists givzn an indirection "new id to old id"
+# update BC and JOINS point lists given an indirection "new id to old id"
 def updatePointLists(z, zones, oids):
+    #print('updateBCPointLists')
+    updateBCPointLists(z, oids)
+    #print('updateJoinsPointLists')
+    updateJoinsPointLists(z, zones, oids)
+
+def updateBCPointLists(z, oids):
     bnds = Internal.getNodesFromType(z, 'BC_t')
-    joins = Internal.getNodesFromType(z, 'GridConnectivity_t')
     zname=z[0]
 
     ptLists = []
     for bb in bnds :
       ptl = Internal.getNodesFromType(bb, 'IndexArray_t')
       ptLists.append(ptl[0][1][0])
-    for j in joins:
-      ptl = Internal.getNodeFromName1(j, 'PointList')
-      ptLists.append(ptl[1])#ptl[0][1][0]
 
     if ptLists == []: return
 
@@ -128,25 +131,140 @@ def updatePointLists(z, zones, oids):
       #print(ptl[0][1])
       i=i+1
 
+def updateJoinsPointLists(z, zones, oids):
+
+    joins = Internal.getNodesFromType(z, 'GridConnectivity_t')
+    zname=z[0]
+
+    ptLists = []
+    for j in joins:
+      ptl = Internal.getNodeFromName1(j, 'PointList')
+      ptLists.append(ptl[1])#ptl[0][1][0]
+
+    if ptLists == []: return
+
+    # recalcul des pointlist
+    ptLists = XOR.updatePointLists(oids, ptLists)
+
+    i=0
     # update the Join pointlist and synchronize with other zones (their pointListDonnor)
     for j in joins:
-      donnorName = "".join(j[1])
+      #donnorName = "".join(j[1])
+      donnorName = "".join(Internal.getValue(j))
       ptl = Internal.getNodeFromName1(j, 'PointList')
       #print(donnorName)
       dz = Internal.getNodeFromName(zones, donnorName)
       joinsD = Internal.getNodesFromType(dz, 'GridConnectivity_t')
       for jd in joinsD:
-        dname = "".join(jd[1])
+        #dname = "".join(jd[1])
+        dname = "".join(Internal.getValue(jd))
+        #print(dname)
         if (dname != zname) : continue
         ptlD = Internal.getNodeFromName1(jd, 'PointListDonor')
         
         PG0 = ptl[1][0][0] # first polygon in the poitn list 
         PG0D = ptlD[1][0][0] # first polygon in the poitn list
         if (PG0 != PG0D) : continue # not the right join (in case of multiple joins for 2 zones) : the first PG must be the same (assume one PG only in one join)
+        
+        ptLists[i] = numpy.reshape(ptLists[i], (1,len(ptLists[i]))) #FIXJOIN : seems to be useless 
+
         ptl[1]= ptLists[i]
         ptlD[1] = ptLists[i]
+
         break
       i=i+1
+
+def getJoinsList(z, zname2id):
+	raccords = Internal.getNodesFromType2(z, 'GridConnectivity_t')
+	nb_racs = len(raccords)
+
+	jzid=[]
+	jptlist=[]
+
+	j=0
+	for rac in raccords:
+		rt = Internal.getNodeFromType1(rac, 'GridConnectivityType_t')
+		
+		donnorName = "".join(Internal.getValue(rac))
+		#print(donnorName)
+		zid = zname2id[donnorName]
+		#print('id is ' + str(id))
+		ptList = Internal.getNodeFromName1(rac, 'PointList')[1][0]
+		#print (ptList)
+		sz  = len(ptList)
+
+		jzid.append(zid)
+		jptlist.append(ptList)
+
+		j = j+1
+
+	return (jzid, jptlist)
+
+#------------------------------------------------------------------------------
+# 
+#------------------------------------------------------------------------------
+def updateJPointLists(z, zones, jzids, ptLists):
+  # zone name to id
+  name2id = dict()
+  i = 0
+  for zz in zones :
+    name2id[zz[0]] = i
+    #print('zone ' + z[0] + ' has ' + str(i))
+    i += 1
+
+  #print('processed zone  : ' + z[0])
+
+  joins = Internal.getNodesFromType(z, 'GridConnectivity_t')
+  zname=z[0]
+
+  # update the Join pointlist and synchronize with other zones (their pointListDonnor)
+  for j in joins:
+    #donnorName = b''.join(j[1]).decode() WORK, try below
+    donnorName = "".join(Internal.getValue(j))
+    #print(donnorName)
+    ptl = Internal.getNodeFromName1(j, 'PointList')
+    dz = Internal.getNodeFromName(zones, donnorName)
+    joinsD = Internal.getNodesFromType(dz, 'GridConnectivity_t')
+    for jd in joinsD:
+      dname = "".join(Internal.getValue(jd))
+      if (dname != zname) : continue
+      ptlD = Internal.getNodeFromName1(jd, 'PointListDonor')
+      
+      PG0 = ptl[1][0][0] # first polygon in the poitn list 
+      PG0D = ptlD[1][0][0] # first polygon in the poitn list
+      if (PG0 != PG0D) : continue # not the right join (in case of multiple joins for 2 zones) : the first PG must be the same (assume one PG only in one join)
+      
+      id = name2id[donnorName]
+
+      print('donnor is ' + donnorName + ' with id  : ' + str(id))
+      print(ptl[1])
+      print(numpy.shape(ptl[1]))
+
+      # find rank for this id and set list
+      i=-1
+      for k in jzids:
+        i+=1
+        if k != id: continue
+
+        print('new j')
+
+        ptLists[i] = numpy.reshape(ptLists[i], (1,len(ptLists[i])))
+
+        # print('new shape ptLists[i]: ')
+        # print(numpy.shape(ptLists[i]))
+        # print(ptLists[i])
+
+        # print('avant')
+        # print(ptl)
+
+        ptl[1]= ptLists[i]
+        ptlD[1] = ptLists[i]
+
+        # print('apres')
+        # print(ptl)
+
+        break
+      break
 
 #------------------------------------------------------------------------------
 # Conformisation d'une soupe de TRI ou de BAR
@@ -1233,13 +1351,19 @@ def _adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-
       return
 
     if hmesh is None and sensor is not None:
-      print ('INPUT ERROR : you must also give as an argument the hmesh on which you have built the sensor')
+      print ('INPUT ERROR : you must also give as an argument the hmesh targeted by the sensor')
       return
 
+    NBZ = len(Internal.getZones(t))
+
     owesHmesh=0
+    com = None
     if hmesh is None :
       #print("create hm")
-      hmesh = createHMesh(t, subdiv_type)
+      if NBZ == 1:
+      	hmesh = createHMesh(t, subdiv_type)
+      else :
+      	(hmesh, com) = createHZones(t, subdiv_type)
       owesHmesh=1
 
     owesSensor=0
@@ -1248,20 +1372,30 @@ def _adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-
       sensor = createSensor(hmesh, sensor_type, smoothing_type, itermax)
       owesSensor=1
 
-    if sensdata is not None: assignData2Sensor(sensor, sensdata)
+    err=0
+    if sensdata is not None:
+    	#print("assignData2Sensor")
+    	err = assignData2Sensor(sensor, sensdata)
+    	if err == 1:
+    		print('INPUT ERROR : sensor data list must be sized as nb of sensors')
+    		return
 
-    _adaptCellsDyn(t, hmesh, sensor)
+    _adaptCellsDynZone(t, hmesh, sensor)
 
     if owesHmesh == 1 : #and owesSensor == 1 :
-      _conformizeHMesh(t, hmesh)
+    	#print("_conformizeHMesh")
+    	_conformizeHMesh(t, hmesh)
 
     if owesHmesh == 1 :
-      #print('delete owned hmesh')
-      deleteHMesh(hmesh)
+    	#print('delete owned hmesh')
+    	deleteHMesh(hmesh)
     if owesSensor == 1 : 
-      #print('delete owned sensor')
-      deleteSensor(sensor)
-      #print('delete done')
+    	#print('delete owned sensor')
+    	deleteSensor(sensor)
+    	#print('delete done')
+    if com is not None:
+    	#print('delete com')
+    	deleteCom(com)
 
 #==============================================================================
 # adaptCellsDyn : Adapts a polyhedral mesh a1 with repsect to the nodal subdivision values.
@@ -1293,17 +1427,29 @@ def _adaptCellsDyn(t, hmesh, sensor):
       coords = C.getFields(Internal.__GridCoordinates__, z)[0]
       if coords == []: continue
 
-      res = intersector.adaptCells(hmesh[i], sensor[i])
+      res = intersector.adaptCells([hmesh[i]], [sensor[i]])
 
       mesh = res[0]
       # MAJ du maillage de la zone
       C.setFields([mesh], z, 'nodes')
 
-      if (len(res) > 1):
-        pg_oids=res[1]
-        # MAJ POINT LISTS #
-        updatePointLists(z, zones, pg_oids)
+def _adaptCellsDynZone(t, hmesh, sensor):
+    """XXX.
+    Usage: _adaptCellsDyn(hmesh, sensor)"""
+    zones = Internal.getZones(t)
+    #print('_adaptCellsDynZone : begin')
+    nb_zones = len(zones)
+    if nb_zones != len(hmesh) or len(hmesh) != len(sensor):
+    	print('_adaptCellsDynZone : nb of zones/hmeshes/sensors does not match')
+    	return 
 
+    res = intersector.adaptCells(hmesh, sensor)
+
+    # MAJ du maillage de chaque zone
+    i=-1
+    for z in zones:
+      i +=1
+      C.setFields([res[i]], z, 'nodes')
 
 #==============================================================================
 # adaptCellsNodal : Adapts a polyhedral mesh a1 with repsect to the nodal subdivision values.
@@ -1316,16 +1462,55 @@ def adaptCellsNodal(t, sensdata=None, smoothing_type = 0, subdiv_type=0, hmesh=N
     _adaptCells(tp, sensdata, 2, smoothing_type, -1, subdiv_type, hmesh, sensor)
     return tp
 
-def createHMesh(t, subdiv_type = 0):
+def createHMesh(t, subdiv_type= 0):
     zones = Internal.getZones(t)
-    i=0
     hmeshs = []
-    for z in zones:
-        m = C.getFields(Internal.__GridCoordinates__, z)[0]
-        if m == []: continue
-        hmeshs.append(intersector.createHMesh(m, subdiv_type))
-        i=i+1
+
+    nbz = len(zones)
+
+    if nbz == 1:
+    	z = zones[0]
+    	m = C.getFields(Internal.__GridCoordinates__, z)[0]
+    	hmeshs.append(intersector.createHMesh(m, subdiv_type, 0, None, None, None))
+  
     return hmeshs
+
+def createHZones(t, subdiv_type= 0):
+    zones = Internal.getZones(t)
+    hmeshs = []
+
+    nbz = len(zones)
+
+    if nbz == 1:
+    	z = zones[0]
+    	m = C.getFields(Internal.__GridCoordinates__, z)[0]
+    	hmeshs.append(intersector.createHMesh(m, subdiv_type, 0, None, None, None))
+    else:
+    	# zone name to id
+    	name2id = dict()
+    	i = 0
+    	for z in zones :
+    		name2id[z[0]] = i
+    		#print('zone ' + z[0] + ' has ' + str(i))
+    		i += 1
+
+    	# create COM
+    	m = C.getFields(Internal.__GridCoordinates__, zones[0])[0] # fixme : first zone tells for all
+    	com = createCom(m, subdiv_type, nbz)
+    	
+    	# create HZones
+    	zid=0
+    	for z in zones:
+    		(jzids, jptlists) = getJoinsList(z, name2id)
+    		m = C.getFields(Internal.__GridCoordinates__, z)[0]
+    		hmeshs.append(intersector.createHMesh(m, subdiv_type, zid, jzids, jptlists, com))
+    		zid+=1
+    
+    return (hmeshs, com)
+
+def deleteHMesh(hooks):
+    for h in hooks:
+      intersector.deleteHMesh(h)
 
 def createSensor(hmeshs, sensor_type = 0, smoothing_type=0 , itermax = -1):
     sensors = []
@@ -1333,30 +1518,62 @@ def createSensor(hmeshs, sensor_type = 0, smoothing_type=0 , itermax = -1):
       sensors.append(intersector.createSensor(hmesh,sensor_type,smoothing_type,itermax))
     return sensors
 
-def deleteHMesh(hooks):
-    for h in hooks:
-      intersector.deleteHMesh(h)
-
 def deleteSensor(hooks):
     for h in hooks:
       intersector.deleteSensor(h)
 
 def assignData2Sensor(hooks, sensdata):
-    if isMesh(sensdata): # mesh or coords : FIXME : get first block only
-      #print('supposed mesh')
-      data = C.getFields(Internal.__GridCoordinates__, sensdata)[0] 
-    else:
-      #print('supposed numpy')
-      data = sensdata[0]
 
-    for h in hooks:
-      intersector.assignData2Sensor(h, data)
+	sens_data_typ = InputType(sensdata)
+	#print(sens_data_typ)
+
+	if sens_data_typ == -1 :
+		#print('assignData2Sensor (geom) ERROR : wrong input data for sensor')
+		return 1
+	elif sens_data_typ == 2 :     # single mesh/coords
+		data = C.getFields(Internal.__GridCoordinates__, sensdata)[0]
+		#print (data)
+		for h in hooks:
+			intersector.assignData2Sensor(h, data) # assign the single source point input cloud to all sensors
+	
+	elif sens_data_typ == 3: # list of meshes/coords
+		if len(sensdata) != len(hooks):
+			print('assignData2Sensor (geom) ERROR : either one batch of source points for all zones or as many batches as sensors')
+			return 1
+		i=-1
+		for h in hooks:
+			i+=1
+			data = C.getFields(Internal.__GridCoordinates__, sensdata[i])[0]
+			intersector.assignData2Sensor(h, data)
+
+	elif sens_data_typ == 0: # single numpy
+		if len(hooks) != 1:
+			print('assignData2Sensor (nodal or centered) ERROR : data list must be sized as number of sensors')
+			return 1
+		intersector.assignData2Sensor(hooks[0], sensdata[0])
+	elif sens_data_typ == 1: # list of numpies
+		if len(sensdata) != len(hooks):
+			print('assignData2Sensor (nodal or centered) ERROR : data list must be sized as number of sensors')
+			return 1
+		i=-1
+		for h in hooks:
+			i+=1
+			intersector.assignData2Sensor(h, sensdata[i])
+	return 0
+
+def createCom(t, subdiv_type = 0, nbz = 1):
+    return intersector.createCom(t, subdiv_type, nbz)
+
+def deleteCom(hook):
+    intersector.deleteCom(hook)
         
 def conformizeHMesh(t, hooks):
     tp = Internal.copyRef(t)
     _conformizeHMesh(tp, hooks)
     return tp
 
+#FIXJOIN : updatePointLists creates pointlist in ascending PG order
+#          should use updateJPointLists (to fix) and updateBCPointLists instead
 def _conformizeHMesh(t, hooks):
     nb_hooks = len(hooks)
     zones = Internal.getZones(t)
@@ -1374,10 +1591,21 @@ def _conformizeHMesh(t, hooks):
         # MAJ du maillage de la zone
         C.setFields([mesh], z, 'nodes')
 
+        # MAJ des BCs
         if (len(res) > 1):
             pg_oids=res[1]
             # MAJ POINT LISTS #
-            updatePointLists(z, zones, pg_oids)
+            updatePointLists(z, zones, pg_oids) #FIXJOIN updateBCPointLists(z, pg_oids)
+        # FIXJOIN
+        # # MAJ des Raccords
+        # if (len(res) > 3):
+        #   jzids = res[2]
+        #   nptlist = len(jzids)
+        #   if nptlist != len(res)-3:
+        #     return
+        #   pt_lists=res[3:]
+        #   # MAJ POINT LISTS #
+        #   updateJPointLists(z, zones, jzids, pt_lists)
         i=i+1
 
 #==============================================================================

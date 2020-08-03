@@ -18,6 +18,7 @@
 #include "Nuga/include/ngon_t.hxx"
 #include "V1_smoother.hxx"
 #include "shell_smoother.hxx"
+#include "Nuga/include/BbTree.h"
 
 #include <limits.h>
 #ifdef DEBUG_2019
@@ -25,6 +26,7 @@
 #include <ctime>
 #endif
 using ngon_type = ngon_t<K_FLD::IntArray>; 
+
 
 namespace NUGA
 {
@@ -41,8 +43,6 @@ class geom_sensor : public sensor<mesh_t, crd_t>
     using sensor_input_t = crd_t;
     using parent_t = sensor<mesh_t, crd_t>;
     using output_t   = typename mesh_t::output_t;
- 
-    using BbTree3D_type = typename K_SEARCH::BbTree3D;
     
     geom_sensor(mesh_t& mesh, eSmoother smoo_type, E_Int max_pts_per_cell, E_Int itermax)
       :parent_t(mesh,nullptr),
@@ -79,7 +79,7 @@ class geom_sensor : public sensor<mesh_t, crd_t>
 
   protected:
     
-    BbTree3D_type* _bbtree;
+    K_SEARCH::BbTree3D* _bbtree;
     Vector_t<E_Int> _points_to_cell;
     E_Int _max_pts_per_cell;
     E_Int _iter_max, _iter;

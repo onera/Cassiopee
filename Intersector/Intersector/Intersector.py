@@ -12,6 +12,12 @@ import Converter as C
 try: range = xrange
 except: pass
 
+def isSingleZone(a):
+    #print(a)
+    if len(a) != 4: return False
+    if a[3] != 'Zone_t': return False
+    return True
+
 def updatePointLists(oids, pointLists):
     return intersector.updatePointLists(oids, pointLists)
 
@@ -346,7 +352,7 @@ def adaptBox(a, box_ratio=10., smoothing_type=0, itermax=-1):
     return intersector.adaptBox(a, box_ratio, smoothing_type, itermax)
 
 def createHMesh(a, subdiv_type = 0): # 0 : ISO, 1: ISO_HEX
-    return intersector.createHMesh(a, subdiv_type)
+    return intersector.createHMesh(a, subdiv_type, 0, None, None, None)
 
 def deleteHMesh(hmesh):
     return intersector.deleteHMesh(hmesh)

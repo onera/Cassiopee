@@ -68,10 +68,10 @@ namespace NUGA
       auto& ptlist = j.second;
 
       std::vector<E_Int> new_ptlist;
-
       for (size_t i = 0; i < ptlist.size(); ++i)
       {
         E_Int PGi = ptlist[i] - idx_start;
+        //std::cout << "new nb of children of " << PGi <<" : "<< mesh._PGtree.nb_children(PGi) << std::endl;
         if (mesh._PGtree.nb_children(PGi) == 0)
           new_ptlist.push_back(PGi);
         else //extract descendance

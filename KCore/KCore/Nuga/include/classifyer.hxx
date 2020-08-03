@@ -192,7 +192,7 @@ namespace NUGA
 
         // get the visible edge : since we are 3D, we use plane containing the edge and norm
         double lambda_min(K_CONST::E_MAX_FLOAT), R[3];
-        for (size_t j = 0; j < front.ncells(); ++j)
+        for (E_Int j = 0; j < front.ncells(); ++j)
         {
           const double * P = front.crd.col(front.cnt(0, j));
           const double * Q = front.crd.col(front.cnt(1, j));
@@ -272,7 +272,7 @@ namespace NUGA
 
         // get the visible face 
         double lambda_min(K_CONST::E_MAX_FLOAT);
-        for (size_t j = 0; j < front.ncells(); ++j)
+        for (E_Int j = 0; j < front.ncells(); ++j)
         {
           K_MESH::Polygon PGj(front.cnt, j);
 
@@ -455,7 +455,7 @@ namespace NUGA
     z_mesh.bbox(z_box);
 
     int nmasks = mask_bits.size();
-    for (size_t m = 0; m < nmasks; ++m)
+    for (E_Int m = 0; m < nmasks; ++m)
     {
       if (mask_bits[m] == nullptr) continue;
       // first coarse filtering based on brute force : localizers are not available yet
@@ -487,7 +487,7 @@ namespace NUGA
       
       //std::cout << "__build_mask_bits : comp " << compi << std::endl;
   	  
-      bool z_is_prior_over_compi = (i < rank_wnp);
+      bool z_is_prior_over_compi = ((E_Int)i < rank_wnp);
 
       //std::cout << "is a prioritary over this comp ? " << z_is_prior_over_compi << " rank/rank_wnp " << i << "/" << rank_wnp << std::endl;
 
@@ -502,7 +502,7 @@ namespace NUGA
       //std::cout << "__build_mask_bits : 3 : nb of cells in mask : " << nbcells  << std::endl;
 
       // empty or only walls in it (WP are not required)
-  	  bool discard_bit = ( (nbcells == 0) || (z_is_prior_over_compi && (nbcells == mask_wall_ids[compi].size()) ) );
+  	  bool discard_bit = ( (nbcells == 0) || (z_is_prior_over_compi && (nbcells == (int)mask_wall_ids[compi].size()) ) );
 
   	  if (discard_bit) 
   	  {
@@ -590,7 +590,9 @@ namespace NUGA
 
   	std::vector<COLLIDE::eOVLPTYPE> is_x1, is_x2;
 
+#ifdef CLASSIFYER_DBG
     bool has_abut_ovlp = false;
+#endif
     for (size_t m=0; m < mask_bits.size(); ++m)
     {
       is_x1.clear();
@@ -619,22 +621,24 @@ namespace NUGA
       std::vector<E_Int> ids;
       for (size_t u=0; u< is_x1.size(); ++u) 
       {
-      	bool appendit = (is_x1[u] == COLLIDE::ABUTTING && m >=  rank_wnp); // test on rank : ie. is a WNP
-      	appendit     |= (is_x1[u] == COLLIDE::OVERSET  && m <   rank_wnp); // test on rank : ie. is not a WNP, it is as OVLP
+      	bool appendit = (is_x1[u] == COLLIDE::ABUTTING && (E_Int)m >=  rank_wnp); // test on rank : ie. is a WNP
+      	appendit     |= (is_x1[u] == COLLIDE::OVERSET  && (E_Int)m <   rank_wnp); // test on rank : ie. is not a WNP, it is as OVLP
       	if (appendit) ids.push_back(ancestor[u]);
       }
       if (!ids.empty()) 
       {
         z_mesh.set_type(IN, ids);
+#ifdef CLASSIFYER_DBG
         has_abut_ovlp = true;
+#endif
       }
       
       // discard overlap elts in masks
-      int nbcells = mask_bits[m]->ncells();
+      E_Int nbcells = mask_bits[m]->ncells();
       assert (is_x2.size() == nbcells);
       //std::cout << "nbcells/is_x2 size : " << nbcells << "/" << is_x2.size() << std::endl;
       std::vector<bool> keep(nbcells, true);
-  	  for (size_t u=0; u<nbcells; ++u )
+  	  for (E_Int u=0; u<nbcells; ++u )
   	   	if (is_x2[u] == COLLIDE::ABUTTING || is_x2[u] == COLLIDE::OVERSET) keep[u] = false;
 
 #ifdef CLASSIFYER_DBG
@@ -815,7 +819,7 @@ namespace NUGA
     
     // 2.5 : classify subzones
     STACK_ARRAY(eClassify, nb_subzones, z_color);
-    for (size_t i=0; i < nb_subzones; ++i)z_color[i] = AMBIGUOUS;
+    for (E_Int i=0; i < nb_subzones; ++i)z_color[i] = AMBIGUOUS;
     
 #ifdef CLASSIFYER_DBG
     std::cout << "NB SUZONES : " << nb_subzones << std::endl;
@@ -833,14 +837,14 @@ namespace NUGA
     while (iter++ < 2 && missing_col)
     {
       bool deep = (iter == 1) ? false : true;
-      for (size_t i = 0; (i < ncell) && missing_col; ++i)
+      for (E_Int i = 0; (i < ncell) && missing_col; ++i)
       {
         if (cur_xcelln[i] != X) continue;
 
         int nneighs = neighborz->stride(i);
         const int* pneighs = neighborz->begin(i);
 
-        for (size_t j = 0; (j < nneighs); ++j)
+        for (int j = 0; (j < nneighs); ++j)
         {
           if (pneighs[j] == E_IDX_NONE) continue;
 
@@ -871,7 +875,7 @@ namespace NUGA
           medith::write("cands", mask_bit.crd, mask_bit.cnt, &cands, 1);
 #endif
 
-          bool is_x = NUGA::COLLIDE::get_colliding(ae1, mask_bit, cands, 1, _RTOL, false/*i.e reduce cands to true collidings*/);
+          /*bool is_x = */NUGA::COLLIDE::get_colliding(ae1, mask_bit, cands, 1, _RTOL, false/*i.e reduce cands to true collidings*/);
           if (cands.empty()) continue;
 
 #ifdef CLASSIFYER_DBG

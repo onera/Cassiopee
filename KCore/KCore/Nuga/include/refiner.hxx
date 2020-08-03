@@ -98,8 +98,8 @@ class refiner
                            std::map<K_MESH::NO_Edge,E_Int>& ecenter);
 
     /// Generic wrapper for cells
-    template <typename arr_t>
-    static void refine_PHs(const output_t &adap_incr, ngon_type& ng, tree<arr_t> & PGtree, tree<arr_t> & PHtree,
+    template <typename pg_arr_t, typename ph_arr_t>
+    static void refine_PHs(const output_t &adap_incr, ngon_type& ng, tree<pg_arr_t> & PGtree, tree<ph_arr_t> & PHtree,
                            K_FLD::FloatArray& crd, K_FLD::IntArray & F2E);
 
     // T3/Q4/PG
@@ -126,14 +126,14 @@ class refiner
     template <typename arr_t>
     static void reserve_mem_PGs(K_FLD::FloatArray& crd, ngon_unit& PGs, const Vector_t<E_Int>& PGlist, tree<arr_t> & PGtree, K_FLD::IntArray& F2E, std::vector<E_Int>& childpos);
     ///
-    template <typename arr_t>
-    static void reserve_mem_PHs(K_FLD::FloatArray& crd, ngon_type& ng, const Vector_t<E_Int>& PHlist, tree<arr_t> & PGtree, tree<arr_t> & PHtree,
+    template <typename pg_arr_t, typename ph_arr_t>
+    static void reserve_mem_PHs(K_FLD::FloatArray& crd, ngon_type& ng, const Vector_t<E_Int>& PHlist, tree<pg_arr_t> & PGtree, tree<ph_arr_t> & PHtree,
                                 K_FLD::IntArray& F2E, std::vector<E_Int>& intpos, std::vector<E_Int>& childpos);
 
     ///
-    template <typename arr_t>
+    template <typename pg_arr_t, typename ph_arr_t>
     static void __reserve_mem_single_bound_type_PHs
-    (K_FLD::FloatArray& crd, ngon_type& ng, const Vector_t<E_Int>& PHlist, tree<arr_t> & PGtree, tree<arr_t> & PHtree,
+    (K_FLD::FloatArray& crd, ngon_type& ng, const Vector_t<E_Int>& PHlist, tree<pg_arr_t> & PGtree, tree<ph_arr_t> & PHtree,
       K_FLD::IntArray& F2E, std::vector<E_Int>& intpos, std::vector<E_Int>& childpos);
     
 };
@@ -314,9 +314,9 @@ void refiner<K_MESH::Polygon, ISO_HEX>::reserve_mem_PGs
 
 // used for HEXA or TETRA
 template <typename ELT_t, eSUBDIV_TYPE STYPE>
-template <typename arr_t>
+template <typename pg_arr_t, typename ph_arr_t>
 void refiner<ELT_t, STYPE>::__reserve_mem_single_bound_type_PHs
-(K_FLD::FloatArray& crd, ngon_type& ng, const Vector_t<E_Int>& PHlist, tree<arr_t> & PGtree, tree<arr_t> & PHtree,
+(K_FLD::FloatArray& crd, ngon_type& ng, const Vector_t<E_Int>& PHlist, tree<pg_arr_t> & PGtree, tree<ph_arr_t> & PHtree,
   K_FLD::IntArray& F2E, std::vector<E_Int>& intpos, std::vector<E_Int>& childpos)
 {
   const E_Int &nbc = subdiv_pol<ELT_t, ISO>::PHNBC;
@@ -368,9 +368,9 @@ void refiner<ELT_t, STYPE>::__reserve_mem_single_bound_type_PHs
 
 // Impl for TETRA/ISO
 template <>
-template <typename arr_t>
+template <typename pg_arr_t, typename ph_arr_t>
 void refiner<K_MESH::Tetrahedron, ISO>::reserve_mem_PHs
-(K_FLD::FloatArray& crd, ngon_type& ng, const Vector_t<E_Int>& PHadap, tree<arr_t> & PGtree, tree<arr_t> & PHtree, K_FLD::IntArray& F2E,
+(K_FLD::FloatArray& crd, ngon_type& ng, const Vector_t<E_Int>& PHadap, tree<pg_arr_t> & PGtree, tree<ph_arr_t> & PHtree, K_FLD::IntArray& F2E,
   std::vector<E_Int>& intpos, std::vector<E_Int>& childpos)
 {
   refiner<K_MESH::Tetrahedron, ISO>::__reserve_mem_single_bound_type_PHs(crd, ng, PHadap, PGtree, PHtree, F2E, intpos, childpos);
@@ -378,9 +378,9 @@ void refiner<K_MESH::Tetrahedron, ISO>::reserve_mem_PHs
 
 // Impl for HEXA
 template <>
-template <typename arr_t>
+template <typename pg_arr_t, typename ph_arr_t>
 void refiner<K_MESH::Hexahedron, ISO>::reserve_mem_PHs
-(K_FLD::FloatArray& crd, ngon_type& ng, const Vector_t<E_Int>& PHadap, tree<arr_t> & PGtree, tree<arr_t> & PHtree, K_FLD::IntArray& F2E,
+(K_FLD::FloatArray& crd, ngon_type& ng, const Vector_t<E_Int>& PHadap, tree<pg_arr_t> & PGtree, tree<ph_arr_t> & PHtree, K_FLD::IntArray& F2E,
   std::vector<E_Int>& intpos, std::vector<E_Int>& childpos)
 {
   refiner<K_MESH::Hexahedron, ISO>::__reserve_mem_single_bound_type_PHs(crd, ng, PHadap, PGtree, PHtree, F2E, intpos, childpos);
@@ -389,10 +389,10 @@ void refiner<K_MESH::Hexahedron, ISO>::reserve_mem_PHs
 
 // Impl for Prism/ISO
 template <>
-template <typename arr_t>
+template <typename pg_arr_t, typename ph_arr_t>
 void refiner<K_MESH::Prism, ISO>::reserve_mem_PHs
-(K_FLD::FloatArray& crd, ngon_type& ng, const Vector_t<E_Int>& PHadap, tree<arr_t> & PGtree, tree<arr_t> & PHtree, K_FLD::IntArray& F2E,
-  std::vector<E_Int>& intpos, std::vector<E_Int>& childpos)
+(K_FLD::FloatArray& crd, ngon_type& ng, const Vector_t<E_Int>& PHadap, tree<pg_arr_t> & PGtree, tree<ph_arr_t> & PHtree, K_FLD::IntArray& F2E,
+ std::vector<E_Int>& intpos, std::vector<E_Int>& childpos)
 {
   using ELT_t = K_MESH::Prism;
 
@@ -438,9 +438,9 @@ void refiner<K_MESH::Prism, ISO>::reserve_mem_PHs
 
 // Impl for Prism/ISO
 template <>
-template <typename arr_t>
+template <typename pg_arr_t, typename ph_arr_t>
 void refiner<K_MESH::Pyramid, ISO>::reserve_mem_PHs
-(K_FLD::FloatArray& crd, ngon_type& ng, const Vector_t<E_Int>& PHadap, tree<arr_t> & PGtree, tree<arr_t> & PHtree, K_FLD::IntArray& F2E,
+(K_FLD::FloatArray& crd, ngon_type& ng, const Vector_t<E_Int>& PHadap, tree<pg_arr_t> & PGtree, tree<ph_arr_t> & PHtree, K_FLD::IntArray& F2E,
   std::vector<E_Int>& intpos, std::vector<E_Int>& childpos)
 {
   using ELT_t = K_MESH::Pyramid;
@@ -492,9 +492,9 @@ void refiner<K_MESH::Pyramid, ISO>::reserve_mem_PHs
 
 // Impl for PH/ISO_HEX
 template <>
-template <typename arr_t>
+template <typename pg_arr_t, typename ph_arr_t>
 void refiner<K_MESH::Polyhedron<0>, ISO_HEX>::reserve_mem_PHs
-(K_FLD::FloatArray& crd, ngon_type& ng, const Vector_t<E_Int>& PHadap, tree<arr_t> & PGtree, tree<arr_t> & PHtree, K_FLD::IntArray& F2E,
+(K_FLD::FloatArray& crd, ngon_type& ng, const Vector_t<E_Int>& PHadap, tree<pg_arr_t> & PGtree, tree<ph_arr_t> & PHtree, K_FLD::IntArray& F2E,
   std::vector<E_Int>& intpos, std::vector<E_Int>& childpos)
 {
   //
@@ -609,7 +609,7 @@ void refiner<K_MESH::Quadrangle, ISO>::refine_PG
 (K_FLD::FloatArray& crd, ngon_unit& PGs, E_Int PGi, E_Int posC, E_Int posChild, std::map<K_MESH::NO_Edge, E_Int>& ecenter)
 {
   E_Int* nodes = PGs.get_facets_ptr(PGi);
-  const E_Int &nbc = subdiv_pol<K_MESH::Quadrangle, ISO>::NBC;
+  //const E_Int &nbc = subdiv_pol<K_MESH::Quadrangle, ISO>::NBC;
 
   // Centroid calculation
   NUGA::refine_point_computer<K_MESH::Polygon>::compute_center(crd, nodes, K_MESH::Quadrangle::NB_NODES, 1, crd.col(posC));
@@ -633,7 +633,7 @@ void refiner<K_MESH::Triangle, ISO>::refine_PG
 (K_FLD::FloatArray& crd, ngon_unit& PGs, E_Int PGi, E_Int posC, E_Int posChild, std::map<K_MESH::NO_Edge, E_Int>& ecenter)
 {
   E_Int* nodes = PGs.get_facets_ptr(PGi);
-  const E_Int &nbc = subdiv_pol<K_MESH::Triangle, ISO>::NBC;
+  //const E_Int &nbc = subdiv_pol<K_MESH::Triangle, ISO>::NBC;
 
   E_Int T6[6];
   K_MESH::NO_Edge noE;
@@ -694,12 +694,12 @@ void refiner<K_MESH::Polyhedron<0>, ISO_HEX>::refine_Faces
 
 /// HEXA/TETRA/PYRA/PRISM ISO, PH-ISO_HEX impl
 template <typename ELT_t, eSUBDIV_TYPE STYPE>
-template <typename arr_t>
+template <typename pg_arr_t, typename ph_arr_t>
 void refiner<ELT_t, STYPE>::refine_PHs
-(const output_t &adap_incr, ngon_type& ng, tree<arr_t> & PGtree, tree<arr_t> & PHtree,
+(const output_t &adap_incr, ngon_type& ng, tree<pg_arr_t> & PGtree, tree<ph_arr_t> & PHtree,
   K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
 {
-  assert(adap_incr.cell_adap_incr.size() <= ng.PHs.size());
+  assert((E_Int)adap_incr.cell_adap_incr.size() <= ng.PHs.size());
   //
   std::vector<E_Int> PHadap;
   get_PHs_to_refine(ng, PHtree, adap_incr, PHadap);
@@ -730,12 +730,12 @@ void refiner<ELT_t, STYPE>::refine_PHs
 
 ///
 template <>
-template <typename arr_t>
+template <typename pg_arr_t, typename ph_arr_t>
 void refiner<K_MESH::Basic, eSUBDIV_TYPE::ISO>::refine_PHs
 (const output_t &adap_incr, 
- ngon_type& ng, tree<arr_t> & PGtree, tree<arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
+ ngon_type& ng, tree<pg_arr_t> & PGtree, tree<ph_arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
 {  
-  assert(adap_incr.cell_adap_incr.size() <= ng.PHs.size());
+  assert((E_Int)adap_incr.cell_adap_incr.size() <= ng.PHs.size());
 
   refiner<K_MESH::Hexahedron, eSUBDIV_TYPE::ISO>::refine_PHs(adap_incr, ng, PGtree, PHtree, crd, F2E);
 
@@ -750,50 +750,50 @@ void refiner<K_MESH::Basic, eSUBDIV_TYPE::ISO>::refine_PHs
 // DIRECTIONNEL
 //default impl : DIR IS ISO for all elements but HEXA "Layer"
 template <>
-template <typename arr_t>
+template <typename pg_arr_t, typename ph_arr_t>
 void refiner<K_MESH::Tetrahedron, DIR>::refine_PHs
 (const output_t &adap_incr, 
- ngon_type& ng, tree<arr_t> & PGtree, tree<arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
+ ngon_type& ng, tree<pg_arr_t> & PGtree, tree<ph_arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
 {
   //refiner<K_MESH::Tetrahedron, ISO>::refine_PHs(adap_incr.cell_adap_incr, ng, PGtree, PHtree, crd, F2E);
 }
 
 ///
 template <>
-template <typename arr_t>
+template <typename pg_arr_t, typename ph_arr_t>
 void refiner<K_MESH::Pyramid, DIR>::refine_PHs
 (const output_t &adap_incr,
- ngon_type& ng, tree<arr_t> & PGtree, tree<arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
+ ngon_type& ng, tree<pg_arr_t> & PGtree, tree<ph_arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
 {
   //refiner<K_MESH::Pyramid, ISO>::refine_PHs(adap_incr.cell_adap_incr, ng, PGtree, PHtree, crd, F2E);
 }
 
 ///
 template <>
-template <typename arr_t>
+template <typename pg_arr_t, typename ph_arr_t>
 void refiner<K_MESH::Prism, DIR>::refine_PHs
 (const output_t &adap_incr,
- ngon_type& ng, tree<arr_t> & PGtree, tree<arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
+ ngon_type& ng, tree<pg_arr_t> & PGtree, tree<ph_arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
 {
   //refiner<K_MESH::Prism, ISO>::refine_PHs(adap_incr.cell_adap_incr, ng, PGtree, PHtree, crd, F2E);
 }
 
 ///
 template <>
-template <typename arr_t>
+template <typename pg_arr_t, typename ph_arr_t>
 void refiner<K_MESH::Hexahedron, DIR>::refine_PHs
 (const output_t &adap_incr,
- ngon_type& ng, tree<arr_t> & PGtree, tree<arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
+ ngon_type& ng, tree<pg_arr_t> & PGtree, tree<ph_arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
 {
   //alexis : todo
 }
 
 ///
 template <>
-template <typename arr_t>
+template <typename pg_arr_t, typename ph_arr_t>
 void refiner<K_MESH::Basic, DIR>::refine_PHs
 (const output_t &adap_incr, 
- ngon_type& ng, tree<arr_t> & PGtree, tree<arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
+ ngon_type& ng, tree<pg_arr_t> & PGtree, tree<ph_arr_t> & PHtree, K_FLD::FloatArray& crd, K_FLD::IntArray & F2E)
 {
   //alexis : todo
 }

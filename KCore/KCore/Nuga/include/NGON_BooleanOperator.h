@@ -456,7 +456,7 @@ private:
           }
       }
 
-      assert(phs.size() <= PH_to_PGT3s.size());
+      assert(phs.size() <= (E_Int)PH_to_PGT3s.size());
 
 #ifdef DEBUG_BOOLEAN
       ///*E_Int countin(0), countex(0);
@@ -2276,7 +2276,7 @@ E_Int NGON_BOOLEAN_CLASS::__conformize
 #endif
   
   _nodes_history = conformizer.get_node_history();
-  assert(_nodes_history.size() == coord.cols());
+  assert((E_Int)_nodes_history.size() == coord.cols());
   
   //E_Int mid = K_CONNECT::IdTool::max(_nodes_history);
   //assert (mid < crd.cols());  
@@ -2972,7 +2972,7 @@ E_Int NGON_BOOLEAN_CLASS::__build_connect_hard
   for (size_t i = 0; i < nT3_to_PG.size(); ++i)
     _anc_PG(1, soft_colors[i]) = nT3_to_PG[i];
   
-  assert (is_skin.size() == connectHard.cols());
+  assert ((E_Int)is_skin.size() == connectHard.cols());
     
   nT3_to_PG = oT3_to_PG;
     
@@ -4605,7 +4605,7 @@ E_Int NGON_BOOLEAN_CLASS::__classify_soft()
 {
   E_Int err(0);
 
-  assert (_ngXs.PHs._type.size() == _ngXs.PHs.size()); // _type must contain zone info for each PH
+  assert ((E_Int)_ngXs.PHs._type.size() == _ngXs.PHs.size()); // _type must contain zone info for each PH
   
 #ifdef FLAG_STEP
   chrono c;
@@ -4719,7 +4719,7 @@ E_Int NGON_BOOLEAN_CLASS::__classify_soft()
   
   //Interpret colors as zones
   Vector_t<E_Int> col_to_z(colmax, (E_Int)Z_NONE);
-  for (size_t i=0; i < _ngXs.PHs.size(); ++i)
+  for (E_Int i=0; i < _ngXs.PHs.size(); ++i)
   {
     const E_Int& zi = _ngXs.PHs._type[i];
     
@@ -4755,7 +4755,7 @@ E_Int NGON_BOOLEAN_CLASS::__classify_soft()
   
   // Now update missing zones (Z_NONE)
   
-  for (size_t i=0; i < _ngXs.PHs.size(); ++i)
+  for (E_Int i=0; i < _ngXs.PHs.size(); ++i)
   {
     if (_ngXs.PHs._type[i] == (E_Int)Z_NONE)
       _ngXs.PHs._type[i] = col_to_z[colors[i]];

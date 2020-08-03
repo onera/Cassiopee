@@ -69,6 +69,8 @@ namespace K_INTERSECTOR
   PyObject* createSensor(PyObject* self, PyObject* args);
   PyObject* assignData2Sensor(PyObject* self, PyObject* args);
   PyObject* deleteSensor(PyObject* self, PyObject* args);
+  PyObject* createCom(PyObject* self, PyObject* args);
+  PyObject* deleteCom(PyObject* self, PyObject* args);
   PyObject* conformizeHMesh(PyObject* self, PyObject* args);
   
   PyObject* extractUncomputables(PyObject* self, PyObject* args);

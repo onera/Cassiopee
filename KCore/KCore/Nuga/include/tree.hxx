@@ -17,13 +17,8 @@
 
 using ngon_type = ngon_t<K_FLD::IntArray>;
 
-#define NO_CHIDREN -1
-#define NO_GRAND_CHILDREN -2
-
 namespace NUGA
 {
-
-  typedef void(*reordering_func)(E_Int* child, bool reverse, E_Int i0);
 
 //
 template <typename array>
@@ -47,8 +42,6 @@ class tree
     void set_entities(ngon_unit& ngu) { _entities = &ngu ;}//relocate for hook
 
     const Vector_t<E_Int>& level() const {return _level;}
-
-    E_Int extract_compact_tree(E_Int i, children_array& otree, reordering_func F, bool reverse, E_Int i0) const;
         
     // to make sizes consistent : need to be called when refining the mesh
     void resize_hierarchy(size_t nb_ent)
@@ -120,11 +113,11 @@ class tree
       return E_Int(sz);
     }
     
-    inline const E_Int& get_level(E_Int i /*zero based*/) const {return _level[i];}
+    inline const E_Int& get_level(E_Int i /*zero based*/) const { assert(i < _level.size());  return _level[i];}
     
-    inline void set_level(E_Int i /*zero based*/, E_Int level) {_level[i] = level;}
+    inline void set_level(E_Int i /*zero based*/, E_Int level) { assert(i < _level.size());  _level[i] = level;}
     
-    inline E_Int parent(E_Int i /*zero based*/) const { return _parent[i];}
+    inline E_Int parent(E_Int i /*zero based*/) const { assert(i < _parent.size());  return _parent[i];}
     
     void get_oids(std::vector<E_Int>& oids) const ; //WARNING : NOT VALID AFTER CONFOMIZE
     //
@@ -170,22 +163,27 @@ class tree
 
     //
     E_Int nb_children(E_Int i /*zero based*/) const {
+      assert(i < _indir.size());
       if (_indir[i] == E_IDX_NONE) return 0;
       return array_trait<children_array>::nb_children(_children, _indir[i]);}
     
     //
     const E_Int* children(E_Int i /*zero based*/) const {
+      assert(i < _indir.size());
       if (_indir[i] == E_IDX_NONE) return nullptr;
       return array_trait<children_array>::children(_children, _indir[i]);
     }
     
     E_Int* children(E_Int i /*zero based*/) {
+      assert(i < _indir.size());
       if (_indir[i] == E_IDX_NONE) return nullptr;
       return array_trait<children_array>::children(_children, _indir[i]);
     }
     
     void enable(E_Int i /*zero based*/)
     {
+       assert(i < _enabled.size());
+
        _enabled[i] = true;
        
        // disable its parent
@@ -198,7 +196,7 @@ class tree
          _enabled[*(childr + n)] = false;
     }
       
-    inline bool is_enabled(E_Int i /*zero based*/) const { return _enabled[i];}
+    inline bool is_enabled(E_Int i /*zero based*/) const { assert(i < _enabled.size());  return _enabled[i]; }
 
 };
 
@@ -220,12 +218,6 @@ void tree<children_array>::get_oids(std::vector<E_Int>& oids) const
       pid = _parent[pid];
     };
   }
-}
-
-template <typename children_array>
-E_Int tree<children_array>::extract_compact_tree(E_Int i, children_array& otree, reordering_func F, bool reverse, E_Int i0) const
-{
-  return array_trait<children_array>::extract_compact_tree(i, _children, _indir, otree, F, reverse, i0);
 }
 
 //////////////  ARRAY TRAITS : how to get size, expand an array whether it is fixed stride (IntArray) or not (ngon_unit) 
@@ -260,7 +252,7 @@ class array_trait<ngon_unit>
   {
     arr.expand_n_fixed_stride(nb_new_children, stride);
   }
-  
+
 };
 
 // FIXED STRIDE CHILDREN ARRAY : BASIC ELEMENTS (2D and 3D)
@@ -291,45 +283,6 @@ class array_trait<K_FLD::IntArray>
     arr.resize(stride, arr.cols() + nb_children/stride, E_IDX_NONE);
   }
 
-  static E_Int __extract_compact_tree(const K_FLD::IntArray& iarr, E_Int iloc, const std::vector<E_Int>& indir, K_FLD::IntArray& oarr, reordering_func F, bool reverse, E_Int i0)
-  {
-    if (iloc == E_IDX_NONE) return NO_CHIDREN;
-
-    const E_Int* pchild = iarr.col(iloc);
-    E_Int nbc = nb_children(iarr, iloc);
-
-    STACK_ARRAY(E_Int, nbc, children);
-    for (size_t i = 0; i < nbc; ++i) children[i] = pchild[i];
-
-    // to put in receiver ref frame
-    F(children.get(), reverse, i0);
-
-    //to compact : dont create empty columns for all-leaves children
-    E_Int nb_tot_grand_children{ 0 };
-    for (E_Int i = 0; i < nbc; ++i)
-      nb_tot_grand_children += (indir[children[i]] != E_IDX_NONE);
-    if (nb_tot_grand_children == 0)
-      return  NO_GRAND_CHILDREN;
-
-    E_Int cols = oarr.cols();
-    oarr.pushBack(E_IDX_NONE, nbc);
-    //std::cout << oarr << std::endl;
-
-    for (E_Int i = 0; i < nbc; ++i)
-      oarr(i, cols) = __extract_compact_tree(iarr, indir[children[i]], indir, oarr, F, reverse, i0);
-
-    return cols;
-  }
-
-  static E_Int extract_compact_tree(E_Int i, const K_FLD::IntArray& arr, const std::vector<E_Int>& indir, K_FLD::IntArray& otree, reordering_func F, bool reverse, E_Int i0)
-  {
-    otree.clear();
-    E_Int ret = __extract_compact_tree(arr, indir[i], indir, otree, F, reverse, i0);
-    //std::cout << otree << std::endl;
-    return ret;
-
-  }
-  
 };
 
 

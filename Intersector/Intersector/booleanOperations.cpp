@@ -288,7 +288,7 @@ bool getUnionArgs(PyObject* args,
     if (pgs != Py_None)
       res = K_NUMPY::getFromNumpyArray(pgs, inds, true);
 
-    std::auto_ptr<K_FLD::FldArrayI> pL(inds); // to avoid to call explicit delete at several places in the code.
+    std::unique_ptr<K_FLD::FldArrayI> pL(inds); // to avoid to call explicit delete at several places in the code.
   
     //std::cout << "result for NUMPY is : " << res << std::endl;
     if ((res == 1) && (inds != NULL)  && (inds->getSize() != 0))

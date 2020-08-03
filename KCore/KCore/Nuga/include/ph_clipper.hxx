@@ -52,7 +52,7 @@ namespace NUGA
       
       STACK_ARRAY(bool, nb_faces2, keep);
         
-      for (size_t i=0; i < nb_faces2; ++i)keep[i]=true;
+      for (E_Int i=0; i < nb_faces2; ++i)keep[i]=true;
         
       for (E_Int i1=0; i1 < nb_faces1; ++i1)
       {

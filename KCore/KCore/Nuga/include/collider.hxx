@@ -329,7 +329,7 @@ void compute_overlap(const K_FLD::FloatArray& crd1, const K_FLD::IntArray& edges
   is_x2.clear();
   
   E_Int nb_elts1 = edges1.cols();
-  E_Int it1, it2;
+  //E_Int it1, it2;
   
   is_x1.resize(nb_elts1, NONE);
   is_x2.resize(edges2.cols(), NONE);
@@ -389,7 +389,7 @@ void compute_overlap(const K_FLD::FloatArray& crd1, const K_FLD::IntArray& edges
       E_Int J = cands2[j];
 
       const E_Int* nodes2 = edges2.col(J);
-      E_Int nb_nodes2 = 2;
+      //E_Int nb_nodes2 = 2;
       
       // Polygons pairs are now roughly overlapping/parallel : important in order to have a relevant result when using simplicial_colliding with Triangle::overlap
 
@@ -584,9 +584,9 @@ bool get_colliding<NUGA::aPolyhedron<UNKNOWN>, pg_smesh_t>
   //medith::write("lmask", lmask.crd, lmask.cnt);
 #endif
 
-  double l21 = ae1.L2ref();
-  double l22 = lmask.L2ref(cands, idx_start);
-  double ATOL(RTOL * ::sqrt(std::min(l21, l22)));
+  //double l21 = ae1.L2ref();
+  //double l22 = lmask.L2ref(cands, idx_start);
+  //double ATOL(RTOL * ::sqrt(std::min(l21, l22)));
 
   // compute collision between e1 and each candidate until founding one collision
 
@@ -605,9 +605,9 @@ bool get_colliding<NUGA::aPolyhedron<UNKNOWN>, pg_smesh_t>
   for (E_Int i = 0; (i < ae1.nb_tris()); ++i)
   {
     ae1.triangle(i, T1);
-    const E_Float* P1 = ae1.m_crd.col(T1[0]);
-    const E_Float* Q1 = ae1.m_crd.col(T1[1]);
-    const E_Float* R1 = ae1.m_crd.col(T1[2]);
+    //const E_Float* P1 = ae1.m_crd.col(T1[0]);
+    //const E_Float* Q1 = ae1.m_crd.col(T1[1]);
+    //const E_Float* R1 = ae1.m_crd.col(T1[2]);
 
     for (int j = 0; (j<ncands); ++j)
     {

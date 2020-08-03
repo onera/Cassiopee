@@ -174,6 +174,7 @@ class ngon_unit
     inline const E_Int* begin(E_Int i) const {return &_NGON[_facet[i]+1];}//SYNOMYM
     /// Returns the number of entities
     inline E_Int size() const {return !_NGON.empty() ? _NGON[0] : 0;}
+    inline E_Int getSize() { return size(); } // to match DynArray interface
     ///
     inline const E_Int* begin() const {return &_NGON[0];}
     ///

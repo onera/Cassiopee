@@ -46,7 +46,7 @@ class sensor
 
     virtual ~sensor()
     {
-      if (_smoother != nullptr) delete _smoother; _smoother = nullptr;
+      if (_smoother != nullptr) { delete _smoother; _smoother = nullptr; }
     }
 
   protected:
@@ -137,6 +137,11 @@ bool sensor<mesh_t, sensor_input_t>::compute(output_t& adap_incr, bool do_agglo)
   // fix inconsistencies
   fix_adap_incr(_hmesh, adap_incr.cell_adap_incr);
 
+  /*std::cout << std::endl;
+  std::cout << "adap incr size : " << adap_incr.cell_adap_incr.size() << std::endl;
+  std::cout << "adap incr nb 0 : " << std::count_if(ALL(adap_incr.cell_adap_incr), [](int i) {return i == 0; }) << std::endl;
+  std::cout << "adap incr nb 1 : " << std::count_if(ALL(adap_incr.cell_adap_incr), [](int i) {return i == 1; }) << std::endl;
+  std::cout << std::endl;*/
   //detect if at least one modification is required
   //bool carry_on(false);
   E_Int nb_elts = _hmesh._ng.PHs.size();

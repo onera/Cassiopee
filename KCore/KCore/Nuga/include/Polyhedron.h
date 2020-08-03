@@ -1578,7 +1578,7 @@ public:
     {
       E_Int PGi = *(_faces + i) - 1;
       E_Int ntris = (_pgs->stride(PGi)-2);
-      for (size_t n=0; n<ntris; ++n) oids[t++] = PGi;
+      for (E_Int n=0; n<ntris; ++n) oids[t++] = PGi;
     }
   }
   
@@ -2107,7 +2107,7 @@ static bool is_basic(const ngon_unit & PGs, const E_Int* faces, E_Int nb_faces)
    if (has_type)
      pgs._type.resize(_nb_faces);
    
-   for (size_t i=0; i < _nb_faces; ++i)
+   for (E_Int i=0; i < _nb_faces; ++i)
    {
      E_Int Fi = _faces[i]-1;
      const E_Int* pN = _pgs->get_facets_ptr(Fi);
@@ -2115,7 +2115,7 @@ static bool is_basic(const ngon_unit & PGs, const E_Int* faces, E_Int nb_faces)
      //pass to local
      nodes.clear();
      nodes.resize(nb_nodes);
-     for (size_t j=0; j < nb_nodes; ++j)
+     for (E_Int j=0; j < nb_nodes; ++j)
        nodes[j] = gid_to_lid[pN[j]];
      
      pgs.add(nb_nodes, &nodes[0]);

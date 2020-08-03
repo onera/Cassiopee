@@ -305,12 +305,12 @@ namespace NUGA
 
     if (typeid(zmesh_t) == typeid(ph_mesh_t))
     {
-      for (size_t c = 0; c < nb_comps; ++c)
+      for (E_Int c = 0; c < nb_comps; ++c)
         comp_boxes[c].compute(mask_crds[c]);//skin is sufficient to compute bbox in 3D
     }
     else
     {
-      for (size_t z = 0; z < nb_zones; ++z)
+      for (E_Int z = 0; z < nb_zones; ++z)
       {
         K_SEARCH::BBox3D zbx;
         zbx.compute(crds[z]); //a close surface gives a null mask so compute box on patch which is light to compute

@@ -234,7 +234,7 @@ struct connect_trait<VOLUMIC, false>
   {
     E_Int ptshift = crd.cols();
     E_Int npgs0 = c.PGs.size();
-    E_Int nphs0 = c.PHs.size();
+    //E_Int nphs0 = c.PHs.size();
 
     crd.pushBack(e.m_crd);
     c.PGs.append(e.m_pgs);
@@ -677,7 +677,7 @@ struct mesh_t
 
   const std::vector<E_Float>& get_nodal_tolerance() const
   {
-    if (nodal_tolerance.empty() || (nodal_tolerance.size() != crd.cols()))
+    if (nodal_tolerance.empty() || ((E_Int)nodal_tolerance.size() != crd.cols()))
        build_nodal_tolerance(); // already computed and correctly sized
     return nodal_tolerance;
   }

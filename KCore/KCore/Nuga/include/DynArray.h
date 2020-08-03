@@ -956,7 +956,7 @@ DynArray<T>::pushBack(const self_type& a){
   void
     DynArray<T>::__copy(value_type val, E_Int rows, iterator there) {
 
-    for (size_t i=0; i < rows; ++i)
+    for (E_Int i=0; i < rows; ++i)
       *(there++) = val;
   }
   
