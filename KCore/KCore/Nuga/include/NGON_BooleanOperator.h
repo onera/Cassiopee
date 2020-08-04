@@ -652,7 +652,6 @@ private:
   E_Float _tolerance;
   E_Float _convexity_tol;
   
-private:private:
   bool _processed;// tell whether __create_boolean_zones() has been run or not.
   const Connectivity_t& _cNGON1;
   const Connectivity_t& _cNGON2;
@@ -661,7 +660,7 @@ private:private:
 public:
   ngon_type _ngXs, _ngXh, _ng1, _ng2;
   ngon_type *_ngoper; // gather upon exit the result ngon (concatenation of some of _ngXs, _ngXh, _ng1, _ng2)
-  
+  bool simplify_pgs;
   //global output coordinates.
   K_FLD::FloatArray _coord;
   
@@ -763,7 +762,7 @@ NGON_BOOLEAN_CLASS::NGON_BooleanOperator
 (const K_FLD::FldArrayF& pos1, E_Int px, E_Int py, E_Int pz, const K_FLD::FldArrayI& cNGON1,
  const K_FLD::FldArrayF& pos2, E_Int px2, E_Int py2, E_Int pz2, const K_FLD::FldArrayI& cNGON2, E_Float tolerance, eAggregation aggtype)
 : _tolerance(tolerance), _convexity_tol(1.e-2), _AggPol(aggtype), _processed(false),
- _cNGON1(cNGON1), _cNGON2(cNGON2), _aCoords1(pos1, px, py, pz), _crd2(pos2, px2, py2, pz2), _triangulator_do_not_shuffle(true), _triangulator_improve_qual_by_swap(false), _conformizer_split_swap_afterwards(false)
+ _cNGON1(cNGON1), _cNGON2(cNGON2), _aCoords1(pos1, px, py, pz), _crd2(pos2, px2, py2, pz2), _triangulator_do_not_shuffle(true), _triangulator_improve_qual_by_swap(false), _conformizer_split_swap_afterwards(false), simplify_pgs(true)
 {}
 
 /// Constructor for DynArrays
@@ -772,7 +771,7 @@ NGON_BOOLEAN_CLASS::NGON_BooleanOperator
 (const K_FLD::FloatArray& pos1, const K_FLD::IntArray& cNGON1,
  const K_FLD::FloatArray& pos2, const K_FLD::IntArray& cNGON2, E_Float tolerance, eAggregation aggtype)
   : _AggPol(aggtype), _tolerance(tolerance),  _convexity_tol(1.e-2), _processed(false),
- _cNGON1(cNGON1), _cNGON2(cNGON2), _aCoords1(pos1), _crd2(pos2), _triangulator_do_not_shuffle(true), _triangulator_improve_qual_by_swap(false), _conformizer_split_swap_afterwards(false)
+ _cNGON1(cNGON1), _cNGON2(cNGON2), _aCoords1(pos1), _crd2(pos2), _triangulator_do_not_shuffle(true), _triangulator_improve_qual_by_swap(false), _conformizer_split_swap_afterwards(false), simplify_pgs(true)
 {
 #ifdef DEBUG_BOOLEAN
   std::cout << "pos1 " << pos1.cols() << "/" << pos1.rows() << std::endl;
@@ -1071,7 +1070,7 @@ E_Int NGON_BOOLEAN_CLASS::Union
   if (ret != ERROR)
   {
     ngon_type::clean_connectivity(*_ngoper, coord);
-    ngon_type::simplify_pgs(*_ngoper, coord);
+    if(simplify_pgs) ngon_type::simplify_pgs(*_ngoper, coord);
     __compact_and_join(*_ngoper, coord);
     _ngoper->export_to_array(connect);
 

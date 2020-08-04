@@ -18,6 +18,12 @@ def isSingleZone(a):
     if a[3] != 'Zone_t': return False
     return True
 
+def isCGNSTree(a):
+    #print(a)
+    if len(a) != 4: return False
+    if a[3] != 'Zone_t': return False
+    return True
+
 def updatePointLists(oids, pointLists):
     return intersector.updatePointLists(oids, pointLists)
 
@@ -54,7 +60,7 @@ def booleanIntersection(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mod
     c = intersector.booleanIntersection(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_qual)
     return G.close(c)
 
-def booleanUnion(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_qual=False, extrude_pgs=[]): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
+def booleanUnion(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_qual=False, extrude_pgs=[], simplify_pgs = True): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     """Computes the union between two closed-surface or two volume meshes.
     Usage for surfaces or bars: booleanUnion(a1, a2, tol)
     Usage for volumes: booleanUnion(a1, a2, tol, preserve_right, solid_right)"""
@@ -65,16 +71,16 @@ def booleanUnion(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, im
         a2 = Converter.convertArray2Tetra(a2)
         a1 = G.close(a1); a2 = G.close(a2)
       except: pass
-      c = intersector.booleanUnion(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_qual, extrude_pgs)
+      c = intersector.booleanUnion(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_qual, extrude_pgs, 0)
       return G.close(c)
     else: 
-      c = intersector.booleanUnion(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_qual, extrude_pgs)
+      c = intersector.booleanUnion(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_qual, extrude_pgs, simplify_pgs)
       return c #close is done inside
 
-def booleanUnionMZ(a1, a2, xtol=0., jtol = 0., agg_mode=1, improve_qual=False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
+def booleanUnionMZ(a1, a2, xtol=0., jtol = 0., agg_mode=1, improve_qual=False, simplify_pgs = True): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     """Computes the union between two volume meshes.
     Usage for volumes: booleanUnionMZ(a1, a2, tol, agg_mode)"""
-    c = intersector.booleanUnionMZ(a1, a2, xtol, jtol, agg_mode, improve_qual)
+    c = intersector.booleanUnionMZ(a1, a2, xtol, jtol, agg_mode, improve_qual, simplify_pgs)
     return c #close is done inside
 
 def booleanMinus(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_qual=False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)

@@ -17,6 +17,8 @@ try:
     import Converter.PyTree as C
     import Converter.Internal as Internal
     import Converter
+    import Transform.PyTree as T
+    import Generator.PyTree as G
 except:
     raise ImportError("Intersector.PyTree: requires Converter.PyTree module.")
         
@@ -56,12 +58,24 @@ def getTreeDim(t):
     if dims[4] != d:return 0; # mixed type : not handled
   return d
 
-# return values : 0(single numpy), 1(list of numpies), 2(single zone), 3 (list of zones)
+# return values : 0(single numpy), 1(list of numpies), 2(single zone), 3 (PyTree), 4(list of zones)
 def InputType(t): # fixme : based on first block only
   if isinstance(t, list):
     if isinstance(t[0], numpy.ndarray): return 1
-    elif XOR.isSingleZone(t): return 2
-    else : return 3
+    isnod = Internal.isStdNode(t)
+    #print(isnod)
+    if isnod == -1 or isnod == 0:
+      #print('is std node')
+      if XOR.isSingleZone(t):
+        #print('is isSingleZone node')
+        return 2
+      if Internal.isTopTree(t) :
+        #print('is isSingleZone node')
+        return 3
+      if XOR.isSingleZone(t[0]):
+        #print('is isSingleZone t0')
+        return 4
+    else : return -1
   else:
     if isinstance(t, numpy.ndarray): return 0
     else: return -1 # error
@@ -296,7 +310,7 @@ def booleanIntersection(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mod
     s = XOR.booleanIntersection(s1, s2, tol, preserve_right, solid_right, agg_mode, improve_qual)
     return C.convertArrays2ZoneNode('inter', [s])
 
-def booleanUnion(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_qual=False, multi_zone=False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
+def booleanUnion(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_qual=False, multi_zone=False, simplify_pgs=True): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     """Computes the union between two closed-surface or two volume meshes.
     Usage for surfaces or bars: booleanUnion(a1, a2, tol)
     Usage for volumes: booleanUnion(a1, a2, tol, preserve_right, solid_right)"""
@@ -313,7 +327,7 @@ def booleanUnion(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, im
           L2 = edgeLengthExtrema(a2)
           jtol = 0.1*min(L1,L2)
 
-          return booleanUnionMZ(a1, a2, tol, jtol, agg_mode, improve_qual)
+          return booleanUnionMZ(a1, a2, tol, jtol, agg_mode, improve_qual, simplify_pgs)
 
     #multi_zone option is ignored from here
 
@@ -325,7 +339,7 @@ def booleanUnion(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, im
     if (extrudepgs != []) : extrudepgs = numpy.concatenate(extrudepgs) # create a single list
     #print("nb of pgs to pass : %s" %(len(extrudepgs)))
 
-    res = XOR.booleanUnion(s1, s2, tol, preserve_right, solid_right, agg_mode, improve_qual, extrudepgs)
+    res = XOR.booleanUnion(s1, s2, tol, preserve_right, solid_right, agg_mode, improve_qual, extrudepgs, simplify_pgs)
     
     is_zone_list  = 0
     if (len(res) != 4) : is_zone_list = 1
@@ -341,13 +355,13 @@ def booleanUnion(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, im
     
     return ozones
 
-def booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_qual = False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
+def booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_qual = False, simplify_pgs = True): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     tp1 = Internal.copyRef(t1)
     tp2 = Internal.copyRef(t2)
-    return _booleanUnionMZ(tp1, tp2, xtol, jtol, agg_mode, improve_qual)
+    return _booleanUnionMZ(tp1, tp2, xtol, jtol, agg_mode, improve_qual, simplify_pgs)
 
 
-def _booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_qual = False): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
+def _booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_qual = False, simplify_pgs = True): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     """Computes the union between two closed volume meshes.
     Usage for volumes: booleanUnion2(a1, a2, tol, agg_mode)"""
     m1s = []
@@ -359,7 +373,7 @@ def _booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_qual = False):
     for z in z2s:
       m2s.append(C.getFields(Internal.__GridCoordinates__, z)[0])
 
-    res = XOR.booleanUnionMZ(m1s, m2s, xtol, jtol, agg_mode, improve_qual)
+    res = XOR.booleanUnionMZ(m1s, m2s, xtol, jtol, agg_mode, improve_qual, simplify_pgs)
 
     i=0
     zs = []
@@ -1263,11 +1277,16 @@ def _agglomerateCellsWithSpecifiedFaces(t, pgs, simplify=2, amax = 1.e-12):
     for z in zones:
       m = C.getFields(Internal.__GridCoordinates__, z)[0]
       m = XOR.agglomerateCellsWithSpecifiedFaces(m, pgs[i])
-      
-      simp = simplify
-      if (simp != 0) : 
-        simp -= 1
-        m = XOR.simplifyCells(m, treat_externals=simp, angular_threshold=amax)# treat externals iff simplify==1
+
+      if simplify == 2: # set to 'no treat externals' if it has joins (to ensure consistency at joins)
+        joins = Internal.getNodesFromType(z, 'GridConnectivity_t')
+        if joins != []:
+          #print('has joins, no agglo there')
+          simplify=1
+
+      if (simplify != 0) : 
+        simplify -= 1
+        m = XOR.simplifyCells(m, treat_externals=simplify, angular_threshold=amax)# treat externals iff simplify==1
       C.setFields([m], z, 'nodes') # replace the mesh in the zone
       i = i+1
  
@@ -1523,43 +1542,52 @@ def deleteSensor(hooks):
       intersector.deleteSensor(h)
 
 def assignData2Sensor(hooks, sensdata):
+  sens_data_typ = InputType(sensdata)
+  #print(sens_data_typ)
 
-	sens_data_typ = InputType(sensdata)
-	#print(sens_data_typ)
+  if sens_data_typ == -1 :
+    print('assignData2Sensor (geom) ERROR : wrong input data for sensor')
+    return 1
+  elif sens_data_typ == 2 : # single mesh/coords
+    data = C.getFields(Internal.__GridCoordinates__, sensdata)[0]
+    #print (data)
+    for h in hooks:
+      intersector.assignData2Sensor(h, data) # assign the single source point input cloud to all sensors
 
-	if sens_data_typ == -1 :
-		#print('assignData2Sensor (geom) ERROR : wrong input data for sensor')
-		return 1
-	elif sens_data_typ == 2 :     # single mesh/coords
-		data = C.getFields(Internal.__GridCoordinates__, sensdata)[0]
-		#print (data)
-		for h in hooks:
-			intersector.assignData2Sensor(h, data) # assign the single source point input cloud to all sensors
-	
-	elif sens_data_typ == 3: # list of meshes/coords
-		if len(sensdata) != len(hooks):
-			print('assignData2Sensor (geom) ERROR : either one batch of source points for all zones or as many batches as sensors')
-			return 1
-		i=-1
-		for h in hooks:
-			i+=1
-			data = C.getFields(Internal.__GridCoordinates__, sensdata[i])[0]
-			intersector.assignData2Sensor(h, data)
+  elif sens_data_typ == 3: # top tree => join
+    data = T.join(sensdata)
+    data = C.getFields(Internal.__GridCoordinates__, data)[0]
+    for h in hooks:
+      intersector.assignData2Sensor(h, data) # assign the single source point input cloud to all sensors
 
-	elif sens_data_typ == 0: # single numpy
-		if len(hooks) != 1:
-			print('assignData2Sensor (nodal or centered) ERROR : data list must be sized as number of sensors')
-			return 1
-		intersector.assignData2Sensor(hooks[0], sensdata[0])
-	elif sens_data_typ == 1: # list of numpies
-		if len(sensdata) != len(hooks):
-			print('assignData2Sensor (nodal or centered) ERROR : data list must be sized as number of sensors')
-			return 1
-		i=-1
-		for h in hooks:
-			i+=1
-			intersector.assignData2Sensor(h, sensdata[i])
-	return 0
+  elif sens_data_typ == 4: # list of zones
+    if len(sensdata) != len(hooks):
+      data = T.join(sensdata)
+      data = C.getFields(Internal.__GridCoordinates__, data)[0]
+      for h in hooks:
+        intersector.assignData2Sensor(h, data) # assign the single source point input cloud to all sensors
+    else:
+      i=-1
+      for h in hooks:
+        i+=1
+        data = C.getFields(Internal.__GridCoordinates__, sensdata[i])[0]
+        intersector.assignData2Sensor(h, data)
+
+  elif sens_data_typ == 0: # single numpy
+    if len(hooks) != 1:
+      print('assignData2Sensor (nodal or centered) ERROR : data list must be sized as number of sensors')
+      return 1
+    intersector.assignData2Sensor(hooks[0], sensdata)
+
+  elif sens_data_typ == 1: # list of numpies
+    if len(sensdata) != len(hooks):
+      print('assignData2Sensor (nodal or centered) ERROR : data list must be sized as number of sensors')
+      return 1
+    i=-1
+    for h in hooks:
+      i+=1
+      intersector.assignData2Sensor(h, sensdata[i])
+  return 0
 
 def createCom(t, subdiv_type = 0, nbz = 1):
     return intersector.createCom(t, subdiv_type, nbz)
@@ -1669,13 +1697,14 @@ def extractPathologicalCells(t, neigh_level=0):
     return zones
 
 #==============================================================================
-# extractOuterLayers : Extracts prescribed outer cell layers
-# IN: t:               : 3D NGON mesh
-# IN: N:               : Number of layers to extract
-# IN: discard_external : for volume mesh with holes (e.g. external flow), set it to 1 to extract only layers around bodies.
+# extractOuterLayers     : Extracts prescribed outer cell layers into a single zone
+# IN : t:                : 3D NGON mesh
+# IN : N:                : Number of layers to extract
+# IN : discard_external  : for volume mesh with holes (e.g. external flow), set it to 1 to extract only layers around bodies.
+# IN : output_remaining  : to add a zone in the ouptut tree with remaining elts
 # OUT: r
 #==============================================================================
-def extractOuterLayers(t, N, discard_external=0):
+def extractOuterLayers(t, N, discard_external=0, output_remaining=False):
     """ Extracts prescribed outer cell layers.
     Usage: extractOuterLayers(t, N, discard_external)"""
     m = C.getFields(Internal.__GridCoordinates__, t)[0]
@@ -1684,11 +1713,12 @@ def extractOuterLayers(t, N, discard_external=0):
     zones = []
         
     nb_zones = len(res)
-    if (nb_zones == 1) :
+    if (nb_zones == 1 and output_remaining == True) :
       zones.append(C.convertArrays2ZoneNode('remaining', [res[0]]))
     else:
       zones.append(C.convertArrays2ZoneNode('outers', [res[0]]))
-      zones.append(C.convertArrays2ZoneNode('remaining', [res[1]]))
+      if output_remaining == True:
+        zones.append(C.convertArrays2ZoneNode('remaining', [res[1]]))
 
     return zones
 
@@ -1799,7 +1829,7 @@ def getOverlappingFaces(t1, t2, RTOL = 0.1, amax = 0.1, dir2=(0.,0.,0.)):
    except: raise ImportError("getOverlappingFaces: requires Transform module.")
    
    zones2 = Internal.getZones(t2)
-   m2 = concatenate(zones2)
+   m2 = concatenate(zones2); m2 = G.close(m2)
    m2 = C.getFields(Internal.__GridCoordinates__, m2)[0]
 
    zones1 = Internal.getZones(t1)

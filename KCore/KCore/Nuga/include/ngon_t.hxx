@@ -2919,7 +2919,7 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
       Vector_t<E_Int> phnids;
       //E_Int nb_remove = 
       ng.PHs.remove_facets(pgnids, phnids);
-      //std::cout << "nb PH removed : " << nb_remove << std::endl;
+      //std::cout << "nb PG removed : " << nb_remove << std::endl;
     }
   }
   

@@ -76,6 +76,41 @@ PyObject* K_INTERSECTOR::simplifyCells(PyObject* self, PyObject* args)
 }
 
 //=============================================================================
+/* Agglomerate superfuous nodes (overdefined polygons) */
+//=============================================================================
+PyObject* K_INTERSECTOR::simplifyFaces(PyObject* self, PyObject* args)
+{
+  PyObject *arr;
+  if (!PyArg_ParseTuple(args, "O", &arr)) return nullptr;
+
+  K_FLD::FloatArray* f(0);
+  K_FLD::IntArray* cn(0);
+  char* varString, *eltType;
+  // Check array # 1
+  E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
+  if (err) return NULL;
+    
+  K_FLD::FloatArray & crd = *f;
+  K_FLD::IntArray & cnt = *cn;
+  
+  //~ std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
+  //~ std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
+  
+  typedef ngon_t<K_FLD::IntArray> ngon_type;
+  ngon_type ngi(cnt);
+  
+  ngon_type::simplify_pgs(ngi, crd);
+
+  K_FLD::IntArray cnto;
+  ngi.export_to_array(cnto);
+  
+  PyObject* tpl = K_ARRAY::buildArray(crd, varString, cnto, -1, eltType, false);;
+  
+  delete f; delete cn;
+  return tpl;
+}
+
+//=============================================================================
 /* Agglomerate superfuous faces (overdefined polyhedra) */
 //=============================================================================
 PyObject* K_INTERSECTOR::simplifySurf(PyObject* self, PyObject* args)
