@@ -31,7 +31,7 @@ template <typename SurfaceType>
 class SurfaceMesher
 {
 public:
-  typedef K_CONT_DEF::size_type size_type;
+  typedef NUGA::size_type size_type;
 public:
   SurfaceMesher(){}
 

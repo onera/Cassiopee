@@ -105,7 +105,7 @@ NUGA::GeomAlgo<ElementType>::neighboring
 
   // Merge
   K_FLD::ArrayAccessor<K_FLD::FloatArray> cab(barys);
-  E_Int nmerges = ::merge(cab, E_EPSILON, new_IDs);
+  E_Int nmerges = ::merge(cab, EPSILON, new_IDs);
 
   // Build Neighbour matrix
   std::vector<std::vector<E_Int> > ngh_tmp(ELTS);
@@ -147,7 +147,7 @@ NUGA::GeomAlgo<ElementType>::neighboring
       for (size_t j=0; j < s; ++j)
         entry[j]=ngh_tmp[i][j];
       for (size_t j=s; j < stride; ++j) //fills the tail with nonde index.
-        entry[j]=E_IDX_NONE;
+        entry[j]=IDX_NONE;
       nghA.push_back(entry, stride);
     }
     delete entry;
@@ -174,7 +174,7 @@ inline bool is_a_ref(const K_FLD::FloatArray& crd, const K_FLD::IntArray& cnt, E
   T.isoG(crd, T.nodes(), G);
   T.normal(crd, T.nodes(), N);
       
-  K_FUNC::sum<3>(G,N,P); // P is above G at a distance of 1
+  NUGA::sum<3>(G,N,P); // P is above G at a distance of 1
             
   Vector_t<E_Int> boxes;
   tree.getIntersectingBoxes(P, G, boxes);
@@ -218,9 +218,9 @@ inline bool is_a_ref(const K_FLD::FloatArray& crd, const K_FLD::IntArray& cnt, E
           
     E_Bool parallel, coincident;
     E_Float lambda, min_d, UV[2];
-    K_MESH::Triangle::planeLineMinDistance<3>(Q0, Q1, Q2, G, P, E_EPSILON, true/*tol_is_absolute*/, lambda, UV, parallel, coincident, min_d);
+    K_MESH::Triangle::planeLineMinDistance<3>(Q0, Q1, Q2, G, P, EPSILON, true/*tol_is_absolute*/, lambda, UV, parallel, coincident, min_d);
     
-    bool intersect= (((1. - UV[0] -  UV[1]) >= -E_EPSILON)  && (UV[0] >= -E_EPSILON) && (UV[1] >= -E_EPSILON));
+    bool intersect= (((1. - UV[0] -  UV[1]) >= -EPSILON)  && (UV[0] >= -EPSILON) && (UV[1] >= -EPSILON));
     if (!intersect)
       continue;
     
@@ -314,13 +314,13 @@ inline void GeomAlgo<K_MESH::Triangle>::reversi_chimera_skin
      orient.resize(cnts[i]->cols(), 1);
      
      Krefs.clear();
-     Krefs.resize(nb_colors, E_IDX_NONE);
+     Krefs.resize(nb_colors, IDX_NONE);
      size_t nbref=0;
      bool otwrd;
      //
      for (E_Int K = 0; (K < cnts[i]->cols()) && (nbref != nb_colors); ++K)
      {
-       if (Krefs[colors[K]] != E_IDX_NONE)
+       if (Krefs[colors[K]] != IDX_NONE)
          continue;
        
        otwrd = true;
@@ -341,7 +341,7 @@ inline void GeomAlgo<K_MESH::Triangle>::reversi_chimera_skin
      // fast search : if one of the ref was reversed
      bool need_a_swap=false;
      for (size_t c = 0; (c < nb_colors) && !need_a_swap; ++c)
-       if (Krefs[c] != E_IDX_NONE) need_a_swap |= orient[Krefs[c]];
+       if (Krefs[c] != IDX_NONE) need_a_swap |= orient[Krefs[c]];//fixme : seems to be a bug
      //"deeper" search : if one reversed is found
      for (size_t j=0; (j< orient.size()) && !need_a_swap; ++j)
      {
@@ -388,7 +388,7 @@ inline void GeomAlgo<K_MESH::Triangle>::get_swapE
     Nj = *(pS+1);
     Nl = *(pS+2);
       
-    d2[0]=d2[1]=d2[2]=K_CONST::E_MAX_FLOAT;
+    d2[0]=d2[1]=d2[2]=NUGA::FLOAT_MAX;
       
     q11 = (ROWS == 3) ? K_MESH::Triangle::qualityG<3>(pos.col(Ni), pos.col(Nj), pos.col(Nl)) : K_MESH::Triangle::qualityG<2>(pos.col(Ni), pos.col(Nj), pos.col(Nl));
     if (q11 >= tol)
@@ -397,7 +397,7 @@ inline void GeomAlgo<K_MESH::Triangle>::get_swapE
     for (j=0; j < 3; ++j)
     {
       Sn = neighbors(j, i);
-      if (Sn == E_IDX_NONE)
+      if (Sn == IDX_NONE)
         continue;
       
       if (frozen[Sn]) continue;
@@ -414,7 +414,7 @@ inline void GeomAlgo<K_MESH::Triangle>::get_swapE
       if ((lambda < 0.) || (lambda > 1.))
         continue;
       
-//      E_Float L2 = K_FUNC::sqrDistance(pos.col(*(pS+(j+1)%3)), pos.col(*(pS+(j+2)%3)), 3);
+//      E_Float L2 = NUGA::sqrDistance(pos.col(*(pS+(j+1)%3)), pos.col(*(pS+(j+2)%3)), 3);
 //      if ((L2*lambda*lambda < _tolerance*_tolerance) || (L2 * (1.-lambda) * (1. - lambda) < _tolerance*_tolerance))
 //        std::cout << "HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH" << std::endl;
     
@@ -423,7 +423,7 @@ inline void GeomAlgo<K_MESH::Triangle>::get_swapE
     
     j = MIN3(d2[0], d2[1], d2[2]);
     
-    if (d2[j] == K_CONST::E_MAX_FLOAT)
+    if (d2[j] == NUGA::FLOAT_MAX)
       continue;
     
     Sn = neighbors(j, i);  
@@ -459,20 +459,20 @@ inline E_Float GeomAlgo<ElementType>::angle_measure
 {
   //
   E_Float nk[3];
-  K_FUNC::crossProduct<3>(ni, nj, nk);
-  E_Float c = K_FUNC::dot<3>(ni, nj);
+  NUGA::crossProduct<3>(ni, nj, nk);
+  E_Float c = NUGA::dot<3>(ni, nj);
   
   E_Int s = zSIGN(::fabs(c) - 1., ZERO_M);
   
   if (s != 0) // non-degn case
   {
     E_Float E0E1[3];
-    K_FUNC::diff<3>(E1, E0, E0E1);
-    K_FUNC::normalize<3>(E0E1);
-    E_Float K2 = - K_FUNC::dot<3>(E0E1, nk);
+    NUGA::diff<3>(E1, E0, E0E1);
+    NUGA::normalize<3>(E0E1);
+    E_Float K2 = - NUGA::dot<3>(E0E1, nk);
     E_Int signK2 = zSIGN(K2, ZERO_M);
     
-    E_Float s2 = K_FUNC::sqrNorm<3>(nk);
+    E_Float s2 = NUGA::sqrNorm<3>(nk);
     
 #ifdef DEBUG_GEOM_ALGO
     if (signK2 == 0) std::cout << "ERROR : GeomAlgo::angle_measure : inconsistence between s and c" << std::endl;
@@ -480,19 +480,19 @@ inline E_Float GeomAlgo<ElementType>::angle_measure
 #endif
     
     E_Float alpha = ::atan2(::sqrt(s2), c); 
-    alpha = K_CONST::E_PI - signK2*alpha;
+    alpha = NUGA::PI - signK2*alpha;
   
     return alpha; 
   }
   else // (s == 0) : ni and nj are nearly colinear : 0, Pi or 2Pi
   {
-    if (c > 0.) return K_CONST::E_PI;
+    if (c > 0.) return NUGA::PI;
     
 #ifdef DEBUG_GEOM_ALGO
     std::cout << "ERROR : GeomAlgo::angle_measure : 0 or 2Pi ?" << std::endl;
     assert (false);
 #endif
-    return 2.*K_CONST::E_PI; //error : either 0 or 2Pi are wrong. return one of them as an arbitray choice.
+    return 2.*NUGA::PI; //error : either 0 or 2Pi are wrong. return one of them as an arbitray choice.
   }
   
 }
@@ -502,8 +502,8 @@ template <>
 inline void GeomAlgo<K_MESH::Triangle>::min_quality
 (const K_FLD::FloatArray& crd, const K_FLD::IntArray& cnt, E_Float& minq, E_Int& imin)
 {
-  minq = K_CONST::E_MAX_FLOAT;
-  imin = E_IDX_NONE;
+  minq = NUGA::FLOAT_MAX;
+  imin = IDX_NONE;
   //
   for (E_Int i = 0; i < cnt.cols(); ++i)
   {

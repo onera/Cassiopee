@@ -20,7 +20,7 @@
 #ifndef __DELAUNAY_IMPRINTER_H__
 #define __DELAUNAY_IMPRINTER_H__
 
-#include "Nuga/include/DefContainers.h"
+#include "Nuga/include/defs.h"
 #include "Nuga/include/Triangle.h"
 
 namespace DELAUNAY
@@ -31,8 +31,8 @@ namespace DELAUNAY
 
   public:
     typedef   K_MESH::Triangle            element_type;
-    typedef   K_CONT_DEF::int_vector_type int_vector_type;
-    typedef   K_CONT_DEF::size_type       size_type;
+    typedef   NUGA::int_vector_type int_vector_type;
+    typedef   NUGA::size_type       size_type;
 
   public:
     ///

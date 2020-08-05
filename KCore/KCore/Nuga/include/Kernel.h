@@ -40,14 +40,14 @@ class Kernel
 
  public: /** Typedefs */
 
-    typedef   K_CONT_DEF::size_type                    size_type;
-    typedef   K_CONT_DEF::int_vector_type              int_vector_type;
-    typedef   K_CONT_DEF::int_set_type                 int_set_type;
-    typedef   K_CONT_DEF::int_pair_type                int_pair_type;
-    typedef   K_CONT_DEF::int_pair_vector_type         int_pair_vector_type;
-    typedef   K_CONT_DEF::int_pair_set_type            int_pair_set_type;
-    typedef   K_CONT_DEF::bool_vector_type             bool_vector_type;
-    typedef   K_CONT_DEF::non_oriented_edge_set_type   non_oriented_edge_set_type;
+    typedef   NUGA::size_type                    size_type;
+    typedef   NUGA::int_vector_type              int_vector_type;
+    typedef   NUGA::int_set_type                 int_set_type;
+    typedef   NUGA::int_pair_type                int_pair_type;
+    typedef   NUGA::int_pair_vector_type         int_pair_vector_type;
+    typedef   NUGA::int_pair_set_type            int_pair_set_type;
+    typedef   NUGA::bool_vector_type             bool_vector_type;
+    typedef   NUGA::non_oriented_edge_set_type   non_oriented_edge_set_type;
 
     typedef   Kernel                                   self_type;
     typedef   K_MESH::Triangle                         element_type;
@@ -69,7 +69,7 @@ public:
   E_Int insertNode(size_type N, const T& m, const ConstraintType& dummy);
 
   /// sets the hard edges
-  void setConstraint(const K_CONT_DEF::non_oriented_edge_set_type& hard_edges);
+  void setConstraint(const NUGA::non_oriented_edge_set_type& hard_edges);
 
 private:
 

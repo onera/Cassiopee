@@ -21,7 +21,7 @@
 #ifndef _GEOMALGO_H_
 #define _GEOMALGO_H_
 
-# include "Nuga/include/DynArray.h"
+#include "Nuga/include/DynArray.h"
 #include "Nuga/include/Edge.h"
 #include "Nuga/include/macros.h"
 

@@ -6,14 +6,6 @@
 #ifdef DEBUG_AGGLOMERATOR
 #include "NGON_debug.h"
 #endif
-/*#include <vector>
-#include <set>
-#include <map>
-#include <deque>
-#include "Def/DefTypes.h"*/
-
-
-//#include  "Nuga/Boolean/NGON_debug.h"
 
 #define NONEVAL -2
 #define UNCHANGED -1
@@ -122,7 +114,7 @@ namespace NUGA
 #ifdef DEBUG_AGGLOMERATOR
   {
     E_Int idmax=-1;
-    for (size_t i=0; i < nids.size(); ++i) if (nids[i] != E_IDX_NONE) idmax = std::max(nids[i], idmax);
+    for (size_t i=0; i < nids.size(); ++i) if (nids[i] != IDX_NONE) idmax = std::max(nids[i], idmax);
     assert (idmax == gagg_pgs.size()-1);
     K_FLD::IntArray cnto;
     ngon_type ng(gagg_pgs);
@@ -154,7 +146,7 @@ namespace NUGA
     for (size_t i=0; i < nsz;++i)
     {
       E_Int& ni = nids[i];
-      ni = (ni == E_IDX_NONE) ? E_IDX_NONE : (ni <0/*UNCHANGED OR NONEVAL*/) ? i : ni + nb_pgs_init;
+      ni = (ni == IDX_NONE) ? IDX_NONE : (ni <0/*UNCHANGED OR NONEVAL*/) ? i : ni + nb_pgs_init;
     }
     
     //NGON_debug<K_FLD::FloatArray, K_FLD::IntArray>::draw_PH("ph220.plt", crd, ngi, 220);
@@ -204,7 +196,7 @@ namespace NUGA
 //      if (frozen[i])
 //        continue;
 //
-//      E_Int bestn = E_IDX_NONE;
+//      E_Int bestn = IDX_NONE;
 //      size_t maxf = 0;
 //
 //      E_Int nb_neighs = ngi.PHs.stride(i);
@@ -214,7 +206,7 @@ namespace NUGA
 //      for (E_Int n = 0; (n < nb_neighs); ++n)
 //      {
 //        E_Int j = *(neighs + n);
-//        if (j == E_IDX_NONE)
+//        if (j == IDX_NONE)
 //          continue;
 //
 //        if (frozen[j])
@@ -230,7 +222,7 @@ namespace NUGA
 //        bestn = n;
 //      }
 //
-//      if (bestn == E_IDX_NONE) continue;
+//      if (bestn == IDX_NONE) continue;
 //
 //      E_Int j = *(neighs + bestn);
 //      frozen[i] = frozen[j] = true;
@@ -299,7 +291,7 @@ namespace NUGA
       if (frozen[i])
         continue;
 
-      E_Int bestn = E_IDX_NONE;
+      E_Int bestn = IDX_NONE;
       //size_t nbfmax=0;
       //E_Float smax=0.;
       //E_Float worst_reflex_angle=0.;
@@ -318,14 +310,14 @@ namespace NUGA
       for (E_Int n = 0; (n < nb_neighs); ++n)
       {
         E_Int j = *(neighs + n);
-        if (j == E_IDX_NONE)
+        if (j == IDX_NONE)
           continue;
 
         if (frozen[j]) 
         {
           // continue; fixme : hack to have the targeted logic (but bad perfo) : 
           // a cell has to be aggregated with its best mate, i.e the one with most surface in common, not the best available one.
-          bestn = E_IDX_NONE;
+          bestn = IDX_NONE;
           break;
         }
 
@@ -388,7 +380,7 @@ namespace NUGA
         
         // -3 worst reflex angle SHOULD decrease
         
-        E_Float worst_reflex_a=2.*K_CONST::E_PI;
+        E_Float worst_reflex_a=2.*NUGA::PI;
 
         if (!reflex_edges.empty())
         {
@@ -401,7 +393,7 @@ namespace NUGA
         E_Float q = Q0 + face_ratio * surface_ratio * worst_reflex_a;
       
         //maximum surface is best. if equality, count the number of shared faces.
-        //bool is_better = (s > smax) || ((::fabs(s-smax) < E_EPSILON) && (nbf > nbfmax));
+        //bool is_better = (s > smax) || ((::fabs(s-smax) < EPSILON) && (nbf > nbfmax));
         bool is_better = (q > qmax);
       
         if (is_better)
@@ -453,7 +445,7 @@ namespace NUGA
         } 
       }
 
-      if (bestn == E_IDX_NONE) continue;
+      if (bestn == IDX_NONE) continue;
       
       E_Int j = *(neighs+bestn);
       frozen[i] = frozen[j] = true;
@@ -606,7 +598,7 @@ namespace NUGA
         E_Int rPH = F2E(1, PGi);
         
         if (lPH == rPH) continue; //the PG is gone already in a merge
-        if (lPH == E_IDX_NONE || rPH == E_IDX_NONE) continue; // discard skin PGs for aggregattion
+        if (lPH == IDX_NONE || rPH == IDX_NONE) continue; // discard skin PGs for aggregattion
         
         if ( (phnids[lPH] != lPH) || (phnids[rPH] != rPH) ) //at least one ph has been already processed in that iteration
         {
@@ -775,15 +767,15 @@ namespace NUGA
       E_Int PGi = pgids[i];
       const E_Int* nodes = ng.PGs.get_facets_ptr(PGi);
       E_Int nb_nodes = ng.PGs.stride(PGi);
-      E_Float d2min = K_CONST::E_MAX_FLOAT;
-      E_Int Nsource(E_IDX_NONE), Ntarget(E_IDX_NONE);
+      E_Float d2min = NUGA::FLOAT_MAX;
+      E_Int Nsource(IDX_NONE), Ntarget(IDX_NONE);
       
       // for the smallest edge of the current polygon, assign the non-moved and biggest id to the smallest one
       for (E_Int n=0; n<nb_nodes; ++n)
       {
         E_Int Ni = *(nodes + n) - 1;
         E_Int Nj = *(nodes + (n+1) % nb_nodes) - 1;
-        E_Float d2 = K_FUNC::sqrDistance(crd.col(Ni), crd.col(Nj), 3);
+        E_Float d2 = NUGA::sqrDistance(crd.col(Ni), crd.col(Nj), 3);
         
         if (d2 < d2min)
         {
@@ -813,7 +805,7 @@ namespace NUGA
    ngon_unit& gagg_pgs, std::vector<E_Int>& nids, ngon_unit& wagg_pgs, std::map<E_Int, std::vector<E_Int> >& wneigh_to_faces)
   {
     // nids[i] == -1         =>  UNCHANGED
-    // nids[i] == E_IDX_NONE =>  DELETED
+    // nids[i] == IDX_NONE =>  DELETED
     // nids[i] == j          =>  j-th PG in agg_pgs
     
     typedef std::map<E_Int, std::vector<E_Int> > map_t;
@@ -831,7 +823,7 @@ namespace NUGA
     for (E_Int n = 0; n < nb_neighs; ++n)
     {
       E_Int PHn = *(neighs + n);
-      if (!process_externals && PHn == E_IDX_NONE)
+      if (!process_externals && PHn == IDX_NONE)
         continue;
       //E_Int PGi = *(pgs + n) - 1;
       wneigh_to_faces[PHn].push_back(n);
@@ -896,10 +888,10 @@ namespace NUGA
         E_Int PGi = pgsi[k] - 1;
         E_Int nid = lnids[k];
 
-        nids[PGi] = (nid == E_IDX_NONE) ? E_IDX_NONE : (nid >= nb_com_pgs) ? nid -nb_com_pgs +shft : UNCHANGED; // deleted ? agglomerated ? unchanged
+        nids[PGi] = (nid == IDX_NONE) ? IDX_NONE : (nid >= nb_com_pgs) ? nid -nb_com_pgs +shft : UNCHANGED; // deleted ? agglomerated ? unchanged
         
 #ifdef DEBUG_AGGLOMERATOR  
-        std::string tmp = (nids[PGi] == E_IDX_NONE) ? "DELETED" : (nids[PGi] == UNCHANGED) ? "UNCHANGED" : "NEW";
+        std::string tmp = (nids[PGi] == IDX_NONE) ? "DELETED" : (nids[PGi] == UNCHANGED) ? "UNCHANGED" : "NEW";
         if (tmp != "NEW") std::cout << PGi << " status : " <<  tmp << std::endl;
         else std::cout << PGi << " status : " << nid -nb_com_pgs +shft << std::endl;
 #endif
@@ -910,7 +902,7 @@ namespace NUGA
       {
         gagg_pgs.append(wagg_pgs);
         gagg_pgs._type.resize(gagg_pgs.size(), INNER);
-        gagg_pgs._ancEs.resize(2, gagg_pgs.size(), E_IDX_NONE);
+        gagg_pgs._ancEs.resize(2, gagg_pgs.size(), IDX_NONE);
       }
     }
     

@@ -21,12 +21,11 @@
 #ifndef __K_MESH_EDGE_H__
 #define __K_MESH_EDGE_H__
 
-#include "Def/DefTypes.h"
-#include "Def/DefCplusPlusConst.h"
-#include "Def/DefFunction.h"
-#include <algorithm>
-#include <limits>
+#include "Nuga/include/defs.h"
+#include "Nuga/include/maths.hxx"
 #include "Nuga/include/DynArray.h"
+#include <vector>
+#include <algorithm>
 
 namespace K_MESH
 {
@@ -51,7 +50,7 @@ public: /* Constructors, Destructor and operators*/
   ///
   explicit Edge(const K_FLD::IntArray& cnt, E_Int i){_nodes[0] = cnt(0,i); _nodes[1] = cnt(1,i);}
   ///
-  explicit Edge(void){_nodes[0] = _nodes[1] = E_IDX_NONE;}
+  explicit Edge(void){_nodes[0] = _nodes[1] = IDX_NONE;}
   ///
   virtual ~Edge(void){}
 
@@ -92,7 +91,7 @@ public: /* Set and Get methods */
 
   double L2ref(const K_FLD::FloatArray& crd) const
   {
-    return K_FUNC::sqrDistance(crd.col(_nodes[0]), crd.col(_nodes[1]), 3);
+    return NUGA::sqrDistance(crd.col(_nodes[0]), crd.col(_nodes[1]), 3);
   }
   double L2ref(const std::vector<E_Float>& nodal_tol2) const
   {
@@ -203,7 +202,7 @@ struct aEdge : public Edge
     m_L2ref = L2ref();
   }
 
-  double L2ref() const { return (m_L2ref > 0.) ? m_L2ref : K_FUNC::sqrDistance(v1, v2, 3);}
+  double L2ref() const { return (m_L2ref > 0.) ? m_L2ref : NUGA::sqrDistance(v1, v2, 3);}
  
   E_Float v1[3], v2[3];
 };
@@ -222,16 +221,16 @@ K_MESH::Edge::intersect
   E_Bool  parallel, coincident;
   
   overlap = false;
-  u00 = u01 = u10 = u11 = K_CONST::E_MAX_FLOAT;
+  u00 = u01 = u10 = u11 = NUGA::FLOAT_MAX;
 
   lineLineMinDistance<DIM>(P0, P1, Q0, Q1, u0, u1, tol, parallel, coincident, min_d);
 
   E_Float E0[DIM], E1[DIM];
-  K_FUNC::diff<DIM>(P1, P0, E0);
-  E_Float L0 = K_FUNC::sqrNorm<DIM>(E0);
+  NUGA::diff<DIM>(P1, P0, E0);
+  E_Float L0 = NUGA::sqrNorm<DIM>(E0);
   L0 = 1. / L0;
-  K_FUNC::diff<DIM>(Q1, Q0, E1);
-  E_Float L1 = K_FUNC::sqrNorm<DIM>(E1);
+  NUGA::diff<DIM>(Q1, Q0, E1);
+  E_Float L1 = NUGA::sqrNorm<DIM>(E1);
   L1 = 1. / L1;
   E_Float l0 = ::sqrt(L0);
   E_Float l1 = ::sqrt(L1);
@@ -256,21 +255,21 @@ K_MESH::Edge::intersect
   {
    E_Float V00[DIM], V01[DIM];   
    
-   K_FUNC::diff<DIM>(Q0, P0, V00);
-   K_FUNC::diff<DIM>(Q1, P0, V01);
+   NUGA::diff<DIM>(Q0, P0, V00);
+   NUGA::diff<DIM>(Q1, P0, V01);
 
-   E_Float s00 = K_FUNC::dot<DIM>(E0, V00) * L0; // fixme FIXME FIXME a revoir
-   E_Float s01 = K_FUNC::dot<DIM>(E0, V01) * L0;
+   E_Float s00 = NUGA::dot<DIM>(E0, V00) * L0; // fixme FIXME FIXME a revoir
+   E_Float s01 = NUGA::dot<DIM>(E0, V01) * L0;
    if (s01 < s00)
      std::swap(s00, s01);
 
    if ( (s01 < -tol0) || (s00 > (1. + tol0)) ) //  x----------x    x------x    
      return false;
    
-   K_FUNC::diff<DIM>(P1, Q0, V01);
+   NUGA::diff<DIM>(P1, Q0, V01);
 
-   E_Float s10 = - K_FUNC::dot<DIM>(E1, V00) * L1;
-   E_Float s11 = K_FUNC::dot<DIM>(E1, V01) * L1;
+   E_Float s10 = - NUGA::dot<DIM>(E1, V00) * L1;
+   E_Float s11 = NUGA::dot<DIM>(E1, V01) * L1;
    if (s11 < s10)
      std::swap(s10, s11);
 
@@ -286,9 +285,9 @@ K_MESH::Edge::intersect
    if (u00 == u01)                      //  x----------x------x
    {
      //u00 = (::fabs(s00) < ::fabs(s01)) ? s00 : s01;
-     u01 = K_CONST::E_MAX_FLOAT;
+     u01 = NUGA::FLOAT_MAX;
      //u10 = (::fabs(s10) < ::fabs(s11)) ? s10 : s11;
-     u11 = K_CONST::E_MAX_FLOAT;
+     u11 = NUGA::FLOAT_MAX;
    }
    else                                 //  x-------|--x      or     x-----x     or  x-------x
      overlap = true;                    //          x--|---x      x--|-----|--x      x-------x
@@ -313,7 +312,7 @@ K_MESH::Edge::intersect
   const E_Float* Q1 = pos.col(M1);
   
   overlap = false;
-  u00 = u01 = u10 = u11 = K_CONST::E_MAX_FLOAT;
+  u00 = u01 = u10 = u11 = NUGA::FLOAT_MAX;
 
   lineLineMinDistance<DIM>(P0, P1, Q0, Q1, u0, u1, tol, parallel, coincident, min_d);
 
@@ -332,11 +331,11 @@ K_MESH::Edge::intersect
     min_d=0.;
 
   E_Float E0[DIM], E1[DIM];
-  K_FUNC::diff<DIM>(P1, P0, E0);
-  E_Float L0 = K_FUNC::sqrNorm<DIM>(E0);
+  NUGA::diff<DIM>(P1, P0, E0);
+  E_Float L0 = NUGA::sqrNorm<DIM>(E0);
   L0 = 1. / L0;
-  K_FUNC::diff<DIM>(Q1, Q0, E1);
-  E_Float L1 = K_FUNC::sqrNorm<DIM>(E1);
+  NUGA::diff<DIM>(Q1, Q0, E1);
+  E_Float L1 = NUGA::sqrNorm<DIM>(E1);
   L1 = 1. / L1;
   E_Float l0 = ::sqrt(L0);
   E_Float l1 = ::sqrt(L1);
@@ -381,21 +380,21 @@ K_MESH::Edge::intersect
   {
     E_Float V00[DIM], V01[DIM];   
    
-    K_FUNC::diff<DIM>(Q0, P0, V00);
-    K_FUNC::diff<DIM>(Q1, P0, V01);
+    NUGA::diff<DIM>(Q0, P0, V00);
+    NUGA::diff<DIM>(Q1, P0, V01);
 
-    E_Float s00 = K_FUNC::dot<DIM>(E0, V00) * L0; // fixme FIXME FIXME a revoir
-    E_Float s01 = K_FUNC::dot<DIM>(E0, V01) * L0;
+    E_Float s00 = NUGA::dot<DIM>(E0, V00) * L0; // fixme FIXME FIXME a revoir
+    E_Float s01 = NUGA::dot<DIM>(E0, V01) * L0;
     if (s01 < s00)
       std::swap(s00, s01);
 
     if ( (s01 < -tol0) || (s00 > (1. + tol0)) ) //  x----------x    x------x    
       return false;
    
-    K_FUNC::diff<DIM>(P1, Q0, V01);
+    NUGA::diff<DIM>(P1, Q0, V01);
 
-    E_Float s10 = - K_FUNC::dot<DIM>(E1, V00) * L1;
-    E_Float s11 = K_FUNC::dot<DIM>(E1, V01) * L1;
+    E_Float s10 = - NUGA::dot<DIM>(E1, V00) * L1;
+    E_Float s11 = NUGA::dot<DIM>(E1, V01) * L1;
     if (s11 < s10)
       std::swap(s10, s11);
 
@@ -411,9 +410,9 @@ K_MESH::Edge::intersect
     if (u00 == u01)                      //  x----------x------x
     {
       //u00 = (::fabs(s00) < ::fabs(s01)) ? s00 : s01;
-      u01 = K_CONST::E_MAX_FLOAT;
+      u01 = NUGA::FLOAT_MAX;
       //u10 = (::fabs(s10) < ::fabs(s11)) ? s10 : s11;
-      u11 = K_CONST::E_MAX_FLOAT;
+      u11 = NUGA::FLOAT_MAX;
     }
     else                                 //  x-------|--x      or     x-----x     or  x-------x
       overlap = true;                    //          x--|---x      x--|-----|--x      x-------x
@@ -435,14 +434,14 @@ K_MESH::Edge::lineLineMinDistance
   E_Float E0[DIM], E1[DIM], V01[DIM];
   E_Float L02, L12, tol2(abstol*abstol);
   
-  u0 = u1 = min_distance = K_CONST::E_MAX_FLOAT;
+  u0 = u1 = min_distance = NUGA::FLOAT_MAX;
   coincident = parallel = false;
 
-  K_FUNC::diff<DIM>(P1, P0, E0);
-  K_FUNC::diff<DIM>(Q1, Q0, E1);
-  K_FUNC::diff<DIM>(P0, Q0, V01);
-  L02 = K_FUNC::sqrNorm<DIM>(E0);
-  L12 = K_FUNC::sqrNorm<DIM>(E1);
+  NUGA::diff<DIM>(P1, P0, E0);
+  NUGA::diff<DIM>(Q1, Q0, E1);
+  NUGA::diff<DIM>(P0, Q0, V01);
+  L02 = NUGA::sqrNorm<DIM>(E0);
+  L12 = NUGA::sqrNorm<DIM>(E1);
   
   if ((L02 < tol2) || (L12 < tol2)) // skip degen
     return;
@@ -475,21 +474,21 @@ K_MESH::Edge::lineLineMinDistance
   //At thsi stage, computing the determinant should be safe, ie. no parallelism
   E_Float a, b, c, det2, u,v;
   
-  det2 = K_FUNC::sqrCross<DIM>(E0, E1);
-  c = K_FUNC::dot<DIM>(E1, V01); 
+  det2 = NUGA::sqrCross<DIM>(E0, E1);
+  c = NUGA::dot<DIM>(E1, V01); 
   parallel = (::fabs(det2) < tol2 * L02 * L12);
   
   if (!parallel)
   {
-    a = K_FUNC::dot<DIM>(E0, E1);
-    b = K_FUNC::dot<DIM>(E0, V01);
+    a = NUGA::dot<DIM>(E0, E1);
+    b = NUGA::dot<DIM>(E0, V01);
     det2 = 1. / det2;
     u = det2 * (a*c - L12*b);
     v = det2 * (L02*c - a*b);
     E_Float IJ[DIM];
     for (E_Int i = 0; i < DIM ; ++i)
       IJ[i] = V01[i] + u*E0[i] - v*E1[i];
-    min_distance = K_FUNC::sqrNorm<DIM>(IJ);
+    min_distance = NUGA::sqrNorm<DIM>(IJ);
     
     if (min_distance > MIN(dmax12, dmax22)) // numerical error catch (nearly //). fixme : SHOULD BE dmin12 and dmin22. cf. XXX
     {
@@ -513,7 +512,7 @@ K_MESH::Edge::lineLineMinDistance
     E_Float IJ[DIM];
     for (E_Int i = 0; i < DIM ; ++i)
       IJ[i] = V01[i] + u*E0[i] - v*E1[i];
-    min_distance = ::sqrt(K_FUNC::sqrNorm<DIM>(IJ));
+    min_distance = ::sqrt(NUGA::sqrNorm<DIM>(IJ));
   }
   else
     min_distance = 0.;
@@ -529,13 +528,13 @@ K_MESH::Edge::linePointMinDistance2
 {
   E_Float       V0[DIM], V1[DIM], L;
  
-  K_FUNC::diff<DIM> (P1, P0, V0);
-  K_FUNC::diff<DIM> (P, P0, V1);
+  NUGA::diff<DIM> (P1, P0, V0);
+  NUGA::diff<DIM> (P, P0, V1);
   lambda = 0.;
 
-  L = K_FUNC::normalize<DIM>(V0);
-  lambda = K_FUNC::dot<DIM> (V0, V1) / L;
-  return K_FUNC::sqrCross<DIM>(V0, V1);
+  L = NUGA::normalize<DIM>(V0);
+  lambda = NUGA::dot<DIM> (V0, V1) / L;
+  return NUGA::sqrCross<DIM>(V0, V1);
 }
 
 //=============================================================================
@@ -564,19 +563,19 @@ K_MESH::Edge::edgePointMinDistance2
 {
   E_Float       V0[DIM], V1[DIM], L, d2;
  
-  K_FUNC::diff<DIM> (P1, P0, V0);
-  K_FUNC::diff<DIM> (P, P0, V1);
+  NUGA::diff<DIM> (P1, P0, V0);
+  NUGA::diff<DIM> (P, P0, V1);
   lambda = 0.;
 
-  L = K_FUNC::normalize<DIM>(V0);
-  lambda = K_FUNC::dot<DIM> (V0, V1) / L;
+  L = NUGA::normalize<DIM>(V0);
+  lambda = NUGA::dot<DIM> (V0, V1) / L;
 
   if (lambda < 0.)      // Closest point is P0
-    d2 = K_FUNC::sqrDistance(P0, P, DIM);
+    d2 = NUGA::sqrDistance(P0, P, DIM);
   else if (lambda > 1.) // Closest point is P1
-    d2 = K_FUNC::sqrDistance(P1, P, DIM);
+    d2 = NUGA::sqrDistance(P1, P, DIM);
   else                  // The projection of P is inside the edge so d is the distance point-edge.
-    d2 = K_FUNC::sqrCross<DIM>(V0, V1);
+    d2 = NUGA::sqrCross<DIM>(V0, V1);
 
   return d2;
 }

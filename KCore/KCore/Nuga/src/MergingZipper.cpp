@@ -62,7 +62,7 @@ MergingZipper::setMates
   if (nbE2 == 0)
     return;
 
-  std::vector<E_Int> realID(nmates.size(), E_IDX_NONE);
+  std::vector<E_Int> realID(nmates.size(), IDX_NONE);
   for (size_t i = 0; i < realID.size(); ++i)
     realID[i] = i;
 
@@ -111,18 +111,18 @@ MergingZipper::merge
     //unmate
     for (size_t i = 0; i < new_IDs.size(); ++i)
     {
-      if ((new_IDs[i] != (E_Int)i) && (new_IDs[i] != E_IDX_NONE)) // i.e a merge occured
+      if ((new_IDs[i] != (E_Int)i) && (new_IDs[i] != IDX_NONE)) // i.e a merge occured
       {
         Mi = nmates[i];
-        nmates[i] = E_IDX_NONE; // unmate
-        if ((Mi != E_IDX_NONE) && (Mi > -1))
-          nmates[Mi] = E_IDX_NONE; // unmate
+        nmates[i] = IDX_NONE; // unmate
+        if ((Mi != IDX_NONE) && (Mi > -1))
+          nmates[Mi] = IDX_NONE; // unmate
         if (new_IDs[i] > -1)
         {
           Mi = nmates[new_IDs[i]];
-          nmates[new_IDs[i]] = E_IDX_NONE; // unmate
-          if ((Mi != E_IDX_NONE) && (Mi > -1))
-            nmates[Mi] = E_IDX_NONE; // unmate
+          nmates[new_IDs[i]] = IDX_NONE; // unmate
+          if ((Mi != IDX_NONE) && (Mi > -1))
+            nmates[Mi] = IDX_NONE; // unmate
         }
       }
     }
@@ -135,30 +135,30 @@ MergingZipper::__computeTolerance
 (const K_FLD::FloatArray& pos, K_FLD::IntArray& connect,
  const std::vector<E_Int>& nodes)
 {
-  E_Float           tol = K_CONST::E_MAX_FLOAT, max_d;
+  E_Float           tol = NUGA::FLOAT_MAX, max_d;
   K_FLD::FloatArray L2;
   K_FLD::IntArray   connectA;
 
   NUGA::MeshTool::computeMinMaxEdgeSqrLength<3>(pos, connect, tol, max_d);
-  return std::max((::sqrt(tol) - E_EPSILON), E_EPSILON);
+  return std::max((::sqrt(tol) - EPSILON), EPSILON);
 }
 
 E_Int
 MergingZipper::__removeDuplicates(K_FLD::IntArray& connect)
 {
-  std::vector<K_CONT_DEF::non_oriented_int_pair_set_type> node_to_edges;
+  std::vector<NUGA::non_oriented_int_pair_set_type> node_to_edges;
   std::vector<E_Int>              nodes;
   K_FLD::IntArray                 clean_connect;
   K_FLD::IntArray::const_iterator pS;
   E_Int                           Si, n, NB_COLS(connect.cols()), n0/*min id*/, N0, n1, n2, ret;
 
-  n0 = E_IDX_NONE;
+  n0 = IDX_NONE;
   connect.uniqueVals(nodes);
   node_to_edges.resize(*std::max_element(nodes.begin(), nodes.end())+1);
 
   for (Si = 0; Si < NB_COLS; ++Si)
   {
-    N0 = E_IDX_NONE;
+    N0 = IDX_NONE;
     pS = connect.col(Si);
 
     for (n = 0; (n < 3); ++n)

@@ -64,7 +64,7 @@ void shell_smoother<mesh_t>::smooth(const mesh_t& hmesh, cell_adap_incr_t& adap_
         for (int j = 0; j<hmesh._ng.PHs.stride(i); j++) {
           E_Int PGi = *(pPHi + j) - 1;
           E_Int PHn = NEIGHBOR(i, hmesh._F2E, PGi);
-          if (!(PHn == E_IDX_NONE) && !(hmesh._PHtree.is_enabled(PHn)) && !(hmesh._PHtree.get_level(PHn) == 0) && !(hmesh._PHtree.is_enabled(hmesh._PHtree.parent(PHn)))) {
+          if (!(PHn == IDX_NONE) && !(hmesh._PHtree.is_enabled(PHn)) && !(hmesh._PHtree.get_level(PHn) == 0) && !(hmesh._PHtree.is_enabled(hmesh._PHtree.parent(PHn)))) {
             E_Int nb_ch = hmesh._PGtree.nb_children(PGi);
             for (int k = 0; k< nb_ch; k++) {
               const E_Int* enf = hmesh._PGtree.children(PGi);

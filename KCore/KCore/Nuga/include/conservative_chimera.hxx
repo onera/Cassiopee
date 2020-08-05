@@ -17,8 +17,8 @@
 namespace NUGA
 {
   static const E_Int INTERP = 2;
-  static const E_Float RESET_VAL = K_CONST::E_MAX_FLOAT;
-  static const E_Float COEF_THRESHOLD2 = E_EPSILON*E_EPSILON;
+  static const E_Float RESET_VAL = NUGA::FLOAT_MAX;
+  static const E_Float COEF_THRESHOLD2 = EPSILON*EPSILON;
   
   template <typename crd_t, typename cnt_t>
   class P1_Conservative_Chimera
@@ -217,7 +217,7 @@ namespace NUGA
         // (reflecting that we take into account for gradient)
         const E_Float* GDk = centroidD.col(Dk);  // centroid of the direct donnor
         const E_Float* gk = centroidS.col(bit); // centroid of the donnor cell's current piece
-        K_FUNC::diff<3>(gk, GDk, GDkgk);
+        NUGA::diff<3>(gk, GDk, GDkgk);
 
         E_Float coef0 = 0.5 * vk;
         if (volumeD[Dk] != 0.) coef0 /= volumeD[Dk];
@@ -235,7 +235,7 @@ namespace NUGA
         {
           E_Int Dkj = *(pDkj + j);
 
-          if (Dkj == E_IDX_NONE) //Extrapolation policy => modify Dk coeffs
+          if (Dkj == IDX_NONE) //Extrapolation policy => modify Dk coeffs
             Dkj = Dk;
 
           E_Int Qj = *(pQ + j) - 1;  // Quad beteween Dk and Dkj
@@ -253,7 +253,7 @@ namespace NUGA
 //          cs[2] += ori * surfaceD(2,Qj);
 #endif
 
-          E_Float coeff = ori *coef0 * K_FUNC::dot<3>(GDkgk, surfaceD.col(Qj));
+          E_Float coeff = ori *coef0 * NUGA::dot<3>(GDkgk, surfaceD.col(Qj));
 
           if (molecule.find(Dkj) == molecule.end())
             molecule[Dkj] = coeff;
@@ -263,7 +263,7 @@ namespace NUGA
 
 #ifdef DEBUG_CONS_CHIMERA
 //        std::cout << cs[0] << " " << cs[1] << " " << cs[2] << std::endl;
-//        assert ( (fabs(cs[0]) < E_EPSILON) && (fabs(cs[1]) < E_EPSILON) && (fabs(cs[2]) < E_EPSILON) );
+//        assert ( (fabs(cs[0]) < EPSILON) && (fabs(cs[1]) < EPSILON) && (fabs(cs[2]) < EPSILON) );
 #endif
 
       }
@@ -295,7 +295,7 @@ namespace NUGA
         if (val*val < COEF_THRESHOLD2) continue; // UNSIGNIFICANT COEFF
 
 #ifdef DEBUG_CONS_CHIMERA
-        if (val > 10./*1. + E_EPSILON*/)
+        if (val > 10./*1. + EPSILON*/)
         {
           std::cout << "ERROR : coef out of range" << std::endl;
           std::cout << "receiver : " << ancR << std::endl;
@@ -323,7 +323,7 @@ namespace NUGA
 //      E_Float delta = ::fabs(coefs_sum-1.);
 //      E_Int last = xr.size()-1;
 //      E_Int nb_donnor =xr[last] - xr[last-1];
-//      if (delta >= E_EPSILON)
+//      if (delta >= EPSILON)
 //      {
 //        std::cout << "partial corvering for cell : " << roids.back() << "." << std::endl;
 //        for (E_Int i=xr[last-1]; i < xr[last]; ++i) std::cout << dcoeffs[i] << " ";
@@ -331,7 +331,7 @@ namespace NUGA
 //        for (E_Int i=0; i < nb_donnor; ++i) std::cout << dindices[i] << " ";
 //        std::cout << std::endl;
 //      }
-      //assert (::fabs(coefs_sum-1.) < E_EPSILON) ;
+      //assert (::fabs(coefs_sum-1.) < EPSILON) ;
 #endif  
       
     }
@@ -379,13 +379,13 @@ namespace NUGA
       
       if (err) continue;
       
-      if (ancD  == E_IDX_NONE)
+      if (ancD  == IDX_NONE)
       {
         std::cout << "faulty donnor ancestor for piece number " << i << " in the supermesh : " <<  ancR << "/" <<  ancD << std::endl;
         err = 1;
         continue;
       }
-      if (ancR  == E_IDX_NONE)
+      if (ancR  == IDX_NONE)
       {
         std::cout << "faulty receiver ancestor for piece number " << i << " in the supermesh : " <<  ancR << "/" <<  ancD << std::endl;
         err = 1;
@@ -408,7 +408,7 @@ namespace NUGA
       for (E_Int j=-1; j<nb_neighs; ++j)
       {
         DONcur = (j==-1) ? ancD : *(pDkj + j); //direct or neighnbor ?
-        if (DONcur == E_IDX_NONE) continue;
+        if (DONcur == IDX_NONE) continue;
 
         // Loop over current donnor faces
         const E_Int* pF = ngD.PHs.get_facets_ptr(DONcur);

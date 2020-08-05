@@ -17,15 +17,15 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "Nuga/include/Edge.h"
-#include "Def/DefTypes.h"
-#include "Def/DefFunction.h"
+#include "Nuga/include/defs.h"
+#include "Nuga/include/maths.hxx"
 #include <math.h>
 
 //=============================================================================
 void
 K_MESH::Edge::getBoundary(const Edge& E1, const Edge& E2, boundary_type& b)
 {
-  b = E_IDX_NONE;
+  b = IDX_NONE;
   const E_Int& n10 = E1._nodes[0];
   const E_Int& n11 = E1._nodes[1];
   const E_Int& n20 = E2._nodes[0];

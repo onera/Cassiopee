@@ -172,7 +172,7 @@ public:
   void bbox(const CoordAcc& acrd, box_t&bb) const
   {
     for (E_Int i = 0; i < 3; ++i)
-    {bb.minB[i] = K_CONST::E_MAX_FLOAT; bb.maxB[i] = -K_CONST::E_MAX_FLOAT;}
+    {bb.minB[i] = NUGA::FLOAT_MAX; bb.maxB[i] = -NUGA::FLOAT_MAX;}
     
     box_t b;
     for (E_Int i=0; i < _nb_faces; ++i)
@@ -324,7 +324,7 @@ public:
   static E_Int is_concave
     (const K_FLD::FloatArray& crd, const ngon_unit& PGS, 
      const E_Int* first_pg, E_Int nb_pgs, bool open, const E_Int* orient, 
-     bool & concave, E_Float threshold = E_EPSILON, const E_Float** normals = 0)
+     bool & concave, E_Float threshold = EPSILON, const E_Float** normals = 0)
   {
     concave = false;
 
@@ -332,9 +332,9 @@ public:
       return 0;
     
     // angular criterion
-    E_Float angle_threshold = K_CONST::E_PI*(1. - threshold);
-    angle_threshold = std::min(K_CONST::E_PI, angle_threshold);
-    angle_threshold = std::max(angle_threshold, E_EPSILON);
+    E_Float angle_threshold = NUGA::PI*(1. - threshold);
+    angle_threshold = std::min(NUGA::PI, angle_threshold);
+    angle_threshold = std::max(angle_threshold, EPSILON);
     
     typedef K_FLD::ArrayAccessor<K_FLD::FloatArray> acrd_t;
     acrd_t acrd(crd);
@@ -371,7 +371,7 @@ public:
         E_Int j = *(pKn + n);//0-based and is between 0 and nb_pgs (referring to lpgs : but the same position in ng)
 
         //assert (PGj >= 0 && PGj < nb_pgs);
-        if (j == E_IDX_NONE)
+        if (j == IDX_NONE)
         {
           if (open) continue;
           return 1; // inconsistency : the PH is supposed closed
@@ -452,7 +452,7 @@ public:
         E_Int j = *(pKn + n);//0-based and is between 0 and nb_pgs (referring to lpgs : but the same position in ng)
 
         //assert (PGj >= 0 && PGj < nb_pgs);
-        if (j == E_IDX_NONE)
+        if (j == IDX_NONE)
         {
           if (open) continue;
           return 1; // inconsistency : the PH is supposed closed
@@ -510,7 +510,7 @@ public:
     (const K_FLD::FloatArray& crd, const ngon_unit& PGS, 
      const E_Int* pgsi, E_Int nb_pgsi, const E_Int* pgsj, E_Int nb_pgsj,
      const E_Int* orienti, const E_Int* orientj, 
-     bool & concave, E_Float & commonSurf, E_Float concave_threshold = E_EPSILON, const E_Float** normals = 0)
+     bool & concave, E_Float & commonSurf, E_Float concave_threshold = EPSILON, const E_Float** normals = 0)
   {
     concave = false;
     commonSurf = 0.;
@@ -519,9 +519,9 @@ public:
       return 0;
    
     // angular criterion
-    E_Float angle_threshold = K_CONST::E_PI*(1. - concave_threshold);
-    angle_threshold = std::min(K_CONST::E_PI, angle_threshold);
-    angle_threshold = std::max(angle_threshold, E_EPSILON);
+    E_Float angle_threshold = NUGA::PI*(1. - concave_threshold);
+    angle_threshold = std::min(NUGA::PI, angle_threshold);
+    angle_threshold = std::max(angle_threshold, EPSILON);
 
     // aggregate
     std::vector<E_Int> maski(nb_pgsi, 1), maskj(nb_pgsj, 1);
@@ -608,7 +608,7 @@ public:
         const E_Float* E1 = crd.col(e1 - 1);
 
         E_Int j = *(pKn + n);//0-based
-        if (j == E_IDX_NONE)
+        if (j == IDX_NONE)
           return 1;
 
         const E_Int* nodesj = lpgs.get_facets_ptr(j);
@@ -644,7 +644,7 @@ public:
   static E_Int is_concave
   (const K_FLD::FloatArray& crd, const ngon_unit& PGS, const E_Int* first_pg, E_Int nb_pgs, bool open, const E_Int* orient, bool & concave, 
    std::map<K_MESH::NO_Edge, E_Float>& relex_edges, std::set<K_MESH::NO_Edge>& convex_edges,
-   E_Float concave_threshold = E_EPSILON, E_Float convex_threshold = E_EPSILON,
+   E_Float concave_threshold = EPSILON, E_Float convex_threshold = EPSILON,
    const E_Float** normals=0)
   {
     // WARNING : node are 1-based uupon exit (in reflex_edge and convex_edges))
@@ -655,12 +655,12 @@ public:
       return 0;
     
     // angular criterions
-    E_Float angle_concave = K_CONST::E_PI*(1. - concave_threshold);
-    angle_concave = std::min(K_CONST::E_PI, angle_concave);
-    angle_concave = std::max(angle_concave, E_EPSILON);
-    E_Float angle_convex = K_CONST::E_PI*(1. + convex_threshold);
-    angle_convex = std::max(K_CONST::E_PI, angle_convex);
-    angle_convex = std::min(angle_convex, 2.*K_CONST::E_PI - E_EPSILON);
+    E_Float angle_concave = NUGA::PI*(1. - concave_threshold);
+    angle_concave = std::min(NUGA::PI, angle_concave);
+    angle_concave = std::max(angle_concave, EPSILON);
+    E_Float angle_convex = NUGA::PI*(1. + convex_threshold);
+    angle_convex = std::max(NUGA::PI, angle_convex);
+    angle_convex = std::min(angle_convex, 2.*NUGA::PI - EPSILON);
     
     typedef K_FLD::ArrayAccessor<K_FLD::FloatArray> acrd_t;
     acrd_t acrd(crd);
@@ -694,7 +694,7 @@ public:
         const E_Float* E1 = crd.col(e1-1);
 
         E_Int j = *(pKn + n);
-        if (j == E_IDX_NONE)
+        if (j == IDX_NONE)
         {
           if (open) continue;
           return -1; // inconsitency : the PH is supposed closed
@@ -744,7 +744,7 @@ public:
   static E_Int is_concave
   (const K_FLD::FloatArray& crd, const ngon_unit& PGS, const E_Int* first_pg, E_Int nb_pgs, bool open, const E_Int* orient, bool & concave, 
    E_Int& nb_reflex_edges,
-   E_Float concave_threshold = E_EPSILON, E_Float convex_threshold = E_EPSILON,
+   E_Float concave_threshold = EPSILON, E_Float convex_threshold = EPSILON,
    const E_Float** normals=0)
   {
     // WARNING : node are 1-based uupon exit (in reflex_edge and convex_edges))
@@ -757,12 +757,12 @@ public:
       return 0;
     
     // angular criterions
-    E_Float angle_concave = K_CONST::E_PI*(1. - concave_threshold);
-    angle_concave = std::min(K_CONST::E_PI, angle_concave);
-    angle_concave = std::max(angle_concave, E_EPSILON);
-    E_Float angle_convex = K_CONST::E_PI*(1. + convex_threshold);
-    angle_convex = std::max(K_CONST::E_PI, angle_convex);
-    angle_convex = std::min(angle_convex, 2.*K_CONST::E_PI - E_EPSILON);
+    E_Float angle_concave = NUGA::PI*(1. - concave_threshold);
+    angle_concave = std::min(NUGA::PI, angle_concave);
+    angle_concave = std::max(angle_concave, EPSILON);
+    E_Float angle_convex = NUGA::PI*(1. + convex_threshold);
+    angle_convex = std::max(NUGA::PI, angle_convex);
+    angle_convex = std::min(angle_convex, 2.*NUGA::PI - EPSILON);
     
     typedef K_FLD::ArrayAccessor<K_FLD::FloatArray> acrd_t;
     acrd_t acrd(crd);
@@ -796,7 +796,7 @@ public:
         const E_Float* E1 = crd.col(e1-1);
 
         E_Int j = *(pKn + n);
-        if (j == E_IDX_NONE)
+        if (j == IDX_NONE)
         {
           if (open) continue;
           return -1; // inconsitency : the PH is supposed closed
@@ -841,7 +841,7 @@ public:
     return 0;
   }
   
-  #define SIGN(a) ((a < -E_EPSILON) ? -1 : ((a > E_EPSILON) ? 1 : 0))  
+  #define SIGN(a) ((a < -EPSILON) ? -1 : ((a > EPSILON) ? 1 : 0))  
   
   /// is the polyhedron star_shaped regarding the input point ?
   static bool is_star_shaping
@@ -868,9 +868,9 @@ public:
       if (er) continue; // degen element
 
       E_Int p0 = *(pNi) - 1; // first PG point
-      K_FUNC::diff<3>(point, crd.col(p0), P0Pt);
+      NUGA::diff<3>(point, crd.col(p0), P0Pt);
       
-      E_Float d = K_FUNC::dot<3>(P0Pt, Normi);
+      E_Float d = NUGA::dot<3>(P0Pt, Normi);
       
       if (i==0)
         sgn = SIGN(d);
@@ -923,12 +923,12 @@ public:
       K_MESH::Triangle::normal(crd, pK, Normi);
       E_Float l2 = ::sqrt(Normi[0]*Normi[0]+Normi[1]*Normi[1]+Normi[2]*Normi[2]);
     
-      if (::fabs(l2 - 1.) >= E_EPSILON) continue;  // DEGEN : not a good quality triangulation
+      if (::fabs(l2 - 1.) >= EPSILON) continue;  // DEGEN : not a good quality triangulation
 
       E_Int p0 = *pK; // first T3 point
-      K_FUNC::diff<3>(point, crd.col(p0), P0Pt);
+      NUGA::diff<3>(point, crd.col(p0), P0Pt);
       
-      E_Float d = K_FUNC::dot<3>(P0Pt, Normi);
+      E_Float d = NUGA::dot<3>(P0Pt, Normi);
       
       if (i==0)
         sgn = SIGN(d);
@@ -962,7 +962,7 @@ public:
     
     while (nb_pgs--) // number of attempts
     {
-      E_Int i = E_IDX_NONE;//faulty face
+      E_Int i = IDX_NONE;//faulty face
       if (is_star_shaping(point, crd, PGS, first_pg, nb_pgs, orient, i, normals))
         return 0;
       
@@ -971,16 +971,16 @@ public:
       
       // move the point
       E_Int p0 = *(pNi) - 1; // first PG point
-      K_FUNC::diff<3>(point, crd.col(p0), P0Pt);
+      NUGA::diff<3>(point, crd.col(p0), P0Pt);
       
       bool reverse = orient[i] == -1;
       E_Int er = Polygon::get_oriented_normal(crd, PGS, PGi, reverse, Normi, normals);
       if (er) continue; // degen element
       
-      E_Float d = K_FUNC::dot<3>(P0Pt, Normi);
-      assert(d >= -E_EPSILON); //is indeed faulty
+      E_Float d = NUGA::dot<3>(P0Pt, Normi);
+      assert(d >= -EPSILON); //is indeed faulty
       
-      K_FUNC::sum<3>(1., point, -d-10*E_EPSILON/*-d*(1.01)*/, Normi, point); //fixme !!
+      NUGA::sum<3>(1., point, -d-10*EPSILON/*-d*(1.01)*/, Normi, point); //fixme !!
       
     };
     return 1;
@@ -1055,7 +1055,7 @@ public:
       E_Int stride = lneighbors.stride(i);
 
       for (E_Int j = 0; j < stride; ++j)
-        if (*(p + j) == E_IDX_NONE) 
+        if (*(p + j) == IDX_NONE) 
         {
 #ifdef DEBUG1_POLYHEDRON
           const E_Int* nodes = PGS.get_facets_ptr(*(first_pg + i) - 1);
@@ -1143,7 +1143,7 @@ public:
   template <typename Triangulator_t>
   static E_Int is_pathological(const Triangulator_t& dt,  const K_FLD::FloatArray& crd, const ngon_unit& PGS, const E_Int* first_pg, E_Int nb_pgs, const E_Int* orient,
                                std::map<K_MESH::NO_Edge, E_Float>& reflex_edges, std::set<K_MESH::NO_Edge>& convex_edges,
-                               E_Float concave_threshold = E_EPSILON, E_Float convex_threshold = E_EPSILON)
+                               E_Float concave_threshold = EPSILON, E_Float convex_threshold = EPSILON)
   {
     //CURRENT RULE :
       // If OPEN => BUG !
@@ -1189,7 +1189,7 @@ public:
   {
     G[0]=G[1]=G[2]=0.;
 
-    V=K_CONST::E_MAX_FLOAT;
+    V=NUGA::FLOAT_MAX;
     E_Float p4[3], v;
     typedef K_FLD::ArrayAccessor<K_FLD::FloatArray> acrd_t;
     acrd_t acrd(crd);
@@ -1317,7 +1317,7 @@ public:
         if (it->second > 1) continue; //manifold or not
         
         //baffle !
-        buffer_baffle_ids[i]=E_IDX_NONE; //set to NONE (for removing) any baffle
+        buffer_baffle_ids[i]=IDX_NONE; //set to NONE (for removing) any baffle
         has_bfl=true;
         break;
       }
@@ -1328,7 +1328,7 @@ public:
 
   double L2ref(const K_FLD::FloatArray& crd) const
   {
-    double val = K_CONST::E_MAX_FLOAT;
+    double val = NUGA::FLOAT_MAX;
     for (E_Int i = 0; i < _nb_faces; ++i)
     {
       E_Int PGi = *(_faces + i) - 1;
@@ -1346,7 +1346,7 @@ public:
 
   double L2ref(const std::vector<E_Float>& nodal_tol2) const
   {
-    double val = K_CONST::E_MAX_FLOAT;
+    double val = NUGA::FLOAT_MAX;
     for (E_Int i = 0; i < _nb_faces; ++i)
     {
       E_Int PGi = *(_faces + i) - 1;
@@ -1367,7 +1367,7 @@ public:
   {
     G[0]=G[1]=G[2]=0.;
 
-    V=K_CONST::E_MAX_FLOAT;
+    V=NUGA::FLOAT_MAX;
     typedef K_FLD::ArrayAccessor<K_FLD::FloatArray> acrd_t;
     acrd_t acrd(crd);
 
@@ -1831,7 +1831,7 @@ static bool pt_is_inside(E_Int PHi, const ngon_unit& PGS, const E_Int* first_pg,
   {
     E_Int PGi = first_pg[i]-1;
     const E_Int* pN = PGS.get_facets_ptr(PGi);
-    E_Float det = K_FUNC::zzdet4(crd.col(pN[0]-1), crd.col(pN[1]-1), crd.col(pN[2]-1), pt); // approx : consider the first 3 nodes of the PG for defining the plane
+    E_Float det = NUGA::zzdet4(crd.col(pN[0]-1), crd.col(pN[1]-1), crd.col(pN[2]-1), pt); // approx : consider the first 3 nodes of the PG for defining the plane
         
     E_Int s = zSIGN(det,ZERO_M);
         
@@ -1845,7 +1845,7 @@ static bool pt_is_inside(E_Int PHi, const ngon_unit& PGS, const E_Int* first_pg,
         v[j] = crd.col(pN[2]-1)[j] - crd.col(pN[0]-1)[j];
       }
         
-      E_Float norm = ::sqrt(K_FUNC::sqrCross<3>(u,v));
+      E_Float norm = ::sqrt(NUGA::sqrCross<3>(u,v));
       E_Float h = det / norm;
         
       s = zSIGN(h,tolerance);
@@ -1870,7 +1870,7 @@ static bool is_prismN(const ngon_unit& PGS, const E_Int* first_pg, E_Int nb_pgs,
 
   std::vector<E_Int> nb_nods(nb_pgs);
   //
-  generators[0] = generators[1] = E_IDX_NONE;
+  generators[0] = generators[1] = IDX_NONE;
 
   E_Int nb_quads = 0;
   E_Int nb_gens = 0;
@@ -1901,23 +1901,23 @@ static bool is_prismN(const ngon_unit& PGS, const E_Int* first_pg, E_Int nb_pgs,
 
   if (is_hexa) // compute each pair of opposite ids
   {
-    for (E_Int i = 0; i < nb_pgs; ++i) HX6opposites[i] = E_IDX_NONE;
+    for (E_Int i = 0; i < nb_pgs; ++i) HX6opposites[i] = IDX_NONE;
     //
     const E_Int* neigh = lneighbors.get_facets_ptr(0);
 
     for (E_Int n = 0; n < 4; ++n)
     {
       E_Int j = *(neigh + n);
-      if (j == E_IDX_NONE) return false; //open cells !
+      if (j == IDX_NONE) return false; //open cells !
       E_Int jopp = *(neigh + (n + 2) % 4);
-      if (jopp == E_IDX_NONE) return false; //open cells !
+      if (jopp == IDX_NONE) return false; //open cells !
 
       HX6opposites[j] = jopp;
       HX6opposites[jopp] = j;
     }
     //O is opposite to ?
     for (E_Int i = 1; i < nb_pgs; ++i)
-      if (HX6opposites[i] == E_IDX_NONE){
+      if (HX6opposites[i] == IDX_NONE){
         HX6opposites[0] = i;
         HX6opposites[i] = 0;
       break;
@@ -1932,7 +1932,7 @@ static bool is_prismN(const ngon_unit& PGS, const E_Int* first_pg, E_Int nb_pgs,
     {
       if (nb_nods[p] != 4)
       {
-        E_Int k = (generators[0] == E_IDX_NONE) ? 0 : 1;
+        E_Int k = (generators[0] == IDX_NONE) ? 0 : 1;
         generators[k] = p;
       }
     }
@@ -1943,7 +1943,7 @@ static bool is_prismN(const ngon_unit& PGS, const E_Int* first_pg, E_Int nb_pgs,
     for (E_Int n = 0; n < nb_nods[first_gen]; ++n)
     {
       E_Int j = *(neigh + n);
-      if (j == E_IDX_NONE) return false; //open cells !
+      if (j == IDX_NONE) return false; //open cells !
       if (nb_nods[j] != 4) return false;
     }
 
@@ -1976,7 +1976,7 @@ static bool is_aniso_HX8(const K_FLD::FloatArray& crd, const ngon_unit& PGS, con
   if (is_primsatic)
   {
     //std::cout << "is primsatic !!" << std::endl;
-    if (generators[0] != E_IDX_NONE)
+    if (generators[0] != IDX_NONE)
     {
       for (E_Int i=0; i < 6; ++i)
       {
@@ -1985,10 +1985,10 @@ static bool is_aniso_HX8(const K_FLD::FloatArray& crd, const ngon_unit& PGS, con
         const E_Int * nodes = PGS.get_facets_ptr(first_pg[i] - 1);
         E_Int nnodes = PGS.stride(first_pg[i] - 1);
 
-        E_Float Lmin(K_CONST::E_MAX_FLOAT), Lmax=-1.;
+        E_Float Lmin(NUGA::FLOAT_MAX), Lmax=-1.;
         for (E_Int n=0; n < 4; ++n)
         {
-          E_Float L = K_FUNC::sqrDistance(crd.col(nodes[n]-1), crd.col(nodes[(n+1)%nnodes]-1), 3);
+          E_Float L = NUGA::sqrDistance(crd.col(nodes[n]-1), crd.col(nodes[(n+1)%nnodes]-1), 3);
           Lmin = std::min(L, Lmin);
           Lmax = std::max(L, Lmax);
         }
@@ -2010,8 +2010,8 @@ static bool is_aniso_HX8(const K_FLD::FloatArray& crd, const ngon_unit& PGS, con
         const E_Int * nodes = PGS.get_facets_ptr(first_pg[i] - 1);
         //E_Int nnodes = PGS.stride(first_pg[i] - 1);
 
-        E_Float L0 = K_FUNC::sqrDistance(crd.col(nodes[0]-1), crd.col(nodes[1]-1), 3);
-        E_Float L1 = K_FUNC::sqrDistance(crd.col(nodes[1]-1), crd.col(nodes[2]-1), 3);
+        E_Float L0 = NUGA::sqrDistance(crd.col(nodes[0]-1), crd.col(nodes[1]-1), 3);
+        E_Float L1 = NUGA::sqrDistance(crd.col(nodes[1]-1), crd.col(nodes[2]-1), 3);
 
         E_Float Lmin = std::min(L0,L1);
         E_Float Lmax = std::max(L0,L1);

@@ -20,6 +20,7 @@
 #ifndef _DELAUNAY_MESHDATA_H_
 #define _DELAUNAY_MESHDATA_H_
 
+#include "Nuga/include/defs.h"
 #include "Nuga/include/DefContainers.h"
 
 namespace DELAUNAY
@@ -27,8 +28,8 @@ namespace DELAUNAY
   struct MeshData
   {
     typedef E_Int                        size_type;
-    typedef K_CONT_DEF::int_vector_type  int_vector_type;
-    typedef K_CONT_DEF::bool_vector_type bool_vector_type;
+    typedef NUGA::int_vector_type  int_vector_type;
+    typedef NUGA::bool_vector_type bool_vector_type;
     
     MeshData():pos(0), connectB(0), unsync_nodes(false), mono_connex(false){hnids.clear();};
 
@@ -63,7 +64,7 @@ namespace DELAUNAY
       }
       hardNodes=hN;
     
-      K_CONT_DEF::non_oriented_edge_set_type nHE;// = data.hardEdges;
+      NUGA::non_oriented_edge_set_type nHE;// = data.hardEdges;
       for (auto& Ei : hardEdges)
       { 
         E_Int Ni = Ei.node(0);
@@ -83,7 +84,7 @@ namespace DELAUNAY
     int_vector_type            hnids;
     bool                       mono_connex;
   
-    K_CONT_DEF::non_oriented_edge_set_type hardEdges;
+    NUGA::non_oriented_edge_set_type hardEdges;
     K_FLD::IntArray            connectM;
     K_FLD::IntArray            neighbors;
     int_vector_type            ancestors;

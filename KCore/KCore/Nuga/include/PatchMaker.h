@@ -19,6 +19,7 @@
 
 #pragma once
 #include "Nuga/include/DynArray.h"
+#include "Nuga/include/defs.h"
 #include "Nuga/include/DefContainers.h"
 #include "Nuga/include/KdTree.h"
 #include <vector>
@@ -28,7 +29,7 @@ class PatchMaker
 public:
   ///
   static void run (const K_FLD::FloatArray& pos, const K_FLD::IntArray& connectS, 
-                   const K_CONT_DEF::int_vector_type & pairs, E_Float angle_tolerance,
+                   const NUGA::int_vector_type & pairs, E_Float angle_tolerance,
                    std::vector<K_FLD::IntArray> & connectBout);
 
 private:

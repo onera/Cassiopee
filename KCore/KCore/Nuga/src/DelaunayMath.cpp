@@ -17,6 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "Nuga/include/DelaunayMath.h"
+#include "Nuga/include/maths.hxx"
 
 namespace K_LINEAR
 {
@@ -72,7 +73,7 @@ void DelaunayMath::eigen_vectors
   eigen_values(a00, a11, a10, lambda0, lambda1);
 
   // Diag. matrix case
-  if ((::fabs(a10) < E_EPSILON) && (::fabs(lambda0-a11)< E_EPSILON))
+  if ((::fabs(a10) < EPSILON) && (::fabs(lambda0-a11)< EPSILON))
   {
     if (a00 <= a11)
     {
@@ -89,7 +90,7 @@ void DelaunayMath::eigen_vectors
   { 
     *v0 = lambda0 - a11; 
     *(v0+1) = a10;
-    K_FUNC::normalize<2>(v0);
+    NUGA::normalize<2>(v0);
   }
 
   *v1     = -*(v0+1);  // (vo, v1) is orthonormal
@@ -131,7 +132,7 @@ void DelaunayMath::resoLin
 (E_Float a11, E_Float a12, E_Float a21, E_Float a22,
  E_Float d1, E_Float d2, E_Float& x, E_Float& y)
 {
-  x = y = K_CONST::E_MAX_FLOAT;
+  x = y = NUGA::FLOAT_MAX;
   E_Float detA = a11*a22 - a12*a21;
 
   if (detA <= 0.) return;

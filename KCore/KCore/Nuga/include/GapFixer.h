@@ -20,12 +20,13 @@
 #ifndef __GENERATOR_GAP_FIXER_H__
 #define __GENERATOR_GAP_FIXER_H__
 
+#include "Nuga/include/defs.h"
 #include "Nuga/include/DefContainers.h"
 
 class GapFixer
 {
 public:
-  typedef K_CONT_DEF::int_vector_type int_vector_type;
+  typedef NUGA::int_vector_type int_vector_type;
 public:
   ///
   GapFixer();
@@ -46,7 +47,7 @@ public:
 private:
   /// Converts the parametrization to the quads global one.
   static void __convertToGlobalQInterp(const K_FLD::FloatArray& posB0, E_Int nj,
-                                       const K_CONT_DEF::int_vector_type& cell_indices,
+                                       const NUGA::int_vector_type& cell_indices,
                                        K_FLD::FloatArray& posUV);
 
 };

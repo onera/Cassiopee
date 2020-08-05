@@ -32,42 +32,42 @@ MeshTool::getContainingElements
 (const E_Float* point, const K_FLD::FloatArray& pos, const K_FLD::IntArray& connect, const K_FLD::IntArray& neighbors,
  const int_vector_type& ancestors, const bool_vector_type& mask, const tree_type& tree, OutputIterator out, size_type & N0) const
 {
-  size_type         K(E_IDX_NONE), b, count(0), Ni, Nj, Kneigh(E_IDX_NONE), A0;
+  size_type         K(IDX_NONE), b, count(0), Ni, Nj, Kneigh(IDX_NONE), A0;
   int_vector_type   anc;
   E_Float           q;
 
   // Fast search
   N0 = tree.getClose(point);
   
-  //assert (N0 != E_IDX_NONE);
-  if (N0 == E_IDX_NONE)
+  //assert (N0 != IDX_NONE);
+  if (N0 == IDX_NONE)
     return -1;
 
   A0 = ancestors[N0];
   //assert(mask[A0] == true);
   if (!mask[A0])
     return -1;
-  if (A0 != E_IDX_NONE)
+  if (A0 != IDX_NONE)
      K = __getContainingElement(point, pos, connect, neighbors, mask, A0);
 
   // Deeper search : loop over all the closest node ancestors.
-  if (K == E_IDX_NONE)
+  if (K == IDX_NONE)
   {
     N0 = tree.getClosest(point);
     getAncestors(N0, connect, ancestors, neighbors, std::back_inserter(anc));
     size_type sz = (size_type)anc.size();
-    for (size_type i = 0; (i < sz) && (K == E_IDX_NONE); ++i)
+    for (size_type i = 0; (i < sz) && (K == IDX_NONE); ++i)
     {
-      if (anc[i] != E_IDX_NONE)
+      if (anc[i] != IDX_NONE)
         K = __getContainingElement(point, pos, connect, neighbors, mask, anc[i]);
     }
   }
 
   // Brute force search : loop over all elements.
-  if (K == E_IDX_NONE)
+  if (K == IDX_NONE)
     K = __getContainingElement(point, pos, connect, neighbors, mask);
 
-  if (K == E_IDX_NONE) // Error.
+  if (K == IDX_NONE) // Error.
     return -1;
 
   // Check if point is matching any K node or is falling on an edge.
@@ -78,7 +78,7 @@ MeshTool::getContainingElements
     Nj = *(pK + (b+2) % K_MESH::Triangle::NB_NODES);
     assert(Ni != Nj);
     q = K_MESH::Triangle::qualityG<2>(point, pos.col(Ni), pos.col(Nj));
-    if (q</*_tolerance*/E_EPSILON)
+    if (q</*_tolerance*/EPSILON)
     {
       ++count;
       Kneigh = neighbors (b, K);
@@ -88,8 +88,8 @@ MeshTool::getContainingElements
   if (count == 2) // Matching a node.
   {
     // Find out what node it is.
-    N0 = (K_FUNC::sqrDistance(point, pos.col(*(pK+1)), 2) < K_FUNC::sqrDistance(point, pos.col(*(pK+2)), 2)) ? *(pK+1) : *(pK+2);
-    N0 = (K_FUNC::sqrDistance(point, pos.col(N0), 2) < K_FUNC::sqrDistance(point, pos.col(*pK), 2)) ? N0 : *pK;
+    N0 = (NUGA::sqrDistance(point, pos.col(*(pK+1)), 2) < NUGA::sqrDistance(point, pos.col(*(pK+2)), 2)) ? *(pK+1) : *(pK+2);
+    N0 = (NUGA::sqrDistance(point, pos.col(N0), 2) < NUGA::sqrDistance(point, pos.col(*pK), 2)) ? N0 : *pK;
     
     getAncestors(N0, connect, ancestors, neighbors, out);
     return 2;
@@ -97,7 +97,7 @@ MeshTool::getContainingElements
 
   *(out++) = K;
 
-  if ((count == 1) && (Kneigh != E_IDX_NONE)) // On an inner edge.
+  if ((count == 1) && (Kneigh != IDX_NONE)) // On an inner edge.
      *(out++) = Kneigh;
 
   return count;
@@ -109,8 +109,8 @@ MeshTool::getAncestors
 (size_type N, const K_FLD::IntArray& connectM, const int_vector_type& ancestors, const K_FLD::IntArray& neighbors, OutputIterator out) const
 {
   // Fast returns.
-  if (N == E_IDX_NONE)              return;
-  if (ancestors[N] == E_IDX_NONE)   return;
+  if (N == IDX_NONE)              return;
+  if (ancestors[N] == IDX_NONE)   return;
 
   size_type Kseed(ancestors[N]), K(Kseed), n;
 
@@ -120,7 +120,7 @@ MeshTool::getAncestors
     n = K_MESH::Triangle::getLocalNodeId(connectM.col(K), N);
     K = neighbors((n+1)%element_type::NB_NODES, K);
   }
-  while ((K != Kseed) && (K != E_IDX_NONE));
+  while ((K != Kseed) && (K != IDX_NONE));
   //fixme : algo pas complet : voir si necessite de recuperer tous les elements. autre choix, empecher de chosir un point de la box...
 }
 
@@ -146,7 +146,7 @@ MeshTool::getConnexSet
 
     K1 = neighbors(b, K);
 
-    if ((K1 == E_IDX_NONE) || bpred(Ei) || bpred(rEi))
+    if ((K1 == IDX_NONE) || bpred(Ei) || bpred(rEi))
     {
       bset.insert(int_pair_type(K,b));
       continue;
@@ -175,14 +175,14 @@ MeshTool::getConnexSet1
   if (!set.insert(S).second) //already in
     return;
 
-  size_type Sn, Ni(E_IDX_NONE), Nj(E_IDX_NONE);
+  size_type Sn, Ni(IDX_NONE), Nj(IDX_NONE);
   K_MESH::NO_Edge Ei;
 
   for (size_type b = 0; b < K_MESH::Triangle::NB_NODES; ++b)
   {
     Sn = neighbors(b, S);
 
-    if ((Sn == E_IDX_NONE) || (_inval.find(Sn) != _inval.end()))
+    if ((Sn == IDX_NONE) || (_inval.find(Sn) != _inval.end()))
       continue;
 
     Ni = connect((b+1) % K_MESH::Triangle::NB_NODES, S);
@@ -219,7 +219,7 @@ MeshTool::getConnexSet2
     {
         Sn = neighbors(b, S);
         
-        if ((Sn == E_IDX_NONE) || (_inval.find(Sn) != _inval.end()))
+        if ((Sn == IDX_NONE) || (_inval.find(Sn) != _inval.end()))
           continue;
 
         Ni = connect((b+1) % K_MESH::Triangle::NB_NODES, S);
@@ -248,8 +248,8 @@ MeshTool::computeMinMaxEdgeSqrLength
   E_Int                           COLS(connect.cols()), NB_NODES(connect.rows()), seg, c, n;//, Ni, Nj;
   K_FLD::IntArray::const_iterator pS;
 
-  min_d = K_CONST::E_MAX_FLOAT;
-  max_d = - K_CONST::E_MAX_FLOAT;
+  min_d = NUGA::FLOAT_MAX;
+  max_d = - NUGA::FLOAT_MAX;
 
   // Fast returns
   if (NB_NODES < 2 || COLS == 0)
@@ -263,7 +263,7 @@ MeshTool::computeMinMaxEdgeSqrLength
 
     for (n = 0; n < seg; ++n)
     {
-      d = K_FUNC::sqrDistance(pos.col(*(pS+n)), pos.col(*(pS+(n+1)%NB_NODES)), DIM);
+      d = NUGA::sqrDistance(pos.col(*(pS+n)), pos.col(*(pS+(n+1)%NB_NODES)), DIM);
       /*if (d < min_d)
       {
         Ni = *(pS+n);
@@ -291,13 +291,13 @@ MeshTool::computeEdgesSqrLengths
 
   for (c = 0; c < COLS; ++c)
   {
-    minL  = K_CONST::E_MAX_FLOAT;
-    maxL  = -K_CONST::E_MAX_FLOAT;
+    minL  = NUGA::FLOAT_MAX;
+    maxL  = -NUGA::FLOAT_MAX;
     
     pS = connect.col(c);
     for (n = 0; n < seg; ++n)
     {
-      l = K_FUNC::sqrDistance(pos.col(*(pS+n)), pos.col(*(pS+(n+1)%NB_NODES)), DIM);
+      l = NUGA::sqrDistance(pos.col(*(pS+n)), pos.col(*(pS+(n+1)%NB_NODES)), DIM);
       minL = (l < minL) ? l : minL;
       maxL = (l > maxL) ? l : maxL;
     }
@@ -409,16 +409,16 @@ void MeshTool::refine_T3s(const K_FLD::FloatArray& coord, K_FLD::IntArray& conne
     E_Int N2 = i.first.node(1);
     
     sorted_nodes.clear();
-    sorted_nodes.push_back(std::make_pair(-K_CONST::E_MAX_FLOAT,N1));
-    sorted_nodes.push_back(std::make_pair(K_CONST::E_MAX_FLOAT, N2));
+    sorted_nodes.push_back(std::make_pair(-NUGA::FLOAT_MAX,N1));
+    sorted_nodes.push_back(std::make_pair(NUGA::FLOAT_MAX, N2));
 
-    E_Float dN1N22 = K_FUNC::sqrDistance(coord.col(N1), coord.col(N2), 3);
+    E_Float dN1N22 = NUGA::sqrDistance(coord.col(N1), coord.col(N2), 3);
 
     for (auto& N : i.second)
     {
       if (N == N1 || N == N2) continue;
       
-      E_Float dN1n2 = K_FUNC::sqrDistance(coord.col(N1), coord.col(N), 3);
+      E_Float dN1n2 = NUGA::sqrDistance(coord.col(N1), coord.col(N), 3);
       sorted_nodes.push_back(std::make_pair(dN1n2/dN1N22, N));
     }
 
@@ -601,7 +601,7 @@ inline void MeshTool::get_farthest_point_to_edge
 (const K_FLD::FloatArray& crd, E_Int Ni, E_Int Nj, const IntCONT& list, E_Int& Nf, E_Float& d2)
 {
   d2 = 0.;
-  Nf = E_IDX_NONE;
+  Nf = IDX_NONE;
   
   //std::cout << "Edge : " << Ni << "/" << Nj << std::endl;
   //std::cout << "dim : " << crd.rows() << std::endl;
@@ -615,10 +615,10 @@ inline void MeshTool::get_farthest_point_to_edge
     //std::cout << "distance found : " << d22 << std::endl;
     //std::cout << "lambda ? : " << lambda << std::endl;
     
-    if (lambda < -E_EPSILON || lambda > 1 + E_EPSILON)
+    if (lambda < -EPSILON || lambda > 1 + EPSILON)
     {// do not consider this path
-      d2 = K_CONST::E_MAX_FLOAT;
-      Nf = E_IDX_NONE;
+      d2 = NUGA::FLOAT_MAX;
+      Nf = IDX_NONE;
       break;
     }
     
@@ -644,14 +644,14 @@ NUGA::MeshTool::reorder_nodes_on_edge
   size_t nb_nodes = nodes.size();
 
   const E_Float *P0 = pos.col(nodes[0] - idx_start);
-  L = K_FUNC::sqrDistance(pos.col(nodes[1] - idx_start), P0, DIM);
+  L = NUGA::sqrDistance(pos.col(nodes[1] - idx_start), P0, DIM);
 
   sorter.clear();
   sorter.push_back(std::make_pair(0., nodes[0]));
 
   for (size_t k = 1; k < nb_nodes; ++k)
   {
-    L = K_FUNC::sqrDistance(pos.col(nodes[k] - idx_start), P0, DIM);
+    L = NUGA::sqrDistance(pos.col(nodes[k] - idx_start), P0, DIM);
     sorter.push_back(std::make_pair(L, nodes[k]));
   }
 

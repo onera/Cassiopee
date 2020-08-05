@@ -87,7 +87,7 @@ struct connect_trait<LINEIC, true>
 
     // build nids, sized as crdi
     K_CONNECT::IdTool::reverse_indirection(oids, nids);
-    nids.resize(crdi.cols(), E_IDX_NONE);
+    nids.resize(crdi.cols(), IDX_NONE);
 
     return lcrd;
   }
@@ -260,7 +260,7 @@ struct connect_trait<VOLUMIC, false>
     c.PGs.extract_of_type(INITIAL_SKIN, bc, oids);
 
     ancestors.clear();
-    ancestors.resize(c.PGs.size(), E_IDX_NONE);
+    ancestors.resize(c.PGs.size(), IDX_NONE);
     for (E_Int i = 0; i < c.PHs.size(); ++i)
     {
       E_Int s = c.PHs.stride(i);
@@ -270,7 +270,7 @@ struct connect_trait<VOLUMIC, false>
         ancestors[f[j] - 1] = i;
     }
 
-    std::vector<E_Int> new_anc(bc.size(), E_IDX_NONE);
+    std::vector<E_Int> new_anc(bc.size(), IDX_NONE);
     for (size_t i = 0; i < new_anc.size(); ++i) new_anc[i] = ancestors[oids[i]];
     ancestors = new_anc;
   }
@@ -497,7 +497,7 @@ struct mesh_t
     using bound_t = mesh_t<eGEODIM(GEODIM-1), BSTRIDE>;
     using bcnt_t = typename bound_t::cnt_t;
     
-    const neighbor_t* neighborz = get_neighbors(); // should be computed and set with colors before to have more than E_IDX_NONE
+    const neighbor_t* neighborz = get_neighbors(); // should be computed and set with colors before to have more than IDX_NONE
     
     std::map<E_Int, bcnt_t> col_to_boundcnt;
     trait::get_boundaries_by_color(cnt, *neighborz, col_to_boundcnt);
@@ -547,7 +547,7 @@ struct mesh_t
   {
     //std::cout << "set_type : 1" << std::endl;
     int nbcells = ncells();
-    e_type.resize(nbcells, E_IDX_NONE);
+    e_type.resize(nbcells, IDX_NONE);
     //std::cout << "set_type : nb cell : " << nbcells << std::endl;
     for (size_t i=0; i < ids.size(); ++i)
     {
@@ -560,7 +560,7 @@ struct mesh_t
   
   void set_flag(int i, int val) const // fixme : constness here is bad design
   {
-    if (i >= flag.size()) flag.resize(ncells(), E_IDX_NONE);
+    if (i >= flag.size()) flag.resize(ncells(), IDX_NONE);
     flag[i] = val;
   }
 
@@ -584,7 +584,7 @@ struct mesh_t
     if (not nodal_tolerance.empty())
       return *std::min_element(ALL(nodal_tolerance));
 
-    double minLref = K_CONST::E_MAX_FLOAT;
+    double minLref = NUGA::FLOAT_MAX;
     for (E_Int i=0; i < ncells(); ++i)
     {
       elt_t e =element(i);
@@ -606,7 +606,7 @@ struct mesh_t
 
   double L2ref(const std::vector<E_Int>& cands, E_Int idx_start) const
   {
-    double val = K_CONST::E_MAX_FLOAT;
+    double val = NUGA::FLOAT_MAX;
     for (size_t i = 0; i < cands.size(); ++i)
     {
       val = std::min(val, L2ref(cands[i] - idx_start));
@@ -645,7 +645,7 @@ struct mesh_t
     using tree_t = K_SEARCH::BbTree3D;
 
     tree_t* t = new tree_t(crd, cnt);
-    localiz = new loc_t(t, E_EPSILON/*fixme*/);   //not a leak : mask_loc owes t
+    localiz = new loc_t(t, EPSILON/*fixme*/);   //not a leak : mask_loc owes t
   }
 
   const loc_t* get_localizer(void) const
@@ -694,9 +694,9 @@ struct mesh_t
     double d2;
     for (E_Int i=0; i < crd.cols(); ++i)
     {
-      double r2 = (1. - E_EPSILON) * nodal_tolerance[i]; //reduc it
+      double r2 = (1. - EPSILON) * nodal_tolerance[i]; //reduc it
       int N = tree.getClosest(i, r2, d2);
-      if (N != E_IDX_NONE)nodal_tolerance[i] = d2;
+      if (N != IDX_NONE)nodal_tolerance[i] = d2;
     }
   }
 

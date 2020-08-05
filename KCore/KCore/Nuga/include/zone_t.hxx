@@ -67,7 +67,7 @@ class zone_t
     using join_t = std::map<E_Int, std::pair<zone_t*, Vector_t<E_Int> > >;
     using bc_t    = std::map<E_Int, Vector_t<E_Int> >; 
     
-    zone_t():_id(E_IDX_NONE),_F2E_NONE(0){}
+    zone_t():_id(IDX_NONE),_F2E_NONE(0){}
     zone_t(E_Int id, crd_t& crd, ngo_t& ng, E_Int* f2e, E_Int F2E_NONE):_id(id), _crd(crd), _ng(ng), _F2E_NONE(F2E_NONE){
       
       E_Int nb_pgs = ng.PGs.size();
@@ -438,8 +438,8 @@ E_Int zone_t<crd_t, ngo_t>::reduce_to_positive_types()
     {
       E_Int PHi = _F2Es[i];
       if (PHi == _F2E_NONE || PHi < 0) continue; // BC or JOIN
-      _F2Es[i] = (phnids[PHi - 1] ==  E_IDX_NONE) ? _F2E_NONE :  phnids[PHi - 1] + 1;
-      if (_F2Es[i] == E_IDX_NONE) _F2Es[i] = _F2E_NONE;
+      _F2Es[i] = (phnids[PHi - 1] ==  IDX_NONE) ? _F2E_NONE :  phnids[PHi - 1] + 1;
+      if (_F2Es[i] == IDX_NONE) _F2Es[i] = _F2E_NONE;
     }
   }
     
@@ -542,7 +542,7 @@ void zone_t<crd_t, ngo_t>::set_pg_colors()
     assert(eL > 0);
 #endif
     E_Int typeL = _ng.PHs._type[eL-1];
-    E_Int typeR = (eR != _F2E_NONE) ? _ng.PHs._type[eR-1] : E_IDX_NONE;
+    E_Int typeR = (eR != _F2E_NONE) ? _ng.PHs._type[eR-1] : IDX_NONE;
     
     if (typeL == typeR) // PG_INNER_COL, PG_LAY1_IN_COL, PG_LAY2_IN_COL
     {
@@ -555,7 +555,7 @@ void zone_t<crd_t, ngo_t>::set_pg_colors()
       else 
         _ng.PGs._type[i] = OTHER_LAYS_COL;
     }
-    else if (typeR == E_IDX_NONE) // BC
+    else if (typeR == IDX_NONE) // BC
     {
       if (typeL == PH_INNER_COL)
         _ng.PGs._type[i] = PG_BC;
@@ -673,12 +673,12 @@ void zone_t<crd_t, ngo_t>::update_boundaries(const Vector_t<E_Int>& pgnids, E_In
       nids.clear();
       
       vtmp.reserve(nbc);
-      nids.resize(nbc, E_IDX_NONE);
+      nids.resize(nbc, IDX_NONE);
       E_Int count(0);
       for (size_t i = 0; i < nbc; ++i)
       {
         E_Int PGi = b->second[i] - idx_start;
-        if (pgnids[PGi] == E_IDX_NONE) continue;
+        if (pgnids[PGi] == IDX_NONE) continue;
         vtmp.push_back(pgnids[PGi] + idx_start);
         nids[i] = count++;
       }
@@ -712,12 +712,12 @@ void zone_t<crd_t, ngo_t>::update_boundaries(const Vector_t<E_Int>& pgnids, E_In
     nids.clear();
 
     vtmp.reserve(nbj);
-    nids.resize(nbj, E_IDX_NONE);
+    nids.resize(nbj, IDX_NONE);
     E_Int count(0);
     for (size_t i = 0; i < nbj; ++i)
     {
       E_Int PGi = j.second.second[i] - idx_start;
-      if (pgnids[PGi] == E_IDX_NONE) continue;
+      if (pgnids[PGi] == IDX_NONE) continue;
       vtmp.push_back(pgnids[PGi] + idx_start);
       nids[i] = count++;
     }
@@ -819,7 +819,7 @@ void zone_t<crd_t, ngo_t>::append( zone_t& that_z, bool keep_joins)
     // reindex and append pgs not in any join, update this F2E
     
     E_Int that_nb_pgs = ngtmp.PGs.size();
-    Vector_t<E_Int> pgnids(that_nb_pgs, E_IDX_NONE);
+    Vector_t<E_Int> pgnids(that_nb_pgs, IDX_NONE);
     
     for (size_t jj = 0; jj < jids.size(); ++jj)
     {
@@ -885,7 +885,7 @@ void zone_t<crd_t, ngo_t>::append( zone_t& that_z, bool keep_joins)
 
       for (E_Int i = 0; i < that_nb_pgs; ++i)
       {
-        if (pgnids[i] != E_IDX_NONE) continue;
+        if (pgnids[i] != IDX_NONE) continue;
         pgnids[i] = pnids[i] + shftPG0;
       }
 
@@ -1035,7 +1035,7 @@ void zone_t<crd_t, ngo_t>::insert_ghosts_on_bcs(E_Int type, E_Int nb_layers) //t
   size_t nb_phs = _ng.PHs.size();
   for (size_t i=0; i < nb_phs; ++i)
   {
-    if (_ng.PHs._type[i] > 1 && _ng.PHs._type[i] != E_IDX_NONE) ++_ng.PHs._type[i];
+    if (_ng.PHs._type[i] > 1 && _ng.PHs._type[i] != IDX_NONE) ++_ng.PHs._type[i];
   }
   // Now add one cell per BC pg
   size_t nb_pgs = _ng.PGs.size();
@@ -1110,7 +1110,7 @@ void zone_t<crd_t, ngo_t>::insert_ghosts_on_bcs(E_Int type, E_Int nb_layers) //t
   for (size_t i=0; i < nb_phs; ++i)
   {
     if (_ng.PHs._type[i] == 2) _ng.PHs._type[i] = PH_GHOST;
-    else if (_ng.PHs._type[i] > 1 && _ng.PHs._type[i] != E_IDX_NONE) --_ng.PHs._type[i];
+    else if (_ng.PHs._type[i] > 1 && _ng.PHs._type[i] != IDX_NONE) --_ng.PHs._type[i];
   }
 }
 

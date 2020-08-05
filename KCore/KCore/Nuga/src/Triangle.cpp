@@ -31,13 +31,13 @@ E_Float K_MESH::Triangle::surface(const E_Float* p1, const E_Float* p2,
   if (dim == 3)
     return surface<3>(p1, p2, p3);
 
-  return K_CONST::E_MAX_FLOAT;
+  return NUGA::FLOAT_MAX;
 }
 
 //=============================================================================
-K_CONT_DEF::size_type
+NUGA::size_type
 K_MESH::Triangle::getOppLocalNodeId
-(K_CONT_DEF::size_type K, K_CONT_DEF::size_type n,
+(NUGA::size_type K, NUGA::size_type n,
  const K_FLD::IntArray& connect, const K_FLD::IntArray& neighbors)
 {
   assert (n < NB_NODES);
@@ -45,7 +45,7 @@ K_MESH::Triangle::getOppLocalNodeId
 
   size_type Kadj = neighbors(n, K);
 
-  if (Kadj == E_IDX_NONE) return E_IDX_NONE;
+  if (Kadj == IDX_NONE) return IDX_NONE;
 
   K_FLD::IntArray::const_iterator pK = connect.col(K);
   size_type N = *(pK+(n+1)%NB_NODES);
@@ -114,13 +114,13 @@ E_Int K_MESH::Triangle::getOrientation(const Triangle&  T,
 
 K_MESH::Triangle::eDegenType K_MESH::Triangle::degen_type(const K_FLD::FloatArray& crd, E_Int N0, E_Int N1, E_Int N2, E_Float tol2, E_Float lambdac, E_Int& ns)
 {
-  ns = E_IDX_NONE;// ns for "special node" : the pick for a spike, the hat node for a hat
+  ns = IDX_NONE;// ns for "special node" : the pick for a spike, the hat node for a hat
   //
   E_Float normal[3];
   K_MESH::Triangle::normal(crd.col(N0), crd.col(N1), crd.col(N2), normal);
   E_Float l2 = ::sqrt(normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2]);
   //
-  if (::fabs(l2 - 1.) < E_EPSILON)
+  if (::fabs(l2 - 1.) < EPSILON)
     return OK;
 
   // we have a degen !
@@ -128,9 +128,9 @@ K_MESH::Triangle::eDegenType K_MESH::Triangle::degen_type(const K_FLD::FloatArra
   std::pair<E_Float, E_Int> palma[3];
   E_Int N[] = { N0, N1, N2 };
 
-  palma[0] = std::make_pair(K_FUNC::sqrDistance(crd.col(N0), crd.col(N1), 3), 2);
-  palma[1] = std::make_pair(K_FUNC::sqrDistance(crd.col(N0), crd.col(N2), 3), 1);
-  palma[2] = std::make_pair(K_FUNC::sqrDistance(crd.col(N1), crd.col(N2), 3), 0);
+  palma[0] = std::make_pair(NUGA::sqrDistance(crd.col(N0), crd.col(N1), 3), 2);
+  palma[1] = std::make_pair(NUGA::sqrDistance(crd.col(N0), crd.col(N2), 3), 1);
+  palma[2] = std::make_pair(NUGA::sqrDistance(crd.col(N1), crd.col(N2), 3), 0);
   
   std::sort(&palma[0], &palma[0] + 3);
 

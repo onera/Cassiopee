@@ -20,7 +20,7 @@
 #ifndef _DELAUNAY_MESHER_MODE_H_
 #define _DELAUNAY_MESHER_MODE_H_
 
-#include "Nuga/include/DefContainers.h"
+#include "Nuga/include/defs.h"
 
 namespace DELAUNAY
 {
@@ -29,7 +29,7 @@ namespace DELAUNAY
     enum eMeshMode {TRIANGULATION_MODE, REFINE_MODE};
     enum eInterpolType {LINEAR = 0, GEOMETRIC};
 
-    MesherMode():mesh_mode(REFINE_MODE), hmin(K_CONST::E_MAX_FLOAT), hmax(-K_CONST::E_MAX_FLOAT),
+    MesherMode():mesh_mode(REFINE_MODE), hmin(NUGA::FLOAT_MAX), hmax(-NUGA::FLOAT_MAX),
                  do_not_shuffle(false), remove_holes(true), silent_errors(false), ignore_coincident_nodes(false), ignore_unforceable_edges(false),
                  metric_interpol_type(LINEAR), growth_ratio(1.2), nb_smooth_iter(0), symmetrize(false){}
 

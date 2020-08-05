@@ -22,7 +22,7 @@
 
 #include "Nuga/include/DynArray.h"
 #include "Nuga/include/ArrayAccessor.h"
-#include "Nuga/include/DefContainers.h"
+#include "Nuga/include/defs.h"
 #include "Nuga/include/Triangle.h"
 #include "Nuga/include/macros.h"
 #include "Nuga/include/ngon_unit.h"
@@ -44,7 +44,7 @@ public:
   {
     const E_Float* Pi;
     for (E_Int i = 0; i < DIM; ++i)
-    {minB[i] = K_CONST::E_MAX_FLOAT; maxB[i] = -K_CONST::E_MAX_FLOAT;}
+    {minB[i] = NUGA::FLOAT_MAX; maxB[i] = -NUGA::FLOAT_MAX;}
 
     for (size_t i = 0; i < n; ++i)
     {
@@ -62,7 +62,7 @@ public:
   {
     const E_Float* Pi;
     for (E_Int i = 0; i < DIM; ++i)
-    {minB[i] = K_CONST::E_MAX_FLOAT; maxB[i] = -K_CONST::E_MAX_FLOAT;}
+    {minB[i] = NUGA::FLOAT_MAX; maxB[i] = -NUGA::FLOAT_MAX;}
 
     for (size_t i = 0; i < pos.cols(); ++i)
     {
@@ -239,7 +239,7 @@ public:
   {
     const E_Float* Pi;
     for (E_Int i = 0; i < DIM; ++i)
-    {minB[i] = K_CONST::E_MAX_FLOAT; maxB[i] = -K_CONST::E_MAX_FLOAT;}
+    {minB[i] = NUGA::FLOAT_MAX; maxB[i] = -NUGA::FLOAT_MAX;}
 
     for (size_t i = 0; i < indices.size(); ++i)
     {
@@ -259,7 +259,7 @@ public:
   {
     E_Float Pi[DIM];
     for (E_Int i = 0; i < DIM; ++i)
-    {minB[i] = K_CONST::E_MAX_FLOAT; maxB[i] = -K_CONST::E_MAX_FLOAT;}
+    {minB[i] = NUGA::FLOAT_MAX; maxB[i] = -NUGA::FLOAT_MAX;}
 
     for (size_t i = 0; i < indices.size(); ++i)
     {
@@ -279,7 +279,7 @@ public:
   {
     E_Float Pi[DIM];
     for (E_Int i = 0; i < DIM; ++i)
-    {minB[i] = K_CONST::E_MAX_FLOAT; maxB[i] = -K_CONST::E_MAX_FLOAT;}
+    {minB[i] = NUGA::FLOAT_MAX; maxB[i] = -NUGA::FLOAT_MAX;}
 
     for (E_Int i = 0; i < pos.size(); ++i)
     {
@@ -298,7 +298,7 @@ public:
   {
     const E_Float* Pi;
     for (E_Int i = 0; i < DIM; ++i)
-    {minB[i] = K_CONST::E_MAX_FLOAT; maxB[i] = -K_CONST::E_MAX_FLOAT;}
+    {minB[i] = NUGA::FLOAT_MAX; maxB[i] = -NUGA::FLOAT_MAX;}
 
     for (E_Int i = 0; i < pos.cols(); ++i)
     {
@@ -318,7 +318,7 @@ public:
   {
     const E_Float* Pi;
     for (E_Int i = 0; i < DIM; ++i)
-    {minB[i] = K_CONST::E_MAX_FLOAT; maxB[i] = -K_CONST::E_MAX_FLOAT;}
+    {minB[i] = NUGA::FLOAT_MAX; maxB[i] = -NUGA::FLOAT_MAX;}
 
     for (size_t i = 0; i < n; ++i)
     {
@@ -338,7 +338,7 @@ public:
   {
     E_Float Pi[DIM];
     for (E_Int i = 0; i < DIM; ++i)
-    {minB[i] = K_CONST::E_MAX_FLOAT; maxB[i] = -K_CONST::E_MAX_FLOAT;}
+    {minB[i] = NUGA::FLOAT_MAX; maxB[i] = -NUGA::FLOAT_MAX;}
 
     for (size_t i = 0; i < n; ++i)
     {
@@ -353,7 +353,7 @@ public:
 
 public://fixme //private:
   BoundingBox(){for (E_Int i = 0; i < DIM; ++i)
-    {minB[i] = K_CONST::E_MAX_FLOAT; maxB[i] = -K_CONST::E_MAX_FLOAT;}}
+    {minB[i] = NUGA::FLOAT_MAX; maxB[i] = -NUGA::FLOAT_MAX;}}
 
   
 public://fixme //private:
@@ -371,7 +371,7 @@ class BbTree {
   public: /** Typedefs */
 
     typedef           BbTree                                self_type;
-    typedef           K_CONT_DEF::size_type                 size_type;
+    typedef           NUGA::size_type                 size_type;
     typedef           K_FLD::IntArray                       tree_array_type;
     typedef           BBoxType                              box_type;
    
@@ -381,12 +381,12 @@ class BbTree {
   public: /** Constructors and Destructor */
 
     /// Builds a tree and inserts the boxes from begin to end.
-    BbTree(const std::vector<BBoxType*>& boxes, E_Float tolerance=E_EPSILON);
+    BbTree(const std::vector<BBoxType*>& boxes, E_Float tolerance=EPSILON);
     
     template <typename array_t>
-    BbTree(const K_FLD::FloatArray& crd, const array_t& ng, E_Float tolerance=E_EPSILON);
+    BbTree(const K_FLD::FloatArray& crd, const array_t& ng, E_Float tolerance=EPSILON);
     //fixme : hack overload rather than specialization to distinghuish ngon_unit (viso icc 15 compil issue)
-    inline BbTree(const K_FLD::FloatArray& crd, const ngon_unit& pgs, E_Float tolerance=E_EPSILON);
+    inline BbTree(const K_FLD::FloatArray& crd, const ngon_unit& pgs, E_Float tolerance=EPSILON);
     //fixme : hack overload rather than specialization to distinghuish ngon_unit (viso icc 15 compil issue)
     inline BbTree(const K_FLD::FloatArray& crd, const K_FLD::IntArray& cnt);
 
@@ -411,7 +411,7 @@ class BbTree {
 
     /// Returns all the boxes which intersects the input ray defined by P0 and P1.
     /** Warning: out is not cleared upon entry.*/
-    void getIntersectingBoxes(const E_Float* P0, const E_Float* P1, std::vector<size_type>& out, E_Float tolerance=E_EPSILON, bool strict=false) const;
+    void getIntersectingBoxes(const E_Float* P0, const E_Float* P1, std::vector<size_type>& out, E_Float tolerance=EPSILON, bool strict=false) const;
     
     /// Returns the global bounding box : the tree's bounding box
     const BBoxType* getGlobalBox(){return _boxes[_root_id];}

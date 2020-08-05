@@ -218,7 +218,7 @@ void hierarchical_mesh<K_MESH::Hexahedron, DIR, ngon_type>::__init()
   {
     // alexis : si i n'est pas une frontière => continue
     
-    E_Int PHi = (_F2E(0,i) != E_IDX_NONE) ? _F2E(0,i) : _F2E(1,i);
+    E_Int PHi = (_F2E(0,i) != IDX_NONE) ? _F2E(0,i) : _F2E(1,i);
     
     E_Int PHcur = PHi;
 //    E_Int Basecur = i;
@@ -405,7 +405,7 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::conformize(ngo_t& ngo, Vector_t<E_I
       E_Int PGi = *(pPGi + j) - 1;
       E_Int PHn = NEIGHBOR(i, _F2E, PGi);
 
-      if (PHn == E_IDX_NONE)
+      if (PHn == IDX_NONE)
       {
         E_Int nbc = _PGtree.nb_children(PGi);
         if (nbc == 0)
@@ -424,7 +424,7 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::conformize(ngo_t& ngo, Vector_t<E_I
       else // father or children ?
       {
         E_Int PHf = _PHtree.parent(i);
-        if ((PHf != E_IDX_NONE) && _PHtree.is_enabled(PHf))
+        if ((PHf != IDX_NONE) && _PHtree.is_enabled(PHf))
           molec.push_back(PGi + 1);
         else // append the children
         {
@@ -451,8 +451,8 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::conformize(ngo_t& ngo, Vector_t<E_I
 
   for (size_t i = 0; i < pgnids.size(); ++i)
   {
-    //old_pgoids cannot have E_IDX_NONE : new entities must be self referring
-    if (pgnids[i] != E_IDX_NONE)pgoids[pgnids[i]] = old_pgoids[i];
+    //old_pgoids cannot have IDX_NONE : new entities must be self referring
+    if (pgnids[i] != IDX_NONE)pgoids[pgnids[i]] = old_pgoids[i];
   }
 }
 
@@ -465,7 +465,7 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::__conformize_next_lvl(Vector_t<E_In
 
   //E_Int PHj = NEIGHBOR(i, _F2E, PGi);
 
-  if(PHj == E_IDX_NONE)
+  if(PHj == IDX_NONE)
     molec.push_back(PGi+1);
   else if (_PHtree.is_enabled(PHj))
     molec.push_back(PGi+1);
@@ -586,7 +586,7 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::get_enabled_neighbours
       
     E_Int PH = NEIGHBOR(PHi, _F2E, PGi);
 
-    if (PH == E_IDX_NONE) // returns only the enabled neighbours
+    if (PH == IDX_NONE) // returns only the enabled neighbours
       continue;
         
     if ( (_PHtree.is_enabled(PH)) || ((_PHtree.get_level(PH) > 0) && (_PHtree.is_enabled(_PHtree.parent(PH)))) )

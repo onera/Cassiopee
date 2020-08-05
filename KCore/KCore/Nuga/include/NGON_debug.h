@@ -373,7 +373,7 @@ void NGON_DBG_CLASS::draw_wired_PG(const char* fname, const K_FLD::FloatArray& c
   acrd_t acrd(coord);
   K_FLD::IntArray connectE;
   E_Int n0, n1;
-  E_Float P0[3], P1[3], Lmin(K_CONST::E_MAX_FLOAT), L2;
+  E_Float P0[3], P1[3], Lmin(NUGA::FLOAT_MAX), L2;
   
   E_Int nb_nodes, E[2];
   const E_Int* pNi = PGs.get_facets_ptr(ith);
@@ -384,7 +384,7 @@ void NGON_DBG_CLASS::draw_wired_PG(const char* fname, const K_FLD::FloatArray& c
     E[0]=*(pNi+j)-1;
     E[1]=*(pNi+(j+1)%nb_nodes)-1;
     connectE.pushBack(E, E+2);
-    L2 = K_FUNC::sqrDistance(coord.col(E[0]), coord.col(E[1]), 3);
+    L2 = NUGA::sqrDistance(coord.col(E[0]), coord.col(E[1]), 3);
     Lmin = (L2 < Lmin) ? L2 : Lmin;
   }
   
@@ -401,7 +401,7 @@ void NGON_DBG_CLASS::draw_wired_PG(const char* fname, const K_FLD::FloatArray& c
     normal = Norm;
   }
   
-  K_FUNC::sum<3>(1., P0, Lmin, normal, P1);
+  NUGA::sum<3>(1., P0, Lmin, normal, P1);
   crd.pushBack(P0, P0+3);
   E[0]=crd.cols()-1;
   crd.pushBack(P1, P1+3);
@@ -542,8 +542,8 @@ void NGON_DBG_CLASS::__get_historical_PHs
     
     PHs = (wPG < nb_pgs1) ? &PHs1 : &PHs2;
     
-    if (F2E(0, wPG) != E_IDX_NONE) PHs->insert(F2E(0, wPG));
-    if (F2E(1, wPG) != E_IDX_NONE) PHs->insert(F2E(1, wPG)); 
+    if (F2E(0, wPG) != IDX_NONE) PHs->insert(F2E(0, wPG));
+    if (F2E(1, wPG) != IDX_NONE) PHs->insert(F2E(1, wPG)); 
   }
 }
 

@@ -56,11 +56,11 @@ namespace NUGA
         E_Int PGi = faces[i] - 1;
         E_Int parentPGi = PGtree.parent(PGi);
 
-        if (parentPGi == E_IDX_NONE) continue; // inner face
+        if (parentPGi == IDX_NONE) continue; // inner face
 
         assert(PGi < F2E.cols());
 
-        if (F2E(0, PGi) == E_IDX_NONE && F2E(1, PGi) == E_IDX_NONE) // init with parent data for outer faces
+        if (F2E(0, PGi) == IDX_NONE && F2E(1, PGi) == IDX_NONE) // init with parent data for outer faces
         {
           std::cout << "toto" << std::endl;
           F2E(0, PGi) = F2E(0, parentPGi);

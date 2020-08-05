@@ -133,7 +133,7 @@ E_Int Triangulator::run
       MIO::write("before_swap.mesh", crd, data.connectM, "TRI");
     }
 #endif
-    E_Float quality_tol = 1.e-6;// E_EPSILON;
+    E_Float quality_tol = 1.e-6;// EPSILON;
     E_Int railing = data.connectM.cols();
     while (--railing)
     {

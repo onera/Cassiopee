@@ -114,7 +114,7 @@ void UBSSurface::__eval (E_Float u, const std::vector<pBaseFunc>& FUs,
     pBaseFunc Nku = FUs[k-j];
     E_Float xu = Nku(u);
 
-    if (::fabs(xu) < E_EPSILON)
+    if (::fabs(xu) < EPSILON)
       continue;
 
     for (E_Int l = i; l < i+4; ++l)
@@ -122,7 +122,7 @@ void UBSSurface::__eval (E_Float u, const std::vector<pBaseFunc>& FUs,
       pBaseFunc Nlv = FVs[l-i];
       E_Float    yv = Nlv(v);
 
-      if (::fabs(yv) < E_EPSILON)
+      if (::fabs(yv) < EPSILON)
         continue;
 
       E_Int     nkl = _ctrlPts(l,k);
@@ -144,7 +144,7 @@ void UBSSurface::__setControlPoints(const K_FLD::FloatArray& pos, E_Int nj)
 
   E_Int m = ni;//ctrlPoints.rows();
   E_Int n = nj;//ctrlPoints.cols();
-  E_Int none = E_IDX_NONE;
+  E_Int none = IDX_NONE;
 
   E_Int r = 2;
   E_Int s = 2*r;

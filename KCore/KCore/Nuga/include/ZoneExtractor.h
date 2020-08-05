@@ -30,7 +30,7 @@
 
 #define TEMPLATE_COORD_CONNECT template <typename Coordinate_t, typename Connectivity_t>
 
-#define PT_INSIDE_BOX(px,py,pz, minB, maxB) ((minB[0]-E_EPSILON < px) && (px < maxB[0]+E_EPSILON) && (minB[1]-E_EPSILON < py) && (py < maxB[1]+E_EPSILON) && (minB[2]-E_EPSILON < pz) && (pz < maxB[2]+E_EPSILON))
+#define PT_INSIDE_BOX(px,py,pz, minB, maxB) ((minB[0]-EPSILON < px) && (px < maxB[0]+EPSILON) && (minB[1]-EPSILON < py) && (py < maxB[1]+EPSILON) && (minB[2]-EPSILON < pz) && (pz < maxB[2]+EPSILON))
 
 namespace K_CONNECT
 {

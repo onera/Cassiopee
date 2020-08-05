@@ -21,8 +21,7 @@
 #ifndef BND_GEOM_HRAYCLIPPER2D_H
 #define BND_GEOM_HRAYCLIPPER2D_H
 
-#include "Connect/connect.h"
-#include "Def/DefTypes.h"
+#include "Nuga/include/defs.h"
 #include "Nuga/include/DynArray.h"
 #include "Nuga/include//Polygon.h"
 #include <vector>
@@ -548,7 +547,7 @@ template <typename Connectivity_t>
 void HRayClipper2D<Connectivity_t>::force_inclusion_in_rays()
 {
   E_Int id;
-  E_Float miny(K_CONST::E_MAX_FLOAT), maxy(-K_CONST::E_MAX_FLOAT),y;
+  E_Float miny(NUGA::FLOAT_MAX), maxy(-NUGA::FLOAT_MAX),y;
   
   if (!_conhyb)
   {

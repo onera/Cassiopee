@@ -19,8 +19,8 @@
 #ifndef __LINEAR_DELAUNAY_MATH_H__
 #define __LINEAR_DELAUNAY_MATH_H__
 
-#include "Def/DefTypes.h"
-#include "Nuga/include/DefContainers.h"
+#include "Nuga/include/defs.h"
+#include "Nuga/include/DynArray.h"
 
 namespace K_LINEAR
 {

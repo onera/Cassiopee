@@ -32,7 +32,7 @@ namespace DELAUNAY
   struct HardEdgeCriterion : public std::unary_function <const K_MESH::NO_Edge&, bool>
 {
 
-  explicit HardEdgeCriterion(const K_CONT_DEF::non_oriented_edge_set_type& hard_edges)
+  explicit HardEdgeCriterion(const NUGA::non_oriented_edge_set_type& hard_edges)
     :_hard_edges(hard_edges){}
 
   inline bool operator() (const K_MESH::NO_Edge& Ei) const
@@ -40,7 +40,7 @@ namespace DELAUNAY
       return (_hard_edges.find(Ei) != _hard_edges.end());
   }
 
-  const K_CONT_DEF::non_oriented_edge_set_type& _hard_edges;
+  const NUGA::non_oriented_edge_set_type& _hard_edges;
 };
 
 ///

@@ -81,7 +81,7 @@ E_Int join_plan<K_FLD::IntArray>::__extract_compact_tree
  
   //std::cout << "nb_tot_grand_children : " << nb_tot_grand_children << std::endl;
 
-  plan.pushBack(E_IDX_NONE, nbc);
+  plan.pushBack(IDX_NONE, nbc);
   //std::cout << plan << std::endl;
 
   for (E_Int i = 0; i < nbc; ++i)

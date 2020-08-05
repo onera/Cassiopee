@@ -19,21 +19,21 @@
 //Author : Sâm Landier (sam.landier@onera.fr)
 
 #include "Nuga/include/FittingBox.h"
-#include "Nuga/include/DefContainers.h"
+#include "Nuga/include/defs.h"
 #include "Nuga/include/MeshTool.h"
 #include "Nuga/include/T3Mesher.h"
 #ifdef DEBUG_FITTINGBOX
 #include "IO/DynArrayIO.h"
 #endif
 
-#define ROUND(x) (((x<E_EPSILON) && (x>-E_EPSILON)) ? 0.: x)
+#define ROUND(x) (((x<EPSILON) && (x>-EPSILON)) ? 0.: x)
 
 ///
 void
 FittingBox::computeNormalToContour
 (const K_FLD::FloatArray& pos, const K_FLD::IntArray& connect, E_Float* W)
 {
-  K_CONT_DEF::int_vector_type nodes;
+  NUGA::int_vector_type nodes;
   E_Int                       nb_nodes, nb_elts(connect.cols()), Ni, Nj;
 
   K_FLD::FloatArray wPos(pos);
@@ -44,7 +44,7 @@ FittingBox::computeNormalToContour
   // Compute the Barycenter
   E_Float G[] = {0., 0., 0.};
   for (E_Int i = 0; i < nb_nodes; ++i)
-    K_FUNC::sum<3>(pos.col(nodes[i]), G, G);
+    NUGA::sum<3>(pos.col(nodes[i]), G, G);
 
   for (E_Int i = 0; i < 3; ++i)
     G[i] /= nb_nodes;
@@ -59,8 +59,8 @@ FittingBox::computeNormalToContour
     Ni = connect(0, c);
     Nj = connect(1, c);
 
-    K_FUNC::diff<3>(pos.col(Ni), G, V1);
-    K_FUNC::diff<3>(pos.col(Nj), pos.col(Ni), V2);
+    NUGA::diff<3>(pos.col(Ni), G, V1);
+    NUGA::diff<3>(pos.col(Nj), pos.col(Ni), V2);
     
     // prevent numerical error when computing cross product. fixme : should be done evrywhere a cross product or determinant is done ?
     for (size_t i=0; i < 3; ++i)
@@ -69,10 +69,10 @@ FittingBox::computeNormalToContour
       V2[i]=ROUND(V2[i]);
     }
 
-    K_FUNC::crossProduct<3>(V1, V2, w);
-    K_FUNC::sum<3>(w, W, W);
+    NUGA::crossProduct<3>(V1, V2, w);
+    NUGA::sum<3>(w, W, W);
   }
-  K_FUNC::normalize<3>(W);
+  NUGA::normalize<3>(W);
 }
 
 ///
@@ -81,12 +81,12 @@ FittingBox::computeAFrame
 (const E_Float* W, K_FLD::FloatArray& P)
 {
   E_Float U[3], V[3], w[] = {W[0], W[1], W[2]};
-  K_FUNC::normalize<3>(w);
+  NUGA::normalize<3>(w);
   __get_normal_to(w, U);
-  assert (K_FUNC::dot<3>(w, U) == 0.);
-  K_FUNC::crossProduct<3>(w, U, V);
-  K_FUNC::normalize<3>(U);
-  K_FUNC::normalize<3>(V);
+  assert (NUGA::dot<3>(w, U) == 0.);
+  NUGA::crossProduct<3>(w, U, V);
+  NUGA::normalize<3>(U);
+  NUGA::normalize<3>(V);
 
   __get_transform_matrix(U, V, w, P);
 }
@@ -124,7 +124,7 @@ FittingBox::computeOptimalViewFrame
   K_FLD::FloatArray       posFrame, iP(3,3), R(3, 3);
   E_Float W[3];
   E_Int err;
-  E_Float alphamax = K_CONST::E_PI_2;
+  E_Float alphamax = NUGA::PI_2;
   E_Float alpha(2.* alphamax/E_Float(_maxStep));
 
   FittingBox::computeNormalToContour(posE2, connectE2, W);
@@ -276,7 +276,7 @@ FittingBox::__fitByRotating
 (const K_FLD::FloatArray& pos, const K_FLD::IntArray& connect, K_FLD::FloatArray& P)
 {
   E_Float             minB[3], maxB[3], s0,s1, min_s;
-  E_Float             alpha(K_CONST::E_PI_4/_maxStep);
+  E_Float             alpha(NUGA::PI_4/_maxStep);
   E_Float             G[] = {0., 0., 0.};
   K_FLD::FloatArray   wpos0(pos), wpos;
   E_Float             sign = +1., a(0);
@@ -288,7 +288,7 @@ FittingBox::__fitByRotating
   min_s = s0 = (maxB[1] - minB[1])*(maxB[0] - minB[0]);
   // Compute the Barycenter.
   for (E_Int i = 0; i < wpos0.cols(); ++i)
-    K_FUNC::sum<3>(wpos0.col(i), G, G);
+    NUGA::sum<3>(wpos0.col(i), G, G);
   // Translate.
   for (E_Int i = 0; i < wpos0.cols(); ++i)
     for (E_Int k = 0; k < 3; ++k)

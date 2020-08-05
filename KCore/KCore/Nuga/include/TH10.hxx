@@ -156,9 +156,9 @@ namespace NUGA
 #endif
 
       // diagonal choice
-      E_Float d1 = K_FUNC::sqrDistance(crd.col(nodes[8] - 1), crd.col(nodes[6] - 1), 3);
-      E_Float d2 = K_FUNC::sqrDistance(crd.col(nodes[7] - 1), crd.col(nodes[5] - 1), 3);
-      E_Float d3 = K_FUNC::sqrDistance(crd.col(nodes[9] - 1), crd.col(nodes[4] - 1), 3);
+      E_Float d1 = NUGA::sqrDistance(crd.col(nodes[8] - 1), crd.col(nodes[6] - 1), 3);
+      E_Float d2 = NUGA::sqrDistance(crd.col(nodes[7] - 1), crd.col(nodes[5] - 1), 3);
+      E_Float d3 = NUGA::sqrDistance(crd.col(nodes[9] - 1), crd.col(nodes[4] - 1), 3);
 
       ndiag = ((d1 <= d2) && (d1 <= d3)) ? 1 : ((d2 <= d1) && (d2 <= d3)) ? 2 : 3;
 

@@ -22,7 +22,7 @@
 
 #include "Conformizer.h"
 
-#include "Def/DefTypes.h"
+#include "Nuga/include/defs.h"
 #include <vector>
 
 namespace NUGA
@@ -55,8 +55,8 @@ protected:
   void __update_data(const K_FLD::FloatArray& pos, const K_FLD::IntArray& connect, const std::vector<E_Int>& newIDs);
   /// Splits the triangles by triangulation.
   E_Int __split_Elements(const K_FLD::FloatArray& pos, K_FLD::IntArray & connect,
-                        K_CONT_DEF::bool_vector_type& xc,
-                        K_CONT_DEF::int_vector_type& ancestors);
+                        NUGA::bool_vector_type& xc,
+                        NUGA::int_vector_type& ancestors);
 
 #ifdef DEBUG_CONFORMIZER
   ///

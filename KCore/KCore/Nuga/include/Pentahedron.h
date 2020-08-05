@@ -19,7 +19,7 @@
 #ifndef __K_MESH_PENTAHEDRON_H__
 #define __K_MESH_PENTAHEDRON_H__
 
-#include "Def/DefTypes.h"
+#include "Nuga/include/defs.h"
 #include "Nuga/include/DynArray.h"
 
 
@@ -104,7 +104,7 @@ class Pentahedron {
     void bbox(const CoordAcc& acrd, box_t&bb) const
     {
       for (E_Int i = 0; i < 3; ++i)
-        {bb.minB[i] = K_CONST::E_MAX_FLOAT; bb.maxB[i] = -K_CONST::E_MAX_FLOAT;}
+        {bb.minB[i] = NUGA::FLOAT_MAX; bb.maxB[i] = -NUGA::FLOAT_MAX;}
 
       bb.compute(acrd, _nodes, NB_NODES, _shift/*idx start*/);
     }

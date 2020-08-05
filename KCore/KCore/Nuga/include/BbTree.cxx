@@ -32,7 +32,7 @@ K_SEARCH::BbTree<DIM, BBoxType>::BbTree
 :_boxes(boxes), _tolerance(tolerance), _owes_boxes(false), _pool(NULL)
 {
 
-  size_type none = E_IDX_NONE, size = boxes.size();
+  size_type none = IDX_NONE, size = boxes.size();
 
   _root_id = (size > 1) ? size : 0;
   
@@ -74,7 +74,7 @@ BbTree<3>::BbTree
     _boxes.push_back(box);
   }
   
-  size_type none = E_IDX_NONE, size = _boxes.size();
+  size_type none = IDX_NONE, size = _boxes.size();
 
   _root_id = (size > 1) ? size : 0;
   
@@ -108,7 +108,7 @@ BbTree<3>::BbTree
     _boxes.push_back(box);
   }
   
-  size_type none = E_IDX_NONE, size = _boxes.size();
+  size_type none = IDX_NONE, size = _boxes.size();
 
   _root_id = (size > 1) ? size : 0;
   
@@ -125,7 +125,7 @@ BbTree<3>::BbTree
 template <> inline
 BbTree<3>::BbTree
 (const K_FLD::FloatArray& crd, const K_FLD::IntArray& cnt)
-: _tolerance(E_EPSILON), _owes_boxes(true), _pool(NULL)
+: _tolerance(EPSILON), _owes_boxes(true), _pool(NULL)
 {
   E_Int nb_elts = cnt.cols();
   _pool = new K_SEARCH::BBox3D[nb_elts];
@@ -143,7 +143,7 @@ BbTree<3>::BbTree
     _boxes.push_back(box);
   }
   
-  size_type none = E_IDX_NONE, size = _boxes.size();
+  size_type none = IDX_NONE, size = _boxes.size();
 
   _root_id = (size > 1) ? size : 0;
   
@@ -178,7 +178,7 @@ K_SEARCH::BbTree<DIM, BBoxType>::__getOverlappingBoxes
   E_Int leftc(_tree(0, node)), rightc(_tree(1, node));
   
   // Leaf node
-  if (leftc == E_IDX_NONE)
+  if (leftc == IDX_NONE)
   {
     if (boxesAreOverlapping(_boxes[node], box, _tolerance))
       out.push_back(node);
@@ -213,7 +213,7 @@ K_SEARCH::BbTree<DIM, BBoxType>::__hasAnOverlappingBox
   E_Int leftc(_tree(0, node)), rightc(_tree(1, node));
   
   // Leaf node
-  if (leftc == E_IDX_NONE)
+  if (leftc == IDX_NONE)
     return boxesAreOverlapping(_boxes[node], box, _tolerance);
 
   // Left child
@@ -257,7 +257,7 @@ K_SEARCH::BbTree<DIM, BBoxType>::__getIntersectingBoxes
   E_Int leftc(_tree(0, node)), rightc(_tree(1, node));
 
   // Leaf node
-  if (leftc == E_IDX_NONE)
+  if (leftc == IDX_NONE)
   {
     if (__boxIntersectRay(*_boxes[node], P0, P1, abstol))
       out.push_back(node);
@@ -282,7 +282,7 @@ K_SEARCH::BbTree<DIM, BBoxType>::__getIntersectingBoxesStrict
   E_Int leftc(_tree(0, node)), rightc(_tree(1, node));
 
   // Leaf node
-  if (leftc == E_IDX_NONE)
+  if (leftc == IDX_NONE)
   {
     if (__boxIntersectSeg(*_boxes[node], P0, P1, abstol, boxSeg))
       out.push_back(node);
@@ -435,7 +435,7 @@ K_SEARCH::BbTree<DIM, BBoxType>::__getLongestSideAxis
 (const BBoxType& box) const
 {
   E_Int axis(0);
-  E_Float L = -K_CONST::E_MAX_FLOAT, Li;
+  E_Float L = -NUGA::FLOAT_MAX, Li;
   for (E_Int i = 0; i < DIM; ++i)
   {
     Li = box.maxB[i] - box.minB[i];
@@ -501,14 +501,14 @@ BbTree<3>::__boxIntersectRay
 (const BBox3D & box, const E_Float* P0, const E_Float* P1, const E_Float& abstol) const
 {
   E_Float P0P1[3];
-  K_FUNC::diff<3>(P1, P0, P0P1);
+  NUGA::diff<3>(P1, P0, P0P1);
   
   E_Float denom, lambda, x0, x1;
   E_Float dx(box.maxB[0] - box.minB[0]), dy(box.maxB[1] - box.minB[1]), dz(box.maxB[2] - box.minB[2]);
 
   // Front and back faces
   denom = P0P1[1];
-  if ( (E_EPSILON < denom) || (denom < - E_EPSILON) ) 
+  if ( (EPSILON < denom) || (denom < - EPSILON) ) 
   {
     denom = 1./denom;
     
@@ -528,7 +528,7 @@ BbTree<3>::__boxIntersectRay
 
   // Right and left faces
   denom = P0P1[0];
-  if ( (E_EPSILON < denom) || (denom < - E_EPSILON) ) 
+  if ( (EPSILON < denom) || (denom < - EPSILON) ) 
   {
     denom = 1./denom;
     
@@ -547,7 +547,7 @@ BbTree<3>::__boxIntersectRay
 
   // Top and bottom faces
   denom = P0P1[2];
-  if ( (E_EPSILON < denom) || (denom < - E_EPSILON) ) 
+  if ( (EPSILON < denom) || (denom < - EPSILON) ) 
   {
     denom = 1./denom;
 
@@ -588,19 +588,19 @@ BbTree<3>::__boxIntersectSeg
     return 1;
   
   E_Float P0P1[3];
-  K_FUNC::diff<3>(P1, P0, P0P1);
+  NUGA::diff<3>(P1, P0, P0P1);
   
   E_Float denom, lambda, x0, x1;
   E_Float dx(box.maxB[0] - box.minB[0]), dy(box.maxB[1] - box.minB[1]), dz(box.maxB[2] - box.minB[2]);
 
   // Front and back faces
   denom = P0P1[1];
-  if ((E_EPSILON < denom) || (denom < -E_EPSILON)) // fixme : iconsistency with abstol (several similar test below)
+  if ((EPSILON < denom) || (denom < -EPSILON)) // fixme : iconsistency with abstol (several similar test below)
   {
     denom = 1./ denom;
     
     lambda = (box.minB[1] - P0[1]) * denom;
-    if ( (-E_EPSILON < lambda) && (lambda < 1. + E_EPSILON) )
+    if ( (-EPSILON < lambda) && (lambda < 1. + EPSILON) )
     {
       __compute_x0_x1(P0, P0P1, box.minB, 0, 2, lambda, x0, x1);
       
@@ -609,7 +609,7 @@ BbTree<3>::__boxIntersectSeg
     }
 
     lambda = (box.maxB[1] - P0[1]) * denom;
-    if ( (-E_EPSILON < lambda) && (lambda < 1. + E_EPSILON) )
+    if ( (-EPSILON < lambda) && (lambda < 1. + EPSILON) )
     {
       __compute_x0_x1(P0, P0P1, box.minB, 0, 2, lambda, x0, x1);
 
@@ -620,12 +620,12 @@ BbTree<3>::__boxIntersectSeg
 
   // Right and left faces
   denom = P0P1[0];
-  if ((E_EPSILON < denom) || (denom < -E_EPSILON))
+  if ((EPSILON < denom) || (denom < -EPSILON))
   {
     denom = 1./ denom;
     
     lambda = (box.minB[0] - P0[0]) * denom;
-    if ( (-E_EPSILON < lambda) && (lambda < 1. + E_EPSILON) )
+    if ( (-EPSILON < lambda) && (lambda < 1. + EPSILON) )
     {
       __compute_x0_x1(P0, P0P1, box.minB, 1, 2, lambda, x0, x1);
       
@@ -634,7 +634,7 @@ BbTree<3>::__boxIntersectSeg
     }
 
     lambda = (box.maxB[0] - P0[0])*denom;
-    if ( (-E_EPSILON < lambda) && (lambda < 1. + E_EPSILON) )
+    if ( (-EPSILON < lambda) && (lambda < 1. + EPSILON) )
     {
       __compute_x0_x1(P0, P0P1, box.minB, 1, 2, lambda, x0, x1);
       
@@ -645,11 +645,11 @@ BbTree<3>::__boxIntersectSeg
 
   // Top and bottom faces
   denom = P0P1[2];
-  if ((E_EPSILON < denom) || (denom < -E_EPSILON))
+  if ((EPSILON < denom) || (denom < -EPSILON))
   {
     denom = 1./ denom;
     lambda = (box.minB[2] - P0[2]) * denom;
-    if ( (-E_EPSILON < lambda) && (lambda < 1. + E_EPSILON) )
+    if ( (-EPSILON < lambda) && (lambda < 1. + EPSILON) )
     {
       __compute_x0_x1(P0, P0P1, box.minB, 0, 1, lambda, x0, x1);
       
@@ -658,7 +658,7 @@ BbTree<3>::__boxIntersectSeg
     }
 
     lambda = (box.maxB[2] - P0[2]) * denom;
-    if ( (-E_EPSILON < lambda) && (lambda < 1. + E_EPSILON) )
+    if ( (-EPSILON < lambda) && (lambda < 1. + EPSILON) )
     {
       __compute_x0_x1(P0, P0P1, box.minB, 0, 1, lambda, x0, x1);
       

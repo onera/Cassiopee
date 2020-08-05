@@ -42,7 +42,7 @@ DELAUNAY::Imprinter::run(const K_FLD::FloatArray& posB0, const K_FLD::IntArray& 
   int_vector_type::const_iterator max = std::max_element(ALL(B0_nodes));
 
   cell_indices.clear();
-  cell_indices.resize(*max + 1, E_IDX_NONE);
+  cell_indices.resize(*max + 1, IDX_NONE);
 
   posUV.clear();
   posUV.resize(2, *max + 1);
@@ -60,7 +60,7 @@ DELAUNAY::Imprinter::run(const K_FLD::FloatArray& posB0, const K_FLD::IntArray& 
   {
     Ni  = B0_nodes[i];
     pNi = posB0.col(Ni);
-    dmin = K_CONST::E_MAX_FLOAT;
+    dmin = NUGA::FLOAT_MAX;
 
     for (size_type Si = 0; (Si < nb_tris); ++Si)
     {
@@ -68,7 +68,7 @@ DELAUNAY::Imprinter::run(const K_FLD::FloatArray& posB0, const K_FLD::IntArray& 
       u = UV[0];
       v = UV[1];
 
-      if ((u == K_CONST::E_MAX_FLOAT) || (v == K_CONST::E_MAX_FLOAT))
+      if ((u == NUGA::FLOAT_MAX) || (v == NUGA::FLOAT_MAX))
         //return; // Numerical error : fixme
         continue;
 

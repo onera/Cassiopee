@@ -56,13 +56,13 @@ BooleanOperator::BooleanOperator
     E_Int mini, maxi;
     NUGA::MeshTool::computeMinMaxIndices(connect1, mini, maxi);
     assert (mini >= 0);
-    assert (maxi < coord1.cols() || maxi == E_IDX_NONE);
+    assert (maxi < coord1.cols() || maxi == IDX_NONE);
   }
     {
     E_Int mini, maxi;
     NUGA::MeshTool::computeMinMaxIndices(connect2, mini, maxi);
     assert (mini >= 0);
-    assert (maxi < coord2.cols() || maxi == E_IDX_NONE);
+    assert (maxi < coord2.cols() || maxi == IDX_NONE);
   }
 #endif
   
@@ -86,7 +86,7 @@ BooleanOperator::BooleanOperator
     E_Int mini, maxi;
     NUGA::MeshTool::computeMinMaxIndices(connect, mini, maxi);
     assert (mini >= 0);
-    assert (maxi < coord.cols() || maxi == E_IDX_NONE);
+    assert (maxi < coord.cols() || maxi == IDX_NONE);
   }
 #endif
  

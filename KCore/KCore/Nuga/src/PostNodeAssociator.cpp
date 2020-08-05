@@ -20,7 +20,7 @@
 
 #include "Nuga/include/PostNodeAssociator.h"
 #include "Nuga/include/KdTree.h"
-#include "Nuga/include/DefContainers.h"
+#include "Nuga/include/defs.h"
 #include "Nuga/include/MeshTool.h"
 #include "Nuga/include/ContourSplitter.h"
 #include "Nuga/include/MergingZipper.h"
@@ -61,9 +61,9 @@ PostNodeAssociator::make_pairs
  std::vector<E_Int> &nmates, K_FLD::IntArray& OneSurface)
 {
   std::vector<E_Int> omates;
-  nmates.resize(pos.cols(), E_IDX_NONE);
+  nmates.resize(pos.cols(), IDX_NONE);
 
-  std::vector<E_Int> ncolors(pos.cols(), E_IDX_NONE);
+  std::vector<E_Int> ncolors(pos.cols(), IDX_NONE);
 
   OneSurface.clear();
 
@@ -137,7 +137,7 @@ PostNodeAssociator::make_pairs
   K_FLD::IntArray connectB;
   std::vector<E_Int> nodes, tmp, comp_colors;
   std::vector<K_FLD::IntArray> connectbs;
-  K_CONT_DEF::int_set_type dummy;
+  NUGA::int_set_type dummy;
   E_Int color = 0;
   for (size_t comp = 0; comp < clean_comps.size(); ++comp)
   {
@@ -180,7 +180,7 @@ PostNodeAssociator::make_pairs
       if (nmates[i] != Zipper::OVERLAP)
         continue;
       omate = omates[i];
-      if (omate < 0 || omate == E_IDX_NONE)
+      if (omate < 0 || omate == IDX_NONE)
         continue;
       if (nmates[omate] != Zipper::OVERLAP)
         continue;

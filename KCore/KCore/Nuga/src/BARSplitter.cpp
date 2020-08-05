@@ -276,10 +276,10 @@ BARSplitter::get_node_to_nodes
     {
       node_to_nodes[*pS]; 
       it = node_to_nodes.find(*pS);
-      it->second.first=it->second.second=E_IDX_NONE;
+      it->second.first=it->second.second=IDX_NONE;
     }
 
-    if (it->second.second == E_IDX_NONE)
+    if (it->second.second == IDX_NONE)
     {it->second.second=*(pS+1);}
     else
       it->second.first=*(pS+1);
@@ -289,10 +289,10 @@ BARSplitter::get_node_to_nodes
     {
       node_to_nodes[*(pS+1)]; 
       it = node_to_nodes.find(*(pS+1));
-      it->second.first=it->second.second=E_IDX_NONE;
+      it->second.first=it->second.second=IDX_NONE;
     }
 
-    if (it->second.first == E_IDX_NONE)
+    if (it->second.first == IDX_NONE)
       node_to_nodes[*(pS+1)].first=*pS;
     else
       node_to_nodes[*(pS+1)].second=*pS;
@@ -304,12 +304,12 @@ BARSplitter::get_node_to_nodes
 // Manifold version of the above function : fails if non-manifold contour is provided upon entry.
 E_Int
 BARSplitter::getNodesNeighBouring
-(const K_FLD::IntArray& connectE2, K_CONT_DEF::int_pair_vector_type& node_to_nodes)
+(const K_FLD::IntArray& connectE2, NUGA::int_pair_vector_type& node_to_nodes)
 {
-  K_CONT_DEF::int_vector_type           nodes, count;
+  NUGA::int_vector_type           nodes, count;
   K_FLD::IntArray::const_iterator       pS;
   E_Int                                 NBELTS(connectE2.cols()), e, n;
-  std::pair<E_Int, E_Int>               pnone(E_IDX_NONE, E_IDX_NONE);
+  std::pair<E_Int, E_Int>               pnone(IDX_NONE, IDX_NONE);
   
   node_to_nodes.clear();
 
@@ -337,7 +337,7 @@ BARSplitter::split_periodic
 (const K_FLD::FloatArray& pos, const K_FLD::IntArray& c1, const K_FLD::IntArray& c2,
  E_Int N00, E_Int N01, E_Int N10, E_Int N11, std::vector<K_FLD::IntArray>& cs)
 {
-  E_Int n00(E_IDX_NONE), n01(E_IDX_NONE), n10(E_IDX_NONE), n11(E_IDX_NONE);
+  E_Int n00(IDX_NONE), n01(IDX_NONE), n10(IDX_NONE), n11(IDX_NONE);
 
   assert (pos.rows() >= 3); // fixme : should be dim instead of rows.
 
@@ -351,7 +351,7 @@ BARSplitter::split_periodic
     n00 = N00;
     n01 = N01;
   }
-  if ((n00 == E_IDX_NONE) && __isBARNode(c1, N01))
+  if ((n00 == IDX_NONE) && __isBARNode(c1, N01))
   {
     n00 = N01;
     n01 = N00;
@@ -361,7 +361,7 @@ BARSplitter::split_periodic
     n10 = N10;
     n11 = N11;
   }
-  if ((n10 == E_IDX_NONE) && __isBARNode(c1, N11))
+  if ((n10 == IDX_NONE) && __isBARNode(c1, N11))
   {
     n10 = N11;
     n11 = N10;
@@ -369,7 +369,7 @@ BARSplitter::split_periodic
 
   bool done = false;
 
-  done =  ( (n00 == E_IDX_NONE) || (n01 == E_IDX_NONE) || (n10 == E_IDX_NONE) || (n11 == E_IDX_NONE)) 
+  done =  ( (n00 == IDX_NONE) || (n01 == IDX_NONE) || (n10 == IDX_NONE) || (n11 == IDX_NONE)) 
     || !__isBARNode(c2, n01) || !__isBARNode(c2, n11);
 
   if (done)
@@ -451,7 +451,7 @@ BARSplitter::split_periodic
   bool carry_on = true, restart = false;
   
   std::vector<K_FLD::IntArray> cOut;
-  K_CONT_DEF::non_oriented_edge_set_type edges;
+  NUGA::non_oriented_edge_set_type edges;
   for (E_Int i = 0; i < cuttingEdges.cols(); ++i)
     edges.insert(K_MESH::NO_Edge(cuttingEdges(0,i), cuttingEdges(1,i)));
 
@@ -474,7 +474,7 @@ BARSplitter::split_periodic
         K_FLD::IntArray& c2 = ocs[j];
 
         count = 0;
-        for (K_CONT_DEF::non_oriented_edge_set_type::const_iterator it = edges.begin(); (it != edges.end()) && (count < 4); ++it)
+        for (NUGA::non_oriented_edge_set_type::const_iterator it = edges.begin(); (it != edges.end()) && (count < 4); ++it)
         {
           if ((current_color[it->node(0)] == i) && (current_color[it->node(1)] == j))
           {
@@ -519,7 +519,7 @@ BARSplitter::split_periodic
   if (!edges.empty())
   {
     E_Int E[2];
-    for (K_CONT_DEF::non_oriented_edge_set_type::iterator it = edges.begin(); it != edges.end(); ++it)
+    for (NUGA::non_oriented_edge_set_type::iterator it = edges.begin(); it != edges.end(); ++it)
     {
       E[0] = it->node(0);
       E[1] = it->node(1);
@@ -533,9 +533,9 @@ E_Float BARSplitter::__getAngle(const E_Float* n1, const E_Float* n2)
 {
   //WARNING : n1 and n2 are asummed to be unitary
   E_Float n[3], c, s;
-  K_FUNC::crossProduct<3>(n1, n2, n);
-  s = K_FUNC::normalize<3>(n);
-  c = K_FUNC::dot<3>(n1, n2);
+  NUGA::crossProduct<3>(n1, n2, n);
+  s = NUGA::normalize<3>(n);
+  c = NUGA::dot<3>(n1, n2);
   return ::atan2(s, c);
 }
 
@@ -580,7 +580,7 @@ void BARSplitter::split_loops
   {
     ++c;
     loops.resize(c+1);
-    mina = K_CONST::E_MAX_FLOAT;
+    mina = NUGA::FLOAT_MAX;
     
     itE = edges.begin();
     
@@ -602,14 +602,14 @@ void BARSplitter::split_loops
         Nnext = (node_to_nodes[N][0] != Nprev) ? node_to_nodes[N][0] : node_to_nodes[N][1];
       else //GEOM distinction
       {
-        K_FUNC::diff<3>(coord.col(Nprev), coord.col(N), n1);
-        K_FUNC::normalize<3>(n1);
+        NUGA::diff<3>(coord.col(Nprev), coord.col(N), n1);
+        NUGA::normalize<3>(n1);
         for (E_Int i = 0; i < sz; ++i)
         {
           if (node_to_nodes[N][i] == Nprev) continue;
           
-          K_FUNC::diff<3>(coord.col(node_to_nodes[N][i]), coord.col(N), n2);
-          K_FUNC::normalize<3>(n2);
+          NUGA::diff<3>(coord.col(node_to_nodes[N][i]), coord.col(N), n2);
+          NUGA::normalize<3>(n2);
           
           alpha = ::fabs(__getAngle(n1, n2));
           if (alpha < mina)
@@ -633,10 +633,10 @@ void BARSplitter::split_loops
 
 E_Int BARSplitter::min_angle_node(const std::vector<E_Int>& sorted_nodes, const K_FLD::FloatArray& coord)
 {
-  E_Int Nmin(E_IDX_NONE);
+  E_Int Nmin(IDX_NONE);
   E_Int sz(sorted_nodes.size());
   E_Int iprev=sz-1;
-  E_Float n1[3], n2[3], mina(K_CONST::E_MAX_FLOAT), alpha;
+  E_Float n1[3], n2[3], mina(NUGA::FLOAT_MAX), alpha;
   
   for (E_Int i = 0; i < sz; ++i)
   {
@@ -644,8 +644,8 @@ E_Int BARSplitter::min_angle_node(const std::vector<E_Int>& sorted_nodes, const 
     const E_Int& N = sorted_nodes[i];
     const E_Int& Nnext = sorted_nodes[(i+1)%sz];
     
-    K_FUNC::diff<3>(coord.col(Nprev), coord.col(N), n1);
-    K_FUNC::diff<3>(coord.col(Nnext), coord.col(N), n2);
+    NUGA::diff<3>(coord.col(Nprev), coord.col(N), n1);
+    NUGA::diff<3>(coord.col(Nnext), coord.col(N), n2);
     
     alpha = ::fabs(__getAngle(n1, n2));
     if (alpha < mina)

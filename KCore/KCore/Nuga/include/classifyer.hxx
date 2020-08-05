@@ -156,14 +156,14 @@ namespace NUGA
       for (E_Int i = 0; i < front.ncells(); ++i)
       {
         E_Float v1[3], v2[3], v[3];
-        K_FUNC::diff<3>(front.crd.col(front.cnt(0, i)), pt, v1);
-        K_FUNC::diff<3>(front.crd.col(front.cnt(1, i)), pt, v2);
+        NUGA::diff<3>(front.crd.col(front.cnt(0, i)), pt, v1);
+        NUGA::diff<3>(front.crd.col(front.cnt(1, i)), pt, v2);
 
-        K_FUNC::crossProduct<3>(v1, v2, v);
-        K_FUNC::normalize<3>(v);
+        NUGA::crossProduct<3>(v1, v2, v);
+        NUGA::normalize<3>(v);
 
-        double psi = K_FUNC::dot<3>(norm, v);
-        E_Int sigpsi = zSIGN(psi, E_EPSILON);
+        double psi = NUGA::dot<3>(norm, v);
+        E_Int sigpsi = zSIGN(psi, EPSILON);
 
         if (sigpsi == 0) //AMBIGUOUS
         {
@@ -186,31 +186,31 @@ namespace NUGA
         // pick randomly an edge, for the ray(GC) from its mid point to the centroid of ae1
         int i = std::rand() % front.ncells();
         double C[3], G[3], norm[3];
-        K_FUNC::sum<3>(0.5, front.crd.col(front.cnt(0, i)), 0.5, front.crd.col(front.cnt(1, i)), C);
+        NUGA::sum<3>(0.5, front.crd.col(front.cnt(0, i)), 0.5, front.crd.col(front.cnt(1, i)), C);
         ae1.centroid<3>(G);
         ae1.normal<3>(norm);
 
         // get the visible edge : since we are 3D, we use plane containing the edge and norm
-        double lambda_min(K_CONST::E_MAX_FLOAT), R[3];
+        double lambda_min(NUGA::FLOAT_MAX), R[3];
         for (E_Int j = 0; j < front.ncells(); ++j)
         {
           const double * P = front.crd.col(front.cnt(0, j));
           const double * Q = front.crd.col(front.cnt(1, j));
-          K_FUNC::sum<3>(Q, norm, R);
+          NUGA::sum<3>(Q, norm, R);
 
           double lambda, UV[2], min_d;
           E_Bool parallel, coincident;
-          K_MESH::Triangle::planeLineMinDistance<3>(P, Q, R, G, C, E_EPSILON, true, lambda, UV, parallel, coincident, min_d, true/*strict*/);
+          K_MESH::Triangle::planeLineMinDistance<3>(P, Q, R, G, C, EPSILON, true, lambda, UV, parallel, coincident, min_d, true/*strict*/);
 
           if (lambda < lambda_min)
           {
             // is G above or under the plane ?
             double PQ[3], pnorm[3], ray[3];
-            K_FUNC::diff<3>(Q, P, PQ);
-            K_FUNC::crossProduct<3>(PQ, norm, pnorm);
-            K_FUNC::diff<3>(C, G, ray);
-            double ps = K_FUNC::dot<3>(ray, pnorm);
-            sign = zSIGN(ps, E_EPSILON); // >0 means under
+            NUGA::diff<3>(Q, P, PQ);
+            NUGA::crossProduct<3>(PQ, norm, pnorm);
+            NUGA::diff<3>(C, G, ray);
+            double ps = NUGA::dot<3>(ray, pnorm);
+            sign = zSIGN(ps, EPSILON); // >0 means under
             lambda_min = lambda;
           }
         }
@@ -236,14 +236,14 @@ namespace NUGA
 
 #ifdef CLASSIFYER_DBG
         E_Float l2 = ::sqrt(fni[0] * fni[0] + fni[1] * fni[1] + fni[2] * fni[2]);
-        assert(::fabs(l2 - 1.) < E_EPSILON); // NOT DEGEN
+        assert(::fabs(l2 - 1.) < EPSILON); // NOT DEGEN
 #endif
 
         E_Float ptG[3];
-        K_FUNC::diff<3>(ci, ae1G, ptG);
+        NUGA::diff<3>(ci, ae1G, ptG);
 
-        double psi = K_FUNC::dot<3>(fni, ptG);
-        E_Int sigpsi = zSIGN(psi, E_EPSILON);
+        double psi = NUGA::dot<3>(fni, ptG);
+        E_Int sigpsi = zSIGN(psi, EPSILON);
 
         if (sigpsi == 0) //AMBIGUOUS
         {
@@ -271,14 +271,14 @@ namespace NUGA
         K_MESH::Polygon::centroid<3>(front.crd, PGi.begin(), PGi.nb_nodes(), front.index_start, C);
 
         // get the visible face 
-        double lambda_min(K_CONST::E_MAX_FLOAT);
+        double lambda_min(NUGA::FLOAT_MAX);
         for (E_Int j = 0; j < front.ncells(); ++j)
         {
           K_MESH::Polygon PGj(front.cnt, j);
 
-          double lambda(K_CONST::E_MAX_FLOAT), u1;
+          double lambda(NUGA::FLOAT_MAX), u1;
           E_Bool overlap;
-          bool isx = PGj.intersect<DELAUNAY::Triangulator>(front.crd, ae1G, C, E_EPSILON, true, lambda, u1, overlap);
+          bool isx = PGj.intersect<DELAUNAY::Triangulator>(front.crd, ae1G, C, EPSILON, true, lambda, u1, overlap);
 
           if (isx && lambda < lambda_min)
           {
@@ -288,11 +288,11 @@ namespace NUGA
 
 #ifdef CLASSIFYER_DBG
             E_Float l2 = ::sqrt(nj[0] * nj[0] + nj[1] * nj[1] + nj[2] * nj[2]);
-            assert(::fabs(l2 - 1.) < E_EPSILON); // NOT DEGEN
+            assert(::fabs(l2 - 1.) < EPSILON); // NOT DEGEN
 #endif
-            K_FUNC::diff<3>(C, ae1G, ray);
-            double ps = K_FUNC::dot<3>(ray, nj);
-            sign = zSIGN(ps, E_EPSILON); // >0 means under
+            NUGA::diff<3>(C, ae1G, ray);
+            double ps = NUGA::dot<3>(ray, nj);
+            sign = zSIGN(ps, EPSILON); // >0 means under
             lambda_min = lambda;
           }
         }
@@ -846,11 +846,11 @@ namespace NUGA
 
         for (int j = 0; (j < nneighs); ++j)
         {
-          if (pneighs[j] == E_IDX_NONE) continue;
+          if (pneighs[j] == IDX_NONE) continue;
 
           E_Int subid = cur_xcelln[pneighs[j]];
 
-          if (subid == E_IDX_NONE)     continue;
+          if (subid == IDX_NONE)     continue;
           if (subid == X)              continue;
           if (subid == IN)             continue;
 
@@ -914,7 +914,7 @@ namespace NUGA
     {
       E_Int subid = cur_xcelln[i];
       
-      if (subid == E_IDX_NONE)     continue;
+      if (subid == IDX_NONE)     continue;
       if (subid == X)              continue;
       
       subid -= UPPER_COL; // to be 0-based

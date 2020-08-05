@@ -18,12 +18,12 @@
 */
 #pragma once
 #include "Nuga/include/DynArray.h"
-#include "Nuga/include/DefContainers.h"
+#include "Nuga/include/defs.h"
 
 class Zipper
 {
 public:
-  enum eMateType {FREE = -9, OVERLAP = -1, UNKNO = E_IDX_NONE};
+  enum eMateType {FREE = -9, OVERLAP = -1, UNKNO = IDX_NONE};
 
 public:
 

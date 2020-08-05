@@ -20,7 +20,7 @@
 #ifndef __DELAUNAY_INTERPOLATOR_H__
 #define __DELAUNAY_INTERPOLATOR_H__
 
-#include "Def/DefTypes.h"
+#include "Nuga/include/defs.h"
 
 namespace DELAUNAY
 {

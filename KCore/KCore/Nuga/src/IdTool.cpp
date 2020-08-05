@@ -33,20 +33,20 @@ namespace K_CONNECT
   
     for (size_t i = 0; i < assoc.size(); ++i)
     {
-      if (assoc[i] != E_IDX_NONE)
+      if (assoc[i] != IDX_NONE)
         maxval = (maxval < assoc[i]) ? assoc[i] : maxval;
     }
   
-    if (maxval == E_IDX_NONE)
+    if (maxval == IDX_NONE)
       return;
   
     reverse_assoc.clear();
-    reverse_assoc.resize(maxval+1, E_IDX_NONE);
+    reverse_assoc.resize(maxval+1, IDX_NONE);
   
     for (size_t i = 0; i < assoc.size(); ++i)
     {
       const E_Int & Ni = assoc[i];
-      if (Ni != E_IDX_NONE)
+      if (Ni != IDX_NONE)
         reverse_assoc[Ni]=i;
     }
   }
@@ -77,7 +77,7 @@ namespace K_CONNECT
     assert(max_id < nb_pgs);
 #endif
 
-    E_Int empty = E_IDX_NONE;
+    E_Int empty = IDX_NONE;
     std::map<E_Int, std::vector<E_Int> >::const_iterator it;
 
     split_graph.clear();
@@ -112,7 +112,7 @@ namespace K_CONNECT
     for (size_t i = 0; i < sz; ++i)
     {
       E_Int& n = oids[i];
-      if (n != E_IDX_NONE)
+      if (n != IDX_NONE)
         n = nids[n];
     }
   }
@@ -125,7 +125,7 @@ namespace K_CONNECT
     size_t i1(0), i2(sz-1);
 
     nids.clear();
-    nids.resize(sz, E_IDX_NONE);
+    nids.resize(sz, IDX_NONE);
     
     size_t osz = std::count(keep.begin(), keep.end(), true);
     if (!osz) // keep nothing
@@ -151,11 +151,11 @@ namespace K_CONNECT
     size_t i1(0), i2(sz-1);
 
     nids.clear();
-    nids.resize(sz, E_IDX_NONE);
+    nids.resize(sz, IDX_NONE);
     
     oids.clear();
     size_t osz = std::count(keep.begin(), keep.end(), true);
-    oids.resize(osz, E_IDX_NONE);
+    oids.resize(osz, IDX_NONE);
     
     if (!osz) // keep nothing
       return;
@@ -184,7 +184,7 @@ namespace K_CONNECT
       for (E_Int j = 0; j < connect.rows(); ++j)
       {
         id = connect(j,i);
-        if (id != E_IDX_NONE) mid=std::max(mid, id);
+        if (id != IDX_NONE) mid=std::max(mid, id);
       }
     }
     return mid;
@@ -197,7 +197,7 @@ namespace K_CONNECT
     for (size_t i=0; i < vec.size(); ++i)
     {
       const E_Int& id = vec[i];
-      if (id != E_IDX_NONE)
+      if (id != IDX_NONE)
           mid=std::max(mid, id);
     }
     return mid;
@@ -206,7 +206,7 @@ namespace K_CONNECT
   ///
   E_Int IdTool::min(const K_FLD::IntArray& connect)
   {
-    E_Int mid = E_IDX_NONE;
+    E_Int mid = IDX_NONE;
     for (E_Int i = 0; i < connect.cols(); ++i)
     {
       for (E_Int j = 0; j < connect.rows(); ++j)
@@ -218,7 +218,7 @@ namespace K_CONNECT
   ///
   E_Int IdTool::min(const Vector_t<E_Int>& vec)
   {
-    E_Int mid = E_IDX_NONE;
+    E_Int mid = IDX_NONE;
     for (size_t i=0; i < vec.size(); ++i)
       mid=std::min(mid, vec[i]);
     return mid;

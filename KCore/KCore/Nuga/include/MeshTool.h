@@ -21,7 +21,7 @@
 #define _NUGA_MESHTOOL_H_
 
 #include "Nuga/include/KdTree.h"
-#include "Nuga/include/DefContainers.h"
+#include "Nuga/include/defs.h"
 #include "Nuga/include/Triangle.h"
 #include "Nuga/include/Polygon.h"
 #include "Nuga/include/ngon_unit.h"
@@ -36,13 +36,13 @@ class MeshTool
 {
   public:
 
-    typedef K_CONT_DEF::size_type         size_type;
-    typedef K_CONT_DEF::int_vector_type   int_vector_type;
-    typedef K_CONT_DEF::int_set_type      int_set_type;
-    typedef K_CONT_DEF::int_pair_type     int_pair_type;
-    typedef K_CONT_DEF::int_pair_set_type int_pair_set_type;
-    typedef K_CONT_DEF::int_pair_set_type boundary_set_type;
-    typedef K_CONT_DEF::bool_vector_type bool_vector_type;
+    typedef NUGA::size_type         size_type;
+    typedef NUGA::int_vector_type   int_vector_type;
+    typedef NUGA::int_set_type      int_set_type;
+    typedef NUGA::int_pair_type     int_pair_type;
+    typedef NUGA::int_pair_set_type int_pair_set_type;
+    typedef NUGA::int_pair_set_type boundary_set_type;
+    typedef NUGA::bool_vector_type bool_vector_type;
     typedef K_MESH::Triangle              element_type;
     typedef K_SEARCH::KdTree<>            tree_type;
     
@@ -52,7 +52,7 @@ class MeshTool
   public:
 
     ///
-    MeshTool(const tree_type& tree, E_Float tolerance = E_EPSILON);
+    MeshTool(const tree_type& tree, E_Float tolerance = EPSILON);
     ///
     ~MeshTool(void);
 
@@ -86,7 +86,7 @@ class MeshTool
 */
     static void getBoundary(const K_FLD::IntArray& connect, K_FLD::IntArray& connectB);
     static void getBoundary(const ngon_unit& ngu, K_FLD::IntArray& cB, std::vector<E_Int>* ancestors = nullptr);
-    static void getBoundaryT3Mesh(const K_FLD::IntArray& connect, const K_FLD::IntArray& neighbors, K_CONT_DEF::int_pair_vector_type& boundaries);
+    static void getBoundaryT3Mesh(const K_FLD::IntArray& connect, const K_FLD::IntArray& neighbors, NUGA::int_pair_vector_type& boundaries);
     static void getBoundaryT3Mesh(const K_FLD::IntArray& connect, const K_FLD::IntArray& neighbors, K_FLD::IntArray& cB);
     static void getNonManifoldEdges(const K_FLD::IntArray& connect, K_FLD::IntArray& connectB);
 
@@ -187,7 +187,7 @@ class MeshTool
 private:
 
   E_Int __getContainingElement(const E_Float* point, const K_FLD::FloatArray& pos, const K_FLD::IntArray& connect,
-                               const K_FLD::IntArray& neighbors, const bool_vector_type& mask, size_type Kseed = E_IDX_NONE) const;
+                               const K_FLD::IntArray& neighbors, const bool_vector_type& mask, size_type Kseed = IDX_NONE) const;
 
   E_Int __searchDirection(size_type K, const E_Float* point, const K_FLD::FloatArray& pos,
                           const K_FLD::IntArray& connect, E_Bool random) const;
@@ -216,7 +216,7 @@ void MeshTool::computeIncidentEdgesSqrLengths<K_FLD::IntArray>
 {
   E_Int                           DIM(3), COLS(connect.cols()), NB_NODES(connect.rows());
   K_FLD::IntArray::const_iterator pS;
-  E_Float                         min(-K_CONST::E_MAX_FLOAT), max(K_CONST::E_MAX_FLOAT);
+  E_Float                         min(-NUGA::FLOAT_MAX), max(NUGA::FLOAT_MAX);
 
   E_Int seg = (NB_NODES > 2) ? NB_NODES : 1; 
 
@@ -231,7 +231,7 @@ void MeshTool::computeIncidentEdgesSqrLengths<K_FLD::IntArray>
     {
       E_Int Ni = *(pS+n);
       E_Int Nj = *(pS+(n+1)%NB_NODES);
-      E_Float l = K_FUNC::sqrDistance(pos.col(Ni), pos.col(Nj), DIM);
+      E_Float l = NUGA::sqrDistance(pos.col(Ni), pos.col(Nj), DIM);
       
       // update Ni.
       min = L(0, Ni);
@@ -260,8 +260,8 @@ void MeshTool::computeIncidentEdgesSqrLengths<ngon_unit>
   
   E_Int idmaxp1 = cnt.get_facets_max_id();
   
-  L.resize(1, idmaxp1, K_CONST::E_MAX_FLOAT);  //mins
-  L.resize(2, idmaxp1, -K_CONST::E_MAX_FLOAT); // maxs
+  L.resize(1, idmaxp1, NUGA::FLOAT_MAX);  //mins
+  L.resize(2, idmaxp1, -NUGA::FLOAT_MAX); // maxs
   
   for (E_Int i = 0; i < nb_pgs; ++i)
   {
@@ -272,7 +272,7 @@ void MeshTool::computeIncidentEdgesSqrLengths<ngon_unit>
     {
       E_Int Ni = *(nodes + n) - 1;
       E_Int Nj = *(nodes + (n+1) % nb_nodes) - 1;
-      E_Float l = K_FUNC::sqrDistance(crd.col(Ni), crd.col(Nj), DIM);
+      E_Float l = NUGA::sqrDistance(crd.col(Ni), crd.col(Nj), DIM);
       
       L(0, Ni) = (l < L(0, Ni)) ? l : L(0, Ni);
       L(1, Ni) = (l > L(1, Ni)) ? l : L(1, Ni);

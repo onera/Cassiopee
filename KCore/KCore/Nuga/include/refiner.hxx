@@ -61,7 +61,7 @@ public:
         if (it == ecenter.end())
         {
           E_Float mid[3];
-          K_FUNC::sum<3>(0.5, crd.col(ind_point1-1), 0.5, crd.col(ind_point2-1), mid);
+          NUGA::sum<3>(0.5, crd.col(ind_point1-1), 0.5, crd.col(ind_point2-1), mid);
           crd.pushBack(mid, mid+3);
           ecenter[no_edge] = crd.cols();
         }   
@@ -244,7 +244,7 @@ void refiner<K_MESH::Triangle, ISO>::reserve_mem_PGs
     s += nbc;
   }
 
-  F2E.resize(2, nb_pgs0 + nbc * nb_pgs_ref, E_IDX_NONE);
+  F2E.resize(2, nb_pgs0 + nbc * nb_pgs_ref, IDX_NONE);
 }
 
 /// Impl for Q4/ISO
@@ -271,7 +271,7 @@ void refiner<K_MESH::Quadrangle, ISO>::reserve_mem_PGs
     s += nbc;
   }
 
-  F2E.resize(2, nb_pgs0 + nbc * nb_pgs_ref, E_IDX_NONE); 
+  F2E.resize(2, nb_pgs0 + nbc * nb_pgs_ref, IDX_NONE); 
 
   // reserve space for face centers
   crd.resize(3, crd.cols() + nb_pgs_ref);
@@ -306,7 +306,7 @@ void refiner<K_MESH::Polygon, ISO_HEX>::reserve_mem_PGs
   }
   childpos[nb_pgs_ref] = s;
 
-  F2E.resize(2, s, E_IDX_NONE);
+  F2E.resize(2, s, IDX_NONE);
   
   // reserve space for face centers
   crd.resize(3, crd.cols() + nb_pgs_ref);
@@ -347,7 +347,7 @@ void refiner<ELT_t, STYPE>::__reserve_mem_single_bound_type_PHs
     s += nbi;
   }
 
-  F2E.resize(2, nb_pgs0 + nbi * nb_phs_ref, E_IDX_NONE);
+  F2E.resize(2, nb_pgs0 + nbi * nb_phs_ref, IDX_NONE);
 
   // for the children PH
   // Reserve space for children in the tree
@@ -420,7 +420,7 @@ void refiner<K_MESH::Prism, ISO>::reserve_mem_PHs
     s += nbi;
   }
 
-  F2E.resize(2, nb_pgs0 + nbi * nb_phs_ref, E_IDX_NONE);
+  F2E.resize(2, nb_pgs0 + nbi * nb_phs_ref, IDX_NONE);
   PHtree.resize(PHadap, nbc);
 
   //
@@ -470,7 +470,7 @@ void refiner<K_MESH::Pyramid, ISO>::reserve_mem_PHs
     s += nbi;
   }
 
-  F2E.resize(2, nb_pgs0 + nbi * nb_phs_ref, E_IDX_NONE);
+  F2E.resize(2, nb_pgs0 + nbi * nb_phs_ref, IDX_NONE);
   //  std::cout << "ng.PG size= " << ng.PGs.size() <<std::endl;
   // for the children PH
   // Reserve space for children in the tree
@@ -515,7 +515,7 @@ void refiner<K_MESH::Polyhedron<0>, ISO_HEX>::reserve_mem_PHs
   ng.PGs.expand_n_fixed_stride(nbi_tot, 4);
 
   //
-  F2E.resize(2, nb_pgs0 + nbi_tot, E_IDX_NONE);
+  F2E.resize(2, nb_pgs0 + nbi_tot, IDX_NONE);
 
   // reserve space for children in the tree
   std::vector<E_Int> pregnant;

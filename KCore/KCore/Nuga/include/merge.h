@@ -20,7 +20,7 @@
 #ifndef __MERGE_H__
 #define __MERGE_H__
 
-#include "Nuga/include/DefContainers.h"
+#include "Nuga/include/defs.h"
 #include "Nuga/include/ArrayAccessor.h"
 #include "Nuga/include/KdTree.h"
 #include "Nuga/include/Triangle.h"
@@ -44,8 +44,8 @@ inline void stable_unique_values
   }
 }
 
-inline bool lower_than(const std::pair<E_Float, K_CONT_DEF::int_pair_type >& p1,
-                      const std::pair<E_Float, K_CONT_DEF::int_pair_type >& p2)
+inline bool lower_than(const std::pair<E_Float, NUGA::int_pair_type >& p1,
+                      const std::pair<E_Float, NUGA::int_pair_type >& p2)
 {return p1.first < p2.first;}
 
 //==============================================================================
@@ -53,7 +53,7 @@ template <typename ArrayType>
 void 
 merge_no_order_omp
 (const K_FLD::ArrayAccessor<ArrayType>& coordAcc, E_Float tol,
- K_CONT_DEF::int_vector_type& new_IDs)
+ NUGA::int_vector_type& new_IDs)
 {
   K_SEARCH::KdTree<ArrayType> tree(coordAcc);
   size_t npts = coordAcc.size();
@@ -183,9 +183,9 @@ template <typename ArrayType>
 E_Int
 __merge
 (const K_FLD::ArrayAccessor<ArrayType>& coordAcc, E_Float tol,
- K_CONT_DEF::int_vector_type& umoving,
- K_CONT_DEF::int_vector_type& utarget,
- K_CONT_DEF::int_vector_type& new_IDs)
+ NUGA::int_vector_type& umoving,
+ NUGA::int_vector_type& utarget,
+ NUGA::int_vector_type& new_IDs)
 {
   size_t ssz = umoving.size();
   size_t tsz = utarget.size();
@@ -265,15 +265,15 @@ template <typename ArrayType>
 E_Int
 merge
 (const K_FLD::ArrayAccessor<ArrayType>& coordAcc, E_Float tol,
- const K_CONT_DEF::int_vector_type& moving,
- const K_CONT_DEF::int_vector_type& target,
- K_CONT_DEF::int_vector_type& new_IDs)
+ const NUGA::int_vector_type& moving,
+ const NUGA::int_vector_type& target,
+ NUGA::int_vector_type& new_IDs)
 {
   // Fast return
   if (moving.size()*target.size()*coordAcc.size() == 0) return 0;
   
   // get unique lists.
-  K_CONT_DEF::int_vector_type umoving, utarget;
+  NUGA::int_vector_type umoving, utarget;
   stable_unique_values(moving, umoving);
   stable_unique_values(target, utarget);
 
@@ -287,9 +287,9 @@ template <typename ArrayType>
 E_Int
 merge
 (const K_FLD::ArrayAccessor<ArrayType>& coordAcc, E_Float tol,
- K_CONT_DEF::int_vector_type& new_IDs)
+ NUGA::int_vector_type& new_IDs)
 {
-  K_CONT_DEF::int_vector_type nodes(coordAcc.size());
+  NUGA::int_vector_type nodes(coordAcc.size());
   for (size_t i = 0; i < nodes.size(); ++i)nodes[i]=i;
 
   return ::__merge(coordAcc, tol, nodes, nodes, new_IDs);
@@ -299,7 +299,7 @@ merge
 /// for BAR, TRI, QUAD, NGON-PG
 template <typename Connectivity_t>
 void getNodeToNodes
-(const K_FLD::ArrayAccessor<Connectivity_t>& ELTContainer, std::map<E_Int, K_CONT_DEF::int_vector_type > & bound_to_bounds)
+(const K_FLD::ArrayAccessor<Connectivity_t>& ELTContainer, std::map<E_Int, NUGA::int_vector_type > & bound_to_bounds)
 {
   E_Int*                          pN;
   E_Int                           ROWS(ELTContainer.stride()), COLS(ELTContainer.size()), s;
@@ -337,11 +337,11 @@ template <typename CoordType, typename ConnectType>
 E_Int
 merge
 (const K_FLD::ArrayAccessor<CoordType>& coordAcc, const K_FLD::ArrayAccessor<ConnectType>& connectAcc, E_Float tol,
- const K_CONT_DEF::int_vector_type& moving, const K_CONT_DEF::int_vector_type& target,
- K_CONT_DEF::int_vector_type& new_IDs)
+ const NUGA::int_vector_type& moving, const NUGA::int_vector_type& target,
+ NUGA::int_vector_type& new_IDs)
 {  
   // get unique lists.
-  K_CONT_DEF::int_vector_type umoving, utarget;
+  NUGA::int_vector_type umoving, utarget;
   stable_unique_values(moving, umoving);
   stable_unique_values(target, utarget);
 
@@ -360,7 +360,7 @@ merge
   //typedef typename NUGA::EltAlgo<dummy> algo_t;
   //algo_t::NodeToNodesType n_to_ns;
   //algo_t::getNodeToNodes(connectAcc, n_to_ns);
-  std::map<E_Int, K_CONT_DEF::int_vector_type > n_to_ns;
+  std::map<E_Int, NUGA::int_vector_type > n_to_ns;
   getNodeToNodes(connectAcc, n_to_ns);
   
   typedef std::vector<std::pair <E_Float, std::pair <E_Int, E_Int> > > palmares_t;

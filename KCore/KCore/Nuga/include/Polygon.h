@@ -118,7 +118,7 @@ public:
   ///
   static inline void cvx_triangulate(const K_FLD::FloatArray& coord, const E_Int* nodes, E_Int nb_nodes, E_Int ibest, E_Int index_start, K_FLD::IntArray& connectT3)
   {
-    ibest = (ibest != E_IDX_NONE) ? ibest : 0;
+    ibest = (ibest != IDX_NONE) ? ibest : 0;
     ibest = (ibest < nb_nodes && ibest > -1) ? ibest : 0;
     
     E_Int N0 = nodes[ibest] - index_start;
@@ -184,7 +184,7 @@ public:
   
   void edge_length_extrema(const K_FLD::FloatArray& crd, E_Float& Lmin2, E_Float& Lmax2) const
   {
-    Lmin2 = K_CONST::E_MAX_FLOAT;
+    Lmin2 = NUGA::FLOAT_MAX;
     Lmax2 = -1.;
   
     for (E_Int i=0; i < _nb_nodes; ++i)
@@ -192,7 +192,7 @@ public:
       const E_Float* Pi = crd.col(node(i));
       const E_Float* Pj = crd.col(node((i+1)%_nb_nodes));
       
-      E_Float L2 = K_FUNC::sqrDistance(Pi,Pj, 3);
+      E_Float L2 = NUGA::sqrDistance(Pi,Pj, 3);
       Lmin2 = MIN(Lmin2, L2);
       Lmax2 = MAX(Lmax2, L2);
     }
@@ -212,7 +212,7 @@ public:
 
   static double L2ref(const E_Int* nodes, E_Int nb_nodes, const std::vector<E_Float>& nodal_tol2, E_Int shift)
   {
-    double val = K_CONST::E_MAX_FLOAT;
+    double val = NUGA::FLOAT_MAX;
     for (E_Int n = 0; n < nb_nodes; ++n)
     {
       E_Int Ni = *(nodes + n) + shift;
@@ -242,7 +242,7 @@ public:
       if (*(nodes+n) == Ni) return n;
     }
     assert (false);// should never get here.
-    return E_IDX_NONE;
+    return IDX_NONE;
   }
   
   /// Computes the surface vector
@@ -374,7 +374,7 @@ E_Int Polygon::triangulate
     {
       Ei[0]=nodes[0]-shft;Ei[1]=nodes[1]-shft;Ei[2]=nodes[2]-shft;
       connectT3.pushBack(Ei, Ei+3);
-      //neighbors.resize(3, /*neighbors.cols()+*/1, E_IDX_NONE);
+      //neighbors.resize(3, /*neighbors.cols()+*/1, IDX_NONE);
       break;
     }
     /*case 4:fixme !!
@@ -383,10 +383,10 @@ E_Int Polygon::triangulate
       const E_Float* Nj = coord.col(nodes[1]-shft);
       const E_Float* Nk = coord.col(nodes[2]-shft);
       
-      K_FUNC::diff<3>(Nk, Nj, NjNk);
-      K_FUNC::diff<3>(Ni, Nj, NjNi);
+      NUGA::diff<3>(Nk, Nj, NjNk);
+      NUGA::diff<3>(Ni, Nj, NjNi);
       
-      K_FUNC::crossProduct<3>(NjNk, NjNi, n1);
+      NUGA::crossProduct<3>(NjNk, NjNi, n1);
       E_Int k=1;
       bool convex=true;
       E_Float s1(0.), s2;
@@ -396,11 +396,11 @@ E_Int Polygon::triangulate
         const E_Float* Nj = coord.col(nodes[(k+1)%4]-shft);
         const E_Float* Nk = coord.col(nodes[(k+2)%4]-shft);
         
-        K_FUNC::diff<3>(Nk, Nj, NjNk);
-        K_FUNC::diff<3>(Ni, Nj, NjNi);
+        NUGA::diff<3>(Nk, Nj, NjNk);
+        NUGA::diff<3>(Ni, Nj, NjNi);
         
-        K_FUNC::crossProduct<3>(NjNk, NjNi, n2);
-        s2 = K_FUNC::dot<3>(n1, n2);
+        NUGA::crossProduct<3>(NjNk, NjNi, n2);
+        s2 = NUGA::dot<3>(n1, n2);
         if (s2*s1 < 0.)
         {
           if (s1 > 0.)
@@ -582,8 +582,8 @@ void Polygon::ndS(const CoordAcc& acrd, const E_Int* nodes, E_Int nb_nodes, E_In
     acrd.getEntry(Ni, Pi);
     acrd.getEntry(Nj, Pj);
 
-    K_FUNC::diff<DIM>(Pi, G, V1);
-    K_FUNC::diff<DIM>(Pj, G, V2);
+    NUGA::diff<DIM>(Pi, G, V1);
+    NUGA::diff<DIM>(Pj, G, V2);
     
     // prevent numerical error when computing cross product. fixme : should be done evrywhere a cross product or determinant is done ?
     for (size_t i=0; i < DIM; ++i)
@@ -592,8 +592,8 @@ void Polygon::ndS(const CoordAcc& acrd, const E_Int* nodes, E_Int nb_nodes, E_In
       V2[i]=ROUND(V2[i]);
     }
 
-    K_FUNC::crossProduct<DIM>(V1, V2, w);
-    K_FUNC::sum<DIM>(0.5, w, ndS, ndS);
+    NUGA::crossProduct<DIM>(V1, V2, w);
+    NUGA::sum<DIM>(0.5, w, ndS, ndS);
   }
 }
 
@@ -617,8 +617,8 @@ void Polygon::ndS<K_FLD::FloatArray,3>(const K_FLD::FloatArray& crd, const E_Int
     const E_Float* Pi = crd.col(Ni);
     const E_Float* Pj = crd.col(Nj);
 
-    K_FUNC::diff<3>(Pi, G, V1);
-    K_FUNC::diff<3>(Pj, G, V2);
+    NUGA::diff<3>(Pi, G, V1);
+    NUGA::diff<3>(Pj, G, V2);
     
     // prevent numerical error when computing cross product. fixme : should be done evrywhere a cross product or determinant is done ?
     for (size_t i=0; i < 3; ++i)
@@ -627,8 +627,8 @@ void Polygon::ndS<K_FLD::FloatArray,3>(const K_FLD::FloatArray& crd, const E_Int
       V2[i]=ROUND(V2[i]);
     }
 
-    K_FUNC::crossProduct<3>(V1, V2, w);
-    K_FUNC::sum<3>(0.5, w, ndS, ndS);
+    NUGA::crossProduct<3>(V1, V2, w);
+    NUGA::sum<3>(0.5, w, ndS, ndS);
   }
 }
 
@@ -651,8 +651,8 @@ void Polygon::compute_dir(const mesh_t& poly_line/*0-based*/, const E_Float* ori
     const E_Float* Pi = poly_line.crd.col(Ni);
     const E_Float* Pj = poly_line.crd.col(Nj);
 
-    K_FUNC::diff<3>(Pi, origin, V1);
-    K_FUNC::diff<3>(Pj, origin, V2);
+    NUGA::diff<3>(Pi, origin, V1);
+    NUGA::diff<3>(Pj, origin, V2);
     
     // prevent numerical error when computing cross product. fixme : should be done evrywhere a cross product or determinant is done ?
     for (size_t i=0; i < 3; ++i)
@@ -661,8 +661,8 @@ void Polygon::compute_dir(const mesh_t& poly_line/*0-based*/, const E_Float* ori
       V2[i]=ROUND(V2[i]);
     }
 
-    K_FUNC::crossProduct<3>(V1, V2, w);
-    K_FUNC::sum<3>(1., w, dir, dir);
+    NUGA::crossProduct<3>(V1, V2, w);
+    NUGA::sum<3>(1., w, dir, dir);
   }
 }
 
@@ -681,7 +681,7 @@ void Polygon::centroid(const K_FLD::FloatArray& crd, const E_Int* nodes, E_Int n
   E_Float G[DIM]/*iso_bar*/, n[DIM]/*normal*/, S/*surface*/;
   iso_barycenter<K_FLD::FloatArray, 3>(crd, nodes, nb_nodes, index_start, G);
   K_MESH::Polygon::ndS<K_FLD::FloatArray, 3>(crd, nodes, nb_nodes, index_start, n);
-  S = K_FUNC::normalize<DIM>(n);
+  S = NUGA::normalize<DIM>(n);
 
   E_Float vsi[DIM], si, gi[DIM], w;
   
@@ -691,10 +691,10 @@ void Polygon::centroid(const K_FLD::FloatArray& crd, const E_Int* nodes, E_Int n
     E_Int Nip1 = nodes[(i + 1) % nb_nodes] - index_start;
     
     K_MESH::Triangle::ndS<3>(G, crd.col(Ni), crd.col(Nip1), vsi);
-    si = ::sqrt(K_FUNC::sqrNorm<DIM>(vsi));
+    si = ::sqrt(NUGA::sqrNorm<DIM>(vsi));
     K_MESH::Triangle::isoG(G, crd.col(Ni), crd.col(Nip1), gi);
     
-    w = SIGN(K_FUNC::dot<DIM>(vsi, n)) * si;
+    w = SIGN(NUGA::dot<DIM>(vsi, n)) * si;
     
     cM[0] += w * gi[0];
     cM[1] += w * gi[1];
@@ -727,9 +727,10 @@ E_Float Polygon::surface<K_FLD::FloatArray,3>(const K_FLD::FloatArray& crd, cons
 {
   E_Float ndS[3];
   K_MESH::Polygon::ndS<K_FLD::FloatArray, 3>(crd, nodes, nb_nodes, index_start, ndS);
-  return ::sqrt(K_FUNC::sqrNorm<3>(ndS));
+  return ::sqrt(NUGA::sqrNorm<3>(ndS));
 }
 
+#ifndef NUGALIB
 template <> inline 
 E_Float Polygon::surface<K_FLD::ArrayAccessor<K_FLD::FldArrayF>,2>(const K_FLD::ArrayAccessor<K_FLD::FldArrayF>& acrd, const E_Int* nodes, E_Int nb_nodes, E_Int index_start)
 {
@@ -744,6 +745,7 @@ E_Float Polygon::surface<K_FLD::ArrayAccessor<K_FLD::FldArrayF>,2>(const K_FLD::
   }
   return s;
 }
+#endif
 
 template <> inline 
 E_Float Polygon::surface<K_FLD::ArrayAccessor<K_FLD::FloatArray>,2>(const K_FLD::ArrayAccessor<K_FLD::FloatArray>& acrd, const E_Int* nodes, E_Int nb_nodes, E_Int index_start)
@@ -765,14 +767,14 @@ void Polygon::normal(const CoordAcc& acrd, const E_Int* nodes, E_Int nb_nodes, E
 {
   //
   K_MESH::Polygon::ndS<CoordAcc, DIM>(acrd, nodes, nb_nodes, index_start, n);
-  K_FUNC::normalize<DIM>(n);
+  NUGA::normalize<DIM>(n);
 }
 
 template <> inline
 void Polygon::normal<K_FLD::FloatArray, 3>(const K_FLD::FloatArray& crd, const E_Int* nodes, E_Int nb_nodes, E_Int index_start, E_Float* n)
 {
   K_MESH::Polygon::ndS<K_FLD::FloatArray, 3>(crd, nodes, nb_nodes, index_start, n);
-  K_FUNC::normalize<3>(n);
+  NUGA::normalize<3>(n);
 }
 
 ///
@@ -790,7 +792,7 @@ bool Polygon::is_star_shaping
     
     K_MESH::Triangle::ndS<3>(queryP, crd.col(Ni), crd.col(Nip1), vsi);
     
-    if (SIGN(K_FUNC::dot<3>(vsi, ndS)) < 0)
+    if (SIGN(NUGA::dot<3>(vsi, ndS)) < 0)
       return false;
   }
   
@@ -829,7 +831,7 @@ inline void Polygon::sync_join(const K_FLD::FloatArray&crd1, const E_Int* nodes1
   normal<K_FLD::FloatArray, 3>(crd2, nodes2, nb_nodes, 1, n2);
 
   if (do_reverse) {
-    bool reversed = (SIGN(K_FUNC::dot<3>(n1, n2)) == -1);
+    bool reversed = (SIGN(NUGA::dot<3>(n1, n2)) == -1);
     if (reversed)
       std::reverse(nodes2, nodes2 + nb_nodes);
   }
@@ -837,18 +839,18 @@ inline void Polygon::sync_join(const K_FLD::FloatArray&crd1, const E_Int* nodes1
   //look for nodes1[0] in nodes2
   const E_Float* P0{ crd1.col(nodes1[0]-idx_strt1) };
   E_Float zerom2{ ZERO_M*ZERO_M };
-  E_Int i0{ E_IDX_NONE };
+  E_Int i0{ IDX_NONE };
   for (E_Int i=0; i < nb_nodes; ++i)
   {
     const E_Float* Pi = crd2.col(nodes2[i] - idx_strt2);
-    if (K_FUNC::sqrDistance(P0, Pi, 3) < zerom2)
+    if (NUGA::sqrDistance(P0, Pi, 3) < zerom2)
     {
       i0 = i;
       break;
     }
   }
 
-  assert(i0 != E_IDX_NONE);
+  assert(i0 != IDX_NONE);
 
   K_CONNECT::IdTool::right_shift(nodes2, nb_nodes, i0);
 

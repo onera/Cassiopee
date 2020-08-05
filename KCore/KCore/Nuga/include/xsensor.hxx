@@ -63,7 +63,7 @@ void xsensor<ELT_t, mesh_t>::add_x_points(sensor_input_t& data)
       K_MESH::NO_Edge noE = edges[j];
       auto it = unique_edges.find(noE);
       if (it != unique_edges.end()) continue;
-      unique_edges[noE] = E_IDX_NONE;
+      unique_edges[noE] = IDX_NONE;
       E_Int pt1 = noE.node(0);
       E_Int pt2 = noE.node(1);
 

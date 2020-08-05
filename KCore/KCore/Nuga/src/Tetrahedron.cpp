@@ -26,13 +26,13 @@ namespace K_MESH
 bool Tetrahedron::is_inside
 (const E_Float* Ni, const E_Float* Nj, const E_Float* Nk, const E_Float* Nl, const E_Float* pt)
 {
-  if (K_FUNC::zzdet4(Ni, Nj, Nl, pt) > E_EPSILON)
+  if (NUGA::zzdet4(Ni, Nj, Nl, pt) > EPSILON)
     return false;
-  if (K_FUNC::zzdet4(Nj, Nk, Nl, pt) > E_EPSILON)
+  if (NUGA::zzdet4(Nj, Nk, Nl, pt) > EPSILON)
     return false;
-  if (K_FUNC::zzdet4(Nk, Ni, Nl, pt) > E_EPSILON)
+  if (NUGA::zzdet4(Nk, Ni, Nl, pt) > EPSILON)
     return false;
-  if (K_FUNC::zzdet4(Ni, Nk, Nj, pt) > E_EPSILON)
+  if (NUGA::zzdet4(Ni, Nk, Nj, pt) > EPSILON)
     return false;
   return true;
 }
@@ -80,7 +80,7 @@ E_Float Tetrahedron::quality(const K_FLD::FloatArray& crd, E_Float* Vol)
 ///
 void Tetrahedron::edge_length_extrema(const K_FLD::FloatArray& crd, E_Float& Lmin2, E_Float& Lmax2)
 {
-  Lmin2 = K_CONST::E_MAX_FLOAT;
+  Lmin2 = NUGA::FLOAT_MAX;
   Lmax2 = -1.;
   
   for (size_t i=0; i < 4; ++i)
@@ -91,7 +91,7 @@ void Tetrahedron::edge_length_extrema(const K_FLD::FloatArray& crd, E_Float& Lmi
     {
       const E_Float* Pj = crd.col(node(j));
       
-      E_Float L2 = K_FUNC::sqrDistance(Pi,Pj, 3);
+      E_Float L2 = NUGA::sqrDistance(Pi,Pj, 3);
       
       Lmin2 = MIN(Lmin2, L2);
       Lmax2 = MAX(Lmax2, L2);

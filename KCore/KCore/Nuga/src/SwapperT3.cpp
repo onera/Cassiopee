@@ -15,13 +15,13 @@ SwapperT3::~SwapperT3(){}
 //
 SwapperT3::eDegenType SwapperT3::degen_type2(const K_FLD::FloatArray& crd, E_Int N0, E_Int N1, E_Int N2, E_Float tol2, E_Float lambdac, E_Int& ns)
 {
-  ns = E_IDX_NONE;// ns for "special node" : the pick for a spike, the hat node for a hat
+  ns = IDX_NONE;// ns for "special node" : the pick for a spike, the hat node for a hat
   //
   E_Float normal[3];
   K_MESH::Triangle::normal(crd.col(N0), crd.col(N1), crd.col(N2), normal);
   E_Float l2 = ::sqrt(normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2]);
   //
-  if (::fabs(l2 - 1.) < E_EPSILON)
+  if (::fabs(l2 - 1.) < EPSILON)
     return OK;
 
   // we have a degen !
@@ -29,9 +29,9 @@ SwapperT3::eDegenType SwapperT3::degen_type2(const K_FLD::FloatArray& crd, E_Int
   std::pair<E_Float, E_Int> palma[3];
   E_Int N[] = { N0, N1, N2 };
 
-  palma[0] = std::make_pair(K_FUNC::sqrDistance(crd.col(N0), crd.col(N1), 3), 2);
-  palma[1] = std::make_pair(K_FUNC::sqrDistance(crd.col(N0), crd.col(N2), 3), 1);
-  palma[2] = std::make_pair(K_FUNC::sqrDistance(crd.col(N1), crd.col(N2), 3), 0);
+  palma[0] = std::make_pair(NUGA::sqrDistance(crd.col(N0), crd.col(N1), 3), 2);
+  palma[1] = std::make_pair(NUGA::sqrDistance(crd.col(N0), crd.col(N2), 3), 1);
+  palma[2] = std::make_pair(NUGA::sqrDistance(crd.col(N1), crd.col(N2), 3), 0);
   
   std::sort(&palma[0], &palma[0] + 3);
 
@@ -147,7 +147,7 @@ bool SwapperT3::has_degen(const K_FLD::FloatArray& coord, const K_FLD::IntArray&
 
 ///
 E_Int SwapperT3::remove_degen
-(K_FLD::IntArray& connect, K_CONT_DEF::int_vector_type& newIDs)
+(K_FLD::IntArray& connect, NUGA::int_vector_type& newIDs)
 {
   E_Int                       Si, COLS(connect.cols()), ROWS(connect.rows());
   K_FLD::IntArray::iterator   pS;
@@ -156,7 +156,7 @@ E_Int SwapperT3::remove_degen
   connectOut.reserve(ROWS, COLS);
 
   newIDs.clear();
-  newIDs.resize(COLS, E_IDX_NONE);
+  newIDs.resize(COLS, IDX_NONE);
 
   for (Si = 0; Si < COLS; ++Si)
   {
@@ -336,7 +336,7 @@ void SwapperT3::edit_T3_caracs(const K_FLD::FloatArray& crd, E_Int* pN)
 {
   E_Float hmin, Lmin, lambda_min;
   E_Int himin=-1, limin=-1;
-  Lmin = hmin = K_CONST::E_MAX_FLOAT;
+  Lmin = hmin = NUGA::FLOAT_MAX;
   
   for (E_Int n=0; n < 3; ++n)
   {
@@ -349,7 +349,7 @@ void SwapperT3::edit_T3_caracs(const K_FLD::FloatArray& crd, E_Int* pN)
       himin = n;
     }
     
-    E_Float d = ::sqrt(K_FUNC::sqrDistance(crd.col(pN[n]), crd.col(pN[(n + 1) % 3]), 3));
+    E_Float d = ::sqrt(NUGA::sqrDistance(crd.col(pN[n]), crd.col(pN[(n + 1) % 3]), 3));
     
     if (d < Lmin)
     {

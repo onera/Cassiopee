@@ -21,10 +21,11 @@
 #ifndef _ELTALGO_H_
 #define _ELTALGO_H_
 
-# include "Nuga/include/DynArray.h"
+#include "Nuga/include/DynArray.h"
+#include "Nuga/include/defs.h"
 #include "Nuga/include/DefContainers.h"
 #include <algorithm>
-# include "Nuga/include/ArrayAccessor.h"
+#include "Nuga/include/ArrayAccessor.h"
 #include "Nuga/include/ngon_unit.h"
 
 #define NON_MANIFOLD_COL -9
@@ -35,9 +36,9 @@ template <typename ElementType>
 class EltAlgo
 {
 public:
-  typedef K_CONT_DEF::size_type                    size_type;
-  typedef K_CONT_DEF::int_set_type                 int_set_type;
-  typedef K_CONT_DEF::int_vector_type              int_vector_type;
+  typedef NUGA::size_type                    size_type;
+  typedef NUGA::int_set_type                 int_set_type;
+  typedef NUGA::int_vector_type              int_vector_type;
   typedef std::vector<int_vector_type>             NeighbourType;
   typedef typename ElementType::boundary_type      BoundaryType;
   typedef std::map<BoundaryType, int_vector_type > BoundToEltType;

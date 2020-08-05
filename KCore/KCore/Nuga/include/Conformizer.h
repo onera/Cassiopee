@@ -22,9 +22,8 @@
 #define	__CONFORMIZER_H__
 
 #include <vector>
-#include "Def/DefTypes.h"
+#include "Nuga/include/defs.h"
 #include "Nuga/include/DynArray.h"
-#include "Nuga/include/DefContainers.h"
 #include "Nuga/include/BbTree.h"
 
 #ifdef DEBUG_CONFORMIZER
@@ -143,25 +142,25 @@ public:
   virtual void __update_data(const K_FLD::FloatArray& pos, const K_FLD::IntArray& connect, const std::vector<E_Int>& newIDs) = 0;
   ///
   virtual E_Int __split_Elements(const K_FLD::FloatArray& pos, K_FLD::IntArray & connect,
-                                K_CONT_DEF::bool_vector_type& xc,
-                                K_CONT_DEF::int_vector_type& ancestors) = 0;
+                                NUGA::bool_vector_type& xc,
+                                NUGA::int_vector_type& ancestors) = 0;
   
   /// Hook inside __run to merge toward the intersection line (TRI)
   virtual E_Int __simplify_and_clean(const K_FLD::FloatArray& pos, E_Float tolerance, K_FLD::IntArray& connect,
-                                     K_CONT_DEF::int_vector_type& ancestors, K_CONT_DEF::bool_vector_type& xc){return 0;}
+                                     NUGA::int_vector_type& ancestors, NUGA::bool_vector_type& xc){return 0;}
   /// Hook inside __run to merge toward the intersection line (TRI)
   virtual E_Int __simplify_and_clean2(const K_FLD::FloatArray& pos, E_Float tolerance, K_FLD::IntArray& connect,
-    K_CONT_DEF::int_vector_type& ancestors, K_CONT_DEF::bool_vector_type& xc){return 0;}
+    NUGA::int_vector_type& ancestors, NUGA::bool_vector_type& xc){return 0;}
   /// Hook inside run after the loop to manage overlapping zones
   virtual void __run_correction_beta(const K_FLD::FloatArray& pos, K_FLD::IntArray& connect,
-                                     K_CONT_DEF::int_vector_type& ancestors, 
-                                     K_CONT_DEF::bool_vector_type& xc,
+                                     NUGA::int_vector_type& ancestors, 
+                                     NUGA::bool_vector_type& xc,
                                      E_Float tolerance){}
   /// Hook inside run after the loop to manage overlapping zones
-  virtual void __run_correction_gamma(const std::set<K_MESH::NO_Edge>&xpairs, K_CONT_DEF::int_vector_type&colors,
-                                      K_CONT_DEF::int_vector_type&xr, K_FLD::IntArray& connect,
-                                      K_CONT_DEF::int_vector_type& ancestors, K_CONT_DEF::bool_vector_type& xc
-                                      , const K_FLD::FloatArray& pos, K_CONT_DEF::int_vector_type* priority){}
+  virtual void __run_correction_gamma(const std::set<K_MESH::NO_Edge>&xpairs, NUGA::int_vector_type&colors,
+                                      NUGA::int_vector_type&xr, K_FLD::IntArray& connect,
+                                      NUGA::int_vector_type& ancestors, NUGA::bool_vector_type& xc
+                                      , const K_FLD::FloatArray& pos, NUGA::int_vector_type* priority){}
    
   /////////////////////////////////////////////////////////////////////////////
   
@@ -175,19 +174,19 @@ public:
   
  ///
  E_Int __merge_clean (E_Float tol, const K_FLD::FloatArray& pos, K_FLD::IntArray& connect, std::vector<E_Int>& ancestors, 
-               std::vector<E_Int>& newIDs, K_CONT_DEF::bool_vector_type* xc, E_Int fromIdx);
+               std::vector<E_Int>& newIDs, NUGA::bool_vector_type* xc, E_Int fromIdx);
  ///
  E_Int __merge_clean
  (E_Float tol, const K_FLD::FloatArray& pos, K_FLD::IntArray& connect, std::vector<E_Int>& ancestors, 
- std::vector<E_Int>& new_IDs, K_CONT_DEF::bool_vector_type* xc, 
- const K_CONT_DEF::int_vector_type& source, const K_CONT_DEF::int_vector_type& target);
+ std::vector<E_Int>& new_IDs, NUGA::bool_vector_type* xc, 
+ const NUGA::int_vector_type& source, const NUGA::int_vector_type& target);
  
  ///
  void __clean
- (const std::vector<E_Int>& new_IDs, K_FLD::IntArray& connect, std::vector<E_Int>& ancestors, K_CONT_DEF::bool_vector_type* xc);
+ (const std::vector<E_Int>& new_IDs, K_FLD::IntArray& connect, std::vector<E_Int>& ancestors, NUGA::bool_vector_type* xc);
 
   ///
-  E_Int __removeDegenerated(K_FLD::IntArray& connect, K_CONT_DEF::int_vector_type& newIDs);
+  E_Int __removeDegenerated(K_FLD::IntArray& connect, NUGA::int_vector_type& newIDs);
   
 #ifdef DEBUG_CONFORMIZER
   virtual void drawElements(const char* fname, const char* filefmt, const K_FLD::FloatArray& coord,
@@ -209,25 +208,25 @@ public:
                                         E_Float tolerance, E_Int fromIdx = 0);
   ///
   void __initialize(const K_FLD::FloatArray& pos, K_FLD::IntArray& connect, E_Float tolerance,
-                    std::vector<E_Int>& ancestors, K_CONT_DEF::bool_vector_type& xc, E_Int X0);
+                    std::vector<E_Int>& ancestors, NUGA::bool_vector_type& xc, E_Int X0);
   ///
   void __finalize();
   ///
   E_Int __run(K_FLD::FloatArray& pos, K_FLD::IntArray& connect,
-              std::vector<E_Int>& ancestors, K_CONT_DEF::bool_vector_type& xc, E_Float tolerance = -1.); 
+              std::vector<E_Int>& ancestors, NUGA::bool_vector_type& xc, E_Float tolerance = -1.); 
   ///
   E_Int __compute_intersections_w_localizer(K_FLD::FloatArray& pos, const K_FLD::IntArray& connect,
-                                        K_CONT_DEF::bool_vector_type& xc, E_Float tolerance);
+                                        NUGA::bool_vector_type& xc, E_Float tolerance);
 
   ///
   E_Int __compute_intersections_brute(K_FLD::FloatArray& pos, const K_FLD::IntArray& connect,
-    K_CONT_DEF::bool_vector_type& xc, E_Float tolerance);
+    NUGA::bool_vector_type& xc, E_Float tolerance);
   ///
   void __compute_min_edge_length (const K_FLD::FloatArray& pos,
-                                  const K_FLD::IntArray& connect, const K_CONT_DEF::bool_vector_type& xc, E_Float &Lmin, E_Float& Lmax);
+                                  const K_FLD::IntArray& connect, const NUGA::bool_vector_type& xc, E_Float &Lmin, E_Float& Lmax);
   
   ///
-  void __update_tolerance(const K_FLD::FloatArray& coord, K_CONT_DEF::bool_vector_type& xc, const std::vector<E_Int>& ancestors);
+  void __update_tolerance(const K_FLD::FloatArray& coord, NUGA::bool_vector_type& xc, const std::vector<E_Int>& ancestors);
   
 
 #ifndef DEBUG_CONFORMIZER

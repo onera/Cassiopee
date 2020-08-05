@@ -57,7 +57,7 @@ namespace DELAUNAY
 {
   struct edge_error_t
   {
-    edge_error_t():Ni(E_IDX_NONE),Nj(E_IDX_NONE){};
+    edge_error_t():Ni(IDX_NONE),Nj(IDX_NONE){};
     edge_error_t(const edge_error_t& e)
     {
       Ni = e.Ni;
@@ -73,13 +73,13 @@ namespace DELAUNAY
   {
 
   public:
-    typedef K_CONT_DEF::size_type                                        size_type;
-    typedef K_CONT_DEF::int_set_type                                     int_set_type;
-    typedef K_CONT_DEF::int_vector_type                                  int_vector_type;
-    typedef K_CONT_DEF::bool_vector_type                                 bool_vector_type;
-    typedef K_CONT_DEF::int_pair_type                                    int_pair_type;
-    typedef K_CONT_DEF::int_pair_vector_type                             int_pair_vector_type;
-    typedef K_CONT_DEF::non_oriented_edge_set_type                       non_oriented_edge_set_type;
+    typedef NUGA::size_type                                        size_type;
+    typedef NUGA::int_set_type                                     int_set_type;
+    typedef NUGA::int_vector_type                                  int_vector_type;
+    typedef NUGA::bool_vector_type                                 bool_vector_type;
+    typedef NUGA::int_pair_type                                    int_pair_type;
+    typedef NUGA::int_pair_vector_type                             int_pair_vector_type;
+    typedef NUGA::non_oriented_edge_set_type                       non_oriented_edge_set_type;
     typedef K_MESH::Triangle                                             element_type;
     typedef K_MESH::Edge                                                 edge_type;
     typedef K_FLD::ArrayAccessor<K_FLD::FloatArray>                      coord_access_type;
@@ -383,12 +383,12 @@ namespace DELAUNAY
     _data->connectM.pushBack (T1, T1+3);
     _data->connectM.pushBack (T2, T2+3);
 
-    _data->ancestors.resize(_data->pos->cols(), E_IDX_NONE);
+    _data->ancestors.resize(_data->pos->cols(), IDX_NONE);
     _data->ancestors[C1] = _data->ancestors[C2] = _data->ancestors[C4] = 0;
     _data->ancestors[C3] = 1;
 
 
-    size_type def = E_IDX_NONE;
+    size_type def = IDX_NONE;
     _data->neighbors.resize(3, 2, &def);
     _data->neighbors(0,0) = 1;
     _data->neighbors(1,1) = 0;
@@ -586,24 +586,24 @@ namespace DELAUNAY
   E_Int
     Mesher<T, MetricType>::setColors(size_type Nbox, MeshData& data)
   {
-    size_type cols(data.connectM.cols()), Sseed(E_IDX_NONE), S, Sn, Ni, Nj;
+    size_type cols(data.connectM.cols()), Sseed(IDX_NONE), S, Sn, Ni, Nj;
     K_FLD::IntArray::const_iterator pS;
 
     data.colors.clear();
-    data.colors.resize(cols, E_IDX_NONE);
+    data.colors.resize(cols, IDX_NONE);
 
     // Get an element connected to the box.
-    for (size_type i = 0; (i < cols) && (Sseed == E_IDX_NONE); ++i)
+    for (size_type i = 0; (i < cols) && (Sseed == IDX_NONE); ++i)
     {
       pS = data.connectM.col(i);
-      for (size_type j = 0; (j < element_type::NB_NODES) && (Sseed == E_IDX_NONE); ++j)
+      for (size_type j = 0; (j < element_type::NB_NODES) && (Sseed == IDX_NONE); ++j)
       {
         if (*(pS+j) == Nbox)
           Sseed = i;
       }
     }
 
-    if (Sseed == E_IDX_NONE) // Error
+    if (Sseed == IDX_NONE) // Error
       return 1;
 
     std::vector<E_Int> cpool;
@@ -625,10 +625,10 @@ namespace DELAUNAY
         {
           Sn = data.neighbors(i, S);
 
-          if (Sn == E_IDX_NONE)
+          if (Sn == IDX_NONE)
             continue;
 
-          if (data.colors[Sn] != E_IDX_NONE)
+          if (data.colors[Sn] != IDX_NONE)
             continue;
 
           Ni = *(pS + (i+1) % element_type::NB_NODES);
@@ -649,7 +649,7 @@ namespace DELAUNAY
         bool found = false;
         size_type i = 0;
         for (; (i < cols) && !found; ++i)
-          found = (data.colors[i] == E_IDX_NONE);
+          found = (data.colors[i] == IDX_NONE);
         Sseed = i-1;
       }
     }
@@ -674,7 +674,7 @@ namespace DELAUNAY
       // Store the hard edges in an oriented set.
       E_Int Ni, Nj;
       K_FLD::IntArray::const_iterator pS = data.connectB->begin();
-      K_CONT_DEF::oriented_edge_set_type hard_edges;
+      NUGA::oriented_edge_set_type hard_edges;
       for (size_type i = 0; i < data.connectB->cols(); ++i, pS = pS+2)
       {
         Ni = *pS;
@@ -794,7 +794,7 @@ namespace DELAUNAY
 
       std::random_shuffle (ALL(refine_nodes));
 
-      _data->ancestors.resize(_data->pos->cols(), E_IDX_NONE);
+      _data->ancestors.resize(_data->pos->cols(), IDX_NONE);
 
       for (size_type i = 0; (i < nb_refine_nodes) && !_err; ++i)
       {
@@ -855,8 +855,8 @@ namespace DELAUNAY
     Mesher<T, MetricType>::__compute_bounding_box
     (const int_vector_type& cloud, E_Float& minX, E_Float& minY, E_Float& maxX, E_Float& maxY)
   {
-    minX = minY = K_CONST::E_MAX_FLOAT;
-    maxX = maxY = - K_CONST::E_MAX_FLOAT;
+    minX = minY = NUGA::FLOAT_MAX;
+    maxX = maxY = - NUGA::FLOAT_MAX;
 
     K_FLD::FloatArray::const_iterator pK;
     size_type nb_nodes = (size_type)cloud.size();
@@ -881,7 +881,7 @@ namespace DELAUNAY
     const K_FLD::IntArray& neighbors, const int_vector_type& ancestors, int_set_type& pipe, int_pair_vector_type& X_edges)
   {
     int_vector_type Ancs;
-    size_type ni, S(E_IDX_NONE), n(E_IDX_NONE), count(0), nopp, nstart, Ni, Nj;
+    size_type ni, S(IDX_NONE), n(IDX_NONE), count(0), nopp, nstart, Ni, Nj;
     K_FLD::IntArray::const_iterator pS;
     E_Bool done(false), intersect;
     E_Float tolerance(_tool->getTolerance())/*fixmetol*/, tol2(tolerance*tolerance)/*fixmetol*//*, u00, u01, u10, u11, bestu=-1.;*//*used in case of poor ancestors to pick the right one*/;
@@ -891,7 +891,7 @@ namespace DELAUNAY
     X_edges.clear();
     
     E_Int err=__get_xedge_on_shell(N0, N1, pos, connect, neighbors, ancestors, S, n, tolerance);
-    if (err || S==E_IDX_NONE)
+    if (err || S==IDX_NONE)
       return err;
     
     X_edges.push_back(int_pair_type(S,n));
@@ -942,7 +942,7 @@ namespace DELAUNAY
   inline E_Int sign2D(const E_Float*P0, const E_Float*P1, const E_Float*P)
   {
     E_Float perpdot = (P0[1]-P1[1])*(P[0]-P0[0]) + (P1[0]-P0[0])*(P[1]-P0[1]);
-    //return (perpdot < -E_EPSILON) ? -1 : (perpdot > E_EPSILON) ? 1 : 0;
+    //return (perpdot < -EPSILON) ? -1 : (perpdot > EPSILON) ? 1 : 0;
     return (perpdot < 0.) ? -1 : (perpdot > 0.) ? 1 : 0;
   }
   
@@ -965,7 +965,7 @@ namespace DELAUNAY
     E_Float dum1,dum2,dum3;
     E_Bool dum4;
             
-    if (ancestors[N0] == E_IDX_NONE)
+    if (ancestors[N0] == IDX_NONE)
       return 4;
     
     const E_Float* P0=pos.col(N0);
@@ -977,7 +977,7 @@ namespace DELAUNAY
     // Get the ancestor(s) intersecting N0N1. Should be only one, numerical error otherwise.
     size_type AncNb = (size_type)Ancs.size();
     E_Int SIGNi(-2), SIGNip1(-2);
-    E_Float ux0=-K_CONST::E_MAX_FLOAT, ux;
+    E_Float ux0=-NUGA::FLOAT_MAX, ux;
     for (size_type i = 0; i < AncNb; ++i)
     {
       Si = Ancs[i];
@@ -989,11 +989,11 @@ namespace DELAUNAY
 
       if ((Ni == N1) || (Nj == N1))
       {
-        Sx=E_IDX_NONE;
+        Sx=IDX_NONE;
         return 0; // N0N1 is already in, so return OK
       }
       
-      if (neighbors(ni, Si) == E_IDX_NONE)
+      if (neighbors(ni, Si) == IDX_NONE)
         continue;
         
       SIGNi=sign2D(P0,P1, pos.col(Ni));
@@ -1089,10 +1089,10 @@ namespace DELAUNAY
       // Update the neighboring (neighbors)
       neighbors((b+1)  % NB_NODES, S)  = Sn;
       neighbors((bn+1) % NB_NODES, Sn) = S;
-      if ((S1 != E_IDX_NONE) && (b1 != E_IDX_NONE))
+      if ((S1 != IDX_NONE) && (b1 != IDX_NONE))
         neighbors(b1, S1)              = Sn;
       neighbors(bn, Sn)                = S1;
-      if ((S2 != E_IDX_NONE) && (b2 != E_IDX_NONE))
+      if ((S2 != IDX_NONE) && (b2 != IDX_NONE))
         neighbors(b2, S2)              = S;
       neighbors(b, S)                  = S2;
 
@@ -1129,12 +1129,12 @@ namespace DELAUNAY
       size_type count = 0;
       E_Float N0N1[2], V[2], v;
       const E_Float* P0 = pos.col(N00);
-      K_FUNC::diff<2> (P0, pos.col(N11), N0N1);
+      NUGA::diff<2> (P0, pos.col(N11), N0N1);
 
       for (size_type i = 0; i < NB_NODES; ++i)
       {
-        K_FUNC::diff<2> (P0, pos.col(*(pS+i)), V);
-        K_FUNC::crossProduct<2> (N0N1, V, &v);
+        NUGA::diff<2> (P0, pos.col(*(pS+i)), V);
+        NUGA::crossProduct<2> (N0N1, V, &v);
 
         if (v > 0.)
           ++count;
@@ -1151,8 +1151,8 @@ namespace DELAUNAY
       count = 0;
       for (size_type i = 0; i < NB_NODES; ++i)
       {
-        K_FUNC::diff<2> (P0, pos.col(*(pSn+i)), V);
-        K_FUNC::crossProduct<2> (N0N1, V, &v);
+        NUGA::diff<2> (P0, pos.col(*(pSn+i)), V);
+        NUGA::crossProduct<2> (N0N1, V, &v);
         if (v > 0.)
           ++count;
         else if (v < 0.)
@@ -1194,7 +1194,7 @@ namespace DELAUNAY
       for (size_type i = 0; i < sz; ++i)
       {
         newId = newIds[i];
-        if (newId != E_IDX_NONE)
+        if (newId != IDX_NONE)
           _data->colors[newId] = _data->colors[i];
       }
       _data->colors.resize(cols);
@@ -1207,7 +1207,7 @@ namespace DELAUNAY
     //Update ancestors
     for (size_type i = 0; i < nb_nodes; ++i)
     {
-      if (_data->ancestors[i] != E_IDX_NONE)
+      if (_data->ancestors[i] != IDX_NONE)
         _data->ancestors[i] = newIds[_data->ancestors[i]];
     }
     
@@ -1248,7 +1248,7 @@ namespace DELAUNAY
 
     // update ancestors.
     for (size_t i = 0; i < data.ancestors.size(); ++i)
-      if (new_IDs[i] != E_IDX_NONE)
+      if (new_IDs[i] != IDX_NONE)
       data.ancestors[new_IDs[i]] = data.ancestors[i];
     data.ancestors.resize(data.pos->cols());
 

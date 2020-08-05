@@ -155,7 +155,7 @@ public:
   }
 
   // Gather the meshes.
-  int none = E_IDX_NONE;
+  int none = IDX_NONE;
   if (connects[HEX].size() != 0)
   {
     connect = connects[HEX];

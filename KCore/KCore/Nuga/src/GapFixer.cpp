@@ -146,7 +146,7 @@ GapFixer::run
 void
 GapFixer::__convertToGlobalQInterp
 (const K_FLD::FloatArray& posB0, E_Int nj,
- const K_CONT_DEF::int_vector_type& cell_indices,
+ const NUGA::int_vector_type& cell_indices,
  K_FLD::FloatArray& posUV)
 {
   E_Int     Ni, Ci, Qi, I, J;

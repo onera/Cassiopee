@@ -128,7 +128,7 @@ void Intersector::__create_boxes
   boxes.reserve(nb_elts);
   pool = new K_SEARCH::BBox3D[nb_elts];
   
-  for (E_Int i = 0; i < 3; ++i){GBbox.minB[i] = K_CONST::E_MAX_FLOAT; GBbox.maxB[i] = -K_CONST::E_MAX_FLOAT;}
+  for (E_Int i = 0; i < 3; ++i){GBbox.minB[i] = NUGA::FLOAT_MAX; GBbox.maxB[i] = -NUGA::FLOAT_MAX;}
 
   for (size_t i = 0; i < nb_elts; ++i)
   {
@@ -150,7 +150,7 @@ void Intersector::__create_boxes
   E_Float mL[3], mL0, dx;
   for (size_t i = 0; i < nb_elts; ++i)
   {
-    mL0 = -K_CONST::E_MAX_FLOAT;
+    mL0 = -NUGA::FLOAT_MAX;
     for (size_t k = 0; k < 3; ++k)
     {
       mL[k] = boxes[i]->maxB[k] - boxes[i]->minB[k];
@@ -223,7 +223,7 @@ Intersector::__edgeOverlaps
   bool ret = false;
   E_Float lambda, UV[2], min_d;
   E_Bool parallel, coincident;
-  E_Float eps(E_EPSILON), abstol(tol), edge_tol_rel(0.1);
+  E_Float eps(EPSILON), abstol(tol), edge_tol_rel(0.1);
 
   if (!tol_is_absolute)
     abstol *= Lc;
@@ -231,9 +231,9 @@ Intersector::__edgeOverlaps
 
   E_Float Qi[3], normal1[3], normal2[3];
   K_MESH::Triangle::normal(pos.col(*pS1), pos.col(*(pS1+1)), pos.col(*(pS1+2)), normal1);
-  K_FUNC::normalize<3>(normal1);
+  NUGA::normalize<3>(normal1);
   K_MESH::Triangle::normal(pos.col(*pS2), pos.col(*(pS2+1)), pos.col(*(pS2+2)), normal2);
-  K_FUNC::normalize<3>(normal2);
+  NUGA::normalize<3>(normal2);
   for (E_Int k = 0; k < 3; ++k)
   {
     normal1[k] *= abstol;

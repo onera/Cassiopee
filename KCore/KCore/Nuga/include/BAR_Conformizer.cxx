@@ -41,7 +41,7 @@ std::vector<int> BAR_Conformizer<DIM>::get_x_history()
     maxid = std::max(maxid, *std::max_element(ALL(e.nodes)));
   }
   
-  xhis.resize(maxid+1, E_IDX_NONE);
+  xhis.resize(maxid+1, IDX_NONE);
 
   for (size_t i = 0; i < nb_edges; ++i)
   {
@@ -52,7 +52,7 @@ std::vector<int> BAR_Conformizer<DIM>::get_x_history()
     for (size_t j = 0; j < sz; ++j)
     {
       int xid = e.nodes[j];
-      if (xhis[xid] == E_IDX_NONE) xhis[xid] = e.id; // keep first (prior to lower ids)
+      if (xhis[xid] == IDX_NONE) xhis[xid] = e.id; // keep first (prior to lower ids)
     }
   }
 
@@ -68,7 +68,7 @@ BAR_Conformizer<DIM>::__set_tolerances(E_Float Lmin, E_Float Lmax, E_Float  user
   // min edge length (MEL) : Lmin
   
   // The current accpeted range for tolerance is between 1e-10% and 1.% of MEL
-  E_Float tol_min = E_EPSILON*Lmin;
+  E_Float tol_min = EPSILON*Lmin;
   E_Float tol_max = 0.01*Lmin;
   
   if (user_tolerance < 0.)
@@ -107,14 +107,14 @@ BAR_Conformizer<DIM>::__intersect
     return false;
   
   E_Float /*Edge[DIM][2], */IP[DIM], Edg1[DIM], Edg2[DIM];
-  K_FUNC::diff<DIM>(pos.col(*(pS1+1)), pos.col(*pS1), /*Edge[0]*/Edg1);
-  K_FUNC::diff<DIM>(pos.col(*(pS2+1)), pos.col(*pS2), /*Edge[1]*/Edg2);
+  NUGA::diff<DIM>(pos.col(*(pS1+1)), pos.col(*pS1), /*Edge[0]*/Edg1);
+  NUGA::diff<DIM>(pos.col(*(pS2+1)), pos.col(*pS2), /*Edge[1]*/Edg2);
   
   E_Float tol[] ={tolerance, tolerance};
   if (parent_type::_absolute_tol)
   {
-    tol[0] /= ::sqrt(K_FUNC::sqrNorm<DIM>(/*Edge[0]*/Edg1));
-    tol[1] /= ::sqrt(K_FUNC::sqrNorm<DIM>(/*Edge[1]*/Edg2));
+    tol[0] /= ::sqrt(NUGA::sqrNorm<DIM>(/*Edge[0]*/Edg1));
+    tol[1] /= ::sqrt(NUGA::sqrNorm<DIM>(/*Edge[1]*/Edg2));
   }
   
   E_Int n1, Ni, ret = false;
@@ -189,7 +189,7 @@ BAR_Conformizer<DIM>::__reorder_nodes_on_edge
   
   for (size_t k = 0; k < nb_nodes; ++k)
   {
-    L = K_FUNC::sqrDistance(pos.col(nodes[k]), P0, DIM);
+    L = NUGA::sqrDistance(pos.col(nodes[k]), P0, DIM);
     parent_type::_sorterFI.push_back(std::make_pair(L, nodes[k]));
   }
 
@@ -216,13 +216,13 @@ template <E_Int DIM>
 E_Int
 BAR_Conformizer<DIM>::__split_Elements
 (const K_FLD::FloatArray& pos, K_FLD::IntArray & connect,
- K_CONT_DEF::bool_vector_type& xc,
- K_CONT_DEF::int_vector_type& ancestors)
+ NUGA::bool_vector_type& xc,
+ NUGA::int_vector_type& ancestors)
 {
   K_FLD::IntArray::const_iterator pS;
   K_FLD::IntArray connectOut;
-  K_CONT_DEF::int_vector_type ancOut;
-  K_CONT_DEF::bool_vector_type xcOut;
+  NUGA::int_vector_type ancOut;
+  NUGA::bool_vector_type xcOut;
   E_Int E[2];
   
 #define ADD_ONE_EDGE(pS, anci, xci) \

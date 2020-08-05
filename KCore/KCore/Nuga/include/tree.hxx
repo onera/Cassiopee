@@ -46,8 +46,8 @@ class tree
     // to make sizes consistent : need to be called when refining the mesh
     void resize_hierarchy(size_t nb_ent)
     {
-      _parent.resize(nb_ent, E_IDX_NONE);
-      _indir.resize(nb_ent, E_IDX_NONE);
+      _parent.resize(nb_ent, IDX_NONE);
+      _indir.resize(nb_ent, IDX_NONE);
       _level.resize(nb_ent, 0);
       _enabled.resize(nb_ent, true);
     }
@@ -164,19 +164,19 @@ class tree
     //
     E_Int nb_children(E_Int i /*zero based*/) const {
       assert(i < _indir.size());
-      if (_indir[i] == E_IDX_NONE) return 0;
+      if (_indir[i] == IDX_NONE) return 0;
       return array_trait<children_array>::nb_children(_children, _indir[i]);}
     
     //
     const E_Int* children(E_Int i /*zero based*/) const {
       assert(i < _indir.size());
-      if (_indir[i] == E_IDX_NONE) return nullptr;
+      if (_indir[i] == IDX_NONE) return nullptr;
       return array_trait<children_array>::children(_children, _indir[i]);
     }
     
     E_Int* children(E_Int i /*zero based*/) {
       assert(i < _indir.size());
-      if (_indir[i] == E_IDX_NONE) return nullptr;
+      if (_indir[i] == IDX_NONE) return nullptr;
       return array_trait<children_array>::children(_children, _indir[i]);
     }
     
@@ -187,7 +187,7 @@ class tree
        _enabled[i] = true;
        
        // disable its parent
-       if ( parent(i) !=  E_IDX_NONE )_enabled[parent(i)] = false;
+       if ( parent(i) !=  IDX_NONE )_enabled[parent(i)] = false;
 
        // disable its children
        E_Int nbc = nb_children(i);
@@ -212,7 +212,7 @@ void tree<children_array>::get_oids(std::vector<E_Int>& oids) const
   for (size_t i=0; i < nb_ents; ++i)
   {
     E_Int pid = _parent[i];
-    while (pid != E_IDX_NONE) //get back to root _parent
+    while (pid != IDX_NONE) //get back to root _parent
     {
       oids[i] = pid;
       pid = _parent[pid];
@@ -280,7 +280,7 @@ class array_trait<K_FLD::IntArray>
   }
   
   static void resize_children(K_FLD::IntArray& arr, E_Int stride, E_Int nb_children){
-    arr.resize(stride, arr.cols() + nb_children/stride, E_IDX_NONE);
+    arr.resize(stride, arr.cols() + nb_children/stride, IDX_NONE);
   }
 
 };

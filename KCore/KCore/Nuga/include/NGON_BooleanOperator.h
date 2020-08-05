@@ -70,8 +70,8 @@
 #define NGON_DBG NGON_debug<Coordinate_t, Connectivity_t>
 #define TRI_DBG TRI_debug
 
-#define ROUND(x) (((x<E_EPSILON) && (x>-E_EPSILON)) ? 0.: x)
-#define robust_det4(a,b,c,d) K_FUNC::zzdet3(ROUND(d[0]-a[0]), ROUND(d[1]-a[1]), ROUND(d[2]-a[2]), ROUND(b[0]-d[0]), ROUND(b[1]-d[1]), ROUND(b[2]-d[2]), ROUND(c[0]-d[0]), ROUND(c[1]-d[1]), ROUND(c[2]-d[2]))
+#define ROUND(x) (((x<EPSILON) && (x>-EPSILON)) ? 0.: x)
+#define robust_det4(a,b,c,d) NUGA::zzdet3(ROUND(d[0]-a[0]), ROUND(d[1]-a[1]), ROUND(d[2]-a[2]), ROUND(b[0]-d[0]), ROUND(b[1]-d[1]), ROUND(b[2]-d[2]), ROUND(c[0]-d[0]), ROUND(c[1]-d[1]), ROUND(c[2]-d[2]))
 
 #define zABS(a) ((a < 0) ? -a : a)
 
@@ -97,7 +97,7 @@ public :
     typedef K_FLD::ArrayAccessor<Connectivity_t> AConnectivity_t;
     
 private:
-      enum eZone {Z_1=0, Z_2=1, Z_IN=2, /*Z_ALL=3,*/ Z_NONE=E_IDX_NONE};
+      enum eZone {Z_1=0, Z_2=1, Z_IN=2, /*Z_ALL=3,*/ Z_NONE=IDX_NONE};
 
 public:
   /// Constructor with the 2 input GPM M1 & M2.
@@ -154,7 +154,7 @@ public:
     for (E_Int i=0; i < ng.PHs.size(); ++i)
     {
       E_Int Anci = ng.PHs._ancEs(1,i);
-      if ((ng.PHs._ancEs(0,i) == E_IDX_NONE) && (ng.PHs._ancEs(1,i) == E_IDX_NONE)) ++count;
+      if ((ng.PHs._ancEs(0,i) == IDX_NONE) && (ng.PHs._ancEs(1,i) == IDX_NONE)) ++count;
     }
     std::cout << count << " ghosts exist" << std::endl;
   }
@@ -407,7 +407,7 @@ private:
 
                 E_Int hPG = _anc_PG[_nT3_to_oPG[key]];
                 E_Int I = (hPG < _nb_pgs1) ? 0 : 1;
-                E_Int anc[] = {E_IDX_NONE, E_IDX_NONE};
+                E_Int anc[] = {IDX_NONE, IDX_NONE};
                 anc[I]=hPG;
                 for (E_Int kk = 0; kk < pgsi.size(); ++kk)
                   pgs._ancEs.pushBack(anc, anc+2);
@@ -583,7 +583,7 @@ private:
   ///
   inline E_Int __aggregate_convex(const K_FLD::IntArray& connectT3, const Vector_t<E_Int>& indices, ngon_unit& agg_pgs);
   ///
-  bool __is_convex(const K_CONT_DEF::int_pair_vector_type &boundaries, const std::map< E_Int, std::pair<E_Int, E_Int> >& node_to_nodes, 
+  bool __is_convex(const NUGA::int_pair_vector_type &boundaries, const std::map< E_Int, std::pair<E_Int, E_Int> >& node_to_nodes, 
                    const K_FLD::FloatArray& coord, const K_FLD::IntArray& connectT3, const K_FLD::FloatArray& normals,
                    const Vector_t<E_Int>& globalId, std::deque<E_Int>& sorted_contour, E_Int& K0, E_Int& n0, E_Int& Eip1);
   ///
@@ -615,7 +615,7 @@ private:
     ngon_unit realPHs;
     
     E_Int nb_phs = ng.PHs.size(), count(-1);
-    Vector_t<E_Int> nids(nb_phs, E_IDX_NONE);
+    Vector_t<E_Int> nids(nb_phs, IDX_NONE);
     for (E_Int i = 0; i < nb_phs; ++i)
     {
       if (ng.PHs._ancEs(1,i) < _nb_cells2)
@@ -1225,7 +1225,7 @@ E_Int NGON_BOOLEAN_CLASS::volume_coefficients
     const E_Int& rec_PHi = _ngoper->PHs._ancEs(1, PHi); // receiver ancestor id.
     const E_Int& don_PHi = _ngoper->PHs._ancEs(0, PHi); // donnor ancestor id.
     
-    if (rec_PHi == E_IDX_NONE || don_PHi == E_IDX_NONE) // only interested in PH in intersection zone.
+    if (rec_PHi == IDX_NONE || don_PHi == IDX_NONE) // only interested in PH in intersection zone.
       continue;
     
     recId_to_bitIds[rec_PHi].push_back(PHi);
@@ -1300,7 +1300,7 @@ E_Int NGON_BOOLEAN_CLASS::volume_coefficients
 #ifdef DEBUG_BOOLEAN
     E_Float err = vcumul * v_rec;
     err = (err - 1.)/ err; //make it relative
-    if (::fabs(err) > E_EPSILON)
+    if (::fabs(err) > EPSILON)
       std::cout << "erreur relative entre v_rec vs vcumul : " << ::fabs(err) << std::endl;
 #endif
     
@@ -1367,7 +1367,7 @@ E_Int NGON_BOOLEAN_CLASS::volume_and_centroid_coefficients
     const E_Int& rec_PHi = _ngoper->PHs._ancEs(rec_op, PHi); // receiver ancestor id.
     const E_Int& don_PHi = _ngoper->PHs._ancEs(don_op, PHi); // donnor ancestor id.
 
-    if (rec_PHi == E_IDX_NONE || don_PHi == E_IDX_NONE) // only interested in PH in intersection zone. should not happen when same domain
+    if (rec_PHi == IDX_NONE || don_PHi == IDX_NONE) // only interested in PH in intersection zone. should not happen when same domain
     {
 #ifdef DEBUG_BOOLEAN
       std::cout << "MISS MISS MISS : " << PHi << " has been discareded" << std::endl;
@@ -1411,7 +1411,7 @@ E_Int NGON_BOOLEAN_CLASS::volume_and_centroid_coefficients
     std::cout << pcentroids(0,i) << "/" << pcentroids(1,i) << "/" << pcentroids(2,i) << std::endl;
     std::cout << pcentroids2(0,i) << "/" << pcentroids2(1,i) << "/" << pcentroids2(2,i) << std::endl;
     
-    E_Float d = ::sqrt(K_FUNC::sqrDistance(pcentroids.col(i), pcentroids2.col(i), 3));
+    E_Float d = ::sqrt(NUGA::sqrDistance(pcentroids.col(i), pcentroids2.col(i), 3));
     
   }*/
   
@@ -1484,15 +1484,15 @@ E_Int NGON_BOOLEAN_CLASS::volume_and_centroid_coefficients
 #ifdef DEBUG_BOOLEAN
     E_Float err = vcumul * v_rec;
     err = (err - 1.)/ err; //make it relative
-    if (::fabs(err) > E_EPSILON)
+    if (::fabs(err) > EPSILON)
       std::cout << "erreur relative entre v_rec vs vcumul : " << ::fabs(err) << std::endl;
     
     acuG[0] /= vcumul;
     acuG[1] /= vcumul;
     acuG[2] /= vcumul;
     
-    E_Float d = ::sqrt(K_FUNC::sqrDistance(acuG, rec_centroids.col(rec_PHi), 3));
-    if (d > E_EPSILON)
+    E_Float d = ::sqrt(NUGA::sqrDistance(acuG, rec_centroids.col(rec_PHi), 3));
+    if (d > EPSILON)
       std::cout << "barycenter calulation is inconsistent" << std::endl;
 #endif
     
@@ -1619,9 +1619,9 @@ E_Int NGON_BOOLEAN_CLASS::conservative_transfer
       {
         const E_Float* Gc = don_centroids.col(dids[k]); // centroid of the donnor cell
         const E_Float* Gcp = piece_centroids.col(k); // centroid of the donnor cell's current piece
-        K_FUNC::diff<3>(Gcp, Gc, GcGcp); // vector between the centroid of the donno cell and its current piece
+        NUGA::diff<3>(Gcp, Gc, GcGcp); // vector between the centroid of the donno cell and its current piece
         
-        E_Float gradf = grads_don ? K_FUNC::dot<3>(GcGcp, grads_don->col(dids[k])) : 0;
+        E_Float gradf = grads_don ? NUGA::dot<3>(GcGcp, grads_don->col(dids[k])) : 0;
         
         //std::cout << "grads : " << grads_don(0, dids[k]) << "/" << grads_don(1, dids[k]) << "/" << grads_don(2, dids[k]) << std::endl;
         fields_rec(fld, reci) += (fields_don(fld, dids[k]) + gradf) * vcoefs[k];
@@ -1631,7 +1631,7 @@ E_Int NGON_BOOLEAN_CLASS::conservative_transfer
         E_Float vv, GG[3];
         K_MESH::Polyhedron<STAR_SHAPED>::metrics2<DELAUNAY::Triangulator>(dt, pcrd, ngoper.PGs, ngoper.PHs.get_facets_ptr(pids[k]), ngoper.PHs.stride(pids[k]), vv, GG);
         E_Float vvv= vcoefs[k] * rvols[reci];
-        bool vok = (::fabs(::fabs(vv) - vvv) < E_EPSILON);
+        bool vok = (::fabs(::fabs(vv) - vvv) < EPSILON);
         bool xok = (GG[0] == Gcp[0]);
         bool yok = (GG[1] == Gcp[1]);
         bool zok = (GG[2] == Gcp[2]);
@@ -1671,9 +1671,9 @@ E_Int NGON_BOOLEAN_CLASS::conservative_transfer
     E_Float recGx = rec_centroids(0, reci);
     E_Float recGy = rec_centroids(1, reci);
     E_Float recGz = rec_centroids(2, reci);
-    E_Float d = ::sqrt(K_FUNC::sqrDistance(acuG, rec_centroids.col(reci), 3));
+    E_Float d = ::sqrt(NUGA::sqrDistance(acuG, rec_centroids.col(reci), 3));
     dmax = (d > dmax) ? d: dmax;
-    assert (d < E_EPSILON);
+    assert (d < EPSILON);
 #endif
   }
   
@@ -1684,7 +1684,7 @@ E_Int NGON_BOOLEAN_CLASS::conservative_transfer
     E_Float vol_rec = rvols[i];
     E_Float volcumul = accumulated_piece_vols_for_receptor[i];
     
-    bool error_vol  = (::fabs(vol_rec-volcumul)/vol_rec > E_EPSILON);
+    bool error_vol  = (::fabs(vol_rec-volcumul)/vol_rec > EPSILON);
     
     if (error_vol)
     {
@@ -1704,8 +1704,8 @@ E_Int NGON_BOOLEAN_CLASS::conservative_transfer
     E_Float volcumul    = accumulated_piece_vols_for_donnor[i];
         
     
-    bool error_vol  = (::fabs(vol_don-volcumul)/vol_don > E_EPSILON);
-    bool error_mass = (::fabs(mass_don-masscumul)/mass_don > E_EPSILON);
+    bool error_vol  = (::fabs(vol_don-volcumul)/vol_don > EPSILON);
+    bool error_mass = (::fabs(mass_don-masscumul)/mass_don > EPSILON);
     
     if (error_vol || error_mass)
     {
@@ -1822,10 +1822,10 @@ NGON_BOOLEAN_CLASS::__get_working_PGs
 #endif
   
   // Initialize history structures
-  wNG1.PGs._ancEs.resize(2, wNG1.PGs.size(), E_IDX_NONE);
-  wNG1.PHs._ancEs.resize(2, wNG1.PHs.size(), E_IDX_NONE);
-  wNG2.PGs._ancEs.resize(2, wNG2.PGs.size(), E_IDX_NONE);
-  wNG2.PHs._ancEs.resize(2, wNG2.PHs.size(), E_IDX_NONE);
+  wNG1.PGs._ancEs.resize(2, wNG1.PGs.size(), IDX_NONE);
+  wNG1.PHs._ancEs.resize(2, wNG1.PHs.size(), IDX_NONE);
+  wNG2.PGs._ancEs.resize(2, wNG2.PGs.size(), IDX_NONE);
+  wNG2.PHs._ancEs.resize(2, wNG2.PHs.size(), IDX_NONE);
   K_CONNECT::IdTool::init_inc(wNG1.PGs._ancEs, 0, wNG1.PGs.size());
   K_CONNECT::IdTool::init_inc(wNG1.PHs._ancEs, 0, wNG1.PHs.size());
   K_CONNECT::IdTool::init_inc(wNG2.PGs._ancEs, 1, wNG2.PGs.size());
@@ -1919,11 +1919,11 @@ NGON_BOOLEAN_CLASS::__get_working_PGs
     
     // Reset any histo info for ghosts
     wNG2.PHs._ancEs.resize(2, _nb_cells2);
-    wNG2.PHs._ancEs.resize(2, wNG2.PHs.size(), E_IDX_NONE);
+    wNG2.PHs._ancEs.resize(2, wNG2.PHs.size(), IDX_NONE);
     wNG2.PGs._ancEs.resize(2, nb_pgs2);
-    wNG2.PGs._ancEs.resize(2, wNG2.PGs.size(), E_IDX_NONE);    
+    wNG2.PGs._ancEs.resize(2, wNG2.PGs.size(), IDX_NONE);    
     
-    F2E2.resize(2, wNG2.PGs.size(), E_IDX_NONE);
+    F2E2.resize(2, wNG2.PGs.size(), IDX_NONE);
     
 #ifdef DEBUG_BOOLEAN
     std::cout << "GHOST creation : " << std::endl;
@@ -2018,11 +2018,11 @@ if (_XPol != BOTH_SURFACE)
   if (nb_pg10 != wNG1.PGs.size())
   {
     E_Int nb_pgs = wNG1.PGs.size();
-    K_FLD::IntArray f2e(2, nb_pgs, E_IDX_NONE);
+    K_FLD::IntArray f2e(2, nb_pgs, IDX_NONE);
     for (E_Int i = 0; i < nb_pgs; ++i)
     {
       E_Int ancPGi = wNG1.PGs._ancEs(0, i);
-      if (ancPGi == E_IDX_NONE) continue;
+      if (ancPGi == IDX_NONE) continue;
       f2e(0, i) = _F2E(0, ancPGi);
       f2e(1, i) = _F2E(1, ancPGi);
     }
@@ -2032,11 +2032,11 @@ if (_XPol != BOTH_SURFACE)
   if (nb_pg20 != wNG2.PGs.size() && (F2E2.cols() != 0))
   {
     E_Int nb_pgs = wNG2.PGs.size();
-    K_FLD::IntArray f2e(2, nb_pgs, E_IDX_NONE);
+    K_FLD::IntArray f2e(2, nb_pgs, IDX_NONE);
     for (E_Int i = 0; i < nb_pgs; ++i)
     {
       E_Int ancPGi = wNG2.PGs._ancEs(1, i);
-      if (ancPGi == E_IDX_NONE) continue;
+      if (ancPGi == IDX_NONE) continue;
       f2e(0, i) = F2E2(0, ancPGi);
       f2e(1, i) = F2E2(1, ancPGi);
     }
@@ -2209,7 +2209,7 @@ if (_XPol != BOTH_SURFACE)
     _extraF2E.resize(2, extrawPGs.size());
     for (E_Int i = 0; i < F2E2.cols(); ++i)
     {
-      if (pgnids[i] == E_IDX_NONE)
+      if (pgnids[i] == IDX_NONE)
         continue;
       _extraF2E(0, pgnids[i])=F2E2(0, i);
       _extraF2E(1, pgnids[i])=F2E2(1, i);
@@ -2284,7 +2284,7 @@ E_Int NGON_BOOLEAN_CLASS::__conformize
   
   //update node history
   for (size_t i = 0; i < _nodes_history.size(); ++i) 
-     _nodes_history[i] = (_nodes_history[i] != E_IDX_NONE) ? _nodes_history[i] + shft : i;// Put back in history nodes not involved in conformizing
+     _nodes_history[i] = (_nodes_history[i] != IDX_NONE) ? _nodes_history[i] + shft : i;// Put back in history nodes not involved in conformizing
     
   connectT3.shift(shft);
   coord.pushBack(crd);
@@ -2493,7 +2493,7 @@ NGON_BOOLEAN_CLASS::__compute()
   _ng2.clear();
 
   // glue and clean (including handling PH duplicates) : required for classification. 
-  ngon_type::clean_connectivity(_ngXs, _coord, 3, E_EPSILON, true/*remove dups*/); // soft part
+  ngon_type::clean_connectivity(_ngXs, _coord, 3, EPSILON, true/*remove dups*/); // soft part
   ngon_type::clean_connectivity(_ngXh, _coord, 3); // hard part : no need for duplicates removal
   
 #ifdef DEBUG_BOOLEAN
@@ -2645,7 +2645,7 @@ NGON_BOOLEAN_CLASS::__process_intersections
 
 #ifdef DEBUG_CONFORMIZER
   E_Int Ti = TRI_debug::get_T3_index(connectT3, TRUPLE);
-  E_Int a = (Ti != E_IDX_NONE) ? nT3_to_oT3[Ti] : E_IDX_NONE;
+  E_Int a = (Ti != IDX_NONE) ? nT3_to_oT3[Ti] : IDX_NONE;
 #endif
 #endif
     
@@ -2714,7 +2714,7 @@ NGON_BOOLEAN_CLASS::__process_intersections
   medith::write("PGi.mesh", _coord, connectT3, "TRI", &flag);*/
   //TRI_debug::draw_connected_to_T3(_coord, connectT3, 12330, 12409, 7205);
   //E_Int Ti = TRI_DBG::get_T3_index(connectT3, TRUPLE);
-  //E_Int a = (Ti != E_IDX_NONE) ? nT3_to_oT3[Ti] : E_IDX_NONE;
+  //E_Int a = (Ti != IDX_NONE) ? nT3_to_oT3[Ti] : IDX_NONE;
   }
 #endif
 
@@ -2893,10 +2893,10 @@ E_Int NGON_BOOLEAN_CLASS::__build_connect_hard
       {
         noE.setNodes(*(pS+i), *(pS+(i+1)%3));
         E_Int& Tneigh = neighbors(NODE_TO_NEIGH(i), Ti);
-        if (Tneigh == E_IDX_NONE)
+        if (Tneigh == IDX_NONE)
           continue;
         if ( (hedges.find(noE) != hedges.end()) || (nT3_to_PG[Tneigh] != nT3_to_PG[Ti]) ) // or if boundary between to old PGs
-          Tneigh=E_IDX_NONE;
+          Tneigh=IDX_NONE;
       }
     }
   
@@ -2967,7 +2967,7 @@ E_Int NGON_BOOLEAN_CLASS::__build_connect_hard
   
   assert(max_id_new_pgs >= _anc_PG.cols()); //ensure not reducing _anc_PG
   
-  _anc_PG.resize(2, max_id_new_pgs, E_IDX_NONE);
+  _anc_PG.resize(2, max_id_new_pgs, IDX_NONE);
   for (size_t i = 0; i < nT3_to_PG.size(); ++i)
     _anc_PG(1, soft_colors[i]) = nT3_to_PG[i];
   
@@ -3011,16 +3011,16 @@ void NGON_BOOLEAN_CLASS::__refine_open_PGs
   
 #ifdef DEBUG_BOOLEAN
   E_Int colmax = 1 + *std::max_element(nT3_to_PG.begin(), nT3_to_PG.end());
-  assert (colmax != E_IDX_NONE);
+  assert (colmax != IDX_NONE);
 #endif
   
   std::map <E_Int, std::vector<E_Int> > skinPGT3s;
   for (E_Int i = 0; i < connectT3.cols(); ++i)
     skinPGT3s[nT3_to_PG[i]].push_back(i);
   
-  K_CONT_DEF::int_pair_vector_type boundaries;
+  NUGA::int_pair_vector_type boundaries;
   K_FLD::IntArray connectPG, neighbors;
-  std::map<E_Int, K_CONT_DEF::int_pair_type> node_to_nodes;
+  std::map<E_Int, NUGA::int_pair_type> node_to_nodes;
   Vector_t<E_Int> polyLine, sorted_nodes;
   std::map<K_MESH::NO_Edge, Vector_t<E_Int> > edge_to_refined_edge; //starts at 1
   K_MESH::NO_Edge E;
@@ -3070,7 +3070,7 @@ void NGON_BOOLEAN_CLASS::__refine_open_PGs
 
     // Create a single sorted node list
     sorted_nodes.clear();
-    std::map<E_Int, K_CONT_DEF::int_pair_type>::const_iterator it = node_to_nodes.begin();
+    std::map<E_Int, NUGA::int_pair_type>::const_iterator it = node_to_nodes.begin();
     E_Int N=it->first, Nk;
 
     for (; it != node_to_nodes.end(); ++it)
@@ -3135,12 +3135,12 @@ void NGON_BOOLEAN_CLASS::__refine_open_PGs
           /*E_Float d22 = 0.;
           size_t szd = edge_to_refined_edge[E].size();
           for (size_t k = 0; k < szd; ++k)
-            d22 += K_FUNC::sqrDistance(_coord.col(edge_to_refined_edge[E][k]-1), _coord.col(edge_to_refined_edge[E][(k + 1) % szd]-1), 3);
+            d22 += NUGA::sqrDistance(_coord.col(edge_to_refined_edge[E][k]-1), _coord.col(edge_to_refined_edge[E][(k + 1) % szd]-1), 3);
           
           szd = polyLine.size();
           E_Float d21 = 0.;
           for (size_t k = 0; (k<szd) && (d21<d22); ++k)
-            d21 += K_FUNC::sqrDistance(_coord.col(polyLine[k]-1), _coord.col(polyLine[(k + 1) % szd]-1), 3);*/
+            d21 += NUGA::sqrDistance(_coord.col(polyLine[k]-1), _coord.col(polyLine[(k + 1) % szd]-1), 3);*/
 
 #ifdef DEBUG_BOOLEAN
           K_FLD::IntArray cnt1, cnt2;
@@ -3177,7 +3177,7 @@ void NGON_BOOLEAN_CLASS::__refine_open_PGs
           
           if (d22 < d21) //if the stored is better meaning having the smallest geom distance
             continue;
-          else if (IS_ZERO(d22-d21, E_EPSILON) && szd1 <= szd2) //same distance => keep smallest nb of nodes
+          else if (IS_ZERO(d22-d21, EPSILON) && szd1 <= szd2) //same distance => keep smallest nb of nodes
             continue;
         }
         
@@ -3425,14 +3425,14 @@ NGON_BOOLEAN_CLASS::__focus_on_intersection_zone
   else // not fully included
   {
     K_CONNECT::DynZoneExtractor ze;
-    ze.getInBox<3>(&GBX.minB[0], &GBX.maxB[0], E_EPSILON, boxes1, is_in1);
+    ze.getInBox<3>(&GBX.minB[0], &GBX.maxB[0], EPSILON, boxes1, is_in1);
   }
   
   if (GBX == GBbox2){} // fully included
   else
   {
     K_CONNECT::DynZoneExtractor ze;
-    ze.getInBox<3>(&GBX.minB[0], &GBX.maxB[0], E_EPSILON, boxes2, is_in2);
+    ze.getInBox<3>(&GBX.minB[0], &GBX.maxB[0], EPSILON, boxes2, is_in2);
   }
   
 #ifdef FLAG_STEP
@@ -3477,7 +3477,7 @@ NGON_BOOLEAN_CLASS::__focus_on_intersection_zone
     
 
     // Now build the tree
-    K_SEARCH::BbTree3D tree(*tree_boxes, E_EPSILON);
+    K_SEARCH::BbTree3D tree(*tree_boxes, EPSILON);
     Vector_t<E_Int> captured_boxes;
     
     size_t sz = test_boxes->size(), sz1(0);
@@ -3609,7 +3609,7 @@ void NGON_BOOLEAN_CLASS::__create_ph_boxes
   boxes.reserve(nb_elts);
   pool = new K_SEARCH::BBox3D[nb_elts];
   
-  for (E_Int i = 0; i < 3; ++i){GBbox.minB[i] = K_CONST::E_MAX_FLOAT; GBbox.maxB[i] = -K_CONST::E_MAX_FLOAT;}
+  for (E_Int i = 0; i < 3; ++i){GBbox.minB[i] = NUGA::FLOAT_MAX; GBbox.maxB[i] = -NUGA::FLOAT_MAX;}
 
   for (size_t i = 0; i < nb_elts; ++i)
   {
@@ -3662,7 +3662,7 @@ void NGON_BOOLEAN_CLASS::__create_pg_boxes
   boxes.reserve(nb_faces);
   pool = new K_SEARCH::BBox3D[nb_faces];
   
-  for (E_Int i = 0; i < 3; ++i){GBbox.minB[i] = K_CONST::E_MAX_FLOAT; GBbox.maxB[i] = -K_CONST::E_MAX_FLOAT;}
+  for (E_Int i = 0; i < 3; ++i){GBbox.minB[i] = NUGA::FLOAT_MAX; GBbox.maxB[i] = -NUGA::FLOAT_MAX;}
   
   size_t fcount(0);
   for (size_t i = 0; i < nb_faces; ++i)
@@ -3681,8 +3681,8 @@ void NGON_BOOLEAN_CLASS::__create_pg_boxes
     {
       if (box->minB[j]==box->maxB[j]) //fixme : what is that ?
       {
-        box->minB[j] -= E_EPSILON;
-        box->maxB[j] += E_EPSILON;
+        box->minB[j] -= EPSILON;
+        box->maxB[j] += EPSILON;
       }
       GBbox.minB[j] = (GBbox.minB[j] > box->minB[j]) ? box->minB[j] : GBbox.minB[j];
       GBbox.maxB[j] = (GBbox.maxB[j] < box->maxB[j]) ? box->maxB[j] : GBbox.maxB[j];
@@ -3804,8 +3804,8 @@ E_Int NGON_BOOLEAN_CLASS::__discard_holes_by_box(const K_FLD::FloatArray& coord,
   //init boxes
   for (E_Int i=0; i < nb_connex; ++i)
   {
-    bbox_per_color[i].maxB[0]=bbox_per_color[i].maxB[1]=bbox_per_color[i].maxB[2]=-K_CONST::E_MAX_FLOAT;
-    bbox_per_color[i].minB[0]=bbox_per_color[i].minB[1]=bbox_per_color[i].minB[2]=K_CONST::E_MAX_FLOAT;
+    bbox_per_color[i].maxB[0]=bbox_per_color[i].maxB[1]=bbox_per_color[i].maxB[2]=-NUGA::FLOAT_MAX;
+    bbox_per_color[i].minB[0]=bbox_per_color[i].minB[1]=bbox_per_color[i].minB[2]=NUGA::FLOAT_MAX;
   }
   
   Vector_t<E_Int> nodes;
@@ -3837,9 +3837,9 @@ E_Int NGON_BOOLEAN_CLASS::__discard_holes_by_box(const K_FLD::FloatArray& coord,
   {
     for (E_Int j = i + 1; j < nb_connex; ++j)
     {
-      if (BbTree3D::box1IsIncludedinbox2(&bbox_per_color[i], &bbox_per_color[j], E_EPSILON))
+      if (BbTree3D::box1IsIncludedinbox2(&bbox_per_color[i], &bbox_per_color[j], EPSILON))
         hole_colors.insert(i);
-      else if (BbTree3D::box1IsIncludedinbox2(&bbox_per_color[j], &bbox_per_color[i], E_EPSILON))
+      else if (BbTree3D::box1IsIncludedinbox2(&bbox_per_color[j], &bbox_per_color[i], EPSILON))
         hole_colors.insert(j);
     }
   }
@@ -3931,7 +3931,7 @@ E_Int NGON_BOOLEAN_CLASS::__sort_T3_sharing_an_edge
   
   E_Int sz(T3indices.size()), i, N1, err(0);
   const E_Int *pSi;
-  E_Float q, ERRORVAL(2.*K_CONST::E_PI);
+  E_Float q, ERRORVAL(2.*NUGA::PI);
   
   E_Int& K0 = T3indices[0];
   
@@ -3965,11 +3965,11 @@ E_Int NGON_BOOLEAN_CLASS::__sort_T3_sharing_an_edge
     std::cout << "E1 : " << coord(0,E1) << "/" << coord(1,E1) << "/" << coord(2,E1) << std::endl;
     
     E_Float nk[3];
-    K_FUNC::crossProduct<3>(normals.col(K0), normals.col(Ki), nk);
-    E_Float s2 = K_FUNC::sqrNorm<3>(nk);
-    E_Float c = K_FUNC::dot<3>(normals.col(K0), normals.col(Ki));
+    NUGA::crossProduct<3>(normals.col(K0), normals.col(Ki), nk);
+    E_Float s2 = NUGA::sqrNorm<3>(nk);
+    E_Float c = NUGA::dot<3>(normals.col(K0), normals.col(Ki));
     E_Float alpha = ::atan2(::sqrt(s2), c); 
-    //alpha = K_CONST::E_PI + alpha;
+    //alpha = NUGA::PI + alpha;
     std::cout << "alpha : " << alpha << std::endl;
     std::cout << std::endl;  
   }*/
@@ -4064,7 +4064,7 @@ E_Int NGON_BOOLEAN_CLASS::__sort_T3_sharing_an_edge
 
   E_Int sz(T3indices.size()), i, N1;
   const E_Int *pSi;
-  E_Float q, ERRORVAL(2.*K_CONST::E_PI);
+  E_Float q, ERRORVAL(2.*NUGA::PI);
 
   E_Int& K0 = T3indices[0];
 
@@ -4163,9 +4163,9 @@ E_Int NGON_BOOLEAN_CLASS::__get_degen_T3
   std::pair<E_Float, E_Int> palma[3];
   E_Int N[] = { connectT3(0,badK), connectT3(1,badK), connectT3(2,badK) };
 
-  palma[0] = std::make_pair(K_FUNC::sqrDistance(coord.col(N[0]), coord.col(N[1]), 3), 2);
-  palma[1] = std::make_pair(K_FUNC::sqrDistance(coord.col(N[0]), coord.col(N[2]), 3), 1);
-  palma[2] = std::make_pair(K_FUNC::sqrDistance(coord.col(N[1]), coord.col(N[2]), 3), 0);
+  palma[0] = std::make_pair(NUGA::sqrDistance(coord.col(N[0]), coord.col(N[1]), 3), 2);
+  palma[1] = std::make_pair(NUGA::sqrDistance(coord.col(N[0]), coord.col(N[2]), 3), 1);
+  palma[2] = std::make_pair(NUGA::sqrDistance(coord.col(N[1]), coord.col(N[2]), 3), 0);
 
   std::sort(&palma[0], &palma[0] + 3);
 
@@ -4635,7 +4635,7 @@ E_Int NGON_BOOLEAN_CLASS::__classify_soft()
       E_Int Fid = _ngXs.PHs.get_facet(i,j) - 1;
       bool is_ex_pg = _ngXs.PGs._external[Fid];
       
-      bool valid = (is_ex_pg && Neigh == E_IDX_NONE) || (!is_ex_pg && Neigh != E_IDX_NONE);
+      bool valid = (is_ex_pg && Neigh == IDX_NONE) || (!is_ex_pg && Neigh != IDX_NONE);
       
       assert (valid);
       
@@ -4653,7 +4653,7 @@ E_Int NGON_BOOLEAN_CLASS::__classify_soft()
     for (size_t j=0; j < nb_neigh; ++j)
     {
       E_Int Neigh = neighbors.get_facet(i,j);
-      if (Neigh == E_IDX_NONE) // is supposed external
+      if (Neigh == IDX_NONE) // is supposed external
       {
         external[i]=true; break;
       }
@@ -4833,7 +4833,7 @@ E_Int NGON_BOOLEAN_CLASS::__build_neighbors_table
 (const K_FLD::FloatArray& coord, const K_FLD::IntArray& connectT3, const K_FLD::IntArray& connectT3o, K_FLD::IntArray& neighbors)
 {
   neighbors.clear();
-  neighbors.resize(3, connectT3o.cols(), E_IDX_NONE);
+  neighbors.resize(3, connectT3o.cols(), IDX_NONE);
   
   // GET THE MAP EDGE to T3s (non oriented)
   K_FLD::ArrayAccessor<K_FLD::IntArray> acT3(connectT3);
@@ -4900,7 +4900,7 @@ E_Int NGON_BOOLEAN_CLASS::__build_neighbors_table
   bool found = false;
   for (size_t i = 0; i < neighbors.rows(); ++i)
     for (size_t j = 0; j < neighbors.cols(); ++j)
-      if (neighbors(i,j) == E_IDX_NONE)
+      if (neighbors(i,j) == IDX_NONE)
       {
         std::cout << "(i,j) : " << "(" << i << "," << j << ")" << std::endl;
         found = true;
@@ -4997,14 +4997,14 @@ bool NGON_BOOLEAN_CLASS::__fix_degen_for_turning_left
     else
     {
       sorted_nodes.clear();
-      sorted_nodes.push_back(std::make_pair(-K_CONST::E_MAX_FLOAT,N1));
-      sorted_nodes.push_back(std::make_pair(K_CONST::E_MAX_FLOAT, N2));
+      sorted_nodes.push_back(std::make_pair(-NUGA::FLOAT_MAX,N1));
+      sorted_nodes.push_back(std::make_pair(NUGA::FLOAT_MAX, N2));
 
-      E_Float dN1N22 = K_FUNC::sqrDistance(coord.col(N1), coord.col(N2), 3);
+      E_Float dN1N22 = NUGA::sqrDistance(coord.col(N1), coord.col(N2), 3);
 
       for (auto it = i.second.begin(); it != i.second.end(); ++it)
       {
-        E_Float dN1n2 = K_FUNC::sqrDistance(coord.col(N1), coord.col(*it), 3);
+        E_Float dN1n2 = NUGA::sqrDistance(coord.col(N1), coord.col(*it), 3);
         sorted_nodes.push_back(std::make_pair(dN1n2/dN1N22, *it));
       }
 
@@ -5466,7 +5466,7 @@ E_Int NGON_BOOLEAN_CLASS::__split_multiply_shared_PGT3s
   std::map<E_Int, std::map<E_Int, Vector_t<E_Int> > >::const_iterator it;
   std::map<E_Int, Vector_t<E_Int> >::const_iterator itPG;
   size_t szT3;
-  E_Int PHcur(E_IDX_NONE), PHopp, maxPGId;
+  E_Int PHcur(IDX_NONE), PHopp, maxPGId;
   bool same_PH;
   Vector_t<E_Int> T3scopy;
   std::map<E_Int, E_Int> for_unique_id;
@@ -5534,7 +5534,7 @@ void NGON_BOOLEAN_CLASS::__build_T3_to_PH
 (const K_FLD::IntArray& connectT3, std::map<E_Int, std::map<E_Int, Vector_t<E_Int> > >& PH_to_PGT3s, K_FLD::IntArray& neighbors)
 {
   neighbors.clear();
-  neighbors.resize(2, connectT3.cols(), E_IDX_NONE);
+  neighbors.resize(2, connectT3.cols(), IDX_NONE);
   
   std::map<E_Int, std::map<E_Int, Vector_t<E_Int> > >::const_iterator it;
   std::map<E_Int, Vector_t<E_Int> >::const_iterator itPG;
@@ -5554,7 +5554,7 @@ void NGON_BOOLEAN_CLASS::__build_T3_to_PH
       for (size_t i=0; i < szT3; ++i)
       {
         const E_Int& Ti = T3s[i];
-        if (neighbors(0, Ti) == E_IDX_NONE)
+        if (neighbors(0, Ti) == IDX_NONE)
           neighbors(0, Ti) = PHi;
         else
           neighbors(1, Ti) = PHi;
@@ -5698,7 +5698,7 @@ E_Int  NGON_BOOLEAN_CLASS::__aggregate_convex
   trash.push_back(connectM);//to delete at the end
  
   std::map< E_Int, std::pair<E_Int, E_Int> > node_to_nodes_m;
-  K_CONT_DEF::int_pair_vector_type boundaries;
+  NUGA::int_pair_vector_type boundaries;
   K_FLD::IntArray connectB;
 
 #ifdef DEBUG_BOOLEAN
@@ -5808,26 +5808,26 @@ E_Int NGON_BOOLEAN_CLASS::__cut_mesh_convex_line
  E_Int K0, E_Int n0, E_Int B, K_FLD::IntArray& neighbors, 
  K_FLD::IntArray& connectT31, K_FLD::IntArray& connectT32)
 {
-  assert (K0 != E_IDX_NONE);
+  assert (K0 != IDX_NONE);
     
   std::set<E_Int>& bnodes = _tmp_set_int;
   bnodes.clear();
   for (E_Int i = 0; i < connectB.cols(); ++i) bnodes.insert(connectB(0,i));
   
   E_Float Eip1Aip1[3], Ek[3], Dir[3], ps;
-  E_Int Ai=E_IDX_NONE, Aip1, Ki(K0), Kip1, Kim1(K0), ni((n0+1)%3), nim1=0, Ei(connectT3((n0+1)%3, K0)), Eip1(connectT3((n0+2)%3, K0));
+  E_Int Ai=IDX_NONE, Aip1, Ki(K0), Kip1, Kim1(K0), ni((n0+1)%3), nim1=0, Ei(connectT3((n0+1)%3, K0)), Eip1(connectT3((n0+2)%3, K0));
   K_FLD::IntArray::const_iterator pKi;
   
-  //K_FUNC::diff<3>(_coord.col(Eip1), _coord.col(Ei), &Dir1[0]);
-  //K_FUNC::diff<3>(_coord.col(Eip1), _coord.col(B), &Dir2[0]);
-  //K_FUNC::sum<3>(0.5, &Dir1[0], 0.5, &Dir2[0], &Dir[0]);//ax+by
-  //K_FUNC::normalize<3>(Dir);
+  //NUGA::diff<3>(_coord.col(Eip1), _coord.col(Ei), &Dir1[0]);
+  //NUGA::diff<3>(_coord.col(Eip1), _coord.col(B), &Dir2[0]);
+  //NUGA::sum<3>(0.5, &Dir1[0], 0.5, &Dir2[0], &Dir[0]);//ax+by
+  //NUGA::normalize<3>(Dir);
   
   //
   while (1)
   {
-    K_FUNC::diff<3>(_coord.col(Eip1), _coord.col(Ei), &Dir[0]);
-    K_FUNC::normalize<3>(Dir);
+    NUGA::diff<3>(_coord.col(Eip1), _coord.col(Ei), &Dir[0]);
+    NUGA::normalize<3>(Dir);
     
     while (1)
     {
@@ -5835,14 +5835,14 @@ E_Int NGON_BOOLEAN_CLASS::__cut_mesh_convex_line
       Aip1 = *(pKi + (ni+2)%3);
       Kip1 = neighbors(ni, Ki);
       
-      if (Kip1 == E_IDX_NONE) break;
+      if (Kip1 == IDX_NONE) break;
       
-      K_FUNC::diff<3>(_coord.col(Aip1), _coord.col(Eip1), &Eip1Aip1[0]);
-      K_FUNC::normalize<3>(Eip1Aip1);
-      K_FUNC::crossProduct<3>(Dir, Eip1Aip1, Ek);
-      ps = K_FUNC::dot<3>(Ek, normals.col(globalId[Ki]));
+      NUGA::diff<3>(_coord.col(Aip1), _coord.col(Eip1), &Eip1Aip1[0]);
+      NUGA::normalize<3>(Eip1Aip1);
+      NUGA::crossProduct<3>(Dir, Eip1Aip1, Ek);
+      ps = NUGA::dot<3>(Ek, normals.col(globalId[Ki]));
       
-      if (ps < -E_EPSILON) break;
+      if (ps < -EPSILON) break;
        
       // current best
       Kim1 = Ki;
@@ -5858,17 +5858,17 @@ E_Int NGON_BOOLEAN_CLASS::__cut_mesh_convex_line
     // cut edge : (Eip1, Ai)
     
     //do the cut for this edge by updating neighbors.
-    neighbors(nim1, Kim1) = E_IDX_NONE;
-    neighbors((ni+2)%3, Ki) = E_IDX_NONE;
-    /*if (Kip1 != E_IDX_NONE)
+    neighbors(nim1, Kim1) = IDX_NONE;
+    neighbors((ni+2)%3, Ki) = IDX_NONE;
+    /*if (Kip1 != IDX_NONE)
     {
       pKi = connectT3.col(Kip1);
       ni = K_MESH::Triangle::getLocalNodeId(pKi, Ai);
-      neighbors((ni+2)%3, Kip1) = E_IDX_NONE;
+      neighbors((ni+2)%3, Kip1) = IDX_NONE;
     }*/
     
     if (bnodes.find(Ai) != bnodes.end()) break;
-    if (Ai == E_IDX_NONE) break;
+    if (Ai == IDX_NONE) break;
     
     Ei = Eip1;
     Eip1 = Ai;
@@ -5905,7 +5905,7 @@ E_Int NGON_BOOLEAN_CLASS::__cut_mesh_convex_line
 ///
 TEMPLATE_COORD_CONNECT
 bool NGON_BOOLEAN_CLASS::__is_convex
-(const K_CONT_DEF::int_pair_vector_type &boundaries,
+(const NUGA::int_pair_vector_type &boundaries,
  const std::map< E_Int, std::pair<E_Int, E_Int> >& node_to_nodes, 
  const K_FLD::FloatArray& coord, 
  const K_FLD::IntArray& connectT3, const K_FLD::FloatArray& normals, const Vector_t<E_Int>& globalId, 
@@ -5914,10 +5914,10 @@ bool NGON_BOOLEAN_CLASS::__is_convex
   E_Int eim1, eip1, ei, K, n;
   E_Float worst_ps = 1., Ei[3], Ej[3] /*,Ek[3],ps */;
   bool convex = true;
-  Eip1=K0=n0=E_IDX_NONE;
+  Eip1=K0=n0=IDX_NONE;
   std::map< E_Int, std::pair<E_Int, E_Int> >::const_iterator itN;
   
-  E_Float angle_max = K_CONST::E_PI* _convexity_tol; // a fraction betwen 0 and Pi
+  E_Float angle_max = NUGA::PI* _convexity_tol; // a fraction betwen 0 and Pi
   E_Float cos_min = ::cos(angle_max); // cos is decreasing on [0; Pi]
   
   E_Float Z[3];
@@ -5931,24 +5931,24 @@ bool NGON_BOOLEAN_CLASS::__is_convex
     assert (itN != node_to_nodes.end());
     eip1=itN->second.second;/*cT30((n+2)%3, K);//*/
     
-    K_FUNC::diff<3>(coord.col(ei), coord.col(eim1), &Ei[0]);
-    K_FUNC::diff<3>(coord.col(eip1), coord.col(ei), &Ej[0]);
-    K_FUNC::sum<3>(normals.col(globalId[K]), coord.col(ei), Z);
+    NUGA::diff<3>(coord.col(ei), coord.col(eim1), &Ei[0]);
+    NUGA::diff<3>(coord.col(eip1), coord.col(ei), &Ej[0]);
+    NUGA::sum<3>(normals.col(globalId[K]), coord.col(ei), Z);
     
-    E_Float det = K_FUNC::zzdet4(coord.col(eim1), coord.col(ei), coord.col(eip1), Z);
+    E_Float det = NUGA::zzdet4(coord.col(eim1), coord.col(ei), coord.col(eip1), Z);
     
     if (det >= 0.) continue; // convex
     
-    K_FUNC::normalize<3>(Ei);
-    K_FUNC::normalize<3>(Ej);
+    NUGA::normalize<3>(Ei);
+    NUGA::normalize<3>(Ej);
 
-    E_Float c = K_FUNC::dot<3>(Ei, Ej);
+    E_Float c = NUGA::dot<3>(Ei, Ej);
     
     if (c < cos_min) // angle > anle max
     {
       convex = false;
   
-      if ((K0 == E_IDX_NONE) || (c < worst_ps))
+      if ((K0 == IDX_NONE) || (c < worst_ps))
       {
         K0 = K; //returned K is local (for __cut_mesh_convex_line)
         n0 = n;
@@ -6001,7 +6001,7 @@ void NGON_BOOLEAN_CLASS:: __compact_and_join(ngon_type& ngio, K_FLD::FloatArray&
   K_FLD::ArrayAccessor<K_FLD::FloatArray> ca(coord);
   
   Vector_t<E_Int> nids;
-  E_Int nb_merges = ::merge(ca, E_EPSILON, nids);
+  E_Int nb_merges = ::merge(ca, EPSILON, nids);
   
   if (nb_merges)
     ngio.PGs.change_indices(nids); 
@@ -6169,7 +6169,7 @@ E_Int NGON_BOOLEAN_CLASS::__set_PH_history
   // Where does each PHT3 comes from ?
   //
 
-  anc_PH.resize(2, PHT3s.size(), E_IDX_NONE);
+  anc_PH.resize(2, PHT3s.size(), IDX_NONE);
   
   typedef std::map<E_Int, Vector_t<E_Int> > map_t;
   typedef Vector_t<E_Int> vec_t;
@@ -6207,7 +6207,7 @@ E_Int NGON_BOOLEAN_CLASS::__set_PH_history
       
       E_Int hPH = F2E(I, wPG);
 
-      if (hPH == E_IDX_NONE)
+      if (hPH == IDX_NONE)
         continue;
 
       anc_PH((wPG < nb_pgs1) ? 0 : 1, i) = hPH; //if nb_pgs1 < 0 it means that set_hitory is called for hard part which is always right operand
@@ -6353,7 +6353,7 @@ bool NGON_BOOLEAN_CLASS::__is_untouched_PH
   
   size_t nb_t3s = T3s.size();
   bool untouched = true;
-  E_Int PH = E_IDX_NONE;
+  E_Int PH = IDX_NONE;
   
   for (size_t i = 0; (i< nb_t3s) && untouched; ++i)
   {
@@ -6366,11 +6366,11 @@ bool NGON_BOOLEAN_CLASS::__is_untouched_PH
     E_Int wPG = nT3_to_oPG[T];
     if (wPG >= F2E.cols()) continue;
     
-    PH = (PH == E_IDX_NONE) ? F2E(I, wPG) : PH;
+    PH = (PH == IDX_NONE) ? F2E(I, wPG) : PH;
     untouched = (F2E(I, wPG) == PH);
   }
 
-  if (PH == E_IDX_NONE) return false; //this is added in case the considered parasite is the hull parasite
+  if (PH == IDX_NONE) return false; //this is added in case the considered parasite is the hull parasite
   
   return untouched;
 }

@@ -103,7 +103,7 @@ BAR_BooleanOperator::getIntersectionBorder
   
   // Get the bound_to_elts map (to detect external boundaries
   typedef K_MESH::Edge::boundary_type node_type;
-  typedef std::map<node_type, K_CONT_DEF::int_vector_type > BoundToEltType;
+  typedef std::map<node_type, NUGA::int_vector_type > BoundToEltType;
   BoundToEltType bound_to_elts;
   K_FLD::ArrayAccessor<K_FLD::IntArray> actv(conn);
   NUGA::EltAlgo<K_MESH::Edge>::getBoundToElements(actv, bound_to_elts);
@@ -133,30 +133,30 @@ BAR_BooleanOperator::check_sanity()
   FittingBox::computeNormalToContour(_coord, _connects[1], normal2);
   
   //check normals equality
-  E_Float x = K_FUNC::dot<3>(_normal, normal2);
+  E_Float x = NUGA::dot<3>(_normal, normal2);
   
-  if (::fabs(x + 1.) < E_EPSILON) // opposite orientation, one needs a reverse
+  if (::fabs(x + 1.) < EPSILON) // opposite orientation, one needs a reverse
   {
     for (E_Int i=0; i < _connects[1].cols(); ++i)
       std::swap(_connects[1](0,i), _connects[1](1,i));
     x = 1.;
   }
   
-  if (::fabs(x - 1.) > E_EPSILON) return 1; //not on the same plane
+  if (::fabs(x - 1.) > EPSILON) return 1; //not on the same plane
   
   // check planarity
   E_Float Pt[3];
   for (E_Int i=0; i < _connects[0].cols(); ++i)
   {
-    K_FUNC::diff<3>(_coord.col(_connects[0](1,i)), _coord.col(_connects[0](0,i)), Pt);
-    E_Float x = K_FUNC::dot<3>(_normal, Pt);
-    if ((x < -E_EPSILON)||(x > E_EPSILON)) return 1;
+    NUGA::diff<3>(_coord.col(_connects[0](1,i)), _coord.col(_connects[0](0,i)), Pt);
+    E_Float x = NUGA::dot<3>(_normal, Pt);
+    if ((x < -EPSILON)||(x > EPSILON)) return 1;
   }
   for (E_Int i=0; i < _connects[1].cols(); ++i)
   {
-    K_FUNC::diff<3>(_coord.col(_connects[1](1,i)), _coord.col(_connects[1](0,i)), Pt);
-    E_Float x = K_FUNC::dot<3>(_normal, Pt);
-    if ((x < -E_EPSILON)||(x > E_EPSILON)) return 1;
+    NUGA::diff<3>(_coord.col(_connects[1](1,i)), _coord.col(_connects[1](0,i)), Pt);
+    E_Float x = NUGA::dot<3>(_normal, Pt);
+    if ((x < -EPSILON)||(x > EPSILON)) return 1;
   }
   
   return 0;

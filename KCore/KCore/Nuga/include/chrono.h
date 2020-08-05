@@ -21,7 +21,7 @@
 #define __DELAUNAY_CHRONO_H__
 
 #include "time.h"
-#include "Def/DefTypes.h"
+#include "Nuga/include/defs.h"
 
 namespace DELAUNAY
 {

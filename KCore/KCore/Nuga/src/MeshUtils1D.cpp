@@ -19,6 +19,8 @@
 
 #include "Nuga/include/MeshUtils1D.h"
 #include "Nuga/include/macros.h"
+#include "Nuga/include/defs.h"
+#include "Nuga/include/maths.hxx"
 #include <algorithm>
 #include <set>
 
@@ -46,7 +48,7 @@ MeshUtils1D::compute_iso_metric
   E_Int Ni, Nj, DIM(pos.rows()), NBOUND(connect.cols()), bnods;
   E_Float L;
 
-  hmin = K_CONST::E_MAX_FLOAT;
+  hmin = NUGA::FLOAT_MAX;
   hmax = -hmin;
 
   connect.uniqueVals(nodes);
@@ -64,7 +66,7 @@ MeshUtils1D::compute_iso_metric
     pS = connect.col(i);
     Ni = *pS;
     Nj = *(pS+1);
-    L = ::sqrt(K_FUNC::sqrDistance(pos.col(Ni), pos.col(Nj), DIM));
+    L = ::sqrt(NUGA::sqrDistance(pos.col(Ni), pos.col(Nj), DIM));
     metric[Ni] += L;
     metric[Nj] += L;
     ++count[Ni];

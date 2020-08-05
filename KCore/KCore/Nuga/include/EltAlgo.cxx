@@ -25,7 +25,7 @@
 #include "Nuga/include/merge.h"
 #include "Nuga/include/Triangle.h"
 #include "Nuga/include/Polygon.h"
-# include "Nuga/include/ArrayAccessor.h"
+#include "Nuga/include/ArrayAccessor.h"
 #include <assert.h>
 #include <stack>
 
@@ -118,7 +118,7 @@ NUGA::EltAlgo<ElementType>::getManifoldNeighbours
   assert (ElementType::NB_NODES == ROWS);
   
   neighbors.clear();
-  neighbors.resize(ROWS, COLS, E_IDX_NONE);
+  neighbors.resize(ROWS, COLS, IDX_NONE);
   
   // Map the boundary to the connected elements.
   K_FLD::ArrayAccessor<K_FLD::IntArray> actv(ELTContainer);
@@ -160,7 +160,7 @@ NUGA::EltAlgo<ElementType>::getNeighbours (const K_FLD::IntArray& ELTContainer, 
 
   assert (ElementType::NB_NODES == ROWS);
   
-  E_Int UNSET = non_manifold_as_free ? E_IDX_NONE : NON_MANIFOLD_COL;
+  E_Int UNSET = non_manifold_as_free ? IDX_NONE : NON_MANIFOLD_COL;
   
   neighbors.clear();
   neighbors.resize(ROWS, COLS, UNSET);
@@ -179,7 +179,7 @@ NUGA::EltAlgo<ElementType>::getNeighbours (const K_FLD::IntArray& ELTContainer, 
       sz = itB->second.size();
       
       if (sz < 2 && !non_manifold_as_free){
-        neighbors((n+2)%ROWS, i) = E_IDX_NONE;
+        neighbors((n+2)%ROWS, i) = IDX_NONE;
         continue;
       }
       else if (sz > 2) continue;
@@ -201,7 +201,7 @@ NUGA::EltAlgo<ElementType>::coloring
 (const K_FLD::IntArray& ELTContainer, const NeighbourType& neighbors, const std::set<BoundaryType> & color_bounds, int_vector_type& colors)
 {
   size_type                        cols(ELTContainer.cols()), i, sz;
-  size_type                        seed(E_IDX_NONE), S, Sn, color(0), colored(0);
+  size_type                        seed(IDX_NONE), S, Sn, color(0), colored(0);
   int_vector_type                  cpool;
   int_vector_type::const_iterator  itC;
   //NeighbourType::const_iterator    itV;
@@ -210,11 +210,11 @@ NUGA::EltAlgo<ElementType>::coloring
   K_FLD::IntArray::const_iterator  pS, pSn;
   
   colors.clear();
-  colors.resize(cols, E_IDX_NONE);
+  colors.resize(cols, IDX_NONE);
   
   while (1/*colored < cols*/)
   {
-    itC = std::find(colors.begin(), colors.end(), E_IDX_NONE);
+    itC = std::find(colors.begin(), colors.end(), IDX_NONE);
     
     if (itC == colors.end())// Error
       return;
@@ -227,7 +227,7 @@ NUGA::EltAlgo<ElementType>::coloring
       S = cpool.back();
       cpool.pop_back();
 
-      if (colors[S] != E_IDX_NONE) // Already colored.
+      if (colors[S] != IDX_NONE) // Already colored.
         continue;
 
       colors[S] = color;
@@ -245,7 +245,7 @@ NUGA::EltAlgo<ElementType>::coloring
       {
         Sn = neigh[i];
         
-        if (colors[Sn] != E_IDX_NONE) // Already colored.
+        if (colors[Sn] != IDX_NONE) // Already colored.
           continue;
 
         pSn = ELTContainer.col(Sn);
@@ -278,11 +278,11 @@ NUGA::EltAlgo<ElementType>::coloring (const ngon_unit& neighbors, int_vector_typ
   K_FLD::IntArray neighs;
   
   colors.clear();
-  colors.resize(NB_ELTS, E_IDX_NONE);
+  colors.resize(NB_ELTS, IDX_NONE);
 
   while (1)
   {
-    while ((Kseed < NB_ELTS) && (colors[Kseed] != E_IDX_NONE)) ++Kseed;
+    while ((Kseed < NB_ELTS) && (colors[Kseed] != IDX_NONE)) ++Kseed;
     if (NB_ELTS-1 < Kseed)
       return;
     
@@ -293,7 +293,7 @@ NUGA::EltAlgo<ElementType>::coloring (const ngon_unit& neighbors, int_vector_typ
       K = cpool.back();
       cpool.pop_back();
       
-      if (colors[K] != E_IDX_NONE)
+      if (colors[K] != IDX_NONE)
         continue;
 
       colors[K] = color;
@@ -306,7 +306,7 @@ NUGA::EltAlgo<ElementType>::coloring (const ngon_unit& neighbors, int_vector_typ
       {
         Kn = *(ptr++);
 
-        if ((Kn != E_IDX_NONE) && (colors[Kn] == E_IDX_NONE)) // Not colored.
+        if ((Kn != IDX_NONE) && (colors[Kn] == IDX_NONE)) // Not colored.
           cpool.push_back(Kn);
       }
     }
@@ -347,14 +347,14 @@ NUGA::EltAlgo<ElementType>::coloring_one_connex_homogeneous (const ngon_unit& ne
     {
       E_Int Kn = *(ptr++);
       
-      if ( (Kn != E_IDX_NONE) && (colors[Kn] != UNSET_COL) && (colors[Kn] != color) && (colors[Kn] != FRONT_COL) )
+      if ( (Kn != IDX_NONE) && (colors[Kn] != UNSET_COL) && (colors[Kn] != color) && (colors[Kn] != FRONT_COL) )
       {
         good_dom = false; //other fronteer than the one expected (FRONT_COL)
         bad_col = colors[Kn];
         break;
       }
 
-      if ((Kn != E_IDX_NONE) && (colors[Kn] == UNSET_COL)) // Not colored.
+      if ((Kn != IDX_NONE) && (colors[Kn] == UNSET_COL)) // Not colored.
         cpool.push_back(Kn);
     }
   }
@@ -396,10 +396,10 @@ NUGA::EltAlgo<ElementType>::coloring_one_connex_homogeneous (const ngon_unit& ne
     {
       E_Int Kn = *(ptr++);
       
-      if ( (Kn != E_IDX_NONE) && (colors[Kn] != UNSET_COL) && (colors[Kn] != color) && (colors[Kn] != FRONT_COL) )
+      if ( (Kn != IDX_NONE) && (colors[Kn] != UNSET_COL) && (colors[Kn] != color) && (colors[Kn] != FRONT_COL) )
         good_dom = false; //other fronteer than the one expected (FRONT_COL)
 
-      if ((Kn != E_IDX_NONE) && (colors[Kn] == UNSET_COL)) // Not colored.
+      if ((Kn != IDX_NONE) && (colors[Kn] == UNSET_COL)) // Not colored.
         cpool.push_back(Kn);
     }
   }
@@ -440,7 +440,7 @@ NUGA::EltAlgo<ElementType>::coloring_one_connex_heterogeneous (const ngon_unit& 
     {
       E_Int Kn = *(ptr++);
 
-      if ((Kn != E_IDX_NONE) && (colors[Kn] == UNSET_COL)) // Not colored.
+      if ((Kn != IDX_NONE) && (colors[Kn] == UNSET_COL)) // Not colored.
         cpool.push_back(Kn);
       //encountered_cols.insert(colors[K]);
     }
@@ -520,11 +520,11 @@ NUGA::EltAlgo<ElementType>::coloring (const K_FLD::IntArray& neighbors, int_vect
   assert (ROWS == (size_t)ElementType::NB_NODES);
   
   colors.clear();
-  colors.resize(NB_ELTS, E_IDX_NONE);
+  colors.resize(NB_ELTS, IDX_NONE);
 
   while (1)
   {
-    while ((Kseed < NB_ELTS) && (colors[Kseed] != E_IDX_NONE)) ++Kseed;
+    while ((Kseed < NB_ELTS) && (colors[Kseed] != IDX_NONE)) ++Kseed;
     if (NB_ELTS-1 < Kseed)
       return;
     
@@ -535,7 +535,7 @@ NUGA::EltAlgo<ElementType>::coloring (const K_FLD::IntArray& neighbors, int_vect
       K = cpool.back();
       cpool.pop_back();
       
-      if (colors[K] != E_IDX_NONE)
+      if (colors[K] != IDX_NONE)
         continue;
 
       colors[K] = color;
@@ -545,7 +545,7 @@ NUGA::EltAlgo<ElementType>::coloring (const K_FLD::IntArray& neighbors, int_vect
       {
         const E_Int& Kn = *(pK+i);
 
-        if ((Kn != E_IDX_NONE) && (colors[Kn] == E_IDX_NONE)) // Not colored.
+        if ((Kn != IDX_NONE) && (colors[Kn] == IDX_NONE)) // Not colored.
           cpool.push_back(Kn);
       }
     }
@@ -566,11 +566,11 @@ NUGA::EltAlgo<ElementType>::coloring_pure (const K_FLD::IntArray& neighbors, int
   K_FLD::IntArray::const_iterator pK;
   
   colors.clear();
-  colors.resize(NB_ELTS, E_IDX_NONE);
+  colors.resize(NB_ELTS, IDX_NONE);
 
   while (1)
   {
-    while ((Kseed < NB_ELTS) && (colors[Kseed] != E_IDX_NONE)) ++Kseed;
+    while ((Kseed < NB_ELTS) && (colors[Kseed] != IDX_NONE)) ++Kseed;
     if (NB_ELTS-1 < Kseed)
       return;
 
@@ -581,7 +581,7 @@ NUGA::EltAlgo<ElementType>::coloring_pure (const K_FLD::IntArray& neighbors, int
       K = cpool.back();
       cpool.pop_back();
       
-      if (colors[K] != E_IDX_NONE)
+      if (colors[K] != IDX_NONE)
         continue;
 
       colors[K] = color;
@@ -590,7 +590,7 @@ NUGA::EltAlgo<ElementType>::coloring_pure (const K_FLD::IntArray& neighbors, int
       for (size_t i=0; i < stride; ++i)
       {
         const E_Int& Kn = *(pK+i);
-        if ((Kn != E_IDX_NONE) && (colors[Kn] == E_IDX_NONE)) // Not colored.
+        if ((Kn != IDX_NONE) && (colors[Kn] == IDX_NONE)) // Not colored.
           cpool.push_back(Kn);
       }
     }
@@ -612,7 +612,7 @@ NUGA::EltAlgo<ElementType>::extrapolate (const ngon_unit& neighbors, K_FLD::IntA
   E_Int count(0), NB_ELTS(properties.cols()), ROWS(properties.rows());
   for (E_Int i=0; i < NB_ELTS; ++i) 
     for (E_Int p=0; p < ROWS; ++p)
-      if (properties(p,i) == E_IDX_NONE) ++count;
+      if (properties(p,i) == IDX_NONE) ++count;
 
   while (count)
   {
@@ -625,12 +625,12 @@ NUGA::EltAlgo<ElementType>::extrapolate (const ngon_unit& neighbors, K_FLD::IntA
       
       for (E_Int p=0; p < ROWS; ++p)
       {
-        if (properties(p,i) != E_IDX_NONE) continue;
+        if (properties(p,i) != IDX_NONE) continue;
 
         for (E_Int n = 0; n < nb_neighs; ++n)
         {
           E_Int j = *(ptr++);
-          if (j < E_IDX_NONE && properties(p,j) != E_IDX_NONE)
+          if (j < IDX_NONE && properties(p,j) != IDX_NONE)
           {
             properties(p,i)=properties(p,j);
             --count;
@@ -651,7 +651,7 @@ NUGA::EltAlgo<K_MESH::Triangle>::reversi_connex (const Connectivity_t& cnt, cons
 
   if (cnt.cols()==0)
     return;
-  if (Kseed == E_IDX_NONE)
+  if (Kseed == IDX_NONE)
     return;
 
   int_vector_type                  cpool, processed;
@@ -682,7 +682,7 @@ NUGA::EltAlgo<K_MESH::Triangle>::reversi_connex (const Connectivity_t& cnt, cons
     {
       Kngh = *(pNeigh++); 
       
-      if ((Kngh == E_IDX_NONE) || processed[Kngh])
+      if ((Kngh == IDX_NONE) || processed[Kngh])
         continue;
       
       K_MESH::Triangle Tkngh(conn, Kngh);
@@ -740,7 +740,7 @@ NUGA::EltAlgo<K_MESH::Polygon>::reversi_connex
     {
       Kngh = neighbors.get_facet(K,n); 
       
-      if ((Kngh == E_IDX_NONE) || processed[Kngh])
+      if ((Kngh == IDX_NONE) || processed[Kngh])
         continue;
       
       pKngh = PGs.get_facets_ptr(Kngh);
@@ -788,7 +788,7 @@ NUGA::EltAlgo<K_MESH::Polygon>::check_orientation_consistency
     {
       Kngh = neighbors.get_facet(K,n); 
             
-      if (Kngh == E_IDX_NONE)
+      if (Kngh == IDX_NONE)
         continue;
       
       pKngh = PGs.get_facets_ptr(Kngh);
@@ -836,7 +836,7 @@ EltAlgo<K_MESH::Triangle>::fast_swap_edges
     //Nl = *(pS + (b+2) % 3);
 
     Sn = neighbors(b, S);
-    if (Sn == E_IDX_NONE)
+    if (Sn == IDX_NONE)
       continue;
 
     pSn = connect.col(Sn);
@@ -857,10 +857,10 @@ EltAlgo<K_MESH::Triangle>::fast_swap_edges
     // Update the neighboring (neighbors)
     neighbors((b+1)  % 3, S)  = Sn;
     neighbors((bn+1) % 3, Sn) = S;
-    if ((S1 != E_IDX_NONE) && (b1 != E_IDX_NONE))
+    if ((S1 != IDX_NONE) && (b1 != IDX_NONE))
       neighbors(b1, S1)              = Sn;
     neighbors(bn, Sn)                = S1;
-    if ((S2 != E_IDX_NONE) && (b2 != E_IDX_NONE))
+    if ((S2 != IDX_NONE) && (b2 != IDX_NONE))
       neighbors(b2, S2)              = S;
     neighbors(b, S)                  = S2;
   }
@@ -896,7 +896,7 @@ NUGA::EltAlgo<ElementType>::smoothd1(const ngon_unit& PHs, const K_FLD::IntArray
       E_Int PHG = noF2E(0,ind_PGi);
       E_Int PHD = noF2E(1,ind_PGi);
 
-      if ( (PHD == E_IDX_NONE) || (PHG == E_IDX_NONE) )
+      if ( (PHD == IDX_NONE) || (PHG == IDX_NONE) )
         continue; // external PG
 
      

@@ -190,20 +190,20 @@ namespace NUGA
 #endif
 
       // transfer altitude
-      std::vector<double> zsnew(data.pos->cols(), K_CONST::E_MAX_FLOAT);
+      std::vector<double> zsnew(data.pos->cols(), NUGA::FLOAT_MAX);
       const auto& pnids = conformizer.get_node_history();
       for (size_t i = 0; i < pnids.size(); ++i)
-        if (pnids[i] != E_IDX_NONE) zsnew[pnids[i]] = zs[i];
+        if (pnids[i] != IDX_NONE) zsnew[pnids[i]] = zs[i];
       zs = std::move(zsnew);
 
       // interpolate missings using x history
       auto xedge = conformizer.get_x_history();
       for (size_t i = 0; i < zs.size(); ++i)
       {
-        if (zs[i] != K_CONST::E_MAX_FLOAT) continue;
+        if (zs[i] != NUGA::FLOAT_MAX) continue;
         int xe = xedge[i];
         
-        assert(xe != E_IDX_NONE); // i is an x point and has its histo
+        assert(xe != IDX_NONE); // i is an x point and has its histo
         
         if (xe >= subj.cols()) continue;
 
@@ -213,8 +213,8 @@ namespace NUGA
         double * P1 = crd.col(N1);
         double * Px = crd.col(i);
 
-        double L2 = K_FUNC::sqrDistance(P0, P1, 2);
-        double lam2 = K_FUNC::sqrDistance(P0, Px, 2);
+        double L2 = NUGA::sqrDistance(P0, P1, 2);
+        double lam2 = NUGA::sqrDistance(P0, Px, 2);
         double l = ::sqrt(lam2 / L2);
 
         zs[i] = (1. - l) * zs[N0] + l * zs[N1];
@@ -223,7 +223,7 @@ namespace NUGA
       
       for (size_t k = 0; k < zs.size(); ++k)
       {
-        if (zs[k] == K_CONST::E_MAX_FLOAT) zs[k] = zmean;
+        if (zs[k] == NUGA::FLOAT_MAX) zs[k] = zmean;
       }
 
       // go back 3D
@@ -249,7 +249,7 @@ namespace NUGA
           for (size_t n = 0; n < 3; ++n)
           {
             E_Int& Kv = data.neighbors(n, i);
-            if (Kv == E_IDX_NONE) //border
+            if (Kv == IDX_NONE) //border
             {
               int E[] = { *(pS + (n + 1) % 3),*(pS + (n + 2) % 3) };
               col_to_cntB[coli].pushBack(E, E + 2);
@@ -314,7 +314,7 @@ namespace NUGA
       bool inward1 = (cut.oriented == -1);
       sub.reorient(false);
 
-      E_Float ps_min(1. - E_EPSILON);
+      E_Float ps_min(1. - EPSILON);
       E_Int contact;
       
       haPolyhedron<0> result;
@@ -385,7 +385,7 @@ namespace NUGA
     {
       using loc_t = typename zmesh_t::loc_t;
 
-      double vcur(v0), veps(v0*E_EPSILON);
+      double vcur(v0), veps(v0*EPSILON);
       K_SEARCH::BBox3D bx0;
       bx0.compute(bits[0].m_crd);
       bx0.enlarge(RTOL);

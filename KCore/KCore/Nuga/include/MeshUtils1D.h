@@ -20,7 +20,7 @@
 #ifndef __DELAUNAY_MESH_UTILS_1D_H__
 #define __DELAUNAY_MESH_UTILS_1D_H__
 
-#include "Def/DefTypes.h"
+#include "Nuga/include/defs.h"
 #include "Nuga/include/DynArray.h"
 #include <vector>
 
@@ -58,8 +58,8 @@ MeshUtils1D::mesh_line
   E_Float Pi[DIM];
   E_Int   Ei[2];
 
-  K_FUNC::diff<DIM>(P1, P0, E);
-  E_Float L = K_FUNC::normalize<DIM>(E);
+  NUGA::diff<DIM>(P1, P0, E);
+  E_Float L = NUGA::normalize<DIM>(E);
   E_Float ti = L/N;
 
   pos.pushBack(P0, P0+DIM);
@@ -82,7 +82,7 @@ void
 MeshUtils1D::mesh_arc (E_Float* C, E_Float* axis, E_Float* P0, E_Float alpha, E_Int N,
                        K_FLD::FloatArray& pos, K_FLD::IntArray& connect)
 {
-  E_Float R = ::sqrt(K_FUNC::sqrDistance(C, P0, DIM));
+  E_Float R = ::sqrt(NUGA::sqrDistance(C, P0, DIM));
   E_Float ai = alpha*R/N;
   E_Float Pj[DIM], CPi[DIM], PiPj[DIM];
   const E_Float* Pi;
@@ -91,14 +91,14 @@ MeshUtils1D::mesh_arc (E_Float* C, E_Float* axis, E_Float* P0, E_Float alpha, E_
   pos.pushBack(P0, P0+DIM);
   I = pos.cols()-1;
 
-  K_FUNC::normalize<3>(axis);
+  NUGA::normalize<3>(axis);
 
   for (E_Int i = 0; i < N; ++i)
   {
     Pi = pos.col(I);
-    K_FUNC::diff<DIM>(Pi, C, CPi);
-    K_FUNC::crossProduct<3>(axis, CPi, PiPj);
-    K_FUNC::normalize<3>(PiPj);
+    NUGA::diff<DIM>(Pi, C, CPi);
+    NUGA::crossProduct<3>(axis, CPi, PiPj);
+    NUGA::normalize<3>(PiPj);
 
     for (E_Int j = 0; j < DIM; ++j)
       Pj[j] = *(Pi+j) + ai * PiPj[j];

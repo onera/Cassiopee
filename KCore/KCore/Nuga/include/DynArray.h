@@ -20,13 +20,16 @@
 #define _KCORE_DYNARRAY_H_
 #include <locale>
 #include <iterator>
+#include "Nuga/include/defs.h"
+#ifndef NUGALIB
 #include "Fld/FldArray.h"
-#include "Def/DefFunction.h"
+#endif
 #include <assert.h>
 #include <stdio.h>
 #include <ostream>
 #include <set>
 #include <vector>
+#include <algorithm>
 
 namespace K_FLD 
 {
@@ -85,6 +88,7 @@ Design
     /// Destructor.
     ~DynArray(){__destroy();}
 
+#ifndef NUGALIB
     /// Constructor by type conversion (for FldArrays).
     inline explicit DynArray(const FldArray<T>& i, value_type shift = value_type(0.));
     inline explicit DynArray(const FldArray<T>& i, E_Int posx, E_Int posy, E_Int posz=-1);
@@ -92,6 +96,7 @@ Design
     /// Converts the DynArray to a FldArray.
     inline void convert(FldArray<T>& i, value_type shift = value_type(0.)) const ;
     inline void convert(DynArray<T>& out, T shift) const {out = *this;/*fixme : dum to convert to itself*/}
+#endif
 
     // Extracts a given field
     inline void extract_field(size_type i, std::vector<T>& f);
@@ -356,7 +361,7 @@ Design
   }
 
   /** Conversion specialization */
-
+#ifndef NUGALIB
   ///FldArray --> DynArray
   template <typename T> inline
     DynArray<T>::DynArray(const FldArray<T>& a, T shift)
@@ -368,6 +373,7 @@ Design
   void
   DynArray<T>::convert(FldArray<T>& out, T shift) const
   {__exportFldArray(out, shift);}
+#endif
 
   template <typename T> inline
   void
@@ -408,8 +414,8 @@ Design
       if ((rows == _rowsMax) && (cols == _colsMax)) // Allocated memory is OK.
         return;
 
-      size_type r = K_FUNC::E_max(rows, _rowsMax);
-      size_type c = K_FUNC::E_max(cols, _colsMax);
+      size_type r = std::max(rows, _rowsMax);
+      size_type c = std::max(cols, _colsMax);
 
       iterator  newdata(__create(r*c)), start(0), there(0);
 
@@ -668,8 +674,8 @@ DynArray<T>::pushBack(const self_type& a){
   DynArray<T>
     DynArray<T>::operator+(const self_type& rhs) const {
 
-      size_type r = K_FUNC::E_min(_rows, rhs._rows);
-      size_type c = K_FUNC::E_min(_cols, rhs._cols);
+      size_type r = std::min(_rows, rhs._rows);
+      size_type c = std::min(_cols, rhs._cols);
       DynArray<T> result(r,c);
 
       for (size_type j = 0; j < c; ++j)
@@ -684,8 +690,8 @@ DynArray<T>::pushBack(const self_type& a){
   const DynArray<T>
     DynArray<T>::operator*(const self_type& rhs) const {
 
-      size_type n = K_FUNC::E_min(_rows, rhs._cols);
-      size_type m = K_FUNC::E_min(_cols, rhs._rows);
+      size_type n = std::min(_rows, rhs._cols);
+      size_type m = std::min(_cols, rhs._rows);
 
       DynArray<T> result(n,n, value_type(0.));//fixme
       
@@ -773,7 +779,7 @@ DynArray<T>::pushBack(const self_type& a){
     size_type        i1(0), i2(cols-1);
 
     new_Ids.clear();
-    new_Ids.resize(cols, E_IDX_NONE);
+    new_Ids.resize(cols, IDX_NONE);
 
     do{
 
@@ -811,7 +817,7 @@ DynArray<T>::pushBack(const self_type& a){
     for (size_type i = 0; i < cols; ++i)
     {
       newId = new_Ids[i];
-      if (newId == E_IDX_NONE)
+      if (newId == IDX_NONE)
         ++count;
       else if (newId != i)
       {
@@ -836,7 +842,7 @@ DynArray<T>::pushBack(const self_type& a){
       for (size_type j=0; j<a._rows; ++j)
       {
         E_Int& v = *(a._data + i*a._rowsMax + j);
-        if (v != E_IDX_NONE)
+        if (v != IDX_NONE)
           v = new_Ids[v];
       }
     }
@@ -873,7 +879,7 @@ DynArray<T>::pushBack(const self_type& a){
     std::set<E_Int> pool;
     E_Int v;
     
-    pool.insert(E_IDX_NONE);//to avoid to extract none indices
+    pool.insert(IDX_NONE);//to avoid to extract none indices
     
     for (size_type i=0; i<_cols; ++i)
     {
@@ -895,7 +901,7 @@ DynArray<T>::pushBack(const self_type& a){
     size_type end = _rowsMax*_cols;
     for (size_type i = beg; i < end; ++i)
     {
-      if (*p != E_IDX_NONE)
+      if (*p != IDX_NONE)
         *(p++) += val;
     }
   }
@@ -1079,6 +1085,7 @@ DynArray<T>::pushBack(const self_type& a){
       _cols = _colsMax = cols;
   }
   
+#ifndef NUGALIB
   ///FldArrayF --> FloatArray
   template <> inline
     DynArray<E_Float>::DynArray(const FldArray<E_Float>& a, E_Int posx, E_Int posy, E_Int posz)
@@ -1093,7 +1100,8 @@ DynArray<T>::pushBack(const self_type& a){
     
     __importFldArray(a, p, npos);
   }
-  
+#endif
+
   template <typename T>
   template <typename FldArrayType>
   void
@@ -1126,7 +1134,7 @@ DynArray<T>::pushBack(const self_type& a){
     // Print out the matrix.
     for (E_Int i = 0; i < arr.rows(); ++i){
       for (E_Int j = 0; j < arr.cols(); ++j)
-        out << ((arr(i,j) == E_IDX_NONE) ? -1 : arr(i,j)) << " ";
+        out << ((arr(i,j) == IDX_NONE) ? -1 : arr(i,j)) << " ";
       out << std::endl;
     }
 

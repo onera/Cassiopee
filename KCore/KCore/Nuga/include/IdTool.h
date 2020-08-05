@@ -20,7 +20,7 @@
 #ifndef __K_CONNECT_IDTOOL_H__
 #define __K_CONNECT_IDTOOL_H__
 
-#include "Def/DefTypes.h"
+#include "Nuga/include/defs.h"
 #include <vector>
 #include<map>
 #define Vector_t std::vector
@@ -74,9 +74,12 @@ public:
   ///
   template < typename T>
   static K_FLD::DynArray<T> compress_(K_FLD::DynArray<T> const & arr, const std::vector<E_Int>& keepids, E_Int idx_start);
+ 
+#ifndef NUGALIB
   ///
   template < typename T, typename Predicate_t>
   static E_Int compress(K_FLD::FldArray<T>& arr, const Predicate_t& P);
+#endif
   ///
   static E_Int max(const K_FLD::IntArray& connect);
   static E_Int max(const Vector_t<E_Int>& vec);
@@ -109,19 +112,19 @@ public:
   
   ///
   template<typename VecDec>
-  static void shift (VecDec & vec, E_Int shift){for (size_t i=0;i<vec.size(); ++i)if (vec[i] != E_IDX_NONE) vec[i] += shift;}
+  static void shift (VecDec & vec, E_Int shift){for (size_t i=0;i<vec.size(); ++i)if (vec[i] != IDX_NONE) vec[i] += shift;}
   template<typename VecDec>
-  static void shift (VecDec & vec, E_Int from, E_Int shift){for (size_t i=from;i<vec.size(); ++i) if (vec[i] != E_IDX_NONE) vec[i]+=shift;}
+  static void shift (VecDec & vec, E_Int from, E_Int shift){for (size_t i=from;i<vec.size(); ++i) if (vec[i] != IDX_NONE) vec[i]+=shift;}
 
   template<typename VecDec>
-  static void init_inc(VecDec & vec, E_Int sz){ vec.clear(); vec.resize(sz, E_IDX_NONE); for (E_Int i = 0; i < sz; ++i) vec[i] = i; }
+  static void init_inc(VecDec & vec, E_Int sz){ vec.clear(); vec.resize(sz, IDX_NONE); for (E_Int i = 0; i < sz; ++i) vec[i] = i; }
   
   template<typename VecDec>
-  static void init_inc(VecDec & vec, E_Int sz, E_Int shift){ vec.clear(); vec.resize(sz, E_IDX_NONE); for (E_Int i = 0; i < sz; ++i) vec[i] = i+shift; }
+  static void init_inc(VecDec & vec, E_Int sz, E_Int shift){ vec.clear(); vec.resize(sz, IDX_NONE); for (E_Int i = 0; i < sz; ++i) vec[i] = i+shift; }
 
   template <typename T>
   static void init_inc(K_FLD::DynArray<T>& arr, E_Int row, E_Int sz){ 
-    arr.resize(arr.rows(), sz, E_IDX_NONE);  
+    arr.resize(arr.rows(), sz, IDX_NONE);  
     for (E_Int i = 0; i < sz; ++i) arr(row, i) = i; }
 
   template <typename IntCont, typename Edge_t>
@@ -161,7 +164,7 @@ inline void IdTool::shift<K_FLD::IntArray> (K_FLD::IntArray & arr, E_Int from, E
   for (E_Int i=from;i<arr.cols(); ++i) 
   {
     for (E_Int j = 0; j < arr.rows(); ++j)
-      if (arr(j,i) != E_IDX_NONE) arr(j,i) +=shift;
+      if (arr(j,i) != IDX_NONE) arr(j,i) +=shift;
   }
 }
 
@@ -197,7 +200,7 @@ struct valid : public std::unary_function <E_Int, bool>
   valid(const std::vector<E_Int>& indir):_indir(indir){}
   inline bool operator() (E_Int i ) const
   {
-    return (_indir[i] != E_IDX_NONE);
+    return (_indir[i] != IDX_NONE);
   }
 
   const std::vector<E_Int>& _indir;
@@ -209,7 +212,7 @@ struct invalid : public std::unary_function <E_Int, bool>
   invalid(const std::vector<E_Int>& indir):_indir(indir){}
   inline bool operator() (E_Int i ) const
   {
-    return (_indir[i] == E_IDX_NONE);
+    return (_indir[i] == IDX_NONE);
   }
 
   const std::vector<E_Int>& _indir;
@@ -277,7 +280,7 @@ E_Int IdTool::compress(std::vector<T>& vec, const Predicate_t& P, std::vector<E_
   std::vector<T> new_vec;
 
   nids.clear();
-  nids.resize(vec.size(), E_IDX_NONE);
+  nids.resize(vec.size(), IDX_NONE);
 
   for (i = 0; i < cols; ++i)
   {
@@ -322,7 +325,7 @@ E_Int IdTool::compress(K_FLD::DynArray<T>& arr, const Predicate_t& P, std::vecto
   size_t         i, cols(arr.cols()), stride(arr.rows()), count(0);
   
   nids.clear();
-  nids.resize(cols, E_IDX_NONE);
+  nids.resize(cols, IDX_NONE);
   
   K_FLD::DynArray<T> new_arr;
   for (i = 0; i < cols; ++i)
@@ -384,7 +387,7 @@ std::vector<T> IdTool::compact_(std::vector<T> const & vec, std::vector<E_Int> c
   for (size_t i = 0; i < vec.size(); ++i)
   {
     const E_Int& ni = nids[i];
-    if (ni != E_IDX_NONE)
+    if (ni != IDX_NONE)
       tmp[ni] = vec[i];
   }
   return tmp;
@@ -405,7 +408,7 @@ void IdTool::compact(K_FLD::DynArray<T>& arr, const std::vector<E_Int> & nids)
   for (size_t i=0; i< COLS; ++i )
   {
     const E_Int& ni=nids[i];
-    if (ni != E_IDX_NONE)
+    if (ni != IDX_NONE)
     {
       for (size_t k=0; k < ROWS; ++k)
         tmp(k,ni)=arr(k,i);
@@ -423,7 +426,7 @@ E_Int IdTool::compact (E_Int* target, E_Int& szio, const T* keep/*, Vector2& new
   E_Int i1(0), i2(szio-1);
 
   //new_Ids.clear();
-  //new_Ids.resize(cols, E_IDX_NONE);
+  //new_Ids.resize(cols, IDX_NONE);
 
   do{
 

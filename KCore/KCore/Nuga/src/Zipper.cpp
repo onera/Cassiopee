@@ -100,7 +100,7 @@ Zipper::setMates
   K_FLD::IntArray cc;
   for (size_t i = 0; i < nmates.size(); ++i)
   {
-    if ((nmates[i] < 0) || (nmates[i] == E_IDX_NONE))
+    if ((nmates[i] < 0) || (nmates[i] == IDX_NONE))
       continue;
     E_Int E[] = {i, nmates[i]};
     cc.pushBack(E, E+2);
@@ -129,7 +129,7 @@ Zipper::__setBottoms
   K_FLD::IntArray connectAT3, neighbors;
 
   bottomE2.clear();
-  E_Int none = E_IDX_NONE;
+  E_Int none = IDX_NONE;
   bottomE2.resize(connectE2.rows(), connectE2.cols(), &none);
 
 
@@ -163,11 +163,11 @@ Zipper::__setBottoms
 
       Nk = *(pS+n);
 
-      if (K_FUNC::sqrDistance(pos.col(Ni), pos.col(Nk), 3) < K_FUNC::sqrDistance(pos.col(Nj), pos.col(Nk), 3))
+      if (NUGA::sqrDistance(pos.col(Ni), pos.col(Nk), 3) < NUGA::sqrDistance(pos.col(Nj), pos.col(Nk), 3))
       {
         bottomE2(0, itE->second) = Nk;
         Sn = neighbors((n+1)%3, S);
-        if (Sn == E_IDX_NONE)
+        if (Sn == IDX_NONE)
           continue;
         pSn = connectAT3.col(Sn);
         bn = K_MESH::Triangle::getOppLocalNodeId(S, (n+1)%3, connectAT3, neighbors);
@@ -179,7 +179,7 @@ Zipper::__setBottoms
         bottomE2(1, itE->second) = Nk;
         E_Int x = K_MESH::Triangle::getLocalNodeId(pS, Nj);
         Sn = neighbors(x, S);
-        if (Sn == E_IDX_NONE)
+        if (Sn == IDX_NONE)
           continue;
         pSn = connectAT3.col(Sn);
         bn = K_MESH::Triangle::getOppLocalNodeId(S, x, connectAT3, neighbors);
@@ -217,15 +217,15 @@ Zipper::__computeVirtualEdges
     Ni = *pE2;
     Nj = *(pE2+1);
     Bi = *pBot;
-    if (Bi == E_IDX_NONE)
+    if (Bi == IDX_NONE)
       continue;
     Bj = *(pBot+1);
-    if (Bj == E_IDX_NONE)
+    if (Bj == IDX_NONE)
       continue;
 
     //virtual points.
-    K_FUNC::diff<3>(pos.col(Ni), pos.col(Bi), Vi);
-    K_FUNC::diff<3>(pos.col(Nj), pos.col(Bj), Vj);
+    NUGA::diff<3>(pos.col(Ni), pos.col(Bi), Vi);
+    NUGA::diff<3>(pos.col(Nj), pos.col(Bj), Vj);
 
     for (E_Int k = 0; k < 3; ++k)
     {
@@ -249,7 +249,7 @@ Zipper::__computeVirtualEdges
 
   std::vector<E_Int> newIds;
   K_FLD::ArrayAccessor<K_FLD::FloatArray> posAcc(vpos);
-  ::merge(posAcc, E_EPSILON, newIds);
+  ::merge(posAcc, EPSILON, newIds);
   K_FLD::IntArray::changeIndices(vE2, newIds);
 
 #ifdef WIN32
@@ -273,13 +273,13 @@ Zipper::__setNodeMates
   //__computeRadius(vpos, vE2, posT3, realID, R2);
 
   // Get the nodes neighbouring.
-  K_CONT_DEF::int_pair_vector_type node_to_nodes;
+  NUGA::int_pair_vector_type node_to_nodes;
   if (BARSplitter::getNodesNeighBouring(vE2, node_to_nodes))
     return;// Error
 
   // Put the contour in a hset.
-  K_CONT_DEF::non_oriented_edge_set_type hE2;
-  K_CONT_DEF::non_oriented_edge_set_type::const_iterator itE;
+  NUGA::non_oriented_edge_set_type hE2;
+  NUGA::non_oriented_edge_set_type::const_iterator itE;
   E_Int nbE2 = vE2.cols();
   for (E_Int i = 0; i < nbE2; ++i)
     hE2.insert(K_MESH::NO_Edge(vE2(0, i), vE2(1, i)));
@@ -305,7 +305,7 @@ Zipper::__setNodeMates
     unknown = false;
 
     ni1 = tree.getClosest(ni0);
-    assert(ni1 != E_IDX_NONE);
+    assert(ni1 != IDX_NONE);
     Ni1 = realID[ni1];
     free = (ni1 == node_to_nodes[ni0].first);
     free |= (ni1 == node_to_nodes[ni0].second);
@@ -318,7 +318,7 @@ Zipper::__setNodeMates
       nmates[Ni1] = UNKNO;
 
     nj1 = tree.getClosest(nj0);
-    assert(nj1 != E_IDX_NONE);
+    assert(nj1 != IDX_NONE);
     Nj1 = realID[nj1];
     free = (nj1 == node_to_nodes[nj0].first);
     free |= (nj1 == node_to_nodes[nj0].second);
@@ -362,7 +362,7 @@ Zipper::zip
   if (nmates.empty())
     return;
 
-  K_CONT_DEF::oriented_edge_set_type hE2;
+  NUGA::oriented_edge_set_type hE2;
   for (E_Int i = 0; i < nbE2; ++i)
     hE2.insert(K_MESH::Edge(connectE2(0, i), connectE2(1, i)));
 
@@ -375,9 +375,9 @@ Zipper::zip
      Nio = nmates[Ni];
      Njo = nmates[Nj];
 
-     if ((Nio < 0)|| (Nio == E_IDX_NONE))
+     if ((Nio < 0)|| (Nio == IDX_NONE))
        continue;
-     if ((Njo < 0)|| (Njo == E_IDX_NONE))
+     if ((Njo < 0)|| (Njo == IDX_NONE))
        continue;
 
      if ((Nio == Nj) || (Njo == Ni))
@@ -412,7 +412,7 @@ Zipper::__computeRadius
  const std::vector<E_Int>& realID, std::vector<E_Float>& R2)
 {
   R2.clear();
-  R2.resize(vpos.cols(), K_CONST::E_MAX_FLOAT);
+  R2.resize(vpos.cols(), NUGA::FLOAT_MAX);
 
   K_FLD::FloatArray L2;
   NUGA::MeshTool::computeEdgesSqrLengths<3>(vpos, vE2, L2);
@@ -423,7 +423,7 @@ Zipper::__computeRadius
 
   for (n = 0; n < NBPOINTS; ++n)
   {
-    d2 = K_FUNC::sqrDistance(vpos.col(n), pos.col(realID[n]), 3);
+    d2 = NUGA::sqrDistance(vpos.col(n), pos.col(realID[n]), 3);
     R2[n] = d2;
   }
 

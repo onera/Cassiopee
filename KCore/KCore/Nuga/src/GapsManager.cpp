@@ -108,7 +108,7 @@ GapsManager::run
 #endif
 
   std::vector<K_FLD::IntArray> connectBout;
-  PatchMaker::run(pos, OneSurface2, nmates,  K_CONST::E_PI_4, connectBout);
+  PatchMaker::run(pos, OneSurface2, nmates,  NUGA::PI_4, connectBout);
 
 #ifdef E_TIME
   std::cout << "patch maker " << c.elapsed() << std::endl;
@@ -235,14 +235,14 @@ GapsManager::run
 
     K_FLD::ArrayAccessor<K_FLD::FloatArray> pAcc(posTmp);
     std::vector<E_Int> new_Ids;
-    ::merge(pAcc, E_EPSILON, new_Ids);
+    ::merge(pAcc, EPSILON, new_Ids);
     K_FLD::IntArray::changeIndices(connectFixed, new_Ids);
   }
 
   // Fill the meshes for exit.
   {
     std::vector<K_FLD::IntArray> cOutS;
-    K_CONT_DEF::non_oriented_edge_set_type dummyS;
+    NUGA::non_oriented_edge_set_type dummyS;
     // Split the new mesh by connex bits, assign colors and eventually swap.
     ContourSplitter<K_MESH::Triangle, K_MESH::NO_Edge>::splitConnectivity(connectFixed, dummyS, cOutS);
     size_t nb_colors(cOutS.size());
@@ -314,8 +314,8 @@ GapsManager::__get_external_contour
 {
   K_SEARCH::BBox3D bbox, BBOX;
   
-  BBOX.minB[0]=BBOX.minB[1]=BBOX.minB[2]=K_CONST::E_MAX_FLOAT;
-  BBOX.maxB[0]=BBOX.maxB[1]=BBOX.maxB[2]=-K_CONST::E_MAX_FLOAT;
+  BBOX.minB[0]=BBOX.minB[1]=BBOX.minB[2]=NUGA::FLOAT_MAX;
+  BBOX.maxB[0]=BBOX.maxB[1]=BBOX.maxB[2]=-NUGA::FLOAT_MAX;
   
   std::vector<E_Int> nodes;
   

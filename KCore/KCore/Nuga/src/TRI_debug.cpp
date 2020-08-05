@@ -140,7 +140,7 @@ void TRI_debug::connected_to_T3
   
   connOut.clear();
   colors.clear();
-  E_Int Ti = E_IDX_NONE;
+  E_Int Ti = IDX_NONE;
   
   //const K_FLD::FloatArray *pC = &coord;
   coordOut=coord;
@@ -178,7 +178,7 @@ void TRI_debug::connected_to_T3
     K_MESH::NO_Edge Emax;
     for (std::set<K_MESH::NO_Edge>::const_iterator it = edges.begin(); it != edges.end(); ++it)
     {
-      L = std::max(L, K_FUNC::sqrDistance(coord.col(it->node(0)), coord.col(it->node(1)), 3));
+      L = std::max(L, NUGA::sqrDistance(coord.col(it->node(0)), coord.col(it->node(1)), 3));
       if (Lmax < L)
       {
         Lmax = L;
@@ -214,16 +214,16 @@ void TRI_debug::connected_to_T3
       const E_Int& N2 = tmp((j+2)%3, i);
       
       E_Float N0N1[3];
-      K_FUNC::diff<3>(coordCpy.col(N1), coordCpy.col(N0), N0N1);
-      //E_Float l=::sqrt(K_FUNC::sqrNorm<3>(N0N1));
+      NUGA::diff<3>(coordCpy.col(N1), coordCpy.col(N0), N0N1);
+      //E_Float l=::sqrt(NUGA::sqrNorm<3>(N0N1));
       E_Float Ph[3];
-      K_FUNC::sum<3>(0.5, N0N1, coordCpy.col(N0), Ph);
+      NUGA::sum<3>(0.5, N0N1, coordCpy.col(N0), Ph);
       
       E_Float PhN2[3];
-      K_FUNC::diff<3>(coordCpy.col(N2), Ph, PhN2);
-      K_FUNC::normalize<3>(PhN2);
+      NUGA::diff<3>(coordCpy.col(N2), Ph, PhN2);
+      NUGA::normalize<3>(PhN2);
       
-      K_FUNC::sum<3>(L, PhN2, Ph, coordCpy.col(N2));
+      NUGA::sum<3>(L, PhN2, Ph, coordCpy.col(N2));
     }
   }*/
 }
@@ -248,7 +248,7 @@ E_Int TRI_debug::get_T3_index
 {
   std::set<E_Int> nodes;
   nodes.insert(Ni); nodes.insert(Nj); nodes.insert(Nk);
-  E_Int id = E_IDX_NONE;
+  E_Int id = IDX_NONE;
   for (size_t i=0; i < connectT3.cols(); ++i)
   {
     if ((nodes.find(connectT3(0, i)) != nodes.end()) && (nodes.find(connectT3(1, i)) != nodes.end()) && (nodes.find(connectT3(2, i)) != nodes.end()))
@@ -358,7 +358,7 @@ void TRI_debug::coloring_frames
     {
       Kn = neighbors(i, K);
 
-      if ((Kn != E_IDX_NONE) && (colors[Kn] == NONE_COL)) // Not colored.
+      if ((Kn != IDX_NONE) && (colors[Kn] == NONE_COL)) // Not colored.
         cpool.push_back(Kn);
     }
   } 
@@ -406,12 +406,12 @@ void TRI_debug::write_wired(const char* fname, const K_FLD::FloatArray& coord, c
     if (keep && (*keep)[i] == false)
       continue;
     
-    Lmin = K_CONST::E_MAX_FLOAT;
+    Lmin = NUGA::FLOAT_MAX;
     for (size_t j=0; j<3;++j)
     {
       E.setNodes(connectT3(j,i), connectT3((j+1)%3,i));
       connectE.pushBack(E.begin(), E.begin()+2);
-      L2 = K_FUNC::sqrDistance(coord.col(E.node(0)), coord.col(E.node(1)), 3);
+      L2 = NUGA::sqrDistance(coord.col(E.node(0)), coord.col(E.node(1)), 3);
       Lmin = (L2 < Lmin) ? L2 : Lmin;
     }
     
@@ -424,9 +424,9 @@ void TRI_debug::write_wired(const char* fname, const K_FLD::FloatArray& coord, c
     {    
       K_MESH::Triangle::isoG(coord, connectT3.col(i), P0); // P0 is the center of Ti
       K_MESH::Triangle::normal(coord, connectT3.col(i), Ni);
-      K_FUNC::normalize<3>(Ni);
-      //K_FUNC::sum<3>(P0, Ni, P1);
-      K_FUNC::sum<3>(1., P0, Lmin, Ni, P1);
+      NUGA::normalize<3>(Ni);
+      //NUGA::sum<3>(P0, Ni, P1);
+      NUGA::sum<3>(1., P0, Lmin, Ni, P1);
       crd.pushBack(P0, P0+3);
       n0=crd.cols()-1;
       crd.pushBack(P1, P1+3);
@@ -471,7 +471,7 @@ void TRI_debug::write_wired(const char* fname, const K_FLD::FloatArray& coord, c
       
     K_MESH::Triangle::isoG(coord, connectT3.col(i), P0); // P0 is the center of Ti
     Ni = normals.col(i);
-    K_FUNC::sum<3>(1., P0, 0.005, Ni, P1);
+    NUGA::sum<3>(1., P0, 0.005, Ni, P1);
     crd.pushBack(P0, P0+3);
     n0=crd.cols()-1;
     crd.pushBack(P1, P1+3);
@@ -532,7 +532,7 @@ bool TRI_debug::analyze_T3_set(E_Int setid, const K_FLD::FloatArray& crd, const 
     {
       const E_Int& Ti = T3s[i];
       E_Int Ci = (i < colors->size()) ? (*colors)[i] : 0;
-      Ci = (Ci == E_IDX_NONE || Ci < 0) ? 0 : Ci;
+      Ci = (Ci == IDX_NONE || Ci < 0) ? 0 : Ci;
       col_to_cnt[Ci].pushBack(cnt.col(Ti), cnt.col(Ti) + 3);
     }
   }

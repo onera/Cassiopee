@@ -26,8 +26,6 @@
 #include <iostream>
 #endif
 
-#include "Connect/connect.h"
-
 /// Methods Definitions
 ngon_unit::ngon_unit(const E_Int* begin):_dirty(true)
 {
@@ -55,12 +53,25 @@ ngon_unit::ngon_unit(const E_Int* begin, E_Int sz, E_Int nbe):_dirty(true)
   updateFacets();
 }
 
+template <typename Container>
+E_Int getPosFacets(const E_Int* data, E_Int facets_start, E_Int nb_facets/*nb of or PG or nodes*/, Container& posFacets)
+{
+  posFacets.clear();
+  posFacets.resize(nb_facets, 1);
+  for (E_Int i = 0; i < nb_facets; i++)
+  {
+    posFacets[i] = facets_start;
+    facets_start += data[facets_start] + 1;
+  }
+  return 1;
+}
+
 ///
 void ngon_unit::updateFacets() const
 {
   if (_dirty && !_NGON.empty())
   {
-    K_CONNECT::getPosFacets(&_NGON[0], 2, _NGON[0], _facet);
+    getPosFacets(&_NGON[0], 2, _NGON[0], _facet);
     _dirty=false;
   }
 }
@@ -256,7 +267,7 @@ E_Int ngon_unit::remove_entities (const Vector_t<E_Int>& to_remove, Vector_t<E_I
   std::set<E_Int> remset(to_remove.begin(), to_remove.end());//fixme
   std::set<E_Int>::const_iterator remend(remset.end());
 
-  nids.resize(sz, E_IDX_NONE);
+  nids.resize(sz, IDX_NONE);
 
   updateFacets();
 
@@ -296,7 +307,7 @@ E_Int ngon_unit::remove_facets(const Vector_t<E_Int>& nfacids, Vector_t<E_Int>& 
   E_Int nb_elts = size();
   
   nids.clear(); //new element ids
-  nids.resize(nb_elts, E_IDX_NONE);
+  nids.resize(nb_elts, IDX_NONE);
 
   E_Int count(-1), degen(0);
   //std::cout << "nb elts : " << PHs.size() << std::endl;
@@ -329,7 +340,7 @@ E_Int ngon_unit::remove_facets(const Vector_t<E_Int>& nfacids, Vector_t<E_Int>& 
         return 0;
       }
 #endif
-      if (nfacids[Fi] == E_IDX_NONE)
+      if (nfacids[Fi] == IDX_NONE)
         continue;
       molecule.push_back(nfacids[Fi]+1);
     }
@@ -382,12 +393,12 @@ void ngon_unit::shift(E_Int val, E_Int from)
     for (size_t j = 0; j < nb_nodes; ++j)
     {
       E_Int& fj = *(ptr+j);
-      if (fj != E_IDX_NONE) fj += val;
+      if (fj != IDX_NONE) fj += val;
     }
   }
 }
 
-///set all facet values to E_IDX_NONE (useful for building a neighbor table)
+///set all facet values to IDX_NONE (useful for building a neighbor table)
 void
 ngon_unit::reset_facets()
 {
@@ -399,7 +410,7 @@ ngon_unit::reset_facets()
     nb_nodes = stride(i);
     E_Int* ptr = get_facets_ptr(i);
     for (size_t j = 0; j < nb_nodes; ++j)
-      *(ptr+j) = E_IDX_NONE;
+      *(ptr+j) = IDX_NONE;
   }
 }
 
@@ -601,7 +612,7 @@ E_Int ngon_unit::remove_consecutive_duplicated()
   ngtmp.clear(); 
   ngtmp._NGON.resize(2, 0);
   
-  std::vector<E_Int> nids(nb_elts, E_IDX_NONE);
+  std::vector<E_Int> nids(nb_elts, IDX_NONE);
   
   // 
   for (E_Int i = 0; i < nb_elts; ++i)
@@ -700,9 +711,9 @@ void ngon_unit::change_indices (const Vector_t<E_Int>& nIds, E_Int idx_start)
     for (E_Int j = 0; j < nb_facets; ++j)
     {
       E_Int& id = get_facet(i,j);
-      if (id == E_IDX_NONE) continue;
+      if (id == IDX_NONE) continue;
       E_Int nid = nIds[id-idx_start];
-      id = (nid != E_IDX_NONE) ? nid + idx_start : E_IDX_NONE;
+      id = (nid != IDX_NONE) ? nid + idx_start : IDX_NONE;
     }
   }
 }
@@ -837,13 +848,13 @@ void ngon_unit::spread_attributes(const ngon_unit& ngi, const Vector_t<E_Int>& o
   //transfer externality
   if (!ngi._type.empty())
   {
-    _type.resize(oids.size(), E_IDX_NONE);
+    _type.resize(oids.size(), IDX_NONE);
     for (size_t i = 0; i < sz; ++i)
       _type[i] = ngi._type[oids[i]];
   }
   if (ngi._ancEs.cols() != 0)
   {
-    _ancEs.resize(2, sz, E_IDX_NONE);
+    _ancEs.resize(2, sz, IDX_NONE);
     for (size_t i = 0; i < sz; ++i)
     {
       _ancEs(0, i) = ngi._ancEs(0, oids[i]);
@@ -875,9 +886,9 @@ void ngon_unit::sort_by_type(Vector_t<E_Int>& nids, Vector_t<E_Int>& oids) const
   std::sort(type_to_oid.begin(), type_to_oid.end());
   
   nids.clear();
-  nids.resize(sz, E_IDX_NONE);
+  nids.resize(sz, IDX_NONE);
   oids.clear();
-  oids.resize(sz, E_IDX_NONE);
+  oids.resize(sz, IDX_NONE);
   
   for (size_t i=0; i < sz; ++i){
     nids[type_to_oid[i].second] = i;

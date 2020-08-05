@@ -32,7 +32,7 @@ namespace DELAUNAY
 /// Constructor
 template <typename T>
 Kernel<T>::Kernel(MeshData& data, const NUGA::MeshTool& tool)
-    : _data(data), _tool(tool), _Ball_pred(*data.pos, _data.connectM), _constrained_pred(0), _Nmatch(E_IDX_NONE)
+    : _data(data), _tool(tool), _Ball_pred(*data.pos, _data.connectM), _constrained_pred(0), _Nmatch(IDX_NONE)
 {
   data.mask.resize(_data.connectM.cols(), true);
 
@@ -94,7 +94,7 @@ Kernel<T>::insertNode(size_type N, const T& m, const ConstraintType& dummy){
 
 template <typename T>
 void
-Kernel<T>::setConstraint(const K_CONT_DEF::non_oriented_edge_set_type& hard_edges)
+Kernel<T>::setConstraint(const NUGA::non_oriented_edge_set_type& hard_edges)
 {
   _constrained_pred = new constrained_predicate(hard_edges);
 }
@@ -332,9 +332,9 @@ E_Int
   if (cavity.empty())       return -1; // Error
   if (cboundary.empty())    return -1; // Error
 
-  size_type K0, Kprev(E_IDX_NONE), K1(connect.cols()), Kstart(connect.cols()), Kadj,j,jadj;
+  size_type K0, Kprev(IDX_NONE), K1(connect.cols()), Kstart(connect.cols()), Kadj,j,jadj;
   K_FLD::IntArray::const_iterator pK0;
-  size_type                   newN[] = {E_IDX_NONE, E_IDX_NONE, E_IDX_NONE};
+  size_type                   newN[] = {IDX_NONE, IDX_NONE, IDX_NONE};
 
   int_pair_type Bi;
   size_type triangle[3], N0, N1;
@@ -366,7 +366,7 @@ E_Int
     neighbors.pushBack (newN, newN + 3);
     neighbors(2, K1) = Kadj; // External adj
 
-    if (Kadj != E_IDX_NONE)
+    if (Kadj != IDX_NONE)
     {
       jadj = element_type::getOppLocalNodeId(K0, j, connect, neighbors);
       assert (neighbors (jadj, Kadj) == K0);
@@ -375,7 +375,7 @@ E_Int
 
     ancestors[N0] = ancestors[N1] = K1; // ancestors update
 
-    if (Kprev != E_IDX_NONE) // Internal adj
+    if (Kprev != IDX_NONE) // Internal adj
     {
       neighbors(0, Kprev) = K1;
       neighbors(1, K1) = Kprev;
@@ -442,13 +442,13 @@ void
     Kj  = neighbors (b, Ki);
 
 #ifdef E_DEBUG
-    if (Ki != E_IDX_NONE)
+    if (Ki != IDX_NONE)
       pKi = connectM.col(Ki);
-    if (Kj != E_IDX_NONE)
+    if (Kj != IDX_NONE)
       pKj = connectM.col(Kj);
 #endif
 
-    if (IS_IN(cboundary, Bi) || (Kj == E_IDX_NONE))//fixme : est-ce que la seconde condition est necessaire ?
+    if (IS_IN(cboundary, Bi) || (Kj == IDX_NONE))//fixme : est-ce que la seconde condition est necessaire ?
     {
       sorted_boundary.push_back(Bi);
       cboundary.erase(Bi);

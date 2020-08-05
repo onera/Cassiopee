@@ -61,7 +61,7 @@ template <E_Int DIM>
 void
 TRI_Conformizer<DIM>::__run_correction_beta
 (const K_FLD::FloatArray& pos, K_FLD::IntArray& connect,
- K_CONT_DEF::int_vector_type& ancestors, K_CONT_DEF::bool_vector_type& xc,
+ NUGA::int_vector_type& ancestors, NUGA::bool_vector_type& xc,
  E_Float tolerance)
 {
   K_FLD::FloatArray                   normals;
@@ -164,7 +164,7 @@ TRI_Conformizer<DIM>::__run_correction_beta
       continue;
 
     // Now find the one with the greatest number of nodes and duplicate it.
-    E_Int Zt(E_IDX_NONE);
+    E_Int Zt(IDX_NONE);
     E_Float nt[DIM], ni[DIM];
     std::vector<std::vector<E_Int> > nodesZs(nb_zones);
     bool same_orient;
@@ -188,7 +188,7 @@ TRI_Conformizer<DIM>::__run_correction_beta
     {
       Zi = *it;
       __computeAveragedNormal(normals, nodesZs[Zi], ni);
-      same_orient = (K_FUNC::dot<3>(nt, ni) > E_EPSILON);
+      same_orient = (NUGA::dot<3>(nt, ni) > EPSILON);
 
       connectZs[Zi] = connectZs[Zt];
       xcTemp[Zi] = xcTemp[Zt];
@@ -224,9 +224,9 @@ TRI_Conformizer<DIM>::__run_correction_beta
 template <E_Int DIM>
 void
 TRI_Conformizer<DIM>::__run_correction_gamma
-(const std::set<K_MESH::NO_Edge>&xpairs, K_CONT_DEF::int_vector_type&colors,
- K_CONT_DEF::int_vector_type&xr, K_FLD::IntArray& connect,
- K_CONT_DEF::int_vector_type& ancestors, K_CONT_DEF::bool_vector_type& xc, const K_FLD::FloatArray& pos, K_CONT_DEF::int_vector_type* priority)
+(const std::set<K_MESH::NO_Edge>&xpairs, NUGA::int_vector_type&colors,
+ NUGA::int_vector_type&xr, K_FLD::IntArray& connect,
+ NUGA::int_vector_type& ancestors, NUGA::bool_vector_type& xc, const K_FLD::FloatArray& pos, NUGA::int_vector_type* priority)
 {
 
   if (xpairs.empty())
@@ -507,7 +507,7 @@ TRI_Conformizer<DIM>::__computeAveragedNormal
       ni[k] += normals(k, nodes[i]);
   }
 
-  K_FUNC::normalize<DIM>(ni);
+  NUGA::normalize<DIM>(ni);
 }
 
 ///
@@ -654,15 +654,15 @@ template <E_Int DIM>
 void
 TRI_Conformizer<DIM>::__run_correction_alpha1
 (const K_FLD::FloatArray& pos, K_FLD::IntArray& connect,
- K_CONT_DEF::int_vector_type& ancestors, K_CONT_DEF::bool_vector_type& xc)
+ NUGA::int_vector_type& ancestors, NUGA::bool_vector_type& xc)
 {
   std::set<K_MESH::NO_Edge>::const_iterator pEi;
   K_FLD::IntArray::const_iterator           pS;
   E_Int                                     c;
   K_MESH::NO_Edge                           Ei;
   K_FLD::IntArray                           cOut, sconnect, connectb, odd, uconnect;
-  K_CONT_DEF::bool_vector_type              xcOut, pathological, free;
-  K_CONT_DEF::int_vector_type               ancOut, odd_colors, ids, dupIds;
+  NUGA::bool_vector_type              xcOut, pathological, free;
+  NUGA::int_vector_type               ancOut, odd_colors, ids, dupIds;
   bool                                      has_free_elt, has_patho_elt, keep;
   std::vector<std::vector<E_Int> >          zonesOut;
   algo_type::BoundToEltType                 E_to_T;
@@ -811,13 +811,13 @@ template <E_Int DIM>
 void
 TRI_Conformizer<DIM>::__compute_splitting_points
 (K_FLD::FloatArray& pos, const K_FLD::IntArray& connect,
- const K_CONT_DEF::bool_vector_type& xc,
+ const NUGA::bool_vector_type& xc,
  const std::set<K_MESH::NO_Edge>& commone_no_edges,
  E_Float tol, std::map<K_MESH::NO_Edge, std::vector<E_Int> >& edge_to_point)
 {
   K_FLD::IntArray::const_iterator   pS;
   E_Int                             Si, nb_tris(connect.cols()), n, N0, Ni, Nj, NB_NODES(3);
-  E_Float                           d2, l0, d0, lambda, eps(E_EPSILON), *Pi, *Pj, Pk[DIM], dMax, tol2(tol*tol);
+  E_Float                           d2, l0, d0, lambda, eps(EPSILON), *Pi, *Pj, Pk[DIM], dMax, tol2(tol*tol);
   K_MESH::NO_Edge                   Ei;
   
   for (Si = 0; Si < nb_tris; ++Si)
@@ -841,13 +841,13 @@ TRI_Conformizer<DIM>::__compute_splitting_points
       Pi = pos.col(Ni);
       Pj = pos.col(Nj);
 
-      d2 = K_FUNC::sqrDistance(pos.col(N0), Pi, 3);
+      d2 = NUGA::sqrDistance(pos.col(N0), Pi, 3);
       if (d2 < tol2)
         continue;
-      d2 = K_FUNC::sqrDistance(pos.col(N0), Pj, 3);
+      d2 = NUGA::sqrDistance(pos.col(N0), Pj, 3);
       if (d2 < tol2)
         continue;
-      d2 = K_FUNC::sqrDistance(Pi, Pj, 3);
+      d2 = NUGA::sqrDistance(Pi, Pj, 3);
       if (d2 < tol2)
         continue;
 
@@ -857,7 +857,7 @@ TRI_Conformizer<DIM>::__compute_splitting_points
         continue;
 
       l0 = (lambda < 0.5) ? lambda : 1. - lambda;
-      dMax = (l0*l0*d2 > tol2) ? tol : E_EPSILON;
+      dMax = (l0*l0*d2 > tol2) ? tol : EPSILON;
 
       if (d0 < dMax)
       {
@@ -879,11 +879,11 @@ TRI_Conformizer<DIM>::__compute_splitting_points
 E_Int
 TRI_Conformizer<DIM>::__fix_bad_triangles
 (K_FLD::FloatArray& coord, E_Float tol, K_FLD::IntArray& connect,
- K_CONT_DEF::int_vector_type& ancestors, K_CONT_DEF::bool_vector_type& xc)
+ NUGA::int_vector_type& ancestors, NUGA::bool_vector_type& xc)
 {
   K_FLD::IntArray::const_iterator   pS;
   E_Int                             Si, nb_tris0(connect.cols()), n, N0, N1, N2, Ni, NB_NODES(3);
-  E_Float                           d2, l0, d0, lambda, eps(E_EPSILON), *Pi, *Pj, Pk[DIM], dMax, tol2(tol*tol);
+  E_Float                           d2, l0, d0, lambda, eps(EPSILON), *Pi, *Pj, Pk[DIM], dMax, tol2(tol*tol);
   K_MESH::NO_Edge                   Ei;
   
   typedef std::map<K_MESH::NO_Edge, std::vector<E_Int> > e_to_pts_t;
@@ -914,13 +914,13 @@ TRI_Conformizer<DIM>::__fix_bad_triangles
       Pi = coord.col(N1);
       Pj = coord.col(N2);
 
-      d2 = K_FUNC::sqrDistance(coord.col(N0), Pi, 3);
+      d2 = NUGA::sqrDistance(coord.col(N0), Pi, 3);
       if (d2 < tol2)
         continue;
-      d2 = K_FUNC::sqrDistance(coord.col(N0), Pj, 3);
+      d2 = NUGA::sqrDistance(coord.col(N0), Pj, 3);
       if (d2 < tol2)
         continue;
-      d2 = K_FUNC::sqrDistance(Pi, Pj, 3);
+      d2 = NUGA::sqrDistance(Pi, Pj, 3);
       if (d2 < tol2)
         continue;
 
@@ -930,7 +930,7 @@ TRI_Conformizer<DIM>::__fix_bad_triangles
         continue;
       
       l0 = (lambda < 0.5) ? lambda : 1. - lambda;
-      dMax = (l0*l0*d2 > tol2) ? tol : E_EPSILON;
+      dMax = (l0*l0*d2 > tol2) ? tol : EPSILON;
 
       //if (d0 < dMax)
       {
@@ -1105,7 +1105,7 @@ TRI_Conformizer<DIM>::__swap_edges
 
       S = E.first;
       b = E.second;
-      Sremain = E_IDX_NONE;
+      Sremain = IDX_NONE;
 
       pS = connect.col(S);
       Ni = *(pS + b);
@@ -1113,7 +1113,7 @@ TRI_Conformizer<DIM>::__swap_edges
       Nl = *(pS + (b+2) % 3);
 
       Sn = neighbors(b, S);
-      if (Sn == E_IDX_NONE)
+      if (Sn == IDX_NONE)
         continue;
 
       pSn = connect.col(Sn);
@@ -1140,10 +1140,10 @@ TRI_Conformizer<DIM>::__swap_edges
       // Update the neighboring (neighbors)
       neighbors((b+1)  % 3, S)  = Sn;
       neighbors((bn+1) % 3, Sn) = S;
-      if ((S1 != E_IDX_NONE) && (b1 != E_IDX_NONE))
+      if ((S1 != IDX_NONE) && (b1 != IDX_NONE))
         neighbors(b1, S1)              = Sn;
       neighbors(bn, Sn)                = S1;
-      if ((S2 != E_IDX_NONE) && (b2 != E_IDX_NONE))
+      if ((S2 != IDX_NONE) && (b2 != IDX_NONE))
         neighbors(b2, S2)              = S;
       neighbors(b, S)                  = S2;
       
@@ -1152,7 +1152,7 @@ TRI_Conformizer<DIM>::__swap_edges
         Sremain = Sn;
       else if (GOOD_MERGE(Nj, Nk) || GOOD_MERGE(Nk, Nl)) //versa
         Sremain = S;
-      assert(Sremain != E_IDX_NONE);
+      assert(Sremain != IDX_NONE);
       ancestors[S]=ancestors[Sn]=Sremain;
       //////////////////////////////////////////////////////////////////////////
       
@@ -1196,7 +1196,7 @@ TRI_Conformizer<DIM>::__swap_edges
 template <E_Int DIM>
 void
 TRI_Conformizer<DIM>::__clean_topology
-(K_FLD::IntArray& connect, std::vector<E_Int>& ancestors, K_CONT_DEF::bool_vector_type& xc, 
+(K_FLD::IntArray& connect, std::vector<E_Int>& ancestors, NUGA::bool_vector_type& xc, 
  const std::vector<E_Int>& source_nodes_vec, std::vector<E_Int>& common_nodes_vec,
  const K_FLD::IntArray& connectBNM, const std::vector<E_Int>& nids
 #ifdef DEBUG_TRI_CONFORMIZER
@@ -1343,7 +1343,7 @@ TRI_Conformizer<DIM>::__clean_topology
 template <E_Int DIM>
 void
 TRI_Conformizer<DIM>::__multi_swap
-(const K_FLD::FloatArray& pos, K_FLD::IntArray& connect, K_CONT_DEF::bool_vector_type& xc, std::vector<E_Int>& ancestors)
+(const K_FLD::FloatArray& pos, K_FLD::IntArray& connect, NUGA::bool_vector_type& xc, std::vector<E_Int>& ancestors)
 {
   // swap all the triangles connected to any flat triangle.
     
@@ -1420,7 +1420,7 @@ TRI_Conformizer<DIM>::__multi_swap
         continue;
       
       pSk = connect.col(T3s[k]);
-      E_Int n = E_IDX_NONE;
+      E_Int n = IDX_NONE;
       
       //get the edge rank
       for (size_t u=0; u<3; ++u)
@@ -1428,7 +1428,7 @@ TRI_Conformizer<DIM>::__multi_swap
         if ( (*(pSk+u) == noE.node(0) && *(pSk+(u+1)%3) == noE.node(1)) || (*(pSk+u) == noE.node(1) && *(pSk+(u+1)%3) == noE.node(0)) )
         {n=u;break;}  
       }
-      assert (n != E_IDX_NONE);
+      assert (n != IDX_NONE);
       
       //std::cout << "inital T and n : " << *(pSk) << "," << *(pSk+1) << "," << *(pSk+2) << " for n : " << n << std::endl;
 	  

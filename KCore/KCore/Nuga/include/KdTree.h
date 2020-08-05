@@ -21,7 +21,7 @@
 #define KDTREE_H_
 
 #include "Nuga/include/DynArray.h"
-#include "Def/DefCplusPlusConst.h"
+#include "Nuga/include/defs.h"
 #include "Nuga/include/ArrayAccessor.h"
 #include <functional>
 #include <algorithm>
@@ -67,12 +67,12 @@ class KdTree {
   public: /** Constructors and Destructor */
 
     /// Build a tree and inserts all the nodes of the input coordinate array pos.
-    KdTree(const coord_access_type& posAcc, E_Float tolerance=E_EPSILON);
+    KdTree(const coord_access_type& posAcc, E_Float tolerance=EPSILON);
 
     /// Builds a tree and inserts only the valid nodes from begin to end.
     KdTree(const coord_access_type& posAcc, 
            std::vector<size_type> indices/*passed by value to preserve input*/,
-            E_Float tolerance=E_EPSILON);
+            E_Float tolerance=EPSILON);
 
     /// Destructor.
     ~KdTree(){};

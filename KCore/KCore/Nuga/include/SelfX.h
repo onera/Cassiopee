@@ -28,7 +28,7 @@ inline bool getBoundary(const E_Int* t0, const E_Int* t1, E_Int& i, E_Int& j)
     }
   }
   
-  i=j=E_IDX_NONE;
+  i=j=IDX_NONE;
   return false;
 }
 #endif
@@ -53,23 +53,23 @@ bool __fast_discard
   
   // 1. Check if points are on the same side of the t's plane
   E_Float _U1[DIM],_U2[DIM], _U3[DIM];
-  K_FUNC::diff<DIM>(P1, P0, _U1);
-  K_FUNC::diff<DIM>(P2, P0, _U2);
-  K_FUNC::crossProduct<DIM>(_U1,_U2,_U3);
-  K_FUNC::normalize<DIM>(_U3);
+  NUGA::diff<DIM>(P1, P0, _U1);
+  NUGA::diff<DIM>(P2, P0, _U2);
+  NUGA::crossProduct<DIM>(_U1,_U2,_U3);
+  NUGA::normalize<DIM>(_U3);
         
   bool is_far[] = {false,false, false};
   E_Float h0(0.), h1(0.), h2(0.);
-  K_FUNC::diff<DIM>(Q0, P0, _U1);
-  h0 = K_FUNC::dot<DIM>(_U3, _U1);
+  NUGA::diff<DIM>(Q0, P0, _U1);
+  h0 = NUGA::dot<DIM>(_U3, _U1);
   is_far[0] = (h0 >= tol) || (h0 <= -tol);
     
-  K_FUNC::diff<DIM>(Q1, P0, _U1);
-  h1 = K_FUNC::dot<DIM>(_U3, _U1);
+  NUGA::diff<DIM>(Q1, P0, _U1);
+  h1 = NUGA::dot<DIM>(_U3, _U1);
   is_far[1] = (h1 >= tol) || (h1 <= -tol);
     
-  K_FUNC::diff<DIM>(Q2, P0, _U1);
-  h2 = K_FUNC::dot<DIM>(_U3, _U1);
+  NUGA::diff<DIM>(Q2, P0, _U1);
+  h2 = NUGA::dot<DIM>(_U3, _U1);
   is_far[2] = (h2 >= tol) || (h2 <= -tol);
     
   E_Int s[3];
@@ -81,7 +81,7 @@ bool __fast_discard
     return true;
   
   bool overlapping = (!is_far[0] && !is_far[1] && !is_far[2]);
-  E_Int shn=E_IDX_NONE;//shared node's rank
+  E_Int shn=IDX_NONE;//shared node's rank
 
   if ( (T0 == p0) || (T0 == p1) || (T0 == p2) ) shn=0;
   if ( (T1 == p0) || (T1 == p1) || (T1 == p2) ) shn=1;
@@ -91,7 +91,7 @@ bool __fast_discard
   
   if (!overlapping) //nor coplanar
   {
-    if (shn != E_IDX_NONE)
+    if (shn != IDX_NONE)
     {
       if ( (s[(shn+1)%3] == s[(shn+2)%3]) && (is_far[(shn+1)%3] && is_far[(shn+2)%3]) )
         return true;  
@@ -105,7 +105,7 @@ bool __fast_discard
   else //overlapping or just coplanar : COMMENTED FOR NGON BOOLEAN DOINT ONE PASS ONLY (very few case like that occur at first iter)
   {
     //if sharing an edge and opposite nodes are on each side => just coplanar
-    if (shn != E_IDX_NONE) //they must share at least a node
+    if (shn != IDX_NONE) //they must share at least a node
     {
       E_Int i,j;    
       if (getBoundary(t0,t1, i,j)) //true if an edge is shared and therefore i,j are valued
@@ -114,15 +114,15 @@ bool __fast_discard
         E_Int n0op = *(t0+(i+2)%3);
         E_Int n1op = *(t1+(j+2)%3);
         
-        K_FUNC::diff<3>(pos.col(*(t0+(i+1)%3)), pos.col(*(t0+i)), shE);
+        NUGA::diff<3>(pos.col(*(t0+(i+1)%3)), pos.col(*(t0+i)), shE);
         
-        K_FUNC::diff<3>(pos.col(n0op), pos.col(*(t0+i)), U);
-        K_FUNC::crossProduct<3>(shE,U,n0);
+        NUGA::diff<3>(pos.col(n0op), pos.col(*(t0+i)), U);
+        NUGA::crossProduct<3>(shE,U,n0);
         
-        K_FUNC::diff<3>(pos.col(n1op), pos.col(*(t0+i)), U);
-        K_FUNC::crossProduct<3>(shE,U,n1);
+        NUGA::diff<3>(pos.col(n1op), pos.col(*(t0+i)), U);
+        NUGA::crossProduct<3>(shE,U,n1);
         
-        if (K_FUNC::dot<3>(n0, n1) < 0.)
+        if (NUGA::dot<3>(n0, n1) < 0.)
           return true;
       }
     }   
@@ -137,7 +137,7 @@ E_Bool __intersect
 (const K_FLD::FloatArray& pos, const K_FLD::IntArray& connect, E_Int t, E_Int e0, E_Int e1, E_Float tol, E_Bool& coplanar)
 {
   
-  E_Float u0[2], E[DIM], eps(/*100.*E_EPSILON*/tol);
+  E_Float u0[2], E[DIM], eps(/*100.*EPSILON*/tol);
   E_Bool  overlap, intersect;
   E_Int tx[2];  
   K_FLD::IntArray::const_iterator pS = connect.col(t);
@@ -163,7 +163,7 @@ E_Bool __intersect
   if (!intersect)
     return false;
 
-  bool one_single_x_point = (u0[1] == K_CONST::E_MAX_FLOAT) || (::fabs(u0[1] - u0[0]) < eps);
+  bool one_single_x_point = (u0[1] == NUGA::FLOAT_MAX) || (::fabs(u0[1] - u0[0]) < eps);
   bool share_a_node = (*pS == e0 || *(pS+1) == e0 || *(pS+2) == e0) || (*pS == e1 || *(pS+1) == e1 || *(pS+2) == e1);
   bool one_inside = ((u0[0] > eps) && (u0[0] < 1.-eps));
   
@@ -173,11 +173,11 @@ E_Bool __intersect
   bool add2E, add2T;
   intersect=false;
 
-  K_FUNC::diff<DIM>(pos.col(e1), pos.col(e0), E);
+  NUGA::diff<DIM>(pos.col(e1), pos.col(e0), E);
 
   for (E_Int n = 0; n < 2; ++n)
   {
-    if (u0[n] == K_CONST::E_MAX_FLOAT)
+    if (u0[n] == NUGA::FLOAT_MAX)
       continue;
     
     add2E = (u0[n] >= eps) && (u0[n] <= (1. - eps));
@@ -406,9 +406,9 @@ void selfX(const K_FLD::FloatArray& crd, const ngon_t<cnt_t>& ng, std::vector<E_
               const E_Float* Q2 = crd.col(cntT3(1,J));
               const E_Float* Q3 = crd.col(cntT3(2,J));
           
-              is_x = K_MESH::Triangle::fast_intersectT3<3>(P1, P2, P3, Q1, Q2, Q3, E_EPSILON/*dummy tol*/);
+              is_x = K_MESH::Triangle::fast_intersectT3<3>(P1, P2, P3, Q1, Q2, Q3, EPSILON/*dummy tol*/);
               if (is_x)
-                is_x = intersect_from_Conformizer_wo_trace<3>(crd, cntT3, I, J, E_EPSILON);
+                is_x = intersect_from_Conformizer_wo_trace<3>(crd, cntT3, I, J, EPSILON);
 #ifdef DEBUG_SELFX
               if (is_x)
               {
@@ -467,7 +467,7 @@ static E_Int PGintersect( xfunc func,
   K_FLD::IntArray& cT3, E_Int* xT31, E_Int* nb_T31, E_Int* xT32, E_Int* nb_T32, 
   bool &is_x)
 {
-  E_Float TOL = E_EPSILON;
+  E_Float TOL = EPSILON;
 
   is_x = false;
 
@@ -503,7 +503,7 @@ static E_Int PGintersect( xfunc func,
       // need a full test on triangulations
       
       // is PG1 triangulated ?
-      if (xT31[i] == E_IDX_NONE)
+      if (xT31[i] == IDX_NONE)
       {
         xT31[i] = cT3.cols();
         E_Int err = K_MESH::Polygon::triangulate(dt, crd, nodes1, nb_nodes1, 1, cT3);
@@ -511,7 +511,7 @@ static E_Int PGintersect( xfunc func,
         nb_T31[i] = cT3.cols() - xT31[i];
       }
       // is PG2 triangulated ?
-      if (xT32[j] == E_IDX_NONE)
+      if (xT32[j] == IDX_NONE)
       {
         xT32[j] = cT3.cols();
         E_Int err = K_MESH::Polygon::triangulate(dt, crd, nodes2, nb_nodes2, 1, cT3);

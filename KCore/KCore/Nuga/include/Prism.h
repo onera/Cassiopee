@@ -10,7 +10,7 @@
 
 #ifndef NUGA_PRISM_H
 #define NUGA_PRISM_H
-#include "Def/DefTypes.h"
+#include "Nuga/include/defs.h"
 #include "Nuga/include/DynArray.h"
 #include "Nuga/include/Triangle.h"
 #include "Nuga/include/ngon_t.hxx"
@@ -109,7 +109,7 @@ void Prism::reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i)
 //      std::cout << "pN= " << *(pN+i)-1;
 //      std::cout << "         it= " << glmap[*(pN+i)] << std::endl;
 //  }
-  E_Int F1Id(E_IDX_NONE), F2Id(E_IDX_NONE), F3Id(E_IDX_NONE), TOPId(E_IDX_NONE);
+  E_Int F1Id(IDX_NONE), F2Id(IDX_NONE), F3Id(IDX_NONE), TOPId(IDX_NONE);
 
   for (int k = 1; k < nb_faces; ++k)
   {

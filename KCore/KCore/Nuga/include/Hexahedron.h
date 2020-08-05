@@ -23,7 +23,7 @@
 #include "Nuga/include/DynArray.h"
 #include "Nuga/include/ArrayAccessor.h"
 #include "Nuga/include/ngon_t.hxx"
-#include "Def/DefTypes.h"
+#include "Nuga/include/defs.h"
 #include "Polygon.h"
 
 namespace K_MESH
@@ -135,7 +135,7 @@ public:
   void bbox(const CoordAcc& acrd, box_t&bb) const
   {
     for (E_Int i = 0; i < 3; ++i)
-      {bb.minB[i] = K_CONST::E_MAX_FLOAT; bb.maxB[i] = -K_CONST::E_MAX_FLOAT;}
+      {bb.minB[i] = NUGA::FLOAT_MAX; bb.maxB[i] = -NUGA::FLOAT_MAX;}
 
     bb.compute(acrd, _nodes, NB_NODES, 0/*idx start*/);
   }
@@ -189,7 +189,7 @@ void Hexahedron::reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i) // 
     glmap[*(pN+3)] = 1;
     glmap[*(pN+1)] = 3;
   }
-  E_Int TopId(E_IDX_NONE),LeftId(E_IDX_NONE),RightId(E_IDX_NONE),FrontId(E_IDX_NONE),BackId(E_IDX_NONE);
+  E_Int TopId(IDX_NONE),LeftId(IDX_NONE),RightId(IDX_NONE),FrontId(IDX_NONE),BackId(IDX_NONE);
 
   for (int k = 1; k < 6; ++k)
   {

@@ -39,7 +39,7 @@ namespace DELAUNAY
     };
 
     typedef     VarMetric<T>            parent_type;
-    typedef     K_CONT_DEF::size_type   size_type;
+    typedef     NUGA::size_type   size_type;
 
   public:
 
@@ -54,7 +54,7 @@ namespace DELAUNAY
     GeomMetric(K_FLD::FloatArray& pos, const SurfaceType& surface, GMmode mode, 
                E_Float chordal_error, E_Float hmin, E_Float hmax, E_Float gr)
       :parent_type (pos, hmin, hmax), _mode(mode), _surface(surface),
-      _h0(K_CONST::E_MAX_FLOAT), _chordal_error(chordal_error),
+      _h0(NUGA::FLOAT_MAX), _chordal_error(chordal_error),
       _alpha2(4. * chordal_error*(2. - chordal_error)), _gr(gr), _unbounded_h(false)  
     {}
     
@@ -136,7 +136,7 @@ namespace DELAUNAY
        parent_type::_hmax = hmax1 * connectB.cols();
        _unbounded_h = true;
      }
-     if ((parent_type::_hmin <= 0.) || (parent_type::_hmin > parent_type::_hmax) || (parent_type::_hmin == K_CONST::E_MAX_FLOAT) )
+     if ((parent_type::_hmin <= 0.) || (parent_type::_hmin > parent_type::_hmax) || (parent_type::_hmin == NUGA::FLOAT_MAX) )
        parent_type::_hmin = std::min(hmin1, parent_type::_hmax);
  
      if (parent_type::_hmax < hmax1)
@@ -150,7 +150,7 @@ namespace DELAUNAY
          m_iso[i] = std::max(m_iso[i], parent_type::_hmin);
      }
      
-    _hmax2 = (parent_type::_hmax != K_CONST::E_MAX_FLOAT) ? parent_type::_hmax * parent_type::_hmax : K_CONST::E_MAX_FLOAT; //fixme : important to be done before __update_boundary_metric_with_surface
+    _hmax2 = (parent_type::_hmax != NUGA::FLOAT_MAX) ? parent_type::_hmax * parent_type::_hmax : NUGA::FLOAT_MAX; //fixme : important to be done before __update_boundary_metric_with_surface
 
     // Set _metric by converting m_iso to an aniso type metric.
     // Only relevant in aniso case (in iso just assign it) //fixme
@@ -226,8 +226,8 @@ namespace DELAUNAY
 //      const E_Int& Nj = connectB(1,i);
 //      
 //      E_Float NiNj[2];
-//      K_FUNC::diff<2>(crd.col(Nj),crd.col(Ni), NiNj);
-//      E_Float dij2 = K_FUNC::normalize<2>(NiNj);
+//      NUGA::diff<2>(crd.col(Nj),crd.col(Ni), NiNj);
+//      E_Float dij2 = NUGA::normalize<2>(NiNj);
 //      dij2 *= dij2;
 //      
 //      E_Float hi02 = parent_type::get_h2_along_dir(Ni, NiNj); // trace on NiNj of the ellipse centered at Ni
@@ -295,19 +295,19 @@ namespace DELAUNAY
     _surface.DV2(u,v, dV2);
     _surface.DUV(u,v, dUV);
 
-    K_FUNC::crossProduct<3> (dU1, dV1, n); // Normal to the tangential plane.
-    E_Float l = K_FUNC::normalize<3>(n);
+    NUGA::crossProduct<3> (dU1, dV1, n); // Normal to the tangential plane.
+    E_Float l = NUGA::normalize<3>(n);
     
-    bool singular = (::fabs(l) < E_EPSILON); //undefined plane : dU1 and dV2 are colinear !
+    bool singular = (::fabs(l) < EPSILON); //undefined plane : dU1 and dV2 are colinear !
 
     if (!singular)
     {
       // First form.
-      E = K_FUNC::sqrNorm<3> (dU1);
-      F = K_FUNC::dot<3> (dU1, dV1);
-      G = K_FUNC::sqrNorm<3> (dV1);
+      E = NUGA::sqrNorm<3> (dU1);
+      F = NUGA::dot<3> (dU1, dV1);
+      G = NUGA::sqrNorm<3> (dV1);
       
-      singular = ((E < E_EPSILON || G < E_EPSILON));
+      singular = ((E < EPSILON || G < EPSILON));
     }
     
     if (singular) return;
@@ -322,13 +322,13 @@ namespace DELAUNAY
     }
 
     // Second form.
-    L = K_FUNC::dot<3>(n, dU2);
-    M = K_FUNC::dot<3>(n, dUV);
-    N = K_FUNC::dot<3>(n, dV2);
+    L = NUGA::dot<3>(n, dU2);
+    M = NUGA::dot<3>(n, dUV);
+    N = NUGA::dot<3>(n, dV2);
 
-    bool locally_iso = ((::fabs((F*L)-(E*M)) < E_EPSILON) && 
-                        (::fabs((G*L)-(E*N)) < E_EPSILON) && 
-                        (::fabs((G*M)-(F*N)) < E_EPSILON));
+    bool locally_iso = ((::fabs((F*L)-(E*M)) < EPSILON) && 
+                        (::fabs((G*L)-(E*N)) < EPSILON) && 
+                        (::fabs((G*M)-(F*N)) < EPSILON));
 
     if (locally_iso)
     {
@@ -520,9 +520,9 @@ namespace DELAUNAY
     _surface.DV1(u,v, dV1);
     
     // First form.
-    E = K_FUNC::sqrNorm<3> (dU1);
-    F = K_FUNC::dot<3> (dU1, dV1);
-    G = K_FUNC::sqrNorm<3> (dV1);
+    E = NUGA::sqrNorm<3> (dU1);
+    F = NUGA::dot<3> (dU1, dV1);
+    G = NUGA::sqrNorm<3> (dV1);
   }
 
   template <typename T, typename SurfaceType>
@@ -566,7 +566,7 @@ namespace DELAUNAY
   void
   GeomMetric<T, SurfaceType>::reduce_by_checking_real_space(size_type Ni)
   {
-    if (_hmax2 == K_CONST::E_MAX_FLOAT || _hmax2 <= 0.) return;
+    if (_hmax2 == NUGA::FLOAT_MAX || _hmax2 <= 0.) return;
     
     // Diagonalization
     E_Float lambda0, lambda1, v0[2], v1[2];
@@ -575,8 +575,8 @@ namespace DELAUNAY
     D(0,0) = lambda0;
     D(1,1) = lambda1;
     
-    K_FUNC::normalize<2>(v0);
-    K_FUNC::normalize<2>(v1);
+    NUGA::normalize<2>(v0);
+    NUGA::normalize<2>(v1);
     
     // transformation Matrix : BD : Main axis -> (i,j)
     K_FLD::FloatArray P(2,2, 0.), tP(2,2,0.);
@@ -594,20 +594,20 @@ namespace DELAUNAY
     E_Float Piy = parent_type::_pos(1,Ni);
 
     // P0 = Pi +/- h0*v0
-    K_FUNC::sum<3>(1., parent_type::_pos.col(Ni), h0, v0, P0);
+    NUGA::sum<3>(1., parent_type::_pos.col(Ni), h0, v0, P0);
     bool P0_is_inside = _surface.in_bounds(P0[0], P0[1]);
     if (!P0_is_inside)
     {
-      K_FUNC::sum<3>(1., parent_type::_pos.col(Ni), -h0, v0, P0); //try with the opposite point
+      NUGA::sum<3>(1., parent_type::_pos.col(Ni), -h0, v0, P0); //try with the opposite point
       P0_is_inside = _surface.in_bounds(P0[0], P0[1]);
     }
 
     // P1 = Pi +/- h1*v1
-    K_FUNC::sum<3>(1., parent_type::_pos.col(Ni), h1, v1, P1);
+    NUGA::sum<3>(1., parent_type::_pos.col(Ni), h1, v1, P1);
     bool P1_is_inside = _surface.in_bounds(P1[0], P1[1]);
     if (!P1_is_inside)
     {
-      K_FUNC::sum<3>(1., parent_type::_pos.col(Ni), -h1, v1, P1); //try with the opposite point
+      NUGA::sum<3>(1., parent_type::_pos.col(Ni), -h1, v1, P1); //try with the opposite point
       P1_is_inside = _surface.in_bounds(P1[0], P1[1]);
     }
     
@@ -621,7 +621,7 @@ namespace DELAUNAY
     if (P0_is_inside)
     {
       _surface.point(P0[0], P0[1], P0r);
-      E_Float dPiP02 = K_FUNC::sqrDistance(Pi, P0r, 3);
+      E_Float dPiP02 = NUGA::sqrDistance(Pi, P0r, 3);
       k02 =  dPiP02 / _hmax2;
     }
     
@@ -629,7 +629,7 @@ namespace DELAUNAY
     if (P1_is_inside)
     {
       _surface.point(P1[0], P1[1], P1r);
-      E_Float dPiP12 = K_FUNC::sqrDistance(Pi, P1r, 3);
+      E_Float dPiP12 = NUGA::sqrDistance(Pi, P1r, 3);
       k12 =  dPiP12 / _hmax2;
     }
 

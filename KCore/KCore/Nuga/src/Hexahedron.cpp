@@ -53,8 +53,8 @@ void Hexahedron::get_edges(const E_Int* nodes, Vector_t<K_MESH::NO_Edge>& edges)
 bool Hexahedron::cross(const ngon_type& ng, const K_FLD::FloatArray& crd, const E_Int* face, E_Int nb_faces, K_FLD::FloatArray& data, E_Float* P0, E_Float* P1, E_Float& lambda0, E_Float& lambda1, E_Float tolerance)
 {
   // crossing points are defined by lambda coefficients, initialize them
-  lambda0 = K_CONST::E_MAX_FLOAT;
-  lambda1 = K_CONST::E_MAX_FLOAT;
+  lambda0 = NUGA::FLOAT_MAX;
+  lambda1 = NUGA::FLOAT_MAX;
   
   for (int i = 0; i < nb_faces; ++i)
   {
@@ -70,7 +70,7 @@ bool Hexahedron::cross(const ngon_type& ng, const K_FLD::FloatArray& crd, const 
 	E_Bool overlap = false;
 	E_Int tx = 0;
 	E_Float l0, l1;
-	bool x = K_MESH::Triangle::intersect<3>(q0, q1, q2, P0, P1, E_EPSILON, true, l0, l1, tx, overlap);
+	bool x = K_MESH::Triangle::intersect<3>(q0, q1, q2, P0, P1, EPSILON, true, l0, l1, tx, overlap);
 	
 	if (!x) continue; // doesn't intersect
 	
@@ -78,19 +78,19 @@ bool Hexahedron::cross(const ngon_type& ng, const K_FLD::FloatArray& crd, const 
 	
 	if ( (l0 <= tolerance) || (l0 >= 1 - tolerance) ) continue;
 	
-	if (lambda0 == K_CONST::E_MAX_FLOAT) lambda0 = l0;
+	if (lambda0 == NUGA::FLOAT_MAX) lambda0 = l0;
 	else
 	  lambda1 = l0;
 	
 	if ( (l1 <= tolerance) || (l1 >= 1 - tolerance) ) continue;
 	
-	if (lambda1 == K_CONST::E_MAX_FLOAT) lambda1 = l1;
+	if (lambda1 == NUGA::FLOAT_MAX) lambda1 = l1;
 	else
 	  lambda0 = l1;
   }
   
   // end 
-  if ( (lambda0 != K_CONST::E_MAX_FLOAT) && (lambda1 != K_CONST::E_MAX_FLOAT) ) return true;
+  if ( (lambda0 != NUGA::FLOAT_MAX) && (lambda1 != NUGA::FLOAT_MAX) ) return true;
 	
   return false;
 }

@@ -20,13 +20,13 @@
 #ifndef _DELAUNAY_METRIC_H_
 #define _DELAUNAY_METRIC_H_
 
-#include "Nuga/include/DefContainers.h"
-#include "Def/DefFunction.h"
-#include "AnisoMetricType.h"
-#include "Interpolator.h"
+#include "Nuga/include/defs.h"
+#include "Nuga/include/maths.hxx"
+#include "Nuga/include/AnisoMetricType.h"
+#include "Nuga/include/Interpolator.h"
 #include "Nuga/include/DelaunayMath.h"
-#include "macros.h"
-#include "MeshUtils1D.h"
+#include "Nuga/include/macros.h"
+#include "Nuga/include/MeshUtils1D.h"
 
 #ifdef DEBUG_METRIC
 #include "iodata.h"
@@ -49,7 +49,7 @@ namespace DELAUNAY{
 
   public: /** Typedefs */
 
-    typedef K_CONT_DEF::size_type size_type;
+    typedef NUGA::size_type size_type;
     typedef VarMetric             self_type;
     typedef T                     value_type;
     typedef std::vector<T>        field_type;
@@ -71,7 +71,7 @@ namespace DELAUNAY{
 
     inline E_Float lengthEval (size_type Ni, const T& mi, size_type Nj, const T& mj);
 
-    inline E_Float length (size_type Ni, size_type Nj, const E_Float& threshold, K_CONT_DEF::int_vector_type& tmpNodes);
+    inline E_Float length (size_type Ni, size_type Nj, const E_Float& threshold, NUGA::int_vector_type& tmpNodes);
 
     inline E_Float getRadius(size_type Ni);
     
@@ -167,7 +167,7 @@ namespace DELAUNAY{
   bool
   VarMetric<E_Float>::isValidMetric(const E_Float& mi)
   {
-    return ((mi > 0.) && (mi < K_CONST::E_MAX_FLOAT));
+    return ((mi > 0.) && (mi < NUGA::FLOAT_MAX));
   }
 
   template<> inline
@@ -189,8 +189,8 @@ namespace DELAUNAY{
     const E_Float& a12 = mi[1];
     const E_Float& a22 = mi[2];
     
-    if ( ::fabs(a12) > E_EPSILON) return false;
-    if ( ::fabs(a11 - a22) > E_EPSILON) return false;
+    if ( ::fabs(a12) > EPSILON) return false;
+    if ( ::fabs(a11 - a22) > EPSILON) return false;
     
     return true;
   }
@@ -200,7 +200,7 @@ namespace DELAUNAY{
     E_Float
     VarMetric<Aniso2D>::get_h2_along_dir(size_type Ni, const E_Float* dir)
   {
-    E_Float L2 = K_FUNC::sqrNorm<2>(dir);
+    E_Float L2 = NUGA::sqrNorm<2>(dir);
     
     const E_Float& m11 = _field[Ni][0];
     const E_Float& m12 = _field[Ni][1];
@@ -295,7 +295,7 @@ namespace DELAUNAY{
     
     E_Int SAMPLE = 100;
     
-    E_Float alpha = 2. * K_CONST::E_PI /  (E_Float)SAMPLE;
+    E_Float alpha = 2. * NUGA::PI /  (E_Float)SAMPLE;
     
     E_Int pos0 = crd.cols();
     
@@ -317,7 +317,7 @@ namespace DELAUNAY{
       
       E_Float Pt[] = {k*u , k*v};
       
-      K_FUNC::sum<2>(Pt, c.col(Nc), Pt); //center it at node Nc
+      NUGA::sum<2>(Pt, c.col(Nc), Pt); //center it at node Nc
       
       crd.pushBack(Pt, Pt+2);
       
@@ -338,7 +338,7 @@ namespace DELAUNAY{
     
     const E_Float& h = this->_field[i];
     
-    E_Float alpha = 2. * K_CONST::E_PI /  (E_Float)SAMPLE;
+    E_Float alpha = 2. * NUGA::PI /  (E_Float)SAMPLE;
     
     E_Int pos0 = crd.cols();
     
@@ -351,7 +351,7 @@ namespace DELAUNAY{
       
       E_Float Pt[] = {h*V[0] , h*V[1]};
       
-      K_FUNC::sum<2>(Pt, c.col(Nc), Pt); //center it at node Nc
+      NUGA::sum<2>(Pt, c.col(Nc), Pt); //center it at node Nc
       
       crd.pushBack(Pt, Pt+2);
       
@@ -392,11 +392,11 @@ namespace DELAUNAY{
      
      // Set _hmin and _hmax if not done nor correct.
      if (_hmax <= 0.)
-       _hmax = K_CONST::E_MAX_FLOAT;
-     if ((_hmin <= 0.) || (_hmin > _hmax) || (_hmin == K_CONST::E_MAX_FLOAT) )
+       _hmax = NUGA::FLOAT_MAX;
+     if ((_hmin <= 0.) || (_hmin > _hmax) || (_hmin == NUGA::FLOAT_MAX) )
        _hmin = hmin1;
      
-     if (_hmax != K_CONST::E_MAX_FLOAT)
+     if (_hmax != NUGA::FLOAT_MAX)
      {
        for (size_t i=0; i < m_iso.size(); ++i)
          m_iso[i] = std::min(m_iso[i], _hmax);
@@ -420,7 +420,7 @@ namespace DELAUNAY{
 
   template <typename T>
   E_Float
-    VarMetric<T>::length(size_type Ni, size_type Nj, const E_Float & threshold, K_CONT_DEF::int_vector_type& tmpNodes){
+    VarMetric<T>::length(size_type Ni, size_type Nj, const E_Float & threshold, NUGA::int_vector_type& tmpNodes){
 
       // This computes recursively the length of the input edge by splitting it in
       // a number of bits such all the bits are smaller than the treshold.
@@ -472,7 +472,7 @@ namespace DELAUNAY{
     assert (isValidMetric(mj));
 #endif
     
-    K_FUNC::diff<2> (_pos.col(Nj), _pos.col(Ni), v);
+    NUGA::diff<2> (_pos.col(Nj), _pos.col(Ni), v);
 
     vi[0] = mi[0]*v[0] + mi[1]*v[1];
     vi[1] = mi[1]*v[0] + mi[2]*v[1];
@@ -482,7 +482,7 @@ namespace DELAUNAY{
     vi = mi * v;
     vj = mj * v;
     */
-    for (K_CONT_DEF::size_type i = 0; i < _pos.rows(); ++i)
+    for (NUGA::size_type i = 0; i < _pos.rows(); ++i)
     {
       r1 += vi[i]*v[i];
       r2 += vj[i]*v[i];
@@ -491,7 +491,7 @@ namespace DELAUNAY{
     E_Float res = 0.5 * (::sqrt(r1) + ::sqrt(r2)); //integral approx.
 
 #ifdef DEBUG_METRIC
-    assert (res > E_EPSILON);
+    assert (res > EPSILON);
 #endif
 
     return res; 
@@ -505,7 +505,7 @@ namespace DELAUNAY{
   VarMetric<E_Float>::length(size_type Ni, size_type Nj)
   {
   E_Float h0 = _metric[Ni], h1 = _metric[Nj];
-  E_Float d = ::sqrt(K_FUNC::sqrDistance(_pos.col(Ni), _pos.col(Nj), _pos.rows()));
+  E_Float d = ::sqrt(NUGA::sqrDistance(_pos.col(Ni), _pos.col(Nj), _pos.rows()));
   E_Float r1 = h1 / h0;
   if (::abs(r1 - 1.) < 0.01)
   return d / std::max(h0,h1);
@@ -522,7 +522,7 @@ namespace DELAUNAY{
     VarMetric<E_Float>::lengthEval (size_type Ni, const E_Float& mi, size_type Nj, const E_Float& mj)
   {
     // Warning : input mi and mj are in fact hi and hj.
-    return 0.5 * ((1./mi) + (1./mj)) * ::sqrt(K_FUNC::sqrDistance(_pos.col(Ni), _pos.col(Nj), _pos.rows()));
+    return 0.5 * ((1./mi) + (1./mj)) * ::sqrt(NUGA::sqrDistance(_pos.col(Ni), _pos.col(Nj), _pos.rows()));
   }
   
   ///
@@ -565,8 +565,8 @@ namespace DELAUNAY{
     D(0,0) = lambda0;
     D(1,1) = lambda1;
     
-    K_FUNC::normalize<2>(v0);
-    K_FUNC::normalize<2>(v1);
+    NUGA::normalize<2>(v0);
+    NUGA::normalize<2>(v1);
     
     // transformation Matrix : diagonalizing base (BD) : Main axis -> (i,j)
     K_FLD::FloatArray P(2,2, 0.), tP(2,2,0.);
@@ -590,22 +590,22 @@ namespace DELAUNAY{
     E_Float xbd2 = Xbd[0]*Xbd[0];
     E_Float ybd2 = Xbd[1]*Xbd[1];
     
-    if (xbd2 < E_EPSILON*E_EPSILON)       // along second axis
+    if (xbd2 < EPSILON*EPSILON)       // along second axis
       D(1,1) *= (h2old2 / ybd2);
-    else if (ybd2 < E_EPSILON*E_EPSILON) // along first axis
+    else if (ybd2 < EPSILON*EPSILON) // along first axis
       D(0,0) *= (h1old2 / xbd2);
-//    else if (::fabs(lambda0-lambda1) < E_EPSILON) //isotropic reduce
+//    else if (::fabs(lambda0-lambda1) < EPSILON) //isotropic reduce
 //    {
-//      //assert (::fabs(xbd2 - ybd2) < E_EPSILON*E_EPSILON);
+//      //assert (::fabs(xbd2 - ybd2) < EPSILON*EPSILON);
 //      D(0,0) = 1. / xbd2;
 //      D(1,1) = 1. / ybd2;
 //    }
     else
     {
       bool first_axis = (ybd2/xbd2 < ::fabs(lambda0/lambda1));
-//      E_Float psu2 = K_FUNC::dot<2>(normed_dir, v0);
+//      E_Float psu2 = NUGA::dot<2>(normed_dir, v0);
 //      psu2 *= psu2;
-//      E_Float psv2 = K_FUNC::dot<2>(normed_dir, v1);
+//      E_Float psv2 = NUGA::dot<2>(normed_dir, v1);
 //      psv2 *= psv2;
 //      bool first_axis = (psu2 >= psv2);
 //      E_Float l0new = ::fabs((1. - lambda1*(Xbd[1]*Xbd[1])) / (Xbd[0]*Xbd[0]));
@@ -623,12 +623,12 @@ namespace DELAUNAY{
     
 #ifdef DEBUG_METRIC
     E_Float sym_check = ::fabs(new_metric(0,1) - new_metric(1,0));
-    if (sym_check >=E_EPSILON)
+    if (sym_check >=EPSILON)
     {
       sym_check = sym_check / std::max(new_metric(0,1), new_metric(1,0));
     }
     //std::cout << sym_check << std::endl;
-    assert (sym_check < E_EPSILON);
+    assert (sym_check < EPSILON);
 //if (Ni == 112)
 //    {
 //    K_FLD::FloatArray crdo;
@@ -734,7 +734,7 @@ namespace DELAUNAY{
     for (size_type i = 0; i < max; ++i)
     {
       m = metric2(0,i);
-      if ((m > 0.) && (m < K_CONST::E_MAX_FLOAT))
+      if ((m > 0.) && (m < NUGA::FLOAT_MAX))
         metric1[i] = std::min(m, metric1[i]) ;
     }
   }
@@ -841,7 +841,7 @@ namespace DELAUNAY{
     E_Float hi0 = _field[Ni];
     E_Float hj0 = _field[Nj];
 
-    if (::fabs(hj0 - hi0) < E_EPSILON) return false; //same metric so nothing to smooth
+    if (::fabs(hj0 - hi0) < EPSILON) return false; //same metric so nothing to smooth
     if (hj0 < hi0)
     {
       std::swap(Ni,Nj);
@@ -881,14 +881,14 @@ namespace DELAUNAY{
     const Aniso2D& mj0 = _field[Nj];
 
     E_Float NiNj[2];
-    K_FUNC::diff<2>(_pos.col(Nj), _pos.col(Ni), NiNj);
+    NUGA::diff<2>(_pos.col(Nj), _pos.col(Ni), NiNj);
        
     E_Float hi02 = get_h2_along_dir(Ni, NiNj); // trace on NiNj of the ellipse centered at Ni
     E_Float hj02 = get_h2_along_dir(Nj, NiNj); // trace on NiNj of the ellipse centered at Nj
     
     const Aniso2D* pmi0 = &mi0;
     
-    if (::fabs(hj02 - hi02) < E_EPSILON*E_EPSILON) return false; //same metric so nothing to smooth
+    if (::fabs(hj02 - hi02) < EPSILON*EPSILON) return false; //same metric so nothing to smooth
     if (hj02 < hi02)
     {
       std::swap(Ni,Nj);
@@ -927,7 +927,7 @@ namespace DELAUNAY{
     pos.pushBack(newP, newP+dim);
     size_type N = pos.cols()-1;
     
-    E_Float   d = ::sqrt(K_FUNC::sqrDistance(pos.col(Ni), pos.col(Nj), pos.rows()));
+    E_Float   d = ::sqrt(NUGA::sqrDistance(pos.col(Ni), pos.col(Nj), pos.rows()));
     
     // set the metric as a large valid value : half of the initial edge length
     E_Float factor = 0.5;
@@ -967,10 +967,10 @@ namespace DELAUNAY{
     for (size_type i = 0; i < nb_nodes; ++i)
     {
       Nk = tmpNodes[i];
-      x = K_FUNC::sqrDistance(pNi, pos.col(Nk), dim);
+      x = NUGA::sqrDistance(pNi, pos.col(Nk), dim);
       length_to_point.push_back(std::make_pair(x, Nk));
     }
-    length_to_point.push_back(std::make_pair(K_CONST::E_MAX_FLOAT, Nj));
+    length_to_point.push_back(std::make_pair(NUGA::FLOAT_MAX, Nj));
 
     std::sort(length_to_point.begin(), length_to_point.end());
 
@@ -996,7 +996,7 @@ namespace DELAUNAY{
 
       r = ((1 - l)/x);
       
-      K_FUNC::diff<2>(pos.col(Nl), pos.col(Nk), newP);
+      NUGA::diff<2>(pos.col(Nl), pos.col(Nk), newP);
 
       for (size_type j = 0; j < 2; ++j)
       {

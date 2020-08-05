@@ -185,7 +185,7 @@ namespace NUGA
       assert(t6[5] == nodes[11]);
 
       for (size_t i = 0; i < 18; ++i)
-        assert(nodes[i] != E_IDX_NONE);
+        assert(nodes[i] != IDX_NONE);
 #endif
       
     }

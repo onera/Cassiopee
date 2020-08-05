@@ -97,9 +97,9 @@ E_Int Polygon::getOrientation
 //   //
 //   E_Float Ei[3], Ej[3];
 //   bool convex = true;
-//   iworst = E_IDX_NONE;
+//   iworst = IDX_NONE;
   
-//   E_Float angle_max = K_CONST::E_PI* PI_ratio; // a fraction betwen 0 and Pi
+//   E_Float angle_max = NUGA::PI* PI_ratio; // a fraction betwen 0 and Pi
 //   E_Float cos_min = ::cos(angle_max); // cos is decreasing on [0; Pi]
 //   E_Float Z[3];
 //   for (E_Int i = 1; i < nb_nodes + 1; ++i)
@@ -108,18 +108,18 @@ E_Int Polygon::getOrientation
 //     E_Int eim1 = nodes[i - 1] - index_start;
 //     E_Int eip1 = nodes[(i + 1) % nb_nodes] - index_start;
 
-//     K_FUNC::diff<3>(coord.col(ei), coord.col(eim1), &Ei[0]); //fixme : no normalization ??
-//     K_FUNC::diff<3>(coord.col(eip1), coord.col(ei), &Ej[0]);
-//     K_FUNC::sum<3>(normal, coord.col(ei), Z);
+//     NUGA::diff<3>(coord.col(ei), coord.col(eim1), &Ei[0]); //fixme : no normalization ??
+//     NUGA::diff<3>(coord.col(eip1), coord.col(ei), &Ej[0]);
+//     NUGA::sum<3>(normal, coord.col(ei), Z);
 
-//     E_Float det = K_FUNC::zzdet4(coord.col(eim1), coord.col(ei), coord.col(eip1), Z);
+//     E_Float det = NUGA::zzdet4(coord.col(eim1), coord.col(ei), coord.col(eip1), Z);
     
 //     if (det >= 0.) continue; // convex
     
-//     K_FUNC::normalize<3>(Ei);
-//     K_FUNC::normalize<3>(Ej);
+//     NUGA::normalize<3>(Ei);
+//     NUGA::normalize<3>(Ej);
 
-//     E_Float c = K_FUNC::dot<3>(Ei, Ej);
+//     E_Float c = NUGA::dot<3>(Ei, Ej);
     
 //     if (c < cos_min) // angle > anle max
 //     {
@@ -140,7 +140,7 @@ const E_Float* normal, E_Float convexity_tol, E_Int& iworst, E_Int& ibest)
   //
   E_Float Ei[3], Ej[3];
   bool convex = true;
-  ibest = iworst = E_IDX_NONE;
+  ibest = iworst = IDX_NONE;
   
   E_Float Z[3], det_min(-convexity_tol), det_max(0.);
   for (E_Int i = 1; i < nb_nodes + 1; ++i)
@@ -149,11 +149,11 @@ const E_Float* normal, E_Float convexity_tol, E_Int& iworst, E_Int& ibest)
     E_Int eim1 = nodes[i - 1] - index_start;
     E_Int eip1 = nodes[(i + 1) % nb_nodes] - index_start;
 
-    K_FUNC::diff<3>(coord.col(ei), coord.col(eim1), &Ei[0]); //fixme : no normalization ??
-    K_FUNC::diff<3>(coord.col(eip1), coord.col(ei), &Ej[0]);
-    K_FUNC::sum<3>(normal, coord.col(ei), Z);
+    NUGA::diff<3>(coord.col(ei), coord.col(eim1), &Ei[0]); //fixme : no normalization ??
+    NUGA::diff<3>(coord.col(eip1), coord.col(ei), &Ej[0]);
+    NUGA::sum<3>(normal, coord.col(ei), Z);
 
-    E_Float det = K_FUNC::zzdet4(coord.col(eim1), coord.col(ei), coord.col(eip1), Z);
+    E_Float det = NUGA::zzdet4(coord.col(eim1), coord.col(ei), coord.col(eip1), Z);
 
     if (det < det_min)
     {
@@ -162,7 +162,7 @@ const E_Float* normal, E_Float convexity_tol, E_Int& iworst, E_Int& ibest)
       det_min = det;
     }
     
-    det /= (K_FUNC::normalize<3>(Ei)*K_FUNC::normalize<3>(Ej)); //normalization to really have a angular-based test.
+    det /= (NUGA::normalize<3>(Ei)*NUGA::normalize<3>(Ej)); //normalization to really have a angular-based test.
     
     if (det > det_max)
     {
@@ -185,20 +185,20 @@ bool Polygon::is_convex
     E_Int eim1 = nodes[i - 1] - index_start;
     E_Int eip1 = nodes[(i + 1) % nb_nodes] - index_start;
 
-    K_FUNC::diff<3>(coord.col(ei), coord.col(eim1), &Ei[0]);
-    K_FUNC::diff<3>(coord.col(eip1), coord.col(ei), &Ej[0]);
+    NUGA::diff<3>(coord.col(ei), coord.col(eim1), &Ei[0]);
+    NUGA::diff<3>(coord.col(eip1), coord.col(ei), &Ej[0]);
 
-    /*K_FUNC::normalize<3>(Ei);
-    K_FUNC::normalize<3>(Ej);
-    K_FUNC::crossProduct<3>(Ei, Ej, Ek);
+    /*NUGA::normalize<3>(Ei);
+    NUGA::normalize<3>(Ej);
+    NUGA::crossProduct<3>(Ei, Ej, Ek);
 
-    ps = K_FUNC::dot<3>(Ek, normals.col(globalId[K]));
+    ps = NUGA::dot<3>(Ek, normals.col(globalId[K]));
     */
-    K_FUNC::sum<3>(normal, coord.col(ei), Z);
+    NUGA::sum<3>(normal, coord.col(ei), Z);
 
-    E_Float uu = K_FUNC::zzdet4(coord.col(eim1), coord.col(ei), coord.col(eip1), Z);
+    E_Float uu = NUGA::zzdet4(coord.col(eim1), coord.col(ei), coord.col(eip1), Z);
     /*
-    if ((ps*uu < 0.) && (::fabs(ps) > E_EPSILON) && (::fabs(uu) > E_EPSILON))
+    if ((ps*uu < 0.) && (::fabs(ps) > EPSILON) && (::fabs(uu) > EPSILON))
     {
     assert(false);
     }*/
@@ -213,8 +213,8 @@ bool Polygon::is_convex
 bool Polygon::is_spiky
 (const K_FLD::FloatArray& crd, const E_Int* nodes, E_Int nb_nodes, E_Int idx_start, E_Int& is, E_Int& ie)
 {
-  is = E_IDX_NONE;
-  ie = E_IDX_NONE;
+  is = IDX_NONE;
+  ie = IDX_NONE;
 
   E_Int count(0);
 
@@ -225,15 +225,15 @@ bool Polygon::is_spiky
     E_Int nip1 = nodes[np1];
     E_Int nip2 = nodes[(n + 2) % nb_nodes];
     E_Float v1[3], v2[3];
-    K_FUNC::diff<3>(crd.col(nip1 - idx_start), crd.col(ni - idx_start), v1);
-    K_FUNC::diff<3>(crd.col(nip2 - idx_start), crd.col(nip1 - idx_start), v2);
-    E_Float ps = K_FUNC::dot<3>(v1, v2);
+    NUGA::diff<3>(crd.col(nip1 - idx_start), crd.col(ni - idx_start), v1);
+    NUGA::diff<3>(crd.col(nip2 - idx_start), crd.col(nip1 - idx_start), v2);
+    E_Float ps = NUGA::dot<3>(v1, v2);
 
     if (ps < 0.)
     {
       ++count;
-      if (is == E_IDX_NONE) is = np1;
-      else if (ie == E_IDX_NONE) ie = np1;
+      if (is == IDX_NONE) is = np1;
+      else if (ie == IDX_NONE) ie = np1;
     }
   }
 
@@ -303,7 +303,7 @@ const std::set<K_MESH::NO_Edge>* wall/*extra specified walls*/)
             it->second.second = K_MESH::Edge(i, j);
           }
           else //non-manifold so treat as a cut
-            it->second.second = K_MESH::Edge(E_IDX_NONE, E_IDX_NONE);
+            it->second.second = K_MESH::Edge(IDX_NONE, IDX_NONE);
         }
       }
     }
@@ -333,7 +333,7 @@ const std::set<K_MESH::NO_Edge>* wall/*extra specified walls*/)
             it->second.second = K_MESH::Edge(PGi, j);
           }
           else //non-manifold so treat as a cut
-            it->second.second = K_MESH::Edge(E_IDX_NONE, E_IDX_NONE);
+            it->second.second = K_MESH::Edge(IDX_NONE, IDX_NONE);
         }
       }
     }
@@ -345,7 +345,7 @@ const std::set<K_MESH::NO_Edge>* wall/*extra specified walls*/)
   std::map<K_MESH::NO_Edge, std::pair<K_MESH::Edge, K_MESH::Edge> >::iterator itE = noe_to_bound.end();
   for (it = noe_to_bound.begin(); it != itE; ++it)
   {
-    if (it->second.second.node(0) == E_IDX_NONE) // non-manifold
+    if (it->second.second.node(0) == IDX_NONE) // non-manifold
       continue;
     if (it->second.second.node(0) == -1)         // free-edge
       continue;
@@ -397,7 +397,7 @@ E_Int Polygon::get_sharp_edges
       const E_Float* E1 = crd.col(e1 - 1);
 
       E_Int j = *(pKn + n);
-      if (j == E_IDX_NONE)
+      if (j == IDX_NONE)
         continue;
       E_Int PGj = *(first_pg + j) - 1;
       
@@ -411,7 +411,7 @@ E_Int Polygon::get_sharp_edges
 
       // Concave or not ?
       E_Float alpha = NUGA::GeomAlgo<K_MESH::Polygon>::angle_measure(ni, nj, E0, E1);
-      alpha = ::fabs(K_CONST::E_PI - alpha);
+      alpha = ::fabs(NUGA::PI - alpha);
 
       if (alpha >= angular_threshold)
         sharp_edges.insert(K_MESH::NO_Edge(e0, e1));
@@ -456,7 +456,7 @@ E_Int Polygon::update_neighbor_with_sharp_edges
       const E_Float* E1 = crd.col(e1 - 1);
 
       E_Int j = *(pKn + n);
-      if (j == E_IDX_NONE)
+      if (j == IDX_NONE)
         continue;
       E_Int PGj = *(first_pg + j) - 1;
 
@@ -469,12 +469,12 @@ E_Int Polygon::update_neighbor_with_sharp_edges
 
       // Concave or not ?
       E_Float alpha = NUGA::GeomAlgo<K_MESH::Polygon>::angle_measure(ni, nj, E0, E1);
-      alpha = ::fabs(K_CONST::E_PI - alpha);
+      alpha = ::fabs(NUGA::PI - alpha);
 
       if (alpha < angular_threshold)
         continue;
 
-      *(pKn + n) = E_IDX_NONE; //set a cut in lneighbors
+      *(pKn + n) = IDX_NONE; //set a cut in lneighbors
     }
   }
 
@@ -508,7 +508,7 @@ E_Int Polygon::get_oriented_normal(const K_FLD::FloatArray& crd, const ngon_unit
   }
 
   E_Float l2 = ::sqrt(Normi[0] * Normi[0] + Normi[1] * Normi[1] + Normi[2] * Normi[2]);
-  if (::fabs(l2 - 1.) < E_EPSILON) // NOT DEGEN
+  if (::fabs(l2 - 1.) < EPSILON) // NOT DEGEN
     return 0;
   return 1;
 }
@@ -520,7 +520,7 @@ E_Int Polygon::full_agglomerate
   // Some face will be agglomerated, some not so a PG have 3 states : unchanged/deleted/created
   // so nids is sized a initial nb_pgs. But any id > nb_pgs refer to an agglomerate in agg_pgs.
   // nids[i] = i : UNCHANGED
-  // nids[i] = E_IDX_NONE DELETED
+  // nids[i] = IDX_NONE DELETED
   // nids[i] = i + nb_pgs : i-th PG in agg_pgs
   
 //  typedef std::set<K_MESH::NO_Edge> eset_t;
@@ -549,13 +549,13 @@ E_Int Polygon::full_agglomerate
   {
     ids.clear();
     ori.clear();
-    E_Int id0=E_IDX_NONE;
+    E_Int id0=IDX_NONE;
     
     for (E_Int i = 0; i < nb_pgs; ++i)
     {
       if (colors[i] != c) continue;
         
-      if (ids.empty()) id0 = i;// we store the first id for each color to hold the aggregate, other agglomerated are ignored since kept to E_IDX_NONE
+      if (ids.empty()) id0 = i;// we store the first id for each color to hold the aggregate, other agglomerated are ignored since kept to IDX_NONE
         
       ids.push_back(*(first_pg+i)-1);
       ori.push_back(orient[i]);
@@ -583,7 +583,7 @@ E_Int Polygon::full_agglomerate
       if (colors[i] != c)
         continue;
       if (i == id0) nids[i] = shft + nb_pgs;
-      else nids[i] = E_IDX_NONE;
+      else nids[i] = IDX_NONE;
     }
   }
     

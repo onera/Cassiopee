@@ -32,7 +32,7 @@ namespace NUGA
           K_SEARCH::BBox3D bxi;
           m.bbox(i, bxi);
 
-          if (K_SEARCH::BbTree<3>::boxesAreOverlapping(&ibox, &bxi, E_EPSILON))
+          if (K_SEARCH::BbTree<3>::boxesAreOverlapping(&ibox, &bxi, EPSILON))
             keep[i] = true;
         }
       }

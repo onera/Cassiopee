@@ -24,7 +24,7 @@
 #include <vector>
 #include <map>
 
-namespace K_CONT_DEF
+namespace NUGA
 {
 
 typedef   E_Int                                         size_type;

@@ -48,7 +48,7 @@ static int xtestreal=0;
 #endif
 
 #define MAX_PERCENT 0.05
-#define ZERO_MACHINE E_EPSILON
+#define ZERO_MACHINE EPSILON
 
 namespace NUGA
 {
@@ -90,7 +90,7 @@ Conformizer<DIM, Element_t>::__prepare_data
 ///
 template <E_Int DIM, typename Element_t>
 E_Int Conformizer<DIM, Element_t>::__removeDegenerated
-(K_FLD::IntArray& connect, K_CONT_DEF::int_vector_type& newIDs)
+(K_FLD::IntArray& connect, NUGA::int_vector_type& newIDs)
 {
   E_Int                       Si, COLS(connect.cols()), ROWS(connect.rows());
   K_FLD::IntArray::iterator   pS;
@@ -100,7 +100,7 @@ E_Int Conformizer<DIM, Element_t>::__removeDegenerated
   connectOut.reserve(ROWS, COLS);
 
   newIDs.clear();
-  newIDs.resize(COLS, E_IDX_NONE);
+  newIDs.resize(COLS, IDX_NONE);
 
   for (Si = 0; Si < COLS; ++Si)
   {
@@ -126,7 +126,7 @@ E_Int Conformizer<DIM, Element_t>::run
 {
   E_Int                         iter(1), xnb;
   bool                          carry_on(false);
-  K_CONT_DEF::bool_vector_type  xc;
+  NUGA::bool_vector_type  xc;
 
   if (connect.cols() == 0)
     return 0;
@@ -258,7 +258,7 @@ template <E_Int DIM, typename Element_t>
 void
 Conformizer<DIM, Element_t>::__initialize
 (const K_FLD::FloatArray& pos, K_FLD::IntArray& connect, E_Float tolerance,
- std::vector<E_Int>& ancestors, K_CONT_DEF::bool_vector_type& xc, E_Int X0)
+ std::vector<E_Int>& ancestors, NUGA::bool_vector_type& xc, E_Int X0)
 {
   _X0 = X0;
   
@@ -278,7 +278,7 @@ Conformizer<DIM, Element_t>::__initialize
   // Initial cleaning
   std::vector<E_Int> nids;
   //E_Int nb_merges = 
-  __merge_clean(E_EPSILON, pos, connect, ancestors, nids, 0, 0);
+  __merge_clean(EPSILON, pos, connect, ancestors, nids, 0, 0);
   
   xc.clear();
   xc.resize(connect.cols(), true); // done to ensure that tolerance is computed taking into account everything
@@ -316,10 +316,10 @@ template <E_Int DIM, typename Element_t>
 E_Int
 Conformizer<DIM, Element_t>::__merge_clean
 (E_Float tol, const K_FLD::FloatArray& pos, K_FLD::IntArray& connect, std::vector<E_Int>& ancestors, 
- std::vector<E_Int>& new_IDs, K_CONT_DEF::bool_vector_type* xc, E_Int fromIdx)
+ std::vector<E_Int>& new_IDs, NUGA::bool_vector_type* xc, E_Int fromIdx)
 {
   K_FLD::ArrayAccessor<K_FLD::FloatArray> posAcc(pos);
-  K_CONT_DEF::int_vector_type nodes;
+  NUGA::int_vector_type nodes;
      
   // Do The merge.
   if (fromIdx==0)
@@ -345,7 +345,7 @@ template <E_Int DIM, typename Element_t>
 E_Int
 Conformizer<DIM, Element_t>::__merge_clean
 (E_Float tol, const K_FLD::FloatArray& pos, K_FLD::IntArray& connect, std::vector<E_Int>& ancestors, 
- std::vector<E_Int>& new_IDs, K_CONT_DEF::bool_vector_type* xc, const K_CONT_DEF::int_vector_type& source, const K_CONT_DEF::int_vector_type& target)
+ std::vector<E_Int>& new_IDs, NUGA::bool_vector_type* xc, const NUGA::int_vector_type& source, const NUGA::int_vector_type& target)
 {
     K_FLD::ArrayAccessor<K_FLD::FloatArray> posAcc(pos);   
     E_Int nb_merges(0);
@@ -367,7 +367,7 @@ Conformizer<DIM, Element_t>::__merge_clean
 template <E_Int DIM, typename Element_t>
 void
 Conformizer<DIM, Element_t>::__clean
-(const std::vector<E_Int>& new_IDs, K_FLD::IntArray& connect, std::vector<E_Int>& ancestors, K_CONT_DEF::bool_vector_type* xc)
+(const std::vector<E_Int>& new_IDs, K_FLD::IntArray& connect, std::vector<E_Int>& ancestors, NUGA::bool_vector_type* xc)
 {  
   K_FLD::IntArray::changeIndices(connect, new_IDs);
   K_FLD::IntArray::changeIndices(_connect0, new_IDs);
@@ -389,7 +389,7 @@ Conformizer<DIM, Element_t>::__clean
 template<E_Int DIM, typename Element_t>
 E_Int Conformizer<DIM, Element_t>::__run
 (K_FLD::FloatArray& pos, K_FLD::IntArray& connect, std::vector<E_Int>& ancestors,
- K_CONT_DEF::bool_vector_type& xc, E_Float tolerance)
+ NUGA::bool_vector_type& xc, E_Float tolerance)
 {
 
 #ifdef FLAG_STEP
@@ -414,7 +414,7 @@ E_Int Conformizer<DIM, Element_t>::__run
   MIO::write(o.str().c_str(), pos, connect);
 
   E_Int Ti = TRI_debug::get_T3_index(connect, TRUPLE);
-  E_Int a = (Ti != E_IDX_NONE) ? ancestors[Ti] : E_IDX_NONE;
+  E_Int a = (Ti != IDX_NONE) ? ancestors[Ti] : IDX_NONE;
   }
 #endif
   
@@ -524,7 +524,7 @@ E_Int Conformizer<DIM, Element_t>::__run
     std::cout << " ancestors sz : " << ancestors.size() << std::endl;*/
 #ifdef DEBUG_CONFORMIZER
     E_Int Ti = TRI_debug::get_T3_index(connect, TRUPLE);
-    E_Int a = (Ti != E_IDX_NONE) ? ancestors[Ti] : E_IDX_NONE;
+    E_Int a = (Ti != IDX_NONE) ? ancestors[Ti] : IDX_NONE;
 #endif
   }
 #endif
@@ -565,7 +565,7 @@ E_Int Conformizer<DIM, Element_t>::__run
   
 #ifdef DEBUG_CONFORMIZER
   E_Int Ti = TRI_debug::get_T3_index(connect, TRUPLE);
-  E_Int a = (Ti != E_IDX_NONE) ? ancestors[Ti] : E_IDX_NONE;
+  E_Int a = (Ti != IDX_NONE) ? ancestors[Ti] : IDX_NONE;
   //E_Int b = ancestors[5416];
   //std::cout << "before : " << 5416 << "->" << ancestors[5416] << std::endl;
   //std::cout << "before : " << 5595 << "->" << ancestors[5595] << std::endl;
@@ -647,7 +647,7 @@ E_Int Conformizer<DIM, Element_t>::__run
     o << "solvedX_" << _iter << ".mesh";
     MIO::write(o.str().c_str(), pos, connect, 0/*elt type*/, &xc);
     E_Int Ti = TRI_debug::get_T3_index(connect,TRUPLE);
-    E_Int a = (Ti != E_IDX_NONE) ? ancestors[Ti] : E_IDX_NONE;
+    E_Int a = (Ti != IDX_NONE) ? ancestors[Ti] : IDX_NONE;
   }
 #endif
 
@@ -677,9 +677,9 @@ Conformizer<DIM, Element_t>::__finalize()
 ///
 template <E_Int DIM, typename Element_t>
 void
-Conformizer<DIM, Element_t>::__update_tolerance(const K_FLD::FloatArray& coord, K_CONT_DEF::bool_vector_type& xc, const std::vector<E_Int>& ancestors)
+Conformizer<DIM, Element_t>::__update_tolerance(const K_FLD::FloatArray& coord, NUGA::bool_vector_type& xc, const std::vector<E_Int>& ancestors)
 {
-  K_CONT_DEF::bool_vector_type xc0(_connect0.cols(), false);
+  NUGA::bool_vector_type xc0(_connect0.cols(), false);
   for (size_t i=0; i < xc.size(); ++i)
   {
     xc0[ancestors[i]]=xc[i];
@@ -700,9 +700,9 @@ Conformizer<DIM, Element_t>::__update_tolerance(const K_FLD::FloatArray& coord, 
 template <E_Int DIM, typename Element_t>
 void
 Conformizer<DIM, Element_t>::__compute_min_edge_length
-(const K_FLD::FloatArray& pos, const K_FLD::IntArray& connect, const K_CONT_DEF::bool_vector_type& xc, E_Float &Lmin, E_Float& Lmax)
+(const K_FLD::FloatArray& pos, const K_FLD::IntArray& connect, const NUGA::bool_vector_type& xc, E_Float &Lmin, E_Float& Lmax)
 {
-  E_Float  min_d(E_EPSILON), max_d;
+  E_Float  min_d(EPSILON), max_d;
   K_FLD::IntArray relevant_elts;
   E_Int ROWS(connect.rows());
 
@@ -722,13 +722,13 @@ Conformizer<DIM, Element_t>::__compute_min_edge_length
 template <E_Int DIM, typename Element_t>
 E_Int
 Conformizer<DIM, Element_t>::__compute_intersections_w_localizer
-(K_FLD::FloatArray& pos, const K_FLD::IntArray& connect, K_CONT_DEF::bool_vector_type& xc, E_Float tolerance)
+(K_FLD::FloatArray& pos, const K_FLD::IntArray& connect, NUGA::bool_vector_type& xc, E_Float tolerance)
 {
   E_Int i, j, nb_boxes, nb_elts(xc.size()), nbX(0)/*, v1(-1), v2(-1), nbO(0)*/;
   std::vector<E_Int> bs;
   E_Int x;
   std::set<K_MESH::NO_Edge> processed;
-  K_CONT_DEF::bool_vector_type new_xc(xc.size(), false);
+  NUGA::bool_vector_type new_xc(xc.size(), false);
   
   typedef typename Struc<Element_t>::Type DS_Type;
   
@@ -861,9 +861,9 @@ Conformizer<DIM, Element_t>::__compute_intersections_w_localizer
 template <E_Int DIM, typename Element_t>
 E_Int
 Conformizer<DIM, Element_t>::__compute_intersections_brute
-(K_FLD::FloatArray& pos, const K_FLD::IntArray& connect, K_CONT_DEF::bool_vector_type& xc, E_Float tolerance)
+(K_FLD::FloatArray& pos, const K_FLD::IntArray& connect, NUGA::bool_vector_type& xc, E_Float tolerance)
 {
-  K_CONT_DEF::bool_vector_type new_xc(xc.size(), false);
+  NUGA::bool_vector_type new_xc(xc.size(), false);
 
   typedef typename Struc<Element_t>::Type DS_Type;
 

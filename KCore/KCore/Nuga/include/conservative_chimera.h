@@ -118,7 +118,7 @@ namespace NUGA
       // 2. Loop through receivers ang get closest
       int npgsR = pgsR.size();
 
-      dindices.resize(npgsR, E_IDX_NONE);
+      dindices.resize(npgsR, IDX_NONE);
 
 #pragma omp parallel for if(do_omp)
       for (int i = 0; i < npgsR; ++i)

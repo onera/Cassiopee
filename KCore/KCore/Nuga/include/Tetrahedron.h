@@ -19,7 +19,7 @@
 #ifndef __K_MESH_TETRAHEDRON_H__
 #define __K_MESH_TETRAHEDRON_H__
 
-#include "Def/DefTypes.h"
+#include "Nuga/include/defs.h"
 #include "Nuga/include/DynArray.h"
 #include "Nuga/include/Triangle.h"
 #define Vector_t std::vector
@@ -137,7 +137,7 @@ class Tetrahedron {
     
     ///
     static inline E_Float volume(const E_Float* p1, const E_Float* p2, const E_Float* p3, const E_Float* p4)
-    {return (K_FUNC::zzdet4(p1, p2, p3, p4)/6.);}
+    {return (NUGA::zzdet4(p1, p2, p3, p4)/6.);}
     
     inline void getBoundary(E_Int n, boundary_type& b) const {
     
@@ -186,7 +186,7 @@ class Tetrahedron {
   void bbox(const CoordAcc& acrd, box_t&bb) const
   {
     for (E_Int i = 0; i < 3; ++i)
-      {bb.minB[i] = K_CONST::E_MAX_FLOAT; bb.maxB[i] = -K_CONST::E_MAX_FLOAT;}
+      {bb.minB[i] = NUGA::FLOAT_MAX; bb.maxB[i] = -NUGA::FLOAT_MAX;}
 
     bb.compute(acrd, _nodes, NB_NODES, _shift/*idx start*/);
   }
@@ -208,13 +208,13 @@ class Tetrahedron {
       
       crd.resize(3, v4+6, 0.);
       
-      K_FUNC::sum<3>(0.5, crd.col(v0), 0.5, crd.col(v2), crd.col(v4));
-      K_FUNC::sum<3>(0.5, crd.col(v1), 0.5, crd.col(v2), crd.col(v5));
-      K_FUNC::sum<3>(0.5, crd.col(v0), 0.5, crd.col(v1), crd.col(v6));
+      NUGA::sum<3>(0.5, crd.col(v0), 0.5, crd.col(v2), crd.col(v4));
+      NUGA::sum<3>(0.5, crd.col(v1), 0.5, crd.col(v2), crd.col(v5));
+      NUGA::sum<3>(0.5, crd.col(v0), 0.5, crd.col(v1), crd.col(v6));
       
-      K_FUNC::sum<3>(0.5, crd.col(v2), 0.5, crd.col(v3), crd.col(v7));
-      K_FUNC::sum<3>(0.5, crd.col(v1), 0.5, crd.col(v3), crd.col(v8));
-      K_FUNC::sum<3>(0.5, crd.col(v0), 0.5, crd.col(v3), crd.col(v9));
+      NUGA::sum<3>(0.5, crd.col(v2), 0.5, crd.col(v3), crd.col(v7));
+      NUGA::sum<3>(0.5, crd.col(v1), 0.5, crd.col(v3), crd.col(v8));
+      NUGA::sum<3>(0.5, crd.col(v0), 0.5, crd.col(v3), crd.col(v9));
       
       E_Int TH4[4];
 
@@ -286,29 +286,29 @@ class Tetrahedron {
       E_Float X[3], X0X[3], gradf, f;;
       
       eval(p0,p1,p2,p3, aa, aa, aa, bb, X);
-      K_FUNC::diff<3>(X, X0, X0X);
-      gradf = K_FUNC::dot<3>(X0X, grad0);
+      NUGA::diff<3>(X, X0, X0X);
+      gradf = NUGA::dot<3>(X0X, grad0);
       f = f0 + gradf;
       
       val +=f;
       
       eval(p0,p1,p2,p3, bb, aa, aa, aa, X);
-      K_FUNC::diff<3>(X, X0, X0X);
-      gradf = K_FUNC::dot<3>(X0X, grad0);
+      NUGA::diff<3>(X, X0, X0X);
+      gradf = NUGA::dot<3>(X0X, grad0);
       f = f0 + gradf;
       
       val +=f;
       
       eval(p0,p1,p2,p3, aa, bb, aa, aa, X);
-      K_FUNC::diff<3>(X, X0, X0X);
-      gradf = K_FUNC::dot<3>(X0X, grad0);
+      NUGA::diff<3>(X, X0, X0X);
+      gradf = NUGA::dot<3>(X0X, grad0);
       f = f0 + gradf;
       
       val +=f;
       
       eval(p0,p1,p2,p3, aa, aa, bb, aa, X);
-      K_FUNC::diff<3>(X, X0, X0X);
-      gradf = K_FUNC::dot<3>(X0X, grad0);
+      NUGA::diff<3>(X, X0, X0X);
+      gradf = NUGA::dot<3>(X0X, grad0);
       f = f0 + gradf;
       
       val +=f;
@@ -393,7 +393,7 @@ void Tetrahedron::reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i)
     glmap[*(pN+1)] = 2;
     glmap[*(pN+2)] = 1;
   }
-  E_Int F1Id(E_IDX_NONE), F2Id(E_IDX_NONE), F3Id(E_IDX_NONE);
+  E_Int F1Id(IDX_NONE), F2Id(IDX_NONE), F3Id(IDX_NONE);
 
   for (int k = 1; k < 4; ++k)
   {

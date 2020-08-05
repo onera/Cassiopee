@@ -19,9 +19,9 @@
 #ifndef __KCORE_ARRAY_WRITER_H__
 #define __KCORE_ARRAY_WRITER_H__
 
-#include "Def/DefTypes.h"
-#include "DynArray.h"
-#include "ArrayAccessor.h"
+#include "Nuga/include/defs.h"
+#include "Nuga/include/DynArray.h"
+#include "Nuga/include/ArrayAccessor.h"
 
 namespace K_FLD
 {

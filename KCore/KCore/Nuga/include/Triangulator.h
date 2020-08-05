@@ -21,7 +21,7 @@
 #ifndef _DELAUNAY_TRIANGULATOR_H_
 #define _DELAUNAY_TRIANGULATOR_H_
 
-#include "Def/DefTypes.h"
+#include "Nuga/include/defs.h"
 #include "Nuga/include/DynArray.h"
 #include "Nuga/include/MeshData.h"
 

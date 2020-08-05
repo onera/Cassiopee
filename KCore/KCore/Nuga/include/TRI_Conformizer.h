@@ -25,7 +25,7 @@
 
 #include <vector>
 #include "Nuga/include/DynArray.h"
-#include "Nuga/include/DefContainers.h"
+#include "Nuga/include/defs.h"
 #include "Nuga/include/Triangle.h"
 #include "Nuga/include/EltAlgo.h"
 #include "Nuga/include/T3Mesher.h"
@@ -68,31 +68,31 @@ public:
   
   /// Splits the triangles by triangulation.
   E_Int __split_Elements(const K_FLD::FloatArray& pos, K_FLD::IntArray & connect,
-                        K_CONT_DEF::bool_vector_type& xc,
-                        K_CONT_DEF::int_vector_type& ancestors);
+                        NUGA::bool_vector_type& xc,
+                        NUGA::int_vector_type& ancestors);
   
   ///Hook to do a merge toward the intersection line (TRI)
   E_Int __simplify_and_clean(const K_FLD::FloatArray& pos, E_Float tolerance, K_FLD::IntArray& connect,
-                             K_CONT_DEF::int_vector_type& ancestors, K_CONT_DEF::bool_vector_type& xc);
+                             NUGA::int_vector_type& ancestors, NUGA::bool_vector_type& xc);
   ///Hook to do a merge toward the intersection line (TRI)
   E_Int __simplify_and_clean2(const K_FLD::FloatArray& pos, E_Float tolerance, K_FLD::IntArray& connect,
-    K_CONT_DEF::int_vector_type& ancestors, K_CONT_DEF::bool_vector_type& xc);
+    NUGA::int_vector_type& ancestors, NUGA::bool_vector_type& xc);
   /// when duplicates are baffles
-  void __process_duplicates(K_FLD::IntArray& connect, std::vector<E_Int>& ancestors, K_CONT_DEF::bool_vector_type& xc);
+  void __process_duplicates(K_FLD::IntArray& connect, std::vector<E_Int>& ancestors, NUGA::bool_vector_type& xc);
   
   ///Hook to manage overlapping zones
   void __run_correction_beta(const K_FLD::FloatArray& pos, K_FLD::IntArray& connect,
-                            K_CONT_DEF::int_vector_type& ancestors,
-                            K_CONT_DEF::bool_vector_type& xc,
+                            NUGA::int_vector_type& ancestors,
+                            NUGA::bool_vector_type& xc,
                             E_Float tolerance);
 
-  void __run_correction_gamma(const std::set<K_MESH::NO_Edge>&xpairs, K_CONT_DEF::int_vector_type&colors,
-                              K_CONT_DEF::int_vector_type&xr, K_FLD::IntArray& connect,
-                              K_CONT_DEF::int_vector_type& ancestors, K_CONT_DEF::bool_vector_type& xc
+  void __run_correction_gamma(const std::set<K_MESH::NO_Edge>&xpairs, NUGA::int_vector_type&colors,
+                              NUGA::int_vector_type&xr, K_FLD::IntArray& connect,
+                              NUGA::int_vector_type& ancestors, NUGA::bool_vector_type& xc
                               , const K_FLD::FloatArray& pos, Vector_t<E_Int>* priority);
   
 ///
-/*void __clean_topology(K_FLD::IntArray& connect, std::vector<E_Int>& ancestors, K_CONT_DEF::bool_vector_type& xc, 
+/*void __clean_topology(K_FLD::IntArray& connect, std::vector<E_Int>& ancestors, NUGA::bool_vector_type& xc, 
                        const std::vector<E_Int>& source_nodes_vec, std::vector<E_Int>& common_nodes_vec,
                        const K_FLD::IntArray& connectBNM, const std::vector<E_Int>& nids
 #ifdef DEBUG_TRI_CONFORMIZER
@@ -121,7 +121,7 @@ public:
   
   ///
   E_Int __iterative_run(DELAUNAY::T3Mesher<E_Float>& mesher, K_FLD::FloatArray& crd, K_FLD::IntArray& cB, 
-                        K_CONT_DEF::int_vector_type& hnodes, DELAUNAY::MeshData& data, std::vector<E_Int>& nids);
+                        NUGA::int_vector_type& hnodes, DELAUNAY::MeshData& data, std::vector<E_Int>& nids);
   ///
   E_Int __get_mesh_data(const K_FLD::FloatArray & pos, const K_FLD::IntArray & connect, const T3& t, edge_container_type& Edges,
                         K_FLD::FloatArray& p, K_FLD::IntArray& c, std::vector<E_Int>& oids);
@@ -182,7 +182,7 @@ public:
                              std::vector<bool>& patho_elts, std::vector<bool>& free_elts);
     ///
     void __compute_splitting_points(K_FLD::FloatArray& pos, const K_FLD::IntArray& connect,
-                                    const K_CONT_DEF::bool_vector_type& xc,
+                                    const NUGA::bool_vector_type& xc,
                                     const std::set<K_MESH::NO_Edge>& commone_no_edges,
                                     E_Float tol, std::map<K_MESH::NO_Edge, std::vector<E_Int> >& edge_to_point);
     ///

@@ -40,7 +40,7 @@
 #include "IO/DynArrayIO.h"
 #endif
 
-using namespace K_CONT_DEF;
+using namespace NUGA;
 
 void
 PatchMaker::run
@@ -106,7 +106,7 @@ PatchMaker::run
   int_vector_type colors, nodes;
   connectBin.uniqueVals(nodes);
   if (!nodes.empty())
-    colors.resize(*std::max_element(nodes.begin(), nodes.end())+1, E_IDX_NONE);
+    colors.resize(*std::max_element(nodes.begin(), nodes.end())+1, IDX_NONE);
   // Do the sorting and coloring.
   std::vector<int_vector_type> sorted_nodes(nb_contours); 
 
@@ -220,7 +220,7 @@ PatchMaker::run
       if ((cc(k,i) < 0) || (cc(k,i) >= psize))
         continue;
       mate = pairs[cc(k,i)];
-      if ((mate < 0) || (mate == E_IDX_NONE))
+      if ((mate < 0) || (mate == IDX_NONE))
         continue;
 
       E[0] = cc(k,i);
@@ -247,8 +247,8 @@ PatchMaker::__update_normals
   size_t                          i, nb_nodes, nb_bound(connectB.cols());
   K_FLD::IntArray::const_iterator pS;
   E_Float                         B[3], E[3], W[3], L, *p;
-  K_CONT_DEF::int_vector_type     nodesS;
-  K_CONT_DEF::int_set_type        hN;
+  NUGA::int_vector_type     nodesS;
+  NUGA::int_set_type        hN;
   K_FLD::FloatArray               new_normals(normals);
 
   // Fast returns
@@ -258,7 +258,7 @@ PatchMaker::__update_normals
   if (normals.cols() == 0)  return 4;
 
   // Get node neighbors
-  K_CONT_DEF::int_pair_vector_type     node_to_nodes;
+  NUGA::int_pair_vector_type     node_to_nodes;
   err = BARSplitter::getNodesNeighBouring(connectB, node_to_nodes);
   if (err)
     return err;
@@ -271,7 +271,7 @@ PatchMaker::__update_normals
   {
     Ni = nodesS[i];
     Nj = pairs[Ni];
-    if ((Nj < 0) || (Nj == E_IDX_NONE))
+    if ((Nj < 0) || (Nj == IDX_NONE))
       continue;
     if (Nj == node_to_nodes[Ni].first)
       continue;
@@ -288,7 +288,7 @@ PatchMaker::__update_normals
     pS = connectB.col(i);
     B0 = *pS;
     B1 = *(pS+1);
-    K_FUNC::diff<3>(pos.col(B1), pos.col(B0), B);
+    NUGA::diff<3>(pos.col(B1), pos.col(B0), B);
 
     for (E_Int n = 0; n < 2; ++n)
     {
@@ -296,12 +296,12 @@ PatchMaker::__update_normals
       if (hN.find(Ni) == hN.end())
         continue;
       Nj = pairs[Ni];
-      K_FUNC::diff<3>(pos.col(Nj), pos.col(Ni), E);
+      NUGA::diff<3>(pos.col(Nj), pos.col(Ni), E);
 
-      K_FUNC::crossProduct<3>(E, B, W);
+      NUGA::crossProduct<3>(E, B, W);
 
-      L = K_FUNC::normalize<3>(W);
-      if (L < E_EPSILON)
+      L = NUGA::normalize<3>(W);
+      if (L < EPSILON)
       {
         for (E_Int k = 0; k < 3; ++k)
           new_normals(k, Ni) = 0.;
@@ -320,7 +320,7 @@ PatchMaker::__update_normals
   {
     Ni = *i;
     p = new_normals.col(Ni);
-    L  = K_FUNC::normalize<3>(p); 
+    L  = NUGA::normalize<3>(p); 
     if (L != 0.)
      for (E_Int k = 0; k < 3; ++k)
        normals(k, Ni) = new_normals(k, Ni);
@@ -333,9 +333,9 @@ PatchMaker::__update_normals
 E_Float PatchMaker::__getAngle(const E_Float* n1, const E_Float* n2)
 {
   E_Float n[3], c, s;
-  K_FUNC::crossProduct<3>(n1, n2, n);
-  s = K_FUNC::normalize<3>(n);
-  c = K_FUNC::dot<3>(n1, n2);
+  NUGA::crossProduct<3>(n1, n2, n);
+  s = NUGA::normalize<3>(n);
+  c = NUGA::dot<3>(n1, n2);
 
   return ::atan2(s, c);
 }
@@ -352,7 +352,7 @@ PatchMaker::__flag_critical_nodes
 {
   // Stamp the critical nodes on each contour and synchronize on others.
   E_Int nb_contours = sorted_nodes.size();
-  K_CONT_DEF::bool_vector_type::iterator itC;
+  NUGA::bool_vector_type::iterator itC;
   E_Int N0, prev, next, Ni, Np, Nn, c;
   size_t nb_nodes, n;
 
@@ -369,16 +369,16 @@ PatchMaker::__flag_critical_nodes
     {
       Ni = sorted_nodes[c][n];
       
-      if ((pairs[Ni] < 0) || (pairs[Ni] == E_IDX_NONE)) // border nodes have a mate.
+      if ((pairs[Ni] < 0) || (pairs[Ni] == IDX_NONE)) // border nodes have a mate.
         continue;
       prev = (n != 0) ? n-1 : nb_nodes-1;
       Np = sorted_nodes[c][prev];
       next = (n+1)%nb_nodes;
       Nn = sorted_nodes[c][next];
-      //if ((pairs[Np] < 0) || (pairs[Np] == E_IDX_NONE))
+      //if ((pairs[Np] < 0) || (pairs[Np] == IDX_NONE))
       if (pairs[Np] == Zipper::FREE)
         critical_nodes[Ni] = 1;
-      //else if ((pairs[Nn] < 0) || (pairs[Nn] == E_IDX_NONE))
+      //else if ((pairs[Nn] < 0) || (pairs[Nn] == IDX_NONE))
       else if (pairs[Nn] == Zipper::FREE)
         critical_nodes[Ni] = 1;
     }
@@ -386,24 +386,24 @@ PatchMaker::__flag_critical_nodes
 
   for (c = 0; c < nb_contours; ++c)
   {
-    N0 = E_IDX_NONE;
+    N0 = IDX_NONE;
     nb_nodes = sorted_nodes[c].size();
     if (nb_nodes == 0)
       continue; // fixme : error ?
     
-    for (n = 0; (n < nb_nodes) && (N0 == E_IDX_NONE); ++n)
+    for (n = 0; (n < nb_nodes) && (N0 == IDX_NONE); ++n)
     {
       if (critical_nodes[sorted_nodes[c][n]] == 1)
         N0 = sorted_nodes[c][n];
     }
 
-    for (n = 0; (n < nb_nodes) && (N0 == E_IDX_NONE); ++n)
+    for (n = 0; (n < nb_nodes) && (N0 == IDX_NONE); ++n)
     {
-      if ((pairs[sorted_nodes[c][n]] != E_IDX_NONE) && (pairs[sorted_nodes[c][n]] >= 0))
+      if ((pairs[sorted_nodes[c][n]] != IDX_NONE) && (pairs[sorted_nodes[c][n]] >= 0))
         N0 = sorted_nodes[c][n];
     }
    
-    if (N0 == E_IDX_NONE)
+    if (N0 == IDX_NONE)
       N0 = sorted_nodes[c][0];
 
     critical_nodes[N0] = 1;
@@ -414,7 +414,7 @@ PatchMaker::__flag_critical_nodes
     nb_nodes = critical_nodes.size();
     for (n = 0; n < nb_nodes; ++n)
     {
-      if ((critical_nodes[n] == 1) && (pairs[n] != E_IDX_NONE) && (pairs[n] >= 0))
+      if ((critical_nodes[n] == 1) && (pairs[n] != IDX_NONE) && (pairs[n] >= 0))
         critical_nodes[pairs[n]] = 1;
     }
   }
@@ -447,7 +447,7 @@ PatchMaker::__flag_critical_nodes_on_contour
 
     Nj = pairs[Ni];
 
-    if ((Nj == E_IDX_NONE) || (Nj < 0))
+    if ((Nj == IDX_NONE) || (Nj < 0))
       continue;
 
     if (flag[Ni] == false)
@@ -480,7 +480,7 @@ PatchMaker::__flag_critical_nodes_on_contour
 
     Nj = pairs[Ni];
 
-    if ((Nj == E_IDX_NONE) || (Nj < 0))
+    if ((Nj == IDX_NONE) || (Nj < 0))
       continue;
 
     it = colors_to_join.find(colors[Nj]);
@@ -506,7 +506,7 @@ PatchMaker::__build_cutting_edges
 {
   std::map<K_MESH::NO_Edge, E_Int> counter;
   std::map<K_MESH::NO_Edge, E_Int>::iterator it;
-  K_CONT_DEF::non_oriented_edge_set_type edges;
+  NUGA::non_oriented_edge_set_type edges;
 
   K_MESH::NO_Edge E;
   E_Int Ei[2];
@@ -517,9 +517,9 @@ PatchMaker::__build_cutting_edges
       continue;
     Ni = i;
     Nj = pairs[Ni];
-    if ((Nj == E_IDX_NONE) || (Nj < 0))//fixme
+    if ((Nj == IDX_NONE) || (Nj < 0))//fixme
       continue;
-    //assert (Nj != E_IDX_NONE);
+    //assert (Nj != IDX_NONE);
     E.setNodes(Ni, Nj);
     Ei[0] = E.node(0);
     Ei[1] = E.node(1);

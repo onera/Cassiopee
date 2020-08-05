@@ -48,7 +48,7 @@ class geom_sensor : public sensor<mesh_t, crd_t>
       :parent_t(mesh,nullptr),
       _max_pts_per_cell(max_pts_per_cell), _iter_max((itermax <= 0) ? INT_MAX : itermax), _iter(0)
     {
-      _bbtree = new K_SEARCH::BbTree3D(parent_t::_hmesh._crd, parent_t::_hmesh._ng, E_EPSILON);
+      _bbtree = new K_SEARCH::BbTree3D(parent_t::_hmesh._crd, parent_t::_hmesh._ng, EPSILON);
 
       if (smoo_type == eSmoother::V1_NEIGH)
         parent_t::_smoother = new V1_smoother<mesh_t>();
@@ -129,7 +129,7 @@ void geom_sensor<mesh_t>::fill_adap_incr(output_t& adap_incr, bool do_agglo)
   for (int i = 0; i < nb_pts; ++i)
   {
     E_Int PHi = _points_to_cell[i];
-    if (PHi != E_IDX_NONE)
+    if (PHi != IDX_NONE)
       nb_pts_per_cell[PHi] += 1;
   }
 
@@ -180,8 +180,8 @@ void geom_sensor<mesh_t>::locate_points()
   E_Float tol = 10. * ZERO_M;
   
   E_Int nb_src_pts =parent_t::_data.cols();
-  // for each source points, give the highest cell containing it if there is one, otherwise E_IDX_NONE
-  _points_to_cell.resize(nb_src_pts, E_IDX_NONE);
+  // for each source points, give the highest cell containing it if there is one, otherwise IDX_NONE
+  _points_to_cell.resize(nb_src_pts, IDX_NONE);
   
   Vector_t<E_Int> ids;
 
@@ -195,13 +195,13 @@ void geom_sensor<mesh_t>::locate_points()
     
     for (int j = 0; j < 3;j++)
     {
-      minB[j] = p[j]-E_EPSILON; // small box over the source point
-      maxB[j] = p[j]+E_EPSILON;
+      minB[j] = p[j]-EPSILON; // small box over the source point
+      maxB[j] = p[j]+EPSILON;
     }  
     ids.clear();
     _bbtree->getOverlappingBoxes(minB,maxB,ids); // ids contains the list of PH index partially containing the small box around the source point
     
-    if (ids.empty()) continue; // exterior point : E_IDX_NONE
+    if (ids.empty()) continue; // exterior point : IDX_NONE
     
     for (size_t j = 0; j < ids.size(); j++) // which of these boxes has the source point ?
     {
@@ -239,7 +239,7 @@ E_Int geom_sensor<mesh_t>::get_higher_lvl_cell(const E_Float* p, E_Int PHi) cons
   }
   if (!found) return detect_child(p,PHi,q); // if we can't find the child, we have to locate the closest child  (almost never occurs)
 
-  return E_IDX_NONE; // never reached : to silent compilers
+  return IDX_NONE; // never reached : to silent compilers
 
 }
 
@@ -271,7 +271,7 @@ E_Int geom_sensor<mesh_t>::get_highest_lvl_cell(const E_Float* p, E_Int PHi) con
   }
   if (!found) return detect_child(p, PHi, q);
   
-  return E_IDX_NONE; // never reached : to silent compilers
+  return IDX_NONE; // never reached : to silent compilers
     
 }
 
@@ -285,13 +285,13 @@ E_Int geom_sensor<mesh_t>::detect_child(const E_Float* p, E_Int PHi, const E_Int
   E_Int closest_child = 0;
   E_Float center[3];
   parent_t::_hmesh.get_cell_center(children[0], center);
-  E_Float min = K_FUNC::sqrDistance(p, center,3);
+  E_Float min = NUGA::sqrDistance(p, center,3);
 
   for (int i = 1; i < nb_children; ++i)
   {
     E_Float tmp[3];
     parent_t::_hmesh.get_cell_center(children[i], tmp);
-    E_Float d = K_FUNC::sqrDistance(p,tmp,3);
+    E_Float d = NUGA::sqrDistance(p,tmp,3);
 
     if (d < min)
     {
@@ -320,7 +320,7 @@ bool geom_sensor<mesh_t>::update()
   {
     E_Int PHi = _points_to_cell[i];
 
-    if (PHi == E_IDX_NONE) continue; //external point
+    if (PHi == IDX_NONE) continue; //external point
     if (parent_t::_hmesh._PHtree.children(PHi) != nullptr) // we detect the subdivised PH : one of his children has this source point
     {
       E_Float* p = parent_t::_data.col(i); // in which children of PHi is the point
@@ -420,8 +420,8 @@ bool geom_sensor<mesh_t>::stop()
 //    
 //    for (int j = 0; j < 3;j++)
 //    {
-//        minB[j] = p[j]-E_EPSILON;
-//        maxB[j] = p[j]+E_EPSILON;
+//        minB[j] = p[j]-EPSILON;
+//        maxB[j] = p[j]+EPSILON;
 //    }  
 //    ids.clear();
 //    tree.getOverlappingBoxes(minB,maxB,ids);

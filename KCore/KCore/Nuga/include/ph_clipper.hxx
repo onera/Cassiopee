@@ -65,11 +65,11 @@ namespace NUGA
         PG1.template normal<acrd_t, 3>(acrd1, nodes1, nb_nodes1, 1, n1); //watchme : base
 
         // Tolerance hypothese : constant per PG : take the min over the polygon nodes
-        E_Float Lref = K_CONST::E_MAX_FLOAT;
+        E_Float Lref = NUGA::FLOAT_MAX;
         for (E_Int n=0; n < nb_nodes1;++n)
           Lref = MIN(Lref, L(0,nodes1[n]-1));
 
-        E_Float abstol = MAX(E_EPSILON, RTOL*::sqrt(Lref));
+        E_Float abstol = MAX(EPSILON, RTOL*::sqrt(Lref));
 
         for (E_Int i2=0; i2 < nb_faces2; ++i2)
         {
@@ -81,7 +81,7 @@ namespace NUGA
           E_Float n2[3];
           PG2.template normal<acrd_t, 3>(acrd2, nodes2, nb_nodes2, 1, n2); //watchme : base
 
-          double ps = K_FUNC::dot<3>(n1,n2);
+          double ps = NUGA::dot<3>(n1,n2);
           if (::fabs(ps) < ps_min) continue;
 
           //std::cout << "ps : " << ps << std::endl;
@@ -173,7 +173,7 @@ namespace NUGA
       E_Int nb_tris2 = cutter.nb_tris();
 
       K_FLD::IntArray cT3;
-      K_FLD::FloatArray normalsT3(3, nb_tris1 + nb_tris2, K_CONST::E_MAX_FLOAT);
+      K_FLD::FloatArray normalsT3(3, nb_tris1 + nb_tris2, NUGA::FLOAT_MAX);
       E_Int T[3];
       E_Float nT3[3];
       for (E_Int i=0; i < nb_tris1; ++i)
@@ -184,7 +184,7 @@ namespace NUGA
         //normals
         K_MESH::Triangle::normal(acrd1.array(), &T[0], nT3);
         E_Float l2 = ::sqrt(nT3[0] * nT3[0] + nT3[1] * nT3[1] + nT3[2] * nT3[2]);
-        if (::fabs(l2 - 1.) >= E_EPSILON) // DEGEN
+        if (::fabs(l2 - 1.) >= EPSILON) // DEGEN
           K_MESH::Polygon::normal<acrd_t, 3>(acrd1, subj.m_pgs.get_facets_ptr(ancPG1[i]), subj.m_pgs.stride(ancPG1[i]), 1, nT3);
         normalsT3(0, i) = nT3[0];
         normalsT3(1, i) = nT3[1];
@@ -199,7 +199,7 @@ namespace NUGA
         //normals
         K_MESH::Triangle::normal(acrd2.array(), T, nT3);
         E_Float l2 = ::sqrt(nT3[0] * nT3[0] + nT3[1] * nT3[1] + nT3[2] * nT3[2]);
-        if (::fabs(l2 - 1.) >= E_EPSILON) // DEGEN
+        if (::fabs(l2 - 1.) >= EPSILON) // DEGEN
           K_MESH::Polygon::normal<acrd_t, 3>(acrd2, cutter.m_pgs.get_facets_ptr(ancPG2[i]), cutter.m_pgs.stride(ancPG2[i]), 1, nT3);
         normalsT3(0, i + nb_tris1) = nT3[0];
         normalsT3(1, i + nb_tris1) = nT3[1];
@@ -267,12 +267,12 @@ namespace NUGA
 #endif
 
       // recompute normals or take ancestor is not doable
-      K_FLD::FloatArray new_normalsT3(3, cT3.cols(), K_CONST::E_MAX_FLOAT);
+      K_FLD::FloatArray new_normalsT3(3, cT3.cols(), NUGA::FLOAT_MAX);
       for (E_Int i = 0; i < cT3.cols(); ++i)
       {
         K_MESH::Triangle::normal(crd, cT3.col(i), nT3);
          E_Float l2 = ::sqrt(nT3[0] * nT3[0] + nT3[1] * nT3[1] + nT3[2] * nT3[2]);
-        if (::fabs(l2 - 1.) >= E_EPSILON) // DEGEN
+        if (::fabs(l2 - 1.) >= EPSILON) // DEGEN
         {
           nT3[0] = normalsT3(0, ancT3[i]);
           nT3[1] = normalsT3(1, ancT3[i]);
@@ -315,7 +315,7 @@ namespace NUGA
       //so add the cuts in the graph
       for (E_Int i=0; i < neighbors.cols(); ++i)
         for (E_Int j=0; j < 3; ++j)
-          if (neighbors(j,i) == NON_MANIFOLD_COL) neighbors(j,i) = E_IDX_NONE;
+          if (neighbors(j,i) == NON_MANIFOLD_COL) neighbors(j,i) = IDX_NONE;
       
       std::vector<E_Int> nonmfld_bits;
       NUGA::EltAlgo<K_MESH::Triangle>::coloring_pure (neighbors, nonmfld_bits);
@@ -328,7 +328,7 @@ namespace NUGA
       // now use neighbors_cpy to check those with free edges to discard them (burning)
       for (E_Int i=0; i < neighbors_cpy.cols(); ++i)
         for (E_Int j=0; j < 3; ++j)
-          if (neighbors_cpy(j,i) == E_IDX_NONE) good_col[nonmfld_bits[i]]=false;
+          if (neighbors_cpy(j,i) == IDX_NONE) good_col[nonmfld_bits[i]]=false;
         
       
       E_Int nb_t3 = cT3.cols();
@@ -345,7 +345,7 @@ namespace NUGA
       K_CONNECT::IdTool::compress(normalsT3, pred);
 
       // update also neighbors_cpy
-      K_CONNECT::IdTool::compress(neighbors, pred); //contains E_IDX_NONE at non-manfold edges
+      K_CONNECT::IdTool::compress(neighbors, pred); //contains IDX_NONE at non-manfold edges
       K_FLD::IntArray::changeIndices(neighbors, nids);
 
       //std::cout << neighbors << std::endl;
@@ -367,7 +367,7 @@ namespace NUGA
       nb_t3 = cT3.cols();
       std::vector<bool> reversed;
       Vector_t<std::pair<E_Float, E_Int> > palmares;
-      E_Float ERRORVAL(2.*K_CONST::E_PI);
+      E_Float ERRORVAL(2.*NUGA::PI);
       for (auto it = noE_to_oTs.begin(); it != noE_to_oTs.end(); ++it)
       {
         const K_MESH::Triangle::boundary_type& E = it->first;
@@ -514,7 +514,7 @@ namespace NUGA
       // now use neighbors to check those with free edges to discard them 
       for (E_Int i=0; i < neighbors.cols(); ++i)
         for (E_Int j=0; j < 3; ++j)
-          if (neighbors(j,i) == E_IDX_NONE) good_col[T3_to_PHT3[i]]=false;
+          if (neighbors(j,i) == IDX_NONE) good_col[T3_to_PHT3[i]]=false;
 
       nb_t3 = cT3.cols();
       //reuse keepT3
@@ -542,7 +542,7 @@ namespace NUGA
 
       const std::vector<E_Int>& xpoids = conformizer.get_node_history();
       result.poids = xpoids;
-      result.poids.resize(crd.cols(), E_IDX_NONE);//fixme : ?????
+      result.poids.resize(crd.cols(), IDX_NONE);//fixme : ?????
 
 #ifdef DEBUG_CLIPPER
       medith::write("cutT3", crd, cT3, "TRI");

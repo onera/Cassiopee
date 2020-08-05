@@ -7,7 +7,7 @@
 #include <set>
 #include <map>
 #include <deque>
-#include "Def/DefTypes.h"
+#include "Nuga/include/defs.h"
 
 
 namespace NUGA
@@ -703,7 +703,7 @@ E_Float concave_threshold, E_Float convex_threshold, E_Float rtol, ngon_type& tw
 
   E_Float VOL_THRESHOLD = 1.e-6;
   E_Float abstol = __get_abs_tol(crd, rtol, PGS, first_pg, nb_pgs);
-  E_Float angle_max = std::max/*min*/(concave_threshold, convex_threshold) * K_CONST::E_PI;
+  E_Float angle_max = std::max/*min*/(concave_threshold, convex_threshold) * NUGA::PI;
 
   size_t nb_chains = chains.size();
 
@@ -722,7 +722,7 @@ E_Float concave_threshold, E_Float convex_threshold, E_Float rtol, ngon_type& tw
       edge_angle_t::const_iterator it = reflex_edges.find(E);
       assert(it != reflex_edges.end());
       E_Float a = it->second;
-      chain_angle[c] = std::max(chain_angle[c], ::fabs(K_CONST::E_PI - a));//max deviation in the chain
+      chain_angle[c] = std::max(chain_angle[c], ::fabs(NUGA::PI - a));//max deviation in the chain
     }
   }
 
@@ -743,7 +743,7 @@ E_Float concave_threshold, E_Float convex_threshold, E_Float rtol, ngon_type& tw
                        PGS, first_pg, nb_pgs, v, VOL_THRESHOLD, simple_colors, rflx_edges, angle_max, chain_angle[c], angle, minA, maxA, twoPHs))
       continue;
 
-    if (angle < E_EPSILON) // perfectly planar cut
+    if (angle < EPSILON) // perfectly planar cut
       return 0;
 
     palma_split.push_back(std::make_pair(angle, twoPHs));
@@ -800,7 +800,7 @@ E_Float concave_threshold, E_Float convex_threshold, E_Float rtol, ngon_type& tw
                          PGS, first_pg, nb_pgs, v, VOL_THRESHOLD, simple_colors, rflx_edges, angle_max, chain_angle[c], angle, minA, maxA, twoPHs))
         continue;
 
-      if (angle < E_EPSILON) // perfectly planar cut
+      if (angle < EPSILON) // perfectly planar cut
         return 0;
 
       palma_split.push_back(std::make_pair(angle, twoPHs));
@@ -812,8 +812,8 @@ E_Float concave_threshold, E_Float convex_threshold, E_Float rtol, ngon_type& tw
 
   // 7. CHOOSE THE BEST (MOST PLANAR)
   //std::sort(palma_split.begin(), palma_split.end());
-  E_Int bestc = E_IDX_NONE;
-  E_Float besta = K_CONST::E_MAX_FLOAT;
+  E_Int bestc = IDX_NONE;
+  E_Float besta = NUGA::FLOAT_MAX;
   for (size_t i = 0; i < palma_split.size(); ++i)
   {
     if (palma_split[i].first < besta)
@@ -867,7 +867,7 @@ E_Int NUGA::Splitter::__split_pgs
 void NUGA::Splitter::__apply_pgs_splits(ngon_unit& PHs, const ngon_unit& split_graph)
 {
   // split_graph is sized as PGs BEFORE APPENDING, iE. what is referenced in PHs, but not what is stored in PGs
-  // if nothing to change for a given PG, molec is (1,E_IDX_NONE).
+  // if nothing to change for a given PG, molec is (1,IDX_NONE).
 #ifdef DEBUG_NGON_T
   assert(PHs.get_facets_max_id() == split_graph.size());
 #endif
@@ -879,7 +879,7 @@ void NUGA::Splitter::__apply_pgs_splits(ngon_unit& PHs, const ngon_unit& split_g
   ngon_unit new_phs;
 
   Vector_t<E_Int> molecPH;
-  Vector_t<E_Int> nids(nb_phs, E_IDX_NONE);
+  Vector_t<E_Int> nids(nb_phs, IDX_NONE);
 
   for (E_Int i = 0; i < nb_phs; ++i)
   {
@@ -894,7 +894,7 @@ void NUGA::Splitter::__apply_pgs_splits(ngon_unit& PHs, const ngon_unit& split_g
       E_Int nb_split = split_graph.stride(PGi);
       const E_Int* new_facets = split_graph.get_facets_ptr(PGi);
 
-      if (nb_split == 1 && *new_facets == E_IDX_NONE) //keep it as unchanged
+      if (nb_split == 1 && *new_facets == IDX_NONE) //keep it as unchanged
         molecPH.push_back(PGi + 1);
       else
         molecPH.insert(molecPH.end(), new_facets, new_facets + nb_split);
@@ -1444,7 +1444,7 @@ if (PHi == faultyPH)
 
   if (!twoPH.PGs._type.empty())
     for (E_Int b = 0; b < pgbits; ++b) twoPH.PGs._type.push_back(INNER);
-  E_Int none[] = { E_IDX_NONE, E_IDX_NONE };
+  E_Int none[] = { IDX_NONE, IDX_NONE };
   if (twoPH.PGs._ancEs.cols() != 0)
     for (E_Int b = 0; b < pgbits; ++b) twoPH.PGs._ancEs.pushBack(none, none + 2);
 
@@ -1472,7 +1472,7 @@ if (PHi == faultyPH)
   twoPH.PHs.add(molecPH1.size(), &molecPH1[0]);
   twoPH.PHs.add(molecPH2.size(), &molecPH2[0]);
 
-  twoPH.PHs._type.resize(2, E_IDX_NONE);// unknwon : a bit might be SKIN, the orhter one INNER
+  twoPH.PHs._type.resize(2, IDX_NONE);// unknwon : a bit might be SKIN, the orhter one INNER
   
   twoPH.PHs._dirty=twoPH.PGs._dirty=true;
   twoPH.PGs.updateFacets();
@@ -1519,10 +1519,10 @@ if (PHi == faultyPH)
   
   E_Float mA, MA;
   /*err = */K_MESH::Polyhedron<UNKNOWN>::min_max_angles(crd, twoPH.PGs, pgs0, nb_pgs0, false, orient.get_facets_ptr(0), mA, MA);
-  if (::fabs(mA) < 1.e-2 || ::fabs(2.*K_CONST::E_PI - MA) < 1.e-2) return false;
+  if (::fabs(mA) < 1.e-2 || ::fabs(2.*NUGA::PI - MA) < 1.e-2) return false;
   //if (err || mA < minA || MA > maxA) return false; //get worst
   /*err = */K_MESH::Polyhedron<UNKNOWN>::min_max_angles(crd, twoPH.PGs, pgs1, nb_pgs1, false, orient.get_facets_ptr(1), mA, MA);
-  if (::fabs(mA) < 1.e-2 || ::fabs(2.*K_CONST::E_PI - MA) < 1.e-2) return false;
+  if (::fabs(mA) < 1.e-2 || ::fabs(2.*NUGA::PI - MA) < 1.e-2) return false;
   //if (err || mA < minA || MA > maxA) return false; //get worst
   
   

@@ -75,16 +75,16 @@ struct aPolyhedron : public K_MESH::Polyhedron<TopoShape>
 
 ///
 template <int TopoShape>
-aPolyhedron<TopoShape>::aPolyhedron() :parent_type(), m_L2ref(K_CONST::E_MAX_FLOAT), m_oriented(0)
+aPolyhedron<TopoShape>::aPolyhedron() :parent_type(), m_L2ref(NUGA::FLOAT_MAX), m_oriented(0)
 {
-  m_normal[0] = m_centroid[0] = K_CONST::E_MAX_FLOAT;
+  m_normal[0] = m_centroid[0] = NUGA::FLOAT_MAX;
   //plug();
 }
 
 ///
 template <int TopoShape>
 aPolyhedron<TopoShape>::aPolyhedron(const ngon_unit* pgs, const E_Int* faces, E_Int nb_faces, const K_FLD::FloatArray& crd)
-  :m_L2ref(K_CONST::E_MAX_FLOAT), m_oriented(0)
+  :m_L2ref(NUGA::FLOAT_MAX), m_oriented(0)
 {
   parent_type ph(pgs, faces, nb_faces);
   set(ph, crd);
@@ -93,22 +93,22 @@ aPolyhedron<TopoShape>::aPolyhedron(const ngon_unit* pgs, const E_Int* faces, E_
 ///
 template <int TopoShape>
 aPolyhedron<TopoShape>::aPolyhedron(const parent_type& ph, const K_FLD::FloatArray& crd)
-  :m_L2ref(K_CONST::E_MAX_FLOAT), m_oriented(0)
+  :m_L2ref(NUGA::FLOAT_MAX), m_oriented(0)
 {
   set(ph, crd);
-  m_normal[0] = m_centroid[0] = K_CONST::E_MAX_FLOAT;
+  m_normal[0] = m_centroid[0] = NUGA::FLOAT_MAX;
 }
 
 ///
 template <int TopoShape>
 aPolyhedron<TopoShape>::aPolyhedron(const ngon_unit& lpgs, const K_FLD::FloatArray& lcrd)
-  :m_pgs(lpgs), m_crd(lcrd), m_L2ref(K_CONST::E_MAX_FLOAT), m_oriented(0)
+  :m_pgs(lpgs), m_crd(lcrd), m_L2ref(NUGA::FLOAT_MAX), m_oriented(0)
 {
   
   m_faces.clear();
   K_CONNECT::IdTool::init_inc(m_faces, m_pgs.size(), 1);
 
-  m_normal[0] = m_centroid[0] = K_CONST::E_MAX_FLOAT;
+  m_normal[0] = m_centroid[0] = NUGA::FLOAT_MAX;
   
   plug();
 }
@@ -119,13 +119,13 @@ aPolyhedron<TopoShape>::aPolyhedron(const parent_type& ph, const K_FLD::FloatArr
 {
   m_L2ref = L2r;
   m_oriented = 0;
-  m_normal[0] = m_centroid[0] = K_CONST::E_MAX_FLOAT;
+  m_normal[0] = m_centroid[0] = NUGA::FLOAT_MAX;
 }
 
 template <int TopoShape>
-aPolyhedron<TopoShape>::aPolyhedron(const aPolyhedron& r) :m_pgs(r.m_pgs), m_faces(r.m_faces), m_crd(r.m_crd), m_L2ref(K_CONST::E_MAX_FLOAT), m_oriented(0)
+aPolyhedron<TopoShape>::aPolyhedron(const aPolyhedron& r) :m_pgs(r.m_pgs), m_faces(r.m_faces), m_crd(r.m_crd), m_L2ref(NUGA::FLOAT_MAX), m_oriented(0)
 { 
-  m_normal[0] = m_centroid[0] = K_CONST::E_MAX_FLOAT;
+  m_normal[0] = m_centroid[0] = NUGA::FLOAT_MAX;
 
   plug();
 }
@@ -192,7 +192,7 @@ aPolyhedron<TopoShape>& aPolyhedron<TopoShape>::operator=(aPolyhedron&& rhs)
   rhs._faces = nullptr;
   rhs._nb_faces = 0;
   rhs._triangles = nullptr;
-  rhs.m_normal[0] = rhs.m_centroid[0] = K_CONST::E_MAX_FLOAT;
+  rhs.m_normal[0] = rhs.m_centroid[0] = NUGA::FLOAT_MAX;
 
   plug();
 
@@ -273,7 +273,7 @@ E_Int aPolyhedron<TopoShape>::triangulate(const TriangulatorType& dt) const
 template <int TopoShape>
 const double* aPolyhedron<TopoShape>::get_centroid() const 
 { 
-  if (m_centroid[0] == K_CONST::E_MAX_FLOAT)
+  if (m_centroid[0] == NUGA::FLOAT_MAX)
   {
     for (size_t d = 0; d < 3; ++d) m_centroid[d] = 0.;
     for (E_Int i = 0; i < m_crd.cols(); ++i)

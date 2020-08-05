@@ -21,16 +21,14 @@
 #ifndef __K_MESH_TRIANGLE_H__
 #define __K_MESH_TRIANGLE_H__
 
-#include <limits>
-#include "Def/DefTypes.h"
-#include "Def/DefCplusPlusConst.h"
+#include "Nuga/include/defs.h"
 #include "Nuga/include/DefContainers.h"
 #include "Nuga/include/Edge.h"
 #include "Nuga/include/ArrayAccessor.h"
 #include "Nuga/include/DelaunayMath.h"
 
 #define IS_ZERO(a, ABSTOL) (( (a) < ABSTOL) && ( (a) > -ABSTOL))
-#define ROUND(x) (((x<E_EPSILON) && (x>-E_EPSILON)) ? 0.: x) //fixme tol ??
+#define ROUND(x) (((x<EPSILON) && (x>-EPSILON)) ? 0.: x) //fixme tol ??
 
 namespace K_MESH
 {
@@ -39,7 +37,7 @@ namespace K_MESH
   public:
     typedef E_Int                 node_type;
     typedef Edge                  self_type;
-    typedef K_CONT_DEF::size_type size_type;
+    typedef NUGA::size_type       size_type;
     typedef K_MESH::NO_Edge       boundary_type;
     using nob_t = K_MESH::NO_Edge;
 
@@ -59,7 +57,7 @@ namespace K_MESH
     explicit Triangle(const NodeIterator pN)
     {_nodes[0] = *pN; _nodes[1] = *(pN+1); _nodes[2] = *(pN+2);}
     ///
-    Triangle(void){_nodes[0] = _nodes[1] = _nodes[2] = E_IDX_NONE;}
+    Triangle(void){_nodes[0] = _nodes[1] = _nodes[2] = IDX_NONE;}
     ///
     template <typename AConnect_t>
     inline Triangle (const AConnect_t& cnt, E_Int Ti) { cnt.getEntry(Ti, _nodes);}
@@ -122,10 +120,8 @@ namespace K_MESH
     static void normal(const E_Float* p1, const E_Float* p2, const E_Float* p3, E_Float* normal);
     ///
     static void normal(const K_FLD::FloatArray& coord, const E_Int* pN, E_Float* normal);
-    static void normal(const K_FLD::ArrayAccessor<K_FLD::FldArrayF>& coord, const E_Int* pN, E_Float* normal);
     ///
     static void isoG(const K_FLD::FloatArray& coord, const E_Int* pN, E_Float* G);
-    static void isoG(const K_FLD::ArrayAccessor<K_FLD::FldArrayF>& coord, const E_Int* pN, E_Float* G);
     static void isoG(const E_Float* P0, const E_Float* P1, const E_Float* P2, E_Float* G);
     template <typename CoordAcc>
     void iso_barycenter(const CoordAcc& coord, E_Float* G)
@@ -148,6 +144,11 @@ namespace K_MESH
       //std::cout << "G : " << G[0] << "/" << G[1] << "/" << G[2] << std::endl;
 
     }
+
+#ifndef NUGALIB
+    static void normal(const K_FLD::ArrayAccessor<K_FLD::FldArrayF>& coord, const E_Int* pN, E_Float* normal);
+    static void isoG(const K_FLD::ArrayAccessor<K_FLD::FldArrayF>& coord, const E_Int* pN, E_Float* G);
+#endif
 
     /// Returns the rank of N in the storage pointed by pK.
     inline static size_type getLocalNodeId(const size_type* pK, size_type N);
@@ -250,7 +251,7 @@ namespace K_MESH
     void bbox(const CoordAcc& acrd, box_t&bb) const
     {
       for (E_Int i = 0; i < 3; ++i)
-      {bb.minB[i] = K_CONST::E_MAX_FLOAT; bb.maxB[i] = -K_CONST::E_MAX_FLOAT;}
+      {bb.minB[i] = NUGA::FLOAT_MAX; bb.maxB[i] = -NUGA::FLOAT_MAX;}
 
       bb.compute(acrd, _nodes, NB_NODES, 0/*idx start*/);
     }
@@ -412,7 +413,7 @@ namespace K_MESH
     E_Float u = p1[0] - C[0];
     E_Float v = p1[1] - C[1];
 
-    if (C[0] != K_CONST::E_MAX_FLOAT)
+    if (C[0] != NUGA::FLOAT_MAX)
       R2 = (m11 * u * u) + (2 * m12 * u * v) + (m22 * v * v);
   }
 
@@ -436,14 +437,14 @@ namespace K_MESH
     E_Float a21 = p3[0] - p1[0];
     E_Float a22 = p3[1] - p1[1];
 
-    E_Float n1  = K_FUNC::sqrNorm<2>(p1);
-    E_Float d1  = 0.5 * (K_FUNC::sqrNorm<2>(p2) - n1);
-    E_Float d2  = 0.5 * (K_FUNC::sqrNorm<2>(p3) - n1);
+    E_Float n1  = NUGA::sqrNorm<2>(p1);
+    E_Float d1  = 0.5 * (NUGA::sqrNorm<2>(p2) - n1);
+    E_Float d2  = 0.5 * (NUGA::sqrNorm<2>(p3) - n1);
 
     K_LINEAR::DelaunayMath::resoLin(a11, a12, a21, a22, d1, d2, C[0],C[1]);
 
-    if (C[0] != K_CONST::E_MAX_FLOAT)
-      R2 = K_FUNC::sqrDistance(p1, C, 2);
+    if (C[0] != NUGA::FLOAT_MAX)
+      R2 = NUGA::sqrDistance(p1, C, 2);
   }
 
   ///
@@ -462,59 +463,59 @@ namespace K_MESH
     E_Float U[3], V[3], VP[3], Y[3], W[3], d;
     U[2] = V[2] = VP[2] = 0.;
 
-    E_Float& u = UV[0] = K_CONST::E_MAX_FLOAT;
-    E_Float& v = UV[1] = K_CONST::E_MAX_FLOAT;
+    E_Float& u = UV[0] = NUGA::FLOAT_MAX;
+    E_Float& v = UV[1] = NUGA::FLOAT_MAX;
 
-    K_FUNC::diff<DIM>(P1, P0, U);
-    K_FUNC::diff<DIM>(P2, P0, V);
-    K_FUNC::diff<DIM>(P, P0, VP);
+    NUGA::diff<DIM>(P1, P0, U);
+    NUGA::diff<DIM>(P2, P0, V);
+    NUGA::diff<DIM>(P, P0, VP);
 
-    K_FUNC::crossProduct<3>(U, V, W);
-    d = K_FUNC::normalize<3>(W);
+    NUGA::crossProduct<3>(U, V, W);
+    d = NUGA::normalize<3>(W);
 
-    if (d < E_EPSILON) // Degenerated triangle. //fixme error ?
+    if (d < EPSILON) // Degenerated triangle. //fixme error ?
       return;
 
     d = 1. / d;
 
-    K_FUNC::crossProduct<3>(VP, W, Y); // Y = W ^ X
+    NUGA::crossProduct<3>(VP, W, Y); // Y = W ^ X
 
     // u = (V ^ X) / (U ^ V) = - (V.Y) * d  where X is the projection of VP on the triangle.
     // v = (U.Y) * d;
 
-    u = -d * K_FUNC::dot<DIM>(V, Y);
-    v =  d * K_FUNC::dot<DIM>(U, Y);
+    u = -d * NUGA::dot<DIM>(V, Y);
+    v =  d * NUGA::dot<DIM>(U, Y);
   }
 
   ///
   E_Float
     Triangle::minDistanceToPoint(const E_Float* const  p1, const E_Float* const  p2, const E_Float* const  p3, const E_Float* P, E_Float* UV, bool& interfere, bool& inside)
   {
-    E_Float n[3], U[3], V[3], VP[3], d, tol(E_EPSILON), u, v, di;
+    E_Float n[3], U[3], V[3], VP[3], d, tol(EPSILON), u, v, di;
 
     inside = false;
     interfere = false;
 
-    K_FUNC::diff<3>(p2, p1, U);
-    K_FUNC::diff<3>(p3, p1, V);
-    K_FUNC::diff<3>(P, p1, VP);
+    NUGA::diff<3>(p2, p1, U);
+    NUGA::diff<3>(p3, p1, V);
+    NUGA::diff<3>(P, p1, VP);
 
     Triangle::project<3>(p1, p2, p3, P, UV);
 
     u = UV[0];
     v = UV[1];
 
-    if ((u == K_CONST::E_MAX_FLOAT) || (v == K_CONST::E_MAX_FLOAT))
+    if ((u == NUGA::FLOAT_MAX) || (v == NUGA::FLOAT_MAX))
       // Numerical error : fixme
-      return K_CONST::E_MAX_FLOAT;
+      return NUGA::FLOAT_MAX;
 
     // The projection is inside.
     if (((1. - u - v) >= -tol)  && 
       (u >= -tol) && (v >= -tol))
     {
-      K_FUNC::crossProduct<3>(U,V,n);
-      K_FUNC::normalize<3>(n);
-      d = K_FUNC::dot<3>(VP, n);
+      NUGA::crossProduct<3>(U,V,n);
+      NUGA::normalize<3>(n);
+      d = NUGA::dot<3>(VP, n);
       interfere = true;
       inside = (((1. - u - v) >= tol)  && 
       (u >= tol) && (v >= tol));
@@ -583,29 +584,29 @@ namespace K_MESH
     E_Float E[DIM], U[DIM], V[DIM], W[DIM], P0Q0[DIM], P0Q1[DIM], tol2(tol*tol);
     E_Float L2, x0, x1, dx, d;
 
-    lambda = UV[0] = UV[1] = min_distance = K_CONST::E_MAX_FLOAT;
+    lambda = UV[0] = UV[1] = min_distance = NUGA::FLOAT_MAX;
     coincident = parallel = false;
 
-    K_FUNC::diff<DIM>(Q1, Q0, E);
-    L2 = K_FUNC::sqrNorm<DIM>(E);
+    NUGA::diff<DIM>(Q1, Q0, E);
+    L2 = NUGA::sqrNorm<DIM>(E);
 
-    if (L2 < E_EPSILON*E_EPSILON)
+    if (L2 < EPSILON*EPSILON)
       return;
 
     if (tol_is_absolute)
       tol2 /= L2;
 
-    K_FUNC::diff<DIM>(P1, P0, U);
-    K_FUNC::diff<DIM>(P2, P0, V);
-    K_FUNC::diff<DIM>(Q0, P0, P0Q0);
-    K_FUNC::diff<DIM>(Q1, P0, P0Q1);
+    NUGA::diff<DIM>(P1, P0, U);
+    NUGA::diff<DIM>(P2, P0, V);
+    NUGA::diff<DIM>(Q0, P0, P0Q0);
+    NUGA::diff<DIM>(Q1, P0, P0Q1);
 
-    K_FUNC::crossProduct<DIM>(U,V,W);
-    d = K_FUNC::normalize<DIM>(W);
+    NUGA::crossProduct<DIM>(U,V,W);
+    d = NUGA::normalize<DIM>(W);
 
-    x0 = K_FUNC::dot<DIM>(W, P0Q0);
-    x1 = K_FUNC::dot<DIM>(W, P0Q1);
-    x1 = (IS_ZERO(x1, E_EPSILON)) ? 0. : x1; //for robustness : if Q1 is lying on the plane, lambda = -x0/dx should be 1
+    x0 = NUGA::dot<DIM>(W, P0Q0);
+    x1 = NUGA::dot<DIM>(W, P0Q1);
+    x1 = (IS_ZERO(x1, EPSILON)) ? 0. : x1; //for robustness : if Q1 is lying on the plane, lambda = -x0/dx should be 1
     dx = x1-x0;
 
     parallel = (dx*dx < (tol2 * L2)); //checkme
@@ -629,12 +630,12 @@ namespace K_MESH
 
       d = 1. / d;
 
-      K_FUNC::diff<DIM>(IP, P0, VP);
-      K_FUNC::crossProduct<DIM>(VP, W, Y); // Y = W ^ X
+      NUGA::diff<DIM>(IP, P0, VP);
+      NUGA::crossProduct<DIM>(VP, W, Y); // Y = W ^ X
       // u = (V ^ X) / (U ^ V) = - (V.Y) * d  where X is the projection of VP on the triangle.
       // v = (U.Y) * d;
-      UV[0] = -d * K_FUNC::dot<DIM>(V, Y);
-      UV[1] =  d * K_FUNC::dot<DIM>(U, Y);
+      UV[0] = -d * NUGA::dot<DIM>(V, Y);
+      UV[1] =  d * NUGA::dot<DIM>(U, Y);
     }
     else //parallel.
     {
@@ -656,7 +657,7 @@ namespace K_MESH
     E_Float& lambda, E_Float * UV,
     E_Bool& parallel, E_Bool& coincident, E_Float& min_distance, bool strict)
   {
-    lambda = UV[0] = UV[1] = K_CONST::E_MAX_FLOAT;
+    lambda = UV[0] = UV[1] = NUGA::FLOAT_MAX;
     parallel = coincident = true;
     min_distance = 0.;
   }
@@ -667,12 +668,12 @@ namespace K_MESH
          E_Float& d11, E_Float& d21, E_Float& d31, E_Float& d12, E_Float& d22, E_Float& d32, E_Float ABSTOL)
   {
     bool predicate = (ABSTOL < 0.);
-    if (predicate) ABSTOL = E_EPSILON;
+    if (predicate) ABSTOL = EPSILON;
     
     // Does T1 intersect Pi2 ?
-    d11 = K_FUNC::zzdet4(P2,Q2,R2,P1);
-    d21 = K_FUNC::zzdet4(P2,Q2,R2,Q1);
-    d31 = K_FUNC::zzdet4(P2,Q2,R2,R1);
+    d11 = NUGA::zzdet4(P2,Q2,R2,P1);
+    d21 = NUGA::zzdet4(P2,Q2,R2,Q1);
+    d31 = NUGA::zzdet4(P2,Q2,R2,R1);
     
     if (!predicate)
     {
@@ -684,7 +685,7 @@ namespace K_MESH
         v[j] = R2[j] - P2[j];
       }
 
-      E_Float norm = 1./::sqrt(K_FUNC::sqrCross<3>(u,v));
+      E_Float norm = 1./::sqrt(NUGA::sqrCross<3>(u,v));
       d11 *= norm;
       d21 *= norm;
       d31 *= norm;
@@ -695,9 +696,9 @@ namespace K_MESH
     if ( (d11 > ABSTOL) && (d21 > ABSTOL) && (d31 > ABSTOL))    // P1,Q1,and R1 are strictly on the same side of Pi2 -> no intersection
       return true;
     
-    d12 = K_FUNC::zzdet4(P1,Q1,R1,P2);
-    d22 = K_FUNC::zzdet4(P1,Q1,R1,Q2);
-    d32 = K_FUNC::zzdet4(P1,Q1,R1,R2);
+    d12 = NUGA::zzdet4(P1,Q1,R1,P2);
+    d22 = NUGA::zzdet4(P1,Q1,R1,Q2);
+    d32 = NUGA::zzdet4(P1,Q1,R1,R2);
     
     if (!predicate)
     {
@@ -709,7 +710,7 @@ namespace K_MESH
         v[j] = R1[j] - P1[j];
       }
 
-      E_Float norm = 1./::sqrt(K_FUNC::sqrCross<3>(u,v));
+      E_Float norm = 1./::sqrt(NUGA::sqrCross<3>(u,v));
       d12 *= norm;
       d22 *= norm;
       d32 *= norm;
@@ -724,7 +725,7 @@ namespace K_MESH
     return false; //not far regarding this rough test
   }
   
-#define SIGN(a) ((a < -E_EPSILON) ? -1 : ((a > E_EPSILON) ? 1 : 0))  
+#define SIGN(a) ((a < -EPSILON) ? -1 : ((a > EPSILON) ? 1 : 0))  
   
   inline E_Int get_region (const E_Float* M, const E_Float* p, const E_Float* q, const E_Float* r)
   {
@@ -751,9 +752,9 @@ namespace K_MESH
     
     E_Int s = SIGN(a1);
     
-    if ((a1 > -E_EPSILON) && (a2 > -E_EPSILON) && (a3 > -E_EPSILON)) // is inside
+    if ((a1 > -EPSILON) && (a2 > -EPSILON) && (a3 > -EPSILON)) // is inside
       return 0;
-    if ((a1 < E_EPSILON) && (a2 < E_EPSILON) && (a3 < E_EPSILON)) // is inside
+    if ((a1 < EPSILON) && (a2 < EPSILON) && (a3 < EPSILON)) // is inside
       return 0;
 
     if (s == SIGN(a2))
@@ -833,19 +834,19 @@ namespace K_MESH
     if (POTENTIAL_X(region[0]+region[1])) //P2Q2
     {
       solid_angle(region[0], P1, Q1, R1, s, t);
-      if ((CROSS_PRD(P2,s,Q2) > E_EPSILON) && (CROSS_PRD(P2,Q2,t) > E_EPSILON))
+      if ((CROSS_PRD(P2,s,Q2) > EPSILON) && (CROSS_PRD(P2,Q2,t) > EPSILON))
         return true;
     }
     if (POTENTIAL_X(region[1]+region[2])) //Q2R2
     {
       solid_angle(region[1], P1, Q1, R1, s, t);
-      if ((CROSS_PRD(Q2,s,R2) > E_EPSILON) && (CROSS_PRD(Q2,R2,t) > E_EPSILON))
+      if ((CROSS_PRD(Q2,s,R2) > EPSILON) && (CROSS_PRD(Q2,R2,t) > EPSILON))
         return true;
     }
     if (POTENTIAL_X(region[2]+region[0])) //R2P2
     {
       solid_angle(region[2], P1, Q1, R1, s, t);
-      if ((CROSS_PRD(R2,s,P2) > E_EPSILON) && (CROSS_PRD(R2,P2,t) > E_EPSILON))
+      if ((CROSS_PRD(R2,s,P2) > EPSILON) && (CROSS_PRD(R2,P2,t) > EPSILON))
         return true;
     }
     return false;
@@ -866,7 +867,7 @@ namespace K_MESH
     if (POTENTIAL_X(region[0]+region[1])) //P2Q2
     {
       solid_angle(region[0], P1, Q1, R1, s, t);
-      if ((CROSS_PRD(P2,s,Q2) > E_EPSILON) && (CROSS_PRD(P2,Q2,t) > E_EPSILON))
+      if ((CROSS_PRD(P2,s,Q2) > EPSILON) && (CROSS_PRD(P2,Q2,t) > EPSILON))
         return true;
     }
     
@@ -888,36 +889,36 @@ namespace K_MESH
   {
     
     // Does T1 intersect Pi2 ?
-    E_Float d11 = K_FUNC::zzdet4(P2,Q2,R2,P1);
-    E_Float d21 = K_FUNC::zzdet4(P2,Q2,R2,Q1);
-    E_Float d31 = K_FUNC::zzdet4(P2,Q2,R2,R1);
+    E_Float d11 = NUGA::zzdet4(P2,Q2,R2,P1);
+    E_Float d21 = NUGA::zzdet4(P2,Q2,R2,Q1);
+    E_Float d31 = NUGA::zzdet4(P2,Q2,R2,R1);
         
-    if ( (d11 < -E_EPSILON) && (d21 < -E_EPSILON) && (d31 < -E_EPSILON)) // P1,Q1,and R1 are strictly on the same side of Pi2 -> no intersection
+    if ( (d11 < -EPSILON) && (d21 < -EPSILON) && (d31 < -EPSILON)) // P1,Q1,and R1 are strictly on the same side of Pi2 -> no intersection
       return false;
-    if ( (d11 > E_EPSILON) && (d21 > E_EPSILON) && (d31 > E_EPSILON))    // P1,Q1,and R1 are strictly on the same side of Pi2 -> no intersection
+    if ( (d11 > EPSILON) && (d21 > EPSILON) && (d31 > EPSILON))    // P1,Q1,and R1 are strictly on the same side of Pi2 -> no intersection
       return false;
     
-    if (IS_ZERO(d11, E_EPSILON) && IS_ZERO(d21, E_EPSILON) && IS_ZERO(d31, E_EPSILON)) // Pi1 == Pi2 => 2D intersection test
+    if (IS_ZERO(d11, EPSILON) && IS_ZERO(d21, EPSILON) && IS_ZERO(d31, EPSILON)) // Pi1 == Pi2 => 2D intersection test
     {
       // Go to the Plane
       K_FLD::FloatArray P(3,3);
       E_Float *u(P.col(0)), *v(P.col(1)), *w(P.col(2));
       
-      K_FUNC::diff<3>(Q1, P1, u);
-      K_FUNC::diff<3>(R1, P1, v);
-      K_FUNC::crossProduct<3>(u, v, w);
-      K_FUNC::normalize<3>(w);
-      K_FUNC::normalize<3>(u);
-      K_FUNC::crossProduct<3>(w, u, v);
-      K_FUNC::normalize<3>(v);
+      NUGA::diff<3>(Q1, P1, u);
+      NUGA::diff<3>(R1, P1, v);
+      NUGA::crossProduct<3>(u, v, w);
+      NUGA::normalize<3>(w);
+      NUGA::normalize<3>(u);
+      NUGA::crossProduct<3>(w, u, v);
+      NUGA::normalize<3>(v);
       
       K_FLD::FloatArray::inverse3(P);
       //do the transform
       E_Float p1[2], q1[2], r1[2], p2[2], q2[2], r2[2];
-      for (size_t i = 0; i < 2; ++i)
+      for (E_Int i = 0; i < 2; ++i)
       {
         p1[i] = q1[i] = r1[i] = p2[i] = q2[i] = r2[i] = 0.;
-        for (size_t j = 0; j < 3; ++j)
+        for (E_Int j = 0; j < 3; ++j)
         {
           p1[i] += P(i,j) * P1[j];
           q1[i] += P(i,j) * Q1[j];
@@ -933,13 +934,13 @@ namespace K_MESH
     
     // T1 intersects Pi2. Check now if T2 intersects Pi1
     
-    E_Float d12 = K_FUNC::zzdet4(P1,Q1,R1,P2);
-    E_Float d22 = K_FUNC::zzdet4(P1,Q1,R1,Q2);
-    E_Float d32 = K_FUNC::zzdet4(P1,Q1,R1,R2);
+    E_Float d12 = NUGA::zzdet4(P1,Q1,R1,P2);
+    E_Float d22 = NUGA::zzdet4(P1,Q1,R1,Q2);
+    E_Float d32 = NUGA::zzdet4(P1,Q1,R1,R2);
     
-    if ( (d12 < -E_EPSILON) && (d22 < -E_EPSILON) && (d32 < -E_EPSILON)) // P2,Q2,and R2 are strictly on the same side of Pi1 -> no intersection
+    if ( (d12 < -EPSILON) && (d22 < -EPSILON) && (d32 < -EPSILON)) // P2,Q2,and R2 are strictly on the same side of Pi1 -> no intersection
       return false;
-    if ( (d12 > E_EPSILON) && (d22 > E_EPSILON) && (d32 > E_EPSILON))    // P2,Q2,and R2 are strictly on the same side of Pi1 -> no intersection
+    if ( (d12 > EPSILON) && (d22 > EPSILON) && (d32 > EPSILON))    // P2,Q2,and R2 are strictly on the same side of Pi1 -> no intersection
       return false;
     
     // T1 intersects Pi2 and T2 intersects Pi1
@@ -1011,7 +1012,7 @@ namespace K_MESH
         permut1(p2,q2,r2); //p2 = r2; q2 = p2; r2 = q2;
     }
     
-    return ((K_FUNC::zzdet4(p1,q1,p2,q2) < E_EPSILON) && (K_FUNC::zzdet4(p1,r1,r2,p2) < E_EPSILON));
+    return ((NUGA::zzdet4(p1,q1,p2,q2) < EPSILON) && (NUGA::zzdet4(p1,r1,r2,p2) < EPSILON));
   }
 
   ///
@@ -1071,8 +1072,8 @@ namespace K_MESH
     E_Float lambda, min_d;
     E_Bool parallel, coincident;
     
-    E_Float Lu = ::sqrt(K_FUNC::sqrDistance(P2, Q2, 3));
-    E_Float Lv = ::sqrt(K_FUNC::sqrDistance(P2, R2, 3));
+    E_Float Lu = ::sqrt(NUGA::sqrDistance(P2, Q2, 3));
+    E_Float Lv = ::sqrt(NUGA::sqrDistance(P2, R2, 3));
     E_Float L = MAX(Lu,Lv);
     
     E_Float RELTOL = ABSTOL/L;
@@ -1109,8 +1110,8 @@ namespace K_MESH
     
     // T1's points on T2's plane
     
-    Lu = ::sqrt(K_FUNC::sqrDistance(P1, Q1, 3));
-    Lv = ::sqrt(K_FUNC::sqrDistance(P1, R1, 3));
+    Lu = ::sqrt(NUGA::sqrDistance(P1, Q1, 3));
+    Lv = ::sqrt(NUGA::sqrDistance(P1, R1, 3));
     L = MAX(Lu,Lv);
     
     RELTOL = ABSTOL/L;
@@ -1250,8 +1251,8 @@ namespace K_MESH
     E_Float lambda, min_d;
     E_Bool parallel, coincident;
     
-    E_Float Lu = ::sqrt(K_FUNC::sqrDistance(P2, Q2, 3));
-    E_Float Lv = ::sqrt(K_FUNC::sqrDistance(P2, R2, 3));
+    E_Float Lu = ::sqrt(NUGA::sqrDistance(P2, Q2, 3));
+    E_Float Lv = ::sqrt(NUGA::sqrDistance(P2, R2, 3));
     E_Float L = MAX(Lu,Lv);
     
     E_Float RELTOL = ABSTOL/L;
@@ -1309,8 +1310,8 @@ namespace K_MESH
     
     // T1's points on T2's plane
     
-    Lu = ::sqrt(K_FUNC::sqrDistance(P1, Q1, 3));
-    Lv = ::sqrt(K_FUNC::sqrDistance(P1, R1, 3));
+    Lu = ::sqrt(NUGA::sqrDistance(P1, Q1, 3));
+    Lv = ::sqrt(NUGA::sqrDistance(P1, R1, 3));
     L = MAX(Lu,Lv);
     
     RELTOL = ABSTOL/L;
@@ -1382,7 +1383,7 @@ namespace K_MESH
         {
           if (!overlap)
           {
-            if ( (u00 > E_EPSILON && u00 < 1. - E_EPSILON) && (u10 > E_EPSILON && u10 < 1. - E_EPSILON)) return true;
+            if ( (u00 > EPSILON && u00 < 1. - EPSILON) && (u10 > EPSILON && u10 < 1. - EPSILON)) return true;
           }
         }
       }
@@ -1394,13 +1395,13 @@ namespace K_MESH
 //      K_FLD::FloatArray P(3,3);
 //      E_Float *u(P.col(0)), *v(P.col(1)), *w(P.col(2));
 //      
-//      K_FUNC::diff<3>(Q1, P1, u);
-//      K_FUNC::diff<3>(R1, P1, v);
-//      K_FUNC::crossProduct<3>(u, v, w);
-//      K_FUNC::normalize<3>(w);
-//      K_FUNC::normalize<3>(u);
-//      K_FUNC::crossProduct<3>(w, u, v);
-//      K_FUNC::normalize<3>(v);
+//      NUGA::diff<3>(Q1, P1, u);
+//      NUGA::diff<3>(R1, P1, v);
+//      NUGA::crossProduct<3>(u, v, w);
+//      NUGA::normalize<3>(w);
+//      NUGA::normalize<3>(u);
+//      NUGA::crossProduct<3>(w, u, v);
+//      NUGA::normalize<3>(v);
 //      
 //      K_FLD::FloatArray::inverse3(P);
 //      //do the transform
@@ -1432,20 +1433,20 @@ namespace K_MESH
     E_Float tol, E_Bool tol_is_absolute, 
     E_Float& u0, E_Float& u1, E_Int& tx, E_Bool& overlap) 
   {
-    E_Float lambda, UV[2], min_d, eps(E_EPSILON), tol1(tol);
+    E_Float lambda, UV[2], min_d, eps(EPSILON), tol1(tol);
     E_Bool  parallel, coincident;
 
     tx = 0;
 
     overlap = false;
-    u0 = u1 = K_CONST::E_MAX_FLOAT;
+    u0 = u1 = NUGA::FLOAT_MAX;
 
     planeLineMinDistance<DIM>(P0, P1, P2, Q0, Q1, tol, tol_is_absolute, lambda, UV, parallel, coincident, min_d);
 
-    E_Float L = ::sqrt(K_FUNC::sqrDistance(Q0, Q1, DIM));
+    E_Float L = ::sqrt(NUGA::sqrDistance(Q0, Q1, DIM));
     if (tol_is_absolute)
     {
-      if (L > E_EPSILON)
+      if (L > EPSILON)
         tol1 /= L;
     }
 
@@ -1462,7 +1463,7 @@ namespace K_MESH
     else                  // The line is lying on the plane (up to 2 intersections).
     {
       E_Int Xcount = 0;
-      E_Float Xu[] = {K_CONST::E_MAX_FLOAT, K_CONST::E_MAX_FLOAT};
+      E_Float Xu[] = {NUGA::FLOAT_MAX, NUGA::FLOAT_MAX};
 
       E_Float        dum0, dum1;
       E_Bool         ovlap;
@@ -1531,23 +1532,23 @@ namespace K_MESH
     E_Float tol, E_Bool tol_is_absolute, 
     E_Float& u0, E_Float& u1, E_Int& tx, E_Bool& overlap, E_Bool& coincident) 
   {
-    E_Float lambda, UV[2], min_d, eps(E_EPSILON), tol12(tol*tol);
+    E_Float lambda, UV[2], min_d, eps(EPSILON), tol12(tol*tol);
     E_Bool  parallel;
 
     tx = 0;
 
     coincident=overlap = 0;
-    u0 = u1 = K_CONST::E_MAX_FLOAT;
+    u0 = u1 = NUGA::FLOAT_MAX;
 
     planeLineMinDistance<DIM>(P0, P1, P2, Q0, Q1, tol, tol_is_absolute, lambda, UV, parallel, coincident, min_d);
 
-    E_Float L2 = K_FUNC::sqrDistance(Q0, Q1, DIM);
+    E_Float L2 = NUGA::sqrDistance(Q0, Q1, DIM);
     if (tol_is_absolute)
     {
       if (min_d*min_d > tol12)
         return false;
       
-      if (L2 > E_EPSILON*E_EPSILON)
+      if (L2 > EPSILON*EPSILON)
         tol12 /= L2; //make it relative
     }
     else
@@ -1568,7 +1569,7 @@ namespace K_MESH
     else                  // The line is lying on the plane (up to 2 intersections).
     {
       E_Int Xcount = 0;
-      E_Float Xu[] = {K_CONST::E_MAX_FLOAT, K_CONST::E_MAX_FLOAT};
+      E_Float Xu[] = {NUGA::FLOAT_MAX, NUGA::FLOAT_MAX};
 
       E_Float        dum0, dum1;
       E_Bool         ovlap;
@@ -1641,7 +1642,7 @@ namespace K_MESH
     E_Float tol, E_Bool tol_is_absolute, 
     E_Float& u0, E_Float& u1, E_Int* tx, E_Bool& overlap, E_Bool& coplanar) 
   {
-    E_Float lambda, UV[2], min_d, eps(E_EPSILON), tolR2(tol*tol);
+    E_Float lambda, UV[2], min_d, eps(EPSILON), tolR2(tol*tol);
     E_Bool  parallel;
 
     const E_Float* P0 = pos.col(i0);
@@ -1651,12 +1652,12 @@ namespace K_MESH
     const E_Float* Q1 = pos.col(n1);
 
     overlap = 0;
-    u0 = u1 = K_CONST::E_MAX_FLOAT;
+    u0 = u1 = NUGA::FLOAT_MAX;
     tx[0] = tx[1] = 0;
 
     planeLineMinDistance<DIM>(P0, P1, P2, Q0, Q1, tol, tol_is_absolute, lambda, UV, parallel, coplanar, min_d, true/*strict*/);
 
-    E_Float L2 = K_FUNC::sqrDistance(Q0, Q1, DIM);
+    E_Float L2 = NUGA::sqrDistance(Q0, Q1, DIM);
     if (tol_is_absolute)
     {
       if (min_d*min_d > tolR2)
@@ -1683,16 +1684,16 @@ namespace K_MESH
 ////      E_Float s1 = K_MESH::Triangle::surface(IP, P1, P2, DIM);
 ////      E_Float s2 = K_MESH::Triangle::surface(IP, P2, P0, DIM);
 ////      
-////      E_Float Li2 = K_FUNC::sqrDistance(P0, P1, DIM);
+////      E_Float Li2 = NUGA::sqrDistance(P0, P1, DIM);
 ////      E_Float h02 = 4.*s0*s0/Li2;
 //      E_Float l1;
 //      E_Float h02bis = K_MESH::Edge::linePointMinDistance2<DIM>(P0,P1, IP, l1);
 //      
-////      Li2 = K_FUNC::sqrDistance(P1, P2, DIM);
+////      Li2 = NUGA::sqrDistance(P1, P2, DIM);
 ////      E_Float h12 = 4.*s1*s1/Li2;
 //      E_Float h12bis = K_MESH::Edge::linePointMinDistance2<DIM>(P1,P2, IP, l1);
 //      
-////      Li2 = K_FUNC::sqrDistance(P2, P0, DIM);
+////      Li2 = NUGA::sqrDistance(P2, P0, DIM);
 ////      E_Float h22 = 4.*s2*s2/Li2;
 //      E_Float h22bis = K_MESH::Edge::linePointMinDistance2<DIM>(P2,P0, IP, l1);
 //
@@ -1732,9 +1733,9 @@ namespace K_MESH
 ////        
 ////        E_Float U[3], V[3], W[3];
 ////        K_MESH::Triangle::normal(P0, P1, P2, W);
-////        K_FUNC::diff<3>(P1, P0, U);
-////        K_FUNC::normalize<3>(U);
-////        K_FUNC::crossProduct<3>(W, U, V);
+////        NUGA::diff<3>(P1, P0, U);
+////        NUGA::normalize<3>(U);
+////        NUGA::crossProduct<3>(W, U, V);
 ////
 ////        // Build the transformation matrix.
 ////        K_FLD::FloatArray P(3,3);
@@ -1778,7 +1779,7 @@ namespace K_MESH
     else  // The line is lying on the plane (up to 2 intersections). => WE THEN ENFORCE COPLANARITY FOR ROBUSTNESS
     {
       E_Int Xcount = 0;
-      E_Float Xu[] = {K_CONST::E_MAX_FLOAT, K_CONST::E_MAX_FLOAT};
+      E_Float Xu[] = {NUGA::FLOAT_MAX, NUGA::FLOAT_MAX};
 
       E_Float        dum0, dum1;
       E_Bool         ovlap;
@@ -1914,19 +1915,19 @@ namespace K_MESH
 
     S = surface<DIM>(P0, P1, P2);
 
-    d = ::sqrt(K_FUNC::sqrDistance(P1, P0, DIM));
+    d = ::sqrt(NUGA::sqrDistance(P1, P0, DIM));
     p += d;
     L = (L < d) ? d : L;
 
-    d = ::sqrt(K_FUNC::sqrDistance(P2, P0, DIM));
+    d = ::sqrt(NUGA::sqrDistance(P2, P0, DIM));
     p += d;
     L = (L < d) ? d : L;
 
-    d = ::sqrt(K_FUNC::sqrDistance(P2, P1, DIM));
+    d = ::sqrt(NUGA::sqrDistance(P2, P1, DIM));
     p += d;
     L = (L < d) ? d : L;
 
-    d = 4. * K_CONST::E_SQRT3 * (S / (L * p));
+    d = 4. * NUGA::SQRT3 * (S / (L * p));
     d = (d > 1.) ? 1. : d;
 
     return d;
@@ -1940,11 +1941,11 @@ namespace K_MESH
   {
     E_Float U[3], V[3], W[3];
 
-    K_FUNC::diff<3>(P1, P0, U);
-    K_FUNC::diff<3>(P2, P0, V);
-    K_FUNC::crossProduct<3>(U, V, W);
+    NUGA::diff<3>(P1, P0, U);
+    NUGA::diff<3>(P2, P0, V);
+    NUGA::crossProduct<3>(U, V, W);
 
-    return 0.5 * ::sqrt(K_FUNC::sqrNorm<3>(W));
+    return 0.5 * ::sqrt(NUGA::sqrNorm<3>(W));
   }
 
   //=============================================================================
@@ -1963,12 +1964,12 @@ namespace K_MESH
   {
     E_Float U[3], V[3];
 
-    K_FUNC::diff<3>(P1, P0, U);
-    K_FUNC::diff<3>(P2, P0, V);
-    K_FUNC::normalize<3>(U); // for robustness (e.g. regularize/pyramyd20)
-    K_FUNC::normalize<3>(V);
-    K_FUNC::crossProduct<3>(U, V, normal);
-    K_FUNC::normalize<3>(normal);
+    NUGA::diff<3>(P1, P0, U);
+    NUGA::diff<3>(P2, P0, V);
+    NUGA::normalize<3>(U); // for robustness (e.g. regularize/pyramyd20)
+    NUGA::normalize<3>(V);
+    NUGA::crossProduct<3>(U, V, normal);
+    NUGA::normalize<3>(normal);
   }
   
   //=============================================================================
@@ -1979,12 +1980,13 @@ namespace K_MESH
     const E_Float* P1 = coord.col(*(pN+1));
     const E_Float* P2 = coord.col(*(pN+2));
 
-    K_FUNC::diff<3>(P1, P0, U);
-    K_FUNC::diff<3>(P2, P0, V);
-    K_FUNC::crossProduct<3>(U, V, normal);
-    K_FUNC::normalize<3>(normal);
+    NUGA::diff<3>(P1, P0, U);
+    NUGA::diff<3>(P2, P0, V);
+    NUGA::crossProduct<3>(U, V, normal);
+    NUGA::normalize<3>(normal);
   }
   
+#ifndef NUGALIB
   inline
   void K_MESH::Triangle::normal
   (const K_FLD::ArrayAccessor<K_FLD::FldArrayF>& coord, const E_Int* pN, E_Float* normal)
@@ -1996,12 +1998,13 @@ namespace K_MESH
     const E_Float* P2 = &P[*(pN+2)]; // points to the x coord of third node.
     
     E_Float U[3], V[3];
-    K_FUNC::diff<3>(P1, P0, stride, U);
-    K_FUNC::diff<3>(P2, P0, stride, V);
+    NUGA::diff<3>(P1, P0, stride, U);
+    NUGA::diff<3>(P2, P0, stride, V);
     
-    K_FUNC::crossProduct<3>(U, V, normal);
-    K_FUNC::normalize<3>(normal);
+    NUGA::crossProduct<3>(U, V, normal);
+    NUGA::normalize<3>(normal);
   }
+#endif
   
   //=============================================================================
   template <> inline 
@@ -2011,8 +2014,8 @@ namespace K_MESH
     
     ndS[0]=ndS[1]=ndS[2]=0.;
 
-    K_FUNC::diff<3>(P1, P0, U);
-    K_FUNC::diff<3>(P2, P0, V);
+    NUGA::diff<3>(P1, P0, U);
+    NUGA::diff<3>(P2, P0, V);
     
     // prevent numerical error when computing cross product. fixme : should be done evrywhere a cross product or determinant is done ?
     for (size_t i=0; i < 3; ++i)
@@ -2021,7 +2024,7 @@ namespace K_MESH
       V[i]=ROUND(V[i]);
     }
     
-    K_FUNC::crossProduct<3>(U, V, ndS);
+    NUGA::crossProduct<3>(U, V, ndS);
     
     ndS[0] *= 0.5;
     ndS[1] *= 0.5;
@@ -2039,6 +2042,7 @@ namespace K_MESH
       G[i]=(P0[i]+P1[i]+P2[i])/3.;
   }
   
+#ifndef NUGALIB
   inline void K_MESH::Triangle::isoG
   (const K_FLD::ArrayAccessor<K_FLD::FldArrayF>& coord, const E_Int* pN, E_Float* G)
   {
@@ -2052,7 +2056,8 @@ namespace K_MESH
     for (size_t i = 0; i < 3; ++i)
       G[i]=(X[i][*pN]+X[i][*(pN+1)]+X[i][*(pN+2)])/3.;
   }
-  
+#endif
+
   inline void K_MESH::Triangle::isoG(const E_Float* P0, const E_Float* P1, const E_Float* P2, E_Float* G)
   {
     for (size_t i = 0; i < 3; ++i)
@@ -2060,7 +2065,7 @@ namespace K_MESH
   }
   
   //=============================================================================
-  K_CONT_DEF::size_type
+  NUGA::size_type
   K_MESH::Triangle::getLocalNodeId(const size_type* pK, size_type N)
   {
     for (size_type n = 0; n < K_MESH::Triangle::NB_NODES; ++n)
@@ -2068,7 +2073,7 @@ namespace K_MESH
       if (*(pK+n) == N) return n;
     }
     assert (false);// should never get here.
-    return E_IDX_NONE;
+    return IDX_NONE;
   }
 
 } // End Namespace K_MESH

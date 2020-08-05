@@ -40,10 +40,10 @@ struct aPolygon : public K_MESH::Polygon
     parent_type::_nodes = &m_nodes[0];
     _triangles = nullptr;
     parent_type::_shift = 0;
-    m_normal[0] = m_centroid[0] = K_CONST::E_MAX_FLOAT;
+    m_normal[0] = m_centroid[0] = NUGA::FLOAT_MAX;
   }
   
-  aPolygon(const parent_type& pg, const K_FLD::FloatArray& crd, E_Float L2r) :aPolygon(pg, crd) { m_L2ref = L2r; m_normal[0] = m_centroid[0] = K_CONST::E_MAX_FLOAT; }
+  aPolygon(const parent_type& pg, const K_FLD::FloatArray& crd, E_Float L2r) :aPolygon(pg, crd) { m_L2ref = L2r; m_normal[0] = m_centroid[0] = NUGA::FLOAT_MAX; }
 
   aPolygon(K_FLD::FloatArray && crd):parent_type(nullptr, 0), m_crd(std::move(crd))
   {
@@ -54,7 +54,7 @@ struct aPolygon : public K_MESH::Polygon
     parent_type::_nodes = &m_nodes[0];
     _triangles = nullptr;
     parent_type::_shift = 0;
-    m_normal[0] = m_centroid[0] = K_CONST::E_MAX_FLOAT;
+    m_normal[0] = m_centroid[0] = NUGA::FLOAT_MAX;
   }
 
   aPolygon(const ngon_unit& ngu, E_Int ith, const K_FLD::FloatArray& crd): parent_type(nullptr, 0)
@@ -62,7 +62,7 @@ struct aPolygon : public K_MESH::Polygon
     parent_type::_nb_nodes = ngu.stride(ith);
     _triangles = nullptr;
     parent_type::_shift = 0;
-    m_normal[0] = m_centroid[0] = K_CONST::E_MAX_FLOAT;
+    m_normal[0] = m_centroid[0] = NUGA::FLOAT_MAX;
 
     NUGA::MeshTool::compact_to_mesh(crd, ngu.get_facets_ptr(ith), parent_type::_nb_nodes, 1, m_crd);
     
@@ -130,7 +130,7 @@ struct aPolygon : public K_MESH::Polygon
     rhs._shift = 0;
     rhs._triangles = nullptr;
     rhs._nodes = nullptr;
-    rhs.m_normal[0] = K_CONST::E_MAX_FLOAT;//fixme: necessary ?
+    rhs.m_normal[0] = NUGA::FLOAT_MAX;//fixme: necessary ?
 
     return *this;
   }
@@ -163,13 +163,13 @@ struct aPolygon : public K_MESH::Polygon
   }
 
   const double* get_normal() const { 
-    if (m_normal[0] == K_CONST::E_MAX_FLOAT)
+    if (m_normal[0] == NUGA::FLOAT_MAX)
       normal<3>(m_normal);
     return m_normal;
   }
 
   const double* get_centroid() const {
-    if (m_centroid[0] == K_CONST::E_MAX_FLOAT)
+    if (m_centroid[0] == NUGA::FLOAT_MAX)
       parent_type::centroid<3>(m_crd, parent_type::_nodes, parent_type::_nb_nodes, parent_type::_shift, m_centroid);
     return m_centroid;
   }

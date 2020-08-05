@@ -22,9 +22,9 @@
 
 #include <vector>
 #include <set>
-#include "Def/DefTypes.h"
 #include <assert.h>
 
+#include "Nuga/include/defs.h"
 #include "Nuga/include/DynArray.h"
 
 #define Vector_t std::vector
@@ -137,7 +137,7 @@ class ngon_unit
       for (E_Int i = 0; i < n; ++i) nb_tot_child += pregnant[i];
       
       E_Int pos = _NGON.size();
-      _NGON.resize(pos + nb_tot_child + n, E_IDX_NONE); 
+      _NGON.resize(pos + nb_tot_child + n, IDX_NONE); 
       _facet.resize(sz0 + n);
 
       //put the nb_facets
@@ -232,7 +232,7 @@ class ngon_unit
     template <typename T>
     static void shift(Vector_t<T>& vec, const T& val){for (size_t i = 0; i < vec.size(); ++i)vec[i]+=val;}
     ///
-    void reset_facets();//set all facet values to E_IDX_NONE (useful for building a neighbor table)
+    void reset_facets();//set all facet values to IDX_NONE (useful for building a neighbor table)
     
     /// warning : need a call to updateFacets afterwards
     template <template<typename, typename> class Container_t, typename Element,typename Allocator_t>
@@ -306,7 +306,7 @@ void ngon_unit::extract_by_predicate (const Predicate_t& P, ngon_unit& ngo, Vect
   updateFacets();
   
   nids.clear();
-  nids.resize(sz, E_IDX_NONE);
+  nids.resize(sz, IDX_NONE);
   
   ngo.clear();
   

@@ -20,7 +20,7 @@
 #include "Nuga/include/TRI_BooleanOperator.h"
 #include "Nuga/include/TRI_Conformizer.h"
 
-#include "Nuga/include/DefContainers.h"
+#include "Nuga/include/defs.h"
 #include "Nuga/include/TSSplitter.h"
 #include "Nuga/include/ContourSplitter.h"
 #include "Nuga/include/BbTree.h"
@@ -349,7 +349,7 @@ E_Int
 TRI_BooleanOperator::__get_mesh_edges
 (const K_FLD::IntArray& connect, std::vector<K_MESH::NO_Edge>& no_edges)
 {
-  K_CONT_DEF::non_oriented_edge_set_type  hE;
+  NUGA::non_oriented_edge_set_type  hE;
   K_FLD::IntArray::const_iterator         pS;
   E_Int                                   c, n, cols(connect.cols());
   K_MESH::NO_Edge                         Ei;
@@ -383,7 +383,7 @@ TRI_BooleanOperator::__find_external_element
   K_FLD::IntArray::const_iterator pS;
   E_Int                           c, n, nb_tris;
 
-  S0 = E_IDX_NONE;
+  S0 = IDX_NONE;
 
   // minN(maxN) will contains the 3 node indices contributing to the min(max) corner.
   // e.g. minN[1] is the index of the node having the lowest y-coordinate.
@@ -456,7 +456,7 @@ TRI_BooleanOperator::__alternate_coloring
   __getZoneNeighbouring(connect, zones, zone_to_zones);
   
   // Initialize zone colors and the pool.
-  zcolors.resize(*std::max_element(zones.begin(), zones.end())+1, E_IDX_NONE);
+  zcolors.resize(*std::max_element(zones.begin(), zones.end())+1, IDX_NONE);
   for (size_t Si = 0; Si < colors.size(); ++Si) // Set overlap color.
   {
     if (colors[Si] == C_OVERLAP)
@@ -483,7 +483,7 @@ TRI_BooleanOperator::__alternate_coloring
     for (itZ = it->second.begin(); itZ != it->second.end(); ++itZ)
     {
       z0 = *itZ;
-      if (zcolors[z0] == E_IDX_NONE)
+      if (zcolors[z0] == IDX_NONE)
       {
         zcolors[z0] = (E_Int)((c0+1)%2);
         pool.insert(z0);
@@ -607,8 +607,8 @@ TRI_BooleanOperator::__reorient_x_contour
 ///
 E_Int
 TRI_BooleanOperator::__color_other_part
-(K_FLD::IntArray& connect, const K_CONT_DEF::non_oriented_edge_set_type& hXC,
- const K_CONT_DEF::oriented_edge_set_type& hXCO, std::vector<E_Int>& colors)
+(K_FLD::IntArray& connect, const NUGA::non_oriented_edge_set_type& hXC,
+ const NUGA::oriented_edge_set_type& hXCO, std::vector<E_Int>& colors)
 {
   E_Int                         ret(0), c, col;
   K_FLD::IntArray               connectbo;
@@ -628,7 +628,7 @@ TRI_BooleanOperator::__color_other_part
   {
     K_FLD::IntArray tmp;
     E_Int Ei[2];
-    for (K_CONT_DEF::non_oriented_edge_set_type::const_iterator i = hXC.begin(); i != hXC.end(); ++i)
+    for (NUGA::non_oriented_edge_set_type::const_iterator i = hXC.begin(); i != hXC.end(); ++i)
     {
       Ei[0] = i->node(0);
       Ei[1] = i->node(1);

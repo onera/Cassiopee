@@ -32,7 +32,7 @@
 #endif
 #endif
 
-using namespace K_CONT_DEF;
+using namespace NUGA;
 
 #ifdef WIN32
 #ifdef E_DEBUG
@@ -151,7 +151,7 @@ Plaster::make
     return err;
 
   // Initialize the plaster field.
-  std::vector<E_Float> z(ni*nj, -K_CONST::E_MAX_FLOAT);
+  std::vector<E_Float> z(ni*nj, -NUGA::FLOAT_MAX);
   __initializePlaster(plaster2D, ni, pos2D, connectE2, /*hN,*/ zE2, dataTmp.connectM, z, bump_factor);
 
   //std::cout << "plaster 10 : z field " << z.size() << std::endl;
@@ -186,7 +186,7 @@ Plaster::make
   {
     FittingBox::transform(posE2, P);
     K_FLD::FloatArray pp = posE2;
-    K_CONT_DEF::int_vector_type new_IDs;
+    NUGA::int_vector_type new_IDs;
     NUGA::MeshTool::compact_to_mesh(pp, connectE2, new_IDs);
     pp.pushBack(plaster);
     meshIO::write("plaster.mesh", pp, connectE2);
@@ -294,14 +294,14 @@ Plaster::__smooth_1
   // Reset nodes to be computed to 0.
   for (E_Int i = 0; i < NBPOINTS; ++i)
   {
-    processed[i] = (z[i] != -K_CONST::E_MAX_FLOAT);
+    processed[i] = (z[i] != -NUGA::FLOAT_MAX);
     if (!processed[i])
       z[i] = 0.;
   }
 
   while (carry_on)
   {
-    dMax = -K_CONST::E_MAX_FLOAT;
+    dMax = -NUGA::FLOAT_MAX;
 
     for (ind = 0; ind < NBPOINTS; ++ind)
     {
@@ -346,14 +346,14 @@ Plaster::__smooth_2
   // Reset nodes to be computed to 0.
   for (E_Int i = 0; i < NBPOINTS; ++i)
   {
-    processed[i] = (z[i] != -K_CONST::E_MAX_FLOAT);
+    processed[i] = (z[i] != -NUGA::FLOAT_MAX);
     if (!processed[i])
       z[i] = 0.;
   }
 
   while (carry_on)
   {
-    dMax = -K_CONST::E_MAX_FLOAT;
+    dMax = -NUGA::FLOAT_MAX;
 
     for (ind = 0; ind < NBPOINTS; ++ind)
     {
@@ -411,7 +411,7 @@ Plaster::__initializePlaster
   __mask(pos2D, plaster2D, connectT3, mask);
   
   // Block the plaster nodes surrounding the contour.
-  K_CONT_DEF::int_set_type onodes;
+  NUGA::int_set_type onodes;
   __blockSurroundingNodes(plaster2D, ni, mask, pos2D, connectE2, zE2, z, onodes);
 
   // Block the inner nodes close to har nodes
@@ -425,10 +425,10 @@ Plaster::__initializePlaster
 void
 Plaster::__blockSurroundingNodes
 (const K_FLD::FloatArray& plaster2D, E_Int ni, 
- const K_CONT_DEF::bool_vector_type& mask,
+ const NUGA::bool_vector_type& mask,
  const K_FLD::FloatArray& pos2D,
  const K_FLD::IntArray& connectE2, const std::vector<E_Float>& zE2,
- std::vector<E_Float>& z, K_CONT_DEF::int_set_type& onodes)
+ std::vector<E_Float>& z, NUGA::int_set_type& onodes)
 {
   // Get the plaster nodes that are immediately surrounding the domain.
   __getPlasterBoundary(mask, ni, /*outside*/true, onodes);
@@ -470,8 +470,8 @@ Plaster::__blockInsideNodes
 void
 Plaster::__bumpPlaster
 (const K_FLD::FloatArray& plaster2D, E_Int ni,
- const K_CONT_DEF::bool_vector_type& mask,
- E_Float bump_factor, const K_CONT_DEF::int_set_type& onodes,
+ const NUGA::bool_vector_type& mask,
+ E_Float bump_factor, const NUGA::int_set_type& onodes,
  std::vector<E_Float>& z)
 {
   bump_factor = std::max(bump_factor, -1.); // factor must be in [-1., 1.]
@@ -480,7 +480,7 @@ Plaster::__bumpPlaster
   if (bump_factor == 0.)
     return;
 
-  const E_Float BUMP_ANGLE_MAX =  1.5 * K_CONST::E_PI_4; //3PI/8
+  const E_Float BUMP_ANGLE_MAX =  1.5 * NUGA::PI_4; //3PI/8
   E_Float ta = ::tan(bump_factor * BUMP_ANGLE_MAX);
 
   std::vector<E_Int> oonodes;
@@ -495,7 +495,7 @@ Plaster::__bumpPlaster
   for (int_set_type::iterator it = inodes.begin(); it != inodes.end(); ++it)
   {
     E_Int N = tree.getClosest(plaster2D.col(*it));
-    E_Float dx = ::sqrt(K_FUNC::sqrDistance(plaster2D.col(N), plaster2D.col(*it), 2));
+    E_Float dx = ::sqrt(NUGA::sqrDistance(plaster2D.col(N), plaster2D.col(*it), 2));
     z[*it] = z[N] + (ta * dx);
   }
 }
@@ -508,15 +508,15 @@ bool Plaster::__IsStrictlyInT3
   E_Float s;
   
   s = K_MESH::Triangle::surface(P0, P1, P, 2);
-  if (s < -E_EPSILON)
+  if (s < -EPSILON)
     return false;
 
   s = K_MESH::Triangle::surface(P1, P2, P, 2);
-  if (s < -E_EPSILON)
+  if (s < -EPSILON)
     return false;
   
   s = K_MESH::Triangle::surface(P2, P0, P, 2);
-  if (s < -E_EPSILON)
+  if (s < -EPSILON)
     return false;
 
   return true;
@@ -526,7 +526,7 @@ bool Plaster::__IsStrictlyInT3
 void
 Plaster::__mask
 (const K_FLD::FloatArray& pos2D, const K_FLD::FloatArray& plaster2D,
- const K_FLD::IntArray& connectT3, K_CONT_DEF::bool_vector_type& mask)
+ const K_FLD::IntArray& connectT3, NUGA::bool_vector_type& mask)
 {
   const E_Int                       NB_POINTS(plaster2D.cols());
   E_Int                             S;
@@ -588,8 +588,8 @@ Plaster::__mask
 ///
 void
 Plaster::__getPlasterBoundary
-(const K_CONT_DEF::bool_vector_type& mask, E_Int ni, bool outside,
- K_CONT_DEF::int_set_type& nodes)
+(const NUGA::bool_vector_type& mask, E_Int ni, bool outside,
+ NUGA::int_set_type& nodes)
 {
   E_Int ind, indH, indB, indG, indD, J, NB_POINTS(mask.size());
   for (ind = 0; ind < NB_POINTS; ++ind)
@@ -619,7 +619,7 @@ void
 Plaster::__blockNodes
 (const K_FLD::FloatArray& pos2D, const K_FLD::FloatArray& plaster2D,
  const K_FLD::IntArray& connectE2, const std::vector<E_Float>& zE2,
- const K_CONT_DEF::int_set_type& nodes, std::vector<E_Float>& z)
+ const NUGA::int_set_type& nodes, std::vector<E_Float>& z)
 {
   typedef K_SEARCH::BoundingBox<2>  BBox2DType;
   
@@ -630,7 +630,7 @@ Plaster::__blockNodes
   // Build the box tree.
   K_SEARCH::BbTree2D E2tree(E2boxes);
 
-  E_Float dx = ::sqrt(2. * K_FUNC::sqrDistance(plaster2D.col(0), plaster2D.col(1), 2));
+  E_Float dx = ::sqrt(2. * NUGA::sqrDistance(plaster2D.col(0), plaster2D.col(1), 2));
   std::vector<E_Int> E2s;
   E_Float mB[2], MB[2], min_d, de, lambda;
   E_Int N;
@@ -649,7 +649,7 @@ Plaster::__blockNodes
 
     assert(!E2s.empty());
 
-    min_d = K_CONST::E_MAX_FLOAT;
+    min_d = NUGA::FLOAT_MAX;
     for (size_t e = 0; e < E2s.size(); ++e)
     {
       E_Int Ni = connectE2(0, E2s[e]);
@@ -672,7 +672,7 @@ E_Float
 Plaster::__computeCharacteristicLength
 (const K_FLD::FloatArray& pos2D, const K_FLD::IntArray& connectE2)
 {
-  E_Float min_d = K_CONST::E_MAX_FLOAT, max_d = -K_CONST::E_MAX_FLOAT, L,perimeter(0.);
+  E_Float min_d = NUGA::FLOAT_MAX, max_d = -NUGA::FLOAT_MAX, L,perimeter(0.);
   K_FLD::FloatArray Lengths;
   NUGA::MeshTool::computeEdgesSqrLengths<2>(pos2D, connectE2, Lengths);
   for (E_Int l = 0; l < Lengths.cols(); ++l)

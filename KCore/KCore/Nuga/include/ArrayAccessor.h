@@ -20,7 +20,7 @@
 #define __NUGA_ACCESSOR_H__
 
 #include <iostream>
-#include "Def/DefTypes.h"
+#include "Nuga/include/defs.h"
 #include "Nuga/include/DynArray.h"
 
 namespace K_FLD
@@ -237,6 +237,7 @@ namespace K_FLD
     size_type         _stride;
   };
   
+#ifndef NUGALIB
   inline std::ostream & operator<<(std::ostream& out, const FldArrayF& arr){
 
     out << "####################################" << std::endl;
@@ -244,7 +245,7 @@ namespace K_FLD
     // Print out the matrix.
     for (E_Int i = 0; i < arr.getNfld(); ++i){
       for (E_Int j = 0; j < arr.getSize(); ++j)
-        out << ((arr(j,i+1) == E_IDX_NONE) ? -1 : arr(j,i+1)) << " ";
+        out << ((arr(j,i+1) == IDX_NONE) ? -1 : arr(j,i+1)) << " ";
       out << std::endl;
     }
 
@@ -260,7 +261,7 @@ namespace K_FLD
     // Print out the matrix.
     for (E_Int i = 0; i < arr.getNfld(); ++i){
       for (E_Int j = 0; j < arr.getSize(); ++j)
-        out << ((arr(j,i+1) == E_IDX_NONE) ? -1 : arr(j,i+1)) << " ";
+        out << ((arr(j,i+1) == IDX_NONE) ? -1 : arr(j,i+1)) << " ";
       out << std::endl;
     }
 
@@ -268,7 +269,7 @@ namespace K_FLD
     out << "####################################" << std::endl;
     return out;
   }
-
+#endif
 }
 
 #endif

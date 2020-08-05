@@ -20,7 +20,7 @@
 
 #include "Nuga/include/NodeAssociator.h"
 #include "Nuga/include/KdTree.h"
-#include "Nuga/include/DefContainers.h"
+#include "Nuga/include/defs.h"
 #include "Nuga/include/ContourSplitter.h"
 #include "Nuga/include/Triangle.h"
 #include "Nuga/include/MeshTool.h"
@@ -57,9 +57,9 @@ NodeAssociator::make_pairs
  std::vector<E_Int> &nmates, K_FLD::IntArray& OneSurface)
 {
   nmates.clear();
-  nmates.resize(pos.cols(), E_IDX_NONE);
+  nmates.resize(pos.cols(), IDX_NONE);
 
-  std::vector<E_Int> ncolors(pos.cols(), E_IDX_NONE);
+  std::vector<E_Int> ncolors(pos.cols(), IDX_NONE);
 
   OneSurface.clear();
 
@@ -85,13 +85,13 @@ NodeAssociator::make_pairs
   std::vector< std::vector<E_Int> > cnodes;
   std::vector< E_Int> scolors;
   std::vector<K_FLD::IntArray> surfaces;
-  K_CONT_DEF::non_oriented_edge_set_type dummyS;
+  NUGA::non_oriented_edge_set_type dummyS;
 
   ContourSplitter<K_MESH::Triangle, K_MESH::NO_Edge>::splitConnectivity(OneSurface, dummyS, surfaces);
 
   K_FLD::IntArray connectb;
   std::vector<K_FLD::IntArray> connectbs;
-  K_CONT_DEF::int_set_type dummy;
+  NUGA::int_set_type dummy;
   std::vector<E_Int> nodes;
   E_Int color = 0;
   for (size_t s = 0; s < surfaces.size(); ++s)
@@ -155,9 +155,9 @@ NodeAssociator::__make_pairs
   cc.start();
 #endif
 
-  //pairs.resize(maxID+1, E_IDX_NONE);
-  closest_color.resize(maxID+1, E_IDX_NONE);
-  K_CONT_DEF::non_oriented_int_pair_set_type hset;
+  //pairs.resize(maxID+1, IDX_NONE);
+  closest_color.resize(maxID+1, IDX_NONE);
+  NUGA::non_oriented_int_pair_set_type hset;
   K_MESH::NO_Edge Ei;
 
   for (E_Int i = 0; i < nb_contours; ++i)
@@ -168,7 +168,7 @@ NodeAssociator::__make_pairs
     {
       Ni = LISTi[k];
       Pi = posB.col(Ni);
-      dmin = K_CONST::E_MAX_FLOAT;
+      dmin = NUGA::FLOAT_MAX;
 
       for (E_Int j = 0; j < nb_contours; ++j)
       {
@@ -178,7 +178,7 @@ NodeAssociator::__make_pairs
           continue;
 
         Nj = trees[j]->getClosest(Pi);  
-        d = K_FUNC::sqrDistance(Pi, posB.col(Nj), 3);
+        d = NUGA::sqrDistance(Pi, posB.col(Nj), 3);
         if (d < dmin)
         {
           dmin = d;
@@ -214,9 +214,9 @@ NodeAssociator::__make_pairs
     Ni = p.first;
     Nj = p.second;
 
-    if ((pairs[Ni] != E_IDX_NONE) && (pairs[Ni] >= 0))
+    if ((pairs[Ni] != IDX_NONE) && (pairs[Ni] >= 0))
       continue;
-    if ((pairs[Nj] != E_IDX_NONE) && (pairs[Nj] >= 0))
+    if ((pairs[Nj] != IDX_NONE) && (pairs[Nj] >= 0))
       continue;
 
     pairs[Nj] = Ni;
@@ -234,7 +234,7 @@ NodeAssociator::__make_pairs
   for (size_t i = 0; i < pairs.size(); ++i)
   {
     E_Int E[2];
-    if (pairs[i] != E_IDX_NONE)
+    if (pairs[i] != IDX_NONE)
     {
       E[0] = i;
       E[1] = pairs[i];
@@ -269,7 +269,7 @@ NodeAssociator::__removeOverlaps
 #endif
 
   //std::vector<std::vector<K_FLD::IntArray> > parts(components.size());
-  //K_CONT_DEF::non_oriented_edge_set_type dum;
+  //NUGA::non_oriented_edge_set_type dum;
   //for (E_Int i = 0; i < components.size(); ++i)
     //ContourSplitter<K_MESH::Triangle, K_MESH::NO_Edge>::splitConnectivity(pos, *components[i], dum, parts[i]);
 
@@ -630,9 +630,9 @@ NodeAssociator::__getRelativeOrient
 {
   std::vector<K_FLD::IntArray> cB;
   E_Int nb_surf;
-  std::vector<E_Int> ncolor(pos.cols(), E_IDX_NONE);
+  std::vector<E_Int> ncolor(pos.cols(), IDX_NONE);
   std::vector<std::vector<E_Int> > sorted_nodes;
-  std::vector<K_CONT_DEF::oriented_edge_set_type> hE2s;
+  std::vector<NUGA::oriented_edge_set_type> hE2s;
   std::map<K_MESH::NO_Edge, E_Int>::const_iterator it;
 
   surfpair_to_orient.clear();
@@ -666,22 +666,22 @@ NodeAssociator::__getRelativeOrient
     for (E_Int n = 0; n < nb_nodes; ++n)
     {
       Ni = sorted_nodes[s][n];
-      Nj = E_IDX_NONE;
+      Nj = IDX_NONE;
       Nio = nmates[Ni];
-      if ((Nio == E_IDX_NONE) || (Nio <0))
+      if ((Nio == IDX_NONE) || (Nio <0))
         continue;
       next = (n+1)%nb_nodes;
       prev = (n != 0) ? n-1 : nb_nodes-1;
       Nnext = sorted_nodes[s][next];
       Nprev = sorted_nodes[s][prev];
-      if ((nmates[Nnext] >= 0)&&(nmates[Nnext] != E_IDX_NONE))
+      if ((nmates[Nnext] >= 0)&&(nmates[Nnext] != IDX_NONE))
         Nj = Nnext;
-      else if ((nmates[Nprev] >= 0)&&(nmates[Nprev] != E_IDX_NONE))
+      else if ((nmates[Nprev] >= 0)&&(nmates[Nprev] != IDX_NONE))
         Nj = Nprev;
-      if (Nj == E_IDX_NONE)
+      if (Nj == IDX_NONE)
         continue;
       Njo = nmates[Nj];
-      if ((Njo == E_IDX_NONE) || (Njo <0))
+      if ((Njo == IDX_NONE) || (Njo <0))
         continue;
 
       sio = ncolor[Nio]; 
@@ -728,7 +728,7 @@ NodeAssociator::__reorientComponent
 {
 
   // Split the surfaces.
-  K_CONT_DEF::non_oriented_edge_set_type dummy;
+  NUGA::non_oriented_edge_set_type dummy;
   std::vector<K_FLD::IntArray> cS;
   ContourSplitter<K_MESH::Triangle, K_MESH::NO_Edge>::splitConnectivity(component, dummy, cS);
   E_Int nb_surf = cS.size();
@@ -844,7 +844,7 @@ NodeAssociator::__getRelativeOrient
     K_MESH::Triangle::normal(pos.col(*pS1), pos.col(*(pS1+1)), pos.col(*(pS1+2)), Norm1);
     K_MESH::Triangle::normal(pos.col(*pS2), pos.col(*(pS2+1)), pos.col(*(pS2+2)), Norm2);
 
-    comppair_to_orient[cont_pair] = (K_FUNC::dot<3>(Norm1, Norm2) > 0.);
+    comppair_to_orient[cont_pair] = (NUGA::dot<3>(Norm1, Norm2) > 0.);
   }
 }
 

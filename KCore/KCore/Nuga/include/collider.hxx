@@ -21,7 +21,7 @@
 #include "Nuga/include/Triangulator.h"
 #include "Nuga/include/Triangle.h"
 #include "Nuga/include/ngon_unit.h"
-#include "Nuga/include/linmath.hxx"
+#include "Nuga/include/maths.hxx"
 #include "Nuga/include/mesh_t.hxx"
 
 #ifdef COLLIDER_DBG
@@ -47,7 +47,7 @@ namespace NUGA
       E_Int T1[3], T2[3] = {0};
       typename crd_t::pt_t P0, P1, P2, Q0, Q1, Q2;
             
-      t1=t2 = E_IDX_NONE;
+      t1=t2 = IDX_NONE;
       
       DELAUNAY::Triangulator dt;
 
@@ -127,7 +127,7 @@ namespace NUGA
         acrd1.getEntry(t4[2], Nk);
         acrd1.getEntry(t4[3], Nl);
 
-        if (K_FUNC::zzdet4(Ni, Nj, Nk, Nl) < -E_EPSILON) //must be reoriented
+        if (NUGA::zzdet4(Ni, Nj, Nk, Nl) < -EPSILON) //must be reoriented
           elts_to_reorient.push_back(i);
       }
 
@@ -240,7 +240,7 @@ void compute_overlap(const K_FLD::FloatArray& crd1, const ngon_unit& PGs1,
   if (norm2 != nullptr) //prescribed orthogonal direction
   {
     n2[0] = norm2[0]; n2[1] = norm2[1]; n2[2] = norm2[2];
-    K_FUNC::normalize<3>(n2);
+    NUGA::normalize<3>(n2);
   }
   
   // for nodal tolerance
@@ -276,11 +276,11 @@ void compute_overlap(const K_FLD::FloatArray& crd1, const ngon_unit& PGs1,
     ELT1::template normal<crd_t, 3>(crd1, nodes, nb_nodes, 1, n1);
     
     // Tolerance hypothese : constant per PG : take the min over the polygon nodes
-    E_Float Lref = K_CONST::E_MAX_FLOAT;
+    E_Float Lref = NUGA::FLOAT_MAX;
     for (E_Int n=0; n < nb_nodes;++n)
       Lref = MIN(Lref, L(0,nodes[n]-1));
 
-    E_Float abstol = MAX(E_EPSILON, RTOL*::sqrt(Lref));
+    E_Float abstol = MAX(EPSILON, RTOL*::sqrt(Lref));
     //std::cout << abstol << std::endl;
     for (j = 0; (j < cands2.size()); ++j)
     {
@@ -292,7 +292,7 @@ void compute_overlap(const K_FLD::FloatArray& crd1, const ngon_unit& PGs1,
       if (norm2 == nullptr)
         ELT2::template normal<crd_t, 3>(crd2, nodes2, nb_nodes2, 1, n2);
       
-      double ps = K_FUNC::dot<3>(n1,n2);
+      double ps = NUGA::dot<3>(n1,n2);
       if (::fabs(ps) < ps_min) continue;
       
       // Polygons pairs are now roughly overlapping/parallel : important in order to have a relevant result when using simplicial_colliding with Triangle::overlap
@@ -374,11 +374,11 @@ void compute_overlap(const K_FLD::FloatArray& crd1, const K_FLD::IntArray& edges
     if (cands2.empty()) continue;
 
     // Tolerance hypothese : constant per PG : take the min over the polygon nodes
-    E_Float Lref = K_CONST::E_MAX_FLOAT;
+    E_Float Lref = NUGA::FLOAT_MAX;
     for (E_Int n=0; n < nb_nodes;++n)
       Lref = MIN(Lref, L(0,nodes[n]-1));
 
-    E_Float abstol = MAX(E_EPSILON, RTOL*::sqrt(Lref));
+    E_Float abstol = MAX(EPSILON, RTOL*::sqrt(Lref));
     E_Float u00, u01, u10, u11;
     E_Bool overlap = false;
 
@@ -405,9 +405,9 @@ void compute_overlap(const K_FLD::FloatArray& crd1, const K_FLD::IntArray& edges
       if (overlap)
       {
         E_Float d1[3], d2[3];
-        K_FUNC::diff<3>(crd1.col(nodes[1]),  crd1.col(nodes[0]),  d1);
-        K_FUNC::diff<3>(crd2.col(nodes2[1]), crd2.col(nodes2[0]), d2);
-        double ps = K_FUNC::dot<3>(d1,d2);
+        NUGA::diff<3>(crd1.col(nodes[1]),  crd1.col(nodes[0]),  d1);
+        NUGA::diff<3>(crd2.col(nodes2[1]), crd2.col(nodes2[0]), d2);
+        double ps = NUGA::dot<3>(d1,d2);
         eOVLPTYPE res;
         if (ps < 0.) res = ABUTTING;
         else res=OVERSET;

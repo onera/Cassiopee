@@ -21,7 +21,7 @@
 #define __DELAUNAY_REFINER_H__
 
 #include "Nuga/include/DynArray.h"
-#include "Nuga/include/DefContainers.h"
+#include "Nuga/include/defs.h"
 #include "Nuga/include/KdTree.h"
 #include "MeshData.h"
 #include "macros.h"
@@ -40,12 +40,12 @@ namespace DELAUNAY
   class Refiner
   {
   public:
-    typedef K_CONT_DEF::size_type                  size_type;
-    typedef K_CONT_DEF::int_vector_type            int_vector_type;
-    typedef K_CONT_DEF::int_set_type               int_set_type;
+    typedef NUGA::size_type                  size_type;
+    typedef NUGA::int_vector_type            int_vector_type;
+    typedef NUGA::int_set_type               int_set_type;
     typedef K_SEARCH::KdTree<>                     tree_type;
     typedef K_MESH::Triangle                       element_type;
-    typedef K_CONT_DEF::non_oriented_edge_set_type non_oriented_edge_set_type;
+    typedef NUGA::non_oriented_edge_set_type non_oriented_edge_set_type;
 
   public:
 
@@ -244,10 +244,10 @@ namespace DELAUNAY
   {
   E_Float d;
   E_Float NiNj[2];
-  K_FUNC::diff<2>(_pos.col(Nj), _pos.col(Ni), NiNj);
+  NUGA::diff<2>(_pos.col(Nj), _pos.col(Ni), NiNj);
   // Geom repartition.fixme
   E_Float h0 = _metric[Ni], h1 = _metric[Nj];
-  E_Float d0 = ::sqrt(K_FUNC::sqrDistance(_pos.col(Ni), _pos.col(Nj), _pos.rows()));
+  E_Float d0 = ::sqrt(NUGA::sqrDistance(_pos.col(Ni), _pos.col(Nj), _pos.rows()));
   NiNj[0] /= d0;
   NiNj[1] /= d0;//Normalize
   E_Float x(h1 / h0), r1 = x;

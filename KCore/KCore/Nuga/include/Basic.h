@@ -21,7 +21,7 @@
 #include "Nuga/include/DynArray.h"
 #include "Nuga/include/ArrayAccessor.h"
 #include "Nuga/include/ngon_t.hxx"
-#include "Def/DefTypes.h"
+#include "Nuga/include/defs.h"
 
 namespace K_MESH
 {

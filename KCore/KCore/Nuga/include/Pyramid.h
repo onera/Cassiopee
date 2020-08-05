@@ -11,7 +11,7 @@
 #ifndef __K_MESH_PYRAMID_H__
 #define __K_MESH_PYRAMID_H__
 
-#include "Def/DefTypes.h"
+#include "Nuga/include/defs.h"
 #include "Nuga/include/DynArray.h"
 #include "Nuga/include/Triangle.h"
 #include "Nuga/include/ngon_t.hxx"
@@ -95,7 +95,7 @@ class Pyramid {
     void bbox(const CoordAcc& acrd, box_t&bb) const
     {
       for (E_Int i = 0; i < 3; ++i)
-        {bb.minB[i] = K_CONST::E_MAX_FLOAT; bb.maxB[i] = -K_CONST::E_MAX_FLOAT;}
+        {bb.minB[i] = NUGA::FLOAT_MAX; bb.maxB[i] = -NUGA::FLOAT_MAX;}
 
       bb.compute(acrd, _nodes, NB_NODES, _shift/*idx start*/);
     }
@@ -168,7 +168,7 @@ void Pyramid::reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i)
   std::map<E_Int,E_Int> glmap; 
   E_Int nb_faces = ng.PHs.stride(i); 
   E_Int* faces = ng.PHs.get_facets_ptr(i);
-  E_Int BOT = E_IDX_NONE;
+  E_Int BOT = IDX_NONE;
 
   E_Int ibot(0);
   for (int i=0; i< nb_faces; i++)
@@ -176,13 +176,13 @@ void Pyramid::reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i)
     if (ng.PGs.stride(faces[i] - 1)!=4) // BOTTOM is the QUAD
       continue;
     
-    assert (BOT == E_IDX_NONE); // one QUAD only
+    assert (BOT == IDX_NONE); // one QUAD only
     
     BOT = faces[i] - 1;
     ibot = i;
   }
   
-  assert (BOT != E_IDX_NONE);
+  assert (BOT != IDX_NONE);
   
   E_Int* pN = ng.PGs.get_facets_ptr(BOT);
 
@@ -199,7 +199,7 @@ void Pyramid::reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i)
     glmap[*(pN+3)] = 1;
   }
 
-  E_Int F1Id(E_IDX_NONE), F2Id(E_IDX_NONE), F3Id(E_IDX_NONE), F4Id(E_IDX_NONE);
+  E_Int F1Id(IDX_NONE), F2Id(IDX_NONE), F3Id(IDX_NONE), F4Id(IDX_NONE);
 
   std::vector<bool> commonNodes;
   for (int k = 1; k < nb_faces; ++k)
@@ -229,10 +229,10 @@ void Pyramid::reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i)
       F4Id = k;
   }
   
-  assert (F1Id != E_IDX_NONE);
-  assert (F2Id != E_IDX_NONE);
-  assert (F3Id != E_IDX_NONE);
-  assert (F4Id != E_IDX_NONE);
+  assert (F1Id != IDX_NONE);
+  assert (F2Id != IDX_NONE);
+  assert (F3Id != IDX_NONE);
+  assert (F4Id != IDX_NONE);
 
   E_Int mol[] = {faces[ibot], faces[F1Id], faces[F2Id], faces[F3Id], faces[F4Id]};
 

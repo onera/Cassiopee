@@ -20,8 +20,7 @@
 #ifndef __ANISO_METRIC_TYPE_H__
 #define __ANISO_METRIC_TYPE_H__
 
-#include "Def/DefTypes.h"
-#include "Nuga/include/DefContainers.h"
+#include "Nuga/include/defs.h"
 
 namespace DELAUNAY{
 
@@ -29,7 +28,7 @@ template <E_Int DIM>
 class AnisoMetricType
 {
 public:
-  typedef K_CONT_DEF::size_type      size_type;
+  typedef NUGA::size_type      size_type;
   typedef AnisoMetricType<DIM>       self_type;
   #define                            DIMANISO DIM*(DIM+1) / 2
 
