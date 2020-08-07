@@ -858,16 +858,43 @@ void __deleteSensor(E_Int sensor_type, const void* sensor_ptrs)
     sensor_type* sensor = (sensor_type*)sensor_ptrs;
     delete sensor;    
   }
-  else if (sensor_type == 1)
+  /*else if (sensor_type == 1)
   {
     using mesh_type     = NUGA::hierarchical_mesh<ELT_t, STYPE>;
     using sensor_type   = NUGA::xsensor<ELT_t, mesh_type>;
     sensor_type* sensor = (sensor_type*)sensor_ptrs;
     delete sensor;    
-  }
+  }*/
   else if (sensor_type == 2)
   {
     using mesh_type     = NUGA::hierarchical_mesh<ELT_t, STYPE>;
+    using sensor_type   = NUGA::nodal_sensor<mesh_type>;
+    sensor_type* sensor = (sensor_type*)sensor_ptrs;
+    delete sensor;    
+  }
+}
+
+template <>
+void __deleteSensor<K_MESH::Hexahedron, NUGA::ISO>(E_Int sensor_type, const void* sensor_ptrs)
+{
+  //
+  if (sensor_type == 0)
+  {
+    using mesh_type     = NUGA::hierarchical_mesh<K_MESH::Hexahedron, NUGA::ISO>;
+    using sensor_type   = NUGA::geom_sensor<mesh_type>;
+    sensor_type* sensor = (sensor_type*)sensor_ptrs;
+    delete sensor;    
+  }
+  else if (sensor_type == 1)
+  {
+    using mesh_type     = NUGA::hierarchical_mesh<K_MESH::Hexahedron, NUGA::ISO>;
+    using sensor_type   = NUGA::xsensor<K_MESH::Hexahedron, mesh_type>;
+    sensor_type* sensor = (sensor_type*)sensor_ptrs;
+    delete sensor;    
+  }
+  else if (sensor_type == 2)
+  {
+    using mesh_type     = NUGA::hierarchical_mesh<K_MESH::Hexahedron, NUGA::ISO>;
     using sensor_type   = NUGA::nodal_sensor<mesh_type>;
     sensor_type* sensor = (sensor_type*)sensor_ptrs;
     delete sensor;    

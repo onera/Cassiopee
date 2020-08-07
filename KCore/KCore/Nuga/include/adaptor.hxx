@@ -125,7 +125,7 @@ E_Int NUGA::adaptor<mesh_t, sensor_t>::run(std::vector<mesh_t*>& hzones, std::ve
   // ADAPT PARA :: A POSTERIORI JOIN SMOOTHING
   //std::cout << "post smoothing" << std::endl;
   bool has_changes{ true };
-  E_Int iter{ 0 };
+  //E_Int iter{ 0 };
   while (has_changes)
   {
     has_changes = false;

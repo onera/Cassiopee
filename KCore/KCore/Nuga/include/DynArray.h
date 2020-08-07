@@ -24,6 +24,8 @@
 #ifndef NUGALIB
 #include "Fld/FldArray.h"
 #endif
+#include "Nuga/include/allocator.hxx"
+
 #include <assert.h>
 #include <stdio.h>
 #include <ostream>
@@ -76,10 +78,12 @@ Design
 
     /// Default Constructor.
     explicit DynArray();
+    ///Constructor with a specified allocation option
+    DynArray(bool calloc); // false => CPP, true => C
     /// Constructor with number of rows (number of variables) and columns.
-    DynArray(size_type rows, size_type cols);
+    DynArray(size_type rows, size_type cols, bool calloc = false);
     /// Constructor with number of rows, columns and default value.
-    DynArray(size_type rows, size_type cols, const value_type& val);
+    DynArray(size_type rows, size_type cols, const value_type& val, bool calloc = false);
     /// Copy constructor (cast if U is not T).
     template <typename U> explicit DynArray(const DynArray<U>& rhs);
     ///
@@ -87,6 +91,11 @@ Design
     DynArray(DynArray<T>&& rhs); //move version
     /// Destructor.
     ~DynArray(){__destroy();}
+
+    void set_alloc(const self_type& arr) {
+      if (_data != nullptr) return; //has allocated data so cannot change style
+      _calloc = arr._calloc;
+    }
 
 #ifndef NUGALIB
     /// Constructor by type conversion (for FldArrays).
@@ -118,8 +127,11 @@ Design
     /// Clears the array. Do not free the memory.
     void clear();
     
-    /// Reelase the memory
+    /// Releases the memory
     void release();
+
+    /// Relays the mem to caller, detach from it
+    void relay_mem(T*& data, E_Int& rows, E_Int& cols, bool& calloc);
     
     /// Gets the capacity
     inline size_type capacity() { return _allocated_sz;}
@@ -166,10 +178,14 @@ Design
     /// Returns an iterator pointing at the beginning of the i-th column.
     inline iterator col(size_type i)
     {assert(i < _cols); return _data + (i*_rowsMax);}
+    // synonym
+    inline const_iterator get(size_type i) const { return col(i); }
 
     /// Returns an iterator pointing at the beginning of the i-th column (const version).
     inline const_iterator col(size_type i) const
     {assert(i < _cols);return _data + (i*_rowsMax);}
+    // synonym
+    inline iterator get(size_type i) { return col(i); }
     
     /// Returns an iterator pointing at the beginning of the i-th column.
     inline iterator begin(size_type i)
@@ -287,6 +303,8 @@ Design
     size_type  _colsMax;
     /// The data storage
     iterator   _data;
+    /// allocation style (0 : CPP, 1 : C)
+    bool        _calloc;
 
   }; // End class DynArray
 
@@ -302,12 +320,17 @@ Design
   /// Default constructor.
   template <typename T>
   DynArray<T>::DynArray()
-    :_allocated_sz(0), _rows(0), _cols(0), _rowsMax (0), _colsMax (0), _data(0){}
+    :_allocated_sz(0), _rows(0), _cols(0), _rowsMax (0), _colsMax (0), _data(0), _calloc(false){}
+
+  /// Constructor with as specified allocation option (C or CPP).
+  template <typename T>
+  DynArray<T>::DynArray(bool calloc) // false => CPP, true => C
+    : _allocated_sz(0), _rows(0), _cols(0), _rowsMax(0), _colsMax(0), _data(0), _calloc(calloc) {}
 
   /// Constructor with a specified size.
   template <typename T>
-  DynArray<T>::DynArray(size_type rows, size_type cols)
-    :_allocated_sz(0), _rows(rows), _cols(cols), _rowsMax(rows), _colsMax(cols), _data(0)
+  DynArray<T>::DynArray(size_type rows, size_type cols, bool calloc)
+    :_allocated_sz(0), _rows(rows), _cols(cols), _rowsMax(rows), _colsMax(cols), _data(0), _calloc(calloc)
   {  
       if (_cols * _rows == 0) // No data so make the attributes consistent.
         _allocated_sz = _cols = _rows = _colsMax = _rowsMax = 0;
@@ -317,8 +340,8 @@ Design
 
   /// Constructor with a specified size.
   template <typename T>
-  DynArray<T>::DynArray(size_type rows, size_type cols, const value_type& val)
-    :_allocated_sz(0), _rows(0), _cols(0), _rowsMax (0), _colsMax (0), _data(0)
+  DynArray<T>::DynArray(size_type rows, size_type cols, const value_type& val, bool calloc)
+    :_allocated_sz(0), _rows(0), _cols(0), _rowsMax (0), _colsMax (0), _data(0), _calloc(calloc)
   {
     resize (rows, cols, val);
   }
@@ -327,7 +350,7 @@ Design
   template <typename T>
   template <typename U>
   DynArray<T>::DynArray(const DynArray<U>& rhs)
-    :_allocated_sz(0), _rows(rhs._rows), _cols(rhs._cols), _rowsMax (rhs._rows),_colsMax (rhs._cols), _data(0)
+    :_allocated_sz(0), _rows(rhs._rows), _cols(rhs._cols), _rowsMax (rhs._rows),_colsMax (rhs._cols), _data(0), _calloc(rhs._calloc)
   {
     if (_cols * _rows == 0) // No data so make the attributes consistent.
       _allocated_sz = _cols = _rows = _colsMax = _rowsMax = 0;
@@ -341,7 +364,7 @@ Design
   ///
   template <typename T>
   DynArray<T>::DynArray(const DynArray<T>& rhs)
-    :_allocated_sz(0), _rows(rhs._rows), _cols(rhs._cols), _rowsMax(rhs._rows),_colsMax(rhs._cols), _data(0)
+    :_allocated_sz(0), _rows(rhs._rows), _cols(rhs._cols), _rowsMax(rhs._rows),_colsMax(rhs._cols), _data(0), _calloc(rhs._calloc)
   {
     if (_cols * _rows == 0) // No data so make the attributes conssistent.
       _allocated_sz = _cols = _rows = _colsMax = _rowsMax = 0;
@@ -354,7 +377,7 @@ Design
 
   template <typename T>
   DynArray<T>::DynArray(DynArray<T>&& rhs)
-    :_allocated_sz(rhs._allocated_sz), _rows(rhs._rows), _cols(rhs._cols), _rowsMax(rhs._rowsMax), _colsMax(rhs._colsMax), _data(rhs._data)
+    :_allocated_sz(rhs._allocated_sz), _rows(rhs._rows), _cols(rhs._cols), _rowsMax(rhs._rowsMax), _colsMax(rhs._colsMax), _data(rhs._data), _calloc(rhs._calloc)
   {
     rhs._data = nullptr;
     rhs._rows = rhs._rowsMax = rhs._cols = rhs._colsMax = rhs._allocated_sz = 0;
@@ -365,7 +388,7 @@ Design
   ///FldArray --> DynArray
   template <typename T> inline
     DynArray<T>::DynArray(const FldArray<T>& a, T shift)
-    :_allocated_sz(0), _rows(0), _cols(0), _rowsMax (0), _colsMax (0),_data(0)
+    :_allocated_sz(0), _rows(0), _cols(0), _rowsMax (0), _colsMax (0),_data(0), _calloc(false)
   {__importFldArray(a, shift);}
 
   ///DynArray --> FldArray
@@ -400,9 +423,22 @@ Design
   template <typename T>
   void DynArray<T>::clear(){_rows = _cols = 0;}
   
-  ///Clear the array. Do not deallocate.
+  /// Deallocate memory
   template <typename T>
   void DynArray<T>::release(){__destroy(); _allocated_sz = _cols = _rows = _colsMax = _rowsMax = 0;}
+
+  /// Pass memory responsability to caller, and detach from it
+  template <typename T>
+  void DynArray<T>::relay_mem(T*& data, E_Int& rows, E_Int& cols, bool& calloc)
+  {
+    data = _data;
+    rows = _rows;
+    cols = _cols;
+    calloc = _calloc;
+
+    _data = nullptr;
+    _allocated_sz = _cols = _rows = _colsMax = _rowsMax = 0;
+  }
 
   /** Expands the memory with cols and rows.
   *   Memory is reallocated (preserve data). 
@@ -624,6 +660,7 @@ DynArray<T>::pushBack(const self_type& a){
       if (_allocated_sz < required_sz)
       {
         __destroy(); // Delete old memory.
+        _calloc = rhs._calloc; //use same policy as rhs
         _data = __create(required_sz); // Reallocate.
         _rowsMax = _rows = rhs._rows;
         _colsMax = _cols = rhs._cols;
@@ -657,6 +694,7 @@ DynArray<T>::pushBack(const self_type& a){
     __destroy(); // delete _data
 
     _data         = rhs._data;
+    _calloc       = rhs._calloc;
     _rows         = rhs._rows;
     _rowsMax      = rhs._rowsMax;
     _cols         = rhs._cols;
@@ -913,38 +951,26 @@ DynArray<T>::pushBack(const self_type& a){
     DynArray<T>::__create(size_type size){
 
       if (size == 0)
-        return 0;
+        return nullptr;
 
-      T* p = 0;
+      T* p = nullptr;
+      if (!_calloc)
+        p = NUGA::allocator<false>::allocate<T>(size);
+      else
+        p = NUGA::allocator<true>::allocate<T>(size);
 
-      try
-      {
-        p = new T[size];
-        if (p == 0)
-          throw "Memory error!!";
-        else
-        {
-          _allocated_sz = size;
-          return p;
-        }
-      }
-      catch (T* s) {
-        printf("Memory problem in DynArray.\n");
-      }
-
-      return 0;
-
-      //return (size ? new T[size] : 0);
+      if (p != nullptr) _allocated_sz = size;
+      return p;
   }
 
   template <typename T>
   void
     DynArray<T>::__destroy(){
-
-      if (_data){
-        delete [] _data;
-        _data = nullptr;
-      }
+      
+    if (!_calloc)
+      NUGA::allocator<false>::deallocate(_data);
+    else
+      NUGA::allocator<true>::deallocate(_data);
   }
 
   template <typename T>

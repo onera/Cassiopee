@@ -15,6 +15,7 @@
 #include <vector>
 #include "Nuga/include/join_sensor.hxx"
 #include "Nuga/include/join_t.hxx"
+#include "Nuga/include/adaptor.hxx"
 
 namespace NUGA
 {

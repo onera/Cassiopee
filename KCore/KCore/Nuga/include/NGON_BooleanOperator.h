@@ -660,7 +660,6 @@ private:
 public:
   ngon_type _ngXs, _ngXh, _ng1, _ng2;
   ngon_type *_ngoper; // gather upon exit the result ngon (concatenation of some of _ngXs, _ngXh, _ng1, _ng2)
-  bool simplify_pgs;
   //global output coordinates.
   K_FLD::FloatArray _coord;
   
@@ -672,6 +671,7 @@ public:
   Vector_t<E_Int> _nodes_history; //for modified solid's layer
   
   bool _triangulator_do_not_shuffle, _triangulator_improve_qual_by_swap, _conformizer_split_swap_afterwards;
+  bool simplify_pgs;
   
   Vector_t<std::pair<E_Float, E_Int> > _palmares;
   std::set<E_Int> _tmp_set_int;

@@ -22,6 +22,7 @@
 
 #include "Nuga/include/defs.h"
 #include "Nuga/include/DynArray.h"
+#include "Nuga/include/maths.hxx"
 #include <vector>
 
 namespace DELAUNAY

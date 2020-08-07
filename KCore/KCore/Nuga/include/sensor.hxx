@@ -30,7 +30,7 @@ class sensor
   public:
     sensor(const mesh_t& mesh, smoother<mesh_t>* smoother) :_hmesh(mesh), _smoother(smoother) {};
     
-    virtual E_Int assign_data(sensor_input_t& data) { _data = data; return 0; }
+    virtual E_Int assign_data(const sensor_input_t& data) { _data = data; return 0; }
     
     bool compute(output_t& adap_incr, bool do_agglo);
 

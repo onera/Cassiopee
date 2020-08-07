@@ -35,13 +35,12 @@ namespace NUGA
   enum eSmoother { V1_NEIGH = 0, SHELL = 1 };
 
 /// Geometric sensor
-template <typename mesh_t>
-class geom_sensor : public sensor<mesh_t, crd_t>
+template <typename mesh_t, typename sensor_input_t = crd_t>
+class geom_sensor : public sensor<mesh_t, sensor_input_t>
 {
   public:
 
-    using sensor_input_t = crd_t;
-    using parent_t = sensor<mesh_t, crd_t>;
+    using parent_t = sensor<mesh_t, sensor_input_t>;
     using output_t   = typename mesh_t::output_t;
     
     geom_sensor(mesh_t& mesh, eSmoother smoo_type, E_Int max_pts_per_cell, E_Int itermax)
@@ -57,7 +56,7 @@ class geom_sensor : public sensor<mesh_t, crd_t>
 
     }
     
-    virtual E_Int assign_data(sensor_input_t& data) override;
+    virtual E_Int assign_data(const sensor_input_t& data) override;
 
     void fill_adap_incr(output_t& adap_incr, bool do_agglo) override;
 
@@ -67,9 +66,11 @@ class geom_sensor : public sensor<mesh_t, crd_t>
 
     virtual ~geom_sensor() {delete _bbtree;}
 
-  private:
+  protected:
     
     void locate_points();
+
+  private:
     
     E_Int get_highest_lvl_cell(const E_Float* p, E_Int PHi) const ;
     
@@ -87,8 +88,8 @@ class geom_sensor : public sensor<mesh_t, crd_t>
 };
 
 /// 
-template <typename mesh_t>
-E_Int geom_sensor<mesh_t>::assign_data(sensor_input_t& data) 
+template <typename mesh_t, typename sensor_input_t>
+E_Int geom_sensor<mesh_t, sensor_input_t>::assign_data(const sensor_input_t& data) 
 {
 
   parent_t::assign_data(data);
@@ -112,8 +113,8 @@ E_Int geom_sensor<mesh_t>::assign_data(sensor_input_t& data)
 }
 
 ///
-template <typename mesh_t>
-void geom_sensor<mesh_t>::fill_adap_incr(output_t& adap_incr, bool do_agglo)
+template <typename mesh_t, typename sensor_input_t>
+void geom_sensor<mesh_t, sensor_input_t>::fill_adap_incr(output_t& adap_incr, bool do_agglo)
 {
   E_Int nb_faces = parent_t::_hmesh._ng.PGs.size();
   E_Int nb_pts = _points_to_cell.size();
@@ -172,14 +173,14 @@ void geom_sensor<mesh_t>::fill_adap_incr(output_t& adap_incr, bool do_agglo)
 }
 
 ///
-template <typename mesh_t>
-void geom_sensor<mesh_t>::locate_points() 
+template <typename mesh_t, typename sensor_input_t>
+void geom_sensor<mesh_t, sensor_input_t>::locate_points() 
 {
   // locate every source points in a given mesh
  
   E_Float tol = 10. * ZERO_M;
   
-  E_Int nb_src_pts =parent_t::_data.cols();
+  E_Int nb_src_pts =parent_t::_data.getSize();
   // for each source points, give the highest cell containing it if there is one, otherwise IDX_NONE
   _points_to_cell.resize(nb_src_pts, IDX_NONE);
   
@@ -191,7 +192,7 @@ void geom_sensor<mesh_t>::locate_points()
   //
   for (int i = 0; i < nb_src_pts; i++)
   {
-    const E_Float* p =parent_t::_data.col(i);
+    const E_Float* p =parent_t::_data.get(i);
     
     for (int j = 0; j < 3;j++)
     {
@@ -220,8 +221,8 @@ void geom_sensor<mesh_t>::locate_points()
 }
 
 ///
-template <typename mesh_t>
-E_Int geom_sensor<mesh_t>::get_higher_lvl_cell(const E_Float* p, E_Int PHi) const 
+template <typename mesh_t, typename sensor_input_t>
+E_Int geom_sensor<mesh_t, sensor_input_t>::get_higher_lvl_cell(const E_Float* p, E_Int PHi) const 
 {
   // returns in the PHi's sons where a given source point is
   
@@ -244,8 +245,8 @@ E_Int geom_sensor<mesh_t>::get_higher_lvl_cell(const E_Float* p, E_Int PHi) cons
 }
 
 ///
-template <typename mesh_t>
-E_Int geom_sensor<mesh_t>::get_highest_lvl_cell(const E_Float* p, E_Int PHi) const 
+template <typename mesh_t, typename sensor_input_t>
+E_Int geom_sensor<mesh_t, sensor_input_t>::get_highest_lvl_cell(const E_Float* p, E_Int PHi) const 
 {
   // will find, in the tree (starting at PHi cell), the highest level cell (ie smallest cell) cointaining a given source point
 
@@ -276,8 +277,8 @@ E_Int geom_sensor<mesh_t>::get_highest_lvl_cell(const E_Float* p, E_Int PHi) con
 }
 
 ///
-template <typename mesh_t>
-E_Int geom_sensor<mesh_t>::detect_child(const E_Float* p, E_Int PHi, const E_Int* children) const
+template <typename mesh_t, typename sensor_input_t>
+E_Int geom_sensor<mesh_t, sensor_input_t>::detect_child(const E_Float* p, E_Int PHi, const E_Int* children) const
 {
   E_Int nb_children = parent_t::_hmesh._PHtree.nb_children(PHi);
     
@@ -306,8 +307,8 @@ E_Int geom_sensor<mesh_t>::detect_child(const E_Float* p, E_Int PHi, const E_Int
 }
 
 ///
-template <typename mesh_t>
-bool geom_sensor<mesh_t>::update()
+template <typename mesh_t, typename sensor_input_t>
+bool geom_sensor<mesh_t, sensor_input_t>::update()
 {
   //std::cout << "redistrib data geom sensor. : nb pts" << _points_to_cell.size() << std::endl;
   
@@ -323,7 +324,7 @@ bool geom_sensor<mesh_t>::update()
     if (PHi == IDX_NONE) continue; //external point
     if (parent_t::_hmesh._PHtree.children(PHi) != nullptr) // we detect the subdivised PH : one of his children has this source point
     {
-      E_Float* p = parent_t::_data.col(i); // in which children of PHi is the point
+      E_Float* p = parent_t::_data.get(i); // in which children of PHi is the point
       E_Int cell = get_higher_lvl_cell(p,PHi);
       _points_to_cell[i] = cell;
     }
@@ -331,8 +332,8 @@ bool geom_sensor<mesh_t>::update()
   return true;
 }
 
-template <typename mesh_t>
-bool geom_sensor<mesh_t>::stop()
+template <typename mesh_t, typename sensor_input_t>
+bool geom_sensor<mesh_t, sensor_input_t>::stop()
 {
   //the following must be done here because this has to be refreshed at each iter to be sync for sensor.update
   _cur_nphs = parent_t::_hmesh._ng.PHs.size();

@@ -79,7 +79,8 @@ class hierarchical_mesh
     communicator_t*  COM;
 
     ///
-    //hierarchical_mesh(crd_t& crd, ngo_t & ng):_crd(crd), _ng(ng), _PGtree(ng.PGs, subdiv_t::PGNBC), _PHtree(ng.PHs, subdiv_t::PHNBC), _initialized(false){}
+    hierarchical_mesh(crd_t& crd, ngo_t & ng):_crd(crd), _ng(ng), _PGtree(ng.PGs), _PHtree(ng.PHs), _initialized(false), zid(0), join(nullptr), jsensor(nullptr), COM(nullptr) { init(); }
+    ///
     hierarchical_mesh(crd_t& crd, K_FLD::IntArray& cnt) :_crd(crd), _ng(cnt), _PGtree(_ng.PGs), _PHtree(_ng.PHs), _initialized(false), zid(0), join(nullptr), jsensor(nullptr), COM(nullptr) { init(); }
 
     //multi-zone constructor

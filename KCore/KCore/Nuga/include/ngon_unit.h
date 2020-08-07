@@ -26,6 +26,7 @@
 
 #include "Nuga/include/defs.h"
 #include "Nuga/include/DynArray.h"
+#include "Nuga/include/mem_chunk.hxx"
 
 #define Vector_t std::vector
 
@@ -56,6 +57,45 @@ class ngon_unit
         
     /// ngon_unit& operator=(const Vector_t<E_Int>& vNGON);
     ngon_unit& operator=(const ngon_unit& ngin);
+
+    /// export functions
+    // into morse
+    template <typename vngu>
+    void relay_mem(vngu& ngo)
+    {
+      ngo.release(); // delete current mem
+
+      using INT_t = typename vngu::INT_t;
+      INT_t nbe = size();
+      INT_t sz = _NGON.size() - 2 - nbe; //removing cartouche and facets_nb entries
+
+      // allocate memory for the morse data structure
+      using memchunk_t = NUGA::mem_chunk<INT_t, NUGA::allocator<ngo.CALLOC>>;
+      memchunk_t ngon(sz);
+      memchunk_t range(nbe + 1); //one-passed-the-end
+
+      // plug
+      ngo.elts = ngon.data;
+      ngo.nelts = sz;
+      ngo.idx_start = 1;
+      ngo.range = range.data;
+      ngo.nrange = range.alloc_sz;
+
+      //_NGON/_facets => morse
+      INT_t k{ 0 };
+      for (INT_t i = 0; i < nbe; ++i)
+      {
+        const INT_t* facets = this->get_facets_ptr(i);
+        const INT_t nbf = this->stride(i);
+
+        ngo.range[i] = k;
+
+        for (INT_t j = 0; j < nbf; ++j)
+          ngo.elts[k++] = facets[j];
+      }
+      ngo.range[nbe] = sz;
+    }
+
     ///
     E_Float operator[](const E_Int i){return _NGON[i];}
     /// Refresh the facets starts.

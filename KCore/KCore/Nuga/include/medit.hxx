@@ -20,7 +20,9 @@
 #include "Nuga/include/ngon_t.hxx"
 #include "Nuga/include/polygon.hxx"
 #include "Nuga/include/polyhedron.hxx"
-
+#include "Nuga/include/cdatastruct.hxx"
+#include "Nuga/include/Tetrahedron.h"
+#include "Nuga/include/Hexahedron.h"
 
 using ngon_type = ngon_t<K_FLD::IntArray>;
 
@@ -59,6 +61,8 @@ public:
   eType curType(NONE);
 
   connects.resize(5);
+  for (size_t i = 0; i < 5; ++i)
+    connects[i].set_alloc(connect);
 
   /*keys.insert("Dimension\n");
   keys.insert("Vertices\n");
@@ -183,6 +187,71 @@ public:
 
   return 0;
 }
+
+template <typename T1, typename T2>
+static E_Int read(const char* filename, T1*& pcrd, T2& dim, T2& npts, bool& calloc1, T2*& pcnt, T2& nnodes, T2& nelts, bool& calloc2)
+{
+  K_FLD::DynArray<T1> pos;
+  K_FLD::DynArray<T2> connect;
+
+  E_Int ret = read(filename, pos, connect);
+
+  pos.relay_mem(pcrd, dim, npts, calloc1);
+  connect.relay_mem(pcnt, nnodes, nelts, calloc2);
+
+  return ret;
+}
+
+template <typename phmesh_type>
+static E_Int read(const char* filename, phmesh_type& mesh)
+{
+  using INT_t = typename phmesh_type::INT_t;
+  using FLT_t = typename phmesh_type::FLT_t;
+  using cnt_t = K_FLD::DynArray<INT_t>;
+  using ngon_type = ngon_t<cnt_t>;
+  using crd_t = K_FLD::DynArray<FLT_t>;
+
+  crd_t pos(mesh.CALLOC == 1);      // pass the allocation style
+  cnt_t connect(mesh.CALLOC == 1);  // pass the allocation style
+
+  E_Int ret = read(filename, pos, connect);
+
+  if (pos.cols() == 0)
+  {
+    std::cout << "could not open file : " << filename << std::endl;
+    return 1;
+  }
+
+  ngon_type ng;
+
+  INT_t rows = connect.rows();
+
+  if (rows == 4) // TETRA
+    ngon_type::convert<K_MESH::Tetrahedron>(connect, ng);
+  else if (rows == 8) // HEXA
+    ngon_type::convert<K_MESH::Hexahedron>(connect, ng);
+  else
+  {
+    std::cout << "elt type no handled" << std::endl;
+    return 1;
+  }
+  
+  ngon_type::clean_connectivity(ng, pos);
+
+  // grabs coordinates
+  int dim{ 3 };
+  bool alloc;
+  pos.relay_mem(mesh.crd.p, dim, mesh.crd.n, alloc);
+  assert(int(alloc) == mesh.CALLOC);
+
+  // grabs mesh
+  ng.PGs.relay_mem(mesh.pgs);
+  ng.PHs.relay_mem(mesh.phs);
+
+
+  return ret;
+}
+
   template< typename color_t = E_Int>
   static E_Int write(const char* fname, const K_FLD::FloatArray& crd, const K_FLD::IntArray& cnt, const char* elt_type, const std::vector<bool>* keep = nullptr, const std::vector<color_t>* colors = nullptr)
   {
@@ -385,7 +454,7 @@ public:
     {
       if (toprocess)
       {
-        for (E_Int i = 0; i < toprocess->size(); ++i)
+        for (size_t i = 0; i < toprocess->size(); ++i)
         {
           E_Int PGi = (*toprocess)[i] - idx_start;
           K_MESH::Polygon::triangulate<DELAUNAY::Triangulator>(dt, crd, pgs.get_facets_ptr(PGi), pgs.stride(PGi), 1, cT);

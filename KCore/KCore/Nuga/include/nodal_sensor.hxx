@@ -29,7 +29,7 @@ class nodal_sensor : public sensor<mesh_t, Vector_t<E_Int>> // Vector_t might be
 
     nodal_sensor(mesh_t& mesh): parent_t(mesh, new V1_smoother<mesh_t>()){}
 
-    virtual E_Int assign_data(sensor_input_t& data) override;
+    virtual E_Int assign_data(const sensor_input_t& data) override;
     
     void fill_adap_incr(output_t& adap_incr, bool do_agglo) override;
     bool update() override;
@@ -37,7 +37,7 @@ class nodal_sensor : public sensor<mesh_t, Vector_t<E_Int>> // Vector_t might be
 
 /// 
 template <typename mesh_t>
-E_Int nodal_sensor<mesh_t>::assign_data(sensor_input_t& data)
+E_Int nodal_sensor<mesh_t>::assign_data(const sensor_input_t& data)
 {
   parent_t::assign_data(data);
 

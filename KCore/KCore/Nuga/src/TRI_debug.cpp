@@ -18,6 +18,8 @@
 */
 //Author : Sâm Landier (sam.landier@onera.fr)
 
+#if defined(DEBUG_CONFORMIZER) || defined(DEBUG_BOOLEAN)
+
 #include "Nuga/include/TRI_debug.h"
 #include "Nuga/include/medit.hxx"
 #include "Nuga/include/Triangle.h"
@@ -28,9 +30,8 @@
 #include <iostream>
 ///
 
-#if defined(DEBUG_CONFORMIZER) || defined(DEBUG_BOOLEAN)
 std::string medith::wdir = "";
-#endif
+
 
 void TRI_debug::draw_connected_to_node_T3s
 (const K_FLD::FloatArray& coord, const K_FLD::IntArray& connectT3, E_Int Ni)
@@ -595,3 +596,5 @@ bool TRI_debug::analyze_T3_set(E_Int setid, const K_FLD::FloatArray& crd, const 
 
   return healthy;
 }
+
+#endif
