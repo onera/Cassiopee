@@ -53,6 +53,33 @@ ngon_unit::ngon_unit(const E_Int* begin, E_Int sz, E_Int nbe):_dirty(true)
   updateFacets();
 }
 
+/// morse to ngon_unit
+ngon_unit::ngon_unit(const E_Int* pngon, const E_Int* prange, E_Int rangesz)
+{
+  E_Int nbe = rangesz - 1;
+
+  E_Int nbftot{ 0 };
+  for (size_t i = 0; i < nbe; ++i)
+    nbftot += prange[i + 1] - prange[i];
+
+  _NGON.resize(2 + nbftot + nbe, 0); // Like Cassiopee storage
+
+  E_Int k{ 2 };
+  for (size_t i = 0; i < nbe; ++i)
+  {
+    E_Int nbf = prange[i + 1] - prange[i];
+
+    _NGON[k++] = nbf;
+    for (size_t u = 0; u < nbf; ++u)
+      _NGON[k++] = pngon[prange[i] + u];
+  }
+
+  _NGON[0] = nbe;
+  _NGON[1] = _NGON.size() - 2;
+  _dirty = true;
+  updateFacets();
+}
+
 template <typename Container>
 E_Int getPosFacets(const E_Int* data, E_Int facets_start, E_Int nb_facets/*nb of or PG or nodes*/, Container& posFacets)
 {
@@ -94,6 +121,17 @@ ngon_unit& ngon_unit::operator=(const ngon_unit& ng)
 ngon_unit::ngon_unit(const ngon_unit& ngin)
 {
   *this = ngin;
+}
+
+//move version
+ngon_unit::ngon_unit(ngon_unit&& ngin):
+  _NGON(std::move(ngin._NGON)), _facet(std::move(ngin._facet)),
+  _type(std::move(ngin._type)), _ancEs(std::move(ngin._ancEs)), _dirty(ngin._dirty)
+{
+  ngin._NGON.clear();
+  ngin._facet.clear();
+  ngin._type.clear();
+  ngin._ancEs.clear();
 }
 
 ///

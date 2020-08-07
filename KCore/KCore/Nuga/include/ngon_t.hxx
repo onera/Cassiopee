@@ -109,6 +109,9 @@ struct ngon_t
   }
   ///
   ngon_t(const ngon_unit& pg, const ngon_unit& ph) :PGs(pg), PHs(ph){ PGs.updateFacets(); PHs.updateFacets(); }
+  /// move version
+  ///
+  ngon_t(ngon_unit&& pg, ngon_unit&& ph) :PGs(std::move(pg)), PHs(std::move(ph)) { PGs.updateFacets(); PHs.updateFacets(); }
   ///
   ngon_t(const ngon_unit& pgs, bool one_ph_for_all=false):PGs(pgs)//false means one ph per pg.
   {

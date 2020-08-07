@@ -84,11 +84,15 @@ Design
     DynArray(size_type rows, size_type cols, bool calloc = false);
     /// Constructor with number of rows, columns and default value.
     DynArray(size_type rows, size_type cols, const value_type& val, bool calloc = false);
+    /// Constructor with input data : WARNING becomes owner
+    DynArray(T*& compactdata, size_type rows, size_type cols, bool calloc = false);
+
     /// Copy constructor (cast if U is not T).
     template <typename U> explicit DynArray(const DynArray<U>& rhs);
     ///
     DynArray(const DynArray<T>& rhs);//fixme : why required ? i.e why the above doesn't work (not called when returning an object created inside a function scope)
     DynArray(DynArray<T>&& rhs); //move version
+
     /// Destructor.
     ~DynArray(){__destroy();}
 
@@ -344,6 +348,19 @@ Design
     :_allocated_sz(0), _rows(0), _cols(0), _rowsMax (0), _colsMax (0), _data(0), _calloc(calloc)
   {
     resize (rows, cols, val);
+  }
+
+  /// Constructor with input data : WARNING becomes owner => set input point to null
+  template <typename T>
+  DynArray<T>::DynArray(T*& compactdata, size_type rows, size_type cols, bool calloc)
+  {
+    _data = compactdata;
+    compactdata = nullptr;
+
+    _cols = _colsMax = cols;
+    _rows = _rowsMax = rows;
+    _calloc = calloc;
+    _allocated_sz = cols * rows;
   }
 
   /// Copy constructor.

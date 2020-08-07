@@ -48,12 +48,16 @@ class ngon_unit
     ///
     ngon_unit():_dirty(true){};
     ///
-    explicit ngon_unit (const E_Int* begin);//Cassiopee format
+    explicit ngon_unit (const E_Int* begin);//begin is stored in Cassiopee format
     explicit ngon_unit(const K_FLD::IntArray& cass_arr);
     ///
     ngon_unit(const ngon_unit& ngin);
+    ngon_unit(ngon_unit&& ngin);
     /// 
-    ngon_unit(const E_Int* begin, E_Int sz, E_Int nbe);
+    ngon_unit(const E_Int* begin, E_Int sz, E_Int nbe);//begin is stored in Cassiopee format
+
+    /// morse to ngon_unit
+    ngon_unit(const E_Int* pngon, const E_Int* prange, E_Int rangesz);
         
     /// ngon_unit& operator=(const Vector_t<E_Int>& vNGON);
     ngon_unit& operator=(const ngon_unit& ngin);

@@ -134,23 +134,28 @@ void geom_sensor<mesh_t, sensor_input_t>::fill_adap_incr(output_t& adap_incr, bo
       nb_pts_per_cell[PHi] += 1;
   }
 
-  for (int i = 0; i < _cur_nphs; ++i)
+  E_Int maxnbpercell = *std::max_element(ALL(nb_pts_per_cell));
+
+  if (maxnbpercell > _max_pts_per_cell)
   {
-    const E_Int* faces = parent_t::_hmesh._ng.PHs.get_facets_ptr(i);
-    E_Int nb_faces = parent_t::_hmesh._ng.PHs.stride(i);
-    bool admissible_elt = K_MESH::Polyhedron<0>::is_basic(parent_t::_hmesh._ng.PGs, faces, nb_faces);
-    if ( admissible_elt && (nb_pts_per_cell[i] >= _max_pts_per_cell + 1) && (parent_t::_hmesh._PHtree.is_enabled(i)) ) // can be and has to be subdivided
-      adap_incr.cell_adap_incr[i] = 1;
+    for (int i = 0; i < _cur_nphs; ++i)
+    {
+      const E_Int* faces = parent_t::_hmesh._ng.PHs.get_facets_ptr(i);
+      E_Int nb_faces = parent_t::_hmesh._ng.PHs.stride(i);
+      bool admissible_elt = K_MESH::Polyhedron<0>::is_basic(parent_t::_hmesh._ng.PGs, faces, nb_faces);
+      if (admissible_elt && (nb_pts_per_cell[i] > _max_pts_per_cell) && (parent_t::_hmesh._PHtree.is_enabled(i))) // can be and has to be subdivided
+        adap_incr.cell_adap_incr[i] = 1;
+    }
   }
 
   if (do_agglo)
   {
     for (int i = 0; i < _cur_nphs; ++i)
     {
+      if (adap_incr.cell_adap_incr[i] == -1) continue; //already processed by brothorhood
+
       if ((parent_t::_hmesh._PHtree.get_level(i) > 0) && (parent_t::_hmesh._PHtree.is_enabled(i))) // this cell may be agglomerated : check its brothers
-      {
-        if (adap_incr.cell_adap_incr[i] == -1) continue;
-                
+      {        
         E_Int father = parent_t::_hmesh._PHtree.parent(i);
         const E_Int* p = parent_t::_hmesh._PHtree.children(father);
         E_Int nb_children = parent_t::_hmesh._PHtree.nb_children(father);

@@ -13,14 +13,16 @@ int adapt_cells(c_phmesh_t& m, const c_crd3D_t& src_pts)
   using hmesh_t = hierarchical_mesh<ELT_t, ISO, ngon_type>;
   using sensor_t = NUGA::geom_sensor<hmesh_t, c_phmesh_t::crd_t>;
 
-  K_FLD::FloatArray crd;// (m.crd);      //TODO
-  ngon_type ng;// (m.pgs, m.phs);    // TODO
+  K_FLD::FloatArray crd(m.crd.p, 3, m.crd.n, (m.CALLOC==1));
+
+  ngon_type ng(
+    ngon_unit(m.pgs.elts, m.pgs.range, m.pgs.nrange), // PGS is moved
+    ngon_unit(m.phs.elts, m.phs.range, m.phs.nrange)  // PHs is moved
+  );
   
   hmesh_t hmesh(crd, ng);
 
   sensor_t gsensor(hmesh, eSmoother::V1_NEIGH, 1/*max_pts_per_cell*/, 10/*itermax*/);
-
-  hmesh.init();
 
   int err = gsensor.assign_data(src_pts);
 
@@ -31,11 +33,10 @@ int adapt_cells(c_phmesh_t& m, const c_crd3D_t& src_pts)
   
   hmesh.conformize(ngo, oids);
 
-  //m.crd.release();  //TODO
   int dim{ 3 };
-  bool calloc;
+  bool calloc{ false };
   hmesh._crd.relay_mem(m.crd.p, dim, m.crd.n, calloc);
-  assert(calloc == m.crd.CALLOC);
+  assert((E_Int)calloc == m.crd.CALLOC);
   ngo.PHs.relay_mem(m.phs);
   ngo.PGs.relay_mem(m.pgs);
 

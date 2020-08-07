@@ -36,6 +36,8 @@ struct crd3D
   inline INT_t  getSize()    { return n; }
   inline FLT_t* col(INT_t i) { return (p + 3 * i); }
   inline INT_t  cols() { return n; }
+  void release() { NUGA::allocator<ALLOC>::deallocate(p);  n = 0; }
+
 };
 
 // polyhedral mesh
