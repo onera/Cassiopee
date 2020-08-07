@@ -85,7 +85,7 @@ elt_t check_has_NGON_BASIC_ELEMENT(const K_FLD::IntArray & cnt)
 }
 
 template <NUGA::eSUBDIV_TYPE STYPE>
-void* __createHM(E_Int typ, K_FLD::FloatArray& crd, K_FLD::IntArray& cnt, E_Int zid, std::vector<std::pair<E_Int, std::vector<E_Int>>>& joinlists = nullptr, void* pcom = nullptr);
+void* __createHM(E_Int typ, K_FLD::FloatArray& crd, K_FLD::IntArray& cnt, E_Int zid, std::vector<std::pair<E_Int, std::vector<E_Int>>>& joinlists, void* pcom = nullptr);
 
 // ISO strategy
 template<>
