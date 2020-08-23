@@ -16,8 +16,8 @@ soundPool = [None]*poolSize
 def initSound():
     global audioHandle
     audioHandle = pyaudio.PyAudio()
-    print ('available devices: ', audioHandle.get_device_count())
-    print (audioHandle.get_default_input_device_info())
+    #print ('available devices: ', audioHandle.get_device_count())
+    #print (audioHandle.get_default_input_device_info())
     return audioHandle
 
 def closeSound():
@@ -56,7 +56,15 @@ def endMusic(musicHandle):
     musicFileHandle.close()
     musicFileHandle = None
 
-# Register sound (store in memory)
+# getMusicPos, c'est le retour de tell dans le fichier wav
+def getMusicPos():
+    return musicFileHandle.tell()
+
+# setMusicPos, pos est le retour de tell
+def setMusicPos(pos):
+    musicFileHandle.setpos(pos)
+
+# Register sound (stored in memory)
 # Retourne soundHandle
 def registerSound(fileName):
     wf = wave.open(fileName, 'rb')
@@ -101,12 +109,13 @@ def soundCallback3__(in_data, frame_count, time_info, status):
 
 def playSound(soundHandle, poolNo=[]):
     if audioHandle is None: initSound()
+    # closeAllSounds()
     # Cherche un pool de libre
     i = -1
-    for j in range(poolSize): 
+    for j in range(poolSize):
         if soundPool[j] is None: i = j; break
     if i == -1: return None # full
-    #print 'found free pool=%d'%i
+    #print('found free pool=%d'%i)
     if i == 0: callback = soundCallback0__
     elif i == 1: callback = soundCallback1__
     elif i == 2: callback = soundCallback2__
@@ -133,10 +142,10 @@ def playSound(soundHandle, poolNo=[]):
 def closeAllSounds():
     for i in range(poolSize):
         h = soundPool[i]
-        #print 'Checking pool=',i
+        #print('Checking pool=',i)
         if h is not None:
             s = h[0]
             if not s.is_active(): 
                 s.close()
                 soundPool[i] = None
-                #print "closing pool=%d"%i
+                #print("closing pool=%d"%i)

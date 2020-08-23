@@ -28,6 +28,8 @@ from KCore.config import *
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 
+import srcs
+
 # Extensions =================================================================
 extensions = [
     Extension('Compressor.compressor',
@@ -36,29 +38,25 @@ extensions = [
               library_dirs=additionalLibPaths+libraryDirs,
               libraries=libraries+additionalLibs,
               extra_compile_args=Dist.getCppArgs(),
-              extra_link_args=Dist.getLinkArgs()),
-    # Extension('Compressor.sz.csz',
-    #           sources=["Compressor/sz/compressor.cpp"],
-    #           include_dirs=["Compressor", "Compressor/sz/include"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
-    #           library_dirs=additionalLibPaths+libraryDirs,
-    #           libraries=libraries+["sz","zstd", "zlib1"]+additionalLibs,
-    #           extra_compile_args=Dist.getCppArgs(),
-    #           extra_link_args=Dist.getLinkArgs()),
+              extra_link_args=Dist.getLinkArgs())]
+if srcs.SZ:
+  extensions += [
     Extension('Compressor.sz.csz',
-              sources=["Compressor/sz/compressor.cpp"],
-              include_dirs=["Compressor", "Compressor/sz/include"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
-              library_dirs=additionalLibPaths+libraryDirs,
-              libraries=libraries+["sz","zstd"]+additionalLibs,
-              extra_compile_args=Dist.getCppArgs(),
-              extra_link_args=Dist.getLinkArgs()),
+               sources=["Compressor/sz/compressor.cpp"],
+               include_dirs=["Compressor", "Compressor/sz/include"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
+               library_dirs=additionalLibPaths+libraryDirs,
+               libraries=libraries+["sz","zstd", "zlib1"]+additionalLibs,
+               extra_compile_args=Dist.getCppArgs(),
+               extra_link_args=Dist.getLinkArgs())]
+if srcs.ZFP:
+  extensions += [
     Extension('Compressor.zfp.czfp',
               sources=["Compressor/zfp/compressor.cpp"],
               include_dirs=["Compressor", "Compressor/zfp/include"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
               library_dirs=additionalLibPaths+libraryDirs,
               libraries=libraries+["zfp"]+additionalLibs,
               extra_compile_args=Dist.getCppArgs(),
-              extra_link_args=Dist.getLinkArgs()),
-    ]
+              extra_link_args=Dist.getLinkArgs())]
 
 # Setup ======================================================================
 setup(

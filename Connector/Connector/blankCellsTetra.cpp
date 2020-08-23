@@ -195,7 +195,6 @@ PyObject* K_CONNECTOR::createTriMask(PyObject* self, PyObject* args)
 PyObject* K_CONNECTOR::deleteTetraMask(PyObject* self, PyObject* args)
 {
   PyObject* hook;
-
   if (!PyArg_ParseTuple(args, "O", &hook))
   {
       return NULL;
@@ -339,7 +338,6 @@ PyObject* K_CONNECTOR::blankCellsTetra(PyObject* self, PyObject* args)
   std::unique_ptr<K_FLD::FldArrayF> afmesh(fmesh); // to avoid to call explicit delete at several places in the code.
   std::unique_ptr<K_FLD::FldArrayI> acmesh(cmesh); // to avoid to call explicit delete at several places in the code.
   
-  
   if (res == -1)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -447,7 +445,7 @@ PyObject* K_CONNECTOR::blankCellsTetra(PyObject* self, PyObject* args)
   }
   
   K_FLD::FldArrayF cellnout(sz);
-  for (size_t i = 0; i < sz; ++i)cellnout[i]=E_Float(cN[i]);
+  for (size_t i = 0; i < sz; ++i) cellnout[i]=E_Float(cN[i]);
   
   if (struct_celln)
     return K_ARRAY::buildArray(cellnout, cellNName, ni, nj, nk);
@@ -494,14 +492,16 @@ inline E_Int __do_the_node_blanking
 
   if (overwrite)
   {
-    for (size_t i=0; i < sz; ++i){
+    for (size_t i=0; i < sz; ++i)
+    {
       cN[subset[i]] = cellNzoom[i];
     }
   }
   else //append only blanked values
   {
-    for (size_t i=0; i < sz; ++i){
-      if (cellNzoom[i]==CELLNVAL)cN[subset[i]] = CELLNVAL;
+    for (size_t i=0; i < sz; ++i)
+    {
+      if (cellNzoom[i]==CELLNVAL) cN[subset[i]] = CELLNVAL;
     }
   }
   return 0;
@@ -516,22 +516,26 @@ inline E_Int __do_the_cell_blanking
   // Preconditioning
   // Mask bbox
   const K_SEARCH::BBox3D* bb = maskE._main->getTree()->getGlobalBox();
-  std::vector<E_Int> subset;
   K_FLD::ArrayAccessor<K_FLD::FldArrayF > acrd(fmesh, posx, posy, posz);
   
   K_CONNECT::FldZoneExtractor extractor;
   K_FLD::ArrayAccessor<K_FLD::FldArrayI > acnt(cmesh, -1);
+  
+  std::vector<E_Int> subset;
   extractor.getInBox<3, ELT_t>(bb->minB, bb->maxB, E_EPSILON, acrd, acnt, subset);
-    
-  if (subset.empty())
-    return 0;
+  
+  // CB : essai OMP
+  //std::vector<E_Int> subset;
+  //extractor.getInBox_omp<3>(bb->minB, bb->maxB, E_EPSILON, acrd, acnt, subset);
+  
+  if (subset.empty()) return 0;
   
   //std::cout << "nb of extracted : " << subset.size() << std::endl;
     
   size_t sz1 = subset.size();
   E_Int ROWS(cmesh.getNfld());
   K_FLD::FldArrayI connectZoom(sz1, ROWS);
-  //
+  
   for (E_Int j = 0; j < ROWS; ++j)
   {
     E_Int* pZ = connectZoom.begin(j+1);
@@ -550,7 +554,7 @@ inline E_Int __do_the_cell_blanking
   K_FLD::ArrayAccessor<Connectivity_t> acvz(connectZoom, -1);
   K_FLD::IntArray e;
   e.reserve(1,8);
-  E_Int*pt=e.begin();
+  E_Int*pt = e.begin();
   for (size_t i=0; i < sz1; ++i)
   {    
     acvz.getEntry(i, pt);
@@ -568,7 +572,7 @@ inline E_Int __do_the_cell_blanking
   // reduce the work set to those inside the zoom but not masked yet
   E_Int sz2=0, k=0;
   for (E_Int i = 0; i < cellNzoom.getSize(); ++i)
-    if (cellNzoom[i] !=CELLNVAL) ++sz2;
+    if (cellNzoom[i] != CELLNVAL) ++sz2;
 
   Connectivity_t connectZoom2(sz2, ROWS);
   std::vector<E_Int> oldIds2;
@@ -679,7 +683,6 @@ inline E_Int __do_the_cell_blanking<K_MESH::Polyhedron<UNKNOWN> >
     ngZoom.addPH(ng, subset[i]);
   ngZoom.PHs.updateFacets();
 
-    
   // FIRST PASS : CELL IN
   typedef K_FLD::FldArrayF Coordinate_t;
   typedef K_FLD::FldArrayI Connectivity_t;

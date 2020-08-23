@@ -1,6 +1,6 @@
-ZSTD = False#True
-SZ = False#True
-ZFP = False#True
+ZSTD = False
+SZ = False
+ZFP = False
 
 #==============================================================================
 # Fichiers C++

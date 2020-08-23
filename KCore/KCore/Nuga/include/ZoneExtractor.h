@@ -200,7 +200,7 @@ void ZoneExtractor<Coordinate_t, Connectivity_t>::getInBox_omp
   is_in.resize(sz);
   
 #pragma omp parallel for private(e,s) 
-  for (E_Int i = 0; i < sz; ++i)
+  for (size_t i = 0; i < sz; ++i)
   {
     s = cnt.stride(i);
     e.reserve(1, s);

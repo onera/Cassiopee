@@ -59,18 +59,18 @@ ngon_unit::ngon_unit(const E_Int* pngon, const E_Int* prange, E_Int rangesz)
   E_Int nbe = rangesz - 1;
 
   E_Int nbftot{ 0 };
-  for (size_t i = 0; i < nbe; ++i)
+  for (E_Int i = 0; i < nbe; ++i)
     nbftot += prange[i + 1] - prange[i];
 
   _NGON.resize(2 + nbftot + nbe, 0); // Like Cassiopee storage
 
   E_Int k{ 2 };
-  for (size_t i = 0; i < nbe; ++i)
+  for (E_Int i = 0; i < nbe; ++i)
   {
     E_Int nbf = prange[i + 1] - prange[i];
 
     _NGON[k++] = nbf;
-    for (size_t u = 0; u < nbf; ++u)
+    for (E_Int u = 0; u < nbf; ++u)
       _NGON[k++] = pngon[prange[i] + u];
   }
 

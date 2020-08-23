@@ -319,7 +319,7 @@ def blankCellsTetra(coords, cellnfields, meshT4, blankingType=1, tol = 1.e-12, c
 # IN: tol: geometric tolerance
 # OUT: returns the cellnfields, 0 for cells intersecting or inside the tet mesh
 #==============================================================================
-def blankCellsTri(coords, cellnfields, meshT3, blankingType=1, tol = 1.e-12, 
+def blankCellsTri(coords, cellnfields, meshT3, blankingType=1, tol=1.e-12, 
                   cellnval=0, overwrite=0, cellNName='cellN'):
     """Blank cells in coords (by setting the cellN to cellnval) falling inside a Triangular surface mesh mask defined by meshT3.
     If overwrite is enabled (1), cells detected outside have a celln reset to 1.
