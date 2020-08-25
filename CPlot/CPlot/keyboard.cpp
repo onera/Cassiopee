@@ -58,7 +58,7 @@ void garrows(int key, int x, int y)
 // Branche les differents appels pour le clavier
 void Data::keyboard(unsigned char key, int x, int y)
 {
-  //printf("key: %d\n", key);
+  //printf("normal key: %d\n", key);
   int nv;
   int stateHeader, stateInfo, stateMenu, stateBB;
   double alpha = 0.04;
@@ -402,14 +402,17 @@ void Data::arrows(int key, int x, int y)
   
   if (ptrState->kkeysActivated == 0)
   {
+    //printf("special key %d\n", key);
     if (key == GLUT_KEY_UP) 
     {ptrState->keys[ptrState->kcursor]=1; ptrState->kcursor++;} 
     else if (key == GLUT_KEY_DOWN) 
     {ptrState->keys[ptrState->kcursor]=2; ptrState->kcursor++;}
     else if (key == GLUT_KEY_LEFT) 
     {ptrState->keys[ptrState->kcursor]=3; ptrState->kcursor++;}
-     else if (key == GLUT_KEY_RIGHT) 
+    else if (key == GLUT_KEY_RIGHT) 
     {ptrState->keys[ptrState->kcursor]=4; ptrState->kcursor++;}
+    else 
+    {ptrState->keys[ptrState->kcursor]=key; ptrState->kcursor++;}
     return;
   }
 

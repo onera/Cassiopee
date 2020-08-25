@@ -444,10 +444,29 @@ PyObject* K_CPLOT::getKeyboard(PyObject* self, PyObject* args)
   PyObject* tpl;
   char tmp[128];
   for (int i = 0; i < d->ptrState->kcursor; i++)
+  {
     tmp[i] = d->ptrState->keys[i];
+  }
   tmp[d->ptrState->kcursor] = '\0';
   tpl = Py_BuildValue("s", tmp);
   return tpl;
+
+  // modification pour forcer le latin1
+  /*
+  int j = 0;
+  for (int i = 0; i < d->ptrState->kcursor; i++)
+  {
+    unsigned char c = d->ptrState->keys[i];
+    unsigned int k = (unsigned int)(c);
+    printf("%u %u\n", c, k);
+    //if (k == -61) { tmp[j] = 0x00; tmp[j+1] = 0xe9; j+=2; }
+    if (k == -61) { tmp[j] = 233; j+=1; }
+    else { tmp[j] = c; j+=1; }
+  }
+  tmp[j] = '\0';
+  tpl = PyUnicode_DecodeLatin1(tmp, strlen(tmp), "ignore");
+  return tpl;
+  */
 }
 
 //=============================================================================

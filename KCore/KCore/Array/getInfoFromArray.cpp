@@ -169,8 +169,7 @@ E_Int K_ARRAY::getInfoFromArray(PyObject* o, char*& varString,
 
     //PyArrayObject* ac = 
     //  (PyArrayObject*)PyArray_ContiguousFromObject(c, NPY_INT,
-    //               1, 10000000);
-    
+    //               1, 10000000);  
     if (K_STRING::cmp(eltType, "NGON") == 0)
     {
       if (PyList_Check(c) == true) // array2
@@ -186,7 +185,7 @@ E_Int K_ARRAY::getInfoFromArray(PyObject* o, char*& varString,
         nelt = ptr[ptr[1]+2];
         sizeConnect = PyArray_DIM(ac, 1);
         Py_DECREF(ac);
-      }
+      }  
     }
     else // elements basiques
     {

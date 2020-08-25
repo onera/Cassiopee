@@ -695,26 +695,21 @@ def getValue(array, ind):
 def setValue(array, ind, values):
     """Set the values in an array for a point of index ind or (i,j,k)...
     Usage: setValue(array, ind, values)"""
-    if isinstance(array[0], list):
-        raise TypeError("setValue: only for one array.")
+    if isinstance(array[0], list): raise TypeError("setValue: only for one array.")
 
     if isinstance(ind, tuple):
         if len(array) != 5: # structure
             raise TypeError("setValue: (i,j,k) indexing is only for structured array.")
         ni = array[2]; nj = array[3]
-        if len(ind) == 3:
-            index = (ind[0]-1)+(ind[1]-1)*ni+(ind[2]-1)*ni*nj
-        elif len(ind) == 2:
-            index = (ind[0]-1)+(ind[1]-1)*ni
-        else:
-            raise ValueError("setValue: too much values in index tuple.")
-    else:
-        index = ind
+        if len(ind) == 3: index = (ind[0]-1)+(ind[1]-1)*ni+(ind[2]-1)*ni*nj
+        elif len(ind) == 2: index = (ind[0]-1)+(ind[1]-1)*ni
+        else: raise ValueError("setValue: too much values in index tuple.")
+    else: index = ind
     ar = array[1]
     nf = ar.shape[0]
     nf2 = len(values)
     if nf2 != nf: raise ValueError("setValue: values is badly dimensioned.")
-    for i in range(nf): ar[i, index] = values[i]
+    ar[:, index] = values[:]
     return None
 
 def getArgMin(array, varName):

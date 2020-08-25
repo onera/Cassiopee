@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Geometry definition module.
 """
 __version__ = '3.2'
@@ -650,7 +651,7 @@ def volumeFromCrossSections(contours):
     return vol
 
 # - text functions -
-def text1D(string, font='text1', smooth=0, offset=0.5):
+def text1D(string, font='vera', smooth=0, offset=0.5):
     """Create a 1D text.
     Usage: text1D(string, font, smooth, offset)"""
     if font == 'text1': from . import text1 as Text
@@ -664,81 +665,84 @@ def text1D(string, font='text1', smooth=0, offset=0.5):
     retour = []
     offx = 0.; offy = 0.; s = 6
     for i in string:
-        if (i == 'A'): a, s = Text.A()
-        elif (i == 'a'): a, s = Text.a()
-        elif (i == 'B'): a, s = Text.B()
-        elif (i == 'b'): a, s = Text.b()
-        elif (i == 'C'): a, s = Text.C()
-        elif (i == 'c'): a, s = Text.c()
-        elif (i == 'D'): a, s = Text.D()
-        elif (i == 'd'): a, s = Text.d()
-        elif (i == 'E'): a, s = Text.E()
-        elif (i == 'e'): a, s = Text.e()
-        elif (i == 'F'): a, s = Text.F()
-        elif (i == 'f'): a, s = Text.f()
-        elif (i == 'G'): a, s = Text.G()
-        elif (i == 'g'): a, s = Text.g()
-        elif (i == 'H'): a, s = Text.H()
-        elif (i == 'h'): a, s = Text.h()
-        elif (i == 'I'): a, s = Text.I()
-        elif (i == 'i'): a, s = Text.i()
-        elif (i == 'J'): a, s = Text.J()
-        elif (i == 'j'): a, s = Text.j()
-        elif (i == 'K'): a, s = Text.K()
-        elif (i == 'k'): a, s = Text.k()
-        elif (i == 'L'): a, s = Text.L()
-        elif (i == 'l'): a, s = Text.l()
-        elif (i == 'M'): a, s = Text.M()
-        elif (i == 'm'): a, s = Text.m()
-        elif (i == 'N'): a, s = Text.N()
-        elif (i == 'n'): a, s = Text.n()
-        elif (i == 'O'): a, s = Text.O()
-        elif (i == 'o'): a, s = Text.o()
-        elif (i == 'P'): a, s = Text.P()
-        elif (i == 'p'): a, s = Text.p()
-        elif (i == 'Q'): a, s = Text.Q()
-        elif (i == 'q'): a, s = Text.q()
-        elif (i == 'R'): a, s = Text.R()
-        elif (i == 'r'): a, s = Text.r()
-        elif (i == 'S'): a, s = Text.S()
-        elif (i == 's'): a, s = Text.s()
-        elif (i == 'T'): a, s = Text.T()
-        elif (i == 't'): a, s = Text.t()
-        elif (i == 'U'): a, s = Text.U()
-        elif (i == 'u'): a, s = Text.u()
-        elif (i == 'V'): a, s = Text.V()
-        elif (i == 'v'): a, s = Text.v()
-        elif (i == 'W'): a, s = Text.W()
-        elif (i == 'w'): a, s = Text.w()
-        elif (i == 'X'): a, s = Text.X()
-        elif (i == 'x'): a, s = Text.x()
-        elif (i == 'Y'): a, s = Text.Y()
-        elif (i == 'y'): a, s = Text.y()
-        elif (i == 'Z'): a, s = Text.Z()
-        elif (i == 'z'): a, s = Text.z()
-        elif (i == '0'): a, s = Text.C0()
-        elif (i == '1'): a, s = Text.C1()
-        elif (i == '2'): a, s = Text.C2()
-        elif (i == '3'): a, s = Text.C3()
-        elif (i == '4'): a, s = Text.C4()
-        elif (i == '5'): a, s = Text.C5()
-        elif (i == '6'): a, s = Text.C6()
-        elif (i == '7'): a, s = Text.C7()
-        elif (i == '8'): a, s = Text.C8()
-        elif (i == '9'): a, s = Text.C9()
-        elif (i == '.'): a, s = Text.POINT()
-        elif (i == ','): a, s = Text.COMMA()
-        elif (i == ';'): a, s = Text.POINTCOMMA()
-        elif (i == ':'): a, s = Text.TWOPOINTS()
-        elif (i == '!'): a, s = Text.EXCLAMATION()
-        elif (i == '+'): a, s = Text.PLUS()
-        elif (i == '-'): a, s = Text.MINUS()
-        elif (i == '='): a, s = Text.EQUAL()
-        elif (i == '('): a, s = Text.LEFTBRACE()
-        elif (i == ')'): a, s = Text.RIGHTBRACE()
-#        elif (i == u'\xe9'):
-#            a, s = Text.EACUTE()
-        elif (i == '\n'):
+        if i == 'A': a, s = Text.A()
+        elif i == 'a': a, s = Text.a()
+        elif i == 'B': a, s = Text.B()
+        elif i == 'b': a, s = Text.b()
+        elif i == 'C': a, s = Text.C()
+        elif i == 'c': a, s = Text.c()
+        elif i == 'D': a, s = Text.D()
+        elif i == 'd': a, s = Text.d()
+        elif i == 'E': a, s = Text.E()
+        elif i == 'e': a, s = Text.e()
+        elif i == 'F': a, s = Text.F()
+        elif i == 'f': a, s = Text.f()
+        elif i == 'G': a, s = Text.G()
+        elif i == 'g': a, s = Text.g()
+        elif i == 'H': a, s = Text.H()
+        elif i == 'h': a, s = Text.h()
+        elif i == 'I': a, s = Text.I()
+        elif i == 'i': a, s = Text.i()
+        elif i == 'J': a, s = Text.J()
+        elif i == 'j': a, s = Text.j()
+        elif i == 'K': a, s = Text.K()
+        elif i == 'k': a, s = Text.k()
+        elif i == 'L': a, s = Text.L()
+        elif i == 'l': a, s = Text.l()
+        elif i == 'M': a, s = Text.M()
+        elif i == 'm': a, s = Text.m()
+        elif i == 'N': a, s = Text.N()
+        elif i == 'n': a, s = Text.n()
+        elif i == 'O': a, s = Text.O()
+        elif i == 'o': a, s = Text.o()
+        elif i == 'P': a, s = Text.P()
+        elif i == 'p': a, s = Text.p()
+        elif i == 'Q': a, s = Text.Q()
+        elif i == 'q': a, s = Text.q()
+        elif i == 'R': a, s = Text.R()
+        elif i == 'r': a, s = Text.r()
+        elif i == 'S': a, s = Text.S()
+        elif i == 's': a, s = Text.s()
+        elif i == 'T': a, s = Text.T()
+        elif i == 't': a, s = Text.t()
+        elif i == 'U': a, s = Text.U()
+        elif i == 'u': a, s = Text.u()
+        elif i == 'V': a, s = Text.V()
+        elif i == 'v': a, s = Text.v()
+        elif i == 'W': a, s = Text.W()
+        elif i == 'w': a, s = Text.w()
+        elif i == 'X': a, s = Text.X()
+        elif i == 'x': a, s = Text.x()
+        elif i == 'Y': a, s = Text.Y()
+        elif i == 'y': a, s = Text.y()
+        elif i == 'Z': a, s = Text.Z()
+        elif i == 'z': a, s = Text.z()
+        elif i == '0': a, s = Text.C0()
+        elif i == '1': a, s = Text.C1()
+        elif i == '2': a, s = Text.C2()
+        elif i == '3': a, s = Text.C3()
+        elif i == '4': a, s = Text.C4()
+        elif i == '5': a, s = Text.C5()
+        elif i == '6': a, s = Text.C6()
+        elif i == '7': a, s = Text.C7()
+        elif i == '8': a, s = Text.C8()
+        elif i == '9': a, s = Text.C9()
+        elif i == '.': a, s = Text.POINT()
+        elif i == ',': a, s = Text.COMMA()
+        elif i == ';': a, s = Text.POINTCOMMA()
+        elif i == ':': a, s = Text.TWOPOINTS()
+        elif i == '!': a, s = Text.EXCLAMATION()
+        elif i == '?': a, s = Text.INTERROGATION()
+        elif i == '+': a, s = Text.PLUS()
+        elif i == '-': a, s = Text.MINUS()
+        elif i == '=': a, s = Text.EQUAL()
+        elif i == '(': a, s = Text.LEFTBRACE()
+        elif i == ')': a, s = Text.RIGHTBRACE()
+        elif i == 'é': a, s = Text.EACUTE()
+        elif i == 'è': a, s = Text.ELOW()
+        elif i == 'à': a, s = Text.ALOW()
+        elif i == 'ç': a, s = Text.CCEDILLE()
+        elif i == '\n':
             offy = offy - 8 - offset
             offx = -6 - offset
             a = []
@@ -769,7 +773,7 @@ def text1D(string, font='text1', smooth=0, offset=0.5):
             
     return retour
 
-def text2D(string, font='text1', smooth=0, offset=0.5):
+def text2D(string, font='vera', smooth=0, offset=0.5):
     """Create a 2D text. 
     Usage: text2D(string, font, smooth, offset)"""
     try:
@@ -783,7 +787,7 @@ def text2D(string, font='text1', smooth=0, offset=0.5):
     b = Generator.selectInsideElts(b, a)
     return b
 
-def text3D(string, font='text1', smooth=0, offset=0.5, thickness=8.):
+def text3D(string, font='vera', smooth=0, offset=0.5, thickness=8.):
     """Create a 3D text.
     Usage: text3D(string, font, smooth, offset)"""
     try:

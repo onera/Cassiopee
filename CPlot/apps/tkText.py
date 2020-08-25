@@ -223,7 +223,7 @@ def createApp(win):
     if 'tkTextSmoothness' in CTK.PREFS:
         V.set(CTK.PREFS['tkTextSmoothness'])
     # -3- Font -
-    V = TK.StringVar(win); V.set('text1'); VARS.append(V)
+    V = TK.StringVar(win); V.set('vera'); VARS.append(V)
     if 'tkTextFont' in CTK.PREFS: V.set(CTK.PREFS['tkTextFont'])
 
     # - 1D/2D/3D -
@@ -232,8 +232,8 @@ def createApp(win):
     B.grid(row=0, column=0, sticky=TK.EW)
 
     # - Font -
-    B = TTK.OptionMenu(Frame, VARS[3], 'text1', 'vera', 'chancery',
-                       'courier', 'nimbus')
+    B = TTK.OptionMenu(Frame, VARS[3], 'vera', 'chancery',
+                       'courier', 'text1', 'nimbus')
     BB = CTK.infoBulle(parent=B, text='Font type.')
     B.grid(row=0, column=1, sticky=TK.EW)
 
@@ -286,7 +286,7 @@ def saveApp():
 def resetApp():
     VARS[1].set('3D')
     VARS[2].set('Regular')
-    VARS[3].set('text1')
+    VARS[3].set('vera')
     CTK.PREFS['tkTextDim'] = VARS[1].get()
     CTK.PREFS['tkTextSmoothness'] = VARS[2].get()
     CTK.PREFS['tkTextFont'] = VARS[3].get()

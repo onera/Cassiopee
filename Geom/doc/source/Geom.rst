@@ -656,7 +656,7 @@ A polyline is defined as a C0 i-array which contains only the polyline points (w
 Typing text using meshes
 ------------------------
 
-.. py:function:: Geom.text1D(text, font='text1', smooth=0, offset=0.5)
+.. py:function:: Geom.text1D(text, font='vera', smooth=0, offset=0.5)
 
     Create 1D meshes of given text.
 
@@ -683,7 +683,7 @@ Typing text using meshes
 
 ---------------------------------------
 
-.. py:function:: Geom.text2D(text, font='text1', smooth=0, offset=0.5)
+.. py:function:: Geom.text2D(text, font='vera', smooth=0, offset=0.5)
 
     Create a triangular mesh of a text (letters are filled with triangles).
 
@@ -710,7 +710,7 @@ Typing text using meshes
 
 ---------------------------------------
 
-.. py:function:: Geom.text3D(text,font='text1',smooth=0,offset=0.5,thickness=8.)
+.. py:function:: Geom.text3D(text,font='vera',smooth=0,offset=0.5,thickness=8.)
 
     Create a 3D mesh of a text.
 

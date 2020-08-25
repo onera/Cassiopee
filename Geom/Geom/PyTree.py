@@ -335,7 +335,7 @@ def volumeFromCrossSections(t):
     zone = C.convertArrays2ZoneNode('Volume', [coordp])
     return zone
 
-def text1D(string, font='text1', smooth=0, offset=0.5):
+def text1D(string, font='vera', smooth=0, offset=0.5):
     """Create a 1D text. offset is the space between letters,
     font indicates used font, smooth indicates the smoothing intensity.
     Usage: text1D(string, font, smooth, offset)"""
@@ -346,14 +346,14 @@ def text1D(string, font='text1', smooth=0, offset=0.5):
         zones.append(zone)
     return zones
 
-def text2D(string, font='text1', smooth=0, offset=0.5):
+def text2D(string, font='vera', smooth=0, offset=0.5):
     """Create a 2D text. offset is the space between letters.
     font indicates used font, smooth indicates the smoothing intensity.
     Usage: text2D(string, font, smooth, offset)"""
     a = Geom.text2D(string, font, smooth, offset)
     return C.convertArrays2ZoneNode(string, [a])
 
-def text3D(string, font='text1', smooth=0, offset=0.5):
+def text3D(string, font='vera', smooth=0, offset=0.5):
     """Create a 3D text. offset is the space between letters.
     font indicates used font, smooth indicates the smoothing intensity.
     Usage: text3D(string, font, smooth, offset)"""

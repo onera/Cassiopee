@@ -109,7 +109,7 @@ struct CPlotState {
     // Pressed keys
     int  kkeysActivated;  // if 1, short cut keys are activated, 0: deactivated
     int  kcursor;
-    char keys[128];  // store pressed keys
+    unsigned char keys[128];  // store pressed keys
 
     // Textures
     char shaderPath[1028];  // chemin pour les fichiers + shaders
