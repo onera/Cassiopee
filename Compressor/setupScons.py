@@ -40,12 +40,19 @@ extensions = [
               extra_compile_args=Dist.getCppArgs(),
               extra_link_args=Dist.getLinkArgs())]
 if srcs.SZ:
+  mySystem = Dist.getSystem()
+  if mySystem[0] == 'mingw':
+    if Dist.useStatic() == False: additionalLibs += ["zlib1"]
+    else: additionalLibs += ["z"]
+  else: additionalLibs += ["z"]
+  print(additionalLibs)
+
   extensions += [
     Extension('Compressor.sz.csz',
                sources=["Compressor/sz/compressor.cpp"],
                include_dirs=["Compressor", "Compressor/sz/include"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
                library_dirs=additionalLibPaths+libraryDirs,
-               libraries=libraries+["sz","zstd", "zlib1"]+additionalLibs,
+               libraries=libraries+["sz", "zstd"]+additionalLibs,
                extra_compile_args=Dist.getCppArgs(),
                extra_link_args=Dist.getLinkArgs())]
 if srcs.ZFP:
@@ -65,8 +72,8 @@ setup(
     description="Compress CFD solutions.",
     author="Onera",
     package_dir={"":"."},
-    #packages=['Compressor', 'Compressor.sz', 'Compressor.zfp'],
-    packages=['Compressor', 'Compressor.zfp'],
+    packages=['Compressor', 'Compressor.sz', 'Compressor.zfp'],
+    #packages=['Compressor', 'Compressor.zfp'],
     ext_modules=extensions
     )
 

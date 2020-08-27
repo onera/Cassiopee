@@ -261,3 +261,58 @@ def _uncompressCartesian(t):
             Internal._addChild(z, gct)
         Internal._rmNodesFromName1(z, 'CartesianData')
     return None
+
+def packNumpy(n, tol=1.e-8):
+    import Compressor.sz as sz
+    ret = sz.pack(n, {'relBoundRatio':tol})
+    #ret = sz.pack(n, {'absErrBound':tol, 'errorBoundMode':2})
+    #import Compressor.zfp as zfp
+    #ret = zfp.pack(n, reversible=False, accuracy=tol)
+    return ret
+
+# compressFields of zones
+def _compressCoords(t, tol=1.e-8):
+    import Compressor.sz as sz
+    zones = Internal.getZones(t)
+    for z in zones:
+        GC = Internal.getNodesFromType1(z, 'GridCoordinates_t')
+        fields = []
+        for c in GC: fields += Internal.getNodesFromType1(c, 'DataArray_t')
+        for f in fields:
+            ret = packNumpy(f[1], tol=tol)
+            shape = ret[0]
+            f[1] = ret[1]
+            Internal._createUniqueChild(f, 'Shape', 'DataArray_t', value=shape)
+    return None
+
+def _compressFields(t, tol=1.e-8):
+    zones = Internal.getZones(t)
+    for z in zones:
+        FS = Internal.getNodesFromType1(z, 'FlowSolution_t')
+        fields = []
+        for c in FS: fields += Internal.getNodesFromType1(c, 'DataArray_t')
+        for f in fields:
+            ret = packNumpy(f[1], tol=tol)
+            shape = ret[0]
+            f[1] = ret[1]
+            Internal._createUniqueChild(f, 'Shape', 'DataArray_t', value=shape)
+    return None
+
+# uncompressFields of zones (si shape est trouve dans le noeud DataArray_t)
+def _uncompressAll(t):
+    import Compressor.sz as sz
+    zones = Internal.getZones(t)
+    for z in zones:
+        GC = Internal.getNodesFromType1(z, 'GridCoordinates_t')
+        FS = Internal.getNodesFromType1(z, 'FlowSolution_t')
+        fields = []
+        for c in GC+FS: fields += Internal.getNodesFromType1(c, 'DataArray_t')
+        for f in fields:
+            shape = Internal.getNodeFromName1(f, 'Shape')
+            if shape is not None:
+                shape = [int(i) for i in shape[1]]
+                shape = tuple(shape)
+                ret = sz.unpack((shape,f[1]), {})
+                f[1] = ret
+                Internal._rmNodesFromName1(f, 'Shape')
+    return None

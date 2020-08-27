@@ -258,8 +258,10 @@ def compute():
     import Converter.Internal as Internal
     import Converter.PyTree as C
 
-    # Save preventif
-    C.convertPyTree2File(CTK.t, 'restart.cgns')
+    # Save preventif avec compression cartesienne
+    import Compressor.PyTree as Compressor
+    tp = Compressor.compressCartesian(CTK.t)
+    C.convertPyTree2File(tp, 'restart.cgns'); tp = None
 
     temporal_scheme = VARS[0].get()
     scheme = VARS[4].get()

@@ -73,11 +73,12 @@ hid_t K_IO::GenIOHdf::ADF_to_HDF_datatype(const char *tp)
   if (!strcmp(tp, L3T_B1)) return H5T_NATIVE_UCHAR;
   else if (!strcmp(tp, L3T_C1)) return H5T_NATIVE_CHAR;
   else if (!strcmp(tp, L3T_I4)) return _NATIVE_INT;
+  else if (!strcmp(tp, L3T_R8)) return _NATIVE_DOUBLE;
+  else if (!strcmp(tp, L3T_I1)) return H5T_NATIVE_INT8;
   else if (!strcmp(tp, L3T_I8)) return _NATIVE_LONG;
   else if (!strcmp(tp, L3T_U4)) return H5T_NATIVE_UINT32;
   else if (!strcmp(tp, L3T_U8)) return H5T_NATIVE_UINT64;
   else if (!strcmp(tp, L3T_R4)) return _NATIVE_FLOAT;
-  else if (!strcmp(tp, L3T_R8)) return _NATIVE_DOUBLE;
   else return 0;
 }
 /* ------------------------------------------------------------------------- */
@@ -489,6 +490,44 @@ double K_IO::GenIOHdf::getSingleR8(hid_t node, hid_t tid)
   H5Dclose(did); H5Tclose(yid);
   return r;
 }
+
+//=============================================================================
+PyObject* K_IO::GenIOHdf::getArrayI1(hid_t node, hid_t tid,
+                                     int dim, int* dims,
+                                     hid_t mid,            /* mem_space_id */
+                                     hid_t sid)
+{
+  IMPORTNUMPY;
+  PyArrayObject* r = NULL;
+
+  // Create numpy: en INT8
+  vector<npy_intp> npy_dim_vals(dim);
+  for (E_Int nn = 0; nn < dim; nn++) npy_dim_vals[nn] = dims[nn];
+  r = (PyArrayObject*)PyArray_EMPTY(dim, &npy_dim_vals[0], NPY_BYTE, 1);
+
+  hid_t did, yid;
+  did = H5Dopen2(node, L3S_DATA, H5P_DEFAULT);
+  yid = H5Tget_native_type(tid, H5T_DIR_ASCEND);
+  
+#if defined(_MPI) && defined(H5_HAVE_PARALLEL)
+  if (_ismpi == 1)    /** HDF is executed in parallel context and compiled in MPI **/
+  {
+    hid_t xfer_plist = H5Pcreate(H5P_DATASET_XFER);
+    hid_t ret        = H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_COLLECTIVE);
+    H5Dread(did, yid, mid, sid, xfer_plist, PyArray_DATA(r));
+  }
+  else /** HDF is executed in sequential context and compiled in MPI **/
+  {
+    H5Dread(did, yid, mid, sid, H5P_DEFAULT, PyArray_DATA(r));
+  }
+#else  /** HDF is executed in sequential context and compiled in sequential **/
+  H5Dread(did, yid, mid, sid, H5P_DEFAULT, PyArray_DATA(r));
+#endif
+  H5Tclose(yid); H5Dclose(did);
+
+  return (PyObject*)r;
+}
+
 //=============================================================================
 PyObject* K_IO::GenIOHdf::getArrayI4(hid_t node, hid_t tid,
                                      int dim, int* dims,
@@ -657,6 +696,18 @@ PyObject* K_IO::GenIOHdf::getArrayR8Skel(hid_t node, hid_t tid,
   sizem = 1;
   for (s = 0; s < dim; s++) sizem = sizem*dims[s];
   if (sizem < _maxFloatSize) return getArrayR8(node, tid, dim, dims);
+  else { Py_INCREF(Py_None); return Py_None; }
+}
+
+//=============================================================================
+PyObject* K_IO::GenIOHdf::getArrayI1Skel(hid_t node, hid_t tid,
+                                         int dim, int* dims)
+{
+  if (_maxFloatSize == 0) { Py_INCREF(Py_None); return Py_None; }
+  int  s, sizem;
+  sizem = 1;
+  for (s = 0; s < dim; s++) sizem = sizem*dims[s];
+  if (sizem < _maxFloatSize) return getArrayI1(node, tid, dim, dims);
   else { Py_INCREF(Py_None); return Py_None; }
 }
 
@@ -1267,6 +1318,11 @@ PyObject* K_IO::GenIOHdf::createNode(hid_t& node, PyObject* dataShape, PyObject*
     if (_skeleton == 1 && (strcmp(_type, "IndexArray_t") == 0 || strcmp(_type, "DataArray_t") == 0)) v = getArrayI4Skel(node, tid, dim, _dims);
     else v = getArrayI4(node, tid, dim, _dims);
   }
+  else if (strcmp(_dtype, L3T_R8) == 0)
+  {
+    if (_skeleton == 1 && strcmp(_type, "DataArray_t") == 0) v = getArrayR8Skel(node, tid, dim, _dims);
+    else v = getArrayR8(node, tid, dim, _dims); 
+  }
   else if (strcmp(_dtype, L3T_I8) == 0)
   {
     if (_skeleton == 1 && (strcmp(_type, "IndexArray_t") == 0 || strcmp(_type, "DataArray_t") == 0)) v = getArrayI8Skel(node, tid, dim, _dims);
@@ -1277,10 +1333,10 @@ PyObject* K_IO::GenIOHdf::createNode(hid_t& node, PyObject* dataShape, PyObject*
     if (_skeleton == 1 && strcmp(_type, "DataArray_t") == 0) v = getArrayR4Skel(node, tid, dim, _dims);
     else v = getArrayR4(node, tid, dim, _dims);
   }
-  else if (strcmp(_dtype, L3T_R8) == 0)
+  else if (strcmp(_dtype, L3T_I1) == 0)
   {
-    if (_skeleton == 1 && strcmp(_type, "DataArray_t") == 0) v = getArrayR8Skel(node, tid, dim, _dims);
-    else v = getArrayR8(node, tid, dim, _dims); 
+    if (_skeleton == 1 && (strcmp(_type, "IndexArray_t") == 0 || strcmp(_type, "DataArray_t") == 0)) v = getArrayI1Skel(node, tid, dim, _dims);
+    else v = getArrayI1(node, tid, dim, _dims);
   }
   else if (strcmp(_dtype, L3T_C1) == 0)
   {  
@@ -1872,13 +1928,21 @@ hid_t K_IO::GenIOHdf::writeNode(hid_t node, PyObject* tree)
        {
          setArrayI4(child, (int*)PyArray_DATA(ar), dim, dims);
        }
+       else if (elSize == 1)
+       {
+         setArrayI1(child, (char*)PyArray_DATA(ar), dim, dims);
+       }
        else
        {
          setArrayI8(child, (E_LONG*)PyArray_DATA(ar), dim, dims);
        }
       }
+      else if (typeNum == NPY_BYTE)
+      {
+         setArrayI1(child, (char*)PyArray_DATA(ar), dim, dims);
+      }
       else if (typeNum == NPY_STRING ||
-               typeNum == NPY_BYTE ||
+               //typeNum == NPY_BYTE ||
                //typeNum == NPY_SBYTE ||
                typeNum == NPY_UBYTE)
       {
@@ -1902,11 +1966,15 @@ hid_t K_IO::GenIOHdf::writeNode(hid_t node, PyObject* tree)
        if (elSize == 4)
        {
          setArrayI4(child, (int*)PyArray_DATA(ar), dim, dims);
-      }
-      else
-      {
-       setArrayI8(child, (E_LONG*)PyArray_DATA(ar), dim, dims);
-      }
+       }
+       else if (elSize == 1)
+       {
+         setArrayI1(child, (char*)PyArray_DATA(ar), dim, dims);
+       }
+       else
+       {
+         setArrayI8(child, (E_LONG*)PyArray_DATA(ar), dim, dims);
+       }
         //E_Int s = PyArray_Size(v);
         //int* buf = new int [s];
         //for (int i = 0; i < s; i++) buf[i] = (int)PyArray_DATA(ar)[i];
@@ -2071,6 +2139,26 @@ hid_t K_IO::GenIOHdf::setArrayC1(hid_t node, char* data, int idim, int* idims)
   H5Dwrite(did, mid, H5S_ALL, sid, H5P_DEFAULT, data);
   H5Tclose(tid); H5Dclose(did); H5Sclose(sid); H5Tclose(mid);
   HDF_Add_Attribute_As_String(node, L3S_DTYPE, L3T_C1);
+  free(dims);
+  return node;
+}
+
+//=============================================================================
+hid_t K_IO::GenIOHdf::setArrayI1(hid_t node, char* data, int idim, int* idims)
+{
+  hsize_t dim; hsize_t* dims;
+  dim = idim; dims = (hsize_t*)malloc(sizeof(hsize_t)*dim);
+  for (E_Int i = 0; i < idim; i++) dims[i] = idims[i];
+  // data type
+  hid_t tid = H5Tcopy(H5T_NATIVE_INT); H5Tset_precision(tid, 8);
+  // Create dataspace
+  hid_t sid = H5Screate_simple(dim, dims, NULL);
+  // Create dataset
+  hid_t did = H5Dcreate1(node, L3S_DATA, tid, sid, H5P_DEFAULT);
+  hid_t mid = H5Tget_native_type(tid, H5T_DIR_ASCEND);
+  H5Dwrite(did, mid, H5S_ALL, sid, H5P_DEFAULT, data);
+  H5Tclose(tid); H5Dclose(did); H5Sclose(sid); H5Tclose(mid);
+  HDF_Add_Attribute_As_String(node, L3S_DTYPE, L3T_I1);
   free(dims);
   return node;
 }

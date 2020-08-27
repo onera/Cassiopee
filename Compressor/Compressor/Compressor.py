@@ -1,7 +1,7 @@
 """Module for CFD solution compression.
 """
 __version__ = '3.2'
-__author__ = "Stephanie Peron, Christophe Benoit, Pascal Raud"
+__author__ = "Stephanie Peron, Christophe Benoit, Pascal Raud, Xavier Juvigny"
 
 from . import compressor
 import numpy
@@ -62,3 +62,5 @@ def unpack(a, method=0):
         try: import cPickle as pickle # best for now
         except: import pickle
         return pickle.loads(a)
+
+    

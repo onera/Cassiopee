@@ -19,7 +19,7 @@ Usage :
 
 - reversible : If true, the compressor try to compress with a near loss-less compression
 - Rate gives a number of bits wanted per 4**d elements (where d is the number of dimensions of the array)
-on overage. The rate at the return of the function can be slightly different than the provided rate. Useful if you
+on average. The rate at the return of the function can be slightly different than the provided rate. Useful if you
 have to bound the compressed size or if you need random access to blocks.
 - Accuracy : Fix the maximum absolute error on each value of the array.
     )RAW";

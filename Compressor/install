@@ -41,6 +41,8 @@ if [ $? -eq 0 ]; then
     #touch Compressor/compressor.cpp
     rm -f build/lib.*/Compressor/compressor.*
     rm -f build/lib.*/Compressor/compressor-*.*
+    rm -f build/lib.*/Compressor/sz/csz.*
+    rm -f build/lib.*/Compressor/zfp/czfp.*
     python setupScons.py install --prefix="$INSTALLPATH"
     [ $? != 0 ] && exit 1;
 else

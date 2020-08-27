@@ -4,7 +4,7 @@ import Generator.PyTree as G
 import Geom.PyTree as D
 import Transform.PyTree as T
 import KCore.test as test
-A = D.text1D('STEPHANIE')
+A = D.text1D('STEPHANIE', font='text1')
 A = C.convertArray2Tetra(A); a = T.join(A)
 a = C.addVars(a, 'Density'); a = C.addVars(a, 'centers:F')
 

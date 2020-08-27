@@ -1,6 +1,5 @@
 # - loadFromProc (pyTree) -
 import Converter.Filter as Filter
-import Converter.Internal as Internal
 import Converter.Mpi as Cmpi
 import KCore.test as test
 

@@ -51,6 +51,8 @@ class GenIOAdf
     PyObject* getArrayR8Skel(double node);
     PyObject* getArrayR4(double node);
     PyObject* getArrayR4Skel(double node);
+    PyObject* getArrayI1(double node);
+    PyObject* getArrayI1Skel(double node);
     PyObject* getArrayI4(double node);
     PyObject* getArrayI4Skel(double node);
     PyObject* getArrayI8(double node);
@@ -64,6 +66,7 @@ class GenIOAdf
     double setArrayMT(double node);
     double setArrayR4(double node, float *data, int dim, int *dims);
     double setArrayR8(double node, double *data, int dim, int *dims);
+    double setArrayI1(double node, char *data, int dim, int *dims);
     double setArrayI4(double node, int *data, int dim, int *dims);
     double setArrayI8(double node, E_LONG *data, int dim, int *dims);
     double setArrayC1(double node, char *data);
@@ -211,6 +214,11 @@ PyObject* K_IO::GenIOAdf::createNode(double node)
     if (_skeleton == 1 && (strcmp(_type, "IndexArray_t") == 0 || strcmp(_type, "DataArray_t") == 0)) v = getArrayI4Skel(node);
     else v = getArrayI4(node);
   }
+  else if (strcmp(_dtype, "R8") == 0)
+  {
+    if (_skeleton == 1 && strcmp(_type, "DataArray_t") == 0) v = getArrayR8Skel(node);
+    else v = getArrayR8(node);
+  }
   else if (strcmp(_dtype, "I8") == 0)
   {
     if (_skeleton == 1 && (strcmp(_type, "IndexArray_t") == 0 || strcmp(_type, "DataArray_t") == 0)) v = getArrayI8Skel(node);
@@ -226,6 +234,12 @@ PyObject* K_IO::GenIOAdf::createNode(double node)
     if (_skeleton == 1 && strcmp(_type, "DataArray_t") == 0) v = getArrayR8Skel(node);
     else v = getArrayR8(node);
   }
+  else if (strcmp(_dtype, "B1") == 0)
+  {
+    if (_skeleton == 1 && (strcmp(_type, "IndexArray_t") == 0 || strcmp(_type, "DataArray_t") == 0)) v = getArrayI1Skel(node);
+    else v = getArrayI1(node);
+  }
+  
   else if (strcmp(_dtype, "C1") == 0)
   {
     IMPORTNUMPY;
@@ -236,7 +250,7 @@ PyObject* K_IO::GenIOAdf::createNode(double node)
     v = (PyObject*)PyArray_EMPTY(1, npy_dim_vals2, NPY_STRING, 1);
     memcpy(PyArray_DATA((PyArrayObject*)v), s, l*sizeof(char));
     free(s);
-  */
+    */
     v = getArrayC1(node, 1);
   }
   else if (strcmp(_dtype, "MT") == 0)
@@ -365,6 +379,38 @@ PyObject* K_IO::GenIOAdf::getArrayR4(double node)
   r = (PyArrayObject*)PyArray_EMPTY(dim, &npy_dim_vals[0], NPY_DOUBLE, 1);
   memcpy(PyArray_DATA(r), ptr2, sizem*sizeof(double));
   free(ptr2);
+  return (PyObject*)r;
+}
+
+//=============================================================================
+PyObject* K_IO::GenIOAdf::getArrayI1Skel(double node)
+{
+  if (_maxFloatSize == 0) { Py_INCREF(Py_None); return Py_None; }
+  int  s, dim, sizem;
+  ADF_Get_Number_of_Dimensions(node, &dim, &_errorFlag);
+  ADF_Get_Dimension_Values(node, _dims, &_errorFlag);
+  sizem = 1;
+  for (s = 0; s < dim; s++) sizem = sizem*_dims[s];
+  if (sizem < _maxFloatSize) return getArrayI1(node);
+  else { Py_INCREF(Py_None); return Py_None; }
+}
+
+//=============================================================================
+PyObject* K_IO::GenIOAdf::getArrayI1(double node)
+{
+  IMPORTNUMPY;
+  int  dim;
+  PyArrayObject* r = NULL;
+
+  ADF_Get_Number_of_Dimensions(node, &dim, &_errorFlag);
+  ADF_Get_Dimension_Values(node, _dims, &_errorFlag);
+
+  // Create numpy : INT8
+  vector<npy_intp> npy_dim_vals(dim);
+  for (E_Int nn = 0; nn < dim; nn++) npy_dim_vals[nn] = _dims[nn];
+  r = (PyArrayObject*)PyArray_EMPTY(dim, &npy_dim_vals[0], NPY_BYTE, 1);
+
+  ADF_Read_All_Data(node, (char*)PyArray_DATA(r), &_errorFlag);
   return (PyObject*)r;
 }
 
@@ -728,13 +774,21 @@ double K_IO::GenIOAdf::writeNode(double node, PyObject* tree, double child)
         {
          setArrayI4(child, (int*)PyArray_DATA(ar), dim, dims);
         }
+        else if (elSize == 1)
+        {
+          setArrayI1(child, (char*)PyArray_DATA(ar), dim, dims);
+        }
         else
         {
           setArrayI8(child, (E_LONG*)PyArray_DATA(ar), dim, dims);
         }
       }
+      else if (typeNum == NPY_BYTE)
+      {
+        setArrayI1(child, (char*)PyArray_DATA(ar), dim, dims);
+      }
       else if (typeNum == NPY_STRING ||
-               typeNum == NPY_BYTE ||
+               //typeNum == NPY_BYTE ||
                //typeNum == NPY_SBYTE ||
                typeNum == NPY_UBYTE)
       {
@@ -759,6 +813,10 @@ double K_IO::GenIOAdf::writeNode(double node, PyObject* tree, double child)
         if (elSize == 4)
         {
          setArrayI4(child, (int*)PyArray_DATA(ar), dim, dims);
+        }
+        else if (elSize == 1)
+        {
+          setArrayI1(child, (char*)PyArray_DATA(ar), dim, dims);
         }
         else
         {
@@ -867,10 +925,17 @@ double K_IO::GenIOAdf::setArrayI8(double node, E_LONG *data, int dim,
 }
 
 //=============================================================================
-double K_IO::GenIOAdf::setArrayR4(double node, float *data, int dim,
-                                  int *dims)
+double K_IO::GenIOAdf::setArrayR4(double node, float *data, int dim, int *dims)
 {
   ADF_Put_Dimension_Information(node, "R4", dim, dims, &_errorFlag);
+  ADF_Write_All_Data(node, (char*)data, &_errorFlag);
+  return node;
+}
+
+//=============================================================================
+double K_IO::GenIOAdf::setArrayI1(double node, char *data, int dim, int *dims)
+{
+  ADF_Put_Dimension_Information(node, "B1", dim, dims, &_errorFlag);
   ADF_Write_All_Data(node, (char*)data, &_errorFlag);
   return node;
 }

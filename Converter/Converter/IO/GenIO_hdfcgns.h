@@ -59,6 +59,7 @@
 #define L3T_LK "LK"
 #define L3T_B1 "B1"
 #define L3T_C1 "C1"
+#define L3T_I1 "I1"
 #define L3T_I4 "I4"
 #define L3T_I8 "I8"
 #define L3T_U4 "U4"
@@ -128,13 +129,15 @@ class GenIOHdf
     double getSingleR8(hid_t node, hid_t tid);
 
     /* Method to getArray in HDF */
-    PyObject* getArrayI8Skel(hid_t node, hid_t tid, int dim, int* dims);
-    PyObject* getArrayI4Skel(hid_t node, hid_t tid, int dim, int* dims);
     PyObject* getArrayR8Skel(hid_t node, hid_t tid, int dim, int* dims);
     PyObject* getArrayR4Skel(hid_t node, hid_t tid, int dim, int* dims);
-
+    PyObject* getArrayI1Skel(hid_t node, hid_t tid, int dim, int* dims);
+    PyObject* getArrayI8Skel(hid_t node, hid_t tid, int dim, int* dims);
+    PyObject* getArrayI4Skel(hid_t node, hid_t tid, int dim, int* dims);
+    
     PyObject* getArrayR8(hid_t node, hid_t tid, int dim, int* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
     PyObject* getArrayR4(hid_t node, hid_t tid, int dim, int* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
+    PyObject* getArrayI1(hid_t node, hid_t tid, int dim, int* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
     PyObject* getArrayI4(hid_t node, hid_t tid, int dim, int* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
     PyObject* getArrayI8(hid_t node, hid_t tid, int dim, int* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
     char* getArrayC1(hid_t node, hid_t tid, int dim, int* dims);
@@ -151,6 +154,7 @@ class GenIOHdf
     /* Method to setArray in HDF */
     hid_t setArrayR4(hid_t node, float*  data, int dim, int *dims);
     hid_t setArrayR8(hid_t node, double* data, int dim, int *dims);
+    hid_t setArrayI1(hid_t node, char*   data, int dim, int *dims);
     hid_t setArrayI4(hid_t node, int*    data, int dim, int *dims);
     hid_t setArrayI8(hid_t node, E_LONG* data, int dim, int *dims);
     hid_t setArrayC1(hid_t node, char*   data, char* label=(char*)L3S_DATA);
