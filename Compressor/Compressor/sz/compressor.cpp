@@ -77,7 +77,11 @@ set_parameters_from_dictionnary(PyObject *options, sz_params &parameters)
     PyObject * key, *value;
     Py_ssize_t pos = 0;
     while (PyDict_Next(options, &pos, &key, &value)) {
+#if PY_VERSION_HEX >= 0x03000000
         std::string ckey = PyUnicode_AsUTF8(key);
+#else
+        std::string ckey = PyString_AsString(key);
+#endif
         if (ckey == sz_keys[quantization_intervals]) {
             if (!PyLong_Check(value)) {
                 PyErr_SetString(PyExc_TypeError, "Waiting an integer type for quantization intervals");
@@ -324,7 +328,11 @@ py_compress(PyObject *self, PyObject *args)
     init_parameters(parameters);
     if (options) {
         if (PyUnicode_Check(options))
+#if PY_VERSION_HEX >= 0x03000000
             filename = PyUnicode_AsUTF8(options);
+#else
+            filename = PyString_AsString(options);
+#endif
         else if (PyDict_Check(options)) {
             bool is_ok = set_parameters_from_dictionnary(options, parameters);
             if (!is_ok) return NULL;
@@ -496,7 +504,11 @@ py_decompress(PyObject *self, PyObject *args)
     init_parameters(parameters);
     if (options) {
         if (PyUnicode_Check(options))
+#if PY_VERSION_HEX >= 0x03000000
             filename = PyUnicode_AsUTF8(options);
+#else
+            filename = PyString_AsString(options);
+#endif   
         else if (PyDict_Check(options)) {
             bool is_ok = set_parameters_from_dictionnary(options, parameters);
             if (!is_ok) return NULL;

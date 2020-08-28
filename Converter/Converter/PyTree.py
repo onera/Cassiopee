@@ -4047,7 +4047,7 @@ def pushBC(t1, t2, type='F', tol=1.e-12, overwriteBC=True):
           for e in ext:
             d = Internal.getZoneDim(e)
             if d[0] == 'Structured': valid.append(convertArray2Hexa(e))
-            elif (d[0] == 'Unstructured' and d[3] != 'NGON'): valid.append(e)
+            elif d[0] == 'Unstructured' and d[3] != 'NGON': valid.append(e)
           if len(valid) == 1:
             _addBC2Zone(zp, name, BCType, subzone=valid[0])
           elif len(valid) > 1:

@@ -43,11 +43,11 @@ void writeDPNGFile(Data* d, char *filename, char* buffer,
 //=============================================================================
 /*
   Write buffer to PNG file.
-  mode=0 : RGB, buffer must be RGB
-  mode=1 : RGB+A, buffer must be RGBA
+  mode=0: RGB, buffer must be RGB
+  mode=1: RGB+A, buffer must be RGBA
 */
 //=============================================================================
-void writePNGFile(Data* d, char *filename, char* buffer, 
+void writePNGFile(Data* d, char* filename, char* buffer, 
                   int width, int height, int mode)
 {
   FILE *fp;

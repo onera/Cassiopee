@@ -4510,6 +4510,7 @@ def _mergeEltsTPerType(t):
         z[2] += newElts_t
 
     return None
+
 #=================================================================================
 # Merge BCDataSets: special bcdataset (etc/FFD) are prefered, other are destroyed
 #=================================================================================
@@ -4534,7 +4535,7 @@ def _mergeBCDataSets__(z, bcNode):
         if dname == 'BCDataSet#EndOfRun': nod = no; break
         elif dname==dataSetByPathName and dataSetByPathName is not None: nod = no; break
         elif dname=='FFD72SurfaceSolution': nod = no; break
-        no+=1
+        no += 1
     if nod == -1: nod = 0# other cases : first bc data set is kept
 
     no = 0; locd = dataSetLocs[nod]
@@ -4637,7 +4638,7 @@ def getBCFaceNode(z, bcNode):
 # Return a container per variable available in a BCDataSet 
 # FlowSolution and BCDataSet must be at the same location Vertex/Centers 
 # return list of type: [[numpyFS, 'CellCenter', [[BCRange1, numpyBCDS1],[BCRange2, numpyBCDS2]]]
-def  getBCDataSetContainers(name, z):
+def getBCDataSetContainers(name, z):
     containers = []
     dims = getZoneDim(z)
     if dims[0] == 'Unstructured': 
@@ -4660,7 +4661,7 @@ def  getBCDataSetContainers(name, z):
     if allBCDatas == []: return None
     nbcdataset = len(allRanges)
 
-    # Case 1 : get all the fields at a given location
+    # Case 1: get all the fields at a given location
     if (name  == __FlowSolutionNodes__) or (name == __FlowSolutionCenters__):
         loc = 'Vertex'
         f = getNodeFromName2(z, name)

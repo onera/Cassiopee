@@ -259,9 +259,10 @@ def compute():
     import Converter.PyTree as C
 
     # Save preventif avec compression cartesienne
-    import Compressor.PyTree as Compressor
-    tp = Compressor.compressCartesian(CTK.t)
-    C.convertPyTree2File(tp, 'restart.cgns'); tp = None
+    #import Compressor.PyTree as Compressor
+    #tp = Compressor.compressCartesian(CTK.t)
+    #C.convertPyTree2File(tp, 'restart.cgns'); tp = None
+    Fast.saveFile(CTK.t, 'restart.cgns', cartesian=True)
 
     temporal_scheme = VARS[0].get()
     scheme = VARS[4].get()

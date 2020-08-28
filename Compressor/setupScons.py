@@ -45,7 +45,6 @@ if srcs.SZ:
     if Dist.useStatic() == False: additionalLibs += ["zlib1"]
     else: additionalLibs += ["z"]
   else: additionalLibs += ["z"]
-  print(additionalLibs)
 
   extensions += [
     Extension('Compressor.sz.csz',

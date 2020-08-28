@@ -113,7 +113,7 @@ struct CPlotState {
 
     // Textures
     char shaderPath[1028];  // chemin pour les fichiers + shaders
-    char envmapFile[256];   // fichier image pour les envmaps
+    char envmapFile[1028];   // fichier image pour les envmaps
     int  updateEnvmap;      // dit a display d'updater l'envmap
     int  updateBackground;  // dit a displau d'updater la texture de background
 
@@ -257,7 +257,7 @@ struct CPlotState {
                             // redisplay
 
     // Export
-    char            exportFile[120];            // nom du fichier pour l'export
+    char            exportFile[1028];            // nom du fichier pour l'export
     int             exportWidth, exportHeight;  // resolution de l'export
     int             continuousExport;           // =0, pas d'export continue, =1, export continue
     FILE*           ptrFile;                    // ptr fichier pour les exports continus
@@ -271,7 +271,7 @@ struct CPlotState {
     // Others
     int fullScreen;  // 1: full screen, 0: window
     int bgColor;     // background color
-    char backgroundFile[256]; // image file name for background (bgColor=11)
+    char backgroundFile[1028]; // image file name for background (bgColor=11)
     int autoblank;   // if 1, cplot try to set automatically the
                      // blanking plugin
 

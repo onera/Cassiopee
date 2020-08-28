@@ -26,5 +26,7 @@ namespace K_COMPRESSOR
 { 
   PyObject* deltaIndex(PyObject* self, PyObject* args);
   PyObject* writeUnsteadyCoefs(PyObject* self, PyObject* args);
+  PyObject * py_cellN_compress(PyObject *self, PyObject *args);
+  PyObject * py_cellN_uncompress(PyObject *self, PyObject *args);
 }
 #endif

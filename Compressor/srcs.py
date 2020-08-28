@@ -6,7 +6,8 @@ ZFP = True
 # Fichiers C++
 #==============================================================================
 cpp_srcs = ["Compressor/deltaIndex.cpp",
-            "Compressor/writeUnsteadyCoefs.cpp"]
+            "Compressor/writeUnsteadyCoefs.cpp",
+            "Compressor/cellNCompressor.cpp"]
 
 if ZSTD:
 	zstd_srcs = ["Compressor/zstd/common/debug.c",

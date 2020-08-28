@@ -262,16 +262,53 @@ def _uncompressCartesian(t):
         Internal._rmNodesFromName1(z, 'CartesianData')
     return None
 
-def packNumpy(n, tol=1.e-8):
-    import Compressor.sz as sz
-    ret = sz.pack(n, {'relBoundRatio':tol})
-    #ret = sz.pack(n, {'absErrBound':tol, 'errorBoundMode':2})
-    #import Compressor.zfp as zfp
-    #ret = zfp.pack(n, reversible=False, accuracy=tol)
-    return ret
+def _packNode(node, tol=1.e-8, ctype=0):
+    if ctype == 0: # sz
+        import Compressor.sz as sz
+        ret = sz.pack(node[1], {'relBoundRatio':tol})
+        #ret = sz.pack(n, {'absErrBound':tol, 'errorBoundMode':2})
+        shape = [0]+list(ret[0])
+        node[1] = ret[1]
+        Internal._createUniqueChild(node, 'XData', 'DataArray_t', value=shape)
+    elif ctype == 1: # zfp
+        import Compressor.zfp as zfp
+        ret = zfp.pack(n, reversible=False, accuracy=tol)
+        shape = [1]+list(ret[0])
+        node[1] = ret[1]
+        Internal._createUniqueChild(node, 'XData', 'DataArray_t', value=shape)
+    else: # cellN
+        ret = Compressor.compressor.compressCellN(node[1])
+        shape = [2]+list(ret[0])
+        node[1] = ret[1]
+        Internal._createUniqueChild(node, 'XData', 'DataArray_t', value=shape)
+    return None
+
+def _unpackNode(node):
+    shape = Internal.getNodeFromName1(node, 'XData')
+    if shape is not None:
+        shape = shape[1]
+        ctype = int(shape[0])
+        shape = shape[1:]
+        shape = [int(i) for i in shape]
+        shape = tuple(shape)
+        if ctype == 0:
+            import Compressor.sz as sz
+            ret = sz.unpack((shape,node[1]), {})
+            node[1] = ret
+            Internal._rmNodesFromName1(node, 'XData')
+        elif ctype == 1:
+            import Compressor.zfp as zfp
+            ret = zfp.unpack((shape,node[1]), {})
+            node[1] = ret
+            Internal._rmNodesFromName1(node, 'XData')
+        else:
+            node[1] = Compressor.compressor.uncompressCellN((shape,node[1]))
+            Internal._rmNodesFromName1(node, 'XData')
+    return None
 
 # compressFields of zones
 def _compressCoords(t, tol=1.e-8):
+    """Compress coords with a relative tolerance."""
     import Compressor.sz as sz
     zones = Internal.getZones(t)
     for z in zones:
@@ -279,27 +316,35 @@ def _compressCoords(t, tol=1.e-8):
         fields = []
         for c in GC: fields += Internal.getNodesFromType1(c, 'DataArray_t')
         for f in fields:
-            ret = packNumpy(f[1], tol=tol)
-            shape = ret[0]
-            f[1] = ret[1]
-            Internal._createUniqueChild(f, 'Shape', 'DataArray_t', value=shape)
+            if Internal.getNodeFromName1(f, 'XData') is None:
+                _packNode(f, tol, 0)
     return None
 
 def _compressFields(t, tol=1.e-8):
+    """Compress fields with a relative tolerance."""
     zones = Internal.getZones(t)
     for z in zones:
         FS = Internal.getNodesFromType1(z, 'FlowSolution_t')
         fields = []
         for c in FS: fields += Internal.getNodesFromType1(c, 'DataArray_t')
         for f in fields:
-            ret = packNumpy(f[1], tol=tol)
-            shape = ret[0]
-            f[1] = ret[1]
-            Internal._createUniqueChild(f, 'Shape', 'DataArray_t', value=shape)
+            if Internal.getNodeFromName1(f, 'XData') is None:
+                _packNode(f, tol, 0)
     return None
 
-# uncompressFields of zones (si shape est trouve dans le noeud DataArray_t)
+# Compresse un cellN 0,1,2
+def _compressCellN(t):
+    """Compress cellN on 2 bits."""
+    zones = Internal.getZones(t)
+    for z in zones:
+        cellNs = Internal.getNodesFromName2(z, 'cellN')
+        for cellN in cellNs:
+            _packNode(cellN, 0., 2)
+    return None
+
+# uncompressFields of zones (si XData est trouve dans le noeud DataArray_t)
 def _uncompressAll(t):
+    """Uncompress all compressed data."""
     import Compressor.sz as sz
     zones = Internal.getZones(t)
     for z in zones:
@@ -307,12 +352,5 @@ def _uncompressAll(t):
         FS = Internal.getNodesFromType1(z, 'FlowSolution_t')
         fields = []
         for c in GC+FS: fields += Internal.getNodesFromType1(c, 'DataArray_t')
-        for f in fields:
-            shape = Internal.getNodeFromName1(f, 'Shape')
-            if shape is not None:
-                shape = [int(i) for i in shape[1]]
-                shape = tuple(shape)
-                ret = sz.unpack((shape,f[1]), {})
-                f[1] = ret
-                Internal._rmNodesFromName1(f, 'Shape')
+        for f in fields: _unpackNode(f)
     return None

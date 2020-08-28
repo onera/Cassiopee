@@ -26,6 +26,8 @@ static PyMethodDef Pycompressor [] =
 {
   {"deltaIndex", K_COMPRESSOR::deltaIndex, METH_VARARGS},
   {"writeUnsteadyCoefs", K_COMPRESSOR::writeUnsteadyCoefs, METH_VARARGS},
+  {"compressCellN", K_COMPRESSOR::py_cellN_compress, METH_VARARGS},
+  {"uncompressCellN", K_COMPRESSOR::py_cellN_uncompress, METH_VARARGS},
   {NULL, NULL}
 };
 

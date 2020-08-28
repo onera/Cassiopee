@@ -39,6 +39,12 @@ List of functions
    Compressor.pack
    Compressor.unpack
 
+   .. Compressor.PyTree.compressCartesian
+   .. Compressor.PyTree.uncompressCartesian
+   .. Compressor.PyTree.compressCoords
+   .. Compressor.PyTree.compressFields
+   .. Compressor.PyTree.compressCellN
+   .. Compressor.PyTree.uncompressAll
 
 Contents
 ########

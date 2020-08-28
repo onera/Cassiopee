@@ -465,7 +465,7 @@ def isInBBox(a, fileName, format, bbox, znp):
     return out
 
 #==========================================================
-# a : must be a tree or a zone list coherent with znp
+# a: must be a tree or a zone list coherent with znp
 # znp: is the full path from top
 def writeZones(a, fileName, znp, format=None):
   if isinstance(znp, list): znps = znp
