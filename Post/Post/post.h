@@ -38,8 +38,10 @@ namespace K_POST
   PyObject* refine(PyObject* self, PyObject* args);
   PyObject* refineButterfly(PyObject* self, PyObject* args);
   PyObject* selectCells(PyObject* self, PyObject* args);
+  PyObject* selectCellsBoth(PyObject* self, PyObject* args);
   PyObject* selectCells3(PyObject* self, PyObject* args);
   PyObject* selectCellCenters(PyObject* self, PyObject* args);
+  PyObject* selectCellCentersBoth(PyObject* self, PyObject* args);
   PyObject* selectInteriorFaces(PyObject* self, PyObject* args);
   PyObject* selectExteriorFaces(PyObject* self, PyObject* args);
   PyObject* selectExteriorFacesStructured(PyObject* self, PyObject* args);

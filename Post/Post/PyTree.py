@@ -289,6 +289,8 @@ def checkVariables___(vars):
             elif loc == 1: return -1
     return loc
 
+# SelectCells preserving center flow field solutions
+# only for tag defined as center variable 
 def selectCells(t, F, varStrings=[], strict=0):
     """Select cells in a given pyTree.
     Usage: selectCells(t, F, varStrings)"""
@@ -296,14 +298,53 @@ def selectCells(t, F, varStrings=[], strict=0):
     if varStrings == []: # formula
         ret = checkVariables__(F)
     else: ret = checkVariables__(varStrings)
+    
     if ret == 0: # nodes
-        C._deleteFlowSolutions__(tp, 'centers')
         C._deleteZoneBC__(tp)
         C._deleteGridConnectivity__(tp)
-        C._TZA(tp, 'nodes', 'nodes', Post.selectCells, None,
-               F, varStrings, strict)
+        
+        zones = Internal.getZones(tp)
+        for z in zones:
+            fc = C.getFields(Internal.__GridCoordinates__, z)[0]
+            fa = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
+            fb = C.getFields(Internal.__FlowSolutionCenters__, z)[0]
+
+            if fc != [] and fa != []:
+                ft = Converter.addVars([fc, fa])
+                
+                if fb != []:
+                    (fp,fq) = Post.selectCells(ft, F, fb, varStrings, strict)
+                    C._deleteFlowSolutions__(z, 'centers')
+                    C.setFields([fq], z, 'centers')
+                else:
+                    fp = Post.selectCells(ft, F, fb, varStrings, strict)
+                    C._deleteFlowSolutions__(z, 'centers')
+                    
+                C.setFields([fp], z, 'nodes')
+                
+            elif fa != []:
+                if fb != []:
+                    (fp,fq) = Post.selectCells(fa, F, fb, varStrings, strict )
+                    C.setFields([fq], z, 'centers')
+                else:
+                    fp = Post.selectCells(ft, F, fb, varStrings, strict)
+                    
+                C.setFields([fp], z, 'nodes')
+                
+            elif fc != []:
+                if fb != []:
+                    (fp,fq) = Post.selectCells(fc, F, fb, varStrings, strict)
+                    C.setFields([fq], z, 'centers')
+                else:
+                    fp = Post.selectCells(fc, F, fb, varStrings, strict)
+                    
+                C.setFields([fp], z, 'nodes')
+        
         if Internal.isTopTree(tp): C._deleteEmptyZones(tp)
         return tp
+
+
+    
     elif ret == 1: # centers
         C._deleteZoneBC__(tp)
         C._deleteGridConnectivity__(tp)
@@ -321,11 +362,15 @@ def selectCells(t, F, varStrings=[], strict=0):
                 tags.append(tag)
         C.setFields(tags, tp, 'centers', False)
         tp = selectCells2(tp, 'centers:__tag__')
+        
+        
         C._rmVars(tp, 'centers:__tag__')
         if Internal.isTopTree(tp): C._deleteEmptyZones(tp)
         return tp
     else:
         raise ValueError("selectCells: variables are not co-localized.")
+
+
 
 def selectCells2(t, tagName, strict=0):
     """Select cells in a given array.
@@ -336,29 +381,58 @@ def selectCells2(t, tagName, strict=0):
     res = tagName.split(':')
     if len(res) == 2 and res[0] == 'centers': loc = 1
     else: loc = 0
+    
     zones = Internal.getZones(tp)
     for z in zones:
         if loc == 0: # noeuds
+            fb   = C.getFields(Internal.__FlowSolutionCenters__, z)[0] 
             taga = C.getFields(Internal.__FlowSolutionNodes__, z)
             taga = Converter.extractVars(taga, [tagName])[0]
         else:
-            taga = C.getFields(Internal.__FlowSolutionCenters__, z)
-            taga = Converter.extractVars(taga, [res[1]])[0]
+            fb   = C.getFields(Internal.__FlowSolutionCenters__, z)
+            taga = Converter.extractVars(fb, [res[1]])[0]
+            
         fc = C.getFields(Internal.__GridCoordinates__, z)[0]
         fa = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
+        
+        if loc != 0: # centres
+            fb = Converter.rmVars(fb, res[1])[0]
+            
         if fc != [] and fa != []:
             f = Converter.addVars([fc, fa])
-            fp = Post.selectCells2(f, taga, strict, loc)
+
+            if fb != [] and fb != None : # il y a des champs en centres
+                (fp,fq) = Post.selectCells2(f, taga, fb, strict, loc)
+                C._deleteFlowSolutions__(z, 'centers')
+                C.setFields([fq], z, 'centers')
+            else:        # pas de champ en centres 
+                fp = Post.selectCells2(f, taga, [], strict, loc)
+                C._deleteFlowSolutions__(z, 'centers')
+                
             C.setFields([fp], z, 'nodes')
+
         elif fa != []:
-            fp = Post.selectCells2(fa, taga, strict, loc)
+            if fb != [] and fb != None: # il y a des champs en centres 
+                (fp,fq) = Post.selectCells2(fa, taga, fb, strict, loc)
+                C.setFields([fq], z, 'centers')
+            else:        # pas de champ en centres 
+                fp = Post.selectCells2(fa, taga, [], strict, loc)
+                
             C.setFields([fp], z, 'nodes')
+
         elif fc != []:
-            fp = Post.selectCells2(fc, taga, strict, loc)
+            if fb != [] and fb != None: # il y a des champs en centres
+                print("fb: ", fb)
+                (fp,fq) = Post.selectCells2(fc, taga, fb, strict, loc)
+                C.setFields([fq], z, 'centers')
+            else:        # pas de champ en centres 
+                fp = Post.selectCells2(fc, taga, [], strict, loc)
+                
             C.setFields([fp], z, 'nodes')
-    C._deleteFlowSolutions__(tp, 'centers')
+            
     if Internal.isTopTree(tp): C._deleteEmptyZones(tp)
     return tp
+
 
 def selectCells3(t, tagName):
     try: import Transform.PyTree as T
