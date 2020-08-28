@@ -422,7 +422,6 @@ def selectCells2(t, tagName, strict=0):
 
         elif fc != []:
             if fb != [] and fb != None: # il y a des champs en centres
-                print("fb: ", fb)
                 (fp,fq) = Post.selectCells2(fc, taga, fb, strict, loc)
                 C.setFields([fq], z, 'centers')
             else:        # pas de champ en centres 
