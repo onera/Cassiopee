@@ -826,7 +826,7 @@ def _adaptBCMatch(z, z1, z2, winz1, winz2, t=None):
                 else: C._addBC2Zone(z2, 'match', 'BCMatch', wini, oppBlock2, windonor2, trirac,
                                     rotationCenter=periodic[1], rotationAngle=periodic[2], translation=periodic[0])
 
-        else: # not self opposite)
+        else: # not self opposite
                 
             # Reporte cette BC sur z1
             wini1 = intersectWins__(winz1, winz, ret=0)
@@ -918,7 +918,7 @@ def split(z, dir=1, index=1, t=None):
         winz2 = [1,ni,index,nj,1,nk]
         w1 = winz1; dim = [ni,nj,nk]
         w2 = winz2; source = z[0]
-        src, loc2glob =  Internal.getLoc2Glob(z)
+        src, loc2glob = Internal.getLoc2Glob(z)
         if loc2glob is not None:
             ws = list(loc2glob[0:6]); dim = list(loc2glob[6:9])
             w1 = composeWins__(w1, ws)

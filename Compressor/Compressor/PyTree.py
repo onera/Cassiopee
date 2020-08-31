@@ -120,7 +120,7 @@ def writeUnsteadyCoefs(iteration, indices, filename, loc, format="b"):
 # bboxDict is dict with the zones of t as keys and their specific bboxes as key values, used when layers not None
 # if subr, the tree subregions are kept during the exchange 
 def compressCartesian(t, bbox=[], layers=None, subr=True):
-    """Replace Grid Coordinates with a UserDefined CartesianData node if zone is cartesian."""
+    """For Cartesian grids, replace Grid Coordinates with a UserDefined CartesianData node."""
     tp = Internal.copyRef(t)
     _compressCartesian(tp, bbox=bbox, layers=layers, subr=subr)
     return tp
@@ -230,7 +230,7 @@ def _compressCartesian(t, bbox=[], layers=None, subr=True):
     
 # uncompress Cartesian
 def uncompressCartesian(t):
-    """Create Grid Coordinates for zone with CartesianData node."""
+    """For Cartesian grids, recreate Grid Coordinates from compressed zones."""
     tp = Internal.copyRef(t)
     _uncompressCartesian(tp)
     return tp
@@ -269,22 +269,22 @@ def _packNode(node, tol=1.e-8, ctype=0):
         #ret = sz.pack(n, {'absErrBound':tol, 'errorBoundMode':2})
         shape = [0]+list(ret[0])
         node[1] = ret[1]
-        Internal._createUniqueChild(node, 'XData', 'DataArray_t', value=shape)
+        Internal._createUniqueChild(node, 'ZData', 'DataArray_t', value=shape)
     elif ctype == 1: # zfp
         import Compressor.zfp as zfp
         ret = zfp.pack(n, reversible=False, accuracy=tol)
         shape = [1]+list(ret[0])
         node[1] = ret[1]
-        Internal._createUniqueChild(node, 'XData', 'DataArray_t', value=shape)
+        Internal._createUniqueChild(node, 'ZData', 'DataArray_t', value=shape)
     else: # cellN
         ret = Compressor.compressor.compressCellN(node[1])
         shape = [2]+list(ret[0])
         node[1] = ret[1]
-        Internal._createUniqueChild(node, 'XData', 'DataArray_t', value=shape)
+        Internal._createUniqueChild(node, 'ZData', 'DataArray_t', value=shape)
     return None
 
 def _unpackNode(node):
-    shape = Internal.getNodeFromName1(node, 'XData')
+    shape = Internal.getNodeFromName1(node, 'ZData')
     if shape is not None:
         shape = shape[1]
         ctype = int(shape[0])
@@ -295,20 +295,20 @@ def _unpackNode(node):
             import Compressor.sz as sz
             ret = sz.unpack((shape,node[1]), {})
             node[1] = ret
-            Internal._rmNodesFromName1(node, 'XData')
+            Internal._rmNodesFromName1(node, 'ZData')
         elif ctype == 1:
             import Compressor.zfp as zfp
             ret = zfp.unpack((shape,node[1]), {})
             node[1] = ret
-            Internal._rmNodesFromName1(node, 'XData')
+            Internal._rmNodesFromName1(node, 'ZData')
         else:
             node[1] = Compressor.compressor.uncompressCellN((shape,node[1]))
-            Internal._rmNodesFromName1(node, 'XData')
+            Internal._rmNodesFromName1(node, 'ZData')
     return None
 
 # compressFields of zones
 def _compressCoords(t, tol=1.e-8):
-    """Compress coords with a relative tolerance."""
+    """Compress coordinates with a relative tolerance."""
     import Compressor.sz as sz
     zones = Internal.getZones(t)
     for z in zones:
@@ -316,9 +316,15 @@ def _compressCoords(t, tol=1.e-8):
         fields = []
         for c in GC: fields += Internal.getNodesFromType1(c, 'DataArray_t')
         for f in fields:
-            if Internal.getNodeFromName1(f, 'XData') is None:
+            if Internal.getNodeFromName1(f, 'ZData') is None:
                 _packNode(f, tol, 0)
     return None
+
+def compressCoords(t):
+    """Compress coordinates with a relative tolerance."""
+    tp = Internal.copyRef(t)
+    _compressCoords(tp)
+    return tp
 
 def _compressFields(t, tol=1.e-8):
     """Compress fields with a relative tolerance."""
@@ -328,9 +334,15 @@ def _compressFields(t, tol=1.e-8):
         fields = []
         for c in FS: fields += Internal.getNodesFromType1(c, 'DataArray_t')
         for f in fields:
-            if Internal.getNodeFromName1(f, 'XData') is None:
+            if Internal.getNodeFromName1(f, 'ZData') is None:
                 _packNode(f, tol, 0)
     return None
+
+def compressFields(t):
+    """Compress fields with a relative tolerance."""
+    tp = Internal.copyRef(t)
+    _compressFields(tp)
+    return tp
 
 # Compresse un cellN 0,1,2
 def _compressCellN(t):
@@ -338,11 +350,16 @@ def _compressCellN(t):
     zones = Internal.getZones(t)
     for z in zones:
         cellNs = Internal.getNodesFromName2(z, 'cellN')
-        for cellN in cellNs:
-            _packNode(cellN, 0., 2)
+        for cellN in cellNs: _packNode(cellN, 0., 2)
     return None
 
-# uncompressFields of zones (si XData est trouve dans le noeud DataArray_t)
+def compressCellN(t):
+    """Compress cellN on 2 bits."""    
+    tp = Internal.copyRef(t)
+    _compressCellN(tp)
+    return tp
+
+# uncompressFields of zones (si ZData est trouve dans le noeud DataArray_t)
 def _uncompressAll(t):
     """Uncompress all compressed data."""
     import Compressor.sz as sz
@@ -354,3 +371,9 @@ def _uncompressAll(t):
         for c in GC+FS: fields += Internal.getNodesFromType1(c, 'DataArray_t')
         for f in fields: _unpackNode(f)
     return None
+
+def uncompressAll(t):
+    """Uncompress all compressed data."""
+    tp = Internal.copyRef(t)
+    _uncompressAll(tp)
+    return tp

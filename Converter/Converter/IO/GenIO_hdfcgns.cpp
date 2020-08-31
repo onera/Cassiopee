@@ -1482,13 +1482,36 @@ E_Int K_IO::GenIO::hdfcgnswrite(char* file, PyObject* tree, PyObject* links)
   for (E_Int i = 0; i < size; i++)
   {
     PyObject* llink  = PyList_GetItem(links, i);
-    char* tgt_file; char* tgt_path; char* cur_path;
-    PyObject* l = PyList_GetItem(llink, 1);
+    char* dir_file; char* tgt_file; char* tgt_path; char* cur_path;
+    PyObject* l = PyList_GetItem(llink, 0);
+    if (PyString_Check(l)) dir_file = PyString_AsString(l);
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(l)) dir_file = (char*)PyUnicode_AsUTF8(l);
+#endif
+    else dir_file = NULL;
+    l = PyList_GetItem(llink, 1);
     if (PyString_Check(l)) tgt_file = PyString_AsString(l);
 #if PY_VERSION_HEX >= 0x03000000
     else if (PyUnicode_Check(l)) tgt_file = (char*)PyUnicode_AsUTF8(l);
 #endif
     else tgt_file = NULL;
+    char* tgt_file_all = NULL;
+    if (tgt_file != NULL && dir_file != NULL)
+    {
+      E_Int size = strlen(tgt_file)+strlen(dir_file)+2;
+      tgt_file_all = new char [size];
+      strcpy(tgt_file_all, dir_file);
+      strcat(tgt_file_all, "/");
+      strcat(tgt_file_all, tgt_file);
+    }
+    else if (tgt_file != NULL)
+    {
+      E_Int size = strlen(dir_file)+1;
+      tgt_file_all = new char [size];
+      strcpy(tgt_file_all, tgt_file);
+    }
+    //printf("all: %s\n", tgt_file_all);
+
     l = PyList_GetItem(llink, 2);
     if (PyString_Check(l)) tgt_path = PyString_AsString(l);
 #if PY_VERSION_HEX >= 0x03000000
@@ -1535,10 +1558,12 @@ E_Int K_IO::GenIO::hdfcgnswrite(char* file, PyObject* tree, PyObject* links)
     /** Make the link effective **/
     HDF_Add_Attribute_As_Data(nid, L3S_PATH, cur_path, strlen(cur_path));
     
-    H5Lcreate_external(tgt_file, tgt_path, nid, L3S_LINK,H5P_DEFAULT, H5P_DEFAULT);
+    H5Lcreate_external(tgt_file_all, tgt_path, nid, L3S_LINK,H5P_DEFAULT, H5P_DEFAULT);
     HDF_Add_Attribute_As_Data(nid, L3S_FILE, tgt_file, strlen(tgt_file));
         
     H5Gclose(gidp); H5Gclose(nid);
+    delete [] tgt_file_all;
+      
   } /* end link */
 
   // DBX
@@ -2150,7 +2175,7 @@ hid_t K_IO::GenIOHdf::setArrayI1(hid_t node, char* data, int idim, int* idims)
   dim = idim; dims = (hsize_t*)malloc(sizeof(hsize_t)*dim);
   for (E_Int i = 0; i < idim; i++) dims[i] = idims[i];
   // data type
-  hid_t tid = H5Tcopy(H5T_NATIVE_INT); H5Tset_precision(tid, 8);
+  hid_t tid = H5Tcopy(H5T_NATIVE_INT8); H5Tset_precision(tid, 8);
   // Create dataspace
   hid_t sid = H5Screate_simple(dim, dims, NULL);
   // Create dataset

@@ -920,6 +920,7 @@ def _upgradeTree(t, uncompress=True):
     try:
       import Compressor.PyTree as Compressor
       Compressor._uncompressCartesian(t)
+      Compressor._uncompressAll(t)
     except: pass
   return None
 

@@ -284,8 +284,6 @@ static PyMethodDef Pycompressor_zfp[] = {{"pack", (PyCFunction)zfp::py_compress,
                                         {NULL, NULL,0,NULL}};
 
 
-#if PY_MAJOR_VERSION >= 3
-// =====================================================================
 static const char *       module_doc = R"RAW(
 Python interface for the scientific dataset compressor zfp
 ----------------------------------------------------------
@@ -293,6 +291,9 @@ Two functions to use :
   - pack   : compress an array or a list of arrays containing double values
   - unpack : decompress an array or a list of arrays, providing shapes for decompressed arrays
 )RAW";
+
+#if PY_MAJOR_VERSION >= 3
+// =====================================================================
 static struct PyModuleDef moduledef  = {PyModuleDef_HEAD_INIT,
                                        "czfp",
                                        module_doc,
@@ -303,14 +304,13 @@ static struct PyModuleDef moduledef  = {PyModuleDef_HEAD_INIT,
                                        NULL, // myextension_clear,
                                        NULL};
 
-
 PyMODINIT_FUNC
 PyInit_czfp(void)
 {
     PyObject *m;
     m = PyModule_Create(&moduledef);
     if (m == NULL) return NULL;
-    /* Très important : initialise numpy afin de pouvoir l'utiliser ici !!!! */
+    /* Tres important : initialise numpy afin de pouvoir l'utiliser ici !!!! */
     import_array();
 
     return m;
@@ -319,7 +319,7 @@ PyInit_czfp(void)
 PyMODINIT_FUNC
 initczfp(void)
 {
-    m = Py_InitModule3("czfp", NULL, module_doc);
+    PyObject* m = Py_InitModule3("czfp", NULL, module_doc);
     if (m == NULL) return;
     /* Tres important : initialise numpy afin de pouvoir l'utiliser ici !!!! */
     import_array();

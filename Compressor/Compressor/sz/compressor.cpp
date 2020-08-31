@@ -567,8 +567,6 @@ static PyMethodDef Pycompressor_sz[] = {{"pack", sz::py_compress, METH_VARARGS, 
     }
 
 
-#if PY_MAJOR_VERSION >= 3
-// =====================================================================
 static const char *       module_doc = R"RAW(
 Python interface for the scientific dataset compressor sz
 ---------------------------------------------------------
@@ -576,6 +574,9 @@ Two functions to use :
   - pack   : compress an array or a list of arrays containing double values
   - unpack : decompress an array or a list of arrays, providing shapes for decompressed arrays
 )RAW";
+
+#if PY_MAJOR_VERSION >= 3
+// =====================================================================
 static struct PyModuleDef moduledef  = {PyModuleDef_HEAD_INIT,
                                        "csz",
                                        module_doc,
@@ -616,9 +617,9 @@ PyInit_csz(void)
 PyMODINIT_FUNC
 initcsz(void)
 {
-    m = Py_InitModule3("csz", NULL, module_doc);
+    PyObject* m = Py_InitModule3("csz", NULL, module_doc);
     if (m == NULL) return;
-    /* Très important : initialise numpy afin de pouvoir l'utiliser ici !!!! */
+    /* Tres important : initialise numpy afin de pouvoir l'utiliser ici !!!! */
     import_array();
 
     for (const auto &key : sz::sz_keys) {

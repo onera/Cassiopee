@@ -211,6 +211,7 @@ def run(event=None):
         #CTK.display(CTK.t)
         displayByReplace(CTK.t)
     else: displaySlices()
+    CTK.TKTREE.updateApp()
 
 # Display replacing all zones in place
 # Prend moins de memoire

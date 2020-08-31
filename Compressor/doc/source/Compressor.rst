@@ -39,12 +39,16 @@ List of functions
    Compressor.pack
    Compressor.unpack
 
-   .. Compressor.PyTree.compressCartesian
-   .. Compressor.PyTree.uncompressCartesian
-   .. Compressor.PyTree.compressCoords
-   .. Compressor.PyTree.compressFields
-   .. Compressor.PyTree.compressCellN
-   .. Compressor.PyTree.uncompressAll
+**-- CGNS Zones/tree compression**
+
+.. autosummary::
+
+   Compressor.PyTree.compressCartesian
+   Compressor.PyTree.uncompressCartesian
+   Compressor.PyTree.compressCellN
+   Compressor.PyTree.compressCoords
+   Compressor.PyTree.compressFields
+   Compressor.PyTree.uncompressAll
 
 Contents
 ########
@@ -106,6 +110,116 @@ Object serialize/compression
 
     .. literalinclude:: ../build/Examples/Compressor/unpack.py
 
+
+---------------------------------------
+
+
+.. py:function:: Compressor.PyTree.compressCartesian(a)
+
+    Compress zones if they are regular Cartesian grids. Create a
+    CaresianData node containing the 6 floats
+    corresponding to first point and steps in 3 directions.
+
+    Exists also as an in-place version (_compressCartesian) which modifies a and returns None.
+
+    :param a: input data
+    :type a: [zone, list of zones, base, pyTree]
+    :return: identical to input
+
+    * `Cartesian compression (pyTree) <Examples/Compressor/compressCartesianPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Compressor/compressCartesianPT.py
+
+---------------------------------------
+
+.. py:function:: Compressor.PyTree.uncompressCartesian(a)
+
+    Uncompress zones that has been compressed with compressCartesian.
+    Exists also as an in-place version (_uncompressCartesian) which modifies a and returns None.
+
+    :param a: input data
+    :type a: [zone, list of zones, base, pyTree]
+    :return: identical to input
+
+    * `Cartesian compression (pyTree) <Examples/Compressor/uncompressCartesianPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Compressor/uncompressCartesianPT.py
+
+
+---------------------------------------
+
+
+.. py:function:: Compressor.PyTree.compressCellN(a)
+
+    Compress cellN fields (valued 0,1,2).
+
+    Exists also as an in-place version (_compressCellN) which modifies a and returns None.
+
+    :param a: input data
+    :type a: [zone, list of zones, base, pyTree]
+    :return: identical to input
+
+    * `CellN compression (pyTree) <Examples/Compressor/compressCellNPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Compressor/compressCellNPT.py
+
+
+
+---------------------------------------
+
+
+.. py:function:: Compressor.PyTree.compressCoords(a, tol=1.e-8)
+
+    Compress zone coordinates with sz library with a relative tolerance tol.
+
+    Exists also as an in-place version (_compressCoords) which modifies a and returns None.
+
+    :param a: input data
+    :type a: [zone, list of zones, base, pyTree]
+    :param tol: control relative error on output
+    :type tol: float
+    :return: identical to input
+
+    * `Coordinates compression (pyTree) <Examples/Compressor/compressCoordsPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Compressor/compressCoordsPT.py
+
+
+---------------------------------------
+
+.. py:function:: Compressor.PyTree.compressFields(a, tol=1.e-8)
+
+    Compress zone fields with sz library with a relative tolerance tol.
+
+    Exists also as an in-place version (_compressFields) which modifies a and returns None.
+
+    :param a: input data
+    :type a: [zone, list of zones, base, pyTree]
+    :param tol: control relative error on output
+    :type tol: float
+    :return: identical to input
+
+    * `Field compression (pyTree) <Examples/Compressor/compressFieldsPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Compressor/compressFieldsPT.py
+
+---------------------------------------
+
+
+
+.. py:function:: Compressor.PyTree.uncompressAll(a, tol=1.e-8)
+
+    Uncompress zones compressed with the previous compressors.
+
+    Exists also as an in-place version (_uncompressAll) which modifies a and returns None.
+
+    :param a: input data
+    :type a: [zone, list of zones, base, pyTree]
+    :return: identical to input
+
+    * `Zone decompression (pyTree) <Examples/Compressor/uncompressAllPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Compressor/uncompressAllPT.py
 
 ---------------------------------------
 
