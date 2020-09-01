@@ -375,13 +375,12 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
             vertex = (*cnp)(i, nv);
             selected1[vertex-1] = 1;
           }
-	  // champs en centres
-	  for (E_Int k = 1; k <= nfldC; k++)
-	  {
-	      fcenter(ii,k) = fcenter0(i,k); 
-	  }
-	  ii++;
-	  
+	       // champs en centres
+	       for (E_Int k = 1; k <= nfldC; k++)
+	       {
+	         fcenter(ii,k) = fcenter0(i,k); 
+	       }
+	       ii++;
         }
       }    
     }
@@ -607,11 +606,8 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
           for (E_Int n = 1; n <= nbfaces; n++) cn2p[n] = cnEFp[n];
           size2 += nbfaces; cn2p += nbfaces+1; next++;
 	  
-	  for (E_Int k = 1; k <= nfldC; k++)
-	       fcenter(ii,k) = fcenter0(i,k);
-	  ii++;
-	  
-	  
+	        for (E_Int k = 1; k <= nfldC; k++) fcenter(ii,k) = fcenter0(i,k);
+	        ii++;
         }
         cnEFp += nbfaces+1; 
       } 

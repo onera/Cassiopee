@@ -30,7 +30,7 @@ py_cellN_compress(PyObject *self, PyObject *args)
     }
 
     PyObject *compressed_list = PyList_New(np_arrays.size());
-    for ( int i = 0; i < np_arrays.size(); ++i )
+    for ( size_t i = 0; i < np_arrays.size(); ++i )
     {
         //= On récupère un tableau numpy et ses dimensions et sa taille
         PyArrayObject* an_array = np_arrays[i];
@@ -164,10 +164,9 @@ py_cellN_uncompress(PyObject *self, PyObject *args)
 
     PyObject *lst_out_arrays;
     lst_out_arrays = PyList_New(np_cpr_arrays.size());
-    for (Py_ssize_t i = 0; i < np_cpr_arrays.size(); ++i) {
+    for (size_t i = 0; i < np_cpr_arrays.size(); ++i) {
         npy_intp  dims[5];
         int       ndim;
-        PyObject *shp;
         ndim = shape_arrays[i].size();
         for (int j = 0; j < ndim; ++j) { 
             dims[j] = shape_arrays[i][j]; 
@@ -175,7 +174,7 @@ py_cellN_uncompress(PyObject *self, PyObject *args)
         PyArrayObject *py_array      = (PyArrayObject *)PyArray_SimpleNew(ndim, dims, NPY_DOUBLE);
         double *py_array_data = (double *)PyArray_DATA(py_array);
         std::size_t    cpr_length    = PyArray_SIZE(np_cpr_arrays[i]);
-        std::size_t    array_length  = PyArray_SIZE(py_array);
+        //std::size_t    array_length  = PyArray_SIZE(py_array);
         std::uint8_t *cpr_data = (std::uint8_t *)PyArray_DATA(np_cpr_arrays[i]);
 #       pragma omp parallel for        
         for ( std::size_t ibyte = 0; ibyte < cpr_length-1; ++ibyte)

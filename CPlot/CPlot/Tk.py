@@ -1251,10 +1251,19 @@ def varsFromWidget(varString, type=0):
     elif type == 3: # indices
         s = stt__(varString, mode=1)
         ret = []
-        from ast import literal_eval
+        
+        #from ast import literal_eval
+        #for i in s:
+        #    try: val = literal_eval(i); ret.append(val)
+        #    except: ret.append(0)
+        
         for i in s:
-            try: val = literal_eval(i); ret.append(val)
+            try: 
+              val = eval(i)
+              if isinstance(val, list): ret += val
+              else: ret.append(val)
             except: ret.append(0)
+            
         return ret
     return []
 
