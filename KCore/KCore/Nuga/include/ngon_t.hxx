@@ -2906,20 +2906,60 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
   
  
   /// Clean superfluous nodes
-  static void simplify_pgs (ngon_t& ng, const K_FLD::FloatArray& crd)
+  static void simplify_pgs (ngon_t& ng, const K_FLD::FloatArray& crd, bool process_externals = true)
   {
     Vector_t<bool> man_nodes;
 
     flag_manifold_nodes(ng.PGs, crd, man_nodes);
 
+    // unflag external nodes
+    if (!process_externals)
+    {
+      //std::cout << "unflag external nodes" << std::endl;
+      ng.PHs._type.clear();
+      ng.PGs._type.clear();
+      ng.flag_externals(1);
+
+      for (E_Int i = 0; i < ng.PGs.size(); ++i)
+      {
+        if (ng.PGs._type[i] != 1) continue;
+        
+        E_Int nnodes = ng.PGs.stride(i);
+        const E_Int* nodes = ng.PGs.get_facets_ptr(i);
+
+        for (E_Int j=0; j < nnodes; ++j)
+        {
+          E_Int Ni = nodes[j] - 1;
+          man_nodes[Ni] = false; //reset
+        }
+      }
+    }
+
+#ifdef DEBUG_NGON_T
+    E_Int count{0};
+#endif
     Vector_t<E_Int> pgnids, node_ids(crd.cols());//0-based ids
     for (E_Int i = 0; i < crd.cols(); ++i)
     {
       node_ids[i] = (man_nodes[i]) ? IDX_NONE : i;
-      //std::cout << "manifold ? : " << man_nodes[i] << " . so new va lis : " << node_ids[i] << std::endl;
+      //std::cout << "manifold ? : " << man_nodes[i] << " . so new val is : " << node_ids[i] << std::endl;
+#ifdef DEBUG_NGON_T
+      if (node_ids[i] == IDX_NONE)++count;
+#endif
     }
 
+#ifdef DEBUG_NGON_T
+    std::cout << " nb of removed nodes : " << count << std::endl;
+
+    count=0;
+    for (size_t u=0; u < ng.PGs.size(); ++u)
+      count += ng.PGs.stride(u);
+
+    std::cout << "cumulated stride before cleaning : " << count << std::endl;
+#endif
+
     E_Int nb_remove = ng.PGs.remove_facets(node_ids, pgnids, 2);//a surface must have at least 3 nodes
+
     if (nb_remove) //update PHs accordingly
     {
       Vector_t<E_Int> phnids;
@@ -2927,6 +2967,14 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
       ng.PHs.remove_facets(pgnids, phnids);
       //std::cout << "nb PG removed : " << nb_remove << std::endl;
     }
+
+#ifdef DEBUG_NGON_T 
+    count=0;
+    for (size_t u=0; u < ng.PGs.size(); ++u)
+      count += ng.PGs.stride(u);
+
+    std::cout << "cumulated stride after cleaning : " << count << std::endl;
+#endif
   }
   
   ///

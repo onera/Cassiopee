@@ -190,7 +190,7 @@ void ZoneExtractor<Coordinate_t, Connectivity_t>::getInBox_omp
 {
   is_in.clear();
   
-  size_t sz = cnt.size();
+  E_Int sz = cnt.size();
   
   K_SEARCH::BoundingBox<DIM> BB(mB, MB);
   
@@ -200,7 +200,7 @@ void ZoneExtractor<Coordinate_t, Connectivity_t>::getInBox_omp
   is_in.resize(sz);
   
 #pragma omp parallel for private(e,s) 
-  for (size_t i = 0; i < sz; ++i)
+  for (E_Int i = 0; i < sz; ++i)
   {
     s = cnt.stride(i);
     e.reserve(1, s);

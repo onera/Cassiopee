@@ -166,7 +166,7 @@ namespace NUGA
 #endif
 
     // clean superfluous nodes
-    ngon_type::simplify_pgs(ngo, crd);
+    ngon_type::simplify_pgs(ngo, crd, process_externals);
   }
 
 //  template<typename TriangulatorType>
