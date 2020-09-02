@@ -53,7 +53,7 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
     return NULL;
   }
 
- // Extract arrayCenters 
+  // Extract arrayCenters 
   char* varStringC; char* eltTypeC;
   FldArrayF* fC; FldArrayI* cnpC;
   E_Int resC, niC, njC, nkC;
@@ -329,9 +329,8 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
     FldArrayF* foutC    = new FldArrayF(*fC);
     FldArrayF& fcenter  = *foutC; 
     FldArrayF& fcenter0 = *fC; 
-    E_Int ii            = 0 ;
+    E_Int ii            = 0;
    
-    
     if (strict == 0) // cell selectionnee des qu'un sommet est tag=1
     {
       for (E_Int i = 0; i < csize; i++)
@@ -346,13 +345,12 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
               vertex = (*cnp)(i, nv);
               selected1[vertex-1] = 1;
             }
-	    // champs en centres
-	    for (E_Int k = 1; k <= nfldC; k++)
-	    {
-	    	  fcenter(ii,k) = fcenter0(i,k); 
-	    }
-	    ii++;
-	    	    
+	          // champs en centres
+            for (E_Int k = 1; k <= nfldC; k++)
+            {
+              fcenter(ii,k) = fcenter0(i,k); 
+            }
+            ii++;
             break; 
           }
         }
@@ -449,7 +447,7 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
         K_CONNECT::cleanConnectivity(posx, posy, posz, 1.e-10, eltType, *an, *acn);
     }
     tpl  = K_ARRAY::buildArray(*an,    varString,  *acn, elt, eltType);
-    tplc = K_ARRAY::buildArray(*foutC, varStringC, *acn, elt, eltType);
+    tplc = K_ARRAY::buildArray(*foutC, varStringC, *acn, elt, eltTypeC);
     
     delete foutC ; 
     delete an; delete acn;
@@ -631,12 +629,14 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
     // close
     if (posx > 0 && posy > 0 && posz > 0)
       K_CONNECT::cleanConnectivityNGon(posx, posy, posz, 1.e-10, *fout, *cout);
-    tpl  = K_ARRAY::buildArray(*fout,   varString,  *cout, 8);
+    tpl  = K_ARRAY::buildArray(*fout,   varString, *cout, 8);
     tplc = K_ARRAY::buildArray(*foutC, varStringC, *cout, 8);
     
     delete fout; delete cout;
   }
+
   RELEASESHAREDB(res, arrayNodes, f, cnp);
+  RELEASESHAREDB(resC, arrayCenters, fC, cnpC);
 
   PyObject* l = PyList_New(0);
   PyList_Append(l,tpl) ; Py_DECREF(tpl);
@@ -740,16 +740,6 @@ PyObject* K_POST::selectCells3(PyObject* self, PyObject* args)
   else { RELEASESHAREDN(tag, f2); }
   return o;
 }
-
-
-
-
-
-
-
-
-
-
 
 //=============================================================================
 /* Selectionne les cellules taggees d'un array */

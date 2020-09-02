@@ -264,14 +264,16 @@ def _uncompressCartesian(t):
 
 def _packNode(node, tol=1.e-8, ctype=0):
     if ctype == 0: # sz
-        import Compressor.sz as sz
+        #import Compressor.sz as sz
+        from . import sz
         ret = sz.pack(node[1], {'relBoundRatio':tol})
         #ret = sz.pack(n, {'absErrBound':tol, 'errorBoundMode':2})
         shape = [0]+list(ret[0])
         node[1] = ret[1]
         Internal._createUniqueChild(node, 'ZData', 'DataArray_t', value=shape)
     elif ctype == 1: # zfp
-        import Compressor.zfp as zfp
+        #import Compressor.zfp as zfp
+        from . import zfp
         ret = zfp.pack(n, reversible=False, accuracy=tol)
         shape = [1]+list(ret[0])
         node[1] = ret[1]
@@ -292,12 +294,14 @@ def _unpackNode(node):
         shape = [int(i) for i in shape]
         shape = tuple(shape)
         if ctype == 0:
-            import Compressor.sz as sz
+            #import Compressor.sz as sz
+            from . import sz
             ret = sz.unpack((shape,node[1]), {})
             node[1] = ret
             Internal._rmNodesFromName1(node, 'ZData')
         elif ctype == 1:
-            import Compressor.zfp as zfp
+            #import Compressor.zfp as zfp
+            from . import zfp
             ret = zfp.unpack((shape,node[1]), {})
             node[1] = ret
             Internal._rmNodesFromName1(node, 'ZData')
@@ -309,7 +313,7 @@ def _unpackNode(node):
 # compressFields of zones
 def _compressCoords(t, tol=1.e-8):
     """Compress coordinates with a relative tolerance."""
-    import Compressor.sz as sz
+    from . import sz
     zones = Internal.getZones(t)
     for z in zones:
         GC = Internal.getNodesFromType1(z, 'GridCoordinates_t')
@@ -362,7 +366,8 @@ def compressCellN(t):
 # uncompressFields of zones (si ZData est trouve dans le noeud DataArray_t)
 def _uncompressAll(t):
     """Uncompress all compressed data."""
-    import Compressor.sz as sz
+    #import Compressor.sz as sz
+    from . import sz
     zones = Internal.getZones(t)
     for z in zones:
         GC = Internal.getNodesFromType1(z, 'GridCoordinates_t')

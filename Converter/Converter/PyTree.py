@@ -5854,7 +5854,7 @@ def addState2Node2__(t, ntype, state, value):
   elif ntype == 4: # add to base
     addState2Node__(t, state, value)
   elif ntype == 5: # add to all bases
-    for b in tp: addState2Node__(b, state, value)
+    for b in t: addState2Node__(b, state, value)
   else: addState2Node__(t, state, value) # direct to node
 
 # Ajoute un noeud state/value au noeud a (in place)

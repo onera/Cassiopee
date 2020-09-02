@@ -24,6 +24,8 @@ Dist.writeSetupCfg()
 (OCEPresent, OCEIncDir, OCELibDir) = Dist.checkOCE(additionalLibPaths, 
                                                    additionalIncludePaths)
 
+if not OCEPresent: os._exit(0)
+
 # Compilation des fortrans ===================================================
 prod = os.getenv("ELSAPROD")
 if prod is None: prod = 'xx'

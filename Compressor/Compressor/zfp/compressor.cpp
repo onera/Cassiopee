@@ -106,10 +106,10 @@ py_compress(PyObject *self, PyObject *args, PyObject *kwd)
             free(buffer);
             return NULL;
         }
-        std::cout << "buffer : ";
-        for ( int ii = 0; ii < bufsize; ii++)
-            std::cout << int(((char*)buffer)[ii]) << " ";
-        std::cout << std::endl;
+        //std::cout << "buffer : ";
+        //for ( int ii = 0; ii < bufsize; ii++)
+        //    std::cout << int(((char*)buffer)[ii]) << " ";
+        //std::cout << std::endl;
         npy_intp cprsize = zfpsize;
         PyObject *shape = PyTuple_New(ndims);
         for (int i = 0; i < ndims; ++i) PyTuple_SET_ITEM(shape, i, PyLong_FromLong(long(dims[i])));
@@ -128,8 +128,8 @@ py_compress(PyObject *self, PyObject *args, PyObject *kwd)
         PyObject *array = PyList_GetItem(compressed_list, 0);
         Py_INCREF(array);
         Py_DECREF(compressed_list);
-        std::cout << "ref(array) : " << Py_REFCNT(array) << ", ref(compressed_list) : "
-                  << Py_REFCNT(compressed_list) << std::endl;
+        //std::cout << "ref(array) : " << Py_REFCNT(array) << ", ref(compressed_list) : "
+        //          << Py_REFCNT(compressed_list) << std::endl;
         return array;
     }
     return compressed_list;
@@ -263,10 +263,10 @@ py_decompress(PyObject *self, PyObject *args, PyObject* kwd)
         /* allocate buffer for compressed data */
         bufsize = PyArray_Size((PyObject*)array);
         buffer = PyArray_DATA(array);
-        std::cout << "array compresse : ";
-        for ( int ii = 0; ii < bufsize; ii++)
-            std::cout << int(((char*)buffer)[ii]) << " ";
-        std::cout << std::endl;
+        //std::cout << "array compresse : ";
+        //for ( int ii = 0; ii < bufsize; ii++)
+        //    std::cout << int(((char*)buffer)[ii]) << " ";
+        //std::cout << std::endl;
         /* associate bit stream with allocated buffer */
         stream = stream_open(buffer, bufsize);
         zfp_stream_set_bit_stream(zfp, stream);
@@ -276,10 +276,10 @@ py_decompress(PyObject *self, PyObject *args, PyObject* kwd)
             PyErr_SetString(PyExc_RuntimeError, "Failed to decompress data for an array !");
             return NULL;
         }
-        std::cout << "array : " << std::endl;
-        for ( int ii = 0; ii < dims[0]; ++ii )
-            std::cout << ((double*)py_array_data)[ii] << " ";
-        std::cout << std::flush << std::endl;
+        //std::cout << "array : " << std::endl;
+        //for ( int ii = 0; ii < dims[0]; ++ii )
+        //    std::cout << ((double*)py_array_data)[ii] << " ";
+        //std::cout << std::flush << std::endl;
         zfp_field_free(field);
         zfp_stream_close(zfp);
         stream_close(stream);
@@ -335,7 +335,7 @@ PyInit_czfp(void)
 PyMODINIT_FUNC
 initczfp(void)
 {
-    PyObject* m = Py_InitModule3("czfp", NULL, module_doc);
+    PyObject* m = Py_InitModule3("czfp", Pycompressor_zfp, module_doc);
     if (m == NULL) return;
     /* Tres important : initialise numpy afin de pouvoir l'utiliser ici !!!! */
     import_array();
