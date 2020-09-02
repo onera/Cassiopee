@@ -106,7 +106,7 @@ unsigned int optimize_intervals_double_1D_pwr(double *oriData, size_t dataLength
 {	
 	size_t i = 0, j = 0;
 	double realPrecision = pwrErrBound[j++];	
-	unsigned long radiusIndex;
+	uint64_t radiusIndex;
 	double pred_value = 0, pred_err;
 	int *intervals = (int*)malloc(confparams_cpr->maxRangeRadius*sizeof(int));
 	memset(intervals, 0, confparams_cpr->maxRangeRadius*sizeof(int));
@@ -120,7 +120,7 @@ unsigned int optimize_intervals_double_1D_pwr(double *oriData, size_t dataLength
 			//pred_value = 2*oriData[i-1] - oriData[i-2];
 			pred_value = oriData[i-1];
 			pred_err = fabs(pred_value - oriData[i]);
-			radiusIndex = (unsigned long)((pred_err/realPrecision+1)/2);
+			radiusIndex = (uint64_t)((pred_err/realPrecision+1)/2);
 			if(radiusIndex>=confparams_cpr->maxRangeRadius)
 				radiusIndex = confparams_cpr->maxRangeRadius - 1;			
 			intervals[radiusIndex]++;
@@ -283,7 +283,7 @@ unsigned int optimize_intervals_double_2D_pwr(double *oriData, size_t r1, size_t
 {	
 	size_t i = 0,j = 0, index, I=0, J=0;
 	double realPrecision = pwrErrBound[0];	
-	unsigned long radiusIndex;
+	uint64_t radiusIndex;
 	double pred_value = 0, pred_err;
 	int *intervals = (int*)malloc(confparams_cpr->maxRangeRadius*sizeof(int));
 	memset(intervals, 0, confparams_cpr->maxRangeRadius*sizeof(int));
@@ -308,7 +308,7 @@ unsigned int optimize_intervals_double_2D_pwr(double *oriData, size_t r1, size_t
 				realPrecision = pwrErrBound[I*R2+J];
 				pred_value = oriData[index-1] + oriData[index-r2] - oriData[index-r2-1];
 				pred_err = fabs(pred_value - oriData[index]);
-				radiusIndex = (unsigned long)((pred_err/realPrecision+1)/2);
+				radiusIndex = (uint64_t)((pred_err/realPrecision+1)/2);
 				if(radiusIndex>=confparams_cpr->maxRangeRadius)
 					radiusIndex = confparams_cpr->maxRangeRadius - 1;
 				intervals[radiusIndex]++;
@@ -473,7 +473,7 @@ unsigned int optimize_intervals_double_3D_pwr(double *oriData, size_t r1, size_t
 {	
 	size_t i,j,k, ir,jr,index, I = 0,J=0,K=0;
 	double realPrecision = pwrErrBound[0];		
-	unsigned long radiusIndex;
+	uint64_t radiusIndex;
 	size_t r23=r2*r3;
 	size_t R23 = R2*R3;
 	double pred_value = 0, pred_err;
@@ -507,7 +507,7 @@ unsigned int optimize_intervals_double_3D_pwr(double *oriData, size_t r1, size_t
 					pred_value = oriData[index-1] + oriData[index-r3] + oriData[index-r23] 
 					- oriData[index-1-r23] - oriData[index-r3-1] - oriData[index-r3-r23] + oriData[index-r3-r23-1];
 					pred_err = fabs(pred_value - oriData[index]);
-					radiusIndex = (unsigned long)((pred_err/realPrecision+1)/2);
+					radiusIndex = (uint64_t)((pred_err/realPrecision+1)/2);
 					if(radiusIndex>=confparams_cpr->maxRangeRadius)
 						radiusIndex = confparams_cpr->maxRangeRadius - 1;
 					intervals[radiusIndex]++;
@@ -1819,7 +1819,7 @@ void SZ_compress_args_double_NoCkRngeNoGzip_1D_pwr_pre_log(unsigned char** newBy
     if(!positive){
 	    unsigned char * comp_signs;
 		// compress signs
-		unsigned long signSize = sz_lossless_compress(ZSTD_COMPRESSOR, 3, signs, dataLength, &comp_signs);
+		uint64_t signSize = sz_lossless_compress(ZSTD_COMPRESSOR, 3, signs, dataLength, &comp_signs);
 		tdps->pwrErrBoundBytes = comp_signs;
 		tdps->pwrErrBoundBytes_size = signSize;
 	}
@@ -1881,7 +1881,7 @@ void SZ_compress_args_double_NoCkRngeNoGzip_2D_pwr_pre_log(unsigned char** newBy
     if(!positive){
 	    unsigned char * comp_signs;
 		// compress signs
-		unsigned long signSize = sz_lossless_compress(ZSTD_COMPRESSOR, 3, signs, dataLength, &comp_signs);
+		uint64_t signSize = sz_lossless_compress(ZSTD_COMPRESSOR, 3, signs, dataLength, &comp_signs);
 		tdps->pwrErrBoundBytes = comp_signs;
 		tdps->pwrErrBoundBytes_size = signSize;
 	}
@@ -1942,7 +1942,7 @@ void SZ_compress_args_double_NoCkRngeNoGzip_3D_pwr_pre_log(unsigned char** newBy
     if(!positive){
 	    unsigned char * comp_signs;
 		// compress signs
-		unsigned long signSize = sz_lossless_compress(ZSTD_COMPRESSOR, 3, signs, dataLength, &comp_signs);
+		uint64_t signSize = sz_lossless_compress(ZSTD_COMPRESSOR, 3, signs, dataLength, &comp_signs);
 		tdps->pwrErrBoundBytes = comp_signs;
 		tdps->pwrErrBoundBytes_size = signSize;
 	}
@@ -1975,7 +1975,7 @@ void SZ_compress_args_double_NoCkRngeNoGzip_1D_pwr_pre_log_MSST19(unsigned char*
 	if(!(*positive)){
 		unsigned char * comp_signs;
 		// compress signs
-		unsigned long signSize = sz_lossless_compress(ZSTD_COMPRESSOR, 3, signs, dataLength, &comp_signs);
+		uint64_t signSize = sz_lossless_compress(ZSTD_COMPRESSOR, 3, signs, dataLength, &comp_signs);
 		tdps->pwrErrBoundBytes = comp_signs;
 		tdps->pwrErrBoundBytes_size = signSize;
 	}
@@ -2012,7 +2012,7 @@ void SZ_compress_args_double_NoCkRngeNoGzip_2D_pwr_pre_log_MSST19(unsigned char*
     if(!*positive){
 	    unsigned char * comp_signs;
 		// compress signs
-		unsigned long signSize = sz_lossless_compress(confparams_cpr->losslessCompressor, confparams_cpr->gzipMode, signs, dataLength, &comp_signs);
+		uint64_t signSize = sz_lossless_compress(confparams_cpr->losslessCompressor, confparams_cpr->gzipMode, signs, dataLength, &comp_signs);
 		tdps->pwrErrBoundBytes = comp_signs;
 		tdps->pwrErrBoundBytes_size = signSize;
 	}
@@ -2048,7 +2048,7 @@ void SZ_compress_args_double_NoCkRngeNoGzip_3D_pwr_pre_log_MSST19(unsigned char*
 	if(!*positive){
 		unsigned char * comp_signs;
 		// compress signs
-		unsigned long signSize = sz_lossless_compress(confparams_cpr->losslessCompressor, confparams_cpr->gzipMode, signs, dataLength, &comp_signs);
+		uint64_t signSize = sz_lossless_compress(confparams_cpr->losslessCompressor, confparams_cpr->gzipMode, signs, dataLength, &comp_signs);
 		tdps->pwrErrBoundBytes = comp_signs;
 		tdps->pwrErrBoundBytes_size = signSize;
 	}

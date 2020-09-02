@@ -9,7 +9,6 @@
 namespace sz {
 enum sz_ikeys {
     snapShotCmprStep = 0,
-    dataEndianType,
     withLinearRegression,
     protectValueRange,
     sampleDistance,
@@ -32,7 +31,6 @@ enum sz_ikeys {
 /** Définition des clefs pour SZ
  */
 constexpr std::array<const char *, end_guard> sz_keys = {"snapshotCmprStep",
-                                                         "dataEndianType",
                                                          "withLinearRegression",
                                                          "protectValueRange",
                                                          "sampleDistance",
@@ -54,21 +52,171 @@ constexpr std::array<const char *, end_guard> sz_keys = {"snapshotCmprStep",
 void
 init_parameters(sz_params &parameters)
 {
+    /*sz_params sz;
+    memset(&sz, 0, sizeof(sz_params));
+    sz.sol_ID = SZ;
+    sz.sampleDistance = 100;
+    sz.quantization_intervals = 0;
+    sz.max_quant_intervals = 65536;
+    sz.predThreshold = 0.98;
+    sz.szMode = SZ_BEST_COMPRESSION;
+    sz.losslessCompressor = ZSTD_COMPRESSOR;
+    sz.gzipMode = 1;
+    sz.errorBoundMode = REL;
+    sz.absErrBound = 1E-6;
+    sz.relBoundRatio = 1E-5;
+
+    SZ_Init_Params(&sz);*/
+    memset(&parameters, 0, sizeof(sz_params));
+    parameters.sol_ID = SZ;
+    parameters.protectValueRange      = 1;
+    parameters.sampleDistance         = 100;
     parameters.quantization_intervals = 0;
-    parameters.max_quant_intervals    = 2097152;
-    parameters.sampleDistance                = 50;
-    parameters.predThreshold                 = 0.97;
-    parameters.szMode                        = SZ_BEST_COMPRESSION;
-    parameters.gzipMode                      = Z_BEST_SPEED;
-    parameters.errorBoundMode                = REL;
-    parameters.absErrBound                   = 0.0001;
-    parameters.relBoundRatio                 = 0.001;
-    parameters.psnr                          = 80;
-    parameters.pw_relBoundRatio              = 1.E-5;
-    parameters.protectValueRange             = 1;
-    parameters.accelerate_pw_rel_compression = 0;
-    parameters.randomAccess                  = 0;
-    parameters.withRegression                = 0;
+    parameters.max_quant_intervals    = 65536;
+    parameters.predThreshold          = 0.98;
+    parameters.szMode                 = SZ_BEST_COMPRESSION;
+    parameters.losslessCompressor     = ZSTD_COMPRESSOR;
+    parameters.gzipMode               = 1;//Fastest compression or 19;// <= Best compression for zstd
+    parameters.errorBoundMode         = REL;
+    parameters.absErrBound            = 1.E-6;
+    parameters.relBoundRatio          = 1.E-5;
+}
+
+void display_parameters(const sz_params &params)
+{
+    if(params.sol_ID == SZ)
+        printf("compressor Name:        \t SZ\n");
+    else if(params.sol_ID == SZ_Transpose)
+        printf("compressor Name:        \t SZ_Transpose\n");
+    else
+        printf("compressor Name:        \t Other compressor\n");
+    switch(params.dataType)
+    {
+    case SZ_FLOAT:
+        printf("Data type:                      \t FLOAT\n");
+        printf("min value of raw data:          \t %f\n", params.fmin);
+        printf("max value of raw data:          \t %f\n", params.fmax);        
+        break;
+    case SZ_DOUBLE:
+        printf("Data type:                      \t DOUBLE\n");
+        printf("min value of raw data:          \t %f\n", params.dmin);
+        printf("max value of raw data:          \t %f\n", params.dmax);    
+        break;
+    case SZ_INT8:
+        printf("Data type:                      \t INT8\n");
+        break;  
+    case SZ_INT16:
+        printf("Data type:                      \t INT16\n");
+        break;
+    case SZ_INT32:
+        printf("Data type:                      \t INT32\n");
+        break;  
+    case SZ_INT64:
+        printf("Data type:                      \t INT64\n");
+        break;  
+    case SZ_UINT8:
+        printf("Data type:                      \t UINT8\n");
+        break;  
+    case SZ_UINT16:
+        printf("Data type:                      \t UINT16\n");
+        break;
+    case SZ_UINT32:
+        printf("Data type:                      \t UINT32\n");
+        break;  
+    case SZ_UINT64:
+        printf("Data type:                      \t UINT64\n");
+        break;              
+    }
+        
+    printf("dataEndianType (prior raw data):\t %s\n", dataEndianType==BIG_ENDIAN_DATA?"BIG_ENDIAN":"LITTLE_ENDIAN");
+    printf("sysEndianType (at compression): \t %s\n", sysEndianType==1?"BIG_ENDIAN":"LITTLE_ENDIAN");
+    printf("sampleDistance:                 \t %d\n", params.sampleDistance);
+    printf("predThreshold:                  \t %f\n", params.predThreshold);
+    switch(params.szMode)
+    {
+    case SZ_BEST_SPEED:
+        printf("szMode:                         \t SZ_BEST_SPEED (without Gzip)\n");
+        break;
+    case SZ_BEST_COMPRESSION:
+        printf("szMode:                         \t SZ_BEST_COMPRESSION (with Zstd or Gzip)\n");
+        break;
+    }
+    switch(params.gzipMode)
+    {
+    case Z_BEST_SPEED:
+        printf("gzipMode:                       \t Z_BEST_SPEED\n");
+        break;
+    case Z_DEFAULT_COMPRESSION:
+        printf("gzipMode:                       \t Z_BEST_SPEED\n");
+        break;  
+    case Z_BEST_COMPRESSION:
+        printf("gzipMode:                       \t Z_BEST_COMPRESSION\n");
+        break;
+    }
+    
+    switch(params.errorBoundMode)
+    {
+    case ABS:
+        printf("errBoundMode:                   \t ABS\n");
+        printf("absErrBound:                    \t %g\n", params.absErrBound);
+        break;
+    case REL:
+        printf("errBoundMode:                   \t REL (based on value_range extent)\n");
+        printf("relBoundRatio:                  \t %g\n", params.relBoundRatio);
+        break;
+    case ABS_AND_REL:
+        printf("errBoundMode:                   \t ABS_AND_REL\n");
+        printf("absErrBound:                    \t %g\n", params.absErrBound);
+        printf("relBoundRatio:                  \t %g\n", params.relBoundRatio);
+        break;
+    case ABS_OR_REL:
+        printf("errBoundMode:                   \t ABS_OR_REL\n");
+        printf("absErrBound:                    \t %g\n", params.absErrBound);
+        printf("relBoundRatio:                  \t %g\n", params.relBoundRatio);
+        break;
+    case PSNR:
+        printf("errBoundMode:                   \t PSNR\n");
+        printf("psnr:                           \t %g\n", params.psnr);
+        break;
+    case PW_REL:
+        printf("errBoundMode:                   \t PW_REL\n");
+        break;
+    case ABS_AND_PW_REL:
+        printf("errBoundMode:                   \t ABS_AND_PW_REL\n");
+        printf("absErrBound:                    \t %f\n", params.absErrBound);
+        break;
+    case ABS_OR_PW_REL:
+        printf("errBoundMode:                   \t ABS_OR_PW_REL\n");
+        printf("absErrBound:                    \t %f\n", params.absErrBound);
+        break;
+    case REL_AND_PW_REL:
+        printf("errBoundMode:                   \t REL_AND_PW_REL\n");
+        printf("range_relBoundRatio:            \t %f\n", params.relBoundRatio);
+        break;
+    case REL_OR_PW_REL:
+        printf("errBoundMode:                   \t REL_OR_PW_REL\n");
+        printf("range_relBoundRatio:            \t %f\n", params.relBoundRatio);
+        break;
+    }
+    
+    if(params.errorBoundMode>=PW_REL && params.errorBoundMode<=REL_OR_PW_REL)
+    {
+        printf("pw_relBoundRatio:               \t %f\n", params.pw_relBoundRatio);
+        //printf("segment_size:                   \t %d\n", params.segment_size);
+        switch(params.pwr_type)
+        {
+        case SZ_PWR_MIN_TYPE:
+            printf("pwrType:                    \t SZ_PWR_MIN_TYPE\n");
+            break;
+        case SZ_PWR_AVG_TYPE:
+            printf("pwrType:                    \t SZ_PWR_AVG_TYPE\n");
+            break;
+        case SZ_PWR_MAX_TYPE:
+            printf("pwrType:                    \t SZ_PWR_MAX_TYPE\n");
+            break;
+        }
+    }
+    fflush(stdout);
 }
 
 bool
@@ -196,7 +344,7 @@ set_parameters_from_dictionnary(PyObject *options, sz_params &parameters)
                 PyErr_SetString(PyExc_TypeError, "Waiting a boolean type for withLinearFegression");
                 return false;
             }
-            parameters.withRegression = (PyObject_IsTrue(value) ? 1 : 0);
+            parameters.withRegression = (PyObject_IsTrue(value) ? SZ_WITH_LINEAR_REGRESSION : SZ_NO_REGRESSION );
         }
         else {
             PyErr_SetString(PyExc_Warning, "Key for sz options doesn't exist !");
@@ -382,6 +530,7 @@ py_compress(PyObject *self, PyObject *args)
         PyList_SetItem(compressed_list, ind_list, obj);
         ind_list++;
     }
+    //display_parameters(parameters);
     SZ_Finalize();
     if (!is_list) {
         PyObject *array = PyList_GetItem(compressed_list, 0);
@@ -514,21 +663,22 @@ py_decompress(PyObject *self, PyObject *args)
             if (!is_ok) return NULL;
         }
     }
+    int ok;
     if (filename) {
-        int ok = SZ_Init(filename);
+        //int ok = SZ_Init(filename);
         if (ok == SZ_NSCS) {
             PyErr_SetString(PyExc_RuntimeError, "Failed to initialize SZ librarie ! (Wrong parameters ?)");
             return NULL;
         }
     }
     else {
-        int ok = SZ_Init_Params(&parameters);
+        //int ok = SZ_Init_Params(&parameters);
         if (ok == SZ_NSCS) {
             PyErr_SetString(PyExc_RuntimeError, "Failed to initialize SZ librarie ! (Wrong parameters ?)");
             return NULL;
         }
     }
-
+    //std::cout << "Initialisation SZ fini. Reconstitution des tableaux" << std::flush << std::endl;
     PyObject *lst_out_arrays;
     lst_out_arrays = PyList_New(np_cpr_arrays.size());
     for (size_t i = 0; i < np_cpr_arrays.size(); ++i) {
@@ -536,21 +686,40 @@ py_decompress(PyObject *self, PyObject *args)
         int       ndim;
         ndim = shape_arrays[i].ndims();
         for (int j = 0; j < ndim; ++j) { dims[j] = shape_arrays[i].r[5 - ndim + j]; }
+        for ( int j = ndim; j < 5; ++j) dims[j] = 0;
+        //std::cout << "ndims : " << ndim << ", dims : {";
+        //for ( auto di : dims ) std::cout << di << " ";
+        //std::cout << "}" << std::flush << std::endl;
         PyArrayObject *py_array      = (PyArrayObject *)PyArray_SimpleNew(ndim, dims, NPY_DOUBLE);
         unsigned char *py_array_data = (unsigned char *)PyArray_DATA(py_array);
         std::size_t    cpr_length    = PyArray_SIZE(np_cpr_arrays[i]);
         unsigned char *cpr_data = (unsigned char *)PyArray_DATA(np_cpr_arrays[i]);
+        //std::cout << "Décompression effective" << std::flush << std::endl;
+        //std::cout << "cpr_data : " << (void*)cpr_data << ", cpr_length : " << cpr_length
+        //          << ", py_array_data : " << (void*)py_array_data << ",shape_arrays : "
+        //          << shape_arrays[i].r[0] << ", " << shape_arrays[i].r[1] << ", "
+        //          << shape_arrays[i].r[2] << ", " << shape_arrays[i].r[3] << ", "
+        //          << shape_arrays[i].r[4] << std::flush << std::endl;
         std::size_t    sz_decompressed_array =
             SZ_decompress_args(SZ_DOUBLE, cpr_data, cpr_length, py_array_data, shape_arrays[i].r[0],
                                shape_arrays[i].r[1], shape_arrays[i].r[2], shape_arrays[i].r[3], shape_arrays[i].r[4]);
+        //std::cout << "Fin decompression" << std::flush << std::endl;
+        //for ( int id = 0; id < shape_arrays[i].r[4]; ++id ) std::cout << ((double*)py_array_data)[id] << " ";
+        //std::cout << std::flush << std::endl;
         if (!is_list) {
             SZ_Finalize();
             Py_DecRef(lst_out_arrays);
+            //std::cout << "Nb ref list : " << Py_REFCNT(lst_out_arrays) << std::flush << std::endl;
+            //std::cout << "Nb ref py_array : " << Py_REFCNT(py_array) << std::flush << std::endl;
+            //std::cout << "Retour du tableau décompressé (pas une liste)" << std::flush << std::endl;
             return (PyObject *)py_array;
         }
         PyList_SetItem(lst_out_arrays, i, (PyObject *)py_array);
+        //std::cout << "Nb ref py_array : " << Py_REFCNT(py_array) << std::flush << std::endl;
     }
     SZ_Finalize();
+    //std::cout << "Retour de la liste de tableaux décompressés" << std::flush << std::endl;
+    //std::cout << "Nb ref list : " << Py_REFCNT(lst_out_arrays) << std::flush << std::endl;
     return lst_out_arrays;
 }
 } // namespace sz
@@ -617,7 +786,7 @@ PyInit_csz(void)
 PyMODINIT_FUNC
 initcsz(void)
 {
-    PyObject* m = Py_InitModule3("csz", NULL, module_doc);
+    PyObject* m = Py_InitModule3("csz", Pycompressor_sz, module_doc);
     if (m == NULL) return;
     /* Tres important : initialise numpy afin de pouvoir l'utiliser ici !!!! */
     import_array();

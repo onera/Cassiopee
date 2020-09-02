@@ -17,7 +17,7 @@ uint32_t topIndex;
 int bits;
 
 inline int doubleGetExpo(double d){
-    long* ptr = (long*)&d;
+    int64_t* ptr = (int64_t*)&d;
     *ptr = ((*ptr) >> 52) - 1023;
     return *ptr;
 }

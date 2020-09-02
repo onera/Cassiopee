@@ -13,7 +13,7 @@ void exafelSZ_params_process(exafelSZ_params*pr, size_t panels, size_t rows, siz
 
 void exafelSZ_params_checkDecomp(exafelSZ_params*pr, size_t panels, size_t rows, size_t cols){
   if(pr->calibPanel==NULL){
-    printf("ERROR: calibPanel is NULL : calibPanel=%ld\n",(long)pr->calibPanel);
+    printf("ERROR: calibPanel is NULL : calibPanel=%lld\n",(int64_t)pr->calibPanel);
     assert(0);
   }
   if(pr->binSize<1 || pr->tolerance<0 || pr->szDim<1 || pr->szDim>3){
@@ -39,7 +39,7 @@ void exafelSZ_params_checkDecomp(exafelSZ_params*pr, size_t panels, size_t rows,
 
 void exafelSZ_params_checkComp(exafelSZ_params*pr, size_t panels, size_t rows, size_t cols){
   if(pr->peaks==NULL){
-    printf("ERROR: peaks is NULL : peaks=%ld\n",(long)pr->peaks);
+    printf("ERROR: peaks is NULL : peaks=%lld\n",(int64_t)pr->peaks);
     assert(0);
   }
   exafelSZ_params_checkDecomp(pr, panels, rows, cols);
@@ -312,7 +312,7 @@ unsigned char * exafelSZ_Compress(void* _pr,
   //printf("bytePos=%d\n",bytePos);
   
   if(bytePos!=(*compressedSize)){
-    printf("ERROR: bytePos = %ld != %ld = compressedSize\n",(long)bytePos,(long)compressedSize);
+    printf("ERROR: bytePos = %lld != %lld = compressedSize\n",(int64_t)bytePos,(int64_t)compressedSize);
     assert(0);
   }
   
@@ -411,7 +411,7 @@ void* exafelSZ_Decompress(void *_pr,
         for(c=0;c<cols;c++){ //Column
           if(calcIdx_2D(r,c,cols)<0 ||calcIdx_2D(r,c,cols)>=rows*cols){
             printf("ERROR: calcIdx_2D(r,c,cols) = calcIdx_2D(%d,%d,%d) = %d",(int)r,(int)c,(int)cols,(int)calcIdx_2D(r,c,cols));
-            printf("       is NOT in the correct range: [0,%ld]",(int)rows*cols-1);
+            printf("       is NOT in the correct range: [0,%lld]",(int64_t)rows*cols-1);
             assert(0);
           }
           if(calcIdx_4D(e,p,r,c,panels,rows,cols)<0 ||calcIdx_4D(e,p,r,c,panels,rows,cols)>=nEvents*panels*rows*cols){

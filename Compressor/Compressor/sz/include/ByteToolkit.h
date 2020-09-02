@@ -15,16 +15,17 @@ extern "C" {
 #endif
 
 #include <stdio.h>
+#include <stdint.h>
 
 //ByteToolkit.c
 
 unsigned short bytesToUInt16_bigEndian(unsigned char* bytes);
 unsigned int bytesToUInt32_bigEndian(unsigned char* bytes);
-unsigned long bytesToUInt64_bigEndian(unsigned char* b);
+uint64_t bytesToUInt64_bigEndian(unsigned char* b);
 
 short bytesToInt16_bigEndian(unsigned char* bytes);
 int bytesToInt32_bigEndian(unsigned char* bytes);
-long bytesToInt64_bigEndian(unsigned char* b);
+int64_t bytesToInt64_bigEndian(unsigned char* b);
 int bytesToInt_bigEndian(unsigned char* bytes);
 
 void intToBytes_bigEndian(unsigned char *b, unsigned int num);
@@ -33,22 +34,22 @@ void int64ToBytes_bigEndian(unsigned char *b, uint64_t num);
 void int32ToBytes_bigEndian(unsigned char *b, uint32_t num);
 void int16ToBytes_bigEndian(unsigned char *b, uint16_t num);
 
-long bytesToLong_bigEndian(unsigned char* b);
-void longToBytes_bigEndian(unsigned char *b, unsigned long num);
-long doubleToOSEndianLong(double value);
+int64_t bytesToLong_bigEndian(unsigned char* b);
+void longToBytes_bigEndian(unsigned char *b, uint64_t num);
+int64_t doubleToOSEndianLong(double value);
 int floatToOSEndianInt(float value);
 short getExponent_float(float value);
 short getPrecisionReqLength_float(float precision);
 short getExponent_double(double value);
 short getPrecisionReqLength_double(double precision);
 unsigned char numberOfLeadingZeros_Int(int i);
-unsigned char numberOfLeadingZeros_Long(long i);
+unsigned char numberOfLeadingZeros_Long(int64_t i);
 unsigned char getLeadingNumbers_Int(int v1, int v2);
-unsigned char getLeadingNumbers_Long(long v1, long v2);
+unsigned char getLeadingNumbers_Long(int64_t v1, int64_t v2);
 short bytesToShort(unsigned char* bytes);
 void shortToBytes(unsigned char* b, short value);
 int bytesToInt(unsigned char* bytes);
-long bytesToLong(unsigned char* bytes);
+int64_t bytesToLong(unsigned char* bytes);
 float bytesToFloat(unsigned char* bytes);
 void floatToBytes(unsigned char *b, float num);
 double bytesToDouble(unsigned char* bytes);

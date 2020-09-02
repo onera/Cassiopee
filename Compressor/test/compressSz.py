@@ -7,8 +7,8 @@ print(64*a.size)
 print(a)
 
 za = sz.pack(a, {'relBoundRatio':1.e-8})
-#print(za[1].size)
-print(za)
+print(za[1].size)
+#print(za)
 
 b = sz.unpack(za, {'relBoundRatio':1.e-8})
 print(b)
