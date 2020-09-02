@@ -415,6 +415,10 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
                     nozc = dictOfNozOfDnrZones[znamed]
                     zdnr = tc[2][nobc][2][nozc]
                     adt = dictOfADT[znamed]
+                    if adt is None: 
+                        interpDataType = 0
+                    else:
+                        interpDataType = 1
                     #if znamed in dictOfMotionMatA2R:
                     #    MatAbs2RelD = dictOfMotionMatA2R[znamed]
                     #else:                        
@@ -434,7 +438,9 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
                     GC1 = Internal.getNodeFromName1(zdnr, 'GridCoordinates')
                     GC2 = Internal.getNodeFromName1(zdnr, 'GridCoordinates#Init')
                     T = GC1[2]; GC1[2] = GC2[2]; GC2[2] = T                    
-                    fields = X.transferFields(zdnr, XIRel, YIRel, ZIRel, hook=adt, variables=variables)
+                    #print(" TRANSFERTS LOCAUX : ", z[0], zdnr[0], interpDataType)
+
+                    fields = X.transferFields(zdnr, XIRel, YIRel, ZIRel, hook=adt, variables=variables, interpDataType=interpDataType)
                     # hack par CB
                     T = GC1[2]; GC1[2] = GC2[2]; GC2[2] = T                    
                     
@@ -446,7 +452,7 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
                         dictOfFields[zname].append(fields)
 
                 else:                    
-                    # print ' ECHANGE GLOBAL entre recepteur %s du proc %d et donneur %s du proc %d '%(zname, Cmpi.rank, znamed, procD)
+                    #print(' ECHANGE GLOBAL entre recepteur %s du proc %d et donneur %s du proc %d '%(zname, Cmpi.rank, znamed, procD))
                     if procD not in datas:
                         datas[procD] = [[zname, znamed, indicesI, XI, YI, ZI]]
                     else: datas[procD].append([zname, znamed, indicesI, XI, YI, ZI])
@@ -469,7 +475,10 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
             nozc = dictOfNozOfDnrZones[zdnrname]
             zdnr = tc[2][nobc][2][nozc]
             adt = dictOfADT[zdnrname]
-
+            if adt is None: 
+                interpDataType = 0
+            else:
+                interpDataType = 1
             # if zdnrname in dictOfMotionMatA2R:
             #     MatAbs2RelD=dictOfMotionMatA2R[zdnrname]
             # else:
@@ -487,8 +496,8 @@ def _transfer(t, tc, variables, graph, intersectionDict, dictOfADT,
             # transferts avec coordonnees dans le repere relatif 
             GC1 = Internal.getNodeFromName1(zdnr, 'GridCoordinates')
             GC2 = Internal.getNodeFromName1(zdnr, 'GridCoordinates#Init')
-            T = GC1[2]; GC1[2] = GC2[2]; GC2[2] = T      
-            fields = X.transferFields(zdnr, XIRel, YIRel, ZIRel, hook=adt, variables=variables)
+            T = GC1[2]; GC1[2] = GC2[2]; GC2[2] = T   
+            fields = X.transferFields(zdnr, XIRel, YIRel, ZIRel, hook=adt, variables=variables, interpDataType=interpDataType)
             # hack par CB
             T = GC1[2]; GC1[2] = GC2[2]; GC2[2] = T            
 

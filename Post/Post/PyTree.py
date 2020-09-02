@@ -375,6 +375,7 @@ def selectCells(t, F, varStrings=[], strict=0):
 def selectCells2(t, tagName, strict=0):
     """Select cells in a given array.
     Usage: selectCells2(t, tagName)"""
+    import KCore
     tp = Internal.copyRef(t)
     C._deleteZoneBC__(tp)
     C._deleteGridConnectivity__(tp)
@@ -389,47 +390,51 @@ def selectCells2(t, tagName, strict=0):
             taga = C.getFields(Internal.__FlowSolutionNodes__, z)
             taga = Converter.extractVars(taga, [tagName])[0]
         else:
-            fb   = C.getFields(Internal.__FlowSolutionCenters__, z)
-            taga = Converter.extractVars(fb, [res[1]])[0]
+            fb   = C.getFields(Internal.__FlowSolutionCenters__, z)[0]
+            taga = Converter.extractVars(fb, [res[1]])
             
         fc = C.getFields(Internal.__GridCoordinates__, z)[0]
         fa = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
         
         if loc != 0: # centres
-            fb = Converter.rmVars(fb, res[1])[0]
-            
+            if KCore.isNamePresent(fb,res[1])>-1:
+                if fb[1].shape[0]==1:
+                    fb = None
+                else:
+                    fb = Converter.rmVars(fb, res[1])
+
         if fc != [] and fa != []:
             f = Converter.addVars([fc, fa])
 
-            if fb != [] and fb != None : # il y a des champs en centres
+            if fb != [] and fb is not None : # il y a des champs en centres
                 (fp,fq) = Post.selectCells2(f, taga, fb, strict, loc)
                 C._deleteFlowSolutions__(z, 'centers')
                 C.setFields([fq], z, 'centers')
             else:        # pas de champ en centres 
                 fp = Post.selectCells2(f, taga, [], strict, loc)
-                C._deleteFlowSolutions__(z, 'centers')
-                
+                Internal._rmNodesFromName(z,Internal.__FlowSolutionCenters__)
+
             C.setFields([fp], z, 'nodes')
 
         elif fa != []:
-            if fb != [] and fb != None: # il y a des champs en centres 
+            if fb != [] and fb is not None: # il y a des champs en centres 
                 (fp,fq) = Post.selectCells2(fa, taga, fb, strict, loc)
                 C.setFields([fq], z, 'centers')
             else:        # pas de champ en centres 
                 fp = Post.selectCells2(fa, taga, [], strict, loc)
-                
+                Internal._rmNodesFromName(z,Internal.__FlowSolutionCenters__)
             C.setFields([fp], z, 'nodes')
 
         elif fc != []:
-            if fb != [] and fb != None: # il y a des champs en centres
+            if fb != [] and fb is not None: # il y a des champs en centres
                 (fp,fq) = Post.selectCells2(fc, taga, fb, strict, loc)
                 C.setFields([fq], z, 'centers')
             else:        # pas de champ en centres 
                 fp = Post.selectCells2(fc, taga, [], strict, loc)
-                
+                Internal._rmNodesFromName(z,Internal.__FlowSolutionCenters__)
             C.setFields([fp], z, 'nodes')
-            
     if Internal.isTopTree(tp): C._deleteEmptyZones(tp)
+
     return tp
 
 

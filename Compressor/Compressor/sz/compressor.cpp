@@ -790,10 +790,10 @@ PyMODINIT_FUNC initcsz(void)
     /* Tres important : initialise numpy afin de pouvoir l'utiliser ici !!!! */
     import_array();
 
-    for (const auto &key : sz::sz_keys) {
-        PyObject *py_key = PyString_FromString(key);
-        Py_INCREF(py_key);
-        PyModule_AddObject(m, key, (PyObject *)&py_key);
-    }
+    // for (const auto &key : sz::sz_keys) {
+    //     PyObject *py_key = PyString_FromString(key);
+    //     Py_INCREF(py_key);
+    //     PyModule_AddObject(m, key, (PyObject *)&py_key);
+    // }
 }
 #endif

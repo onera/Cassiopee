@@ -8,6 +8,7 @@ import Converter.Internal as Internal
 import Connector.ToolboxIBM as TIBM
 import Connector.PyTree as X
 import Transform.PyTree as T
+import numpy 
 # Generates in parallel a Cartesian mesh
 # if ext=0, match and nearmatch joins are not computed
 def generateCartMesh(t_case, snears=0.01, dfar=10., dfarList=[], vmin=21, check=False, tbox=None, snearsf=None, ext=2, dimPb=3):
@@ -33,8 +34,13 @@ def generateCartMesh(t_case, snears=0.01, dfar=10., dfarList=[], vmin=21, check=
     # Octree identical on all procs
     test.printMem('>>> Octree unstruct [start]')
     # Build octree
-    o = TIBM.buildOctree(tb, snears=snears, snearFactor=1., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf,
+    o = TIBM.buildOctree(tb, snears=snears, snearFactor=1., dfar=dfar, dfarList=dfarList, to=to,
                          dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=fileout, rank=rank)
+    # addRefinementZones
+    if tbox is not None:
+        o = addRefinementZones(o, tbox, snearsf, vmin=vmin, dim=dimPb)
+  
+  
     # build parent octree 3 levels higher
     # returns a list of 4 octants of the parent octree in 2D and 8 in 3D
     parento = TIBM.buildParentOctrees__(o, tb, snears=snears, snearFactor=4., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, 
@@ -98,6 +104,46 @@ def generateCartMesh(t_case, snears=0.01, dfar=10., dfarList=[], vmin=21, check=
         Cmpi._rmXZones(t)
         C._fillEmptyBCWith(t,"nref","BCFarfield",dim=dimPb)
     return t
+
+def addRefinementZones(o, tbox, snearsf=None, vmin=15, dim=3):
+    boxes = []
+    for b in Internal.getBases(tbox):
+        boxes.append(Internal.getNodesFromType1(b, 'Zone_t'))
+    if not isinstance(snearsf, list): snearsf = len(boxes)*[snearsf]
+    if len(boxes) != len(snearsf):
+        raise ValueError('addRefinementZones: Number of refinement bodies is not equal to the length of snearsf list.')
+    to = C.newPyTree(['Base', o])
+    BM = numpy.ones((1,1),numpy.int32)
+    end = 0
+    G._getVolumeMap(to)
+    volmin0 = C.getMinValue(to, 'centers:vol')
+    # volume minimum au dela duquel on ne peut pas raffiner
+    volmin0 = 1.*volmin0
+    while end == 0:
+        # Do not refine inside obstacles 
+        nob = 0
+        C._initVars(to, 'centers:indicator', 0.)
+        for box in boxes:
+            volmin2 = 1.09*(snearsf[nob]*(vmin-1))**(dim)
+            C._initVars(to,'centers:cellN',1.)
+            to = TIBM.blankByIBCBodies(to, tbox, 'centers', dim)
+            C._initVars(to,'{centers:indicator}=({centers:indicator}>0.)+({centers:indicator}<1.)*logical_and({centers:cellN}<0.001, {centers:vol}>%f)'%volmin2)
+            nob += 1
+
+        end = 1
+        C.convertPyTree2File(to,'octree.cgns')
+        C._initVars(to,'{centers:indicator}={centers:indicator}*({centers:vol}>%g)'%volmin0)
+        print("max value", C.getMaxValue(to, 'centers:indicator'))
+        C.convertPyTree2File(to,'to.cgns')
+        if  C.getMaxValue(to, 'centers:indicator') == 1.: 
+            end = 0
+            # Maintien du niveau de raffinement le plus fin
+            o = Internal.getZones(to)[0]
+            o = G.adaptOctree(o, 'centers:indicator', balancing=2)
+            to[2][1][2] = [o]
+            G._getVolumeMap(to)
+            volminloc = C.getMinValue(to, 'centers:vol')
+    return Internal.getNodeFromType2(to, 'Zone_t')
 
 #====================================================================================
 # Prend les snear dans t, les multiplie par factor
