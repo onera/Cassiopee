@@ -69,7 +69,7 @@ py_compress(PyObject *self, PyObject *args, PyObject *kwd)
         int       ndims = PyArray_NDIM(an_array);
         npy_intp *dims  = PyArray_DIMS(an_array);
         void* data = PyArray_DATA(an_array);
-        if (ndims == 1) field = zfp_field_1d(data, type, dims[0]);
+        if      (ndims == 1) field = zfp_field_1d(data, type, dims[0]);
         else if (ndims == 2) field = zfp_field_2d(data, type, dims[1], dims[0]);
         else if (ndims == 3) field = zfp_field_3d(data, type, dims[2], dims[1], dims[0]);
         else if (ndims == 4) field = zfp_field_4d(data, type, dims[3], dims[2], dims[1], dims[0]);
@@ -81,13 +81,10 @@ py_compress(PyObject *self, PyObject *args, PyObject *kwd)
         /* allocate meta data for a compressed stream */
         zfp = zfp_stream_open(NULL);
         if (reversible==1) zfp_stream_set_reversible(zfp);
-        if (rate >= 0.)
-        {
+        if (rate >= 0)
             zfp_stream_set_rate(zfp, rate, type, ndims, 0);
-        }
         if (accuracy >= 0.)
         {
-            //std::cerr << "accuracy : " << accuracy << std::endl;
             zfp_stream_set_accuracy(zfp, accuracy);
         }
         /* allocate buffer for compressed data */
@@ -98,7 +95,7 @@ py_compress(PyObject *self, PyObject *args, PyObject *kwd)
         zfp_stream_set_bit_stream(zfp, stream);
         zfp_stream_rewind(zfp);
 
-         zfp_stream_set_omp_threads(zfp,0);
+         zfp_stream_set_omp_threads(zfp,1);
         /* compress array*/
         zfpsize = zfp_compress(zfp, field);
         if (!zfpsize) {
@@ -106,10 +103,6 @@ py_compress(PyObject *self, PyObject *args, PyObject *kwd)
             free(buffer);
             return NULL;
         }
-        //std::cout << "buffer : ";
-        //for ( int ii = 0; ii < bufsize; ii++)
-        //    std::cout << int(((char*)buffer)[ii]) << " ";
-        //std::cout << std::endl;
         npy_intp cprsize = zfpsize;
         PyObject *shape = PyTuple_New(ndims);
         for (int i = 0; i < ndims; ++i) PyTuple_SET_ITEM(shape, i, PyLong_FromLong(long(dims[i])));
@@ -128,8 +121,6 @@ py_compress(PyObject *self, PyObject *args, PyObject *kwd)
         PyObject *array = PyList_GetItem(compressed_list, 0);
         Py_INCREF(array);
         Py_DECREF(compressed_list);
-        //std::cout << "ref(array) : " << Py_REFCNT(array) << ", ref(compressed_list) : "
-        //          << Py_REFCNT(compressed_list) << std::endl;
         return array;
     }
     return compressed_list;
@@ -227,7 +218,6 @@ py_decompress(PyObject *self, PyObject *args, PyObject* kwd)
             PyErr_SetString(PyExc_ValueError, "Shape must have only four or less elements");
             return NULL;
         }
-        std::cerr << "(";
         for ( Py_ssize_t j = 0; j < ndim; ++j )
         {
             PyObject *py_dim = PyTuple_GetItem(shape, j);
@@ -236,10 +226,8 @@ py_decompress(PyObject *self, PyObject *args, PyObject* kwd)
                 return NULL;
             }
             long dim                            = PyLong_AsLong(py_dim);
-            std::cerr << dim << " ";
             dims[j] = dim;
         }
-        std::cerr << ")" << std::flush << std::endl;
         PyArrayObject *py_array      = (PyArrayObject *)PyArray_SimpleNew(ndim, dims, NPY_DOUBLE);
         unsigned char *py_array_data = (unsigned char *)PyArray_DATA(py_array);
 
@@ -247,8 +235,6 @@ py_decompress(PyObject *self, PyObject *args, PyObject* kwd)
         else if (ndim == 2) field = zfp_field_2d(py_array_data, type, dims[1], dims[0]);
         else if (ndim == 3) field = zfp_field_3d(py_array_data, type, dims[2], dims[1], dims[0]);
         else if (ndim == 4) field = zfp_field_4d(py_array_data, type, dims[3], dims[2], dims[1], dims[0]);
-        //int n = zfp_field_size(field, NULL);
-        //std::cout << "n : " << n << std::endl;
         /* allocate meta data for a compressed stream */
         zfp = zfp_stream_open(NULL);
         if (reversible==1) zfp_stream_set_reversible(zfp);
@@ -263,10 +249,6 @@ py_decompress(PyObject *self, PyObject *args, PyObject* kwd)
         /* allocate buffer for compressed data */
         bufsize = PyArray_Size((PyObject*)array);
         buffer = PyArray_DATA(array);
-        //std::cout << "array compresse : ";
-        //for ( int ii = 0; ii < bufsize; ii++)
-        //    std::cout << int(((char*)buffer)[ii]) << " ";
-        //std::cout << std::endl;
         /* associate bit stream with allocated buffer */
         stream = stream_open(buffer, bufsize);
         zfp_stream_set_bit_stream(zfp, stream);
@@ -276,10 +258,6 @@ py_decompress(PyObject *self, PyObject *args, PyObject* kwd)
             PyErr_SetString(PyExc_RuntimeError, "Failed to decompress data for an array !");
             return NULL;
         }
-        //std::cout << "array : " << std::endl;
-        //for ( int ii = 0; ii < dims[0]; ++ii )
-        //    std::cout << ((double*)py_array_data)[ii] << " ";
-        //std::cout << std::flush << std::endl;
         zfp_field_free(field);
         zfp_stream_close(zfp);
         stream_close(stream);
@@ -335,7 +313,7 @@ PyInit_czfp(void)
 PyMODINIT_FUNC
 initczfp(void)
 {
-    PyObject* m = Py_InitModule3("czfp", Pycompressor_zfp, module_doc);
+    PyObject* m = Py_InitModule3("czfp", NULL, module_doc);
     if (m == NULL) return;
     /* Tres important : initialise numpy afin de pouvoir l'utiliser ici !!!! */
     import_array();

@@ -4825,6 +4825,26 @@ def getBCs(t, reorder=True):
           BCs.append(zBC); BCNames.append(name); BCTypes.append(typeGC)
   return (BCs, BCNames, BCTypes)
 
+# Merge les BCs sur une zone non structuree
+def _mergeBCs(z):
+  bcs = getBCs(z)
+  BCs=bcs[0]; BCNames=bcs[1]; BCTypes=bcs[2]
+  # merge par type
+  alltypes = {}
+  for c, t in enumerate(BCTypes):
+    if t not in alltypes: alltypes[t] = BCs[c]
+    else: alltypes[t] += BCs[c]
+  # rebuild
+  for i in alltypes: alltypes[i] = T.join(alltypes[i])
+  BCs=[]; BCNames=[]; BCTypes=[]
+  for i in alltypes:
+    BCs.append(alltypes[i])
+    BCNames.append('Merged'+i)
+    BCTypes.append(i)
+    
+  _recoverBCs(z, (BCs,BCNames,BCTypes))
+  return None
+
 def isXZone(zone):
     """ Check wheter a zone has been added by addXZones (for MPI computation)"""
     r = Internal.getNodeFromName1(zone,'XZone')

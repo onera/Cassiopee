@@ -8,7 +8,7 @@ print(a)
 
 za = zfp.pack(a, accuracy=1.e-10)
 print(za[1].size)
-print(za)
+#print(za)
 
-b = zfp.unpack(za)
+b = zfp.unpack(za, accuracy=1.e-10)
 print(b)

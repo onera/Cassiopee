@@ -80,7 +80,7 @@ init_parameters(sz_params &parameters)
     parameters.errorBoundMode         = REL;
     parameters.absErrBound            = 1.E-6;
     parameters.relBoundRatio          = 1.E-5;
-    parameters.losslessCompressor            = ZSTD_COMPRESSOR;
+    parameters.losslessCompressor     = ZSTD_COMPRESSOR;
 }
 
 void display_parameters(const sz_params &params)
@@ -790,10 +790,10 @@ PyMODINIT_FUNC initcsz(void)
     /* Tres important : initialise numpy afin de pouvoir l'utiliser ici !!!! */
     import_array();
 
-    // for (const auto &key : sz::sz_keys) {
-    //     PyObject *py_key = PyString_FromString(key);
-    //     Py_INCREF(py_key);
-    //     PyModule_AddObject(m, key, (PyObject *)&py_key);
-    // }
+    for (const auto &key : sz::sz_keys) {
+        PyObject *py_key = PyString_FromString(key);
+        Py_INCREF(py_key);
+        PyModule_AddObject(m, key, (PyObject *)py_key);
+    }
 }
 #endif
