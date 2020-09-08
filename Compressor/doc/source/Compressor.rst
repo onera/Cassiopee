@@ -164,11 +164,10 @@ Object serialize/compression
     .. literalinclude:: ../build/Examples/Compressor/compressCellNPT.py
 
 
-
 ---------------------------------------
 
 
-.. py:function:: Compressor.PyTree.compressCoords(a, tol=1.e-8)
+.. py:function:: Compressor.PyTree.compressCoords(a, tol=1.e-8, ctype=0)
 
     Compress zone coordinates with sz library with a relative tolerance tol.
 
@@ -178,6 +177,8 @@ Object serialize/compression
     :type a: [zone, list of zones, base, pyTree]
     :param tol: control relative error on output
     :type tol: float
+    :param ctype: compression algorithm
+    :type ctype: 0 (sz), 1 (zfp)
     :return: identical to input
 
     * `Coordinates compression (pyTree) <Examples/Compressor/compressCoordsPT.py>`_:
@@ -197,6 +198,8 @@ Object serialize/compression
     :type a: [zone, list of zones, base, pyTree]
     :param tol: control relative error on output
     :type tol: float
+    :param ctype: compression algorithm
+    :type ctype: 0 (sz), 1 (zfp)
     :return: identical to input
 
     * `Field compression (pyTree) <Examples/Compressor/compressFieldsPT.py>`_:

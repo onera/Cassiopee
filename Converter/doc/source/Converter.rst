@@ -1385,6 +1385,8 @@ Array / PyTree common manipulations
 
     .. literalinclude:: ../build/Examples/Converter/initVarsByEq.py
 
+    .. note:: When initializing variables using string formulas, functions correspond to the numpy library.
+    
     * `Init a variable to a constant value (pyTree) <Examples/Converter/initVarsPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/initVarsPT.py

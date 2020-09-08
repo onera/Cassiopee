@@ -28,7 +28,7 @@ py_compress(PyObject *self, PyObject *args, PyObject *kwd)
 {
     //int         status = 0; /* return value: 0 = success */
     zfp_type    type;       /* array scalar type */
-    zfp_field * field;      /* array meta data */
+    zfp_field * field=NULL; /* array meta data */
     zfp_stream *zfp;        /* compressed stream */
     void *      buffer;     /* storage for compressed stream */
     size_t      bufsize;    /* byte size of compressed buffer */
@@ -166,12 +166,12 @@ py_decompress(PyObject *self, PyObject *args, PyObject* kwd)
 {
     //int         status = 0; /* return value: 0 = success */
     zfp_type    type;       /* array scalar type */
-    zfp_field * field;      /* array meta data */
+    zfp_field * field=NULL; /* array meta data */
     zfp_stream *zfp;        /* compressed stream */
     void *      buffer;     /* storage for compressed stream */
     size_t      bufsize;    /* byte size of compressed buffer */
     bitstream * stream;     /* bit stream to write to or read from */
-    size_t      zfpsize;    /* byte size of compressed stream */
+    //size_t      zfpsize;    /* byte size of compressed stream */
 
     PyObject * arrays;
     int        reversible = 0;

@@ -79,7 +79,7 @@ void Data::displayBillBoards(Zone* zonep, int zone)
   // Ecrasement si renderTag
   if (zonep->colorR != -1.)
   {color1[0] = zonep->colorR; 
-    color1[1] = zonep->colorG; 
+    color1[1] = zonep->colorG;
     color1[2] = zonep->colorB;}
 
   if (zonep->selected == 1)
