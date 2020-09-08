@@ -284,8 +284,9 @@ public:
     (const K_FLD::FloatArray& coord, const E_Int* nodes, E_Int nb_nodes, E_Int index_start,
     const E_Float* normal, E_Float convexity_tol);
   
+  template <typename InputIterator>
   static bool is_spiky
-  (const K_FLD::FloatArray& crd, const E_Int* nodes, E_Int nb_nodes, E_Int idx_start, E_Int& is, E_Int& ie);
+  (const K_FLD::FloatArray& crd, InputIterator nodes, E_Int nb_nodes, E_Int idx_start, E_Int& is, E_Int& ie);
 
   // Polygon-Edge intersection
   template <typename TriangulatorType>
@@ -934,6 +935,44 @@ inline void Polygon::shift_geom(const K_FLD::FloatArray&crd, E_Int* nodes, E_Int
   E_Int locid = cands[palma[0].second];
   K_CONNECT::IdTool::right_shift(nodes, nnodes, locid);
   return;
+}
+
+template <typename InputIterator>
+bool Polygon::is_spiky
+(const K_FLD::FloatArray& crd, InputIterator nodes, E_Int nb_nodes, E_Int idx_start, E_Int& is, E_Int& ie)
+{
+  is = IDX_NONE;
+  ie = IDX_NONE;
+
+  E_Int count(0);
+
+  /*std::cout << "apres" << std::endl;
+  for (size_t i = 0; i < nb_nodes; ++i)
+    std::cout << nodes[i] << "/";
+  std::cout << std::endl;*/
+
+  for (E_Int n = 0; n < nb_nodes; ++n)
+  {
+    E_Int ni = nodes[n];
+    E_Int np1 = (n + 1) % nb_nodes;
+    E_Int nip1 = nodes[np1];
+    E_Int nip2 = nodes[(n + 2) % nb_nodes];
+    E_Float v1[3], v2[3];
+    NUGA::diff<3>(crd.col(nip1 - idx_start), crd.col(ni - idx_start), v1);
+    NUGA::diff<3>(crd.col(nip2 - idx_start), crd.col(nip1 - idx_start), v2);
+    E_Float ps = NUGA::dot<3>(v1, v2);
+
+    if (ps < 0.)
+    {
+      ++count;
+      if (is == IDX_NONE) is = np1;
+      else if (ie == IDX_NONE) ie = np1;
+    }
+  }
+
+  if (ie < is) std::swap(is, ie);
+
+  return (count == 2);
 }
 
 }

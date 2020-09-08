@@ -892,7 +892,7 @@ struct ngon_t
             --nnodes;
 
             E_Int is(IDX_NONE), ie(IDX_NONE);
-            if (!K_MESH::Polygon::is_spiky(crd, &chains[c][0], nnodes, 1, is, ie)) continue;
+            if (!K_MESH::Polygon::is_spiky(crd, chains[c].begin(), nnodes, 1, is, ie)) continue;
             // put spiky nodes at the right place (start & end). following works beacause is < ie
             if (is != 0) std::swap(chains[c][0], chains[c][is]);
             if (ie != nnodes - 1) std::swap(chains[c][nnodes - 1], chains[c][ie]);
